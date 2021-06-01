@@ -1,0 +1,64 @@
+# Copyright (c) 2021 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/ohos.gni")
+
+## Build window.so {{{
+config("window_config") {
+  visibility = [ ":*" ]
+
+  include_dirs = [ "//third_party/node/src" ]
+
+  cflags = []
+}
+
+config("window_public_config") {
+  include_dirs = []
+}
+
+ohos_shared_library("window") {
+  sources = [
+    "native_module.cpp",
+    "window.cpp",
+  ]
+
+  configs = [
+    ":window_config",
+    "//foundation/appexecfwk/standard/interfaces/innerkits/appexecfwk_core:bundlemgr_sdk_config",
+    "//foundation/appexecfwk/standard/interfaces/innerkits/appexecfwk_base:appexecfwk_base_sdk_config",
+    "//foundation/aafwk/standard/interfaces/innerkits/want:want_public_config",
+    "//foundation/aafwk/standard/interfaces/innerkits/ability_manager:ability_manager_public_config",
+    "//foundation/aafwk/standard/services/abilitymgr:abilityms_config",
+  ]
+
+  public_configs = [ ":window_public_config" ]
+
+  deps = [
+    "//foundation/aafwk/standard/frameworks/kits/ability/native:abilitykit_native",
+    "//foundation/ace/napi:ace_napi",
+    "//foundation/appexecfwk/standard/kits:appkit_native",
+    "//foundation/graphic/standard:libwms_client",
+  ]
+
+  external_deps = [
+    "hiviewdfx_hilog_native:libhilog",
+    "ipc:ipc_core",
+  ]
+
+  public_deps = []
+
+  relative_install_dir = "module"
+  part_name = "graphic_standard"
+  subsystem_name = "graphic"
+}
+## Build window.so }}}

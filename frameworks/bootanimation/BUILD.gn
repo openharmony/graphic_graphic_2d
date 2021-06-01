@@ -1,0 +1,61 @@
+# Copyright (c) 2021 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/ohos.gni")
+
+## Build bootanimation {{{
+config("bootanimation_config") {
+  visibility = [ ":*" ]
+
+  include_dirs = [ "include" ]
+
+  cflags = [
+    "-Wall",
+    "-Werror",
+    "-g3",
+  ]
+}
+
+ohos_executable("bootanimation") {
+  install_enable = true
+
+  sources = [
+    "src/main.cpp",
+    "src/raw_parser.cpp",
+    "src/util.cpp",
+  ]
+
+  configs = [ ":bootanimation_config" ]
+
+  deps = [
+    "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
+    "//foundation/graphic/standard:libvsync_client",
+    "//foundation/graphic/standard:libwms_client",
+    "//third_party/zlib:libz",
+  ]
+
+  external_deps = ["ipc:ipc_core"]
+
+  part_name = "graphic_standard"
+  subsystem_name = "graphic"
+}
+
+## Build bootanimation }}}
+
+## Install data/bootanimation.raw to /system/etc/bootanimation.raw {{{
+ohos_prebuilt_etc("bootanimation.raw") {
+  source = "data/bootanimation.raw"
+  part_name = "graphic_standard"
+  subsystem_name = "graphic"
+}
+## Install data/bootanimation.raw to /system/etc//bootanimation.raw }}}

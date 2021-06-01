@@ -1,0 +1,62 @@
+# Copyright (c) 2021 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/test.gni")
+
+ohos_unittest("wm_server_test") {
+  module_out_path = "graphic_standard/wm"
+
+  sources = [
+    "//foundation/graphic/standard/frameworks/wm/src/server/layer_controller.cpp",
+    "//foundation/graphic/standard/frameworks/wm/src/server/window_manager_server.cpp",
+    "//foundation/graphic/standard/frameworks/wm/src/server/window_manager_stub.cpp",
+    "wm_server_test.cpp",
+  ]
+
+  include_dirs = [
+    "//foundation/graphic/standard/frameworks/wm/include/server",
+    "//foundation/graphic/standard/frameworks/wm/include",
+    "//foundation/graphic/standard/interfaces/innerkits/wm",
+  ]
+
+  configs = [ "//foundation/graphic/standard/frameworks/wm:wms_service_config" ]
+
+  deps = [
+    "//foundation/distributedschedule/samgr/interfaces/innerkits/samgr_proxy:samgr_proxy",
+    "//foundation/graphic/standard/prebuilts/librarys/display_gralloc:libdisplay_gralloc",
+    "//foundation/graphic/standard/utils:buffer_handle",
+    "//foundation/multimedia/media_standard/frameworks/videodisplaymanager:videodisplaymanager",
+    "//foundation/multimodalinput/input/interfaces/native/innerkits/event:mmi_event",
+    "//third_party/wayland-ivi-extension:libilmClient",
+    "//third_party/wayland-ivi-extension:libilmCommon",
+    "//third_party/wayland-ivi-extension:libilmControl",
+    "//third_party/wayland-ivi-extension:libilmInput",
+    "//third_party/wayland-protocols_standard:linux_dmabuf_unstable_v1_protocol",
+    "//third_party/wayland-protocols_standard:viewporter_protocol",
+    "//third_party/wayland_standard:libwayland_cursor",
+    "//third_party/weston:ivi_application_protocol",
+    "//third_party/weston:libweston",
+  ]
+
+  external_deps = [
+    "hiviewdfx_hilog_native:libhilog",
+    "ipc:ipc_core",
+    "samgr_L2:samgr_proxy",
+  ]
+}
+
+group("test") {
+  testonly = true
+
+  deps = [ ":wm_server_test" ]
+}

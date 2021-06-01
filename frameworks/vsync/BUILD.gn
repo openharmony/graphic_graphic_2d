@@ -1,0 +1,121 @@
+# Copyright (c) 2021 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/ohos.gni")
+
+## Build libvsync_client.so {{{
+config("libvsync_client_config") {
+  visibility = [ ":*" ]
+
+  include_dirs = [
+    "include",
+    "//utils/system/safwk/native/include",
+  ]
+
+  cflags = [
+    "-Wall",
+    "-Werror",
+    "-g3",
+  ]
+}
+
+config("libvsync_client_public_config") {
+  include_dirs = [
+    "//foundation/graphic/standard/interfaces/innerkits/vsync",
+    "//foundation/graphic/standard/interfaces/innerkits/vsync/client",
+  ]
+}
+
+ohos_shared_library("libvsync_client") {
+  sources = [
+    "src/vsync_callback_stub.cpp",
+    "src/vsync_helper.cpp",
+    "src/vsync_helper_impl.cpp",
+    "src/vsync_manager_proxy.cpp",
+  ]
+
+  configs = [ ":libvsync_client_config" ]
+
+  public_configs = [ ":libvsync_client_public_config" ]
+
+  deps = [
+    "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
+    "//foundation/distributedschedule/samgr/interfaces/innerkits/samgr_proxy:samgr_proxy",
+  ]
+
+  external_deps = [ "ipc:ipc_core" ]
+
+  public_deps = [
+    "//foundation/appexecfwk/standard/interfaces/innerkits/libeventhandler:libeventhandler",
+    "//utils/native/base:utils",
+  ]
+
+  part_name = "graphic_standard"
+  subsystem_name = "graphic"
+}
+
+## Build libvsync_client.so }}}
+
+## Build libvsync_server.a {{{
+config("libvsync_server_config") {
+  visibility = [ ":*" ]
+
+  include_dirs = [
+    "include",
+    "//utils/system/safwk/native/include",
+  ]
+
+  cflags = [
+    "-Wall",
+    "-Werror",
+    "-g3",
+  ]
+}
+
+config("libvsync_server_public_config") {
+  include_dirs = [
+    "//foundation/graphic/standard/interfaces/innerkits/vsync",
+    "//foundation/graphic/standard/interfaces/innerkits/vsync/server",
+  ]
+}
+
+ohos_static_library("libvsync_server") {
+  sources = [
+    "src/vsync_callback_proxy.cpp",
+    "src/vsync_manager.cpp",
+    "src/vsync_module.cpp",
+    "src/vsync_module_impl.cpp",
+  ]
+
+  configs = [ ":libvsync_server_config" ]
+
+  public_configs = [ ":libvsync_server_public_config" ]
+
+  deps = [ "//third_party/libdrm:libdrm" ]
+
+  external_deps = [
+    "hiviewdfx_hilog_native:libhilog",
+    "ipc:ipc_core",
+    "samgr_L2:samgr_proxy",
+  ]
+
+  public_deps = []
+}
+
+## Build libvsync_server.a }}}
+
+group("test") {
+  testonly = true
+
+  deps = [ "test:test" ]
+}

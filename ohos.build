@@ -1,0 +1,38 @@
+{
+  "subsystem": "graphic",
+  "parts": {
+    "graphic_standard": {
+      "module_list": [
+        "//foundation/graphic/standard/interfaces/kits/js/declaration:window",
+        "//foundation/graphic/standard/interfaces/kits/napi:napi_packages",
+
+        "//foundation/graphic/standard/prebuilts/etcs:weston.ini",
+        "//foundation/graphic/standard/prebuilts/etcs:weston.rc",
+
+        "//third_party/wayland-ivi-extension:ivi-controller",
+        "//third_party/wayland-ivi-extension:ivi-input-controller",
+        "//third_party/wayland-ivi-extension:libscreen-info-module",
+        "//third_party/wayland-ivi-extension:libtest-screen-info-module",
+        "//third_party/wayland-ivi-extension:layer-add-surfaces",
+        "//third_party/wayland-ivi-extension:LayerManagerControl",
+        "//third_party/wayland-ivi-extension:simple-weston-client",
+        "//third_party/wayland-ivi-extension:screen-info-module-test",
+
+        "//third_party/weston:drm-backend",
+        "//third_party/weston:ivi-shell",
+        "//third_party/weston:libweston-desktop",
+        "//third_party/weston:weston",
+
+        "//foundation/graphic/standard/frameworks/bootanimation:bootanimation",
+        "//foundation/graphic/standard/frameworks/bootanimation:bootanimation.raw",
+        "//foundation/graphic/standard/frameworks/wm:wms_service",
+        "//foundation/graphic/standard/frameworks/wm:wm_test",
+        "//foundation/graphic/standard:graphic.rc"
+      ],
+      "test_list": [
+        "//foundation/graphic/standard/frameworks/surface:test",
+        "//foundation/graphic/standard/frameworks/vsync:test"
+      ]
+    }
+  }
+}

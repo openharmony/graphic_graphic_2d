@@ -1,0 +1,108 @@
+# Copyright (c) 2021 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/test.gni")
+
+module_out_path = "graphic_standard/vsync"
+
+group("unittest") {
+  testonly = true
+
+  deps = [
+    ":vsync_helper_test",
+    ":vsync_manager_remote_test",
+    ":vsync_manager_test",
+    ":vsync_module_test",
+  ]
+}
+
+## UnitTest vsync_helper_test {{{
+ohos_unittest("vsync_helper_test") {
+  module_out_path = module_out_path
+
+  sources = [ "vsync_helper_test.cpp" ]
+
+  deps = [ ":vsync_test_common" ]
+
+  external_deps = [ "ipc:ipc_core" ]
+}
+
+## UnitTest vsync_helper_test }}}
+
+## UnitTest vsync_manager_test {{{
+ohos_unittest("vsync_manager_test") {
+  module_out_path = module_out_path
+
+  sources = [ "vsync_manager_test.cpp" ]
+
+  deps = [ ":vsync_test_common" ]
+
+  external_deps = [ "ipc:ipc_core" ]
+}
+
+## UnitTest vsync_manager_test }}}
+
+## UnitTest vsync_manager_remote_test {{{
+ohos_unittest("vsync_manager_remote_test") {
+  module_out_path = module_out_path
+
+  sources = [ "vsync_manager_remote_test.cpp" ]
+
+  deps = [ ":vsync_test_common" ]
+
+  external_deps = [ "ipc:ipc_core" ]
+}
+
+## UnitTest vsync_manager_remote_test }}}
+
+## UnitTest vsync_module_test {{{
+ohos_unittest("vsync_module_test") {
+  module_out_path = module_out_path
+
+  sources = [ "vsync_module_test.cpp" ]
+
+  deps = [ ":vsync_test_common" ]
+
+  external_deps = [ "ipc:ipc_core" ]
+}
+
+## UnitTest vsync_module_test }}}
+
+## Build vsync_test_common.a {{{
+config("vsync_test_common_public_config") {
+  include_dirs = [
+    "//foundation/graphic/standard/frameworks/vsync/include",
+    "//utils/system/safwk/native/include",
+    "//utils/native/base/include",
+  ]
+
+  cflags = [
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
+}
+
+ohos_static_library("vsync_test_common") {
+  public_configs = [ ":vsync_test_common_public_config" ]
+
+  public_deps = [
+    "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
+    "//foundation/distributedschedule/samgr/interfaces/innerkits/samgr_proxy:samgr_proxy",
+    "//foundation/graphic/standard:libvsync_client",
+    "//foundation/graphic/standard:libvsync_server",
+    "//utils/native/base:utils",
+  ]
+
+  external_deps = [ "ipc:ipc_core" ]
+}
+## Build vsync_test_common.a }}}

@@ -1,0 +1,184 @@
+# Copyright (c) 2021 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/ohos.gni")
+
+## Build wms_client.so {{{
+config("wms_client_config") {
+  visibility = [ ":*" ]
+
+  include_dirs = [
+    "include",
+    "include/client",
+    "//utils/system/safwk/native/include",
+    "//foundation/graphic/standard/frameworks/surface/include",
+  ]
+
+  cflags = [
+    "-Wall",
+    "-Werror",
+    "-g3",
+  ]
+}
+
+config("wms_client_public_config") {
+  include_dirs = [ "//foundation/graphic/standard/interfaces/innerkits/wm" ]
+
+  cflags = []
+}
+
+ohos_shared_library("wms_client") {
+  sources = [
+    "src/client/video_window.cpp",
+    "src/client/window_manager.cpp",
+    "src/client/window_manager_controller_client.cpp",
+    "src/client/window_manager_proxy.cpp",
+  ]
+
+  configs = [ ":wms_client_config" ]
+
+  public_configs = [
+    ":wms_client_public_config",
+    "//third_party/libdrm:libdrm_public_config",
+  ]
+
+  deps = [
+    "//foundation/multimedia/media_standard/frameworks/videodisplaymanager:videodisplaymanager",
+    "//foundation/multimodalinput/input/interfaces/native/innerkits/event:mmi_event",
+    "//third_party/wayland-ivi-extension:libilmClient",
+    "//third_party/wayland-ivi-extension:libilmCommon",
+    "//third_party/wayland-ivi-extension:libilmControl",
+    "//third_party/wayland-ivi-extension:libilmInput",
+    "//third_party/wayland-protocols_standard:linux_dmabuf_unstable_v1_protocol",
+    "//third_party/wayland-protocols_standard:viewporter_protocol",
+    "//third_party/wayland_standard:libwayland_cursor",
+    "//third_party/wayland_standard:wayland_core_protocol",
+    "//third_party/weston:ivi_application_protocol",
+    "//third_party/weston:libweston",
+  ]
+
+  external_deps = [
+    "hiviewdfx_hilog_native:libhilog",
+    "ipc:ipc_core",
+    "samgr_L2:samgr_proxy",
+  ]
+
+  public_deps = [ "//foundation/graphic/standard:libsurface" ]
+
+  part_name = "graphic_standard"
+  subsystem_name = "graphic"
+}
+
+## Build wms_client.so }}}
+
+## Build wms_service {{{
+config("wms_service_config") {
+  visibility = [ ":*" ]
+
+  include_dirs = [
+    "include",
+    "include/server",
+    "//utils/system/safwk/native/include",
+  ]
+
+  cflags = [
+    "-Wall",
+    "-Werror",
+    "-g3",
+  ]
+}
+
+ohos_executable("wms_service") {
+  install_enable = true
+
+  sources = [
+    "src/server/layer_controller.cpp",
+    "src/server/window_manager_server.cpp",
+    "src/server/window_manager_service.cpp",
+    "src/server/window_manager_stub.cpp",
+  ]
+
+  configs = [
+    ":wms_service_config",
+    ":wms_client_public_config",
+  ]
+
+  deps = [
+    "//foundation/graphic/standard:libsurface",
+    "//foundation/graphic/standard:libvsync_server",
+    "//foundation/multimodalinput/input/interfaces/native/innerkits/event:mmi_event",
+    "//third_party/libpng:libpng",
+    "//third_party/wayland-ivi-extension:libilmClient",
+    "//third_party/wayland-ivi-extension:libilmCommon",
+    "//third_party/wayland-ivi-extension:libilmControl",
+    "//third_party/wayland-ivi-extension:libilmInput",
+    "//third_party/wayland-protocols_standard:linux_dmabuf_unstable_v1_protocol",
+    "//third_party/wayland_standard:wayland_core_protocol",
+    "//third_party/weston:libweston",
+  ]
+
+  external_deps = [
+    "hiviewdfx_hilog_native:libhilog",
+    "ipc:ipc_core",
+    "samgr_L2:samgr_proxy",
+  ]
+
+  part_name = "graphic_standard"
+  subsystem_name = "graphic"
+}
+
+## Build wms_service }}}
+
+## Build wm_test {{{
+config("wm_test_config") {
+  visibility = [ ":*" ]
+
+  include_dirs = []
+
+  cflags = [
+    "-Wall",
+    "-Werror",
+    "-g3",
+  ]
+}
+
+ohos_executable("wm_test") {
+  install_enable = true
+
+  sources = [ "src/window_manager_test.cpp" ]
+
+  configs = [ ":wm_test_config" ]
+
+  deps = [
+    ":wms_client",
+    "//foundation/graphic/standard:libvsync_client",
+    "//third_party/zlib:libz",
+  ]
+
+  external_deps = [
+    "ipc:ipc_core",
+    "hiviewdfx_hilog_native:libhilog",
+    "samgr_L2:samgr_proxy",
+  ]
+
+  part_name = "graphic_standard"
+  subsystem_name = "graphic"
+}
+
+## Build wm_test }}}
+
+group("test") {
+  testonly = true
+
+  deps = [ "test:test" ]
+}
