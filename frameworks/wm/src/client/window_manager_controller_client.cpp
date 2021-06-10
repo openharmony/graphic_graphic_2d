@@ -939,7 +939,7 @@ void LayerControllerClient::registry_handle_global(void* data,
         return;
     }
 
-    if (strcmp(interface, "wp_viewport") == 0) {
+    if (strcmp(interface, "wp_viewporter") == 0) {
         auto ret = wl_registry_bind(registry, id, &wp_viewporter_interface, 1);
         wlContext->viewporter = (struct wp_viewporter*)ret;
         return;
@@ -1493,6 +1493,7 @@ InnerWindowInfo* LayerControllerClient::CreateSubWindow(int32_t subid, int32_t p
             return nullptr;
         }
 
+        newSubInfo.viewport = wp_viewporter_get_viewport(wlContextStruct_.viewporter, newSubInfo.wlSurface);
         if (!CreateVideoSubWindow(newSubInfo, *wlContextStruct_.wl_shm)) {
             return nullptr;
         }
@@ -1683,9 +1684,9 @@ void LayerControllerClient::SetSubSurfaceSize(int32_t id, int32_t width, int32_t
         "LayerControllerClient::SetSubSurfaceSize", id, width, height);
 
     GET_WINDOWINFO_VOID(windowInfo, id);
-    if (windowInfo->subwidow == true && windowInfo->viewport) {
-        windowInfo->viewport = wp_viewporter_get_viewport(wlContextStruct_.viewporter, windowInfo->wlSurface);
+    if (windowInfo->subwidow == true && wlContextStruct_.viewporter) {
         if (windowInfo->viewport) {
+            wp_viewport_set_destination(windowInfo->viewport, width, height);
             wp_viewport_set_source(windowInfo->viewport, windowInfo->pos_x, windowInfo->pos_y, width, height);
         }
         wl_surface_commit(windowInfo->wlSurface);

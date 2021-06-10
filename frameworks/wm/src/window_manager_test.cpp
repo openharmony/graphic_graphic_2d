@@ -831,6 +831,42 @@ void Test16()
     printf("uncompress time: %lld\n", GetNowTime() - start);
 }
 
+void Test17()
+{
+    static int32_t maxWidth = WindowManager::GetInstance()->GetMaxWidth();
+    static int32_t maxHeight = WindowManager::GetInstance()->GetMaxHeight();
+    constexpr int32_t videoPosition = 100;
+    constexpr int32_t videoWidth = 100;
+    constexpr int32_t videoHeight = 100;
+    Flush(0, 0, 0, WINDOW_TYPE_NORMAL);
+    FlushSubVideo(videoPosition, videoWidth, videoHeight, WINDOW_TYPE_VIDEO);
+
+    static std::function<void()> func = [&]() {
+        constexpr int32_t step = 37;
+        constexpr int32_t minWidthHeight = 100;
+        static int32_t width = maxWidth;
+        static int32_t height = maxHeight;
+
+        width -= step;
+        height -= step;
+
+        if (width < minWidthHeight) {
+            width += maxWidth;
+        }
+
+        if (height < minWidthHeight) {
+            height += maxHeight;
+        }
+
+        g_subWindow->SetSubWindowSize(width, height);
+
+        constexpr uint32_t delayTime = 300;
+        PostTask(func, delayTime);
+    };
+
+    PostTask(func);
+}
+
 struct WindowManagerTest {
     int32_t id;
     const char *desc;
@@ -858,6 +894,7 @@ void InitTest(std::vector<struct WindowManagerTest>& tests)
     ADD_TEST(tests, 14, "subvideo destory");
     ADD_TEST(tests, 15, "ipc draw");
     ADD_TEST(tests, 16, "uncompress perf");
+    ADD_TEST(tests, 17, "video resize");
 }
 
 void usage(const char* argv0, std::vector<struct WindowManagerTest>& tests)
