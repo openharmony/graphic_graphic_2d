@@ -29,6 +29,9 @@ static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, 0xD001400, 
 #define UTILS_LOGI(...) (void)OHOS::HiviewDFX::HiLog::Info(LOG_LABEL, __VA_ARGS__)
 #define UTILS_LOGD(...) (void)OHOS::HiviewDFX::HiLog::Debug(LOG_LABEL, __VA_ARGS__)
 
+#define BUFFER_HANDLE_MAX_RESERVE_INTS 64
+#define BUFFER_HANDLE_MAX_RESERVE_FDS 64
+
 BufferHandle *AllocateBufferHandle(uint32_t reserveFds, uint32_t reserveInts)
 {
     if (reserveFds > BUFFER_HANDLE_MAX_RESERVE_FDS || reserveFds < 0 ||
