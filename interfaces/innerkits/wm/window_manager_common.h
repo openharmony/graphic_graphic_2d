@@ -127,7 +127,7 @@ struct WindowInfo {
     int32_t pos_y;
 };
 
-using funcWindowInfoChange = void (*)(WindowInfo &info);
+using funcWindowInfoChange = std::function<void(WindowInfo&)>;
 
 using FuncShotDone = void (*)(ImageInfo& imageInfo);
 using FuncSync = void (*)(uint64_t timestamp);
