@@ -14,6 +14,7 @@
  */
 
 #include "buffer_handle.h"
+#include "buffer_handle_utils.h"
 
 #include <cstdlib>
 #include <securec.h>

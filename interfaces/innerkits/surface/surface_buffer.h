@@ -17,8 +17,7 @@
 #define INTERFACES_INNERKITS_SURFACE_SURFACE_BUFFER_H
 
 #include <refbase.h>
-#include <buffer_handle.h>
-
+#include "buffer_handle_utils.h"
 #include "surface_type.h"
 
 namespace OHOS {

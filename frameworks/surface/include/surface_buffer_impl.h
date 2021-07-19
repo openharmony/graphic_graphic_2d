@@ -20,6 +20,7 @@
 
 #include <surface_buffer.h>
 #include <buffer_handle_parcel.h>
+#include <buffer_handle_utils.h>
 
 namespace OHOS {
 enum ExtraDataType {
