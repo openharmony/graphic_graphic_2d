@@ -33,14 +33,14 @@ namespace OHOS {
 class WindowBase {
 public:
     WindowBase(int32_t windowid, sptr<Surface>& surface);
-    ~WindowBase();
+    virtual ~WindowBase();
 
     void GetRequestConfig(BufferRequestConfig& config);
     void SetRequestConfig(BufferRequestConfig& config);
     void RegistWindowInfoChangeCb(funcWindowInfoChange cb);
 
     int32_t GetWindowID();
-    sptr<Surface> GetSurface();
+    virtual sptr<Surface> GetSurface();
 
 protected:
     int32_t m_windowid;
@@ -83,10 +83,10 @@ public:
 class SubWindow : public WindowBase {
 public:
     SubWindow(int32_t windowid, sptr<Surface>& surface);
-    ~SubWindow();
+    virtual ~SubWindow();
 
-    void Move(int32_t x, int32_t y);
-    void SetSubWindowSize(int32_t width, int32_t height);
+    virtual void Move(int32_t x, int32_t y);
+    virtual void SetSubWindowSize(int32_t width, int32_t height);
 };
 
 class WindowManager : public RefBase {
