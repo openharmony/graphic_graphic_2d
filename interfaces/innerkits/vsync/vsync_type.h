@@ -19,7 +19,10 @@
 #include <string>
 
 namespace OHOS {
-#define DRM_MODULE_NAME "hisilicon"
+static const char *DrmModuleNames[] = {
+    "hisilicon",
+    "sprd",
+};
 
 using VsyncError = enum VsyncError {
     VSYNC_ERROR_OK = 0,

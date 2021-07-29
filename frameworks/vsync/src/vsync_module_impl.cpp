@@ -118,9 +118,15 @@ VsyncError VsyncModuleImpl::Start()
         return ret;
     }
 
-    drmFd_ = drmOpen(DRM_MODULE_NAME, nullptr);
+    for (const auto &name : DrmModuleNames) {
+        drmFd_ = drmOpen(name, nullptr);
+        if (drmFd_ < 0) {
+            VLOGW("drmOpen %{public}s failed with %{public}d", name, errno);
+        } else {
+            break;
+        }
+    }
     if (drmFd_ < 0) {
-        VLOG_ERROR_API(errno, drmOpen);
         return VSYNC_ERROR_API_FAILED;
     }
     VLOGD("drmOpen fd is %{public}d", drmFd_);
