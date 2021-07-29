@@ -17,7 +17,6 @@ group("test") {
   testonly = true
 
   deps = [
-    "buffer_client_producer:test",
     "buffer_queue_producer:test",
   ]
 }
