@@ -24,7 +24,7 @@
         "//third_party/weston:weston",
 
         "//foundation/graphic/standard/frameworks/bootanimation:bootanimation",
-        "//foundation/graphic/standard/frameworks/bootanimation:bootanimation.raw",
+        "//foundation/graphic/standard/frameworks/bootanimation:bootanimation-480x960.raw",
         "//foundation/graphic/standard/frameworks/wm:wms_service",
         "//foundation/graphic/standard/frameworks/wm:wm_test",
         "//foundation/graphic/standard:graphic.rc"

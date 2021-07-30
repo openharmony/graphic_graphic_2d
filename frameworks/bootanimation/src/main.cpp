@@ -175,8 +175,19 @@ void Main()
 int main(int argc, const char *argv[])
 {
     int64_t start = GetNowTime();
-    std::string filename = "/system/etc/bootanimation.raw";
-    if (RawParser::GetInstance()->Parse(filename)) {
+    const int32_t width = WindowManager::GetInstance()->GetMaxWidth();
+    const int32_t height = WindowManager::GetInstance()->GetMaxHeight();
+    constexpr int32_t stringLength = 64;
+    char resource[stringLength];
+    int32_t ret = snprintf_s(resource, sizeof(resource),
+        sizeof(resource) - 1, "/system/etc/bootanimation-%dx%d.raw", width, height);
+    if (ret == -1) {
+        LOG("snprintf_s failed");
+        return -1;
+    }
+
+    std::string resourceString = resource;
+    if (RawParser::GetInstance()->Parse(resourceString)) {
         return -1;
     }
     LOG("time: %{public}lld", GetNowTime() - start);

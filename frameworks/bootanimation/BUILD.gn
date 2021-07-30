@@ -52,10 +52,10 @@ ohos_executable("bootanimation") {
 
 ## Build bootanimation }}}
 
-## Install data/bootanimation.raw to /system/etc/bootanimation.raw {{{
-ohos_prebuilt_etc("bootanimation.raw") {
-  source = "data/bootanimation.raw"
+## Install data/bootanimation-480x960.raw to /system/etc/bootanimation-480x960.raw {{{
+ohos_prebuilt_etc("bootanimation-480x960.raw") {
+  source = "data/bootanimation-480x960.raw"
   part_name = "graphic_standard"
   subsystem_name = "graphic"
 }
-## Install data/bootanimation.raw to /system/etc//bootanimation.raw }}}
+## Install data/bootanimation-480x960.raw to /system/etc/bootanimation-480x960.raw }}}
