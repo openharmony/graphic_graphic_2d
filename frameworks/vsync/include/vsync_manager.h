@@ -28,19 +28,16 @@ namespace OHOS {
 class VsyncManager : public IRemoteStub<IVsyncManager> {
 public:
     virtual int32_t OnRemoteRequest(uint32_t code, MessageParcel& data,
-                                MessageParcel& reply, MessageOption& option) override;
+                                    MessageParcel& reply, MessageOption& option) override;
 
-    VsyncError ListenNextVsync(sptr<IVsyncCallback>& cb) override;
+    virtual VsyncError ListenVsync(sptr<IVsyncCallback>& cb) override;
+    virtual VsyncError GetVsyncFrequency(uint32_t& freq) override;
 
     void Callback(int64_t timestamp);
 
-    void CheckVsyncRequest();
-    void StopCheck();
-
 private:
-    std::list<sptr<IVsyncCallback>> callbacks;
-    std::mutex callbacks_mutex;
-    std::condition_variable condition_;
+    std::list<sptr<IVsyncCallback>> callbacks_;
+    std::mutex callbacksMutex_;
 };
 } // namespace OHOS
 

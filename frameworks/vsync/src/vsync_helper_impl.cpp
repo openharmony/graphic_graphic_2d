@@ -15,6 +15,8 @@
 
 #include "vsync_helper_impl.h"
 
+#include <chrono>
+#include <list>
 #include <sys/time.h>
 
 #include <iservice_registry.h>
@@ -26,175 +28,236 @@
 namespace OHOS {
 namespace {
 constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, 0, "VsyncHelperImpl" };
-constexpr int SEC_TO_USEC = 1000000;
+std::list<std::shared_ptr<AppExecFwk::EventHandler>> g_handlers;
+std::mutex g_handlersMutex;
+
+int64_t GetNowTime()
+{
+    auto now = std::chrono::steady_clock::now().time_since_epoch();
+    return (int64_t)std::chrono::duration_cast<std::chrono::nanoseconds>(now).count();
+}
 }
 
-thread_local sptr<VsyncHelperImpl> VsyncHelperImpl::currentHelper;
-
-static int64_t GetNowTime()
+sptr<VsyncClient> VsyncClient::GetInstance()
 {
-    struct timeval tv = {};
-    gettimeofday(&tv, nullptr);
-    return (int64_t)tv.tv_usec + (int64_t)tv.tv_sec * SEC_TO_USEC;
-}
-
-VsyncCallback::VsyncCallback(sptr<VsyncHelperImpl>& helper) : helper_(helper)
-{
-}
-
-VsyncCallback::~VsyncCallback()
-{
-}
-
-void VsyncCallback::OnVsync(int64_t timestamp)
-{
-    if (helper_) {
-        helper_->DispatchFrameCallback(timestamp);
+    if (instance == nullptr) {
+        static std::mutex mutex;
+        std::lock_guard<std::mutex> lock(mutex);
+        if (instance == nullptr) {
+            instance = new VsyncClient();
+        }
     }
+    return instance;
 }
 
-sptr<VsyncHelperImpl> VsyncHelperImpl::Current()
+VsyncError VsyncClient::Init()
 {
-    if (currentHelper == nullptr) {
-        auto currentRunner = AppExecFwk::EventRunner::Current();
-        if (currentRunner == nullptr) {
-            VLOG_FAILURE("AppExecFwk::EventRunner::Current() return nullptr");
-            return nullptr;
+    if (service_ == nullptr) {
+        auto sm = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+        if (sm == nullptr) {
+            VLOG_FAILURE_RET(VSYNC_ERROR_SAMGR);
         }
 
-        std::shared_ptr<AppExecFwk::EventHandler> handler =
-            std::make_shared<AppExecFwk::EventHandler>(currentRunner);
-        currentHelper = new VsyncHelperImpl(handler);
-        VLOG_SUCCESS("new VsyncHelperImpl");
+        auto remoteObject = sm->GetSystemAbility(VSYNC_MANAGER_ID);
+        if (remoteObject == nullptr) {
+            VLOG_FAILURE_RET(VSYNC_ERROR_SERVICE_NOT_FOUND);
+        }
+
+        service_ = iface_cast<IVsyncManager>(remoteObject);
+        if (service_ == nullptr) {
+            VLOG_FAILURE_RET(VSYNC_ERROR_PROXY_NOT_INCLUDE);
+        }
+
+        VLOG_SUCCESS("service_ = iface_cast");
     }
 
-    return currentHelper;
-}
+    if (vsyncFrequency_ == 0) {
+        auto vret = service_->GetVsyncFrequency(vsyncFrequency_);
+        if (vret != VSYNC_ERROR_OK) {
+            VLOG_FAILURE_RET(vret);
+        }
 
-VsyncHelperImpl::VsyncHelperImpl(std::shared_ptr<AppExecFwk::EventHandler>& handler)
-{
-    handler_ = handler;
-}
-
-VsyncHelperImpl::~VsyncHelperImpl()
-{
-}
-
-VsyncError VsyncHelperImpl::Init()
-{
-    return InitSA();
-}
-
-VsyncError VsyncHelperImpl::InitSA()
-{
-    return InitSA(VSYNC_MANAGER_ID);
-}
-
-VsyncError VsyncHelperImpl::InitSA(int32_t systemAbilityId)
-{
-    if (service_ != nullptr) {
-        VLOG_SUCCESS("service_ != nullptr");
-        return VSYNC_ERROR_OK;
+        if (vsyncFrequency_ == 0) {
+            VLOG_FAILURE_RET(VSYNC_ERROR_INNER);
+        }
+        VLOG_SUCCESS("Get Frequency: %{public}u", vsyncFrequency_);
     }
 
-    auto sm = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-    if (sm == nullptr) {
-        VLOG_FAILURE_RET(VSYNC_ERROR_SAMGR);
-    }
-
-    auto remoteObject = sm->GetSystemAbility(systemAbilityId);
-    if (remoteObject == nullptr) {
-        VLOG_FAILURE_RET(VSYNC_ERROR_SERVICE_NOT_FOUND);
-    }
-
-    service_ = iface_cast<IVsyncManager>(remoteObject);
-    if (service_ == nullptr) {
-        VLOG_FAILURE_RET(VSYNC_ERROR_PROXY_NOT_INCLUDE);
-    }
-
-    VLOG_SUCCESS("service_ = iface_cast");
-    return VSYNC_ERROR_OK;
-}
-
-VsyncError VsyncHelperImpl::RequestFrameCallback(struct FrameCallback &cb)
-{
-    if (cb.callback_ == nullptr) {
-        VLOG_FAILURE_RET(VSYNC_ERROR_NULLPTR);
-    }
-
-    if (service_ == nullptr) {
-        VsyncError ret = Init();
-        if (ret != VSYNC_ERROR_OK) {
+    if (listener_ == nullptr) {
+        listener_ = new VsyncCallback();
+        VsyncError ret = service_->ListenVsync(listener_);
+        if (ret == VSYNC_ERROR_OK) {
+            VLOG_SUCCESS("ListenVsync");
+        } else {
+            VLOG_FAILURE_API(ListenVsync, ret);
             return ret;
         }
     }
 
-    int64_t delayTime = cb.timestamp_;
-    cb.timestamp_ += GetNowTime();
+    return VSYNC_ERROR_OK;
+}
 
-    {
-        std::lock_guard<std::mutex> lockGuard(callbacks_mutex_);
-        callbacks_.push(cb);
+VsyncError VsyncClient::RequestFrameCallback(const struct FrameCallback &cb)
+{
+    VsyncError ret = Init();
+    if (ret != VSYNC_ERROR_OK) {
+        return ret;
     }
 
-    if (delayTime <= 0 && handler_->GetEventRunner()->IsCurrentRunnerThread()) {
-        RequestNextVsync();
-        VLOG_SUCCESS("RequestNextVsync time: " VPUBI64, delayTime);
-    } else {
-        handler_->PostTask([this]() { RequestNextVsync(); }, "FrameCallback", delayTime);
-        VLOG_SUCCESS("PostTask time: " VPUBI64, delayTime);
+    if (cb.callback_ == nullptr) {
+        VLOG_FAILURE_RET(VSYNC_ERROR_NULLPTR);
+    }
+
+    uint32_t frequency = cb.frequency_;
+    if (frequency == 0) {
+        frequency = vsyncFrequency_;
+    }
+
+    if (vsyncFrequency_ % frequency != 0) {
+        VLOGW("cb.frequency_ is invalid arguments");
+        VLOG_FAILURE_RET(VSYNC_ERROR_INVALID_ARGUMENTS);
+    }
+
+    int64_t delayTime = cb.timestamp_;
+    uint32_t vsyncID = lastID_ + vsyncFrequency_ / frequency;
+    struct VsyncElement ele = {
+        .callback_ = cb.callback_,
+        .activeTime_ = cb.timestamp_ + GetNowTime(),
+        .userdata_ = cb.userdata_,
+    };
+
+    {
+        std::lock_guard<std::mutex> lockGuard(callbacksMapMutex_);
+        callbacksMap_[vsyncID].push(ele);
+    }
+
+    VLOG_SUCCESS("RequestFrameCallback time: " VPUBI64 ", id: %{public}u", delayTime, vsyncID);
+    return VSYNC_ERROR_OK;
+}
+
+VsyncError VsyncClient::GetSupportedVsyncFrequencys(std::vector<uint32_t>& freqs)
+{
+    VsyncError ret = Init();
+    if (ret != VSYNC_ERROR_OK) {
+        return ret;
+    }
+
+    freqs.clear();
+    for (uint32_t i = 1; i * i <= vsyncFrequency_; i++) {
+        if (i * i != vsyncFrequency_) {
+            freqs.push_back(vsyncFrequency_ / i);
+        }
+        freqs.push_back(i);
     }
     return VSYNC_ERROR_OK;
 }
 
-void VsyncHelperImpl::DispatchFrameCallback(int64_t timestamp)
+void VsyncClient::DispatchFrameCallback(int64_t timestamp)
 {
-    handler_->PostTask([this, timestamp]() {
-        isVsyncRequested = false;
+    std::lock_guard<std::mutex> lock(g_handlersMutex);
+    if (g_handlers.empty() == true) {
+        VLOGD("g_handlers is empty, cannot exec");
+        return;
+    }
 
-        int64_t now = GetNowTime();
-        VLOGI("DispatchFrameCallback, time: " VPUBI64 ", timestamp: " VPUBI64, now, timestamp);
+    auto func = std::bind(&VsyncClient::DispatchMain, this, timestamp);
+    g_handlers.front()->PostTask(func, "VsyncClient::DispatchFrameCallback");
+}
 
-        std::list<struct FrameCallback> frameCallbacks;
-        {
-            std::lock_guard<std::mutex> lockGuard(callbacks_mutex_);
-            while (callbacks_.empty() != true) {
-                if (callbacks_.top().timestamp_ <= now) {
-                    frameCallbacks.push_back(callbacks_.top());
-                    callbacks_.pop();
+void VsyncClient::DispatchMain(int64_t timestamp)
+{
+    uint32_t id = ++lastID_;
+    int64_t now = GetNowTime();
+
+    std::list<struct VsyncElement> vsyncElements;
+    {
+        std::lock_guard<std::mutex> lockGuard(callbacksMapMutex_);
+        for (auto& [vid, eles] : callbacksMap_) {
+            if (vid > id) {
+                continue;
+            }
+
+            while (eles.empty() != true) {
+                if (eles.top().activeTime_ <= now) {
+                    vsyncElements.push_back(eles.top());
+                    eles.pop();
                 } else {
                     break;
                 }
             }
         }
+    }
 
-        for (auto it = frameCallbacks.begin(); it != frameCallbacks.end(); it++) {
-            it->callback_(timestamp, it->userdata_);
-        }
-    });
+    if (vsyncElements.size()) {
+        VLOGI("DispatchFrameCallback id: %{public}u, time: " VPUBI64 ", timestamp: " VPUBI64,
+                id, now, timestamp);
+    }
+
+    for (const auto& ele : vsyncElements) {
+        ele.callback_(timestamp, ele.userdata_);
+    }
+
+    {
+        std::lock_guard<std::mutex> lockGuard(callbacksMapMutex_);
+        bool haveEmpty;
+        do {
+            haveEmpty = false;
+            for (auto it = callbacksMap_.begin(); it != callbacksMap_.end(); it++) {
+                if (it->second.empty() == true) {
+                    callbacksMap_.erase(it);
+                    haveEmpty = true;
+                    break;
+                }
+            }
+        } while (haveEmpty == true);
+    }
 }
 
-void VsyncHelperImpl::RequestNextVsync()
+sptr<VsyncHelperImpl> VsyncHelperImpl::Current()
 {
-    struct FrameCallback cb;
-    {
-        std::lock_guard<std::mutex> lockGuard(callbacks_mutex_);
-        if (isVsyncRequested || callbacks_.empty()) {
-            return;
+    if (currentHelper_ == nullptr) {
+        auto handler = AppExecFwk::EventHandler::Current();
+        if (handler == nullptr) {
+            VLOG_FAILURE("AppExecFwk::EventHandler::Current() return nullptr");
+            return nullptr;
         }
-        cb = callbacks_.top();
+        currentHelper_ = new VsyncHelperImpl(handler);
+        VLOG_SUCCESS("new VsyncHelperImpl");
     }
+    return currentHelper_;
+}
 
-    if (cb.timestamp_ <= GetNowTime()) {
-        sptr<VsyncHelperImpl> helper = this;
-        sptr<IVsyncCallback> ivcb = new VsyncCallback(helper);
-        VsyncError ret = service_->ListenNextVsync(ivcb);
-        if (ret == VSYNC_ERROR_OK) {
-            isVsyncRequested = true;
-            VLOG_SUCCESS("ListenNextVsync");
-        } else {
-            VLOG_FAILURE_API(ListenNextVsync, ret);
+VsyncHelperImpl::VsyncHelperImpl(std::shared_ptr<AppExecFwk::EventHandler>& handler)
+{
+    handler_ = handler;
+    std::lock_guard<std::mutex> lock(g_handlersMutex);
+    g_handlers.push_back(handler_);
+}
+
+VsyncHelperImpl::~VsyncHelperImpl()
+{
+    std::lock_guard<std::mutex> lock(g_handlersMutex);
+    for (auto it = g_handlers.begin(); it != g_handlers.end(); it++) {
+        if (handler_ == *it) {
+            g_handlers.erase(it);
+            break;
         }
     }
+}
+
+VsyncError VsyncHelperImpl::RequestFrameCallback(const struct FrameCallback& cb)
+{
+    return VsyncClient::GetInstance()->RequestFrameCallback(cb);
+}
+
+VsyncError VsyncHelperImpl::GetSupportedVsyncFrequencys(std::vector<uint32_t>& freqs)
+{
+    return VsyncClient::GetInstance()->GetSupportedVsyncFrequencys(freqs);
+}
+
+VsyncError VsyncCallback::OnVsync(int64_t timestamp)
+{
+    VsyncClient::GetInstance()->DispatchFrameCallback(timestamp);
+    return VSYNC_ERROR_OK;
 }
 } // namespace OHOS

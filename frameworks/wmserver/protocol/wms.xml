@@ -1,0 +1,233 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<protocol name="wms">
+  <copyright>
+    Copyright (c) 2021 Huawei Device Co., Ltd.
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+  </copyright>
+
+  <interface name="wms" version="1">
+    <description summary="interface for window manager server."/>
+
+    <enum name="window_type">
+      <description summary="window type">
+      </description>
+      <entry name="normal"  value="0"/>
+      <entry name="status_bar" value="1"/>
+      <entry name="navi_bar" value="2"/>
+      <entry name="alarm" value="3"/>
+      <entry name="max_count" value="4"/>
+    </enum>
+
+    <request name="create_window">
+      <arg name="surface" type="object" interface="wl_surface"/>
+      <arg name="screen_id" type="uint"/>
+      <arg name="window_type" type="uint" enum="window_type"/>
+    </request>
+
+    <request name="destroy_window">
+      <arg name="window_id" type="uint"/>
+    </request>
+
+    <request name="set_window_top">
+      <arg name="window_id" type="uint"/>
+    </request>
+
+    <request name="set_window_size">
+      <description summary="set window size."/>
+      <arg name="window_id" type="uint"/>
+      <arg name="width" type="int"/>
+      <arg name="height" type="int"/>
+    </request>
+
+    <request name="set_window_scale">
+      <description summary="set window scale."/>
+      <arg name="window_id" type="uint"/>
+      <arg name="width" type="int"/>
+      <arg name="height" type="int"/>
+    </request>
+
+    <request name="set_window_position">
+      <description summary="set window position."/>
+      <arg name="window_id" type="uint"/>
+      <arg name="x" type="int"/>
+      <arg name="y" type="int"/>
+    </request>
+
+    <enum name="visibility">
+      <description summary="visibility enumeration definition">
+      </description>
+      <entry name="false"  value="0" summary="invisible"/>
+      <entry name="true" value="1" summary="visibile"/>
+    </enum>
+
+    <request name="set_window_visibility">
+      <description summary="set the visibility of a window"/>
+      <arg name="window_id" type="uint"/>
+      <arg name="visibility" type="uint" enum="visibility"/>
+    </request>
+
+    <request name="set_window_type">
+      <description summary="change type of a window"/>
+      <arg name="window_id" type="uint"/>
+      <arg name="window_type" type="uint" enum="window_type"/>
+    </request>
+
+    <enum name="display_mode">
+      <description summary="display mode">
+      </description>
+      <entry name="single"  value="1" summary="single screen"/>
+      <entry name="clone" value="2" summary="clone screen"/>
+      <entry name="extend" value="4" summary="extend screen"/>
+      <entry name="expand" value="8" summary="expand screen"/>
+    </enum>
+
+    <request name="set_display_mode">
+      <description summary="set display mode"/>
+      <arg name="display_mode" type="uint" enum="display_mode"/>
+    </request>
+
+    <request name="commit_changes">
+      <description summary="commit all changes requested by client"/>
+    </request>
+
+    <enum name="window_status">
+      <description summary="window status">
+      </description>
+      <entry name="created"  value="0" summary="window creation succeeded"/>
+      <entry name="failed" value="1" summary="window creation failed"/>
+      <entry name="destroyed" value="2" summary="window destroyed"/>
+    </enum>
+
+    <event name="window_status">
+      <description summary="window status update"/>
+      <arg name="status" type="uint" enum="window_status"/>
+      <arg name="window_id" type="uint"/>
+      <arg name="x" type="int"/>
+      <arg name="y" type="int"/>
+      <arg name="width" type="int"/>
+      <arg name="height" type="int"/>
+    </event>
+
+    <enum name="screen_status">
+      <description summary="screen status">
+      </description>
+      <entry name="add"  value="0"/>
+      <entry name="remove" value="1"/>
+    </enum>
+
+    <event name="screen_status">
+      <description summary="screen info update"/>
+      <arg name="screen_id" type="uint"/>
+      <arg name="name" type="string"/>
+      <arg name="status" type="uint" enum="screen_status"/>
+      <arg name="width" type="int"/>
+      <arg name="height" type="int"/>
+    </event>
+
+    <event name="display_mode">
+      <description summary="display mode update. flag is bitmask of display mode."/>
+      <arg name="flag" type="uint"/>
+    </event>
+
+    <enum name="error">
+      <description summary="ok or error."/>
+      <entry name="ok"  value="0"/>
+      <entry name="invalid_param"  value="1"/>
+      <entry name="pid_check"  value="2"/>
+      <entry name="no_memory"  value="3"/>
+      <entry name="inner_error"  value="4"/>
+      <entry name="other"  value="5"/>
+    </enum>
+
+    <event name="reply_error">
+      <description summary="reply error."/>
+      <arg name="error" type="uint" enum="error" />
+    </event>
+
+    <request name="screenshot">
+      <description summary="screenshot request"/>
+      <arg name="screen_id" type="uint" summary="screen id"/>
+    </request>
+
+    <request name="windowshot">
+      <description summary="windowshot request"/>
+      <arg name="window_id" type="uint" summary="window id"/>
+    </request>
+
+    <event name="screenshot_done">
+      <description summary="screenshot done">
+      </description>
+      <arg name="id" type="uint" summary="screen id"/>
+      <arg name="fd" type="fd" summary="fd for file containing image data"/>
+      <arg name="width" type="int" summary="image width in pixels"/>
+      <arg name="height" type="int" summary="image height in pixels"/>
+      <arg name="stride" type="int" summary="number of bytes per pixel row"/>
+      <arg name="format" type="uint" summary="image format of type wl_shm.format"/>
+      <arg name="timestamp_sec" type="uint" summary="seconds value of the timestamp"/>
+      <arg name="timestamp_nsec" type="uint" summary="nanoseconds value of the timestamp"/>
+    </event>
+
+    <event name="screenshot_error">
+      <description summary="screenshot error">
+      </description>
+      <arg name="error" type="uint" enum="error"/>
+      <arg name="id" type="uint" summary="screen id"/>
+    </event>
+
+    <event name="windowshot_done">
+      <description summary="windowshot done">
+      </description>
+      <arg name="id" type="uint" summary="window id"/>
+      <arg name="fd" type="fd" summary="fd for file containing image data"/>
+      <arg name="width" type="int" summary="image width in pixels"/>
+      <arg name="height" type="int" summary="image height in pixels"/>
+      <arg name="stride" type="int" summary="number of bytes per pixel row"/>
+      <arg name="format" type="uint" summary="image format of type wl_shm.format"/>
+      <arg name="timestamp_sec" type="uint" summary="seconds value of the timestamp"/>
+      <arg name="timestamp_nsec" type="uint" summary="nanoseconds value of the timestamp"/>
+    </event>
+
+    <event name="windowshot_error">
+      <description summary="windowshot error">
+      </description>
+      <arg name="error" type="uint" enum="error"/>
+      <arg name="id" type="uint" summary="window id"/>
+    </event>
+  </interface>
+
+  <interface name="screen_info" version="1">
+    <description summary="interface for screen info(for multi module input)."/>
+    <enum name="type">
+      <description summary="screen_info type"/>
+      <entry name="screen"  value="1" summary="screen info"/>
+      <entry name="seat" value="2" summary="seat info"/>
+    </enum>
+    <request name="get">
+      <description summary="get screen info"/>
+      <arg name="type" type="uint" enum="type"/>
+    </request>
+    <enum name="listener_set">
+      <description summary="screen_info type"/>
+      <entry name="enable"  value="0" summary="enable"/>
+      <entry name="disable" value="1" summary="disable"/>
+    </enum>
+    <request name="listener">
+      <description summary="listener setting"/>
+      <arg name="type" type="uint" enum="listener_set"/>
+    </request>
+    <event name="reply">
+      <description summary="reply status."/>
+      <arg name="status" type="uint"/>
+    </event>
+  </interface>
+</protocol>

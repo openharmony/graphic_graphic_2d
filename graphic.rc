@@ -11,7 +11,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-service wms_service /system/bin/wms_service
+service vsync_server /system/bin/vsync_server
     class weston
     disabled
     seclabel u:r:wms_service:s0
@@ -22,5 +22,5 @@ service bootanimation /system/bin/bootanimation
     oneshot
 
 on weston_start
-    start wms_service
+    start vsync_server
     start bootanimation

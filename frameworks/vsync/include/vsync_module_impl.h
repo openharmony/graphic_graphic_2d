@@ -26,14 +26,10 @@
 namespace OHOS {
 class VsyncModuleImpl : public VsyncModule {
 public:
-    static sptr<VsyncModuleImpl> GetInstance()
-    {
-        static sptr<VsyncModuleImpl> ptr = new VsyncModuleImpl();
-        return ptr;
-    }
+    static sptr<VsyncModuleImpl> GetInstance();
 
-    VsyncError Start();
-    VsyncError Stop();
+    virtual VsyncError Start() override;
+    virtual VsyncError Stop() override;
 
 protected:
     virtual VsyncError InitSA();
@@ -42,7 +38,8 @@ protected:
 
 private:
     VsyncModuleImpl();
-    virtual ~VsyncModuleImpl();
+    virtual ~VsyncModuleImpl() override;
+    static inline sptr<VsyncModuleImpl> instance = nullptr;
 
     void VsyncMainThread();
     bool RegisterSystemAbility();

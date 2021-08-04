@@ -23,9 +23,9 @@ namespace OHOS {
 class VsyncCallbackProxy : public IRemoteProxy<IVsyncCallback> {
 public:
     VsyncCallbackProxy(const sptr<IRemoteObject>& impl);
-    virtual ~VsyncCallbackProxy();
+    virtual ~VsyncCallbackProxy() = default;
 
-    void OnVsync(int64_t timestamp) override;
+    VsyncError OnVsync(int64_t timestamp) override;
 
 private:
     static inline BrokerDelegator<VsyncCallbackProxy> delegator_;

@@ -44,7 +44,7 @@ ohos_executable("bootanimation") {
     "//third_party/zlib:libz",
   ]
 
-  external_deps = ["ipc:ipc_core"]
+  external_deps = [ "ipc:ipc_core" ]
 
   part_name = "graphic_standard"
   subsystem_name = "graphic"

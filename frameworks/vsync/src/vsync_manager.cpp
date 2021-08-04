@@ -34,11 +34,12 @@ int32_t VsyncManager::OnRemoteRequest(uint32_t code, MessageParcel &data,
 {
     auto remoteDescriptor = data.ReadInterfaceToken();
     if (GetDescriptor() != remoteDescriptor) {
+        VLOG_FAILURE("descriptor is invalid");
         return ERR_INVALID_STATE;
     }
 
     switch (code) {
-        case IVSYNC_MANAGER_LISTEN_NEXT_VSYNC: {
+        case IVSYNC_MANAGER_LISTEN_VSYNC: {
             auto remoteObject = data.ReadRemoteObject();
             if (remoteObject == nullptr) {
                 REMOTE_RETURN(reply, VSYNC_ERROR_NULLPTR);
@@ -46,9 +47,15 @@ int32_t VsyncManager::OnRemoteRequest(uint32_t code, MessageParcel &data,
 
             auto cb = iface_cast<IVsyncCallback>(remoteObject);
 
-            VsyncError ret = ListenNextVsync(cb);
+            VsyncError ret = ListenVsync(cb);
 
             REMOTE_RETURN(reply, ret);
+        } break;
+        case IVSYNC_MANAGER_GET_VSYNC_FREQUENCY: {
+            uint32_t freq = 0;
+            VsyncError ret = GetVsyncFrequency(freq);
+            reply.WriteInt32(ret);
+            reply.WriteUint32(freq);
         } break;
         default: {
             VLOG_FAILURE("code %{public}d cannot process", code);
@@ -58,41 +65,35 @@ int32_t VsyncManager::OnRemoteRequest(uint32_t code, MessageParcel &data,
     return 0;
 }
 
-VsyncError VsyncManager::ListenNextVsync(sptr<IVsyncCallback>& cb)
+VsyncError VsyncManager::ListenVsync(sptr<IVsyncCallback>& cb)
 {
     if (cb == nullptr) {
         VLOG_FAILURE_NO(VSYNC_ERROR_NULLPTR);
         return VSYNC_ERROR_NULLPTR;
     }
 
-    std::unique_lock<std::mutex> lockGuard(callbacks_mutex);
+    std::unique_lock<std::mutex> lockGuard(callbacksMutex_);
+    callbacks_.push_back(cb);
+    return VSYNC_ERROR_OK;
+}
 
-    callbacks.push_back(cb);
-    condition_.notify_all();
+VsyncError VsyncManager::GetVsyncFrequency(uint32_t& freq)
+{
+    constexpr uint32_t defaultVsyncFrequency = 60;
+    freq = defaultVsyncFrequency;
     return VSYNC_ERROR_OK;
 }
 
 void VsyncManager::Callback(int64_t timestamp)
 {
-    std::unique_lock<std::mutex> lockGuard(callbacks_mutex);
+    std::unique_lock<std::mutex> lockGuard(callbacksMutex_);
 
-    for (auto it = callbacks.begin(); it != callbacks.end(); it++) {
-        (*it)->OnVsync(timestamp);
+    std::list<sptr<IVsyncCallback>> okcbs;
+    for (const auto& cb : callbacks_) {
+        if (cb->OnVsync(timestamp) != VSYNC_ERROR_BINDER_ERROR) {
+            okcbs.push_back(cb);
+        }
     }
-    callbacks.clear();
-}
-
-void VsyncManager::CheckVsyncRequest()
-{
-    std::unique_lock<std::mutex> lockGuard(callbacks_mutex);
-    while (callbacks.empty()) {
-        condition_.wait(lockGuard);
-    }
-}
-
-void VsyncManager::StopCheck()
-{
-    callbacks.push_back(nullptr);
-    condition_.notify_all();
+    callbacks_ = okcbs;
 }
 } // namespace OHOS

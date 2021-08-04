@@ -205,12 +205,12 @@ SurfaceError SurfaceBufferImpl::GetInt64(uint32_t key, int64_t& val)
 SurfaceError SurfaceBufferImpl::SetData(uint32_t key, ExtraData data)
 {
     if (data.type <= EXTRA_DATA_TYPE_MIN || data.type >= EXTRA_DATA_TYPE_MAX) {
-        BLOG_INVALID("data.type is out of range");
+        BLOGW("Invalid, data.type is out of range");
         return SURFACE_ERROR_INVALID_PARAM;
     }
 
     if (data.size <= 0 || data.size > sizeof(int64_t)) {
-        BLOG_INVALID("data.size is out of range");
+        BLOGW("Invalid, data.size is out of range");
         return SURFACE_ERROR_INVALID_PARAM;
     }
 
@@ -260,13 +260,13 @@ BufferHandle* SurfaceBufferImpl::GetBufferHandle()
 void SurfaceBufferImpl::WriteToMessageParcel(MessageParcel& parcel)
 {
     if (bufferData_.handle_ == nullptr) {
-        BLOG_FAILURE("bufferData_.handle_ is nullptr");
+        BLOGE("Failure, Reason: bufferData_.handle_ is nullptr");
         return;
     }
 
     bool ret = WriteBufferHandle(parcel, *bufferData_.handle_);
     if (ret == false) {
-        BLOG_FAILURE("WriteBufferHandle return false");
+        BLOGE("Failure, Reason: WriteBufferHandle return false");
     }
 }
 

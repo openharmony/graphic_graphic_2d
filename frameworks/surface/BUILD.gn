@@ -27,8 +27,10 @@ config("surface_config") {
 }
 
 config("surface_public_config") {
-  include_dirs =
-      [ "//foundation/graphic/standard/interfaces/innerkits/surface" ]
+  include_dirs = [
+    "//foundation/graphic/standard/interfaces/innerkits/surface",
+    "//foundation/graphic/standard/interfaces/innerkits/common",
+  ]
 }
 
 ohos_shared_library("surface") {
@@ -52,14 +54,14 @@ ohos_shared_library("surface") {
     "//utils/native/base:utils_config",
   ]
 
-  external_deps = [
-    "hiviewdfx_hilog_native:libhilog",
-    "ipc:ipc_core",
-    "samgr_L2:samgr_proxy",
+  deps = [
+    "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
+    "//foundation/distributedschedule/samgr/interfaces/innerkits/samgr_proxy:samgr_proxy",
   ]
 
   public_deps = [
-    "//foundation/graphic/standard/prebuilts/librarys/display_gralloc:libdisplay_gralloc",
+    "//drivers/peripheral/display/hal:hdi_display_gralloc",
+    "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
     "//foundation/graphic/standard/utils:buffer_handle",
     "//utils/native/base:utils",
   ]

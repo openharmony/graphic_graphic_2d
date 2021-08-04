@@ -72,7 +72,7 @@ class RemoteBufferQueueProducerTest : public testing::Test {
 public:
     static void SetUpTestCase(void)
     {
-        bq = new BufferQueue();
+        bq = new BufferQueue("test");
         bqp = new BufferQueueProducer(bq);
         bq->Init();
         sptr<IBufferConsumerListener> listener = new BufferConsumerListener();

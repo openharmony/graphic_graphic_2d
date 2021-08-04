@@ -32,7 +32,8 @@ config("libvsync_client_config") {
 config("libvsync_client_public_config") {
   include_dirs = [
     "//foundation/graphic/standard/interfaces/innerkits/vsync",
-    "//foundation/graphic/standard/interfaces/innerkits/vsync/client",
+    "//foundation/graphic/standard/interfaces/innerkits/common",
+    "//utils/native/base/include",
   ]
 }
 
@@ -66,13 +67,15 @@ ohos_shared_library("libvsync_client") {
 
 ## Build libvsync_client.so }}}
 
-## Build libvsync_server.a {{{
-config("libvsync_server_config") {
+## Build vsync_server {{{
+config("vsync_server_config") {
   visibility = [ ":*" ]
 
   include_dirs = [
     "include",
     "//utils/system/safwk/native/include",
+    "//foundation/graphic/standard/interfaces/innerkits/vsync",
+    "//foundation/graphic/standard/interfaces/innerkits/common",
   ]
 
   cflags = [
@@ -82,37 +85,46 @@ config("libvsync_server_config") {
   ]
 }
 
-config("libvsync_server_public_config") {
-  include_dirs = [
-    "//foundation/graphic/standard/interfaces/innerkits/vsync",
-    "//foundation/graphic/standard/interfaces/innerkits/vsync/server",
-  ]
-}
+ohos_executable("vsync_server") {
+  install_enable = true
 
-ohos_static_library("libvsync_server") {
   sources = [
+    "src/module_main.cpp",
     "src/vsync_callback_proxy.cpp",
     "src/vsync_manager.cpp",
     "src/vsync_module.cpp",
     "src/vsync_module_impl.cpp",
   ]
 
-  configs = [ ":libvsync_server_config" ]
+  configs = [ ":vsync_server_config" ]
 
-  public_configs = [ ":libvsync_server_public_config" ]
-
-  deps = [ "//third_party/libdrm:libdrm" ]
-
-  external_deps = [
-    "hiviewdfx_hilog_native:libhilog",
-    "ipc:ipc_core",
-    "samgr_L2:samgr_proxy",
+  deps = [
+    "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
+    "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
+    "//foundation/distributedschedule/samgr/interfaces/innerkits/samgr_proxy:samgr_proxy",
+    "//third_party/libdrm:libdrm",
+    "//utils/native/base:utils",
   ]
 
-  public_deps = []
+  part_name = "graphic_standard"
+  subsystem_name = "graphic"
 }
 
-## Build libvsync_server.a }}}
+## Build vsync_server }}}
+
+## Build vsync_test {{{
+ohos_executable("vsync_test") {
+  install_enable = false
+
+  sources = [ "test/nativetest/main.cpp" ]
+
+  deps = [ ":libvsync_client" ]
+
+  part_name = "graphic_standard"
+  subsystem_name = "graphic"
+}
+
+## Build vsync_test }}}
 
 group("test") {
   testonly = true

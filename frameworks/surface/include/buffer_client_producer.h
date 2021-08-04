@@ -44,13 +44,17 @@ public:
     uint32_t     GetQueueSize() override;
     SurfaceError SetQueueSize(uint32_t queueSize) override;
 
+    SurfaceError GetName(std::string &name) override;
+
     int32_t      GetDefaultWidth() override;
     int32_t      GetDefaultHeight() override;
+    uint32_t     GetDefaultUsage() override;
 
     SurfaceError CleanCache() override;
 
 private:
     static inline BrokerDelegator<BufferClientProducer> delegator_;
+    std::string name_ = "not init";
 };
 }; // namespace OHOS
 

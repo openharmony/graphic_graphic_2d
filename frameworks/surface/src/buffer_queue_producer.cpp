@@ -26,22 +26,27 @@ constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, 0, "BufferQueueProducer" };
 
 BufferQueueProducer::BufferQueueProducer(sptr<BufferQueue>& bufferQueue)
 {
-    BLOGFD("");
     bufferQueue_ = bufferQueue;
+    if (bufferQueue_ != nullptr) {
+        bufferQueue_->GetName(name_);
+    }
+    BLOGNI("ctor %{public}s", name_.c_str());
 
     memberFuncMap_[BUFFER_PRODUCER_REQUEST_BUFFER] = &BufferQueueProducer::RequestBufferInner;
     memberFuncMap_[BUFFER_PRODUCER_CANCEL_BUFFER] = &BufferQueueProducer::CancelBufferInner;
     memberFuncMap_[BUFFER_PRODUCER_FLUSH_BUFFER] = &BufferQueueProducer::FlushBufferInner;
     memberFuncMap_[BUFFER_PRODUCER_GET_QUEUE_SIZE] = &BufferQueueProducer::GetQueueSizeInner;
     memberFuncMap_[BUFFER_PRODUCER_SET_QUEUE_SIZE] = &BufferQueueProducer::SetQueueSizeInner;
+    memberFuncMap_[BUFFER_PRODUCER_GET_NAME] = &BufferQueueProducer::GetNameInner;
     memberFuncMap_[BUFFER_PRODUCER_GET_DEFAULT_WIDTH] = &BufferQueueProducer::GetDefaultWidthInner;
     memberFuncMap_[BUFFER_PRODUCER_GET_DEFAULT_HEIGHT] = &BufferQueueProducer::GetDefaultHeightInner;
+    memberFuncMap_[BUFFER_PRODUCER_GET_DEFAULT_USAGE] = &BufferQueueProducer::GetDefaultUsageInner;
     memberFuncMap_[BUFFER_PRODUCER_CLEAN_CACHE] = &BufferQueueProducer::CleanCacheInner;
 }
 
 BufferQueueProducer::~BufferQueueProducer()
 {
-    BLOGFD("");
+    BLOGNI("dtor %{public}s", name_.c_str());
 }
 
 int BufferQueueProducer::OnRemoteRequest(uint32_t code, MessageParcel& arguments,
@@ -49,12 +54,12 @@ int BufferQueueProducer::OnRemoteRequest(uint32_t code, MessageParcel& arguments
 {
     auto it = memberFuncMap_.find(code);
     if (it == memberFuncMap_.end()) {
-        BLOG_FAILURE("cannot process %{public}u", code);
+        BLOGN_FAILURE("cannot process %{public}u", code);
         return 0;
     }
 
     if (it->second == nullptr) {
-        BLOG_FAILURE("memberFuncMap_[%{public}u] is nullptr", code);
+        BLOGN_FAILURE("memberFuncMap_[%{public}u] is nullptr", code);
         return 0;
     }
 
@@ -127,6 +132,17 @@ int BufferQueueProducer::SetQueueSizeInner(MessageParcel& arguments, MessageParc
     return 0;
 }
 
+int BufferQueueProducer::GetNameInner(MessageParcel& arguments, MessageParcel& reply, MessageOption& option)
+{
+    std::string name;
+    auto sret = bufferQueue_->GetName(name);
+    reply.WriteInt32(sret);
+    if (sret == SURFACE_ERROR_OK) {
+        reply.WriteString(name);
+    }
+    return 0;
+}
+
 int BufferQueueProducer::GetDefaultWidthInner(MessageParcel& arguments, MessageParcel& reply, MessageOption& option)
 {
     reply.WriteInt32(GetDefaultWidth());
@@ -136,6 +152,12 @@ int BufferQueueProducer::GetDefaultWidthInner(MessageParcel& arguments, MessageP
 int BufferQueueProducer::GetDefaultHeightInner(MessageParcel& arguments, MessageParcel& reply, MessageOption& option)
 {
     reply.WriteInt32(GetDefaultHeight());
+    return 0;
+}
+
+int BufferQueueProducer::GetDefaultUsageInner(MessageParcel& arguments, MessageParcel& reply, MessageOption& option)
+{
+    reply.WriteUint32(GetDefaultUsage());
     return 0;
 }
 
@@ -190,6 +212,14 @@ SurfaceError BufferQueueProducer::SetQueueSize(uint32_t queueSize)
     return bufferQueue_->SetQueueSize(queueSize);
 }
 
+SurfaceError BufferQueueProducer::GetName(std::string &name)
+{
+    if (bufferQueue_ == nullptr) {
+        return SURFACE_ERROR_NULLPTR;
+    }
+    return bufferQueue_->GetName(name);
+}
+
 int32_t BufferQueueProducer::GetDefaultWidth()
 {
     if (bufferQueue_ == nullptr) {
@@ -204,6 +234,14 @@ int32_t BufferQueueProducer::GetDefaultHeight()
         return 0;
     }
     return bufferQueue_->GetDefaultHeight();
+}
+
+uint32_t BufferQueueProducer::GetDefaultUsage()
+{
+    if (bufferQueue_ == nullptr) {
+        return 0;
+    }
+    return bufferQueue_->GetDefaultUsage();
 }
 
 SurfaceError BufferQueueProducer::CleanCache()

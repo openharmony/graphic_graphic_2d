@@ -25,13 +25,17 @@ constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, 0, "ProducerSurface" };
 
 ProducerSurface::ProducerSurface(sptr<IBufferProducer>& producer)
 {
-    BLOGFD("");
+    BLOGND("ctor");
     producer_ = producer;
+    auto sret = producer_->GetName(name_);
+    if (sret != SURFACE_ERROR_OK) {
+        BLOGNE("GetName failed, %{public}s", SurfaceErrorStr(sret).c_str());
+    }
 }
 
 ProducerSurface::~ProducerSurface()
 {
-    BLOGFD("");
+    BLOGND("dtor %{public}s", name_.c_str());
     if (IsRemote()) {
         for (auto it = bufferProducerCache_.begin(); it != bufferProducerCache_.end(); it++) {
             if (it->second->GetVirAddr() != nullptr) {
@@ -48,7 +52,12 @@ SurfaceError ProducerSurface::Init()
     return SURFACE_ERROR_OK;
 }
 
-sptr<IBufferProducer> ProducerSurface::GetProducer()
+bool ProducerSurface::IsConsumer() const
+{
+    return false;
+}
+
+sptr<IBufferProducer> ProducerSurface::GetProducer() const
 {
     return producer_;
 }
@@ -61,7 +70,7 @@ SurfaceError ProducerSurface::RequestBuffer(sptr<SurfaceBuffer>& buffer,
 
     SurfaceError ret = GetProducer()->RequestBuffer(sequence, buffer, fence, config, deletingBuffers);
     if (ret != SURFACE_ERROR_OK) {
-        BLOG_FAILURE("Producer report %{public}s", SurfaceErrorStr(ret).c_str());
+        BLOGN_FAILURE("Producer report %{public}s", SurfaceErrorStr(ret).c_str());
         return ret;
     }
 
@@ -70,9 +79,9 @@ SurfaceError ProducerSurface::RequestBuffer(sptr<SurfaceBuffer>& buffer,
         sptr<SurfaceBufferImpl> bufferImpl = SurfaceBufferImpl::FromBase(buffer);
         ret = BufferManager::GetInstance()->Map(bufferImpl);
         if (ret != SURFACE_ERROR_OK) {
-            BLOG_FAILURE_ID(sequence, "Map failed");
+            BLOGN_FAILURE_ID(sequence, "Map failed");
         } else {
-            BLOG_SUCCESS_ID(sequence, "Map");
+            BLOGN_SUCCESS_ID(sequence, "Map");
         }
     }
 
@@ -85,7 +94,7 @@ SurfaceError ProducerSurface::RequestBuffer(sptr<SurfaceBuffer>& buffer,
     sptr<SurfaceBufferImpl> bufferImpl = SurfaceBufferImpl::FromBase(buffer);
     ret = BufferManager::GetInstance()->InvalidateCache(bufferImpl);
     if (ret != SURFACE_ERROR_OK) {
-        BLOGFW("Warning [%{public}d], InvalidateCache failed", sequence);
+        BLOGNW("Warning [%{public}d], InvalidateCache failed", sequence);
     }
 
     for (auto it = deletingBuffers.begin(); it != deletingBuffers.end(); it++) {
@@ -137,6 +146,13 @@ SurfaceError ProducerSurface::SetQueueSize(uint32_t queueSize)
     return producer_->SetQueueSize(queueSize);
 }
 
+SurfaceError ProducerSurface::GetName(std::string &name)
+{
+    auto sret = producer_->GetName(name);
+    name_ = name;
+    return sret;
+}
+
 SurfaceError ProducerSurface::SetDefaultWidthAndHeight(int32_t width, int32_t height)
 {
     return SURFACE_ERROR_NOT_SUPPORT;
@@ -150,6 +166,16 @@ int32_t ProducerSurface::GetDefaultWidth()
 int32_t ProducerSurface::GetDefaultHeight()
 {
     return producer_->GetDefaultHeight();
+}
+
+SurfaceError ProducerSurface::SetDefaultUsage(uint32_t usage)
+{
+    return SURFACE_ERROR_NOT_SUPPORT;
+}
+
+uint32_t ProducerSurface::GetDefaultUsage()
+{
+    return producer_->GetDefaultUsage();
 }
 
 SurfaceError ProducerSurface::SetUserData(const std::string& key, const std::string& val)
@@ -171,6 +197,11 @@ std::string  ProducerSurface::GetUserData(const std::string& key)
 }
 
 SurfaceError ProducerSurface::RegisterConsumerListener(sptr<IBufferConsumerListener>& listener)
+{
+    return SURFACE_ERROR_NOT_SUPPORT;
+}
+
+SurfaceError ProducerSurface::RegisterConsumerListener(IBufferConsumerListenerClazz *listener)
 {
     return SURFACE_ERROR_NOT_SUPPORT;
 }

@@ -24,13 +24,16 @@ constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, 0, "BufferQueueConsumer" };
 
 BufferQueueConsumer::BufferQueueConsumer(sptr<BufferQueue>& bufferQueue)
 {
-    BLOGFD("");
     bufferQueue_ = bufferQueue;
+    if (bufferQueue_ != nullptr) {
+        bufferQueue_->GetName(name_);
+    }
+    BLOGNI("ctor");
 }
 
 BufferQueueConsumer::~BufferQueueConsumer()
 {
-    BLOGFD("");
+    BLOGND("dtors");
 }
 
 SurfaceError BufferQueueConsumer::AcquireBuffer(sptr<SurfaceBufferImpl>& buffer, int32_t& fence,
@@ -58,6 +61,14 @@ SurfaceError BufferQueueConsumer::RegisterConsumerListener(sptr<IBufferConsumerL
     return bufferQueue_->RegisterConsumerListener(listener);
 }
 
+SurfaceError BufferQueueConsumer::RegisterConsumerListener(IBufferConsumerListenerClazz *listener)
+{
+    if (bufferQueue_ == nullptr) {
+        return SURFACE_ERROR_NULLPTR;
+    }
+    return bufferQueue_->RegisterConsumerListener(listener);
+}
+
 SurfaceError BufferQueueConsumer::UnregisterConsumerListener()
 {
     if (bufferQueue_ == nullptr) {
@@ -72,5 +83,13 @@ SurfaceError BufferQueueConsumer::SetDefaultWidthAndHeight(int32_t width, int32_
         return SURFACE_ERROR_NULLPTR;
     }
     return bufferQueue_->SetDefaultWidthAndHeight(width, height);
+}
+
+SurfaceError BufferQueueConsumer::SetDefaultUsage(uint32_t usage)
+{
+    if (bufferQueue_ == nullptr) {
+        return SURFACE_ERROR_NULLPTR;
+    }
+    return bufferQueue_->SetDefaultUsage(usage);
 }
 } // namespace OHOS

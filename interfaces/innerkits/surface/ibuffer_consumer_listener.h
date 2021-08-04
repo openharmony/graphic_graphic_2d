@@ -25,6 +25,12 @@ public:
     virtual ~IBufferConsumerListener() = default;
     virtual void OnBufferAvailable() = 0;
 };
+
+class IBufferConsumerListenerClazz {
+public:
+    virtual ~IBufferConsumerListenerClazz() = default;
+    virtual void OnBufferAvailable() = 0;
+};
 } // namespace OHOS
 
 #endif // INTERFACES_INNERKITS_SURFACE_IBUFFER_CONSUMER_LISTENER_H

@@ -25,26 +25,27 @@ namespace {
 static constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, 0, "ConsumerSurface" };
 }
 
-ConsumerSurface::ConsumerSurface()
+ConsumerSurface::ConsumerSurface(const std::string &name)
+    : name_(name)
 {
-    BLOGFD("");
+    BLOGNI("ctor %{public}s", name_.c_str());
     consumer_ = nullptr;
     producer_ = nullptr;
 }
 
 ConsumerSurface::~ConsumerSurface()
 {
-    BLOGFD("");
+    BLOGNI("dtor %{public}s", name_.c_str());
     consumer_ = nullptr;
     producer_ = nullptr;
 }
 
 SurfaceError ConsumerSurface::Init()
 {
-    sptr<BufferQueue> queue_ = new BufferQueue();
+    sptr<BufferQueue> queue_ = new BufferQueue(name_);
     SurfaceError ret = queue_->Init();
     if (ret != SURFACE_ERROR_OK) {
-        BLOG_FAILURE("queue init failed");
+        BLOGN_FAILURE("queue init failed");
         return ret;
     }
 
@@ -53,7 +54,12 @@ SurfaceError ConsumerSurface::Init()
     return SURFACE_ERROR_OK;
 }
 
-sptr<IBufferProducer> ConsumerSurface::GetProducer()
+bool ConsumerSurface::IsConsumer() const
+{
+    return true;
+}
+
+sptr<IBufferProducer> ConsumerSurface::GetProducer() const
 {
     return producer_;
 }
@@ -104,6 +110,12 @@ SurfaceError ConsumerSurface::SetQueueSize(uint32_t queueSize)
     return producer_->SetQueueSize(queueSize);
 }
 
+SurfaceError ConsumerSurface::GetName(std::string &name)
+{
+    name = name_;
+    return SURFACE_ERROR_OK;
+}
+
 SurfaceError ConsumerSurface::SetDefaultWidthAndHeight(int32_t width, int32_t height)
 {
     return consumer_->SetDefaultWidthAndHeight(width, height);
@@ -117,6 +129,16 @@ int32_t ConsumerSurface::GetDefaultWidth()
 int32_t ConsumerSurface::GetDefaultHeight()
 {
     return producer_->GetDefaultHeight();
+}
+
+SurfaceError ConsumerSurface::SetDefaultUsage(uint32_t usage)
+{
+    return consumer_->SetDefaultUsage(usage);
+}
+
+uint32_t ConsumerSurface::GetDefaultUsage()
+{
+    return producer_->GetDefaultUsage();
 }
 
 SurfaceError ConsumerSurface::SetUserData(const std::string& key, const std::string& val)
@@ -138,6 +160,11 @@ std::string ConsumerSurface::GetUserData(const std::string& key)
 }
 
 SurfaceError ConsumerSurface::RegisterConsumerListener(sptr<IBufferConsumerListener>& listener)
+{
+    return consumer_->RegisterConsumerListener(listener);
+}
+
+SurfaceError ConsumerSurface::RegisterConsumerListener(IBufferConsumerListenerClazz *listener)
 {
     return consumer_->RegisterConsumerListener(listener);
 }

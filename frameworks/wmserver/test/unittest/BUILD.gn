@@ -1,0 +1,70 @@
+# Copyright (c) 2021 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/test.gni")
+
+module_out_path = "graphic_standard/wmserver"
+
+group("unittest") {
+  testonly = true
+
+  deps = [
+    ":wmserver_test",
+  ]
+}
+
+## UnitTest wmserver_test {{{
+ohos_unittest("wmserver_test") {
+  module_out_path = module_out_path
+
+  sources = [ "wmserver_test.cpp" ]
+
+  deps = [ ":wmserver_test_common" ]
+}
+## UnitTest wmserver_test }}}
+
+## Build wmserver_test_common.a {{{
+config("wmserver_test_common_public_config") {
+  include_dirs = [
+    "//foundation/graphic/standard/frameworks/wmserver/src",
+    "//third_party/wayland_standard",
+    "//third_party/weston/compositor",
+    "//third_party/weston/ivi-shell",
+    "//third_party/weston/libweston",
+  ]
+
+  cflags = [
+    "-Wall",
+    "-Werror",
+    "-g3",
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
+}
+
+ohos_static_library("wmserver_test_common") {
+  visibility = [ ":*" ]
+
+  public_configs = [
+    ":wmserver_test_common_public_config",
+  ]
+
+  public_deps = [
+    "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
+    "//foundation/graphic/standard/frameworks/wmserver:wms_protocol",
+    "//third_party/wayland_standard:libwayland_client",
+    "//third_party/wayland_standard:wayland_core_protocol",
+    "//third_party/weston:libexec_weston",
+  ]
+}
+## Build wmserver_test_common.a }}}

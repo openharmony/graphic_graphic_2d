@@ -81,7 +81,7 @@ BufferManager::~BufferManager()
 {
     int32_t ret = GrallocUninitialize(grallocFuncs_);
     if (ret != 0) {
-        BLOG_FAILURE("GrallocUninitialize failed with %{public}d", ret);
+        BLOGE("Failure, Reason: GrallocUninitialize failed with %{public}d", ret);
     }
 }
 

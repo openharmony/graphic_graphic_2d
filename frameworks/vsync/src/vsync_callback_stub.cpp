@@ -32,14 +32,14 @@ int32_t VsyncCallbackStub::OnRemoteRequest(uint32_t code, MessageParcel& data,
     switch (code) {
         case IVSYNC_CALLBACK_ON_VSYNC: {
             int64_t timestamp;
-
             bool ret = data.ReadInt64(timestamp);
-            if (!ret) {
+            if (ret == false) {
                 VLOG_FAILURE("need param");
                 return 1;
             }
 
-            OnVsync(timestamp);
+            VsyncError err = OnVsync(timestamp);
+            reply.WriteInt32(err);
         } break;
         default: {
             VLOG_FAILURE("code %{public}d cannot process", code);

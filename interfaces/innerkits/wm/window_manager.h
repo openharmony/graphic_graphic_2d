@@ -23,6 +23,8 @@
 
 #include <refbase.h>
 #include <surface.h>
+#include <../wmclient/iscreen_shot_callback.h>
+#include <../wmclient/iwindow_shot_callback.h>
 
 namespace OHOS {
 /**
@@ -58,23 +60,8 @@ public:
     void Move(int32_t x, int32_t y);
     void SwitchTop();
     void ChangeWindowType(WindowType type);
-    void RegistPointerButtonCb(funcPointerButton cb);
-    void RegistPointerEnterCb(funcPointerEnter cb);
-    void RegistPointerLeaveCb(funcPointerLeave cb);
-    void RegistPointerMotionCb(funcPointerMotion cb);
-    void RegistPointerAxisDiscreteCb(funcPointerAxisDiscrete cb);
-    void RegistPointerAxisSourceCb(funcPointerAxisSource cb);
-    void RegistPointerAxisStopCb(funcPointerAxisStop cb);
-    void RegistPointerAxisCb(funcPointerAxis cb);
     void ReSize(int32_t width, int32_t height);
     void Rotate(rotateType type);
-    void RegistTouchUpCb(funcTouchUp cb);
-    void RegistTouchDownCb(funcTouchDown cb);
-    void RegistTouchEmotionCb(funcTouchEmotion cb);
-    void RegistTouchFrameCb(funcTouchFrame cb);
-    void RegistTouchCancelCb(funcTouchCancel cb);
-    void RegistTouchShapeCb(funcTouchShape cb);
-    void RegistTouchOrientationCb(funcTouchOrientation cb);
     void RegistOnTouchCb(funcOnTouch cb);
     void RegistOnKeyCb(funcOnKey cb);
     void RegistOnWindowCreateCb(void(* cb)(uint32_t pid));
@@ -89,14 +76,24 @@ public:
     virtual void SetSubWindowSize(int32_t width, int32_t height);
 };
 
+class ScreenShotCallback : public RefBase {
+public:
+    virtual void OnScreenShot(const struct WMImageInfo &info){}
+};
+
+class WindowShotCallback : public RefBase {
+public:
+    virtual void OnWindowShot(const struct WMImageInfo &info){}
+};
+
 class WindowManager : public RefBase {
 public:
     static sptr<WindowManager> GetInstance();
 
     std::unique_ptr<Window> CreateWindow(WindowConfig* config);
     std::unique_ptr<SubWindow> CreateSubWindow(int32_t parentid, WindowConfig* config);
-    void StartShotScreen(FuncShotDone done_cb);
-    void StartShotWindow(int32_t winID, FuncShotDone done_cb);
+    void StartShotScreen(IScreenShotCallback *cb);
+    void StartShotWindow(int32_t id, IWindowShotCallback *cb);
     int32_t GetMaxWidth();
     int32_t GetMaxHeight();
     void SwitchTop(int windowId);

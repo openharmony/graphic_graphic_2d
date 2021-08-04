@@ -26,11 +26,7 @@ VsyncCallbackProxy::VsyncCallbackProxy(const sptr<IRemoteObject>& impl)
 {
 }
 
-VsyncCallbackProxy::~VsyncCallbackProxy()
-{
-}
-
-void VsyncCallbackProxy::OnVsync(int64_t timestamp)
+VsyncError VsyncCallbackProxy::OnVsync(int64_t timestamp)
 {
     MessageOption opt;
     MessageParcel arg;
@@ -43,12 +39,20 @@ void VsyncCallbackProxy::OnVsync(int64_t timestamp)
     bool retval = arg.WriteInt64(timestamp);
     if (!retval) {
         VLOGE("arg.WriteInt64 failed");
-        return;
+        return VSYNC_ERROR_INVALID_ARGUMENTS;
     }
 
     int res = Remote()->SendRequest(IVSYNC_CALLBACK_ON_VSYNC, arg, ret, opt);
     if (res) {
         VLOG_ERROR_API(res, SendRequest);
+        return VSYNC_ERROR_BINDER_ERROR;
     }
+
+    VsyncError err = (VsyncError)ret.ReadInt32();
+    if (err != VSYNC_ERROR_OK) {
+        VLOG_FAILURE_NO(err);
+        return err;
+    }
+    return VSYNC_ERROR_OK;
 }
 } // namespace OHOS

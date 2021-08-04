@@ -14,7 +14,9 @@
  */
 
 #include "video_window.h"
-#include "buffer_log.h"
+
+#include "window_manager_hilog.h"
+#include "wl_surface_factory.h"
 
 #define VIDEO_WINDOW_DEBUG
 
@@ -23,11 +25,11 @@
 #define VIDEO_WINDOW_EXIT() ((void)0)
 #else
 #define VIDEO_WINDOW_ENTER() do { \
-    BLOGFD("enter..."); \
+    WMLOGFD("enter..."); \
 } while (0)
 
 #define VIDEO_WINDOW_EXIT() do { \
-    BLOGFD("exit..."); \
+    WMLOGFD("exit..."); \
 } while (0)
 #endif
 
@@ -42,7 +44,7 @@ namespace {
         VIDEO_WINDOW_ENTER();
         display = new (std::nothrow) VideoDisplayManager();
         if (display == nullptr) {
-            BLOGFE("new video display manager fail");
+            WMLOGFE("new video display manager fail");
         }
         Init();
         Move(winInfo.pos_x, winInfo.pos_y);
@@ -84,12 +86,12 @@ namespace {
         VIDEO_WINDOW_ENTER();
         int32_t ret = DISPLAY_SUCCESS;
         if (display == nullptr) {
-            BLOGFE("display layer is not create");
+            WMLOGFE("display layer is not create");
             return DISPLAY_FAILURE;
         }
         producer = display->AttachLayer(surface_, layerId_);
         if (producer == nullptr) {
-            BLOGFE("attach layer fail");
+            WMLOGFE("attach layer fail");
             ret = DISPLAY_FAILURE;
         }
         VIDEO_WINDOW_EXIT();
@@ -111,23 +113,23 @@ namespace {
         constexpr float BAR_WIDTH_PERCENT = 0.07;
         IRect rect = {};
         if (display == nullptr) {
-            BLOGFE("display layer is not create");
+            WMLOGFE("display layer is not create");
             return;
         }
 
         int32_t ret = display->GetRect(layerId_, rect);
         if (ret != DISPLAY_SUCCESS) {
-            BLOGFW("get rect fail, ret:%{public}d", ret);
+            WMLOGFW("get rect fail, ret:%{public}d", ret);
             return;
         }
 
-        BLOGFI("get layer: x=%{public}d, y=%{public}d, w=%{public}d, h=%{public}d", rect.x, rect.y, rect.w, rect.h);
+        WMLOGFI("get layer: x=%{public}d, y=%{public}d, w=%{public}d, h=%{public}d", rect.x, rect.y, rect.w, rect.h);
         rect.x = x;
         rect.y = y + maxHeight * BAR_WIDTH_PERCENT; // status bar
-        BLOGFI("set layer: x=%{public}d, y=%{public}d, w=%{public}d, h=%{public}d", rect.x, rect.y, rect.w, rect.h);
+        WMLOGFI("set layer: x=%{public}d, y=%{public}d, w=%{public}d, h=%{public}d", rect.x, rect.y, rect.w, rect.h);
         ret = display->SetRect(layerId_, rect);
         if (ret != DISPLAY_SUCCESS) {
-            BLOGFW("set rect fail, ret:%{public}d", ret);
+            WMLOGFW("set rect fail, ret:%{public}d", ret);
             return;
         }
         SubWindow::Move(x, y);
@@ -139,22 +141,22 @@ namespace {
         VIDEO_WINDOW_ENTER();
         IRect rect = {};
         if (display == nullptr) {
-            BLOGFE("display layer is not create");
+            WMLOGFE("display layer is not create");
             return;
         }
 
         int32_t ret = display->GetRect(layerId_, rect);
         if (ret != DISPLAY_SUCCESS) {
-            BLOGFW("get rect fail, ret:%d", ret);
+            WMLOGFW("get rect fail, ret:%d", ret);
             return;
         }
-        BLOGFI("get layer: x=%{public}d, y=%{public}d, w=%{public}d, h=%{public}d", rect.x, rect.y, rect.w, rect.h);
+        WMLOGFI("get layer: x=%{public}d, y=%{public}d, w=%{public}d, h=%{public}d", rect.x, rect.y, rect.w, rect.h);
         rect.w = width;
         rect.h = height;
-        BLOGFI("set layer: x=%{public}d, y=%{public}d, w=%{public}d, h=%{public}d", rect.x, rect.y, rect.w, rect.h);
+        WMLOGFI("set layer: x=%{public}d, y=%{public}d, w=%{public}d, h=%{public}d", rect.x, rect.y, rect.w, rect.h);
         ret = display->SetRect(layerId_, rect);
         if (ret != DISPLAY_SUCCESS) {
-            BLOGFW("set rect fail, ret:%{public}d", ret);
+            WMLOGFW("set rect fail, ret:%{public}d", ret);
             return;
         }
         SubWindow::SetSubWindowSize(width, height);
@@ -165,12 +167,12 @@ namespace {
     {
         VIDEO_WINDOW_ENTER();
         if (display == nullptr) {
-            BLOGFE("display layer is not create");
+            WMLOGFE("display layer is not create");
             return DISPLAY_FAILURE;
         }
         int32_t ret = display->SetZorder(layerId, zorder);
         if (ret != DISPLAY_SUCCESS) {
-            BLOGFW("set zorder fail, ret:%{public}d", ret);
+            WMLOGFW("set zorder fail, ret:%{public}d", ret);
         }
         VIDEO_WINDOW_EXIT();
         return ret;
@@ -180,12 +182,12 @@ namespace {
     {
         VIDEO_WINDOW_ENTER();
         if (display == nullptr) {
-            BLOGFE("display layer is not create");
+            WMLOGFE("display layer is not create");
             return DISPLAY_FAILURE;
         }
         int32_t ret = display->SetTransformMode(layerId, type);
         if (ret != DISPLAY_SUCCESS) {
-            BLOGFW("set transform mode fail, ret:%{public}d", ret);
+            WMLOGFW("set transform mode fail, ret:%{public}d", ret);
         }
         VIDEO_WINDOW_EXIT();
         return ret;

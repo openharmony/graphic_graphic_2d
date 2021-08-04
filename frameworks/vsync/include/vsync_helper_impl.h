@@ -16,64 +16,78 @@
 #ifndef FRAMEWORKS_VSYNC_INCLUDE_VSYNC_HELPER_IMPL_H
 #define FRAMEWORKS_VSYNC_INCLUDE_VSYNC_HELPER_IMPL_H
 
+#include <atomic>
+#include <map>
+#include <memory>
 #include <mutex>
 #include <queue>
-#include <memory>
 
+#include <refbase.h>
 #include <vsync_helper.h>
 
 #include "ivsync_manager.h"
-#include "vsync_manager_proxy.h"
 #include "vsync_callback_stub.h"
+#include "vsync_manager_proxy.h"
 
 namespace OHOS {
-namespace {
-class VsyncCallback;
-}
+struct VsyncElement {
+    SyncFunc callback_;
+    int64_t activeTime_;
+    void* userdata_;
+
+    bool operator < (const struct VsyncElement& other) const
+    {
+        return activeTime_ < other.activeTime_;
+    }
+};
+
+class VsyncClient : public RefBase {
+public:
+    static sptr<VsyncClient> GetInstance();
+
+    VsyncError Init();
+
+    VsyncError RequestFrameCallback(const struct FrameCallback& cb);
+    VsyncError GetSupportedVsyncFrequencys(std::vector<uint32_t>& freqs);
+
+    void DispatchFrameCallback(int64_t timestamp);
+
+private:
+    VsyncClient() = default;
+    virtual ~VsyncClient() = default;
+    static inline sptr<VsyncClient> instance = nullptr;
+
+    void DispatchMain(int64_t timestamp);
+
+    std::map<uint32_t, std::priority_queue<struct VsyncElement>> callbacksMap_;
+    std::mutex callbacksMapMutex_;
+
+    std::atomic<uint32_t> lastID_ = 0;
+
+    uint32_t vsyncFrequency_ = 0;
+    sptr<IVsyncManager> service_ = nullptr;
+    sptr<IVsyncCallback> listener_ = nullptr;
+};
 
 class VsyncHelperImpl : public VsyncHelper {
-    friend class VsyncCallback;
-
 public:
     static sptr<VsyncHelperImpl> Current();
 
     VsyncHelperImpl(std::shared_ptr<AppExecFwk::EventHandler>& handler);
-    virtual ~VsyncHelperImpl();
+    virtual ~VsyncHelperImpl() override;
 
-    VsyncError RequestFrameCallback(struct FrameCallback& cb);
-
-protected:
-    virtual VsyncError InitSA();
-
-    VsyncError InitSA(int32_t vsyncSystemAbilityId);
+    virtual VsyncError RequestFrameCallback(const struct FrameCallback& cb) override;
+    virtual VsyncError GetSupportedVsyncFrequencys(std::vector<uint32_t>& freqs) override;
 
 private:
-    VsyncError Init();
-
-    void DispatchFrameCallback(int64_t timestamp);
-    void RequestNextVsync();
-
-    bool isVsyncRequested = false;
-    std::mutex callbacks_mutex_;
-    std::priority_queue<struct FrameCallback> callbacks_;
-
-    std::shared_ptr<AppExecFwk::EventHandler> handler_;
-    sptr<IVsyncManager> service_;
-    static thread_local sptr<VsyncHelperImpl> currentHelper;
+    std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
+    static inline thread_local sptr<VsyncHelperImpl> currentHelper_ = nullptr;
 };
 
-namespace {
 class VsyncCallback : public VsyncCallbackStub {
 public:
-    VsyncCallback(sptr<VsyncHelperImpl>& helper);
-    virtual ~VsyncCallback();
-
-    void OnVsync(int64_t timestamp) override;
-
-private:
-    sptr<VsyncHelperImpl> helper_;
+    virtual VsyncError OnVsync(int64_t timestamp) override;
 };
-}
 } // namespace OHOS
 
 #endif // FRAMEWORKS_VSYNC_INCLUDE_VSYNC_HELPER_IMPL_H

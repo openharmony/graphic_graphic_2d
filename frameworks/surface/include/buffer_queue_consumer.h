@@ -34,12 +34,15 @@ public:
     SurfaceError ReleaseBuffer(sptr<SurfaceBufferImpl>& buffer, int32_t fence);
 
     SurfaceError RegisterConsumerListener(sptr<IBufferConsumerListener>& listener);
+    SurfaceError RegisterConsumerListener(IBufferConsumerListenerClazz *listener);
     SurfaceError UnregisterConsumerListener();
 
     SurfaceError SetDefaultWidthAndHeight(int32_t width, int32_t height);
+    SurfaceError SetDefaultUsage(uint32_t usage);
 
 private:
     sptr<BufferQueue> bufferQueue_;
+    std::string name_ = "not init";
 };
 } // namespace OHOS
 

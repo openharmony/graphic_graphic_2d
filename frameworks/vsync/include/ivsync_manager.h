@@ -23,11 +23,16 @@
 namespace OHOS {
 class IVsyncManager : public IRemoteBroker {
 public:
-    enum {
-        IVSYNC_MANAGER_LISTEN_NEXT_VSYNC,
-    };
-    virtual VsyncError ListenNextVsync(sptr<IVsyncCallback>& cb) = 0;
+    virtual VsyncError ListenVsync(sptr<IVsyncCallback>& cb) = 0;
+    virtual VsyncError GetVsyncFrequency(uint32_t& freq) = 0;
+
     DECLARE_INTERFACE_DESCRIPTOR(u"IVsyncManager");
+
+protected:
+    enum {
+        IVSYNC_MANAGER_LISTEN_VSYNC,
+        IVSYNC_MANAGER_GET_VSYNC_FREQUENCY,
+    };
 };
 } // namespace OHOS
 

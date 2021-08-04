@@ -23,17 +23,6 @@
 #include "surface_type.h"
 
 namespace OHOS {
-enum {
-    BUFFER_PRODUCER_REQUEST_BUFFER,
-    BUFFER_PRODUCER_CANCEL_BUFFER,
-    BUFFER_PRODUCER_FLUSH_BUFFER,
-    BUFFER_PRODUCER_GET_QUEUE_SIZE,
-    BUFFER_PRODUCER_SET_QUEUE_SIZE,
-    BUFFER_PRODUCER_GET_DEFAULT_WIDTH,
-    BUFFER_PRODUCER_GET_DEFAULT_HEIGHT,
-    BUFFER_PRODUCER_CLEAN_CACHE,
-};
-
 class IBufferProducer : public IRemoteBroker {
 public:
     virtual SurfaceError RequestBuffer(int32_t& sequence, sptr<SurfaceBuffer>& buffer,
@@ -48,12 +37,29 @@ public:
     virtual uint32_t     GetQueueSize() = 0;
     virtual SurfaceError SetQueueSize(uint32_t queueSize) = 0;
 
+    virtual SurfaceError GetName(std::string &name) = 0;
+
     virtual int32_t      GetDefaultWidth() = 0;
     virtual int32_t      GetDefaultHeight() = 0;
+    virtual uint32_t     GetDefaultUsage() = 0;
 
     virtual SurfaceError CleanCache() = 0;
 
     DECLARE_INTERFACE_DESCRIPTOR(u"surface.IBufferProducer");
+
+protected:
+    enum {
+        BUFFER_PRODUCER_REQUEST_BUFFER,
+        BUFFER_PRODUCER_CANCEL_BUFFER,
+        BUFFER_PRODUCER_FLUSH_BUFFER,
+        BUFFER_PRODUCER_GET_QUEUE_SIZE,
+        BUFFER_PRODUCER_SET_QUEUE_SIZE,
+        BUFFER_PRODUCER_GET_NAME,
+        BUFFER_PRODUCER_GET_DEFAULT_WIDTH,
+        BUFFER_PRODUCER_GET_DEFAULT_HEIGHT,
+        BUFFER_PRODUCER_GET_DEFAULT_USAGE,
+        BUFFER_PRODUCER_CLEAN_CACHE,
+    };
 };
 } // namespace OHOS
 

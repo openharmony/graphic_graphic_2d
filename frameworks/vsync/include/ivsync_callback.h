@@ -18,14 +18,19 @@
 
 #include <iremote_broker.h>
 
+#include <vsync_type.h>
+
 namespace OHOS {
 class IVsyncCallback : public IRemoteBroker {
 public:
+    virtual VsyncError OnVsync(int64_t timestamp) = 0;
+
+    DECLARE_INTERFACE_DESCRIPTOR(u"IVsyncCallback");
+
+protected:
     enum {
         IVSYNC_CALLBACK_ON_VSYNC,
     };
-    virtual void OnVsync(int64_t timestamp) = 0;
-    DECLARE_INTERFACE_DESCRIPTOR(u"IVsyncCallback");
 };
 } // namespace OHOS
 

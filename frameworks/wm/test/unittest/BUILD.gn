@@ -11,11 +11,265 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import("//build/test.gni")
+
+module_out_path = "graphic_standard/wm"
+
 group("unittest") {
   testonly = true
 
   deps = [
+    ":input_listener_manager_test",
+    ":log_listener_test",
+    ":multimodal_listener_manager_test",
+    ":subwindow_normal_impl_test",
+    ":subwindow_option_impl_test",
+    ":wayland_service_test",
+    ":window_attribute_test",
+    ":window_impl_test",
+    ":window_manager_impl_test",
+    ":window_manager_server_test",
+    ":window_option_impl_test",
+    ":wl_buffer_cache_test",
+    ":wl_display_test",
+    ":wl_dma_buffer_factory_test",
+    ":wl_shm_buffer_factory_test",
+    ":wl_subsurface_factory_test",
+    ":wl_surface_factory_test",
+    ":wp_viewport_factory_test",
     "wms_client:test",
-    "wms_server:test",
   ]
 }
+
+## UnitTest input_listener_manager_test {{{
+ohos_unittest("input_listener_manager_test") {
+  module_out_path = module_out_path
+
+  sources = [ "input_listener_manager_test.cpp" ]
+
+  deps = [ ":wm_test_common" ]
+}
+
+## UnitTest input_listener_manager_test }}}
+
+## UnitTest log_listener_test {{{
+ohos_unittest("log_listener_test") {
+  module_out_path = module_out_path
+
+  sources = [ "log_listener_test.cpp" ]
+
+  deps = [ ":wm_test_common" ]
+}
+
+## UnitTest log_listener_test }}}
+
+## UnitTest multimodal_listener_manager_test {{{
+ohos_unittest("multimodal_listener_manager_test") {
+  module_out_path = module_out_path
+
+  sources = [ "multimodal_listener_manager_test.cpp" ]
+
+  deps = [ ":wm_test_common" ]
+}
+
+## UnitTest multimodal_listener_manager_test }}}
+
+## UnitTest subwindow_normal_impl_test {{{
+ohos_unittest("subwindow_normal_impl_test") {
+  module_out_path = module_out_path
+
+  sources = [ "subwindow_normal_impl_test.cpp" ]
+
+  deps = [ ":wm_test_common" ]
+}
+
+## UnitTest subwindow_normal_impl_test }}}
+
+## UnitTest subwindow_option_impl_test {{{
+ohos_unittest("subwindow_option_impl_test") {
+  module_out_path = module_out_path
+
+  sources = [ "subwindow_option_impl_test.cpp" ]
+
+  deps = [ ":wm_test_common" ]
+}
+
+## UnitTest subwindow_option_impl_test }}}
+
+## UnitTest wayland_service_test {{{
+ohos_unittest("wayland_service_test") {
+  module_out_path = module_out_path
+
+  sources = [ "wayland_service_test.cpp" ]
+
+  deps = [ ":wm_test_common" ]
+}
+
+## UnitTest wayland_service_test }}}
+
+## UnitTest window_attribute_test {{{
+ohos_unittest("window_attribute_test") {
+  module_out_path = module_out_path
+
+  sources = [ "window_attribute_test.cpp" ]
+
+  deps = [ ":wm_test_common" ]
+}
+
+## UnitTest window_attribute_test }}}
+
+## UnitTest window_impl_test {{{
+ohos_unittest("window_impl_test") {
+  module_out_path = module_out_path
+
+  sources = [ "window_impl_test.cpp" ]
+
+  deps = [ ":wm_test_common" ]
+}
+
+## UnitTest window_impl_test }}}
+
+## UnitTest window_manager_impl_test {{{
+ohos_unittest("window_manager_impl_test") {
+  module_out_path = module_out_path
+
+  sources = [ "window_manager_impl_test.cpp" ]
+
+  deps = [ ":wm_test_common" ]
+}
+
+## UnitTest window_manager_impl_test }}}
+
+## UnitTest window_manager_server_test {{{
+ohos_unittest("window_manager_server_test") {
+  module_out_path = module_out_path
+
+  sources = [ "window_manager_server_test.cpp" ]
+
+  deps = [ ":wm_test_common" ]
+}
+
+## UnitTest window_manager_server_test }}}
+
+## UnitTest window_option_impl_test {{{
+ohos_unittest("window_option_impl_test") {
+  module_out_path = module_out_path
+
+  sources = [ "window_option_impl_test.cpp" ]
+
+  deps = [ ":wm_test_common" ]
+}
+
+## UnitTest window_option_impl_test }}}
+
+## UnitTest wl_display_test {{{
+ohos_unittest("wl_display_test") {
+  module_out_path = module_out_path
+
+  sources = [ "wl_display_test.cpp" ]
+
+  deps = [ ":wm_test_common" ]
+}
+
+## UnitTest wayland_service_test }}}
+
+## UnitTest wl_buffer_cache_test {{{
+ohos_unittest("wl_buffer_cache_test") {
+  module_out_path = module_out_path
+
+  sources = [ "wl_buffer_cache_test.cpp" ]
+
+  deps = [ ":wm_test_common" ]
+}
+
+## UnitTest wl_buffer_cache_test }}}
+
+## UnitTest wl_dma_buffer_factory_test {{{
+ohos_unittest("wl_dma_buffer_factory_test") {
+  module_out_path = module_out_path
+
+  sources = [ "wl_dma_buffer_factory_test.cpp" ]
+
+  deps = [ ":wm_test_common" ]
+}
+
+## UnitTest wl_dma_buffer_factory_test }}}
+
+## UnitTest wl_shm_buffer_factory_test {{{
+ohos_unittest("wl_shm_buffer_factory_test") {
+  module_out_path = module_out_path
+
+  sources = [ "wl_shm_buffer_factory_test.cpp" ]
+
+  deps = [ ":wm_test_common" ]
+}
+
+## UnitTest wl_shm_buffer_factory_test }}}
+
+## UnitTest wl_subsurface_factory_test {{{
+ohos_unittest("wl_subsurface_factory_test") {
+  module_out_path = module_out_path
+
+  sources = [ "wl_subsurface_factory_test.cpp" ]
+
+  deps = [ ":wm_test_common" ]
+}
+
+## UnitTest wl_subsurface_factory_test }}}
+
+## UnitTest wl_surface_factory_test {{{
+ohos_unittest("wl_surface_factory_test") {
+  module_out_path = module_out_path
+
+  sources = [ "wl_surface_factory_test.cpp" ]
+
+  deps = [ ":wm_test_common" ]
+}
+
+## UnitTest wl_surface_factory_test }}}
+
+## UnitTest wp_viewport_factory_test {{{
+ohos_unittest("wp_viewport_factory_test") {
+  module_out_path = module_out_path
+
+  sources = [ "wp_viewport_factory_test.cpp" ]
+
+  deps = [ ":wm_test_common" ]
+}
+
+## UnitTest wp_viewport_factory_test }}}
+
+## Build wm_test_common.a {{{
+config("wm_test_common_public_config") {
+  include_dirs = [ "//foundation/graphic/standard/frameworks/wm/include" ]
+
+  cflags = [
+    "-Wall",
+    "-Werror",
+    "-g3",
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
+}
+
+ohos_static_library("wm_test_common") {
+  visibility = [ ":*" ]
+  testonly = true
+
+  public_configs = [ ":wm_test_common_public_config" ]
+
+  public_deps = [
+    "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
+    "//foundation/graphic/standard:libwmclient",
+    "//foundation/graphic/standard:libwmservice",
+    "//foundation/graphic/standard/frameworks/wmserver:wms_protocol",
+    "//third_party/googletest:gmock",
+    "//third_party/wayland-protocols_standard:linux_dmabuf_unstable_v1_protocol",
+    "//third_party/wayland-protocols_standard:viewporter_protocol",
+    "//third_party/wayland_standard:libwayland_client",
+    "//third_party/wayland_standard:libwayland_cursor",
+    "//third_party/wayland_standard:wayland_core_protocol",
+    "//third_party/weston:ivi_application_protocol",
+  ]
+}
+## Build wm_test_common.a }}}

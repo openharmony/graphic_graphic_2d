@@ -29,11 +29,6 @@
 #include "buffer_queue.h"
 
 namespace OHOS {
-enum BufferQueueProducerState {
-    BUFFER_QUEUE_PRODUCER_STATE_NORMAL,
-    BUFFER_QUEUE_PRODUCER_STATE_EXITING,
-};
-
 class BufferQueueProducer : public IRemoteStub<IBufferProducer> {
 public:
     BufferQueueProducer(sptr<BufferQueue>& bufferQueue);
@@ -54,8 +49,11 @@ public:
     uint32_t     GetQueueSize() override;
     SurfaceError SetQueueSize(uint32_t queueSize) override;
 
+    SurfaceError GetName(std::string &name) override;
+
     int32_t      GetDefaultWidth() override;
     int32_t      GetDefaultHeight() override;
+    uint32_t     GetDefaultUsage() override;
 
     SurfaceError CleanCache() override;
 
@@ -65,8 +63,10 @@ private:
     int FlushBufferInner(MessageParcel& arguments, MessageParcel& reply, MessageOption& option);
     int GetQueueSizeInner(MessageParcel& arguments, MessageParcel& reply, MessageOption& option);
     int SetQueueSizeInner(MessageParcel& arguments, MessageParcel& reply, MessageOption& option);
+    int GetNameInner(MessageParcel& arguments, MessageParcel& reply, MessageOption& option);
     int GetDefaultWidthInner(MessageParcel& arguments, MessageParcel& reply, MessageOption& option);
     int GetDefaultHeightInner(MessageParcel& arguments, MessageParcel& reply, MessageOption& option);
+    int GetDefaultUsageInner(MessageParcel& arguments, MessageParcel& reply, MessageOption& option);
     int CleanCacheInner(MessageParcel& arguments, MessageParcel& reply, MessageOption& option);
 
     using BufferQueueProducerFunc = int (BufferQueueProducer::*)(MessageParcel& arguments,
@@ -74,6 +74,7 @@ private:
     std::map<uint32_t, BufferQueueProducerFunc> memberFuncMap_;
 
     sptr<BufferQueue> bufferQueue_;
+    std::string name_ = "not init";
 };
 }; // namespace OHOS
 

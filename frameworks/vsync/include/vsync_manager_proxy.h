@@ -23,9 +23,10 @@ namespace OHOS {
 class VsyncManagerProxy : public IRemoteProxy<IVsyncManager> {
 public:
     VsyncManagerProxy(const sptr<IRemoteObject>& impl);
-    virtual ~VsyncManagerProxy();
+    virtual ~VsyncManagerProxy() = default;
 
-    VsyncError ListenNextVsync(sptr<IVsyncCallback>& cb) override;
+    virtual VsyncError ListenVsync(sptr<IVsyncCallback>& cb) override;
+    virtual VsyncError GetVsyncFrequency(uint32_t& freq) override;
 
 private:
     static inline BrokerDelegator<VsyncManagerProxy> delegator_;

@@ -17,15 +17,7 @@ ohos_unittest("windows_manager_test") {
   module_out_path = "graphic_standard/wm"
   sources = [ "windows_manager_test.cpp" ]
   include_dirs = [ "//utils/system/safwk/native/include" ]
-  configs = [
-    "//foundation/graphic/standard/frameworks/wm:wms_client_config",
-    "//foundation/graphic/standard/frameworks/wm:wms_client_public_config",
-  ]
-  deps = [
-    "//foundation/graphic/standard:libsurface",
-    "//foundation/graphic/standard/frameworks/wm:wms_client",
-    "//foundation/graphic/standard/prebuilts/librarys/display_gralloc:libdisplay_gralloc",
-  ]
+  deps = [ "//foundation/graphic/standard/frameworks/wm:wms_client" ]
   external_deps = [ "ipc:ipc_core" ]
   cflags = []
   if (target_cpu == "arm") {

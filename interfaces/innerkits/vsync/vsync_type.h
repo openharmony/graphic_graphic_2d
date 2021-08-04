@@ -18,43 +18,10 @@
 
 #include <string>
 
+#include <graphic_common.h>
+
 namespace OHOS {
-static const char *DrmModuleNames[] = {
-    "hisilicon",
-    "sprd",
-};
-
-using VsyncError = enum VsyncError {
-    VSYNC_ERROR_OK = 0,
-    VSYNC_ERROR_API_FAILED,
-    VSYNC_ERROR_INVALID_OPERATING,
-    VSYNC_ERROR_NULLPTR,
-    VSYNC_ERROR_BINDER_ERROR,
-    VSYNC_ERROR_SAMGR,
-    VSYNC_ERROR_SERVICE_NOT_FOUND,
-    VSYNC_ERROR_PROXY_NOT_INCLUDE,
-    _VSYNC_ERROR_MAX,
-};
-
-static const std::string VsyncErrorStrs[] = {
-    [VSYNC_ERROR_OK] = "<no error>",
-    [VSYNC_ERROR_API_FAILED] = "<api failed>",
-    [VSYNC_ERROR_INVALID_OPERATING] = "<operating is invalid>",
-    [VSYNC_ERROR_NULLPTR] = "<param exists nullptr>",
-    [VSYNC_ERROR_BINDER_ERROR] = "<binder SendRequest failed>",
-    [VSYNC_ERROR_SAMGR] = "<get system ability failed>",
-    [VSYNC_ERROR_SERVICE_NOT_FOUND] = "<service is not found>",
-    [VSYNC_ERROR_PROXY_NOT_INCLUDE] = "<proxy header file is not included>",
-};
-
-static inline std::string VsyncErrorStr(VsyncError err)
-{
-    if (err >= _VSYNC_ERROR_MAX) {
-        return "<VsyncErrorStr error index out of range>";
-    }
-
-    return VsyncErrorStrs[err];
-}
+#define DRM_MODULE_NAME "hisilicon"
 } // namespace OHOS
 
 #endif // INTERFACES_INNERKITS_VSYNC_VSYNC_TYPE_H

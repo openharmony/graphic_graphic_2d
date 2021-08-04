@@ -47,7 +47,7 @@ typedef struct {
 
 class BufferQueue : public RefBase {
 public:
-    BufferQueue();
+    BufferQueue(const std::string &name);
     virtual ~BufferQueue();
     SurfaceError Init();
 
@@ -66,12 +66,17 @@ public:
     uint32_t GetQueueSize();
     SurfaceError SetQueueSize(uint32_t queueSize);
 
+    SurfaceError GetName(std::string &name);
+
     SurfaceError RegisterConsumerListener(sptr<IBufferConsumerListener>& listener);
+    SurfaceError RegisterConsumerListener(IBufferConsumerListenerClazz *listener);
     SurfaceError UnregisterConsumerListener();
 
     SurfaceError SetDefaultWidthAndHeight(int32_t width, int32_t height);
     int32_t GetDefaultWidth();
     int32_t GetDefaultHeight();
+    SurfaceError SetDefaultUsage(uint32_t usage);
+    uint32_t GetDefaultUsage();
 
     SurfaceError CleanCache();
 
@@ -91,12 +96,15 @@ private:
 
     int32_t defaultWidth = 0;
     int32_t defaultHeight = 0;
-    uint32_t queueSize_;
+    uint32_t defaultUsage = 0;
+    uint32_t queueSize_ = SURFACE_DEFAULT_QUEUE_SIZE;
+    std::string name_;
     std::list<int32_t> freeList_;
     std::list<int32_t> dirtyList_;
     std::list<int32_t> deletingList_;
     std::map<int32_t, BufferElement> bufferQueueCache_;
     sptr<IBufferConsumerListener> listener_;
+    IBufferConsumerListenerClazz *listenerClazz_;
     std::mutex mutex_;
 };
 }; // namespace OHOS

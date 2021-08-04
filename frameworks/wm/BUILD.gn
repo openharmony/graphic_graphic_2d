@@ -21,7 +21,6 @@ config("wms_client_config") {
     "include",
     "include/client",
     "//utils/system/safwk/native/include",
-    "//foundation/graphic/standard/frameworks/surface/include",
   ]
 
   cflags = [
@@ -32,7 +31,11 @@ config("wms_client_config") {
 }
 
 config("wms_client_public_config") {
-  include_dirs = [ "//foundation/graphic/standard/interfaces/innerkits/wm" ]
+  include_dirs = [
+    "//foundation/graphic/standard/interfaces/innerkits",
+    "//foundation/graphic/standard/interfaces/innerkits/wm",
+    "//foundation/graphic/standard/interfaces/innerkits/common",
+  ]
 
   cflags = []
 }
@@ -42,10 +45,31 @@ ohos_shared_library("wms_client") {
     "src/client/video_window.cpp",
     "src/client/window_manager.cpp",
     "src/client/window_manager_controller_client.cpp",
-    "src/client/window_manager_proxy.cpp",
+    "src/input_listener_manager.cpp",
+    "src/log_listener.cpp",
+    "src/multimodal_listener_manager.cpp",
+    "src/singleton_container.cpp",
+    "src/tester.cpp",
+    "src/wayland_service.cpp",
+    "src/window_manager_server.cpp",
+    "src/wl_buffer.cpp",
+    "src/wl_buffer_cache.cpp",
+    "src/wl_display.cpp",
+    "src/wl_dma_buffer_factory.cpp",
+    "src/wl_shm_buffer.cpp",
+    "src/wl_shm_buffer_factory.cpp",
+    "src/wl_subsurface.cpp",
+    "src/wl_subsurface_factory.cpp",
+    "src/wl_surface.cpp",
+    "src/wl_surface_factory.cpp",
+    "src/wp_viewport.cpp",
+    "src/wp_viewport_factory.cpp",
   ]
 
-  configs = [ ":wms_client_config" ]
+  configs = [
+    ":wms_client_config",
+    "//third_party/libdrm:libdrm_public_config",
+  ]
 
   public_configs = [
     ":wms_client_public_config",
@@ -53,8 +77,9 @@ ohos_shared_library("wms_client") {
   ]
 
   deps = [
+    "//foundation/graphic/standard:libwmservice",
+    "//foundation/graphic/standard/frameworks/wmserver:wms_protocol",
     "//foundation/multimedia/media_standard/frameworks/videodisplaymanager:videodisplaymanager",
-    "//foundation/multimodalinput/input/interfaces/native/innerkits/event:mmi_event",
     "//third_party/wayland-ivi-extension:libilmClient",
     "//third_party/wayland-ivi-extension:libilmCommon",
     "//third_party/wayland-ivi-extension:libilmControl",
@@ -73,7 +98,10 @@ ohos_shared_library("wms_client") {
     "samgr_L2:samgr_proxy",
   ]
 
-  public_deps = [ "//foundation/graphic/standard:libsurface" ]
+  public_deps = [
+    "//foundation/graphic/standard:libsurface",
+    "//foundation/multimodalinput/input/interfaces/native/innerkits/event:mmi_event",
+  ]
 
   part_name = "graphic_standard"
   subsystem_name = "graphic"
@@ -81,13 +109,13 @@ ohos_shared_library("wms_client") {
 
 ## Build wms_client.so }}}
 
-## Build wms_service {{{
-config("wms_service_config") {
+## Build libwmclient.so {{{
+config("libwmclient_config") {
   visibility = [ ":*" ]
 
   include_dirs = [
     "include",
-    "include/server",
+    "include/client",
     "//utils/system/safwk/native/include",
   ]
 
@@ -98,32 +126,65 @@ config("wms_service_config") {
   ]
 }
 
-ohos_executable("wms_service") {
-  install_enable = true
+config("libwmclient_public_config") {
+  include_dirs =
+      [ "//foundation/graphic/standard/interfaces/innerkits/wmclient" ]
+}
 
+ohos_shared_library("libwmclient") {
   sources = [
-    "src/server/layer_controller.cpp",
-    "src/server/window_manager_server.cpp",
-    "src/server/window_manager_service.cpp",
-    "src/server/window_manager_stub.cpp",
+    "src/input_listener_manager.cpp",
+    "src/log_listener.cpp",
+    "src/multimodal_listener_manager.cpp",
+    "src/singleton_container.cpp",
+    "src/static_call.cpp",
+    "src/tester.cpp",
+    "src/subwindow_normal_impl.cpp",
+    "src/subwindow_option.cpp",
+    "src/subwindow_option_impl.cpp",
+    "src/subwindow_video_impl.cpp",
+    "src/wayland_service.cpp",
+    "src/window_attribute.cpp",
+    "src/window_impl.cpp",
+    "src/window_manager.cpp",
+    "src/window_manager_impl.cpp",
+    "src/window_manager_server.cpp",
+    "src/window_option.cpp",
+    "src/window_option_impl.cpp",
+    "src/wl_buffer.cpp",
+    "src/wl_buffer_cache.cpp",
+    "src/wl_display.cpp",
+    "src/wl_dma_buffer_factory.cpp",
+    "src/wl_shm_buffer.cpp",
+    "src/wl_shm_buffer_factory.cpp",
+    "src/wl_subsurface.cpp",
+    "src/wl_subsurface_factory.cpp",
+    "src/wl_surface.cpp",
+    "src/wl_surface_factory.cpp",
+    "src/wp_viewport.cpp",
+    "src/wp_viewport_factory.cpp",
   ]
 
   configs = [
-    ":wms_service_config",
-    ":wms_client_public_config",
+    ":libwmclient_config",
+    "//third_party/libdrm:libdrm_public_config",
   ]
 
+  public_configs = [ ":libwmclient_public_config" ]
+
   deps = [
-    "//foundation/graphic/standard:libsurface",
-    "//foundation/graphic/standard:libvsync_server",
-    "//foundation/multimodalinput/input/interfaces/native/innerkits/event:mmi_event",
-    "//third_party/libpng:libpng",
+    "//foundation/graphic/standard:libwmservice",
+    "//foundation/graphic/standard/frameworks/wmserver:wms_protocol",
+    "//foundation/multimedia/media_standard/frameworks/videodisplaymanager:videodisplaymanager",
     "//third_party/wayland-ivi-extension:libilmClient",
     "//third_party/wayland-ivi-extension:libilmCommon",
     "//third_party/wayland-ivi-extension:libilmControl",
     "//third_party/wayland-ivi-extension:libilmInput",
     "//third_party/wayland-protocols_standard:linux_dmabuf_unstable_v1_protocol",
+    "//third_party/wayland-protocols_standard:viewporter_protocol",
+    "//third_party/wayland_standard:libwayland_cursor",
     "//third_party/wayland_standard:wayland_core_protocol",
+    "//third_party/weston:ivi_application_protocol",
     "//third_party/weston:libweston",
   ]
 
@@ -133,11 +194,16 @@ ohos_executable("wms_service") {
     "samgr_L2:samgr_proxy",
   ]
 
+  public_deps = [
+    "//foundation/graphic/standard:libsurface",
+    "//foundation/multimodalinput/input/interfaces/native/innerkits/event:mmi_event",
+  ]
+
   part_name = "graphic_standard"
   subsystem_name = "graphic"
 }
 
-## Build wms_service }}}
+## Build libwmclient.so }}}
 
 ## Build wm_test {{{
 config("wm_test_config") {
@@ -155,7 +221,7 @@ config("wm_test_config") {
 ohos_executable("wm_test") {
   install_enable = true
 
-  sources = [ "src/window_manager_test.cpp" ]
+  sources = [ "src/test/wm_test.cpp" ]
 
   configs = [ ":wm_test_config" ]
 
@@ -166,8 +232,8 @@ ohos_executable("wm_test") {
   ]
 
   external_deps = [
-    "ipc:ipc_core",
     "hiviewdfx_hilog_native:libhilog",
+    "ipc:ipc_core",
     "samgr_L2:samgr_proxy",
   ]
 
@@ -176,6 +242,66 @@ ohos_executable("wm_test") {
 }
 
 ## Build wm_test }}}
+
+## Build wmtest {{{
+config("wmtest_config") {
+  visibility = [ ":*" ]
+
+  include_dirs = []
+
+  cflags = [
+    "-Wall",
+    "-Werror",
+    "-g3",
+  ]
+}
+
+ohos_executable("wmtest") {
+  install_enable = true
+
+  sources = [
+    "src/test/inative_test.cpp",
+    "src/test/native_test_0.cpp",
+    "src/test/native_test_1.cpp",
+    "src/test/native_test_10.cpp",
+    "src/test/native_test_11.cpp",
+    "src/test/native_test_12.cpp",
+    "src/test/native_test_13.cpp",
+    "src/test/native_test_14.cpp",
+    "src/test/native_test_15.cpp",
+    "src/test/native_test_16.cpp",
+    "src/test/native_test_17.cpp",
+    "src/test/native_test_18.cpp",
+    "src/test/native_test_19.cpp",
+    "src/test/native_test_2.cpp",
+    "src/test/native_test_20.cpp",
+    "src/test/native_test_3.cpp",
+    "src/test/native_test_4.cpp",
+    "src/test/native_test_5.cpp",
+    "src/test/native_test_6.cpp",
+    "src/test/native_test_7.cpp",
+    "src/test/native_test_8.cpp",
+    "src/test/native_test_9.cpp",
+    "src/test/native_test_class.cpp",
+    "src/test/util.cpp",
+    "src/test/wmtest.cpp",
+  ]
+
+  configs = [ ":wmtest_config" ]
+
+  deps = [
+    "//foundation/graphic/standard:libvsync_client",
+    "//foundation/graphic/standard:libwmclient",
+    "//third_party/zlib:libz",
+  ]
+
+  external_deps = [ "samgr_L2:samgr_proxy" ]
+
+  part_name = "graphic_standard"
+  subsystem_name = "graphic"
+}
+
+## Build wmtest }}}
 
 group("test") {
   testonly = true

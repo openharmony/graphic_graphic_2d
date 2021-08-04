@@ -6,9 +6,6 @@
         "//foundation/graphic/standard/interfaces/kits/js/declaration:window",
         "//foundation/graphic/standard/interfaces/kits/napi:napi_packages",
 
-        "//foundation/graphic/standard/prebuilts/etcs:weston.ini",
-        "//foundation/graphic/standard/prebuilts/etcs:weston.rc",
-
         "//third_party/wayland-ivi-extension:ivi-controller",
         "//third_party/wayland-ivi-extension:ivi-input-controller",
         "//third_party/wayland-ivi-extension:libscreen-info-module",
@@ -22,16 +19,24 @@
         "//third_party/weston:ivi-shell",
         "//third_party/weston:libweston-desktop",
         "//third_party/weston:weston",
+        "//third_party/weston:weston.ini",
+        "//third_party/weston:weston.rc",
+
+        "//foundation/graphic/standard/frameworks/vsync:vsync_server",
+        "//foundation/graphic/standard/frameworks/wmserver:wmserver",
+        "//foundation/graphic/standard/frameworks/wmserver:screen-info-test",
+        "//foundation/graphic/standard/frameworks/wmservice:wmservice_test",
 
         "//foundation/graphic/standard/frameworks/bootanimation:bootanimation",
         "//foundation/graphic/standard/frameworks/bootanimation:bootanimation-480x960.raw",
-        "//foundation/graphic/standard/frameworks/wm:wms_service",
         "//foundation/graphic/standard/frameworks/wm:wm_test",
+        "//foundation/graphic/standard/frameworks/wm:wmtest",
         "//foundation/graphic/standard:graphic.rc"
       ],
       "test_list": [
         "//foundation/graphic/standard/frameworks/surface:test",
-        "//foundation/graphic/standard/frameworks/vsync:test"
+        "//foundation/graphic/standard/frameworks/vsync:test",
+        "//foundation/graphic/standard/frameworks/wm:test"
       ]
     }
   }

@@ -69,7 +69,7 @@ class LocalBufferQueueConsumerTest : public testing::Test {
 public:
     static void SetUpTestCase(void)
     {
-        bq = new BufferQueue();
+        bq = new BufferQueue("test");
         bq->Init();
         bqc = new BufferQueueConsumer(bq);
         sptr<IBufferConsumerListener> listener = new BufferConsumerListener();

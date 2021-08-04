@@ -26,12 +26,13 @@
 namespace OHOS {
 class Surface : public RefBase {
 public:
-    static sptr<Surface> CreateSurfaceAsConsumer();
+    static sptr<Surface> CreateSurfaceAsConsumer(std::string name = "noname");
     static sptr<Surface> CreateSurfaceAsProducer(sptr<IBufferProducer>& producer);
 
     virtual ~Surface() = default;
 
-    virtual sptr<IBufferProducer> GetProducer() = 0;
+    virtual bool IsConsumer() const = 0;
+    virtual sptr<IBufferProducer> GetProducer() const = 0;
 
     virtual SurfaceError RequestBuffer(sptr<SurfaceBuffer>& buffer,
                                        int32_t& fence, BufferRequestConfig& config) = 0;
@@ -52,10 +53,22 @@ public:
     virtual int32_t GetDefaultWidth() = 0;
     virtual int32_t GetDefaultHeight() = 0;
 
+    enum {
+        USAGE_CPU_READ = (1 << 0),
+        USAGE_CPU_WRITE = (1 << 1),
+        USAGE_MEM_MMZ = (1 << 2),
+        USAGE_MEM_DMA = (1 << 3),
+    };
+    virtual SurfaceError SetDefaultUsage(uint32_t usage) = 0;
+    virtual uint32_t GetDefaultUsage() = 0;
+
     virtual SurfaceError SetUserData(const std::string& key, const std::string& val) = 0;
     virtual std::string GetUserData(const std::string& key) = 0;
 
+    virtual SurfaceError GetName(std::string &name) = 0;
+
     virtual SurfaceError RegisterConsumerListener(sptr<IBufferConsumerListener>& listener) = 0;
+    virtual SurfaceError RegisterConsumerListener(IBufferConsumerListenerClazz *listener) = 0;
     virtual SurfaceError UnregisterConsumerListener() = 0;
 
     virtual SurfaceError CleanCache() = 0;

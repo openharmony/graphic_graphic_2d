@@ -33,7 +33,8 @@ public:
     virtual ~ProducerSurface();
     SurfaceError Init();
 
-    sptr<IBufferProducer> GetProducer() override;
+    bool IsConsumer() const override;
+    sptr<IBufferProducer> GetProducer() const override;
     SurfaceError RequestBuffer(sptr<SurfaceBuffer>& buffer,
                                int32_t& fence, BufferRequestConfig& config) override;
 
@@ -49,14 +50,19 @@ public:
     uint32_t     GetQueueSize() override;
     SurfaceError SetQueueSize(uint32_t queueSize) override;
 
+    SurfaceError GetName(std::string &name) override;
+
     SurfaceError SetDefaultWidthAndHeight(int32_t width, int32_t height) override;
     int32_t GetDefaultWidth() override;
     int32_t GetDefaultHeight() override;
+    SurfaceError SetDefaultUsage(uint32_t usage) override;
+    uint32_t GetDefaultUsage() override;
 
     SurfaceError SetUserData(const std::string& key, const std::string& val) override;
     std::string  GetUserData(const std::string& key) override;
 
     SurfaceError RegisterConsumerListener(sptr<IBufferConsumerListener>& listener) override;
+    SurfaceError RegisterConsumerListener(IBufferConsumerListenerClazz *listener) override;
     SurfaceError UnregisterConsumerListener() override;
 
     SurfaceError CleanCache() override;
@@ -67,6 +73,7 @@ private:
     std::map<int32_t, sptr<SurfaceBufferImpl>> bufferProducerCache_;
     std::map<std::string, std::string> userData_;
     sptr<IBufferProducer> producer_;
+    std::string name_ = "not init";
 };
 } // namespace OHOS
 

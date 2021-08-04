@@ -31,7 +31,7 @@
     do {                                                                        \
         int32_t ret = Remote()->SendRequest(COMMAND, arguments, reply, option); \
         if (ret != ERR_NONE) {                                                  \
-            BLOG_FAILURE("SendRequest return %{public}d", ret);                 \
+            BLOGN_FAILURE("SendRequest return %{public}d", ret);                 \
             return SURFACE_ERROR_BINDER_ERROR;                                  \
         }                                                                       \
     } while (0)
@@ -40,7 +40,7 @@
     do {                                                                        \
         int32_t ret = Remote()->SendRequest(COMMAND, arguments, reply, option); \
         if (ret != ERR_NONE) {                                                  \
-            BLOG_FAILURE_ID(sequence, "SendRequest return %{public}d", ret);    \
+            BLOGN_FAILURE_ID(sequence, "SendRequest return %{public}d", ret);    \
             return SURFACE_ERROR_BINDER_ERROR;                                  \
         }                                                                       \
     } while (0)
@@ -49,7 +49,7 @@
     do {                                                                \
         int32_t ret = reply.ReadInt32();                                \
         if (ret != SURFACE_ERROR_OK) {                                  \
-            BLOG_FAILURE_ID(sequence, "Remote return %{public}d", ret); \
+            BLOGN_FAILURE_ID(sequence, "Remote return %{public}d", ret); \
             return (SurfaceError)ret;                                   \
         }                                                               \
     } while (0)
@@ -62,19 +62,19 @@ constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, 0, "BufferClientProducer" };
 BufferClientProducer::BufferClientProducer(const sptr<IRemoteObject>& impl)
     : IRemoteProxy<IBufferProducer>(impl)
 {
-    BLOGFD("");
+    BLOGI("ctor");
 }
 
 BufferClientProducer::~BufferClientProducer()
 {
-    BLOGFD("");
+    BLOGI("dtor");
 }
 
 SurfaceError BufferClientProducer::RequestBuffer(int32_t& sequence, sptr<SurfaceBuffer>& buffer,
                                                  int32_t& fence, BufferRequestConfig& config,
                                                  std::vector<int32_t>& deletingBuffers)
 {
-    DEFINE_MESSAGE_VARIABLES(arguments, reply, option, BLOGFE);
+    DEFINE_MESSAGE_VARIABLES(arguments, reply, option, BLOGE);
 
     WriteRequestConfig(arguments, config);
 
@@ -93,7 +93,7 @@ SurfaceError BufferClientProducer::RequestBuffer(int32_t& sequence, sptr<Surface
 
 SurfaceError BufferClientProducer::CancelBuffer(int32_t sequence)
 {
-    DEFINE_MESSAGE_VARIABLES(arguments, reply, option, BLOGFE);
+    DEFINE_MESSAGE_VARIABLES(arguments, reply, option, BLOGE);
 
     arguments.WriteInt32(sequence);
 
@@ -106,7 +106,7 @@ SurfaceError BufferClientProducer::CancelBuffer(int32_t sequence)
 SurfaceError BufferClientProducer::FlushBuffer(int32_t sequence,
                              int32_t fence, BufferFlushConfig& config)
 {
-    DEFINE_MESSAGE_VARIABLES(arguments, reply, option, BLOGFE);
+    DEFINE_MESSAGE_VARIABLES(arguments, reply, option, BLOGE);
 
     arguments.WriteInt32(sequence);
     WriteFence(arguments, fence);
@@ -120,7 +120,7 @@ SurfaceError BufferClientProducer::FlushBuffer(int32_t sequence,
 
 uint32_t     BufferClientProducer::GetQueueSize()
 {
-    DEFINE_MESSAGE_VARIABLES(arguments, reply, option, BLOGFE);
+    DEFINE_MESSAGE_VARIABLES(arguments, reply, option, BLOGE);
 
     SEND_REQUEST(BUFFER_PRODUCER_GET_QUEUE_SIZE, arguments, reply, option);
 
@@ -129,23 +129,41 @@ uint32_t     BufferClientProducer::GetQueueSize()
 
 SurfaceError BufferClientProducer::SetQueueSize(uint32_t queueSize)
 {
-    DEFINE_MESSAGE_VARIABLES(arguments, reply, option, BLOGFE);
+    DEFINE_MESSAGE_VARIABLES(arguments, reply, option, BLOGE);
 
     arguments.WriteInt32(queueSize);
 
     SEND_REQUEST(BUFFER_PRODUCER_SET_QUEUE_SIZE, arguments, reply, option);
     int32_t ret = reply.ReadInt32();
     if (ret != SURFACE_ERROR_OK) {
-        BLOG_FAILURE("Remote return %{public}d", ret);
+        BLOGN_FAILURE("Remote return %{public}d", ret);
         return (SurfaceError)ret;
     }
 
     return SURFACE_ERROR_OK;
 }
 
+SurfaceError BufferClientProducer::GetName(std::string &name)
+{
+    DEFINE_MESSAGE_VARIABLES(arguments, reply, option, BLOGE);
+
+    SEND_REQUEST(BUFFER_PRODUCER_GET_NAME, arguments, reply, option);
+    int32_t ret = reply.ReadInt32();
+    if (ret != SURFACE_ERROR_OK) {
+        BLOGN_FAILURE("Remote return %{public}d", ret);
+        return static_cast<SurfaceError>(ret);
+    }
+    if (reply.ReadString(name) == false) {
+        BLOGN_FAILURE("reply.ReadString return false");
+        return SURFACE_ERROR_BINDER_ERROR;
+    }
+    name_ = name;
+    return static_cast<SurfaceError>(ret);
+}
+
 int32_t BufferClientProducer::GetDefaultWidth()
 {
-    DEFINE_MESSAGE_VARIABLES(arguments, reply, option, BLOGFE);
+    DEFINE_MESSAGE_VARIABLES(arguments, reply, option, BLOGE);
 
     SEND_REQUEST(BUFFER_PRODUCER_GET_DEFAULT_WIDTH, arguments, reply, option);
 
@@ -154,21 +172,30 @@ int32_t BufferClientProducer::GetDefaultWidth()
 
 int32_t BufferClientProducer::GetDefaultHeight()
 {
-    DEFINE_MESSAGE_VARIABLES(arguments, reply, option, BLOGFE);
+    DEFINE_MESSAGE_VARIABLES(arguments, reply, option, BLOGE);
 
     SEND_REQUEST(BUFFER_PRODUCER_GET_DEFAULT_HEIGHT, arguments, reply, option);
 
     return reply.ReadInt32();
 }
 
+uint32_t BufferClientProducer::GetDefaultUsage()
+{
+    DEFINE_MESSAGE_VARIABLES(arguments, reply, option, BLOGE);
+
+    SEND_REQUEST(BUFFER_PRODUCER_GET_DEFAULT_USAGE, arguments, reply, option);
+
+    return reply.ReadUint32();
+}
+
 SurfaceError BufferClientProducer::CleanCache()
 {
-    DEFINE_MESSAGE_VARIABLES(arguments, reply, option, BLOGFE);
+    DEFINE_MESSAGE_VARIABLES(arguments, reply, option, BLOGE);
 
     SEND_REQUEST(BUFFER_PRODUCER_CLEAN_CACHE, arguments, reply, option);
     int32_t ret = reply.ReadInt32();
     if (ret != SURFACE_ERROR_OK) {
-        BLOG_FAILURE("Remote return %{public}d", ret);
+        BLOGN_FAILURE("Remote return %{public}d", ret);
         return (SurfaceError)ret;
     }
 

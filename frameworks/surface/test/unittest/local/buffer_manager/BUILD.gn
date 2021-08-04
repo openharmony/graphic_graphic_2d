@@ -20,7 +20,7 @@ ohos_unittest("surface_local_buffer_manager_test") {
   sources = [ "local_buffer_manager_test.cpp" ]
 
   deps = [ "//foundation/graphic/standard/frameworks/surface/test/unittest:surface_test_common" ]
-  
+
   external_deps = [ "ipc:ipc_core" ]
 }
 

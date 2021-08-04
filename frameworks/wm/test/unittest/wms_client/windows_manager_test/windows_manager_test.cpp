@@ -63,12 +63,6 @@ HWTEST_F(WindowManagerTest, CreateWindow, testing::ext::TestSize.Level0)
     ASSERT_NE(WinIdTemp, nullptr);
 }
 
-void ShotDoneCallback(ImageInfo& imageInfo){}
-HWTEST_F(WindowManagerTest, StartShotScreen, testing::ext::TestSize.Level0)
-{
-    WindowManager::GetInstance()->StartShotScreen(ShotDoneCallback); 
-}
-
 HWTEST_F(WindowManagerTest, GetMaxWidth, testing::ext::TestSize.Level0)
 {
     int iWidth = WindowManager::GetInstance()->GetMaxWidth();
@@ -114,87 +108,6 @@ HWTEST_F(WindowTest, ChangeWindowType, testing::ext::TestSize.Level0)
     g_window->ChangeWindowType(WINDOW_TYPE_VIDEO);
 }
 
-void PointerButtonCB(int serial, int button, int state, int time){}
-HWTEST_F(WindowTest, RegistPointerButtonCb, testing::ext::TestSize.Level0)
-{
-    g_window->RegistPointerButtonCb(PointerButtonCB);
-}
-
-HWTEST_F(WindowTest, RegistPointerButtonCbNULL, testing::ext::TestSize.Level0)
-{
-    g_window->RegistPointerButtonCb(nullptr);
-}
-
-void PointerEnterCB(int32_t x, int32_t y, int32_t serila){}
-HWTEST_F(WindowTest, RegistPointerEnterCb, testing::ext::TestSize.Level0)
-{
-    g_window->RegistPointerEnterCb(PointerEnterCB);
-}
-HWTEST_F(WindowTest, RegistPointerEnterCbNULL, testing::ext::TestSize.Level0)
-{
-    g_window->RegistPointerEnterCb(nullptr);
-}
-
-void PointerLeaveCB(int32_t serial){}
-HWTEST_F(WindowTest, RegistPointerLeaveCb, testing::ext::TestSize.Level0)
-{
-    g_window->RegistPointerLeaveCb(PointerLeaveCB);
-}
-HWTEST_F(WindowTest, RegistPointerLeaveCbNULL, testing::ext::TestSize.Level0)
-{
-    g_window->RegistPointerLeaveCb(nullptr);
-}
-
-void PointerMotionCB(int32_t x, int32_t y, int32_t time){}
-HWTEST_F(WindowTest, RegistPointerMotionCb, testing::ext::TestSize.Level0)
-{
-    g_window->RegistPointerMotionCb(PointerMotionCB);
-}
-HWTEST_F(WindowTest, RegistPointerMotionCbNULL, testing::ext::TestSize.Level0)
-{
-    g_window->RegistPointerMotionCb(nullptr);
-}
-
-void PointerAxisDiscreteCB(int32_t axis, int32_t discrete){}
-HWTEST_F(WindowTest, RegistPointerAxisDiscreteCb, testing::ext::TestSize.Level0)
-{
-    g_window->RegistPointerAxisDiscreteCb(PointerAxisDiscreteCB);
-}
-HWTEST_F(WindowTest, RegistPointerAxisDiscreteCbNULL, testing::ext::TestSize.Level0)
-{
-    g_window->RegistPointerAxisDiscreteCb(nullptr);
-}
-
-void PointerAxisSourceCB(int32_t axisSource){}
-HWTEST_F(WindowTest, RegistPointerAxisSourceCb, testing::ext::TestSize.Level0)
-{
-    g_window->RegistPointerAxisSourceCb(PointerAxisSourceCB);
-}
-HWTEST_F(WindowTest, RegistPointerAxisSourceCbNULL, testing::ext::TestSize.Level0)
-{
-    g_window->RegistPointerAxisSourceCb(nullptr);
-}
-
-void PointerAxisStopCB(int32_t time, int32_t axis){}
-HWTEST_F(WindowTest, RegistPointerAxisStopCb, testing::ext::TestSize.Level0)
-{
-    g_window->RegistPointerAxisStopCb(PointerAxisStopCB);
-}
-HWTEST_F(WindowTest, RegistPointerAxisStopCbNULL, testing::ext::TestSize.Level0)
-{
-    g_window->RegistPointerAxisStopCb(nullptr);
-}
-
-void PointerAxisCB(int32_t time, int32_t axis, int32_t value){};
-HWTEST_F(WindowTest, RegistPointerAxisCb, testing::ext::TestSize.Level0)
-{
-    g_window->RegistPointerAxisCb(PointerAxisCB);
-}
-HWTEST_F(WindowTest, RegistPointerAxisCbNULL, testing::ext::TestSize.Level0)
-{
-    g_window->RegistPointerAxisCb(nullptr);
-}
-
 HWTEST_F(WindowTest, ReSize, testing::ext::TestSize.Level0)
 {
     g_window->ReSize(100, 100);
@@ -210,76 +123,6 @@ HWTEST_F(WindowTest, Rotate, testing::ext::TestSize.Level0)
     g_window->Rotate(WM_ROTATE_TYPE_FLIPPED_90);
     g_window->Rotate(WM_ROTATE_TYPE_FLIPPED_180);
     g_window->Rotate(WM_ROTATE_TYPE_FLIPPED_270);
-}
-
-void TouchUpCB(int32_t serial, int32_t time, int32_t id){}
-HWTEST_F(WindowTest, RegistTouchUpCb, testing::ext::TestSize.Level0)
-{
-    g_window->RegistTouchUpCb(TouchUpCB);
-}
-HWTEST_F(WindowTest, RegistTouchUpCbNULL, testing::ext::TestSize.Level0)
-{
-    g_window->RegistTouchUpCb(nullptr);
-}
-
-void TouchDownCB(int32_t x, int32_t y, int32_t serial, int32_t time, int32_t id){}
-HWTEST_F(WindowTest, RegistTouchDownCb, testing::ext::TestSize.Level0)
-{
-    g_window->RegistTouchDownCb(TouchDownCB);
-}
-HWTEST_F(WindowTest, RegistTouchDownCbNULL, testing::ext::TestSize.Level0)
-{
-    g_window->RegistTouchDownCb(nullptr);
-}
-
-void TouchEmotionCB(int32_t x, int32_t y, int32_t time, int32_t id){}
-HWTEST_F(WindowTest, RegistTouchEmotionCb, testing::ext::TestSize.Level0)
-{
-    g_window->RegistTouchEmotionCb(TouchEmotionCB);
-}
-HWTEST_F(WindowTest, RegistTouchEmotionCbNULL, testing::ext::TestSize.Level0)
-{
-    g_window->RegistTouchEmotionCb(nullptr);
-}
-
-void TouchFrameCB(){}
-HWTEST_F(WindowTest, RegistTouchFrameCb, testing::ext::TestSize.Level0)
-{
-    g_window->RegistTouchFrameCb(TouchFrameCB);
-}
-HWTEST_F(WindowTest, RegistTouchFrameCbNULL, testing::ext::TestSize.Level0)
-{
-    g_window->RegistTouchFrameCb(nullptr);
-}
-
-void TouchCancelCB(){}
-HWTEST_F(WindowTest, RegistTouchCancelCb, testing::ext::TestSize.Level0)
-{
-    g_window->RegistTouchCancelCb(TouchCancelCB);
-}
-HWTEST_F(WindowTest, RegistTouchCancelCbNULL, testing::ext::TestSize.Level0)
-{
-    g_window->RegistTouchCancelCb(nullptr);
-}
-
-void TouchShapeCB(int32_t major, int32_t minor){}
-HWTEST_F(WindowTest, RegistTouchShapeCb, testing::ext::TestSize.Level0)
-{
-    g_window->RegistTouchShapeCb(TouchShapeCB);
-}
-HWTEST_F(WindowTest, RegistTouchShapeCbNULL, testing::ext::TestSize.Level0)
-{
-    g_window->RegistTouchShapeCb(nullptr);
-}
-
-void TouchOrientationCallback(int32_t id, int32_t Orientation){}
-HWTEST_F(WindowTest, RegistTouchOrientationCb, testing::ext::TestSize.Level0)
-{
-    g_window->RegistTouchOrientationCb(TouchOrientationCallback);
-}
-HWTEST_F(WindowTest, RegistTouchOrientationCbNULL, testing::ext::TestSize.Level0)
-{
-    g_window->RegistTouchOrientationCb(nullptr);
 }
 
 void WindowInfoChangeCb(WindowInfo &info){}

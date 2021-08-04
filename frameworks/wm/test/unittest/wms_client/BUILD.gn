@@ -16,9 +16,5 @@ import("//build/test.gni")
 group("test") {
   testonly = true
 
-  deps = [
-    "window_manager_proxy_test:test",
-    "windows_manager_test:test",
-    "wm_controller_client_test:test",
-  ]
+  deps = [ "windows_manager_test:test" ]
 }

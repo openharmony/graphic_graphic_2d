@@ -1,0 +1,107 @@
+# Copyright (c) 2021 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/ohos.gni")
+import("//third_party/wayland_standard/wayland_protocol.gni")
+
+## Generate Wayland Protocols {{{
+wayland_protocol("wms_protocol") {
+  sources = [ "protocol/wms.xml" ]
+}
+
+## Generate Wayland Protocols }}}
+
+## Build wmserver.so {{{
+config("wmserver_config") {
+  visibility = [ ":*" ]
+
+  include_dirs = [
+    "//third_party/wayland_standard",
+    "//third_party/weston/compositor",
+    "//third_party/weston/ivi-shell",
+    "//third_party/weston/libweston",
+    "//third_party/wayland-ivi-extension/ivi-input-modules/ivi-input-controller/src/",
+    "//utils/native/base/include",
+  ]
+
+  cflags = [
+    "-Wall",
+    "-Werror",
+    "-g3",
+  ]
+}
+
+config("wmserver_public_config") {
+  include_dirs = [ "src" ]
+
+  cflags = []
+}
+
+ohos_shared_library("wmserver") {
+  sources = [
+    "src/wmserver.c",
+    "src/screen_info.c",
+  ]
+
+  configs = [ ":wmserver_config" ]
+
+  public_configs = [ ":wmserver_public_config" ]
+
+  deps = [
+    "//third_party/wayland_standard:wayland_core_protocol",
+    "//third_party/weston:drm-backend",
+    "//third_party/weston:libexec_weston",
+    "//third_party/libinput:libinput-third",
+    "//utils/native/base:utils",
+  ]
+
+  public_deps = [ ":wms_protocol" ]
+
+  part_name = "graphic_standard"
+  subsystem_name = "graphic"
+}
+
+## Build wmserver.so }}}
+
+## Build screen-info-test {{{
+config("screen-info-test_config") {
+  visibility = [ ":*" ]
+
+  include_dirs = []
+
+  cflags = []
+}
+
+ohos_executable("screen-info-test") {
+  install_enable = true
+
+  sources = [ "src/screen_info_test.c" ]
+
+  configs = [ ":screen-info-test_config" ]
+
+  deps = [
+    ":wms_protocol",
+    "//third_party/wayland_standard:libwayland_client",
+    "//third_party/libinput:libinput-third",
+  ]
+
+  part_name = "graphic_standard"
+  subsystem_name = "graphic"
+}
+## Build screen-info-test }}}
+
+group("test") {
+  testonly = true
+
+  deps = [ "test:test" ]
+}

@@ -19,6 +19,8 @@
 #include <stdint.h>
 #include <string>
 
+#include <graphic_common.h>
+
 namespace OHOS {
 #define SURFACE_MAX_USER_DATA_COUNT 1000
 #define SURFACE_MAX_WIDTH 7680
@@ -62,54 +64,6 @@ using BufferFlushConfig = struct BufferFlushConfig {
     Rect damage;
     int64_t timestamp;
 };
-
-using SurfaceError = enum SurfaceError {
-    SURFACE_ERROR_OK = 0,
-    SURFACE_ERROR_ERROR,
-    SURFACE_ERROR_BINDER_ERROR,
-    SURFACE_ERROR_NULLPTR,
-    SURFACE_ERROR_REMOTE_NULLPTR,
-    SURFACE_ERROR_NO_ENTRY,
-    SURFACE_ERROR_INVALID_OPERATING,
-    SURFACE_ERROR_NO_BUFFER,
-    SURFACE_ERROR_INVALID_PARAM,
-    SURFACE_ERROR_INIT,
-    SURFACE_ERROR_NOMEM,
-    SURFACE_ERROR_API_FAILED,
-    SURFACE_ERROR_NOT_SUPPORT,
-    SURFACE_ERROR_OUT_OF_RANGE,
-    SURFACE_ERROR_TYPE_ERROR,
-    SURFACE_ERROR_NO_CONSUMER,
-    _SURFACE_ERROR_MAX,
-};
-
-static const std::string SurfaceErrorStrs[] = {
-    [SURFACE_ERROR_OK]                = "<no error>",
-    [SURFACE_ERROR_ERROR]             = "<occur error>",
-    [SURFACE_ERROR_BINDER_ERROR]      = "<binder occur error>",
-    [SURFACE_ERROR_NULLPTR]           = "<param exists nullptr>",
-    [SURFACE_ERROR_REMOTE_NULLPTR]    = "<remote give nullptr>",
-    [SURFACE_ERROR_NO_ENTRY]          = "<no entry>",
-    [SURFACE_ERROR_INVALID_OPERATING] = "<operating is invalid>",
-    [SURFACE_ERROR_NO_BUFFER]         = "<no buffer>",
-    [SURFACE_ERROR_INVALID_PARAM]     = "<param is invalid>",
-    [SURFACE_ERROR_INIT]              = "<init occur error>",
-    [SURFACE_ERROR_NOMEM]             = "<no mem>",
-    [SURFACE_ERROR_API_FAILED]        = "<api failed>",
-    [SURFACE_ERROR_NOT_SUPPORT]       = "<not support>",
-    [SURFACE_ERROR_OUT_OF_RANGE]      = "<index out of range>",
-    [SURFACE_ERROR_TYPE_ERROR]        = "<invalid type>",
-    [SURFACE_ERROR_NO_CONSUMER]       = "<no consumer listener>",
-};
-
-static inline std::string SurfaceErrorStr(SurfaceError err)
-{
-    if (err >= _SURFACE_ERROR_MAX) {
-        return "<SurfaceErrorStr error index out of range>";
-    }
-
-    return SurfaceErrorStrs[err];
-}
 } // namespace OHOS
 
 #endif // INTERFACES_INNERKITS_SURFACE_SURFACE_TYPE_H

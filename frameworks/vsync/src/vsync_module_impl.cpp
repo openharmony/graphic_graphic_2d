@@ -15,9 +15,10 @@
 
 #include "vsync_module_impl.h"
 
+#include <chrono>
+#include <mutex>
 #include <unistd.h>
 #include <xf86drm.h>
-#include <chrono>
 
 #include <iservice_registry.h>
 #include <system_ability_definition.h>
@@ -29,6 +30,18 @@ namespace {
 constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, 0, "VsyncModuleImpl" };
 constexpr int USLEEP_TIME = 100 * 1000;
 constexpr int RETRY_TIMES = 5;
+}
+
+sptr<VsyncModuleImpl> VsyncModuleImpl::GetInstance()
+{
+    if (instance == nullptr) {
+        static std::mutex mutex;
+        std::lock_guard<std::mutex> lock(mutex);
+        if (instance == nullptr) {
+            instance = new VsyncModuleImpl();
+        }
+    }
+    return instance;
 }
 
 int64_t VsyncModuleImpl::WaitNextVBlank()
@@ -46,7 +59,6 @@ int64_t VsyncModuleImpl::WaitNextVBlank()
         return -1;
     }
 
-    // uptime
     auto now = std::chrono::steady_clock::now().time_since_epoch();
     return (int64_t)std::chrono::duration_cast<std::chrono::nanoseconds>(now).count();
 }
@@ -54,12 +66,9 @@ int64_t VsyncModuleImpl::WaitNextVBlank()
 void VsyncModuleImpl::VsyncMainThread()
 {
     while (vsyncThreadRunning_) {
-        vsyncManager_->CheckVsyncRequest();
-        if (!vsyncThreadRunning_) {
-            break;
-        }
         int64_t timestamp = WaitNextVBlank();
         if (timestamp < 0) {
+            VLOGE("WaitNextVBlank return negative time");
             continue;
         }
         vsyncManager_->Callback(timestamp);
@@ -118,15 +127,9 @@ VsyncError VsyncModuleImpl::Start()
         return ret;
     }
 
-    for (const auto &name : DrmModuleNames) {
-        drmFd_ = drmOpen(name, nullptr);
-        if (drmFd_ < 0) {
-            VLOGW("drmOpen %{public}s failed with %{public}d", name, errno);
-        } else {
-            break;
-        }
-    }
+    drmFd_ = drmOpen(DRM_MODULE_NAME, nullptr);
     if (drmFd_ < 0) {
+        VLOG_ERROR_API(errno, drmOpen);
         return VSYNC_ERROR_API_FAILED;
     }
     VLOGD("drmOpen fd is %{public}d", drmFd_);
@@ -146,7 +149,6 @@ VsyncError VsyncModuleImpl::Stop()
     }
 
     vsyncThreadRunning_ = false;
-    vsyncManager_->StopCheck();
     vsyncThread_->join();
     vsyncThread_.reset();
 

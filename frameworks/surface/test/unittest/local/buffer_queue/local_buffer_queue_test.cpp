@@ -71,7 +71,7 @@ class LocalBufferQueueTest : public testing::Test {
 public:
     static void SetUpTestCase(void)
     {
-        bq = new BufferQueue();
+        bq = new BufferQueue("test");
         sptr<IBufferConsumerListener> listener = new BufferConsumerListener();
         bq->RegisterConsumerListener(listener);
     }
