@@ -21,7 +21,10 @@
 #include <graphic_common.h>
 
 namespace OHOS {
-#define DRM_MODULE_NAME "hisilicon"
+static const char *DrmModuleNames[] = {
+    "hisilicon",
+    "sprd",
+};
 } // namespace OHOS
 
 #endif // INTERFACES_INNERKITS_VSYNC_VSYNC_TYPE_H
