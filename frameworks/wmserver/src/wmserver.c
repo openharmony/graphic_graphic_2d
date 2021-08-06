@@ -40,6 +40,7 @@
 
 #define WINDOW_ID_BIT 5
 #define WINDOW_ID_LIMIT  (1 << WINDOW_ID_BIT)
+#define WINDOW_ID_FLAGS_FILL_ALL ((uint32_t) ~0)
 #define WINDOW_ID_NUM_MAX 1024
 #define WINDOW_ID_INVALID 0
 
@@ -331,7 +332,7 @@ static uint32_t GetWindowId(struct WmsController *pController)
         return windowId;
     }
 
-    if (pController->windowIdFlags == WINDOW_ID_LIMIT) {
+    if (pController->windowIdFlags == WINDOW_ID_FLAGS_FILL_ALL) {
         LOGE("failed, number of window per process = %{public}d", WINDOW_ID_LIMIT);
         return windowId;
     }
