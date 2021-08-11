@@ -20,6 +20,21 @@
 namespace OHOS {
 void WlDMABufferFactoryTest::SetUp()
 {
+    if (csurface == nullptr) {
+        csurface = Surface::CreateSurfaceAsConsumer();
+        csurface->RegisterConsumerListener(this);
+        auto producer = csurface->GetProducer();
+        psurface = Surface::CreateSurfaceAsProducer(producer);
+        int32_t fence;
+        BufferRequestConfig config = {
+            .width = 0x100,  // any value just small
+            .height = 0x100, // any value just small
+            .strideAlignment = 0x8,
+            .format = PIXEL_FMT_RGBA_8888,
+            .usage = HBM_USE_CPU_READ | HBM_USE_CPU_WRITE | HBM_USE_MEM_DMA,
+        };
+        psurface->RequestBuffer(sbuffer, fence, config);
+    }
 }
 
 void WlDMABufferFactoryTest::TearDown()
@@ -30,21 +45,13 @@ void WlDMABufferFactoryTest::SetUpTestCase()
 {
     GTEST_LOG_(INFO) << getpid() << std::endl;
     initRet = WindowManager::GetInstance()->Init();
-    csurface = Surface::CreateSurfaceAsConsumer();
-    auto producer = csurface->GetProducer();
-    psurface = Surface::CreateSurfaceAsProducer(producer);
-    int32_t fence;
-    BufferRequestConfig config = {
-        .width = 0x100,  // any value just small
-        .height = 0x100, // any value just small
-        .strideAlignment = sizeof(void *),
-        .format = PIXEL_FMT_RGBA_8888,
-        .usage = HBM_USE_CPU_READ | HBM_USE_CPU_WRITE | HBM_USE_MEM_DMA,
-    };
-    psurface->RequestBuffer(sbuffer, fence, config);
 }
 
 void WlDMABufferFactoryTest::TearDownTestCase()
+{
+}
+
+void WlDMABufferFactoryTest::OnBufferAvailable()
 {
 }
 
@@ -58,7 +65,7 @@ namespace {
  * CaseDescription: 1. Create WlDMABuffer by normal argument
  *                  2. check it isn't nullptr
  */
-HWTEST_F(WlDMABufferFactoryTest, CreateNormal, testing::ext::TestSize.Level0)
+HWTEST_F(WlDMABufferFactoryTest, createNormal, testing::ext::TestSize.Level0)
 {
     // WindowManager init success.
     ASSERT_EQ(initRet, WM_OK) << "EnvConditions: WindowManager init success. (initRet == WM_OK)";
@@ -82,14 +89,17 @@ HWTEST_F(WlDMABufferFactoryTest, CreateNormal, testing::ext::TestSize.Level0)
  * Function: WlDMABufferFactory
  * SubFunction: Create
  * FunctionPoints: WlDMABufferFactory Create
- * EnvConditions: WindowManager init success.
+ * EnvConditions: WindowManager init success. Surface buffer init success.
  * CaseDescription: 1. Create WlDMABuffers by some abnormal arguments
  *                  2. check they are nullptr
  */
-HWTEST_F(WlDMABufferFactoryTest, CreateAbnormal, testing::ext::TestSize.Level0)
+HWTEST_F(WlDMABufferFactoryTest, createAbnormal, testing::ext::TestSize.Level0)
 {
     // WindowManager init success.
     ASSERT_EQ(initRet, WM_OK) << "EnvConditions: WindowManager init success. (initRet == WM_OK)";
+
+    // Surface buffer init success.
+    ASSERT_NE(sbuffer, nullptr) << "EnvConditions: Surface buffer init success. (sbuffer != nullptr)";
 
     auto fd = sbuffer->GetFileDescriptor();
     auto width = sbuffer->GetWidth();

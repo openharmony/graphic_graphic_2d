@@ -22,12 +22,14 @@
 #include "wl_dma_buffer_factory.h"
 
 namespace OHOS {
-class WlDMABufferFactoryTest : public testing::Test {
+class WlDMABufferFactoryTest : public testing::Test, public IBufferConsumerListenerClazz {
 public:
     static void SetUpTestCase();
     static void TearDownTestCase();
     virtual void SetUp() override;
     virtual void TearDown() override;
+
+    virtual void OnBufferAvailable() override;
 
 private:
     static inline WMError initRet = WM_ERROR_NOT_INIT;
