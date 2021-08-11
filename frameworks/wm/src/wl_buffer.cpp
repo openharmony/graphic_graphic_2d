@@ -15,30 +15,25 @@
 
 #include "wl_buffer.h"
 
-#include <map>
-
 #include "window_manager_hilog.h"
 
 namespace OHOS {
 namespace {
 constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, 0, "WMWlBuffer" };
-std::map<struct wl_buffer *, WlBufferReleaseFunc> g_onReleaseFuncs;
 } // namespace
 
-namespace {
-void Release(void *, struct wl_buffer *buffer)
+void WlBuffer::Release(void *, struct wl_buffer *buffer)
 {
-    if (g_onReleaseFuncs.find(buffer) != g_onReleaseFuncs.end()) {
-        g_onReleaseFuncs[buffer](buffer);
+    if (onReleaseFuncs.find(buffer) != onReleaseFuncs.end()) {
+        onReleaseFuncs[buffer](buffer);
     }
 }
-} // namespace
 
 WlBuffer::WlBuffer(struct wl_buffer *buffer)
 {
     this->buffer = buffer;
     if (buffer != nullptr) {
-        const struct wl_buffer_listener listener = { Release };
+        const struct wl_buffer_listener listener = { WlBuffer::Release };
         if (wl_buffer_add_listener(buffer, &listener, nullptr) == -1) {
             WMLOGFW("wl_buffer_add_listener failed");
         }
@@ -49,7 +44,7 @@ WlBuffer::~WlBuffer()
 {
     if (buffer != nullptr) {
         wl_buffer_destroy(buffer);
-        g_onReleaseFuncs.erase(buffer);
+        onReleaseFuncs.erase(buffer);
     }
 }
 
@@ -61,6 +56,6 @@ struct wl_buffer *WlBuffer::GetRawPtr() const
 void WlBuffer::OnRelease(WlBufferReleaseFunc func)
 {
     onRelease = func;
-    g_onReleaseFuncs[buffer] = onRelease;
+    onReleaseFuncs[buffer] = onRelease;
 }
 } // namespace OHOS

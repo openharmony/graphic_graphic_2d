@@ -16,6 +16,8 @@
 #ifndef FRAMEWORKS_WM_INCLUDE_WL_BUFFER_H
 #define FRAMEWORKS_WM_INCLUDE_WL_BUFFER_H
 
+#include <map>
+
 #include <refbase.h>
 #include <wayland-client-protocol.h>
 
@@ -34,6 +36,10 @@ public:
 protected:
     struct wl_buffer *buffer = nullptr;
     WlBufferReleaseFunc onRelease = nullptr;
+
+private:
+    static void Release(void *, struct wl_buffer *buffer);
+    static inline std::map<struct wl_buffer *, WlBufferReleaseFunc> onReleaseFuncs;
 };
 } // namespace OHOS
 

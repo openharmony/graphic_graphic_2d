@@ -115,7 +115,6 @@ private:
     sptr<WlSurface> wlSurface = nullptr;
     sptr<Surface> csurface = nullptr;
     sptr<Surface> psurface = nullptr;
-    sptr<WindowOption> testParam = nullptr;
 
     sptr<InputListener> logListener = nullptr;
     sptr<MultimodalListener> mmiListener = nullptr;

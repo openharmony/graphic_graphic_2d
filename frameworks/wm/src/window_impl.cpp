@@ -157,7 +157,6 @@ WMError WindowImpl::Create(sptr<Window> &window,
         return wret;
     }
 
-    wi->testParam = WindowOption::Get();
     wi->logListener = SingletonContainer::Get<LogListener>()->AddListener(wi.GetRefPtr());
     wi->mmiListener = SingletonContainer::Get<MultimodalListenerManager>()->AddListener(wi.GetRefPtr());
     wi->exportListener = SingletonContainer::Get<InputListenerManager>()->AddListener(wi.GetRefPtr());
@@ -226,6 +225,7 @@ sptr<Promise<WMError>> WindowImpl::SetWindowType(WindowType type)
 {
     WMLOGFI("(%{public}d)type: %{public}d", attr.GetID(), type);
     CHECK_DESTROY(new Promise<WMError>(WM_ERROR_DESTROYED_OBJECT));
+    static sptr<WindowOption> testParam = WindowOption::Get();
     if (testParam->SetWindowType(type) != WM_OK) {
         return new Promise<WMError>(WM_ERROR_INVALID_PARAM);
     }
@@ -240,6 +240,7 @@ sptr<Promise<WMError>> WindowImpl::SetWindowMode(WindowMode mode)
 {
     WMLOGFI("(%{public}d)mode: %{public}d", attr.GetID(), mode);
     CHECK_DESTROY(new Promise<WMError>(WM_ERROR_DESTROYED_OBJECT));
+    static sptr<WindowOption> testParam = WindowOption::Get();
     if (testParam->SetWindowMode(mode) != WM_OK) {
         return new Promise<WMError>(WM_ERROR_INVALID_PARAM);
     }
@@ -251,6 +252,7 @@ sptr<Promise<WMError>> WindowImpl::Resize(uint32_t width, uint32_t height)
 {
     WMLOGFI("(%{public}d)%{public}u x %{public}u", attr.GetID(), width, height);
     CHECK_DESTROY(new Promise<WMError>(WM_ERROR_DESTROYED_OBJECT));
+    static sptr<WindowOption> testParam = WindowOption::Get();
     if (testParam->SetWidth(width) != WM_OK || testParam->SetHeight(height) != WM_OK) {
         return new Promise<WMError>(WM_ERROR_INVALID_PARAM);
     }
