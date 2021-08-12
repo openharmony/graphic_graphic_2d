@@ -35,11 +35,6 @@ enum ExtraDataType {
 };
 
 typedef struct {
-    BufferHandle* handle_;
-    int32_t sequenceNumber;
-} SurfaceBufferData;
-
-typedef struct {
     std::any value;
     ExtraDataType type;
 } ExtraData;
@@ -82,16 +77,16 @@ public:
     virtual SurfaceError ExtraSet(std::string key, std::string value) override;
 
     void SetBufferHandle(BufferHandle* handle);
-    BufferHandle* GetBufferHandle();
 
     void WriteToMessageParcel(MessageParcel& parcel);
-
-    SurfaceBufferData bufferData_;
 
 private:
     SurfaceError SetData(uint32_t key, ExtraData data);
     SurfaceError GetData(uint32_t key, ExtraData& data);
     std::map<uint32_t, ExtraData> extraDatas_;
+
+    BufferHandle* handle_ = nullptr;
+    int32_t sequenceNumber = -1;
     BufferExtraDataImpl bedataimpl;
 };
 } // namespace OHOS

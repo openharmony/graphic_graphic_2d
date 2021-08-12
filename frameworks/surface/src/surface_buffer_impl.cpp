@@ -35,25 +35,25 @@ SurfaceBufferImpl::SurfaceBufferImpl()
         mutex.lock();
 
         static int sequence_number_ = 0;
-        this->bufferData_.sequenceNumber = sequence_number_++;
+        sequenceNumber = sequence_number_++;
 
         mutex.unlock();
     }
-    this->bufferData_.handle_ = nullptr;
+    handle_ = nullptr;
 }
 
 SurfaceBufferImpl::SurfaceBufferImpl(int seqNum)
 {
     BLOGD("");
-    bufferData_.sequenceNumber = seqNum;
-    bufferData_.handle_ = nullptr;
+    sequenceNumber = seqNum;
+    handle_ = nullptr;
 }
 
 SurfaceBufferImpl::~SurfaceBufferImpl()
 {
     BLOGD("");
-    if (this->bufferData_.handle_) {
-        FreeBufferHandle(this->bufferData_.handle_);
+    if (handle_) {
+        FreeBufferHandle(handle_);
     }
 }
 
@@ -64,88 +64,88 @@ SurfaceBufferImpl* SurfaceBufferImpl::FromBase(sptr<SurfaceBuffer>& buffer)
 
 BufferHandle* SurfaceBufferImpl::GetBufferHandle() const
 {
-    return bufferData_.handle_;
+    return handle_;
 }
 
 int32_t SurfaceBufferImpl::GetWidth() const
 {
-    if (this->bufferData_.handle_ == nullptr) {
+    if (handle_ == nullptr) {
         BLOGW("handle is nullptr");
         return -1;
     }
-    return this->bufferData_.handle_->width;
+    return handle_->width;
 }
 
 int32_t SurfaceBufferImpl::GetHeight() const
 {
-    if (this->bufferData_.handle_ == nullptr) {
+    if (handle_ == nullptr) {
         BLOGW("handle is nullptr");
         return -1;
     }
-    return this->bufferData_.handle_->height;
+    return handle_->height;
 }
 
 int32_t SurfaceBufferImpl::GetFormat() const
 {
-    if (this->bufferData_.handle_ == nullptr) {
+    if (handle_ == nullptr) {
         BLOGW("handle is nullptr");
         return -1;
     }
-    return this->bufferData_.handle_->format;
+    return handle_->format;
 }
 
 int64_t SurfaceBufferImpl::GetUsage() const
 {
-    if (this->bufferData_.handle_ == nullptr) {
+    if (handle_ == nullptr) {
         BLOGW("handle is nullptr");
         return -1;
     }
-    return this->bufferData_.handle_->usage;
+    return handle_->usage;
 }
 
 uint64_t SurfaceBufferImpl::GetPhyAddr() const
 {
-    if (this->bufferData_.handle_ == nullptr) {
+    if (handle_ == nullptr) {
         BLOGW("handle is nullptr");
         return 0;
     }
-    return this->bufferData_.handle_->phyAddr;
+    return handle_->phyAddr;
 }
 
 int32_t SurfaceBufferImpl::GetKey() const
 {
-    if (this->bufferData_.handle_ == nullptr) {
+    if (handle_ == nullptr) {
         BLOGW("handle is nullptr");
         return -1;
     }
-    return this->bufferData_.handle_->key;
+    return handle_->key;
 }
 
 void* SurfaceBufferImpl::GetVirAddr() const
 {
-    if (this->bufferData_.handle_ == nullptr) {
+    if (handle_ == nullptr) {
         BLOGW("handle is nullptr");
         return nullptr;
     }
-    return this->bufferData_.handle_->virAddr;
+    return handle_->virAddr;
 }
 
 int32_t SurfaceBufferImpl::GetFileDescriptor() const
 {
-    if (this->bufferData_.handle_ == nullptr) {
+    if (handle_ == nullptr) {
         BLOGW("handle is nullptr");
         return -1;
     }
-    return this->bufferData_.handle_->fd;
+    return handle_->fd;
 }
 
 uint32_t SurfaceBufferImpl::GetSize() const
 {
-    if (this->bufferData_.handle_ == nullptr) {
+    if (handle_ == nullptr) {
         BLOGW("handle is nullptr");
         return 0;
     }
-    return this->bufferData_.handle_->size;
+    return handle_->size;
 }
 
 SurfaceError SurfaceBufferImpl::SetInt32(uint32_t key, int32_t val)
@@ -211,7 +211,7 @@ SurfaceError SurfaceBufferImpl::SetData(uint32_t key, ExtraData data)
         return SURFACE_ERROR_INVALID_PARAM;
     }
 
-    if (this->extraDatas_.size() > SURFACE_MAX_USER_DATA_COUNT) {
+    if (extraDatas_.size() > SURFACE_MAX_USER_DATA_COUNT) {
         BLOGW("SurfaceBuffer has too many extra data, cannot save one more!!!");
         return SURFACE_ERROR_OUT_OF_RANGE;
     }
@@ -221,14 +221,14 @@ SurfaceError SurfaceBufferImpl::SetData(uint32_t key, ExtraData data)
 
     mapData = data;
 
-    this->extraDatas_[key] = mapData;
+    extraDatas_[key] = mapData;
     return SURFACE_ERROR_OK;
 }
 
 SurfaceError SurfaceBufferImpl::GetData(uint32_t key, ExtraData& data)
 {
-    auto it = this->extraDatas_.find(key);
-    if (it == this->extraDatas_.end()) {
+    auto it = extraDatas_.find(key);
+    if (it == extraDatas_.end()) {
         return SURFACE_ERROR_NO_ENTRY;
     }
 
@@ -289,22 +289,17 @@ SurfaceError SurfaceBufferImpl::ExtraSet(std::string key, std::string value)
 
 void SurfaceBufferImpl::SetBufferHandle(BufferHandle* handle)
 {
-    bufferData_.handle_ = handle;
-}
-
-BufferHandle* SurfaceBufferImpl::GetBufferHandle()
-{
-    return bufferData_.handle_;
+    handle_ = handle;
 }
 
 void SurfaceBufferImpl::WriteToMessageParcel(MessageParcel& parcel)
 {
-    if (bufferData_.handle_ == nullptr) {
-        BLOGE("Failure, Reason: bufferData_.handle_ is nullptr");
+    if (handle_ == nullptr) {
+        BLOGE("Failure, Reason: handle_ is nullptr");
         return;
     }
 
-    bool ret = WriteBufferHandle(parcel, *bufferData_.handle_);
+    bool ret = WriteBufferHandle(parcel, *handle_);
     if (ret == false) {
         BLOGE("Failure, Reason: WriteBufferHandle return false");
     }
@@ -333,6 +328,6 @@ void SurfaceBufferImpl::WriteToMessageParcel(MessageParcel& parcel)
 
 int32_t SurfaceBufferImpl::GetSeqNum()
 {
-    return this->bufferData_.sequenceNumber;
+    return sequenceNumber;
 }
 } // namespace OHOS
