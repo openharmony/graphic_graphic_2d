@@ -21,8 +21,9 @@
 #include <vector>
 #include <mutex>
 
-#include <surface_type.h>
 #include <ibuffer_consumer_listener.h>
+#include <ibuffer_producer.h>
+#include <surface_type.h>
 
 #include "surface_buffer_impl.h"
 
@@ -51,17 +52,11 @@ public:
     virtual ~BufferQueue();
     SurfaceError Init();
 
-    struct RequestBufferReturnValue {
-        int32_t sequence;
-        sptr<SurfaceBufferImpl> buffer;
-        int32_t fence;
-        std::vector<int32_t> deletingBuffers;
-    };
-    SurfaceError RequestBuffer(const BufferRequestConfig &config,
-                               struct RequestBufferReturnValue &retval);
+    SurfaceError RequestBuffer(const BufferRequestConfig &config, BufferExtraData &bedata,
+                               struct IBufferProducer::RequestBufferReturnValue &retval);
 
-    SurfaceError ReuseBuffer(const BufferRequestConfig &config,
-                             struct RequestBufferReturnValue &retval);
+    SurfaceError ReuseBuffer(const BufferRequestConfig &config, BufferExtraData &bedata,
+                             struct IBufferProducer::RequestBufferReturnValue &retval);
 
     SurfaceError CancelBuffer(int32_t sequence, const BufferExtraData &bedata);
 

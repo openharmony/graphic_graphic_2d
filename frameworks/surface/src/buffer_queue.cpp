@@ -156,8 +156,8 @@ SurfaceError BufferQueue::CheckFlushConfig(const BufferFlushConfig& config)
     return SURFACE_ERROR_OK;
 }
 
-SurfaceError BufferQueue::RequestBuffer(const BufferRequestConfig &config,
-                                        struct RequestBufferReturnValue &retval)
+SurfaceError BufferQueue::RequestBuffer(const BufferRequestConfig &config, BufferExtraData &bedata,
+                                        struct IBufferProducer::RequestBufferReturnValue &retval)
 {
     if (listener_ == nullptr && listenerClazz_ == nullptr) {
         BLOGN_FAILURE_RET(SURFACE_ERROR_NO_CONSUMER);
@@ -172,9 +172,11 @@ SurfaceError BufferQueue::RequestBuffer(const BufferRequestConfig &config,
 
     // dequeue from free list
     std::lock_guard<std::mutex> lockGuard(mutex_);
-    ret = PopFromFreeList(retval.buffer, config);
+    sptr<SurfaceBufferImpl> bufferImpl = SurfaceBufferImpl::FromBase(retval.buffer);
+    ret = PopFromFreeList(bufferImpl, config);
     if (ret == SURFACE_ERROR_OK) {
-        return ReuseBuffer(config, retval);
+        retval.buffer = bufferImpl;
+        return ReuseBuffer(config, bedata, retval);
     }
 
     // check queue size
@@ -183,42 +185,46 @@ SurfaceError BufferQueue::RequestBuffer(const BufferRequestConfig &config,
         return SURFACE_ERROR_NO_BUFFER;
     }
 
-    ret = AllocBuffer(retval.buffer, config);
+    ret = AllocBuffer(bufferImpl, config);
     if (ret == SURFACE_ERROR_OK) {
-        retval.sequence = retval.buffer->GetSeqNum();
+        retval.sequence = bufferImpl->GetSeqNum();
         BLOGN_SUCCESS_ID(retval.sequence, "alloc");
     }
-
+    bufferImpl->GetExtraData(bedata);
+    retval.buffer = bufferImpl;
     return ret;
 }
 
-SurfaceError BufferQueue::ReuseBuffer(const BufferRequestConfig &config,
-                                      struct RequestBufferReturnValue &retval)
+SurfaceError BufferQueue::ReuseBuffer(const BufferRequestConfig &config, BufferExtraData &bedata,
+                                      struct IBufferProducer::RequestBufferReturnValue &retval)
 {
-    retval.sequence = retval.buffer->GetSeqNum();
-    bool need_realloc = (config != bufferQueueCache_[retval.sequence].config);
+    sptr<SurfaceBufferImpl> bufferImpl = SurfaceBufferImpl::FromBase(retval.buffer);
+    retval.sequence = bufferImpl->GetSeqNum();
+    bool needRealloc = (config != bufferQueueCache_[retval.sequence].config);
     // config, realloc
-    if (need_realloc) {
+    if (needRealloc) {
         DeleteBufferInCache(retval.sequence);
 
-        auto sret = AllocBuffer(retval.buffer, config);
+        auto sret = AllocBuffer(bufferImpl, config);
         if (sret != SURFACE_ERROR_OK) {
             BLOGN_FAILURE("realloc failed");
             return sret;
         }
 
-        retval.sequence = retval.buffer->GetSeqNum();
+        retval.buffer = bufferImpl;
+        retval.sequence = bufferImpl->GetSeqNum();
         bufferQueueCache_[retval.sequence].config = config;
     }
 
     SET_SEQ_STATE(retval.sequence, bufferQueueCache_, BUFFER_STATE_REQUESTED);
     retval.fence = bufferQueueCache_[retval.sequence].fence;
+    bufferImpl->GetExtraData(bedata);
 
     auto &dbs = retval.deletingBuffers;
     dbs.insert(dbs.end(), deletingList_.begin(), deletingList_.end());
     deletingList_.clear();
 
-    if (need_realloc) {
+    if (needRealloc) {
         BLOGN_SUCCESS_ID(retval.sequence, "config change, realloc");
     } else {
         BLOGN_SUCCESS_ID(retval.sequence, "buffer cache");

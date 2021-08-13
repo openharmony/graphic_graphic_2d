@@ -28,9 +28,14 @@
 namespace OHOS {
 class IBufferProducer : public IRemoteBroker {
 public:
-    virtual SurfaceError RequestBuffer(int32_t& sequence, sptr<SurfaceBuffer>& buffer,
-                                       int32_t& fence, BufferRequestConfig& config,
-                                       std::vector<int32_t>& deletingBuffers) = 0;
+    struct RequestBufferReturnValue {
+        int32_t sequence;
+        sptr<SurfaceBuffer> buffer;
+        int32_t fence;
+        std::vector<int32_t> deletingBuffers;
+    };
+    virtual SurfaceError RequestBuffer(const BufferRequestConfig& config, BufferExtraData &bedata,
+                                       RequestBufferReturnValue &retval) = 0;
 
     virtual SurfaceError CancelBuffer(int32_t sequence, BufferExtraData &bedata) = 0;
 

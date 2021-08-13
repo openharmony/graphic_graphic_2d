@@ -79,23 +79,20 @@ int BufferQueueProducer::OnRemoteRequest(uint32_t code, MessageParcel& arguments
 
 int32_t BufferQueueProducer::RequestBufferRemote(MessageParcel& arguments, MessageParcel& reply, MessageOption& option)
 {
-    int32_t sequence = -1;
-    sptr<SurfaceBuffer> buffer = nullptr;
-    int32_t fence = -1;
+    RequestBufferReturnValue retval;
+    BufferExtraDataImpl bedataimpl;
     BufferRequestConfig config = {};
-    std::vector<int32_t> deletingBuffers;
 
     ReadRequestConfig(arguments, config);
 
-    SurfaceError retval = RequestBuffer(sequence, buffer, fence, config, deletingBuffers);
+    SurfaceError sret = RequestBuffer(config, bedataimpl, retval);
 
-    reply.WriteInt32(retval);
-    if (retval == SURFACE_ERROR_OK) {
-        sptr<SurfaceBufferImpl> bufferImpl = SurfaceBufferImpl::FromBase(buffer);
-
-        WriteFence(reply, fence);
-        reply.WriteInt32Vector(deletingBuffers);
-        WriteSurfaceBufferImpl(reply, sequence, bufferImpl);
+    reply.WriteInt32(sret);
+    if (sret == SURFACE_ERROR_OK) {
+        WriteSurfaceBufferImpl(reply, retval.sequence, retval.buffer);
+        bedataimpl.WriteToParcel(reply);
+        WriteFence(reply, retval.fence);
+        reply.WriteInt32Vector(retval.deletingBuffers);
     }
     return 0;
 }
@@ -180,17 +177,16 @@ int BufferQueueProducer::CleanCacheRemote(MessageParcel& arguments, MessageParce
     return 0;
 }
 
-SurfaceError BufferQueueProducer::RequestBuffer(int32_t& sequence, sptr<SurfaceBuffer>& buffer,
-    int32_t& fence, BufferRequestConfig& config, std::vector<int32_t>& deletingBuffers)
+SurfaceError BufferQueueProducer::RequestBuffer(const BufferRequestConfig& config, BufferExtraData &bedata,
+                                                RequestBufferReturnValue &retval)
 {
-    static std::map<int32_t, wptr<SurfaceBufferImpl>> cache;
+    static std::map<int32_t, wptr<SurfaceBuffer>> cache;
     static std::map<pid_t, std::set<int32_t>> sendeds;
     if (bufferQueue_ == nullptr) {
         return SURFACE_ERROR_NULLPTR;
     }
-    sptr<SurfaceBufferImpl> bufferImpl = SurfaceBufferImpl::FromBase(buffer);
-    BufferQueue::RequestBufferReturnValue retval = {.buffer = bufferImpl};
-    auto sret = bufferQueue_->RequestBuffer(config, retval);
+
+    auto sret = bufferQueue_->RequestBuffer(config, bedata, retval);
     /* The first remote call from a different process returns a non-null pointer,
      * and all others return null Pointers.
      * A local call always returns a non-null pointer. */
@@ -209,15 +205,10 @@ SurfaceError BufferQueueProducer::RequestBuffer(int32_t& sequence, sptr<SurfaceB
             }
         }
     }
-    for (const auto &buffer : deletingBuffers) {
+    for (const auto &buffer : retval.deletingBuffers) {
         cache.erase(buffer);
         sendeds[GetCallingPid()].erase(buffer);
     }
-
-    sequence = retval.sequence;
-    buffer = retval.buffer;
-    deletingBuffers = retval.deletingBuffers;
-    fence = retval.fence;
     return sret;
 }
 

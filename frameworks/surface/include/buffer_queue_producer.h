@@ -37,9 +37,8 @@ public:
     virtual int OnRemoteRequest(uint32_t code, MessageParcel& arguments,
                                 MessageParcel& reply, MessageOption& option) override;
 
-    SurfaceError RequestBuffer(int32_t& sequence, sptr<SurfaceBuffer>& buffer,
-                               int32_t& fence, BufferRequestConfig& config,
-                               std::vector<int32_t>& deletingBuffers) override;
+    virtual SurfaceError RequestBuffer(const BufferRequestConfig& config, BufferExtraData &bedata,
+                                       RequestBufferReturnValue &retval) override;
 
     SurfaceError CancelBuffer(int32_t sequence, BufferExtraData &bedata) override;
 

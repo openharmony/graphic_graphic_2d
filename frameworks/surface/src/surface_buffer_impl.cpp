@@ -242,9 +242,10 @@ void SurfaceBufferImpl::SetExtraData(const BufferExtraData &bedata)
     bedataimpl = *bedatai;
 }
 
-BufferExtraData &SurfaceBufferImpl::GetExtraData()
+void SurfaceBufferImpl::GetExtraData(BufferExtraData &bedata) const
 {
-    return bedataimpl;
+    auto bedatai = static_cast<BufferExtraDataImpl*>(&bedata);
+    *bedatai = bedataimpl;
 }
 
 SurfaceError SurfaceBufferImpl::ExtraGet(std::string key, int32_t &value) const

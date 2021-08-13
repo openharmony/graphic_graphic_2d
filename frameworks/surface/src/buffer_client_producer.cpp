@@ -70,23 +70,20 @@ BufferClientProducer::~BufferClientProducer()
     BLOGNI("dtor");
 }
 
-SurfaceError BufferClientProducer::RequestBuffer(int32_t& sequence, sptr<SurfaceBuffer>& buffer,
-    int32_t& fence, BufferRequestConfig& config, std::vector<int32_t>& deletingBuffers)
+SurfaceError BufferClientProducer::RequestBuffer(const BufferRequestConfig& config, BufferExtraData &bedata,
+                                                 RequestBufferReturnValue &retval)
 {
     DEFINE_MESSAGE_VARIABLES(arguments, reply, option, BLOGE);
 
     WriteRequestConfig(arguments, config);
 
-    SEND_REQUEST_WITH_SEQ(BUFFER_PRODUCER_REQUEST_BUFFER, arguments, reply, option, sequence);
-    CHECK_RETVAL_WITH_SEQ(reply, sequence);
+    SEND_REQUEST(BUFFER_PRODUCER_REQUEST_BUFFER, arguments, reply, option);
+    CHECK_RETVAL_WITH_SEQ(reply, retval.sequence);
 
-    ReadFence(reply, fence);
-    reply.ReadInt32Vector(&deletingBuffers);
-
-    sptr<SurfaceBufferImpl> bufferImpl = nullptr;
-    ReadSurfaceBufferImpl(reply, sequence, bufferImpl);
-    buffer = bufferImpl;
-
+    ReadSurfaceBufferImpl(reply, retval.sequence, retval.buffer);
+    bedata.ReadFromParcel(reply);
+    ReadFence(reply, retval.fence);
+    reply.ReadInt32Vector(&retval.deletingBuffers);
     return SURFACE_ERROR_OK;
 }
 
