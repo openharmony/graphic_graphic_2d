@@ -45,7 +45,7 @@ public:
     static inline int64_t timestamp = 0;
     static inline Rect damage = {};
     static inline sptr<BufferQueue> bq = nullptr;
-    static inline std::map<int32_t, sptr<SurfaceBufferImpl>> cache;
+    static inline std::map<int32_t, sptr<SurfaceBuffer>> cache;
     static inline BufferExtraDataImpl bedata;
 };
 } // namespace OHOS

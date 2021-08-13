@@ -100,84 +100,69 @@ HWTEST_F(BufferClientProducerRemoteTest, QueueSize, testing::ext::TestSize.Level
 
 HWTEST_F(BufferClientProducerRemoteTest, ReqCan, testing::ext::TestSize.Level0)
 {
-    sptr<SurfaceBuffer> buffer;
-    int32_t releaseFence;
-    int32_t sequence;
-
-    SurfaceError ret = bp->RequestBuffer(sequence, buffer, releaseFence, requestConfig, deletingBuffers);
+    IBufferProducer::RequestBufferReturnValue retval;
+    SurfaceError ret = bp->RequestBuffer(requestConfig, bedata, retval);
     ASSERT_EQ(ret, SURFACE_ERROR_OK);
-    ASSERT_NE(buffer, nullptr);
+    ASSERT_NE(retval.buffer, nullptr);
 
-    ret = bp->CancelBuffer(sequence, bedata);
+    ret = bp->CancelBuffer(retval.sequence, bedata);
     ASSERT_EQ(ret, SURFACE_ERROR_OK);
 }
 
 HWTEST_F(BufferClientProducerRemoteTest, ReqCanCan, testing::ext::TestSize.Level0)
 {
-    sptr<SurfaceBuffer> buffer;
-    int32_t releaseFence;
-    int32_t sequence;
-
-    SurfaceError ret = bp->RequestBuffer(sequence, buffer, releaseFence, requestConfig, deletingBuffers);
+    IBufferProducer::RequestBufferReturnValue retval;
+    SurfaceError ret = bp->RequestBuffer(requestConfig, bedata, retval);
     ASSERT_EQ(ret, SURFACE_ERROR_OK);
-    ASSERT_EQ(buffer, nullptr);
+    ASSERT_EQ(retval.buffer, nullptr);
 
-    ret = bp->CancelBuffer(sequence, bedata);
+    ret = bp->CancelBuffer(retval.sequence, bedata);
     ASSERT_EQ(ret, SURFACE_ERROR_OK);
 
-    ret = bp->CancelBuffer(sequence, bedata);
+    ret = bp->CancelBuffer(retval.sequence, bedata);
     ASSERT_NE(ret, SURFACE_ERROR_OK);
 }
 
 HWTEST_F(BufferClientProducerRemoteTest, ReqReqReqCanCan, testing::ext::TestSize.Level0)
 {
-    sptr<SurfaceBuffer> buffer1;
-    sptr<SurfaceBuffer> buffer2;
-    sptr<SurfaceBuffer> buffer3;
-    int32_t releaseFence;
-    int32_t sequence1;
-    int32_t sequence2;
-    int32_t sequence3;
+    IBufferProducer::RequestBufferReturnValue retval1;
+    IBufferProducer::RequestBufferReturnValue retval2;
+    IBufferProducer::RequestBufferReturnValue retval3;
     SurfaceError ret;
 
-    ret = bp->RequestBuffer(sequence1, buffer1, releaseFence, requestConfig, deletingBuffers);
+    ret = bp->RequestBuffer(requestConfig, bedata, retval1);
     ASSERT_EQ(ret, SURFACE_ERROR_OK);
-    ASSERT_EQ(buffer1, nullptr);
+    ASSERT_EQ(retval1.buffer, nullptr);
 
-    ret = bp->RequestBuffer(sequence2, buffer2, releaseFence, requestConfig, deletingBuffers);
+    ret = bp->RequestBuffer(requestConfig, bedata, retval2);
     ASSERT_EQ(ret, SURFACE_ERROR_OK);
-    ASSERT_NE(buffer2, nullptr);
+    ASSERT_NE(retval2.buffer, nullptr);
 
-    ret = bp->RequestBuffer(sequence3, buffer3, releaseFence, requestConfig, deletingBuffers);
+    ret = bp->RequestBuffer(requestConfig, bedata, retval3);
     ASSERT_NE(ret, SURFACE_ERROR_OK);
-    ASSERT_EQ(buffer3, nullptr);
+    ASSERT_EQ(retval3.buffer, nullptr);
 
-    ret = bp->CancelBuffer(sequence1, bedata);
+    ret = bp->CancelBuffer(retval1.sequence, bedata);
     ASSERT_EQ(ret, SURFACE_ERROR_OK);
 
-    ret = bp->CancelBuffer(sequence2, bedata);
+    ret = bp->CancelBuffer(retval2.sequence, bedata);
     ASSERT_EQ(ret, SURFACE_ERROR_OK);
 
-    ret = bp->CancelBuffer(sequence3, bedata);
+    ret = bp->CancelBuffer(retval3.sequence, bedata);
     ASSERT_NE(ret, SURFACE_ERROR_OK);
 }
 
 HWTEST_F(BufferClientProducerRemoteTest, SetQueueSizeDeleting, testing::ext::TestSize.Level0)
 {
-    sptr<SurfaceBuffer> buffer;
-    int32_t releaseFence;
-    int32_t sequence;
-
-    sptr<BufferClientProducer> bcp = static_cast<BufferClientProducer*>(bp.GetRefPtr());
-
     SurfaceError ret = bp->SetQueueSize(1);
     ASSERT_EQ(ret, SURFACE_ERROR_OK);
 
-    ret = bp->RequestBuffer(sequence, buffer, releaseFence, requestConfig, deletingBuffers);
+    IBufferProducer::RequestBufferReturnValue retval;
+    ret = bp->RequestBuffer(requestConfig, bedata, retval);
     ASSERT_EQ(ret, SURFACE_ERROR_OK);
-    ASSERT_EQ(buffer, nullptr);
+    ASSERT_EQ(retval.buffer, nullptr);
 
-    ret = bp->CancelBuffer(sequence, bedata);
+    ret = bp->CancelBuffer(retval.sequence, bedata);
     ASSERT_EQ(ret, SURFACE_ERROR_OK);
 
     ret = bp->SetQueueSize(2);
@@ -186,30 +171,24 @@ HWTEST_F(BufferClientProducerRemoteTest, SetQueueSizeDeleting, testing::ext::Tes
 
 HWTEST_F(BufferClientProducerRemoteTest, ReqFlu, testing::ext::TestSize.Level0)
 {
-    sptr<SurfaceBuffer> buffer;
-    int32_t releaseFence;
-    int32_t sequence;
-
-    SurfaceError ret = bp->RequestBuffer(sequence, buffer, releaseFence, requestConfig, deletingBuffers);
+    IBufferProducer::RequestBufferReturnValue retval;
+    SurfaceError ret = bp->RequestBuffer(requestConfig, bedata, retval);
     ASSERT_EQ(ret, SURFACE_ERROR_OK);
 
-    ret = bp->FlushBuffer(sequence, bedata, -1, flushConfig);
+    ret = bp->FlushBuffer(retval.sequence, bedata, -1, flushConfig);
     ASSERT_EQ(ret, SURFACE_ERROR_OK);
 }
 
 HWTEST_F(BufferClientProducerRemoteTest, ReqFluFlu, testing::ext::TestSize.Level0)
 {
-    sptr<SurfaceBuffer> buffer;
-    int32_t releaseFence;
-    int32_t sequence;
-
-    SurfaceError ret = bp->RequestBuffer(sequence, buffer, releaseFence, requestConfig, deletingBuffers);
+    IBufferProducer::RequestBufferReturnValue retval;
+    SurfaceError ret = bp->RequestBuffer(requestConfig, bedata, retval);
     ASSERT_EQ(ret, SURFACE_ERROR_OK);
 
-    ret = bp->FlushBuffer(sequence, bedata, -1, flushConfig);
+    ret = bp->FlushBuffer(retval.sequence, bedata, -1, flushConfig);
     ASSERT_EQ(ret, SURFACE_ERROR_OK);
 
-    ret = bp->FlushBuffer(sequence, bedata, -1, flushConfig);
+    ret = bp->FlushBuffer(retval.sequence, bedata, -1, flushConfig);
     ASSERT_NE(ret, SURFACE_ERROR_OK);
 }
 }

@@ -135,7 +135,7 @@ HWTEST_F(SurfaceBufferImplTest, NormalState, testing::ext::TestSize.Level0)
 
 HWTEST_F(SurfaceBufferImplTest, Parcel, testing::ext::TestSize.Level0)
 {
-    sptr<SurfaceBufferImpl> sbi = new SurfaceBufferImpl();
+    sptr<SurfaceBufferImpl> sbi = new SurfaceBufferImpl(0);
     const auto &bm = BufferManager::GetInstance();
     auto sret = bm->Alloc(requestConfig, sbi);
     ASSERT_EQ(sret, SURFACE_ERROR_OK);
@@ -146,15 +146,15 @@ HWTEST_F(SurfaceBufferImplTest, Parcel, testing::ext::TestSize.Level0)
     MessageParcel parcel;
     WriteSurfaceBufferImpl(parcel, sbi->GetSeqNum(), sbi);
 
-    sptr<SurfaceBufferImpl> sbi2 = nullptr;
+    sptr<SurfaceBuffer> buffer = nullptr;
     int32_t seq;
-    ReadSurfaceBufferImpl(parcel, seq, sbi2);
-    ASSERT_NE(sbi2, nullptr);
+    ReadSurfaceBufferImpl(parcel, seq, buffer);
+    ASSERT_NE(buffer, nullptr);
 
     int32_t val32 = 0;
     int64_t val64 = 0;
-    ASSERT_EQ(sbi2->GetInt32(32, val32), SURFACE_ERROR_OK);
-    ASSERT_EQ(sbi2->GetInt64(64, val64), SURFACE_ERROR_OK);
+    ASSERT_EQ(buffer->GetInt32(32, val32), SURFACE_ERROR_OK);
+    ASSERT_EQ(buffer->GetInt64(64, val64), SURFACE_ERROR_OK);
 }
 }
 } // namespace OHOS
