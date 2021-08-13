@@ -23,19 +23,17 @@
 #include "surface_buffer_impl.h"
 
 namespace OHOS {
-void ReadFence(MessageParcel& parcel, int32_t& fence);
-void WriteFence(MessageParcel& parcel, int32_t fence);
+void ReadFence(MessageParcel &parcel, int32_t &fence);
+void WriteFence(MessageParcel &parcel, int32_t fence);
 
-void ReadRequestConfig(MessageParcel& parcel, BufferRequestConfig& config);
-void WriteRequestConfig(MessageParcel& parcel, BufferRequestConfig const & config);
+void ReadRequestConfig(MessageParcel &parcel, BufferRequestConfig &config);
+void WriteRequestConfig(MessageParcel &parcel, const BufferRequestConfig  &config);
 
-void ReadFlushConfig(MessageParcel& parcel, BufferFlushConfig& config);
-void WriteFlushConfig(MessageParcel& parcel, BufferFlushConfig const & config);
+void ReadFlushConfig(MessageParcel &parcel, BufferFlushConfig& config);
+void WriteFlushConfig(MessageParcel &parcel, const BufferFlushConfig &config);
 
-void ReadSurfaceBufferImpl(MessageParcel& parcel,
-    int32_t& sequence, sptr<SurfaceBufferImpl>& bufferImpl);
-void WriteSurfaceBufferImpl(MessageParcel& parcel,
-    int32_t sequence, sptr<SurfaceBufferImpl> const & bufferImpl);
+void ReadSurfaceBufferImpl(MessageParcel &parcel, int32_t &sequence, sptr<SurfaceBuffer> &buffer);
+void WriteSurfaceBufferImpl(MessageParcel &parcel, int32_t sequence, const sptr<SurfaceBuffer> &buffer);
 } // namespace OHOS
 
 #endif // FRAMEWORKS_SURFACE_INCLUDE_BUFFER_UTILS_H

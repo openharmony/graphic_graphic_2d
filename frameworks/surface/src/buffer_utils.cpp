@@ -18,6 +18,8 @@
 #include <fcntl.h>
 #include <unistd.h>
 
+#include "surface_buffer_impl.h"
+
 namespace OHOS {
 void ReadFence(MessageParcel& parcel, int32_t& fence)
 {
@@ -83,30 +85,33 @@ void WriteFlushConfig(MessageParcel& parcel, BufferFlushConfig const & config)
 }
 
 void ReadSurfaceBufferImpl(MessageParcel& parcel,
-                           int32_t& sequence, sptr<SurfaceBufferImpl>& bufferImpl)
+                           int32_t& sequence, sptr<SurfaceBuffer>& buffer)
 {
     sequence = parcel.ReadInt32();
     if (parcel.ReadBool()) {
-        bufferImpl = new SurfaceBufferImpl(sequence);
+        auto bufferImpl = new SurfaceBufferImpl(sequence);
         auto handle = ReadBufferHandle(parcel);
         bufferImpl->SetBufferHandle(handle);
-        uint32_t k;
-        while (parcel.ReadUint32(k)) {
+        int32_t size = parcel.ReadInt32();
+        for (int32_t i = 0; i < size; i++) {
+            uint32_t key = parcel.ReadUint32();
             int32_t type = parcel.ReadInt32();
             if (type == EXTRA_DATA_TYPE_INT32) {
-                bufferImpl->SetInt32(k, parcel.ReadInt32());
+                bufferImpl->SetInt32(key, parcel.ReadInt32());
             }
             if (type == EXTRA_DATA_TYPE_INT64) {
-                bufferImpl->SetInt64(k, parcel.ReadInt64());
+                bufferImpl->SetInt64(key, parcel.ReadInt64());
             }
         }
+        buffer = bufferImpl;
     }
 }
 
 void WriteSurfaceBufferImpl(MessageParcel& parcel,
-    int32_t sequence, sptr<SurfaceBufferImpl> const & bufferImpl)
+    int32_t sequence, const sptr<SurfaceBuffer> &buffer)
 {
     parcel.WriteInt32(sequence);
+    auto bufferImpl = SurfaceBufferImpl::FromBase(buffer);
     parcel.WriteBool(bufferImpl != nullptr);
     if (bufferImpl == nullptr) {
         return;

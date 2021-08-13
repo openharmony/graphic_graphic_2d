@@ -57,7 +57,7 @@ SurfaceBufferImpl::~SurfaceBufferImpl()
     }
 }
 
-SurfaceBufferImpl* SurfaceBufferImpl::FromBase(sptr<SurfaceBuffer>& buffer)
+SurfaceBufferImpl* SurfaceBufferImpl::FromBase(const sptr<SurfaceBuffer>& buffer)
 {
     return static_cast<SurfaceBufferImpl*>(buffer.GetRefPtr());
 }
@@ -304,6 +304,7 @@ void SurfaceBufferImpl::WriteToMessageParcel(MessageParcel& parcel)
         BLOGE("Failure, Reason: WriteBufferHandle return false");
     }
 
+    parcel.WriteInt32(extraDatas_.size());
     for (const auto &[k, v] : extraDatas_) {
         parcel.WriteUint32(k);
         parcel.WriteInt32(v.type);

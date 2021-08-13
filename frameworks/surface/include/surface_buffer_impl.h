@@ -46,7 +46,7 @@ public:
     SurfaceBufferImpl(int seqNum);
     virtual ~SurfaceBufferImpl();
 
-    static SurfaceBufferImpl* FromBase(sptr<SurfaceBuffer>& buffer);
+    static SurfaceBufferImpl* FromBase(const sptr<SurfaceBuffer>& buffer);
 
     BufferHandle* GetBufferHandle() const override;
     int32_t GetWidth() const override;
@@ -66,7 +66,7 @@ public:
     SurfaceError GetInt64(uint32_t key, int64_t& val) override;
 
     void SetExtraData(const BufferExtraData &bedata);
-    BufferExtraData &GetExtraData();
+    void GetExtraData(BufferExtraData &bedata) const;
     virtual SurfaceError ExtraGet(std::string key, int32_t &value) const override;
     virtual SurfaceError ExtraGet(std::string key, int64_t &value) const override;
     virtual SurfaceError ExtraGet(std::string key, double &value) const override;
