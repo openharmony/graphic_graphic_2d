@@ -21,6 +21,7 @@
 #include <thread>
 #include <unistd.h>
 #include <vector>
+#include <inttypes.h>
 
 #include <display_gralloc.h>
 #include <hilog/log.h>
@@ -815,7 +816,7 @@ void Test16()
     if (Test16Uncompress(ptr, uulength, compressed, ulength) != Z_OK) {
         return;
     }
-    printf("uncompress time: %lld\n", GetNowTime() - start);
+    printf("uncompress time: %" PRIu64 "\n", GetNowTime() - start);
 }
 
 void Test17()

@@ -18,6 +18,7 @@
 #include <cstdio>
 #include <securec.h>
 #include <sys/time.h>
+#include <inttypes.h>
 
 #include <zlib.h>
 
@@ -96,7 +97,7 @@ public:
             ExitTest();
             return;
         }
-        printf("uncompress time: %lld\n", GetNowTime() - start);
+        printf("uncompress time: %" PRIu64 "\n", GetNowTime() - start);
         ExitTest();
     }
 

@@ -75,14 +75,14 @@ int32_t CreateShmFile(int32_t size)
     std::unique_ptr<char[]> name = std::make_unique<char[]>(len);
     auto ret = strcpy_s(name.get(), len, path);
     if (ret) {
-        WMLOGFE("strcpy_s: %{public}s, name: %{public}s, len: %{public}d, path: %{public}s",
+        WMLOGFE("strcpy_s: %{public}s, name: %{public}s, len: %{public}zu, path: %{public}s",
             strerror(ret), name.get() ? "Yes" : "No", len, path);
         return -1;
     }
 
     ret = strcat_s(name.get(), len, tempPath);
     if (ret) {
-        WMLOGFE("strcpy_s: %{public}s, name: %{public}s, len: %{public}d, tempPath: %{public}s",
+        WMLOGFE("strcpy_s: %{public}s, name: %{public}s, len: %{public}zu, tempPath: %{public}s",
             strerror(ret), name.get() ? "Yes" : "No", len, tempPath);
         return -1;
     }

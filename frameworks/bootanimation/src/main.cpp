@@ -15,6 +15,7 @@
 
 #include <securec.h>
 #include <unistd.h>
+#include <inttypes.h>
 
 #include <display_type.h>
 #include <vsync_helper.h>
@@ -53,7 +54,7 @@ int32_t DoDraw(uint8_t *addr, uint32_t width, uint32_t height, uint32_t count)
 
     memcpy_s(addr, addrSize, frame.get(), addrSize);
     last = count;
-    LOG("GetData time: %{public}lld, data: %{public}p, length: %{public}d", GetNowTime() - start, data, length);
+    LOG("GetData time: %{public}" PRIu64 ", data: %{public}p, length: %{public}d", GetNowTime() - start, data, length);
     return 0;
 }
 
@@ -190,7 +191,7 @@ int main(int argc, const char *argv[])
     if (RawParser::GetInstance()->Parse(resourceString)) {
         return -1;
     }
-    LOG("time: %{public}lld", GetNowTime() - start);
+    LOG("time: %{public}" PRIu64 "", GetNowTime() - start);
 
     auto runner = AppExecFwk::EventRunner::Create(false);
     auto handler = std::make_shared<AppExecFwk::EventHandler>(runner);

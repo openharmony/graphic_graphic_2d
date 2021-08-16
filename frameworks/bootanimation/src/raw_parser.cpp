@@ -74,7 +74,7 @@ int32_t RawParser::Parse(std::string &filename)
     struct HeaderInfo *info = reinterpret_cast<struct HeaderInfo *>(&compressed[magicHeaderLength]);
     uint32_t ipos = reinterpret_cast<uint8_t *>(info) - reinterpret_cast<uint8_t *>(magic);
     while (ipos < clength) {
-        LOG("[%{public}d, %{public}d], type: %{public}d, "
+        LOG("[%{public}zu, %{public}d], type: %{public}d, "
             "offset: %{public}d, length: %{public}d, clen: %{public}d, mem: %{public}p",
             infos.size() + 1, ipos, info->type, info->offset, info->length, info->clen, info->mem);
 
