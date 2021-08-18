@@ -92,8 +92,8 @@ ohos_shared_library("wms_client") {
   ]
 
   if (target_cpu == "arm") {
-    deps += [ "//foundation/multimedia/media_standard/frameworks/videodisplaymanager:videodisplaymanager",]
-    defines = [ "TARGET_CPU_ARM", ]
+    deps += [ "//foundation/multimedia/media_standard/frameworks/videodisplaymanager:videodisplaymanager" ]
+    defines = [ "TARGET_CPU_ARM" ]
   } else {
     include_dirs = [
       "//foundation/multimedia/media_standard/frameworks/videodisplaymanager/include",
@@ -150,11 +150,11 @@ ohos_shared_library("libwmclient") {
     "src/multimodal_listener_manager.cpp",
     "src/singleton_container.cpp",
     "src/static_call.cpp",
-    "src/tester.cpp",
     "src/subwindow_normal_impl.cpp",
     "src/subwindow_option.cpp",
     "src/subwindow_option_impl.cpp",
     "src/subwindow_video_impl.cpp",
+    "src/tester.cpp",
     "src/wayland_service.cpp",
     "src/window_attribute.cpp",
     "src/window_impl.cpp",
@@ -200,8 +200,8 @@ ohos_shared_library("libwmclient") {
   ]
 
   if (target_cpu == "arm") {
-    deps += [ "//foundation/multimedia/media_standard/frameworks/videodisplaymanager:videodisplaymanager",]
-    defines = [ "TARGET_CPU_ARM", ]
+    deps += [ "//foundation/multimedia/media_standard/frameworks/videodisplaymanager:videodisplaymanager" ]
+    defines = [ "TARGET_CPU_ARM" ]
   } else {
     include_dirs = [
       "//foundation/multimedia/media_standard/frameworks/videodisplaymanager/include",
