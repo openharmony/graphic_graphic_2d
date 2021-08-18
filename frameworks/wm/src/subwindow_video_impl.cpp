@@ -81,7 +81,12 @@ WMError SubwindowVideoImpl::CreateLayer(sptr<SubwindowVideoImpl> &svi)
         .bpp = 8,
         .pixFormat = PIXEL_FMT_RGBA_8888,
     };
+#ifdef TARGET_CPU_ARM
     int32_t ret = VideoDisplayManager::CreateLayer(layerInfo, svi->layerId, svi->csurface);
+#else
+    svi->layerId = -1;
+    int32_t ret = DISPLAY_FAILURE;
+#endif
     if (ret) {
         WMLOGFE("SubwindowVideoImpl::CreateLayer return nullptr");
         return WM_ERROR_API_FAILED;
@@ -104,6 +109,7 @@ WMError SubwindowVideoImpl::CreateSHMBuffer(sptr<SubwindowVideoImpl> &svi)
 
 WMError SubwindowVideoImpl::CreateSurface(sptr<SubwindowVideoImpl> &svi)
 {
+#ifdef TARGET_CPU_ARM
     svi->display = new (std::nothrow) VideoDisplayManager();
     if (svi->display == nullptr) {
         WMLOGFE("new VideoDisplayManager failed");
@@ -117,6 +123,9 @@ WMError SubwindowVideoImpl::CreateSurface(sptr<SubwindowVideoImpl> &svi)
     }
 
     svi->psurface = Surface::CreateSurfaceAsProducer(producer);
+#else
+    return WM_ERROR_API_FAILED;
+#endif
     return WM_OK;
 }
 
@@ -177,6 +186,7 @@ WMError SubwindowVideoImpl::Move(int32_t x, int32_t y)
         return WM_ERROR_NOT_INIT;
     }
 
+#ifdef TARGET_CPU_ARM
     IRect rect = {};
     int32_t ret = display->GetRect(layerId, rect);
     if (ret != DISPLAY_SUCCESS) {
@@ -194,6 +204,7 @@ WMError SubwindowVideoImpl::Move(int32_t x, int32_t y)
     }
 
     wlSubsurface->SetPosition(attr.GetX(), attr.GetY());
+#endif
     return WM_OK;
 }
 
@@ -204,7 +215,7 @@ WMError SubwindowVideoImpl::Resize(uint32_t width, uint32_t height)
         WMLOGFE("display layer is not create");
         return WM_ERROR_NOT_INIT;
     }
-
+#ifdef TARGET_CPU_ARM
     IRect rect = {};
     int32_t ret = display->GetRect(layerId, rect);
     if (ret != DISPLAY_SUCCESS) {
@@ -220,6 +231,7 @@ WMError SubwindowVideoImpl::Resize(uint32_t width, uint32_t height)
         WMLOGFE("set rect fail, ret:%{public}d", ret);
         return WM_ERROR_API_FAILED;
     }
+#endif
     return WM_OK;
 }
 
@@ -231,10 +243,12 @@ WMError SubwindowVideoImpl::Destroy()
     wlSubsurface = nullptr;
     wlSurface = nullptr;
     wlBuffer = nullptr;
+#ifdef TARGET_CPU_ARM
     if (display != nullptr) {
         display->DetachLayer(layerId);
     }
     VideoDisplayManager::DestroyLayer(layerId);
+#endif
     display = nullptr;
     return WM_OK;
 }

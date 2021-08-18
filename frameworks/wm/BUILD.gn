@@ -79,7 +79,6 @@ ohos_shared_library("wms_client") {
   deps = [
     "//foundation/graphic/standard:libwmservice",
     "//foundation/graphic/standard/frameworks/wmserver:wms_protocol",
-    "//foundation/multimedia/media_standard/frameworks/videodisplaymanager:videodisplaymanager",
     "//third_party/wayland-ivi-extension:libilmClient",
     "//third_party/wayland-ivi-extension:libilmCommon",
     "//third_party/wayland-ivi-extension:libilmControl",
@@ -91,6 +90,19 @@ ohos_shared_library("wms_client") {
     "//third_party/weston:ivi_application_protocol",
     "//third_party/weston:libweston",
   ]
+
+  if (target_cpu == "arm") {
+    deps += [ "//foundation/multimedia/media_standard/frameworks/videodisplaymanager:videodisplaymanager" ]
+    defines = [ "TARGET_CPU_ARM" ]
+  } else {
+    include_dirs = [
+      "//foundation/multimedia/media_standard/frameworks/videodisplaymanager/include",
+      "//drivers/peripheral/display/interfaces/include",
+      "//drivers/peripheral/display/interfaces/hdi_cpp/client",
+      "//drivers/adapter/uhdf2/hdi",
+      "//drivers/adapter/uhdf2/include/hdi",
+    ]
+  }
 
   external_deps = [
     "hiviewdfx_hilog_native:libhilog",
@@ -138,11 +150,11 @@ ohos_shared_library("libwmclient") {
     "src/multimodal_listener_manager.cpp",
     "src/singleton_container.cpp",
     "src/static_call.cpp",
-    "src/tester.cpp",
     "src/subwindow_normal_impl.cpp",
     "src/subwindow_option.cpp",
     "src/subwindow_option_impl.cpp",
     "src/subwindow_video_impl.cpp",
+    "src/tester.cpp",
     "src/wayland_service.cpp",
     "src/window_attribute.cpp",
     "src/window_impl.cpp",
@@ -175,7 +187,6 @@ ohos_shared_library("libwmclient") {
   deps = [
     "//foundation/graphic/standard:libwmservice",
     "//foundation/graphic/standard/frameworks/wmserver:wms_protocol",
-    "//foundation/multimedia/media_standard/frameworks/videodisplaymanager:videodisplaymanager",
     "//third_party/wayland-ivi-extension:libilmClient",
     "//third_party/wayland-ivi-extension:libilmCommon",
     "//third_party/wayland-ivi-extension:libilmControl",
@@ -187,6 +198,19 @@ ohos_shared_library("libwmclient") {
     "//third_party/weston:ivi_application_protocol",
     "//third_party/weston:libweston",
   ]
+
+  if (target_cpu == "arm") {
+    deps += [ "//foundation/multimedia/media_standard/frameworks/videodisplaymanager:videodisplaymanager" ]
+    defines = [ "TARGET_CPU_ARM" ]
+  } else {
+    include_dirs = [
+      "//foundation/multimedia/media_standard/frameworks/videodisplaymanager/include",
+      "//drivers/peripheral/display/interfaces/include",
+      "//drivers/peripheral/display/interfaces/hdi_cpp/client",
+      "//drivers/adapter/uhdf2/hdi",
+      "//drivers/adapter/uhdf2/include/hdi",
+    ]
+  }
 
   external_deps = [
     "hiviewdfx_hilog_native:libhilog",
