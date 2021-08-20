@@ -49,8 +49,8 @@ config("wmserver_public_config") {
 
 ohos_shared_library("wmserver") {
   sources = [
-    "src/wmserver.c",
     "src/screen_info.c",
+    "src/wmserver.c",
   ]
 
   configs = [ ":wmserver_config" ]
@@ -58,10 +58,10 @@ ohos_shared_library("wmserver") {
   public_configs = [ ":wmserver_public_config" ]
 
   deps = [
+    "//third_party/libinput:libinput-third",
     "//third_party/wayland_standard:wayland_core_protocol",
     "//third_party/weston:drm-backend",
     "//third_party/weston:libexec_weston",
-    "//third_party/libinput:libinput-third",
     "//utils/native/base:utils",
   ]
 
@@ -91,13 +91,14 @@ ohos_executable("screen-info-test") {
 
   deps = [
     ":wms_protocol",
-    "//third_party/wayland_standard:libwayland_client",
     "//third_party/libinput:libinput-third",
+    "//third_party/wayland_standard:libwayland_client",
   ]
 
   part_name = "graphic_standard"
   subsystem_name = "graphic"
 }
+
 ## Build screen-info-test }}}
 
 group("test") {

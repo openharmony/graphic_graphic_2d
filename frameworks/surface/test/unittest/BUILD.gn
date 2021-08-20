@@ -150,8 +150,8 @@ ohos_static_library("surface_test_common") {
   public_configs = [ ":surface_test_common_public_config" ]
 
   public_deps = [
-    "//foundation/graphic/standard:libsurface",
     "//foundation/distributedschedule/samgr/interfaces/innerkits/samgr_proxy:samgr_proxy",
+    "//foundation/graphic/standard:libsurface",
   ]
 }
 ## Build surface_test_common.a }}}

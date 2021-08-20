@@ -63,5 +63,4 @@ ohos_systemtest("surface_revert_ipc_test") {
     "//third_party/googletest:gtest_main",
   ]
 }
-
 ## SystemTest surface_revert_ipc_test }}}
