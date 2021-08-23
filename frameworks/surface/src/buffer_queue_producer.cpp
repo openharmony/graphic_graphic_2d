@@ -15,6 +15,9 @@
 
 #include "buffer_queue_producer.h"
 
+#include <set>
+
+#include "buffer_extra_data_impl.h"
 #include "buffer_log.h"
 #include "buffer_manager.h"
 #include "buffer_utils.h"
@@ -30,23 +33,23 @@ BufferQueueProducer::BufferQueueProducer(sptr<BufferQueue>& bufferQueue)
     if (bufferQueue_ != nullptr) {
         bufferQueue_->GetName(name_);
     }
-    BLOGNI("ctor %{public}s", name_.c_str());
+    BLOGNI("ctor");
 
-    memberFuncMap_[BUFFER_PRODUCER_REQUEST_BUFFER] = &BufferQueueProducer::RequestBufferInner;
-    memberFuncMap_[BUFFER_PRODUCER_CANCEL_BUFFER] = &BufferQueueProducer::CancelBufferInner;
-    memberFuncMap_[BUFFER_PRODUCER_FLUSH_BUFFER] = &BufferQueueProducer::FlushBufferInner;
-    memberFuncMap_[BUFFER_PRODUCER_GET_QUEUE_SIZE] = &BufferQueueProducer::GetQueueSizeInner;
-    memberFuncMap_[BUFFER_PRODUCER_SET_QUEUE_SIZE] = &BufferQueueProducer::SetQueueSizeInner;
-    memberFuncMap_[BUFFER_PRODUCER_GET_NAME] = &BufferQueueProducer::GetNameInner;
-    memberFuncMap_[BUFFER_PRODUCER_GET_DEFAULT_WIDTH] = &BufferQueueProducer::GetDefaultWidthInner;
-    memberFuncMap_[BUFFER_PRODUCER_GET_DEFAULT_HEIGHT] = &BufferQueueProducer::GetDefaultHeightInner;
-    memberFuncMap_[BUFFER_PRODUCER_GET_DEFAULT_USAGE] = &BufferQueueProducer::GetDefaultUsageInner;
-    memberFuncMap_[BUFFER_PRODUCER_CLEAN_CACHE] = &BufferQueueProducer::CleanCacheInner;
+    memberFuncMap_[BUFFER_PRODUCER_REQUEST_BUFFER] = &BufferQueueProducer::RequestBufferRemote;
+    memberFuncMap_[BUFFER_PRODUCER_CANCEL_BUFFER] = &BufferQueueProducer::CancelBufferRemote;
+    memberFuncMap_[BUFFER_PRODUCER_FLUSH_BUFFER] = &BufferQueueProducer::FlushBufferRemote;
+    memberFuncMap_[BUFFER_PRODUCER_GET_QUEUE_SIZE] = &BufferQueueProducer::GetQueueSizeRemote;
+    memberFuncMap_[BUFFER_PRODUCER_SET_QUEUE_SIZE] = &BufferQueueProducer::SetQueueSizeRemote;
+    memberFuncMap_[BUFFER_PRODUCER_GET_NAME] = &BufferQueueProducer::GetNameRemote;
+    memberFuncMap_[BUFFER_PRODUCER_GET_DEFAULT_WIDTH] = &BufferQueueProducer::GetDefaultWidthRemote;
+    memberFuncMap_[BUFFER_PRODUCER_GET_DEFAULT_HEIGHT] = &BufferQueueProducer::GetDefaultHeightRemote;
+    memberFuncMap_[BUFFER_PRODUCER_GET_DEFAULT_USAGE] = &BufferQueueProducer::GetDefaultUsageRemote;
+    memberFuncMap_[BUFFER_PRODUCER_CLEAN_CACHE] = &BufferQueueProducer::CleanCacheRemote;
 }
 
 BufferQueueProducer::~BufferQueueProducer()
 {
-    BLOGNI("dtor %{public}s", name_.c_str());
+    BLOGNI("dtor");
 }
 
 int BufferQueueProducer::OnRemoteRequest(uint32_t code, MessageParcel& arguments,
@@ -68,71 +71,78 @@ int BufferQueueProducer::OnRemoteRequest(uint32_t code, MessageParcel& arguments
         return ERR_INVALID_STATE;
     }
 
-    return (this->*(it->second))(arguments, reply, option);
+    BLOGND("OnRemoteRequest call %{public}d start", code);
+    auto ret = (this->*(it->second))(arguments, reply, option);
+    BLOGND("OnRemoteRequest call %{public}d end", code);
+    return ret;
 }
 
-int BufferQueueProducer::RequestBufferInner(MessageParcel& arguments, MessageParcel& reply, MessageOption& option)
+int32_t BufferQueueProducer::RequestBufferRemote(MessageParcel& arguments, MessageParcel& reply, MessageOption& option)
 {
-    int32_t sequence;
-    sptr<SurfaceBuffer> buffer;
-    int32_t fence = -1;
-    BufferRequestConfig config;
-    std::vector<int32_t> deletingBuffers;
+    RequestBufferReturnValue retval;
+    BufferExtraDataImpl bedataimpl;
+    BufferRequestConfig config = {};
 
     ReadRequestConfig(arguments, config);
 
-    SurfaceError retval = RequestBuffer(sequence, buffer, fence, config, deletingBuffers);
+    SurfaceError sret = RequestBuffer(config, bedataimpl, retval);
 
-    reply.WriteInt32(retval);
-    if (retval == SURFACE_ERROR_OK) {
-        sptr<SurfaceBufferImpl> bufferImpl = SurfaceBufferImpl::FromBase(buffer);
-
-        WriteFence(reply, fence);
-        reply.WriteInt32Vector(deletingBuffers);
-        WriteSurfaceBufferImpl(reply, sequence, bufferImpl);
+    reply.WriteInt32(sret);
+    if (sret == SURFACE_ERROR_OK) {
+        WriteSurfaceBufferImpl(reply, retval.sequence, retval.buffer);
+        bedataimpl.WriteToParcel(reply);
+        WriteFence(reply, retval.fence);
+        reply.WriteInt32Vector(retval.deletingBuffers);
     }
     return 0;
 }
 
-int BufferQueueProducer::CancelBufferInner(MessageParcel& arguments, MessageParcel& reply, MessageOption& option)
+int BufferQueueProducer::CancelBufferRemote(MessageParcel& arguments, MessageParcel& reply, MessageOption& option)
 {
-    int32_t sequence = arguments.ReadInt32();
-    SurfaceError retval = CancelBuffer(sequence);
-    reply.WriteInt32(retval);
+    int32_t sequence;
+    BufferExtraDataImpl bedataimpl;
+
+    sequence = arguments.ReadInt32();
+    bedataimpl.ReadFromParcel(arguments);
+
+    SurfaceError sret = CancelBuffer(sequence, bedataimpl);
+    reply.WriteInt32(sret);
     return 0;
 }
 
-int BufferQueueProducer::FlushBufferInner(MessageParcel& arguments, MessageParcel& reply, MessageOption& option)
+int BufferQueueProducer::FlushBufferRemote(MessageParcel& arguments, MessageParcel& reply, MessageOption& option)
 {
     int32_t fence;
     int32_t sequence;
     BufferFlushConfig config;
+    BufferExtraDataImpl bedataimpl;
 
     sequence = arguments.ReadInt32();
+    bedataimpl.ReadFromParcel(arguments);
     ReadFence(arguments, fence);
     ReadFlushConfig(arguments, config);
 
-    SurfaceError retval = FlushBuffer(sequence, fence, config);
+    SurfaceError sret = FlushBuffer(sequence, bedataimpl, fence, config);
 
-    reply.WriteInt32(retval);
+    reply.WriteInt32(sret);
     return 0;
 }
 
-int BufferQueueProducer::GetQueueSizeInner(MessageParcel& arguments, MessageParcel& reply, MessageOption& option)
+int BufferQueueProducer::GetQueueSizeRemote(MessageParcel& arguments, MessageParcel& reply, MessageOption& option)
 {
     reply.WriteInt32(GetQueueSize());
     return 0;
 }
 
-int BufferQueueProducer::SetQueueSizeInner(MessageParcel& arguments, MessageParcel& reply, MessageOption& option)
+int BufferQueueProducer::SetQueueSizeRemote(MessageParcel& arguments, MessageParcel& reply, MessageOption& option)
 {
     int32_t queueSize = arguments.ReadInt32();
-    SurfaceError retval = SetQueueSize(queueSize);
-    reply.WriteInt32(retval);
+    SurfaceError sret = SetQueueSize(queueSize);
+    reply.WriteInt32(sret);
     return 0;
 }
 
-int BufferQueueProducer::GetNameInner(MessageParcel& arguments, MessageParcel& reply, MessageOption& option)
+int BufferQueueProducer::GetNameRemote(MessageParcel& arguments, MessageParcel& reply, MessageOption& option)
 {
     std::string name;
     auto sret = bufferQueue_->GetName(name);
@@ -143,57 +153,91 @@ int BufferQueueProducer::GetNameInner(MessageParcel& arguments, MessageParcel& r
     return 0;
 }
 
-int BufferQueueProducer::GetDefaultWidthInner(MessageParcel& arguments, MessageParcel& reply, MessageOption& option)
+int BufferQueueProducer::GetDefaultWidthRemote(MessageParcel& arguments, MessageParcel& reply, MessageOption& option)
 {
     reply.WriteInt32(GetDefaultWidth());
     return 0;
 }
 
-int BufferQueueProducer::GetDefaultHeightInner(MessageParcel& arguments, MessageParcel& reply, MessageOption& option)
+int BufferQueueProducer::GetDefaultHeightRemote(MessageParcel& arguments, MessageParcel& reply, MessageOption& option)
 {
     reply.WriteInt32(GetDefaultHeight());
     return 0;
 }
 
-int BufferQueueProducer::GetDefaultUsageInner(MessageParcel& arguments, MessageParcel& reply, MessageOption& option)
+int BufferQueueProducer::GetDefaultUsageRemote(MessageParcel& arguments, MessageParcel& reply, MessageOption& option)
 {
     reply.WriteUint32(GetDefaultUsage());
     return 0;
 }
 
-int BufferQueueProducer::CleanCacheInner(MessageParcel& arguments, MessageParcel& reply, MessageOption& option)
+int BufferQueueProducer::CleanCacheRemote(MessageParcel& arguments, MessageParcel& reply, MessageOption& option)
 {
     reply.WriteInt32(CleanCache());
     return 0;
 }
 
-SurfaceError BufferQueueProducer::RequestBuffer(int32_t& sequence, sptr<SurfaceBuffer>& buffer,
-    int32_t& fence, BufferRequestConfig& config, std::vector<int32_t>& deletingBuffers)
+SurfaceError BufferQueueProducer::RequestBuffer(const BufferRequestConfig& config, BufferExtraData &bedata,
+                                                RequestBufferReturnValue &retval)
+{
+    static std::map<int32_t, wptr<SurfaceBuffer>> cache;
+    static std::map<pid_t, std::set<int32_t>> sendeds;
+    if (bufferQueue_ == nullptr) {
+        return SURFACE_ERROR_NULLPTR;
+    }
+
+    auto callingPid = GetCallingPid();
+    auto& sended = sendeds[callingPid];
+    auto sret = bufferQueue_->RequestBuffer(config, bedata, retval);
+    if (sret == SURFACE_ERROR_OK) {
+        if (retval.buffer != nullptr) {
+            cache[retval.sequence] = retval.buffer;
+            sended.insert(retval.sequence);
+            BLOGND("[%{public}d] add cache", callingPid);
+        } else {
+            // for BufferQueue not first
+            if (GetCallingPid() == getpid()) {
+                // A local call always returns a non-null pointer
+                retval.buffer = cache[retval.sequence].promote();
+                BLOGND("[%{public}d] get cache by local", callingPid);
+            } else {
+                // The first remote call from a different process returns a non-null pointer
+                if (sended.find(retval.sequence) == sended.end()) {
+                    retval.buffer = cache[retval.sequence].promote();
+                    sended.insert(retval.sequence);
+                    BLOGND("[%{public}d] get cache by remote", callingPid);
+                } else {
+                    // and all others return null pointers
+                    BLOGND("[%{public}d] nullptr by remote", callingPid);
+                }
+            }
+        }
+    } else {
+        BLOGNI("BufferQueue::RequestBuffer failed with %{public}s", SurfaceErrorStr(sret).c_str());
+    }
+
+    for (const auto &buffer : retval.deletingBuffers) {
+        cache.erase(buffer);
+        sended.erase(buffer);
+    }
+    return sret;
+}
+
+SurfaceError BufferQueueProducer::CancelBuffer(int32_t sequence, BufferExtraData &bedata)
 {
     if (bufferQueue_ == nullptr) {
         return SURFACE_ERROR_NULLPTR;
     }
-    sptr<SurfaceBufferImpl> bufferImpl = SurfaceBufferImpl::FromBase(buffer);
-    SurfaceError ret = bufferQueue_->RequestBuffer(sequence, bufferImpl, fence, config, deletingBuffers);
-    buffer = bufferImpl;
-    return ret;
+    return bufferQueue_->CancelBuffer(sequence, bedata);
 }
 
-SurfaceError BufferQueueProducer::CancelBuffer(int32_t sequence)
-{
-    if (bufferQueue_ == nullptr) {
-        return SURFACE_ERROR_NULLPTR;
-    }
-    return bufferQueue_->CancelBuffer(sequence);
-}
-
-SurfaceError BufferQueueProducer::FlushBuffer(int32_t sequence,
+SurfaceError BufferQueueProducer::FlushBuffer(int32_t sequence, BufferExtraData &bedata,
                                               int32_t fence, BufferFlushConfig& config)
 {
     if (bufferQueue_ == nullptr) {
         return SURFACE_ERROR_NULLPTR;
     }
-    return bufferQueue_->FlushBuffer(sequence, fence, config);
+    return bufferQueue_->FlushBuffer(sequence, bedata, fence, config);
 }
 
 uint32_t BufferQueueProducer::GetQueueSize()

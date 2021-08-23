@@ -572,5 +572,9 @@ WindowImpl::~WindowImpl()
     if (exportListener != nullptr) {
         SingletonContainer::Get<InputListenerManager>()->RemoveListener(exportListener);
     }
+
+    if (csurface != nullptr) {
+        csurface->UnregisterConsumerListener();
+    }
 }
 } // namespace OHOS

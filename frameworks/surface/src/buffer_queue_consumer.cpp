@@ -33,7 +33,7 @@ BufferQueueConsumer::BufferQueueConsumer(sptr<BufferQueue>& bufferQueue)
 
 BufferQueueConsumer::~BufferQueueConsumer()
 {
-    BLOGND("dtors");
+    BLOGNI("dtor");
 }
 
 SurfaceError BufferQueueConsumer::AcquireBuffer(sptr<SurfaceBufferImpl>& buffer, int32_t& fence,

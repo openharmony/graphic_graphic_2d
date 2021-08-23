@@ -28,14 +28,14 @@ static constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, 0, "ConsumerSurface" 
 ConsumerSurface::ConsumerSurface(const std::string &name)
     : name_(name)
 {
-    BLOGNI("ctor %{public}s", name_.c_str());
+    BLOGNI("ctor");
     consumer_ = nullptr;
     producer_ = nullptr;
 }
 
 ConsumerSurface::~ConsumerSurface()
 {
-    BLOGNI("dtor %{public}s", name_.c_str());
+    BLOGNI("dtor");
     consumer_ = nullptr;
     producer_ = nullptr;
 }

@@ -37,6 +37,16 @@ public:
     virtual SurfaceError GetInt32(uint32_t key, int32_t& value) = 0;
     virtual SurfaceError SetInt64(uint32_t key, int64_t value) = 0;
     virtual SurfaceError GetInt64(uint32_t key, int64_t& value) = 0;
+
+    // support ipc data
+    virtual SurfaceError ExtraGet(std::string key, int32_t &value) const = 0;
+    virtual SurfaceError ExtraGet(std::string key, int64_t &value) const = 0;
+    virtual SurfaceError ExtraGet(std::string key, double &value) const = 0;
+    virtual SurfaceError ExtraGet(std::string key, std::string &value) const = 0;
+    virtual SurfaceError ExtraSet(std::string key, int32_t value) = 0;
+    virtual SurfaceError ExtraSet(std::string key, int64_t value) = 0;
+    virtual SurfaceError ExtraSet(std::string key, double value) = 0;
+    virtual SurfaceError ExtraSet(std::string key, std::string value) = 0;
 protected:
     SurfaceBuffer(){}
     virtual ~SurfaceBuffer(){}

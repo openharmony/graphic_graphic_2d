@@ -15,6 +15,9 @@
 
 #include "util.h"
 
+#include <thread>
+#include <unistd.h>
+
 namespace OHOS {
 uint32_t RequestSync(const SyncFunc syncFunc, void *data)
 {
@@ -41,5 +44,12 @@ void ExitTest()
     if (runner) {
         PostTask(std::bind(&AppExecFwk::EventRunner::Stop, runner));
     }
+
+    auto exitThreadMain = []() {
+        sleep(1);
+        exit(0);
+    };
+    std::thread thread(exitThreadMain);
+    thread.detach();
 }
 }

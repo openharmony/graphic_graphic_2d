@@ -18,9 +18,7 @@ module_out_path = "graphic_standard/wmserver"
 group("unittest") {
   testonly = true
 
-  deps = [
-    ":wmserver_test",
-  ]
+  deps = [ ":wmserver_test" ]
 }
 
 ## UnitTest wmserver_test {{{
@@ -31,6 +29,7 @@ ohos_unittest("wmserver_test") {
 
   deps = [ ":wmserver_test_common" ]
 }
+
 ## UnitTest wmserver_test }}}
 
 ## Build wmserver_test_common.a {{{
@@ -55,9 +54,7 @@ config("wmserver_test_common_public_config") {
 ohos_static_library("wmserver_test_common") {
   visibility = [ ":*" ]
 
-  public_configs = [
-    ":wmserver_test_common_public_config",
-  ]
+  public_configs = [ ":wmserver_test_common_public_config" ]
 
   public_deps = [
     "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",

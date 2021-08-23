@@ -52,28 +52,28 @@ BufferManager BufferManager::instance_;
 SurfaceError BufferManager::Init()
 {
     if (grallocFuncs_ != nullptr) {
-        BLOGFD("BufferManager has been initialized successfully.");
+        BLOGD("BufferManager has been initialized successfully.");
         return SURFACE_ERROR_OK;
     }
 
     if (GrallocInitialize(&grallocFuncs_) != DISPLAY_SUCCESS) {
-        BLOGFW("GrallocInitialize failed.");
+        BLOGW("GrallocInitialize failed.");
         return SURFACE_ERROR_INIT;
     }
 
     if (grallocFuncs_ == nullptr) {
-        BLOGFW("GrallocInitialize failed.");
+        BLOGW("GrallocInitialize failed.");
         return SURFACE_ERROR_INIT;
     }
 
-    BLOGFD("funcs.AllocMem            0x%{public}s", grallocFuncs_->AllocMem ? "Yes" : "No");
-    BLOGFD("funcs.FreeMem             0x%{public}s", grallocFuncs_->FreeMem ? "Yes" : "No");
-    BLOGFD("funcs.Mmap                0x%{public}s", grallocFuncs_->Mmap ? "Yes" : "No");
-    BLOGFD("funcs.MmapCache           0x%{public}s", grallocFuncs_->MmapCache ? "Yes" : "No");
-    BLOGFD("funcs.Unmap               0x%{public}s", grallocFuncs_->Unmap ? "Yes" : "No");
-    BLOGFD("funcs.FlushCache          0x%{public}s", grallocFuncs_->FlushCache ? "Yes" : "No");
-    BLOGFD("funcs.FlushMCache         0x%{public}s", grallocFuncs_->FlushMCache ? "Yes" : "No");
-    BLOGFD("funcs.InvalidateCache     0x%{public}s", grallocFuncs_->InvalidateCache ? "Yes" : "No");
+    BLOGD("funcs.AllocMem            0x%{public}s", grallocFuncs_->AllocMem ? "Yes" : "No");
+    BLOGD("funcs.FreeMem             0x%{public}s", grallocFuncs_->FreeMem ? "Yes" : "No");
+    BLOGD("funcs.Mmap                0x%{public}s", grallocFuncs_->Mmap ? "Yes" : "No");
+    BLOGD("funcs.MmapCache           0x%{public}s", grallocFuncs_->MmapCache ? "Yes" : "No");
+    BLOGD("funcs.Unmap               0x%{public}s", grallocFuncs_->Unmap ? "Yes" : "No");
+    BLOGD("funcs.FlushCache          0x%{public}s", grallocFuncs_->FlushCache ? "Yes" : "No");
+    BLOGD("funcs.FlushMCache         0x%{public}s", grallocFuncs_->FlushMCache ? "Yes" : "No");
+    BLOGD("funcs.InvalidateCache     0x%{public}s", grallocFuncs_->InvalidateCache ? "Yes" : "No");
     return SURFACE_ERROR_OK;
 }
 
@@ -85,7 +85,7 @@ BufferManager::~BufferManager()
     }
 }
 
-SurfaceError BufferManager::Alloc(BufferRequestConfig& config, sptr<SurfaceBufferImpl>& buffer)
+SurfaceError BufferManager::Alloc(const BufferRequestConfig& config, sptr<SurfaceBufferImpl>& buffer)
 {
     CHECK_INIT();
     CHECK_FUNC(grallocFuncs_->AllocMem);
@@ -99,7 +99,7 @@ SurfaceError BufferManager::Alloc(BufferRequestConfig& config, sptr<SurfaceBuffe
         buffer->SetBufferHandle(handle);
         return SURFACE_ERROR_OK;
     }
-    BLOGFW("Failed with %{public}d", ret);
+    BLOGW("Failed with %{public}d", ret);
 
     if (ret == DISPLAY_NOMEM) {
         return SURFACE_ERROR_NOMEM;
@@ -138,7 +138,7 @@ SurfaceError BufferManager::Unmap(sptr<SurfaceBufferImpl>& buffer)
         handle->virAddr = nullptr;
         return SURFACE_ERROR_OK;
     }
-    BLOGFW("Failed with %{public}d", ret);
+    BLOGW("Failed with %{public}d", ret);
     return SURFACE_ERROR_API_FAILED;
 }
 
@@ -153,7 +153,7 @@ SurfaceError BufferManager::FlushCache(sptr<SurfaceBufferImpl>& buffer)
     if (ret == DISPLAY_SUCCESS) {
         return SURFACE_ERROR_OK;
     }
-    BLOGFW("Failed with %{public}d", ret);
+    BLOGW("Failed with %{public}d", ret);
     return SURFACE_ERROR_API_FAILED;
 }
 
@@ -168,7 +168,7 @@ SurfaceError BufferManager::InvalidateCache(sptr<SurfaceBufferImpl>& buffer)
     if (ret == DISPLAY_SUCCESS) {
         return SURFACE_ERROR_OK;
     }
-    BLOGFW("Failed with %{public}d", ret);
+    BLOGW("Failed with %{public}d", ret);
     return SURFACE_ERROR_API_FAILED;
 }
 

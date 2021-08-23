@@ -36,6 +36,7 @@ config("surface_public_config") {
 ohos_shared_library("surface") {
   sources = [
     "src/buffer_client_producer.cpp",
+    "src/buffer_extra_data_impl.cpp",
     "src/buffer_manager.cpp",
     "src/buffer_queue.cpp",
     "src/buffer_queue_consumer.cpp",

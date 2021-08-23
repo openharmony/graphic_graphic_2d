@@ -28,7 +28,7 @@ public:
         return &instance_;
     }
     SurfaceError Init();
-    SurfaceError Alloc(BufferRequestConfig& config, sptr<SurfaceBufferImpl>& buffer);
+    SurfaceError Alloc(const BufferRequestConfig& config, sptr<SurfaceBufferImpl>& buffer);
     SurfaceError Map(sptr<SurfaceBufferImpl>& buffer);
     SurfaceError Unmap(sptr<SurfaceBufferImpl>& buffer);
     SurfaceError FlushCache(sptr<SurfaceBufferImpl>& buffer);

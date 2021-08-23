@@ -37,13 +37,12 @@ public:
     virtual int OnRemoteRequest(uint32_t code, MessageParcel& arguments,
                                 MessageParcel& reply, MessageOption& option) override;
 
-    SurfaceError RequestBuffer(int32_t& sequence, sptr<SurfaceBuffer>& buffer,
-                               int32_t& fence, BufferRequestConfig& config,
-                               std::vector<int32_t>& deletingBuffers) override;
+    virtual SurfaceError RequestBuffer(const BufferRequestConfig& config, BufferExtraData &bedata,
+                                       RequestBufferReturnValue &retval) override;
 
-    SurfaceError CancelBuffer(int32_t sequence) override;
+    SurfaceError CancelBuffer(int32_t sequence, BufferExtraData &bedata) override;
 
-    SurfaceError FlushBuffer(int32_t sequence,
+    SurfaceError FlushBuffer(int32_t sequence, BufferExtraData &bedata,
                              int32_t fence, BufferFlushConfig& config) override;
 
     uint32_t     GetQueueSize() override;
@@ -58,18 +57,18 @@ public:
     SurfaceError CleanCache() override;
 
 private:
-    int RequestBufferInner(MessageParcel& arguments, MessageParcel& reply, MessageOption& option);
-    int CancelBufferInner(MessageParcel& arguments, MessageParcel& reply, MessageOption& option);
-    int FlushBufferInner(MessageParcel& arguments, MessageParcel& reply, MessageOption& option);
-    int GetQueueSizeInner(MessageParcel& arguments, MessageParcel& reply, MessageOption& option);
-    int SetQueueSizeInner(MessageParcel& arguments, MessageParcel& reply, MessageOption& option);
-    int GetNameInner(MessageParcel& arguments, MessageParcel& reply, MessageOption& option);
-    int GetDefaultWidthInner(MessageParcel& arguments, MessageParcel& reply, MessageOption& option);
-    int GetDefaultHeightInner(MessageParcel& arguments, MessageParcel& reply, MessageOption& option);
-    int GetDefaultUsageInner(MessageParcel& arguments, MessageParcel& reply, MessageOption& option);
-    int CleanCacheInner(MessageParcel& arguments, MessageParcel& reply, MessageOption& option);
+    int32_t RequestBufferRemote(MessageParcel& arguments, MessageParcel& reply, MessageOption& option);
+    int32_t CancelBufferRemote(MessageParcel& arguments, MessageParcel& reply, MessageOption& option);
+    int32_t FlushBufferRemote(MessageParcel& arguments, MessageParcel& reply, MessageOption& option);
+    int32_t GetQueueSizeRemote(MessageParcel& arguments, MessageParcel& reply, MessageOption& option);
+    int32_t SetQueueSizeRemote(MessageParcel& arguments, MessageParcel& reply, MessageOption& option);
+    int32_t GetNameRemote(MessageParcel& arguments, MessageParcel& reply, MessageOption& option);
+    int32_t GetDefaultWidthRemote(MessageParcel& arguments, MessageParcel& reply, MessageOption& option);
+    int32_t GetDefaultHeightRemote(MessageParcel& arguments, MessageParcel& reply, MessageOption& option);
+    int32_t GetDefaultUsageRemote(MessageParcel& arguments, MessageParcel& reply, MessageOption& option);
+    int32_t CleanCacheRemote(MessageParcel& arguments, MessageParcel& reply, MessageOption& option);
 
-    using BufferQueueProducerFunc = int (BufferQueueProducer::*)(MessageParcel& arguments,
+    using BufferQueueProducerFunc = int32_t (BufferQueueProducer::*)(MessageParcel& arguments,
         MessageParcel& reply, MessageOption& option);
     std::map<uint32_t, BufferQueueProducerFunc> memberFuncMap_;
 

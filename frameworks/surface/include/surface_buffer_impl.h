@@ -16,11 +16,15 @@
 #ifndef FRAMEWORKS_SURFACE_INCLUDE_SURFACE_BUFFER_IMPL_H
 #define FRAMEWORKS_SURFACE_INCLUDE_SURFACE_BUFFER_IMPL_H
 
+#include <any>
 #include <map>
 
-#include <surface_buffer.h>
+#include <buffer_extra_data.h>
 #include <buffer_handle_parcel.h>
 #include <buffer_handle_utils.h>
+#include <surface_buffer.h>
+
+#include "buffer_extra_data_impl.h"
 
 namespace OHOS {
 enum ExtraDataType {
@@ -31,13 +35,7 @@ enum ExtraDataType {
 };
 
 typedef struct {
-    BufferHandle* handle_;
-    int32_t sequenceNumber;
-} SurfaceBufferData;
-
-typedef struct {
-    void* value;
-    uint32_t size;
+    std::any value;
     ExtraDataType type;
 } ExtraData;
 
@@ -48,7 +46,7 @@ public:
     SurfaceBufferImpl(int seqNum);
     virtual ~SurfaceBufferImpl();
 
-    static SurfaceBufferImpl* FromBase(sptr<SurfaceBuffer>& buffer);
+    static SurfaceBufferImpl* FromBase(const sptr<SurfaceBuffer>& buffer);
 
     BufferHandle* GetBufferHandle() const override;
     int32_t GetWidth() const override;
@@ -67,17 +65,29 @@ public:
     SurfaceError SetInt64(uint32_t key, int64_t val) override;
     SurfaceError GetInt64(uint32_t key, int64_t& val) override;
 
+    void SetExtraData(const BufferExtraData &bedata);
+    void GetExtraData(BufferExtraData &bedata) const;
+    virtual SurfaceError ExtraGet(std::string key, int32_t &value) const override;
+    virtual SurfaceError ExtraGet(std::string key, int64_t &value) const override;
+    virtual SurfaceError ExtraGet(std::string key, double &value) const override;
+    virtual SurfaceError ExtraGet(std::string key, std::string &value) const override;
+    virtual SurfaceError ExtraSet(std::string key, int32_t value) override;
+    virtual SurfaceError ExtraSet(std::string key, int64_t value) override;
+    virtual SurfaceError ExtraSet(std::string key, double value) override;
+    virtual SurfaceError ExtraSet(std::string key, std::string value) override;
+
     void SetBufferHandle(BufferHandle* handle);
-    BufferHandle* GetBufferHandle();
 
     void WriteToMessageParcel(MessageParcel& parcel);
-
-    SurfaceBufferData bufferData_;
 
 private:
     SurfaceError SetData(uint32_t key, ExtraData data);
     SurfaceError GetData(uint32_t key, ExtraData& data);
     std::map<uint32_t, ExtraData> extraDatas_;
+
+    BufferHandle* handle_ = nullptr;
+    int32_t sequenceNumber = -1;
+    BufferExtraDataImpl bedataimpl;
 };
 } // namespace OHOS
 

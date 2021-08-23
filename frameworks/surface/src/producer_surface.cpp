@@ -25,17 +25,17 @@ constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, 0, "ProducerSurface" };
 
 ProducerSurface::ProducerSurface(sptr<IBufferProducer>& producer)
 {
-    BLOGND("ctor");
     producer_ = producer;
     auto sret = producer_->GetName(name_);
     if (sret != SURFACE_ERROR_OK) {
         BLOGNE("GetName failed, %{public}s", SurfaceErrorStr(sret).c_str());
     }
+    BLOGND("ctor");
 }
 
 ProducerSurface::~ProducerSurface()
 {
-    BLOGND("dtor %{public}s", name_.c_str());
+    BLOGND("dtor");
     if (IsRemote()) {
         for (auto it = bufferProducerCache_.begin(); it != bufferProducerCache_.end(); it++) {
             if (it->second->GetVirAddr() != nullptr) {
@@ -65,45 +65,49 @@ sptr<IBufferProducer> ProducerSurface::GetProducer() const
 SurfaceError ProducerSurface::RequestBuffer(sptr<SurfaceBuffer>& buffer,
                                             int32_t& fence, BufferRequestConfig& config)
 {
-    std::vector<int32_t> deletingBuffers;
-    int32_t sequence;
-
-    SurfaceError ret = GetProducer()->RequestBuffer(sequence, buffer, fence, config, deletingBuffers);
+    IBufferProducer::RequestBufferReturnValue retval;
+    BufferExtraDataImpl bedataimpl;
+    SurfaceError ret = GetProducer()->RequestBuffer(config, bedataimpl, retval);
     if (ret != SURFACE_ERROR_OK) {
         BLOGN_FAILURE("Producer report %{public}s", SurfaceErrorStr(ret).c_str());
         return ret;
     }
 
     // add cache
-    if (buffer != nullptr && IsRemote()) {
-        sptr<SurfaceBufferImpl> bufferImpl = SurfaceBufferImpl::FromBase(buffer);
+    if (retval.buffer != nullptr && IsRemote()) {
+        sptr<SurfaceBufferImpl> bufferImpl = SurfaceBufferImpl::FromBase(retval.buffer);
         ret = BufferManager::GetInstance()->Map(bufferImpl);
         if (ret != SURFACE_ERROR_OK) {
-            BLOGN_FAILURE_ID(sequence, "Map failed");
+            BLOGN_FAILURE_ID(retval.sequence, "Map failed");
         } else {
-            BLOGN_SUCCESS_ID(sequence, "Map");
+            BLOGN_SUCCESS_ID(retval.sequence, "Map");
         }
     }
 
-    if (buffer != nullptr) {
-        bufferProducerCache_[sequence] = SurfaceBufferImpl::FromBase(buffer);
+    if (retval.buffer != nullptr) {
+        bufferProducerCache_[retval.sequence] = SurfaceBufferImpl::FromBase(retval.buffer);
     } else {
-        buffer = bufferProducerCache_[sequence];
+        retval.buffer = bufferProducerCache_[retval.sequence];
     }
+    buffer = retval.buffer;
 
-    sptr<SurfaceBufferImpl> bufferImpl = SurfaceBufferImpl::FromBase(buffer);
+    sptr<SurfaceBufferImpl> bufferImpl = SurfaceBufferImpl::FromBase(retval.buffer);
     ret = BufferManager::GetInstance()->InvalidateCache(bufferImpl);
     if (ret != SURFACE_ERROR_OK) {
-        BLOGNW("Warning [%{public}d], InvalidateCache failed", sequence);
+        BLOGNW("Warning [%{public}d], InvalidateCache failed", retval.sequence);
     }
 
-    for (auto it = deletingBuffers.begin(); it != deletingBuffers.end(); it++) {
+    if (bufferImpl != nullptr) {
+        bufferImpl->SetExtraData(bedataimpl);
+    }
+
+    for (auto it = retval.deletingBuffers.begin(); it != retval.deletingBuffers.end(); it++) {
         if (IsRemote() && bufferProducerCache_[*it]->GetVirAddr() != nullptr) {
             BufferManager::GetInstance()->Unmap(bufferProducerCache_[*it]);
         }
         bufferProducerCache_.erase(*it);
     }
-    return ret;
+    return SURFACE_ERROR_OK;
 }
 
 SurfaceError ProducerSurface::CancelBuffer(sptr<SurfaceBuffer>& buffer)
@@ -112,7 +116,10 @@ SurfaceError ProducerSurface::CancelBuffer(sptr<SurfaceBuffer>& buffer)
         return SURFACE_ERROR_NULLPTR;
     }
 
-    return GetProducer()->CancelBuffer(SurfaceBufferImpl::FromBase(buffer)->GetSeqNum());
+    auto bufferImpl = SurfaceBufferImpl::FromBase(buffer);
+    BufferExtraDataImpl bedataimpl;
+    bufferImpl->GetExtraData(bedataimpl);
+    return GetProducer()->CancelBuffer(bufferImpl->GetSeqNum(), bedataimpl);
 }
 
 SurfaceError ProducerSurface::FlushBuffer(sptr<SurfaceBuffer>& buffer,
@@ -122,7 +129,10 @@ SurfaceError ProducerSurface::FlushBuffer(sptr<SurfaceBuffer>& buffer,
         return SURFACE_ERROR_NULLPTR;
     }
 
-    return GetProducer()->FlushBuffer(SurfaceBufferImpl::FromBase(buffer)->GetSeqNum(), fence, config);
+    auto bufferImpl = SurfaceBufferImpl::FromBase(buffer);
+    BufferExtraDataImpl bedataimpl;
+    bufferImpl->GetExtraData(bedataimpl);
+    return GetProducer()->FlushBuffer(bufferImpl->GetSeqNum(), bedataimpl, fence, config);
 }
 
 SurfaceError ProducerSurface::AcquireBuffer(sptr<SurfaceBuffer>& buffer, int32_t& fence,
@@ -187,7 +197,7 @@ SurfaceError ProducerSurface::SetUserData(const std::string& key, const std::str
     return SURFACE_ERROR_OK;
 }
 
-std::string  ProducerSurface::GetUserData(const std::string& key) 
+std::string ProducerSurface::GetUserData(const std::string &key)
 {
     if (userData_.find(key) != userData_.end()) {
         return userData_[key];

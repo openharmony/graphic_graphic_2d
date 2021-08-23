@@ -29,136 +29,129 @@ constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, 0, "SurfaceBufferImpl" };
 
 SurfaceBufferImpl::SurfaceBufferImpl()
 {
-    BLOGFD("");
     {
         static std::mutex mutex;
         mutex.lock();
 
         static int sequence_number_ = 0;
-        this->bufferData_.sequenceNumber = sequence_number_++;
+        sequenceNumber = sequence_number_++;
 
         mutex.unlock();
     }
-    this->bufferData_.handle_ = nullptr;
+    handle_ = nullptr;
+    BLOGD("ctor +[%{public}d]", sequenceNumber);
 }
 
 SurfaceBufferImpl::SurfaceBufferImpl(int seqNum)
 {
-    BLOGFD("");
-    bufferData_.sequenceNumber = seqNum;
-    bufferData_.handle_ = nullptr;
+    sequenceNumber = seqNum;
+    handle_ = nullptr;
+    BLOGD("ctor =[%{public}d]", sequenceNumber);
 }
 
 SurfaceBufferImpl::~SurfaceBufferImpl()
 {
-    BLOGFD("");
-    for (auto it = this->extraDatas_.begin(); it != this->extraDatas_.end(); it++) {
-        if (it->second.value) {
-            delete[] reinterpret_cast<uint8_t*>(it->second.value);
-        }
-    }
-
-    if (this->bufferData_.handle_) {
-        FreeBufferHandle(this->bufferData_.handle_);
+    BLOGD("dtor ~[%{public}d]", sequenceNumber);
+    if (handle_) {
+        FreeBufferHandle(handle_);
     }
 }
 
-SurfaceBufferImpl* SurfaceBufferImpl::FromBase(sptr<SurfaceBuffer>& buffer)
+SurfaceBufferImpl* SurfaceBufferImpl::FromBase(const sptr<SurfaceBuffer>& buffer)
 {
     return static_cast<SurfaceBufferImpl*>(buffer.GetRefPtr());
 }
 
 BufferHandle* SurfaceBufferImpl::GetBufferHandle() const
 {
-    return bufferData_.handle_;
+    return handle_;
 }
 
 int32_t SurfaceBufferImpl::GetWidth() const
 {
-    if (this->bufferData_.handle_ == nullptr) {
-        BLOGFW("handle is nullptr");
+    if (handle_ == nullptr) {
+        BLOGW("handle is nullptr");
         return -1;
     }
-    return this->bufferData_.handle_->width;
+    return handle_->width;
 }
 
 int32_t SurfaceBufferImpl::GetHeight() const
 {
-    if (this->bufferData_.handle_ == nullptr) {
-        BLOGFW("handle is nullptr");
+    if (handle_ == nullptr) {
+        BLOGW("handle is nullptr");
         return -1;
     }
-    return this->bufferData_.handle_->height;
+    return handle_->height;
 }
 
 int32_t SurfaceBufferImpl::GetFormat() const
 {
-    if (this->bufferData_.handle_ == nullptr) {
-        BLOGFW("handle is nullptr");
+    if (handle_ == nullptr) {
+        BLOGW("handle is nullptr");
         return -1;
     }
-    return this->bufferData_.handle_->format;
+    return handle_->format;
 }
 
 int64_t SurfaceBufferImpl::GetUsage() const
 {
-    if (this->bufferData_.handle_ == nullptr) {
-        BLOGFW("handle is nullptr");
+    if (handle_ == nullptr) {
+        BLOGW("handle is nullptr");
         return -1;
     }
-    return this->bufferData_.handle_->usage;
+    return handle_->usage;
 }
 
 uint64_t SurfaceBufferImpl::GetPhyAddr() const
 {
-    if (this->bufferData_.handle_ == nullptr) {
-        BLOGFW("handle is nullptr");
+    if (handle_ == nullptr) {
+        BLOGW("handle is nullptr");
         return 0;
     }
-    return this->bufferData_.handle_->phyAddr;
+    return handle_->phyAddr;
 }
 
 int32_t SurfaceBufferImpl::GetKey() const
 {
-    if (this->bufferData_.handle_ == nullptr) {
-        BLOGFW("handle is nullptr");
+    if (handle_ == nullptr) {
+        BLOGW("handle is nullptr");
         return -1;
     }
-    return this->bufferData_.handle_->key;
+    return handle_->key;
 }
 
 void* SurfaceBufferImpl::GetVirAddr() const
 {
-    if (this->bufferData_.handle_ == nullptr) {
-        BLOGFW("handle is nullptr");
+    if (handle_ == nullptr) {
+        BLOGW("handle is nullptr");
         return nullptr;
     }
-    return this->bufferData_.handle_->virAddr;
+    return handle_->virAddr;
 }
 
 int32_t SurfaceBufferImpl::GetFileDescriptor() const
 {
-    if (this->bufferData_.handle_ == nullptr) {
-        BLOGFW("handle is nullptr");
+    if (handle_ == nullptr) {
+        BLOGW("handle is nullptr");
         return -1;
     }
-    return this->bufferData_.handle_->fd;
+    return handle_->fd;
 }
 
 uint32_t SurfaceBufferImpl::GetSize() const
 {
-    if (this->bufferData_.handle_ == nullptr) {
-        BLOGFW("handle is nullptr");
+    if (handle_ == nullptr) {
+        BLOGW("handle is nullptr");
         return 0;
     }
-    return this->bufferData_.handle_->size;
+    return handle_->size;
 }
 
 SurfaceError SurfaceBufferImpl::SetInt32(uint32_t key, int32_t val)
 {
     ExtraData int32 = {
-        .value = &val,
-        .size = sizeof(int32_t),
+        .value = val,
         .type = EXTRA_DATA_TYPE_INT32,
     };
     return SetData(key, int32);
@@ -170,7 +163,12 @@ SurfaceError SurfaceBufferImpl::GetInt32(uint32_t key, int32_t& val)
     SurfaceError ret = GetData(key, int32);
     if (ret == SURFACE_ERROR_OK) {
         if (int32.type == EXTRA_DATA_TYPE_INT32) {
-            val = *reinterpret_cast<int32_t*>(int32.value);
+            auto pVal = std::any_cast<int32_t>(&int32.value);
+            if (pVal != nullptr) {
+                val = *pVal;
+            } else {
+                BLOGE("unexpected: INT32, any_cast failed");
+            }
         } else {
             return SURFACE_ERROR_TYPE_ERROR;
         }
@@ -181,8 +179,7 @@ SurfaceError SurfaceBufferImpl::GetInt32(uint32_t key, int32_t& val)
 SurfaceError SurfaceBufferImpl::SetInt64(uint32_t key, int64_t val)
 {
     ExtraData int64 = {
-        .value = &val,
-        .size = sizeof(int64_t),
+        .value = val,
         .type = EXTRA_DATA_TYPE_INT64,
     };
     return SetData(key, int64);
@@ -194,7 +191,12 @@ SurfaceError SurfaceBufferImpl::GetInt64(uint32_t key, int64_t& val)
     SurfaceError ret = GetData(key, int64);
     if (ret == SURFACE_ERROR_OK) {
         if (int64.type == EXTRA_DATA_TYPE_INT64) {
-            val = *reinterpret_cast<int64_t*>(int64.value);
+            auto pVal = std::any_cast<int64_t>(&int64.value);
+            if (pVal != nullptr) {
+                val = *pVal;
+            } else {
+                BLOGE("unexpected: INT64, any_cast failed");
+            }
         } else {
             return SURFACE_ERROR_TYPE_ERROR;
         }
@@ -209,37 +211,24 @@ SurfaceError SurfaceBufferImpl::SetData(uint32_t key, ExtraData data)
         return SURFACE_ERROR_INVALID_PARAM;
     }
 
-    if (data.size <= 0 || data.size > sizeof(int64_t)) {
-        BLOGW("Invalid, data.size is out of range");
-        return SURFACE_ERROR_INVALID_PARAM;
-    }
-
-    if (this->extraDatas_.size() > SURFACE_MAX_USER_DATA_COUNT) {
-        BLOGFW("SurfaceBuffer has too many extra data, cannot save one more!!!");
+    if (extraDatas_.size() > SURFACE_MAX_USER_DATA_COUNT) {
+        BLOGW("SurfaceBuffer has too many extra data, cannot save one more!!!");
         return SURFACE_ERROR_OUT_OF_RANGE;
     }
 
     ExtraData mapData;
-    SurfaceError ret = GetData(key, mapData);
-    if (ret == SURFACE_ERROR_OK) {
-        delete[] reinterpret_cast<uint8_t*>(mapData.value);
-    }
+    GetData(key, mapData);
 
     mapData = data;
-    mapData.value = new uint8_t[mapData.size];
-    errno_t reterr = memcpy_s(mapData.value, mapData.size, data.value, data.size);
-    if (reterr) {
-        BLOGFD("memcpy_s failed with %{public}d", reterr);
-    }
 
-    this->extraDatas_[key] = mapData;
+    extraDatas_[key] = mapData;
     return SURFACE_ERROR_OK;
 }
 
 SurfaceError SurfaceBufferImpl::GetData(uint32_t key, ExtraData& data)
 {
-    auto it = this->extraDatas_.find(key);
-    if (it == this->extraDatas_.end()) {
+    auto it = extraDatas_.find(key);
+    if (it == extraDatas_.end()) {
         return SURFACE_ERROR_NO_ENTRY;
     }
 
@@ -247,31 +236,100 @@ SurfaceError SurfaceBufferImpl::GetData(uint32_t key, ExtraData& data)
     return SURFACE_ERROR_OK;
 }
 
-void SurfaceBufferImpl::SetBufferHandle(BufferHandle* handle)
+void SurfaceBufferImpl::SetExtraData(const BufferExtraData &bedata)
 {
-    bufferData_.handle_ = handle;
+    auto bedatai = static_cast<const BufferExtraDataImpl*>(&bedata);
+    bedataimpl = *bedatai;
 }
 
-BufferHandle* SurfaceBufferImpl::GetBufferHandle()
+void SurfaceBufferImpl::GetExtraData(BufferExtraData &bedata) const
 {
-    return bufferData_.handle_;
+    auto bedatai = static_cast<BufferExtraDataImpl*>(&bedata);
+    *bedatai = bedataimpl;
+}
+
+SurfaceError SurfaceBufferImpl::ExtraGet(std::string key, int32_t &value) const
+{
+    return bedataimpl.ExtraGet(key, value);
+}
+
+SurfaceError SurfaceBufferImpl::ExtraGet(std::string key, int64_t &value) const
+{
+    return bedataimpl.ExtraGet(key, value);
+}
+
+SurfaceError SurfaceBufferImpl::ExtraGet(std::string key, double &value) const
+{
+    return bedataimpl.ExtraGet(key, value);
+}
+
+SurfaceError SurfaceBufferImpl::ExtraGet(std::string key, std::string &value) const
+{
+    return bedataimpl.ExtraGet(key, value);
+}
+
+SurfaceError SurfaceBufferImpl::ExtraSet(std::string key, int32_t value)
+{
+    return bedataimpl.ExtraSet(key, value);
+}
+
+SurfaceError SurfaceBufferImpl::ExtraSet(std::string key, int64_t value)
+{
+    return bedataimpl.ExtraSet(key, value);
+}
+
+SurfaceError SurfaceBufferImpl::ExtraSet(std::string key, double value)
+{
+    return bedataimpl.ExtraSet(key, value);
+}
+
+SurfaceError SurfaceBufferImpl::ExtraSet(std::string key, std::string value)
+{
+    return bedataimpl.ExtraSet(key, value);
+}
+
+void SurfaceBufferImpl::SetBufferHandle(BufferHandle* handle)
+{
+    handle_ = handle;
 }
 
 void SurfaceBufferImpl::WriteToMessageParcel(MessageParcel& parcel)
 {
-    if (bufferData_.handle_ == nullptr) {
-        BLOGE("Failure, Reason: bufferData_.handle_ is nullptr");
+    if (handle_ == nullptr) {
+        BLOGE("Failure, Reason: handle_ is nullptr");
         return;
     }
 
-    bool ret = WriteBufferHandle(parcel, *bufferData_.handle_);
+    bool ret = WriteBufferHandle(parcel, *handle_);
     if (ret == false) {
         BLOGE("Failure, Reason: WriteBufferHandle return false");
+    }
+
+    parcel.WriteInt32(extraDatas_.size());
+    for (const auto &[k, v] : extraDatas_) {
+        parcel.WriteUint32(k);
+        parcel.WriteInt32(v.type);
+        if (v.type == EXTRA_DATA_TYPE_INT32) {
+            auto pVal = std::any_cast<int32_t>(&v.value);
+            if (pVal != nullptr) {
+                parcel.WriteInt32(*pVal);
+            } else {
+                BLOGE("unexpected: INT32, any_cast failed");
+            }
+        }
+        if (v.type == EXTRA_DATA_TYPE_INT64) {
+            auto pVal = std::any_cast<int64_t>(&v.value);
+            if (pVal != nullptr) {
+                parcel.WriteInt64(*pVal);
+            } else {
+                BLOGE("unexpected: INT64, any_cast failed");
+            }
+        }
     }
 }
 
 int32_t SurfaceBufferImpl::GetSeqNum()
 {
-    return this->bufferData_.sequenceNumber;
+    return sequenceNumber;
 }
 } // namespace OHOS

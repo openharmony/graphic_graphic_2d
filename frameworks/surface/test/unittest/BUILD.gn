@@ -11,37 +11,147 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import("//build/ohos.gni")
+import("//build/test.gni")
 
-## Build surface_test_common.a {{{
-config("surface_test_common_public_config") {
-  include_dirs = [
-    ".",
-    "//foundation/graphic/standard/frameworks/surface/include",
-  ]
-
-  cflags = [
-    "-Dprivate=public",
-    "-Dprotected=public",
-  ]
-  if (target_cpu == "arm") {
-    cflags += [ "-DBINDER_IPC_32BIT" ]
-  }
-}
-
-ohos_static_library("surface_test_common") {
-  public_configs = [ ":surface_test_common_public_config" ]
-
-  public_deps = [ "//foundation/graphic/standard:libsurface" ]
-}
-
-## Build surface_test_common.a }}}
+module_out_path = "graphic_standard/surface"
 
 group("unittest") {
   testonly = true
 
   deps = [
-    "local:test",
-    "remote:test",
+    ":buffer_client_producer_remote_test",
+    ":buffer_manager_test",
+    ":buffer_queue_consumer_test",
+    ":buffer_queue_producer_remote_test",
+    ":buffer_queue_producer_test",
+    ":buffer_queue_test",
+    ":consumer_surface_test",
+    ":producer_surface_test",
+    ":surface_buffer_impl_test",
   ]
 }
+
+## UnitTest buffer_client_producer_remote_test {{{
+ohos_unittest("buffer_client_producer_remote_test") {
+  module_out_path = module_out_path
+
+  sources = [ "buffer_client_producer_remote_test.cpp" ]
+
+  deps = [ ":surface_test_common" ]
+}
+
+## UnitTest buffer_client_producer_remote_test }}}
+
+## UnitTest buffer_manager_test {{{
+ohos_unittest("buffer_manager_test") {
+  module_out_path = module_out_path
+
+  sources = [ "buffer_manager_test.cpp" ]
+
+  deps = [ ":surface_test_common" ]
+}
+
+## UnitTest buffer_manager_test }}}
+
+## UnitTest buffer_queue_consumer_test {{{
+ohos_unittest("buffer_queue_consumer_test") {
+  module_out_path = module_out_path
+
+  sources = [ "buffer_queue_consumer_test.cpp" ]
+
+  deps = [ ":surface_test_common" ]
+}
+
+## UnitTest buffer_queue_consumer_test }}}
+
+## UnitTest buffer_queue_producer_remote_test {{{
+ohos_unittest("buffer_queue_producer_remote_test") {
+  module_out_path = module_out_path
+
+  sources = [ "buffer_queue_producer_remote_test.cpp" ]
+
+  deps = [ ":surface_test_common" ]
+}
+
+## UnitTest buffer_queue_producer_remote_test }}}
+
+## UnitTest buffer_queue_producer_test {{{
+ohos_unittest("buffer_queue_producer_test") {
+  module_out_path = module_out_path
+
+  sources = [ "buffer_queue_producer_test.cpp" ]
+
+  deps = [ ":surface_test_common" ]
+}
+
+## UnitTest buffer_queue_producer_test }}}
+
+## UnitTest buffer_queue_test {{{
+ohos_unittest("buffer_queue_test") {
+  module_out_path = module_out_path
+
+  sources = [ "buffer_queue_test.cpp" ]
+
+  deps = [ ":surface_test_common" ]
+}
+
+## UnitTest buffer_queue_test }}}
+
+## UnitTest consumer_surface_test {{{
+ohos_unittest("consumer_surface_test") {
+  module_out_path = module_out_path
+
+  sources = [ "consumer_surface_test.cpp" ]
+
+  deps = [ ":surface_test_common" ]
+}
+
+## UnitTest consumer_surface_test }}}
+
+## UnitTest producer_surface_test {{{
+ohos_unittest("producer_surface_test") {
+  module_out_path = module_out_path
+
+  sources = [ "producer_surface_test.cpp" ]
+
+  deps = [ ":surface_test_common" ]
+}
+
+## UnitTest producer_surface_test }}}
+
+## UnitTest surface_buffer_impl_test {{{
+ohos_unittest("surface_buffer_impl_test") {
+  module_out_path = module_out_path
+
+  sources = [ "surface_buffer_impl_test.cpp" ]
+
+  deps = [ ":surface_test_common" ]
+}
+
+## UnitTest surface_buffer_impl_test }}}
+
+## Build surface_test_common.a {{{
+config("surface_test_common_public_config") {
+  include_dirs = [ "//foundation/graphic/standard/frameworks/surface/include" ]
+
+  cflags = [
+    "-Wall",
+    "-Werror",
+    "-g3",
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
+}
+
+ohos_static_library("surface_test_common") {
+  visibility = [ ":*" ]
+  testonly = true
+
+  public_configs = [ ":surface_test_common_public_config" ]
+
+  public_deps = [
+    "//foundation/distributedschedule/samgr/interfaces/innerkits/samgr_proxy:samgr_proxy",
+    "//foundation/graphic/standard:libsurface",
+  ]
+}
+## Build surface_test_common.a }}}
