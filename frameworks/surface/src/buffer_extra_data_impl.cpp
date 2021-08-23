@@ -61,7 +61,7 @@ SurfaceError BufferExtraDataImpl::WriteToParcel(MessageParcel &parcel)
 {
     parcel.WriteInt32(BUFFER_EXTRA_DATA_MAGIC);
     parcel.WriteInt32(datas.size());
-    BLOGD("write %{public}d", datas.size());
+    BLOGD("write " BPUBSize, datas.size());
     for (const auto &[key, data] : datas) {
         parcel.WriteString(key);
         parcel.WriteInt32(static_cast<int32_t>(data.type));

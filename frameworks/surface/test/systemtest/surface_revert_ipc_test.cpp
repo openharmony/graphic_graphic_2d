@@ -63,7 +63,7 @@ pid_t SurfaceRevertIPCTest::ChildProcessMain()
     }
 
     buffer->ExtraSet("123", 0x123);
-    buffer->ExtraSet("345", 0x345ll);
+    buffer->ExtraSet("345", (int64_t)0x345);
     buffer->ExtraSet("567", "567");
 
     sret = psurface->FlushBuffer(buffer, -1, flushConfig);
