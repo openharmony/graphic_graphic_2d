@@ -90,6 +90,7 @@ WMError WindowImpl::CreateRemoteWindow(sptr<WindowImpl> &wi,
 
     wi->attr.SetID(wminfo.wid);
     wi->attr.SetType(option->GetWindowType());
+    wi->attr.SetVisibility(true);
     wi->attr.SetXY(wminfo.x, wminfo.y);
     wi->attr.SetWidthHeight(wminfo.width, wminfo.height);
     wi->wlSurface->SetUserData(wi.GetRefPtr());
