@@ -159,6 +159,19 @@ void WindowManagerServiceProxy::OnWindowShot(wms_error reply,
     }
 }
 
+void WindowManagerServiceProxy::OnGlobalWindowStatus(uint32_t pid, uint32_t wid, uint32_t status)
+{
+    WMLOGFI("global window status: pid=%{public}u status=%{public}u wid=%{public}u", pid, status, wid);
+    if (globalWindowChangeListener != nullptr) {
+        if (status == WMS_WINDOW_STATUS_CREATED) {
+            globalWindowChangeListener->OnWindowCreate(pid, wid);
+        }
+        if (status == WMS_WINDOW_STATUS_DESTROYED) {
+            globalWindowChangeListener->OnWindowDestroy(pid, wid);
+        }
+    }
+}
+
 WMError WindowManagerServiceProxy::GetDisplays(std::vector<struct WMDisplayInfo> &displays)
 {
     displays = this->displays;
@@ -192,16 +205,26 @@ WMError WindowManagerServiceProxy::OnDisplayDirectionChange(DisplayDirectionChan
     return WM_ERROR_NOT_SUPPORT;
 }
 
+sptr<Promise<WMError>> WindowManagerServiceProxy::OnWindowListChange(IWindowChangeListenerClazz *listener)
+{
+    sptr<PromiseWMError> promise = new PromiseWMError();
+    globalWindowChangeListener = listener;
+    promiseQueue.push(promise);
+    wms_config_global_window_status(wms, listener == nullptr ? 0 : 1);
+    wl_display_flush(display);
+    return promise;
+}
+
 sptr<PromiseWMSImageInfo> WindowManagerServiceProxy::ShotScreen(int32_t did)
 {
     WMLOGFI("did: %{public}d", did);
     sptr<PromiseWMSImageInfo> promise = new PromiseWMSImageInfo();
-    wms_screenshot(wms, did);
-    wl_display_flush(display);
     {
         std::lock_guard<std::mutex> lock(screenShotPromisesMutex);
         screenShotPromises[did] = promise;
     }
+    wms_screenshot(wms, did);
+    wl_display_flush(display);
     return promise;
 }
 
@@ -209,12 +232,12 @@ sptr<PromiseWMSImageInfo> WindowManagerServiceProxy::ShotWindow(int32_t wid)
 {
     WMLOGFI("wid: %{public}d", wid);
     sptr<PromiseWMSImageInfo> promise = new PromiseWMSImageInfo();
-    wms_windowshot(wms, wid);
-    wl_display_flush(display);
     {
         std::lock_guard<std::mutex> lock(windowShotPromisesMutex);
         windowShotPromises[wid] = promise;
     }
+    wms_windowshot(wms, wid);
+    wl_display_flush(display);
     return promise;
 }
 

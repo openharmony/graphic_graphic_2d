@@ -79,6 +79,11 @@ void OnWindowShotError(void *, struct wms *, uint32_t a, uint32_t b)
     WindowManagerServiceProxy::OnWindowShot(static_cast<wms_error>(a), b, -1, 0, 0, 0, 0, 0, 0);
 }
 
+void OnGlobalWindowStatus(void *, struct wms *, uint32_t a, uint32_t b, uint32_t c)
+{
+    WindowManagerServiceProxy::OnGlobalWindowStatus(a, b, c);
+}
+
 void RegistryGlobal(void *pwms, struct wl_registry *registry,
     uint32_t id, const char *interface, uint32_t version)
 {
@@ -95,6 +100,7 @@ void RegistryGlobal(void *pwms, struct wl_registry *registry,
             OnScreenShotError,
             OnWindowShotDone,
             OnWindowShotError,
+            OnGlobalWindowStatus,
         };
         wms_add_listener(*wms, &listener, nullptr);
     }
