@@ -93,6 +93,7 @@ WMError WindowImpl::CreateRemoteWindow(sptr<WindowImpl> &wi,
     wi->attr.SetVisibility(true);
     wi->attr.SetXY(wminfo.x, wminfo.y);
     wi->attr.SetWidthHeight(wminfo.width, wminfo.height);
+    wi->attr.SetDestWidthHeight(wminfo.width, wminfo.height);
     wi->wlSurface->SetUserData(wi.GetRefPtr());
     return WM_OK;
 }
@@ -252,6 +253,7 @@ sptr<Promise<WMError>> WindowImpl::Resize(uint32_t width, uint32_t height)
     }
 
     attr.SetWidthHeight(width, height);
+    attr.SetDestWidthHeight(width, height);
     return wms->Resize(attr.GetID(), width, height);
 }
 
