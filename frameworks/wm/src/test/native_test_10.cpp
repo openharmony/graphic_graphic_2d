@@ -44,6 +44,13 @@ public:
 
     void Run(int32_t argc, const char **argv) override
     {
+        auto initRet = WindowManager::GetInstance()->Init();
+        if (initRet) {
+            printf("init failed with %s\n", WMErrorStr(initRet).c_str());
+            ExitTest();
+            return;
+        }
+
         std::vector<struct WMDisplayInfo> displays;
         WindowManager::GetInstance()->GetDisplays(displays);
         if (displays.size() <= 0) {

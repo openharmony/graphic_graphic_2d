@@ -44,6 +44,13 @@ int32_t NativeTest7::GetID() const
 
 void NativeTest7::Run(int32_t argc, const char **argv)
 {
+    auto initRet = WindowManager::GetInstance()->Init();
+    if (initRet) {
+        printf("init failed with %s\n", WMErrorStr(initRet).c_str());
+        ExitTest();
+        return;
+    }
+
     NativeTest1::Run(argc, argv);
     constexpr uint32_t nextRunTime = 1000;
     PostTask(std::bind(&NativeTest7::AfterRun, this), nextRunTime);

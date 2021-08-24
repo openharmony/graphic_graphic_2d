@@ -13,51 +13,63 @@
  * limitations under the License.
  */
 
-#include "native_test_11.h"
+#include "native_test_23.h"
 
 #include <cstdio>
-#include <securec.h>
 
-#include <display_type.h>
-#include <window_manager.h>
+#include <window_manager_service_client.h>
 
-#include "native_test_1.h"
+#include "inative_test.h"
 #include "native_test_class.h"
 #include "util.h"
 
 using namespace OHOS;
 
 namespace {
-class NativeTest11 : public NativeTest1 {
+class NativeTest23 : public INativeTest, public IWindowChangeListenerClazz {
 public:
     std::string GetDescription() const override
     {
-        constexpr const char *desc = "exit after 2 seconds";
+        constexpr const char *desc = "listen global window event";
         return desc;
     }
 
     int32_t GetID() const override
     {
-        constexpr int32_t id = 11;
+        constexpr int32_t id = 23;
         return id;
     }
 
     uint32_t GetLastTime() const override
     {
-        constexpr uint32_t lastTime = 2000;
+        constexpr uint32_t lastTime = 1 << 30;
         return lastTime;
     }
 
     void Run(int32_t argc, const char **argv) override
     {
-        auto initRet = WindowManager::GetInstance()->Init();
-        if (initRet) {
-            printf("init failed with %s\n", WMErrorStr(initRet).c_str());
+        auto wmsc = WindowManagerServiceClient::GetInstance();
+        wmsc->Init();
+        auto wms = wmsc->GetService();
+        auto wretPromise = wms->OnWindowListChange(this);
+        auto wret = wretPromise->Await();
+        if (wret != WM_OK) {
+            printf("Register Window Change Listener failed\n");
             ExitTest();
             return;
         }
-
-        NativeTest1::Run(argc, argv);
     }
+
+    void OnWindowCreate(int32_t pid, int32_t wid) override
+    {
+        printf("process%d %d window created\n", pid, wid);
+    }
+
+    void OnWindowDestroy(int32_t pid, int32_t wid) override
+    {
+        printf("process%d %d window destroyed\n", pid, wid);
+    }
+
+private:
 } g_autoload;
 } // namespace

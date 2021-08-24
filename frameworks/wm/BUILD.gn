@@ -299,6 +299,7 @@ ohos_executable("wmtest") {
     "src/test/native_test_19.cpp",
     "src/test/native_test_2.cpp",
     "src/test/native_test_20.cpp",
+    "src/test/native_test_23.cpp",
     "src/test/native_test_3.cpp",
     "src/test/native_test_4.cpp",
     "src/test/native_test_5.cpp",
@@ -316,6 +317,7 @@ ohos_executable("wmtest") {
   deps = [
     "//foundation/graphic/standard:libvsync_client",
     "//foundation/graphic/standard:libwmclient",
+    "//foundation/graphic/standard:libwmservice",
     "//third_party/zlib:libz",
   ]
 

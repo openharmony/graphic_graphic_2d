@@ -44,6 +44,13 @@ int32_t NativeTest6::GetID() const
 
 void NativeTest6::Run(int32_t argc, const char **argv)
 {
+    auto initRet = WindowManager::GetInstance()->Init();
+    if (initRet) {
+        printf("init failed with %s\n", WMErrorStr(initRet).c_str());
+        ExitTest();
+        return;
+    }
+
     NativeTest1::Run(argc, argv);
     constexpr uint32_t nextRunTime = 1000;
     PostTask(std::bind(&NativeTest6::AfterRun, this), nextRunTime);

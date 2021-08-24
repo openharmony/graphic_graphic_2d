@@ -50,6 +50,13 @@ public:
 
     void Run(int32_t argc, const char **argv) override
     {
+        auto initRet = WindowManager::GetInstance()->Init();
+        if (initRet) {
+            printf("init failed with %s\n", WMErrorStr(initRet).c_str());
+            ExitTest();
+            return;
+        }
+
         csurface1 = Surface::CreateSurfaceAsConsumer();
         window1 = NativeTestFactory::CreateWindow(WINDOW_TYPE_NORMAL, csurface1);
         if (window1 == nullptr) {
