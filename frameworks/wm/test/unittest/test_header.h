@@ -32,5 +32,9 @@
 
 #define STEP_ASSERT_EQ(l, r) STEP_ASSERT_(l, r, EQ, "==")
 #define STEP_ASSERT_NE(l, r) STEP_ASSERT_(l, r, NE, "!=")
+#define STEP_ASSERT_GE(l, r) STEP_ASSERT_(l, r, GE, ">=")
+#define STEP_ASSERT_LE(l, r) STEP_ASSERT_(l, r, LE, "<=")
+#define STEP_ASSERT_GT(l, r) STEP_ASSERT_(l, r, GT, ">")
+#define STEP_ASSERT_LT(l, r) STEP_ASSERT_(l, r, LT, "<")
 
 #endif // FRAMEWORKS_WM_TEST_UNITTEST_TEST_HEADER_H

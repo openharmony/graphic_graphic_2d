@@ -117,9 +117,6 @@ bool WindowAttribute::SetDestWidthHeight(uint32_t width, uint32_t height)
     if (width != winDestWidth || height != winDestHeight) {
         winDestWidth = width;
         winDestHeight = height;
-        if (sizeChangeListener != nullptr) {
-            sizeChangeListener(width, height);
-        }
         return true;
     }
     return false;

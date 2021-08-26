@@ -338,6 +338,70 @@ HWTEST_F(WindowImplTest, Create09, Function | SmallTest | Level1)
 }
 
 /*
+ * Function: Create
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. Create Window not default prop
+ *                  2. check type
+ *                  3. check visibility
+ *                  4. check xywh
+ *                  5. check dest_width, dest_height
+ *                  6. check id
+ */
+HWTEST_F(WindowImplTest, Create10, Function | SmallTest | Level2)
+{
+    PART("CaseDescription") {
+        WMError wret;
+        sptr<Window> window = nullptr;
+
+        STEP("1. Create Window not default prop") {
+            sptr<WindowOption> wo = WindowOption::Get();
+            wret = wo->SetWindowType(WINDOW_TYPE_ALARM_SCREEN);
+            STEP_ASSERT_EQ(wret, WM_OK);
+            wret = wo->SetWindowMode(WINDOW_MODE_TOP);
+            STEP_ASSERT_EQ(wret, WM_OK);
+            wret = wo->SetX(1);
+            STEP_ASSERT_EQ(wret, WM_OK);
+            wret = wo->SetY(1);
+            STEP_ASSERT_EQ(wret, WM_OK);
+            wret = wo->SetWidth(1);
+            STEP_ASSERT_EQ(wret, WM_OK);
+            wret = wo->SetHeight(1);
+            STEP_ASSERT_EQ(wret, WM_OK);
+
+            sptr<MockIWindowManagerService> wms = new MockIWindowManagerService();
+            EXPECT_CALL(*wms, Move(_, _, _)).Times(1).WillRepeatedly(Return(new Promise<WMError>(WM_OK)));
+            EXPECT_CALL(*wms, Resize(_, _, _)).Times(1).WillRepeatedly(Return(new Promise<WMError>(WM_OK)));
+            wret = WindowImpl::Create(window, wo, wms);
+            STEP_ASSERT_NE(window, nullptr);
+            STEP_ASSERT_EQ(wret, WM_OK);
+        }
+
+        sptr<WindowImpl> wi = static_cast<WindowImpl *>(window.GetRefPtr());
+        STEP("2. check type") {
+            STEP_ASSERT_EQ(wi->attr.GetType(), WINDOW_TYPE_ALARM_SCREEN);
+        }
+        STEP("3. check visibility") {
+            STEP_ASSERT_EQ(wi->attr.GetVisibility(), true);
+        }
+        STEP("4. check xywh") {
+            STEP_ASSERT_EQ(wi->attr.GetX(), 1);
+            STEP_ASSERT_EQ(wi->attr.GetY(), 1);
+            STEP_ASSERT_EQ(wi->attr.GetWidth(), 1u);
+            STEP_ASSERT_EQ(wi->attr.GetHeight(), 1u);
+        }
+        STEP("5. check dest_width, dest_height") {
+            STEP_ASSERT_EQ(wi->attr.GetDestWidth(), 1u);
+            STEP_ASSERT_EQ(wi->attr.GetDestHeight(), 1u);
+        }
+        STEP("6. check id") {
+            STEP_ASSERT_GE(wi->attr.GetID(), 0);
+        }
+    }
+}
+
+/*
  * Function: GetSurface
  * Type: Function
  * Rank: Basic(1)
@@ -447,7 +511,7 @@ HWTEST_F(WindowImplTest, GetID02, Function | SmallTest | Level2)
  * EnvConditions: N/A
  * CaseDescription: 1. mock IWindowManagerService as wms
  *                  2. call WindowImpl::Create
- *                  3. expect wms->Show called 1 times
+ *                  3. expect wms->Show called 2 times
  *                  4. call Show, check WM_OK
  *                  5. call Show again, check WM_OK
  */
@@ -468,8 +532,8 @@ HWTEST_F(WindowImplTest, Show01, Function | SmallTest | Level2)
             STEP_ASSERT_NE(window, nullptr);
         }
 
-        STEP("3. expect wms->Show called 1 times") {
-            EXPECT_CALL(*m->Mock(), Show(_)).Times(1).WillRepeatedly(Return(new Promise<WMError>(WM_OK)));
+        STEP("3. expect wms->Show called 2 times") {
+            EXPECT_CALL(*m->Mock(), Show(_)).Times(2).WillRepeatedly(Return(new Promise<WMError>(WM_OK)));
         }
 
         STEP("4. call Show, check WM_OK") {
@@ -509,7 +573,7 @@ HWTEST_F(WindowImplTest, Show02, Reliability | SmallTest | Level2)
  * CaseDescription: 1. mock IWindowManagerService as wms
  *                  2. call WindowImpl::Create
  *                  3. call Show, check WM_OK
- *                  4. expect wms->Hide called 1 times
+ *                  4. expect wms->Hide called 2 times
  *                  5. call Hide, check WM_OK
  *                  6. call Hide again, check WM_OK
  */
@@ -536,8 +600,8 @@ HWTEST_F(WindowImplTest, Hide01, Function | SmallTest | Level2)
             STEP_ASSERT_EQ(wret, WM_OK);
         }
 
-        STEP("4. expect wms->Hide called 1 times") {
-            EXPECT_CALL(*m->Mock(), Hide(_)).Times(1).WillRepeatedly(Return(new Promise<WMError>(WM_OK)));
+        STEP("4. expect wms->Hide called 2 times") {
+            EXPECT_CALL(*m->Mock(), Hide(_)).Times(2).WillRepeatedly(Return(new Promise<WMError>(WM_OK)));
         }
 
         STEP("5. call Hide, check WM_OK") {
@@ -576,7 +640,7 @@ HWTEST_F(WindowImplTest, Hide02, Reliability | SmallTest | Level2)
  * EnvConditions: N/A
  * CaseDescription: 1. mock IWindowManagerService as wms
  *                  2. call WindowImpl::Create
- *                  3. expect wms->Move called 1 times
+ *                  3. expect wms->Move called 2 times
  *                  4. call Move 1 1, check WM_OK
  *                  5. call Move 1 1 again, check WM_OK
  */
@@ -597,9 +661,9 @@ HWTEST_F(WindowImplTest, Move01, Function | SmallTest | Level2)
             STEP_ASSERT_NE(window, nullptr);
         }
 
-        STEP("3. expect wms->Move called 1 times") {
+        STEP("3. expect wms->Move called 2 times") {
             EXPECT_CALL(*m->Mock(), Move(_, _, _))
-                .Times(1).WillRepeatedly(Return(new Promise<WMError>(WM_OK)));
+                .Times(2).WillRepeatedly(Return(new Promise<WMError>(WM_OK)));
         }
 
         STEP("4. call Move 1 1, check WM_OK") {
@@ -694,7 +758,7 @@ HWTEST_F(WindowImplTest, SwitchTop02, Reliability | SmallTest | Level2)
  * EnvConditions: N/A
  * CaseDescription: 1. mock IWindowManagerService as wms
  *                  2. call WindowImpl::Create
- *                  3. expect wms->SetWindowType called 1 times
+ *                  3. expect wms->SetWindowType called 2 times
  *                  4. call SetWindowType WINDOW_TYPE_ALARM_SCREEN, check WM_OK
  *                  5. call SetWindowType WINDOW_TYPE_ALARM_SCREEN again, check WM_OK
  */
@@ -715,9 +779,9 @@ HWTEST_F(WindowImplTest, SetWindowType01, Function | SmallTest | Level2)
             STEP_ASSERT_NE(window, nullptr);
         }
 
-        STEP("3. expect wms->SetWindowType called 1 times") {
+        STEP("3. expect wms->SetWindowType called 2 times") {
             EXPECT_CALL(*m->Mock(), SetWindowType(_, _))
-                .Times(1).WillRepeatedly(Return(new Promise<WMError>(WM_OK)));
+                .Times(2).WillRepeatedly(Return(new Promise<WMError>(WM_OK)));
         }
 
         STEP("4. call SetWindowType WINDOW_TYPE_ALARM_SCREEN, check WM_OK") {
@@ -824,7 +888,7 @@ HWTEST_F(WindowImplTest, SetWindowMode03, Reliability | SmallTest | Level3)
  * EnvConditions: N/A
  * CaseDescription: 1. mock IWindowManagerService as wms
  *                  2. call WindowImpl::Create
- *                  3. expect wms->Resize called 1 times
+ *                  3. expect wms->Resize called 2 times
  *                  4. call Resize 2 2, check WM_OK
  *                  5. call Resize 2 2 again, check WM_OK
  */
@@ -845,9 +909,9 @@ HWTEST_F(WindowImplTest, Resize01, Function | SmallTest | Level2)
             STEP_ASSERT_NE(window, nullptr);
         }
 
-        STEP("3. expect wms->Resize called 1 times") {
+        STEP("3. expect wms->Resize called 2 times") {
             EXPECT_CALL(*m->Mock(), Resize(_, _, _))
-                .Times(1).WillRepeatedly(Return(new Promise<WMError>(WM_OK)));
+                .Times(2).WillRepeatedly(Return(new Promise<WMError>(WM_OK)));
         }
 
         constexpr int32_t xy = 2;
@@ -904,7 +968,7 @@ HWTEST_F(WindowImplTest, Resize03, Reliability | SmallTest | Level3)
  * EnvConditions: N/A
  * CaseDescription: 1. mock IWindowManagerService as wms
  *                  2. call WindowImpl::Create
- *                  3. expect wms->ScaleTo called 1 times
+ *                  3. expect wms->ScaleTo called 2 times
  *                  4. call ScaleTo 2 2, check WM_OK
  *                  5. call ScaleTo 2 2 again, check WM_OK
  */
@@ -925,9 +989,9 @@ HWTEST_F(WindowImplTest, ScaleTo01, Function | SmallTest | Level2)
             STEP_ASSERT_NE(window, nullptr);
         }
 
-        STEP("3. expect wms->ScaleTo called 1 times") {
+        STEP("3. expect wms->ScaleTo called 2 times") {
             EXPECT_CALL(*m->Mock(), ScaleTo(_, _, _))
-                .Times(1).WillRepeatedly(Return(new Promise<WMError>(WM_OK)));
+                .Times(2).WillRepeatedly(Return(new Promise<WMError>(WM_OK)));
         }
 
         constexpr int32_t xy = 2;
