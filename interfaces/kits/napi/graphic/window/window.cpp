@@ -146,7 +146,7 @@ struct Param {
 
 void Async(napi_env env, std::unique_ptr<Param>& param)
 {
-    param->ability->GetWindow()->ReSize(param->width, param->height);
+    param->ability->GetWindow()->Resize(param->width, param->height);
 }
 
 napi_value MainFunc(napi_env env, napi_callback_info info)
@@ -211,7 +211,7 @@ struct Param {
 
 void Async(napi_env env, std::unique_ptr<Param>& param)
 {
-    param->ability->GetWindow()->ChangeWindowType(static_cast<WindowType>(param->windowType));
+    param->ability->GetWindow()->SetWindowType(static_cast<WindowType>(param->windowType));
 }
 
 napi_value MainFunc(napi_env env, napi_callback_info info)
