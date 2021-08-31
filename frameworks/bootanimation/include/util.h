@@ -28,7 +28,6 @@ namespace OHOS {
 
 int64_t GetNowTime();
 void PostTask(std::function<void()> func, uint32_t delayTime = 0);
-void RequestSync(void (*syncFunc)(int64_t, void*), void *data);
 } // namespace OHOS
 
 #endif // FRAMEWORKS_BOOTANIMATION_INCLUDE_UTIL_H

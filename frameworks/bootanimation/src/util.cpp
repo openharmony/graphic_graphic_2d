@@ -36,18 +36,4 @@ void PostTask(std::function<void()> func, uint32_t delayTime)
         handler->PostTask(func, delayTime);
     }
 }
-
-void RequestSync(void (*syncFunc)(int64_t, void*), void *data)
-{
-    struct FrameCallback cb = {
-        .timestamp_ = 0,
-        .userdata_ = data,
-        .callback_ = syncFunc,
-    };
-
-    VsyncError ret = VsyncHelper::Current()->RequestFrameCallback(cb);
-    if (ret) {
-        LOG("RequestFrameCallback inner %{public}d\n", ret);
-    }
-}
 } // namespace OHOS

@@ -41,6 +41,7 @@ ohos_executable("bootanimation") {
     "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
     "//foundation/graphic/standard:libvsync_client",
     "//foundation/graphic/standard:libwmclient",
+    "//foundation/graphic/standard:libwmservice",
     "//third_party/zlib:libz",
   ]
 
