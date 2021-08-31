@@ -14,9 +14,12 @@
  */
 
 #include "vsync_callback_proxy.h"
+
+#include "return_value_tester.h"
 #include "vsync_log.h"
 
 namespace OHOS {
+namespace Vsync {
 namespace {
 constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, 0, "VsyncCallbackProxy" };
 }
@@ -32,27 +35,31 @@ VsyncError VsyncCallbackProxy::OnVsync(int64_t timestamp)
     MessageParcel arg;
     MessageParcel ret;
 
-    if (!arg.WriteInterfaceToken(GetDescriptor())) {
+    auto reval = arg.WriteInterfaceToken(GetDescriptor());
+    if (!ReturnValueTester::Get<bool>(reval)) {
         VLOGE("write interface token failed");
+        return VSYNC_ERROR_INVALID_ARGUMENTS;
     }
 
     bool retval = arg.WriteInt64(timestamp);
-    if (!retval) {
+    if (!ReturnValueTester::Get<bool>(retval)) {
         VLOGE("arg.WriteInt64 failed");
         return VSYNC_ERROR_INVALID_ARGUMENTS;
     }
 
     int res = Remote()->SendRequest(IVSYNC_CALLBACK_ON_VSYNC, arg, ret, opt);
-    if (res) {
+    if (ReturnValueTester::Get<int>(res)) {
         VLOG_ERROR_API(res, SendRequest);
         return VSYNC_ERROR_BINDER_ERROR;
     }
 
-    VsyncError err = (VsyncError)ret.ReadInt32();
+    int result = ret.ReadInt32();
+    VsyncError err = (VsyncError)ReturnValueTester::Get<int>(result);
     if (err != VSYNC_ERROR_OK) {
         VLOG_FAILURE_NO(err);
         return err;
     }
     return VSYNC_ERROR_OK;
 }
+} // namespace Vsync
 } // namespace OHOS

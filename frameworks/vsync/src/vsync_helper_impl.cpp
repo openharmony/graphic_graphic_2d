@@ -18,14 +18,16 @@
 #include <chrono>
 #include <list>
 #include <sys/time.h>
+#include <unistd.h>
 
 #include <iservice_registry.h>
 #include <system_ability_definition.h>
 
+#include "static_call.h"
 #include "vsync_log.h"
-#include "vsync_type.h"
 
 namespace OHOS {
+namespace Vsync {
 namespace {
 constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, 0, "VsyncHelperImpl" };
 std::list<std::shared_ptr<AppExecFwk::EventHandler>> g_handlers;
@@ -50,50 +52,113 @@ sptr<VsyncClient> VsyncClient::GetInstance()
     return instance;
 }
 
-VsyncError VsyncClient::Init()
+VsyncError VsyncClient::InitService()
 {
+    std::lock_guard<std::mutex> lock(serviceMutex_);
     if (service_ == nullptr) {
-        auto sm = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-        if (sm == nullptr) {
+        auto sam = StaticCall::GetInstance()->GetSystemAbilityManager();
+        if (sam == nullptr) {
             VLOG_FAILURE_RET(VSYNC_ERROR_SAMGR);
         }
 
-        auto remoteObject = sm->GetSystemAbility(VSYNC_MANAGER_ID);
+        auto remoteObject = StaticCall::GetInstance()->GetSystemAbility(sam, VSYNC_MANAGER_ID);
         if (remoteObject == nullptr) {
             VLOG_FAILURE_RET(VSYNC_ERROR_SERVICE_NOT_FOUND);
         }
+        
+        sptr<IRemoteObject::DeathRecipient> deathRecipient = new VsyncManagerDeathRecipient();
+        if (remoteObject->IsProxyObject() == true && remoteObject->AddDeathRecipient(deathRecipient) == false) {
+            VLOGW("Failed to add death recipient");
+        }
 
-        service_ = iface_cast<IVsyncManager>(remoteObject);
+        if (service_ == nullptr) {
+            service_ = StaticCall::GetInstance()->GetCast(remoteObject);
+        }
+
         if (service_ == nullptr) {
             VLOG_FAILURE_RET(VSYNC_ERROR_PROXY_NOT_INCLUDE);
         }
-
         VLOG_SUCCESS("service_ = iface_cast");
     }
+    return VSYNC_ERROR_OK;
+}
 
+VsyncError VsyncClient::InitVsyncFrequency()
+{
     if (vsyncFrequency_ == 0) {
-        auto vret = service_->GetVsyncFrequency(vsyncFrequency_);
+        VsyncError vret;
+        {
+            std::lock_guard<std::mutex> lock(serviceMutex_);
+            vret = StaticCall::GetInstance()->GetVsyncFrequency(service_, vsyncFrequency_);
+            if (vret == VSYNC_ERROR_BINDER_ERROR) {
+                service_ = nullptr;
+                listener_ = nullptr;
+            }
+        }
         if (vret != VSYNC_ERROR_OK) {
             VLOG_FAILURE_RET(vret);
         }
-
         if (vsyncFrequency_ == 0) {
             VLOG_FAILURE_RET(VSYNC_ERROR_INNER);
         }
         VLOG_SUCCESS("Get Frequency: %{public}u", vsyncFrequency_);
     }
+    return VSYNC_ERROR_OK;
+}
 
-    if (listener_ == nullptr) {
-        listener_ = new VsyncCallback();
-        VsyncError ret = service_->ListenVsync(listener_);
-        if (ret == VSYNC_ERROR_OK) {
-            VLOG_SUCCESS("ListenVsync");
-        } else {
-            VLOG_FAILURE_API(ListenVsync, ret);
-            return ret;
-        }
+VsyncError VsyncClient::Init(bool restart)
+{
+    if (restart == true) {
+        std::lock_guard<std::mutex> lock(serviceMutex_);
+        service_ = nullptr;
+        listener_ = nullptr;
     }
 
+    while (true) {
+        VsyncError vret;
+        if (service_ == nullptr) {
+            vret = InitService();
+            if (vret == VSYNC_ERROR_SERVICE_NOT_FOUND) {
+                if (restart == true) {
+                    constexpr int sleepTime = 5 * 1000;
+                    usleep(sleepTime);
+                    continue;
+                }
+            }
+            if (vret != VSYNC_ERROR_OK) {
+                return vret;
+            }
+        }
+
+        vret = InitVsyncFrequency();
+        if (vret == VSYNC_ERROR_BINDER_ERROR) {
+            restart = true;
+            continue;
+        } else if (vret != VSYNC_ERROR_OK) {
+            return vret;
+        }
+
+        if (listener_ == nullptr) {
+            listener_ = new VsyncCallback();
+            {
+                std::lock_guard<std::mutex> lock(serviceMutex_);
+                vret = StaticCall::GetInstance()->ListenVsync(service_, listener_);
+                if (vret == VSYNC_ERROR_BINDER_ERROR) {
+                    service_ = nullptr;
+                    listener_ = nullptr;
+                    restart = true;
+                    continue;
+                }
+            }
+            if (vret == VSYNC_ERROR_OK) {
+                VLOG_SUCCESS("ListenVsync");
+            } else {
+                VLOG_FAILURE_API(ListenVsync, vret);
+                return vret;
+            }
+        }
+        break;
+    }
     return VSYNC_ERROR_OK;
 }
 
@@ -144,10 +209,12 @@ VsyncError VsyncClient::GetSupportedVsyncFrequencys(std::vector<uint32_t>& freqs
 
     freqs.clear();
     for (uint32_t i = 1; i * i <= vsyncFrequency_; i++) {
-        if (i * i != vsyncFrequency_) {
-            freqs.push_back(vsyncFrequency_ / i);
+        if (vsyncFrequency_ % i == 0) {
+            if (i * i != vsyncFrequency_) {
+                freqs.push_back(vsyncFrequency_ / i);
+            }
+            freqs.push_back(i);
         }
-        freqs.push_back(i);
     }
     return VSYNC_ERROR_OK;
 }
@@ -216,7 +283,7 @@ void VsyncClient::DispatchMain(int64_t timestamp)
 sptr<VsyncHelperImpl> VsyncHelperImpl::Current()
 {
     if (currentHelper_ == nullptr) {
-        auto handler = AppExecFwk::EventHandler::Current();
+        auto handler = StaticCall::GetInstance()->Current();
         if (handler == nullptr) {
             VLOG_FAILURE("AppExecFwk::EventHandler::Current() return nullptr");
             return nullptr;
@@ -260,4 +327,11 @@ VsyncError VsyncCallback::OnVsync(int64_t timestamp)
     VsyncClient::GetInstance()->DispatchFrameCallback(timestamp);
     return VSYNC_ERROR_OK;
 }
+
+void VsyncManagerDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &remote)
+{
+    VLOGD("IS DEAD");
+    VsyncClient::GetInstance()->Init(true);
+}
+} // namespace Vsync
 } // namespace OHOS

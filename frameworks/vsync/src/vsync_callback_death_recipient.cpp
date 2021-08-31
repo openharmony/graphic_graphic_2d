@@ -13,26 +13,26 @@
  * limitations under the License.
  */
 
-#ifndef FRAMEWORKS_VSYNC_INCLUDE_VSYNC_CALLBACK_PROXY_H
-#define FRAMEWORKS_VSYNC_INCLUDE_VSYNC_CALLBACK_PROXY_H
+#include "vsync_callback_death_recipient.h"
 
-#include <iremote_proxy.h>
-
-#include "ivsync_callback.h"
+#include <mutex>
 
 namespace OHOS {
 namespace Vsync {
-class VsyncCallbackProxy : public IRemoteProxy<IVsyncCallback> {
-public:
-    VsyncCallbackProxy(const sptr<IRemoteObject>& impl);
-    virtual ~VsyncCallbackProxy() = default;
+VsyncCallbackDeathRecipient::VsyncCallbackDeathRecipient(VsyncManager *vm)
+{
+    manager = vm;
+}
 
-    VsyncError OnVsync(int64_t timestamp) override;
-
-private:
-    static inline BrokerDelegator<VsyncCallbackProxy> delegator_;
-};
+void VsyncCallbackDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &remote)
+{
+    std::lock_guard<std::mutex> lock(manager->callbacksMutex_);
+    for (auto it = manager->callbacks_.begin(); it != manager->callbacks_.end(); it++) {
+        if ((*it)->AsObject() == remote.promote()) {
+            manager->callbacks_.erase(it);
+            break;
+        }
+    }
+}
 } // namespace Vsync
 } // namespace OHOS
-
-#endif // FRAMEWORKS_VSYNC_INCLUDE_VSYNC_CALLBACK_PROXY_H

@@ -17,6 +17,7 @@
 #include "vsync_log.h"
 
 namespace OHOS {
+namespace Vsync {
 namespace {
 constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, 0, "VsyncCallbackStub" };
 }
@@ -48,4 +49,5 @@ int32_t VsyncCallbackStub::OnRemoteRequest(uint32_t code, MessageParcel& data,
     }
     return 0;
 }
+} // namespace Vsync
 } // namespace OHOS

@@ -19,13 +19,18 @@
 #include <list>
 #include <mutex>
 
-#include "ivsync_manager.h"
 #include <iremote_stub.h>
 #include <message_parcel.h>
 #include <message_option.h>
 
+#include "ivsync_manager.h"
+
 namespace OHOS {
+namespace Vsync {
+class VsyncCallbackDeathRecipient;
 class VsyncManager : public IRemoteStub<IVsyncManager> {
+    friend class VsyncCallbackDeathRecipient;
+
 public:
     virtual int32_t OnRemoteRequest(uint32_t code, MessageParcel& data,
                                     MessageParcel& reply, MessageOption& option) override;
@@ -33,12 +38,13 @@ public:
     virtual VsyncError ListenVsync(sptr<IVsyncCallback>& cb) override;
     virtual VsyncError GetVsyncFrequency(uint32_t& freq) override;
 
-    void Callback(int64_t timestamp);
+    virtual void Callback(int64_t timestamp);
 
 private:
     std::list<sptr<IVsyncCallback>> callbacks_;
     std::mutex callbacksMutex_;
 };
+} // namespace Vsync
 } // namespace OHOS
 
 #endif // FRAMEWORKS_VSYNC_INCLUDE_VSYNC_MANAGER_H

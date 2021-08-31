@@ -16,11 +16,11 @@
 #ifndef FRAMEWORKS_VSYNC_INCLUDE_IVSYNC_CALLBACK_H
 #define FRAMEWORKS_VSYNC_INCLUDE_IVSYNC_CALLBACK_H
 
+#include <graphic_common.h>
 #include <iremote_broker.h>
 
-#include <vsync_type.h>
-
 namespace OHOS {
+namespace Vsync {
 class IVsyncCallback : public IRemoteBroker {
 public:
     virtual VsyncError OnVsync(int64_t timestamp) = 0;
@@ -32,6 +32,7 @@ protected:
         IVSYNC_CALLBACK_ON_VSYNC,
     };
 };
+} // namespace Vsync
 } // namespace OHOS
 
 #endif // FRAMEWORKS_VSYNC_INCLUDE_IVSYNC_CALLBACK_H

@@ -20,12 +20,12 @@
 namespace OHOS {
 sptr<VsyncHelper> VsyncHelper::Current()
 {
-    return VsyncHelperImpl::Current();
+    return Vsync::VsyncHelperImpl::Current();
 }
 
 sptr<VsyncHelper> VsyncHelper::FromHandler(std::shared_ptr<AppExecFwk::EventHandler>& handler)
 {
-    sptr<VsyncHelper> helper = new VsyncHelperImpl(handler);
+    sptr<VsyncHelper> helper = new Vsync::VsyncHelperImpl(handler);
     return helper;
 }
 } // namespace OHOS

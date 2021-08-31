@@ -22,5 +22,4 @@ service bootanimation /system/bin/bootanimation
     oneshot
 
 on weston_start
-    start vsync_server
     start bootanimation

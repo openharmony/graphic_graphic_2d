@@ -39,6 +39,8 @@ config("libvsync_client_public_config") {
 
 ohos_shared_library("libvsync_client") {
   sources = [
+    "src/return_value_tester.cpp",
+    "src/static_call.cpp",
     "src/vsync_callback_stub.cpp",
     "src/vsync_helper.cpp",
     "src/vsync_helper_impl.cpp",
@@ -67,15 +69,13 @@ ohos_shared_library("libvsync_client") {
 
 ## Build libvsync_client.so }}}
 
-## Build vsync_server {{{
-config("vsync_server_config") {
+## Build libvsync_module.z.so {{{
+config("libvsync_module_config") {
   visibility = [ ":*" ]
 
   include_dirs = [
     "include",
     "//utils/system/safwk/native/include",
-    "//foundation/graphic/standard/interfaces/innerkits/vsync",
-    "//foundation/graphic/standard/interfaces/innerkits/common",
   ]
 
   cflags = [
@@ -85,25 +85,56 @@ config("vsync_server_config") {
   ]
 }
 
-ohos_executable("vsync_server") {
-  install_enable = true
+config("libvsync_module_public_config") {
+  include_dirs = [
+    "//foundation/graphic/standard/interfaces/innerkits/common",
+    "//foundation/graphic/standard/interfaces/innerkits/vsync_module",
+  ]
+}
 
+ohos_shared_library("libvsync_module") {
   sources = [
-    "src/module_main.cpp",
+    "src/drm_module.cpp",
+    "src/return_value_tester.cpp",
+    "src/vsync_callback_death_recipient.cpp",
     "src/vsync_callback_proxy.cpp",
     "src/vsync_manager.cpp",
     "src/vsync_module.cpp",
+    "src/vsync_module_c.cpp",
     "src/vsync_module_impl.cpp",
   ]
 
-  configs = [ ":vsync_server_config" ]
+  configs = [ ":libvsync_module_config" ]
+
+  public_configs = [ ":libvsync_module_public_config" ]
 
   deps = [
     "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
     "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
     "//foundation/distributedschedule/samgr/interfaces/innerkits/samgr_proxy:samgr_proxy",
     "//third_party/libdrm:libdrm",
+  ]
+
+  public_deps = [
+    "//foundation/graphic/standard/utils:semaphore",
     "//utils/native/base:utils",
+  ]
+
+  part_name = "graphic_standard"
+  subsystem_name = "graphic"
+}
+
+## Build libvsync_module.z.so }}}
+
+## Build vsync_server {{{
+ohos_executable("vsync_server") {
+  install_enable = true
+
+  sources = [ "src/module_main.cpp" ]
+
+  deps = [
+    ":libvsync_module",
+    "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
   ]
 
   part_name = "graphic_standard"

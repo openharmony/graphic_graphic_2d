@@ -16,17 +16,20 @@
 #ifndef FRAMEWORKS_VSYNC_INCLUDE_VSYNC_CALLBACK_STUB_H
 #define FRAMEWORKS_VSYNC_INCLUDE_VSYNC_CALLBACK_STUB_H
 
-#include "ivsync_callback.h"
 #include <iremote_stub.h>
 #include <message_parcel.h>
 #include <message_option.h>
 
+#include "ivsync_callback.h"
+
 namespace OHOS {
+namespace Vsync {
 class VsyncCallbackStub : public IRemoteStub<IVsyncCallback> {
 public:
     virtual int32_t OnRemoteRequest(uint32_t code, MessageParcel& data,
                                     MessageParcel& reply, MessageOption& option) override;
 };
+} // namespace Vsync
 } // namespace OHOS
 
 #endif // FRAMEWORKS_VSYNC_INCLUDE_VSYNC_CALLBACK_STUB_H

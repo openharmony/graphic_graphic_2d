@@ -13,8 +13,109 @@
 
 import("//build/test.gni")
 
+module_out_path = "graphic_standard/vsync"
+
 group("unittest") {
   testonly = true
 
-  deps = []
+  deps = [
+    ":vsync_helper_impl_test",
+    ":vsync_remote_callback_stub_test",
+    ":vsync_remote_callback_test",
+    ":vsync_remote_manager_proxy_test",
+    ":vsync_remote_manager_stub_test",
+  ]
 }
+
+## UnitTest vsync_helper_impl_test {{{
+ohos_unittest("vsync_helper_impl_test") {
+  module_out_path = module_out_path
+
+  sources = [ "vsync_helper_impl_test.cpp" ]
+
+  deps = [ ":vsync_test_common" ]
+}
+
+## UnitTest vsync_helper_impl_test }}}
+
+## UnitTest vsync_remote_callback_stub_test {{{
+ohos_unittest("vsync_remote_callback_stub_test") {
+  module_out_path = module_out_path
+
+  sources = [ "vsync_remote_callback_stub_test.cpp" ]
+
+  deps = [ ":vsync_test_common" ]
+}
+
+## UnitTest vsync_remote_callback_stub_test }}}
+
+## UnitTest vsync_remote_callback_test {{{
+ohos_unittest("vsync_remote_callback_test") {
+  module_out_path = module_out_path
+
+  sources = [ "vsync_remote_callback_test.cpp" ]
+
+  deps = [ ":vsync_test_common" ]
+}
+
+## UnitTest vsync_remote_callback_test }}}
+
+## UnitTest vsync_remote_manager_proxy_test {{{
+ohos_unittest("vsync_remote_manager_proxy_test") {
+  module_out_path = module_out_path
+
+  sources = [ "vsync_remote_manager_proxy_test.cpp" ]
+
+  deps = [ ":vsync_test_common" ]
+}
+
+## UnitTest vsync_remote_manager_proxy_test }}}
+
+## UnitTest vsync_remote_manager_stub_test {{{
+ohos_unittest("vsync_remote_manager_stub_test") {
+  module_out_path = module_out_path
+
+  sources = [ "vsync_remote_manager_stub_test.cpp" ]
+
+  deps = [ ":vsync_test_common" ]
+}
+
+## UnitTest vsync_helper_impl_test }}}
+
+## Build vsync_test_common.a {{{
+config("vsync_test_common_public_config") {
+  include_dirs = [
+    "../../include",
+    "//utils/system/safwk/native/include",
+    "//utils/native/base/include",
+  ]
+
+  cflags = [
+    "-Wall",
+    "-Werror",
+    "-g3",
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
+}
+
+ohos_static_library("vsync_test_common") {
+  testonly = true
+
+  visibility = [ ":*" ]
+
+  public_configs = [ ":vsync_test_common_public_config" ]
+
+  public_deps = [
+    "../..:libvsync_client",
+    "../..:libvsync_module",
+    "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
+    "//foundation/appexecfwk/standard/interfaces/innerkits/libeventhandler:libeventhandler",
+    "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
+    "//foundation/distributedschedule/samgr/interfaces/innerkits/samgr_proxy:samgr_proxy",
+    "//third_party/googletest:gmock",
+    "//third_party/libdrm:libdrm",
+    "//utils/native/base:utils",
+  ]
+}
+## Build vsync_test_common.a }}}

@@ -13,13 +13,16 @@
  * limitations under the License.
  */
 
+#include "vsync_manager_proxy.h"
+
 #include <message_option.h>
 #include <message_parcel.h>
 
+#include "return_value_tester.h"
 #include "vsync_log.h"
-#include "vsync_manager_proxy.h"
 
 namespace OHOS {
+namespace Vsync {
 namespace {
 constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, 0, "VsyncManagerProxy" };
 }
@@ -39,24 +42,27 @@ VsyncError VsyncManagerProxy::ListenVsync(sptr<IVsyncCallback>& cb)
     MessageParcel arg;
     MessageParcel ret;
 
-    if (!arg.WriteInterfaceToken(GetDescriptor())) {
+    auto reval = arg.WriteInterfaceToken(GetDescriptor());
+    if (!ReturnValueTester::Get<bool>(reval)) {
         VLOGE("write interface token failed");
+        return VSYNC_ERROR_INVALID_ARGUMENTS;
     }
 
     arg.WriteRemoteObject(cb->AsObject());
 
     int result = Remote()->SendRequest(IVSYNC_MANAGER_LISTEN_VSYNC, arg, ret, opt);
-    if (result) {
+    if (ReturnValueTester::Get<int>(result)) {
         VLOG_ERROR_API(result, SendRequest);
         return VSYNC_ERROR_BINDER_ERROR;
     }
-
-    VsyncError err = (VsyncError)ret.ReadInt32();
+    int res = ret.ReadInt32();
+    VsyncError err = (VsyncError)ReturnValueTester::Get<int>(res);
     if (err != VSYNC_ERROR_OK) {
         VLOG_FAILURE_NO(err);
+        return err;
     }
 
-    return err;
+    return VSYNC_ERROR_OK;
 }
 
 VsyncError VsyncManagerProxy::GetVsyncFrequency(uint32_t& freq)
@@ -65,23 +71,27 @@ VsyncError VsyncManagerProxy::GetVsyncFrequency(uint32_t& freq)
     MessageParcel arg;
     MessageParcel ret;
 
-    if (!arg.WriteInterfaceToken(GetDescriptor())) {
+    auto reval = arg.WriteInterfaceToken(GetDescriptor());
+    if (!ReturnValueTester::Get<bool>(reval)) {
         VLOGE("write interface token failed");
+        return VSYNC_ERROR_INVALID_ARGUMENTS;
     }
 
     int32_t result = Remote()->SendRequest(IVSYNC_MANAGER_GET_VSYNC_FREQUENCY, arg, ret, opt);
-    if (result) {
+    if (ReturnValueTester::Get<int>(result)) {
         VLOG_ERROR_API(result, SendRequest);
         return VSYNC_ERROR_BINDER_ERROR;
     }
 
-    VsyncError err = (VsyncError)ret.ReadInt32();
+    int res = ret.ReadInt32();
+    VsyncError err = (VsyncError)ReturnValueTester::Get<int>(res);
     if (err != VSYNC_ERROR_OK) {
         VLOG_FAILURE_NO(err);
         return err;
     }
 
     freq = ret.ReadUint32();
-    return err;
+    return VSYNC_ERROR_OK;
 }
+} // namespace Vsync
 } // namespace OHOS

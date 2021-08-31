@@ -23,7 +23,7 @@
 #include <functional>
 #include <refbase.h>
 
-#include "vsync_type.h"
+#include <graphic_common.h>
 
 namespace OHOS {
 using SyncFunc = std::function<void(int64_t, void *)>;

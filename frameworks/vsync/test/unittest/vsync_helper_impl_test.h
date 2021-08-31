@@ -13,20 +13,25 @@
  * limitations under the License.
  */
 
-#ifndef INTERFACES_INNERKITS_VSYNC_VSYNC_TYPE_H
-#define INTERFACES_INNERKITS_VSYNC_VSYNC_TYPE_H
+#ifndef FRAMEWORKS_VSYNC_TEST_UNITTEST_VSYNC_HELPER_IMPL_TEST_H
+#define FRAMEWORKS_VSYNC_TEST_UNITTEST_VSYNC_HELPER_IMPL_TEST_H
 
-#include <string>
-
-#include <graphic_common.h>
+#include <event_handler.h>
+#include <gtest/gtest.h>
 
 namespace OHOS {
-static const char *DrmModuleNames[] = {
-    "hisilicon",
-    "sprd",
-    "imx-drm",
-    "rockchip",
+namespace Vsync {
+class VsyncHelperImplTest : public testing::Test {
+public:
+    static void SetUpTestCase();
+    static void TearDownTestCase();
+    virtual void SetUp() override;
+    virtual void TearDown() override;
+
+private:
+    static inline std::shared_ptr<AppExecFwk::EventHandler> handler = nullptr;
 };
+} // namespace Vsync
 } // namespace OHOS
 
-#endif // INTERFACES_INNERKITS_VSYNC_VSYNC_TYPE_H
+#endif // FRAMEWORKS_VSYNC_TEST_UNITTEST_VSYNC_HELPER_IMPL_TEST_H

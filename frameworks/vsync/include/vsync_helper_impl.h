@@ -27,9 +27,9 @@
 
 #include "ivsync_manager.h"
 #include "vsync_callback_stub.h"
-#include "vsync_manager_proxy.h"
 
 namespace OHOS {
+namespace Vsync {
 struct VsyncElement {
     SyncFunc callback_;
     int64_t activeTime_;
@@ -45,17 +45,20 @@ class VsyncClient : public RefBase {
 public:
     static sptr<VsyncClient> GetInstance();
 
-    VsyncError Init();
+    virtual VsyncError Init(bool restart = false);
 
     VsyncError RequestFrameCallback(const struct FrameCallback& cb);
     VsyncError GetSupportedVsyncFrequencys(std::vector<uint32_t>& freqs);
 
-    void DispatchFrameCallback(int64_t timestamp);
+    virtual void DispatchFrameCallback(int64_t timestamp);
 
 private:
     VsyncClient() = default;
     virtual ~VsyncClient() = default;
     static inline sptr<VsyncClient> instance = nullptr;
+
+    VsyncError InitService();
+    VsyncError InitVsyncFrequency();
 
     void DispatchMain(int64_t timestamp);
 
@@ -66,6 +69,7 @@ private:
 
     uint32_t vsyncFrequency_ = 0;
     sptr<IVsyncManager> service_ = nullptr;
+    std::mutex serviceMutex_;
     sptr<IVsyncCallback> listener_ = nullptr;
 };
 
@@ -88,6 +92,14 @@ class VsyncCallback : public VsyncCallbackStub {
 public:
     virtual VsyncError OnVsync(int64_t timestamp) override;
 };
+
+class VsyncManagerDeathRecipient : public IRemoteObject::DeathRecipient {
+public:
+        VsyncManagerDeathRecipient() = default;
+        ~VsyncManagerDeathRecipient() = default;
+        void OnRemoteDied(const wptr<IRemoteObject> &remote);
+};
+} // namespace Vsync
 } // namespace OHOS
 
 #endif // FRAMEWORKS_VSYNC_INCLUDE_VSYNC_HELPER_IMPL_H

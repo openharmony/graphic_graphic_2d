@@ -13,26 +13,26 @@
  * limitations under the License.
  */
 
-#ifndef FRAMEWORKS_VSYNC_INCLUDE_VSYNC_CALLBACK_PROXY_H
-#define FRAMEWORKS_VSYNC_INCLUDE_VSYNC_CALLBACK_PROXY_H
+#ifndef FRAMEWORKS_VSYNC_INCLUDE_VSYNC_CALLBACK_DEATH_RECIPIENT_H
+#define FRAMEWORKS_VSYNC_INCLUDE_VSYNC_CALLBACK_DEATH_RECIPIENT_H
 
-#include <iremote_proxy.h>
+#include <iremote_object.h>
 
-#include "ivsync_callback.h"
+#include "vsync_manager.h"
 
 namespace OHOS {
 namespace Vsync {
-class VsyncCallbackProxy : public IRemoteProxy<IVsyncCallback> {
+class VsyncCallbackDeathRecipient : public IRemoteObject::DeathRecipient {
 public:
-    VsyncCallbackProxy(const sptr<IRemoteObject>& impl);
-    virtual ~VsyncCallbackProxy() = default;
+    VsyncCallbackDeathRecipient(VsyncManager *vm);
+    virtual ~VsyncCallbackDeathRecipient() = default;
 
-    VsyncError OnVsync(int64_t timestamp) override;
+    void OnRemoteDied(const wptr<IRemoteObject> &remote) override;
 
 private:
-    static inline BrokerDelegator<VsyncCallbackProxy> delegator_;
+    VsyncManager *manager = nullptr;
 };
 } // namespace Vsync
 } // namespace OHOS
 
-#endif // FRAMEWORKS_VSYNC_INCLUDE_VSYNC_CALLBACK_PROXY_H
+#endif // FRAMEWORKS_VSYNC_INCLUDE_VSYNC_CALLBACK_DEATH_RECIPIENT_H

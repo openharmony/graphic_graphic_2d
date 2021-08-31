@@ -14,6 +14,8 @@
  */
 
 #include "vsync_manager.h"
+
+#include "vsync_callback_death_recipient.h"
 #include "vsync_callback_proxy.h"
 #include "vsync_log.h"
 
@@ -25,6 +27,7 @@
     break
 
 namespace OHOS {
+namespace Vsync {
 namespace {
 constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, 0, "VsyncManager" };
 }
@@ -71,8 +74,14 @@ VsyncError VsyncManager::ListenVsync(sptr<IVsyncCallback>& cb)
         VLOG_FAILURE_NO(VSYNC_ERROR_NULLPTR);
         return VSYNC_ERROR_NULLPTR;
     }
+    VLOGI("add callbacks %{public}d", GetCallingPid());
 
-    std::unique_lock<std::mutex> lockGuard(callbacksMutex_);
+    sptr<IRemoteObject::DeathRecipient> deathRecipient = new VsyncCallbackDeathRecipient(this);
+    if (cb->AsObject()->AddDeathRecipient(deathRecipient) == false) {
+        VLOGW("Failed to add death recipient");
+    }
+
+    std::lock_guard<std::mutex> lock(callbacksMutex_);
     callbacks_.push_back(cb);
     return VSYNC_ERROR_OK;
 }
@@ -86,7 +95,8 @@ VsyncError VsyncManager::GetVsyncFrequency(uint32_t& freq)
 
 void VsyncManager::Callback(int64_t timestamp)
 {
-    std::unique_lock<std::mutex> lockGuard(callbacksMutex_);
+    VLOGI("call callback");
+    std::lock_guard<std::mutex> lock(callbacksMutex_);
 
     std::list<sptr<IVsyncCallback>> okcbs;
     for (const auto& cb : callbacks_) {
@@ -96,4 +106,5 @@ void VsyncManager::Callback(int64_t timestamp)
     }
     callbacks_ = okcbs;
 }
+} // namespace Vsync
 } // namespace OHOS

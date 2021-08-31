@@ -13,26 +13,24 @@
  * limitations under the License.
  */
 
-#ifndef FRAMEWORKS_VSYNC_INCLUDE_VSYNC_CALLBACK_PROXY_H
-#define FRAMEWORKS_VSYNC_INCLUDE_VSYNC_CALLBACK_PROXY_H
+#ifndef UTILS_INCLUDE_LOCAL_SEMAPHORE_H
+#define UTILS_INCLUDE_LOCAL_SEMAPHORE_H
 
-#include <iremote_proxy.h>
-
-#include "ivsync_callback.h"
+#include <semaphore.h>
 
 namespace OHOS {
-namespace Vsync {
-class VsyncCallbackProxy : public IRemoteProxy<IVsyncCallback> {
+class LocalSemaphore {
 public:
-    VsyncCallbackProxy(const sptr<IRemoteObject>& impl);
-    virtual ~VsyncCallbackProxy() = default;
+    LocalSemaphore();
+    LocalSemaphore(int count);
+    ~LocalSemaphore();
 
-    VsyncError OnVsync(int64_t timestamp) override;
+    void Inc();
+    void Dec();
 
 private:
-    static inline BrokerDelegator<VsyncCallbackProxy> delegator_;
+    sem_t sem;
 };
-} // namespace Vsync
 } // namespace OHOS
 
-#endif // FRAMEWORKS_VSYNC_INCLUDE_VSYNC_CALLBACK_PROXY_H
+#endif // UTILS_INCLUDE_LOCAL_SEMAPHORE_H

@@ -13,26 +13,36 @@
  * limitations under the License.
  */
 
-#ifndef FRAMEWORKS_VSYNC_INCLUDE_VSYNC_CALLBACK_PROXY_H
-#define FRAMEWORKS_VSYNC_INCLUDE_VSYNC_CALLBACK_PROXY_H
-
-#include <iremote_proxy.h>
-
-#include "ivsync_callback.h"
-
+#include "return_value_tester.h"
 namespace OHOS {
 namespace Vsync {
-class VsyncCallbackProxy : public IRemoteProxy<IVsyncCallback> {
-public:
-    VsyncCallbackProxy(const sptr<IRemoteObject>& impl);
-    virtual ~VsyncCallbackProxy() = default;
+sptr<ReturnValueTester> ReturnValueTester::GetInstance()
+{
+    if (instance == nullptr) {
+        static std::mutex mutex;
+        std::lock_guard<std::mutex> lock(mutex);
+        if (instance == nullptr) {
+            instance = new ReturnValueTester();
+        }
+    }
+    return instance;
+}
 
-    VsyncError OnVsync(int64_t timestamp) override;
+void ReturnValueTester::SetValue(int next, const std::any &rval)
+{
+    anyMap[next + id] = rval;
+}
 
-private:
-    static inline BrokerDelegator<VsyncCallbackProxy> delegator_;
-};
+bool ReturnValueTester::HasReturnValue()
+{
+    return anyMap.find(id++) != anyMap.end();
+}
+
+std::any ReturnValueTester::GetValue()
+{
+    auto ret = anyMap[id - 1];
+    anyMap.erase(id - 1);
+    return ret;
+}
 } // namespace Vsync
 } // namespace OHOS
-
-#endif // FRAMEWORKS_VSYNC_INCLUDE_VSYNC_CALLBACK_PROXY_H

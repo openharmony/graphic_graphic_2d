@@ -13,23 +13,21 @@
  * limitations under the License.
  */
 
-#include "vsync_module_impl.h"
 
 #include <chrono>
 #include <mutex>
 #include <unistd.h>
-#include <xf86drm.h>
 
 #include <iservice_registry.h>
 #include <system_ability_definition.h>
 
 #include "vsync_log.h"
+#include "vsync_module_impl.h"
 
 namespace OHOS {
+namespace Vsync {
 namespace {
 constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, 0, "VsyncModuleImpl" };
-constexpr int USLEEP_TIME = 100 * 1000;
-constexpr int RETRY_TIMES = 5;
 }
 
 sptr<VsyncModuleImpl> VsyncModuleImpl::GetInstance()
@@ -44,132 +42,64 @@ sptr<VsyncModuleImpl> VsyncModuleImpl::GetInstance()
     return instance;
 }
 
-int64_t VsyncModuleImpl::WaitNextVBlank()
-{
-    drmVBlank vblank = {
-        .request = drmVBlankReq {
-            .type = DRM_VBLANK_RELATIVE,
-            .sequence = 1,
-        }
-    };
-
-    int ret = drmWaitVBlank(drmFd_, &vblank);
-    if (ret != 0) {
-        VLOG_ERROR_API(errno, drmWaitVBlank);
-        return -1;
-    }
-
-    auto now = std::chrono::steady_clock::now().time_since_epoch();
-    return (int64_t)std::chrono::duration_cast<std::chrono::nanoseconds>(now).count();
-}
-
-void VsyncModuleImpl::VsyncMainThread()
-{
-    while (vsyncThreadRunning_) {
-        int64_t timestamp = WaitNextVBlank();
-        if (timestamp < 0) {
-            VLOGE("WaitNextVBlank return negative time");
-            continue;
-        }
-        vsyncManager_->Callback(timestamp);
-    }
-}
-
-bool VsyncModuleImpl::RegisterSystemAbility()
-{
-    if (isRegisterSA_) {
-        return true;
-    }
-    auto sm = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-    if (sm) {
-        sm->AddSystemAbility(vsyncSystemAbilityId_, vsyncManager_);
-        isRegisterSA_ = true;
-    }
-    return isRegisterSA_;
-}
-
-void VsyncModuleImpl::UnregisterSystemAbility()
-{
-    auto sm = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-    if (sm) {
-        sm->RemoveSystemAbility(vsyncSystemAbilityId_);
-        isRegisterSA_ = false;
-    }
-}
-
-VsyncModuleImpl::VsyncModuleImpl()
-{
-    VLOGD("DEBUG VsyncModuleImpl");
-    drmFd_ = -1;
-    vsyncThread_ = nullptr;
-    vsyncThreadRunning_ = false;
-    vsyncSystemAbilityId_ = 0;
-    isRegisterSA_ = false;
-    vsyncManager_ = new VsyncManager();
-}
-
-VsyncModuleImpl::~VsyncModuleImpl()
-{
-    VLOGD("DEBUG ~VsyncModuleImpl");
-    if (vsyncThreadRunning_) {
-        Stop();
-    }
-
-    if (isRegisterSA_) {
-        UnregisterSystemAbility();
-    }
-}
-
 VsyncError VsyncModuleImpl::Start()
 {
+    VLOGI("Start");
     VsyncError ret = InitSA();
     if (ret != VSYNC_ERROR_OK) {
+        VLOG_FAILURE("Start");
         return ret;
     }
 
-    for (const auto &name : DrmModuleNames) {
-        drmFd_ = drmOpen(name, nullptr);
-        if (drmFd_ < 0) {
-            VLOGW("drmOpen %{public}s failed with %{public}d", name, errno);
-        } else {
-            break;
-        }
-    }
-    if (drmFd_ < 0) {
-        return VSYNC_ERROR_API_FAILED;
-    }
-    VLOGD("drmOpen fd is %{public}d", drmFd_);
-
     vsyncThreadRunning_ = true;
-    vsyncThread_ = std::make_unique<std::thread>([this]()->void {
-        VsyncMainThread();
-    });
+    vsyncThread_ = std::make_unique<std::thread>(std::bind(&VsyncModuleImpl::VsyncMainThread, this));
+    VLOG_SUCCESS("Start");
+    return VSYNC_ERROR_OK;
+}
 
+VsyncError VsyncModuleImpl::Trigger()
+{
+    if (IsRunning() == false) {
+        VLOG_FAILURE("Trigger");
+        return VSYNC_ERROR_INVALID_OPERATING;
+    }
+
+    VLOG_SUCCESS("Trigger");
+    const auto &now = std::chrono::steady_clock::now().time_since_epoch();
+    int64_t occurTimestamp = std::chrono::duration_cast<std::chrono::nanoseconds>(now).count();
+
+    std::lock_guard<std::mutex> lock(promisesMutex_);
+    constexpr int32_t overwriteTop = 10;
+    if (promises_.size() < overwriteTop) {
+        promisesSem_.Inc();
+    } else {
+        promises_.pop();
+    }
+    promises_.push(occurTimestamp);
     return VSYNC_ERROR_OK;
 }
 
 VsyncError VsyncModuleImpl::Stop()
 {
-    if (!vsyncThreadRunning_) {
-        return VSYNC_ERROR_INVALID_OPERATING;
+    VLOGI("Stop");
+    if (vsyncThreadRunning_ == false) {
+        VLOG_FAILURE_RET(VSYNC_ERROR_INVALID_OPERATING);
     }
 
     vsyncThreadRunning_ = false;
     vsyncThread_->join();
     vsyncThread_.reset();
 
-    int ret = drmClose(drmFd_);
-    if (ret) {
-        VLOG_ERROR_API(errno, drmClose);
-        return VSYNC_ERROR_API_FAILED;
-    }
-    drmFd_ = -1;
-
-    if (isRegisterSA_) {
+    if (isRegisterSA_ == true) {
         UnregisterSystemAbility();
     }
-
+    VLOG_SUCCESS("Stop");
     return VSYNC_ERROR_OK;
+}
+
+bool VsyncModuleImpl::IsRunning()
+{
+    return vsyncThreadRunning_;
 }
 
 VsyncError VsyncModuleImpl::InitSA()
@@ -183,15 +113,70 @@ VsyncError VsyncModuleImpl::InitSA(int32_t vsyncSystemAbilityId)
 
     int tryCount = 0;
     while (!RegisterSystemAbility()) {
-        if (tryCount++ >= RETRY_TIMES) {
-            VLOGE("RegisterSystemAbility failed after %{public}d tries!!!", RETRY_TIMES);
+        constexpr int retryTimes = 5;
+        if (tryCount++ >= retryTimes) {
+            VLOGE("RegisterSystemAbility failed after %{public}d tries!!!", retryTimes);
             return VSYNC_ERROR_SERVICE_NOT_FOUND;
         } else {
             VLOGE("RegisterSystemAbility failed, try again:%{public}d", tryCount);
-            usleep(USLEEP_TIME);
+            constexpr int sleepTime = 100 * 1000;
+            usleep(sleepTime);
         }
     }
 
     return VSYNC_ERROR_OK;
 }
+
+VsyncModuleImpl::~VsyncModuleImpl()
+{
+    VLOGI("~VsyncModuleImpl");
+    Stop();
+}
+
+int64_t VsyncModuleImpl::WaitNextVsync()
+{
+    promisesSem_.Dec();
+    std::lock_guard<std::mutex> lock(promisesMutex_);
+    const auto &ret = promises_.front();
+    promises_.pop();
+    return ret;
+}
+
+void VsyncModuleImpl::VsyncMainThread()
+{
+    while (IsRunning()) {
+        int64_t timestamp = WaitNextVsync();
+        if (timestamp < 0) {
+            VLOGE("WaitNextVsync return negative time");
+            continue;
+        }
+        vsyncManager_.Callback(timestamp);
+    }
+}
+
+bool VsyncModuleImpl::RegisterSystemAbility()
+{
+    if (isRegisterSA_ == true) {
+        return true;
+    }
+    auto sam = DrmModule::GetInstance()->GetSystemAbilityManager();
+    if (sam) {
+        if (sam->AddSystemAbility(vsyncSystemAbilityId_, &vsyncManager_) != ERR_OK) {
+            VLOGW("AddSystemAbility failed");
+        } else {
+            isRegisterSA_ = true;
+        }
+    }
+    return isRegisterSA_;
+}
+
+void VsyncModuleImpl::UnregisterSystemAbility()
+{
+    auto sam = DrmModule::GetInstance()->GetSystemAbilityManager();
+    if (sam) {
+        sam->RemoveSystemAbility(vsyncSystemAbilityId_);
+        isRegisterSA_ = false;
+    }
+}
+} // namespace Vsync
 } // namespace OHOS

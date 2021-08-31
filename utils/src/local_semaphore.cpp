@@ -13,21 +13,31 @@
  * limitations under the License.
  */
 
-#ifndef FRAMEWORKS_VSYNC_INCLUDE_VSYNC_MODULE_H
-#define FRAMEWORKS_VSYNC_INCLUDE_VSYNC_MODULE_H
-
-#include <refbase.h>
-
-#include "vsync_type.h"
+#include "local_semaphore.h"
 
 namespace OHOS {
-class VsyncModule : public RefBase {
-public:
-    static sptr<VsyncModule> GetInstance();
+LocalSemaphore::LocalSemaphore()
+{
+    sem_init(&sem, false, 0);
+}
 
-    virtual VsyncError Start() = 0;
-    virtual VsyncError Stop() = 0;
-};
+LocalSemaphore::LocalSemaphore(int count)
+{
+    sem_init(&sem, false, count);
+}
+
+LocalSemaphore::~LocalSemaphore()
+{
+    sem_destroy(&sem);
+}
+
+void LocalSemaphore::Inc()
+{
+    sem_post(&sem);
+}
+
+void LocalSemaphore::Dec()
+{
+    sem_wait(&sem);
+}
 } // namespace OHOS
-
-#endif // FRAMEWORKS_VSYNC_INCLUDE_VSYNC_MODULE_H

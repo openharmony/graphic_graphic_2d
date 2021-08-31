@@ -13,26 +13,31 @@
  * limitations under the License.
  */
 
-#ifndef FRAMEWORKS_VSYNC_INCLUDE_VSYNC_CALLBACK_PROXY_H
-#define FRAMEWORKS_VSYNC_INCLUDE_VSYNC_CALLBACK_PROXY_H
+#ifndef INTERFACES_INNERKITS_VSYNC_MODULE_VSYNC_MODULE_H
+#define INTERFACES_INNERKITS_VSYNC_MODULE_VSYNC_MODULE_H
 
-#include <iremote_proxy.h>
+#include <promise.h>
+#include <refbase.h>
 
-#include "ivsync_callback.h"
+#include <graphic_common.h>
 
 namespace OHOS {
-namespace Vsync {
-class VsyncCallbackProxy : public IRemoteProxy<IVsyncCallback> {
-public:
-    VsyncCallbackProxy(const sptr<IRemoteObject>& impl);
-    virtual ~VsyncCallbackProxy() = default;
-
-    VsyncError OnVsync(int64_t timestamp) override;
-
-private:
-    static inline BrokerDelegator<VsyncCallbackProxy> delegator_;
+static const char *DrmModuleNames[] = {
+    "hisilicon",
+    "sprd",
+    "imx-drm",
+    "rockchip",
 };
-} // namespace Vsync
+
+class VsyncModule : public RefBase {
+public:
+    static sptr<VsyncModule> GetInstance();
+
+    virtual VsyncError Start() = 0;
+    virtual VsyncError Trigger() = 0;
+    virtual VsyncError Stop() = 0;
+    virtual bool IsRunning() = 0;
+};
 } // namespace OHOS
 
-#endif // FRAMEWORKS_VSYNC_INCLUDE_VSYNC_CALLBACK_PROXY_H
+#endif // INTERFACES_INNERKITS_VSYNC_MODULE_VSYNC_MODULE_H

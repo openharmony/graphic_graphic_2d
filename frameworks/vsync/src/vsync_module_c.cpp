@@ -15,11 +15,26 @@
 
 #include <vsync_module.h>
 
-#include "vsync_module_impl.h"
+#include "vsync_module_c.h"
 
-namespace OHOS {
-sptr<VsyncModule> VsyncModule::GetInstance()
+using namespace OHOS;
+
+int VsyncModuleStart()
 {
-    return Vsync::VsyncModuleImpl::GetInstance();
+    return VsyncModule::GetInstance()->Start();
 }
-} // namespace OHOS
+
+int VsyncModuleStop()
+{
+    return VsyncModule::GetInstance()->Stop();
+}
+
+int VsyncModuleTrigger()
+{
+    return VsyncModule::GetInstance()->Trigger();
+}
+
+int VsyncModuleIsRunning()
+{
+    return VsyncModule::GetInstance()->IsRunning() ? 1 : 0;
+}

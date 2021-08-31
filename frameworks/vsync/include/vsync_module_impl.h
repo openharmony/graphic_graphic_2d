@@ -16,43 +16,50 @@
 #ifndef FRAMEWORKS_VSYNC_INCLUDE_VSYNC_MODULE_IMPL_H
 #define FRAMEWORKS_VSYNC_INCLUDE_VSYNC_MODULE_IMPL_H
 
+#include <queue>
 #include <thread>
 
+#include <local_semaphore.h>
 #include <vsync_module.h>
 
-#include "vsync_type.h"
+#include "drm_module.h"
 #include "vsync_manager.h"
 
 namespace OHOS {
+namespace Vsync {
 class VsyncModuleImpl : public VsyncModule {
 public:
     static sptr<VsyncModuleImpl> GetInstance();
 
     virtual VsyncError Start() override;
+    virtual VsyncError Trigger() override;
     virtual VsyncError Stop() override;
+    virtual bool IsRunning() override;
 
 protected:
     virtual VsyncError InitSA();
-
     VsyncError InitSA(int32_t vsyncSystemAbilityId);
 
 private:
-    VsyncModuleImpl();
+    VsyncModuleImpl() = default;
     virtual ~VsyncModuleImpl() override;
     static inline sptr<VsyncModuleImpl> instance = nullptr;
 
+    int64_t WaitNextVsync();
     void VsyncMainThread();
     bool RegisterSystemAbility();
     void UnregisterSystemAbility();
-    int64_t WaitNextVBlank();
 
-    int32_t drmFd_;
-    std::unique_ptr<std::thread> vsyncThread_;
-    bool vsyncThreadRunning_;
-    int32_t vsyncSystemAbilityId_;
-    bool isRegisterSA_;
-    sptr<VsyncManager> vsyncManager_;
+    LocalSemaphore promisesSem_;
+    std::mutex promisesMutex_;
+    std::queue<int64_t> promises_;
+    std::unique_ptr<std::thread> vsyncThread_ = nullptr;
+    bool vsyncThreadRunning_ = false;
+    int32_t vsyncSystemAbilityId_ = 0;
+    bool isRegisterSA_ = false;
+    VsyncManager vsyncManager_;
 };
+} // namespace Vsync
 } // namespace OHOS
 
 #endif // FRAMEWORKS_VSYNC_INCLUDE_VSYNC_MODULE_IMPL_H

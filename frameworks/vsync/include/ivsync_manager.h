@@ -16,11 +16,13 @@
 #ifndef FRAMEWORKS_VSYNC_INCLUDE_IVSYNC_MANAGER_H
 #define FRAMEWORKS_VSYNC_INCLUDE_IVSYNC_MANAGER_H
 
+#include <graphic_common.h>
 #include <iremote_broker.h>
-#include "vsync_type.h"
+
 #include "ivsync_callback.h"
 
 namespace OHOS {
+namespace Vsync {
 class IVsyncManager : public IRemoteBroker {
 public:
     virtual VsyncError ListenVsync(sptr<IVsyncCallback>& cb) = 0;
@@ -34,6 +36,7 @@ protected:
         IVSYNC_MANAGER_GET_VSYNC_FREQUENCY,
     };
 };
+} // namespace Vsync
 } // namespace OHOS
 
 #endif // FRAMEWORKS_VSYNC_INCLUDE_IVSYNC_MANAGER_H
