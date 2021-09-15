@@ -48,6 +48,13 @@ public:
 
     void Run(int32_t argc, const char **argv) override
     {
+        auto initRet = WindowManager::GetInstance()->Init();
+        if (initRet) {
+            printf("init failed with %s\n", WMErrorStr(initRet).c_str());
+            ExitTest();
+            return;
+        }
+
         NativeTest6::Run(argc, argv);
         constexpr uint32_t nextTime = 3000;
         PostTask(std::bind(&NativeTest13::AfterRun1, this), nextTime);

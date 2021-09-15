@@ -31,8 +31,8 @@ public:
 
     void AddSingleton(const std::string &name, const std::any &instance);
     void SetSingleton(const std::string &name, const std::any &instance);
-    const std::any& GetSingleton(const std::string &name);
-    const std::any& DependOn(const std::string &instance, const std::string &name);
+    const std::any &GetSingleton(const std::string &name);
+    const std::any &DependOn(const std::string &instance, const std::string &name);
 
     template<class T>
     static sptr<T> Get()

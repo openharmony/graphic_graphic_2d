@@ -24,9 +24,7 @@
 
 namespace OHOS {
 namespace Vsync {
-namespace {
 constexpr int32_t IPC_VSYNCMANAGER_SAID = 664321;
-}
 class VsyncManagerStubTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -40,7 +38,7 @@ private:
 
 class VsyncCallback : public VsyncCallbackStub {
 public:
-    explicit VsyncCallback(const int& count);
+    explicit VsyncCallback(int &count);
     virtual ~VsyncCallback() = default;
     virtual VsyncError OnVsync(int64_t timestamp) override;
 private:

@@ -229,44 +229,6 @@ ohos_shared_library("libwmclient") {
 
 ## Build libwmclient.so }}}
 
-## Build wm_test {{{
-config("wm_test_config") {
-  visibility = [ ":*" ]
-
-  include_dirs = []
-
-  cflags = [
-    "-Wall",
-    "-Werror",
-    "-g3",
-  ]
-}
-
-ohos_executable("wm_test") {
-  install_enable = true
-
-  sources = [ "src/test/wm_test.cpp" ]
-
-  configs = [ ":wm_test_config" ]
-
-  deps = [
-    ":wms_client",
-    "//foundation/graphic/standard:libvsync_client",
-    "//third_party/zlib:libz",
-  ]
-
-  external_deps = [
-    "hiviewdfx_hilog_native:libhilog",
-    "ipc:ipc_core",
-    "samgr_L2:samgr_proxy",
-  ]
-
-  part_name = "graphic_standard"
-  subsystem_name = "graphic"
-}
-
-## Build wm_test }}}
-
 ## Build wmtest {{{
 config("wmtest_config") {
   visibility = [ ":*" ]
@@ -299,6 +261,8 @@ ohos_executable("wmtest") {
     "src/test/native_test_19.cpp",
     "src/test/native_test_2.cpp",
     "src/test/native_test_20.cpp",
+    "src/test/native_test_23.cpp",
+    "src/test/native_test_24.cpp",
     "src/test/native_test_3.cpp",
     "src/test/native_test_4.cpp",
     "src/test/native_test_5.cpp",
@@ -316,6 +280,7 @@ ohos_executable("wmtest") {
   deps = [
     "//foundation/graphic/standard:libvsync_client",
     "//foundation/graphic/standard:libwmclient",
+    "//foundation/graphic/standard:libwmservice",
     "//third_party/zlib:libz",
   ]
 

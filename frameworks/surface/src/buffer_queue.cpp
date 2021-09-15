@@ -70,7 +70,7 @@ uint32_t BufferQueue::GetUsedSize()
 }
 
 SurfaceError BufferQueue::PopFromFreeList(sptr<SurfaceBufferImpl>& buffer,
-    const BufferRequestConfig& config)
+    const BufferRequestConfig &config)
 {
     for (auto it = freeList_.begin(); it != freeList_.end(); it++) {
         if (bufferQueueCache_[*it].config == config) {
@@ -102,14 +102,14 @@ SurfaceError BufferQueue::PopFromDirtyList(sptr<SurfaceBufferImpl>& buffer)
     }
 }
 
-SurfaceError BufferQueue::CheckRequestConfig(const BufferRequestConfig& config)
+SurfaceError BufferQueue::CheckRequestConfig(const BufferRequestConfig &config)
 {
-    if (0 >= config.width || config.width > SURFACE_MAX_WIDTH) {
+    if (config.width <= 0 || config.width > SURFACE_MAX_WIDTH) {
         BLOGN_INVALID("config.width (0, %{public}d], now is %{public}d", SURFACE_MAX_WIDTH, config.width);
         return SURFACE_ERROR_INVALID_PARAM;
     }
 
-    if (0 >= config.height || config.height > SURFACE_MAX_HEIGHT) {
+    if (config.height <= 0 || config.height > SURFACE_MAX_HEIGHT) {
         BLOGN_INVALID("config.height (0, %{public}d], now is %{public}d", SURFACE_MAX_HEIGHT, config.height);
         return SURFACE_ERROR_INVALID_PARAM;
     }
@@ -129,13 +129,13 @@ SurfaceError BufferQueue::CheckRequestConfig(const BufferRequestConfig& config)
         return SURFACE_ERROR_INVALID_PARAM;
     }
 
-    if (0 > config.format || config.format > PIXEL_FMT_BUTT) {
+    if (config.format < 0 || config.format > PIXEL_FMT_BUTT) {
         BLOGN_INVALID("config.format [0, %{public}d], now is %{public}d", PIXEL_FMT_BUTT, config.format);
         return SURFACE_ERROR_INVALID_PARAM;
     }
 
     constexpr int32_t usageMax = HBM_USE_MEM_DMA * 2;
-    if (0 > config.usage || config.usage >= usageMax) {
+    if (config.usage < 0 || config.usage >= usageMax) {
         BLOGN_INVALID("config.usage [0, %{public}d), now is %{public}d", usageMax, config.usage);
         return SURFACE_ERROR_INVALID_PARAM;
     }
@@ -143,7 +143,7 @@ SurfaceError BufferQueue::CheckRequestConfig(const BufferRequestConfig& config)
     return SURFACE_ERROR_OK;
 }
 
-SurfaceError BufferQueue::CheckFlushConfig(const BufferFlushConfig& config)
+SurfaceError BufferQueue::CheckFlushConfig(const BufferFlushConfig &config)
 {
     if (config.damage.w < 0) {
         BLOGN_INVALID("config.damage.w >= 0, now is %{public}d", config.damage.w);
@@ -249,7 +249,7 @@ SurfaceError BufferQueue::CancelBuffer(int32_t sequence, const BufferExtraData &
 }
 
 SurfaceError BufferQueue::FlushBuffer(int32_t sequence, const BufferExtraData &bedata,
-                                      int32_t fence, const BufferFlushConfig& config)
+                                      int32_t fence, const BufferFlushConfig &config)
 {
     // check param
     auto sret = CheckFlushConfig(config);
@@ -287,7 +287,7 @@ SurfaceError BufferQueue::FlushBuffer(int32_t sequence, const BufferExtraData &b
 }
 
 SurfaceError BufferQueue::DoFlushBuffer(int32_t sequence, const BufferExtraData &bedata,
-                                        int32_t fence, const BufferFlushConfig& config)
+                                        int32_t fence, const BufferFlushConfig &config)
 {
     std::lock_guard<std::mutex> lockGuard(mutex_);
     if (bufferQueueCache_[sequence].isDeleting) {
@@ -320,7 +320,7 @@ SurfaceError BufferQueue::DoFlushBuffer(int32_t sequence, const BufferExtraData 
 }
 
 SurfaceError BufferQueue::AcquireBuffer(sptr<SurfaceBufferImpl>& buffer,
-                                        int32_t& fence, int64_t& timestamp, Rect& damage)
+                                        int32_t &fence, int64_t &timestamp, Rect &damage)
 {
     // dequeue from dirty list
     std::lock_guard<std::mutex> lockGuard(mutex_);
@@ -372,7 +372,7 @@ SurfaceError BufferQueue::ReleaseBuffer(sptr<SurfaceBufferImpl>& buffer, int32_t
 }
 
 SurfaceError BufferQueue::AllocBuffer(sptr<SurfaceBufferImpl>& buffer,
-    const BufferRequestConfig& config)
+    const BufferRequestConfig &config)
 {
     buffer = new SurfaceBufferImpl();
     int32_t sequence = buffer->GetSeqNum();

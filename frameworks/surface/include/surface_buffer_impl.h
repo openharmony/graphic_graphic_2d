@@ -46,24 +46,24 @@ public:
     SurfaceBufferImpl(int seqNum);
     virtual ~SurfaceBufferImpl();
 
-    static SurfaceBufferImpl* FromBase(const sptr<SurfaceBuffer>& buffer);
+    static SurfaceBufferImpl *FromBase(const sptr<SurfaceBuffer>& buffer);
 
-    BufferHandle* GetBufferHandle() const override;
+    BufferHandle *GetBufferHandle() const override;
     int32_t GetWidth() const override;
     int32_t GetHeight() const override;
     int32_t GetFormat() const override;
     int64_t GetUsage() const override;
     uint64_t GetPhyAddr() const override;
     int32_t GetKey() const override;
-    void* GetVirAddr() const override;
+    void *GetVirAddr() const override;
     int32_t GetFileDescriptor() const override;
     uint32_t GetSize() const override;
 
     int32_t GetSeqNum();
     SurfaceError SetInt32(uint32_t key, int32_t val) override;
-    SurfaceError GetInt32(uint32_t key, int32_t& val) override;
+    SurfaceError GetInt32(uint32_t key, int32_t &val) override;
     SurfaceError SetInt64(uint32_t key, int64_t val) override;
-    SurfaceError GetInt64(uint32_t key, int64_t& val) override;
+    SurfaceError GetInt64(uint32_t key, int64_t &val) override;
 
     void SetExtraData(const BufferExtraData &bedata);
     void GetExtraData(BufferExtraData &bedata) const;
@@ -76,16 +76,16 @@ public:
     virtual SurfaceError ExtraSet(std::string key, double value) override;
     virtual SurfaceError ExtraSet(std::string key, std::string value) override;
 
-    void SetBufferHandle(BufferHandle* handle);
+    void SetBufferHandle(BufferHandle *handle);
 
-    void WriteToMessageParcel(MessageParcel& parcel);
+    void WriteToMessageParcel(MessageParcel &parcel);
 
 private:
     SurfaceError SetData(uint32_t key, ExtraData data);
-    SurfaceError GetData(uint32_t key, ExtraData& data);
+    SurfaceError GetData(uint32_t key, ExtraData &data);
     std::map<uint32_t, ExtraData> extraDatas_;
 
-    BufferHandle* handle_ = nullptr;
+    BufferHandle *handle_ = nullptr;
     int32_t sequenceNumber = -1;
     BufferExtraDataImpl bedataimpl;
 };

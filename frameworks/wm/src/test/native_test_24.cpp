@@ -13,51 +13,60 @@
  * limitations under the License.
  */
 
-#include "native_test_11.h"
+#include "native_test_24.h"
 
 #include <cstdio>
-#include <securec.h>
+#include <unistd.h>
 
-#include <display_type.h>
-#include <window_manager.h>
+#include <iservice_registry.h>
+#include <surface.h>
 
-#include "native_test_1.h"
+#include "inative_test.h"
 #include "native_test_class.h"
 #include "util.h"
 
 using namespace OHOS;
 
 namespace {
-class NativeTest11 : public NativeTest1 {
+class NativeTest24 : public INativeTest {
 public:
     std::string GetDescription() const override
     {
-        constexpr const char *desc = "exit after 2 seconds";
+        constexpr const char *desc = "raise samgr/ipc crash";
         return desc;
     }
 
     int32_t GetID() const override
     {
-        constexpr int32_t id = 11;
+        constexpr int32_t id = 24;
         return id;
     }
 
     uint32_t GetLastTime() const override
     {
-        constexpr uint32_t lastTime = 2000;
+        constexpr uint32_t lastTime = 1 << 30;
         return lastTime;
     }
 
     void Run(int32_t argc, const char **argv) override
     {
-        auto initRet = WindowManager::GetInstance()->Init();
-        if (initRet) {
-            printf("init failed with %s\n", WMErrorStr(initRet).c_str());
+        auto sam = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+        constexpr int32_t SAID = 123123;
+        auto robj = sam->GetSystemAbility(SAID);
+
+        pid_t pid = fork();
+        if (pid < 0) {
+            printf("%s fork failed", __func__);
             ExitTest();
             return;
         }
 
-        NativeTest1::Run(argc, argv);
+        if (pid == 0) {
+            sam = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+            robj = sam->GetSystemAbility(SAID);
+        } else {
+            ExitTest();
+        }
     }
 } g_autoload;
 } // namespace

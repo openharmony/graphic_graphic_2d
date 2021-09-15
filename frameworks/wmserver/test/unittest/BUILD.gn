@@ -36,6 +36,7 @@ ohos_unittest("wmserver_test") {
 config("wmserver_test_common_public_config") {
   include_dirs = [
     "//foundation/graphic/standard/frameworks/wmserver/src",
+    "//third_party/wayland-ivi-extension/ivi-input-modules/ivi-input-controller/src/",
     "//third_party/wayland_standard",
     "//third_party/weston/compositor",
     "//third_party/weston/ivi-shell",

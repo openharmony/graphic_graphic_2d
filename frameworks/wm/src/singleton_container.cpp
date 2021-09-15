@@ -87,7 +87,7 @@ void SingletonContainer::SetSingleton(const std::string &name, const std::any &i
     }
 }
 
-const std::any& SingletonContainer::GetSingleton(const std::string &name)
+const std::any &SingletonContainer::GetSingleton(const std::string &name)
 {
     if (stringMap.find(name) == stringMap.end()) {
         WMLOGFD("cannot get %{public}s", name.c_str());
@@ -97,7 +97,7 @@ const std::any& SingletonContainer::GetSingleton(const std::string &name)
     return singletonMap[stringMap[name]].value;
 }
 
-const std::any& SingletonContainer::DependOn(const std::string &instance, const std::string &name)
+const std::any &SingletonContainer::DependOn(const std::string &instance, const std::string &name)
 {
     auto &instanceDependencySet = dependencySetMap[stringMap[instance]];
     if (instanceDependencySet.find(stringMap[name]) == instanceDependencySet.end()) {

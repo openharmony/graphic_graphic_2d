@@ -97,8 +97,8 @@ private:
 
     int32_t SendCallbackForMouse(void *data);
     uint32_t GetMouseButton(uint32_t button);
-    void ProcessActionEvent(ActionEventInfo& actionEvent, TouchProperty& touchProperty);
-    void TouchEventEncap(ActionEventInfo& actionEvent, TouchEvent& touchEvent, int32_t size);
+    void ProcessActionEvent(ActionEventInfo &actionEvent, TouchProperty &touchProperty);
+    void TouchEventEncap(ActionEventInfo &actionEvent, TouchEvent &touchEvent, int32_t size);
 
     struct ActionEventInfo actionEventInfo = {};
     void *touchWindows[MAX_TOUCH_NUM] = {};

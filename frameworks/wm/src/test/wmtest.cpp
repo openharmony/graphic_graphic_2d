@@ -50,12 +50,6 @@ int32_t main(int32_t argc, const char **argv)
         return 1;
     }
 
-    auto initRet = WindowManager::GetInstance()->Init();
-    if (initRet) {
-        printf("init failed with %s\n", WMErrorStr(initRet).c_str());
-        return 1;
-    }
-
     INativeTest *found = nullptr;
     auto visitFunc = [testcase, &found](INativeTest *test) {
         if (test->GetID() == testcase) {

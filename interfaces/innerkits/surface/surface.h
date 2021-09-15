@@ -35,15 +35,15 @@ public:
     virtual sptr<IBufferProducer> GetProducer() const = 0;
 
     virtual SurfaceError RequestBuffer(sptr<SurfaceBuffer>& buffer,
-                                       int32_t& fence, BufferRequestConfig& config) = 0;
+                                       int32_t &fence, BufferRequestConfig &config) = 0;
 
     virtual SurfaceError CancelBuffer(sptr<SurfaceBuffer>& buffer) = 0;
 
     virtual SurfaceError FlushBuffer(sptr<SurfaceBuffer>& buffer,
-                                     int32_t fence, BufferFlushConfig& config) = 0;
+                                     int32_t fence, BufferFlushConfig &config) = 0;
 
-    virtual SurfaceError AcquireBuffer(sptr<SurfaceBuffer>& buffer, int32_t& fence,
-                                       int64_t& timestamp, Rect& damage) = 0;
+    virtual SurfaceError AcquireBuffer(sptr<SurfaceBuffer>& buffer, int32_t &fence,
+                                       int64_t &timestamp, Rect &damage) = 0;
     virtual SurfaceError ReleaseBuffer(sptr<SurfaceBuffer>& buffer, int32_t fence) = 0;
 
     virtual uint32_t     GetQueueSize() = 0;
@@ -62,8 +62,8 @@ public:
     virtual SurfaceError SetDefaultUsage(uint32_t usage) = 0;
     virtual uint32_t GetDefaultUsage() = 0;
 
-    virtual SurfaceError SetUserData(const std::string& key, const std::string& val) = 0;
-    virtual std::string GetUserData(const std::string& key) = 0;
+    virtual SurfaceError SetUserData(const std::string &key, const std::string &val) = 0;
+    virtual std::string GetUserData(const std::string &key) = 0;
 
     virtual SurfaceError GetName(std::string &name) = 0;
 

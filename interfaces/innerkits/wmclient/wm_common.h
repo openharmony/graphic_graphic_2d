@@ -82,7 +82,7 @@ struct WMImageInfo {
     uint32_t height;
     uint32_t format;
     uint32_t size;
-    const void* data;
+    const void *data;
 };
 
 struct WindowInfo {

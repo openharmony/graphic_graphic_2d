@@ -30,13 +30,14 @@ public:
     static sptr<WindowManagerServiceClientImpl> GetInstance();
 
     virtual WMError Init() override;
-    virtual WMError Deinit() override;
     virtual sptr<IWindowManagerService> GetService() const override;
 
 private:
     WindowManagerServiceClientImpl() = default;
-    virtual ~WindowManagerServiceClientImpl() = default;
+    virtual ~WindowManagerServiceClientImpl() override;
     static inline sptr<WindowManagerServiceClientImpl> instance = nullptr;
+
+    WMError Deinit();
 
     void StartDispatchThread();
     void StopDispatchThread();

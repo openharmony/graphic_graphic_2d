@@ -114,7 +114,7 @@ HWTEST_F(WlDisplayTest, SyncPromise, testing::ext::TestSize.Level0)
  */
 HWTEST_F(WlDisplayTest, Disconnect, testing::ext::TestSize.Level0)
 {
-    const auto& display = WlDisplay::GetInstance();
+    const auto &display = WlDisplay::GetInstance();
 
     // 1. disconnect
     display->Disconnect();

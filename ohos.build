@@ -29,7 +29,6 @@
 
         "//foundation/graphic/standard/frameworks/bootanimation:bootanimation",
         "//foundation/graphic/standard/frameworks/bootanimation:bootanimation-480x960.raw",
-        "//foundation/graphic/standard/frameworks/wm:wm_test",
         "//foundation/graphic/standard/frameworks/wm:wmtest",
         "//foundation/graphic/standard:graphic.rc"
       ],

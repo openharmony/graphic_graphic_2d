@@ -15,6 +15,7 @@
 
 #include "vsync_helper_impl.h"
 
+#include <algorithm>
 #include <chrono>
 #include <list>
 #include <sys/time.h>
@@ -65,7 +66,7 @@ VsyncError VsyncClient::InitService()
         if (remoteObject == nullptr) {
             VLOG_FAILURE_RET(VSYNC_ERROR_SERVICE_NOT_FOUND);
         }
-        
+
         sptr<IRemoteObject::DeathRecipient> deathRecipient = new VsyncManagerDeathRecipient();
         if (remoteObject->IsProxyObject() == true && remoteObject->AddDeathRecipient(deathRecipient) == false) {
             VLOGW("Failed to add death recipient");
@@ -118,12 +119,10 @@ VsyncError VsyncClient::Init(bool restart)
         VsyncError vret;
         if (service_ == nullptr) {
             vret = InitService();
-            if (vret == VSYNC_ERROR_SERVICE_NOT_FOUND) {
-                if (restart == true) {
-                    constexpr int sleepTime = 5 * 1000;
-                    usleep(sleepTime);
-                    continue;
-                }
+            if (vret == VSYNC_ERROR_SERVICE_NOT_FOUND && restart == true) {
+                constexpr int sleepTime = 5 * 1000;
+                usleep(sleepTime);
+                continue;
             }
             if (vret != VSYNC_ERROR_OK) {
                 return vret;
@@ -216,6 +215,9 @@ VsyncError VsyncClient::GetSupportedVsyncFrequencys(std::vector<uint32_t>& freqs
             freqs.push_back(i);
         }
     }
+
+    auto compare = [](int a, int b) { return a > b; };
+    std::sort(freqs.begin(), freqs.end(), compare);
     return VSYNC_ERROR_OK;
 }
 
@@ -239,7 +241,7 @@ void VsyncClient::DispatchMain(int64_t timestamp)
     std::list<struct VsyncElement> vsyncElements;
     {
         std::lock_guard<std::mutex> lockGuard(callbacksMapMutex_);
-        for (auto& [vid, eles] : callbacksMap_) {
+        for (auto &[vid, eles] : callbacksMap_) {
             if (vid > id) {
                 continue;
             }
@@ -260,7 +262,7 @@ void VsyncClient::DispatchMain(int64_t timestamp)
                 id, now, timestamp);
     }
 
-    for (const auto& ele : vsyncElements) {
+    for (const auto &ele : vsyncElements) {
         ele.callback_(timestamp, ele.userdata_);
     }
 
@@ -312,7 +314,7 @@ VsyncHelperImpl::~VsyncHelperImpl()
     }
 }
 
-VsyncError VsyncHelperImpl::RequestFrameCallback(const struct FrameCallback& cb)
+VsyncError VsyncHelperImpl::RequestFrameCallback(const struct FrameCallback &cb)
 {
     return VsyncClient::GetInstance()->RequestFrameCallback(cb);
 }

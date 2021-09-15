@@ -37,8 +37,8 @@ public:
     WindowBase(int32_t windowid, sptr<Surface>& surface);
     virtual ~WindowBase();
 
-    void GetRequestConfig(BufferRequestConfig& config);
-    void SetRequestConfig(BufferRequestConfig& config);
+    void GetRequestConfig(BufferRequestConfig &config);
+    void SetRequestConfig(BufferRequestConfig &config);
     void RegistWindowInfoChangeCb(funcWindowInfoChange cb);
 
     int32_t GetWindowID();
@@ -90,8 +90,8 @@ class WindowManager : public RefBase {
 public:
     static sptr<WindowManager> GetInstance();
 
-    std::unique_ptr<Window> CreateWindow(WindowConfig* config);
-    std::unique_ptr<SubWindow> CreateSubWindow(int32_t parentid, WindowConfig* config);
+    std::unique_ptr<Window> CreateWindow(WindowConfig *config);
+    std::unique_ptr<SubWindow> CreateSubWindow(int32_t parentid, WindowConfig *config);
     void StartShotScreen(IScreenShotCallback *cb);
     void StartShotWindow(int32_t id, IWindowShotCallback *cb);
     int32_t GetMaxWidth();

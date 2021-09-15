@@ -41,16 +41,20 @@ SurfaceError BufferExtraDataImpl::ReadFromParcel(MessageParcel &parcel)
         switch (type) {
             case ExtraDataType::i32: {
                 ExtraSet(key, type, parcel.ReadInt32());
-            } break;
+                break;
+            }
             case ExtraDataType::i64: {
                 ExtraSet(key, type, parcel.ReadInt64());
-            } break;
+                break;
+            }
             case ExtraDataType::f64: {
                 ExtraSet(key, type, parcel.ReadDouble());
-            } break;
+                break;
+            }
             case ExtraDataType::string: {
                 ExtraSet(key, type, parcel.ReadString());
-            } break;
+                break;
+            }
             default: break;
         }
     }
@@ -73,7 +77,8 @@ SurfaceError BufferExtraDataImpl::WriteToParcel(MessageParcel &parcel)
                     i32 = *pVal;
                 }
                 parcel.WriteInt32(i32);
-            } break;
+                break;
+            }
             case ExtraDataType::i64: {
                 int64_t i64 = -1;
                 auto pVal = std::any_cast<int64_t>(&data.val);
@@ -81,7 +86,8 @@ SurfaceError BufferExtraDataImpl::WriteToParcel(MessageParcel &parcel)
                     i64 = *pVal;
                 }
                 parcel.WriteInt64(i64);
-            } break;
+                break;
+            }
             case ExtraDataType::f64: {
                 double f64 = -1;
                 auto pVal = std::any_cast<double>(&data.val);
@@ -89,7 +95,8 @@ SurfaceError BufferExtraDataImpl::WriteToParcel(MessageParcel &parcel)
                     f64 = *pVal;
                 }
                 parcel.WriteDouble(f64);
-            } break;
+                break;
+            }
             case ExtraDataType::string: {
                 std::string string = "-1";
                 auto pVal = std::any_cast<std::string>(&data.val);
@@ -97,7 +104,10 @@ SurfaceError BufferExtraDataImpl::WriteToParcel(MessageParcel &parcel)
                     string = *pVal;
                 }
                 parcel.WriteString(string);
-            } break;
+                break;
+            }
+            default:
+                break;
         }
     }
     return SURFACE_ERROR_OK;

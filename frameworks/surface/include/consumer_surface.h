@@ -35,15 +35,15 @@ public:
     bool IsConsumer() const override;
     sptr<IBufferProducer> GetProducer() const override;
     SurfaceError RequestBuffer(sptr<SurfaceBuffer>& buffer,
-                               int32_t& fence, BufferRequestConfig& config) override;
+                               int32_t &fence, BufferRequestConfig &config) override;
 
     SurfaceError CancelBuffer(sptr<SurfaceBuffer>& buffer) override;
 
     SurfaceError FlushBuffer(sptr<SurfaceBuffer>& buffer,
-                             int32_t fence, BufferFlushConfig& config) override;
+                             int32_t fence, BufferFlushConfig &config) override;
 
-    SurfaceError AcquireBuffer(sptr<SurfaceBuffer>& buffer, int32_t& fence,
-                               int64_t& timestamp, Rect& damage) override;
+    SurfaceError AcquireBuffer(sptr<SurfaceBuffer>& buffer, int32_t &fence,
+                               int64_t &timestamp, Rect &damage) override;
     SurfaceError ReleaseBuffer(sptr<SurfaceBuffer>& buffer, int32_t fence) override;
 
     uint32_t     GetQueueSize() override;
@@ -57,8 +57,8 @@ public:
     SurfaceError SetDefaultUsage(uint32_t usage) override;
     uint32_t GetDefaultUsage() override;
 
-    SurfaceError SetUserData(const std::string& key, const std::string& val) override;
-    std::string  GetUserData(const std::string& key) override;
+    SurfaceError SetUserData(const std::string &key, const std::string &val) override;
+    std::string  GetUserData(const std::string &key) override;
 
     SurfaceError RegisterConsumerListener(sptr<IBufferConsumerListener>& listener) override;
     SurfaceError RegisterConsumerListener(IBufferConsumerListenerClazz *listener) override;

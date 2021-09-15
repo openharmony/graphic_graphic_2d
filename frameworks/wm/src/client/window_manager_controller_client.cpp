@@ -31,21 +31,21 @@ constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, 0, "WindowManagerClient" };
     std::lock_guard<std::mutex> lock(mutexName)
 
 #define GET_WINDOWINFO(info, id, ret) \
-    InnerWindowInfo* info = LayerControllerClient::GetInstance()->GetInnerWindowInfoFromId((uint32_t)id); \
+    InnerWindowInfo *info = LayerControllerClient::GetInstance()->GetInnerWindowInfoFromId((uint32_t)id); \
     if (info == nullptr) { \
         WMLOGFE("id: %{public}d, window info is nullptr", id); \
         return ret; \
     }
 
 #define GET_WINDOWINFO_VOID(info, id) \
-    InnerWindowInfo* info = LayerControllerClient::GetInstance()->GetInnerWindowInfoFromId((uint32_t)id); \
+    InnerWindowInfo *info = LayerControllerClient::GetInstance()->GetInnerWindowInfoFromId((uint32_t)id); \
     if (info == nullptr) { \
         WMLOGFE("id: %{public}d, window info is nullptr", id); \
         return; \
     }
 
 #define GET_WINDOWINFO_INNER_VOID(info, id) \
-    InnerWindowInfo* info = GetInnerWindowInfoFromId((uint32_t)id); \
+    InnerWindowInfo *info = GetInnerWindowInfoFromId((uint32_t)id); \
     if (info == nullptr) { \
         WMLOGFE("id: %{public}d, window info is nullptr", id); \
         return; \
@@ -168,11 +168,11 @@ void LayerControllerClient::CreateWlBuffer(sptr<Surface>& surface, uint32_t wind
     WMLOG_I("LayerControllerClient::CreateWlBuffer end");
 }
 
-void* LayerControllerClient::thread_display_dispatch(void* param)
+void *LayerControllerClient::thread_display_dispatch(void *param)
 {
     WMLOG_I("LayerControllerClient::thread_display_dispatch start");
 
-    LayerControllerClient* ptr = static_cast<LayerControllerClient*>(param);
+    LayerControllerClient *ptr = static_cast<LayerControllerClient*>(param);
     while (true) {
         int32_t ret = WlDisplay::GetInstance()->Dispatch();
         if (ret == -1) {
@@ -206,7 +206,7 @@ bool LayerControllerClient::CreateSurface(int32_t id)
     return true;
 }
 
-InnerWindowInfo* LayerControllerClient::CreateWindow(int32_t id, WindowConfig& config)
+InnerWindowInfo *LayerControllerClient::CreateWindow(int32_t id, WindowConfig &config)
 {
     LOCK(mutex);
     WMLOG_I("LayerControllerClient::CreateWindow start");
@@ -280,7 +280,7 @@ bool CreateVideoSubWindow(InnerWindowInfo &newSubInfo)
 }
 }
 
-InnerWindowInfo* LayerControllerClient::CreateSubWindow(int32_t subid, int32_t parentid, WindowConfig& config)
+InnerWindowInfo *LayerControllerClient::CreateSubWindow(int32_t subid, int32_t parentid, WindowConfig &config)
 {
     LOCK(mutex);
     WMLOG_I("%{public}s start parentID is %{public}d, subid is %{public}d",
@@ -524,7 +524,7 @@ int32_t LayerControllerClient::GetMaxHeight()
     return m_screenHeight;
 }
 
-void ProcessWindowInfo(InnerWindowInfo& info, sptr<IWindowManagerService> &wms)
+void ProcessWindowInfo(InnerWindowInfo &info, sptr<IWindowManagerService> &wms)
 {
     int layerid = WINDOW_LAYER_DEFINE_NORMAL_ID;
     layerid += info.windowconfig.type * LAYER_ID_TYPE_OFSSET;
@@ -558,10 +558,10 @@ void LayerControllerClient::RemoveInnerWindowInfo(uint32_t id)
     }
 }
 
-InnerWindowInfo* LayerControllerClient::GetInnerWindowInfoFromId(uint32_t windowid)
+InnerWindowInfo *LayerControllerClient::GetInnerWindowInfoFromId(uint32_t windowid)
 {
     LOCK(windowListMutex);
-    for (auto& info : m_windowList) {
+    for (auto &info : m_windowList) {
         if (info.windowid == windowid) {
             return &info;
         }

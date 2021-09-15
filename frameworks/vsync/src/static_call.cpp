@@ -53,7 +53,7 @@ sptr<IRemoteObject> StaticCall::GetSystemAbility(sptr<ISystemAbilityManager>& sm
     return sm->GetSystemAbility(systemAbilityId);
 }
 
-VsyncError StaticCall::GetVsyncFrequency(sptr<IVsyncManager>& server, uint32_t& freq)
+VsyncError StaticCall::GetVsyncFrequency(sptr<IVsyncManager>& server, uint32_t &freq)
 {
     return server->GetVsyncFrequency(freq);
 }

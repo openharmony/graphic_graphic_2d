@@ -49,6 +49,13 @@ public:
 
     void Run(int32_t argc, const char **argv) override
     {
+        auto initRet = WindowManager::GetInstance()->Init();
+        if (initRet) {
+            printf("init failed with %s\n", WMErrorStr(initRet).c_str());
+            ExitTest();
+            return;
+        }
+
         NativeTest7::Run(argc, argv);
         constexpr uint32_t nextRunTime = 1500;
         PostTask(std::bind(&NativeTest20::AfterRun1, this), nextRunTime);
@@ -64,7 +71,7 @@ public:
         auto subpsurface = subwindow->GetSurface();
         config.width = subpsurface->GetDefaultWidth();
         config.height = subpsurface->GetDefaultHeight();
-        config.strideAlignment = sizeof(void *);
+        config.strideAlignment = 0x8;
         config.format = PIXEL_FMT_RGBA_8888;
         config.usage = Surface::USAGE_CPU_READ | Surface::USAGE_CPU_WRITE | Surface::USAGE_MEM_DMA;
         subwindowSync = NativeTestSync::CreateSync(NativeTestDraw::RainbowDraw, subpsurface, &config);

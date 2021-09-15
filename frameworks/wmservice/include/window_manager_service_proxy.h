@@ -33,6 +33,7 @@ public:
     virtual WMError GetDisplayModes(uint32_t &displayModes) override;
     virtual sptr<Promise<WMError>> SetDisplayMode(WMSDisplayMode modes) override;
     virtual WMError AddDisplayChangeListener(IWindowManagerDisplayListenerClazz *listener) override;
+    virtual sptr<Promise<WMError>> OnWindowListChange(IWindowChangeListenerClazz *listener) override;
 
     virtual WMError SetDisplayDirection(WMSDisplayDirection direction) override;
     virtual WMError OnDisplayDirectionChange(DisplayDirectionChangeFunc func) override;
@@ -54,11 +55,13 @@ public:
     static void OnReply(wms_error);
     static void OnScreenShot(wms_error, uint32_t, int32_t, int32_t, int32_t, int32_t, uint32_t, uint32_t, uint32_t);
     static void OnWindowShot(wms_error, uint32_t, int32_t, int32_t, int32_t, int32_t, uint32_t, uint32_t, uint32_t);
+    static void OnGlobalWindowStatus(uint32_t pid, uint32_t wid, uint32_t status);
 
 private:
     struct wms *wms = nullptr;
     struct wl_display *display = nullptr;
     static inline IWindowManagerDisplayListenerClazz *displayListener = nullptr;
+    static inline IWindowChangeListenerClazz *globalWindowChangeListener = nullptr;
 
     static inline std::vector<struct WMDisplayInfo> displays;
     static inline uint32_t displayModes = 0;

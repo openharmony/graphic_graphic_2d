@@ -28,7 +28,7 @@ public:
     virtual ~VsyncManagerProxy() = default;
 
     virtual VsyncError ListenVsync(sptr<IVsyncCallback>& cb) override;
-    virtual VsyncError GetVsyncFrequency(uint32_t& freq) override;
+    virtual VsyncError GetVsyncFrequency(uint32_t &freq) override;
 
 private:
     static inline BrokerDelegator<VsyncManagerProxy> delegator_;

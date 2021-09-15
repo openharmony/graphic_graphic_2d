@@ -63,7 +63,7 @@ sptr<IBufferProducer> ProducerSurface::GetProducer() const
 }
 
 SurfaceError ProducerSurface::RequestBuffer(sptr<SurfaceBuffer>& buffer,
-                                            int32_t& fence, BufferRequestConfig& config)
+                                            int32_t &fence, BufferRequestConfig &config)
 {
     IBufferProducer::RequestBufferReturnValue retval;
     BufferExtraDataImpl bedataimpl;
@@ -123,7 +123,7 @@ SurfaceError ProducerSurface::CancelBuffer(sptr<SurfaceBuffer>& buffer)
 }
 
 SurfaceError ProducerSurface::FlushBuffer(sptr<SurfaceBuffer>& buffer,
-    int32_t fence, BufferFlushConfig& config)
+    int32_t fence, BufferFlushConfig &config)
 {
     if (buffer == nullptr) {
         return SURFACE_ERROR_NULLPTR;
@@ -135,8 +135,8 @@ SurfaceError ProducerSurface::FlushBuffer(sptr<SurfaceBuffer>& buffer,
     return GetProducer()->FlushBuffer(bufferImpl->GetSeqNum(), bedataimpl, fence, config);
 }
 
-SurfaceError ProducerSurface::AcquireBuffer(sptr<SurfaceBuffer>& buffer, int32_t& fence,
-                                            int64_t& timestamp, Rect& damage)
+SurfaceError ProducerSurface::AcquireBuffer(sptr<SurfaceBuffer>& buffer, int32_t &fence,
+                                            int64_t &timestamp, Rect &damage)
 {
     return SURFACE_ERROR_NOT_SUPPORT;
 }
@@ -188,7 +188,7 @@ uint32_t ProducerSurface::GetDefaultUsage()
     return producer_->GetDefaultUsage();
 }
 
-SurfaceError ProducerSurface::SetUserData(const std::string& key, const std::string& val)
+SurfaceError ProducerSurface::SetUserData(const std::string &key, const std::string &val)
 {
     if (userData_.size() >= SURFACE_MAX_USER_DATA_COUNT) {
         return SURFACE_ERROR_OUT_OF_RANGE;

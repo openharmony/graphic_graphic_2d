@@ -43,6 +43,7 @@ public:
     virtual WMError Init() override;
 
     virtual WMError GetDisplays(std::vector<struct WMDisplayInfo> &displays) const override;
+    virtual sptr<Window> GetWindowByID(int32_t wid) override;
 
     virtual WMError CreateWindow(sptr<Window> &window, const sptr<WindowOption> &option) override;
     virtual WMError CreateSubwindow(sptr<Subwindow> &subwindow,
@@ -67,6 +68,9 @@ private:
     bool init = false;
     bool initSingleton = false;
     sptr<IWindowManagerService> wmservice = nullptr;
+
+    using WptrWindow = wptr<Window>;
+    std::vector<WptrWindow> windowCache;
 
     sptr<WlDisplay> display = nullptr;
     sptr<InputListenerManager> inputListenerManager = nullptr;

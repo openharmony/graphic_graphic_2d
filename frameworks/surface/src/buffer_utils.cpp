@@ -21,7 +21,7 @@
 #include "surface_buffer_impl.h"
 
 namespace OHOS {
-void ReadFence(MessageParcel& parcel, int32_t& fence)
+void ReadFence(MessageParcel &parcel, int32_t &fence)
 {
     int32_t retFence = parcel.ReadInt32();
     if (retFence < 0) {
@@ -31,7 +31,7 @@ void ReadFence(MessageParcel& parcel, int32_t& fence)
     fence = parcel.ReadFileDescriptor();
 }
 
-void WriteFence(MessageParcel& parcel, int32_t fence)
+void WriteFence(MessageParcel &parcel, int32_t fence)
 {
     if (fence >= 0 && fcntl(fence, F_GETFL) == -1 && errno == EBADF) {
         fence = -1;
@@ -46,7 +46,7 @@ void WriteFence(MessageParcel& parcel, int32_t fence)
     parcel.WriteFileDescriptor(fence);
 }
 
-void ReadRequestConfig(MessageParcel& parcel, BufferRequestConfig& config)
+void ReadRequestConfig(MessageParcel &parcel, BufferRequestConfig &config)
 {
     config.width = parcel.ReadInt32();
     config.height = parcel.ReadInt32();
@@ -56,7 +56,7 @@ void ReadRequestConfig(MessageParcel& parcel, BufferRequestConfig& config)
     config.timeout = parcel.ReadInt32();
 }
 
-void WriteRequestConfig(MessageParcel& parcel, BufferRequestConfig const & config)
+void WriteRequestConfig(MessageParcel &parcel, BufferRequestConfig const & config)
 {
     parcel.WriteInt32(config.width);
     parcel.WriteInt32(config.height);
@@ -66,7 +66,7 @@ void WriteRequestConfig(MessageParcel& parcel, BufferRequestConfig const & confi
     parcel.WriteInt32(config.timeout);
 }
 
-void ReadFlushConfig(MessageParcel& parcel, BufferFlushConfig& config)
+void ReadFlushConfig(MessageParcel &parcel, BufferFlushConfig &config)
 {
     config.damage.x = parcel.ReadInt32();
     config.damage.y = parcel.ReadInt32();
@@ -75,7 +75,7 @@ void ReadFlushConfig(MessageParcel& parcel, BufferFlushConfig& config)
     config.timestamp = parcel.ReadInt64();
 }
 
-void WriteFlushConfig(MessageParcel& parcel, BufferFlushConfig const & config)
+void WriteFlushConfig(MessageParcel &parcel, BufferFlushConfig const & config)
 {
     parcel.WriteInt32(config.damage.x);
     parcel.WriteInt32(config.damage.y);
@@ -84,8 +84,8 @@ void WriteFlushConfig(MessageParcel& parcel, BufferFlushConfig const & config)
     parcel.WriteInt64(config.timestamp);
 }
 
-void ReadSurfaceBufferImpl(MessageParcel& parcel,
-                           int32_t& sequence, sptr<SurfaceBuffer>& buffer)
+void ReadSurfaceBufferImpl(MessageParcel &parcel,
+                           int32_t &sequence, sptr<SurfaceBuffer>& buffer)
 {
     sequence = parcel.ReadInt32();
     if (parcel.ReadBool()) {
@@ -107,7 +107,7 @@ void ReadSurfaceBufferImpl(MessageParcel& parcel,
     }
 }
 
-void WriteSurfaceBufferImpl(MessageParcel& parcel,
+void WriteSurfaceBufferImpl(MessageParcel &parcel,
     int32_t sequence, const sptr<SurfaceBuffer> &buffer)
 {
     parcel.WriteInt32(sequence);

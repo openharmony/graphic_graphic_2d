@@ -60,7 +60,7 @@ HWTEST_F(BufferManagerTest, Alloc, testing::ext::TestSize.Level0)
     SurfaceError ret = BufferManager::GetInstance()->Alloc(requestConfig, buffer);
     ASSERT_EQ(ret, SURFACE_ERROR_OK);
 
-    BufferHandle* handle = buffer->GetBufferHandle();
+    BufferHandle *handle = buffer->GetBufferHandle();
 
     ASSERT_NE(handle, nullptr);
     ASSERT_EQ(handle->virAddr, nullptr);
@@ -68,7 +68,7 @@ HWTEST_F(BufferManagerTest, Alloc, testing::ext::TestSize.Level0)
 
 HWTEST_F(BufferManagerTest, Map, testing::ext::TestSize.Level0)
 {
-    BufferHandle* handle;
+    BufferHandle *handle;
 
     handle = buffer->GetBufferHandle();
     ASSERT_NE(handle, nullptr);
@@ -84,7 +84,7 @@ HWTEST_F(BufferManagerTest, Map, testing::ext::TestSize.Level0)
 
 HWTEST_F(BufferManagerTest, FlushBufferBeforeUnmap, testing::ext::TestSize.Level0)
 {
-    BufferHandle* handle;
+    BufferHandle *handle;
 
     handle = buffer->GetBufferHandle();
     ASSERT_NE(handle, nullptr);
@@ -100,7 +100,7 @@ HWTEST_F(BufferManagerTest, FlushBufferBeforeUnmap, testing::ext::TestSize.Level
 
 HWTEST_F(BufferManagerTest, Unmap, testing::ext::TestSize.Level0)
 {
-    BufferHandle* handle = buffer->GetBufferHandle();
+    BufferHandle *handle = buffer->GetBufferHandle();
     ASSERT_NE(handle, nullptr);
     ASSERT_NE(handle->virAddr, nullptr);
 
@@ -114,7 +114,7 @@ HWTEST_F(BufferManagerTest, Unmap, testing::ext::TestSize.Level0)
 
 HWTEST_F(BufferManagerTest, FlushBufferAfterUnmap, testing::ext::TestSize.Level0)
 {
-    BufferHandle* handle;
+    BufferHandle *handle;
 
     handle = buffer->GetBufferHandle();
     ASSERT_NE(handle, nullptr);
@@ -130,7 +130,7 @@ HWTEST_F(BufferManagerTest, FlushBufferAfterUnmap, testing::ext::TestSize.Level0
 
 HWTEST_F(BufferManagerTest, Free, testing::ext::TestSize.Level0)
 {
-    BufferHandle* handle;
+    BufferHandle *handle;
 
     handle = buffer->GetBufferHandle();
     ASSERT_NE(handle, nullptr);

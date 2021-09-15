@@ -127,7 +127,6 @@ HWTEST_F(WindowManagerImplTest, Init02, Reliability | SmallTest | Level2)
         }
 
         STEP("5. call Deinit, remove MockWindowManagerServiceClient") {
-            EXPECT_CALL(*m->Mock(), Deinit()).Times(0);
             wmi->Deinit();
         }
     }
@@ -316,7 +315,6 @@ HWTEST_F(WindowManagerImplTest, GetDisplays02, Function | MediumTest | Level2)
         }
 
         STEP("6. call Deinit, remove MockWindowManagerServiceClient") {
-            EXPECT_CALL(*m->Mock(), Deinit()).Times(1);
             wmi->Deinit();
         }
     }
@@ -615,7 +613,6 @@ HWTEST_F(WindowManagerImplTest, ListenNextScreenShot03, Reliability | MediumTest
         }
 
         STEP("8. call Deinit") {
-            EXPECT_CALL(*m->Mock(), Deinit()).Times(1);
             wmi->Deinit();
         }
     }
@@ -679,7 +676,6 @@ HWTEST_F(WindowManagerImplTest, ListenNextScreenShot04, Function | MediumTest | 
         }
 
         STEP("8. call Deinit, remove MockWindowManagerServiceClient") {
-            EXPECT_CALL(*m->Mock(), Deinit()).Times(1);
             wmi->Deinit();
         }
     }
@@ -801,7 +797,6 @@ HWTEST_F(WindowManagerImplTest, ListenNextWindowShot03, Reliability | MediumTest
         }
 
         STEP("8. call Deinit, remove MockWindowManagerServiceClient") {
-            EXPECT_CALL(*m->Mock(), Deinit()).Times(1);
             wmi->Deinit();
         }
     }
@@ -865,7 +860,6 @@ HWTEST_F(WindowManagerImplTest, ListenNextWindowShot04, Function | MediumTest | 
         }
 
         STEP("8. call Deinit, remove MockWindowManagerServiceClient") {
-            EXPECT_CALL(*m->Mock(), Deinit()).Times(1);
             wmi->Deinit();
         }
     }

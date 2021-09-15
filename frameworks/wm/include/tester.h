@@ -29,7 +29,7 @@
 namespace OHOS {
 class Tester {
 public:
-    static Tester& Get();
+    static Tester &Get();
 
     bool NeedReturnTestNew(const std::string &str);
     void *ReturnTestNew(const std::string &str);

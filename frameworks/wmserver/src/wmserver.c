@@ -40,6 +40,7 @@
 
 #define WINDOW_ID_BIT 5
 #define WINDOW_ID_LIMIT  (1 << WINDOW_ID_BIT)
+#define WINDOW_ID_FLAGS_FILL_ALL ((uint32_t) ~0)
 #define WINDOW_ID_NUM_MAX 1024
 #define WINDOW_ID_INVALID 0
 
@@ -92,6 +93,7 @@ struct WmsController {
     uint32_t windowIdFlags;
     struct wl_client *pWlClient;
     struct wl_list wlListLink;
+    struct wl_list wlListLinkRes;
     struct WmsContext *pWmsCtx;
     struct ScreenshotFrameListener stListener;
 };
@@ -101,12 +103,27 @@ static struct WmsContext g_wmsCtx = {0};
 static ScreenInfoChangeListener g_screenInfoChangeListener = NULL;
 static SeatInfoChangeListener g_seatInfoChangeListener = NULL;
 
+static void SendGlobalWindowStatus(const struct WmsController *pController, uint32_t windowId, uint32_t status)
+{
+    LOGD("start.");
+    struct WmsContext *pWmsCtx = pController->pWmsCtx;
+    struct WmsController *pControllerTemp;
+    pid_t pid;
+
+    wl_client_get_credentials(pController->pWlClient, &pid, NULL, NULL);
+
+    wl_list_for_each(pControllerTemp, &pWmsCtx->wlListGlobalEventResource, wlListLinkRes) {
+        wms_send_global_window_status(pControllerTemp->pWlResource, pid, windowId, status);
+    }
+    LOGD("end.");
+}
+
 void SetSeatListener(const SeatInfoChangeListener listener)
 {
     g_seatInfoChangeListener = listener;
 }
 
-static void SeatInfoChangerNotify()
+static void SeatInfoChangerNotify(void)
 {
     if (g_seatInfoChangeListener) {
         LOGD("call seatInfoChangeListener.");
@@ -121,7 +138,7 @@ void SetScreenListener(const ScreenInfoChangeListener listener)
     g_screenInfoChangeListener = listener;
 }
 
-static void ScreenInfoChangerNotify()
+static void ScreenInfoChangerNotify(void)
 {
     if (g_screenInfoChangeListener) {
         LOGD("call screenInfoChangeListener.");
@@ -131,7 +148,7 @@ static void ScreenInfoChangerNotify()
     }
 }
 
-struct WmsContext *GetWmsInstance()
+struct WmsContext *GetWmsInstance(void)
 {
     return &g_wmsCtx;
 }
@@ -173,8 +190,7 @@ static struct WindowSurface *GetWindowSurface(const struct weston_surface *surfa
     return windowSurface;
 }
 
-static void SetSourceRectangle(
-    const struct WindowSurface *windowSurface,
+static void SetSourceRectangle(const struct WindowSurface *windowSurface,
     int32_t x, int32_t y, int32_t width, int32_t height)
 {
     struct ivi_layout_interface_for_wms *layoutInterface = windowSurface->controller->pWmsCtx->pLayoutInterface;
@@ -284,7 +300,7 @@ static void DisplayModeUpdate(const struct WmsContext *pCtx)
     }
 }
 
-static bool CheckWindowId(struct wl_client *client, 
+static bool CheckWindowId(struct wl_client *client,
                           uint32_t windowId)
 {
     pid_t pid;
@@ -331,7 +347,7 @@ static uint32_t GetWindowId(struct WmsController *pController)
         return windowId;
     }
 
-    if (pController->windowIdFlags == WINDOW_ID_LIMIT) {
+    if (pController->windowIdFlags == WINDOW_ID_FLAGS_FILL_ALL) {
         LOGE("failed, number of window per process = %{public}d", WINDOW_ID_LIMIT);
         return windowId;
     }
@@ -375,12 +391,14 @@ static void SurfaceDestroy(const struct WindowSurface *surface)
     wms_send_window_status(surface->controller->pWlResource,
         WMS_WINDOW_STATUS_DESTROYED, surface->surfaceId, 0, 0, 0, 0);
 
+    SendGlobalWindowStatus(surface->controller, surface->surfaceId, WMS_WINDOW_STATUS_DESTROYED);
+
     free(surface);
 
     LOGD(" end.");
 }
 
-static void WindowSurfaceDestroy(const struct wl_listener *listener, 
+static void WindowSurfaceDestroy(const struct wl_listener *listener,
     const struct weston_compositor *data)
 {
     LOGD("start.");
@@ -414,7 +432,7 @@ static struct ivi_layout_layer *GetLayer(
     return layoutLayer;
 }
 
-static struct WmsScreen *GetScreenFromId(const struct WmsContext *ctx, 
+static struct WmsScreen *GetScreenFromId(const struct WmsContext *ctx,
                                          uint32_t screenId)
 {
     struct WmsScreen *screen = NULL;
@@ -522,8 +540,8 @@ static bool AddWindow(struct WindowSurface *windowSurface)
     return true;
 }
 
-static void ControllerCommitChanges(const struct wl_client* client,
-                                    const struct wl_resource* resource)
+static void ControllerCommitChanges(const struct wl_client *client,
+                                    const struct wl_resource *resource)
 {
     LOGD("start.");
     struct WmsController *controller = wl_resource_get_user_data(resource);
@@ -534,8 +552,8 @@ static void ControllerCommitChanges(const struct wl_client* client,
     LOGD("end.");
 }
 
-static void ControllerSetDisplayMode(const struct wl_client* client,
-                                     const struct wl_resource* resource,
+static void ControllerSetDisplayMode(const struct wl_client *client,
+                                     const struct wl_resource *resource,
                                      uint32_t displayMode)
 {
     LOGD("start. displayMode %{public}d", displayMode);
@@ -581,7 +599,7 @@ static void ControllerSetDisplayMode(const struct wl_client* client,
 
 static void SetWindowType(const struct WmsContext *pCtx,
                           const struct WindowSurface *pWindowSurface,
-                          const struct wl_resource* pWlResource,
+                          const struct wl_resource *pWlResource,
                           uint32_t windowType)
 {
     struct WmsScreen *pScreen = NULL;
@@ -621,8 +639,8 @@ static void SetWindowType(const struct WmsContext *pCtx,
     }
 }
 
-static void ControllerSetWindowType(const struct wl_client* pWlClient,
-                                    const struct wl_resource* pWlResource,
+static void ControllerSetWindowType(const struct wl_client *pWlClient,
+                                    const struct wl_resource *pWlResource,
                                     uint32_t windowId, uint32_t windowType)
 {
     LOGD("start. windowId=%{public}d, windowType=%{public}d", windowId, windowType);
@@ -664,7 +682,7 @@ static void ControllerSetWindowType(const struct wl_client* pWlClient,
 }
 
 static void ControllerSetWindowVisibility(
-    const struct wl_client* client, const struct wl_resource* resource,
+    const struct wl_client *client, const struct wl_resource *resource,
     uint32_t windowId, uint32_t visibility)
 {
     LOGD("start. windowId=%{public}d, visibility=%{public}d", windowId, visibility);
@@ -691,8 +709,8 @@ static void ControllerSetWindowVisibility(
     LOGD("end.");
 }
 
-static void ControllerSetWindowSize(const struct wl_client* client,
-    const struct wl_resource* resource, uint32_t windowId,
+static void ControllerSetWindowSize(const struct wl_client *client,
+    const struct wl_resource *resource, uint32_t windowId,
     int32_t width, int32_t height)
 {
     LOGD("start. windowId=%{public}d, width=%{public}d, height=%{public}d", windowId, width, height);
@@ -723,8 +741,8 @@ static void ControllerSetWindowSize(const struct wl_client* client,
     LOGD("end.");
 }
 
-static void ControllerSetWindowScale(const struct wl_client* client,
-    const struct wl_resource* resource, uint32_t windowId,
+static void ControllerSetWindowScale(const struct wl_client *client,
+    const struct wl_resource *resource, uint32_t windowId,
     int32_t width, int32_t height)
 {
     LOGD("start. windowId=%{public}d, width=%{public}d, height=%{public}d", windowId, width, height);
@@ -807,14 +825,14 @@ static void PointerSetFocus(const struct WmsSeat *seat)
         return;
     }
 
-    if (NULL != pointer->focus) {
+    if (pointer->focus != NULL) {
         LOGE("weston_pointer_clear_focus.");
         weston_pointer_clear_focus(pointer);
     }
 
     struct weston_surface *forcedSurface = forcedWindow->surface;
     LOGI("weston_pointer_set_focus0.");
-    if ((NULL != forcedSurface) && !wl_list_empty(&forcedSurface->views)) {
+    if (forcedSurface != NULL && !wl_list_empty(&forcedSurface->views)) {
         LOGI("weston_pointer_set_focus1.");
         struct weston_view *view = wl_container_of(forcedSurface->views.next, view, surface_link);
         wl_fixed_t sx, sy;
@@ -887,8 +905,8 @@ static bool FocusUpdate(const struct WindowSurface *surface)
     return true;
 }
 
-static void ControllerSetWindowTop(const struct wl_client* client,
-    const struct wl_resource* resource, uint32_t windowId)
+static void ControllerSetWindowTop(const struct wl_client *client,
+    const struct wl_resource *resource, uint32_t windowId)
 {
     LOGD("start. windowId=%{public}d", windowId);
     struct WmsController *controller = wl_resource_get_user_data(resource);
@@ -909,7 +927,6 @@ static void ControllerSetWindowTop(const struct wl_client* client,
     }
 
     ctx->pLayoutInterface->surface_change_top(windowSurface->layoutSurface);
-    
     if (!FocusUpdate(windowSurface)) {
         LOGE("FocusUpdate failed.");
         wms_send_reply_error(resource, WMS_ERROR_INNER_ERROR);
@@ -920,8 +937,8 @@ static void ControllerSetWindowTop(const struct wl_client* client,
     LOGD("end.");
 }
 
-static void ControllerDestroyWindow(const struct wl_client* client,
-    const struct wl_resource* resource, uint32_t windowId)
+static void ControllerDestroyWindow(const struct wl_client *client,
+    const struct wl_resource *resource, uint32_t windowId)
 {
     LOGD("start. windowId=%{public}d", windowId);
     struct WmsController *controller = wl_resource_get_user_data(resource);
@@ -959,7 +976,7 @@ static void CreateWindow(struct WmsController *pWmsController,
 {
     struct WindowSurface *pWindow = NULL;
     struct WmsContext *pWmsCtx = pWmsController->pWmsCtx;
-    struct wl_resource* pWlResource = pWmsController->pWlResource;
+    struct wl_resource *pWlResource = pWmsController->pWlResource;
 
     pWindow = calloc(1, sizeof(*pWindow));
     if (!pWindow) {
@@ -1014,10 +1031,11 @@ static void CreateWindow(struct WmsController *pWmsController,
 
     wms_send_window_status(pWlResource, WMS_WINDOW_STATUS_CREATED, windowId,
                            pWindow->x, pWindow->y, pWindow->width, pWindow->height);
+    SendGlobalWindowStatus(pWmsController, windowId, WMS_WINDOW_STATUS_CREATED);
 }
 
-static void ControllerCreateWindow(const struct wl_client* pWlClient,
-    const struct wl_resource* pWlResource,
+static void ControllerCreateWindow(const struct wl_client *pWlClient,
+    const struct wl_resource *pWlResource,
     const struct wl_resource *pWlSurfaceResource,
     uint32_t screenId, uint32_t windowType)
 {
@@ -1026,7 +1044,7 @@ static void ControllerCreateWindow(const struct wl_client* pWlClient,
     struct WmsController *pWmsController = wl_resource_get_user_data(pWlResource);
     struct WmsContext *pWmsCtx = pWmsController->pWmsCtx;
     struct weston_surface *westonSurface = wl_resource_get_user_data(pWlSurfaceResource);
-    
+
     if (windowType >= WMS_WINDOW_TYPE_MAX_COUNT) {
         LOGE("windowType %{public}d error.", windowType);
         wms_send_window_status(pWlResource, WMS_WINDOW_STATUS_FAILED, WINDOW_ID_INVALID, 0, 0, 0, 0);
@@ -1059,17 +1077,13 @@ static void ControllerCreateWindow(const struct wl_client* pWlClient,
 
 static int CreateScreenshotFile(off_t size)
 {
-    int fd;
     char template[] = SCREEN_SHOT_FILE_PATH;
-
-    fd = mkstemp(template);
-
+    int fd = mkstemp(template);
     if (fd < 0) {
         return -1;
     }
 
     unlink(template);
-
     if (ftruncate(fd, size) < 0) {
         close(fd);
         return -1;
@@ -1078,8 +1092,8 @@ static int CreateScreenshotFile(off_t size)
     return fd;
 }
 
-static void ControllerWindowshot(const struct wl_client* pWlClient,
-    const struct wl_resource* pWlResource, uint32_t windowId)
+static void ControllerWindowshot(const struct wl_client *pWlClient,
+    const struct wl_resource *pWlResource, uint32_t windowId)
 {
     LOGD("start. windowId = %{public}d.", windowId);
     struct WmsController *pWmsController = wl_resource_get_user_data(pWlResource);
@@ -1260,8 +1274,8 @@ static void ScreenshotOutputDestroyed(const struct wl_listener *pListener,
     LOGD("end.");
 }
 
-static void ControllerScreenshot(const struct wl_client* pClient,
-    const struct wl_resource* pResource, uint32_t screenId)
+static void ControllerScreenshot(const struct wl_client *pClient,
+    const struct wl_resource *pResource, uint32_t screenId)
 {
     LOGD("start. screenId = %{public}d.", screenId);
     struct WmsController *pWmsController = wl_resource_get_user_data(pResource);
@@ -1287,6 +1301,44 @@ static void ControllerScreenshot(const struct wl_client* pClient,
     LOGD("end.");
 }
 
+static void AddGlobalWindowStatus(const struct WmsController *pController)
+{
+    LOGD("start.");
+    struct WmsContext *pWmsCtx = pController->pWmsCtx;
+    struct WmsController *pControllerTemp;
+    bool found = false;
+
+    wl_list_for_each(pControllerTemp, &pWmsCtx->wlListGlobalEventResource, wlListLinkRes) {
+        if (pControllerTemp == pController) {
+            LOGE("GlobalWindowStatus is already set.");
+            found = true;
+        }
+    }
+
+    if (!found) {
+        wl_list_insert(&pWmsCtx->wlListGlobalEventResource, &pController->wlListLinkRes);
+    }
+
+    LOGD("end.");
+}
+
+static void ControllerSetGlobalWindowStatus(const struct wl_client *pClient,
+    const struct wl_resource *pResource, int32_t status)
+{
+    LOGD("start. status = %{public}d.", status);
+    struct WmsController *pWmsController = wl_resource_get_user_data(pResource);
+    struct WmsContext *pWmsCtx = pWmsController->pWmsCtx;
+
+    if (status == 0) {
+        wl_list_remove(&pWmsController->wlListLinkRes);
+    } else {
+        AddGlobalWindowStatus(pWmsController);
+    }
+
+    wms_send_reply_error(pResource, WMS_ERROR_OK);
+    LOGD("end.");
+}
+
 // wms controller interface implementation
 static const struct wms_interface g_controllerImplementation = {
     ControllerCreateWindow,
@@ -1299,6 +1351,7 @@ static const struct wms_interface g_controllerImplementation = {
     ControllerSetWindowType,
     ControllerSetDisplayMode,
     ControllerCommitChanges,
+    ControllerSetGlobalWindowStatus,
     ControllerScreenshot,
     ControllerWindowshot,
 };
@@ -1311,6 +1364,11 @@ static void UnbindWmsController(const struct wl_resource *pResource)
     struct WindowSurface *pWindowSurface = NULL;
     struct WindowSurface *pNext = NULL;
 
+    struct WmsController *pControllerTemp = NULL;
+    struct WmsController *pControllerNext = NULL;
+
+    wl_list_remove(&pController->wlListLinkRes);
+
     wl_list_for_each_safe(pWindowSurface, pNext, &pWmsCtx->wlListWindow, link) {
         if (pWindowSurface->controller == pController) {
             SurfaceDestroy(pWindowSurface);
@@ -1318,7 +1376,6 @@ static void UnbindWmsController(const struct wl_resource *pResource)
     }
 
     wl_list_remove(&pController->wlListLink);
-
     wl_list_remove(&pController->stListener.frameListener.link);
     wl_list_remove(&pController->stListener.outputDestroyed.link);
 
@@ -1354,6 +1411,7 @@ static void BindWmsController(struct wl_client *pClient,
     pController->pWlClient = pClient;
     pController->id = id;
 
+    wl_list_init(&pController->wlListLinkRes);
     wl_list_insert(&pCtx->wlListController, &pController->wlListLink);
     wl_list_init(&pController->stListener.frameListener.link);
     wl_list_init(&pController->stListener.outputDestroyed.link);
@@ -1418,7 +1476,7 @@ static void SeatDestroyedEvent(const struct wl_listener *listener, const struct 
     LOGD("end.");
 }
 
-static void WmsControllerDestroy(const struct wl_listener *listener, 
+static void WmsControllerDestroy(const struct wl_listener *listener,
     const struct weston_compositor *data)
 {
     LOGD("start.");
@@ -1466,7 +1524,7 @@ static int32_t CreateScreen(struct WmsContext *pCtx,
     return 0;
 }
 
-static void OutputDestroyedEvent(const struct wl_listener *listener, 
+static void OutputDestroyedEvent(const struct wl_listener *listener,
                                  struct weston_output *data)
 {
     LOGD("start.");
@@ -1532,21 +1590,24 @@ static int WmsContextInit(struct WmsContext *ctx, struct weston_compositor *comp
     wl_list_init(&ctx->wlListWindow);
     wl_list_init(&ctx->wlListScreen);
     wl_list_init(&ctx->wlListSeat);
+    wl_list_init(&ctx->wlListGlobalEventResource);
 
     ctx->pCompositor = compositor;
     ctx->pLayoutInterface = ivi_layout_get_api_for_wms(compositor);
-#ifdef USE_IVI_INPUT_FOCUS
-    ctx->pInputInterface = ivi_input_get_api_for_wms(compositor);
-#endif
-    if (!ctx->pLayoutInterface
-#ifdef USE_IVI_INPUT_FOCUS
-    || !ctx->pInputInterface
-#endif
-    ) {
+    if (!ctx->pLayoutInterface) {
         free(ctx);
         LOGE("ivi_xxx_get_api_for_wms failed.");
         return -1;
     }
+
+#ifdef USE_IVI_INPUT_FOCUS
+    ctx->pInputInterface = ivi_input_get_api_for_wms(compositor);
+    if (!ctx->pInputInterface) {
+        free(ctx);
+        LOGE("ivi_xxx_get_api_for_wms failed.");
+        return -1;
+    }
+#endif
 
     ctx->wlListenerOutputCreated.notify = OutputCreatedEvent;
     ctx->wlListenerOutputDestroyed.notify = OutputDestroyedEvent;

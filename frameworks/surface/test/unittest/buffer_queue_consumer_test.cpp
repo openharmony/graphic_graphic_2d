@@ -42,7 +42,7 @@ HWTEST_F(BufferQueueConsumerTest, AcqRel, testing::ext::TestSize.Level0)
     ASSERT_GE(retval.sequence, 0);
     ASSERT_NE(retval.buffer, nullptr);
 
-    uint8_t* addr1 = reinterpret_cast<uint8_t*>(retval.buffer->GetVirAddr());
+    uint8_t *addr1 = reinterpret_cast<uint8_t*>(retval.buffer->GetVirAddr());
     ASSERT_NE(addr1, nullptr);
 
     ret = bq->FlushBuffer(retval.sequence, bedata, -1, flushConfig);

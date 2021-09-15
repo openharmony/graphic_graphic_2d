@@ -71,7 +71,7 @@ BufferClientProducer::~BufferClientProducer()
     BLOGNI("dtor");
 }
 
-SurfaceError BufferClientProducer::RequestBuffer(const BufferRequestConfig& config, BufferExtraData &bedata,
+SurfaceError BufferClientProducer::RequestBuffer(const BufferRequestConfig &config, BufferExtraData &bedata,
                                                  RequestBufferReturnValue &retval)
 {
     DEFINE_MESSAGE_VARIABLES(arguments, reply, option, BLOGE);
@@ -102,7 +102,7 @@ SurfaceError BufferClientProducer::CancelBuffer(int32_t sequence, BufferExtraDat
 }
 
 SurfaceError BufferClientProducer::FlushBuffer(int32_t sequence, BufferExtraData &bedata,
-                             int32_t fence, BufferFlushConfig& config)
+                             int32_t fence, BufferFlushConfig &config)
 {
     DEFINE_MESSAGE_VARIABLES(arguments, reply, option, BLOGE);
 

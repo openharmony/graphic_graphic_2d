@@ -61,14 +61,14 @@ void WaylandService::Appear(uint32_t id, const std::string iname, uint32_t ver) 
     auto getService = std::bind(wl_registry_bind,
         registry, id, std::placeholders::_1, std::placeholders::_2);
 
-    for (const auto& func : appearListenFuncs) {
+    for (const auto &func : appearListenFuncs) {
         func(getService, iname, ver);
     }
 }
 
 void WaylandService::Remove(uint32_t name) const
 {
-    for (const auto& func : removeListenFuncs) {
+    for (const auto &func : removeListenFuncs) {
         func(name);
     }
 }
@@ -87,8 +87,8 @@ void RegistryGlobalRemove(void *, struct wl_registry *, uint32_t name)
 
 WMError WaylandService::Start()
 {
-    const auto& display = delegator.Dep<WlDisplay>();
-    const auto& wlDisplay = display->GetRawPtr();
+    const auto &display = delegator.Dep<WlDisplay>();
+    const auto &wlDisplay = display->GetRawPtr();
     if (wlDisplay == nullptr) {
         WMLOGFE("wl_display is nullptr");
         return WM_ERROR_NOT_INIT;

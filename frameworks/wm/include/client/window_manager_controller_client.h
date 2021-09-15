@@ -62,7 +62,7 @@ struct InnerWindowInfo {
     sptr<InputListener> logListener;
     sptr<MultimodalListener> mmiListener;
 
-    bool operator == (const InnerWindowInfo& other) const
+    bool operator ==(const InnerWindowInfo &other) const
     {
         return windowid == other.windowid;
     }
@@ -74,8 +74,8 @@ public:
 
     bool init(sptr<IWindowManagerService> &service);
 
-    InnerWindowInfo* CreateWindow(int32_t id, WindowConfig& config);
-    InnerWindowInfo* CreateSubWindow(int32_t subid, int32_t parentid, WindowConfig& config);
+    InnerWindowInfo *CreateWindow(int32_t id, WindowConfig &config);
+    InnerWindowInfo *CreateSubWindow(int32_t subid, int32_t parentid, WindowConfig &config);
     void CreateWlBuffer(sptr<Surface>& surface, uint32_t id);
     void DestroyWindow(int32_t id);
     void Move(int32_t id, int32_t x, int32_t y);
@@ -92,9 +92,9 @@ public:
     void RegistOnWindowCreateCb(int32_t id, void(* cb)(uint32_t pid));
     void SendWindowCreate(uint32_t pid);
 
-    InnerWindowInfo* GetInnerWindowInfoFromId(uint32_t windowid);
+    InnerWindowInfo *GetInnerWindowInfoFromId(uint32_t windowid);
     void RemoveInnerWindowInfo(uint32_t id);
-    static void* thread_display_dispatch(void* param);
+    static void *thread_display_dispatch(void *param);
 
 protected:
     bool CreateSurface(int32_t id);

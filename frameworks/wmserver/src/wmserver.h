@@ -37,6 +37,7 @@ struct WmsContext {
     struct wl_list wlListWindow;
     struct wl_list wlListScreen;
     struct wl_list wlListSeat;
+    struct wl_list wlListGlobalEventResource;
     struct wl_listener wlListenerDestroy;
     struct wl_listener wlListenerOutputCreated;
     struct wl_listener wlListenerOutputDestroyed;
@@ -63,6 +64,6 @@ struct WmsScreen {
     struct weston_output *westonOutput;
 };
 
-struct WmsContext *GetWmsInstance();
+struct WmsContext *GetWmsInstance(void);
 
 #endif // FRAMEWORKS_WMSERVER_SRC_WMSERVER_H

@@ -73,8 +73,8 @@ void MultimodalListenerManager::RemoveListener(sptr<MultimodalListener> &listene
     if (listener == nullptr) {
         return;
     }
-    auto& v = windowCallback[listener->GetWindow()];
-    auto match = [&listener](const auto& l) {
+    auto &v = windowCallback[listener->GetWindow()];
+    auto match = [&listener](const auto &l) {
         return listener == l;
     };
     auto it = std::find_if(v.begin(), v.end(), match);
@@ -126,7 +126,7 @@ uint32_t MultimodalListenerManager::GetMouseButton(uint32_t button)
     }
 }
 
-void MultimodalListenerManager::ProcessActionEvent(ActionEventInfo& actionEvent, TouchProperty& touchProperty)
+void MultimodalListenerManager::ProcessActionEvent(ActionEventInfo &actionEvent, TouchProperty &touchProperty)
 {
     constexpr uint32_t actionTypeOne = 1;
     constexpr uint32_t actionTypeTwo = 2;
@@ -157,7 +157,7 @@ void MultimodalListenerManager::ProcessActionEvent(ActionEventInfo& actionEvent,
 }
 
 void MultimodalListenerManager::TouchEventEncap(
-    ActionEventInfo& actionEvent, TouchEvent& touchEvent, int32_t size)
+    ActionEventInfo &actionEvent, TouchEvent &touchEvent, int32_t size)
 {
     MultimodalProperty multimodalProperty = {
         .highLevelEvent = 0,
@@ -280,8 +280,8 @@ void MultimodalListenerManager::KeyboardHandleKey(void *data,
     }
 
     event.Initialize(multiProperty, keyProperty);
-    const auto& mls = GetInputCallback(data);
-    for (const auto& ml : mls) {
+    const auto &mls = GetInputCallback(data);
+    for (const auto &ml : mls) {
         if (ml->keyboardKeyCb) {
             ml->keyboardKeyCb(event);
         }
@@ -327,8 +327,8 @@ void MultimodalListenerManager::TouchHandleUp(void *data, uint32_t serial, uint3
         TouchEvent touchEvent;
         TouchEventEncap(actionEventInfo, touchEvent, MAX_TOUCH_NUM);
 
-        const auto& mls = GetInputCallback(data);
-        for (const auto& ml : mls) {
+        const auto &mls = GetInputCallback(data);
+        for (const auto &ml : mls) {
             if (ml->onTouchCb) {
                 ml->onTouchCb(touchEvent);
             }
@@ -359,8 +359,8 @@ void MultimodalListenerManager::TouchHandleFrame(void *data)
         TouchEvent touchEvent;
         TouchEventEncap(actionEventInfo, touchEvent, MAX_TOUCH_NUM);
 
-        const auto& mls = GetInputCallback(data);
-        for (const auto& ml : mls) {
+        const auto &mls = GetInputCallback(data);
+        for (const auto &ml : mls) {
             if (ml->onTouchCb) {
                 ml->onTouchCb(touchEvent);
             }
@@ -431,8 +431,8 @@ int32_t MultimodalListenerManager::SendCallbackForMouse(void *data)
     touchEvent.Initialize(multimodal, manipulationProperty, touch);
     touchEvent.SetMultimodalEvent(mouseEvent);
 
-    const auto& mls = GetInputCallback(data);
-    for (const auto& ml : mls) {
+    const auto &mls = GetInputCallback(data);
+    for (const auto &ml : mls) {
         if (ml->onTouchCb) {
             ml->onTouchCb(touchEvent);
         }

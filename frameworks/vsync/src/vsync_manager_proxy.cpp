@@ -65,7 +65,7 @@ VsyncError VsyncManagerProxy::ListenVsync(sptr<IVsyncCallback>& cb)
     return VSYNC_ERROR_OK;
 }
 
-VsyncError VsyncManagerProxy::GetVsyncFrequency(uint32_t& freq)
+VsyncError VsyncManagerProxy::GetVsyncFrequency(uint32_t &freq)
 {
     MessageOption opt;
     MessageParcel arg;

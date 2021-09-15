@@ -29,21 +29,21 @@ extern "C" {
 * @param reserveFds The number of reserved fds
 * @return Returns pointer to buffer handle if the operation is successful; returns <b>nullptr</b> otherwise.
 */
-BufferHandle* AllocateBufferHandle(uint32_t reserveInts, uint32_t reserveFds);
+BufferHandle *AllocateBufferHandle(uint32_t reserveInts, uint32_t reserveFds);
 
 /**
 * @Description: Free buffer handle allocated by AllocateBufferHandle, and close the fd at the same time.
 * @param handle Buffer handle which is to be freed.
 * @return  Returns <b>0</b> if the operation is successful; returns <b>-1</b> if failed
 */
-int32_t FreeBufferHandle(BufferHandle* handle);
+int32_t FreeBufferHandle(BufferHandle *handle);
 
 /**
 * @Description: clone a new buffer handle based on given buffer handle
 * @param handle Buffer handle which is to be cloned.
 * @return  Returns pointer to buffer handle if the operation is successful; returns <b>nullptr</b> otherwise.
 */
-BufferHandle* CloneBufferHandle(const BufferHandle* handle);
+BufferHandle *CloneBufferHandle(const BufferHandle *handle);
 
 #ifdef __cplusplus
 }

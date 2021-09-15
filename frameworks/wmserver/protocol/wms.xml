@@ -100,6 +100,11 @@
       <description summary="commit all changes requested by client"/>
     </request>
 
+    <request name="config_global_window_status">
+      <description summary="config global window status"/>
+      <arg name="status" type="int" summary="disable: 0, enable: not 0"/>
+    </request>
+
     <enum name="window_status">
       <description summary="window status">
       </description>
@@ -202,6 +207,14 @@
       </description>
       <arg name="error" type="uint" enum="error"/>
       <arg name="id" type="uint" summary="window id"/>
+    </event>
+
+    <event name="global_window_status">
+      <description summary="global window status">
+      </description>
+      <arg name="pid" type="uint" summary="client pid"/>
+      <arg name="window_id" type="uint" summary="window id"/>
+      <arg name="status" type="uint" enum="window_status"/>
     </event>
   </interface>
 

@@ -131,7 +131,7 @@ HWTEST_F(VsyncManagerStubTest, Callback2, testing::ext::TestSize.Level0)
 }
 } // namespace
 
-VsyncCallback::VsyncCallback(const int& count) : count_(const_cast<int *>(&count))
+VsyncCallback::VsyncCallback(int &count) : count_(&count)
 {
 }
 

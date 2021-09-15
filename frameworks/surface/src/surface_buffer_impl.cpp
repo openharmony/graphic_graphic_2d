@@ -57,12 +57,12 @@ SurfaceBufferImpl::~SurfaceBufferImpl()
     }
 }
 
-SurfaceBufferImpl* SurfaceBufferImpl::FromBase(const sptr<SurfaceBuffer>& buffer)
+SurfaceBufferImpl *SurfaceBufferImpl::FromBase(const sptr<SurfaceBuffer>& buffer)
 {
     return static_cast<SurfaceBufferImpl*>(buffer.GetRefPtr());
 }
 
-BufferHandle* SurfaceBufferImpl::GetBufferHandle() const
+BufferHandle *SurfaceBufferImpl::GetBufferHandle() const
 {
     return handle_;
 }
@@ -121,7 +121,7 @@ int32_t SurfaceBufferImpl::GetKey() const
     return handle_->key;
 }
 
-void* SurfaceBufferImpl::GetVirAddr() const
+void *SurfaceBufferImpl::GetVirAddr() const
 {
     if (handle_ == nullptr) {
         BLOGW("handle is nullptr");
@@ -157,7 +157,7 @@ SurfaceError SurfaceBufferImpl::SetInt32(uint32_t key, int32_t val)
     return SetData(key, int32);
 }
 
-SurfaceError SurfaceBufferImpl::GetInt32(uint32_t key, int32_t& val)
+SurfaceError SurfaceBufferImpl::GetInt32(uint32_t key, int32_t &val)
 {
     ExtraData int32;
     SurfaceError ret = GetData(key, int32);
@@ -185,7 +185,7 @@ SurfaceError SurfaceBufferImpl::SetInt64(uint32_t key, int64_t val)
     return SetData(key, int64);
 }
 
-SurfaceError SurfaceBufferImpl::GetInt64(uint32_t key, int64_t& val)
+SurfaceError SurfaceBufferImpl::GetInt64(uint32_t key, int64_t &val)
 {
     ExtraData int64;
     SurfaceError ret = GetData(key, int64);
@@ -225,7 +225,7 @@ SurfaceError SurfaceBufferImpl::SetData(uint32_t key, ExtraData data)
     return SURFACE_ERROR_OK;
 }
 
-SurfaceError SurfaceBufferImpl::GetData(uint32_t key, ExtraData& data)
+SurfaceError SurfaceBufferImpl::GetData(uint32_t key, ExtraData &data)
 {
     auto it = extraDatas_.find(key);
     if (it == extraDatas_.end()) {
@@ -288,12 +288,12 @@ SurfaceError SurfaceBufferImpl::ExtraSet(std::string key, std::string value)
     return bedataimpl.ExtraSet(key, value);
 }
 
-void SurfaceBufferImpl::SetBufferHandle(BufferHandle* handle)
+void SurfaceBufferImpl::SetBufferHandle(BufferHandle *handle)
 {
     handle_ = handle;
 }
 
-void SurfaceBufferImpl::WriteToMessageParcel(MessageParcel& parcel)
+void SurfaceBufferImpl::WriteToMessageParcel(MessageParcel &parcel)
 {
     if (handle_ == nullptr) {
         BLOGE("Failure, Reason: handle_ is nullptr");

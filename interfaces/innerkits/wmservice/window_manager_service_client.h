@@ -27,7 +27,6 @@ public:
     static sptr<WindowManagerServiceClient> GetInstance();
 
     virtual WMError Init() = 0;
-    virtual WMError Deinit() = 0;
     virtual sptr<IWindowManagerService> GetService() const = 0;
 };
 } // namespace OHOS

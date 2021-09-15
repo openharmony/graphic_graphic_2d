@@ -15,10 +15,10 @@
 
 #include "native_test_16.h"
 
+#include <cinttypes>
 #include <cstdio>
 #include <securec.h>
 #include <sys/time.h>
-#include <inttypes.h>
 
 #include <zlib.h>
 

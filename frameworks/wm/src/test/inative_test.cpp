@@ -35,7 +35,7 @@ void INativeTest::VisitTests(VisitTestFunc func)
     }
 }
 
-INativeTest::INativeTest()
+INativeTest::INativeTest() noexcept
 {
     g_tests.push_back(this);
 }

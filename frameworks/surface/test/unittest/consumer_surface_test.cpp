@@ -182,7 +182,7 @@ HWTEST_F(ConsumerSurfaceTest, RegisterConsumerListener, testing::ext::TestSize.L
             int32_t flushFence;
 
             cs->AcquireBuffer(buffer, flushFence, timestamp, damage);
-            int32_t* p = (int32_t*)buffer->GetVirAddr();
+            int32_t *p = (int32_t*)buffer->GetVirAddr();
             if (p != nullptr) {
                 for (int32_t i = 0; i < 128; i++) {
                     ASSERT_EQ(p[i], i);
@@ -203,7 +203,7 @@ HWTEST_F(ConsumerSurfaceTest, RegisterConsumerListener, testing::ext::TestSize.L
     ASSERT_EQ(ret, SURFACE_ERROR_OK);
     ASSERT_NE(buffer, nullptr);
 
-    int32_t* p = (int32_t*)buffer->GetVirAddr();
+    int32_t *p = (int32_t*)buffer->GetVirAddr();
     if (p != nullptr) {
         for (int32_t i = 0; i < 128; i++) {
             p[i] = i;
@@ -227,7 +227,7 @@ HWTEST_F(ConsumerSurfaceTest, RegisterConsumerListenerWithParam, testing::ext::T
     ASSERT_EQ(ret, SURFACE_ERROR_OK);
     ASSERT_NE(buffer, nullptr);
 
-    int32_t* p = (int32_t*)buffer->GetVirAddr();
+    int32_t *p = (int32_t*)buffer->GetVirAddr();
     if (p != nullptr) {
         for (int32_t i = 0; i < requestConfig.width * requestConfig.height; i++) {
             p[i] = i;

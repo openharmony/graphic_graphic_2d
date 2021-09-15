@@ -27,7 +27,7 @@ using VisitTestFunc = std::function<void(INativeTest *)>;
 class INativeTest {
 public:
     static void VisitTests(VisitTestFunc func);
-    INativeTest();
+    INativeTest() noexcept;
     virtual ~INativeTest() = default;
 
     virtual std::string GetDescription() const = 0;

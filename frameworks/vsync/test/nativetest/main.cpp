@@ -50,8 +50,8 @@ void Vsync(int64_t, void *, uint32_t freq, int32_t data, std::function<void(int3
 
 void Main()
 {
-    auto check = [](int32_t data, uint32_t cycle, int64_t& lastTime) {
-        if (data % cycle == 0) {
+    auto check = [](int32_t data, uint32_t cycle, int64_t &lastTime) {
+        if (cycle != 0 && data % cycle == 0) {
             int64_t diffTime = GetNowTime() - lastTime;
             constexpr int32_t nanosecondToSecond = 1000 * 1000 * 1000;
             double hz = static_cast<double>(cycle) * nanosecondToSecond / diffTime;

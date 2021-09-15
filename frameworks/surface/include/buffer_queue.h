@@ -61,13 +61,13 @@ public:
     SurfaceError CancelBuffer(int32_t sequence, const BufferExtraData &bedata);
 
     SurfaceError FlushBuffer(int32_t sequence, const BufferExtraData &bedata,
-                             int32_t fence, const BufferFlushConfig& config);
+                             int32_t fence, const BufferFlushConfig &config);
 
     SurfaceError DoFlushBuffer(int32_t sequence, const BufferExtraData &bedata,
-                               int32_t fence, const BufferFlushConfig& config);
+                               int32_t fence, const BufferFlushConfig &config);
 
-    SurfaceError AcquireBuffer(sptr<SurfaceBufferImpl>& buffer, int32_t& fence,
-                               int64_t& timestamp, Rect& damage);
+    SurfaceError AcquireBuffer(sptr<SurfaceBufferImpl>& buffer, int32_t &fence,
+                               int64_t &timestamp, Rect &damage);
     SurfaceError ReleaseBuffer(sptr<SurfaceBufferImpl>& buffer, int32_t fence);
 
     uint32_t GetQueueSize();
@@ -88,18 +88,18 @@ public:
     SurfaceError CleanCache();
 
 private:
-    SurfaceError AllocBuffer(sptr<SurfaceBufferImpl>& buffer, const BufferRequestConfig& config);
+    SurfaceError AllocBuffer(sptr<SurfaceBufferImpl>& buffer, const BufferRequestConfig &config);
     SurfaceError FreeBuffer(sptr<SurfaceBufferImpl>& buffer);
     void DeleteBufferInCache(int sequence);
 
     uint32_t GetUsedSize();
     void DeleteBuffers(int32_t count);
 
-    SurfaceError PopFromFreeList(sptr<SurfaceBufferImpl>& buffer, const BufferRequestConfig& config);
+    SurfaceError PopFromFreeList(sptr<SurfaceBufferImpl>& buffer, const BufferRequestConfig &config);
     SurfaceError PopFromDirtyList(sptr<SurfaceBufferImpl>& buffer);
 
-    SurfaceError CheckRequestConfig(const BufferRequestConfig& config);
-    SurfaceError CheckFlushConfig(const BufferFlushConfig& config);
+    SurfaceError CheckRequestConfig(const BufferRequestConfig &config);
+    SurfaceError CheckFlushConfig(const BufferFlushConfig &config);
 
     int32_t defaultWidth = 0;
     int32_t defaultHeight = 0;

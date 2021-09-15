@@ -29,7 +29,7 @@ void WriteFence(MessageParcel &parcel, int32_t fence);
 void ReadRequestConfig(MessageParcel &parcel, BufferRequestConfig &config);
 void WriteRequestConfig(MessageParcel &parcel, const BufferRequestConfig  &config);
 
-void ReadFlushConfig(MessageParcel &parcel, BufferFlushConfig& config);
+void ReadFlushConfig(MessageParcel &parcel, BufferFlushConfig &config);
 void WriteFlushConfig(MessageParcel &parcel, const BufferFlushConfig &config);
 
 void ReadSurfaceBufferImpl(MessageParcel &parcel, int32_t &sequence, sptr<SurfaceBuffer> &buffer);

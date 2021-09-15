@@ -45,8 +45,8 @@ void BufferClientProducerRemoteTest::SetUpTestCase()
         sptr<IBufferConsumerListener> listener = new BufferConsumerListener();
         bq->RegisterConsumerListener(listener);
 
-        auto sm = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-        sm->AddSystemAbility(systemAbilityID, bqp);
+        auto sam = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+        sam->AddSystemAbility(systemAbilityID, bqp);
 
         char buf[10] = "start";
         write(pipeFd[1], buf, sizeof(buf));
@@ -55,17 +55,17 @@ void BufferClientProducerRemoteTest::SetUpTestCase()
 
         read(pipeFd[0], buf, sizeof(buf));
 
-        sm->RemoveSystemAbility(systemAbilityID);
+        sam->RemoveSystemAbility(systemAbilityID);
 
         exit(0);
+    } else {
+        char buf[10];
+        read(pipeFd[0], buf, sizeof(buf));
+
+        auto sam = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+        robj = sam->GetSystemAbility(systemAbilityID);
+        bp = iface_cast<IBufferProducer>(robj);
     }
-
-    char buf[10];
-    read(pipeFd[0], buf, sizeof(buf));
-
-    auto sm = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-    robj = sm->GetSystemAbility(systemAbilityID);
-    bp = iface_cast<IBufferProducer>(robj);
 }
 
 void BufferClientProducerRemoteTest::TearDownTestCase()

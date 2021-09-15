@@ -37,7 +37,6 @@ group("unittest") {
     ":wl_subsurface_factory_test",
     ":wl_surface_factory_test",
     ":wp_viewport_factory_test",
-    "wms_client:test",
   ]
 }
 

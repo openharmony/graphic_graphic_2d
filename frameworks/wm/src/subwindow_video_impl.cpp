@@ -78,7 +78,7 @@ WMError SubwindowVideoImpl::CreateLayer(sptr<SubwindowVideoImpl> &svi)
         .width = svi->attr.GetWidth(),
         .height = svi->attr.GetHeight(),
         .type = LAYER_TYPE_SDIEBAND,
-        .bpp = 8,
+        .bpp = 0x8,
         .pixFormat = PIXEL_FMT_RGBA_8888,
     };
 #ifdef TARGET_CPU_ARM

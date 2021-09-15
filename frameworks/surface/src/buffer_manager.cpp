@@ -85,13 +85,13 @@ BufferManager::~BufferManager()
     }
 }
 
-SurfaceError BufferManager::Alloc(const BufferRequestConfig& config, sptr<SurfaceBufferImpl>& buffer)
+SurfaceError BufferManager::Alloc(const BufferRequestConfig &config, sptr<SurfaceBufferImpl>& buffer)
 {
     CHECK_INIT();
     CHECK_FUNC(grallocFuncs_->AllocMem);
     CHECK_BUFFER(buffer);
 
-    BufferHandle* handle = nullptr;
+    BufferHandle *handle = nullptr;
     AllocInfo info = {config.width, config.height, config.usage, (PixelFormat)config.format};
 
     int ret = grallocFuncs_->AllocMem(&info, &handle);
@@ -114,8 +114,8 @@ SurfaceError BufferManager::Map(sptr<SurfaceBufferImpl>& buffer)
     CHECK_FUNC(grallocFuncs_->Mmap);
     CHECK_BUFFER(buffer);
 
-    BufferHandle* handle = buffer->GetBufferHandle();
-    void* virAddr = grallocFuncs_->Mmap(reinterpret_cast<BufferHandle*>(handle));
+    BufferHandle *handle = buffer->GetBufferHandle();
+    void *virAddr = grallocFuncs_->Mmap(reinterpret_cast<BufferHandle*>(handle));
     if (virAddr == nullptr) {
         return SURFACE_ERROR_API_FAILED;
     }
@@ -132,7 +132,7 @@ SurfaceError BufferManager::Unmap(sptr<SurfaceBufferImpl>& buffer)
         return SURFACE_ERROR_OK;
     }
 
-    BufferHandle* handle = buffer->GetBufferHandle();
+    BufferHandle *handle = buffer->GetBufferHandle();
     int32_t ret = grallocFuncs_->Unmap(reinterpret_cast<BufferHandle*>(handle));
     if (ret == DISPLAY_SUCCESS) {
         handle->virAddr = nullptr;
@@ -148,7 +148,7 @@ SurfaceError BufferManager::FlushCache(sptr<SurfaceBufferImpl>& buffer)
     CHECK_FUNC(grallocFuncs_->FlushCache);
     CHECK_BUFFER(buffer);
 
-    BufferHandle* handle = buffer->GetBufferHandle();
+    BufferHandle *handle = buffer->GetBufferHandle();
     int32_t ret = grallocFuncs_->FlushCache(reinterpret_cast<BufferHandle*>(handle));
     if (ret == DISPLAY_SUCCESS) {
         return SURFACE_ERROR_OK;
@@ -163,7 +163,7 @@ SurfaceError BufferManager::InvalidateCache(sptr<SurfaceBufferImpl>& buffer)
     CHECK_FUNC(grallocFuncs_->InvalidateCache);
     CHECK_BUFFER(buffer);
 
-    BufferHandle* handle = buffer->GetBufferHandle();
+    BufferHandle *handle = buffer->GetBufferHandle();
     int32_t ret = grallocFuncs_->InvalidateCache(reinterpret_cast<BufferHandle*>(handle));
     if (ret == DISPLAY_SUCCESS) {
         return SURFACE_ERROR_OK;
@@ -178,7 +178,7 @@ SurfaceError BufferManager::Free(sptr<SurfaceBufferImpl>& buffer)
     CHECK_FUNC(grallocFuncs_->FreeMem);
     CHECK_BUFFER(buffer);
 
-    BufferHandle* handle = buffer->GetBufferHandle();
+    BufferHandle *handle = buffer->GetBufferHandle();
     if (handle == nullptr) {
         return SURFACE_ERROR_NULLPTR;
     }

@@ -24,7 +24,7 @@ namespace {
 constexpr HiviewDFX::HiLogLabel LABEL = {LOG_CORE, 0, "WMTester"};
 } // namespace
 
-Tester& Tester::Get()
+Tester &Tester::Get()
 {
     static Tester instance;
     return instance;

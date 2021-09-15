@@ -53,17 +53,19 @@ int32_t VsyncManager::OnRemoteRequest(uint32_t code, MessageParcel &data,
             VsyncError ret = ListenVsync(cb);
 
             REMOTE_RETURN(reply, ret);
-        } break;
+            break;
+        }
         case IVSYNC_MANAGER_GET_VSYNC_FREQUENCY: {
             uint32_t freq = 0;
             VsyncError ret = GetVsyncFrequency(freq);
             reply.WriteInt32(ret);
             reply.WriteUint32(freq);
-        } break;
+            break;
+        }
         default: {
             VLOG_FAILURE("code %{public}d cannot process", code);
             return 1;
-        } break;
+        }
     }
     return 0;
 }
@@ -86,7 +88,7 @@ VsyncError VsyncManager::ListenVsync(sptr<IVsyncCallback>& cb)
     return VSYNC_ERROR_OK;
 }
 
-VsyncError VsyncManager::GetVsyncFrequency(uint32_t& freq)
+VsyncError VsyncManager::GetVsyncFrequency(uint32_t &freq)
 {
     constexpr uint32_t defaultVsyncFrequency = 60;
     freq = defaultVsyncFrequency;
@@ -98,8 +100,9 @@ void VsyncManager::Callback(int64_t timestamp)
     VLOGI("call callback");
     std::lock_guard<std::mutex> lock(callbacksMutex_);
 
-    std::list<sptr<IVsyncCallback>> okcbs;
-    for (const auto& cb : callbacks_) {
+    using sptrIVsyncCallback = sptr<IVsyncCallback>;
+    std::list<sptrIVsyncCallback> okcbs;
+    for (const auto &cb : callbacks_) {
         if (cb->OnVsync(timestamp) != VSYNC_ERROR_BINDER_ERROR) {
             okcbs.push_back(cb);
         }

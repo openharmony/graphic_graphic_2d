@@ -22,6 +22,7 @@
 #include <refbase.h>
 #include <window_manager_type.h>
 
+#include "iwindow_change_listener_clazz.h"
 #include "iwindow_manager_display_listener_clazz.h"
 #include "window_manager_service_type.h"
 
@@ -34,6 +35,7 @@ public:
     virtual WMError GetDisplayModes(uint32_t &displayModes) = 0;
     virtual sptr<Promise<WMError>> SetDisplayMode(WMSDisplayMode modes) = 0;
     virtual WMError AddDisplayChangeListener(IWindowManagerDisplayListenerClazz *listener) = 0;
+    virtual sptr<Promise<WMError>> OnWindowListChange(IWindowChangeListenerClazz *listener) = 0;
 
     virtual WMError SetDisplayDirection(WMSDisplayDirection direction) = 0;
     virtual WMError OnDisplayDirectionChange(DisplayDirectionChangeFunc func) = 0;

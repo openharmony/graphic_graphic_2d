@@ -42,7 +42,7 @@ private:
         string,
     };
     template<class T>
-    SurfaceError ExtraGet(std::string &key, ExtraDataType type, T& value) const;
+    SurfaceError ExtraGet(std::string &key, ExtraDataType type, T &value) const;
     SurfaceError ExtraSet(std::string &key, ExtraDataType type, std::any val);
 
     struct ExtraData {

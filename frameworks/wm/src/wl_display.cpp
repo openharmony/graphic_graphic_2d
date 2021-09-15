@@ -226,53 +226,18 @@ void WlDisplay::DispatchThreadMain()
         return;
     }
 
+    if (startOnceFlag != nullptr) {
+        static const auto onceFunc = [this]() {
+            if (startPromise != nullptr) {
+                startPromise->Resolve(true);
+            }
+        };
+        std::call_once(*startOnceFlag, onceFunc);
+    }
+
     WMLOGFI("dispatch loop start");
     interruptFd = eventfd(0, EFD_CLOEXEC | EFD_NONBLOCK);
-    int32_t displayFd = GetFd();
-    while (true) {
-        if (startOnceFlag != nullptr) {
-            static const auto onceFunc = [this]() {
-                if (startPromise != nullptr) {
-                    startPromise->Resolve(true);
-                }
-            };
-            std::call_once(*startOnceFlag, onceFunc);
-        }
-
-        while (PrepareRead() != 0) {
-            DispatchPending();
-        }
-
-        if (Flush() == -1) {
-            WMLOGFE("Flush return -1");
-            break;
-        }
-
-        struct pollfd pfd[] = {
-            { .fd = displayFd,   .events = POLLIN, },
-            { .fd = interruptFd, .events = POLLIN, },
-        };
-
-        int32_t ret = poll(pfd, sizeof(pfd) / sizeof(*pfd), -1);
-        if (ret == -1) {
-            WMLOGFE("poll return -1");
-            CancelRead();
-            break;
-        }
-
-        if (pfd[1].revents & POLLIN) {
-            WMLOGFI("return by interrupt");
-            CancelRead();
-            break;
-        }
-
-        if (pfd[0].revents & POLLIN) {
-            ReadEvents();
-            if (DispatchPending() == -1) {
-                WMLOGFE("DispatchPending return -1");
-                break;
-            }
-        }
+    while (DispatchThreadCoreProcess()) {
     }
 
     WMLOGFI("return %{public}d, errno: %{public}d", GetError(), errno);
@@ -287,6 +252,45 @@ void WlDisplay::DispatchThreadMain()
         close(interruptFd);
         interruptFd = -1;
     }
+}
+
+bool WlDisplay::DispatchThreadCoreProcess()
+{
+    while (PrepareRead() != 0) {
+        DispatchPending();
+    }
+
+    if (Flush() == -1) {
+        WMLOGFE("Flush return -1");
+        return false;
+    }
+
+    struct pollfd pfd[] = {
+        { .fd = GetFd(),   .events = POLLIN, },
+        { .fd = interruptFd, .events = POLLIN, },
+    };
+
+    int32_t ret = poll(pfd, sizeof(pfd) / sizeof(*pfd), -1);
+    if (ret == -1) {
+        WMLOGFE("poll return -1");
+        CancelRead();
+        return false;
+    }
+
+    if (pfd[1].revents & POLLIN) {
+        WMLOGFI("return by interrupt");
+        CancelRead();
+        return false;
+    }
+
+    if (pfd[0].revents & POLLIN) {
+        ReadEvents();
+        if (DispatchPending() == -1) {
+            WMLOGFE("DispatchPending return -1");
+            return false;
+        }
+    }
+    return true;
 }
 
 void WlDisplay::InterruptDispatchThread()

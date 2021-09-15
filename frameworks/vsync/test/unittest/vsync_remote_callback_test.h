@@ -23,9 +23,7 @@
 
 namespace OHOS {
 namespace Vsync {
-namespace {
 constexpr int32_t IPC_VSYNCCALLBACK_SAID = 564321;
-}
 class VsyncCallbackTest : public testing::Test {
 public:
     static void SetUpTestCase();

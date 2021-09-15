@@ -80,7 +80,7 @@ HWTEST_F(BufferQueueTest, ReqFluAcqRel, testing::ext::TestSize.Level0)
     cache[retval.sequence] = retval.buffer;
 
     // buffer queue will map
-    uint8_t* addr1 = reinterpret_cast<uint8_t*>(retval.buffer->GetVirAddr());
+    uint8_t *addr1 = reinterpret_cast<uint8_t*>(retval.buffer->GetVirAddr());
     ASSERT_NE(addr1, nullptr);
     addr1[0] = 5;
 
@@ -92,7 +92,7 @@ HWTEST_F(BufferQueueTest, ReqFluAcqRel, testing::ext::TestSize.Level0)
     ASSERT_EQ(ret, SURFACE_ERROR_OK);
     ASSERT_NE(retval.buffer, nullptr);
 
-    uint8_t* addr2 = reinterpret_cast<uint8_t*>(retval.buffer->GetVirAddr());
+    uint8_t *addr2 = reinterpret_cast<uint8_t*>(retval.buffer->GetVirAddr());
     ASSERT_NE(addr2, nullptr);
     if (addr2 != nullptr) {
         ASSERT_EQ(addr2[0], 5u);

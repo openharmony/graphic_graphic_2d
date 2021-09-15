@@ -53,6 +53,7 @@ public:
 
 protected:
     void DispatchThreadMain();
+    bool DispatchThreadCoreProcess();
     void InterruptDispatchThread();
 
     int32_t PrepareRead();

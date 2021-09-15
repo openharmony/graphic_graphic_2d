@@ -13,6 +13,9 @@
  * limitations under the License.
  */
 
+#ifndef FRAMEWORKS_VSYNC_INCLUDE_RETURN_VALUE_TESTER_H
+#define FRAMEWORKS_VSYNC_INCLUDE_RETURN_VALUE_TESTER_H
+
 #include <any>
 #include <refbase.h>
 #include <mutex>
@@ -62,3 +65,5 @@ private:
 };
 } // namespace Vsync
 } // namespace OHOS
+
+#endif // FRAMEWORKS_VSYNC_INCLUDE_RETURN_VALUE_TESTER_H

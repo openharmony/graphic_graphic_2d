@@ -72,7 +72,7 @@ void NativeTestSync::Sync(int64_t, void *data)
     BufferRequestConfig rconfig = {
         .width = surface->GetDefaultWidth(),
         .height = surface->GetDefaultHeight(),
-        .strideAlignment = sizeof(void *),
+        .strideAlignment = 0x8,
         .format = PIXEL_FMT_RGBA_8888,
         .usage = surface->GetDefaultUsage(),
         .timeout = 0,
@@ -206,11 +206,10 @@ void NativeTestDraw::RainbowDraw(void *vaddr, uint32_t width, uint32_t height, u
     auto selectColor = [heightdiv6, height](int32_t index) {
         auto func = [heightdiv6, height](int32_t x) {
             int32_t h = height;
-            x = ((x % h) + h) % h;
 
             constexpr double b = 3.0;
             constexpr double k = -1.0;
-            auto ret = b + k * x / heightdiv6;
+            auto ret = b + k * (((x % h) + h) % h) / heightdiv6;
             ret = abs(ret) - 1.0;
             ret = fmax(ret, 0.0);
             ret = fmin(ret, 1.0);
@@ -230,8 +229,7 @@ void NativeTestDraw::RainbowDraw(void *vaddr, uint32_t width, uint32_t height, u
     };
 
     constexpr uint32_t framerate = 100;
-    count = ((count % framerate) + framerate) % framerate;
-    uint32_t offset = count * height / framerate;
+    uint32_t offset = (count % framerate) * height / framerate;
     for (uint32_t i = 0; i < height; i++) {
         auto color = selectColor(offset + i);
         drawOneLine(i, color);

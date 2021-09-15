@@ -36,8 +36,8 @@
 #define VLOGW(fmt, ...) __VLOG(::OHOS::HiviewDFX::HiLog::Warn,  "\033[1;33m" fmt, ##__VA_ARGS__)
 #define VLOGE(fmt, ...) __VLOG(::OHOS::HiviewDFX::HiLog::Error, "\033[1;31m" fmt, ##__VA_ARGS__)
 
-#define VLOG_SUCCESS(fmt, ...) VLOGI("Success, Way: " fmt, ##__VA_ARGS__);
-#define VLOG_FAILURE(fmt, ...) VLOGE("Failure, Reason: " fmt, ##__VA_ARGS__);
+#define VLOG_SUCCESS(fmt, ...) VLOGI("Success, Way: " fmt, ##__VA_ARGS__)
+#define VLOG_FAILURE(fmt, ...) VLOGE("Failure, Reason: " fmt, ##__VA_ARGS__)
 #define VLOG_FAILURE_NO(vsync_error) VLOG_FAILURE("%{public}s", VsyncErrorStr(vsync_error).c_str())
 #define VLOG_FAILURE_RET(vsync_error) \
     do {                              \

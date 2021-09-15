@@ -58,7 +58,7 @@ int32_t RawParser::Parse(std::string &filename)
     if (strstr(magic, "RAW.diff") == nullptr) {
         constexpr uint32_t magicHeaderStringLength = magicHeaderLength + 2;
         char fileMagic[magicHeaderStringLength];
-        memcpy_s(fileMagic, sizeof(fileMagic) - 1, magic, magicHeaderLength);
+        (void)memcpy_s(fileMagic, sizeof(fileMagic) - 1, magic, magicHeaderLength);
         LOG("file magic is wrong, %{public}s", fileMagic);
         return -1;
     }
@@ -83,13 +83,7 @@ int32_t RawParser::Parse(std::string &filename)
             return -1;
         }
 
-        struct ZlibInfo zi = {
-            .type = info->type,
-            .offset = info->offset,
-            .length = info->length,
-            .clen = info->clen,
-            .mem = info->mem,
-        };
+        struct ZlibInfo zi = { info->type, info->offset, info->length, info->clen, info->mem };
         infos.push_back(zi);
 
         // for BUS_ADRALN
@@ -141,9 +135,9 @@ int32_t RawParser::ReadFile(std::string &filename)
         return -1;
     }
 
-    fseek(fp, 0, SEEK_END);
+    (void)fseek(fp, 0, SEEK_END);
     clength = ftell(fp);
-    fseek(fp, 0, SEEK_SET);
+    (void)fseek(fp, 0, SEEK_SET);
 
     if (clength < magicHeaderLength) {
         LOG("%{public}s is too small", filename.c_str());
@@ -152,8 +146,8 @@ int32_t RawParser::ReadFile(std::string &filename)
     }
 
     compressed = std::make_unique<uint8_t[]>(clength);
-    fread(&compressed[0], sizeof(uint8_t), clength, fp);
-    fclose(fp);
+    (void)fread(&compressed[0], sizeof(uint8_t), clength, fp);
+    (void)fclose(fp);
 
     LOG("compressed: %{public}p, length: %{public}d", compressed.get(), clength);
     return 0;

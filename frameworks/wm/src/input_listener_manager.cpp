@@ -102,8 +102,8 @@ void InputListenerManager::RemoveListener(sptr<InputListener> &listener)
     if (listener == nullptr) {
         return;
     }
-    auto& v = inputListenersMap[listener->GetWindow()];
-    auto match = [&listener](const auto& l) {
+    auto &v = inputListenersMap[listener->GetWindow()];
+    auto match = [&listener](const auto &l) {
         return listener == l;
     };
     auto it = std::find_if(v.begin(), v.end(), match);
@@ -165,8 +165,8 @@ void OnPointerEnter(void *, struct wl_pointer *,
     auto window = static_cast<void *>(wl_surface_get_user_data(surface));
     g_setFocus(window);
 
-    const auto& inputListeners = g_getFocus();
-    for (const auto& listener : inputListeners) {
+    const auto &inputListeners = g_getFocus();
+    for (const auto &listener : inputListeners) {
         if (listener->pointerEnter) {
             listener->pointerEnter(window, serial, x, y);
         }
@@ -177,8 +177,8 @@ void OnPointerLeave(void *, struct wl_pointer *,
                     uint32_t serial, struct wl_surface *surface)
 {
     auto window = static_cast<void *>(wl_surface_get_user_data(surface));
-    const auto& inputListeners = g_getInputCallback(window);
-    for (const auto& listener : inputListeners) {
+    const auto &inputListeners = g_getInputCallback(window);
+    for (const auto &listener : inputListeners) {
         if (listener->pointerLeave) {
             listener->pointerLeave(window, serial);
         }
@@ -191,8 +191,8 @@ void OnPointerMotion(void *, struct wl_pointer *,
     double x = wl_fixed_to_double(sx);
     double y = wl_fixed_to_double(sy);
 
-    const auto& inputListeners = g_getFocus();
-    for (const auto& listener : inputListeners) {
+    const auto &inputListeners = g_getFocus();
+    for (const auto &listener : inputListeners) {
         if (listener->pointerMotion) {
             listener->pointerMotion(listener->GetWindow(), time, x, y);
         }
@@ -204,8 +204,8 @@ void OnPointerButton(void *, struct wl_pointer *,
 {
     auto state = static_cast<PointerButtonState>(s);
 
-    const auto& inputListeners = g_getFocus();
-    for (const auto& listener : inputListeners) {
+    const auto &inputListeners = g_getFocus();
+    for (const auto &listener : inputListeners) {
         if (listener->pointerButton) {
             listener->pointerButton(listener->GetWindow(), serial, time, button, state);
         }
@@ -218,8 +218,8 @@ void OnPointerAxis(void *, struct wl_pointer *,
     auto value = wl_fixed_to_double(v);
     auto axis = static_cast<PointerAxis>(a);
 
-    const auto& inputListeners = g_getFocus();
-    for (const auto& listener : inputListeners) {
+    const auto &inputListeners = g_getFocus();
+    for (const auto &listener : inputListeners) {
         if (listener->pointerAxis) {
             listener->pointerAxis(listener->GetWindow(), time, axis, value);
         }
@@ -228,8 +228,8 @@ void OnPointerAxis(void *, struct wl_pointer *,
 
 void OnPointerFrame(void *, struct wl_pointer *)
 {
-    const auto& inputListeners = g_getFocus();
-    for (const auto& listener : inputListeners) {
+    const auto &inputListeners = g_getFocus();
+    for (const auto &listener : inputListeners) {
         if (listener->pointerFrame) {
             listener->pointerFrame(listener->GetWindow());
         }
@@ -241,8 +241,8 @@ void OnPointerAxisSource(void *, struct wl_pointer *,
 {
     auto axisSource = static_cast<PointerAxisSource>(as);
 
-    const auto& inputListeners = g_getFocus();
-    for (const auto& listener : inputListeners) {
+    const auto &inputListeners = g_getFocus();
+    for (const auto &listener : inputListeners) {
         if (listener->pointerAxisSource) {
             listener->pointerAxisSource(listener->GetWindow(), axisSource);
         }
@@ -254,8 +254,8 @@ void OnPointerAxisStop(void *, struct wl_pointer *,
 {
     auto axis = static_cast<PointerAxis>(a);
 
-    const auto& inputListeners = g_getFocus();
-    for (const auto& listener : inputListeners) {
+    const auto &inputListeners = g_getFocus();
+    for (const auto &listener : inputListeners) {
         if (listener->pointerAxisStop) {
             listener->pointerAxisStop(listener->GetWindow(), time, axis);
         }
@@ -267,8 +267,8 @@ void OnPointerAxisDiscrete(void *, struct wl_pointer *,
 {
     auto axis = static_cast<PointerAxis>(a);
 
-    const auto& inputListeners = g_getFocus();
-    for (const auto& listener : inputListeners) {
+    const auto &inputListeners = g_getFocus();
+    for (const auto &listener : inputListeners) {
         if (listener->pointerAxisDiscrete) {
             listener->pointerAxisDiscrete(listener->GetWindow(), axis, discrete);
         }
@@ -280,8 +280,8 @@ void OnKeyboardKeymap(void *, struct wl_keyboard *,
 {
     auto format = static_cast<KeyboardKeymapFormat>(f);
 
-    const auto& inputListeners = g_getFocus();
-    for (const auto& listener : inputListeners) {
+    const auto &inputListeners = g_getFocus();
+    for (const auto &listener : inputListeners) {
         if (listener->keyboardKeymap) {
             listener->keyboardKeymap(listener->GetWindow(), format, fd, size);
         }
@@ -300,8 +300,8 @@ void OnKeyboardEnter(void *, struct wl_keyboard *,
     auto window = static_cast<void *>(wl_surface_get_user_data(surface));
     g_setFocus(window);
 
-    const auto& inputListeners = g_getFocus();
-    for (const auto& listener : inputListeners) {
+    const auto &inputListeners = g_getFocus();
+    for (const auto &listener : inputListeners) {
         if (listener->keyboardEnter) {
             listener->keyboardEnter(listener->GetWindow(), serial, keys);
         }
@@ -312,8 +312,8 @@ void OnKeyboardLeave(void *, struct wl_keyboard *,
                      uint32_t serial, struct wl_surface *surface)
 {
     auto window = static_cast<void *>(wl_surface_get_user_data(surface));
-    const auto& inputListeners = g_getInputCallback(window);
-    for (const auto& listener : inputListeners) {
+    const auto &inputListeners = g_getInputCallback(window);
+    for (const auto &listener : inputListeners) {
         if (listener->keyboardLeave) {
             listener->keyboardLeave(window, serial);
         }
@@ -325,8 +325,8 @@ void OnKeyboardKey(void *, struct wl_keyboard *,
 {
     auto state = static_cast<KeyboardKeyState>(s);
 
-    const auto& inputListeners = g_getFocus();
-    for (const auto& listener : inputListeners) {
+    const auto &inputListeners = g_getFocus();
+    for (const auto &listener : inputListeners) {
         if (listener->keyboardKey) {
             listener->keyboardKey(listener->GetWindow(), serial, time, key, state);
         }
@@ -337,8 +337,8 @@ void OnKeyboardModifiers(void *, struct wl_keyboard *,
                          uint32_t serial, uint32_t modsDepressed,
                          uint32_t modsLatched, uint32_t modsLocked, uint32_t group)
 {
-    const auto& inputListeners = g_getFocus();
-    for (const auto& listener : inputListeners) {
+    const auto &inputListeners = g_getFocus();
+    for (const auto &listener : inputListeners) {
         if (listener->keyboardModifiers) {
             listener->keyboardModifiers(listener->GetWindow(), serial, modsDepressed, modsLatched, modsLocked, group);
         }
@@ -348,8 +348,8 @@ void OnKeyboardModifiers(void *, struct wl_keyboard *,
 void OnKeyboardRepeatInfo(void *, struct wl_keyboard *,
                           int32_t rate, int32_t delay)
 {
-    const auto& inputListeners = g_getFocus();
-    for (const auto& listener : inputListeners) {
+    const auto &inputListeners = g_getFocus();
+    for (const auto &listener : inputListeners) {
         if (listener->keyboardRepeatInfo) {
             listener->keyboardRepeatInfo(listener->GetWindow(), rate, delay);
         }
@@ -367,8 +367,8 @@ void OnTouchDown(void *, struct wl_touch *,
     auto window = static_cast<void *>(wl_surface_get_user_data(surface));
     g_setFocus(window);
 
-    const auto& inputListeners = g_getFocus();
-    for (const auto& listener : inputListeners) {
+    const auto &inputListeners = g_getFocus();
+    for (const auto &listener : inputListeners) {
         if (listener->touchDown) {
             listener->touchDown(listener->GetWindow(), serial, time, id, x, y);
         }
@@ -378,8 +378,8 @@ void OnTouchDown(void *, struct wl_touch *,
 void OnTouchUp(void *, struct wl_touch *,
                uint32_t serial, uint32_t time, int32_t id)
 {
-    const auto& inputListeners = g_getFocus();
-    for (const auto& listener : inputListeners) {
+    const auto &inputListeners = g_getFocus();
+    for (const auto &listener : inputListeners) {
         if (listener->touchUp) {
             listener->touchUp(listener->GetWindow(), serial, time, id);
         }
@@ -392,8 +392,8 @@ void OnTouchMotion(void *, struct wl_touch *,
     double x = wl_fixed_to_double(tx);
     double y = wl_fixed_to_double(ty);
 
-    const auto& inputListeners = g_getFocus();
-    for (const auto& listener : inputListeners) {
+    const auto &inputListeners = g_getFocus();
+    for (const auto &listener : inputListeners) {
         if (listener->touchMotion) {
             listener->touchMotion(listener->GetWindow(), time, id, x, y);
         }
@@ -402,8 +402,8 @@ void OnTouchMotion(void *, struct wl_touch *,
 
 void OnTouchFrame(void *, struct wl_touch *)
 {
-    const auto& inputListeners = g_getFocus();
-    for (const auto& listener : inputListeners) {
+    const auto &inputListeners = g_getFocus();
+    for (const auto &listener : inputListeners) {
         if (listener->touchFrame) {
             listener->touchFrame(listener->GetWindow());
         }
@@ -412,8 +412,8 @@ void OnTouchFrame(void *, struct wl_touch *)
 
 void OnTouchCancel(void *, struct wl_touch *)
 {
-    const auto& inputListeners = g_getFocus();
-    for (const auto& listener : inputListeners) {
+    const auto &inputListeners = g_getFocus();
+    for (const auto &listener : inputListeners) {
         if (listener->touchCancel) {
             listener->touchCancel(listener->GetWindow());
         }
@@ -426,8 +426,8 @@ void OnTouchShape(void *, struct wl_touch *,
     double major = wl_fixed_to_double(ma);
     double minor = wl_fixed_to_double(mi);
 
-    const auto& inputListeners = g_getFocus();
-    for (const auto& listener : inputListeners) {
+    const auto &inputListeners = g_getFocus();
+    for (const auto &listener : inputListeners) {
         if (listener->touchShape) {
             listener->touchShape(listener->GetWindow(), id, major, minor);
         }
@@ -439,8 +439,8 @@ void OnTouchOrientation(void *, struct wl_touch *,
 {
     double orientation = wl_fixed_to_double(o);
 
-    const auto& inputListeners = g_getFocus();
-    for (const auto& listener : inputListeners) {
+    const auto &inputListeners = g_getFocus();
+    for (const auto &listener : inputListeners) {
         if (listener->touchOrientation) {
             listener->touchOrientation(listener->GetWindow(), id, orientation);
         }

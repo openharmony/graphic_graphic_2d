@@ -19,22 +19,22 @@
 
 using namespace OHOS;
 
-int VsyncModuleStart()
+int VsyncModuleStart(void)
 {
     return VsyncModule::GetInstance()->Start();
 }
 
-int VsyncModuleStop()
+int VsyncModuleStop(void)
 {
     return VsyncModule::GetInstance()->Stop();
 }
 
-int VsyncModuleTrigger()
+int VsyncModuleTrigger(void)
 {
     return VsyncModule::GetInstance()->Trigger();
 }
 
-int VsyncModuleIsRunning()
+int VsyncModuleIsRunning(void)
 {
     return VsyncModule::GetInstance()->IsRunning() ? 1 : 0;
 }

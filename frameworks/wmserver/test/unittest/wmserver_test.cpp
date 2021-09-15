@@ -14,22 +14,38 @@
  */
 
 #include "wmserver_test.h"
+
+#include <cstdlib>
 #include <pthread.h>
 #include <sys/mman.h>
+
 #include <wayland-client.h>
-#include <stdlib.h>
 
 // for debug.
-#define LOG(fmt, ...)  //printf("wmserver_test " fmt "\n", ##__VA_ARGS__)
+#define LOG(fmt, ...)  // printf("wmserver_test " fmt "\n", ##__VA_ARGS__)
 
 namespace OHOS {
 namespace {
-static void WindowShotError(void *data, struct wms *wms, uint32_t error, uint32_t window_id)
+static void GlobalWindowStatus(void *, struct wms *, uint32_t pid, uint32_t windowId, uint32_t status)
+{
+    LOG("GlobalWindowStatus pid: %d", pid);
+    LOG("GlobalWindowStatus window_id: %d", windowId);
+    LOG("GlobalWindowStatus status: %d", status);
+    WMServerTest::gloadWindowStatus.pid = pid;
+    WMServerTest::gloadWindowStatus.wid = windowId;
+    WMServerTest::gloadWindowStatus.status = status;
+    {
+        std::unique_lock<std::mutex> lck(WMServerTest::syncMutexGlobalWinInfoCb);
+        WMServerTest::replyGlobalWinInfoCbFlag = true;
+        WMServerTest::globalWinInfoCbVariable.notify_all();
+    }
+}
+static void WindowShotError(void *, struct wms *, uint32_t error, uint32_t windowId)
 {
     LOG("WindowShotError error: %d", error);
-    LOG("WindowShotError window_id: %d", window_id);
+    LOG("WindowShotError window_id: %d", windowId);
     WMServerTest::shotInfo.status = error;
-    WMServerTest::shotInfo.id = window_id;
+    WMServerTest::shotInfo.id = windowId;
     {
         std::unique_lock<std::mutex> lck(WMServerTest::syncMutex);
         WMServerTest::replyFlag = true;
@@ -37,15 +53,15 @@ static void WindowShotError(void *data, struct wms *wms, uint32_t error, uint32_
     }
 }
 
-static void WindowShotDone(void *data,
-                struct wms *wms,
-                uint32_t window_id, int32_t fd,
-                int32_t width, int32_t height, int32_t stride,
-                uint32_t format, uint32_t seconds, uint32_t nanoseconds)
+static void WindowShotDone(void *,
+                           struct wms *,
+                           uint32_t windowId, int32_t fd,
+                           int32_t width, int32_t height, int32_t stride,
+                           uint32_t format, uint32_t seconds, uint32_t nanoseconds)
 {
     size_t size = stride * height;
 
-    LOG("WindowShotDone window_id: %d", window_id);
+    LOG("WindowShotDone window_id: %d", windowId);
     LOG("WindowShotDone fd: %d", fd);
     LOG("WindowShotDone width: %d", width);
     LOG("WindowShotDone height: %d", height);
@@ -53,13 +69,13 @@ static void WindowShotDone(void *data,
     LOG("WindowShotDone format: %d", format);
     LOG("WindowShotDone seconds: %d", seconds);
     LOG("WindowShotDone nanoseconds: %d", nanoseconds);
-    
+
     LOG("windowshot OK!!!");
 
     close(fd);
 
     WMServerTest::shotInfo.status = WMS_ERROR_OK;
-    WMServerTest::shotInfo.id = window_id;
+    WMServerTest::shotInfo.id = windowId;
     WMServerTest::shotInfo.fd = fd;
     WMServerTest::shotInfo.width = width;
     WMServerTest::shotInfo.height = height;
@@ -74,12 +90,12 @@ static void WindowShotDone(void *data,
     }
 }
 
-static void ScreenShotError(void *data, struct wms *wms, uint32_t error, uint32_t screen_id)
+static void ScreenShotError(void *, struct wms *, uint32_t error, uint32_t screenId)
 {
     LOG("ScreenShotError error: %d", error);
-    LOG("ScreenShotError screen_id: %d", screen_id);
+    LOG("ScreenShotError screen_id: %d", screenId);
     WMServerTest::shotInfo.status = error;
-    WMServerTest::shotInfo.id = screen_id;
+    WMServerTest::shotInfo.id = screenId;
     {
         std::unique_lock<std::mutex> lck(WMServerTest::syncMutex);
         WMServerTest::replyFlag = true;
@@ -87,15 +103,15 @@ static void ScreenShotError(void *data, struct wms *wms, uint32_t error, uint32_
     }
 }
 
-static void ScreenShotDone(void *data,
-                struct wms *wms,
-                uint32_t screen_id, int32_t fd,
-                int32_t width, int32_t height, int32_t stride,
-                uint32_t format, uint32_t seconds, uint32_t nanoseconds)
+static void ScreenShotDone(void *,
+                           struct wms *,
+                           uint32_t screenId, int32_t fd,
+                           int32_t width, int32_t height, int32_t stride,
+                           uint32_t format, uint32_t seconds, uint32_t nanoseconds)
 {
     size_t size = stride * height;
 
-    LOG("ScreenShotDone screen_id: %d", screen_id);
+    LOG("ScreenShotDone screen_id: %d", screenId);
     LOG("ScreenShotDone fd: %d", fd);
     LOG("ScreenShotDone width: %d", width);
     LOG("ScreenShotDone height: %d", height);
@@ -108,7 +124,7 @@ static void ScreenShotDone(void *data,
     close(fd);
 
     WMServerTest::shotInfo.status = WMS_ERROR_OK;
-    WMServerTest::shotInfo.id = screen_id;
+    WMServerTest::shotInfo.id = screenId;
     WMServerTest::shotInfo.fd = fd;
     WMServerTest::shotInfo.width = width;
     WMServerTest::shotInfo.height = height;
@@ -123,7 +139,7 @@ static void ScreenShotDone(void *data,
     }
 }
 
-static void ReplyStatus(void *data, struct wms *wms, uint32_t status)
+static void ReplyStatus(void *, struct wms *, uint32_t status)
 {
     LOG("ReplyStatus status: %d", status);
     WMServerTest::replyStatus = status;
@@ -134,37 +150,36 @@ static void ReplyStatus(void *data, struct wms *wms, uint32_t status)
     }
 }
 
-static void DisplayMode(void *data, struct wms *wms, uint32_t flag)
+static void DisplayMode(void *, struct wms *, uint32_t flag)
 {
     LOG("DisplayMode flag: %d", flag);
 }
 
-void ScreenUpdate(void *data,
-                struct wms *wms,
-                uint32_t screen_id,
-                const char *name,
-                uint32_t update_state,
-                int width, int height)
+void ScreenUpdate(void *,
+                  struct wms *,
+                  uint32_t screenId,
+                  const char *name,
+                  uint32_t state,
+                  int width, int height)
 {
-    LOG("screenUpdate screen_id: %d", screen_id);
+    LOG("screenUpdate screen_id: %d", screenId);
     LOG("screenUpdate name: %s", name);
-    LOG("screenUpdate update_state: %d", update_state);
+    LOG("screenUpdate update_state: %d", state);
     LOG("screenUpdate width: %d", width);
     LOG("screenUpdate height: %d", height);
 
-    if (update_state == WMS_SCREEN_STATUS_ADD) {
+    if (state == WMS_SCREEN_STATUS_ADD) {
         LOG("screen add. ");
         WMSDisplayInfo info;
-        info.id = screen_id;
+        info.id = screenId;
         info.name = name;
         info.width = width;
         info.height = height;
         WMServerTest::displayInfo.push_back(info);
-    }
-    else {
+    } else {
         LOG("screen destroy.");
         for (auto it = WMServerTest::displayInfo.begin(); it != WMServerTest::displayInfo.end(); it++) {
-            if (it->id == screen_id) {
+            if (it->id == screenId) {
                 WMServerTest::displayInfo.erase(it);
                 break;
             }
@@ -172,39 +187,37 @@ void ScreenUpdate(void *data,
     }
 }
 
-void WindowUpdate(void *data, struct wms *wms, uint32_t update_state, uint32_t window_id,
-                    int32_t x, int32_t y, int32_t width, int32_t height)
+void WindowUpdate(void *, struct wms *, uint32_t state, uint32_t windowId,
+                  int32_t x, int32_t y, int32_t width, int32_t height)
 {
-    LOG("WindowUpdate window_id: %d", window_id);
-    LOG("WindowUpdate update_state: %d", update_state);
+    LOG("WindowUpdate window_id: %d", windowId);
+    LOG("WindowUpdate update_state: %d", state);
     LOG("WindowUpdate x:%d, y:%d", x, y);
     LOG("WindowUpdate width:%d, height:%d", width, height);
 
-    WMServerTest::windowStatus.status = update_state;
-    WMServerTest::windowStatus.wid = window_id;
+    WMServerTest::windowStatus.status = state;
+    WMServerTest::windowStatus.wid = windowId;
     WMServerTest::windowStatus.x = x;
     WMServerTest::windowStatus.y = y;
     WMServerTest::windowStatus.width = width;
     WMServerTest::windowStatus.height = height;
-    
-    if (update_state == WMS_WINDOW_STATUS_CREATED) {
-        LOG("window %d create. ", window_id);
+
+    if (state == WMS_WINDOW_STATUS_CREATED) {
+        LOG("window %d create. ", windowId);
         {
             std::unique_lock<std::mutex> lck(WMServerTest::syncMutex);
             WMServerTest::replyFlag = true;
             WMServerTest::syncVariable.notify_all();
         }
-    }
-    else if (update_state == WMS_WINDOW_STATUS_FAILED) {
+    } else if (state == WMS_WINDOW_STATUS_FAILED) {
         LOG("window create failed. ");
         {
             std::unique_lock<std::mutex> lck(WMServerTest::syncMutex);
             WMServerTest::replyFlag = true;
             WMServerTest::syncVariable.notify_all();
         }
-    }
-    else {
-        LOG("window %d destroy. ", window_id);
+    } else {
+        LOG("window %d destroy. ", windowId);
         {
             std::unique_lock<std::mutex> lck(WMServerTest::destroyMutex);
             WMServerTest::destroyReplyFlag = true;
@@ -214,7 +227,7 @@ void WindowUpdate(void *data, struct wms *wms, uint32_t update_state, uint32_t w
 }
 
 void RegistryGlobal(void *data, struct wl_registry *registry,
-               uint32_t id, const char *interface, uint32_t version)
+                    uint32_t id, const char *interface, uint32_t version)
 {
     struct WMSContext *ctx = (struct WMSContext *)(data);
 
@@ -239,7 +252,8 @@ void RegistryGlobal(void *data, struct wl_registry *registry,
             ScreenShotDone,
             ScreenShotError,
             WindowShotDone,
-            WindowShotError
+            WindowShotError,
+            GlobalWindowStatus
         };
         wms_add_listener(ctx->wms, &wmsListener, ctx);
         wl_display_flush(ctx->display);
@@ -248,9 +262,9 @@ void RegistryGlobal(void *data, struct wl_registry *registry,
     }
 }
 
-static void *thread_display_dispatch(void* data)
+static void *displayDispatchThreadMain(void *data)
 {
-    struct WMSContext* ctx = (struct WMSContext*)(data);
+    auto ctx = (struct WMSContext*)data;
     while (true) {
         if (wl_display_dispatch(ctx->display) == -1) {
             LOG("wl_display_connect failed errno: ", errno);
@@ -262,28 +276,23 @@ static void *thread_display_dispatch(void* data)
 
 int32_t CreateShmFile(int32_t size)
 {
-    int fd;
     char tempPath[] = "/data/tempfile-XXXXXX";
-
-    fd = mkstemp(tempPath);
-
+    int fd = mkstemp(tempPath);
     if (fd < 0) {
         return -1;
     }
 
     unlink(tempPath);
-
     if (ftruncate(fd, size) < 0) {
         close(fd);
         return -1;
     }
-
     return fd;
 }
 
-struct wl_buffer* CreateShmBuffer(struct wl_shm *wlShm, int32_t width, int32_t height)
+struct wl_buffer *CreateShmBuffer(struct wl_shm *wlShm, int32_t width, int32_t height)
 {
-    int32_t stride = width * 4;
+    int32_t stride = width * 0x4;
     int32_t size = stride * height;
     int32_t fd = CreateShmFile(size);
     if (fd < 0) {
@@ -312,7 +321,6 @@ struct wl_buffer* CreateShmBuffer(struct wl_shm *wlShm, int32_t width, int32_t h
     close(fd);
     return buffer;
 }
-
 } // namespace
 
 void WMServerTest::SetUp()
@@ -340,8 +348,7 @@ void WMServerTest::SetUpTestCase()
     wl_display_roundtrip(ctx.display);
     wl_display_roundtrip(ctx.display);
 
-    pthread_create(&tid, NULL, thread_display_dispatch, &ctx);
-
+    pthread_create(&tid, NULL, displayDispatchThreadMain, &ctx);
 }
 
 void WMServerTest::TearDownTestCase()
@@ -349,7 +356,6 @@ void WMServerTest::TearDownTestCase()
 }
 
 namespace {
-
 /*
  * Feature: wms_create_window by normal arguments
  * Function: WMSServer
@@ -368,7 +374,7 @@ HWTEST_F(WMServerTest, CreateWindow001, testing::ext::TestSize.Level0)
     ASSERT_NE(ctx.wms, nullptr) << "EnvConditions: wms init success..";
 
     // 1. create WlSurface
-    struct wl_surface* wlSurface = wl_compositor_create_surface(ctx.compositor);
+    struct wl_surface *wlSurface = wl_compositor_create_surface(ctx.compositor);
     ASSERT_NE(wlSurface, nullptr) << "CaseDescription: 1. create WlSurface (wlSurface != nullptr)";
 
     // 2. Create a Window (WMS_WINDOW_TYPE_NORMAL)
@@ -381,14 +387,13 @@ HWTEST_F(WMServerTest, CreateWindow001, testing::ext::TestSize.Level0)
     }
 
     // 3. check it
-    ASSERT_EQ(windowStatus.status, WMS_WINDOW_STATUS_CREATED) 
+    ASSERT_EQ(windowStatus.status, WMS_WINDOW_STATUS_CREATED)
         << "CaseDescription: 3. check it (status == WMS_WINDOW_STATUS_CREATED)";
     ASSERT_GT(windowStatus.wid, 0) << "CaseDescription: 3. check it (wid > 0)";
     ASSERT_GE(windowStatus.x, 0) << "CaseDescription: 3. check it (x >= 0)";
     ASSERT_GE(windowStatus.y, 0) << "CaseDescription: 3. check it (y >= 0)";
     ASSERT_GT(windowStatus.width, 0u) << "CaseDescription: 3. check it (width > 0)";
     ASSERT_GT(windowStatus.height, 0u) << "CaseDescription: 3. check it (height > 0)";
-
 }
 
 /*
@@ -409,7 +414,7 @@ HWTEST_F(WMServerTest, CreateWindow002, testing::ext::TestSize.Level0)
     ASSERT_NE(ctx.wms, nullptr) << "EnvConditions: wms init success..";
 
     // 1. create WlSurface
-    struct wl_surface* wlSurface = wl_compositor_create_surface(ctx.compositor);
+    struct wl_surface *wlSurface = wl_compositor_create_surface(ctx.compositor);
     ASSERT_NE(wlSurface, nullptr) << "CaseDescription: 1. create WlSurface (wlSurface != nullptr)";
 
     // 2. Create a Window (WMS_WINDOW_TYPE_STATUS_BAR)
@@ -422,14 +427,13 @@ HWTEST_F(WMServerTest, CreateWindow002, testing::ext::TestSize.Level0)
     }
 
     // 3. check it
-    ASSERT_EQ(windowStatus.status, WMS_WINDOW_STATUS_CREATED) 
+    ASSERT_EQ(windowStatus.status, WMS_WINDOW_STATUS_CREATED)
         << "CaseDescription: 3. check it (status == WMS_WINDOW_STATUS_CREATED)";
     ASSERT_GT(windowStatus.wid, 0) << "CaseDescription: 3. check it (wid > 0)";
     ASSERT_GE(windowStatus.x, 0) << "CaseDescription: 3. check it (x >= 0)";
     ASSERT_GE(windowStatus.y, 0) << "CaseDescription: 3. check it (y >= 0)";
     ASSERT_GT(windowStatus.width, 0u) << "CaseDescription: 3. check it (width > 0)";
     ASSERT_GT(windowStatus.height, 0u) << "CaseDescription: 3. check it (height > 0)";
-
 }
 
 /*
@@ -450,7 +454,7 @@ HWTEST_F(WMServerTest, CreateWindow003, testing::ext::TestSize.Level0)
     ASSERT_NE(ctx.wms, nullptr) << "EnvConditions: wms init success..";
 
     // 1. create WlSurface
-    struct wl_surface* wlSurface = wl_compositor_create_surface(ctx.compositor);
+    struct wl_surface *wlSurface = wl_compositor_create_surface(ctx.compositor);
     ASSERT_NE(wlSurface, nullptr) << "CaseDescription: 1. create WlSurface (wlSurface != nullptr)";
 
     // 2. Create a Window (WMS_WINDOW_TYPE_NAVI_BAR)
@@ -463,14 +467,13 @@ HWTEST_F(WMServerTest, CreateWindow003, testing::ext::TestSize.Level0)
     }
 
     // 3. check it
-    ASSERT_EQ(windowStatus.status, WMS_WINDOW_STATUS_CREATED) 
+    ASSERT_EQ(windowStatus.status, WMS_WINDOW_STATUS_CREATED)
         << "CaseDescription: 3. check it (status == WMS_WINDOW_STATUS_CREATED)";
     ASSERT_GT(windowStatus.wid, 0) << "CaseDescription: 3. check it (wid > 0)";
     ASSERT_GE(windowStatus.x, 0) << "CaseDescription: 3. check it (x >= 0)";
     ASSERT_GE(windowStatus.y, 0) << "CaseDescription: 3. check it (y >= 0)";
     ASSERT_GT(windowStatus.width, 0u) << "CaseDescription: 3. check it (width > 0)";
     ASSERT_GT(windowStatus.height, 0u) << "CaseDescription: 3. check it (height > 0)";
-
 }
 
 /*
@@ -491,7 +494,7 @@ HWTEST_F(WMServerTest, CreateWindow004, testing::ext::TestSize.Level0)
     ASSERT_NE(ctx.wms, nullptr) << "EnvConditions: wms init success..";
 
     // 1. create WlSurface
-    struct wl_surface* wlSurface = wl_compositor_create_surface(ctx.compositor);
+    struct wl_surface *wlSurface = wl_compositor_create_surface(ctx.compositor);
     ASSERT_NE(wlSurface, nullptr) << "CaseDescription: 1. create WlSurface (wlSurface != nullptr)";
 
     // 2. Create a Window (WMS_WINDOW_TYPE_ALARM)
@@ -504,14 +507,13 @@ HWTEST_F(WMServerTest, CreateWindow004, testing::ext::TestSize.Level0)
     }
 
     // 3. check it
-    ASSERT_EQ(windowStatus.status, WMS_WINDOW_STATUS_CREATED) 
+    ASSERT_EQ(windowStatus.status, WMS_WINDOW_STATUS_CREATED)
         << "CaseDescription: 3. check it (status == WMS_WINDOW_STATUS_CREATED)";
     ASSERT_GT(windowStatus.wid, 0) << "CaseDescription: 3. check it (wid > 0)";
     ASSERT_GE(windowStatus.x, 0) << "CaseDescription: 3. check it (x >= 0)";
     ASSERT_GE(windowStatus.y, 0) << "CaseDescription: 3. check it (y >= 0)";
     ASSERT_GT(windowStatus.width, 0u) << "CaseDescription: 3. check it (width > 0)";
     ASSERT_GT(windowStatus.height, 0u) << "CaseDescription: 3. check it (height > 0)";
-
 }
 
 /*
@@ -532,7 +534,7 @@ HWTEST_F(WMServerTest, CreateWindow005, testing::ext::TestSize.Level0)
     ASSERT_NE(ctx.wms, nullptr) << "EnvConditions: wms init success..";
 
     // 1. create WlSurface
-    struct wl_surface* wlSurface = wl_compositor_create_surface(ctx.compositor);
+    struct wl_surface *wlSurface = wl_compositor_create_surface(ctx.compositor);
     ASSERT_NE(wlSurface, nullptr) << "CaseDescription: 1. create WlSurface (wlSurface != nullptr)";
 
     // 2. Create Window by abnormal arguments
@@ -545,7 +547,7 @@ HWTEST_F(WMServerTest, CreateWindow005, testing::ext::TestSize.Level0)
     }
 
     // 3. check it
-    ASSERT_EQ(windowStatus.status, WMS_WINDOW_STATUS_FAILED) 
+    ASSERT_EQ(windowStatus.status, WMS_WINDOW_STATUS_FAILED)
         << "CaseDescription: 3. check it (status == WMS_WINDOW_STATUS_FAILED)";
     ASSERT_EQ(windowStatus.wid, 0) << "CaseDescription: 3. check it (wid = 0)";
     ASSERT_EQ(windowStatus.x, 0) << "CaseDescription: 3. check it (x = 0)";
@@ -572,7 +574,7 @@ HWTEST_F(WMServerTest, CreateWindow006, testing::ext::TestSize.Level0)
     ASSERT_NE(ctx.wms, nullptr) << "EnvConditions: wms init success..";
 
     // 1. create WlSurface
-    struct wl_surface* wlSurface = wl_compositor_create_surface(ctx.compositor);
+    struct wl_surface *wlSurface = wl_compositor_create_surface(ctx.compositor);
     ASSERT_NE(wlSurface, nullptr) << "CaseDescription: 1. create WlSurface (wlSurface != nullptr)";
 
     // 2. Create Window by abnormal arguments
@@ -585,7 +587,7 @@ HWTEST_F(WMServerTest, CreateWindow006, testing::ext::TestSize.Level0)
     }
 
     // 3. check it
-    ASSERT_EQ(windowStatus.status, WMS_WINDOW_STATUS_FAILED) 
+    ASSERT_EQ(windowStatus.status, WMS_WINDOW_STATUS_FAILED)
         << "CaseDescription: 3. check it (status == WMS_WINDOW_STATUS_FAILED)";
     ASSERT_EQ(windowStatus.wid, 0) << "CaseDescription: 3. check it (wid = 0)";
     ASSERT_EQ(windowStatus.x, 0) << "CaseDescription: 3. check it (x = 0)";
@@ -614,7 +616,7 @@ HWTEST_F(WMServerTest, CreateWindow007, testing::ext::TestSize.Level0)
     ASSERT_NE(ctx.wms, nullptr) << "EnvConditions: wms init success..";
 
     // 1. create WlSurface
-    struct wl_surface* wlSurface = wl_compositor_create_surface(ctx.compositor);
+    struct wl_surface *wlSurface = wl_compositor_create_surface(ctx.compositor);
     ASSERT_NE(wlSurface, nullptr) << "CaseDescription: 1. create WlSurface (wlSurface != nullptr)";
 
     // 2. Create Window by normal arguments
@@ -627,7 +629,7 @@ HWTEST_F(WMServerTest, CreateWindow007, testing::ext::TestSize.Level0)
     }
 
     // 3. check it
-    ASSERT_EQ(windowStatus.status, WMS_WINDOW_STATUS_CREATED) 
+    ASSERT_EQ(windowStatus.status, WMS_WINDOW_STATUS_CREATED)
         << "CaseDescription: 3. check it (status == WMS_WINDOW_STATUS_CREATED)";
     ASSERT_GT(windowStatus.wid, 0) << "CaseDescription: 3. check it (wid > 0)";
     ASSERT_GE(windowStatus.x, 0) << "CaseDescription: 3. check it (x >= 0)";
@@ -645,7 +647,7 @@ HWTEST_F(WMServerTest, CreateWindow007, testing::ext::TestSize.Level0)
     }
 
     // 5. check it
-    ASSERT_EQ(windowStatus.status, WMS_WINDOW_STATUS_FAILED) 
+    ASSERT_EQ(windowStatus.status, WMS_WINDOW_STATUS_FAILED)
         << "CaseDescription: 5. check it (status == WMS_WINDOW_STATUS_FAILED)";
     ASSERT_EQ(windowStatus.wid, 0) << "CaseDescription: 5. check it (wid = 0)";
     ASSERT_EQ(windowStatus.x, 0) << "CaseDescription: 5. check it (x = 0)";
@@ -674,7 +676,7 @@ HWTEST_F(WMServerTest, DestroyWindow001, testing::ext::TestSize.Level0)
     ASSERT_NE(ctx.wms, nullptr) << "EnvConditions: wms init success..";
 
     // 1. create WlSurface
-    struct wl_surface* wlSurface = wl_compositor_create_surface(ctx.compositor);
+    struct wl_surface *wlSurface = wl_compositor_create_surface(ctx.compositor);
     ASSERT_NE(wlSurface, nullptr) << "CaseDescription: 1. create WlSurface (wlSurface != nullptr)";
 
     // 2. Create Window by normal arguments
@@ -687,7 +689,7 @@ HWTEST_F(WMServerTest, DestroyWindow001, testing::ext::TestSize.Level0)
     }
 
     // 3. check it
-    ASSERT_EQ(windowStatus.status, WMS_WINDOW_STATUS_CREATED) 
+    ASSERT_EQ(windowStatus.status, WMS_WINDOW_STATUS_CREATED)
         << "CaseDescription: 3. check it (status == WMS_WINDOW_STATUS_CREATED)";
     ASSERT_GT(windowStatus.wid, 0) << "CaseDescription: 3. check it (wid > 0)";
     ASSERT_GE(windowStatus.x, 0) << "CaseDescription: 3. check it (x >= 0)";
@@ -705,9 +707,9 @@ HWTEST_F(WMServerTest, DestroyWindow001, testing::ext::TestSize.Level0)
     }
 
     // 5. check it
-    ASSERT_EQ(replyStatus, WMS_ERROR_OK) 
+    ASSERT_EQ(replyStatus, WMS_ERROR_OK)
         << "CaseDescription: 5. check it (replyStatus == WMS_ERROR_OK)";
-    ASSERT_EQ(windowStatus.status, WMS_WINDOW_STATUS_DESTROYED) 
+    ASSERT_EQ(windowStatus.status, WMS_WINDOW_STATUS_DESTROYED)
         << "CaseDescription: 5. check it (status == WMS_WINDOW_STATUS_DESTROYED)";
     ASSERT_GT(windowStatus.wid, 0) << "CaseDescription: 5. check it (wid > 0)";
 }
@@ -732,7 +734,7 @@ HWTEST_F(WMServerTest, DestroyWindow002, testing::ext::TestSize.Level0)
     ASSERT_NE(ctx.wms, nullptr) << "EnvConditions: wms init success..";
 
     // 1. create WlSurface
-    struct wl_surface* wlSurface = wl_compositor_create_surface(ctx.compositor);
+    struct wl_surface *wlSurface = wl_compositor_create_surface(ctx.compositor);
     ASSERT_NE(wlSurface, nullptr) << "CaseDescription: 1. create WlSurface (wlSurface != nullptr)";
 
     // 2. Create Window by normal arguments
@@ -745,7 +747,7 @@ HWTEST_F(WMServerTest, DestroyWindow002, testing::ext::TestSize.Level0)
     }
 
     // 3. check it
-    ASSERT_EQ(windowStatus.status, WMS_WINDOW_STATUS_CREATED) 
+    ASSERT_EQ(windowStatus.status, WMS_WINDOW_STATUS_CREATED)
         << "CaseDescription: 3. check it (status == WMS_WINDOW_STATUS_CREATED)";
     ASSERT_GT(windowStatus.wid, 0) << "CaseDescription: 3. check it (wid > 0)";
     ASSERT_GE(windowStatus.x, 0) << "CaseDescription: 3. check it (x >= 0)";
@@ -763,7 +765,7 @@ HWTEST_F(WMServerTest, DestroyWindow002, testing::ext::TestSize.Level0)
     }
 
     // 5. check it
-    ASSERT_EQ(windowStatus.status, WMS_WINDOW_STATUS_DESTROYED) 
+    ASSERT_EQ(windowStatus.status, WMS_WINDOW_STATUS_DESTROYED)
         << "CaseDescription: 5. check it (status == WMS_WINDOW_STATUS_DESTROYED)";
     ASSERT_GT(windowStatus.wid, 0) << "CaseDescription: 5. check it (wid > 0)";
 }
@@ -794,7 +796,7 @@ HWTEST_F(WMServerTest, DestroyWindow003, testing::ext::TestSize.Level0)
     }
 
     // 2. check it
-    ASSERT_NE(replyStatus, WMS_ERROR_OK) 
+    ASSERT_NE(replyStatus, WMS_ERROR_OK)
         << "CaseDescription: 2. check it (replyStatus != WMS_ERROR_OK)";
 }
 
@@ -809,7 +811,7 @@ HWTEST_F(WMServerTest, DestroyWindow003, testing::ext::TestSize.Level0)
  *                  3. check result
  *                  4. SetWindowTop by normal arguments
  *                  5. check result
- */ 
+ */
 HWTEST_F(WMServerTest, SetWindowTop001, testing::ext::TestSize.Level0)
 {
     // WMSServer init success.
@@ -818,7 +820,7 @@ HWTEST_F(WMServerTest, SetWindowTop001, testing::ext::TestSize.Level0)
     ASSERT_NE(ctx.wms, nullptr) << "EnvConditions: wms init success..";
 
     // 1. create WlSurface
-    struct wl_surface* wlSurface = wl_compositor_create_surface(ctx.compositor);
+    struct wl_surface *wlSurface = wl_compositor_create_surface(ctx.compositor);
     ASSERT_NE(wlSurface, nullptr) << "CaseDescription: 1. create WlSurface (wlSurface != nullptr)";
 
     // 2. Create Window by normal arguments
@@ -831,7 +833,7 @@ HWTEST_F(WMServerTest, SetWindowTop001, testing::ext::TestSize.Level0)
     }
 
     // 3. check it
-    ASSERT_EQ(windowStatus.status, WMS_WINDOW_STATUS_CREATED) 
+    ASSERT_EQ(windowStatus.status, WMS_WINDOW_STATUS_CREATED)
         << "CaseDescription: 3. check it (status == WMS_WINDOW_STATUS_CREATED)";
     ASSERT_GT(windowStatus.wid, 0) << "CaseDescription: 3. check it (wid > 0)";
     ASSERT_GE(windowStatus.x, 0) << "CaseDescription: 3. check it (x >= 0)";
@@ -850,7 +852,7 @@ HWTEST_F(WMServerTest, SetWindowTop001, testing::ext::TestSize.Level0)
     }
 
     // 5. check it
-    ASSERT_EQ(replyStatus, WMS_ERROR_OK) 
+    ASSERT_EQ(replyStatus, WMS_ERROR_OK)
         << "CaseDescription: 5. check it (replyStatus == WMS_ERROR_OK)";
 }
 
@@ -862,7 +864,7 @@ HWTEST_F(WMServerTest, SetWindowTop001, testing::ext::TestSize.Level0)
  * EnvConditions: display, compositor, wms init success.
  * CaseDescription: 1. SetWindowTop by abnormal arguments
  *                  2. check result
- */ 
+ */
 HWTEST_F(WMServerTest, SetWindowTop002, testing::ext::TestSize.Level0)
 {
     // WMSServer init success.
@@ -881,7 +883,7 @@ HWTEST_F(WMServerTest, SetWindowTop002, testing::ext::TestSize.Level0)
     }
 
     // 5. check it
-    ASSERT_NE(replyStatus, WMS_ERROR_OK) 
+    ASSERT_NE(replyStatus, WMS_ERROR_OK)
         << "CaseDescription: 5. check it (replyStatus != WMS_ERROR_OK)";
 }
 
@@ -896,7 +898,7 @@ HWTEST_F(WMServerTest, SetWindowTop002, testing::ext::TestSize.Level0)
  *                  3. check result
  *                  4. SetWindowSize by normal arguments
  *                  5. check result
- */ 
+ */
 HWTEST_F(WMServerTest, SetWindowSize001, testing::ext::TestSize.Level0)
 {
     // WMSServer init success.
@@ -905,7 +907,7 @@ HWTEST_F(WMServerTest, SetWindowSize001, testing::ext::TestSize.Level0)
     ASSERT_NE(ctx.wms, nullptr) << "EnvConditions: wms init success..";
 
     // 1. create WlSurface
-    struct wl_surface* wlSurface = wl_compositor_create_surface(ctx.compositor);
+    struct wl_surface *wlSurface = wl_compositor_create_surface(ctx.compositor);
     ASSERT_NE(wlSurface, nullptr) << "CaseDescription: 1. create WlSurface (wlSurface != nullptr)";
 
     // 2. Create Window by normal arguments
@@ -918,7 +920,7 @@ HWTEST_F(WMServerTest, SetWindowSize001, testing::ext::TestSize.Level0)
     }
 
     // 3. check it
-    ASSERT_EQ(windowStatus.status, WMS_WINDOW_STATUS_CREATED) 
+    ASSERT_EQ(windowStatus.status, WMS_WINDOW_STATUS_CREATED)
         << "CaseDescription: 3. check it (status == WMS_WINDOW_STATUS_CREATED)";
     ASSERT_GT(windowStatus.wid, 0) << "CaseDescription: 3. check it (wid > 0)";
     ASSERT_GE(windowStatus.x, 0) << "CaseDescription: 3. check it (x >= 0)";
@@ -937,7 +939,7 @@ HWTEST_F(WMServerTest, SetWindowSize001, testing::ext::TestSize.Level0)
     }
 
     // 5. check it
-    ASSERT_EQ(replyStatus, WMS_ERROR_OK) 
+    ASSERT_EQ(replyStatus, WMS_ERROR_OK)
         << "CaseDescription: 5. check it (replyStatus == WMS_ERROR_OK)";
 }
 
@@ -949,7 +951,7 @@ HWTEST_F(WMServerTest, SetWindowSize001, testing::ext::TestSize.Level0)
  * EnvConditions: display, compositor, wms init success.
  * CaseDescription: 1. SetWindowSize by abnormal arguments
  *                  2. check result
- */ 
+ */
 HWTEST_F(WMServerTest, SetWindowSize002, testing::ext::TestSize.Level0)
 {
     // WMSServer init success.
@@ -968,7 +970,7 @@ HWTEST_F(WMServerTest, SetWindowSize002, testing::ext::TestSize.Level0)
     }
 
     // 5. check it
-    ASSERT_NE(replyStatus, WMS_ERROR_OK) 
+    ASSERT_NE(replyStatus, WMS_ERROR_OK)
         << "CaseDescription: 5. check it (replyStatus != WMS_ERROR_OK)";
 }
 
@@ -983,7 +985,7 @@ HWTEST_F(WMServerTest, SetWindowSize002, testing::ext::TestSize.Level0)
  *                  3. check result
  *                  4. SetWindowScale by normal arguments
  *                  5. check result
- */ 
+ */
 HWTEST_F(WMServerTest, SetWindowScale001, testing::ext::TestSize.Level0)
 {
     // WMSServer init success.
@@ -992,7 +994,7 @@ HWTEST_F(WMServerTest, SetWindowScale001, testing::ext::TestSize.Level0)
     ASSERT_NE(ctx.wms, nullptr) << "EnvConditions: wms init success..";
 
     // 1. create WlSurface
-    struct wl_surface* wlSurface = wl_compositor_create_surface(ctx.compositor);
+    struct wl_surface *wlSurface = wl_compositor_create_surface(ctx.compositor);
     ASSERT_NE(wlSurface, nullptr) << "CaseDescription: 1. create WlSurface (wlSurface != nullptr)";
 
     // 2. Create Window by normal arguments
@@ -1005,7 +1007,7 @@ HWTEST_F(WMServerTest, SetWindowScale001, testing::ext::TestSize.Level0)
     }
 
     // 3. check it
-    ASSERT_EQ(windowStatus.status, WMS_WINDOW_STATUS_CREATED) 
+    ASSERT_EQ(windowStatus.status, WMS_WINDOW_STATUS_CREATED)
         << "CaseDescription: 3. check it (status == WMS_WINDOW_STATUS_CREATED)";
     ASSERT_GT(windowStatus.wid, 0) << "CaseDescription: 3. check it (wid > 0)";
     ASSERT_GE(windowStatus.x, 0) << "CaseDescription: 3. check it (x >= 0)";
@@ -1024,7 +1026,7 @@ HWTEST_F(WMServerTest, SetWindowScale001, testing::ext::TestSize.Level0)
     }
 
     // 5. check it
-    ASSERT_EQ(replyStatus, WMS_ERROR_OK) 
+    ASSERT_EQ(replyStatus, WMS_ERROR_OK)
         << "CaseDescription: 5. check it (replyStatus == WMS_ERROR_OK)";
 }
 
@@ -1036,7 +1038,7 @@ HWTEST_F(WMServerTest, SetWindowScale001, testing::ext::TestSize.Level0)
  * EnvConditions: display, compositor, wms init success.
  * CaseDescription: 1. SetWindowScale by abnormal arguments
  *                  2. check result
- */ 
+ */
 HWTEST_F(WMServerTest, SetWindowScale002, testing::ext::TestSize.Level0)
 {
     // WMSServer init success.
@@ -1055,7 +1057,7 @@ HWTEST_F(WMServerTest, SetWindowScale002, testing::ext::TestSize.Level0)
     }
 
     // 5. check it
-    ASSERT_NE(replyStatus, WMS_ERROR_OK) 
+    ASSERT_NE(replyStatus, WMS_ERROR_OK)
         << "CaseDescription: 5. check it (replyStatus != WMS_ERROR_OK)";
 }
 
@@ -1070,7 +1072,7 @@ HWTEST_F(WMServerTest, SetWindowScale002, testing::ext::TestSize.Level0)
  *                  3. check result
  *                  4. SetWindowPosition by normal arguments
  *                  5. check result
- */ 
+ */
 HWTEST_F(WMServerTest, SetWindowPosition001, testing::ext::TestSize.Level0)
 {
     // WMSServer init success.
@@ -1079,7 +1081,7 @@ HWTEST_F(WMServerTest, SetWindowPosition001, testing::ext::TestSize.Level0)
     ASSERT_NE(ctx.wms, nullptr) << "EnvConditions: wms init success..";
 
     // 1. create WlSurface
-    struct wl_surface* wlSurface = wl_compositor_create_surface(ctx.compositor);
+    struct wl_surface *wlSurface = wl_compositor_create_surface(ctx.compositor);
     ASSERT_NE(wlSurface, nullptr) << "CaseDescription: 1. create WlSurface (wlSurface != nullptr)";
 
     // 2. Create Window by normal arguments
@@ -1092,7 +1094,7 @@ HWTEST_F(WMServerTest, SetWindowPosition001, testing::ext::TestSize.Level0)
     }
 
     // 3. check it
-    ASSERT_EQ(windowStatus.status, WMS_WINDOW_STATUS_CREATED) 
+    ASSERT_EQ(windowStatus.status, WMS_WINDOW_STATUS_CREATED)
         << "CaseDescription: 3. check it (status == WMS_WINDOW_STATUS_CREATED)";
     ASSERT_GT(windowStatus.wid, 0) << "CaseDescription: 3. check it (wid > 0)";
     ASSERT_GE(windowStatus.x, 0) << "CaseDescription: 3. check it (x >= 0)";
@@ -1111,7 +1113,7 @@ HWTEST_F(WMServerTest, SetWindowPosition001, testing::ext::TestSize.Level0)
     }
 
     // 5. check it
-    ASSERT_EQ(replyStatus, WMS_ERROR_OK) 
+    ASSERT_EQ(replyStatus, WMS_ERROR_OK)
         << "CaseDescription: 5. check it (replyStatus == WMS_ERROR_OK)";
 }
 
@@ -1123,7 +1125,7 @@ HWTEST_F(WMServerTest, SetWindowPosition001, testing::ext::TestSize.Level0)
  * EnvConditions: display, compositor, wms init success.
  * CaseDescription: 1. SetWindowPosition by abnormal arguments
  *                  2. check result
- */ 
+ */
 HWTEST_F(WMServerTest, SetWindowPosition002, testing::ext::TestSize.Level0)
 {
     // WMSServer init success.
@@ -1142,7 +1144,7 @@ HWTEST_F(WMServerTest, SetWindowPosition002, testing::ext::TestSize.Level0)
     }
 
     // 5. check it
-    ASSERT_NE(replyStatus, WMS_ERROR_OK) 
+    ASSERT_NE(replyStatus, WMS_ERROR_OK)
         << "CaseDescription: 5. check it (replyStatus != WMS_ERROR_OK)";
 }
 
@@ -1157,7 +1159,7 @@ HWTEST_F(WMServerTest, SetWindowPosition002, testing::ext::TestSize.Level0)
  *                  3. check result
  *                  4. SetWindowVisibility by normal arguments
  *                  5. check result
- */ 
+ */
 HWTEST_F(WMServerTest, SetWindowVisibility001, testing::ext::TestSize.Level0)
 {
     // WMSServer init success.
@@ -1166,7 +1168,7 @@ HWTEST_F(WMServerTest, SetWindowVisibility001, testing::ext::TestSize.Level0)
     ASSERT_NE(ctx.wms, nullptr) << "EnvConditions: wms init success..";
 
     // 1. create WlSurface
-    struct wl_surface* wlSurface = wl_compositor_create_surface(ctx.compositor);
+    struct wl_surface *wlSurface = wl_compositor_create_surface(ctx.compositor);
     ASSERT_NE(wlSurface, nullptr) << "CaseDescription: 1. create WlSurface (wlSurface != nullptr)";
 
     // 2. Create Window by normal arguments
@@ -1179,7 +1181,7 @@ HWTEST_F(WMServerTest, SetWindowVisibility001, testing::ext::TestSize.Level0)
     }
 
     // 3. check it
-    ASSERT_EQ(windowStatus.status, WMS_WINDOW_STATUS_CREATED) 
+    ASSERT_EQ(windowStatus.status, WMS_WINDOW_STATUS_CREATED)
         << "CaseDescription: 3. check it (status == WMS_WINDOW_STATUS_CREATED)";
     ASSERT_GT(windowStatus.wid, 0) << "CaseDescription: 3. check it (wid > 0)";
     ASSERT_GE(windowStatus.x, 0) << "CaseDescription: 3. check it (x >= 0)";
@@ -1198,7 +1200,7 @@ HWTEST_F(WMServerTest, SetWindowVisibility001, testing::ext::TestSize.Level0)
     }
 
     // 5. check it
-    ASSERT_EQ(replyStatus, WMS_ERROR_OK) 
+    ASSERT_EQ(replyStatus, WMS_ERROR_OK)
         << "CaseDescription: 5. check it (replyStatus == WMS_ERROR_OK)";
 }
 
@@ -1210,7 +1212,7 @@ HWTEST_F(WMServerTest, SetWindowVisibility001, testing::ext::TestSize.Level0)
  * EnvConditions: display, compositor, wms init success.
  * CaseDescription: 1. SetWindowVisibility by abnormal arguments
  *                  2. check result
- */ 
+ */
 HWTEST_F(WMServerTest, SetWindowVisibility002, testing::ext::TestSize.Level0)
 {
     // WMSServer init success.
@@ -1229,7 +1231,7 @@ HWTEST_F(WMServerTest, SetWindowVisibility002, testing::ext::TestSize.Level0)
     }
 
     // 2. check it
-    ASSERT_NE(replyStatus, WMS_ERROR_OK) 
+    ASSERT_NE(replyStatus, WMS_ERROR_OK)
         << "CaseDescription: 2. check it (replyStatus != WMS_ERROR_OK)";
 }
 
@@ -1246,8 +1248,7 @@ HWTEST_F(WMServerTest, SetWindowVisibility002, testing::ext::TestSize.Level0)
  *                  5. check result
  *                  6. SetWindowType by normal arguments(type not change)
  *                  7. check result
- * 
- */ 
+ */
 HWTEST_F(WMServerTest, SetWindowType001, testing::ext::TestSize.Level0)
 {
     // WMSServer init success.
@@ -1256,7 +1257,7 @@ HWTEST_F(WMServerTest, SetWindowType001, testing::ext::TestSize.Level0)
     ASSERT_NE(ctx.wms, nullptr) << "EnvConditions: wms init success..";
 
     // 1. create WlSurface
-    struct wl_surface* wlSurface = wl_compositor_create_surface(ctx.compositor);
+    struct wl_surface *wlSurface = wl_compositor_create_surface(ctx.compositor);
     ASSERT_NE(wlSurface, nullptr) << "CaseDescription: 1. create WlSurface (wlSurface != nullptr)";
 
     // 2. Create Window by normal arguments
@@ -1269,7 +1270,7 @@ HWTEST_F(WMServerTest, SetWindowType001, testing::ext::TestSize.Level0)
     }
 
     // 3. check it
-    ASSERT_EQ(windowStatus.status, WMS_WINDOW_STATUS_CREATED) 
+    ASSERT_EQ(windowStatus.status, WMS_WINDOW_STATUS_CREATED)
         << "CaseDescription: 3. check it (status == WMS_WINDOW_STATUS_CREATED)";
     ASSERT_GT(windowStatus.wid, 0) << "CaseDescription: 3. check it (wid > 0)";
     ASSERT_GE(windowStatus.x, 0) << "CaseDescription: 3. check it (x >= 0)";
@@ -1288,9 +1289,9 @@ HWTEST_F(WMServerTest, SetWindowType001, testing::ext::TestSize.Level0)
     }
 
     // 5. check it
-    ASSERT_EQ(replyStatus, WMS_ERROR_OK) 
+    ASSERT_EQ(replyStatus, WMS_ERROR_OK)
         << "CaseDescription: 5. check it (replyStatus == WMS_ERROR_OK)";
-    
+
     // 6. SetWindowType by normal arguments
     {
         std::unique_lock<std::mutex> lck(syncMutex);
@@ -1302,7 +1303,7 @@ HWTEST_F(WMServerTest, SetWindowType001, testing::ext::TestSize.Level0)
     }
 
     // 7. check it
-    ASSERT_NE(replyStatus, WMS_ERROR_OK) 
+    ASSERT_NE(replyStatus, WMS_ERROR_OK)
         << "CaseDescription: 7. check it (replyStatus != WMS_ERROR_OK)";
 }
 
@@ -1319,7 +1320,7 @@ HWTEST_F(WMServerTest, SetWindowType001, testing::ext::TestSize.Level0)
  *                  5. check result
  *                  6. SetWindowType by abnormal arguments
  *                  7. check result
- */ 
+ */
 HWTEST_F(WMServerTest, SetWindowType002, testing::ext::TestSize.Level0)
 {
     // WMSServer init success.
@@ -1328,7 +1329,7 @@ HWTEST_F(WMServerTest, SetWindowType002, testing::ext::TestSize.Level0)
     ASSERT_NE(ctx.wms, nullptr) << "EnvConditions: wms init success..";
 
     // 1. create WlSurface
-    struct wl_surface* wlSurface = wl_compositor_create_surface(ctx.compositor);
+    struct wl_surface *wlSurface = wl_compositor_create_surface(ctx.compositor);
     ASSERT_NE(wlSurface, nullptr) << "CaseDescription: 1. create WlSurface (wlSurface != nullptr)";
 
     // 2. Create Window by normal arguments
@@ -1341,7 +1342,7 @@ HWTEST_F(WMServerTest, SetWindowType002, testing::ext::TestSize.Level0)
     }
 
     // 3. check it
-    ASSERT_EQ(windowStatus.status, WMS_WINDOW_STATUS_CREATED) 
+    ASSERT_EQ(windowStatus.status, WMS_WINDOW_STATUS_CREATED)
         << "CaseDescription: 3. check it (status == WMS_WINDOW_STATUS_CREATED)";
     ASSERT_GT(windowStatus.wid, 0) << "CaseDescription: 3. check it (wid > 0)";
     ASSERT_GE(windowStatus.x, 0) << "CaseDescription: 3. check it (x >= 0)";
@@ -1360,9 +1361,9 @@ HWTEST_F(WMServerTest, SetWindowType002, testing::ext::TestSize.Level0)
     }
 
     // 5. check it
-    ASSERT_NE(replyStatus, WMS_ERROR_OK) 
+    ASSERT_NE(replyStatus, WMS_ERROR_OK)
         << "CaseDescription: 5. check it (replyStatus != WMS_ERROR_OK)";
-    
+
     // 6. SetWindowType by normal arguments
     {
         std::unique_lock<std::mutex> lck(syncMutex);
@@ -1374,7 +1375,7 @@ HWTEST_F(WMServerTest, SetWindowType002, testing::ext::TestSize.Level0)
     }
 
     // 7. check it
-    ASSERT_NE(replyStatus, WMS_ERROR_OK) 
+    ASSERT_NE(replyStatus, WMS_ERROR_OK)
         << "CaseDescription: 7. check it (replyStatus != WMS_ERROR_OK)";
 }
 
@@ -1386,7 +1387,7 @@ HWTEST_F(WMServerTest, SetWindowType002, testing::ext::TestSize.Level0)
  * EnvConditions: display, compositor, wms init success.
  * CaseDescription: 1. SetDisplayMode by normal arguments
  *                  2. check result
- */ 
+ */
 HWTEST_F(WMServerTest, SetDisplayMode001, testing::ext::TestSize.Level0)
 {
     // WMSServer init success.
@@ -1405,9 +1406,9 @@ HWTEST_F(WMServerTest, SetDisplayMode001, testing::ext::TestSize.Level0)
     }
 
     // 2. check it
-    ASSERT_NE(replyStatus, WMS_ERROR_OK) 
+    ASSERT_NE(replyStatus, WMS_ERROR_OK)
         << "CaseDescription: 2. check it (replyStatus != WMS_ERROR_OK)";
-    
+
     // 1. SetDisplayMode by normal arguments
     {
         std::unique_lock<std::mutex> lck(syncMutex);
@@ -1419,9 +1420,9 @@ HWTEST_F(WMServerTest, SetDisplayMode001, testing::ext::TestSize.Level0)
     }
 
     // 2. check it
-    ASSERT_NE(replyStatus, WMS_ERROR_OK) 
+    ASSERT_NE(replyStatus, WMS_ERROR_OK)
         << "CaseDescription: 2. check it (replyStatus != WMS_ERROR_OK)";
-    
+
     // 1. SetDisplayMode by normal arguments
     {
         std::unique_lock<std::mutex> lck(syncMutex);
@@ -1433,9 +1434,9 @@ HWTEST_F(WMServerTest, SetDisplayMode001, testing::ext::TestSize.Level0)
     }
 
     // 2. check it
-    ASSERT_NE(replyStatus, WMS_ERROR_OK) 
+    ASSERT_NE(replyStatus, WMS_ERROR_OK)
         << "CaseDescription: 2. check it (replyStatus != WMS_ERROR_OK)";
-    
+
     // 1. SetDisplayMode by normal arguments
     {
         std::unique_lock<std::mutex> lck(syncMutex);
@@ -1447,7 +1448,7 @@ HWTEST_F(WMServerTest, SetDisplayMode001, testing::ext::TestSize.Level0)
     }
 
     // 2. check it
-    ASSERT_NE(replyStatus, WMS_ERROR_OK) 
+    ASSERT_NE(replyStatus, WMS_ERROR_OK)
         << "CaseDescription: 2. check it (replyStatus != WMS_ERROR_OK)";
 }
 
@@ -1459,7 +1460,7 @@ HWTEST_F(WMServerTest, SetDisplayMode001, testing::ext::TestSize.Level0)
  * EnvConditions: display, compositor, wms init success.
  * CaseDescription: 1. SetDisplayMode by abnormal arguments
  *                  2. check result
- */ 
+ */
 HWTEST_F(WMServerTest, SetDisplayMode002, testing::ext::TestSize.Level0)
 {
     // WMSServer init success.
@@ -1478,7 +1479,7 @@ HWTEST_F(WMServerTest, SetDisplayMode002, testing::ext::TestSize.Level0)
     }
 
     // 2. check it
-    ASSERT_NE(replyStatus, WMS_ERROR_OK) 
+    ASSERT_NE(replyStatus, WMS_ERROR_OK)
         << "CaseDescription: 2. check it (replyStatus != WMS_ERROR_OK)";
 }
 
@@ -1490,8 +1491,7 @@ HWTEST_F(WMServerTest, SetDisplayMode002, testing::ext::TestSize.Level0)
  * EnvConditions: display, compositor, wms init success.
  * CaseDescription: 1. ScreenShot by normal arguments
  *                  2. check result
- * 
- */ 
+ */
 HWTEST_F(WMServerTest, ScreenShot001, testing::ext::TestSize.Level0)
 {
     // WMSServer init success.
@@ -1510,7 +1510,7 @@ HWTEST_F(WMServerTest, ScreenShot001, testing::ext::TestSize.Level0)
     }
 
     // 2. check it
-    ASSERT_EQ(shotInfo.status, WMS_ERROR_OK) 
+    ASSERT_EQ(shotInfo.status, WMS_ERROR_OK)
         << "CaseDescription: 2. check it (status == WMS_ERROR_OK)";
     ASSERT_EQ(shotInfo.id, 0u) << "CaseDescription: 2. check it (id == 0)";
     ASSERT_GT(shotInfo.fd, 0) << "CaseDescription: 2. check it (fd > 0)";
@@ -1530,8 +1530,7 @@ HWTEST_F(WMServerTest, ScreenShot001, testing::ext::TestSize.Level0)
  * EnvConditions: display, compositor, wms init success.
  * CaseDescription: 1. ScreenShot by abnormal arguments
  *                  2. check result
- * 
- */ 
+ */
 HWTEST_F(WMServerTest, ScreenShot002, testing::ext::TestSize.Level0)
 {
     // WMSServer init success.
@@ -1550,7 +1549,7 @@ HWTEST_F(WMServerTest, ScreenShot002, testing::ext::TestSize.Level0)
     }
 
     // 2. check it
-    ASSERT_NE(shotInfo.status, WMS_ERROR_OK) 
+    ASSERT_NE(shotInfo.status, WMS_ERROR_OK)
         << "CaseDescription: 2. check it (status != WMS_ERROR_OK)";
     ASSERT_EQ(shotInfo.id, 2) << "CaseDescription: 2. check it (id == 2)";
 }
@@ -1566,7 +1565,7 @@ HWTEST_F(WMServerTest, ScreenShot002, testing::ext::TestSize.Level0)
  *                  3. check result
  *                  4. WindowShot by normal arguments
  *                  5. check result
- */ 
+ */
 HWTEST_F(WMServerTest, WindowShot001, testing::ext::TestSize.Level0)
 {
     // WMSServer init success.
@@ -1576,7 +1575,7 @@ HWTEST_F(WMServerTest, WindowShot001, testing::ext::TestSize.Level0)
     ASSERT_NE(ctx.wl_shm, nullptr) << "EnvConditions: wl_shm init success..";
 
     // 1. create WlSurface
-    struct wl_surface* wlSurface = wl_compositor_create_surface(ctx.compositor);
+    struct wl_surface *wlSurface = wl_compositor_create_surface(ctx.compositor);
     ASSERT_NE(wlSurface, nullptr) << "CaseDescription: 1. create WlSurface (wlSurface != nullptr)";
 
     // 2. Create Window by normal arguments
@@ -1589,7 +1588,7 @@ HWTEST_F(WMServerTest, WindowShot001, testing::ext::TestSize.Level0)
     }
 
     // 3. check it
-    ASSERT_EQ(windowStatus.status, WMS_WINDOW_STATUS_CREATED) 
+    ASSERT_EQ(windowStatus.status, WMS_WINDOW_STATUS_CREATED)
         << "CaseDescription: 3. check it (status == WMS_WINDOW_STATUS_CREATED)";
     ASSERT_GT(windowStatus.wid, 0) << "CaseDescription: 3. check it (wid > 0)";
     ASSERT_GE(windowStatus.x, 0) << "CaseDescription: 3. check it (x >= 0)";
@@ -1597,10 +1596,10 @@ HWTEST_F(WMServerTest, WindowShot001, testing::ext::TestSize.Level0)
     ASSERT_GT(windowStatus.width, 0u) << "CaseDescription: 3. check it (width > 0)";
     ASSERT_GT(windowStatus.height, 0u) << "CaseDescription: 3. check it (height > 0)";
 
-    struct wl_buffer* wl_buffer = CreateShmBuffer(ctx.wl_shm, windowStatus.width, windowStatus.height);
-    ASSERT_NE(wl_buffer, nullptr);
-    
-    wl_surface_attach(wlSurface, wl_buffer, 0, 0);
+    struct wl_buffer *wlBuffer = CreateShmBuffer(ctx.wl_shm, windowStatus.width, windowStatus.height);
+    ASSERT_NE(wlBuffer, nullptr);
+
+    wl_surface_attach(wlSurface, wlBuffer, 0, 0);
     wl_surface_damage(wlSurface, 0, 0, windowStatus.width, windowStatus.height);
     wl_surface_commit(wlSurface);
     wl_display_flush(ctx.display);
@@ -1616,15 +1615,15 @@ HWTEST_F(WMServerTest, WindowShot001, testing::ext::TestSize.Level0)
     }
 
     // 5. check it
-    ASSERT_EQ(shotInfo.status, WMS_ERROR_OK) 
+    ASSERT_EQ(shotInfo.status, WMS_ERROR_OK)
         << "CaseDescription: 5. check it (status == WMS_ERROR_OK)";
     ASSERT_EQ(shotInfo.id, windowStatus.wid) << "CaseDescription: 5. check it (id == windowStatus.wid)";
     ASSERT_GT(shotInfo.fd, 0) << "CaseDescription: 5. check it (fd > 0)";
-    ASSERT_EQ(shotInfo.width, windowStatus.width) 
+    ASSERT_EQ(shotInfo.width, windowStatus.width)
         << "CaseDescription: 5. check it (width == windowStatus.width)";
-    ASSERT_EQ(shotInfo.height, windowStatus.height) 
+    ASSERT_EQ(shotInfo.height, windowStatus.height)
         << "CaseDescription: 5. check it (height == windowStatus.height)";
-    ASSERT_EQ(shotInfo.stride, windowStatus.width * 4) 
+    ASSERT_EQ(shotInfo.stride, windowStatus.width * 4)
         << "CaseDescription: 5. check it (stride ==  windowStatus.width * 4)";
     ASSERT_GT(shotInfo.format, 0u) << "CaseDescription: 5. check it (format > 0)";
     ASSERT_GT(shotInfo.seconds, 0u) << "CaseDescription: 5. check it (seconds > 0)";
@@ -1639,8 +1638,7 @@ HWTEST_F(WMServerTest, WindowShot001, testing::ext::TestSize.Level0)
  * EnvConditions: display, compositor, wms init success.
  * CaseDescription: 1. WindowShot by abnormal arguments
  *                  2. check result
- * 
- */ 
+ */
 HWTEST_F(WMServerTest, WindowShot002, testing::ext::TestSize.Level0)
 {
     // WMSServer init success.
@@ -1659,10 +1657,110 @@ HWTEST_F(WMServerTest, WindowShot002, testing::ext::TestSize.Level0)
     }
 
     // 2. check it
-    ASSERT_NE(shotInfo.status, WMS_ERROR_OK) 
+    ASSERT_NE(shotInfo.status, WMS_ERROR_OK)
         << "CaseDescription: 2. check it (status != WMS_ERROR_OK)";
     ASSERT_EQ(shotInfo.id, 0) << "CaseDescription: 2. check it (id == 0)";
 }
 
+/*
+ * Feature: wms_config_global_window_status by normal arguments
+ * Function: WMSServer
+ * SubFunction: wms_config_global_window_status
+ * FunctionPoints: wms_config_global_window_status normal arguments
+ * EnvConditions: display, compositor, wms init success.
+ * CaseDescription: 1. GlobalWindowStatus by normal arguments
+ *                  2. check result
+ *
+ */
+HWTEST_F(WMServerTest, ConfigGlobalWindowStatus001, testing::ext::TestSize.Level0)
+{
+    // WMSServer init success.
+    ASSERT_NE(ctx.display, nullptr) << "EnvConditions: wl_display init success..";
+    ASSERT_NE(ctx.compositor, nullptr) << "EnvConditions: wl_compositor init success..";
+    ASSERT_NE(ctx.wms, nullptr) << "EnvConditions: wms init success..";
+
+    // 1. GlobalWindowStatus by normal arguments
+    {
+        std::unique_lock<std::mutex> lck(syncMutex);
+        replyFlag = false;
+        wms_config_global_window_status(ctx.wms, 1);
+        wl_display_flush(ctx.display);
+        syncVariable.wait(lck, [&](){ return replyFlag; });
+    }
+
+    // 2. request reply status check it
+    ASSERT_EQ(replyStatus, WMS_ERROR_OK)
+        << "CaseDescription: 2. check it (status = WMS_ERROR_OK)";
+
+    // 3. create WlSurface
+    struct wl_surface* wlSurface = wl_compositor_create_surface(ctx.compositor);
+    ASSERT_NE(wlSurface, nullptr) << "CaseDescription: 3. create WlSurface (wlSurface != nullptr)";
+
+    {
+        std::unique_lock<std::mutex> lck(syncMutexGlobalWinInfoCb);
+        replyGlobalWinInfoCbFlag = false;
+    }
+
+    // 4. Create a Window (WMS_WINDOW_TYPE_NORMAL)
+    {
+        std::unique_lock<std::mutex> lck(syncMutex);
+        replyFlag = false;
+        wms_create_window(ctx.wms, wlSurface, 0, WMS_WINDOW_TYPE_NORMAL);
+        wl_display_flush(ctx.display);
+        syncVariable.wait(lck, [&](){ return replyFlag; });
+    }
+
+    // 5. window status check
+    ASSERT_EQ(windowStatus.status, WMS_WINDOW_STATUS_CREATED)
+        << "CaseDescription: 5. check it (status == WMS_WINDOW_STATUS_CREATED)";
+    ASSERT_GT(windowStatus.wid, 0) << "CaseDescription: 5. check it (wid > 0)";
+    ASSERT_GE(windowStatus.x, 0) << "CaseDescription: 5. check it (x >= 0)";
+    ASSERT_GE(windowStatus.y, 0) << "CaseDescription: 5. check it (y >= 0)";
+    ASSERT_GT(windowStatus.width, 0u) << "CaseDescription: 5. check it (width > 0)";
+    ASSERT_GT(windowStatus.height, 0u) << "CaseDescription: 5. check it (height > 0)";
+
+    // 6. global window status check
+    {
+        std::unique_lock<std::mutex> lck(syncMutexGlobalWinInfoCb);
+        globalWinInfoCbVariable.wait(lck, [&](){ return replyGlobalWinInfoCbFlag; });
+    }
+    ASSERT_EQ(gloadWindowStatus.status, WMS_WINDOW_STATUS_CREATED)
+        << "CaseDescription: 6. check it (status == WMS_WINDOW_STATUS_CREATED)";
+    ASSERT_EQ(gloadWindowStatus.wid, windowStatus.wid)
+        << "CaseDescription: 6. check it (gloadWindowStatus.wid = windowStatus.wid)";
+    ASSERT_EQ(gloadWindowStatus.pid, getpid());
+
+    {
+        std::unique_lock<std::mutex> lck(syncMutexGlobalWinInfoCb);
+        replyGlobalWinInfoCbFlag = false;
+    }
+
+    // 7. Destroy Window by normal arguments
+    {
+        std::unique_lock<std::mutex> lck(syncMutex);
+        replyFlag = false;
+        wms_destroy_window(ctx.wms, windowStatus.wid);
+        wl_display_flush(ctx.display);
+        syncVariable.wait(lck, [&](){ return replyFlag; });
+    }
+
+    // 8. check it
+    ASSERT_EQ(replyStatus, WMS_ERROR_OK)
+        << "CaseDescription: 8. check it (replyStatus == WMS_ERROR_OK)";
+    ASSERT_EQ(windowStatus.status, WMS_WINDOW_STATUS_DESTROYED)
+        << "CaseDescription: 8. check it (status == WMS_WINDOW_STATUS_DESTROYED)";
+    ASSERT_GT(windowStatus.wid, 0) << "CaseDescription: 8. check it (wid > 0)";
+
+    // 9. global window status check
+    {
+        std::unique_lock<std::mutex> lck(syncMutexGlobalWinInfoCb);
+        globalWinInfoCbVariable.wait(lck, [&](){ return replyGlobalWinInfoCbFlag; });
+    }
+    ASSERT_EQ(gloadWindowStatus.status, WMS_WINDOW_STATUS_DESTROYED)
+        << "CaseDescription: 9. check it (status == WMS_WINDOW_STATUS_DESTROYED)";
+    ASSERT_EQ(gloadWindowStatus.wid, windowStatus.wid)
+        << "CaseDescription: 9. check it (gloadWindowStatus.wid = windowStatus.wid)";
+    ASSERT_EQ(gloadWindowStatus.pid, getpid());
+}
 } // namespace
 } // namespace OHOS

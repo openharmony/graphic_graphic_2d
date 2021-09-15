@@ -26,8 +26,8 @@ namespace OHOS {
 namespace Vsync {
 class VsyncCallbackStub : public IRemoteStub<IVsyncCallback> {
 public:
-    virtual int32_t OnRemoteRequest(uint32_t code, MessageParcel& data,
-                                    MessageParcel& reply, MessageOption& option) override;
+    virtual int32_t OnRemoteRequest(uint32_t code, MessageParcel &data,
+                                    MessageParcel &reply, MessageOption &option) override;
 };
 } // namespace Vsync
 } // namespace OHOS

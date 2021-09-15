@@ -32,7 +32,7 @@ using SyncFunc = std::function<void(int64_t, void *)>;
 struct FrameCallback {
     uint32_t frequency_;
     int64_t timestamp_;
-    void* userdata_;
+    void *userdata_;
     SyncFunc callback_;
 };
 
@@ -41,7 +41,7 @@ public:
     static sptr<VsyncHelper> Current();
     static sptr<VsyncHelper> FromHandler(std::shared_ptr<AppExecFwk::EventHandler>& handler);
 
-    virtual VsyncError RequestFrameCallback(const struct FrameCallback& cb) = 0;
+    virtual VsyncError RequestFrameCallback(const struct FrameCallback &cb) = 0;
     virtual VsyncError GetSupportedVsyncFrequencys(std::vector<uint32_t>& freqs) = 0;
 };
 } // namespace OHOS

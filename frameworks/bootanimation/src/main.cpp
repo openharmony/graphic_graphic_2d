@@ -13,26 +13,40 @@
  * limitations under the License.
  */
 
+#include <cinttypes>
+#include <cstdio>
+#include <cstdlib>
+#include <fstream>
+#include <memory>
 #include <securec.h>
+#include <sstream>
 #include <unistd.h>
-#include <inttypes.h>
 
 #include <display_type.h>
 #include <vsync_helper.h>
 #include <window_manager.h>
+#include <window_manager_service_client.h>
 
 #include "raw_parser.h"
 #include "util.h"
 
 using namespace OHOS;
 
-namespace {
-namespace {
-constexpr uint32_t POSTTIME = 12 * 1000;
-constexpr uint32_t PRETIME = 3 * 1000;
-}
+class Main : public IWindowChangeListenerClazz {
+public:
+    void Init(int32_t width, int32_t height);
+    int32_t DoDraw(uint8_t *addr, uint32_t width, uint32_t height, uint32_t count);
+    void Draw();
+    void Sync(int64_t time, void *data);
+    void OnWindowCreate(int32_t pid, int32_t wid) override;
+    void OnWindowDestroy(int32_t pid, int32_t wid) override;
 
-int32_t DoDraw(uint8_t *addr, uint32_t width, uint32_t height, uint32_t count)
+private:
+    sptr<Window> window = nullptr;
+    int32_t freq = 30;
+};
+
+int32_t Main::DoDraw(uint8_t *addr, uint32_t width, uint32_t height, uint32_t count)
 {
     constexpr uint32_t stride = 4;
     int32_t addrSize = width * height * stride;
@@ -54,11 +68,12 @@ int32_t DoDraw(uint8_t *addr, uint32_t width, uint32_t height, uint32_t count)
 
     memcpy_s(addr, addrSize, frame.get(), addrSize);
     last = count;
-    LOG("GetData time: %{public}" PRIu64 ", data: %{public}p, length: %{public}d", GetNowTime() - start, data, length);
+    LOG("GetData time: %{public}" PRIu64 ", data: %{public}p, length: %{public}d",
+        GetNowTime() - start, data, length);
     return 0;
 }
 
-void Draw(Window *window)
+void Main::Draw()
 {
     sptr<Surface> surface = window->GetSurface();
     if (surface == nullptr) {
@@ -69,8 +84,13 @@ void Draw(Window *window)
     do {
         sptr<SurfaceBuffer> buffer;
         int32_t releaseFence;
-        BufferRequestConfig config;
-        window->GetRequestConfig(config);
+        BufferRequestConfig config = {
+            .width = surface->GetDefaultWidth(),
+            .height = surface->GetDefaultHeight(),
+            .strideAlignment = 0x8,
+            .format = PIXEL_FMT_RGBA_8888,
+            .usage = surface->GetDefaultUsage(),
+        };
 
         SurfaceError ret = surface->RequestBuffer(buffer, releaseFence, config);
         if (ret == SURFACE_ERROR_NO_BUFFER) {
@@ -107,95 +127,128 @@ void Draw(Window *window)
         ret = surface->FlushBuffer(buffer, -1, flushConfig);
 
         LOG("Sync %{public}d %{public}s", count, SurfaceErrorStr(ret).c_str());
-        fflush(stdout);
         count++;
     } while (false);
 }
 
-void DoubleSync(int64_t time, void *data)
+void Main::Sync(int64_t, void *data)
 {
-    static int32_t count = 0;
-    if (count % 2 == 0) {
-        Draw(reinterpret_cast<Window *>(data));
-    }
-    count++;
-    RequestSync(DoubleSync, data);
-}
-
-void Main()
-{
-    const int32_t width = WindowManager::GetInstance()->GetMaxWidth();
-    const int32_t height = WindowManager::GetInstance()->GetMaxHeight();
-    WindowConfig config = {
-        .width = width,
-        .height = height,
-        .pos_x = 0,
-        .pos_y = 0,
-        .format = PIXEL_FMT_RGBA_8888,
-        .type = WINDOW_TYPE_NORMAL,
+    Draw();
+    struct FrameCallback cb = {
+        .frequency_ = freq,
+        .timestamp_ = 0,
+        .userdata_ = data,
+        .callback_ = std::bind(&Main::Sync, this, SYNC_FUNC_ARG),
     };
 
-    static std::unique_ptr<Window> window = WindowManager::GetInstance()->CreateWindow(&config);
-    if (window == nullptr) {
-        LOG("window is nullptr");
-    } else {
-        window->Move(0, 0);
-        window->ReSize(width, height);
-        window->SwitchTop();
+    VsyncError ret = VsyncHelper::Current()->RequestFrameCallback(cb);
+    if (ret) {
+        LOG("RequestFrameCallback inner %{public}d\n", ret);
+    }
+}
 
-        auto onWindowCreate = [](uint32_t pid) {
-            constexpr uint32_t stringLength = 32;
-            char filename[stringLength];
-            (void)snprintf_s(filename,
-                sizeof(filename), sizeof(filename) - 1, "/proc/%d/cmdline", pid);
+void Main::Init(int32_t width, int32_t height)
+{
+    const auto &wmi = WindowManager::GetInstance();
+    auto option = WindowOption::Get();
+    option->SetWindowType(WINDOW_TYPE_NORMAL);
+    option->SetWidth(width);
+    option->SetHeight(height);
+    option->SetX(0);
+    option->SetY(0);
 
-            auto fp = fopen(filename, "r");
-            if (fp == nullptr) {
-                return;
-            }
+    auto wret = wmi->CreateWindow(window, option);
+    if (wret != WM_OK || window == nullptr) {
+        LOG("WindowManager::CreateWindow() return %{public}s", WMErrorStr(wret).c_str());
+        exit(1);
+    }
+    window->SwitchTop();
 
-            char cmdline[stringLength] = {};
-            fread(cmdline, sizeof(char), stringLength, fp);
-            fclose(fp);
+    const auto &wmsc = WindowManagerServiceClient::GetInstance();
+    wret = wmsc->Init();
+    if (wret != WM_OK) {
+        LOG("WindowManagerServiceClient::Init() return %{public}s", WMErrorStr(wret).c_str());
+        exit(1);
+    }
 
-            if (strcmp(cmdline, "com.ohos.systemui") == 0 ||
-                strcmp(cmdline, "com.ohos.launcher") == 0) {
+    std::vector<uint32_t> freqs;
+    VsyncHelper::Current()->GetSupportedVsyncFrequencys(freqs);
+    if (freqs.size() >= 0x2) {
+        freq = freqs[1];
+    }
+
+    const auto &wms = wmsc->GetService();
+    wms->OnWindowListChange(this);
+
+    Sync(0, nullptr);
+
+    constexpr int32_t exitTime = 15 * 1000;
+    PostTask(std::bind(exit, 0), exitTime);
+}
+
+void Main::OnWindowCreate(int32_t pid, int32_t)
+{
+    std::stringstream ss;
+    ss << "/proc/" << pid << "/cmdline";
+    std::ifstream ifs(ss.str(), std::ios::in);
+    if (ifs.is_open()) {
+        constexpr const char *systemui = "com.ohos.systemui";
+        constexpr const char *launcher = "com.ohos.launcher";
+        char cmdline[0x100] = {};
+        if (ifs.getline(cmdline, sizeof(cmdline))) {
+            bool have = false;
+            have = have || strstr(cmdline, systemui) == cmdline;
+            have = have || strstr(cmdline, launcher) == cmdline;
+            if (have) {
                 LOG("exiting");
                 exit(0);
             }
-        };
-        window->RegistOnWindowCreateCb(onWindowCreate);
-
-        DoubleSync(0, window.get());
+        }
     }
-
-    PostTask([]() { LOG(""); exit(0); }, PRETIME + POSTTIME);
 }
+
+void Main::OnWindowDestroy(int32_t, int32_t)
+{
 }
 
 int main(int argc, const char *argv[])
 {
-    int64_t start = GetNowTime();
-    const int32_t width = WindowManager::GetInstance()->GetMaxWidth();
-    const int32_t height = WindowManager::GetInstance()->GetMaxHeight();
-    constexpr int32_t stringLength = 64;
-    char resource[stringLength];
-    int32_t ret = snprintf_s(resource, sizeof(resource),
-        sizeof(resource) - 1, "/system/etc/bootanimation-%dx%d.raw", width, height);
-    if (ret == -1) {
-        LOG("snprintf_s failed");
-        return -1;
+    const auto &wmi = WindowManager::GetInstance();
+    auto wret = wmi->Init();
+    if (wret != WM_OK) {
+        LOG("WindowManager::Init() return %{public}s", WMErrorStr(wret).c_str());
+        return 1;
     }
 
-    std::string resourceString = resource;
-    if (RawParser::GetInstance()->Parse(resourceString)) {
+    std::vector<struct WMDisplayInfo> displays;
+    wret = wmi->GetDisplays(displays);
+    if (wret != WM_OK) {
+        LOG("WindowManager::GetDisplays() return %{public}s", WMErrorStr(wret).c_str());
+        return 1;
+    }
+
+    if (displays.size() == 0) {
+        LOG("no display, cannot continue");
+        return 1;
+    }
+
+    const int32_t width = displays[0].width;
+    const int32_t height = displays[0].height;
+
+    int64_t start = GetNowTime();
+    std::stringstream ss;
+    ss << "/system/etc/bootanimation-" << width << "x" << height << ".raw";
+    std::string filename = ss.str();
+    if (RawParser::GetInstance()->Parse(filename)) {
         return -1;
     }
     LOG("time: %{public}" PRIu64 "", GetNowTime() - start);
 
+    Main m;
+
     auto runner = AppExecFwk::EventRunner::Create(false);
     auto handler = std::make_shared<AppExecFwk::EventHandler>(runner);
-    handler->PostTask(Main);
+    handler->PostTask(std::bind(&Main::Init, &m, width, height));
     runner->Run();
     return 0;
 }

@@ -63,10 +63,10 @@ struct SeatInfo {
     int focusWindowId;
 };
 
-struct SeatInfo **GetSeatsInfo();
+struct SeatInfo **GetSeatsInfo(void);
 void FreeSeatsInfo(const struct SeatInfo **seats);
 
-struct ScreenInfo **GetScreensInfo();
+struct ScreenInfo **GetScreensInfo(void);
 void FreeScreensInfo(const struct ScreenInfo **screens);
 
 typedef void (*ScreenInfoChangeListener)();
@@ -78,6 +78,5 @@ void SetSeatListener(const SeatInfoChangeListener listener);
 struct libinput_event;
 typedef void (*LibInputEventListener)(struct libinput_event *event);
 void SetLibInputEventListener(const LibInputEventListener listener);
-
 
 #endif // FRAMEWORKS_WMSERVER_SRC_SCREEN_INFO_H

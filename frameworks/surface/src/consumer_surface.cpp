@@ -65,7 +65,7 @@ sptr<IBufferProducer> ConsumerSurface::GetProducer() const
 }
 
 SurfaceError ConsumerSurface::RequestBuffer(sptr<SurfaceBuffer>& buffer,
-                                            int32_t& fence, BufferRequestConfig& config)
+                                            int32_t &fence, BufferRequestConfig &config)
 {
     return SURFACE_ERROR_NOT_SUPPORT;
 }
@@ -76,13 +76,13 @@ SurfaceError ConsumerSurface::CancelBuffer(sptr<SurfaceBuffer>& buffer)
 }
 
 SurfaceError ConsumerSurface::FlushBuffer(sptr<SurfaceBuffer>& buffer,
-                                          int32_t fence, BufferFlushConfig& config)
+                                          int32_t fence, BufferFlushConfig &config)
 {
     return SURFACE_ERROR_NOT_SUPPORT;
 }
 
-SurfaceError ConsumerSurface::AcquireBuffer(sptr<SurfaceBuffer>& buffer, int32_t& fence,
-                                            int64_t& timestamp, Rect& damage)
+SurfaceError ConsumerSurface::AcquireBuffer(sptr<SurfaceBuffer>& buffer, int32_t &fence,
+                                            int64_t &timestamp, Rect &damage)
 {
     SurfaceError ret;
     sptr<SurfaceBufferImpl> bufferImpl = SurfaceBufferImpl::FromBase(buffer);
@@ -141,7 +141,7 @@ uint32_t ConsumerSurface::GetDefaultUsage()
     return producer_->GetDefaultUsage();
 }
 
-SurfaceError ConsumerSurface::SetUserData(const std::string& key, const std::string& val)
+SurfaceError ConsumerSurface::SetUserData(const std::string &key, const std::string &val)
 {
     if (userData_.size() >= SURFACE_MAX_USER_DATA_COUNT) {
         return SURFACE_ERROR_OUT_OF_RANGE;
@@ -150,7 +150,7 @@ SurfaceError ConsumerSurface::SetUserData(const std::string& key, const std::str
     return SURFACE_ERROR_OK;
 }
 
-std::string ConsumerSurface::GetUserData(const std::string& key)
+std::string ConsumerSurface::GetUserData(const std::string &key)
 {
     if (userData_.find(key) != userData_.end()) {
         return userData_[key];

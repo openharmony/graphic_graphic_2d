@@ -50,6 +50,13 @@ public:
 
     void Run(int32_t argc, const char **argv) override
     {
+        auto initRet = WindowManager::GetInstance()->Init();
+        if (initRet) {
+            printf("init failed with %s\n", WMErrorStr(initRet).c_str());
+            ExitTest();
+            return;
+        }
+
         csurface1 = Surface::CreateSurfaceAsConsumer();
         window1 = NativeTestFactory::CreateWindow(WINDOW_TYPE_NORMAL, csurface1);
         if (window1 == nullptr) {
@@ -71,9 +78,17 @@ public:
         window2->SwitchTop();
         auto surface2 = window2->GetSurface();
         windowSync2 = NativeTestSync::CreateSync(NativeTestDraw::ColorDraw, surface2);
+        AfterRun();
+    }
 
-        auto down1 = [this](void *, uint32_t, uint32_t, int32_t, double, double) { window2->SwitchTop(); };
-        auto down2 = [this](void *, uint32_t, uint32_t, int32_t, double, double) { window1->SwitchTop(); };
+    void AfterRun()
+    {
+        auto down1 = [this](void *a, uint32_t b, uint32_t c, int32_t d, double e, double f) {
+            window2->SwitchTop();
+        };
+        auto down2 = [this](void *a, uint32_t b, uint32_t c, int32_t d, double e, double f) {
+            window1->SwitchTop();
+        };
         window1->OnTouchDown(down1);
         window2->OnTouchDown(down2);
 

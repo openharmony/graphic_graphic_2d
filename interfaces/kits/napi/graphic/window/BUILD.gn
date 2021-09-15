@@ -47,7 +47,7 @@ ohos_shared_library("window") {
     "//foundation/aafwk/standard/frameworks/kits/ability/native:abilitykit_native",
     "//foundation/ace/napi:ace_napi",
     "//foundation/appexecfwk/standard/kits:appkit_native",
-    "//foundation/graphic/standard:libwms_client",
+    "//foundation/graphic/standard:libwmclient",
   ]
 
   external_deps = [

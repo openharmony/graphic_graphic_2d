@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include <cinttypes>
 #include <cstring>
 #include <functional>
 #include <iostream>
@@ -21,7 +22,6 @@
 #include <thread>
 #include <unistd.h>
 #include <vector>
-#include <inttypes.h>
 
 #include <display_gralloc.h>
 #include <hilog/log.h>
@@ -199,7 +199,7 @@ void SyncLSub(int64_t time, void*)
         return;
     }
     sptr<Surface> surface = g_subWindow->GetSurface();
-    if (NULL == surface) {
+    if (surface == nullptr) {
         printf("wms-test NULL == surface\n");
         return;
     }
@@ -654,12 +654,13 @@ void Test14()
 }
 
 constexpr int32_t SAID = 4699;
-void Test15ChildProcess(int32_t pipeFd[2], uint32_t length)
+void Test15ChildProcess(int32_t pipeFd[2])
 {
     TESTLOG_I("wms-test child_process start");
+    constexpr int32_t wh = 200;
     WindowConfig config = {
-        .width = 200,
-        .height = 200,
+        .width = wh,
+        .height = wh,
         .pos_x = 0,
         .pos_y = 0,
         .format = PIXEL_FMT_RGBA_8888,
@@ -721,7 +722,7 @@ void Test15()
     }
 
     if (pid == 0) {
-        Test15ChildProcess(pipeFd, sizeof(pipeFd));
+        Test15ChildProcess(pipeFd);
     } else {
         // pid > 0
         read(pipeFd[0], &g_ipcConfig, sizeof(g_ipcConfig));
@@ -915,12 +916,12 @@ int32_t main(int32_t argc, const char** argv)
 
     constexpr int32_t c = 2;
     if (argc > c) {
-        memcpy_s(g_argv2, sizeof(g_argv2) - 1, argv[c], strlen(argv[c]));
+        (void)memcpy_s(g_argv2, sizeof(g_argv2) - 1, argv[c], strlen(argv[c]));
     }
 
     auto runner = AppExecFwk::EventRunner::Create(false);
     auto handler = std::make_shared<AppExecFwk::EventHandler>(runner);
-    auto condition = [testcase](auto& item) { return item.id == testcase; };
+    auto condition = [testcase](auto &item) { return item.id == testcase; };
     auto test = std::find_if(tests.begin(), tests.end(), condition);
     if (test != tests.end()) {
         handler->PostTask(test->func);

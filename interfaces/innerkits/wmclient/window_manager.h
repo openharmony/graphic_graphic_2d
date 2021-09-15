@@ -36,6 +36,7 @@ public:
     virtual WMError Init() = 0;
 
     virtual WMError GetDisplays(std::vector<struct WMDisplayInfo> &displays) const = 0;
+    virtual sptr<Window> GetWindowByID(int32_t wid) = 0;
 
     virtual WMError CreateWindow(sptr<Window> &window, const sptr<WindowOption> &option) = 0;
     virtual WMError CreateSubwindow(sptr<Subwindow> &subwindow,

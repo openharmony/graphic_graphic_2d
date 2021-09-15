@@ -57,8 +57,8 @@ HWTEST_F(WaylandServiceTest, Start, testing::ext::TestSize.Level0)
     const auto appear = std::bind(&WaylandServiceTest::OnAppear, this, __BIND3_ARGS);
     WaylandService::GetInstance()->OnAppear(appear);
 
-    const auto& display = WlDisplay::GetInstance();
-    const auto& ws = WaylandService::GetInstance();
+    const auto &display = WlDisplay::GetInstance();
+    const auto &ws = WaylandService::GetInstance();
 
     // 1. display connect to socket
     bool bret = display->Connect(nullptr);
@@ -96,8 +96,8 @@ HWTEST_F(WaylandServiceTest, Start, testing::ext::TestSize.Level0)
  */
 HWTEST_F(WaylandServiceTest, StartBeforeConnect, testing::ext::TestSize.Level0)
 {
-    const auto& display = WlDisplay::GetInstance();
-    const auto& ws = WaylandService::GetInstance();
+    const auto &display = WlDisplay::GetInstance();
+    const auto &ws = WaylandService::GetInstance();
 
     // 1. start WaylandService
     callCount = 0;
@@ -131,8 +131,8 @@ HWTEST_F(WaylandServiceTest, StartBeforeConnect, testing::ext::TestSize.Level0)
  */
 HWTEST_F(WaylandServiceTest, Stop, testing::ext::TestSize.Level0)
 {
-    const auto& display = WlDisplay::GetInstance();
-    const auto& ws = WaylandService::GetInstance();
+    const auto &display = WlDisplay::GetInstance();
+    const auto &ws = WaylandService::GetInstance();
 
     // display connected, WaylandService started
     bool bret = display->Connect(nullptr);

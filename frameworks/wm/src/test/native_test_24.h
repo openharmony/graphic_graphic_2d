@@ -13,19 +13,7 @@
  * limitations under the License.
  */
 
-#ifndef FRAMEWORKS_WM_TEST_UNITTEST_MOCK_MOCK_WINDOW_MANAGER_SERVICE_CLIENT_H
-#define FRAMEWORKS_WM_TEST_UNITTEST_MOCK_MOCK_WINDOW_MANAGER_SERVICE_CLIENT_H
+#ifndef FRAMEWORKS_WM_SRC_TEST_NATIVE_TEST_24_H
+#define FRAMEWORKS_WM_SRC_TEST_NATIVE_TEST_24_H
 
-#include <gmock/gmock.h>
-
-#include <window_manager_service_client.h>
-
-namespace OHOS {
-class MockWindowManagerServiceClient : public WindowManagerServiceClient {
-public:
-    MOCK_METHOD0(Init, WMError());
-    MOCK_CONST_METHOD0(GetService, sptr<IWindowManagerService>());
-};
-} // namespace OHOS
-
-#endif // FRAMEWORKS_WM_TEST_UNITTEST_MOCK_MOCK_WINDOW_MANAGER_SERVICE_CLIENT_H
+#endif // FRAMEWORKS_WM_SRC_TEST_NATIVE_TEST_24_H

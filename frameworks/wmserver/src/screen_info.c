@@ -16,6 +16,7 @@
 #include "screen_info.h"
 
 #include <securec.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -56,11 +57,11 @@ void FreeSeatsInfo(const struct SeatInfo **seats)
     free(seats);
 }
 
-struct SeatInfo **GetSeatsInfo()
+struct SeatInfo **GetSeatsInfo(void)
 {
     struct WmsContext *pWmsCtx = GetWmsInstance();
     uint32_t seatNum = wl_list_length(&pWmsCtx->wlListSeat);
-    struct SeatInfo **seats = (struct SeatInfo **)calloc(seatNum + 1, sizeof(struct SeatInfo *));
+    struct SeatInfo **seats = (struct SeatInfo **)calloc(seatNum + 1, sizeof(intptr_t));
     if (!seats) {
         LOGE("calloc error!");
         return NULL;
@@ -197,7 +198,7 @@ struct LayerInfoInfo *GetLayerInfo(const struct ivi_layout_layer *layer)
     pLayerInfo->nSurfaces = surfaceCnt;
 
     if (surfaceCnt > 0) {
-        pLayerInfo->surfaces = (struct SurfaceInfo **)calloc(surfaceCnt, sizeof(struct SurfaceInfo *));
+        pLayerInfo->surfaces = (struct SurfaceInfo **)calloc(surfaceCnt, sizeof(intptr_t));
         if (!pLayerInfo->surfaces) {
             LOGE("calloc error!");
             FreeLayerInfo(pLayerInfo);
@@ -249,7 +250,7 @@ struct ScreenInfo *GetScreenInfo(const struct WmsScreen *pWmsScreen)
     pScreenInfo->nLayers = layerCount;
 
     if (layerCount > 0) {
-        pScreenInfo->layers = (struct LayerInfo **)calloc(layerCount, sizeof(struct LayerInfo *));
+        pScreenInfo->layers = (struct LayerInfo **)calloc(layerCount, sizeof(intptr_t));
         if (!pScreenInfo->layers) {
             LOGE("calloc error!");
             FreeScreenInfo(pScreenInfo);
@@ -268,11 +269,15 @@ struct ScreenInfo *GetScreenInfo(const struct WmsScreen *pWmsScreen)
     return pScreenInfo;
 }
 
-struct ScreenInfo **GetScreensInfo()
+struct ScreenInfo **GetScreensInfo(void)
 {
     struct WmsContext *pWmsCtx = GetWmsInstance();
     uint32_t screenNum = wl_list_length(&pWmsCtx->wlListScreen);
-    struct ScreenInfo **screens = (struct ScreenInfo **)calloc(screenNum + 1, sizeof(struct ScreenInfo *));
+    if (screenNum + 1 <= 0) {
+        return NULL;
+    }
+
+    struct ScreenInfo **screens = (struct ScreenInfo **)calloc(screenNum + 1, sizeof(intptr_t));
     if (!screens) {
         LOGE("calloc error!");
         return NULL;
@@ -360,7 +365,7 @@ void ScreensInfoDebugPrint(const struct ScreenInfo **screens)
 
 void SeatsInfoDebugPrint(const struct SeatInfo **seats)
 {
-    for (int i = 0; seats[i]; i++) {        
+    for (int i = 0; seats[i]; i++) {
         LOGI("-----------------------------");
         LOGI("seatName: %{public}s", seats[i]->seatName);
         LOGI("deviceFlags: %{public}d", seats[i]->deviceFlags);
@@ -368,7 +373,7 @@ void SeatsInfoDebugPrint(const struct SeatInfo **seats)
     }
 }
 
-void GetScreenInformation(const struct wl_client* client, const struct wl_resource* resource, uint32_t type)
+void GetScreenInformation(const struct wl_client *client, const struct wl_resource *resource, uint32_t type)
 {
     if (type == SCREEN_INFO_TYPE_SCREEN) {
         LOGI("SCREEN_INFO_TYPE_SCREEN");
@@ -392,12 +397,12 @@ void GetScreenInformation(const struct wl_client* client, const struct wl_resour
     }
 }
 
-static void OnScreenInfoChange()
+static void OnScreenInfoChange(void)
 {
     LOGD("OnScreenInfoChange is called.");
 }
 
-static void OnSeatInfoChange()
+static void OnSeatInfoChange(void)
 {
     LOGD("OnSeatInfoChange is called.");
 }
@@ -407,7 +412,7 @@ static void OnLibInputEvent(const struct libinput_event *event)
     LOGD("OnLibInputEvent is called.");
 }
 
-void SetListener(const struct wl_client* client, const struct wl_resource* resource, uint32_t type)
+void SetListener(const struct wl_client *client, const struct wl_resource *resource, uint32_t type)
 {
     if (type == SCREEN_INFO_LISTENER_SET_ENABLE) {
         LOGI("Set Listener.");

@@ -12,6 +12,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+#ifndef FRAMEWORKS_VSYNC_TEST_UNITTEST_MOCK_MOCK_DRM_MODULE_H
+#define FRAMEWORKS_VSYNC_TEST_UNITTEST_MOCK_MOCK_DRM_MODULE_H
+
 #include "drm_module.h"
 
 #include <gmock/gmock.h>
@@ -21,11 +25,13 @@ namespace OHOS {
 namespace Vsync {
 class MockDrmModule : public DrmModule {
 public:
-     MOCK_METHOD0(GetSystemAbilityManager, sptr<ISystemAbilityManager>());
-     MOCK_METHOD2(GetSystemAbility, sptr<IRemoteObject>(sptr<ISystemAbilityManager>& sm, int32_t systemAbilityId));
-     MOCK_METHOD2(DrmOpen, int(std::string name, std::string busid));
-     MOCK_METHOD1(DrmClose, int(int32_t drmFd_));
-     MOCK_METHOD2(DrmWaitBlank, int(int32_t drmFd, drmVBlank vblank));
+    MOCK_METHOD0(GetSystemAbilityManager, sptr<ISystemAbilityManager>());
+    MOCK_METHOD2(GetSystemAbility, sptr<IRemoteObject>(sptr<ISystemAbilityManager>& sm, int32_t systemAbilityId));
+    MOCK_METHOD2(DrmOpen, int(std::string name, std::string busid));
+    MOCK_METHOD1(DrmClose, int(int32_t drmFd_));
+    MOCK_METHOD2(DrmWaitBlank, int(int32_t drmFd, drmVBlank vblank));
 };
 } // namespace Vsync
 } // namespace OHOS
+
+#endif // FRAMEWORKS_VSYNC_TEST_UNITTEST_MOCK_MOCK_DRM_MODULE_H

@@ -26,57 +26,74 @@ template<class T>
 class Promise : public RefBase {
 public:
     Promise() = default;
+    Promise(const T &t);
     virtual ~Promise() = default;
 
-    Promise(const T& t)
-    {
-        value = t;
-        resolved = true;
-    }
-
-    virtual T Await()
-    {
-        if (resolved == false) {
-            std::unique_lock<std::mutex> lock(mutex);
-            cv.wait(lock, [this]() { return resolved == true; });
-        }
-        return value;
-    }
-
-    virtual void Then(std::function<void(const T &t)> func)
-    {
-        std::unique_lock<std::mutex> lock(mutex);
-        if (resolved == false) {
-            this->func = func;
-        } else {
-            func(value);
-        }
-    }
-
-    virtual bool Resolve(const T &t)
-    {
-        if (resolved == false) {
-            std::unique_lock<std::mutex> lock(mutex);
-            if (resolved == false) {
-                value = t;
-                resolved = true;
-                cv.notify_all();
-                if (func != nullptr) {
-                    func(value);
-                }
-                return true;
-            }
-        }
-        return false;
-    }
+    virtual bool IsResolved() const;
+    virtual const T &Await();
+    virtual void Then(std::function<void(const T &t)> func);
+    virtual bool Resolve(const T &t);
 
 private:
     bool resolved = false;
     std::mutex mutex;
     std::condition_variable cv;
-    std::function<void(const T &t)> func = nullptr;
     T value;
+
+    std::function<void(const T &t)> onComplete = nullptr;
 };
+
+template<class T>
+Promise<T>::Promise(const T &t)
+{
+    value = t;
+    resolved = true;
+}
+
+template<class T>
+bool Promise<T>::IsResolved() const
+{
+    return resolved;
+}
+
+template<class T>
+const T &Promise<T>::Await()
+{
+    if (resolved == false) {
+        std::unique_lock<std::mutex> lock(mutex);
+        cv.wait(lock, [this]() { return resolved == true; });
+    }
+    return value;
+}
+
+template<class T>
+void Promise<T>::Then(std::function<void(const T &t)> func)
+{
+    std::unique_lock<std::mutex> lock(mutex);
+    if (resolved == false) {
+        onComplete = func;
+    } else {
+        func(value);
+    }
+}
+
+template<class T>
+bool Promise<T>::Resolve(const T &t)
+{
+    if (resolved == false) {
+        std::unique_lock<std::mutex> lock(mutex);
+        if (resolved == false) {
+            value = t;
+            resolved = true;
+            cv.notify_all();
+            if (onComplete != nullptr) {
+                onComplete(value);
+            }
+            return true;
+        }
+    }
+    return false;
+}
 } // namespace OHOS
 
 #endif // UTILS_INCLUDE_PROMISE_H

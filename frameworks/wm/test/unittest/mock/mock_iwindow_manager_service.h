@@ -27,6 +27,7 @@ public:
     MOCK_METHOD1(GetDisplayModes, WMError(uint32_t &displayModes));
     MOCK_METHOD1(SetDisplayMode, sptr<Promise<WMError>>(WMSDisplayMode modes));
     MOCK_METHOD1(AddDisplayChangeListener, WMError(IWindowManagerDisplayListenerClazz *listener));
+    MOCK_METHOD1(OnWindowListChange, sptr<Promise<WMError>>(IWindowChangeListenerClazz *listener));
     MOCK_METHOD1(SetDisplayDirection, WMError(WMSDisplayDirection direction));
     MOCK_METHOD1(OnDisplayDirectionChange, WMError(DisplayDirectionChangeFunc func));
     MOCK_METHOD1(ShotScreen, sptr<Promise<WMSImageInfo>>(int32_t did));

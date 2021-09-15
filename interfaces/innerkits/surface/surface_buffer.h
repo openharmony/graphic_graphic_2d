@@ -23,20 +23,20 @@
 namespace OHOS {
 class SurfaceBuffer : public RefBase {
 public:
-    virtual BufferHandle* GetBufferHandle() const = 0;
+    virtual BufferHandle *GetBufferHandle() const = 0;
     virtual int32_t GetWidth() const = 0;
     virtual int32_t GetHeight() const = 0;
     virtual int32_t GetFormat() const = 0;
     virtual int64_t GetUsage() const = 0;
     virtual uint64_t GetPhyAddr() const = 0;
     virtual int32_t GetKey() const = 0;
-    virtual void* GetVirAddr() const = 0;
+    virtual void *GetVirAddr() const = 0;
     virtual int GetFileDescriptor() const = 0;
     virtual uint32_t GetSize() const = 0;
     virtual SurfaceError SetInt32(uint32_t key, int32_t value) = 0;
-    virtual SurfaceError GetInt32(uint32_t key, int32_t& value) = 0;
+    virtual SurfaceError GetInt32(uint32_t key, int32_t &value) = 0;
     virtual SurfaceError SetInt64(uint32_t key, int64_t value) = 0;
-    virtual SurfaceError GetInt64(uint32_t key, int64_t& value) = 0;
+    virtual SurfaceError GetInt64(uint32_t key, int64_t &value) = 0;
 
     // support ipc data
     virtual SurfaceError ExtraGet(std::string key, int32_t &value) const = 0;

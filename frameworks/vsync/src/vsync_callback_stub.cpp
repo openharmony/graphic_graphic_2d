@@ -22,8 +22,8 @@ namespace {
 constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, 0, "VsyncCallbackStub" };
 }
 
-int32_t VsyncCallbackStub::OnRemoteRequest(uint32_t code, MessageParcel& data,
-                                           MessageParcel& reply, MessageOption& option)
+int32_t VsyncCallbackStub::OnRemoteRequest(uint32_t code, MessageParcel &data,
+                                           MessageParcel &reply, MessageOption &option)
 {
     auto remoteDescriptor = data.ReadInterfaceToken();
     if (GetDescriptor() != remoteDescriptor) {
@@ -41,11 +41,12 @@ int32_t VsyncCallbackStub::OnRemoteRequest(uint32_t code, MessageParcel& data,
 
             VsyncError err = OnVsync(timestamp);
             reply.WriteInt32(err);
-        } break;
+            break;
+        }
         default: {
             VLOG_FAILURE("code %{public}d cannot process", code);
             return 1;
-        } break;
+        }
     }
     return 0;
 }

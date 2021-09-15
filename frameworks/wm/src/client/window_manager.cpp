@@ -140,7 +140,7 @@ void WindowManager::init()
 }
 
 namespace {
-sptr<WlSurface> CreateWlSurface(WindowConfig* config)
+sptr<WlSurface> CreateWlSurface(WindowConfig *config)
 {
     if (config == nullptr) {
         WMLOG_I("WindowManager::CreateWindow config is nullptr");
@@ -156,7 +156,7 @@ sptr<WlSurface> CreateWlSurface(WindowConfig* config)
 }
 }
 
-std::unique_ptr<Window> WindowManager::CreateWindow(WindowConfig* config)
+std::unique_ptr<Window> WindowManager::CreateWindow(WindowConfig *config)
 {
     WMLOG_I("WindowManager::CreateWindow start");
     if (g_windowManagerService == nullptr) {
@@ -187,7 +187,7 @@ std::unique_ptr<Window> WindowManager::CreateWindow(WindowConfig* config)
     config->width = wminfo.width;
     config->height = wminfo.height;
 
-    InnerWindowInfo* windowInfo = LayerControllerClient::GetInstance()->CreateWindow(wminfo.wid, *config);
+    InnerWindowInfo *windowInfo = LayerControllerClient::GetInstance()->CreateWindow(wminfo.wid, *config);
     if (windowInfo == nullptr) {
         WMLOG_I("WindowManager::CreateWindow widow ID  %{public}d failed", wminfo.wid);
         return nullptr;
@@ -203,7 +203,7 @@ std::unique_ptr<Window> WindowManager::CreateWindow(WindowConfig* config)
     BufferRequestConfig requestConfig = {
         .width = wminfo.width,
         .height = wminfo.height,
-        .strideAlignment = 8,
+        .strideAlignment = 0x8,
         .format = config->format,
         .usage = HBM_USE_CPU_READ | HBM_USE_CPU_WRITE | HBM_USE_MEM_DMA,
         .timeout = 0,
@@ -214,7 +214,7 @@ std::unique_ptr<Window> WindowManager::CreateWindow(WindowConfig* config)
     return ret_win;
 }
 
-std::unique_ptr<SubWindow> WindowManager::CreateSubWindow(int32_t parentid, WindowConfig* config)
+std::unique_ptr<SubWindow> WindowManager::CreateSubWindow(int32_t parentid, WindowConfig *config)
 {
     WMLOG_I("WindowManager::CreateSubWindow start");
     if (config == nullptr) {
@@ -239,7 +239,7 @@ std::unique_ptr<SubWindow> WindowManager::CreateSubWindow(int32_t parentid, Wind
     id++;
     WMLOG_I("WindowManager::CreateSubWindow widow ID is %{public}d", id);
 
-    InnerWindowInfo* windowInfo = LayerControllerClient::GetInstance()->CreateSubWindow(id, parentid, *config);
+    InnerWindowInfo *windowInfo = LayerControllerClient::GetInstance()->CreateSubWindow(id, parentid, *config);
     if (windowInfo == nullptr) {
         WMLOG_I("WindowManager::CreateSubWindow widow ID  %{public}d failed", id);
         return nullptr;
@@ -256,7 +256,7 @@ std::unique_ptr<SubWindow> WindowManager::CreateSubWindow(int32_t parentid, Wind
     BufferRequestConfig requestConfig = {
         .width = config->width,
         .height = config->height,
-        .strideAlignment = 8,
+        .strideAlignment = 0x8,
         .format = config->format,
         .usage = HBM_USE_CPU_READ | HBM_USE_CPU_WRITE | HBM_USE_MEM_DMA,
         .timeout = 0,
@@ -275,7 +275,7 @@ void WindowManager::StartShotScreen(IScreenShotCallback *cb)
         return;
     }
 
-    auto then = [cb](const auto& wmsinfo) {
+    auto then = [cb](const auto &wmsinfo) {
         WMImageInfo wminfo = {
             .wret = wmsinfo.wret,
             .width = wmsinfo.width,
@@ -308,7 +308,7 @@ void WindowManager::StartShotWindow(int32_t id, IWindowShotCallback *cb)
         return;
     }
 
-    auto then = [cb](const auto& wmsinfo) {
+    auto then = [cb](const auto &wmsinfo) {
         WMImageInfo wminfo = {
             .wret = wmsinfo.wret,
             .width = wmsinfo.width,

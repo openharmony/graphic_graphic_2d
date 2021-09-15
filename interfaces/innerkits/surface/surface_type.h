@@ -46,7 +46,7 @@ using BufferRequestConfig = struct BufferRequestConfig {
     int32_t format; // PixelFormat
     int32_t usage;
     int32_t timeout;
-    bool operator == (const struct BufferRequestConfig& config) const
+    bool operator ==(const struct BufferRequestConfig &config) const
     {
         return width == config.width &&
                height == config.height &&
@@ -54,7 +54,7 @@ using BufferRequestConfig = struct BufferRequestConfig {
                format == config.format &&
                usage == config.usage;
     }
-    bool operator != (const struct BufferRequestConfig& config) const
+    bool operator != (const struct BufferRequestConfig &config) const
     {
         return !(*this == config);
     }
