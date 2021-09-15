@@ -1,0 +1,104 @@
+import("//build/ohos.gni")
+
+gni_filepath = "//foundation/graphic/standard/utils/lex_yacc"
+
+template("lex_yacc") {
+  lex_name = invoker.lex
+  yacc_name = invoker.yacc
+  gen_lex_name = "${target_name}_gen_lex"
+  gen_yacc_name = "${target_name}_gen_yacc"
+  gen_lex_yacc_name = "${target_name}_gen_lex_yacc"
+  gen_config_name = "${target_name}_gen_config"
+
+  lex_filename = "$root_gen_dir/$target_name/lexer.yy.cc"
+  lex_pathname = rebase_path(lex_filename, root_build_dir)
+  action(gen_lex_name) {
+    script = "$gni_filepath/gen_lex_cpp.py"
+    lex_inputfile = rebase_path(lex_name, root_build_dir)
+
+    inputs = [
+      script,
+      lex_name,
+    ]
+    outputs = [ lex_filename ]
+    args = [
+      "--input",
+      lex_inputfile,
+      "--output",
+      lex_pathname,
+    ]
+  }
+
+  yacc_filename = "$root_gen_dir/$target_name/parser.cpp"
+  yacc_pathname = rebase_path(yacc_filename, root_build_dir)
+  action(gen_yacc_name) {
+    script = "$gni_filepath/gen_yacc_cpp.py"
+    yacc_inputfile = rebase_path(yacc_name, root_build_dir)
+
+    inputs = [
+      script,
+      yacc_name,
+    ]
+    outputs = [ yacc_filename ]
+    args = [
+      "--input",
+      yacc_inputfile,
+      "--output",
+      yacc_pathname,
+    ]
+  }
+
+  config(gen_config_name) {
+    include_dirs = [
+      ".",
+      "$root_gen_dir/$target_name",
+      "$gni_filepath",
+    ]
+    cflags = [
+      "-Wno-unused-private-field",
+      "-Wno-header-hygiene",
+      "-Wno-implicit-fallthrough",
+    ]
+  }
+
+  ohos_static_library(gen_lex_yacc_name) {
+    sources = [
+      "$lex_filename",
+      "$yacc_filename",
+    ]
+
+    forward_variables_from(invoker,
+                           [
+                             "cflags",
+                             "include_dirs",
+                             "public_configs",
+                             "deps",
+                             "public_deps",
+                           ])
+
+    if (!defined(configs)) {
+      configs = []
+    }
+    if (defined(invoker.configs)) {
+      configs += invoker.configs
+    }
+
+    if (!defined(public_configs)) {
+      public_configs = []
+    }
+    public_configs += [
+      ":$gen_config_name",
+      "//build/config/compiler:rtti",
+      "//build/config/compiler:exceptions",
+    ]
+
+    deps = [
+      ":${gen_lex_name}",
+      ":${gen_yacc_name}",
+    ]
+  }
+
+  group(target_name) {
+    public_deps = [ ":${gen_lex_yacc_name}" ]
+  }
+}

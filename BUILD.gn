@@ -14,13 +14,6 @@
 import("//build/ohos.gni")
 
 ## Install graphic.rc to /system/etc/init/graphic.rc {{{
-#ohos_prebuilt_etc("graphic.rc") {
-#  source = "graphic.rc"
-#  relative_install_dir = "init"
-#  part_name = "graphic_standard"
-#  subsystem_name = "graphic"
-#}
-
 ohos_prebuilt_etc("graphic.rc") {
   if (use_musl) {
     source = "graphic.cfg"
@@ -33,6 +26,16 @@ ohos_prebuilt_etc("graphic.rc") {
 }
 
 ## Install graphic.rc to /system/etc/init/graphic.rc }}}
+
+## Install default.scss to /system/etc/wmlayout.d/default.scss {{{
+ohos_prebuilt_etc("default.scss") {
+  source = "default.scss"
+  relative_install_dir = "wmlayout.d"
+  part_name = "graphic_standard"
+  subsystem_name = "graphic"
+}
+
+## Install default.scss to /system/etc/wmlayout.d/default.scss }}}
 
 group("libsurface") {
   public_deps = [ "frameworks/surface:surface" ]

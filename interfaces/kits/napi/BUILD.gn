@@ -12,5 +12,8 @@
 # limitations under the License.
 
 group("napi_packages") {
-  deps = [ "graphic/window:window" ]
+  deps = [
+    "graphic/display:display",
+    "graphic/window:window",
+  ]
 }

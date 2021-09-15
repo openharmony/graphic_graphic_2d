@@ -15,6 +15,8 @@
 
 #include "window_impl.h"
 
+#include <display_type.h>
+
 #include "singleton_delegator.h"
 #include "static_call.h"
 #include "tester.h"
@@ -125,8 +127,7 @@ WMError WindowImpl::CreateConsumerSurface(sptr<WindowImpl> &wi,
     }
 
     wi->csurface->SetDefaultWidthAndHeight(wi->attr.GetWidth(), wi->attr.GetHeight());
-    wi->csurface->SetDefaultUsage(
-        Surface::USAGE_CPU_READ | Surface::USAGE_CPU_WRITE | Surface::USAGE_MEM_DMA);
+    wi->csurface->SetDefaultUsage(HBM_USE_CPU_READ | HBM_USE_CPU_WRITE | HBM_USE_MEM_DMA);
     return WM_OK;
 }
 
@@ -187,6 +188,60 @@ int32_t WindowImpl::GetID() const
     return attr.GetID();
 }
 
+int32_t WindowImpl::GetX() const
+{
+    CHECK_DESTROY_CONST(-1);
+    return attr.GetX();
+}
+
+int32_t WindowImpl::GetY() const
+{
+    CHECK_DESTROY_CONST(-1);
+    return attr.GetY();
+}
+
+uint32_t WindowImpl::GetWidth() const
+{
+    CHECK_DESTROY_CONST(0);
+    return attr.GetWidth();
+}
+
+uint32_t WindowImpl::GetHeight() const
+{
+    CHECK_DESTROY_CONST(0);
+    return attr.GetHeight();
+}
+
+uint32_t WindowImpl::GetDestWidth() const
+{
+    CHECK_DESTROY_CONST(0);
+    return attr.GetDestWidth();
+}
+
+uint32_t WindowImpl::GetDestHeight() const
+{
+    CHECK_DESTROY_CONST(0);
+    return attr.GetDestHeight();
+}
+
+bool WindowImpl::GetVisibility() const
+{
+    CHECK_DESTROY_CONST(false);
+    return attr.GetVisibility();
+}
+
+WindowType WindowImpl::GetType() const
+{
+    CHECK_DESTROY_CONST(static_cast<WindowType>(-1));
+    return attr.GetType();
+}
+
+WindowMode WindowImpl::GetMode() const
+{
+    CHECK_DESTROY_CONST(static_cast<WindowMode>(-1));
+    return attr.GetMode();
+}
+
 sptr<Promise<WMError>> WindowImpl::Show()
 {
     WMLOGFI("(%{public}d)", attr.GetID());
@@ -240,7 +295,8 @@ sptr<Promise<WMError>> WindowImpl::SetWindowMode(WindowMode mode)
         return new Promise<WMError>(WM_ERROR_INVALID_PARAM);
     }
 
-    return new Promise<WMError>(WM_ERROR_NOT_SUPPORT);
+    attr.SetMode(mode);
+    return wms->SetWindowMode(attr.GetID(), mode);
 }
 
 sptr<Promise<WMError>> WindowImpl::Resize(uint32_t width, uint32_t height)
@@ -329,6 +385,11 @@ void WindowImpl::OnVisibilityChange(WindowVisibilityChangeFunc func)
 void WindowImpl::OnTypeChange(WindowTypeChangeFunc func)
 {
     attr.OnTypeChange(func);
+}
+
+void WindowImpl::OnModeChange(WindowModeChangeFunc func)
+{
+    attr.OnModeChange(func);
 }
 
 WMError WindowImpl::OnTouch(OnTouchFunc cb)
@@ -522,20 +583,25 @@ void WindowImpl::OnBufferAvailable()
     int32_t flushFence;
     int64_t timestamp;
     Rect damage;
-    SurfaceError ret = csurface->AcquireBuffer(sbuffer, flushFence, timestamp, damage);
-    if (ret != SURFACE_ERROR_OK) {
-        WMLOG_I("AcquireBuffer failed");
+    auto sret = csurface->AcquireBuffer(sbuffer, flushFence, timestamp, damage);
+    if (sret != SURFACE_ERROR_OK) {
+        WMLOGFE("AcquireBuffer failed");
         return;
     }
 
     auto bc = SingletonContainer::Get<WlBufferCache>();
     auto wbuffer = bc->GetWlBuffer(csurface, sbuffer);
     if (wbuffer == nullptr) {
-        int32_t fd = sbuffer->GetFileDescriptor();
-        uint32_t width = sbuffer->GetWidth();
-        uint32_t height = sbuffer->GetHeight();
         auto dmaBufferFactory = SingletonContainer::Get<WlDMABufferFactory>();
-        auto dmaWlBuffer = dmaBufferFactory->Create(fd, width, height, sbuffer->GetFormat());
+        auto dmaWlBuffer = dmaBufferFactory->Create(sbuffer->GetBufferHandle());
+        if (dmaWlBuffer == nullptr) {
+            WMLOGFE("Create DMA Buffer Failed");
+            sret = csurface->ReleaseBuffer(sbuffer, -1);
+            if (sret != SURFACE_ERROR_OK) {
+                WMLOGFW("ReleaseBuffer failed");
+            }
+            return;
+        }
         dmaWlBuffer->OnRelease(BufferRelease);
 
         wbuffer = dmaWlBuffer;

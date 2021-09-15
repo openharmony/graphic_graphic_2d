@@ -359,7 +359,7 @@ HWTEST_F(WindowImplTest, Create10, Function | SmallTest | Level2)
             sptr<WindowOption> wo = WindowOption::Get();
             wret = wo->SetWindowType(WINDOW_TYPE_ALARM_SCREEN);
             STEP_ASSERT_EQ(wret, WM_OK);
-            wret = wo->SetWindowMode(WINDOW_MODE_TOP);
+            wret = wo->SetWindowMode(WINDOW_MODE_FULL);
             STEP_ASSERT_EQ(wret, WM_OK);
             wret = wo->SetX(1);
             STEP_ASSERT_EQ(wret, WM_OK);
@@ -835,14 +835,14 @@ HWTEST_F(WindowImplTest, SetWindowType03, Reliability | SmallTest | Level3)
  * Type: Reliability
  * Rank: Important(2)
  * EnvConditions: N/A
- * CaseDescription: 1. call NormalWindow SetWindowMode, check WM_ERROR_NOT_SUPPORT
+ * CaseDescription: 1. call NormalWindow SetWindowMode, check WM_OK
  */
 HWTEST_F(WindowImplTest, SetWindowMode01, Reliability | SmallTest | Level2)
 {
     PART("CaseDescription") {
-        STEP("1. call NormalWindow SetWindowMode, check WM_ERROR_NOT_SUPPORT") {
-            auto wret = normalWindow->SetWindowMode(WINDOW_MODE_TOP)->Await();
-            STEP_ASSERT_EQ(wret, WM_ERROR_NOT_SUPPORT);
+        STEP("1. call NormalWindow SetWindowMode, check WM_OK") {
+            auto wret = normalWindow->SetWindowMode(WINDOW_MODE_FULL)->Await();
+            STEP_ASSERT_EQ(wret, WM_OK);
         }
     }
 }
@@ -858,7 +858,7 @@ HWTEST_F(WindowImplTest, SetWindowMode02, Reliability | SmallTest | Level2)
 {
     PART("CaseDescription") {
         STEP("1. call DestroyedWindow SetWindowMode, check WM_ERROR_DESTROYED_OBJECT") {
-            auto wret = destroyedWindow->SetWindowMode(WINDOW_MODE_TOP)->Await();
+            auto wret = destroyedWindow->SetWindowMode(WINDOW_MODE_FULL)->Await();
             STEP_ASSERT_EQ(wret, WM_ERROR_DESTROYED_OBJECT);
         }
     }

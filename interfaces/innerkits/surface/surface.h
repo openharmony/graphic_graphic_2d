@@ -53,12 +53,6 @@ public:
     virtual int32_t GetDefaultWidth() = 0;
     virtual int32_t GetDefaultHeight() = 0;
 
-    enum {
-        USAGE_CPU_READ = (1 << 0),
-        USAGE_CPU_WRITE = (1 << 1),
-        USAGE_MEM_MMZ = (1 << 2),
-        USAGE_MEM_DMA = (1 << 3),
-    };
     virtual SurfaceError SetDefaultUsage(uint32_t usage) = 0;
     virtual uint32_t GetDefaultUsage() = 0;
 

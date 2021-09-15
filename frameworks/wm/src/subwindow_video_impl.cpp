@@ -15,6 +15,8 @@
 
 #include "subwindow_video_impl.h"
 
+#include <display_type.h>
+
 #include "window_impl.h"
 #include "window_manager_hilog.h"
 #include "wl_shm_buffer_factory.h"
@@ -48,6 +50,7 @@ WMError SubwindowVideoImpl::CheckAndNew(sptr<SubwindowVideoImpl> &svi,
         WMLOGFE("new SubwindowVideoImpl return nullptr");
         return WM_ERROR_NEW;
     }
+    svi->pw = window;
     return WM_OK;
 }
 
@@ -90,6 +93,13 @@ WMError SubwindowVideoImpl::CreateLayer(sptr<SubwindowVideoImpl> &svi)
     if (ret) {
         WMLOGFE("SubwindowVideoImpl::CreateLayer return nullptr");
         return WM_ERROR_API_FAILED;
+    }
+
+    if (svi->csurface != nullptr) {
+        svi->csurface->SetDefaultWidthAndHeight(svi->attr.GetWidth(), svi->attr.GetHeight());
+        svi->csurface->SetDefaultUsage(HBM_USE_CPU_READ | HBM_USE_CPU_WRITE | HBM_USE_MEM_DMA);
+    } else {
+        WMLOGFE("SubwindowVideoImpl::CreateLayer csurface is nullptr");
     }
     return WM_OK;
 }
@@ -168,6 +178,11 @@ WMError SubwindowVideoImpl::Create(sptr<Subwindow> &subwindow,
         return wret;
     }
 
+    wret = svi->Move(option->GetX(), option->GetY());
+    if (wret != WM_OK) {
+        return wret;
+    }
+
     subwindow = svi;
     WMLOGFI("Create Video Subwindow Success");
     return WM_OK;
@@ -195,8 +210,16 @@ WMError SubwindowVideoImpl::Move(int32_t x, int32_t y)
     }
 
     attr.SetXY(x, y);
+
     rect.x = x;
     rect.y = y;
+    auto parentWindow = pw.promote();
+    if (parentWindow != nullptr) {
+        rect.x += parentWindow->GetX();
+        rect.y += parentWindow->GetY();
+    }
+
+    WMLOGFI("(subwindow video) rect.x: %{public}d, rect.y: %{public}d", rect.x, rect.y);
     ret = display->SetRect(layerId, rect);
     if (ret != DISPLAY_SUCCESS) {
         WMLOGFE("set rect fail, ret:%{public}d", ret);

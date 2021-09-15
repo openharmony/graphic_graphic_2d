@@ -20,7 +20,7 @@
 
 #include <promise.h>
 #include <refbase.h>
-#include <wm_common.h>
+#include <window_manager_type.h>
 #include <wms-client-protocol.h>
 
 #include "singleton_delegator.h"

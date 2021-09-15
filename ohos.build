@@ -15,12 +15,7 @@
         "//third_party/wayland-ivi-extension:simple-weston-client",
         "//third_party/wayland-ivi-extension:screen-info-module-test",
 
-        "//third_party/weston:drm-backend",
-        "//third_party/weston:ivi-shell",
-        "//third_party/weston:libweston-desktop",
-        "//third_party/weston:weston",
-        "//third_party/weston:weston.ini",
-        "//third_party/weston:weston.rc",
+        "//third_party/weston:default",
 
         "//foundation/graphic/standard/frameworks/vsync:vsync_server",
         "//foundation/graphic/standard/frameworks/wmserver:wmserver",
@@ -29,7 +24,8 @@
 
         "//foundation/graphic/standard/frameworks/bootanimation:bootanimation",
         "//foundation/graphic/standard/frameworks/bootanimation:bootanimation-480x960.raw",
-        "//foundation/graphic/standard/frameworks/wm:wmtest",
+        "//foundation/graphic/standard/frameworks/wmtest:wmtest",
+        "//foundation/graphic/standard:default.scss",
         "//foundation/graphic/standard:graphic.rc"
       ],
       "test_list": [

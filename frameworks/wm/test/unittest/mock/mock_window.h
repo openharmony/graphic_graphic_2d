@@ -25,6 +25,15 @@ class MockWindow : public Window {
 public:
     MOCK_CONST_METHOD0(GetSurface, sptr<Surface>());
     MOCK_CONST_METHOD0(GetID, int32_t());
+    MOCK_CONST_METHOD0(GetX, int32_t());
+    MOCK_CONST_METHOD0(GetY, int32_t());
+    MOCK_CONST_METHOD0(GetWidth, uint32_t());
+    MOCK_CONST_METHOD0(GetHeight, uint32_t());
+    MOCK_CONST_METHOD0(GetDestWidth, uint32_t());
+    MOCK_CONST_METHOD0(GetDestHeight, uint32_t());
+    MOCK_CONST_METHOD0(GetVisibility, bool());
+    MOCK_CONST_METHOD0(GetType, WindowType());
+    MOCK_CONST_METHOD0(GetMode, WindowMode());
     MOCK_METHOD0(Show, sptr<Promise<WMError>>());
     MOCK_METHOD0(Hide, sptr<Promise<WMError>>());
     MOCK_METHOD2(Move, sptr<Promise<WMError>>(int32_t x, int32_t y));
@@ -39,6 +48,7 @@ public:
     MOCK_METHOD1(OnSizeChange, void(WindowSizeChangeFunc func));
     MOCK_METHOD1(OnVisibilityChange, void(WindowVisibilityChangeFunc func));
     MOCK_METHOD1(OnTypeChange, void(WindowTypeChangeFunc func));
+    MOCK_METHOD1(OnModeChange, void(WindowModeChangeFunc func));
     MOCK_METHOD1(OnTouch, WMError(OnTouchFunc cb));
     MOCK_METHOD1(OnKey, WMError(OnKeyFunc cb));
     MOCK_METHOD1(OnPointerEnter, WMError(PointerEnterFunc func));

@@ -40,6 +40,7 @@ public:
     MOCK_METHOD3(Resize, sptr<Promise<WMError>>(int32_t wid, uint32_t width, uint32_t height));
     MOCK_METHOD3(ScaleTo, sptr<Promise<WMError>>(int32_t wid, uint32_t width, uint32_t height));
     MOCK_METHOD2(SetWindowType, sptr<Promise<WMError>>(int32_t wid, WindowType type));
+    MOCK_METHOD2(SetWindowMode, sptr<Promise<WMError>>(int32_t wid, WindowMode mode));
 };
 } // namespace OHOS
 

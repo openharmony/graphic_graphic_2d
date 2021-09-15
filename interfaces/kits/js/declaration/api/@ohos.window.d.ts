@@ -14,8 +14,8 @@
 */
 
 /**
-* Window manager.
-* @devices tv, phone, tablet, wearable.
+ * Window manager.
+ * @devices tv, phone, tablet, wearable.
 */
 declare namespace window {
   /**
@@ -32,11 +32,19 @@ declare namespace window {
     /**
      * App.
      */
-    TYPE_APP,
+    TYPE_APP = 0,
     /**
      * System alert.
      */
-    TYPE_SYSTEM_ALERT,
+    TYPE_SYSTEM_ALERT = 30,
+    /**
+     * System volume.
+     */
+    TYPE_SYSTEM_VOLUME = 70,
+    /**
+     * System panel.
+     */
+    TYPE_SYSTEM_PANEL = 90,
   }
 
   /**

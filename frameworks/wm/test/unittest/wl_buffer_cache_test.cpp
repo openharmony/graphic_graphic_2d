@@ -100,11 +100,7 @@ HWTEST_F(WlBufferCacheTest, Add, testing::ext::TestSize.Level0)
         << "2.d. get surface buffer (sret == SURFACE_ERROR_OK)";
 
     // 2.e. get dma buffer
-    auto fd = sbuffer1->GetFileDescriptor();
-    auto width = sbuffer1->GetWidth();
-    auto height = sbuffer1->GetHeight();
-    auto format = sbuffer1->GetFormat();
-    dmabuf = WlDMABufferFactory::GetInstance()->Create(fd, width, height, format);
+    dmabuf = WlDMABufferFactory::GetInstance()->Create(sbuffer1->GetBufferHandle());
     ASSERT_NE(dmabuf, nullptr) << "CaseDescription: "
         << "2.e. get dma buffer (dmabuf != nullptr)";
 

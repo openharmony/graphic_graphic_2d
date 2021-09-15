@@ -1,0 +1,129 @@
+// WMLayout
+
+// # window type {
+//     // all mode attribute define
+//     attr: value;
+//     &:mode {
+//         // special mode attribute define
+//         attr: value;
+//     }
+// }
+
+// layout_attribute: left, top, width, height
+// align_attribute: horizon-align, vertical-align
+// other_attribute: z-index, position
+
+// z-index: {number}
+// position: relative, fixed, static
+// horizon-align: left, middle, right
+// vertical-align: top, middle, bottom
+// left, top, width, height: {number}%, {number}px
+
+// "&:mode": full, free, unset(default in type)
+
+// relative layout in Relative Rectangle
+// Relative Rectangle = FullScreen Rectangle - all of (Static Rectangle)
+// fixed layout don't affect other layout
+
+#WINDOW_TYPE_NORMAL {
+    z-index: 0;
+    position: relative;
+    horizon-align: middle;
+    vertical-align: middle;
+    width: 100.0%;
+    height: 100.0%;
+    &:free {
+        z-index: 51;
+    }
+}
+
+#WINDOW_TYPE_STATUS_BAR {
+    z-index: 10;
+    position: static;
+    horizon-align: middle;
+    vertical-align: top;
+    width: 100%;
+    height: 7%;
+}
+
+#WINDOW_TYPE_NAVI_BAR {
+    z-index: 20;
+    position: static;
+    horizon-align: middle;
+    vertical-align: bottom;
+    width: 100%;
+    height: 7%;
+}
+
+#WINDOW_TYPE_ALARM_SCREEN {
+    z-index: 30;
+    position: fixed;
+    horizon-align: middle;
+    vertical-align: middle;
+    width: 80%;
+    height: 30%;
+}
+
+#WINDOW_TYPE_SYSTEM_UI {
+    z-index: 31;
+}
+
+#WINDOW_TYPE_LAUNCHER {
+    z-index: 40;
+    position: relative;
+    horizon-align: middle;
+    vertical-align: middle;
+    width: 100.0%;
+    height: 100.0%;
+}
+
+#WINDOW_TYPE_VIDEO {
+    z-index: 41;
+}
+
+#WINDOW_TYPE_INPUT_METHOD {
+    z-index: 50;
+    position: relative;
+    horizon-align: middle;
+    vertical-align: bottom;
+    width: 100.0%;
+    height: 33.3%;
+}
+
+#WINDOW_TYPE_INPUT_METHOD_SELECTOR {
+    z-index: 60;
+    position: relative;
+    horizon-align: middle;
+    vertical-align: bottom;
+    width: 90.0%;
+    height: 33.3%;
+}
+
+#WINDOW_TYPE_VOLUME_OVERLAY {
+    z-index: 70;
+    position: fixed;
+    horizon-align: middle;
+    width: 95.0%;
+
+    top: 2.5%;
+    height: 40.0%;
+}
+
+#WINDOW_TYPE_NOTIFICATION_SHADE {
+    z-index: 80;
+    position: fixed;
+    horizon-align: middle;
+    vertical-align: top;
+    width: 100%;
+    height: 50%;
+}
+
+#WINDOW_TYPE_FLOAT {
+    z-index: 90;
+    position: relative;
+    horizon-align: middle;
+    width: 85%;
+
+    top: 7.5%;
+    height: 50%;
+}

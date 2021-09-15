@@ -134,12 +134,6 @@ SurfaceError BufferQueue::CheckRequestConfig(const BufferRequestConfig &config)
         return SURFACE_ERROR_INVALID_PARAM;
     }
 
-    constexpr int32_t usageMax = HBM_USE_MEM_DMA * 2;
-    if (config.usage < 0 || config.usage >= usageMax) {
-        BLOGN_INVALID("config.usage [0, %{public}d), now is %{public}d", usageMax, config.usage);
-        return SURFACE_ERROR_INVALID_PARAM;
-    }
-
     return SURFACE_ERROR_OK;
 }
 

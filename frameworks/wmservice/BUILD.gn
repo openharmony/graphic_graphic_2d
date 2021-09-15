@@ -34,7 +34,6 @@ config("libwmservice_public_config") {
     "//foundation/graphic/standard/interfaces/innerkits/common",
     "//foundation/graphic/standard/interfaces/innerkits/wmclient",
     "//foundation/graphic/standard/interfaces/innerkits/wmservice",
-    "//foundation/graphic/standard/utils/include",
   ]
 }
 
@@ -58,6 +57,7 @@ ohos_shared_library("libwmservice") {
 
   public_deps = [
     "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
+    "//foundation/graphic/standard/utils:promise",
     "//utils/native/base:utils",
   ]
 

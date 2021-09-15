@@ -334,4 +334,15 @@ sptr<PromiseWMError> WindowManagerServiceProxy::SetWindowType(int32_t wid, Windo
     wl_display_flush(display);
     return ret;
 }
+
+sptr<PromiseWMError> WindowManagerServiceProxy::SetWindowMode(int32_t wid, WindowMode mode)
+{
+    WMLOGFI("wid: %{public}d, mode: %{public}d", wid, mode);
+    sptr<PromiseWMError> ret = new PromiseWMError();
+    promiseQueue.push(ret);
+    wms_set_window_mode(wms, wid, mode);
+    wms_commit_changes(wms);
+    wl_display_flush(display);
+    return ret;
+}
 } // namespace OHOS

@@ -14,6 +14,7 @@
  */
 
 import window from 'libwindow.z.so'
+import display from 'libdisplay.z.so'
 
 export default {
     async onCreate() {
@@ -75,9 +76,27 @@ export default {
         console.info(ret)
 
         console.info('12')
-        console.info('await wnd.setWindowType(1): ')
+        console.info('await wnd.setWindowType(3): ')
         ret = await wnd.setWindowType(3)
         console.info(ret)
+
+        console.info('13')
+        console.info('display.getDefaultDisplay(): ' + display.getDefaultDisplay())
+
+        let displayInfo = display.getDefaultDisplay();
+        console.info('display.id            : ' + displayInfo.id)
+        console.info('display.name          : ' + displayInfo.name)
+        console.info('display.alive         : ' + displayInfo.alive)
+        console.info('display.state         : ' + displayInfo.state)
+        console.info('display.refreshRate   : ' + displayInfo.refreshRate)
+        console.info('display.rotation      : ' + displayInfo.rotation)
+        console.info('display.width         : ' + displayInfo.width)
+        console.info('display.height        : ' + displayInfo.height)
+        console.info('display.densityDPI    : ' + displayInfo.densityDPI)
+        console.info('display.densityPixels : ' + displayInfo.densityPixels)
+        console.info('display.scaledDensity : ' + displayInfo.scaledDensity)
+        console.info('display.xDPI          : ' + displayInfo.xDPI)
+        console.info('display.yDPI          : ' + displayInfo.yDPI)
 
         console.info('onCreate end')
     },

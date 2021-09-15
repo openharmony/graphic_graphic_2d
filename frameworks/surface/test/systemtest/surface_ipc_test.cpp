@@ -48,8 +48,16 @@ pid_t SurfaceIPCTest::ChildProcessMain() const
     int64_t data;
     read(pipeFd[0], &data, sizeof(data));
 
-    auto sam = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-    auto robj = sam->GetSystemAbility(ipcSystemAbilityID);
+    sptr<IRemoteObject> robj = nullptr;
+    while (true) {
+        auto sam = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+        robj = sam->GetSystemAbility(ipcSystemAbilityID);
+        if (robj != nullptr) {
+            break;
+        }
+        sleep(0);
+    }
+
     auto producer = iface_cast<IBufferProducer>(robj);
     auto psurface = Surface::CreateSurfaceAsProducer(producer);
 
@@ -80,7 +88,8 @@ pid_t SurfaceIPCTest::ChildProcessMain() const
 namespace {
 HWTEST_F(SurfaceIPCTest, BufferIPC, testing::ext::TestSize.Level0)
 {
-    ASSERT_EQ(ChildProcessMain(), 0);
+    auto pid = ChildProcessMain();
+    ASSERT_GE(pid, 0);
 
     csurface = Surface::CreateSurfaceAsConsumer("test");
     csurface->RegisterConsumerListener(this);
@@ -121,10 +130,12 @@ HWTEST_F(SurfaceIPCTest, BufferIPC, testing::ext::TestSize.Level0)
     close(pipeFd[0]);
     close(pipeFd[1]);
     sam->RemoveSystemAbility(ipcSystemAbilityID);
+    waitpid(pid, nullptr, NULL);
 }
 
 HWTEST_F(SurfaceIPCTest, Cache, testing::ext::TestSize.Level0)
 {
+    csurface->RegisterConsumerListener(this);
     auto producer = csurface->GetProducer();
     auto psurface = Surface::CreateSurfaceAsProducer(producer);
 

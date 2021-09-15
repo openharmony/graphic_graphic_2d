@@ -220,6 +220,7 @@ ohos_shared_library("libwmclient") {
 
   public_deps = [
     "//foundation/graphic/standard:libsurface",
+    "//foundation/graphic/standard/utils:promise",
     "//foundation/multimodalinput/input/interfaces/native/innerkits/event:mmi_event",
   ]
 
@@ -228,69 +229,6 @@ ohos_shared_library("libwmclient") {
 }
 
 ## Build libwmclient.so }}}
-
-## Build wmtest {{{
-config("wmtest_config") {
-  visibility = [ ":*" ]
-
-  include_dirs = []
-
-  cflags = [
-    "-Wall",
-    "-Werror",
-    "-g3",
-  ]
-}
-
-ohos_executable("wmtest") {
-  install_enable = true
-
-  sources = [
-    "src/test/inative_test.cpp",
-    "src/test/native_test_0.cpp",
-    "src/test/native_test_1.cpp",
-    "src/test/native_test_10.cpp",
-    "src/test/native_test_11.cpp",
-    "src/test/native_test_12.cpp",
-    "src/test/native_test_13.cpp",
-    "src/test/native_test_14.cpp",
-    "src/test/native_test_15.cpp",
-    "src/test/native_test_16.cpp",
-    "src/test/native_test_17.cpp",
-    "src/test/native_test_18.cpp",
-    "src/test/native_test_19.cpp",
-    "src/test/native_test_2.cpp",
-    "src/test/native_test_20.cpp",
-    "src/test/native_test_23.cpp",
-    "src/test/native_test_24.cpp",
-    "src/test/native_test_3.cpp",
-    "src/test/native_test_4.cpp",
-    "src/test/native_test_5.cpp",
-    "src/test/native_test_6.cpp",
-    "src/test/native_test_7.cpp",
-    "src/test/native_test_8.cpp",
-    "src/test/native_test_9.cpp",
-    "src/test/native_test_class.cpp",
-    "src/test/util.cpp",
-    "src/test/wmtest.cpp",
-  ]
-
-  configs = [ ":wmtest_config" ]
-
-  deps = [
-    "//foundation/graphic/standard:libvsync_client",
-    "//foundation/graphic/standard:libwmclient",
-    "//foundation/graphic/standard:libwmservice",
-    "//third_party/zlib:libz",
-  ]
-
-  external_deps = [ "samgr_L2:samgr_proxy" ]
-
-  part_name = "graphic_standard"
-  subsystem_name = "graphic"
-}
-
-## Build wmtest }}}
 
 group("test") {
   testonly = true

@@ -22,6 +22,7 @@
 #include <linux-dmabuf-unstable-v1-client-protocol.h>
 #include <refbase.h>
 
+#include "buffer_handle.h"
 #include "singleton_delegator.h"
 #include "wayland_service.h"
 #include "wl_buffer.h"
@@ -34,7 +35,7 @@ public:
     MOCKABLE void Init();
     MOCKABLE void Deinit();
 
-    MOCKABLE sptr<WlBuffer> Create(int32_t fd, uint32_t w, uint32_t h, int32_t format);
+    MOCKABLE sptr<WlBuffer> Create(BufferHandle *handle);
 
 private:
     WlDMABufferFactory() = default;
@@ -45,7 +46,8 @@ private:
     static void OnAppear(const GetServiceFunc get, const std::string &iname, uint32_t ver);
     static inline struct zwp_linux_dmabuf_v1 *dmabuf = nullptr;
 
-    struct zwp_linux_buffer_params_v1 *CreateParam(int32_t fd, uint32_t w, uint32_t h);
+    struct zwp_linux_buffer_params_v1 *CreateParam(BufferHandle *handle);
+    void SendBufferHandle(zwp_linux_buffer_params_v1 *param, BufferHandle *handle);
 };
 } // namespace OHOS
 
