@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "layout.h"
+#include "layout_controller.h"
 
 #include <algorithm>
 #include <filesystem>
@@ -53,10 +53,10 @@ int32_t LayoutControllerCalcWindowDefaultLayout(uint32_t type,
 {
     struct OHOS::WMServer::Layout layout;
     auto ret = OHOS::WMServer::LayoutController::GetInstance().CalcWindowDefaultLayout(type, mode, layout);
-    if (zIndex != NULL) {
+    if (zIndex != nullptr) {
         *zIndex = layout.zIndex;
     }
-    if (outLayout != NULL) {
+    if (outLayout != nullptr) {
         *outLayout = layout.layout;
     }
     return ret;
@@ -84,17 +84,17 @@ void LayoutController::Init(int32_t width, int32_t height)
 int32_t LayoutController::UpdateStaticLayout(uint32_t type, const struct layout &layout)
 {
     if (modeLayoutMap[WINDOW_MODE_UNSET].find(type) == modeLayoutMap[WINDOW_MODE_UNSET].end()) {
-        return 1;
+        return 0x1;
     }
     if (modeLayoutMap[WINDOW_MODE_UNSET][type].positionType != Layout::PositionType::STATIC) {
-        return 2;
+        return 0x2;
     }
     auto backup = modeLayoutMap[WINDOW_MODE_UNSET][type].layout;
     modeLayoutMap[WINDOW_MODE_UNSET][type].layout = layout;
     struct layout normal;
     if (!CalcNormalRect(normal)) {
         modeLayoutMap[WINDOW_MODE_UNSET][type].layout = backup;
-        return 3;
+        return 0x3;
     }
     return 0;
 }
@@ -161,12 +161,7 @@ void LayoutController::RegisterAttributeProcessFunction(const char *attr,
         .positionType = Layout::PositionType::lt, \
         .pTypeX = Layout::XPositionType::ptx, \
         .pTypeY = Layout::YPositionType::pty, \
-        .layout = { \
-            .x = _x, \
-            .y = _y, \
-            .w = _w, \
-            .h = _h, \
-        }, \
+        .layout = { .x = _x, .y = _y, .w = _w, .h = _h, }, \
     }
 
 #define DEF_POS_LYT(lt, ptx, pty, w, h, wt) \
@@ -293,12 +288,12 @@ bool NumberUnitParser(const std::string &value, int32_t total, double &retval)
         std::stringstream ss;
         ss << result[1];
         ss >> retval;
-        if (result[3] == "px") {
+        if (result[0x3] == "px" && total != 0) {
             constexpr double full = 100.0; // 100%
             retval = retval / total * full;
             return true;
         }
-        if (result[3] == "%") {
+        if (result[0x3] == "%") {
             return true;
         }
     }

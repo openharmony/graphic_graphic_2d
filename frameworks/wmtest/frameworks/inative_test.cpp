@@ -29,7 +29,7 @@ void INativeTest::VisitTests(VisitTestFunc func)
     };
     std::sort(tests.begin(), tests.end(), sortFunc);
 
-    for (const auto &test : tests) {
+    for (auto &test : tests) {
         func(test);
     }
 }

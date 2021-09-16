@@ -17,9 +17,9 @@
 #define INTERFACES_INNERKITS_COMMON_GRAPHIC_COMMON_C_H
 
 // GraphicStandard Error, number just find fast, it may change
-static const int LOWERROR_MAX = 1000;
-static const int LOWERROR_FAILURE = 999;
-static const int LOWERROR_INVALID = 998;
+const int LOWERROR_MAX = 1000;
+const int LOWERROR_FAILURE = 999;
+const int LOWERROR_INVALID = 998;
 enum GSError {
     GSERROR_OK                    = 0,
 

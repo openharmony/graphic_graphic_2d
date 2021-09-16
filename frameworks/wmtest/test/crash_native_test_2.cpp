@@ -67,8 +67,8 @@ public:
         }
 
         if (pid == 0) {
-            auto sam = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-            auto robj = sam->GetSystemAbility(said);
+            auto sam2 = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+            auto robj2 = sam2->GetSystemAbility(said);
         } else {
             ExitTest();
         }

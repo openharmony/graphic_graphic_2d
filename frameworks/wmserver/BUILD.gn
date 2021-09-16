@@ -50,7 +50,7 @@ config("wmserver_public_config") {
 
 ohos_shared_library("wmserver") {
   sources = [
-    "src/layout.cpp",
+    "src/layout_controller.cpp",
     "src/screen_info.c",
     "src/wmserver.c",
   ]

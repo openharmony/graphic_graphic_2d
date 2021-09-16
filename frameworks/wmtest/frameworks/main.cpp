@@ -65,9 +65,9 @@ int32_t main(int32_t argc, const char **argv)
     }
 
     INativeTest *found = nullptr;
-    auto visitFunc = [argv, testcase, &found](const INativeTest *test) {
+    auto visitFunc = [argv, testcase, &found](INativeTest *test) {
         if (test->GetDomain() == argv[domainIndex] && test->GetID() == testcase) {
-            found = const_cast<INativeTest *>(test);
+            found = test;
         }
     };
     INativeTest::VisitTests(visitFunc);

@@ -53,7 +53,7 @@ public:
     void Run(int32_t argc, const char **argv) override
     {
         auto check = [](int32_t data, uint32_t cycle, int64_t& lastTime) {
-            if (data % cycle == 0) {
+            if (cycle != 0 && data % cycle == 0) {
                 int64_t diffTime = GetNowTime() - lastTime;
                 constexpr int32_t nanosecondToSecond = 1000 * 1000 * 1000;
                 double hz = static_cast<double>(cycle) * nanosecondToSecond / diffTime;

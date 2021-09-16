@@ -91,7 +91,7 @@ HWTEST_F(WlBufferCacheTest, Add, testing::ext::TestSize.Level0)
     BufferRequestConfig config = {
         .width = 0x100,  // any value just small
         .height = 0x100, // any value just small
-        .strideAlignment = sizeof(void *),
+        .strideAlignment = 0x8,
         .format = PIXEL_FMT_RGBA_8888,
         .usage = HBM_USE_CPU_READ | HBM_USE_CPU_WRITE | HBM_USE_MEM_DMA,
     };

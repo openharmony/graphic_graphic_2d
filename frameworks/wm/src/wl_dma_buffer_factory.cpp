@@ -198,8 +198,6 @@ void WlDMABufferFactory::SendBufferHandle(zwp_linux_buffer_params_v1 *param, Buf
         handle->size, handle->format, handle->usage >> BITS_OFFSET_32, handle->usage & 0xFFFFFFFF,
         handle->phyAddr >> BITS_OFFSET_32, handle->phyAddr & 0xFFFFFFFF, handle->key,
         &reservefds, &reserveints);
-
-    // display->Flush();
 }
 
 sptr<WlBuffer> WlDMABufferFactory::Create(BufferHandle *handle)

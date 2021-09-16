@@ -695,7 +695,6 @@ HWTEST_F(WMServerTest, CreateWindow008, testing::ext::TestSize.Level0)
     ASSERT_GE(windowStatus.y, 0) << "CaseDescription: 3. check it (y >= 0)";
     ASSERT_GT(windowStatus.width, 0u) << "CaseDescription: 3. check it (width > 0)";
     ASSERT_GT(windowStatus.height, 0u) << "CaseDescription: 3. check it (height > 0)";
-
 }
 
 /*
@@ -736,7 +735,6 @@ HWTEST_F(WMServerTest, CreateWindow009, testing::ext::TestSize.Level0)
     ASSERT_GE(windowStatus.y, 0) << "CaseDescription: 3. check it (y >= 0)";
     ASSERT_GT(windowStatus.width, 0u) << "CaseDescription: 3. check it (width > 0)";
     ASSERT_GT(windowStatus.height, 0u) << "CaseDescription: 3. check it (height > 0)";
-
 }
 
 /*
@@ -777,7 +775,6 @@ HWTEST_F(WMServerTest, CreateWindow010, testing::ext::TestSize.Level0)
     ASSERT_GE(windowStatus.y, 0) << "CaseDescription: 3. check it (y >= 0)";
     ASSERT_GT(windowStatus.width, 0u) << "CaseDescription: 3. check it (width > 0)";
     ASSERT_GT(windowStatus.height, 0u) << "CaseDescription: 3. check it (height > 0)";
-
 }
 
 /*
@@ -818,7 +815,6 @@ HWTEST_F(WMServerTest, CreateWindow011, testing::ext::TestSize.Level0)
     ASSERT_GE(windowStatus.y, 0) << "CaseDescription: 3. check it (y >= 0)";
     ASSERT_GT(windowStatus.width, 0u) << "CaseDescription: 3. check it (width > 0)";
     ASSERT_GT(windowStatus.height, 0u) << "CaseDescription: 3. check it (height > 0)";
-
 }
 
 /*
@@ -859,7 +855,6 @@ HWTEST_F(WMServerTest, CreateWindow012, testing::ext::TestSize.Level0)
     ASSERT_GE(windowStatus.y, 0) << "CaseDescription: 3. check it (y >= 0)";
     ASSERT_GT(windowStatus.width, 0u) << "CaseDescription: 3. check it (width > 0)";
     ASSERT_GT(windowStatus.height, 0u) << "CaseDescription: 3. check it (height > 0)";
-
 }
 
 /*
@@ -900,7 +895,6 @@ HWTEST_F(WMServerTest, CreateWindow013, testing::ext::TestSize.Level0)
     ASSERT_GE(windowStatus.y, 0) << "CaseDescription: 3. check it (y >= 0)";
     ASSERT_GT(windowStatus.width, 0u) << "CaseDescription: 3. check it (width > 0)";
     ASSERT_GT(windowStatus.height, 0u) << "CaseDescription: 3. check it (height > 0)";
-
 }
 
 /*

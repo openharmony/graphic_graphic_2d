@@ -25,7 +25,7 @@
 
 #include "backend.h"
 #include "ivi-layout-private.h"
-#include "layout.h"
+#include "layout_controller.h"
 #include "libweston-internal.h"
 #include "screen_info.h"
 #include "weston.h"
@@ -57,12 +57,6 @@
 #define LAYER_ID_TYPE_BASE 100
 #define LAYER_ID_SCREEN_LENGTH 10000
 #define LAYER_ID_SCREEN_BASE 100000
-
-enum {
-    MODE_UNSET = 0,
-    MODE_FULL = 0,
-    MODE_FREE = 1,
-};
 
 #define BAR_WIDTH_PERCENT 0.07
 #define ALARM_WINDOW_WIDTH 400
@@ -304,7 +298,7 @@ static void WindowSurfaceCommitted(struct weston_surface *surface, int32_t sx, i
     }
 }
 
-static uint32_t GetDisplayModeFlag(struct WmsContext *ctx)
+static uint32_t GetDisplayModeFlag(const struct WmsContext *ctx)
 {
     uint32_t screen_num = wl_list_length(&ctx->wlListScreen);
     uint32_t flag = WMS_DISPLAY_MODE_SINGLE;

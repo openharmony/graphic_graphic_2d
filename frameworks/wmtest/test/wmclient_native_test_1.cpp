@@ -16,7 +16,6 @@
 #include "wmclient_native_test_1.h"
 
 #include <cstdio>
-#include <securec.h>
 
 #include <display_type.h>
 #include <window_manager.h>

@@ -18,7 +18,7 @@
 #include <hilog/log.h>
 
 namespace OHOS {
-napi_status SetMemberInt32(napi_env env, napi_value result, const char* key, int32_t value)
+napi_status SetMemberInt32(napi_env env, napi_value result, const char *key, int32_t value)
 {
     napi_value num;
     GNAPI_INNER(napi_create_int32(env, value, &num));
@@ -26,7 +26,7 @@ napi_status SetMemberInt32(napi_env env, napi_value result, const char* key, int
     return napi_ok;
 }
 
-napi_status SetMemberUint32(napi_env env, napi_value result, const char* key, uint32_t value)
+napi_status SetMemberUint32(napi_env env, napi_value result, const char *key, uint32_t value)
 {
     napi_value num;
     GNAPI_INNER(napi_create_uint32(env, value, &num));
@@ -34,7 +34,7 @@ napi_status SetMemberUint32(napi_env env, napi_value result, const char* key, ui
     return napi_ok;
 }
 
-napi_status SetMemberUndefined(napi_env env, napi_value result, const char* key)
+napi_status SetMemberUndefined(napi_env env, napi_value result, const char *key)
 {
     napi_value undefined;
     GNAPI_INNER(napi_get_undefined(env, &undefined));

@@ -87,7 +87,7 @@ public:
         };
         config.width = surface->GetDefaultWidth();
         config.height = surface->GetDefaultHeight();
-        config.strideAlignment = sizeof(void *);
+        config.strideAlignment = 0x8,
         config.format = PIXEL_FMT_RGBA_8888;
         config.usage = surface->GetDefaultUsage();
         freeWindowSync = NativeTestSync::CreateSync(NativeTestDraw::RainbowDraw, surface, &config);
