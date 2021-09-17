@@ -18,7 +18,7 @@
 
 #include <functional>
 
-#include <wm_common.h>
+#include <window_manager_type.h>
 
 namespace OHOS {
 class WindowAttribute {
@@ -27,6 +27,7 @@ public:
     void OnSizeChange(WindowSizeChangeFunc func);
     void OnVisibilityChange(WindowVisibilityChangeFunc func);
     void OnTypeChange(WindowTypeChangeFunc func);
+    void OnModeChange(WindowModeChangeFunc func);
 
     int32_t         GetID() const;
     int32_t         GetX() const;
@@ -37,6 +38,7 @@ public:
     uint32_t        GetDestHeight() const;
     bool            GetVisibility() const;
     WindowType      GetType() const;
+    WindowMode      GetMode() const;
 
     // setter return true mean attr changed
     void SetID(int32_t id);
@@ -45,6 +47,7 @@ public:
     bool SetDestWidthHeight(uint32_t width, uint32_t height);
     bool SetVisibility(bool visibility);
     bool SetType(WindowType type);
+    bool SetMode(WindowMode mode);
 
 private:
     int32_t         winID = 0;
@@ -56,11 +59,13 @@ private:
     uint32_t        winDestHeight = 0;
     bool            winVisibility = false;
     WindowType winType = static_cast<WindowType>(0);
+    WindowMode winMode = static_cast<WindowMode>(0);
 
     WindowPositionChangeFunc   positionChangeListener = nullptr;
     WindowSizeChangeFunc       sizeChangeListener = nullptr;
     WindowVisibilityChangeFunc visibilityChangeListener = nullptr;
     WindowTypeChangeFunc       typeChangeListener = nullptr;
+    WindowModeChangeFunc       modeChangeListener = nullptr;
 };
 } // namespace OHOS
 

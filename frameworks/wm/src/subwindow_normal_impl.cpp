@@ -15,6 +15,8 @@
 
 #include "subwindow_normal_impl.h"
 
+#include <display_type.h>
+
 #include "static_call.h"
 #include "tester.h"
 #include "window_impl.h"
@@ -84,7 +86,8 @@ WMError SubwindowNormalImpl::CreateConsumerSurface(sptr<SubwindowNormalImpl> &si
         si->csurface = csurface;
         WMLOGFI("use Option Surface");
     } else {
-        si->csurface = SingletonContainer::Get<StaticCall>()->SurfaceCreateSurfaceAsConsumer("Normal Subwindow");
+        const auto &sc = SingletonContainer::Get<StaticCall>();
+        si->csurface = sc->SurfaceCreateSurfaceAsConsumer("Normal Subwindow");
         WMLOGFI("use Create Surface");
     }
 
@@ -102,8 +105,7 @@ WMError SubwindowNormalImpl::CreateConsumerSurface(sptr<SubwindowNormalImpl> &si
 
     si->csurface->RegisterConsumerListener(si.GetRefPtr());
     si->csurface->SetDefaultWidthAndHeight(si->attr.GetWidth(), si->attr.GetHeight());
-    si->csurface->SetDefaultUsage(
-        Surface::USAGE_CPU_READ | Surface::USAGE_CPU_WRITE | Surface::USAGE_MEM_DMA);
+    si->csurface->SetDefaultUsage(HBM_USE_CPU_READ | HBM_USE_CPU_WRITE | HBM_USE_MEM_DMA);
     return WM_OK;
 }
 
@@ -237,11 +239,8 @@ void SubwindowNormalImpl::OnBufferAvailable()
     auto bc = SingletonContainer::Get<WlBufferCache>();
     auto wbuffer = bc->GetWlBuffer(csurface, sbuffer);
     if (wbuffer == nullptr) {
-        int32_t fd = sbuffer->GetFileDescriptor();
-        uint32_t width = sbuffer->GetWidth();
-        uint32_t height = sbuffer->GetHeight();
         auto dmaBufferFactory = SingletonContainer::Get<WlDMABufferFactory>();
-        auto dmaWlBuffer = dmaBufferFactory->Create(fd, width, height, sbuffer->GetFormat());
+        auto dmaWlBuffer = dmaBufferFactory->Create(sbuffer->GetBufferHandle());
         dmaWlBuffer->OnRelease(BufferRelease);
 
         wbuffer = dmaWlBuffer;

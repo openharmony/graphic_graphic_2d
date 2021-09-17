@@ -11,56 +11,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import("//build/ohos.gni")
-
-## Utils BufferHandle {{{
-config("buffer_handle_public_config") {
-  include_dirs = [
-    "include",
-    "//drivers/peripheral/base",
-  ]
+group("buffer_handle") {
+  public_deps = [ "buffer_handle:buffer_handle" ]
 }
 
-ohos_static_library("buffer_handle") {
-  sources = [ "src/buffer_handle.cpp" ]
-
-  configs = [ "//utils/native/base:utils_config" ]
-
-  public_configs = [ ":buffer_handle_public_config" ]
-
-  external_deps = [
-    "hiviewdfx_hilog_native:libhilog",
-    "ipc:ipc_core",
-  ]
-
-  public_deps = [ "//utils/native/base:utils" ]
+group("promise") {
+  public_deps = [ "promise:promise" ]
 }
 
-## Utils BufferHandle }}}
-
-## Build semaphore.so {{{
-config("semaphore_config") {
-  visibility = [ ":semaphore" ]
-
-  cflags = [
-    "-Wall",
-    "-Werror",
-    "-g3",
-  ]
+group("semaphore") {
+  public_deps = [ "semaphore:semaphore" ]
 }
-
-config("semaphore_public_config") {
-  include_dirs = [ "include" ]
-}
-
-ohos_shared_library("semaphore") {
-  sources = [ "src/local_semaphore.cpp" ]
-
-  configs = [ ":semaphore_config" ]
-
-  public_configs = [ ":semaphore_public_config" ]
-
-  part_name = "graphic_standard"
-  subsystem_name = "graphic"
-}
-## Build semaphore.so }}}

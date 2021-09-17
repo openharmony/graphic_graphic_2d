@@ -1,0 +1,85 @@
+# Copyright (c) 2021 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/ohos.gni")
+
+## Build wmtest {{{
+config("wmtest_config") {
+  visibility = [ ":*" ]
+
+  include_dirs = [ "frameworks" ]
+
+  cflags = [
+    "-Wall",
+    "-Werror",
+    "-g3",
+  ]
+}
+
+ohos_executable("wmtest") {
+  install_enable = true
+
+  sources = [
+    "frameworks/inative_test.cpp",
+    "frameworks/main.cpp",
+    "frameworks/native_test_class.cpp",
+    "frameworks/util.cpp",
+    "test/crash_native_test_1.cpp",
+    "test/crash_native_test_2.cpp",
+    "test/other_native_test_1.cpp",
+    "test/pref_native_test_1.cpp",
+    "test/vsync_native_test_1.cpp",
+    "test/wmclient_native_test_1.cpp",
+    "test/wmclient_native_test_10.cpp",
+    "test/wmclient_native_test_11.cpp",
+    "test/wmclient_native_test_12.cpp",
+    "test/wmclient_native_test_13.cpp",
+    "test/wmclient_native_test_14.cpp",
+    "test/wmclient_native_test_15.cpp",
+    "test/wmclient_native_test_16.cpp",
+    "test/wmclient_native_test_17.cpp",
+    "test/wmclient_native_test_18.cpp",
+    "test/wmclient_native_test_19.cpp",
+    "test/wmclient_native_test_2.cpp",
+    "test/wmclient_native_test_20.cpp",
+    "test/wmclient_native_test_21.cpp",
+    "test/wmclient_native_test_22.cpp",
+    "test/wmclient_native_test_23.cpp",
+    "test/wmclient_native_test_24.cpp",
+    "test/wmclient_native_test_25.cpp",
+    "test/wmclient_native_test_26.cpp",
+    "test/wmclient_native_test_27.cpp",
+    "test/wmclient_native_test_28.cpp",
+    "test/wmclient_native_test_3.cpp",
+    "test/wmclient_native_test_4.cpp",
+    "test/wmclient_native_test_5.cpp",
+    "test/wmclient_native_test_6.cpp",
+    "test/wmclient_native_test_7.cpp",
+    "test/wmclient_native_test_8.cpp",
+    "test/wmclient_native_test_9.cpp",
+  ]
+
+  configs = [ ":wmtest_config" ]
+
+  deps = [
+    "//foundation/distributedschedule/samgr/interfaces/innerkits/samgr_proxy:samgr_proxy",
+    "//foundation/graphic/standard:libvsync_client",
+    "//foundation/graphic/standard:libwmclient",
+    "//foundation/graphic/standard:libwmservice",
+    "//third_party/zlib:libz",
+  ]
+
+  part_name = "graphic_standard"
+  subsystem_name = "graphic"
+}
+## Build wmtest }}}

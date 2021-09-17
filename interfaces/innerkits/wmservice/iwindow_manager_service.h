@@ -51,6 +51,7 @@ public:
     virtual sptr<Promise<WMError>> Resize(int32_t wid, uint32_t width, uint32_t height) = 0;
     virtual sptr<Promise<WMError>> ScaleTo(int32_t wid, uint32_t width, uint32_t height) = 0;
     virtual sptr<Promise<WMError>> SetWindowType(int32_t wid, WindowType type) = 0;
+    virtual sptr<Promise<WMError>> SetWindowMode(int32_t wid, WindowMode mode) = 0;
 };
 } // namespace OHOS
 

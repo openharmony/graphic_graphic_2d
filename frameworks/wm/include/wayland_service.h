@@ -20,9 +20,9 @@
 #include <string>
 #include <vector>
 
-#include <wm_common.h>
 #include <refbase.h>
 #include <wayland-client-protocol.h>
+#include <window_manager_type.h>
 
 #include "singleton_delegator.h"
 

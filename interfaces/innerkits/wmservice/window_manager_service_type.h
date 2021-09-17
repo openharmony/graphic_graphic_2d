@@ -18,7 +18,7 @@
 
 #include <functional>
 
-#include <wm_common.h>
+#include <window_manager_type.h>
 
 namespace OHOS {
 // bitmask

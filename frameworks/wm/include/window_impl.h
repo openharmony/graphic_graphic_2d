@@ -38,7 +38,16 @@ public:
     sptr<WlSurface> GetWlSurface() const;
 
     virtual sptr<Surface> GetSurface() const override;
-    virtual int32_t GetID() const override;
+    virtual int32_t       GetID() const override;
+    virtual int32_t       GetX() const override;
+    virtual int32_t       GetY() const override;
+    virtual uint32_t      GetWidth() const override;
+    virtual uint32_t      GetHeight() const override;
+    virtual uint32_t      GetDestWidth() const override;
+    virtual uint32_t      GetDestHeight() const override;
+    virtual bool          GetVisibility() const override;
+    virtual WindowType    GetType() const override;
+    virtual WindowMode    GetMode() const override;
 
     virtual sptr<Promise<WMError>> Show() override;
     virtual sptr<Promise<WMError>> Hide() override;
@@ -56,6 +65,7 @@ public:
     virtual void OnSizeChange(WindowSizeChangeFunc func) override;
     virtual void OnVisibilityChange(WindowVisibilityChangeFunc func) override;
     virtual void OnTypeChange(WindowTypeChangeFunc func) override;
+    virtual void OnModeChange(WindowModeChangeFunc func) override;
 
     // listener
     virtual WMError OnTouch(OnTouchFunc cb) override;

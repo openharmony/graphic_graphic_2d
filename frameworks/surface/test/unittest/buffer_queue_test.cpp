@@ -350,25 +350,5 @@ HWTEST_F(BufferQueueTest, ConfigFormat_GE_Max, testing::ext::TestSize.Level0)
     SurfaceError ret = bq->RequestBuffer(config, bedata, retval);
     ASSERT_EQ(ret, SURFACE_ERROR_INVALID_PARAM);
 }
-
-HWTEST_F(BufferQueueTest, ConfigUsage_LE_Min, testing::ext::TestSize.Level0)
-{
-    IBufferProducer::RequestBufferReturnValue retval;
-    BufferRequestConfig config = requestConfig;
-    config.usage = -1;
-
-    SurfaceError ret = bq->RequestBuffer(config, bedata, retval);
-    ASSERT_EQ(ret, SURFACE_ERROR_INVALID_PARAM);
-}
-
-HWTEST_F(BufferQueueTest, ConfigUsage_GE_Max, testing::ext::TestSize.Level0)
-{
-    IBufferProducer::RequestBufferReturnValue retval;
-    BufferRequestConfig config = requestConfig;
-    config.usage = HBM_USE_MEM_DMA * 2;
-
-    SurfaceError ret = bq->RequestBuffer(config, bedata, retval);
-    ASSERT_EQ(ret, SURFACE_ERROR_INVALID_PARAM);
-}
 }
 } // namespace OHOS

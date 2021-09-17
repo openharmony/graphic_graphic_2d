@@ -149,10 +149,15 @@ void LayerControllerClient::CreateWlBuffer(sptr<Surface>& surface, uint32_t wind
     auto bc = WlBufferCache::GetInstance();
     auto wbuffer = bc->GetWlBuffer(surface, buffer);
     if (wbuffer == nullptr) {
-        int32_t fd = buffer->GetFileDescriptor();
-        uint32_t width = buffer->GetWidth();
-        uint32_t height = buffer->GetHeight();
-        auto dmaWlBuffer = WlDMABufferFactory::GetInstance()->Create(fd, width, height, buffer->GetFormat());
+        auto dmaWlBuffer = WlDMABufferFactory::GetInstance()->Create(buffer->GetBufferHandle());
+        if (dmaWlBuffer == nullptr) {
+            WMLOG_E("Create DMA Buffer Failed");
+            ret = surface->ReleaseBuffer(buffer, -1);
+            if (ret != SURFACE_ERROR_OK) {
+                WMLOG_W("ReleaseBuffer failed");
+            }
+            return;
+        }
         dmaWlBuffer->OnRelease(BufferRelease);
 
         wbuffer = dmaWlBuffer;

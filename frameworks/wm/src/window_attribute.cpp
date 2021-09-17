@@ -36,6 +36,11 @@ void WindowAttribute::OnTypeChange(WindowTypeChangeFunc func)
     typeChangeListener = func;
 }
 
+void WindowAttribute::OnModeChange(WindowModeChangeFunc func)
+{
+    modeChangeListener = func;
+}
+
 int32_t WindowAttribute::GetID() const
 {
     return winID;
@@ -79,6 +84,11 @@ bool WindowAttribute::GetVisibility() const
 WindowType WindowAttribute::GetType() const
 {
     return winType;
+}
+
+WindowMode WindowAttribute::GetMode() const
+{
+    return winMode;
 }
 
 void WindowAttribute::SetID(int32_t id)
@@ -140,6 +150,18 @@ bool WindowAttribute::SetType(WindowType type)
         winType = type;
         if (typeChangeListener != nullptr) {
             typeChangeListener(type);
+        }
+        return true;
+    }
+    return false;
+}
+
+bool WindowAttribute::SetMode(WindowMode mode)
+{
+    if (mode != winMode) {
+        winMode = mode;
+        if (modeChangeListener != nullptr) {
+            modeChangeListener(mode);
         }
         return true;
     }

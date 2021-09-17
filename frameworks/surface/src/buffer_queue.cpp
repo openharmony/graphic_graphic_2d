@@ -22,16 +22,16 @@
 #include "buffer_log.h"
 #include "buffer_manager.h"
 
-#define CHECK_SEQ_CACHE_AND_STATE(sequence, cache, state_)      \
-    do {                                                        \
-        if (cache.find(sequence) == cache.end()) {              \
+#define CHECK_SEQ_CACHE_AND_STATE(sequence, cache, state_)       \
+    do {                                                         \
+        if ((cache).find(sequence) == (cache).end()) {           \
             BLOGN_FAILURE_ID(sequence, "not found in cache");    \
-            return SURFACE_ERROR_NO_ENTRY;                      \
-        }                                                       \
-        if (cache[sequence].state != state_) {                  \
+            return SURFACE_ERROR_NO_ENTRY;                       \
+        }                                                        \
+        if ((cache)[sequence].state != (state_)) {               \
             BLOGN_FAILURE_ID(sequence, "state is not " #state_); \
-            return SURFACE_ERROR_INVALID_OPERATING;             \
-        }                                                       \
+            return SURFACE_ERROR_INVALID_OPERATING;              \
+        }                                                        \
     } while (0)
 
 #define SET_SEQ_STATE(sequence, cache, state_) \
@@ -131,12 +131,6 @@ SurfaceError BufferQueue::CheckRequestConfig(const BufferRequestConfig &config)
 
     if (config.format < 0 || config.format > PIXEL_FMT_BUTT) {
         BLOGN_INVALID("config.format [0, %{public}d], now is %{public}d", PIXEL_FMT_BUTT, config.format);
-        return SURFACE_ERROR_INVALID_PARAM;
-    }
-
-    constexpr int32_t usageMax = HBM_USE_MEM_DMA * 2;
-    if (config.usage < 0 || config.usage >= usageMax) {
-        BLOGN_INVALID("config.usage [0, %{public}d), now is %{public}d", usageMax, config.usage);
         return SURFACE_ERROR_INVALID_PARAM;
     }
 
@@ -520,12 +514,12 @@ SurfaceError BufferQueue::UnregisterConsumerListener()
 
 SurfaceError BufferQueue::SetDefaultWidthAndHeight(int32_t width, int32_t height)
 {
-    if (0 >= width || width > SURFACE_MAX_WIDTH) {
+    if (width <= 0 || width > SURFACE_MAX_WIDTH) {
         BLOGN_INVALID("defaultWidth (0, %{public}d], now is %{public}d", SURFACE_MAX_WIDTH, width);
         return SURFACE_ERROR_INVALID_PARAM;
     }
 
-    if (0 >= height || height > SURFACE_MAX_HEIGHT) {
+    if (height <= 0 || height > SURFACE_MAX_HEIGHT) {
         BLOGN_INVALID("defaultHeight (0, %{public}d], now is %{public}d", SURFACE_MAX_HEIGHT, height);
         return SURFACE_ERROR_INVALID_PARAM;
     }
@@ -547,11 +541,6 @@ int32_t BufferQueue::GetDefaultHeight()
 
 SurfaceError BufferQueue::SetDefaultUsage(uint32_t usage)
 {
-    constexpr int32_t usageMax = HBM_USE_MEM_DMA * 2;
-    if (0 > usage || usage >= usageMax) {
-        BLOGN_INVALID("usage [0, %{public}d), now is %{public}d", usageMax, usage);
-        return SURFACE_ERROR_INVALID_PARAM;
-    }
     defaultUsage = usage;
     return SURFACE_ERROR_OK;
 }

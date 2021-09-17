@@ -15,6 +15,9 @@
 
 #include "buffer_manager.h"
 
+#include <cerrno>
+#include <sys/mman.h>
+
 #include <display_gralloc.h>
 
 #include "buffer_log.h"
@@ -46,6 +49,28 @@
 namespace OHOS {
 namespace {
 constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, 0, "BufferManager" };
+
+SurfaceError GenerateError(SurfaceError err, DispErrCode code)
+{
+    switch (code) {
+        case DISPLAY_SUCCESS: return static_cast<SurfaceError>(err + 0);
+        case DISPLAY_FAILURE: return static_cast<SurfaceError>(err + LOWERROR_FAILURE);
+        case DISPLAY_FD_ERR: return static_cast<SurfaceError>(err + EBADF);
+        case DISPLAY_PARAM_ERR: return static_cast<SurfaceError>(err + EINVAL);
+        case DISPLAY_NULL_PTR: return static_cast<SurfaceError>(err + EINVAL);
+        case DISPLAY_NOT_SUPPORT: return static_cast<SurfaceError>(err + EOPNOTSUPP);
+        case DISPLAY_NOMEM: return static_cast<SurfaceError>(err + ENOMEM);
+        case DISPLAY_SYS_BUSY: return static_cast<SurfaceError>(err + EBUSY);
+        case DISPLAY_NOT_PERM: return static_cast<SurfaceError>(err + EPERM);
+        default: break;
+    }
+    return static_cast<SurfaceError>(err + LOWERROR_INVALID);
+}
+
+inline SurfaceError GenerateError(SurfaceError err, int32_t code)
+{
+    return GenerateError(err, static_cast<DispErrCode>(code));
+}
 }
 
 BufferManager BufferManager::instance_;
@@ -56,9 +81,10 @@ SurfaceError BufferManager::Init()
         return SURFACE_ERROR_OK;
     }
 
-    if (GrallocInitialize(&grallocFuncs_) != DISPLAY_SUCCESS) {
+    auto dret = GrallocInitialize(&grallocFuncs_);
+    if (dret != DISPLAY_SUCCESS) {
         BLOGW("GrallocInitialize failed.");
-        return SURFACE_ERROR_INIT;
+        return GenerateError(SURFACE_ERROR_INIT, dret);
     }
 
     if (grallocFuncs_ == nullptr) {
@@ -80,12 +106,12 @@ SurfaceError BufferManager::Init()
 BufferManager::~BufferManager()
 {
     int32_t ret = GrallocUninitialize(grallocFuncs_);
-    if (ret != 0) {
+    if (ret != DISPLAY_SUCCESS) {
         BLOGE("Failure, Reason: GrallocUninitialize failed with %{public}d", ret);
     }
 }
 
-SurfaceError BufferManager::Alloc(const BufferRequestConfig &config, sptr<SurfaceBufferImpl>& buffer)
+SurfaceError BufferManager::Alloc(const BufferRequestConfig &config, sptr<SurfaceBufferImpl> &buffer)
 {
     CHECK_INIT();
     CHECK_FUNC(grallocFuncs_->AllocMem);
@@ -94,21 +120,17 @@ SurfaceError BufferManager::Alloc(const BufferRequestConfig &config, sptr<Surfac
     BufferHandle *handle = nullptr;
     AllocInfo info = {config.width, config.height, config.usage, (PixelFormat)config.format};
 
-    int ret = grallocFuncs_->AllocMem(&info, &handle);
-    if (ret == DISPLAY_SUCCESS) {
+    auto dret = grallocFuncs_->AllocMem(&info, &handle);
+    if (dret == DISPLAY_SUCCESS) {
         buffer->SetBufferHandle(handle);
         return SURFACE_ERROR_OK;
     }
-    BLOGW("Failed with %{public}d", ret);
+    BLOGW("Failed with %{public}d", dret);
 
-    if (ret == DISPLAY_NOMEM) {
-        return SURFACE_ERROR_NOMEM;
-    }
-
-    return SURFACE_ERROR_API_FAILED;
+    return GenerateError(SURFACE_ERROR_API_FAILED, dret);
 }
 
-SurfaceError BufferManager::Map(sptr<SurfaceBufferImpl>& buffer)
+SurfaceError BufferManager::Map(sptr<SurfaceBufferImpl> &buffer)
 {
     CHECK_INIT();
     CHECK_FUNC(grallocFuncs_->Mmap);
@@ -116,13 +138,13 @@ SurfaceError BufferManager::Map(sptr<SurfaceBufferImpl>& buffer)
 
     BufferHandle *handle = buffer->GetBufferHandle();
     void *virAddr = grallocFuncs_->Mmap(reinterpret_cast<BufferHandle*>(handle));
-    if (virAddr == nullptr) {
+    if (virAddr == nullptr || virAddr == MAP_FAILED) {
         return SURFACE_ERROR_API_FAILED;
     }
     return SURFACE_ERROR_OK;
 }
 
-SurfaceError BufferManager::Unmap(sptr<SurfaceBufferImpl>& buffer)
+SurfaceError BufferManager::Unmap(sptr<SurfaceBufferImpl> &buffer)
 {
     CHECK_INIT();
     CHECK_FUNC(grallocFuncs_->Unmap);
@@ -133,46 +155,46 @@ SurfaceError BufferManager::Unmap(sptr<SurfaceBufferImpl>& buffer)
     }
 
     BufferHandle *handle = buffer->GetBufferHandle();
-    int32_t ret = grallocFuncs_->Unmap(reinterpret_cast<BufferHandle*>(handle));
-    if (ret == DISPLAY_SUCCESS) {
+    auto dret = grallocFuncs_->Unmap(reinterpret_cast<BufferHandle*>(handle));
+    if (dret == DISPLAY_SUCCESS) {
         handle->virAddr = nullptr;
         return SURFACE_ERROR_OK;
     }
-    BLOGW("Failed with %{public}d", ret);
-    return SURFACE_ERROR_API_FAILED;
+    BLOGW("Failed with %{public}d", dret);
+    return GenerateError(SURFACE_ERROR_API_FAILED, dret);
 }
 
-SurfaceError BufferManager::FlushCache(sptr<SurfaceBufferImpl>& buffer)
+SurfaceError BufferManager::FlushCache(sptr<SurfaceBufferImpl> &buffer)
 {
     CHECK_INIT();
     CHECK_FUNC(grallocFuncs_->FlushCache);
     CHECK_BUFFER(buffer);
 
     BufferHandle *handle = buffer->GetBufferHandle();
-    int32_t ret = grallocFuncs_->FlushCache(reinterpret_cast<BufferHandle*>(handle));
-    if (ret == DISPLAY_SUCCESS) {
+    auto dret = grallocFuncs_->FlushCache(reinterpret_cast<BufferHandle*>(handle));
+    if (dret == DISPLAY_SUCCESS) {
         return SURFACE_ERROR_OK;
     }
-    BLOGW("Failed with %{public}d", ret);
-    return SURFACE_ERROR_API_FAILED;
+    BLOGW("Failed with %{public}d", dret);
+    return GenerateError(SURFACE_ERROR_API_FAILED, dret);
 }
 
-SurfaceError BufferManager::InvalidateCache(sptr<SurfaceBufferImpl>& buffer)
+SurfaceError BufferManager::InvalidateCache(sptr<SurfaceBufferImpl> &buffer)
 {
     CHECK_INIT();
     CHECK_FUNC(grallocFuncs_->InvalidateCache);
     CHECK_BUFFER(buffer);
 
     BufferHandle *handle = buffer->GetBufferHandle();
-    int32_t ret = grallocFuncs_->InvalidateCache(reinterpret_cast<BufferHandle*>(handle));
-    if (ret == DISPLAY_SUCCESS) {
+    auto dret = grallocFuncs_->InvalidateCache(reinterpret_cast<BufferHandle*>(handle));
+    if (dret == DISPLAY_SUCCESS) {
         return SURFACE_ERROR_OK;
     }
-    BLOGW("Failed with %{public}d", ret);
-    return SURFACE_ERROR_API_FAILED;
+    BLOGW("Failed with %{public}d", dret);
+    return GenerateError(SURFACE_ERROR_API_FAILED, dret);
 }
 
-SurfaceError BufferManager::Free(sptr<SurfaceBufferImpl>& buffer)
+SurfaceError BufferManager::Free(sptr<SurfaceBufferImpl> &buffer)
 {
     CHECK_INIT();
     CHECK_FUNC(grallocFuncs_->FreeMem);

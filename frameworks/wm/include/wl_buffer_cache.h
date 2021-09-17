@@ -19,7 +19,7 @@
 #include <refbase.h>
 #include <surface.h>
 
-#include <wm_common.h>
+#include <window_manager_type.h>
 
 #include "singleton_delegator.h"
 #include "wl_buffer.h"

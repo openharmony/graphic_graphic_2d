@@ -16,20 +16,30 @@
 #ifndef INTERFACES_INNERKITS_WMCLIENT_WM_COMMON_H
 #define INTERFACES_INNERKITS_WMCLIENT_WM_COMMON_H
 
+#ifdef __cplusplus
 #include <functional>
 #include <string>
+#endif
 
 #include "../common/graphic_common.h"
 
+#ifdef __cplusplus
 namespace OHOS {
+#endif
+
 enum WindowType {
     WINDOW_TYPE_NORMAL = 0,
-    WINDOW_TYPE_STATUS_BAR = 1,
-    WINDOW_TYPE_NAVI_BAR = 2,
-    WINDOW_TYPE_ALARM_SCREEN = 3,
-    WINDOW_TYPE_SYSTEM_UI = 4,
-    WINDOW_TYPE_LAUNCHER = 5,
-    WINDOW_TYPE_VIDEO = 6,
+    WINDOW_TYPE_STATUS_BAR = 10,
+    WINDOW_TYPE_NAVI_BAR = 20,
+    WINDOW_TYPE_ALARM_SCREEN = 30,
+    WINDOW_TYPE_SYSTEM_UI = 31,
+    WINDOW_TYPE_LAUNCHER = 40,
+    WINDOW_TYPE_VIDEO = 41,
+    WINDOW_TYPE_INPUT_METHOD = 50,
+    WINDOW_TYPE_INPUT_METHOD_SELECTOR = 60,
+    WINDOW_TYPE_VOLUME_OVERLAY = 70,
+    WINDOW_TYPE_NOTIFICATION_SHADE = 80,
+    WINDOW_TYPE_FLOAT = 90,
     WINDOW_TYPE_MAX,
 };
 
@@ -37,9 +47,6 @@ enum SubWindowType {
     WM_WINDOW_TYPE_SUB_NORMAL = 0,
     WM_WINDOW_TYPE_SUB_VIDEO = 1,
 };
-
-class TouchEvent;
-class KeyEvent;
 
 enum rotateType {
     /**
@@ -77,7 +84,7 @@ enum rotateType {
 };
 
 struct WMImageInfo {
-    WMError wret;
+    enum WMError wret;
     uint32_t width;
     uint32_t height;
     uint32_t format;
@@ -92,9 +99,11 @@ struct WindowInfo {
     int32_t pos_y;
 };
 
-using funcWindowInfoChange = std::function<void(WindowInfo &info)>;
+#ifdef __cplusplus
+class TouchEvent;
+class KeyEvent;
 
-using FuncSync = void (*)(uint64_t timestamp);
+using funcWindowInfoChange = std::function<void(WindowInfo &info)>;
 
 using funcOnKey = std::function<bool(KeyEvent)>;
 using funcOnTouch = std::function<bool(TouchEvent)>;
@@ -107,7 +116,9 @@ using WindowPositionChangeFunc   = std::function<void(int32_t x, int32_t y)>;
 using WindowSizeChangeFunc       = std::function<void(uint32_t width, uint32_t height)>;
 using WindowVisibilityChangeFunc = std::function<void(bool visibility)>;
 using WindowTypeChangeFunc       = std::function<void(WindowType type)>;
+#endif
 
+typedef void (*FuncSync)(uint64_t timestamp);
 struct WindowConfig {
     int32_t width;
     int32_t height;
@@ -120,6 +131,8 @@ struct WindowConfig {
     bool subwindow;
     FuncSync sync;
 };
+#ifdef __cplusplus
 } // namespace OHOS
+#endif // __cplusplus
 
 #endif // INTERFACES_INNERKITS_WMCLIENT_WM_COMMON_H

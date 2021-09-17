@@ -74,11 +74,7 @@ HWTEST_F(WlDMABufferFactoryTest, createNormal, testing::ext::TestSize.Level0)
     ASSERT_NE(sbuffer, nullptr) << "EnvConditions: Surface buffer init success. (sbuffer != nullptr)";
 
     // 1. Create WlDMABuffer by normal argument
-    auto fd = sbuffer->GetFileDescriptor();
-    auto width = sbuffer->GetWidth();
-    auto height = sbuffer->GetHeight();
-    auto format = sbuffer->GetFormat();
-    auto dmabuf = WlDMABufferFactory::GetInstance()->Create(fd, width, height, format);
+    auto dmabuf = WlDMABufferFactory::GetInstance()->Create(sbuffer->GetBufferHandle());
 
     // 2. check it isn't nullptr
     ASSERT_NE(dmabuf, nullptr) << "CaseDescription: 2. check it isn't nullptr (dmabuf != nullptr)";
@@ -107,19 +103,28 @@ HWTEST_F(WlDMABufferFactoryTest, createAbnormal, testing::ext::TestSize.Level0)
     auto format = sbuffer->GetFormat();
 
     // 1. Create WlDMABuffers by some abnormal arguments
-    auto dmabuf1 = WlDMABufferFactory::GetInstance()->Create(-1, width, height, format);
+    auto bh = sbuffer->GetBufferHandle();
+    bh->fd = -1;
+    auto dmabuf1 = WlDMABufferFactory::GetInstance()->Create(bh);
     initRet = WindowManager::GetInstance()->Init();
     ASSERT_EQ(initRet, WM_OK) << "CaseDescription: "
         << "1. Create WlDMABuffers by some abnormal arguments (initRet == WM_OK)";
-    auto dmabuf2 = WlDMABufferFactory::GetInstance()->Create(fd, 0, height, format);
+    bh->fd = fd;
+    bh->width = 0;
+    auto dmabuf2 = WlDMABufferFactory::GetInstance()->Create(bh);
     initRet = WindowManager::GetInstance()->Init();
     ASSERT_EQ(initRet, WM_OK) << "CaseDescription: "
         << "1. Create WlDMABuffers by some abnormal arguments (initRet == WM_OK)";
-    auto dmabuf3 = WlDMABufferFactory::GetInstance()->Create(fd, width, 0, format);
+    bh->width = width;
+    bh->height = 0;
+    auto dmabuf3 = WlDMABufferFactory::GetInstance()->Create(bh);
     initRet = WindowManager::GetInstance()->Init();
     ASSERT_EQ(initRet, WM_OK) << "CaseDescription: "
         << "1. Create WlDMABuffers by some abnormal arguments (initRet == WM_OK)";
-    auto dmabuf4 = WlDMABufferFactory::GetInstance()->Create(fd, width, height, -1);
+    bh->height = height;
+    bh->format = -1;
+    auto dmabuf4 = WlDMABufferFactory::GetInstance()->Create(bh);
+    bh->format = format;
 
     // 2. check they are nullptr
     ASSERT_EQ(dmabuf1, nullptr) << "CaseDescription: 2. check they are nullptr (dmabuf1 == nullptr)";

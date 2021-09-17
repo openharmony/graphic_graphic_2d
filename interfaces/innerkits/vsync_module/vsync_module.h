@@ -16,7 +16,6 @@
 #ifndef INTERFACES_INNERKITS_VSYNC_MODULE_VSYNC_MODULE_H
 #define INTERFACES_INNERKITS_VSYNC_MODULE_VSYNC_MODULE_H
 
-#include <promise.h>
 #include <refbase.h>
 
 #include <graphic_common.h>

@@ -49,6 +49,7 @@ public:
     virtual sptr<Promise<WMError>> Resize(int32_t wid, uint32_t width, uint32_t height) override;
     virtual sptr<Promise<WMError>> ScaleTo(int32_t wid, uint32_t width, uint32_t height) override;
     virtual sptr<Promise<WMError>> SetWindowType(int32_t wid, WindowType type) override;
+    virtual sptr<Promise<WMError>> SetWindowMode(int32_t wid, WindowMode mode) override;
 
     static void OnDisplayChange(uint32_t, const char *, wms_screen_status, int32_t, int32_t);
     static void OnDisplayModeChange(uint32_t);
