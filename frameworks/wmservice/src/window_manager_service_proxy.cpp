@@ -18,9 +18,6 @@
 #include "window_manager_hilog.h"
 
 namespace OHOS {
-using PromiseWMError = Promise<WMError>;
-using PromiseWMSImageInfo = Promise<WMSImageInfo>;
-
 namespace {
 constexpr HiviewDFX::HiLogLabel LABEL = {LOG_CORE, 0, "WMServiceProxy"};
 }
@@ -29,6 +26,43 @@ WindowManagerServiceProxy::WindowManagerServiceProxy(struct wms *wms, struct wl_
 {
     this->wms = wms;
     this->display = display;
+}
+
+namespace {
+WMError WMServerErrorToWMError(int32_t error)
+{
+    switch (error) {
+        case WMS_ERROR_OK:
+            return static_cast<WMError>(WM_OK);
+        case WMS_ERROR_INVALID_PARAM:
+            return static_cast<WMError>(WM_ERROR_INVALID_PARAM);
+        case WMS_ERROR_PID_CHECK:
+            return static_cast<WMError>(WM_ERROR_API_FAILED + EACCES);
+        case WMS_ERROR_NO_MEMORY:
+            return static_cast<WMError>(WM_ERROR_API_FAILED + ENOMEM);
+        case WMS_ERROR_INNER_ERROR:
+            return static_cast<WMError>(WM_ERROR_SERVER);
+        case WMS_ERROR_OTHER:
+            return static_cast<WMError>(WM_ERROR_SERVER);
+        case WMS_ERROR_API_FAILED:
+            return static_cast<WMError>(WM_ERROR_API_FAILED);
+        default:
+            return static_cast<WMError>(WM_ERROR_INNER);
+    }
+    return static_cast<WMError>(WM_ERROR_INNER);
+}
+} // namespace
+
+void WindowManagerServiceProxy::OnReply(wms_error error)
+{
+    WMLOGFD("reply: %{public}d", error);
+    std::lock_guard<std::mutex> lock(promiseQueueMutex);
+    if (promiseQueue.empty() == false) {
+        promiseQueue.front()->Resolve(WMServerErrorToWMError(error));
+        promiseQueue.pop();
+    } else {
+        WMLOGFW("OnReply promiseQueue is empty");
+    }
 }
 
 void WindowManagerServiceProxy::OnDisplayChange(uint32_t did,
@@ -68,20 +102,52 @@ void WindowManagerServiceProxy::OnDisplayChange(uint32_t did,
     }
 }
 
+void WindowManagerServiceProxy::OnDisplayPower(uint32_t error, int32_t status)
+{
+    std::lock_guard<std::mutex> lock(powerStatusPromiseQueueMutex);
+    if (!powerStatusPromiseQueue.empty()) {
+        struct PowerStatus retval = {
+            .wret = WMServerErrorToWMError(error),
+            .status = static_cast<DispPowerStatus>(status),
+        };
+        powerStatusPromiseQueue.front()->Resolve(retval);
+        powerStatusPromiseQueue.pop();
+    } else {
+        WMLOGFW("OnDisplayPower powerStatusPromiseQueue is empty");
+    }
+}
+
+void WindowManagerServiceProxy::OnDisplayBacklight(uint32_t error, uint32_t level)
+{
+    std::lock_guard<std::mutex> lock(backlightPromiseQueueMutex);
+    if (!backlightPromiseQueue.empty()) {
+        struct Backlight retval = {
+            .wret = WMServerErrorToWMError(error),
+            .level = level,
+        };
+        backlightPromiseQueue.front()->Resolve(retval);
+        backlightPromiseQueue.pop();
+    } else {
+        WMLOGFW("OnDisplayPower backlightPromiseQueue is empty");
+    }
+}
+
 void WindowManagerServiceProxy::OnDisplayModeChange(uint32_t mode)
 {
     WMLOGFI("mode: %{public}u", mode);
     displayModes = mode;
 }
 
-void WindowManagerServiceProxy::OnReply(wms_error error)
+void WindowManagerServiceProxy::OnGlobalWindowStatus(uint32_t pid, uint32_t wid, uint32_t status)
 {
-    WMLOGFD("reply: %{public}d", error);
-    if (promiseQueue.empty() == false) {
-        promiseQueue.front()->Resolve(static_cast<WMError>(error));
-        promiseQueue.pop();
-    } else {
-        WMLOGFW("OnReply promiseQueue is empty");
+    WMLOGFI("global window status: pid=%{public}u status=%{public}u wid=%{public}u", pid, status, wid);
+    if (globalWindowChangeListener != nullptr) {
+        if (status == WMS_WINDOW_STATUS_CREATED) {
+            globalWindowChangeListener->OnWindowCreate(pid, wid);
+        }
+        if (status == WMS_WINDOW_STATUS_DESTROYED) {
+            globalWindowChangeListener->OnWindowDestroy(pid, wid);
+        }
     }
 }
 
@@ -159,23 +225,54 @@ void WindowManagerServiceProxy::OnWindowShot(wms_error reply,
     }
 }
 
-void WindowManagerServiceProxy::OnGlobalWindowStatus(uint32_t pid, uint32_t wid, uint32_t status)
-{
-    WMLOGFI("global window status: pid=%{public}u status=%{public}u wid=%{public}u", pid, status, wid);
-    if (globalWindowChangeListener != nullptr) {
-        if (status == WMS_WINDOW_STATUS_CREATED) {
-            globalWindowChangeListener->OnWindowCreate(pid, wid);
-        }
-        if (status == WMS_WINDOW_STATUS_DESTROYED) {
-            globalWindowChangeListener->OnWindowDestroy(pid, wid);
-        }
-    }
-}
-
 WMError WindowManagerServiceProxy::GetDisplays(std::vector<struct WMDisplayInfo> &displays)
 {
     displays = this->displays;
     return WM_OK;
+}
+
+sptr<PromisePowerStatus> WindowManagerServiceProxy::GetDisplayPower(int32_t did)
+{
+    WMLOGFI("display: %{public}d", did);
+    sptr<PromisePowerStatus> ret = new PromisePowerStatus();
+    std::lock_guard<std::mutex> lock(powerStatusPromiseQueueMutex);
+    powerStatusPromiseQueue.push(ret);
+    wms_get_display_power(wms, did);
+    wl_display_flush(display);
+    return ret;
+}
+
+sptr<PromiseWMError> WindowManagerServiceProxy::SetDisplayPower(int32_t did, DispPowerStatus status)
+{
+    WMLOGFI("display: %{public}d, status: %{public}d", did, status);
+    sptr<PromiseWMError> ret = new PromiseWMError();
+    std::lock_guard<std::mutex> lock(promiseQueueMutex);
+    promiseQueue.push(ret);
+    wms_set_display_power(wms, did, static_cast<int32_t>(status));
+    wl_display_flush(display);
+    return ret;
+}
+
+sptr<PromiseBacklight> WindowManagerServiceProxy::GetDisplayBacklight(int32_t did)
+{
+    WMLOGFI("display: %{public}d", did);
+    sptr<PromiseBacklight> ret = new PromiseBacklight();
+    std::lock_guard<std::mutex> lock(backlightPromiseQueueMutex);
+    backlightPromiseQueue.push(ret);
+    wms_get_display_backlight(wms, did);
+    wl_display_flush(display);
+    return ret;
+}
+
+sptr<PromiseWMError> WindowManagerServiceProxy::SetDisplayBacklight(int32_t did, uint32_t level)
+{
+    WMLOGFI("display: %{public}d, level: %{public}u", did, level);
+    sptr<PromiseWMError> ret = new PromiseWMError();
+    std::lock_guard<std::mutex> lock(promiseQueueMutex);
+    promiseQueue.push(ret);
+    wms_set_display_backlight(wms, did, level);
+    wl_display_flush(display);
+    return ret;
 }
 
 WMError WindowManagerServiceProxy::GetDisplayModes(uint32_t &displayModes)
@@ -188,6 +285,7 @@ sptr<PromiseWMError> WindowManagerServiceProxy::SetDisplayMode(WMSDisplayMode mo
 {
     WMLOGFI("modes: %{public}d", modes);
     sptr<PromiseWMError> ret = new PromiseWMError();
+    std::lock_guard<std::mutex> lock(promiseQueueMutex);
     promiseQueue.push(ret);
     wms_set_display_mode(wms, modes);
     wms_commit_changes(wms);
@@ -209,6 +307,7 @@ sptr<Promise<WMError>> WindowManagerServiceProxy::OnWindowListChange(IWindowChan
 {
     sptr<PromiseWMError> promise = new PromiseWMError();
     globalWindowChangeListener = listener;
+    std::lock_guard<std::mutex> lock(promiseQueueMutex);
     promiseQueue.push(promise);
     wms_config_global_window_status(wms, (listener == nullptr) ? 0 : 1);
     wl_display_flush(display);
@@ -241,6 +340,28 @@ sptr<PromiseWMSImageInfo> WindowManagerServiceProxy::ShotWindow(int32_t wid)
     return promise;
 }
 
+sptr<PromiseWMError> WindowManagerServiceProxy::SetStatusBarVisibility(bool visibility)
+{
+    WMLOGFI("visibility: %{public}d", visibility);
+    sptr<PromiseWMError> ret = new PromiseWMError();
+    std::lock_guard<std::mutex> lock(promiseQueueMutex);
+    promiseQueue.push(ret);
+    wms_set_status_bar_visibility(wms, visibility ? WMS_VISIBILITY_TRUE : WMS_VISIBILITY_FALSE);
+    wl_display_flush(display);
+    return ret;
+}
+
+sptr<PromiseWMError> WindowManagerServiceProxy::SetNavigationBarVisibility(bool visibility)
+{
+    WMLOGFI("visibility: %{public}d", visibility);
+    sptr<PromiseWMError> ret = new PromiseWMError();
+    std::lock_guard<std::mutex> lock(promiseQueueMutex);
+    promiseQueue.push(ret);
+    wms_set_navigation_bar_visibility(wms, visibility ? WMS_VISIBILITY_TRUE : WMS_VISIBILITY_FALSE);
+    wl_display_flush(display);
+    return ret;
+}
+
 WMError WindowManagerServiceProxy::AddDisplayChangeListener(IWindowManagerDisplayListenerClazz *listener)
 {
     WMLOGFI("listener: %{public}s", (listener != nullptr) ? "Yes" : "No");
@@ -252,6 +373,7 @@ sptr<PromiseWMError> WindowManagerServiceProxy::DestroyWindow(int32_t wid)
 {
     WMLOGFI("wid: %{public}d", wid);
     sptr<PromiseWMError> ret = new PromiseWMError();
+    std::lock_guard<std::mutex> lock(promiseQueueMutex);
     promiseQueue.push(ret);
     wms_destroy_window(wms, wid);
     wl_display_flush(display);
@@ -262,6 +384,7 @@ sptr<PromiseWMError> WindowManagerServiceProxy::SwitchTop(int32_t wid)
 {
     WMLOGFI("wid: %{public}d", wid);
     sptr<PromiseWMError> ret = new PromiseWMError();
+    std::lock_guard<std::mutex> lock(promiseQueueMutex);
     promiseQueue.push(ret);
     wms_set_window_top(wms, wid);
     wms_commit_changes(wms);
@@ -273,6 +396,7 @@ sptr<PromiseWMError> WindowManagerServiceProxy::Show(int32_t wid)
 {
     WMLOGFI("wid: %{public}d", wid);
     sptr<PromiseWMError> ret = new PromiseWMError();
+    std::lock_guard<std::mutex> lock(promiseQueueMutex);
     promiseQueue.push(ret);
     wms_set_window_visibility(wms, wid, WMS_VISIBILITY_TRUE);
     wms_commit_changes(wms);
@@ -284,6 +408,7 @@ sptr<PromiseWMError> WindowManagerServiceProxy::Hide(int32_t wid)
 {
     WMLOGFI("wid: %{public}d", wid);
     sptr<PromiseWMError> ret = new PromiseWMError();
+    std::lock_guard<std::mutex> lock(promiseQueueMutex);
     promiseQueue.push(ret);
     wms_set_window_visibility(wms, wid, WMS_VISIBILITY_FALSE);
     wms_commit_changes(wms);
@@ -295,6 +420,7 @@ sptr<PromiseWMError> WindowManagerServiceProxy::Move(int32_t wid, int32_t x, int
 {
     WMLOGFI("wid: %{public}d, (%{public}d, %{public}d)", wid, x, y);
     sptr<PromiseWMError> ret = new PromiseWMError();
+    std::lock_guard<std::mutex> lock(promiseQueueMutex);
     promiseQueue.push(ret);
     wms_set_window_position(wms, wid, x, y);
     wms_commit_changes(wms);
@@ -306,6 +432,7 @@ sptr<PromiseWMError> WindowManagerServiceProxy::Resize(int32_t wid, uint32_t wid
 {
     WMLOGFI("wid: %{public}d, %{public}dx%{public}d", wid, width, height);
     sptr<PromiseWMError> ret = new PromiseWMError();
+    std::lock_guard<std::mutex> lock(promiseQueueMutex);
     promiseQueue.push(ret);
     wms_set_window_size(wms, wid, width, height);
     wms_commit_changes(wms);
@@ -317,6 +444,7 @@ sptr<PromiseWMError> WindowManagerServiceProxy::ScaleTo(int32_t wid, uint32_t wi
 {
     WMLOGFI("wid: %{public}d, %{public}dx%{public}d", wid, width, height);
     sptr<PromiseWMError> ret = new PromiseWMError();
+    std::lock_guard<std::mutex> lock(promiseQueueMutex);
     promiseQueue.push(ret);
     wms_set_window_scale(wms, wid, width, height);
     wms_commit_changes(wms);
@@ -328,6 +456,7 @@ sptr<PromiseWMError> WindowManagerServiceProxy::SetWindowType(int32_t wid, Windo
 {
     WMLOGFI("wid: %{public}d, type: %{public}d", wid, type);
     sptr<PromiseWMError> ret = new PromiseWMError();
+    std::lock_guard<std::mutex> lock(promiseQueueMutex);
     promiseQueue.push(ret);
     wms_set_window_type(wms, wid, type);
     wms_commit_changes(wms);
@@ -339,6 +468,7 @@ sptr<PromiseWMError> WindowManagerServiceProxy::SetWindowMode(int32_t wid, Windo
 {
     WMLOGFI("wid: %{public}d, mode: %{public}d", wid, mode);
     sptr<PromiseWMError> ret = new PromiseWMError();
+    std::lock_guard<std::mutex> lock(promiseQueueMutex);
     promiseQueue.push(ret);
     wms_set_window_mode(wms, wid, mode);
     wms_commit_changes(wms);

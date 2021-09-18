@@ -49,6 +49,16 @@ sptr<WlDisplay> WlDisplay::GetInstance()
     return instance;
 }
 
+void WlDisplayError(void *, struct wl_display *, void *, uint32_t code, const char *message)
+{
+    printf("wldisplay occur error: %d, %s\n", code, message);
+    printf("wldisplay occur error: %d, %s\n", code, message);
+    printf("wldisplay occur error: %d, %s\n", code, message);
+    WMLOGFE("wldisplay occur error: %{public}d, %{public}s\n", code, message);
+    WMLOGFE("wldisplay occur error: %{public}d, %{public}s\n", code, message);
+    WMLOGFE("wldisplay occur error: %{public}d, %{public}s\n", code, message);
+}
+
 bool WlDisplay::Connect(const char *name)
 {
     // retry to connect
@@ -57,6 +67,8 @@ bool WlDisplay::Connect(const char *name)
         display = wl_display_connect(name);
         if (display != nullptr) {
             WMLOGFI("connect");
+            struct wl_display_listener listener = {WlDisplayError};
+            wl_display_add_listener(display, &listener, nullptr);
             break;
         } else {
             WMLOGFW("create display failed! (%{public}d/%{public}d)", i + 1, retryTimes);

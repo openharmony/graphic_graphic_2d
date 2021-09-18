@@ -30,6 +30,7 @@ ohos_shared_library("window") {
     "//foundation/aafwk/standard/frameworks/kits/ability/native:abilitykit_native",
     "//foundation/appexecfwk/standard/kits:appkit_native",
     "//foundation/graphic/standard:libwmclient",
+    "//foundation/graphic/standard:libwmservice",
   ]
 
   relative_install_dir = "module"

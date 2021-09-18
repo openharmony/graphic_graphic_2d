@@ -34,13 +34,17 @@ config("graphic_napi_common_public_config") {
 ohos_static_library("graphic_napi_common") {
   sources = [ "graphic_napi_common.cpp" ]
 
-  configs = [ ":graphic_napi_common_config" ]
+  configs = [
+    ":graphic_napi_common_config",
+    "//utils/native/base:utils_config",
+  ]
 
   public_configs = [ ":graphic_napi_common_public_config" ]
 
   public_deps = [
     "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
     "//foundation/ace/napi:ace_napi",
+    "//utils/native/base:utils",
   ]
 }
 ## Build graphic_napi_common.a }}}

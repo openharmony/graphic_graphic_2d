@@ -18,6 +18,7 @@
 
 #include <vector>
 
+#include <display_type.h>
 #include <promise.h>
 #include <refbase.h>
 #include <window_manager_type.h>
@@ -32,26 +33,33 @@ public:
     virtual ~IWindowManagerService() = default;
 
     virtual WMError GetDisplays(std::vector<struct WMDisplayInfo> &displays) = 0;
+    virtual sptr<PromisePowerStatus> GetDisplayPower(int32_t did) = 0;
+    virtual sptr<PromiseWMError> SetDisplayPower(int32_t did, DispPowerStatus status) = 0;
+    virtual sptr<PromiseBacklight> GetDisplayBacklight(int32_t did) = 0;
+    virtual sptr<PromiseWMError> SetDisplayBacklight(int32_t did, uint32_t level) = 0;
     virtual WMError GetDisplayModes(uint32_t &displayModes) = 0;
-    virtual sptr<Promise<WMError>> SetDisplayMode(WMSDisplayMode modes) = 0;
+    virtual sptr<PromiseWMError> SetDisplayMode(WMSDisplayMode modes) = 0;
     virtual WMError AddDisplayChangeListener(IWindowManagerDisplayListenerClazz *listener) = 0;
-    virtual sptr<Promise<WMError>> OnWindowListChange(IWindowChangeListenerClazz *listener) = 0;
+    virtual sptr<PromiseWMError> OnWindowListChange(IWindowChangeListenerClazz *listener) = 0;
 
     virtual WMError SetDisplayDirection(WMSDisplayDirection direction) = 0;
     virtual WMError OnDisplayDirectionChange(DisplayDirectionChangeFunc func) = 0;
 
-    virtual sptr<Promise<WMSImageInfo>> ShotScreen(int32_t did) = 0;
-    virtual sptr<Promise<WMSImageInfo>> ShotWindow(int32_t wid) = 0;
+    virtual sptr<PromiseWMError> SetStatusBarVisibility(bool visibility) = 0;
+    virtual sptr<PromiseWMError> SetNavigationBarVisibility(bool visibility) = 0;
 
-    virtual sptr<Promise<WMError>> DestroyWindow(int32_t wid) = 0;
-    virtual sptr<Promise<WMError>> SwitchTop(int32_t wid) = 0;
-    virtual sptr<Promise<WMError>> Show(int32_t wid) = 0;
-    virtual sptr<Promise<WMError>> Hide(int32_t wid) = 0;
-    virtual sptr<Promise<WMError>> Move(int32_t wid, int32_t x, int32_t y) = 0;
-    virtual sptr<Promise<WMError>> Resize(int32_t wid, uint32_t width, uint32_t height) = 0;
-    virtual sptr<Promise<WMError>> ScaleTo(int32_t wid, uint32_t width, uint32_t height) = 0;
-    virtual sptr<Promise<WMError>> SetWindowType(int32_t wid, WindowType type) = 0;
-    virtual sptr<Promise<WMError>> SetWindowMode(int32_t wid, WindowMode mode) = 0;
+    virtual sptr<PromiseWMSImageInfo> ShotScreen(int32_t did) = 0;
+    virtual sptr<PromiseWMSImageInfo> ShotWindow(int32_t wid) = 0;
+
+    virtual sptr<PromiseWMError> DestroyWindow(int32_t wid) = 0;
+    virtual sptr<PromiseWMError> SwitchTop(int32_t wid) = 0;
+    virtual sptr<PromiseWMError> Show(int32_t wid) = 0;
+    virtual sptr<PromiseWMError> Hide(int32_t wid) = 0;
+    virtual sptr<PromiseWMError> Move(int32_t wid, int32_t x, int32_t y) = 0;
+    virtual sptr<PromiseWMError> Resize(int32_t wid, uint32_t width, uint32_t height) = 0;
+    virtual sptr<PromiseWMError> ScaleTo(int32_t wid, uint32_t width, uint32_t height) = 0;
+    virtual sptr<PromiseWMError> SetWindowType(int32_t wid, WindowType type) = 0;
+    virtual sptr<PromiseWMError> SetWindowMode(int32_t wid, WindowMode mode) = 0;
 };
 } // namespace OHOS
 
