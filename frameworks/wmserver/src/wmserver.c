@@ -177,19 +177,19 @@ struct WmsContext *GetWmsInstance(void)
     return &g_wmsCtx;
 }
 
-static inline uint32_t GetBit(uint32_t flags, int32_t n)
+static inline uint32_t GetBit(uint32_t flags, uint32_t n)
 {
-    return ((flags) & (1 << (n)));
+    return flags & (1u << n);
 }
 
-static inline void SetBit(uint32_t *flags, int32_t n)
+static inline void SetBit(uint32_t *flags, uint32_t n)
 {
-    (*flags) |= (1 << (n));
+    *flags |= (1u << n);
 }
 
-static inline void ClearBit(uint32_t *flags, int32_t n)
+static inline void ClearBit(uint32_t *flags, uint32_t n)
 {
-    (*flags) &= ~(1 << (n));
+    *flags &= ~(1u << n);
 }
 
 static inline int GetLayerId(uint32_t screenId, uint32_t type, uint32_t mode)
@@ -1256,7 +1256,7 @@ static void Screenshot(const struct ScreenshotFrameListener *pFrameListener, uin
     int32_t width = westonOutput->current_mode->width;
     int32_t height = westonOutput->current_mode->height;
     pixman_format_code_t format = westonOutput->compositor->read_format;
-    int32_t stride = width * (PIXMAN_FORMAT_BPP(format) / PIXMAN_FORMAT_AVERAGE);
+    int32_t stride = width * PIXMAN_FORMAT_BPP((uint32_t)format) / PIXMAN_FORMAT_AVERAGE;
     size_t size = stride * height;
 
     int fd = CreateScreenshotFile(size);

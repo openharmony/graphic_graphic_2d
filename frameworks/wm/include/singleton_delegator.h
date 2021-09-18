@@ -31,6 +31,7 @@ public:
         nameT = nameT.substr(sizeof("T ="), nameT.length() - sizeof("T = "));
         SingletonContainer::GetInstance()->AddSingleton(nameT, T::GetInstance());
     }
+    ~SingletonDelegator() = default;
 
     template<class S>
     sptr<S> Dep()

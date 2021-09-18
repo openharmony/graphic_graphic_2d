@@ -88,7 +88,7 @@ public:
     }
 
 private:
-    uint32_t maxWidth;
-    uint32_t maxHeight;
+    uint32_t maxWidth = 0;
+    uint32_t maxHeight = 0;
 } g_autoload;
 } // namespace

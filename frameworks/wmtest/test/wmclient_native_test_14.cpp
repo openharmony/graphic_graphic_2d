@@ -180,7 +180,7 @@ private:
     }
 
 private:
-    int32_t pipeFd[2];
+    int32_t pipeFd[2] = {};
     static inline constexpr uint32_t SAID = 4699;
     sptr<Window> window;
     sptr<NativeTestSync> windowSync;

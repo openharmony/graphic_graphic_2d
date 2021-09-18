@@ -53,7 +53,9 @@ static void RegistryHandleGlobal(void *data, struct wl_registry *registry,
 
     if (strcmp(interface, "screen_info") == 0) {
         ctx->screenInfo = wl_registry_bind(registry, id, &screen_info_interface, 1);
-        screen_info_add_listener(ctx->screenInfo, &g_listener, ctx);
+        if (ctx->screenInfo != NULL) {
+            screen_info_add_listener(ctx->screenInfo, &g_listener, ctx);
+        }
     }
 }
 

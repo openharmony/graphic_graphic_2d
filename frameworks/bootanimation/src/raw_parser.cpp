@@ -16,8 +16,10 @@
 #include "raw_parser.h"
 
 #include <cstdio>
+#include <fstream>
 #include <mutex>
 #include <securec.h>
+#include <sstream>
 
 #include <zlib.h>
 
@@ -46,9 +48,9 @@ RawParser::~RawParser()
 {
 }
 
-int32_t RawParser::Parse(std::string &filename)
+int32_t RawParser::Parse(int32_t width, int32_t height)
 {
-    int32_t ret = ReadFile(filename);
+    int32_t ret = ReadFile(width, height);
     if (ret) {
         LOG("ReadFile failed");
         return ret;
@@ -127,11 +129,13 @@ int32_t RawParser::GetData(uint32_t count, uint8_t* &pData, uint32_t &offset, ui
     return 0;
 }
 
-int32_t RawParser::ReadFile(std::string &filename)
+int32_t RawParser::ReadFile(int32_t width, int32_t height)
 {
-    FILE *fp = fopen(filename.c_str(), "rb");
+    std::stringstream ss;
+    ss << "/system/etc/bootanimation-" << width << "x" << height << ".raw";
+    FILE *fp = fopen(ss.str().c_str(), "rb");
     if (fp == nullptr) {
-        LOG("open %{public}s failed, %{public}d", filename.c_str(), errno);
+        LOG("open %{public}s failed, %{public}d", ss.str().c_str(), errno);
         return -1;
     }
 
@@ -140,7 +144,7 @@ int32_t RawParser::ReadFile(std::string &filename)
     (void)fseek(fp, 0, SEEK_SET);
 
     if (clength < magicHeaderLength) {
-        LOG("%{public}s is too small", filename.c_str());
+        LOG("%{public}s is too small", ss.str().c_str());
         fclose(fp);
         return -1;
     }

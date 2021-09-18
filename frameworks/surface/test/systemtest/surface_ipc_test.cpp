@@ -97,7 +97,7 @@ HWTEST_F(SurfaceIPCTest, BufferIPC, testing::ext::TestSize.Level0)
     auto sam = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     sam->AddSystemAbility(ipcSystemAbilityID, producer->AsObject());
 
-    int64_t data;
+    int64_t data = 0;
     write(pipeFd[1], &data, sizeof(data));
     sleep(0);
     read(pipeFd[0], &data, sizeof(data));

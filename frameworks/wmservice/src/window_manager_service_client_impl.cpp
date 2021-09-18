@@ -84,13 +84,17 @@ void OnGlobalWindowStatus(void *, struct wms *, uint32_t a, uint32_t b, uint32_t
     WindowManagerServiceProxy::OnGlobalWindowStatus(a, b, c);
 }
 
-void RegistryGlobal(void *pwms, struct wl_registry *registry,
+void RegistryGlobal(void *ppwms, struct wl_registry *registry,
     uint32_t id, const char *interface, uint32_t version)
 {
+    if (ppwms == nullptr) {
+        return;
+    }
+
     if (strcmp(interface, "wms") == 0) {
-        auto wms = static_cast<struct wms**>(pwms);
+        auto &pwms = *static_cast<struct wms**>(ppwms);
         constexpr uint32_t wmsVersion = 1;
-        *wms = (struct wms *)wl_registry_bind(registry, id, &wms_interface, wmsVersion);
+        pwms = (struct wms *)wl_registry_bind(registry, id, &wms_interface, wmsVersion);
         const struct wms_listener listener = {
             nullptr,
             OnDisplayChange,
@@ -102,7 +106,9 @@ void RegistryGlobal(void *pwms, struct wl_registry *registry,
             OnWindowShotError,
             OnGlobalWindowStatus,
         };
-        wms_add_listener(*wms, &listener, nullptr);
+        if (pwms != nullptr) {
+            wms_add_listener(pwms, &listener, nullptr);
+        }
     }
 }
 } // namespace
@@ -161,13 +167,13 @@ void WindowManagerServiceClientImpl::DispatchThreadMain()
             break;
         }
 
-        if (pfd[1].revents & POLLIN) {
+        if ((uint32_t)pfd[1].revents & POLLIN) {
             WMLOGFI("return by interrupt");
             wl_display_cancel_read(display);
             return;
         }
 
-        if (pfd[0].revents & POLLIN) {
+        if ((uint32_t)pfd[0].revents & POLLIN) {
             wl_display_read_events(display);
             if (wl_display_dispatch_pending(display) == -1) {
                 WMLOGFE("wl_display_dispatch_pending return -1");

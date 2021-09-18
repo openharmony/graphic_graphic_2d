@@ -42,7 +42,7 @@ public:
     static sptr<RawParser> GetInstance();
 
     // 0 for success
-    int32_t Parse(std::string &filename);
+    int32_t Parse(int32_t width, int32_t height);
 
     // 0 for success
     int32_t GetData(uint32_t count, uint8_t* &pData, uint32_t &offset, uint32_t &length);
@@ -52,7 +52,7 @@ public:
 
 protected:
     // 0 for success
-    int32_t ReadFile(std::string &filename);
+    int32_t ReadFile(int32_t width, int32_t height);
 
 private:
     static sptr<RawParser> instance;

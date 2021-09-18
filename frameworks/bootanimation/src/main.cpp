@@ -63,10 +63,10 @@ int32_t Main::DoDraw(uint8_t *addr, uint32_t width, uint32_t height, uint32_t co
     }
 
     if (last != count && length > 0) {
-        memcpy_s(frame.get() + offset, addrSize - offset, data, length);
+        (void)memcpy_s(frame.get() + offset, addrSize - offset, data, length);
     }
 
-    memcpy_s(addr, addrSize, frame.get(), addrSize);
+    (void)memcpy_s(addr, addrSize, frame.get(), addrSize);
     last = count;
     LOG("GetData time: %{public}" PRIu64 ", data: %{public}p, length: %{public}d",
         GetNowTime() - start, data, length);
@@ -232,14 +232,8 @@ int main(int argc, const char *argv[])
         return 1;
     }
 
-    const int32_t width = displays[0].width;
-    const int32_t height = displays[0].height;
-
     int64_t start = GetNowTime();
-    std::stringstream ss;
-    ss << "/system/etc/bootanimation-" << width << "x" << height << ".raw";
-    std::string filename = ss.str();
-    if (RawParser::GetInstance()->Parse(filename)) {
+    if (RawParser::GetInstance()->Parse(displays[0].width, displays[0].height)) {
         return -1;
     }
     LOG("time: %{public}" PRIu64 "", GetNowTime() - start);
@@ -248,7 +242,7 @@ int main(int argc, const char *argv[])
 
     auto runner = AppExecFwk::EventRunner::Create(false);
     auto handler = std::make_shared<AppExecFwk::EventHandler>(runner);
-    handler->PostTask(std::bind(&Main::Init, &m, width, height));
+    handler->PostTask(std::bind(&Main::Init, &m, displays[0].width, displays[0].height));
     runner->Run();
     return 0;
 }

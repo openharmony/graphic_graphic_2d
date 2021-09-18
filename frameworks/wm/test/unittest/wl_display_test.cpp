@@ -86,7 +86,11 @@ HWTEST_F(WlDisplayTest, SyncPromise, testing::ext::TestSize.Level0)
 
     // 2. wl_display_sync
     callCount = 0;
-    auto callback = wl_display_sync(display->GetRawPtr());
+    wl_callback *callback = nullptr;
+    if (display->GetRawPtr() != nullptr) {
+        callback = wl_display_sync(display->GetRawPtr());
+    }
+
     ASSERT_NE(callback, nullptr) << "CaseDescription: 2. wl_display_sync (callback != nullptr)";
 
     const struct wl_callback_listener listener = { &WlDisplayTest::SyncDone };

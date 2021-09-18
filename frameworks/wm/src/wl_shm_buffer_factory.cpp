@@ -15,9 +15,9 @@
 
 #include "wl_shm_buffer_factory.h"
 
-#include <map>
-
+#include <cerrno>
 #include <fcntl.h>
+#include <map>
 #include <securec.h>
 #include <sys/mman.h>
 #include <unistd.h>
@@ -95,7 +95,7 @@ int32_t CreateShmFile(int32_t size)
 
     ret = fcntl(fd, F_GETFD);
     if (ret == -1) {
-        WMLOGFE("fcntl F_GETFD return -1, errno: %{public}s", strerror(ret));
+        WMLOGFE("fcntl F_GETFD return -1, errno: %{public}s", strerror(errno));
         close(fd);
         return -1;
     }
@@ -103,21 +103,21 @@ int32_t CreateShmFile(int32_t size)
     uint32_t flags = ret;
     ret = fcntl(fd, F_SETFD, flags | FD_CLOEXEC);
     if (ret == -1) {
-        WMLOGFE("fctn F_SETFD return -1, errno: %{public}s", strerror(ret));
+        WMLOGFE("fctn F_SETFD return -1, errno: %{public}s", strerror(errno));
         close(fd);
         return -1;
     }
 
     ret = unlink(name.get());
     if (ret == -1) {
-        WMLOGFE("unlink return -1, errno: %{public}s", strerror(ret));
+        WMLOGFE("unlink return -1, errno: %{public}s", strerror(errno));
         close(fd);
         return -1;
     }
 
     ret = ftruncate(fd, size);
     if (ret < 0) {
-        WMLOGFE("ftruncate: %{public}s", strerror(ret));
+        WMLOGFE("ftruncate: %{public}s", strerror(errno));
         close(fd);
         return -1;
     }
@@ -176,6 +176,9 @@ sptr<WlBuffer> WlSHMBufferFactory::Create(uint32_t w, uint32_t h, int32_t format
     if (buffer == nullptr) {
         WMLOGFE("%{public}s failed, %{public}dx%{public}d, stride: %{public}d, format: %{public}d",
             "wl_shm_pool_create_buffer", w, h, stride, format);
+        munmap(mmapPtr, mmapSize);
+        close(fd);
+        wl_shm_pool_destroy(pool);
         return nullptr;
     }
 
@@ -183,15 +186,20 @@ sptr<WlBuffer> WlSHMBufferFactory::Create(uint32_t w, uint32_t h, int32_t format
     if (display->GetError() != 0) {
         WMLOGFE("%{public}s failed with %{public}d, %{public}dx%{public}d, stride: %{public}d, format: %{public}d",
             "wl_shm_pool_create_buffer", display->GetError(), w, h, stride, format);
+        wl_buffer_destroy(buffer);
+        munmap(mmapPtr, mmapSize);
         close(fd);
+        wl_shm_pool_destroy(pool);
         return nullptr;
     }
 
     sptr<WlSHMBuffer> ret = new WlSHMBuffer(buffer);
     if (ret == nullptr) {
         WMLOGFE("new WlSHMBuffer failed");
+        wl_buffer_destroy(buffer);
         munmap(mmapPtr, mmapSize);
         close(fd);
+        wl_shm_pool_destroy(pool);
         return nullptr;
     }
     ret->SetMmap(mmapPtr, mmapSize);
