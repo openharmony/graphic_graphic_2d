@@ -283,7 +283,7 @@ void NativeTestDraw::BoxDraw(void *vaddr, uint32_t width, uint32_t height, uint3
             addr[j * width + x2] = color;
         }
     };
-    auto abs = [](int32_t x) { return x < 0 ? -x : x; };
+    auto abs = [](int32_t x) { return (x < 0) ? -x : x; };
     drawOnce(abs((count - 1) % (framecount * 0x2 - 1) - framecount), color);
     drawOnce(abs((count + 0) % (framecount * 0x2 - 1) - framecount), color);
     drawOnce(abs((count + 1) % (framecount * 0x2 - 1) - framecount), color);

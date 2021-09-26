@@ -39,7 +39,10 @@ public:
         .timeout = 0,
     };
     static inline BufferFlushConfig flushConfig = {
-        .damage = { .w = 0x100, .h = 0x100, },
+        .damage = {
+            .w = 0x100,
+            .h = 0x100,
+        },
     };
     static inline std::vector<int32_t> deletingBuffers;
     static inline int64_t timestamp = 0;

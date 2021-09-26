@@ -29,7 +29,10 @@ void SurfaceRevertIPCTest::SetUpTestCase()
         .usage = HBM_USE_CPU_READ | HBM_USE_CPU_WRITE | HBM_USE_MEM_DMA,
         .timeout = 0,
     };
-    flushConfig = { .damage = { .w = 0x100, .h = 0x100 } };
+    flushConfig = { .damage = {
+        .w = 0x100,
+        .h = 0x100,
+    } };
 }
 
 void SurfaceRevertIPCTest::OnBufferAvailable()

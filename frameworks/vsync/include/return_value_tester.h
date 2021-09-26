@@ -48,7 +48,6 @@ public:
                 ret = *pRet;
             } else {
                 fprintf(stderr, "pRet is null\n");
-                ret = b;
             }
             return ret;
         } else {

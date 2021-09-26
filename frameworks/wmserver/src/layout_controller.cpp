@@ -51,7 +51,7 @@ int32_t LayoutControllerUpdateStaticLayout(uint32_t type, const struct layout *l
 int32_t LayoutControllerCalcWindowDefaultLayout(uint32_t type,
     uint32_t mode, uint32_t *zIndex, struct layout *outLayout)
 {
-    struct OHOS::WMServer::Layout layout;
+    struct OHOS::WMServer::Layout layout = {};
     auto ret = OHOS::WMServer::LayoutController::GetInstance().CalcWindowDefaultLayout(type, mode, layout);
     if (zIndex != nullptr) {
         *zIndex = layout.zIndex;
@@ -250,7 +250,7 @@ bool RectSubtract(struct layout &rect, struct layout other)
 bool LayoutController::CalcNormalRect(struct layout &layout)
 {
     struct layout rect = { 0, 0, (double)displayWidth, (double)displayHeight };
-    struct Layout other;
+    struct Layout other = {};
     CalcWindowDefaultLayout(WINDOW_TYPE_STATUS_BAR, WINDOW_MODE_UNSET, other);
     if (!RectSubtract(rect, other.layout)) {
         LOGE("CalcNormalRect STATUS_BAR failed");
@@ -368,20 +368,20 @@ WindowMode WindowModeParser(const std::string &value)
     return WINDOW_MODE_UNSET;
 }
 
-#define DEFINE_ATTRIBUTE_PROCESS_FUNCTION(attr, value, layout, displayWidth, displayHeight)   \
-int32_t AttributeProcess##attr(const std::string &value,                                      \
-                               struct Layout &layout,                                         \
-                               int32_t displayWidth,                                          \
-                               int32_t displayHeight);                                        \
-__attribute__((constructor)) void RegisterAttributeProcess##attr()                            \
-{                                                                                             \
-    LayoutController::GetInstance().RegisterAttributeProcessFunction(#attr,                   \
-                                                                     AttributeProcess##attr); \
-}                                                                                             \
-                                                                                              \
-int32_t AttributeProcess##attr(const std::string &value,                                      \
-                               struct Layout &layout,                                         \
-                               int32_t displayWidth,                                          \
+#define DEFINE_ATTRIBUTE_PROCESS_FUNCTION(attr, value, layout, displayWidth, displayHeight)\
+int32_t AttributeProcess##attr(const std::string &value,\
+                               struct Layout &layout,\
+                               int32_t displayWidth,\
+                               int32_t displayHeight);\
+__attribute__((constructor)) void RegisterAttributeProcess##attr()\
+{\
+    LayoutController::GetInstance().RegisterAttributeProcessFunction(#attr,\
+                                                                     AttributeProcess##attr);\
+}\
+\
+int32_t AttributeProcess##attr(const std::string &value,\
+                               struct Layout &layout,\
+                               int32_t displayWidth,\
                                int32_t displayHeight)
 
 DEFINE_ATTRIBUTE_PROCESS_FUNCTION(zindex, value, layout, displayWidth, displayHeight)

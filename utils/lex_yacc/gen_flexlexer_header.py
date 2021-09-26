@@ -18,11 +18,12 @@ import optparse
 import subprocess
 import sys
 
+
 def parse_args(args):
     parser = optparse.OptionParser()
     parser.add_option("--output")
-    options, _ = parser.parse_args(args)
-    return options
+    opts, _ = parser.parse_args(args)
+    return opts
 
 if __name__ == '__main__':
     options = parse_args(sys.argv[1:])
