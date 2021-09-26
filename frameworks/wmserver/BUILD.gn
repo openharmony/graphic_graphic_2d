@@ -86,7 +86,7 @@ config("screen-info-test_config") {
 }
 
 ohos_executable("screen-info-test") {
-  install_enable = true
+  install_enable = false
 
   sources = [ "src/screen_info_test.c" ]
 

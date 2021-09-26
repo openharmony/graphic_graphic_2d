@@ -81,7 +81,7 @@ config("wmservice_test_config") {
 }
 
 ohos_executable("wmservice_test") {
-  install_enable = true
+  install_enable = false
 
   sources = [ "src/main.cpp" ]
 

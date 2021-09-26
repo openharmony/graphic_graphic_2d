@@ -27,7 +27,7 @@ config("wmtest_config") {
 }
 
 ohos_executable("wmtest") {
-  install_enable = true
+  install_enable = false
 
   sources = [
     "frameworks/inative_test.cpp",
