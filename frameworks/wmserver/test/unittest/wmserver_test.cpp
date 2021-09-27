@@ -246,15 +246,17 @@ void RegistryGlobal(void *data, struct wl_registry *registry,
         ctx->wms = (struct wms *)wl_registry_bind(registry, id, &wms_interface, 1);
 
         static struct wms_listener wmsListener = {
-            WindowUpdate,
-            ScreenUpdate,
-            DisplayMode,
             ReplyStatus,
+            ScreenUpdate,
+            nullptr,
+            nullptr,
+            DisplayMode,
+            WindowUpdate,
+            GlobalWindowStatus,
             ScreenShotDone,
             ScreenShotError,
             WindowShotDone,
             WindowShotError,
-            GlobalWindowStatus
         };
         wms_add_listener(ctx->wms, &wmsListener, ctx);
         wl_display_flush(ctx->display);

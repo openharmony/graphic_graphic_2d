@@ -18,6 +18,101 @@
   <interface name="wms" version="1">
     <description summary="interface for window manager server."/>
 
+    <!-- Return Value Event {{{ -->
+    <enum name="error">
+      <description summary="ok or error."/>
+      <entry name="ok"  value="0"/>
+      <entry name="invalid_param"  value="1"/>
+      <entry name="pid_check"  value="2"/>
+      <entry name="no_memory"  value="3"/>
+      <entry name="inner_error"  value="4"/>
+      <entry name="other"  value="5"/>
+      <entry name="api_failed"  value="6"/>
+    </enum>
+
+    <event name="reply_error">
+      <description summary="reply error."/>
+      <arg name="error" type="uint" enum="error" />
+    </event>
+    <!-- Return Value Event }}} -->
+
+    <!-- Screen Event {{{ -->
+    <enum name="screen_status">
+      <description summary="screen status">
+      </description>
+      <entry name="add"  value="0"/>
+      <entry name="remove" value="1"/>
+    </enum>
+
+    <event name="screen_status">
+      <description summary="screen info update"/>
+      <arg name="screen_id" type="uint"/>
+      <arg name="name" type="string"/>
+      <arg name="status" type="uint" enum="screen_status"/>
+      <arg name="width" type="int"/>
+      <arg name="height" type="int"/>
+    </event>
+    <!-- Screen Event }}} -->
+
+    <!-- Display Power {{{ -->
+    <request name="get_display_power">
+      <description summary="get display power status"/>
+      <arg name="display_id" type="int" summary="screen id of the screen you want to get"/>
+    </request>
+
+    <event name="display_power">
+      <description summary="get_display_power return value"/>
+      <arg name="error" type="uint" enum="error" summary="same as reply_error"/>
+      <arg name="status" type="int" summary="same as DispPowerStatus"/>
+    </event>
+
+    <request name="set_display_power">
+      <description summary="set display power status, return by reply_error"/>
+      <arg name="display_id" type="int" summary="screen id of the screen you want to set"/>
+      <arg name="status" type="int" summary="same as DispPowerStatus"/>
+    </request>
+    <!-- Display Power }}} -->
+
+    <!-- Display Backlight {{{ -->
+    <request name="get_display_backlight">
+      <description summary="get display backlight"/>
+      <arg name="display_id" type="int" summary="screen id of the screen you want to get"/>
+    </request>
+
+    <event name="display_backlight">
+      <description summary="get_display_backlight return value"/>
+      <arg name="error" type="uint" enum="error" summary="same as reply_error"/>
+      <arg name="level" type="uint" summary="backlight level 0~255"/>
+    </event>
+
+    <request name="set_display_backlight">
+      <description summary="set display backlight, return by reply_error"/>
+      <arg name="display_id" type="int" summary="screen id of the screen you want to set"/>
+      <arg name="level" type="uint" summary="backlight level 0~255"/>
+    </request>
+    <!-- Display Backlight }}} -->
+
+    <!-- Display Mode {{{ -->
+    <enum name="display_mode">
+      <description summary="display mode"/>
+      <entry name="single" value="1" summary="single screen"/>
+      <entry name="clone"  value="2" summary="clone screen"/>
+      <entry name="extend" value="4" summary="extend screen"/>
+      <entry name="expand" value="8" summary="expand screen"/>
+    </enum>
+
+    <event name="display_mode">
+      <description summary="display mode update. flag is bitmask of display mode."/>
+      <arg name="flag" type="uint"/>
+    </event>
+
+    <request name="set_display_mode">
+      <description summary="set display mode"/>
+      <arg name="display_mode" type="uint" enum="display_mode"/>
+    </request>
+    <!-- Display Mode }}} -->
+
+    <!-- Window Ctor Dtor {{{ -->
     <request name="create_window">
       <arg name="surface" type="object" interface="wl_surface"/>
       <arg name="screen_id" type="uint"/>
@@ -28,6 +123,51 @@
       <arg name="window_id" type="uint"/>
     </request>
 
+    <enum name="window_status">
+      <description summary="window status"/>
+      <entry name="created"  value="0" summary="window creation succeeded"/>
+      <entry name="failed" value="1" summary="window creation failed"/>
+      <entry name="destroyed" value="2" summary="window destroyed"/>
+    </enum>
+
+    <event name="window_status">
+      <description summary="window status update"/>
+      <arg name="status" type="uint" enum="window_status"/>
+      <arg name="window_id" type="uint"/>
+      <arg name="x" type="int"/>
+      <arg name="y" type="int"/>
+      <arg name="width" type="int"/>
+      <arg name="height" type="int"/>
+    </event>
+    <!-- Window Ctor Dtor }}} -->
+
+    <!-- Global Window Event {{{ -->
+    <request name="config_global_window_status">
+      <description summary="config global window status"/>
+      <arg name="status" type="int" summary="disable: 0, enable: not 0"/>
+    </request>
+
+    <event name="global_window_status">
+      <description summary="global window status">
+      </description>
+      <arg name="pid" type="uint" summary="client pid"/>
+      <arg name="window_id" type="uint" summary="window id"/>
+      <arg name="status" type="uint" enum="window_status"/>
+    </event>
+    <!-- Global Window Event }}} -->
+
+    <!-- Control SystemBar {{{ -->
+    <request name="set_status_bar_visibility">
+      <description summary="set status_bar visibility"/>
+      <arg name="visibility" type="uint" enum="visibility"/>
+    </request>
+    <request name="set_navigation_bar_visibility">
+      <description summary="set navigation_bar visibility"/>
+      <arg name="visibility" type="uint" enum="visibility"/>
+    </request>
+    <!-- Control SystemBar }}} -->
+
+    <!-- Window Operator {{{ -->
     <request name="set_window_top">
       <arg name="window_id" type="uint"/>
     </request>
@@ -54,8 +194,7 @@
     </request>
 
     <enum name="visibility">
-      <description summary="visibility enumeration definition">
-      </description>
+      <description summary="visibility enumeration definition"/>
       <entry name="false"  value="0" summary="invisible"/>
       <entry name="true" value="1" summary="visibile"/>
     </enum>
@@ -78,91 +217,15 @@
       <arg name="window_mode" type="uint"/>
     </request>
 
-    <enum name="display_mode">
-      <description summary="display mode">
-      </description>
-      <entry name="single"  value="1" summary="single screen"/>
-      <entry name="clone" value="2" summary="clone screen"/>
-      <entry name="extend" value="4" summary="extend screen"/>
-      <entry name="expand" value="8" summary="expand screen"/>
-    </enum>
-
-    <request name="set_display_mode">
-      <description summary="set display mode"/>
-      <arg name="display_mode" type="uint" enum="display_mode"/>
-    </request>
-
     <request name="commit_changes">
       <description summary="commit all changes requested by client"/>
     </request>
+    <!-- Window Operator }}} -->
 
-    <request name="config_global_window_status">
-      <description summary="config global window status"/>
-      <arg name="status" type="int" summary="disable: 0, enable: not 0"/>
-    </request>
-
-    <enum name="window_status">
-      <description summary="window status">
-      </description>
-      <entry name="created"  value="0" summary="window creation succeeded"/>
-      <entry name="failed" value="1" summary="window creation failed"/>
-      <entry name="destroyed" value="2" summary="window destroyed"/>
-    </enum>
-
-    <event name="window_status">
-      <description summary="window status update"/>
-      <arg name="status" type="uint" enum="window_status"/>
-      <arg name="window_id" type="uint"/>
-      <arg name="x" type="int"/>
-      <arg name="y" type="int"/>
-      <arg name="width" type="int"/>
-      <arg name="height" type="int"/>
-    </event>
-
-    <enum name="screen_status">
-      <description summary="screen status">
-      </description>
-      <entry name="add"  value="0"/>
-      <entry name="remove" value="1"/>
-    </enum>
-
-    <event name="screen_status">
-      <description summary="screen info update"/>
-      <arg name="screen_id" type="uint"/>
-      <arg name="name" type="string"/>
-      <arg name="status" type="uint" enum="screen_status"/>
-      <arg name="width" type="int"/>
-      <arg name="height" type="int"/>
-    </event>
-
-    <event name="display_mode">
-      <description summary="display mode update. flag is bitmask of display mode."/>
-      <arg name="flag" type="uint"/>
-    </event>
-
-    <enum name="error">
-      <description summary="ok or error."/>
-      <entry name="ok"  value="0"/>
-      <entry name="invalid_param"  value="1"/>
-      <entry name="pid_check"  value="2"/>
-      <entry name="no_memory"  value="3"/>
-      <entry name="inner_error"  value="4"/>
-      <entry name="other"  value="5"/>
-    </enum>
-
-    <event name="reply_error">
-      <description summary="reply error."/>
-      <arg name="error" type="uint" enum="error" />
-    </event>
-
+    <!-- Screenshot {{{ -->
     <request name="screenshot">
       <description summary="screenshot request"/>
       <arg name="screen_id" type="uint" summary="screen id"/>
-    </request>
-
-    <request name="windowshot">
-      <description summary="windowshot request"/>
-      <arg name="window_id" type="uint" summary="window id"/>
     </request>
 
     <event name="screenshot_done">
@@ -184,6 +247,13 @@
       <arg name="error" type="uint" enum="error"/>
       <arg name="id" type="uint" summary="screen id"/>
     </event>
+    <!-- Screenshot }}} -->
+
+    <!-- Windowshot {{{ -->
+    <request name="windowshot">
+      <description summary="windowshot request"/>
+      <arg name="window_id" type="uint" summary="window id"/>
+    </request>
 
     <event name="windowshot_done">
       <description summary="windowshot done">
@@ -204,14 +274,7 @@
       <arg name="error" type="uint" enum="error"/>
       <arg name="id" type="uint" summary="window id"/>
     </event>
-
-    <event name="global_window_status">
-      <description summary="global window status">
-      </description>
-      <arg name="pid" type="uint" summary="client pid"/>
-      <arg name="window_id" type="uint" summary="window id"/>
-      <arg name="status" type="uint" enum="window_status"/>
-    </event>
+    <!-- Windowshot }}} -->
   </interface>
 
   <interface name="screen_info" version="1">

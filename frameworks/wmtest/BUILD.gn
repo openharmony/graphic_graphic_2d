@@ -67,6 +67,11 @@ ohos_executable("wmtest") {
     "test/wmclient_native_test_7.cpp",
     "test/wmclient_native_test_8.cpp",
     "test/wmclient_native_test_9.cpp",
+    "test/wmservice_native_test_1.cpp",
+    "test/wmservice_native_test_2.cpp",
+    "test/wmservice_native_test_3.cpp",
+    "test/wmservice_native_test_4.cpp",
+    "test/wmservice_native_test_5.cpp",
   ]
 
   configs = [ ":wmtest_config" ]

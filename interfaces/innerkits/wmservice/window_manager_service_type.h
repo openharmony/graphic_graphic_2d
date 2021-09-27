@@ -18,6 +18,8 @@
 
 #include <functional>
 
+#include <display_type.h>
+#include <promise.h>
 #include <window_manager_type.h>
 
 namespace OHOS {
@@ -47,6 +49,21 @@ struct WMSImageInfo {
     uint32_t format;
     uint64_t timestamp;
 };
+
+struct PowerStatus {
+    WMError wret;
+    DispPowerStatus status;
+};
+
+struct Backlight {
+    WMError wret;
+    uint32_t level;
+};
+
+using PromiseWMError = Promise<WMError>;
+using PromiseWMSImageInfo = Promise<WMSImageInfo>;
+using PromisePowerStatus = Promise<PowerStatus>;
+using PromiseBacklight = Promise<Backlight>;
 } // namespace OHOS
 
 #endif // INTERFACES_INNERKITS_WMSERVICE_WINDOW_MANAGER_SERVICE_TYPE_H

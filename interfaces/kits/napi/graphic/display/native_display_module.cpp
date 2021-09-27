@@ -27,32 +27,31 @@ struct Param {
     std::vector<WMDisplayInfo> displayInfos;
 };
 
-void Async(napi_env env, std::unique_ptr<Param> &param)
+bool Async(napi_env env, std::unique_ptr<Param> &param)
 {
     const auto &wmsc = WindowManagerServiceClient::GetInstance();
     auto wret = wmsc->Init();
     if (wret != WM_OK) {
         GNAPI_LOG("WindowManagerServiceClient::Init() return %{public}s", WMErrorStr(wret).c_str());
         param->wret = wret;
-        return;
+        return false;
     }
 
     auto iWindowManagerService = wmsc->GetService();
     if (!iWindowManagerService) {
         GNAPI_LOG("can not get iWindowManagerService");
         param->wret = wret;
-        return;
+        return false;
     }
 
     param->wret = iWindowManagerService->GetDisplays(param->displayInfos);
+    return true;
 }
 
 napi_value Resolve(napi_env env, std::unique_ptr<Param> &param)
 {
-    napi_value result;
     if (param->wret != WM_OK) {
-        NAPI_CALL(env, napi_get_undefined(env, &result));
-        return result;
+        return CreateError(env, "failed with %s", WMErrorStr(param->wret).c_str());
     }
 
     if (param->displayInfos.empty()) {
@@ -69,6 +68,7 @@ napi_value Resolve(napi_env env, std::unique_ptr<Param> &param)
     GNAPI_LOG("phyHeight : %{public}d", param->displayInfos[0].phyHeight);
     GNAPI_LOG("vsync     : %{public}d", param->displayInfos[0].vsync);
 
+    napi_value result;
     NAPI_CALL(env, napi_create_object(env, &result));
     NAPI_CALL(env, SetMemberInt32(env, result, "id", displayInfo.id));
     NAPI_CALL(env, SetMemberUndefined(env, result, "name"));

@@ -47,31 +47,11 @@
 #define WINDOW_ID_NUM_MAX 1024
 #define WINDOW_ID_INVALID 0
 
-// int32_t max 2147483647, use 1e9, as AAAABBBCD
-// HIGH | SCREEN use AAAA | TYPE use BBB | MODE use C | RESERVED use D | LOW
-#define LAYER_ID_RESERVED_LENGTH 10
-#define LAYER_ID_RESERVED_BASE 1
-#define LAYER_ID_MODE_LENGTH 10
-#define LAYER_ID_MODE_BASE 10
-#define LAYER_ID_TYPE_LENGTH 1000
-#define LAYER_ID_TYPE_BASE 100
-#define LAYER_ID_SCREEN_LENGTH 10000
 #define LAYER_ID_SCREEN_BASE 100000
-
 #define BAR_WIDTH_PERCENT 0.07
-#define ALARM_WINDOW_WIDTH 400
-#define ALARM_WINDOW_HEIGHT 300
-#define ALARM_WINDOW_WIDTH_HALF 200
-#define ALARM_WINDOW_HEIGHT_HALF 150
-#define INPUT_WINDOW_THIRD 3
-#define INPUT_SELECTOR_WINDOW_BORDER 30
-#define FLOAT_WINDOW_BORDER 80
-#define VOLUME_OVERLAY_WINDOW_BORDER 15
-
 #define SCREEN_SHOT_FILE_PATH "/data/screenshot-XXXXXX"
 #define TIMER_INTERVAL_MS 300
 #define HEIGHT_AVERAGE 2
-#define WIDTH_AVERAGE 2
 #define PIXMAN_FORMAT_AVERAGE 8
 #define BYTE_SPP_SIZE 4
 #define ASSERT assert
@@ -113,13 +93,6 @@ struct WmsController {
     struct wl_list wlListLinkRes;
     struct WmsContext *pWmsCtx;
     struct ScreenshotFrameListener stListener;
-};
-
-typedef void (*CalcWindowInfoFunc)(struct WindowSurface *, int32_t, int32_t, int32_t, int32_t);
-
-struct CalcWindowInfoStrategy {
-    uint32_t type;
-    CalcWindowInfoFunc func;
 };
 
 static struct WmsContext g_wmsCtx = {0};
@@ -536,6 +509,76 @@ static bool AddWindow(struct WindowSurface *windowSurface)
 
     LOGD("end.");
     return true;
+}
+
+static void ControllerGetDisplayPower(const struct wl_client *client,
+                                      const struct wl_resource *resource,
+                                      int32_t displayId)
+{
+    struct WmsContext *ctx = GetWmsInstance();
+    if (ctx->deviceFuncs == NULL) {
+        wms_send_display_power(resource, WMS_ERROR_API_FAILED, 0);
+    }
+
+    DispPowerStatus status;
+    int32_t ret = ctx->deviceFuncs->GetDisplayPowerStatus(displayId, &status);
+    if (ret != 0) {
+        LOGE("GetDisplayPowerStatus failed, return %{public}d", ret);
+        wms_send_display_power(resource, WMS_ERROR_API_FAILED, 0);
+    }
+    wms_send_display_power(resource, WMS_ERROR_OK, status);
+}
+
+static void ControllerSetDisplayPower(const struct wl_client *client,
+                                      const struct wl_resource *resource,
+                                      int32_t displayId, int32_t status)
+{
+    struct WmsContext *ctx = GetWmsInstance();
+    if (ctx->deviceFuncs == NULL) {
+        wms_send_reply_error(resource, WMS_ERROR_API_FAILED);
+    }
+
+    int32_t ret = ctx->deviceFuncs->SetDisplayPowerStatus(displayId, status);
+    if (ret != 0) {
+        LOGE("SetDisplayPowerStatus failed, return %{public}d", ret);
+        wms_send_reply_error(resource, WMS_ERROR_API_FAILED);
+    }
+    wms_send_reply_error(resource, WMS_ERROR_OK);
+}
+
+static void ControllerGetDisplayBacklight(const struct wl_client *client,
+                                          const struct wl_resource *resource,
+                                          int32_t displayId)
+{
+    struct WmsContext *ctx = GetWmsInstance();
+    if (ctx->deviceFuncs == NULL) {
+        wms_send_display_backlight(resource, WMS_ERROR_API_FAILED, 0);
+    }
+
+    uint32_t level;
+    int32_t ret = ctx->deviceFuncs->GetDisplayBacklight(displayId, &level);
+    if (ret != 0) {
+        LOGE("GetDisplayBacklight failed, return %{public}d", ret);
+        wms_send_display_backlight(resource, WMS_ERROR_API_FAILED, 0);
+    }
+    wms_send_display_backlight(resource, WMS_ERROR_OK, level);
+}
+
+static void ControllerSetDisplayBacklight(const struct wl_client *client,
+                                          const struct wl_resource *resource,
+                                          int32_t displayId, uint32_t level)
+{
+    struct WmsContext *ctx = GetWmsInstance();
+    if (ctx->deviceFuncs == NULL) {
+        wms_send_reply_error(resource, WMS_ERROR_API_FAILED);
+    }
+
+    int32_t ret = ctx->deviceFuncs->SetDisplayBacklight(displayId, level);
+    if (ret != 0) {
+        LOGE("SetDisplayBacklight failed, return %{public}d", ret);
+        wms_send_reply_error(resource, WMS_ERROR_API_FAILED);
+    }
+    wms_send_reply_error(resource, WMS_ERROR_OK);
 }
 
 static void ControllerCommitChanges(const struct wl_client *client,
@@ -967,8 +1010,66 @@ static bool FocusUpdate(const struct WindowSurface *surface)
     return true;
 }
 
+static void ControllerSetStatusBarVisibility(const struct wl_client *client,
+                                             const struct wl_resource *resource,
+                                             uint32_t visibility)
+{
+    LOGD("start. visibility=%{public}d", visibility);
+    struct WmsController *controller = wl_resource_get_user_data(resource);
+    struct WmsContext *ctx = controller->pWmsCtx;
+
+    struct WindowSurface *windowSurface = NULL;
+    bool have = false;
+    wl_list_for_each(windowSurface, (&ctx->wlListWindow), link) {
+        if (windowSurface->type == WINDOW_TYPE_STATUS_BAR) {
+            have = true;
+            break;
+        }
+    }
+    if (!have) {
+        LOGE("StatusBar is not found");
+        wms_send_reply_error(resource, WMS_ERROR_INNER_ERROR);
+        return;
+    }
+
+    ctx->pLayoutInterface->surface_set_visibility(windowSurface->layoutSurface, visibility);
+    ctx->pLayoutInterface->commit_changes();
+    wms_send_reply_error(resource, WMS_ERROR_OK);
+    LOGD("end.");
+}
+
+static void ControllerSetNavigationBarVisibility(const struct wl_client *client,
+                                                 const struct wl_resource *resource,
+                                                 uint32_t visibility)
+{
+    (void)client;
+    LOGD("start. visibility=%{public}d", visibility);
+    struct WmsController *controller = wl_resource_get_user_data(resource);
+    struct WmsContext *ctx = controller->pWmsCtx;
+
+    struct WindowSurface *windowSurface = NULL;
+    bool have = false;
+    wl_list_for_each(windowSurface, (&ctx->wlListWindow), link) {
+        if (windowSurface->type == WINDOW_TYPE_NAVI_BAR) {
+            have = true;
+            break;
+        }
+    }
+    if (!have) {
+        LOGE("NavigationBar is not found");
+        wms_send_reply_error(resource, WMS_ERROR_INNER_ERROR);
+        return;
+    }
+
+    ctx->pLayoutInterface->surface_set_visibility(windowSurface->layoutSurface, visibility);
+    ctx->pLayoutInterface->commit_changes();
+    wms_send_reply_error(resource, WMS_ERROR_OK);
+    LOGD("end.");
+}
+
 static void ControllerSetWindowTop(const struct wl_client *client,
-    const struct wl_resource *resource, uint32_t windowId)
+                                   const struct wl_resource *resource,
+                                   uint32_t windowId)
 {
     LOGD("start. windowId=%{public}d", windowId);
     struct WmsController *controller = wl_resource_get_user_data(resource);
@@ -1391,8 +1492,9 @@ static void AddGlobalWindowStatus(const struct WmsController *pController)
     LOGD("end.");
 }
 
-static void ControllerSetGlobalWindowStatus(const struct wl_client *pClient,
-    const struct wl_resource *pResource, int32_t status)
+static void ControllerConfigGlobalWindowStatus(const struct wl_client *pClient,
+                                               const struct wl_resource *pResource,
+                                               int32_t status)
 {
     LOGD("start. status = %{public}d.", status);
     struct WmsController *pWmsController = wl_resource_get_user_data(pResource);
@@ -1410,8 +1512,16 @@ static void ControllerSetGlobalWindowStatus(const struct wl_client *pClient,
 
 // wms controller interface implementation
 static const struct wms_interface g_controllerImplementation = {
+    ControllerGetDisplayPower,
+    ControllerSetDisplayPower,
+    ControllerGetDisplayBacklight,
+    ControllerSetDisplayBacklight,
+    ControllerSetDisplayMode,
     ControllerCreateWindow,
     ControllerDestroyWindow,
+    ControllerConfigGlobalWindowStatus,
+    ControllerSetStatusBarVisibility,
+    ControllerSetNavigationBarVisibility,
     ControllerSetWindowTop,
     ControllerSetWindowSize,
     ControllerSetWindowScale,
@@ -1419,9 +1529,7 @@ static const struct wms_interface g_controllerImplementation = {
     ControllerSetWindowVisibility,
     ControllerSetWindowType,
     ControllerSetWindowMode,
-    ControllerSetDisplayMode,
     ControllerCommitChanges,
-    ControllerSetGlobalWindowStatus,
     ControllerScreenshot,
     ControllerWindowshot,
 };
@@ -1714,6 +1822,11 @@ WL_EXPORT int wet_module_init(struct weston_compositor *compositor,
     LOGD("start.");
     struct weston_output *output = NULL;
     struct WmsContext *ctx = GetWmsInstance();
+    int32_t ret = DeviceInitialize(&ctx->deviceFuncs);
+    if (ret != 0) {
+        LOGE("DeviceInitialize failed, return %{public}d", ret);
+        ctx->deviceFuncs = NULL;
+    }
 
     if (WmsContextInit(ctx, compositor) < 0) {
         LOGE("WmsContextInit failed.");

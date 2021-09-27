@@ -16,6 +16,8 @@
 #ifndef FRAMEWORKS_WMSERVER_SRC_WMSERVER_H
 #define FRAMEWORKS_WMSERVER_SRC_WMSERVER_H
 
+#include <display_device.h>
+
 #define USE_IVI_INPUT_FOCUS
 #ifdef USE_IVI_INPUT_FOCUS
 #include <ivi-input-export.h>
@@ -46,6 +48,7 @@ struct WmsContext {
 #ifdef USE_IVI_INPUT_FOCUS
     const struct ivi_input_interface_for_wms *pInputInterface;
 #endif
+    DeviceFuncs *deviceFuncs;
 };
 
 struct WmsSeat {
