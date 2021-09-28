@@ -60,14 +60,14 @@ public:
         sptr<Object> sptr = nullptr;
 
         auto threadFunc = [&wptr]() {
-            while (true) {
+            for (int32_t i = 0; i < static_cast<int32_t>(1e9); i++) {
                 auto sp = wptr.promote();
                 sleep(0);
             }
         };
         std::thread thread(threadFunc);
 
-        while (true) {
+        for (int32_t i = 0; i < static_cast<int32_t>(1e9); i++) {
             sptr = new Object();
             wptr = sptr;
             sptr = nullptr;
