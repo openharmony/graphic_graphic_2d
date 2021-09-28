@@ -22,6 +22,7 @@
 #include <regex>
 #include <sstream>
 
+#include "rects.h"
 #include "weston.h"
 
 namespace fs = std::filesystem;
@@ -41,11 +42,6 @@ namespace fs = std::filesystem;
 void LayoutControllerInit(int32_t width, int32_t height)
 {
     OHOS::WMServer::LayoutController::GetInstance().Init(width, height);
-}
-
-int32_t LayoutControllerUpdateStaticLayout(uint32_t type, const struct layout *layout)
-{
-    return OHOS::WMServer::LayoutController::GetInstance().UpdateStaticLayout(type, *layout);
 }
 
 int32_t LayoutControllerCalcWindowDefaultLayout(uint32_t type,
@@ -79,24 +75,6 @@ void LayoutController::Init(int32_t width, int32_t height)
         InitByParseSCSS();
         init = true;
     }
-}
-
-int32_t LayoutController::UpdateStaticLayout(uint32_t type, const struct layout &layout)
-{
-    if (modeLayoutMap[WINDOW_MODE_UNSET].find(type) == modeLayoutMap[WINDOW_MODE_UNSET].end()) {
-        return 0x1;
-    }
-    if (modeLayoutMap[WINDOW_MODE_UNSET][type].positionType != Layout::PositionType::STATIC) {
-        return 0x2;
-    }
-    auto backup = modeLayoutMap[WINDOW_MODE_UNSET][type].layout;
-    modeLayoutMap[WINDOW_MODE_UNSET][type].layout = layout;
-    struct layout normal;
-    if (!CalcNormalRect(normal)) {
-        modeLayoutMap[WINDOW_MODE_UNSET][type].layout = backup;
-        return 0x3;
-    }
-    return 0;
 }
 
 int32_t LayoutController::CalcWindowDefaultLayout(uint32_t type, uint32_t mode, struct Layout &outLayout)
@@ -208,61 +186,35 @@ void LayoutController::InitByParseSCSS()
     }
 }
 
-namespace {
-bool DoubleEqual(double a, double b)
-{
-    return (a > b ? a - b : b - a) < 1e-6;
-}
-
-bool RectSubtract(struct layout &rect, struct layout other)
-{
-    if (other.w == 0 || other.h == 0) {
-        return true;
-    }
-    if (DoubleEqual(other.w, rect.w) && DoubleEqual(other.x, rect.x)) {
-        if (DoubleEqual(other.y, rect.y)) {
-            rect.y += other.h;
-            rect.h -= other.h;
-            return true;
-        } else if (DoubleEqual(other.y + other.h, rect.y + rect.h)) {
-            rect.h -= other.h;
-            return true;
-        }
-    }
-    if (DoubleEqual(other.h, rect.h) && DoubleEqual(other.y, rect.y)) {
-        if (DoubleEqual(other.x, rect.x)) {
-            rect.x += other.w;
-            rect.w -= other.w;
-            return true;
-        } else if (DoubleEqual(other.x + other.w, rect.x + rect.w)) {
-            rect.w -= other.w;
-            return true;
-        }
-    }
-
-    LOGI("rect {%{public}lf %{public}lf %{public}lf %{public}lf}", rect.x, rect.y, rect.w, rect.h);
-    LOGI("other {%{public}lf %{public}lf %{public}lf %{public}lf}", other.x, other.y, other.w, other.h);
-    LOGE("RectSubtract failed");
-    return false;
-}
-} // namespace
-
 bool LayoutController::CalcNormalRect(struct layout &layout)
 {
-    struct layout rect = { 0, 0, (double)displayWidth, (double)displayHeight };
-    struct Layout other = {};
-    CalcWindowDefaultLayout(WINDOW_TYPE_STATUS_BAR, WINDOW_MODE_UNSET, other);
-    if (!RectSubtract(rect, other.layout)) {
-        LOGE("CalcNormalRect STATUS_BAR failed");
-        return false;
+    Rects totalRects{0, 0, displayWidth, displayHeight};
+    for (const auto &[_, layout] : modeLayoutMap[WINDOW_MODE_UNSET]) {
+        if (layout.positionType == Layout::PositionType::STATIC) {
+            struct Layout nowLayout = {};
+            CalcWindowDefaultLayout(layout.windowType, WINDOW_MODE_UNSET, nowLayout);
+            Rects rect{
+                static_cast<int32_t>(nowLayout.layout.x + 1e-6),
+                static_cast<int32_t>(nowLayout.layout.y + 1e-6),
+                static_cast<int32_t>(nowLayout.layout.w + 1e-6),
+                static_cast<int32_t>(nowLayout.layout.h + 1e-6),
+            };
+            totalRects -= rect;
+        }
     }
-    CalcWindowDefaultLayout(WINDOW_TYPE_NAVI_BAR, WINDOW_MODE_UNSET, other);
-    if (!RectSubtract(rect, other.layout)) {
-        LOGE("CalcNormalRect NAVI_BAR failed");
-        return false;
+    if (totalRects.GetSize() == 1) {
+        layout.x = totalRects.GetX(0);
+        layout.y = totalRects.GetY(0);
+        layout.w = totalRects.GetW(0);
+        layout.h = totalRects.GetH(0);
+        return true;
     }
-    layout = rect;
-    return true;
+    LOGE("CalcNormalRect failed, size: %{public}d", totalRects.GetSize());
+    for (int32_t i = 0; i < totalRects.GetSize(); i++) {
+        LOGE("  +[%{public}d] = (%{public}d, %{public}d) %{public}dx%{public}d", i,
+             totalRects.GetX(i), totalRects.GetY(i), totalRects.GetW(i), totalRects.GetH(i));
+    }
+    return false;
 }
 
 namespace {

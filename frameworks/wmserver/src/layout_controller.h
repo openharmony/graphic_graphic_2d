@@ -71,7 +71,6 @@ public:
     static LayoutController &GetInstance();
 
     void Init(int32_t width, int32_t height);
-    int32_t UpdateStaticLayout(uint32_t type, const struct layout &layout);
     int32_t CalcWindowDefaultLayout(uint32_t type, uint32_t mode, struct Layout &outLayout);
     void RegisterAttributeProcessFunction(const char *attr, AttributeProcessFunction func);
 
@@ -102,7 +101,6 @@ extern "C" {
 
 // return errno, 0 is ok
 void LayoutControllerInit(int32_t width, int32_t height);
-int32_t LayoutControllerUpdateStaticLayout(uint32_t type, const struct layout *layout);
 int32_t LayoutControllerCalcWindowDefaultLayout(uint32_t type,
     uint32_t mode, uint32_t *zIndex, struct layout *outLayout);
 
