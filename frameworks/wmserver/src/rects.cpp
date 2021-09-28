@@ -15,6 +15,8 @@
 
 #include "rects.h"
 
+#include <algorithm>
+
 template<typename T>
 T max(T a, T b)
 {
@@ -150,28 +152,25 @@ void Rects::RectsSubtrace(std::vector<struct Rect> &lrects, std::vector<struct R
 
         for (auto it = rrects.begin(); it != rrects.end(); it++) {
             struct Rect inter = {};
-            for (auto jt = lrects.begin(); jt != lrects.end(); jt++) {
-                Rects::Intersect(*it, *jt, inter);
-                if (inter.w <= 0 || inter.h <= 0) { // not found
-                    continue;
-                }
-
-                // found, lrect -= inter, rrect -= inter
-                struct Rect rrect = *it;
+            auto findRect = [&it, &inter](const auto &item) {
+                Rects::Intersect(*it, item, inter);
+                return inter.w > 0 && inter.h > 0;
+            };
+            auto jt = std::find_if(lrects.begin(), lrects.end(), findRect);
+            if (jt == lrects.end()) {
                 rrects.erase(it);
-                Subtrace(rrect, inter, rrects);
-
-                struct Rect lrect = *jt;
-                lrects.erase(jt);
-                Subtrace(lrect, inter, lrects);
                 break;
             }
 
-            if (inter.w <= 0 || inter.h <= 0) { // not found
-                rrects.erase(it--); // drop
-            } else { // found
-                break;
-            }
+            // found, lrect -= inter, rrect -= inter
+            struct Rect rrect = *it;
+            rrects.erase(it);
+            Subtrace(rrect, inter, rrects);
+
+            struct Rect lrect = *jt;
+            lrects.erase(jt);
+            Subtrace(lrect, inter, lrects);
+            break;
         }
     }
 }
