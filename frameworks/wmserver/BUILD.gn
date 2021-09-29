@@ -44,8 +44,6 @@ config("wmserver_config") {
 
 config("wmserver_public_config") {
   include_dirs = [ "src" ]
-
-  cflags = []
 }
 
 ohos_shared_library("wmserver") {

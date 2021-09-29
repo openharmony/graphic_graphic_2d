@@ -31,12 +31,6 @@
 namespace OHOS {
 namespace {
 sptr<IWindowManagerService> g_windowManagerService = nullptr;
-constexpr float BAR_WIDTH_PERCENT = 0.07;
-constexpr int ALARM_WINDOW_WIDTH = 400;
-constexpr int ALARM_WINDOW_HEIGHT = 300;
-constexpr int ALARM_WINDOW_WIDTH_HALF = 200;
-constexpr int ALARM_WINDOW_HEIGHT_HALF = 150;
-constexpr int ALARM_WINDOW_HALF = 2;
 }
 
 WindowBase::WindowBase(int32_t windowid, sptr<Surface>& surface)
