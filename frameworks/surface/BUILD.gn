@@ -12,6 +12,7 @@
 # limitations under the License.
 
 import("//build/ohos.gni")
+import("//foundation/graphic/standard/graphic_config.gni")
 
 ## Build surface.so {{{
 config("surface_config") {
@@ -30,7 +31,17 @@ config("surface_public_config") {
   include_dirs = [
     "//foundation/graphic/standard/interfaces/innerkits/surface",
     "//foundation/graphic/standard/interfaces/innerkits/common",
+    "//third_party/weston/include",
+    "//device/rockchip/hardware/gpu/include",
   ]
+
+  if (ace_enable_gpu) {
+    defines = [
+      "ACE_ENABLE_GPU",
+      "ENABLE_EGL",
+      "EGL_NO_X11",
+    ]
+  }
 }
 
 ohos_shared_library("surface") {
@@ -48,7 +59,19 @@ ohos_shared_library("surface") {
     "src/surface_buffer_impl.cpp",
   ]
 
-  configs = [ ":surface_config" ]
+  if (ace_enable_gpu) {
+    sources += [
+      "src/egl_data_impl.cpp",
+      "src/egl_manager.cpp",
+      "src/egl_surface.cpp",
+      "src/producer_egl_surface.cpp",
+    ]
+  }
+
+  configs = [
+    ":surface_config",
+    "//third_party/libdrm:libdrm_public_config",
+  ]
 
   public_configs = [
     ":surface_public_config",
@@ -66,6 +89,11 @@ ohos_shared_library("surface") {
     "//foundation/graphic/standard/utils:buffer_handle",
     "//utils/native/base:utils",
   ]
+
+  if (ace_enable_gpu) {
+    public_deps +=
+        [ "//device/rockchip/hardware/gpu:mali-bifrost-g52-g2p0-wayland" ]
+  }
 
   part_name = "graphic_standard"
   subsystem_name = "graphic"

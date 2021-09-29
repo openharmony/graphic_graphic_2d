@@ -16,8 +16,11 @@
 #include "native_test_class.h"
 
 #include <algorithm>
+#include <cassert>
 #include <cstdio>
 #include <securec.h>
+#include <sys/time.h>
+#include <unistd.h>
 
 #include <display_type.h>
 
@@ -60,6 +63,151 @@ sptr<NativeTestSync> NativeTestSync::CreateSync(DrawFunc drawFunc, sptr<Surface>
     }
     return nullptr;
 }
+
+#ifdef ACE_ENABLE_GPU
+sptr<NativeTestSync> NativeTestSync::CreateSyncEgl(DrawFuncEgl drawFunc, sptr<EglRenderSurface> &peglsurface, void *data)
+{
+    if (drawFunc != nullptr && peglsurface != nullptr) {
+        sptr<NativeTestSync> nts = new NativeTestSync();
+        nts->drawEgl = drawFunc;
+        nts->eglsurface = peglsurface;
+        RequestSync(std::bind(&NativeTestSync::SyncEgl, nts, SYNC_FUNC_ARG), data);
+        return nts;
+    }
+    return nullptr;
+}
+
+void NativeTestSync::SyncEgl(int64_t, void *data)
+{
+    if (!GLContextInit()) {
+        printf("GLContextInit failed.\n");
+        return;
+    }
+
+    if (sret == SURFACE_ERROR_OK) {
+        drawEgl(&glCtx, eglsurface);
+        count++;
+    }
+
+    Rect damage = {
+        .x = 0,
+        .y = 0,
+        .w = eglsurface->GetDefaultWidth(),
+        .h = eglsurface->GetDefaultHeight()
+    };
+
+    sret = eglsurface->SwapBuffers(damage);
+
+    RequestSync(std::bind(&NativeTestSync::SyncEgl, this, SYNC_FUNC_ARG), data);
+}
+#endif
+
+#ifdef ACE_ENABLE_GPU
+namespace {
+const char *g_vertShaderText =
+    "uniform float offset;\n"
+    "attribute vec4 pos;\n"
+    "attribute vec4 color;\n"
+    "varying vec4 v_color;\n"
+    "void main() {\n"
+    "  gl_Position = pos + vec4(offset, offset, 0.0, 0.0);\n"
+    "  v_color = color;\n"
+    "}\n";
+
+const char *g_fragShaderText =
+    "precision mediump float;\n"
+    "varying vec4 v_color;\n"
+    "void main() {\n"
+    "  gl_FragColor = v_color;\n"
+    "}\n";
+
+static GLuint CreateShader(const char *source, GLenum shaderType)
+{
+    GLuint shader;
+    GLint status;
+
+    shader = glCreateShader(shaderType);
+    assert(shader != 0);
+
+    glShaderSource(shader, 1, (const char **) &source, NULL);
+    glCompileShader(shader);
+
+    glGetShaderiv(shader, GL_COMPILE_STATUS, &status);
+    if (!status) {
+		constexpr int32_t maxLogLength = 1000;
+        char log[maxLogLength];
+        GLsizei len;
+        glGetShaderInfoLog(shader, maxLogLength, &len, log);
+        fprintf(stderr, "Error: compiling %s: %.*s\n",
+            shaderType == GL_VERTEX_SHADER ? "vertex" : "fragment", len, log);
+        return 0;
+    }
+
+    return shader;
+}
+
+static GLuint CreateAndLinkProgram(GLuint vert, GLuint frag)
+{
+    GLint status;
+    GLuint program = glCreateProgram();
+
+    glAttachShader(program, vert);
+    glAttachShader(program, frag);
+    glLinkProgram(program);
+
+    glGetProgramiv(program, GL_LINK_STATUS, &status);
+    if (!status) {
+		constexpr int32_t maxLogLength = 1000;
+        char log[maxLogLength];
+        GLsizei len;
+        glGetProgramInfoLog(program, maxLogLength, &len, log);
+        fprintf(stderr, "Error: linking:\n%.*s\n", len, log);
+        return 0;
+    }
+
+    return program;
+}
+} // namespace
+
+bool NativeTestSync::GLContextInit()
+{
+    if (bInit) {
+        return bInit;
+    }
+
+    if (eglsurface == nullptr) {
+        printf("GLContextInit eglsurface is nullptr\n");
+        return bInit;
+    }
+
+    if (eglsurface->InitContext() != SURFACE_ERROR_OK) {
+        printf("GLContextInit InitContext failed\n");
+        return bInit;
+    }
+
+    GLuint vert = CreateShader(g_vertShaderText, GL_VERTEX_SHADER);
+    GLuint frag = CreateShader(g_fragShaderText, GL_FRAGMENT_SHADER);
+
+    glCtx.program = CreateAndLinkProgram(vert, frag);
+
+    glDeleteShader(vert);
+    glDeleteShader(frag);
+
+    glCtx.pos = glGetAttribLocation(glCtx.program, "pos");
+    glCtx.color = glGetAttribLocation(glCtx.program, "color");
+
+    glUseProgram(glCtx.program);
+
+    glCtx.offsetUniform = glGetUniformLocation(glCtx.program, "offset");
+
+    if (glCtx.program == 0) {
+        printf("glCtx.program = 0.\n");
+    } else {
+        bInit = true;
+    }
+    return bInit;
+}
+#endif
 
 void NativeTestSync::Sync(int64_t, void *data)
 {
@@ -283,9 +431,56 @@ void NativeTestDraw::BoxDraw(void *vaddr, uint32_t width, uint32_t height, uint3
             addr[j * width + x2] = color;
         }
     };
-    auto abs = [](int32_t x) { return (x < 0) ? -x : x; };
+    auto abs = [](int32_t x) { return x < 0 ? -x : x; };
     drawOnce(abs((count - 1) % (framecount * 0x2 - 1) - framecount), color);
     drawOnce(abs((count + 0) % (framecount * 0x2 - 1) - framecount), color);
     drawOnce(abs((count + 1) % (framecount * 0x2 - 1) - framecount), color);
 }
+
+#ifdef ACE_ENABLE_GPU
+void NativeTestDraw::FlushDrawEgl(GlContext *ctx, sptr<EglRenderSurface> &eglsurface)
+{
+    /* Complete a movement iteration in 5000 ms. */
+    static const uint64_t iterationMs = 5000;
+    static const GLfloat verts[4][2] = {
+        { -0.5, -0.5 },
+        { -0.5,  0.5 },
+        {  0.5, -0.5 },
+        {  0.5,  0.5 }
+    };
+    static const GLfloat colors[4][3] = {
+        { 1, 0, 0 },
+        { 0, 1, 0 },
+        { 0, 0, 1 },
+        { 1, 1, 0 }
+    };
+    GLfloat offset;
+    struct timeval tv;
+    uint64_t timeMs;
+
+    gettimeofday(&tv, NULL);
+    timeMs = tv.tv_sec * 1000 + tv.tv_usec / 1000;
+
+    /* Split time_ms in repeating windows of [0, iterationMs) and map them
+     * to offsets in the [-0.5, 0.5) range. */
+    offset = (timeMs % iterationMs) / (float) iterationMs - 0.5;
+
+    glViewport(0, 0, eglsurface->GetDefaultWidth(), eglsurface->GetDefaultHeight());
+
+    glUniform1f(ctx->offsetUniform, offset);
+
+    glClearColor(0.0, 1.0, 0.0, 1.0);
+    glClear(GL_COLOR_BUFFER_BIT);
+
+    glVertexAttribPointer(ctx->pos, 2, GL_FLOAT, GL_FALSE, 0, verts);
+    glVertexAttribPointer(ctx->color, 3, GL_FLOAT, GL_FALSE, 0, colors);
+    glEnableVertexAttribArray(ctx->pos);
+    glEnableVertexAttribArray(ctx->color);
+
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+    glDisableVertexAttribArray(ctx->pos);
+    glDisableVertexAttribArray(ctx->color);
+}
+#endif
 } // namespace OHOS

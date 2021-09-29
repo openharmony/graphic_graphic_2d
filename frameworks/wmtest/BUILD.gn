@@ -12,6 +12,7 @@
 # limitations under the License.
 
 import("//build/ohos.gni")
+import("//foundation/graphic/standard/graphic_config.gni")
 
 ## Build wmtest {{{
 config("wmtest_config") {
@@ -68,6 +69,10 @@ ohos_executable("wmtest") {
     "test/wmclient_native_test_8.cpp",
     "test/wmclient_native_test_9.cpp",
   ]
+
+  if (ace_enable_gpu) {
+    sources += [ "test/wmclient_native_test_31.cpp" ]
+  }
 
   configs = [ ":wmtest_config" ]
 
