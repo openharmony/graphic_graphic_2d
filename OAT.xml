@@ -64,7 +64,7 @@ Note:If the text contains special characters, please escape them according to th
             <filefilter name="binaryFileTypePolicyFilter" desc="Filters for binary file policies" >
                 <filteritem type="filename" name="graphic.png" desc="readme graphic png"/>
                 <filteritem type="filename" name="icon.png" desc="png for hap"/>
-                <filteritem type="filename" name="bootanimation.raw" desc="bootanimation"/>
+                <filteritem type="filename" name="bootanimation-480x960.raw" desc="bootanimation"/>
             </filefilter>
         </filefilterlist>
     </oatconfig>
