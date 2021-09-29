@@ -482,8 +482,6 @@ static void CalcWindowInfo(struct WindowSurface *surface)
 #ifdef USE_DUMMY_SCREEN
     int maxWidth = DUMMY_SCREEN_WIDTH;
     int maxHeight = DUMMY_SCREEN_HEIGHT;
-    int topBarHeight = (BAR_WIDTH_PERCENT * maxHeight);
-    int bottomBarsHeight = topBarHeight;
 #else
     struct WmsScreen *screen = GetScreen(surface);
     if (!screen) {
@@ -492,8 +490,6 @@ static void CalcWindowInfo(struct WindowSurface *surface)
     }
     int maxWidth = screen->westonOutput->width;
     int maxHeight = screen->westonOutput->height;
-    int topBarHeight = (BAR_WIDTH_PERCENT * maxHeight);
-    int bottomBarsHeight = topBarHeight;
 #endif /* USE_DUMMY_SCREEN */
 
     LayoutControllerInit(maxWidth, maxHeight);
@@ -510,14 +506,13 @@ static bool AddWindow(struct WindowSurface *windowSurface)
     struct ivi_layout_layer *layoutLayer = NULL;
     struct WmsContext *ctx = windowSurface->controller->pWmsCtx;
     struct WmsScreen *screen = NULL;
-    uint32_t layerId = 0;
 
     LOGD("start.");
 
     wl_list_for_each(screen, &ctx->wlListScreen, wlListLink) {
         if (screen->screenId == windowSurface->screenId
             ||  ctx->displayMode == WMS_DISPLAY_MODE_CLONE) {
-            layerId = GetLayerId(screen->screenId, windowSurface->type, windowSurface->mode);
+            uint32_t layerId = GetLayerId(screen->screenId, windowSurface->type, windowSurface->mode);
             layoutLayer = GetLayer(screen->westonOutput, ctx->pLayoutInterface, layerId);
             if (!layoutLayer) {
                 LOGE("GetLayer failed.");
@@ -554,7 +549,6 @@ static void ControllerSetDisplayMode(const struct wl_client *client,
                                      uint32_t displayMode)
 {
     LOGD("start. displayMode %{public}d", displayMode);
-    int32_t ret = 0;
     struct WmsController *controller = wl_resource_get_user_data(resource);
     struct WmsContext *ctx = controller->pWmsCtx;
 
@@ -573,6 +567,7 @@ static void ControllerSetDisplayMode(const struct wl_client *client,
         return;
     }
 
+    int32_t ret;
     if (displayMode == WMS_DISPLAY_MODE_CLONE) {
         ctx->pLayoutInterface->commit_changes();
         ret = ctx->pLayoutInterface->screen_clone(0, 1);
@@ -599,7 +594,6 @@ static void MoveWindowToLayerId(const struct WmsContext *wc,
                                 const struct wl_resource *wr,
                                 uint32_t layerIdNew)
 {
-    uint32_t layerIdOld = 0;
     struct ivi_layout_layer *pLayoutLayerOld = NULL;
     struct ivi_layout_layer *pLayoutLayerNew = NULL;
     struct ivi_layout_interface_for_wms *pLayoutInterface = wc->pLayoutInterface;
@@ -608,7 +602,7 @@ static void MoveWindowToLayerId(const struct WmsContext *wc,
     wl_list_for_each(screen, &wc->wlListScreen, wlListLink) {
         if (screen->screenId == ws->screenId
             || wc->displayMode == WMS_DISPLAY_MODE_CLONE) {
-            layerIdOld = GetLayerId(screen->screenId, ws->type, ws->mode);
+            uint32_t layerIdOld = GetLayerId(screen->screenId, ws->type, ws->mode);
             pLayoutLayerOld = pLayoutInterface->get_layer_from_id(layerIdOld);
             if (!pLayoutLayerOld) {
                 if (screen->screenId == ws->screenId) {

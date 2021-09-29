@@ -51,6 +51,7 @@ config("wmserver_public_config") {
 ohos_shared_library("wmserver") {
   sources = [
     "src/layout_controller.cpp",
+    "src/rects.cpp",
     "src/screen_info.c",
     "src/wmserver.c",
   ]
@@ -60,7 +61,6 @@ ohos_shared_library("wmserver") {
   public_configs = [ ":wmserver_public_config" ]
 
   deps = [
-    "src/wmlayout_scss_parser:libwmlayout_scss_parser",
     "//third_party/libinput:libinput-third",
     "//third_party/wayland_standard:wayland_core_protocol",
     "//third_party/weston:drm-backend",
