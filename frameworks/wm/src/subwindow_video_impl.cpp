@@ -77,6 +77,7 @@ WMError SubwindowVideoImpl::CreateWlSurface(sptr<SubwindowVideoImpl> &svi,
 
 WMError SubwindowVideoImpl::CreateLayer(sptr<SubwindowVideoImpl> &svi)
 {
+#ifdef TARGET_CPU_ARM
     LayerInfo layerInfo = {
         .width = svi->attr.GetWidth(),
         .height = svi->attr.GetHeight(),
@@ -84,7 +85,6 @@ WMError SubwindowVideoImpl::CreateLayer(sptr<SubwindowVideoImpl> &svi)
         .bpp = 0x8,
         .pixFormat = PIXEL_FMT_RGBA_8888,
     };
-#ifdef TARGET_CPU_ARM
     int32_t ret = VideoDisplayManager::CreateLayer(layerInfo, svi->layerId, svi->csurface);
 #else
     svi->layerId = -1;

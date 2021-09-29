@@ -32,7 +32,7 @@
 
 struct WmsContext {
     struct weston_compositor *pCompositor;
-    const struct ivi_layout_interface_for_wms *pLayoutInterface;
+    struct ivi_layout_interface_for_wms *pLayoutInterface;
     struct wl_list wlListController;
     struct wl_list wlListWindow;
     struct wl_list wlListScreen;

@@ -64,10 +64,10 @@ struct SeatInfo {
 };
 
 struct SeatInfo **GetSeatsInfo(void);
-void FreeSeatsInfo(const struct SeatInfo **seats);
+void FreeSeatsInfo(struct SeatInfo **seats);
 
 struct ScreenInfo **GetScreensInfo(void);
-void FreeScreensInfo(const struct ScreenInfo **screens);
+void FreeScreensInfo(struct ScreenInfo **screens);
 
 typedef void (*ScreenInfoChangeListener)();
 void SetScreenListener(const ScreenInfoChangeListener listener);

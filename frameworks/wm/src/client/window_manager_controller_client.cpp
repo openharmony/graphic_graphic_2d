@@ -176,8 +176,6 @@ void LayerControllerClient::CreateWlBuffer(sptr<Surface>& surface, uint32_t wind
 void *LayerControllerClient::thread_display_dispatch(void *param)
 {
     WMLOG_I("LayerControllerClient::thread_display_dispatch start");
-
-    LayerControllerClient *ptr = static_cast<LayerControllerClient*>(param);
     while (true) {
         int32_t ret = WlDisplay::GetInstance()->Dispatch();
         if (ret == -1) {
@@ -185,7 +183,6 @@ void *LayerControllerClient::thread_display_dispatch(void *param)
             break;
         }
     }
-
     return nullptr;
 }
 

@@ -21,10 +21,6 @@
 #include "window_manager_hilog.h"
 
 namespace OHOS {
-namespace {
-constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, 0, "WMWlSHMBuffer" };
-} // namespace
-
 WlSHMBuffer::WlSHMBuffer(struct wl_buffer *buffer) : WlBuffer(buffer)
 {
 }
