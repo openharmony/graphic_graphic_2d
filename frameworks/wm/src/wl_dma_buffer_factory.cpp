@@ -134,7 +134,11 @@ bool PixelFormatToDrmFormat(int32_t pixelFormat, uint32_t &drmFormat)
         {PIXEL_FMT_RGBX_5551, DRM_FORMAT_RGBX5551},
         {PIXEL_FMT_RGBA_5551, DRM_FORMAT_RGBA5551},
         {PIXEL_FMT_RGBX_8888, DRM_FORMAT_RGBX8888},
+#ifdef ACE_ENABLE_GPU
+        {PIXEL_FMT_RGBA_8888, DRM_FORMAT_ABGR8888},
+#else
         {PIXEL_FMT_RGBA_8888, DRM_FORMAT_RGBA8888},
+#endif
         {PIXEL_FMT_RGB_888, DRM_FORMAT_RGB888},
         {PIXEL_FMT_BGR_565, DRM_FORMAT_BGR565},
         {PIXEL_FMT_BGRX_4444, DRM_FORMAT_BGRX4444},
@@ -228,7 +232,11 @@ sptr<WlBuffer> WlDMABufferFactory::Create(BufferHandle *handle)
     g_bufferPromises[param] = new Promise<struct wl_buffer *>();
     auto dl = display->AddDispatchDeathListener([&]() { g_bufferPromises[param]->Resolve(nullptr); });
 
+#ifdef ACE_ENABLE_GPU
     constexpr uint32_t flags = ZWP_LINUX_BUFFER_PARAMS_V1_FLAGS_Y_INVERT;
+#else
+    constexpr uint32_t flags = 0;
+#endif
     zwp_linux_buffer_params_v1_create(param, handle->width, handle->height, drmFormat, flags);
     display->Flush(); // send request
 

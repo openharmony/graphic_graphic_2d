@@ -410,6 +410,9 @@ SurfaceError BufferQueue::AllocBuffer(sptr<SurfaceBufferImpl>& buffer,
 SurfaceError BufferQueue::FreeBuffer(sptr<SurfaceBufferImpl>& buffer)
 {
     BLOGND("Free [%{public}d]", buffer->GetSeqNum());
+#ifdef ACE_ENABLE_GL
+    buffer->SetEglData(nullptr);
+#endif
     BufferManager::GetInstance()->Unmap(buffer);
     BufferManager::GetInstance()->Free(buffer);
     return SURFACE_ERROR_OK;
