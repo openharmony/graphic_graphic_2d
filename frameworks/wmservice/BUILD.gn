@@ -34,6 +34,9 @@ config("libwmservice_public_config") {
     "//foundation/graphic/standard/interfaces/innerkits/common",
     "//foundation/graphic/standard/interfaces/innerkits/wmclient",
     "//foundation/graphic/standard/interfaces/innerkits/wmservice",
+    "//drivers/peripheral/base",
+    "//drivers/peripheral/display/interfaces/include",
+    "//third_party/bounds_checking_function/include",
   ]
 }
 
