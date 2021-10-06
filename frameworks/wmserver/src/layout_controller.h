@@ -25,8 +25,6 @@
 #include <string>
 
 #include <window_manager_type.h>
-
-#include "wmlayout_scss_parser/driver.h"
 #endif
 
 struct layout {
@@ -71,9 +69,7 @@ public:
     static LayoutController &GetInstance();
 
     void Init(int32_t width, int32_t height);
-    int32_t UpdateStaticLayout(uint32_t type, const struct layout &layout);
     int32_t CalcWindowDefaultLayout(uint32_t type, uint32_t mode, struct Layout &outLayout);
-    void RegisterAttributeProcessFunction(const char *attr, AttributeProcessFunction func);
 
 private:
     LayoutController() = default;
@@ -85,14 +81,11 @@ private:
     const std::string searchCSSDirectory = "/system/etc/wmlayout.d";
 
     void ParseSCSS(const std::filesystem::path &file);
-    void ParseAttr(const struct Driver::CSSBlock &block, struct Layout &layout);
 
     bool init = false;
-    Driver driver;
     int32_t displayWidth = 0;
     int32_t displayHeight = 0;
     std::map<uint32_t, struct Layout> modeLayoutMap[WINDOW_MODE_MAX];
-    std::map<std::string, AttributeProcessFunction> attrProcessFuncs;
 };
 } // namespace OHOS::WMServer
 
@@ -102,7 +95,6 @@ extern "C" {
 
 // return errno, 0 is ok
 void LayoutControllerInit(int32_t width, int32_t height);
-int32_t LayoutControllerUpdateStaticLayout(uint32_t type, const struct layout *layout);
 int32_t LayoutControllerCalcWindowDefaultLayout(uint32_t type,
     uint32_t mode, uint32_t *zIndex, struct layout *outLayout);
 
