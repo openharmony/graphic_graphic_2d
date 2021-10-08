@@ -124,7 +124,7 @@ private:
         uint32_t msg = 0;
         write(pipeFd[1], &msg, sizeof(msg));
 
-        sleep(0);
+        std::this_thread::yield();
 
         char buf[10];
         read(pipeFd[0], buf, sizeof(buf));

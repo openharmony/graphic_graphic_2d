@@ -15,6 +15,8 @@
 
 #include "subwindow_normal_impl_test.h"
 
+#include <thread>
+
 #include <window_manager.h>
 
 #include "mock/mock_static_call.h"
@@ -580,7 +582,7 @@ void AlwaysMoveThreadFunc(const sptr<Promise<sptr<Subwindow>>> &subwindowPromise
 {
     while (running) {
         while (waiting) {
-            sleep(0);
+            std::this_thread::yield();
         }
         waiting = true;
         if (running == false) {

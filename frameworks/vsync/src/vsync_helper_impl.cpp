@@ -18,7 +18,7 @@
 #include <algorithm>
 #include <chrono>
 #include <list>
-#include <sys/time.h>
+#include <thread>
 #include <unistd.h>
 
 #include <iservice_registry.h>
@@ -26,6 +26,8 @@
 
 #include "static_call.h"
 #include "vsync_log.h"
+
+using namespace std::chrono_literals;
 
 namespace OHOS {
 namespace Vsync {
@@ -120,8 +122,7 @@ VsyncError VsyncClient::Init(bool restart)
         if (service_ == nullptr) {
             vret = InitService();
             if (vret == VSYNC_ERROR_SERVICE_NOT_FOUND && restart == true) {
-                constexpr int sleepTime = 5 * 1000;
-                usleep(sleepTime);
+                std::this_thread::sleep_for(5ms);
                 continue;
             }
             if (vret != VSYNC_ERROR_OK) {

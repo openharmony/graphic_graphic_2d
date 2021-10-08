@@ -62,7 +62,7 @@ public:
         auto threadFunc = [&wptr]() {
             while (true) {
                 auto sp = wptr.promote();
-                sleep(0);
+                std::this_thread::yield();
             }
         };
         std::thread thread(threadFunc);

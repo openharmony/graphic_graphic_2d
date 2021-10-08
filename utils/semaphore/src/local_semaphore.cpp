@@ -15,12 +15,10 @@
 
 #include "local_semaphore.h"
 
-namespace OHOS {
-LocalSemaphore::LocalSemaphore()
-{
-    sem_init(&sem, false, 0);
-}
+#include <cerrno>
+#include <cstdint>
 
+namespace OHOS {
 LocalSemaphore::LocalSemaphore(int count)
 {
     sem_init(&sem, false, count);
@@ -38,6 +36,9 @@ void LocalSemaphore::Inc()
 
 void LocalSemaphore::Dec()
 {
-    sem_wait(&sem);
+    int32_t ret = 0;
+    do {
+        ret = sem_wait(&sem);
+    } while (ret == -1 && errno == EINTR);
 }
 } // namespace OHOS

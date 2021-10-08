@@ -21,8 +21,7 @@
 namespace OHOS {
 class LocalSemaphore {
 public:
-    LocalSemaphore();
-    LocalSemaphore(int count);
+    LocalSemaphore(int count = 0);
     ~LocalSemaphore();
 
     void Inc();

@@ -16,6 +16,7 @@
 #include "vsync_remote_callback_test.h"
 #include "return_value_tester.h"
 
+#include <thread>
 #include <unistd.h>
 
 #include <iservice_registry.h>
@@ -47,7 +48,7 @@ void VsyncCallbackTest::SetUpTestCase()
             char buf[10] = "start";
             write(pipeFd[1], buf, sizeof(buf));
 
-            sleep(0);
+            std::this_thread::yield();
 
             read(pipeFd[0], buf, sizeof(buf));
 
@@ -71,7 +72,10 @@ void VsyncCallbackTest::TearDownTestCase()
     char buf[10] = "over";
     write(pipeFd[1], buf, sizeof(buf));
 
-    waitpid(pid_, nullptr, 0);
+    int32_t ret = 0;
+    do {
+        waitpid(pid_, nullptr, 0);
+    } while (ret == -1 && errno == EINTR);
 }
 
 namespace {
@@ -118,6 +122,7 @@ HWTEST_F(VsyncCallbackTest, OnVsync4, testing::ext::TestSize.Level0)
 } // namespace
 VsyncError VsyncCallback::OnVsync(int64_t timestamp)
 {
+    (void)timestamp;
     return VSYNC_ERROR_OK;
 }
 } // namespace Vsync

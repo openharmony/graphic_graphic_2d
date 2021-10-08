@@ -19,6 +19,8 @@
 #include <thread>
 #include <unistd.h>
 
+using namespace std::chrono_literals;
+
 namespace OHOS {
 uint32_t RequestSync(const SyncFunc syncFunc, void *data)
 {
@@ -47,7 +49,7 @@ void ExitTest()
     }
 
     auto exitThreadMain = []() {
-        sleep(1);
+        std::this_thread::sleep_for(1s);
         exit(0);
     };
     std::thread thread(exitThreadMain);

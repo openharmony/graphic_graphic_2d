@@ -15,12 +15,17 @@
 
 #include "wl_display.h"
 
+#include <cerrno>
+#include <chrono>
 #include <mutex>
 #include <poll.h>
 #include <sys/eventfd.h>
+#include <thread>
 #include <unistd.h>
 
 #include "window_manager_hilog.h"
+
+using namespace std::chrono_literals;
 
 namespace OHOS {
 namespace {
@@ -73,10 +78,7 @@ bool WlDisplay::Connect(const char *name)
         } else {
             WMLOGFW("create display failed! (%{public}d/%{public}d)", i + 1, retryTimes);
         }
-
-        constexpr int32_t sleepTimeFactor = 50 * 1000;
-        int32_t sleepTime = i * sleepTimeFactor;
-        usleep(sleepTime);
+        std::this_thread::sleep_for(50ms * i);
     }
     return display != nullptr;
 }
@@ -282,7 +284,11 @@ bool WlDisplay::DispatchThreadCoreProcess()
         { .fd = interruptFd, .events = POLLIN, },
     };
 
-    int32_t ret = poll(pfd, sizeof(pfd) / sizeof(*pfd), -1);
+    int32_t ret = 0;
+    do {
+        ret = poll(pfd, sizeof(pfd) / sizeof(*pfd), -1);
+    } while (ret == -1 && errno == EINTR);
+
     if (ret == -1) {
         WMLOGFE("poll return -1");
         CancelRead();

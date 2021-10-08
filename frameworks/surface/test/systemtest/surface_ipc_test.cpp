@@ -15,6 +15,8 @@
 
 #include "surface_ipc_test.h"
 
+#include <thread>
+
 #include <display_type.h>
 #include <iservice_registry.h>
 
@@ -58,7 +60,7 @@ pid_t SurfaceIPCTest::ChildProcessMain() const
         if (robj != nullptr) {
             break;
         }
-        sleep(0);
+        std::this_thread::yield();
     }
 
     auto producer = iface_cast<IBufferProducer>(robj);
@@ -80,7 +82,7 @@ pid_t SurfaceIPCTest::ChildProcessMain() const
     sret = psurface->FlushBuffer(buffer, -1, flushConfig);
     data = sret;
     write(pipeFd[1], &data, sizeof(data));
-    sleep(0);
+    std::this_thread::yield();
     read(pipeFd[0], &data, sizeof(data));
     close(pipeFd[0]);
     close(pipeFd[1]);
@@ -102,7 +104,7 @@ HWTEST_F(SurfaceIPCTest, BufferIPC, testing::ext::TestSize.Level0)
 
     int64_t data = 0;
     write(pipeFd[1], &data, sizeof(data));
-    sleep(0);
+    std::this_thread::yield();
     read(pipeFd[0], &data, sizeof(data));
     EXPECT_EQ(data, SURFACE_ERROR_OK);
 
@@ -133,7 +135,10 @@ HWTEST_F(SurfaceIPCTest, BufferIPC, testing::ext::TestSize.Level0)
     close(pipeFd[0]);
     close(pipeFd[1]);
     sam->RemoveSystemAbility(ipcSystemAbilityID);
-    waitpid(pid, nullptr, NULL);
+    int32_t ret = 0;
+    do {
+        waitpid(pid, nullptr, 0);
+    } while (ret == -1 && errno == EINTR);
 }
 
 HWTEST_F(SurfaceIPCTest, Cache, testing::ext::TestSize.Level0)

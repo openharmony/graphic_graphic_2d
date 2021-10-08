@@ -15,6 +15,7 @@
 
 #include "tester.h"
 
+#include <thread>
 #include <unistd.h>
 
 #include "window_manager_hilog.h"
@@ -58,7 +59,7 @@ void Tester::ScheduleForConcurrent()
     if (needSchedule == true) {
         WMLOGFD("need schedule");
         needSchedule = false;
-        sleep(0);
+        std::this_thread::yield();
     }
 }
 

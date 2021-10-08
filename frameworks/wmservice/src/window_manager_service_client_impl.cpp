@@ -15,6 +15,7 @@
 
 #include "window_manager_service_client_impl.h"
 
+#include <cerrno>
 #include <mutex>
 #include <poll.h>
 #include <sys/eventfd.h>
@@ -172,7 +173,11 @@ void WindowManagerServiceClientImpl::DispatchThreadMain()
             { .fd = interruptFd, .events = POLLIN, },
         };
 
-        int32_t ret = poll(pfd, sizeof(pfd) / sizeof(*pfd), -1);
+        int32_t ret = 0;
+        do {
+            ret = poll(pfd, sizeof(pfd) / sizeof(*pfd), -1);
+        } while (ret == -1 && errno == EINTR);
+
         if (ret == -1) {
             WMLOGFE("poll return -1");
             wl_display_cancel_read(display);

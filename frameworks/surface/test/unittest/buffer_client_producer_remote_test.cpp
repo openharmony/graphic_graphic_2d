@@ -15,6 +15,7 @@
 
 #include "buffer_client_producer_remote_test.h"
 
+#include <thread>
 #include <vector>
 
 #include <sys/wait.h>
@@ -50,8 +51,7 @@ void BufferClientProducerRemoteTest::SetUpTestCase()
 
         char buf[10] = "start";
         write(pipeFd[1], buf, sizeof(buf));
-
-        sleep(0);
+        std::this_thread::yield();
 
         read(pipeFd[0], buf, sizeof(buf));
 
@@ -76,7 +76,10 @@ void BufferClientProducerRemoteTest::TearDownTestCase()
     char buf[10] = "over";
     write(pipeFd[1], buf, sizeof(buf));
 
-    waitpid(pid, nullptr, 0);
+    int32_t ret = 0;
+    do {
+        waitpid(pid, nullptr, 0);
+    } while (ret == -1 && errno == EINTR);
 }
 
 namespace {

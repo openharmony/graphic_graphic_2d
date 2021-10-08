@@ -16,6 +16,7 @@
 
 #include <chrono>
 #include <mutex>
+#include <thread>
 #include <unistd.h>
 
 #include <iservice_registry.h>
@@ -23,6 +24,8 @@
 
 #include "vsync_log.h"
 #include "vsync_module_impl.h"
+
+using namespace std::chrono_literals;
 
 namespace OHOS {
 namespace Vsync {
@@ -119,8 +122,7 @@ VsyncError VsyncModuleImpl::InitSA(int32_t vsyncSystemAbilityId)
             return VSYNC_ERROR_SERVICE_NOT_FOUND;
         } else {
             VLOGE("RegisterSystemAbility failed, try again:%{public}d", tryCount);
-            constexpr int sleepTime = 100 * 1000;
-            usleep(sleepTime);
+            std::this_thread::sleep_for(100ms);
         }
     }
 

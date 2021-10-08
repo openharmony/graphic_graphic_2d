@@ -15,6 +15,8 @@
 
 #include "surface_revert_ipc_test.h"
 
+#include <thread>
+
 #include <display_type.h>
 
 namespace OHOS {
@@ -87,7 +89,7 @@ pid_t SurfaceRevertIPCTest::ChildProcessMain()
     sret = csurface->ReleaseBuffer(buffer, -1);
     data = sret;
     write(pipeFd[1], &data, sizeof(data));
-    sleep(0);
+    std::this_thread::yield();
     read(pipeFd[0], &data, sizeof(data));
     sam->RemoveSystemAbility(ipcSystemAbilityID);
     exit(0);
@@ -127,7 +129,10 @@ HWTEST_F(SurfaceRevertIPCTest, Fork, testing::ext::TestSize.Level0)
         EXPECT_EQ(str, "567");
     }
     write(pipeFd[1], &data, sizeof(data));
-    waitpid(pid, nullptr, NULL);
+    int32_t ret = 0;
+    do {
+        waitpid(pid, nullptr, 0);
+    } while (ret == -1 && errno == EINTR);
 }
 } // namespace
 } // namespace OHOS
