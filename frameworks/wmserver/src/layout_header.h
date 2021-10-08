@@ -31,24 +31,29 @@ struct layout {
 
 namespace OHOS::WMServer {
 struct Layout {
+    bool isZIndexSetting;
     int32_t zIndex;
+    bool isPositionTypeSetting;
     enum class PositionType {
         RELATIVE,
         STATIC, // as status bar
         FIXED,
     } positionType;
+    bool isPositionXTypeSetting;
     enum class XPositionType {
         UNSET, // unset
         LFT,   // left
         MID,   // middle
         RGH,   // right
     } pTypeX;
+    bool isPositionYTypeSetting;
     enum class YPositionType {
         UNSET, // unset
         TOP,   // top
         MID,   // middle
         BTM,   // bottom
     } pTypeY;
+    bool isLayoutSetting;
     struct layout layout;
 };
 

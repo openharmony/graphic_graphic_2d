@@ -236,7 +236,21 @@ void LayoutController::ParseSCSS(const fs::path &file)
     struct Layout layout = {};
     for (size_t i = 0; i < size; i++) {
         ifs >> mode >> type >> layout;
-        modeLayoutMap[mode][type] = layout;
+        if (layout.isZIndexSetting) {
+            modeLayoutMap[mode][type].zIndex = layout.zIndex;
+        }
+        if (layout.isPositionTypeSetting) {
+            modeLayoutMap[mode][type].positionType = layout.positionType;
+        }
+        if (layout.isPositionXTypeSetting) {
+            modeLayoutMap[mode][type].pTypeX = layout.pTypeX;
+        }
+        if (layout.isPositionYTypeSetting) {
+            modeLayoutMap[mode][type].pTypeY = layout.pTypeY;
+        }
+        if (layout.isLayoutSetting) {
+            modeLayoutMap[mode][type].layout = layout.layout;
+        }
     }
 }
 } // namespace OHOS::WMServer

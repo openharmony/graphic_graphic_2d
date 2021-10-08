@@ -42,8 +42,12 @@ std::ostream &operator <<(std::ostream &os, const enum Layout::YPositionType &ty
 
 std::ostream &operator <<(std::ostream &os, const struct Layout &layout)
 {
-    os << layout.zIndex << " " << layout.positionType << " "
-        << layout.pTypeX << " " << layout.pTypeY << " " << layout.layout;
+    os << std::boolalpha
+        << layout.isZIndexSetting << " " << layout.zIndex << " "
+        << layout.isPositionTypeSetting << " " << layout.positionType << " "
+        << layout.isPositionXTypeSetting << " " << layout.pTypeX << " "
+        << layout.isPositionYTypeSetting << " " << layout.pTypeY << " "
+        << layout.isLayoutSetting << " " << layout.layout;
     return os;
 }
 
@@ -79,7 +83,12 @@ std::istream &operator >>(std::istream &is, enum Layout::YPositionType &type)
 
 std::istream &operator >>(std::istream &is, struct Layout &layout)
 {
-    is >> layout.zIndex >> layout.positionType >> layout.pTypeX >> layout.pTypeY >> layout.layout;
+    is >> std::boolalpha
+        >> layout.isZIndexSetting >> layout.zIndex
+        >> layout.isPositionTypeSetting >> layout.positionType
+        >> layout.isPositionXTypeSetting >> layout.pTypeX
+        >> layout.isPositionYTypeSetting >> layout.pTypeY
+        >> layout.isLayoutSetting >> layout.layout;
     return is;
 }
 } // namespace OHOS::WMServer

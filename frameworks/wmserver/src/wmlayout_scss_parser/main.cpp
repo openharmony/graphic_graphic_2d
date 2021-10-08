@@ -235,6 +235,7 @@ int32_t AttributeProcess##attr(const std::string &value, \
 DEFINE_ATTRIBUTE_PROCESS_FUNCTION(zindex, value, layout)
 {
     if (IntegerParser(value, layout.zIndex)) {
+        layout.isZIndexSetting = true;
         return 0;
     }
     return 1;
@@ -243,6 +244,7 @@ DEFINE_ATTRIBUTE_PROCESS_FUNCTION(zindex, value, layout)
 DEFINE_ATTRIBUTE_PROCESS_FUNCTION(position, value, layout)
 {
     if (PositionTypeParser(value, layout.positionType)) {
+        layout.isPositionTypeSetting = true;
         return 0;
     }
     return 1;
@@ -251,6 +253,7 @@ DEFINE_ATTRIBUTE_PROCESS_FUNCTION(position, value, layout)
 DEFINE_ATTRIBUTE_PROCESS_FUNCTION(horizonalign, value, layout)
 {
     if (XPositionTypeParser(value, layout.pTypeX)) {
+        layout.isPositionXTypeSetting = true;
         return 0;
     }
     return 1;
@@ -259,6 +262,7 @@ DEFINE_ATTRIBUTE_PROCESS_FUNCTION(horizonalign, value, layout)
 DEFINE_ATTRIBUTE_PROCESS_FUNCTION(verticalalign, value, layout)
 {
     if (YPositionTypeParser(value, layout.pTypeY)) {
+        layout.isPositionYTypeSetting = true;
         return 0;
     }
     return 1;
@@ -267,6 +271,7 @@ DEFINE_ATTRIBUTE_PROCESS_FUNCTION(verticalalign, value, layout)
 DEFINE_ATTRIBUTE_PROCESS_FUNCTION(left, value, layout)
 {
     if (NumberUnitParser(value, layout.layout.x)) {
+        layout.isLayoutSetting = true;
         return 0;
     }
     return 1;
@@ -275,6 +280,7 @@ DEFINE_ATTRIBUTE_PROCESS_FUNCTION(left, value, layout)
 DEFINE_ATTRIBUTE_PROCESS_FUNCTION(top, value, layout)
 {
     if (NumberUnitParser(value, layout.layout.y)) {
+        layout.isLayoutSetting = true;
         return 0;
     }
     return 1;
@@ -283,6 +289,7 @@ DEFINE_ATTRIBUTE_PROCESS_FUNCTION(top, value, layout)
 DEFINE_ATTRIBUTE_PROCESS_FUNCTION(width, value, layout)
 {
     if (NumberUnitParser(value, layout.layout.w)) {
+        layout.isLayoutSetting = true;
         return 0;
     }
     return 1;
@@ -291,6 +298,7 @@ DEFINE_ATTRIBUTE_PROCESS_FUNCTION(width, value, layout)
 DEFINE_ATTRIBUTE_PROCESS_FUNCTION(height, value, layout)
 {
     if (NumberUnitParser(value, layout.layout.h)) {
+        layout.isLayoutSetting = true;
         return 0;
     }
     return 1;
