@@ -36,8 +36,6 @@ config("wms_client_public_config") {
     "//foundation/graphic/standard/interfaces/innerkits/wm",
     "//foundation/graphic/standard/interfaces/innerkits/common",
   ]
-
-  cflags = []
 }
 
 ohos_shared_library("wms_client") {

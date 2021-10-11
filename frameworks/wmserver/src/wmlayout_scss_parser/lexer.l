@@ -60,7 +60,7 @@ align_attribute  (horizon-align|vertical-align)
 other_attribute  (z-index|position)
 
 /* value */
-number_value     ({number}(%|px)?)
+number_value     ({number}(%)?)
 h_align_value    (left|middle|right)
 v_align_value    (top|middle|bottom)
 position_value   (relative|fixed|static)
@@ -89,17 +89,23 @@ value            ((initial|{number_value}|{h_align_value}|{v_align_value}|{posit
 }
 
 {selector} {
+#ifdef LEXER_DEBUG
     printf("selector: %s\n", yytext);
+#endif
     return OHOS::Parser::make_SELECTOR(yytext, loc);
 }
 
 {attribute} {
+#ifdef LEXER_DEBUG
     printf("attribute: %s\n", yytext);
+#endif
     return OHOS::Parser::make_ATTRIBUTE(yytext, loc);
 }
 
 {value} {
+#ifdef LEXER_DEBUG
     printf("value: %s\n", yytext);
+#endif
     return OHOS::Parser::make_VALUE(yytext, loc);
 }
 
@@ -108,7 +114,9 @@ value            ((initial|{number_value}|{h_align_value}|{v_align_value}|{posit
 
 . {
     if (yytext[0] != ' ') {
+#ifdef LEXER_DEBUG
         printf("ignore '%s'\n", yytext);
+#endif
     }
 }
 

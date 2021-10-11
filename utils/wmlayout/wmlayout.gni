@@ -1,0 +1,59 @@
+# Copyright (c) 2021 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/ohos.gni")
+
+wmlayout_scss_gni_filepath = "//foundation/graphic/standard/utils/wmlayout"
+
+template("wmlayout_scss") {
+  scss_name = invoker.scss
+  generate_binary_name = "${target_name}_binary"
+  prebuilt_etc_name = "${target_name}_etc"
+
+  scss_filename = "$root_gen_dir/${target_name}"
+  action(generate_binary_name) {
+    script = "$wmlayout_scss_gni_filepath/gen_scss.py"
+    inputs = [
+      script,
+      scss_name,
+    ]
+    outputs = [ scss_filename ]
+    label = "//foundation/graphic/standard/frameworks/wmserver/src/wmlayout_scss_parser:wmlayout_scss_parser($host_toolchain)"
+    deps = [ label ]
+    args = [
+      "--cmd",
+      "./" +
+          rebase_path(get_label_info(label, "root_out_dir"), root_build_dir) +
+          "/graphic/graphic_standard/wmlayout_scss_parser",
+      "--input",
+      rebase_path(scss_name, root_build_dir),
+      "--output",
+      rebase_path(scss_filename, root_build_dir),
+    ]
+  }
+
+  ohos_prebuilt_etc(prebuilt_etc_name) {
+    forward_variables_from(invoker,
+                           [
+                             "part_name",
+                             "subsystem_name",
+                           ])
+    source = scss_filename
+    relative_install_dir = "wmlayout.d"
+    deps = [ ":${generate_binary_name}" ]
+  }
+
+  group(target_name) {
+    public_deps = [ ":${prebuilt_etc_name}" ]
+  }
+}

@@ -63,10 +63,16 @@ int32_t Main::DoDraw(uint8_t *addr, uint32_t width, uint32_t height, uint32_t co
     }
 
     if (last != count && length > 0) {
-        (void)memcpy_s(frame.get() + offset, addrSize - offset, data, length);
+        if (memcpy_s(frame.get() + offset, addrSize - offset, data, length) != EOK) {
+            LOG("memcpy_s failed");
+            return -1;
+        }
     }
 
-    (void)memcpy_s(addr, addrSize, frame.get(), addrSize);
+    if (memcpy_s(addr, addrSize, frame.get(), addrSize) != EOK) {
+        LOG("memcpy_s failed");
+        return -1;
+    }
     last = count;
     LOG("GetData time: %{public}" PRIu64 ", data: %{public}p, length: %{public}d",
         GetNowTime() - start, data, length);

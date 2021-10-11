@@ -44,13 +44,12 @@ config("wmserver_config") {
 
 config("wmserver_public_config") {
   include_dirs = [ "src" ]
-
-  cflags = []
 }
 
 ohos_shared_library("wmserver") {
   sources = [
     "src/layout_controller.cpp",
+    "src/rects.cpp",
     "src/screen_info.c",
     "src/wmserver.c",
   ]
@@ -60,12 +59,11 @@ ohos_shared_library("wmserver") {
   public_configs = [ ":wmserver_public_config" ]
 
   deps = [
-    "src/wmlayout_scss_parser:libwmlayout_scss_parser",
-    "//drivers/peripheral/display/hal:hdi_display_device",  # hdi device
+    ":layout_header",
     "//third_party/libinput:libinput-third",
     "//third_party/wayland_standard:wayland_core_protocol",
     "//third_party/weston:drm-backend",
-    "//third_party/weston:libweston",
+    "//third_party/weston:libexec_weston",
     "//utils/native/base:utils",
   ]
 
@@ -87,7 +85,7 @@ config("screen-info-test_config") {
 }
 
 ohos_executable("screen-info-test") {
-  install_enable = true
+  install_enable = false
 
   sources = [ "src/screen_info_test.c" ]
 
@@ -104,6 +102,31 @@ ohos_executable("screen-info-test") {
 }
 
 ## Build screen-info-test }}}
+
+## Build layout_header.a {{{
+config("layout_header_config") {
+  visibility = [ ":*" ]
+
+  cflags = [
+    "-Wall",
+    "-Werror",
+    "-g3",
+  ]
+}
+
+config("layout_header_public_config") {
+  include_dirs = [ "src" ]
+}
+
+ohos_static_library("layout_header") {
+  sources = [ "src/layout_header.cpp" ]
+
+  configs = [ ":layout_header_config" ]
+
+  public_configs = [ ":layout_header_public_config" ]
+}
+
+## Build layout_header.a }}}
 
 group("test") {
   testonly = true

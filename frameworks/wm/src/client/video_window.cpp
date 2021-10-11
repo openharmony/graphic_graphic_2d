@@ -123,15 +123,13 @@ namespace {
     void VideoWindow::Move(int32_t x, int32_t y)
     {
         VIDEO_WINDOW_ENTER();
-        int maxHeight = LayerControllerClient::GetInstance()->GetMaxHeight();
-        constexpr float BAR_WIDTH_PERCENT = 0.07;
-        IRect rect = {};
         if (display == nullptr) {
             WMLOGFE("display layer is not create");
             return;
         }
 
 #ifdef TARGET_CPU_ARM
+        IRect rect = {};
         int32_t ret = display->GetRect(layerId_, rect);
         if (ret != DISPLAY_SUCCESS) {
             WMLOGFW("get rect fail, ret:%{public}d", ret);
@@ -139,6 +137,8 @@ namespace {
         }
 
         WMLOGFI("get layer: x=%{public}d, y=%{public}d, w=%{public}d, h=%{public}d", rect.x, rect.y, rect.w, rect.h);
+        constexpr float BAR_WIDTH_PERCENT = 0.07;
+        int maxHeight = LayerControllerClient::GetInstance()->GetMaxHeight();
         rect.x = x;
         rect.y = y + maxHeight * BAR_WIDTH_PERCENT; // status bar
         WMLOGFI("set layer: x=%{public}d, y=%{public}d, w=%{public}d, h=%{public}d", rect.x, rect.y, rect.w, rect.h);
@@ -155,13 +155,13 @@ namespace {
     void VideoWindow::SetSubWindowSize(int32_t width, int32_t height)
     {
         VIDEO_WINDOW_ENTER();
-        IRect rect = {};
         if (display == nullptr) {
             WMLOGFE("display layer is not create");
             return;
         }
 
 #ifdef TARGET_CPU_ARM
+        IRect rect = {};
         int32_t ret = display->GetRect(layerId_, rect);
         if (ret != DISPLAY_SUCCESS) {
             WMLOGFW("get rect fail, ret:%d", ret);

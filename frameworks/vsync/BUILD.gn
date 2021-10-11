@@ -128,7 +128,7 @@ ohos_shared_library("libvsync_module") {
 
 ## Build vsync_server {{{
 ohos_executable("vsync_server") {
-  install_enable = true
+  install_enable = false
 
   sources = [ "src/module_main.cpp" ]
 

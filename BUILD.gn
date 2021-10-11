@@ -12,6 +12,7 @@
 # limitations under the License.
 
 import("//build/ohos.gni")
+import("//foundation/graphic/standard/utils/wmlayout/wmlayout.gni")
 
 ## Install graphic.rc to /system/etc/init/graphic.rc {{{
 ohos_prebuilt_etc("graphic.rc") {
@@ -28,9 +29,8 @@ ohos_prebuilt_etc("graphic.rc") {
 ## Install graphic.rc to /system/etc/init/graphic.rc }}}
 
 ## Install default.scss to /system/etc/wmlayout.d/default.scss {{{
-ohos_prebuilt_etc("default.scss") {
-  source = "default.scss"
-  relative_install_dir = "wmlayout.d"
+wmlayout_scss("default.scss") {
+  scss = "default.scss"
   part_name = "graphic_standard"
   subsystem_name = "graphic"
 }

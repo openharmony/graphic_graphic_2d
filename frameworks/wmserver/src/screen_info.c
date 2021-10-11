@@ -42,7 +42,7 @@ void SetLibInputEventListener(const LibInputEventListener listener)
     set_libinput_event_listener(listener);
 }
 
-void FreeSeatsInfo(const struct SeatInfo **seats)
+void FreeSeatsInfo(struct SeatInfo **seats)
 {
     if (!seats) {
         LOGE("seats is null.");
@@ -97,14 +97,14 @@ struct SeatInfo **GetSeatsInfo(void)
     return seats;
 }
 
-void FreeSurfaceInfo(const struct SurfaceInfo *pSurface)
+void FreeSurfaceInfo(struct SurfaceInfo *pSurface)
 {
     if (pSurface) {
         free(pSurface);
     }
 }
 
-void FreeLayerInfo(const struct LayerInfo *pLayer)
+void FreeLayerInfo(struct LayerInfo *pLayer)
 {
     if (pLayer) {
         if (pLayer->surfaces) {
@@ -117,7 +117,7 @@ void FreeLayerInfo(const struct LayerInfo *pLayer)
     }
 }
 
-void FreeScreenInfo(const struct ScreenInfo *pScreen)
+void FreeScreenInfo(struct ScreenInfo *pScreen)
 {
     if (pScreen) {
         if (pScreen->layers) {
@@ -133,7 +133,7 @@ void FreeScreenInfo(const struct ScreenInfo *pScreen)
     }
 }
 
-void FreeScreensInfo(const struct ScreenInfo **screens)
+void FreeScreensInfo(struct ScreenInfo **screens)
 {
     if (!screens) {
         LOGE("screens is null.");
@@ -145,7 +145,7 @@ void FreeScreensInfo(const struct ScreenInfo **screens)
     free(screens);
 }
 
-struct SurfaceInfo *GetSurfaceInfo(const struct ivi_layout_surface *surface)
+struct SurfaceInfo *GetSurfaceInfo(struct ivi_layout_surface *surface)
 {
     const struct ivi_layout_interface_for_wms *pLayoutInterface = GetWmsInstance()->pLayoutInterface;
     struct SurfaceInfo *pSurfaceInfo = (struct SurfaceInfo *)calloc(1, sizeof(struct SurfaceInfo));
@@ -170,7 +170,7 @@ struct SurfaceInfo *GetSurfaceInfo(const struct ivi_layout_surface *surface)
     return pSurfaceInfo;
 }
 
-struct LayerInfoInfo *GetLayerInfo(const struct ivi_layout_layer *layer)
+struct LayerInfo *GetLayerInfo(struct ivi_layout_layer *layer)
 {
     const struct ivi_layout_interface_for_wms *pLayoutInterface = GetWmsInstance()->pLayoutInterface;
     struct LayerInfo *pLayerInfo = (struct LayerInfo *)calloc(1, sizeof(struct LayerInfo));
@@ -337,7 +337,7 @@ void LayerInfoDebugPrint(const struct LayerInfo *pLayer)
     }
 }
 
-void ScreensInfoDebugPrint(const struct ScreenInfo **screens)
+void ScreensInfoDebugPrint(struct ScreenInfo **screens)
 {
     for (int i = 0; screens[i]; i++) {
         struct ScreenInfo *pScreen = screens[i];
@@ -363,7 +363,7 @@ void ScreensInfoDebugPrint(const struct ScreenInfo **screens)
     }
 }
 
-void SeatsInfoDebugPrint(const struct SeatInfo **seats)
+void SeatsInfoDebugPrint(struct SeatInfo **seats)
 {
     for (int i = 0; seats[i]; i++) {
         LOGI("-----------------------------");
@@ -373,7 +373,7 @@ void SeatsInfoDebugPrint(const struct SeatInfo **seats)
     }
 }
 
-void GetScreenInformation(const struct wl_client *client, const struct wl_resource *resource, uint32_t type)
+void GetScreenInformation(struct wl_client *client, struct wl_resource *resource, uint32_t type)
 {
     if (type == SCREEN_INFO_TYPE_SCREEN) {
         LOGI("SCREEN_INFO_TYPE_SCREEN");
@@ -407,12 +407,12 @@ static void OnSeatInfoChange(void)
     LOGD("OnSeatInfoChange is called.");
 }
 
-static void OnLibInputEvent(const struct libinput_event *event)
+static void OnLibInputEvent(struct libinput_event *event)
 {
     LOGD("OnLibInputEvent is called.");
 }
 
-void SetListener(const struct wl_client *client, const struct wl_resource *resource, uint32_t type)
+void SetListener(struct wl_client *client, struct wl_resource *resource, uint32_t type)
 {
     if (type == SCREEN_INFO_LISTENER_SET_ENABLE) {
         LOGI("Set Listener.");
@@ -434,7 +434,7 @@ static const struct screen_info_interface g_screenInfoInterface = {
     SetListener
 };
 
-static void BindScreenInfo(const struct wl_client *client, const void *data, uint32_t version, uint32_t id)
+static void BindScreenInfo(struct wl_client *client, void *data, uint32_t version, uint32_t id)
 {
     struct wl_resource *resource = wl_resource_create(client, &screen_info_interface, version, id);
     if (resource == NULL) {

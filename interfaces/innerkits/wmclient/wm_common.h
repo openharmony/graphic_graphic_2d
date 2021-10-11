@@ -19,6 +19,7 @@
 #ifdef __cplusplus
 #include <functional>
 #include <string>
+#include <map>
 #endif
 
 #include "../common/graphic_common.h"
@@ -27,21 +28,31 @@
 namespace OHOS {
 #endif
 
-enum WindowType {
-    WINDOW_TYPE_NORMAL = 0,
-    WINDOW_TYPE_STATUS_BAR = 10,
-    WINDOW_TYPE_NAVI_BAR = 20,
-    WINDOW_TYPE_ALARM_SCREEN = 30,
-    WINDOW_TYPE_SYSTEM_UI = 31,
-    WINDOW_TYPE_LAUNCHER = 40,
-    WINDOW_TYPE_VIDEO = 41,
-    WINDOW_TYPE_INPUT_METHOD = 50,
-    WINDOW_TYPE_INPUT_METHOD_SELECTOR = 60,
-    WINDOW_TYPE_VOLUME_OVERLAY = 70,
-    WINDOW_TYPE_NOTIFICATION_SHADE = 80,
-    WINDOW_TYPE_FLOAT = 90,
-    WINDOW_TYPE_MAX,
+#define WINDOW_TYPE_LIST(macro) \
+    macro(WINDOW_TYPE_NORMAL), \
+    macro(WINDOW_TYPE_STATUS_BAR), \
+    macro(WINDOW_TYPE_NAVI_BAR), \
+    macro(WINDOW_TYPE_ALARM_SCREEN), \
+    macro(WINDOW_TYPE_SYSTEM_UI), \
+    macro(WINDOW_TYPE_LAUNCHER), \
+    macro(WINDOW_TYPE_VIDEO), \
+    macro(WINDOW_TYPE_INPUT_METHOD), \
+    macro(WINDOW_TYPE_INPUT_METHOD_SELECTOR), \
+    macro(WINDOW_TYPE_VOLUME_OVERLAY), \
+    macro(WINDOW_TYPE_NOTIFICATION_SHADE), \
+    macro(WINDOW_TYPE_FLOAT), \
+    macro(WINDOW_TYPE_MAX),
+
+#define DEFINE_ENUM_WINDOW_TYPE(id) id
+#define DEFINE_STRMAP_WINDOW_TYPE(id) { #id, id, }
+
+enum WindowType { WINDOW_TYPE_LIST(DEFINE_ENUM_WINDOW_TYPE) };
+
+#ifdef __cplusplus
+static const std::map<std::string, enum WindowType> windowTypeStrs = {
+    WINDOW_TYPE_LIST(DEFINE_STRMAP_WINDOW_TYPE)
 };
+#endif
 
 enum SubWindowType {
     WM_WINDOW_TYPE_SUB_NORMAL = 0,

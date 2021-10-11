@@ -31,11 +31,12 @@ config("libwmservice_config") {
 
 config("libwmservice_public_config") {
   include_dirs = [
-    "//drivers/peripheral/base",
-    "//drivers/peripheral/display/interfaces/include",
     "//foundation/graphic/standard/interfaces/innerkits/common",
     "//foundation/graphic/standard/interfaces/innerkits/wmclient",
     "//foundation/graphic/standard/interfaces/innerkits/wmservice",
+    "//drivers/peripheral/base",
+    "//drivers/peripheral/display/interfaces/include",
+    "//third_party/bounds_checking_function/include",
   ]
 }
 
@@ -83,7 +84,7 @@ config("wmservice_test_config") {
 }
 
 ohos_executable("wmservice_test") {
-  install_enable = true
+  install_enable = false
 
   sources = [ "src/main.cpp" ]
 
