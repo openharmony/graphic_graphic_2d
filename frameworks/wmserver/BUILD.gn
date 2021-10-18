@@ -60,7 +60,7 @@ ohos_shared_library("wmserver") {
 
   deps = [
     ":layout_header",
-    "//third_party/libinput:libinput-third",
+    "//foundation/multimodalinput/input/patch/diff_libinput_mmi:libinput-third-mmi",
     "//third_party/wayland_standard:wayland_core_protocol",
     "//third_party/weston:drm-backend",
     "//third_party/weston:libexec_weston",
@@ -93,7 +93,7 @@ ohos_executable("screen-info-test") {
 
   deps = [
     ":wms_protocol",
-    "//third_party/libinput:libinput-third",
+    "//foundation/multimodalinput/input/patch/diff_libinput_mmi:libinput-third-mmi",
     "//third_party/wayland_standard:libwayland_client",
   ]
 

@@ -231,7 +231,6 @@ InnerWindowInfo *LayerControllerClient::CreateWindow(int32_t id, WindowConfig &c
 
     auto info = GetInnerWindowInfoFromId(id);
     info->logListener = LogListener::GetInstance()->AddListener(&info->windowid);
-    info->mmiListener = MultimodalListenerManager::GetInstance()->AddListener(&info->windowid);
     return info;
 }
 
@@ -338,7 +337,6 @@ void LayerControllerClient::RegistOnTouchCb(int id, funcOnTouch cb)
     if (cb) {
         WMLOG_I("LayerControllerClient::RegistOnTouchCb OK");
         GET_WINDOWINFO_VOID(windowInfo, id);
-        windowInfo->mmiListener->onTouchCb = cb;
     }
 }
 
@@ -349,7 +347,6 @@ void LayerControllerClient::RegistOnKeyCb(int id, funcOnKey cb)
     if (cb) {
         WMLOG_I("LayerControllerClient::RegistOnKeyCb OK");
         GET_WINDOWINFO_VOID(windowInfo, id);
-        windowInfo->mmiListener->keyboardKeyCb = cb;
     }
 }
 
@@ -543,7 +540,6 @@ void ProcessWindowInfo(InnerWindowInfo &info, sptr<IWindowManagerService> &wms)
     }
 
     LogListener::GetInstance()->RemoveListener(info.logListener);
-    MultimodalListenerManager::GetInstance()->RemoveListener(info.mmiListener);
 }
 
 void LayerControllerClient::RemoveInnerWindowInfo(uint32_t id)

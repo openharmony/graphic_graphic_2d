@@ -162,7 +162,6 @@ WMError WindowImpl::Create(sptr<Window> &window,
     }
 
     wi->logListener = SingletonContainer::Get<LogListener>()->AddListener(wi.GetRefPtr());
-    wi->mmiListener = SingletonContainer::Get<MultimodalListenerManager>()->AddListener(wi.GetRefPtr());
     wi->exportListener = SingletonContainer::Get<InputListenerManager>()->AddListener(wi.GetRefPtr());
 
     window = wi;
@@ -395,14 +394,12 @@ void WindowImpl::OnModeChange(WindowModeChangeFunc func)
 WMError WindowImpl::OnTouch(OnTouchFunc cb)
 {
     CHECK_DESTROY(WM_ERROR_DESTROYED_OBJECT);
-    mmiListener->onTouchCb = cb;
     return WM_OK;
 }
 
 WMError WindowImpl::OnKey(OnKeyFunc cb)
 {
     CHECK_DESTROY(WM_ERROR_DESTROYED_OBJECT);
-    mmiListener->keyboardKeyCb = cb;
     return WM_OK;
 }
 
@@ -621,10 +618,6 @@ WindowImpl::~WindowImpl()
 {
     if (logListener != nullptr) {
         SingletonContainer::Get<LogListener>()->RemoveListener(logListener);
-    }
-
-    if (mmiListener != nullptr) {
-        SingletonContainer::Get<MultimodalListenerManager>()->RemoveListener(mmiListener);
     }
 
     if (exportListener != nullptr) {

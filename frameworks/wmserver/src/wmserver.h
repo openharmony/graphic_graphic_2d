@@ -18,7 +18,6 @@
 
 #include <display_device.h>
 
-#define USE_IVI_INPUT_FOCUS
 #ifdef USE_IVI_INPUT_FOCUS
 #include <ivi-input-export.h>
 #endif

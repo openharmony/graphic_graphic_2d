@@ -21,7 +21,6 @@ group("unittest") {
   deps = [
     ":input_listener_manager_test",
     ":log_listener_test",
-    ":multimodal_listener_manager_test",
     ":subwindow_normal_impl_test",
     ":subwindow_option_impl_test",
     ":wayland_service_test",
@@ -61,17 +60,6 @@ ohos_unittest("log_listener_test") {
 }
 
 ## UnitTest log_listener_test }}}
-
-## UnitTest multimodal_listener_manager_test {{{
-ohos_unittest("multimodal_listener_manager_test") {
-  module_out_path = module_out_path
-
-  sources = [ "multimodal_listener_manager_test.cpp" ]
-
-  deps = [ ":wm_test_common" ]
-}
-
-## UnitTest multimodal_listener_manager_test }}}
 
 ## UnitTest subwindow_normal_impl_test {{{
 ohos_unittest("subwindow_normal_impl_test") {

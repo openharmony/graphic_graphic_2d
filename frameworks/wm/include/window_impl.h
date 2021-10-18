@@ -23,7 +23,6 @@
 #include <window_manager_service_client.h>
 
 #include "log_listener.h"
-#include "multimodal_listener_manager.h"
 #include "wl_surface.h"
 #include "window_attribute.h"
 #include "window_option_impl.h"
@@ -127,7 +126,6 @@ private:
     sptr<Surface> psurface = nullptr;
 
     sptr<InputListener> logListener = nullptr;
-    sptr<MultimodalListener> mmiListener = nullptr;
     sptr<InputListener> exportListener = nullptr;
 };
 } // namespace OHOS

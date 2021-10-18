@@ -201,6 +201,7 @@ struct LayerInfo *GetLayerInfo(struct ivi_layout_layer *layer)
         pLayerInfo->surfaces = (struct SurfaceInfo **)calloc(surfaceCnt, sizeof(intptr_t));
         if (!pLayerInfo->surfaces) {
             LOGE("calloc error!");
+            free(surfaceList);
             FreeLayerInfo(pLayerInfo);
             return NULL;
         }
@@ -209,11 +210,13 @@ struct LayerInfo *GetLayerInfo(struct ivi_layout_layer *layer)
             pLayerInfo->surfaces[j] = GetSurfaceInfo(surfaceList[j]);
             if (!pLayerInfo->surfaces[j]) {
                 LOGE("GetSurfaceInfo error!");
+                free(surfaceList);
                 FreeLayerInfo(pLayerInfo);
                 return NULL;
             }
             pLayerInfo->surfaces[j]->onLayerId = pLayerInfo->layerId;
         }
+        free(surfaceList);
     }
     return pLayerInfo;
 }
@@ -253,6 +256,7 @@ struct ScreenInfo *GetScreenInfo(const struct WmsScreen *pWmsScreen)
         pScreenInfo->layers = (struct LayerInfo **)calloc(layerCount, sizeof(intptr_t));
         if (!pScreenInfo->layers) {
             LOGE("calloc error!");
+            free(layerList);
             FreeScreenInfo(pScreenInfo);
             return NULL;
         }
@@ -260,11 +264,13 @@ struct ScreenInfo *GetScreenInfo(const struct WmsScreen *pWmsScreen)
             pScreenInfo->layers[i] = GetLayerInfo(layerList[i]);
             if (!pScreenInfo->layers[i]) {
                 LOGE("calloc error!");
+                free(layerList);
                 FreeScreenInfo(pScreenInfo);
                 return NULL;
             }
             pScreenInfo->layers[i]->onScreenId = pScreenInfo->screenId;
         }
+        free(layerList);
     }
     return pScreenInfo;
 }

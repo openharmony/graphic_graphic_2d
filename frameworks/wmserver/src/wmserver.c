@@ -55,6 +55,7 @@
 #define PIXMAN_FORMAT_AVERAGE 8
 #define BYTE_SPP_SIZE 4
 #define ASSERT assert
+#define DEFAULT_SEAT_NAME "default"
 
 struct WindowSurface {
     struct WmsController *controller;
