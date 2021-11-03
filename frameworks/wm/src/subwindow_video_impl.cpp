@@ -71,6 +71,7 @@ WMError SubwindowVideoImpl::CreateWlSurface(sptr<SubwindowVideoImpl> &svi,
     }
 
     svi->wlSubsurface->SetPosition(svi->attr.GetX(), svi->attr.GetY());
+    svi->wlSubsurface->PlaceBelow(parentWlSurface);
     svi->wlSubsurface->SetDesync();
     return WM_OK;
 }

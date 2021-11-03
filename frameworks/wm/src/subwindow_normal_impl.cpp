@@ -74,6 +74,7 @@ WMError SubwindowNormalImpl::CreateWlSurface(sptr<SubwindowNormalImpl> &si,
     }
 
     si->wlSubsurface->SetPosition(si->attr.GetX(), si->attr.GetY());
+    si->wlSubsurface->PlaceBelow(parentWlSurface);
     si->wlSubsurface->SetDesync();
     return WM_OK;
 }

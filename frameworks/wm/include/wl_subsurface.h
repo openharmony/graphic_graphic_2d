@@ -30,8 +30,8 @@ public:
     struct wl_subsurface *GetRawPtr() const;
 
     void SetPosition(int32_t x, int32_t y);
-    void PlaceAbove(sptr<WlSurface> &sibling);
-    void PlaceBelow(sptr<WlSurface> &sibling);
+    void PlaceAbove(const sptr<WlSurface> &sibling);
+    void PlaceBelow(const sptr<WlSurface> &sibling);
     void SetSync();
     void SetDesync();
 
