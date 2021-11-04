@@ -212,11 +212,8 @@ void WlDisplay::Sync()
 void WlDisplay::StartDispatchThread()
 {
     if (dispatchThread == nullptr) {
-        startOnceFlag = std::make_unique<std::once_flag>();
         startPromise = new Promise<bool>();
-
         dispatchThread = std::make_unique<std::thread>(std::bind(&WlDisplay::DispatchThreadMain, this));
-
         startPromise->Await();
     } else {
         WMLOGFW("dispatch loop already started");
@@ -240,17 +237,12 @@ void WlDisplay::DispatchThreadMain()
         return;
     }
 
-    if (startOnceFlag != nullptr) {
-        static const auto onceFunc = [this]() {
-            if (startPromise != nullptr) {
-                startPromise->Resolve(true);
-            }
-        };
-        std::call_once(*startOnceFlag, onceFunc);
-    }
-
-    WMLOGFI("dispatch loop start");
     interruptFd = eventfd(0, EFD_CLOEXEC | EFD_NONBLOCK);
+    if (startPromise != nullptr) {
+        startPromise->Resolve(true);
+    }
+    WMLOGFI("dispatch loop start");
+
     while (DispatchThreadCoreProcess()) {
     }
 
