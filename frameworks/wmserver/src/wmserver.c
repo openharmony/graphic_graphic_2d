@@ -62,6 +62,7 @@ struct WindowSurface {
     struct ivi_layout_surface *layoutSurface;
     struct weston_surface *surface;
     struct wl_listener surfaceDestroyListener;
+    struct wl_listener propertyChangedListener;
 
     uint32_t surfaceId;
     uint32_t screenId;
@@ -552,8 +553,6 @@ static void ControllerCommitChanges(struct wl_client *client,
     struct WmsContext *ctx = controller->pWmsCtx;
 
     ctx->pLayoutInterface->commit_changes();
-
-    ScreenInfoChangerNotify();
 
     LOGD("end.");
 }
@@ -1046,6 +1045,7 @@ static bool SetWindowFocus(const struct WindowSurface *surface)
 #ifndef USE_IVI_INPUT_FOCUS
     PointerSetFocus(pSeat);
 #endif
+    SeatInfoChangerNotify();
 
     LOGD("end.");
     return true;
@@ -1160,13 +1160,11 @@ static void ControllerSetWindowTop(struct wl_client *client,
         LOGE("SetWindowFocus failed.");
         wms_send_reply_error(resource, WMS_ERROR_INNER_ERROR);
         wl_client_flush(wl_resource_get_client(resource));
-        SeatInfoChangerNotify();
         return;
     }
 
     wms_send_reply_error(resource, WMS_ERROR_OK);
     wl_client_flush(wl_resource_get_client(resource));
-    SeatInfoChangerNotify();
     LOGD("end.");
 }
 
@@ -1176,6 +1174,7 @@ static void SurfaceDestroy(const struct WindowSurface *surface)
     LOGD("surfaceId:%{public}d start.", surface->surfaceId);
 
     wl_list_remove(&surface->surfaceDestroyListener.link);
+    wl_list_remove(&surface->propertyChangedListener.link);
 
     if (surface->layoutSurface != NULL) {
         surface->controller->pWmsCtx->pLayoutInterface->surface_destroy(
@@ -1200,7 +1199,6 @@ static void SurfaceDestroy(const struct WindowSurface *surface)
 
     SendGlobalWindowStatus(surface->controller, surface->surfaceId, WMS_WINDOW_STATUS_DESTROYED);
 
-    SeatInfoChangerNotify();
     ScreenInfoChangerNotify();
 
     free(surface);
@@ -1233,6 +1231,13 @@ static void ControllerDestroyWindow(struct wl_client *client,
     SurfaceDestroy(windowSurface);
     wms_send_reply_error(resource, WMS_ERROR_OK);
     wl_client_flush(wl_resource_get_client(resource));
+    LOGD("end.");
+}
+
+static void WindowPropertyChanged(struct wl_listener *listener, void *data)
+{
+    LOGD("start.");
+    ScreenInfoChangerNotify();
     LOGD("end.");
 }
 
@@ -1306,6 +1311,9 @@ static void CreateWindow(struct WmsController *pWmsController,
 
     pWindow->surfaceDestroyListener.notify = WindowSurfaceDestroy;
     wl_signal_add(&pWestonSurface->destroy_signal, &pWindow->surfaceDestroyListener);
+
+    pWindow->propertyChangedListener.notify = WindowPropertyChanged;
+    wl_signal_add(&pWindow->layoutSurface->property_changed, &pWindow->propertyChangedListener);
 
     wms_send_window_status(pWlResource, WMS_WINDOW_STATUS_CREATED, windowId,
                            pWindow->x, pWindow->y, pWindow->width, pWindow->height);
