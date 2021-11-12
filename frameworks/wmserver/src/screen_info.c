@@ -413,7 +413,7 @@ static void OnSeatInfoChange(void)
     LOGD("OnSeatInfoChange is called.");
 }
 
-static void OnLibInputEvent(struct libinput_event *event)
+static void OnLibInputEvent(struct multimodal_libinput_event *event)
 {
     LOGD("OnLibInputEvent is called.");
 }

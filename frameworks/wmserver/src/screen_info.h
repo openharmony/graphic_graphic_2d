@@ -75,8 +75,8 @@ void SetScreenListener(const ScreenInfoChangeListener listener);
 typedef void (*SeatInfoChangeListener)();
 void SetSeatListener(const SeatInfoChangeListener listener);
 
-struct libinput_event;
-typedef void (*LibInputEventListener)(struct libinput_event *event);
+struct multimodal_libinput_event;
+typedef void (*LibInputEventListener)(struct multimodal_libinput_event *event);
 void SetLibInputEventListener(const LibInputEventListener listener);
 
 #endif // FRAMEWORKS_WMSERVER_SRC_SCREEN_INFO_H
