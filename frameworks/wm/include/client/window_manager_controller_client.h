@@ -35,14 +35,12 @@
 #include "wl_shm_buffer_factory.h"
 #include "wl_subsurface_factory.h"
 #include "wl_surface_factory.h"
-#include "wp_viewport_factory.h"
 
 namespace OHOS {
 struct InnerWindowInfo {
     sptr<WlSurface> wlSurface;
     sptr<WlSubsurface> wlSubsurface;
     sptr<WlBuffer> wlBuffer;
-    sptr<WpViewport> wpViewport;
     WindowConfig windowconfig;
     uint32_t windowid;
     uint32_t layerid;

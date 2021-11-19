@@ -36,12 +36,12 @@ void WlSubsurface::SetPosition(int32_t x, int32_t y)
     wl_subsurface_set_position(subsurface, x, y);
 }
 
-void WlSubsurface::PlaceAbove(sptr<WlSurface> &sibling)
+void WlSubsurface::PlaceAbove(const sptr<WlSurface> &sibling)
 {
     wl_subsurface_place_above(subsurface, sibling->GetRawPtr());
 }
 
-void WlSubsurface::PlaceBelow(sptr<WlSurface> &sibling)
+void WlSubsurface::PlaceBelow(const sptr<WlSurface> &sibling)
 {
     wl_subsurface_place_below(subsurface, sibling->GetRawPtr());
 }

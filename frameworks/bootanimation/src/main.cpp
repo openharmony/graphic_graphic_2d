@@ -89,7 +89,6 @@ void Main::Draw()
 
     do {
         sptr<SurfaceBuffer> buffer;
-        int32_t releaseFence;
         BufferRequestConfig config = {
             .width = surface->GetDefaultWidth(),
             .height = surface->GetDefaultHeight(),
@@ -98,7 +97,7 @@ void Main::Draw()
             .usage = surface->GetDefaultUsage(),
         };
 
-        SurfaceError ret = surface->RequestBuffer(buffer, releaseFence, config);
+        SurfaceError ret = surface->RequestBufferNoFence(buffer, config);
         if (ret == SURFACE_ERROR_NO_BUFFER) {
             break;
         }

@@ -60,6 +60,7 @@ ohos_shared_library("wmserver") {
 
   deps = [
     ":layout_header",
+    "//drivers/peripheral/display/hal:hdi_display_device",
     "//foundation/multimodalinput/input/patch/diff_libinput_mmi:libinput-third-mmi",
     "//third_party/wayland_standard:wayland_core_protocol",
     "//third_party/weston:drm-backend",

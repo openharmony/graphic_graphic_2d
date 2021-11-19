@@ -35,7 +35,6 @@ group("unittest") {
     ":wl_shm_buffer_factory_test",
     ":wl_subsurface_factory_test",
     ":wl_surface_factory_test",
-    ":wp_viewport_factory_test",
   ]
 }
 
@@ -215,17 +214,6 @@ ohos_unittest("wl_surface_factory_test") {
 
 ## UnitTest wl_surface_factory_test }}}
 
-## UnitTest wp_viewport_factory_test {{{
-ohos_unittest("wp_viewport_factory_test") {
-  module_out_path = module_out_path
-
-  sources = [ "wp_viewport_factory_test.cpp" ]
-
-  deps = [ ":wm_test_common" ]
-}
-
-## UnitTest wp_viewport_factory_test }}}
-
 ## Build wm_test_common.a {{{
 config("wm_test_common_public_config") {
   include_dirs = [ "//foundation/graphic/standard/frameworks/wm/include" ]
@@ -252,6 +240,7 @@ ohos_static_library("wm_test_common") {
     "//foundation/graphic/standard/frameworks/wmserver:wms_protocol",
     "//third_party/googletest:gmock",
     "//third_party/wayland-protocols_standard:linux_dmabuf_unstable_v1_protocol",
+    "//third_party/wayland-protocols_standard:linux_explicit_synchronization_unstable_v1_protocol",
     "//third_party/wayland-protocols_standard:viewporter_protocol",
     "//third_party/wayland_standard:libwayland_client",
     "//third_party/wayland_standard:libwayland_cursor",

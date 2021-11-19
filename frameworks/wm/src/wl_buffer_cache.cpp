@@ -30,6 +30,7 @@ void WlBufferCache::Init()
 
 void WlBufferCache::Deinit()
 {
+    std::lock_guard<std::mutex> lock(cacheMutex);
     cache.clear();
 }
 
@@ -52,6 +53,7 @@ sptr<WlBuffer> WlBufferCache::GetWlBuffer(const sptr<Surface> &surface,
         return nullptr;
     }
 
+    std::lock_guard<std::mutex> lock(cacheMutex);
     CleanCache();
     for (const auto &c : cache) {
         if (c.csurface != nullptr && c.csurface.promote() == surface &&
@@ -79,6 +81,7 @@ WMError WlBufferCache::AddWlBuffer(const sptr<WlBuffer> &wbuffer,
         return WM_ERROR_NULLPTR;
     }
     if (GetWlBuffer(csurface, sbuffer) == nullptr) {
+        std::lock_guard<std::mutex> lock(cacheMutex);
         struct BufferCache ele = {
             .wbuffer = wbuffer,
             .csurface = csurface,
@@ -96,6 +99,7 @@ bool WlBufferCache::GetSurfaceBuffer(const struct wl_buffer *wbuffer,
     if (wbuffer == nullptr) {
         return false;
     }
+    std::lock_guard<std::mutex> lock(cacheMutex);
     for (const auto &c : cache) {
         if (c.wbuffer != nullptr && c.wbuffer->GetRawPtr() == wbuffer) {
             csurface = c.csurface.promote();

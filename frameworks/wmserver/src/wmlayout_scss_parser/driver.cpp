@@ -18,8 +18,7 @@
 #include "driver.h"
 
 namespace OHOS {
-Driver::Driver()
-    : parser(scanner, *this), scanner(*this)
+Driver::Driver() : parser(scanner, *this), scanner(*this)
 {
 }
 

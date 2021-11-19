@@ -16,13 +16,21 @@
 #include "native_test_class.h"
 
 #include <algorithm>
+#include <cassert>
 #include <cstdio>
 #include <securec.h>
+#include <sys/time.h>
 
 #include <display_type.h>
 
 #include "inative_test.h"
 #include "util.h"
+
+#define TIME_BASE 1000
+#define TIMEMS_RANGER 0.5
+#define SIZE_POS_VERTEX_ATTRIBUTE 2
+#define SIZE_COLORS_VERTEX_ATTRIBUTE 3
+#define NUMBER_VERTICES 4
 
 namespace OHOS {
 sptr<Window> NativeTestFactory::CreateWindow(WindowType type, sptr<Surface> csurface)
@@ -61,6 +69,147 @@ sptr<NativeTestSync> NativeTestSync::CreateSync(DrawFunc drawFunc, sptr<Surface>
     return nullptr;
 }
 
+#ifdef ACE_ENABLE_GPU
+sptr<NativeTestSync> NativeTestSync::CreateSyncEgl(DrawFuncEgl drawFunc,
+    sptr<EglSurface> &peglsurface, uint32_t width, uint32_t height, void *data)
+{
+    if (drawFunc != nullptr && peglsurface != nullptr) {
+        sptr<NativeTestSync> nts = new NativeTestSync();
+        nts->drawEgl = drawFunc;
+        nts->eglsurface = peglsurface;
+        nts->width_ = width;
+        nts->height_ = height;
+        RequestSync(std::bind(&NativeTestSync::SyncEgl, nts, SYNC_FUNC_ARG), data);
+        return nts;
+    }
+    return nullptr;
+}
+
+void NativeTestSync::SyncEgl(int64_t, void *data)
+{
+    if (!GLContextInit()) {
+        printf("GLContextInit failed.\n");
+        return;
+    }
+
+    if (sret == SURFACE_ERROR_OK) {
+        drawEgl(&glCtx, eglsurface, width_, height_);
+        count++;
+    }
+
+    sret = eglsurface->SwapBuffers();
+
+    RequestSync(std::bind(&NativeTestSync::SyncEgl, this, SYNC_FUNC_ARG), data);
+}
+#endif
+
+#ifdef ACE_ENABLE_GPU
+namespace {
+const char *g_vertShaderText =
+    "uniform float offset;\n"
+    "attribute vec4 pos;\n"
+    "attribute vec4 color;\n"
+    "varying vec4 v_color;\n"
+    "void main() {\n"
+    "  gl_Position = pos + vec4(offset, offset, 0.0, 0.0);\n"
+    "  v_color = color;\n"
+    "}\n";
+
+const char *g_fragShaderText =
+    "precision mediump float;\n"
+    "varying vec4 v_color;\n"
+    "void main() {\n"
+    "  gl_FragColor = v_color;\n"
+    "}\n";
+
+static GLuint CreateShader(const char *source, GLenum shaderType)
+{
+    GLuint shader;
+    GLint status;
+
+    shader = glCreateShader(shaderType);
+    assert(shader != 0);
+
+    glShaderSource(shader, 1, (const char **) &source, NULL);
+    glCompileShader(shader);
+
+    glGetShaderiv(shader, GL_COMPILE_STATUS, &status);
+    if (!status) {
+        constexpr int32_t maxLogLength = 1000;
+        char log[maxLogLength];
+        GLsizei len;
+        glGetShaderInfoLog(shader, maxLogLength, &len, log);
+        fprintf(stderr, "Error: compiling %s: %.*s\n",
+            shaderType == GL_VERTEX_SHADER ? "vertex" : "fragment", len, log);
+        return 0;
+    }
+
+    return shader;
+}
+
+static GLuint CreateAndLinkProgram(GLuint vert, GLuint frag)
+{
+    GLint status;
+    GLuint program = glCreateProgram();
+
+    glAttachShader(program, vert);
+    glAttachShader(program, frag);
+    glLinkProgram(program);
+
+    glGetProgramiv(program, GL_LINK_STATUS, &status);
+    if (!status) {
+        constexpr int32_t maxLogLength = 1000;
+        char log[maxLogLength];
+        GLsizei len;
+        glGetProgramInfoLog(program, maxLogLength, &len, log);
+        fprintf(stderr, "Error: linking:\n%.*s\n", len, log);
+        return 0;
+    }
+
+    return program;
+}
+} // namespace
+
+bool NativeTestSync::GLContextInit()
+{
+    if (bInit) {
+        return bInit;
+    }
+
+    if (eglsurface == nullptr) {
+        printf("GLContextInit eglsurface is nullptr\n");
+        return bInit;
+    }
+
+    if (eglsurface->InitContext() != SURFACE_ERROR_OK) {
+        printf("GLContextInit InitContext failed\n");
+        return bInit;
+    }
+
+    GLuint vert = CreateShader(g_vertShaderText, GL_VERTEX_SHADER);
+    GLuint frag = CreateShader(g_fragShaderText, GL_FRAGMENT_SHADER);
+
+    glCtx.program = CreateAndLinkProgram(vert, frag);
+
+    glDeleteShader(vert);
+    glDeleteShader(frag);
+
+    glCtx.pos = glGetAttribLocation(glCtx.program, "pos");
+    glCtx.color = glGetAttribLocation(glCtx.program, "color");
+
+    glUseProgram(glCtx.program);
+
+    glCtx.offsetUniform = glGetUniformLocation(glCtx.program, "offset");
+
+    if (glCtx.program == 0) {
+        printf("glCtx.program = 0.\n");
+    } else {
+        bInit = true;
+    }
+    return bInit;
+}
+#endif
+
 void NativeTestSync::Sync(int64_t, void *data)
 {
     if (surface == nullptr) {
@@ -69,7 +218,6 @@ void NativeTestSync::Sync(int64_t, void *data)
     }
 
     sptr<SurfaceBuffer> buffer;
-    int32_t releaseFence;
     BufferRequestConfig rconfig = {
         .width = surface->GetDefaultWidth(),
         .height = surface->GetDefaultHeight(),
@@ -82,7 +230,7 @@ void NativeTestSync::Sync(int64_t, void *data)
         rconfig = *reinterpret_cast<BufferRequestConfig *>(data);
     }
 
-    SurfaceError ret = surface->RequestBuffer(buffer, releaseFence, rconfig);
+    SurfaceError ret = surface->RequestBufferNoFence(buffer, rconfig);
     if (ret == SURFACE_ERROR_NO_BUFFER) {
         RequestSync(std::bind(&NativeTestSync::Sync, this, SYNC_FUNC_ARG), data);
         return;
@@ -288,4 +436,51 @@ void NativeTestDraw::BoxDraw(void *vaddr, uint32_t width, uint32_t height, uint3
     drawOnce(abs((count + 0) % (framecount * 0x2 - 1) - framecount), color);
     drawOnce(abs((count + 1) % (framecount * 0x2 - 1) - framecount), color);
 }
+
+#ifdef ACE_ENABLE_GPU
+void NativeTestDraw::FlushDrawEgl(GlContext *ctx, sptr<EglSurface> &eglsurface, uint32_t width, uint32_t height)
+{
+    /* Complete a movement iteration in 5000 ms. */
+    static const uint64_t iterationMs = 5000;
+    static const GLfloat verts[4][2] = {
+        { -0.5, -0.5 },
+        { -0.5,  0.5 },
+        {  0.5, -0.5 },
+        {  0.5,  0.5 }
+    };
+    static const GLfloat colors[4][3] = {
+        { 1, 0, 0 },
+        { 0, 1, 0 },
+        { 0, 0, 1 },
+        { 1, 1, 0 }
+    };
+    GLfloat offset;
+    struct timeval tv;
+    uint64_t timeMs;
+
+    gettimeofday(&tv, NULL);
+    timeMs = tv.tv_sec * TIME_BASE + tv.tv_usec / TIME_BASE;
+
+    /* Split time_ms in repeating windows of [0, iterationMs) and map them
+     * to offsets in the [-0.5, 0.5) range. */
+    offset = (timeMs % iterationMs) / (float) iterationMs - TIMEMS_RANGER;
+
+    glViewport(0, 0, width, height);
+
+    glUniform1f(ctx->offsetUniform, offset);
+
+    glClearColor(0.0, 1.0, 0.0, 1.0);
+    glClear(GL_COLOR_BUFFER_BIT);
+
+    glVertexAttribPointer(ctx->pos, SIZE_POS_VERTEX_ATTRIBUTE, GL_FLOAT, GL_FALSE, 0, verts);
+    glVertexAttribPointer(ctx->color, SIZE_COLORS_VERTEX_ATTRIBUTE, GL_FLOAT, GL_FALSE, 0, colors);
+    glEnableVertexAttribArray(ctx->pos);
+    glEnableVertexAttribArray(ctx->color);
+
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, NUMBER_VERTICES);
+
+    glDisableVertexAttribArray(ctx->pos);
+    glDisableVertexAttribArray(ctx->color);
+}
+#endif
 } // namespace OHOS

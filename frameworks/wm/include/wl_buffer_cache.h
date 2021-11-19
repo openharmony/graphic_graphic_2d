@@ -58,6 +58,7 @@ private:
         wptr<SurfaceBuffer> sbuffer;
     };
     std::vector<WlBufferCache::BufferCache> cache;
+    std::mutex cacheMutex;
 };
 } // namespace OHOS
 

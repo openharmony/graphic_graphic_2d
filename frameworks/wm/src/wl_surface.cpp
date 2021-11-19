@@ -15,14 +15,26 @@
 
 #include "wl_surface.h"
 
+#include <unistd.h>
+
 namespace OHOS {
-WlSurface::WlSurface(struct wl_surface *surface)
+WlSurface::WlSurface(struct wl_surface *ws,
+                     struct zwp_linux_surface_synchronization_v1 *zlssv,
+                     struct wp_viewport *wv)
 {
-    this->surface = surface;
+    surface = ws;
+    sync = zlssv;
+    viewport = wv;
 }
 
 WlSurface::~WlSurface()
 {
+    if (sync != nullptr) {
+        zwp_linux_surface_synchronization_v1_destroy(sync);
+    }
+    if (viewport != nullptr) {
+        wp_viewport_destroy(viewport);
+    }
     wl_surface_destroy(surface);
 }
 
@@ -64,5 +76,39 @@ void WlSurface::SetSurfaceType(wl_surface_type type)
 void WlSurface::SetBufferTransform(wl_output_transform type)
 {
     wl_surface_set_buffer_transform(surface, type);
+}
+
+struct zwp_linux_buffer_release_v1 *WlSurface::GetBufferRelease()
+{
+    if (sync == nullptr) {
+        return nullptr;
+    }
+    return zwp_linux_surface_synchronization_v1_get_release(sync);
+}
+
+void WlSurface::SetAcquireFence(int32_t fence)
+{
+    if (fence >= 0) {
+        if (sync != nullptr) {
+            zwp_linux_surface_synchronization_v1_set_acquire_fence(sync, fence);
+        }
+        close(fence);
+    }
+}
+
+void WlSurface::SetSource(double dx, double dy, double dw, double dh)
+{
+    if (viewport != nullptr) {
+        wp_viewport_set_source(viewport,
+            wl_fixed_from_double(dx), wl_fixed_from_double(dy),
+            wl_fixed_from_double(dw), wl_fixed_from_double(dh));
+    }
+}
+
+void WlSurface::SetDestination(uint32_t w, uint32_t h)
+{
+    if (viewport != nullptr) {
+        wp_viewport_set_destination(viewport, w, h);
+    }
 }
 } // namespace OHOS

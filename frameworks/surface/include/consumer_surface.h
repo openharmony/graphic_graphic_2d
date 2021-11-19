@@ -37,10 +37,19 @@ public:
     SurfaceError RequestBuffer(sptr<SurfaceBuffer>& buffer,
                                int32_t &fence, BufferRequestConfig &config) override;
 
+    SurfaceError RequestBufferNoFence(sptr<SurfaceBuffer>& buffer,
+                                      BufferRequestConfig &config) override;
+
+    SurfaceError RequestBufferWithFence(sptr<SurfaceBuffer>& buffer,
+                                     int32_t &fence, BufferRequestConfig &config) override;
+
     SurfaceError CancelBuffer(sptr<SurfaceBuffer>& buffer) override;
 
     SurfaceError FlushBuffer(sptr<SurfaceBuffer>& buffer,
                              int32_t fence, BufferFlushConfig &config) override;
+
+    SurfaceError FlushBufferNoFence(sptr<SurfaceBuffer>& buffer,
+                                    BufferFlushConfig &config) override;
 
     SurfaceError AcquireBuffer(sptr<SurfaceBuffer>& buffer, int32_t &fence,
                                int64_t &timestamp, Rect &damage) override;

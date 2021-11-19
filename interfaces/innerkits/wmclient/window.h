@@ -27,6 +27,7 @@ namespace OHOS {
 class Window : public RefBase {
 public:
     virtual sptr<Surface> GetSurface() const = 0;
+    virtual sptr<IBufferProducer> GetProducer() const = 0;
     virtual int32_t       GetID() const = 0;
     virtual int32_t       GetX() const = 0;
     virtual int32_t       GetY() const = 0;
@@ -55,6 +56,7 @@ public:
     virtual void OnVisibilityChange(WindowVisibilityChangeFunc func) = 0;
     virtual void OnTypeChange(WindowTypeChangeFunc func) = 0;
     virtual void OnModeChange(WindowModeChangeFunc func) = 0;
+    virtual void OnBeforeFrameSubmit(BeforeFrameSubmitFunc func) = 0;
 
     // listener
     virtual WMError OnTouch(OnTouchFunc cb) = 0;

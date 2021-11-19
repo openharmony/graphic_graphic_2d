@@ -65,6 +65,25 @@ sptr<IBufferProducer> ProducerSurface::GetProducer() const
 SurfaceError ProducerSurface::RequestBuffer(sptr<SurfaceBuffer>& buffer,
                                             int32_t &fence, BufferRequestConfig &config)
 {
+    fence = -1;
+    return RequestBufferNoFence(buffer, config);
+}
+
+SurfaceError ProducerSurface::RequestBufferNoFence(sptr<SurfaceBuffer>& buffer,
+                                                   BufferRequestConfig &config)
+{
+    int32_t releaseFence = -1;
+    auto sret = RequestBufferWithFence(buffer, releaseFence, config);
+    if (sret == SURFACE_ERROR_OK && releaseFence >= 0) {
+        BLOGI("closing fence: %{public}d", releaseFence);
+        close(releaseFence);
+    }
+    return sret;
+}
+
+SurfaceError ProducerSurface::RequestBufferWithFence(sptr<SurfaceBuffer>& buffer,
+                                                     int32_t &fence, BufferRequestConfig &config)
+{
     IBufferProducer::RequestBufferReturnValue retval;
     BufferExtraDataImpl bedataimpl;
     SurfaceError ret = GetProducer()->RequestBuffer(config, bedataimpl, retval);
@@ -90,6 +109,7 @@ SurfaceError ProducerSurface::RequestBuffer(sptr<SurfaceBuffer>& buffer,
         retval.buffer = bufferProducerCache_[retval.sequence];
     }
     buffer = retval.buffer;
+    fence = retval.fence;
 
     sptr<SurfaceBufferImpl> bufferImpl = SurfaceBufferImpl::FromBase(retval.buffer);
     ret = BufferManager::GetInstance()->InvalidateCache(bufferImpl);
@@ -133,6 +153,12 @@ SurfaceError ProducerSurface::FlushBuffer(sptr<SurfaceBuffer>& buffer,
     BufferExtraDataImpl bedataimpl;
     bufferImpl->GetExtraData(bedataimpl);
     return GetProducer()->FlushBuffer(bufferImpl->GetSeqNum(), bedataimpl, fence, config);
+}
+
+SurfaceError ProducerSurface::FlushBufferNoFence(sptr<SurfaceBuffer>& buffer,
+                                                 BufferFlushConfig &config)
+{
+    return FlushBuffer(buffer, -1, config);
 }
 
 SurfaceError ProducerSurface::AcquireBuffer(sptr<SurfaceBuffer>& buffer, int32_t &fence,

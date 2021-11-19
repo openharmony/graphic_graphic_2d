@@ -34,13 +34,25 @@ public:
     virtual bool IsConsumer() const = 0;
     virtual sptr<IBufferProducer> GetProducer() const = 0;
 
+    // use RequestBufferNoFence or RequestBufferWithFence
+    __attribute__((deprecated))
     virtual SurfaceError RequestBuffer(sptr<SurfaceBuffer>& buffer,
                                        int32_t &fence, BufferRequestConfig &config) = 0;
+
+    virtual SurfaceError RequestBufferNoFence(sptr<SurfaceBuffer>& buffer,
+                                              BufferRequestConfig &config) = 0;
+
+    // need close fence, or destroy fence
+    virtual SurfaceError RequestBufferWithFence(sptr<SurfaceBuffer>& buffer,
+                                             int32_t &fence, BufferRequestConfig &config) = 0;
 
     virtual SurfaceError CancelBuffer(sptr<SurfaceBuffer>& buffer) = 0;
 
     virtual SurfaceError FlushBuffer(sptr<SurfaceBuffer>& buffer,
                                      int32_t fence, BufferFlushConfig &config) = 0;
+
+    virtual SurfaceError FlushBufferNoFence(sptr<SurfaceBuffer>& buffer,
+                                            BufferFlushConfig &config) = 0;
 
     virtual SurfaceError AcquireBuffer(sptr<SurfaceBuffer>& buffer, int32_t &fence,
                                        int64_t &timestamp, Rect &damage) = 0;

@@ -24,6 +24,7 @@ namespace OHOS {
 class MockWindow : public Window {
 public:
     MOCK_CONST_METHOD0(GetSurface, sptr<Surface>());
+    MOCK_CONST_METHOD0(GetProducer, sptr<IBufferProducer>());
     MOCK_CONST_METHOD0(GetID, int32_t());
     MOCK_CONST_METHOD0(GetX, int32_t());
     MOCK_CONST_METHOD0(GetY, int32_t());
@@ -49,6 +50,7 @@ public:
     MOCK_METHOD1(OnVisibilityChange, void(WindowVisibilityChangeFunc func));
     MOCK_METHOD1(OnTypeChange, void(WindowTypeChangeFunc func));
     MOCK_METHOD1(OnModeChange, void(WindowModeChangeFunc func));
+    MOCK_METHOD1(OnBeforeFrameSubmit, void(BeforeFrameSubmitFunc func));
     MOCK_METHOD1(OnTouch, WMError(OnTouchFunc cb));
     MOCK_METHOD1(OnKey, WMError(OnKeyFunc cb));
     MOCK_METHOD1(OnPointerEnter, WMError(PointerEnterFunc func));

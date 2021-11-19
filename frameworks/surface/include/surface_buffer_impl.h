@@ -25,6 +25,7 @@
 #include <surface_buffer.h>
 
 #include "buffer_extra_data_impl.h"
+#include "egl_data.h"
 
 namespace OHOS {
 enum ExtraDataType {
@@ -58,6 +59,8 @@ public:
     void *GetVirAddr() const override;
     int32_t GetFileDescriptor() const override;
     uint32_t GetSize() const override;
+    sptr<EglData> GetEglData() const;
+    void SetEglData(const sptr<EglData>& data);
 
     int32_t GetSeqNum();
     SurfaceError SetInt32(uint32_t key, int32_t val) override;
@@ -88,6 +91,7 @@ private:
     BufferHandle *handle_ = nullptr;
     int32_t sequenceNumber = -1;
     BufferExtraDataImpl bedataimpl;
+    sptr<EglData> eglData_ = nullptr;
 };
 } // namespace OHOS
 

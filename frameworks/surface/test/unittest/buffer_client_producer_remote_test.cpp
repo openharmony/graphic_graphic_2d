@@ -15,6 +15,7 @@
 
 #include "buffer_client_producer_remote_test.h"
 
+#include <chrono>
 #include <thread>
 #include <vector>
 
@@ -24,6 +25,8 @@
 #include "buffer_client_producer.h"
 #include "buffer_consumer_listener.h"
 #include "buffer_queue_producer.h"
+
+using namespace std::chrono_literals;
 
 namespace OHOS {
 void BufferClientProducerRemoteTest::SetUpTestCase()
@@ -36,6 +39,7 @@ void BufferClientProducerRemoteTest::SetUpTestCase()
     }
 
     if (pid == 0) {
+        std::this_thread::sleep_for(50ms);
         sptr<BufferQueue> bq = new BufferQueue("test");
         ASSERT_NE(bq, nullptr);
 
@@ -51,7 +55,7 @@ void BufferClientProducerRemoteTest::SetUpTestCase()
 
         char buf[10] = "start";
         write(pipeFd[1], buf, sizeof(buf));
-        std::this_thread::yield();
+        sleep(0);
 
         read(pipeFd[0], buf, sizeof(buf));
 

@@ -59,7 +59,7 @@ void Tester::ScheduleForConcurrent()
     if (needSchedule == true) {
         WMLOGFD("need schedule");
         needSchedule = false;
-        std::this_thread::yield();
+        sleep(0);
     }
 }
 

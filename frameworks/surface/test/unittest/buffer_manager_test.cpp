@@ -38,21 +38,6 @@ HWTEST_F(BufferManagerTest, GetInstance, testing::ext::TestSize.Level0)
     ASSERT_NE(BufferManager::GetInstance(), nullptr);
 }
 
-HWTEST_F(BufferManagerTest, Init, testing::ext::TestSize.Level0)
-{
-    SurfaceError ret = BufferManager::GetInstance()->Init();
-    ASSERT_EQ(ret, SURFACE_ERROR_OK);
-
-    auto pFun1 = BufferManager::GetInstance()->grallocFuncs_;
-
-    ret = BufferManager::GetInstance()->Init();
-    ASSERT_EQ(ret, SURFACE_ERROR_OK);
-
-    auto pFun2 = BufferManager::GetInstance()->grallocFuncs_;
-
-    ASSERT_EQ(pFun1, pFun2);
-}
-
 HWTEST_F(BufferManagerTest, Alloc, testing::ext::TestSize.Level0)
 {
     ASSERT_EQ(buffer->GetBufferHandle(), nullptr);

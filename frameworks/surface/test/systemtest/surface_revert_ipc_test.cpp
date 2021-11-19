@@ -15,9 +15,13 @@
 
 #include "surface_revert_ipc_test.h"
 
+#include <chrono>
 #include <thread>
+#include <unistd.h>
 
 #include <display_type.h>
+
+using namespace std::chrono_literals;
 
 namespace OHOS {
 void SurfaceRevertIPCTest::SetUpTestCase()
@@ -49,6 +53,7 @@ pid_t SurfaceRevertIPCTest::ChildProcessMain()
         return pid;
     }
 
+    std::this_thread::sleep_for(50ms);
     GTEST_LOG_(INFO) << getpid();
     auto csurface = Surface::CreateSurfaceAsConsumer("test");
     csurface->RegisterConsumerListener(this);
@@ -59,8 +64,7 @@ pid_t SurfaceRevertIPCTest::ChildProcessMain()
 
     int64_t data;
     sptr<SurfaceBuffer> buffer = nullptr;
-    int32_t fence;
-    auto sret = psurface->RequestBuffer(buffer, fence, requestConfig);
+    auto sret = psurface->RequestBufferNoFence(buffer, requestConfig);
     if (sret != SURFACE_ERROR_OK) {
         data = sret;
         write(pipeFd[1], &data, sizeof(data));
@@ -79,6 +83,7 @@ pid_t SurfaceRevertIPCTest::ChildProcessMain()
     }
 
     Rect damage;
+    int32_t fence;
     sret = csurface->AcquireBuffer(buffer, fence, data, damage);
     if (sret != SURFACE_ERROR_OK) {
         data = sret;
@@ -89,7 +94,7 @@ pid_t SurfaceRevertIPCTest::ChildProcessMain()
     sret = csurface->ReleaseBuffer(buffer, -1);
     data = sret;
     write(pipeFd[1], &data, sizeof(data));
-    std::this_thread::yield();
+    sleep(0);
     read(pipeFd[0], &data, sizeof(data));
     sam->RemoveSystemAbility(ipcSystemAbilityID);
     exit(0);
@@ -112,8 +117,7 @@ HWTEST_F(SurfaceRevertIPCTest, Fork, testing::ext::TestSize.Level0)
     auto psurface = Surface::CreateSurfaceAsProducer(producer);
 
     sptr<SurfaceBuffer> buffer = nullptr;
-    int32_t fence;
-    auto sret = psurface->RequestBuffer(buffer, fence, requestConfig);
+    auto sret = psurface->RequestBufferNoFence(buffer, requestConfig);
     EXPECT_EQ(sret, SURFACE_ERROR_OK);
     EXPECT_NE(buffer, nullptr);
     if (buffer != nullptr) {

@@ -14,12 +14,16 @@
  */
 
 #include "vsync_remote_callback_test.h"
-#include "return_value_tester.h"
 
+#include <chrono>
 #include <thread>
 #include <unistd.h>
 
 #include <iservice_registry.h>
+
+#include "return_value_tester.h"
+
+using namespace std::chrono_literals;
 
 namespace OHOS {
 namespace Vsync {
@@ -33,35 +37,35 @@ void VsyncCallbackTest::TearDown()
 
 void VsyncCallbackTest::SetUpTestCase()
 {
-        pipe(pipeFd);
+    pipe(pipeFd);
 
-        pid_ = fork();
-        if (pid_ < 0) {
-            exit(1);
-        }
+    pid_ = fork();
+    if (pid_ < 0) {
+        exit(1);
+    }
 
-        if (pid_ == 0) {
-            sptr<VsyncCallback> vcqp = new VsyncCallback();
-            ASSERT_NE(vcqp, nullptr);
-            auto sam = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-            sam->AddSystemAbility(IPC_VSYNCCALLBACK_SAID, vcqp);
-            char buf[10] = "start";
-            write(pipeFd[1], buf, sizeof(buf));
+    if (pid_ == 0) {
+        std::this_thread::sleep_for(50ms);
+        sptr<VsyncCallback> vcqp = new VsyncCallback();
+        ASSERT_NE(vcqp, nullptr);
+        auto sam = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+        sam->AddSystemAbility(IPC_VSYNCCALLBACK_SAID, vcqp);
+        char buf[10] = "start";
+        write(pipeFd[1], buf, sizeof(buf));
+        sleep(0);
 
-            std::this_thread::yield();
+        read(pipeFd[0], buf, sizeof(buf));
 
-            read(pipeFd[0], buf, sizeof(buf));
+        sam->RemoveSystemAbility(IPC_VSYNCCALLBACK_SAID);
 
-            sam->RemoveSystemAbility(IPC_VSYNCCALLBACK_SAID);
-
-            exit(0);
-        } else {
-            char buf[10];
-            read(pipeFd[0], buf, sizeof(buf));
-            auto sam = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-            robj_ = sam->GetSystemAbility(IPC_VSYNCCALLBACK_SAID);
-            vc_ = iface_cast<IVsyncCallback>(robj_);
-        }
+        exit(0);
+    } else {
+        char buf[10];
+        read(pipeFd[0], buf, sizeof(buf));
+        auto sam = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+        robj_ = sam->GetSystemAbility(IPC_VSYNCCALLBACK_SAID);
+        vc_ = iface_cast<IVsyncCallback>(robj_);
+    }
 }
 
 void VsyncCallbackTest::TearDownTestCase()

@@ -58,9 +58,8 @@ HWTEST_F(ProducerSurfaceTest, QueueSize, testing::ext::TestSize.Level0)
 HWTEST_F(ProducerSurfaceTest, ReqFlu, testing::ext::TestSize.Level0)
 {
     sptr<SurfaceBuffer> buffer;
-    int32_t releaseFence;
 
-    SurfaceError ret = psurface->RequestBuffer(buffer, releaseFence, requestConfig);
+    SurfaceError ret = psurface->RequestBufferNoFence(buffer, requestConfig);
     ASSERT_EQ(ret, SURFACE_ERROR_OK);
     ASSERT_NE(buffer, nullptr);
 
@@ -71,9 +70,8 @@ HWTEST_F(ProducerSurfaceTest, ReqFlu, testing::ext::TestSize.Level0)
 HWTEST_F(ProducerSurfaceTest, ReqFluFlu, testing::ext::TestSize.Level0)
 {
     sptr<SurfaceBuffer> buffer;
-    int32_t releaseFence;
 
-    SurfaceError ret = psurface->RequestBuffer(buffer, releaseFence, requestConfig);
+    SurfaceError ret = psurface->RequestBufferNoFence(buffer, requestConfig);
     ASSERT_EQ(ret, SURFACE_ERROR_OK);
     ASSERT_NE(buffer, nullptr);
 
@@ -111,9 +109,8 @@ HWTEST_F(ProducerSurfaceTest, AcqRel, testing::ext::TestSize.Level0)
 HWTEST_F(ProducerSurfaceTest, ReqCan, testing::ext::TestSize.Level0)
 {
     sptr<SurfaceBuffer> buffer;
-    int releaseFence;
 
-    SurfaceError ret = psurface->RequestBuffer(buffer, releaseFence, requestConfig);
+    SurfaceError ret = psurface->RequestBufferNoFence(buffer, requestConfig);
     ASSERT_EQ(ret, SURFACE_ERROR_OK);
 
     ret = psurface->CancelBuffer(buffer);
@@ -123,9 +120,8 @@ HWTEST_F(ProducerSurfaceTest, ReqCan, testing::ext::TestSize.Level0)
 HWTEST_F(ProducerSurfaceTest, ReqCanCan, testing::ext::TestSize.Level0)
 {
     sptr<SurfaceBuffer> buffer;
-    int releaseFence;
 
-    SurfaceError ret = psurface->RequestBuffer(buffer, releaseFence, requestConfig);
+    SurfaceError ret = psurface->RequestBufferNoFence(buffer, requestConfig);
     ASSERT_EQ(ret, SURFACE_ERROR_OK);
 
     ret = psurface->CancelBuffer(buffer);
@@ -140,15 +136,14 @@ HWTEST_F(ProducerSurfaceTest, ReqReqReqCanCan, testing::ext::TestSize.Level0)
     sptr<SurfaceBuffer> buffer;
     sptr<SurfaceBuffer> buffer1;
     sptr<SurfaceBuffer> buffer2;
-    int releaseFence;
 
-    SurfaceError ret = psurface->RequestBuffer(buffer, releaseFence, requestConfig);
+    SurfaceError ret = psurface->RequestBufferNoFence(buffer, requestConfig);
     ASSERT_EQ(ret, SURFACE_ERROR_OK);
 
-    ret = psurface->RequestBuffer(buffer1, releaseFence, requestConfig);
+    ret = psurface->RequestBufferNoFence(buffer1, requestConfig);
     ASSERT_EQ(ret, SURFACE_ERROR_OK);
 
-    ret = psurface->RequestBuffer(buffer2, releaseFence, requestConfig);
+    ret = psurface->RequestBufferNoFence(buffer2, requestConfig);
     ASSERT_NE(ret, SURFACE_ERROR_OK);
 
     ret = psurface->CancelBuffer(buffer);
@@ -180,9 +175,8 @@ HWTEST_F(ProducerSurfaceTest, SetQueueSizeDeleting, testing::ext::TestSize.Level
 HWTEST_F(ProducerSurfaceTest, ReqRel, testing::ext::TestSize.Level0)
 {
     sptr<SurfaceBuffer> buffer;
-    int releaseFence;
 
-    SurfaceError ret = psurface->RequestBuffer(buffer, releaseFence, requestConfig);
+    SurfaceError ret = psurface->RequestBufferNoFence(buffer, requestConfig);
     ASSERT_EQ(ret, SURFACE_ERROR_OK);
 
     ret = psurface->ReleaseBuffer(buffer, -1);

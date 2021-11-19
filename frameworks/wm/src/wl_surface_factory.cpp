@@ -41,6 +41,14 @@ void WlSurfaceFactory::Deinit()
         wl_compositor_destroy(compositor);
         compositor = nullptr;
     }
+    if (synchronization != nullptr) {
+        zwp_linux_explicit_synchronization_v1_destroy(synchronization);
+        synchronization = nullptr;
+    }
+    if (viewporter != nullptr) {
+        wp_viewporter_destroy(viewporter);
+        viewporter = nullptr;
+    }
 }
 
 void WlSurfaceFactory::OnAppear(const GetServiceFunc get, const std::string &iname, uint32_t ver)
@@ -49,6 +57,18 @@ void WlSurfaceFactory::OnAppear(const GetServiceFunc get, const std::string &ina
     if (iname == "wl_compositor") {
         auto ret = get(&wl_compositor_interface, wlCompositorVersion);
         compositor = static_cast<struct wl_compositor *>(ret);
+    }
+
+    constexpr uint32_t syncVersion = 1;
+    if (iname == "zwp_linux_explicit_synchronization_v1") {
+        auto ret = get(&zwp_linux_explicit_synchronization_v1_interface, syncVersion);
+        synchronization = static_cast<struct zwp_linux_explicit_synchronization_v1 *>(ret);
+    }
+
+    constexpr uint32_t wpViewporterVersion = 1;
+    if (iname == "wp_viewporter") {
+        auto ret = get(&wp_viewporter_interface, wpViewporterVersion);
+        viewporter = static_cast<struct wp_viewporter *>(ret);
     }
 }
 
@@ -59,7 +79,21 @@ sptr<WlSurface> WlSurfaceFactory::Create()
     }
 
     auto surface = wl_compositor_create_surface(compositor);
-    sptr<WlSurface> ret = new WlSurface(surface);
+    if (surface == nullptr) {
+        return nullptr;
+    }
+
+    struct zwp_linux_surface_synchronization_v1 *sync = nullptr;
+    if (synchronization != nullptr) {
+        sync = zwp_linux_explicit_synchronization_v1_get_synchronization(synchronization, surface);
+    }
+
+    struct wp_viewport *viewport = nullptr;
+    if (viewporter != nullptr) {
+        viewport = wp_viewporter_get_viewport(viewporter, surface);
+    }
+
+    sptr<WlSurface> ret = new WlSurface(surface, sync, viewport);
     return ret;
 }
 } // namespace OHOS

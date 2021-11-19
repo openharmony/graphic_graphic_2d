@@ -91,6 +91,7 @@ private:
     SurfaceError AllocBuffer(sptr<SurfaceBufferImpl>& buffer, const BufferRequestConfig &config);
     SurfaceError FreeBuffer(sptr<SurfaceBufferImpl>& buffer);
     void DeleteBufferInCache(int sequence);
+    void DumpToFile(int32_t sequence);
 
     uint32_t GetUsedSize();
     void DeleteBuffers(int32_t count);

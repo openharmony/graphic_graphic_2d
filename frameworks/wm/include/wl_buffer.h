@@ -18,28 +18,32 @@
 
 #include <map>
 
+#include <linux-explicit-synchronization-unstable-v1-client-protocol.h>
 #include <refbase.h>
 #include <wayland-client-protocol.h>
 
 namespace OHOS {
-using WlBufferReleaseFunc = std::function<void(struct wl_buffer *buffer)>;
+using WlBufferReleaseFunc = std::function<void(struct wl_buffer *buffer, int32_t fence)>;
 
 class WlBuffer : public RefBase {
 public:
-    WlBuffer(struct wl_buffer *buffer);
+    WlBuffer(struct wl_buffer *wb);
     virtual ~WlBuffer() override;
 
     struct wl_buffer *GetRawPtr() const;
 
+    void SetBufferRelease(struct zwp_linux_buffer_release_v1 *br);
     void OnRelease(WlBufferReleaseFunc func);
 
 protected:
     struct wl_buffer *buffer = nullptr;
+    struct zwp_linux_buffer_release_v1 *release = nullptr;
     WlBufferReleaseFunc onRelease = nullptr;
 
 private:
     static void Release(void *, struct wl_buffer *buffer);
-    static inline std::map<struct wl_buffer *, WlBufferReleaseFunc> onReleaseFuncs;
+    static void FencedRelease(void *, struct zwp_linux_buffer_release_v1 *release, int32_t fence);
+    static void ImmediateRelease(void *, struct zwp_linux_buffer_release_v1 *release);
 };
 } // namespace OHOS
 

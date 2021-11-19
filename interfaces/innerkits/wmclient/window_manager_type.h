@@ -65,6 +65,7 @@ struct WMDisplayInfo {
 
 #ifdef __cplusplus
 using WindowModeChangeFunc       = std::function<void(WindowMode mode)>;
+using BeforeFrameSubmitFunc      = std::function<void()>;
 } // namespace OHOS
 #endif
 

@@ -1903,6 +1903,12 @@ int ScreenInfoInit(const struct weston_compositor *pCompositor);
 
 static int WmsContextInit(struct WmsContext *ctx, struct weston_compositor *compositor)
 {
+    int32_t ret = DeviceInitialize(&ctx->deviceFuncs);
+    if (ret != 0) {
+        LOGE("DeviceInitialize failed, return %{public}d", ret);
+        ctx->deviceFuncs = NULL;
+    }
+
     wl_list_init(&ctx->wlListController);
     wl_list_init(&ctx->wlListWindow);
     wl_list_init(&ctx->wlListScreen);

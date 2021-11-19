@@ -13,31 +13,21 @@
  * limitations under the License.
  */
 
-#ifndef FRAMEWORKS_WM_INCLUDE_WL_SUBSURFACE_H
-#define FRAMEWORKS_WM_INCLUDE_WL_SUBSURFACE_H
+#ifndef INTERFACES_INNERKITS_SURFACE_EGL_DATA_H
+#define INTERFACES_INNERKITS_SURFACE_EGL_DATA_H
 
 #include <refbase.h>
-#include <wayland-client-protocol.h>
-
-#include "wl_surface.h"
+#include <GLES2/gl2.h>
 
 namespace OHOS {
-class WlSubsurface : public RefBase {
+class EglData : public RefBase {
 public:
-    WlSubsurface(struct wl_subsurface *subsurface);
-    virtual ~WlSubsurface() override;
+    virtual GLuint GetFrameBufferObj() const = 0;
 
-    struct wl_subsurface *GetRawPtr() const;
-
-    void SetPosition(int32_t x, int32_t y);
-    void PlaceAbove(const sptr<WlSurface> &sibling);
-    void PlaceBelow(const sptr<WlSurface> &sibling);
-    void SetSync();
-    void SetDesync();
-
-private:
-    struct wl_subsurface *subsurface;
+protected:
+    EglData() {}
+    virtual ~EglData() {}
 };
 } // namespace OHOS
 
-#endif // FRAMEWORKS_WM_INCLUDE_WL_SUBSURFACE_H
+#endif // INTERFACES_INNERKITS_SURFACE_EGL_DATA_H

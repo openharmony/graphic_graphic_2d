@@ -39,6 +39,7 @@ public:
 
     virtual void OnPositionChange(WindowPositionChangeFunc func) override;
     virtual void OnSizeChange(WindowSizeChangeFunc func) override;
+    virtual void OnBeforeFrameSubmit(BeforeFrameSubmitFunc func) override;
 
 private:
     SubwindowVideoImpl() = default;
@@ -68,6 +69,7 @@ private:
     sptr<WlSubsurface> wlSubsurface = nullptr;
     sptr<WlSurface> wlSurface = nullptr;
     sptr<WlBuffer> wlBuffer = nullptr;
+    BeforeFrameSubmitFunc onBeforeFrameSubmitFunc = nullptr;
 };
 } // namespace OHOS
 #endif // FRAMEWORKS_WM_INCLUDE_SUBWINDOW_VIDEO_IMPL_H

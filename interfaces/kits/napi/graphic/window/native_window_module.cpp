@@ -325,7 +325,8 @@ napi_value WindowModuleInit(napi_env env, napi_value exports)
 }
 } // namespace OHOS
 
-extern "C" __attribute__((constructor)) void RegisterModule(void)
+extern "C" {
+__attribute__((constructor)) static void RegisterModule(void)
 {
     napi_module windowModule = {
         .nm_version = 1, // NAPI v1
@@ -336,4 +337,5 @@ extern "C" __attribute__((constructor)) void RegisterModule(void)
         .nm_priv = nullptr,
     };
     napi_module_register(&windowModule);
+}
 }

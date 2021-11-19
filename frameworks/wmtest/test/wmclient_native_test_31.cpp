@@ -13,10 +13,12 @@
  * limitations under the License.
  */
 
-#include "crash_native_test_1.h"
+#include "wmclient_native_test_31.h"
 
-#include <thread>
-#include <unistd.h>
+#include <cstdio>
+
+#include <display_type.h>
+#include <window_manager.h>
 
 #include "inative_test.h"
 #include "native_test_class.h"
@@ -25,53 +27,56 @@
 using namespace OHOS;
 
 namespace {
-class Object : public RefBase {
-};
-
-class CrashNativeTest1 : public INativeTest {
+class WMClientNativeTest31 : public INativeTest {
 public:
     std::string GetDescription() const override
     {
-        constexpr const char *desc = "raise wptr double free";
+        constexpr const char *desc = "egl surface test";
         return desc;
     }
 
     std::string GetDomain() const override
     {
-        constexpr const char *domain = "!crash";
+        constexpr const char *domain = "wmclient";
         return domain;
     }
 
     int32_t GetID() const override
     {
-        constexpr int32_t id = 1;
+        constexpr int32_t id = 31;
         return id;
     }
 
     uint32_t GetLastTime() const override
     {
-        constexpr uint32_t lastTime = 2000;
+        constexpr uint32_t lastTime = LAST_TIME_FOREVER;
         return lastTime;
     }
 
     void Run(int32_t argc, const char **argv) override
     {
-        wptr<Object> wptr = nullptr;
-        sptr<Object> sptr = nullptr;
-
-        auto threadFunc = [&wptr]() {
-            for (int32_t i = 0; i < static_cast<int32_t>(1e9); i++) {
-                auto sp = wptr.promote();
-                sleep(0);
-            }
-        };
-        std::thread thread(threadFunc);
-
-        for (int32_t i = 0; i < static_cast<int32_t>(1e9); i++) {
-            sptr = new Object();
-            wptr = sptr;
-            sptr = nullptr;
+        auto initRet = WindowManager::GetInstance()->Init();
+        if (initRet) {
+            printf("init failed with %s\n", WMErrorStr(initRet).c_str());
+            ExitTest();
+            return;
         }
+
+        window = NativeTestFactory::CreateWindow(WINDOW_TYPE_NORMAL);
+        if (window == nullptr) {
+            ExitTest();
+            return;
+        }
+
+        window->SwitchTop();
+        auto producer = window->GetProducer();
+        sptr<EglSurface> pEglSurface = EglSurface::CreateEglSurfaceAsProducer(producer);
+        windowSync = NativeTestSync::CreateSyncEgl(NativeTestDraw::FlushDrawEgl,
+            pEglSurface, window->GetWidth(), window->GetHeight());
     }
+
+private:
+    sptr<Window> window = nullptr;
+    sptr<NativeTestSync> windowSync = nullptr;
 } g_autoload;
 } // namespace

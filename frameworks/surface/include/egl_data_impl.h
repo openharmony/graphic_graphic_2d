@@ -13,26 +13,29 @@
  * limitations under the License.
  */
 
-#ifndef FRAMEWORKS_WM_INCLUDE_WP_VIEWPORT_H
-#define FRAMEWORKS_WM_INCLUDE_WP_VIEWPORT_H
+#ifndef FRAMEWORKS_SURFACE_INCLUDE_EGL_DATA_IMPL_H
+#define FRAMEWORKS_SURFACE_INCLUDE_EGL_DATA_IMPL_H
 
-#include <refbase.h>
-#include <viewporter-client-protocol.h>
+#include "egl_data.h"
+#include "egl_manager.h"
+#include "surface_type.h"
+#include "surface_buffer_impl.h"
 
 namespace OHOS {
-class WpViewport : public RefBase {
+class EglDataImpl : public EglData {
 public:
-    WpViewport(struct wp_viewport *viewport);
-    virtual ~WpViewport() override;
+    EglDataImpl();
+    virtual ~EglDataImpl();
 
-    struct wp_viewport *GetRawPtr() const;
-
-    void SetSource(double x, double y, double w, double h);
-    void SetDestination(uint32_t w, uint32_t h);
+    virtual GLuint GetFrameBufferObj() const override;
+    SurfaceError CreateEglData(const sptr<SurfaceBufferImpl> &buffer);
 
 private:
-    struct wp_viewport *viewport;
+    sptr<EglManager> sEglManager_;
+    EGLImageKHR eglImage_;
+    GLuint glTexture_;
+    GLuint glFbo_;
 };
 } // namespace OHOS
 
-#endif // FRAMEWORKS_WM_INCLUDE_WP_VIEWPORT_H
+#endif // FRAMEWORKS_SURFACE_INCLUDE_EGL_DATA_IMPL_H

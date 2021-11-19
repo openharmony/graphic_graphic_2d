@@ -13,31 +13,24 @@
  * limitations under the License.
  */
 
-#ifndef FRAMEWORKS_WM_INCLUDE_WL_SUBSURFACE_H
-#define FRAMEWORKS_WM_INCLUDE_WL_SUBSURFACE_H
+#include <surface.h>
 
-#include <refbase.h>
-#include <wayland-client-protocol.h>
+#include <hilog/log.h>
 
-#include "wl_surface.h"
+#include "buffer_log.h"
+#include "producer_egl_surface.h"
 
 namespace OHOS {
-class WlSubsurface : public RefBase {
-public:
-    WlSubsurface(struct wl_subsurface *subsurface);
-    virtual ~WlSubsurface() override;
+namespace {
+constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, 0, "EglSurface" };
+}
 
-    struct wl_subsurface *GetRawPtr() const;
-
-    void SetPosition(int32_t x, int32_t y);
-    void PlaceAbove(const sptr<WlSurface> &sibling);
-    void PlaceBelow(const sptr<WlSurface> &sibling);
-    void SetSync();
-    void SetDesync();
-
-private:
-    struct wl_subsurface *subsurface;
-};
+sptr<EglSurface> EglSurface::CreateEglSurfaceAsProducer(sptr<IBufferProducer>& producer)
+{
+    sptr<ProducerEglSurface> surface = new ProducerEglSurface(producer);
+    if (surface == nullptr) {
+        BLOGE("Failure, Reason: no memory.");
+    }
+    return surface;
+}
 } // namespace OHOS
-
-#endif // FRAMEWORKS_WM_INCLUDE_WL_SUBSURFACE_H

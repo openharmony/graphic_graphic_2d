@@ -70,6 +70,18 @@ SurfaceError ConsumerSurface::RequestBuffer(sptr<SurfaceBuffer>& buffer,
     return SURFACE_ERROR_NOT_SUPPORT;
 }
 
+SurfaceError ConsumerSurface::RequestBufferNoFence(sptr<SurfaceBuffer>& buffer,
+                                                   BufferRequestConfig &config)
+{
+    return SURFACE_ERROR_NOT_SUPPORT;
+}
+
+SurfaceError ConsumerSurface::RequestBufferWithFence(sptr<SurfaceBuffer>& buffer,
+                                                     int32_t &fence, BufferRequestConfig &config)
+{
+    return SURFACE_ERROR_NOT_SUPPORT;
+}
+
 SurfaceError ConsumerSurface::CancelBuffer(sptr<SurfaceBuffer>& buffer)
 {
     return SURFACE_ERROR_NOT_SUPPORT;
@@ -77,6 +89,12 @@ SurfaceError ConsumerSurface::CancelBuffer(sptr<SurfaceBuffer>& buffer)
 
 SurfaceError ConsumerSurface::FlushBuffer(sptr<SurfaceBuffer>& buffer,
                                           int32_t fence, BufferFlushConfig &config)
+{
+    return SURFACE_ERROR_NOT_SUPPORT;
+}
+
+SurfaceError ConsumerSurface::FlushBufferNoFence(sptr<SurfaceBuffer>& buffer,
+                                                 BufferFlushConfig &config)
 {
     return SURFACE_ERROR_NOT_SUPPORT;
 }

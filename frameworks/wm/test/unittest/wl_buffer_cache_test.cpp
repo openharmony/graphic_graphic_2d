@@ -87,7 +87,6 @@ HWTEST_F(WlBufferCacheTest, Add, testing::ext::TestSize.Level0)
         << "2.c. get producer surface (psurface != nullptr)";
 
     // 2.d. get surface buffer
-    int32_t fence;
     BufferRequestConfig config = {
         .width = 0x100,  // any value just small
         .height = 0x100, // any value just small
@@ -95,7 +94,7 @@ HWTEST_F(WlBufferCacheTest, Add, testing::ext::TestSize.Level0)
         .format = PIXEL_FMT_RGBA_8888,
         .usage = HBM_USE_CPU_READ | HBM_USE_CPU_WRITE | HBM_USE_MEM_DMA,
     };
-    auto sret = psurface->RequestBuffer(sbuffer1, fence, config);
+    auto sret = psurface->RequestBufferNoFence(sbuffer1, config);
     ASSERT_EQ(sret, SURFACE_ERROR_OK) << "CaseDescription: "
         << "2.d. get surface buffer (sret == SURFACE_ERROR_OK)";
 

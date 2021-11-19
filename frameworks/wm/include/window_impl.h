@@ -37,6 +37,7 @@ public:
     sptr<WlSurface> GetWlSurface() const;
 
     virtual sptr<Surface> GetSurface() const override;
+    virtual sptr<IBufferProducer> GetProducer() const override;
     virtual int32_t       GetID() const override;
     virtual int32_t       GetX() const override;
     virtual int32_t       GetY() const override;
@@ -65,6 +66,7 @@ public:
     virtual void OnVisibilityChange(WindowVisibilityChangeFunc func) override;
     virtual void OnTypeChange(WindowTypeChangeFunc func) override;
     virtual void OnModeChange(WindowModeChangeFunc func) override;
+    virtual void OnBeforeFrameSubmit(BeforeFrameSubmitFunc func) override;
 
     // listener
     virtual WMError OnTouch(OnTouchFunc cb) override;
@@ -127,6 +129,7 @@ private:
 
     sptr<InputListener> logListener = nullptr;
     sptr<InputListener> exportListener = nullptr;
+    BeforeFrameSubmitFunc onBeforeFrameSubmitFunc = nullptr;
 };
 } // namespace OHOS
 

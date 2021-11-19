@@ -100,7 +100,7 @@ struct zwp_linux_buffer_params_v1 *WlDMABufferFactory::CreateParam(BufferHandle 
 
     uint64_t modifier = 0;
     zwp_linux_buffer_params_v1_add(param, handle->fd, 0, 0,
-        handle->width * STRIDE_NUM, modifier >> MODIFY_OFFSET, modifier & 0xffffffff);
+        handle->stride, modifier >> MODIFY_OFFSET, modifier & 0xffffffff);
 
     SendBufferHandle(param, handle);
 
@@ -134,7 +134,7 @@ bool PixelFormatToDrmFormat(int32_t pixelFormat, uint32_t &drmFormat)
         {PIXEL_FMT_RGBX_5551, DRM_FORMAT_RGBX5551},
         {PIXEL_FMT_RGBA_5551, DRM_FORMAT_RGBA5551},
         {PIXEL_FMT_RGBX_8888, DRM_FORMAT_RGBX8888},
-        {PIXEL_FMT_RGBA_8888, DRM_FORMAT_RGBA8888},
+        {PIXEL_FMT_RGBA_8888, DRM_FORMAT_ABGR8888},
         {PIXEL_FMT_RGB_888, DRM_FORMAT_RGB888},
         {PIXEL_FMT_BGR_565, DRM_FORMAT_BGR565},
         {PIXEL_FMT_BGRX_4444, DRM_FORMAT_BGRX4444},
@@ -148,6 +148,9 @@ bool PixelFormatToDrmFormat(int32_t pixelFormat, uint32_t &drmFormat)
         {PIXEL_FMT_UYVY_422_PKG, DRM_FORMAT_UYVY},
         {PIXEL_FMT_YVYU_422_PKG, DRM_FORMAT_YVYU},
         {PIXEL_FMT_VYUY_422_PKG, DRM_FORMAT_VYUY},
+        {PIXEL_FMT_YCBCR_420_SP, DRM_FORMAT_NV12},
+        {PIXEL_FMT_YCRCB_420_SP, DRM_FORMAT_NV21},
+        {PIXEL_FMT_YCBCR_420_P, DRM_FORMAT_YUV420},
     };
 
     for (const auto &fmt : formatTable) {
@@ -228,7 +231,7 @@ sptr<WlBuffer> WlDMABufferFactory::Create(BufferHandle *handle)
     g_bufferPromises[param] = new Promise<struct wl_buffer *>();
     auto dl = display->AddDispatchDeathListener([&]() { g_bufferPromises[param]->Resolve(nullptr); });
 
-    constexpr uint32_t flags = ZWP_LINUX_BUFFER_PARAMS_V1_FLAGS_Y_INVERT;
+    constexpr uint32_t flags = 0;
     zwp_linux_buffer_params_v1_create(param, handle->width, handle->height, drmFormat, flags);
     display->Flush(); // send request
 

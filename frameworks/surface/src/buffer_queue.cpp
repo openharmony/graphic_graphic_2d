@@ -17,7 +17,10 @@
 
 #include <algorithm>
 #include <display_type.h>
+#include <fstream>
+#include <sstream>
 #include <sys/time.h>
+#include <unistd.h>
 
 #include "buffer_log.h"
 #include "buffer_manager.h"
@@ -35,7 +38,7 @@
     } while (0)
 
 #define SET_SEQ_STATE(sequence, cache, state_) \
-    cache[sequence].state = state_
+    cache[sequence].state = (state_)
 
 namespace OHOS {
 namespace {
@@ -186,6 +189,7 @@ SurfaceError BufferQueue::RequestBuffer(const BufferRequestConfig &config, Buffe
     }
     bufferImpl->GetExtraData(bedata);
     retval.buffer = bufferImpl;
+    retval.fence = bufferQueueCache_[retval.sequence].fence;
     return ret;
 }
 
@@ -280,6 +284,30 @@ SurfaceError BufferQueue::FlushBuffer(int32_t sequence, const BufferExtraData &b
     return sret;
 }
 
+void BufferQueue::DumpToFile(int32_t sequence)
+{
+    if (access("/data/bq_dump", F_OK) == -1) {
+        return;
+    }
+
+    struct timeval now;
+    gettimeofday(&now, nullptr);
+    constexpr int secToUsec = 1000 * 1000;
+    int64_t nowVal = (int64_t)now.tv_sec * secToUsec + (int64_t)now.tv_usec;
+
+    std::stringstream ss;
+    ss << "/data/dumpimage-" << getpid() << "-" << name_ << "-" << nowVal << ".raw";
+
+    sptr<SurfaceBufferImpl> &buffer = bufferQueueCache_[sequence].buffer;
+    std::ofstream rawDataFile(ss.str(), std::ofstream::binary);
+    if (!rawDataFile.good()) {
+        BLOGE("open failed: (%{public}d)%{public}s", errno, strerror(errno));
+        return;
+    }
+    rawDataFile.write(static_cast<const char *>(buffer->GetVirAddr()), buffer->GetSize());
+    rawDataFile.close();
+}
+
 SurfaceError BufferQueue::DoFlushBuffer(int32_t sequence, const BufferExtraData &bedata,
                                         int32_t fence, const BufferFlushConfig &config)
 {
@@ -310,6 +338,9 @@ SurfaceError BufferQueue::DoFlushBuffer(int32_t sequence, const BufferExtraData 
     } else {
         bufferQueueCache_[sequence].timestamp = config.timestamp;
     }
+#if 1
+    DumpToFile(sequence);
+#endif
     return SURFACE_ERROR_OK;
 }
 
@@ -410,6 +441,7 @@ SurfaceError BufferQueue::AllocBuffer(sptr<SurfaceBufferImpl>& buffer,
 SurfaceError BufferQueue::FreeBuffer(sptr<SurfaceBufferImpl>& buffer)
 {
     BLOGND("Free [%{public}d]", buffer->GetSeqNum());
+    buffer->SetEglData(nullptr);
     BufferManager::GetInstance()->Unmap(buffer);
     BufferManager::GetInstance()->Free(buffer);
     return SURFACE_ERROR_OK;

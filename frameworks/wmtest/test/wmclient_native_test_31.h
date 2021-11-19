@@ -13,25 +13,7 @@
  * limitations under the License.
  */
 
-#ifndef FRAMEWORKS_WM_TEST_UNITTEST_WP_VIEWPORT_FACTORY_TEST_H
-#define FRAMEWORKS_WM_TEST_UNITTEST_WP_VIEWPORT_FACTORY_TEST_H
+#ifndef FRAMEWORKS_WMTEST_TEST_WMCLIENT_WMCLIENT_NATIVE_TEST_31_H
+#define FRAMEWORKS_WMTEST_TEST_WMCLIENT_WMCLIENT_NATIVE_TEST_31_H
 
-#include <gtest/gtest.h>
-#include <window_manager.h>
-
-#include "wp_viewport_factory.h"
-
-namespace OHOS {
-class WpViewportFactoryTest : public testing::Test {
-public:
-    static void SetUpTestCase();
-    static void TearDownTestCase();
-    virtual void SetUp() override;
-    virtual void TearDown() override;
-
-private:
-    static inline WMError initRet = WM_ERROR_NOT_INIT;
-};
-}
-
-#endif // FRAMEWORKS_WM_TEST_UNITTEST_WP_VIEWPORT_FACTORY_TEST_H
+#endif // FRAMEWORKS_WMTEST_TEST_WMCLIENT_WMCLIENT_NATIVE_TEST_31_H

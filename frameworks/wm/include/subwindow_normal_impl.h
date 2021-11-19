@@ -40,6 +40,7 @@ public:
 
     virtual void OnPositionChange(WindowPositionChangeFunc func) override;
     virtual void OnSizeChange(WindowSizeChangeFunc func) override;
+    virtual void OnBeforeFrameSubmit(BeforeFrameSubmitFunc func) override;
 
 private:
     SubwindowNormalImpl() = default;
@@ -68,6 +69,7 @@ private:
     sptr<Surface> psurface = nullptr;
     sptr<WlSubsurface> wlSubsurface = nullptr;
     sptr<WlSurface> wlSurface = nullptr;
+    BeforeFrameSubmitFunc onBeforeFrameSubmitFunc = nullptr;
 };
 } // namespace OHOS
 

@@ -16,6 +16,7 @@
 #include "subwindow_normal_impl_test.h"
 
 #include <thread>
+#include <unistd.h>
 
 #include <window_manager.h>
 
@@ -582,7 +583,7 @@ void AlwaysMoveThreadFunc(const sptr<Promise<sptr<Subwindow>>> &subwindowPromise
 {
     while (running) {
         while (waiting) {
-            std::this_thread::yield();
+            sleep(0);
         }
         waiting = true;
         if (running == false) {
