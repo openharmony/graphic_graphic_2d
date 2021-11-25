@@ -189,7 +189,7 @@ SurfaceError BufferQueue::RequestBuffer(const BufferRequestConfig &config, Buffe
     }
     bufferImpl->GetExtraData(bedata);
     retval.buffer = bufferImpl;
-    retval.fence = bufferQueueCache_[retval.sequence].fence;
+    retval.fence = -1;
     return ret;
 }
 
@@ -211,6 +211,7 @@ SurfaceError BufferQueue::ReuseBuffer(const BufferRequestConfig &config, BufferE
 
         retval.buffer = bufferImpl;
         retval.sequence = bufferImpl->GetSeqNum();
+        retval.fence = -1;
         bufferQueueCache_[retval.sequence].config = config;
     }
 

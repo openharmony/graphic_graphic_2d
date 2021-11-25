@@ -11,18 +11,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-group("buffer_handle") {
-  public_deps = [ "buffer_handle:buffer_handle" ]
-}
+import("//build/ohos.gni")
 
-group("promise") {
-  public_deps = [ "promise:promise" ]
-}
-
-group("semaphore") {
-  public_deps = [ "semaphore:semaphore" ]
+config("test_header_config") {
+  include_dirs = [ "export" ]
 }
 
 group("test_header") {
-  public_deps = [ "test_header:test_header" ]
+  public_configs = [ ":test_header_config" ]
+  deps = [ "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog" ]
 }

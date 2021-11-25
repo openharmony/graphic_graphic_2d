@@ -56,3 +56,7 @@ group("libwmclient") {
 group("libwmservice") {
   public_deps = [ "frameworks/wmservice:libwmservice" ]
 }
+
+group("libfence") {
+  public_deps = [ "frameworks/fence:libfence" ]
+}

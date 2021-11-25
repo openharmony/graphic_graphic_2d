@@ -13,15 +13,16 @@
  * limitations under the License.
  */
 
-#ifndef FRAMEWORKS_WM_TEST_UNITTEST_TEST_HEADER_H
-#define FRAMEWORKS_WM_TEST_UNITTEST_TEST_HEADER_H
+#ifndef UTILS_INCLUDE_TEST_HEADER_H
+#define UTILS_INCLUDE_TEST_HEADER_H
 
-#include "window_manager_hilog.h"
+#include "hilog/log.h"
 
-#define _WMT_CPRINTF(color, func, fmt, ...) \
-    func({LOG_CORE, 0, "WMTEST"}, "\033[" #color "m" "<%{public}d>" fmt "\033[0m", __LINE__, ##__VA_ARGS__)
+namespace OHOS {
+#define WMT_CPRINTF(color, func, fmt, ...) \
+    func ({ LOG_CORE, 0, "TEST" }, "\033[" #color "m" "<%{public}d>" fmt "\033[0m", __LINE__, ##__VA_ARGS__)
 #define WMTLOGI(color, fmt, ...) \
-    _WMT_CPRINTF(color, HiviewDFX::HiLog::Info, "%{public}s: " fmt, __func__, ##__VA_ARGS__)
+    WMT_CPRINTF(color, HiviewDFX::HiLog::Info, "%{public}s: " fmt, __func__, ##__VA_ARGS__)
 
 #define PART(part) WMTLOGI(33, part); if (const char *strPart = part)
 #define STEP(desc) WMTLOGI(34, desc); if (const char *strDesc = desc)
@@ -36,5 +37,6 @@
 #define STEP_ASSERT_LE(l, r) STEP_ASSERT_(l, r, LE, "<=")
 #define STEP_ASSERT_GT(l, r) STEP_ASSERT_(l, r, GT, ">")
 #define STEP_ASSERT_LT(l, r) STEP_ASSERT_(l, r, LT, "<")
+} // namespace OHOS
 
-#endif // FRAMEWORKS_WM_TEST_UNITTEST_TEST_HEADER_H
+#endif // UTILS_INCLUDE_TEST_HEADER_H

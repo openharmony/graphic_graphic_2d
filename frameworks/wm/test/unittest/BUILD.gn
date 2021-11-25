@@ -238,6 +238,7 @@ ohos_static_library("wm_test_common") {
     "//foundation/graphic/standard:libwmclient",
     "//foundation/graphic/standard:libwmservice",
     "//foundation/graphic/standard/frameworks/wmserver:wms_protocol",
+    "//foundation/graphic/standard/utils:test_header",
     "//third_party/googletest:gmock",
     "//third_party/wayland-protocols_standard:linux_dmabuf_unstable_v1_protocol",
     "//third_party/wayland-protocols_standard:linux_explicit_synchronization_unstable_v1_protocol",

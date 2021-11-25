@@ -11,18 +11,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-group("buffer_handle") {
-  public_deps = [ "buffer_handle:buffer_handle" ]
-}
+group("test") {
+  testonly = true
 
-group("promise") {
-  public_deps = [ "promise:promise" ]
-}
-
-group("semaphore") {
-  public_deps = [ "semaphore:semaphore" ]
-}
-
-group("test_header") {
-  public_deps = [ "test_header:test_header" ]
+  deps = [ "unittest:unittest" ]
 }
