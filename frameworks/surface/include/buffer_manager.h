@@ -24,9 +24,9 @@
 #include "surface_buffer_impl.h"
 
 namespace OHOS {
-class BufferManager {
+class BufferManager : public RefBase {
 public:
-    static BufferManager *GetInstance();
+    static sptr<BufferManager> GetInstance();
 
     SurfaceError Init();
     SurfaceError Alloc(const BufferRequestConfig &config, sptr<SurfaceBufferImpl>& buffer);
@@ -39,6 +39,7 @@ public:
 private:
     BufferManager() = default;
     ~BufferManager() = default;
+    static inline sptr<BufferManager> instance = nullptr;
 
     std::unique_ptr<::OHOS::HDI::Display::V1_0::IDisplayGralloc> displayGralloc_ = nullptr;
 };

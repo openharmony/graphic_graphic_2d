@@ -25,6 +25,7 @@ group("unittest") {
     ":buffer_queue_producer_remote_test",
     ":buffer_queue_producer_test",
     ":buffer_queue_test",
+    ":buffer_shared_test",
     ":consumer_surface_test",
     ":producer_surface_test",
     ":surface_buffer_impl_test",
@@ -130,6 +131,17 @@ ohos_unittest("surface_buffer_impl_test") {
 
 ## UnitTest surface_buffer_impl_test }}}
 
+## UnitTest buffer_shared_test {{{
+ohos_unittest("buffer_shared_test") {
+  module_out_path = module_out_path
+
+  sources = [ "buffer_shared_test.cpp" ]
+
+  deps = [ ":surface_test_common" ]
+}
+
+## UnitTest surface_buffer_impl_test }}}
+
 ## Build surface_test_common.a {{{
 config("surface_test_common_public_config") {
   include_dirs = [ "//foundation/graphic/standard/frameworks/surface/include" ]
@@ -150,6 +162,7 @@ ohos_static_library("surface_test_common") {
   public_configs = [ ":surface_test_common_public_config" ]
 
   public_deps = [
+    "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
     "//foundation/distributedschedule/samgr/interfaces/innerkits/samgr_proxy:samgr_proxy",
     "//foundation/graphic/standard:libsurface",
   ]

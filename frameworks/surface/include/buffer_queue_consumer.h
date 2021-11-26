@@ -33,8 +33,13 @@ public:
 
     SurfaceError ReleaseBuffer(sptr<SurfaceBufferImpl>& buffer, int32_t fence);
 
+    SurfaceError AttachBuffer(sptr<SurfaceBufferImpl>& buffer);
+
+    SurfaceError DetachBuffer(sptr<SurfaceBufferImpl>& buffer);
+
     SurfaceError RegisterConsumerListener(sptr<IBufferConsumerListener>& listener);
     SurfaceError RegisterConsumerListener(IBufferConsumerListenerClazz *listener);
+    SurfaceError RegisterReleaseListener(OnReleaseFunc func);
     SurfaceError UnregisterConsumerListener();
 
     SurfaceError SetDefaultWidthAndHeight(int32_t width, int32_t height);

@@ -51,6 +51,10 @@ public:
 
     SurfaceError CleanCache() override;
 
+    virtual SurfaceError AttachBuffer(sptr<SurfaceBuffer>& buffer) override;
+    virtual SurfaceError DetachBuffer(sptr<SurfaceBuffer>& buffer) override;
+    virtual SurfaceError RegisterReleaseListener(OnReleaseFunc func) override;
+
 private:
     static inline BrokerDelegator<BufferClientProducer> delegator_;
     std::string name_ = "not init";

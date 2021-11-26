@@ -42,18 +42,14 @@ void PostTask(std::function<void()> func, uint32_t delayTime)
 
 void ExitTest()
 {
-    printf("exiting\n");
     auto runner = AppExecFwk::EventRunner::Current();
     if (runner) {
+        printf("exiting\n");
         PostTask(std::bind(&AppExecFwk::EventRunner::Stop, runner));
-    }
-
-    auto exitThreadMain = []() {
-        std::this_thread::sleep_for(1s);
+    } else {
+        printf("exit\n");
         exit(0);
-    };
-    std::thread thread(exitThreadMain);
-    thread.detach();
+    }
 }
 
 int64_t GetNowTime()
@@ -61,4 +57,4 @@ int64_t GetNowTime()
     auto now = std::chrono::steady_clock::now().time_since_epoch();
     return (int64_t)std::chrono::duration_cast<std::chrono::nanoseconds>(now).count();
 }
-}
+} // namespace OHOS

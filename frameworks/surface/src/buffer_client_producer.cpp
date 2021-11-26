@@ -117,7 +117,22 @@ SurfaceError BufferClientProducer::FlushBuffer(int32_t sequence, BufferExtraData
     return SURFACE_ERROR_OK;
 }
 
-uint32_t     BufferClientProducer::GetQueueSize()
+SurfaceError BufferClientProducer::AttachBuffer(sptr<SurfaceBuffer>& buffer)
+{
+    return SURFACE_ERROR_NOT_SUPPORT;
+}
+
+SurfaceError BufferClientProducer::DetachBuffer(sptr<SurfaceBuffer>& buffer)
+{
+    return SURFACE_ERROR_NOT_SUPPORT;
+}
+
+SurfaceError BufferClientProducer::RegisterReleaseListener(OnReleaseFunc func)
+{
+    return SURFACE_ERROR_NOT_SUPPORT;
+}
+
+uint32_t BufferClientProducer::GetQueueSize()
 {
     DEFINE_MESSAGE_VARIABLES(arguments, reply, option, BLOGE);
 

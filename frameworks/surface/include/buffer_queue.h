@@ -24,6 +24,7 @@
 #include <ibuffer_consumer_listener.h>
 #include <ibuffer_producer.h>
 #include <surface_type.h>
+#include <buffer_manager.h>
 
 #include "surface_buffer_impl.h"
 
@@ -33,6 +34,7 @@ enum BufferState {
     BUFFER_STATE_REQUESTED,
     BUFFER_STATE_FLUSHED,
     BUFFER_STATE_ACQUIRED,
+    BUFFER_STATE_ATTACHED,
 };
 
 typedef struct {
@@ -48,7 +50,7 @@ typedef struct {
 
 class BufferQueue : public RefBase {
 public:
-    BufferQueue(const std::string &name);
+    BufferQueue(const std::string &name, bool isShared = false);
     virtual ~BufferQueue();
     SurfaceError Init();
 
@@ -70,6 +72,10 @@ public:
                                int64_t &timestamp, Rect &damage);
     SurfaceError ReleaseBuffer(sptr<SurfaceBufferImpl>& buffer, int32_t fence);
 
+    SurfaceError AttachBuffer(sptr<SurfaceBufferImpl>& buffer);
+
+    SurfaceError DetachBuffer(sptr<SurfaceBufferImpl>& buffer);
+
     uint32_t GetQueueSize();
     SurfaceError SetQueueSize(uint32_t queueSize);
 
@@ -77,6 +83,7 @@ public:
 
     SurfaceError RegisterConsumerListener(sptr<IBufferConsumerListener>& listener);
     SurfaceError RegisterConsumerListener(IBufferConsumerListenerClazz *listener);
+    SurfaceError RegisterReleaseListener(OnReleaseFunc func);
     SurfaceError UnregisterConsumerListener();
 
     SurfaceError SetDefaultWidthAndHeight(int32_t width, int32_t height);
@@ -114,6 +121,9 @@ private:
     sptr<IBufferConsumerListener> listener_ = nullptr;
     IBufferConsumerListenerClazz *listenerClazz_ = nullptr;
     std::mutex mutex_;
+    sptr<BufferManager> bufferManager_ = nullptr;
+    OnReleaseFunc onBufferRelease = nullptr;
+    bool isShared_ = false;
 };
 }; // namespace OHOS
 

@@ -26,7 +26,7 @@
 namespace OHOS {
 class Surface : public RefBase {
 public:
-    static sptr<Surface> CreateSurfaceAsConsumer(std::string name = "noname");
+    static sptr<Surface> CreateSurfaceAsConsumer(std::string name = "noname", bool isShared = false);
     static sptr<Surface> CreateSurfaceAsProducer(sptr<IBufferProducer>& producer);
 
     virtual ~Surface() = default;
@@ -58,6 +58,10 @@ public:
                                        int64_t &timestamp, Rect &damage) = 0;
     virtual SurfaceError ReleaseBuffer(sptr<SurfaceBuffer>& buffer, int32_t fence) = 0;
 
+    virtual SurfaceError AttachBuffer(sptr<SurfaceBuffer>& buffer) = 0;
+
+    virtual SurfaceError DetachBuffer(sptr<SurfaceBuffer>& buffer) = 0;
+
     virtual uint32_t     GetQueueSize() = 0;
     virtual SurfaceError SetQueueSize(uint32_t queueSize) = 0;
 
@@ -75,6 +79,7 @@ public:
 
     virtual SurfaceError RegisterConsumerListener(sptr<IBufferConsumerListener>& listener) = 0;
     virtual SurfaceError RegisterConsumerListener(IBufferConsumerListenerClazz *listener) = 0;
+    virtual SurfaceError RegisterReleaseListener(OnReleaseFunc func) = 0;
     virtual SurfaceError UnregisterConsumerListener() = 0;
 
     virtual SurfaceError CleanCache() = 0;

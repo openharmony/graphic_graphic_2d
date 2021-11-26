@@ -25,8 +25,8 @@ namespace {
 static constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, 0, "ConsumerSurface" };
 }
 
-ConsumerSurface::ConsumerSurface(const std::string &name)
-    : name_(name)
+ConsumerSurface::ConsumerSurface(const std::string &name, bool isShared)
+    : name_(name), isShared_(isShared)
 {
     BLOGNI("ctor");
     consumer_ = nullptr;
@@ -42,7 +42,7 @@ ConsumerSurface::~ConsumerSurface()
 
 SurfaceError ConsumerSurface::Init()
 {
-    sptr<BufferQueue> queue_ = new BufferQueue(name_);
+    sptr<BufferQueue> queue_ = new BufferQueue(name_, isShared_);
     SurfaceError ret = queue_->Init();
     if (ret != SURFACE_ERROR_OK) {
         BLOGN_FAILURE("queue init failed");
@@ -102,23 +102,37 @@ SurfaceError ConsumerSurface::FlushBufferNoFence(sptr<SurfaceBuffer>& buffer,
 SurfaceError ConsumerSurface::AcquireBuffer(sptr<SurfaceBuffer>& buffer, int32_t &fence,
                                             int64_t &timestamp, Rect &damage)
 {
-    SurfaceError ret;
     sptr<SurfaceBufferImpl> bufferImpl = SurfaceBufferImpl::FromBase(buffer);
-    ret = consumer_->AcquireBuffer(bufferImpl, fence, timestamp, damage);
+    SurfaceError ret = consumer_->AcquireBuffer(bufferImpl, fence, timestamp, damage);
     buffer = bufferImpl;
     return ret;
 }
 
 SurfaceError ConsumerSurface::ReleaseBuffer(sptr<SurfaceBuffer>& buffer, int32_t fence)
 {
-    SurfaceError ret;
     sptr<SurfaceBufferImpl> bufferImpl = SurfaceBufferImpl::FromBase(buffer);
-    ret = consumer_->ReleaseBuffer(bufferImpl, fence);
+    SurfaceError ret = consumer_->ReleaseBuffer(bufferImpl, fence);
     buffer = bufferImpl;
     return ret;
 }
 
-uint32_t     ConsumerSurface::GetQueueSize()
+SurfaceError ConsumerSurface::AttachBuffer(sptr<SurfaceBuffer>& buffer)
+{
+    sptr<SurfaceBufferImpl> bufferImpl = SurfaceBufferImpl::FromBase(buffer);
+    SurfaceError ret = consumer_->AttachBuffer(bufferImpl);
+    buffer = bufferImpl;
+    return ret;
+}
+
+SurfaceError ConsumerSurface::DetachBuffer(sptr<SurfaceBuffer>& buffer)
+{
+    sptr<SurfaceBufferImpl> bufferImpl = SurfaceBufferImpl::FromBase(buffer);
+    SurfaceError ret = consumer_->DetachBuffer(bufferImpl);
+    buffer = bufferImpl;
+    return ret;
+}
+
+uint32_t ConsumerSurface::GetQueueSize()
 {
     return producer_->GetQueueSize();
 }
@@ -185,6 +199,11 @@ SurfaceError ConsumerSurface::RegisterConsumerListener(sptr<IBufferConsumerListe
 SurfaceError ConsumerSurface::RegisterConsumerListener(IBufferConsumerListenerClazz *listener)
 {
     return consumer_->RegisterConsumerListener(listener);
+}
+
+SurfaceError ConsumerSurface::RegisterReleaseListener(OnReleaseFunc func)
+{
+    return consumer_->RegisterReleaseListener(func);
 }
 
 SurfaceError ConsumerSurface::UnregisterConsumerListener()

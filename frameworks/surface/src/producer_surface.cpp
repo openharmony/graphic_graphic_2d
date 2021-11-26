@@ -172,6 +172,25 @@ SurfaceError ProducerSurface::ReleaseBuffer(sptr<SurfaceBuffer>& buffer, int32_t
     return SURFACE_ERROR_NOT_SUPPORT;
 }
 
+SurfaceError ProducerSurface::AttachBuffer(sptr<SurfaceBuffer>& buffer)
+{
+    if (buffer == nullptr) {
+        return SURFACE_ERROR_NULLPTR;
+    }
+    BLOGND("the addr : %{public}p", buffer.GetRefPtr());
+    return GetProducer()->AttachBuffer(buffer);
+}
+
+SurfaceError ProducerSurface::DetachBuffer(sptr<SurfaceBuffer>& buffer)
+{
+    if (buffer == nullptr) {
+        return SURFACE_ERROR_NULLPTR;
+    }
+    SurfaceError ret;
+    ret = GetProducer()->DetachBuffer(buffer);
+    return ret;
+}
+
 uint32_t     ProducerSurface::GetQueueSize()
 {
     return producer_->GetQueueSize();
@@ -245,6 +264,11 @@ SurfaceError ProducerSurface::RegisterConsumerListener(IBufferConsumerListenerCl
 SurfaceError ProducerSurface::UnregisterConsumerListener()
 {
     return SURFACE_ERROR_NOT_SUPPORT;
+}
+
+SurfaceError ProducerSurface::RegisterReleaseListener(OnReleaseFunc func)
+{
+    return producer_->RegisterReleaseListener(func);
 }
 
 bool ProducerSurface::IsRemote()
