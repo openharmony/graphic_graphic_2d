@@ -1843,15 +1843,16 @@ static void Screenshot(const struct ScreenshotFrameListener *pFrameListener, uin
         close(fd);
         return;
     }
-/*
+
     if (westonOutput->compositor->renderer->read_pixels(westonOutput, format, readPixs, 0, 0, width, height) < 0) {
         LOGE("read_pixels error.");
         wms_send_screenshot_error(pWmsController->pWlResource, WMS_ERROR_INNER_ERROR, pFrameListener->idScreen);
+        wl_client_flush(wl_resource_get_client(pWmsController->pWlResource));
         munmap(readPixs, size);
         close(fd);
         return;
     }
-*/
+
     if (westonOutput->compositor->capabilities & WESTON_CAP_CAPTURE_YFLIP) {
         FlipY(stride, height, readPixs);
     }

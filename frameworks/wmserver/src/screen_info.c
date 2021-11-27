@@ -40,8 +40,6 @@
 void SetLibInputEventListener(const LibInputEventListener listener)
 {
     set_libinput_event_listener(listener);
-    LOGE("seats is null.");
-    
 }
 
 void FreeSeatsInfo(struct SeatInfo **seats)
