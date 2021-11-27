@@ -18,11 +18,13 @@
 #include "graphic_dumper_hilog.h"
 #include "graphic_dumper_server.h"
 
-#define REMOTE_RETURN(reply, gs_error) \
-    reply.WriteInt32(gs_error);        \
-    if ((gs_error) != GSERROR_OK) {     \
-        GDLOG_FAILURE_NO(gs_error);    \
-    }                                  \
+#define REMOTE_RETURN(reply, gs_error)  \
+    do {                                \
+        (reply).WriteInt32(gs_error);   \
+        if ((gs_error) != GSERROR_OK) { \
+            GDLOG_FAILURE_NO(gs_error); \
+        }                               \
+    } while (0);                        \
     break
 
 namespace OHOS {
@@ -44,18 +46,26 @@ int32_t GraphicDumperServiceStub::OnRemoteRequest(uint32_t code, MessageParcel &
             GDLOGFE("%{public}s", tag.c_str());
             auto remoteObject = data.ReadRemoteObject();
             if (remoteObject == nullptr) {
-                REMOTE_RETURN(reply, GSERROR_INVALID_ARGUMENTS);
+                reply.WriteInt32(GSERROR_INVALID_ARGUMENTS);
+                GDLOG_FAILURE_NO(GSERROR_INVALID_ARGUMENTS);
+                break;
             }
             auto l = iface_cast<IGraphicDumperClientListener>(remoteObject);
             GSError ret = AddClientListener(tag, l);
-            REMOTE_RETURN(reply, ret);
+            reply.WriteInt32(ret);
+            if (ret != GSERROR_OK) {
+                GDLOG_FAILURE_NO(ret);
+            }
             break;
         }
         case IGRAPHIC_DUMPER_SERVICE_SEND_INFO: {
             std::string tag = data.ReadString();
             std::string info = data.ReadString();
             GSError ret = SendInfo(tag, info);
-            REMOTE_RETURN(reply, ret);
+            reply.WriteInt32(ret);
+            if (ret != GSERROR_OK) {
+                GDLOG_FAILURE_NO(ret);
+            }
             break;
         }
         default: {

@@ -18,13 +18,6 @@
 #include "graphic_dumper_hilog.h"
 #include "graphic_common.h"
 
-#define REMOTE_RETURN(reply, gs_error) \
-    reply.WriteInt32(gs_error);        \
-    if ((gs_error) != GSERROR_OK) {     \
-        GDLOG_FAILURE_NO(gs_error);    \
-    }                                  \
-    break
-
 namespace OHOS {
 namespace {
 constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, 0, "GraphicDumperInfoListenerStub" };
@@ -42,7 +35,7 @@ int32_t GraphicDumperInfoListenerStub::OnRemoteRequest(uint32_t code, MessagePar
         case IGRAPHIC_DUMPER_INFO_LISTENER_ON_INFO_COMING: {
             std::string info = data.ReadString();
             OnInfoComing(info);
-            REMOTE_RETURN(reply, GSERROR_OK);
+            reply.WriteInt32(GSERROR_OK);
             break;
         }
 

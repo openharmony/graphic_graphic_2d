@@ -18,32 +18,17 @@
 
 #include "hilog/log.h"
 namespace OHOS {
-static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, 0, "GD" };
+#define GD_CPRINTF(func, fmt, ...) func(LABEL, "<%{public}d>" fmt, __LINE__, ##__VA_ARGS__)
 
-#define GDLOG_F(...)  (void)OHOS::HiviewDFX::HiLog::Fatal(LOG_LABEL, __VA_ARGS__)
-#define GDLOG_E(...)  (void)OHOS::HiviewDFX::HiLog::Error(LOG_LABEL, __VA_ARGS__)
-#define GDLOG_W(...)  (void)OHOS::HiviewDFX::HiLog::Warn(LOG_LABEL, __VA_ARGS__)
-#define GDLOG_I(...)  (void)OHOS::HiviewDFX::HiLog::Info(LOG_LABEL, __VA_ARGS__)
-#define GDLOG_D(...)  (void)OHOS::HiviewDFX::HiLog::Debug(LOG_LABEL, __VA_ARGS__)
+#define GDLOGD(fmt, ...) GD_CPRINTF(HiviewDFX::HiLog::Debug, fmt, ##__VA_ARGS__)
+#define GDLOGI(fmt, ...) GD_CPRINTF(HiviewDFX::HiLog::Info, fmt, ##__VA_ARGS__)
+#define GDLOGW(fmt, ...) GD_CPRINTF(HiviewDFX::HiLog::Warn, fmt, ##__VA_ARGS__)
+#define GDLOGE(fmt, ...) GD_CPRINTF(HiviewDFX::HiLog::Error, fmt, ##__VA_ARGS__)
 
-#define _GD_DFUNC HiviewDFX::HiLog::Debug
-#define _GD_IFUNC HiviewDFX::HiLog::Info
-#define _GD_WFUNC HiviewDFX::HiLog::Warn
-#define _GD_EFUNC HiviewDFX::HiLog::Error
-
-#define _GD_CPRINTF(func, fmt, ...) func(LABEL, "<%{public}d>" fmt, __LINE__, ##__VA_ARGS__)
-
-#define GDLOGD(fmt, ...) _GD_CPRINTF(_GD_DFUNC, fmt, ##__VA_ARGS__)
-#define GDLOGI(fmt, ...) _GD_CPRINTF(_GD_IFUNC, fmt, ##__VA_ARGS__)
-#define GDLOGW(fmt, ...) _GD_CPRINTF(_GD_WFUNC, fmt, ##__VA_ARGS__)
-#define GDLOGE(fmt, ...) _GD_CPRINTF(_GD_EFUNC, fmt, ##__VA_ARGS__)
-
-#define _GD_FUNC __func__
-
-#define GDLOGFD(fmt, ...) GDLOGD("%{public}s: " fmt, _GD_FUNC, ##__VA_ARGS__)
-#define GDLOGFI(fmt, ...) GDLOGI("%{public}s: " fmt, _GD_FUNC, ##__VA_ARGS__)
-#define GDLOGFW(fmt, ...) GDLOGW("%{public}s: " fmt, _GD_FUNC, ##__VA_ARGS__)
-#define GDLOGFE(fmt, ...) GDLOGE("%{public}s: " fmt, _GD_FUNC, ##__VA_ARGS__)
+#define GDLOGFD(fmt, ...) GDLOGD("%{public}s: " fmt, __func__, ##__VA_ARGS__)
+#define GDLOGFI(fmt, ...) GDLOGI("%{public}s: " fmt, __func__, ##__VA_ARGS__)
+#define GDLOGFW(fmt, ...) GDLOGW("%{public}s: " fmt, __func__, ##__VA_ARGS__)
+#define GDLOGFE(fmt, ...) GDLOGE("%{public}s: " fmt, __func__, ##__VA_ARGS__)
 
 #define GDLOG_SUCCESS(fmt, ...) GDLOGI("Success, Way: " fmt, ##__VA_ARGS__)
 #define GDLOG_FAILURE(fmt, ...) GDLOGE("Failure, Reason: " fmt, ##__VA_ARGS__)

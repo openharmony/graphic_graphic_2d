@@ -27,13 +27,6 @@
 #include "graphic_dumper_hilog.h"
 #include "ipc/igraphic_dumper_command.h"
 
-#define RET_IF_NOT_OK(ret)    \
-    do {                      \
-        if (ret != GSERROR_OK) {   \
-            return ret;       \
-        }                     \
-    } while (0)                \
-
 namespace OHOS {
 namespace {
 constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, 0, "GraphicDumperHelperImpl" };
@@ -106,32 +99,38 @@ GSError GraphicDumperHelperImpl::Init()
     }
     requestConnectTime = nowTime;
     GSError ret = InitSA(GRAPHIC_DUMPER_SERVICE_SA_ID);
-    if (ret == GSERROR_OK) {
-        {
-            std::lock_guard<std::mutex> guard(onConfigChangeMutex_);
-            for (const auto& iter : onConfigChangeMap_) {
-                ret = AddClientListener(iter.first);
-                RET_IF_NOT_OK(ret);
-            }
-        }
+    if (ret != GSERROR_OK) {
+        return ret;
+    }
 
-        {
-            std::lock_guard<std::mutex> guard(onDumperFuncsMutex_);
-            for (const auto& iter : onDumpFuncsMap_) {
-                ret = AddClientListener(iter.first);
-                RET_IF_NOT_OK(ret);
+    {
+        std::lock_guard<std::mutex> guard(onConfigChangeMutex_);
+        for (const auto& iter : onConfigChangeMap_) {
+            ret = AddClientListener(iter.first);
+            if (ret != GSERROR_OK) {
+                return ret;
             }
         }
+    }
 
-        {
-            std::lock_guard<std::mutex> guard(cacheInfoMutex_);
-            for (const auto& infoStruct : cacheInfo_) {
-                ret = service_->SendInfo(infoStruct.tag, infoStruct.info);
-                GDLOG_SUCCESS("SendInfo is %{public}d", ret);
+    {
+        std::lock_guard<std::mutex> guard(onDumperFuncsMutex_);
+        for (const auto& iter : onDumpFuncsMap_) {
+            ret = AddClientListener(iter.first);
+            if (ret != GSERROR_OK) {
+                return ret;
             }
-            cacheInfo_.clear();
-            cacheInfo_.shrink_to_fit();
         }
+    }
+
+    {
+        std::lock_guard<std::mutex> guard(cacheInfoMutex_);
+        for (const auto& infoStruct : cacheInfo_) {
+            ret = service_->SendInfo(infoStruct.tag, infoStruct.info);
+            GDLOG_SUCCESS("SendInfo is %{public}d", ret);
+        }
+        cacheInfo_.clear();
+        cacheInfo_.shrink_to_fit();
     }
     return ret;
 }

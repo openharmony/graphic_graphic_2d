@@ -18,17 +18,11 @@
 #include "graphic_dumper_hilog.h"
 #include "graphic_common.h"
 
-#define REMOTE_RETURN(reply, gs_error) \
-    reply.WriteInt32(gs_error);        \
-    if ((gs_error) != GSERROR_OK) {     \
-        GDLOG_FAILURE_NO(gs_error);    \
-    }                                  \
-    break
-
 namespace OHOS {
 namespace {
 constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, 0, "GraphicDumperClientListenerStub" };
 }
+
 int32_t GraphicDumperClientListenerStub::OnRemoteRequest(uint32_t code, MessageParcel& data,
     MessageParcel& reply, MessageOption& option)
 {
@@ -43,21 +37,19 @@ int32_t GraphicDumperClientListenerStub::OnRemoteRequest(uint32_t code, MessageP
             std::string val = data.ReadString();
             GDLOGI("%{public}s -> %{public}s", tag.c_str(), val.c_str());
             OnConfigChange(tag, val);
-            REMOTE_RETURN(reply, GSERROR_OK);
-            break;
+            reply.WriteInt32(GSERROR_OK);
         }
+            break;
         case IGRAPHIC_DUMPER_CLIENT_LISTENER_ON_DUMP: {
             std::string val = data.ReadString();
             OnDump(val);
-            REMOTE_RETURN(reply, GSERROR_OK);
-            break;
+            reply.WriteInt32(GSERROR_OK);
         }
-
-        default: {
+            break;
+        default:
             GDLOGFE("code %{public}d cannot process", code);
             return 1;
             break;
-        }
     }
     return 0;
 }
