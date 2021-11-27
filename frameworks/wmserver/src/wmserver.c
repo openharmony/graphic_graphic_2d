@@ -74,6 +74,7 @@ struct WindowSurface {
     int32_t height;
     int32_t lastSurfaceWidth;
     int32_t lastSurfaceHeight;
+    int32_t firstCommit;
 
     struct wl_list link;
 };
@@ -218,15 +219,21 @@ static void SetSourceRectangle(const struct WindowSurface *windowSurface,
         (uint32_t)x, (uint32_t)y, (uint32_t)width, (uint32_t)height);
 }
 
-static void SetDestinationRectangle(const struct WindowSurface *windowSurface,
+static void SetDestinationRectangle(struct WindowSurface *windowSurface,
     int32_t x, int32_t y, int32_t width, int32_t height)
 {
     const struct ivi_layout_interface_for_wms *layoutInterface = windowSurface->controller->pWmsCtx->pLayoutInterface;
     struct ivi_layout_surface *layoutSurface = windowSurface->layoutSurface;
 
     const struct ivi_layout_surface_properties *prop = layoutInterface->get_properties_of_surface(layoutSurface);
-    layoutInterface->surface_set_transition(layoutSurface,
-        IVI_LAYOUT_TRANSITION_VIEW_DEFAULT, TIMER_INTERVAL_MS); // ms
+    if (windowSurface->firstCommit == 1) {
+        layoutInterface->surface_set_transition(layoutSurface,
+                IVI_LAYOUT_TRANSITION_VIEW_DEFAULT, TIMER_INTERVAL_MS); // ms
+    } else {
+        layoutInterface->surface_set_transition(layoutSurface,
+                IVI_LAYOUT_TRANSITION_NONE, TIMER_INTERVAL_MS); // ms
+        windowSurface->firstCommit = 1;
+    }
 
     if (width < 0) {
         width = prop->dest_width;
