@@ -11,22 +11,31 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-group("buffer_handle") {
-  public_deps = [ "buffer_handle:buffer_handle" ]
+import("//build/ohos.gni")
+
+## Build option_parser.so {{{
+config("option_parser_config") {
+  visibility = [ ":*" ]
+
+  cflags = [
+    "-Wall",
+    "-Werror",
+    "-g3",
+  ]
 }
 
-group("promise") {
-  public_deps = [ "promise:promise" ]
+config("option_parser_public_config") {
+  include_dirs = [ "export" ]
 }
 
-group("semaphore") {
-  public_deps = [ "semaphore:semaphore" ]
-}
+ohos_shared_library("option_parser") {
+  sources = [ "src/option_parser.cpp" ]
 
-group("test_header") {
-  public_deps = [ "test_header:test_header" ]
-}
+  configs = [ ":option_parser_config" ]
 
-group("option_parser") {
-  public_deps = [ "option_parser:option_parser" ]
+  public_configs = [ ":option_parser_public_config" ]
+
+  subsystem_name = "graphic"
+  part_name = "graphic_standard"
 }
+## Build option_parser.so }}}
