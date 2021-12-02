@@ -17,8 +17,9 @@
 
 #include <cinttypes>
 #include <cstdio>
-#include <securec.h>
+#include <iostream>
 
+#include <option_parser.h>
 #include <zlib.h>
 
 #include "inative_test.h"
@@ -56,16 +57,11 @@ public:
 
     void Run(int32_t argc, const char **argv) override
     {
-        if (argc <= 1) {
-            printf("need a compress size\n");
-            ExitTest();
-            return;
-        }
-
-        uint32_t size = -1;
-        int ret = sscanf_s(argv[1], "%u", &size);
-        if (ret == 0) {
-            printf("%s parse argv[2] failed\n", __func__);
+        OptionParser parser;
+        int32_t size = -1;
+        parser.AddArguments(size);
+        if (parser.Parse(argc, argv)) {
+            std::cerr << parser.GetErrorString() << std::endl;
             ExitTest();
             return;
         }

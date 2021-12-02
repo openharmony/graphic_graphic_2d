@@ -52,6 +52,10 @@ public:
     virtual WMError ListenNextScreenShot(int32_t id, IScreenShotCallback *cb) override;
     virtual WMError ListenNextWindowShot(const sptr<Window> &window, IWindowShotCallback *cb) override;
 
+    virtual WMError CreateVirtualDisplay(const sptr<VirtualDisplayOption> &option) override;
+    virtual WMError DestroyVirtualDisplay(uint32_t did) override;
+    virtual WMError SetDisplayMode(WMSDisplayMode mode) override;
+
 private:
     WindowManagerImpl();
     virtual ~WindowManagerImpl() override;

@@ -42,24 +42,27 @@ void InputListenerManager::Init()
 
 void InputListenerManager::Deinit()
 {
-    if (seat != nullptr) {
-        wl_seat_destroy(seat);
-        seat = nullptr;
-    }
+    while (!seats.empty()) {
+        if (seats.back().seat != nullptr) {
+            wl_seat_destroy(seats.back().seat);
+            seats.back().seat = nullptr;
+        }
 
-    if (pointer != nullptr) {
-        wl_pointer_destroy(pointer);
-        pointer = nullptr;
-    }
+        if (seats.back().pointer != nullptr) {
+            wl_pointer_destroy(seats.back().pointer);
+            seats.back().pointer = nullptr;
+        }
 
-    if (keyboard != nullptr) {
-        wl_keyboard_destroy(keyboard);
-        keyboard = nullptr;
-    }
+        if (seats.back().keyboard != nullptr) {
+            wl_keyboard_destroy(seats.back().keyboard);
+            seats.back().keyboard = nullptr;
+        }
 
-    if (touch != nullptr) {
-        wl_touch_destroy(touch);
-        touch = nullptr;
+        if (seats.back().touch != nullptr) {
+            wl_touch_destroy(seats.back().touch);
+            seats.back().touch = nullptr;
+        }
+        seats.pop_back();
     }
 
     g_getFocus = []() { return InputListeners(); };
@@ -138,21 +141,25 @@ void InputListenerManager::OnAppear(const GetServiceFunc get, const std::string 
 {
     if (iname == "wl_seat") {
         constexpr uint32_t wlSeatVersion = 1;
-        seat = static_cast<struct wl_seat *>(get(&wl_seat_interface, wlSeatVersion));
-        if (seat == nullptr) {
+        struct wl_seat *s = static_cast<struct wl_seat *>(get(&wl_seat_interface, wlSeatVersion));
+        if (s == nullptr) {
             return;
         }
 
+        Seat seat = {
+            .seat = s,
+        };
+        seats.push_back(seat);
         static struct wl_seat_listener listener = { SeatHandleCapabilities };
-        wl_seat_add_listener(seat, &listener, nullptr);
+        wl_seat_add_listener(s, &listener, nullptr);
     }
 }
 
-void InputListenerManager::SeatHandleCapabilities(void *, struct wl_seat *, uint32_t caps)
+void InputListenerManager::SeatHandleCapabilities(void *, struct wl_seat * seat, uint32_t caps)
 {
-    InputListenerManager::RegisterPointerListener(caps);
-    InputListenerManager::RegisterKeyboardListener(caps);
-    InputListenerManager::RegisterTouchListener(caps);
+    InputListenerManager::RegisterPointerListener(caps, seat);
+    InputListenerManager::RegisterKeyboardListener(caps, seat);
+    InputListenerManager::RegisterTouchListener(caps, seat);
 }
 
 namespace {
@@ -448,8 +455,23 @@ void OnTouchOrientation(void *, struct wl_touch *,
 }
 } // namespace
 
-void InputListenerManager::RegisterPointerListener(uint32_t caps)
+uint32_t InputListenerManager::FindSeatNum(struct wl_seat *seat)
 {
+    uint32_t num = 1;
+    for (uint32_t i = 0; i < seats.size(); i++) {
+        if (seat == seats[i].seat) {
+            num = i;
+            break;
+        }
+    }
+    return num;
+}
+
+void InputListenerManager::RegisterPointerListener(uint32_t caps, struct wl_seat *seat)
+{
+    struct wl_pointer *pointer = nullptr;
+    uint32_t num = FindSeatNum(seat);
+    pointer = seats[num].pointer;
     bool havePointerCapability = !!(caps & WL_SEAT_CAPABILITY_POINTER);
     if (havePointerCapability == true && pointer == nullptr) {
         static struct wl_pointer_listener listener = {
@@ -474,10 +496,14 @@ void InputListenerManager::RegisterPointerListener(uint32_t caps)
         wl_pointer_destroy(pointer);
         pointer = nullptr;
     }
+    seats[num].pointer = pointer;
 }
 
-void InputListenerManager::RegisterKeyboardListener(uint32_t caps)
+void InputListenerManager::RegisterKeyboardListener(uint32_t caps, struct wl_seat *seat)
 {
+    struct wl_keyboard *keyboard = nullptr;
+    uint32_t num = FindSeatNum(seat);
+    keyboard = seats[num].keyboard;
     bool haveKeyboardCapability = !!(caps & WL_SEAT_CAPABILITY_KEYBOARD);
     if (haveKeyboardCapability == true && keyboard == nullptr) {
         static struct wl_keyboard_listener listener = {
@@ -499,10 +525,14 @@ void InputListenerManager::RegisterKeyboardListener(uint32_t caps)
         wl_keyboard_destroy(keyboard);
         keyboard = nullptr;
     }
+    seats[num].keyboard = keyboard;
 }
 
-void InputListenerManager::RegisterTouchListener(uint32_t caps)
+void InputListenerManager::RegisterTouchListener(uint32_t caps, struct wl_seat *seat)
 {
+    struct wl_touch *touch = nullptr;
+    uint32_t num = FindSeatNum(seat);
+    touch = seats[num].touch;
     bool haveTouchCapability = !!(caps & WL_SEAT_CAPABILITY_TOUCH);
     if (haveTouchCapability == true && touch == nullptr) {
         static const struct wl_touch_listener listener = {
@@ -525,5 +555,6 @@ void InputListenerManager::RegisterTouchListener(uint32_t caps)
         wl_touch_destroy(touch);
         touch = nullptr;
     }
+    seats[num].touch = touch;
 }
 } // namespace OHOS

@@ -33,7 +33,9 @@
 #define NUMBER_VERTICES 4
 
 namespace OHOS {
-sptr<Window> NativeTestFactory::CreateWindow(WindowType type, sptr<Surface> csurface)
+sptr<Window> NativeTestFactory::CreateWindow(WindowType type,
+                                             sptr<Surface> csurface,
+                                             std::optional<uint32_t> did)
 {
     auto wm = WindowManager::GetInstance();
     if (wm == nullptr) {
@@ -48,6 +50,7 @@ sptr<Window> NativeTestFactory::CreateWindow(WindowType type, sptr<Surface> csur
     sptr<Window> window;
     option->SetWindowType(type);
     option->SetConsumerSurface(csurface);
+    option->SetDisplay(did.value_or(defaultDisplayID));
     wm->CreateWindow(window, option);
     if (window == nullptr) {
         printf("NativeTestFactory::CreateWindow return nullptr\n");

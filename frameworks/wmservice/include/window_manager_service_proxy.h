@@ -57,9 +57,11 @@ public:
     virtual sptr<PromiseWMError> ScaleTo(int32_t wid, uint32_t width, uint32_t height) override;
     virtual sptr<PromiseWMError> SetWindowType(int32_t wid, WindowType type) override;
     virtual sptr<PromiseWMError> SetWindowMode(int32_t wid, WindowMode mode) override;
+    virtual sptr<PromiseWMError> CreateVirtualDisplay(int32_t x, int32_t y, int32_t width, int32_t height) override;
+    virtual sptr<PromiseWMError> DestroyVirtualDisplay(uint32_t did) override;
 
     static void OnReply(wms_error);
-    static void OnDisplayChange(uint32_t, const char *, wms_screen_status, int32_t, int32_t);
+    static void OnDisplayChange(uint32_t, const char *, wms_screen_status, int32_t, int32_t, wms_screen_type type);
     static void OnDisplayPower(uint32_t, int32_t);
     static void OnDisplayBacklight(uint32_t, uint32_t);
     static void OnDisplayModeChange(uint32_t);

@@ -6,6 +6,10 @@
         "//foundation/graphic/standard/interfaces/kits/js/declaration:window",
         "//foundation/graphic/standard/interfaces/kits/napi:napi_packages",
 
+        "//foundation/graphic/standard/frameworks/dumper:gdumper.ini",
+        "//foundation/graphic/standard/frameworks/dumper:graphic_dumper_server",
+        "//foundation/graphic/standard/frameworks/dumper:gdumper",
+
         "//third_party/wayland-ivi-extension:ivi-controller",
         "//third_party/wayland-ivi-extension:ivi-input-controller",
         "//third_party/wayland-ivi-extension:libscreen-info-module",

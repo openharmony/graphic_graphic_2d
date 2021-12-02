@@ -16,10 +16,16 @@ service vsync_server /system/bin/vsync_server
     disabled
     seclabel u:r:wms_service:s0
 
+service graphic_dumper_server /system/bin/graphic_dumper_server
+    class weston
+    disabled
+    seclabel u:r:wms_service:s0
+
 service bootanimation /system/bin/bootanimation
     class weston
     disabled
     oneshot
 
 on weston_start
+    start graphic_dumper_server
     start bootanimation

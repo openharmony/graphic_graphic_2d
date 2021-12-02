@@ -148,6 +148,8 @@ ohos_shared_library("libwmclient") {
     "src/subwindow_option_impl.cpp",
     "src/subwindow_video_impl.cpp",
     "src/tester.cpp",
+    "src/virtual_display_option.cpp",
+    "src/virtual_display_option_impl.cpp",
     "src/wayland_service.cpp",
     "src/window_attribute.cpp",
     "src/window_impl.cpp",
