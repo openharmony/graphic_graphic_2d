@@ -76,7 +76,8 @@ WMError WindowImpl::CreateRemoteWindow(sptr<WindowImpl> &wi,
     }
 
     auto windowManagerServer = SingletonContainer::Get<WindowManagerServer>();
-    auto promise = windowManagerServer->CreateWindow(wi->wlSurface, 0, option->GetWindowType());
+    auto promise = windowManagerServer->CreateWindow(wi->wlSurface,
+        option->GetDisplay(), option->GetWindowType());
     if (promise == nullptr) {
         WMLOGFE("CreateWindow return nullptr promise");
         return WM_ERROR_NEW;

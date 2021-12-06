@@ -26,3 +26,7 @@ group("semaphore") {
 group("test_header") {
   public_deps = [ "test_header:test_header" ]
 }
+
+group("option_parser") {
+  public_deps = [ "option_parser:option_parser" ]
+}

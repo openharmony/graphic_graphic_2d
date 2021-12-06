@@ -69,3 +69,7 @@ group("libgl") {
   ]
   public_deps += libgl
 }
+
+group("libgraphic_dumper_client") {
+  public_deps = [ "frameworks/dumper:libgraphic_dumper_client" ]
+}

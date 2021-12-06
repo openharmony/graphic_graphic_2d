@@ -27,6 +27,7 @@
 #include "window.h"
 #include "window_manager_type.h"
 #include "window_option.h"
+#include "virtual_display_option.h"
 
 namespace OHOS {
 class WindowManager : public RefBase {
@@ -45,6 +46,10 @@ public:
 
     virtual WMError ListenNextScreenShot(int32_t id, IScreenShotCallback *cb) = 0;
     virtual WMError ListenNextWindowShot(const sptr<Window> &window, IWindowShotCallback *cb) = 0;
+
+    virtual WMError CreateVirtualDisplay(const sptr<VirtualDisplayOption> &option) = 0;
+    virtual WMError DestroyVirtualDisplay(uint32_t did) = 0;
+    virtual WMError SetDisplayMode(WMSDisplayMode mode) = 0;
 };
 } // namespace OHOS
 

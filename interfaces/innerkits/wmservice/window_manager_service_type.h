@@ -23,14 +23,6 @@
 #include <window_manager_type.h>
 
 namespace OHOS {
-// bitmask
-enum WMSDisplayMode {
-    WM_DISPLAY_MODE_SINGLE = 1,
-    WM_DISPLAY_MODE_CLONE = 2,
-    WM_DISPLAY_MODE_EXTEND = 4,
-    WM_DISPLAY_MODE_EXPAND = 8,
-};
-
 enum WMSDisplayDirection {
     WMS_DISPLAY_DIRECTION_DOWN = 0,
     WMS_DISPLAY_DIRECTION_LEFT = 1,

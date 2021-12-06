@@ -1,0 +1,178 @@
+# Copyright (c) 2021 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/ohos.gni")
+
+## Build libgraphic_dumper_client.so {{{
+config("graphic_dumper_client_config") {
+  visibility = [ ":*" ]
+
+  include_dirs = [
+    "include",
+    "//utils/system/safwk/native/include",
+  ]
+
+  cflags = [
+    "-Wall",
+    "-Werror",
+    "-g3",
+  ]
+}
+
+config("graphic_dumper_client_public_config") {
+  include_dirs = [
+    "//foundation/graphic/standard/interfaces/innerkits/dumper",
+    "//foundation/graphic/standard/interfaces/innerkits/common",
+    "//utils/native/base/include",
+  ]
+}
+
+ohos_shared_library("libgraphic_dumper_client") {
+  sources = [
+    "src/graphic_dumper_helper.cpp",
+    "src/graphic_dumper_helper_impl.cpp",
+    "src/ipc/graphic_dumper_client_listener_stub.cpp",
+    "src/ipc/graphic_dumper_service_proxy.cpp",
+  ]
+
+  configs = [ ":graphic_dumper_client_config" ]
+
+  public_configs = [ ":graphic_dumper_client_public_config" ]
+
+  deps = [
+    "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
+    "//foundation/distributedschedule/samgr/interfaces/innerkits/samgr_proxy:samgr_proxy",
+  ]
+
+  external_deps = [ "ipc:ipc_core" ]
+
+  public_deps = [ "//utils/native/base:utils" ]
+
+  part_name = "graphic_standard"
+  subsystem_name = "graphic"
+}
+
+## Build libgraphic_dumper_client.so }}}
+
+## Build graphic_dumper_server {{{
+config("graphic_dumper_server_config") {
+  visibility = [ ":*" ]
+
+  include_dirs = [
+    "include",
+    "//utils/system/safwk/native/include",
+  ]
+
+  cflags = [
+    "-Wall",
+    "-Werror",
+    "-g3",
+  ]
+}
+
+ohos_executable("graphic_dumper_server") {
+  install_enable = true
+
+  sources = [
+    "src/graphic_dumper_server.cpp",
+    "src/graphic_dumper_server_main.cpp",
+    "src/graphic_dumper_tree.cpp",
+    "src/graphic_dumper_util.cpp",
+    "src/ipc/graphic_dumper_client_listener_death_recipient.cpp",
+    "src/ipc/graphic_dumper_client_listener_proxy.cpp",
+    "src/ipc/graphic_dumper_command_stub.cpp",
+    "src/ipc/graphic_dumper_info_listener_death_recipient.cpp",
+    "src/ipc/graphic_dumper_info_listener_proxy.cpp",
+    "src/ipc/graphic_dumper_service_stub.cpp",
+  ]
+
+  configs = [
+    ":graphic_dumper_server_config",
+    ":graphic_dumper_client_public_config",
+  ]
+
+  deps = [
+    "//third_party/zlib:libz",
+    "//utils/native/base:utils",
+  ]
+
+  external_deps = [
+    "hiviewdfx_hilog_native:libhilog",
+    "ipc:ipc_core",
+    "samgr_standard:samgr_proxy",
+  ]
+
+  part_name = "graphic_standard"
+  subsystem_name = "graphic"
+}
+
+## Build graphic_dumper_server }}}
+
+## Build gdumper {{{
+config("gdumper_config") {
+  visibility = [ ":*" ]
+
+  include_dirs = [
+    "include",
+    "//utils/system/safwk/native/include",
+  ]
+
+  cflags = [
+    "-Wall",
+    "-Werror",
+    "-g3",
+  ]
+}
+
+ohos_executable("gdumper") {
+  install_enable = true
+
+  sources = [
+    "src/graphic_dumper_command_line.cpp",
+    "src/graphic_dumper_command_line_main.cpp",
+    "src/graphic_dumper_util.cpp",
+    "src/ipc/graphic_dumper_command_stub.cpp",
+    "src/ipc/graphic_dumper_info_listener_stub.cpp",
+    "src/ipc/graphic_dumper_service_stub.cpp",
+  ]
+
+  configs = [
+    ":gdumper_config",
+    ":graphic_dumper_client_public_config",
+  ]
+
+  deps = [
+    "//foundation/graphic/standard/utils:promise",
+    "//utils/native/base:utils",
+  ]
+
+  external_deps = [
+    "hiviewdfx_hilog_native:libhilog",
+    "ipc:ipc_core",
+    "samgr_standard:samgr_proxy",
+  ]
+
+  part_name = "graphic_standard"
+  subsystem_name = "graphic"
+}
+
+## Build gdumper }}}
+
+## Install gdumper.ini to /system/etc/./gdumper.ini {{{
+ohos_prebuilt_etc("gdumper.ini") {
+  source = "gdumper.ini"
+  relative_install_dir = "."
+  part_name = "graphic_standard"
+  subsystem_name = "graphic"
+}
+## Install gdumper.ini to /system/etc/./gdumper.ini }}}

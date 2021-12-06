@@ -33,10 +33,15 @@ ohos_executable("wmtest") {
   sources = [
     "frameworks/inative_test.cpp",
     "frameworks/main.cpp",
+    "frameworks/main_option.cpp",
     "frameworks/native_test_class.cpp",
     "frameworks/util.cpp",
+  ]
+
+  sources += [
     "test/crash_native_test_1.cpp",
     "test/crash_native_test_2.cpp",
+    "test/dumper_test_1.cpp",
     "test/other_native_test_1.cpp",
     "test/pref_native_test_1.cpp",
     "test/vsync_native_test_1.cpp",
@@ -58,6 +63,9 @@ ohos_executable("wmtest") {
     "test/wmclient_native_test_29.cpp",
     "test/wmclient_native_test_30.cpp",
     "test/wmclient_native_test_32.cpp",
+    "test/wmclient_native_test_33.cpp",
+    "test/wmclient_native_test_34.cpp",
+    "test/wmclient_native_test_35.cpp",
     "test/wmclient_native_test_4.cpp",
     "test/wmclient_native_test_5.cpp",
     "test/wmclient_native_test_6.cpp",
@@ -80,9 +88,11 @@ ohos_executable("wmtest") {
   deps = [
     "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
     "//foundation/distributedschedule/samgr/interfaces/innerkits/samgr_proxy:samgr_proxy",
+    "//foundation/graphic/standard:libgraphic_dumper_client",
     "//foundation/graphic/standard:libvsync_client",
     "//foundation/graphic/standard:libwmclient",
     "//foundation/graphic/standard:libwmservice",
+    "//foundation/graphic/standard/utils:option_parser",
     "//foundation/multimodalinput/input/frameworks/proxy:libmmi-client",
     "//third_party/zlib:libz",
   ]

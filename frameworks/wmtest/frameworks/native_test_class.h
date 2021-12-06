@@ -18,6 +18,7 @@
 
 #include <cstdint>
 #include <functional>
+#include <optional>
 
 #include <refbase.h>
 #include <window_manager.h>
@@ -40,7 +41,10 @@ typedef struct {
 
 class NativeTestFactory {
 public:
-    static sptr<Window> CreateWindow(WindowType, sptr<Surface> csurface = nullptr);
+    static sptr<Window> CreateWindow(WindowType type,
+                                     sptr<Surface> csurface = nullptr,
+                                     std::optional<uint32_t> did = std::nullopt);
+    static inline int32_t defaultDisplayID = 0;
 };
 
 using DrawFunc = std::function<void(void *, uint32_t, uint32_t, uint32_t)>;

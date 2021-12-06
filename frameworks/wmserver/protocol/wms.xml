@@ -44,6 +44,12 @@
       <entry name="remove" value="1"/>
     </enum>
 
+    <enum name="screen_type">
+      <description summary="screen type"/>
+      <entry name="physical" value="0"/>
+      <entry name="virtual" value="1"/>
+    </enum>
+
     <event name="screen_status">
       <description summary="screen info update"/>
       <arg name="screen_id" type="uint"/>
@@ -51,6 +57,7 @@
       <arg name="status" type="uint" enum="screen_status"/>
       <arg name="width" type="int"/>
       <arg name="height" type="int"/>
+      <arg name="screen_type" type="uint" enum="screen_type"/>
     </event>
     <!-- Screen Event }}} -->
 
@@ -275,6 +282,22 @@
       <arg name="id" type="uint" summary="window id"/>
     </event>
     <!-- Windowshot }}} -->
+
+    <!-- Virtual Display {{{ -->
+    <request name="create_virtual_display">
+      <description summary="create a virtual display"/>
+      <arg name="x" type="int"/>
+      <arg name="y" type="int"/>
+      <arg name="width" type="int"/>
+      <arg name="height" type="int"/>
+    </request>
+
+    <request name="destroy_virtual_display">
+      <description summary="destroy virtual display"/>
+      <arg name="screen_id" type="uint"/>
+    </request>
+    <!-- Virtual Display }}}-->
+
   </interface>
 
   <interface name="screen_info" version="1">
