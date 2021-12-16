@@ -50,3 +50,7 @@ group("raw_parser") {
 group("cpudraw") {
   public_deps = [ "cpudraw:cpudraw" ]
 }
+
+group("gl_utils") {
+  public_deps = [ "gl_utils:gl_utils" ]
+}

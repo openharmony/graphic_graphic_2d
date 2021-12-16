@@ -15,6 +15,9 @@
 
 #include "texture.h"
 
+#include <EGL/egl.h>
+#include <GLES2/gl2.h>
+
 #include <GLES2/gl2ext.h>
 
 #include <gslogger.h>
@@ -31,6 +34,11 @@ Texture::Texture(void *buffer, int32_t width, int32_t height)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
     glTexImage2D(GL_TEXTURE_2D, 0, GL_BGRA_EXT, width_, height_, 0, GL_BGRA_EXT, GL_UNSIGNED_BYTE, buffer_);
+}
+
+Texture::Texture(uint32_t texture)
+{
+    rendererID_ = texture;
 }
 
 Texture::~Texture()

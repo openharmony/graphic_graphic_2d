@@ -15,10 +15,12 @@
 
 #include "shader.h"
 
+#include <EGL/egl.h>
+#include <GLES2/gl2.h>
 #include <gslogger.h>
 
 namespace {
-DEFINE_HILOG_LABEL("AnimationServer::Shader");
+DEFINE_HILOG_LABEL("Shader");
 } // namespace
 
 Shader::Shader(const std::string& vertexSource, const std::string& fragmentSource)
@@ -31,6 +33,11 @@ Shader::~Shader()
     if (rendererID_ != 0) {
         glDeleteProgram(rendererID_);
     }
+}
+
+bool Shader::Available()
+{
+    return rendererID_ != 0;
 }
 
 void Shader::Bind() const
@@ -73,7 +80,7 @@ int32_t Shader::GetUniformLocation(const std::string& name)
     if (uniformLocationCache_.find(name) != uniformLocationCache_.end()) {
         return uniformLocationCache_[name];
     }
-    int32_t location = glGetUniformLocation(rendererID_, name.c_str());
+    auto location = glGetUniformLocation(rendererID_, name.c_str());
     if (location == -1) {
         GSLOG2HI(WARN) << "Warning: uniform '" << name << "' doesn't exist!" << std::endl;
     }
@@ -84,19 +91,19 @@ int32_t Shader::GetUniformLocation(const std::string& name)
 
 uint32_t Shader::CompileShader(uint32_t type, const std::string& source)
 {
-    uint32_t id = glCreateShader(type);
-    const char *src = source.c_str();
+    auto id = glCreateShader(type);
+    auto src = source.c_str();
     glShaderSource(id, 1, &src, nullptr);
     glCompileShader(id);
 
-    int32_t result;
+    auto result = GL_FALSE;
     glGetShaderiv(id, GL_COMPILE_STATUS, &result);
     if (result == GL_FALSE) {
-        int32_t length;
+        int32_t length = 0;
         glGetShaderiv(id, GL_INFO_LOG_LENGTH, &length);
         char* message = static_cast<char*>(alloca(length));
         glGetShaderInfoLog(id, length, &length, message);
-        GSLOG2HI(ERROR) << "CompileShader Failed: " << message;
+        GSLOG2HI(ERROR) << "CompileShader[" << type << "] Failed: " << message;
         glDeleteShader(id);
         return 0;
     }
@@ -106,25 +113,27 @@ uint32_t Shader::CompileShader(uint32_t type, const std::string& source)
 
 uint32_t Shader::CreateShader(const std::string& vertexShader, const std::string& fragmentShader)
 {
-    uint32_t program = glCreateProgram();
-    uint32_t vs = CompileShader(GL_VERTEX_SHADER, vertexShader);
-    uint32_t fs = CompileShader(GL_FRAGMENT_SHADER, fragmentShader);
+    auto program = glCreateProgram();
+    auto vs = CompileShader(GL_VERTEX_SHADER, vertexShader);
+    auto fs = CompileShader(GL_FRAGMENT_SHADER, fragmentShader);
 
     glAttachShader(program, vs);
     glAttachShader(program, fs);
     glLinkProgram(program);
+    glDeleteShader(vs);
+    glDeleteShader(fs);
 
-    constexpr int32_t infoLength = 1024;
-    GLint success = 1;
-    char infoLogs[infoLength] = {};
-    glGetProgramiv(program, GL_LINK_STATUS, &success);
-    if (!success) {
-        glGetProgramInfoLog(program, infoLength, nullptr, infoLogs);
-        GSLOG2HI(ERROR) << "program error[" << glGetError() << "]: " << infoLogs;
+    auto result = GL_FALSE;
+    glGetProgramiv(program, GL_LINK_STATUS, &result);
+    if (result == GL_FALSE) {
+        int32_t length = 0;
+        glGetProgramiv(program, GL_INFO_LOG_LENGTH, &length);
+        char* message = static_cast<char*>(alloca(length));
+        glGetProgramInfoLog(program, length, nullptr, message);
+        GSLOG2HI(ERROR) << "program error[" << glGetError() << "]: " << message;
         return 0;
     }
 
-    glDeleteShader(vs);
-    glDeleteShader(fs);
+    GSLOG2HI(INFO) << "Shader create success " << program;
     return program;
 }

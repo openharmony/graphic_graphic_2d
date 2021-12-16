@@ -92,8 +92,6 @@ ohos_executable("animation_server") {
   if (ace_enable_gpu) {
     sources += [
       "server/src/rotation_animation.cpp",
-      "server/src/shader.cpp",
-      "server/src/texture.cpp",
     ]
   }
 
@@ -109,6 +107,7 @@ ohos_executable("animation_server") {
     "//foundation/graphic/standard/utils:libgslogger",
     "//foundation/graphic/standard/utils:matrix",
     "//foundation/graphic/standard/utils:scoped_bytrace",
+    "//foundation/graphic/standard/utils:gl_utils",
     "//foundation/multimodalinput/input/frameworks/proxy:libmmi-client",
   ]
 

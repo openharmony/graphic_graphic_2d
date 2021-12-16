@@ -17,13 +17,14 @@
 #define FRAMEWORKS_ANIMATION_SERVER_SERVER_INCLUDE_TEXTURE_H
 
 #include <cstdint>
-#include <string>
-
-#include <egl_surface.h>
 
 class Texture {
 public:
+    // from buffer
     Texture(void *buffer, int32_t width, int32_t height);
+
+    // from texture
+    Texture(uint32_t texture);
     ~Texture();
 
     void Bind(uint32_t slot = 0) const;

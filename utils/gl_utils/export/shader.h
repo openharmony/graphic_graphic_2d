@@ -17,14 +17,17 @@
 #define FRAMEWORKS_ANIMATION_SERVER_SERVER_INCLUDE_SHADER_H
 
 #include <cstdint>
+#include <unordered_map>
+#include <string>
 
 #include <matrix.h>
-#include <egl_surface.h>
 
 class Shader {
 public:
     Shader(const std::string& vertexSource, const std::string& fragmentSource);
     ~Shader();
+
+    bool Available();
 
     void Bind() const;
     void Unbind() const;
@@ -32,7 +35,7 @@ public:
     void SetUniform1i(const std::string& name, int32_t v);
     void SetUniform1f(const std::string& name, float v);
     void SetUniform4f(const std::string& name, float v0, float v1, float v2, float v3);
-    void SetUniformMat4f(const std::string& name, const Matrix<GLfloat>& matrix);
+    void SetUniformMat4f(const std::string& name, const Matrix<float>& matrix);
 
     int32_t GetAttribLocation(const std::string& name);
 
