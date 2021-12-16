@@ -330,7 +330,7 @@ void BufferQueue::DumpToFile(int32_t sequence)
     int64_t nowVal = (int64_t)now.tv_sec * secToUsec + (int64_t)now.tv_usec;
 
     std::stringstream ss;
-    ss << "/data/dumpimage-" << getpid() << "-" << name_ << "-" << nowVal << ".raw";
+    ss << "/data/bq_" << getpid() << "_" << name_ << "_" << nowVal << ".raw";
 
     sptr<SurfaceBufferImpl> &buffer = bufferQueueCache_[sequence].buffer;
     std::ofstream rawDataFile(ss.str(), std::ofstream::binary);
