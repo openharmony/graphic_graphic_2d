@@ -155,6 +155,11 @@ WMError WindowImpl::Create(sptr<Window> &window,
         wi->Resize(option->GetWidth(), option->GetHeight())->Await();
     }
 
+    if (option->GetWindowMode() != WINDOW_MODE_UNSET) {
+        wi->attr.SetMode(option->GetWindowMode());
+        wi->SetWindowMode(option->GetWindowMode());
+    }
+
     wret = CreateConsumerSurface(wi, option);
     if (wret != WM_OK) {
         return wret;
