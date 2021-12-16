@@ -13,18 +13,30 @@
  * limitations under the License.
  */
 
-#ifndef FRAMEWORKS_WM_SRC_TEST_UTIL_H
-#define FRAMEWORKS_WM_SRC_TEST_UTIL_H
+#ifndef FRAMEWORKS_WM_SRC_TEST_INATIVE_TEST_KEY_EVENT_HANDLER_H
+#define FRAMEWORKS_WM_SRC_TEST_INATIVE_TEST_KEY_EVENT_HANDLER_H
 
-#include <cstdint>
-#include <functional>
+#include <graphic_bytrace.h>
 
-#include <vsync_helper.h>
+#include "inative_test.h"
 
 namespace OHOS {
-void SetVsyncRate(int32_t rate);
-uint32_t RequestSync(const SyncFunc syncFunc, void *data = nullptr);
-int64_t GetNowTime();
+class INativeTest;
+class INativeTestKeyEventHandler : public MMI::KeyEventHandler {
+public:
+    explicit INativeTestKeyEventHandler(INativeTest *test) : test_(test)
+    {
+    }
+
+    virtual bool OnKey(const KeyEvent &event) override
+    {
+        ScopedBytrace trace(__func__);
+        return test_->OnKey(event);
+    }
+
+private:
+    INativeTest *test_ = nullptr;
+};
 } // namespace OHOS
 
-#endif // FRAMEWORKS_WM_SRC_TEST_UTIL_H
+#endif // FRAMEWORKS_WM_SRC_TEST_INATIVE_TEST_KEY_EVENT_HANDLER_H

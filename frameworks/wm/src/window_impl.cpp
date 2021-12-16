@@ -89,6 +89,11 @@ WMError WindowImpl::CreateRemoteWindow(sptr<WindowImpl> &wi,
         return wminfo.wret;
     }
 
+    auto onWindowSizeChange = [&attr = wi->attr](int32_t width, int32_t height) {
+        attr.SetWidthHeight(width, height);
+    };
+    windowManagerServer->RegisterWindowSizeChange(onWindowSizeChange);
+
     wi->attr.SetID(wminfo.wid);
     wi->attr.SetType(option->GetWindowType());
     wi->attr.SetVisibility(true);
@@ -399,6 +404,12 @@ void WindowImpl::OnTypeChange(WindowTypeChangeFunc func)
 void WindowImpl::OnModeChange(WindowModeChangeFunc func)
 {
     attr.OnModeChange(func);
+}
+
+void WindowImpl::OnSplitStatusChange(SplitStatusChangeFunc func)
+{
+    auto windowManagerServer = SingletonContainer::Get<WindowManagerServer>();
+    windowManagerServer->RegisterSplitModeChange(func);
 }
 
 WMError WindowImpl::OnTouch(OnTouchFunc cb)

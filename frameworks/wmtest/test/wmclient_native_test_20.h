@@ -13,21 +13,7 @@
  * limitations under the License.
  */
 
-#ifndef FRAMEWORKS_WMTEST_FRAMEWORKS_MAIN_OPTION_H
-#define FRAMEWORKS_WMTEST_FRAMEWORKS_MAIN_OPTION_H
+#ifndef FRAMEWORKS_WMTEST_TEST_WMCLIENT_WMCLIENT_NATIVE_TEST_20_H
+#define FRAMEWORKS_WMTEST_TEST_WMCLIENT_WMCLIENT_NATIVE_TEST_20_H
 
-#include <option_parser.h>
-
-class MainOption : public OptionParser {
-public:
-    MainOption();
-    int32_t Parse(int32_t argc, const char **argv);
-
-    // attr
-    std::string domain = "";
-    int32_t testcase = -1;
-    int32_t displayID = 0;
-    int32_t processSequence = -1;
-};
-
-#endif // FRAMEWORKS_WMTEST_FRAMEWORKS_MAIN_OPTION_H
+#endif // FRAMEWORKS_WMTEST_TEST_WMCLIENT_WMCLIENT_NATIVE_TEST_20_H

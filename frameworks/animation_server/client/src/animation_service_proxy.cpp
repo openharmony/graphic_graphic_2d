@@ -55,4 +55,56 @@ GSError AnimationServiceProxy::StartRotationAnimation(int32_t did, int32_t degre
 
     return ret;
 }
+
+GSError AnimationServiceProxy::SplitModeCreateBackground()
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    auto retval = data.WriteInterfaceToken(GetDescriptor());
+    if (!retval) {
+        GSLOG2HI(ERROR) << "WriteInterfaceToken failed";
+        return GSERROR_INVALID_ARGUMENTS;
+    }
+
+    int32_t res = Remote()->SendRequest(SPLIT_MODE_CREATE_BACKGOUND, data, reply, option);
+    if (res) {
+        GSLOG2HI(ERROR) << "SendRequest failed, retval=" << res;
+        return GSERROR_BINDER;
+    }
+
+    GSError ret = static_cast<enum GSError>(reply.ReadInt32());
+    if (ret != GSERROR_OK) {
+        GSLOG2HI(ERROR) << "Call return failed: " << ret;
+    }
+
+    return ret;
+}
+
+GSError AnimationServiceProxy::SplitModeCreateMiddleLine()
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    auto retval = data.WriteInterfaceToken(GetDescriptor());
+    if (!retval) {
+        GSLOG2HI(ERROR) << "WriteInterfaceToken failed";
+        return GSERROR_INVALID_ARGUMENTS;
+    }
+
+    int32_t res = Remote()->SendRequest(SPLIT_MODE_CREATE_MIDDLE_LINE, data, reply, option);
+    if (res) {
+        GSLOG2HI(ERROR) << "SendRequest failed, retval=" << res;
+        return GSERROR_BINDER;
+    }
+
+    GSError ret = static_cast<enum GSError>(reply.ReadInt32());
+    if (ret != GSERROR_OK) {
+        GSLOG2HI(ERROR) << "Call return failed: " << ret;
+    }
+
+    return ret;
+}
 } // namespace OHOS

@@ -12,6 +12,7 @@
 # limitations under the License.
 
 import("//build/ohos.gni")
+import("//foundation/graphic/standard/graphic_config.gni")
 
 ## Build libanimation_service.so {{{
 config("libanimation_service_config") {
@@ -47,12 +48,14 @@ ohos_shared_library("libanimation_service") {
   public_configs = [ ":libanimation_service_public_config" ]
 
   deps = [
-    "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
     "//foundation/distributedschedule/samgr/interfaces/innerkits/samgr_proxy:samgr_proxy",
     "//foundation/graphic/standard/utils:libgslogger",
   ]
 
-  public_deps = [ "//utils/native/base:utils" ]
+  public_deps = [
+    "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
+    "//utils/native/base:utils",
+  ]
 
   part_name = "graphic_standard"
   subsystem_name = "graphic"
@@ -84,10 +87,15 @@ ohos_executable("animation_server") {
     "server/src/animation_server.cpp",
     "server/src/animation_service_stub.cpp",
     "server/src/main.cpp",
-    "server/src/rotation_animation.cpp",
-    "server/src/shader.cpp",
-    "server/src/texture.cpp",
   ]
+
+  if (ace_enable_gpu) {
+    sources += [
+      "server/src/rotation_animation.cpp",
+      "server/src/shader.cpp",
+      "server/src/texture.cpp",
+    ]
+  }
 
   configs = [ ":animation_server_config" ]
 
@@ -97,9 +105,11 @@ ohos_executable("animation_server") {
     "//foundation/graphic/standard:libvsync_client",
     "//foundation/graphic/standard:libwmclient",
     "//foundation/graphic/standard:libwmservice",
+    "//foundation/graphic/standard/utils:cpudraw",
     "//foundation/graphic/standard/utils:graphic_bytrace",
     "//foundation/graphic/standard/utils:libgslogger",
     "//foundation/graphic/standard/utils:matrix",
+    "//foundation/multimodalinput/input/frameworks/proxy:libmmi-client",
   ]
 
   part_name = "graphic_standard"

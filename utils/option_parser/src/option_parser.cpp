@@ -15,6 +15,7 @@
 
 #include <option_parser.h>
 
+#include <iomanip>
 #include <sstream>
 
 enum {
@@ -33,10 +34,13 @@ int32_t OptionParser::ParseArgument(const char *arg, const char *arg2)
     std::stringstream ss(arg);
     switch (arguments.front().type) {
         case Argument::ValueType::i32:
-            ss >> arguments.front().result->i32;
+            ss >> std::setbase(0) >> arguments.front().result->i32;
+            break;
+        case Argument::ValueType::u32:
+            ss >> std::setbase(0) >> arguments.front().result->u32;
             break;
         case Argument::ValueType::i64:
-            ss >> arguments.front().result->i64;
+            ss >> std::setbase(0) >> arguments.front().result->i64;
             break;
         case Argument::ValueType::f64:
             ss >> arguments.front().result->f64;
@@ -93,10 +97,13 @@ int32_t OptionParser::ParseShortOption(const char *arg1, const char *arg2)
             std::stringstream ss(arg2);
             switch (option.type) {
                 case Option::ValueType::i32:
-                    ss >> option.result->i32;
+                    ss >> std::setbase(0) >> option.result->i32;
+                    break;
+                case Option::ValueType::u32:
+                    ss >> std::setbase(0) >> option.result->u32;
                     break;
                 case Option::ValueType::i64:
-                    ss >> option.result->i64;
+                    ss >> std::setbase(0) >> option.result->i64;
                     break;
                 case Option::ValueType::f64:
                     ss >> option.result->f64;
@@ -168,10 +175,13 @@ int32_t OptionParser::ParseLongOption(const char *arg1, const char *arg2)
             std::stringstream ss(arg2);
             switch (option.type) {
                 case Option::ValueType::i32:
-                    ss >> option.result->i32;
+                    ss >> std::setbase(0) >> option.result->i32;
+                    break;
+                case Option::ValueType::u32:
+                    ss >> std::setbase(0) >> option.result->u32;
                     break;
                 case Option::ValueType::i64:
-                    ss >> option.result->i64;
+                    ss >> std::setbase(0) >> option.result->i64;
                     break;
                 case Option::ValueType::f64:
                     ss >> option.result->f64;

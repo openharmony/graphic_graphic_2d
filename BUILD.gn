@@ -19,6 +19,7 @@ group("default") {
   public_deps = [
     ":default.scss",
     ":graphic.rc",
+    "frameworks/animation_server:animation_server",
     "frameworks/bootanimation:bootanimation",
     "frameworks/bootanimation:bootanimation-480x960.raw",
     "frameworks/dumper:gdumper",
@@ -30,10 +31,6 @@ group("default") {
     "frameworks/wmservice:wmservice_test",
     "frameworks/wmtest:wmtest",
   ]
-
-  if (ace_enable_gpu) {
-    public_deps += [ "frameworks/animation_server:animation_server" ]
-  }
 }
 
 ## Install graphic.rc to /system/etc/init/graphic.rc {{{

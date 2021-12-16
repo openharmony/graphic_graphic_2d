@@ -20,13 +20,18 @@
 #include <functional>
 #include <unistd.h>
 
-#include <egl_surface.h>
 #include <promise.h>
+#include <touch_event_handler.h>
 #include <vsync_helper.h>
 #include <window_manager.h>
+#include <window_manager_service_client.h>
 
 #include "animation_service_stub.h"
 #include "rotation_animation.h"
+
+#ifdef ACE_ENABLE_GPU
+#include <egl_surface.h>
+#endif
 
 namespace OHOS {
 using PromiseGSError = Promise<GSError>;
@@ -47,22 +52,55 @@ public:
     GSError Init();
 
     GSError StartRotationAnimation(int32_t did, int32_t degree) override;
+    GSError SplitModeCreateBackground() override;
+    GSError SplitModeCreateMiddleLine() override;
+
     void OnScreenShot(const struct WMImageInfo &info) override;
+    void OnSplitStatusChange(SplitStatus status);
+    bool OnTouch(const TouchEvent &event);
 
 private:
     void StartAnimation(struct Animation &animation);
     void AnimationSync(int64_t time, void *data);
-    void RotationDraw();
-    VsyncError RequestNextVsync();
+
+    void SplitWindowUpdate();
+    void SplitWindowDraw(void *vaddr, uint32_t width, uint32_t height, uint32_t count);
 
     std::shared_ptr<AppExecFwk::EventHandler> handler = nullptr;
     sptr<VsyncHelper> vhelper = nullptr;
     sptr<Window> window = nullptr;
+#ifdef ACE_ENABLE_GPU
     sptr<EglRenderSurface> eglSurface = nullptr;
 
     std::atomic<bool> isAnimationRunning = false;
     sptr<PromiseAnimationScreenshotInfo> screenshotPromise = nullptr;
     std::unique_ptr<RotationAnimation> ranimation = nullptr;
+#endif
+
+    sptr<Window> splitWindow = nullptr;
+    bool haveMiddleLine = false;
+    bool midlineDown = false;
+    int32_t midlineYBackup = -100;
+    int32_t midlineY = -100;
+    int32_t downX = 0;
+    int32_t downY = 0;
+
+    class TouchEventHandler : public MMI::TouchEventHandler {
+    public:
+        explicit TouchEventHandler(AnimationServer *server) : server_(server)
+        {
+        }
+
+        virtual bool OnTouch(const TouchEvent &event) override
+        {
+            return server_->OnTouch(event);
+        }
+
+    private:
+        AnimationServer *server_ = nullptr;
+    };
+    sptr<TouchEventHandler> thandler = nullptr;
+    sptr<IRemoteObject> token = new IPCObjectStub(u"animation_server");
 };
 } // namespace OHOS
 

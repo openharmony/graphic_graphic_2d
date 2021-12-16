@@ -56,6 +56,7 @@ using PromiseWMError = Promise<WMError>;
 using PromiseWMSImageInfo = Promise<WMSImageInfo>;
 using PromisePowerStatus = Promise<PowerStatus>;
 using PromiseBacklight = Promise<Backlight>;
+
 } // namespace OHOS
 
 #endif // INTERFACES_INNERKITS_WMSERVICE_WINDOW_MANAGER_SERVICE_TYPE_H

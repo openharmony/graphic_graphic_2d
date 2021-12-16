@@ -29,6 +29,7 @@
 #include "libweston-internal.h"
 #include "screen_info.h"
 #include "weston.h"
+#include "split_mode.h"
 
 #define LOG_LABEL "wms-controller"
 
@@ -56,46 +57,6 @@
 #define BYTE_SPP_SIZE 4
 #define ASSERT assert
 #define DEFAULT_SEAT_NAME "default"
-
-struct WindowSurface {
-    struct WmsController *controller;
-    struct ivi_layout_surface *layoutSurface;
-    struct weston_surface *surface;
-    struct wl_listener surfaceDestroyListener;
-    struct wl_listener propertyChangedListener;
-
-    uint32_t surfaceId;
-    uint32_t screenId;
-    uint32_t type;
-    uint32_t mode;
-    int32_t x;
-    int32_t y;
-    int32_t width;
-    int32_t height;
-    int32_t lastSurfaceWidth;
-    int32_t lastSurfaceHeight;
-    int32_t firstCommit;
-
-    struct wl_list link;
-};
-
-struct ScreenshotFrameListener {
-    struct wl_listener frameListener;
-    struct wl_listener outputDestroyed;
-    uint32_t idScreen;
-    struct weston_output *output;
-};
-
-struct WmsController {
-    struct wl_resource *pWlResource;
-    uint32_t id;
-    uint32_t windowIdFlags;
-    struct wl_client *pWlClient;
-    struct wl_list wlListLink;
-    struct wl_list wlListLinkRes;
-    struct WmsContext *pWmsCtx;
-    struct ScreenshotFrameListener stListener;
-};
 
 static struct WmsContext g_wmsCtx = {0};
 
@@ -203,7 +164,7 @@ static struct WindowSurface *GetWindowSurface(const struct weston_surface *surfa
     return windowSurface;
 }
 
-static void SetSourceRectangle(const struct WindowSurface *windowSurface,
+void SetSourceRectangle(const struct WindowSurface *windowSurface,
     int32_t x, int32_t y, int32_t width, int32_t height)
 {
     const struct ivi_layout_interface_for_wms *layoutInterface = windowSurface->controller->pWmsCtx->pLayoutInterface;
@@ -230,7 +191,7 @@ static void SetSourceRectangle(const struct WindowSurface *windowSurface,
         (uint32_t)x, (uint32_t)y, (uint32_t)width, (uint32_t)height);
 }
 
-static void SetDestinationRectangle(struct WindowSurface *windowSurface,
+void SetDestinationRectangle(struct WindowSurface *windowSurface,
     int32_t x, int32_t y, int32_t width, int32_t height)
 {
     const struct ivi_layout_interface_for_wms *layoutInterface = windowSurface->controller->pWmsCtx->pLayoutInterface;
@@ -380,10 +341,9 @@ static uint32_t GetWindowId(struct WmsController *pController)
     return windowId;
 }
 
-static struct ivi_layout_layer *GetLayer(struct weston_output *westonOutput,
-    struct ivi_layout_interface_for_wms *pLayoutInterface,
-    uint32_t layerId, bool *isNewLayer)
+struct ivi_layout_layer *GetLayer(struct weston_output *westonOutput, uint32_t layerId, bool *isNewLayer)
 {
+    struct ivi_layout_interface_for_wms *pLayoutInterface = GetWmsInstance()->pLayoutInterface;
     LOGD("start.");
     struct ivi_layout_layer *layoutLayer = pLayoutInterface->get_layer_from_id(layerId);
     if (!layoutLayer) {
@@ -475,8 +435,7 @@ static bool AddSurface(struct WindowSurface *windowSurface,
             bool isNewLayer = false;
             struct weston_output *westonOutput = screen->westonOutput;
             uint32_t layerId = GetLayerId(screen->screenId, windowType, windowMode);
-            struct ivi_layout_layer *layoutLayer = GetLayer(screen->westonOutput,
-                layoutInterface, layerId, &isNewLayer);
+            struct ivi_layout_layer *layoutLayer = GetLayer(screen->westonOutput, layerId, &isNewLayer);
             if (!layoutLayer) {
                 LOGE("GetLayer failed.");
                 return false;
@@ -544,7 +503,6 @@ static bool AddWindow(struct WindowSurface *windowSurface)
 
     // window position,size calc.
     CalcWindowInfo(windowSurface);
-
     LOGD("end.");
     return true;
 }
@@ -686,8 +644,7 @@ static bool ScreenCopyLayers(struct WmsContext *ctx, struct WmsScreen *screenFro
     for (int32_t layer_i = 0; layer_i < layersCount; layer_i++) {
         uint32_t layerIdOld = ctx->pLayoutInterface->get_id_of_layer(layers[layer_i]);
         uint32_t layerIdNew = ChangeLayerId(layerIdOld, screenFrom->screenId, screenTo->screenId);
-        struct ivi_layout_layer *layerNew = GetLayer(screenTo->westonOutput,
-            ctx->pLayoutInterface, layerIdNew, NULL);
+        struct ivi_layout_layer *layerNew = GetLayer(screenTo->westonOutput, layerIdNew, NULL);
         if (!layerNew) {
             LOGE("GetLayer failed.");
             free(layers);
@@ -981,7 +938,7 @@ static void ControllerDestroyVirtualDisplay(struct wl_client *pWlClient,
     LOGD("end. DestroyVirtualDisplay");
 }
 
-static void SetWindowPosition(struct WindowSurface *ws,
+void SetWindowPosition(struct WindowSurface *ws,
                               int32_t x, int32_t y)
 {
     SetDestinationRectangle(ws, x, y, ws->width, ws->height);
@@ -989,7 +946,7 @@ static void SetWindowPosition(struct WindowSurface *ws,
     ws->y = y;
 }
 
-static void SetWindowSize(struct WindowSurface *ws,
+void SetWindowSize(struct WindowSurface *ws,
                           uint32_t width, uint32_t height)
 {
     SetSourceRectangle(ws, 0, 0, width, height);
@@ -1464,6 +1421,12 @@ static void ControllerSetNavigationBarVisibility(const struct wl_client *client,
     LOGD("end.");
 }
 
+void(*g_onSetWindowTop)(struct WindowSurface *ws);
+void AddSetWindowTopListener(void(*fn)(struct WindowSurface *ws))
+{
+    g_onSetWindowTop = fn;
+}
+
 static void ControllerSetWindowTop(struct wl_client *client,
     struct wl_resource *resource, uint32_t windowId)
 {
@@ -1489,6 +1452,10 @@ static void ControllerSetWindowTop(struct wl_client *client,
 
     ctx->pLayoutInterface->surface_change_top(windowSurface->layoutSurface);
 
+    if (g_onSetWindowTop) {
+        g_onSetWindowTop(windowSurface);
+    }
+
     if (!SetWindowFocus(windowSurface)) {
         LOGE("SetWindowFocus failed.");
         wms_send_reply_error(resource, WMS_ERROR_INNER_ERROR);
@@ -1501,10 +1468,19 @@ static void ControllerSetWindowTop(struct wl_client *client,
     LOGD("end.");
 }
 
+void(*g_onSurfaceDestroy)(struct WindowSurface *ws);
+void AddSurfaceDestroyListener(void(*fn)(struct WindowSurface *ws))
+{
+    g_onSurfaceDestroy = fn;
+}
+
 static void SurfaceDestroy(const struct WindowSurface *surface)
 {
     ASSERT(surface != NULL);
     LOGD("surfaceId:%{public}d start.", surface->surfaceId);
+    if (g_onSurfaceDestroy) {
+        g_onSurfaceDestroy(surface);
+    }
 
     wl_list_remove(&surface->surfaceDestroyListener.link);
     wl_list_remove(&surface->propertyChangedListener.link);
@@ -1585,6 +1561,7 @@ static void WindowSurfaceDestroy(const struct wl_listener *listener,
     LOGD("end.");
 }
 
+
 static void CreateWindow(struct WmsController *pWmsController,
     struct weston_surface *pWestonSurface,
     uint32_t windowId, uint32_t screenId, uint32_t windowType)
@@ -1623,6 +1600,7 @@ static void CreateWindow(struct WmsController *pWmsController,
     pWindow->surfaceId = windowId;
     pWindow->type = windowType;
     pWindow->mode = WINDOW_MODE_UNSET;
+    pWindow->isSplited = false;
     pWindow->screenId = screenId;
 
     if (!AddWindow(pWindow)) {
@@ -2006,6 +1984,7 @@ static const struct wms_interface g_controllerImplementation = {
     ControllerWindowshot,
     ControllerCreateVirtualDisplay,
     ControllerDestroyVirtualDisplay,
+    ControllerSetSplitMode,
 };
 
 static void UnbindWmsController(struct wl_resource *pResource)
@@ -2290,6 +2269,8 @@ static int WmsContextInit(struct WmsContext *ctx, struct weston_compositor *comp
     ctx->displayMode = WMS_DISPLAY_MODE_EXTEND;
 
     wl_signal_add(&compositor->destroy_signal, &ctx->wlListenerDestroy);
+
+    ctx->splitMode = SPLIT_MODE_NULL;
 
     LayoutControllerInit(0, 0);
     return 0;

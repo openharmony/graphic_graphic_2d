@@ -31,6 +31,8 @@ public:
 
 private:
     int32_t StartRotationAnimationRemote(MessageParcel& data, MessageParcel& reply, MessageOption& options);
+    int32_t SplitModeCreateBackgroundRemote(MessageParcel& data, MessageParcel& reply, MessageOption& options);
+    int32_t SplitModeCreateMiddleLineRemote(MessageParcel& data, MessageParcel& reply, MessageOption& options);
 
     using AnimationServiceStubFunc = int32_t (AnimationServiceStub::*)(MessageParcel &arguments,
         MessageParcel &reply, MessageOption &option);

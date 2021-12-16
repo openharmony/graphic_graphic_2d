@@ -119,13 +119,28 @@ public:
             return;
         }
 
-        window->SwitchTop();
+        auto onSizeChange = [this](uint32_t w, uint32_t h) {
+            printf("onSizeChange %u %u\n", w, h);
+            config.width = w;
+            config.height = h;
+            window->Resize(w, h);
+        };
+        window->OnSizeChange(onSizeChange);
+
         auto surface = window->GetSurface();
-        windowSync = NativeTestSync::CreateSync(NativeTestDraw::FlushDraw, surface);
+        config.width = surface->GetDefaultWidth();
+        config.height = surface->GetDefaultHeight();
+        config.strideAlignment = 0x8;
+        config.format = PIXEL_FMT_RGBA_8888;
+        config.usage = surface->GetDefaultUsage();
+
+        window->SwitchTop();
+        windowSync = NativeTestSync::CreateSync(NativeTestDraw::FlushDraw, surface, &config);
     }
 
 private:
     sptr<Window> window = nullptr;
     sptr<NativeTestSync> windowSync = nullptr;
+    BufferRequestConfig config = {};
 } g_autoload;
 } // namespace

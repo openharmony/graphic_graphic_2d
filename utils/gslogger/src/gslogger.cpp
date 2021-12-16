@@ -15,8 +15,10 @@
 
 #include "gslogger.h"
 
-#include <iostream>
 #include <fstream>
+#include <iostream>
+#include <unistd.h>
+
 #include <hilog/log.h>
 
 namespace {
@@ -136,6 +138,13 @@ void Gslogger::FileFuncLine(Gslogger& logger, enum LOG_PHASE phase)
 {
     if (phase == LOG_PHASE::BEGIN) {
         logger << "[" << logger.GetFile() << " +" << logger.GetLine() << ":" << logger.GetFunc() << "] ";
+    }
+}
+
+void Gslogger::PidTid(Gslogger &logger, enum LOG_PHASE phase)
+{
+    if (phase == LOG_PHASE::BEGIN) {
+        logger << "[" << getpid() << "][" << gettid() << "]";
     }
 }
 

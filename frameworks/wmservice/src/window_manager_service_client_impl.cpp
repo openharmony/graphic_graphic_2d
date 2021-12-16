@@ -114,11 +114,13 @@ void RegistryGlobal(void *ppwms, struct wl_registry *registry,
             OnDisplayBacklight,
             OnDisplayModeChange,
             nullptr,
+            nullptr,
             OnGlobalWindowStatus,
             OnScreenShotDone,
             OnScreenShotError,
             OnWindowShotDone,
             OnWindowShotError,
+            nullptr,
         };
         if (pwms != nullptr) {
             wms_add_listener(pwms, &listener, nullptr);

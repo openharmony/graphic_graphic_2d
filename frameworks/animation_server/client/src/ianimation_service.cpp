@@ -24,9 +24,9 @@ namespace {
 DEFINE_HILOG_LABEL("IAnimationService");
 } // namespace
 
-GSError IAnimationService::Init()
+GSError IAnimationService::Init(bool reinit)
 {
-    if (animationService != nullptr) {
+    if (animationService != nullptr && reinit == false) {
         return GSERROR_OK;
     }
 

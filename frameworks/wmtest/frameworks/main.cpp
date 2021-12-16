@@ -20,6 +20,7 @@
 #include <unistd.h>
 #include <vector>
 
+#include <gslogger.h>
 #include <vsync_helper.h>
 #include <window_manager.h>
 
@@ -32,10 +33,14 @@ using namespace OHOS;
 namespace {
 void Usage(const char *argv0)
 {
-    std::cerr << "Usage: " << argv0 << " [option] type id" << std::endl;
-    std::cerr << "-d, --display[=0]  Created Window's Display ID" << std::endl;
+    GSLOG0SE(INFO) << "Usage: " << argv0 << " [option] type id";
+    GSLOG0SE(INFO) << "  Option:";
+    GSLOG0SE(INFO) << "    -d, --display[=0]  Created Window's Display ID";
+    GSLOG0SE(INFO) << "";
+    GSLOG0SE(INFO) << "  Available Tests: type, id, description (time) [process]";
     auto visitFunc = [](const INativeTest *test) {
         std::stringstream ss;
+        ss << "    ";
         ss << test->GetDomain() << ", id=";
         ss << test->GetID() << ": ";
         ss << test->GetDescription();
@@ -43,9 +48,68 @@ void Usage(const char *argv0)
             constexpr double msecToSec = 1000.0;
             ss << " (last " << std::setprecision(1) << test->GetLastTime() / msecToSec << "s)";
         }
-        std::cout << ss.str() << std::endl;
+
+        if (test->GetProcessNumber() <= 1) {
+            GSLOG0SE(INFO) << ss.str();
+            return false;
+        }
+
+        if (test->GetProcessSequence() == -1) {
+            ss << " [process number:" << test->GetProcessNumber() << "]";
+            GSLOG0SE(INFO) << ss.str();
+            return false;
+        }
+
+        ss << " [" << test->GetProcessSequence() << "/" << test->GetProcessNumber() << "]";
+        auto sss = ss.str();
+        auto size = sss.find_first_of(':') + 1;
+        sss.erase(0, size);
+        sss.insert(sss.begin(), size, ' ');
+        GSLOG0SE(INFO) << sss;
+        return false;
     };
     INativeTest::VisitTests(visitFunc);
+}
+
+bool GetTestFunc(INativeTest *test, MainOption &option)
+{
+    if (test->GetDomain() != option.domain) {
+        return false;
+    }
+
+    if (test->GetID() != option.testcase) {
+        return false;
+    }
+
+    if (test->GetProcessSequence() != option.processSequence) {
+        return false;
+    }
+
+    return true;
+};
+
+int32_t LoadService(INativeTest *test)
+{
+    if (test->GetAutoLoadService() & AutoLoadService::WindowManager) {
+        test->windowManager = WindowManager::GetInstance();
+        auto wret = test->windowManager->Init();
+        if (wret) {
+            GSLOG7SO(ERROR) << "WindowManager Init failed with " << WMErrorStr(wret);
+            return wret;
+        }
+    }
+
+    if (test->GetAutoLoadService() & AutoLoadService::WindowManagerService) {
+        auto wmsc = WindowManagerServiceClient::GetInstance();
+        auto wret = wmsc->Init();
+        if (wret) {
+            GSLOG7SO(ERROR) << "WindowManagerServiceClient Init failed with " << WMErrorStr(wret);
+            return wret;
+        }
+        test->windowManagerService = wmsc->GetService();
+    }
+
+    return 0;
 }
 } // namespace
 
@@ -54,36 +118,38 @@ int32_t main(int32_t argc, const char **argv)
     // parse option
     MainOption option;
     if (option.Parse(argc, argv)) {
-        std::cerr << option.GetErrorString() << std::endl;
+        GSLOG0SE(ERROR) << option.GetErrorString() << std::endl;
         Usage(argv[0]);
+        GSLOG7SE(ERROR) << "exiting, return 1";
         return 1;
     }
 
     // find test
-    INativeTest *found = nullptr;
-    auto visitFunc = [&option, &found](INativeTest *test) {
-        if (test->GetDomain() == option.domain && test->GetID() == option.testcase) {
-            found = test;
-        }
-    };
-    INativeTest::VisitTests(visitFunc);
+    auto visitFunc = std::bind(GetTestFunc, std::placeholders::_1, std::ref(option));
+    INativeTest *found = INativeTest::VisitTests(visitFunc);
     if (found == nullptr) {
-        printf("not found test %d\n", option.testcase);
+        GSLOG7SE(ERROR) << "not found test " << option.testcase << ", exiting, return 1";
         return 1;
     }
 
     // default value assign
     NativeTestFactory::defaultDisplayID = option.displayID;
+    found->processArgv = argv;
+    if (LoadService(found)) {
+        GSLOG7SE(ERROR) << "exiting, return 1";
+        return 1;
+    }
 
     // run test
     auto runner = AppExecFwk::EventRunner::Create(false);
-    auto handler = std::make_shared<AppExecFwk::EventHandler>(runner);
-    handler->PostTask(std::bind(&INativeTest::Run, found, option.GetSkippedArgc(), option.GetSkippedArgv()));
+    found->SetEventHandler(std::move(std::make_shared<AppExecFwk::EventHandler>(runner)));
+    found->PostTask(std::bind(&INativeTest::Run, found, option.GetSkippedArgc(), option.GetSkippedArgv()));
     if (found->GetLastTime() != INativeTest::LAST_TIME_FOREVER) {
-        handler->PostTask(std::bind(&AppExecFwk::EventRunner::Stop, runner), found->GetLastTime());
+        found->PostTask(std::bind(&AppExecFwk::EventRunner::Stop, runner), found->GetLastTime());
     }
 
     printf("%d %s run! pid=%d\n", found->GetID(), found->GetDescription().c_str(), getpid());
     runner->Run();
+    GSLOG7SO(INFO) << "exiting, return 0";
     return 0;
 }

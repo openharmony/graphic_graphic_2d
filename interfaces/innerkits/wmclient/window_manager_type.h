@@ -67,6 +67,33 @@ enum DisplayType {
     DISPLAY_TYPE_VIRTUAL,
     DISPLAY_TYPE_MAX,
 };
+
+enum SplitStatus {
+    SPLIT_STATUS_CLEAR = 0,
+    SPLIT_STATUS_VAGUE = 1,
+    SPLIT_STATUS_RETAIN = 2,
+    SPLIT_STATUS_DESTROY = 3,
+    SPLIT_STATUS_MAX,
+};
+
+enum WindowSplitMode {
+    WINDOW_SPLIT_MODE_UNSET = 0,
+    WINDOW_SPLIT_MODE_SET = 1,
+    WINDOW_SPLIT_MODE_MAX,
+};
+
+enum SplitMode {
+    SPLIT_MODE_NULL = 0,
+    SPLIT_MODE_UNENABLE = 1,
+    SPLIT_MODE_SINGLE = 2,
+    SPLIT_MODE_SELECT = 3,
+    SPLIT_MODE_CONFIRM = 4,
+    SPLIT_MODE_DIVIDER_TOUCH_DOWN = 5,
+    SPLIT_MODE_DIVIDER_TOUCH_MOVE = 6,
+    SPLIT_MODE_DIVIDER_TOUCH_UP = 7,
+    SPLIT_MODE_MAX,
+};
+
 struct WMDisplayInfo {
     int32_t id;
     uint32_t width;
@@ -78,8 +105,9 @@ struct WMDisplayInfo {
 };
 
 #ifdef __cplusplus
-using WindowModeChangeFunc       = std::function<void(WindowMode mode)>;
-using BeforeFrameSubmitFunc      = std::function<void()>;
+using WindowModeChangeFunc = std::function<void(WindowMode mode)>;
+using BeforeFrameSubmitFunc = std::function<void()>;
+using SplitStatusChangeFunc = std::function<void(SplitStatus status)>;
 } // namespace OHOS
 #endif
 

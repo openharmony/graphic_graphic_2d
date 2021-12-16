@@ -59,9 +59,7 @@ public:
             ::std::placeholders::_3, ::std::placeholders::_4);
         mainSync = NativeTestSync::CreateSync(draw, surface);
 
-        token_ = new IPCObjectStub(u"token");
-        keyEventHandle_ =  new KeyEventHandle(this);
-        MMIEventHdl.RegisterStandardizedEventHandle(token_, mainWindow->GetID(), keyEventHandle_);
+        ListenWindowKeyEvent(mainWindow->GetID());
     }
 
     void EnterPIPMode()
@@ -100,10 +98,7 @@ public:
                 ::std::placeholders::_3, ::std::placeholders::_4);
 
             pipSync = NativeTestSync::CreateSync(draw, pipSurface);
-
-            token_ = new IPCObjectStub(u"token");
-            touchEventHandle_ =  new TouchEventHandle(this);
-            MMIEventHdl.RegisterStandardizedEventHandle(token_, pipWindow->GetID(), touchEventHandle_);
+            ListenWindowTouchEvent(pipWindow->GetID());
 
             int x = 100, y = 100, w = 300, h = 200;
             pipWindow->Move(x, y);
@@ -137,15 +132,15 @@ public:
         onPIPModeChange = func;
     }
 
-    bool OnKeyPrivate(const KeyEvent &event)
+    virtual bool OnKey(const KeyEvent &event) override
     {
         if (event.IsKeyDown() ==  true && event.GetKeyCode() == OHOS::KeyEventEnum::KEY_BACK) {
-            return OnKey(event);
+            return OnKeyPublic(event);
         }
         return false;
     }
 
-    bool OnTouchPrivate(const TouchEvent &event)
+    virtual bool OnTouch(const TouchEvent &event) override
     {
         int index = event.GetIndex();
         if (event.GetAction() == OHOS::TouchEnum::POINT_MOVE) {
@@ -157,7 +152,7 @@ public:
             touchUpFlag = false;
             return true;
         } else if (event.GetAction() == OHOS::TouchEnum::PRIMARY_POINT_UP && touchUpFlag == true) {
-            return OnTouch(event);
+            return OnTouchPublic(event);
         } else if (event.GetAction() == OHOS::TouchEnum::PRIMARY_POINT_UP && touchUpFlag == false) {
             DownX = 0;
             DownY = 0;
@@ -176,49 +171,15 @@ public:
         }
     }
 
-    virtual bool OnKey(const KeyEvent &event) = 0;
-    virtual bool OnTouch(const TouchEvent &event) = 0;
+    virtual bool OnKeyPublic(const KeyEvent &event) = 0;
+    virtual bool OnTouchPublic(const TouchEvent &event) = 0;
 
 private:
-    class KeyEventHandle : public MMI::KeyEventHandler {
-    public:
-        explicit KeyEventHandle(WMClientNativeTest32Ability *test) : test(test)
-        {
-        }
-
-        virtual bool OnKey(const KeyEvent &event) override
-        {
-            return test->OnKeyPrivate(event);
-        }
-
-    private:
-        WMClientNativeTest32Ability *test;
-    };
-
-    class TouchEventHandle : public MMI::TouchEventHandler {
-    public:
-        explicit TouchEventHandle(WMClientNativeTest32Ability *test) : test(test)
-        {
-        }
-
-        virtual bool OnTouch(const TouchEvent &event) override
-        {
-            return test->OnTouchPrivate(event);
-        }
-
-    private:
-        WMClientNativeTest32Ability *test;
-    };
-
     sptr<Window> mainWindow = nullptr;
     sptr<Window> pipWindow = nullptr;
     sptr<NativeTestSync> mainSync = nullptr;
     sptr<NativeTestSync> pipSync = nullptr;
  
-    sptr<IRemoteObject> token_ = nullptr;
-    sptr<KeyEventHandle> keyEventHandle_ = nullptr;
-    sptr<TouchEventHandle> touchEventHandle_ = nullptr;
-
     bool pipMode = false;
     bool touchUpFlag = true;
     std::function<void(bool)> onPIPModeChange = nullptr;
@@ -274,13 +235,13 @@ public:
         }
     }
 
-    bool OnTouch(const TouchEvent &event) override
+    virtual bool OnTouchPublic(const TouchEvent &event) override
     {
         ExitPIPMode();
         return true;
     }
 
-    bool OnKey(const KeyEvent &event) override
+    virtual bool OnKeyPublic(const KeyEvent &event) override
     {
         drawptr = NativeTestDraw::ColorDraw;
         EnterPIPMode();

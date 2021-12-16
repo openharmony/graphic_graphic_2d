@@ -26,6 +26,8 @@ public:
     AnimationServiceProxy(const sptr<IRemoteObject>& impl);
 
     GSError StartRotationAnimation(int32_t did, int32_t degree) override;
+    GSError SplitModeCreateBackground() override;
+    GSError SplitModeCreateMiddleLine() override;
 
 private:
     static inline BrokerDelegator<AnimationServiceProxy> delegator_;

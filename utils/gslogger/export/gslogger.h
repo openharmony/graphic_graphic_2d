@@ -38,6 +38,7 @@ public:
     static void FuncLine(Gslogger &logger, enum LOG_PHASE phase); // 2
     static void FileLine(Gslogger &logger, enum LOG_PHASE phase); // 3
     static void FileFuncLine(Gslogger &logger, enum LOG_PHASE phase); // 4
+    static void PidTid(Gslogger &logger, enum LOG_PHASE phase); // +5
 
     Gslogger(const std::string &file, const std::string &func, int line, enum LOG_LEVEL level, ...);
     virtual ~Gslogger() override;
@@ -78,33 +79,83 @@ private:
 // hilog
 #define DEFINE_HILOG_LABEL(str) \
     namespace { constexpr const char *HILOG_LABEL = str; }
-#define GSLOG0HI(level) Gslogger(LOGGER_ARG(level), Gslogger::Hilog, HILOG_LABEL, NULL)
-#define GSLOG1HI(level) Gslogger(LOGGER_ARG(level), Gslogger::Func, Gslogger::Hilog, HILOG_LABEL, NULL)
-#define GSLOG2HI(level) Gslogger(LOGGER_ARG(level), Gslogger::FuncLine, Gslogger::Hilog, HILOG_LABEL, NULL)
-#define GSLOG3HI(level) Gslogger(LOGGER_ARG(level), Gslogger::FileLine, Gslogger::Hilog, HILOG_LABEL, NULL)
-#define GSLOG4HI(level) Gslogger(LOGGER_ARG(level), Gslogger::FileFuncLine, Gslogger::Hilog, HILOG_LABEL, NULL)
+#define GSLOG0HI(level) Gslogger(LOGGER_ARG(level), \
+                                 Gslogger::Hilog, HILOG_LABEL, NULL)
+#define GSLOG1HI(level) Gslogger(LOGGER_ARG(level), \
+                                 Gslogger::Func, Gslogger::Hilog, HILOG_LABEL, NULL)
+#define GSLOG2HI(level) Gslogger(LOGGER_ARG(level), \
+                                 Gslogger::FuncLine, Gslogger::Hilog, HILOG_LABEL, NULL)
+#define GSLOG3HI(level) Gslogger(LOGGER_ARG(level), \
+                                 Gslogger::FileLine, Gslogger::Hilog, HILOG_LABEL, NULL)
+#define GSLOG4HI(level) Gslogger(LOGGER_ARG(level), \
+                                 Gslogger::FileFuncLine, Gslogger::Hilog, HILOG_LABEL, NULL)
 
 // stdout
-#define GSLOG0SO(level) Gslogger(LOGGER_ARG(level), Gslogger::Stdout, NULL)
-#define GSLOG1SO(level) Gslogger(LOGGER_ARG(level), Gslogger::Func, Gslogger::Stdout, NULL)
-#define GSLOG2SO(level) Gslogger(LOGGER_ARG(level), Gslogger::FuncLine, Gslogger::Stdout, NULL)
-#define GSLOG3SO(level) Gslogger(LOGGER_ARG(level), Gslogger::FileLine, Gslogger::Stdout, NULL)
-#define GSLOG4SO(level) Gslogger(LOGGER_ARG(level), Gslogger::FileFuncLine, Gslogger::Stdout, NULL)
+#define GSLOG0SO(level) Gslogger(LOGGER_ARG(level), \
+                                 Gslogger::Stdout, NULL)
+#define GSLOG1SO(level) Gslogger(LOGGER_ARG(level), \
+                                 Gslogger::Func, Gslogger::Stdout, NULL)
+#define GSLOG2SO(level) Gslogger(LOGGER_ARG(level), \
+                                 Gslogger::FuncLine, Gslogger::Stdout, NULL)
+#define GSLOG3SO(level) Gslogger(LOGGER_ARG(level), \
+                                 Gslogger::FileLine, Gslogger::Stdout, NULL)
+#define GSLOG4SO(level) Gslogger(LOGGER_ARG(level), \
+                                 Gslogger::FileFuncLine, Gslogger::Stdout, NULL)
+#define GSLOG5SO(level) Gslogger(LOGGER_ARG(level), \
+                                 Gslogger::PidTid, Gslogger::Stdout, NULL)
+#define GSLOG6SO(level) Gslogger(LOGGER_ARG(level), \
+                                 Gslogger::PidTid, Gslogger::Func, Gslogger::Stdout, NULL)
+#define GSLOG7SO(level) Gslogger(LOGGER_ARG(level), \
+                                 Gslogger::PidTid, Gslogger::FuncLine, Gslogger::Stdout, NULL)
+#define GSLOG8SO(level) Gslogger(LOGGER_ARG(level), \
+                                 Gslogger::PidTid, Gslogger::FileLine, Gslogger::Stdout, NULL)
+#define GSLOG9SO(level) Gslogger(LOGGER_ARG(level), \
+                                 Gslogger::PidTid, Gslogger::FileFuncLine, Gslogger::Stdout, NULL)
 
 // stderr
-#define GSLOG0SE(level) Gslogger(LOGGER_ARG(level), Gslogger::Stderr, NULL)
-#define GSLOG1SE(level) Gslogger(LOGGER_ARG(level), Gslogger::Func, Gslogger::Stderr, NULL)
-#define GSLOG2SE(level) Gslogger(LOGGER_ARG(level), Gslogger::FuncLine, Gslogger::Stderr, NULL)
-#define GSLOG3SE(level) Gslogger(LOGGER_ARG(level), Gslogger::FileLine, Gslogger::Stderr, NULL)
-#define GSLOG4SE(level) Gslogger(LOGGER_ARG(level), Gslogger::FileFuncLine, Gslogger::Stderr, NULL)
+#define GSLOG0SE(level) Gslogger(LOGGER_ARG(level), \
+                                 Gslogger::Stderr, NULL)
+#define GSLOG1SE(level) Gslogger(LOGGER_ARG(level), \
+                                 Gslogger::Func, Gslogger::Stderr, NULL)
+#define GSLOG2SE(level) Gslogger(LOGGER_ARG(level), \
+                                 Gslogger::FuncLine, Gslogger::Stderr, NULL)
+#define GSLOG3SE(level) Gslogger(LOGGER_ARG(level), \
+                                 Gslogger::FileLine, Gslogger::Stderr, NULL)
+#define GSLOG4SE(level) Gslogger(LOGGER_ARG(level), \
+                                 Gslogger::FileFuncLine, Gslogger::Stderr, NULL)
+#define GSLOG5SE(level) Gslogger(LOGGER_ARG(level), \
+                                 Gslogger::PidTid, Gslogger::Stderr, NULL)
+#define GSLOG6SE(level) Gslogger(LOGGER_ARG(level), \
+                                 Gslogger::PidTid, Gslogger::Func, Gslogger::Stderr, NULL)
+#define GSLOG7SE(level) Gslogger(LOGGER_ARG(level), \
+                                 Gslogger::PidTid, Gslogger::FuncLine, Gslogger::Stderr, NULL)
+#define GSLOG8SE(level) Gslogger(LOGGER_ARG(level), \
+                                 Gslogger::PidTid, Gslogger::FileLine, Gslogger::Stderr, NULL)
+#define GSLOG9SE(level) Gslogger(LOGGER_ARG(level), \
+                                 Gslogger::PidTid, Gslogger::FileFuncLine, Gslogger::Stderr, NULL)
 
 // filelog
 #define DEFINE_FILE_LABEL(str) \
     namespace { constexpr const char *FILE_LABEL = str; }
-#define GSLOG0F(level) Gslogger(LOGGER_ARG(level), Gslogger::FileLog, FILE_LABEL, NULL)
-#define GSLOG1F(level) Gslogger(LOGGER_ARG(level), Gslogger::Func, Gslogger::FileLog, FILE_LABEL, NULL)
-#define GSLOG2F(level) Gslogger(LOGGER_ARG(level), Gslogger::FuncLine, Gslogger::FileLog, FILE_LABEL, NULL)
-#define GSLOG3F(level) Gslogger(LOGGER_ARG(level), Gslogger::FileLine, Gslogger::FileLog, FILE_LABEL, NULL)
-#define GSLOG4F(level) Gslogger(LOGGER_ARG(level), Gslogger::FileFuncLine, Gslogger::FileLog, FILE_LABEL, NULL)
+#define GSLOG0F(level) Gslogger(LOGGER_ARG(level), \
+                                 Gslogger::FileLog, FILE_LABEL, NULL)
+#define GSLOG1F(level) Gslogger(LOGGER_ARG(level), \
+                                 Gslogger::Func, Gslogger::FileLog, FILE_LABEL, NULL)
+#define GSLOG2F(level) Gslogger(LOGGER_ARG(level), \
+                                 Gslogger::FuncLine, Gslogger::FileLog, FILE_LABEL, NULL)
+#define GSLOG3F(level) Gslogger(LOGGER_ARG(level), \
+                                 Gslogger::FileLine, Gslogger::FileLog, FILE_LABEL, NULL)
+#define GSLOG4F(level) Gslogger(LOGGER_ARG(level), \
+                                 Gslogger::FileFuncLine, Gslogger::FileLog, FILE_LABEL, NULL)
+#define GSLOG5F(level) Gslogger(LOGGER_ARG(level), \
+                                 Gslogger::PidTid, Gslogger::FileLog, FILE_LABEL, NULL)
+#define GSLOG6F(level) Gslogger(LOGGER_ARG(level), \
+                                 Gslogger::PidTid, Gslogger::Func, Gslogger::FileLog, FILE_LABEL, NULL)
+#define GSLOG7F(level) Gslogger(LOGGER_ARG(level), \
+                                 Gslogger::PidTid, Gslogger::FuncLine, Gslogger::FileLog, FILE_LABEL, NULL)
+#define GSLOG8F(level) Gslogger(LOGGER_ARG(level), \
+                                 Gslogger::PidTid, Gslogger::FileLine, Gslogger::FileLog, FILE_LABEL, NULL)
+#define GSLOG9F(level) Gslogger(LOGGER_ARG(level), \
+                                 Gslogger::PidTid, Gslogger::FileFuncLine, Gslogger::FileLog, FILE_LABEL, NULL)
 
 #endif // UTILS_INCLUDE_LOGGER_EXPORT_GSLOGGER_H

@@ -510,4 +510,15 @@ GSError WindowManagerServiceProxy::StartRotationAnimation(uint32_t did, int32_t 
 
     return as->StartRotationAnimation(did, degree);
 }
+
+sptr<PromiseWMError> WindowManagerServiceProxy::SetSplitMode(SplitMode mode, int32_t x, int32_t y)
+{
+    WMLOGFI("mode: %{public}d, x: %{public}d, y: %{public}d", mode, x, y);
+    sptr<PromiseWMError> ret = new PromiseWMError();
+    std::lock_guard<std::mutex> lock(promiseQueueMutex);
+    promiseQueue.push(ret);
+    wms_set_split_mode(wms, mode, x, y);
+    wl_display_flush(display);
+    return ret;
+}
 } // namespace OHOS

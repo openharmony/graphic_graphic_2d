@@ -13,21 +13,24 @@
  * limitations under the License.
  */
 
-#ifndef FRAMEWORKS_WMTEST_FRAMEWORKS_MAIN_OPTION_H
-#define FRAMEWORKS_WMTEST_FRAMEWORKS_MAIN_OPTION_H
+#ifndef FRAMEWORKS_WMSERVER_SRC_SPLIT_MODE_H
+#define FRAMEWORKS_WMSERVER_SRC_SPLIT_MODE_H
 
-#include <option_parser.h>
+#include <stdint.h>
 
-class MainOption : public OptionParser {
-public:
-    MainOption();
-    int32_t Parse(int32_t argc, const char **argv);
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-    // attr
-    std::string domain = "";
-    int32_t testcase = -1;
-    int32_t displayID = 0;
-    int32_t processSequence = -1;
-};
+struct wl_client;
+struct wl_resource;
+struct WindowSurface;
+void ControllerSetSplitMode(struct wl_client *client,
+                               struct wl_resource *resource,
+                               uint32_t type, int32_t x, int32_t y);
 
-#endif // FRAMEWORKS_WMTEST_FRAMEWORKS_MAIN_OPTION_H
+#ifdef __cplusplus
+}
+#endif
+
+#endif // FRAMEWORKS_WMSERVER_SRC_SPLIT_MODE_H

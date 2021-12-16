@@ -50,6 +50,15 @@
     }
 }
 
+#WINDOW_TYPE_SPLIT_LINE {
+    z-index: 0;
+    position: relative;
+    horizon-align: middle;
+    vertical-align: middle;
+    width: 100.0%;
+    height: 100.0%;
+}
+
 #WINDOW_TYPE_STATUS_BAR {
     z-index: 10;
     position: static;
@@ -79,6 +88,9 @@
 
 #WINDOW_TYPE_SYSTEM_UI {
     z-index: 31;
+    position: relative;
+    width: 100%;
+    height: 100%;
 }
 
 #WINDOW_TYPE_LAUNCHER {

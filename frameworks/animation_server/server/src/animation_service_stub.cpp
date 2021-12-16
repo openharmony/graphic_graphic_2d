@@ -25,6 +25,8 @@ DEFINE_HILOG_LABEL("AnimationServiceStub");
 AnimationServiceStub::AnimationServiceStub()
 {
     memberFuncMap_[START_ROTATION_ANIMATION] = &AnimationServiceStub::StartRotationAnimationRemote;
+    memberFuncMap_[SPLIT_MODE_CREATE_BACKGOUND] = &AnimationServiceStub::SplitModeCreateBackgroundRemote;
+    memberFuncMap_[SPLIT_MODE_CREATE_MIDDLE_LINE] = &AnimationServiceStub::SplitModeCreateMiddleLineRemote;
 }
 
 int32_t AnimationServiceStub::OnRemoteRequest(uint32_t code,
@@ -52,6 +54,20 @@ int32_t AnimationServiceStub::StartRotationAnimationRemote(MessageParcel& data,
     auto degree = data.ReadInt32();
     auto gret = StartRotationAnimation(did, degree);
     reply.WriteInt32(gret);
+    return 0;
+}
+
+int32_t AnimationServiceStub::SplitModeCreateBackgroundRemote(MessageParcel& data,
+    MessageParcel& reply, MessageOption& options)
+{
+    reply.WriteInt32(SplitModeCreateBackground());
+    return 0;
+}
+
+int32_t AnimationServiceStub::SplitModeCreateMiddleLineRemote(MessageParcel& data,
+    MessageParcel& reply, MessageOption& options)
+{
+    reply.WriteInt32(SplitModeCreateMiddleLine());
     return 0;
 }
 } // namespace OHOS

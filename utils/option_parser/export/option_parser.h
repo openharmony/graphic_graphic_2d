@@ -40,6 +40,12 @@ public:
     }
 
     template<>
+    int32_t AddOption<uint32_t>(const std::string &shortOpt, const std::string &longOpt, uint32_t &result)
+    {
+        return AddOption(shortOpt, longOpt, &result, Option::ValueType::u32);
+    }
+
+    template<>
     int32_t AddOption<int64_t>(const std::string &shortOpt, const std::string &longOpt, int64_t &result)
     {
         return AddOption(shortOpt, longOpt, &result, Option::ValueType::i64);
@@ -77,6 +83,12 @@ public:
     }
 
     template<>
+    int32_t AddArguments<uint32_t>(uint32_t &result)
+    {
+        return AddArguments(&result, Argument::ValueType::u32);
+    }
+
+    template<>
     int32_t AddArguments<int64_t>(int64_t &result)
     {
         return AddArguments(&result, Argument::ValueType::i64);
@@ -110,6 +122,7 @@ private:
         const std::string lo;
         union Value {
             int32_t i32;
+            uint32_t u32;
             int64_t i64;
             double f64;
             std::string str;
@@ -117,6 +130,7 @@ private:
         } *result;
         enum class ValueType {
             i32,
+            u32,
             i64,
             f64,
             str,
@@ -130,12 +144,14 @@ private:
     struct Argument {
         union Value {
             int32_t i32;
+            uint32_t u32;
             int64_t i64;
             double f64;
             std::string str;
         } *result;
         enum class ValueType {
             i32,
+            u32,
             i64,
             f64,
             str,

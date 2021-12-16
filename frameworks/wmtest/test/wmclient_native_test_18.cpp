@@ -71,7 +71,7 @@ public:
         auto subpsurface = subwindow->GetSurface();
         config.width = subpsurface->GetDefaultWidth();
         config.height = subpsurface->GetDefaultHeight();
-        config.strideAlignment = 0x8,
+        config.strideAlignment = 0x8;
         config.format = PIXEL_FMT_RGBA_8888;
         config.usage = subpsurface->GetDefaultUsage();
         subwindowSync = NativeTestSync::CreateSync(NativeTestDraw::RainbowDraw, subpsurface, &config);

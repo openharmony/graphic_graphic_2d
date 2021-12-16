@@ -60,7 +60,7 @@ public:
         int32_t signals[] = {SIGINT, SIGKILL, SIGTERM, SIGTSTP, SIGQUIT, SIGHUP};
         for (uint32_t i = 0; i < sizeof(signals) / sizeof(*signals); i++) {
             if (signals[i] == signal) {
-                ExitTest();
+                exit(0);
                 break;
             }
         }

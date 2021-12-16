@@ -19,6 +19,8 @@
 #include <thread>
 #include <unistd.h>
 
+#include <gslogger.h>
+
 using namespace std::chrono_literals;
 
 namespace OHOS {
@@ -40,26 +42,6 @@ uint32_t RequestSync(const SyncFunc syncFunc, void *data)
         .callback_ = syncFunc,
     };
     return VsyncHelper::Current()->RequestFrameCallback(cb);
-}
-
-void PostTask(std::function<void()> func, uint32_t delayTime)
-{
-    auto handler = AppExecFwk::EventHandler::Current();
-    if (handler) {
-        handler->PostTask(func, delayTime);
-    }
-}
-
-void ExitTest()
-{
-    auto runner = AppExecFwk::EventRunner::Current();
-    if (runner) {
-        printf("exiting\n");
-        PostTask(std::bind(&AppExecFwk::EventRunner::Stop, runner));
-    } else {
-        printf("exit\n");
-        exit(0);
-    }
 }
 
 int64_t GetNowTime()

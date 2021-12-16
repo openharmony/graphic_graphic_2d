@@ -22,6 +22,7 @@
 
 #include "inative_test.h"
 #include "native_test_class.h"
+#include "egl_native_test_class.h"
 #include "util.h"
 
 using namespace OHOS;

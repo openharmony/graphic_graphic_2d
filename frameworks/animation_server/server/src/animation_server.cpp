@@ -18,9 +18,11 @@
 #include <cassert>
 #include <chrono>
 #include <fstream>
-#include <sys/time.h>
+#include <multimodal_event_handler.h>
 #include <securec.h>
+#include <sys/time.h>
 
+#include <cpudraw.h>
 #include <graphic_bytrace.h>
 #include <gslogger.h>
 
@@ -28,19 +30,6 @@ namespace OHOS {
 namespace {
 DEFINE_HILOG_LABEL("AnimationServer");
 } // namespace
-
-GSError AnimationServer::StartRotationAnimation(int32_t did, int32_t degree)
-{
-    if (isAnimationRunning == false) {
-        struct Animation animation {
-            .degree = degree,
-            .retval = new Promise<GSError>(),
-        };
-        handler->PostTask(std::bind(&AnimationServer::StartAnimation, this, std::ref(animation)));
-        return animation.retval->Await();
-    }
-    return GSERROR_ANIMATION_RUNNING;
-}
 
 GSError AnimationServer::Init()
 {
@@ -53,6 +42,19 @@ GSError AnimationServer::Init()
         return static_cast<enum GSError>(wret);
     }
 
+    WindowManagerServiceClient::GetInstance()->Init();
+
+    auto splitOption = WindowOption::Get();
+    splitOption->SetWindowType(WINDOW_TYPE_SPLIT_LINE);
+    wret = wm->CreateWindow(splitWindow, splitOption);
+    if (wret != WM_OK || splitWindow == nullptr) {
+        GSLOG2HI(ERROR) << "WindowManager::CreateWindow failed: " << WMErrorStr(wret);
+        return static_cast<enum GSError>(wret);
+    }
+    splitWindow->Hide();
+    auto func = std::bind(&AnimationServer::OnSplitStatusChange, this, std::placeholders::_1);
+    splitWindow->OnSplitStatusChange(func);
+
     auto option = WindowOption::Get();
     option->SetWindowType(WINDOW_TYPE_ANIMATION);
     wret = wm->CreateWindow(window, option);
@@ -62,11 +64,55 @@ GSError AnimationServer::Init()
     }
 
     window->Hide();
+#ifdef ACE_ENABLE_GPU
     auto producer = window->GetProducer();
     eglSurface = EglRenderSurface::CreateEglSurfaceAsProducer(producer);
+#endif
     return GSERROR_OK;
 }
 
+GSError AnimationServer::StartRotationAnimation(int32_t did, int32_t degree)
+{
+#ifdef ACE_ENABLE_GPU
+    if (isAnimationRunning == false) {
+        struct Animation animation {
+            .degree = degree,
+            .retval = new Promise<GSError>(),
+        };
+        handler->PostTask(std::bind(&AnimationServer::StartAnimation, this, std::ref(animation)));
+        return animation.retval->Await();
+    }
+    return GSERROR_ANIMATION_RUNNING;
+#else
+    return GSERROR_NOT_SUPPORT;
+#endif
+}
+
+GSError AnimationServer::SplitModeCreateBackground()
+{
+    ScopedBytrace trace(__func__);
+    GSLOG2HI(DEBUG);
+    splitWindow->Show();
+    splitWindow->SwitchTop();
+    if (thandler == nullptr) {
+        thandler = new TouchEventHandler(this);
+        MMIEventHdl.RegisterStandardizedEventHandle(this, splitWindow->GetID(), thandler);
+    }
+    handler->PostTask(std::bind(&AnimationServer::SplitWindowUpdate, this));
+    return GSERROR_OK;
+}
+
+GSError AnimationServer::SplitModeCreateMiddleLine()
+{
+    ScopedBytrace trace(__func__);
+    GSLOG2HI(DEBUG);
+    midlineY = splitWindow->GetHeight() / 2 + splitWindow->GetY();
+    haveMiddleLine = true;
+    handler->PostTask(std::bind(&AnimationServer::SplitWindowUpdate, this));
+    return GSERROR_OK;
+}
+
+#ifdef ACE_ENABLE_GPU
 void AnimationServer::StartAnimation(struct Animation &animation)
 {
     if (isAnimationRunning) {
@@ -74,7 +120,7 @@ void AnimationServer::StartAnimation(struct Animation &animation)
         return;
     }
 
-    ScopedBytrace(__func__);
+    ScopedBytrace trace(__func__);
     isAnimationRunning = true;
     GSLOG2HI(INFO) << "Animation Start";
     window->Hide();
@@ -121,15 +167,17 @@ void AnimationServer::StartAnimation(struct Animation &animation)
         return;
     }
 
-    animation.retval->Resolve(static_cast<enum GSError>(RequestNextVsync()));
+    struct FrameCallback cb = { .callback_ = std::bind(&AnimationServer::AnimationSync, this, SYNC_FUNC_ARG) };
+    animation.retval->Resolve(static_cast<enum GSError>(vhelper->RequestFrameCallback(cb)));
 }
 
 void AnimationServer::AnimationSync(int64_t time, void *data)
 {
-    ScopedBytrace sb(__func__);
+    ScopedBytrace trace(__func__);
     if (ranimation->Draw()) {
         eglSurface->SwapBuffers();
-        RequestNextVsync();
+        struct FrameCallback cb = { .callback_ = std::bind(&AnimationServer::AnimationSync, this, SYNC_FUNC_ARG) };
+        vhelper->RequestFrameCallback(cb);
         sb.End();
     } else {
         sb.End();
@@ -137,14 +185,6 @@ void AnimationServer::AnimationSync(int64_t time, void *data)
         window->Hide();
         isAnimationRunning = false;
     }
-}
-
-VsyncError AnimationServer::RequestNextVsync()
-{
-    struct FrameCallback cb = {
-        .callback_ = std::bind(&AnimationServer::AnimationSync, this, SYNC_FUNC_ARG),
-    };
-    return vhelper->RequestFrameCallback(cb);
 }
 
 void AnimationServer::OnScreenShot(const struct WMImageInfo &info)
@@ -170,5 +210,116 @@ void AnimationServer::OnScreenShot(const struct WMImageInfo &info)
     }
 
     screenshotPromise->Resolve(ainfo);
+}
+#else
+void AnimationServer::StartAnimation(struct Animation &animation)
+{
+}
+
+void AnimationServer::AnimationSync(int64_t time, void *data)
+{
+}
+
+void AnimationServer::OnScreenShot(const struct WMImageInfo &info)
+{
+}
+#endif
+
+void AnimationServer::SplitWindowUpdate()
+{
+    ScopedBytrace trace(__func__);
+    sptr<SurfaceBuffer> buffer;
+    auto surface = splitWindow->GetSurface();
+    BufferRequestConfig rconfig = {
+        .width = surface->GetDefaultWidth(),
+        .height = surface->GetDefaultHeight(),
+        .strideAlignment = 0x8,
+        .format = PIXEL_FMT_RGBA_8888,
+        .usage = surface->GetDefaultUsage(),
+        .timeout = 0,
+    };
+
+    SurfaceError ret = surface->RequestBufferNoFence(buffer, rconfig);
+    if (ret == SURFACE_ERROR_NO_BUFFER) {
+        return;
+    } else if (ret != SURFACE_ERROR_OK || buffer == nullptr) {
+        return;
+    }
+
+    auto addr = buffer->GetVirAddr();
+    if (addr == nullptr) {
+        surface->CancelBuffer(buffer);
+        return;
+    }
+
+    static int32_t count = 0;
+    SplitWindowDraw(buffer->GetVirAddr(), rconfig.width, rconfig.height, count);
+    count++;
+
+    BufferFlushConfig fconfig = {
+        .damage = {
+            .w = rconfig.width,
+            .h = rconfig.height,
+        },
+    };
+    surface->FlushBuffer(buffer, -1, fconfig);
+}
+
+void AnimationServer::SplitWindowDraw(void *vaddr, uint32_t width, uint32_t height, uint32_t count)
+{
+    ScopedBytrace trace(__func__);
+    GSLOG2HI(DEBUG) << "midlineY: " << midlineY << ", midlineDown: " << midlineDown;
+    CPUDraw draw(vaddr, width, height);
+
+    draw.SetColor(0xff000000);
+    draw.DrawRect(0, 0, width, height);
+    if (haveMiddleLine == false) {
+        draw.SetColor(0xff333333);
+        draw.DrawRect(0.1 * width, 0.025 * height, 0.8 * width, 0.4 * height);
+        draw.DrawRect(0.1 * width, 0.575 * height, 0.8 * width, 0.4 * height);
+    } else {
+        auto midlineYlocal = midlineY - splitWindow->GetY();
+        draw.SetColor(midlineDown ? 0xffffffff : 0xffcccccc);
+        draw.DrawRect(0, midlineYlocal - height * 0.05, width, height * 0.1);
+    }
+}
+
+void AnimationServer::OnSplitStatusChange(SplitStatus status)
+{
+    ScopedBytrace trace(__func__);
+    if (status == SPLIT_STATUS_DESTROY) {
+        splitWindow->Hide();
+        haveMiddleLine = false;
+    }
+}
+
+bool AnimationServer::OnTouch(const TouchEvent &event)
+{
+    ScopedBytrace trace(__func__);
+    auto wms = WindowManagerServiceClient::GetInstance()->GetService();
+    int32_t index = event.GetIndex();
+    int32_t x = event.GetPointerPosition(index).GetX();
+    int32_t y = event.GetPointerPosition(index).GetY();
+    GSLOG2HI(DEBUG) << "touch event: " << event.GetAction() << " " << x << " " << y;
+    if (event.GetAction() == TouchEnum::PRIMARY_POINT_DOWN) {
+        wms->SetSplitMode(SPLIT_MODE_DIVIDER_TOUCH_DOWN);
+        midlineDown = true;
+        downX = x;
+        downY = y;
+        midlineYBackup = midlineY;
+        handler->PostTask(std::bind(&AnimationServer::SplitWindowUpdate, this));
+    } else if (event.GetAction() == TouchEnum::POINT_MOVE) {
+        midlineY = midlineYBackup + y - downY;
+        wms->SetSplitMode(SPLIT_MODE_DIVIDER_TOUCH_MOVE, x, midlineY);
+        handler->PostTask(std::bind(&AnimationServer::SplitWindowUpdate, this));
+    } else if (event.GetAction() == TouchEnum::PRIMARY_POINT_UP) {
+        wms->SetSplitMode(SPLIT_MODE_DIVIDER_TOUCH_UP);
+        midlineDown = false;
+        handler->PostTask(std::bind(&AnimationServer::SplitWindowUpdate, this));
+    } else {
+        return true;
+    }
+
+    return false;
 }
 } // namespace OHOS

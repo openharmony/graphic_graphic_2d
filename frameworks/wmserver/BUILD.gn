@@ -33,6 +33,7 @@ config("wmserver_config") {
     "//third_party/wayland-ivi-extension/ivi-input-modules/ivi-input-controller/src/",
     "//utils/native/base/include",
     "//foundation/graphic/standard/interfaces/innerkits/wmclient",
+    "//foundation/graphic/standard/interfaces/innerkits/wmservice",
   ]
 
   cflags = [
@@ -51,6 +52,7 @@ ohos_shared_library("wmserver") {
     "src/layout_controller.cpp",
     "src/rects.cpp",
     "src/screen_info.c",
+    "src/split_mode.cpp",
     "src/wmserver.c",
   ]
 
@@ -61,9 +63,12 @@ ohos_shared_library("wmserver") {
   deps = [
     ":layout_header",
     "//drivers/peripheral/display/hal:hdi_display_device",
+    "//foundation/graphic/standard/frameworks/animation_server:libanimation_service",
+    "//foundation/graphic/standard/utils:graphic_bytrace",
     "//foundation/multimodalinput/input/patch/diff_libinput_mmi:libinput-third-mmi",
     "//third_party/wayland_standard:wayland_core_protocol",
     "//third_party/weston:libexec_weston",
+    "//third_party/weston:trace",
     "//utils/native/base:utils",
   ]
 

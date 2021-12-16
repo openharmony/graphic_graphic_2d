@@ -46,3 +46,7 @@ group("matrix") {
 group("raw_parser") {
   public_deps = [ "raw_parser:raw_parser" ]
 }
+
+group("cpudraw") {
+  public_deps = [ "cpudraw:cpudraw" ]
+}
