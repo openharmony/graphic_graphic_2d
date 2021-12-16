@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "native_test_class.h"
+#include "egl_native_test_class.h"
 
 #include <algorithm>
 #include <cassert>

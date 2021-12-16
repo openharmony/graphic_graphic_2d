@@ -178,9 +178,9 @@ void AnimationServer::AnimationSync(int64_t time, void *data)
         eglSurface->SwapBuffers();
         struct FrameCallback cb = { .callback_ = std::bind(&AnimationServer::AnimationSync, this, SYNC_FUNC_ARG) };
         vhelper->RequestFrameCallback(cb);
-        sb.End();
+        trace.End();
     } else {
-        sb.End();
+        trace.End();
         GSLOG2HI(INFO) << "Animation End";
         window->Hide();
         isAnimationRunning = false;

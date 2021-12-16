@@ -54,6 +54,7 @@ private:
     SurfaceError sret = SURFACE_ERROR_OK;
     uint32_t width_ = 0;
     uint32_t height_ = 0;
+    uint32_t count = 0;
 };
 
 class EGLNativeTestDraw {

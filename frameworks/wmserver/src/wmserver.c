@@ -2266,7 +2266,7 @@ static int WmsContextInit(struct WmsContext *ctx, struct weston_compositor *comp
 
     ctx->wlListenerDestroy.notify = WmsControllerDestroy;
 
-    ctx->displayMode = WMS_DISPLAY_MODE_EXTEND;
+    ctx->displayMode = WMS_DISPLAY_MODE_CLONE;
 
     wl_signal_add(&compositor->destroy_signal, &ctx->wlListenerDestroy);
 

@@ -72,12 +72,12 @@ public:
         window->SwitchTop();
         auto producer = window->GetProducer();
         sptr<EglSurface> pEglSurface = EglSurface::CreateEglSurfaceAsProducer(producer);
-        windowSync = NativeTestSync::CreateSyncEgl(NativeTestDraw::FlushDrawEgl,
+        windowSync = EGLNativeTestSync::CreateSync(EGLNativeTestDraw::FlushDraw,
             pEglSurface, window->GetWidth(), window->GetHeight());
     }
 
 private:
     sptr<Window> window = nullptr;
-    sptr<NativeTestSync> windowSync = nullptr;
+    sptr<EGLNativeTestSync> windowSync = nullptr;
 } g_autoload;
 } // namespace
