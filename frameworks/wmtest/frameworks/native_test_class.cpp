@@ -16,11 +16,10 @@
 #include "native_test_class.h"
 
 #include <algorithm>
-#include <cassert>
-#include <cstdio>
 #include <sys/time.h>
 
 #include <display_type.h>
+#include <gslogger.h>
 #include <scoped_bytrace.h>
 #include <securec.h>
 
@@ -46,9 +45,9 @@ sptr<Window> NativeTestFactory::CreateWindow(WindowType type,
     option->SetWindowType(type);
     option->SetConsumerSurface(csurf);
     option->SetDisplay(did.value_or(defaultDisplayID));
-    wm->CreateWindow(window, option);
+    auto ret = wm->CreateWindow(window, option);
     if (window == nullptr) {
-        printf("NativeTestFactory::CreateWindow return nullptr\n");
+        GSLOG7SE(ERROR) << "NativeTestFactory::CreateWindow return nullptr: " << ret;
         return nullptr;
     }
 
@@ -71,7 +70,7 @@ void NativeTestSync::Sync(int64_t, void *data)
 {
     ScopedBytrace trace(__func__);
     if (surf == nullptr) {
-        printf("NativeTestSync surf is nullptr\n");
+        GSLOG7SE(ERROR) << "NativeTestSync surf is nullptr";
         return;
     }
 
@@ -88,12 +87,12 @@ void NativeTestSync::Sync(int64_t, void *data)
         rconfig = *reinterpret_cast<BufferRequestConfig *>(data);
     }
 
-    GSError ret = surf->RequestBufferNoFence(buffer, rconfig);
+    auto ret = surf->RequestBufferNoFence(buffer, rconfig);
     if (ret == GSERROR_NO_BUFFER) {
         RequestSync(std::bind(&NativeTestSync::Sync, this, SYNC_FUNC_ARG), data);
         return;
     } else if (ret != GSERROR_OK || buffer == nullptr) {
-        printf("NativeTestSync surf request buffer failed\n");
+        GSLOG7SE(ERROR) << "NativeTestSync surf request buffer failed";
         return;
     }
 
@@ -146,7 +145,7 @@ void NativeTestDrawer::Sync(int64_t, void *)
 {
     ScopedBytrace trace(__func__);
     if (surf == nullptr) {
-        printf("NativeTestDrawer surf is nullptr\n");
+        GSLOG7SE(ERROR) << "NativeTestSync surf is nullptr";
         return;
     }
 
@@ -170,7 +169,7 @@ void NativeTestDrawer::Sync(int64_t, void *)
         DrawOnce();
         return;
     } else if (ret != GSERROR_OK || buffer == nullptr) {
-        printf("NativeTestDrawer surf request buffer failed\n");
+        GSLOG7SE(ERROR) << "NativeTestSync surf request buffer failed";
         return;
     }
 
@@ -206,26 +205,24 @@ void NativeTestDraw::FlushDraw(uint32_t *addr, uint32_t width, uint32_t height, 
     uint32_t beforeCount = height * c / bigDiv / smallDiv;
     uint32_t afterCount = height - beforeCount - 1;
 
-    auto ret = memset_s(addr, stride * height, color3, beforeCount * stride);
-    if (ret) {
-        printf("memset_s: %s\n", strerror(ret));
+    auto vaddr = reinterpret_cast<uint8_t *>(addr);
+    if (memset_s(vaddr, stride * height, color3, beforeCount * stride)) {
+        GSLOG7SE(ERROR) << "memset_s: " << strerror(errno);
     }
 
-    ret = memset_s(addr + (beforeCount + 1) * stride, stride * height, color1, afterCount * stride);
-    if (ret) {
-        printf("memset_s: %s\n", strerror(ret));
+    if (memset_s(vaddr + (beforeCount + 1) * stride, afterCount * stride, color1, afterCount * stride)) {
+        GSLOG7SE(ERROR) << "memset_s: " << strerror(errno);
     }
 
     for (uint32_t i = 0; i < bigDiv; i++) {
-        ret = memset_s(addr + (i * height / bigDiv) * stride, stride * height, color4, stride);
-        if (ret) {
-            printf("memset_s: %s\n", strerror(ret));
+        auto remained = height - i * height / bigDiv;
+        if (memset_s(vaddr + (i * height / bigDiv) * stride, remained * stride, color4, stride)) {
+            GSLOG7SE(ERROR) << "memset_s: " << strerror(errno);
         }
     }
 
-    ret = memset_s(addr + beforeCount * stride, stride * height, color2, stride);
-    if (ret) {
-        printf("memset_s: %s\n", strerror(ret));
+    if (memset_s(vaddr + beforeCount * stride, afterCount * stride, color2, stride)) {
+        GSLOG7SE(ERROR) << "memset_s: " << strerror(errno);
     }
 }
 
