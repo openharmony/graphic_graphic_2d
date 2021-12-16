@@ -141,6 +141,10 @@ SurfaceError ProducerEglSurface::InitContext(EGLContext context)
         return SURFACE_ERROR_INIT;
     }
 
+    if (initFlag_) {
+        return SURFACE_ERROR_OK;
+    }
+
     if (RequestBufferProc() != SURFACE_ERROR_OK) {
         BLOGNE("RequestBufferProc failed.");
         return SURFACE_ERROR_INIT;

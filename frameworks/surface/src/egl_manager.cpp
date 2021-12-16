@@ -80,7 +80,8 @@ SurfaceError EglManager::Init(EGLContext context)
 {
     ScopedBytrace eGLManagerInit("EGLManagerInit");
     if (initFlag_) {
-        BLOGW("already init.");
+        BLOGW("already init, eglMakeCurrent");
+        eglMakeCurrent(display_, EGL_NO_SURFACE, EGL_NO_SURFACE, context_);
         return SURFACE_ERROR_OK;
     }
 

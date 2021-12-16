@@ -17,19 +17,24 @@
 
 #include <GLES2/gl2ext.h>
 
+#include <gslogger.h>
+
+namespace {
+//DEFINE_HILOG_LABEL("AnimationServer::Texture");
+} // namespace
+
 Texture::Texture(void *buffer, int32_t width, int32_t height)
     : buffer_(buffer), width_(width), height_(height)
 {
     glGenTextures(1, &rendererID_);
     glBindTexture(GL_TEXTURE_2D, rendererID_);
 
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
     glTexImage2D(GL_TEXTURE_2D, 0, GL_BGRA_EXT, width_, height_, 0, GL_BGRA_EXT, GL_UNSIGNED_BYTE, buffer_);
-    glBindTexture(GL_TEXTURE_2D, 0);
 }
 
 Texture::~Texture()

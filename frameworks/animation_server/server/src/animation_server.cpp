@@ -17,6 +17,8 @@
 
 #include <cassert>
 #include <chrono>
+#include <fstream>
+#include <sys/time.h>
 #include <securec.h>
 #include <gslogger.h>
 
@@ -41,6 +43,7 @@ GSError AnimationServer::StartRotationAnimation(int32_t did, int32_t degree)
 GSError AnimationServer::Init()
 {
     handler = AppExecFwk::EventHandler::Current();
+    vhelper = VsyncHelper::FromHandler(handler);
     auto wm = WindowManager::GetInstance();
     auto wret = wm->Init();
     if (wret != WM_OK) {
@@ -71,6 +74,7 @@ void AnimationServer::StartAnimation(struct Animation &animation)
 
     isAnimationRunning = true;
     GSLOG2HI(INFO) << "Animation Start";
+    window->Hide();
     auto wm = WindowManager::GetInstance();
     screenshotPromise = new Promise<struct AnimationScreenshotInfo>();
     wm->ListenNextScreenShot(0, this);
@@ -78,6 +82,7 @@ void AnimationServer::StartAnimation(struct Animation &animation)
     if (asinfo.wmimage.wret) {
         GSLOG2HI(ERROR) << "OnScreenShot failed: " << WMErrorStr(asinfo.wmimage.wret);
         animation.retval->Resolve(static_cast<enum GSError>(asinfo.wmimage.wret));
+        isAnimationRunning = false;
         return;
     }
 
@@ -87,7 +92,9 @@ void AnimationServer::StartAnimation(struct Animation &animation)
 
     auto sret = eglSurface->InitContext();
     if (sret != SURFACE_ERROR_OK) {
+        GSLOG2HI(ERROR) << "EGLSurface InitContext failed: " << sret;
         animation.retval->Resolve(static_cast<enum GSError>(sret));
+        isAnimationRunning = false;
         return;
     }
 
@@ -105,7 +112,9 @@ void AnimationServer::StartAnimation(struct Animation &animation)
     };
     auto gret = ranimation->Init(param);
     if (gret != GSERROR_OK) {
+        GSLOG2HI(ERROR) << "RotationAnimation Init failed: " << GSErrorStr(gret);
         animation.retval->Resolve(gret);
+        isAnimationRunning = false;
         return;
     }
 
@@ -120,6 +129,7 @@ void AnimationServer::AnimationSync(int64_t time, void *data)
     } else {
         GSLOG2HI(INFO) << "Animation End";
         isAnimationRunning = false;
+        window->Hide();
     }
 }
 
@@ -128,7 +138,7 @@ VsyncError AnimationServer::RequestNextVsync()
     struct FrameCallback cb = {
         .callback_ = std::bind(&AnimationServer::AnimationSync, this, SYNC_FUNC_ARG),
     };
-    return VsyncHelper::FromHandler(handler)->RequestFrameCallback(cb);
+    return vhelper->RequestFrameCallback(cb);
 }
 
 void AnimationServer::OnScreenShot(const struct WMImageInfo &info)
@@ -146,7 +156,7 @@ void AnimationServer::OnScreenShot(const struct WMImageInfo &info)
     ainfo.ptr = std::make_shared<Array>();
     ainfo.ptr->ptr = std::make_unique<uint8_t[]>(length);
     ainfo.wmimage.data = ainfo.ptr.get();
-    if (memcpy_s(ainfo.ptr.get(), length, info.data, info.size) != EOK) {
+    if (memcpy_s(ainfo.ptr->ptr.get(), length, info.data, info.size) != EOK) {
         GSLOG2HI(ERROR) << "memcpy_s failed: " << strerror(errno);
         ainfo.wmimage.wret = static_cast<enum WMError>(GSERROR_INTERNEL);
         screenshotPromise->Resolve(ainfo);

@@ -56,6 +56,7 @@ private:
     VsyncError RequestNextVsync();
 
     std::shared_ptr<AppExecFwk::EventHandler> handler = nullptr;
+    sptr<VsyncHelper> vhelper = nullptr;
     sptr<Window> window = nullptr;
     sptr<EglRenderSurface> eglSurface = nullptr;
 

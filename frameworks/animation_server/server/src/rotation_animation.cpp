@@ -17,7 +17,13 @@
 
 #include <chrono>
 
+#include <gslogger.h>
+
 namespace OHOS {
+namespace {
+DEFINE_HILOG_LABEL("RotationAnimation");
+} // namespace
+
 GSError RotationAnimation::Init(struct RotationAnimationParam &param)
 {
     auto vertexShader = "attribute vec4 pos;\n"
@@ -35,10 +41,14 @@ GSError RotationAnimation::Init(struct RotationAnimationParam &param)
                           "void main()\n{\n"
                           "   gl_FragColor = alpha * texture2D(texture, v_texCoord);\n"
                           "}\n";
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
     param_ = param;
 
     shader_ = std::make_unique<Shader>(vertexShader, fragmentShader);
-    texture_ = std::make_unique<Texture>(param_.data.get(), param_.width, param_.height);
+    texture_ = std::make_unique<Texture>(param_.data->ptr.get(), param_.width, param_.height);
 
     shader_->Bind();
 
@@ -67,6 +77,8 @@ bool RotationAnimation::Draw()
     glClear(GL_COLOR_BUFFER_BIT);
 
     double complete = static_cast<double>(now - param_.startTime) / param_.duration;
+    GSLOG2HI(DEBUG) << "complete: " << complete;
+
     auto matrix = Matrix<GLfloat>::RotateMatrixZ(complete * param_.degree);
     double alpha = 1.0 - complete;
 
