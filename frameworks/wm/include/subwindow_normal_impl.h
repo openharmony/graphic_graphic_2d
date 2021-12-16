@@ -40,7 +40,6 @@ public:
 
     virtual void OnPositionChange(WindowPositionChangeFunc func) override;
     virtual void OnSizeChange(WindowSizeChangeFunc func) override;
-    virtual void OnBeforeFrameSubmit(BeforeFrameSubmitFunc func) override;
 
 private:
     SubwindowNormalImpl() = default;

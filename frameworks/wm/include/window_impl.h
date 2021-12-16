@@ -66,7 +66,6 @@ public:
     virtual void OnVisibilityChange(WindowVisibilityChangeFunc func) override;
     virtual void OnTypeChange(WindowTypeChangeFunc func) override;
     virtual void OnModeChange(WindowModeChangeFunc func) override;
-    virtual void OnBeforeFrameSubmit(BeforeFrameSubmitFunc func) override;
 
     // listener
     virtual WMError OnTouch(OnTouchFunc cb) override;

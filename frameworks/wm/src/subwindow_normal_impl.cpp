@@ -194,11 +194,6 @@ void SubwindowNormalImpl::OnSizeChange(WindowSizeChangeFunc func)
     attr.OnSizeChange(func);
 }
 
-void SubwindowNormalImpl::OnBeforeFrameSubmit(BeforeFrameSubmitFunc func)
-{
-    onBeforeFrameSubmitFunc = func;
-}
-
 namespace {
 void BufferRelease(struct wl_buffer *wbuffer, int32_t fence)
 {
@@ -220,10 +215,6 @@ void SubwindowNormalImpl::OnBufferAvailable()
     if (isDestroy == true) {
         WMLOGFI("object destroyed");
         return;
-    }
-
-    if (onBeforeFrameSubmitFunc != nullptr) {
-        onBeforeFrameSubmitFunc();
     }
 
     if (csurface == nullptr || wlSurface == nullptr) {

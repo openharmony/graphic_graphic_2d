@@ -50,7 +50,6 @@ public:
     MOCK_METHOD1(OnVisibilityChange, void(WindowVisibilityChangeFunc func));
     MOCK_METHOD1(OnTypeChange, void(WindowTypeChangeFunc func));
     MOCK_METHOD1(OnModeChange, void(WindowModeChangeFunc func));
-    MOCK_METHOD1(OnBeforeFrameSubmit, void(BeforeFrameSubmitFunc func));
     MOCK_METHOD1(OnTouch, WMError(OnTouchFunc cb));
     MOCK_METHOD1(OnKey, WMError(OnKeyFunc cb));
     MOCK_METHOD1(OnPointerEnter, WMError(PointerEnterFunc func));
