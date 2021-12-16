@@ -53,8 +53,14 @@ ProducerEglSurface::~ProducerEglSurface()
         }
     }
 
+    if (currentBuffer_ != nullptr) {
+        auto bufferImpl = SurfaceBufferImpl::FromBase(currentBuffer_);
+        BufferExtraDataImpl bedataimpl;
+        bufferImpl->GetExtraData(bedataimpl);
+        producer_->CancelBuffer(bufferImpl->GetSeqNum(), bedataimpl);
+        currentBuffer_ = nullptr;
+    }
     sEglManager_ = nullptr;
-    currentBuffer_ = nullptr;
     producer_ = nullptr;
 }
 
@@ -207,6 +213,10 @@ GSError ProducerEglSurface::SwapBuffers()
 
 GSError ProducerEglSurface::SetWidthAndHeight(int32_t width, int32_t height)
 {
+    if (width <= 0 || height <= 0) {
+        return SURFACE_ERROR_INVALID_PARAM;
+    }
+
     std::lock_guard<std::mutex> lock(mutex_);
     width_ = width;
     height_ = height;
