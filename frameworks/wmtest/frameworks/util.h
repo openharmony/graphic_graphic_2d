@@ -22,6 +22,7 @@
 #include <vsync_helper.h>
 
 namespace OHOS {
+void SetVsyncRate(int32_t rate);
 uint32_t RequestSync(const SyncFunc syncFunc, void *data = nullptr);
 void PostTask(std::function<void()> func, uint32_t delayTime = 0);
 void ExitTest();

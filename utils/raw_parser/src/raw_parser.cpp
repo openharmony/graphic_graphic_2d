@@ -106,6 +106,11 @@ int32_t RawParser::GetNextData(void* addr)
         return -1;
     }
 
+    return GetNowData(addr);
+}
+
+int32_t RawParser::GetNowData(void* addr)
+{
     if (memcpy_s(addr, GetSize(), lastData.get(), GetSize()) != EOK) {
         return -1;
     }

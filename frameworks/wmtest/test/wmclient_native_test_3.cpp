@@ -64,11 +64,13 @@ public:
         OptionParser oparser;
         std::string filename = "";
         oparser.AddArguments(filename);
+        oparser.AddArguments(vsyncRate);
         if (oparser.Parse(argc, argv)) {
             ExitTest();
             return;
         }
 
+        SetVsyncRate(vsyncRate);
         auto ret = resource.Parse(filename);
         if (ret) {
             ExitTest();
@@ -106,16 +108,23 @@ public:
 
     void Draw(void *vaddr, uint32_t width, uint32_t height, uint32_t count)
     {
-        resource.GetNextData(vaddr);
-        constexpr uint32_t rotationNumber = 60 * 5;
-        if (count % rotationNumber == (rotationNumber - 1)) {
+        uint32_t rotationNumber = vsyncRate * 8;
+        if (count % rotationNumber == (rotationNumber - 0x2)) {
             constexpr uint32_t degree = -90;
             wms->StartRotationAnimation(0, degree);
+            rotationTime = GetNowTime();
+        } else if (count % rotationNumber == (rotationNumber - 1)) {
             window->ScaleTo(winWidth, winHeight);
             constexpr int32_t rotateTypeMax = 4;
             int32_t next = (static_cast<int32_t>(rotateType) + 1) % rotateTypeMax;
             rotateType = static_cast<enum WindowRotateType>(next);
             window->Rotate(rotateType);
+        }
+
+        if (GetNowTime() - rotationTime > 500 * 1000 * 1000) {
+            resource.GetNextData(vaddr);
+        } else {
+            resource.GetNowData(vaddr);
         }
     }
 
@@ -127,5 +136,7 @@ private:
     int32_t winWidth;
     int32_t winHeight;
     WindowRotateType rotateType;
+    int32_t vsyncRate = 0;
+    int64_t rotationTime = 0;
 } g_autoload;
 } // namespace

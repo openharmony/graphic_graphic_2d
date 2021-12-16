@@ -22,9 +22,19 @@
 using namespace std::chrono_literals;
 
 namespace OHOS {
+namespace {
+int32_t g_vsyncRate = 0;
+} // namespace
+
+void SetVsyncRate(int32_t rate)
+{
+    g_vsyncRate = rate;
+}
+
 uint32_t RequestSync(const SyncFunc syncFunc, void *data)
 {
     struct FrameCallback cb = {
+        .frequency_ = g_vsyncRate,
         .timestamp_ = 0,
         .userdata_ = data,
         .callback_ = syncFunc,
