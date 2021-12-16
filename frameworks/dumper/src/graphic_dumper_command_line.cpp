@@ -116,14 +116,14 @@ GSError GraphicDumperCommandLine::Main(int32_t argc, char *argv[])
 
     iRet = InitSA(GRAPHIC_DUMPER_COMMAND_SA_ID);
     if (iRet != GSERROR_OK) {
-        std::cerr << "Init SA failed: " << iRet << std::endl;
+        std::cerr << "Init SA failed: " << GSErrorStr(iRet) << std::endl;
         return iRet;
     }
 
     sptr<IGraphicDumperInfoListener> listener = this;
     iRet = service_->AddInfoListener("", listener);
     if (iRet != GSERROR_OK) {
-        std::cerr << "Add info listener failed: " << iRet << std::endl;
+        std::cerr << "Add info listener failed: " << GSErrorStr(iRet) << std::endl;
         return iRet;
     }
 
