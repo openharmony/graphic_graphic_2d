@@ -35,31 +35,29 @@ public:
     bool IsConsumer() const override;
     sptr<IBufferProducer> GetProducer() const override;
     GSError RequestBuffer(sptr<SurfaceBuffer>& buffer,
-                               int32_t &fence, BufferRequestConfig &config) override;
+        int32_t &fence, BufferRequestConfig &config) override;
 
     GSError RequestBufferNoFence(sptr<SurfaceBuffer>& buffer,
-                                      BufferRequestConfig &config) override;
+        BufferRequestConfig &config) override;
 
     GSError RequestBufferWithFence(sptr<SurfaceBuffer>& buffer,
-                                     int32_t &fence, BufferRequestConfig &config) override;
+        int32_t &fence, BufferRequestConfig &config) override;
 
     GSError CancelBuffer(sptr<SurfaceBuffer>& buffer) override;
 
     GSError FlushBuffer(sptr<SurfaceBuffer>& buffer,
-                             int32_t fence, BufferFlushConfig &config) override;
+        int32_t fence, BufferFlushConfig &config) override;
 
-    GSError FlushBufferNoFence(sptr<SurfaceBuffer>& buffer,
-                                    BufferFlushConfig &config) override;
+    GSError FlushBufferNoFence(sptr<SurfaceBuffer>& buffer, BufferFlushConfig &config) override;
 
     GSError AcquireBuffer(sptr<SurfaceBuffer>& buffer, int32_t &fence,
-                               int64_t &timestamp, Rect &damage) override;
+        int64_t &timestamp, Rect &damage) override;
     GSError ReleaseBuffer(sptr<SurfaceBuffer>& buffer, int32_t fence) override;
 
     GSError AttachBuffer(sptr<SurfaceBuffer>& buffer) override;
-
     GSError DetachBuffer(sptr<SurfaceBuffer>& buffer) override;
 
-    uint32_t     GetQueueSize() override;
+    uint32_t GetQueueSize() override;
     GSError SetQueueSize(uint32_t queueSize) override;
 
     GSError GetName(std::string &name) override;
@@ -71,7 +69,7 @@ public:
     uint32_t GetDefaultUsage() override;
 
     GSError SetUserData(const std::string &key, const std::string &val) override;
-    std::string  GetUserData(const std::string &key) override;
+    std::string GetUserData(const std::string &key) override;
 
     GSError RegisterConsumerListener(sptr<IBufferConsumerListener>& listener) override;
     GSError RegisterConsumerListener(IBufferConsumerListenerClazz *listener) override;

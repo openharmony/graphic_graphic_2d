@@ -28,9 +28,7 @@
 namespace OHOS {
 class SubwindowNormalImpl : public Subwindow, public IBufferConsumerListenerClazz {
 public:
-    static GSError Create(sptr<Subwindow> &subwindow,
-                          const sptr<Window> &window,
-                          const sptr<SubwindowOption> &option);
+    GSError Init(const sptr<Window> &window, const sptr<SubwindowOption> &option);
 
     virtual sptr<Surface> GetSurface() const override;
 
@@ -41,25 +39,14 @@ public:
     virtual void OnPositionChange(WindowPositionChangeFunc func) override;
     virtual void OnSizeChange(WindowSizeChangeFunc func) override;
 
-private:
-    SubwindowNormalImpl() = default;
-    virtual ~SubwindowNormalImpl() = default;
-
+protected:
     virtual void OnBufferAvailable() override;
     void SendBufferToServer(sptr<WlBuffer> &wbuffer,
                             sptr<SurfaceBuffer> &sbuffer,
                             int32_t fence, Rect &damage);
 
-    static GSError CheckAndNew(sptr<SubwindowNormalImpl> &si,
-                               const sptr<Window> &window,
-                               const sptr<SubwindowOption> &option,
-                               sptr<WlSurface> &parent);
-
-    static GSError CreateWlSurface(sptr<SubwindowNormalImpl> &si,
-                               const sptr<WlSurface> &parentWlSurface);
-
-    static GSError CreateConsumerSurface(sptr<SubwindowNormalImpl> &si,
-                                         const sptr<SubwindowOption> &option);
+    GSError CreateWlSurface(const sptr<WlSurface> &parentWlSurface);
+    virtual GSError CreateConsumerSurface(const sptr<SubwindowOption> &option);
 
     // base attribute
     std::mutex publicMutex;

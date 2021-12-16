@@ -41,9 +41,9 @@ public:
 
 private:
     bool IsRemote();
-    GSError RequestBufferProc();
     GSError RequestBuffer(sptr<SurfaceBuffer> &buffer, int32_t &fence, BufferRequestConfig &config);
 
+    GSError RequestBufferProc();
     GSError FlushBufferProc();
     GSError FlushBuffer(sptr<SurfaceBuffer> &buffer, int32_t fence, BufferFlushConfig &config);
     GSError AddEglData(sptr<SurfaceBuffer> &buffer);

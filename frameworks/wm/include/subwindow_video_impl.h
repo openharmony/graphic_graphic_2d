@@ -27,9 +27,10 @@
 namespace OHOS {
 class SubwindowVideoImpl : public Subwindow {
 public:
-    static GSError Create(sptr<Subwindow> &subwindow,
-                          const sptr<Window> &window,
-                          const sptr<SubwindowOption> &option);
+    ~SubwindowVideoImpl();
+
+    GSError Init(const sptr<Window> &window,
+                 const sptr<SubwindowOption> &option);
 
     virtual sptr<Surface> GetSurface() const override;
 
@@ -41,20 +42,10 @@ public:
     virtual void OnSizeChange(WindowSizeChangeFunc func) override;
 
 private:
-    SubwindowVideoImpl() = default;
-    virtual ~SubwindowVideoImpl() override;
-
-    static GSError CheckAndNew(sptr<SubwindowVideoImpl> &svi,
-                               const sptr<Window> &window,
-                               const sptr<SubwindowOption> &option,
-                               sptr<WlSurface> &parent);
-
-    static GSError CreateWlSurface(sptr<SubwindowVideoImpl> &svi,
-                                   const sptr<WlSurface> &parentWlSurface);
-
-    static GSError CreateLayer(sptr<SubwindowVideoImpl> &svi);
-    static GSError CreateSHMBuffer(sptr<SubwindowVideoImpl> &svi);
-    static GSError CreateSurface(sptr<SubwindowVideoImpl> &svi);
+    GSError CreateWlSurface(const sptr<WlSurface> &parentWlSurface);
+    GSError CreateLayer();
+    GSError CreateSHMBuffer();
+    GSError CreateSurface();
 
     // base attribute
     WindowAttribute attr;

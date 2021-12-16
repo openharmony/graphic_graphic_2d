@@ -13,21 +13,34 @@
  * limitations under the License.
  */
 
-#ifndef INTERFACES_INNERKITS_SURFACE_EGL_DATA_H
-#define INTERFACES_INNERKITS_SURFACE_EGL_DATA_H
+#include "egl_consumer_surface.h"
 
-#include <refbase.h>
-#include <GLES2/gl2.h>
+#include <gslogger.h>
 
 namespace OHOS {
-class EglData : public RefBase {
-public:
-    virtual GLuint GetFrameBufferObj() const = 0;
+namespace {
+DEFINE_HILOG_LABEL("MockEglConsumerSurface");
+} // namespace
 
-protected:
-    EglData() {}
-    virtual ~EglData() {}
-};
+EglConsumerSurface::EglConsumerSurface(const std::string &name, bool isShared)
+    : ConsumerSurface(name, isShared)
+{
+    GSLOG2HI(DEBUG) << "ctor";
+}
+
+EglConsumerSurface::~EglConsumerSurface()
+{
+    GSLOG2HI(DEBUG) << "dtor";
+}
+
+GSError EglConsumerSurface::Init()
+{
+    return GSERROR_NOT_SUPPORT;
+}
+
+GSError EglConsumerSurface::AcquireBuffer(sptr<SurfaceBuffer>& buffer, int32_t &fence,
+    int64_t &timestamp, Rect &damage)
+{
+    return GSERROR_NOT_SUPPORT;
+}
 } // namespace OHOS
-
-#endif // INTERFACES_INNERKITS_SURFACE_EGL_DATA_H

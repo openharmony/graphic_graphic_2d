@@ -59,7 +59,7 @@ public:
     void *GetVirAddr() const override;
     int32_t GetFileDescriptor() const override;
     uint32_t GetSize() const override;
-    sptr<EglData> GetEglData() const;
+    sptr<EglData> GetEglData() const override;
     void SetEglData(const sptr<EglData>& data);
 
     int32_t GetSeqNum();

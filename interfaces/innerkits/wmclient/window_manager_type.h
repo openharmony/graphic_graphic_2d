@@ -32,6 +32,7 @@ namespace OHOS {
 enum SubwindowType {
     SUBWINDOW_TYPE_NORMAL = 0,
     SUBWINDOW_TYPE_VIDEO = 1,
+    SUBWINDOW_TYPE_OFFSCREEN = 2,
     SUBWINDOW_TYPE_MAX,
 };
 

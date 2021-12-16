@@ -22,6 +22,7 @@
 #include "window_manager_type.h"
 
 namespace OHOS {
+using FrameAvailableFunc = std::function<int32_t(sptr<SurfaceBuffer> &buffer)>;
 class Subwindow : public RefBase {
 public:
     virtual sptr<Surface> GetSurface() const = 0;
@@ -32,6 +33,11 @@ public:
 
     virtual void OnPositionChange(WindowPositionChangeFunc func) = 0;
     virtual void OnSizeChange(WindowSizeChangeFunc func) = 0;
+
+    virtual GSError OnFrameAvailable(FrameAvailableFunc func)
+    {
+        return GSERROR_NOT_SUPPORT;
+    }
 };
 } // namespace OHOS
 

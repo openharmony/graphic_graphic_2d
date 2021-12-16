@@ -13,31 +13,19 @@
  * limitations under the License.
  */
 
-#ifndef FRAMEWORKS_SURFACE_INCLUDE_EGL_DATA_IMPL_H
-#define FRAMEWORKS_SURFACE_INCLUDE_EGL_DATA_IMPL_H
+#ifndef INTERFACES_INNERKITS_SURFACE_EGL_DATA_H
+#define INTERFACES_INNERKITS_SURFACE_EGL_DATA_H
 
-#include <egl_data.h>
-#include <surface_buffer.h>
-#include <surface_type.h>
-
-#include "egl_manager.h"
+#include <refbase.h>
 
 namespace OHOS {
-class EglDataImpl : public EglData {
+class EglData : public RefBase {
 public:
-    EglDataImpl();
-    virtual ~EglDataImpl() override;
+    virtual ~EglData() = default;
 
-    GSError CreateEglData(const sptr<SurfaceBuffer> &buffer);
-    virtual uint32_t GetFrameBufferObj() const override;
-    virtual uint32_t GetTexture() const override;
-
-private:
-    sptr<EglManager> eglManager_ = nullptr;
-    void *eglImage_ = nullptr;
-    uint32_t glTexture_ = 0;
-    uint32_t glFbo_ = 0;
+    virtual uint32_t GetFrameBufferObj() const = 0;
+    virtual uint32_t GetTexture() const = 0;
 };
 } // namespace OHOS
 
-#endif // FRAMEWORKS_SURFACE_INCLUDE_EGL_DATA_IMPL_H
+#endif // INTERFACES_INNERKITS_SURFACE_EGL_DATA_H

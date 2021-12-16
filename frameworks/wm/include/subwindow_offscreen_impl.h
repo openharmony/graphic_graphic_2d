@@ -13,31 +13,25 @@
  * limitations under the License.
  */
 
-#ifndef FRAMEWORKS_SURFACE_INCLUDE_EGL_DATA_IMPL_H
-#define FRAMEWORKS_SURFACE_INCLUDE_EGL_DATA_IMPL_H
+#ifndef FRAMEWORKS_WM_INCLUDE_SUBWINDOW_OFFSCREEN_IMPL_H
+#define FRAMEWORKS_WM_INCLUDE_SUBWINDOW_OFFSCREEN_IMPL_H
 
-#include <egl_data.h>
-#include <surface_buffer.h>
-#include <surface_type.h>
-
-#include "egl_manager.h"
+#include "subwindow_normal_impl.h"
 
 namespace OHOS {
-class EglDataImpl : public EglData {
+class SubwindowOffscreenImpl : public SubwindowNormalImpl {
 public:
-    EglDataImpl();
-    virtual ~EglDataImpl() override;
+    virtual GSError OnFrameAvailable(FrameAvailableFunc func) override;
 
-    GSError CreateEglData(const sptr<SurfaceBuffer> &buffer);
-    virtual uint32_t GetFrameBufferObj() const override;
-    virtual uint32_t GetTexture() const override;
+protected:
+    virtual void OnBufferAvailable() override;
+    virtual GSError CreateConsumerSurface(const sptr<SubwindowOption> &option) override;
 
 private:
-    sptr<EglManager> eglManager_ = nullptr;
-    void *eglImage_ = nullptr;
-    uint32_t glTexture_ = 0;
-    uint32_t glFbo_ = 0;
+    int32_t GLOperation(sptr<SurfaceBuffer> &sbuffer);
+
+    FrameAvailableFunc onFrameAvailable = nullptr;
 };
 } // namespace OHOS
 
-#endif // FRAMEWORKS_SURFACE_INCLUDE_EGL_DATA_IMPL_H
+#endif // FRAMEWORKS_WM_INCLUDE_SUBWINDOW_OFFSCREEN_IMPL_H

@@ -32,106 +32,85 @@ namespace {
 constexpr HiviewDFX::HiLogLabel LABEL = {LOG_CORE, 0, "WMSubwindowImpl"};
 } // namespace
 
-GSError SubwindowNormalImpl::CheckAndNew(sptr<SubwindowNormalImpl> &si,
-                                         const sptr<Window> &window,
-                                         const sptr<SubwindowOption> &option,
-                                         sptr<WlSurface> &parent)
+GSError SubwindowNormalImpl::CreateWlSurface(const sptr<WlSurface> &parentWlSurface)
 {
-    auto windowImpl = static_cast<WindowImpl *>(window.GetRefPtr());
-    if (windowImpl == nullptr) {
-        WMLOGFE("WindowImpl is nullptr");
-        return GSERROR_INVALID_ARGUMENTS;
-    }
-    parent = windowImpl->GetWlSurface();
-
-    si = TESTER_NEW(SubwindowNormalImpl);
-    if (si == nullptr) {
-        WMLOGFE("new SubwindowNormalImpl return nullptr");
-        return GSERROR_NO_MEM;
-    }
-    return GSERROR_OK;
-}
-
-GSError SubwindowNormalImpl::CreateWlSurface(sptr<SubwindowNormalImpl> &si,
-                                             const sptr<WlSurface> &parentWlSurface)
-{
-    si->wlSurface = SingletonContainer::Get<WlSurfaceFactory>()->Create();
-    if (si->wlSurface == nullptr) {
+    wlSurface = SingletonContainer::Get<WlSurfaceFactory>()->Create();
+    if (wlSurface == nullptr) {
         WMLOGFE("WlSurfaceFactory::Create return nullptr");
         return GSERROR_API_FAILED;
     }
 
     auto subsurfaceFactory = SingletonContainer::Get<WlSubsurfaceFactory>();
-    si->wlSubsurf = subsurfaceFactory->Create(si->wlSurface, parentWlSurface);
-    if (si->wlSubsurf == nullptr) {
+    wlSubsurf = subsurfaceFactory->Create(wlSurface, parentWlSurface);
+    if (wlSubsurf == nullptr) {
         WMLOGFE("WlSubsurf::Create return nullptr");
         return GSERROR_API_FAILED;
     }
 
-    si->wlSubsurf->SetPosition(si->attr.GetX(), si->attr.GetY());
-    si->wlSubsurf->PlaceBelow(parentWlSurface);
-    si->wlSubsurf->SetDesync();
+    wlSubsurf->SetPosition(attr.GetX(), attr.GetY());
+    wlSubsurf->PlaceBelow(parentWlSurface);
+    wlSubsurf->SetDesync();
     return GSERROR_OK;
 }
 
-GSError SubwindowNormalImpl::CreateConsumerSurface(sptr<SubwindowNormalImpl> &si,
-                                                   const sptr<SubwindowOption> &option)
+GSError SubwindowNormalImpl::CreateConsumerSurface(const sptr<SubwindowOption> &option)
 {
-    auto csurf = option->GetConsumerSurface();
-    if (csurf != nullptr) {
-        si->csurf = csurf;
+    auto csurf2 = option->GetConsumerSurface();
+    if (csurf2 != nullptr) {
+        csurf = csurf2;
         WMLOGFI("use Option Surface");
     } else {
         const auto &sc = SingletonContainer::Get<StaticCall>();
-        si->csurf = sc->SurfaceCreateSurfaceAsConsumer("Normal Subwindow");
+        csurf = sc->SurfaceCreateSurfaceAsConsumer("Normal Subwindow");
         WMLOGFI("use Create Surface");
     }
 
-    if (si->csurf == nullptr) {
+    if (csurf == nullptr) {
         WMLOGFE("SurfaceCreateSurfaceAsConsumer return nullptr");
         return GSERROR_API_FAILED;
     }
 
-    auto producer = si->csurf->GetProducer();
-    si->psurf = SingletonContainer::Get<StaticCall>()->SurfaceCreateSurfaceAsProducer(producer);
-    if (si->psurf == nullptr) {
+    auto producer = csurf->GetProducer();
+    psurf = SingletonContainer::Get<StaticCall>()->SurfaceCreateSurfaceAsProducer(producer);
+    if (psurf == nullptr) {
         WMLOGFE("SurfaceCreateSurfaceAsProducer return nullptr");
         return GSERROR_API_FAILED;
     }
 
-    si->csurf->RegisterConsumerListener(si.GetRefPtr());
-    si->csurf->SetDefaultWidthAndHeight(si->attr.GetWidth(), si->attr.GetHeight());
-    si->csurf->SetDefaultUsage(HBM_USE_CPU_READ | HBM_USE_CPU_WRITE | HBM_USE_MEM_DMA);
+    csurf->RegisterConsumerListener(this);
+    csurf->SetDefaultWidthAndHeight(attr.GetWidth(), attr.GetHeight());
+    csurf->SetDefaultUsage(HBM_USE_CPU_READ | HBM_USE_CPU_WRITE | HBM_USE_MEM_DMA);
     return GSERROR_OK;
 }
 
-GSError SubwindowNormalImpl::Create(sptr<Subwindow> &subwindow,
-                                    const sptr<Window> &window,
-                                    const sptr<SubwindowOption> &option)
+GSError SubwindowNormalImpl::Init(const sptr<Window> &window, const sptr<SubwindowOption> &option)
 {
     WMLOGFI("Create Normal Subwindow");
 
-    sptr<SubwindowNormalImpl> si = nullptr;
-    sptr<WlSurface> parentWlSurface = nullptr;
-    auto wret = CheckAndNew(si, window, option, parentWlSurface);
+    auto windowImpl = static_cast<WindowImpl *>(window.GetRefPtr());
+    if (windowImpl == nullptr) {
+        WMLOGFE("WindowImpl is nullptr");
+        return GSERROR_INVALID_ARGUMENTS;
+    }
+
+    if (option == nullptr) {
+        WMLOGFE("option is nullptr");
+        return GSERROR_INVALID_ARGUMENTS;
+    }
+
+    attr.SetWidthHeight(option->GetWidth(), option->GetHeight());
+    attr.SetXY(option->GetX(), option->GetY());
+
+    auto wret = CreateWlSurface(windowImpl->GetWlSurface());
     if (wret != GSERROR_OK) {
         return wret;
     }
 
-    si->attr.SetWidthHeight(option->GetWidth(), option->GetHeight());
-    si->attr.SetXY(option->GetX(), option->GetY());
-
-    wret = CreateWlSurface(si, parentWlSurface);
+    wret = CreateConsumerSurface(option);
     if (wret != GSERROR_OK) {
         return wret;
     }
 
-    wret = CreateConsumerSurface(si, option);
-    if (wret != GSERROR_OK) {
-        return wret;
-    }
-
-    subwindow = si;
     WMLOGFI("Create Normal Subwindow Success");
     return GSERROR_OK;
 }

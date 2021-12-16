@@ -292,6 +292,10 @@ GSError WindowManagerImpl::CreateSubwindow(sptr<Subwindow> &subwindow,
     if (option->GetWindowType() == SUBWINDOW_TYPE_VIDEO) {
         return staticCall->SubwindowVideoImplCreate(subwindow, window, option);
     }
+
+    if (option->GetWindowType() == SUBWINDOW_TYPE_OFFSCREEN) {
+        return staticCall->SubwindowOffscreenImplCreate(subwindow, window, option);
+    }
     return GSERROR_NOT_SUPPORT;
 }
 

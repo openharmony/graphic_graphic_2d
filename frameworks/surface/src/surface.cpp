@@ -20,6 +20,7 @@
 #include "buffer_log.h"
 #include "consumer_surface.h"
 #include "producer_surface.h"
+#include "egl_consumer_surface.h"
 
 namespace OHOS {
 namespace {
@@ -48,6 +49,17 @@ sptr<Surface> Surface::CreateSurfaceAsProducer(sptr<IBufferProducer>& producer)
     GSError ret = surf->Init();
     if (ret != GSERROR_OK) {
         BLOGE("Failure, Reason: producer surf init failed");
+        return nullptr;
+    }
+    return surf;
+}
+
+sptr<Surface> Surface::CreateEglSurfaceAsConsumer(std::string name, bool isShared)
+{
+    sptr<EglConsumerSurface> surf = new EglConsumerSurface(name, isShared);
+    GSError ret = surf->Init();
+    if (ret != GSERROR_OK) {
+        BLOGE("Failure, Reason: egl consumer surf init failed");
         return nullptr;
     }
     return surf;

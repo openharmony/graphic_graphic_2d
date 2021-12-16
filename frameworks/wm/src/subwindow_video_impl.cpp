@@ -28,62 +28,40 @@ namespace {
 constexpr HiviewDFX::HiLogLabel LABEL = {LOG_CORE, 0, "WMSubwindowVideoImpl"};
 }
 
-GSError SubwindowVideoImpl::CheckAndNew(sptr<SubwindowVideoImpl> &svi,
-                                        const sptr<Window> &window,
-                                        const sptr<SubwindowOption> &option,
-                                        sptr<WlSurface> &parent)
+GSError SubwindowVideoImpl::CreateWlSurface(const sptr<WlSurface> &parentWlSurface)
 {
-    auto windowImpl = static_cast<WindowImpl *>(window.GetRefPtr());
-    if (windowImpl == nullptr) {
-        WMLOGFE("WindowImpl is nullptr");
-        return GSERROR_INVALID_ARGUMENTS;
-    }
-    parent = windowImpl->GetWlSurface();
-
-    svi = new SubwindowVideoImpl();
-    if (svi == nullptr) {
-        WMLOGFE("new SubwindowVideoImpl return nullptr");
-        return GSERROR_NO_MEM;
-    }
-    svi->pw = window;
-    return GSERROR_OK;
-}
-
-GSError SubwindowVideoImpl::CreateWlSurface(sptr<SubwindowVideoImpl> &svi,
-                                            const sptr<WlSurface> &parentWlSurface)
-{
-    svi->wlSurface = SingletonContainer::Get<WlSurfaceFactory>()->Create();
-    if (svi->wlSurface == nullptr) {
+    wlSurface = SingletonContainer::Get<WlSurfaceFactory>()->Create();
+    if (wlSurface == nullptr) {
         WMLOGFE("WlSurfaceFactory::Create return nullptr");
         return GSERROR_API_FAILED;
     }
 
     auto subsurfaceFactory = SingletonContainer::Get<WlSubsurfaceFactory>();
-    svi->wlSubsurf = subsurfaceFactory->Create(svi->wlSurface, parentWlSurface);
-    if (svi->wlSubsurf == nullptr) {
+    wlSubsurf = subsurfaceFactory->Create(wlSurface, parentWlSurface);
+    if (wlSubsurf == nullptr) {
         WMLOGFE("WlSubsurf::Create return nullptr");
         return GSERROR_API_FAILED;
     }
 
-    svi->wlSubsurf->SetPosition(svi->attr.GetX(), svi->attr.GetY());
-    svi->wlSubsurf->PlaceBelow(parentWlSurface);
-    svi->wlSubsurf->SetDesync();
+    wlSubsurf->SetPosition(attr.GetX(), attr.GetY());
+    wlSubsurf->PlaceBelow(parentWlSurface);
+    wlSubsurf->SetDesync();
     return GSERROR_OK;
 }
 
-GSError SubwindowVideoImpl::CreateLayer(sptr<SubwindowVideoImpl> &svi)
+GSError SubwindowVideoImpl::CreateLayer()
 {
 #ifdef TARGET_CPU_ARM
     LayerInfo layerInfo = {
-        .width = svi->attr.GetWidth(),
-        .height = svi->attr.GetHeight(),
+        .width = attr.GetWidth(),
+        .height = attr.GetHeight(),
         .type = LAYER_TYPE_SDIEBAND,
         .bpp = 0x8,
         .pixFormat = PIXEL_FMT_RGBA_8888,
     };
-    int32_t ret = VideoDisplayManager::CreateLayer(layerInfo, svi->layerId, svi->csurf);
+    int32_t ret = VideoDisplayManager::CreateLayer(layerInfo, layerId, csurf);
 #else
-    svi->layerId = -1;
+    layerId = -1;
     int32_t ret = DISPLAY_FAILURE;
 #endif
     if (ret) {
@@ -91,95 +69,97 @@ GSError SubwindowVideoImpl::CreateLayer(sptr<SubwindowVideoImpl> &svi)
         return GSERROR_API_FAILED;
     }
 
-    if (svi->csurf != nullptr) {
-        svi->csurf->SetDefaultWidthAndHeight(svi->attr.GetWidth(), svi->attr.GetHeight());
-        svi->csurf->SetDefaultUsage(HBM_USE_CPU_READ | HBM_USE_CPU_WRITE | HBM_USE_MEM_DMA);
+    if (csurf != nullptr) {
+        csurf->SetDefaultWidthAndHeight(attr.GetWidth(), attr.GetHeight());
+        csurf->SetDefaultUsage(HBM_USE_CPU_READ | HBM_USE_CPU_WRITE | HBM_USE_MEM_DMA);
     } else {
         WMLOGFE("SubwindowVideoImpl::CreateLayer csurf is nullptr");
     }
     return GSERROR_OK;
 }
 
-GSError SubwindowVideoImpl::CreateSHMBuffer(sptr<SubwindowVideoImpl> &svi)
+GSError SubwindowVideoImpl::CreateSHMBuffer()
 {
-    auto width = svi->attr.GetWidth();
-    auto height = svi->attr.GetHeight();
+    auto width = attr.GetWidth();
+    auto height = attr.GetHeight();
     auto format = WL_SHM_FORMAT_XRGB8888;
-    svi->wlBuffer = SingletonContainer::Get<WlSHMBufferFactory>()->Create(width, height, format);
-    if (svi->wlBuffer == nullptr) {
+    wlBuffer = SingletonContainer::Get<WlSHMBufferFactory>()->Create(width, height, format);
+    if (wlBuffer == nullptr) {
         WMLOGFE("WlSHMBufferFactory::Create return nullptr");
         return GSERROR_API_FAILED;
     }
     return GSERROR_OK;
 }
 
-GSError SubwindowVideoImpl::CreateSurface(sptr<SubwindowVideoImpl> &svi)
+GSError SubwindowVideoImpl::CreateSurface()
 {
 #ifdef TARGET_CPU_ARM
-    svi->display = new (std::nothrow) VideoDisplayManager();
-    if (svi->display == nullptr) {
+    display = new (std::nothrow) VideoDisplayManager();
+    if (display == nullptr) {
         WMLOGFE("new VideoDisplayManager failed");
         return GSERROR_NO_MEM;
     }
 
-    auto producer = svi->display->AttachLayer(svi->csurf, svi->layerId);
+    auto producer = display->AttachLayer(csurf, layerId);
     if (producer == nullptr) {
         WMLOGFE("VideoDisplayManager attach layer failed");
         return GSERROR_API_FAILED;
     }
 
-    svi->psurf = Surface::CreateSurfaceAsProducer(producer);
+    psurf = Surface::CreateSurfaceAsProducer(producer);
+    return GSERROR_OK;
 #else
     return GSERROR_API_FAILED;
 #endif
-    return GSERROR_OK;
 }
 
-GSError SubwindowVideoImpl::Create(sptr<Subwindow> &subwindow,
-                                   const sptr<Window> &window,
-                                   const sptr<SubwindowOption> &option)
+GSError SubwindowVideoImpl::Init(const sptr<Window> &window,
+                                 const sptr<SubwindowOption> &option)
 {
-    sptr<SubwindowVideoImpl> svi = nullptr;
-    sptr<WlSurface> parentWlSurface = nullptr;
-    auto wret = CheckAndNew(svi, window, option, parentWlSurface);
+    auto windowImpl = static_cast<WindowImpl *>(window.GetRefPtr());
+    if (windowImpl == nullptr) {
+        WMLOGFE("WindowImpl is nullptr");
+        return GSERROR_INVALID_ARGUMENTS;
+    }
+    if (option == nullptr) {
+        WMLOGFE("option is nullptr");
+        return GSERROR_INVALID_ARGUMENTS;
+    }
+
+    pw = window;
+    attr.SetWidthHeight(option->GetWidth(), option->GetHeight());
+    attr.SetXY(option->GetX(), option->GetY());
+
+    auto wret = CreateWlSurface(windowImpl->GetWlSurface());
     if (wret != GSERROR_OK) {
         return wret;
     }
 
-    svi->attr.SetWidthHeight(option->GetWidth(), option->GetHeight());
-    svi->attr.SetXY(option->GetX(), option->GetY());
-
-    wret = CreateWlSurface(svi, parentWlSurface);
+    wret = CreateLayer();
     if (wret != GSERROR_OK) {
         return wret;
     }
 
-    wret = CreateLayer(svi);
+    wret = CreateSHMBuffer();
     if (wret != GSERROR_OK) {
         return wret;
     }
 
-    wret = CreateSHMBuffer(svi);
+    wlSurface->SetSurfaceType(WL_SURFACE_TYPE_VIDEO);
+    wlSurface->Attach(wlBuffer, 0, 0);
+    wlSurface->Damage(0, 0, attr.GetWidth(), attr.GetHeight());
+    wlSurface->Commit();
+
+    wret = CreateSurface();
     if (wret != GSERROR_OK) {
         return wret;
     }
 
-    svi->wlSurface->SetSurfaceType(WL_SURFACE_TYPE_VIDEO);
-    svi->wlSurface->Attach(svi->wlBuffer, 0, 0);
-    svi->wlSurface->Damage(0, 0, svi->attr.GetWidth(), svi->attr.GetHeight());
-    svi->wlSurface->Commit();
-
-    wret = CreateSurface(svi);
+    wret = Move(option->GetX(), option->GetY());
     if (wret != GSERROR_OK) {
         return wret;
     }
 
-    wret = svi->Move(option->GetX(), option->GetY());
-    if (wret != GSERROR_OK) {
-        return wret;
-    }
-
-    subwindow = svi;
     WMLOGFI("Create Video Subwindow Success");
     return GSERROR_OK;
 }

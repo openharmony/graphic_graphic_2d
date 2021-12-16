@@ -13,31 +13,23 @@
  * limitations under the License.
  */
 
-#ifndef FRAMEWORKS_SURFACE_INCLUDE_EGL_DATA_IMPL_H
-#define FRAMEWORKS_SURFACE_INCLUDE_EGL_DATA_IMPL_H
+#ifndef FRAMEWORKS_SURFACE_INCLUDE_EGL_CONSUMER_SURFACE_H
+#define FRAMEWORKS_SURFACE_INCLUDE_EGL_CONSUMER_SURFACE_H
 
-#include <egl_data.h>
-#include <surface_buffer.h>
-#include <surface_type.h>
+#include <string>
 
-#include "egl_manager.h"
+#include "consumer_surface.h"
 
 namespace OHOS {
-class EglDataImpl : public EglData {
+class EglConsumerSurface : public ConsumerSurface {
 public:
-    EglDataImpl();
-    virtual ~EglDataImpl() override;
+    EglConsumerSurface(const std::string &name, bool isShared = false);
+    virtual ~EglConsumerSurface();
+    GSError Init();
 
-    GSError CreateEglData(const sptr<SurfaceBuffer> &buffer);
-    virtual uint32_t GetFrameBufferObj() const override;
-    virtual uint32_t GetTexture() const override;
-
-private:
-    sptr<EglManager> eglManager_ = nullptr;
-    void *eglImage_ = nullptr;
-    uint32_t glTexture_ = 0;
-    uint32_t glFbo_ = 0;
+    GSError AcquireBuffer(sptr<SurfaceBuffer>& buffer, int32_t &fence,
+        int64_t &timestamp, Rect &damage) override;
 };
 } // namespace OHOS
 
-#endif // FRAMEWORKS_SURFACE_INCLUDE_EGL_DATA_IMPL_H
+#endif // FRAMEWORKS_SURFACE_INCLUDE_EGL_CONSUMER_SURFACE_H
