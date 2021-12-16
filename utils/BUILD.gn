@@ -15,6 +15,10 @@ group("buffer_handle") {
   public_deps = [ "buffer_handle:buffer_handle" ]
 }
 
+group("graphic_bytrace") {
+  public_deps = [ "bytrace:graphic_bytrace" ]
+}
+
 group("promise") {
   public_deps = [ "promise:promise" ]
 }

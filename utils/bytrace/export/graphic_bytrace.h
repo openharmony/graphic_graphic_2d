@@ -18,19 +18,16 @@
 
 #include <string>
 
-class GraphicBytrace {
-public:
-    static void BytraceBegin(const std::string &proc);
-    static void BytraceEnd(const std::string &proc);
-};
-
 class ScopedBytrace {
 public:
     ScopedBytrace(const std::string &proc);
     ~ScopedBytrace();
 
+    void End();
+
 private:
     std::string proc_;
+    bool isEnd = false;
 };
 
 #endif // UTILS_TRACE_GRAPHIC_BYTRACE_H

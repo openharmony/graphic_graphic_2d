@@ -97,6 +97,7 @@ ohos_executable("animation_server") {
     "//foundation/graphic/standard:libvsync_client",
     "//foundation/graphic/standard:libwmclient",
     "//foundation/graphic/standard:libwmservice",
+    "//foundation/graphic/standard/utils:graphic_bytrace",
     "//foundation/graphic/standard/utils:libgslogger",
     "//foundation/graphic/standard/utils:matrix",
   ]

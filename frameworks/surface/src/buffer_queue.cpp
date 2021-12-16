@@ -191,7 +191,6 @@ SurfaceError BufferQueue::RequestBuffer(const BufferRequestConfig &config, Buffe
     bufferImpl->GetExtraData(bedata);
     retval.buffer = bufferImpl;
     retval.fence = -1;
-    GraphicBytrace::BytraceBegin("ProducerUseBuffer");
     return ret;
 }
 
@@ -236,7 +235,6 @@ SurfaceError BufferQueue::ReuseBuffer(const BufferRequestConfig &config, BufferE
         retval.buffer = nullptr;
     }
 
-    GraphicBytrace::BytraceBegin("ProducerUseBuffer");
     return SURFACE_ERROR_OK;
 }
 
@@ -263,7 +261,6 @@ SurfaceError BufferQueue::CancelBuffer(int32_t sequence, const BufferExtraData &
 
     BLOGN_SUCCESS_ID(sequence, "cancel");
 
-    GraphicBytrace::BytraceEnd("ProducerUseBuffer");
     return SURFACE_ERROR_OK;
 }
 
@@ -299,7 +296,6 @@ SurfaceError BufferQueue::FlushBuffer(int32_t sequence, const BufferExtraData &b
         return SURFACE_ERROR_NO_CONSUMER;
     }
 
-    GraphicBytrace::BytraceEnd("ProducerUseBuffer");
     ScopedBytrace bufferIPCSend("BufferIPCSend");
     sret = DoFlushBuffer(sequence, bedata, fence, config);
     if (sret != SURFACE_ERROR_OK) {

@@ -18,22 +18,22 @@
 #include <bytrace.h>
 #include <hilog/log.h>
 
-void GraphicBytrace::BytraceBegin(const std::string &proc)
-{
-    StartTrace(BYTRACE_TAG_GRAPHIC_AGP, proc);
-}
-
-void GraphicBytrace::BytraceEnd(const std::string &proc)
-{
-    FinishTrace(BYTRACE_TAG_GRAPHIC_AGP);
-}
-
 ScopedBytrace::ScopedBytrace(const std::string &proc) : proc_(proc)
 {
-    GraphicBytrace::BytraceBegin(proc_);
+    StartTrace(BYTRACE_TAG_GRAPHIC_AGP, proc_);
+    isEnd = false;
 }
 
 ScopedBytrace::~ScopedBytrace()
 {
-    GraphicBytrace::BytraceEnd(proc_);
+    if (isEnd == false) {
+        FinishTrace(BYTRACE_TAG_GRAPHIC_AGP);
+    }
+}
+
+void ScopedBytrace::End()
+{
+    if (isEnd == false) {
+        FinishTrace(BYTRACE_TAG_GRAPHIC_AGP);
+    }
 }

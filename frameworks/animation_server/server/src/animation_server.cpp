@@ -20,6 +20,8 @@
 #include <fstream>
 #include <sys/time.h>
 #include <securec.h>
+
+#include <graphic_bytrace.h>
 #include <gslogger.h>
 
 namespace OHOS {
@@ -72,6 +74,7 @@ void AnimationServer::StartAnimation(struct Animation &animation)
         return;
     }
 
+    ScopedBytrace(__func__);
     isAnimationRunning = true;
     GSLOG2HI(INFO) << "Animation Start";
     window->Hide();
@@ -123,13 +126,16 @@ void AnimationServer::StartAnimation(struct Animation &animation)
 
 void AnimationServer::AnimationSync(int64_t time, void *data)
 {
+    ScopedBytrace sb(__func__);
     if (ranimation->Draw()) {
         eglSurface->SwapBuffers();
         RequestNextVsync();
+        sb.End();
     } else {
+        sb.End();
         GSLOG2HI(INFO) << "Animation End";
-        isAnimationRunning = false;
         window->Hide();
+        isAnimationRunning = false;
     }
 }
 

@@ -70,8 +70,6 @@ SurfaceError ProducerEglSurface::RequestBuffer(sptr<SurfaceBuffer> &buffer,
         return ret;
     }
 
-    GraphicBytrace::BytraceBegin("EGLProducerUseBuffer");
-
     // add cache
     if (retval.buffer != nullptr && IsRemote()) {
         sptr<SurfaceBufferImpl> bufferImpl = SurfaceBufferImpl::FromBase(retval.buffer);
@@ -119,7 +117,6 @@ SurfaceError ProducerEglSurface::FlushBuffer(sptr<SurfaceBuffer> &buffer,
         return SURFACE_ERROR_NULLPTR;
     }
 
-    GraphicBytrace::BytraceEnd("EGLProducerUseBuffer");
     auto bufferImpl = SurfaceBufferImpl::FromBase(buffer);
     BufferExtraDataImpl bedataimpl;
     bufferImpl->GetExtraData(bedataimpl);
