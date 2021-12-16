@@ -63,6 +63,8 @@ public:
 
     virtual sptr<PromiseWMError> CreateVirtualDisplay(int32_t x, int32_t y, int32_t width, int32_t height) = 0;
     virtual sptr<PromiseWMError> DestroyVirtualDisplay(uint32_t did) = 0;
+
+    virtual GSError StartRotationAnimation(uint32_t did, int32_t degree) = 0;
 };
 } // namespace OHOS
 

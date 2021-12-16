@@ -22,10 +22,12 @@ namespace {
 constexpr HiviewDFX::HiLogLabel LABEL = {LOG_CORE, 0, "WMServiceProxy"};
 }
 
-WindowManagerServiceProxy::WindowManagerServiceProxy(struct wms *wms, struct wl_display *display)
+WindowManagerServiceProxy::WindowManagerServiceProxy(struct wms *wms, struct wl_display *display,
+    sptr<IAnimationService> &as)
 {
     this->wms = wms;
     this->display = display;
+    this->as = as;
 }
 
 namespace {
@@ -498,5 +500,14 @@ sptr<PromiseWMError> WindowManagerServiceProxy::DestroyVirtualDisplay(uint32_t d
     wms_commit_changes(wms);
     wl_display_flush(display);
     return ret;
+}
+
+GSError WindowManagerServiceProxy::StartRotationAnimation(uint32_t did, int32_t degree)
+{
+    if (as == nullptr) {
+        return GSERROR_CONNOT_CONNECT_SERVER;
+    }
+
+    return as->StartRotationAnimation(did, degree);
 }
 } // namespace OHOS

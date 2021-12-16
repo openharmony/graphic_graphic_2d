@@ -53,6 +53,7 @@ namespace OHOS {
     macro(WINDOW_TYPE_SYSTEM_ERROR), \
     macro(WINDOW_TYPE_TOAST), \
     macro(WINDOW_TYPE_WALLPAPER), \
+    macro(WINDOW_TYPE_ANIMATION), \
     macro(WINDOW_TYPE_MAX),
 
 #define DEFINE_ENUM_WINDOW_TYPE(id) id

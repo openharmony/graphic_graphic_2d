@@ -28,7 +28,7 @@ config("wmtest_config") {
 }
 
 ohos_executable("wmtest") {
-  install_enable = true
+  install_enable = false
 
   sources = [
     "frameworks/inative_test.cpp",
@@ -80,7 +80,10 @@ ohos_executable("wmtest") {
   ]
 
   if (ace_enable_gpu) {
-    sources += [ "test/wmclient_native_test_31.cpp" ]
+    sources += [
+      "test/wmclient_native_test_31.cpp",
+      "test/wmservice_native_test_6.cpp",
+    ]
   }
 
   configs = [ ":wmtest_config" ]
@@ -92,6 +95,7 @@ ohos_executable("wmtest") {
     "//foundation/graphic/standard:libvsync_client",
     "//foundation/graphic/standard:libwmclient",
     "//foundation/graphic/standard:libwmservice",
+    "//foundation/graphic/standard/utils:libgslogger",
     "//foundation/graphic/standard/utils:option_parser",
     "//foundation/multimodalinput/input/frameworks/proxy:libmmi-client",
     "//third_party/zlib:libz",

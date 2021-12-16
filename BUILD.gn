@@ -15,6 +15,27 @@ import("//build/ohos.gni")
 import("//foundation/graphic/standard/utils/wmlayout/wmlayout.gni")
 import("graphic_config.gni")
 
+group("default") {
+  public_deps = [
+    ":default.scss",
+    ":graphic.rc",
+    "frameworks/bootanimation:bootanimation",
+    "frameworks/bootanimation:bootanimation-480x960.raw",
+    "frameworks/dumper:gdumper",
+    "frameworks/dumper:gdumper.ini",
+    "frameworks/dumper:graphic_dumper_server",
+    "frameworks/vsync:vsync_server",
+    "frameworks/wmserver:screen-info-test",
+    "frameworks/wmserver:wmserver",
+    "frameworks/wmservice:wmservice_test",
+    "frameworks/wmtest:wmtest",
+  ]
+
+  if (ace_enable_gpu) {
+    public_deps += [ "frameworks/animation_server:animation_server" ]
+  }
+}
+
 ## Install graphic.rc to /system/etc/init/graphic.rc {{{
 ohos_prebuilt_etc("graphic.rc") {
   if (use_musl) {

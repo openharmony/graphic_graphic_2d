@@ -46,6 +46,7 @@ static const std::map<GSError, std::string> GSErrorStrs = {
     {GSERROR_NO_MEM,                "<500 no memory>"},
     {GSERROR_PROXY_NOT_INCLUDE,     "<500 proxy not include>"},
     {GSERROR_SERVER_ERROR,          "<500 server occur error>"},
+    {GSERROR_ANIMATION_RUNNING,     "<500 animation is running>"},
     {GSERROR_NOT_IMPLEMENT,         "<501 not implement>"},
     {GSERROR_NOT_SUPPORT,           "<501 not support>"},
     {GSERROR_BINDER,                "<504 binder occur error>"},

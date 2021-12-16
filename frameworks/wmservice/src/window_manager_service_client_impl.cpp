@@ -260,7 +260,13 @@ WMError WindowManagerServiceClientImpl::Init()
         return WM_ERROR_WMS_NOT_FOUND;
     }
 
-    wmservice = new WindowManagerServiceProxy(wms, display);
+    auto gret = IAnimationService::Init();
+    if (gret != GSERROR_OK) {
+        WMLOGFW("animationService init failed: %{public}s", GSErrorStr(gret).c_str());
+    }
+
+    auto as = IAnimationService::Get();
+    wmservice = new WindowManagerServiceProxy(wms, display, as);
     StartDispatchThread();
     return WM_OK;
 }

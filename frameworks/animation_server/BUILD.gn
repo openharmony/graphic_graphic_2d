@@ -1,0 +1,107 @@
+# Copyright (c) 2021 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/ohos.gni")
+
+## Build libanimation_service.so {{{
+config("libanimation_service_config") {
+  visibility = [ ":*" ]
+
+  include_dirs = [
+    "client/include",
+    "//utils/system/safwk/native/include",  # system_ability_definition.h
+  ]
+
+  cflags = [
+    "-Wall",
+    "-Werror",
+    "-g3",
+  ]
+}
+
+config("libanimation_service_public_config") {
+  include_dirs = [
+    "export",
+    "//foundation/graphic/standard/interfaces/innerkits/common",
+  ]
+}
+
+ohos_shared_library("libanimation_service") {
+  sources = [
+    "client/src/animation_service_proxy.cpp",
+    "client/src/ianimation_service.cpp",
+  ]
+
+  configs = [ ":libanimation_service_config" ]
+
+  public_configs = [ ":libanimation_service_public_config" ]
+
+  deps = [
+    "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
+    "//foundation/distributedschedule/samgr/interfaces/innerkits/samgr_proxy:samgr_proxy",
+    "//foundation/graphic/standard/utils:libgslogger",
+  ]
+
+  public_deps = [ "//utils/native/base:utils" ]
+
+  part_name = "graphic_standard"
+  subsystem_name = "graphic"
+}
+
+## Build libanimation_service.so }}}
+
+## Build animation_server {{{
+config("animation_server_config") {
+  visibility = [ ":*" ]
+
+  include_dirs = [
+    "export",
+    "server/include",
+    "//utils/system/safwk/native/include",  # system_ability_definition.h
+  ]
+
+  cflags = [
+    "-Wall",
+    "-Werror",
+    "-g3",
+  ]
+}
+
+ohos_executable("animation_server") {
+  install_enable = true
+
+  sources = [
+    "server/src/animation_server.cpp",
+    "server/src/animation_service_stub.cpp",
+    "server/src/main.cpp",
+    "server/src/rotation_animation.cpp",
+    "server/src/shader.cpp",
+    "server/src/texture.cpp",
+  ]
+
+  configs = [ ":animation_server_config" ]
+
+  deps = [
+    "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
+    "//foundation/distributedschedule/samgr/interfaces/innerkits/samgr_proxy:samgr_proxy",
+    "//foundation/graphic/standard:libvsync_client",
+    "//foundation/graphic/standard:libwmclient",
+    "//foundation/graphic/standard:libwmservice",
+    "//foundation/graphic/standard/utils:libgslogger",
+    "//foundation/graphic/standard/utils:matrix",
+  ]
+
+  part_name = "graphic_standard"
+  subsystem_name = "graphic"
+}
+## Build animation_server }}}

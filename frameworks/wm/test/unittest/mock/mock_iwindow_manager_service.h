@@ -49,6 +49,7 @@ public:
     MOCK_METHOD2(SetWindowMode, sptr<PromiseWMError>(int32_t wid, WindowMode mode));
     MOCK_METHOD4(CreateVirtualDisplay, sptr<PromiseWMError>(int32_t x, int32_t y, int32_t width, int32_t height));
     MOCK_METHOD1(DestroyVirtualDisplay, sptr<PromiseWMError>(uint32_t did));
+    MOCK_METHOD2(StartRotationAnimation, GSError(uint32_t did, int32_t degree));
 };
 } // namespace OHOS
 

@@ -6,10 +6,6 @@
         "//foundation/graphic/standard/interfaces/kits/js/declaration:window",
         "//foundation/graphic/standard/interfaces/kits/napi:napi_packages",
 
-        "//foundation/graphic/standard/frameworks/dumper:gdumper.ini",
-        "//foundation/graphic/standard/frameworks/dumper:graphic_dumper_server",
-        "//foundation/graphic/standard/frameworks/dumper:gdumper",
-
         "//third_party/wayland-ivi-extension:ivi-controller",
         "//third_party/wayland-ivi-extension:ivi-input-controller",
         "//third_party/wayland-ivi-extension:libscreen-info-module",
@@ -18,14 +14,7 @@
         "//third_party/wayland-ivi-extension:simple-weston-client",
 
         "//third_party/weston:default",
-
-        "//foundation/graphic/standard/frameworks/vsync:vsync_server",
-        "//foundation/graphic/standard/frameworks/wmserver:wmserver",
-
-        "//foundation/graphic/standard/frameworks/bootanimation:bootanimation",
-        "//foundation/graphic/standard/frameworks/bootanimation:bootanimation-480x960.raw",
-        "//foundation/graphic/standard:default.scss",
-        "//foundation/graphic/standard:graphic.rc"
+        "//foundation/graphic/standard:default"
       ],
       "test_list": [
         "//foundation/graphic/standard/frameworks/surface:test",
