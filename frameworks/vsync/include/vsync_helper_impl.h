@@ -59,6 +59,7 @@ private:
 
     VsyncError InitService();
     VsyncError InitVsyncFrequency();
+    GSError InitListener();
 
     void DispatchMain(int64_t timestamp);
 

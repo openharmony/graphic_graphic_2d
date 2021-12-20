@@ -138,29 +138,38 @@ VsyncError VsyncClient::Init(bool restart)
         } else if (vret != VSYNC_ERROR_OK) {
             return vret;
         }
-
-        if (listener_ == nullptr) {
-            listener_ = new VsyncCallback();
-            {
-                std::lock_guard<std::mutex> lock(serviceMutex_);
-                vret = StaticCall::GetInstance()->ListenVsync(service_, listener_);
-                if (vret == VSYNC_ERROR_BINDER_ERROR) {
-                    service_ = nullptr;
-                    listener_ = nullptr;
-                    restart = true;
-                    continue;
-                }
-            }
-            if (vret == VSYNC_ERROR_OK) {
-                VLOG_SUCCESS("ListenVsync");
-            } else {
-                VLOG_FAILURE_API(ListenVsync, vret);
-                return vret;
-            }
-        }
         break;
     }
     return VSYNC_ERROR_OK;
+}
+
+GSError VsyncClient::InitListener()
+{
+    while (listener_ == nullptr) {
+        listener_ = new VsyncCallback();
+        auto vret = GSERROR_OK;
+        {
+            std::lock_guard<std::mutex> lock(serviceMutex_);
+            vret = static_cast<enum GSError>(StaticCall::GetInstance()->ListenVsync(service_, listener_));
+            if (vret == GSERROR_BINDER) {
+                service_ = nullptr;
+                listener_ = nullptr;
+            }
+        }
+
+        if (vret == GSERROR_BINDER) {
+            Init();
+            continue;
+        }
+
+        if (vret == GSERROR_OK) {
+            VLOG_SUCCESS("ListenVsync");
+        } else {
+            VLOGE("ListenVsync failed with %{public}d", vret);
+            return vret;
+        }
+    }
+    return GSERROR_OK;
 }
 
 VsyncError VsyncClient::RequestFrameCallback(const struct FrameCallback &cb)
@@ -196,6 +205,7 @@ VsyncError VsyncClient::RequestFrameCallback(const struct FrameCallback &cb)
     {
         std::lock_guard<std::mutex> lockGuard(callbacksMapMutex_);
         callbacksMap_[vsyncID].push(ele);
+        InitListener();
     }
 
     VLOG_SUCCESS("RequestFrameCallback time: " VPUBI64 ", id: %{public}u", delayTime, vsyncID);
@@ -232,14 +242,17 @@ void VsyncClient::DispatchFrameCallback(int64_t timestamp)
         return;
     }
 
-    auto func = std::bind(&VsyncClient::DispatchMain, this, timestamp);
-    g_handlers.front()->PostTask(func, "VsyncClient::DispatchFrameCallback");
+    ++lastID_;
+    if (callbacksMap_.size() > 0) {
+        auto func = std::bind(&VsyncClient::DispatchMain, this, timestamp);
+        g_handlers.front()->PostTask(func, "VsyncClient::DispatchFrameCallback");
+    }
 }
 
 void VsyncClient::DispatchMain(int64_t timestamp)
 {
     ScopedBytrace func(__func__);
-    uint32_t id = ++lastID_;
+    uint32_t id = lastID_;
     int64_t now = GetNowTime();
 
     std::list<struct VsyncElement> vsyncElements;
@@ -283,6 +296,12 @@ void VsyncClient::DispatchMain(int64_t timestamp)
                 }
             }
         } while (haveEmpty == true);
+
+        if (callbacksMap_.size() == 0 && listener_ != nullptr) {
+            std::lock_guard<std::mutex> lock(serviceMutex_);
+            service_->RemoveVsync(listener_);
+            listener_ = nullptr;
+        }
     }
 }
 

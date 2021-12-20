@@ -132,21 +132,6 @@ HWTEST_F(VsyncHelperImplTest, Init5, testing::ext::TestSize.Level0)
     StaticCall::SetInstance(origin);
 }
 
-HWTEST_F(VsyncHelperImplTest, Init6, testing::ext::TestSize.Level0)
-{
-    sptr<MockStaticCall> mockInstance = new MockStaticCall();
-    sptr<VsyncClient> client = VsyncClient::GetInstance();
-    sptr<StaticCall> staticCall = mockInstance;
-    auto origin = StaticCall::GetInstance();
-    StaticCall::SetInstance(staticCall);
-    EXPECT_CALL(*mockInstance, ListenVsync(testing::_, testing::_))
-                .Times(1).WillRepeatedly(testing::Return(VSYNC_ERROR_API_FAILED));
-    client->vsyncFrequency_=60;
-    auto ret = client->Init();
-    ASSERT_EQ(ret, VSYNC_ERROR_API_FAILED);
-    StaticCall::SetInstance(origin);
-}
-
 HWTEST_F(VsyncHelperImplTest, Init7, testing::ext::TestSize.Level0)
 {
     sptr<VsyncClient> client = VsyncClient::GetInstance();

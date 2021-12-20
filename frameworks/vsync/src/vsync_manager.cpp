@@ -55,6 +55,17 @@ int32_t VsyncManager::OnRemoteRequest(uint32_t code, MessageParcel &data,
             REMOTE_RETURN(reply, ret);
             break;
         }
+        case IVSYNC_MANAGER_REMOVE_VSYNC: {
+            auto remoteObject = data.ReadRemoteObject();
+            if (remoteObject == nullptr) {
+                REMOTE_RETURN(reply, VSYNC_ERROR_NULLPTR);
+            }
+
+            auto cb = iface_cast<IVsyncCallback>(remoteObject);
+            VsyncError ret = RemoveVsync(cb);
+            REMOTE_RETURN(reply, ret);
+            break;
+        }
         case IVSYNC_MANAGER_GET_VSYNC_FREQUENCY: {
             uint32_t freq = 0;
             VsyncError ret = GetVsyncFrequency(freq);
@@ -88,6 +99,18 @@ VsyncError VsyncManager::ListenVsync(sptr<IVsyncCallback>& cb)
     return VSYNC_ERROR_OK;
 }
 
+VsyncError VsyncManager::RemoveVsync(sptr<IVsyncCallback>& callback)
+{
+    for (auto it = callbacks_.begin(); it != callbacks_.end(); it++) {
+        if (*it == callback) {
+            callbacks_.erase(it);
+            break;
+        }
+    }
+
+    return VSYNC_ERROR_OK;
+}
+
 VsyncError VsyncManager::GetVsyncFrequency(uint32_t &freq)
 {
     constexpr uint32_t defaultVsyncFrequency = 60;
@@ -97,7 +120,6 @@ VsyncError VsyncManager::GetVsyncFrequency(uint32_t &freq)
 
 void VsyncManager::Callback(int64_t timestamp)
 {
-    VLOGI("call callback");
     std::lock_guard<std::mutex> lock(callbacksMutex_);
 
     using sptrIVsyncCallback = sptr<IVsyncCallback>;

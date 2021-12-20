@@ -28,6 +28,7 @@ public:
     virtual ~VsyncManagerProxy() = default;
 
     virtual VsyncError ListenVsync(sptr<IVsyncCallback>& cb) override;
+    virtual VsyncError RemoveVsync(sptr<IVsyncCallback>& cb) override;
     virtual VsyncError GetVsyncFrequency(uint32_t &freq) override;
 
 private:

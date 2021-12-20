@@ -26,14 +26,16 @@ namespace Vsync {
 class IVsyncManager : public IRemoteBroker {
 public:
     virtual VsyncError ListenVsync(sptr<IVsyncCallback>& cb) = 0;
+    virtual VsyncError RemoveVsync(sptr<IVsyncCallback>& cb) = 0;
     virtual VsyncError GetVsyncFrequency(uint32_t &freq) = 0;
 
     DECLARE_INTERFACE_DESCRIPTOR(u"IVsyncManager");
 
 protected:
     enum {
-        IVSYNC_MANAGER_LISTEN_VSYNC,
-        IVSYNC_MANAGER_GET_VSYNC_FREQUENCY,
+        IVSYNC_MANAGER_LISTEN_VSYNC = 0,
+        IVSYNC_MANAGER_REMOVE_VSYNC = 1,
+        IVSYNC_MANAGER_GET_VSYNC_FREQUENCY = 2,
     };
 };
 } // namespace Vsync
