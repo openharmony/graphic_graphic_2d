@@ -9,7 +9,6 @@
         "//third_party/wayland-ivi-extension:ivi-controller",
         "//third_party/wayland-ivi-extension:ivi-input-controller",
         "//third_party/wayland-ivi-extension:libscreen-info-module",
-        "//third_party/wayland-ivi-extension:libtest-screen-info-module",
         "//third_party/wayland-ivi-extension:layer-add-surfaces",
         "//third_party/wayland-ivi-extension:LayerManagerControl",
         "//third_party/wayland-ivi-extension:simple-weston-client",
@@ -18,12 +17,9 @@
 
         "//foundation/graphic/standard/frameworks/vsync:vsync_server",
         "//foundation/graphic/standard/frameworks/wmserver:wmserver",
-        "//foundation/graphic/standard/frameworks/wmserver:screen-info-test",
-        "//foundation/graphic/standard/frameworks/wmservice:wmservice_test",
 
         "//foundation/graphic/standard/frameworks/bootanimation:bootanimation",
         "//foundation/graphic/standard/frameworks/bootanimation:bootanimation-480x960.raw",
-        "//foundation/graphic/standard/frameworks/wmtest:wmtest",
         "//foundation/graphic/standard:default.scss",
         "//foundation/graphic/standard:graphic.rc"
       ],
