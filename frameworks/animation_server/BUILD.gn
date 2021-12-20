@@ -86,6 +86,7 @@ ohos_executable("animation_server") {
   sources = [
     "server/src/animation_server.cpp",
     "server/src/animation_service_stub.cpp",
+    "server/src/cursor_module.cpp",
     "server/src/main.cpp",
   ]
 
@@ -113,4 +114,11 @@ ohos_executable("animation_server") {
   part_name = "graphic_standard"
   subsystem_name = "graphic"
 }
+
 ## Build animation_server }}}
+
+ohos_prebuilt_etc("cursor.raw") {
+  source = "server/cursor.raw"
+  part_name = "graphic_standard"
+  subsystem_name = "graphic"
+}

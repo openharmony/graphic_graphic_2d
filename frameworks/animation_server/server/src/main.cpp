@@ -30,12 +30,6 @@ int main(int argc, const char *argv[])
 {
     GSLOG2HI(INFO) << "main start";
     auto server = new AnimationServer();
-    auto ret = server->Init();
-    if (ret != GSERROR_OK) {
-        GSLOG2SE(ERROR) << "Server init failed: " << GSErrorStr(ret);
-        return ret;
-    }
-
     auto sam = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     if (sam->AddSystemAbility(ANIMATION_SERVER_SA_ID, server) != ERR_OK) {
         GSLOG2HI(ERROR) << "AddSystemAbility failed: " << ANIMATION_SERVER_SA_ID;

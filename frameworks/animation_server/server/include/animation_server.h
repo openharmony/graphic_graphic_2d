@@ -28,6 +28,7 @@
 #include <window_manager_service_client.h>
 
 #include "animation_service_stub.h"
+#include "cursor_module.h"
 #include "rotation_animation.h"
 
 #ifdef ACE_ENABLE_GPU
@@ -108,6 +109,7 @@ private:
     };
     sptr<TouchEventHandler> thandler = nullptr;
     sptr<IRemoteObject> token = new IPCObjectStub(u"animation_server");
+    CursorModule cursorModule;
 };
 } // namespace OHOS
 

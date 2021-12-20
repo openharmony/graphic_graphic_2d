@@ -98,7 +98,7 @@ main()
         fi
 
         if [ "$last_filename" = "" ]; then
-            echo -en "RAW.diff" > $GENERATE_RAW
+            echo -en "RAW.dif2" > $GENERATE_RAW
             echo_int32_t_to_bin $width >> $GENERATE_RAW
             echo_int32_t_to_bin $height >> $GENERATE_RAW
         fi

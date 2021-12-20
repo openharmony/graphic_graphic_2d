@@ -196,6 +196,9 @@ int32_t RawMaker::DoFirstFrame()
     }
 
     lastFrame = std::make_unique<uint8_t[]>(size);
+    ofs.write("RAW.dif2", 0x8);
+    WriteInt32(width);
+    WriteInt32(height);
     ofs.close();
     return 0;
 }

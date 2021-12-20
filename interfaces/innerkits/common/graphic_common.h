@@ -39,6 +39,7 @@ static const std::map<GSError, std::string> GSErrorStrs = {
     {GSERROR_NO_BUFFER,             "<406 no buffer>"},
     {GSERROR_NO_ENTRY,              "<406 no entry>"},
     {GSERROR_OUT_OF_RANGE,          "<406 out of range>"},
+    {GSERROR_NO_SCREEN,             "<406 no screen>"},
     {GSERROR_INVALID_OPERATING,     "<412 invalid operating>"},
     {GSERROR_NO_CONSUMER,           "<412 no consumer>"},
     {GSERROR_NOT_INIT,              "<412 not init>"},

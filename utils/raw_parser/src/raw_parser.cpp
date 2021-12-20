@@ -38,8 +38,8 @@ int32_t RawParser::Parse(const std::string &file)
     }
 
     auto minfo = reinterpret_cast<struct RawHeaderInfo*>(&compressed[0]);
-    if (strncmp(minfo->magic, "RAW.diff", 0x8) != 0) {
-        GSLOG2HI(ERROR) << "magic header mistake";
+    if (strncmp(minfo->magic, "RAW.dif2", 0x8) != 0) {
+        GSLOG2HI(ERROR) << "magic header mistake, is " << minfo->magic;
         return -1;
     }
 

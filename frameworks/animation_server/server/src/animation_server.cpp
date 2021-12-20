@@ -43,6 +43,7 @@ GSError AnimationServer::Init()
     }
 
     WindowManagerServiceClient::GetInstance()->Init();
+    cursorModule.Init();
 
     auto splitOption = WindowOption::Get();
     splitOption->SetWindowType(WINDOW_TYPE_SPLIT_LINE);
