@@ -137,6 +137,7 @@ using WindowPositionChangeFunc   = std::function<void(int32_t x, int32_t y)>;
 using WindowSizeChangeFunc       = std::function<void(uint32_t width, uint32_t height)>;
 using WindowVisibilityChangeFunc = std::function<void(bool visibility)>;
 using WindowTypeChangeFunc       = std::function<void(WindowType type)>;
+using WindowPIPModeChangeFunc    = std::function<void(bool inPIPMode)>;
 #endif
 
 typedef void (*FuncSync)(uint64_t timestamp);

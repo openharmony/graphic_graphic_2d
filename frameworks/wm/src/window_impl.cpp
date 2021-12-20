@@ -409,6 +409,63 @@ void WindowImpl::OnSplitStatusChange(SplitStatusChangeFunc func)
     windowManagerServer->RegisterSplitModeChange(func);
 }
 
+bool WindowImpl::GetPIPMode() const
+{
+    CHECK_DESTROY_CONST(false);
+    return attr.GetPIPMode();
+}
+
+GSError WindowImpl::EnterPIPMode(int32_t x, int32_t y,
+                                 uint32_t width, uint32_t height)
+{
+    WMLOGFI("(%{public}d) %{public}d %{public}d %{public}u %{public}u",
+            attr.GetID(), x, y, width, height);
+    CHECK_DESTROY(GSERROR_DESTROYED_OBJECT);
+
+    pipBackup.x = GetX();
+    pipBackup.y = GetY();
+    pipBackup.w = GetWidth();
+    pipBackup.h = GetHeight();
+    pipBackup.mode = GetMode();
+
+    auto pret1 = Move(x, y);
+    auto pret2 = Resize(width, height);
+    auto pret3 = SetWindowMode(WINDOW_MODE_FREE);
+
+    auto ret1 = pret1->Await();
+    auto ret2 = pret2->Await();
+    auto ret3 = pret3->Await();
+    if (ret1 || ret2 || ret3) {
+        WMLOGFE("Move/Resize/SetWindowMode failed");
+        Move(pipBackup.x, pipBackup.y);
+        Resize(pipBackup.w, pipBackup.h);
+        SetWindowMode(pipBackup.mode);
+        return GSERROR_API_FAILED;
+    }
+
+    attr.SetPIPMode(true);
+    return GSERROR_OK;
+}
+
+GSError WindowImpl::ExitPIPMode()
+{
+    WMLOGFI("(%{public}d)", attr.GetID());
+    CHECK_DESTROY(GSERROR_DESTROYED_OBJECT);
+
+    Move(pipBackup.x, pipBackup.y);
+    Resize(pipBackup.w, pipBackup.h);
+    SetWindowMode(pipBackup.mode);
+
+    attr.SetPIPMode(false);
+    return GSERROR_OK;
+}
+
+GSError WindowImpl::OnPIPModeChange(WindowPIPModeChangeFunc func)
+{
+    attr.OnPIPModeChange(func);
+    return GSERROR_OK;
+}
+
 GSError WindowImpl::OnTouch(OnTouchFunc cb)
 {
     CHECK_DESTROY(GSERROR_DESTROYED_OBJECT);

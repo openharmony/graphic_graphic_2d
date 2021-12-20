@@ -67,6 +67,13 @@ public:
     virtual void OnModeChange(WindowModeChangeFunc func) override;
     virtual void OnSplitStatusChange(SplitStatusChangeFunc func) override;
 
+    // pipMode
+    virtual bool GetPIPMode() const override;
+    virtual GSError EnterPIPMode(int32_t x, int32_t y,
+                                 uint32_t width, uint32_t height) override;
+    virtual GSError ExitPIPMode() override;
+    virtual GSError OnPIPModeChange(WindowPIPModeChangeFunc func) override;
+
     // listener
     virtual GSError OnTouch(OnTouchFunc cb) override;
     virtual GSError OnKey(OnKeyFunc cb) override;
@@ -91,6 +98,15 @@ private:
     std::mutex mutex;
     WindowAttribute attr;
     bool isDestroyed = false;
+
+    // pip attribute
+    struct {
+        int32_t x;
+        int32_t y;
+        uint32_t w;
+        uint32_t h;
+        WindowMode mode;
+    } pipBackup;
 
     // functional member
     sptr<IWindowManagerService> wms = nullptr;

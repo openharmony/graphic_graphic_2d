@@ -41,6 +41,11 @@ void WindowAttribute::OnModeChange(WindowModeChangeFunc func)
     modeChangeListener = func;
 }
 
+void WindowAttribute::OnPIPModeChange(WindowPIPModeChangeFunc func)
+{
+    pipModeChangeFunc = func;
+}
+
 int32_t WindowAttribute::GetID() const
 {
     return winID;
@@ -89,6 +94,11 @@ WindowType WindowAttribute::GetType() const
 WindowMode WindowAttribute::GetMode() const
 {
     return winMode;
+}
+
+bool WindowAttribute::GetPIPMode() const
+{
+    return winPIPMode;
 }
 
 void WindowAttribute::SetID(int32_t id)
@@ -162,6 +172,18 @@ bool WindowAttribute::SetMode(WindowMode mode)
         winMode = mode;
         if (modeChangeListener != nullptr) {
             modeChangeListener(mode);
+        }
+        return true;
+    }
+    return false;
+}
+
+bool WindowAttribute::SetPIPMode(bool mode)
+{
+    if (mode != winPIPMode) {
+        winPIPMode = mode;
+        if (pipModeChangeFunc != nullptr) {
+            pipModeChangeFunc(mode);
         }
         return true;
     }
