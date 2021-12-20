@@ -90,9 +90,7 @@ ohos_executable("animation_server") {
   ]
 
   if (ace_enable_gpu) {
-    sources += [
-      "server/src/rotation_animation.cpp",
-    ]
+    sources += [ "server/src/rotation_animation.cpp" ]
   }
 
   configs = [ ":animation_server_config" ]
@@ -104,10 +102,11 @@ ohos_executable("animation_server") {
     "//foundation/graphic/standard:libwmclient",
     "//foundation/graphic/standard:libwmservice",
     "//foundation/graphic/standard/utils:cpudraw",
+    "//foundation/graphic/standard/utils:gl_utils",
     "//foundation/graphic/standard/utils:libgslogger",
     "//foundation/graphic/standard/utils:matrix",
+    "//foundation/graphic/standard/utils:raw_parser",
     "//foundation/graphic/standard/utils:scoped_bytrace",
-    "//foundation/graphic/standard/utils:gl_utils",
     "//foundation/multimodalinput/input/frameworks/proxy:libmmi-client",
   ]
 

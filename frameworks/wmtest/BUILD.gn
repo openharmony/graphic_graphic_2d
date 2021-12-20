@@ -80,6 +80,7 @@ ohos_executable("wmtest") {
     "test/wmservice_native_test_3.cpp",
     "test/wmservice_native_test_4.cpp",
     "test/wmservice_native_test_5.cpp",
+    "test/wmservice_native_test_7.cpp",
   ]
 
   if (ace_enable_gpu) {

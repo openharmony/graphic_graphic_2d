@@ -27,6 +27,8 @@ AnimationServiceStub::AnimationServiceStub()
     memberFuncMap_[START_ROTATION_ANIMATION] = &AnimationServiceStub::StartRotationAnimationRemote;
     memberFuncMap_[SPLIT_MODE_CREATE_BACKGOUND] = &AnimationServiceStub::SplitModeCreateBackgroundRemote;
     memberFuncMap_[SPLIT_MODE_CREATE_MIDDLE_LINE] = &AnimationServiceStub::SplitModeCreateMiddleLineRemote;
+    memberFuncMap_[CREATE_LAUNCH_PAGE] = &AnimationServiceStub::CreateLaunchPageRemote;
+    memberFuncMap_[DESTROY_LAUNCH_PAGE] = &AnimationServiceStub::CancelLaunchPageRemote;
 }
 
 int32_t AnimationServiceStub::OnRemoteRequest(uint32_t code,
@@ -68,6 +70,22 @@ int32_t AnimationServiceStub::SplitModeCreateMiddleLineRemote(MessageParcel& dat
     MessageParcel& reply, MessageOption& options)
 {
     reply.WriteInt32(SplitModeCreateMiddleLine());
+    return 0;
+}
+
+int32_t AnimationServiceStub::CreateLaunchPageRemote(MessageParcel& data,
+    MessageParcel& reply, MessageOption& options)
+{
+    auto filename = data.ReadString();
+    auto gret = CreateLaunchPage(filename);
+    reply.WriteInt32(gret);
+    return 0;
+}
+
+int32_t AnimationServiceStub::CancelLaunchPageRemote(MessageParcel& data,
+    MessageParcel& reply, MessageOption& options)
+{
+    reply.WriteInt32(CancelLaunchPage());
     return 0;
 }
 } // namespace OHOS

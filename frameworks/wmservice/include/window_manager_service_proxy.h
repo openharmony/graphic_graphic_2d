@@ -66,6 +66,9 @@ public:
 
     virtual sptr<PromiseGSError> SetSplitMode(SplitMode mode, int32_t x, int32_t y) override;
 
+    virtual GSError CreateLaunchPage(const std::string &filename) override;
+    virtual GSError CancelLaunchPage() override;
+
     static void OnReply(wms_error);
     static void OnDisplayChange(uint32_t, const char *, wms_screen_status, int32_t, int32_t, wms_screen_type type);
     static void OnDisplayPower(uint32_t, int32_t);

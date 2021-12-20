@@ -521,4 +521,22 @@ sptr<PromiseGSError> WindowManagerServiceProxy::SetSplitMode(SplitMode mode, int
     wl_display_flush(display);
     return ret;
 }
+
+GSError WindowManagerServiceProxy::CreateLaunchPage(const std::string &filename)
+{
+    if (as == nullptr) {
+        return GSERROR_CONNOT_CONNECT_SERVER;
+    }
+
+    return as->CreateLaunchPage(filename);
+}
+
+GSError WindowManagerServiceProxy::CancelLaunchPage()
+{
+    if (as == nullptr) {
+        return GSERROR_CONNOT_CONNECT_SERVER;
+    }
+
+    return as->CancelLaunchPage();
+}
 } // namespace OHOS

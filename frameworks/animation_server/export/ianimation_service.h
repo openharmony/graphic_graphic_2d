@@ -28,6 +28,8 @@ public:
     virtual GSError StartRotationAnimation(int32_t did, int32_t degree) = 0;
     virtual GSError SplitModeCreateBackground() = 0;
     virtual GSError SplitModeCreateMiddleLine() = 0;
+    virtual GSError CreateLaunchPage(const std::string &filename) = 0;
+    virtual GSError CancelLaunchPage() = 0;
 
     DECLARE_INTERFACE_DESCRIPTOR(u"IAnimationService");
 
@@ -36,6 +38,8 @@ protected:
         START_ROTATION_ANIMATION = 0,
         SPLIT_MODE_CREATE_BACKGOUND = 1,
         SPLIT_MODE_CREATE_MIDDLE_LINE = 2,
+        CREATE_LAUNCH_PAGE = 3,
+        DESTROY_LAUNCH_PAGE = 4,
     };
 
 private:

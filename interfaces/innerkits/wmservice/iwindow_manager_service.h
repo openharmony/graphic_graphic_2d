@@ -74,6 +74,16 @@ public:
     {
         return nullptr;
     }
+
+    virtual GSError CreateLaunchPage(const std::string &filename)
+    {
+        return GSERROR_NOT_SUPPORT;
+    }
+
+    virtual GSError CancelLaunchPage()
+    {
+        return GSERROR_NOT_SUPPORT;
+    }
 };
 } // namespace OHOS
 

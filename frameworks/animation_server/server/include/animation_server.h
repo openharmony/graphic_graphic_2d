@@ -21,6 +21,7 @@
 #include <unistd.h>
 
 #include <promise.h>
+#include <raw_parser.h>
 #include <touch_event_handler.h>
 #include <vsync_helper.h>
 #include <window_manager.h>
@@ -54,6 +55,8 @@ public:
     GSError StartRotationAnimation(int32_t did, int32_t degree) override;
     GSError SplitModeCreateBackground() override;
     GSError SplitModeCreateMiddleLine() override;
+    GSError CreateLaunchPage(const std::string &filename) override;
+    GSError CancelLaunchPage() override;
 
     void OnScreenShot(const struct WMImageInfo &info) override;
     void OnSplitStatusChange(SplitStatus status);
@@ -65,6 +68,8 @@ private:
 
     void SplitWindowUpdate();
     void SplitWindowDraw(uint32_t *vaddr, uint32_t width, uint32_t height, uint32_t count);
+
+    void LaunchPageWindowUpdate();
 
     std::shared_ptr<AppExecFwk::EventHandler> handler = nullptr;
     sptr<VsyncHelper> vhelper = nullptr;
@@ -84,6 +89,8 @@ private:
     int32_t midlineY = -100;
     int32_t downX = 0;
     int32_t downY = 0;
+    sptr<Window> launchPageWindow = nullptr;
+    RawParser resource;
 
     class TouchEventHandler : public MMI::TouchEventHandler {
     public:

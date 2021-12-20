@@ -28,6 +28,8 @@ public:
     GSError StartRotationAnimation(int32_t did, int32_t degree) override;
     GSError SplitModeCreateBackground() override;
     GSError SplitModeCreateMiddleLine() override;
+    GSError CreateLaunchPage(const std::string &filename) override;
+    GSError CancelLaunchPage() override;
 
 private:
     static inline BrokerDelegator<AnimationServiceProxy> delegator_;
