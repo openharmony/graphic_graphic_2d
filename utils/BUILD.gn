@@ -58,3 +58,25 @@ group("gl_utils") {
 group("raw_maker") {
   public_deps = [ "raw_maker:raw_maker" ]
 }
+
+## Build libgraphic_utils.so {{{
+ohos_shared_library("libgraphic_utils") {
+  public_deps = [
+    "buffer_handle:buffer_handle",
+    "cpudraw:cpudraw",
+    "gl_utils:gl_utils",
+    "gslogger:libgslogger",
+    "matrix:matrix",
+    "option_parser:option_parser",
+    "promise:promise",
+    "raw_parser:raw_parser",
+    "raw_parser:raw_parser",
+    "scoped_bytrace:scoped_bytrace",
+    "semaphore:semaphore",
+    "test_header:test_header",
+  ]
+
+  part_name = "graphic_standard"
+  subsystem_name = "graphic"
+}
+## Build libgraphic_utils.so }}}

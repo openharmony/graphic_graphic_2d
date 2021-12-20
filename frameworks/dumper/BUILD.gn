@@ -155,7 +155,7 @@ ohos_executable("gdumper") {
   ]
 
   deps = [
-    "//foundation/graphic/standard/utils:promise",
+    "//foundation/graphic/standard/utils:libgraphic_utils",
     "//utils/native/base:utils",
   ]
 

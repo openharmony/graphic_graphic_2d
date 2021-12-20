@@ -175,7 +175,7 @@ ohos_shared_library("libwmclient") {
     "//foundation/graphic/standard:libfence",
     "//foundation/graphic/standard:libwmservice",
     "//foundation/graphic/standard/frameworks/wmserver:wms_protocol",
-    "//foundation/graphic/standard/utils:libgslogger",
+    "//foundation/graphic/standard/utils:libgraphic_utils",
     "//third_party/wayland-protocols_standard:linux_dmabuf_unstable_v1_protocol",
     "//third_party/wayland-protocols_standard:linux_explicit_synchronization_unstable_v1_protocol",
     "//third_party/wayland-protocols_standard:viewporter_protocol",

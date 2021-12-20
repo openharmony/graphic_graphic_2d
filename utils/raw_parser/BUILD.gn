@@ -13,7 +13,7 @@
 
 import("//build/ohos.gni")
 
-## Build raw_parser.so {{{
+## Build raw_parser.a {{{
 config("raw_parser_config") {
   visibility = [ ":*" ]
 
@@ -28,7 +28,7 @@ config("raw_parser_public_config") {
   include_dirs = [ "export" ]
 }
 
-ohos_shared_library("raw_parser") {
+ohos_static_library("raw_parser") {
   sources = [ "src/raw_parser.cpp" ]
 
   configs = [ ":raw_parser_config" ]
@@ -44,4 +44,4 @@ ohos_shared_library("raw_parser") {
   subsystem_name = "graphic"
   part_name = "graphic_standard"
 }
-## Build raw_parser.so }}}
+## Build raw_parser.a }}}

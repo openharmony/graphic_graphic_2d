@@ -13,7 +13,7 @@
 
 import("//build/ohos.gni")
 
-## Build scoped_bytrace.so {{{
+## Build scoped_bytrace.a {{{
 config("scoped_bytrace_config") {
   visibility = [ ":*" ]
 
@@ -28,7 +28,7 @@ config("scoped_bytrace_public_config") {
   include_dirs = [ "export" ]
 }
 
-ohos_shared_library("scoped_bytrace") {
+ohos_static_library("scoped_bytrace") {
   sources = [ "src/scoped_bytrace.cpp" ]
 
   configs = [ ":scoped_bytrace_config" ]
@@ -43,4 +43,4 @@ ohos_shared_library("scoped_bytrace") {
   subsystem_name = "graphic"
   part_name = "graphic_standard"
 }
-## Build scoped_bytrace.so }}}
+## Build scoped_bytrace.a }}}

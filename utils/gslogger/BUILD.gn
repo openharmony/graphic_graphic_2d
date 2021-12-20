@@ -13,7 +13,7 @@
 
 import("//build/ohos.gni")
 
-## Build libgslogger.so {{{
+## Build libgslogger.a {{{
 config("libgslogger_config") {
   visibility = [ ":*" ]
 
@@ -28,7 +28,7 @@ config("libgslogger_public_config") {
   include_dirs = [ "export" ]
 }
 
-ohos_shared_library("libgslogger") {
+ohos_static_library("libgslogger") {
   sources = [ "src/gslogger.cpp" ]
 
   configs = [ ":libgslogger_config" ]
@@ -41,4 +41,4 @@ ohos_shared_library("libgslogger") {
   part_name = "graphic_standard"
   subsystem_name = "graphic"
 }
-## Build libgslogger.so }}}
+## Build libgslogger.a }}}

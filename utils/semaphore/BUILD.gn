@@ -13,7 +13,7 @@
 
 import("//build/ohos.gni")
 
-## Build semaphore.so {{{
+## Build semaphore.a {{{
 config("semaphore_config") {
   visibility = [ ":semaphore" ]
 
@@ -28,7 +28,7 @@ config("semaphore_public_config") {
   include_dirs = [ "export" ]
 }
 
-ohos_shared_library("semaphore") {
+ohos_static_library("semaphore") {
   sources = [ "src/local_semaphore.cpp" ]
 
   configs = [ ":semaphore_config" ]
@@ -38,4 +38,4 @@ ohos_shared_library("semaphore") {
   part_name = "graphic_standard"
   subsystem_name = "graphic"
 }
-## Build semaphore.so }}}
+## Build semaphore.a }}}

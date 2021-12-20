@@ -54,7 +54,7 @@ ohos_static_library("fence_test_common") {
   public_deps = [
     "//foundation/graphic/standard:libfence",
     "//foundation/graphic/standard:libsurface",
-    "//foundation/graphic/standard/utils:test_header",
+    "//foundation/graphic/standard/utils:libgraphic_utils",
   ]
 }
 ## Build fence_test_common.a }}}

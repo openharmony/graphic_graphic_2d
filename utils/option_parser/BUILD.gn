@@ -13,7 +13,7 @@
 
 import("//build/ohos.gni")
 
-## Build option_parser.so {{{
+## Build option_parser.a {{{
 config("option_parser_config") {
   visibility = [ ":*" ]
 
@@ -28,7 +28,7 @@ config("option_parser_public_config") {
   include_dirs = [ "export" ]
 }
 
-ohos_shared_library("option_parser") {
+ohos_static_library("option_parser") {
   sources = [ "src/option_parser.cpp" ]
 
   configs = [ ":option_parser_config" ]
@@ -38,4 +38,4 @@ ohos_shared_library("option_parser") {
   subsystem_name = "graphic"
   part_name = "graphic_standard"
 }
-## Build option_parser.so }}}
+## Build option_parser.a }}}
