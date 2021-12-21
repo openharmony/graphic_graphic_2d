@@ -69,23 +69,19 @@ sptr<GraphicDumperHelper> GraphicDumperHelperImpl::GetInstance()
     return currentHelper;
 }
 
-GraphicDumperHelperImpl::GraphicDumperHelperImpl()
-{
-}
-
 void GraphicDumperHelperImpl::SetNoopInstance()
 {
-        static std::mutex mutex;
-        std::lock_guard<std::mutex> guard(mutex);
-        currentHelper = new GraphicDumperHelperNoop();
+    static std::mutex mutex;
+    std::lock_guard<std::mutex> guard(mutex);
+    currentHelper = new GraphicDumperHelperNoop();
 }
 
 GSError GraphicDumperHelperImpl::Init()
 {
-    std::lock_guard<std::mutex> lock(initMutex_);
     if (serverConnected) {
         return GSERROR_OK;
     }
+
     if (access("/data/gdumper_enable", F_OK) != 0) {
         SetNoopInstance();
         return GSERROR_NOT_SUPPORT;
@@ -97,6 +93,7 @@ GSError GraphicDumperHelperImpl::Init()
     if ((nowTime - requestConnectTime) < reconnectTime) {
         return GSERROR_OUT_OF_RANGE;
     }
+
     requestConnectTime = nowTime;
     GSError ret = InitSA(GRAPHIC_DUMPER_SERVICE_SA_ID);
     if (ret != GSERROR_OK) {
@@ -245,10 +242,12 @@ GSError GraphicDumperHelperImpl::RemoveConfigChangeListener(const int32_t listen
 
 int32_t GraphicDumperHelperImpl::AddDumpListener(const std::string &tag, OnDumpFunc func)
 {
-    std::lock_guard<std::mutex> guard(onDumperFuncsMutex_);
-    if (onDumpFuncsMap_.find(tag) != onDumpFuncsMap_.end()) {
-        (*onDumpFuncsMap_[tag])[++onDumperFuncId_] = func;
-        return onDumperFuncId_;
+    {
+        std::lock_guard<std::mutex> guard(onDumperFuncsMutex_);
+        if (onDumpFuncsMap_.find(tag) != onDumpFuncsMap_.end()) {
+            (*onDumpFuncsMap_[tag])[++onDumperFuncId_] = func;
+            return onDumperFuncId_;
+        }
     }
     auto dumpTag = "*#dp#*." + tag;
     int ret = AddClientListener(dumpTag);

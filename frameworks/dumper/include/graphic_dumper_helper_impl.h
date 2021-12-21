@@ -49,7 +49,6 @@ public:
     void SetConnectState(bool state);
 
 private:
-    GraphicDumperHelperImpl();
     virtual ~GraphicDumperHelperImpl() = default;
     static inline sptr<GraphicDumperHelper> currentHelper = nullptr;
     static void SetNoopInstance();
