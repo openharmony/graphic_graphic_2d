@@ -20,7 +20,6 @@
 #include <functional>
 #include <memory>
 #include <string>
-#include <thread>
 #include <vector>
 
 #include <ipc_object_stub.h>
@@ -97,7 +96,6 @@ private:
     virtual GSError SendMessage(int32_t sequence, const std::string &message, const sptr<IRemoteObject> &robj) override;
     virtual GSError Register(int32_t sequence, sptr<INativeTestIpc> &ipc) override;
     virtual GSError OnMessage(int32_t sequence, const std::string &message, const sptr<IRemoteObject> &robj) override;
-    void WaitingThreadMain();
     static void Signal(int32_t signum);
     void GetToken();
 
@@ -110,7 +108,6 @@ private:
     std::map<pid_t, int32_t> pidToSeq;
     std::map<int32_t, sptr<INativeTestIpc>> ipcs;
     int32_t said = 0;
-    std::unique_ptr<std::thread> waitingThread = nullptr;
     static inline INativeTest *thiz = nullptr;
 };
 } // namespace OHOS
