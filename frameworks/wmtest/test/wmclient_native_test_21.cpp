@@ -126,9 +126,9 @@ public:
 
         uint32_t copyWidth = width < screenshotWidth ? width : screenshotWidth;
         uint32_t copyHeight = height < screenshotHeight ? height : screenshotHeight;
-        for (uint32_t i = 0; i < copyWidth; i++) {
-            for (uint32_t j = 0; j < copyHeight; j++) {
-                addr[i * width + j] = screenshot[i * screenshotWidth + j];
+        for (uint32_t j = 0; j < copyHeight; j++) {
+            for (uint32_t i = 0; i < copyWidth; i++) {
+                addr[j * width + i] = screenshot[j * screenshotWidth + i];
             }
         }
     }
