@@ -176,8 +176,11 @@ int32_t INativeTest::IPCServerStart()
     auto sam = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     constexpr int32_t sABegin = 4610;
     constexpr int32_t sAEnd = 4700;
+    IncStrongRef(this);
     for (int32_t i = sABegin; i < sAEnd; i++) {
-        if (sam->AddSystemAbility(i, this) == ERR_OK) {
+        GSLOG7SO(DEBUG) << "adding SystemAbility, SAID: " << i;
+        if (sam->AddSystemAbility(i, AsObject()) == ERR_OK) {
+            GSLOG7SO(DEBUG) << "AddSystemAbility Success";
             said = i;
             return GSERROR_OK;
         }

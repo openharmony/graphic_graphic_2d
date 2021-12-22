@@ -73,7 +73,7 @@ public:
     }
 } g_autoload;
 
-class WMClientNativeTest21Sub0 : public WMClientNativeTest21, public IScreenShotCallback {
+class WMClientNativeTest21Sub0 : public WMClientNativeTest21 {
 public:
     std::string GetDescription() const override
     {
@@ -88,49 +88,14 @@ public:
 
     void Run(int32_t argc, const char **argv) override
     {
-        windowManager->ListenNextScreenShot(0, this);
-    }
-
-    void OnScreenShot(const struct WMImageInfo &info) override
-    {
-        if (info.wret) {
-            GSLOG7SE(ERROR) << "screenshot failed with " << info.wret;
-            return;
-        }
-        GSLOG7SO(INFO) << "screenshot success";
-
-        auto addr = reinterpret_cast<const uint32_t *>(info.data);
-        screenshot = std::make_unique<uint32_t[]>(info.width * info.height);
-        for (uint32_t i = 0; i < info.width * info.height; i++) {
-            screenshot[i] = addr[i];
-        }
-        screenshotWidth = info.width;
-        screenshotHeight = info.height;
     }
 
     void Run2()
     {
         sptr<IBufferProducer> producer = iface_cast<IBufferProducer>(remoteObject);
         psurf = Surface::CreateSurfaceAsProducer(producer);
-        auto func = std::bind(&WMClientNativeTest21Sub0::Draw, this,
-            std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4);
         SetVsyncRate(1);
-        subwindowSync = NativeTestSync::CreateSync(func, psurf);
-    }
-
-    void Draw(uint32_t *addr, uint32_t width, uint32_t height, uint32_t count)
-    {
-        if (screenshot == nullptr) {
-            return;
-        }
-
-        uint32_t copyWidth = width < screenshotWidth ? width : screenshotWidth;
-        uint32_t copyHeight = height < screenshotHeight ? height : screenshotHeight;
-        for (uint32_t j = 0; j < copyHeight; j++) {
-            for (uint32_t i = 0; i < copyWidth; i++) {
-                addr[j * width + i] = screenshot[j * screenshotWidth + i];
-            }
-        }
+        subwindowSync = NativeTestSync::CreateSync(NativeTestDraw::RainbowDraw, psurf);
     }
 
     void IPCClientOnMessage(int32_t sequence, const std::string &message, const sptr<IRemoteObject> &robj) override
@@ -156,9 +121,6 @@ private:
     sptr<IRemoteObject> remoteObject = nullptr;
     sptr<Surface> psurf = nullptr;
     sptr<NativeTestSync> subwindowSync = nullptr;
-    std::unique_ptr<uint32_t[]> screenshot = nullptr;
-    uint32_t screenshotWidth = 0;
-    uint32_t screenshotHeight = 0;
 } g_autoload0;
 
 class WMClientNativeTest21Sub1 : public WMClientNativeTest21 {
