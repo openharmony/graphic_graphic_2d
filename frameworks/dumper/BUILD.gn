@@ -52,6 +52,7 @@ ohos_shared_library("libgraphic_dumper_client") {
   deps = [
     "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
     "//foundation/distributedschedule/samgr/interfaces/innerkits/samgr_proxy:samgr_proxy",
+    "//foundation/graphic/standard/utils:libgraphic_utils",
   ]
 
   external_deps = [ "ipc:ipc_core" ]

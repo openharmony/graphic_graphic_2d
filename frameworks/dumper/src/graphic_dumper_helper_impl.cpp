@@ -19,6 +19,7 @@
 #include <cstdarg>
 #include <vector>
 
+#include <gslogger.h>
 #include <iservice_registry.h>
 #include <securec.h>
 #include <system_ability_definition.h>
@@ -29,6 +30,7 @@
 
 namespace OHOS {
 namespace {
+DEFINE_HILOG_LABEL("GraphicDumperHelperImpl");
 constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, 0, "GraphicDumperHelperImpl" };
 constexpr int INFO_SIZE_MAX = 4096;
 }
@@ -97,6 +99,7 @@ GSError GraphicDumperHelperImpl::Init()
     requestConnectTime = nowTime;
     GSError ret = InitSA(GRAPHIC_DUMPER_SERVICE_SA_ID);
     if (ret != GSERROR_OK) {
+        GSLOG2HI(ERROR) << "InitSA failed with " << ret;
         return ret;
     }
 
@@ -140,31 +143,36 @@ GSError GraphicDumperHelperImpl::InitSA(int32_t systemAbilityId)
 
     auto sam = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     if (sam == nullptr) {
-        GDLOG_FAILURE_RET(GSERROR_CONNOT_CONNECT_SAMGR);
+        GSLOG2HI(ERROR) << "failed with " << GSERROR_CONNOT_CONNECT_SAMGR;
+        return GSERROR_CONNOT_CONNECT_SAMGR;
     }
 
     auto remoteObject = sam->GetSystemAbility(systemAbilityId);
     if (remoteObject == nullptr) {
-        GDLOG_FAILURE_RET(GSERROR_CONNOT_CONNECT_SERVER);
+        GSLOG2HI(ERROR) << "failed with " << GSERROR_CONNOT_CONNECT_SERVER;
+        return GSERROR_CONNOT_CONNECT_SERVER;
     }
 
     sptr<IRemoteObject::DeathRecipient> deathRecipient = new GDumperServiceDeathRecipient();
     if ((remoteObject->IsProxyObject()) && (!remoteObject->AddDeathRecipient(deathRecipient))) {
-        GDLOGFE("Failed to add death recipient");
+        GSLOG2HI(WARN) << "failed to add death recipient";
     }
 
     service_ = iface_cast<IGraphicDumperService>(remoteObject);
     if (service_ == nullptr) {
-        GDLOG_FAILURE_RET(GSERROR_PROXY_NOT_INCLUDE);
+        GSLOG2HI(ERROR) << "failed with " << GSERROR_PROXY_NOT_INCLUDE;
+        return GSERROR_PROXY_NOT_INCLUDE;
     }
+
     serverConnected = true;
-    GDLOG_SUCCESS("service_ = iface_cast");
+    GSLOG2HI(INFO) << "service_ = iface_cast";
     return GSERROR_OK;
 }
 
 GSError GraphicDumperHelperImpl::AddClientListener(const std::string &tag)
 {
     if (Init() != GSERROR_OK) {
+        GSLOG2HI(ERROR) << "Init() failed";
         return GSERROR_CONNOT_CONNECT_SERVER;
     }
 
@@ -175,6 +183,8 @@ GSError GraphicDumperHelperImpl::AddClientListener(const std::string &tag)
             listener_ = new GraphicDumperClientListener(helper);
         }
     }
+
+    GSLOG2HI(INFO) << "AddClientListener Success";
     return service_->AddClientListener(tag, listener_);
 }
 
@@ -195,7 +205,6 @@ GSError GraphicDumperHelperImpl::SendInfo(const std::string &tag, const char *fm
     GSError retInit = Init();
     if (retInit == GSERROR_OK) {
         return service_->SendInfo(tag, std::string(info));
-        GDLOGFE("SendInfo is ok");
     } else if (retInit == GSERROR_NOT_SUPPORT) {
         return retInit;
     } else {
@@ -252,6 +261,7 @@ int32_t GraphicDumperHelperImpl::AddDumpListener(const std::string &tag, OnDumpF
     auto dumpTag = "*#dp#*." + tag;
     int ret = AddClientListener(dumpTag);
     if (ret != GSERROR_OK) {
+        GSLOG2HI(ERROR) << "AddClientListener failed with " << ret;
         return 0;
     }
     auto onDumpFuncs = std::make_unique<std::map<int32_t, OnDumpFunc>>();
