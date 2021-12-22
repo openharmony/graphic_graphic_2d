@@ -843,6 +843,15 @@ static void ControllerSetDisplayMode(struct wl_client *client,
         return;
     }
 
+    uint32_t flag = GetDisplayModeFlag(ctx);
+    if (flag == WMS_DISPLAY_MODE_SINGLE
+        && displayMode != WMS_DISPLAY_MODE_SINGLE) {
+        LOGE("displayMode is invalid.");
+        wms_send_reply_error(resource, WMS_ERROR_INVALID_PARAM);
+        wl_client_flush(wl_resource_get_client(resource));
+        return;
+    }
+
     if (ctx->displayMode == displayMode) {
         LOGE("current displayMode is the same.");
         wms_send_reply_error(resource, WMS_ERROR_OK);
@@ -898,7 +907,7 @@ static void ControllerCreateVirtualDisplay(struct wl_client *pWlClient,
     wms_send_screen_status(pWlResource, pOutput->id, pOutput->name, WMS_SCREEN_STATUS_ADD,
                            pOutput->width, pOutput->height, WMS_SCREEN_TYPE_VIRTUAL);
     wms_send_reply_error(pWlResource, WMS_ERROR_OK);
-
+    DisplayModeUpdate(pWmsCtx);
     wl_list_for_each(pWmsController, &pWmsCtx->wlListController, wlListLink) {
         wms_send_screen_status(pWmsController->pWlResource, pOutput->id, pOutput->name,
             WMS_SCREEN_STATUS_ADD, pOutput->width, pOutput->height, WMS_SCREEN_TYPE_VIRTUAL);
@@ -930,6 +939,7 @@ static void ControllerDestroyVirtualDisplay(struct wl_client *pWlClient,
     wms_send_screen_status(pWlResource, screenID, "", WMS_SCREEN_STATUS_REMOVE,
                            0, 0, 0);
     wms_send_reply_error(pWlResource, WMS_ERROR_OK);
+    DisplayModeUpdate(pWmsCtx);
 
     wl_list_for_each(pWmsController, &pWmsCtx->wlListController, wlListLink) {
         wms_send_screen_status(pWmsController->pWlResource, screenID, "",
