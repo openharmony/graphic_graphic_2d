@@ -66,6 +66,12 @@ void ChangeWindowPosition(struct WindowSurface *ws, int32_t x, int32_t y)
 void ChangeWindowSize(struct WindowSurface *ws, int32_t w, int32_t h)
 {
     ScopedBytrace trace(__func__);
+    if (w < 0) {
+        w = 0;
+    }
+    if (h < 0) {
+        h = 0;
+    }
     wms_send_window_size_change(ws->controller->pWlResource, w, h);
     SetWindowSize(ws, w, h);
     LOG_INFO("%d resize to %dx%d", ws->surfaceId, w, h);
@@ -356,18 +362,20 @@ bool To4Confirm()
 
     int32_t defX = 0, defY = 0, defWidth = 0, defHeight = 0;
     GetSplitModeShowArea(defX, defY, defWidth, defHeight);
-    int32_t y1 = 0, y2 = 0;
+    int32_t y1 = 0, y2 = 0, winHeight = defHeight * (1 - lineHeight) / 0x2;
     if (win2->y <= defY + defHeight / 0x2) {
-        y1 = defHeight - (defHeight * (1 - lineHeight) / 0x2);
+        y1 = defY + defHeight - winHeight;
+        y2 = defY;
     } else {
-        y2 = defHeight - (defHeight * (1 - lineHeight) / 0x2);
+        y1 = defY;
+        y2 = defY + defHeight - winHeight;
     }
 
     win1->isSplited = true;
-    ChangeWindowPosition(win1, defX, defY + y1);
-    ChangeWindowSize(win1, defWidth, defHeight * (1 - lineHeight) / 0x2);
-    ChangeWindowPosition(win2, defX, defY + y2);
-    ChangeWindowSize(win2, defWidth, defHeight * (1 - lineHeight) / 0x2);
+    ChangeWindowPosition(win1, defX, y1);
+    ChangeWindowSize(win1, defWidth, winHeight);
+    ChangeWindowPosition(win2, defX, y2);
+    ChangeWindowSize(win2, defWidth, winHeight);
 
     ChangeSplitMode(win1, SPLIT_STATUS_CLEAR);
     ChangeSplitMode(win2, SPLIT_STATUS_CLEAR);
@@ -496,7 +504,7 @@ bool(* stateMachine[SPLIT_MODE_MAX][SPLIT_MODE_MAX])() = {
     { To1Unenable,  Ignore,       nullptr,      nullptr,      nullptr,      nullptr,      nullptr,      nullptr      },
     { To2Single0,   nullptr,      Ignore,       To2Single3,   nullptr,      nullptr,      nullptr,      nullptr      },
     { nullptr,      nullptr,      To3Select,    To3Select,    nullptr,      nullptr,      nullptr,      nullptr      },
-    { nullptr,      nullptr,      nullptr,      To4Confirm,   nullptr,      nullptr,      nullptr,      nullptr      },
+    { nullptr,      nullptr,      To4Confirm,   To4Confirm,   nullptr,      nullptr,      nullptr,      nullptr      },
     { nullptr,      nullptr,      nullptr,      nullptr,      To5TouchDown, nullptr,      nullptr,      To5TouchDown },
     { nullptr,      nullptr,      nullptr,      nullptr,      nullptr,      To6TouchMove, To6TouchMove, nullptr      },
     { nullptr,      nullptr,      nullptr,      nullptr,      nullptr,      To7TouchUp5,  To7TouchUp6,  nullptr      },
