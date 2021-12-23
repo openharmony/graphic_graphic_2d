@@ -40,11 +40,12 @@ GSError RotationAnimation::Init(struct RotationAnimationParam &param)
                           "uniform sampler2D texture;\n"
                           "uniform float alpha;\n"
                           "void main()\n{\n"
-                          "   gl_FragColor = alpha * texture2D(texture, v_texCoord);\n"
+                          "   gl_FragColor = texture2D(texture, v_texCoord);\n"
+                          "   gl_FragColor.a = alpha;\n"
                           "}\n";
 
     glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glBlendFunc(GL_SRC_COLOR, GL_ZERO);
 
     param_ = param;
 
