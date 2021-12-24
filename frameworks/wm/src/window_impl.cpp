@@ -384,6 +384,7 @@ GSError WindowImpl::Destroy()
         csurf = nullptr;
         psurf = nullptr;
     }
+    SingletonContainer::Get<WlBufferCache>()->CleanCache();
     return wret;
 }
 

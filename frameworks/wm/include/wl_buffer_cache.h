@@ -44,13 +44,13 @@ public:
                                    sptr<Surface> &surf,
                                    sptr<SurfaceBuffer> &sbuffer);
 
+    MOCKABLE void CleanCache();
+
 private:
     WlBufferCache() = default;
     MOCKABLE ~WlBufferCache() = default;
     static inline sptr<WlBufferCache> instance = nullptr;
     static inline SingletonDelegator<WlBufferCache> delegator;
-
-    void CleanCache();
 
     struct BufferCache {
         sptr<WlBuffer> wbuffer;

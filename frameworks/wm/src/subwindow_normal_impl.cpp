@@ -159,6 +159,7 @@ GSError SubwindowNormalImpl::Destroy()
     psurf = nullptr;
     wlSubsurf = nullptr;
     wlSurface = nullptr;
+    SingletonContainer::Get<WlBufferCache>()->CleanCache();
     return GSERROR_OK;
 }
 
