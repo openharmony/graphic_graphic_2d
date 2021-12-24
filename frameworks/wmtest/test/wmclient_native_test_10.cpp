@@ -62,8 +62,7 @@ public:
         maxHeight = displays[0].height;
         WMClientNativeTest1::Run(argc, argv);
 
-        constexpr uint32_t wh = 100;
-        window->Resize(wh, wh);
+        window->Resize(maxWidth / 0x2, maxHeight / 0x2);
         AfterRun();
     }
 
