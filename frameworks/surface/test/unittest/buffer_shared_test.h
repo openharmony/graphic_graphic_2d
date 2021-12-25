@@ -32,7 +32,7 @@ public:
     static void SetUpTestCase();
     static void TearDownTestCase();
 
-    static inline sptr<Surface> surface = nullptr;
+    static inline sptr<Surface> surf = nullptr;
     static inline sptr<Surface> producerSurface1 = nullptr;
     static inline sptr<Surface> producerSurface2 = nullptr;
     static inline sptr<SurfaceBuffer> buffer1 = nullptr;

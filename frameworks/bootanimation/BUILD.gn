@@ -35,7 +35,10 @@ ohos_executable("bootanimation") {
     "src/util.cpp",
   ]
 
-  configs = [ ":bootanimation_config" ]
+  configs = [
+    ":bootanimation_config",
+    "//utils/native/base:utils_config",
+  ]
 
   deps = [
     "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",

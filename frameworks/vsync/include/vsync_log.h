@@ -38,13 +38,13 @@
 
 #define VLOG_SUCCESS(fmt, ...) VLOGI("Success, Way: " fmt, ##__VA_ARGS__)
 #define VLOG_FAILURE(fmt, ...) VLOGE("Failure, Reason: " fmt, ##__VA_ARGS__)
-#define VLOG_FAILURE_NO(vsync_error) VLOG_FAILURE("%{public}s", VsyncErrorStr(vsync_error).c_str())
+#define VLOG_FAILURE_NO(vsync_error) VLOG_FAILURE("%{public}s", GSErrorStr(vsync_error).c_str())
 #define VLOG_FAILURE_RET(vsync_error) \
     do {                              \
         VLOG_FAILURE_NO(vsync_error); \
         return vsync_error;           \
     } while (0)
-#define VLOG_FAILURE_API(api, ret) VLOG_FAILURE(#api " failed with %{public}s", VsyncErrorStr(ret).c_str())
+#define VLOG_FAILURE_API(api, ret) VLOG_FAILURE(#api " failed with %{public}s", GSErrorStr(ret).c_str())
 
 #define VLOG_ERROR(errno, fmt, ...) \
     VLOGE(fmt ", means %{public}s", ##__VA_ARGS__, strerror(errno))

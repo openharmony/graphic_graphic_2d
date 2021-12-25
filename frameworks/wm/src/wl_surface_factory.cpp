@@ -78,22 +78,22 @@ sptr<WlSurface> WlSurfaceFactory::Create()
         return nullptr;
     }
 
-    auto surface = wl_compositor_create_surface(compositor);
-    if (surface == nullptr) {
+    auto surf = wl_compositor_create_surface(compositor);
+    if (surf == nullptr) {
         return nullptr;
     }
 
     struct zwp_linux_surface_synchronization_v1 *sync = nullptr;
     if (synchronization != nullptr) {
-        sync = zwp_linux_explicit_synchronization_v1_get_synchronization(synchronization, surface);
+        sync = zwp_linux_explicit_synchronization_v1_get_synchronization(synchronization, surf);
     }
 
     struct wp_viewport *viewport = nullptr;
     if (viewporter != nullptr) {
-        viewport = wp_viewporter_get_viewport(viewporter, surface);
+        viewport = wp_viewporter_get_viewport(viewporter, surf);
     }
 
-    sptr<WlSurface> ret = new WlSurface(surface, sync, viewport);
+    sptr<WlSurface> ret = new WlSurface(surf, sync, viewport);
     return ret;
 }
 } // namespace OHOS

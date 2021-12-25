@@ -31,24 +31,24 @@ public:
     ProducerEglSurface(sptr<IBufferProducer>& producer);
     virtual ~ProducerEglSurface();
 
-    SurfaceError InitContext(EGLContext context = EGL_NO_CONTEXT) override;
+    GSError InitContext(EGLContext context = EGL_NO_CONTEXT) override;
     EGLDisplay GetEglDisplay() const override;
     EGLContext GetEglContext() const override;
     EGLSurface GetEglSurface() const override;
     GLuint GetEglFbo() const override;
-    SurfaceError SwapBuffers() override;
-    SurfaceError SetWidthAndHeight(int32_t width, int32_t height) override;
+    GSError SwapBuffers() override;
+    GSError SetWidthAndHeight(int32_t width, int32_t height) override;
 
 private:
     bool IsRemote();
-    SurfaceError RequestBufferProc();
-    SurfaceError RequestBuffer(sptr<SurfaceBuffer> &buffer, int32_t &fence, BufferRequestConfig &config);
+    GSError RequestBuffer(sptr<SurfaceBuffer> &buffer, int32_t &fence, BufferRequestConfig &config);
 
-    SurfaceError FlushBufferProc();
-    SurfaceError FlushBuffer(sptr<SurfaceBuffer> &buffer, int32_t fence, BufferFlushConfig &config);
-    SurfaceError AddEglData(sptr<SurfaceBuffer> &buffer);
-    SurfaceError CreateEglFenceFd(int32_t &fd);
-    SurfaceError WaitForReleaseFence(int32_t fd);
+    GSError RequestBufferProc();
+    GSError FlushBufferProc();
+    GSError FlushBuffer(sptr<SurfaceBuffer> &buffer, int32_t fence, BufferFlushConfig &config);
+    GSError AddEglData(sptr<SurfaceBuffer> &buffer);
+    GSError CreateEglFenceFd(int32_t &fd);
+    GSError WaitForReleaseFence(int32_t fd);
 
     std::map<int32_t, sptr<SurfaceBufferImpl>> bufferProducerCache_;
     sptr<IBufferProducer> producer_ = nullptr;

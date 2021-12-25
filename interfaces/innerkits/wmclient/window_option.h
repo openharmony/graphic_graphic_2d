@@ -26,14 +26,14 @@ class WindowOption : public RefBase {
 public:
     static sptr<WindowOption> Get();
 
-    virtual WMError SetWindowType(WindowType type) = 0;
-    virtual WMError SetWindowMode(WindowMode mode) = 0;
-    virtual WMError SetDisplay(int32_t did) = 0;
-    virtual WMError SetConsumerSurface(const sptr<Surface> &surface) = 0;
-    virtual WMError SetX(int32_t x) = 0;
-    virtual WMError SetY(int32_t y) = 0;
-    virtual WMError SetWidth(uint32_t width) = 0;
-    virtual WMError SetHeight(uint32_t height) = 0;
+    virtual GSError SetWindowType(WindowType type) = 0;
+    virtual GSError SetWindowMode(WindowMode mode) = 0;
+    virtual GSError SetDisplay(int32_t did) = 0;
+    virtual GSError SetConsumerSurface(const sptr<Surface> &surf) = 0;
+    virtual GSError SetX(int32_t x) = 0;
+    virtual GSError SetY(int32_t y) = 0;
+    virtual GSError SetWidth(uint32_t width) = 0;
+    virtual GSError SetHeight(uint32_t height) = 0;
 
     virtual WindowType GetWindowType() const = 0;
     virtual WindowMode GetWindowMode() const = 0;

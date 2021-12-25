@@ -22,17 +22,22 @@
 #include "window_manager_type.h"
 
 namespace OHOS {
+using FrameAvailableFunc = std::function<int32_t(sptr<SurfaceBuffer> &buffer)>;
 class Subwindow : public RefBase {
 public:
     virtual sptr<Surface> GetSurface() const = 0;
 
-    virtual WMError Move(int32_t x, int32_t y) = 0;
-    virtual WMError Resize(uint32_t width, uint32_t height) = 0;
-    virtual WMError Destroy() = 0;
+    virtual GSError Move(int32_t x, int32_t y) = 0;
+    virtual GSError Resize(uint32_t width, uint32_t height) = 0;
+    virtual GSError Destroy() = 0;
 
     virtual void OnPositionChange(WindowPositionChangeFunc func) = 0;
     virtual void OnSizeChange(WindowSizeChangeFunc func) = 0;
-    virtual void OnBeforeFrameSubmit(BeforeFrameSubmitFunc func) = 0;
+
+    virtual GSError OnFrameAvailable(FrameAvailableFunc func)
+    {
+        return GSERROR_NOT_SUPPORT;
+    }
 };
 } // namespace OHOS
 

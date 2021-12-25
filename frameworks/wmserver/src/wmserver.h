@@ -24,6 +24,10 @@
 #include <ivi-layout-export.h>
 #include <wms-server-protocol.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #ifndef USE_IVI_INPUT_FOCUS
 #define INPUT_DEVICE_KEYBOARD   ((unsigned int) 1 << 0)
 #define INPUT_DEVICE_POINTER    ((unsigned int) 1 << 1)
@@ -44,10 +48,12 @@ struct WmsContext {
     struct wl_listener wlListenerOutputDestroyed;
     struct wl_listener wlListenerSeatCreated;
     uint32_t displayMode;
+    struct WmsScreen *pMainScreen;
 #ifdef USE_IVI_INPUT_FOCUS
     const struct ivi_input_interface_for_wms *pInputInterface;
 #endif
     DeviceFuncs *deviceFuncs;
+    uint32_t splitMode;
 };
 
 struct WmsSeat {
@@ -63,9 +69,65 @@ struct WmsScreen {
     struct wl_list wlListLink;
     struct WmsContext *pWmsCtx;
     uint32_t screenId;
+    uint32_t screenType;
     struct weston_output *westonOutput;
 };
 
 struct WmsContext *GetWmsInstance(void);
+
+struct WindowSurface {
+    struct WmsController *controller;
+    struct ivi_layout_surface *layoutSurface;
+    struct weston_surface *surf;
+    struct wl_listener surfaceDestroyListener;
+    struct wl_listener propertyChangedListener;
+
+    uint32_t surfaceId;
+    uint32_t screenId;
+    uint32_t type;
+    uint32_t mode;
+    int32_t x;
+    int32_t y;
+    int32_t width;
+    int32_t height;
+    int32_t lastSurfaceWidth;
+    int32_t lastSurfaceHeight;
+    int32_t firstCommit;
+    bool isSplited;
+
+    struct wl_list link;
+};
+
+struct ScreenshotFrameListener {
+    struct wl_listener frameListener;
+    struct wl_listener outputDestroyed;
+    uint32_t idScreen;
+    struct weston_output *output;
+};
+
+struct WmsController {
+    struct wl_resource *pWlResource;
+    uint32_t id;
+    uint32_t windowIdFlags;
+    struct wl_client *pWlClient;
+    struct wl_list wlListLink;
+    struct wl_list wlListLinkRes;
+    struct WmsContext *pWmsCtx;
+    struct ScreenshotFrameListener stListener;
+};
+
+void SetDestinationRectangle(struct WindowSurface *windowSurface,
+    int32_t x, int32_t y, int32_t width, int32_t height);
+void SetSourceRectangle(const struct WindowSurface *windowSurface,
+    int32_t x, int32_t y, int32_t width, int32_t height);
+void SetWindowPosition(struct WindowSurface *ws, int32_t x, int32_t y);
+void SetWindowSize(struct WindowSurface *ws, uint32_t width, uint32_t height);
+struct ivi_layout_layer *GetLayer(struct weston_output *westonOutput, uint32_t layerId, bool *isNewLayer);
+void AddSetWindowTopListener(void(*fn)(struct WindowSurface *ws));
+void AddSurfaceDestroyListener(void(*fn)(struct WindowSurface *ws));
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // FRAMEWORKS_WMSERVER_SRC_WMSERVER_H

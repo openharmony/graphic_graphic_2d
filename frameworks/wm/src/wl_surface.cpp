@@ -22,7 +22,7 @@ WlSurface::WlSurface(struct wl_surface *ws,
                      struct zwp_linux_surface_synchronization_v1 *zlssv,
                      struct wp_viewport *wv)
 {
-    surface = ws;
+    surf = ws;
     sync = zlssv;
     viewport = wv;
 }
@@ -35,48 +35,48 @@ WlSurface::~WlSurface()
     if (viewport != nullptr) {
         wp_viewport_destroy(viewport);
     }
-    wl_surface_destroy(surface);
+    wl_surface_destroy(surf);
 }
 
 struct wl_surface *WlSurface::GetRawPtr() const
 {
-    return surface;
+    return surf;
 }
 
 void *WlSurface::GetUserData() const
 {
-    return wl_surface_get_user_data(surface);
+    return wl_surface_get_user_data(surf);
 }
 
 void WlSurface::SetUserData(void *data)
 {
-    wl_surface_set_user_data(surface, data);
+    wl_surface_set_user_data(surf, data);
 }
 
 void WlSurface::Attach(sptr<WlBuffer> &buffer, int32_t x, int32_t y)
 {
-    wl_surface_attach(surface, buffer->GetRawPtr(), x, y);
+    wl_surface_attach(surf, buffer->GetRawPtr(), x, y);
 }
 
 void WlSurface::Damage(int32_t x, int32_t y, uint32_t w, uint32_t h)
 {
-    wl_surface_damage(surface, x, y, w, h);
+    wl_surface_damage(surf, x, y, w, h);
 }
 
 void WlSurface::Commit()
 {
-    wl_surface_commit(surface);
+    wl_surface_commit(surf);
 }
 
 void WlSurface::SetSurfaceType(wl_surface_type type)
 {
-    wl_surface_set_surface_type(surface, type);
+    wl_surface_set_surface_type(surf, type);
 }
 
 void WlSurface::SetBufferTransform(wl_output_transform type)
 {
     bufferTransform = type;
-    wl_surface_set_buffer_transform(surface, type);
+    wl_surface_set_buffer_transform(surf, type);
 }
 
 struct zwp_linux_buffer_release_v1 *WlSurface::GetBufferRelease()

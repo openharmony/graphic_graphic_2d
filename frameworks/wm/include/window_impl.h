@@ -22,15 +22,14 @@
 
 #include <window_manager_service_client.h>
 
-#include "log_listener.h"
 #include "wl_surface.h"
 #include "window_attribute.h"
 #include "window_option_impl.h"
 
 namespace OHOS {
-class WindowImpl : public Window, public IBufferConsumerListenerClazz {
+class WindowImpl : public Window, public IBufferConsumerListenerClazz, public IWlBufferReleaseClazz {
 public:
-    static WMError Create(sptr<Window> &window,
+    static GSError Create(sptr<Window> &window,
                           const sptr<WindowOption> &option,
                           const sptr<IWindowManagerService> &wms);
 
@@ -49,16 +48,16 @@ public:
     virtual WindowType    GetType() const override;
     virtual WindowMode    GetMode() const override;
 
-    virtual sptr<Promise<WMError>> Show() override;
-    virtual sptr<Promise<WMError>> Hide() override;
-    virtual sptr<Promise<WMError>> Move(int32_t x, int32_t y) override;
-    virtual sptr<Promise<WMError>> SwitchTop() override;
-    virtual sptr<Promise<WMError>> SetWindowType(WindowType type) override;
-    virtual sptr<Promise<WMError>> SetWindowMode(WindowMode mode) override;
-    virtual sptr<Promise<WMError>> Resize(uint32_t width, uint32_t height) override;
-    virtual sptr<Promise<WMError>> ScaleTo(uint32_t width, uint32_t height) override;
-    virtual WMError Rotate(WindowRotateType type) override;
-    virtual WMError Destroy() override;
+    virtual sptr<Promise<GSError>> Show() override;
+    virtual sptr<Promise<GSError>> Hide() override;
+    virtual sptr<Promise<GSError>> Move(int32_t x, int32_t y) override;
+    virtual sptr<Promise<GSError>> SwitchTop() override;
+    virtual sptr<Promise<GSError>> SetWindowType(WindowType type) override;
+    virtual sptr<Promise<GSError>> SetWindowMode(WindowMode mode) override;
+    virtual sptr<Promise<GSError>> Resize(uint32_t width, uint32_t height) override;
+    virtual sptr<Promise<GSError>> ScaleTo(uint32_t width, uint32_t height) override;
+    virtual GSError Rotate(WindowRotateType type) override;
+    virtual GSError Destroy() override;
 
     // prop listener
     virtual void OnPositionChange(WindowPositionChangeFunc func) override;
@@ -66,54 +65,34 @@ public:
     virtual void OnVisibilityChange(WindowVisibilityChangeFunc func) override;
     virtual void OnTypeChange(WindowTypeChangeFunc func) override;
     virtual void OnModeChange(WindowModeChangeFunc func) override;
-    virtual void OnBeforeFrameSubmit(BeforeFrameSubmitFunc func) override;
+    virtual void OnSplitStatusChange(SplitStatusChangeFunc func) override;
+
+    // pipMode
+    virtual bool GetPIPMode() const override;
+    virtual GSError EnterPIPMode(int32_t x, int32_t y,
+                                 uint32_t width, uint32_t height) override;
+    virtual GSError ExitPIPMode() override;
+    virtual GSError OnPIPModeChange(WindowPIPModeChangeFunc func) override;
 
     // listener
-    virtual WMError OnTouch(OnTouchFunc cb) override;
-    virtual WMError OnKey(OnKeyFunc cb) override;
-
-    // pointer listener
-    virtual WMError OnPointerEnter(PointerEnterFunc func) override;
-    virtual WMError OnPointerLeave(PointerLeaveFunc func) override;
-    virtual WMError OnPointerMotion(PointerMotionFunc func) override;
-    virtual WMError OnPointerButton(PointerButtonFunc func) override;
-    virtual WMError OnPointerFrame(PointerFrameFunc func) override;
-    virtual WMError OnPointerAxis(PointerAxisFunc func) override;
-    virtual WMError OnPointerAxisSource(PointerAxisSourceFunc func) override;
-    virtual WMError OnPointerAxisStop(PointerAxisStopFunc func) override;
-    virtual WMError OnPointerAxisDiscrete(PointerAxisDiscreteFunc func) override;
-
-    // keyboard listener
-    virtual WMError OnKeyboardKeymap(KeyboardKeymapFunc func) override;
-    virtual WMError OnKeyboardEnter(KeyboardEnterFunc func) override;
-    virtual WMError OnKeyboardLeave(KeyboardLeaveFunc func) override;
-    virtual WMError OnKeyboardKey(KeyboardKeyFunc func) override;
-    virtual WMError OnKeyboardModifiers(KeyboardModifiersFunc func) override;
-    virtual WMError OnKeyboardRepeatInfo(KeyboardRepeatInfoFunc func) override;
-
-    // touch listener
-    virtual WMError OnTouchDown(TouchDownFunc func) override;
-    virtual WMError OnTouchUp(TouchUpFunc func) override;
-    virtual WMError OnTouchMotion(TouchMotionFunc func) override;
-    virtual WMError OnTouchFrame(TouchFrameFunc func) override;
-    virtual WMError OnTouchCancel(TouchCancelFunc func) override;
-    virtual WMError OnTouchShape(TouchShapeFunc func) override;
-    virtual WMError OnTouchOrientation(TouchOrientationFunc func) override;
+    virtual GSError OnTouch(OnTouchFunc cb) override;
+    virtual GSError OnKey(OnKeyFunc cb) override;
 
 private:
     WindowImpl() = default;
     virtual ~WindowImpl() override;
 
+    virtual void OnWlBufferRelease(struct wl_buffer *buffer, int32_t fence) override;
     virtual void OnBufferAvailable() override;
 
-    static WMError CheckAndNew(sptr<WindowImpl> &wi,
+    static GSError CheckAndNew(sptr<WindowImpl> &wi,
                                const sptr<WindowOption> &option,
                                const sptr<IWindowManagerService> &wms);
 
-    static WMError CreateRemoteWindow(sptr<WindowImpl> &wi,
+    static GSError CreateRemoteWindow(sptr<WindowImpl> &wi,
                                       const sptr<WindowOption> &option);
 
-    static WMError CreateConsumerSurface(sptr<WindowImpl> &wi,
+    static GSError CreateConsumerSurface(sptr<WindowImpl> &wi,
                                          const sptr<WindowOption> &option);
 
     // base attribute
@@ -121,14 +100,21 @@ private:
     WindowAttribute attr;
     bool isDestroyed = false;
 
+    // pip attribute
+    struct {
+        int32_t x;
+        int32_t y;
+        uint32_t w;
+        uint32_t h;
+        WindowMode mode;
+    } pipBackup;
+
     // functional member
     sptr<IWindowManagerService> wms = nullptr;
     sptr<WlSurface> wlSurface = nullptr;
-    sptr<Surface> csurface = nullptr;
-    sptr<Surface> psurface = nullptr;
+    sptr<Surface> csurf = nullptr;
+    sptr<Surface> psurf = nullptr;
 
-    sptr<InputListener> logListener = nullptr;
-    sptr<InputListener> exportListener = nullptr;
     BeforeFrameSubmitFunc onBeforeFrameSubmitFunc = nullptr;
 };
 } // namespace OHOS

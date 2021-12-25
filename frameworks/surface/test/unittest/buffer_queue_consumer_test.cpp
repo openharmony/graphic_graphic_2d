@@ -37,8 +37,8 @@ namespace {
 HWTEST_F(BufferQueueConsumerTest, AcqRel, testing::ext::TestSize.Level0)
 {
     IBufferProducer::RequestBufferReturnValue retval;
-    SurfaceError ret = bq->RequestBuffer(requestConfig, bedata, retval);
-    ASSERT_EQ(ret, SURFACE_ERROR_OK);
+    GSError ret = bq->RequestBuffer(requestConfig, bedata, retval);
+    ASSERT_EQ(ret, GSERROR_OK);
     ASSERT_GE(retval.sequence, 0);
     ASSERT_NE(retval.buffer, nullptr);
 
@@ -46,36 +46,36 @@ HWTEST_F(BufferQueueConsumerTest, AcqRel, testing::ext::TestSize.Level0)
     ASSERT_NE(addr1, nullptr);
 
     ret = bq->FlushBuffer(retval.sequence, bedata, -1, flushConfig);
-    ASSERT_EQ(ret, SURFACE_ERROR_OK);
+    ASSERT_EQ(ret, GSERROR_OK);
 
     sptr<SurfaceBufferImpl> bufferImpl = SurfaceBufferImpl::FromBase(retval.buffer);
     ret = bqc->AcquireBuffer(bufferImpl, retval.fence, timestamp, damage);
-    ASSERT_EQ(ret, SURFACE_ERROR_OK);
+    ASSERT_EQ(ret, GSERROR_OK);
 
     ret = bqc->ReleaseBuffer(bufferImpl, -1);
-    ASSERT_EQ(ret, SURFACE_ERROR_OK);
+    ASSERT_EQ(ret, GSERROR_OK);
 }
 
 HWTEST_F(BufferQueueConsumerTest, AcqRelRel, testing::ext::TestSize.Level0)
 {
     IBufferProducer::RequestBufferReturnValue retval;
-    SurfaceError ret = bq->RequestBuffer(requestConfig, bedata, retval);
-    ASSERT_EQ(ret, SURFACE_ERROR_OK);
+    GSError ret = bq->RequestBuffer(requestConfig, bedata, retval);
+    ASSERT_EQ(ret, GSERROR_OK);
     ASSERT_GE(retval.sequence, 0);
     ASSERT_EQ(retval.buffer, nullptr);
 
     ret = bq->FlushBuffer(retval.sequence, bedata, -1, flushConfig);
-    ASSERT_EQ(ret, SURFACE_ERROR_OK);
+    ASSERT_EQ(ret, GSERROR_OK);
 
     sptr<SurfaceBufferImpl> bufferImpl = SurfaceBufferImpl::FromBase(retval.buffer);
     ret = bqc->AcquireBuffer(bufferImpl, retval.fence, timestamp, damage);
-    ASSERT_EQ(ret, SURFACE_ERROR_OK);
+    ASSERT_EQ(ret, GSERROR_OK);
 
     ret = bqc->ReleaseBuffer(bufferImpl, -1);
-    ASSERT_EQ(ret, SURFACE_ERROR_OK);
+    ASSERT_EQ(ret, GSERROR_OK);
 
     ret = bqc->ReleaseBuffer(bufferImpl, -1);
-    ASSERT_NE(ret, SURFACE_ERROR_OK);
+    ASSERT_NE(ret, GSERROR_OK);
 }
 }
 } // namespace OHOS

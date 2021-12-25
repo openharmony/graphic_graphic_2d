@@ -40,7 +40,7 @@ class VsyncCallback : public VsyncCallbackStub {
 public:
     explicit VsyncCallback(int &count);
     virtual ~VsyncCallback() = default;
-    virtual VsyncError OnVsync(int64_t timestamp) override;
+    virtual GSError OnVsync(int64_t timestamp) override;
 private:
     int *count_ = nullptr;
 };

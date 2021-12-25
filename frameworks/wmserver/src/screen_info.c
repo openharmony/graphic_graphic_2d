@@ -145,7 +145,7 @@ void FreeScreensInfo(struct ScreenInfo **screens)
     free(screens);
 }
 
-struct SurfaceInfo *GetSurfaceInfo(struct ivi_layout_surface *surface)
+struct SurfaceInfo *GetSurfaceInfo(struct ivi_layout_surface *surf)
 {
     const struct ivi_layout_interface_for_wms *pLayoutInterface = GetWmsInstance()->pLayoutInterface;
     struct SurfaceInfo *pSurfaceInfo = (struct SurfaceInfo *)calloc(1, sizeof(struct SurfaceInfo));
@@ -154,8 +154,8 @@ struct SurfaceInfo *GetSurfaceInfo(struct ivi_layout_surface *surface)
         return NULL;
     }
 
-    struct ivi_layout_surface_properties *prop = &surface->prop;
-    pSurfaceInfo->surfaceId = pLayoutInterface->get_id_of_surface(surface);
+    struct ivi_layout_surface_properties *prop = &surf->prop;
+    pSurfaceInfo->surfaceId = pLayoutInterface->get_id_of_surface(surf);
     pSurfaceInfo->dstX = prop->dest_x;
     pSurfaceInfo->dstY = prop->dest_y;
     pSurfaceInfo->dstW = prop->dest_width;

@@ -40,11 +40,11 @@ HWTEST_F(BufferQueueProducerTest, QueueSize, testing::ext::TestSize.Level0)
 {
     ASSERT_EQ(bqp->GetQueueSize(), (uint32_t)SURFACE_DEFAULT_QUEUE_SIZE);
 
-    SurfaceError ret = bqp->SetQueueSize(2);
-    ASSERT_EQ(ret, SURFACE_ERROR_OK);
+    GSError ret = bqp->SetQueueSize(2);
+    ASSERT_EQ(ret, GSERROR_OK);
 
     ret = bqp->SetQueueSize(SURFACE_MAX_QUEUE_SIZE + 1);
-    ASSERT_NE(ret, SURFACE_ERROR_OK);
+    ASSERT_NE(ret, GSERROR_OK);
 
     ASSERT_EQ(bqp->GetQueueSize(), 2u);
     ASSERT_EQ(bq->queueSize_, 2u);
@@ -53,24 +53,24 @@ HWTEST_F(BufferQueueProducerTest, QueueSize, testing::ext::TestSize.Level0)
 HWTEST_F(BufferQueueProducerTest, ReqCan, testing::ext::TestSize.Level0)
 {
     IBufferProducer::RequestBufferReturnValue retval;
-    SurfaceError ret = bqp->RequestBuffer(requestConfig, bedata, retval);
-    ASSERT_EQ(ret, SURFACE_ERROR_OK);
+    GSError ret = bqp->RequestBuffer(requestConfig, bedata, retval);
+    ASSERT_EQ(ret, GSERROR_OK);
 
     ret = bqp->CancelBuffer(retval.sequence, bedata);
-    ASSERT_EQ(ret, SURFACE_ERROR_OK);
+    ASSERT_EQ(ret, GSERROR_OK);
 }
 
 HWTEST_F(BufferQueueProducerTest, ReqCanCan, testing::ext::TestSize.Level0)
 {
     IBufferProducer::RequestBufferReturnValue retval;
-    SurfaceError ret = bqp->RequestBuffer(requestConfig, bedata, retval);
-    ASSERT_EQ(ret, SURFACE_ERROR_OK);
+    GSError ret = bqp->RequestBuffer(requestConfig, bedata, retval);
+    ASSERT_EQ(ret, GSERROR_OK);
 
     ret = bqp->CancelBuffer(retval.sequence, bedata);
-    ASSERT_EQ(ret, SURFACE_ERROR_OK);
+    ASSERT_EQ(ret, GSERROR_OK);
 
     ret = bqp->CancelBuffer(retval.sequence, bedata);
-    ASSERT_NE(ret, SURFACE_ERROR_OK);
+    ASSERT_NE(ret, GSERROR_OK);
 }
 
 HWTEST_F(BufferQueueProducerTest, ReqReqReqCanCan, testing::ext::TestSize.Level0)
@@ -80,62 +80,62 @@ HWTEST_F(BufferQueueProducerTest, ReqReqReqCanCan, testing::ext::TestSize.Level0
     IBufferProducer::RequestBufferReturnValue retval3;
 
     auto ret = bqp->RequestBuffer(requestConfig, bedata, retval1);
-    ASSERT_EQ(ret, SURFACE_ERROR_OK);
+    ASSERT_EQ(ret, GSERROR_OK);
     ASSERT_NE(retval1.buffer, nullptr);
 
     ret = bqp->RequestBuffer(requestConfig, bedata, retval2);
-    ASSERT_EQ(ret, SURFACE_ERROR_OK);
+    ASSERT_EQ(ret, GSERROR_OK);
     ASSERT_NE(retval2.buffer, nullptr);
 
     ret = bqp->RequestBuffer(requestConfig, bedata, retval3);
-    ASSERT_NE(ret, SURFACE_ERROR_OK);
+    ASSERT_NE(ret, GSERROR_OK);
     ASSERT_EQ(retval3.buffer, nullptr);
 
     ret = bqp->CancelBuffer(retval1.sequence, bedata);
-    ASSERT_EQ(ret, SURFACE_ERROR_OK);
+    ASSERT_EQ(ret, GSERROR_OK);
 
     ret = bqp->CancelBuffer(retval2.sequence, bedata);
-    ASSERT_EQ(ret, SURFACE_ERROR_OK);
+    ASSERT_EQ(ret, GSERROR_OK);
 
     ret = bqp->CancelBuffer(retval3.sequence, bedata);
-    ASSERT_NE(ret, SURFACE_ERROR_OK);
+    ASSERT_NE(ret, GSERROR_OK);
 }
 
 HWTEST_F(BufferQueueProducerTest, ReqFlu, testing::ext::TestSize.Level0)
 {
     IBufferProducer::RequestBufferReturnValue retval;
-    SurfaceError ret = bqp->RequestBuffer(requestConfig, bedata, retval);
-    ASSERT_EQ(ret, SURFACE_ERROR_OK);
+    GSError ret = bqp->RequestBuffer(requestConfig, bedata, retval);
+    ASSERT_EQ(ret, GSERROR_OK);
 
     ret = bqp->FlushBuffer(retval.sequence, bedata, -1, flushConfig);
-    ASSERT_EQ(ret, SURFACE_ERROR_OK);
+    ASSERT_EQ(ret, GSERROR_OK);
 
     sptr<SurfaceBufferImpl> bufferImpl = SurfaceBufferImpl::FromBase(retval.buffer);
     ret = bq->AcquireBuffer(bufferImpl, retval.fence, timestamp, damage);
-    ASSERT_EQ(ret, SURFACE_ERROR_OK);
+    ASSERT_EQ(ret, GSERROR_OK);
 
     ret = bq->ReleaseBuffer(bufferImpl, -1);
-    ASSERT_EQ(ret, SURFACE_ERROR_OK);
+    ASSERT_EQ(ret, GSERROR_OK);
 }
 
 HWTEST_F(BufferQueueProducerTest, ReqFluFlu, testing::ext::TestSize.Level0)
 {
     IBufferProducer::RequestBufferReturnValue retval;
-    SurfaceError ret = bqp->RequestBuffer(requestConfig, bedata, retval);
-    ASSERT_EQ(ret, SURFACE_ERROR_OK);
+    GSError ret = bqp->RequestBuffer(requestConfig, bedata, retval);
+    ASSERT_EQ(ret, GSERROR_OK);
 
     ret = bqp->FlushBuffer(retval.sequence, bedata, -1, flushConfig);
-    ASSERT_EQ(ret, SURFACE_ERROR_OK);
+    ASSERT_EQ(ret, GSERROR_OK);
 
     ret = bqp->FlushBuffer(retval.sequence, bedata, -1, flushConfig);
-    ASSERT_NE(ret, SURFACE_ERROR_OK);
+    ASSERT_NE(ret, GSERROR_OK);
 
     sptr<SurfaceBufferImpl> bufferImpl = SurfaceBufferImpl::FromBase(retval.buffer);
     ret = bq->AcquireBuffer(bufferImpl, retval.fence, timestamp, damage);
-    ASSERT_EQ(ret, SURFACE_ERROR_OK);
+    ASSERT_EQ(ret, GSERROR_OK);
 
     ret = bq->ReleaseBuffer(bufferImpl, -1);
-    ASSERT_EQ(ret, SURFACE_ERROR_OK);
+    ASSERT_EQ(ret, GSERROR_OK);
 }
 }
 } // namespace OHOS

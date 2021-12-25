@@ -20,6 +20,7 @@
 #include "buffer_log.h"
 #include "consumer_surface.h"
 #include "producer_surface.h"
+#include "egl_consumer_surface.h"
 
 namespace OHOS {
 namespace {
@@ -28,13 +29,13 @@ constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, 0, "Surface" };
 
 sptr<Surface> Surface::CreateSurfaceAsConsumer(std::string name, bool isShared)
 {
-    sptr<ConsumerSurface> surface = new ConsumerSurface(name, isShared);
-    SurfaceError ret = surface->Init();
-    if (ret != SURFACE_ERROR_OK) {
-        BLOGE("Failure, Reason: consumer surface init failed");
+    sptr<ConsumerSurface> surf = new ConsumerSurface(name, isShared);
+    GSError ret = surf->Init();
+    if (ret != GSERROR_OK) {
+        BLOGE("Failure, Reason: consumer surf init failed");
         return nullptr;
     }
-    return surface;
+    return surf;
 }
 
 sptr<Surface> Surface::CreateSurfaceAsProducer(sptr<IBufferProducer>& producer)
@@ -44,12 +45,23 @@ sptr<Surface> Surface::CreateSurfaceAsProducer(sptr<IBufferProducer>& producer)
         return nullptr;
     }
 
-    sptr<ProducerSurface> surface = new ProducerSurface(producer);
-    SurfaceError ret = surface->Init();
-    if (ret != SURFACE_ERROR_OK) {
-        BLOGE("Failure, Reason: producer surface init failed");
+    sptr<ProducerSurface> surf = new ProducerSurface(producer);
+    GSError ret = surf->Init();
+    if (ret != GSERROR_OK) {
+        BLOGE("Failure, Reason: producer surf init failed");
         return nullptr;
     }
-    return surface;
+    return surf;
+}
+
+sptr<Surface> Surface::CreateEglSurfaceAsConsumer(std::string name, bool isShared)
+{
+    sptr<EglConsumerSurface> surf = new EglConsumerSurface(name, isShared);
+    GSError ret = surf->Init();
+    if (ret != GSERROR_OK) {
+        BLOGE("Failure, Reason: egl consumer surf init failed");
+        return nullptr;
+    }
+    return surf;
 }
 } // namespace OHOS

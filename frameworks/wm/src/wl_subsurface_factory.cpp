@@ -52,18 +52,18 @@ void WlSubsurfaceFactory::OnAppear(const GetServiceFunc get, const std::string &
     }
 }
 
-sptr<WlSubsurface> WlSubsurfaceFactory::Create(const sptr<WlSurface> &surface, const sptr<WlSurface> &parent)
+sptr<WlSubsurface> WlSubsurfaceFactory::Create(const sptr<WlSurface> &surf, const sptr<WlSurface> &parent)
 {
-    struct wl_subsurface *subsurface = nullptr;
+    struct wl_subsurface *subsurf = nullptr;
     if (subcompositor != nullptr &&
-        surface != nullptr && surface->GetRawPtr() != nullptr &&
+        surf != nullptr && surf->GetRawPtr() != nullptr &&
         parent != nullptr && parent->GetRawPtr() != nullptr) {
-        subsurface = wl_subcompositor_get_subsurface(subcompositor, surface->GetRawPtr(), parent->GetRawPtr());
+        subsurf = wl_subcompositor_get_subsurface(subcompositor, surf->GetRawPtr(), parent->GetRawPtr());
     }
 
-    if (subsurface) {
-        sptr<WlSubsurface> wlSubsurface = new WlSubsurface(subsurface);
-        return wlSubsurface;
+    if (subsurf) {
+        sptr<WlSubsurface> wlSubsurf = new WlSubsurface(subsurf);
+        return wlSubsurf;
     }
     return nullptr;
 }

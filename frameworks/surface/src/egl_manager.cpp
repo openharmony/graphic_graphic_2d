@@ -16,7 +16,7 @@
 #include "egl_manager.h"
 
 #include <fcntl.h>
-#include <graphic_bytrace.h>
+#include <scoped_bytrace.h>
 #include <mutex>
 #include <unistd.h>
 
@@ -76,44 +76,45 @@ bool EglManager::IsInit() const
     return initFlag_;
 }
 
-SurfaceError EglManager::Init(EGLContext context)
+GSError EglManager::Init(EGLContext context)
 {
     ScopedBytrace eGLManagerInit("EGLManagerInit");
     if (initFlag_) {
-        BLOGW("already init.");
-        return SURFACE_ERROR_OK;
+        BLOGW("already init, eglMakeCurrent");
+        eglMakeCurrent(display_, EGL_NO_SURFACE, EGL_NO_SURFACE, context_);
+        return GSERROR_OK;
     }
 
-    if (GbmInit() != SURFACE_ERROR_OK) {
+    if (GbmInit() != GSERROR_OK) {
         BLOGE("GbmInit failed.");
-        return SURFACE_ERROR_INIT;
+        return GSERROR_INTERNEL;
     }
 
-    if (EglInit(context) != SURFACE_ERROR_OK) {
+    if (EglInit(context) != GSERROR_OK) {
         BLOGE("EglInit failed.");
-        return SURFACE_ERROR_INIT;
+        return GSERROR_INTERNEL;
     }
 
     initFlag_ = true;
-    return SURFACE_ERROR_OK;
+    return GSERROR_OK;
 }
 
-SurfaceError EglManager::GbmInit()
+GSError EglManager::GbmInit()
 {
     ScopedBytrace func(__func__);
     drmFd_ = open(GBM_DEVICE_PATH, O_RDWR);
     if (drmFd_ < 0) {
         BLOGE("Failed to open drm render node.");
-        return SURFACE_ERROR_INIT;
+        return GSERROR_INTERNEL;
     }
 
     device_ = gbm_create_device(drmFd_);
     if (device_ == nullptr) {
         BLOGE("Failed to create gbm device.");
-        return SURFACE_ERROR_INIT;
+        return GSERROR_INTERNEL;
     }
 
-    return SURFACE_ERROR_OK;
+    return GSERROR_OK;
 }
 
 namespace {
@@ -163,22 +164,22 @@ static EGLDisplay GetPlatformEglDisplay(EGLenum platform, EGLDisplay native_disp
 }
 }
 
-SurfaceError EglManager::EglCheckExt()
+GSError EglManager::EglCheckExt()
 {
     const char *eglExtensions = eglQueryString(display_, EGL_EXTENSIONS);
     if (eglExtensions == nullptr) {
         BLOGE("param is nullptr.");
-        return SURFACE_ERROR_INIT;
+        return GSERROR_INTERNEL;
     }
 
     if (!CheckEglExtension(eglExtensions, EGL_EXT_IMAGE_DMA_BUF_IMPORT)) {
         BLOGE("EGL_EXT_image_dma_buf_import not supported");
-        return SURFACE_ERROR_INIT;
+        return GSERROR_INTERNEL;
     }
 
     if (!CheckEglExtension(eglExtensions, EGL_KHR_SURFACELESS_CONTEXT)) {
         BLOGE("EGL_KHR_surfaceless_context not supported");
-        return SURFACE_ERROR_INIT;
+        return GSERROR_INTERNEL;
     }
 
     if (CheckEglExtension(eglExtensions, EGL_KHR_NO_CONFIG_CONTEXT)) {
@@ -198,61 +199,61 @@ SurfaceError EglManager::EglCheckExt()
         ret = eglChooseConfig(display_, config_attribs, &conf_, 1, &count);
         if (!(ret && count >= 1)) {
             BLOGE("Failed to eglChooseConfig");
-            return SURFACE_ERROR_INIT;
+            return GSERROR_INTERNEL;
         }
     }
-    return SURFACE_ERROR_OK;
+    return GSERROR_OK;
 }
 
-SurfaceError EglManager::EglFuncInit()
+GSError EglManager::EglFuncInit()
 {
     const char *eglExtensions = eglQueryString(display_, EGL_EXTENSIONS);
     if (eglExtensions == nullptr) {
         BLOGE("param is nullptr.");
-        return SURFACE_ERROR_INIT;
+        return GSERROR_INTERNEL;
     }
 
     createImage_ = (EglCreateImageFunc)eglGetProcAddress(EGL_CREATE_IMAGE_KHR);
     if (createImage_ == nullptr) {
         BLOGE("param is nullptr.");
-        return SURFACE_ERROR_INIT;
+        return GSERROR_INTERNEL;
     }
 
     destroyImage_ = (EglDestroyImageFunc)eglGetProcAddress(EGL_DESTROY_IMAGE_KHR);
     if (destroyImage_ == nullptr) {
         BLOGE("param is nullptr.");
-        return SURFACE_ERROR_INIT;
+        return GSERROR_INTERNEL;
     }
 
     imageTargetTexture2d_ = (EglImageTargetTexture2DFunc)eglGetProcAddress(EGL_IMAGE_TARGET_TEXTURE2DOES);
     if (imageTargetTexture2d_ == nullptr) {
         BLOGE("param is nullptr.");
-        return SURFACE_ERROR_INIT;
+        return GSERROR_INTERNEL;
     }
     
     if (CheckEglExtension(eglExtensions, EGL_KHR_FENCE_SYNC)) {
         createSync_ = (EglCreateSyncFunc)eglGetProcAddress(EGL_CREATE_SYNC_KHR);
         if (createSync_ == nullptr) {
             BLOGE("param is nullptr.");
-            return SURFACE_ERROR_INIT;
+            return GSERROR_INTERNEL;
         }
         
         destroySync_ = (EglDestroySyncFunc)eglGetProcAddress(EGL_DESTROY_SYNC_KHR);
         if (destroySync_ == nullptr) {
             BLOGE("param is nullptr.");
-            return SURFACE_ERROR_INIT;
+            return GSERROR_INTERNEL;
         }
 
         clientWaitSync_ = (EglClientWaitSyncFunc)eglGetProcAddress(EGL_CLIENT_WAIT_SYNC_KHR);
         if (clientWaitSync_ == nullptr) {
             BLOGE("param is nullptr.");
-            return SURFACE_ERROR_INIT;
+            return GSERROR_INTERNEL;
         }
 
         dupNativeFenceFd_ = (EglDupNativeFenceFdFunc)eglGetProcAddress(EGL_DUP_NATIVE_FENCE_FD_ANDROID);
         if (dupNativeFenceFd_ == nullptr) {
             BLOGE("param is nullptr.");
-            return SURFACE_ERROR_INIT;
+            return GSERROR_INTERNEL;
         }
     }
 
@@ -260,35 +261,35 @@ SurfaceError EglManager::EglFuncInit()
         waitSync_ = (EglWaitSyncFunc)eglGetProcAddress(EGL_WAIT_SYNC_KHR);
         if (waitSync_ == nullptr) {
             BLOGE("param is nullptr.");
-            return SURFACE_ERROR_INIT;
+            return GSERROR_INTERNEL;
         }
     }
-    return SURFACE_ERROR_OK;
+    return GSERROR_OK;
 }
 
-SurfaceError EglManager::EglInit(EGLContext ctx)
+GSError EglManager::EglInit(EGLContext ctx)
 {
     ScopedBytrace func(__func__);
     display_ = GetPlatformEglDisplay(EGL_PLATFORM_GBM_KHR, device_, NULL);
     if (display_ == EGL_NO_DISPLAY) {
         BLOGE("Failed to create EGLDisplay");
-        return SURFACE_ERROR_INIT;
+        return GSERROR_INTERNEL;
     }
 
     EGLint major, minor;
     if (eglInitialize(display_, &major, &minor) == EGL_FALSE) {
         BLOGE("Failed to initialize EGLDisplay");
-        return SURFACE_ERROR_INIT;
+        return GSERROR_INTERNEL;
     }
 
     if (eglBindAPI(EGL_OPENGL_ES_API) == EGL_FALSE) {
         BLOGE("Failed to bind OpenGL ES API");
-        return SURFACE_ERROR_INIT;
+        return GSERROR_INTERNEL;
     }
 
-    if (EglCheckExt() != SURFACE_ERROR_OK) {
+    if (EglCheckExt() != GSERROR_OK) {
         BLOGE("EglCheckExt failed");
-        return SURFACE_ERROR_INIT;
+        return GSERROR_INTERNEL;
     }
 
     static const EGLint context_attribs[] = {
@@ -300,7 +301,7 @@ SurfaceError EglManager::EglInit(EGLContext ctx)
         context_ = eglCreateContext(display_, conf_, EGL_NO_CONTEXT, context_attribs);
         if (context_ == EGL_NO_CONTEXT) {
             BLOGE("Failed to create EGLContext");
-            return SURFACE_ERROR_INIT;
+            return GSERROR_INTERNEL;
         }
         ctxReleaseFlg_ = true;
     } else {
@@ -312,20 +313,20 @@ SurfaceError EglManager::EglInit(EGLContext ctx)
     const char *glExtensions = (const char *) glGetString(GL_EXTENSIONS);
     if (glExtensions == nullptr) {
         BLOGE("param is nullptr.");
-        return SURFACE_ERROR_INIT;
+        return GSERROR_INTERNEL;
     }
 
     if (!CheckEglExtension(glExtensions, GL_OES_EGL_IMAGE)) {
         BLOGE("GL_OES_EGL_image not supported");
-        return SURFACE_ERROR_INIT;
+        return GSERROR_INTERNEL;
     }
 
-    if (EglFuncInit() != SURFACE_ERROR_OK) {
+    if (EglFuncInit() != GSERROR_OK) {
         BLOGE("EglFuncInit failed");
-        return SURFACE_ERROR_INIT;
+        return GSERROR_INTERNEL;
     }
 
-    return SURFACE_ERROR_OK;
+    return GSERROR_OK;
 }
 
 void EglManager::Deinit()

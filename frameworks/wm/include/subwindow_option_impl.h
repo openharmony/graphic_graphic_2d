@@ -24,12 +24,12 @@ public:
     SubwindowOptionImpl() = default;
     virtual ~SubwindowOptionImpl() = default;
 
-    virtual WMError SetWindowType(SubwindowType t) override;
-    virtual WMError SetX(int32_t x) override;
-    virtual WMError SetY(int32_t y) override;
-    virtual WMError SetWidth(uint32_t w) override;
-    virtual WMError SetHeight(uint32_t h) override;
-    virtual WMError SetConsumerSurface(const sptr<Surface> &surface) override;
+    virtual GSError SetWindowType(SubwindowType t) override;
+    virtual GSError SetX(int32_t x) override;
+    virtual GSError SetY(int32_t y) override;
+    virtual GSError SetWidth(uint32_t w) override;
+    virtual GSError SetHeight(uint32_t h) override;
+    virtual GSError SetConsumerSurface(const sptr<Surface> &surf) override;
 
     virtual SubwindowType GetWindowType() const override;
     virtual int32_t GetX() const override;

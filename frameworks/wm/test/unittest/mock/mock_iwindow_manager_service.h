@@ -23,30 +23,34 @@
 namespace OHOS {
 class MockIWindowManagerService : public IWindowManagerService {
 public:
-    MOCK_METHOD1(GetDisplays, WMError(std::vector<struct WMDisplayInfo> &displays));
+    MOCK_METHOD1(GetDisplays, GSError(std::vector<struct WMDisplayInfo> &displays));
     MOCK_METHOD1(GetDisplayPower, sptr<PromisePowerStatus>(int32_t did));
-    MOCK_METHOD2(SetDisplayPower, sptr<PromiseWMError>(int32_t did, DispPowerStatus status));
+    MOCK_METHOD2(SetDisplayPower, sptr<PromiseGSError>(int32_t did, DispPowerStatus status));
     MOCK_METHOD1(GetDisplayBacklight, sptr<PromiseBacklight>(int32_t did));
-    MOCK_METHOD2(SetDisplayBacklight, sptr<PromiseWMError>(int32_t did, uint32_t level));
-    MOCK_METHOD1(GetDisplayModes, WMError(uint32_t &displayModes));
-    MOCK_METHOD1(SetDisplayMode, sptr<PromiseWMError>(WMSDisplayMode modes));
-    MOCK_METHOD1(AddDisplayChangeListener, WMError(IWindowManagerDisplayListenerClazz *listener));
-    MOCK_METHOD1(OnWindowListChange, sptr<PromiseWMError>(IWindowChangeListenerClazz *listener));
-    MOCK_METHOD1(SetDisplayDirection, WMError(WMSDisplayDirection direction));
-    MOCK_METHOD1(OnDisplayDirectionChange, WMError(DisplayDirectionChangeFunc func));
+    MOCK_METHOD2(SetDisplayBacklight, sptr<PromiseGSError>(int32_t did, uint32_t level));
+    MOCK_METHOD1(GetDisplayModes, GSError(uint32_t &displayModes));
+    MOCK_METHOD1(SetDisplayMode, sptr<PromiseGSError>(WMSDisplayMode modes));
+    MOCK_METHOD1(AddDisplayChangeListener, GSError(IWindowManagerDisplayListenerClazz *listener));
+    MOCK_METHOD1(OnWindowListChange, sptr<PromiseGSError>(IWindowChangeListenerClazz *listener));
+    MOCK_METHOD1(SetDisplayDirection, GSError(WMSDisplayDirection direction));
+    MOCK_METHOD1(OnDisplayDirectionChange, GSError(DisplayDirectionChangeFunc func));
     MOCK_METHOD1(ShotScreen, sptr<PromiseWMSImageInfo>(int32_t did));
     MOCK_METHOD1(ShotWindow, sptr<PromiseWMSImageInfo>(int32_t wid));
-    MOCK_METHOD1(SetStatusBarVisibility, sptr<PromiseWMError>(bool visibility));
-    MOCK_METHOD1(SetNavigationBarVisibility, sptr<PromiseWMError>(bool visibility));
-    MOCK_METHOD1(DestroyWindow, sptr<PromiseWMError>(int32_t wid));
-    MOCK_METHOD1(SwitchTop, sptr<PromiseWMError>(int32_t wid));
-    MOCK_METHOD1(Show, sptr<PromiseWMError>(int32_t wid));
-    MOCK_METHOD1(Hide, sptr<PromiseWMError>(int32_t wid));
-    MOCK_METHOD3(Move, sptr<PromiseWMError>(int32_t wid, int32_t x, int32_t y));
-    MOCK_METHOD3(Resize, sptr<PromiseWMError>(int32_t wid, uint32_t width, uint32_t height));
-    MOCK_METHOD3(ScaleTo, sptr<PromiseWMError>(int32_t wid, uint32_t width, uint32_t height));
-    MOCK_METHOD2(SetWindowType, sptr<PromiseWMError>(int32_t wid, WindowType type));
-    MOCK_METHOD2(SetWindowMode, sptr<PromiseWMError>(int32_t wid, WindowMode mode));
+    MOCK_METHOD1(SetStatusBarVisibility, sptr<PromiseGSError>(bool visibility));
+    MOCK_METHOD1(SetNavigationBarVisibility, sptr<PromiseGSError>(bool visibility));
+    MOCK_METHOD1(DestroyWindow, sptr<PromiseGSError>(int32_t wid));
+    MOCK_METHOD1(SwitchTop, sptr<PromiseGSError>(int32_t wid));
+    MOCK_METHOD1(Show, sptr<PromiseGSError>(int32_t wid));
+    MOCK_METHOD1(Hide, sptr<PromiseGSError>(int32_t wid));
+    MOCK_METHOD3(Move, sptr<PromiseGSError>(int32_t wid, int32_t x, int32_t y));
+    MOCK_METHOD3(Resize, sptr<PromiseGSError>(int32_t wid, uint32_t width, uint32_t height));
+    MOCK_METHOD3(ScaleTo, sptr<PromiseGSError>(int32_t wid, uint32_t width, uint32_t height));
+    MOCK_METHOD2(SetWindowType, sptr<PromiseGSError>(int32_t wid, WindowType type));
+    MOCK_METHOD2(SetWindowMode, sptr<PromiseGSError>(int32_t wid, WindowMode mode));
+    MOCK_METHOD4(CreateVirtualDisplay, sptr<PromiseGSError>(int32_t x, int32_t y, int32_t width, int32_t height));
+    MOCK_METHOD1(DestroyVirtualDisplay, sptr<PromiseGSError>(uint32_t did));
+    MOCK_METHOD2(StartRotationAnimation, GSError(uint32_t did, int32_t degree));
+    MOCK_METHOD3(SetSplitMode, sptr<PromiseGSError>(SplitMode mode, int32_t x, int32_t y));
 };
 } // namespace OHOS
 

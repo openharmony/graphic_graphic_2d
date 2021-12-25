@@ -28,22 +28,22 @@ public:
     BufferQueueConsumer(sptr<BufferQueue>& bufferQueue);
     virtual ~BufferQueueConsumer();
 
-    SurfaceError AcquireBuffer(sptr<SurfaceBufferImpl>& buffer, int32_t &fence,
+    GSError AcquireBuffer(sptr<SurfaceBufferImpl>& buffer, int32_t &fence,
                                int64_t &timestamp, Rect &damage);
 
-    SurfaceError ReleaseBuffer(sptr<SurfaceBufferImpl>& buffer, int32_t fence);
+    GSError ReleaseBuffer(sptr<SurfaceBufferImpl>& buffer, int32_t fence);
 
-    SurfaceError AttachBuffer(sptr<SurfaceBufferImpl>& buffer);
+    GSError AttachBuffer(sptr<SurfaceBufferImpl>& buffer);
 
-    SurfaceError DetachBuffer(sptr<SurfaceBufferImpl>& buffer);
+    GSError DetachBuffer(sptr<SurfaceBufferImpl>& buffer);
 
-    SurfaceError RegisterConsumerListener(sptr<IBufferConsumerListener>& listener);
-    SurfaceError RegisterConsumerListener(IBufferConsumerListenerClazz *listener);
-    SurfaceError RegisterReleaseListener(OnReleaseFunc func);
-    SurfaceError UnregisterConsumerListener();
+    GSError RegisterConsumerListener(sptr<IBufferConsumerListener>& listener);
+    GSError RegisterConsumerListener(IBufferConsumerListenerClazz *listener);
+    GSError RegisterReleaseListener(OnReleaseFunc func);
+    GSError UnregisterConsumerListener();
 
-    SurfaceError SetDefaultWidthAndHeight(int32_t width, int32_t height);
-    SurfaceError SetDefaultUsage(uint32_t usage);
+    GSError SetDefaultWidthAndHeight(int32_t width, int32_t height);
+    GSError SetDefaultUsage(uint32_t usage);
 
 private:
     sptr<BufferQueue> bufferQueue_ = nullptr;

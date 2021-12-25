@@ -51,69 +51,69 @@ HWTEST_F(SurfaceBufferImplTest, NewState, testing::ext::TestSize.Level0)
 
 HWTEST_F(SurfaceBufferImplTest, GetterSetter32Positive, testing::ext::TestSize.Level0)
 {
-    SurfaceError ret;
+    GSError ret;
 
     ret = buffer->SetInt32(0, 0x7fffffff);
-    ASSERT_EQ(ret, SURFACE_ERROR_OK);
+    ASSERT_EQ(ret, GSERROR_OK);
 
     ret = buffer->GetInt32(0, val32);
-    ASSERT_EQ(ret, SURFACE_ERROR_OK);
+    ASSERT_EQ(ret, GSERROR_OK);
     ASSERT_EQ(val32, 0x7fffffff);
 }
 
 HWTEST_F(SurfaceBufferImplTest, GetterSetter32Nagetive, testing::ext::TestSize.Level0)
 {
-    SurfaceError ret;
+    GSError ret;
 
     ret = buffer->SetInt32(0, -1);
-    ASSERT_EQ(ret, SURFACE_ERROR_OK);
+    ASSERT_EQ(ret, GSERROR_OK);
 
     ret = buffer->GetInt32(0, val32);
-    ASSERT_EQ(ret, SURFACE_ERROR_OK);
+    ASSERT_EQ(ret, GSERROR_OK);
     ASSERT_EQ(val32, -1);
 }
 
 HWTEST_F(SurfaceBufferImplTest, GetterSetter64Positive, testing::ext::TestSize.Level0)
 {
-    SurfaceError ret;
+    GSError ret;
 
     ret = buffer->SetInt64(1, 0x7fffffffffLL);
-    ASSERT_EQ(ret, SURFACE_ERROR_OK);
+    ASSERT_EQ(ret, GSERROR_OK);
 
     ret = buffer->GetInt64(1, val64);
-    ASSERT_EQ(ret, SURFACE_ERROR_OK);
+    ASSERT_EQ(ret, GSERROR_OK);
     ASSERT_EQ(val64, 0x7fffffffffLL);
 }
 
 HWTEST_F(SurfaceBufferImplTest, GetterSetter64Negative, testing::ext::TestSize.Level0)
 {
-    SurfaceError ret;
+    GSError ret;
 
     ret = buffer->SetInt64(1, -1);
-    ASSERT_EQ(ret, SURFACE_ERROR_OK);
+    ASSERT_EQ(ret, GSERROR_OK);
 
     ret = buffer->GetInt64(1, val64);
-    ASSERT_EQ(ret, SURFACE_ERROR_OK);
+    ASSERT_EQ(ret, GSERROR_OK);
     ASSERT_EQ(val64, -1);
 }
 
 HWTEST_F(SurfaceBufferImplTest, GetterSetter32As64, testing::ext::TestSize.Level0)
 {
-    SurfaceError ret;
+    GSError ret;
 
     val64 = 0x123;
     ret = buffer->GetInt64(0, val64);
-    ASSERT_NE(ret, SURFACE_ERROR_OK);
+    ASSERT_NE(ret, GSERROR_OK);
     ASSERT_EQ(val64, 0x123);
 }
 
 HWTEST_F(SurfaceBufferImplTest, GetterSetter64As32, testing::ext::TestSize.Level0)
 {
-    SurfaceError ret;
+    GSError ret;
 
     val32 = 0x456;
     ret = buffer->GetInt32(1, val32);
-    ASSERT_NE(ret, SURFACE_ERROR_OK);
+    ASSERT_NE(ret, GSERROR_OK);
     ASSERT_EQ(val32, 0x456);
 }
 
@@ -121,8 +121,8 @@ HWTEST_F(SurfaceBufferImplTest, NormalState, testing::ext::TestSize.Level0)
 {
     ASSERT_EQ(buffer->GetBufferHandle(), nullptr);
 
-    SurfaceError ret = BufferManager::GetInstance()->Alloc(requestConfig, buffer);
-    ASSERT_EQ(ret, SURFACE_ERROR_OK);
+    GSError ret = BufferManager::GetInstance()->Alloc(requestConfig, buffer);
+    ASSERT_EQ(ret, GSERROR_OK);
 
     ASSERT_EQ(buffer->GetVirAddr(), nullptr);
     ASSERT_NE(buffer->GetFileDescriptor(), -1);
@@ -130,7 +130,7 @@ HWTEST_F(SurfaceBufferImplTest, NormalState, testing::ext::TestSize.Level0)
     ASSERT_NE(buffer->GetBufferHandle(), nullptr);
 
     ret = BufferManager::GetInstance()->Free(buffer);
-    ASSERT_EQ(ret, SURFACE_ERROR_OK);
+    ASSERT_EQ(ret, GSERROR_OK);
 }
 
 HWTEST_F(SurfaceBufferImplTest, Parcel, testing::ext::TestSize.Level0)
@@ -138,7 +138,7 @@ HWTEST_F(SurfaceBufferImplTest, Parcel, testing::ext::TestSize.Level0)
     sptr<SurfaceBufferImpl> sbi = new SurfaceBufferImpl(0);
     const auto &bm = BufferManager::GetInstance();
     auto sret = bm->Alloc(requestConfig, sbi);
-    ASSERT_EQ(sret, SURFACE_ERROR_OK);
+    ASSERT_EQ(sret, GSERROR_OK);
 
     sbi->SetInt32(32, 32);
     sbi->SetInt64(64, 64);
@@ -153,8 +153,8 @@ HWTEST_F(SurfaceBufferImplTest, Parcel, testing::ext::TestSize.Level0)
 
     int32_t val32 = 0;
     int64_t val64 = 0;
-    ASSERT_EQ(buffer->GetInt32(32, val32), SURFACE_ERROR_OK);
-    ASSERT_EQ(buffer->GetInt64(64, val64), SURFACE_ERROR_OK);
+    ASSERT_EQ(buffer->GetInt32(32, val32), GSERROR_OK);
+    ASSERT_EQ(buffer->GetInt64(64, val64), GSERROR_OK);
 }
 }
 } // namespace OHOS

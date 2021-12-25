@@ -22,6 +22,7 @@
 
 #include "buffer_handle_utils.h"
 #include "surface_type.h"
+#include "egl_data.h"
 
 namespace OHOS {
 class SurfaceBuffer : public RefBase {
@@ -36,26 +37,28 @@ public:
     virtual void *GetVirAddr() const = 0;
     virtual int GetFileDescriptor() const = 0;
     virtual uint32_t GetSize() const = 0;
-    virtual SurfaceError SetInt32(uint32_t key, int32_t value) = 0;
-    virtual SurfaceError GetInt32(uint32_t key, int32_t &value) = 0;
-    virtual SurfaceError SetInt64(uint32_t key, int64_t value) = 0;
-    virtual SurfaceError GetInt64(uint32_t key, int64_t &value) = 0;
+    virtual GSError SetInt32(uint32_t key, int32_t value) = 0;
+    virtual GSError GetInt32(uint32_t key, int32_t &value) = 0;
+    virtual GSError SetInt64(uint32_t key, int64_t value) = 0;
+    virtual GSError GetInt64(uint32_t key, int64_t &value) = 0;
+    virtual sptr<EglData> GetEglData() const = 0;
 
     // support ipc data
-    virtual SurfaceError ExtraGet(std::string key, int32_t &value) const = 0;
-    virtual SurfaceError ExtraGet(std::string key, int64_t &value) const = 0;
-    virtual SurfaceError ExtraGet(std::string key, double &value) const = 0;
-    virtual SurfaceError ExtraGet(std::string key, std::string &value) const = 0;
-    virtual SurfaceError ExtraSet(std::string key, int32_t value) = 0;
-    virtual SurfaceError ExtraSet(std::string key, int64_t value) = 0;
-    virtual SurfaceError ExtraSet(std::string key, double value) = 0;
-    virtual SurfaceError ExtraSet(std::string key, std::string value) = 0;
+    virtual GSError ExtraGet(std::string key, int32_t &value) const = 0;
+    virtual GSError ExtraGet(std::string key, int64_t &value) const = 0;
+    virtual GSError ExtraGet(std::string key, double &value) const = 0;
+    virtual GSError ExtraGet(std::string key, std::string &value) const = 0;
+    virtual GSError ExtraSet(std::string key, int32_t value) = 0;
+    virtual GSError ExtraSet(std::string key, int64_t value) = 0;
+    virtual GSError ExtraSet(std::string key, double value) = 0;
+    virtual GSError ExtraSet(std::string key, std::string value) = 0;
+
 protected:
     SurfaceBuffer(){}
     virtual ~SurfaceBuffer(){}
 };
 
-using OnReleaseFunc = std::function<SurfaceError(sptr<SurfaceBuffer> &)>;
+using OnReleaseFunc = std::function<GSError(sptr<SurfaceBuffer> &)>;
 } // namespace OHOS
 
 #endif // INTERFACES_INNERKITS_SURFACE_SURFACE_BUFFER_H

@@ -11,7 +11,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import("//build/ohos.gni")
+import("//build/test.gni")
 import("//foundation/graphic/standard/graphic_config.gni")
 
 ## Build wmtest {{{
@@ -27,16 +27,24 @@ config("wmtest_config") {
   ]
 }
 
-ohos_executable("wmtest") {
-  install_enable = true
+ohos_systemtest("wmtest") {
+  test_type = "nativetest"
+  module_out_path = "graphic_standard/wmtest"
 
   sources = [
     "frameworks/inative_test.cpp",
     "frameworks/main.cpp",
+    "frameworks/main_option.cpp",
     "frameworks/native_test_class.cpp",
+    "frameworks/native_test_ipc_proxy.cpp",
+    "frameworks/native_test_ipc_stub.cpp",
     "frameworks/util.cpp",
+  ]
+
+  sources += [
     "test/crash_native_test_1.cpp",
     "test/crash_native_test_2.cpp",
+    "test/dumper_test_1.cpp",
     "test/other_native_test_1.cpp",
     "test/pref_native_test_1.cpp",
     "test/vsync_native_test_1.cpp",
@@ -47,17 +55,23 @@ ohos_executable("wmtest") {
     "test/wmclient_native_test_13.cpp",
     "test/wmclient_native_test_14.cpp",
     "test/wmclient_native_test_15.cpp",
-    "test/wmclient_native_test_16.cpp",
     "test/wmclient_native_test_17.cpp",
     "test/wmclient_native_test_18.cpp",
     "test/wmclient_native_test_19.cpp",
     "test/wmclient_native_test_2.cpp",
+    "test/wmclient_native_test_20.cpp",
+    "test/wmclient_native_test_22.cpp",
+    "test/wmclient_native_test_23.cpp",
     "test/wmclient_native_test_26.cpp",
     "test/wmclient_native_test_27.cpp",
     "test/wmclient_native_test_28.cpp",
     "test/wmclient_native_test_29.cpp",
+    "test/wmclient_native_test_3.cpp",
     "test/wmclient_native_test_30.cpp",
     "test/wmclient_native_test_32.cpp",
+    "test/wmclient_native_test_33.cpp",
+    "test/wmclient_native_test_34.cpp",
+    "test/wmclient_native_test_35.cpp",
     "test/wmclient_native_test_4.cpp",
     "test/wmclient_native_test_5.cpp",
     "test/wmclient_native_test_6.cpp",
@@ -69,10 +83,16 @@ ohos_executable("wmtest") {
     "test/wmservice_native_test_3.cpp",
     "test/wmservice_native_test_4.cpp",
     "test/wmservice_native_test_5.cpp",
+    "test/wmservice_native_test_7.cpp",
   ]
 
   if (ace_enable_gpu) {
-    sources += [ "test/wmclient_native_test_31.cpp" ]
+    sources += [
+      "frameworks/egl_native_test_class.cpp",
+      "test/wmclient_native_test_21.cpp",
+      "test/wmclient_native_test_31.cpp",
+      "test/wmservice_native_test_6.cpp",
+    ]
   }
 
   configs = [ ":wmtest_config" ]
@@ -80,9 +100,12 @@ ohos_executable("wmtest") {
   deps = [
     "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
     "//foundation/distributedschedule/samgr/interfaces/innerkits/samgr_proxy:samgr_proxy",
+    "//foundation/graphic/standard:libgraphic_dumper_client",
     "//foundation/graphic/standard:libvsync_client",
     "//foundation/graphic/standard:libwmclient",
     "//foundation/graphic/standard:libwmservice",
+    "//foundation/graphic/standard/frameworks/animation_server:libanimation_service",
+    "//foundation/graphic/standard/utils:libgraphic_utils",
     "//foundation/multimodalinput/input/frameworks/proxy:libmmi-client",
     "//third_party/zlib:libz",
   ]

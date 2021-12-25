@@ -41,7 +41,7 @@ public:
     MOCKABLE void OnRemove(const RemoveListenFunc &func);
 
     // server
-    MOCKABLE WMError Start();
+    MOCKABLE GSError Start();
     MOCKABLE void Stop();
 
 private:

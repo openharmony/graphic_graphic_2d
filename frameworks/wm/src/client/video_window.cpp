@@ -38,8 +38,8 @@ namespace {
     static constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, 0, "VideoWindow" };
 }
 
-    VideoWindow::VideoWindow(InnerWindowInfo &winInfo) : SubWindow(winInfo.windowid, winInfo.surface),
-        layerId_(winInfo.voLayerId), surface_(winInfo.surface), producer(nullptr)
+    VideoWindow::VideoWindow(InnerWindowInfo &winInfo) : SubWindow(winInfo.windowid, winInfo.surf),
+        layerId_(winInfo.voLayerId), surface_(winInfo.surf), producer(nullptr)
     {
         VIDEO_WINDOW_ENTER();
 #ifdef TARGET_CPU_ARM
@@ -67,7 +67,7 @@ namespace {
         VIDEO_WINDOW_EXIT();
     }
 
-    int32_t VideoWindow::CreateLayer(InnerWindowInfo &winInfo, uint32_t &layerId, sptr<Surface> &surface)
+    int32_t VideoWindow::CreateLayer(InnerWindowInfo &winInfo, uint32_t &layerId, sptr<Surface> &surf)
     {
         VIDEO_WINDOW_ENTER();
         LayerInfo layerInfo = {winInfo.width, winInfo.height, LAYER_TYPE_SDIEBAND, 8, PIXEL_FMT_YCRCB_420_SP};
@@ -76,7 +76,7 @@ namespace {
             layerInfo.type = LAYER_TYPE_OVERLAY;
         }
 #ifdef TARGET_CPU_ARM
-        int32_t ret = VideoDisplayManager::CreateLayer(layerInfo, layerId, surface);
+        int32_t ret = VideoDisplayManager::CreateLayer(layerInfo, layerId, surf);
 #else
         int32_t ret = DISPLAY_FAILURE;
 #endif
@@ -115,9 +115,9 @@ namespace {
     sptr<Surface> VideoWindow::GetSurface()
     {
         VIDEO_WINDOW_ENTER();
-        sptr<Surface> surface = Surface::CreateSurfaceAsProducer(producer);
+        sptr<Surface> surf = Surface::CreateSurfaceAsProducer(producer);
         VIDEO_WINDOW_EXIT();
-        return surface;
+        return surf;
     }
 
     void VideoWindow::Move(int32_t x, int32_t y)

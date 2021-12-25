@@ -88,9 +88,9 @@ public:
             .callback_ = syncFunc,
         };
 
-        VsyncError ret = VsyncHelper::Current()->RequestFrameCallback(cb);
-        if (ret != VSYNC_ERROR_OK) {
-            printf("RequestFrameCallback error %s\n", VsyncErrorStr(ret).c_str());
+        GSError ret = VsyncHelper::Current()->RequestFrameCallback(cb);
+        if (ret != GSERROR_OK) {
+            printf("RequestFrameCallback error %s\n", GSErrorStr(ret).c_str());
         }
     }
 } g_autoload;

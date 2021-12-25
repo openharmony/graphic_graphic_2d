@@ -14,20 +14,10 @@
         "//third_party/wayland-ivi-extension:simple-weston-client",
 
         "//third_party/weston:default",
-
-        "//foundation/graphic/standard/frameworks/vsync:vsync_server",
-        "//foundation/graphic/standard/frameworks/wmserver:wmserver",
-
-        "//foundation/graphic/standard/frameworks/bootanimation:bootanimation",
-        "//foundation/graphic/standard/frameworks/bootanimation:bootanimation-480x960.raw",
-        "//foundation/graphic/standard:default.scss",
-        "//foundation/graphic/standard:graphic.rc"
+        "//foundation/graphic/standard:default"
       ],
       "test_list": [
-        "//foundation/graphic/standard/frameworks/surface:test",
-        "//foundation/graphic/standard/frameworks/vsync:test",
-        "//foundation/graphic/standard/frameworks/wm:test",
-        "//foundation/graphic/standard/frameworks/fence:test"
+        "//foundation/graphic/standard:test"
       ]
     }
   }

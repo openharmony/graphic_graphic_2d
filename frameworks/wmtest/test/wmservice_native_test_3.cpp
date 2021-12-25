@@ -59,17 +59,17 @@ public:
         (void)argv;
         auto wmsc = WindowManagerServiceClient::GetInstance();
         auto wret = wmsc->Init();
-        if (wret != WM_OK) {
-            std::cerr << "WindowManagerServiceClient::Init failed with " << WMErrorStr(wret) << std::endl;
+        if (wret != GSERROR_OK) {
+            std::cerr << "WindowManagerServiceClient::Init failed with " << GSErrorStr(wret) << std::endl;
             ExitTest();
             return;
         }
 
         wms = wmsc->GetService();
         wret = wms->SetStatusBarVisibility(false)->Await();
-        if (wret != WM_OK) {
+        if (wret != GSERROR_OK) {
             std::cerr << "IWindowManagerService::SetStatusBarVisibility(false) failed with "
-                << WMErrorStr(wret) << std::endl;
+                << GSErrorStr(wret) << std::endl;
         } else {
             std::cout << "IWindowManagerService::SetStatusBarVisibility(false) success" << std::endl;
         }
@@ -80,9 +80,9 @@ public:
     void AfterRun()
     {
         auto wret = wms->SetStatusBarVisibility(true)->Await();
-        if (wret != WM_OK) {
+        if (wret != GSERROR_OK) {
             std::cerr << "IWindowManagerService::SetStatusBarVisibility(true) failed with "
-                << WMErrorStr(wret) << std::endl;
+                << GSErrorStr(wret) << std::endl;
         } else {
             std::cout << "IWindowManagerService::SetStatusBarVisibility(true) success" << std::endl;
         }

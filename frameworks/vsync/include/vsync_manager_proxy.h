@@ -27,9 +27,9 @@ public:
     VsyncManagerProxy(const sptr<IRemoteObject>& impl);
     virtual ~VsyncManagerProxy() = default;
 
-    virtual VsyncError ListenVsync(sptr<IVsyncCallback>& cb) override;
-    virtual VsyncError RemoveVsync(sptr<IVsyncCallback>& cb) override;
-    virtual VsyncError GetVsyncFrequency(uint32_t &freq) override;
+    virtual GSError ListenVsync(sptr<IVsyncCallback>& cb) override;
+    virtual GSError RemoveVsync(sptr<IVsyncCallback>& cb) override;
+    virtual GSError GetVsyncFrequency(uint32_t &freq) override;
 
 private:
     static inline BrokerDelegator<VsyncManagerProxy> delegator_;

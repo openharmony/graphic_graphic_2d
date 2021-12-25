@@ -57,16 +57,16 @@ public:
     {
         auto wmsc = WindowManagerServiceClient::GetInstance();
         auto wret = wmsc->Init();
-        if (wret != WM_OK) {
-            std::cerr << "WindowManagerServiceClient::Init failed with " << WMErrorStr(wret) << std::endl;
+        if (wret != GSERROR_OK) {
+            std::cerr << "WindowManagerServiceClient::Init failed with " << GSErrorStr(wret) << std::endl;
             ExitTest();
             return;
         }
 
         wms = wmsc->GetService();
         wret = wms->GetDisplays(displays);
-        if (wret != WM_OK) {
-            std::cerr << "WindowManagerService::GetDisplays failed with " << WMErrorStr(wret) << std::endl;
+        if (wret != GSERROR_OK) {
+            std::cerr << "WindowManagerService::GetDisplays failed with " << GSErrorStr(wret) << std::endl;
             ExitTest();
             return;
         }
@@ -83,9 +83,9 @@ public:
 
         for (const auto &display : displays) {
             auto ret = wms->GetDisplayBacklight(display.id)->Await();
-            if (ret.wret != WM_OK) {
+            if (ret.wret != GSERROR_OK) {
                 std::cerr << "WindowManagerService::GetDisplayBacklight failed with "
-                    << WMErrorStr(ret.wret) << std::endl;
+                    << GSErrorStr(ret.wret) << std::endl;
             }
             std::cout << "WindowManagerService::GetDisplayBacklight "
                 << display.id << ": " << ret.level << std::endl;
@@ -93,9 +93,9 @@ public:
 
         for (const auto &display : displays) {
             auto wret = wms->SetDisplayBacklight(display.id, level)->Await();
-            if (wret != WM_OK) {
+            if (wret != GSERROR_OK) {
                 std::cerr << "WindowManagerService::GetDisplayBacklight failed with "
-                    << WMErrorStr(wret) << std::endl;
+                    << GSErrorStr(wret) << std::endl;
             }
             std::cout << "WindowManagerService::SetDisplayBacklight "
                 << display.id << ": " << level << std::endl;

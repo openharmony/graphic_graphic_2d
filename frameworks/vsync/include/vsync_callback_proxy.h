@@ -27,7 +27,7 @@ public:
     VsyncCallbackProxy(const sptr<IRemoteObject>& impl);
     virtual ~VsyncCallbackProxy() = default;
 
-    VsyncError OnVsync(int64_t timestamp) override;
+    GSError OnVsync(int64_t timestamp) override;
 
 private:
     static inline BrokerDelegator<VsyncCallbackProxy> delegator_;

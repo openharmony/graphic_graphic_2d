@@ -56,11 +56,18 @@
 ## 目录
 ```
 foundation/graphic/standard/
+├── figures                 # Markdown引用的图片目录
 ├── frameworks              # 框架代码目录
+│   ├── animation_server    # AnimationServer代码
 │   ├── bootanimation       # 开机动画目录
+│   ├── dumper              # graphic dumper代码
+│   ├── fence               # fence代码
 │   ├── surface             # Surface代码
 │   ├── vsync               # Vsync代码
-│   └── wm                  # WindowManager代码
+│   ├── wm                  # WindowManager代码
+│   ├── wmserver            # libwmserver代码
+│   ├── wmservice           # WindowManagerService代码
+│   └── wmtest              # wmtest代码，可以视为demo
 ├── interfaces              # 对外接口存放目录
 │   ├── innerkits           # native接口存放目录
 │   └── kits                # js/napi接口存放目录
@@ -73,9 +80,10 @@ foundation/graphic/standard/
 
 ## 编译构建
 可以依赖的接口有:
-- graphic_standard:libwms_client
 - graphic_standard:libsurface
 - graphic_standard:libvsync_client
+- graphic_standard:libwmclient
+- graphic_standard:libwmservice
 
 ## 接口说明
 
@@ -102,26 +110,6 @@ foundation/graphic/standard/
 | ChangeWindowType            | 更改当前窗口类型             |
 | ReSize                      | 调整当前窗口至指定大小       |
 | Rotate                      | 旋转当前窗口                 |
-| RegistPointerButtonCb       | 注册鼠标Button事件回调       |
-| RegistPointerEnterCb        | 注册鼠标Enter事件回调        |
-| RegistPointerLeaveCb        | 注册鼠标Leave事件回调        |
-| RegistPointerMotionCb       | 注册鼠标Motion事件回调       |
-| RegistPointerAxisDiscreteCb | 注册鼠标AxisDiscrete事件回调 |
-| RegistPointerAxisSourceCb   | 注册鼠标AxisSource事件回调   |
-| RegistPointerAxisStopCb     | 注册鼠标AxisStop事件回调     |
-| RegistPointerAxisCb         | 注册鼠标Axis事件回调         |
-| RegistTouchUpCb             | 注册TouchUp事件回调          |
-| RegistTouchDownCb           | 注册TouchDown事件回调        |
-| RegistTouchEmotionCb        | 注册TouchEmotion事件回调     |
-| RegistTouchFrameCb          | 注册TouchFrame事件回调       |
-| RegistTouchCancelCb         | 注册TouchCancel事件回调      |
-| RegistTouchShapeCb          | 注册TouchShape事件回调       |
-| RegistTouchOrientationCb    | 注册TouchOrientation事件回调 |
-| RegistKeyboardKeyCb         | 注册键盘Key事件回调          |
-| RegistKeyboardKeyMapCb      | 注册键盘KeyMap事件回调       |
-| RegistKeyboardLeaveCb       | 注册键盘Leave事件回调        |
-| RegistKeyboardEnterCb       | 注册键盘Enter事件回调        |
-| RegistKeyboardRepeatInfoCb  | 注册键盘RepeatInfo事件回调   |
 
 ### SubWindow
 | 接口名           | 职责               |
@@ -181,10 +169,10 @@ foundation/graphic/standard/
 #### 注册
 ```cpp
 // 拿到一个消费型Surface
-sptr<Surface> surface = Surface::CreateSurfaceAsConsumer();
+sptr<Surface> surf = Surface::CreateSurfaceAsConsumer();
 
 // 拿出里面的生产者对象
-sptr<IBufferProducer> producer = surface->GetProducer();
+sptr<IBufferProducer> producer = surf->GetProducer();
 
 // 注册服务
 auto sm = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
@@ -199,7 +187,7 @@ sptr<IRemoteObject> robj = sm->GetSystemAbility(IPC_SA_ID);
 
 // 构造Surface
 sptr<IBufferProducer> bp = iface_cast<IBufferProducer>(robj);
-sptr<Surface> surface = Surface::CreateSurfaceAsProducer(bp);
+sptr<Surface> surf = Surface::CreateSurfaceAsProducer(bp);
 ```
 
 ### 匿名服务-传递一个生产型Surface
@@ -208,10 +196,10 @@ sptr<Surface> surface = Surface::CreateSurfaceAsProducer(bp);
 #### 发送
 ```cpp
 // 拿到一个消费型Surface
-sptr<Surface> surface = CreateSurfaceAsConsumer();
+sptr<Surface> surf = CreateSurfaceAsConsumer();
 
 // 拿出里面的生产者对象
-sptr<IRemoteObject> producer = surface->GetProducer();
+sptr<IRemoteObject> producer = surf->GetProducer();
 
 // 返回给客户端
 parcel.WriteRemoteObject(producer);
@@ -224,7 +212,7 @@ sptr<IRemoteObject> remoteObject = parcel.ReadRemoteObject();
 
 // 构造Surface
 sptr<IBufferProducer> bp = iface_cast<IBufferProducer>(robj);
-sptr<Surface> surface = Surface::CreateSurfaceAsProducer(bp);
+sptr<Surface> surf = Surface::CreateSurfaceAsProducer(bp);
 ```
 
 ### 生产一个SurfaceBuffer
@@ -243,8 +231,8 @@ BufferRequestConfig requestConfig = {
 sptr<SurfaceBuffer> buffer;
 int32_t releaseFence;
 
-SurfaceError ret = surface->RequestBuffer(buffer, releaseFence, requestConfig);
-if (ret != SURFACE_ERROR_OK) {
+GSError ret = surf->RequestBuffer(buffer, releaseFence, requestConfig);
+if (ret != GSERROR_OK) {
     // failed
 }
 
@@ -258,8 +246,8 @@ BufferFlushConfig flushConfig = {
     .timestamp = 0 // 给消费者看的时间，0为使用当前时间
 };
 
-ret = surface->FlushBuffer(buffer, -1, flushConfig);
-if (ret != SURFACE_ERROR_OK) {
+ret = surf->FlushBuffer(buffer, -1, flushConfig);
+if (ret != GSERROR_OK) {
     // failed
 }
 ```
@@ -274,23 +262,23 @@ public:
         sptr<SurfaceBuffer> buffer;
         int32_t flushFence;
 
-        SurfaceError ret = surface->AcquireBuffer(buffer, flushFence, timestamp, damage);
-        if (ret != SURFACE_ERROR_OK) {
+        GSError ret = surf->AcquireBuffer(buffer, flushFence, timestamp, damage);
+        if (ret != GSERROR_OK) {
             // failed
         }
 
         // ...
 
-        ret = surface->ReleaseBuffer(buffer, -1);
-        if (ret != SURFACE_ERROR_OK) {
+        ret = surf->ReleaseBuffer(buffer, -1);
+        if (ret != GSERROR_OK) {
             // failed
         }
     }
 };
 
 sptr<IBufferConsumerListener> listener = new TestConsumerListener();
-SurfaceError ret = surface->RegisterConsumerListener(listener);
-if (ret != SURFACE_ERROR_OK) {
+GSError ret = surf->RegisterConsumerListener(listener);
+if (ret != GSERROR_OK) {
     // failed
 }
 ```
@@ -298,14 +286,14 @@ if (ret != SURFACE_ERROR_OK) {
 ### 给SurfaceBuffer带上自定义数据
 ```cpp
 sptr<SurfaceBuffer> buffer;
-SurfaceError ret = buffer->SetInt32(1, 3);
-if (ret != SURFACE_ERROR_OK) {
+GSError ret = buffer->SetInt32(1, 3);
+if (ret != GSERROR_OK) {
     // failed
 }
 
 int32_t val;
 ret = buffer->GetInt32(1, val);
-if (ret != SURFACE_ERROR_OK) {
+if (ret != GSERROR_OK) {
     // failed
 }
 ```
@@ -325,8 +313,8 @@ struct FrameCallback cb = {
     },
 };
 
-VsyncError ret = helper->RequestFrameCallback(cb);
-if (ret != VSYNC_ERROR_OK) {
+GSError ret = helper->RequestFrameCallback(cb);
+if (ret != GSERROR_OK) {
     // failed
 }
 ```
@@ -344,8 +332,8 @@ handler->PostTask([]() {
         },
     };
 
-    VsyncError ret = helper->RequestFrameCallback(cb);
-    if (ret != VSYNC_ERROR_OK) {
+    GSError ret = helper->RequestFrameCallback(cb);
+    if (ret != GSERROR_OK) {
         // failed
     }
 });

@@ -57,34 +57,34 @@ public:
     {
         auto wmsc = WindowManagerServiceClient::GetInstance();
         auto wret = wmsc->Init();
-        if (wret != WM_OK) {
-            std::cerr << "WindowManagerServiceClient::Init failed with " << WMErrorStr(wret) << std::endl;
+        if (wret != GSERROR_OK) {
+            std::cerr << "WindowManagerServiceClient::Init failed with " << GSErrorStr(wret) << std::endl;
             ExitTest();
             return;
         }
 
         wms = wmsc->GetService();
         wret = wms->GetDisplays(displays);
-        if (wret != WM_OK) {
-            std::cerr << "WindowManagerService::GetDisplays failed with " << WMErrorStr(wret) << std::endl;
+        if (wret != GSERROR_OK) {
+            std::cerr << "WindowManagerService::GetDisplays failed with " << GSErrorStr(wret) << std::endl;
             ExitTest();
             return;
         }
 
         for (const auto &display : displays) {
             auto ret = wms->GetDisplayPower(display.id)->Await();
-            if (ret.wret != WM_OK) {
+            if (ret.wret != GSERROR_OK) {
                 std::cerr << "WindowManagerService::GetDisplayPower failed with "
-                    << WMErrorStr(ret.wret) << std::endl;
+                    << GSErrorStr(ret.wret) << std::endl;
             }
             std::cout << "WindowManagerService::GetDisplayPower " << display.id << ": " << ret.status;
         }
 
         for (const auto &display : displays) {
             wret = wms->SetDisplayPower(display.id, POWER_STATUS_OFF)->Await();
-            if (wret != WM_OK) {
+            if (wret != GSERROR_OK) {
                 std::cerr << "WindowManagerService::SetDisplayPower ON failed with "
-                    << WMErrorStr(wret) << std::endl;
+                    << GSErrorStr(wret) << std::endl;
             }
             std::cout << "WindowManagerService::SetDisplayPower OFF Success" << std::endl;
         }
@@ -97,18 +97,18 @@ public:
     {
         for (const auto &display : displays) {
             auto ret = wms->GetDisplayPower(display.id)->Await();
-            if (ret.wret != WM_OK) {
+            if (ret.wret != GSERROR_OK) {
                 std::cerr << "WindowManagerService::GetDisplayPower failed with "
-                    << WMErrorStr(ret.wret) << std::endl;
+                    << GSErrorStr(ret.wret) << std::endl;
             }
             std::cout << "WindowManagerService::GetDisplayPower " << display.id << ": " << ret.status;
         }
 
         for (const auto &display : displays) {
             auto wret = wms->SetDisplayPower(display.id, POWER_STATUS_ON)->Await();
-            if (wret != WM_OK) {
+            if (wret != GSERROR_OK) {
                 std::cerr << "WindowManagerService::SetDisplayPower ON failed with "
-                    << WMErrorStr(wret) << std::endl;
+                    << GSErrorStr(wret) << std::endl;
             }
             std::cout << "WindowManagerService::SetDisplayPower ON Success" << std::endl;
         }

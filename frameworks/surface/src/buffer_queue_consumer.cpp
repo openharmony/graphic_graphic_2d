@@ -36,82 +36,82 @@ BufferQueueConsumer::~BufferQueueConsumer()
     BLOGNI("dtor");
 }
 
-SurfaceError BufferQueueConsumer::AcquireBuffer(sptr<SurfaceBufferImpl>& buffer, int32_t &fence,
-                                                int64_t &timestamp, Rect &damage)
+GSError BufferQueueConsumer::AcquireBuffer(sptr<SurfaceBufferImpl>& buffer, int32_t &fence,
+    int64_t &timestamp, Rect &damage)
 {
     if (bufferQueue_ == nullptr) {
-        return SURFACE_ERROR_NULLPTR;
+        return GSERROR_INVALID_ARGUMENTS;
     }
     return bufferQueue_->AcquireBuffer(buffer, fence, timestamp, damage);
 }
 
-SurfaceError BufferQueueConsumer::ReleaseBuffer(sptr<SurfaceBufferImpl>& buffer, int32_t fence)
+GSError BufferQueueConsumer::ReleaseBuffer(sptr<SurfaceBufferImpl>& buffer, int32_t fence)
 {
     if (bufferQueue_ == nullptr) {
-        return SURFACE_ERROR_NULLPTR;
+        return GSERROR_INVALID_ARGUMENTS;
     }
     return bufferQueue_->ReleaseBuffer(buffer, fence);
 }
 
-SurfaceError BufferQueueConsumer::AttachBuffer(sptr<SurfaceBufferImpl>& buffer)
+GSError BufferQueueConsumer::AttachBuffer(sptr<SurfaceBufferImpl>& buffer)
 {
     if (bufferQueue_ == nullptr) {
-        return SURFACE_ERROR_NULLPTR;
+        return GSERROR_INVALID_ARGUMENTS;
     }
     return bufferQueue_->AttachBuffer(buffer);
 }
 
-SurfaceError BufferQueueConsumer::DetachBuffer(sptr<SurfaceBufferImpl>& buffer)
+GSError BufferQueueConsumer::DetachBuffer(sptr<SurfaceBufferImpl>& buffer)
 {
     if (bufferQueue_ == nullptr) {
-        return SURFACE_ERROR_NULLPTR;
+        return GSERROR_INVALID_ARGUMENTS;
     }
     return bufferQueue_->DetachBuffer(buffer);
 }
 
-SurfaceError BufferQueueConsumer::RegisterConsumerListener(sptr<IBufferConsumerListener>& listener)
+GSError BufferQueueConsumer::RegisterConsumerListener(sptr<IBufferConsumerListener>& listener)
 {
     if (bufferQueue_ == nullptr) {
-        return SURFACE_ERROR_NULLPTR;
+        return GSERROR_INVALID_ARGUMENTS;
     }
     return bufferQueue_->RegisterConsumerListener(listener);
 }
 
-SurfaceError BufferQueueConsumer::RegisterConsumerListener(IBufferConsumerListenerClazz *listener)
+GSError BufferQueueConsumer::RegisterConsumerListener(IBufferConsumerListenerClazz *listener)
 {
     if (bufferQueue_ == nullptr) {
-        return SURFACE_ERROR_NULLPTR;
+        return GSERROR_INVALID_ARGUMENTS;
     }
     return bufferQueue_->RegisterConsumerListener(listener);
 }
 
-SurfaceError BufferQueueConsumer::RegisterReleaseListener(OnReleaseFunc func)
+GSError BufferQueueConsumer::RegisterReleaseListener(OnReleaseFunc func)
 {
     if (bufferQueue_ == nullptr) {
-        return SURFACE_ERROR_NULLPTR;
+        return GSERROR_INVALID_ARGUMENTS;
     }
     return bufferQueue_->RegisterReleaseListener(func);
 }
-SurfaceError BufferQueueConsumer::UnregisterConsumerListener()
+GSError BufferQueueConsumer::UnregisterConsumerListener()
 {
     if (bufferQueue_ == nullptr) {
-        return SURFACE_ERROR_NULLPTR;
+        return GSERROR_INVALID_ARGUMENTS;
     }
     return bufferQueue_->UnregisterConsumerListener();
 }
 
-SurfaceError BufferQueueConsumer::SetDefaultWidthAndHeight(int32_t width, int32_t height)
+GSError BufferQueueConsumer::SetDefaultWidthAndHeight(int32_t width, int32_t height)
 {
     if (bufferQueue_ == nullptr) {
-        return SURFACE_ERROR_NULLPTR;
+        return GSERROR_INVALID_ARGUMENTS;
     }
     return bufferQueue_->SetDefaultWidthAndHeight(width, height);
 }
 
-SurfaceError BufferQueueConsumer::SetDefaultUsage(uint32_t usage)
+GSError BufferQueueConsumer::SetDefaultUsage(uint32_t usage)
 {
     if (bufferQueue_ == nullptr) {
-        return SURFACE_ERROR_NULLPTR;
+        return GSERROR_INVALID_ARGUMENTS;
     }
     return bufferQueue_->SetDefaultUsage(usage);
 }

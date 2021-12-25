@@ -64,17 +64,17 @@ public:
     EGLBoolean EglMakeCurrent(EGLSurface draw, EGLSurface read);
     EGLBoolean EglMakeCurrent();
 
-    SurfaceError Init(EGLContext ctx = EGL_NO_CONTEXT);
+    GSError Init(EGLContext ctx = EGL_NO_CONTEXT);
     bool IsInit() const;
 
 private:
     EglManager();
     virtual ~EglManager();
     void Deinit();
-    SurfaceError GbmInit();
-    SurfaceError EglInit(EGLContext ctx = EGL_NO_CONTEXT);
-    SurfaceError EglCheckExt();
-    SurfaceError EglFuncInit();
+    GSError GbmInit();
+    GSError EglInit(EGLContext ctx = EGL_NO_CONTEXT);
+    GSError EglCheckExt();
+    GSError EglFuncInit();
 
     thread_local static inline sptr<EglManager> instance_ = nullptr;
     bool initFlag_ = false;

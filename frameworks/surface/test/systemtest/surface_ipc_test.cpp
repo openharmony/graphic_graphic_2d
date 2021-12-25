@@ -69,11 +69,11 @@ pid_t SurfaceIPCTest::ChildProcessMain() const
     }
 
     auto producer = iface_cast<IBufferProducer>(robj);
-    auto psurface = Surface::CreateSurfaceAsProducer(producer);
+    auto psurf = Surface::CreateSurfaceAsProducer(producer);
 
     sptr<SurfaceBuffer> buffer = nullptr;
-    auto sret = psurface->RequestBufferNoFence(buffer, requestConfig);
-    if (sret != SURFACE_ERROR_OK) {
+    auto sret = psurf->RequestBufferNoFence(buffer, requestConfig);
+    if (sret != GSERROR_OK) {
         data = sret;
         write(pipeFd[1], &data, sizeof(data));
         exit(0);
@@ -83,7 +83,7 @@ pid_t SurfaceIPCTest::ChildProcessMain() const
     buffer->ExtraSet("345", (int64_t)0x345);
     buffer->ExtraSet("567", "567");
 
-    sret = psurface->FlushBuffer(buffer, -1, flushConfig);
+    sret = psurf->FlushBuffer(buffer, -1, flushConfig);
     data = sret;
     write(pipeFd[1], &data, sizeof(data));
     sleep(0);
@@ -100,9 +100,9 @@ HWTEST_F(SurfaceIPCTest, BufferIPC, testing::ext::TestSize.Level0)
     auto pid = ChildProcessMain();
     ASSERT_GE(pid, 0);
 
-    csurface = Surface::CreateSurfaceAsConsumer("test");
-    csurface->RegisterConsumerListener(this);
-    auto producer = csurface->GetProducer();
+    csurf = Surface::CreateSurfaceAsConsumer("test");
+    csurf->RegisterConsumerListener(this);
+    auto producer = csurf->GetProducer();
     auto sam = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     sam->AddSystemAbility(ipcSystemAbilityID, producer->AsObject());
 
@@ -110,14 +110,14 @@ HWTEST_F(SurfaceIPCTest, BufferIPC, testing::ext::TestSize.Level0)
     write(pipeFd[1], &data, sizeof(data));
     sleep(0);
     read(pipeFd[0], &data, sizeof(data));
-    EXPECT_EQ(data, SURFACE_ERROR_OK);
+    EXPECT_EQ(data, GSERROR_OK);
 
     sptr<SurfaceBuffer> buffer = nullptr;
     int32_t fence;
     int64_t timestamp;
     Rect damage;
-    auto sret = csurface->AcquireBuffer(buffer, fence, timestamp, damage);
-    EXPECT_EQ(sret, SURFACE_ERROR_OK);
+    auto sret = csurf->AcquireBuffer(buffer, fence, timestamp, damage);
+    EXPECT_EQ(sret, GSERROR_OK);
     EXPECT_NE(buffer, nullptr);
     if (buffer != nullptr) {
         int32_t int32;
@@ -132,8 +132,8 @@ HWTEST_F(SurfaceIPCTest, BufferIPC, testing::ext::TestSize.Level0)
         EXPECT_EQ(str, "567");
     }
 
-    sret = csurface->ReleaseBuffer(buffer, -1);
-    EXPECT_EQ(sret, SURFACE_ERROR_OK);
+    sret = csurf->ReleaseBuffer(buffer, -1);
+    EXPECT_EQ(sret, GSERROR_OK);
 
     write(pipeFd[1], &data, sizeof(data));
     close(pipeFd[0]);
@@ -147,13 +147,13 @@ HWTEST_F(SurfaceIPCTest, BufferIPC, testing::ext::TestSize.Level0)
 
 HWTEST_F(SurfaceIPCTest, Cache, testing::ext::TestSize.Level0)
 {
-    csurface->RegisterConsumerListener(this);
-    auto producer = csurface->GetProducer();
-    auto psurface = Surface::CreateSurfaceAsProducer(producer);
+    csurf->RegisterConsumerListener(this);
+    auto producer = csurf->GetProducer();
+    auto psurf = Surface::CreateSurfaceAsProducer(producer);
 
     sptr<SurfaceBuffer> buffer = nullptr;
-    auto sret = psurface->RequestBufferNoFence(buffer, requestConfig);
-    ASSERT_EQ(sret, SURFACE_ERROR_OK);
+    auto sret = psurf->RequestBufferNoFence(buffer, requestConfig);
+    ASSERT_EQ(sret, GSERROR_OK);
     ASSERT_NE(buffer, nullptr);
     int32_t int32;
     int64_t int64;
@@ -166,8 +166,8 @@ HWTEST_F(SurfaceIPCTest, Cache, testing::ext::TestSize.Level0)
     ASSERT_EQ(int64, 0x345);
     ASSERT_EQ(str, "567");
 
-    sret = psurface->FlushBuffer(buffer, -1, flushConfig);
-    ASSERT_EQ(sret, SURFACE_ERROR_OK);
+    sret = psurf->FlushBuffer(buffer, -1, flushConfig);
+    ASSERT_EQ(sret, GSERROR_OK);
 }
 } // namespace
 } // namespace OHOS

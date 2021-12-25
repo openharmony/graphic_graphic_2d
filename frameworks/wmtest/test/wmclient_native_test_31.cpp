@@ -22,6 +22,7 @@
 
 #include "inative_test.h"
 #include "native_test_class.h"
+#include "egl_native_test_class.h"
 #include "util.h"
 
 using namespace OHOS;
@@ -57,7 +58,7 @@ public:
     {
         auto initRet = WindowManager::GetInstance()->Init();
         if (initRet) {
-            printf("init failed with %s\n", WMErrorStr(initRet).c_str());
+            printf("init failed with %s\n", GSErrorStr(initRet).c_str());
             ExitTest();
             return;
         }
@@ -71,12 +72,12 @@ public:
         window->SwitchTop();
         auto producer = window->GetProducer();
         sptr<EglSurface> pEglSurface = EglSurface::CreateEglSurfaceAsProducer(producer);
-        windowSync = NativeTestSync::CreateSyncEgl(NativeTestDraw::FlushDrawEgl,
+        windowSync = EGLNativeTestSync::CreateSync(EGLNativeTestDraw::FlushDraw,
             pEglSurface, window->GetWidth(), window->GetHeight());
     }
 
 private:
     sptr<Window> window = nullptr;
-    sptr<NativeTestSync> windowSync = nullptr;
+    sptr<EGLNativeTestSync> windowSync = nullptr;
 } g_autoload;
 } // namespace

@@ -32,9 +32,9 @@ class VsyncModule : public RefBase {
 public:
     static sptr<VsyncModule> GetInstance();
 
-    virtual VsyncError Start() = 0;
-    virtual VsyncError Trigger() = 0;
-    virtual VsyncError Stop() = 0;
+    virtual GSError Start() = 0;
+    virtual GSError Trigger() = 0;
+    virtual GSError Stop() = 0;
     virtual bool IsRunning() = 0;
 };
 } // namespace OHOS

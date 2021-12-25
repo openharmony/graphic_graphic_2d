@@ -27,8 +27,8 @@ ProducerSurface::ProducerSurface(sptr<IBufferProducer>& producer)
 {
     producer_ = producer;
     auto sret = producer_->GetName(name_);
-    if (sret != SURFACE_ERROR_OK) {
-        BLOGNE("GetName failed, %{public}s", SurfaceErrorStr(sret).c_str());
+    if (sret != GSERROR_OK) {
+        BLOGNE("GetName failed, %{public}s", GSErrorStr(sret).c_str());
     }
     BLOGND("ctor");
 }
@@ -47,9 +47,9 @@ ProducerSurface::~ProducerSurface()
     producer_ = nullptr;
 }
 
-SurfaceError ProducerSurface::Init()
+GSError ProducerSurface::Init()
 {
-    return SURFACE_ERROR_OK;
+    return GSERROR_OK;
 }
 
 bool ProducerSurface::IsConsumer() const
@@ -62,33 +62,33 @@ sptr<IBufferProducer> ProducerSurface::GetProducer() const
     return producer_;
 }
 
-SurfaceError ProducerSurface::RequestBuffer(sptr<SurfaceBuffer>& buffer,
-                                            int32_t &fence, BufferRequestConfig &config)
+GSError ProducerSurface::RequestBuffer(sptr<SurfaceBuffer>& buffer,
+    int32_t &fence, BufferRequestConfig &config)
 {
     fence = -1;
     return RequestBufferNoFence(buffer, config);
 }
 
-SurfaceError ProducerSurface::RequestBufferNoFence(sptr<SurfaceBuffer>& buffer,
-                                                   BufferRequestConfig &config)
+GSError ProducerSurface::RequestBufferNoFence(sptr<SurfaceBuffer>& buffer,
+    BufferRequestConfig &config)
 {
     int32_t releaseFence = -1;
     auto sret = RequestBufferWithFence(buffer, releaseFence, config);
-    if (sret == SURFACE_ERROR_OK && releaseFence >= 0) {
+    if (sret == GSERROR_OK && releaseFence >= 0) {
         BLOGI("closing fence: %{public}d", releaseFence);
         close(releaseFence);
     }
     return sret;
 }
 
-SurfaceError ProducerSurface::RequestBufferWithFence(sptr<SurfaceBuffer>& buffer,
-                                                     int32_t &fence, BufferRequestConfig &config)
+GSError ProducerSurface::RequestBufferWithFence(sptr<SurfaceBuffer>& buffer,
+    int32_t &fence, BufferRequestConfig &config)
 {
     IBufferProducer::RequestBufferReturnValue retval;
     BufferExtraDataImpl bedataimpl;
-    SurfaceError ret = GetProducer()->RequestBuffer(config, bedataimpl, retval);
-    if (ret != SURFACE_ERROR_OK) {
-        BLOGN_FAILURE("Producer report %{public}s", SurfaceErrorStr(ret).c_str());
+    GSError ret = GetProducer()->RequestBuffer(config, bedataimpl, retval);
+    if (ret != GSERROR_OK) {
+        BLOGN_FAILURE("Producer report %{public}s", GSErrorStr(ret).c_str());
         return ret;
     }
 
@@ -96,7 +96,7 @@ SurfaceError ProducerSurface::RequestBufferWithFence(sptr<SurfaceBuffer>& buffer
     if (retval.buffer != nullptr && IsRemote()) {
         sptr<SurfaceBufferImpl> bufferImpl = SurfaceBufferImpl::FromBase(retval.buffer);
         ret = BufferManager::GetInstance()->Map(bufferImpl);
-        if (ret != SURFACE_ERROR_OK) {
+        if (ret != GSERROR_OK) {
             BLOGN_FAILURE_ID(retval.sequence, "Map failed");
         } else {
             BLOGN_SUCCESS_ID(retval.sequence, "Map");
@@ -113,7 +113,7 @@ SurfaceError ProducerSurface::RequestBufferWithFence(sptr<SurfaceBuffer>& buffer
 
     sptr<SurfaceBufferImpl> bufferImpl = SurfaceBufferImpl::FromBase(retval.buffer);
     ret = BufferManager::GetInstance()->InvalidateCache(bufferImpl);
-    if (ret != SURFACE_ERROR_OK) {
+    if (ret != GSERROR_OK) {
         BLOGNW("Warning [%{public}d], InvalidateCache failed", retval.sequence);
     }
 
@@ -127,13 +127,13 @@ SurfaceError ProducerSurface::RequestBufferWithFence(sptr<SurfaceBuffer>& buffer
         }
         bufferProducerCache_.erase(*it);
     }
-    return SURFACE_ERROR_OK;
+    return GSERROR_OK;
 }
 
-SurfaceError ProducerSurface::CancelBuffer(sptr<SurfaceBuffer>& buffer)
+GSError ProducerSurface::CancelBuffer(sptr<SurfaceBuffer>& buffer)
 {
     if (buffer == nullptr) {
-        return SURFACE_ERROR_NULLPTR;
+        return GSERROR_INVALID_ARGUMENTS;
     }
 
     auto bufferImpl = SurfaceBufferImpl::FromBase(buffer);
@@ -142,11 +142,11 @@ SurfaceError ProducerSurface::CancelBuffer(sptr<SurfaceBuffer>& buffer)
     return GetProducer()->CancelBuffer(bufferImpl->GetSeqNum(), bedataimpl);
 }
 
-SurfaceError ProducerSurface::FlushBuffer(sptr<SurfaceBuffer>& buffer,
+GSError ProducerSurface::FlushBuffer(sptr<SurfaceBuffer>& buffer,
     int32_t fence, BufferFlushConfig &config)
 {
     if (buffer == nullptr) {
-        return SURFACE_ERROR_NULLPTR;
+        return GSERROR_INVALID_ARGUMENTS;
     }
 
     auto bufferImpl = SurfaceBufferImpl::FromBase(buffer);
@@ -155,36 +155,36 @@ SurfaceError ProducerSurface::FlushBuffer(sptr<SurfaceBuffer>& buffer,
     return GetProducer()->FlushBuffer(bufferImpl->GetSeqNum(), bedataimpl, fence, config);
 }
 
-SurfaceError ProducerSurface::FlushBufferNoFence(sptr<SurfaceBuffer>& buffer,
-                                                 BufferFlushConfig &config)
+GSError ProducerSurface::FlushBufferNoFence(sptr<SurfaceBuffer>& buffer,
+    BufferFlushConfig &config)
 {
     return FlushBuffer(buffer, -1, config);
 }
 
-SurfaceError ProducerSurface::AcquireBuffer(sptr<SurfaceBuffer>& buffer, int32_t &fence,
-                                            int64_t &timestamp, Rect &damage)
+GSError ProducerSurface::AcquireBuffer(sptr<SurfaceBuffer>& buffer, int32_t &fence,
+    int64_t &timestamp, Rect &damage)
 {
-    return SURFACE_ERROR_NOT_SUPPORT;
+    return GSERROR_NOT_SUPPORT;
 }
 
-SurfaceError ProducerSurface::ReleaseBuffer(sptr<SurfaceBuffer>& buffer, int32_t fence)
+GSError ProducerSurface::ReleaseBuffer(sptr<SurfaceBuffer>& buffer, int32_t fence)
 {
-    return SURFACE_ERROR_NOT_SUPPORT;
+    return GSERROR_NOT_SUPPORT;
 }
 
-SurfaceError ProducerSurface::AttachBuffer(sptr<SurfaceBuffer>& buffer)
+GSError ProducerSurface::AttachBuffer(sptr<SurfaceBuffer>& buffer)
 {
     if (buffer == nullptr) {
-        return SURFACE_ERROR_NULLPTR;
+        return GSERROR_INVALID_ARGUMENTS;
     }
     BLOGND("the addr : %{public}p", buffer.GetRefPtr());
     return GetProducer()->AttachBuffer(buffer);
 }
 
-SurfaceError ProducerSurface::DetachBuffer(sptr<SurfaceBuffer>& buffer)
+GSError ProducerSurface::DetachBuffer(sptr<SurfaceBuffer>& buffer)
 {
     if (buffer == nullptr) {
-        return SURFACE_ERROR_NULLPTR;
+        return GSERROR_INVALID_ARGUMENTS;
     }
     return GetProducer()->DetachBuffer(buffer);
 }
@@ -194,21 +194,21 @@ uint32_t     ProducerSurface::GetQueueSize()
     return producer_->GetQueueSize();
 }
 
-SurfaceError ProducerSurface::SetQueueSize(uint32_t queueSize)
+GSError ProducerSurface::SetQueueSize(uint32_t queueSize)
 {
     return producer_->SetQueueSize(queueSize);
 }
 
-SurfaceError ProducerSurface::GetName(std::string &name)
+GSError ProducerSurface::GetName(std::string &name)
 {
     auto sret = producer_->GetName(name);
     name_ = name;
     return sret;
 }
 
-SurfaceError ProducerSurface::SetDefaultWidthAndHeight(int32_t width, int32_t height)
+GSError ProducerSurface::SetDefaultWidthAndHeight(int32_t width, int32_t height)
 {
-    return SURFACE_ERROR_NOT_SUPPORT;
+    return GSERROR_NOT_SUPPORT;
 }
 
 int32_t ProducerSurface::GetDefaultWidth()
@@ -221,9 +221,9 @@ int32_t ProducerSurface::GetDefaultHeight()
     return producer_->GetDefaultHeight();
 }
 
-SurfaceError ProducerSurface::SetDefaultUsage(uint32_t usage)
+GSError ProducerSurface::SetDefaultUsage(uint32_t usage)
 {
-    return SURFACE_ERROR_NOT_SUPPORT;
+    return GSERROR_NOT_SUPPORT;
 }
 
 uint32_t ProducerSurface::GetDefaultUsage()
@@ -231,13 +231,13 @@ uint32_t ProducerSurface::GetDefaultUsage()
     return producer_->GetDefaultUsage();
 }
 
-SurfaceError ProducerSurface::SetUserData(const std::string &key, const std::string &val)
+GSError ProducerSurface::SetUserData(const std::string &key, const std::string &val)
 {
     if (userData_.size() >= SURFACE_MAX_USER_DATA_COUNT) {
-        return SURFACE_ERROR_OUT_OF_RANGE;
+        return GSERROR_OUT_OF_RANGE;
     }
     userData_[key] = val;
-    return SURFACE_ERROR_OK;
+    return GSERROR_OK;
 }
 
 std::string ProducerSurface::GetUserData(const std::string &key)
@@ -249,22 +249,22 @@ std::string ProducerSurface::GetUserData(const std::string &key)
     return "";
 }
 
-SurfaceError ProducerSurface::RegisterConsumerListener(sptr<IBufferConsumerListener>& listener)
+GSError ProducerSurface::RegisterConsumerListener(sptr<IBufferConsumerListener>& listener)
 {
-    return SURFACE_ERROR_NOT_SUPPORT;
+    return GSERROR_NOT_SUPPORT;
 }
 
-SurfaceError ProducerSurface::RegisterConsumerListener(IBufferConsumerListenerClazz *listener)
+GSError ProducerSurface::RegisterConsumerListener(IBufferConsumerListenerClazz *listener)
 {
-    return SURFACE_ERROR_NOT_SUPPORT;
+    return GSERROR_NOT_SUPPORT;
 }
 
-SurfaceError ProducerSurface::UnregisterConsumerListener()
+GSError ProducerSurface::UnregisterConsumerListener()
 {
-    return SURFACE_ERROR_NOT_SUPPORT;
+    return GSERROR_NOT_SUPPORT;
 }
 
-SurfaceError ProducerSurface::RegisterReleaseListener(OnReleaseFunc func)
+GSError ProducerSurface::RegisterReleaseListener(OnReleaseFunc func)
 {
     return producer_->RegisterReleaseListener(func);
 }
@@ -274,7 +274,7 @@ bool ProducerSurface::IsRemote()
     return producer_->AsObject()->IsProxyObject();
 }
 
-SurfaceError ProducerSurface::CleanCache()
+GSError ProducerSurface::CleanCache()
 {
     return producer_->CleanCache();
 }

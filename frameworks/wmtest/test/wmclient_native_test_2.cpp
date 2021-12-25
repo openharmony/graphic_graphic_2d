@@ -21,6 +21,7 @@
 #include <sstream>
 
 #include <display_type.h>
+#include <option_parser.h>
 #include <window_manager.h>
 
 #include "inative_test.h"
@@ -76,15 +77,8 @@ public:
         }
     }
 
-    bool CheckArguments(const char *argv1, int &typeId)
+    bool CheckArguments(int32_t typeId)
     {
-        std::stringstream ss(argv1);
-        ss >> typeId;
-        if (!ss.eof() || !ss) {
-            printf("input error\n");
-            return false;
-        }
-
         if (typeId < 0 || typeId > WINDOW_TYPE_MAX) {
             printf ("input id is %d, not with rules!!!\n", typeId);
             return false;
@@ -95,8 +89,17 @@ public:
 
     void Run(int32_t argc, const char **argv) override
     {
-        int type = -1;
-        if (argc == 1 || (!CheckArguments(argv[1], type))) {
+        OptionParser parser;
+        int32_t type = -1;
+        parser.AddArguments(type);
+        if (parser.Parse(argc, argv)) {
+            std::cerr << parser.GetErrorString() << std::endl;
+            Usage();
+            ExitTest();
+            return;
+        }
+
+        if (!CheckArguments(type)) {
             Usage();
             ExitTest();
             return;
@@ -104,7 +107,7 @@ public:
 
         auto initRet = WindowManager::GetInstance()->Init();
         if (initRet) {
-            printf("init failed with %s\n", WMErrorStr(initRet).c_str());
+            printf("init failed with %s\n", GSErrorStr(initRet).c_str());
             ExitTest();
             return;
         }
@@ -112,16 +115,32 @@ public:
         window = NativeTestFactory::CreateWindow(static_cast<WindowType>(type));
         if (window == nullptr) {
             printf("NativeTestFactory::CreateWindow return nullptr\n");
+            ExitTest();
             return;
         }
 
+        auto onSizeChange = [this](uint32_t w, uint32_t h) {
+            printf("onSizeChange %u %u\n", w, h);
+            config.width = w;
+            config.height = h;
+            window->Resize(w, h);
+        };
+        window->OnSizeChange(onSizeChange);
+
+        auto surf = window->GetSurface();
+        config.width = surf->GetDefaultWidth();
+        config.height = surf->GetDefaultHeight();
+        config.strideAlignment = 0x8;
+        config.format = PIXEL_FMT_RGBA_8888;
+        config.usage = surf->GetDefaultUsage();
+
         window->SwitchTop();
-        auto surface = window->GetSurface();
-        windowSync = NativeTestSync::CreateSync(NativeTestDraw::FlushDraw, surface);
-        }
+        windowSync = NativeTestSync::CreateSync(NativeTestDraw::FlushDraw, surf, &config);
+    }
 
 private:
     sptr<Window> window = nullptr;
     sptr<NativeTestSync> windowSync = nullptr;
+    BufferRequestConfig config = {};
 } g_autoload;
 } // namespace

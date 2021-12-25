@@ -27,24 +27,29 @@
 #include "window.h"
 #include "window_manager_type.h"
 #include "window_option.h"
+#include "virtual_display_option.h"
 
 namespace OHOS {
 class WindowManager : public RefBase {
 public:
     static sptr<WindowManager> GetInstance();
 
-    virtual WMError Init() = 0;
+    virtual GSError Init() = 0;
 
-    virtual WMError GetDisplays(std::vector<struct WMDisplayInfo> &displays) const = 0;
+    virtual GSError GetDisplays(std::vector<struct WMDisplayInfo> &displays) const = 0;
     virtual sptr<Window> GetWindowByID(int32_t wid) = 0;
 
-    virtual WMError CreateWindow(sptr<Window> &window, const sptr<WindowOption> &option) = 0;
-    virtual WMError CreateSubwindow(sptr<Subwindow> &subwindow,
+    virtual GSError CreateWindow(sptr<Window> &window, const sptr<WindowOption> &option) = 0;
+    virtual GSError CreateSubwindow(sptr<Subwindow> &subwindow,
                                     const sptr<Window> &window,
                                     const sptr<SubwindowOption> &option) = 0;
 
-    virtual WMError ListenNextScreenShot(int32_t id, IScreenShotCallback *cb) = 0;
-    virtual WMError ListenNextWindowShot(const sptr<Window> &window, IWindowShotCallback *cb) = 0;
+    virtual GSError ListenNextScreenShot(int32_t id, IScreenShotCallback *cb) = 0;
+    virtual GSError ListenNextWindowShot(const sptr<Window> &window, IWindowShotCallback *cb) = 0;
+
+    virtual GSError CreateVirtualDisplay(const sptr<VirtualDisplayOption> &option) = 0;
+    virtual GSError DestroyVirtualDisplay(uint32_t did) = 0;
+    virtual GSError SetDisplayMode(WMSDisplayMode mode) = 0;
 };
 } // namespace OHOS
 

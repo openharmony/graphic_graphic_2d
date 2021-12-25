@@ -16,25 +16,27 @@
 #ifndef FRAMEWORKS_SURFACE_INCLUDE_EGL_DATA_IMPL_H
 #define FRAMEWORKS_SURFACE_INCLUDE_EGL_DATA_IMPL_H
 
-#include "egl_data.h"
+#include <egl_data.h>
+#include <surface_buffer.h>
+#include <surface_type.h>
+
 #include "egl_manager.h"
-#include "surface_type.h"
-#include "surface_buffer_impl.h"
 
 namespace OHOS {
 class EglDataImpl : public EglData {
 public:
     EglDataImpl();
-    virtual ~EglDataImpl();
+    virtual ~EglDataImpl() override;
 
-    virtual GLuint GetFrameBufferObj() const override;
-    SurfaceError CreateEglData(const sptr<SurfaceBufferImpl> &buffer);
+    GSError CreateEglData(const sptr<SurfaceBuffer> &buffer);
+    virtual uint32_t GetFrameBufferObj() const override;
+    virtual uint32_t GetTexture() const override;
 
 private:
-    sptr<EglManager> sEglManager_;
-    EGLImageKHR eglImage_;
-    GLuint glTexture_;
-    GLuint glFbo_;
+    sptr<EglManager> eglManager_ = nullptr;
+    void *eglImage_ = nullptr;
+    uint32_t glTexture_ = 0;
+    uint32_t glFbo_ = 0;
 };
 } // namespace OHOS
 

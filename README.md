@@ -193,106 +193,6 @@ The dependent APIs include the following:
 <td class="cellrowborder" valign="top" width="52%" headers="mcps1.1.3.1.2 "><p id="p220mcpsimp"><a name="p220mcpsimp"></a><a name="p220mcpsimp"></a>Rotates the current window.</p>
 </td>
 </tr>
-<tr id="row221mcpsimp"><td class="cellrowborder" valign="top" width="48%" headers="mcps1.1.3.1.1 "><p id="p223mcpsimp"><a name="p223mcpsimp"></a><a name="p223mcpsimp"></a>RegistPointerButtonCb</p>
-</td>
-<td class="cellrowborder" valign="top" width="52%" headers="mcps1.1.3.1.2 "><p id="p225mcpsimp"><a name="p225mcpsimp"></a><a name="p225mcpsimp"></a>Registers the callback for Button events of the mouse.</p>
-</td>
-</tr>
-<tr id="row226mcpsimp"><td class="cellrowborder" valign="top" width="48%" headers="mcps1.1.3.1.1 "><p id="p228mcpsimp"><a name="p228mcpsimp"></a><a name="p228mcpsimp"></a>RegistPointerEnterCb</p>
-</td>
-<td class="cellrowborder" valign="top" width="52%" headers="mcps1.1.3.1.2 "><p id="p230mcpsimp"><a name="p230mcpsimp"></a><a name="p230mcpsimp"></a>Registers the callback for Enter events of the mouse.</p>
-</td>
-</tr>
-<tr id="row231mcpsimp"><td class="cellrowborder" valign="top" width="48%" headers="mcps1.1.3.1.1 "><p id="p233mcpsimp"><a name="p233mcpsimp"></a><a name="p233mcpsimp"></a>RegistPointerLeaveCb</p>
-</td>
-<td class="cellrowborder" valign="top" width="52%" headers="mcps1.1.3.1.2 "><p id="p235mcpsimp"><a name="p235mcpsimp"></a><a name="p235mcpsimp"></a>Registers the callback for Leave events of the mouse.</p>
-</td>
-</tr>
-<tr id="row236mcpsimp"><td class="cellrowborder" valign="top" width="48%" headers="mcps1.1.3.1.1 "><p id="p238mcpsimp"><a name="p238mcpsimp"></a><a name="p238mcpsimp"></a>RegistPointerMotionCb</p>
-</td>
-<td class="cellrowborder" valign="top" width="52%" headers="mcps1.1.3.1.2 "><p id="p240mcpsimp"><a name="p240mcpsimp"></a><a name="p240mcpsimp"></a>Registers the callback for Motion events of the mouse.</p>
-</td>
-</tr>
-<tr id="row241mcpsimp"><td class="cellrowborder" valign="top" width="48%" headers="mcps1.1.3.1.1 "><p id="p243mcpsimp"><a name="p243mcpsimp"></a><a name="p243mcpsimp"></a>RegistPointerAxisDiscreteCb</p>
-</td>
-<td class="cellrowborder" valign="top" width="52%" headers="mcps1.1.3.1.2 "><p id="p245mcpsimp"><a name="p245mcpsimp"></a><a name="p245mcpsimp"></a>Registers the callback for AxisDiscrete events of the mouse.</p>
-</td>
-</tr>
-<tr id="row246mcpsimp"><td class="cellrowborder" valign="top" width="48%" headers="mcps1.1.3.1.1 "><p id="p248mcpsimp"><a name="p248mcpsimp"></a><a name="p248mcpsimp"></a>RegistPointerAxisSourceCb</p>
-</td>
-<td class="cellrowborder" valign="top" width="52%" headers="mcps1.1.3.1.2 "><p id="p250mcpsimp"><a name="p250mcpsimp"></a><a name="p250mcpsimp"></a>Registers the callback for AxisSource events of the mouse.</p>
-</td>
-</tr>
-<tr id="row251mcpsimp"><td class="cellrowborder" valign="top" width="48%" headers="mcps1.1.3.1.1 "><p id="p253mcpsimp"><a name="p253mcpsimp"></a><a name="p253mcpsimp"></a>RegistPointerAxisStopCb</p>
-</td>
-<td class="cellrowborder" valign="top" width="52%" headers="mcps1.1.3.1.2 "><p id="p255mcpsimp"><a name="p255mcpsimp"></a><a name="p255mcpsimp"></a>Registers the callback for AxisStop events of the mouse.</p>
-</td>
-</tr>
-<tr id="row256mcpsimp"><td class="cellrowborder" valign="top" width="48%" headers="mcps1.1.3.1.1 "><p id="p258mcpsimp"><a name="p258mcpsimp"></a><a name="p258mcpsimp"></a>RegistPointerAxisCb</p>
-</td>
-<td class="cellrowborder" valign="top" width="52%" headers="mcps1.1.3.1.2 "><p id="p260mcpsimp"><a name="p260mcpsimp"></a><a name="p260mcpsimp"></a>Registers the callback for Axis events of the mouse.</p>
-</td>
-</tr>
-<tr id="row261mcpsimp"><td class="cellrowborder" valign="top" width="48%" headers="mcps1.1.3.1.1 "><p id="p263mcpsimp"><a name="p263mcpsimp"></a><a name="p263mcpsimp"></a>RegistTouchUpCb</p>
-</td>
-<td class="cellrowborder" valign="top" width="52%" headers="mcps1.1.3.1.2 "><p id="p265mcpsimp"><a name="p265mcpsimp"></a><a name="p265mcpsimp"></a>Registers the callback for TouchUp events.</p>
-</td>
-</tr>
-<tr id="row266mcpsimp"><td class="cellrowborder" valign="top" width="48%" headers="mcps1.1.3.1.1 "><p id="p268mcpsimp"><a name="p268mcpsimp"></a><a name="p268mcpsimp"></a>RegistTouchDownCb</p>
-</td>
-<td class="cellrowborder" valign="top" width="52%" headers="mcps1.1.3.1.2 "><p id="p270mcpsimp"><a name="p270mcpsimp"></a><a name="p270mcpsimp"></a>Registers the callback for TouchDown events.</p>
-</td>
-</tr>
-<tr id="row271mcpsimp"><td class="cellrowborder" valign="top" width="48%" headers="mcps1.1.3.1.1 "><p id="p273mcpsimp"><a name="p273mcpsimp"></a><a name="p273mcpsimp"></a>RegistTouchEmotionCb</p>
-</td>
-<td class="cellrowborder" valign="top" width="52%" headers="mcps1.1.3.1.2 "><p id="p275mcpsimp"><a name="p275mcpsimp"></a><a name="p275mcpsimp"></a>Registers the callback for TouchEmotion events.</p>
-</td>
-</tr>
-<tr id="row276mcpsimp"><td class="cellrowborder" valign="top" width="48%" headers="mcps1.1.3.1.1 "><p id="p278mcpsimp"><a name="p278mcpsimp"></a><a name="p278mcpsimp"></a>RegistTouchFrameCb</p>
-</td>
-<td class="cellrowborder" valign="top" width="52%" headers="mcps1.1.3.1.2 "><p id="p280mcpsimp"><a name="p280mcpsimp"></a><a name="p280mcpsimp"></a>Registers the callback for TouchFrame events.</p>
-</td>
-</tr>
-<tr id="row281mcpsimp"><td class="cellrowborder" valign="top" width="48%" headers="mcps1.1.3.1.1 "><p id="p283mcpsimp"><a name="p283mcpsimp"></a><a name="p283mcpsimp"></a>RegistTouchCancelCb</p>
-</td>
-<td class="cellrowborder" valign="top" width="52%" headers="mcps1.1.3.1.2 "><p id="p285mcpsimp"><a name="p285mcpsimp"></a><a name="p285mcpsimp"></a>Registers the callback for TouchCancel events.</p>
-</td>
-</tr>
-<tr id="row286mcpsimp"><td class="cellrowborder" valign="top" width="48%" headers="mcps1.1.3.1.1 "><p id="p288mcpsimp"><a name="p288mcpsimp"></a><a name="p288mcpsimp"></a>RegistTouchShapeCb</p>
-</td>
-<td class="cellrowborder" valign="top" width="52%" headers="mcps1.1.3.1.2 "><p id="p290mcpsimp"><a name="p290mcpsimp"></a><a name="p290mcpsimp"></a>Registers the callback for TouchShape events.</p>
-</td>
-</tr>
-<tr id="row291mcpsimp"><td class="cellrowborder" valign="top" width="48%" headers="mcps1.1.3.1.1 "><p id="p293mcpsimp"><a name="p293mcpsimp"></a><a name="p293mcpsimp"></a>RegistTouchOrientationCb</p>
-</td>
-<td class="cellrowborder" valign="top" width="52%" headers="mcps1.1.3.1.2 "><p id="p295mcpsimp"><a name="p295mcpsimp"></a><a name="p295mcpsimp"></a>Registers the callback for TouchOrientation events.</p>
-</td>
-</tr>
-<tr id="row296mcpsimp"><td class="cellrowborder" valign="top" width="48%" headers="mcps1.1.3.1.1 "><p id="p298mcpsimp"><a name="p298mcpsimp"></a><a name="p298mcpsimp"></a>RegistKeyboardKeyCb</p>
-</td>
-<td class="cellrowborder" valign="top" width="52%" headers="mcps1.1.3.1.2 "><p id="p300mcpsimp"><a name="p300mcpsimp"></a><a name="p300mcpsimp"></a>Registers the callback for Key events of the keyboard.</p>
-</td>
-</tr>
-<tr id="row301mcpsimp"><td class="cellrowborder" valign="top" width="48%" headers="mcps1.1.3.1.1 "><p id="p303mcpsimp"><a name="p303mcpsimp"></a><a name="p303mcpsimp"></a>RegistKeyboardKeyMapCb</p>
-</td>
-<td class="cellrowborder" valign="top" width="52%" headers="mcps1.1.3.1.2 "><p id="p305mcpsimp"><a name="p305mcpsimp"></a><a name="p305mcpsimp"></a>Registers the callback for KeyMap events of the keyboard.</p>
-</td>
-</tr>
-<tr id="row306mcpsimp"><td class="cellrowborder" valign="top" width="48%" headers="mcps1.1.3.1.1 "><p id="p308mcpsimp"><a name="p308mcpsimp"></a><a name="p308mcpsimp"></a>RegistKeyboardLeaveCb</p>
-</td>
-<td class="cellrowborder" valign="top" width="52%" headers="mcps1.1.3.1.2 "><p id="p310mcpsimp"><a name="p310mcpsimp"></a><a name="p310mcpsimp"></a>Registers the callback for Leave events of the keyboard.</p>
-</td>
-</tr>
-<tr id="row311mcpsimp"><td class="cellrowborder" valign="top" width="48%" headers="mcps1.1.3.1.1 "><p id="p313mcpsimp"><a name="p313mcpsimp"></a><a name="p313mcpsimp"></a>RegistKeyboardEnterCb</p>
-</td>
-<td class="cellrowborder" valign="top" width="52%" headers="mcps1.1.3.1.2 "><p id="p315mcpsimp"><a name="p315mcpsimp"></a><a name="p315mcpsimp"></a>Registers the callback for Enter events of the keyboard.</p>
-</td>
-</tr>
-<tr id="row316mcpsimp"><td class="cellrowborder" valign="top" width="48%" headers="mcps1.1.3.1.1 "><p id="p318mcpsimp"><a name="p318mcpsimp"></a><a name="p318mcpsimp"></a>RegistKeyboardRepeatInfoCb</p>
-</td>
-<td class="cellrowborder" valign="top" width="52%" headers="mcps1.1.3.1.2 "><p id="p320mcpsimp"><a name="p320mcpsimp"></a><a name="p320mcpsimp"></a>Registers the callback for RepeatInfo events of the keyboard.</p>
-</td>
-</tr>
 </tbody>
 </table>
 
@@ -588,8 +488,8 @@ BufferRequestConfig requestConfig = {
 sptr<SurfaceBuffer> buffer;
 int32_t releaseFence;
 
-SurfaceError ret = surface->RequestBuffer(buffer, releaseFence, requestConfig);
-if (ret != SURFACE_ERROR_OK) {
+GSError ret = surface->RequestBuffer(buffer, releaseFence, requestConfig);
+if (ret != GSERROR_OK) {
     // failed
 }
 
@@ -604,7 +504,7 @@ BufferFlushConfig flushConfig = {
 };
 
 ret = surface->FlushBuffer(buffer, -1, flushConfig);
-if (ret != SURFACE_ERROR_OK) {
+if (ret != GSERROR_OK) {
     // failed
 }
 ```
@@ -618,21 +518,21 @@ public:
     void OnBufferAvailable() override {
         sptr<SurfaceBuffer> buffer;
         int32_t flushFence;
-        SurfaceError ret = surface->AcquireBuffer(buffer, flushFence, timestamp, damage);
-        if (ret != SURFACE_ERROR_OK) {
+        GSError ret = surface->AcquireBuffer(buffer, flushFence, timestamp, damage);
+        if (ret != GSERROR_OK) {
             // failed
         }
         // ...
         ret = surface->ReleaseBuffer(buffer, -1);
-        if (ret != SURFACE_ERROR_OK) {
+        if (ret != GSERROR_OK) {
             // failed
         }
     }
 };
 
 sptr<IBufferConsumerListener> listener = new TestConsumerListener();
-SurfaceError ret = surface->RegisterConsumerListener(listener);
-if (ret != SURFACE_ERROR_OK) {
+GSError ret = surface->RegisterConsumerListener(listener);
+if (ret != GSERROR_OK) {
     // failed
 }
 ```
@@ -641,14 +541,14 @@ if (ret != SURFACE_ERROR_OK) {
 
 ```
 sptr<SurfaceBuffer> buffer;
-SurfaceError ret = buffer->SetInt32(1, 3);
-if (ret != SURFACE_ERROR_OK) {
+GSError ret = buffer->SetInt32(1, 3);
+if (ret != GSERROR_OK) {
 // failed
 }
 
 int32_t val;
 ret = buffer->GetInt32(1, val);
-if (ret != SURFACE_ERROR_OK) {
+if (ret != GSERROR_OK) {
 // failed
 }
 ```
@@ -670,8 +570,8 @@ if (ret != SURFACE_ERROR_OK) {
         },
     };
     
-    VsyncError ret = helper->RequestFrameCallback(cb);
-    if (ret != VSYNC_ERROR_OK) {
+    GSError ret = helper->RequestFrameCallback(cb);
+    if (ret != GSERROR_OK) {
         // failed
     }
     ```
@@ -689,8 +589,8 @@ if (ret != SURFACE_ERROR_OK) {
             .callback_ = [](int64_t timestamp, void* userdata) {
             },
         };
-        VsyncError ret = helper->RequestFrameCallback(cb);
-        if (ret != VSYNC_ERROR_OK) {
+        GSError ret = helper->RequestFrameCallback(cb);
+        if (ret != GSERROR_OK) {
             // failed
         }
     });

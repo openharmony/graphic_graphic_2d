@@ -22,60 +22,60 @@ namespace {
 constexpr HiviewDFX::HiLogLabel LABEL = {LOG_CORE, 0, "WMSubwindowOptionImpl"};
 }
 
-WMError SubwindowOptionImpl::SetWindowType(SubwindowType t)
+GSError SubwindowOptionImpl::SetWindowType(SubwindowType t)
 {
     if (!(t >= 0 && t < SUBWINDOW_TYPE_MAX)) {
         WMLOGFE("type is invalid, should in [0, %{public}d)", SUBWINDOW_TYPE_MAX);
-        return WM_ERROR_INVALID_PARAM;
+        return GSERROR_INVALID_ARGUMENTS;
     }
 
     type = t;
-    return WM_OK;
+    return GSERROR_OK;
 }
 
-WMError SubwindowOptionImpl::SetX(int32_t x)
+GSError SubwindowOptionImpl::SetX(int32_t x)
 {
     this->x = x;
-    return WM_OK;
+    return GSERROR_OK;
 }
 
-WMError SubwindowOptionImpl::SetY(int32_t y)
+GSError SubwindowOptionImpl::SetY(int32_t y)
 {
     this->y = y;
-    return WM_OK;
+    return GSERROR_OK;
 }
 
-WMError SubwindowOptionImpl::SetWidth(uint32_t w)
+GSError SubwindowOptionImpl::SetWidth(uint32_t w)
 {
     if (!(w > 0)) {
         WMLOGFE("width is invalid, should > 0");
-        return WM_ERROR_INVALID_PARAM;
+        return GSERROR_INVALID_ARGUMENTS;
     }
 
     width = w;
-    return WM_OK;
+    return GSERROR_OK;
 }
 
-WMError SubwindowOptionImpl::SetHeight(uint32_t h)
+GSError SubwindowOptionImpl::SetHeight(uint32_t h)
 {
     if (!(h > 0)) {
         WMLOGFE("height is invalid, should > 0");
-        return WM_ERROR_INVALID_PARAM;
+        return GSERROR_INVALID_ARGUMENTS;
     }
 
     height = h;
-    return WM_OK;
+    return GSERROR_OK;
 }
 
-WMError SubwindowOptionImpl::SetConsumerSurface(const sptr<Surface> &surface)
+GSError SubwindowOptionImpl::SetConsumerSurface(const sptr<Surface> &surf)
 {
-    if (surface != nullptr && !(surface->IsConsumer() == true)) {
-        WMLOGFE("surface is invalid, should be consumer");
-        return WM_ERROR_INVALID_PARAM;
+    if (surf != nullptr && !(surf->IsConsumer() == true)) {
+        WMLOGFE("surf is invalid, should be consumer");
+        return GSERROR_INVALID_ARGUMENTS;
     }
 
-    consumerSurface = surface;
-    return WM_OK;
+    consumerSurface = surf;
+    return GSERROR_OK;
 }
 
 SubwindowType SubwindowOptionImpl::GetWindowType() const

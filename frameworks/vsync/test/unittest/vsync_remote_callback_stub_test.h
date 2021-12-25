@@ -41,7 +41,7 @@ private:
 
 class VsyncCallback : public VsyncCallbackStub {
 public:
-    virtual VsyncError OnVsync(int64_t timestamp) override;
+    virtual GSError OnVsync(int64_t timestamp) override;
 };
 } // namespace Vsync
 } // namespace OHOS

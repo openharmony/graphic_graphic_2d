@@ -31,55 +31,55 @@ class ProducerSurface : public Surface {
 public:
     ProducerSurface(sptr<IBufferProducer>& producer);
     virtual ~ProducerSurface();
-    SurfaceError Init();
+    GSError Init();
 
     bool IsConsumer() const override;
     sptr<IBufferProducer> GetProducer() const override;
-    SurfaceError RequestBuffer(sptr<SurfaceBuffer>& buffer,
+    GSError RequestBuffer(sptr<SurfaceBuffer>& buffer,
                                int32_t &fence, BufferRequestConfig &config) override;
 
-    SurfaceError RequestBufferNoFence(sptr<SurfaceBuffer>& buffer,
+    GSError RequestBufferNoFence(sptr<SurfaceBuffer>& buffer,
                                       BufferRequestConfig &config) override;
 
-    SurfaceError RequestBufferWithFence(sptr<SurfaceBuffer>& buffer,
+    GSError RequestBufferWithFence(sptr<SurfaceBuffer>& buffer,
                                      int32_t &fence, BufferRequestConfig &config) override;
 
-    SurfaceError CancelBuffer(sptr<SurfaceBuffer>& buffer) override;
+    GSError CancelBuffer(sptr<SurfaceBuffer>& buffer) override;
 
-    SurfaceError FlushBuffer(sptr<SurfaceBuffer>& buffer,
+    GSError FlushBuffer(sptr<SurfaceBuffer>& buffer,
                              int32_t fence, BufferFlushConfig &config) override;
 
-    SurfaceError FlushBufferNoFence(sptr<SurfaceBuffer>& buffer,
+    GSError FlushBufferNoFence(sptr<SurfaceBuffer>& buffer,
                                     BufferFlushConfig &config) override;
 
-    SurfaceError AcquireBuffer(sptr<SurfaceBuffer>& buffer, int32_t &fence,
+    GSError AcquireBuffer(sptr<SurfaceBuffer>& buffer, int32_t &fence,
                                int64_t &timestamp, Rect &damage) override;
-    SurfaceError ReleaseBuffer(sptr<SurfaceBuffer>& buffer, int32_t fence) override;
+    GSError ReleaseBuffer(sptr<SurfaceBuffer>& buffer, int32_t fence) override;
 
-    SurfaceError AttachBuffer(sptr<SurfaceBuffer>& buffer) override;
+    GSError AttachBuffer(sptr<SurfaceBuffer>& buffer) override;
 
-    SurfaceError DetachBuffer(sptr<SurfaceBuffer>& buffer) override;
+    GSError DetachBuffer(sptr<SurfaceBuffer>& buffer) override;
 
     uint32_t     GetQueueSize() override;
-    SurfaceError SetQueueSize(uint32_t queueSize) override;
+    GSError SetQueueSize(uint32_t queueSize) override;
 
-    SurfaceError GetName(std::string &name) override;
+    GSError GetName(std::string &name) override;
 
-    SurfaceError SetDefaultWidthAndHeight(int32_t width, int32_t height) override;
+    GSError SetDefaultWidthAndHeight(int32_t width, int32_t height) override;
     int32_t GetDefaultWidth() override;
     int32_t GetDefaultHeight() override;
-    SurfaceError SetDefaultUsage(uint32_t usage) override;
+    GSError SetDefaultUsage(uint32_t usage) override;
     uint32_t GetDefaultUsage() override;
 
-    SurfaceError SetUserData(const std::string &key, const std::string &val) override;
+    GSError SetUserData(const std::string &key, const std::string &val) override;
     std::string  GetUserData(const std::string &key) override;
 
-    SurfaceError RegisterConsumerListener(sptr<IBufferConsumerListener>& listener) override;
-    SurfaceError RegisterConsumerListener(IBufferConsumerListenerClazz *listener) override;
-    SurfaceError RegisterReleaseListener(OnReleaseFunc func) override;
-    SurfaceError UnregisterConsumerListener() override;
+    GSError RegisterConsumerListener(sptr<IBufferConsumerListener>& listener) override;
+    GSError RegisterConsumerListener(IBufferConsumerListenerClazz *listener) override;
+    GSError RegisterReleaseListener(OnReleaseFunc func) override;
+    GSError UnregisterConsumerListener() override;
 
-    SurfaceError CleanCache() override;
+    GSError CleanCache() override;
 
 private:
     bool IsRemote();

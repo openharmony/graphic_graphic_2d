@@ -41,8 +41,8 @@ public:
     static sptr<VsyncHelper> Current();
     static sptr<VsyncHelper> FromHandler(std::shared_ptr<AppExecFwk::EventHandler>& handler);
 
-    virtual VsyncError RequestFrameCallback(const struct FrameCallback &cb) = 0;
-    virtual VsyncError GetSupportedVsyncFrequencys(std::vector<uint32_t>& freqs) = 0;
+    virtual GSError RequestFrameCallback(const struct FrameCallback &cb) = 0;
+    virtual GSError GetSupportedVsyncFrequencys(std::vector<uint32_t>& freqs) = 0;
 };
 } // namespace OHOS
 

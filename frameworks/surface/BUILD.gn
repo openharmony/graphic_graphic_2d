@@ -57,11 +57,14 @@ ohos_shared_library("surface") {
 
   if (ace_enable_gpu) {
     sources += [
+      "src/egl_consumer_surface.cpp",
       "src/egl_data_impl.cpp",
       "src/egl_manager.cpp",
       "src/egl_surface.cpp",
       "src/producer_egl_surface.cpp",
     ]
+  } else {
+    sources += [ "src/mock/egl_consumer_surface.cpp" ]
   }
 
   configs = [
@@ -77,7 +80,7 @@ ohos_shared_library("surface") {
   deps = [
     "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
     "//foundation/distributedschedule/samgr/interfaces/innerkits/samgr_proxy:samgr_proxy",
-    "//foundation/graphic/standard/utils/bytrace:graphic_bytrace",
+    "//foundation/graphic/standard/utils:libgraphic_utils",
   ]
 
   public_deps = [

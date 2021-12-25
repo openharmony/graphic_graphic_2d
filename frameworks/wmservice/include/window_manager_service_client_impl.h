@@ -29,7 +29,7 @@ class WindowManagerServiceClientImpl : public WindowManagerServiceClient {
 public:
     static sptr<WindowManagerServiceClientImpl> GetInstance();
 
-    virtual WMError Init() override;
+    virtual GSError Init() override;
     virtual sptr<IWindowManagerService> GetService() const override;
 
 private:
@@ -37,7 +37,7 @@ private:
     virtual ~WindowManagerServiceClientImpl() override;
     static inline sptr<WindowManagerServiceClientImpl> instance = nullptr;
 
-    WMError Deinit();
+    GSError Deinit();
 
     void StartDispatchThread();
     void StopDispatchThread();

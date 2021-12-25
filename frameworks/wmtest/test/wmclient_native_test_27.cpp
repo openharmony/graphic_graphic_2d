@@ -57,7 +57,7 @@ public:
     {
         auto initRet = WindowManager::GetInstance()->Init();
         if (initRet) {
-            printf("init failed with %s\n", WMErrorStr(initRet).c_str());
+            printf("init failed with %s\n", GSErrorStr(initRet).c_str());
             ExitTest();
             return;
         }
@@ -69,8 +69,8 @@ public:
         }
 
         staticWindow->SwitchTop();
-        auto surface = staticWindow->GetSurface();
-        staticWindowSync = NativeTestSync::CreateSync(NativeTestDraw::FlushDraw, surface);
+        auto surf = staticWindow->GetSurface();
+        staticWindowSync = NativeTestSync::CreateSync(NativeTestDraw::FlushDraw, surf);
 
         freeWindow = NativeTestFactory::CreateWindow(WINDOW_TYPE_NORMAL);
         if (freeWindow == nullptr) {
@@ -80,42 +80,50 @@ public:
 
         freeWindow->SwitchTop();
         freeWindow->SetWindowMode(WINDOW_MODE_FREE);
-        surface = freeWindow->GetSurface();
+        surf = freeWindow->GetSurface();
         auto onSizeChange = [this](uint32_t w, uint32_t h) {
             config.width = w;
             config.height = h;
         };
-        config.width = surface->GetDefaultWidth();
-        config.height = surface->GetDefaultHeight();
+        config.width = surf->GetDefaultWidth();
+        config.height = surf->GetDefaultHeight();
         config.strideAlignment = 0x8,
         config.format = PIXEL_FMT_RGBA_8888;
-        config.usage = surface->GetDefaultUsage();
-        freeWindowSync = NativeTestSync::CreateSync(NativeTestDraw::RainbowDraw, surface, &config);
+        config.usage = surf->GetDefaultUsage();
+        freeWindowSync = NativeTestSync::CreateSync(NativeTestDraw::RainbowDraw, surf, &config);
 
-        freeWindow->OnTouchDown(std::bind(&WMClientNativeTest27::OnTouchDown, this, TOUCH_DOWN_ARG));
-        freeWindow->OnTouchMotion(std::bind(&WMClientNativeTest27::OnTouchMotion, this, TOUCH_MOTION_ARG));
         freeWindow->OnSizeChange(onSizeChange);
         constexpr int32_t width = 300;
         constexpr int32_t height = 300;
         freeWindow->Resize(width, height);
+        ListenWindowTouchEvent(freeWindow->GetID());
     }
 
-    void OnTouchDown(void *, uint32_t serial, uint32_t time, int32_t id, double x, double y)
+    bool OnTouch(const TouchEvent &event) override
     {
-        downX = x;
-        downY = y;
+        int32_t x = event.GetPointerPosition(event.GetIndex()).GetX();
+        int32_t y = event.GetPointerPosition(event.GetIndex()).GetY();
+        if (event.GetAction() == TouchEnum::PRIMARY_POINT_DOWN) {
+            downX = x;
+            downY = y;
+            backupX = freeWindow->GetX();
+            backupY = freeWindow->GetY();
+            return false;
+        }
+
+        if (event.GetAction() == TouchEnum::POINT_MOVE) {
+            freeWindow->Move(backupX + x - downX, backupY + y - downY)
+                ->Then(std::bind(&WMClientNativeTest27::OnMoveReturn, this, std::placeholders::_1));
+            return false;
+        }
+
+        return true;
     }
 
-    void OnTouchMotion(void *, uint32_t time, int32_t id, double x, double y)
+    void OnMoveReturn(const GSError &err)
     {
-        freeWindow->Move(freeWindow->GetX() + x - downX, freeWindow->GetY() + y - downY)
-            ->Then(std::bind(&WMClientNativeTest27::OnMoveReturn, this, std::placeholders::_1));
-    }
-
-    void OnMoveReturn(const WMError &err)
-    {
-        if (err != WM_OK) {
-            printf("Move failed %d, means %s\n", err, WMErrorStr(err).c_str());
+        if (err != GSERROR_OK) {
+            printf("Move failed %d, means %s\n", err, GSErrorStr(err).c_str());
         }
     }
 
@@ -127,5 +135,7 @@ private:
     BufferRequestConfig config = {};
     double downX = 0;
     double downY = 0;
+    double backupX = 0;
+    double backupY = 0;
 } g_autoload;
 } // namespace

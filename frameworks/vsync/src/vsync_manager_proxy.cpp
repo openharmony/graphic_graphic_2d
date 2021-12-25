@@ -31,11 +31,11 @@ VsyncManagerProxy::VsyncManagerProxy(const sptr<IRemoteObject>& impl) : IRemoteP
 {
 }
 
-VsyncError VsyncManagerProxy::ListenVsync(sptr<IVsyncCallback>& cb)
+GSError VsyncManagerProxy::ListenVsync(sptr<IVsyncCallback>& cb)
 {
     if (cb == nullptr) {
-        VLOG_FAILURE_NO(VSYNC_ERROR_NULLPTR);
-        return VSYNC_ERROR_NULLPTR;
+        VLOG_FAILURE_NO(GSERROR_INVALID_ARGUMENTS);
+        return GSERROR_INVALID_ARGUMENTS;
     }
 
     MessageOption opt;
@@ -44,31 +44,31 @@ VsyncError VsyncManagerProxy::ListenVsync(sptr<IVsyncCallback>& cb)
     auto reval = arg.WriteInterfaceToken(GetDescriptor());
     if (!ReturnValueTester::Get<bool>(reval)) {
         VLOGE("write interface token failed");
-        return VSYNC_ERROR_INVALID_ARGUMENTS;
+        return GSERROR_INVALID_ARGUMENTS;
     }
 
     arg.WriteRemoteObject(cb->AsObject());
     int result = Remote()->SendRequest(IVSYNC_MANAGER_LISTEN_VSYNC, arg, ret, opt);
     if (ReturnValueTester::Get<int>(result)) {
         VLOG_ERROR_API(result, SendRequest);
-        return VSYNC_ERROR_BINDER_ERROR;
+        return GSERROR_BINDER;
     }
 
     int res = ret.ReadInt32();
-    VsyncError err = (VsyncError)ReturnValueTester::Get<int>(res);
-    if (err != VSYNC_ERROR_OK) {
+    GSError err = (GSError)ReturnValueTester::Get<int>(res);
+    if (err != GSERROR_OK) {
         VLOG_FAILURE_NO(err);
         return err;
     }
 
-    return VSYNC_ERROR_OK;
+    return GSERROR_OK;
 }
 
-VsyncError VsyncManagerProxy::RemoveVsync(sptr<IVsyncCallback>& cb)
+GSError VsyncManagerProxy::RemoveVsync(sptr<IVsyncCallback>& cb)
 {
     if (cb == nullptr) {
-        VLOG_FAILURE_NO(VSYNC_ERROR_NULLPTR);
-        return VSYNC_ERROR_NULLPTR;
+        VLOG_FAILURE_NO(GSERROR_INVALID_ARGUMENTS);
+        return GSERROR_INVALID_ARGUMENTS;
     }
 
     MessageOption opt;
@@ -77,27 +77,27 @@ VsyncError VsyncManagerProxy::RemoveVsync(sptr<IVsyncCallback>& cb)
     auto reval = arg.WriteInterfaceToken(GetDescriptor());
     if (!ReturnValueTester::Get<bool>(reval)) {
         VLOGE("write interface token failed");
-        return VSYNC_ERROR_INVALID_ARGUMENTS;
+        return GSERROR_INVALID_ARGUMENTS;
     }
 
     arg.WriteRemoteObject(cb->AsObject());
     int result = Remote()->SendRequest(IVSYNC_MANAGER_REMOVE_VSYNC, arg, ret, opt);
     if (ReturnValueTester::Get<int>(result)) {
         VLOG_ERROR_API(result, SendRequest);
-        return VSYNC_ERROR_BINDER_ERROR;
+        return GSERROR_BINDER;
     }
 
     int res = ret.ReadInt32();
-    VsyncError err = (VsyncError)ReturnValueTester::Get<int>(res);
-    if (err != VSYNC_ERROR_OK) {
+    GSError err = (GSError)ReturnValueTester::Get<int>(res);
+    if (err != GSERROR_OK) {
         VLOG_FAILURE_NO(err);
         return err;
     }
 
-    return VSYNC_ERROR_OK;
+    return GSERROR_OK;
 }
 
-VsyncError VsyncManagerProxy::GetVsyncFrequency(uint32_t &freq)
+GSError VsyncManagerProxy::GetVsyncFrequency(uint32_t &freq)
 {
     MessageOption opt;
     MessageParcel arg;
@@ -106,24 +106,24 @@ VsyncError VsyncManagerProxy::GetVsyncFrequency(uint32_t &freq)
     auto reval = arg.WriteInterfaceToken(GetDescriptor());
     if (!ReturnValueTester::Get<bool>(reval)) {
         VLOGE("write interface token failed");
-        return VSYNC_ERROR_INVALID_ARGUMENTS;
+        return GSERROR_INVALID_ARGUMENTS;
     }
 
     int32_t result = Remote()->SendRequest(IVSYNC_MANAGER_GET_VSYNC_FREQUENCY, arg, ret, opt);
     if (ReturnValueTester::Get<int>(result)) {
         VLOG_ERROR_API(result, SendRequest);
-        return VSYNC_ERROR_BINDER_ERROR;
+        return GSERROR_BINDER;
     }
 
     int res = ret.ReadInt32();
-    VsyncError err = (VsyncError)ReturnValueTester::Get<int>(res);
-    if (err != VSYNC_ERROR_OK) {
+    GSError err = (GSError)ReturnValueTester::Get<int>(res);
+    if (err != GSERROR_OK) {
         VLOG_FAILURE_NO(err);
         return err;
     }
 
     freq = ret.ReadUint32();
-    return VSYNC_ERROR_OK;
+    return GSERROR_OK;
 }
 } // namespace Vsync
 } // namespace OHOS

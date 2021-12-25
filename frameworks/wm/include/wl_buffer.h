@@ -23,7 +23,10 @@
 #include <wayland-client-protocol.h>
 
 namespace OHOS {
-using WlBufferReleaseFunc = std::function<void(struct wl_buffer *buffer, int32_t fence)>;
+class IWlBufferReleaseClazz {
+public:
+    virtual void OnWlBufferRelease(struct wl_buffer *buffer, int32_t fence) = 0;
+};
 
 class WlBuffer : public RefBase {
 public:
@@ -33,12 +36,12 @@ public:
     struct wl_buffer *GetRawPtr() const;
 
     void SetBufferRelease(struct zwp_linux_buffer_release_v1 *br);
-    void OnRelease(WlBufferReleaseFunc func);
+    void OnRelease(IWlBufferReleaseClazz *func);
 
 protected:
     struct wl_buffer *buffer = nullptr;
     struct zwp_linux_buffer_release_v1 *release = nullptr;
-    WlBufferReleaseFunc onRelease = nullptr;
+    IWlBufferReleaseClazz *onRelease = nullptr;
 
 private:
     static void Release(void *, struct wl_buffer *buffer);

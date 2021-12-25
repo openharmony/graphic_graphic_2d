@@ -106,25 +106,25 @@ HWTEST_F(WindowOptionImplTest, InvalidSet, testing::ext::TestSize.Level0)
 
     // 1. set invalid WindowType, check
     constexpr auto invalidWindowType = static_cast<WindowType>(-1);
-    ASSERT_EQ(woi.SetWindowType(invalidWindowType), WM_ERROR_INVALID_PARAM) << "CaseDescription: "
-        << "1. set invalid WindowType, check (woi.SetWindowType() == WM_ERROR_INVALID_PARAM)";
+    ASSERT_EQ(woi.SetWindowType(invalidWindowType), GSERROR_INVALID_ARGUMENTS) << "CaseDescription: "
+        << "1. set invalid WindowType, check (woi.SetWindowType() == GSERROR_INVALID_ARGUMENTS)";
 
     // 2. set invalid WindowMode, check
     constexpr auto invalidWindowMode = static_cast<WindowMode>(-1);
-    ASSERT_EQ(woi.SetWindowMode(invalidWindowMode), WM_ERROR_INVALID_PARAM) << "CaseDescription: "
-        << "2. set invalid WindowMode, check (woi.SetWindowMode() == WM_ERROR_INVALID_PARAM)";
+    ASSERT_EQ(woi.SetWindowMode(invalidWindowMode), GSERROR_INVALID_ARGUMENTS) << "CaseDescription: "
+        << "2. set invalid WindowMode, check (woi.SetWindowMode() == GSERROR_INVALID_ARGUMENTS)";
 
     // 3. set invalid display, check
     constexpr auto invalidDisplay = -1;
-    ASSERT_EQ(woi.SetDisplay(invalidDisplay), WM_ERROR_INVALID_PARAM) << "CaseDescription: "
-        << "3. set invalid display, check (woi.SetDisplay() == WM_ERROR_INVALID_PARAM)";
+    ASSERT_EQ(woi.SetDisplay(invalidDisplay), GSERROR_INVALID_ARGUMENTS) << "CaseDescription: "
+        << "3. set invalid display, check (woi.SetDisplay() == GSERROR_INVALID_ARGUMENTS)";
 
     // 4. set invalid consumerSurface, check
-    auto csurface = Surface::CreateSurfaceAsConsumer();
-    auto producer = csurface->GetProducer();
+    auto csurf = Surface::CreateSurfaceAsConsumer();
+    auto producer = csurf->GetProducer();
     auto invalidConsumerSurface = Surface::CreateSurfaceAsProducer(producer);
-    ASSERT_EQ(woi.SetConsumerSurface(invalidConsumerSurface), WM_ERROR_INVALID_PARAM) << "CaseDescription: "
-        << "4. set invalid consumerSurface, check (woi.SetConsumerSurface() == WM_ERROR_INVALID_PARAM)";
+    ASSERT_EQ(woi.SetConsumerSurface(invalidConsumerSurface), GSERROR_INVALID_ARGUMENTS) << "CaseDescription: "
+        << "4. set invalid consumerSurface, check (woi.SetConsumerSurface() == GSERROR_INVALID_ARGUMENTS)";
 }
 } // namespace
 } // namespace OHOS

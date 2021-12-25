@@ -51,7 +51,7 @@ public:
     {
         auto initRet = WindowManager::GetInstance()->Init();
         if (initRet) {
-            printf("init failed with %s\n", WMErrorStr(initRet).c_str());
+            printf("init failed with %s\n", GSErrorStr(initRet).c_str());
             ExitTest();
             return;
         }
@@ -68,13 +68,13 @@ public:
             config.height = h;
         };
         subwindow->OnSizeChange(onSizeChange);
-        auto subpsurface = subwindow->GetSurface();
-        config.width = subpsurface->GetDefaultWidth();
-        config.height = subpsurface->GetDefaultHeight();
-        config.strideAlignment = 0x8,
+        auto subpsurf = subwindow->GetSurface();
+        config.width = subpsurf->GetDefaultWidth();
+        config.height = subpsurf->GetDefaultHeight();
+        config.strideAlignment = 0x8;
         config.format = PIXEL_FMT_RGBA_8888;
-        config.usage = subpsurface->GetDefaultUsage();
-        subwindowSync = NativeTestSync::CreateSync(NativeTestDraw::RainbowDraw, subpsurface, &config);
+        config.usage = subpsurf->GetDefaultUsage();
+        subwindowSync = NativeTestSync::CreateSync(NativeTestDraw::RainbowDraw, subpsurf, &config);
 
         std::vector<struct WMDisplayInfo> displays;
         WindowManager::GetInstance()->GetDisplays(displays);
@@ -106,12 +106,12 @@ public:
     {
         constexpr double half = 0.5;
         auto wret = subwindow->Move(x, maxHeight * half);
-        if (wret != WM_OK) {
-            printf("Move: %d(%s)\n", wret, WMErrorStr(wret).c_str());
+        if (wret != GSERROR_OK) {
+            printf("Move: %d(%s)\n", wret, GSErrorStr(wret).c_str());
         }
         wret = subwindow->Resize(width, height);
-        if (wret != WM_OK) {
-            printf("Resize: %d(%s)\n", wret, WMErrorStr(wret).c_str());
+        if (wret != GSERROR_OK) {
+            printf("Resize: %d(%s)\n", wret, GSErrorStr(wret).c_str());
         }
 
         height += diffHeight;

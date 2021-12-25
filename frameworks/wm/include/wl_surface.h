@@ -46,7 +46,7 @@ public:
     void SetDestination(uint32_t w, uint32_t h);
 
 private:
-    struct wl_surface *surface = nullptr;
+    struct wl_surface *surf = nullptr;
     struct zwp_linux_surface_synchronization_v1 *sync = nullptr;
     struct wp_viewport *viewport = nullptr;
     enum wl_output_transform bufferTransform = WL_OUTPUT_TRANSFORM_NORMAL;

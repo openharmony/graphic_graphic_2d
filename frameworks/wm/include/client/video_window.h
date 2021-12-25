@@ -25,7 +25,7 @@ class VideoWindow : public SubWindow, public RefBase {
 public:
     VideoWindow(InnerWindowInfo &winInfo);
     virtual ~VideoWindow();
-    static int32_t CreateLayer(InnerWindowInfo &winInfo, uint32_t &layerId, sptr<Surface> &surface);
+    static int32_t CreateLayer(InnerWindowInfo &winInfo, uint32_t &layerId, sptr<Surface> &surf);
     static void DestroyLayer(uint32_t layerId);
     int32_t Init();
     sptr<Surface> GetSurface();

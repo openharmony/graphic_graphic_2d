@@ -25,7 +25,7 @@ class MockWlSubsurfaceFactory : public WlSubsurfaceFactory {
 public:
     MOCK_METHOD0(Init, void());
     MOCK_METHOD0(Deinit, void());
-    MOCK_METHOD2(Create, sptr<WlSubsurface>(const sptr<WlSurface> &surface,
+    MOCK_METHOD2(Create, sptr<WlSubsurface>(const sptr<WlSurface> &surf,
                                             const sptr<WlSurface> &parent));
 };
 } // namespace OHOS

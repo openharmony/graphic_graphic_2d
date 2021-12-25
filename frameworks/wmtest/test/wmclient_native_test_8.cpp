@@ -58,7 +58,7 @@ public:
     {
         auto initRet = WindowManager::GetInstance()->Init();
         if (initRet) {
-            printf("init failed with %s\n", WMErrorStr(initRet).c_str());
+            printf("init failed with %s\n", GSErrorStr(initRet).c_str());
             ExitTest();
             return;
         }
@@ -70,8 +70,8 @@ public:
         }
 
         window->SwitchTop();
-        auto surface = window->GetSurface();
-        windowSync = NativeTestSync::CreateSync(NativeTestDraw::ColorDraw, surface);
+        auto surf = window->GetSurface();
+        windowSync = NativeTestSync::CreateSync(NativeTestDraw::ColorDraw, surf);
     }
 
 private:

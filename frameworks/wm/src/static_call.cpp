@@ -19,6 +19,7 @@
 
 #include "subwindow_normal_impl.h"
 #include "subwindow_video_impl.h"
+#include "subwindow_offscreen_impl.h"
 #include "window_impl.h"
 
 namespace OHOS {
@@ -44,24 +45,51 @@ sptr<Surface> StaticCall::SurfaceCreateSurfaceAsProducer(sptr<IBufferProducer>& 
     return Surface::CreateSurfaceAsProducer(producer);
 }
 
-WMError StaticCall::WindowImplCreate(sptr<Window> &window,
+sptr<Surface> StaticCall::SurfaceCreateEglSurfaceAsConsumer(std::string name)
+{
+    return Surface::CreateEglSurfaceAsConsumer(name);
+}
+
+GSError StaticCall::WindowImplCreate(sptr<Window> &window,
                                      const sptr<WindowOption> &option,
                                      const sptr<IWindowManagerService> &wms)
 {
     return WindowImpl::Create(window, option, wms);
 }
 
-WMError StaticCall::SubwindowNormalImplCreate(sptr<Subwindow> &subwindow,
+GSError StaticCall::SubwindowNormalImplCreate(sptr<Subwindow> &subwindow,
                                               const sptr<Window> &window,
                                               const sptr<SubwindowOption> &option)
 {
-    return SubwindowNormalImpl::Create(subwindow, window, option);
+    sptr<SubwindowNormalImpl> sni = new SubwindowNormalImpl();
+    auto ret = sni->Init(window, option);
+    if (ret == GSERROR_OK) {
+        subwindow = sni;
+    }
+    return ret;
 }
 
-WMError StaticCall::SubwindowVideoImplCreate(sptr<Subwindow> &subwindow,
+GSError StaticCall::SubwindowVideoImplCreate(sptr<Subwindow> &subwindow,
                                              const sptr<Window> &window,
                                              const sptr<SubwindowOption> &option)
 {
-    return SubwindowVideoImpl::Create(subwindow, window, option);
+    sptr<SubwindowVideoImpl> svi = new SubwindowVideoImpl();
+    auto ret = svi->Init(window, option);
+    if (ret == GSERROR_OK) {
+        subwindow = svi;
+    }
+    return ret;
+}
+
+GSError StaticCall::SubwindowOffscreenImplCreate(sptr<Subwindow> &subwindow,
+                                                 const sptr<Window> &window,
+                                                 const sptr<SubwindowOption> &option)
+{
+    sptr<SubwindowOffscreenImpl> soi = new SubwindowOffscreenImpl();
+    auto ret = soi->Init(window, option);
+    if (ret == GSERROR_OK) {
+        subwindow = soi;
+    }
+    return ret;
 }
 } // namespace OHOS

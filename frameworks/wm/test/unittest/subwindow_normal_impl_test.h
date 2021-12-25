@@ -28,7 +28,7 @@ public:
     virtual void TearDown() override;
 
 private:
-    static inline int32_t initRet = WM_ERROR_NOT_INIT;
+    static inline int32_t initRet = GSERROR_NOT_INIT;
     static inline sptr<Window> window = nullptr;
     static inline sptr<SubwindowOption> subwindowOption = nullptr;
 };

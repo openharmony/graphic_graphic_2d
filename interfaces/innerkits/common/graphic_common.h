@@ -21,9 +21,11 @@
 #include <cstring>
 #include <map>
 #include <string>
+#include <ostream>
 
 namespace OHOS {
 #endif
+
 #include "graphic_common_c.h"
 
 #ifdef __cplusplus
@@ -37,6 +39,7 @@ static const std::map<GSError, std::string> GSErrorStrs = {
     {GSERROR_NO_BUFFER,             "<406 no buffer>"},
     {GSERROR_NO_ENTRY,              "<406 no entry>"},
     {GSERROR_OUT_OF_RANGE,          "<406 out of range>"},
+    {GSERROR_NO_SCREEN,             "<406 no screen>"},
     {GSERROR_INVALID_OPERATING,     "<412 invalid operating>"},
     {GSERROR_NO_CONSUMER,           "<412 no consumer>"},
     {GSERROR_NOT_INIT,              "<412 not init>"},
@@ -46,6 +49,7 @@ static const std::map<GSError, std::string> GSErrorStrs = {
     {GSERROR_NO_MEM,                "<500 no memory>"},
     {GSERROR_PROXY_NOT_INCLUDE,     "<500 proxy not include>"},
     {GSERROR_SERVER_ERROR,          "<500 server occur error>"},
+    {GSERROR_ANIMATION_RUNNING,     "<500 animation is running>"},
     {GSERROR_NOT_IMPLEMENT,         "<501 not implement>"},
     {GSERROR_NOT_SUPPORT,           "<501 not support>"},
     {GSERROR_BINDER,                "<504 binder occur error>"},
@@ -81,74 +85,41 @@ static inline std::string GSErrorStr(GSError err)
     }
     return it->second + LowErrorStr(diff);
 }
-#endif // __cplusplus
 
-enum WMError {
-    WM_OK = GSERROR_OK,
-    WM_ERROR_SAMGR = GSERROR_CONNOT_CONNECT_SAMGR,
-    WM_ERROR_WMS_NOT_FOUND = GSERROR_CONNOT_CONNECT_SERVER,
-    WM_ERROR_NOT_INIT = GSERROR_NOT_INIT,
-    WM_ERROR_API_FAILED = GSERROR_API_FAILED,
-    WM_ERROR_NEW = GSERROR_NO_MEM,
-    WM_ERROR_INNER = GSERROR_INTERNEL,
-    WM_ERROR_NULLPTR = GSERROR_INVALID_ARGUMENTS,
-    WM_ERROR_INVALID_PARAM = GSERROR_INVALID_ARGUMENTS,
-    WM_ERROR_CONNOT_CONNECT_WESTON = GSERROR_CONNOT_CONNECT_WESTON,
-    WM_ERROR_SERVER = GSERROR_SERVER_ERROR,
-    WM_ERROR_NOT_SUPPORT = GSERROR_NOT_SUPPORT,
-    WM_ERROR_DESTROYED_OBJECT = GSERROR_DESTROYED_OBJECT,
-};
-
-#ifdef __cplusplus
-static inline std::string WMErrorStr(WMError err)
+static inline std::string WMErrorStr(GSError err)
 {
-    return GSErrorStr(static_cast<GSError>(err));
+    return GSErrorStr(err);
 }
-#endif // __cplusplus
 
-enum SurfaceError {
-    SURFACE_ERROR_OK = GSERROR_OK,
-    SURFACE_ERROR_ERROR = GSERROR_INTERNEL,
-    SURFACE_ERROR_BINDER_ERROR = GSERROR_BINDER,
-    SURFACE_ERROR_NULLPTR = GSERROR_INVALID_ARGUMENTS,
-    SURFACE_ERROR_NO_ENTRY = GSERROR_NO_ENTRY,
-    SURFACE_ERROR_INVALID_OPERATING = GSERROR_INVALID_OPERATING,
-    SURFACE_ERROR_NO_BUFFER = GSERROR_NO_BUFFER,
-    SURFACE_ERROR_INVALID_PARAM = GSERROR_INVALID_ARGUMENTS,
-    SURFACE_ERROR_INIT = GSERROR_INTERNEL,
-    SURFACE_ERROR_NOMEM = GSERROR_NO_MEM,
-    SURFACE_ERROR_API_FAILED = GSERROR_API_FAILED,
-    SURFACE_ERROR_NOT_SUPPORT = GSERROR_NOT_SUPPORT,
-    SURFACE_ERROR_OUT_OF_RANGE = GSERROR_OUT_OF_RANGE,
-    SURFACE_ERROR_TYPE_ERROR = GSERROR_TYPE_ERROR,
-    SURFACE_ERROR_NO_CONSUMER = GSERROR_NO_CONSUMER,
-};
-
-#ifdef __cplusplus
-static inline std::string SurfaceErrorStr(SurfaceError err)
+static inline std::string SurfaceErrorStr(GSError err)
 {
-    return GSErrorStr(static_cast<GSError>(err));
+    return GSErrorStr(err);
 }
-#endif // __cplusplus
 
-enum VsyncError {
-    VSYNC_ERROR_OK = GSERROR_OK,
-    VSYNC_ERROR_API_FAILED = GSERROR_API_FAILED,
-    VSYNC_ERROR_INVALID_OPERATING = GSERROR_INVALID_OPERATING,
-    VSYNC_ERROR_NULLPTR = GSERROR_INVALID_ARGUMENTS,
-    VSYNC_ERROR_BINDER_ERROR = GSERROR_BINDER,
-    VSYNC_ERROR_SAMGR = GSERROR_CONNOT_CONNECT_SAMGR,
-    VSYNC_ERROR_SERVICE_NOT_FOUND = GSERROR_SERVER_ERROR,
-    VSYNC_ERROR_PROXY_NOT_INCLUDE = GSERROR_PROXY_NOT_INCLUDE,
-    VSYNC_ERROR_INNER = GSERROR_INTERNEL,
-    VSYNC_ERROR_INVALID_ARGUMENTS = GSERROR_INVALID_ARGUMENTS,
-};
-
-#ifdef __cplusplus
-static inline std::string VsyncErrorStr(VsyncError err)
+static inline std::string VsyncErrorStr(GSError err)
 {
-    return GSErrorStr(static_cast<GSError>(err));
+    return GSErrorStr(err);
 }
+
+static inline std::ostream &operator <<(std::ostream &os, const GSError &err)
+{
+    os << GSErrorStr(err);
+    return os;
+}
+
+static inline bool operator ==(GSError a, GSError b)
+{
+    return static_cast<int32_t>(a) / LOWERROR_MAX == static_cast<int32_t>(b) / LOWERROR_MAX;
+}
+
+static inline bool operator !=(GSError a, GSError b)
+{
+    return static_cast<int32_t>(a) / LOWERROR_MAX != static_cast<int32_t>(b) / LOWERROR_MAX;
+}
+
+using WMError = GSError;
+using SurfaceError = GSError;
+using VsyncError = GSError;
 } // namespace OHOS
 #endif // __cplusplus
 

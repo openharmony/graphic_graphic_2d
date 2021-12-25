@@ -24,7 +24,7 @@
 namespace OHOS {
 class WlSubsurface : public RefBase {
 public:
-    WlSubsurface(struct wl_subsurface *subsurface);
+    WlSubsurface(struct wl_subsurface *subsurf);
     virtual ~WlSubsurface() override;
 
     struct wl_subsurface *GetRawPtr() const;
@@ -36,7 +36,7 @@ public:
     void SetDesync();
 
 private:
-    struct wl_subsurface *subsurface;
+    struct wl_subsurface *subsurf;
 };
 } // namespace OHOS
 

@@ -23,7 +23,7 @@
 namespace OHOS {
 class MockWindowManagerServiceClient : public WindowManagerServiceClient {
 public:
-    MOCK_METHOD0(Init, WMError());
+    MOCK_METHOD0(Init, GSError());
     MOCK_CONST_METHOD0(GetService, sptr<IWindowManagerService>());
 };
 } // namespace OHOS

@@ -52,62 +52,62 @@ class BufferQueue : public RefBase {
 public:
     BufferQueue(const std::string &name, bool isShared = false);
     virtual ~BufferQueue();
-    SurfaceError Init();
+    GSError Init();
 
-    SurfaceError RequestBuffer(const BufferRequestConfig &config, BufferExtraData &bedata,
+    GSError RequestBuffer(const BufferRequestConfig &config, BufferExtraData &bedata,
                                struct IBufferProducer::RequestBufferReturnValue &retval);
 
-    SurfaceError ReuseBuffer(const BufferRequestConfig &config, BufferExtraData &bedata,
+    GSError ReuseBuffer(const BufferRequestConfig &config, BufferExtraData &bedata,
                              struct IBufferProducer::RequestBufferReturnValue &retval);
 
-    SurfaceError CancelBuffer(int32_t sequence, const BufferExtraData &bedata);
+    GSError CancelBuffer(int32_t sequence, const BufferExtraData &bedata);
 
-    SurfaceError FlushBuffer(int32_t sequence, const BufferExtraData &bedata,
+    GSError FlushBuffer(int32_t sequence, const BufferExtraData &bedata,
                              int32_t fence, const BufferFlushConfig &config);
 
-    SurfaceError DoFlushBuffer(int32_t sequence, const BufferExtraData &bedata,
+    GSError DoFlushBuffer(int32_t sequence, const BufferExtraData &bedata,
                                int32_t fence, const BufferFlushConfig &config);
 
-    SurfaceError AcquireBuffer(sptr<SurfaceBufferImpl>& buffer, int32_t &fence,
+    GSError AcquireBuffer(sptr<SurfaceBufferImpl>& buffer, int32_t &fence,
                                int64_t &timestamp, Rect &damage);
-    SurfaceError ReleaseBuffer(sptr<SurfaceBufferImpl>& buffer, int32_t fence);
+    GSError ReleaseBuffer(sptr<SurfaceBufferImpl>& buffer, int32_t fence);
 
-    SurfaceError AttachBuffer(sptr<SurfaceBufferImpl>& buffer);
+    GSError AttachBuffer(sptr<SurfaceBufferImpl>& buffer);
 
-    SurfaceError DetachBuffer(sptr<SurfaceBufferImpl>& buffer);
+    GSError DetachBuffer(sptr<SurfaceBufferImpl>& buffer);
 
     uint32_t GetQueueSize();
-    SurfaceError SetQueueSize(uint32_t queueSize);
+    GSError SetQueueSize(uint32_t queueSize);
 
-    SurfaceError GetName(std::string &name);
+    GSError GetName(std::string &name);
 
-    SurfaceError RegisterConsumerListener(sptr<IBufferConsumerListener>& listener);
-    SurfaceError RegisterConsumerListener(IBufferConsumerListenerClazz *listener);
-    SurfaceError RegisterReleaseListener(OnReleaseFunc func);
-    SurfaceError UnregisterConsumerListener();
+    GSError RegisterConsumerListener(sptr<IBufferConsumerListener>& listener);
+    GSError RegisterConsumerListener(IBufferConsumerListenerClazz *listener);
+    GSError RegisterReleaseListener(OnReleaseFunc func);
+    GSError UnregisterConsumerListener();
 
-    SurfaceError SetDefaultWidthAndHeight(int32_t width, int32_t height);
+    GSError SetDefaultWidthAndHeight(int32_t width, int32_t height);
     int32_t GetDefaultWidth();
     int32_t GetDefaultHeight();
-    SurfaceError SetDefaultUsage(uint32_t usage);
+    GSError SetDefaultUsage(uint32_t usage);
     uint32_t GetDefaultUsage();
 
-    SurfaceError CleanCache();
+    GSError CleanCache();
 
 private:
-    SurfaceError AllocBuffer(sptr<SurfaceBufferImpl>& buffer, const BufferRequestConfig &config);
-    SurfaceError FreeBuffer(sptr<SurfaceBufferImpl>& buffer);
+    GSError AllocBuffer(sptr<SurfaceBufferImpl>& buffer, const BufferRequestConfig &config);
+    GSError FreeBuffer(sptr<SurfaceBufferImpl>& buffer);
     void DeleteBufferInCache(int sequence);
     void DumpToFile(int32_t sequence);
 
     uint32_t GetUsedSize();
     void DeleteBuffers(int32_t count);
 
-    SurfaceError PopFromFreeList(sptr<SurfaceBufferImpl>& buffer, const BufferRequestConfig &config);
-    SurfaceError PopFromDirtyList(sptr<SurfaceBufferImpl>& buffer);
+    GSError PopFromFreeList(sptr<SurfaceBufferImpl>& buffer, const BufferRequestConfig &config);
+    GSError PopFromDirtyList(sptr<SurfaceBufferImpl>& buffer);
 
-    SurfaceError CheckRequestConfig(const BufferRequestConfig &config);
-    SurfaceError CheckFlushConfig(const BufferFlushConfig &config);
+    GSError CheckRequestConfig(const BufferRequestConfig &config);
+    GSError CheckFlushConfig(const BufferFlushConfig &config);
 
     int32_t defaultWidth = 0;
     int32_t defaultHeight = 0;

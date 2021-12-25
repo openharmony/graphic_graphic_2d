@@ -50,6 +50,15 @@
     }
 }
 
+#WINDOW_TYPE_SPLIT_LINE {
+    z-index: 0;
+    position: relative;
+    horizon-align: middle;
+    vertical-align: middle;
+    width: 100.0%;
+    height: 100.0%;
+}
+
 #WINDOW_TYPE_STATUS_BAR {
     z-index: 10;
     position: static;
@@ -79,6 +88,9 @@
 
 #WINDOW_TYPE_SYSTEM_UI {
     z-index: 31;
+    position: relative;
+    width: 100%;
+    height: 100%;
 }
 
 #WINDOW_TYPE_LAUNCHER {
@@ -247,4 +259,63 @@
     vertical-align: top;
     width: 80%;
     height: 18%;
+}
+
+#WINDOW_TYPE_ANIMATION {
+    z-index: 990;
+    position: fixed;
+    width: 100%;
+    height: 100%;
+}
+
+#WINDOW_TYPE_LAUNCH_PAGE {
+    z-index: 0;
+    position: fixed;
+    vertical-align: top;
+    width: 100%;
+    height: 93%;
+}
+
+#WINDOW_TYPE_CURSOR {
+    z-index: 999;
+    position: fixed;
+    width: 1%;
+    height: 1%;
+}
+
+#WINDOW_TYPE_APPLICATION_BASE {
+    z-index: 1;
+    position: relative;
+    horizon-align: middle;
+    vertical-align: middle;
+    width: 100%;
+    height: 100%;
+}
+
+#WINDOW_TYPE_APPLICATION_FIRST {
+    z-index: 2;
+    position: relative;
+    horizon-align: middle;
+    vertical-align: middle;
+    width: 100%;
+    height: 100%;
+}
+
+#WINDOW_TYPE_APPLICATION_NORMAL {
+    z-index: 3;
+    position: relative;
+    horizon-align: middle;
+    vertical-align: middle;
+    width: 100%;
+    height: 100%;
+}
+
+//This Window is Toppest
+#WINDOW_TYPE_TOP {
+    z-index: 9999;
+    position: fixed;
+    horizon-align: middle;
+    vertical-align: middle;
+    width: 100%;
+    height: 100%;
 }

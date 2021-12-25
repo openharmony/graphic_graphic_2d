@@ -56,22 +56,22 @@ public:
     {
         auto initRet = WindowManager::GetInstance()->Init();
         if (initRet) {
-            printf("init failed with %s\n", WMErrorStr(initRet).c_str());
+            printf("init failed with %s\n", GSErrorStr(initRet).c_str());
             ExitTest();
             return;
         }
 
-        csurface = Surface::CreateSurfaceAsConsumer();
-        window = NativeTestFactory::CreateWindow(WINDOW_TYPE_ALARM_SCREEN, csurface);
+        csurf = Surface::CreateSurfaceAsConsumer();
+        window = NativeTestFactory::CreateWindow(WINDOW_TYPE_ALARM_SCREEN, csurf);
         if (window == nullptr) {
             printf("NativeTestFactory::CreateWindow return nullptr\n");
             return;
         }
 
         window->SwitchTop();
-        window->OnSizeChange([this](uint32_t w, uint32_t h) { csurface->SetDefaultWidthAndHeight(w, h); });
-        auto surface = window->GetSurface();
-        windowSync = NativeTestSync::CreateSync(NativeTestDraw::BlackDraw, surface);
+        window->OnSizeChange([this](uint32_t w, uint32_t h) { csurf->SetDefaultWidthAndHeight(w, h); });
+        auto surf = window->GetSurface();
+        windowSync = NativeTestSync::CreateSync(NativeTestDraw::BlackDraw, surf);
 
         constexpr uint32_t nextTime = 1000;
         PostTask(std::bind(&OtherNativeTest1::AfterRun, this), nextTime);
@@ -93,7 +93,7 @@ public:
     }
 
 private:
-    sptr<Surface> csurface = nullptr;
+    sptr<Surface> csurf = nullptr;
     sptr<Window> window = nullptr;
     sptr<NativeTestSync> windowSync = nullptr;
 } g_autoload;

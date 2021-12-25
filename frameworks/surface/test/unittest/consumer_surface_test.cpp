@@ -50,11 +50,11 @@ HWTEST_F(ConsumerSurfaceTest, ConsumerSurface, testing::ext::TestSize.Level0)
 HWTEST_F(ConsumerSurfaceTest, QueueSize, testing::ext::TestSize.Level0)
 {
     ASSERT_EQ(cs->GetQueueSize(), (uint32_t)SURFACE_DEFAULT_QUEUE_SIZE);
-    SurfaceError ret = cs->SetQueueSize(2);
-    ASSERT_EQ(ret, SURFACE_ERROR_OK);
+    GSError ret = cs->SetQueueSize(2);
+    ASSERT_EQ(ret, GSERROR_OK);
 
     ret = cs->SetQueueSize(SURFACE_MAX_QUEUE_SIZE + 1);
-    ASSERT_NE(ret, SURFACE_ERROR_OK);
+    ASSERT_NE(ret, GSERROR_OK);
 
     ASSERT_EQ(cs->GetQueueSize(), 2u);
 }
@@ -63,23 +63,23 @@ HWTEST_F(ConsumerSurfaceTest, ReqFluReqFlu, testing::ext::TestSize.Level0)
 {
     sptr<SurfaceBuffer> buffer;
 
-    SurfaceError ret = cs->RequestBufferNoFence(buffer, requestConfig);
-    ASSERT_NE(ret, SURFACE_ERROR_OK);
+    GSError ret = cs->RequestBufferNoFence(buffer, requestConfig);
+    ASSERT_NE(ret, GSERROR_OK);
 
     ret = ps->RequestBufferNoFence(buffer, requestConfig);
-    ASSERT_EQ(ret, SURFACE_ERROR_OK);
+    ASSERT_EQ(ret, GSERROR_OK);
     ASSERT_NE(buffer, nullptr);
 
     ret = cs->FlushBuffer(buffer, -1, flushConfig);
-    ASSERT_NE(ret, SURFACE_ERROR_OK);
+    ASSERT_NE(ret, GSERROR_OK);
 
     ret = ps->FlushBuffer(buffer, -1, flushConfig);
-    ASSERT_EQ(ret, SURFACE_ERROR_OK);
+    ASSERT_EQ(ret, GSERROR_OK);
 
     ret = ps->RequestBufferNoFence(buffer, requestConfig);
-    ASSERT_EQ(ret, SURFACE_ERROR_OK);
+    ASSERT_EQ(ret, GSERROR_OK);
     ret = ps->FlushBuffer(buffer, -1, flushConfig);
-    ASSERT_EQ(ret, SURFACE_ERROR_OK);
+    ASSERT_EQ(ret, GSERROR_OK);
 }
 
 HWTEST_F(ConsumerSurfaceTest, AcqRel, testing::ext::TestSize.Level0)
@@ -87,12 +87,12 @@ HWTEST_F(ConsumerSurfaceTest, AcqRel, testing::ext::TestSize.Level0)
     sptr<SurfaceBuffer> buffer;
     int32_t flushFence;
 
-    SurfaceError ret = cs->AcquireBuffer(buffer, flushFence, timestamp, damage);
-    ASSERT_EQ(ret, SURFACE_ERROR_OK);
+    GSError ret = cs->AcquireBuffer(buffer, flushFence, timestamp, damage);
+    ASSERT_EQ(ret, GSERROR_OK);
     ASSERT_NE(buffer, nullptr);
 
     ret = cs->ReleaseBuffer(buffer, -1);
-    ASSERT_EQ(ret, SURFACE_ERROR_OK);
+    ASSERT_EQ(ret, GSERROR_OK);
 }
 
 HWTEST_F(ConsumerSurfaceTest, AcqRelRel, testing::ext::TestSize.Level0)
@@ -100,31 +100,31 @@ HWTEST_F(ConsumerSurfaceTest, AcqRelRel, testing::ext::TestSize.Level0)
     sptr<SurfaceBuffer> buffer;
     int32_t flushFence;
 
-    SurfaceError ret = cs->AcquireBuffer(buffer, flushFence, timestamp, damage);
-    ASSERT_EQ(ret, SURFACE_ERROR_OK);
+    GSError ret = cs->AcquireBuffer(buffer, flushFence, timestamp, damage);
+    ASSERT_EQ(ret, GSERROR_OK);
     ASSERT_NE(buffer, nullptr);
 
     ret = cs->ReleaseBuffer(buffer, -1);
-    ASSERT_EQ(ret, SURFACE_ERROR_OK);
+    ASSERT_EQ(ret, GSERROR_OK);
 
     ret = cs->ReleaseBuffer(buffer, -1);
-    ASSERT_NE(ret, SURFACE_ERROR_OK);
+    ASSERT_NE(ret, GSERROR_OK);
 }
 
 HWTEST_F(ConsumerSurfaceTest, ReqCan, testing::ext::TestSize.Level0)
 {
     sptr<SurfaceBuffer> buffer;
-    SurfaceError ret = cs->RequestBufferNoFence(buffer, requestConfig);
-    ASSERT_NE(ret, SURFACE_ERROR_OK);
+    GSError ret = cs->RequestBufferNoFence(buffer, requestConfig);
+    ASSERT_NE(ret, GSERROR_OK);
 
     ret = ps->RequestBufferNoFence(buffer, requestConfig);
-    ASSERT_EQ(ret, SURFACE_ERROR_OK);
+    ASSERT_EQ(ret, GSERROR_OK);
 
     ret = cs->CancelBuffer(buffer);
-    ASSERT_NE(ret, SURFACE_ERROR_OK);
+    ASSERT_NE(ret, GSERROR_OK);
 
     ret = ps->CancelBuffer(buffer);
-    ASSERT_EQ(ret, SURFACE_ERROR_OK);
+    ASSERT_EQ(ret, GSERROR_OK);
 }
 
 HWTEST_F(ConsumerSurfaceTest, SetQueueSizeDeleting, testing::ext::TestSize.Level0)
@@ -134,18 +134,18 @@ HWTEST_F(ConsumerSurfaceTest, SetQueueSizeDeleting, testing::ext::TestSize.Level
     ASSERT_EQ(bqp->bufferQueue_->queueSize_, 2u);
     ASSERT_EQ(bqp->bufferQueue_->freeList_.size(), 2u);
 
-    SurfaceError ret = cs->SetQueueSize(1);
-    ASSERT_EQ(ret, SURFACE_ERROR_OK);
+    GSError ret = cs->SetQueueSize(1);
+    ASSERT_EQ(ret, GSERROR_OK);
     ASSERT_EQ(bqp->bufferQueue_->freeList_.size(), 1u);
 
     ret = cs->SetQueueSize(2);
-    ASSERT_EQ(ret, SURFACE_ERROR_OK);
+    ASSERT_EQ(ret, GSERROR_OK);
     ASSERT_EQ(bqp->bufferQueue_->freeList_.size(), 1u);
 }
 
 HWTEST_F(ConsumerSurfaceTest, UserData, testing::ext::TestSize.Level0)
 {
-    SurfaceError ret;
+    GSError ret;
 
     std::string strs[SURFACE_MAX_USER_DATA_COUNT];
     constexpr int32_t stringLengthMax = 32;
@@ -156,11 +156,11 @@ HWTEST_F(ConsumerSurfaceTest, UserData, testing::ext::TestSize.Level0)
 
         strs[i] = str;
         ret = cs->SetUserData(strs[i], "magic");
-        ASSERT_EQ(ret, SURFACE_ERROR_OK);
+        ASSERT_EQ(ret, GSERROR_OK);
     }
 
     ret = cs->SetUserData("-1", "error");
-    ASSERT_NE(ret, SURFACE_ERROR_OK);
+    ASSERT_NE(ret, GSERROR_OK);
 
     std::string retStr;
     for (int i = 0; i < SURFACE_MAX_USER_DATA_COUNT; i++) {
@@ -190,12 +190,12 @@ HWTEST_F(ConsumerSurfaceTest, RegisterConsumerListener, testing::ext::TestSize.L
         }
     };
     sptr<IBufferConsumerListener> listener = new TestConsumerListener();
-    SurfaceError ret = cs->RegisterConsumerListener(listener);
-    ASSERT_EQ(ret, SURFACE_ERROR_OK);
+    GSError ret = cs->RegisterConsumerListener(listener);
+    ASSERT_EQ(ret, GSERROR_OK);
 
     sptr<SurfaceBuffer> buffer;
     ret = ps->RequestBufferNoFence(buffer, requestConfig);
-    ASSERT_EQ(ret, SURFACE_ERROR_OK);
+    ASSERT_EQ(ret, GSERROR_OK);
     ASSERT_NE(buffer, nullptr);
 
     int32_t *p = (int32_t*)buffer->GetVirAddr();
@@ -206,18 +206,18 @@ HWTEST_F(ConsumerSurfaceTest, RegisterConsumerListener, testing::ext::TestSize.L
     }
 
     ret = ps->FlushBuffer(buffer, -1, flushConfig);
-    ASSERT_EQ(ret, SURFACE_ERROR_OK);
+    ASSERT_EQ(ret, GSERROR_OK);
 }
 
 HWTEST_F(ConsumerSurfaceTest, RegisterConsumerListenerWithParam, testing::ext::TestSize.Level0)
 {
     sptr<IBufferConsumerListener> listener = new BufferConsumerListener();
-    SurfaceError ret = cs->RegisterConsumerListener(listener);
-    ASSERT_EQ(ret, SURFACE_ERROR_OK);
+    GSError ret = cs->RegisterConsumerListener(listener);
+    ASSERT_EQ(ret, GSERROR_OK);
 
     sptr<SurfaceBuffer> buffer;
     ret = ps->RequestBufferNoFence(buffer, requestConfig);
-    ASSERT_EQ(ret, SURFACE_ERROR_OK);
+    ASSERT_EQ(ret, GSERROR_OK);
     ASSERT_NE(buffer, nullptr);
 
     int32_t *p = (int32_t*)buffer->GetVirAddr();
@@ -228,7 +228,7 @@ HWTEST_F(ConsumerSurfaceTest, RegisterConsumerListenerWithParam, testing::ext::T
     }
 
     ret = ps->FlushBuffer(buffer, -1, flushConfig);
-    ASSERT_EQ(ret, SURFACE_ERROR_OK);
+    ASSERT_EQ(ret, GSERROR_OK);
 }
 }
 } // namespace OHOS

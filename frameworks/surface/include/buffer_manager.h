@@ -28,13 +28,13 @@ class BufferManager : public RefBase {
 public:
     static sptr<BufferManager> GetInstance();
 
-    SurfaceError Init();
-    SurfaceError Alloc(const BufferRequestConfig &config, sptr<SurfaceBufferImpl>& buffer);
-    SurfaceError Map(sptr<SurfaceBufferImpl>& buffer);
-    SurfaceError Unmap(sptr<SurfaceBufferImpl>& buffer);
-    SurfaceError FlushCache(sptr<SurfaceBufferImpl>& buffer);
-    SurfaceError InvalidateCache(sptr<SurfaceBufferImpl>& buffer);
-    SurfaceError Free(sptr<SurfaceBufferImpl>& buffer);
+    GSError Init();
+    GSError Alloc(const BufferRequestConfig &config, sptr<SurfaceBufferImpl>& buffer);
+    GSError Map(sptr<SurfaceBufferImpl>& buffer);
+    GSError Unmap(sptr<SurfaceBufferImpl>& buffer);
+    GSError FlushCache(sptr<SurfaceBufferImpl>& buffer);
+    GSError InvalidateCache(sptr<SurfaceBufferImpl>& buffer);
+    GSError Free(sptr<SurfaceBufferImpl>& buffer);
 
 private:
     BufferManager() = default;

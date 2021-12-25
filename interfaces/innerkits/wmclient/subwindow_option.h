@@ -26,12 +26,12 @@ class SubwindowOption : public RefBase {
 public:
     static sptr<SubwindowOption> Get();
 
-    virtual WMError SetWindowType(SubwindowType type) = 0;
-    virtual WMError SetX(int32_t x) = 0;
-    virtual WMError SetY(int32_t y) = 0;
-    virtual WMError SetWidth(uint32_t w) = 0;
-    virtual WMError SetHeight(uint32_t h) = 0;
-    virtual WMError SetConsumerSurface(const sptr<Surface> &surface) = 0;
+    virtual GSError SetWindowType(SubwindowType type) = 0;
+    virtual GSError SetX(int32_t x) = 0;
+    virtual GSError SetY(int32_t y) = 0;
+    virtual GSError SetWidth(uint32_t w) = 0;
+    virtual GSError SetHeight(uint32_t h) = 0;
+    virtual GSError SetConsumerSurface(const sptr<Surface> &surf) = 0;
 
     virtual SubwindowType GetWindowType() const = 0;
     virtual int32_t GetX() const = 0;

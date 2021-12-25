@@ -24,16 +24,16 @@ namespace OHOS {
 class MessageParcel;
 class BufferExtraData {
 public:
-    virtual SurfaceError ReadFromParcel(MessageParcel &parcel) = 0;
-    virtual SurfaceError WriteToParcel(MessageParcel &parcel) = 0;
-    virtual SurfaceError ExtraGet(std::string &key, int32_t &value) const = 0;
-    virtual SurfaceError ExtraGet(std::string &key, int64_t &value) const = 0;
-    virtual SurfaceError ExtraGet(std::string &key, double &value) const = 0;
-    virtual SurfaceError ExtraGet(std::string &key, std::string &value) const = 0;
-    virtual SurfaceError ExtraSet(std::string &key, int32_t value) = 0;
-    virtual SurfaceError ExtraSet(std::string &key, int64_t value) = 0;
-    virtual SurfaceError ExtraSet(std::string &key, double value) = 0;
-    virtual SurfaceError ExtraSet(std::string &key, std::string value) = 0;
+    virtual GSError ReadFromParcel(MessageParcel &parcel) = 0;
+    virtual GSError WriteToParcel(MessageParcel &parcel) = 0;
+    virtual GSError ExtraGet(std::string &key, int32_t &value) const = 0;
+    virtual GSError ExtraGet(std::string &key, int64_t &value) const = 0;
+    virtual GSError ExtraGet(std::string &key, double &value) const = 0;
+    virtual GSError ExtraGet(std::string &key, std::string &value) const = 0;
+    virtual GSError ExtraSet(std::string &key, int32_t value) = 0;
+    virtual GSError ExtraSet(std::string &key, int64_t value) = 0;
+    virtual GSError ExtraSet(std::string &key, double value) = 0;
+    virtual GSError ExtraSet(std::string &key, std::string value) = 0;
 };
 } // namespace OHOS
 

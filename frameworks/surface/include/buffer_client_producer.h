@@ -32,28 +32,28 @@ public:
     BufferClientProducer(const sptr<IRemoteObject>& impl);
     virtual ~BufferClientProducer();
 
-    virtual SurfaceError RequestBuffer(const BufferRequestConfig &config, BufferExtraData &bedata,
+    virtual GSError RequestBuffer(const BufferRequestConfig &config, BufferExtraData &bedata,
                                        RequestBufferReturnValue &retval) override;
 
-    SurfaceError CancelBuffer(int32_t sequence, BufferExtraData &bedata) override;
+    GSError CancelBuffer(int32_t sequence, BufferExtraData &bedata) override;
 
-    SurfaceError FlushBuffer(int32_t sequence, BufferExtraData &bedata,
+    GSError FlushBuffer(int32_t sequence, BufferExtraData &bedata,
                              int32_t fence, BufferFlushConfig &config) override;
 
     uint32_t     GetQueueSize() override;
-    SurfaceError SetQueueSize(uint32_t queueSize) override;
+    GSError SetQueueSize(uint32_t queueSize) override;
 
-    SurfaceError GetName(std::string &name) override;
+    GSError GetName(std::string &name) override;
 
     int32_t      GetDefaultWidth() override;
     int32_t      GetDefaultHeight() override;
     uint32_t     GetDefaultUsage() override;
 
-    SurfaceError CleanCache() override;
+    GSError CleanCache() override;
 
-    virtual SurfaceError AttachBuffer(sptr<SurfaceBuffer>& buffer) override;
-    virtual SurfaceError DetachBuffer(sptr<SurfaceBuffer>& buffer) override;
-    virtual SurfaceError RegisterReleaseListener(OnReleaseFunc func) override;
+    virtual GSError AttachBuffer(sptr<SurfaceBuffer>& buffer) override;
+    virtual GSError DetachBuffer(sptr<SurfaceBuffer>& buffer) override;
+    virtual GSError RegisterReleaseListener(OnReleaseFunc func) override;
 
 private:
     static inline BrokerDelegator<BufferClientProducer> delegator_;

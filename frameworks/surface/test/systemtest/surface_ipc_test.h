@@ -26,7 +26,7 @@ public:
     virtual void OnBufferAvailable() override;
     pid_t ChildProcessMain() const;
 
-    static inline sptr<Surface> csurface = nullptr;
+    static inline sptr<Surface> csurf = nullptr;
     static inline int32_t pipeFd[2] = {};
     static inline int32_t ipcSystemAbilityID = 34156;
     static inline BufferRequestConfig requestConfig = {};

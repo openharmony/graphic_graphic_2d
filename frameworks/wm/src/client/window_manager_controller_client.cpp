@@ -64,7 +64,6 @@ bool LayerControllerClient::init(sptr<IWindowManagerService> &service)
     }
     wms = service;
 
-    InputListenerManager::GetInstance()->Init();
     WlDMABufferFactory::GetInstance()->Init();
     WlSHMBufferFactory::GetInstance()->Init();
     WlSurfaceFactory::GetInstance()->Init();
@@ -100,18 +99,18 @@ void LayerControllerClient::ChangeWindowType(int32_t id, WindowType type)
     wms->SetWindowType(id, type);
 }
 
-void BufferRelease(struct wl_buffer *wbuffer, int32_t fence)
+void LayerControllerClient::OnWlBufferRelease(struct wl_buffer *wbuffer, int32_t fence)
 {
-    sptr<Surface> surface = nullptr;
+    sptr<Surface> surf = nullptr;
     sptr<SurfaceBuffer> sbuffer = nullptr;
-    if (WlBufferCache::GetInstance()->GetSurfaceBuffer(wbuffer, surface, sbuffer)) {
-        if (surface != nullptr && sbuffer != nullptr) {
-            surface->ReleaseBuffer(sbuffer, fence);
+    if (WlBufferCache::GetInstance()->GetSurfaceBuffer(wbuffer, surf, sbuffer)) {
+        if (surf != nullptr && sbuffer != nullptr) {
+            surf->ReleaseBuffer(sbuffer, fence);
         }
     }
 }
 
-void LayerControllerClient::CreateWlBuffer(sptr<Surface>& surface, uint32_t windowId)
+void LayerControllerClient::CreateWlBuffer(sptr<Surface>& surf, uint32_t windowId)
 {
     LOCK(mutex);
     WMLOG_I("LayerControllerClient::CreateWlBuffer id=%{public}d", windowId);
@@ -120,8 +119,8 @@ void LayerControllerClient::CreateWlBuffer(sptr<Surface>& surface, uint32_t wind
     int32_t flushFence;
     int64_t timestamp;
     Rect damage;
-    SurfaceError ret = surface->AcquireBuffer(buffer, flushFence, timestamp, damage);
-    if (ret != SURFACE_ERROR_OK) {
+    GSError ret = surf->AcquireBuffer(buffer, flushFence, timestamp, damage);
+    if (ret != GSERROR_OK) {
         WMLOG_I("LayerControllerClient::CreateWlBuffer AcquireBuffer failed");
         return;
     }
@@ -133,21 +132,21 @@ void LayerControllerClient::CreateWlBuffer(sptr<Surface>& surface, uint32_t wind
     }
 
     auto bc = WlBufferCache::GetInstance();
-    auto wbuffer = bc->GetWlBuffer(surface, buffer);
+    auto wbuffer = bc->GetWlBuffer(surf, buffer);
     if (wbuffer == nullptr) {
         auto dmaWlBuffer = WlDMABufferFactory::GetInstance()->Create(buffer->GetBufferHandle());
         if (dmaWlBuffer == nullptr) {
             WMLOG_E("Create DMA Buffer Failed");
-            ret = surface->ReleaseBuffer(buffer, -1);
-            if (ret != SURFACE_ERROR_OK) {
+            ret = surf->ReleaseBuffer(buffer, -1);
+            if (ret != GSERROR_OK) {
                 WMLOG_W("ReleaseBuffer failed");
             }
             return;
         }
-        dmaWlBuffer->OnRelease(BufferRelease);
+        dmaWlBuffer->OnRelease(this);
 
         wbuffer = dmaWlBuffer;
-        bc->AddWlBuffer(wbuffer, surface, buffer);
+        bc->AddWlBuffer(wbuffer, surf, buffer);
     }
 
     if (wbuffer) {
@@ -186,17 +185,17 @@ bool LayerControllerClient::CreateSurface(int32_t id)
         return false;
     }
 
-    windowInfo->surface = Surface::CreateSurfaceAsConsumer();
-    if (windowInfo->surface) {
-        windowInfo->listener = new SurfaceListener(windowInfo->surface, id);
+    windowInfo->surf = Surface::CreateSurfaceAsConsumer();
+    if (windowInfo->surf) {
+        windowInfo->listener = new SurfaceListener(windowInfo->surf, id);
         if (windowInfo->listener == nullptr) {
             WMLOG_E("windowInfo->listener new failed");
         }
-        windowInfo->surface->RegisterConsumerListener(windowInfo->listener);
+        windowInfo->surf->RegisterConsumerListener(windowInfo->listener);
 
         int width = LayerControllerClient::GetInstance()->GetMaxWidth();
         int height = LayerControllerClient::GetInstance()->GetMaxHeight();
-        windowInfo->surface->SetDefaultWidthAndHeight(width, height);
+        windowInfo->surf->SetDefaultWidthAndHeight(width, height);
     }
     WMLOG_I("CreateSurface (windowid = %{public}d) end", id);
     return true;
@@ -247,11 +246,11 @@ void GetSubInnerWindowInfo(InnerWindowInfo &info,
 bool CreateVideoSubWindow(InnerWindowInfo &newSubInfo)
 {
     uint32_t voLayerId = -1U;
-    sptr<Surface> surface = nullptr;
-    int32_t ret = VideoWindow::CreateLayer(newSubInfo, voLayerId, surface);
+    sptr<Surface> surf = nullptr;
+    int32_t ret = VideoWindow::CreateLayer(newSubInfo, voLayerId, surf);
     if (ret == 0) {
         newSubInfo.voLayerId = voLayerId;
-        newSubInfo.surface = surface;
+        newSubInfo.surf = surf;
 
         newSubInfo.wlBuffer = WlSHMBufferFactory::GetInstance()->Create(
             newSubInfo.width, newSubInfo.height, WL_SHM_FORMAT_XRGB8888);
@@ -297,22 +296,22 @@ InnerWindowInfo *LayerControllerClient::CreateSubWindow(int32_t subid, int32_t p
         return nullptr;
     }
 
-    newSubInfo.wlSubsurface = WlSubsurfaceFactory::GetInstance()->Create(
+    newSubInfo.wlSubsurf = WlSubsurfaceFactory::GetInstance()->Create(
         newSubInfo.wlSurface, parentInnerWindowInfo->wlSurface);
-    if (newSubInfo.wlSubsurface) {
-        newSubInfo.wlSubsurface->SetPosition(newSubInfo.pos_x, newSubInfo.pos_y);
-        newSubInfo.wlSubsurface->SetDesync();
+    if (newSubInfo.wlSubsurf) {
+        newSubInfo.wlSubsurf->SetPosition(newSubInfo.pos_x, newSubInfo.pos_y);
+        newSubInfo.wlSubsurf->SetDesync();
     }
     WMLOG_I("CreateSubWindow createwlSubSuface (subid = %{public}d) success", subid);
 
     if (newSubInfo.windowconfig.type != WINDOW_TYPE_VIDEO) {
-        newSubInfo.surface = Surface::CreateSurfaceAsConsumer();
-        if (newSubInfo.surface) {
-            newSubInfo.listener = new SurfaceListener(newSubInfo.surface, subid);
+        newSubInfo.surf = Surface::CreateSurfaceAsConsumer();
+        if (newSubInfo.surf) {
+            newSubInfo.listener = new SurfaceListener(newSubInfo.surf, subid);
             if (newSubInfo.listener == nullptr) {
                 WMLOG_E("newSubInfo.listener new failed");
             }
-            newSubInfo.surface->RegisterConsumerListener(newSubInfo.listener);
+            newSubInfo.surf->RegisterConsumerListener(newSubInfo.listener);
         }
     } else {
         if (!CreateVideoSubWindow(newSubInfo)) {
@@ -445,7 +444,7 @@ void LayerControllerClient::Move(int32_t id, int32_t x, int32_t y)
     wininfo->windowconfig.pos_y = y;
 
     if (wininfo->subwidow) {
-        wininfo->wlSubsurface->SetPosition(x, y);
+        wininfo->wlSubsurf->SetPosition(x, y);
     } else {
         WMLOG_I("LayerControllerClient::Move id(%{public}d) x(%{public}d) y(%{public}d)", id, x, y);
         wms->Move(id, x, y);
@@ -563,8 +562,8 @@ void ProcessWindowInfo(InnerWindowInfo &info, sptr<IWindowManagerService> &wms)
         wms->DestroyWindow(info.windowid);
     }
 
-    if (info.surface) {
-        info.surface->CleanCache();
+    if (info.surf) {
+        info.surf->CleanCache();
     }
 
     LogListener::GetInstance()->RemoveListener(info.logListener);
@@ -596,10 +595,10 @@ InnerWindowInfo *LayerControllerClient::GetInnerWindowInfoFromId(uint32_t window
     return nullptr;
 }
 
-SurfaceListener::SurfaceListener(sptr<Surface>& surface, uint32_t windowid)
+SurfaceListener::SurfaceListener(sptr<Surface>& surf, uint32_t windowid)
 {
     WMLOG_I("DEBUG SurfaceListener");
-    surface_ = surface;
+    surface_ = surf;
     windowid_ = windowid;
 }
 
@@ -612,11 +611,11 @@ SurfaceListener::~SurfaceListener()
 void SurfaceListener::OnBufferAvailable()
 {
     WMLOG_I("OnBufferAvailable");
-    auto surface = surface_.promote();
-    if (surface) {
-        LayerControllerClient::GetInstance()->CreateWlBuffer(surface, windowid_);
+    auto surf = surface_.promote();
+    if (surf) {
+        LayerControllerClient::GetInstance()->CreateWlBuffer(surf, windowid_);
     } else {
-        WMLOG_E("surface.promote failed");
+        WMLOG_E("surf.promote failed");
     }
 }
 }

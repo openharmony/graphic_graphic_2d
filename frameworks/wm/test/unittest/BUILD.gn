@@ -19,8 +19,6 @@ group("unittest") {
   testonly = true
 
   deps = [
-    ":input_listener_manager_test",
-    ":log_listener_test",
     ":subwindow_normal_impl_test",
     ":subwindow_option_impl_test",
     ":wayland_service_test",
@@ -37,28 +35,6 @@ group("unittest") {
     ":wl_surface_factory_test",
   ]
 }
-
-## UnitTest input_listener_manager_test {{{
-ohos_unittest("input_listener_manager_test") {
-  module_out_path = module_out_path
-
-  sources = [ "input_listener_manager_test.cpp" ]
-
-  deps = [ ":wm_test_common" ]
-}
-
-## UnitTest input_listener_manager_test }}}
-
-## UnitTest log_listener_test {{{
-ohos_unittest("log_listener_test") {
-  module_out_path = module_out_path
-
-  sources = [ "log_listener_test.cpp" ]
-
-  deps = [ ":wm_test_common" ]
-}
-
-## UnitTest log_listener_test }}}
 
 ## UnitTest subwindow_normal_impl_test {{{
 ohos_unittest("subwindow_normal_impl_test") {
@@ -238,7 +214,7 @@ ohos_static_library("wm_test_common") {
     "//foundation/graphic/standard:libwmclient",
     "//foundation/graphic/standard:libwmservice",
     "//foundation/graphic/standard/frameworks/wmserver:wms_protocol",
-    "//foundation/graphic/standard/utils:test_header",
+    "//foundation/graphic/standard/utils:libgraphic_utils",
     "//third_party/googletest:gmock",
     "//third_party/wayland-protocols_standard:linux_dmabuf_unstable_v1_protocol",
     "//third_party/wayland-protocols_standard:linux_explicit_synchronization_unstable_v1_protocol",

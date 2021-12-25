@@ -30,7 +30,7 @@ public:
     virtual void TearDown() override;
 
 private:
-    static inline WMError initRet = WM_ERROR_NOT_INIT;
+    static inline GSError initRet = GSERROR_NOT_INIT;
 };
 }
 

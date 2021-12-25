@@ -22,86 +22,86 @@ namespace {
 constexpr HiviewDFX::HiLogLabel LABEL = {LOG_CORE, 0, "WMWindowOptionImpl"};
 }
 
-WMError WindowOptionImpl::SetWindowType(WindowType t)
+GSError WindowOptionImpl::SetWindowType(WindowType t)
 {
     if (!(t >= 0 && t < WINDOW_TYPE_MAX)) {
         WMLOGFE("type is invalid, should in [0, %{public}d)", WINDOW_TYPE_MAX);
-        return WM_ERROR_INVALID_PARAM;
+        return GSERROR_INVALID_ARGUMENTS;
     }
 
     type = t;
-    return WM_OK;
+    return GSERROR_OK;
 }
 
-WMError WindowOptionImpl::SetWindowMode(WindowMode m)
+GSError WindowOptionImpl::SetWindowMode(WindowMode m)
 {
     if (!(m >= 0 && m < WINDOW_MODE_MAX)) {
         WMLOGFE("mode is invalid, should in [0, %{public}d)", WINDOW_MODE_MAX);
-        return WM_ERROR_INVALID_PARAM;
+        return GSERROR_INVALID_ARGUMENTS;
     }
 
     mode = m;
-    return WM_OK;
+    return GSERROR_OK;
 }
 
-WMError WindowOptionImpl::SetDisplay(int32_t did)
+GSError WindowOptionImpl::SetDisplay(int32_t did)
 {
     if (!(did >= 0)) {
         WMLOGFE("displayId is invalid, should >= 0");
-        return WM_ERROR_INVALID_PARAM;
+        return GSERROR_INVALID_ARGUMENTS;
     }
 
     displayId = did;
-    return WM_OK;
+    return GSERROR_OK;
 }
 
-WMError WindowOptionImpl::SetConsumerSurface(const sptr<Surface> &surface)
+GSError WindowOptionImpl::SetConsumerSurface(const sptr<Surface> &surf)
 {
-    if (surface != nullptr && !(surface->IsConsumer() == true)) {
-        WMLOGFE("surface is invalid, should be consumer");
-        return WM_ERROR_INVALID_PARAM;
+    if (surf != nullptr && !(surf->IsConsumer() == true)) {
+        WMLOGFE("surf is invalid, should be consumer");
+        return GSERROR_INVALID_ARGUMENTS;
     }
 
-    consumerSurface = surface;
-    return WM_OK;
+    consumerSurface = surf;
+    return GSERROR_OK;
 }
 
-WMError WindowOptionImpl::SetX(int32_t x)
+GSError WindowOptionImpl::SetX(int32_t x)
 {
     this->x = x;
     this->settingX = true;
-    return WM_OK;
+    return GSERROR_OK;
 }
 
-WMError WindowOptionImpl::SetY(int32_t y)
+GSError WindowOptionImpl::SetY(int32_t y)
 {
     this->y = y;
     this->settingY = true;
-    return WM_OK;
+    return GSERROR_OK;
 }
 
-WMError WindowOptionImpl::SetWidth(uint32_t width)
+GSError WindowOptionImpl::SetWidth(uint32_t width)
 {
     if (!(width > 0)) {
         WMLOGFE("width is invalid, should > 0");
-        return WM_ERROR_INVALID_PARAM;
+        return GSERROR_INVALID_ARGUMENTS;
     }
 
     this->width = width;
     this->settingWidth = true;
-    return WM_OK;
+    return GSERROR_OK;
 }
 
-WMError WindowOptionImpl::SetHeight(uint32_t height)
+GSError WindowOptionImpl::SetHeight(uint32_t height)
 {
     if (!(height > 0)) {
         WMLOGFE("height is invalid, should > 0");
-        return WM_ERROR_INVALID_PARAM;
+        return GSERROR_INVALID_ARGUMENTS;
     }
 
     this->height = height;
     this->settingHeight = true;
-    return WM_OK;
+    return GSERROR_OK;
 }
 
 WindowType WindowOptionImpl::GetWindowType() const

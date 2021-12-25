@@ -18,30 +18,97 @@
 
 #include <cstdint>
 #include <functional>
+#include <memory>
 #include <string>
 #include <vector>
 
+#include <ipc_object_stub.h>
+#include <key_event_handler.h>
+#include <multimodal_event_handler.h>
+#include <touch_event_handler.h>
+#include <vsync_helper.h>
+#include <window_manager.h>
+#include <window_manager_service_client.h>
+
+#include "native_test_ipc_stub.h"
+
 namespace OHOS {
 class INativeTest;
-using VisitTestFunc = std::function<void(INativeTest *)>;
+using VisitTestFunc = std::function<bool(INativeTest *)>;
 
-class INativeTest {
+enum class AutoLoadService : int32_t {
+    Null                 = 0,
+    WindowManager        = 1 << 0,
+    WindowManagerService = 1 << 1,
+};
+AutoLoadService operator |(const AutoLoadService &l, const AutoLoadService &r);
+bool operator &(const AutoLoadService &l, const AutoLoadService &r);
+
+class INativeTest : public NativeTestIpcStub {
 public:
     enum {
         LAST_TIME_FOREVER = 999999999,
     };
 
-    static void VisitTests(VisitTestFunc func);
+    static INativeTest *VisitTests(VisitTestFunc func);
     INativeTest();
     virtual ~INativeTest() = default;
 
     virtual std::string GetDescription() const = 0;
     virtual std::string GetDomain() const = 0;
     virtual int32_t GetID() const = 0;
-    virtual uint32_t GetLastTime() const = 0;
     virtual void Run(int32_t argc, const char **argv) = 0;
+    virtual uint32_t GetLastTime() const;
+
+    // auto load service
+    virtual AutoLoadService GetAutoLoadService() const;
+    sptr<WindowManager> windowManager = nullptr;
+    sptr<IWindowManagerService> windowManagerService = nullptr;
+
+    // input
+    virtual bool OnKey(const KeyEvent &event);
+    virtual bool OnTouch(const TouchEvent &event);
+    int32_t ListenWindowKeyEvent(int32_t windowID);
+    int32_t ListenWindowTouchEvent(int32_t windowID);
+    void ListenWindowInputEvent(int32_t windowID); // key and touch
+
+    // multiple process
+    virtual int32_t GetProcessNumber() const;
+    virtual int32_t GetProcessSequence() const;
+    void WaitSubprocessAllQuit();
+
+    const char **processArgv = nullptr;
+    std::vector<const char *> extraArgs;
+    int32_t StartSubprocess(int32_t id);
+    int32_t IPCServerStart();
+    int32_t IPCServerStop();
+    GSError IPCClientConnectServer(int32_t said);
+    GSError IPCClientSendMessage(int32_t sequence,
+        const std::string &message, const sptr<IRemoteObject> &robj = nullptr);
+    virtual void IPCClientOnMessage(int32_t sequence, const std::string &message, const sptr<IRemoteObject> &robj);
+
+    // thread pool
+    void SetEventHandler(const std::shared_ptr<AppExecFwk::EventHandler> &handler);
+    void PostTask(std::function<void()> func, uint32_t delayTime = 0) const;
+    void ExitTest() const;
+
 private:
+    virtual GSError SendMessage(int32_t sequence, const std::string &message, const sptr<IRemoteObject> &robj) override;
+    virtual GSError Register(int32_t sequence, sptr<INativeTestIpc> &ipc) override;
+    virtual GSError OnMessage(int32_t sequence, const std::string &message, const sptr<IRemoteObject> &robj) override;
+    static void Signal(int32_t signum);
+    void GetToken();
+
     static inline std::vector<INativeTest *> tests;
+    std::shared_ptr<AppExecFwk::EventHandler> handler = nullptr;
+    std::map<int32_t, sptr<MMI::KeyEventHandler>> keyHandlerMap;
+    std::map<int32_t, sptr<MMI::TouchEventHandler>> touchHandlerMap;
+    sptr<IRemoteObject> token = nullptr;
+    sptr<INativeTestIpc> remoteIpc = nullptr;
+    std::map<pid_t, int32_t> pidToSeq;
+    std::map<int32_t, sptr<INativeTestIpc>> ipcs;
+    int32_t said = 0;
+    static inline INativeTest *thiz = nullptr;
 };
 } // namespace OHOS
 

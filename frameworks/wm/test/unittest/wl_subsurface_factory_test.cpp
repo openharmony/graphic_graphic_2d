@@ -43,13 +43,13 @@ namespace {
  * FunctionPoints: WlSubsurfaceFactory create
  * EnvConditions: WindowManager init success.
  * CaseDescription: 1. create two WlSurface
- *                  2. create WlSubsurface
+ *                  2. create WlSubsurf
  *                  3. check it isn't nullptr
  */
 HWTEST_F(WlSubsurfaceFactoryTest, Create, testing::ext::TestSize.Level0)
 {
     // WindowManager init success.
-    ASSERT_EQ(initRet, WM_OK) << "EnvConditions: WindowManager init success. (initRet == WM_OK)";
+    ASSERT_EQ(initRet, GSERROR_OK) << "EnvConditions: WindowManager init success. (initRet == GSERROR_OK)";
 
     // 1. create two WlSurface
     sptr<WlSurface> wlSurface1 = WlSurfaceFactory::GetInstance()->Create();
@@ -57,11 +57,11 @@ HWTEST_F(WlSubsurfaceFactoryTest, Create, testing::ext::TestSize.Level0)
     ASSERT_NE(wlSurface1, nullptr) << "CaseDescription: 1. create two WlSurface (wlSurface1 != nullptr)";
     ASSERT_NE(wlSurface2, nullptr) << "CaseDescription: 1. create two WlSurface (wlSurface2 != nullptr)";
 
-    // 2. create WlSubsurface
-    const auto wlSubsurface = WlSubsurfaceFactory::GetInstance()->Create(wlSurface1, wlSurface2);
+    // 2. create WlSubsurf
+    const auto wlSubsurf = WlSubsurfaceFactory::GetInstance()->Create(wlSurface1, wlSurface2);
 
     // 3. check it isn't nullptr
-    ASSERT_NE(wlSubsurface, nullptr) << "CaseDescription: 3. check it isn't nullptr (wlSubsurface != nullptr)";
+    ASSERT_NE(wlSubsurf, nullptr) << "CaseDescription: 3. check it isn't nullptr (wlSubsurf != nullptr)";
 }
 } // namespace
 } // namespace OHOS

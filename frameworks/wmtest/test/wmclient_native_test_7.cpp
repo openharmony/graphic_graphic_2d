@@ -46,7 +46,7 @@ void WMClientNativeTest7::Run(int32_t argc, const char **argv)
 {
     auto initRet = WindowManager::GetInstance()->Init();
     if (initRet) {
-        printf("init failed with %s\n", WMErrorStr(initRet).c_str());
+        printf("init failed with %s\n", GSErrorStr(initRet).c_str());
         ExitTest();
         return;
     }
@@ -77,7 +77,7 @@ void WMClientNativeTest7::AfterRun()
 
     auto wret = WindowManager::GetInstance()->CreateSubwindow(subwindow, window, option);
     if (subwindow == nullptr) {
-        printf("create subwindow failed %s\n", WMErrorStr(wret).c_str());
+        printf("create subwindow failed %s\n", GSErrorStr(wret).c_str());
         ExitTest();
         return;
     }

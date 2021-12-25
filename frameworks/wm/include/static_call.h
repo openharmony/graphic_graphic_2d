@@ -28,17 +28,21 @@ class StaticCall : public RefBase {
 public:
     static sptr<StaticCall> GetInstance();
 
-    MOCKABLE sptr<Surface> SurfaceCreateSurfaceAsConsumer(std::string name = "no name");
-    MOCKABLE sptr<Surface> SurfaceCreateSurfaceAsProducer(sptr<IBufferProducer>& producer);
-    MOCKABLE WMError WindowImplCreate(sptr<Window> &window,
-                                      const sptr<WindowOption> &option,
-                                      const sptr<IWindowManagerService> &wms);
-    MOCKABLE WMError SubwindowNormalImplCreate(sptr<Subwindow> &subwindow,
-                                               const sptr<Window> &window,
-                                               const sptr<SubwindowOption> &option);
-    MOCKABLE WMError SubwindowVideoImplCreate(sptr<Subwindow> &subwindow,
+    virtual sptr<Surface> SurfaceCreateSurfaceAsConsumer(std::string name = "no name");
+    virtual sptr<Surface> SurfaceCreateSurfaceAsProducer(sptr<IBufferProducer>& producer);
+    virtual sptr<Surface> SurfaceCreateEglSurfaceAsConsumer(std::string name = "no name");
+    virtual GSError WindowImplCreate(sptr<Window> &window,
+                                     const sptr<WindowOption> &option,
+                                     const sptr<IWindowManagerService> &wms);
+    virtual GSError SubwindowNormalImplCreate(sptr<Subwindow> &subwindow,
                                               const sptr<Window> &window,
                                               const sptr<SubwindowOption> &option);
+    virtual GSError SubwindowVideoImplCreate(sptr<Subwindow> &subwindow,
+                                             const sptr<Window> &window,
+                                             const sptr<SubwindowOption> &option);
+    virtual GSError SubwindowOffscreenImplCreate(sptr<Subwindow> &subwindow,
+                                                 const sptr<Window> &window,
+                                                 const sptr<SubwindowOption> &option);
 
 private:
     StaticCall() = default;

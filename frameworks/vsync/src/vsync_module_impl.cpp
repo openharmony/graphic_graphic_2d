@@ -19,7 +19,7 @@
 #include <thread>
 #include <unistd.h>
 
-#include <graphic_bytrace.h>
+#include <scoped_bytrace.h>
 #include <iservice_registry.h>
 #include <system_ability_definition.h>
 
@@ -46,11 +46,11 @@ sptr<VsyncModuleImpl> VsyncModuleImpl::GetInstance()
     return instance;
 }
 
-VsyncError VsyncModuleImpl::Start()
+GSError VsyncModuleImpl::Start()
 {
     VLOGI("Start");
-    VsyncError ret = InitSA();
-    if (ret != VSYNC_ERROR_OK) {
+    GSError ret = InitSA();
+    if (ret != GSERROR_OK) {
         VLOG_FAILURE("Start");
         return ret;
     }
@@ -58,14 +58,14 @@ VsyncError VsyncModuleImpl::Start()
     vsyncThreadRunning_ = true;
     vsyncThread_ = std::make_unique<std::thread>(std::bind(&VsyncModuleImpl::VsyncMainThread, this));
     VLOG_SUCCESS("Start");
-    return VSYNC_ERROR_OK;
+    return GSERROR_OK;
 }
 
-VsyncError VsyncModuleImpl::Trigger()
+GSError VsyncModuleImpl::Trigger()
 {
     if (IsRunning() == false) {
         VLOG_FAILURE("Trigger");
-        return VSYNC_ERROR_INVALID_OPERATING;
+        return GSERROR_INVALID_OPERATING;
     }
 
     const auto &now = std::chrono::steady_clock::now().time_since_epoch();
@@ -79,14 +79,14 @@ VsyncError VsyncModuleImpl::Trigger()
         promises_.pop();
     }
     promises_.push(occurTimestamp);
-    return VSYNC_ERROR_OK;
+    return GSERROR_OK;
 }
 
-VsyncError VsyncModuleImpl::Stop()
+GSError VsyncModuleImpl::Stop()
 {
     VLOGI("Stop");
     if (vsyncThreadRunning_ == false) {
-        VLOG_FAILURE_RET(VSYNC_ERROR_INVALID_OPERATING);
+        VLOG_FAILURE_RET(GSERROR_INVALID_OPERATING);
     }
 
     vsyncThreadRunning_ = false;
@@ -97,7 +97,7 @@ VsyncError VsyncModuleImpl::Stop()
         UnregisterSystemAbility();
     }
     VLOG_SUCCESS("Stop");
-    return VSYNC_ERROR_OK;
+    return GSERROR_OK;
 }
 
 bool VsyncModuleImpl::IsRunning()
@@ -105,12 +105,12 @@ bool VsyncModuleImpl::IsRunning()
     return vsyncThreadRunning_;
 }
 
-VsyncError VsyncModuleImpl::InitSA()
+GSError VsyncModuleImpl::InitSA()
 {
     return InitSA(VSYNC_MANAGER_ID);
 }
 
-VsyncError VsyncModuleImpl::InitSA(int32_t vsyncSystemAbilityId)
+GSError VsyncModuleImpl::InitSA(int32_t vsyncSystemAbilityId)
 {
     vsyncSystemAbilityId_ = vsyncSystemAbilityId;
 
@@ -119,14 +119,14 @@ VsyncError VsyncModuleImpl::InitSA(int32_t vsyncSystemAbilityId)
         constexpr int retryTimes = 5;
         if (tryCount++ >= retryTimes) {
             VLOGE("RegisterSystemAbility failed after %{public}d tries!!!", retryTimes);
-            return VSYNC_ERROR_SERVICE_NOT_FOUND;
+            return GSERROR_SERVER_ERROR;
         } else {
             VLOGE("RegisterSystemAbility failed, try again:%{public}d", tryCount);
             std::this_thread::sleep_for(100ms);
         }
     }
 
-    return VSYNC_ERROR_OK;
+    return GSERROR_OK;
 }
 
 VsyncModuleImpl::~VsyncModuleImpl()

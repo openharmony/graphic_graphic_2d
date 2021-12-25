@@ -94,7 +94,7 @@ HWTEST_F(VsyncCallbackTest, OnVsync1, testing::ext::TestSize.Level0)
     int64_t timestamp = (int64_t)std::chrono::duration_cast<std::chrono::nanoseconds>(now).count();
     ReturnValueTester::Set<bool>(0, false);
     auto ret = vc_->OnVsync(timestamp);
-    ASSERT_EQ(ret, VSYNC_ERROR_INVALID_ARGUMENTS);
+    ASSERT_EQ(ret, GSERROR_INVALID_ARGUMENTS);
 }
 
 HWTEST_F(VsyncCallbackTest, OnVsync2, testing::ext::TestSize.Level0)
@@ -103,31 +103,31 @@ HWTEST_F(VsyncCallbackTest, OnVsync2, testing::ext::TestSize.Level0)
     int64_t timestamp = (int64_t)std::chrono::duration_cast<std::chrono::nanoseconds>(now).count();
     ReturnValueTester::Set<bool>(1, false);
     auto ret = vc_->OnVsync(timestamp);
-    ASSERT_EQ(ret, VSYNC_ERROR_INVALID_ARGUMENTS);
+    ASSERT_EQ(ret, GSERROR_INVALID_ARGUMENTS);
 }
 
 HWTEST_F(VsyncCallbackTest, OnVsync3, testing::ext::TestSize.Level0)
 {
     auto now = std::chrono::steady_clock::now().time_since_epoch();
     int64_t timestamp = (int64_t)std::chrono::duration_cast<std::chrono::nanoseconds>(now).count();
-    ReturnValueTester::Set<int>(2, VSYNC_ERROR_BINDER_ERROR);
+    ReturnValueTester::Set<int>(2, GSERROR_BINDER);
     auto ret = vc_->OnVsync(timestamp);
-    ASSERT_EQ(ret, VSYNC_ERROR_BINDER_ERROR);
+    ASSERT_EQ(ret, GSERROR_BINDER);
 }
 
 HWTEST_F(VsyncCallbackTest, OnVsync4, testing::ext::TestSize.Level0)
 {
     auto now = std::chrono::steady_clock::now().time_since_epoch();
     int64_t timestamp = (int64_t)std::chrono::duration_cast<std::chrono::nanoseconds>(now).count();
-    ReturnValueTester::Set<int>(3, VSYNC_ERROR_API_FAILED);
+    ReturnValueTester::Set<int>(3, GSERROR_API_FAILED);
     auto ret = vc_->OnVsync(timestamp);
-    ASSERT_EQ(ret, VSYNC_ERROR_API_FAILED);
+    ASSERT_EQ(ret, GSERROR_API_FAILED);
 }
 } // namespace
-VsyncError VsyncCallback::OnVsync(int64_t timestamp)
+GSError VsyncCallback::OnVsync(int64_t timestamp)
 {
     (void)timestamp;
-    return VSYNC_ERROR_OK;
+    return GSERROR_OK;
 }
 } // namespace Vsync
 } // namespace OHOS

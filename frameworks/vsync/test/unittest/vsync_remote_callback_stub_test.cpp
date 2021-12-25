@@ -84,9 +84,9 @@ HWTEST_F(VsyncCallbackStubTest, OnRemoteRequest4, testing::ext::TestSize.Level0)
 }
 } // namespace
 
-VsyncError VsyncCallback::OnVsync(int64_t timestamp)
+GSError VsyncCallback::OnVsync(int64_t timestamp)
 {
-    return VSYNC_ERROR_OK;
+    return GSERROR_OK;
 }
 } // namespace Vsync
 } // namespace OHOS

@@ -25,13 +25,13 @@ class MockStaticCall : public StaticCall {
 public:
     MOCK_METHOD1(SurfaceCreateSurfaceAsConsumer, sptr<Surface>(std::string name));
     MOCK_METHOD1(SurfaceCreateSurfaceAsProducer, sptr<Surface>(sptr<IBufferProducer>& producer));
-    MOCK_METHOD3(WindowImplCreate, WMError(sptr<Window> &window,
+    MOCK_METHOD3(WindowImplCreate, GSError(sptr<Window> &window,
                                       const sptr<WindowOption> &option,
                                       const sptr<IWindowManagerService> &wms));
-    MOCK_METHOD3(SubwindowNormalImplCreate, WMError(sptr<Subwindow> &subwindow,
+    MOCK_METHOD3(SubwindowNormalImplCreate, GSError(sptr<Subwindow> &subwindow,
                                                const sptr<Window> &window,
                                                const sptr<SubwindowOption> &option));
-    MOCK_METHOD3(SubwindowVideoImplCreate, WMError(sptr<Subwindow> &subwindow,
+    MOCK_METHOD3(SubwindowVideoImplCreate, GSError(sptr<Subwindow> &subwindow,
                                               const sptr<Window> &window,
                                               const sptr<SubwindowOption> &option));
 };

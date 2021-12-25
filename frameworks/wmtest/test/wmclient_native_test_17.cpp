@@ -50,7 +50,7 @@ public:
     {
         auto initRet = WindowManager::GetInstance()->Init();
         if (initRet) {
-            printf("init failed with %s\n", WMErrorStr(initRet).c_str());
+            printf("init failed with %s\n", GSErrorStr(initRet).c_str());
             ExitTest();
             return;
         }
@@ -62,7 +62,7 @@ public:
 
     void AfterRun1()
     {
-        auto onSizeChange = [this](uint32_t w, uint32_t h) { subcsurface->SetDefaultWidthAndHeight(w, h); };
+        auto onSizeChange = [this](uint32_t w, uint32_t h) { subcsurf->SetDefaultWidthAndHeight(w, h); };
         subwindow->OnSizeChange(onSizeChange);
 
         std::vector<struct WMDisplayInfo> displays;

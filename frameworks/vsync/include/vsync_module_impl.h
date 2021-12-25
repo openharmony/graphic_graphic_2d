@@ -31,14 +31,14 @@ class VsyncModuleImpl : public VsyncModule {
 public:
     static sptr<VsyncModuleImpl> GetInstance();
 
-    virtual VsyncError Start() override;
-    virtual VsyncError Trigger() override;
-    virtual VsyncError Stop() override;
+    virtual GSError Start() override;
+    virtual GSError Trigger() override;
+    virtual GSError Stop() override;
     virtual bool IsRunning() override;
 
 protected:
-    virtual VsyncError InitSA();
-    VsyncError InitSA(int32_t vsyncSystemAbilityId);
+    virtual GSError InitSA();
+    GSError InitSA(int32_t vsyncSystemAbilityId);
 
 private:
     VsyncModuleImpl() = default;

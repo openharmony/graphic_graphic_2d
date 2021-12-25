@@ -62,7 +62,7 @@ namespace {
  * CaseDescription: 1. mock WlDisplay
  *                  2. Connect return false
  *                  3. call Init
- *                  4. check wret is WM_ERROR_CONNOT_CONNECT_WESTON
+ *                  4. check wret is GSERROR_CONNOT_CONNECT_WESTON
  */
 HWTEST_F(WindowManagerImplTest, Init01, Reliability | SmallTest | Level2)
 {
@@ -80,13 +80,13 @@ HWTEST_F(WindowManagerImplTest, Init01, Reliability | SmallTest | Level2)
             EXPECT_CALL(*m->Mock(), Connect(_)).Times(1).WillRepeatedly(Return(false));
         }
 
-        WMError wret;
+        GSError wret;
         STEP("3. call Init") {
             wret = wmi->Init();
         }
 
-        STEP("4. check wret is WM_ERROR_CONNOT_CONNECT_WESTON") {
-            STEP_ASSERT_EQ(wret, WM_ERROR_CONNOT_CONNECT_WESTON);
+        STEP("4. check wret is GSERROR_CONNOT_CONNECT_WESTON") {
+            STEP_ASSERT_EQ(wret, GSERROR_CONNOT_CONNECT_WESTON);
         }
     }
 }
@@ -97,9 +97,9 @@ HWTEST_F(WindowManagerImplTest, Init01, Reliability | SmallTest | Level2)
  * Rank: Important(2)
  * EnvConditions: N/A
  * CaseDescription: 1. mock WindowManagerServiceClient
- *                  2. Init return WM_ERROR_NOT_INIT
+ *                  2. Init return GSERROR_NOT_INIT
  *                  3. call Init
- *                  4. check wret is WM_ERROR_NOT_INIT
+ *                  4. check wret is GSERROR_NOT_INIT
  *                  5. call Deinit, remove MockWindowManagerServiceClient
  */
 HWTEST_F(WindowManagerImplTest, Init02, Reliability | SmallTest | Level2)
@@ -113,17 +113,17 @@ HWTEST_F(WindowManagerImplTest, Init02, Reliability | SmallTest | Level2)
             m = std::make_unique<Mocker>();
         }
 
-        STEP("2. Init return WM_ERROR_NOT_INIT") {
-            EXPECT_CALL(*m->Mock(), Init()).Times(1).WillRepeatedly(Return(WM_ERROR_NOT_INIT));
+        STEP("2. Init return GSERROR_NOT_INIT") {
+            EXPECT_CALL(*m->Mock(), Init()).Times(1).WillRepeatedly(Return(GSERROR_NOT_INIT));
         }
 
-        WMError wret;
+        GSError wret;
         STEP("3. call Init") {
             wret = wmi->Init();
         }
 
-        STEP("4. check wret is WM_ERROR_NOT_INIT") {
-            STEP_ASSERT_EQ(wret, WM_ERROR_NOT_INIT);
+        STEP("4. check wret is GSERROR_NOT_INIT") {
+            STEP_ASSERT_EQ(wret, GSERROR_NOT_INIT);
         }
 
         STEP("5. call Deinit, remove MockWindowManagerServiceClient") {
@@ -137,16 +137,16 @@ HWTEST_F(WindowManagerImplTest, Init02, Reliability | SmallTest | Level2)
  * Type: Function
  * Rank: Important(2)
  * EnvConditions: N/A
- * CaseDescription: 1. call Init return WM_OK
+ * CaseDescription: 1. call Init return GSERROR_OK
  */
 HWTEST_F(WindowManagerImplTest, Init03, Function | SmallTest | Level2)
 {
     PART("CaseDescription") {
         sptr<WindowManagerImpl> wmi = WindowManagerImpl::GetInstance();
 
-        STEP("1. call Init return WM_OK") {
+        STEP("1. call Init return GSERROR_OK") {
             auto wret = wmi->Init();
-            STEP_ASSERT_EQ(wret, WM_OK);
+            STEP_ASSERT_EQ(wret, GSERROR_OK);
         }
     }
 }
@@ -188,7 +188,7 @@ HWTEST_F(WindowManagerImplTest, Init04, Function | SmallTest | Level2)
 
         STEP("4. call Init") {
             auto wret = wmi->Init();
-            STEP_ASSERT_EQ(wret, WM_OK);
+            STEP_ASSERT_EQ(wret, GSERROR_OK);
         }
     }
 }
@@ -236,7 +236,7 @@ HWTEST_F(WindowManagerImplTest, Init05, Function | SmallTest | Level2)
 
         STEP("4. call Init") {
             auto wret = wmi->Init();
-            STEP_ASSERT_EQ(wret, WM_OK);
+            STEP_ASSERT_EQ(wret, GSERROR_OK);
         }
     }
 }
@@ -248,7 +248,7 @@ HWTEST_F(WindowManagerImplTest, Init05, Function | SmallTest | Level2)
  * EnvConditions: N/A
  * CaseDescription: 1. call Deinit
  *                  2. call GetDisplays
- *                  3. check wret is WM_ERROR_NOT_INIT
+ *                  3. check wret is GSERROR_NOT_INIT
  */
 HWTEST_F(WindowManagerImplTest, GetDisplays01, Reliability | SmallTest | Level2)
 {
@@ -259,14 +259,14 @@ HWTEST_F(WindowManagerImplTest, GetDisplays01, Reliability | SmallTest | Level2)
             wmi->Deinit();
         }
 
-        WMError wret;
+        GSError wret;
         STEP("2. call GetDisplays") {
             std::vector<struct WMDisplayInfo> displays;
             wret = wmi->GetDisplays(displays);
         }
 
-        STEP("3. check wret is WM_ERROR_NOT_INIT") {
-            STEP_ASSERT_EQ(wret, WM_ERROR_NOT_INIT);
+        STEP("3. check wret is GSERROR_NOT_INIT") {
+            STEP_ASSERT_EQ(wret, GSERROR_NOT_INIT);
         }
     }
 }
@@ -292,7 +292,7 @@ HWTEST_F(WindowManagerImplTest, GetDisplays02, Function | MediumTest | Level2)
 
         STEP("1. mock WindowManagerServiceClient") {
             m = std::make_unique<Mocker>();
-            EXPECT_CALL(*m->Mock(), Init()).Times(1).WillRepeatedly(Return(WM_OK));
+            EXPECT_CALL(*m->Mock(), Init()).Times(1).WillRepeatedly(Return(GSERROR_OK));
         }
 
         sptr<MockIWindowManagerService> mockiwms = new MockIWindowManagerService();
@@ -302,7 +302,7 @@ HWTEST_F(WindowManagerImplTest, GetDisplays02, Function | MediumTest | Level2)
 
         STEP("3. call Init") {
             auto wret = wmi->Init();
-            STEP_ASSERT_EQ(wret, WM_OK);
+            STEP_ASSERT_EQ(wret, GSERROR_OK);
         }
 
         STEP("4. expect GetDisplays call 1 times") {
@@ -327,7 +327,7 @@ HWTEST_F(WindowManagerImplTest, GetDisplays02, Function | MediumTest | Level2)
  * EnvConditions: N/A
  * CaseDescription: 1. call Deinit
  *                  2. call CreateWindow
- *                  3. check wret is WM_ERROR_NOT_INIT
+ *                  3. check wret is GSERROR_NOT_INIT
  */
 HWTEST_F(WindowManagerImplTest, CreateWindow01, Reliability | SmallTest | Level2)
 {
@@ -338,15 +338,15 @@ HWTEST_F(WindowManagerImplTest, CreateWindow01, Reliability | SmallTest | Level2
             wmi->Deinit();
         }
 
-        WMError wret;
+        GSError wret;
         STEP("2. call CreateWindow") {
             sptr<Window> window = nullptr;
             auto option = WindowOption::Get();
             wret = wmi->CreateWindow(window, option);
         }
 
-        STEP("3. check wret is WM_ERROR_NOT_INIT") {
-            STEP_ASSERT_EQ(wret, WM_ERROR_NOT_INIT);
+        STEP("3. check wret is GSERROR_NOT_INIT") {
+            STEP_ASSERT_EQ(wret, GSERROR_NOT_INIT);
         }
     }
 }
@@ -370,7 +370,7 @@ HWTEST_F(WindowManagerImplTest, CreateWindow02, Reliability | SmallTest | Level2
 
         STEP("1. call Init") {
             auto wret = wmi->Init();
-            STEP_ASSERT_EQ(wret, WM_OK);
+            STEP_ASSERT_EQ(wret, GSERROR_OK);
         }
 
         STEP("2. mock StaticCall") {
@@ -469,9 +469,9 @@ HWTEST_F(WindowManagerImplTest, CreateSubwindow02, Reliability | SmallTest | Lev
  * Rank: Important(2)
  * EnvConditions: N/A
  * CaseDescription: 1. mock SubwindowOption
- *                  2. GetWindowType return -1, -1
+ *                  2. GetWindowType return -1
  *                  3. call CreateSubwindow
- *                  4. check wret is WM_ERROR_NOT_SUPPORT
+ *                  4. check wret is GSERROR_NOT_SUPPORT
  */
 HWTEST_F(WindowManagerImplTest, CreateSubwindow03, Reliability | SmallTest | Level2)
 {
@@ -483,13 +483,13 @@ HWTEST_F(WindowManagerImplTest, CreateSubwindow03, Reliability | SmallTest | Lev
             mockSubwindowOption = new MockSubwindowOption();
         }
 
-        STEP("2. GetWindowType return -1, -1") {
+        STEP("2. GetWindowType return -1") {
             EXPECT_CALL(*mockSubwindowOption, GetWindowType())
-                .Times(2)
+                .Times(1)
                 .WillRepeatedly(Return(static_cast<SubwindowType>(-1)));
         }
 
-        WMError wret;
+        GSError wret;
         STEP("3. call CreateSubwindow") {
             sptr<Subwindow> subwindow = nullptr;
             sptr<Window> window = nullptr;
@@ -498,8 +498,8 @@ HWTEST_F(WindowManagerImplTest, CreateSubwindow03, Reliability | SmallTest | Lev
             wret = wmi->CreateSubwindow(subwindow, window, mockSubwindowOption);
         }
 
-        STEP("4. check wret is WM_ERROR_NOT_SUPPORT") {
-            STEP_ASSERT_EQ(wret, WM_ERROR_NOT_SUPPORT);
+        STEP("4. check wret is GSERROR_NOT_SUPPORT") {
+            STEP_ASSERT_EQ(wret, GSERROR_NOT_SUPPORT);
         }
     }
 }
@@ -511,7 +511,7 @@ HWTEST_F(WindowManagerImplTest, CreateSubwindow03, Reliability | SmallTest | Lev
  * EnvConditions: N/A
  * CaseDescription: 1. call Deinit
  *                  2. call ListenNextScreenShot
- *                  3. check wret is WM_ERROR_NOT_INIT
+ *                  3. check wret is GSERROR_NOT_INIT
  */
 HWTEST_F(WindowManagerImplTest, ListenNextScreenShot01, Reliability | SmallTest | Level2)
 {
@@ -522,13 +522,13 @@ HWTEST_F(WindowManagerImplTest, ListenNextScreenShot01, Reliability | SmallTest 
             wmi->Deinit();
         }
 
-        WMError wret;
+        GSError wret;
         STEP("2. call ListenNextScreenShot") {
             wret = wmi->ListenNextScreenShot(0, this);
         }
 
-        STEP("3. check wret is WM_ERROR_NOT_INIT") {
-            STEP_ASSERT_EQ(wret, WM_ERROR_NOT_INIT);
+        STEP("3. check wret is GSERROR_NOT_INIT") {
+            STEP_ASSERT_EQ(wret, GSERROR_NOT_INIT);
         }
     }
 }
@@ -540,7 +540,7 @@ HWTEST_F(WindowManagerImplTest, ListenNextScreenShot01, Reliability | SmallTest 
  * EnvConditions: N/A
  * CaseDescription: 1. call Init
  *                  2. call ListenNextScreenShot by nullptr
- *                  3. check wret is WM_ERROR_NULLPTR
+ *                  3. check wret is GSERROR_INVALID_ARGUMENTS
  */
 HWTEST_F(WindowManagerImplTest, ListenNextScreenShot02, Reliability | SmallTest | Level2)
 {
@@ -549,16 +549,16 @@ HWTEST_F(WindowManagerImplTest, ListenNextScreenShot02, Reliability | SmallTest 
 
         STEP("1. call Init") {
             auto wret = wmi->Init();
-            STEP_ASSERT_EQ(wret, WM_OK);
+            STEP_ASSERT_EQ(wret, GSERROR_OK);
         }
 
-        WMError wret;
+        GSError wret;
         STEP("2. call ListenNextScreenShot by nullptr") {
             wret = wmi->ListenNextScreenShot(0, nullptr);
         }
 
-        STEP("3. check wret is WM_ERROR_NULLPTR") {
-            STEP_ASSERT_EQ(wret, WM_ERROR_NULLPTR);
+        STEP("3. check wret is GSERROR_INVALID_ARGUMENTS") {
+            STEP_ASSERT_EQ(wret, GSERROR_INVALID_ARGUMENTS);
         }
     }
 }
@@ -574,7 +574,7 @@ HWTEST_F(WindowManagerImplTest, ListenNextScreenShot02, Reliability | SmallTest 
  *                  4. IWindowManagerService ShotScreen return nullptr
  *                  5. call Init
  *                  6. call ListenNextScreenShot
- *                  7. check wret is WM_ERROR_NEW
+ *                  7. check wret is GSERROR_NO_MEM
  *                  8. call Deinit, remove MockWindowManagerServiceClient
  */
 HWTEST_F(WindowManagerImplTest, ListenNextScreenShot03, Reliability | MediumTest | Level4)
@@ -590,7 +590,7 @@ HWTEST_F(WindowManagerImplTest, ListenNextScreenShot03, Reliability | MediumTest
 
         STEP("2. mock WindowManagerServiceClient") {
             m = std::make_unique<Mocker>();
-            EXPECT_CALL(*m->Mock(), Init()).Times(1).WillRepeatedly(Return(WM_OK));
+            EXPECT_CALL(*m->Mock(), Init()).Times(1).WillRepeatedly(Return(GSERROR_OK));
         }
 
         sptr<MockIWindowManagerService> mockiwms = new MockIWindowManagerService();
@@ -608,16 +608,16 @@ HWTEST_F(WindowManagerImplTest, ListenNextScreenShot03, Reliability | MediumTest
 
         STEP("5. call Init") {
             auto wret = wmi->Init();
-            STEP_ASSERT_EQ(wret, WM_OK);
+            STEP_ASSERT_EQ(wret, GSERROR_OK);
         }
 
-        WMError wret;
+        GSError wret;
         STEP("6. call ListenNextScreenShot") {
             wret = wmi->ListenNextScreenShot(0, this);
         }
 
-        STEP("7. check wret is WM_ERROR_NEW") {
-            STEP_ASSERT_EQ(wret, WM_ERROR_NEW);
+        STEP("7. check wret is GSERROR_NO_MEM") {
+            STEP_ASSERT_EQ(wret, GSERROR_NO_MEM);
         }
 
         STEP("8. call Deinit") {
@@ -637,7 +637,7 @@ HWTEST_F(WindowManagerImplTest, ListenNextScreenShot03, Reliability | MediumTest
  *                  4. IWindowManagerService ShotScreen return Promise
  *                  5. call Init
  *                  6. call ListenNextScreenShot
- *                  7. check wret is WM_OK
+ *                  7. check wret is GSERROR_OK
  *                  8. call Deinit, remove MockWindowManagerServiceClient
  */
 HWTEST_F(WindowManagerImplTest, ListenNextScreenShot04, Function | MediumTest | Level2)
@@ -653,7 +653,7 @@ HWTEST_F(WindowManagerImplTest, ListenNextScreenShot04, Function | MediumTest | 
 
         STEP("2. mock WindowManagerServiceClient") {
             m = std::make_unique<Mocker>();
-            EXPECT_CALL(*m->Mock(), Init()).Times(1).WillRepeatedly(Return(WM_OK));
+            EXPECT_CALL(*m->Mock(), Init()).Times(1).WillRepeatedly(Return(GSERROR_OK));
         }
 
         sptr<MockIWindowManagerService> mockiwms = new MockIWindowManagerService();
@@ -671,16 +671,16 @@ HWTEST_F(WindowManagerImplTest, ListenNextScreenShot04, Function | MediumTest | 
 
         STEP("5. call Init") {
             auto wret = wmi->Init();
-            STEP_ASSERT_EQ(wret, WM_OK);
+            STEP_ASSERT_EQ(wret, GSERROR_OK);
         }
 
-        WMError wret;
+        GSError wret;
         STEP("6. call ListenNextScreenShot") {
             wret = wmi->ListenNextScreenShot(0, this);
         }
 
-        STEP("7. check wret is WM_OK") {
-            STEP_ASSERT_EQ(wret, WM_OK);
+        STEP("7. check wret is GSERROR_OK") {
+            STEP_ASSERT_EQ(wret, GSERROR_OK);
         }
 
         STEP("8. call Deinit, remove MockWindowManagerServiceClient") {
@@ -696,7 +696,7 @@ HWTEST_F(WindowManagerImplTest, ListenNextScreenShot04, Function | MediumTest | 
  * EnvConditions: N/A
  * CaseDescription: 1. call Deinit
  *                  2. call ListenNextWindowShot
- *                  3. check wret is WM_ERROR_NOT_INIT
+ *                  3. check wret is GSERROR_NOT_INIT
  */
 HWTEST_F(WindowManagerImplTest, ListenNextWindowShot01, Reliability | SmallTest | Level2)
 {
@@ -707,13 +707,13 @@ HWTEST_F(WindowManagerImplTest, ListenNextWindowShot01, Reliability | SmallTest 
             wmi->Deinit();
         }
 
-        WMError wret;
+        GSError wret;
         STEP("2. call ListenNextWindowShot") {
             wret = wmi->ListenNextWindowShot(0, this);
         }
 
-        STEP("3. check wret is WM_ERROR_NOT_INIT") {
-            STEP_ASSERT_EQ(wret, WM_ERROR_NOT_INIT);
+        STEP("3. check wret is GSERROR_NOT_INIT") {
+            STEP_ASSERT_EQ(wret, GSERROR_NOT_INIT);
         }
     }
 }
@@ -725,7 +725,7 @@ HWTEST_F(WindowManagerImplTest, ListenNextWindowShot01, Reliability | SmallTest 
  * EnvConditions: N/A
  * CaseDescription: 1. call Init
  *                  2. call ListenNextWindowShot by nullptr
- *                  3. check wret is WM_ERROR_NULLPTR
+ *                  3. check wret is GSERROR_INVALID_ARGUMENTS
  */
 HWTEST_F(WindowManagerImplTest, ListenNextWindowShot02, Reliability | SmallTest | Level2)
 {
@@ -734,16 +734,16 @@ HWTEST_F(WindowManagerImplTest, ListenNextWindowShot02, Reliability | SmallTest 
 
         STEP("1. call Init") {
             auto wret = wmi->Init();
-            STEP_ASSERT_EQ(wret, WM_OK);
+            STEP_ASSERT_EQ(wret, GSERROR_OK);
         }
 
-        WMError wret;
+        GSError wret;
         STEP("2. call ListenNextWindowShot by nullptr") {
             wret = wmi->ListenNextWindowShot(0, nullptr);
         }
 
-        STEP("3. check wret is WM_ERROR_NULLPTR") {
-            STEP_ASSERT_EQ(wret, WM_ERROR_NULLPTR);
+        STEP("3. check wret is GSERROR_INVALID_ARGUMENTS") {
+            STEP_ASSERT_EQ(wret, GSERROR_INVALID_ARGUMENTS);
         }
     }
 }
@@ -759,7 +759,7 @@ HWTEST_F(WindowManagerImplTest, ListenNextWindowShot02, Reliability | SmallTest 
  *                  4. IWindowManagerService ShotWindow return nullptr
  *                  5. call Init
  *                  6. call ListenNextWindowShot
- *                  7. check wret is WM_ERROR_NEW
+ *                  7. check wret is GSERROR_NO_MEM
  *                  8. call Deinit, remove MockWindowManagerServiceClient
  */
 HWTEST_F(WindowManagerImplTest, ListenNextWindowShot03, Reliability | MediumTest | Level4)
@@ -775,7 +775,7 @@ HWTEST_F(WindowManagerImplTest, ListenNextWindowShot03, Reliability | MediumTest
 
         STEP("2. mock WindowManagerServiceClient") {
             m = std::make_unique<Mocker>();
-            EXPECT_CALL(*m->Mock(), Init()).Times(1).WillRepeatedly(Return(WM_OK));
+            EXPECT_CALL(*m->Mock(), Init()).Times(1).WillRepeatedly(Return(GSERROR_OK));
         }
 
         sptr<MockIWindowManagerService> mockiwms = new MockIWindowManagerService();
@@ -789,10 +789,10 @@ HWTEST_F(WindowManagerImplTest, ListenNextWindowShot03, Reliability | MediumTest
 
         STEP("5. call Init") {
             auto wret = wmi->Init();
-            STEP_ASSERT_EQ(wret, WM_OK);
+            STEP_ASSERT_EQ(wret, GSERROR_OK);
         }
 
-        WMError wret;
+        GSError wret;
         STEP("6. call ListenNextWindowShot") {
             sptr<MockWindow> mw = new MockWindow();
             EXPECT_CALL(*mw, GetID()).Times(1).WillRepeatedly(Return(0));
@@ -800,8 +800,8 @@ HWTEST_F(WindowManagerImplTest, ListenNextWindowShot03, Reliability | MediumTest
             wret = wmi->ListenNextWindowShot(mw, this);
         }
 
-        STEP("7. check wret is WM_ERROR_NEW") {
-            STEP_ASSERT_EQ(wret, WM_ERROR_NEW);
+        STEP("7. check wret is GSERROR_NO_MEM") {
+            STEP_ASSERT_EQ(wret, GSERROR_NO_MEM);
         }
 
         STEP("8. call Deinit, remove MockWindowManagerServiceClient") {
@@ -821,7 +821,7 @@ HWTEST_F(WindowManagerImplTest, ListenNextWindowShot03, Reliability | MediumTest
  *                  4. IWindowManagerService ShotWindow return Promise
  *                  5. call Init
  *                  6. call ListenNextWindowShot
- *                  7. check wret is WM_OK
+ *                  7. check wret is GSERROR_OK
  *                  8. call Deinit, remove MockWindowManagerServiceClient
  */
 HWTEST_F(WindowManagerImplTest, ListenNextWindowShot04, Function | MediumTest | Level2)
@@ -837,7 +837,7 @@ HWTEST_F(WindowManagerImplTest, ListenNextWindowShot04, Function | MediumTest | 
 
         STEP("2. mock WindowManagerServiceClient") {
             m = std::make_unique<Mocker>();
-            EXPECT_CALL(*m->Mock(), Init()).Times(1).WillRepeatedly(Return(WM_OK));
+            EXPECT_CALL(*m->Mock(), Init()).Times(1).WillRepeatedly(Return(GSERROR_OK));
         }
 
         sptr<MockIWindowManagerService> mockiwms = new MockIWindowManagerService();
@@ -852,10 +852,10 @@ HWTEST_F(WindowManagerImplTest, ListenNextWindowShot04, Function | MediumTest | 
 
         STEP("5. call Init") {
             auto wret = wmi->Init();
-            STEP_ASSERT_EQ(wret, WM_OK);
+            STEP_ASSERT_EQ(wret, GSERROR_OK);
         }
 
-        WMError wret;
+        GSError wret;
         STEP("6. call ListenNextWindowShot") {
             sptr<MockWindow> mw = new MockWindow();
             EXPECT_CALL(*mw, GetID()).Times(1).WillRepeatedly(Return(0));
@@ -863,8 +863,8 @@ HWTEST_F(WindowManagerImplTest, ListenNextWindowShot04, Function | MediumTest | 
             wret = wmi->ListenNextWindowShot(mw, this);
         }
 
-        STEP("7. check wret is WM_OK") {
-            STEP_ASSERT_EQ(wret, WM_OK);
+        STEP("7. check wret is GSERROR_OK") {
+            STEP_ASSERT_EQ(wret, GSERROR_OK);
         }
 
         STEP("8. call Deinit, remove MockWindowManagerServiceClient") {

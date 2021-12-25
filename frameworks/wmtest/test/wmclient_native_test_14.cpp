@@ -15,21 +15,11 @@
 
 #include "wmclient_native_test_14.h"
 
-#include <chrono>
-#include <cstdio>
-#include <securec.h>
-#include <thread>
-#include <unistd.h>
-
-#include <display_type.h>
-#include <iservice_registry.h>
-#include <window_manager.h>
+#include <gslogger.h>
 
 #include "inative_test.h"
 #include "native_test_class.h"
-#include "util.h"
 
-using namespace std::chrono_literals;
 using namespace OHOS;
 
 namespace {
@@ -53,139 +43,127 @@ public:
         return id;
     }
 
-    uint32_t GetLastTime() const override
+    AutoLoadService GetAutoLoadService() const override
     {
-        constexpr uint32_t lastTime = LAST_TIME_FOREVER;
-        return lastTime;
+        return AutoLoadService::WindowManager;
+    }
+
+    int32_t GetProcessNumber() const override
+    {
+        return 2;
     }
 
     void Run(int32_t argc, const char **argv) override
     {
-        auto initRet = WindowManager::GetInstance()->Init();
-        if (initRet) {
-            printf("init failed with %s\n", WMErrorStr(initRet).c_str());
+        auto ret = IPCServerStart();
+        if (ret) {
+            GSLOG7SE(ERROR) << ret;
             ExitTest();
-            return;
         }
 
-        pipe(pipeFd);
-        pid_t pid = fork();
-        if (pid < 0) {
-            printf("%s fork failed", __func__);
-            ExitTest();
-            return;
-        }
+        GSLOG7SO(INFO) << "fork return: " << StartSubprocess(1);
+        sleep(1);
+        GSLOG7SO(INFO) << "fork return: " << StartSubprocess(0);
+        WaitSubprocessAllQuit();
+    }
+} g_autoload;
 
-        if (pid == 0) {
-            std::this_thread::sleep_for(50ms);
-            ChildProcess();
-        } else {
-            MainProcess();
-        }
+class WMClientNativeTest14Sub0 : public WMClientNativeTest14 {
+public:
+    std::string GetDescription() const override
+    {
+        constexpr const char *desc = "window consumer";
+        return desc;
     }
 
-private:
-    void MainProcess()
+    int32_t GetProcessSequence() const override
+    {
+        return 0;
+    }
+
+    void Run(int32_t argc, const char **argv) override
     {
         window = NativeTestFactory::CreateWindow(WINDOW_TYPE_NORMAL);
         if (window == nullptr) {
-            printf("%s window == nullptr\n", __func__);
+            GSLOG7SO(ERROR) << "window == nullptr";
             ExitTest();
             return;
         }
 
         window->SwitchTop();
-        auto surface = window->GetSurface();
-        if (surface == nullptr) {
-            printf("%s surface == nullptr\n", __func__);
+        auto surf = window->GetSurface();
+        if (surf == nullptr) {
+            GSLOG7SO(ERROR) << "surf == nullptr";
             ExitTest();
             return;
         }
 
-        auto producer = surface->GetProducer();
-        if (producer == nullptr) {
-            printf("%s producer == nullptr\n", __func__);
-            ExitTest();
-            return;
-        }
-
-        auto producerObject = producer->AsObject();
-        if (producerObject == nullptr) {
-            printf("%s producerObject == nullptr\n", __func__);
-            ExitTest();
-            return;
-        }
-
-        auto sam = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-        if (sam == nullptr) {
-            printf("%s sam == nullptr\n", __func__);
-            ExitTest();
-            return;
-        }
-
-        sam->AddSystemAbility(SAID, producerObject);
-
-        uint32_t msg = 0;
-        write(pipeFd[1], &msg, sizeof(msg));
-        sleep(0);
-
-        char buf[10];
-        read(pipeFd[0], buf, sizeof(buf));
-        sam->RemoveSystemAbility(SAID);
-        ExitTest();
+        IPCClientSendMessage(1, "producer", surf->GetProducer()->AsObject());
     }
 
-    void ChildProcess()
+    void IPCClientOnMessage(int32_t sequence, const std::string &message, const sptr<IRemoteObject> &robj) override
     {
-        char buf[10];
-        read(pipeFd[0], &buf, sizeof(buf));
-
-        auto sam = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-        if (sam == nullptr) {
-            printf("%s main_process sam == nullptr\n", __func__);
+        if (message == "quit") {
             ExitTest();
-            return;
         }
+    }
 
-        auto robj = sam->GetSystemAbility(SAID);
-        if (robj == nullptr) {
-            printf("%s main_process robj == nullptr\n", __func__);
-            ExitTest();
-            return;
-        }
+private:
+    sptr<Window> window;
+} g_autoload0;
 
-        auto bp = iface_cast<IBufferProducer>(robj);
+class WMClientNativeTest14Sub1 : public WMClientNativeTest14 {
+public:
+    std::string GetDescription() const override
+    {
+        constexpr const char *desc = "surface producer";
+        return desc;
+    }
+
+    int32_t GetProcessSequence() const override
+    {
+        return 1;
+    }
+
+    void Run(int32_t argc, const char **argv) override
+    {
+    }
+
+    void Run2()
+    {
+        auto bp = iface_cast<IBufferProducer>(remoteObject);
         if (bp == nullptr) {
-            printf("%s main_process bp == nullptr\n", __func__);
+            GSLOG7SO(ERROR) << "bp == nullptr";
             ExitTest();
             return;
         }
 
         auto ipcSurface = Surface::CreateSurfaceAsProducer(bp);
         if (ipcSurface == nullptr) {
-            printf("%s main_process ipcSurface == nullptr\n", __func__);
+            GSLOG7SO(ERROR) << "ipcSurface == nullptr";
             ExitTest();
             return;
         }
 
         windowSync = NativeTestSync::CreateSync(NativeTestDraw::FlushDraw, ipcSurface);
-
-        constexpr uint32_t delayTime = 3000;
-        PostTask(std::bind(&WMClientNativeTest14::ChildProcessAfter, this), delayTime);
     }
 
-    void ChildProcessAfter()
+    void IPCClientOnMessage(int32_t sequence, const std::string &message, const sptr<IRemoteObject> &robj) override
     {
-        char buf[10] = "end";
-        write(pipeFd[1], buf, sizeof(buf));
-        ExitTest();
-        return;
+        if (message == "producer") {
+            remoteObject = robj;
+            if (remoteObject == nullptr) {
+                PostTask(std::bind(&INativeTest::IPCClientSendMessage, this, 0, "quit", nullptr));
+                ExitTest();
+            } else {
+                PostTask(std::bind(&WMClientNativeTest14Sub1::Run2, this));
+            }
+            return;
+        }
     }
 
 private:
-    int32_t pipeFd[2] = {};
-    static inline constexpr uint32_t SAID = 4699;
-    sptr<Window> window;
-    sptr<NativeTestSync> windowSync;
-} g_autoload;
+    sptr<NativeTestSync> windowSync = nullptr;
+    sptr<IRemoteObject> remoteObject = nullptr;
+} g_autoload1;
 } // namespace

@@ -17,7 +17,7 @@
 
 #include <mutex>
 
-#include <graphic_bytrace.h>
+#include <scoped_bytrace.h>
 
 #include "buffer_log.h"
 #include "buffer_manager.h"
@@ -34,8 +34,8 @@ ProducerEglSurface::ProducerEglSurface(sptr<IBufferProducer>& producer)
     width_ = producer_->GetDefaultWidth();
     height_ = producer_->GetDefaultHeight();
     auto sret = producer_->GetName(name_);
-    if (sret != SURFACE_ERROR_OK) {
-        BLOGNE("GetName failed, %{public}s", SurfaceErrorStr(sret).c_str());
+    if (sret != GSERROR_OK) {
+        BLOGNE("GetName failed, %{public}s", GSErrorStr(sret).c_str());
     }
     BLOGND("ctor");
 }
@@ -53,30 +53,34 @@ ProducerEglSurface::~ProducerEglSurface()
         }
     }
 
+    if (currentBuffer_ != nullptr) {
+        auto bufferImpl = SurfaceBufferImpl::FromBase(currentBuffer_);
+        BufferExtraDataImpl bedataimpl;
+        bufferImpl->GetExtraData(bedataimpl);
+        producer_->CancelBuffer(bufferImpl->GetSeqNum(), bedataimpl);
+        currentBuffer_ = nullptr;
+    }
     sEglManager_ = nullptr;
-    currentBuffer_ = nullptr;
     producer_ = nullptr;
 }
 
-SurfaceError ProducerEglSurface::RequestBuffer(sptr<SurfaceBuffer> &buffer,
+GSError ProducerEglSurface::RequestBuffer(sptr<SurfaceBuffer> &buffer,
     int32_t& fence, BufferRequestConfig &config)
 {
     IBufferProducer::RequestBufferReturnValue retval;
     BufferExtraDataImpl bedataimpl;
     retval.fence = EGL_NO_NATIVE_FENCE_FD_ANDROID;
-    SurfaceError ret = producer_->RequestBuffer(config, bedataimpl, retval);
-    if (ret != SURFACE_ERROR_OK) {
-        BLOGN_FAILURE("Producer report %{public}s", SurfaceErrorStr(ret).c_str());
+    GSError ret = producer_->RequestBuffer(config, bedataimpl, retval);
+    if (ret != GSERROR_OK) {
+        BLOGN_FAILURE("Producer report %{public}s", GSErrorStr(ret).c_str());
         return ret;
     }
-
-    GraphicBytrace::BytraceBegin("EGLProducerUseBuffer");
 
     // add cache
     if (retval.buffer != nullptr && IsRemote()) {
         sptr<SurfaceBufferImpl> bufferImpl = SurfaceBufferImpl::FromBase(retval.buffer);
         ret = BufferManager::GetInstance()->Map(bufferImpl);
-        if (ret != SURFACE_ERROR_OK) {
+        if (ret != GSERROR_OK) {
             BLOGN_FAILURE_ID(retval.sequence, "Map failed");
         } else {
             BLOGN_SUCCESS_ID(retval.sequence, "Map");
@@ -92,7 +96,7 @@ SurfaceError ProducerEglSurface::RequestBuffer(sptr<SurfaceBuffer> &buffer,
 
     sptr<SurfaceBufferImpl> bufferImpl = SurfaceBufferImpl::FromBase(retval.buffer);
     ret = BufferManager::GetInstance()->InvalidateCache(bufferImpl);
-    if (ret != SURFACE_ERROR_OK) {
+    if (ret != GSERROR_OK) {
         BLOGNW("Warning [%{public}d], InvalidateCache failed", retval.sequence);
     }
 
@@ -109,45 +113,48 @@ SurfaceError ProducerEglSurface::RequestBuffer(sptr<SurfaceBuffer> &buffer,
     }
 
     fence = retval.fence;
-    return SURFACE_ERROR_OK;
+    return GSERROR_OK;
 }
 
-SurfaceError ProducerEglSurface::FlushBuffer(sptr<SurfaceBuffer> &buffer,
+GSError ProducerEglSurface::FlushBuffer(sptr<SurfaceBuffer> &buffer,
     int32_t fence, BufferFlushConfig &config)
 {
     if (buffer == nullptr) {
-        return SURFACE_ERROR_NULLPTR;
+        return GSERROR_INVALID_ARGUMENTS;
     }
 
-    GraphicBytrace::BytraceEnd("EGLProducerUseBuffer");
     auto bufferImpl = SurfaceBufferImpl::FromBase(buffer);
     BufferExtraDataImpl bedataimpl;
     bufferImpl->GetExtraData(bedataimpl);
     return producer_->FlushBuffer(bufferImpl->GetSeqNum(), bedataimpl, fence, config);
 }
 
-SurfaceError ProducerEglSurface::InitContext(EGLContext context)
+GSError ProducerEglSurface::InitContext(EGLContext context)
 {
     ScopedBytrace func(__func__);
 
     sEglManager_ = EglManager::GetInstance();
     if (sEglManager_ == nullptr) {
         BLOGNE("EglManager::GetInstance Failed.");
-        return SURFACE_ERROR_INIT;
+        return GSERROR_INTERNEL;
     }
 
-    if (sEglManager_->Init(context) != SURFACE_ERROR_OK) {
+    if (sEglManager_->Init(context) != GSERROR_OK) {
         BLOGNE("EglManager init failed.");
-        return SURFACE_ERROR_INIT;
+        return GSERROR_INTERNEL;
     }
 
-    if (RequestBufferProc() != SURFACE_ERROR_OK) {
+    if (initFlag_) {
+        return GSERROR_OK;
+    }
+
+    if (RequestBufferProc() != GSERROR_OK) {
         BLOGNE("RequestBufferProc failed.");
-        return SURFACE_ERROR_INIT;
+        return GSERROR_INTERNEL;
     }
 
     initFlag_ = true;
-    return SURFACE_ERROR_OK;
+    return GSERROR_OK;
 }
 
 EGLDisplay ProducerEglSurface::GetEglDisplay() const
@@ -184,38 +191,42 @@ GLuint ProducerEglSurface::GetEglFbo() const
     return 0;
 }
 
-SurfaceError ProducerEglSurface::SwapBuffers()
+GSError ProducerEglSurface::SwapBuffers()
 {
     ScopedBytrace func(__func__);
     if (!initFlag_) {
         BLOGNE("ProducerEglSurface is not init.");
-        return SURFACE_ERROR_INIT;
+        return GSERROR_INTERNEL;
     }
 
-    if (FlushBufferProc() != SURFACE_ERROR_OK) {
+    if (FlushBufferProc() != GSERROR_OK) {
         BLOGNE("FlushBufferProc failed.");
     }
 
-    if (RequestBufferProc() != SURFACE_ERROR_OK) {
+    if (RequestBufferProc() != GSERROR_OK) {
         BLOGNE("RequestBufferProc failed.");
-        return SURFACE_ERROR_ERROR;
+        return GSERROR_INTERNEL;
     }
 
-    return SURFACE_ERROR_OK;
+    return GSERROR_OK;
 }
 
-SurfaceError ProducerEglSurface::SetWidthAndHeight(int32_t width, int32_t height)
+GSError ProducerEglSurface::SetWidthAndHeight(int32_t width, int32_t height)
 {
+    if (width <= 0 || height <= 0) {
+        return SURFACE_ERROR_INVALID_PARAM;
+    }
+
     std::lock_guard<std::mutex> lock(mutex_);
     width_ = width;
     height_ = height;
-    return SURFACE_ERROR_OK;
+    return GSERROR_OK;
 }
 
-SurfaceError ProducerEglSurface::WaitForReleaseFence(int32_t fd)
+GSError ProducerEglSurface::WaitForReleaseFence(int32_t fd)
 {
     ScopedBytrace func(__func__);
-    SurfaceError ret = SURFACE_ERROR_OK;
+    GSError ret = GSERROR_OK;
     if (fd != EGL_NO_NATIVE_FENCE_FD_ANDROID) {
         BLOGNI("releaseFence %{public}d.", fd);
         EGLint attribList[] = {
@@ -226,23 +237,23 @@ SurfaceError ProducerEglSurface::WaitForReleaseFence(int32_t fd)
         EGLSyncKHR sync = sEglManager_->EglCreateSync(EGL_SYNC_NATIVE_FENCE_ANDROID, attribList);
         if (sync == EGL_NO_SYNC_KHR) {
             BLOGNE("EglCreateSync failed.");
-            return SURFACE_ERROR_ERROR;
+            return GSERROR_INTERNEL;
         }
 
         if (sEglManager_->EglWaitSync(sync, 0) != EGL_TRUE) {
             BLOGNE("EglWaitSync failed.");
-            ret = SURFACE_ERROR_ERROR;
+            ret = GSERROR_INTERNEL;
         }
 
         if (sEglManager_->EglDestroySync(sync) != EGL_TRUE) {
             BLOGNE("EglDestroySync failed.");
-            ret = SURFACE_ERROR_ERROR;
+            ret = GSERROR_INTERNEL;
         }
     }
     return ret;
 }
 
-SurfaceError ProducerEglSurface::RequestBufferProc()
+GSError ProducerEglSurface::RequestBufferProc()
 {
     ScopedBytrace func(__func__);
     int32_t releaseFence;
@@ -261,31 +272,31 @@ SurfaceError ProducerEglSurface::RequestBufferProc()
         }
 
         currentBuffer_ = nullptr;
-        if (RequestBuffer(currentBuffer_, releaseFence, rconfig) != SURFACE_ERROR_OK) {
+        if (RequestBuffer(currentBuffer_, releaseFence, rconfig) != GSERROR_OK) {
             BLOGNE("RequestBuffer failed.");
-            return SURFACE_ERROR_ERROR;
+            return GSERROR_INTERNEL;
         }
     }
 
-    if (AddEglData(currentBuffer_) != SURFACE_ERROR_OK) {
+    if (AddEglData(currentBuffer_) != GSERROR_OK) {
         BLOGNE("AddEglData failed.");
-        return SURFACE_ERROR_ERROR;
+        return GSERROR_INTERNEL;
     }
 
-    if (WaitForReleaseFence(releaseFence) != SURFACE_ERROR_OK) {
+    if (WaitForReleaseFence(releaseFence) != GSERROR_OK) {
         BLOGNE("WaitForReleaseFence failed.");
-        return SURFACE_ERROR_ERROR;
+        return GSERROR_INTERNEL;
     }
 
-    return SURFACE_ERROR_OK;
+    return GSERROR_OK;
 }
 
-SurfaceError ProducerEglSurface::CreateEglFenceFd(int32_t &fd)
+GSError ProducerEglSurface::CreateEglFenceFd(int32_t &fd)
 {
     EGLSyncKHR sync = sEglManager_->EglCreateSync(EGL_SYNC_NATIVE_FENCE_ANDROID, nullptr);
     if (sync == EGL_NO_SYNC_KHR) {
         BLOGNE("EglCreateSync failed.");
-        return SURFACE_ERROR_ERROR;
+        return GSERROR_INTERNEL;
     }
 
     glFlush();
@@ -297,21 +308,21 @@ SurfaceError ProducerEglSurface::CreateEglFenceFd(int32_t &fd)
 
     if (fd == EGL_NO_NATIVE_FENCE_FD_ANDROID) {
         BLOGNE("EglDupNativeFenceFd failed.");
-        return SURFACE_ERROR_ERROR;
+        return GSERROR_INTERNEL;
     }
-    return SURFACE_ERROR_OK;
+    return GSERROR_OK;
 }
 
-SurfaceError ProducerEglSurface::FlushBufferProc()
+GSError ProducerEglSurface::FlushBufferProc()
 {
     ScopedBytrace func(__func__);
     int32_t fd = EGL_NO_NATIVE_FENCE_FD_ANDROID;
     if (currentBuffer_ == nullptr) {
         BLOGNE("currentBuffer_ is nullptr.");
-        return SURFACE_ERROR_ERROR;
+        return GSERROR_INTERNEL;
     }
 
-    if (CreateEglFenceFd(fd) != SURFACE_ERROR_OK) {
+    if (CreateEglFenceFd(fd) != GSERROR_OK) {
         BLOGNE("CreateEglFenceFd failed.");
     }
     BLOGNE("flush fence fd %{public}d.", fd);
@@ -324,12 +335,12 @@ SurfaceError ProducerEglSurface::FlushBufferProc()
             .h = currentBuffer_->GetHeight(),
         },
     };
-    if (FlushBuffer(currentBuffer_, fd, fconfig) != SURFACE_ERROR_OK) {
+    if (FlushBuffer(currentBuffer_, fd, fconfig) != GSERROR_OK) {
         BLOGNE("FlushBuffer failed.");
-        return SURFACE_ERROR_ERROR;
+        return GSERROR_INTERNEL;
     }
 
-    return SURFACE_ERROR_OK;
+    return GSERROR_OK;
 }
 
 bool ProducerEglSurface::IsRemote()
@@ -337,7 +348,7 @@ bool ProducerEglSurface::IsRemote()
     return producer_->AsObject()->IsProxyObject();
 }
 
-SurfaceError ProducerEglSurface::AddEglData(sptr<SurfaceBuffer> &buffer)
+GSError ProducerEglSurface::AddEglData(sptr<SurfaceBuffer> &buffer)
 {
     ScopedBytrace func(__func__);
     sptr<SurfaceBufferImpl> bufferImpl = SurfaceBufferImpl::FromBase(buffer);
@@ -345,16 +356,16 @@ SurfaceError ProducerEglSurface::AddEglData(sptr<SurfaceBuffer> &buffer)
     if (sEglData != nullptr) {
         glBindFramebuffer(GL_FRAMEBUFFER, sEglData->GetFrameBufferObj());
         BLOGI("bufferImpl is reused return.");
-        return SURFACE_ERROR_OK;
+        return GSERROR_OK;
     }
 
     sptr<EglDataImpl> sEglDataImpl = new EglDataImpl();
     if (sEglDataImpl == nullptr) {
         BLOGNE("new failed.");
-        return SURFACE_ERROR_NOMEM;
+        return GSERROR_NO_MEM;
     }
     auto sret = sEglDataImpl->CreateEglData(bufferImpl);
-    if (sret == SURFACE_ERROR_OK) {
+    if (sret == GSERROR_OK) {
         bufferImpl->SetEglData(sEglDataImpl);
         BLOGI("bufferImpl FBO=%{public}d.", sEglDataImpl->GetFrameBufferObj());
     }

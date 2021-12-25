@@ -70,8 +70,8 @@ HWTEST_F(VsyncManagerStubTest, OnRemoteRequest3, testing::ext::TestSize.Level0)
     data.WriteInterfaceToken(IVsyncManager::GetDescriptor());
     data.WriteRemoteObject(nullptr);
     vc_->OnRemoteRequest(IVsyncManager::IVSYNC_MANAGER_LISTEN_VSYNC, data, reply, opt);
-    VsyncError err = (VsyncError)reply.ReadInt32();
-    ASSERT_EQ(err, VSYNC_ERROR_NULLPTR);
+    GSError err = (GSError)reply.ReadInt32();
+    ASSERT_EQ(err, GSERROR_INVALID_ARGUMENTS);
 }
 
 HWTEST_F(VsyncManagerStubTest, OnRemoteRequest4, testing::ext::TestSize.Level0)
@@ -91,7 +91,7 @@ HWTEST_F(VsyncManagerStubTest, ListenVsync1, testing::ext::TestSize.Level0)
 {
     sptr<IVsyncCallback> cb = nullptr;
     auto ret = vc_->ListenVsync(cb);
-    ASSERT_EQ(ret, VSYNC_ERROR_NULLPTR);
+    ASSERT_EQ(ret, GSERROR_INVALID_ARGUMENTS);
 }
 
 HWTEST_F(VsyncManagerStubTest, ListenVsync2, testing::ext::TestSize.Level0)
@@ -99,7 +99,7 @@ HWTEST_F(VsyncManagerStubTest, ListenVsync2, testing::ext::TestSize.Level0)
     int count = 0;
     sptr<IVsyncCallback> cb = new VsyncCallback(count);
     auto ret = vc_->ListenVsync(cb);
-    ASSERT_EQ(ret, VSYNC_ERROR_OK);
+    ASSERT_EQ(ret, GSERROR_OK);
 }
 
 HWTEST_F(VsyncManagerStubTest, GetVsyncFrequency, testing::ext::TestSize.Level0)
@@ -135,13 +135,13 @@ VsyncCallback::VsyncCallback(int &count) : count_(&count)
 {
 }
 
-VsyncError VsyncCallback::OnVsync(int64_t timestamp)
+GSError VsyncCallback::OnVsync(int64_t timestamp)
 {
     if (timestamp <= 0) {
-        return VSYNC_ERROR_BINDER_ERROR;
+        return GSERROR_BINDER;
     }
     *count_ = *count_ + 1;
-    return VSYNC_ERROR_OK;
+    return GSERROR_OK;
 }
 } // namespace Vsync
 } // namespace OHOS

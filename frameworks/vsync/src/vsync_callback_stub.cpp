@@ -39,7 +39,7 @@ int32_t VsyncCallbackStub::OnRemoteRequest(uint32_t code, MessageParcel &data,
                 return 1;
             }
 
-            VsyncError err = OnVsync(timestamp);
+            GSError err = OnVsync(timestamp);
             reply.WriteInt32(err);
             break;
         }

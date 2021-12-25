@@ -48,20 +48,20 @@ napi_value WindowConstructor(napi_env env, napi_callback_info info)
 // Window.ResetSize {{{
 namespace ResetSize {
 struct Param {
-    sptr<PromiseWMError> promise;
-    WMError wret;
+    sptr<PromiseGSError> promise;
+    GSError wret;
 };
 
 bool Async(napi_env env, std::unique_ptr<Param> &param)
 {
     param->wret = param->promise->Await();
-    return param->wret == WM_OK;
+    return param->wret == GSERROR_OK;
 }
 
 napi_value Resolve(napi_env env, std::unique_ptr<Param> &param)
 {
-    if (param->wret != WM_OK) {
-        return CreateError(env, "failed with %s", WMErrorStr(param->wret).c_str());
+    if (param->wret != GSERROR_OK) {
+        return CreateError(env, "failed with %s", GSErrorStr(param->wret).c_str());
     }
     return nullptr;
 }
@@ -94,20 +94,20 @@ napi_value MainFunc(napi_env env, napi_callback_info info)
 // Window.MoveTo {{{
 namespace MoveTo {
 struct Param {
-    sptr<PromiseWMError> promise;
-    WMError wret;
+    sptr<PromiseGSError> promise;
+    GSError wret;
 };
 
 bool Async(napi_env env, std::unique_ptr<Param> &param)
 {
     param->wret = param->promise->Await();
-    return param->wret == WM_OK;
+    return param->wret == GSERROR_OK;
 }
 
 napi_value Resolve(napi_env env, std::unique_ptr<Param> &param)
 {
-    if (param->wret != WM_OK) {
-        return CreateError(env, "failed with %s", WMErrorStr(param->wret).c_str());
+    if (param->wret != GSERROR_OK) {
+        return CreateError(env, "failed with %s", GSErrorStr(param->wret).c_str());
     }
     return nullptr;
 }
@@ -140,20 +140,20 @@ napi_value MainFunc(napi_env env, napi_callback_info info)
 // Window.SetWindowType {{{
 namespace SetWindowType {
 struct Param {
-    sptr<PromiseWMError> promise;
-    WMError wret;
+    sptr<PromiseGSError> promise;
+    GSError wret;
 };
 
 bool Async(napi_env env, std::unique_ptr<Param> &param)
 {
     param->wret = param->promise->Await();
-    return param->wret == WM_OK;
+    return param->wret == GSERROR_OK;
 }
 
 napi_value Resolve(napi_env env, std::unique_ptr<Param> &param)
 {
-    if (param->wret != WM_OK) {
-        return CreateError(env, "failed with %s", WMErrorStr(param->wret).c_str());
+    if (param->wret != GSERROR_OK) {
+        return CreateError(env, "failed with %s", GSErrorStr(param->wret).c_str());
     }
     return nullptr;
 }
@@ -185,8 +185,8 @@ napi_value MainFunc(napi_env env, napi_callback_info info)
 // getTopWindow {{{
 namespace GetTopWindow {
 struct Param {
-    sptr<PromiseWMError> promise;
-    WMError wret;
+    sptr<PromiseGSError> promise;
+    GSError wret;
 };
 
 napi_value Resolve(napi_env env, std::unique_ptr<Param> &userdata)
@@ -208,10 +208,10 @@ napi_value MainFunc(napi_env env, napi_callback_info info)
 namespace SetSystemBarEnable {
 struct Param {
     sptr<IWindowManagerService> wms;
-    sptr<PromiseWMError> statusPromise;
-    WMError statusWret;
-    sptr<PromiseWMError> navigationPromise;
-    WMError navigationWret;
+    sptr<PromiseGSError> statusPromise;
+    GSError statusWret;
+    sptr<PromiseGSError> navigationPromise;
+    GSError navigationWret;
 };
 
 bool Async(napi_env env, std::unique_ptr<Param> &param)
@@ -219,22 +219,22 @@ bool Async(napi_env env, std::unique_ptr<Param> &param)
     bool retval = true;
     if (param->statusPromise != nullptr) {
         param->statusWret = param->statusPromise->Await();
-        retval = retval && param->statusWret == WM_OK;
+        retval = retval && param->statusWret == GSERROR_OK;
     }
     if (param->navigationPromise != nullptr) {
         param->navigationWret = param->navigationPromise->Await();
-        retval = retval && param->navigationWret == WM_OK;
+        retval = retval && param->navigationWret == GSERROR_OK;
     }
     return retval;
 }
 
 napi_value Resolve(napi_env env, std::unique_ptr<Param> &param)
 {
-    if (param->statusWret != WM_OK) {
-        return CreateError(env, "failed with %s", WMErrorStr(param->statusWret).c_str());
+    if (param->statusWret != GSERROR_OK) {
+        return CreateError(env, "failed with %s", GSErrorStr(param->statusWret).c_str());
     }
-    if (param->navigationWret != WM_OK) {
-        return CreateError(env, "failed with %s", WMErrorStr(param->navigationWret).c_str());
+    if (param->navigationWret != GSERROR_OK) {
+        return CreateError(env, "failed with %s", GSErrorStr(param->navigationWret).c_str());
     }
     return nullptr;
 }
@@ -252,8 +252,8 @@ napi_value MainFunc(napi_env env, napi_callback_info info)
     auto param = std::make_unique<Param>();
     auto wmsc = WindowManagerServiceClient::GetInstance();
     auto wret = wmsc->Init();
-    GNAPI_ASSERT(env, wret == WM_OK,
-                 "WindowManagerServiceClient::Init failed with %s", WMErrorStr(wret).c_str());
+    GNAPI_ASSERT(env, wret == GSERROR_OK,
+                 "WindowManagerServiceClient::Init failed with %s", GSErrorStr(wret).c_str());
     param->wms = wmsc->GetService();
 
     bool isArray = false;

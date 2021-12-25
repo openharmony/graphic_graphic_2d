@@ -71,24 +71,24 @@ namespace OHOS {
 
 #define BLOGN_FAILURE_RET(ret)                                     \
     do {                                                          \
-        BLOGN_FAILURE("%{public}s", SurfaceErrorStr(ret).c_str()); \
+        BLOGN_FAILURE("%{public}s", GSErrorStr(ret).c_str()); \
         return ret;                                               \
     } while (0)
 
 #define BLOGN_FAILURE_API(api, ret) \
-    BLOGN_FAILURE(#api " failed, then %{public}s", SurfaceErrorStr(ret).c_str())
+    BLOGN_FAILURE(#api " failed, then %{public}s", GSErrorStr(ret).c_str())
 
 #define BLOGN_FAILURE_ID(id, fmt, ...) \
     BLOGNE("Failure [%{public}d], Reason: " fmt, id, ##__VA_ARGS__)
 
 #define BLOGN_FAILURE_ID_RET(id, ret)                                     \
     do {                                                                 \
-        BLOGN_FAILURE_ID(id, "%{public}s", SurfaceErrorStr(ret).c_str()); \
+        BLOGN_FAILURE_ID(id, "%{public}s", GSErrorStr(ret).c_str()); \
         return ret;                                                      \
     } while (0)
 
 #define BLOGN_FAILURE_ID_API(id, api, ret) \
-    BLOGN_FAILURE_ID(id, #api " failed, then %{public}s", SurfaceErrorStr(ret).c_str())
+    BLOGN_FAILURE_ID(id, #api " failed, then %{public}s", GSErrorStr(ret).c_str())
 } // namespace OHOS
 
 #endif // FRAMEWORKS_SURFACE_INCLUDE_BUFFER_LOG_H

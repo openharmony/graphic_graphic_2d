@@ -25,12 +25,12 @@ constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, 0, "BufferExtraDataImpl" };
 constexpr int32_t BUFFER_EXTRA_DATA_MAGIC = 0x4567;
 } // namespace
 
-SurfaceError BufferExtraDataImpl::ReadFromParcel(MessageParcel &parcel)
+GSError BufferExtraDataImpl::ReadFromParcel(MessageParcel &parcel)
 {
     int32_t magic;
     if (parcel.ReadInt32(magic) == false || magic != BUFFER_EXTRA_DATA_MAGIC) {
         BLOGW("read failed, magic is error");
-        return SURFACE_ERROR_ERROR;
+        return GSERROR_INTERNEL;
     }
 
     int32_t size = parcel.ReadInt32();
@@ -58,10 +58,10 @@ SurfaceError BufferExtraDataImpl::ReadFromParcel(MessageParcel &parcel)
             default: break;
         }
     }
-    return SURFACE_ERROR_OK;
+    return GSERROR_OK;
 }
 
-SurfaceError BufferExtraDataImpl::WriteToParcel(MessageParcel &parcel)
+GSError BufferExtraDataImpl::WriteToParcel(MessageParcel &parcel)
 {
     parcel.WriteInt32(BUFFER_EXTRA_DATA_MAGIC);
     parcel.WriteInt32(datas.size());
@@ -110,76 +110,76 @@ SurfaceError BufferExtraDataImpl::WriteToParcel(MessageParcel &parcel)
                 break;
         }
     }
-    return SURFACE_ERROR_OK;
+    return GSERROR_OK;
 }
 
-SurfaceError BufferExtraDataImpl::ExtraGet(std::string &key, int32_t &value) const
+GSError BufferExtraDataImpl::ExtraGet(std::string &key, int32_t &value) const
 {
     return ExtraGet<int32_t>(key, ExtraDataType::i32, value);
 }
 
-SurfaceError BufferExtraDataImpl::ExtraGet(std::string &key, int64_t &value) const
+GSError BufferExtraDataImpl::ExtraGet(std::string &key, int64_t &value) const
 {
     return ExtraGet<int64_t>(key, ExtraDataType::i64, value);
 }
 
-SurfaceError BufferExtraDataImpl::ExtraGet(std::string &key, double &value) const
+GSError BufferExtraDataImpl::ExtraGet(std::string &key, double &value) const
 {
     return ExtraGet<double>(key, ExtraDataType::f64, value);
 }
 
-SurfaceError BufferExtraDataImpl::ExtraGet(std::string &key, std::string &value) const
+GSError BufferExtraDataImpl::ExtraGet(std::string &key, std::string &value) const
 {
     return ExtraGet<std::string>(key, ExtraDataType::string, value);
 }
 
-SurfaceError BufferExtraDataImpl::ExtraSet(std::string &key, int32_t value)
+GSError BufferExtraDataImpl::ExtraSet(std::string &key, int32_t value)
 {
     return ExtraSet(key, ExtraDataType::i32, value);
 }
 
-SurfaceError BufferExtraDataImpl::ExtraSet(std::string &key, int64_t value)
+GSError BufferExtraDataImpl::ExtraSet(std::string &key, int64_t value)
 {
     return ExtraSet(key, ExtraDataType::i64, value);
 }
 
-SurfaceError BufferExtraDataImpl::ExtraSet(std::string &key, double value)
+GSError BufferExtraDataImpl::ExtraSet(std::string &key, double value)
 {
     return ExtraSet(key, ExtraDataType::f64, value);
 }
 
-SurfaceError BufferExtraDataImpl::ExtraSet(std::string &key, std::string value)
+GSError BufferExtraDataImpl::ExtraSet(std::string &key, std::string value)
 {
     return ExtraSet(key, ExtraDataType::string, value);
 }
 
 template<class T>
-SurfaceError BufferExtraDataImpl::ExtraGet(std::string &key, ExtraDataType type, T &value) const
+GSError BufferExtraDataImpl::ExtraGet(std::string &key, ExtraDataType type, T &value) const
 {
     auto it = datas.find(key);
     if (it == datas.end()) {
-        return SURFACE_ERROR_NO_ENTRY;
+        return GSERROR_NO_ENTRY;
     }
     if (it->second.type != type) {
-        return SURFACE_ERROR_TYPE_ERROR;
+        return GSERROR_TYPE_ERROR;
     }
     auto pVal = std::any_cast<T>(&it->second.val);
     if (pVal == nullptr) {
-        return SURFACE_ERROR_TYPE_ERROR;
+        return GSERROR_TYPE_ERROR;
     }
     value = *pVal;
-    return SURFACE_ERROR_OK;
+    return GSERROR_OK;
 }
 
-SurfaceError BufferExtraDataImpl::ExtraSet(std::string &key, ExtraDataType type, std::any val)
+GSError BufferExtraDataImpl::ExtraSet(std::string &key, ExtraDataType type, std::any val)
 {
     auto it = datas.find(key);
     if (it == datas.end() && datas.size() > SURFACE_MAX_USER_DATA_COUNT) {
         BLOGW("SurfaceBuffer has too many extra data, cannot save one more!!!");
-        return SURFACE_ERROR_OUT_OF_RANGE;
+        return GSERROR_OUT_OF_RANGE;
     }
     datas[key].type = type;
     datas[key].val = val;
-    return SURFACE_ERROR_OK;
+    return GSERROR_OK;
 }
 } // namespace OHOS

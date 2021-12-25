@@ -51,7 +51,7 @@ HWTEST_F(VsyncHelperImplTest, Init1, testing::ext::TestSize.Level0)
     EXPECT_CALL(*mockInstance, GetSystemAbilityManager())
                 .Times(1).WillRepeatedly(testing::Return(nullptr));
     auto ret = client->Init();
-    ASSERT_EQ(ret, VSYNC_ERROR_SAMGR);
+    ASSERT_EQ(ret, GSERROR_CONNOT_CONNECT_SAMGR);
     StaticCall::SetInstance(origin);
 }
 
@@ -68,7 +68,7 @@ HWTEST_F(VsyncHelperImplTest, Init2, testing::ext::TestSize.Level0)
     EXPECT_CALL(*mockInstance, GetSystemAbility(testing::_, testing::_))
                 .Times(1).WillRepeatedly(testing::Return(nullptr));
     auto ret = client->Init();
-    ASSERT_EQ(ret, VSYNC_ERROR_SERVICE_NOT_FOUND);
+    ASSERT_EQ(ret, GSERROR_SERVER_ERROR);
     StaticCall::SetInstance(origin);
 }
 
@@ -88,7 +88,7 @@ HWTEST_F(VsyncHelperImplTest, Init3, testing::ext::TestSize.Level0)
     EXPECT_CALL(*mockInstance, GetCast(testing::_))
                 .Times(1).WillRepeatedly(testing::Return(nullptr));
     auto ret = client->Init();
-    ASSERT_EQ(ret, VSYNC_ERROR_PROXY_NOT_INCLUDE);
+    ASSERT_EQ(ret, GSERROR_PROXY_NOT_INCLUDE);
     StaticCall::SetInstance(origin);
 }
 
@@ -109,9 +109,9 @@ HWTEST_F(VsyncHelperImplTest, Init4, testing::ext::TestSize.Level0)
     EXPECT_CALL(*mockInstance, GetCast(testing::_))
                 .Times(1).WillRepeatedly(testing::Return(servive));
     EXPECT_CALL(*mockInstance, GetVsyncFrequency(testing::_, testing::_))
-                .Times(1).WillRepeatedly(testing::Return(VSYNC_ERROR_INVALID_OPERATING));
+                .Times(1).WillRepeatedly(testing::Return(GSERROR_INVALID_OPERATING));
     auto ret = client->Init();
-    ASSERT_EQ(ret, VSYNC_ERROR_INVALID_OPERATING);
+    ASSERT_EQ(ret, GSERROR_INVALID_OPERATING);
     StaticCall::SetInstance(origin);
 }
 
@@ -126,9 +126,9 @@ HWTEST_F(VsyncHelperImplTest, Init5, testing::ext::TestSize.Level0)
     auto remoteObject = sm->GetSystemAbility(VSYNC_MANAGER_ID);
     auto servive = iface_cast<IVsyncManager>(remoteObject);
     EXPECT_CALL(*mockInstance, GetVsyncFrequency(testing::_, testing::_))
-                .Times(1).WillRepeatedly(testing::Return(VSYNC_ERROR_OK));
+                .Times(1).WillRepeatedly(testing::Return(GSERROR_OK));
     auto ret = client->Init();
-    ASSERT_EQ(ret, VSYNC_ERROR_INNER);
+    ASSERT_EQ(ret, GSERROR_INTERNEL);
     StaticCall::SetInstance(origin);
 }
 
@@ -136,7 +136,7 @@ HWTEST_F(VsyncHelperImplTest, Init7, testing::ext::TestSize.Level0)
 {
     sptr<VsyncClient> client = VsyncClient::GetInstance();
     auto ret = client->Init();
-    ASSERT_EQ(ret, VSYNC_ERROR_OK);
+    ASSERT_EQ(ret, GSERROR_OK);
 }
 
 HWTEST_F(VsyncHelperImplTest, RequestFrameCallback1, testing::ext::TestSize.Level0)
@@ -144,7 +144,7 @@ HWTEST_F(VsyncHelperImplTest, RequestFrameCallback1, testing::ext::TestSize.Leve
     sptr<VsyncClient> client = VsyncClient::GetInstance();
     FrameCallback cb;
     auto ret = client->RequestFrameCallback(cb);
-    ASSERT_EQ(ret, VSYNC_ERROR_NULLPTR);
+    ASSERT_EQ(ret, GSERROR_INVALID_ARGUMENTS);
 }
 
 HWTEST_F(VsyncHelperImplTest, RequestFrameCallback2, testing::ext::TestSize.Level0)
@@ -154,7 +154,7 @@ HWTEST_F(VsyncHelperImplTest, RequestFrameCallback2, testing::ext::TestSize.Leve
     cb.callback_ = std::bind(&StaticCall::Sync, StaticCall::GetInstance(), SYNC_FUNC_ARG);
     cb.frequency_ = 31;
     auto ret = client->RequestFrameCallback(cb);
-    ASSERT_EQ(ret, VSYNC_ERROR_INVALID_ARGUMENTS);
+    ASSERT_EQ(ret, GSERROR_INVALID_ARGUMENTS);
 }
 
 HWTEST_F(VsyncHelperImplTest, Current, testing::ext::TestSize.Level0)

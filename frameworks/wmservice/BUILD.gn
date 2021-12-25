@@ -54,6 +54,7 @@ ohos_shared_library("libwmservice") {
   deps = [
     "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
     "//foundation/distributedschedule/samgr/interfaces/innerkits/samgr_proxy:samgr_proxy",
+    "//foundation/graphic/standard/frameworks/animation_server:libanimation_service",
     "//foundation/graphic/standard/frameworks/wmserver:wms_protocol",
     "//third_party/wayland_standard:libwayland_client",
   ]

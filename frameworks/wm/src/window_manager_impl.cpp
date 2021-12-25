@@ -61,7 +61,6 @@ void WindowManagerImpl::InitSingleton()
 {
     if (initSingleton == false) {
         initSingleton = true;
-        inputListenerManager = SingletonContainer::Get<InputListenerManager>();
         windowManagerServer = SingletonContainer::Get<WindowManagerServer>();
         wlBufferCache = SingletonContainer::Get<WlBufferCache>();
         wlDMABufferFactory = SingletonContainer::Get<WlDMABufferFactory>();
@@ -69,7 +68,6 @@ void WindowManagerImpl::InitSingleton()
         wlSubsurfaceFactory = SingletonContainer::Get<WlSubsurfaceFactory>();
         wlSurfaceFactory = SingletonContainer::Get<WlSurfaceFactory>();
 
-        inputListenerManager->Init();
         windowManagerServer->Init();
         wlBufferCache->Init();
         wlDMABufferFactory->Init();
@@ -84,14 +82,14 @@ void WindowManagerImpl::InitSingleton()
     }
 }
 
-WMError WindowManagerImpl::Init()
+GSError WindowManagerImpl::Init()
 {
     std::lock_guard<std::mutex> lock(initMutex);
 
     display = SingletonContainer::Get<WlDisplay>();
     if (init == true) {
         if (display->GetError() == 0) {
-            return WM_OK; // already init
+            return GSERROR_OK; // already init
         }
         WMLOGFI("Reinit");
         Deinit(); // Reinit
@@ -101,7 +99,7 @@ WMError WindowManagerImpl::Init()
     if (display->GetFd() == -1) {
         if (display->Connect(nullptr) == false) {
             WMLOGFE("create display failed!");
-            return WM_ERROR_CONNOT_CONNECT_WESTON;
+            return GSERROR_CONNOT_CONNECT_WESTON;
         }
     }
 
@@ -110,8 +108,8 @@ WMError WindowManagerImpl::Init()
 
     if (wmservice == nullptr) {
         wmsc = SingletonContainer::Get<WindowManagerServiceClient>();
-        WMError wret = wmsc->Init();
-        if (wret != WM_OK) {
+        GSError wret = wmsc->Init();
+        if (wret != GSERROR_OK) {
             WMLOGFE("WMService init failed");
             display->StopDispatchThread();
             wmsc = nullptr;
@@ -121,7 +119,7 @@ WMError WindowManagerImpl::Init()
         wmservice = wmsc->GetService();
     }
     init = true;
-    return WM_OK;
+    return GSERROR_OK;
 }
 
 void WindowManagerImpl::DeinitSingleton()
@@ -136,7 +134,6 @@ void WindowManagerImpl::DeinitSingleton()
         wlDMABufferFactory->Deinit();
         wlBufferCache->Deinit();
         windowManagerServer->Deinit();
-        inputListenerManager->Deinit();
 
         waylandService = nullptr;
         wlSurfaceFactory = nullptr;
@@ -145,7 +142,6 @@ void WindowManagerImpl::DeinitSingleton()
         wlDMABufferFactory = nullptr;
         wlBufferCache = nullptr;
         windowManagerServer = nullptr;
-        inputListenerManager = nullptr;
 
         display->Roundtrip();
     }
@@ -167,10 +163,10 @@ void WindowManagerImpl::Deinit()
     display->Disconnect();
 }
 
-WMError WindowManagerImpl::GetDisplays(std::vector<struct WMDisplayInfo> &displays) const
+GSError WindowManagerImpl::GetDisplays(std::vector<struct WMDisplayInfo> &displays) const
 {
     if (wmservice == nullptr) {
-        return WM_ERROR_NOT_INIT;
+        return GSERROR_NOT_INIT;
     }
     return wmservice->GetDisplays(displays);
 }
@@ -192,15 +188,79 @@ sptr<Window> WindowManagerImpl::GetWindowByID(int32_t wid)
     return ret;
 }
 
-WMError WindowManagerImpl::CreateWindow(sptr<Window> &window, const sptr<WindowOption> &option)
+GSError WindowManagerImpl::CreateVirtualDisplay(const sptr<VirtualDisplayOption> &option)
+{
+    if (wmservice == nullptr) {
+        return GSERROR_NOT_INIT;
+    }
+
+    auto promise = wmservice->CreateVirtualDisplay(option->GetX(), option->GetY(),
+        option->GetWidth(), option->GetHeight());
+    if (promise == nullptr) {
+        WMLOGFE("CreateVirtualDisplay return nullptr promise");
+        return GSERROR_NO_MEM;
+    }
+
+    auto wret = promise->Await();
+    if (wret != GSERROR_OK) {
+        WMLOGFE("wms->CreateVirtualDisplay failed %{public}s", GSErrorStr(wret).c_str());
+        return wret;
+    }
+
+    return GSERROR_OK;
+}
+
+GSError WindowManagerImpl::DestroyVirtualDisplay(uint32_t did)
+{
+    if (wmservice == nullptr) {
+        return GSERROR_NOT_INIT;
+    }
+
+    auto promise = wmservice->DestroyVirtualDisplay(did);
+    if (promise == nullptr) {
+        WMLOGFE("DestroyVirtualDisplay return nullptr promise");
+        return GSERROR_NO_MEM;
+    }
+
+    auto wret = promise->Await();
+    if (wret != GSERROR_OK) {
+        WMLOGFE("wms->DestroyVirtualDisplay failed %{public}s", GSErrorStr(wret).c_str());
+        return wret;
+    }
+
+    return GSERROR_OK;
+}
+
+GSError WindowManagerImpl::SetDisplayMode(WMSDisplayMode mode)
+{
+    if (wmservice == nullptr) {
+        return GSERROR_NOT_INIT;
+    }
+
+    auto promise = wmservice->SetDisplayMode(mode);
+    if (promise == nullptr) {
+        WMLOGFE("SetDisplayMode return nullptr promise");
+        return GSERROR_NO_MEM;
+    }
+
+    auto wret = promise->Await();
+    if (wret != GSERROR_OK) {
+        WMLOGFE("wms->SetDisplayMode failed %{public}s", GSErrorStr(wret).c_str());
+        return wret;
+    }
+
+    return GSERROR_OK;
+}
+
+GSError WindowManagerImpl::CreateWindow(sptr<Window> &window, const sptr<WindowOption> &option)
 {
     if (option == nullptr) {
         WMLOGFE("WindowOption is nullptr");
-        return WM_ERROR_NULLPTR;
+        return GSERROR_INVALID_ARGUMENTS;
     }
 
     if (wmservice == nullptr) {
-        return WM_ERROR_NOT_INIT;
+        return GSERROR_NOT_INIT;
     }
 
     auto wret = SingletonContainer::Get<StaticCall>()->WindowImplCreate(window, option, wmservice);
@@ -210,47 +270,52 @@ WMError WindowManagerImpl::CreateWindow(sptr<Window> &window, const sptr<WindowO
     return wret;
 }
 
-WMError WindowManagerImpl::CreateSubwindow(sptr<Subwindow> &subwindow,
+GSError WindowManagerImpl::CreateSubwindow(sptr<Subwindow> &subwindow,
                                            const sptr<Window> &window,
                                            const sptr<SubwindowOption> &option)
 {
     if (window == nullptr) {
         WMLOGFE("Window is nullptr");
-        return WM_ERROR_NULLPTR;
+        return GSERROR_INVALID_ARGUMENTS;
     }
 
     if (option == nullptr) {
         WMLOGFE("WindowOption is nullptr");
-        return WM_ERROR_NULLPTR;
+        return GSERROR_INVALID_ARGUMENTS;
     }
 
     auto staticCall = SingletonContainer::Get<StaticCall>();
-    if (option->GetWindowType() == SUBWINDOW_TYPE_NORMAL) {
+    auto type = option->GetWindowType();
+    if (type == SUBWINDOW_TYPE_NORMAL) {
         return staticCall->SubwindowNormalImplCreate(subwindow, window, option);
     }
 
-    if (option->GetWindowType() == SUBWINDOW_TYPE_VIDEO) {
+    if (type == SUBWINDOW_TYPE_VIDEO) {
         return staticCall->SubwindowVideoImplCreate(subwindow, window, option);
     }
-    return WM_ERROR_NOT_SUPPORT;
+
+    if (type == SUBWINDOW_TYPE_OFFSCREEN) {
+        return staticCall->SubwindowOffscreenImplCreate(subwindow, window, option);
+    }
+    return GSERROR_NOT_SUPPORT;
 }
 
-WMError WindowManagerImpl::ListenNextScreenShot(int32_t id, IScreenShotCallback *cb)
+GSError WindowManagerImpl::ListenNextScreenShot(int32_t id, IScreenShotCallback *cb)
 {
     if (wmservice == nullptr) {
         WMLOGFE("wmservice is nullptr");
-        return WM_ERROR_NOT_INIT;
+        return GSERROR_NOT_INIT;
     }
 
     if (cb == nullptr) {
         WMLOGFE("callback is nullptr");
-        return WM_ERROR_NULLPTR;
+        return GSERROR_INVALID_ARGUMENTS;
     }
 
     auto promise = wmservice->ShotScreen(id);
     if (promise == nullptr) {
         WMLOGFE("promise is nullptr");
-        return WM_ERROR_NEW;
+        return GSERROR_NO_MEM;
     }
 
     auto then = [cb](const auto &wmsinfo) {
@@ -275,30 +340,30 @@ WMError WindowManagerImpl::ListenNextScreenShot(int32_t id, IScreenShotCallback 
         }
     };
     promise->Then(then);
-    return WM_OK;
+    return GSERROR_OK;
 }
 
-WMError WindowManagerImpl::ListenNextWindowShot(const sptr<Window> &window, IWindowShotCallback *cb)
+GSError WindowManagerImpl::ListenNextWindowShot(const sptr<Window> &window, IWindowShotCallback *cb)
 {
     if (wmservice == nullptr) {
         WMLOGFE("wmservice is nullptr");
-        return WM_ERROR_NOT_INIT;
+        return GSERROR_NOT_INIT;
     }
 
     if (window == nullptr) {
         WMLOGFE("window is nullptr");
-        return WM_ERROR_NULLPTR;
+        return GSERROR_INVALID_ARGUMENTS;
     }
 
     if (cb == nullptr) {
         WMLOGFE("callback is nullptr");
-        return WM_ERROR_NULLPTR;
+        return GSERROR_INVALID_ARGUMENTS;
     }
 
     auto promise = wmservice->ShotWindow(window->GetID());
     if (promise == nullptr) {
         WMLOGFE("promise is nullptr");
-        return WM_ERROR_NEW;
+        return GSERROR_NO_MEM;
     }
 
     auto then = [cb](const auto &wmsinfo) {
@@ -323,6 +388,6 @@ WMError WindowManagerImpl::ListenNextWindowShot(const sptr<Window> &window, IWin
         }
     };
     promise->Then(then);
-    return WM_OK;
+    return GSERROR_OK;
 }
 } // namespace OHOS

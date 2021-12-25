@@ -23,12 +23,12 @@
 namespace OHOS {
 class MockSubwindowOption : public SubwindowOption {
 public:
-    MOCK_METHOD1(SetWindowType, WMError(SubwindowType type));
-    MOCK_METHOD1(SetX, WMError(int32_t x));
-    MOCK_METHOD1(SetY, WMError(int32_t y));
-    MOCK_METHOD1(SetWidth, WMError(uint32_t w));
-    MOCK_METHOD1(SetHeight, WMError(uint32_t h));
-    MOCK_METHOD1(SetConsumerSurface, WMError(const sptr<Surface> &surface));
+    MOCK_METHOD1(SetWindowType, GSError(SubwindowType type));
+    MOCK_METHOD1(SetX, GSError(int32_t x));
+    MOCK_METHOD1(SetY, GSError(int32_t y));
+    MOCK_METHOD1(SetWidth, GSError(uint32_t w));
+    MOCK_METHOD1(SetHeight, GSError(uint32_t h));
+    MOCK_METHOD1(SetConsumerSurface, GSError(const sptr<Surface> &surf));
     MOCK_CONST_METHOD0(GetWindowType, SubwindowType());
     MOCK_CONST_METHOD0(GetX, int32_t());
     MOCK_CONST_METHOD0(GetY, int32_t());

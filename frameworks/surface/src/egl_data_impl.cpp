@@ -19,23 +19,17 @@
 #include <drm_fourcc.h>
 
 #include "buffer_log.h"
+#include "egl_manager.h"
 
 namespace OHOS {
 namespace {
 constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, 0, "EglDataImpl" };
-constexpr int32_t GENERAL_ATTRIBS = 3;
-constexpr int32_t PLANE_ATTRIBS = 5;
-constexpr int32_t ENTRIES_PER_ATTRIB = 2;
-constexpr int32_t MAX_BUFFER_PLANES = 4;
 } // namespace
 
 EglDataImpl::EglDataImpl()
 {
     BLOGD("ctor");
-    sEglManager_ = EglManager::GetInstance();
-    if (sEglManager_ == nullptr) {
-        BLOGE("EglManager::GetInstance Failed.");
-    }
+    eglManager_ = EglManager::GetInstance();
 }
 
 EglDataImpl::~EglDataImpl()
@@ -49,15 +43,19 @@ EglDataImpl::~EglDataImpl()
         glDeleteTextures(1, &glTexture_);
     }
 
-    if (eglImage_ && sEglManager_) {
-        sEglManager_->EglDestroyImage(eglImage_);
+    if (eglImage_) {
+        EglManager::GetInstance()->EglDestroyImage(eglImage_);
     }
-    sEglManager_ = nullptr;
 }
 
 GLuint EglDataImpl::GetFrameBufferObj() const
 {
     return glFbo_;
+}
+
+GLuint EglDataImpl::GetTexture() const
+{
+    return glTexture_;
 }
 
 namespace {
@@ -99,43 +97,39 @@ bool PixelFormatToDrmFormat(int32_t pixelFormat, uint32_t &drmFormat)
 }
 } // namespace
 
-SurfaceError EglDataImpl::CreateEglData(const sptr<SurfaceBufferImpl> &buffer)
+GSError EglDataImpl::CreateEglData(const sptr<SurfaceBuffer> &buffer)
 {
-    EGLint attribs[(GENERAL_ATTRIBS + PLANE_ATTRIBS * MAX_BUFFER_PLANES) * ENTRIES_PER_ATTRIB + 1];
-    unsigned int index = 0;
+    if (!EglManager::GetInstance()->IsInit()) {
+        EglManager::GetInstance()->Init();
+    }
 
     BufferHandle *handle = buffer->GetBufferHandle();
     if (!handle) {
         BLOGE("Failed to GetBufferHandle");
-        return SURFACE_ERROR_ERROR;
+        return GSERROR_INTERNEL;
     }
 
     uint32_t drmFormat;
     if (PixelFormatToDrmFormat(handle->format, drmFormat) == false) {
         BLOGE("PixelFormatToDrmFormat failed");
-        return SURFACE_ERROR_ERROR;
+        return GSERROR_INTERNEL;
     }
-    attribs[index++] = EGL_WIDTH;
-    attribs[index++] = handle->width;
-    attribs[index++] = EGL_HEIGHT;
-    attribs[index++] = handle->height;
-    attribs[index++] = EGL_LINUX_DRM_FOURCC_EXT;
-    attribs[index++] = drmFormat;
 
-    attribs[index++] = EGL_DMA_BUF_PLANE0_FD_EXT;
-    attribs[index++] = handle->fd;
-    attribs[index++] = EGL_DMA_BUF_PLANE0_OFFSET_EXT;
-    attribs[index++] = 0;
-    attribs[index++] = EGL_DMA_BUF_PLANE0_PITCH_EXT;
-    attribs[index++] = handle->stride;
-    
-    attribs[index] = EGL_NONE;
-    eglImage_ = sEglManager_->EglCreateImage(EGL_NO_CONTEXT, EGL_LINUX_DMA_BUF_EXT, NULL, attribs);
+    EGLint attribs[] = {
+        EGL_WIDTH, handle->width,
+        EGL_HEIGHT, handle->height,
+        EGL_LINUX_DRM_FOURCC_EXT, drmFormat,
+        EGL_DMA_BUF_PLANE0_FD_EXT, handle->fd,
+        EGL_DMA_BUF_PLANE0_OFFSET_EXT, 0,
+        EGL_DMA_BUF_PLANE0_PITCH_EXT, handle->stride,
+        EGL_NONE,
+    };
+    eglImage_ = EglManager::GetInstance()->EglCreateImage(EGL_NO_CONTEXT, EGL_LINUX_DMA_BUF_EXT, NULL, attribs);
     if (eglImage_ == EGL_NO_IMAGE_KHR) {
         BLOGE("##createImage failed.");
-        return SURFACE_ERROR_ERROR;
+        return GSERROR_INTERNEL;
     }
-    sEglManager_->EglMakeCurrent();
+    EglManager::GetInstance()->EglMakeCurrent();
 
     glGenTextures(1, &glTexture_);
     glBindTexture(GL_TEXTURE_2D, glTexture_);
@@ -144,15 +138,15 @@ SurfaceError EglDataImpl::CreateEglData(const sptr<SurfaceBufferImpl> &buffer)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
-    sEglManager_->EglImageTargetTexture2D(GL_TEXTURE_2D, eglImage_);
+    EglManager::GetInstance()->EglImageTargetTexture2D(GL_TEXTURE_2D, eglImage_);
 
     glGenFramebuffers(1, &glFbo_);
     glBindFramebuffer(GL_FRAMEBUFFER, glFbo_);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, glTexture_, 0);
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
         BLOGE("FBO creation failed");
-        return SURFACE_ERROR_ERROR;
+        return GSERROR_INTERNEL;
     }
-    return SURFACE_ERROR_OK;
+    return GSERROR_OK;
 }
 } // namespace OHOS

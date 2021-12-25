@@ -49,7 +49,7 @@ namespace {
 HWTEST_F(WindowManagerServerTest, CreateNormal, testing::ext::TestSize.Level0)
 {
     // WindowManager init success.
-    ASSERT_EQ(initRet, WM_OK) << "EnvConditions: WindowManager init success. (initRet == WM_OK)";
+    ASSERT_EQ(initRet, GSERROR_OK) << "EnvConditions: WindowManager init success. (initRet == GSERROR_OK)";
 
     // 1. create WlSurface
     sptr<WlSurface> wlSurface = WlSurfaceFactory::GetInstance()->Create();
@@ -61,7 +61,7 @@ HWTEST_F(WindowManagerServerTest, CreateNormal, testing::ext::TestSize.Level0)
 
     // 3. check it
     auto wminfo = promise->Await();
-    ASSERT_EQ(wminfo.wret, WM_OK) << "CaseDescription: 3. check it (wret == WM_OK)";
+    ASSERT_EQ(wminfo.wret, GSERROR_OK) << "CaseDescription: 3. check it (wret == GSERROR_OK)";
     ASSERT_GE(wminfo.wid, 0) << "CaseDescription: 3. check it (wid >= 0)";
     ASSERT_GT(wminfo.width, 0u) << "CaseDescription: 3. check it (width > 0)";
     ASSERT_GT(wminfo.height, 0u) << "CaseDescription: 3. check it (height > 0)";
@@ -80,7 +80,7 @@ HWTEST_F(WindowManagerServerTest, CreateNormal, testing::ext::TestSize.Level0)
 HWTEST_F(WindowManagerServerTest, CreateAbnormal, testing::ext::TestSize.Level0)
 {
     // WindowManager init success.
-    ASSERT_EQ(initRet, WM_OK) << "EnvConditions: WindowManager init success. (initRet == WM_OK)";
+    ASSERT_EQ(initRet, GSERROR_OK) << "EnvConditions: WindowManager init success. (initRet == GSERROR_OK)";
 
     // 1. create WlSurface
     sptr<WlSurface> wlSurface = WlSurfaceFactory::GetInstance()->Create();
@@ -97,21 +97,21 @@ HWTEST_F(WindowManagerServerTest, CreateAbnormal, testing::ext::TestSize.Level0)
     auto wminfo2 = promise2->Await();
     auto wminfo3 = promise3->Await();
 
-    ASSERT_NE(wminfo1.wret, WM_OK) << "CaseDescription: 3. check they (wret1 != WM_OK)";
+    ASSERT_NE(wminfo1.wret, GSERROR_OK) << "CaseDescription: 3. check they (wret1 != GSERROR_OK)";
     ASSERT_EQ(wminfo1.wid, -1) << "CaseDescription: 3. check they (wid1 == -1)";
     ASSERT_EQ(wminfo1.x, 0) << "CaseDescription: 3. check they (x1 == 0)";
     ASSERT_EQ(wminfo1.y, 0) << "CaseDescription: 3. check they (y1 == 0)";
     ASSERT_EQ(wminfo1.width, 0u) << "CaseDescription: 3. check they (width1 == 0)";
     ASSERT_EQ(wminfo1.height, 0u) << "CaseDescription: 3. check they (height1 == 0)";
 
-    ASSERT_NE(wminfo2.wret, WM_OK) << "CaseDescription: 3. check they (wret2 != WM_OK)";
+    ASSERT_NE(wminfo2.wret, GSERROR_OK) << "CaseDescription: 3. check they (wret2 != GSERROR_OK)";
     ASSERT_EQ(wminfo2.wid, -1) << "CaseDescription: 3. check they (wid2 == -1)";
     ASSERT_EQ(wminfo2.x, 0) << "CaseDescription: 3. check they (x2 == 0)";
     ASSERT_EQ(wminfo2.y, 0) << "CaseDescription: 3. check they (y2 == 0)";
     ASSERT_EQ(wminfo2.width, 0u) << "CaseDescription: 3. check they (width2 == 0)";
     ASSERT_EQ(wminfo2.height, 0u) << "CaseDescription: 3. check they (height2 == 0)";
 
-    ASSERT_NE(wminfo3.wret, WM_OK) << "CaseDescription: 3. check they (wret3 != WM_OK)";
+    ASSERT_NE(wminfo3.wret, GSERROR_OK) << "CaseDescription: 3. check they (wret3 != GSERROR_OK)";
     ASSERT_EQ(wminfo3.wid, -1) << "CaseDescription: 3. check they (wid3 == -1)";
     ASSERT_EQ(wminfo3.x, 0) << "CaseDescription: 3. check they (x3 == 0)";
     ASSERT_EQ(wminfo3.y, 0) << "CaseDescription: 3. check they (y3 == 0)";

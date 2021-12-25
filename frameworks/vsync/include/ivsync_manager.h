@@ -25,9 +25,9 @@ namespace OHOS {
 namespace Vsync {
 class IVsyncManager : public IRemoteBroker {
 public:
-    virtual VsyncError ListenVsync(sptr<IVsyncCallback>& cb) = 0;
-    virtual VsyncError RemoveVsync(sptr<IVsyncCallback>& cb) = 0;
-    virtual VsyncError GetVsyncFrequency(uint32_t &freq) = 0;
+    virtual GSError ListenVsync(sptr<IVsyncCallback>& cb) = 0;
+    virtual GSError RemoveVsync(sptr<IVsyncCallback>& cb) = 0;
+    virtual GSError GetVsyncFrequency(uint32_t &freq) = 0;
 
     DECLARE_INTERFACE_DESCRIPTOR(u"IVsyncManager");
 

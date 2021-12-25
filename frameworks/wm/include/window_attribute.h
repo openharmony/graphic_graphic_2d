@@ -28,17 +28,19 @@ public:
     void OnVisibilityChange(WindowVisibilityChangeFunc func);
     void OnTypeChange(WindowTypeChangeFunc func);
     void OnModeChange(WindowModeChangeFunc func);
+    void OnPIPModeChange(WindowPIPModeChangeFunc func);
 
-    int32_t         GetID() const;
-    int32_t         GetX() const;
-    int32_t         GetY() const;
-    uint32_t        GetWidth() const;
-    uint32_t        GetHeight() const;
-    uint32_t        GetDestWidth() const;
-    uint32_t        GetDestHeight() const;
-    bool            GetVisibility() const;
-    WindowType      GetType() const;
-    WindowMode      GetMode() const;
+    int32_t    GetID() const;
+    int32_t    GetX() const;
+    int32_t    GetY() const;
+    uint32_t   GetWidth() const;
+    uint32_t   GetHeight() const;
+    uint32_t   GetDestWidth() const;
+    uint32_t   GetDestHeight() const;
+    bool       GetVisibility() const;
+    WindowType GetType() const;
+    WindowMode GetMode() const;
+    bool       GetPIPMode() const;
 
     // setter return true mean attr changed
     void SetID(int32_t id);
@@ -48,24 +50,27 @@ public:
     bool SetVisibility(bool visibility);
     bool SetType(WindowType type);
     bool SetMode(WindowMode mode);
+    bool SetPIPMode(bool inPIPMode);
 
 private:
-    int32_t         winID = 0;
-    int32_t         winX = 0;
-    int32_t         winY = 0;
-    uint32_t        winWidth = 0;
-    uint32_t        winHeight = 0;
-    uint32_t        winDestWidth = 0;
-    uint32_t        winDestHeight = 0;
-    bool            winVisibility = false;
+    int32_t    winID = 0;
+    int32_t    winX = 0;
+    int32_t    winY = 0;
+    uint32_t   winWidth = 0;
+    uint32_t   winHeight = 0;
+    uint32_t   winDestWidth = 0;
+    uint32_t   winDestHeight = 0;
+    bool       winVisibility = false;
     WindowType winType = static_cast<WindowType>(0);
     WindowMode winMode = static_cast<WindowMode>(0);
+    bool       winPIPMode = false;
 
     WindowPositionChangeFunc   positionChangeListener = nullptr;
     WindowSizeChangeFunc       sizeChangeListener = nullptr;
     WindowVisibilityChangeFunc visibilityChangeListener = nullptr;
     WindowTypeChangeFunc       typeChangeListener = nullptr;
     WindowModeChangeFunc       modeChangeListener = nullptr;
+    WindowPIPModeChangeFunc    pipModeChangeFunc = nullptr;
 };
 } // namespace OHOS
 

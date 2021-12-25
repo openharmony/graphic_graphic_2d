@@ -54,7 +54,8 @@ namespace {
 HWTEST_F(WaylandServiceTest, Start, testing::ext::TestSize.Level0)
 {
     // once before all
-    const auto appear = std::bind(&WaylandServiceTest::OnAppear, this, __BIND3_ARGS);
+    const auto appear = std::bind(&WaylandServiceTest::OnAppear,
+        this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
     WaylandService::GetInstance()->OnAppear(appear);
 
     const auto &display = WlDisplay::GetInstance();
@@ -66,8 +67,8 @@ HWTEST_F(WaylandServiceTest, Start, testing::ext::TestSize.Level0)
 
     // 2. start WaylandService
     callCount = 0;
-    WMError wret = ws->Start();
-    ASSERT_EQ(wret, WM_OK) << "CaseDescription: 2. start WaylandService (wret == WM_OK)";
+    GSError wret = ws->Start();
+    ASSERT_EQ(wret, GSERROR_OK) << "CaseDescription: 2. start WaylandService (wret == GSERROR_OK)";
 
     // 3. display roundtrip
     int32_t iret = display->Roundtrip();
@@ -101,9 +102,9 @@ HWTEST_F(WaylandServiceTest, StartBeforeConnect, testing::ext::TestSize.Level0)
 
     // 1. start WaylandService
     callCount = 0;
-    WMError wret = ws->Start();
-    ASSERT_EQ(wret, WM_ERROR_NOT_INIT) << "CaseDescription: "
-        << "1. start WaylandService (wret == WM_ERROR_NOT_INIT)";
+    GSError wret = ws->Start();
+    ASSERT_EQ(wret, GSERROR_NOT_INIT) << "CaseDescription: "
+        << "1. start WaylandService (wret == GSERROR_NOT_INIT)";
 
     // 2. display roundtrip
     int32_t iret = display->Roundtrip();
@@ -137,8 +138,8 @@ HWTEST_F(WaylandServiceTest, Stop, testing::ext::TestSize.Level0)
     // display connected, WaylandService started
     bool bret = display->Connect(nullptr);
     ASSERT_EQ(bret, true) << "EnvConditions: display connected, WaylandService started (bret == true)";
-    WMError wret = ws->Start();
-    ASSERT_EQ(wret, WM_OK) << "EnvConditions: display connected, WaylandService started (wret == WM_OK)";
+    GSError wret = ws->Start();
+    ASSERT_EQ(wret, GSERROR_OK) << "EnvConditions: display connected, WaylandService started (wret == GSERROR_OK)";
 
     int32_t iret = display->Roundtrip();
     ASSERT_NE(iret, -1) << "EnvConditions: display connected, WaylandService started (iret != -1)";

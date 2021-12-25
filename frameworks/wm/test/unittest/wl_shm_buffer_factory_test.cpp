@@ -47,7 +47,7 @@ namespace {
 HWTEST_F(WlSHMBufferFactoryTest, CreateNormal, testing::ext::TestSize.Level0)
 {
     // WindowManager init success.
-    ASSERT_EQ(initRet, WM_OK) << "EnvConditions: WindowManager init success. (initRet == WM_OK)";
+    ASSERT_EQ(initRet, GSERROR_OK) << "EnvConditions: WindowManager init success. (initRet == GSERROR_OK)";
 
     // 1. Create WlSHMBuffer by normal arguments
     constexpr uint32_t predefineWidth = 100;
@@ -71,7 +71,7 @@ HWTEST_F(WlSHMBufferFactoryTest, CreateNormal, testing::ext::TestSize.Level0)
 HWTEST_F(WlSHMBufferFactoryTest, CreateAbnormal, testing::ext::TestSize.Level0)
 {
     // WindowManager init success.
-    ASSERT_EQ(initRet, WM_OK) << "EnvConditions: WindowManager init success. (initRet == WM_OK)";
+    ASSERT_EQ(initRet, GSERROR_OK) << "EnvConditions: WindowManager init success. (initRet == GSERROR_OK)";
 
     // 1. Create WlSHMBuffer by some abnormal arguments
     constexpr uint32_t predefineWidth = 100;

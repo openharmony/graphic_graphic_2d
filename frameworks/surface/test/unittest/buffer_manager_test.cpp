@@ -42,8 +42,8 @@ HWTEST_F(BufferManagerTest, Alloc, testing::ext::TestSize.Level0)
 {
     ASSERT_EQ(buffer->GetBufferHandle(), nullptr);
 
-    SurfaceError ret = BufferManager::GetInstance()->Alloc(requestConfig, buffer);
-    ASSERT_EQ(ret, SURFACE_ERROR_OK);
+    GSError ret = BufferManager::GetInstance()->Alloc(requestConfig, buffer);
+    ASSERT_EQ(ret, GSERROR_OK);
 
     BufferHandle *handle = buffer->GetBufferHandle();
 
@@ -59,8 +59,8 @@ HWTEST_F(BufferManagerTest, Map, testing::ext::TestSize.Level0)
     ASSERT_NE(handle, nullptr);
     ASSERT_EQ(handle->virAddr, nullptr);
 
-    SurfaceError ret = BufferManager::GetInstance()->Map(buffer);
-    ASSERT_EQ(ret, SURFACE_ERROR_OK);
+    GSError ret = BufferManager::GetInstance()->Map(buffer);
+    ASSERT_EQ(ret, GSERROR_OK);
 
     handle = buffer->GetBufferHandle();
     ASSERT_NE(handle, nullptr);
@@ -75,8 +75,8 @@ HWTEST_F(BufferManagerTest, FlushBufferBeforeUnmap, testing::ext::TestSize.Level
     ASSERT_NE(handle, nullptr);
     ASSERT_NE(handle->virAddr, nullptr);
 
-    SurfaceError ret = BufferManager::GetInstance()->FlushCache(buffer);
-    ASSERT_EQ(ret, SURFACE_ERROR_OK);
+    GSError ret = BufferManager::GetInstance()->FlushCache(buffer);
+    ASSERT_EQ(ret, GSERROR_OK);
 
     handle = buffer->GetBufferHandle();
     ASSERT_NE(handle, nullptr);
@@ -89,8 +89,8 @@ HWTEST_F(BufferManagerTest, Unmap, testing::ext::TestSize.Level0)
     ASSERT_NE(handle, nullptr);
     ASSERT_NE(handle->virAddr, nullptr);
 
-    SurfaceError ret = BufferManager::GetInstance()->Unmap(buffer);
-    ASSERT_EQ(ret, SURFACE_ERROR_OK);
+    GSError ret = BufferManager::GetInstance()->Unmap(buffer);
+    ASSERT_EQ(ret, GSERROR_OK);
 
     handle = buffer->GetBufferHandle();
     ASSERT_NE(handle, nullptr);
@@ -105,8 +105,8 @@ HWTEST_F(BufferManagerTest, FlushBufferAfterUnmap, testing::ext::TestSize.Level0
     ASSERT_NE(handle, nullptr);
     ASSERT_EQ(handle->virAddr, nullptr);
 
-    SurfaceError ret = BufferManager::GetInstance()->FlushCache(buffer);
-    ASSERT_EQ(ret, SURFACE_ERROR_OK);
+    GSError ret = BufferManager::GetInstance()->FlushCache(buffer);
+    ASSERT_EQ(ret, GSERROR_OK);
 
     handle = buffer->GetBufferHandle();
     ASSERT_NE(handle, nullptr);
@@ -121,8 +121,8 @@ HWTEST_F(BufferManagerTest, Free, testing::ext::TestSize.Level0)
     ASSERT_NE(handle, nullptr);
     ASSERT_EQ(handle->virAddr, nullptr);
 
-    SurfaceError ret = BufferManager::GetInstance()->Free(buffer);
-    ASSERT_EQ(ret, SURFACE_ERROR_OK);
+    GSError ret = BufferManager::GetInstance()->Free(buffer);
+    ASSERT_EQ(ret, GSERROR_OK);
 
     handle = buffer->GetBufferHandle();
     ASSERT_EQ(handle, nullptr);
@@ -180,8 +180,8 @@ HWTEST_F(BufferManagerTest, CMALeak, testing::ext::TestSize.Level0)
 
     // 2. alloc
     sptr<SurfaceBufferImpl> buffer = new SurfaceBufferImpl();
-    SurfaceError ret = BufferManager::GetInstance()->Alloc(requestConfig, buffer);
-    ASSERT_EQ(ret, SURFACE_ERROR_OK);
+    GSError ret = BufferManager::GetInstance()->Alloc(requestConfig, buffer);
+    ASSERT_EQ(ret, GSERROR_OK);
 
     auto handle = buffer->GetBufferHandle();
     ASSERT_NE(handle, nullptr);
@@ -189,7 +189,7 @@ HWTEST_F(BufferManagerTest, CMALeak, testing::ext::TestSize.Level0)
 
     // 3. free
     ret = BufferManager::GetInstance()->Free(buffer);
-    ASSERT_EQ(ret, SURFACE_ERROR_OK);
+    ASSERT_EQ(ret, GSERROR_OK);
 
     handle = buffer->GetBufferHandle();
     ASSERT_EQ(handle, nullptr);

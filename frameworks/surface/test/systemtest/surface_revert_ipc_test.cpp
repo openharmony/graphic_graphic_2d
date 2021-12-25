@@ -55,17 +55,17 @@ pid_t SurfaceRevertIPCTest::ChildProcessMain()
 
     std::this_thread::sleep_for(50ms);
     GTEST_LOG_(INFO) << getpid();
-    auto csurface = Surface::CreateSurfaceAsConsumer("test");
-    csurface->RegisterConsumerListener(this);
-    auto producer = csurface->GetProducer();
+    auto csurf = Surface::CreateSurfaceAsConsumer("test");
+    csurf->RegisterConsumerListener(this);
+    auto producer = csurf->GetProducer();
     auto sam = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     sam->AddSystemAbility(ipcSystemAbilityID, producer->AsObject());
-    auto psurface = Surface::CreateSurfaceAsProducer(producer);
+    auto psurf = Surface::CreateSurfaceAsProducer(producer);
 
     int64_t data;
     sptr<SurfaceBuffer> buffer = nullptr;
-    auto sret = psurface->RequestBufferNoFence(buffer, requestConfig);
-    if (sret != SURFACE_ERROR_OK) {
+    auto sret = psurf->RequestBufferNoFence(buffer, requestConfig);
+    if (sret != GSERROR_OK) {
         data = sret;
         write(pipeFd[1], &data, sizeof(data));
         exit(0);
@@ -75,8 +75,8 @@ pid_t SurfaceRevertIPCTest::ChildProcessMain()
     buffer->ExtraSet("345", (int64_t)0x345);
     buffer->ExtraSet("567", "567");
 
-    sret = psurface->FlushBuffer(buffer, -1, flushConfig);
-    if (sret != SURFACE_ERROR_OK) {
+    sret = psurf->FlushBuffer(buffer, -1, flushConfig);
+    if (sret != GSERROR_OK) {
         data = sret;
         write(pipeFd[1], &data, sizeof(data));
         exit(0);
@@ -84,14 +84,14 @@ pid_t SurfaceRevertIPCTest::ChildProcessMain()
 
     Rect damage;
     int32_t fence;
-    sret = csurface->AcquireBuffer(buffer, fence, data, damage);
-    if (sret != SURFACE_ERROR_OK) {
+    sret = csurf->AcquireBuffer(buffer, fence, data, damage);
+    if (sret != GSERROR_OK) {
         data = sret;
         write(pipeFd[1], &data, sizeof(data));
         exit(0);
     }
 
-    sret = csurface->ReleaseBuffer(buffer, -1);
+    sret = csurf->ReleaseBuffer(buffer, -1);
     data = sret;
     write(pipeFd[1], &data, sizeof(data));
     sleep(0);
@@ -109,16 +109,16 @@ HWTEST_F(SurfaceRevertIPCTest, Fork, testing::ext::TestSize.Level0)
     int64_t data;
     read(pipeFd[0], &data, sizeof(data));
     GTEST_LOG_(INFO) << getpid();
-    ASSERT_EQ(data, SURFACE_ERROR_OK);
+    ASSERT_EQ(data, GSERROR_OK);
 
     auto sam = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     auto robj = sam->GetSystemAbility(ipcSystemAbilityID);
     auto producer = iface_cast<IBufferProducer>(robj);
-    auto psurface = Surface::CreateSurfaceAsProducer(producer);
+    auto psurf = Surface::CreateSurfaceAsProducer(producer);
 
     sptr<SurfaceBuffer> buffer = nullptr;
-    auto sret = psurface->RequestBufferNoFence(buffer, requestConfig);
-    EXPECT_EQ(sret, SURFACE_ERROR_OK);
+    auto sret = psurf->RequestBufferNoFence(buffer, requestConfig);
+    EXPECT_EQ(sret, GSERROR_OK);
     EXPECT_NE(buffer, nullptr);
     if (buffer != nullptr) {
         int32_t int32;

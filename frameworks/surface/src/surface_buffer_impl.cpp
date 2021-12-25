@@ -150,7 +150,7 @@ uint32_t SurfaceBufferImpl::GetSize() const
     return handle_->size;
 }
 
-SurfaceError SurfaceBufferImpl::SetInt32(uint32_t key, int32_t val)
+GSError SurfaceBufferImpl::SetInt32(uint32_t key, int32_t val)
 {
     ExtraData int32 = {
         .value = val,
@@ -159,11 +159,11 @@ SurfaceError SurfaceBufferImpl::SetInt32(uint32_t key, int32_t val)
     return SetData(key, int32);
 }
 
-SurfaceError SurfaceBufferImpl::GetInt32(uint32_t key, int32_t &val)
+GSError SurfaceBufferImpl::GetInt32(uint32_t key, int32_t &val)
 {
     ExtraData int32;
-    SurfaceError ret = GetData(key, int32);
-    if (ret == SURFACE_ERROR_OK) {
+    GSError ret = GetData(key, int32);
+    if (ret == GSERROR_OK) {
         if (int32.type == EXTRA_DATA_TYPE_INT32) {
             auto pVal = std::any_cast<int32_t>(&int32.value);
             if (pVal != nullptr) {
@@ -172,13 +172,13 @@ SurfaceError SurfaceBufferImpl::GetInt32(uint32_t key, int32_t &val)
                 BLOGE("unexpected: INT32, any_cast failed");
             }
         } else {
-            return SURFACE_ERROR_TYPE_ERROR;
+            return GSERROR_TYPE_ERROR;
         }
     }
     return ret;
 }
 
-SurfaceError SurfaceBufferImpl::SetInt64(uint32_t key, int64_t val)
+GSError SurfaceBufferImpl::SetInt64(uint32_t key, int64_t val)
 {
     ExtraData int64 = {
         .value = val,
@@ -187,11 +187,11 @@ SurfaceError SurfaceBufferImpl::SetInt64(uint32_t key, int64_t val)
     return SetData(key, int64);
 }
 
-SurfaceError SurfaceBufferImpl::GetInt64(uint32_t key, int64_t &val)
+GSError SurfaceBufferImpl::GetInt64(uint32_t key, int64_t &val)
 {
     ExtraData int64;
-    SurfaceError ret = GetData(key, int64);
-    if (ret == SURFACE_ERROR_OK) {
+    GSError ret = GetData(key, int64);
+    if (ret == GSERROR_OK) {
         if (int64.type == EXTRA_DATA_TYPE_INT64) {
             auto pVal = std::any_cast<int64_t>(&int64.value);
             if (pVal != nullptr) {
@@ -200,22 +200,22 @@ SurfaceError SurfaceBufferImpl::GetInt64(uint32_t key, int64_t &val)
                 BLOGE("unexpected: INT64, any_cast failed");
             }
         } else {
-            return SURFACE_ERROR_TYPE_ERROR;
+            return GSERROR_TYPE_ERROR;
         }
     }
     return ret;
 }
 
-SurfaceError SurfaceBufferImpl::SetData(uint32_t key, ExtraData data)
+GSError SurfaceBufferImpl::SetData(uint32_t key, ExtraData data)
 {
     if (data.type <= EXTRA_DATA_TYPE_MIN || data.type >= EXTRA_DATA_TYPE_MAX) {
         BLOGW("Invalid, data.type is out of range");
-        return SURFACE_ERROR_INVALID_PARAM;
+        return GSERROR_INVALID_ARGUMENTS;
     }
 
     if (extraDatas_.size() > SURFACE_MAX_USER_DATA_COUNT) {
         BLOGW("SurfaceBuffer has too many extra data, cannot save one more!!!");
-        return SURFACE_ERROR_OUT_OF_RANGE;
+        return GSERROR_OUT_OF_RANGE;
     }
 
     ExtraData mapData;
@@ -224,18 +224,18 @@ SurfaceError SurfaceBufferImpl::SetData(uint32_t key, ExtraData data)
     mapData = data;
 
     extraDatas_[key] = mapData;
-    return SURFACE_ERROR_OK;
+    return GSERROR_OK;
 }
 
-SurfaceError SurfaceBufferImpl::GetData(uint32_t key, ExtraData &data)
+GSError SurfaceBufferImpl::GetData(uint32_t key, ExtraData &data)
 {
     auto it = extraDatas_.find(key);
     if (it == extraDatas_.end()) {
-        return SURFACE_ERROR_NO_ENTRY;
+        return GSERROR_NO_ENTRY;
     }
 
     data = it->second;
-    return SURFACE_ERROR_OK;
+    return GSERROR_OK;
 }
 
 void SurfaceBufferImpl::SetExtraData(const BufferExtraData &bedata)
@@ -250,42 +250,42 @@ void SurfaceBufferImpl::GetExtraData(BufferExtraData &bedata) const
     *bedatai = bedataimpl;
 }
 
-SurfaceError SurfaceBufferImpl::ExtraGet(std::string key, int32_t &value) const
+GSError SurfaceBufferImpl::ExtraGet(std::string key, int32_t &value) const
 {
     return bedataimpl.ExtraGet(key, value);
 }
 
-SurfaceError SurfaceBufferImpl::ExtraGet(std::string key, int64_t &value) const
+GSError SurfaceBufferImpl::ExtraGet(std::string key, int64_t &value) const
 {
     return bedataimpl.ExtraGet(key, value);
 }
 
-SurfaceError SurfaceBufferImpl::ExtraGet(std::string key, double &value) const
+GSError SurfaceBufferImpl::ExtraGet(std::string key, double &value) const
 {
     return bedataimpl.ExtraGet(key, value);
 }
 
-SurfaceError SurfaceBufferImpl::ExtraGet(std::string key, std::string &value) const
+GSError SurfaceBufferImpl::ExtraGet(std::string key, std::string &value) const
 {
     return bedataimpl.ExtraGet(key, value);
 }
 
-SurfaceError SurfaceBufferImpl::ExtraSet(std::string key, int32_t value)
+GSError SurfaceBufferImpl::ExtraSet(std::string key, int32_t value)
 {
     return bedataimpl.ExtraSet(key, value);
 }
 
-SurfaceError SurfaceBufferImpl::ExtraSet(std::string key, int64_t value)
+GSError SurfaceBufferImpl::ExtraSet(std::string key, int64_t value)
 {
     return bedataimpl.ExtraSet(key, value);
 }
 
-SurfaceError SurfaceBufferImpl::ExtraSet(std::string key, double value)
+GSError SurfaceBufferImpl::ExtraSet(std::string key, double value)
 {
     return bedataimpl.ExtraSet(key, value);
 }
 
-SurfaceError SurfaceBufferImpl::ExtraSet(std::string key, std::string value)
+GSError SurfaceBufferImpl::ExtraSet(std::string key, std::string value)
 {
     return bedataimpl.ExtraSet(key, value);
 }

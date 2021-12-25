@@ -32,7 +32,7 @@ public:
     MOCKABLE void Init();
     MOCKABLE void Deinit();
 
-    MOCKABLE sptr<WlSubsurface> Create(const sptr<WlSurface> &surface, const sptr<WlSurface> &parent);
+    MOCKABLE sptr<WlSubsurface> Create(const sptr<WlSurface> &surf, const sptr<WlSurface> &parent);
 
 private:
     WlSubsurfaceFactory() = default;

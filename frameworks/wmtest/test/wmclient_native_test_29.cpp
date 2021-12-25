@@ -58,7 +58,7 @@ public:
     {
         auto initRet = WindowManager::GetInstance()->Init();
         if (initRet) {
-            printf("init failed with %s\n", WMErrorStr(initRet).c_str());
+            printf("init failed with %s\n", GSErrorStr(initRet).c_str());
             ExitTest();
             return;
         }
@@ -70,18 +70,18 @@ public:
         }
 
         window->SwitchTop();
-        auto surface = window->GetSurface();
+        auto surf = window->GetSurface();
         auto onSizeChange = [this](uint32_t w, uint32_t h) {
             config.width = w;
             config.height = h;
         };
-        config.width = surface->GetDefaultWidth();
-        config.height = surface->GetDefaultHeight();
+        config.width = surf->GetDefaultWidth();
+        config.height = surf->GetDefaultHeight();
         config.strideAlignment = 0x8,
         config.format = PIXEL_FMT_RGBA_8888;
-        config.usage = surface->GetDefaultUsage();
+        config.usage = surf->GetDefaultUsage();
         window->OnSizeChange(onSizeChange);
-        windowSync = NativeTestSync::CreateSync(NativeTestDraw::FlushDraw, surface, &config);
+        windowSync = NativeTestSync::CreateSync(NativeTestDraw::FlushDraw, surf, &config);
 
         std::vector<struct WMDisplayInfo> displays;
         WindowManager::GetInstance()->GetDisplays(displays);

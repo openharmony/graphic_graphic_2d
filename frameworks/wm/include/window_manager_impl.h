@@ -23,7 +23,6 @@
 
 #include <window_manager_service_client.h>
 
-#include "input_listener_manager.h"
 #include "singleton_delegator.h"
 #include "wayland_service.h"
 #include "window_manager_server.h"
@@ -39,18 +38,22 @@ class WindowManagerImpl : public WindowManager {
 public:
     static sptr<WindowManagerImpl> GetInstance();
 
-    virtual WMError Init() override;
+    virtual GSError Init() override;
 
-    virtual WMError GetDisplays(std::vector<struct WMDisplayInfo> &displays) const override;
+    virtual GSError GetDisplays(std::vector<struct WMDisplayInfo> &displays) const override;
     virtual sptr<Window> GetWindowByID(int32_t wid) override;
 
-    virtual WMError CreateWindow(sptr<Window> &window, const sptr<WindowOption> &option) override;
-    virtual WMError CreateSubwindow(sptr<Subwindow> &subwindow,
+    virtual GSError CreateWindow(sptr<Window> &window, const sptr<WindowOption> &option) override;
+    virtual GSError CreateSubwindow(sptr<Subwindow> &subwindow,
                                     const sptr<Window> &window,
                                     const sptr<SubwindowOption> &option) override;
 
-    virtual WMError ListenNextScreenShot(int32_t id, IScreenShotCallback *cb) override;
-    virtual WMError ListenNextWindowShot(const sptr<Window> &window, IWindowShotCallback *cb) override;
+    virtual GSError ListenNextScreenShot(int32_t id, IScreenShotCallback *cb) override;
+    virtual GSError ListenNextWindowShot(const sptr<Window> &window, IWindowShotCallback *cb) override;
+
+    virtual GSError CreateVirtualDisplay(const sptr<VirtualDisplayOption> &option) override;
+    virtual GSError DestroyVirtualDisplay(uint32_t did) override;
+    virtual GSError SetDisplayMode(WMSDisplayMode mode) override;
 
 private:
     WindowManagerImpl();
@@ -72,7 +75,6 @@ private:
     std::vector<WptrWindow> windowCache;
 
     sptr<WlDisplay> display = nullptr;
-    sptr<InputListenerManager> inputListenerManager = nullptr;
     sptr<WlBufferCache> wlBufferCache = nullptr;
     sptr<WlDMABufferFactory> wlDMABufferFactory = nullptr;
     sptr<WlSHMBufferFactory> wlSHMBufferFactory = nullptr;

@@ -28,6 +28,7 @@ class Surface : public RefBase {
 public:
     static sptr<Surface> CreateSurfaceAsConsumer(std::string name = "noname", bool isShared = false);
     static sptr<Surface> CreateSurfaceAsProducer(sptr<IBufferProducer>& producer);
+    static sptr<Surface> CreateEglSurfaceAsConsumer(std::string name = "noname", bool isShared = false);
 
     virtual ~Surface() = default;
 
@@ -36,53 +37,53 @@ public:
 
     // use RequestBufferNoFence or RequestBufferWithFence
     __attribute__((deprecated))
-    virtual SurfaceError RequestBuffer(sptr<SurfaceBuffer>& buffer,
+    virtual GSError RequestBuffer(sptr<SurfaceBuffer>& buffer,
                                        int32_t &fence, BufferRequestConfig &config) = 0;
 
-    virtual SurfaceError RequestBufferNoFence(sptr<SurfaceBuffer>& buffer,
+    virtual GSError RequestBufferNoFence(sptr<SurfaceBuffer>& buffer,
                                               BufferRequestConfig &config) = 0;
 
     // need close fence, or destroy fence
-    virtual SurfaceError RequestBufferWithFence(sptr<SurfaceBuffer>& buffer,
+    virtual GSError RequestBufferWithFence(sptr<SurfaceBuffer>& buffer,
                                              int32_t &fence, BufferRequestConfig &config) = 0;
 
-    virtual SurfaceError CancelBuffer(sptr<SurfaceBuffer>& buffer) = 0;
+    virtual GSError CancelBuffer(sptr<SurfaceBuffer>& buffer) = 0;
 
-    virtual SurfaceError FlushBuffer(sptr<SurfaceBuffer>& buffer,
+    virtual GSError FlushBuffer(sptr<SurfaceBuffer>& buffer,
                                      int32_t fence, BufferFlushConfig &config) = 0;
 
-    virtual SurfaceError FlushBufferNoFence(sptr<SurfaceBuffer>& buffer,
+    virtual GSError FlushBufferNoFence(sptr<SurfaceBuffer>& buffer,
                                             BufferFlushConfig &config) = 0;
 
-    virtual SurfaceError AcquireBuffer(sptr<SurfaceBuffer>& buffer, int32_t &fence,
+    virtual GSError AcquireBuffer(sptr<SurfaceBuffer>& buffer, int32_t &fence,
                                        int64_t &timestamp, Rect &damage) = 0;
-    virtual SurfaceError ReleaseBuffer(sptr<SurfaceBuffer>& buffer, int32_t fence) = 0;
+    virtual GSError ReleaseBuffer(sptr<SurfaceBuffer>& buffer, int32_t fence) = 0;
 
-    virtual SurfaceError AttachBuffer(sptr<SurfaceBuffer>& buffer) = 0;
+    virtual GSError AttachBuffer(sptr<SurfaceBuffer>& buffer) = 0;
 
-    virtual SurfaceError DetachBuffer(sptr<SurfaceBuffer>& buffer) = 0;
+    virtual GSError DetachBuffer(sptr<SurfaceBuffer>& buffer) = 0;
 
     virtual uint32_t     GetQueueSize() = 0;
-    virtual SurfaceError SetQueueSize(uint32_t queueSize) = 0;
+    virtual GSError SetQueueSize(uint32_t queueSize) = 0;
 
-    virtual SurfaceError SetDefaultWidthAndHeight(int32_t width, int32_t height) = 0;
+    virtual GSError SetDefaultWidthAndHeight(int32_t width, int32_t height) = 0;
     virtual int32_t GetDefaultWidth() = 0;
     virtual int32_t GetDefaultHeight() = 0;
 
-    virtual SurfaceError SetDefaultUsage(uint32_t usage) = 0;
+    virtual GSError SetDefaultUsage(uint32_t usage) = 0;
     virtual uint32_t GetDefaultUsage() = 0;
 
-    virtual SurfaceError SetUserData(const std::string &key, const std::string &val) = 0;
+    virtual GSError SetUserData(const std::string &key, const std::string &val) = 0;
     virtual std::string GetUserData(const std::string &key) = 0;
 
-    virtual SurfaceError GetName(std::string &name) = 0;
+    virtual GSError GetName(std::string &name) = 0;
 
-    virtual SurfaceError RegisterConsumerListener(sptr<IBufferConsumerListener>& listener) = 0;
-    virtual SurfaceError RegisterConsumerListener(IBufferConsumerListenerClazz *listener) = 0;
-    virtual SurfaceError RegisterReleaseListener(OnReleaseFunc func) = 0;
-    virtual SurfaceError UnregisterConsumerListener() = 0;
+    virtual GSError RegisterConsumerListener(sptr<IBufferConsumerListener>& listener) = 0;
+    virtual GSError RegisterConsumerListener(IBufferConsumerListenerClazz *listener) = 0;
+    virtual GSError RegisterReleaseListener(OnReleaseFunc func) = 0;
+    virtual GSError UnregisterConsumerListener() = 0;
 
-    virtual SurfaceError CleanCache() = 0;
+    virtual GSError CleanCache() = 0;
 
 protected:
     Surface() = default;

@@ -89,10 +89,10 @@ int32_t BufferQueueProducer::RequestBufferRemote(MessageParcel &arguments, Messa
 
     ReadRequestConfig(arguments, config);
 
-    SurfaceError sret = RequestBuffer(config, bedataimpl, retval);
+    GSError sret = RequestBuffer(config, bedataimpl, retval);
 
     reply.WriteInt32(sret);
-    if (sret == SURFACE_ERROR_OK) {
+    if (sret == GSERROR_OK) {
         WriteSurfaceBufferImpl(reply, retval.sequence, retval.buffer);
         bedataimpl.WriteToParcel(reply);
         WriteFence(reply, retval.fence);
@@ -109,7 +109,7 @@ int BufferQueueProducer::CancelBufferRemote(MessageParcel &arguments, MessagePar
     sequence = arguments.ReadInt32();
     bedataimpl.ReadFromParcel(arguments);
 
-    SurfaceError sret = CancelBuffer(sequence, bedataimpl);
+    GSError sret = CancelBuffer(sequence, bedataimpl);
     reply.WriteInt32(sret);
     return 0;
 }
@@ -126,7 +126,7 @@ int BufferQueueProducer::FlushBufferRemote(MessageParcel &arguments, MessageParc
     ReadFence(arguments, fence);
     ReadFlushConfig(arguments, config);
 
-    SurfaceError sret = FlushBuffer(sequence, bedataimpl, fence, config);
+    GSError sret = FlushBuffer(sequence, bedataimpl, fence, config);
 
     reply.WriteInt32(sret);
     return 0;
@@ -153,7 +153,7 @@ int BufferQueueProducer::GetQueueSizeRemote(MessageParcel &arguments, MessagePar
 int BufferQueueProducer::SetQueueSizeRemote(MessageParcel &arguments, MessageParcel &reply, MessageOption &option)
 {
     int32_t queueSize = arguments.ReadInt32();
-    SurfaceError sret = SetQueueSize(queueSize);
+    GSError sret = SetQueueSize(queueSize);
     reply.WriteInt32(sret);
     return 0;
 }
@@ -163,7 +163,7 @@ int BufferQueueProducer::GetNameRemote(MessageParcel &arguments, MessageParcel &
     std::string name;
     auto sret = bufferQueue_->GetName(name);
     reply.WriteInt32(sret);
-    if (sret == SURFACE_ERROR_OK) {
+    if (sret == GSERROR_OK) {
         reply.WriteString(name);
     }
     return 0;
@@ -200,19 +200,19 @@ int32_t BufferQueueProducer::RegisterReleaseListenerRemote(MessageParcel &argume
     return 0;
 }
 
-SurfaceError BufferQueueProducer::RequestBuffer(const BufferRequestConfig &config, BufferExtraData &bedata,
-                                                RequestBufferReturnValue &retval)
+GSError BufferQueueProducer::RequestBuffer(const BufferRequestConfig &config, BufferExtraData &bedata,
+                                           RequestBufferReturnValue &retval)
 {
     static std::map<int32_t, wptr<SurfaceBuffer>> cache;
     static std::map<pid_t, std::set<int32_t>> sendeds;
     if (bufferQueue_ == nullptr) {
-        return SURFACE_ERROR_NULLPTR;
+        return GSERROR_INVALID_ARGUMENTS;
     }
 
     auto callingPid = GetCallingPid();
     auto &sended = sendeds[callingPid];
     auto sret = bufferQueue_->RequestBuffer(config, bedata, retval);
-    if (sret == SURFACE_ERROR_OK) {
+    if (sret == GSERROR_OK) {
         if (retval.buffer != nullptr) {
             cache[retval.sequence] = retval.buffer;
             sended.insert(retval.sequence);
@@ -232,7 +232,7 @@ SurfaceError BufferQueueProducer::RequestBuffer(const BufferRequestConfig &confi
             BLOGND("[%{public}d] nullptr by remote", callingPid);
         }
     } else {
-        BLOGNI("BufferQueue::RequestBuffer failed with %{public}s", SurfaceErrorStr(sret).c_str());
+        BLOGNI("BufferQueue::RequestBuffer failed with %{public}s", GSErrorStr(sret).c_str());
     }
 
     for (const auto &buffer : retval.deletingBuffers) {
@@ -242,36 +242,36 @@ SurfaceError BufferQueueProducer::RequestBuffer(const BufferRequestConfig &confi
     return sret;
 }
 
-SurfaceError BufferQueueProducer::CancelBuffer(int32_t sequence, BufferExtraData &bedata)
+GSError BufferQueueProducer::CancelBuffer(int32_t sequence, BufferExtraData &bedata)
 {
     if (bufferQueue_ == nullptr) {
-        return SURFACE_ERROR_NULLPTR;
+        return GSERROR_INVALID_ARGUMENTS;
     }
     return bufferQueue_->CancelBuffer(sequence, bedata);
 }
 
-SurfaceError BufferQueueProducer::FlushBuffer(int32_t sequence, BufferExtraData &bedata,
-                                              int32_t fence, BufferFlushConfig &config)
+GSError BufferQueueProducer::FlushBuffer(int32_t sequence, BufferExtraData &bedata,
+                                         int32_t fence, BufferFlushConfig &config)
 {
     if (bufferQueue_ == nullptr) {
-        return SURFACE_ERROR_NULLPTR;
+        return GSERROR_INVALID_ARGUMENTS;
     }
     return bufferQueue_->FlushBuffer(sequence, bedata, fence, config);
 }
 
-SurfaceError BufferQueueProducer::AttachBuffer(sptr<SurfaceBuffer>& buffer)
+GSError BufferQueueProducer::AttachBuffer(sptr<SurfaceBuffer>& buffer)
 {
     if (bufferQueue_ == nullptr) {
-        return SURFACE_ERROR_NULLPTR;
+        return GSERROR_INVALID_ARGUMENTS;
     }
     sptr<SurfaceBufferImpl> bufferImpl = SurfaceBufferImpl::FromBase(buffer);
     return bufferQueue_->AttachBuffer(bufferImpl);
 }
 
-SurfaceError BufferQueueProducer::DetachBuffer(sptr<SurfaceBuffer>& buffer)
+GSError BufferQueueProducer::DetachBuffer(sptr<SurfaceBuffer>& buffer)
 {
     if (bufferQueue_ == nullptr) {
-        return SURFACE_ERROR_NULLPTR;
+        return GSERROR_INVALID_ARGUMENTS;
     }
     sptr<SurfaceBufferImpl> bufferImpl = SurfaceBufferImpl::FromBase(buffer);
     return bufferQueue_->DetachBuffer(bufferImpl);
@@ -285,18 +285,18 @@ uint32_t BufferQueueProducer::GetQueueSize()
     return bufferQueue_->GetQueueSize();
 }
 
-SurfaceError BufferQueueProducer::SetQueueSize(uint32_t queueSize)
+GSError BufferQueueProducer::SetQueueSize(uint32_t queueSize)
 {
     if (bufferQueue_ == nullptr) {
-        return SURFACE_ERROR_NULLPTR;
+        return GSERROR_INVALID_ARGUMENTS;
     }
     return bufferQueue_->SetQueueSize(queueSize);
 }
 
-SurfaceError BufferQueueProducer::GetName(std::string &name)
+GSError BufferQueueProducer::GetName(std::string &name)
 {
     if (bufferQueue_ == nullptr) {
-        return SURFACE_ERROR_NULLPTR;
+        return GSERROR_INVALID_ARGUMENTS;
     }
     return bufferQueue_->GetName(name);
 }
@@ -325,18 +325,18 @@ uint32_t BufferQueueProducer::GetDefaultUsage()
     return bufferQueue_->GetDefaultUsage();
 }
 
-SurfaceError BufferQueueProducer::CleanCache()
+GSError BufferQueueProducer::CleanCache()
 {
     if (bufferQueue_ == nullptr) {
-        return SURFACE_ERROR_NULLPTR;
+        return GSERROR_INVALID_ARGUMENTS;
     }
     return bufferQueue_->CleanCache();
 }
 
-SurfaceError BufferQueueProducer::RegisterReleaseListener(OnReleaseFunc func)
+GSError BufferQueueProducer::RegisterReleaseListener(OnReleaseFunc func)
 {
     if (bufferQueue_ == nullptr) {
-        return SURFACE_ERROR_NULLPTR;
+        return GSERROR_INVALID_ARGUMENTS;
     }
     return bufferQueue_->RegisterReleaseListener(func);
 }

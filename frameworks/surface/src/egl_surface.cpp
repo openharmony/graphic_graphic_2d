@@ -32,10 +32,10 @@ sptr<EglSurface> EglSurface::CreateEglSurfaceAsProducer(sptr<IBufferProducer>& p
         return nullptr;
     }
 
-    sptr<ProducerEglSurface> surface = new ProducerEglSurface(producer);
-    if (surface == nullptr) {
+    sptr<ProducerEglSurface> surf = new ProducerEglSurface(producer);
+    if (surf == nullptr) {
         BLOGE("Failure, Reason: no memory.");
     }
-    return surface;
+    return surf;
 }
 } // namespace OHOS

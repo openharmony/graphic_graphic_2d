@@ -59,7 +59,7 @@ public:
         auto wms = wmsc->GetService();
         auto wretPromise = wms->OnWindowListChange(this);
         auto wret = wretPromise->Await();
-        if (wret != WM_OK) {
+        if (wret != GSERROR_OK) {
             printf("Register Window Change Listener failed\n");
             ExitTest();
             return;

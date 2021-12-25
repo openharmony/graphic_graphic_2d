@@ -45,9 +45,9 @@ public:
     };
     static inline int64_t timestamp = 0;
     static inline Rect damage = {};
-    static inline sptr<Surface> csurface = nullptr;
+    static inline sptr<Surface> csurf = nullptr;
     static inline sptr<IBufferProducer> producer = nullptr;
-    static inline sptr<Surface> psurface = nullptr;
+    static inline sptr<Surface> psurf = nullptr;
 };
 } // namespace OHOS
 

@@ -24,14 +24,14 @@ public:
     WindowOptionImpl() = default;
     virtual ~WindowOptionImpl() = default;
 
-    virtual WMError SetWindowType(WindowType t) override;
-    virtual WMError SetWindowMode(WindowMode mode) override;
-    virtual WMError SetDisplay(int32_t did) override;
-    virtual WMError SetConsumerSurface(const sptr<Surface> &surface) override;
-    virtual WMError SetX(int32_t x) override;
-    virtual WMError SetY(int32_t y) override;
-    virtual WMError SetWidth(uint32_t width) override;
-    virtual WMError SetHeight(uint32_t height) override;
+    virtual GSError SetWindowType(WindowType t) override;
+    virtual GSError SetWindowMode(WindowMode mode) override;
+    virtual GSError SetDisplay(int32_t did) override;
+    virtual GSError SetConsumerSurface(const sptr<Surface> &surf) override;
+    virtual GSError SetX(int32_t x) override;
+    virtual GSError SetY(int32_t y) override;
+    virtual GSError SetWidth(uint32_t width) override;
+    virtual GSError SetHeight(uint32_t height) override;
 
     virtual WindowType GetWindowType() const override;
     virtual WindowMode GetWindowMode() const override;

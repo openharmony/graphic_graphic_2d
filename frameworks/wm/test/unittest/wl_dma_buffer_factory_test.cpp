@@ -20,11 +20,11 @@
 namespace OHOS {
 void WlDMABufferFactoryTest::SetUp()
 {
-    if (csurface == nullptr) {
-        csurface = Surface::CreateSurfaceAsConsumer();
-        csurface->RegisterConsumerListener(this);
-        auto producer = csurface->GetProducer();
-        psurface = Surface::CreateSurfaceAsProducer(producer);
+    if (csurf == nullptr) {
+        csurf = Surface::CreateSurfaceAsConsumer();
+        csurf->RegisterConsumerListener(this);
+        auto producer = csurf->GetProducer();
+        psurf = Surface::CreateSurfaceAsProducer(producer);
         BufferRequestConfig config = {
             .width = 0x100,  // any value just small
             .height = 0x100, // any value just small
@@ -32,7 +32,7 @@ void WlDMABufferFactoryTest::SetUp()
             .format = PIXEL_FMT_RGBA_8888,
             .usage = HBM_USE_CPU_READ | HBM_USE_CPU_WRITE | HBM_USE_MEM_DMA,
         };
-        psurface->RequestBufferNoFence(sbuffer, config);
+        psurf->RequestBufferNoFence(sbuffer, config);
     }
 }
 
@@ -67,7 +67,7 @@ namespace {
 HWTEST_F(WlDMABufferFactoryTest, createNormal, testing::ext::TestSize.Level0)
 {
     // WindowManager init success.
-    ASSERT_EQ(initRet, WM_OK) << "EnvConditions: WindowManager init success. (initRet == WM_OK)";
+    ASSERT_EQ(initRet, GSERROR_OK) << "EnvConditions: WindowManager init success. (initRet == GSERROR_OK)";
 
     // Surface buffer init success.
     ASSERT_NE(sbuffer, nullptr) << "EnvConditions: Surface buffer init success. (sbuffer != nullptr)";
@@ -91,7 +91,7 @@ HWTEST_F(WlDMABufferFactoryTest, createNormal, testing::ext::TestSize.Level0)
 HWTEST_F(WlDMABufferFactoryTest, createAbnormal, testing::ext::TestSize.Level0)
 {
     // WindowManager init success.
-    ASSERT_EQ(initRet, WM_OK) << "EnvConditions: WindowManager init success. (initRet == WM_OK)";
+    ASSERT_EQ(initRet, GSERROR_OK) << "EnvConditions: WindowManager init success. (initRet == GSERROR_OK)";
 
     // Surface buffer init success.
     ASSERT_NE(sbuffer, nullptr) << "EnvConditions: Surface buffer init success. (sbuffer != nullptr)";
@@ -107,20 +107,20 @@ HWTEST_F(WlDMABufferFactoryTest, createAbnormal, testing::ext::TestSize.Level0)
     bh->fd = -1;
     auto dmabuf1 = WlDMABufferFactory::GetInstance()->Create(bh);
     initRet = WindowManager::GetInstance()->Init();
-    ASSERT_EQ(initRet, WM_OK) << "CaseDescription: "
-        << "1. Create WlDMABuffers by some abnormal arguments (initRet == WM_OK)";
+    ASSERT_EQ(initRet, GSERROR_OK) << "CaseDescription: "
+        << "1. Create WlDMABuffers by some abnormal arguments (initRet == GSERROR_OK)";
     bh->fd = fd;
     bh->width = 0;
     auto dmabuf2 = WlDMABufferFactory::GetInstance()->Create(bh);
     initRet = WindowManager::GetInstance()->Init();
-    ASSERT_EQ(initRet, WM_OK) << "CaseDescription: "
-        << "1. Create WlDMABuffers by some abnormal arguments (initRet == WM_OK)";
+    ASSERT_EQ(initRet, GSERROR_OK) << "CaseDescription: "
+        << "1. Create WlDMABuffers by some abnormal arguments (initRet == GSERROR_OK)";
     bh->width = width;
     bh->height = 0;
     auto dmabuf3 = WlDMABufferFactory::GetInstance()->Create(bh);
     initRet = WindowManager::GetInstance()->Init();
-    ASSERT_EQ(initRet, WM_OK) << "CaseDescription: "
-        << "1. Create WlDMABuffers by some abnormal arguments (initRet == WM_OK)";
+    ASSERT_EQ(initRet, GSERROR_OK) << "CaseDescription: "
+        << "1. Create WlDMABuffers by some abnormal arguments (initRet == GSERROR_OK)";
     bh->height = height;
     bh->format = -1;
     auto dmabuf4 = WlDMABufferFactory::GetInstance()->Create(bh);

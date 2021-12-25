@@ -25,16 +25,16 @@ constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, 0, "WMWlBuffer" };
 void WlBuffer::Release(void *data, struct wl_buffer *buffer)
 {
     auto wb = reinterpret_cast<WlBuffer *>(data);
-    if (wb->release == nullptr && wb->onRelease != nullptr) {
-        wb->onRelease(wb->buffer, -1);
+    if (wb != nullptr && wb->release == nullptr) {
+        wb->onRelease->OnWlBufferRelease(wb->buffer, -1);
     }
 }
 
 void WlBuffer::FencedRelease(void *data, struct zwp_linux_buffer_release_v1 *release, int32_t fence)
 {
     auto wb = reinterpret_cast<WlBuffer *>(data);
-    if (wb->onRelease != nullptr) {
-        wb->onRelease(wb->buffer, fence);
+    if (wb != nullptr && wb->release != nullptr) {
+        wb->onRelease->OnWlBufferRelease(wb->buffer, fence);
         zwp_linux_buffer_release_v1_destroy(release);
         wb->release = nullptr;
     }
@@ -43,8 +43,8 @@ void WlBuffer::FencedRelease(void *data, struct zwp_linux_buffer_release_v1 *rel
 void WlBuffer::ImmediateRelease(void *data, struct zwp_linux_buffer_release_v1 *release)
 {
     auto wb = reinterpret_cast<WlBuffer *>(data);
-    if (wb->onRelease != nullptr) {
-        wb->onRelease(wb->buffer, -1);
+    if (wb != nullptr && wb->release != nullptr) {
+        wb->onRelease->OnWlBufferRelease(wb->buffer, -1);
         zwp_linux_buffer_release_v1_destroy(release);
         wb->release = nullptr;
     }
@@ -99,7 +99,7 @@ void WlBuffer::SetBufferRelease(struct zwp_linux_buffer_release_v1 *br)
     }
 }
 
-void WlBuffer::OnRelease(WlBufferReleaseFunc func)
+void WlBuffer::OnRelease(IWlBufferReleaseClazz *func)
 {
     onRelease = func;
 }

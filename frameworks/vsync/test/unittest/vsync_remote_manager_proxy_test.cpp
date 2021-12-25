@@ -92,7 +92,7 @@ HWTEST_F(VsyncManagerTest, ListenVsync1, testing::ext::TestSize.Level0)
 {
     sptr<IVsyncCallback> cb = nullptr;
     auto ret = vc_ ->ListenVsync(cb);
-    ASSERT_EQ(ret, VSYNC_ERROR_NULLPTR);
+    ASSERT_EQ(ret, GSERROR_INVALID_ARGUMENTS);
 }
 
 HWTEST_F(VsyncManagerTest, ListenVsync2, testing::ext::TestSize.Level0)
@@ -100,23 +100,23 @@ HWTEST_F(VsyncManagerTest, ListenVsync2, testing::ext::TestSize.Level0)
     sptr<IVsyncCallback> cb = new VsyncCallback();
     ReturnValueTester::Set<bool>(0, false);
     auto ret = vc_ ->ListenVsync(cb);
-    ASSERT_EQ(ret, VSYNC_ERROR_INVALID_ARGUMENTS);
+    ASSERT_EQ(ret, GSERROR_INVALID_ARGUMENTS);
 }
 
 HWTEST_F(VsyncManagerTest, ListenVsync3, testing::ext::TestSize.Level0)
 {
     sptr<IVsyncCallback> cb = new VsyncCallback();
-    ReturnValueTester::Set<int>(1, VSYNC_ERROR_BINDER_ERROR);
+    ReturnValueTester::Set<int>(1, GSERROR_BINDER);
     auto ret = vc_ ->ListenVsync(cb);
-    ASSERT_EQ(ret, VSYNC_ERROR_BINDER_ERROR);
+    ASSERT_EQ(ret, GSERROR_BINDER);
 }
 
 HWTEST_F(VsyncManagerTest, ListenVsync4, testing::ext::TestSize.Level0)
 {
     sptr<IVsyncCallback> cb = new VsyncCallback();
-    ReturnValueTester::Set<int>(2, VSYNC_ERROR_API_FAILED);
+    ReturnValueTester::Set<int>(2, GSERROR_API_FAILED);
     auto ret = vc_ ->ListenVsync(cb);
-    ASSERT_EQ(ret, VSYNC_ERROR_API_FAILED);
+    ASSERT_EQ(ret, GSERROR_API_FAILED);
 }
 
 HWTEST_F(VsyncManagerTest, GetVsyncFrequency1, testing::ext::TestSize.Level0)
@@ -124,29 +124,29 @@ HWTEST_F(VsyncManagerTest, GetVsyncFrequency1, testing::ext::TestSize.Level0)
     ReturnValueTester::Set<bool>(0, false);
     uint32_t freq= 30;
     auto ret = vc_ ->GetVsyncFrequency(freq);
-    ASSERT_EQ(ret, VSYNC_ERROR_INVALID_ARGUMENTS);
+    ASSERT_EQ(ret, GSERROR_INVALID_ARGUMENTS);
 }
 
 HWTEST_F(VsyncManagerTest, GetVsyncFrequency2, testing::ext::TestSize.Level0)
 {
-    ReturnValueTester::Set<int>(1, VSYNC_ERROR_BINDER_ERROR);
+    ReturnValueTester::Set<int>(1, GSERROR_BINDER);
     uint32_t freq= 30;
     auto ret = vc_ ->GetVsyncFrequency(freq);
-    ASSERT_EQ(ret, VSYNC_ERROR_BINDER_ERROR);
+    ASSERT_EQ(ret, GSERROR_BINDER);
 }
 
 HWTEST_F(VsyncManagerTest, GetVsyncFrequency3, testing::ext::TestSize.Level0)
 {
-    ReturnValueTester::Set<int>(2, VSYNC_ERROR_API_FAILED);
+    ReturnValueTester::Set<int>(2, GSERROR_API_FAILED);
     uint32_t freq= 30;
     auto ret = vc_ ->GetVsyncFrequency(freq);
-    ASSERT_EQ(ret, VSYNC_ERROR_API_FAILED);
+    ASSERT_EQ(ret, GSERROR_API_FAILED);
 }
 } // namespace
-VsyncError VsyncCallback::OnVsync(int64_t timestamp)
+GSError VsyncCallback::OnVsync(int64_t timestamp)
 {
     (void)timestamp;
-    return VSYNC_ERROR_OK;
+    return GSERROR_OK;
 }
 } // namespace Vsync
 } // namespace OHOS

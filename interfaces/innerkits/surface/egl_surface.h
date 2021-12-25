@@ -29,13 +29,13 @@ public:
     static sptr<EglSurface> CreateEglSurfaceAsProducer(sptr<IBufferProducer>& producer);
     virtual ~EglSurface() = default;
 
-    virtual SurfaceError InitContext(EGLContext context = EGL_NO_CONTEXT) = 0;
+    virtual GSError InitContext(EGLContext context = EGL_NO_CONTEXT) = 0;
     virtual EGLDisplay GetEglDisplay() const = 0;
     virtual EGLContext GetEglContext() const = 0;
     virtual EGLSurface GetEglSurface() const = 0;
     virtual GLuint GetEglFbo() const = 0;
-    virtual SurfaceError SwapBuffers() = 0;
-    virtual SurfaceError SetWidthAndHeight(int32_t width, int32_t height) = 0;
+    virtual GSError SwapBuffers() = 0;
+    virtual GSError SetWidthAndHeight(int32_t width, int32_t height) = 0;
 
 protected:
     EglSurface() = default;

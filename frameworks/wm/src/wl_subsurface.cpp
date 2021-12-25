@@ -16,43 +16,43 @@
 #include "wl_subsurface.h"
 
 namespace OHOS {
-WlSubsurface::WlSubsurface(struct wl_subsurface *subsurface)
+WlSubsurface::WlSubsurface(struct wl_subsurface *subsurf)
 {
-    this->subsurface = subsurface;
+    this->subsurf = subsurf;
 }
 
 WlSubsurface::~WlSubsurface()
 {
-    wl_subsurface_destroy(subsurface);
+    wl_subsurface_destroy(subsurf);
 }
 
 struct wl_subsurface *WlSubsurface::GetRawPtr() const
 {
-    return subsurface;
+    return subsurf;
 }
 
 void WlSubsurface::SetPosition(int32_t x, int32_t y)
 {
-    wl_subsurface_set_position(subsurface, x, y);
+    wl_subsurface_set_position(subsurf, x, y);
 }
 
 void WlSubsurface::PlaceAbove(const sptr<WlSurface> &sibling)
 {
-    wl_subsurface_place_above(subsurface, sibling->GetRawPtr());
+    wl_subsurface_place_above(subsurf, sibling->GetRawPtr());
 }
 
 void WlSubsurface::PlaceBelow(const sptr<WlSurface> &sibling)
 {
-    wl_subsurface_place_below(subsurface, sibling->GetRawPtr());
+    wl_subsurface_place_below(subsurf, sibling->GetRawPtr());
 }
 
 void WlSubsurface::SetSync()
 {
-    wl_subsurface_set_sync(subsurface);
+    wl_subsurface_set_sync(subsurf);
 }
 
 void WlSubsurface::SetDesync()
 {
-    wl_subsurface_set_desync(subsurface);
+    wl_subsurface_set_desync(subsurf);
 }
 } // namespace OHOS

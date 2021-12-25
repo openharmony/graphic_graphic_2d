@@ -36,7 +36,7 @@ public:
     virtual void AfterRun();
 
 protected:
-    sptr<Surface> subcsurface = nullptr;
+    sptr<Surface> subcsurf = nullptr;
     sptr<Subwindow> subwindow = nullptr;
     sptr<NativeTestSync> subwindowSync = nullptr;
 };

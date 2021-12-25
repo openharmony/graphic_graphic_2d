@@ -23,14 +23,6 @@
 #include <window_manager_type.h>
 
 namespace OHOS {
-// bitmask
-enum WMSDisplayMode {
-    WM_DISPLAY_MODE_SINGLE = 1,
-    WM_DISPLAY_MODE_CLONE = 2,
-    WM_DISPLAY_MODE_EXTEND = 4,
-    WM_DISPLAY_MODE_EXPAND = 8,
-};
-
 enum WMSDisplayDirection {
     WMS_DISPLAY_DIRECTION_DOWN = 0,
     WMS_DISPLAY_DIRECTION_LEFT = 1,
@@ -41,7 +33,7 @@ enum WMSDisplayDirection {
 using DisplayDirectionChangeFunc = std::function<void(WMSDisplayDirection newDirection)>;
 
 struct WMSImageInfo {
-    WMError wret;
+    GSError wret;
     int32_t fd;
     uint32_t width;
     uint32_t height;
@@ -51,16 +43,17 @@ struct WMSImageInfo {
 };
 
 struct PowerStatus {
-    WMError wret;
+    GSError wret;
     DispPowerStatus status;
 };
 
 struct Backlight {
-    WMError wret;
+    GSError wret;
     uint32_t level;
 };
 
 using PromiseWMError = Promise<WMError>;
+using PromiseGSError = Promise<GSError>;
 using PromiseWMSImageInfo = Promise<WMSImageInfo>;
 using PromisePowerStatus = Promise<PowerStatus>;
 using PromiseBacklight = Promise<Backlight>;

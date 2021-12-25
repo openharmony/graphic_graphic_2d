@@ -25,6 +25,7 @@
 
 #include "iwindow_change_listener_clazz.h"
 #include "iwindow_manager_display_listener_clazz.h"
+
 #include "window_manager_service_type.h"
 
 namespace OHOS {
@@ -32,18 +33,18 @@ class IWindowManagerService : public RefBase {
 public:
     virtual ~IWindowManagerService() = default;
 
-    virtual WMError GetDisplays(std::vector<struct WMDisplayInfo> &displays) = 0;
+    virtual GSError GetDisplays(std::vector<struct WMDisplayInfo> &displays) = 0;
     virtual sptr<PromisePowerStatus> GetDisplayPower(int32_t did) = 0;
     virtual sptr<PromiseWMError> SetDisplayPower(int32_t did, DispPowerStatus status) = 0;
     virtual sptr<PromiseBacklight> GetDisplayBacklight(int32_t did) = 0;
     virtual sptr<PromiseWMError> SetDisplayBacklight(int32_t did, uint32_t level) = 0;
-    virtual WMError GetDisplayModes(uint32_t &displayModes) = 0;
     virtual sptr<PromiseWMError> SetDisplayMode(WMSDisplayMode modes) = 0;
-    virtual WMError AddDisplayChangeListener(IWindowManagerDisplayListenerClazz *listener) = 0;
     virtual sptr<PromiseWMError> OnWindowListChange(IWindowChangeListenerClazz *listener) = 0;
+    virtual GSError GetDisplayModes(uint32_t &displayModes) = 0;
+    virtual GSError AddDisplayChangeListener(IWindowManagerDisplayListenerClazz *listener) = 0;
 
-    virtual WMError SetDisplayDirection(WMSDisplayDirection direction) = 0;
-    virtual WMError OnDisplayDirectionChange(DisplayDirectionChangeFunc func) = 0;
+    virtual GSError SetDisplayDirection(WMSDisplayDirection direction) = 0;
+    virtual GSError OnDisplayDirectionChange(DisplayDirectionChangeFunc func) = 0;
 
     virtual sptr<PromiseWMError> SetStatusBarVisibility(bool visibility) = 0;
     virtual sptr<PromiseWMError> SetNavigationBarVisibility(bool visibility) = 0;
@@ -60,6 +61,29 @@ public:
     virtual sptr<PromiseWMError> ScaleTo(int32_t wid, uint32_t width, uint32_t height) = 0;
     virtual sptr<PromiseWMError> SetWindowType(int32_t wid, WindowType type) = 0;
     virtual sptr<PromiseWMError> SetWindowMode(int32_t wid, WindowMode mode) = 0;
+
+    virtual sptr<PromiseWMError> CreateVirtualDisplay(int32_t x, int32_t y, int32_t width, int32_t height) = 0;
+    virtual sptr<PromiseWMError> DestroyVirtualDisplay(uint32_t did) = 0;
+
+    virtual GSError StartRotationAnimation(uint32_t did, int32_t degree)
+    {
+        return GSERROR_NOT_SUPPORT;
+    }
+
+    virtual sptr<PromiseWMError> SetSplitMode(SplitMode mode, int32_t x = 0, int32_t y = 0)
+    {
+        return nullptr;
+    }
+
+    virtual GSError CreateLaunchPage(const std::string &filename)
+    {
+        return GSERROR_NOT_SUPPORT;
+    }
+
+    virtual GSError CancelLaunchPage()
+    {
+        return GSERROR_NOT_SUPPORT;
+    }
 };
 } // namespace OHOS
 

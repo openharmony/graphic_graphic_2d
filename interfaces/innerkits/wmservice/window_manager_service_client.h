@@ -26,7 +26,7 @@ public:
     virtual ~WindowManagerServiceClient() = default;
     static sptr<WindowManagerServiceClient> GetInstance();
 
-    virtual WMError Init() = 0;
+    virtual GSError Init() = 0;
     virtual sptr<IWindowManagerService> GetService() const = 0;
 };
 } // namespace OHOS

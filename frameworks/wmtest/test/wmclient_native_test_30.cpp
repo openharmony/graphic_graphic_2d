@@ -18,6 +18,7 @@
 #include <cstdio>
 #include <securec.h>
 #include <thread>
+#include <gslogger.h>
 
 #include <display_type.h>
 #include <iservice_registry.h>
@@ -31,7 +32,7 @@
 using namespace OHOS;
 
 namespace {
-class WMClientNativeTest30 : public INativeTest, public IBufferConsumerListenerClazz {
+class WMClientNativeTest30 : public INativeTest {
 public:
     std::string GetDescription() const override
     {
@@ -51,53 +52,96 @@ public:
         return id;
     }
 
-    uint32_t GetLastTime() const override
+    AutoLoadService GetAutoLoadService() const override
     {
-        constexpr uint32_t lastTime = LAST_TIME_FOREVER;
-        return lastTime;
+        return AutoLoadService::WindowManager;
+    }
+
+    int32_t GetProcessNumber() const override
+    {
+        return 2;
     }
 
     void Run(int32_t argc, const char **argv) override
     {
-        auto initRet = WindowManager::GetInstance()->Init();
-        if (initRet) {
-            printf("init failed with %s\n", WMErrorStr(initRet).c_str());
+        auto ret = IPCServerStart();
+        if (ret) {
+            GSLOG7SE(ERROR) << ret;
+            ExitTest();
+        }
+
+        GSLOG7SO(INFO) << "fork return: " << StartSubprocess(1);
+        sleep(1);
+        GSLOG7SO(INFO) << "fork return: " << StartSubprocess(0);
+        WaitSubprocessAllQuit();
+    }
+} g_autoload;
+
+class WMClientNativeTest30Sub0 : public WMClientNativeTest30, public IBufferConsumerListenerClazz {
+public:
+    std::string GetDescription() const override
+    {
+        constexpr const char *desc = "bq1 bq2";
+        return desc;
+    }
+
+    int32_t GetProcessSequence() const override
+    {
+        return 0;
+    }
+
+    void Run(int32_t argc, const char **argv) override
+    {
+        window = NativeTestFactory::CreateWindow(WINDOW_TYPE_NORMAL);
+        if (window == nullptr) {
+            GSLOG7SO(ERROR) << "window == nullptr";
+            ExitTest();
+            return;
+        }
+        window->SwitchTop();
+        bq2 = window->GetSurface();
+        auto func = [this](sptr<SurfaceBuffer> &buffer) {
+            OnReleaseBuffer(buffer);
+            return GSERROR_OK;
+        };
+        bq2->RegisterReleaseListener(func);
+        if (bq2 == nullptr) {
+            GSLOG7SO(ERROR) << "bq2 == nullptr";
             ExitTest();
             return;
         }
 
-        pipe(pipeFd);
-        pid_t pid = fork();
-        if (pid < 0) {
-            printf("%s fork failed", __func__);
-            ExitTest();
-            return;
-        }
+        bq1 = Surface::CreateSurfaceAsConsumer("bq1");
+        bq1->SetDefaultWidthAndHeight(window->GetWidth(), window->GetHeight());
+        bq1->SetDefaultUsage(bq2->GetDefaultUsage());
+        bq1->RegisterConsumerListener(this);
+        IPCClientSendMessage(1, "producer", bq1->GetProducer()->AsObject());
+    }
 
-        if (pid == 0) {
-            ChildProcess();
-        } else {
-            MainProcess();
+    void IPCClientOnMessage(int32_t sequence, const std::string &message, const sptr<IRemoteObject> &robj) override
+    {
+        if (message == "quit") {
+            ExitTest();
         }
     }
 
-    SurfaceError OnReleaseBuffer(sptr<SurfaceBuffer> rbuffer)
+    GSError OnReleaseBuffer(sptr<SurfaceBuffer> rbuffer)
     {
         auto sret = bq2->DetachBuffer(rbuffer);
-        if (sret != SURFACE_ERROR_OK) {
+        if (sret != GSERROR_OK) {
             printf("OnReleaseBuffer, Detach failed!\n");
-            return SURFACE_ERROR_NO_ENTRY;
+            return GSERROR_NO_ENTRY;
         }
 
         do {
             sret = bq1->AttachBuffer(rbuffer);
-        } while (sret != SURFACE_ERROR_OK);
+        } while (sret != GSERROR_OK);
 
         auto ret = bq1->ReleaseBuffer(rbuffer, -1);
-        if (ret != SURFACE_ERROR_OK) {
+        if (ret != GSERROR_OK) {
             printf("release buffer failed!\n");
         }
-        return SURFACE_ERROR_OK;
+        return GSERROR_OK;
     }
 
     virtual void OnBufferAvailable() override
@@ -106,13 +150,13 @@ public:
         int64_t timestamp;
         Rect damage;
         auto sret = bq1->AcquireBuffer(sbuffer, flushFence, timestamp, damage);
-        if (sret != SURFACE_ERROR_OK) {
+        if (sret != GSERROR_OK) {
             printf("AcquireBuffer failed!\n");
             return;
         }
 
         sret = bq1->DetachBuffer(sbuffer);
-        if (sret != SURFACE_ERROR_OK) {
+        if (sret != GSERROR_OK) {
             printf("Detach buffer failed!\n");
             return;
         }
@@ -123,10 +167,10 @@ public:
 
         do {
             sret = bq2->AttachBuffer(sbuffer);
-        } while (sret != SURFACE_ERROR_OK);
+        } while (sret != GSERROR_OK);
 
-        if (sret != SURFACE_ERROR_OK) {
-            if (sret == SURFACE_ERROR_NO_BUFFER) {
+        if (sret != GSERROR_OK) {
+            if (sret == GSERROR_NO_BUFFER) {
                 printf("No Buffer!, %d\n", __LINE__);
                 bq1->AttachBuffer(sbuffer);
                 bq1->ReleaseBuffer(sbuffer, -1);
@@ -144,125 +188,70 @@ public:
         };
 
         sret = bq2->FlushBuffer(sbuffer, -1, fconfig);
-        if (sret != SURFACE_ERROR_OK) {
+        if (sret != GSERROR_OK) {
             printf("flush buffer failed\n");
         }
     }
 
 private:
-    void MainProcess()
+    sptr<Window> window;
+    sptr<Surface> bq1 = nullptr;
+    sptr<Surface> bq2 = nullptr;
+    sptr<SurfaceBuffer> sbuffer = nullptr;
+} g_autoload0;
+
+class WMClientNativeTest30Sub1 : public WMClientNativeTest30 {
+public:
+    std::string GetDescription() const override
     {
-        window = NativeTestFactory::CreateWindow(WINDOW_TYPE_NORMAL);
-        if (window == nullptr) {
-            printf("%s window == nullptr\n", __func__);
-            ExitTest();
-            return;
-        }
-        window->SwitchTop();
-        bq2 = window->GetSurface();
-        auto func = [this](sptr<SurfaceBuffer> &buffer) {
-            OnReleaseBuffer(buffer);
-            return SURFACE_ERROR_OK;
-        };
-        bq2->RegisterReleaseListener(func);
-        if (bq2 == nullptr) {
-            printf("%s bq2 == nullptr\n", __func__);
-            ExitTest();
-            return;
-        }
-
-        bq1 = Surface::CreateSurfaceAsConsumer("bq1");
-        bq1->SetDefaultWidthAndHeight(window->GetWidth(), window->GetHeight());
-        bq1->SetDefaultUsage(bq2->GetDefaultUsage());
-        bq1->RegisterConsumerListener(this);
-        auto producer = bq1->GetProducer();
-        if (producer == nullptr) {
-            printf("%s producer == nullptr\n", __func__);
-            ExitTest();
-            return;
-        }
-
-        auto producerObject = producer->AsObject();
-        if (producerObject == nullptr) {
-            printf("%s producerObject == nullptr\n", __func__);
-            ExitTest();
-            return;
-        }
-
-        auto sam = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-        if (sam == nullptr) {
-            printf("%s sam == nullptr\n", __func__);
-            ExitTest();
-            return;
-        }
-
-        sam->AddSystemAbility(SAID, producerObject);
-
-        uint32_t msg = 0;
-        write(pipeFd[1], &msg, sizeof(msg));
-
-        sleep(0);
-
-        char buf[10];
-        read(pipeFd[0], buf, sizeof(buf));
-        sam->RemoveSystemAbility(SAID);
-        ExitTest();
+        constexpr const char *desc = "window";
+        return desc;
     }
 
-    void ChildProcess()
+    int32_t GetProcessSequence() const override
     {
-        char buf[10];
-        read(pipeFd[0], &buf, sizeof(buf));
+        return 1;
+    }
 
-        auto sam = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-        if (sam == nullptr) {
-            printf("%s main_process sam == nullptr\n", __func__);
-            ExitTest();
-            return;
-        }
+    void Run(int32_t argc, const char **argv) override
+    {
+    }
 
-        auto robj = sam->GetSystemAbility(SAID);
-        if (robj == nullptr) {
-            printf("%s main_process robj == nullptr\n", __func__);
-            ExitTest();
-            return;
-        }
-
-        auto bp = iface_cast<IBufferProducer>(robj);
+    void Run2()
+    {
+        auto bp = iface_cast<IBufferProducer>(remoteObject);
         if (bp == nullptr) {
-            printf("%s main_process bp == nullptr\n", __func__);
+            GSLOG7SO(ERROR) << "bp == nullptr";
             ExitTest();
             return;
         }
 
         ipcSurface = Surface::CreateSurfaceAsProducer(bp);
         if (ipcSurface == nullptr) {
-            printf("%s main_process ipcSurface == nullptr\n", __func__);
+            GSLOG7SO(ERROR) << "ipcSurface == nullptr";
             ExitTest();
             return;
         }
         windowSync = NativeTestSync::CreateSync(NativeTestDraw::FlushDraw, ipcSurface);
-
-        constexpr uint32_t delayTime = 3000;
-        PostTask(std::bind(&WMClientNativeTest30::ChildProcessAfter, this), delayTime);
     }
 
-    void ChildProcessAfter()
+    void IPCClientOnMessage (int32_t sequence, const std::string &message, const sptr<IRemoteObject> &robj) override
     {
-        char buf[10] = "end";
-        write(pipeFd[1], buf, sizeof(buf));
-        ExitTest();
-        return;
+        if (message == "producer") {
+            remoteObject = robj;
+            if (remoteObject == nullptr) {
+                PostTask(std::bind(&INativeTest::IPCClientSendMessage, this, 0, "quit", nullptr));
+                ExitTest();
+            } else {
+                PostTask(std::bind(&WMClientNativeTest30Sub1::Run2, this));
+            }
+            return;
+        }
     }
 
 private:
-    sptr<SurfaceBuffer> sbuffer = nullptr;
-    sptr<Window> window = nullptr;
     sptr<NativeTestSync> windowSync = nullptr;
-    int32_t pipeFd[2] = {};
-    static inline constexpr uint32_t SAID = 4699;
-    sptr<Surface> bq1 = nullptr;
-    sptr<Surface> bq2 = nullptr;
+    sptr<IRemoteObject> remoteObject = nullptr;
     sptr<Surface> ipcSurface = nullptr;
-} g_autoload;
-}
+} g_autoload1;
+} // namespace

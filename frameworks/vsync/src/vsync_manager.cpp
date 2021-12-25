@@ -15,13 +15,15 @@
 
 #include "vsync_manager.h"
 
+#include <scoped_bytrace.h>
+
 #include "vsync_callback_death_recipient.h"
 #include "vsync_callback_proxy.h"
 #include "vsync_log.h"
 
 #define REMOTE_RETURN(reply, vsync_error) \
     reply.WriteInt32(vsync_error);        \
-    if (vsync_error != VSYNC_ERROR_OK) {  \
+    if (vsync_error != GSERROR_OK) {  \
         VLOG_FAILURE_NO(vsync_error);     \
     }                                     \
     break
@@ -45,12 +47,12 @@ int32_t VsyncManager::OnRemoteRequest(uint32_t code, MessageParcel &data,
         case IVSYNC_MANAGER_LISTEN_VSYNC: {
             auto remoteObject = data.ReadRemoteObject();
             if (remoteObject == nullptr) {
-                REMOTE_RETURN(reply, VSYNC_ERROR_NULLPTR);
+                REMOTE_RETURN(reply, GSERROR_INVALID_ARGUMENTS);
             }
 
             auto cb = iface_cast<IVsyncCallback>(remoteObject);
 
-            VsyncError ret = ListenVsync(cb);
+            GSError ret = ListenVsync(cb);
 
             REMOTE_RETURN(reply, ret);
             break;
@@ -58,17 +60,17 @@ int32_t VsyncManager::OnRemoteRequest(uint32_t code, MessageParcel &data,
         case IVSYNC_MANAGER_REMOVE_VSYNC: {
             auto remoteObject = data.ReadRemoteObject();
             if (remoteObject == nullptr) {
-                REMOTE_RETURN(reply, VSYNC_ERROR_NULLPTR);
+                REMOTE_RETURN(reply, GSERROR_INVALID_ARGUMENTS);
             }
 
             auto cb = iface_cast<IVsyncCallback>(remoteObject);
-            VsyncError ret = RemoveVsync(cb);
+            auto ret = RemoveVsync(cb);
             REMOTE_RETURN(reply, ret);
             break;
         }
         case IVSYNC_MANAGER_GET_VSYNC_FREQUENCY: {
             uint32_t freq = 0;
-            VsyncError ret = GetVsyncFrequency(freq);
+            GSError ret = GetVsyncFrequency(freq);
             reply.WriteInt32(ret);
             reply.WriteUint32(freq);
             break;
@@ -81,11 +83,11 @@ int32_t VsyncManager::OnRemoteRequest(uint32_t code, MessageParcel &data,
     return 0;
 }
 
-VsyncError VsyncManager::ListenVsync(sptr<IVsyncCallback>& cb)
+GSError VsyncManager::ListenVsync(sptr<IVsyncCallback>& cb)
 {
     if (cb == nullptr) {
-        VLOG_FAILURE_NO(VSYNC_ERROR_NULLPTR);
-        return VSYNC_ERROR_NULLPTR;
+        VLOG_FAILURE_NO(GSERROR_INVALID_ARGUMENTS);
+        return GSERROR_INVALID_ARGUMENTS;
     }
     VLOGI("add callbacks %{public}d", GetCallingPid());
 
@@ -94,13 +96,16 @@ VsyncError VsyncManager::ListenVsync(sptr<IVsyncCallback>& cb)
         VLOGW("Failed to add death recipient");
     }
 
+    ScopedBytrace bytrace(__func__);
     std::lock_guard<std::mutex> lock(callbacksMutex_);
     callbacks_.push_back(cb);
-    return VSYNC_ERROR_OK;
+    return GSERROR_OK;
 }
 
-VsyncError VsyncManager::RemoveVsync(sptr<IVsyncCallback>& callback)
+GSError VsyncManager::RemoveVsync(sptr<IVsyncCallback>& callback)
 {
+    ScopedBytrace bytrace(__func__);
+    std::lock_guard<std::mutex> lock(callbacksMutex_);
     for (auto it = callbacks_.begin(); it != callbacks_.end(); it++) {
         if (*it == callback) {
             callbacks_.erase(it);
@@ -108,28 +113,41 @@ VsyncError VsyncManager::RemoveVsync(sptr<IVsyncCallback>& callback)
         }
     }
 
-    return VSYNC_ERROR_OK;
+    return GSERROR_OK;
 }
 
-VsyncError VsyncManager::GetVsyncFrequency(uint32_t &freq)
+GSError VsyncManager::GetVsyncFrequency(uint32_t &freq)
 {
     constexpr uint32_t defaultVsyncFrequency = 60;
     freq = defaultVsyncFrequency;
-    return VSYNC_ERROR_OK;
+    return GSERROR_OK;
 }
 
 void VsyncManager::Callback(int64_t timestamp)
 {
-    std::lock_guard<std::mutex> lock(callbacksMutex_);
-
     using sptrIVsyncCallback = sptr<IVsyncCallback>;
-    std::list<sptrIVsyncCallback> okcbs;
-    for (const auto &cb : callbacks_) {
-        if (cb->OnVsync(timestamp) != VSYNC_ERROR_BINDER_ERROR) {
-            okcbs.push_back(cb);
+    std::list<sptrIVsyncCallback> okcbs, calling;
+    {
+        ScopedBytrace bytrace("callback 1");
+        std::lock_guard<std::mutex> lock(callbacksMutex_);
+        calling = callbacks_;
+        callbacks_.clear();
+    }
+
+    {
+        ScopedBytrace bytrace("callback 2");
+        for (const auto &cb : calling) {
+            if (cb->OnVsync(timestamp) != GSERROR_BINDER) {
+                okcbs.push_back(cb);
+            }
         }
     }
-    callbacks_ = okcbs;
+
+    {
+        ScopedBytrace bytrace("callback 3");
+        std::lock_guard<std::mutex> lock(callbacksMutex_);
+        callbacks_.insert(callbacks_.begin(), okcbs.begin(), okcbs.end());
+    }
 }
 } // namespace Vsync
 } // namespace OHOS

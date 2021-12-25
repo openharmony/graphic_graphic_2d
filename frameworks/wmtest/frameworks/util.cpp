@@ -19,37 +19,29 @@
 #include <thread>
 #include <unistd.h>
 
+#include <gslogger.h>
+
 using namespace std::chrono_literals;
 
 namespace OHOS {
+namespace {
+int32_t g_vsyncRate = 0;
+} // namespace
+
+void SetVsyncRate(int32_t rate)
+{
+    g_vsyncRate = rate;
+}
+
 uint32_t RequestSync(const SyncFunc syncFunc, void *data)
 {
     struct FrameCallback cb = {
+        .frequency_ = g_vsyncRate,
         .timestamp_ = 0,
         .userdata_ = data,
         .callback_ = syncFunc,
     };
     return VsyncHelper::Current()->RequestFrameCallback(cb);
-}
-
-void PostTask(std::function<void()> func, uint32_t delayTime)
-{
-    auto handler = AppExecFwk::EventHandler::Current();
-    if (handler) {
-        handler->PostTask(func, delayTime);
-    }
-}
-
-void ExitTest()
-{
-    auto runner = AppExecFwk::EventRunner::Current();
-    if (runner) {
-        printf("exiting\n");
-        PostTask(std::bind(&AppExecFwk::EventRunner::Stop, runner));
-    } else {
-        printf("exit\n");
-        exit(0);
-    }
 }
 
 int64_t GetNowTime()

@@ -116,18 +116,18 @@ HWTEST_F(SubwindowOptionImplTest, InvalidSet, testing::ext::TestSize.Level0)
 
     // 1. set invalid WindowType, check
     constexpr auto invalidWindowType = static_cast<SubwindowType>(-1);
-    ASSERT_EQ(soi.SetWindowType(invalidWindowType), WM_ERROR_INVALID_PARAM) << "CaseDescription: "
-        << "1. set invalid WindowType, check (soi.SetWindowType() == WM_ERROR_INVALID_PARAM)";
+    ASSERT_EQ(soi.SetWindowType(invalidWindowType), GSERROR_INVALID_ARGUMENTS) << "CaseDescription: "
+        << "1. set invalid WindowType, check (soi.SetWindowType() == GSERROR_INVALID_ARGUMENTS)";
 
     // 2. set invalid width, check
     constexpr auto invalidWidth = 0u;
-    ASSERT_EQ(soi.SetWidth(invalidWidth), WM_ERROR_INVALID_PARAM) << "CaseDescription: "
-        << "2. set invalid width, check (soi.SetWidth() == WM_ERROR_INVALID_PARAM)";
+    ASSERT_EQ(soi.SetWidth(invalidWidth), GSERROR_INVALID_ARGUMENTS) << "CaseDescription: "
+        << "2. set invalid width, check (soi.SetWidth() == GSERROR_INVALID_ARGUMENTS)";
 
     // 3. set invalid height, check
     constexpr auto invalidHeight = 0u;
-    ASSERT_EQ(soi.SetHeight(invalidHeight), WM_ERROR_INVALID_PARAM) << "CaseDescription: "
-        << "3. set invalid height, check (soi.SetHeight() == WM_ERROR_INVALID_PARAM)";
+    ASSERT_EQ(soi.SetHeight(invalidHeight), GSERROR_INVALID_ARGUMENTS) << "CaseDescription: "
+        << "3. set invalid height, check (soi.SetHeight() == GSERROR_INVALID_ARGUMENTS)";
 }
 } // namespace
 } // namespace OHOS

@@ -23,7 +23,7 @@ namespace OHOS {
 // getDefaultDisplay {{{
 namespace getDefaultDisplay {
 struct Param {
-    WMError wret;
+    GSError wret;
     std::vector<WMDisplayInfo> displayInfos;
 };
 
@@ -31,8 +31,8 @@ bool Async(napi_env env, std::unique_ptr<Param> &param)
 {
     const auto &wmsc = WindowManagerServiceClient::GetInstance();
     auto wret = wmsc->Init();
-    if (wret != WM_OK) {
-        GNAPI_LOG("WindowManagerServiceClient::Init() return %{public}s", WMErrorStr(wret).c_str());
+    if (wret != GSERROR_OK) {
+        GNAPI_LOG("WindowManagerServiceClient::Init() return %{public}s", GSErrorStr(wret).c_str());
         param->wret = wret;
         return false;
     }
@@ -50,8 +50,8 @@ bool Async(napi_env env, std::unique_ptr<Param> &param)
 
 napi_value Resolve(napi_env env, std::unique_ptr<Param> &param)
 {
-    if (param->wret != WM_OK) {
-        return CreateError(env, "failed with %s", WMErrorStr(param->wret).c_str());
+    if (param->wret != GSERROR_OK) {
+        return CreateError(env, "failed with %s", GSErrorStr(param->wret).c_str());
     }
 
     if (param->displayInfos.empty()) {

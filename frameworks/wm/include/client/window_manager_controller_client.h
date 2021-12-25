@@ -24,8 +24,6 @@
 #include <surface.h>
 #include <window_manager_service_client.h>
 
-#include "input_listener_manager.h"
-#include "log_listener.h"
 #include "wayland_service.h"
 #include "window_manager_server.h"
 #include "wl_buffer_cache.h"
@@ -39,14 +37,14 @@
 namespace OHOS {
 struct InnerWindowInfo {
     sptr<WlSurface> wlSurface;
-    sptr<WlSubsurface> wlSubsurface;
+    sptr<WlSubsurface> wlSubsurf;
     sptr<WlBuffer> wlBuffer;
     WindowConfig windowconfig;
     uint32_t windowid;
     uint32_t layerid;
     uint32_t parentid;
     uint32_t voLayerId;
-    sptr<Surface> surface;
+    sptr<Surface> surf;
     sptr<IBufferConsumerListener> listener;
     std::list<uint32_t> childIDList;
     bool subwidow;
@@ -56,7 +54,6 @@ struct InnerWindowInfo {
     int32_t pos_y;
     funcWindowInfoChange windowInfoChangeCb;
     void (* onWindowCreateCb)(uint32_t pid);
-    sptr<InputListener> logListener;
 
     bool operator ==(const InnerWindowInfo &other) const
     {
@@ -64,7 +61,7 @@ struct InnerWindowInfo {
     }
 };
 
-class LayerControllerClient : public RefBase {
+class LayerControllerClient : public RefBase, public IWlBufferReleaseClazz {
 public:
     static sptr<LayerControllerClient> GetInstance();
 
@@ -72,7 +69,7 @@ public:
 
     InnerWindowInfo *CreateWindow(int32_t id, WindowConfig &config);
     InnerWindowInfo *CreateSubWindow(int32_t subid, int32_t parentid, WindowConfig &config);
-    void CreateWlBuffer(sptr<Surface>& surface, uint32_t id);
+    void CreateWlBuffer(sptr<Surface>& surf, uint32_t id);
     void DestroyWindow(int32_t id);
     void Move(int32_t id, int32_t x, int32_t y);
     void Show(int32_t id);
@@ -102,6 +99,7 @@ private:
     static inline sptr<LayerControllerClient> instance = nullptr;
     LayerControllerClient();
     virtual ~LayerControllerClient();
+    virtual void OnWlBufferRelease(struct wl_buffer *wbuffer, int32_t fence) override;
 
     sptr<IWindowManagerService> wms = nullptr;
     bool isInit = false;
@@ -115,7 +113,7 @@ private:
 
 class SurfaceListener : public IBufferConsumerListener {
 public:
-    SurfaceListener(sptr<Surface>& surface, uint32_t windowid);
+    SurfaceListener(sptr<Surface>& surf, uint32_t windowid);
     virtual ~SurfaceListener();
 
     virtual void OnBufferAvailable() override;

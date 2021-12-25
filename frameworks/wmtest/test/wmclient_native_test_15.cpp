@@ -57,7 +57,7 @@ public:
     {
         auto initRet = WindowManager::GetInstance()->Init();
         if (initRet) {
-            printf("init failed with %s\n", WMErrorStr(initRet).c_str());
+            printf("init failed with %s\n", GSErrorStr(initRet).c_str());
             ExitTest();
             return;
         }
@@ -70,8 +70,8 @@ public:
         }
 
         window->SwitchTop();
-        auto surface = window->GetSurface();
-        windowSync = NativeTestSync::CreateSync(NativeTestDraw::FlushDraw, surface);
+        auto surf = window->GetSurface();
+        windowSync = NativeTestSync::CreateSync(NativeTestDraw::FlushDraw, surf);
         std::vector<struct WMDisplayInfo> displays;
         WindowManager::GetInstance()->GetDisplays(displays);
         if (displays.size() <= 0) {
@@ -100,13 +100,13 @@ public:
         option->SetHeight(h);
         auto wret = WindowManager::GetInstance()->CreateSubwindow(subwindow, window, option);
         if (subwindow == nullptr) {
-            printf("create subwindow failed %s\n", WMErrorStr(wret).c_str());
+            printf("create subwindow failed %s\n", GSErrorStr(wret).c_str());
             ExitTest();
             return;
         }
 
-        surface = subwindow->GetSurface();
-        subwindowSync = NativeTestSync::CreateSync(NativeTestDraw::FlushDraw, surface);
+        surf = subwindow->GetSurface();
+        subwindowSync = NativeTestSync::CreateSync(NativeTestDraw::FlushDraw, surf);
 
         AfterRunWindow();
         AfterRunSubwindow();

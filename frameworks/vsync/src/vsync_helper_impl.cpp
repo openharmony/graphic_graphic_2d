@@ -21,7 +21,7 @@
 #include <thread>
 #include <unistd.h>
 
-#include <graphic_bytrace.h>
+#include <scoped_bytrace.h>
 #include <iservice_registry.h>
 #include <system_ability_definition.h>
 
@@ -56,18 +56,19 @@ sptr<VsyncClient> VsyncClient::GetInstance()
     return instance;
 }
 
-VsyncError VsyncClient::InitService()
+GSError VsyncClient::InitService()
 {
     std::lock_guard<std::mutex> lock(serviceMutex_);
     if (service_ == nullptr) {
+        ScopedBytrace func(__func__);
         auto sam = StaticCall::GetInstance()->GetSystemAbilityManager();
         if (sam == nullptr) {
-            VLOG_FAILURE_RET(VSYNC_ERROR_SAMGR);
+            VLOG_FAILURE_RET(GSERROR_CONNOT_CONNECT_SAMGR);
         }
 
         auto remoteObject = StaticCall::GetInstance()->GetSystemAbility(sam, VSYNC_MANAGER_ID);
         if (remoteObject == nullptr) {
-            VLOG_FAILURE_RET(VSYNC_ERROR_SERVICE_NOT_FOUND);
+            VLOG_FAILURE_RET(GSERROR_SERVER_ERROR);
         }
 
         sptr<IRemoteObject::DeathRecipient> deathRecipient = new VsyncManagerDeathRecipient();
@@ -80,37 +81,37 @@ VsyncError VsyncClient::InitService()
         }
 
         if (service_ == nullptr) {
-            VLOG_FAILURE_RET(VSYNC_ERROR_PROXY_NOT_INCLUDE);
+            VLOG_FAILURE_RET(GSERROR_PROXY_NOT_INCLUDE);
         }
         VLOG_SUCCESS("service_ = iface_cast");
     }
-    return VSYNC_ERROR_OK;
+    return GSERROR_OK;
 }
 
-VsyncError VsyncClient::InitVsyncFrequency()
+GSError VsyncClient::InitVsyncFrequency()
 {
     if (vsyncFrequency_ == 0) {
-        VsyncError vret;
+        GSError vret;
         {
             std::lock_guard<std::mutex> lock(serviceMutex_);
             vret = StaticCall::GetInstance()->GetVsyncFrequency(service_, vsyncFrequency_);
-            if (vret == VSYNC_ERROR_BINDER_ERROR) {
+            if (vret == GSERROR_BINDER) {
                 service_ = nullptr;
                 listener_ = nullptr;
             }
         }
-        if (vret != VSYNC_ERROR_OK) {
+        if (vret != GSERROR_OK) {
             VLOG_FAILURE_RET(vret);
         }
         if (vsyncFrequency_ == 0) {
-            VLOG_FAILURE_RET(VSYNC_ERROR_INNER);
+            VLOG_FAILURE_RET(GSERROR_INTERNEL);
         }
         VLOG_SUCCESS("Get Frequency: %{public}u", vsyncFrequency_);
     }
-    return VSYNC_ERROR_OK;
+    return GSERROR_OK;
 }
 
-VsyncError VsyncClient::Init(bool restart)
+GSError VsyncClient::Init(bool restart)
 {
     if (restart == true) {
         std::lock_guard<std::mutex> lock(serviceMutex_);
@@ -119,38 +120,39 @@ VsyncError VsyncClient::Init(bool restart)
     }
 
     while (true) {
-        VsyncError vret;
+        GSError vret;
         if (service_ == nullptr) {
             vret = InitService();
-            if (vret == VSYNC_ERROR_SERVICE_NOT_FOUND && restart == true) {
+            if (vret == GSERROR_SERVER_ERROR && restart == true) {
                 std::this_thread::sleep_for(5ms);
                 continue;
             }
-            if (vret != VSYNC_ERROR_OK) {
+            if (vret != GSERROR_OK) {
                 return vret;
             }
         }
 
         vret = InitVsyncFrequency();
-        if (vret == VSYNC_ERROR_BINDER_ERROR) {
+        if (vret == GSERROR_BINDER) {
             restart = true;
             continue;
-        } else if (vret != VSYNC_ERROR_OK) {
+        } else if (vret != GSERROR_OK) {
             return vret;
         }
         break;
     }
-    return VSYNC_ERROR_OK;
+    return GSERROR_OK;
 }
 
 GSError VsyncClient::InitListener()
 {
     while (listener_ == nullptr) {
-        listener_ = new VsyncCallback();
+        ScopedBytrace func(__func__);
         auto vret = GSERROR_OK;
         {
             std::lock_guard<std::mutex> lock(serviceMutex_);
-            vret = static_cast<enum GSError>(StaticCall::GetInstance()->ListenVsync(service_, listener_));
+            listener_ = new VsyncCallback();
+            vret = StaticCall::GetInstance()->ListenVsync(service_, listener_);
             if (vret == GSERROR_BINDER) {
                 service_ = nullptr;
                 listener_ = nullptr;
@@ -172,15 +174,15 @@ GSError VsyncClient::InitListener()
     return GSERROR_OK;
 }
 
-VsyncError VsyncClient::RequestFrameCallback(const struct FrameCallback &cb)
+GSError VsyncClient::RequestFrameCallback(const struct FrameCallback &cb)
 {
-    VsyncError ret = Init();
-    if (ret != VSYNC_ERROR_OK) {
+    GSError ret = Init();
+    if (ret != GSERROR_OK) {
         return ret;
     }
 
     if (cb.callback_ == nullptr) {
-        VLOG_FAILURE_RET(VSYNC_ERROR_NULLPTR);
+        VLOG_FAILURE_RET(GSERROR_INVALID_ARGUMENTS);
     }
 
     uint32_t frequency = cb.frequency_;
@@ -190,7 +192,7 @@ VsyncError VsyncClient::RequestFrameCallback(const struct FrameCallback &cb)
 
     if (vsyncFrequency_ % frequency != 0) {
         VLOGW("cb.frequency_ is invalid arguments");
-        VLOG_FAILURE_RET(VSYNC_ERROR_INVALID_ARGUMENTS);
+        VLOG_FAILURE_RET(GSERROR_INVALID_ARGUMENTS);
     }
 
     ScopedBytrace func(__func__);
@@ -200,22 +202,28 @@ VsyncError VsyncClient::RequestFrameCallback(const struct FrameCallback &cb)
         .callback_ = cb.callback_,
         .activeTime_ = cb.timestamp_ + GetNowTime(),
         .userdata_ = cb.userdata_,
+        .frequency_ = frequency,
     };
+
+    if (dumper == nullptr) {
+        dumper = GraphicDumperHelper::GetInstance();
+        dumpListener = dumper->AddDumpListener("client.vsync", std::bind(&VsyncClient::OnDump, this));
+    }
 
     {
         std::lock_guard<std::mutex> lockGuard(callbacksMapMutex_);
         callbacksMap_[vsyncID].push(ele);
-        InitListener();
     }
 
+    InitListener();
     VLOG_SUCCESS("RequestFrameCallback time: " VPUBI64 ", id: %{public}u", delayTime, vsyncID);
-    return VSYNC_ERROR_OK;
+    return GSERROR_OK;
 }
 
-VsyncError VsyncClient::GetSupportedVsyncFrequencys(std::vector<uint32_t>& freqs)
+GSError VsyncClient::GetSupportedVsyncFrequencys(std::vector<uint32_t>& freqs)
 {
-    VsyncError ret = Init();
-    if (ret != VSYNC_ERROR_OK) {
+    GSError ret = Init();
+    if (ret != GSERROR_OK) {
         return ret;
     }
 
@@ -231,7 +239,7 @@ VsyncError VsyncClient::GetSupportedVsyncFrequencys(std::vector<uint32_t>& freqs
 
     auto compare = [](int a, int b) { return a > b; };
     std::sort(freqs.begin(), freqs.end(), compare);
-    return VSYNC_ERROR_OK;
+    return GSERROR_OK;
 }
 
 void VsyncClient::DispatchFrameCallback(int64_t timestamp)
@@ -319,6 +327,13 @@ sptr<VsyncHelperImpl> VsyncHelperImpl::Current()
     return currentHelper_;
 }
 
+void VsyncClient::OnDump()
+{
+    for (auto &[vid, eles] : callbacksMap_) {
+        dumper->SendInfo("client.vsync", "pid=%d, frequency is %d\n", getpid(), eles.top().frequency_);
+    }
+}
+
 VsyncHelperImpl::VsyncHelperImpl(std::shared_ptr<AppExecFwk::EventHandler>& handler)
 {
     handler_ = handler;
@@ -337,20 +352,20 @@ VsyncHelperImpl::~VsyncHelperImpl()
     }
 }
 
-VsyncError VsyncHelperImpl::RequestFrameCallback(const struct FrameCallback &cb)
+GSError VsyncHelperImpl::RequestFrameCallback(const struct FrameCallback &cb)
 {
     return VsyncClient::GetInstance()->RequestFrameCallback(cb);
 }
 
-VsyncError VsyncHelperImpl::GetSupportedVsyncFrequencys(std::vector<uint32_t>& freqs)
+GSError VsyncHelperImpl::GetSupportedVsyncFrequencys(std::vector<uint32_t>& freqs)
 {
     return VsyncClient::GetInstance()->GetSupportedVsyncFrequencys(freqs);
 }
 
-VsyncError VsyncCallback::OnVsync(int64_t timestamp)
+GSError VsyncCallback::OnVsync(int64_t timestamp)
 {
     VsyncClient::GetInstance()->DispatchFrameCallback(timestamp);
-    return VSYNC_ERROR_OK;
+    return GSERROR_OK;
 }
 
 void VsyncManagerDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &remote)

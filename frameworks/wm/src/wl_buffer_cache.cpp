@@ -46,17 +46,18 @@ sptr<WlBufferCache> WlBufferCache::GetInstance()
     return instance;
 }
 
-sptr<WlBuffer> WlBufferCache::GetWlBuffer(const sptr<Surface> &surface,
+sptr<WlBuffer> WlBufferCache::GetWlBuffer(const sptr<Surface> &surf,
                                           const sptr<SurfaceBuffer> &buffer)
 {
-    if (surface == nullptr || buffer == nullptr) {
+    if (surf == nullptr || buffer == nullptr) {
         return nullptr;
     }
 
-    std::lock_guard<std::mutex> lock(cacheMutex);
     CleanCache();
+
+    std::lock_guard<std::mutex> lock(cacheMutex);
     for (const auto &c : cache) {
-        if (c.csurface != nullptr && c.csurface.promote() == surface &&
+        if (c.csurf != nullptr && c.csurf.promote() == surf &&
             c.sbuffer != nullptr && c.sbuffer.promote() == buffer) {
             return c.wbuffer;
         }
@@ -64,45 +65,46 @@ sptr<WlBuffer> WlBufferCache::GetWlBuffer(const sptr<Surface> &surface,
     return nullptr;
 }
 
-WMError WlBufferCache::AddWlBuffer(const sptr<WlBuffer> &wbuffer,
-                                   const sptr<Surface> &csurface,
+GSError WlBufferCache::AddWlBuffer(const sptr<WlBuffer> &wbuffer,
+                                   const sptr<Surface> &csurf,
                                    const sptr<SurfaceBuffer> &sbuffer)
 {
     if (wbuffer == nullptr) {
         WMLOGFW("wbuffer is nullptr");
-        return WM_ERROR_NULLPTR;
+        return GSERROR_INVALID_ARGUMENTS;
     }
-    if (csurface == nullptr) {
-        WMLOGFW("surface is nullptr");
-        return WM_ERROR_NULLPTR;
+    if (csurf == nullptr) {
+        WMLOGFW("surf is nullptr");
+        return GSERROR_INVALID_ARGUMENTS;
     }
     if (sbuffer == nullptr) {
         WMLOGFW("sbuffer is nullptr");
-        return WM_ERROR_NULLPTR;
+        return GSERROR_INVALID_ARGUMENTS;
     }
-    if (GetWlBuffer(csurface, sbuffer) == nullptr) {
+    if (GetWlBuffer(csurf, sbuffer) == nullptr) {
         std::lock_guard<std::mutex> lock(cacheMutex);
         struct BufferCache ele = {
             .wbuffer = wbuffer,
-            .csurface = csurface,
+            .csurf = csurf,
             .sbuffer = sbuffer,
         };
         cache.push_back(ele);
     }
-    return WM_OK;
+    return GSERROR_OK;
 }
 
 bool WlBufferCache::GetSurfaceBuffer(const struct wl_buffer *wbuffer,
-                                     sptr<Surface> &csurface,
+                                     sptr<Surface> &csurf,
                                      sptr<SurfaceBuffer> &sbuffer)
 {
     if (wbuffer == nullptr) {
         return false;
     }
+
     std::lock_guard<std::mutex> lock(cacheMutex);
     for (const auto &c : cache) {
         if (c.wbuffer != nullptr && c.wbuffer->GetRawPtr() == wbuffer) {
-            csurface = c.csurface.promote();
+            csurf = c.csurf.promote();
             sbuffer = c.sbuffer.promote();
             return true;
         }
@@ -112,14 +114,15 @@ bool WlBufferCache::GetSurfaceBuffer(const struct wl_buffer *wbuffer,
 
 void WlBufferCache::CleanCache()
 {
+    std::lock_guard<std::mutex> lock(cacheMutex);
     for (auto it = cache.begin(); it != cache.end(); it++) {
         sptr<SurfaceBuffer> buffer = nullptr;
         if (it->sbuffer != nullptr) {
             buffer = it->sbuffer.promote();
         }
 
-        if (it->csurface == nullptr ||
-            it->csurface.promote() == nullptr || buffer == nullptr ||
+        if (it->csurf == nullptr ||
+            it->csurf.promote() == nullptr || buffer == nullptr ||
             buffer->GetVirAddr() == nullptr || it->wbuffer == nullptr) {
             cache.erase(it);
             it--;
