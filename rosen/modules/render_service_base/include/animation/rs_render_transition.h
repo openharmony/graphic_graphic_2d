@@ -1,0 +1,56 @@
+/*
+ * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#ifndef RENDER_SERVICE_CLIENT_CORE_TRANSITION_RS_RENDER_TRANSITION_H
+#define RENDER_SERVICE_CLIENT_CORE_TRANSITION_RS_RENDER_TRANSITION_H
+
+#include "animation/rs_interpolator.h"
+#include "animation/rs_render_animation.h"
+#include "animation/rs_render_transition_effect.h"
+
+namespace OHOS {
+namespace Rosen {
+
+class RSRenderTransition : public RSRenderAnimation {
+public:
+    RSRenderTransition(AnimationId id, const RSTransitionEffect& effect);
+    void SetInterpolator(const std::shared_ptr<RSInterpolator>& interpolator)
+    {
+        interpolator_ = interpolator;
+    }
+#ifdef ROSEN_OHOS
+    bool Marshalling(Parcel& parcel) const override;
+    static RSRenderTransition* Unmarshalling(Parcel& parcel);
+#endif
+    RSTransitionEffect effectType_;
+
+protected:
+#ifdef ROSEN_OHOS
+    bool ParseParam(Parcel& parcel) override;
+#endif
+    void OnAnimate(float fraction) override;
+    void OnAttach() override;
+    void OnDetach() override;
+
+    float currentFraction_ { 0.0f };
+    std::shared_ptr<RSRenderTransitionEffect> effect_ { nullptr };
+    std::shared_ptr<RSInterpolator> interpolator_ { RSInterpolator::DEFAULT };
+private:
+    RSRenderTransition() = default;
+};
+} // namespace Rosen
+} // namespace OHOS
+
+#endif

@@ -1,0 +1,122 @@
+# Copyright (c) 2021 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/ohos.gni")
+import("render_service_client.gni")
+
+config("render_service_client_config") {
+  include_dirs = [
+    "$rosen_root/modules",
+    "$rosen_root/modules/render_service_client/core",
+    "$rosen_root/modules/render_service_base/include",
+  ]
+}
+
+ohos_source_set("render_service_client_src") {
+  defines = []
+  include_dirs = [ "core" ]
+
+  sources = [
+    #animation
+    "core/animation/rs_animation.cpp",
+    "core/animation/rs_animation_callback.cpp",
+    "core/animation/rs_animation_group.cpp",
+    "core/animation/rs_animation_timing_curve.cpp",
+    "core/animation/rs_curve_animation.cpp",
+    "core/animation/rs_implicit_animation_param.cpp",
+    "core/animation/rs_implicit_animator.cpp",
+    "core/animation/rs_keyframe_animation.cpp",
+    "core/animation/rs_path_animation.cpp",
+    "core/animation/rs_transition.cpp",
+
+    #pipeline
+    "core/pipeline/rs_node_map.cpp",
+    "core/pipeline/rs_render_manager.cpp",
+    "core/pipeline/rs_render_thread.cpp",
+    "core/pipeline/rs_render_thread_visitor.cpp",
+
+    #transaction
+    "core/transaction/rs_interfaces.cpp",
+    "core/transaction/rs_render_thread_client.cpp",
+    "core/transaction/rs_transaction.cpp",
+
+    #ui
+    "core/ui/rs_base_node.cpp",
+    "core/ui/rs_display_node.cpp",
+    "core/ui/rs_node.cpp",
+    "core/ui/rs_property_node.cpp",
+    "core/ui/rs_root_node.cpp",
+    "core/ui/rs_surface_extractor.cpp",
+    "core/ui/rs_surface_node.cpp",
+    "core/ui/rs_texture_node.cpp",
+    "core/ui/rs_ui_director.cpp",
+  ]
+
+  cflags = [
+    "-Wall",
+    "-Wno-pointer-arith",
+    "-Wno-non-virtual-dtor",
+    "-Wno-missing-field-initializers",
+    "-Wno-c++11-narrowing",
+    "-fvisibility=hidden",
+  ]
+
+  cflags_cc = [
+    "-std=c++17",
+    "-fvisibility-inlines-hidden",
+  ]
+
+  deps = []
+
+  if (enable_export_macro) {
+    defines += [ "ENABLE_EXPORT_MACRO" ]
+  }
+
+  public_deps =
+      [ "$rosen_root/modules/render_service_base:librender_service_base" ]
+
+  if (enable_debug) {
+    defines += [ "ROSEN_DEBUG" ]
+  }
+}
+
+ohos_shared_library("librender_service_client") {
+  public_deps = [
+    ":render_service_client_src",
+    "//foundation/ace/ace_engine/build/external_config/flutter/skia:ace_skia_ohos",
+  ]
+
+  public_configs = [ ":render_service_client_config" ]
+
+  part_name = "graphic_standard"
+  subsystem_name = "graphic"
+}
+
+ohos_executable("render_service_client_demo") {
+  sources = [ "rosen_test.cpp" ]
+
+  include_dirs = []
+
+  deps = [
+    ":librender_service_client",
+    "//foundation/graphic/standard:libvsync_client",
+    "//foundation/graphic/standard:libwmclient",
+    "//foundation/graphic/standard/rosen/modules/render_service_base:librender_service_base",
+    "//third_party/zlib:libz",
+  ]
+
+  public_deps = [ "//foundation/ace/ace_engine/build/external_config/flutter/skia:ace_skia_ohos" ]
+
+  part_name = "graphic_standard"
+  subsystem_name = "graphic"
+}

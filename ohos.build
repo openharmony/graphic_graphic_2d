@@ -14,7 +14,9 @@
         "//third_party/wayland-ivi-extension:simple-weston-client",
 
         "//third_party/weston:default",
-        "//foundation/graphic/standard:default"
+        "//foundation/graphic/standard:default",
+        "//foundation/graphic/standard/rosen/modules/render_service_base:librender_service_base",
+        "//foundation/graphic/standard/rosen/modules/render_service_client:librender_service_client"
       ],
       "test_list": [
         "//foundation/graphic/standard:test"
