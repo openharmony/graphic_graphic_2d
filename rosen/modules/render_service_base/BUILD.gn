@@ -1,0 +1,124 @@
+# Copyright (c) 2021 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/ohos.gni")
+import(
+    "//foundation/graphic/standard/rosen/modules/render_service_base/config.gni")
+
+config("export_config") {
+  cflags_cc = [ "-std=c++17" ]
+  include_dirs = [
+    "include",
+    "//foundation/graphic/standard/rosen/include",
+    "//drivers/peripheral/display/interfaces/include",
+  ]
+
+  defines = rs_common_define
+}
+
+ohos_shared_library("librender_service_base") {
+  public_configs = [ ":export_config" ]
+  defines = []
+
+  sources = [
+    #animation
+    "src/animation/rs_animation_fraction.cpp",
+    "src/animation/rs_animation_manager.cpp",
+    "src/animation/rs_interpolator.cpp",
+    "src/animation/rs_property_accessors.cpp",
+    "src/animation/rs_render_animation.cpp",
+    "src/animation/rs_render_path_animation.cpp",
+    "src/animation/rs_render_transition.cpp",
+    "src/animation/rs_render_transition_effect.cpp",
+    "src/animation/rs_spring_interpolator.cpp",
+    "src/animation/rs_value_estimator.cpp",
+
+    # message(depracated)
+    "src/command/rs_message_processor.cpp",
+
+    #command
+    "src/command/rs_animation_command.cpp",
+    "src/command/rs_base_node_command.cpp",
+    "src/command/rs_command_factory.cpp",
+    "src/command/rs_display_node_command.cpp",
+    "src/command/rs_node_command.cpp",
+    "src/command/rs_property_node_command.cpp",
+    "src/command/rs_root_node_command.cpp",
+    "src/command/rs_surface_node_command.cpp",
+
+    #common
+    "src/common/rs_color.cpp",
+    "src/common/rs_common_def.cpp",
+    "src/common/rs_obj_abs_geometry.cpp",
+    "src/common/rs_thread_handler_generic.cpp",
+    "src/common/rs_thread_looper_generic.cpp",
+    "src/common/rs_thread_looper_impl.cpp",
+
+    #ipc_callbacks
+    "src/ipc_callbacks/screen_change_callback_proxy.cpp",
+    "src/ipc_callbacks/screen_change_callback_stub.cpp",
+
+    #pipeline
+    "src/pipeline/rs_base_render_node.cpp",
+    "src/pipeline/rs_context.cpp",
+    "src/pipeline/rs_dirty_region_manager.cpp",
+    "src/pipeline/rs_display_render_node.cpp",
+    "src/pipeline/rs_draw_cmd.cpp",
+    "src/pipeline/rs_draw_cmd_list.cpp",
+    "src/pipeline/rs_paint_filter_canvas.cpp",
+    "src/pipeline/rs_property_render_node.cpp",
+    "src/pipeline/rs_recording_canvas.cpp",
+    "src/pipeline/rs_render_node.cpp",
+    "src/pipeline/rs_render_node_map.cpp",
+    "src/pipeline/rs_root_render_node.cpp",
+    "src/pipeline/rs_surface_render_node.cpp",
+
+    #property
+    "src/property/rs_properties.cpp",
+    "src/property/rs_properties_painter.cpp",
+
+    #render
+    "src/render/rs_blur_filter.cpp",
+    "src/render/rs_filter.cpp",
+    "src/render/rs_image.cpp",
+    "src/render/rs_path.cpp",
+    "src/render/rs_shader.cpp",
+    "src/render/rs_shadow.cpp",
+    "src/render/rs_skia_filter.cpp",
+
+    #transaction
+    "src/transaction/rs_marshalling_helper.cpp",
+    "src/transaction/rs_transaction_data.cpp",
+    "src/transaction/rs_transaction_proxy.cpp",
+
+    #screen_manager
+    "src/screen_manager/rs_screen_capability.cpp",
+    "src/screen_manager/rs_screen_data.cpp",
+    "src/screen_manager/rs_screen_mode_info.cpp",
+    "src/screen_manager/rs_screen_props.cpp",
+  ]
+
+  deps = []
+
+  public_deps = [ "src/platform:platform" ]
+
+  part_name = "graphic_standard"
+  subsystem_name = "graphic"
+
+  if (enable_debug) {
+    defines += [ "ROSEN_DEBUG" ]
+  }
+  if (rosen_is_win) {
+    defines += [ "_USE_MATH_DEFINES" ]
+  }
+}

@@ -14,6 +14,8 @@
         "//third_party/wayland-ivi-extension:simple-weston-client",
 
         "//third_party/weston:default",
+        "//foundation/graphic/standard/rosen/modules/render_service_base:librender_service_base",
+        "//foundation/graphic/standard/rosen/modules/render_service_client:librender_service_client",
 
         "//foundation/graphic/standard/frameworks/vsync:vsync_server",
         "//foundation/graphic/standard/frameworks/wmserver:wmserver",

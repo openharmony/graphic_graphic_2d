@@ -1,0 +1,145 @@
+# Copyright (c) 2021 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/test.gni")
+import(
+    "//foundation/graphic/standard/rosen/modules/render_service_client/render_service_client.gni")
+
+#import("//foundation/graphic/standard/rosen/modules/render_service_base/config.gni")
+
+module_output_path = "graphic_standard/rosen/modules/render_service_client"
+
+ohos_unittest("RSAnimationTest") {
+  module_out_path = module_output_path
+
+  sources = [
+    "rs_animation_test.cpp",
+
+    #client_animation
+    "$rosen_root/modules/render_service_client/core/animation/rs_animation.cpp",
+    "$rosen_root/modules/render_service_client/core/animation/rs_animation_callback.cpp",
+    "$rosen_root/modules/render_service_client/core/animation/rs_animation_group.cpp",
+    "$rosen_root/modules/render_service_client/core/animation/rs_curve_animation.cpp",
+    "$rosen_root/modules/render_service_client/core/animation/rs_implicit_animation_param.cpp",
+    "$rosen_root/modules/render_service_client/core/animation/rs_implicit_animator.cpp",
+    "$rosen_root/modules/render_service_client/core/animation/rs_keyframe_animation.cpp",
+    "$rosen_root/modules/render_service_client/core/animation/rs_path_animation.cpp",
+    "$rosen_root/modules/render_service_client/core/animation/rs_transition.cpp",
+
+    #animation
+    "$rosen_root/modules/render_service_base/src/animation/rs_animation_fraction.cpp",
+    "$rosen_root/modules/render_service_base/src/animation/rs_animation_manager.cpp",
+    "$rosen_root/modules/render_service_base/src/animation/rs_interpolator.cpp",
+    "$rosen_root/modules/render_service_base/src/animation/rs_property_accessors.cpp",
+    "$rosen_root/modules/render_service_base/src/animation/rs_render_animation.cpp",
+    "$rosen_root/modules/render_service_base/src/animation/rs_render_path_animation.cpp",
+    "$rosen_root/modules/render_service_base/src/animation/rs_render_transition.cpp",
+    "$rosen_root/modules/render_service_base/src/animation/rs_render_transition_effect.cpp",
+    "$rosen_root/modules/render_service_base/src/animation/rs_spring_interpolator.cpp",
+    "$rosen_root/modules/render_service_base/src/animation/rs_value_estimator.cpp",
+
+    # message(depracated)
+    "$rosen_root/modules/render_service_base/src/command/rs_message_processor.cpp",
+
+    #command
+    "$rosen_root/modules/render_service_base/src/command/rs_animation_command.cpp",
+    "$rosen_root/modules/render_service_base/src/command/rs_base_node_command.cpp",
+    "$rosen_root/modules/render_service_base/src/command/rs_command_factory.cpp",
+    "$rosen_root/modules/render_service_base/src/command/rs_display_node_command.cpp",
+    "$rosen_root/modules/render_service_base/src/command/rs_node_command.cpp",
+    "$rosen_root/modules/render_service_base/src/command/rs_property_node_command.cpp",
+    "$rosen_root/modules/render_service_base/src/command/rs_root_node_command.cpp",
+    "$rosen_root/modules/render_service_base/src/command/rs_surface_node_command.cpp",
+
+    #common
+    "$rosen_root/modules/render_service_base/src/common/rs_color.cpp",
+    "$rosen_root/modules/render_service_base/src/common/rs_common_def.cpp",
+    "$rosen_root/modules/render_service_base/src/common/rs_obj_abs_geometry.cpp",
+    "$rosen_root/modules/render_service_base/src/common/rs_thread_handler_generic.cpp",
+    "$rosen_root/modules/render_service_base/src/common/rs_thread_looper_generic.cpp",
+    "$rosen_root/modules/render_service_base/src/common/rs_thread_looper_impl.cpp",
+
+    #ipc_callbacks
+    "$rosen_root/modules/render_service_base/src/ipc_callbacks/screen_change_callback_proxy.cpp",
+    "$rosen_root/modules/render_service_base/src/ipc_callbacks/screen_change_callback_stub.cpp",
+
+    #pipeline
+    "$rosen_root/modules/render_service_base/src/pipeline/rs_base_render_node.cpp",
+    "$rosen_root/modules/render_service_base/src/pipeline/rs_context.cpp",
+    "$rosen_root/modules/render_service_base/src/pipeline/rs_dirty_region_manager.cpp",
+    "$rosen_root/modules/render_service_base/src/pipeline/rs_display_render_node.cpp",
+    "$rosen_root/modules/render_service_base/src/pipeline/rs_draw_cmd.cpp",
+    "$rosen_root/modules/render_service_base/src/pipeline/rs_draw_cmd_list.cpp",
+    "$rosen_root/modules/render_service_base/src/pipeline/rs_paint_filter_canvas.cpp",
+    "$rosen_root/modules/render_service_base/src/pipeline/rs_property_render_node.cpp",
+    "$rosen_root/modules/render_service_base/src/pipeline/rs_recording_canvas.cpp",
+    "$rosen_root/modules/render_service_base/src/pipeline/rs_render_node.cpp",
+    "$rosen_root/modules/render_service_base/src/pipeline/rs_render_node_map.cpp",
+    "$rosen_root/modules/render_service_base/src/pipeline/rs_root_render_node.cpp",
+    "$rosen_root/modules/render_service_base/src/pipeline/rs_surface_render_node.cpp",
+
+    #property
+    "$rosen_root/modules/render_service_base/src/property/rs_properties.cpp",
+    "$rosen_root/modules/render_service_base/src/property/rs_properties_painter.cpp",
+
+    #render
+    "$rosen_root/modules/render_service_base/src/render/rs_blur_filter.cpp",
+    "$rosen_root/modules/render_service_base/src/render/rs_filter.cpp",
+    "$rosen_root/modules/render_service_base/src/render/rs_image.cpp",
+    "$rosen_root/modules/render_service_base/src/render/rs_path.cpp",
+    "$rosen_root/modules/render_service_base/src/render/rs_shader.cpp",
+    "$rosen_root/modules/render_service_base/src/render/rs_shadow.cpp",
+    "$rosen_root/modules/render_service_base/src/render/rs_skia_filter.cpp",
+
+    #transaction
+    "$rosen_root/modules/render_service_base/src/transaction/rs_marshalling_helper.cpp",
+    "$rosen_root/modules/render_service_base/src/transaction/rs_transaction_data.cpp",
+    "$rosen_root/modules/render_service_base/src/transaction/rs_transaction_proxy.cpp",
+
+    #screen_manager
+    "$rosen_root/modules/render_service_base/src/screen_manager/rs_screen_capability.cpp",
+    "$rosen_root/modules/render_service_base/src/screen_manager/rs_screen_data.cpp",
+    "$rosen_root/modules/render_service_base/src/screen_manager/rs_screen_mode_info.cpp",
+    "$rosen_root/modules/render_service_base/src/screen_manager/rs_screen_props.cpp",
+
+    #curve
+    #"$rosen_root/modules/render_service_client/core/animation/rs_animation_timing_curve.cpp",
+  ]
+
+  configs = [ ":rs_animation_test_config" ]
+
+  deps = [
+    "$rosen_root/modules/render_service_base:librender_service_base",
+    "$rosen_root/modules/render_service_base/src/platform:platform",
+    "$rosen_root/modules/render_service_client:librender_service_client",
+    "//third_party/googletest:gtest_main",
+    "//utils/native/base:utils",
+  ]
+}
+
+config("rs_animation_test_config") {
+  visibility = [ ":*" ]
+  include_dirs = [
+    "$rosen_root",
+    "$rosen_root/modules/render_service_client/core/animation/",
+    "$rosen_root/modules/render_service_client/core/pipeline/",
+    "$rosen_root/modules/render_service_client/core/transaction/",
+    "$rosen_root/modules/render_service_client/core/ui/",
+    "$rosen_root/modules/render_service_base/include/",
+  ]
+}
+
+group("unittest") {
+  testonly = true
+  deps = [ ":RSAnimationTest" ]
+}
