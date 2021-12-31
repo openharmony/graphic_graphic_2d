@@ -22,7 +22,7 @@
 
 namespace OHOS {
 namespace {
-napi_value g_classWindow;
+thread_local napi_value g_classWindow;
 napi_status GetAbility(napi_env env, napi_callback_info info, AppExecFwk::Ability* &pAbility)
 {
     napi_value global;
