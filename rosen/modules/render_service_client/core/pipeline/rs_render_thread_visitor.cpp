@@ -109,7 +109,7 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
         RenderContext* rc = RSRenderThread::Instance().GetRenderContext();
         rsSurface->SetRenderContext(rc);
 #endif
-        ROSEN_LOGE("mengkun RSRenderThreadVisitor RequestFrame start");
+        ROSEN_LOGE("RSRenderThreadVisitor RequestFrame start");
         auto surfaceFrame = rsSurface->RequestFrame(node.GetWidth(), node.GetHeight());
         if (surfaceFrame == nullptr) {
             ROSEN_LOGE("Request Frame Failed");
@@ -120,7 +120,7 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
         isIdle_ = false;
         ProcessRenderNode(node);
 
-        ROSEN_LOGE("mengkun RSRenderThreadVisitor FlushFrame start");
+        ROSEN_LOGE("RSRenderThreadVisitor FlushFrame start");
         rsSurface->FlushFrame(surfaceFrame);
 
         delete canvas_;

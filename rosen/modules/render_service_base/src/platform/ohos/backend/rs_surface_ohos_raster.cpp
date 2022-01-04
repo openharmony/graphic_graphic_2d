@@ -29,7 +29,7 @@ std::unique_ptr<RSSurfaceFrame> RSSurfaceOhosRaster::RequestFrame(int32_t width,
         return nullptr;
     }
 
-    ROSEN_LOGE("mengkun RSSurfaceOhos RequestFrame start");
+    ROSEN_LOGE("RSSurfaceOhos RequestFrame start");
 
     std::unique_ptr<RSSurfaceFrameOhosRaster> frame = std::make_unique<RSSurfaceFrameOhosRaster>(width, height);
     SurfaceError err = producer_->RequestBuffer(frame->buffer_, frame->releaseFence_, frame->requestConfig_);
@@ -46,7 +46,7 @@ bool RSSurfaceOhosRaster::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame)
     // RSSurfaceOhosRaster is the class for platform OHOS, the input pointer should be the pointer to the class
     // RSSurfaceFrameOhos.
     // We use static_cast instead of RTTI and dynamic_cast which are not permitted
-    ROSEN_LOGE("mengkun RSSurfaceOhos Flushframe start");
+    ROSEN_LOGE("RSSurfaceOhos Flushframe start");
     RSSurfaceFrameOhosRaster* oriFramePtr = static_cast<RSSurfaceFrameOhosRaster*>(frame.get());
     SurfaceError err = producer_->FlushBuffer(oriFramePtr->buffer_, oriFramePtr->releaseFence_, oriFramePtr->flushConfig_);
     if (err != SURFACE_ERROR_OK) {
