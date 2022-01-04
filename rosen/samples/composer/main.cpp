@@ -18,19 +18,23 @@
 #include <cstdio>
 #include <cstdlib>
 #include <fstream>
+#include <functional>
 #include <memory>
 #include <securec.h>
 #include <iostream>
 #include <unistd.h>
 
+#include <vector>
 #include <vsync_helper.h>
 #include <display_type.h>
 #include <surface.h>
+#include "graphic_common_c.h"
 #include "hdi_backend.h"
 #include "hdi_layer.h"
 #include "hdi_layer_info.h"
 #include "hdi_output.h"
 #include "hdi_screen.h"
+#include "refbase.h"
 
 using namespace OHOS;
 using namespace OHOS::Rosen;
@@ -42,184 +46,171 @@ namespace {
     "%{public}s: " fmt, __func__, ##__VA_ARGS__)
 }
 
-class HelloComposer : public IBufferConsumerListenerClazz {
+class LayerContext : public IBufferConsumerListenerClazz {
 public:
-    void Init(int32_t width, int32_t height, HdiBackend* backend);
-    void DoDrawData(void *image, int width, int height);
+    LayerContext(IRect dst, IRect src, uint32_t zorder, bool dynamic = false) : dst_(dst),
+        src_(src),
+        zorder_(zorder),
+        dynamic_(dynamic)
+    {
+        cSurface_ = Surface::CreateSurfaceAsConsumer();
+        cSurface_->SetDefaultWidthAndHeight(src.w, src.h);
+        cSurface_->SetDefaultUsage(HBM_USE_CPU_READ | HBM_USE_CPU_WRITE | HBM_USE_MEM_DMA);
+
+        OHOS::sptr<IBufferProducer> producer = cSurface_->GetProducer();
+        pSurface_ = Surface::CreateSurfaceAsProducer(producer);
+        cSurface_->RegisterConsumerListener(this);
+
+        hdiLayer_ = HdiLayerInfo::CreateHdiLayerInfo();
+        LOG("%s: create surface w:%{public}d, h:%{public}d", __func__, src.w, src.h);
+    }
+
+    ~LayerContext()
+    {
+        cSurface_ = nullptr;
+        pSurface_ = nullptr;
+        buffer_ = nullptr;
+        hdiLayer_ = nullptr;
+    }
+
+    virtual void OnBufferAvailable() override { }
+
+    GSError DrawBufferColor()
+    {
+        int32_t releaseFence;
+        BufferRequestConfig config = {
+            .width = src_.w,
+            .height = src_.h,
+            .strideAlignment = 0x8,
+            .format = PIXEL_FMT_RGBA_8888,
+            .usage = pSurface_->GetDefaultUsage(),
+        };
+
+        GSError ret = pSurface_->RequestBufferWithFence(buffer_, releaseFence, config);
+        if (ret != 0) {
+            LOG("RequestBuffer failed: %{public}s", SurfaceErrorStr(ret).c_str());
+            return ret;
+        }
+        if (buffer_ == nullptr) {
+            LOG("%s: buffer is nullptr", __func__);
+            return SURFACE_ERROR_NULLPTR;
+        }
+
+        auto addr = static_cast<uint8_t *>(buffer_->GetVirAddr());
+        LOG("buffer w:%{public}d h:%{public}d stride:%{public}d", buffer_->GetWidth(), buffer_->GetHeight(), buffer_->GetBufferHandle()->stride);
+        DrawColor(addr, buffer_->GetWidth(), buffer_->GetHeight());
+
+        BufferFlushConfig flushConfig = {
+            .damage = {
+                .w = src_.w,
+                .h = src_.h,
+            },
+        };
+        ret = pSurface_->FlushBuffer(buffer_, -1, flushConfig);
+
+        return ret;
+    }
+
+    GSError FillHDILayer()
+    {
+        OHOS::sptr<SurfaceBuffer> cbuffer = nullptr;
+        int32_t fence = -1;
+        int64_t timestamp;
+        Rect damage;
+        GSError ret = cSurface_->AcquireBuffer(cbuffer, fence, timestamp, damage);
+        if (ret != SURFACE_ERROR_OK) {
+            LOG("Acquire cBuffer failed");
+            return ret;
+        }
+
+        LayerAlpha alpha = { .enPixelAlpha = true };
+
+        hdiLayer_->SetSurface(cSurface_);
+        hdiLayer_->SetBuffer(cbuffer, fence);
+        hdiLayer_->SetZorder(zorder_);
+        hdiLayer_->SetAlpha(alpha);
+        hdiLayer_->SetTransform(TransformType::ROTATE_NONE);
+        hdiLayer_->SetCompositionType(CompositionType::COMPOSITION_DEVICE);
+        hdiLayer_->SetVisibleRegion(1, src_);
+        hdiLayer_->SetDirtyRegion(src_);
+        hdiLayer_->SetLayerSize(dst_);
+        hdiLayer_->SetBlendType(BlendType::BLEND_SRCOVER);
+        hdiLayer_->SetCropRect(src_);
+        hdiLayer_->SetPreMulti(false);
+        return ret;
+    }
+
+    const std::vector<uint32_t> colors_ = {0xff0000ff, 0xff00ff00, 0xff00ffff, 0xffff00ff};
+    IRect dst_;
+    IRect src_;
+    uint32_t colorIndex_ = 0;
+    uint32_t frameCounter_ = 0;
+    uint32_t zorder_ = 0;
+    uint32_t color_ = 0xffff0000;
+    OHOS::sptr<Surface> pSurface_;
+    OHOS::sptr<Surface> cSurface_;
+    OHOS::sptr<SurfaceBuffer> buffer_;
+    std::shared_ptr<HdiLayerInfo> hdiLayer_;
+    bool dynamic_ = false;
+private:
+    void DrawColor(void *image, int width, int height)
+    {
+        frameCounter_ = ++frameCounter_ % 60;
+        if (frameCounter_ == 0 && dynamic_) {
+            colorIndex_ = ++colorIndex_ % colors_.size();
+            color_ = colors_[colorIndex_];
+            LOG("%{public}s: index:%{public}u color:%{public}x", __func__, colorIndex_, colors_[colorIndex_]);
+        }
+        uint32_t *pixel = static_cast<uint32_t *>(image);
+        for (int x = 0; x < width; x++) {
+            for (int y = 0;  y < height; y++) {
+                *pixel++ = color_;
+            }
+        }
+    }
+};
+
+class HelloComposer {
+public:
+    void Init(HdiBackend* backend);
     void Draw();
     void Sync(int64_t, void *data);
     void CreatePyhsicalScreen(std::shared_ptr<HdiOutput> &output);
     void DoPrepareCompleted(OHOS::sptr<Surface> &surface, const struct PrepareCompleteParam &param);
-    virtual void OnBufferAvailable() override;
-    SurfaceError ProduceBuffer(OHOS::sptr<Surface> &produceSurface, int width, int height);
-    bool FillLayer(std::shared_ptr<HdiLayerInfo> &showLayer, OHOS::sptr<Surface> &pSurface,
-        OHOS::sptr<Surface> &cSurface, uint32_t zorder, IRect &dstRect);
 
     int32_t freq = 30;
-    int width = 0;
-    int height = 0;
     int display_w = 480;
     int display_h = 960;
-
 private:
     uint32_t currentModeIndex = 0;
     std::vector<DisplayModeInfo> displayModeInfos;
-    OHOS::sptr<Surface> pSurface = nullptr;
-    OHOS::sptr<Surface> cSurface = nullptr;
-    OHOS::sptr<Surface> pSurface1 = nullptr;
-    OHOS::sptr<Surface> cSurface1 = nullptr;
     std::unique_ptr<HdiScreen> screen = nullptr;
     std::shared_ptr<HdiOutput> output = nullptr;
     std::vector<std::shared_ptr<HdiOutput>> outputs;
     HdiBackend* backend = nullptr;
+    std::vector<std::unique_ptr<LayerContext>> drawLayers;
     sptr<SurfaceBuffer> fbBuffer = nullptr;
     bool ready = false;
 };
 
-void HelloComposer::OnBufferAvailable()
-{
-}
-
-void HelloComposer::DoDrawData(void *image, int width, int height)
-{
-    static uint32_t value = 0xff0000ff;
-
-    uint32_t *pixel = static_cast<uint32_t *>(image);
-    for (int x = 0; x < width; x++) {
-        for (int y = 0;  y < height; y++) {
-            *pixel++ = value;
-        }
-    }
-}
-
-SurfaceError HelloComposer::ProduceBuffer(OHOS::sptr<Surface> &produceSurface, int width, int height)
-{
-    OHOS::sptr<SurfaceBuffer> buffer;
-    int32_t releaseFence;
-    BufferRequestConfig config = {
-        .width = width,
-        .height = height,
-        .strideAlignment = 0x8,
-        .format = PIXEL_FMT_RGBA_8888,
-        .usage = produceSurface->GetDefaultUsage(),
-    };
-
-    SurfaceError ret = produceSurface->RequestBufferWithFence(buffer, releaseFence, config);
-    if (ret != 0) {
-        LOG("RequestBuffer failed: %{public}s", SurfaceErrorStr(ret).c_str());
-        return ret;
-    }
-    if (buffer == nullptr) {
-        LOG("%s: buffer is nullptr", __func__);
-        return SURFACE_ERROR_NULLPTR;
-    }
-
-    auto addr = static_cast<uint8_t *>(buffer->GetVirAddr());
-    LOG("buffer w:%{public}d h:%{public}d stride:%{public}d", buffer->GetWidth(), buffer->GetHeight(), buffer->GetBufferHandle()->stride);
-    DoDrawData(addr, buffer->GetWidth(), buffer->GetHeight());
-
-    BufferFlushConfig flushConfig = {
-        .damage = {
-            .w = width,
-            .h = height,
-        },
-    };
-    ret = produceSurface->FlushBuffer(buffer, -1, flushConfig);
-
-    LOG("Sync %{public}s", SurfaceErrorStr(ret).c_str());
-    return SURFACE_ERROR_OK;
-}
-
 void HelloComposer::Draw()
 {
-    do {
-        static int count = 0;
-
-        if (count >= 2000) {
-            count = 0;
-        }
-
-        std::vector<LayerInfoPtr> layerVec;
-        std::shared_ptr<HdiLayerInfo> showLayer = HdiLayerInfo::CreateHdiLayerInfo();
-        std::shared_ptr<HdiLayerInfo> showLayer1 = HdiLayerInfo::CreateHdiLayerInfo();
-
-        if (count <= 50 || count >= 500) {
-            int32_t zorder = 0;
-            IRect dstRect;
-            dstRect.x = 0;  // Absolute coordinates, with offset
-            dstRect.y = 0;
-            dstRect.w = width;
-            dstRect.h = height;
-            if (!FillLayer(showLayer, pSurface, cSurface, zorder, dstRect)) {
-                continue;
-            }
-            layerVec.emplace_back(showLayer);
-        }
-
-        if (count <= 100 || count >= 1000) {
-            int zorder1 = 0;
-            IRect dstRect1;
-            dstRect1.x = width;  // Absolute coordinates, with offset
-            dstRect1.y = width;
-            dstRect1.w = width;
-            dstRect1.h = height;
-            if (!FillLayer(showLayer1, pSurface1, cSurface1, zorder1, dstRect1)) {
-                continue;
-            }
-            layerVec.emplace_back(showLayer1);
-        }
-        LOG("Draw count:%{public}d layer size %{public}d", count, (int32_t)layerVec.size());
-        output->SetLayerInfo(layerVec);
-        backend->Repaint(outputs);
-        count++;
-    } while (false);
-}
-
-bool HelloComposer::FillLayer(std::shared_ptr<HdiLayerInfo> &showLayer, OHOS::sptr<Surface> &pSurface,
-        OHOS::sptr<Surface> &cSurface, uint32_t zorder, IRect &dstRect)
-{
-    if (ProduceBuffer(pSurface, width, height) != SURFACE_ERROR_OK) {
-        LOG("Produce cBuffer failed");
-        return false;
+    std::vector<LayerInfoPtr> layerVec;
+    for (auto &drawLayer : drawLayers) {    // productor
+        drawLayer->DrawBufferColor();
     }
-
-    OHOS::sptr<SurfaceBuffer> cbuffer = nullptr;
-    int32_t fence;
-    int64_t timestamp;
-    Rect damage;
-    SurfaceError ret = cSurface->AcquireBuffer(cbuffer, fence, timestamp, damage);
-    if (ret != SURFACE_ERROR_OK) {
-        LOG("Acquire cBuffer failed");
-        return false;
+    for (auto &drawLayer : drawLayers) {    // comsumer
+        drawLayer->FillHDILayer();
+        layerVec.emplace_back(drawLayer->hdiLayer_);
     }
-
-    IRect srcRect;
-    srcRect.x = 0;
-    srcRect.y = 0;
-    srcRect.w = width;
-    srcRect.h = height;
-
-    LayerAlpha alpha = { .enPixelAlpha = true };
-
-    showLayer->SetSurface(cSurface);
-    showLayer->SetBuffer(cbuffer, fence);
-    showLayer->SetZorder(zorder);
-    showLayer->SetAlpha(alpha);
-    showLayer->SetTransform(TransformType::ROTATE_NONE);
-    showLayer->SetCompositionType(CompositionType::COMPOSITION_DEVICE);
-    showLayer->SetVisibleRegion(1, srcRect);
-    showLayer->SetDirtyRegion(srcRect);
-    showLayer->SetLayerSize(dstRect);
-    showLayer->SetBlendType(BlendType::BLEND_SRCOVER);
-    showLayer->SetCropRect(srcRect);
-    showLayer->SetPreMulti(false);
-
-    return true;
+    LOG("Draw layer size %{public}d", (int32_t)layerVec.size());
+    output->SetLayerInfo(layerVec);
+    backend->Repaint(outputs);
 }
 
 void HelloComposer::Sync(int64_t, void *data)
 {
-    cout << "hello Sync: ready" << ready << std::endl;
+    // cout << "hello OnvSync: ready" << ready << std::endl;
     struct OHOS::FrameCallback cb = {
         .frequency_ = freq,
         .timestamp_ = 0,
@@ -239,27 +230,23 @@ void HelloComposer::Sync(int64_t, void *data)
     Draw();
 }
 
-void HelloComposer::Init(int32_t width, int32_t height, HdiBackend* backend)
+void HelloComposer::Init(HdiBackend* backend)
 {
     this->backend = backend;
 
-    cSurface = Surface::CreateSurfaceAsConsumer();
-    cSurface->SetDefaultWidthAndHeight(width, height);
-    cSurface->SetDefaultUsage(HBM_USE_CPU_READ | HBM_USE_CPU_WRITE | HBM_USE_MEM_DMA);
+    // status bar rect for hi3516
+    drawLayers.emplace_back(std::make_unique<LayerContext>(IRect{0, 0, 480, 67}, IRect{0, 0, 480, 67}, 0));
+    // nav bar rect for hi3516
+    drawLayers.emplace_back(std::make_unique<LayerContext>(IRect{0, 893, 480, 67}, IRect{0, 0, 480, 67}, 1));
+    // launch rect for hi3516
+    drawLayers.emplace_back(std::make_unique<LayerContext>(IRect{0, 67, 480, 826}, IRect{0, 0, 480, 826}, 2, true));
 
-    OHOS::sptr<IBufferProducer> producer = cSurface->GetProducer();
-    pSurface = Surface::CreateSurfaceAsProducer(producer);
-    cSurface->RegisterConsumerListener(this);
-    LOG("%s: create surface", __func__);
-
-    cSurface1 = Surface::CreateSurfaceAsConsumer();
-    cSurface1->SetDefaultWidthAndHeight(width, height);
-    cSurface1->SetDefaultUsage(HBM_USE_CPU_READ | HBM_USE_CPU_WRITE | HBM_USE_MEM_DMA);
-
-    OHOS::sptr<IBufferProducer> producer1 = cSurface1->GetProducer();
-    pSurface1 = Surface::CreateSurfaceAsProducer(producer1);
-    cSurface1->RegisterConsumerListener(this);
-    LOG("%s: create surface1", __func__);
+    // // status bar rect for rk3568
+    // drawLayers.emplace_back(std::make_unique<LayerContext>(IRect{0, 0, 720, 89}, IRect{0, 0, 720, 89}, 0));
+    // // nav bar rect for rk3568
+    // drawLayers.emplace_back(std::make_unique<LayerContext>(IRect{0, 1191, 720, 89}, IRect{0, 0, 720, 89}, 1));
+    // // launch rect for rk3568
+    // drawLayers.emplace_back(std::make_unique<LayerContext>(IRect{0, 89, 720, 1102}, IRect{0, 0, 720, 1102}, 2, true));
 
     Sync(0, nullptr);
 }
@@ -329,9 +316,7 @@ static void OnScreenPlug(std::shared_ptr<HdiOutput> &output, bool connected, voi
         std::cout << "OnScreenPlug connetcted " << std::endl;
         thisPtr->CreatePyhsicalScreen(output);
     }
-    //std::cout << "OnScreenPlug not connetected " << std::endl;
 }
-
 
 static void OnPrepareCompleted(OHOS::sptr<Surface> &surface, const struct PrepareCompleteParam &param, void* data)
 {
@@ -345,24 +330,21 @@ int main(int argc, const char *argv[])
     HelloComposer m;
 
     LOG("start to HdiBackend::GetInstance");
-    std::cout << "begin " << std::endl;
+    std::cout << "begin hello composer" << std::endl;
     HdiBackend* backend = OHOS::Rosen::HdiBackend::GetInstance();
     if (backend == nullptr) {
         LOG("HdiBackend::GetInstance fail");
         return -1;
     }
-    std::cout << "RegScreenHotplug " << std::endl;
+    std::cout << "start RegScreenHotplug " << std::endl;
     backend->RegScreenHotplug(OnScreenPlug, &m);
     std::cout << "RegPrepareComplete " << std::endl;
     backend->RegPrepareComplete(OnPrepareCompleted, &m);
 
-    m.width = 200;
-    m.height = 200;
-    // sleep(1);
     std::cout << "main EventRunner " << std::endl;
     auto runner = OHOS::AppExecFwk::EventRunner::Create(false);
     auto handler = std::make_shared<OHOS::AppExecFwk::EventHandler>(runner);
-    handler->PostTask(std::bind(&HelloComposer::Init, &m, m.width, m.height, backend));
+    handler->PostTask(std::bind(&HelloComposer::Init, &m, backend));
     runner->Run();
     return 0;
 }
