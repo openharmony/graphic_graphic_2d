@@ -95,7 +95,7 @@ int32_t NativeWindowRequestBuffer(struct NativeWindow *window,
         .timeout = window->config.timeout,
     };
     OHOS::sptr<OHOS::SurfaceBuffer> sfbuffer;
-    if(window->surface->RequestBuffer(sfbuffer, *fenceFd, config) != OHOS::SurfaceError::SURFACE_ERROR_OK) {
+    if(window->surface->RequestBuffer(sfbuffer, *fenceFd, config) != OHOS::GSError::GSERROR_OK) {
         return OHOS::GSERROR_NO_BUFFER;
     }
     NativeWindowBuffer *nwBuffer = new NativeWindowBuffer();
@@ -279,11 +279,13 @@ NativeWindow::NativeWindow() : NativeWindowMagic(NATIVE_OBJECT_MAGIC_WINDOW)
     BLOGD("NativeWindow  %p", this);
 }
 
-NativeWindow::~NativeWindow() {
+NativeWindow::~NativeWindow()
+{
     BLOGD("~NativeWindow  %p", this);
 }
 
-NativeWindowBuffer::~NativeWindowBuffer() {
+NativeWindowBuffer::~NativeWindowBuffer()
+{
     BLOGD("~NativeWindowBuffer  %p", this);
 }
 

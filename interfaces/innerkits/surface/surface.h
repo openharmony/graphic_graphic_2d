@@ -36,7 +36,6 @@ public:
     virtual sptr<IBufferProducer> GetProducer() const = 0;
 
     // use RequestBufferNoFence or RequestBufferWithFence
-    __attribute__((deprecated))
     virtual GSError RequestBuffer(sptr<SurfaceBuffer>& buffer,
                                        int32_t &fence, BufferRequestConfig &config) = 0;
 
