@@ -3,9 +3,6 @@
   "parts": {
     "graphic_standard": {
       "module_list": [
-        "//foundation/graphic/standard/interfaces/kits/js/declaration:window",
-        "//foundation/graphic/standard/interfaces/kits/napi:napi_packages",
-
         "//third_party/wayland-ivi-extension:ivi-controller",
         "//third_party/wayland-ivi-extension:ivi-input-controller",
         "//third_party/wayland-ivi-extension:libscreen-info-module",
