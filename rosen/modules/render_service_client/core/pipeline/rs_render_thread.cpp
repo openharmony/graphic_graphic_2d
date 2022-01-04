@@ -129,13 +129,13 @@ void RSRenderThread::RecvTransactionData(std::unique_ptr<RSTransactionData>& tra
 
 void RSRenderThread::RequestNextVSync()
 {
-    ROSEN_LOGI("mengkun  RequestNextVSync+++.");
+    ROSEN_LOGI("RequestNextVSync+++.");
     ROSEN_TRACE_BEGIN(BYTRACE_TAG_GRAPHIC_AGP, "RSRenderThread::RequestNextVSync");
     if (vsyncClient_ != nullptr) {
         ROSEN_LOGI("RSRenderThread RequestNextVSync.");
         vsyncClient_->RequestNextVsync();
     }
-    ROSEN_LOGI("mengkun  RequestNextVSync---.");
+    ROSEN_LOGI("RequestNextVSync---.");
     ROSEN_TRACE_END(BYTRACE_TAG_GRAPHIC_AGP);
 }
 
