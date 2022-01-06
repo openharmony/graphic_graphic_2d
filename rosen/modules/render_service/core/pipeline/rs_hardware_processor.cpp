@@ -17,6 +17,7 @@
 
 #include "pipeline/rs_main_thread.h"
 #include "platform/common/rs_log.h"
+#include "stdlib.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -121,6 +122,12 @@ void RSHardwareProcessor::ProcessSurface(RSSurfaceRenderNode &node)
 void RSHardwareProcessor::Redraw(sptr<Surface>& surface, const struct PrepareCompleteParam& param, void* data)
 {
     if (!param.needFlushFramebuffer) {
+        ROSEN_LOGE("RSHardwareProcessor::Redraw: no need to flush Framebuffer.");
+        return;
+    }
+
+    if (surface == nullptr) {
+        ROSEN_LOGE("RSHardwareProcessor::Redraw: surface is null.");
         return;
     }
 
@@ -133,7 +140,15 @@ void RSHardwareProcessor::Redraw(sptr<Surface>& surface, const struct PrepareCom
         .timeout = 0,
     };
     auto canvas = CreateCanvas(surface, requestConfig);
+    if (canvas == nullptr) {
+        ROSEN_LOGE("RSHardwareProcessor::Redraw: canvas is null.");
+        return;
+    }
+
     for (auto layer : param.layers) {
+        if (layer == nullptr) {
+            continue;
+        }
         SkMatrix matrix;
         matrix.reset();
         matrix.setTranslate(layer->GetLayerSize().x, layer->GetLayerSize().y);
@@ -149,6 +164,5 @@ void RSHardwareProcessor::Redraw(sptr<Surface>& surface, const struct PrepareCom
     };
     FlushBuffer(surface, flushConfig);
 }
-
-}
-}
+} // namespace Rosen
+} // namespace OHOS
