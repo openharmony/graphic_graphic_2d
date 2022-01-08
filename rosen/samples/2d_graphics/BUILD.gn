@@ -1,0 +1,182 @@
+# Copyright (c) 2021 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/ohos.gni")
+import("//third_party/wayland_standard/wayland_protocol.gni")
+
+## Build libexec_drawing.a {{{
+config("libexec_drawing_config") {
+  visibility = [ ":*" ]
+
+  include_dirs = [
+    "include",
+    ".",
+  ]
+
+  cflags = [
+    "-Wall",
+    "-Werror",
+    "-Wno-unused-parameter",
+    "-Wno-missing-field-initializers",
+    "-Wno-unused-variable",
+  ]
+}
+
+ohos_static_library("libexec_drawing") {
+  sources = []
+
+  configs = [ ":libexec_drawing_config" ]
+
+  include_dirs =
+      [ "//foundation/graphic/standard/rosen/modules/2d_graphics/include" ]
+
+  deps = [
+    "//foundation/graphic/standard/frameworks/vsync:libvsync_module",
+    "//foundation/graphic/standard/rosen/modules/2d_graphics:2d_graphics",
+    "//foundation/graphic/standard/rosen/modules/render_service_base:librender_service_base",
+    "//foundation/multimedia/image_standard/interfaces/innerkits:image_native",
+  ]
+
+  public_deps = [
+    "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
+    "//foundation/ace/ace_engine/build/external_config/flutter/skia:ace_skia_ohos",
+    "//foundation/graphic/standard:libsurface",
+    "//foundation/graphic/standard:libvsync_client",
+    "//foundation/graphic/standard:libwmclient",
+    "//foundation/graphic/standard:libwmservice",
+    "//foundation/graphic/standard/rosen/modules/composer:libcomposer",
+    "//foundation/graphic/standard/utils:sync_fence",
+    "//third_party/zlib:libz",
+    "//utils/native/base:utils",
+  ]
+}
+
+## Build libexec_drawing.a }}}
+
+## Build sample {{{
+config("sample_config") {
+  visibility = [ ":*" ]
+
+  include_dirs = [
+    "//foundation/graphic/standard/rosen/modules/2d_graphics/include",
+    "//foundation/graphic/standard/rosen/modules/2d_graphics/src",
+    "//foundation/graphic/standard/rosen/modules/render_service_base/src",
+    "//foundation/graphic/standard/rosen/modules/composer/hdi_backend/include",
+    "//foundation/graphic/standard/interfaces/innerkits/vsync_module",
+    "//foundation/graphic/standard/utils/sync_fence/export",
+    "//foundation/graphic/standard/rosen/include/common",
+    "//foundation/graphic/standard/rosen/modules/render_service_base/include",
+    "//foundation/multimedia/image_standard/interfaces/innerkits/include",
+  ]
+
+  cflags = [
+    "-Wall",
+    "-Werror",
+  ]
+}
+
+ohos_executable("drawing_sample") {
+  install_enable = true
+
+  sources = [ "drawing_sample.cpp" ]
+
+  configs = [ ":sample_config" ]
+
+  deps = [ ":libexec_drawing" ]
+
+  public_deps = []
+
+  subsystem_name = "graphic"
+  part_name = "graphic_standard"
+}
+
+ohos_executable("render_context_sample") {
+  install_enable = true
+
+  sources = [ "render_context_sample.cpp" ]
+
+  configs = [ ":sample_config" ]
+
+  deps = [ ":libexec_drawing" ]
+
+  public_deps = []
+
+  subsystem_name = "graphic"
+  part_name = "graphic_standard"
+}
+
+ohos_executable("drawing_sample_rs") {
+  install_enable = true
+
+  sources = [ "drawing_sample_rs.cpp" ]
+
+  include_dirs = [
+    "//foundation/graphic/standard/rosen/modules/2d_graphics/include",
+    "//foundation/graphic/standard/rosen/modules/2d_graphics/src",
+    "//foundation/graphic/standard/rosen/modules/render_service_base/src",
+    "//foundation/graphic/standard/rosen/modules/render_service_base/include",
+    "//foundation/graphic/standard/rosen/modules/render_service_client",
+    "//foundation/graphic/standard/interfaces/innerkits/vsync_module",
+    "//foundation/graphic/standard/rosen/include/common",
+    "//foundation/windowmanager/interfaces/innerkits/wm",
+    "//foundation/multimedia/image_standard/interfaces/innerkits/include",
+  ]
+
+  deps = [
+    "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
+    "//foundation/graphic/standard:libvsync_client",
+    "//foundation/graphic/standard/rosen/modules/render_service_base:librender_service_base",
+    "//foundation/graphic/standard/rosen/modules/render_service_client:librender_service_client",
+    "//foundation/multimedia/image_standard/interfaces/innerkits:image_native",
+    "//foundation/windowmanager/wm:libwm",
+    "//foundation/windowmanager/wm:libwmutil",
+    "//third_party/zlib:libz",
+  ]
+
+  public_deps =
+      [ "//foundation/graphic/standard/rosen/modules/2d_graphics:2d_graphics" ]
+
+  part_name = "graphic_standard"
+  subsystem_name = "graphic"
+}
+
+ohos_executable("drawing_sample_canvaskit0310") {
+  install_enable = true
+
+  sources = [ "drawing_sample_canvaskit0310.cpp" ]
+
+  include_dirs = [
+    "//foundation/graphic/standard/rosen/modules/composer/hdi_backend/include",
+    "//drivers/peripheral/display/interfaces/include",
+    "//foundation/graphic/standard/rosen/include/common",
+    "//foundation/graphic/standard/interfaces/innerkits/vsync_module",
+    "//foundation/graphic/standard/interfaces/innerkits/common",
+    "//foundation/graphic/standard/rosen/modules/composer/vsync/include",
+    "//foundation/graphic/standard/rosen/modules/2d_graphics/include",
+    "//foundation/graphic/standard/rosen/modules/2d_graphics/src",
+  ]
+
+  deps = [
+    "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
+    "//foundation/graphic/standard:libsurface",
+    "//foundation/graphic/standard:libvsync_client",
+    "//foundation/graphic/standard/rosen/modules/2d_graphics:2d_graphics_canvaskit0310",
+    "//foundation/graphic/standard/rosen/modules/composer:libcomposer",
+    "//foundation/graphic/standard/utils:sync_fence",
+  ]
+
+  external_deps = [ "ipc:ipc_core" ]
+
+  part_name = "graphic_standard"
+  subsystem_name = "graphic"
+}
