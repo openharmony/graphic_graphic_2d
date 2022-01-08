@@ -95,7 +95,8 @@ int32_t NativeWindowRequestBuffer(struct NativeWindow *window,
         .timeout = window->config.timeout,
     };
     OHOS::sptr<OHOS::SurfaceBuffer> sfbuffer;
-    if(window->surface->RequestBuffer(sfbuffer, *fenceFd, config) != OHOS::GSError::GSERROR_OK) {
+    if (window->surface->RequestBuffer(sfbuffer, *fenceFd, config) != OHOS::GSError::GSERROR_OK ||
+        sfbuffer == nullptr) {
         return OHOS::GSERROR_NO_BUFFER;
     }
     NativeWindowBuffer *nwBuffer = new NativeWindowBuffer();
