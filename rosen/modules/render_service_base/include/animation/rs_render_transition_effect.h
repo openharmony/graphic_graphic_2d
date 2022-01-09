@@ -23,8 +23,8 @@
 
 namespace OHOS {
 namespace Rosen {
+class RSCanvasRenderNode;
 class RSPaintFilterCanvas;
-class RSRenderNode;
 
 class RSRenderTransitionEffect {
 public:

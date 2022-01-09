@@ -60,7 +60,7 @@ public:
     }
 
 protected:
-    void OnStart() override {}
+    void OnStart() override;
 
     void InitInterpolationValue() override
     {
@@ -85,26 +85,16 @@ private:
     friend class RSImplicitKeyframeAnimationParam;
 };
 
-template<>
-void RSKeyframeAnimation<int>::OnStart();
 
-template<>
-void RSKeyframeAnimation<float>::OnStart();
+template class RSKeyframeAnimation<int>;
+template class RSKeyframeAnimation<float>;
+template class RSKeyframeAnimation<Color>;
+template class RSKeyframeAnimation<Matrix3f>;
+template class RSKeyframeAnimation<Vector2f>;
+template class RSKeyframeAnimation<Vector4f>;
+template class RSKeyframeAnimation<Quaternion>;
+template class RSKeyframeAnimation<std::shared_ptr<RSFilter>>;
 
-template<>
-void RSKeyframeAnimation<Color>::OnStart();
-
-template<>
-void RSKeyframeAnimation<Matrix3f>::OnStart();
-
-template<>
-void RSKeyframeAnimation<Vector2f>::OnStart();
-
-template<>
-void RSKeyframeAnimation<Vector4f>::OnStart();
-
-template<>
-void RSKeyframeAnimation<std::shared_ptr<RSFilter>>::OnStart();
 } // namespace Rosen
 } // namespace OHOS
 

@@ -26,7 +26,7 @@
 
 namespace OHOS {
 namespace Rosen {
-class RSPropertyRenderNode;
+class RSRenderNode;
 
 enum class AnimationState {
     INITIALIZED,
@@ -129,7 +129,7 @@ public:
         return animationFraction_.GetDirection();
     }
 
-    void Attach(RSPropertyRenderNode* renderNode);
+    void Attach(RSRenderNode* renderNode);
     void Detach();
 
     virtual RSAnimatableProperty GetProperty() const;
@@ -140,7 +140,7 @@ protected:
 #ifdef ROSEN_OHOS
     virtual bool ParseParam(Parcel& parcel);
 #endif
-    RSPropertyRenderNode* GetTarget() const;
+    RSRenderNode* GetTarget() const;
 
     void SetFractionInner(float fraction);
 
@@ -163,7 +163,7 @@ private:
     RSAnimationFraction animationFraction_;
     AnimationState state_ { AnimationState::INITIALIZED };
     bool firstToRunning_ { false };
-    RSPropertyRenderNode* target_ { nullptr };
+    RSRenderNode* target_ { nullptr };
 };
 } // namespace Rosen
 } // namespace OHOS

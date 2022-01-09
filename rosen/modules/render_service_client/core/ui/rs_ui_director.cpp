@@ -17,11 +17,11 @@
 
 #include "command/rs_animation_command.h"
 #include "command/rs_message_processor.h"
-#include "common/rs_trace.h"
 #include "pipeline/rs_node_map.h"
 #include "pipeline/rs_render_thread.h"
 #include "platform/common/rs_log.h"
 #include "transaction/rs_transaction_proxy.h"
+#include "rs_trace.h"
 #include "ui/rs_root_node.h"
 #include "ui/rs_surface_extractor.h"
 #include "ui/rs_surface_node.h"
@@ -44,7 +44,10 @@ RSUIDirector::~RSUIDirector()
 void RSUIDirector::Init()
 {
     auto renderThreadClient = RSIRenderClient::CreateRenderThreadClient();
-    RSTransactionProxy::GetInstance().SetRenderThreadClient(renderThreadClient);
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        transactionProxy->SetRenderThreadClient(renderThreadClient);
+    }
     RSRenderThread::Instance().Start();
 }
 
@@ -56,36 +59,16 @@ void RSUIDirector::Destory()
     }
 }
 
-// ori version, input is Surface*
-void RSUIDirector::SetPlatformSurface(Surface* surface)
-{
-    surface_ = reinterpret_cast<uintptr_t>(surface);
-}
-
-void RSUIDirector::SetSurfaceSize(int width, int height)
-{
-    surfaceWidth_ = width;
-    surfaceHeight_ = height;
-    if (root_ != 0 && surface_ != 0) {
-        auto node = RSNodeMap::Instance().GetNode(root_).lock();
-        if (node != nullptr) {
-            std::static_pointer_cast<RSRootNode>(node)->AttachSurface(surface_, surfaceWidth_, surfaceHeight_);
-        }
-    }
-}
-// end of ori version
-
-// new version, input is std::shared_ptr<RSSurfaceNode>
 void RSUIDirector::SetRSSurfaceNode(std::shared_ptr<RSSurfaceNode> surfaceNode)
 {
     surfaceNode_ = surfaceNode;
     if (root_ == 0) {
-        ROSEN_LOGE("no root exists");
+        ROSEN_LOGE("RSUIDirector::SetRSSurfaceNode, no root exists");
         return;
     }
     auto node = RSNodeMap::Instance().GetNode(root_).lock();
     if (node == nullptr) {
-        ROSEN_LOGE("get root node failed");
+        ROSEN_LOGE("RSUIDirector::SetRSSurfaceNode, get root node failed");
         return;
     }
     if (surfaceNode == nullptr) {
@@ -101,7 +84,7 @@ void RSUIDirector::SetSurfaceNodeSize(int width, int height)
     surfaceWidth_ = width;
     surfaceHeight_ = height;
     if ((root_ == 0) || (surfaceNode_ == nullptr)) {
-        ROSEN_LOGE("No root or SurfaceNode exists");
+        ROSEN_LOGE("RSUIDirector::SetSurfaceNodeSize, No root or SurfaceNode exists");
         return;
     }
     auto node = RSNodeMap::Instance().GetNode(root_).lock();
@@ -110,32 +93,26 @@ void RSUIDirector::SetSurfaceNodeSize(int width, int height)
             RSSurfaceExtractor::ExtractRSSurface(surfaceNode_), surfaceWidth_, surfaceHeight_);
     }
 }
-// end of new version
 
 void RSUIDirector::SetRoot(NodeId root)
 {
-    ROSEN_LOGE("SetRoot");
     if (root_ == root) {
+        ROSEN_LOGW("RSUIDirector::SetRoot, root_ is not change");
         return;
     }
     root_ = root;
     auto node = RSNodeMap::Instance().GetNode(root_).lock();
     if (node == nullptr) {
-        ROSEN_LOGE("fail to get node");
+        ROSEN_LOGE("RSUIDirector::SetRoot, fail to get node");
         return;
     }
-    // contains two versions, one for weston and one for RSSurfaceNode
-    // TODO: remove the weston version
-    if ((surface_ == 0) && (surfaceNode_ == nullptr)) {
-        ROSEN_LOGE("No Surface or SurfaceNode found");
+    if (surfaceNode_ == nullptr) {
+        ROSEN_LOGE("RSUIDirector::SetRoot, No SurfaceNode found");
         return;
     }
-    if (surface_ != 0) {
-        std::static_pointer_cast<RSRootNode>(node)->AttachSurface(surface_, surfaceWidth_, surfaceHeight_);
-    } else {
-        std::static_pointer_cast<RSRootNode>(node)->AttachRSSurface(
-            RSSurfaceExtractor::ExtractRSSurface(surfaceNode_), surfaceWidth_, surfaceHeight_);
-    }
+
+    std::static_pointer_cast<RSRootNode>(node)->AttachRSSurface(
+        RSSurfaceExtractor::ExtractRSSurface(surfaceNode_), surfaceWidth_, surfaceHeight_);
 }
 
 void RSUIDirector::SetTimeStamp(uint64_t timeStamp)
@@ -151,14 +128,17 @@ void RSUIDirector::SetUITaskRunner(const TaskRunner& uiTaskRunner)
 void RSUIDirector::SendMessages()
 {
     ROSEN_TRACE_BEGIN(BYTRACE_TAG_GRAPHIC_AGP, "SendCommands");
-    RSTransactionProxy::GetInstance().FlushImplicitTransaction();
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        transactionProxy->FlushImplicitTransaction();
+    }
     ROSEN_TRACE_END(BYTRACE_TAG_GRAPHIC_AGP);
 }
 
 void RSUIDirector::RecvMessages()
 {
     if (g_uiTaskRunner == nullptr) {
-        ROSEN_LOGE("Notify ui message failed, uiTaskRunner is null");
+        ROSEN_LOGE("RSUIDirector::RecvMessages, Notify ui message failed, uiTaskRunner is null");
         return;
     }
 
@@ -175,6 +155,7 @@ void RSUIDirector::ProcessMessages(std::queue<std::shared_ptr<RSCommand>> cmds)
             auto cmd = std::static_pointer_cast<RSAnimationFinishCallback>(msg);
             auto nodePtr = RSNodeMap::Instance().GetNode(cmd->parameter1_).lock();
             if (nodePtr == nullptr) {
+                ROSEN_LOGW("RSUIDirector::ProcessMessages, node is nullptr");
                 return;
             }
             std::static_pointer_cast<RSNode>(nodePtr)->AnimationFinish(cmd->parameter2_);

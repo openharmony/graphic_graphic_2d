@@ -29,7 +29,7 @@
 #include "common/rs_obj_abs_geometry.h"
 #include "pipeline/rs_render_node_map.h"
 #include "pipeline/rs_paint_filter_canvas.h"
-#include "pipeline/rs_property_render_node.h"
+#include "pipeline/rs_render_node.h"
 #include "render/rs_image.h"
 #include "render/rs_path.h"
 #include "render/rs_shader.h"
@@ -118,8 +118,10 @@ bool GetGravityMatrix(Gravity gravity, RectF rect, float w, float h, SkMatrix& m
             mat.preTranslate((rect.width_ / scale - w) / PARAM_DOUBLE, (rect.height_ / scale - h) / PARAM_DOUBLE);
             return true;
         }
-        default:
+        default: {
+            ROSEN_LOGE("GetGravityMatrix unknow gravity=[%d]", gravity);
             return false;
+        }
     }
 }
 
@@ -296,7 +298,7 @@ void RSPropertiesPainter::DrawBorder(RSProperties& properties, SkCanvas& canvas)
             auto borderLengthHoriz = properties.GetBoundsWidth() - borderWidth * addLen * PARAM_DOUBLE;
             int32_t rawNumberHoriz = borderLengthHoriz / (PARAM_DOUBLE * borderWidth);
             if (rawNumberVert == 0 || rawNumberHoriz == 0) {
-                ROSEN_LOGI("number of dot is zero");
+                ROSEN_LOGE("number of dot is zero");
                 return;
             }
             // draw left and right border

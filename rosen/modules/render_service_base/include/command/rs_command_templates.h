@@ -25,7 +25,9 @@ namespace Rosen {
 class RSUIDirector;
 
 // avoiding C++ macros spilting parameters
+#ifndef ARG
 #define ARG(...) __VA_ARGS__
+#endif
 
 // Add new RSCommand as alias of template class
 // Explicit instantiating templates will register the unmarshalling function into RSCommandFactory.
@@ -64,7 +66,7 @@ public:
     static inline RSCommandRegister<commandType, commandSubType, Unmarshalling> registry;
 #endif // ROSEN_OHOS
 
-    void Process(RSContext& context) const override
+    void Process(RSContext& context) override
     {
         (*processFunc)(context);
     }
@@ -100,7 +102,7 @@ public:
     static inline RSCommandRegister<commandType, commandSubType, Unmarshalling> registry;
 #endif // ROSEN_OHOS
 
-    void Process(RSContext& context) const override
+    void Process(RSContext& context) override
     {
         (*processFunc)(context, parameter1_);
     }
@@ -142,7 +144,7 @@ public:
     static inline RSCommandRegister<commandType, commandSubType, Unmarshalling> registry;
 #endif // ROSEN_OHOS
 
-    void Process(RSContext& context) const override
+    void Process(RSContext& context) override
     {
         (*processFunc)(context, parameter1_, parameter2_);
     }
@@ -193,7 +195,7 @@ public:
     static inline RSCommandRegister<commandType, commandSubType, Unmarshalling> registry;
 #endif // ROSEN_OHOS
 
-    void Process(RSContext& context) const override
+    void Process(RSContext& context) override
     {
         (*processFunc)(context, parameter1_, parameter2_, parameter3_);
     }
@@ -250,7 +252,7 @@ public:
     static inline RSCommandRegister<commandType, commandSubType, Unmarshalling> registry;
 #endif // ROSEN_OHOS
 
-    void Process(RSContext& context) const override
+    void Process(RSContext& context) override
     {
         (*processFunc)(context, parameter1_, parameter2_, parameter3_, parameter4_);
     }
@@ -313,7 +315,7 @@ public:
     static inline RSCommandRegister<commandType, commandSubType, Unmarshalling> registry;
 #endif // ROSEN_OHOS
 
-    void Process(RSContext& context) const override
+    void Process(RSContext& context) override
     {
         (*processFunc)(context, parameter1_, parameter2_, parameter3_, parameter4_, parameter5_);
     }
@@ -382,7 +384,7 @@ public:
     static inline RSCommandRegister<commandType, commandSubType, Unmarshalling> registry;
 #endif // ROSEN_OHOS
 
-    void Process(RSContext& context) const override
+    void Process(RSContext& context) override
     {
         (*processFunc)(context, parameter1_, parameter2_, parameter3_, parameter4_, parameter5_, parameter6_);
     }

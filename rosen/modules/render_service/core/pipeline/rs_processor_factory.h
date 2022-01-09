@@ -18,16 +18,13 @@
 
 #include "pipeline/rs_processor.h"
 #include "pipeline/rs_display_render_node.h"
-#include "screen_manager/screen_types.h"
 
 namespace OHOS {
 namespace Rosen {
-
 class RSProcessorFactory final {
 public:
-    static std::shared_ptr<RSProcessor> CreateProcessor(ScreenState state);
+    static std::shared_ptr<RSProcessor> CreateProcessor(RSDisplayRenderNode::CompositeType type);
 };
 } // namespace Rosen
 } // namespace OHOS
-
- #endif
+ #endif // RS_PROCESSOR_FACTORY_H

@@ -64,8 +64,6 @@ public:
     T operator[](int index) const;
     T& operator[](int index);
     T* GetData();
-    Vector4<T> Slerp(const Vector4<T>& to, float t);
-    Vector4<T> Flip() const;
 
     void Scale(T arg);
     void Sub(const Vector4<T>& arg);
@@ -81,6 +79,16 @@ public:
 
 typedef Vector4<float> Vector4f;
 typedef Vector4<double> Vector4d;
+
+class Quaternion : public Vector4f {
+public:
+    Quaternion() : Vector4f() {}
+    Quaternion(float x, float y, float z, float w) : Vector4f(x, y, z, w) {}
+    Quaternion(const Vector4f& other) : Vector4f(other) {}
+    Quaternion(const Vector4f&& other) : Vector4f(other) {}
+    Quaternion Slerp(const Quaternion& to, float t);
+    Quaternion Flip() const;
+};
 
 template<typename T>
 Vector4<T>::Vector4()
@@ -107,21 +115,19 @@ template<typename T>
 Vector4<T>::~Vector4()
 {}
 
-template<typename T>
-Vector4<T> Vector4<T>::Flip() const
+inline Quaternion Quaternion::Flip() const
 {
     return { -data_[0], -data_[1], -data_[2], -data_[3] };
 }
 
-template<typename T>
-Vector4<T> Vector4<T>::Slerp(const Vector4<T>& to, float t)
+inline Quaternion Quaternion::Slerp(const Quaternion& to, float t)
 {
-    constexpr double KEPSILON = 1e-5;
+    constexpr double SLERP_EPSILON = 1e-5;
     if (t < 0.0 || t > 1.0) {
         return *this;
     }
 
-    Vector4<T> from = *this;
+    auto from = *this;
 
     double cosHalfAngle = from.x_ * to.x_ + from.y_ * to.y_ + from.z_ * to.z_ + from.w_ * to.w_;
     if (cosHalfAngle < 0.0) {
@@ -140,7 +146,7 @@ Vector4<T> Vector4<T>::Slerp(const Vector4<T>& to, float t)
     }
 
     double sinHalfAngle = std::sqrt(1.0 - cosHalfAngle * cosHalfAngle);
-    if (sinHalfAngle < KEPSILON) {
+    if (sinHalfAngle < SLERP_EPSILON) {
         // Quaternions share common axis and angle.
         return *this;
     }

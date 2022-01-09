@@ -16,9 +16,8 @@
 #include "platform/drawing/rs_surface_converter.h"
 #include "rs_surface_ohos.h"
 #include "platform/ohos/backend/rs_surface_ohos_raster.h"
-#ifdef ACE_ENABLE_GL
 #include "platform/ohos/backend/rs_surface_ohos_gl.h"
-#endif
+
 namespace OHOS {
 namespace Rosen {
 sptr<Surface> RSSurfaceConverter::ConvertToOhosSurface(std::shared_ptr<RSSurface> surface)

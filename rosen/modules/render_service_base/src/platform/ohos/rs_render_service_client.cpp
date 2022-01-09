@@ -15,14 +15,14 @@
 
 #include "transaction/rs_render_service_client.h"
 
+#include "backend/rs_surface_ohos_gl.h"
+#include "backend/rs_surface_ohos_raster.h"
+#include "command/rs_command.h"
 #include "ipc_callbacks/screen_change_callback_stub.h"
+#include "ipc_callbacks/surface_capture_callback_stub.h"
+#include "platform/common/rs_log.h"
 #include "rs_render_service_connect.h"
 #include "rs_surface_ohos.h"
-#include "backend/rs_surface_ohos_raster.h"
-#ifdef ACE_ENABLE_GL
-#include "backend/rs_surface_ohos_gl.h"
-#endif
-#include "platform/common/rs_log.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -37,6 +37,14 @@ void RSRenderServiceClient::CommitTransaction(std::unique_ptr<RSTransactionData>
     auto renderService = RSRenderServiceConnect::GetRenderService();
     if (renderService != nullptr) {
         renderService->CommitTransaction(transactionData);
+    }
+}
+
+void RSRenderServiceClient::ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task)
+{
+    auto renderService = RSRenderServiceConnect::GetRenderService();
+    if (renderService != nullptr) {
+        renderService->ExecuteSynchronousTask(task);
     }
 }
 
@@ -56,6 +64,60 @@ std::shared_ptr<RSSurface> RSRenderServiceClient::CreateNodeAndSurface(const RSS
     std::shared_ptr<RSSurface> producer = std::make_shared<RSSurfaceOhosRaster>(surface);
 #endif
     return producer;
+}
+
+void RSRenderServiceClient::TriggerSurfaceCaptureCallback(NodeId id, Media::PixelMap* pixelmap)
+{
+    std::shared_ptr<Media::PixelMap> surfaceCapture(pixelmap);
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        auto iter = surfaceCaptureCbMap_.find(id);
+        if (iter != surfaceCaptureCbMap_.end()) {
+            auto callback = iter->second;
+            callback->OnSurfaceCapture(surfaceCapture);
+            surfaceCaptureCbMap_.erase(iter);
+        }
+    }
+}
+
+class SurfaceCaptureCallbackDirector : public RSSurfaceCaptureCallbackStub
+{
+public:
+    SurfaceCaptureCallbackDirector(RSRenderServiceClient* client) : client_(client)
+    {
+    }
+    ~SurfaceCaptureCallbackDirector() override {};
+    void OnSurfaceCapture(NodeId id, Media::PixelMap* pixelmap) override
+    {
+        client_->TriggerSurfaceCaptureCallback(id, pixelmap);
+    };
+
+private:
+    RSRenderServiceClient* client_;
+};
+
+bool RSRenderServiceClient::TakeSurfaceCapture(NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback)
+{
+    auto renderService = RSRenderServiceConnect::GetRenderService();
+    if (renderService == nullptr) {
+        ROSEN_LOGE("RSRenderServiceClient: renderService == nullptr!\n");
+        return false;
+    }
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        if (surfaceCaptureCbMap_.count(id) != 0) {
+            ROSEN_LOGW("RSRenderServiceClient: surfaceCaptureCbMap_.count(id) != 0\n");
+            return false;
+        }
+        surfaceCaptureCbMap_.emplace(id, callback);
+    }
+
+    if (surfaceCaptureCbDirector_ == nullptr) {
+        surfaceCaptureCbDirector_ = new SurfaceCaptureCallbackDirector(this);
+    }
+
+    renderService->TakeSurfaceCapture(id, surfaceCaptureCbDirector_);
+    return true;
 }
 
 ScreenId RSRenderServiceClient::GetDefaultScreenId()
@@ -176,7 +238,7 @@ ScreenPowerStatus RSRenderServiceClient::GetScreenPowerStatus(ScreenId id)
 {
     auto renderService = RSRenderServiceConnect::GetRenderService();
     if (renderService == nullptr) {
-        return ScreenPowerStatus::INVAILD_POWER_STATUS;
+        return ScreenPowerStatus::INVALID_POWER_STATUS;
     }
 
     return renderService->GetScreenPowerStatus(id);

@@ -29,12 +29,12 @@ class RSDirtyRegionManager;
 class RSPaintFilterCanvas;
 class RSProperties;
 class RSRenderAnimation;
-class RSPropertyRenderNode;
+class RSRenderNode;
 
 class RSAnimationManager {
 public:
     using TransitionCallback = std::function<void(RSPaintFilterCanvas& canvas, const RSProperties& renderProperties)>;
-    explicit RSAnimationManager(RSPropertyRenderNode* target);
+    explicit RSAnimationManager(RSRenderNode* target);
     ~RSAnimationManager() = default;
 
     void AddAnimation(const std::shared_ptr<RSRenderAnimation>& animation);
@@ -43,8 +43,8 @@ public:
     std::shared_ptr<RSRenderAnimation> GetAnimation(AnimationId id) const;
     void RegisterTransition(AnimationId id, const TransitionCallback& transition);
     void UnregisterTransition(AnimationId id);
-    void AddDisappearingChild(std::weak_ptr<RSPropertyRenderNode> child);
-    void RemoveDisappearingChild(std::weak_ptr<RSPropertyRenderNode> child);
+    void AddDisappearingChild(std::weak_ptr<RSRenderNode> child);
+    void RemoveDisappearingChild(std::weak_ptr<RSRenderNode> child);
     void UpdateDisappearingChildren(RSDirtyRegionManager& dirtyManager, const RSProperties* parent, bool parentDirty);
     void RenderDisappearingChildren(RSPaintFilterCanvas& canvas);
     void DoTransition(RSPaintFilterCanvas& canvas, const RSProperties& renderProperties);
@@ -56,12 +56,12 @@ private:
     void OnAnimationFinished(std::shared_ptr<RSRenderAnimation>& animation);
     void ClearTransition(AnimationId id);
 
-    RSPropertyRenderNode* target_;
+    RSRenderNode* target_;
     std::unordered_map<AnimationId, std::shared_ptr<RSRenderAnimation>> animations_;
     std::unordered_map<RSAnimatableProperty, int> animationNum_;
     std::list<std::pair<AnimationId, TransitionCallback>> transition_;
-    std::list<std::weak_ptr<RSPropertyRenderNode>> disappearingChildren_;
-    friend class RSPropertyRenderNode;
+    std::list<std::weak_ptr<RSRenderNode>> disappearingChildren_;
+    friend class RSRenderNode;
 };
 } // namespace Rosen
 } // namespace OHOS

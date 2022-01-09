@@ -35,12 +35,10 @@ namespace OHOS {
 namespace Rosen {
 
 #define MARSHALLING_AND_UNMARSHALLING(TYPE, TYPENAME)                      \
-    template<>                                                             \
     bool RSMarshallingHelper::Marshalling(Parcel& parcel, const TYPE& val) \
     {                                                                      \
         return parcel.Write##TYPENAME(val);                                \
     }                                                                      \
-    template<>                                                             \
     bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, TYPE& val)     \
     {                                                                      \
         return parcel.Read##TYPENAME(val);                                 \
@@ -70,12 +68,10 @@ static inline sk_sp<T> sk_reinterprat_cast(sk_sp<P> ptr)
 } // namespace
 
 // SkData
-template<>
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const sk_sp<SkData>& val)
 {
     return parcel.WriteUint32(val->size()) && parcel.WriteUnpadBuffer(val->data(), val->size());
 }
-template<>
 bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, sk_sp<SkData>& val)
 {
     auto size = parcel.ReadUint32();
@@ -88,7 +84,6 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, sk_sp<SkData>& val)
 }
 
 // SkFlattenable
-template<>
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const sk_sp<SkFlattenable>& val)
 {
     SkBinaryWriteBuffer writer;
@@ -98,7 +93,6 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const sk_sp<SkFlattenable>
     auto skData = SkData::MakeFromMalloc(buf.get(), writer.bytesWritten());
     return parcel.WriteUint32(val->getFlattenableType()) && Marshalling(parcel, skData);
 }
-template<>
 bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, sk_sp<SkFlattenable>& val)
 {
     auto type = static_cast<SkFlattenable::Type>(parcel.ReadUint32());
@@ -110,7 +104,6 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, sk_sp<SkFlattenable>& va
 }
 
 // SKPath
-template<>
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const SkPath& val)
 {
     SkBinaryWriteBuffer writer;
@@ -120,7 +113,6 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const SkPath& val)
     auto skData = SkData::MakeFromMalloc(buf.get(), writer.bytesWritten());
     return Marshalling(parcel, skData);
 }
-template<>
 bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, SkPath& val)
 {
     sk_sp<SkData> data;
@@ -131,12 +123,10 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, SkPath& val)
 }
 
 // RSShader
-template<>
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const RSShader& val)
 {
     return Marshalling(parcel, sk_reinterprat_cast<SkFlattenable>(val.GetSkShader()));
 }
-template<>
 bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, RSShader& val)
 {
     sk_sp<SkFlattenable> flattenablePtr;
@@ -149,7 +139,6 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, RSShader& val)
 }
 
 // RSPath
-template<>
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const RSPath& val)
 {
     SkBinaryWriteBuffer writer;
@@ -159,7 +148,6 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const RSPath& val)
     auto skData = SkData::MakeFromMalloc(buf.get(), writer.bytesWritten());
     return Marshalling(parcel, skData);
 }
-template<>
 bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, RSPath& val)
 {
     sk_sp<SkData> data;
@@ -171,25 +159,19 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, RSPath& val)
     return true;
 }
 
-bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSRenderPathAnimation>& val)
-{
-    return parcel.WriteParcelable(val.get());
-}
-bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSRenderPathAnimation>& val)
-{
-    val.reset(parcel.ReadParcelable<RSRenderPathAnimation>());
-    return val != nullptr;
-}
-
-bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSRenderTransition>& val)
-{
-    return parcel.WriteParcelable(val.get());
-}
-bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSRenderTransition>& val)
-{
-    val.reset(parcel.ReadParcelable<RSRenderTransition>());
-    return val != nullptr;
-}
+#define MARSHALLING_AND_UNMARSHALLING(TYPE)                                                 \
+    bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<TYPE>& val) \
+    {                                                                                       \
+        return parcel.WriteParcelable(val.get());                                           \
+    }                                                                                       \
+    bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<TYPE>& val)     \
+    {                                                                                       \
+        val.reset(parcel.ReadParcelable<TYPE>());                                           \
+        return val != nullptr;                                                              \
+    }
+MARSHALLING_AND_UNMARSHALLING(RSRenderPathAnimation)
+MARSHALLING_AND_UNMARSHALLING(RSRenderTransition)
+#undef MARSHALLING_AND_UNMARSHALLING
 
 #define MARSHALLING_AND_UNMARSHALLING(TEMPLATE)                                                    \
     template<typename T>                                                                           \
@@ -204,6 +186,10 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSRender
         return val != nullptr;                                                                     \
     }
 
+MARSHALLING_AND_UNMARSHALLING(RSRenderCurveAnimation)
+MARSHALLING_AND_UNMARSHALLING(RSRenderKeyframeAnimation)
+#undef MARSHALLING_AND_UNMARSHALLING
+
 #define EXPLICIT_INSTANTIATION(TEMPLATE, TYPE)                                                                  \
     template bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<TEMPLATE<TYPE>>& val); \
     template bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<TEMPLATE<TYPE>>& val);
@@ -214,18 +200,16 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSRender
     EXPLICIT_INSTANTIATION(TEMPLATE, Color)    \
     EXPLICIT_INSTANTIATION(TEMPLATE, Matrix3f) \
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector2f) \
-    EXPLICIT_INSTANTIATION(TEMPLATE, Vector4f)
+    EXPLICIT_INSTANTIATION(TEMPLATE, Vector4f) \
+    EXPLICIT_INSTANTIATION(TEMPLATE, Quaternion)
     // TODO:complete the marshing and unmarshalling
 // EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSFilter>)
 
-MARSHALLING_AND_UNMARSHALLING(RSRenderCurveAnimation)
 BATCH_EXPLICIT_INSTANTIATION(RSRenderCurveAnimation)
-MARSHALLING_AND_UNMARSHALLING(RSRenderKeyframeAnimation)
 BATCH_EXPLICIT_INSTANTIATION(RSRenderKeyframeAnimation)
 
 #undef EXPLICIT_INSTANTIATION
 #undef BATCH_EXPLICIT_INSTANTIATION
-#undef MARSHALLING_AND_UNMARSHALLING
 
 } // namespace Rosen
 } // namespace OHOS

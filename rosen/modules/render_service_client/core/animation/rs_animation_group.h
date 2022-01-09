@@ -26,7 +26,6 @@
 
 namespace OHOS {
 namespace Rosen {
-class RSNode;
 class AnimationCallback;
 
 class RS_EXPORT RSAnimationGroup : public RSAnimation {

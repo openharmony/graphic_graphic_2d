@@ -57,6 +57,12 @@ void RSInterfaces::SetScreenChangeCallback(const ScreenChangeCallback &callback)
     renderServiceClient_->SetScreenChangeCallback(callback);
 }
 
+bool RSInterfaces::TakeSurfaceCapture(std::shared_ptr<RSSurfaceNode> node,
+    std::shared_ptr<SurfaceCaptureCallback> callback)
+{
+    return renderServiceClient_->TakeSurfaceCapture(node->GetId(), callback);
+}
+
 void RSInterfaces::SetScreenActiveMode(ScreenId id, uint32_t modeId)
 {
     renderServiceClient_->SetScreenActiveMode(id, modeId);

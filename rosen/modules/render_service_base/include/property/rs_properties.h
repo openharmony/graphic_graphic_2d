@@ -36,22 +36,30 @@ public:
     virtual ~RSProperties();
 
     // geometry properties
+    void SetBounds(Vector4f bounds);
+    void SetBoundsSize(Vector2f size);
     void SetBoundsWidth(float width);
     void SetBoundsHeight(float height);
     void SetBoundsPosition(Vector2f position);
     void SetBoundsPositionX(float positionX);
     void SetBoundsPositionY(float positionY);
+    Vector4f GetBounds() const;
+    Vector2f GetBoundsSize() const;
     float GetBoundsWidth() const;
     float GetBoundsHeight() const;
     Vector2f GetBoundsPosition() const;
     float GetBoundsPositionX() const;
     float GetBoundsPositionY() const;
 
+    void SetFrame(Vector4f frame);
+    void SetFrameSize(Vector2f size);
     void SetFrameWidth(float width);
     void SetFrameHeight(float height);
     void SetFramePosition(Vector2f position);
     void SetFramePositionX(float positionX);
     void SetFramePositionY(float positionY);
+    Vector4f GetFrame() const;
+    Vector2f GetFrameSize() const;
     float GetFrameWidth() const;
     float GetFrameHeight() const;
     Vector2f GetFramePosition() const;
@@ -63,35 +71,41 @@ public:
     void SetPositionZ(float positionZ);
     float GetPositionZ() const;
 
+    void SetPivot(Vector2f pivot);
     void SetPivotX(float pivotX);
     void SetPivotY(float pivotY);
+    Vector2f GetPivot() const;
     float GetPivotX() const;
     float GetPivotY() const;
 
     void SetCornerRadius(float cornerRadius);
     float GetCornerRadius() const;
 
-    void SetQuaternion(Vector4f quaternion);
+    void SetQuaternion(Quaternion quaternion);
     void SetRotation(float degree);
     void SetRotationX(float degree);
     void SetRotationY(float degree);
+    Quaternion GetQuaternion() const;
+    float GetRotation() const;
+    float GetRotationX() const;
+    float GetRotationY() const;
+
     void SetTranslate(Vector2f translate);
     void SetTranslateX(float translate);
     void SetTranslateY(float translate);
     void SetTranslateZ(float translate);
-    void SetScale(float sx, float sy);
-    void SetScaleX(float sx);
-    void SetScaleY(float sy);
-    Vector4f GetQuaternion() const;
-    float GetRotation() const;
-    float GetRotationX() const;
-    float GetRotationY() const;
-    float GetScaleX() const;
-    float GetScaleY() const;
     Vector2f GetTranslate() const;
     float GetTranslateX() const;
     float GetTranslateY() const;
     float GetTranslateZ() const;
+
+    void SetScale(Vector2f scale);
+    void SetScaleX(float sx);
+    void SetScaleY(float sy);
+    Vector2f GetScale() const;
+    float GetScaleX() const;
+    float GetScaleY() const;
+
 
     void SetAlpha(float alpha);
     float GetAlpha() const;
@@ -208,9 +222,9 @@ private:
 
     friend class RSPropertiesPainter;
     friend class RSTextureRenderNode;
-    friend class RSPropertyRenderNode;
     friend class RSRenderNode;
-    friend class RSNode;
+    friend class RSCanvasRenderNode;
+    friend class RSCanvasNode;
     friend class RSPropertiesUtils;
     friend class RSRenderTransitionEffect;
 };

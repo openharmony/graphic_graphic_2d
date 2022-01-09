@@ -38,8 +38,7 @@ public:
     std::unique_ptr<RSSurfaceFrame> RequestFrame(int32_t width, int32_t height) override;
     bool FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame) override;
 private:
-    bool init_;
-    EGLSurface eglSurface_;
+    EGLSurface mEglSurface;
 };
 
 } // namespace Rosen

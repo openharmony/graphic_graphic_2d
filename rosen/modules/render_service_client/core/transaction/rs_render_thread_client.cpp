@@ -31,5 +31,21 @@ void RSRenderThreadClient::CommitTransaction(std::unique_ptr<RSTransactionData>&
     RSRenderThread::Instance().RecvTransactionData(transactionData);
 }
 
+void RSRenderThreadClient::ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task)
+{
+    std::mutex mutex;
+    std::unique_lock<std::mutex> lock(mutex);
+    std::condition_variable cv;
+    auto& renderThread = RSRenderThread::Instance();
+    renderThread.PostTask([task, &cv, &renderThread]() {
+        if (task == nullptr) {
+            return;
+        }
+        task->Process(renderThread.GetContext());
+        cv.notify_all();
+    });
+    cv.wait_for(lock, std::chrono::nanoseconds(task->GetTimeout()));
+}
+
 } // namespace Rosen
 } // namespace OHOS

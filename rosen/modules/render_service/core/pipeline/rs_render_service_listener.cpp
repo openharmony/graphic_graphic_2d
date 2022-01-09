@@ -34,13 +34,9 @@ void RSRenderServiceListener::OnBufferAvailable()
         ROSEN_LOGE("RSRenderServiceListener::OnBufferAvailable node is nullptr");
         return;
     }
-    ROSEN_LOGI("RsDebug RSRenderServiceListener::OnBufferAvailable node id:%llu", node->GetId());
-    std::function<void()> task = [node]() -> void {
-        ROSEN_LOGI("RsDebug RSRenderServiceListener::OnBufferAvailable node id:%llu", node->GetId());
-        node->IncreaseAvailableBuffer();
-        RSMainThread::Instance()->RequestNextVSync();
-    };
-    RSMainThread::Instance()->PostTask(task);
+    ROSEN_LOGE("RsDebug RSRenderServiceListener::OnBufferAvailable node id:%llu", node->GetId());
+    node->IncreaseAvailableBuffer();
+    RSMainThread::Instance()->RequestNextVSync();
 }
 
 } // namespace Rosen

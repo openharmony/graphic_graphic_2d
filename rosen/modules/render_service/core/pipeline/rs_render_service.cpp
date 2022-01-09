@@ -15,15 +15,19 @@
 
 #include "pipeline/rs_render_service.h"
 
-#include <iservice_registry.h>
-#include <string>
-#include <system_ability_definition.h>
+#include <unordered_set>
+#include <unistd.h>
 
+#include <iservice_registry.h>
+#include <system_ability_definition.h>
+#include "command/rs_command.h"
 #include "pipeline/rs_main_thread.h"
 #include "pipeline/rs_render_node_map.h"
 #include "pipeline/rs_render_service_listener.h"
+#include "pipeline/rs_surface_capture_task.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_log.h"
+#include "screen_manager/screen_types.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -37,27 +41,73 @@ RSRenderService::RSRenderService() {}
 
 RSRenderService::~RSRenderService() noexcept {}
 
-void RSRenderService::Init()
+bool RSRenderService::Init()
 {
+    mainThread_ = RSMainThread::Instance();
+
     screenManager_ = CreateOrGetScreenManager();
     if (screenManager_ == nullptr || !screenManager_->Init()) {
         ROSEN_LOGI("RSRenderService CreateOrGetScreenManager fail");
+        return false;
     }
 
-    mainThread_ = RSMainThread::Instance();
     auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     samgr->AddSystemAbility(RENDER_SERVICE, &GetInstance());
+    return true;
 }
 
 void RSRenderService::Run()
 {
-    ROSEN_LOGI("RSRenderService::Run");
+    ROSEN_LOGE("RSRenderService::Run");
     mainThread_->Start();
+}
+
+int RSRenderService::Dump(int fd, const std::vector<std::u16string>& args)
+{
+    std::unordered_set<std::u16string> argSets;
+    std::u16string arg1(u"display");
+    std::u16string arg2(u"surface");
+    for (decltype(args.size()) index = 0; index < args.size(); ++index) {
+        argSets.insert(args[index]);
+    }
+    std::string dumpString;
+    if (screenManager_ == nullptr) {
+        return OHOS::INVALID_OPERATION;
+    }
+    if (args.size() == 0 || argSets.count(arg1) != 0) {
+        screenManager_->DisplayDump(dumpString);
+    }
+    if (args.size() == 0 || argSets.count(arg2) != 0) {
+        mainThread_->ScheduleTask([this, &dumpString]() {
+            return screenManager_->SurfaceDump(dumpString);
+        }).wait();
+    }
+    if (dumpString.size() == 0) {
+        return OHOS::INVALID_OPERATION;
+    }
+    write(fd, dumpString.c_str(), dumpString.size());
+    return OHOS::NO_ERROR;
 }
 
 void RSRenderService::CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData)
 {
     mainThread_->RecvRSTransactionData(transactionData);
+}
+
+void RSRenderService::ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task)
+{
+    std::mutex mutex;
+    std::unique_lock<std::mutex> lock(mutex);
+    std::condition_variable cv;
+    auto& mainThread = mainThread_;
+    mainThread->PostTask([task, &cv, &mainThread] {
+        if (task == nullptr) {
+            return;
+        }
+        task->Process(mainThread->GetContext());
+        cv.notify_all();
+    });
+    cv.wait_for(lock, std::chrono::nanoseconds(task->GetTimeout()));
 }
 
 sptr<Surface> RSRenderService::CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config)
@@ -73,9 +123,8 @@ sptr<Surface> RSRenderService::CreateNodeAndSurface(const RSSurfaceRenderNodeCon
         return nullptr;
     }
     node->SetConsumer(surface);
-    auto baseNodePtr = std::static_pointer_cast<RSBaseRenderNode>(node);
-    std::function<void()> registerNode = [baseNodePtr, this]() -> void {
-        this->mainThread_->GetContext().GetNodeMap().RegisterRenderNode(baseNodePtr);
+    std::function<void()> registerNode = [node, this]() -> void {
+        this->mainThread_->GetContext().GetNodeMap().RegisterRenderNode(node);
     };
     mainThread_->PostTask(registerNode);
     std::weak_ptr<RSSurfaceRenderNode> surfaceRenderNode(node);
@@ -93,7 +142,10 @@ ScreenId RSRenderService::GetDefaultScreenId()
     if (screenManager_ == nullptr) {
         return INVALID_SCREEN_ID;
     }
-    return screenManager_->GetDefaultScreenId();
+
+    return mainThread_->ScheduleTask([this]() {
+        return screenManager_->GetDefaultScreenId();
+    }).get();
 }
 
 ScreenId RSRenderService::CreateVirtualScreen(
@@ -108,7 +160,9 @@ ScreenId RSRenderService::CreateVirtualScreen(
         return INVALID_SCREEN_ID;
     }
 
-    return screenManager_->CreateVirtualScreen(name, width, height, surface, mirrorId, flags);
+    return mainThread_->ScheduleTask([=]() {
+        return screenManager_->CreateVirtualScreen(name, width, height, surface, mirrorId, flags);
+    }).get();
 }
 
 void RSRenderService::RemoveVirtualScreen(ScreenId id)
@@ -116,7 +170,10 @@ void RSRenderService::RemoveVirtualScreen(ScreenId id)
     if (screenManager_ == nullptr) {
         return;
     }
-    screenManager_->RemoveVirtualScreen(id);
+
+    mainThread_->ScheduleTask([=]() {
+        screenManager_->RemoveVirtualScreen(id);
+    }).wait();
 }
 
 void RSRenderService::SetScreenChangeCallback(sptr<RSIScreenChangeCallback> callback)
@@ -124,7 +181,10 @@ void RSRenderService::SetScreenChangeCallback(sptr<RSIScreenChangeCallback> call
     if (screenManager_ == nullptr) {
         return;
     }
-    screenManager_->AddScreenChangeCallback(callback);
+
+    mainThread_->ScheduleTask([=]() {
+        screenManager_->AddScreenChangeCallback(callback);
+    }).wait();
 }
 
 void RSRenderService::SetScreenActiveMode(ScreenId id, uint32_t modeId)
@@ -132,7 +192,10 @@ void RSRenderService::SetScreenActiveMode(ScreenId id, uint32_t modeId)
     if (screenManager_ == nullptr) {
         return;
     }
-    screenManager_->SetScreenActiveMode(id, modeId);
+
+    mainThread_->ScheduleTask([=]() {
+        screenManager_->SetScreenActiveMode(id, modeId);
+    }).wait();
 }
 
 void RSRenderService::SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status)
@@ -140,7 +203,20 @@ void RSRenderService::SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status
     if (screenManager_ == nullptr) {
         return;
     }
-    screenManager_->SetScreenPowerStatus(id, status);
+
+    mainThread_->ScheduleTask([=]() {
+        screenManager_->SetScreenPowerStatus(id, status);
+    }).wait();
+}
+
+void RSRenderService::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback)
+{
+    std::function<void()> captureTask = [callback, id]() -> void {
+        RSSurfaceCaptureTask task(id);
+        std::unique_ptr<Media::PixelMap> pixelmap = task.Run();
+        callback->OnSurfaceCapture(id, pixelmap.get());
+    };
+    mainThread_->PostTask(captureTask);
 }
 
 RSScreenModeInfo RSRenderService::GetScreenActiveMode(ScreenId id)
@@ -149,7 +225,10 @@ RSScreenModeInfo RSRenderService::GetScreenActiveMode(ScreenId id)
     if (screenManager_ == nullptr) {
         return screenModeInfo;
     }
-    screenManager_->GetScreenActiveMode(id, screenModeInfo);
+
+    mainThread_->ScheduleTask([=, &screenModeInfo]() {
+        return screenManager_->GetScreenActiveMode(id, screenModeInfo);
+    }).wait();
     return screenModeInfo;
 }
 
@@ -158,7 +237,10 @@ std::vector<RSScreenModeInfo> RSRenderService::GetScreenSupportedModes(ScreenId 
     if (screenManager_ == nullptr) {
         return {};
     }
-    return screenManager_->GetScreenSupportedModes(id);
+
+    return mainThread_->ScheduleTask([=]() {
+        return screenManager_->GetScreenSupportedModes(id);
+    }).get();
 }
 
 RSScreenCapability RSRenderService::GetScreenCapability(ScreenId id)
@@ -167,15 +249,21 @@ RSScreenCapability RSRenderService::GetScreenCapability(ScreenId id)
     if (screenManager_ == nullptr) {
         return screenCapability;
     }
-    return screenManager_->GetScreenCapability(id);
+
+    return mainThread_->ScheduleTask([=]() {
+        return screenManager_->GetScreenCapability(id);
+    }).get();
 }
 
 ScreenPowerStatus RSRenderService::GetScreenPowerStatus(ScreenId id)
 {
     if (screenManager_ == nullptr) {
-        return INVAILD_POWER_STATUS;
+        return INVALID_POWER_STATUS;
     }
-    return screenManager_->GetScreenPowerStatus(id);
+
+    return mainThread_->ScheduleTask([=]() {
+        return screenManager_->GetScreenPowerStatus(id);
+    }).get();
 }
 
 RSScreenData RSRenderService::GetScreenData(ScreenId id)
@@ -184,7 +272,10 @@ RSScreenData RSRenderService::GetScreenData(ScreenId id)
     if (screenManager_ == nullptr) {
         return screenData;
     }
-    return screenManager_->GetScreenData(id);
+
+    return mainThread_->ScheduleTask([=]() {
+        return screenManager_->GetScreenData(id);
+    }).get();
 }
 } // namespace Rosen
 } // namespace OHOS

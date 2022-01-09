@@ -27,7 +27,7 @@
 
 namespace OHOS {
 namespace Rosen {
-struct VirtualSreenConfigs {
+struct VirtualScreenConfigs {
     ScreenId id = INVALID_SCREEN_ID;
     ScreenId mirrorId = INVALID_SCREEN_ID;
     std::string name;
@@ -58,6 +58,8 @@ public:
     virtual uint32_t GetPowerStatus() const = 0;
     virtual std::shared_ptr<HdiOutput> GetOutput() const = 0;
     virtual sptr<Surface> GetProducerSurface() const = 0;
+    virtual void DisplayDump(int32_t screenIndex, std::string& dumpString) = 0;
+    virtual void SurfaceDump(int32_t screenIndex, std::string& dumpString) = 0;
 };
 
 namespace impl {
@@ -68,7 +70,7 @@ public:
         bool isVirtual,
         std::shared_ptr<HdiOutput> output,
         sptr<Surface> surface);
-    RSScreen(const VirtualSreenConfigs &configs);
+    RSScreen(const VirtualScreenConfigs &configs);
     ~RSScreen() noexcept override;
 
     RSScreen(const RSScreen &) = delete;
@@ -90,6 +92,8 @@ public:
     uint32_t GetPowerStatus() const override;
     std::shared_ptr<HdiOutput> GetOutput() const override;
     sptr<Surface> GetProducerSurface() const override;
+    void DisplayDump(int32_t screenIndex, std::string& dumpString) override;
+    void SurfaceDump(int32_t screenIndex, std::string& dumpString) override;
 
 private:
     // TODO: fixme -- domain 0 only for debug.
@@ -97,6 +101,16 @@ private:
 
     // create hdiScreen and get some information from drivers.
     void PhysicalScreenInit() noexcept;
+
+    void ModeInfoDump(std::string& dumpString);
+
+    void CapabilityDump(std::string& dumpString);
+
+    void PropDump(std::string& dumpString);
+
+    void PowerStatusDump(DispPowerStatus powerStatus, std::string& dumpString);
+
+    void CapabilityTypeDump(InterfaceType capabilityType, std::string& dumpString);
 
     // ScreenId for this screen.
     ScreenId id_ = INVALID_SCREEN_ID;
@@ -114,6 +128,7 @@ private:
     std::vector<DisplayModeInfo> supportedModes_;
     DisplayCapability capability_;
     sptr<Surface> producerSurface_;  // has value if the screen is virtual
+    DispPowerStatus powerStatus_;
 };
 } // namespace impl
 } // namespace Rosen

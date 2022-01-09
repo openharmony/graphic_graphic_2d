@@ -16,19 +16,16 @@
 #define RENDER_SERVICE_CLIENT_CORE_PIPELINE_RS_RENDER_MANAGER_H
 
 #include "pipeline/rs_dirty_region_manager.h"
-#include "pipeline/rs_render_node.h"
+#include "pipeline/rs_canvas_render_node.h"
 
 namespace OHOS {
 class Surface;
 namespace Rosen {
-class PlatformCanvas;
 
 class RSRenderManager final {
 public:
     RSRenderManager() = default;
     ~RSRenderManager() = default;
-    void SetPlatformSurface(OHOS::Surface* surface);
-    void SetSurfaceSize(int width, int height);
     void Animate(int64_t timestamp);
     bool HasRunningAnimation() const;
     void UpdateNodes();
@@ -52,7 +49,6 @@ public:
 
 private:
     RSBaseRenderNode::WeakPtr root_;
-    std::shared_ptr<PlatformCanvas> platformCanvas_ = nullptr;
     RSDirtyRegionManager dirtyManager_;
     bool hasRunningAnimation_ = false;
 };

@@ -13,8 +13,12 @@
  * limitations under the License.
  */
 
+#include "unique_fd.h"
+
+#include "pipeline/rs_main_thread.h"
 #include "pipeline/rs_processor.h"
 #include "display_type.h"
+#include "platform/common/rs_log.h"
 namespace OHOS {
 namespace Rosen {
 
@@ -34,33 +38,47 @@ std::unique_ptr<SkCanvas> RSProcessor::CreateCanvas(sptr<Surface> producerSurfac
     return SkCanvas::MakeRasterDirect(info, addr, buffer_->GetSize() / buffer_->GetHeight());
 }
 
-void RSProcessor::DrawBuffer(SkCanvas* canvas, const SkMatrix& matrix, sptr<OHOS::SurfaceBuffer> buffer)
-{
-    if (!canvas) {
-        return;
-    }
-    auto addr = static_cast<uint32_t*>(buffer->GetVirAddr());
-    if (addr == nullptr || buffer->GetWidth() <= 0 || buffer->GetHeight() <= 0) {
-        return;
-    }
-    SkImageInfo layerInfo = SkImageInfo::Make(buffer->GetWidth(), buffer->GetHeight(),
-        kRGBA_8888_SkColorType, kPremul_SkAlphaType);
-    SkPixmap pixmap(layerInfo, addr, buffer->GetSize() / buffer->GetHeight());
-    SkBitmap bitmap;
-    if (bitmap.installPixels(pixmap)) {
-        canvas->save();
-        canvas->concat(matrix);
-        canvas->drawBitmapRect(bitmap, SkRect::MakeXYWH(0, 0, buffer->GetWidth(), buffer->GetHeight()), nullptr);
-        canvas->restore();
-    }
-}
-
 void RSProcessor::FlushBuffer(sptr<Surface> surface, BufferFlushConfig flushConfig)
 {
-    if (!surface) {
+    if (!surface || !buffer_) {
+        ROSEN_LOGE("RSProcessor::FlushBuffer surface or buffer is nullptr");
         return;
     }
     surface->FlushBuffer(buffer_, releaseFence_, flushConfig);
+}
+
+bool RSProcessor::ConsumeAndUpdateBuffer(RSSurfaceRenderNode& node, SpecialTask& task, sptr<SurfaceBuffer>& buffer)
+{
+    if (node.GetAvailableBufferCount() == 0 && !node.GetBuffer()) {
+        ROSEN_LOGI("RsDebug RSProcessor::ProcessSurface have no Available Buffer and"\
+        "Node have no buffer node id:%llu", node.GetId());
+        return false;
+    }
+    auto& surfaceConsumer = node.GetConsumer();
+    if (!surfaceConsumer) {
+        ROSEN_LOGI("RSProcessor::ProcessSurface output is nullptr");
+        return false;
+    }
+    if (node.GetAvailableBufferCount() >= 1) {
+        int32_t fence = -1;
+        int64_t timestamp = 0;
+        Rect damage;
+        auto sret = surfaceConsumer->AcquireBuffer(buffer, fence, timestamp, damage);
+        UniqueFd fenceFd(fence);
+        if (!buffer || sret != OHOS::SURFACE_ERROR_OK) {
+            ROSEN_LOGE("RSProcessor::ProcessSurface: AcquireBuffer failed!");
+            return false;
+        }
+        task();
+        node.SetBuffer(buffer);
+        node.SetFence(fenceFd.Release());
+        if (node.ReduceAvailableBuffer() >= 1) {
+            if (auto mainThread = RSMainThread::Instance()) {
+                mainThread->RequestNextVSync();
+            }
+        }
+    }
+    return true;
 }
 
 }

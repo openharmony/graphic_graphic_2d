@@ -26,24 +26,16 @@ void RootNodeCommandHelper::Create(RSContext& context, NodeId id)
     context.GetNodeMap().RegisterRenderNode(node);
 }
 
-void RootNodeCommandHelper::Attach(RSContext& context, NodeId id, uintptr_t surfaceProducer, int width, int height)
-{
-    if (auto node = context.GetNodeMap().GetRenderNode<RSRootRenderNode>(id)) {
-        node->AttachSurface(surfaceProducer, width, height);
-        if (surfaceProducer == 0) {
-            context.GetGlobalRootRenderNode()->RemoveChild(node);
-        } else {
-            context.GetGlobalRootRenderNode()->AddChild(node);
-        }
-    }
-}
-
 void RootNodeCommandHelper::AttachRSSurface(
     RSContext& context, NodeId id, std::shared_ptr<RSSurface> rsSurface, int width, int height)
 {
     if (auto node = context.GetNodeMap().GetRenderNode<RSRootRenderNode>(id)) {
         node->AttachRSSurface(rsSurface, width, height);
-        context.GetGlobalRootRenderNode()->AddChild(node);
+        if (rsSurface == nullptr) {
+            context.GetGlobalRootRenderNode()->RemoveChild(node);
+        } else {
+            context.GetGlobalRootRenderNode()->AddChild(node);
+        }
     }
 }
 

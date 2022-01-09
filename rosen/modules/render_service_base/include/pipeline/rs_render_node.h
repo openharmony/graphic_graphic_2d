@@ -17,39 +17,61 @@
 
 #include <memory>
 
-#include "pipeline/rs_property_render_node.h"
+#include "animation/rs_animation_manager.h"
+#include "pipeline/rs_base_render_node.h"
+#include "pipeline/rs_dirty_region_manager.h"
+#include "property/rs_properties.h"
 
+class SkCanvas;
 namespace OHOS {
 namespace Rosen {
 class DrawCmdList;
 class RSPaintFilterCanvas;
 
-class RSRenderNode : public RSPropertyRenderNode {
+class RSRenderNode : public RSBaseRenderNode {
 public:
     using WeakPtr = std::weak_ptr<RSRenderNode>;
     using SharedPtr = std::shared_ptr<RSRenderNode>;
-    static inline constexpr RSRenderNodeType Type = RSRenderNodeType::NODE;
+    static inline constexpr RSRenderNodeType Type = RSRenderNodeType::RS_NODE;
 
-    explicit RSRenderNode(NodeId id);
     virtual ~RSRenderNode();
 
-    void UpdateRecording(std::shared_ptr<DrawCmdList> drawCmds, bool drawContentLast);
+    bool Animate(int64_t timestamp);
+    bool Update(RSDirtyRegionManager& dirtyManager, const RSProperties* parent, bool parentDirty);
 
-    void ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas) override;
-    void ProcessRenderContents(RSPaintFilterCanvas& canvas) override;
-    void ProcessRenderAfterChildren(RSPaintFilterCanvas& canvas) override;
+    RSProperties& GetRenderProperties();
+    const RSProperties& GetRenderProperties() const;
 
-    void Prepare(const std::shared_ptr<RSNodeVisitor>& visitor) override;
-    void Process(const std::shared_ptr<RSNodeVisitor>& visitor) override;
-
-    RSRenderNodeType GetType() override
+    // used for animation test
+    RSAnimationManager& GetAnimationManager()
     {
-        return RSRenderNodeType::NODE;
+        return animationManager_;
     }
 
+    void OnAddChild(RSBaseRenderNode::SharedPtr& child) override;
+    void OnRemoveChild(RSBaseRenderNode::SharedPtr& child) override;
+    bool OnUnregister() override;
+
+    virtual void ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas);
+    virtual void ProcessRenderContents(RSPaintFilterCanvas& canvas) {}
+    virtual void ProcessRenderAfterChildren(RSPaintFilterCanvas& canvas);
+
+    RSRenderNodeType GetType() const override
+    {
+        return RSRenderNodeType::RS_NODE;
+    }
+
+protected:
+    explicit RSRenderNode(NodeId id);
+    void UpdateDirtyRegion(RSDirtyRegionManager& dirtyManager);
+    bool IsDirty() const override;
+
 private:
-    std::shared_ptr<DrawCmdList> drawCmdList_ { nullptr };
-    bool drawContentLast_ = false;
+    void FallbackAnimationsToRoot();
+
+    RectI oldDirty_;
+    RSProperties renderProperties_;
+    RSAnimationManager animationManager_;
 
     friend class RSRenderTransition;
 };

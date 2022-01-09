@@ -77,7 +77,7 @@ public:
         return true;
     }
 
-    virtual RSRenderNodeType GetType()
+    virtual RSRenderNodeType GetType() const
     {
         return RSRenderNodeType::BASE_NODE;
     }

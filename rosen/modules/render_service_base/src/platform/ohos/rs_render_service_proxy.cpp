@@ -18,13 +18,13 @@
 #include <message_option.h>
 #include <message_parcel.h>
 
+#include "command/rs_command.h"
+#include "platform/common/rs_log.h"
+
 namespace OHOS {
 namespace Rosen {
 
-RSRenderServiceProxy::RSRenderServiceProxy(const sptr<IRemoteObject>& impl)
-    : IRemoteProxy<RSIRenderService>(impl)
-{
-}
+RSRenderServiceProxy::RSRenderServiceProxy(const sptr<IRemoteObject>& impl) : IRemoteProxy<RSIRenderService>(impl) {}
 
 void RSRenderServiceProxy::CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData)
 {
@@ -32,7 +32,7 @@ void RSRenderServiceProxy::CommitTransaction(std::unique_ptr<RSTransactionData>&
     MessageParcel reply;
     MessageOption option;
 
-    if(!data.WriteInterfaceToken(RSRenderServiceProxy::GetDescriptor())) {
+    if (!data.WriteInterfaceToken(RSRenderServiceProxy::GetDescriptor())) {
         return;
     }
 
@@ -44,6 +44,31 @@ void RSRenderServiceProxy::CommitTransaction(std::unique_ptr<RSTransactionData>&
     int32_t err = Remote()->SendRequest(RSIRenderService::COMMIT_TRANSACTION, data, reply, option);
     if (err != NO_ERROR) {
         return;
+    }
+}
+
+void RSRenderServiceProxy::ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    if (!data.WriteInterfaceToken(RSRenderServiceProxy::GetDescriptor())) {
+        return;
+    }
+
+    if (!task->Marshalling(data)) {
+        return;
+    }
+
+    option.SetFlags(MessageOption::TF_SYNC);
+    int32_t err = Remote()->SendRequest(RSIRenderService::EXECUTE_SYNCHRONOUS_TASK, data, reply, option);
+    if (err != NO_ERROR) {
+        return;
+    }
+
+    if (task->CheckHeader(reply)) {
+        task->ReadFromParcel(reply);
     }
 }
 
@@ -74,7 +99,7 @@ ScreenId RSRenderServiceProxy::GetDefaultScreenId()
     MessageParcel reply;
     MessageOption option;
 
-    if(!data.WriteInterfaceToken(RSIRenderService::GetDescriptor())) {
+    if (!data.WriteInterfaceToken(RSIRenderService::GetDescriptor())) {
         return INVALID_SCREEN_ID;
     }
 
@@ -89,18 +114,13 @@ ScreenId RSRenderServiceProxy::GetDefaultScreenId()
 }
 
 ScreenId RSRenderServiceProxy::CreateVirtualScreen(
-    const std::string &name,
-    uint32_t width,
-    uint32_t height,
-    sptr<Surface> surface,
-    ScreenId mirrorId,
-    int32_t flags)
+    const std::string& name, uint32_t width, uint32_t height, sptr<Surface> surface, ScreenId mirrorId, int32_t flags)
 {
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
 
-    if(!data.WriteInterfaceToken(RSIRenderService::GetDescriptor())) {
+    if (!data.WriteInterfaceToken(RSIRenderService::GetDescriptor())) {
         return INVALID_SCREEN_ID;
     }
 
@@ -127,7 +147,7 @@ void RSRenderServiceProxy::RemoveVirtualScreen(ScreenId id)
     MessageParcel reply;
     MessageOption option;
 
-    if(!data.WriteInterfaceToken(RSIRenderService::GetDescriptor())) {
+    if (!data.WriteInterfaceToken(RSIRenderService::GetDescriptor())) {
         return;
     }
 
@@ -150,7 +170,7 @@ void RSRenderServiceProxy::SetScreenChangeCallback(sptr<RSIScreenChangeCallback>
     MessageParcel reply;
     MessageOption option;
 
-    if(!data.WriteInterfaceToken(RSIRenderService::GetDescriptor())) {
+    if (!data.WriteInterfaceToken(RSIRenderService::GetDescriptor())) {
         return;
     }
 
@@ -198,6 +218,26 @@ void RSRenderServiceProxy::SetScreenPowerStatus(ScreenId id, ScreenPowerStatus s
     }
 }
 
+void RSRenderServiceProxy::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback)
+{
+    if (callback == nullptr) {
+        ROSEN_LOGE("RSRenderServiceProxy: callback == nullptr\n");
+        return;
+    }
+
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
+    data.WriteUint64(id);
+    data.WriteRemoteObject(callback->AsObject());
+    int32_t err = Remote()->SendRequest(RSIRenderService::TAKE_SURFACE_CAPTURE, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSRenderServiceProxy: Remote()->SendRequest() error.\n");
+        return;
+    }
+}
+
 RSScreenModeInfo RSRenderServiceProxy::GetScreenActiveMode(ScreenId id)
 {
     MessageParcel data;
@@ -230,7 +270,7 @@ std::vector<RSScreenModeInfo> RSRenderServiceProxy::GetScreenSupportedModes(Scre
     MessageOption option;
     std::vector<RSScreenModeInfo> screenSupportedModes;
 
-    if(!data.WriteInterfaceToken(RSIRenderService::GetDescriptor())) {
+    if (!data.WriteInterfaceToken(RSIRenderService::GetDescriptor())) {
         return screenSupportedModes;
     }
     option.SetFlags(MessageOption::TF_SYNC);
@@ -283,13 +323,13 @@ ScreenPowerStatus RSRenderServiceProxy::GetScreenPowerStatus(ScreenId id)
     MessageParcel reply;
     MessageOption option;
     if (!data.WriteInterfaceToken(RSIRenderService::GetDescriptor())) {
-        return INVAILD_POWER_STATUS;
+        return INVALID_POWER_STATUS;
     }
     option.SetFlags(MessageOption::TF_SYNC);
     data.WriteUint64(id);
     int32_t err = Remote()->SendRequest(RSIRenderService::GET_SCREEN_POWER_STATUS, data, reply, option);
     if (err != NO_ERROR) {
-        return INVAILD_POWER_STATUS;
+        return INVALID_POWER_STATUS;
     }
     return static_cast<ScreenPowerStatus>(reply.ReadUint32());
 }
@@ -315,6 +355,11 @@ RSScreenData RSRenderServiceProxy::GetScreenData(ScreenId id)
     }
     screenData = *pScreenData;
     return screenData;
+}
+
+int RSRenderServiceProxy::Dump(int fd, const std::vector<std::u16string> &args)
+{
+    return Remote()->Dump(fd, args);
 }
 } // namespace Rosen
 } // namespace OHOS

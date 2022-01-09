@@ -24,39 +24,15 @@
 #ifdef ROSEN_OHOS
 #include <surface.h>
 #include "pipeline/rs_recording_canvas.h"
-#include "platform/drawing/rs_platform_canvas.h"
 #endif
 
 namespace OHOS {
 namespace Rosen {
-void RSRenderManager::SetPlatformSurface(OHOS::Surface* surface)
-{
-#ifdef ROSEN_OHOS
-    if (surface == nullptr) {
-        ROSEN_LOGE("RSRenderManager::SetPlatformSurface receive null surface");
-        return;
-    }
-    platformCanvas_ = std::make_shared<PlatformCanvas>();
-    platformCanvas_->SetSurface(surface);
-#endif
-}
-
-void RSRenderManager::SetSurfaceSize(int width, int height)
-{
-#ifdef ROSEN_OHOS
-    ROSEN_LOGI("RSRenderManager::SetSurfaceSize [%d %d]", width, height);
-    dirtyManager_.SetSurfaceSize(width, height);
-    if (platformCanvas_) {
-        platformCanvas_->SetSurfaceSize(width, height);
-    }
-#endif
-}
-
 void RSRenderManager::Animate(int64_t timestamp)
 {
     hasRunningAnimation_ = false;
     for (const auto& it : RSRenderNodeMap::Instance().renderNodeMap_) {
-        if (auto renderNode = RSBaseRenderNode::ReinterpretCast<RSPropertyRenderNode>(it.second)) {
+        if (auto renderNode = RSBaseRenderNode::ReinterpretCast<RSRenderNode>(it.second)) {
             hasRunningAnimation_ |= renderNode->Animate(timestamp);
         }
     }
@@ -73,7 +49,7 @@ bool RSRenderManager::HasRunningAnimation() const
 
 void RSRenderManager::UpdateNodes()
 {
-    auto root = RSBaseRenderNode::ReinterpretCast<RSPropertyRenderNode>(root_.lock());
+    auto root = RSBaseRenderNode::ReinterpretCast<RSRenderNode>(root_.lock());
     if (root != nullptr) {
         root->Update(dirtyManager_, nullptr, false);
     }

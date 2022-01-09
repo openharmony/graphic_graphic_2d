@@ -16,7 +16,7 @@
 #include "pipeline/rs_node_map.h"
 
 #include "ui/rs_base_node.h"
-#include "ui/rs_node.h"
+#include "ui/rs_canvas_node.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -24,7 +24,7 @@ namespace Rosen {
 RSNodeMap::RSNodeMap()
 {
     // add animation fallback node
-    auto fallback_node = new RSNode(false);
+    auto fallback_node = new RSCanvasNode(false);
     fallback_node->SetId(0);
     nodeMap_.emplace(0, fallback_node);
 }
@@ -65,9 +65,9 @@ RSBaseNode::WeakPtr RSNodeMap::GetNode(NodeId id)
     return RSBaseNode::WeakPtr();
 }
 
-std::shared_ptr<RSPropertyNode> RSNodeMap::GetAnimationFallbackNode()
+std::shared_ptr<RSNode> RSNodeMap::GetAnimationFallbackNode()
 {
-    return std::static_pointer_cast<RSPropertyNode>(nodeMap_.at(0));
+    return std::static_pointer_cast<RSNode>(nodeMap_.at(0));
 }
 
 } // namespace Rosen

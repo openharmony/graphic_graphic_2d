@@ -56,10 +56,12 @@ public:
     bool Marshalling(Parcel& parcel) const override
     {
         if (!RSRenderPropertyAnimation<T>::Marshalling(parcel)) {
+            ROSEN_LOGE("RSRenderCurveAnimation::Marshalling, RenderPropertyAnimation failed");
             return false;
         }
         if (!(RSMarshallingHelper::Marshalling(parcel, startValue_) &&
                 RSMarshallingHelper::Marshalling(parcel, endValue_) && interpolator_->Marshalling(parcel))) {
+            ROSEN_LOGE("RSRenderCurveAnimation::Marshalling, MarshallingHelper failed");
             return false;
         }
         return true;
@@ -69,7 +71,7 @@ public:
     {
         RSRenderCurveAnimation* renderCurveAnimation = new RSRenderCurveAnimation<T>();
         if (!renderCurveAnimation->ParseParam(parcel)) {
-            ROSEN_LOGE("Unmarshalling RenderCurveAnimation failed");
+            ROSEN_LOGE("RSRenderCurveAnimation::Unmarshalling, failed");
             delete renderCurveAnimation;
             return nullptr;
         }
@@ -94,13 +96,13 @@ private:
     bool ParseParam(Parcel& parcel) override
     {
         if (!RSRenderPropertyAnimation<T>::ParseParam(parcel)) {
-            ROSEN_LOGE("ParseProperty Fail");
+            ROSEN_LOGE("RSRenderCurveAnimation::ParseParam, ParseParam Fail");
             return false;
         }
 
         if (!(RSMarshallingHelper::Unmarshalling(parcel, startValue_) &&
                 RSMarshallingHelper::Unmarshalling(parcel, endValue_))) {
-            ROSEN_LOGE("Unmarshalling value Fail");
+            ROSEN_LOGE("RSRenderCurveAnimation::ParseParam, Unmarshalling Fail");
             return false;
         }
         std::shared_ptr<RSInterpolator> interpolator(RSInterpolator::Unmarshalling(parcel));

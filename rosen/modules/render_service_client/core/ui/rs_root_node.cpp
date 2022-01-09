@@ -29,24 +29,23 @@ std::shared_ptr<RSNode> RSRootNode::Create(bool isRenderServiceNode)
     RSNodeMap::Instance().RegisterNode(node);
 
     std::unique_ptr<RSCommand> command = std::make_unique<RSRootNodeCreate>(node->GetId());
-    RSTransactionProxy::GetInstance().AddCommand(command, isRenderServiceNode);
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        transactionProxy->AddCommand(command, isRenderServiceNode);
+    }
     return node;
 }
 
-RSRootNode::RSRootNode(bool isRenderServiceNode) : RSNode(isRenderServiceNode) {}
-
-void RSRootNode::AttachSurface(uintptr_t surfaceProducer, int width, int height) const
-{
-    std::unique_ptr<RSCommand> command = std::make_unique<RSRootNodeAttach>(GetId(), surfaceProducer, width, height);
-    RSTransactionProxy::GetInstance().AddCommand(command, IsRenderServiceNode());
-}
+RSRootNode::RSRootNode(bool isRenderServiceNode) : RSCanvasNode(isRenderServiceNode) {}
 
 void RSRootNode::AttachRSSurface(std::shared_ptr<RSSurface> surfaceProducer, int width, int height) const
 {
     std::unique_ptr<RSCommand> command =
         std::make_unique<RSRootNodeAttachRSSurface>(GetId(), surfaceProducer, width, height);
-    RSTransactionProxy::GetInstance().AddCommand(command, IsRenderServiceNode());
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        transactionProxy->AddCommand(command, IsRenderServiceNode());
+    }
 }
-
 } // namespace Rosen
 } // namespace OHOS

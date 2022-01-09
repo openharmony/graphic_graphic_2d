@@ -13,10 +13,26 @@
  * limitations under the License.
  */
 
-#include "command/rs_property_node_command.h"
+#include "command/rs_canvas_node_command.h"
+
+#include "pipeline/rs_canvas_render_node.h"
 
 namespace OHOS {
 namespace Rosen {
+
+void RSCanvasNodeCommandHelper::Create(RSContext& context, NodeId id)
+{
+    auto node = std::make_shared<RSCanvasRenderNode>(id);
+    context.GetNodeMap().RegisterRenderNode(node);
+}
+
+void RSCanvasNodeCommandHelper::UpdateRecording(
+    RSContext& context, NodeId id, std::shared_ptr<DrawCmdList> drawCmds, bool drawContentLast)
+{
+    if (auto node = context.GetNodeMap().GetRenderNode<RSCanvasRenderNode>(id)) {
+        node->UpdateRecording(drawCmds, drawContentLast);
+    }
+}
 
 } // namespace Rosen
 } // namespace OHOS

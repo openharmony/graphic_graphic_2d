@@ -23,7 +23,7 @@ namespace Rosen {
 std::shared_ptr<RSSurface> RSSurfaceExtractor::ExtractRSSurface(std::shared_ptr<RSSurfaceNode> node)
 {
     if (node == nullptr) {
-        ROSEN_LOGE("nullptr input");
+        ROSEN_LOGE("RSSurfaceExtractor::ExtractRSSurface, node is nullptr");
         return nullptr;
     }
     return node->surface_;

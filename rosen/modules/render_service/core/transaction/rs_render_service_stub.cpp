@@ -14,6 +14,9 @@
  */
 
 #include "rs_render_service_stub.h"
+
+#include "command/rs_command.h"
+#include "command/rs_command_factory.h"
 #include "transaction/rs_transaction_data.h"
 
 namespace OHOS {
@@ -121,6 +124,17 @@ int RSRenderServiceStub::OnRemoteRequest(uint32_t code, MessageParcel& data, Mes
             SetScreenPowerStatus(id, static_cast<ScreenPowerStatus>(status));
             break;
         }
+        case TAKE_SURFACE_CAPTURE: {
+            NodeId id = data.ReadUint64();
+            auto remoteObject = data.ReadRemoteObject();
+            if (remoteObject == nullptr) {
+                ret = ERR_NULL_OBJECT;
+                break;
+            }
+            sptr<RSISurfaceCaptureCallback> cb = iface_cast<RSISurfaceCaptureCallback>(remoteObject);
+            TakeSurfaceCapture(id, cb);
+            break;
+        }
         case GET_SCREEN_ACTIVE_MODE: {
             auto token = data.ReadInterfaceToken();
             if (token != RSIRenderService::GetDescriptor()) {
@@ -177,6 +191,35 @@ int RSRenderServiceStub::OnRemoteRequest(uint32_t code, MessageParcel& data, Mes
             ScreenId id = data.ReadUint64();
             RSScreenData screenData = GetScreenData(id);
             reply.WriteParcelable(&screenData);
+            break;
+        }
+        case EXECUTE_SYNCHRONOUS_TASK: {
+            auto token = data.ReadInterfaceToken();
+            if (token != RSIRenderService::GetDescriptor()) {
+                ret = ERR_INVALID_STATE;
+                break;
+            }
+            auto type = data.ReadUint16();
+            auto subType = data.ReadUint16();
+            if (type != RS_NODE_SYNCHRONOUS_READ_PROPERTY) {
+                ret = ERR_INVALID_STATE;
+                break;
+            }
+            auto func = RSCommandFactory::Instance().GetUnmarshallingFunc(type, subType);
+            if (func == nullptr) {
+                ret = ERR_INVALID_STATE;
+                break;
+            }
+            auto command = static_cast<RSSyncTask*>((*func)(data));
+            if (command == nullptr) {
+                ret = ERR_INVALID_STATE;
+                break;
+            }
+            std::shared_ptr<RSSyncTask> task(command);
+            ExecuteSynchronousTask(task);
+            if (!task->Marshalling(reply)) {
+                ret = ERR_INVALID_STATE;
+            }
             break;
         }
         default:

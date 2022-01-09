@@ -42,7 +42,7 @@ public:
 
     template<typename T>
     std::shared_ptr<RSAnimation> CreateImplicitAnimation(
-        RSPropertyNode& target, const RSAnimatableProperty& property, const T& startValue, const T& endValue)
+        RSNode& target, const RSAnimatableProperty& property, const T& startValue, const T& endValue)
     {
         if (globalImplicitParams_.empty() || implicitAnimations_.empty() || keyframeAnimations_.empty()) {
             ROSEN_LOGE("Failed to create implicit animation, need to open implicit animation firstly!");
@@ -98,7 +98,7 @@ public:
         return animation;
     }
 
-    std::shared_ptr<RSAnimation> CreateImplicitTransition(RSPropertyNode& target);
+    std::shared_ptr<RSAnimation> CreateImplicitTransition(RSNode& target);
 
 private:
     RSImplicitAnimator() = default;
@@ -109,12 +109,12 @@ private:
     void EndImplicitPathAnimation();
     void PushImplicitParam(const std::shared_ptr<RSImplicitAnimationParam>& implicitParam);
     void PopImplicitParam();
-    void ProcessPreCreateAnimation(const RSPropertyNode& target, const RSAnimatableProperty& property);
-    void ProcessPostCreateAnimation(const RSPropertyNode& target, const RSAnimatableProperty& property);
+    void ProcessPreCreateAnimation(const RSNode& target, const RSAnimatableProperty& property);
+    void ProcessPostCreateAnimation(const RSNode& target, const RSAnimatableProperty& property);
     void CreateEmptyAnimation();
 
     template<typename T>
-    void SetPropertyValue(RSPropertyNode& target, const RSAnimatableProperty& property, const T& value)
+    void SetPropertyValue(RSNode& target, const RSAnimatableProperty& property, const T& value)
     {
         std::shared_ptr<RSBasePropertyAccessors> propertyAccess = RSBasePropertyAccessors::GetAccessor(property);
         auto accessors = std::static_pointer_cast<RSPropertyAccessors<T>>(propertyAccess);

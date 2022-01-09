@@ -25,14 +25,11 @@
 
 #include "common/rs_thread_handler.h"
 #include "common/rs_thread_looper.h"
-#include "transaction/rs_transaction_proxy.h"
-#include "pipeline/rs_render_node.h"
+#include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_render_thread_visitor.h"
 #include "platform/drawing/rs_vsync_client.h"
-#include "transaction/rs_transaction_data.h"
-#ifdef ACE_ENABLE_GL
 #include "render_context/render_context.h"
-#endif
+#include "transaction/rs_transaction_proxy.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -47,16 +44,26 @@ public:
     void Detach(NodeId id);
     void RecvTransactionData(std::unique_ptr<RSTransactionData>& transactionData);
     void RequestNextVSync();
+    void PostTask(RSTaskMessage::RSTask task);
 
     int32_t GetTid();
 
     std::string DumpRenderTree() const;
-#ifdef ACE_ENABLE_GL
+
     RenderContext* GetRenderContext()
     {
         return renderContext_;
     }
-#endif
+
+    RSContext& GetContext()
+    {
+        return context_;
+    }
+    const RSContext& GetContext() const
+    {
+        return context_;
+    }
+
 private:
     RSRenderThread();
     ~RSRenderThread();
@@ -84,6 +91,7 @@ private:
     RSTaskHandle timeHandle_ = nullptr;
     RSTaskMessage::RSTask mainFunc_;
 
+    std::mutex mutex_;
     std::mutex cmdMutex_;
     std::vector<std::unique_ptr<RSTransactionData>> cmds_;
     bool hasRunningAnimation_ = false;
@@ -94,11 +102,11 @@ private:
     uint64_t prevTimestamp_ = 0;
     uint64_t refreshPeriod_ = 16666667;
     int32_t tid_ = -1;
+    uint64_t mValue = 0;
 
     RSContext context_;
-#ifdef ACE_ENABLE_GL
+
     RenderContext* renderContext_;
-#endif
 };
 } // namespace Rosen
 } // namespace OHOS

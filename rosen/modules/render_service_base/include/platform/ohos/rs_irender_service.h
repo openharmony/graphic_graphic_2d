@@ -29,10 +29,13 @@
 #include "screen_manager/rs_screen_capability.h"
 #include "screen_manager/rs_screen_data.h"
 #include "ipc_callbacks/screen_change_callback.h"
+#include "ipc_callbacks/surface_capture_callback.h"
 #include "transaction/rs_transaction_data.h"
 
 namespace OHOS {
 namespace Rosen {
+class RSSyncTask;
+
 class RSIRenderService : public IRemoteBroker {
 public:
     DECLARE_INTERFACE_DESCRIPTOR(u"ohos.rosen.RenderService");
@@ -49,14 +52,18 @@ public:
         SET_SCREEN_CHANGE_CALLBACK,
         SET_SCREEN_ACTIVE_MODE,
         SET_SCREEN_POWER_STATUS,
+        TAKE_SURFACE_CAPTURE,
         GET_SCREEN_ACTIVE_MODE,
         GET_SCREEN_SUPPORTED_MODES,
         GET_SCREEN_CAPABILITY,
         GET_SCREEN_POWER_STATUS,
         GET_SCREEN_DATA,
+        EXECUTE_SYNCHRONOUS_TASK,
     };
 
     virtual void CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData) = 0;
+
+    virtual void ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task) = 0;
 
     virtual sptr<Surface> CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config) = 0;
 
@@ -78,6 +85,8 @@ public:
     virtual void SetScreenActiveMode(ScreenId id, uint32_t modeId) = 0;
 
     virtual void SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status) = 0;
+
+    virtual void TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback) = 0;
 
     virtual RSScreenModeInfo GetScreenActiveMode(ScreenId id) = 0;
 

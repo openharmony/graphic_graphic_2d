@@ -50,7 +50,7 @@ float RSAnimationFraction::GetAnimationFraction(int64_t time, bool& isInstartDel
     lastFrameTime_ = time;
     isInstartDelay = false;
     if (durationNs <= 0 || (repeatCount_ <= 0 && repeatCount_ != INFINITE)) {
-        ROSEN_LOGE("duration is 0 for animation");
+        ROSEN_LOGE("RSAnimationFraction::GetAnimationFraction, duration is 0 for animation");
         isFinished = true;
         return GetEndFraction();
     }
@@ -63,6 +63,7 @@ float RSAnimationFraction::GetAnimationFraction(int64_t time, bool& isInstartDel
     if (runningTime_ < startDelayNs) {
         isFinished = IsFinished();
         isInstartDelay = isFinished ? false : true;
+        ROSEN_LOGE("RSAnimationFraction::GetAnimationFraction, runningTime_ is less then startDelayNs");
         return GetStartFraction();
     }
 
@@ -100,6 +101,7 @@ bool RSAnimationFraction::IsFinished() const
 {
     if (direction_ == ForwardDirection::NORMAL) {
         if (repeatCount_ == INFINITE) {
+            ROSEN_LOGE("RSAnimationFraction::IsFinished, repeatCount_ is INFINITE");
             return false;
         }
         int64_t totalDuration = (duration_ * repeatCount_ + startDelay_) * MS_TO_NS;

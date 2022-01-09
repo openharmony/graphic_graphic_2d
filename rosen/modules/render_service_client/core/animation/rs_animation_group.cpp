@@ -17,7 +17,7 @@
 
 #include "animation/rs_animation_callback.h"
 #include "platform/common/rs_log.h"
-#include "ui/rs_property_node.h"
+#include "ui/rs_node.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -76,7 +76,7 @@ void RSAnimationGroup::RemoveAnimation(const std::shared_ptr<RSAnimation>& anima
 void RSAnimationGroup::OnStart()
 {
     if (animations_.empty()) {
-        ROSEN_LOGI("Failed to start animations, animations is empty!");
+        ROSEN_LOGE("Failed to start animations, animations is empty!");
         return;
     }
 

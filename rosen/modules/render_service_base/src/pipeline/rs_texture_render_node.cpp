@@ -26,14 +26,14 @@
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_render_thread.h"
 #include "property/rs_properties_painter.h"
-#include "rs_trace.h"
+//#include "rs_trace.h"
 
 namespace {
 std::shared_ptr<flutter::OHOS::TextureRegistry> g_textureRegistry;
 }
 namespace OHOS {
 namespace Rosen {
-RSTextureRenderNode::RSTextureRenderNode(NodeId id) : RSRenderNode(id) {}
+RSTextureRenderNode::RSTextureRenderNode(NodeId id) : RSCanvasRenderNode(id) {}
 
 RSTextureRenderNode::~RSTextureRenderNode() {}
 
@@ -94,7 +94,7 @@ void RSTextureRenderNode::ProcessRenderContents(RSPaintFilterCanvas& canvas)
 bool RSTextureRenderNode::IsDirty() const
 {
     return ((textureId_ >= 0) && (g_textureRegistry != nullptr) && GetRenderProperties().GetVisible()) ||
-           RSRenderNode::IsDirty();
+           RSCanvasRenderNode::IsDirty();
 }
 } // namespace Rosen
 } // namespace OHOS

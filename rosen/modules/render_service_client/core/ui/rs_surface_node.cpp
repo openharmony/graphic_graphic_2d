@@ -24,9 +24,7 @@
 #include "platform/drawing/rs_surface_converter.h"
 #include "transaction/rs_render_service_client.h"
 #include "transaction/rs_transaction_proxy.h"
-#ifdef ACE_ENABLE_GL
 #include "render_context/render_context.h"
-#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -40,15 +38,19 @@ RSSurfaceNode::SharedPtr RSSurfaceNode::Create(const RSSurfaceNodeConfig& surfac
     // create node in RS
     RSSurfaceRenderNodeConfig config = { .id = node->GetId() };
     if (!node->CreateNodeAndSurface(config)) {
+        ROSEN_LOGE("RSSurfaceNode::Create, create node and surface is failed");
         return nullptr;
     }
 
     // create node in RT
     if (!isWindow) {
         std::unique_ptr<RSCommand> command = std::make_unique<RSSurfaceNodeCreate>(node->GetId());
-        RSTransactionProxy::GetInstance().AddCommand(command, isWindow);
+        auto transactionProxy = RSTransactionProxy::GetInstance();
+        if (transactionProxy != nullptr) {
+            transactionProxy->AddCommand(command, isWindow);
+        }
     }
-    ROSEN_LOGI("RsDebug RSSurfaceNode::Create id:%llu", node->GetId());
+    ROSEN_LOGD("RsDebug RSSurfaceNode::Create id:%llu", node->GetId());
     return node;
 }
 
@@ -63,6 +65,7 @@ RSSurfaceNode* RSSurfaceNode::Unmarshalling(Parcel& parcel)
     std::string name;
     bool isRenderServiceNode = false;
     if (!(parcel.ReadUint64(id) && parcel.ReadString(name) && parcel.ReadBool(isRenderServiceNode))) {
+        ROSEN_LOGE("RSSurfaceNode::Unmarshalling, read param is failed");
         return nullptr;
     }
     RSSurfaceNodeConfig config = { name };
@@ -84,7 +87,7 @@ bool RSSurfaceNode::CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config
 sptr<OHOS::Surface> RSSurfaceNode::GetSurface() const
 {
     if (surface_ == nullptr) {
-        ROSEN_LOGE("No surface");
+        ROSEN_LOGE("RSSurfaceNode::GetSurface, surface_ is nullptr");
         return nullptr;
     }
     auto ohosSurface = RSSurfaceConverter::ConvertToOhosSurface(surface_);
@@ -92,10 +95,10 @@ sptr<OHOS::Surface> RSSurfaceNode::GetSurface() const
 }
 #endif
 
-RSSurfaceNode::RSSurfaceNode(bool isRenderServiceNode) : RSPropertyNode(isRenderServiceNode) {}
+RSSurfaceNode::RSSurfaceNode(bool isRenderServiceNode) : RSNode(isRenderServiceNode) {}
 
 RSSurfaceNode::RSSurfaceNode(const RSSurfaceNodeConfig& config, bool isRenderServiceNode)
-    : RSPropertyNode(isRenderServiceNode), name_(config.SurfaceNodeName)
+    : RSNode(isRenderServiceNode), name_(config.SurfaceNodeName)
 {}
 
 RSSurfaceNode::~RSSurfaceNode() {}

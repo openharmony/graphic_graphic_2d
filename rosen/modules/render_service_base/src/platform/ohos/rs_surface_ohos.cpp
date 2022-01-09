@@ -17,7 +17,6 @@
 #include "rs_surface_ohos.h"
 namespace OHOS {
 namespace Rosen {
-#ifdef ACE_ENABLE_GL
 RenderContext* RSSurfaceOhos::GetRenderContext()
 {
     return context_;
@@ -27,6 +26,5 @@ void RSSurfaceOhos::SetRenderContext(RenderContext* context)
 {
     context_ = context;
 }
-#endif
 } // namespace Rosen
 } // namespace OHOS

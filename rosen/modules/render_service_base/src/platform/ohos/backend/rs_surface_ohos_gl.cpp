@@ -24,7 +24,7 @@
 namespace OHOS {
 namespace Rosen {
 
-RSSurfaceOhosGl::RSSurfaceOhosGl(const sptr<Surface>& producer) : RSSurfaceOhos(producer), init_(false)
+RSSurfaceOhosGl::RSSurfaceOhosGl(const sptr<Surface>& producer) : RSSurfaceOhos(producer)
 {
 }
 
@@ -35,26 +35,21 @@ std::unique_ptr<RSSurfaceFrame> RSSurfaceOhosGl::RequestFrame(int32_t width, int
     int w = 0;
     int h = 0;
     NativeWindowHandleOpt(nWindow, SET_BUFFER_GEOMETRY, width, height);
-
     NativeWindowHandleOpt(nWindow, GET_BUFFER_GEOMETRY, &h, &w);
 
-    RenderContext* rc = GetRenderContext();
-    if (rc == nullptr) {
-        ROSEN_LOGE("GetRenderContext failed");
+    RenderContext* context = GetRenderContext();
+    if (context == nullptr) {
+        ROSEN_LOGE("RSSurfaceOhosGl::RequestFrame, GetRenderContext failed!");
         return nullptr;
     }
 
-    if (init_ == false) {
-        eglSurface_ = rc->CreateEGLSurface((EGLNativeWindowType)nWindow);
-        init_ = true;
-    }
+    mEglSurface = context->CreateEGLSurface((EGLNativeWindowType)nWindow);
+    context->MakeCurrent(mEglSurface);
 
-    ROSEN_LOGI("RequestFrame:: MakeCurrent eglsurface is %{public}p, \
-        width is %{public}d, height is %{public}d", eglSurface_, w, h);
+    ROSEN_LOGD("RSSurfaceOhosGl::RequestFrame, CreateEGLSurface eglsurface is %p, \
+        width is %d, height is %d", mEglSurface, w, h);
 
-    rc->MakeCurrent(eglSurface_);
-
-    frame->SetRenderContext(rc);
+    frame->SetRenderContext(context);
 
     std::unique_ptr<RSSurfaceFrame> ret(std::move(frame));
 
@@ -63,18 +58,16 @@ std::unique_ptr<RSSurfaceFrame> RSSurfaceOhosGl::RequestFrame(int32_t width, int
 
 bool RSSurfaceOhosGl::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame)
 {
-    RenderContext* rc = GetRenderContext();
-    if (rc == nullptr) {
-        ROSEN_LOGE("GetRenderContext failed");
+    RenderContext* context = GetRenderContext();
+    if (context == nullptr) {
+        ROSEN_LOGE("RSSurfaceOhosGl::FlushFrame, GetRenderContext failed!");
         return false;
     }
 
-    //EGLSurface eglSurface = rc->GetEGLSurface();
-
     // gpu render flush
-    rc->RenderFrame();
-    rc->SwapBuffers(eglSurface_);
-    ROSEN_LOGI("FlushFrame::SwapBuffers eglsurface is %{public}p", eglSurface_);
+    context->RenderFrame();
+    context->SwapBuffers(mEglSurface);
+    ROSEN_LOGD("FlushFrame::SwapBuffers eglsurface is %p", mEglSurface);
     return true;
 }
 } // namespace Rosen

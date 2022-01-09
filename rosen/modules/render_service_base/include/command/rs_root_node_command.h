@@ -30,14 +30,11 @@ enum RSRootNodeCommandType : uint16_t {
 class RootNodeCommandHelper {
 public:
     static void Create(RSContext& context, NodeId id);
-    static void Attach(RSContext& context, NodeId id, uintptr_t surfaceProducer, int width, int height);
     static void AttachRSSurface(
         RSContext& context, NodeId id, std::shared_ptr<RSSurface> rsSurface, int width, int height);
 };
 
 ADD_COMMAND(RSRootNodeCreate, ARG(ROOT_NODE, ROOT_NODE_CREATE, RootNodeCommandHelper::Create, NodeId))
-ADD_COMMAND(
-    RSRootNodeAttach, ARG(ROOT_NODE, ROOT_NODE_ATTACH, RootNodeCommandHelper::Attach, NodeId, uintptr_t, int, int))
 ADD_COMMAND(RSRootNodeAttachRSSurface, ARG(ROOT_NODE, ROOT_NODE_ATTACH, RootNodeCommandHelper::AttachRSSurface, NodeId,
                                            std::shared_ptr<RSSurface>, int, int))
 

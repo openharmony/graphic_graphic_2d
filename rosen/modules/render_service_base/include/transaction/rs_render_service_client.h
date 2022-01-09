@@ -18,11 +18,14 @@
 
 #include <functional>
 #include <memory>
+#include <map>
+#include <mutex>
 
 #include <refbase.h>
 #include <surface.h>
 
 #include "ipc_callbacks/screen_change_callback.h"
+#include "ipc_callbacks/surface_capture_callback.h"
 #include "platform/drawing/rs_surface.h"
 #include "rs_irender_client.h"
 #include "screen_manager/screen_types.h"
@@ -34,6 +37,12 @@ namespace OHOS {
 namespace Rosen {
 // normal callback functor for client users.
 using ScreenChangeCallback = std::function<void(ScreenId, ScreenEvent)>;
+class SurfaceCaptureCallback {
+public:
+    SurfaceCaptureCallback() {}
+    virtual ~SurfaceCaptureCallback() {}
+    virtual void OnSurfaceCapture(std::shared_ptr<Media::PixelMap> pixelmap) = 0;
+};
 
 class RSRenderServiceClient : public RSIRenderClient {
 public:
@@ -44,8 +53,11 @@ public:
     void operator=(const RSRenderServiceClient&) = delete;
 
     void CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData) override;
+    void ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task) override;
 
     std::shared_ptr<RSSurface> CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config);
+
+    bool TakeSurfaceCapture(NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback);
 
     ScreenId GetDefaultScreenId();
 
@@ -76,7 +88,12 @@ public:
     RSScreenData GetScreenData(ScreenId id);
 
 private:
+    void TriggerSurfaceCaptureCallback(NodeId id, Media::PixelMap* pixelmap);
+    friend class SurfaceCaptureCallbackDirector;
+    std::mutex mutex_;
     sptr<RSIScreenChangeCallback> screenChangeCb_;
+    sptr<RSISurfaceCaptureCallback> surfaceCaptureCbDirector_;
+    std::map<NodeId, std::shared_ptr<SurfaceCaptureCallback>> surfaceCaptureCbMap_;
 };
 } // namespace Rosen
 } // namespace OHOS

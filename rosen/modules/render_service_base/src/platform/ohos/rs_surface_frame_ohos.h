@@ -20,22 +20,16 @@
 #include <surface.h>
 
 #include "platform/drawing/rs_surface_frame.h"
-#ifdef ACE_ENABLE_GL
 #include "render_context/render_context.h"
-#endif
 
 namespace OHOS {
 namespace Rosen {
 
 class RSSurfaceFrameOhos : public RSSurfaceFrame {
 public:
-#ifdef ACE_ENABLE_GL
     virtual void SetRenderContext(RenderContext* context);
-#endif
 protected:
-#ifdef ACE_ENABLE_GL
     RenderContext* renderContext_;
-#endif
 };
 
 } // namespace Rosen

@@ -17,7 +17,7 @@
 
 #include <algorithm>
 
-#include "command/rs_property_node_command.h"
+#include "command/rs_node_command.h"
 #include "platform/common/rs_log.h"
 #include "render/rs_filter.h"
 #include "transaction/rs_transaction_proxy.h"
@@ -45,6 +45,20 @@ RSProperties::RSProperties(bool inRenderNode)
 
 RSProperties::~RSProperties() {}
 
+void RSProperties::SetBounds(Vector4f bounds)
+{
+    boundsGeo_->SetRect(bounds.x_, bounds.y_, bounds.z_, bounds.w_);
+    geoDirty_ = true;
+    SetDirty();
+}
+
+void RSProperties::SetBoundsSize(Vector2f size)
+{
+    boundsGeo_->SetSize(size.x_, size.y_);
+    geoDirty_ = true;
+    SetDirty();
+}
+
 void RSProperties::SetBoundsWidth(float width)
 {
     boundsGeo_->SetWidth(width);
@@ -55,6 +69,13 @@ void RSProperties::SetBoundsWidth(float width)
 void RSProperties::SetBoundsHeight(float height)
 {
     boundsGeo_->SetHeight(height);
+    geoDirty_ = true;
+    SetDirty();
+}
+
+void RSProperties::SetBoundsPosition(Vector2f position)
+{
+    boundsGeo_->SetPosition(position.x_, position.y_);
     geoDirty_ = true;
     SetDirty();
 }
@@ -73,12 +94,14 @@ void RSProperties::SetBoundsPositionY(float positionY)
     SetDirty();
 }
 
-void RSProperties::SetBoundsPosition(Vector2f position)
+Vector4f RSProperties::GetBounds() const
 {
-    boundsGeo_->SetX(position[0]);
-    boundsGeo_->SetY(position[1]);
-    geoDirty_ = true;
-    SetDirty();
+    return { boundsGeo_->GetX(), boundsGeo_->GetY(), boundsGeo_->GetWidth(), boundsGeo_->GetHeight() };
+}
+
+Vector2f RSProperties::GetBoundsSize() const
+{
+    return { boundsGeo_->GetWidth(), boundsGeo_->GetHeight() };
 }
 
 float RSProperties::GetBoundsWidth() const
@@ -103,7 +126,21 @@ float RSProperties::GetBoundsPositionY() const
 
 Vector2f RSProperties::GetBoundsPosition() const
 {
-    return Vector2f(GetBoundsPositionX(), GetBoundsPositionY());
+    return { GetBoundsPositionX(), GetBoundsPositionY() };
+}
+
+void RSProperties::SetFrame(Vector4f frame)
+{
+    frameGeo_->SetRect(frame.x_, frame.y_, frame.z_, frame.w_);
+    geoDirty_ = true;
+    SetDirty();
+}
+
+void RSProperties::SetFrameSize(Vector2f size)
+{
+    frameGeo_->SetSize(size.x_, size.y_);
+    geoDirty_ = true;
+    SetDirty();
 }
 
 void RSProperties::SetFrameWidth(float width)
@@ -116,6 +153,13 @@ void RSProperties::SetFrameWidth(float width)
 void RSProperties::SetFrameHeight(float height)
 {
     frameGeo_->SetHeight(height);
+    geoDirty_ = true;
+    SetDirty();
+}
+
+void RSProperties::SetFramePosition(Vector2f position)
+{
+    frameGeo_->SetPosition(position.x_, position.y_);
     geoDirty_ = true;
     SetDirty();
 }
@@ -134,12 +178,14 @@ void RSProperties::SetFramePositionY(float positionY)
     SetDirty();
 }
 
-void RSProperties::SetFramePosition(Vector2f position)
+Vector4f RSProperties::GetFrame() const
 {
-    frameGeo_->SetX(position[0]);
-    frameGeo_->SetY(position[1]);
-    geoDirty_ = true;
-    SetDirty();
+    return { frameGeo_->GetX(), frameGeo_->GetY(), frameGeo_->GetWidth(), frameGeo_->GetHeight() };
+}
+
+Vector2f RSProperties::GetFrameSize() const
+{
+    return { frameGeo_->GetWidth(), frameGeo_->GetHeight() };
 }
 
 float RSProperties::GetFrameWidth() const
@@ -164,7 +210,7 @@ float RSProperties::GetFramePositionY() const
 
 Vector2f RSProperties::GetFramePosition() const
 {
-    return Vector2f(GetFramePositionX(), GetFramePositionY());
+    return { GetFramePositionX(), GetFramePositionY() };
 }
 
 float RSProperties::GetFrameOffsetX() const
@@ -227,6 +273,13 @@ float RSProperties::GetPositionZ() const
     return boundsGeo_->GetZ();
 }
 
+void RSProperties::SetPivot(Vector2f pivot)
+{
+    boundsGeo_->SetPivot(pivot.x_, pivot.y_);
+    geoDirty_ = true;
+    SetDirty();
+}
+
 void RSProperties::SetPivotX(float pivotX)
 {
     boundsGeo_->SetPivotX(pivotX);
@@ -239,6 +292,11 @@ void RSProperties::SetPivotY(float pivotY)
     boundsGeo_->SetPivotY(pivotY);
     geoDirty_ = true;
     SetDirty();
+}
+
+Vector2f RSProperties::GetPivot() const
+{
+    return { boundsGeo_->GetPivotX(), boundsGeo_->GetPivotY() };
 }
 
 float RSProperties::GetPivotX() const
@@ -265,7 +323,7 @@ float RSProperties::GetCornerRadius() const
     return border_ ? border_->cornerRadius_ : 0.f;
 }
 
-void RSProperties::SetQuaternion(Vector4f quaternion)
+void RSProperties::SetQuaternion(Quaternion quaternion)
 {
     boundsGeo_->SetQuaternion(quaternion);
     geoDirty_ = true;
@@ -289,6 +347,13 @@ void RSProperties::SetRotationX(float degree)
 void RSProperties::SetRotationY(float degree)
 {
     boundsGeo_->SetRotationY(degree);
+    geoDirty_ = true;
+    SetDirty();
+}
+
+void RSProperties::SetScale(Vector2f scale)
+{
+    boundsGeo_->SetScale(scale.x_, scale.y_);
     geoDirty_ = true;
     SetDirty();
 }
@@ -336,7 +401,7 @@ void RSProperties::SetTranslateZ(float translate)
     SetDirty();
 }
 
-Vector4f RSProperties::GetQuaternion() const
+Quaternion RSProperties::GetQuaternion() const
 {
     return boundsGeo_->GetQuaternion();
 }
@@ -364,6 +429,11 @@ float RSProperties::GetScaleX() const
 float RSProperties::GetScaleY() const
 {
     return boundsGeo_->GetScaleY();
+}
+
+Vector2f RSProperties::GetScale() const
+{
+    return { boundsGeo_->GetScaleX(), boundsGeo_->GetScaleY() };
 }
 
 Vector2f RSProperties::GetTranslate() const

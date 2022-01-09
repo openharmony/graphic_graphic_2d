@@ -54,10 +54,10 @@ ohos_unittest("RSAnimationTest") {
     #command
     "$rosen_root/modules/render_service_base/src/command/rs_animation_command.cpp",
     "$rosen_root/modules/render_service_base/src/command/rs_base_node_command.cpp",
+    "$rosen_root/modules/render_service_base/src/command/rs_canvas_node_command.cpp",
     "$rosen_root/modules/render_service_base/src/command/rs_command_factory.cpp",
     "$rosen_root/modules/render_service_base/src/command/rs_display_node_command.cpp",
     "$rosen_root/modules/render_service_base/src/command/rs_node_command.cpp",
-    "$rosen_root/modules/render_service_base/src/command/rs_property_node_command.cpp",
     "$rosen_root/modules/render_service_base/src/command/rs_root_node_command.cpp",
     "$rosen_root/modules/render_service_base/src/command/rs_surface_node_command.cpp",
 
@@ -75,13 +75,13 @@ ohos_unittest("RSAnimationTest") {
 
     #pipeline
     "$rosen_root/modules/render_service_base/src/pipeline/rs_base_render_node.cpp",
+    "$rosen_root/modules/render_service_base/src/pipeline/rs_canvas_render_node.cpp",
     "$rosen_root/modules/render_service_base/src/pipeline/rs_context.cpp",
     "$rosen_root/modules/render_service_base/src/pipeline/rs_dirty_region_manager.cpp",
     "$rosen_root/modules/render_service_base/src/pipeline/rs_display_render_node.cpp",
     "$rosen_root/modules/render_service_base/src/pipeline/rs_draw_cmd.cpp",
     "$rosen_root/modules/render_service_base/src/pipeline/rs_draw_cmd_list.cpp",
     "$rosen_root/modules/render_service_base/src/pipeline/rs_paint_filter_canvas.cpp",
-    "$rosen_root/modules/render_service_base/src/pipeline/rs_property_render_node.cpp",
     "$rosen_root/modules/render_service_base/src/pipeline/rs_recording_canvas.cpp",
     "$rosen_root/modules/render_service_base/src/pipeline/rs_render_node.cpp",
     "$rosen_root/modules/render_service_base/src/pipeline/rs_render_node_map.cpp",

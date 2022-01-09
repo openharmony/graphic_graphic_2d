@@ -239,7 +239,7 @@ AdaptiveRRectOpItem::AdaptiveRRectOpItem(float radius, const SkPaint& paint)
 void AdaptiveRRectOpItem::Draw(RSPaintFilterCanvas& canvas, const SkRect* rect) const
 {
     if (!rect) {
-        ROSEN_LOGI("skrect is null");
+        ROSEN_LOGE("AdaptiveRRectOpItem::Draw, skrect is null");
         return;
     }
     SkRRect rrect = SkRRect::MakeRectXY(*rect, radius_, radius_);
@@ -253,7 +253,7 @@ ClipAdaptiveRRectOpItem::ClipAdaptiveRRectOpItem(float radius)
 void ClipAdaptiveRRectOpItem::Draw(RSPaintFilterCanvas& canvas, const SkRect* rect) const
 {
     if (!rect) {
-        ROSEN_LOGI("skrect is null");
+        ROSEN_LOGE("ClipAdaptiveRRectOpItem::Draw skrect is null");
         return;
     }
     SkRRect rrect = SkRRect::MakeRectXY(*rect, radius_, radius_);

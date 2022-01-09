@@ -14,11 +14,10 @@
  */
 
 #include "rs_screen_manager.h"
-#include "rs_screen_change_callback_death_recipient.h"
 #include "pipeline/rs_main_thread.h"
+#include "rs_screen_change_callback_death_recipient.h"
 
 #include <cinttypes>
-#include <thread>
 
 namespace OHOS {
 namespace Rosen {
@@ -57,6 +56,7 @@ bool RSScreenManager::Init() noexcept
         return false;
     }
 
+    // call ProcessScreenHotPlugEvents() for primary screen immediately in main thread.
     ProcessScreenHotPlugEvents();
 
     return true;
@@ -91,6 +91,12 @@ void RSScreenManager::OnHotPlugEvent(std::shared_ptr<HdiOutput> &output, bool co
         pendingHotPlugEvents_.emplace_back(ScreenHotPlugEvent{output, connected});
     }
 
+    // This func would be called in main thread first time immediately after calling composer_->RegScreenHotplug,
+    // but at this time the RSMainThread object would not be ready to handle this, so we need to call
+    // ProcessScreenHotPlugEvents() after this func in RSScreenManager::Init().
+
+    // Normally, this func would be called in hdi's hw-ipc threads(but sometimes in main thread, maybe),
+    // so we should notify the RSMainThread to postTask to call ProcessScreenHotPlugEvents().
     auto mainThread = RSMainThread::Instance();
     if (mainThread == nullptr) {
         return;
@@ -238,21 +244,21 @@ void RSScreenManager::GetScreenActiveModeLocked(ScreenId id, RSScreenModeInfo& s
 
 std::vector<RSScreenModeInfo> RSScreenManager::GetScreenSupportedModesLocked(ScreenId id) const
 {
-    std::vector<RSScreenModeInfo> screenSupportedMoeds;
+    std::vector<RSScreenModeInfo> screenSupportedModes;
     if (screens_.count(id) == 0) {
         HiLog::Error(LOG_LABEL, "%{public}s: There is no screen for id %{public}" PRIu64 ".", __func__, id);
-        return screenSupportedMoeds;
+        return screenSupportedModes;
     }
 
     const auto& displaySupportedModes = screens_.at(id)->GetSupportedModes();
-    screenSupportedMoeds.resize(displaySupportedModes.size());
-    for (auto modeIndex = 0; modeIndex < displaySupportedModes.size(); modeIndex++) {
-        screenSupportedMoeds[modeIndex].SetScreenWidth(displaySupportedModes[modeIndex].width);
-        screenSupportedMoeds[modeIndex].SetScreenHeight(displaySupportedModes[modeIndex].height);
-        screenSupportedMoeds[modeIndex].SetScreenFreshRate(displaySupportedModes[modeIndex].freshRate);
-        screenSupportedMoeds[modeIndex].SetScreenModeId(displaySupportedModes[modeIndex].id);
+    screenSupportedModes.resize(displaySupportedModes.size());
+    for (decltype(displaySupportedModes.size()) idx = 0; idx < displaySupportedModes.size(); ++idx) {
+        screenSupportedModes[idx].SetScreenWidth(displaySupportedModes[idx].width);
+        screenSupportedModes[idx].SetScreenHeight(displaySupportedModes[idx].height);
+        screenSupportedModes[idx].SetScreenFreshRate(displaySupportedModes[idx].freshRate);
+        screenSupportedModes[idx].SetScreenModeId(displaySupportedModes[idx].id);
     }
-    return screenSupportedMoeds;
+    return screenSupportedModes;
 }
 
 RSScreenCapability RSScreenManager::GetScreenCapabilityLocked(ScreenId id) const
@@ -267,7 +273,7 @@ RSScreenCapability RSScreenManager::GetScreenCapabilityLocked(ScreenId id) const
     std::vector<RSScreenProps> props;
     uint32_t propCount = capability.propertyCount;
     props.resize(propCount);
-    for (auto propIndex = 0; propIndex < propCount; propIndex++) {
+    for (uint32_t propIndex = 0; propIndex < propCount; propIndex++) {
         props[propIndex] = RSScreenProps(capability.props[propIndex].name, capability.props[propIndex].propId,
             capability.props[propIndex].value);
     }
@@ -286,7 +292,7 @@ ScreenPowerStatus RSScreenManager::GetScreenPowerStatuslocked(ScreenId id) const
 {
     if (screens_.count(id) == 0) {
         HiLog::Error(LOG_LABEL, "%{public}s: There is no screen for id %{public}" PRIu64 ".\n", __func__, id);
-        return INVAILD_POWER_STATUS;
+        return INVALID_POWER_STATUS;
     }
 
     ScreenPowerStatus status = static_cast<ScreenPowerStatus>(screens_.at(id)->GetPowerStatus());
@@ -303,7 +309,7 @@ ScreenId RSScreenManager::CreateVirtualScreen(
 {
     std::lock_guard<std::mutex> lock(mutex_);
 
-    VirtualSreenConfigs configs;
+    VirtualScreenConfigs configs;
     ScreenId newId = GenerateVirtualScreenIdLocked();
     configs.id = newId;
     configs.mirrorId = mirrorId;
@@ -415,24 +421,30 @@ RSScreenData RSScreenManager::GetScreenData(ScreenId id) const
     return screenData;
 }
 
-ScreenState RSScreenManager::QueryScreenState(ScreenId id) const
+ScreenInfo RSScreenManager::QueryScreenInfo(ScreenId id) const
 {
     std::lock_guard<std::mutex> lock(mutex_);
 
+    ScreenInfo info;
     if (screens_.count(id) == 0) {
         HiLog::Error(LOG_LABEL, "%{public}s: There is no screen for id %{public}" PRIu64 ".", __func__, id);
-        return ScreenState::UNKNOWN;
+        return info;
     }
 
-    if (!screens_.at(id)->IsEnable()) {
-        return ScreenState::DISABLED;
+    const auto &screen = screens_.at(id);
+
+    info.width = screen->Width();
+    info.height = screen->Height();
+
+    if (!screen->IsEnable()) {
+        info.state = ScreenState::DISABLED;
+    } else if (!screen->IsVirtual()) {
+        info.state = ScreenState::HDI_OUTPUT_ENABLE;
+    } else {
+        info.state = ScreenState::PRODUCER_SURFACE_ENABLE;
     }
 
-    if (!screens_.at(id)->IsVirtual()) {
-        return ScreenState::HDI_OUTPUT_ENABLE;
-    }
-
-    return ScreenState::PRODUCER_SURFACE_ENABLE;
+    return info;
 }
 
 sptr<Surface> RSScreenManager::GetProducerSurface(ScreenId id) const
@@ -489,6 +501,24 @@ void RSScreenManager::OnRemoteScreenChangeCallbackDied(const wptr<IRemoteObject>
             HiLog::Debug(LOG_LABEL, "%{public}s: remove a remote callback succeed.", __func__);
             break;
         }
+    }
+}
+
+void RSScreenManager::DisplayDump(std::string& dumpString)
+{
+    int32_t index = 0;
+    for (const auto &[id, screen] : screens_) {
+        screen->DisplayDump(index, dumpString);
+        index++;
+    }
+}
+
+void RSScreenManager::SurfaceDump(std::string& dumpString)
+{
+    int32_t index = 0;
+    for (const auto &[id, screen] : screens_) {
+        screen->SurfaceDump(index, dumpString);
+        index++;
     }
 }
 } // namespace impl

@@ -26,7 +26,7 @@
 
 namespace OHOS {
 namespace Rosen {
-class RSPropertyNode;
+class RSNode;
 class AnimationFinishCallback;
 
 class RS_EXPORT RSAnimation : public RSAnimationTimingProtocol, public std::enable_shared_from_this<RSAnimation> {
@@ -37,9 +37,9 @@ public:
 
     void SetFinishCallback(const std::function<void()>& finishCallback);
 
-    void Start(const std::shared_ptr<RSPropertyNode>& target);
+    void Start(const std::shared_ptr<RSNode>& target);
 
-    const std::weak_ptr<RSPropertyNode> GetTarget() const;
+    const std::weak_ptr<RSNode> GetTarget() const;
 
     void Pause();
 
@@ -78,7 +78,7 @@ protected:
     virtual void OnUpdateStagingValue(bool isFirstStart) {};
     virtual RSAnimatableProperty GetProperty() const;
 
-    void StartInner(const std::shared_ptr<RSPropertyNode>& target);
+    void StartInner(const std::shared_ptr<RSNode>& target);
     bool IsReversed() const;
     void CallFinishCallback();
 
@@ -91,12 +91,12 @@ private:
 
     bool isReversed_ { false };
     AnimationState state_ { AnimationState::INITIALIZED };
-    std::weak_ptr<RSPropertyNode> target_;
+    std::weak_ptr<RSNode> target_;
     std::shared_ptr<AnimationFinishCallback> finishCallback_;
 
     friend class RSCurveImplicitAnimParam;
     friend class RSAnimationGroup;
-    friend class RSPropertyNode;
+    friend class RSNode;
     friend class RSImplicitAnimator;
 };
 } // namespace Rosen

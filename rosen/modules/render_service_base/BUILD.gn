@@ -21,6 +21,7 @@ config("export_config") {
     "include",
     "//foundation/graphic/standard/rosen/include",
     "//drivers/peripheral/display/interfaces/include",
+    "//foundation/multimedia/image_standard/interfaces/innerkits/include",
   ]
 
   defines = rs_common_define
@@ -49,10 +50,10 @@ ohos_shared_library("librender_service_base") {
     #command
     "src/command/rs_animation_command.cpp",
     "src/command/rs_base_node_command.cpp",
+    "src/command/rs_canvas_node_command.cpp",
     "src/command/rs_command_factory.cpp",
     "src/command/rs_display_node_command.cpp",
     "src/command/rs_node_command.cpp",
-    "src/command/rs_property_node_command.cpp",
     "src/command/rs_root_node_command.cpp",
     "src/command/rs_surface_node_command.cpp",
 
@@ -67,16 +68,18 @@ ohos_shared_library("librender_service_base") {
     #ipc_callbacks
     "src/ipc_callbacks/screen_change_callback_proxy.cpp",
     "src/ipc_callbacks/screen_change_callback_stub.cpp",
+    "src/ipc_callbacks/surface_capture_callback_proxy.cpp",
+    "src/ipc_callbacks/surface_capture_callback_stub.cpp",
 
     #pipeline
     "src/pipeline/rs_base_render_node.cpp",
+    "src/pipeline/rs_canvas_render_node.cpp",
     "src/pipeline/rs_context.cpp",
     "src/pipeline/rs_dirty_region_manager.cpp",
     "src/pipeline/rs_display_render_node.cpp",
     "src/pipeline/rs_draw_cmd.cpp",
     "src/pipeline/rs_draw_cmd_list.cpp",
     "src/pipeline/rs_paint_filter_canvas.cpp",
-    "src/pipeline/rs_property_render_node.cpp",
     "src/pipeline/rs_recording_canvas.cpp",
     "src/pipeline/rs_render_node.cpp",
     "src/pipeline/rs_render_node_map.cpp",
@@ -108,7 +111,9 @@ ohos_shared_library("librender_service_base") {
     "src/screen_manager/rs_screen_props.cpp",
   ]
 
-  deps = []
+  deps = [
+    "//foundation/multimedia/image_standard/interfaces/innerkits:image_native",
+  ]
 
   public_deps = [
     "src/platform:platform",

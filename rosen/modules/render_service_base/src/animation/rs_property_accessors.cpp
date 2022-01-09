@@ -36,51 +36,69 @@ const std::unordered_map<RSAnimatableProperty, std::shared_ptr<RSBasePropertyAcc
     RSBasePropertyAccessors::PROPERTY_ACCESSOR_LUT = {
         { RSAnimatableProperty::INVALID,
             std::make_shared<RSPropertyAccessors<float>>(nullptr, nullptr) },
+
         { RSAnimatableProperty::BOUNDS_WIDTH,
             std::make_shared<RSPropertyAccessors<float>>(
                 &RSProperties::SetBoundsWidth, &RSProperties::GetBoundsWidth) },
         { RSAnimatableProperty::BOUNDS_HEIGHT,
             std::make_shared<RSPropertyAccessors<float>>(
                 &RSProperties::SetBoundsHeight, &RSProperties::GetBoundsHeight) },
-        { RSAnimatableProperty::BOUNDS_POSITION,
+        { RSAnimatableProperty::BOUNDS_SIZE,
             std::make_shared<RSPropertyAccessors<Vector2f>>(
-                &RSProperties::SetBoundsPosition, &RSProperties::GetBoundsPosition) },
+                &RSProperties::SetBoundsSize, &RSProperties::GetBoundsSize) },
         { RSAnimatableProperty::BOUNDS_POSITION_X,
             std::make_shared<RSPropertyAccessors<float>>(
                 &RSProperties::SetBoundsPositionX, &RSProperties::GetBoundsPositionX) },
         { RSAnimatableProperty::BOUNDS_POSITION_Y,
             std::make_shared<RSPropertyAccessors<float>>(
                 &RSProperties::SetBoundsPositionY, &RSProperties::GetBoundsPositionY) },
-        { RSAnimatableProperty::POSITION_Z,
-            std::make_shared<RSPropertyAccessors<float>>(
-                &RSProperties::SetPositionZ, &RSProperties::GetPositionZ) },
+        { RSAnimatableProperty::BOUNDS_POSITION,
+            std::make_shared<RSPropertyAccessors<Vector2f>>(
+                &RSProperties::SetBoundsPosition, &RSProperties::GetBoundsPosition) },
+        { RSAnimatableProperty::BOUNDS,
+            std::make_shared<RSPropertyAccessors<Vector4f>>(
+                &RSProperties::SetBounds, &RSProperties::GetBounds) },
+
         { RSAnimatableProperty::FRAME_WIDTH,
             std::make_shared<RSPropertyAccessors<float>>(
                 &RSProperties::SetFrameWidth, &RSProperties::GetFrameWidth) },
         { RSAnimatableProperty::FRAME_HEIGHT,
             std::make_shared<RSPropertyAccessors<float>>(
                 &RSProperties::SetFrameHeight, &RSProperties::GetFrameHeight) },
-        { RSAnimatableProperty::FRAME_POSITION,
+        { RSAnimatableProperty::FRAME_SIZE,
             std::make_shared<RSPropertyAccessors<Vector2f>>(
-                &RSProperties::SetFramePosition, &RSProperties::GetFramePosition) },
+                &RSProperties::SetFrameSize, &RSProperties::GetFrameSize) },
         { RSAnimatableProperty::FRAME_POSITION_X,
             std::make_shared<RSPropertyAccessors<float>>(
                 &RSProperties::SetFramePositionX, &RSProperties::GetFramePositionX) },
         { RSAnimatableProperty::FRAME_POSITION_Y,
             std::make_shared<RSPropertyAccessors<float>>(
                 &RSProperties::SetFramePositionY, &RSProperties::GetFramePositionY) },
+        { RSAnimatableProperty::FRAME_POSITION,
+            std::make_shared<RSPropertyAccessors<Vector2f>>(
+                &RSProperties::SetFramePosition, &RSProperties::GetFramePosition) },
+        { RSAnimatableProperty::FRAME,
+            std::make_shared<RSPropertyAccessors<Vector4f>>(
+                &RSProperties::SetFrame, &RSProperties::GetFrame) },
+
+        { RSAnimatableProperty::POSITION_Z,
+            std::make_shared<RSPropertyAccessors<float>>(
+                &RSProperties::SetPositionZ, &RSProperties::GetPositionZ) },
+
         { RSAnimatableProperty::PIVOT_X,
             std::make_shared<RSPropertyAccessors<float>>(
                 &RSProperties::SetPivotX, &RSProperties::GetPivotX) },
         { RSAnimatableProperty::PIVOT_Y,
             std::make_shared<RSPropertyAccessors<float>>(
                 &RSProperties::SetPivotY, &RSProperties::GetPivotY) },
+        { RSAnimatableProperty::PIVOT,
+            std::make_shared<RSPropertyAccessors<Vector2f>>(
+                &RSProperties::SetPivot, &RSProperties::GetPivot) },
+
         { RSAnimatableProperty::CORNER_RADIUS,
             std::make_shared<RSPropertyAccessors<float>>(
                 &RSProperties::SetCornerRadius, &RSProperties::GetCornerRadius) },
-        { RSAnimatableProperty::ROTATION_3D,
-            std::make_shared<RSPropertyAccessors<Vector4f>>(
-                &RSProperties::SetQuaternion, &RSProperties::GetQuaternion) },
+
         { RSAnimatableProperty::ROTATION,
             std::make_shared<RSPropertyAccessors<float>>(
                 &RSProperties::SetRotation, &RSProperties::GetRotation) },
@@ -90,6 +108,10 @@ const std::unordered_map<RSAnimatableProperty, std::shared_ptr<RSBasePropertyAcc
         { RSAnimatableProperty::ROTATION_Y,
             std::make_shared<RSPropertyAccessors<float>>(
                 &RSProperties::SetRotationY, &RSProperties::GetRotationY) },
+        { RSAnimatableProperty::ROTATION_3D,
+            std::make_shared<RSPropertyAccessors<Quaternion>>(
+                &RSProperties::SetQuaternion, &RSProperties::GetQuaternion) },
+
         { RSAnimatableProperty::TRANSLATE,
             std::make_shared<RSPropertyAccessors<Vector2f>>(
                 &RSProperties::SetTranslate, &RSProperties::GetTranslate) },
@@ -102,12 +124,17 @@ const std::unordered_map<RSAnimatableProperty, std::shared_ptr<RSBasePropertyAcc
         { RSAnimatableProperty::TRANSLATE_Z,
             std::make_shared<RSPropertyAccessors<float>>(
                 &RSProperties::SetTranslateZ, &RSProperties::GetTranslateZ) },
+
         { RSAnimatableProperty::SCALE_X,
             std::make_shared<RSPropertyAccessors<float>>(
                 &RSProperties::SetScaleX, &RSProperties::GetScaleX) },
         { RSAnimatableProperty::SCALE_Y,
             std::make_shared<RSPropertyAccessors<float>>(
                 &RSProperties::SetScaleY, &RSProperties::GetScaleY) },
+        { RSAnimatableProperty::SCALE,
+            std::make_shared<RSPropertyAccessors<Vector2f>>(
+                &RSProperties::SetScale, &RSProperties::GetScale) },
+
         { RSAnimatableProperty::ALPHA,
             std::make_shared<RSPropertyAccessors<float>>(
                 &RSProperties::SetAlpha, &RSProperties::GetAlpha) },

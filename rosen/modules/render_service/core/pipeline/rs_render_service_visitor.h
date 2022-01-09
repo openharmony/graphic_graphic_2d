@@ -20,7 +20,6 @@
 
 #include "include/core/SkCanvas.h"
 
-#include "platform/drawing/rs_platform_canvas.h"
 #include "pipeline/rs_processor.h"
 #include "visitor/rs_node_visitor.h"
 
@@ -34,12 +33,12 @@ public:
     virtual void PrepareBaseRenderNode(RSBaseRenderNode &node) override;
     virtual void PrepareDisplayRenderNode(RSDisplayRenderNode &node) override;
     virtual void PrepareSurfaceRenderNode(RSSurfaceRenderNode &node) override;
-    virtual void PrepareRenderNode(RSRenderNode &node) override {}
+    virtual void PrepareCanvasRenderNode(RSCanvasRenderNode &node) override {}
     virtual void PrepareRootRenderNode(RSRootRenderNode& node) override {}
     virtual void ProcessBaseRenderNode(RSBaseRenderNode &node) override;
     virtual void ProcessDisplayRenderNode(RSDisplayRenderNode &node) override;
     virtual void ProcessSurfaceRenderNode(RSSurfaceRenderNode &node) override;
-    virtual void ProcessRenderNode(RSRenderNode& node) override {}
+    virtual void ProcessCanvasRenderNode(RSCanvasRenderNode& node) override {}
     virtual void ProcessRootRenderNode(RSRootRenderNode& node) override {}
     void SortZOrder(RSBaseRenderNode &node);
 

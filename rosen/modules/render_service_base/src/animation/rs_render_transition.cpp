@@ -15,7 +15,7 @@
 
 #include "animation/rs_render_transition.h"
 
-#include "pipeline/rs_render_node.h"
+#include "pipeline/rs_canvas_render_node.h"
 #include "platform/common/rs_log.h"
 #include "transaction/rs_marshalling_helper.h"
 
@@ -30,9 +30,11 @@ RSRenderTransition::RSRenderTransition(AnimationId id, const RSTransitionEffect&
 bool RSRenderTransition::Marshalling(Parcel& parcel) const
 {
     if (!RSRenderAnimation::Marshalling(parcel)) {
+        ROSEN_LOGE("RSRenderTransition::Marshalling, step1 failed");
         return false;
     }
     if (!(RSMarshallingHelper::Marshalling(parcel, effectType_) && interpolator_->Marshalling(parcel))) {
+        ROSEN_LOGE("RSRenderTransition::Marshalling, step2 failed");
         return false;
     }
     return true;
@@ -42,7 +44,7 @@ RSRenderTransition* RSRenderTransition::Unmarshalling(Parcel& parcel)
 {
     RSRenderTransition* renderTransition = new RSRenderTransition();
     if (!renderTransition->ParseParam(parcel)) {
-        ROSEN_LOGE("RenderTransition Unmarshalling Failed");
+        ROSEN_LOGE("RSRenderTransition::Unmarshalling, ParseParam Failed");
         delete renderTransition;
         return nullptr;
     }
@@ -52,16 +54,18 @@ RSRenderTransition* RSRenderTransition::Unmarshalling(Parcel& parcel)
 bool RSRenderTransition::ParseParam(Parcel& parcel)
 {
     if (!RSRenderAnimation::ParseParam(parcel)) {
-        ROSEN_LOGE("Unmarshalling Base Class Failed");
+        ROSEN_LOGE("RSRenderTransition::ParseParam, RenderAnimation failed");
         return false;
     }
     RSTransitionEffect effect;
     if (!RSMarshallingHelper::Unmarshalling(parcel, effect)) {
+        ROSEN_LOGE("RSRenderTransition::ParseParam, effect is failed");
         return false;
     }
     effect_ = RSRenderTransitionEffect::CreateTransitionEffect(effect);
     std::shared_ptr<RSInterpolator> interpolator(RSInterpolator::Unmarshalling(parcel));
     if (interpolator == nullptr) {
+        ROSEN_LOGE("RSRenderTransition::ParseParam, interpolator is nullptr");
         return false;
     }
     SetInterpolator(interpolator);
@@ -73,6 +77,7 @@ void RSRenderTransition::OnAnimate(float fraction)
     currentFraction_ = interpolator_->Interpolate(fraction);
     auto target = GetTarget();
     if (target == nullptr) {
+        ROSEN_LOGE("RSRenderTransition::OnAnimate, target is nullptr");
         return;
     }
     target->SetDirty();
@@ -82,11 +87,13 @@ void RSRenderTransition::OnAttach()
 {
     auto target = GetTarget();
     if (target == nullptr || effect_ == nullptr) {
+        ROSEN_LOGE("RSRenderTransition::OnAttach, target is nullptr");
         return;
     }
     target->GetAnimationManager().RegisterTransition(GetAnimationId(),
         [=](RSPaintFilterCanvas& canvas, const RSProperties& renderProperties) {
         if (effect_ == nullptr) {
+            ROSEN_LOGE("RSRenderTransition::OnAttach, effect_ is nullptr");
             return;
         }
         effect_->OnTransition(canvas, renderProperties, currentFraction_);
@@ -96,7 +103,8 @@ void RSRenderTransition::OnAttach()
 void RSRenderTransition::OnDetach()
 {
     auto target = GetTarget();
-    if (target == nullptr || effect_ == nullptr) {
+    if (target == nullptr) {
+        ROSEN_LOGE("RSRenderTransition::OnDetach, target is nullptr");
         return;
     }
     target->GetAnimationManager().UnregisterTransition(GetAnimationId());

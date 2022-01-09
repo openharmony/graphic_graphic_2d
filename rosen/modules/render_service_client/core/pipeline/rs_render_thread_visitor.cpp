@@ -15,17 +15,17 @@
 
 #include "pipeline/rs_render_thread_visitor.h"
 
+#include <include/core/SkFont.h>
+
+#include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_dirty_region_manager.h"
-#include "pipeline/rs_render_node.h"
+#include "pipeline/rs_render_thread.h"
 #include "pipeline/rs_root_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_log.h"
-#include "platform/drawing/rs_platform_canvas.h"
 #include "platform/drawing/rs_surface.h"
+#include "rs_trace.h"
 #include "transaction/rs_transaction_proxy.h"
-#include "platform/common/rs_log.h"
-
-#include "pipeline/rs_render_thread.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -49,14 +49,14 @@ void RSRenderThreadVisitor::PrepareRootRenderNode(RSRootRenderNode& node)
         parent_ = nullptr;
         dirtyFlag_ = false;
         isIdle_ = false;
-        PrepareRenderNode(node);
+        PrepareCanvasRenderNode(node);
         isIdle_ = true;
     } else {
-        PrepareRenderNode(node);
+        PrepareCanvasRenderNode(node);
     }
 }
 
-void RSRenderThreadVisitor::PrepareRenderNode(RSRenderNode& node)
+void RSRenderThreadVisitor::PrepareCanvasRenderNode(RSCanvasRenderNode& node)
 {
     bool dirtyFlag = dirtyFlag_;
     dirtyFlag_ = node.Update(dirtyManager_, parent_ ? &(parent_->GetRenderProperties()) : nullptr, dirtyFlag_);
@@ -85,53 +85,47 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
 {
     auto rsSurface = node.GetSurface();
     if (!isIdle_) {
-        ProcessRenderNode(node);
+        ProcessCanvasRenderNode(node);
         return;
     }
+
     if (rsSurface == nullptr) {
-        // TODO: remove this branch after replace weston with RSSurface
-        auto platformCanvas = node.GetPlatformCanvas();
-        if (platformCanvas != nullptr) {
-            isIdle_ = false;
-            canvas_ = new RSPaintFilterCanvas(platformCanvas->AcquireCanvas());
-            ProcessRenderNode(node);
-            platformCanvas->FlushBuffer();
-            delete canvas_;
-            canvas_ = nullptr;
-        }
-    } else {
-        // TODO: this branch is for RSSurface
-        if (rsSurface == nullptr) {
-            ROSEN_LOGE("No RSSurface found");
-            return;
-        }
-#ifdef ACE_ENABLE_GL
-        RenderContext* rc = RSRenderThread::Instance().GetRenderContext();
-        rsSurface->SetRenderContext(rc);
-#endif
-        ROSEN_LOGE("RSRenderThreadVisitor RequestFrame start");
-        auto surfaceFrame = rsSurface->RequestFrame(node.GetWidth(), node.GetHeight());
-        if (surfaceFrame == nullptr) {
-            ROSEN_LOGE("Request Frame Failed");
-            return;
-        }
-        canvas_ = new RSPaintFilterCanvas(surfaceFrame->GetCanvas());
-
-        isIdle_ = false;
-        ProcessRenderNode(node);
-
-        ROSEN_LOGE("RSRenderThreadVisitor FlushFrame start");
-        rsSurface->FlushFrame(surfaceFrame);
-
-        delete canvas_;
-        canvas_ = nullptr;
+        ROSEN_LOGE("No RSSurface found");
+        return;
     }
+#ifdef ACE_ENABLE_GL
+    RenderContext* rc = RSRenderThread::Instance().GetRenderContext();
+    rsSurface->SetRenderContext(rc);
+#endif
+    RS_TRACE_BEGIN("rsSurface->RequestFrame");
+    auto surfaceFrame = rsSurface->RequestFrame(node.GetSurfaceWidth(), node.GetSurfaceHeight());
+    RS_TRACE_END();
+    if (surfaceFrame == nullptr) {
+        ROSEN_LOGE("Request Frame Failed");
+        return;
+    }
+    canvas_ = new RSPaintFilterCanvas(surfaceFrame->GetCanvas());
+
+    isIdle_ = false;
+    ProcessCanvasRenderNode(node);
+
+    RS_TRACE_BEGIN("rsSurface->FlushFrame");
+    rsSurface->FlushFrame(surfaceFrame);
+    RS_TRACE_END();
+
+    delete canvas_;
+    canvas_ = nullptr;
+
     isIdle_ = true;
 }
 
-void RSRenderThreadVisitor::ProcessRenderNode(RSRenderNode& node)
+void RSRenderThreadVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
 {
-    if (!canvas_ || !node.GetRenderProperties().GetVisible()) {
+    if (!node.GetRenderProperties().GetVisible()) {
+        return;
+    }
+    if (!canvas_) {
+        ROSEN_LOGE("RSRenderThreadVisitor::ProcessCanvasRenderNode, canvas is nullptr");
         return;
     }
     node.ProcessRenderBeforeChildren(*canvas_);
@@ -142,6 +136,7 @@ void RSRenderThreadVisitor::ProcessRenderNode(RSRenderNode& node)
 void RSRenderThreadVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
 {
     if (!canvas_) {
+        ROSEN_LOGE("RSRenderThreadVisitor::ProcessSurfaceRenderNode, canvas is nullptr");
         return;
     }
     node.ProcessRenderBeforeChildren(*canvas_);

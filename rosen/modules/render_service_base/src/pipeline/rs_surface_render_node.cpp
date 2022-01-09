@@ -25,8 +25,8 @@
 
 namespace OHOS {
 namespace Rosen {
-RSSurfaceRenderNode::RSSurfaceRenderNode(NodeId id) : RSPropertyRenderNode(id) {}
-RSSurfaceRenderNode::RSSurfaceRenderNode(const RSSurfaceRenderNodeConfig& config) : RSPropertyRenderNode(config.id) {}
+RSSurfaceRenderNode::RSSurfaceRenderNode(NodeId id) : RSRenderNode(id) {}
+RSSurfaceRenderNode::RSSurfaceRenderNode(const RSSurfaceRenderNodeConfig& config) : RSRenderNode(config.id) {}
 
 RSSurfaceRenderNode::~RSSurfaceRenderNode() {}
 
@@ -148,8 +148,10 @@ NodeId RSSurfaceRenderNode::GetParentId() const
 
 void RSSurfaceRenderNode::SendPropertyCommand(std::unique_ptr<RSCommand>& command)
 {
-    RSTransactionProxy::GetInstance().AddCommand(command, true);
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        transactionProxy->AddCommand(command, true);
+    }
 }
-
 } // namespace Rosen
 } // namespace OHOS

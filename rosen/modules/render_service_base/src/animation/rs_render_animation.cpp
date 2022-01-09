@@ -15,7 +15,7 @@
 
 #include "animation/rs_render_animation.h"
 
-#include "pipeline/rs_render_node.h"
+#include "pipeline/rs_canvas_render_node.h"
 #include "platform/common/rs_log.h"
 
 namespace OHOS {
@@ -25,19 +25,23 @@ RSRenderAnimation::RSRenderAnimation(AnimationId id) : id_(id) {}
 bool RSRenderAnimation::Marshalling(Parcel& parcel) const
 {
     if (target_ == nullptr) {
+        ROSEN_LOGE("RSRenderAnimation::Marshalling, target_ is nullptr");
         return false;
     }
     // animationId, targetId
     if (!(parcel.WriteUint64(id_) && parcel.WriteUint64(target_->GetId()))) {
+        ROSEN_LOGE("RSRenderAnimation::Marshalling, write id failed");
         return false;
     }
     // RSAnimationTimingProtocal
     if (!(parcel.WriteInt32(animationFraction_.GetDuration()) &&
-            parcel.WriteInt32(animationFraction_.GetStartDelay()) && parcel.WriteFloat(animationFraction_.GetSpeed()) &&
-            parcel.WriteInt32(animationFraction_.GetRepeatCount()) &&
-            parcel.WriteBool(animationFraction_.GetAutoReverse()) &&
-            parcel.WriteBool(animationFraction_.GetDirection()) &&
-            parcel.WriteInt32(static_cast<std::underlying_type<FillMode>::type>(animationFraction_.GetFillMode())))) {
+        parcel.WriteInt32(animationFraction_.GetStartDelay()) &&
+        parcel.WriteFloat(animationFraction_.GetSpeed()) &&
+        parcel.WriteInt32(animationFraction_.GetRepeatCount()) &&
+        parcel.WriteBool(animationFraction_.GetAutoReverse()) &&
+        parcel.WriteBool(animationFraction_.GetDirection()) &&
+        parcel.WriteInt32(static_cast<std::underlying_type<FillMode>::type>(animationFraction_.GetFillMode())))) {
+        ROSEN_LOGE("RSRenderAnimation::Marshalling, write param failed");
         return false;
     }
     return true;
@@ -56,6 +60,7 @@ bool RSRenderAnimation::ParseParam(Parcel& parcel)
     if (!(parcel.ReadUint64(id_) && parcel.ReadUint64(targetId) && parcel.ReadInt32(duration) &&
             parcel.ReadInt32(startDelay) && parcel.ReadFloat(speed) && parcel.ReadInt32(repeatCount) &&
             parcel.ReadBool(autoReverse) && parcel.ReadBool(direction) && parcel.ReadInt32(fillMode))) {
+        ROSEN_LOGE("RSRenderAnimation::ParseParam, read param failed");
         return false;
     }
     SetDuration(duration);
@@ -99,7 +104,7 @@ RSAnimatableProperty RSRenderAnimation::GetProperty() const
     return RSAnimatableProperty::INVALID;
 }
 
-void RSRenderAnimation::Attach(RSPropertyRenderNode* renderNode)
+void RSRenderAnimation::Attach(RSRenderNode* renderNode)
 {
     target_ = renderNode;
     OnAttach();
@@ -176,7 +181,7 @@ void RSRenderAnimation::SetReversed(bool isReversed)
     animationFraction_.SetDirectionAfterStart(isReversed ? ForwardDirection::REVERSE : ForwardDirection::NORMAL);
 }
 
-RSPropertyRenderNode* RSRenderAnimation::GetTarget() const
+RSRenderNode* RSRenderAnimation::GetTarget() const
 {
     return target_;
 }
@@ -212,6 +217,7 @@ void RSRenderAnimation::ProcessFillModeOnFinish(float endFraction)
 bool RSRenderAnimation::Animate(int64_t time)
 {
     if (!IsRunning()) {
+        ROSEN_LOGE("RSRenderAnimation::Animate, IsRunning is false!");
         return state_ == AnimationState::FINISHED;
     }
 
@@ -225,12 +231,14 @@ bool RSRenderAnimation::Animate(int64_t time)
     float fraction = animationFraction_.GetAnimationFraction(time, isInStartDelay, isFinished);
     if (isInStartDelay) {
         ProcessFillModeOnStart(fraction);
+        ROSEN_LOGE("RSRenderAnimation::Animate, isInStartDelay is true");
         return false;
     }
 
     OnAnimate(fraction);
     if (isFinished) {
         ProcessFillModeOnFinish(fraction);
+        ROSEN_LOGD("RSRenderAnimation::Animate, isFinished is true");
         return true;
     }
     return isFinished;

@@ -39,7 +39,8 @@ public:
         return startValue * (1.0f - fraction) + endValue * fraction;
     }
 
-    Vector4f Estimate(float fraction, const Vector4f& startValue, const Vector4f& endValue) const;
+    Quaternion Estimate(float fraction, const Quaternion& startValue, const Quaternion& endValue) const;
+
     std::shared_ptr<RSFilter> Estimate(float fraction, const std::shared_ptr<RSFilter>& startValue,
         const std::shared_ptr<RSFilter>& endValue) const;
 
@@ -73,6 +74,9 @@ public:
 
     float EstimateFraction(const std::shared_ptr<RSInterpolator>& interpolator, const Vector4f& value,
         const Vector4f& startValue, const Vector4f& endValue) const;
+
+    float EstimateFraction(const std::shared_ptr<RSInterpolator>& interpolator, const Quaternion& value,
+        const Quaternion& startValue, const Quaternion& endValue) const;
 
     float EstimateFraction(const std::shared_ptr<RSInterpolator>& interpolator, const RSColor& value,
         const RSColor& startValue, const RSColor& endValue) const;

@@ -33,10 +33,6 @@ public:
 
     ~RSUIDirector();
     void Init();
-    // ori version
-    void SetPlatformSurface(Surface* surface);
-    void SetSurfaceSize(int width, int height);
-    // new version
     void SetRSSurfaceNode(std::shared_ptr<RSSurfaceNode> surfaceNode);
     void SetSurfaceNodeSize(int width, int height);
 
@@ -63,7 +59,6 @@ private:
 
     uint64_t refreshPeriod_ = 16666667;
     uint64_t timeStamp_ = 0;
-    uintptr_t surface_ = 0;
     std::shared_ptr<RSSurfaceNode> surfaceNode_ = nullptr;
     int surfaceWidth_ = 0;
     int surfaceHeight_ = 0;

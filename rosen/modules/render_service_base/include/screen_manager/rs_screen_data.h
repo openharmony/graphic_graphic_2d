@@ -55,7 +55,7 @@ private:
     RSScreenCapability capability_;
     RSScreenModeInfo activityModeInfo_;
     std::vector<RSScreenModeInfo> supportModeInfo_;
-    ScreenPowerStatus powerStatus_ = INVAILD_POWER_STATUS;
+    ScreenPowerStatus powerStatus_ = INVALID_POWER_STATUS;
 };
 } // namespace Rosen
 } // namespace OHOS

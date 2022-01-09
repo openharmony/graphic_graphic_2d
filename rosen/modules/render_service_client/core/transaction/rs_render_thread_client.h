@@ -27,6 +27,7 @@ public:
     ~RSRenderThreadClient() = default;
 
     void CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData) override;
+    void ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task) override;
 };
 
 } // namespace Rosen

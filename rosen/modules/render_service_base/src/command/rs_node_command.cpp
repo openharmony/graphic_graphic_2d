@@ -15,24 +15,8 @@
 
 #include "command/rs_node_command.h"
 
-#include "pipeline/rs_render_node.h"
-
 namespace OHOS {
 namespace Rosen {
-
-void RSNodeCommandHelper::Create(RSContext& context, NodeId id)
-{
-    auto node = std::make_shared<RSRenderNode>(id);
-    context.GetNodeMap().RegisterRenderNode(node);
-}
-
-void RSNodeCommandHelper::UpdateRecording(
-    RSContext& context, NodeId id, std::shared_ptr<DrawCmdList> drawCmds, bool drawContentLast)
-{
-    if (auto node = context.GetNodeMap().GetRenderNode<RSRenderNode>(id)) {
-        node->UpdateRecording(drawCmds, drawContentLast);
-    }
-}
 
 } // namespace Rosen
 } // namespace OHOS

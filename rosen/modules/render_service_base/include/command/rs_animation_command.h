@@ -22,7 +22,7 @@
 #include "animation/rs_render_path_animation.h"
 #include "animation/rs_render_transition.h"
 #include "command/rs_command_templates.h"
-#include "pipeline/rs_property_render_node.h"
+#include "pipeline/rs_render_node.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -35,6 +35,7 @@ enum RSAnimationCommandType : uint16_t {
     ANIMATION_CREATE_CURVE_MATRIX3F,
     ANIMATION_CREATE_CURVE_VEC2F,
     ANIMATION_CREATE_CURVE_VEC4F,
+    ANIMATION_CREATE_CURVE_QUATERNION,
     ANIMATION_CREATE_CURVE_FILTER,
     // keyframe animation
     ANIMATION_CREATE_KEYFRAME_INT,
@@ -43,6 +44,7 @@ enum RSAnimationCommandType : uint16_t {
     ANIMATION_CREATE_KEYFRAME_MATRIX3F,
     ANIMATION_CREATE_KEYFRAME_VEC2F,
     ANIMATION_CREATE_KEYFRAME_VEC4F,
+    ANIMATION_CREATE_KEYFRAME_QUATERNION,
     ANIMATION_CREATE_KEYFRAME_FILTER,
     // path animation
     ANIMATION_CREATE_PATH,
@@ -64,7 +66,7 @@ public:
     template<void (RSRenderAnimation::*OP)()>
     static void AnimOp(RSContext& context, NodeId nodeId, AnimationId animId)
     {
-        auto node = context.GetNodeMap().GetRenderNode<RSPropertyRenderNode>(nodeId);
+        auto node = context.GetNodeMap().GetRenderNode<RSRenderNode>(nodeId);
         if (node == nullptr) {
             return;
         }
@@ -77,7 +79,7 @@ public:
     template<typename T, void (RSRenderAnimation::*OP)(T)>
     static void AnimOp(RSContext& context, NodeId nodeId, AnimationId animId, T param)
     {
-        auto node = context.GetNodeMap().GetRenderNode<RSPropertyRenderNode>(nodeId);
+        auto node = context.GetNodeMap().GetRenderNode<RSRenderNode>(nodeId);
         if (node == nullptr) {
             return;
         }
@@ -87,9 +89,10 @@ public:
         }
         (*animation.*OP)(param);
     }
-    static void CreateAnimation(RSContext& context, NodeId targetId, const std::shared_ptr<RSRenderAnimation>& animation)
+    static void CreateAnimation(
+        RSContext& context, NodeId targetId, const std::shared_ptr<RSRenderAnimation>& animation)
     {
-        auto node = context.GetNodeMap().GetRenderNode<RSPropertyRenderNode>(targetId);
+        auto node = context.GetNodeMap().GetRenderNode<RSRenderNode>(targetId);
         if (node == nullptr) {
             return;
         }
@@ -136,6 +139,9 @@ ADD_COMMAND(
 ADD_COMMAND(
     RSAnimationCreateCurveVec4f, ARG(ANIMATION, ANIMATION_CREATE_CURVE_VEC4F, AnimationCommandHelper::CreateAnimation,
                                      NodeId, std::shared_ptr<RSRenderCurveAnimation<Vector4f>>))
+ADD_COMMAND(RSAnimationCreateCurveQuaternion,
+    ARG(ANIMATION, ANIMATION_CREATE_CURVE_QUATERNION, AnimationCommandHelper::CreateAnimation, NodeId,
+        std::shared_ptr<RSRenderCurveAnimation<Quaternion>>))
 // ADD_COMMAND(
 //     RSAnimationCreateCurveFilter, ARG(ANIMATION, ANIMATION_CREATE_CURVE_FILTER, AnimationCommandHelper::CreateAnimation,
 //                                      NodeId, std::shared_ptr<RSRenderCurveAnimation<std::shared_ptr<RSFilter>>>))
@@ -159,6 +165,9 @@ ADD_COMMAND(RSAnimationCreateKeyframeVec2f,
 ADD_COMMAND(RSAnimationCreateKeyframeVec4f,
     ARG(ANIMATION, ANIMATION_CREATE_KEYFRAME_VEC4F, AnimationCommandHelper::CreateAnimation, NodeId,
         std::shared_ptr<RSRenderKeyframeAnimation<Vector4f>>))
+ADD_COMMAND(RSAnimationCreateKeyframeQuaternion,
+    ARG(ANIMATION, ANIMATION_CREATE_KEYFRAME_QUATERNION, AnimationCommandHelper::CreateAnimation, NodeId,
+        std::shared_ptr<RSRenderKeyframeAnimation<Quaternion>>))
 // ADD_COMMAND(RSAnimationCreateKeyframeFilter,
 //     ARG(ANIMATION, ANIMATION_CREATE_KEYFRAME_FILTER, AnimationCommandHelper::CreateAnimation, NodeId,
 //         std::shared_ptr<RSRenderKeyframeAnimation<std::shared_ptr<RSFilter>>>))

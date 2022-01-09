@@ -28,8 +28,11 @@ RSDisplayNode::SharedPtr RSDisplayNode::Create(const RSDisplayNodeConfig& displa
     RSNodeMap::Instance().RegisterNode(node);
 
     std::unique_ptr<RSCommand> command = std::make_unique<RSDisplayNodeCreate>(node->GetId(), displayNodeConfig);
-    RSTransactionProxy::GetInstance().AddCommand(command, true);
-    ROSEN_LOGI("RsDebug RSDisplayNode::Create id:%llu", node->GetId());
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        transactionProxy->AddCommand(command, true);
+    }
+    ROSEN_LOGD("RSDisplayNode::Create, id:%llu", node->GetId());
     return node;
 }
 

@@ -33,9 +33,8 @@ public:
 private:
     sptr<Surface> producerSurface_;
     std::unique_ptr<SkCanvas> canvas_;
+    ScreenInfo currScreenInfo_;
 };
-
-}
-}
-
-#endif
+} // namespace Rosen
+} // namespace OHOS
+#endif // RS_SOFTWARE_PROCESSOR_H

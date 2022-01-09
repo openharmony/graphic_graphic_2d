@@ -16,20 +16,26 @@
 #define RENDER_SERVICE_CLIENT_CORE_UI_RS_ROOT_NODE_H
 
 #include "platform/drawing/rs_surface.h"
-#include "ui/rs_node.h"
+#include "ui/rs_canvas_node.h"
 
 namespace OHOS {
 namespace Rosen {
-class RS_EXPORT RSRootNode : public RSNode {
+class RS_EXPORT RSRootNode : public RSCanvasNode {
 public:
-    using WeakPtr = std::weak_ptr<RSRootNode >;
-    using SharedPtr = std::shared_ptr<RSRootNode >;
+    using WeakPtr = std::weak_ptr<RSRootNode>;
+    using SharedPtr = std::shared_ptr<RSRootNode>;
+    static inline constexpr RSUINodeType Type = RSUINodeType::ROOT_NODE;
+
     virtual ~RSRootNode() {}
 
     static std::shared_ptr<RSNode> Create(bool isRenderServiceNode = false);
 
+    RSUINodeType GetType() const override
+    {
+        return RSUINodeType::ROOT_NODE;
+    }
+
 protected:
-    void AttachSurface(uintptr_t surfaceProducer, int width, int height) const;
     void AttachRSSurface(std::shared_ptr<RSSurface> surfaceProducer, int width, int height) const;
 
     RSRootNode(bool isRenderServiceNode);
