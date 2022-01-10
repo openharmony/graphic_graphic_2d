@@ -112,7 +112,7 @@ private:
 
     GSError CheckRequestConfig(const BufferRequestConfig &config);
     GSError CheckFlushConfig(const BufferFlushConfig &config);
-    void DumpCache(const std::list<int32_t> &dumpList, std::string &result);
+    void DumpCache(std::string &result);
 
     int32_t defaultWidth = 0;
     int32_t defaultHeight = 0;

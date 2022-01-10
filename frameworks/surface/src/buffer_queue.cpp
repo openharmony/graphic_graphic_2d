@@ -19,6 +19,7 @@
 #include <fstream>
 #include <sstream>
 #include <sys/time.h>
+#include <cinttypes>
 #include <unistd.h>
 
 #include <display_type.h>
@@ -32,6 +33,13 @@ namespace {
 constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, 0, "BufferQueue" };
 constexpr uint32_t UNIQUE_ID_OFFSET = 32;
 }
+
+static const std::map<BufferState, std::string> BufferStateStrs = {
+    {BUFFER_STATE_RELEASED,                    "0 <released>"},
+    {BUFFER_STATE_REQUESTED,                   "1 <requested>"},
+    {BUFFER_STATE_FLUSHED,                     "2 <flushed>"},
+    {BUFFER_STATE_ACQUIRED,                    "3 <acquired>"},
+};
 
 static uint64_t GetUniqueIdImpl()
 {
@@ -199,6 +207,7 @@ GSError BufferQueue::RequestBuffer(const BufferRequestConfig &config, BufferExtr
     bufferImpl->GetExtraData(bedata);
     retval.buffer = bufferImpl;
     retval.fence = -1;
+    BLOGD("Success alloc Buffer id: %{public}d Queue id: %{public}" PRIu64 "", retval.sequence, uniqueId_);
     return ret;
 }
 
@@ -237,9 +246,11 @@ GSError BufferQueue::ReuseBuffer(const BufferRequestConfig &config, BufferExtraD
     deletingList_.clear();
 
     if (needRealloc) {
-        BLOGN_SUCCESS_ID(retval.sequence, "config change, realloc");
+        BLOGD("RequestBuffer Success realloc Buffer with new config id: %{public}d Queue id: %{public}" PRIu64 "",
+            retval.sequence, uniqueId_);
     } else {
-        BLOGN_SUCCESS_ID(retval.sequence, "buffer cache");
+        BLOGD("RequestBuffer Success Buffer in cache id: %{public}d Queue id: %{public}" PRIu64 "",
+            retval.sequence, uniqueId_);
         retval.buffer = nullptr;
     }
 
@@ -267,7 +278,7 @@ GSError BufferQueue::CancelBuffer(int32_t sequence, const BufferExtraData &bedat
     freeList_.push_back(sequence);
     bufferQueueCache_[sequence].buffer->SetExtraData(bedata);
 
-    BLOGN_SUCCESS_ID(sequence, "cancel");
+    BLOGD("Success Buffer id: %{public}d Queue id: %{public}" PRIu64 "", sequence, uniqueId_);
 
     return GSERROR_OK;
 }
@@ -309,7 +320,7 @@ GSError BufferQueue::FlushBuffer(int32_t sequence, const BufferExtraData &bedata
     if (sret != GSERROR_OK) {
         return sret;
     }
-    BLOGN_SUCCESS_ID(sequence, "flush");
+    BLOGD("Success Buffer id: %{public}d Queue id: %{public}" PRIu64 "", sequence, uniqueId_);
 
     if (sret == GSERROR_OK) {
         BLOGN_SUCCESS_ID(sequence, "OnBufferAvailable Start");
@@ -405,8 +416,7 @@ GSError BufferQueue::AcquireBuffer(sptr<SurfaceBufferImpl> &buffer,
         timestamp = bufferQueueCache_[sequence].timestamp;
         damage = bufferQueueCache_[sequence].damage;
 
-        BLOGNI("Success [%{public}d]", sequence);
-        BLOGN_SUCCESS_ID(sequence, "acquire");
+    BLOGD("Success Buffer id: %{public}d Queue id: %{public}" PRIu64 "", sequence, uniqueId_);
     } else if (ret == GSERROR_NO_BUFFER) {
         BLOGN_FAILURE("there is no dirty buffer");
     }
@@ -452,10 +462,10 @@ GSError BufferQueue::ReleaseBuffer(sptr<SurfaceBufferImpl> &buffer, int32_t fenc
 
     if (bufferQueueCache_[sequence].isDeleting) {
         DeleteBufferInCache(sequence);
-        BLOGN_SUCCESS_ID(sequence, "delete");
+        BLOGD("Success delete Buffer id: %{public}d Queue id: %{public}" PRIu64 " in cache", sequence, uniqueId_);
     } else {
         freeList_.push_back(sequence);
-        BLOGN_SUCCESS_ID(sequence, "push to free list");
+        BLOGD("Success push Buffer id: %{public}d Queue id: %{public}" PRIu64 " to free list", sequence, uniqueId_);
     }
 
     return GSERROR_OK;
@@ -750,38 +760,36 @@ uint64_t BufferQueue::GetUniqueId() const
     return uniqueId_;
 }
 
-void BufferQueue::DumpCache(const std::list<int32_t> &dumpList, std::string &result)
+void BufferQueue::DumpCache(std::string &result)
 {
-    for (auto it = dumpList.begin(); it != dumpList.end(); it++) {
-        BufferElement element = bufferQueueCache_.at(*it);
-        result += "    state = " + std::to_string(element.state) +
+    for (auto it = bufferQueueCache_.begin(); it != bufferQueueCache_.end(); it++) {
+        BufferElement element = it->second;
+        result += "        sequence = " + std::to_string(it->first) +
+            ", state = " + BufferStateStrs.at(element.state) +
             ", timestamp = " + std::to_string(element.timestamp);
         result += ", damageRect = [" + std::to_string(element.damage.x) + ", " +
             std::to_string(element.damage.y) + ", " +
             std::to_string(element.damage.w) + ", " +
             std::to_string(element.damage.h) + "],";
         result += " config = [" + std::to_string(element.config.width) + "x" +
-            std::to_string(element.config.height) + ":" +
+            std::to_string(element.config.height) + ", " +
             std::to_string(element.config.strideAlignment) + ", " +
             std::to_string(element.config.format) +", " +
             std::to_string(element.config.usage) + ", " +
-            std::to_string(element.config.timeout) + "]\n";
+            std::to_string(element.config.timeout) + "].\n";
     }
 }
 
 void BufferQueue::Dump(std::string &result)
 {
     std::lock_guard<std::mutex> lockGuard(mutex_);
-    result.append("-- BufferQueue\n");
-    result += "  default-size = [" + std::to_string(defaultWidth) + "x" + std::to_string(defaultHeight) + "]\n";
-    result += "  FIFO = " + std::to_string(queueSize_) + "\n";
-    result += "  name = " + name_ + "\n";
+    result.append("    BufferQueue:\n");
+    result += "      default-size = [" + std::to_string(defaultWidth) + "x" + std::to_string(defaultHeight) + "]" +
+        ", FIFO = " + std::to_string(queueSize_) +
+        ", name = " + name_ +
+        ", uniqueId = " + std::to_string(uniqueId_) + ".\n";
 
-    result.append("  FreeList:\n");
-    DumpCache(freeList_, result);
-    result.append("  DirtyList:\n");
-    DumpCache(dirtyList_, result);
-    result.append("  DeletingList:\n");
-    DumpCache(deletingList_, result);
+    result.append("      bufferQueueCache:\n");
+    DumpCache(result);
 }
 }; // namespace OHOS
