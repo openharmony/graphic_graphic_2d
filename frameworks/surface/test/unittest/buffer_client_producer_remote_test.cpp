@@ -12,23 +12,53 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-#include "buffer_client_producer_remote_test.h"
-
 #include <chrono>
 #include <thread>
 #include <vector>
-
 #include <sys/wait.h>
 #include <unistd.h>
+#include <gtest/gtest.h>
 
-#include "buffer_client_producer.h"
+#include <iservice_registry.h>
+#include <display_type.h>
+#include <surface.h>
+#include <buffer_extra_data_impl.h>
+#include <buffer_client_producer.h>
+#include <buffer_queue_producer.h>
 #include "buffer_consumer_listener.h"
-#include "buffer_queue_producer.h"
 
-using namespace std::chrono_literals;
+using namespace testing;
+using namespace testing::ext;
 
-namespace OHOS {
+namespace OHOS::Rosen {
+class BufferClientProducerRemoteTest : public testing::Test {
+public:
+    static void SetUpTestCase();
+    static void TearDownTestCase();
+
+    static inline BufferRequestConfig requestConfig = {
+        .width = 0x100,
+        .height = 0x100,
+        .strideAlignment = 0x8,
+        .format = PIXEL_FMT_RGBA_8888,
+        .usage = HBM_USE_CPU_READ | HBM_USE_CPU_WRITE | HBM_USE_MEM_DMA,
+        .timeout = 0,
+    };
+    static inline BufferFlushConfig flushConfig = {
+        .damage = {
+            .w = 0x100,
+            .h = 0x100,
+        },
+    };
+    static inline sptr<IRemoteObject> robj = nullptr;
+    static inline sptr<IBufferProducer> bp = nullptr;
+    static inline std::vector<int32_t> deletingBuffers;
+    static inline pid_t pid = 0;
+    static inline int pipeFd[2] = {};
+    static inline int32_t systemAbilityID = 345135;
+    static inline BufferExtraDataImpl bedata;
+};
+
 void BufferClientProducerRemoteTest::SetUpTestCase()
 {
     pipe(pipeFd);
@@ -39,7 +69,7 @@ void BufferClientProducerRemoteTest::SetUpTestCase()
     }
 
     if (pid == 0) {
-        std::this_thread::sleep_for(50ms);
+        std::this_thread::sleep_for(std::chrono::milliseconds(50));  // wait 50ms
         sptr<BufferQueue> bq = new BufferQueue("test");
         ASSERT_NE(bq, nullptr);
 
@@ -86,51 +116,88 @@ void BufferClientProducerRemoteTest::TearDownTestCase()
     } while (ret == -1 && errno == EINTR);
 }
 
-namespace {
-HWTEST_F(BufferClientProducerRemoteTest, IsProxy, testing::ext::TestSize.Level0)
+/*
+* Function: IsProxyObject
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. check ret for IsProxyObject func
+ */
+HWTEST_F(BufferClientProducerRemoteTest, IsProxy001, Function | MediumTest | Level2)
 {
     ASSERT_TRUE(robj->IsProxyObject());
 }
 
-HWTEST_F(BufferClientProducerRemoteTest, QueueSize, testing::ext::TestSize.Level0)
+/*
+* Function: SetQueueSize and GetQueueSize
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call GetQueueSize for default
+*                  2. call SetQueueSize and check the ret of GetQueueSize
+ */
+HWTEST_F(BufferClientProducerRemoteTest, QueueSize001, Function | MediumTest | Level2)
 {
     ASSERT_EQ(bp->GetQueueSize(), (uint32_t)SURFACE_DEFAULT_QUEUE_SIZE);
 
     GSError ret = bp->SetQueueSize(2);
-    ASSERT_EQ(ret, GSERROR_OK);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
     ret = bp->SetQueueSize(SURFACE_MAX_QUEUE_SIZE + 1);
-    ASSERT_NE(ret, GSERROR_OK);
+    ASSERT_NE(ret, OHOS::GSERROR_OK);
 
     ASSERT_EQ(bp->GetQueueSize(), 2u);
 }
 
-HWTEST_F(BufferClientProducerRemoteTest, ReqCan, testing::ext::TestSize.Level0)
+/*
+* Function: SetQueueSize and GetQueueSize
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call GetQueueSize for default
+*                  2. call SetQueueSize and check the ret of GetQueueSize
+ */
+HWTEST_F(BufferClientProducerRemoteTest, ReqCan001, Function | MediumTest | Level2)
 {
     IBufferProducer::RequestBufferReturnValue retval;
     GSError ret = bp->RequestBuffer(requestConfig, bedata, retval);
-    ASSERT_EQ(ret, GSERROR_OK);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
     ASSERT_NE(retval.buffer, nullptr);
 
     ret = bp->CancelBuffer(retval.sequence, bedata);
-    ASSERT_EQ(ret, GSERROR_OK);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
 }
 
-HWTEST_F(BufferClientProducerRemoteTest, ReqCanCan, testing::ext::TestSize.Level0)
+/*
+* Function: RequestBuffer and CancelBuffer
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call RequestBuffer
+*                  2. call CancelBuffer 2 times
+ */
+HWTEST_F(BufferClientProducerRemoteTest, ReqCan002, Function | MediumTest | Level2)
 {
     IBufferProducer::RequestBufferReturnValue retval;
     GSError ret = bp->RequestBuffer(requestConfig, bedata, retval);
-    ASSERT_EQ(ret, GSERROR_OK);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
     ASSERT_EQ(retval.buffer, nullptr);
 
     ret = bp->CancelBuffer(retval.sequence, bedata);
-    ASSERT_EQ(ret, GSERROR_OK);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
     ret = bp->CancelBuffer(retval.sequence, bedata);
-    ASSERT_NE(ret, GSERROR_OK);
+    ASSERT_NE(ret, OHOS::GSERROR_OK);
 }
 
-HWTEST_F(BufferClientProducerRemoteTest, ReqReqReqCanCan, testing::ext::TestSize.Level0)
+/*
+* Function: RequestBuffer and CancelBuffer
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call RequestBuffer and CancelBuffer 3 times
+ */
+HWTEST_F(BufferClientProducerRemoteTest, ReqCan003, Function | MediumTest | Level2)
 {
     IBufferProducer::RequestBufferReturnValue retval1;
     IBufferProducer::RequestBufferReturnValue retval2;
@@ -138,65 +205,89 @@ HWTEST_F(BufferClientProducerRemoteTest, ReqReqReqCanCan, testing::ext::TestSize
     GSError ret;
 
     ret = bp->RequestBuffer(requestConfig, bedata, retval1);
-    ASSERT_EQ(ret, GSERROR_OK);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
     ASSERT_EQ(retval1.buffer, nullptr);
 
     ret = bp->RequestBuffer(requestConfig, bedata, retval2);
-    ASSERT_EQ(ret, GSERROR_OK);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
     ASSERT_NE(retval2.buffer, nullptr);
 
     ret = bp->RequestBuffer(requestConfig, bedata, retval3);
-    ASSERT_NE(ret, GSERROR_OK);
+    ASSERT_NE(ret, OHOS::GSERROR_OK);
     ASSERT_EQ(retval3.buffer, nullptr);
 
     ret = bp->CancelBuffer(retval1.sequence, bedata);
-    ASSERT_EQ(ret, GSERROR_OK);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
     ret = bp->CancelBuffer(retval2.sequence, bedata);
-    ASSERT_EQ(ret, GSERROR_OK);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
     ret = bp->CancelBuffer(retval3.sequence, bedata);
-    ASSERT_NE(ret, GSERROR_OK);
+    ASSERT_NE(ret, OHOS::GSERROR_OK);
 }
 
-HWTEST_F(BufferClientProducerRemoteTest, SetQueueSizeDeleting, testing::ext::TestSize.Level0)
+/*
+* Function: SetQueueSize, RequestBuffer and CancelBuffer
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call SetQueueSize
+*                  2. call RequestBuffer and CancelBuffer
+*                  3. call SetQueueSize again
+ */
+HWTEST_F(BufferClientProducerRemoteTest, SetQueueSizeDeleting001, Function | MediumTest | Level2)
 {
     GSError ret = bp->SetQueueSize(1);
-    ASSERT_EQ(ret, GSERROR_OK);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
     IBufferProducer::RequestBufferReturnValue retval;
     ret = bp->RequestBuffer(requestConfig, bedata, retval);
-    ASSERT_EQ(ret, GSERROR_OK);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
     ASSERT_EQ(retval.buffer, nullptr);
 
     ret = bp->CancelBuffer(retval.sequence, bedata);
-    ASSERT_EQ(ret, GSERROR_OK);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
     ret = bp->SetQueueSize(2);
-    ASSERT_EQ(ret, GSERROR_OK);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
 }
 
-HWTEST_F(BufferClientProducerRemoteTest, ReqFlu, testing::ext::TestSize.Level0)
+/*
+* Function: RequestBuffer and FlushBuffer
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call RequestBuffer
+*                  2. call FlushBuffer
+ */
+HWTEST_F(BufferClientProducerRemoteTest, ReqFlu001, Function | MediumTest | Level2)
 {
     IBufferProducer::RequestBufferReturnValue retval;
     GSError ret = bp->RequestBuffer(requestConfig, bedata, retval);
-    ASSERT_EQ(ret, GSERROR_OK);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
     ret = bp->FlushBuffer(retval.sequence, bedata, -1, flushConfig);
-    ASSERT_EQ(ret, GSERROR_OK);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
 }
 
-HWTEST_F(BufferClientProducerRemoteTest, ReqFluFlu, testing::ext::TestSize.Level0)
+/*
+* Function: RequestBuffer and FlushBuffer
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call RequestBuffer
+*                  2. call FlushBuffer 2 times
+ */
+HWTEST_F(BufferClientProducerRemoteTest, ReqFlu002, Function | MediumTest | Level2)
 {
     IBufferProducer::RequestBufferReturnValue retval;
     GSError ret = bp->RequestBuffer(requestConfig, bedata, retval);
-    ASSERT_EQ(ret, GSERROR_OK);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
     ret = bp->FlushBuffer(retval.sequence, bedata, -1, flushConfig);
-    ASSERT_EQ(ret, GSERROR_OK);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
     ret = bp->FlushBuffer(retval.sequence, bedata, -1, flushConfig);
-    ASSERT_NE(ret, GSERROR_OK);
+    ASSERT_NE(ret, OHOS::GSERROR_OK);
 }
 }
-} // namespace OHOS

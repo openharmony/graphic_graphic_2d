@@ -17,48 +17,29 @@
 #include <unistd.h>
 #include <gtest/gtest.h>
 #include <iservice_registry.h>
-#include <surface.h>
 #include <display_type.h>
+#include <native_window.h>
 
 using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
-class SurfaceIPCTest : public testing::Test, public IBufferConsumerListenerClazz {
+class NativeWindowBufferTest : public testing::Test,  public IBufferConsumerListenerClazz {
 public:
     static void SetUpTestCase();
     virtual void OnBufferAvailable() override;
     pid_t ChildProcessMain();
 
-    static inline sptr<Surface> csurf = nullptr;
+    static inline sptr<OHOS::Surface> cSurface = nullptr;
     static inline int32_t pipeFd[2] = {};
     static inline int32_t ipcSystemAbilityID = 34156;
-    static inline BufferRequestConfig requestConfig = {};
-    static inline BufferFlushConfig flushConfig = {};
 };
 
-void SurfaceIPCTest::SetUpTestCase()
-{
-    GTEST_LOG_(INFO) << getpid();
-    requestConfig = {
-        .width = 0x100,  // small
-        .height = 0x100, // small
-        .strideAlignment = 0x8,
-        .format = PIXEL_FMT_RGBA_8888,
-        .usage = HBM_USE_CPU_READ | HBM_USE_CPU_WRITE | HBM_USE_MEM_DMA,
-        .timeout = 0,
-    };
-    flushConfig = { .damage = {
-        .w = 0x100,
-        .h = 0x100,
-    } };
-}
+void NativeWindowBufferTest::SetUpTestCase() {}
 
-void SurfaceIPCTest::OnBufferAvailable()
-{
-}
+void NativeWindowBufferTest::OnBufferAvailable() {}
 
-pid_t SurfaceIPCTest::ChildProcessMain()
+pid_t NativeWindowBufferTest::ChildProcessMain()
 {
     pipe(pipeFd);
     pid_t pid = fork();
@@ -81,22 +62,47 @@ pid_t SurfaceIPCTest::ChildProcessMain()
     }
 
     auto producer = iface_cast<IBufferProducer>(robj);
-    auto psurf = Surface::CreateSurfaceAsProducer(producer);
+    sptr<Surface> pSurface = Surface::CreateSurfaceAsProducer(producer);
 
-    sptr<SurfaceBuffer> buffer = nullptr;
-    auto sret = psurf->RequestBufferNoFence(buffer, requestConfig);
-    if (sret != OHOS::GSERROR_OK) {
-        data = sret;
+    struct NativeWindow *nativeWindow = CreateNativeWindowFromSurface(&pSurface);
+    struct NativeWindowBuffer *nativeWindowBuffer = nullptr;
+
+    int code = SET_USAGE;
+    int32_t usage = HBM_USE_CPU_READ | HBM_USE_CPU_WRITE | HBM_USE_MEM_DMA;
+    NativeWindowHandleOpt(nativeWindow, code, usage);
+
+    code = SET_BUFFER_GEOMETRY;
+    int32_t height = 0x100;
+    int32_t width = 0x100;
+    NativeWindowHandleOpt(nativeWindow, code, height, width);
+
+    code = SET_FORMAT;
+    int32_t format = PIXEL_FMT_RGBA_8888;
+    NativeWindowHandleOpt(nativeWindow, code, format);
+
+    code = SET_STRIDE;
+    int32_t stride = 0x8;
+    NativeWindowHandleOpt(nativeWindow, code, stride);
+
+    int32_t fenceFd;
+    auto ret = NativeWindowRequestBuffer(nativeWindow, &nativeWindowBuffer, &fenceFd);
+    if (ret != OHOS::GSERROR_OK) {
+        data = ret;
         write(pipeFd[1], &data, sizeof(data));
         exit(0);
     }
+    nativeWindowBuffer->sfbuffer->ExtraSet("123", 0x123);
+    nativeWindowBuffer->sfbuffer->ExtraSet("345", (int64_t)0x345);
+    nativeWindowBuffer->sfbuffer->ExtraSet("567", "567");
 
-    buffer->ExtraSet("123", 0x123);
-    buffer->ExtraSet("345", (int64_t)0x345);
-    buffer->ExtraSet("567", "567");
+    struct Region *region = new Region();
+    struct Region::Rect *rect = new Region::Rect();
+    rect->w = 0x100;
+    rect->h = 0x100;
+    region->rects = rect;
+    ret = NativeWindowFlushBuffer(nativeWindow, nativeWindowBuffer, -1, *region);
 
-    sret = psurf->FlushBuffer(buffer, -1, flushConfig);
-    data = sret;
+    data = ret;
     write(pipeFd[1], &data, sizeof(data));
     sleep(0);
     read(pipeFd[0], &data, sizeof(data));
@@ -107,21 +113,21 @@ pid_t SurfaceIPCTest::ChildProcessMain()
 }
 
 /*
-* Function: produce and consumer surface by IPC
+* Function: produce and consumer surface of nativewindow
 * Type: Function
 * Rank: Important(2)
 * EnvConditions: N/A
-* CaseDescription: 1. produce surface, fill buffer
+* CaseDescription: 1. produce surface by nativewindow interface, fill buffer
 *                  2. consume surface and check buffer
  */
-HWTEST_F(SurfaceIPCTest, BufferIPC001, Function | MediumTest | Level2)
+HWTEST_F(NativeWindowBufferTest, Surface001, Function | MediumTest | Level2)
 {
     auto pid = ChildProcessMain();
     ASSERT_GE(pid, 0);
 
-    csurf = Surface::CreateSurfaceAsConsumer("test");
-    csurf->RegisterConsumerListener(this);
-    auto producer = csurf->GetProducer();
+    cSurface = Surface::CreateSurfaceAsConsumer("test");
+    cSurface->RegisterConsumerListener(this);
+    auto producer = cSurface->GetProducer();
     auto sam = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     sam->AddSystemAbility(ipcSystemAbilityID, producer->AsObject());
 
@@ -131,12 +137,12 @@ HWTEST_F(SurfaceIPCTest, BufferIPC001, Function | MediumTest | Level2)
     read(pipeFd[0], &data, sizeof(data));
     EXPECT_EQ(data, OHOS::GSERROR_OK);
 
-    sptr<SurfaceBuffer> buffer = nullptr;
+    OHOS::sptr<SurfaceBuffer> buffer = nullptr;
     int32_t fence;
     int64_t timestamp;
     Rect damage;
-    auto sret = csurf->AcquireBuffer(buffer, fence, timestamp, damage);
-    EXPECT_EQ(sret, OHOS::GSERROR_OK);
+    auto ret = cSurface->AcquireBuffer(buffer, fence, timestamp, damage);
+    EXPECT_EQ(ret, OHOS::GSERROR_OK);
     EXPECT_NE(buffer, nullptr);
     if (buffer != nullptr) {
         int32_t int32;
@@ -151,49 +157,13 @@ HWTEST_F(SurfaceIPCTest, BufferIPC001, Function | MediumTest | Level2)
         EXPECT_EQ(str, "567");
     }
 
-    sret = csurf->ReleaseBuffer(buffer, -1);
-    EXPECT_EQ(sret, OHOS::GSERROR_OK);
+    ret = cSurface->ReleaseBuffer(buffer, -1);
+    EXPECT_EQ(ret, OHOS::GSERROR_OK);
 
     write(pipeFd[1], &data, sizeof(data));
     close(pipeFd[0]);
     close(pipeFd[1]);
     sam->RemoveSystemAbility(ipcSystemAbilityID);
-    int32_t ret = 0;
-    do {
-        waitpid(pid, nullptr, 0);
-    } while (ret == -1 && errno == EINTR);
-}
-
-/*
-* Function: RequestBufferNoFence and flush buffer
-* Type: Function
-* Rank: Important(2)
-* EnvConditions: N/A
-* CaseDescription: 1. call RequestBufferNoFence, check sret and buffer
-*                  2. call flushbuffer and check sret
- */
-HWTEST_F(SurfaceIPCTest, Cache001, Function | MediumTest | Level2)
-{
-    csurf->RegisterConsumerListener(this);
-    auto producer = csurf->GetProducer();
-    auto psurf = Surface::CreateSurfaceAsProducer(producer);
-
-    sptr<SurfaceBuffer> buffer = nullptr;
-    auto sret = psurf->RequestBufferNoFence(buffer, requestConfig);
-    ASSERT_EQ(sret, OHOS::GSERROR_OK);
-    ASSERT_NE(buffer, nullptr);
-    int32_t int32;
-    int64_t int64;
-    std::string str;
-    buffer->ExtraGet("123", int32);
-    buffer->ExtraGet("345", int64);
-    buffer->ExtraGet("567", str);
-
-    ASSERT_EQ(int32, 0x123);
-    ASSERT_EQ(int64, 0x345);
-    ASSERT_EQ(str, "567");
-
-    sret = psurf->FlushBuffer(buffer, -1, flushConfig);
-    ASSERT_EQ(sret, OHOS::GSERROR_OK);
+    waitpid(pid, nullptr, NULL);
 }
 }

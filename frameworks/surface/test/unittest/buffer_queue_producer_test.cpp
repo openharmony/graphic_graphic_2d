@@ -12,14 +12,44 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-#include "buffer_queue_producer_test.h"
-
+#include <gtest/gtest.h>
+#include <display_type.h>
+#include <surface.h>
+#include <buffer_extra_data_impl.h>
+#include <buffer_queue_producer.h>
 #include "buffer_consumer_listener.h"
 
-using namespace OHOS;
+using namespace testing;
+using namespace testing::ext;
 
-namespace OHOS {
+namespace OHOS::Rosen {
+class BufferQueueProducerTest : public testing::Test {
+public:
+    static void SetUpTestCase();
+    static void TearDownTestCase();
+
+    static inline BufferRequestConfig requestConfig = {
+        .width = 0x100,
+        .height = 0x100,
+        .strideAlignment = 0x8,
+        .format = PIXEL_FMT_RGBA_8888,
+        .usage = HBM_USE_CPU_READ | HBM_USE_CPU_WRITE | HBM_USE_MEM_DMA,
+        .timeout = 0,
+    };
+    static inline BufferFlushConfig flushConfig = {
+        .damage = {
+            .w = 0x100,
+            .h = 0x100,
+        },
+    };
+    static inline std::vector<int32_t> deletingBuffers;
+    static inline int64_t timestamp = 0;
+    static inline Rect damage = {};
+    static inline sptr<BufferQueue> bq = nullptr;
+    static inline sptr<BufferQueueProducer> bqp = nullptr;
+    static inline BufferExtraDataImpl bedata;
+};
+
 void BufferQueueProducerTest::SetUpTestCase()
 {
     bq = new BufferQueue("test");
@@ -35,107 +65,161 @@ void BufferQueueProducerTest::TearDownTestCase()
     bqp = nullptr;
 }
 
-namespace {
-HWTEST_F(BufferQueueProducerTest, QueueSize, testing::ext::TestSize.Level0)
+/*
+* Function: SetQueueSize and GetQueueSize
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call GetQueueSize and get default value
+*                  2. call SetQueueSize
+*                  3. call SetQueueSize again with abnormal value
+*                  4. call GetQueueSize for BufferQueueProducer and BufferQueue
+*                  5. check ret
+ */
+HWTEST_F(BufferQueueProducerTest, QueueSize001, Function | MediumTest | Level2)
 {
     ASSERT_EQ(bqp->GetQueueSize(), (uint32_t)SURFACE_DEFAULT_QUEUE_SIZE);
 
     GSError ret = bqp->SetQueueSize(2);
-    ASSERT_EQ(ret, GSERROR_OK);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
     ret = bqp->SetQueueSize(SURFACE_MAX_QUEUE_SIZE + 1);
-    ASSERT_NE(ret, GSERROR_OK);
+    ASSERT_NE(ret, OHOS::GSERROR_OK);
 
     ASSERT_EQ(bqp->GetQueueSize(), 2u);
-    ASSERT_EQ(bq->queueSize_, 2u);
+    ASSERT_EQ(bq->GetQueueSize(), 2u);
 }
 
-HWTEST_F(BufferQueueProducerTest, ReqCan, testing::ext::TestSize.Level0)
+/*
+* Function: RequestBuffer and CancelBuffer
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call RequestBuffer
+*                  2. call CancelBuffer
+*                  3. check ret
+ */
+HWTEST_F(BufferQueueProducerTest, ReqCan001, Function | MediumTest | Level2)
 {
     IBufferProducer::RequestBufferReturnValue retval;
     GSError ret = bqp->RequestBuffer(requestConfig, bedata, retval);
-    ASSERT_EQ(ret, GSERROR_OK);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
     ret = bqp->CancelBuffer(retval.sequence, bedata);
-    ASSERT_EQ(ret, GSERROR_OK);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
 }
 
-HWTEST_F(BufferQueueProducerTest, ReqCanCan, testing::ext::TestSize.Level0)
+/*
+* Function: RequestBuffer and CancelBuffer
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call RequestBuffer
+*                  2. call CancelBuffer 2 times
+*                  3. check ret
+ */
+HWTEST_F(BufferQueueProducerTest, ReqCan002, Function | MediumTest | Level2)
 {
     IBufferProducer::RequestBufferReturnValue retval;
     GSError ret = bqp->RequestBuffer(requestConfig, bedata, retval);
-    ASSERT_EQ(ret, GSERROR_OK);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
     ret = bqp->CancelBuffer(retval.sequence, bedata);
-    ASSERT_EQ(ret, GSERROR_OK);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
     ret = bqp->CancelBuffer(retval.sequence, bedata);
-    ASSERT_NE(ret, GSERROR_OK);
+    ASSERT_NE(ret, OHOS::GSERROR_OK);
 }
 
-HWTEST_F(BufferQueueProducerTest, ReqReqReqCanCan, testing::ext::TestSize.Level0)
+/*
+* Function: RequestBuffer, and CancelBuffer
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call RequestBuffer and CancelBuffer by different retval
+*                  2. check ret
+ */
+HWTEST_F(BufferQueueProducerTest, ReqCan003, Function | MediumTest | Level2)
 {
     IBufferProducer::RequestBufferReturnValue retval1;
     IBufferProducer::RequestBufferReturnValue retval2;
     IBufferProducer::RequestBufferReturnValue retval3;
 
     auto ret = bqp->RequestBuffer(requestConfig, bedata, retval1);
-    ASSERT_EQ(ret, GSERROR_OK);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
     ASSERT_NE(retval1.buffer, nullptr);
 
     ret = bqp->RequestBuffer(requestConfig, bedata, retval2);
-    ASSERT_EQ(ret, GSERROR_OK);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
     ASSERT_NE(retval2.buffer, nullptr);
 
     ret = bqp->RequestBuffer(requestConfig, bedata, retval3);
-    ASSERT_NE(ret, GSERROR_OK);
+    ASSERT_NE(ret, OHOS::GSERROR_OK);
     ASSERT_EQ(retval3.buffer, nullptr);
 
     ret = bqp->CancelBuffer(retval1.sequence, bedata);
-    ASSERT_EQ(ret, GSERROR_OK);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
     ret = bqp->CancelBuffer(retval2.sequence, bedata);
-    ASSERT_EQ(ret, GSERROR_OK);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
     ret = bqp->CancelBuffer(retval3.sequence, bedata);
-    ASSERT_NE(ret, GSERROR_OK);
+    ASSERT_NE(ret, OHOS::GSERROR_OK);
 }
 
-HWTEST_F(BufferQueueProducerTest, ReqFlu, testing::ext::TestSize.Level0)
+/*
+* Function: RequestBuffer, FlushBuffer, AcquireBuffer and ReleaseBuffer
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call RequestBuffer and FlushBuffer
+*                  2. call AcquireBuffer and ReleaseBuffer
+*                  3. check ret
+ */
+HWTEST_F(BufferQueueProducerTest, ReqFlu001, Function | MediumTest | Level2)
 {
     IBufferProducer::RequestBufferReturnValue retval;
     GSError ret = bqp->RequestBuffer(requestConfig, bedata, retval);
-    ASSERT_EQ(ret, GSERROR_OK);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
     ret = bqp->FlushBuffer(retval.sequence, bedata, -1, flushConfig);
-    ASSERT_EQ(ret, GSERROR_OK);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
     sptr<SurfaceBufferImpl> bufferImpl = SurfaceBufferImpl::FromBase(retval.buffer);
     ret = bq->AcquireBuffer(bufferImpl, retval.fence, timestamp, damage);
-    ASSERT_EQ(ret, GSERROR_OK);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
     ret = bq->ReleaseBuffer(bufferImpl, -1);
-    ASSERT_EQ(ret, GSERROR_OK);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
 }
 
-HWTEST_F(BufferQueueProducerTest, ReqFluFlu, testing::ext::TestSize.Level0)
+/*
+* Function: RequestBuffer, FlushBuffer, AcquireBuffer and ReleaseBuffer
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call RequestBuffer and FlushBuffer
+*                  2. call FlushBuffer again
+*                  3. call AcquireBuffer and ReleaseBuffer
+*                  4. check ret
+ */
+HWTEST_F(BufferQueueProducerTest, ReqFlu002, Function | MediumTest | Level2)
 {
     IBufferProducer::RequestBufferReturnValue retval;
     GSError ret = bqp->RequestBuffer(requestConfig, bedata, retval);
-    ASSERT_EQ(ret, GSERROR_OK);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
     ret = bqp->FlushBuffer(retval.sequence, bedata, -1, flushConfig);
-    ASSERT_EQ(ret, GSERROR_OK);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
     ret = bqp->FlushBuffer(retval.sequence, bedata, -1, flushConfig);
-    ASSERT_NE(ret, GSERROR_OK);
+    ASSERT_NE(ret, OHOS::GSERROR_OK);
 
     sptr<SurfaceBufferImpl> bufferImpl = SurfaceBufferImpl::FromBase(retval.buffer);
     ret = bq->AcquireBuffer(bufferImpl, retval.fence, timestamp, damage);
-    ASSERT_EQ(ret, GSERROR_OK);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
     ret = bq->ReleaseBuffer(bufferImpl, -1);
-    ASSERT_EQ(ret, GSERROR_OK);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
 }
 }
-} // namespace OHOS
