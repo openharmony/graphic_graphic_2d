@@ -15,6 +15,8 @@
 
 #include "hdi_backend.h"
 
+#include <scoped_bytrace.h>
+
 namespace OHOS {
 namespace Rosen {
 
@@ -53,7 +55,7 @@ RosenError HdiBackend::RegPrepareComplete(OnPrepareCompleteFunc func, void* data
 
 void HdiBackend::Repaint(std::vector<OutputPtr> &outputs)
 {
-    HLOGD("start Repaint");
+    ScopedBytrace bytrace(__func__);
     if (device_ == nullptr) {
         HLOGE("device has not been initialized");
         return;
@@ -61,125 +63,118 @@ void HdiBackend::Repaint(std::vector<OutputPtr> &outputs)
 
     int32_t ret = DISPLAY_SUCCESS;
     for (auto &output : outputs) {
-        const std::unordered_map<uint32_t, LayerPtr> layersMap = output->GetLayers();
+        const std::unordered_map<uint32_t, LayerPtr> &layersMap = output->GetLayers();
         if (layersMap.empty()) {
             continue;
         }
+
         uint32_t screenId = output->GetScreenId();
         for (auto iter = layersMap.begin(); iter != layersMap.end(); ++iter) {
             const LayerPtr &layer = iter->second;
-            layer->SetHdiLayerInfo(screenId);
+            layer->SetHdiLayerInfo();
         }
 
         bool needFlush = false;
-        HLOGD("Repaint PrepareScreenLayers");
         ret = device_->PrepareScreenLayers(screenId, needFlush);
         if (ret != DISPLAY_SUCCESS) {
             HLOGE("PrepareScreenLayers failed, ret is %{public}d", ret);
-            // return [TODO]
+            return;
         }
 
-        std::vector<LayerPtr> changedLayers;
-        std::vector<CompositionType> compTypes;
-        std::vector<LayerInfoPtr> changedLayerInfos;
-        if (needFlush) {
-            HLOGE("Repaint need to flush");
-            ret = GetCompChangedLayers(screenId, changedLayers, changedLayerInfos, compTypes, layersMap);
-            if (ret != DISPLAY_SUCCESS) {
-                HLOGE("faile to GetCompChangedLayers");
-                // [TODO] GetCompChangedLayers is not realized
-                // return
+        ret = UpdateLayerCompType(screenId, layersMap);
+        if (ret != DISPLAY_SUCCESS) {
+            return;
+        }
+
+        std::vector<LayerPtr> compClientLayers;
+        std::vector<LayerInfoPtr> newLayerInfos;
+        for (auto iter = layersMap.begin(); iter != layersMap.end(); ++iter) {
+            const LayerPtr &layer = iter->second;
+            newLayerInfos.emplace_back(layer->GetLayerInfo());
+            if (layer->GetLayerInfo()->GetCompositionType() == CompositionType::COMPOSITION_CLIENT) {
+                compClientLayers.emplace_back(layer);
             }
         }
-        HLOGD("Repaint need to OnPrepareComplete");
-        OnPrepareComplete(needFlush, output, changedLayerInfos, compTypes);
+
+        if (compClientLayers.size() > 0) {
+            needFlush = true;
+            HLOGD("Need flush framebuffer, client composition layer num is %{public}zu", compClientLayers.size());
+        }
+
+        OnPrepareComplete(needFlush, output, newLayerInfos);
 
         if (needFlush) {
-            HLOGD("Repaint need to FlushScreen");
-            if (FlushScreen(screenId, output, changedLayers) != DISPLAY_SUCCESS) {
-                // return [TODO]
-                HLOGE("faile to flushscreen");
+            if (FlushScreen(screenId, output, compClientLayers) != DISPLAY_SUCCESS) {
+                // return
             }
         }
 
         sptr<SyncFence> fbFence = SyncFence::INVALID_FENCE;
-        HLOGD("Repaint start to commit");
         ret = device_->Commit(screenId, fbFence);
         if (ret != DISPLAY_SUCCESS) {
             HLOGE("commit failed, ret is %{public}d", ret);
-            // return [TODO]
+            return;
         }
-        HLOGD("Repaint commit end");
 
         ReleaseLayerBuffer(screenId, layersMap);
 
+        // wrong check
         output->ReleaseFramebuffer(fbFence);
     }
 }
 
-int32_t HdiBackend::GetCompChangedLayers(uint32_t screenId, std::vector<LayerPtr> &changedLayers,
-        std::vector<LayerInfoPtr> &changedLayerInfos, std::vector<CompositionType> &compTypes,
-        const std::unordered_map<uint32_t, LayerPtr> &layersMap)
+int32_t HdiBackend::UpdateLayerCompType(uint32_t screenId, const std::unordered_map<uint32_t, LayerPtr> &layersMap)
 {
     std::vector<uint32_t> layersId;
     std::vector<int32_t> types;
     int32_t ret = device_->GetScreenCompChange(screenId, layersId, types);
-    if (ret != DISPLAY_SUCCESS) {
+    if (ret != DISPLAY_SUCCESS || layersId.size() != types.size()) {
         HLOGE("GetScreenCompChange failed, ret is %{public}d", ret);
-        // return ret [TODO]
+        return ret;
     }
 
     size_t layerNum = layersId.size();
-    compTypes.resize(layerNum);
-    for (size_t i = 0; i < layerNum; i++) {
-        compTypes[i] = static_cast<CompositionType>(types[i]);
-    }
-
-    changedLayers.resize(layerNum);
-    changedLayerInfos.resize(layerNum);
     for (size_t i = 0; i < layerNum; i++) {
         auto iter = layersMap.find(layersId[i]);
-        if (iter != layersMap.end()) {
-            changedLayers[i] = iter->second;
-            changedLayerInfos[i] = iter->second->GetLayerInfo();
+        if (iter == layersMap.end()) {
+            HLOGE("Invalid hdi layer id[%{public}u]", layersId[i]);
+            continue;
         }
+
+        const LayerPtr &layer = iter->second;
+        layer->UpdateCompositionType(static_cast<CompositionType>(types[i]));
     }
 
-    return DISPLAY_SUCCESS;
+    return ret;
 }
 
 void HdiBackend::OnPrepareComplete(bool needFlush, OutputPtr &output,
-        std::vector<LayerInfoPtr> &changedLayerInfos, std::vector<CompositionType> &compTypes)
+        std::vector<LayerInfoPtr> &newLayerInfos)
 {
-    HLOGD("OnPrepareComplete begin");
     struct PrepareCompleteParam param = {
         .needFlushFramebuffer = needFlush,
-        .layers = changedLayerInfos,
-        .types = compTypes,
+        .layers = newLayerInfos,
     };
 
     sptr<Surface> producerSurface = output->GetProducerSurface();
 
     if (onPrepareCompleteCb_ != nullptr) {
-        HLOGD("onPrepareCompleteCb_ is not null call it");
         onPrepareCompleteCb_(producerSurface, param, onPrepareCompleteCbData_);
     }
 }
 
 int32_t HdiBackend::FlushScreen(uint32_t screenId, OutputPtr &output,
-        std::vector<LayerPtr> &changedLayers)
+        std::vector<LayerPtr> &compClientLayers)
 {
     /*
      * We may not be able to get the framebuffer at this time, so we
      * have to wait here. If the framebuffer is available, it'll signal us.
      */
+
     output->FramebufferSemWait();
 
     sptr<SyncFence> fbAcquireFence = output->GetFramebufferFence();
-    for (auto &layer : changedLayers) {
-        if (layer == nullptr) {
-            continue;
-        }
+    for (auto &layer : compClientLayers) {
         layer->MergeWithFramebufferFence(fbAcquireFence);
     }
 
@@ -196,12 +191,12 @@ int32_t HdiBackend::SetScreenClientInfo(uint32_t screenId, const sptr<SyncFence>
         return ret;
     }
 
-    // ret = device_->SetScreenClientDamage(screenId, output->GetOutputDamageNum(),
-    //                                      output->GetOutputDamage());
-    // if (ret != DISPLAY_SUCCESS) {
-    //     HLOGE("SetScreenClientDamage failed, ret is %{public}d", ret);
-    //     return ret;
-    // }
+    ret = device_->SetScreenClientDamage(screenId, output->GetOutputDamageNum(),
+                                         output->GetOutputDamage());
+    if (ret != DISPLAY_SUCCESS) {
+        HLOGE("SetScreenClientDamage failed, ret is %{public}d", ret);
+        return ret;
+    }
 
     return DISPLAY_SUCCESS;
 }
@@ -212,56 +207,46 @@ void HdiBackend::ReleaseLayerBuffer(uint32_t screenId, const std::unordered_map<
     std::vector<uint32_t> layersId;
     std::vector<sptr<SyncFence>> fences;
     int32_t ret = device_->GetScreenReleaseFence(screenId, layersId, fences);
-    if (ret != DISPLAY_SUCCESS || layersId.size() <= 0 || fences.size() <= 0) {
-        HLOGE("GetScreenReleaseFence failed, ret is %{public}d", ret);
-        // return [TODO]
+    if (ret != DISPLAY_SUCCESS || layersId.size() != fences.size()) {
+        HLOGE("GetScreenReleaseFence failed, ret is %{public}d, layerId size[%{public}d], fence size[%{public}d]",
+               ret, (int)layersId.size(), (int)fences.size());
+        return;
     }
 
-    // [TODO] add layer->MergeWithLayerFence(fences[i])
+    size_t layerNum = layersId.size();
+    for (size_t i = 0; i < layerNum; i++) {
+        auto iter = layersMap.find(layersId[i]);
+        if (iter == layersMap.end()) {
+            HLOGE("Invalid hdi layer id [%{public}u]", layersId[i]);
+            continue;
+        }
 
-    for (auto iter = layersMap.begin(); iter != layersMap.end(); ++iter) {
         const LayerPtr &layer = iter->second;
+        layer->MergeWithLayerFence(fences[i]);
         layer->ReleaseBuffer();
     }
 }
 
 void HdiBackend::OnHdiBackendHotPlugEvent(uint32_t screenId, bool connected, void *data)
 {
-    HLOGD("OnHdiBackendHotPlugEvent screenId [%{public}u] connected [%{public}u]", screenId,connected);
+    HLOGI("HotPlugEvent, screenId is %{public}u, connected is %{public}u", screenId, connected);
     HdiBackend *hdiBackend = nullptr;
     if (data != nullptr) {
         hdiBackend = static_cast<HdiBackend *>(data);
     } else {
         hdiBackend = HdiBackend::GetInstance();
     }
-    /*
+
+    hdiBackend->OnHdiBackendConnected(screenId, connected);
+}
+
+void HdiBackend::OnHdiBackendConnected(uint32_t screenId, bool connected)
+{
     if (connected) {
-        hdiBackend->OnHdiBackendConnected(screenId);
-    } else {
-        hdiBackend->OnHdiBackendDisconnected(screenId);
+        CreateHdiOutput(screenId);
     }
-    */
-    hdiBackend->UpdateScreenId(screenId);
-}
-void HdiBackend::UpdateScreenId(uint32_t screenId)
-{
-    newScreenId_ = screenId;
-}
 
-int32_t HdiBackend::GetScreenId()
-{
-    return newScreenId_;
-}
-
-void HdiBackend::OnHdiBackendConnected(uint32_t screenId)
-{
-    CreateHdiOutput(screenId);
-    OnScreenHotplug(screenId, true);
-}
-
-void HdiBackend::OnHdiBackendDisconnected(uint32_t screenId)
-{
-    OnScreenHotplug(screenId, false);
+    OnScreenHotplug(screenId, connected);
 }
 
 void HdiBackend::CreateHdiOutput(uint32_t screenId)
@@ -290,7 +275,6 @@ void HdiBackend::OnScreenHotplug(uint32_t screenId, bool connected)
 
 RosenError HdiBackend::InitDevice()
 {
-    HLOGD("InitDevice begin");
     if (device_ != nullptr) {
         return ROSEN_ERROR_OK;
     }
@@ -303,19 +287,11 @@ RosenError HdiBackend::InitDevice()
 
     int32_t ret = device_->RegHotPlugCallback(HdiBackend::OnHdiBackendHotPlugEvent, this);
     if (ret != DISPLAY_SUCCESS) {
-        HLOGE("DeviceFuncs.RegHotPlugCallback return %{public}d", ret);
+        HLOGE("RegHotPlugCallback failed, ret is %{public}d", ret);
         return ROSEN_ERROR_API_FAILED;
     }
 
-    bool isOfScreen =true;
-    while (isOfScreen)
-    {
-        if(newScreenId_ != -1){
-            break;
-        }
-    }
-    OnHdiBackendConnected(newScreenId_);
-    HLOGD("Init HdiDevice succeed");
+    HLOGI("Init device succeed");
 
     return ROSEN_ERROR_OK;
 }

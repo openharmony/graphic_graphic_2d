@@ -17,6 +17,8 @@
 
 #include <mutex>
 
+#include <scoped_bytrace.h>
+
 #define CHECK_FUNC(device, deviceFunc)                                 \
     do {                                                               \
         if (device == nullptr || deviceFunc == nullptr) {              \
@@ -55,18 +57,18 @@ HdiDevice::~HdiDevice()
 RosenError HdiDevice::Init()
 {
     if (deviceFuncs_ == nullptr) {
-        int ret = DeviceInitialize(&deviceFuncs_);
+        int32_t ret = DeviceInitialize(&deviceFuncs_);
         if (ret != DISPLAY_SUCCESS || deviceFuncs_ == nullptr) {
-            HLOGE("DeviceInitialize return %{public}d", ret);
+            HLOGE("DeviceInitialize failed, ret is %{public}d", ret);
             return ROSEN_ERROR_NOT_INIT;
         }
     }
 
     if (layerFuncs_ == nullptr) {
-        int ret = LayerInitialize(&layerFuncs_);
+        int32_t ret = LayerInitialize(&layerFuncs_);
         if (ret != DISPLAY_SUCCESS || layerFuncs_ == nullptr) {
             Destory();
-            HLOGE("LayerInitialize return %{public}d", ret);
+            HLOGE("LayerInitialize failed, ret is %{public}d", ret);
             return ROSEN_ERROR_NOT_INIT;
         }
     }
@@ -77,12 +79,18 @@ RosenError HdiDevice::Init()
 void HdiDevice::Destory()
 {
     if (deviceFuncs_ != nullptr) {
-        DeviceUninitialize(deviceFuncs_);
+        int32_t ret = DeviceUninitialize(deviceFuncs_);
+        if (ret != DISPLAY_SUCCESS) {
+            HLOGE("DeviceUninitialize failed, ret is %{public}d", ret);
+        }
         deviceFuncs_ = nullptr;
     }
 
     if (layerFuncs_ != nullptr) {
-        LayerUninitialize(layerFuncs_);
+        int32_t ret = LayerUninitialize(layerFuncs_);
+        if (ret != DISPLAY_SUCCESS) {
+            HLOGE("LayerUninitialize failed, ret is %{public}d", ret);
+        }
         layerFuncs_ = nullptr;
     }
 }
@@ -168,9 +176,7 @@ int32_t HdiDevice::SetScreenBacklight(uint32_t screenId, uint32_t level)
 
 int32_t HdiDevice::PrepareScreenLayers(uint32_t screenId, bool &needFlush)
 {
-    HLOGE("HdiDevice PrepareScreenLayers begin");
     CHECK_FUNC(deviceFuncs_, deviceFuncs_->PrepareDisplayLayers);
-    HLOGE("HdiDevice PrepareScreenLayers doing");
     return deviceFuncs_->PrepareDisplayLayers(screenId, &needFlush);
 }
 
@@ -188,7 +194,7 @@ int32_t HdiDevice::GetScreenCompChange(uint32_t screenId, std::vector<uint32_t> 
     if (layerNum > 0) {
         layersId.resize(layerNum);
         types.resize(layerNum);
-        return deviceFuncs_->GetDisplayCompChange(screenId, &layerNum, layersId.data(), types.data());
+        ret = deviceFuncs_->GetDisplayCompChange(screenId, &layerNum, layersId.data(), types.data());
     }
 
     return ret;
@@ -203,7 +209,7 @@ int32_t HdiDevice::SetScreenClientBuffer(uint32_t screenId, const BufferHandle *
         return DISPLAY_NULL_PTR;
     }
 
-    int32_t fenceFd = fence->Dup();
+    int32_t fenceFd = fence->Get();
     return deviceFuncs_->SetDisplayClientBuffer(screenId, buffer, fenceFd);
 }
 
@@ -229,11 +235,16 @@ int32_t HdiDevice::GetScreenReleaseFence(uint32_t screenId, std::vector<uint32_t
         fences.resize(layerNum);
         std::vector<int32_t> fenceFds;
         fenceFds.resize(layerNum);
+
         ret = deviceFuncs_->GetDisplayReleaseFence(screenId, &layerNum,
                                                    layers.data(), fenceFds.data());
 
-        for (uint32_t i = 0; i < layerNum; i++) {
-            fences[i] = new SyncFence(fenceFds[i]);
+        for (uint32_t i = 0; i < fenceFds.size(); i++) {
+            if (fenceFds[i] >= 0) {
+                fences[i] = new SyncFence(fenceFds[i]);
+            } else {
+                fences[i] = new SyncFence(-1);
+            }
         }
     }
 
@@ -242,11 +253,17 @@ int32_t HdiDevice::GetScreenReleaseFence(uint32_t screenId, std::vector<uint32_t
 
 int32_t HdiDevice::Commit(uint32_t screenId, sptr<SyncFence> &fence)
 {
+    ScopedBytrace bytrace(__func__);
     CHECK_FUNC(deviceFuncs_, deviceFuncs_->Commit);
 
     int32_t fenceFd = -1;
     int32_t ret = deviceFuncs_->Commit(screenId, &fenceFd);
-    fence = new SyncFence(fenceFd);
+
+    if (fenceFd >= 0) {
+        fence = new SyncFence(fenceFd);
+    } else {
+        fence = new SyncFence(-1);
+    }
 
     return ret;
 }
@@ -293,7 +310,7 @@ int32_t HdiDevice::SetLayerBuffer(uint32_t screenId, uint32_t layerId, const Buf
         return DISPLAY_NULL_PTR;
     }
 
-    int32_t fenceFd = acquireFence->Dup();
+    int32_t fenceFd = acquireFence->Get();
     return layerFuncs_->SetLayerBuffer(screenId, layerId, handle, fenceFd);
 }
 

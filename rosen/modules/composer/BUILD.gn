@@ -45,11 +45,10 @@ ohos_shared_library("libcomposer") {
     "hdi_backend/src/hdi_layer.cpp",
     "hdi_backend/src/hdi_output.cpp",
     "hdi_backend/src/hdi_screen.cpp",
-    "vsync/src/soft_vsync.cpp",
     "vsync/src/vsync.cpp",
   ]
 
-  include_dirs = []
+  include_dirs = [ "//foundation/graphic/standard/utils/log" ]
 
   configs = [ ":composer_config" ]
 
@@ -68,6 +67,7 @@ ohos_shared_library("libcomposer") {
   public_deps = [
     "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
     "//foundation/graphic/standard/utils:buffer_handle",
+    "//foundation/graphic/standard/utils:scoped_bytrace",
     "//foundation/graphic/standard/utils:semaphore",
     "//foundation/graphic/standard/utils:sync_fence",
     "//utils/native/base:utils",

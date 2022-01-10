@@ -16,6 +16,7 @@
 #ifndef HDI_BACKEND_HDI_LAYER_INFO_H
 #define HDI_BACKEND_HDI_LAYER_INFO_H
 
+#include <string>
 #include <surface.h>
 #include <surface_buffer.h>
 #include <sync_fence.h>
@@ -25,13 +26,48 @@
 
 namespace OHOS {
 namespace Rosen {
+static const std::map<TransformType, std::string> TransformTypeStrs = {
+    {ROTATE_NONE,                    "0 <no rotation>"},
+    {ROTATE_90,                      "1 <Rotation by 90 degrees>"},
+    {ROTATE_180,                     "2 <Rotation by 180 degrees>"},
+    {ROTATE_270,                     "3 <Rotation by 270 degrees>"},
+    {ROTATE_BUTT,                    "4 <Invalid operation>"},
+};
+
+static const std::map<CompositionType, std::string> CompositionTypeStrs = {
+    {COMPOSITION_CLIENT,             "0 <client composistion type>"},
+    {COMPOSITION_DEVICE,             "1 <device composistion type>"},
+    {COMPOSITION_CURSOR,             "2 <cursor composistion type>"},
+    {COMPOSITION_VIDEO,              "3 <video composistion type>"},
+    {COMPOSITION_BUTT,               "4 <Invalid operation>"},
+};
+
+static const std::map<BlendType, std::string> BlendTypeStrs = {
+    {BLEND_NONE,                     "0 <No blending>"},
+    {BLEND_CLEAR,                    "1 <CLEAR blending>"},
+    {BLEND_SRC,                      "2 <SRC blending>"},
+    {BLEND_SRCOVER,                  "3 <SRC_OVER blending>"},
+    {BLEND_DSTOVER,                  "4 <DST_OVER blending>"},
+    {BLEND_SRCIN,                    "5 <SRC_IN blending>"},
+    {BLEND_DSTIN,                    "6 <DST_IN blending>"},
+    {BLEND_SRCOUT,                   "7 <SRC_OUT blending>"},
+    {BLEND_DSTOUT,                   "8 <DST_OUT blending>"},
+    {BLEND_SRCATOP,                  "9 <SRC_ATOP blending>"},
+    {BLEND_DSTATOP,                  "10 <DST_ATOP blending>"},
+    {BLEND_ADD,                      "11 <ADD blending>"},
+    {BLEND_XOR,                      "12 <XOR blending>"},
+    {BLEND_DST,                      "13 <DST blending>"},
+    {BLEND_AKS,                      "14 <AKS blending>"},
+    {BLEND_AKD,                      "15 <AKD blending>"},
+    {BLEND_BUTT,                     "16 <Invalid operation>"},
+};
 
 class HdiLayerInfo {
 public:
     HdiLayerInfo() = default;
     virtual ~HdiLayerInfo() = default;
 
-    /* rs create and set layer info begin */
+    /* rs create and set/get layer info begin */
     static std::shared_ptr<HdiLayerInfo> CreateHdiLayerInfo()
     {
         return std::make_shared<HdiLayerInfo>();
@@ -98,7 +134,17 @@ public:
     {
         layerRect_ = layerRect;
     }
-    /* rs create and set layer info end */
+
+    void SetLayerAdditionalInfo(void *info)
+    {
+        additionalInfo_ = info;
+    }
+
+    void* GetLayerAdditionalInfo()
+    {
+        return additionalInfo_;
+    }
+    /* rs create and set/get layer info end */
 
     /* hdiLayer get layer info begin */
     sptr<Surface> GetSurface() const
@@ -170,6 +216,38 @@ public:
     {
         return preMulti_;
     }
+
+    void Dump(std::string &result) const
+    {
+        result += "    zOrder = " + std::to_string(zOrder_) +
+            ", visibleNum = " + std::to_string(visibleNum_) +
+            ", transformType = " + TransformTypeStrs.at(transformType_) +
+            ", compositionType = " + CompositionTypeStrs.at(compositionType_) +
+            ", blendType = " + BlendTypeStrs.at(blendType_) +
+            ", layerAlpha = [enGlobalAlpha(" + std::to_string(layerAlpha_.enGlobalAlpha) + "), enPixelAlpha(" +
+            std::to_string(layerAlpha_.enPixelAlpha) + "), alpha0(" +
+            std::to_string(layerAlpha_.alpha0) + "), alpha1(" +
+            std::to_string(layerAlpha_.alpha1) + "), gAlpha(" +
+            std::to_string(layerAlpha_.gAlpha) + ")].\n";
+
+        result += "    layerRect = [" + std::to_string(layerRect_.x) + ", " +
+            std::to_string(layerRect_.y) + ", " +
+            std::to_string(layerRect_.w) + ", " +
+            std::to_string(layerRect_.h) + "], ";
+        result += "visibleRegion = [" + std::to_string(visibleRegion_.x) + ", " +
+            std::to_string(visibleRegion_.y) + ", " +
+            std::to_string(visibleRegion_.w) + ", " +
+            std::to_string(visibleRegion_.h) + "], ";
+        result += "dirtyRegion = [" + std::to_string(dirtyRegion_.x) + ", " +
+            std::to_string(dirtyRegion_.y) + ", " +
+            std::to_string(dirtyRegion_.w) + ", " +
+            std::to_string(dirtyRegion_.h) + "], ";
+        result += "cropRect = [" + std::to_string(cropRect_.x) + ", " +
+            std::to_string(cropRect_.y) + ", " +
+            std::to_string(cropRect_.w) + ", " +
+            std::to_string(cropRect_.h) + "].\n";
+        cSurface_->Dump(result);
+    }
     /* hdiLayer get layer info end */
 
 private:
@@ -185,6 +263,7 @@ private:
     CompositionType compositionType_;
     BlendType blendType_;
 
+    void *additionalInfo_ = nullptr;
     sptr<Surface> cSurface_ = nullptr;
     sptr<SurfaceBuffer> sbuffer_ = nullptr;
 

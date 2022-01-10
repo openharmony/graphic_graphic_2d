@@ -65,9 +65,9 @@ bool HdiScreen::Init()
 
     int32_t ret = device_->RegScreenVBlankCallback(screenId_, HdiScreen::OnVsync, this);
     if (ret != DISPLAY_SUCCESS) {
-        // Destory()
+        Destory();
         HLOGE("RegScreenVBlankCallback failed, ret is %{public}d", ret);
-        // return false
+        return false;
     }
 
     ret = device_->SetScreenVsyncEnabled(screenId_, true);
@@ -76,6 +76,8 @@ bool HdiScreen::Init()
         HLOGE("SetScreenVsyncEnabled failed, ret is %{public}d", ret);
         return false;
     }
+
+    HLOGI("Init hdiScreen succeed");
 
     return true;
 }

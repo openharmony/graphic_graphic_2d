@@ -31,6 +31,7 @@ config("hello_composer_public_config") {
     "//foundation/graphic/standard/rosen/include/common",
     "//foundation/graphic/standard/interfaces/innerkits/vsync_module",
     "//foundation/graphic/standard/interfaces/innerkits/common",
+    "//foundation/graphic/standard/rosen/modules/composer/vsync/include",
   ]
 }
 
@@ -48,6 +49,7 @@ ohos_executable("hello_composer") {
     "//foundation/graphic/standard:libsurface",
     "//foundation/graphic/standard:libvsync_client",
     "//foundation/graphic/standard/rosen/modules/composer:libcomposer",
+    "//foundation/graphic/standard/utils:sync_fence",
   ]
 
   external_deps = [ "ipc:ipc_core" ]

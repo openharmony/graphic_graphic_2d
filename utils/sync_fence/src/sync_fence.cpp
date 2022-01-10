@@ -33,19 +33,16 @@ const sptr<SyncFence> SyncFence::INVALID_FENCE = sptr<SyncFence>(new SyncFence(I
 
 SyncFence::SyncFence(int32_t fenceFd) : fenceFd_(fenceFd)
 {
-    HiLog::Debug(LABEL, "%{public}s fenceFd: %{public}d", __func__, fenceFd_);
+    HiLog::Debug(LABEL, "%{public}s fenceFd: %{public}d", __func__, fenceFd_.Get());
 }
 
 SyncFence::~SyncFence()
 {
-    if (fenceFd_ != INVALID_FD) {
-        close(fenceFd_);
-    }
 }
 
 int32_t SyncFence::Wait(uint32_t timeout)
 {
-    if (fenceFd_ == INVALID_FD) {
+    if (fenceFd_ < 0) {
         return 0;
     }
 
@@ -60,11 +57,11 @@ sptr<SyncFence> SyncFence::MergeFence(const std::string &name,
     int32_t fenceFd1 = fence1->fenceFd_;
     int32_t fenceFd2 = fence2->fenceFd_;
 
-    if (fenceFd1 != INVALID_FD && fenceFd2 != INVALID_FD) {
+    if (fenceFd1 >= 0 && fenceFd2 >= 0) {
         newFenceFd = sync_merge(name.c_str(), fenceFd1, fenceFd2);
-    } else if (fenceFd1 != INVALID_FD) {
+    } else if (fenceFd1 >= 0) {
         newFenceFd = sync_merge(name.c_str(), fenceFd1, fenceFd1);
-    } else if (fenceFd2 != INVALID_FD) {
+    } else if (fenceFd2 >= 0) {
         newFenceFd = sync_merge(name.c_str(), fenceFd2, fenceFd2);
     } else {
         return INVALID_FENCE;
@@ -83,6 +80,11 @@ sptr<SyncFence> SyncFence::MergeFence(const std::string &name,
 int32_t SyncFence::Dup() const
 {
     return ::dup(fenceFd_);
+}
+
+int32_t SyncFence::Get() const
+{
+    return fenceFd_;
 }
 
 } // namespace OHOS

@@ -18,12 +18,14 @@
 
 #include <string>
 #include <refbase.h>
+#include <unique_fd.h>
 
 namespace OHOS {
 
 class SyncFence : public RefBase {
 public:
     explicit SyncFence(int32_t fenceFd);
+    /* When the SyncFence is destroyed, the fd will be closed in UniqueFd */
     virtual ~SyncFence();
 
     SyncFence(const SyncFence& rhs) = delete;
@@ -37,8 +39,11 @@ public:
             const sptr<SyncFence>& fence1, const sptr<SyncFence>& fence2);
     int32_t Dup() const;
 
+    /* this is dangerous, when you use it, do not operator the fd */
+    int32_t Get() const;
+
 private:
-    int32_t fenceFd_;
+    UniqueFd fenceFd_;
 };
 
 }

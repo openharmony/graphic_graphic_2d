@@ -31,22 +31,23 @@ using LayerInfoPtr = std::shared_ptr<HdiLayerInfo>;
 
 class HdiLayer {
 public:
-    explicit HdiLayer(uint32_t layerId);
+    explicit HdiLayer(uint32_t screenId);
     virtual ~HdiLayer();
 
     /* output create and set layer info */
-    static std::shared_ptr<HdiLayer> CreateHdiLayer(uint32_t layerId);
+    static std::shared_ptr<HdiLayer> CreateHdiLayer(uint32_t screenId);
 
-    void Init();
+    bool Init(const LayerInfoPtr &layerInfo);
     void ReleaseBuffer();
     void MergeWithFramebufferFence(const sptr<SyncFence> &fbAcquireFence);
     void MergeWithLayerFence(const sptr<SyncFence> &layerReleaseFence);
+    void UpdateCompositionType(CompositionType type);
 
     const LayerInfoPtr& GetLayerInfo();
     void SetLayerStatus(bool inUsing);
     bool GetLayerStatus() const;
     void UpdateLayerInfo(const LayerInfoPtr &layerInfo);
-    void SetHdiLayerInfo(uint32_t screenId);
+    void SetHdiLayerInfo();
     uint32_t GetLayerId() const;
 
 private:
@@ -61,12 +62,15 @@ private:
         sptr<SyncFence> releaseFence_ = SyncFence::INVALID_FENCE;
     };
 
-    uint32_t layerId_;
+    uint32_t screenId_ = INT_MAX;
+    uint32_t layerId_ = INT_MAX;
     bool isInUsing_ = false;
     sptr<LayerBufferInfo> currSbuffer_ = nullptr;
     sptr<LayerBufferInfo> prevSbuffer_ = nullptr;
     LayerInfoPtr layerInfo_ = nullptr;
 
+    void CloseLayer();
+    int32_t CreateLayer(const LayerInfoPtr &layerInfo);
     sptr<SyncFence> Merge(const sptr<SyncFence> &fence1, const sptr<SyncFence> &fence2);
     SurfaceError ReleasePrevBuffer();
 

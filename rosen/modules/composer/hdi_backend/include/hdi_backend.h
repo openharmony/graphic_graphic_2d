@@ -34,7 +34,6 @@ using OutputPtr = std::shared_ptr<HdiOutput>;
 struct PrepareCompleteParam {
     bool needFlushFramebuffer;
     std::vector<LayerInfoPtr> layers;
-    std::vector<CompositionType> types;
 };
 
 using OnScreenHotplugFunc = std::function<void(OutputPtr &output, bool connected, void* data)>;
@@ -68,24 +67,17 @@ private:
 
     static void OnHdiBackendHotPlugEvent(uint32_t deviceId, bool connected, void *data);
     RosenError InitDevice();
-    void OnHdiBackendConnected(uint32_t screenId);
-    void OnHdiBackendDisconnected(uint32_t screenId);
+    void OnHdiBackendConnected(uint32_t screenId, bool connected);
     void CreateHdiOutput(uint32_t screenId);
     void OnScreenHotplug(uint32_t screenId, bool connected);
     void SetHdiLayerInfo(uint32_t screenId, uint32_t layerId, LayerPtr &layer);
-    void OnPrepareComplete(bool needFlush, OutputPtr &output,
-        std::vector<LayerInfoPtr> &changedLayerInfos, std::vector<CompositionType> &compTypes);
+    void OnPrepareComplete(bool needFlush, OutputPtr &output, std::vector<LayerInfoPtr> &newLayerInfos);
     void ReleaseLayerBuffer(uint32_t screenId, const std::unordered_map<uint32_t, LayerPtr> &layersMap);
-    int32_t FlushScreen(uint32_t screenId, OutputPtr &output, std::vector<LayerPtr> &changedLayers);
+    int32_t FlushScreen(uint32_t screenId, OutputPtr &output, std::vector<LayerPtr> &compClientLayers);
     int32_t SetScreenClientInfo(uint32_t screenId, const sptr<SyncFence> &fbAcquireFence, OutputPtr &output);
-    int32_t GetCompChangedLayers(uint32_t screenId, std::vector<LayerPtr> &changedLayers,
-        std::vector<LayerInfoPtr> &changedLayerInfos, std::vector<CompositionType> &compTypes,
-        const std::unordered_map<uint32_t, LayerPtr> &layersMap);
+    int32_t UpdateLayerCompType(uint32_t screenId, const std::unordered_map<uint32_t, LayerPtr> &layersMap);
 
     inline void CheckRet(int32_t ret, const char* func);
-    int32_t newScreenId_ = -1;
-    void UpdateScreenId(uint32_t screenId);
-    int32_t GetScreenId();
 };
 } // namespace Rosen
 } // namespace OHOS

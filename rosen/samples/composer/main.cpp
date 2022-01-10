@@ -152,6 +152,7 @@ public:
     OHOS::sptr<SurfaceBuffer> buffer_;
     std::shared_ptr<HdiLayerInfo> hdiLayer_;
     bool dynamic_ = false;
+
 private:
     void DrawColor(void *image, int width, int height)
     {
@@ -175,17 +176,22 @@ public:
     void Init(HdiBackend* backend);
     void Draw();
     void Sync(int64_t, void *data);
-    void CreatePyhsicalScreen(std::shared_ptr<HdiOutput> &output);
+    void CreatePhysicalScreen();
     void DoPrepareCompleted(OHOS::sptr<Surface> &surface, const struct PrepareCompleteParam &param);
+    void OnHotPlugEvent(std::shared_ptr<HdiOutput> &output, bool connected);
 
     int32_t freq = 30;
     int display_w = 480;
     int display_h = 960;
+    bool initDeviceFinished_ = false;
+    bool deviceConnected_ = false;
+    std::shared_ptr<HdiOutput> output = nullptr;
+
 private:
     uint32_t currentModeIndex = 0;
     std::vector<DisplayModeInfo> displayModeInfos;
     std::unique_ptr<HdiScreen> screen = nullptr;
-    std::shared_ptr<HdiOutput> output = nullptr;
+    
     std::vector<std::shared_ptr<HdiOutput>> outputs;
     HdiBackend* backend = nullptr;
     std::vector<std::unique_ptr<LayerContext>> drawLayers;
@@ -251,13 +257,12 @@ void HelloComposer::Init(HdiBackend* backend)
     Sync(0, nullptr);
 }
 
-void HelloComposer::CreatePyhsicalScreen(std::shared_ptr<HdiOutput> &output)
+void HelloComposer::CreatePhysicalScreen()
 {
-    std::cout << "CreatePyhsicalScreen begin" << std::endl;
+    std::cout << "CreatePhysicalScreen begin" << std::endl;
     screen = HdiScreen::CreateHdiScreen(output->GetScreenId());
     screen->Init();
     screen->GetScreenSuppportedModes(displayModeInfos);
-    this->output = output;
     outputs.push_back(output);
     int supportModeNum = displayModeInfos.size();
     if (supportModeNum > 0) {
@@ -276,7 +281,7 @@ void HelloComposer::CreatePyhsicalScreen(std::shared_ptr<HdiOutput> &output)
         screen->SetScreenPowerStatus(DispPowerStatus::POWER_STATUS_ON);
     }
     ready = true;
-    std::cout << "CreatePyhsicalScreen end " << std::endl;
+    std::cout << "CreatePhysicalScreen end " << std::endl;
 }
 
 void HelloComposer::DoPrepareCompleted(OHOS::sptr<Surface> &surface, const struct PrepareCompleteParam &param)
@@ -310,13 +315,30 @@ void HelloComposer::DoPrepareCompleted(OHOS::sptr<Surface> &surface, const struc
 static void OnScreenPlug(std::shared_ptr<HdiOutput> &output, bool connected, void* data)
 {
     LOG("enter OnScreenPlug, connected is %{public}d", connected);
-    std::cout << "OnScreenPlug begin " << std::endl;
     auto* thisPtr = static_cast<HelloComposer *>(data);
-    if (connected) {
-        std::cout << "OnScreenPlug connetcted " << std::endl;
-        thisPtr->CreatePyhsicalScreen(output);
-    }
+    thisPtr->OnHotPlugEvent(output, connected);
 }
+
+void HelloComposer::OnHotPlugEvent(std::shared_ptr<HdiOutput> &output, bool connected)
+{
+    /*
+     * Currently, IPC communication cannot be nested. Therefore, Vblank registration can be
+     * initiated only after the initialization of the device is complete.
+     */
+    this->output = output;
+    deviceConnected_ = connected;
+
+    if (!initDeviceFinished_) {
+        LOG("Init the device has not finished yet");
+        return;
+    }
+
+    LOG("Callback HotPlugEvent, connected is %{public}u", connected);
+
+    if (connected) {
+        CreatePhysicalScreen();
+    }
+ }
 
 static void OnPrepareCompleted(OHOS::sptr<Surface> &surface, const struct PrepareCompleteParam &param, void* data)
 {
@@ -338,6 +360,20 @@ int main(int argc, const char *argv[])
     }
     std::cout << "start RegScreenHotplug " << std::endl;
     backend->RegScreenHotplug(OnScreenPlug, &m);
+    while (1) {
+        if (m.output != nullptr) {
+            break;
+        }
+    }
+
+    if (!m.initDeviceFinished_) {
+        if (m.deviceConnected_) {
+            m.CreatePhysicalScreen();
+        }
+        m.initDeviceFinished_ = true;
+    }
+    LOG("Init screen succeed");
+
     std::cout << "RegPrepareComplete " << std::endl;
     backend->RegPrepareComplete(OnPrepareCompleted, &m);
 
