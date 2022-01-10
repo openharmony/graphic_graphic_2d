@@ -24,6 +24,8 @@ config("export_config") {
     "//utils/native/base/include",
     "//utils/system/safwk/native/include",
     "//foundation/graphic/standard/frameworks/surface/src",
+    "//foundation/graphic/standard/rosen/modules/2d_graphics/src",
+    "//foundation/multimedia/image_standard/interfaces/innerkits/include",
   ]
 }
 
@@ -37,7 +39,6 @@ ohos_source_set("rosen_ohos_sources") {
     "backend/rs_surface_frame_ohos_raster.cpp",
     "backend/rs_surface_ohos_raster.cpp",
     "rs_log.cpp",
-    "rs_platform_canvas.cpp",
     "rs_render_service_client.cpp",
     "rs_render_service_connect.cpp",
     "rs_render_service_proxy.cpp",
@@ -69,6 +70,8 @@ ohos_source_set("rosen_ohos_sources") {
     "//foundation/ace/ace_engine/build/external_config/flutter/skia:ace_skia_ohos",
     "//foundation/graphic/standard:libsurface",
     "//foundation/graphic/standard:libvsync_client",
+    "//foundation/graphic/standard/rosen/modules/2d_graphics:2d_graphics",
+    "//foundation/multimedia/image_standard/interfaces/innerkits:image_native",
     "//utils/native/base:utils",
   ]
 

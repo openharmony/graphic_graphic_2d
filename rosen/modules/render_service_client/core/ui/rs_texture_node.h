@@ -15,7 +15,7 @@
 #ifndef RENDER_SERVICE_CLIENT_CORE_UI_RS_TEXTURE_NODE_H
 #define RENDER_SERVICE_CLIENT_CORE_UI_RS_TEXTURE_NODE_H
 
-#include "ui/rs_node.h"
+#include "ui/rs_canvas_node.h"
 
 namespace flutter::OHOS {
 class TextureRegistry;
@@ -23,16 +23,23 @@ class TextureRegistry;
 
 namespace OHOS {
 namespace Rosen {
-class RS_EXPORT RSTextureNode : public RSNode {
+class RS_EXPORT RSTextureNode : public RSCanvasNode {
 public:
     using WeakPtr = std::weak_ptr<RSTextureNode>;
     using SharedPtr = std::shared_ptr<RSTextureNode>;
+    static inline constexpr RSUINodeType Type = RSUINodeType::TEXTURE_NODE;
+
     virtual ~RSTextureNode() {}
 
     static std::shared_ptr<RSNode> Create();
 
     static void SetTextureRegistry(std::shared_ptr<flutter::OHOS::TextureRegistry> registry);
     void UpdateTexture(int64_t textureId, bool freeze, RectF drawRect);
+
+    RSUINodeType GetType() const override
+    {
+        return RSUINodeType::TEXTURE_NODE;
+    }
 
 protected:
     RSTextureNode(bool isRenderServiceNode);

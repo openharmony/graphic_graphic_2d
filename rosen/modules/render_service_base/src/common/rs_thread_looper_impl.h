@@ -68,8 +68,8 @@ private:
     };
 
     bool HaveDelayedMessageToProcess();
-    void WaitForMessage(int timeoutMillis, std::unique_lock<std::mutex>& lock);
-    bool ProcessOneMessageInternal(std::unique_lock<std::mutex>& lock);
+    void WaitForMessage(int timeoutMillis);
+    bool ProcessOneMessageInternal();
 
     std::mutex mutex_;
     std::condition_variable cv_;

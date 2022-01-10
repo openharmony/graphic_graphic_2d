@@ -46,7 +46,10 @@ namespace Rosen {
     animation->SetFillMode(GetFillMode());                                                                 \
     animation->SetDirection(GetDirection());                                                               \
     std::unique_ptr<RSCommand> command = std::make_unique<Command>(target->GetId(), std::move(animation)); \
-    RSTransactionProxy::GetInstance().AddCommand(command, target->IsRenderServiceNode());
+    auto transactionProxy = RSTransactionProxy::GetInstance();                                             \
+    if (transactionProxy != nullptr) {                                                                     \
+        transactionProxy->AddCommand(command, target->IsRenderServiceNode());                              \
+    }
 
 template<>
 void RSKeyframeAnimation<int>::OnStart()
@@ -82,6 +85,12 @@ template<>
 void RSKeyframeAnimation<Vector4f>::OnStart()
 {
     START_KEYFRAME_ANIMATION(RSAnimationCreateKeyframeVec4f, Vector4f);
+}
+
+template<>
+void RSKeyframeAnimation<Quaternion>::OnStart()
+{
+    START_KEYFRAME_ANIMATION(RSAnimationCreateKeyframeQuaternion, Quaternion);
 }
 
 template<>

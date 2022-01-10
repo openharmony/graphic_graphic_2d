@@ -20,7 +20,7 @@
 
 namespace OHOS {
 namespace Rosen {
-Vector4f RSValueEstimator::Estimate(float fraction, const Vector4f& startValue, const Vector4f& endValue) const
+Quaternion RSValueEstimator::Estimate(float fraction, const Quaternion& startValue, const Quaternion& endValue) const
 {
     auto value = startValue;
     return value.Slerp(endValue, fraction);
@@ -57,6 +57,12 @@ float RSValueEstimator::EstimateFraction(const std::shared_ptr<RSInterpolator>& 
 
 float RSValueEstimator::EstimateFraction(const std::shared_ptr<RSInterpolator>& interpolator, const Vector4f& value,
     const Vector4f& startValue, const Vector4f& endValue) const
+{
+    return 0.0f;
+}
+
+float RSValueEstimator::EstimateFraction(const std::shared_ptr<RSInterpolator>& interpolator, const Quaternion& value,
+    const Quaternion& startValue, const Quaternion& endValue) const
 {
     return 0.0f;
 }

@@ -23,6 +23,11 @@ namespace OHOS {
 namespace Rosen {
 class RSDisplayRenderNode : public RSBaseRenderNode {
 public:
+    enum CompositeType {
+        COMPATIBLE_COMPOSITE = 0,
+        HARDWARE_COMPOSITE,
+        SOFTWARE_COMPOSITE
+    };
     using WeakPtr = std::weak_ptr<RSDisplayRenderNode>;
     using SharedPtr = std::shared_ptr<RSDisplayRenderNode>;
     static inline constexpr RSRenderNodeType Type = RSRenderNodeType::DISPLAY_NODE;
@@ -42,15 +47,22 @@ public:
     void Prepare(const std::shared_ptr<RSNodeVisitor>& visitor) override;
     void Process(const std::shared_ptr<RSNodeVisitor>& visitor) override;
 
-    RSRenderNodeType GetType() override
+    RSRenderNodeType GetType() const override
     {
         return RSRenderNodeType::DISPLAY_NODE;
     }
 
+    void SetCompositeType(CompositeType type);
+    CompositeType GetCompositeType() const;
+    void SetForceSoftComposite(bool flag);
+    bool IsForceSoftComposite() const;
+
 protected:
 
 private:
+    CompositeType compositeType_{HARDWARE_COMPOSITE};
     uint64_t screenId_;
+    bool forceSoftComposite_{false};
 };
 } // namespace Rosen
 } // namespace OHOS

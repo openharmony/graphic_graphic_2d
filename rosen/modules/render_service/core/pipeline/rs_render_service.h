@@ -23,8 +23,8 @@
 
 namespace OHOS {
 namespace Rosen {
-
 class RSMainThread;
+class RSSyncTask;
 
 class RSRenderService : public RSRenderServiceStub {
 public:
@@ -32,13 +32,16 @@ public:
     RSRenderService(const RSRenderService&) = delete;
     RSRenderService& operator=(const RSRenderService&) = delete;
 
-    void Init();
+    bool Init();
     void Run();
+    int Dump(int fd, const std::vector<std::u16string>& args) override;
+
 private:
     RSRenderService();
     ~RSRenderService() noexcept;
 
     void CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData) override;
+    void ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task) override;
 
     sptr<Surface> CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config) override;
 
@@ -59,6 +62,8 @@ private:
     void SetScreenActiveMode(ScreenId id, uint32_t modeId) override;
 
     void SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status) override;
+
+    void TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback) override;
 
     RSScreenModeInfo GetScreenActiveMode(ScreenId id) override;
 

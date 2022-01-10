@@ -18,7 +18,7 @@
 #include "animation/rs_render_transition.h"
 #include "command/rs_animation_command.h"
 #include "transaction/rs_transaction_proxy.h"
-#include "ui/rs_property_node.h"
+#include "ui/rs_node.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -46,7 +46,10 @@ void RSTransition::OnStart()
     transition->SetInterpolator(interpolator);
     std::unique_ptr<RSCommand> command =
         std::make_unique<RSAnimationCreateTransition>(target->GetId(), std::move(transition));
-    RSTransactionProxy::GetInstance().AddCommand(command, target->IsRenderServiceNode());
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        transactionProxy->AddCommand(command, target->IsRenderServiceNode());
+    }
 }
 } // namespace Rosen
 } // namespace OHOS

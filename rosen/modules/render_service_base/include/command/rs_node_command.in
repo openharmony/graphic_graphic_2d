@@ -1,0 +1,181 @@
+/*
+ * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+DECLARE_SET_COMMAND(RSNodeSetBounds, SET_BOUNDS, Vector4f, SetBounds)
+DECLARE_DELTA_COMMAND(RSNodeSetBoundsDelta, SET_BOUNDS_DELTA, Vector4f, SetBounds, GetBounds)
+
+DECLARE_SET_COMMAND(RSNodeSetBoundsSize, SET_BOUNDS_SIZE, Vector2f, SetBoundsSize)
+DECLARE_DELTA_COMMAND(RSNodeSetBoundsSizeDelta, SET_BOUNDS_SIZE_DELTA, Vector2f, SetBoundsSize, GetBoundsSize)
+
+DECLARE_SET_COMMAND(RSNodeSetBoundsWidth, SET_BOUNDS_WIDTH, float, SetBoundsWidth)
+DECLARE_DELTA_COMMAND(RSNodeSetBoundsWidthDelta, SET_BOUNDS_WIDTH_DELTA, float, SetBoundsWidth, GetBoundsWidth)
+
+DECLARE_SET_COMMAND(RSNodeSetBoundsHeight, SET_BOUNDS_HEIGHT, float, SetBoundsHeight)
+DECLARE_DELTA_COMMAND(RSNodeSetBoundsHeightDelta, SET_BOUNDS_HEIGHT_DELTA, float, SetBoundsHeight, GetBoundsHeight)
+
+DECLARE_SET_COMMAND(RSNodeSetBoundsPosition, SET_BOUNDS_POSITION, Vector2f, SetBoundsPosition)
+DECLARE_DELTA_COMMAND(RSNodeSetBoundsPositionDelta, SET_BOUNDS_POSITION_DELTA, Vector2f, SetBoundsPosition, GetBoundsPosition)
+
+DECLARE_SET_COMMAND(RSNodeSetBoundsPositionX, SET_BOUNDS_POSITION_X, float, SetBoundsPositionX)
+DECLARE_DELTA_COMMAND(RSNodeSetBoundsPositionXDelta, SET_BOUNDS_POSITION_X_DELTA, float, SetBoundsPositionX, GetBoundsPositionX)
+
+DECLARE_SET_COMMAND(RSNodeSetBoundsPositionY, SET_BOUNDS_POSITION_Y, float, SetBoundsPositionY)
+DECLARE_DELTA_COMMAND(RSNodeSetBoundsPositionYDelta, SET_BOUNDS_POSITION_Y_DELTA, float, SetBoundsPositionY, GetBoundsPositionY)
+
+DECLARE_SET_COMMAND(RSNodeSetFrame, SET_FRAME, Vector4f, SetFrame)
+DECLARE_DELTA_COMMAND(RSNodeSetFrameDelta, SET_FRAME_DELTA, Vector4f, SetFrame, GetFrame)
+
+DECLARE_SET_COMMAND(RSNodeSetFrameSize, SET_FRAME_SIZE, Vector2f, SetFrameSize)
+DECLARE_DELTA_COMMAND(RSNodeSetFrameSizeDelta, SET_FRAME_SIZE_DELTA, Vector2f, SetFrameSize, GetFrameSize)
+
+DECLARE_SET_COMMAND(RSNodeSetFrameWidth, SET_FRAME_WIDTH, float, SetFrameWidth)
+DECLARE_DELTA_COMMAND(RSNodeSetFrameWidthDelta, SET_FRAME_WIDTH_DELTA, float, SetFrameWidth, GetFrameWidth)
+
+DECLARE_SET_COMMAND(RSNodeSetFrameHeight, SET_FRAME_HEIGHT, float, SetFrameHeight)
+DECLARE_DELTA_COMMAND(RSNodeSetFrameHeightDelta, SET_FRAME_HEIGHT_DELTA, float, SetFrameHeight, GetFrameHeight)
+
+DECLARE_SET_COMMAND(RSNodeSetFramePosition, SET_FRAME_POSITION, Vector2f, SetFramePosition)
+DECLARE_DELTA_COMMAND(RSNodeSetFramePositionDelta, SET_FRAME_POSITION_DELTA, Vector2f, SetFramePosition, GetFramePosition)
+
+DECLARE_SET_COMMAND(RSNodeSetFramePositionX, SET_FRAME_POSITION_X, float, SetFramePositionX)
+DECLARE_DELTA_COMMAND(RSNodeSetFramePositionXDelta, SET_FRAME_POSITION_X_DELTA, float, SetFramePositionX, GetFramePositionX)
+
+DECLARE_SET_COMMAND(RSNodeSetFramePositionY, SET_FRAME_POSITION_Y, float, SetFramePositionY)
+DECLARE_DELTA_COMMAND(RSNodeSetFramePositionYDelta, SET_FRAME_POSITION_Y_DELTA, float, SetFramePositionY, GetFramePositionY)
+
+DECLARE_SET_COMMAND(RSNodeSetPositionZ, SET_POSITION_Z, float, SetPositionZ)
+DECLARE_DELTA_COMMAND(RSNodeSetPositionZDelta, SET_POSITION_Z_DELTA, float, SetPositionZ, GetPositionZ)
+
+DECLARE_SET_COMMAND(RSNodeSetPivot, SET_PIVOT, Vector2f, SetPivot)
+DECLARE_DELTA_COMMAND(RSNodeSetPivotDelta, SET_PIVOT_DELTA, Vector2f, SetPivot, GetPivot)
+
+DECLARE_SET_COMMAND(RSNodeSetPivotX, SET_PIVOT_X, float, SetPivotX)
+DECLARE_DELTA_COMMAND(RSNodeSetPivotXDelta, SET_PIVOT_X_DELTA, float, SetPivotX, GetPivotX)
+
+DECLARE_SET_COMMAND(RSNodeSetPivotY, SET_PIVOT_Y, float, SetPivotY)
+DECLARE_DELTA_COMMAND(RSNodeSetPivotYDelta, SET_PIVOT_Y_DELTA, float, SetPivotY, GetPivotY)
+
+DECLARE_SET_COMMAND(RSNodeSetCornerRadius, SET_CORNER_RADIUS, float, SetCornerRadius)
+DECLARE_DELTA_COMMAND(RSNodeSetCornerRadiusDelta, SET_CORNER_RADIUS_DELTA, float, SetCornerRadius, GetCornerRadius)
+
+DECLARE_SET_COMMAND(RSNodeSetQuaternion, SET_QUATERNION, Quaternion, SetQuaternion)
+DECLARE_DELTA_COMMAND(RSNodeSetQuaternionDelta, SET_QUATERNION_DELTA, Quaternion, SetQuaternion, GetQuaternion)
+
+DECLARE_SET_COMMAND(RSNodeSetRotation, SET_ROTATION, float, SetRotation)
+DECLARE_DELTA_COMMAND(RSNodeSetRotationDelta, SET_ROTATION_DELTA, float, SetRotation, GetRotation)
+
+DECLARE_SET_COMMAND(RSNodeSetRotationX, SET_ROTATION_X, float, SetRotationX)
+DECLARE_DELTA_COMMAND(RSNodeSetRotationXDelta, SET_ROTATION_X_DELTA, float, SetRotationX, GetRotationX)
+
+DECLARE_SET_COMMAND(RSNodeSetRotationY, SET_ROTATION_Y, float, SetRotationY)
+DECLARE_DELTA_COMMAND(RSNodeSetRotationYDelta, SET_ROTATION_Y_DELTA, float, SetRotationY, GetRotationY)
+
+DECLARE_SET_COMMAND(RSNodeSetScale, SET_SCALE, Vector2f, SetScale)
+DECLARE_DELTA_COMMAND(RSNodeSetScaleDelta, SET_SCALE_DELTA, Vector2f, SetScale, GetScale)
+
+DECLARE_SET_COMMAND(RSNodeSetScaleX, SET_SCALE_X, float, SetScaleX)
+DECLARE_DELTA_COMMAND(RSNodeSetScaleXDelta, SET_SCALE_X_DELTA, float, SetScaleX, GetScaleX)
+
+DECLARE_SET_COMMAND(RSNodeSetScaleY, SET_SCALE_Y, float, SetScaleY)
+DECLARE_DELTA_COMMAND(RSNodeSetScaleYDelta, SET_SCALE_Y_DELTA, float, SetScaleY, GetScaleY)
+
+DECLARE_SET_COMMAND(RSNodeSetTranslate, SET_TRANSLATE, Vector2f, SetTranslate)
+DECLARE_DELTA_COMMAND(RSNodeSetTranslateDelta, SET_TRANSLATE_DELTA, Vector2f, SetTranslate, GetTranslate)
+
+DECLARE_SET_COMMAND(RSNodeSetTranslateX, SET_TRANSLATE_X, float, SetTranslateX)
+DECLARE_DELTA_COMMAND(RSNodeSetTranslateXDelta, SET_TRANSLATE_X_DELTA, float, SetTranslateX, GetTranslateX)
+
+DECLARE_SET_COMMAND(RSNodeSetTranslateY, SET_TRANSLATE_Y, float, SetTranslateY)
+DECLARE_DELTA_COMMAND(RSNodeSetTranslateYDelta, SET_TRANSLATE_Y_DELTA, float, SetTranslateY, GetTranslateY)
+
+DECLARE_SET_COMMAND(RSNodeSetTranslateZ, SET_TRANSLATE_Z, float, SetTranslateZ)
+DECLARE_DELTA_COMMAND(RSNodeSetTranslateZDelta, SET_TRANSLATE_Z_DELTA, float, SetTranslateZ, GetTranslateZ)
+
+DECLARE_SET_COMMAND(RSNodeSetAlpha, SET_ALPHA, float, SetAlpha)
+DECLARE_DELTA_COMMAND(RSNodeSetAlphaDelta, SET_ALPHA_DELTA, float, SetAlpha, GetAlpha)
+
+DECLARE_SET_COMMAND(RSNodeSetForegroundColor, SET_FG_COLOR, Color, SetForegroundColor)
+DECLARE_DELTA_COMMAND(RSNodeSetForegroundColorDelta, SET_FG_COLOR_DELTA, Color, SetForegroundColor, GetForegroundColor)
+
+DECLARE_SET_COMMAND(RSNodeSetBackgroundColor, SET_BG_COLOR, Color, SetBackgroundColor)
+DECLARE_DELTA_COMMAND(RSNodeSetBackgroundColorDelta, SET_BG_COLOR_DELTA, Color, SetBackgroundColor, GetBackgroundColor)
+
+DECLARE_SET_COMMAND(RSNodeSetBackgroundShader, SET_BG_SHADER, std::shared_ptr<RSShader>, SetBackgroundShader)
+// DECLARE_DELTA_COMMAND(RSNodeSetBackgroundShaderDelta, SET_BG_SHADER_DELTA, std::shared_ptr<RSShader>, SetBackgroundShader, GetBackgroundShader)
+
+DECLARE_SET_COMMAND(RSNodeSetBgImage, SET_BG_IMAGE, std::shared_ptr<RSImage>, SetBgImage)
+
+DECLARE_SET_COMMAND(RSNodeSetBgImageWidth, SET_BG_IMAGE_WIDTH, float, SetBgImageWidth)
+DECLARE_DELTA_COMMAND(RSNodeSetBgImageWidthDelta, SET_BG_IMAGE_WIDTH_DELTA, float, SetBgImageWidth, GetBgImageWidth)
+
+DECLARE_SET_COMMAND(RSNodeSetBgImageHeight, SET_BG_IMAGE_HEIGHT, float, SetBgImageHeight)
+DECLARE_DELTA_COMMAND(RSNodeSetBgImageHeightDelta, SET_BG_IMAGE_HEIGHT_DELTA, float, SetBgImageHeight, GetBgImageHeight)
+
+DECLARE_SET_COMMAND(RSNodeSetBgImagePositionX, SET_BG_IMAGE_POSITION_X, float, SetBgImagePositionX)
+DECLARE_DELTA_COMMAND(RSNodeSetBgImagePositionXDelta, SET_BG_IMAGE_POSITION_X_DELTA, float, SetBgImagePositionX, GetBgImagePositionX)
+
+DECLARE_SET_COMMAND(RSNodeSetBgImagePositionY, SET_BG_IMAGE_POSITION_Y, float, SetBgImagePositionY)
+DECLARE_DELTA_COMMAND(RSNodeSetBgImagePositionYDelta, SET_BG_IMAGE_POSITION_Y_DELTA, float, SetBgImagePositionY, GetBgImagePositionY)
+
+DECLARE_SET_COMMAND(RSNodeSetBorderColor, SET_BORDER_COLOR, Color, SetBorderColor)
+DECLARE_DELTA_COMMAND(RSNodeSetBorderColorDelta, SET_BORDER_COLOR_DELTA, Color, SetBorderColor, GetBorderColor)
+
+DECLARE_SET_COMMAND(RSNodeSetBorderWidth, SET_BORDER_WIDTH, float, SetBorderWidth)
+DECLARE_DELTA_COMMAND(RSNodeSetBorderWidthDelta, SET_BORDER_WIDTH_DELTA, float, SetBorderWidth, GetBorderWidth)
+
+DECLARE_SET_COMMAND(RSNodeSetBorderStyle, SET_BORDER_STYLE, BorderStyle, SetBorderStyle)
+
+DECLARE_SET_COMMAND(RSNodeSetSublayerTransform, SET_SUBLAYER_TRANSFORM, Matrix3f, SetSublayerTransform)
+DECLARE_DELTA_COMMAND(RSNodeSetSublayerTransformDelta, SET_SUBLAYER_TRANSFORM_DELTA, Matrix3f, SetSublayerTransform, GetSublayerTransform)
+
+DECLARE_SET_COMMAND(RSNodeSetBackgroundFilter, SET_BG_FILTER, std::shared_ptr<RSFilter>, SetBackgroundFilter)
+DECLARE_DELTA_COMMAND(RSNodeSetBackgroundFilterDelta, SET_BG_FILTER_DELTA, std::shared_ptr<RSFilter>, SetBackgroundFilter, GetBackgroundFilter)
+
+DECLARE_SET_COMMAND(RSNodeSetFilter, SET_FILTER, std::shared_ptr<RSFilter>, SetFilter)
+DECLARE_DELTA_COMMAND(RSNodeSetFilterDelta, SET_FILTER_DELTA, std::shared_ptr<RSFilter>, SetFilter, GetFilter)
+
+// DECLARE_SET_COMMAND(RSNodeSetCompositingFilter, SET_COMPOSITING_FILTER, std::shared_ptr<RSFilter>, SetFilter)
+// DECLARE_DELTA_COMMAND(RSNodeSetCompositingFilterDelta, SET_COMPOSITING_FILTER_DELTA, std::shared_ptr<RSFilter>, SetFilter, GetFilter)
+
+DECLARE_SET_COMMAND(RSNodeSetFrameGravity, SET_FRAME_GRAVITY, Gravity, SetFrameGravity)
+// DECLARE_DELTA_COMMAND(RSNodeSetFrameGravityDelta, SET_FRAME_GRAVITY_DELTA, Gravity, SetFrameGravity, GetFrameGravity)
+
+DECLARE_SET_COMMAND(RSNodeSetClipBounds, SET_CLIP_BOUNDS, std::shared_ptr<RSPath>, SetClipBounds)
+
+DECLARE_SET_COMMAND(RSNodeSetClipToBounds, SET_CLIP_TO_BOUNDS, bool, SetClipToBounds)
+
+DECLARE_SET_COMMAND(RSNodeSetClipToFrame, SET_CLIP_TO_FRAME, bool, SetClipToFrame)
+
+DECLARE_SET_COMMAND(RSNodeSetVisible, SET_VISIBLE, bool, SetVisible)
+
+DECLARE_SET_COMMAND(RSNodeSetShadowColor, SET_SHADOW_COLOR, Color, SetShadowColor)
+DECLARE_DELTA_COMMAND(RSNodeSetShadowColorDelta, SET_SHADOW_COLOR_DELTA, Color, SetShadowColor, GetShadowColor)
+
+DECLARE_SET_COMMAND(RSNodeSetShadowOffsetX, SET_SHADOW_OFFSET_X, float, SetShadowOffsetX)
+DECLARE_DELTA_COMMAND(RSNodeSetShadowOffsetXDelta, SET_SHADOW_OFFSET_X_DELTA, float, SetShadowOffsetX, GetShadowOffsetX)
+
+DECLARE_SET_COMMAND(RSNodeSetShadowOffsetY, SET_SHADOW_OFFSET_Y, float, SetShadowOffsetY)
+DECLARE_DELTA_COMMAND(RSNodeSetShadowOffsetYDelta, SET_SHADOW_OFFSET_Y_DELTA, float, SetShadowOffsetY, GetShadowOffsetY)
+
+DECLARE_SET_COMMAND(RSNodeSetShadowAlpha, SET_SHADOW_ALPHA, float, SetShadowAlpha)
+DECLARE_DELTA_COMMAND(RSNodeSetShadowAlphaDelta, SET_SHADOW_ALPHA_DELTA, float, SetShadowAlpha, GetShadowAlpha)
+
+DECLARE_SET_COMMAND(RSNodeSetShadowElevation, SET_SHADOW_ELEVATION, float, SetShadowElevation)
+DECLARE_DELTA_COMMAND(RSNodeSetShadowElevationDelta, SET_SHADOW_ELEVATION_DELTA, float, SetShadowElevation, GetShadowElevation)
+
+DECLARE_SET_COMMAND(RSNodeSetShadowRadius, SET_SHADOW_RADIUS, float, SetShadowRadius)
+DECLARE_DELTA_COMMAND(RSNodeSetShadowRadiusDelta, SET_SHADOW_RADIUS_DELTA, float, SetShadowRadius, GetShadowRadius)
+
+DECLARE_SET_COMMAND(RSNodeSetShadowPath, SET_SHADOW_PATH, std::shared_ptr<RSPath>, SetShadowPath)

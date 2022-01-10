@@ -58,32 +58,21 @@ public:
     }
 
 protected:
-    void OnStart() override {}
+    void OnStart() override;
 
 private:
     RSAnimationTimingCurve timingCurve_ { RSAnimationTimingCurve::DEFAULT };
 };
 
-template<>
-void RSCurveAnimation<int>::OnStart();
+template class RSCurveAnimation<int>;
+template class RSCurveAnimation<float>;
+template class RSCurveAnimation<Color>;
+template class RSCurveAnimation<Matrix3f>;
+template class RSCurveAnimation<Vector2f>;
+template class RSCurveAnimation<Vector4f>;
+template class RSCurveAnimation<Quaternion>;
+template class RSCurveAnimation<std::shared_ptr<RSFilter>>;
 
-template<>
-void RSCurveAnimation<float>::OnStart();
-
-template<>
-void RSCurveAnimation<Color>::OnStart();
-
-template<>
-void RSCurveAnimation<Matrix3f>::OnStart();
-
-template<>
-void RSCurveAnimation<Vector2f>::OnStart();
-
-template<>
-void RSCurveAnimation<Vector4f>::OnStart();
-
-template<>
-void RSCurveAnimation<std::shared_ptr<RSFilter>>::OnStart();
 } // namespace Rosen
 } // namespace OHOS
 

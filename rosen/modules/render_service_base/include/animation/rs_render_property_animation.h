@@ -19,7 +19,7 @@
 #include "animation/rs_property_accessors.h"
 #include "animation/rs_render_animation.h"
 #include "common/rs_common_def.h"
-#include "pipeline/rs_render_node.h"
+#include "pipeline/rs_canvas_render_node.h"
 #include "platform/common/rs_log.h"
 #include "transaction/rs_marshalling_helper.h"
 
@@ -53,12 +53,15 @@ public:
     bool Marshalling(Parcel& parcel) const override
     {
         if (!RSRenderAnimation::Marshalling(parcel)) {
+            ROSEN_LOGE("RSRenderPropertyAnimation::Marshalling, RenderAnimation failed");
             return false;
         }
         if (!parcel.WriteInt32(static_cast<std::underlying_type<RSAnimatableProperty>::type>(property_))) {
+            ROSEN_LOGE("RSRenderPropertyAnimation::Marshalling, write type failed");
             return false;
         }
         if (!RSMarshallingHelper::Marshalling(parcel, originValue_)) {
+            ROSEN_LOGE("RSRenderPropertyAnimation::Marshalling, write value failed");
             return false;
         }
         return true;
@@ -76,12 +79,13 @@ protected:
     bool ParseParam(Parcel& parcel) override
     {
         if (RSRenderAnimation::ParseParam(parcel)) {
-            ROSEN_LOGE("Parse RenderAnimation fail");
+            ROSEN_LOGE("RSRenderPropertyAnimation::ParseParam, RenderAnimation failed");
             return false;
         }
 
         int32_t property = 0;
         if (!(parcel.ReadInt32(property) && RSMarshallingHelper::Unmarshalling(parcel, originValue_))) {
+            ROSEN_LOGE("RSRenderPropertyAnimation::ParseParam, Unmarshalling failed");
             return false;
         }
         property_ = static_cast<RSAnimatableProperty>(property);

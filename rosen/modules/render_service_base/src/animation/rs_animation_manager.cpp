@@ -23,7 +23,7 @@
 #include "command/rs_message_processor.h"
 #include "pipeline/rs_dirty_region_manager.h"
 #include "pipeline/rs_paint_filter_canvas.h"
-#include "pipeline/rs_property_render_node.h"
+#include "pipeline/rs_render_node.h"
 #include "pipeline/rs_render_node_map.h"
 #include "platform/common/rs_log.h"
 
@@ -31,13 +31,13 @@ namespace OHOS {
 namespace Rosen {
 class RSRootRenderNode;
 
-RSAnimationManager::RSAnimationManager(RSPropertyRenderNode* target) : target_(target) {}
+RSAnimationManager::RSAnimationManager(RSRenderNode* target) : target_(target) {}
 
 void RSAnimationManager::AddAnimation(const std::shared_ptr<RSRenderAnimation>& animation)
 {
     AnimationId key = animation->GetAnimationId();
     if (animations_.find(key) != animations_.end()) {
-        ROSEN_LOGE("The animation already exists when is added");
+        ROSEN_LOGE("RSAnimationManager::AddAnimation, The animation already exists when is added");
         return;
     }
     animations_.emplace(key, animation);
@@ -49,7 +49,7 @@ void RSAnimationManager::RemoveAnimation(AnimationId keyId)
 {
     auto animationItr = animations_.find(keyId);
     if (animationItr == animations_.end()) {
-        ROSEN_LOGE("The Animation does not exist when is deleted");
+        ROSEN_LOGE("RSAnimationManager::RemoveAnimation, The Animation does not exist when is deleted");
         return;
     }
     auto animation = animationItr->second;
@@ -85,7 +85,7 @@ std::shared_ptr<RSRenderAnimation> RSAnimationManager::GetAnimation(AnimationId 
 {
     auto animationItr = animations_.find(id);
     if (animationItr == animations_.end()) {
-        ROSEN_LOGE("animtor[%lld] is not found", id);
+        ROSEN_LOGE("RSAnimationManager::GetAnimation, animtor[%lld] is not found", id);
         return nullptr;
     }
     return animationItr->second;
@@ -117,9 +117,10 @@ void RSAnimationManager::UpdateDisappearingChildren(RSDirtyRegionManager& dirtyM
     if (disappearingChildren_.empty()) {
         return;
     }
-    disappearingChildren_.remove_if([](std::weak_ptr<RSPropertyRenderNode>& child) {
+    disappearingChildren_.remove_if([](std::weak_ptr<RSRenderNode>& child) {
         auto childNode = child.lock();
         if (childNode == nullptr) {
+            ROSEN_LOGW("RSAnimationManager::UpdateDisappearingChildren, childNode is nullptr");
             return true;
         }
         bool needToDelete = !childNode->GetAnimationManager().HasTransition();
@@ -162,6 +163,7 @@ void RSAnimationManager::UnregisterTransition(AnimationId id)
 void RSAnimationManager::ClearTransition(AnimationId id)
 {
     if (transition_.empty()) {
+        ROSEN_LOGE("RSAnimationManager::ClearTransition, transition_ is empty");
         return;
     }
     transition_.remove_if([&](std::pair<AnimationId, TransitionCallback>& transition) {
@@ -171,7 +173,7 @@ void RSAnimationManager::ClearTransition(AnimationId id)
 
 void RSAnimationManager::DoTransition(RSPaintFilterCanvas& canvas, const RSProperties& renderProperties)
 {
-    if (transition_.empty() || target_ == nullptr) {
+    if (transition_.empty()) {
         return;
     }
     for (auto& [animationId, transition] : transition_) {
@@ -181,29 +183,30 @@ void RSAnimationManager::DoTransition(RSPaintFilterCanvas& canvas, const RSPrope
     }
 }
 
-void RSAnimationManager::AddDisappearingChild(std::weak_ptr<RSPropertyRenderNode> child)
+void RSAnimationManager::AddDisappearingChild(std::weak_ptr<RSRenderNode> child)
 {
     disappearingChildren_.emplace_back(child);
 }
 
-void RSAnimationManager::RemoveDisappearingChild(std::weak_ptr<RSPropertyRenderNode> child)
+void RSAnimationManager::RemoveDisappearingChild(std::weak_ptr<RSRenderNode> child)
 {
     // weak_ptr does not have operator==, use remove_if instead of remove
-    disappearingChildren_.remove_if([&child](std::weak_ptr<RSPropertyRenderNode>& item) {
-        return !(item.owner_before(child) || item.owner_before(child));
+    disappearingChildren_.remove_if([&child](std::weak_ptr<RSRenderNode>& item) {
+        return !(item.owner_before(child) || child.owner_before(item));
     });
 }
 
 bool RSAnimationManager::HasTransition()
 {
     if (target_ == nullptr) {
+        ROSEN_LOGE("RSAnimationManager::HasTransition, target_ is nullptr");
         return false;
     }
     bool hasTransition = !transition_.empty();
     if (target_->IsInstanceOf<RSRootRenderNode>()) {
         return hasTransition;
     }
-    auto parentNode = RSBaseRenderNode::ReinterpretCast<RSPropertyRenderNode>(target_->GetParent().lock());
+    auto parentNode = RSBaseRenderNode::ReinterpretCast<RSRenderNode>(target_->GetParent().lock());
     if (parentNode == nullptr) {
         return hasTransition;
     }

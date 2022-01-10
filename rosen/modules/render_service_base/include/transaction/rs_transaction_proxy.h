@@ -26,10 +26,11 @@
 
 namespace OHOS {
 namespace Rosen {
+class RSSyncTask;
 
-class RSTransactionProxy {
+class RSTransactionProxy final {
 public:
-    static RSTransactionProxy& GetInstance();
+    static RSTransactionProxy* GetInstance();
     void SetRenderThreadClient(std::unique_ptr<RSIRenderClient>& renderThreadClient);
     void SetRenderServiceClient(const std::shared_ptr<RSIRenderClient>& renderServiceClient);
 
@@ -37,9 +38,12 @@ public:
 
     void FlushImplicitTransaction();
 
+    void ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task, bool isRenderServiceTask = false);
 private:
     RSTransactionProxy();
     virtual ~RSTransactionProxy();
+    static void Init();
+    static void Destory();
 
     RSTransactionProxy(const RSTransactionProxy&) = delete;
     RSTransactionProxy(const RSTransactionProxy&&) = delete;
@@ -54,8 +58,10 @@ private:
     std::unique_ptr<RSTransactionData> implicitRemoteTransactionData_{std::make_unique<RSTransactionData>()};
     std::shared_ptr<RSIRenderClient> renderServiceClient_ = RSIRenderClient::CreateRenderServiceClient();
     std::unique_ptr<RSIRenderClient> renderThreadClient_ = nullptr;
-};
 
+    static std::once_flag flag_;
+    static RSTransactionProxy* instance_;
+};
 } // namespace Rosen
 } // namespace OHOS
 

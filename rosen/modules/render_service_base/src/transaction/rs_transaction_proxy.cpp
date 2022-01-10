@@ -14,14 +14,17 @@
  */
 
 #include "transaction/rs_transaction_proxy.h"
+#include <stdlib.h>
 
 namespace OHOS {
 namespace Rosen {
+std::once_flag RSTransactionProxy::flag_;
+RSTransactionProxy* RSTransactionProxy::instance_ = nullptr;
 
-RSTransactionProxy& RSTransactionProxy::GetInstance()
+RSTransactionProxy* RSTransactionProxy::GetInstance()
 {
-    static RSTransactionProxy instance;
-    return instance;
+    std::call_once(flag_, &RSTransactionProxy::Init);
+    return instance_;
 }
 
 RSTransactionProxy::RSTransactionProxy()
@@ -31,6 +34,20 @@ RSTransactionProxy::RSTransactionProxy()
 RSTransactionProxy::~RSTransactionProxy()
 {
     FlushImplicitTransaction();
+}
+
+void RSTransactionProxy::Init()
+{
+    instance_ = new RSTransactionProxy();
+    ::atexit(&RSTransactionProxy::Destory);
+}
+
+void RSTransactionProxy::Destory()
+{
+    if (instance_ != nullptr) {
+        delete instance_;
+        instance_ = nullptr;
+    }
 }
 
 void RSTransactionProxy::SetRenderThreadClient(std::unique_ptr<RSIRenderClient>& renderThreadClient)
@@ -49,25 +66,37 @@ void RSTransactionProxy::SetRenderServiceClient(const std::shared_ptr<RSIRenderC
 
 void RSTransactionProxy::AddCommand(std::unique_ptr<RSCommand>& command, bool isRenderServiceCommand)
 {
+    if ((renderServiceClient_ == nullptr && renderThreadClient_ == nullptr) || command == nullptr) {
+        return;
+    }
+
     std::unique_lock<std::mutex> cmdLock(mutex_);
-    if (renderServiceClient_ == nullptr && renderThreadClient_ == nullptr) {
-        return;
-    }
 
-    if (renderThreadClient_ == nullptr) {
+    if (renderThreadClient_ == nullptr || isRenderServiceCommand) {
         AddRemoteCommand(command);
         return;
     }
 
-    if (renderServiceClient_ == nullptr) {
+    if (renderServiceClient_ == nullptr || !isRenderServiceCommand) {
         AddCommonCommand(command);
         return;
     }
+}
 
-    if (isRenderServiceCommand) {
-        AddRemoteCommand(command);
-    } else {
-        AddCommonCommand(command);
+void RSTransactionProxy::ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task, bool isRenderServiceTask)
+{
+    if ((renderServiceClient_ == nullptr && renderThreadClient_ == nullptr) || task == nullptr) {
+        return;
+    }
+
+    if (renderThreadClient_ == nullptr || isRenderServiceTask) {
+        renderServiceClient_->ExecuteSynchronousTask(task);
+        return;
+    }
+
+    if (renderServiceClient_ == nullptr || !isRenderServiceTask) {
+        renderThreadClient_->ExecuteSynchronousTask(task);
+        return;
     }
 }
 
@@ -84,7 +113,7 @@ void RSTransactionProxy::FlushImplicitTransaction()
     }
 }
 
-void RSTransactionProxy::AddCommonCommand(std::unique_ptr<RSCommand> &command)
+void RSTransactionProxy::AddCommonCommand(std::unique_ptr<RSCommand>& command)
 {
     implicitCommonTransactionData_->AddCommand(command);
 }

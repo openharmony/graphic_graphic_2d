@@ -43,8 +43,9 @@ bool ThreadLooperImpl::HaveDelayedMessageToProcess()
     return std::get<time_t>(message) <= clock_t::now();
 }
 
-void ThreadLooperImpl::WaitForMessage(int timeoutMillis, std::unique_lock<std::mutex>& lock)
+void ThreadLooperImpl::WaitForMessage(int timeoutMillis)
 {
+    std::unique_lock<std::mutex> lock(mutex_);
     if (queue_.empty() && !HaveDelayedMessageToProcess()) {
         wakeup_ = false;
         auto pred = [this]() { return !queue_.empty() || HaveDelayedMessageToProcess() || wakeup_; };
@@ -62,38 +63,44 @@ void ThreadLooperImpl::WaitForMessage(int timeoutMillis, std::unique_lock<std::m
     }
 }
 
-bool ThreadLooperImpl::ProcessOneMessageInternal(std::unique_lock<std::mutex>& lock)
+bool ThreadLooperImpl::ProcessOneMessageInternal()
 {
-    if (!queue_.empty()) {
-        auto top = queue_.begin();
-        auto message = *top;
-        queue_.erase(top);
-        std::get<message_t>(message)->Process(std::get<int>(message));
-        return true;
+    message_t task = nullptr;
+    int param = 0;
+    {
+        std::unique_lock<std::mutex> lock(mutex_);
+        if (!queue_.empty()) {
+            auto top = queue_.begin();
+            auto message = *top;
+            queue_.erase(top);
+            task = std::get<message_t>(message);
+            param = std::get<int>(message);
+        } else if (HaveDelayedMessageToProcess()) {
+            auto top = delayedQueue_.begin();
+            auto message = *top;
+            delayedQueue_.erase(top);
+            task = std::get<message_t>(message);
+            param = std::get<int>(message);
+        }
     }
-    if (HaveDelayedMessageToProcess()) {
-        auto top = delayedQueue_.begin();
-        auto message = *top;
-        delayedQueue_.erase(top);
-        std::get<message_t>(message)->Process(std::get<int>(message));
-        return true;
+    if (!task) {
+        return false;
     }
-    return false;
+    task->Process(param);
+    return true;
 }
 
 void ThreadLooperImpl::ProcessOneMessage(int timeoutMillis)
 {
-    std::unique_lock<std::mutex> lock(mutex_);
-    WaitForMessage(timeoutMillis, lock);
-    ProcessOneMessageInternal(lock);
+    WaitForMessage(timeoutMillis);
+    ProcessOneMessageInternal();
 }
 
 void ThreadLooperImpl::ProcessAllMessages(int timeoutMillis)
 {
     if (timeoutMillis < 0) {
-        std::unique_lock<std::mutex> lock(mutex_);
-        WaitForMessage(timeoutMillis, lock);
-        while (ProcessOneMessageInternal(lock)) {
+        WaitForMessage(timeoutMillis);
+        while (ProcessOneMessageInternal()) {
             // Do nothing, just process messages while we can
         }
     } else {

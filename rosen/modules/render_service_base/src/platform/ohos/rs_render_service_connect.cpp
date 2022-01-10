@@ -56,11 +56,13 @@ bool RSRenderServiceConnect::Connect()
 
     sptr<ISystemAbilityManager> samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     if (samgr == nullptr) {
+        ROSEN_LOGE("RSRenderServiceConnect::Connect, GetSystemAbilityManager failed");
         return false;
     }
 
     sptr<IRemoteObject> remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
     if (remoteObject == nullptr) {
+        ROSEN_LOGE("RSRenderServiceConnect::Connect, GetSystemAbility(RENDER_SERVICE) failed");
         return false;
     }
 
@@ -73,6 +75,7 @@ bool RSRenderServiceConnect::Connect()
 
     renderService_ = iface_cast<RSRenderServiceProxy>(remoteObject);
     if (renderService_ == nullptr) {
+        ROSEN_LOGE("RSRenderServiceConnect::Connect, renderService_ is nullptr");
         return false;
     }
 

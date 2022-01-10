@@ -16,6 +16,7 @@
 #ifndef RS_MAIN_THREAD
 #define RS_MAIN_THREAD
 
+#include <future>
 #include <memory>
 #include <mutex>
 #include <queue>
@@ -25,10 +26,34 @@
 #include "common/rs_thread_looper.h"
 #include "pipeline/rs_context.h"
 #include "platform/drawing/rs_vsync_client.h"
+#include "refbase.h"
 
 namespace OHOS {
 namespace Rosen {
 class RSTransactionData;
+
+namespace Detail {
+template<typename Task>
+class ScheduledTask : public RefBase {
+public:
+    static auto Create(Task&& task)
+    {
+        sptr<ScheduledTask<Task>> t(new ScheduledTask(std::forward<Task&&>(task)));
+        return std::make_pair(t, t->task_.get_future());
+    }
+
+    void Run()
+    {
+        task_();
+    }
+
+private:
+    explicit ScheduledTask(Task&& task) : task_(std::move(task)) {}
+
+    using Return = std::invoke_result_t<Task>;
+    std::packaged_task<Return()> task_;
+};
+} // namespace Detail
 
 class RSMainThread {
 public:
@@ -39,6 +64,14 @@ public:
     void RequestNextVSync();
     void PostTask(RSTaskMessage::RSTask task);
 
+    template<typename Task, typename Return = std::invoke_result_t<Task>>
+    std::future<Return> ScheduleTask(Task&& task)
+    {
+        auto [scheduledTask, taskFuture] = Detail::ScheduledTask<Task>::Create(std::forward<Task&&>(task));
+        PostTask([t(std::move(scheduledTask))]() { t->Run(); });
+        return std::move(taskFuture);
+    }
+
     RSContext& GetContext()
     {
         return context_;
@@ -47,11 +80,11 @@ public:
     {
         return context_;
     }
-
     std::thread::id Id() const
     {
         return mainThreadId_;
     }
+
 private:
     RSMainThread();
     ~RSMainThread() noexcept;
@@ -73,10 +106,8 @@ private:
     std::queue<std::unique_ptr<RSTransactionData>> effectCommandQueue_;
 
     RSContext context_;
-
     std::thread::id mainThreadId_;
 };
 } // namespace Rosen
 } // namespace OHOS
-
-#endif
+#endif // RS_MAIN_THREAD

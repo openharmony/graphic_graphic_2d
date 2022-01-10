@@ -52,7 +52,7 @@ std::vector<std::shared_ptr<RSAnimation>> RSImplicitAnimator::CloseImplicitAnima
 
     auto finishCallback = std::get<FINISH_INDEX>(globalImplicitParams_.top());
     if (implicitAnimations_.top().empty()) {
-        ROSEN_LOGI("No implicit animations created!");
+        ROSEN_LOGD("No implicit animations created!");
         if (finishCallback == nullptr) {
             globalImplicitParams_.pop();
             implicitAnimations_.pop();
@@ -67,7 +67,7 @@ std::vector<std::shared_ptr<RSAnimation>> RSImplicitAnimator::CloseImplicitAnima
 
     for (const auto& [animationInfo, keyframeAnimation] : keyframeAnimations_.top()) {
         auto target =
-            std::static_pointer_cast<RSPropertyNode>(RSNodeMap::Instance().GetNode(animationInfo.first).lock());
+            std::static_pointer_cast<RSNode>(RSNodeMap::Instance().GetNode(animationInfo.first).lock());
         if (target == nullptr) {
             ROSEN_LOGE(
                 "Failed to start implicit keyframe animation[%llu], target is null!", keyframeAnimation->GetId());
@@ -225,21 +225,21 @@ void RSImplicitAnimator::PopImplicitParam()
     implicitAnimationParams_.pop();
 }
 
-void RSImplicitAnimator::ProcessPreCreateAnimation(const RSPropertyNode& target, const RSAnimatableProperty& property)
+void RSImplicitAnimator::ProcessPreCreateAnimation(const RSNode& target, const RSAnimatableProperty& property)
 {
     if (target.GetMotionPathOption() != nullptr && RSPathAnimation::IsAnimatablePathProperty(property)) {
         BeginImplicitPathAnimation(target.GetMotionPathOption());
     }
 }
 
-void RSImplicitAnimator::ProcessPostCreateAnimation(const RSPropertyNode& target, const RSAnimatableProperty& property)
+void RSImplicitAnimator::ProcessPostCreateAnimation(const RSNode& target, const RSAnimatableProperty& property)
 {
     if (target.GetMotionPathOption() != nullptr && RSPathAnimation::IsAnimatablePathProperty(property)) {
         EndImplicitPathAnimation();
     }
 }
 
-std::shared_ptr<RSAnimation> RSImplicitAnimator::CreateImplicitTransition(RSPropertyNode& target)
+std::shared_ptr<RSAnimation> RSImplicitAnimator::CreateImplicitTransition(RSNode& target)
 {
     if (globalImplicitParams_.empty() || implicitAnimations_.empty() || keyframeAnimations_.empty()) {
         ROSEN_LOGE("Failed to create implicit transition, need to open implicit transition firstly!");
@@ -267,6 +267,7 @@ void RSImplicitAnimator::CreateEmptyAnimation()
 {
     auto target = RSNodeMap::Instance().GetAnimationFallbackNode();
     if (target == nullptr) {
+        ROSEN_LOGE("RSImplicitAnimator::CreateEmptyAnimation, target is nullptr");
         return;
     }
     CreateImplicitAnimation(*target, RSAnimatableProperty::INVALID, 0.f, 0.f);

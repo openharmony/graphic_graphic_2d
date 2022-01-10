@@ -39,14 +39,6 @@ inline constexpr ScreenPhysicalId ToScreenPhysicalId(ScreenId id)
     return static_cast<ScreenPhysicalId>(id);
 }
 
-enum class ScreenState : uint8_t {
-    HDI_OUTPUT_ENABLE,
-    PRODUCER_SURFACE_ENABLE,
-    DISABLED,
-    NOT_EXISTED,
-    UNKNOWN,
-};
-
 enum class ScreenEvent : uint8_t {
     CONNECTED,
     DISCONNECTED,
@@ -59,7 +51,7 @@ typedef enum : uint32_t {
     POWER_STATUS_SUSPEND,
     POWER_STATUS_OFF,
     POWER_STATUS_BUTT,
-    INVAILD_POWER_STATUS,
+    INVALID_POWER_STATUS,
 }ScreenPowerStatus;
 
 typedef enum : uint32_t {

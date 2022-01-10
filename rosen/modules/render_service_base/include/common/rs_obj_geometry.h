@@ -38,7 +38,7 @@ public:
     float translateX_;
     float translateY_;
     float translateZ_;
-    Vector4f quaternion_;
+    Quaternion quaternion_;
 };
 
 class RSObjGeometry {
@@ -194,7 +194,7 @@ public:
             trans_->translateZ_ = translateZ;
         }
     }
-    void SetQuaternion(const Vector4f& quaternion)
+    void SetQuaternion(const Quaternion& quaternion)
     {
         if (trans_ == nullptr) {
             trans_ = std::make_unique<Transform>();
@@ -264,9 +264,9 @@ public:
     {
         return trans_ ? trans_->translateZ_ : 0.f;
     }
-    Vector4f GetQuaternion() const
+    Quaternion GetQuaternion() const
     {
-        return trans_ ? trans_->quaternion_ : Vector4f();
+        return trans_ ? trans_->quaternion_ : Quaternion();
     }
     bool IsEmpty() const
     {

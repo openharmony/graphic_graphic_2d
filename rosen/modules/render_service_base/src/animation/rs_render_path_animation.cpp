@@ -15,7 +15,7 @@
 
 #include "animation/rs_render_path_animation.h"
 
-#include "pipeline/rs_render_node.h"
+#include "pipeline/rs_canvas_render_node.h"
 #include "platform/common/rs_log.h"
 
 namespace OHOS {
@@ -29,12 +29,14 @@ RSRenderPathAnimation::RSRenderPathAnimation(AnimationId id, const RSAnimatableP
 bool RSRenderPathAnimation::Marshalling(Parcel& parcel) const
 {
     if (!RSRenderPropertyAnimation<Vector2f>::Marshalling(parcel)) {
+        ROSEN_LOGE("RSRenderPathAnimation::Marshalling, RenderPropertyAnimation failed");
         return false;
     }
     if (!(parcel.WriteFloat(originRotation_) && parcel.WriteFloat(beginFraction_) && parcel.WriteFloat(endFraction_) &&
             RSMarshallingHelper::Marshalling(parcel, *animationPath_) &&
             parcel.WriteInt32(static_cast<std::underlying_type<RotationMode>::type>(rotationMode_)) &&
             interpolator_->Marshalling(parcel))) {
+        ROSEN_LOGE("RSRenderPathAnimation::Marshalling, write failed");
         return false;
     }
     return true;
@@ -45,7 +47,7 @@ RSRenderPathAnimation* RSRenderPathAnimation::Unmarshalling(Parcel& parcel)
     RSRenderPathAnimation* renderPathAnimation = new RSRenderPathAnimation();
 
     if (!renderPathAnimation->ParseParam(parcel)) {
-        ROSEN_LOGE("Parse RenderProperty Fail");
+        ROSEN_LOGE("RSRenderPathAnimation::Unmarshalling, Parse RenderProperty Fail");
         delete renderPathAnimation;
         return nullptr;
     }
@@ -54,7 +56,7 @@ RSRenderPathAnimation* RSRenderPathAnimation::Unmarshalling(Parcel& parcel)
 bool RSRenderPathAnimation::ParseParam(Parcel& parcel)
 {
     if (!RSRenderPropertyAnimation<Vector2f>::ParseParam(parcel)) {
-        ROSEN_LOGE("Parse RenderProperty Fail");
+        ROSEN_LOGE("RSRenderPathAnimation::ParseParam, Parse RenderProperty Fail");
         return false;
     }
 
@@ -62,13 +64,13 @@ bool RSRenderPathAnimation::ParseParam(Parcel& parcel)
     std::shared_ptr<RSPath> path;
     if (!(parcel.ReadFloat(originRotation_) && parcel.ReadFloat(beginFraction_) && parcel.ReadFloat(endFraction_) &&
             RSMarshallingHelper::Unmarshalling(parcel, path) && parcel.ReadInt32(rotationMode))) {
-        ROSEN_LOGE("Parse PathAnimation Failed");
+        ROSEN_LOGE("RSRenderPathAnimation::ParseParam, Parse PathAnimation Failed");
         return false;
     }
 
     std::shared_ptr<RSInterpolator> interpolator(RSInterpolator::Unmarshalling(parcel));
     if (interpolator == nullptr) {
-        ROSEN_LOGE("Unmarshalling interpolator failed");
+        ROSEN_LOGE("RSRenderPathAnimation::ParseParam, Unmarshalling interpolator failed");
         return false;
     }
     SetInterpolator(interpolator);

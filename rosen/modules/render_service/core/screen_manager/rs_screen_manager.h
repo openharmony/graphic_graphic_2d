@@ -16,6 +16,7 @@
 #ifndef RS_SCREEN_MANAGER
 #define RS_SCREEN_MANAGER
 
+#include <cstdint>
 #include <memory>
 #include <mutex>
 #include <queue>
@@ -37,6 +38,20 @@
 
 namespace OHOS {
 namespace Rosen {
+enum class ScreenState : uint8_t {
+    HDI_OUTPUT_ENABLE,
+    PRODUCER_SURFACE_ENABLE,
+    DISABLED,
+    NOT_EXISTED,
+    UNKNOWN,
+};
+
+struct ScreenInfo {
+    uint32_t width = 0;
+    uint32_t height = 0;
+    ScreenState state = ScreenState::UNKNOWN;
+};
+
 class RSScreenManager : public RefBase {
 public:
     RSScreenManager() = default;
@@ -75,7 +90,7 @@ public:
 
     virtual RSScreenData GetScreenData(ScreenId id) const = 0;
 
-    virtual ScreenState QueryScreenState(ScreenId id) const = 0;
+    virtual ScreenInfo QueryScreenInfo(ScreenId id) const = 0;
 
     // Can only be called after QueryScreenState and the state is ScreenState::PRODUCER_SURFACE_ENABLE;
     virtual sptr<Surface> GetProducerSurface(ScreenId id) const = 0;
@@ -88,6 +103,10 @@ public:
     virtual void OnRemoteScreenChangeCallbackDied(const wptr<IRemoteObject> &remote) = 0;
 
     virtual void ProcessScreenHotPlugEvents() = 0;
+
+    virtual void DisplayDump(std::string& dumpString) = 0;
+
+    virtual void SurfaceDump(std::string& dumpString) = 0;
 };
 
 sptr<RSScreenManager> CreateOrGetScreenManager();
@@ -141,7 +160,7 @@ public:
 
     RSScreenData GetScreenData(ScreenId id) const  override;
 
-    ScreenState QueryScreenState(ScreenId id) const override;
+    ScreenInfo QueryScreenInfo(ScreenId id) const override;
 
     sptr<Surface> GetProducerSurface(ScreenId id) const override;
 
@@ -152,6 +171,10 @@ public:
     void OnRemoteScreenChangeCallbackDied(const wptr<IRemoteObject> &remote) override;
 
     void ProcessScreenHotPlugEvents() override;
+
+    void DisplayDump(std::string& dumpString) override;
+
+    void SurfaceDump(std::string& dumpString) override;
 
 private:
     RSScreenManager();

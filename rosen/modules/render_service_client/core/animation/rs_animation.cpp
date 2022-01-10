@@ -20,7 +20,7 @@
 #include "command/rs_animation_command.h"
 #include "platform/common/rs_log.h"
 #include "transaction/rs_transaction_proxy.h"
-#include "ui/rs_property_node.h"
+#include "ui/rs_node.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -87,7 +87,7 @@ bool RSAnimation::IsFinished() const
     return state_ == AnimationState::FINISHED;
 }
 
-void RSAnimation::Start(const std::shared_ptr<RSPropertyNode>& target)
+void RSAnimation::Start(const std::shared_ptr<RSNode>& target)
 {
     if (state_ != AnimationState::INITIALIZED) {
         ROSEN_LOGE("State error, animation is in [%d] when start.", state_);
@@ -102,7 +102,7 @@ void RSAnimation::Start(const std::shared_ptr<RSPropertyNode>& target)
     target->AddAnimation(shared_from_this());
 }
 
-void RSAnimation::StartInner(const std::shared_ptr<RSPropertyNode>& target)
+void RSAnimation::StartInner(const std::shared_ptr<RSNode>& target)
 {
     if (target == nullptr) {
         ROSEN_LOGE("Failed to start animation, target is null!");
@@ -120,7 +120,7 @@ bool RSAnimation::IsReversed() const
     return isReversed_;
 }
 
-const std::weak_ptr<RSPropertyNode> RSAnimation::GetTarget() const
+const std::weak_ptr<RSNode> RSAnimation::GetTarget() const
 {
     return target_;
 }
@@ -151,7 +151,10 @@ void RSAnimation::OnPause()
     }
 
     std::unique_ptr<RSCommand> command = std::make_unique<RSAnimationPause>(target->GetId(), id_);
-    RSTransactionProxy::GetInstance().AddCommand(command, target->IsRenderServiceNode());
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        transactionProxy->AddCommand(command, target->IsRenderServiceNode());
+    }
 }
 
 void RSAnimation::Resume()
@@ -180,7 +183,10 @@ void RSAnimation::OnResume()
     }
 
     std::unique_ptr<RSCommand> command = std::make_unique<RSAnimationResume>(target->GetId(), id_);
-    RSTransactionProxy::GetInstance().AddCommand(command, target->IsRenderServiceNode());
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        transactionProxy->AddCommand(command, target->IsRenderServiceNode());
+    }
 }
 
 void RSAnimation::Finish()
@@ -209,7 +215,10 @@ void RSAnimation::OnFinish()
     }
 
     std::unique_ptr<RSCommand> command = std::make_unique<RSAnimationFinish>(target->GetId(), id_);
-    RSTransactionProxy::GetInstance().AddCommand(command, target->IsRenderServiceNode());
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        transactionProxy->AddCommand(command, target->IsRenderServiceNode());
+    }
 }
 
 void RSAnimation::Reverse()
@@ -239,7 +248,10 @@ void RSAnimation::OnReverse()
     }
 
     std::unique_ptr<RSCommand> command = std::make_unique<RSAnimationReverse>(target->GetId(), id_, isReversed_);
-    RSTransactionProxy::GetInstance().AddCommand(command, target->IsRenderServiceNode());
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        transactionProxy->AddCommand(command, target->IsRenderServiceNode());
+    }
 }
 
 void RSAnimation::SetFraction(float fraction)
@@ -272,7 +284,10 @@ void RSAnimation::OnSetFraction(float fraction)
     }
 
     std::unique_ptr<RSCommand> command = std::make_unique<RSAnimationSetFraction>(target->GetId(), id_, fraction);
-    RSTransactionProxy::GetInstance().AddCommand(command, target->IsRenderServiceNode());
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        transactionProxy->AddCommand(command, target->IsRenderServiceNode());
+    }
 }
 
 RSAnimatableProperty RSAnimation::GetProperty() const

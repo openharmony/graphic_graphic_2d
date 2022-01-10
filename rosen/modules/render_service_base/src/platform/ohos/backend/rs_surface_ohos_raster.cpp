@@ -13,9 +13,10 @@
  * limitations under the License.
  */
 
-#include "rs_surface_frame_ohos_raster.h"
 #include "rs_surface_ohos_raster.h"
+
 #include "platform/common/rs_log.h"
+#include "rs_surface_frame_ohos_raster.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -25,18 +26,17 @@ RSSurfaceOhosRaster::RSSurfaceOhosRaster(const sptr<Surface>& producer) : RSSurf
 std::unique_ptr<RSSurfaceFrame> RSSurfaceOhosRaster::RequestFrame(int32_t width, int32_t height)
 {
     if (producer_ == nullptr) {
-        ROSEN_LOGE("RSSurfaceOhos RequestFrame failed: no producer");
+        ROSEN_LOGE("RSSurfaceOhosRaster::RequestFrame, producer is nullptr");
         return nullptr;
     }
-
-    ROSEN_LOGE("RSSurfaceOhos RequestFrame start");
 
     std::unique_ptr<RSSurfaceFrameOhosRaster> frame = std::make_unique<RSSurfaceFrameOhosRaster>(width, height);
     SurfaceError err = producer_->RequestBuffer(frame->buffer_, frame->releaseFence_, frame->requestConfig_);
     if (err != SURFACE_ERROR_OK) {
-        ROSEN_LOGE("RSSurfaceOhosRaster Requestframe Failed, error is : %s", SurfaceErrorStr(err).c_str());
+        ROSEN_LOGE("RSSurfaceOhosRaster::Requestframe Failed, error is : %s", SurfaceErrorStr(err).c_str());
         return nullptr;
     }
+
     std::unique_ptr<RSSurfaceFrame> ret(std::move(frame));
     return ret;
 }
@@ -46,13 +46,14 @@ bool RSSurfaceOhosRaster::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame)
     // RSSurfaceOhosRaster is the class for platform OHOS, the input pointer should be the pointer to the class
     // RSSurfaceFrameOhos.
     // We use static_cast instead of RTTI and dynamic_cast which are not permitted
-    ROSEN_LOGE("RSSurfaceOhos Flushframe start");
+
     RSSurfaceFrameOhosRaster* oriFramePtr = static_cast<RSSurfaceFrameOhosRaster*>(frame.get());
     SurfaceError err = producer_->FlushBuffer(oriFramePtr->buffer_, oriFramePtr->releaseFence_, oriFramePtr->flushConfig_);
     if (err != SURFACE_ERROR_OK) {
-        ROSEN_LOGE("RSSurfaceOhosRaster Flushframe Failed, error is : %s", SurfaceErrorStr(err).c_str());
+        ROSEN_LOGE("RSSurfaceOhosRaster::Flushframe Failed, error is : %s", SurfaceErrorStr(err).c_str());
         return false;
     }
+
     return true;
 }
 

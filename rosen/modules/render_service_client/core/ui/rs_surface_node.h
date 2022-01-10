@@ -23,7 +23,7 @@
 
 #include <transaction/rs_transaction_proxy.h>
 #include "platform/drawing/rs_surface.h"
-#include "ui/rs_property_node.h"
+#include "ui/rs_node.h"
 class SkCanvas;
 
 namespace OHOS {
@@ -33,10 +33,12 @@ struct RSSurfaceNodeConfig {
     std::string SurfaceNodeName = "SurfaceNode";
 };
 
-class RS_EXPORT RSSurfaceNode : public RSPropertyNode, public Parcelable {
+class RS_EXPORT RSSurfaceNode : public RSNode, public Parcelable {
 public:
     using WeakPtr = std::weak_ptr<RSSurfaceNode>;
     using SharedPtr = std::shared_ptr<RSSurfaceNode>;
+    static inline constexpr RSUINodeType Type = RSUINodeType::SURFACE_NODE;
+
     virtual ~RSSurfaceNode();
 
     static SharedPtr Create(const RSSurfaceNodeConfig& surfaceNodeConfig, bool isWindow = true);
@@ -46,6 +48,12 @@ public:
 #ifdef ROSEN_OHOS
     sptr<OHOS::Surface> GetSurface() const;
 #endif
+
+    RSUINodeType GetType() const override
+    {
+        return RSUINodeType::SURFACE_NODE;
+    }
+
 protected:
     RSSurfaceNode(bool isRenderServiceNode);
     explicit RSSurfaceNode(const RSSurfaceNodeConfig& config, bool isRenderServiceNode);

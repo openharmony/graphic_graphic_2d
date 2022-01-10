@@ -30,6 +30,7 @@ namespace Rosen {
 
 class RSProcessor {
 public:
+    using SpecialTask = std::function<void()>;
     RSProcessor() {}
     virtual ~RSProcessor() {}
     virtual void ProcessSurface(RSSurfaceRenderNode &node) = 0;
@@ -38,12 +39,12 @@ public:
 
 protected:
     std::unique_ptr<SkCanvas> CreateCanvas(sptr<Surface> producerSurface, BufferRequestConfig requestConfig);
-    void DrawBuffer(SkCanvas* canvas, const SkMatrix& matrix, sptr<OHOS::SurfaceBuffer> buffer);
     void FlushBuffer(sptr<Surface> surface, BufferFlushConfig flushConfig);
+    bool ConsumeAndUpdateBuffer(RSSurfaceRenderNode& node, SpecialTask& task, sptr<SurfaceBuffer>& buffer);
 
 private:
     sptr<SurfaceBuffer> buffer_;
-    int32_t releaseFence_;
+    int32_t releaseFence_ = -1;
 };
 } // namespace Rosen
 } // namespace OHOS

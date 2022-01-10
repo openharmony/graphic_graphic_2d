@@ -28,13 +28,17 @@ namespace OHOS {
 namespace Rosen {
 
 enum RSCommandType : uint16_t {
+    // node commands
     BASE_NODE,
-    PROPERTY_NODE,
-    NODE,
+    RS_NODE,     // formerly RSPropertyNode
+    CANVAS_NODE, // formerly RSNode
     SURFACE_NODE,
     ROOT_NODE,
     DISPLAY_NODE,
+    // animation commands
     ANIMATION,
+    // read showing properties
+    RS_NODE_SYNCHRONOUS_READ_PROPERTY,
 };
 
 #ifdef ROSEN_OHOS
@@ -44,7 +48,30 @@ class RSCommand {
 #endif
 public:
     virtual ~RSCommand() noexcept = default;
-    virtual void Process(RSContext& context) const = 0;
+    virtual void Process(RSContext& context) = 0;
+};
+
+class RSSyncTask : public RSCommand {
+public:
+    RSSyncTask(uint64_t timeoutNS) : timeoutNS_(timeoutNS) {}
+
+#ifdef ROSEN_OHOS
+    virtual bool CheckHeader(Parcel& parcel) const = 0;
+    virtual bool ReadFromParcel(Parcel& parcel) = 0;
+#endif
+
+    inline uint64_t GetTimeout() const
+    {
+        return timeoutNS_;
+    }
+    inline bool GetResult() const
+    {
+        return result_;
+    }
+
+protected:
+    uint64_t timeoutNS_ = 0;
+    bool result_ = false;
 };
 
 } // namespace Rosen

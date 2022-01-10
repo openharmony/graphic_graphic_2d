@@ -25,9 +25,16 @@ class RS_EXPORT RSDisplayNode : public RSBaseNode {
 public:
     using WeakPtr = std::weak_ptr<RSDisplayNode>;
     using SharedPtr = std::shared_ptr<RSDisplayNode>;
+    static inline constexpr RSUINodeType Type = RSUINodeType::DISPLAY_NODE;
+
     virtual ~RSDisplayNode();
 
     static SharedPtr Create(const RSDisplayNodeConfig& displayNodeConfig);
+
+    RSUINodeType GetType() const override
+    {
+        return RSUINodeType::DISPLAY_NODE;
+    }
 
 protected:
     explicit RSDisplayNode(const RSDisplayNodeConfig& config);

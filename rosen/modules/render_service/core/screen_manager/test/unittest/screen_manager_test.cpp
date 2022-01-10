@@ -68,16 +68,16 @@ HWTEST_F(RSScreenManagerTest, GetScreenActiveMode, testing::ext::TestSize.Level1
 
 HWTEST_F(RSScreenManagerTest, GetScreenSupportedModes, testing::ext::TestSize.Level2)
 {
-    std::vector<RSScreenModeInfo> screenSupportedMoeds0;
-    screenSupportedMoeds0 = screenManager->GetScreenSupportedModes(screenId);
-    ASSERT_NE(screenSupportedMoeds0.size(), 0);
-    ASSERT_NE(screenSupportedMoeds0[0].GetScreenWidth(), -1);
-    ASSERT_NE(screenSupportedMoeds0[0].GetScreenHeight(), -1);
-    ASSERT_NE(screenSupportedMoeds0[0].GetScreenFreshRate(), 0);
-    ASSERT_NE(screenSupportedMoeds0[0].GetScreenModeId(), -1);
-    std::vector<RSScreenModeInfo> screenSupportedMoeds1;
-    screenSupportedMoeds1 = screenManager->GetScreenSupportedModes(OHOS::Rosen::INVALID_SCREEN_ID);
-    ASSERT_EQ(screenSupportedMoeds1.size(), 0);
+    std::vector<RSScreenModeInfo> screenSupportedModes0;
+    screenSupportedModes0 = screenManager->GetScreenSupportedModes(screenId);
+    ASSERT_NE(screenSupportedModes0.size(), 0);
+    ASSERT_NE(screenSupportedModes0[0].GetScreenWidth(), -1);
+    ASSERT_NE(screenSupportedModes0[0].GetScreenHeight(), -1);
+    ASSERT_NE(screenSupportedModes0[0].GetScreenFreshRate(), 0);
+    ASSERT_NE(screenSupportedModes0[0].GetScreenModeId(), -1);
+    std::vector<RSScreenModeInfo> screenSupportedModes1;
+    screenSupportedModes1 = screenManager->GetScreenSupportedModes(OHOS::Rosen::INVALID_SCREEN_ID);
+    ASSERT_EQ(screenSupportedModes1.size(), 0);
 }
 
 HWTEST_F(RSScreenManagerTest, GetScreenCapability, testing::ext::TestSize.Level2)
@@ -107,11 +107,19 @@ HWTEST_F(RSScreenManagerTest, SetScreenActiveMode, testing::ext::TestSize.Level2
     screenManager->GetScreenActiveMode(screenId, screenModeInfo0);
     // TODO: ASSERT_NE
     RSScreenModeInfo screenModeInfo1;
-    std::vector<RSScreenModeInfo> screenSupportedMoeds;
-    screenSupportedMoeds = screenManager->GetScreenSupportedModes(screenId);
-    screenManager->SetScreenActiveMode(screenId, screenSupportedMoeds.size()+3);
+    std::vector<RSScreenModeInfo> screenSupportedModes;
+    screenSupportedModes = screenManager->GetScreenSupportedModes(screenId);
+    screenManager->SetScreenActiveMode(screenId, screenSupportedModes.size()+3);
     screenManager->GetScreenActiveMode(screenId, screenModeInfo1);
     // TODO: ASSERT_EQ
+}
+
+HWTEST_F(RSScreenManagerTest, GetScreenDump, testing::ext::TestSize.Level2)
+{
+    std::string dumpString;
+    screenManager->DisplayDump(dumpString);
+    screenManager->SurfaceDump(dumpString);
+    std::cout<<dumpString;
 }
 }
 } // namespace Rosen

@@ -21,7 +21,7 @@
 #include "animation/rs_animation.h"
 #include "animation/rs_property_accessors.h"
 #include "common/rs_macros.h"
-#include "ui/rs_property_node.h"
+#include "ui/rs_node.h"
 
 namespace OHOS {
 namespace Rosen {

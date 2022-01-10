@@ -17,20 +17,20 @@
 
 #include <gtest/gtest.h>
 
+#include "animation/rs_animation_common.h"
+#include "animation/rs_animation_timing_protocol.h"
+#include "render/rs_path.h"
 #include "rs_animation_callback.h"
 #include "rs_animation_group.h"
 #include "rs_animation_timing_curve.h"
+#include "rs_canvas_node.h"
 #include "rs_curve_animation.h"
 #include "rs_implicit_animation_param.h"
 #include "rs_implicit_animator.h"
 #include "rs_keyframe_animation.h"
-#include "rs_transition.h"
 #include "rs_node.h"
-#include "rs_property_node.h"
 #include "rs_path_animation.h"
-#include "animation/rs_animation_timing_protocol.h"
-#include "animation/rs_animation_common.h"
-#include "render/rs_path.h"
+#include "rs_transition.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -236,7 +236,7 @@ HWTEST_F(RSAnimationTest, AnimationStatusTest001, TestSize.Level1)
     /**
      * @tc.steps: step1. init animation
      */
-    RSPropertyNode::SharedPtr node = RSNode::Create();
+    RSCanvasNode::SharedPtr node = RSCanvasNode::Create();
     node->SetBoundsWidth(200);
     std::unique_ptr<RSCurveAnimation<float>> animation =
         std::make_unique<RSCurveAnimation<float>>(RSAnimatableProperty::BOUNDS_WIDTH, 200, 500);
@@ -261,7 +261,7 @@ HWTEST_F(RSAnimationTest, AnimationStatusTest001, TestSize.Level1)
     animation->SetFraction(0.2f);
     RSAnimationTimingCurve timingCurve = animation->GetTimingCurve();
     animation->SetTimingCurve(timingCurve);
-    std::weak_ptr<RSPropertyNode> target = animation->GetTarget();
+    std::weak_ptr<RSNode> target = animation->GetTarget();
     auto targetNode = target.lock();
     EXPECT_TRUE(targetNode != nullptr);
 }
@@ -279,7 +279,7 @@ HWTEST_F(RSAnimationTest, AnimationGroupTest001, TestSize.Level1)
     /**
      * @tc.steps: step1. init animation group
      */
-    RSPropertyNode::SharedPtr node = RSNode::Create();
+    RSCanvasNode::SharedPtr node = RSCanvasNode::Create();
     node->SetBoundsWidth(200);
     std::shared_ptr<RSCurveAnimation<float>> animation1 =
         std::make_shared<RSCurveAnimation<float>>(RSAnimatableProperty::BOUNDS_WIDTH, 200, 500);
@@ -649,7 +649,7 @@ HWTEST_F(RSAnimationTest, ImplicitAnimatorTest001, TestSize.Level1)
     RSAnimationTimingProtocol protocol;
     RSAnimationTimingCurve curve = RSAnimationTimingCurve::EASE_IN_OUT;
     RSImplicitAnimator::Instance().OpenImplicitAnimation(protocol, curve, []() {});
-    RSPropertyNode::SharedPtr node = RSNode::Create();
+    RSCanvasNode::SharedPtr node = RSCanvasNode::Create();
     float fraction = 0.2f;
     RSImplicitAnimator::Instance().BeginImplicitKeyFrameAnimation(fraction, curve);
     RSImplicitAnimator::Instance().BeginImplicitKeyFrameAnimation(fraction);

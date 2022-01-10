@@ -29,14 +29,26 @@ namespace Rosen {
 using AnimationId = uint64_t;
 using NodeId = uint64_t;
 
+// types in the same layer should be 0/1/2/4/8
+// types for UINode
+enum class RSUINodeType {
+    BASE_NODE    = 0x00010,
+    DISPLAY_NODE = 0x00110,
+    RS_NODE      = 0x00210,   // formerly RSPropertyNode
+    SURFACE_NODE = 0x01210,
+    CANVAS_NODE  = 0x02210,   // formerly RSNode
+    ROOT_NODE    = 0x12210,
+    TEXTURE_NODE = 0x22210,
+};
+// types for RenderNode
 enum class RSRenderNodeType {
-    BASE_NODE     = 0x0001,
-    DISPLAY_NODE  = 0x0011,
-    PROPERTY_NODE = 0x0021,
-    SURFACE_NODE  = 0x0121,
-    NODE          = 0x0221,
-    ROOT_NODE     = 0x1221,
-    TEXTURE_NODE  = 0x2221,
+    BASE_NODE    = 0x00011,
+    DISPLAY_NODE = 0x00111,
+    RS_NODE      = 0x00211,   // formerly RSPropertyRenderNode
+    SURFACE_NODE = 0x01211,
+    CANVAS_NODE  = 0x02211,   // formerly RSRenderNode
+    ROOT_NODE    = 0x12211,
+    TEXTURE_NODE = 0x22211,
 };
 
 struct RSSurfaceRenderNodeConfig {

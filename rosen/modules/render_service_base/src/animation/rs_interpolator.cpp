@@ -75,6 +75,7 @@ RSCustomInterpolator::RSCustomInterpolator(const std::function<float(float)>& fu
 void RSCustomInterpolator::Convert(int duration)
 {
     if (interpolateFunc_ == nullptr) {
+        ROSEN_LOGE("RSCustomInterpolator::Convert, interpolateFunc_ is nullptr");
         return;
     }
     uint64_t frameInterval = 16666667; // TODO need to get from the client

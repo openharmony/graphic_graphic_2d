@@ -22,10 +22,10 @@ namespace OHOS {
 namespace Rosen {
 
 class RSBaseRenderNode;
+class RSCanvasRenderNode;
 class RSDisplayRenderNode;
-class RSRenderNode;
-class RSSurfaceRenderNode;
 class RSRootRenderNode;
+class RSSurfaceRenderNode;
 
 class RSNodeVisitor : public std::enable_shared_from_this<RSNodeVisitor> {
 public:
@@ -33,13 +33,13 @@ public:
     virtual ~RSNodeVisitor() {}
     virtual void PrepareBaseRenderNode(RSBaseRenderNode& node) = 0;
     virtual void PrepareDisplayRenderNode(RSDisplayRenderNode& node) = 0;
-    virtual void PrepareRenderNode(RSRenderNode& node) = 0;
+    virtual void PrepareCanvasRenderNode(RSCanvasRenderNode& node) = 0;
     virtual void PrepareSurfaceRenderNode(RSSurfaceRenderNode& node) = 0;
     virtual void PrepareRootRenderNode(RSRootRenderNode& node) = 0;
 
     virtual void ProcessBaseRenderNode(RSBaseRenderNode& node) = 0;
     virtual void ProcessDisplayRenderNode(RSDisplayRenderNode& node) = 0;
-    virtual void ProcessRenderNode(RSRenderNode& node) = 0;
+    virtual void ProcessCanvasRenderNode(RSCanvasRenderNode& node) = 0;
     virtual void ProcessSurfaceRenderNode(RSSurfaceRenderNode& node) = 0;
     virtual void ProcessRootRenderNode(RSRootRenderNode& node) = 0;
 };

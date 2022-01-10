@@ -22,9 +22,7 @@
 
 namespace OHOS {
 namespace Rosen {
-#ifdef ACE_ENABLE_GL
 class RenderContext;
-#endif
 class RSSurface {
 public:
     RSSurface() = default;
@@ -36,14 +34,11 @@ public:
     virtual std::unique_ptr<RSSurfaceFrame> RequestFrame(int32_t width, int32_t height) = 0;
 
     virtual bool FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame) = 0;
-#ifdef ACE_ENABLE_GL
     virtual RenderContext* GetRenderContext() = 0;
     virtual void SetRenderContext(RenderContext* context) = 0;
-#endif
+
 protected:
-
 private:
-
 };
 
 } // namespace Rosen

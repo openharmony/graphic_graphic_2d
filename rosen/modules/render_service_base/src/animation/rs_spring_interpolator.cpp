@@ -44,11 +44,13 @@ RSSpringInterpolator::RSSpringInterpolator(float response, float dampingRatio, f
 bool RSSpringInterpolator::Marshalling(Parcel& parcel) const
 {
     if (!parcel.WriteUint16(InterpolatorType::SPRING)) {
+        ROSEN_LOGE("RSSpringInterpolator::Marshalling, Write type failed");
         return false;
     }
     if (!(parcel.WriteFloat(response_) && parcel.WriteFloat(dampingRatio_) && parcel.WriteFloat(initialVelocity_) &&
             parcel.WriteFloat(initialOffset_) && parcel.WriteFloat(minimumAmplitude_) &&
             parcel.WriteFloat(duration_))) {
+        ROSEN_LOGE("RSSpringInterpolator::Marshalling, Write value failed");
         return false;
     }
     return true;
@@ -59,7 +61,7 @@ RSSpringInterpolator* RSSpringInterpolator::Unmarshalling(Parcel& parcel)
     float response, dampingRatio, initialVelocity, initialOffset, minimumAmplitude, duration;
     if (!(parcel.ReadFloat(response) && parcel.ReadFloat(dampingRatio) && parcel.ReadFloat(initialVelocity) &&
             parcel.ReadFloat(initialOffset) && parcel.ReadFloat(minimumAmplitude) && parcel.ReadFloat(duration))) {
-        ROSEN_LOGE("Unmarshalling SpringInterpolator failed");
+        ROSEN_LOGE("RSSpringInterpolator::Unmarshalling, SpringInterpolator failed");
         return nullptr;
     }
     auto ret =

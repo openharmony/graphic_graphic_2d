@@ -14,6 +14,7 @@
  */
 
 #include "rs_surface_frame_ohos_raster.h"
+#include <cstdint>
 
 #include "platform/common/rs_log.h"
 
@@ -22,8 +23,11 @@ namespace Rosen {
 
 RSSurfaceFrameOhosRaster::RSSurfaceFrameOhosRaster(int32_t width, int32_t height)
 {
-    requestConfig_.width = width;
-    requestConfig_.height = height;
+    constexpr int32_t pixelBase = 16;
+    requestConfig_.width = (width % pixelBase == 0) ? width : ((width / pixelBase + 1) * pixelBase);
+    requestConfig_.height = (height % pixelBase == 0) ? height : ((height / pixelBase + 1) * pixelBase);
+    flushConfig_.damage.w = width;
+    flushConfig_.damage.h = height;
 }
 
 void RSSurfaceFrameOhosRaster::SetDamageRegion(int32_t left, int32_t top, int32_t width, int32_t height)
@@ -50,12 +54,12 @@ SkCanvas* RSSurfaceFrameOhosRaster::GetCanvas()
 void RSSurfaceFrameOhosRaster::CreateCanvas()
 {
     auto addr = static_cast<uint32_t*>(buffer_->GetVirAddr());
-    if (addr == nullptr ) {
+    if (addr == nullptr) {
         ROSEN_LOGW("buffer addr is invalid");
         return;
     }
-    SkImageInfo info = SkImageInfo::Make(buffer_->GetWidth(), buffer_->GetHeight(),
-                                        kRGBA_8888_SkColorType, kPremul_SkAlphaType);
+    SkImageInfo info =
+        SkImageInfo::Make(buffer_->GetWidth(), buffer_->GetHeight(), kRGBA_8888_SkColorType, kPremul_SkAlphaType);
     auto uniqueCanvasPtr = SkCanvas::MakeRasterDirect(info, addr, buffer_->GetSize() / buffer_->GetHeight());
     canvas_ = std::move(uniqueCanvasPtr);
 }

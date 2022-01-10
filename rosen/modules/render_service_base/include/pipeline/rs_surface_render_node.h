@@ -18,12 +18,12 @@
 #include <memory>
 #include <surface.h>
 
-#include "pipeline/rs_property_render_node.h"
+#include "pipeline/rs_render_node.h"
 
 class SkCanvas;
 namespace OHOS {
 namespace Rosen {
-class RSSurfaceRenderNode : public RSPropertyRenderNode {
+class RSSurfaceRenderNode : public RSRenderNode {
 public:
     using WeakPtr = std::weak_ptr<RSSurfaceRenderNode>;
     using SharedPtr = std::shared_ptr<RSSurfaceRenderNode>;
@@ -62,7 +62,7 @@ public:
     void Prepare(const std::shared_ptr<RSNodeVisitor>& visitor) override;
     void Process(const std::shared_ptr<RSNodeVisitor>& visitor) override;
 
-    RSRenderNodeType GetType() override
+    RSRenderNodeType GetType() const override
     {
         return RSRenderNodeType::SURFACE_NODE;
     }
@@ -82,7 +82,7 @@ private:
     friend class RSRenderTransition;
     sptr<Surface> consumer_;
 
-    int32_t bufferAvailableCount_ = 0;
+    std::atomic<int> bufferAvailableCount_ = 0;
     SkMatrix matrix_;
     float alpha_ = 0.0f;
     NodeId parentId_ = 0;

@@ -23,7 +23,7 @@
 
 namespace OHOS {
 namespace Rosen {
-class RSPropertyRenderNode;
+class RSRenderNode;
 class RSRenderManager;
 
 class RSRenderNodeMap final {
@@ -42,7 +42,7 @@ public:
     template<>
     std::shared_ptr<RSBaseRenderNode> GetRenderNode(NodeId id);
 
-    std::shared_ptr<RSPropertyRenderNode> GetAnimationFallbackNode();
+    std::shared_ptr<RSRenderNode> GetAnimationFallbackNode();
 
 private:
     explicit RSRenderNodeMap();

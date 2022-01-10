@@ -58,46 +58,40 @@ public:
         return false;
     }
 
-    static bool Marshalling(Parcel& parcel, const std::shared_ptr<RSRenderPathAnimation>& val);
-    static bool Unmarshalling(Parcel& parcel, std::shared_ptr<RSRenderPathAnimation>& val);
-
-    static bool Marshalling(Parcel& parcel, const std::shared_ptr<RSRenderTransition>& val);
-    static bool Unmarshalling(Parcel& parcel, std::shared_ptr<RSRenderTransition>& val);
-
     // specialized marshalling & unmarshalling function for certain types
-#define DECLEAR_SPECIALIZATION(TYPE)                   \
-    template<>                                         \
-    bool Marshalling(Parcel& parcel, const TYPE& val); \
-    template<>                                         \
-    bool Unmarshalling(Parcel& parcel, TYPE& val);
+#define DECLARE_FUNCTION_OVERLOAD(TYPE)                       \
+    static bool Marshalling(Parcel& parcel, const TYPE& val); \
+    static bool Unmarshalling(Parcel& parcel, TYPE& val);
 
-    DECLEAR_SPECIALIZATION(bool)
-    DECLEAR_SPECIALIZATION(int8_t)
-    DECLEAR_SPECIALIZATION(uint8_t)
-    DECLEAR_SPECIALIZATION(int16_t)
-    DECLEAR_SPECIALIZATION(uint16_t)
-    DECLEAR_SPECIALIZATION(int32_t)
-    DECLEAR_SPECIALIZATION(uint32_t)
-    DECLEAR_SPECIALIZATION(int64_t)
-    DECLEAR_SPECIALIZATION(uint64_t)
-    DECLEAR_SPECIALIZATION(float)
-    DECLEAR_SPECIALIZATION(double)
-    DECLEAR_SPECIALIZATION(sk_sp<SkData>)
-    DECLEAR_SPECIALIZATION(sk_sp<SkFlattenable>)
-    DECLEAR_SPECIALIZATION(SkPath)
-    DECLEAR_SPECIALIZATION(RSShader)
-    DECLEAR_SPECIALIZATION(RSPath)
-#undef DECLEAR_SPECIALIZATION
+    DECLARE_FUNCTION_OVERLOAD(bool)
+    DECLARE_FUNCTION_OVERLOAD(int8_t)
+    DECLARE_FUNCTION_OVERLOAD(uint8_t)
+    DECLARE_FUNCTION_OVERLOAD(int16_t)
+    DECLARE_FUNCTION_OVERLOAD(uint16_t)
+    DECLARE_FUNCTION_OVERLOAD(int32_t)
+    DECLARE_FUNCTION_OVERLOAD(uint32_t)
+    DECLARE_FUNCTION_OVERLOAD(int64_t)
+    DECLARE_FUNCTION_OVERLOAD(uint64_t)
+    DECLARE_FUNCTION_OVERLOAD(float)
+    DECLARE_FUNCTION_OVERLOAD(double)
+    DECLARE_FUNCTION_OVERLOAD(sk_sp<SkData>)
+    DECLARE_FUNCTION_OVERLOAD(sk_sp<SkFlattenable>)
+    DECLARE_FUNCTION_OVERLOAD(SkPath)
+    DECLARE_FUNCTION_OVERLOAD(RSShader)
+    DECLARE_FUNCTION_OVERLOAD(RSPath)
+    DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSRenderPathAnimation>)
+    DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSRenderTransition>)
+#undef DECLARE_FUNCTION_OVERLOAD
 
-#define DECLEAR_TEMPLATE_OVERLOAD(TEMPLATE)                                           \
+#define DECLARE_TEMPLATE_OVERLOAD(TEMPLATE)                                           \
     template<typename T>                                                              \
     static bool Marshalling(Parcel& parcel, const std::shared_ptr<TEMPLATE<T>>& val); \
     template<typename T>                                                              \
     static bool Unmarshalling(Parcel& parcel, std::shared_ptr<TEMPLATE<T>>& val);
 
-    DECLEAR_TEMPLATE_OVERLOAD(RSRenderCurveAnimation)
-    DECLEAR_TEMPLATE_OVERLOAD(RSRenderKeyframeAnimation)
-#undef DECLEAR_TEMPLATE_OVERLOAD
+    DECLARE_TEMPLATE_OVERLOAD(RSRenderCurveAnimation)
+    DECLARE_TEMPLATE_OVERLOAD(RSRenderKeyframeAnimation)
+#undef DECLARE_TEMPLATE_OVERLOAD
 };
 
 } // namespace Rosen

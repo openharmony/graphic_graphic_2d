@@ -19,30 +19,28 @@
 #include <surface.h>
 
 #include "platform/drawing/rs_surface.h"
-#ifdef ACE_ENABLE_GL
 #include "render_context/render_context.h"
-#endif
 
 namespace OHOS {
 namespace Rosen {
 class RSSurfaceOhos : public RSSurface {
 public:
-    RSSurfaceOhos(const sptr<Surface>& producer)
-        : producer_(producer) {}
+    RSSurfaceOhos(const sptr<Surface>& producer) : producer_(producer)
+    {
+        producer_->SetQueueSize(5); // set buffer queue size to 5
+    }
 
     sptr<Surface> GetSurface() const
     {
         return producer_;
     }
-#ifdef ACE_ENABLE_GL
+
     virtual RenderContext* GetRenderContext();
     virtual void SetRenderContext(RenderContext* context);
-#endif
+
 protected:
     sptr<Surface> producer_;
-#ifdef ACE_ENABLE_GL
     RenderContext* context_;
-#endif
 };
 
 } // namespace Rosen

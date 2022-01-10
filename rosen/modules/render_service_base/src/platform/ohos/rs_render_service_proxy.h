@@ -33,6 +33,7 @@ public:
     virtual ~RSRenderServiceProxy() = default;
 
     void CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData) override;
+    void ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task) override;
 
     sptr<Surface> CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config) override;
 
@@ -55,6 +56,8 @@ public:
 
     void SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status) override;
 
+    void TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback) override;
+
     RSScreenModeInfo GetScreenActiveMode(ScreenId id) override;
 
     std::vector<RSScreenModeInfo> GetScreenSupportedModes(ScreenId id) override;
@@ -64,6 +67,8 @@ public:
     ScreenPowerStatus GetScreenPowerStatus(ScreenId id) override;
 
     RSScreenData GetScreenData(ScreenId id) override;
+
+    int Dump(int fd, const std::vector<std::u16string> &args);
 
 private:
     static inline BrokerDelegator<RSRenderServiceProxy> delegator_;

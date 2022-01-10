@@ -16,8 +16,8 @@
 #include "pipeline/rs_hardware_processor.h"
 
 #include "pipeline/rs_main_thread.h"
+#include "pipeline/rs_render_service_util.h"
 #include "platform/common/rs_log.h"
-#include "stdlib.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -58,65 +58,42 @@ void RSHardwareProcessor::PostProcess()
 
 void RSHardwareProcessor::ProcessSurface(RSSurfaceRenderNode &node)
 {
-    ROSEN_LOGI("RsDebug RSHardwareProcessor::ProcessSurface start");
+    ROSEN_LOGE("RsDebug RSHardwareProcessor::ProcessSurface start node id:%llu available buffer:%d", node.GetId(),
+        node.GetAvailableBufferCount());
     if (!output_) {
         ROSEN_LOGE("RSHardwareProcessor::ProcessSurface output is nullptr");
         return;
     }
-    if (node.GetAvailableBufferCount() == 0 && !node.GetBuffer()) {
-        ROSEN_LOGI("RsDebug RSHardwareProcessor::ProcessSurface have no Available Buffer and Node have no buffer");
+    OHOS::sptr<SurfaceBuffer> cbuffer;
+    RSProcessor::SpecialTask task = [] () -> void{};
+    bool ret = ConsumeAndUpdateBuffer(node, task, cbuffer);
+    if (!ret) {
+        ROSEN_LOGE("RsDebug RSCompatibleProcessor::ProcessSurface consume buffer fail");
         return;
     }
-    auto surfaceConsumer = node.GetConsumer();
-    if (!surfaceConsumer) {
-        ROSEN_LOGI("RSHardwareProcessor::ProcessSurface output is nullptr");
-        return;
-    }
-
-    if (node.GetAvailableBufferCount() >= 1) {
-        OHOS::sptr<SurfaceBuffer> cbuffer = nullptr;
-        int32_t fence = -1;
-        int64_t timestamp;
-        Rect damage;
-        auto sret = surfaceConsumer->AcquireBuffer(cbuffer, fence, timestamp, damage);
-        if (!cbuffer || sret != OHOS::SURFACE_ERROR_OK) {
-            return;
-        }
-        node.SetBuffer(cbuffer);
-        node.SetFence(fence);
-        if (node.ReduceAvailableBuffer() >= 1) {
-            if (auto mainThread = RSMainThread::Instance()) {
-                mainThread->RequestNextVSync();
-            }
-        }
-    }
-
-    IRect srcRect;
-    srcRect.x = 0;
-    srcRect.y = 0;
-    srcRect.w = node.GetBuffer()->GetWidth();
-    srcRect.h = node.GetBuffer()->GetHeight();
-
-    IRect dstRect;
-    dstRect.x = node.GetRenderProperties().GetBoundsPositionX();
-    dstRect.y = node.GetRenderProperties().GetBoundsPositionY();
-    dstRect.w = node.GetRenderProperties().GetBoundsWidth();
-    dstRect.h = node.GetRenderProperties().GetBoundsHeight();
+    ComposeInfo info = {
+        .srcRect = {
+            .x = 0,
+            .y = 0,
+            .w = node.GetBuffer()->GetWidth(),
+            .h = node.GetBuffer()->GetHeight(),
+        },
+        .dstRect = {
+            .x = node.GetRenderProperties().GetBoundsPositionX(),
+            .y = node.GetRenderProperties().GetBoundsPositionY(),
+            .w = node.GetRenderProperties().GetBoundsWidth(),
+            .h = node.GetRenderProperties().GetBoundsHeight(),
+        },
+        .zOrder = node.GetRenderProperties().GetPositionZ(),
+        .alpha = alpha_,
+        .buffer = node.GetBuffer(),
+        .fence = node.GetFence(),
+    };
     std::shared_ptr<HdiLayerInfo> layer = HdiLayerInfo::CreateHdiLayerInfo();
-    layer->SetSurface(surfaceConsumer);
-    layer->SetBuffer(node.GetBuffer(), node.GetFence());
-    layer->SetZorder(node.GetRenderProperties().GetPositionZ());
-    layer->SetAlpha(alpha_);
-    layer->SetLayerSize(dstRect);
-    layer->SetCompositionType(CompositionType::COMPOSITION_DEVICE);
-    layer->SetVisibleRegion(1, srcRect);
-    layer->SetDirtyRegion(srcRect);
-    layer->SetBlendType(BlendType::BLEND_SRCOVER);
-    layer->SetCropRect(srcRect);
-    ROSEN_LOGE("RsDebug RSHardwareProcessor::ProcessSurface surfaceNode [%d %d %d %d] buffer [%d %d] buffaddr:%p, z:%d",
-        dstRect.x, dstRect.y, dstRect.w, dstRect.h, srcRect.w, srcRect.h,
-        node.GetBuffer().GetRefPtr(), layer->GetZorder());
-    layers_.emplace_back(layer);
+    ROSEN_LOGE("RsDebug RSHardwareProcessor::ProcessSurface surfaceNode id:%llu [%d %d %d %d]"\
+        "buffer [%d %d] buffaddr:%p, z:%d", node.GetId(), info.dstRect.x, info.dstRect.y, info.dstRect.w,
+        info.dstRect.h, info.srcRect.w, info.srcRect.h, node.GetBuffer().GetRefPtr(), info.zOrder);
+    RsRenderServiceUtil::ComposeSurface(layer, node.GetConsumer(), layers_, info);
 }
 
 void RSHardwareProcessor::Redraw(sptr<Surface>& surface, const struct PrepareCompleteParam& param, void* data)
@@ -130,7 +107,6 @@ void RSHardwareProcessor::Redraw(sptr<Surface>& surface, const struct PrepareCom
         ROSEN_LOGE("RSHardwareProcessor::Redraw: surface is null.");
         return;
     }
-
     BufferRequestConfig requestConfig = {
         .width = curScreenInfo.GetScreenWidth(),
         .height = curScreenInfo.GetScreenHeight(),
@@ -146,13 +122,14 @@ void RSHardwareProcessor::Redraw(sptr<Surface>& surface, const struct PrepareCom
     }
 
     for (auto layer : param.layers) {
+        ROSEN_LOGE("RsDebug RSHardwareProcessor::Redraw layer composition Type:%d", layer->GetCompositionType());
         if (layer == nullptr) {
             continue;
         }
         SkMatrix matrix;
         matrix.reset();
-        matrix.setTranslate(layer->GetLayerSize().x, layer->GetLayerSize().y);
-        DrawBuffer(canvas.get(), matrix, layer->GetBuffer());
+        RsRenderServiceUtil::DrawBuffer(canvas.get(), matrix, layer->GetBuffer(), layer->GetLayerSize().x, layer->GetLayerSize().y,
+            layer->GetLayerSize().w, layer->GetLayerSize().h);
     }
     BufferFlushConfig flushConfig = {
         .damage = {
@@ -164,5 +141,6 @@ void RSHardwareProcessor::Redraw(sptr<Surface>& surface, const struct PrepareCom
     };
     FlushBuffer(surface, flushConfig);
 }
+
 } // namespace Rosen
 } // namespace OHOS

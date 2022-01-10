@@ -59,15 +59,18 @@ public:
     bool Marshalling(Parcel& parcel) const override
     {
         if (!RSRenderPropertyAnimation<T>::Marshalling(parcel)) {
+            ROSEN_LOGE("RSRenderKeyframeAnimation::Marshalling, RenderPropertyAnimation failed");
             return false;
         }
         uint32_t size = keyframes_.size();
         if (!parcel.WriteUint32(size)) {
+            ROSEN_LOGE("RSRenderKeyframeAnimation::Marshalling, Write size failed");
             return false;
         }
         for (auto data : keyframes_) {
             if (!(parcel.WriteFloat(std::get<0>(data)) && RSMarshallingHelper::Marshalling(parcel, std::get<1>(data)) &&
                     std::get<2>(data)->Marshalling(parcel))) {
+                ROSEN_LOGE("RSRenderKeyframeAnimation::Marshalling, Write value failed");
                 return false;
             }
         }
@@ -77,7 +80,7 @@ public:
     {
         RSRenderKeyframeAnimation* renderKeyframeAnimation = new RSRenderKeyframeAnimation<T>();
         if (!renderKeyframeAnimation->ParseParam(parcel)) {
-            ROSEN_LOGE("Unmarshalling RenderKeyframeanimation failed");
+            ROSEN_LOGE("RSRenderKeyframeAnimation::Unmarshalling, ParseParam failed");
             delete renderKeyframeAnimation;
             return nullptr;
         }
@@ -122,12 +125,12 @@ private:
     bool ParseParam(Parcel& parcel) override
     {
         if (!RSRenderPropertyAnimation<T>::ParseParam(parcel)) {
-            ROSEN_LOGE("Parse RenderProperty fail");
+            ROSEN_LOGE("RSRenderKeyframeAnimation::ParseParam, RenderPropertyAnimation fail");
             return false;
         }
         uint32_t size = 0;
         if (!parcel.ReadUint32(size)) {
-            ROSEN_LOGE("Parse Keyframes size fail");
+            ROSEN_LOGE("RSRenderKeyframeAnimation::ParseParam, Parse Keyframes size fail");
             return false;
         }
         float tupValue0 = 0;
@@ -136,6 +139,7 @@ private:
         keyframes_.clear();
         for (u_int32_t i = 0; i < size; i++) {
             if (!(parcel.ReadFloat(tupValue0) && RSMarshallingHelper::Unmarshalling(parcel, tupValue1))) {
+                ROSEN_LOGE("RSRenderKeyframeAnimation::ParseParam, Unmarshalling value failed");
                 return false;
             }
             std::shared_ptr<RSInterpolator> interpolator(RSInterpolator::Unmarshalling(parcel));

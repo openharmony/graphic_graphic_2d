@@ -1,0 +1,130 @@
+/*
+ * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+DECLARE_GET_COMMAND(RSNodeGetBounds, GET_BOUNDS, Vector4f, GetBounds)
+
+DECLARE_GET_COMMAND(RSNodeGetBoundsSize, GET_BOUNDS_SIZE, Vector2f, GetBoundsSize)
+
+DECLARE_GET_COMMAND(RSNodeGetBoundsWidth, GET_BOUNDS_WIDTH, float, GetBoundsWidth)
+
+DECLARE_GET_COMMAND(RSNodeGetBoundsHeight, GET_BOUNDS_HEIGHT, float, GetBoundsHeight)
+
+DECLARE_GET_COMMAND(RSNodeGetBoundsPosition, GET_BOUNDS_POSITION, Vector2f, GetBoundsPosition)
+
+DECLARE_GET_COMMAND(RSNodeGetBoundsPositionX, GET_BOUNDS_POSITION_X, float, GetBoundsPositionX)
+
+DECLARE_GET_COMMAND(RSNodeGetBoundsPositionY, GET_BOUNDS_POSITION_Y, float, GetBoundsPositionY)
+
+DECLARE_GET_COMMAND(RSNodeGetFrame, GET_FRAME, Vector4f, GetFrame)
+
+DECLARE_GET_COMMAND(RSNodeGetFrameSize, GET_FRAME_SIZE, Vector2f, GetFrameSize)
+
+DECLARE_GET_COMMAND(RSNodeGetFrameWidth, GET_FRAME_WIDTH, float, GetFrameWidth)
+
+DECLARE_GET_COMMAND(RSNodeGetFrameHeight, GET_FRAME_HEIGHT, float, GetFrameHeight)
+
+DECLARE_GET_COMMAND(RSNodeGetFramePosition, GET_FRAME_POSITION, Vector2f, GetFramePosition)
+
+DECLARE_GET_COMMAND(RSNodeGetFramePositionX, GET_FRAME_POSITION_X, float, GetFramePositionX)
+
+DECLARE_GET_COMMAND(RSNodeGetFramePositionY, GET_FRAME_POSITION_Y, float, GetFramePositionY)
+
+DECLARE_GET_COMMAND(RSNodeGetPositionZ, GET_POSITION_Z, float, GetPositionZ)
+
+DECLARE_GET_COMMAND(RSNodeGetPivot, GET_PIVOT, Vector2f, GetPivot)
+
+DECLARE_GET_COMMAND(RSNodeGetPivotX, GET_PIVOT_X, float, GetPivotX)
+
+DECLARE_GET_COMMAND(RSNodeGetPivotY, GET_PIVOT_Y, float, GetPivotY)
+
+DECLARE_GET_COMMAND(RSNodeGetCornerRadius, GET_CORNER_RADIUS, float, GetCornerRadius)
+
+DECLARE_GET_COMMAND(RSNodeGetQuaternion, GET_QUATERNION, Quaternion, GetQuaternion)
+
+DECLARE_GET_COMMAND(RSNodeGetRotation, GET_ROTATION, float, GetRotation)
+
+DECLARE_GET_COMMAND(RSNodeGetRotationX, GET_ROTATION_X, float, GetRotationX)
+
+DECLARE_GET_COMMAND(RSNodeGetRotationY, GET_ROTATION_Y, float, GetRotationY)
+
+DECLARE_GET_COMMAND(RSNodeGetScale, GET_SCALE, Vector2f, GetScale)
+
+DECLARE_GET_COMMAND(RSNodeGetScaleX, GET_SCALE_X, float, GetScaleX)
+
+DECLARE_GET_COMMAND(RSNodeGetScaleY, GET_SCALE_Y, float, GetScaleY)
+
+DECLARE_GET_COMMAND(RSNodeGetTranslate, GET_TRANSLATE, Vector2f, GetTranslate)
+
+DECLARE_GET_COMMAND(RSNodeGetTranslateX, GET_TRANSLATE_X, float, GetTranslateX)
+
+DECLARE_GET_COMMAND(RSNodeGetTranslateY, GET_TRANSLATE_Y, float, GetTranslateY)
+
+DECLARE_GET_COMMAND(RSNodeGetTranslateZ, GET_TRANSLATE_Z, float, GetTranslateZ)
+
+DECLARE_GET_COMMAND(RSNodeGetAlpha, GET_ALPHA, float, GetAlpha)
+
+DECLARE_GET_COMMAND(RSNodeGetForegroundColor, GET_FG_COLOR, Color, GetForegroundColor)
+
+DECLARE_GET_COMMAND(RSNodeGetBackgroundColor, GET_BG_COLOR, Color, GetBackgroundColor)
+
+DECLARE_GET_COMMAND(RSNodeGetBackgroundShader, GET_BG_SHADER, std::shared_ptr<RSShader>, GetBackgroundShader)
+
+DECLARE_GET_COMMAND(RSNodeGetBgImage, GET_BG_IMAGE, std::shared_ptr<RSImage>, GetBgImage)
+
+DECLARE_GET_COMMAND(RSNodeGetBgImageWidth, GET_BG_IMAGE_WIDTH, float, GetBgImageWidth)
+
+DECLARE_GET_COMMAND(RSNodeGetBgImageHeight, GET_BG_IMAGE_HEIGHT, float, GetBgImageHeight)
+
+DECLARE_GET_COMMAND(RSNodeGetBgImagePositionX, GET_BG_IMAGE_POSITION_X, float, GetBgImagePositionX)
+
+DECLARE_GET_COMMAND(RSNodeGetBgImagePositionY, GET_BG_IMAGE_POSITION_Y, float, GetBgImagePositionY)
+
+DECLARE_GET_COMMAND(RSNodeGetBorderColor, GET_BORDER_COLOR, Color, GetBorderColor)
+
+DECLARE_GET_COMMAND(RSNodeGetBorderWidth, GET_BORDER_WIDTH, float, GetBorderWidth)
+
+DECLARE_GET_COMMAND(RSNodeGetBorderStyle, GET_BORDER_STYLE, BorderStyle, GetBorderStyle)
+
+DECLARE_GET_COMMAND(RSNodeGetSublayerTransform, GET_SUBLAYER_TRANSFORM, Matrix3f, GetSublayerTransform)
+
+DECLARE_GET_COMMAND(RSNodeGetBackgroundFilter, GET_BG_FILTER, std::shared_ptr<RSFilter>, GetBackgroundFilter)
+
+DECLARE_GET_COMMAND(RSNodeGetFilter, GET_FILTER, std::shared_ptr<RSFilter>, GetFilter)
+
+// DECLARE_GET_COMMAND(RSNodeGetCompositingFilter, GET_COMPOSITING_FILTER, std::shared_ptr<RSFilter>, GetFilter)
+
+DECLARE_GET_COMMAND(RSNodeGetFrameGravity, GET_FRAME_GRAVITY, Gravity, GetFrameGravity)
+
+DECLARE_GET_COMMAND(RSNodeGetClipBounds, GET_CLIP_BOUNDS, std::shared_ptr<RSPath>, GetClipBounds)
+
+DECLARE_GET_COMMAND(RSNodeGetClipToBounds, GET_CLIP_TO_BOUNDS, bool, GetClipToBounds)
+
+DECLARE_GET_COMMAND(RSNodeGetClipToFrame, GET_CLIP_TO_FRAME, bool, GetClipToFrame)
+
+DECLARE_GET_COMMAND(RSNodeGetVisible, GET_VISIBLE, bool, GetVisible)
+
+DECLARE_GET_COMMAND(RSNodeGetShadowColor, GET_SHADOW_COLOR, Color, GetShadowColor)
+
+DECLARE_GET_COMMAND(RSNodeGetShadowOffsetX, GET_SHADOW_OFFSET_X, float, GetShadowOffsetX)
+
+DECLARE_GET_COMMAND(RSNodeGetShadowOffsetY, GET_SHADOW_OFFSET_Y, float, GetShadowOffsetY)
+
+DECLARE_GET_COMMAND(RSNodeGetShadowAlpha, GET_SHADOW_ALPHA, float, GetShadowAlpha)
+
+DECLARE_GET_COMMAND(RSNodeGetShadowElevation, GET_SHADOW_ELEVATION, float, GetShadowElevation)
+
+DECLARE_GET_COMMAND(RSNodeGetShadowRadius, GET_SHADOW_RADIUS, float, GetShadowRadius)
+
+DECLARE_GET_COMMAND(RSNodeGetShadowPath, GET_SHADOW_PATH, std::shared_ptr<RSPath>, GetShadowPath)

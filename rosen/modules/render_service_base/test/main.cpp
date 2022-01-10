@@ -27,9 +27,12 @@ int main()
 {
     std::unique_ptr<RSCommand> command = std::make_unique<RSBaseNodeAddChild>(1, 1, 1);
     auto renderClient = RSIRenderClient::CreateRenderServiceClient();
-    RSTransactionProxy::GetInstance().SetRenderServiceClient(renderClient);
-    RSTransactionProxy::GetInstance().AddCommand(command);
-    RSTransactionProxy::GetInstance().FlushImplicitTransaction();
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        transactionProxy->SetRenderServiceClient(renderClient);
+        transactionProxy->AddCommand(command);
+        transactionProxy->FlushImplicitTransaction();
+    }
     // create surface
     RSSurfaceRenderNodeConfig config = {.id=0};
     std::shared_ptr<RSSurface> testSurface =

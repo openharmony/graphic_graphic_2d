@@ -44,7 +44,6 @@ private:
 // Macro functions for printing ROSEN's log to the log system on the OS platform.
 // Normally, you can use the maros ROSEN_LOGX, it will set a default log tag as "ROSEN".
 // And if you want specific a log tag by yourself, you may should use ROSEN_LOGX_WITH_TAG.
-#ifdef ROSEN_DEBUG
 #define ROSEN_LOGI_WITH_TAG(tag, format, ...)                           \
     do {                                                                \
         RSLog logger;                                                   \
@@ -79,14 +78,6 @@ private:
         logger.SetTag(tag);                                              \
         logger.Output(RSLog::Level::LEVEL_FATAL, format, ##__VA_ARGS__); \
     } while (0)
-
-#else
-#define ROSEN_LOGI_WITH_TAG(tag, format, ...)
-#define ROSEN_LOGD_WITH_TAG(tag, format, ...)
-#define ROSEN_LOGE_WITH_TAG(tag, format, ...)
-#define ROSEN_LOGW_WITH_TAG(tag, format, ...)
-#define ROSEN_LOGF_WITH_TAG(tag, format, ...)
-#endif
 
 #define ROSEN_LOGI(format, ...) ROSEN_LOGI_WITH_TAG(RSLog().GetTag().c_str(), format, ##__VA_ARGS__)
 #define ROSEN_LOGD(format, ...) ROSEN_LOGD_WITH_TAG(RSLog().GetTag().c_str(), format, ##__VA_ARGS__)

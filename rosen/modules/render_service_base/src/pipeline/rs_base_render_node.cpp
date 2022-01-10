@@ -171,9 +171,9 @@ bool RSBaseRenderNode::IsInstanceOf()
 // explicit instantiation with all rendernode types
 template bool RSBaseRenderNode::IsInstanceOf<RSBaseRenderNode>();
 template bool RSBaseRenderNode::IsInstanceOf<RSDisplayRenderNode>();
-template bool RSBaseRenderNode::IsInstanceOf<RSPropertyRenderNode>();
-template bool RSBaseRenderNode::IsInstanceOf<RSSurfaceRenderNode>();
 template bool RSBaseRenderNode::IsInstanceOf<RSRenderNode>();
+template bool RSBaseRenderNode::IsInstanceOf<RSSurfaceRenderNode>();
+template bool RSBaseRenderNode::IsInstanceOf<RSCanvasRenderNode>();
 template bool RSBaseRenderNode::IsInstanceOf<RSRootRenderNode>();
 template bool RSBaseRenderNode::IsInstanceOf<RSTextureRenderNode>();
 

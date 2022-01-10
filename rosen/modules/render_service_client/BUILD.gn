@@ -28,7 +28,10 @@ ohos_source_set("render_service_client_src") {
   defines += gpu_defines
   include_dirs = [
     "core",
-    "//foundation/graphic/standard/rosen/modules/render_service_base/src",
+    "$rosen_root/modules/render_service_base/src",
+    "$rosen_root/modules/2d_graphics/src",
+    "//foundation/graphic/utils/log",
+    "//foundation/graphic/standard/utils/log",
   ]
 
   sources = [
@@ -57,9 +60,9 @@ ohos_source_set("render_service_client_src") {
 
     #ui
     "core/ui/rs_base_node.cpp",
+    "core/ui/rs_canvas_node.cpp",
     "core/ui/rs_display_node.cpp",
     "core/ui/rs_node.cpp",
-    "core/ui/rs_property_node.cpp",
     "core/ui/rs_root_node.cpp",
     "core/ui/rs_surface_extractor.cpp",
     "core/ui/rs_surface_node.cpp",
@@ -103,26 +106,6 @@ ohos_shared_library("librender_service_client") {
   ]
 
   public_configs = [ ":render_service_client_config" ]
-
-  part_name = "graphic_standard"
-  subsystem_name = "graphic"
-}
-
-ohos_executable("render_service_client_demo") {
-  sources = [ "rosen_test.cpp" ]
-
-  include_dirs = []
-
-  deps = [
-    ":librender_service_client",
-    "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
-    "//foundation/graphic/standard:libvsync_client",
-    "//foundation/graphic/standard:libwmclient",
-    "//foundation/graphic/standard/rosen/modules/render_service_base:librender_service_base",
-    "//third_party/zlib:libz",
-  ]
-
-  public_deps = [ "//foundation/ace/ace_engine/build/external_config/flutter/skia:ace_skia_ohos" ]
 
   part_name = "graphic_standard"
   subsystem_name = "graphic"

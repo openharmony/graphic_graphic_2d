@@ -1,0 +1,98 @@
+# Copyright (c) 2021 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/ohos.gni")
+
+ohos_executable("render_service_client_rs_demo") {
+  sources = [ "render_service_client_rs_demo.cpp" ]
+
+  include_dirs = []
+
+  deps = [
+    "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
+    "//foundation/graphic/standard:libvsync_client",
+    "//foundation/graphic/standard:libwmclient",
+    "//foundation/graphic/standard/rosen/modules/2d_graphics:2d_graphics",
+    "//foundation/graphic/standard/rosen/modules/render_service_base:librender_service_base",
+    "//foundation/graphic/standard/rosen/modules/render_service_client:librender_service_client",
+    "//third_party/zlib:libz",
+  ]
+
+  public_deps = [ "//foundation/ace/ace_engine/build/external_config/flutter/skia:ace_skia_ohos" ]
+
+  part_name = "graphic_standard"
+  subsystem_name = "graphic"
+}
+
+ohos_executable("render_service_client_app_demo") {
+  sources = [ "render_service_client_app_demo.cpp" ]
+
+  include_dirs = [ "//foundation/windowmanager/interfaces/innerkits" ]
+
+  deps = [
+    "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
+    "//foundation/distributedschedule/safwk/interfaces/innerkits/safwk:system_ability_fwk",
+    "//foundation/graphic/standard/rosen/modules/2d_graphics:2d_graphics",
+    "//foundation/graphic/standard/rosen/modules/render_service_base:librender_service_base",
+    "//foundation/graphic/standard/rosen/modules/render_service_client:librender_service_client",
+    "//foundation/windowmanager/wm:libwm",
+    "//foundation/windowmanager/wm:libwmutil",
+    "//foundation/windowmanager/wmserver:libwms",
+    "//third_party/zlib:libz",
+  ]
+
+  public_deps = [ "//foundation/ace/ace_engine/build/external_config/flutter/skia:ace_skia_ohos" ]
+
+  part_name = "graphic_standard"
+  subsystem_name = "graphic"
+}
+
+ohos_executable("surface_capture_demo") {
+  sources = [ "surface_capture_test.cpp" ]
+
+  deps = [
+    "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
+    "//foundation/graphic/standard:libvsync_client",
+    "//foundation/graphic/standard:libwmclient",
+    "//foundation/graphic/standard/rosen/modules/2d_graphics:2d_graphics",
+    "//foundation/graphic/standard/rosen/modules/render_service_base:librender_service_base",
+    "//foundation/graphic/standard/rosen/modules/render_service_client:librender_service_client",
+    "//foundation/multimedia/image_standard/interfaces/innerkits:image_native",
+    "//third_party/zlib:libz",
+  ]
+
+  public_deps = [ "//foundation/ace/ace_engine/build/external_config/flutter/skia:ace_skia_ohos" ]
+
+  part_name = "graphic_standard"
+  subsystem_name = "graphic"
+}
+
+ohos_executable("virtual_display_demo") {
+  sources = [ "virtual_display_test.cpp" ]
+
+  deps = [
+    "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
+    "//foundation/graphic/standard:libvsync_client",
+    "//foundation/graphic/standard:libwmclient",
+    "//foundation/graphic/standard/rosen/modules/2d_graphics:2d_graphics",
+    "//foundation/graphic/standard/rosen/modules/render_service_base:librender_service_base",
+    "//foundation/graphic/standard/rosen/modules/render_service_client:librender_service_client",
+    "//foundation/multimedia/image_standard/interfaces/innerkits:image_native",
+    "//third_party/zlib:libz",
+  ]
+
+  public_deps = [ "//foundation/ace/ace_engine/build/external_config/flutter/skia:ace_skia_ohos" ]
+
+  part_name = "graphic_standard"
+  subsystem_name = "graphic"
+}

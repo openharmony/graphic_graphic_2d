@@ -15,7 +15,7 @@
 #ifndef RENDER_SERVICE_CLIENT_CORE_PIPELINE_RS_TEXTURE_RENDER_NODE_H
 #define RENDER_SERVICE_CLIENT_CORE_PIPELINE_RS_TEXTURE_RENDER_NODE_H
 
-#include "pipeline/rs_render_node.h"
+#include "pipeline/rs_canvas_render_node.h"
 
 namespace flutter::OHOS {
 class TextureRegistry;
@@ -23,7 +23,7 @@ class TextureRegistry;
 
 namespace OHOS {
 namespace Rosen {
-class RSTextureRenderNode : public RSRenderNode {
+class RSTextureRenderNode : public RSCanvasRenderNode {
 public:
     static inline constexpr RSRenderNodeType Type = RSRenderNodeType::TEXTURE_NODE;
 
@@ -35,7 +35,7 @@ public:
 
     void ProcessRenderContents(RSPaintFilterCanvas& canvas) override;
 
-    RSRenderNodeType GetType() override
+    RSRenderNodeType GetType() const override
     {
         return RSRenderNodeType::TEXTURE_NODE;
     }

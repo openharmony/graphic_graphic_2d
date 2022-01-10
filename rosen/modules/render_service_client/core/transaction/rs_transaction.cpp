@@ -22,8 +22,10 @@ namespace Rosen {
 
 void RSTransaction::FlushImplicitTransaction()
 {
-    RSTransactionProxy::GetInstance().FlushImplicitTransaction();
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        transactionProxy->FlushImplicitTransaction();
+    }
 }
-
 } // namespace Rosen
 } // namespace OHOS

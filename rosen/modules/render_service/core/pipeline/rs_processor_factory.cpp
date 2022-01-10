@@ -15,23 +15,25 @@
 
 #include "pipeline/rs_processor_factory.h"
 
+#include "pipeline/rs_compatible_processor.h"
 #include "pipeline/rs_hardware_processor.h"
 #include "pipeline/rs_software_processor.h"
 
 namespace OHOS {
 namespace Rosen {
 
-std::shared_ptr<RSProcessor> RSProcessorFactory::CreateProcessor(ScreenState state)
+std::shared_ptr<RSProcessor> RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType type)
 {
-    switch(state) {
-        case ScreenState::PRODUCER_SURFACE_ENABLE:
+    switch(type) {
+        case RSDisplayRenderNode::CompositeType::SOFTWARE_COMPOSITE:
             return std::make_shared<RSSoftwareProcessor>();
-        case ScreenState::HDI_OUTPUT_ENABLE:
+        case RSDisplayRenderNode::CompositeType::HARDWARE_COMPOSITE:
             return std::make_shared<RSHardwareProcessor>();
+        case RSDisplayRenderNode::CompositeType::COMPATIBLE_COMPOSITE:
+            return std::make_shared<RSCompatibleProcessor>();
         default:
             return nullptr;
     }
 }
-
-}
-}
+} // namespace Rosen
+} // namespace OHOS

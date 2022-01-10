@@ -72,11 +72,24 @@ void RSRenderServiceVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode &node)
     ROSEN_LOGI("RsDebug RSRenderServiceVisitor::ProcessDisplayRenderNode child size:%d", node.GetChildren().size());
     sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
     if (!screenManager) {
-        ROSEN_LOGE("RSHardwareProcessor::Init ScreenManager is nullptr");
+        ROSEN_LOGE("RSRenderServiceVisitor::ProcessDisplayRenderNode ScreenManager is nullptr");
         return;
     }
-    ScreenState state = screenManager->QueryScreenState(node.GetScreenId());
-    processor_ = RSProcessorFactory::CreateProcessor(state);
+    ScreenState state = screenManager->QueryScreenInfo(node.GetScreenId()).state;
+    switch(state) {
+        case ScreenState::PRODUCER_SURFACE_ENABLE:
+            node.SetCompositeType(RSDisplayRenderNode::CompositeType::SOFTWARE_COMPOSITE);
+            break;
+        case ScreenState::HDI_OUTPUT_ENABLE:
+            node.SetCompositeType(node.IsForceSoftComposite() ?
+                RSDisplayRenderNode::CompositeType::COMPATIBLE_COMPOSITE :
+                RSDisplayRenderNode::CompositeType::HARDWARE_COMPOSITE);
+            break;
+        default:
+            ROSEN_LOGE("RSRenderServiceVisitor::ProcessDisplayRenderNode State is unusual");
+            return;
+    }
+    processor_ = RSProcessorFactory::CreateProcessor(node.GetCompositeType());
 
     if (processor_ == nullptr) {
         ROSEN_LOGE("RSRenderServiceVisitor::ProcessDisplayRenderNode: RSProcessor is null!");
@@ -104,10 +117,10 @@ void RSRenderServiceVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode &node)
 
 void RSRenderServiceVisitor::SortZOrder(RSBaseRenderNode &node)
 {
-    auto children = node.GetChildren();
+    auto &children = node.GetChildren();
     auto compare = [](std::weak_ptr<RSBaseRenderNode> first, std::weak_ptr<RSBaseRenderNode> second) -> bool {
-        auto node1 = RSBaseRenderNode::ReinterpretCast<RSPropertyRenderNode>(first.lock());
-        auto node2 = RSBaseRenderNode::ReinterpretCast<RSPropertyRenderNode>(second.lock());
+        auto node1 = RSBaseRenderNode::ReinterpretCast<RSRenderNode>(first.lock());
+        auto node2 = RSBaseRenderNode::ReinterpretCast<RSRenderNode>(second.lock());
         if (node1 == nullptr || node2 == nullptr) {
             return false;
         }

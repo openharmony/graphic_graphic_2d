@@ -15,13 +15,11 @@
         "//foundation/graphic/standard/rosen/samples/composer:hello_composer",
         "//foundation/graphic/standard/rosen/modules/composer:libcomposer",
         "//foundation/graphic/standard/rosen/modules/2d_graphics:2d_graphics",
-        "//foundation/graphic/standard/rosen/samples/2d_graphics:drawing_sample_rs",
         "//foundation/graphic/standard/rosen/modules/render_service_base:librender_service_base",
         "//foundation/graphic/standard/rosen/modules/render_service_base/test:render_service_client",
         "//foundation/graphic/standard/rosen/modules/render_service_client:librender_service_client",
-	"//foundation/graphic/standard/rosen/modules/render_service:librender_service",
-        "//foundation/graphic/standard/rosen/modules/render_service:render_service",
-        "//foundation/graphic/standard/rosen/modules/render_service_client:render_service_client_demo"
+	      "//foundation/graphic/standard/rosen/modules/render_service:librender_service",
+        "//foundation/graphic/standard/rosen/modules/render_service:render_service"
       ],
       "test_list": [
         "//foundation/graphic/standard:test"

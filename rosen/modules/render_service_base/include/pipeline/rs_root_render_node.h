@@ -15,13 +15,12 @@
 #ifndef RENDER_SERVICE_CLIENT_CORE_PIPELINE_RS_ROOT_RENDER_NODE_H
 #define RENDER_SERVICE_CLIENT_CORE_PIPELINE_RS_ROOT_RENDER_NODE_H
 
-#include "pipeline/rs_render_node.h"
+#include "pipeline/rs_canvas_render_node.h"
 
 namespace OHOS {
 namespace Rosen {
-class PlatformCanvas;
 class RSSurface;
-class RSRootRenderNode : public RSRenderNode {
+class RSRootRenderNode : public RSCanvasRenderNode {
 public:
     static inline constexpr RSRenderNodeType Type = RSRenderNodeType::ROOT_NODE;
     explicit RSRootRenderNode(NodeId id);
@@ -30,23 +29,19 @@ public:
     virtual void Prepare(const std::shared_ptr<RSNodeVisitor>& visitor) override;
     virtual void Process(const std::shared_ptr<RSNodeVisitor>& visitor) override;
 
-    // will be replaced for surfaceNode in window
-    void AttachSurface(uintptr_t surfaceProducer, int width, int height);
     void AttachRSSurface(std::shared_ptr<RSSurface> rsSurface, int width, int height);
-    std::shared_ptr<PlatformCanvas> GetPlatformCanvas();
 
-    RSRenderNodeType GetType() override
+    RSRenderNodeType GetType() const override
     {
         return RSRenderNodeType::ROOT_NODE;
     }
 
     std::shared_ptr<RSSurface> GetSurface();
-    int32_t GetWidth() const;
-    int32_t GetHeight() const;
+    int32_t GetSurfaceWidth() const;
+    int32_t GetSurfaceHeight() const;
 private:
     int32_t surfaceWidth_ = 0;
     int32_t surfaceHeight_ = 0;
-    std::shared_ptr<PlatformCanvas> platformCanvas_ = nullptr;
     std::shared_ptr<RSSurface> rsSurface_ = nullptr;
 };
 } // namespace Rosen

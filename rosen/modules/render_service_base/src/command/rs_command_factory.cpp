@@ -20,12 +20,16 @@
 #ifdef ROSEN_OHOS
 // manually instantiate all RScommands (this is when the registry happens)
 #define ROSEN_INSTANTIATE_COMMAND_TEMPLATE
-#include "command/rs_animation_command.h"
+// node
 #include "command/rs_base_node_command.h"
+#include "command/rs_canvas_node_command.h"
 #include "command/rs_display_node_command.h"
 #include "command/rs_node_command.h"
-#include "command/rs_property_node_command.h"
 #include "command/rs_surface_node_command.h"
+// animation
+#include "command/rs_animation_command.h"
+// read showing property commands
+#include "command/rs_node_showing_command.h"
 #undef ROSEN_INSTANTIATE_COMMAND_TEMPLATE
 
 namespace OHOS {
@@ -49,7 +53,7 @@ void RSCommandFactory::Register(uint16_t type, uint16_t subtype, UnmarshallingFu
 {
     auto result = unmarshallingFuncLUT_.try_emplace(MakeKey(type, subtype), func);
     if (!result.second) {
-        ROSEN_LOGE("Duplicate command & sub_common detected.");
+        ROSEN_LOGE("RSCommandFactory::Register, Duplicate command & sub_command detected! type: %d subtype: %d", type, subtype);
     }
 }
 
@@ -57,6 +61,7 @@ UnmarshallingFunc RSCommandFactory::GetUnmarshallingFunc(uint16_t type, uint16_t
 {
     auto it = unmarshallingFuncLUT_.find(MakeKey(type, subtype));
     if (it == unmarshallingFuncLUT_.end()) {
+        ROSEN_LOGE("RSCommandFactory::GetUnmarshallingFunc, Func is not found");
         return nullptr;
     }
     return it->second;

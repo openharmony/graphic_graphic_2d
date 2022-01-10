@@ -22,6 +22,11 @@
 #include "pipeline/rs_node_map.h"
 #include "platform/common/rs_log.h"
 #include "transaction/rs_transaction_proxy.h"
+#include "ui/rs_canvas_node.h"
+#include "ui/rs_display_node.h"
+#include "ui/rs_root_node.h"
+#include "ui/rs_surface_node.h"
+#include "ui/rs_texture_node.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -47,12 +52,16 @@ RSBaseNode::~RSBaseNode()
     RemoveFromTree();
     RSNodeMap::Instance().UnregisterNode(id_);
     std::unique_ptr<RSCommand> command = std::make_unique<RSBaseNodeDestroy>(id_);
-    RSTransactionProxy::GetInstance().AddCommand(command, IsRenderServiceNode());
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        transactionProxy->AddCommand(command, IsRenderServiceNode());
+    }
 }
 
 void RSBaseNode::AddChild(SharedPtr child, int index)
 {
     if (child == nullptr) {
+        ROSEN_LOGE("RSBaseNode::AddChild, child is nullptr");
         return;
     }
     NodeId childId = child->GetId();
@@ -66,26 +75,32 @@ void RSBaseNode::AddChild(SharedPtr child, int index)
         children_.insert(children_.begin() + index, childId);
     }
     child->SetParent(id_);
-    ROSEN_LOGI("RSBaseNode::AddChild %llu ---> %llu", id_, childId);
+    ROSEN_LOGD("RSBaseNode::AddChild %llu ---> %llu", id_, childId);
     child->OnAddChildren();
     std::unique_ptr<RSCommand> command = std::make_unique<RSBaseNodeAddChild>(id_, childId, index);
-    RSTransactionProxy::GetInstance().AddCommand(command, IsRenderServiceNode());
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        transactionProxy->AddCommand(command, IsRenderServiceNode());
+    }
 }
 
 void RSBaseNode::RemoveChild(SharedPtr child)
 {
     if (child == nullptr || child->parent_ != id_) {
-        ROSEN_LOGE("RSBaseNode::RemoveChild: nullptr target");
+        ROSEN_LOGE("RSBaseNode::RemoveChild, child is nullptr");
         return;
     }
     NodeId childId = child->GetId();
     RemoveChildById(childId);
     child->OnRemoveChildren();
     child->SetParent(0);
-    ROSEN_LOGI("RSBaseNode::RemoveChild %llu -/-> %llu", id_, childId);
+    ROSEN_LOGD("RSBaseNode::RemoveChild %llu -/-> %llu", id_, childId);
 
     std::unique_ptr<RSCommand> command = std::make_unique<RSBaseNodeRemoveChild>(id_, childId);
-    RSTransactionProxy::GetInstance().AddCommand(command, IsRenderServiceNode());
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        transactionProxy->AddCommand(command, IsRenderServiceNode());
+    }
 }
 
 void RSBaseNode::RemoveChildById(NodeId childId)
@@ -105,7 +120,10 @@ void RSBaseNode::RemoveFromTree()
     }
     // always send Remove-From-Tree command
     std::unique_ptr<RSCommand> command = std::make_unique<RSBaseNodeRemoveFromTree>(id_);
-    RSTransactionProxy::GetInstance().AddCommand(command, IsRenderServiceNode());
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        transactionProxy->AddCommand(command, IsRenderServiceNode());
+    }
 }
 
 void RSBaseNode::ClearChildren()
@@ -118,7 +136,10 @@ void RSBaseNode::ClearChildren()
     children_.clear();
 
     std::unique_ptr<RSCommand> command = std::make_unique<RSBaseNodeClearChild>(id_);
-    RSTransactionProxy::GetInstance().AddCommand(command, IsRenderServiceNode());
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        transactionProxy->AddCommand(command, IsRenderServiceNode());
+    }
 }
 
 void RSBaseNode::SetParent(NodeId parentId)
@@ -157,6 +178,22 @@ void RSBaseNode::DumpTree(std::string& out)
         }
     }
 }
+
+template<typename T>
+bool RSBaseNode::IsInstanceOf()
+{
+    constexpr uint32_t targetType = static_cast<uint32_t>(T::Type);
+    return (static_cast<uint32_t>(GetType()) & targetType) == targetType;
+}
+
+// explicit instantiation with all rendernode types
+template bool RSBaseNode::IsInstanceOf<RSBaseNode>();
+template bool RSBaseNode::IsInstanceOf<RSDisplayNode>();
+template bool RSBaseNode::IsInstanceOf<RSNode>();
+template bool RSBaseNode::IsInstanceOf<RSSurfaceNode>();
+template bool RSBaseNode::IsInstanceOf<RSCanvasNode>();
+template bool RSBaseNode::IsInstanceOf<RSRootNode>();
+template bool RSBaseNode::IsInstanceOf<RSTextureNode>();
 
 } // namespace Rosen
 } // namespace OHOS

@@ -14,8 +14,13 @@
  */
 
 #include "pipeline/rs_software_processor.h"
-
+#include "pipeline/rs_render_service_util.h"
 #include "include/core/SkMatrix.h"
+#include "pipeline/rs_main_thread.h"
+#include "platform/common/rs_log.h"
+#include "unique_fd.h"
+
+#include <cinttypes>
 
 namespace OHOS {
 namespace Rosen {
@@ -27,32 +32,37 @@ RSSoftwareProcessor::~RSSoftwareProcessor() {}
 void RSSoftwareProcessor::Init(ScreenId id)
 {
     sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
-    if (!screenManager) {
+    if (screenManager == nullptr) {
+        ROSEN_LOGE("RSSoftwareProcessor::Init: failed to get screen manager!");
         return;
     }
+
     producerSurface_ = screenManager->GetProducerSurface(id);
-    //TODO config size update
+    if (producerSurface_ == nullptr) {
+        ROSEN_LOGE("RSSoftwareProcessor::Init for Screen(id %{public}" PRIu64 "): ProducerSurface is null!", id);
+        return;
+    }
+
+    currScreenInfo_ = screenManager->QueryScreenInfo(id);
     BufferRequestConfig requestConfig = {
-        .width = 0x100,
-        .height = 0x100,
+        .width = currScreenInfo_.width,
+        .height = currScreenInfo_.height,
         .strideAlignment = 0x8,
         .format = PIXEL_FMT_RGBA_8888,
         .usage = HBM_USE_CPU_READ | HBM_USE_CPU_WRITE | HBM_USE_MEM_DMA,
         .timeout = 0,
     };
-    auto uniqueCanvasPtr = CreateCanvas(producerSurface_, requestConfig);
-    canvas_ = std::move(uniqueCanvasPtr);
+    canvas_ = CreateCanvas(producerSurface_, requestConfig);
 }
 
 void RSSoftwareProcessor::PostProcess()
 {
-    //TODO config size update
     BufferFlushConfig flushConfig = {
         .damage = {
             .x = 0,
             .y = 0,
-            .w = 0x100,
-            .h = 0x100,
+            .w = currScreenInfo_.width,
+            .h = currScreenInfo_.height,
         },
     };
     FlushBuffer(producerSurface_, flushConfig);
@@ -61,23 +71,52 @@ void RSSoftwareProcessor::PostProcess()
 void RSSoftwareProcessor::ProcessSurface(RSSurfaceRenderNode& node)
 {
     if (!canvas_) {
+        ROSEN_LOGE("RSSoftwareProcessor::ProcessSurface: Canvas is null!");
         return;
     }
     auto consumerSurface = node.GetConsumer();
     if (!consumerSurface) {
+        ROSEN_LOGE("RSSoftwareProcessor::ProcessSurface: node's consumerSurface is null!");
         return;
     }
-    int32_t flushFence = 0;
-    int64_t timestamp = 0;
-    OHOS::Rect damage;
-    sptr<OHOS::SurfaceBuffer> buffer = nullptr;
-    SurfaceError ret = consumerSurface->AcquireBuffer(buffer, flushFence, timestamp, damage);
-    if (buffer == nullptr || ret != SURFACE_ERROR_OK) {
-        return;
-    }
-    DrawBuffer(canvas_.get(), node.GetMatrix(), buffer);
-    //TODO release buffer
-}
 
+    OHOS::sptr<SurfaceBuffer> cbuffer;
+    Rect damage;
+    if (node.GetAvailableBufferCount() > 0) {
+        int32_t fence = -1;
+        int64_t timestamp = 0;
+        auto sret = consumerSurface->AcquireBuffer(cbuffer, fence, timestamp, damage);
+        UniqueFd fenceFd(fence);
+        if (sret != OHOS::SURFACE_ERROR_OK) {
+            ROSEN_LOGE("RSSoftwareProcessor::ProcessSurface: AcquireBuffer failed!");
+            return;
+        }
+
+        if (cbuffer != node.GetBuffer() && node.GetBuffer() != nullptr) {
+            SurfaceError ret = consumerSurface->ReleaseBuffer(node.GetBuffer(), -1);
+            if (ret != SURFACE_ERROR_OK) {
+                ROSEN_LOGE("RSSoftwareProcessor::ProcessSurface: ReleaseBuffer buffer error! error: %{public}d.", ret);
+                return;
+            }
+        }
+
+        node.SetBuffer(cbuffer);
+        node.SetFence(fenceFd.Release());
+
+        if (node.ReduceAvailableBuffer() > 0) {
+            if (auto mainThread = RSMainThread::Instance()) {
+                mainThread->RequestNextVSync();
+            }
+        }
+    } else {
+        cbuffer = node.GetBuffer();
+    }
+
+    if (cbuffer == nullptr) {
+        ROSEN_LOGE("RSSoftwareProcessor::ProcessSurface: surface buffer is null!");
+        return;
+    }
+    RsRenderServiceUtil::DrawBuffer(canvas_.get(), node.GetMatrix(), cbuffer, node);
 }
-}
+} // namespace Rosen
+} // namespace OHOS

@@ -44,7 +44,10 @@ namespace Rosen {
     animation->SetFillMode(GetFillMode());                                                                         \
     animation->SetInterpolator(interpolator);                                                                      \
     std::unique_ptr<RSCommand> command = std::make_unique<RSRenderCommand>(target->GetId(), std::move(animation)); \
-    RSTransactionProxy::GetInstance().AddCommand(command, target->IsRenderServiceNode());
+    auto transactionProxy = RSTransactionProxy::GetInstance();                                                     \
+    if (transactionProxy != nullptr) {                                                                             \
+        transactionProxy->AddCommand(command, target->IsRenderServiceNode());                                      \
+    }
 
 template<>
 void RSCurveAnimation<int>::OnStart()
@@ -80,6 +83,12 @@ template<>
 void RSCurveAnimation<Vector4f>::OnStart()
 {
     START_CURVE_ANIMATION(RSAnimationCreateCurveVec4f, Vector4f);
+}
+
+template<>
+void RSCurveAnimation<Quaternion>::OnStart()
+{
+    START_CURVE_ANIMATION(RSAnimationCreateCurveQuaternion, Quaternion);
 }
 
 template<>

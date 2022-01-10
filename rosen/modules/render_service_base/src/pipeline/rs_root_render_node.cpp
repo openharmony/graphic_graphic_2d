@@ -20,25 +20,13 @@
 #ifdef ROSEN_OHOS
 #include <surface.h>
 
-#include "platform/drawing/rs_platform_canvas.h"
 #endif
 
 namespace OHOS {
 namespace Rosen {
-RSRootRenderNode::RSRootRenderNode(NodeId id)
-    : RSRenderNode(id), platformCanvas_(std::make_shared<PlatformCanvas>()) {}
+RSRootRenderNode::RSRootRenderNode(NodeId id) : RSCanvasRenderNode(id) {}
 
 RSRootRenderNode::~RSRootRenderNode() {}
-
-void RSRootRenderNode::AttachSurface(uintptr_t surfaceProducer, int width, int height)
-{
-#ifdef ROSEN_OHOS
-    if (platformCanvas_) {
-        platformCanvas_->SetSurface(reinterpret_cast<Surface*>(surfaceProducer));
-        platformCanvas_->SetSurfaceSize(width, height);
-    }
-#endif
-}
 
 void RSRootRenderNode::AttachRSSurface(std::shared_ptr<RSSurface> rsSurface, int width, int height)
 {
@@ -47,12 +35,12 @@ void RSRootRenderNode::AttachRSSurface(std::shared_ptr<RSSurface> rsSurface, int
     surfaceHeight_ = height;
 }
 
-int32_t RSRootRenderNode::GetWidth() const
+int32_t RSRootRenderNode::GetSurfaceWidth() const
 {
     return surfaceWidth_;
 }
 
-int32_t RSRootRenderNode::GetHeight() const
+int32_t RSRootRenderNode::GetSurfaceHeight() const
 {
     return surfaceHeight_;
 }
@@ -60,11 +48,6 @@ int32_t RSRootRenderNode::GetHeight() const
 std::shared_ptr<RSSurface> RSRootRenderNode::GetSurface()
 {
     return rsSurface_;
-}
-
-std::shared_ptr<PlatformCanvas> RSRootRenderNode::GetPlatformCanvas()
-{
-    return platformCanvas_;
 }
 
 void RSRootRenderNode::Prepare(const std::shared_ptr<RSNodeVisitor>& visitor)

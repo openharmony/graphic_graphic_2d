@@ -44,5 +44,25 @@ void RSDisplayRenderNode::Process(const std::shared_ptr<RSNodeVisitor>& visitor)
     visitor->ProcessDisplayRenderNode(*this);
 }
 
+RSDisplayRenderNode::CompositeType RSDisplayRenderNode::GetCompositeType() const
+{
+    return compositeType_;
+}
+
+void RSDisplayRenderNode::SetCompositeType(RSDisplayRenderNode::CompositeType type)
+{
+    compositeType_ = type;
+}
+
+void RSDisplayRenderNode::SetForceSoftComposite(bool flag)
+{
+    forceSoftComposite_ = flag;
+}
+
+bool RSDisplayRenderNode::IsForceSoftComposite() const
+{
+    return forceSoftComposite_;
+}
+
 } // namespace Rosen
 } // namespace OHOS

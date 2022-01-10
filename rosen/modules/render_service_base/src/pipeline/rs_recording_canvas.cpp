@@ -35,7 +35,6 @@ std::shared_ptr<DrawCmdList> RSRecordingCanvas::GetDrawCmdList() const
 void RSRecordingCanvas::Clear() const
 {
     if (drawCmdList_ == nullptr) {
-        ROSEN_LOGE("RSRecordingCanvas: drawCmdList_ is null");
         return;
     }
     drawCmdList_->ClearOp();
@@ -44,6 +43,7 @@ void RSRecordingCanvas::Clear() const
 void RSRecordingCanvas::AddOp(std::unique_ptr<OpItem>&& opItem)
 {
     if (drawCmdList_ == nullptr || opItem == nullptr) {
+        ROSEN_LOGE("RSRecordingCanvas:AddOp, drawCmdList_ or opItem is nullptr");
         return;
     }
     drawCmdList_->AddOp(std::move(opItem));

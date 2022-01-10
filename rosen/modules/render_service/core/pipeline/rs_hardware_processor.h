@@ -16,7 +16,6 @@
 #ifndef RS_HARDWARE_PROCESSOR_H
 #define RS_HARDWARE_PROCESSOR_H
 
-#include <unordered_map>
 #include <vector>
 
 #include "display_type.h"
@@ -30,7 +29,6 @@
 #include "pipeline/rs_processor.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "screen_manager/rs_screen_manager.h"
-#include "screen_manager/screen_types.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -47,8 +45,8 @@ private:
     void Redraw(sptr<Surface>& surface, const struct PrepareCompleteParam& param, void* data);
     HdiBackend* backend_ = nullptr;
     sptr<RSScreenManager> screenManager_;
-    std::shared_ptr<HdiOutput> output_;
     RSScreenModeInfo curScreenInfo;
+    std::shared_ptr<HdiOutput> output_;
     LayerAlpha alpha_ = { .enPixelAlpha = true };
     std::vector<LayerInfoPtr> layers_;
 };

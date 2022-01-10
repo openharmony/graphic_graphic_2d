@@ -23,7 +23,7 @@
 namespace OHOS {
 namespace Rosen {
 class RSBaseNode;
-class RSPropertyNode;
+class RSNode;
 
 class RSNodeMap final {
 public:
@@ -34,7 +34,7 @@ public:
 
     std::weak_ptr<RSBaseNode> GetNode(NodeId id);
 
-    std::shared_ptr<RSPropertyNode> GetAnimationFallbackNode();
+    std::shared_ptr<RSNode> GetAnimationFallbackNode();
 private:
     explicit RSNodeMap();
     ~RSNodeMap() = default;

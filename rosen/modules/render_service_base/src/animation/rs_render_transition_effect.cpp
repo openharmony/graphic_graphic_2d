@@ -15,10 +15,10 @@
 
 #include "animation/rs_render_transition_effect.h"
 
-#include "include/core/SkMatrix44.h"
 #include "animation/rs_animation_common.h"
+#include "include/core/SkMatrix44.h"
+#include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_paint_filter_canvas.h"
-#include "pipeline/rs_render_node.h"
 
 namespace OHOS {
 namespace Rosen {
