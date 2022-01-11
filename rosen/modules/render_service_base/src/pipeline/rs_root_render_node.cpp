@@ -17,6 +17,8 @@
 
 #include "platform/drawing/rs_surface.h"
 #include "visitor/rs_node_visitor.h"
+#include "command/rs_surface_node_command.h"
+#include "transaction/rs_transaction_proxy.h"
 #ifdef ROSEN_OHOS
 #include <surface.h>
 
@@ -28,9 +30,10 @@ RSRootRenderNode::RSRootRenderNode(NodeId id) : RSCanvasRenderNode(id) {}
 
 RSRootRenderNode::~RSRootRenderNode() {}
 
-void RSRootRenderNode::AttachRSSurface(std::shared_ptr<RSSurface> rsSurface, int width, int height)
+
+void RSRootRenderNode::AttachRSSurfaceNode(NodeId surfaceNodeId, int width, int height)
 {
-    rsSurface_ = rsSurface;
+    surfaceNodeId_ = surfaceNodeId;
     surfaceWidth_ = width;
     surfaceHeight_ = height;
 }
@@ -48,6 +51,28 @@ int32_t RSRootRenderNode::GetSurfaceHeight() const
 std::shared_ptr<RSSurface> RSRootRenderNode::GetSurface()
 {
     return rsSurface_;
+}
+
+NodeId RSRootRenderNode::GetRSSurfaceNodeId()
+{
+    return surfaceNodeId_;
+}
+
+void RSRootRenderNode::AddSurfaceRenderNode(NodeId id)
+{
+    childSurfaceNodeId_.push_back(id);
+}
+
+void RSRootRenderNode::ClearSurfaceNodeInRS()
+{
+    for (auto childId : childSurfaceNodeId_) {
+        std::unique_ptr<RSCommand> command = std::make_unique<RSSurfaceNodeRemoveSelf>(childId);
+        auto transactionProxy = RSTransactionProxy::GetInstance();
+        if (transactionProxy != nullptr) {
+            transactionProxy->AddCommand(command, true);
+        }
+    }
+    childSurfaceNodeId_.clear();
 }
 
 void RSRootRenderNode::Prepare(const std::shared_ptr<RSNodeVisitor>& visitor)

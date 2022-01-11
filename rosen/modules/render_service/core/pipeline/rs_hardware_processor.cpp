@@ -15,6 +15,8 @@
 
 #include "pipeline/rs_hardware_processor.h"
 
+#include <iterator>
+
 #include "pipeline/rs_main_thread.h"
 #include "pipeline/rs_render_service_util.h"
 #include "platform/common/rs_log.h"
@@ -37,9 +39,19 @@ void RSHardwareProcessor::Init(ScreenId id)
         return;
     }
     output_ = screenManager_->GetOutput(id);
-    screenManager_->GetScreenActiveMode(id, curScreenInfo);
+    if (!output_) {
+        ROSEN_LOGE("RSHardwareProcessor::Init output_ is nullptr");
+        return;
+    }
+    screenManager_->GetScreenActiveMode(id, curScreenInfo_);
     ROSEN_LOGI("RSHardwareProcessor::Init screen w:%{public}d, w:%{public}d",
-        curScreenInfo.GetScreenWidth(), curScreenInfo.GetScreenHeight());
+        curScreenInfo_.GetScreenWidth(), curScreenInfo_.GetScreenHeight());
+    IRect damageRect;
+    damageRect.x = 0;
+    damageRect.y = 0;
+    damageRect.w = curScreenInfo_.GetScreenWidth();
+    damageRect.h = curScreenInfo_.GetScreenHeight();
+    output_->SetOutputDamage(1, damageRect);
 }
 
 void RSHardwareProcessor::PostProcess()
@@ -68,7 +80,7 @@ void RSHardwareProcessor::ProcessSurface(RSSurfaceRenderNode &node)
     RSProcessor::SpecialTask task = [] () -> void{};
     bool ret = ConsumeAndUpdateBuffer(node, task, cbuffer);
     if (!ret) {
-        ROSEN_LOGE("RsDebug RSCompatibleProcessor::ProcessSurface consume buffer fail");
+        ROSEN_LOGE("RsDebug RSHardwareProcessor::ProcessSurface consume buffer fail");
         return;
     }
     ComposeInfo info = {
@@ -99,7 +111,7 @@ void RSHardwareProcessor::ProcessSurface(RSSurfaceRenderNode &node)
 void RSHardwareProcessor::Redraw(sptr<Surface>& surface, const struct PrepareCompleteParam& param, void* data)
 {
     if (!param.needFlushFramebuffer) {
-        ROSEN_LOGE("RSHardwareProcessor::Redraw: no need to flush Framebuffer.");
+        ROSEN_LOGI("RsDebug RSHardwareProcessor::Redraw no need to flush frame buffer");
         return;
     }
 
@@ -107,9 +119,10 @@ void RSHardwareProcessor::Redraw(sptr<Surface>& surface, const struct PrepareCom
         ROSEN_LOGE("RSHardwareProcessor::Redraw: surface is null.");
         return;
     }
+    ROSEN_LOGI("RsDebug RSHardwareProcessor::Redraw flush frame buffer start");
     BufferRequestConfig requestConfig = {
-        .width = curScreenInfo.GetScreenWidth(),
-        .height = curScreenInfo.GetScreenHeight(),
+        .width = curScreenInfo_.GetScreenWidth(),
+        .height = curScreenInfo_.GetScreenHeight(),
         .strideAlignment = 0x8,
         .format = PIXEL_FMT_BGRA_8888,      // [TODO] different soc need different format
         .usage = HBM_USE_CPU_READ | HBM_USE_CPU_WRITE | HBM_USE_MEM_DMA,
@@ -120,23 +133,25 @@ void RSHardwareProcessor::Redraw(sptr<Surface>& surface, const struct PrepareCom
         ROSEN_LOGE("RSHardwareProcessor::Redraw: canvas is null.");
         return;
     }
-
-    for (auto layer : param.layers) {
-        ROSEN_LOGE("RsDebug RSHardwareProcessor::Redraw layer composition Type:%d", layer->GetCompositionType());
-        if (layer == nullptr || layer->GetCompositionType() == CompositionType::COMPOSITION_DEVICE) {
+    std::vector<LayerInfoPtr>::const_reverse_iterator iter = param.layers.rbegin();
+    for (; iter != param.layers.rend(); ++iter) {
+        ROSEN_LOGD("RsDebug RSHardwareProcessor::Redraw layer composition Type:%d", (*iter)->GetCompositionType());
+        if ((*iter) == nullptr || (*iter)->GetCompositionType() == CompositionType::COMPOSITION_DEVICE) {
             continue;
         }
         SkMatrix matrix;
         matrix.reset();
-        RsRenderServiceUtil::DrawBuffer(canvas.get(), matrix, layer->GetBuffer(), layer->GetLayerSize().x, layer->GetLayerSize().y,
-            layer->GetLayerSize().w, layer->GetLayerSize().h);
+        ROSEN_LOGE("RsDebug RSHardwareProcessor::Redraw layer [%d %d %d %d]", (*iter)->GetLayerSize().x,
+            (*iter)->GetLayerSize().y, (*iter)->GetLayerSize().w, (*iter)->GetLayerSize().h);
+        RsRenderServiceUtil::DrawBuffer(canvas.get(), matrix, (*iter)->GetBuffer(), (*iter)->GetLayerSize().x,
+            (*iter)->GetLayerSize().y, (*iter)->GetLayerSize().w, (*iter)->GetLayerSize().h);
     }
     BufferFlushConfig flushConfig = {
         .damage = {
             .x = 0,
             .y = 0,
-            .w = curScreenInfo.GetScreenWidth(),
-            .h = curScreenInfo.GetScreenHeight(),
+            .w = curScreenInfo_.GetScreenWidth(),
+            .h = curScreenInfo_.GetScreenHeight(),
         },
     };
     FlushBuffer(surface, flushConfig);

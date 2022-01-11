@@ -19,6 +19,7 @@
 #include <string>
 
 #include "command/rs_surface_node_command.h"
+#include "command/rs_base_node_command.h"
 #include "pipeline/rs_node_map.h"
 #include "platform/common/rs_log.h"
 #include "platform/drawing/rs_surface_converter.h"
@@ -101,7 +102,15 @@ RSSurfaceNode::RSSurfaceNode(const RSSurfaceNodeConfig& config, bool isRenderSer
     : RSNode(isRenderServiceNode), name_(config.SurfaceNodeName)
 {}
 
-RSSurfaceNode::~RSSurfaceNode() {}
+RSSurfaceNode::~RSSurfaceNode() {
+    if (!IsRenderServiceNode()) {
+        std::unique_ptr<RSCommand> command = std::make_unique<RSBaseNodeDestroy>(GetId());
+        auto transactionProxy = RSTransactionProxy::GetInstance();
+        if (transactionProxy != nullptr) {
+            transactionProxy->AddCommand(command, true);
+        }
+    }
+}
 
 } // namespace Rosen
 } // namespace OHOS

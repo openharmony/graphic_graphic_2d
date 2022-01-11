@@ -20,6 +20,7 @@
 
 namespace OHOS {
 namespace Rosen {
+class RSSurfaceNode;
 class RS_EXPORT RSRootNode : public RSCanvasNode {
 public:
     using WeakPtr = std::weak_ptr<RSRootNode>;
@@ -36,7 +37,7 @@ public:
     }
 
 protected:
-    void AttachRSSurface(std::shared_ptr<RSSurface> surfaceProducer, int width, int height) const;
+    void AttachRSSurfaceNode(std::shared_ptr<RSSurfaceNode> surfaceNode, int width, int height) const;
 
     RSRootNode(bool isRenderServiceNode);
     RSRootNode(const RSRootNode&) = delete;

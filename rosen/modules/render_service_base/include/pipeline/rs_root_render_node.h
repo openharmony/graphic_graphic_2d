@@ -29,7 +29,7 @@ public:
     virtual void Prepare(const std::shared_ptr<RSNodeVisitor>& visitor) override;
     virtual void Process(const std::shared_ptr<RSNodeVisitor>& visitor) override;
 
-    void AttachRSSurface(std::shared_ptr<RSSurface> rsSurface, int width, int height);
+    void AttachRSSurfaceNode(NodeId SurfaceNodeId, int width, int height);
 
     RSRenderNodeType GetType() const override
     {
@@ -37,12 +37,18 @@ public:
     }
 
     std::shared_ptr<RSSurface> GetSurface();
+    NodeId GetRSSurfaceNodeId();
     int32_t GetSurfaceWidth() const;
     int32_t GetSurfaceHeight() const;
+
+    void AddSurfaceRenderNode(NodeId id);
+    void ClearSurfaceNodeInRS();
 private:
     int32_t surfaceWidth_ = 0;
     int32_t surfaceHeight_ = 0;
     std::shared_ptr<RSSurface> rsSurface_ = nullptr;
+    NodeId surfaceNodeId_;
+    std::vector<NodeId> childSurfaceNodeId_;
 };
 } // namespace Rosen
 } // namespace OHOS

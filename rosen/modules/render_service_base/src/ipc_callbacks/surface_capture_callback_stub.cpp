@@ -24,7 +24,7 @@ int RSSurfaceCaptureCallbackStub::OnRemoteRequest(
 {
     auto token = data.ReadInterfaceToken();
     if (token != RSISurfaceCaptureCallback::GetDescriptor()) {
-        ROSEN_LOGE("RSSurfaceCaptureCallbackStub: token ERR_INVALID_STATE\n");
+        ROSEN_LOGE("RSSurfaceCaptureCallbackStub: token ERR_INVALID_STATE");
         return ERR_INVALID_STATE;
     }
     int ret = ERR_NONE;
@@ -32,10 +32,6 @@ int RSSurfaceCaptureCallbackStub::OnRemoteRequest(
         case ON_SURFACE_CAPTURE: {
             NodeId id = data.ReadUint64();
             auto pixelmap = data.ReadParcelable<OHOS::Media::PixelMap>();
-            if (pixelmap == nullptr) {
-                ROSEN_LOGE("RSSurfaceCaptureCallbackStub: pixelmap == nullptr!\n");
-                return ERR_NULL_OBJECT;
-            }
             OnSurfaceCapture(id, pixelmap);
             break;
         }

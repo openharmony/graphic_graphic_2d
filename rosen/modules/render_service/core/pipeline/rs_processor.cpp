@@ -14,6 +14,7 @@
  */
 
 #include "unique_fd.h"
+#include <sync_fence.h>
 
 #include "pipeline/rs_main_thread.h"
 #include "pipeline/rs_processor.h"
@@ -28,7 +29,12 @@ std::unique_ptr<SkCanvas> RSProcessor::CreateCanvas(sptr<Surface> producerSurfac
     if (ret != SURFACE_ERROR_OK || buffer_ == nullptr) {
         return nullptr;
     }
-
+    sptr<SyncFence> tempFence = new SyncFence(releaseFence_);
+    int res = tempFence->Wait(3000);
+    if (res < 0) {
+        ROSEN_LOGE("RsDebug RSProcessor::CreateCanvas this buffer is not available");
+        //TODO deal with the buffer is not available
+    }
     auto addr = static_cast<uint32_t*>(buffer_->GetVirAddr());
     if (addr == nullptr) {
         return nullptr;
@@ -64,14 +70,13 @@ bool RSProcessor::ConsumeAndUpdateBuffer(RSSurfaceRenderNode& node, SpecialTask&
         int64_t timestamp = 0;
         Rect damage;
         auto sret = surfaceConsumer->AcquireBuffer(buffer, fence, timestamp, damage);
-        UniqueFd fenceFd(fence);
         if (!buffer || sret != OHOS::SURFACE_ERROR_OK) {
             ROSEN_LOGE("RSProcessor::ProcessSurface: AcquireBuffer failed!");
             return false;
         }
         task();
         node.SetBuffer(buffer);
-        node.SetFence(fenceFd.Release());
+        node.SetFence(fence);
         if (node.ReduceAvailableBuffer() >= 1) {
             if (auto mainThread = RSMainThread::Instance()) {
                 mainThread->RequestNextVSync();

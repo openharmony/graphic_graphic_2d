@@ -75,7 +75,6 @@ void RSBaseNode::AddChild(SharedPtr child, int index)
         children_.insert(children_.begin() + index, childId);
     }
     child->SetParent(id_);
-    ROSEN_LOGD("RSBaseNode::AddChild %llu ---> %llu", id_, childId);
     child->OnAddChildren();
     std::unique_ptr<RSCommand> command = std::make_unique<RSBaseNodeAddChild>(id_, childId, index);
     auto transactionProxy = RSTransactionProxy::GetInstance();
@@ -94,7 +93,6 @@ void RSBaseNode::RemoveChild(SharedPtr child)
     RemoveChildById(childId);
     child->OnRemoveChildren();
     child->SetParent(0);
-    ROSEN_LOGD("RSBaseNode::RemoveChild %llu -/-> %llu", id_, childId);
 
     std::unique_ptr<RSCommand> command = std::make_unique<RSBaseNodeRemoveChild>(id_, childId);
     auto transactionProxy = RSTransactionProxy::GetInstance();

@@ -77,40 +77,49 @@ static EGLDisplay GetPlatformEglDisplay(EGLenum platform, void *native_display, 
 }
 
 RenderContext::RenderContext()
-    : grContext_(nullptr), skSurface_(nullptr), skCanvas_(nullptr), nativeWindow_(nullptr),
-    eglDisplay_(nullptr), eglContext_(nullptr), eglSurface_(nullptr), config_(nullptr)
+    : grContext_(nullptr), skSurface_(nullptr), nativeWindow_(nullptr),
+    eglDisplay_(EGL_NO_DISPLAY), eglContext_(EGL_NO_CONTEXT), eglSurface_(EGL_NO_SURFACE), config_(nullptr)
 {
 }
 
 RenderContext::~RenderContext()
 {
+    if (eglDisplay_ == EGL_NO_DISPLAY) {
+        return;
+    }
     eglDestroyContext(eglDisplay_, eglContext_);
+    eglMakeCurrent(eglDisplay_, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
     eglTerminate(eglDisplay_);
     eglReleaseThread();
 
+    eglDisplay_ = EGL_NO_DISPLAY;
+    eglContext_ = EGL_NO_CONTEXT;
+    eglSurface_ = EGL_NO_SURFACE;
     grContext_ = nullptr;
     skSurface_ = nullptr;
-    skCanvas_ = nullptr;
 }
 
 void RenderContext::InitializeEglContext()
 {
+    if (IsEglContextReady()) {
+        return;
+    }
+
+    LOGI("Creating EGLContext!!!");
     eglDisplay_ = GetPlatformEglDisplay(EGL_PLATFORM_OHOS, EGL_DEFAULT_DISPLAY, NULL);
     if (eglDisplay_ == EGL_NO_DISPLAY) {
         LOGW("Failed to create EGLDisplay gl errno : %{public}x", eglGetError());
         return;
     }
 
-    LOGW("EGLDisplay is : %{public}p， rendercontext is %{public}p", eglDisplay_, this);
-
     EGLint major, minor;
     if (eglInitialize(eglDisplay_, &major, &minor) == EGL_FALSE) {
-        LOGW("Failed to initialize EGLDisplay");
+        LOGE("Failed to initialize EGLDisplay");
         return;
     }
 
     if (eglBindAPI(EGL_OPENGL_ES_API) == EGL_FALSE) {
-        LOGW("Failed to bind OpenGL ES API");
+        LOGE("Failed to bind OpenGL ES API");
         return;
     }
 
@@ -127,7 +136,7 @@ void RenderContext::InitializeEglContext()
 
     ret = eglChooseConfig(eglDisplay_, config_attribs, &config_, 1, &count);
     if (!(ret && count >= 1)) {
-        LOGW("Failed to eglChooseConfig");
+        LOGE("Failed to eglChooseConfig");
         return;
     }
 
@@ -136,38 +145,37 @@ void RenderContext::InitializeEglContext()
         EGL_NONE
     };
 
+    eglContext_ = eglCreateContext(eglDisplay_, config_, EGL_NO_CONTEXT, context_attribs);
     if (eglContext_ == EGL_NO_CONTEXT) {
-        eglContext_ = eglCreateContext(eglDisplay_, config_, EGL_NO_CONTEXT, context_attribs);
-        if (eglContext_ == EGL_NO_CONTEXT) {
-            LOGW("CreateEGLSurface failed to eglCreateContext %{public}x", eglGetError());
-            return;
-        }
+        LOGE("Failed to create egl context %{public}x", eglGetError());
+        return;
     }
-    LOGW("InitializeEglContext finished");
+
+    LOGW("Create EGL context successfully, version %{public}d.%{public}d", major, minor);
 }
 
 void RenderContext::MakeCurrent(EGLSurface surface) const
 {
-    if ((eglDisplay_ != nullptr) && (eglContext_ != EGL_NO_CONTEXT) && (surface != nullptr)) {
-        LOGW("MakeCurrent successfully, context is %{public}p", this);
-        eglMakeCurrent(eglDisplay_, surface, surface, eglContext_);
-    } else {
-        LOGE("Can not makeCurrent!!!");
+    if (!eglMakeCurrent(eglDisplay_, surface, surface, eglContext_)) {
+        LOGE("Failed to make current on surface %{public}p, error is %{public}x", surface, eglGetError());
     }
 }
 
 void RenderContext::SwapBuffers(EGLSurface surface) const
 {
-    if ((eglDisplay_ != nullptr) && (surface != nullptr)) {
-        LOGW("SwapBuffers successfully, context is %{public}p", this);
-        eglSwapBuffers(eglDisplay_, surface);
+    if (!eglSwapBuffers(eglDisplay_, surface)) {
+        LOGE("Failed to SwapBuffers on surface %{public}p, error is %{public}x", surface, eglGetError());
     } else {
-        LOGW("Can not SwapBuffers!!!");
+        LOGW("SwapBuffers successfully, surface is %{public}p", surface);
     }
 }
 
 EGLSurface RenderContext::CreateEGLSurface(EGLNativeWindowType eglNativeWindow)
 {
+    if (!IsEglContextReady()) {
+        LOGE("EGL context has not initialized");
+        return EGL_NO_SURFACE;
+    }
     nativeWindow_ = eglNativeWindow;
 
     eglMakeCurrent(eglDisplay_, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
@@ -175,27 +183,27 @@ EGLSurface RenderContext::CreateEGLSurface(EGLNativeWindowType eglNativeWindow)
     EGLint winAttribs[] = {EGL_GL_COLORSPACE_KHR, EGL_GL_COLORSPACE_SRGB_KHR, EGL_NONE};
     EGLSurface surface = eglCreateWindowSurface(eglDisplay_, config_, nativeWindow_, winAttribs);
     if (surface == EGL_NO_SURFACE) {
-        LOGW("CreateEGLSurface failed to create eglsurface %{public}x", eglGetError());
-        return nullptr;
+        LOGW("Failed to create eglsurface!!! %{public}x", eglGetError());
+        return EGL_NO_SURFACE;
     }
 
-    LOGW("CreateEGLSurface: eglDisplay_ is %{public}p, eglSurface_ is %{public}p", eglDisplay_, surface);
+    LOGW("CreateEGLSurface: %{public}p", surface);
 
     eglSurface_ = surface;
     return surface;
 }
 
-static void SetUpGrContext(sk_sp<GrContext>& grContext)
+bool RenderContext::SetUpGrContext()
 {
-    if (grContext != nullptr) {
+    if (grContext_ != nullptr) {
         LOGW("grContext has already created!!");
-        return;
+        return true;
     }
 
     sk_sp<const GrGLInterface> glInterface(GrGLCreateNativeInterface());
-    if (glInterface == nullptr) {
-        LOGW("SetUpGrContext failed to make native interface");
-        return;
+    if (glInterface.get() == nullptr) {
+        LOGE("SetUpGrContext failed to make native interface");
+        return false;
     }
 
     GrContextOptions options;
@@ -203,23 +211,22 @@ static void SetUpGrContext(sk_sp<GrContext>& grContext)
     options.fPreferExternalImagesOverES3 = true;
     options.fDisableDistanceFieldPaths = true;
 
-    grContext = GrContext::MakeGL(std::move(glInterface), options);
+    sk_sp<GrContext> grContext(GrContext::MakeGL(std::move(glInterface), options));
     if (grContext == nullptr) {
         LOGE("SetUpGrContext grContext is null");
-        return;
+        return false;
     }
 
-    LOGI("SetUpGrContext successfully!");
+    grContext_ = std::move(grContext);
+    return true;
 }
 
-void RenderContext::CreateCanvas(int width, int height)
+SkCanvas* RenderContext::AcquireCanvas(int width, int height)
 {
-    if (skCanvas_ != nullptr) {
-        LOGW("canvas has been created!!");
-        return;
+    if (!SetUpGrContext()) {
+        LOGE("GrContext is not ready!!!");
+        return nullptr;
     }
-
-    SetUpGrContext(grContext_);
 
     GrGLFramebufferInfo framebufferInfo;
     framebufferInfo.fFBOID = 0;
@@ -230,34 +237,25 @@ void RenderContext::CreateCanvas(int width, int height)
     GrBackendRenderTarget backendRenderTarget(width, height, 0, 8, framebufferInfo);
     SkSurfaceProps surfaceProps = SkSurfaceProps::kLegacyFontHost_InitType;
 
-    skSurface_ = SkSurface::MakeFromBackendRenderTarget(grContext_.get(), backendRenderTarget,
+    skSurface_ = SkSurface::MakeFromBackendRenderTarget(GetGrContext(), backendRenderTarget,
         kBottomLeft_GrSurfaceOrigin, colorType, nullptr, &surfaceProps);
     if (skSurface_ == nullptr) {
         LOGW("skSurface is nullptr");
-        return;
+        return nullptr;
     }
 
-    skCanvas_ = skSurface_->getCanvas();
-    if (skCanvas_ == nullptr) {
-        LOGE("CreateCanvas failed, skCanvas_ is null");
-        return;
-    }
-    LOGE("CreateCanvas successfully!!!");
-}
-
-SkCanvas* RenderContext::GetCanvas() const
-{
-    return skCanvas_;
+    LOGE("CreateCanvas successfully!!! (%{public}p)", skSurface_->getCanvas());
+    return skSurface_->getCanvas();
 }
 
 void RenderContext::RenderFrame()
 {
     // flush commands
-    if (skCanvas_ != nullptr) {
-        LOGW("RenderFrame: %{public}p", this);
-        skCanvas_->flush();
+    if (skSurface_->getCanvas() != nullptr) {
+        LOGW("RenderFrame: Canvas is %{public}p", skSurface_->getCanvas());
+        skSurface_->getCanvas()->flush();
     } else {
-        LOGW("RenderFrame failed!!!");
+        LOGW("canvas is nullptr!!!");
     }
 }
 

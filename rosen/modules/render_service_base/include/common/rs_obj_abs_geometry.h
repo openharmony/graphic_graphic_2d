@@ -32,6 +32,12 @@ public:
     ~RSObjAbsGeometry() override;
     void UpdateMatrix(const Matrix3f& matrix);
     void UpdateMatrix(const std::shared_ptr<RSObjAbsGeometry>& parent, float offsetX, float offsetY);
+
+    // Using by RenderService
+    void UpdateByMatrixFromParent(const std::shared_ptr<RSObjAbsGeometry>& parent);
+    void UpdateByMatrixFromRenderThread(const SkMatrix& skMatrix);
+    void UpdateByMatrixFromSelf();
+
     const RectI& GetAbsRect() const
     {
         return absRect_;
@@ -41,6 +47,12 @@ public:
     {
         return matrix_;
     }
+
+    const SkMatrix& GetAbsMatrix() const
+    {
+        return absMatrix_;
+    }
+
     bool IsPointInHotZone(const float x, const float y) const;
 
 private:

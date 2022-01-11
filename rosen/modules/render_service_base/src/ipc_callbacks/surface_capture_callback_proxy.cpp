@@ -31,9 +31,8 @@ void RSSurfaceCaptureCallbackProxy::OnSurfaceCapture(NodeId id, Media::PixelMap*
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
-
     if (!data.WriteInterfaceToken(RSISurfaceCaptureCallback::GetDescriptor())) {
-        ROSEN_LOGE("SurfaceCaptureCallbackProxy: data.WriteInterfaceToken error\n");
+        ROSEN_LOGE("SurfaceCaptureCallbackProxy: data.WriteInterfaceToken error");
         return;
     }
     data.WriteUint64(id);
@@ -41,7 +40,7 @@ void RSSurfaceCaptureCallbackProxy::OnSurfaceCapture(NodeId id, Media::PixelMap*
     option.SetFlags(MessageOption::TF_ASYNC);
     int32_t err = Remote()->SendRequest(RSISurfaceCaptureCallback::ON_SURFACE_CAPTURE, data, reply, option);
     if (err != NO_ERROR) {
-        ROSEN_LOGE("SurfaceCaptureCallbackProxy: Remote()->SendRequest() error\n");
+        ROSEN_LOGE("SurfaceCaptureCallbackProxy: Remote()->SendRequest() error");
     }
 }
 } // namespace Rosen

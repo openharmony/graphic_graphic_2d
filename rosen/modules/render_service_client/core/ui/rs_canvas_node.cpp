@@ -50,7 +50,6 @@ RSCanvasNode::~RSCanvasNode() {}
 SkCanvas* RSCanvasNode::BeginRecording(int width, int height)
 {
 #ifdef ROSEN_OHOS
-    ROSEN_LOGD("RSCanvasNode::BeginRecording, size = [%d * %d]", width, height);
     recordingCanvas_ = new RSRecordingCanvas(width, height);
 #endif
     return recordingCanvas_;
@@ -68,7 +67,6 @@ void RSCanvasNode::FinishRecording()
         ROSEN_LOGW("RSCanvasNode::FinishRecording, IsRecording = false");
         return;
     }
-    ROSEN_LOGD("RSCanvasNode::FinishRecording, node = %llu stops recording", GetId());
     auto recording = static_cast<RSRecordingCanvas*>(recordingCanvas_)->GetDrawCmdList();
     delete recordingCanvas_;
     recordingCanvas_ = nullptr;

@@ -13,8 +13,6 @@
 
 import("//build/ohos.gni")
 
-enable_debug = true
-
 rosen_is_ohos = current_os == "ohos"
 rosen_is_android = current_os == "android"
 rosen_is_ios = current_os == "ios" || current_os == "tvos"

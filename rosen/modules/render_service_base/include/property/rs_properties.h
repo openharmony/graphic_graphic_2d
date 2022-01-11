@@ -177,11 +177,11 @@ public:
     bool GetVisible() const;
     bool SetId(NodeId id);
 
-private:
     const std::shared_ptr<RSObjGeometry>& GetBoundsGeometry() const;
     const std::shared_ptr<RSObjGeometry>& GetFrameGeometry() const;
     bool UpdateGeometry(const RSProperties* parent, bool dirtyFlag);
 
+private:
     void SetDirty();
     void ResetDirty();
     bool IsDirty() const;

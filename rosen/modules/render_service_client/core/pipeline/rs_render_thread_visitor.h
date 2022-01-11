@@ -50,6 +50,7 @@ private:
     bool dirtyFlag_ = false;
     bool isIdle_ = true;
     RSPaintFilterCanvas* canvas_;
+    RSRootRenderNode* curTreeRoot_ = nullptr;
 };
 } // namespace Rosen
 } // namespace OHOS

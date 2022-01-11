@@ -113,7 +113,16 @@ void RSTransactionProxy::FlushImplicitTransaction()
     }
 }
 
-void RSTransactionProxy::AddCommonCommand(std::unique_ptr<RSCommand>& command)
+void RSTransactionProxy::FlushImplicitRemoteTransaction()
+{
+    std::unique_lock<std::mutex> cmdLock(mutex_);
+    if (renderServiceClient_ != nullptr && !implicitRemoteTransactionData_->IsEmpty()) {
+        renderServiceClient_->CommitTransaction(implicitRemoteTransactionData_);
+        implicitRemoteTransactionData_ = std::make_unique<RSTransactionData>();
+    }
+}
+
+void RSTransactionProxy::AddCommonCommand(std::unique_ptr<RSCommand> &command)
 {
     implicitCommonTransactionData_->AddCommand(command);
 }

@@ -45,7 +45,7 @@ private:
     void Redraw(sptr<Surface>& surface, const struct PrepareCompleteParam& param, void* data);
     HdiBackend* backend_ = nullptr;
     sptr<RSScreenManager> screenManager_;
-    RSScreenModeInfo curScreenInfo;
+    RSScreenModeInfo curScreenInfo_;
     std::shared_ptr<HdiOutput> output_;
     LayerAlpha alpha_ = { .enPixelAlpha = true };
     std::vector<LayerInfoPtr> layers_;

@@ -17,7 +17,11 @@
 #define RS_SURFACE_CAPTURE_TASK
 
 #include "common/rs_common_def.h"
+#include "include/core/SkCanvas.h"
+#include "pipeline/rs_display_render_node.h"
+#include "pipeline/rs_surface_render_node.h"
 #include "pixel_map.h"
+#include "visitor/rs_node_visitor.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -29,6 +33,39 @@ public:
     std::unique_ptr<Media::PixelMap> Run();
 
 private:
+    class RSSurfaceCaptureVisitor : public RSNodeVisitor {
+    public:
+        RSSurfaceCaptureVisitor() {}
+        ~RSSurfaceCaptureVisitor() override {}
+        virtual void PrepareBaseRenderNode(RSBaseRenderNode &node) override {}
+        virtual void PrepareDisplayRenderNode(RSDisplayRenderNode &node) override {}
+        virtual void PrepareSurfaceRenderNode(RSSurfaceRenderNode &node) override {}
+        virtual void PrepareCanvasRenderNode(RSCanvasRenderNode &node) override {}
+        virtual void PrepareRootRenderNode(RSRootRenderNode& node) override {}
+        virtual void ProcessBaseRenderNode(RSBaseRenderNode &node) override {}
+        virtual void ProcessCanvasRenderNode(RSCanvasRenderNode& node) override {}
+        virtual void ProcessRootRenderNode(RSRootRenderNode& node) override {}
+
+        virtual void ProcessDisplayRenderNode(RSDisplayRenderNode &node) override;
+        virtual void ProcessSurfaceRenderNode(RSSurfaceRenderNode &node) override;
+        void SetCanvas(std::unique_ptr<SkCanvas> canvas);
+        void IsDisplayNode(bool isDisplayNode)
+        {
+            isDisplayNode_ = isDisplayNode;
+        }
+
+    private:
+        void DrawSurface(RSSurfaceRenderNode &node);
+        std::unique_ptr<SkCanvas> canvas_ = nullptr;
+        bool isDisplayNode_ = false;
+    };
+
+    std::unique_ptr<SkCanvas> CreateCanvas(const std::unique_ptr<Media::PixelMap>& pixelmap);
+
+    std::unique_ptr<Media::PixelMap> CreatePixelMapBySurfaceNode(std::shared_ptr<RSSurfaceRenderNode> node);
+
+    std::unique_ptr<Media::PixelMap> CreatePixelMapByDisplayNode(std::shared_ptr<RSDisplayRenderNode> node);
+
     NodeId nodeId_;
 };
 } // namespace Rosen

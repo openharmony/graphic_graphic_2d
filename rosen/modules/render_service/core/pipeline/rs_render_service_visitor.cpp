@@ -20,6 +20,7 @@
 #include <window_option.h>
 #include <window.h>
 
+#include "common/rs_obj_abs_geometry.h"
 #include "pipeline/rs_base_render_node.h"
 #include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_processor.h"
@@ -64,6 +65,23 @@ void RSRenderServiceVisitor::ProcessBaseRenderNode(RSBaseRenderNode &node)
 void RSRenderServiceVisitor::PrepareDisplayRenderNode(RSDisplayRenderNode &node)
 {
     SortZOrder(node);
+    for (auto child : node.GetChildren()) {
+        auto existingChild = child.lock();
+        if (!existingChild) {
+            ROSEN_LOGI("RSRenderServiceVisitor::PrepareDisplayRenderNode this child haven't existed");
+            continue;
+        }
+        auto surfaceChild = existingChild->ReinterpretCastTo<RSSurfaceRenderNode>();
+        if (!surfaceChild) {
+            ROSEN_LOGI("RSRenderServiceVisitor::PrepareDisplayRenderNode this child is not SurfaceNode");
+            continue;
+        }
+        auto childGeoPtr = std::static_pointer_cast<RSObjAbsGeometry>(
+            surfaceChild->GetRenderProperties().GetBoundsGeometry());
+        if (childGeoPtr != nullptr) {
+            childGeoPtr->UpdateByMatrixFromParent(nullptr);
+        }
+    }
     PrepareBaseRenderNode(node);
 }
 
@@ -104,6 +122,32 @@ void RSRenderServiceVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode &node)
 void RSRenderServiceVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode &node)
 {
     SortZOrder(node);
+
+    auto currentGeoPtr = std::static_pointer_cast<RSObjAbsGeometry>(
+        node.GetRenderProperties().GetBoundsGeometry());
+    if (currentGeoPtr != nullptr) {
+        currentGeoPtr->UpdateByMatrixFromRenderThread(node.GetMatrix());
+        currentGeoPtr->UpdateByMatrixFromSelf();
+    }
+
+    for (auto child : node.GetChildren()) {
+        auto existingChild = child.lock();
+        if (!existingChild) {
+            ROSEN_LOGI("RSRenderServiceVisitor::PrepareSurfaceRenderNode this child haven't existed");
+            continue;
+        }
+        auto surfaceChild = existingChild->ReinterpretCastTo<RSSurfaceRenderNode>();
+        if (!surfaceChild) {
+            ROSEN_LOGI("RSRenderServiceVisitor::PrepareSurfaceRenderNode this child is not SurfaceNode");
+            continue;
+        }
+        auto childGeoPtr = std::static_pointer_cast<RSObjAbsGeometry>(
+            surfaceChild->GetRenderProperties().GetBoundsGeometry());
+        if (childGeoPtr != nullptr) {
+            childGeoPtr->UpdateByMatrixFromParent(currentGeoPtr);
+        }
+    }
+    PrepareBaseRenderNode(node);
 }
 
 void RSRenderServiceVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode &node)
@@ -113,6 +157,7 @@ void RSRenderServiceVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode &node)
         return;
     }
     processor_->ProcessSurface(node);
+    ProcessBaseRenderNode(node);
 }
 
 void RSRenderServiceVisitor::SortZOrder(RSBaseRenderNode &node)

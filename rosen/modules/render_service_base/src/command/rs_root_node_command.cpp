@@ -16,6 +16,7 @@
 #include "command/rs_root_node_command.h"
 
 #include "pipeline/rs_root_render_node.h"
+#include "pipeline/rs_surface_render_node.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -26,16 +27,12 @@ void RootNodeCommandHelper::Create(RSContext& context, NodeId id)
     context.GetNodeMap().RegisterRenderNode(node);
 }
 
-void RootNodeCommandHelper::AttachRSSurface(
-    RSContext& context, NodeId id, std::shared_ptr<RSSurface> rsSurface, int width, int height)
+void RootNodeCommandHelper::AttachRSSurfaceNode(
+    RSContext& context, NodeId id, NodeId surfaceNodeId, int width, int height)
 {
     if (auto node = context.GetNodeMap().GetRenderNode<RSRootRenderNode>(id)) {
-        node->AttachRSSurface(rsSurface, width, height);
-        if (rsSurface == nullptr) {
-            context.GetGlobalRootRenderNode()->RemoveChild(node);
-        } else {
-            context.GetGlobalRootRenderNode()->AddChild(node);
-        }
+        node->AttachRSSurfaceNode(surfaceNodeId, width, height);
+        context.GetGlobalRootRenderNode()->AddChild(node);
     }
 }
 

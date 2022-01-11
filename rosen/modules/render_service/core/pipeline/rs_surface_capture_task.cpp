@@ -15,16 +15,58 @@
 
 #include "pipeline/rs_surface_capture_task.h"
 #include "pipeline/rs_main_thread.h"
+#include "pipeline/rs_base_render_node.h"
+#include "pipeline/rs_display_render_node.h"
+#include "pipeline/rs_render_service_util.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_log.h"
+#include "platform/drawing/rs_surface.h"
+#include "screen_manager/rs_screen_manager.h"
+#include "screen_manager/rs_screen_mode_info.h"
 
 namespace OHOS {
 namespace Rosen {
 std::unique_ptr<Media::PixelMap> RSSurfaceCaptureTask::Run()
 {
-    auto node = RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId_);
+    std::shared_ptr<RSBaseRenderNode> node =
+        RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode<RSBaseRenderNode>(nodeId_);
     if (node == nullptr) {
-        ROSEN_LOGE("RSSurfaceCaptureTask: node == nullptr\n");
+        ROSEN_LOGE("RSSurfaceCaptureTask::Run: node is nullptr");
+        return nullptr;
+    }
+    std::unique_ptr<Media::PixelMap> pixelmap;
+    std::shared_ptr<RSSurfaceCaptureVisitor> visitor = std::make_shared<RSSurfaceCaptureVisitor>();
+    if (node->GetType() == RSRenderNodeType::SURFACE_NODE) {
+        ROSEN_LOGI("RSSurfaceCaptureTask::Run: Into SURFACE_NODE SurfaceRenderNodeId:[%llu]", node->GetId());
+        pixelmap = CreatePixelMapBySurfaceNode(std::static_pointer_cast<RSSurfaceRenderNode>(node));
+        visitor->IsDisplayNode(false);
+    } else if (node->GetType() == RSRenderNodeType::DISPLAY_NODE) {
+        ROSEN_LOGI("RSSurfaceCaptureTask::Run: Into DISPLAY_NODE DisplayRenderNodeId:[%llu]", node->GetId());
+        pixelmap = CreatePixelMapByDisplayNode(std::static_pointer_cast<RSDisplayRenderNode>(node));
+        visitor->IsDisplayNode(true);
+    } else {
+        ROSEN_LOGE("RSSurfaceCaptureTask::Run: Invalid RSRenderNodeType!");
+        return nullptr;
+    }
+    if (pixelmap == nullptr) {
+        ROSEN_LOGE("RSSurfaceCaptureTask::Run: pixelmap == nullptr!");
+        return nullptr;
+    }
+    std::unique_ptr<SkCanvas> canvas = CreateCanvas(pixelmap);
+    if (canvas == nullptr) {
+        ROSEN_LOGE("RSSurfaceCaptureTask::Run: canvas is nullptr!");
+        return nullptr;
+    }
+    visitor->SetCanvas(std::move(canvas));
+    node->Process(visitor);
+    return pixelmap;
+}
+
+std::unique_ptr<Media::PixelMap> RSSurfaceCaptureTask::CreatePixelMapBySurfaceNode(
+    std::shared_ptr<RSSurfaceRenderNode> node)
+{
+    if (node == nullptr) {
+        ROSEN_LOGE("CreatePixelMapBySurfaceNode: node == nullptr");
         return nullptr;
     }
     int pixmapWidth = node->GetRenderProperties().GetBoundsWidth();
@@ -32,39 +74,91 @@ std::unique_ptr<Media::PixelMap> RSSurfaceCaptureTask::Run()
     Media::InitializationOptions opts;
     opts.size.width = pixmapWidth;
     opts.size.height = pixmapHeight;
-    std::unique_ptr<Media::PixelMap> pixelmap = Media::PixelMap::Create(opts);
+    ROSEN_LOGD("RSSurfaceCaptureTask::CreatePixelMapBySurfaceNode: pixelmap width is [%u], height is [%u].",
+        pixmapWidth, pixmapHeight);
+    return Media::PixelMap::Create(opts);
+}
+
+std::unique_ptr<Media::PixelMap> RSSurfaceCaptureTask::CreatePixelMapByDisplayNode(
+    std::shared_ptr<RSDisplayRenderNode> node)
+{
+    if (node == nullptr) {
+        ROSEN_LOGE("RSSurfaceCaptureTask::CreatePixelMapByDisplayNode: node is nullptr");
+        return nullptr;
+    }
+    int screenId = node->GetScreenId();
+    RSScreenModeInfo screenModeInfo;
+    sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
+    if (!screenManager) {
+        ROSEN_LOGE("RSSurfaceCaptureTask::CreatePixelMapByDisplayNode: screenManager is nullptr!");
+        return nullptr;
+    }
+    screenManager->GetScreenActiveMode(screenId, screenModeInfo);
+    int pixmapWidth = screenModeInfo.GetScreenWidth();
+    int pixmapHeight = screenModeInfo.GetScreenHeight();
+    Media::InitializationOptions opts;
+    opts.size.width = pixmapWidth;
+    opts.size.height = pixmapHeight;
+    ROSEN_LOGD("RSSurfaceCaptureTask::CreatePixelMapByDisplayNode: pixelmap width is [%u], height is [%u].",
+        pixmapWidth, pixmapHeight);
+    return Media::PixelMap::Create(opts);
+}
+
+std::unique_ptr<SkCanvas> RSSurfaceCaptureTask::CreateCanvas(const std::unique_ptr<Media::PixelMap>& pixelmap)
+{
     if (pixelmap == nullptr) {
-        ROSEN_LOGE("RSSurfaceCaptureTask: pixelmap == nullptr\n");
+        ROSEN_LOGE("RSSurfaceCaptureTask::CreateCanvas: pixelmap == nullptr");
         return nullptr;
     }
     auto address = const_cast<uint32_t*>(pixelmap->GetPixel32(0, 0));
     if (address == nullptr) {
-        ROSEN_LOGE("RSSurfaceCaptureTask: address == nullptr\n");
+        ROSEN_LOGE("RSSurfaceCaptureTask::CreateCanvas: address == nullptr");
         return nullptr;
     }
-    SkImageInfo info = SkImageInfo::Make(pixmapWidth, pixmapHeight,
+    SkImageInfo info = SkImageInfo::Make(pixelmap->GetWidth(), pixelmap->GetHeight(),
             kRGBA_8888_SkColorType, kPremul_SkAlphaType);
-    std::unique_ptr<SkCanvas> canvas = SkCanvas::MakeRasterDirect(info, address, pixelmap->GetRowBytes());
+    return SkCanvas::MakeRasterDirect(info, address, pixelmap->GetRowBytes());
+}
 
-    // get surface capture
-    sptr<OHOS::SurfaceBuffer> buffer = node->GetBuffer();
-    if (buffer == nullptr) {
-        ROSEN_LOGE("RSSurfaceCaptureTask: buffer == nullptr\n");
-        return nullptr;
+void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::SetCanvas(std::unique_ptr<SkCanvas> canvas)
+{
+    if (canvas == nullptr) {
+        ROSEN_LOGE("RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::SetCanvas: address == nullptr");
+        return;
     }
-    auto addr = static_cast<uint32_t*>(buffer->GetVirAddr());
-    if (addr == nullptr || buffer->GetWidth() <= 0 || buffer->GetHeight() <= 0) {
-        ROSEN_LOGE("RSSurfaceCaptureTask: addr is nullptr, or buffer->GetWidth() buffer->GetHeight() is error.\n");
-        return nullptr;
+    canvas_ = std::move(canvas);
+}
+
+void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode &node)
+{
+    ROSEN_LOGD("RsDebug RSSurfaceCaptureVisitor::ProcessDisplayRenderNode child size:[%d]", node.GetChildren().size());
+    for (auto child : node.GetChildren()) {
+        auto existingChild = child.lock();
+        if (!existingChild) {
+            ROSEN_LOGD("RSSurfaceCaptureVisitor::ProcessDisplayRenderNode this child haven't existed");
+            continue;
+        }
+        existingChild->Process(shared_from_this());
     }
-    SkImageInfo layerInfo = SkImageInfo::Make(buffer->GetWidth(), buffer->GetHeight(),
-        kRGBA_8888_SkColorType, kPremul_SkAlphaType);
-    SkPixmap skpixmap(layerInfo, addr, buffer->GetSize() / buffer->GetHeight());
-    SkBitmap skbitmap;
-    if (skbitmap.installPixels(skpixmap)) {
-        canvas->drawBitmapRect(skbitmap, SkRect::MakeXYWH(0, 0, buffer->GetWidth(), buffer->GetHeight()), nullptr);
+}
+
+void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode &node)
+{
+    if (isDisplayNode_) {
+        RsRenderServiceUtil::DrawBuffer(canvas_.get(), node.GetMatrix(), node.GetBuffer(), node);
+    } else {
+        float scaleX = node.GetRenderProperties().GetBoundsWidth();
+        float scaleY = node.GetRenderProperties().GetBoundsHeight();
+        RsRenderServiceUtil::DrawBuffer(canvas_.get(), node.GetMatrix(), node.GetBuffer(), 0, 0, scaleX, scaleY);
     }
-    return pixelmap;
+    for (auto child : node.GetChildren()) {
+        auto existingChild = child.lock();
+        if (!existingChild) {
+            ROSEN_LOGD("RSSurfaceCaptureVisitor::ProcessSurfaceRenderNode this child haven't existed");
+            continue;
+        }
+        existingChild->Process(shared_from_this());
+    }
 }
 }
 }

@@ -46,9 +46,18 @@ void SurfaceNodeCommandHelper::SetParentSurface(RSContext& context, NodeId id, N
     auto& nodeMap = context.GetNodeMap();
     auto node = nodeMap.GetRenderNode<RSSurfaceRenderNode>(id);
     auto parent = nodeMap.GetRenderNode<RSBaseRenderNode>(parentId);
-    if (node && parent && parentId != node->GetParentId()) {
+    if (node && parent) {
         node->SetParentId(parentId, false);
         parent->AddChild(node);
+    }
+}
+
+void SurfaceNodeCommandHelper::RemoveSelf(RSContext& context, NodeId id)
+{
+    auto& nodeMap = context.GetNodeMap();
+    auto node = nodeMap.GetRenderNode<RSBaseRenderNode>(id);
+    if (node) {
+        node->RemoveFromTree();
     }
 }
 

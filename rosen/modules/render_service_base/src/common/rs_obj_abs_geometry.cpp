@@ -62,6 +62,32 @@ void RSObjAbsGeometry::UpdateMatrix(const std::shared_ptr<RSObjAbsGeometry>& par
     SetAbsRect();
 }
 
+void RSObjAbsGeometry::UpdateByMatrixFromParent(const std::shared_ptr<RSObjAbsGeometry>& parent)
+{
+    absMatrix_.reset();
+    if (parent != nullptr) {
+        absMatrix_ = parent->absMatrix_;
+    }
+}
+
+void RSObjAbsGeometry::UpdateByMatrixFromRenderThread(const SkMatrix& skMatrix)
+{
+    absMatrix_.preConcat(skMatrix);
+}
+
+void RSObjAbsGeometry::UpdateByMatrixFromSelf()
+{
+    matrix_.reset();
+    if (!trans_ || (ROSEN_EQ(z_ + trans_->translateZ_, 0.f) && ROSEN_EQ(trans_->rotationX_, 0.f) &&
+        ROSEN_EQ(trans_->rotationY_, 0.f) && trans_->quaternion_.IsIdentity())) {
+        UpdateAbsMatrix2D();
+    } else {
+        UpdateAbsMatrix3D();
+    }
+    absMatrix_.preConcat(matrix_);
+    SetAbsRect();
+}
+
 void RSObjAbsGeometry::UpdateAbsMatrix2D()
 {
     if (!trans_) {

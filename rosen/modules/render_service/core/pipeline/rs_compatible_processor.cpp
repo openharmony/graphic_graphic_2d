@@ -21,6 +21,8 @@
 #include "pipeline/rs_render_service_util.h"
 #include "platform/common/rs_log.h"
 
+#include "common/rs_obj_abs_geometry.h"
+
 namespace OHOS {
 
 namespace Rosen {
@@ -84,15 +86,23 @@ void RSCompatibleProcessor::ProcessSurface(RSSurfaceRenderNode& node)
         ROSEN_LOGE("RsDebug RSCompatibleProcessor::ProcessSurface consume buffer fail");
         return;
     }
-    ROSEN_LOGI("RsDebug RSCompatibleProcessor::ProcessSurface Node id:%llu [%f %f %f %f] buffer [%d %d]",
-        node.GetId(), node.GetRenderProperties().GetBoundsPositionX(), node.GetRenderProperties().GetBoundsPositionY(),
-        node.GetRenderProperties().GetBoundsWidth(), node.GetRenderProperties().GetBoundsHeight(),
+
+    auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(node.GetRenderProperties().GetBoundsGeometry());
+    if (geoPtr == nullptr) {
+        ROSEN_LOGE("RsDebug RSCompatibleProcessor::ProcessSurface geoPtr == nullptr");
+        return;
+    }
+
+    ROSEN_LOGI("RsDebug RSCompatibleProcessor::ProcessSurface surfaceNode id:%llu [%d %d %d %d] buffer [%d %d]",
+        node.GetId(), geoPtr->GetAbsRect().left_, geoPtr->GetAbsRect().top_,
+        geoPtr->GetAbsRect().width_, geoPtr->GetAbsRect().height_,
         node.GetBuffer()->GetWidth(), node.GetBuffer()->GetHeight());
+
     SkMatrix matrix;
     matrix.reset();
     RsRenderServiceUtil::DrawBuffer(canvas_.get(), matrix, node.GetBuffer(),
-        node.GetRenderProperties().GetBoundsPositionX(), node.GetRenderProperties().GetBoundsPositionY(),
-        node.GetRenderProperties().GetBoundsWidth(), node.GetRenderProperties().GetBoundsHeight());
+        static_cast<float>(geoPtr->GetAbsRect().left_), static_cast<float>(geoPtr->GetAbsRect().top_),
+        static_cast<float>(geoPtr->GetAbsRect().width_), static_cast<float>(geoPtr->GetAbsRect().height_));
 }
 
 void RSCompatibleProcessor::PostProcess()
