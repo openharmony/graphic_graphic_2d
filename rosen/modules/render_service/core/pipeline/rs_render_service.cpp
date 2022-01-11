@@ -277,5 +277,25 @@ RSScreenData RSRenderService::GetScreenData(ScreenId id)
         return screenManager_->GetScreenData(id);
     }).get();
 }
+
+int32_t RSRenderService::GetScreenBacklight(ScreenId id)
+{
+    if (screenManager_ == nullptr) {
+        return INVALID_BACKLIGHT_VALUE;
+    }
+    return mainThread_->ScheduleTask([=]() {
+        return screenManager_->GetScreenBacklight(id);
+    }).get();
+}
+
+void RSRenderService::SetScreenBacklight(ScreenId id, uint32_t level)
+{
+    if (screenManager_ == nullptr) {
+        return;
+    }
+    mainThread_->ScheduleTask([=]() {
+        screenManager_->SetScreenBacklight(id, level);
+    }).wait();
+}
 } // namespace Rosen
 } // namespace OHOS

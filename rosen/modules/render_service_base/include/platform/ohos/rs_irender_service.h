@@ -53,12 +53,14 @@ public:
         SET_SCREEN_ACTIVE_MODE,
         SET_SCREEN_POWER_STATUS,
         TAKE_SURFACE_CAPTURE,
+        SET_SCREEN_BACK_LIGHT,
         GET_SCREEN_ACTIVE_MODE,
         GET_SCREEN_SUPPORTED_MODES,
         GET_SCREEN_CAPABILITY,
         GET_SCREEN_POWER_STATUS,
         GET_SCREEN_DATA,
         EXECUTE_SYNCHRONOUS_TASK,
+        GET_SCREEN_BACK_LIGHT,
     };
 
     virtual void CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData) = 0;
@@ -98,6 +100,9 @@ public:
 
     virtual RSScreenData GetScreenData(ScreenId id) = 0;
 
+    virtual int32_t GetScreenBacklight(ScreenId id) = 0;
+
+    virtual void SetScreenBacklight(ScreenId id, uint32_t level) = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

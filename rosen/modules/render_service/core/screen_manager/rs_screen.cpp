@@ -331,6 +331,22 @@ void RSScreen::SurfaceDump(int32_t screenIndex, std::string& dumpString)
 {
     //hdiOutput_->Dump(dumpString);
 }
+
+void RSScreen::SetScreenBacklight(uint32_t level)
+{
+    if (hdiScreen_->SetScreenBacklight(level) < 0) {
+        return;
+    }
+}
+
+int32_t RSScreen::GetScreenBacklight() const
+{
+    uint32_t level = 0;
+    if (hdiScreen_->GetScreenBacklight(level) < 0) {
+        return INVALID_BACKLIGHT_VALUE;
+    }
+    return static_cast<int32_t>(level);
+}
 } // namespace impl
 } // namespace Rosen
 } // namespace OHOS

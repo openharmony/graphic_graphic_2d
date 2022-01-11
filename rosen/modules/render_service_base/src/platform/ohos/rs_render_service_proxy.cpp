@@ -361,5 +361,40 @@ int RSRenderServiceProxy::Dump(int fd, const std::vector<std::u16string> &args)
 {
     return Remote()->Dump(fd, args);
 }
+
+int32_t RSRenderServiceProxy::GetScreenBacklight(ScreenId id)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIRenderService::GetDescriptor())) {
+        return INVALID_BACKLIGHT_VALUE;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    data.WriteUint64(id);
+    int32_t err = Remote()->SendRequest(RSIRenderService::GET_SCREEN_BACK_LIGHT, data, reply, option);
+    if (err != NO_ERROR) {
+        return INVALID_BACKLIGHT_VALUE;
+    }
+    int32_t level = reply.ReadInt32();
+    return level;
+}
+
+void RSRenderServiceProxy::SetScreenBacklight(ScreenId id, uint32_t level)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIRenderService::GetDescriptor())) {
+        return;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    data.WriteUint64(id);
+    data.WriteUint32(level);
+    int32_t err = Remote()->SendRequest(RSIRenderService::SET_SCREEN_BACK_LIGHT, data, reply, option);
+    if (err != NO_ERROR) {
+        return;
+    }
+}
 } // namespace Rosen
 } // namespace OHOS

@@ -32,7 +32,9 @@
 #include "include/core/SkImageInfo.h"
 #include "pipeline/rs_render_result.h"
 #include "pipeline/rs_render_thread.h"
+#include "png.h"
 #include "render_context/render_context.h"
+#include "string_ex.h"
 #include "surface_buffer.h"
 #include "ui/rs_node.h"
 #include "ui/rs_surface_extractor.h"
@@ -45,7 +47,6 @@
 #include "foundation/graphic/standard/rosen/modules/render_service_base/src/platform/ohos/rs_surface_frame_ohos.h"
 #include "foundation/graphic/standard/rosen/modules/render_service_base/src/platform/ohos/rs_surface_ohos.h"
 
-#define ACE_ENABLE_GL
 
 using namespace OHOS;
 using namespace OHOS::Rosen;
@@ -55,12 +56,70 @@ namespace detail {
 constexpr int MILLI_SECS_PER_SECOND = 1000;
 constexpr int MICRO_SECS_PER_MILLISECOND = 1000;
 constexpr int MICRO_SECS_PER_SECOND = MICRO_SECS_PER_MILLISECOND * MILLI_SECS_PER_SECOND;
+constexpr uint8_t BIT_DEPTH_VALUE = 8;
+constexpr int SLEEP_TIME = 20;
+constexpr int MAX_BACKLIGHT = 100;
 
 RenderContext* renderContext = nullptr;
 
 template <typename Duration>
 using SysTime = std::chrono::time_point<std::chrono::system_clock, Duration>;
 using SysMicroSeconds = SysTime<std::chrono::microseconds>;
+
+using WriteToPngParam = struct {
+    uint32_t width;
+    uint32_t height;
+    uint32_t stride;
+    uint32_t bitDepth;
+    const uint8_t *data;
+};
+
+bool WriteToPng(const std::string &fileName, const WriteToPngParam &param)
+{
+    png_structp pngStruct = png_create_write_struct(PNG_LIBPNG_VER_STRING, nullptr, nullptr, nullptr);
+    if (pngStruct == nullptr) {
+        std::cout << "png_create_write_struct error, nullptr!" << std::endl;
+        return false;
+    }
+    png_infop pngInfo = png_create_info_struct(pngStruct);
+    if (pngInfo == nullptr) {
+        std::cout << "png_create_info_struct error, nullptr!" << std::endl;
+        png_destroy_write_struct(&pngStruct, nullptr);
+        return false;
+    }
+    FILE *fp = fopen(fileName.c_str(), "wb");
+    if (fp == nullptr) {
+        std::cout << "open file error, nullptr!" << std::endl;
+        png_destroy_write_struct(&pngStruct, &pngInfo);
+        return false;
+    }
+    png_init_io(pngStruct, fp);
+
+    // set png header
+    png_set_IHDR(pngStruct, pngInfo,
+        param.width, param.height,
+        param.bitDepth,
+        PNG_COLOR_TYPE_RGBA,
+        PNG_INTERLACE_NONE,
+        PNG_COMPRESSION_TYPE_BASE,
+        PNG_FILTER_TYPE_BASE);
+    png_set_packing(pngStruct); // set packing info
+    png_write_info(pngStruct, pngInfo); // write to header
+
+    for (uint32_t i = 0; i < param.height; i++) {
+        png_write_row(pngStruct, param.data + (i * param.stride));
+    }
+
+    png_write_end(pngStruct, pngInfo);
+
+    // free
+    png_destroy_write_struct(&pngStruct, &pngInfo);
+    int ret = fclose(fp);
+    if (ret != 0) {
+        std::cout << "close fp failed" << std::endl;
+    }
+    return true;
+}
 
 uint64_t MicroSecondsSinceEpoch()
 {
@@ -223,6 +282,26 @@ public:
         return displayId;
     }
 
+    int32_t GetDisplayBacklight(DisplayId id)
+    {
+        std::lock_guard<std::recursive_mutex> lock(mutex_);
+        if (displays_.count(id) == 0) {
+            cout << "MyDMS: No display " << id << "!" << endl;
+            return -1;
+        }
+        return rsInterface_.GetScreenBacklight(id);
+    }
+
+    void SetDisplayBacklight(DisplayId id, uint32_t level)
+    {
+        std::lock_guard<std::recursive_mutex> lock(mutex_);
+        if (displays_.count(id) == 0) {
+            cout << "MyDMS: No display " << id << "!" << endl;
+            return;
+        }
+        return rsInterface_.SetScreenBacklight(id, level);
+    }
+
     std::optional<RSScreenModeInfo> GetDisplayActiveMode(DisplayId id) const
     {
         std::lock_guard<std::recursive_mutex> lock(mutex_);
@@ -312,24 +391,36 @@ private:
 
     void DumpBuffer(const sptr<SurfaceBuffer> &buf)
     {
+        BufferHandle *bufferHandle =  buf->GetBufferHandle();
+        if (bufferHandle == nullptr) {
+            printf("bufferHandle nullptr!\n");
+            return;
+        }
+
+        uint32_t width = bufferHandle->width;
+        uint32_t height = bufferHandle->height;
+        uint32_t stride = bufferHandle->stride;
+        uint8_t *addr = (uint8_t *)buf->GetVirAddr();
+
+        detail::WriteToPngParam param;
+        param.width = width;
+        param.height = height;
+        param.data = addr;
+        param.stride = stride;
+        param.bitDepth = detail::BIT_DEPTH_VALUE;
+
         if (access("/data", F_OK) < 0) {
             std::cout << "ImageReader::DumpBuffer(): Can't access data directory!" << std::endl;
             return;
         }
 
         std::string timeStamp = detail::FormattedTimeStamp();
-        std::string dumpFileName = "/data/dumpImg-" + std::to_string(getpid()) + "-" + timeStamp + ".raw";
+        std::string dumpFileName = "/data/dumpImg-" + std::to_string(getpid()) + "-" + timeStamp + ".png";
 
-        std::ofstream file(dumpFileName, std::ofstream::binary);
-        if (!file.good()) {
-            std::cout << "ImageReader::DumpBuffer(): Init output file failed!" << std::endl;
-            file.close();
-            return;
+        bool ret = WriteToPng(dumpFileName, param);
+        if (ret) {
+            std::cout << "ImageReader::Dumpbuffer(): dump" << dumpFileName << std::endl;
         }
-
-        file.write(static_cast<const char *>(buf->GetVirAddr()), buf->GetSize());
-        file.close();
-        std::cout << "ImageReader::DumpBuffer(): dump " << dumpFileName << " succeed." << std::endl;
     }
 
     void OnVsync()
@@ -370,6 +461,15 @@ private:
 
 int main()
 {
+    DisplayId id = g_dms.GetDefaultDisplayId();
+    std::cout << "level =" << g_dms.GetDisplayBacklight(id) << std::endl;
+    int lightValue = 0;
+    g_dms.SetDisplayBacklight(id, lightValue);
+    std::cout << "after set to 0, level =" << g_dms.GetDisplayBacklight(id) << std::endl;
+    lightValue = detail::MAX_BACKLIGHT;
+    g_dms.SetDisplayBacklight(id, lightValue);
+    std::cout << "after set to 100, level =" << g_dms.GetDisplayBacklight(id) << std::endl;
+
     ImageReader imgReader;
     if (!imgReader.Init()) {
         cout << "ImgReader init failed!" << endl;
@@ -384,13 +484,12 @@ int main()
     auto surfaceNode = CreateSurface();
     DrawSurface(SkRect::MakeXYWH(0, 0, 200, 200), 0xffa10f1b, SkRect::MakeXYWH(0, 0, 200, 200), surfaceNode);
     displayNode->AddChild(surfaceNode, -1);
-    RSTransactionProxy::GetInstance().FlushImplicitTransaction();
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     sleep(4);
-
     while (1) {
         DrawSurface(SkRect::MakeXYWH(0, 0, 200, 200), 0xffa10f1b, SkRect::MakeXYWH(0, 0, 200, 200), surfaceNode);
-        RSTransactionProxy::GetInstance().FlushImplicitTransaction();
-        sleep(2);
+        RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+        sleep(detail::SLEEP_TIME);
     }
 
     return 0;

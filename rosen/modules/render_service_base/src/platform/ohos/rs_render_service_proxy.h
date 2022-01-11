@@ -70,6 +70,10 @@ public:
 
     int Dump(int fd, const std::vector<std::u16string> &args);
 
+    int32_t GetScreenBacklight(ScreenId id) override;
+
+    void SetScreenBacklight(ScreenId id, uint32_t level) override;
+
 private:
     static inline BrokerDelegator<RSRenderServiceProxy> delegator_;
 };

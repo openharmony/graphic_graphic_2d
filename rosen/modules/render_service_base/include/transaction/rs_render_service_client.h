@@ -87,6 +87,10 @@ public:
 
     RSScreenData GetScreenData(ScreenId id);
 
+    int32_t GetScreenBacklight(ScreenId id);
+
+    void SetScreenBacklight(ScreenId id, uint32_t level);
+
 private:
     void TriggerSurfaceCaptureCallback(NodeId id, Media::PixelMap* pixelmap);
     friend class SurfaceCaptureCallbackDirector;

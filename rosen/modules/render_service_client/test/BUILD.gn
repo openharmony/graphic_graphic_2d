@@ -88,6 +88,7 @@ ohos_executable("virtual_display_demo") {
     "//foundation/graphic/standard/rosen/modules/render_service_base:librender_service_base",
     "//foundation/graphic/standard/rosen/modules/render_service_client:librender_service_client",
     "//foundation/multimedia/image_standard/interfaces/innerkits:image_native",
+    "//third_party/libpng:libpng",
     "//third_party/zlib:libz",
   ]
 

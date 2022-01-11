@@ -421,6 +421,33 @@ RSScreenData RSScreenManager::GetScreenData(ScreenId id) const
     return screenData;
 }
 
+int32_t RSScreenManager::GetScreenBacklight(ScreenId id)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    return GetScreenBacklightlocked(id);
+}
+
+int32_t RSScreenManager::GetScreenBacklightlocked(ScreenId id) const
+{
+    if (screens_.count(id) == 0) {
+        HiLog::Error(LOG_LABEL, "%{public}s: There is no screen for id %{public}" PRIu64 ".\n", __func__, id);
+        return INVALID_BACKLIGHT_VALUE;
+    }
+
+    int32_t level = screens_.at(id)->GetScreenBacklight();
+    return level;
+}
+
+void RSScreenManager::SetScreenBacklight(ScreenId id, uint32_t level)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (screens_.count(id) == 0) {
+        HiLog::Error(LOG_LABEL, "%{public}s: There is no screen for id %{public}" PRIu64 ".\n", __func__, id);
+        return;
+    }
+    screens_.at(id)->SetScreenBacklight(level);
+}
+
 ScreenInfo RSScreenManager::QueryScreenInfo(ScreenId id) const
 {
     std::lock_guard<std::mutex> lock(mutex_);

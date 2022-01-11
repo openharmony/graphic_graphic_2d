@@ -97,5 +97,15 @@ RSScreenData RSInterfaces::GetScreenData(ScreenId id)
 {
     return renderServiceClient_->GetScreenData(id);
 }
+
+int32_t RSInterfaces::GetScreenBacklight(ScreenId id)
+{
+    return renderServiceClient_->GetScreenBacklight(id);
+}
+
+void RSInterfaces::SetScreenBacklight(ScreenId id, uint32_t level)
+{
+    renderServiceClient_->SetScreenBacklight(id, level);
+}
 } // namespace Rosen
 } // namespace OHOS

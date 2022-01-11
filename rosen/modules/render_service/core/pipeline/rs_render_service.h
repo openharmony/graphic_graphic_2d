@@ -75,6 +75,10 @@ private:
 
     RSScreenData GetScreenData(ScreenId id) override;
 
+    int32_t GetScreenBacklight(ScreenId id) override;
+
+    void SetScreenBacklight(ScreenId id, uint32_t level) override;
+
     RSMainThread* mainThread_ = nullptr;
 
     sptr<RSScreenManager> screenManager_;

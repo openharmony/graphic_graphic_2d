@@ -107,6 +107,10 @@ public:
     virtual void DisplayDump(std::string& dumpString) = 0;
 
     virtual void SurfaceDump(std::string& dumpString) = 0;
+
+    virtual int32_t GetScreenBacklight(ScreenId id) = 0;
+
+    virtual void SetScreenBacklight(ScreenId id, uint32_t level) = 0;
 };
 
 sptr<RSScreenManager> CreateOrGetScreenManager();
@@ -176,6 +180,10 @@ public:
 
     void SurfaceDump(std::string& dumpString) override;
 
+    int32_t GetScreenBacklight(ScreenId id) override;
+
+    void SetScreenBacklight(ScreenId id, uint32_t level) override;
+
 private:
     RSScreenManager();
     ~RSScreenManager() noexcept override;
@@ -194,6 +202,7 @@ private:
     std::vector<RSScreenModeInfo> GetScreenSupportedModesLocked(ScreenId id) const;
     RSScreenCapability GetScreenCapabilityLocked(ScreenId id) const;
     ScreenPowerStatus GetScreenPowerStatuslocked(ScreenId id) const;
+    int32_t GetScreenBacklightlocked(ScreenId id) const;
 
     void RemoveVirtualScreenLocked(ScreenId id);
     ScreenId GenerateVirtualScreenIdLocked();

@@ -253,5 +253,25 @@ RSScreenData RSRenderServiceClient::GetScreenData(ScreenId id)
 
     return renderService->GetScreenData(id);
 }
+
+int32_t RSRenderServiceClient::GetScreenBacklight(ScreenId id)
+{
+    auto renderService = RSRenderServiceConnect::GetRenderService();
+    if (renderService == nullptr) {
+        return INVALID_BACKLIGHT_VALUE;
+    }
+
+    return renderService->GetScreenBacklight(id);
+}
+
+void RSRenderServiceClient::SetScreenBacklight(ScreenId id, uint32_t level)
+{
+    auto renderService = RSRenderServiceConnect::GetRenderService();
+    if (renderService == nullptr) {
+        return;
+    }
+
+    renderService->SetScreenBacklight(id, level);
+}
 } // namespace Rosen
 } // namespace OHOS

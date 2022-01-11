@@ -222,6 +222,28 @@ int RSRenderServiceStub::OnRemoteRequest(uint32_t code, MessageParcel& data, Mes
             }
             break;
         }
+        case GET_SCREEN_BACK_LIGHT: {
+            auto token = data.ReadInterfaceToken();
+            if (token != RSIRenderService::GetDescriptor()) {
+                ret = ERR_INVALID_STATE;
+                break;
+            }
+            ScreenId id = data.ReadUint64();
+            int32_t level = GetScreenBacklight(id);
+            reply.WriteInt32(level);
+            break;
+        }
+        case SET_SCREEN_BACK_LIGHT: {
+            auto token = data.ReadInterfaceToken();
+            if (token != RSIRenderService::GetDescriptor()) {
+                ret = ERR_INVALID_STATE;
+                break;
+            }
+            ScreenId id = data.ReadUint64();
+            uint32_t level = data.ReadUint32();
+            SetScreenBacklight(id, level);
+            break;
+        }
         default:
             break;
     }
