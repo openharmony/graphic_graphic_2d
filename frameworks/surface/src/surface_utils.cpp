@@ -49,14 +49,14 @@ SurfaceError SurfaceUtils::Add(uint64_t uniqueId, const sptr<Surface> &surface)
     std::lock_guard<std::mutex> lockGuard(mutex_);
     if (surface == nullptr) {
         BLOGE(" surface is nullptr.");
-        return SURFACE_ERROR_NULLPTR;
+        return GSERROR_INVALID_ARGUMENTS;
     }
     if (surfaceCache_.count(uniqueId) == 0) {
         surfaceCache_[uniqueId] = surface;
-        return SURFACE_ERROR_OK;
+        return GSERROR_OK;
     }
     BLOGW("the surface by uniqueId %" PRIu64 " already existed", uniqueId);
-    return SURFACE_ERROR_OK;
+    return GSERROR_OK;
 }
 
 SurfaceError SurfaceUtils::Remove(uint64_t uniqueId)
@@ -64,9 +64,9 @@ SurfaceError SurfaceUtils::Remove(uint64_t uniqueId)
     std::lock_guard<std::mutex> lockGuard(mutex_);
     if (surfaceCache_.count(uniqueId) == 0) {
         BLOGE("Delete failed without surface by uniqueId %" PRIu64 "", uniqueId);
-        return SURFACE_ERROR_INVALID_OPERATING;
+        return GSERROR_INVALID_OPERATING;
     }
     surfaceCache_.erase(uniqueId);
-    return SURFACE_ERROR_OK;
+    return GSERROR_OK;
 }
 } // namespace OHOS

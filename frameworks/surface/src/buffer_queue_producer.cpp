@@ -223,20 +223,20 @@ GSError BufferQueueProducer::RequestBuffer(const BufferRequestConfig &config, Bu
         if (retval.buffer != nullptr) {
             cache[retval.sequence] = retval.buffer;
             sended.insert(retval.sequence);
-            BLOGND("[%{public}d] add cache", callingPid);
+            BLOGND("client pid: [%{public}d] add cache", callingPid);
         } else if (GetCallingPid() == getpid()) {
             // for BufferQueue not first
             // A local call always returns a non-null pointer
             retval.buffer = cache[retval.sequence].promote();
-            BLOGND("[%{public}d] get cache by local", callingPid);
+            BLOGND("client pid: [%{public}d] get cache by local", callingPid);
         } else if (sended.find(retval.sequence) == sended.end()) {
             // The first remote call from a different process returns a non-null pointer
             retval.buffer = cache[retval.sequence].promote();
             sended.insert(retval.sequence);
-            BLOGND("[%{public}d] get cache by remote", callingPid);
+            BLOGND("client pid: [%{public}d] get cache by remote", callingPid);
         } else {
             // and all others return null pointers
-            BLOGND("[%{public}d] nullptr by remote", callingPid);
+            BLOGND("client pid: [%{public}d] nullptr by remote", callingPid);
         }
     } else {
         BLOGNI("BufferQueue::RequestBuffer failed with %{public}s", GSErrorStr(sret).c_str());

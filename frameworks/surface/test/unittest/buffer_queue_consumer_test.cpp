@@ -12,12 +12,42 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-#include "buffer_queue_consumer_test.h"
-
+#include <gtest/gtest.h>
+#include <display_type.h>
+#include <surface.h>
+#include <buffer_queue_consumer.h>
 #include "buffer_consumer_listener.h"
 
-namespace OHOS {
+using namespace testing;
+using namespace testing::ext;
+
+namespace OHOS::Rosen {
+class BufferQueueConsumerTest : public testing::Test {
+public:
+    static void SetUpTestCase();
+    static void TearDownTestCase();
+
+    static inline BufferRequestConfig requestConfig = {
+        .width = 0x100,
+        .height = 0x100,
+        .strideAlignment = 0x8,
+        .format = PIXEL_FMT_RGBA_8888,
+        .usage = HBM_USE_CPU_READ | HBM_USE_CPU_WRITE | HBM_USE_MEM_DMA,
+        .timeout = 0,
+    };
+    static inline BufferFlushConfig flushConfig = {
+        .damage = {
+            .w = 0x100,
+            .h = 0x100,
+        },
+    };
+    static inline int64_t timestamp = 0;
+    static inline Rect damage = {};
+    static inline sptr<BufferQueue> bq = nullptr;
+    static inline sptr<BufferQueueConsumer> bqc = nullptr;
+    static inline BufferExtraDataImpl bedata;
+};
+
 void BufferQueueConsumerTest::SetUpTestCase()
 {
     bq = new BufferQueue("test");
@@ -33,12 +63,20 @@ void BufferQueueConsumerTest::TearDownTestCase()
     bqc = nullptr;
 }
 
-namespace {
-HWTEST_F(BufferQueueConsumerTest, AcqRel, testing::ext::TestSize.Level0)
+/*
+* Function: AcquireBuffer and ReleaseBuffer
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call RequestBuffer and FlushBuffer
+*                  2. call AcquireBuffer and ReleaseBuffer
+*                  3. check ret
+ */
+HWTEST_F(BufferQueueConsumerTest, AcqRel001, Function | MediumTest | Level2)
 {
     IBufferProducer::RequestBufferReturnValue retval;
     GSError ret = bq->RequestBuffer(requestConfig, bedata, retval);
-    ASSERT_EQ(ret, GSERROR_OK);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
     ASSERT_GE(retval.sequence, 0);
     ASSERT_NE(retval.buffer, nullptr);
 
@@ -46,36 +84,45 @@ HWTEST_F(BufferQueueConsumerTest, AcqRel, testing::ext::TestSize.Level0)
     ASSERT_NE(addr1, nullptr);
 
     ret = bq->FlushBuffer(retval.sequence, bedata, -1, flushConfig);
-    ASSERT_EQ(ret, GSERROR_OK);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
     sptr<SurfaceBufferImpl> bufferImpl = SurfaceBufferImpl::FromBase(retval.buffer);
     ret = bqc->AcquireBuffer(bufferImpl, retval.fence, timestamp, damage);
-    ASSERT_EQ(ret, GSERROR_OK);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
     ret = bqc->ReleaseBuffer(bufferImpl, -1);
-    ASSERT_EQ(ret, GSERROR_OK);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
 }
 
-HWTEST_F(BufferQueueConsumerTest, AcqRelRel, testing::ext::TestSize.Level0)
+/*
+* Function: AcquireBuffer and ReleaseBuffer
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call RequestBuffer and FlushBuffer
+*                  2. call AcquireBuffer and ReleaseBuffer
+*                  3. call ReleaseBuffer again
+*                  4. check ret
+ */
+HWTEST_F(BufferQueueConsumerTest, AcqRel002, Function | MediumTest | Level2)
 {
     IBufferProducer::RequestBufferReturnValue retval;
     GSError ret = bq->RequestBuffer(requestConfig, bedata, retval);
-    ASSERT_EQ(ret, GSERROR_OK);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
     ASSERT_GE(retval.sequence, 0);
     ASSERT_EQ(retval.buffer, nullptr);
 
     ret = bq->FlushBuffer(retval.sequence, bedata, -1, flushConfig);
-    ASSERT_EQ(ret, GSERROR_OK);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
     sptr<SurfaceBufferImpl> bufferImpl = SurfaceBufferImpl::FromBase(retval.buffer);
     ret = bqc->AcquireBuffer(bufferImpl, retval.fence, timestamp, damage);
-    ASSERT_EQ(ret, GSERROR_OK);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
     ret = bqc->ReleaseBuffer(bufferImpl, -1);
-    ASSERT_EQ(ret, GSERROR_OK);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
     ret = bqc->ReleaseBuffer(bufferImpl, -1);
-    ASSERT_NE(ret, GSERROR_OK);
+    ASSERT_NE(ret, OHOS::GSERROR_OK);
 }
 }
-} // namespace OHOS

@@ -12,18 +12,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-#include "surface_revert_ipc_test.h"
-
 #include <chrono>
 #include <thread>
 #include <unistd.h>
-
+#include <gtest/gtest.h>
+#include <iservice_registry.h>
 #include <display_type.h>
+#include <native_window.h>
 
+using namespace testing;
+using namespace testing::ext;
 using namespace std::chrono_literals;
 
-namespace OHOS {
+namespace OHOS::Rosen {
+class SurfaceRevertIPCTest : public testing::Test,  public IBufferConsumerListenerClazz {
+public:
+    static void SetUpTestCase();
+    virtual void OnBufferAvailable() override;
+
+    pid_t ChildProcessMain();
+
+    static inline int32_t pipeFd[2] = {};
+    static inline int32_t ipcSystemAbilityID = 34156;
+    static inline BufferRequestConfig requestConfig = {};
+    static inline BufferFlushConfig flushConfig = {};
+};
+
 void SurfaceRevertIPCTest::SetUpTestCase()
 {
     GTEST_LOG_(INFO) << getpid();
@@ -53,7 +67,7 @@ pid_t SurfaceRevertIPCTest::ChildProcessMain()
         return pid;
     }
 
-    std::this_thread::sleep_for(50ms);
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));  // wait 50ms
     GTEST_LOG_(INFO) << getpid();
     auto csurf = Surface::CreateSurfaceAsConsumer("test");
     csurf->RegisterConsumerListener(this);
@@ -65,7 +79,7 @@ pid_t SurfaceRevertIPCTest::ChildProcessMain()
     int64_t data;
     sptr<SurfaceBuffer> buffer = nullptr;
     auto sret = psurf->RequestBufferNoFence(buffer, requestConfig);
-    if (sret != GSERROR_OK) {
+    if (sret != OHOS::GSERROR_OK) {
         data = sret;
         write(pipeFd[1], &data, sizeof(data));
         exit(0);
@@ -76,7 +90,7 @@ pid_t SurfaceRevertIPCTest::ChildProcessMain()
     buffer->ExtraSet("567", "567");
 
     sret = psurf->FlushBuffer(buffer, -1, flushConfig);
-    if (sret != GSERROR_OK) {
+    if (sret != OHOS::GSERROR_OK) {
         data = sret;
         write(pipeFd[1], &data, sizeof(data));
         exit(0);
@@ -85,7 +99,7 @@ pid_t SurfaceRevertIPCTest::ChildProcessMain()
     Rect damage;
     int32_t fence;
     sret = csurf->AcquireBuffer(buffer, fence, data, damage);
-    if (sret != GSERROR_OK) {
+    if (sret != OHOS::GSERROR_OK) {
         data = sret;
         write(pipeFd[1], &data, sizeof(data));
         exit(0);
@@ -101,15 +115,22 @@ pid_t SurfaceRevertIPCTest::ChildProcessMain()
     return pid;
 }
 
-namespace {
-HWTEST_F(SurfaceRevertIPCTest, Fork, testing::ext::TestSize.Level0)
+/*
+* Function: RequestBufferNoFence and flush buffer
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. fork thread for produce surface, fill buffer data
+*                  2. produce surface, fill buffer data in other thread, check sret and buffer
+ */
+HWTEST_F(SurfaceRevertIPCTest, Fork001, Function | MediumTest | Level2)
 {
     auto pid = ChildProcessMain();
     ASSERT_GE(pid, 0);
     int64_t data;
     read(pipeFd[0], &data, sizeof(data));
     GTEST_LOG_(INFO) << getpid();
-    ASSERT_EQ(data, GSERROR_OK);
+    ASSERT_EQ(data, OHOS::GSERROR_OK);
 
     auto sam = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     auto robj = sam->GetSystemAbility(ipcSystemAbilityID);
@@ -118,7 +139,7 @@ HWTEST_F(SurfaceRevertIPCTest, Fork, testing::ext::TestSize.Level0)
 
     sptr<SurfaceBuffer> buffer = nullptr;
     auto sret = psurf->RequestBufferNoFence(buffer, requestConfig);
-    EXPECT_EQ(sret, GSERROR_OK);
+    EXPECT_EQ(sret, OHOS::GSERROR_OK);
     EXPECT_NE(buffer, nullptr);
     if (buffer != nullptr) {
         int32_t int32;
@@ -138,5 +159,4 @@ HWTEST_F(SurfaceRevertIPCTest, Fork, testing::ext::TestSize.Level0)
         waitpid(pid, nullptr, 0);
     } while (ret == -1 && errno == EINTR);
 }
-} // namespace
-} // namespace OHOS
+}

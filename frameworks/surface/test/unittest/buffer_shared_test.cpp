@@ -13,8 +13,13 @@
  * limitations under the License.
  */
 
-#include "buffer_shared_test.h"
+#include <map>
+#include <gtest/gtest.h>
 
+#include <surface.h>
+#include <display_type.h>
+#include "buffer_extra_data_impl.h"
+#include "buffer_queue.h"
 #include "buffer_consumer_listener.h"
 #include "buffer_manager.h"
 #include "buffer_log.h"
@@ -23,7 +28,22 @@
 using namespace testing;
 using namespace testing::ext;
 
-namespace OHOS {
+namespace OHOS::Rosen {
+class BufferSharedTest : public testing::Test, public IBufferConsumerListenerClazz {
+public:
+    static void SetUpTestCase();
+    virtual void OnBufferAvailable() override;
+    static void TearDownTestCase();
+
+    static inline sptr<Surface> surf = nullptr;
+    static inline sptr<Surface> producerSurface1 = nullptr;
+    static inline sptr<Surface> producerSurface2 = nullptr;
+    static inline sptr<SurfaceBuffer> buffer1 = nullptr;
+    static inline sptr<SurfaceBuffer> buffer2 = nullptr;
+    static inline sptr<SurfaceBuffer> sbuffer1 = nullptr;
+    static inline sptr<SurfaceBuffer> sbuffer2 = nullptr;
+};
+
 void BufferSharedTest::SetUpTestCase()
 {
     GTEST_LOG_(INFO) << getpid() << std::endl;
@@ -36,22 +56,23 @@ void BufferSharedTest::SetUpTestCase()
     producerSurface2 = Surface::CreateSurfaceAsProducer(producer2);
 }
 
+void BufferSharedTest::OnBufferAvailable() {}
+
 void BufferSharedTest::TearDownTestCase()
 {
 }
 
-namespace {
 /*
 * Function: RequestBuffer
 * Type: Reliability
 * Rank: Important(2)
 * EnvConditions: N/A
 * CaseDescription: 1. call RequestBufferNoFence with buffer=buffer1, buffer2，the param is same
-*                  2. check ret1 and ret2 are GSERROR_OK, check buffer1 and buffer2 is not nullptr
+*                  2. check ret1 and ret2 are OHOS::GSERROR_OK, check buffer1 and buffer2 is not nullptr
 *                  3. check the addr of buffer1 EQ buffer2
 * */
 
-HWTEST_F(BufferSharedTest, RequestBuffer, testing::ext::TestSize.Level0)
+HWTEST_F(BufferSharedTest, RequestBuffer001, Function | MediumTest | Level2)
 {
     PART("REQUEST BUFFER TWO TIMES") {
         GSError ret1, ret2;
@@ -68,9 +89,9 @@ HWTEST_F(BufferSharedTest, RequestBuffer, testing::ext::TestSize.Level0)
             ret2 = producerSurface2->RequestBufferNoFence(buffer2, requestConfig);
         }
         STEP("2: check ret1 ret2 buffer1 buffer2") {
-            STEP_ASSERT_EQ(ret1, GSERROR_OK);
+            STEP_ASSERT_EQ(ret1, OHOS::GSERROR_OK);
             STEP_ASSERT_NE(buffer1, nullptr);
-            STEP_ASSERT_EQ(ret2, GSERROR_OK);
+            STEP_ASSERT_EQ(ret2, OHOS::GSERROR_OK);
             STEP_ASSERT_NE(buffer2, nullptr);
         }
         STEP("3: check buffer addr") {
@@ -88,7 +109,7 @@ HWTEST_F(BufferSharedTest, RequestBuffer, testing::ext::TestSize.Level0)
 *                  2. check ret1 is GSERROR_INVALID_ARGUMENTS
 * */
 
-HWTEST_F(BufferSharedTest, RequestBufferDiff, testing::ext::TestSize.Level0)
+HWTEST_F(BufferSharedTest, RequestBufferDiff001, Function | MediumTest | Level2)
 {
     PART("REQUEST BUFFER with different requestconfig") {
         GSError ret1;
@@ -115,9 +136,9 @@ HWTEST_F(BufferSharedTest, RequestBufferDiff, testing::ext::TestSize.Level0)
 * Rank: Important(2)
 * EnvConditions: N/A
 * CaseDescription: 1. call FlushBuffer with buffer=buffer1, buffer2
-*                  2. check ret1 and ret2 is GSERROR_OK
+*                  2. check ret1 and ret2 is OHOS::GSERROR_OK
 * */
-HWTEST_F(BufferSharedTest, FlushBuffer, testing::ext::TestSize.Level0)
+HWTEST_F(BufferSharedTest, FlushBuffer001,  Function | MediumTest | Level2)
 {
     PART("FlushBuffer") {
         GSError ret1, ret2;
@@ -127,8 +148,8 @@ HWTEST_F(BufferSharedTest, FlushBuffer, testing::ext::TestSize.Level0)
             ret2 = producerSurface2->FlushBuffer(buffer2, -1, flushConfig);
         }
         STEP("2: check ret1 ret2") {
-            STEP_ASSERT_EQ(ret1, GSERROR_OK);
-            STEP_ASSERT_EQ(ret2, GSERROR_OK);
+            STEP_ASSERT_EQ(ret1, OHOS::GSERROR_OK);
+            STEP_ASSERT_EQ(ret2, OHOS::GSERROR_OK);
         }
     }
 }
@@ -140,7 +161,7 @@ HWTEST_F(BufferSharedTest, FlushBuffer, testing::ext::TestSize.Level0)
 * CaseDescription: 1. call AcquireBuffer with buffer=sbuffer1, sbuffer2
 *                  2. check ret1 and ret2 are GSERROR_INVALID_ARGUMENTS
 * */
-HWTEST_F(BufferSharedTest, AquiredBuffer, testing::ext::TestSize.Level0)
+HWTEST_F(BufferSharedTest, AquiredBuffer001, Function | MediumTest | Level2)
 {
     PART("AquiredBuffer") {
         GSError ret1, ret2;
@@ -153,8 +174,8 @@ HWTEST_F(BufferSharedTest, AquiredBuffer, testing::ext::TestSize.Level0)
             ret2 = surf->AcquireBuffer(sbuffer2, fence, timestamp, damage);
         }
         STEP("2: check ret1 ret2") {
-            STEP_ASSERT_EQ(ret1, GSERROR_OK);
-            STEP_ASSERT_EQ(ret2, GSERROR_OK);
+            STEP_ASSERT_EQ(ret1, OHOS::GSERROR_OK);
+            STEP_ASSERT_EQ(ret2, OHOS::GSERROR_OK);
         }
         STEP("3: check addr sbuffer1 and sbuffer2") {
             STEP_ASSERT_EQ(sbuffer1, sbuffer2);
@@ -171,7 +192,7 @@ HWTEST_F(BufferSharedTest, AquiredBuffer, testing::ext::TestSize.Level0)
 *                  3. call cancelBuffer with buffer=buffer2
 *                  4. check ret2 is GSERROR_INVALID_OPERATING
 * */
-HWTEST_F(BufferSharedTest, CancelBuffer, testing::ext::TestSize.Level0)
+HWTEST_F(BufferSharedTest, CancelBuffer001, Function | MediumTest | Level2)
 {
     PART("CancelBuffer") {
         GSError ret1, ret2;
@@ -195,9 +216,9 @@ HWTEST_F(BufferSharedTest, CancelBuffer, testing::ext::TestSize.Level0)
 * Rank: Important(2)
 * EnvConditions: N/A
 * CaseDescription: 1. releaseBuffer two times
-*                  2. check ret1 is GSERROR_INVALID_OPERATING, check ret1 is GSERROR_OK
+*                  2. check ret1 is GSERROR_INVALID_OPERATING, check ret1 is OHOS::GSERROR_OK
 * */
-HWTEST_F(BufferSharedTest, ReleaseBuffer, testing::ext::TestSize.Level0)
+HWTEST_F(BufferSharedTest, ReleaseBuffer001, Function | MediumTest | Level2)
 {
     PART("ReleaseBuffer") {
         GSError ret1, ret2;
@@ -206,10 +227,9 @@ HWTEST_F(BufferSharedTest, ReleaseBuffer, testing::ext::TestSize.Level0)
             ret2 = surf->ReleaseBuffer(sbuffer2, -1);
         }
         STEP("2: check ret1, ret2") {
-            STEP_ASSERT_EQ(ret1, GSERROR_OK);
-            STEP_ASSERT_EQ(ret2, GSERROR_OK);
+            STEP_ASSERT_EQ(ret1, OHOS::GSERROR_OK);
+            STEP_ASSERT_EQ(ret2, OHOS::GSERROR_OK);
         }
     }
 }
 }
-} // namespace OHOS

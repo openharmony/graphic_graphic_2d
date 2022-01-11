@@ -27,8 +27,10 @@ group("unittest") {
     ":buffer_queue_test",
     ":buffer_shared_test",
     ":consumer_surface_test",
+    ":native_window_test",
     ":producer_surface_test",
     ":surface_buffer_impl_test",
+    ":surface_utils_test",
   ]
 }
 
@@ -98,6 +100,17 @@ ohos_unittest("buffer_queue_test") {
 
 ## UnitTest buffer_queue_test }}}
 
+## UnitTest buffer_shared_test {{{
+ohos_unittest("buffer_shared_test") {
+  module_out_path = module_out_path
+
+  sources = [ "buffer_shared_test.cpp" ]
+
+  deps = [ ":surface_test_common" ]
+}
+
+## UnitTest buffer_shared_test }}}
+
 ## UnitTest consumer_surface_test {{{
 ohos_unittest("consumer_surface_test") {
   module_out_path = module_out_path
@@ -131,20 +144,34 @@ ohos_unittest("surface_buffer_impl_test") {
 
 ## UnitTest surface_buffer_impl_test }}}
 
-## UnitTest buffer_shared_test {{{
-ohos_unittest("buffer_shared_test") {
+## UnitTest surface_utils_test {{{
+ohos_unittest("surface_utils_test") {
   module_out_path = module_out_path
 
-  sources = [ "buffer_shared_test.cpp" ]
+  sources = [ "surface_utils_test.cpp" ]
 
   deps = [ ":surface_test_common" ]
 }
 
-## UnitTest surface_buffer_impl_test }}}
+## UnitTest surface_utils_test }}}
+
+## UnitTest native_window_test {{{
+ohos_unittest("native_window_test") {
+  module_out_path = module_out_path
+
+  sources = [ "native_window_test.cpp" ]
+
+  deps = [ ":surface_test_common" ]
+}
+
+## UnitTest native_window_test }}}
 
 ## Build surface_test_common.a {{{
 config("surface_test_common_public_config") {
-  include_dirs = [ "//foundation/graphic/standard/frameworks/surface/include" ]
+  include_dirs = [
+    "//foundation/graphic/standard/frameworks/surface/include",
+    "//drivers/peripheral/display/interfaces/include",
+  ]
 
   cflags = [
     "-Wall",
@@ -166,6 +193,7 @@ ohos_static_library("surface_test_common") {
     "//foundation/distributedschedule/samgr/interfaces/innerkits/samgr_proxy:samgr_proxy",
     "//foundation/graphic/standard:libsurface",
     "//foundation/graphic/standard/utils:libgraphic_utils",
+    "//third_party/googletest:gtest_main",
   ]
 }
 ## Build surface_test_common.a }}}

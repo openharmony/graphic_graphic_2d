@@ -19,16 +19,48 @@ group("systemtest") {
   testonly = true
 
   deps = [
+    ":native_window_buffer_test",
     ":surface_ipc_test",
     ":surface_revert_ipc_test",
   ]
 }
+
+## SystemTest native_window_buffer_test {{{
+ohos_systemtest("native_window_buffer_test") {
+  module_out_path = module_out_path
+
+  sources = [ "native_window_buffer_test.cpp" ]
+
+  include_dirs = [
+    "//foundation/graphic/standard/frameworks/surface/include",
+    "//drivers/peripheral/display/interfaces/include",
+  ]
+
+  cflags = [
+    "-Wall",
+    "-Werror",
+    "-g3",
+  ]
+
+  deps = [
+    "//foundation/distributedschedule/samgr/interfaces/innerkits/samgr_proxy:samgr_proxy",
+    "//foundation/graphic/standard:libsurface",
+    "//third_party/googletest:gtest_main",
+  ]
+}
+
+## SystemTest native_window_buffer_test }}}
 
 ## SystemTest surface_ipc_test {{{
 ohos_systemtest("surface_ipc_test") {
   module_out_path = module_out_path
 
   sources = [ "surface_ipc_test.cpp" ]
+
+  include_dirs = [
+    "//foundation/graphic/standard/frameworks/surface/include",
+    "//drivers/peripheral/display/interfaces/include",
+  ]
 
   cflags = [
     "-Wall",
@@ -50,6 +82,11 @@ ohos_systemtest("surface_revert_ipc_test") {
   module_out_path = module_out_path
 
   sources = [ "surface_revert_ipc_test.cpp" ]
+
+  include_dirs = [
+    "//foundation/graphic/standard/frameworks/surface/include",
+    "//drivers/peripheral/display/interfaces/include",
+  ]
 
   cflags = [
     "-Wall",

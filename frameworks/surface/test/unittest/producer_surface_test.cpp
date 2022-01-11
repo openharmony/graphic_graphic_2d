@@ -12,15 +12,43 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-#include "producer_surface_test.h"
-
 #include <securec.h>
-
+#include <gtest/gtest.h>
+#include <display_type.h>
+#include <surface.h>
+#include <consumer_surface.h>
 #include "buffer_consumer_listener.h"
-#include "consumer_surface.h"
 
-namespace OHOS {
+using namespace testing;
+using namespace testing::ext;
+
+namespace OHOS::Rosen {
+class ProducerSurfaceTest : public testing::Test {
+public:
+    static void SetUpTestCase();
+    static void TearDownTestCase();
+
+    static inline BufferRequestConfig requestConfig = {
+        .width = 0x100,
+        .height = 0x100,
+        .strideAlignment = 0x8,
+        .format = PIXEL_FMT_RGBA_8888,
+        .usage = HBM_USE_CPU_READ | HBM_USE_CPU_WRITE | HBM_USE_MEM_DMA,
+        .timeout = 0,
+    };
+    static inline BufferFlushConfig flushConfig = {
+        .damage = {
+            .w = 0x100,
+            .h = 0x100,
+        },
+    };
+    static inline int64_t timestamp = 0;
+    static inline Rect damage = {};
+    static inline sptr<Surface> csurf = nullptr;
+    static inline sptr<IBufferProducer> producer = nullptr;
+    static inline sptr<Surface> psurf = nullptr;
+};
+
 void ProducerSurfaceTest::SetUpTestCase()
 {
     csurf = Surface::CreateSurfaceAsConsumer();
@@ -37,156 +65,249 @@ void ProducerSurfaceTest::TearDownTestCase()
     psurf = nullptr;
 }
 
-namespace {
-HWTEST_F(ProducerSurfaceTest, ProducerSurface, testing::ext::TestSize.Level0)
+/*
+* Function: ProducerSurface
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. check psurf
+ */
+HWTEST_F(ProducerSurfaceTest, ProducerSurface001, Function | MediumTest | Level2)
 {
     ASSERT_NE(psurf, nullptr);
 }
 
-HWTEST_F(ProducerSurfaceTest, QueueSize, testing::ext::TestSize.Level0)
+/*
+* Function: SetQueueSize and GetQueueSize
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call GetQueueSize and get default value
+*                  2. call SetQueueSize
+*                  3. call SetQueueSize again with abnormal value
+*                  4. call GetQueueSize
+*                  5. check ret
+ */
+HWTEST_F(ProducerSurfaceTest, QueueSize001, Function | MediumTest | Level2)
 {
     ASSERT_EQ(psurf->GetQueueSize(), (uint32_t)SURFACE_DEFAULT_QUEUE_SIZE);
     GSError ret = psurf->SetQueueSize(2);
-    ASSERT_EQ(ret, GSERROR_OK);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
     ret = psurf->SetQueueSize(SURFACE_MAX_QUEUE_SIZE + 1);
-    ASSERT_NE(ret, GSERROR_OK);
+    ASSERT_NE(ret, OHOS::GSERROR_OK);
 
     ASSERT_EQ(psurf->GetQueueSize(), 2u);
 }
 
-HWTEST_F(ProducerSurfaceTest, ReqFlu, testing::ext::TestSize.Level0)
+/*
+* Function: RequestBufferNoFence and FlushBuffer
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call RequestBufferNoFence
+*                  2. call FlushBuffer
+*                  3. check ret
+ */
+HWTEST_F(ProducerSurfaceTest, ReqCanFluAcqRel001, Function | MediumTest | Level2)
 {
     sptr<SurfaceBuffer> buffer;
 
     GSError ret = psurf->RequestBufferNoFence(buffer, requestConfig);
-    ASSERT_EQ(ret, GSERROR_OK);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
     ASSERT_NE(buffer, nullptr);
 
     ret = psurf->FlushBuffer(buffer, -1, flushConfig);
-    ASSERT_EQ(ret, GSERROR_OK);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
 }
 
-HWTEST_F(ProducerSurfaceTest, ReqFluFlu, testing::ext::TestSize.Level0)
+/*
+* Function: RequestBufferNoFence and FlushBuffer
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call RequestBufferNoFence
+*                  2. call FlushBuffer 2 times
+*                  3. check ret
+ */
+HWTEST_F(ProducerSurfaceTest, ReqCanFluAcqRel002, Function | MediumTest | Level2)
 {
     sptr<SurfaceBuffer> buffer;
 
     GSError ret = psurf->RequestBufferNoFence(buffer, requestConfig);
-    ASSERT_EQ(ret, GSERROR_OK);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
     ASSERT_NE(buffer, nullptr);
 
     ret = psurf->FlushBuffer(buffer, -1, flushConfig);
-    ASSERT_EQ(ret, GSERROR_OK);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
     ret = psurf->FlushBuffer(buffer, -1, flushConfig);
-    ASSERT_NE(ret, GSERROR_OK);
+    ASSERT_NE(ret, OHOS::GSERROR_OK);
 }
 
-HWTEST_F(ProducerSurfaceTest, AcqRel, testing::ext::TestSize.Level0)
+/*
+* Function: AcquireBuffer and ReleaseBuffer
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call AcquireBuffer and ReleaseBuffer many times
+*                  2. check ret
+ */
+HWTEST_F(ProducerSurfaceTest, ReqCanFluAcqRel003, Function | MediumTest | Level2)
 {
     sptr<SurfaceBuffer> buffer;
     int32_t flushFence;
 
     GSError ret = psurf->AcquireBuffer(buffer, flushFence, timestamp, damage);
-    ASSERT_NE(ret, GSERROR_OK);
+    ASSERT_NE(ret, OHOS::GSERROR_OK);
 
     ret = psurf->ReleaseBuffer(buffer, -1);
-    ASSERT_NE(ret, GSERROR_OK);
+    ASSERT_NE(ret, OHOS::GSERROR_OK);
 
     ret = csurf->AcquireBuffer(buffer, flushFence, timestamp, damage);
-    ASSERT_EQ(ret, GSERROR_OK);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
     ret = csurf->ReleaseBuffer(buffer, -1);
-    ASSERT_EQ(ret, GSERROR_OK);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
     ret = csurf->AcquireBuffer(buffer, flushFence, timestamp, damage);
-    ASSERT_EQ(ret, GSERROR_OK);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
     ret = csurf->ReleaseBuffer(buffer, -1);
-    ASSERT_EQ(ret, GSERROR_OK);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
 }
 
-HWTEST_F(ProducerSurfaceTest, ReqCan, testing::ext::TestSize.Level0)
+/*
+* Function: RequestBufferNoFence and CancelBuffer
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call RequestBufferNoFence
+*                  2. call CancelBuffer
+*                  3. check ret
+ */
+HWTEST_F(ProducerSurfaceTest, ReqCanFluAcqRel004, Function | MediumTest | Level2)
 {
     sptr<SurfaceBuffer> buffer;
 
     GSError ret = psurf->RequestBufferNoFence(buffer, requestConfig);
-    ASSERT_EQ(ret, GSERROR_OK);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
     ret = psurf->CancelBuffer(buffer);
-    ASSERT_EQ(ret, GSERROR_OK);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
 }
 
-HWTEST_F(ProducerSurfaceTest, ReqCanCan, testing::ext::TestSize.Level0)
+/*
+* Function: RequestBufferNoFence and CancelBuffer
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call RequestBufferNoFence
+*                  2. call CancelBuffer 2 times
+*                  3. check ret
+ */
+HWTEST_F(ProducerSurfaceTest, ReqCanFluAcqRel005, Function | MediumTest | Level2)
 {
     sptr<SurfaceBuffer> buffer;
 
     GSError ret = psurf->RequestBufferNoFence(buffer, requestConfig);
-    ASSERT_EQ(ret, GSERROR_OK);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
     ret = psurf->CancelBuffer(buffer);
-    ASSERT_EQ(ret, GSERROR_OK);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
     ret = psurf->CancelBuffer(buffer);
-    ASSERT_NE(ret, GSERROR_OK);
+    ASSERT_NE(ret, OHOS::GSERROR_OK);
 }
 
-HWTEST_F(ProducerSurfaceTest, ReqReqReqCanCan, testing::ext::TestSize.Level0)
+/*
+* Function: RequestBufferNoFence and CancelBuffer
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call RequestBufferNoFence and CancelBuffer many times
+*                  2. check ret
+ */
+HWTEST_F(ProducerSurfaceTest, ReqCanFluAcqRel006, Function | MediumTest | Level2)
 {
     sptr<SurfaceBuffer> buffer;
     sptr<SurfaceBuffer> buffer1;
     sptr<SurfaceBuffer> buffer2;
 
     GSError ret = psurf->RequestBufferNoFence(buffer, requestConfig);
-    ASSERT_EQ(ret, GSERROR_OK);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
     ret = psurf->RequestBufferNoFence(buffer1, requestConfig);
-    ASSERT_EQ(ret, GSERROR_OK);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
     ret = psurf->RequestBufferNoFence(buffer2, requestConfig);
-    ASSERT_NE(ret, GSERROR_OK);
+    ASSERT_NE(ret, OHOS::GSERROR_OK);
 
     ret = psurf->CancelBuffer(buffer);
-    ASSERT_EQ(ret, GSERROR_OK);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
     ret = psurf->CancelBuffer(buffer1);
-    ASSERT_EQ(ret, GSERROR_OK);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
     ret = psurf->CancelBuffer(buffer2);
-    ASSERT_NE(ret, GSERROR_OK);
+    ASSERT_NE(ret, OHOS::GSERROR_OK);
 }
 
-HWTEST_F(ProducerSurfaceTest, SetQueueSizeDeleting, testing::ext::TestSize.Level0)
+/*
+* Function: GetQueueSize and SetQueueSize
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call GetQeueSize
+*                  2. call SetQueueSize 2 times
+*                  3. check ret
+ */
+HWTEST_F(ProducerSurfaceTest, SetQueueSizeDeleting001, Function | MediumTest | Level2)
 {
     sptr<ConsumerSurface> cs = static_cast<ConsumerSurface*>(csurf.GetRefPtr());
     sptr<BufferQueueProducer> bqp = static_cast<BufferQueueProducer*>(cs->producer_.GetRefPtr());
-    ASSERT_EQ(bqp->bufferQueue_->queueSize_, 2u);
-    ASSERT_EQ(bqp->bufferQueue_->freeList_.size(), 2u);
+    ASSERT_EQ(bqp->bufferQueue_->GetQueueSize(), 2u);
 
     GSError ret = psurf->SetQueueSize(1);
-    ASSERT_EQ(ret, GSERROR_OK);
-    ASSERT_EQ(bqp->bufferQueue_->freeList_.size(), 1u);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
     ret = psurf->SetQueueSize(2);
-    ASSERT_EQ(ret, GSERROR_OK);
-    ASSERT_EQ(bqp->bufferQueue_->freeList_.size(), 1u);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
 }
 
-HWTEST_F(ProducerSurfaceTest, ReqRel, testing::ext::TestSize.Level0)
+/*
+* Function: RequestBufferNoFence, ReleaseBuffer and CancelBuffer
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call RequestBufferNoFence
+*                  2. call ReleaseBuffer
+*                  3. call CancelBuffer
+*                  4. check ret
+ */
+HWTEST_F(ProducerSurfaceTest, ReqCanFluAcqRel007, Function | MediumTest | Level2)
 {
     sptr<SurfaceBuffer> buffer;
 
     GSError ret = psurf->RequestBufferNoFence(buffer, requestConfig);
-    ASSERT_EQ(ret, GSERROR_OK);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
     ret = psurf->ReleaseBuffer(buffer, -1);
-    ASSERT_NE(ret, GSERROR_OK);
+    ASSERT_NE(ret, OHOS::GSERROR_OK);
 
     ret = psurf->CancelBuffer(buffer);
-    ASSERT_EQ(ret, GSERROR_OK);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
 }
 
-HWTEST_F(ProducerSurfaceTest, UserData, testing::ext::TestSize.Level0)
+/*
+* Function: SetUserData and GetUserData
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call SetUserData and GetUserData many times
+*                  2. check ret
+ */
+HWTEST_F(ProducerSurfaceTest, UserData001, Function | MediumTest | Level2)
 {
     GSError ret;
 
@@ -199,11 +320,11 @@ HWTEST_F(ProducerSurfaceTest, UserData, testing::ext::TestSize.Level0)
 
         strs[i] = str;
         ret = psurf->SetUserData(strs[i], "magic");
-        ASSERT_EQ(ret, GSERROR_OK);
+        ASSERT_EQ(ret, OHOS::GSERROR_OK);
     }
 
     ret = psurf->SetUserData("-1", "error");
-    ASSERT_NE(ret, GSERROR_OK);
+    ASSERT_NE(ret, OHOS::GSERROR_OK);
 
     std::string retStr;
     for (int i = 0; i < SURFACE_MAX_USER_DATA_COUNT; i++) {
@@ -212,11 +333,32 @@ HWTEST_F(ProducerSurfaceTest, UserData, testing::ext::TestSize.Level0)
     }
 }
 
-HWTEST_F(ProducerSurfaceTest, RegisterConsumerListener, testing::ext::TestSize.Level0)
+/*
+* Function: RegisterConsumerListener
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call RegisterConsumerListener
+*                  2. check ret
+ */
+HWTEST_F(ProducerSurfaceTest, RegisterConsumerListener001, Function | MediumTest | Level2)
 {
     sptr<IBufferConsumerListener> listener = new BufferConsumerListener();
     GSError ret = psurf->RegisterConsumerListener(listener);
-    ASSERT_NE(ret, GSERROR_OK);
+    ASSERT_NE(ret, OHOS::GSERROR_OK);
+}
+
+/*
+* Function: GetUniqueId
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call GetUniqueId
+*                  2. check ret
+ */
+HWTEST_F(ProducerSurfaceTest, UniqueId001, Function | MediumTest | Level2)
+{
+    uint64_t uniqueId = psurf->GetUniqueId();
+    ASSERT_NE(uniqueId, 0);
 }
 }
-} // namespace OHOS
