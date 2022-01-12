@@ -45,15 +45,11 @@ public:
 
     bool Marshalling(Parcel& parcel) const override;
     static RSSurfaceNode* Unmarshalling(Parcel& parcel);
-#ifdef ROSEN_OHOS
     sptr<OHOS::Surface> GetSurface() const;
-#endif
-
     RSUINodeType GetType() const override
     {
         return RSUINodeType::SURFACE_NODE;
     }
-
 protected:
     RSSurfaceNode(bool isRenderServiceNode);
     explicit RSSurfaceNode(const RSSurfaceNodeConfig& config, bool isRenderServiceNode);
@@ -61,6 +57,10 @@ protected:
     RSSurfaceNode(const RSSurfaceNode&&) = delete;
     RSSurfaceNode& operator=(const RSSurfaceNode&) = delete;
     RSSurfaceNode& operator=(const RSSurfaceNode&&) = delete;
+    bool IsRenderServiceNodeForProperty() const override
+    {
+        return true;
+    }
 
 private:
     bool CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config);

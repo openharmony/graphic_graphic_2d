@@ -111,9 +111,6 @@ float RSSurfaceRenderNode::GetAlpha() const
 
 void RSSurfaceRenderNode::SetParentId(NodeId parentId, bool sendMsg)
 {
-    if (parentId_ == parentId) {
-        return;
-    }
     parentId_ = parentId;
     if (!sendMsg) {
         return;
@@ -125,8 +122,7 @@ void RSSurfaceRenderNode::SetParentId(NodeId parentId, bool sendMsg)
         if (node == nullptr) {
             return;
         } else if (auto rootnode = node->ReinterpretCastTo<RSRootRenderNode>()) {
-            // TODO: get surface from rootnode
-            command = std::make_unique<RSSurfaceNodeSetParentSurface>(GetId(), rootnode->GetId());
+            command = std::make_unique<RSSurfaceNodeSetParentSurface>(GetId(), rootnode->GetRSSurfaceNodeId());
             break;
         } else if (auto surfaceNode = node->ReinterpretCastTo<RSSurfaceRenderNode>()) {
             command = std::make_unique<RSSurfaceNodeSetParentSurface>(GetId(), surfaceNode->GetId());

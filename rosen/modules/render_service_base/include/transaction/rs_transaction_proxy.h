@@ -37,6 +37,7 @@ public:
     void AddCommand(std::unique_ptr<RSCommand>& command, bool isRenderServiceCommand = false);
 
     void FlushImplicitTransaction();
+    void FlushImplicitRemoteTransaction();
 
     void ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task, bool isRenderServiceTask = false);
 private:

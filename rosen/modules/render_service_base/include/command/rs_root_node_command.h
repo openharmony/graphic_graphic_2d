@@ -30,13 +30,13 @@ enum RSRootNodeCommandType : uint16_t {
 class RootNodeCommandHelper {
 public:
     static void Create(RSContext& context, NodeId id);
-    static void AttachRSSurface(
-        RSContext& context, NodeId id, std::shared_ptr<RSSurface> rsSurface, int width, int height);
+    static void AttachRSSurfaceNode(
+        RSContext& context, NodeId id, NodeId surfaceNodeId, int width, int height);
 };
 
 ADD_COMMAND(RSRootNodeCreate, ARG(ROOT_NODE, ROOT_NODE_CREATE, RootNodeCommandHelper::Create, NodeId))
-ADD_COMMAND(RSRootNodeAttachRSSurface, ARG(ROOT_NODE, ROOT_NODE_ATTACH, RootNodeCommandHelper::AttachRSSurface, NodeId,
-                                           std::shared_ptr<RSSurface>, int, int))
+ADD_COMMAND(RSRootNodeAttachRSSurfaceNode, ARG(ROOT_NODE, ROOT_NODE_ATTACH, RootNodeCommandHelper::AttachRSSurfaceNode,
+                                               NodeId, NodeId, int, int))
 
 } // namespace Rosen
 } // namespace OHOS

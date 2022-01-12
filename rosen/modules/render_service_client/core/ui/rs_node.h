@@ -234,6 +234,11 @@ protected:
     void OnRemoveChildren() override;
     void AnimationFinish(long long animationId);
 
+    virtual bool IsRenderServiceNodeForProperty() const
+    {
+        return IsRenderServiceNode();
+    }
+
 private:
     bool HasPropertyAnimation(const RSAnimatableProperty& property);
     void FallbackAnimationsToRoot();

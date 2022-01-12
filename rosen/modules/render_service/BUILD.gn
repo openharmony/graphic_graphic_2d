@@ -15,7 +15,6 @@ import("//build/ohos.gni")
 
 ## Build librender_service.so
 ohos_shared_library("librender_service") {
-  defines = [ "ROSEN_DEBUG" ]
   sources = [
     "core/pipeline/rs_compatible_processor.cpp",
     "core/pipeline/rs_hardware_processor.cpp",

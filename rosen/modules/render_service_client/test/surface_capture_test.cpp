@@ -79,11 +79,17 @@ void DrawSurfaceToCapture(std::shared_ptr<RSSurfaceNode> surfaceNode)
     surfaceNode->SetBounds(x, y, width, height);
     std::shared_ptr<RSSurface> rsSurface = RSSurfaceExtractor::ExtractRSSurface(surfaceNode);
     if (rsSurface == nullptr) {
+        ROSEN_LOGE("***SurfaceCaptureTest*** DrawSurfaceToCapture: rsSurface == nullptr");
         return;
     }
     auto frame = rsSurface->RequestFrame(width, height);
     framePtr = std::move(frame);
+
     auto canvas = framePtr->GetCanvas();
+    if (canvas == nullptr) {
+        ROSEN_LOGE("***SurfaceCaptureTest*** DrawSurfaceToCapture: canvas == nullptr");
+        return;
+    }
     SkPaint paint;
     paint.setAntiAlias(true);
     paint.setStyle(SkPaint::kFill_Style);
@@ -98,7 +104,6 @@ void DrawSurfaceToCapture(std::shared_ptr<RSSurfaceNode> surfaceNode)
     pathPaint.setStrokeWidth(5);
     pathPaint.setStrokeJoin(SkPaint::kRound_Join);
     pathPaint.setColor(0xffFFD700);
-
     canvas->drawRect(shapeGeometry, paint);
     canvas->drawPath(path, pathPaint);
     framePtr->SetDamageRegion(0, 0, width, height);
@@ -110,29 +115,33 @@ void DrawPixelmap(std::shared_ptr<RSSurfaceNode> surfaceNode, std::shared_ptr<Me
 {
     std::shared_ptr<RSSurface> rsSurface = RSSurfaceExtractor::ExtractRSSurface(surfaceNode);
     if (rsSurface == nullptr) {
-        ROSEN_LOGE("***SurfaceCaptureTest*** : rsSurface == nullptr\n");
+        ROSEN_LOGE("***SurfaceCaptureTest*** : rsSurface == nullptr");
+        return;
+    }
+    if (pixelmap == nullptr) {
         return;
     }
     int width = pixelmap->GetWidth();
     int height = pixelmap->GetHeight();
     int sWidth = surfaceNode->GetStagingProperties().GetBoundsWidth();
     int sHeight = surfaceNode->GetStagingProperties().GetBoundsHeight();
+    ROSEN_LOGD("SurfaceCaptureTest: DrawPxielmap [%u][%u][%u][%u]", width, height, sWidth, sHeight);
     auto frame = rsSurface->RequestFrame(sWidth, sHeight);
     if (frame == nullptr) {
-        ROSEN_LOGE("***SurfaceCaptureTest*** : frame == nullptr\n");
+        ROSEN_LOGE("***SurfaceCaptureTest*** : frame == nullptr");
         return;
     }
     framePtr = std::move(frame);
     auto canvas = framePtr->GetCanvas();
     if (canvas == nullptr) {
-        ROSEN_LOGE("***SurfaceCaptureTest*** : canvas == nullptr\n");
+        ROSEN_LOGE("***SurfaceCaptureTest*** : canvas == nullptr");
         return;
     }
     canvas->drawColor(0xFF87CEEB);
     SkImageInfo layerInfo = SkImageInfo::Make(width, height, kRGBA_8888_SkColorType, kPremul_SkAlphaType);
     auto addr = const_cast<uint32_t*>(pixelmap->GetPixel32(0, 0));
     if (addr == nullptr) {
-        ROSEN_LOGE("***SurfaceCaptureTest*** : addr == nullptr\n");
+        ROSEN_LOGE("***SurfaceCaptureTest*** : addr == nullptr");
         return;
     }
     SkPixmap pixmap(layerInfo, addr, pixelmap->GetRowBytes());
@@ -240,13 +249,15 @@ int main()
 {
     DisplayId id = g_dms.GetDefaultDisplayId();
     cout << "RS default screen id is " << id << ".\n";
-    ROSEN_LOGD("***SurfaceCaptureTest*** main: begin\n");
+    ROSEN_LOGD("***SurfaceCaptureTest*** main: begin");
 
     auto surfaceLauncher = CreateSurface();
     auto surfaceNode1 = CreateSurface();
     auto surfaceNode2 = CreateSurface();
-    DrawSurface(SkRect::MakeXYWH(0, 0, 2800, 1600), 0xFFF0FFF0, SkRect::MakeXYWH(0, 0, 2800, 1600), surfaceLauncher);
+    auto surfaceNode3 = CreateSurface();
+    DrawSurface(SkRect::MakeXYWH(0, 0, 1400, 1200), 0xFFF0FFF0, SkRect::MakeXYWH(0, 0, 1400, 1200), surfaceLauncher);
     DrawSurface(SkRect::MakeXYWH(500, 100, 512, 512), 0xFF8B008B, SkRect::MakeXYWH(20, 20, 230, 230), surfaceNode1);
+    DrawSurface(SkRect::MakeXYWH(1700, 100, 512, 512), 0xFF00FF40, SkRect::MakeXYWH(20, 20, 230, 230), surfaceNode3);
     DrawSurfaceToCapture(surfaceNode2);
     RSDisplayNodeConfig config;
     config.screenId = id;
@@ -254,10 +265,8 @@ int main()
     displayNode->AddChild(surfaceLauncher, -1);
     displayNode->AddChild(surfaceNode1, -1);
     displayNode->AddChild(surfaceNode2, -1);
-    auto transactionProxy = RSTransactionProxy::GetInstance();
-    if (transactionProxy != nullptr) {
-        transactionProxy->FlushImplicitTransaction();
-    }
+    displayNode->AddChild(surfaceNode3, -1);
+    RSTransactionProxy::GetInstance().FlushImplicitTransaction();
 
     class TestSurfaceCapture : public SurfaceCaptureCallback {
     public:
@@ -273,6 +282,9 @@ int main()
     sleep(2);
     std::shared_ptr<SurfaceCaptureCallback> cb = make_shared<TestSurfaceCapture>(surfaceNode1);
     g_dms.rsInterface_.TakeSurfaceCapture(surfaceNode2, cb);
-    ROSEN_LOGD("***SurfaceCaptureTest*** main: end\n");
+    sleep(2);
+    std::shared_ptr<SurfaceCaptureCallback> cb2 = make_shared<TestSurfaceCapture>(surfaceNode3);
+    g_dms.rsInterface_.TakeSurfaceCapture(displayNode, cb2);
+    ROSEN_LOGD("***SurfaceCaptureTest*** main: end");
     return 0;
 }

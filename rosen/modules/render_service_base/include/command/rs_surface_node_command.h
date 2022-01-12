@@ -28,6 +28,7 @@ enum RSSurfaceNodeCommandType : uint16_t {
     SURFACE_NODE_SET_MATRIX,
     SURFACE_NODE_SET_ALPHA,
     SURFACE_NODE_SET_PARENT_SURFACE,
+    SURFACE_NODE_REMOVE_SELF,
 };
 
 class SurfaceNodeCommandHelper {
@@ -35,7 +36,8 @@ public:
     static void Create(RSContext& context, NodeId nodeId);
     static void SetMatrix(RSContext& context, NodeId nodeId, SkMatrix matrix);
     static void SetAlpha(RSContext& context, NodeId nodeId, float alpha);
-    static void SetParentSurface(RSContext& context, NodeId nodeId, NodeId parent);
+    static void SetParentSurface(RSContext& context, NodeId nodeId, NodeId parentId);
+    static void RemoveSelf(RSContext& context, NodeId nodeId);
 };
 
 ADD_COMMAND(RSSurfaceNodeCreate, ARG(SURFACE_NODE, SURFACE_NODE_CREATE, SurfaceNodeCommandHelper::Create, NodeId))
@@ -45,6 +47,8 @@ ADD_COMMAND(
     RSSurfaceNodeSetAlpha, ARG(SURFACE_NODE, SURFACE_NODE_SET_ALPHA, SurfaceNodeCommandHelper::SetAlpha, NodeId, float))
 ADD_COMMAND(RSSurfaceNodeSetParentSurface,
     ARG(SURFACE_NODE, SURFACE_NODE_SET_PARENT_SURFACE, SurfaceNodeCommandHelper::SetParentSurface, NodeId, NodeId))
+ADD_COMMAND(RSSurfaceNodeRemoveSelf,
+    ARG(SURFACE_NODE, SURFACE_NODE_REMOVE_SELF, SurfaceNodeCommandHelper::RemoveSelf, NodeId))
 
 } // namespace Rosen
 } // namespace OHOS

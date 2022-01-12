@@ -25,7 +25,11 @@
 #include "platform/common/rs_log.h"
 #include "platform/drawing/rs_surface.h"
 #include "rs_trace.h"
+#include "pipeline/rs_node_map.h"
 #include "transaction/rs_transaction_proxy.h"
+
+#include "ui/rs_surface_node.h"
+#include "ui/rs_surface_extractor.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -45,6 +49,9 @@ void RSRenderThreadVisitor::PrepareBaseRenderNode(RSBaseRenderNode& node)
 void RSRenderThreadVisitor::PrepareRootRenderNode(RSRootRenderNode& node)
 {
     if (isIdle_) {
+        curTreeRoot_ = &node;
+        curTreeRoot_->ClearSurfaceNodeInRS();
+
         dirtyManager_.Clear();
         parent_ = nullptr;
         dirtyFlag_ = false;
@@ -66,6 +73,7 @@ void RSRenderThreadVisitor::PrepareCanvasRenderNode(RSCanvasRenderNode& node)
 
 void RSRenderThreadVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
 {
+    curTreeRoot_->AddSurfaceRenderNode(node.GetId());
     bool dirtyFlag = dirtyFlag_;
     dirtyFlag_ = node.Update(dirtyManager_, parent_ ? &(parent_->GetRenderProperties()) : nullptr, dirtyFlag_);
     PrepareBaseRenderNode(node);
@@ -83,7 +91,14 @@ void RSRenderThreadVisitor::ProcessBaseRenderNode(RSBaseRenderNode& node)
 
 void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
 {
-    auto rsSurface = node.GetSurface();
+    std::shared_ptr<RSSurface> rsSurface = nullptr;
+    NodeId surfaceId = node.GetRSSurfaceNodeId();
+    auto ptr = std::static_pointer_cast<RSSurfaceNode>(RSNodeMap::Instance().GetNode(surfaceId).lock());
+    if (ptr == nullptr) {
+        ROSEN_LOGE("No RSSurfaceNode found");
+        return;
+    }
+    rsSurface = RSSurfaceExtractor::ExtractRSSurface(ptr);
     if (!isIdle_) {
         ProcessCanvasRenderNode(node);
         return;
@@ -139,14 +154,14 @@ void RSRenderThreadVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
         ROSEN_LOGE("RSRenderThreadVisitor::ProcessSurfaceRenderNode, canvas is nullptr");
         return;
     }
-    node.ProcessRenderBeforeChildren(*canvas_);
+    // RSSurfaceRenderNode in RSRenderThreadVisitor do not have information of property.
+    // We only get parent's matrix and send it to RenderService
 #ifdef ROSEN_OHOS
     node.SetMatrix(canvas_->getTotalMatrix());
     node.SetAlpha(canvas_->GetAlpha());
     node.SetParentId(node.GetParent().lock()->GetId());
 #endif
     ProcessBaseRenderNode(node);
-    node.ProcessRenderAfterChildren(*canvas_);
 }
 
 } // namespace Rosen

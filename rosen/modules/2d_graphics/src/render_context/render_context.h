@@ -37,13 +37,16 @@ public:
     RenderContext();
     virtual ~RenderContext();
     void CreateCanvas(int width, int height);
-    SkCanvas* GetCanvas() const;
+    SkCanvas* AcquireCanvas(int width, int height);
+
     void InitializeEglContext();
 
     GrContext* GetGrContext() const
     {
         return grContext_.get();
     }
+
+    bool SetUpGrContext();
 
     EGLSurface CreateEGLSurface(EGLNativeWindowType eglNativeWindow);
     void MakeCurrent(EGLSurface surface) const;
@@ -60,11 +63,14 @@ public:
     {
         return eglDisplay_;
     }
+
+    bool IsEglContextReady()
+    {
+        return eglContext_ != EGL_NO_DISPLAY;
+    }
 private:
     sk_sp<GrContext> grContext_;
     sk_sp<SkSurface> skSurface_;
-
-    SkCanvas* skCanvas_;
 
     EGLNativeWindowType nativeWindow_;
 

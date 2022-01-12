@@ -221,14 +221,14 @@ bool IsValid(const Vector2f& value)
             std::make_unique<RSNodeSet##propertyName##Delta>(GetId(), value - currentValue);            \
             auto transactionProxy = RSTransactionProxy::GetInstance();                                  \
             if (transactionProxy != nullptr) {                                                          \
-                transactionProxy->AddCommand(command, IsRenderServiceNode());                           \
+                transactionProxy->AddCommand(command, IsRenderServiceNodeForProperty());                \
             }                                                                                           \
         stagingProperties_.Set##propertyName(value);                                                    \
     } else {                                                                                            \
         std::unique_ptr<RSCommand> command = std::make_unique<RSNodeSet##propertyName>(GetId(), value); \
         auto transactionProxy = RSTransactionProxy::GetInstance();                                      \
         if (transactionProxy != nullptr) {                                                              \
-            transactionProxy->AddCommand(command, IsRenderServiceNode());                               \
+            transactionProxy->AddCommand(command, IsRenderServiceNodeForProperty());                    \
         }                                                                                               \
         stagingProperties_.Set##propertyName(value);                                                    \
     }
@@ -241,7 +241,7 @@ bool IsValid(const Vector2f& value)
     std::unique_ptr<RSCommand> command = std::make_unique<RSNodeSet##propertyName>(GetId(), value); \
     auto transactionProxy = RSTransactionProxy::GetInstance();                                      \
     if (transactionProxy != nullptr) {                                                              \
-        transactionProxy->AddCommand(command, IsRenderServiceNode());                               \
+        transactionProxy->AddCommand(command, IsRenderServiceNodeForProperty());                    \
     }                                                                                               \
     stagingProperties_.Set##propertyName(value);
 
@@ -250,7 +250,7 @@ bool IsValid(const Vector2f& value)
         auto task = std::make_shared<RSNodeGet##propertyName>(GetId());                        \
         auto transactionProxy = RSTransactionProxy::GetInstance();                             \
         if (transactionProxy != nullptr) {                                                     \
-            transactionProxy->ExecuteSynchronousTask(task, IsRenderServiceNode());             \
+            transactionProxy->ExecuteSynchronousTask(task, IsRenderServiceNodeForProperty());  \
         }                                                                                      \
         if (task->GetResult()) {                                                               \
             return task->GetValue();                                                           \

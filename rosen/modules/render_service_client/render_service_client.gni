@@ -14,6 +14,5 @@
 declare_args() {
   use_flutter_texture = false
   enable_export_macro = true
-  enable_debug = true
   rosen_root = "//foundation/graphic/standard/rosen"
 }

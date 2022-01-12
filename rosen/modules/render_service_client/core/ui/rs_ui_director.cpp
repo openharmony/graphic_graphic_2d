@@ -62,6 +62,10 @@ void RSUIDirector::Destory()
 void RSUIDirector::SetRSSurfaceNode(std::shared_ptr<RSSurfaceNode> surfaceNode)
 {
     surfaceNode_ = surfaceNode;
+    if (surfaceNode == nullptr) {
+        ROSEN_LOGE("RSUIDirector::SetRSSurfaceNode, no surfaceNode is ready to be set");
+        return;
+    }
     if (root_ == 0) {
         ROSEN_LOGE("RSUIDirector::SetRSSurfaceNode, no root exists");
         return;
@@ -71,12 +75,7 @@ void RSUIDirector::SetRSSurfaceNode(std::shared_ptr<RSSurfaceNode> surfaceNode)
         ROSEN_LOGE("RSUIDirector::SetRSSurfaceNode, get root node failed");
         return;
     }
-    if (surfaceNode == nullptr) {
-        std::static_pointer_cast<RSRootNode>(node)->AttachRSSurface(0, 0, 0);
-    } else {
-        std::static_pointer_cast<RSRootNode>(node)->AttachRSSurface(
-            RSSurfaceExtractor::ExtractRSSurface(surfaceNode_), surfaceWidth_, surfaceHeight_);
-    }
+    std::static_pointer_cast<RSRootNode>(node)->AttachRSSurfaceNode(surfaceNode_, surfaceWidth_, surfaceHeight_);
 }
 
 void RSUIDirector::SetSurfaceNodeSize(int width, int height)
@@ -89,8 +88,7 @@ void RSUIDirector::SetSurfaceNodeSize(int width, int height)
     }
     auto node = RSNodeMap::Instance().GetNode(root_).lock();
     if (node != nullptr) {
-        std::static_pointer_cast<RSRootNode>(node)->AttachRSSurface(
-            RSSurfaceExtractor::ExtractRSSurface(surfaceNode_), surfaceWidth_, surfaceHeight_);
+        std::static_pointer_cast<RSRootNode>(node)->AttachRSSurfaceNode(surfaceNode_, surfaceWidth_, surfaceHeight_);
     }
 }
 
@@ -111,8 +109,7 @@ void RSUIDirector::SetRoot(NodeId root)
         return;
     }
 
-    std::static_pointer_cast<RSRootNode>(node)->AttachRSSurface(
-        RSSurfaceExtractor::ExtractRSSurface(surfaceNode_), surfaceWidth_, surfaceHeight_);
+    std::static_pointer_cast<RSRootNode>(node)->AttachRSSurfaceNode(surfaceNode_, surfaceWidth_, surfaceHeight_);
 }
 
 void RSUIDirector::SetTimeStamp(uint64_t timeStamp)

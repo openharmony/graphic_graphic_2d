@@ -35,12 +35,7 @@ void RSSurfaceFrameOhosGl::SetDamageRegion(int32_t left, int32_t top, int32_t wi
 
 SkCanvas* RSSurfaceFrameOhosGl::GetCanvas()
 {
-    if (renderContext_->GetCanvas() == nullptr) {
-        ROSEN_LOGW("RSSurfaceFrameOhosGl::GetCanvas, GetCanvas is null recreate canvas");
-        renderContext_->CreateCanvas(width_, height_);
-    }
-
-    return renderContext_->GetCanvas();
+    return renderContext_->AcquireCanvas(width_, height_);
 }
 
 int32_t RSSurfaceFrameOhosGl::GetReleaseFence() const

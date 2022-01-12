@@ -21,6 +21,8 @@
 #include "platform/drawing/rs_surface.h"
 #include "platform/ohos/rs_surface_ohos.h"
 #include "render_context/render_context.h"
+#include "rs_surface_frame_ohos_gl.h"
+
 
 namespace OHOS {
 namespace Rosen {
@@ -28,7 +30,7 @@ namespace Rosen {
 class RSSurfaceOhosGl : public RSSurfaceOhos {
 public:
     explicit RSSurfaceOhosGl(const sptr<Surface>& producer);
-    ~RSSurfaceOhosGl() = default;
+    ~RSSurfaceOhosGl();
 
     bool IsValid() const override
     {
@@ -38,7 +40,10 @@ public:
     std::unique_ptr<RSSurfaceFrame> RequestFrame(int32_t width, int32_t height) override;
     bool FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame) override;
 private:
-    EGLSurface mEglSurface;
+    EGLSurface mEglSurface = EGL_NO_SURFACE;
+    struct NativeWindow* mWindow = nullptr;
+    int mWidth = -1;
+    int mHeight = -1;
 };
 
 } // namespace Rosen

@@ -68,16 +68,22 @@ std::shared_ptr<RSSurface> RSRenderServiceClient::CreateNodeAndSurface(const RSS
 
 void RSRenderServiceClient::TriggerSurfaceCaptureCallback(NodeId id, Media::PixelMap* pixelmap)
 {
+    ROSEN_LOGI("RSRenderServiceClient::Into TriggerSurfaceCaptureCallback nodeId:[%llu]", id);
     std::shared_ptr<Media::PixelMap> surfaceCapture(pixelmap);
+    std::shared_ptr<SurfaceCaptureCallback> callback = nullptr;
     {
         std::lock_guard<std::mutex> lock(mutex_);
         auto iter = surfaceCaptureCbMap_.find(id);
         if (iter != surfaceCaptureCbMap_.end()) {
-            auto callback = iter->second;
-            callback->OnSurfaceCapture(surfaceCapture);
+            callback = iter->second;
             surfaceCaptureCbMap_.erase(iter);
         }
     }
+    if (callback == nullptr) {
+        ROSEN_LOGE("RSRenderServiceClient::TriggerSurfaceCaptureCallback: callback is nullptr!");
+        return;
+    }
+    callback->OnSurfaceCapture(surfaceCapture);
 }
 
 class SurfaceCaptureCallbackDirector : public RSSurfaceCaptureCallbackStub
@@ -100,13 +106,17 @@ bool RSRenderServiceClient::TakeSurfaceCapture(NodeId id, std::shared_ptr<Surfac
 {
     auto renderService = RSRenderServiceConnect::GetRenderService();
     if (renderService == nullptr) {
-        ROSEN_LOGE("RSRenderServiceClient: renderService == nullptr!\n");
+        ROSEN_LOGE("RSRenderServiceClient::TakeSurfaceCapture renderService == nullptr!");
+        return false;
+    }
+    if (callback == nullptr) {
+        ROSEN_LOGE("RSRenderServiceClient::TakeSurfaceCapture callback == nullptr!");
         return false;
     }
     {
         std::lock_guard<std::mutex> lock(mutex_);
         if (surfaceCaptureCbMap_.count(id) != 0) {
-            ROSEN_LOGW("RSRenderServiceClient: surfaceCaptureCbMap_.count(id) != 0\n");
+            ROSEN_LOGW("RSRenderServiceClient::TakeSurfaceCapture surfaceCaptureCbMap_.count(id) != 0");
             return false;
         }
         surfaceCaptureCbMap_.emplace(id, callback);
@@ -115,7 +125,6 @@ bool RSRenderServiceClient::TakeSurfaceCapture(NodeId id, std::shared_ptr<Surfac
     if (surfaceCaptureCbDirector_ == nullptr) {
         surfaceCaptureCbDirector_ = new SurfaceCaptureCallbackDirector(this);
     }
-
     renderService->TakeSurfaceCapture(id, surfaceCaptureCbDirector_);
     return true;
 }

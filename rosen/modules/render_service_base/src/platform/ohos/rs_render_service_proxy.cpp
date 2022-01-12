@@ -221,10 +221,9 @@ void RSRenderServiceProxy::SetScreenPowerStatus(ScreenId id, ScreenPowerStatus s
 void RSRenderServiceProxy::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback)
 {
     if (callback == nullptr) {
-        ROSEN_LOGE("RSRenderServiceProxy: callback == nullptr\n");
+        ROSEN_LOGE("RSRenderServiceProxy::TakeSurfaceCapture callback == nullptr");
         return;
     }
-
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -233,7 +232,7 @@ void RSRenderServiceProxy::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureC
     data.WriteRemoteObject(callback->AsObject());
     int32_t err = Remote()->SendRequest(RSIRenderService::TAKE_SURFACE_CAPTURE, data, reply, option);
     if (err != NO_ERROR) {
-        ROSEN_LOGE("RSRenderServiceProxy: Remote()->SendRequest() error.\n");
+        ROSEN_LOGE("RSRenderServiceProxy::TakeSurfaceCapture Remote()->SendRequest() error.");
         return;
     }
 }

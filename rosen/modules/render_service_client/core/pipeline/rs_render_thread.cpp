@@ -72,6 +72,10 @@ RSRenderThread::RSRenderThread()
         Render();
         RS_ASYNC_TRACE_BEGIN("waiting GPU running", 1111); // 1111 means async trace code for gpu
         SendCommands();
+        auto transactionProxy = RSTransactionProxy::GetInstance();
+        if (transactionProxy != nullptr) {
+            transactionProxy->FlushImplicitRemoteTransaction();
+        }
         ROSEN_TRACE_END(BYTRACE_TAG_GRAPHIC_AGP);
     };
 }
@@ -116,7 +120,7 @@ void RSRenderThread::WakeUp()
 
 void RSRenderThread::RecvTransactionData(std::unique_ptr<RSTransactionData>& transactionData)
 {
-    StopTimer();
+    // StopTimer();
     {
         std::unique_lock<std::mutex> cmdLock(cmdMutex_);
         cmds_.emplace_back(std::move(transactionData));
@@ -181,7 +185,6 @@ void RSRenderThread::OnVsync(uint64_t timestamp)
     ROSEN_TRACE_BEGIN(BYTRACE_TAG_GRAPHIC_AGP, "RSRenderThread::OnVsync");
     mValue = (mValue + 1) % 2;
     RS_TRACE_INT("Vsync-client", mValue);
-    ROSEN_LOGD("RSRenderThread::OnVsync(%lld).", timestamp);
     timestamp_ = timestamp;
     StartTimer(0); // start render-loop now
     ROSEN_TRACE_END(BYTRACE_TAG_GRAPHIC_AGP);
@@ -189,7 +192,6 @@ void RSRenderThread::OnVsync(uint64_t timestamp)
 
 void RSRenderThread::StartTimer(uint64_t interval)
 {
-    ROSEN_LOGD("RSRenderThread StartTimer(%lld).", interval);
     if (threadHandler_ != nullptr) {
         if (timeHandle_ == nullptr) {
             timeHandle_ = RSThreadHandler::StaticCreateTask(mainFunc_);
