@@ -64,6 +64,11 @@ void RSHardwareProcessor::ProcessSurface(RSSurfaceRenderNode &node)
         ROSEN_LOGE("RSHardwareProcessor::ProcessSurface output is nullptr");
         return;
     }
+    if (node.GetRenderProperties().GetBoundsPositionX() >= curScreenInfo.GetScreenWidth() ||
+        node.GetRenderProperties().GetBoundsPositionY() >= curScreenInfo.GetScreenHeight()) {
+        ROSEN_LOGE("RsDebug RSHardwareProcessor::ProcessSurface this node:%llu no need to composite", node.GetId());
+        return;
+    }
     OHOS::sptr<SurfaceBuffer> cbuffer;
     RSProcessor::SpecialTask task = [] () -> void{};
     bool ret = ConsumeAndUpdateBuffer(node, task, cbuffer);
