@@ -52,10 +52,18 @@ public:
         return RSRenderNodeType::DISPLAY_NODE;
     }
 
+    bool IsMirrorDisplay() const;
+
     void SetCompositeType(CompositeType type);
     CompositeType GetCompositeType() const;
     void SetForceSoftComposite(bool flag);
     bool IsForceSoftComposite() const;
+    void SetMirrorSource(SharedPtr node);
+
+    WeakPtr GetMirrorSource() const
+    {
+        return mirrorSource_;
+    }
 
 protected:
 
@@ -63,6 +71,8 @@ private:
     CompositeType compositeType_{HARDWARE_COMPOSITE};
     uint64_t screenId_;
     bool forceSoftComposite_{false};
+    bool isMirroredDisplay_ = false;
+    WeakPtr mirrorSource_;
 };
 } // namespace Rosen
 } // namespace OHOS

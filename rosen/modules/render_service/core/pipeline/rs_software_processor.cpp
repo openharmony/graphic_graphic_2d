@@ -13,14 +13,16 @@
  * limitations under the License.
  */
 
+
 #include "pipeline/rs_software_processor.h"
+
+#include <cinttypes>
+
 #include "pipeline/rs_render_service_util.h"
 #include "include/core/SkMatrix.h"
 #include "pipeline/rs_main_thread.h"
 #include "platform/common/rs_log.h"
 #include "unique_fd.h"
-
-#include <cinttypes>
 
 namespace OHOS {
 namespace Rosen {
@@ -42,7 +44,6 @@ void RSSoftwareProcessor::Init(ScreenId id)
         ROSEN_LOGE("RSSoftwareProcessor::Init for Screen(id %{public}" PRIu64 "): ProducerSurface is null!", id);
         return;
     }
-
     currScreenInfo_ = screenManager->QueryScreenInfo(id);
     BufferRequestConfig requestConfig = {
         .width = currScreenInfo_.width,

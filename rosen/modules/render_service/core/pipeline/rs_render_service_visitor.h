@@ -41,6 +41,7 @@ public:
     virtual void ProcessCanvasRenderNode(RSCanvasRenderNode& node) override {}
     virtual void ProcessRootRenderNode(RSRootRenderNode& node) override {}
     void SortZOrder(RSBaseRenderNode &node);
+    void UpdateGeometry(RSBaseRenderNode &displayNode);
 
 private:
     std::shared_ptr<RSProcessor> processor_ = nullptr;

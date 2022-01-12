@@ -57,6 +57,8 @@ struct RSSurfaceRenderNodeConfig {
 
 struct RSDisplayNodeConfig {
     uint64_t screenId = 0;
+    bool isMirrored = false;
+    NodeId mirrorNodeId = 0;
 };
 
 #if defined(M_PI)

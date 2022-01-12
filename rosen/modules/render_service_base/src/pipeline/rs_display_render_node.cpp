@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+
 #include "pipeline/rs_display_render_node.h"
 
 #include <algorithm>
@@ -23,8 +24,9 @@
 namespace OHOS {
 namespace Rosen {
 RSDisplayRenderNode::RSDisplayRenderNode(NodeId id, const RSDisplayNodeConfig& config)
-    : RSBaseRenderNode(id), screenId_(config.screenId)
-{}
+    : RSBaseRenderNode(id), screenId_(config.screenId), isMirroredDisplay_(config.isMirrored)
+{
+}
 
 RSDisplayRenderNode::~RSDisplayRenderNode() {}
 
@@ -62,6 +64,19 @@ void RSDisplayRenderNode::SetForceSoftComposite(bool flag)
 bool RSDisplayRenderNode::IsForceSoftComposite() const
 {
     return forceSoftComposite_;
+}
+
+void RSDisplayRenderNode::SetMirrorSource(SharedPtr node)
+{
+    if (!isMirroredDisplay_ || node == nullptr) {
+        return;
+    }
+    mirrorSource_ = node;
+}
+
+bool RSDisplayRenderNode::IsMirrorDisplay() const
+{
+    return isMirroredDisplay_;
 }
 
 } // namespace Rosen

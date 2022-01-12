@@ -18,7 +18,7 @@
 #include <cinttypes>
 
 #include "screen_manager/screen_types.h"
-//#include "string_utils.h"
+#include "string_utils.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -214,13 +214,13 @@ void RSScreen::ModeInfoDump(std::string& dumpString)
 {
     decltype(supportedModes_.size()) modeIndex = 0;
     for (; modeIndex < supportedModes_.size(); ++modeIndex) {
-        // ROSEN::AppendFormat(dumpString, "  supportedMode[%d]: %dx%d, freshrate=%d\n",
-        //                     modeIndex, supportedModes_[modeIndex].width,
-        //                     supportedModes_[modeIndex].height, supportedModes_[modeIndex].freshRate);
+        AppendFormat(dumpString, "  supportedMode[%d]: %dx%d, freshrate=%d\n",
+                     modeIndex, supportedModes_[modeIndex].width,
+                     supportedModes_[modeIndex].height, supportedModes_[modeIndex].freshRate);
     }
-    //std::optional<DisplayModeInfo> activeMode = GetActiveMode();
-    // ROSEN::AppendFormat(dumpString, "  activeMode: %dx%d, freshrate=%d\n",
-    //                     activeMode->width, activeMode->height, activeMode->freshRate);
+    std::optional<DisplayModeInfo> activeMode = GetActiveMode();
+    AppendFormat(dumpString, "  activeMode: %dx%d, freshrate=%d\n",
+                 activeMode->width, activeMode->height, activeMode->freshRate);
 }
 
 void RSScreen::CapabilityTypeDump(InterfaceType capabilityType, std::string& dumpString)
@@ -251,10 +251,10 @@ void RSScreen::CapabilityTypeDump(InterfaceType capabilityType, std::string& dum
 
 void RSScreen::CapabilityDump(std::string& dumpString)
 {
-    // ROSEN::AppendFormat(dumpString, "  capability: name=%s, phywidth=%d, phyheight=%d,"
-    //                     "supportlayers=%d, virtualDispCount=%d, propCount=%d, ",
-    //                     capability_.name, capability_.phyWidth, capability_.phyHeight,
-    //                     capability_.supportLayers, capability_.virtualDispCount, capability_.propertyCount);
+    AppendFormat(dumpString, "  capability: name=%s, phywidth=%d, phyheight=%d,"
+                 "supportlayers=%d, virtualDispCount=%d, propCount=%d, ",
+                 capability_.name, capability_.phyWidth, capability_.phyHeight,
+                 capability_.supportLayers, capability_.virtualDispCount, capability_.propertyCount);
     CapabilityTypeDump(capability_.type, dumpString);
     dumpString += "supportWriteBack=";
     dumpString += (capability_.supportWriteBack) ? "true" : "false";
@@ -266,9 +266,9 @@ void RSScreen::PropDump(std::string& dumpString)
 {
     decltype(capability_.propertyCount) propIndex = 0;
     for (; propIndex < capability_.propertyCount; ++propIndex) {
-        // ROSEN::AppendFormat(dumpString, "prop[%d]: name=%s, propid=%d, value=%d\n",
-        //                     capability_.props[propIndex].name, capability_.props[propIndex].propId,
-        //                     capability_.props[propIndex].value);
+        AppendFormat(dumpString, "prop[%d]: name=%s, propid=%d, value=%d\n",
+                     capability_.props[propIndex].name, capability_.props[propIndex].propId,
+                     capability_.props[propIndex].value);
     }
 }
 
@@ -314,7 +314,7 @@ void RSScreen::DisplayDump(int32_t screenIndex, std::string& dumpString)
         dumpString += "mirrorId=";
         dumpString += (mirrorId_ == INVALID_SCREEN_ID) ? "INVALID_SCREEN_ID" : std::to_string(mirrorId_);
         dumpString += ", ";
-        //ROSEN::AppendFormat(dumpString, "%dx%d, isvirtual=true\n", width_, height_);
+        AppendFormat(dumpString, "%dx%d, isvirtual=true\n", width_, height_);
     } else {
         dumpString += "screen[" + std::to_string(screenIndex) + "]: ";
         dumpString += "id=";
@@ -329,7 +329,7 @@ void RSScreen::DisplayDump(int32_t screenIndex, std::string& dumpString)
 
 void RSScreen::SurfaceDump(int32_t screenIndex, std::string& dumpString)
 {
-    //hdiOutput_->Dump(dumpString);
+    hdiOutput_->Dump(dumpString);
 }
 
 void RSScreen::SetScreenBacklight(uint32_t level)

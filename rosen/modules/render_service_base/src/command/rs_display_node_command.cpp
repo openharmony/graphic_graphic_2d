@@ -13,8 +13,10 @@
  * limitations under the License.
  */
 
+
 #include "command/rs_display_node_command.h"
 
+#include "platform/common/rs_log.h"
 #include "pipeline/rs_display_render_node.h"
 
 namespace OHOS {
@@ -26,6 +28,14 @@ void DisplayNodeCommandHelper::Create(RSContext& context, NodeId id, const RSDis
     auto& nodeMap = context.GetNodeMap();
     nodeMap.RegisterRenderNode(node);
     context.GetGlobalRootRenderNode()->AddChild(node);
+    if (config.isMirrored) {
+        auto mirrorSourceNode = nodeMap.GetRenderNode<RSDisplayRenderNode>(config.mirrorNodeId);
+        if (mirrorSourceNode == nullptr) {
+            return;
+        }
+        auto displayNode = RSBaseRenderNode::ReinterpretCast<RSDisplayRenderNode>(node);
+        displayNode->SetMirrorSource(mirrorSourceNode);
+    }
 }
 
 void DisplayNodeCommandHelper::SetScreenId(RSContext& context, NodeId id, uint64_t screenId)
