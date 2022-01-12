@@ -64,8 +64,8 @@ void RSHardwareProcessor::ProcessSurface(RSSurfaceRenderNode &node)
         ROSEN_LOGE("RSHardwareProcessor::ProcessSurface output is nullptr");
         return;
     }
-    if (node.GetRenderProperties().GetBoundsPositionX() >= curScreenInfo_.GetScreenWidth() ||
-        node.GetRenderProperties().GetBoundsPositionY() >= curScreenInfo_.GetScreenHeight()) {
+    if (node.GetRenderProperties().GetBoundsPositionX() >= curScreenInfo.GetScreenWidth() ||
+        node.GetRenderProperties().GetBoundsPositionY() >= curScreenInfo.GetScreenHeight()) {
         ROSEN_LOGE("RsDebug RSHardwareProcessor::ProcessSurface this node:%llu no need to composite", node.GetId());
         return;
     }
