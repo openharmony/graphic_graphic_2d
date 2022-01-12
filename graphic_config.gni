@@ -15,7 +15,8 @@ import("//build/config/clang/clang.gni")
 import("//build/ohos.gni")
 import("//build/ohos_var.gni")
 
-if ("${product_name}" == "rk3566" || "${product_name}" == "rk3568") {
+if ("${product_name}" == "rk3566" || "${product_name}" == "rk3568" ||
+    "${product_name}" == "Hi3516DV300") {
   gpu_defines = [ "ACE_DISABLE_GL" ]
   ace_enable_gpu = false  # temporary gpu
 } else {
