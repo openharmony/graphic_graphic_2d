@@ -55,6 +55,52 @@ RSSurfaceNode::SharedPtr RSSurfaceNode::Create(const RSSurfaceNodeConfig& surfac
     return node;
 }
 
+void RSSurfaceNode::SetBounds(const Vector4f& bounds)
+{
+    RSNode::SetBounds(bounds);
+    UpdateSurfaceDefaultSize(bounds.z_, bounds.w_);
+}
+
+void RSSurfaceNode::SetBounds(float positionX, float positionY, float width, float height)
+{
+    RSNode::SetBounds(positionX, positionY, width, height);
+    UpdateSurfaceDefaultSize(width, height);
+}
+
+void RSSurfaceNode::SetBoundsSize(const Vector2f& size)
+{
+    RSNode::SetBoundsSize(size);
+    UpdateSurfaceDefaultSize(size.x_, size.y_);
+}
+
+void RSSurfaceNode::SetBoundsSize(float width, float height)
+{
+    RSNode::SetBoundsSize(width, height);
+    UpdateSurfaceDefaultSize(width, height);
+}
+
+void RSSurfaceNode::SetBoundsWidth(float width)
+{
+    RSNode::SetBoundsWidth(width);
+    UpdateSurfaceDefaultSize(width, GetBoundsHeight());
+}
+
+void RSSurfaceNode::SetBoundsHeight(float height)
+{
+    RSNode::SetBoundsHeight(height);
+    UpdateSurfaceDefaultSize(GetBoundsWidth(), height);
+}
+
+void RSSurfaceNode::UpdateSurfaceDefaultSize(float width, float height)
+{
+    std::unique_ptr<RSCommand> command =
+        std::make_unique<RSSurfaceNodeUpdateSurfaceDefaultSize>(GetId(), width, height);
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        transactionProxy->AddCommand(command, true);
+    }
+}
+
 bool RSSurfaceNode::Marshalling(Parcel& parcel) const
 {
     return parcel.WriteUint64(GetId()) && parcel.WriteString(name_) && parcel.WriteBool(IsRenderServiceNode());

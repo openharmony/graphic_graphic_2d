@@ -43,6 +43,13 @@ public:
 
     static SharedPtr Create(const RSSurfaceNodeConfig& surfaceNodeConfig, bool isWindow = true);
 
+    void SetBounds(const Vector4f& bounds) override;
+    void SetBounds(float positionX, float positionY, float width, float height) override;
+    void SetBoundsSize(const Vector2f& size) override;
+    void SetBoundsSize(float width, float height) override;
+    void SetBoundsWidth(float width) override;
+    void SetBoundsHeight(float height) override;
+
     bool Marshalling(Parcel& parcel) const override;
     static RSSurfaceNode* Unmarshalling(Parcel& parcel);
     sptr<OHOS::Surface> GetSurface() const;
@@ -64,6 +71,7 @@ protected:
 
 private:
     bool CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config);
+    void UpdateSurfaceDefaultSize(float width, float height);
     std::shared_ptr<RSSurface> surface_;
     std::string name_;
     friend class RSUIDirector;

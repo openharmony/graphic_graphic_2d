@@ -86,6 +86,8 @@ public:
     void SetParentId(NodeId parentId, bool sendMsg = true);
     NodeId GetParentId() const;
 
+    void UpdateSurfaceDefaultSize(float width, float height);
+
     static void SendPropertyCommand(std::unique_ptr<RSCommand>& command);
 
 private:

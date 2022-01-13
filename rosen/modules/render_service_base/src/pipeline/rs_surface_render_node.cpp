@@ -148,6 +148,11 @@ NodeId RSSurfaceRenderNode::GetParentId() const
     return parentId_;
 }
 
+void RSSurfaceRenderNode::UpdateSurfaceDefaultSize(float width, float height)
+{
+    consumer_->SetDefaultWidthAndHeight(width, height);
+}
+
 void RSSurfaceRenderNode::SendPropertyCommand(std::unique_ptr<RSCommand>& command)
 {
     auto transactionProxy = RSTransactionProxy::GetInstance();

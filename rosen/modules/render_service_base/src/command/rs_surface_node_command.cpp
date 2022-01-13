@@ -61,5 +61,12 @@ void SurfaceNodeCommandHelper::RemoveSelf(RSContext& context, NodeId id)
     }
 }
 
+void SurfaceNodeCommandHelper::UpdateSurfaceDefaultSize(RSContext& context, NodeId id, float width, float height)
+{
+    if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(id)) {
+        node->UpdateSurfaceDefaultSize(width, height);
+    }
+}
+
 } // namespace Rosen
 } // namespace OHOS
