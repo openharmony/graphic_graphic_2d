@@ -88,6 +88,7 @@ void RSRenderServiceVisitor::PrepareDisplayRenderNode(RSDisplayRenderNode &node)
 void RSRenderServiceVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode &node)
 {
     ROSEN_LOGI("RsDebug RSRenderServiceVisitor::ProcessDisplayRenderNode child size:%d", node.GetChildren().size());
+    zOrder_ = 0.0;
     sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
     if (!screenManager) {
         ROSEN_LOGE("RSRenderServiceVisitor::ProcessDisplayRenderNode ScreenManager is nullptr");
@@ -156,6 +157,8 @@ void RSRenderServiceVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode &node)
         ROSEN_LOGE("RSRenderServiceVisitor::ProcessSurfaceRenderNode processor is nullptr");
         return;
     }
+    node.GetRenderProperties().SetPositionZ(zOrder_);
+    zOrder_ = zOrder_ + 1;
     processor_->ProcessSurface(node);
     ProcessBaseRenderNode(node);
 }

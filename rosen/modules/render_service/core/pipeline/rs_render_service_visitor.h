@@ -43,6 +43,7 @@ public:
     void SortZOrder(RSBaseRenderNode &node);
 
 private:
+    float zOrder_ = 0.0f;
     std::shared_ptr<RSProcessor> processor_ = nullptr;
 };
 

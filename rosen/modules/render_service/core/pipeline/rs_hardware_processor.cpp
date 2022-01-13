@@ -21,6 +21,7 @@
 #include "pipeline/rs_render_service_util.h"
 #include "platform/common/rs_log.h"
 
+#include "common/rs_obj_abs_geometry.h"
 namespace OHOS {
 namespace Rosen {
 
@@ -88,6 +89,12 @@ void RSHardwareProcessor::ProcessSurface(RSSurfaceRenderNode &node)
         ROSEN_LOGE("RsDebug RSHardwareProcessor::ProcessSurface consume buffer fail");
         return;
     }
+    auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(node.GetRenderProperties().GetBoundsGeometry());
+    if (geoPtr == nullptr) {
+        ROSEN_LOGE("RsDebug RSHardwareProcessor::ProcessSurface geoPtr == nullptr");
+        return;
+    }
+
     ComposeInfo info = {
         .srcRect = {
             .x = 0,
@@ -96,10 +103,10 @@ void RSHardwareProcessor::ProcessSurface(RSSurfaceRenderNode &node)
             .h = node.GetBuffer()->GetHeight(),
         },
         .dstRect = {
-            .x = node.GetRenderProperties().GetBoundsPositionX(),
-            .y = node.GetRenderProperties().GetBoundsPositionY(),
-            .w = node.GetRenderProperties().GetBoundsWidth(),
-            .h = node.GetRenderProperties().GetBoundsHeight(),
+            .x = geoPtr->GetAbsRect().left_,
+            .y = geoPtr->GetAbsRect().top_,
+            .w = geoPtr->GetAbsRect().width_,
+            .h = geoPtr->GetAbsRect().height_,
         },
         .zOrder = node.GetRenderProperties().GetPositionZ(),
         .alpha = alpha_,
