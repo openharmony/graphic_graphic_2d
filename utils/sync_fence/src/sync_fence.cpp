@@ -18,6 +18,7 @@
 #include <libsync.h>
 #include <unistd.h>
 #include <errno.h>
+#include <securec.h>
 
 #include "hilog/log.h"
 
@@ -27,6 +28,9 @@ using namespace OHOS::HiviewDFX;
 namespace {
 constexpr HiLogLabel LABEL = { LOG_CORE, 0xD001400, "SyncFence" };
 constexpr int32_t INVALID_FD = -1;
+constexpr int64_t INVALID_TIMESTAMP = -1;
+
+#define SYNC_IOC_FILE_INFO _IOWR(SYNC_IOC_MAGIC, 4, struct SyncFileInfo)
 }  // namespace
 
 const sptr<SyncFence> SyncFence::INVALID_FENCE = sptr<SyncFence>(new SyncFence(INVALID_FD));
@@ -75,6 +79,26 @@ sptr<SyncFence> SyncFence::MergeFence(const std::string &name,
     }
 
     return sptr<SyncFence>(new SyncFence(newFenceFd));
+}
+
+int64_t SyncFence::SyncFileReadTimestamp()
+{
+    struct SyncFileInfo fileInfo;
+    struct SyncFenceInfo fenceInfo;
+
+    (void)memset_s(&fileInfo, sizeof(struct SyncFileInfo), 0, sizeof(struct SyncFileInfo));
+    (void)memset_s(&fenceInfo, sizeof(struct SyncFenceInfo), 0, sizeof(struct SyncFenceInfo));
+
+    fileInfo.syncFenceInfo_ = (uint64_t)(uintptr_t)&fenceInfo;
+    fileInfo.numFences_ = 1;
+
+    int32_t ret = ioctl(fenceFd_, SYNC_IOC_FILE_INFO, &fileInfo);
+    if (ret < 0) {
+        HiLog::Error(LABEL, "SyncFileReadTimestamp ioctl failed, ret: %{public}d", ret);
+        return INVALID_TIMESTAMP;
+    }
+
+    return static_cast<int64_t>(fenceInfo.timestampNs_);
 }
 
 int32_t SyncFence::Dup() const

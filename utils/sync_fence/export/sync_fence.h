@@ -37,12 +37,30 @@ public:
     int32_t Wait(uint32_t timeout);
     static sptr<SyncFence> MergeFence(const std::string &name,
             const sptr<SyncFence>& fence1, const sptr<SyncFence>& fence2);
+    int64_t SyncFileReadTimestamp();
     int32_t Dup() const;
 
     /* this is dangerous, when you use it, do not operator the fd */
     int32_t Get() const;
 
 private:
+    struct SyncFenceInfo {
+        char objName_[32];
+        char driverName_[32];
+        int32_t status_;
+        uint32_t flags_;
+        uint64_t timestampNs_;
+    };
+
+    struct SyncFileInfo {
+        char name_[32];
+        int32_t status_;
+        uint32_t flags_;
+        uint32_t numFences_;
+        uint32_t pad_;
+        uint64_t syncFenceInfo_;
+    };
+
     UniqueFd fenceFd_;
 };
 
