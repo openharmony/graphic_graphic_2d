@@ -187,7 +187,6 @@ void RSPropertiesPainter::DrawShadow(RSProperties& properties, SkCanvas& canvas)
             SkPaint paint;
             paint.setColor(spotColor);
             paint.setAntiAlias(true);
-            paint.setMaskFilter(SkMaskFilter::MakeBlur(kNormal_SkBlurStyle, properties.GetShadowRadius()));
             canvas.drawPath(skPath, paint);
         }
         canvas.restore();
