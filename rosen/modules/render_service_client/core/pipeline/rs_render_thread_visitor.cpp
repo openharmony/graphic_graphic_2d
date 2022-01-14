@@ -120,6 +120,7 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
         return;
     }
     canvas_ = new RSPaintFilterCanvas(surfaceFrame->GetCanvas());
+    canvas_->clear(SK_ColorTRANSPARENT);
 
     isIdle_ = false;
     ProcessCanvasRenderNode(node);

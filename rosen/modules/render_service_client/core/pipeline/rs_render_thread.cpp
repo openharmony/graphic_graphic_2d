@@ -222,7 +222,6 @@ void RSRenderThread::ProcessCommands()
     for (auto& cmdData : cmds) {
         cmdData->Process(context_);
     }
-    cmds_.clear();
     ROSEN_TRACE_END(BYTRACE_TAG_GRAPHIC_AGP);
 }
 
