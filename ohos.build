@@ -20,7 +20,9 @@
         "//foundation/graphic/standard/rosen/modules/render_service_client/test:render_service_client_surface_node_demo",
         "//foundation/graphic/standard/rosen/modules/render_service_client:librender_service_client",
 	      "//foundation/graphic/standard/rosen/modules/render_service:librender_service",
-        "//foundation/graphic/standard/rosen/modules/render_service:render_service"
+        "//foundation/graphic/standard/rosen/modules/render_service:render_service",
+
+        "//foundation/graphic/standard/interfaces/kits/napi/graphic/webgl:libwebglnapi"
       ],
       "test_list": [
         "//foundation/graphic/standard:test"
