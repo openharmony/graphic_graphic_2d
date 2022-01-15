@@ -28,7 +28,7 @@ public:
     MOCK_METHOD2(GetSystemAbility, sptr<IRemoteObject>(sptr<ISystemAbilityManager>& sm, int32_t systemAbilityId));
     MOCK_METHOD1(GetCast, sptr<IVsyncManager>(sptr<IRemoteObject>& remoteObject));
     MOCK_METHOD2(GetVsyncFrequency, GSError(sptr<IVsyncManager>& server, uint32_t &freq));
-    MOCK_METHOD2(ListenVsync, GSError(sptr<IVsyncManager>& server, sptr<IVsyncCallback>& cb));
+    MOCK_METHOD3(ListenVsync, GSError(sptr<IVsyncManager>& server, sptr<IVsyncCallback>& cb, int32_t &cbid));
     MOCK_METHOD0(Current, std::shared_ptr<AppExecFwk::EventHandler>());
 };
 } // namespace Vsync

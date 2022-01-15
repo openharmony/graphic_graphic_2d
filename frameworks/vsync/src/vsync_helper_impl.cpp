@@ -96,8 +96,10 @@ GSError VsyncClient::InitVsyncFrequency()
             std::lock_guard<std::mutex> lock(serviceMutex_);
             vret = StaticCall::GetInstance()->GetVsyncFrequency(service_, vsyncFrequency_);
             if (vret == GSERROR_BINDER) {
+                ScopedBytrace func("InitVsyncFrequency_failed");
                 service_ = nullptr;
                 listener_ = nullptr;
+                listenerID_ = -1;
             }
         }
         if (vret != GSERROR_OK) {
@@ -114,9 +116,11 @@ GSError VsyncClient::InitVsyncFrequency()
 GSError VsyncClient::Init(bool restart)
 {
     if (restart == true) {
+        ScopedBytrace func("Init_restart");
         std::lock_guard<std::mutex> lock(serviceMutex_);
         service_ = nullptr;
         listener_ = nullptr;
+        listenerID_ = -1;
     }
 
     while (true) {
@@ -146,16 +150,17 @@ GSError VsyncClient::Init(bool restart)
 
 GSError VsyncClient::InitListener()
 {
-    while (listener_ == nullptr) {
+    while (listener_ == nullptr && listenerID_ == -1) {
         ScopedBytrace func(__func__);
         auto vret = GSERROR_OK;
         {
             std::lock_guard<std::mutex> lock(serviceMutex_);
             listener_ = new VsyncCallback();
-            vret = StaticCall::GetInstance()->ListenVsync(service_, listener_);
+            vret = StaticCall::GetInstance()->ListenVsync(service_, listener_, listenerID_);
             if (vret == GSERROR_BINDER) {
                 service_ = nullptr;
                 listener_ = nullptr;
+                listenerID_ = -1;
             }
         }
 
@@ -304,11 +309,12 @@ void VsyncClient::DispatchMain(int64_t timestamp)
                 }
             }
         } while (haveEmpty == true);
-
-        if (callbacksMap_.size() == 0 && listener_ != nullptr) {
+        if (callbacksMap_.size() == 0 && listener_ != nullptr && listenerID_ != -1) {
+            ScopedBytrace func("RemoveVsync");
             std::lock_guard<std::mutex> lock(serviceMutex_);
-            service_->RemoveVsync(listener_);
+            service_->RemoveVsync(listenerID_);
             listener_ = nullptr;
+            listenerID_ = -1;
         }
     }
 }

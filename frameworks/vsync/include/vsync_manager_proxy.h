@@ -27,8 +27,8 @@ public:
     VsyncManagerProxy(const sptr<IRemoteObject>& impl);
     virtual ~VsyncManagerProxy() = default;
 
-    virtual GSError ListenVsync(sptr<IVsyncCallback>& cb) override;
-    virtual GSError RemoveVsync(sptr<IVsyncCallback>& cb) override;
+    virtual GSError ListenVsync(sptr<IVsyncCallback>& cb, int32_t &cbid) override;
+    virtual GSError RemoveVsync(int32_t cbid) override;
     virtual GSError GetVsyncFrequency(uint32_t &freq) override;
 
 private:

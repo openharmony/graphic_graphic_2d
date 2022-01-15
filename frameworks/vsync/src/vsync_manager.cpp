@@ -21,13 +21,6 @@
 #include "vsync_callback_proxy.h"
 #include "vsync_log.h"
 
-#define REMOTE_RETURN(reply, vsync_error) \
-    reply.WriteInt32(vsync_error);        \
-    if (vsync_error != GSERROR_OK) {  \
-        VLOG_FAILURE_NO(vsync_error);     \
-    }                                     \
-    break
-
 namespace OHOS {
 namespace Vsync {
 namespace {
@@ -47,25 +40,28 @@ int32_t VsyncManager::OnRemoteRequest(uint32_t code, MessageParcel &data,
         case IVSYNC_MANAGER_LISTEN_VSYNC: {
             auto remoteObject = data.ReadRemoteObject();
             if (remoteObject == nullptr) {
-                REMOTE_RETURN(reply, GSERROR_INVALID_ARGUMENTS);
+                reply.WriteInt32(GSERROR_INVALID_ARGUMENTS);
+                VLOG_FAILURE_NO(GSERROR_INVALID_ARGUMENTS);
+                break;
             }
 
             auto cb = iface_cast<IVsyncCallback>(remoteObject);
-
-            GSError ret = ListenVsync(cb);
-
-            REMOTE_RETURN(reply, ret);
+            int32_t cbid = -1;
+            GSError ret = ListenVsync(cb, cbid);
+            reply.WriteInt32(cbid);
+            reply.WriteInt32(ret);
+            if (ret != GSERROR_OK) {
+                VLOG_FAILURE_NO(ret);
+            }
             break;
         }
         case IVSYNC_MANAGER_REMOVE_VSYNC: {
-            auto remoteObject = data.ReadRemoteObject();
-            if (remoteObject == nullptr) {
-                REMOTE_RETURN(reply, GSERROR_INVALID_ARGUMENTS);
+            auto cbid = data.ReadInt32();
+            auto ret = RemoveVsync(cbid);
+            reply.WriteInt32(ret);
+            if (ret != GSERROR_OK) {
+                VLOG_FAILURE_NO(ret);
             }
-
-            auto cb = iface_cast<IVsyncCallback>(remoteObject);
-            auto ret = RemoveVsync(cb);
-            REMOTE_RETURN(reply, ret);
             break;
         }
         case IVSYNC_MANAGER_GET_VSYNC_FREQUENCY: {
@@ -83,7 +79,7 @@ int32_t VsyncManager::OnRemoteRequest(uint32_t code, MessageParcel &data,
     return 0;
 }
 
-GSError VsyncManager::ListenVsync(sptr<IVsyncCallback>& cb)
+GSError VsyncManager::ListenVsync(sptr<IVsyncCallback>& cb, int32_t &cbid)
 {
     if (cb == nullptr) {
         VLOG_FAILURE_NO(GSERROR_INVALID_ARGUMENTS);
@@ -98,21 +94,17 @@ GSError VsyncManager::ListenVsync(sptr<IVsyncCallback>& cb)
 
     ScopedBytrace bytrace(__func__);
     std::lock_guard<std::mutex> lock(callbacksMutex_);
-    callbacks_.push_back(cb);
+    static int32_t callbackID = 0;
+    cbid = callbackID++;
+    callbacks_[cbid] = cb;
     return GSERROR_OK;
 }
 
-GSError VsyncManager::RemoveVsync(sptr<IVsyncCallback>& callback)
+GSError VsyncManager::RemoveVsync(int32_t cbid)
 {
     ScopedBytrace bytrace(__func__);
     std::lock_guard<std::mutex> lock(callbacksMutex_);
-    for (auto it = callbacks_.begin(); it != callbacks_.end(); it++) {
-        if (*it == callback) {
-            callbacks_.erase(it);
-            break;
-        }
-    }
-
+    callbacks_.erase(cbid);
     return GSERROR_OK;
 }
 
@@ -125,28 +117,17 @@ GSError VsyncManager::GetVsyncFrequency(uint32_t &freq)
 
 void VsyncManager::Callback(int64_t timestamp)
 {
-    using sptrIVsyncCallback = sptr<IVsyncCallback>;
-    std::list<sptrIVsyncCallback> okcbs, calling;
-    {
-        ScopedBytrace bytrace("callback 1");
-        std::lock_guard<std::mutex> lock(callbacksMutex_);
-        calling = callbacks_;
-        callbacks_.clear();
-    }
-
-    {
-        ScopedBytrace bytrace("callback 2");
-        for (const auto &cb : calling) {
-            if (cb->OnVsync(timestamp) != GSERROR_BINDER) {
-                okcbs.push_back(cb);
-            }
+    ScopedBytrace bytrace("callback");
+    std::lock_guard<std::mutex> lock(callbacksMutex_);
+    std::vector<int> ids;
+    for (const auto &[id, cb] : callbacks_) {
+        if (cb->OnVsync(timestamp) == GSERROR_BINDER) {
+            ids.push_back(id);
         }
     }
 
-    {
-        ScopedBytrace bytrace("callback 3");
-        std::lock_guard<std::mutex> lock(callbacksMutex_);
-        callbacks_.insert(callbacks_.begin(), okcbs.begin(), okcbs.end());
+    for (auto id : ids) {
+        callbacks_.erase(id);
     }
 }
 } // namespace Vsync

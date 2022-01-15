@@ -28,7 +28,7 @@ void VsyncCallbackDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &remote
 {
     std::lock_guard<std::mutex> lock(manager->callbacksMutex_);
     for (auto it = manager->callbacks_.begin(); it != manager->callbacks_.end(); it++) {
-        if ((*it)->AsObject() == remote.promote()) {
+        if (it->second->AsObject() == remote.promote()) {
             manager->callbacks_.erase(it);
             break;
         }

@@ -90,16 +90,20 @@ HWTEST_F(VsyncManagerStubTest, OnRemoteRequest4, testing::ext::TestSize.Level0)
 HWTEST_F(VsyncManagerStubTest, ListenVsync1, testing::ext::TestSize.Level0)
 {
     sptr<IVsyncCallback> cb = nullptr;
-    auto ret = vc_->ListenVsync(cb);
+    int32_t cbid;
+    auto ret = vc_->ListenVsync(cb, cbid);
     ASSERT_EQ(ret, GSERROR_INVALID_ARGUMENTS);
+    vc_->RemoveVsync(cbid);
 }
 
 HWTEST_F(VsyncManagerStubTest, ListenVsync2, testing::ext::TestSize.Level0)
 {
     int count = 0;
     sptr<IVsyncCallback> cb = new VsyncCallback(count);
-    auto ret = vc_->ListenVsync(cb);
+    int32_t cbid;
+    auto ret = vc_->ListenVsync(cb, cbid);
     ASSERT_EQ(ret, GSERROR_OK);
+    vc_->RemoveVsync(cbid);
 }
 
 HWTEST_F(VsyncManagerStubTest, GetVsyncFrequency, testing::ext::TestSize.Level0)
@@ -114,20 +118,24 @@ HWTEST_F(VsyncManagerStubTest, Callback1, testing::ext::TestSize.Level0)
 {
     int count = 0;
     sptr<IVsyncCallback> cb = new VsyncCallback(count);
-    vc_->ListenVsync(cb);
+    int32_t cbid;
+    vc_->ListenVsync(cb, cbid);
     auto now = std::chrono::steady_clock::now().time_since_epoch();
     int64_t timestamp = (int64_t)std::chrono::duration_cast<std::chrono::nanoseconds>(now).count();
     vc_->Callback(timestamp);
     ASSERT_EQ(count, 1);
+    vc_->RemoveVsync(cbid);
 }
 
 HWTEST_F(VsyncManagerStubTest, Callback2, testing::ext::TestSize.Level0)
 {
     int count = 0;
     sptr<IVsyncCallback> cb = new VsyncCallback(count);
-    vc_->ListenVsync(cb);
+    int32_t cbid;
+    vc_->ListenVsync(cb, cbid);
     vc_->Callback(0);
     ASSERT_EQ(count, 0);
+    vc_->RemoveVsync(cbid);
 }
 } // namespace
 

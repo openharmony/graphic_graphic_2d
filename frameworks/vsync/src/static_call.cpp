@@ -58,9 +58,9 @@ GSError StaticCall::GetVsyncFrequency(sptr<IVsyncManager>& server, uint32_t &fre
     return server->GetVsyncFrequency(freq);
 }
 
-GSError StaticCall::ListenVsync(sptr<IVsyncManager>& server, sptr<IVsyncCallback>& cb)
+GSError StaticCall::ListenVsync(sptr<IVsyncManager>& server, sptr<IVsyncCallback>& cb, int32_t &cbid)
 {
-    return server->ListenVsync(cb);
+    return server->ListenVsync(cb, cbid);
 }
 
 void StaticCall::Sync(int64_t, void *data)

@@ -31,7 +31,7 @@ public:
     virtual sptr<IRemoteObject> GetSystemAbility(sptr<ISystemAbilityManager>& sm, int32_t systemAbilityId);
     virtual sptr<IVsyncManager> GetCast(sptr<IRemoteObject>& remoteObject);
     virtual GSError GetVsyncFrequency(sptr<IVsyncManager>& server, uint32_t &freq);
-    virtual GSError ListenVsync(sptr<IVsyncManager>& server, sptr<IVsyncCallback>& cb);
+    virtual GSError ListenVsync(sptr<IVsyncManager>& server, sptr<IVsyncCallback>& cb, int32_t &cbid);
     virtual std::shared_ptr<AppExecFwk::EventHandler> Current();
     virtual void Sync(int64_t, void *data);
 private:

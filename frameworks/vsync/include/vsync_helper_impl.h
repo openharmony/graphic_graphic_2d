@@ -75,6 +75,7 @@ private:
     sptr<IVsyncManager> service_ = nullptr;
     std::mutex serviceMutex_;
     sptr<IVsyncCallback> listener_ = nullptr;
+    int32_t listenerID_ = -1;
     sptr<GraphicDumperHelper> dumper = nullptr;
     int32_t dumpListener = -1;
 };

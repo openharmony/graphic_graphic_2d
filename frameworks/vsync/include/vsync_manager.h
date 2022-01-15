@@ -16,7 +16,7 @@
 #ifndef FRAMEWORKS_VSYNC_INCLUDE_VSYNC_MANAGER_H
 #define FRAMEWORKS_VSYNC_INCLUDE_VSYNC_MANAGER_H
 
-#include <list>
+#include <map>
 #include <mutex>
 
 #include <iremote_stub.h>
@@ -35,14 +35,14 @@ public:
     virtual int32_t OnRemoteRequest(uint32_t code, MessageParcel &data,
                                     MessageParcel &reply, MessageOption &option) override;
 
-    virtual GSError ListenVsync(sptr<IVsyncCallback>& cb) override;
-    virtual GSError RemoveVsync(sptr<IVsyncCallback>& cb) override;
+    virtual GSError ListenVsync(sptr<IVsyncCallback>& cb, int32_t &cbid) override;
+    virtual GSError RemoveVsync(int32_t cbid) override;
     virtual GSError GetVsyncFrequency(uint32_t &freq) override;
 
     virtual void Callback(int64_t timestamp);
 
 private:
-    std::list<sptr<IVsyncCallback>> callbacks_;
+    std::map<int32_t, sptr<IVsyncCallback>> callbacks_;
     std::mutex callbacksMutex_;
 };
 } // namespace Vsync
