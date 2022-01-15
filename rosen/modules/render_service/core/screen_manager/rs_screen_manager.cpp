@@ -308,6 +308,21 @@ ScreenId RSScreenManager::CreateVirtualScreen(
 {
     std::lock_guard<std::mutex> lock(mutex_);
 
+    uint64_t surfaceId = surface->GetUniqueId();
+    for (auto &[_, screen] : screens_) {
+        if (!screen->IsVirtual()) {
+            continue;
+        }
+        auto screenSurface = screen->GetProducerSurface();
+        if (screenSurface == nullptr) {
+            continue;
+        }
+        if (screenSurface->GetUniqueId()) {
+            HiLog::Error(LOG_LABEL, "surface %{public}" PRIu64 " is used, create virtualscreen failed!", surfaceId);
+            return INVALID_SCREEN_ID;
+        }
+    }
+
     VirtualScreenConfigs configs;
     ScreenId newId = GenerateVirtualScreenIdLocked();
     configs.id = newId;
