@@ -42,6 +42,7 @@
 #include "effect/path_effect.h"
 #include "effect/shader_effect.h"
 #include "image/bitmap.h"
+#include "image/image.h"
 #include "utils/rect.h"
 
 #include "utils/matrix.h"
@@ -76,6 +77,7 @@ public:
     void OnHotPlugEvent(std::shared_ptr<HdiOutput> &output, bool connected);
 
     void TestDrawPathPro(Canvas &canvas, uint32_t width, uint32_t height);
+    void TestDrawImage(Canvas &canvas, uint32_t width, uint32_t height);
 
     uint32_t freq_ = 30;
     uint32_t width_ = 0;
@@ -151,6 +153,36 @@ void HelloDrawing::TestDrawPathPro(Canvas &canvas, uint32_t width, uint32_t heig
     canvas.DrawPath(path);
 }
 
+void HelloDrawing::TestDrawImage(Canvas& canvas, uint32_t width, uint32_t height)
+{
+    LOGI("+++++++ TestDrawImage");
+    Bitmap bmp;
+    BitmapFormat format {COLORTYPE_RGBA_8888, ALPHATYPE_OPAQUYE};
+    bmp.Build(300, 300, format);
+    bmp.ClearWithColor(Drawing::Color::COLOR_BLUE);
+
+    Image image;
+    image.BuildFromBitmap(bmp);
+    int imageWidth = image.GetWidth();
+    int imageHeight = image.GetHeight();
+    LOGI("image width = %{public}d, image height = %{public}d", imageWidth, imageHeight);
+    Matrix matrix;
+    matrix.Rotate(45, 0, 0);
+    auto e = ShaderEffect::CreateImageShader(image, TileMode::REPEAT, TileMode::MIRROR, SamplingOptions(), matrix);
+    auto c = Drawing::ColorSpace::CreateRefImage(image);
+
+    Pen pen;
+    pen.SetAntiAlias(true);
+    pen.SetColor(Drawing::Color::COLOR_BLUE);
+    pen.SetColor(pen.GetColor4f(), c);
+    pen.SetWidth(10);
+    pen.SetShaderEffect(e);
+    canvas.AttachPen(pen);
+    canvas.DrawImage(image, 500, 500, SamplingOptions());
+
+    LOGI("------- TestDrawImage");
+}
+
 void HelloDrawing::DoDrawData(void *image, uint32_t width, uint32_t height)
 {
 
@@ -162,7 +194,8 @@ void HelloDrawing::DoDrawData(void *image, uint32_t width, uint32_t height)
     canvas.Bind(bitmap);
     canvas.Clear(Color::COLOR_WHITE);
 
-    TestDrawPathPro(canvas, width, height);
+    // TestDrawPathPro(canvas, width, height);
+    TestDrawImage(canvas, width, height);
     constexpr uint32_t stride = 4;
     int32_t addrSize = width * height * stride;
     auto ret = memcpy_s(image, addrSize, bitmap.GetPixels(), addrSize);
@@ -182,7 +215,8 @@ void HelloDrawing::DoDrawBaseData(void *image, uint32_t width, uint32_t height, 
     canvas.Clear(Color::COLOR_RED);
     if (index == 1) {
         canvas.Clear(Color::COLOR_WHITE);
-        TestDrawPathPro(canvas, width, height);
+        // TestDrawPathPro(canvas, width, height);
+        TestDrawImage(canvas, width, height);
     }
     constexpr uint32_t stride = 4;
     int32_t addrSize = width * height * stride;

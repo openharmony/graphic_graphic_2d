@@ -22,11 +22,14 @@
 #include "draw/blend_mode.h"
 #include "draw/color.h"
 #include "utils/point.h"
+#include "utils/sampling_options.h"
 #include "utils/scalar.h"
 
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
+class Image;
+class Matrix;
 class ShaderEffect;
 enum class TileMode;
 class ShaderEffectImpl : public BaseImpl {
@@ -38,6 +41,8 @@ public:
 
     virtual void InitWithColor(ColorQuad color) = 0;
     virtual void InitWithBlend(const ShaderEffect& s1, const ShaderEffect& s2, BlendMode mode) = 0;
+    virtual void InitWithImage(const Image& image, TileMode tileX, TileMode tileY,
+        const SamplingOptions& sampling,const Matrix& matrix) = 0;
     virtual void InitWithLinearGradient(const Point& startPt, const Point& endPt,
         const std::vector<ColorQuad>& colors, const std::vector<scalar>& pos, TileMode mode) = 0;
     virtual void InitWithRadialGradient(const Point& centerPt, scalar radius,

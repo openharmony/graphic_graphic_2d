@@ -18,9 +18,18 @@
 #include <vector>
 
 #include "include/effects/SkGradientShader.h"
+#include "include/core/SkMatrix.h"
 #include "include/core/SkTileMode.h"
+#if defined(USE_CANVASKIT0310_SKIA)
+#include "include/core/SkSamplingOptions.h"
+#endif
 
 #include "effect/shader_effect.h"
+#include "image/image.h"
+#include "utils/matrix.h"
+
+#include "skia_image.h"
+#include "skia_matrix.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -39,6 +48,35 @@ void SkiaShaderEffect::InitWithBlend(const ShaderEffect& s1, const ShaderEffect&
     if (dst != nullptr && src != nullptr) {
         shader_ = SkShaders::Blend(static_cast<SkBlendMode>(mode), dst->GetShader(), src->GetShader());
     }
+}
+
+void SkiaShaderEffect::InitWithImage(const Image& image, TileMode tileX, TileMode tileY,
+    const SamplingOptions& sampling, const Matrix& matrix)
+{
+    SkTileMode modeX = static_cast<SkTileMode>(tileX);
+    SkTileMode modeY = static_cast<SkTileMode>(tileY);
+
+    auto m = matrix.GetImpl<SkiaMatrix>();
+    auto i = image.GetImpl<SkiaImage>();
+    SkMatrix skiaMatrix;
+    sk_sp<SkImage> skiaImage;
+    if (m != nullptr && i != nullptr) {
+        skiaMatrix = m->ExportSkiaMatrix();
+        skiaImage = i->GetImage();
+    }
+
+#if defined(USE_CANVASKIT0310_SKIA)
+    SkSamplingOptions samplingOptions;
+    if (sampling.GetUseCubic()) {
+        samplingOptions = SkSamplingOptions({sampling.GetCubicCoffB(), sampling.GetCubicCoffC()});
+    } else {
+        samplingOptions = SkSamplingOptions(static_cast<SkFilterMode>(sampling.GetFilterMode()),
+            static_cast<SkMipmapMode>(sampling.GetMipmapMode()));
+    }
+    shader_ = skiaImage->makeShader(modeX, modeY, samplingOptions, &skiaMatrix);
+#else
+    shader_ = skiaImage->makeShader(modeX, modeY, &skiaMatrix);
+#endif
 }
 
 void SkiaShaderEffect::InitWithLinearGradient(const Point& startPt, const Point& endPt,

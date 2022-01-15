@@ -33,6 +33,11 @@ std::unique_ptr<BitmapImpl> ImplFactory::CreateBitmapImpl()
     return EngineImplFactory::CreateBitmap();
 }
 
+std::unique_ptr<ImageImpl> ImplFactory::CreateImageImpl()
+{
+    return EngineImplFactory::CreateImage();
+}
+
 std::unique_ptr<PathImpl> ImplFactory::CreatePathImpl()
 {
     return EngineImplFactory::CreatePath();

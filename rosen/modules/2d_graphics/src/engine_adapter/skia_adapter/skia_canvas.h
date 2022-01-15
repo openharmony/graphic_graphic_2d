@@ -26,6 +26,7 @@
 
 #include "impl_interface/core_canvas_impl.h"
 #include "skia_bitmap.h"
+#include "skia_image.h"
 #include "skia_matrix.h"
 #include "skia_paint.h"
 #include "utils/log.h"
@@ -60,7 +61,7 @@ public:
     // image
     void DrawBitmap(const Bitmap& bitmap, const scalar px, const scalar py) override;
     void DrawBitmap(Media::PixelMap& pixelMap, const scalar px, const scalar py) override;
-    void DrawImage() override; // TODO...
+    void DrawImage(const Image& image, const scalar px, const scalar py, const SamplingOptions& sampling) override;
 
     // text
     void DrawText(const Text& text) override; // TODO...

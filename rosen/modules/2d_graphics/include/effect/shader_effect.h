@@ -16,14 +16,12 @@
 #ifndef SHADER_EFFECT_H
 #define SHADER_EFFECT_H
 
-#include "draw/blend_mode.h"
-#include "draw/color.h"
 #include "engine_adapter/impl_interface/shader_effect_impl.h"
-#include "utils/scalar.h"
 
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
+class Image;
 enum class TileMode {
     CLAMP,
     REPEAT,
@@ -36,6 +34,7 @@ public:
         NO_TYPE,
         COLOR,
         BLEND,
+        IMAGE,
         LINEAR_GRADIENT,
         RADIAL_GRADIENT,
         CONICAL_GRADIENT,
@@ -44,6 +43,8 @@ public:
 
     static std::shared_ptr<ShaderEffect> CreateColorShader(ColorQuad color);
     static std::shared_ptr<ShaderEffect> CreateBlendShader(ShaderEffect& dst, ShaderEffect& src, BlendMode mode);
+    static std::shared_ptr<ShaderEffect> CreateImageShader(const Image& image, TileMode tileX, TileMode tileY,
+        const SamplingOptions& sampling, const Matrix& matrix);
     static std::shared_ptr<ShaderEffect> CreateLinearGradient(const Point& startPt, const Point& endPt,
         const std::vector<ColorQuad>& colors, const std::vector<scalar>& pos, TileMode mode);
     static std::shared_ptr<ShaderEffect> CreateRadialGradient(const Point& centerPt, scalar radius,
@@ -61,6 +62,8 @@ public:
 
     ShaderEffect(ShaderEffectType t, ColorQuad color ) noexcept;
     ShaderEffect(ShaderEffectType t, ShaderEffect& dst, ShaderEffect& src, BlendMode mode) noexcept;
+    ShaderEffect(ShaderEffectType t, const Image& image, TileMode tileX, TileMode tileY,
+        const SamplingOptions& sampling, const Matrix& matrix) noexcept;
     ShaderEffect(ShaderEffectType t, const Point& startPt, const Point& endPt,
         const std::vector<ColorQuad>& colors, const std::vector<scalar>& pos, TileMode mode) noexcept;
     ShaderEffect(ShaderEffectType t, const Point& centerPt, scalar radius,
@@ -69,7 +72,7 @@ public:
         const std::vector<ColorQuad>& colors, const std::vector<scalar>& pos, TileMode mode) noexcept;
     ShaderEffect(ShaderEffectType t, const Point& centerPt,
         const std::vector<ColorQuad>& colors, const std::vector<scalar>& pos, TileMode mode,
-        scalar startAngle, scalar endAngle);
+        scalar startAngle, scalar endAngle) noexcept;
 protected:
     ShaderEffect() noexcept;
 private:

@@ -24,7 +24,6 @@ namespace OHOS {
 namespace Rosen {
 namespace Drawing {
 class ImageFilterImpl;
-struct ImageFilterData;
 class ImageFilter {
 public:
     enum class FilterType {

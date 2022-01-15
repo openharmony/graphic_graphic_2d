@@ -18,7 +18,6 @@
 
 #include "include/core/SkBitmap.h"
 
-#include "draw/color.h"
 #include "impl_interface/bitmap_impl.h"
 
 namespace OHOS {

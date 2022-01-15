@@ -20,6 +20,7 @@
 #include "skia_adapter/skia_canvas.h"
 #include "skia_adapter/skia_color_filter.h"
 #include "skia_adapter/skia_color_space.h"
+#include "skia_adapter/skia_image.h"
 #include "skia_adapter/skia_image_filter.h"
 #include "skia_adapter/skia_mask_filter.h"
 #include "skia_adapter/skia_matrix.h"
@@ -38,6 +39,11 @@ std::unique_ptr<CoreCanvasImpl> SkiaImplFactory::CreateCoreCanvas()
 std::unique_ptr<BitmapImpl> SkiaImplFactory::CreateBitmap()
 {
     return std::make_unique<SkiaBitmap>();
+}
+
+std::unique_ptr<ImageImpl> SkiaImplFactory::CreateImage()
+{
+    return std::make_unique<SkiaImage>();
 }
 
 std::unique_ptr<PathImpl> SkiaImplFactory::CreatePath()

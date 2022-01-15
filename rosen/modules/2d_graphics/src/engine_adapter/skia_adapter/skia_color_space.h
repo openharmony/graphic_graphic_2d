@@ -32,6 +32,7 @@ public:
 
     void InitWithSRGB() override;
     void InitWithSRGBLinear() override;
+    void InitWithImage(const Image& image) override;
     sk_sp<SkColorSpace> GetColorSpace() const;
 private:
     sk_sp<SkColorSpace> colorSpace_;

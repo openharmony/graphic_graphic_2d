@@ -32,6 +32,8 @@ public:
 
     void InitWithColor(ColorQuad color) override;
     void InitWithBlend(const ShaderEffect& s1, const ShaderEffect& s2, BlendMode mode) override;
+    void InitWithImage(const Image& image, TileMode tileX, TileMode tileY,
+        const SamplingOptions& sampling, const Matrix& matrix) override;
     void InitWithLinearGradient(const Point& startPt, const Point& endPt,
         const std::vector<ColorQuad>& colors, const std::vector<scalar>& pos, TileMode mode) override;
     void InitWithRadialGradient(const Point& centerPt, scalar radius,

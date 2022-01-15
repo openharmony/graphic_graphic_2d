@@ -13,40 +13,27 @@
  * limitations under the License.
  */
 
-#include "skia_color_space.h"
+#ifndef IMAGEIMPL_H
+#define IMAGEIMPL_H
 
-#include "image/image.h"
-
-#include "skia_image.h"
+#include "base_impl.h"
 
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-SkiaColorSpace::SkiaColorSpace() noexcept : colorSpace_() {}
-
-void SkiaColorSpace::InitWithSRGB()
-{
-    colorSpace_ = SkColorSpace::MakeSRGB();
-}
-
-void SkiaColorSpace::InitWithSRGBLinear()
-{
-    colorSpace_ = SkColorSpace::MakeSRGBLinear();
-}
-
-void SkiaColorSpace::InitWithImage(const Image& image)
-{
-    auto i = image.GetImpl<SkiaImage>();
-    if (i != nullptr) {
-        const sk_sp<SkImage> skiaImage = i->GetImage();
-        colorSpace_ = skiaImage->refColorSpace();
-    }
-}
-
-sk_sp<SkColorSpace> SkiaColorSpace::GetColorSpace() const
-{
-    return colorSpace_;
+class Bitmap;
+class Image;
+class ImageImpl : public BaseImpl {
+public:
+    static inline constexpr AdapterType TYPE = AdapterType::BASE_INTERFACE;
+    ImageImpl() noexcept {}
+    virtual ~ImageImpl() {}
+    AdapterType GetType() const override { return AdapterType::BASE_INTERFACE; }
+    virtual void* BuildFromBitmap(const Bitmap& bitmap) = 0;
+    virtual int GetWidth() = 0;
+    virtual int GetHeight() = 0;
+};
 }
 }
 }
-}
+#endif

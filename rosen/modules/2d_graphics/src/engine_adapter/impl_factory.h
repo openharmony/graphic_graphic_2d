@@ -22,6 +22,7 @@
 #include "impl_interface/color_space_impl.h"
 #include "impl_interface/core_canvas_impl.h"
 #include "impl_interface/image_filter_impl.h"
+#include "impl_interface/image_impl.h"
 #include "impl_interface/mask_filter_impl.h"
 #include "impl_interface/matrix_impl.h"
 #include "impl_interface/path_effect_impl.h"
@@ -35,6 +36,7 @@ class ImplFactory {
 public:
     static std::unique_ptr<CoreCanvasImpl> CreateCoreCanvasImpl();
     static std::unique_ptr<BitmapImpl> CreateBitmapImpl();
+    static std::unique_ptr<ImageImpl> CreateImageImpl();
     static std::unique_ptr<PathImpl> CreatePathImpl();
     static std::unique_ptr<ColorFilterImpl> CreateColorFilterImpl();
     static std::unique_ptr<MaskFilterImpl> CreateMaskFilterImpl();

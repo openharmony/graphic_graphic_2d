@@ -28,6 +28,7 @@
 #include "draw/shadow.h"
 #include "effect/filter.h"
 #include "image/bitmap.h"
+#include "image/image.h"
 #include "text/text.h"
 #include "utils/log.h"
 #include "utils/matrix.h"
@@ -35,6 +36,7 @@
 #include "utils/point3.h"
 #include "utils/rect.h"
 #include "utils/round_rect.h"
+#include "utils/sampling_options.h"
 #include "utils/scalar.h"
 
 namespace OHOS {
@@ -70,7 +72,7 @@ public:
     // image
     virtual void DrawBitmap(const Bitmap& bitmap, const scalar px, const scalar py) = 0;
     virtual void DrawBitmap(Media::PixelMap& pixelMap, const scalar px, const scalar py) = 0;
-    virtual void DrawImage() = 0; // TODO...
+    virtual void DrawImage(const Image& image, const scalar px, const scalar p, const SamplingOptions& sampling) = 0;
 
     // text
     virtual void DrawText(const Text& text) = 0; // TODO...

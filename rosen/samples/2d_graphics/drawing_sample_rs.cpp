@@ -37,6 +37,7 @@
 #include "draw/color.h"
 
 #include "image/bitmap.h"
+#include "image/image.h"
 
 #include "draw/brush.h"
 #include "draw/canvas.h"
@@ -243,6 +244,39 @@ void TestDrawBitmap(Canvas &canvas, uint32_t width, uint32_t height)
     //canvas.DrawRect({1200, 100, 1500, 700});
 
     LOGI("------- TestDrawBitmap");
+}
+
+void TestDrawImage(Canvas& canvas, uint32_t width, uint32_t height)
+{
+    LOGI("+++++++ TestDrawImage");
+    Bitmap bmp;
+    BitmapFormat format {COLORTYPE_RGBA_8888, ALPHATYPE_OPAQUYE};
+    bmp.Build(300, 300, format);
+    bmp.ClearWithColor(Drawing::Color::COLOR_BLUE);
+
+    Image image;
+    image.BuildFromBitmap(bmp);
+    int imageWidth = image.GetWidth();
+    int imageHeight = image.GetHeight();
+    LOGI("image width = %{public}d, image height = %{public}d", imageWidth, imageHeight);
+    Matrix matrix;
+    matrix.Rotate(45, 0, 0);
+    SamplingOptions sampling = SamplingOptions(Drawing::FilterMode::NEAREST, Drawing::MipmapMode::NEAREST);
+    auto e = ShaderEffect::CreateImageShader(image, TileMode::REPEAT, TileMode::MIRROR, sampling, matrix);
+    LOGI("sampling useCubic = %{public}d, filter = %{public}d, mipmap = %{public}d",
+            sampling.GetUseCubic(), sampling.GetFilterMode(), sampling.GetMipmapMode());
+    auto c = Drawing::ColorSpace::CreateRefImage(image);
+
+    Pen pen;
+    pen.SetAntiAlias(true);
+    pen.SetColor(Drawing::Color::COLOR_BLUE);
+    pen.SetColor(pen.GetColor4f(), c);
+    pen.SetWidth(10);
+    pen.SetShaderEffect(e);
+    canvas.AttachPen(pen);
+    canvas.DrawImage(image, 500, 500, sampling);
+
+    LOGI("------- TestDrawImage");
 }
 
 void TestMatrix(Canvas &canvas, uint32_t width, uint32_t height)
@@ -492,6 +526,7 @@ int main()
     testFuncVec.push_back(TestDrawPath);
     testFuncVec.push_back(TestDrawPathEffect);
     testFuncVec.push_back(TestDrawBitmap);
+    testFuncVec.push_back(TestDrawImage);
     testFuncVec.push_back(TestDrawFilter);
     testFuncVec.push_back(TestDrawShader);
     testFuncVec.push_back(TestDrawShadow);

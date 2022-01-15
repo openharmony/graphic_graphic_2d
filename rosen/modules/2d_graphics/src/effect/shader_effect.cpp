@@ -34,6 +34,13 @@ ShaderEffect::ShaderEffect(ShaderEffectType t, ShaderEffect& dst, ShaderEffect& 
     impl_->InitWithBlend(dst, src, mode);
 }
 
+ShaderEffect::ShaderEffect(ShaderEffectType t, const Image& image, TileMode tileX, TileMode tileY,
+    const SamplingOptions& sampling, const Matrix& matrix) noexcept : ShaderEffect()
+{
+    type_ = t;
+    impl_->InitWithImage(image, tileX, tileY, sampling, matrix);
+}
+
 ShaderEffect::ShaderEffect(ShaderEffectType t, const Point& startPt, const Point& endPt,
     const std::vector<ColorQuad>& colors, const std::vector<scalar>& pos, TileMode mode) noexcept : ShaderEffect()
 {
@@ -59,7 +66,7 @@ ShaderEffect::ShaderEffect(ShaderEffectType t, const Point& startPt, scalar star
 
 ShaderEffect::ShaderEffect(ShaderEffectType t, const Point& centerPt,
     const std::vector<ColorQuad>& colors, const std::vector<scalar>& pos, TileMode mode,
-    scalar startAngle, scalar endAngle)
+    scalar startAngle, scalar endAngle) noexcept : ShaderEffect()
 {
     type_ = t;
     impl_->InitWithSweepGradient(centerPt, colors, pos, mode, startAngle, endAngle);
@@ -74,14 +81,20 @@ ShaderEffect::ShaderEffectType ShaderEffect::GetType() const
     return type_;
 }
 
-std::shared_ptr<ShaderEffect> CreateColorShader(ColorQuad color)
+std::shared_ptr<ShaderEffect> ShaderEffect::CreateColorShader(ColorQuad color)
 {
     return std::make_shared<ShaderEffect>(ShaderEffect::ShaderEffectType::COLOR, color);
 }
 
-std::shared_ptr<ShaderEffect> CreateBlendShader(ShaderEffect& dst, ShaderEffect& src, BlendMode mode)
+std::shared_ptr<ShaderEffect> ShaderEffect::CreateBlendShader(ShaderEffect& dst, ShaderEffect& src, BlendMode mode)
 {
     return std::make_shared<ShaderEffect>(ShaderEffect::ShaderEffectType::BLEND, dst, src, mode);
+}
+
+std::shared_ptr<ShaderEffect> ShaderEffect::CreateImageShader(const Image& image, TileMode tileX, TileMode tileY,
+    const SamplingOptions& sampling, const Matrix& matrix)
+{
+    return std::make_shared<ShaderEffect>(ShaderEffect::ShaderEffectType::IMAGE, image, tileX, tileY, sampling, matrix);
 }
 
 std::shared_ptr<ShaderEffect> ShaderEffect::CreateLinearGradient(const Point& startPt, const Point& endPt,
@@ -106,7 +119,7 @@ std::shared_ptr<ShaderEffect> ShaderEffect::CreateTwoPointConical(const Point& s
         endPt, endRadius, colors, pos, mode);
 }
 
-std::shared_ptr<ShaderEffect> CreateSweepGradient(const Point& centerPt,
+std::shared_ptr<ShaderEffect> ShaderEffect::CreateSweepGradient(const Point& centerPt,
     const std::vector<ColorQuad>& colors, const std::vector<scalar>& pos, TileMode mode,
     scalar startAngle, scalar endAngle)
 {

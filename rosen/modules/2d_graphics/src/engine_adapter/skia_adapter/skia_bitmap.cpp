@@ -13,11 +13,11 @@
  * limitations under the License.
  */
 
-#include "skia_bitmap.h"
-
 #include "include/core/SkImageInfo.h"
 
 #include "image/bitmap.h"
+
+#include "skia_bitmap.h"
 
 namespace OHOS {
 namespace Rosen {

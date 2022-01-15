@@ -21,6 +21,8 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
+class Image;
+class ColorSpace;
 class ColorSpaceImpl : public BaseImpl {
 public:
     static inline constexpr AdapterType TYPE = AdapterType::BASE_INTERFACE;
@@ -30,6 +32,7 @@ public:
 
     virtual void InitWithSRGB() = 0;
     virtual void InitWithSRGBLinear() = 0;
+    virtual void InitWithImage(const Image& image) = 0;
 };
 }
 }

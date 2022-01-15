@@ -22,24 +22,26 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-class ColorSpaceImpl;
-struct ColorSpaceData;
+class Image;
 class ColorSpace {
 public:
     enum class ColorSpaceType {
         NO_TYPE,
         SRGB,
         SRGB_LINEAR,
+        REF_IMAGE,
     };
 
     static std::shared_ptr<ColorSpace> CreateSRGB();
     static std::shared_ptr<ColorSpace> CreateSRGBLinear();
+    static std::shared_ptr<ColorSpace> CreateRefImage(const Image& image);
 
     ~ColorSpace() {}
     ColorSpaceType GetType() const;
     template<typename T> const std::shared_ptr<T> GetImpl() const { return impl_->DowncastingTo<T>(); }
 
     ColorSpace(ColorSpaceType t) noexcept;
+    ColorSpace(ColorSpaceType t, const Image& image) noexcept;
 protected:
     ColorSpace() noexcept;
 private:

@@ -16,7 +16,6 @@
 #include "effect/color_space.h"
 
 #include "impl_factory.h"
-#include "impl_interface/color_space_impl.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -36,6 +35,12 @@ ColorSpace::ColorSpace(ColorSpaceType t) noexcept : ColorSpace()
     }
 }
 
+ColorSpace::ColorSpace(ColorSpaceType t, const Image& image) noexcept : ColorSpace()
+{
+    type_ = t;
+    impl_->InitWithImage(image);
+}
+
 ColorSpace::ColorSpace() noexcept
     : type_(ColorSpace::ColorSpaceType::NO_TYPE),
     impl_(ImplFactory::CreateColorSpaceImpl()) {}
@@ -53,6 +58,11 @@ std::shared_ptr<ColorSpace> ColorSpace::CreateSRGB()
 std::shared_ptr<ColorSpace> ColorSpace::CreateSRGBLinear()
 {
     return std::make_shared<ColorSpace>(ColorSpace::ColorSpaceType::SRGB_LINEAR);
+}
+
+std::shared_ptr<ColorSpace> ColorSpace::CreateRefImage(const Image& image)
+{
+    return std::make_shared<ColorSpace>(ColorSpace::ColorSpaceType::REF_IMAGE, image);
 }
 }
 }

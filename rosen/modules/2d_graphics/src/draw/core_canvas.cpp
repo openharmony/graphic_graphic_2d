@@ -100,9 +100,9 @@ void CoreCanvas::DrawBitmap(Media::PixelMap& pixelMap, const scalar px, const sc
     impl_->DrawBitmap(pixelMap, px, py);
 }
 
-void CoreCanvas::DrawImage()
+void CoreCanvas::DrawImage(const Image& image, const scalar px, const scalar py, const SamplingOptions& sampling)
 {
-    impl_->DrawImage();
+    impl_->DrawImage(image, px, py, sampling);
 }
 
 void CoreCanvas::DrawText(const Text& text)

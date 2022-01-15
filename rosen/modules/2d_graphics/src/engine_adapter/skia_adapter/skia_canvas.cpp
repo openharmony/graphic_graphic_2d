@@ -16,6 +16,7 @@
 #include "skia_canvas.h"
 
 #include "image/bitmap.h"
+#include "image/image.h"
 #include "skia_path.h"
 
 #include "include/core/SkImage.h"
@@ -282,7 +283,38 @@ void SkiaCanvas::DrawBitmap(Media::PixelMap& pixelMap, const scalar px, const sc
     }
 }
 
-void SkiaCanvas::DrawImage() {} // TODO...
+void SkiaCanvas::DrawImage(const Image& image, const scalar px, const scalar py, const SamplingOptions& sampling)
+{
+    sk_sp<SkImage> img;
+
+    auto skImageImpl = image.GetImpl<SkiaImage>();
+    if (skImageImpl != nullptr) {
+        img = skImageImpl->GetImage();
+    }
+
+    auto paints = skiaPaint_.GetSortedPaints();
+    if (paints.empty()) {
+        skiaCanvas_->drawImage(img, px, py);
+        return;
+    }
+
+    for (auto d : skiaPaint_.GetSortedPaints()) {
+        if (d != nullptr) {
+#if defined(USE_CANVASKIT0310_SKIA)
+            SkSamplingOptions samplingOptions;
+            if (sampling.GetUseCubic()) {
+                samplingOptions = SkSamplingOptions({sampling.GetCubicCoffB(), sampling.GetCubicCoffC()});
+            } else {
+                samplingOptions = SkSamplingOptions(static_cast<SkFilterMode>(sampling.GetFilterMode()),
+                    static_cast<SkMipmapMode>(sampling.GetMipmapMode()));
+            }
+            skiaCanvas_->drawImage(img, px, py, samplingOptions, &d->paint);
+#else
+            skiaCanvas_->drawImage(img, px, py, &d->paint);
+#endif
+        }
+    }
+}
 
 void SkiaCanvas::DrawText(const Text& text) {} // TODO...
 
