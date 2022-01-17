@@ -13,6 +13,12 @@
 
 import("//build/ohos.gni")
 
+group("test") {
+  testonly = true
+
+  deps = [ "unittest:unittest" ]
+}
+
 ohos_executable("render_service_client_rs_demo") {
   sources = [ "render_service_client_rs_demo.cpp" ]
 

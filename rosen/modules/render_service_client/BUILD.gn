@@ -106,3 +106,9 @@ ohos_shared_library("librender_service_client") {
   part_name = "graphic_standard"
   subsystem_name = "graphic"
 }
+
+group("test") {
+  testonly = true
+
+  deps = [ "test:test" ]
+}

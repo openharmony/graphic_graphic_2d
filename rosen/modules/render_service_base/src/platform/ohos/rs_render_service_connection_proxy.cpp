@@ -121,6 +121,9 @@ ScreenId RSRenderServiceConnectionProxy::CreateVirtualScreen(
     ScreenId mirrorId,
     int32_t flags)
 {
+    if (surface == nullptr) {
+        return INVALID_SCREEN_ID;
+    }
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
