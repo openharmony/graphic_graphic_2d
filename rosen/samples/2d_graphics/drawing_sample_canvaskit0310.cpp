@@ -381,7 +381,7 @@ bool HelloDrawing::FillBaseLayer(std::shared_ptr<HdiLayerInfo> &showLayer, uint3
     showLayer->SetBuffer(cbuffer, fence);
     showLayer->SetZorder(zorder);
     showLayer->SetAlpha(alpha);
-    showLayer->SetTransform(TransformType::ROTATE_NONE);
+    // if rotate is not null, SetTransform
     showLayer->SetCompositionType(CompositionType::COMPOSITION_DEVICE);
     showLayer->SetVisibleRegion(1, srcRect);
     showLayer->SetDirtyRegion(srcRect);

@@ -271,7 +271,7 @@ private:
     IRect dirtyRegion_;
     IRect cropRect_;
     LayerAlpha layerAlpha_;
-    TransformType transformType_;
+    TransformType transformType_ = TransformType::ROTATE_BUTT;
     CompositionType compositionType_;
     BlendType blendType_;
 

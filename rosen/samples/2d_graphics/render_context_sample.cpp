@@ -390,7 +390,6 @@ bool RenderContextSample::FillBackGroundLayer(std::shared_ptr<HdiLayerInfo> &sho
         prevFenceMap_[backGroundCSurface->GetUniqueId()]);
     showLayer->SetZorder(zorder);
     showLayer->SetAlpha(alpha);
-    showLayer->SetTransform(TransformType::ROTATE_NONE);
     showLayer->SetCompositionType(CompositionType::COMPOSITION_DEVICE);
     showLayer->SetVisibleRegion(1, srcRect);
     showLayer->SetDirtyRegion(srcRect);

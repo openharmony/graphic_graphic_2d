@@ -113,8 +113,10 @@ void HdiLayer::SetHdiLayerInfo()
     ret = device->SetLayerSize(screenId_, layerId_, layerInfo_->GetLayerSize());
     CheckRet(ret, "SetLayerSize");
 
-    ret = device->SetTransformMode(screenId_, layerId_, layerInfo_->GetTransformType());
-    CheckRet(ret, "SetTransformMode");
+    if (layerInfo_->GetTransformType() != TransformType::ROTATE_BUTT) {
+        ret = device->SetTransformMode(screenId_, layerId_, layerInfo_->GetTransformType());
+        CheckRet(ret, "SetTransformMode");
+    }
 
     ret = device->SetLayerVisibleRegion(screenId_, layerId_, layerInfo_->GetVisibleNum(),
                                          layerInfo_->GetVisibleRegion());

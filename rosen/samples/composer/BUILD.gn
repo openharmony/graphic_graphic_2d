@@ -38,7 +38,11 @@ config("hello_composer_public_config") {
 ohos_executable("hello_composer") {
   install_enable = true
 
-  sources = [ "main.cpp" ]
+  sources = [
+    "hello_composer.cpp",
+    "layer_context.cpp",
+    "main.cpp",
+  ]
 
   configs = [ ":hello_composer_config" ]
 
