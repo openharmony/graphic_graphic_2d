@@ -74,7 +74,7 @@ ohos_source_set("webgl_src") {
       "src/webgl/src/webgl_vertex_array_object.cpp",
     ]
 
-    deps += [ "//foundation/graphic/standard/prebuilts/librarys/gpu:gpu_libs" ]
+    deps += [ "//foundation/graphic/standard:libgl" ]
   }
 
   cflags = [
