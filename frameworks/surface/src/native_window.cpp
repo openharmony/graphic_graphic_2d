@@ -20,6 +20,10 @@
 #include "display_type.h"
 #include "buffer_log.h"
 
+#ifndef weak_alias
+    #define weak_alias(old, new) \
+        extern __typeof(old) new __attribute__((__weak__, __alias__(#old)))
+#endif
 
 using namespace OHOS;
 
@@ -133,7 +137,6 @@ int32_t NativeWindowFlushBuffer(struct NativeWindow *window, struct NativeWindow
     window->surface->FlushBuffer(buffer->sfbuffer, fenceFd, config);
 
     // unreference nativewindowbuffer object
-    // NativeObjectUnreference(buffer);
     return OHOS::GSERROR_OK;
 }
 
@@ -205,7 +208,6 @@ static int32_t InternalHanleNativeWindowOpt(struct NativeWindow *window, int cod
             *stride = window->config.stride;
             break;
         }
-        // [TODO] add others
         default:
             break;
     }
@@ -294,3 +296,16 @@ NativeWindowBuffer::NativeWindowBuffer() : NativeWindowMagic(NATIVE_OBJECT_MAGIC
 {
     BLOGD("NativeWindowBuffer  %p", this);
 }
+
+weak_alias(CreateNativeWindowFromSurface, OH_NATIVE_WINDOW_CreateNativeWindowFromSurface);
+weak_alias(DestoryNativeWindow, OH_NATIVE_WINDOW_DestoryNativeWindow);
+weak_alias(CreateNativeWindowBufferFromSurfaceBuffer, OH_NATIVE_WINDOW_CreateNativeWindowBufferFromSurfaceBuffer);
+weak_alias(DestoryNativeWindowBuffer, OH_NATIVE_WINDOW_DestoryNativeWindowBuffer);
+weak_alias(NativeWindowRequestBuffer, OH_NATIVE_WINDOW_NativeWindowRequestBuffer);
+weak_alias(NativeWindowFlushBuffer, OH_NATIVE_WINDOW_NativeWindowFlushBuffer);
+weak_alias(NativeWindowCancelBuffer, OH_NATIVE_WINDOW_NativeWindowCancelBuffer);
+weak_alias(NativeWindowHandleOpt, OH_NATIVE_WINDOW_NativeWindowHandleOpt);
+weak_alias(GetBufferHandleFromNative, OH_NATIVE_WINDOW_GetBufferHandleFromNative);
+weak_alias(NativeObjectReference, OH_NATIVE_WINDOW_NativeObjectReference);
+weak_alias(NativeObjectUnreference, OH_NATIVE_WINDOW_NativeObjectUnreference);
+weak_alias(GetNativeObjectMagic, OH_NATIVE_WINDOW_GetNativeObjectMagic);

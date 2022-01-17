@@ -93,6 +93,8 @@ ohos_shared_library("surface") {
     "//utils/native/base:utils",
   ]
 
+  symlink_target_name = [ "libnative_window.so" ]
+
   part_name = "graphic_standard"
   subsystem_name = "graphic"
 }
