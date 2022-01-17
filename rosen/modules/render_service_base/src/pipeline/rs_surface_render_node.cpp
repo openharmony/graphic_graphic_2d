@@ -45,6 +45,11 @@ void RSSurfaceRenderNode::SetFence(int32_t fence)
     fence_ = fence;
 }
 
+void RSSurfaceRenderNode::SetDamageRegion(const Rect& damage)
+{
+    damageRect_ = damage;
+}
+
 void RSSurfaceRenderNode::IncreaseAvailableBuffer()
 {
     bufferAvailableCount_++;
