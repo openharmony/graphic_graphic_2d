@@ -87,7 +87,7 @@ void RSCompatibleProcessor::ProcessSurface(RSSurfaceRenderNode& node)
     ROSEN_LOGI("RsDebug RSCompatibleProcessor::ProcessSurface Node id:%llu [%f %f %f %f] buffer [%d %d]",
         node.GetId(), node.GetRenderProperties().GetBoundsPositionX(), node.GetRenderProperties().GetBoundsPositionY(),
         node.GetRenderProperties().GetBoundsWidth(), node.GetRenderProperties().GetBoundsHeight(),
-        node.GetBuffer()->GetWidth(), node.GetBuffer()->GetHeight());
+        node.GetDamageRegion().w, node.GetDamageRegion().y);
     SkMatrix matrix;
     matrix.reset();
     RsRenderServiceUtil::DrawBuffer(canvas_.get(), matrix, node.GetBuffer(),

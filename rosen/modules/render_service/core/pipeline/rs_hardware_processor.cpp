@@ -80,8 +80,8 @@ void RSHardwareProcessor::ProcessSurface(RSSurfaceRenderNode &node)
         .srcRect = {
             .x = 0,
             .y = 0,
-            .w = node.GetBuffer()->GetWidth(),
-            .h = node.GetBuffer()->GetHeight(),
+            .w = node.GetDamageRegion().w,
+            .h = node.GetDamageRegion().h,
         },
         .dstRect = {
             .x = node.GetRenderProperties().GetBoundsPositionX(),
@@ -96,8 +96,10 @@ void RSHardwareProcessor::ProcessSurface(RSSurfaceRenderNode &node)
     };
     std::shared_ptr<HdiLayerInfo> layer = HdiLayerInfo::CreateHdiLayerInfo();
     ROSEN_LOGE("RsDebug RSHardwareProcessor::ProcessSurface surfaceNode id:%llu [%d %d %d %d]"\
-        "buffer [%d %d] buffaddr:%p, z:%d", node.GetId(), info.dstRect.x, info.dstRect.y, info.dstRect.w,
-        info.dstRect.h, info.srcRect.w, info.srcRect.h, node.GetBuffer().GetRefPtr(), info.zOrder);
+        "buffer [%d %d] requestSize [%d %d] buffaddr:%p, z:%d", node.GetId(), info.dstRect.x,
+        info.dstRect.y, info.dstRect.w, info.dstRect.h, info.srcRect.w, info.srcRect.h,
+        node.GetBuffer()->GetWidth(), node.GetBuffer()->GetHeight(), node.GetBuffer().GetRefPtr(),
+        info.zOrder);
     RsRenderServiceUtil::ComposeSurface(layer, node.GetConsumer(), layers_, info);
 }
 
