@@ -26,13 +26,6 @@
 #include <refbase.h>
 #include "surface_type.h"
 
-// gbm.h
-extern "C" {
-    struct gbm_device;
-    struct gbm_device *gbm_create_device(int32_t fd);
-    void gbm_device_destroy(struct gbm_device *);
-}
-
 using EglCreateImageFunc = PFNEGLCREATEIMAGEKHRPROC;
 using EglDestroyImageFunc = PFNEGLDESTROYIMAGEKHRPROC;
 using EglImageTargetTexture2DFunc = PFNGLEGLIMAGETARGETTEXTURE2DOESPROC;
@@ -79,7 +72,7 @@ private:
     thread_local static inline sptr<EglManager> instance_ = nullptr;
     bool initFlag_ = false;
     int drmFd_ = -1;
-    struct gbm_device *device_ = nullptr;
+    void *device_ = nullptr;
 
     EGLDisplay display_;
     EGLContext context_;

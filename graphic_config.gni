@@ -16,16 +16,16 @@ import("//build/ohos.gni")
 import("//build/ohos_var.gni")
 
 if ("${product_name}" == "rk3566" || "${product_name}" == "rk3568" ||
-    "${product_name}" == "Hi3516DV300") {
+    "${product_name}" == "Hi3516DV300" || "${product_name}" == "ohos-arm64") {
   gpu_defines = [ "ACE_DISABLE_GL" ]
   ace_enable_gpu = false  # temporary gpu
 } else {
-  gpu_defines = [ "ACE_DISABLE_GL" ]
-  ace_enable_gpu = false
+  gpu_defines = [ "ACE_ENABLE_GL" ]
+  ace_enable_gpu = true
 }
 
 if (ace_enable_gpu) {
-  libgl = [ "//device/hihope/hardware/gpu:mali-bifrost-g52-g2p0-wayland" ]
+  libgl = [ "//device/hisilicon/hardware/gpu:gpu_libs" ]
 } else {
   libgl = []
 }

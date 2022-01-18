@@ -25,7 +25,6 @@
 namespace OHOS {
 namespace {
 constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, 0, "EglManager" };
-constexpr const char *GBM_DEVICE_PATH = "/dev/dri/card0";
 constexpr int32_t EGL_CONTEXT_CLIENT_VERSION_NUM = 2;
 constexpr char CHARACTER_WHITESPACE = ' ';
 constexpr const char *CHARACTER_STRING_WHITESPACE = " ";
@@ -101,19 +100,7 @@ GSError EglManager::Init(EGLContext context)
 
 GSError EglManager::GbmInit()
 {
-    ScopedBytrace func(__func__);
-    drmFd_ = open(GBM_DEVICE_PATH, O_RDWR);
-    if (drmFd_ < 0) {
-        BLOGE("Failed to open drm render node.");
-        return GSERROR_INTERNEL;
-    }
-
-    device_ = gbm_create_device(drmFd_);
-    if (device_ == nullptr) {
-        BLOGE("Failed to create gbm device.");
-        return GSERROR_INTERNEL;
-    }
-
+    device_ = EGL_DEFAULT_DISPLAY;
     return GSERROR_OK;
 }
 
@@ -332,10 +319,6 @@ GSError EglManager::EglInit(EGLContext ctx)
 void EglManager::Deinit()
 {
     initFlag_ = false;
-
-    if (device_) {
-        gbm_device_destroy(device_);
-    }
 
     if (drmFd_ >= 0) {
         close(drmFd_);
