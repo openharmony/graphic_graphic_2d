@@ -32,6 +32,8 @@ public:
     static std::shared_ptr<RSUIDirector> Create();
 
     ~RSUIDirector();
+    void GoBackground();
+    void GoForeground();
     void Init();
     void SetRSSurfaceNode(std::shared_ptr<RSSurfaceNode> surfaceNode);
     void SetSurfaceNodeSize(int width, int height);
