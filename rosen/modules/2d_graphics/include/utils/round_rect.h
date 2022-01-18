@@ -47,6 +47,7 @@ public:
     inline Rect GetRect() const;
 
     inline void Offset(scalar dx, scalar dy);
+
 private:
     Rect rect_;
     std::vector<Point> radiusXY_;
@@ -104,7 +105,7 @@ inline void RoundRect::Offset(scalar dx, scalar dy)
 {
     rect_.Offset(dx, dy);
 }
-}
-}
-}
+} // namespace Drawing
+} // namespace Rosen
+} // namespace OHOS
 #endif

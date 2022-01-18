@@ -19,6 +19,7 @@
 #include <memory>
 
 #include "base_impl.h"
+
 #include "utils/scalar.h"
 
 namespace OHOS {
@@ -30,11 +31,14 @@ public:
     static inline constexpr AdapterType TYPE = AdapterType::BASE_INTERFACE;
     MaskFilterImpl() noexcept {}
     virtual ~MaskFilterImpl() {}
-    AdapterType GetType() const override { return AdapterType::BASE_INTERFACE; }
+    AdapterType GetType() const override
+    {
+        return AdapterType::BASE_INTERFACE;
+    }
 
     virtual void InitWithBlur(BlurType t, scalar radius) = 0;
 };
-}
-}
-}
+} // namespace Drawing
+} // namespace Rosen
+} // namespace OHOS
 #endif

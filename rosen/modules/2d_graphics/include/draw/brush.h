@@ -27,20 +27,20 @@ namespace Drawing {
 class Brush {
 public:
     Brush() noexcept;
-    Brush(const Brush &b) noexcept = default;
-    Brush(const Color &c) noexcept;
+    Brush(const Brush& b) noexcept = default;
+    Brush(const Color& c) noexcept;
     Brush(const std::shared_ptr<ShaderEffect> e) noexcept;
     Brush(int rgba) noexcept;
 
     ~Brush() {}
     Color GetColor() const;
-    void SetColor(const Color &c);
+    void SetColor(const Color& c);
     void SetColor(int c);
     void SetARGB(int r, int g, int b, int a);
 
     Color4f GetColor4f();
     std::shared_ptr<ColorSpace> GetColorSpace() const;
-    void SetColor(const Color4f &cf, std::shared_ptr<ColorSpace> s);
+    void SetColor(const Color4f& cf, std::shared_ptr<ColorSpace> s);
 
     int GetAlpha() const;
     void SetAlpha(int a);
@@ -49,7 +49,7 @@ public:
     BlendMode GetBlendMode() const;
     void SetBlendMode(BlendMode mode);
 
-    void SetFilter(const Filter &filter);
+    void SetFilter(const Filter& filter);
     Filter GetFilter() const;
 
     void SetShaderEffect(std::shared_ptr<ShaderEffect> e);
@@ -60,8 +60,8 @@ public:
 
     void Reset();
 
-    friend bool operator==(const Brush &b1, const Brush &b2);
-    friend bool operator!=(const Brush &b1, const Brush &b2);
+    friend bool operator==(const Brush& b1, const Brush& b2);
+    friend bool operator!=(const Brush& b1, const Brush& b2);
 
 private:
     Color color_;
@@ -72,7 +72,7 @@ private:
 
     bool antiAlias_;
 };
-}
-}
-}
+} // namespace Drawing
+} // namespace Rosen
+} // namespace OHOS
 #endif

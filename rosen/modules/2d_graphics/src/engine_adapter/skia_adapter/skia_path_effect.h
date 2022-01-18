@@ -28,7 +28,10 @@ public:
     static inline constexpr AdapterType TYPE = AdapterType::SKIA_ADAPTER;
     SkiaPathEffect() noexcept;
     ~SkiaPathEffect() {};
-    AdapterType GetType() const override { return AdapterType::SKIA_ADAPTER; }
+    AdapterType GetType() const override
+    {
+        return AdapterType::SKIA_ADAPTER;
+    }
 
     void InitWithDash(const scalar intervals[], int count, scalar phase) override;
     void InitWithPathDash(const Path& path, scalar advance, scalar phase, PathDashStyle style) override;
@@ -36,10 +39,11 @@ public:
     void InitWithSum(const PathEffect& e1, const PathEffect& e2) override;
     void InitWithCompose(const PathEffect& e1, const PathEffect& e2) override;
     sk_sp<SkPathEffect> GetPathEffect() const;
+
 private:
     sk_sp<SkPathEffect> pathEffect_;
 };
-}
-}
-}
+} // namespace Drawing
+} // namespace Rosen
+} // namespace OHOS
 #endif

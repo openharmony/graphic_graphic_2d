@@ -55,27 +55,25 @@ public:
     void MoveTo(scalar x, scalar y);
     void LineTo(scalar x, scalar y);
     void ArcTo(scalar pt1X, scalar pt1Y, scalar pt2X, scalar pt2Y, scalar startAngle, scalar sweepAngle);
-    void ArcTo(const Point &pt1, const Point &pt2, scalar startAngle, scalar sweepAngle);
-    void CubicTo(scalar ctrlPt1X, scalar ctrlPt1Y, scalar ctrlPt2X, scalar ctrlPt2Y,
-        scalar endPtX, scalar endPtY);
-    void CubicTo(const Point &ctrlPt1, const Point &ctrlPt2, const Point &endPt);
+    void ArcTo(const Point& pt1, const Point& pt2, scalar startAngle, scalar sweepAngle);
+    void CubicTo(scalar ctrlPt1X, scalar ctrlPt1Y, scalar ctrlPt2X, scalar ctrlPt2Y, scalar endPtX, scalar endPtY);
+    void CubicTo(const Point& ctrlPt1, const Point& ctrlPt2, const Point& endPt);
     void QuadTo(scalar ctrlPtX, scalar ctrlPtY, scalar endPtX, scalar endPtY);
-    void QuadTo(const Point &ctrlPt, const Point endPt);
+    void QuadTo(const Point& ctrlPt, const Point endPt);
 
-    void AddRect(const Rect &rect, PathDirection dir = PathDirection::CW_DIRECTION);
-    void AddRect(scalar left, scalar top, scalar right, scalar bottom,
-                 PathDirection dir = PathDirection::CW_DIRECTION);
+    void AddRect(const Rect& rect, PathDirection dir = PathDirection::CW_DIRECTION);
+    void AddRect(scalar left, scalar top, scalar right, scalar bottom, PathDirection dir = PathDirection::CW_DIRECTION);
 
-    void AddOval(const Rect &oval, PathDirection dir = PathDirection::CW_DIRECTION);
-    void AddArc(const Rect &oval, scalar startAngle, scalar sweepAngle);
+    void AddOval(const Rect& oval, PathDirection dir = PathDirection::CW_DIRECTION);
+    void AddArc(const Rect& oval, scalar startAngle, scalar sweepAngle);
     void AddPoly(const std::vector<Point>& points, int count, bool close);
     void AddCircle(scalar x, scalar y, scalar radius, PathDirection dir = PathDirection::CW_DIRECTION);
-    void AddRoundRect(const Rect& rect, scalar xRadius, scalar yRadius,
-                      PathDirection dir = PathDirection::CW_DIRECTION);
+    void AddRoundRect(
+        const Rect& rect, scalar xRadius, scalar yRadius, PathDirection dir = PathDirection::CW_DIRECTION);
 
-    void AddPath(const Path &src, scalar dx, scalar dy);
-    void AddPath(const Path &src);
-    void AddPath(const Path &src, const Matrix &matrix);
+    void AddPath(const Path& src, scalar dx, scalar dy);
+    void AddPath(const Path& src);
+    void AddPath(const Path& src, const Matrix& matrix);
 
     Rect GetBounds() const;
     void SetFillStyle(PathFillType fillstyle);
@@ -83,17 +81,22 @@ public:
     bool Interpolate(const Path& ending, scalar weight, Path& out);
     void Transform(const Matrix& matrix);
     void Offset(scalar dx, scalar dy);
-    bool Op(const Path &path1, Path &path2, PathOp op);
+    bool Op(const Path& path1, Path& path2, PathOp op);
 
     void Reset();
 
     void Close();
 
-    template<typename T> const std::shared_ptr<T> GetImpl() const { return impl_->DowncastingTo<T>(); }
+    template<typename T>
+    const std::shared_ptr<T> GetImpl() const
+    {
+        return impl_->DowncastingTo<T>();
+    }
+
 private:
     std::shared_ptr<PathImpl> impl_;
 };
-}
-}
-}
+} // namespace Drawing
+} // namespace Rosen
+} // namespace OHOS
 #endif

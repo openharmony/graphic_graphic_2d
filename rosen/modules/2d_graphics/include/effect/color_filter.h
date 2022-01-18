@@ -17,6 +17,7 @@
 #define COLOR_FILTER_H
 
 #include "color_matrix.h"
+
 #include "draw/blend_mode.h"
 #include "draw/color.h"
 #include "engine_adapter/impl_interface/color_filter_impl.h"
@@ -46,19 +47,25 @@ public:
     ~ColorFilter() {}
     FilterType GetType() const;
     void Compose(ColorFilter& filter);
-    template<typename T> const std::shared_ptr<T> GetImpl() const { return impl_->DowncastingTo<T>(); }
+    template<typename T>
+    const std::shared_ptr<T> GetImpl() const
+    {
+        return impl_->DowncastingTo<T>();
+    }
 
     ColorFilter(FilterType t, ColorQuad c, BlendMode mode) noexcept;
     ColorFilter(FilterType t, ColorMatrix& m) noexcept;
     ColorFilter(FilterType t, ColorFilter& f1, ColorFilter& f2) noexcept;
     ColorFilter(FilterType t) noexcept;
+
 protected:
     ColorFilter() noexcept;
+
 private:
     FilterType type_;
     std::shared_ptr<ColorFilterImpl> impl_;
 };
-}
-}
-}
+} // namespace Drawing
+} // namespace Rosen
+} // namespace OHOS
 #endif

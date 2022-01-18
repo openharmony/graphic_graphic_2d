@@ -42,10 +42,11 @@ public:
     scalar GetCameraPosZ() const;
 
     void ApplyToMatrix(Matrix& m);
+
 private:
     std::unique_ptr<CameraImpl> impl_;
 };
-}
-}
-}
+} // namespace Drawing
+} // namespace Rosen
+} // namespace OHOS
 #endif

@@ -42,16 +42,22 @@ public:
 
     ~MaskFilter() {}
     FilterType GetType() const;
-    template<typename T> const std::shared_ptr<T> GetImpl() const { return impl_->DowncastingTo<T>(); }
+    template<typename T>
+    const std::shared_ptr<T> GetImpl() const
+    {
+        return impl_->DowncastingTo<T>();
+    }
 
     MaskFilter(FilterType t, BlurType blurType, scalar radius) noexcept;
+
 protected:
     MaskFilter() noexcept;
+
 private:
     FilterType type_;
     std::shared_ptr<MaskFilterImpl> impl_;
 };
-}
-}
-}
+} // namespace Drawing
+} // namespace Rosen
+} // namespace OHOS
 #endif

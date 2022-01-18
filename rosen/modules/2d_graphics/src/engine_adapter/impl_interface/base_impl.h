@@ -29,16 +29,24 @@ public:
     BaseImpl() noexcept {}
     virtual ~BaseImpl() {}
 
-    virtual AdapterType GetType() const { return AdapterType::NONE; }
+    virtual AdapterType GetType() const
+    {
+        return AdapterType::NONE;
+    }
 
-    template<typename T> bool IsInstanceOf() { return (GetType() == T::TYPE); }
+    template<typename T>
+    bool IsInstanceOf()
+    {
+        return (GetType() == T::TYPE);
+    }
 
-    template<typename T> std::shared_ptr<T> DowncastingTo()
+    template<typename T>
+    std::shared_ptr<T> DowncastingTo()
     {
         return (IsInstanceOf<T>()) ? std::static_pointer_cast<T>(shared_from_this()) : nullptr;
     }
 };
-}
-}
-}
+} // namespace Drawing
+} // namespace Rosen
+} // namespace OHOS
 #endif

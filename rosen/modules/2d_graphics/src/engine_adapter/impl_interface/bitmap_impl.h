@@ -17,6 +17,7 @@
 #define BITMAPIMPL_H
 
 #include "base_impl.h"
+
 #include "draw/color.h"
 
 namespace OHOS {
@@ -29,7 +30,10 @@ public:
     static inline constexpr AdapterType TYPE = AdapterType::BASE_INTERFACE;
     BitmapImpl() {}
     virtual ~BitmapImpl() {}
-    AdapterType GetType() const override { return AdapterType::BASE_INTERFACE; }
+    AdapterType GetType() const override
+    {
+        return AdapterType::BASE_INTERFACE;
+    }
     virtual void Build(const int width, const int height, const BitmapFormat& format) = 0;
     virtual int GetWidth() = 0;
     virtual int GetHeight() = 0;
@@ -41,7 +45,7 @@ public:
     virtual void Free() = 0;
     virtual bool IsValid() = 0;
 };
-}
-}
-}
+} // namespace Drawing
+} // namespace Rosen
+} // namespace OHOS
 #endif

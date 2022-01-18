@@ -17,6 +17,7 @@
 #define COLOR_FILTER_IMPL_H
 
 #include "base_impl.h"
+
 #include "draw/blend_mode.h"
 #include "draw/color.h"
 #include "effect/color_matrix.h"
@@ -30,7 +31,10 @@ public:
     static inline constexpr AdapterType TYPE = AdapterType::BASE_INTERFACE;
     ColorFilterImpl() noexcept {}
     virtual ~ColorFilterImpl() {}
-    AdapterType GetType() const override { return AdapterType::BASE_INTERFACE; }
+    AdapterType GetType() const override
+    {
+        return AdapterType::BASE_INTERFACE;
+    }
 
     virtual void InitWithBlendMode(ColorQuad c, BlendMode mode) = 0;
     virtual void InitWithColorMatrix(ColorMatrix& m) = 0;
@@ -39,7 +43,7 @@ public:
     virtual void InitWithCompose(const ColorFilter& f1, const ColorFilter& f2) = 0;
     virtual void Compose(const ColorFilter& f) = 0;
 };
-}
-}
-}
+} // namespace Drawing
+} // namespace Rosen
+} // namespace OHOS
 #endif

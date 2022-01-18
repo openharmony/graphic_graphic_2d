@@ -16,10 +16,10 @@
 #ifndef SKIA_PAINT_H
 #define SKIA_PAINT_H
 
-#include "include/core/SkPaint.h"
-
 #include <memory>
 #include <vector>
+
+#include "include/core/SkPaint.h"
 
 #include "draw/brush.h"
 #include "draw/pen.h"
@@ -27,8 +27,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-struct PaintData
-{
+struct PaintData {
     SkPaint paint;
     bool isEnabled = false;
 };
@@ -41,8 +40,8 @@ public:
     void ApplyBrushToFill(const Brush& brush);
     void ApplyPenToStroke(const Pen& pen);
 
-    void BrushToSkPaint(const Brush& brush, SkPaint &paint);
-    void PenToSkPaint(const Pen& pen, SkPaint &paint);
+    void BrushToSkPaint(const Brush& brush, SkPaint& paint);
+    void PenToSkPaint(const Pen& pen, SkPaint& paint);
 
     void DisableStroke();
     void DisableFill();
@@ -50,14 +49,15 @@ public:
     std::vector<std::shared_ptr<PaintData>> GetSortedPaints();
     void SetStrokeFirst(bool isStrokeFirst);
     bool IsStrokeFirst();
+
 private:
-    void ApplyFilter(SkPaint &paint, const Filter& filter);
+    void ApplyFilter(SkPaint& paint, const Filter& filter);
 
     std::shared_ptr<PaintData> stroke_;
     std::shared_ptr<PaintData> fill_;
     bool isStrokeFirst_;
 };
-}
-}
-}
+} // namespace Drawing
+} // namespace Rosen
+} // namespace OHOS
 #endif

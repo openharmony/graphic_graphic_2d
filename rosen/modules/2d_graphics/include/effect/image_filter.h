@@ -37,26 +37,32 @@ public:
     static std::shared_ptr<ImageFilter> CreateBlurImageFilter(scalar sigmaX, scalar sigmaY, ImageFilter& input);
     static std::shared_ptr<ImageFilter> CreateColorFilterImageFilter(ColorFilter& cf, ImageFilter& input);
     static std::shared_ptr<ImageFilter> CreateOffsetImageFilter(scalar dx, scalar dy, ImageFilter& input);
-    static std::shared_ptr<ImageFilter> CreateArithmeticImageFilter(scalar k1, scalar k2, scalar k3, scalar k4, bool enforcePMColor,
-                                                   ImageFilter& background, ImageFilter& foreground);
+    static std::shared_ptr<ImageFilter> CreateArithmeticImageFilter(scalar k1, scalar k2, scalar k3, scalar k4,
+        bool enforcePMColor, ImageFilter& background, ImageFilter& foreground);
     static std::shared_ptr<ImageFilter> CreateComposeImageFilter(ImageFilter& f1, ImageFilter& f2);
 
     ~ImageFilter() {}
     FilterType GetType() const;
-    template<typename T> const std::shared_ptr<T> GetImpl() const { return impl_->DowncastingTo<T>(); }
+    template<typename T>
+    const std::shared_ptr<T> GetImpl() const
+    {
+        return impl_->DowncastingTo<T>();
+    }
 
     ImageFilter(FilterType t, scalar x, scalar y, ImageFilter& input) noexcept;
     ImageFilter(FilterType t, ColorFilter& cf, ImageFilter& input) noexcept;
-    ImageFilter(FilterType t, scalar k1, scalar k2, scalar k3, scalar k4, bool enforcePMColor,
-                ImageFilter& background, ImageFilter& foreground) noexcept;
+    ImageFilter(FilterType t, scalar k1, scalar k2, scalar k3, scalar k4, bool enforcePMColor, ImageFilter& background,
+        ImageFilter& foreground) noexcept;
     ImageFilter(FilterType t, ImageFilter& f1, ImageFilter& f2) noexcept;
+
 protected:
     ImageFilter() noexcept;
+
 private:
     FilterType type_;
     std::shared_ptr<ImageFilterImpl> impl_;
 };
-}
-}
-}
+} // namespace Drawing
+} // namespace Rosen
+} // namespace OHOS
 #endif

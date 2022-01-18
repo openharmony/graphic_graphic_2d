@@ -29,19 +29,23 @@ public:
     static inline constexpr AdapterType TYPE = AdapterType::SKIA_ADAPTER;
     SkiaImageFilter() noexcept;
     ~SkiaImageFilter() {};
-    AdapterType GetType() const override { return AdapterType::SKIA_ADAPTER; }
+    AdapterType GetType() const override
+    {
+        return AdapterType::SKIA_ADAPTER;
+    }
 
-    void InitWithBlur(scalar sigmaX , scalar sigmaY, const ImageFilter& f) override;
+    void InitWithBlur(scalar sigmaX, scalar sigmaY, const ImageFilter& f) override;
     void InitWithColor(const ColorFilter& colorFilter, const ImageFilter& f) override;
     void InitWithOffset(scalar dx, scalar dy, const ImageFilter& f) override;
-    void InitWithArithmetic(scalar k1, scalar k2, scalar k3, scalar k4, bool enforcePMColor,
-                            const ImageFilter& f1, const ImageFilter& f2) override;
+    void InitWithArithmetic(scalar k1, scalar k2, scalar k3, scalar k4, bool enforcePMColor, const ImageFilter& f1,
+        const ImageFilter& f2) override;
     void InitWithCompose(const ImageFilter& f1, const ImageFilter& f2) override;
     sk_sp<SkImageFilter> GetImageFilter() const;
+
 private:
     sk_sp<SkImageFilter> filter_;
 };
-}
-}
-}
+} // namespace Drawing
+} // namespace Rosen
+} // namespace OHOS
 #endif

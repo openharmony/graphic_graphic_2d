@@ -24,7 +24,7 @@ namespace Drawing {
 class Point3 {
 public:
     inline Point3() noexcept;
-    inline Point3(const Point3 &p) noexcept;
+    inline Point3(const Point3& p) noexcept;
     inline Point3(scalar x, scalar y, scalar z) noexcept;
 
     inline ~Point3() {}
@@ -37,20 +37,20 @@ public:
     inline void SetY(scalar y);
     inline void SetZ(scalar z);
 
-    inline Point3 &operator+=(const Point3 &p);
-    inline Point3 &operator-=(const Point3 &p);
-    inline Point3 &operator*=(scalar scale);
-    inline Point3 &operator/=(scalar divisor);
+    inline Point3& operator+=(const Point3& p);
+    inline Point3& operator-=(const Point3& p);
+    inline Point3& operator*=(scalar scale);
+    inline Point3& operator/=(scalar divisor);
 
-    friend inline const Point3 operator+(const Point3 &p1, const Point3 &p2);
-    friend inline const Point3 operator-(const Point3 &p1, const Point3 &p2);
-    friend inline const Point3 operator*(scalar scale, const Point3 &p);
-    friend inline const Point3 operator*(const Point3 &p, scalar scale);
-    friend inline const Point3 operator/(const Point3 &p, scalar divisor);
-    friend inline const Point3 operator+(const Point3 &p);
-    friend inline const Point3 operator-(const Point3 &p);
-    friend inline bool operator==(const Point3 &p1, const Point3 &p2);
-    friend inline bool operator!=(const Point3 &p1, const Point3 &p2);
+    friend inline const Point3 operator+(const Point3& p1, const Point3& p2);
+    friend inline const Point3 operator-(const Point3& p1, const Point3& p2);
+    friend inline const Point3 operator*(scalar scale, const Point3& p);
+    friend inline const Point3 operator*(const Point3& p, scalar scale);
+    friend inline const Point3 operator/(const Point3& p, scalar divisor);
+    friend inline const Point3 operator+(const Point3& p);
+    friend inline const Point3 operator-(const Point3& p);
+    friend inline bool operator==(const Point3& p1, const Point3& p2);
+    friend inline bool operator!=(const Point3& p1, const Point3& p2);
 
 private:
     scalar x_;
@@ -60,7 +60,7 @@ private:
 
 inline Point3::Point3() noexcept : x_(0.0), y_(0.0), z_(0.0) {}
 
-inline Point3::Point3(const Point3 &p) noexcept : x_(p.GetX()), y_(p.GetY()), z_(p.GetZ()) {}
+inline Point3::Point3(const Point3& p) noexcept : x_(p.GetX()), y_(p.GetY()), z_(p.GetZ()) {}
 
 inline Point3::Point3(scalar x, scalar y, scalar z) noexcept : x_(x), y_(y), z_(z) {}
 
@@ -94,7 +94,7 @@ inline void Point3::SetZ(scalar z)
     z_ = z;
 }
 
-inline Point3 &Point3::operator+=(const Point3 &p)
+inline Point3& Point3::operator+=(const Point3& p)
 {
     x_ += p.x_;
     y_ += p.y_;
@@ -102,7 +102,7 @@ inline Point3 &Point3::operator+=(const Point3 &p)
     return *this;
 }
 
-inline Point3 &Point3::operator-=(const Point3 &p)
+inline Point3& Point3::operator-=(const Point3& p)
 {
     x_ -= p.x_;
     y_ -= p.y_;
@@ -110,7 +110,7 @@ inline Point3 &Point3::operator-=(const Point3 &p)
     return *this;
 }
 
-inline Point3 &Point3::operator*=(scalar scale)
+inline Point3& Point3::operator*=(scalar scale)
 {
     x_ *= scale;
     y_ *= scale;
@@ -118,7 +118,7 @@ inline Point3 &Point3::operator*=(scalar scale)
     return *this;
 }
 
-inline Point3 &Point3::operator/=(scalar divisor)
+inline Point3& Point3::operator/=(scalar divisor)
 {
     x_ /= divisor;
     y_ /= divisor;
@@ -126,51 +126,52 @@ inline Point3 &Point3::operator/=(scalar divisor)
     return *this;
 }
 
-inline const Point3 operator+(const Point3 &p1, const Point3 &p2)
+inline const Point3 operator+(const Point3& p1, const Point3& p2)
 {
     return Point3(p1.x_ + p1.y_, p2.x_ + p2.y_, p1.z_ + p2.z_);
 }
 
-inline const Point3 operator-(const Point3 &p1, const Point3 &p2)
+inline const Point3 operator-(const Point3& p1, const Point3& p2)
 {
     return Point3(p1.x_ - p2.x_, p1.y_ - p2.y_, p1.z_ - p2.z_);
 }
 
-inline const Point3 operator*(scalar scale, const Point3 &p)
+inline const Point3 operator*(scalar scale, const Point3& p)
 {
     return Point3(scale * p.x_, scale * p.y_, scale * p.z_);
 }
 
-inline const Point3 operator*(const Point3 &p, scalar scale)
+inline const Point3 operator*(const Point3& p, scalar scale)
 {
     return Point3(p.x_ * scale, p.y_ * scale, p.z_ * scale);
 }
 
-inline const Point3 operator/(const Point3 &p, scalar divisor)
+inline const Point3 operator/(const Point3& p, scalar divisor)
 {
     return Point3(p.x_ / divisor, p.y_ / divisor, p.z_ / divisor);
 }
 
-inline const Point3 operator+(const Point3 &p)
+inline const Point3 operator+(const Point3& p)
 {
     return Point3(p.x_, p.y_, p.z_);
 }
 
-inline const Point3 operator-(const Point3 &p)
+inline const Point3 operator-(const Point3& p)
 {
     return Point3(-p.x_, -p.y_, -p.z_);
 }
 
-inline bool operator==(const Point3 &p1, const Point3 &p2)
+inline bool operator==(const Point3& p1, const Point3& p2)
 {
     return IsScalarAlmostEqual(p1.x_, p2.x_) && IsScalarAlmostEqual(p1.y_, p2.y_) && IsScalarAlmostEqual(p1.z_, p2.z_);
 }
 
-inline bool operator!=(const Point3 &p1, const Point3 &p2)
+inline bool operator!=(const Point3& p1, const Point3& p2)
 {
-    return !IsScalarAlmostEqual(p1.x_, p2.x_) || !IsScalarAlmostEqual(p1.y_, p2.y_) || !IsScalarAlmostEqual(p1.z_, p2.z_);
+    return !IsScalarAlmostEqual(p1.x_, p2.x_) || !IsScalarAlmostEqual(p1.y_, p2.y_) ||
+        !IsScalarAlmostEqual(p1.z_, p2.z_);
 }
-}
-}
-}
+} // namespace Drawing
+} // namespace Rosen
+} // namespace OHOS
 #endif

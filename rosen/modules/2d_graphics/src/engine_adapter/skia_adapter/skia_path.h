@@ -28,26 +28,29 @@ public:
     static inline constexpr AdapterType TYPE = AdapterType::SKIA_ADAPTER;
     SkiaPath() noexcept;
     ~SkiaPath() {};
-    AdapterType GetType() const override { return AdapterType::SKIA_ADAPTER; }
+    AdapterType GetType() const override
+    {
+        return AdapterType::SKIA_ADAPTER;
+    }
 
     void MoveTo(scalar x, scalar y) override;
     void LineTo(scalar x, scalar y) override;
     void ArcTo(scalar pt1X, scalar pt1Y, scalar pt2X, scalar pt2Y, scalar startAngle, scalar sweepAngle) override;
-    void CubicTo(scalar ctrlPt1X, scalar ctrlPt1Y, scalar ctrlPt2X, scalar ctrlPt2Y,
-                 scalar endPtX, scalar endPtY) override;
+    void CubicTo(
+        scalar ctrlPt1X, scalar ctrlPt1Y, scalar ctrlPt2X, scalar ctrlPt2Y, scalar endPtX, scalar endPtY) override;
     void QuadTo(scalar ctrlPtX, scalar ctrlPtY, scalar endPtX, scalar endPtY) override;
 
-    void AddRect(scalar left, scalar top, scalar right, scalar bottom,PathDirection dir) override;
+    void AddRect(scalar left, scalar top, scalar right, scalar bottom, PathDirection dir) override;
     void AddOval(scalar left, scalar top, scalar right, scalar bottom, PathDirection dir) override;
     void AddArc(scalar left, scalar top, scalar right, scalar bottom, scalar startAngle, scalar sweepAngle) override;
     void AddPoly(const std::vector<Point>& points, int count, bool close) override;
     void AddCircle(scalar x, scalar y, scalar radius, PathDirection dir) override;
-    void AddRoundRect(scalar left, scalar top, scalar right, scalar bottom,
-                      scalar xRadius, scalar yRadius, PathDirection dir) override;
+    void AddRoundRect(scalar left, scalar top, scalar right, scalar bottom, scalar xRadius, scalar yRadius,
+        PathDirection dir) override;
 
     void AddPath(const Path& src, scalar dx, scalar dy) override;
     void AddPath(const Path& src) override;
-    void AddPathWithMatrix(const Path& src, const Matrix &matrix) override;
+    void AddPathWithMatrix(const Path& src, const Matrix& matrix) override;
 
     Rect GetBounds() const override;
     void SetFillStyle(PathFillType fillstyle) override;
@@ -64,10 +67,11 @@ public:
     void SetPath(const SkPath& path);
 
     const SkPath& GetPath() const;
+
 private:
     SkPath path_;
 };
-}
-}
-}
+} // namespace Drawing
+} // namespace Rosen
+} // namespace OHOS
 #endif

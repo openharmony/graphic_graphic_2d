@@ -19,6 +19,7 @@
 #include <memory>
 
 #include "base_impl.h"
+
 #include "utils/matrix.h"
 #include "utils/point.h"
 #include "utils/rect.h"
@@ -36,27 +37,29 @@ public:
     static inline constexpr AdapterType TYPE = AdapterType::BASE_INTERFACE;
     PathImpl() noexcept {}
     virtual ~PathImpl() {}
-    AdapterType GetType() const override { return AdapterType::BASE_INTERFACE; }
+    AdapterType GetType() const override
+    {
+        return AdapterType::BASE_INTERFACE;
+    }
 
     virtual void MoveTo(scalar x, scalar y) = 0;
     virtual void LineTo(scalar x, scalar y) = 0;
     virtual void ArcTo(scalar pt1X, scalar pt1Y, scalar pt2X, scalar pt2Y, scalar startAngle, scalar sweepAngle) = 0;
-    virtual void CubicTo(scalar ctrlPt1X, scalar ctrlPt1Y, scalar ctrlPt2X, scalar ctrlPt2Y,
-                         scalar endPtX, scalar endPtY) = 0;
+    virtual void CubicTo(
+        scalar ctrlPt1X, scalar ctrlPt1Y, scalar ctrlPt2X, scalar ctrlPt2Y, scalar endPtX, scalar endPtY) = 0;
     virtual void QuadTo(scalar ctrlPtX, scalar ctrlPtY, scalar endPtX, scalar endPtY) = 0;
 
     virtual void AddRect(scalar left, scalar top, scalar right, scalar bottom, PathDirection dir) = 0;
     virtual void AddOval(scalar left, scalar top, scalar right, scalar bottom, PathDirection dir) = 0;
-    virtual void AddArc(scalar left, scalar top, scalar right, scalar bottom,
-                        scalar startAngle, scalar sweepAngle) = 0;
+    virtual void AddArc(scalar left, scalar top, scalar right, scalar bottom, scalar startAngle, scalar sweepAngle) = 0;
     virtual void AddPoly(const std::vector<Point>& point, int count, bool close) = 0;
     virtual void AddCircle(scalar x, scalar y, scalar radius, PathDirection dir) = 0;
-    virtual void AddRoundRect(scalar left, scalar top, scalar right, scalar bottom,
-                              scalar xRadius, scalar yRadius, PathDirection dir) = 0;
+    virtual void AddRoundRect(
+        scalar left, scalar top, scalar right, scalar bottom, scalar xRadius, scalar yRadius, PathDirection dir) = 0;
 
     virtual void AddPath(const Path& src, scalar dx, scalar dy) = 0;
     virtual void AddPath(const Path& src) = 0;
-    virtual void AddPathWithMatrix(const Path& src, const Matrix &matrix) = 0;
+    virtual void AddPathWithMatrix(const Path& src, const Matrix& matrix) = 0;
 
     virtual Rect GetBounds() const = 0;
     virtual void SetFillStyle(PathFillType fillstyle) = 0;
@@ -70,7 +73,7 @@ public:
 
     virtual void Close() = 0;
 };
-}
-}
-}
+} // namespace Drawing
+} // namespace Rosen
+} // namespace OHOS
 #endif

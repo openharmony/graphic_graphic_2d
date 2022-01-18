@@ -28,14 +28,18 @@ public:
     static inline constexpr AdapterType TYPE = AdapterType::SKIA_ADAPTER;
     SkiaMaskFilter() noexcept;
     ~SkiaMaskFilter() {};
-    AdapterType GetType() const override { return AdapterType::SKIA_ADAPTER; }
+    AdapterType GetType() const override
+    {
+        return AdapterType::SKIA_ADAPTER;
+    }
 
     void InitWithBlur(BlurType t, scalar radius) override;
     sk_sp<SkMaskFilter> GetMaskFilter() const;
+
 private:
     sk_sp<SkMaskFilter> filter_;
 };
-}
-}
-}
+} // namespace Drawing
+} // namespace Rosen
+} // namespace OHOS
 #endif

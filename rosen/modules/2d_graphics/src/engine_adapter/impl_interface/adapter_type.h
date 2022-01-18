@@ -26,7 +26,7 @@ enum class AdapterType {
     SKIA_ADAPTER,
     OTHER_ADAPTER,
 };
-}
-}
-}
+} // namespace Drawing
+} // namespace Rosen
+} // namespace OHOS
 #endif

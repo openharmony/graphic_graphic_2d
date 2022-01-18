@@ -27,7 +27,7 @@ enum class ClipOp {
     REVERSE_DIFFERENCE,
     REPLACE,
 };
-}
-}
-}
+} // namespace Drawing
+} // namespace Rosen
+} // namespace OHOS
 #endif

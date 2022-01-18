@@ -32,8 +32,14 @@ enum class MipmapMode {
 
 struct CubicResampler {
     float cubicCoffB, cubicCoffC;
-    static constexpr CubicResampler Mitchell() { return {1/3.0f, 1/3.0f}; }
-    static constexpr CubicResampler CatmullRom() { return {0.0f, 1/2.0f}; }
+    static constexpr CubicResampler Mitchell()
+    {
+        return { 1 / 3.0f, 1 / 3.0f };
+    }
+    static constexpr CubicResampler CatmullRom()
+    {
+        return { 0.0f, 1 / 2.0f };
+    }
 };
 
 class SamplingOptions {
@@ -62,23 +68,16 @@ private:
 };
 
 inline SamplingOptions::SamplingOptions() noexcept
-    : useCubic(false)
-    , filter(FilterMode::NEAREST)
-    , mipmap(MipmapMode::NONE) {}
+    : useCubic(false), filter(FilterMode::NEAREST), mipmap(MipmapMode::NONE)
+{}
 
-inline SamplingOptions::SamplingOptions(FilterMode fm) noexcept
-    : useCubic(false)
-    , filter(fm)
-    , mipmap(MipmapMode::NONE) {}
+inline SamplingOptions::SamplingOptions(FilterMode fm) noexcept : useCubic(false), filter(fm), mipmap(MipmapMode::NONE)
+{}
 
-inline SamplingOptions::SamplingOptions(FilterMode fm, MipmapMode mm) noexcept
-    : useCubic(false)
-    , filter(fm)
-    , mipmap(mm) {}
+inline SamplingOptions::SamplingOptions(FilterMode fm, MipmapMode mm) noexcept : useCubic(false), filter(fm), mipmap(mm)
+{}
 
-inline SamplingOptions::SamplingOptions(const CubicResampler& c) noexcept
-    : useCubic(true)
-    , cubic(c) {}
+inline SamplingOptions::SamplingOptions(const CubicResampler& c) noexcept : useCubic(true), cubic(c) {}
 
 inline bool SamplingOptions::GetUseCubic() const
 {
@@ -107,18 +106,15 @@ inline float SamplingOptions::GetCubicCoffC() const
 
 inline bool operator==(const SamplingOptions& a, const SamplingOptions& b)
 {
-    return a.useCubic == b.useCubic
-        && a.cubic.cubicCoffB  == b.cubic.cubicCoffB
-        && a.cubic.cubicCoffC  == b.cubic.cubicCoffC
-        && a.filter   == b.filter
-        && a.mipmap   == b.mipmap;
+    return a.useCubic == b.useCubic && a.cubic.cubicCoffB == b.cubic.cubicCoffB &&
+        a.cubic.cubicCoffC == b.cubic.cubicCoffC && a.filter == b.filter && a.mipmap == b.mipmap;
 }
 
 inline bool operator!=(const SamplingOptions& a, const SamplingOptions& b)
 {
     return !(a == b);
 }
-}
-}
-}
+} // namespace Drawing
+} // namespace Rosen
+} // namespace OHOS
 #endif

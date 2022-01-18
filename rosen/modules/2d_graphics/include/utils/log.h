@@ -16,26 +16,25 @@
 #ifndef DRAWING_LOG_H
 #define DRAWING_LOG_H
 
+#include <chrono>
 #include <cstdint>
 #include <functional>
-
-#include <chrono>
 #include <hilog/log.h>
 
-namespace OHOS{
+namespace OHOS {
 namespace Rosen {
-#define LOGD(fmt, ...) ::OHOS::HiviewDFX::HiLog::Debug(             \
-    ::OHOS::HiviewDFX::HiLogLabel {LOG_CORE, 0, "Drawing"}, \
-    "%{public}s: " fmt, __func__, ##__VA_ARGS__)
-#define LOGI(fmt, ...) ::OHOS::HiviewDFX::HiLog::Info(             \
-    ::OHOS::HiviewDFX::HiLogLabel {LOG_CORE, 0, "Drawing"}, \
-    "%{public}s: " fmt, __func__, ##__VA_ARGS__)
-#define LOGW(fmt, ...) ::OHOS::HiviewDFX::HiLog::Warn(             \
-    ::OHOS::HiviewDFX::HiLogLabel {LOG_CORE, 0, "Drawing"}, \
-    "%{public}s: " fmt, __func__, ##__VA_ARGS__)
-#define LOGE(fmt, ...) ::OHOS::HiviewDFX::HiLog::Error(             \
-    ::OHOS::HiviewDFX::HiLogLabel {LOG_CORE, 0, "Drawing"}, \
-    "%{public}s: " fmt, __func__, ##__VA_ARGS__)
+#define LOGD(fmt, ...)               \
+    ::OHOS::HiviewDFX::HiLog::Debug( \
+        ::OHOS::HiviewDFX::HiLogLabel { LOG_CORE, 0, "Drawing" }, "%{public}s: " fmt, __func__, ##__VA_ARGS__)
+#define LOGI(fmt, ...)              \
+    ::OHOS::HiviewDFX::HiLog::Info( \
+        ::OHOS::HiviewDFX::HiLogLabel { LOG_CORE, 0, "Drawing" }, "%{public}s: " fmt, __func__, ##__VA_ARGS__)
+#define LOGW(fmt, ...)              \
+    ::OHOS::HiviewDFX::HiLog::Warn( \
+        ::OHOS::HiviewDFX::HiLogLabel { LOG_CORE, 0, "Drawing" }, "%{public}s: " fmt, __func__, ##__VA_ARGS__)
+#define LOGE(fmt, ...)               \
+    ::OHOS::HiviewDFX::HiLog::Error( \
+        ::OHOS::HiviewDFX::HiLogLabel { LOG_CORE, 0, "Drawing" }, "%{public}s: " fmt, __func__, ##__VA_ARGS__)
 } // namespace Rosen
 } // namespace OHOS
 #endif

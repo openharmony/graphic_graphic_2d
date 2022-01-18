@@ -47,7 +47,7 @@ public:
     static std::unique_ptr<MatrixImpl> CreateMatrixImpl();
     static std::unique_ptr<CameraImpl> CreateCameraImpl();
 };
-}
-}
-}
+} // namespace Drawing
+} // namespace Rosen
+} // namespace OHOS
 #endif

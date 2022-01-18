@@ -19,6 +19,7 @@
 #include <memory>
 
 #include "base_impl.h"
+
 #include "utils/scalar.h"
 
 namespace OHOS {
@@ -31,16 +32,19 @@ public:
     static inline constexpr AdapterType TYPE = AdapterType::BASE_INTERFACE;
     ImageFilterImpl() noexcept {}
     virtual ~ImageFilterImpl() {}
-    AdapterType GetType() const override { return AdapterType::BASE_INTERFACE; }
+    AdapterType GetType() const override
+    {
+        return AdapterType::BASE_INTERFACE;
+    }
 
-    virtual void InitWithBlur(scalar sigmaX , scalar sigmaY, const ImageFilter& f) = 0;
+    virtual void InitWithBlur(scalar sigmaX, scalar sigmaY, const ImageFilter& f) = 0;
     virtual void InitWithColor(const ColorFilter& colorFilter, const ImageFilter& f) = 0;
     virtual void InitWithOffset(scalar dx, scalar dy, const ImageFilter& f) = 0;
     virtual void InitWithArithmetic(scalar k1, scalar k2, scalar k3, scalar k4, bool enforcePMColor,
-                                    const ImageFilter& f1, const ImageFilter& f2) = 0;
+        const ImageFilter& f1, const ImageFilter& f2) = 0;
     virtual void InitWithCompose(const ImageFilter& f1, const ImageFilter& f2) = 0;
 };
-}
-}
-}
+} // namespace Drawing
+} // namespace Rosen
+} // namespace OHOS
 #endif

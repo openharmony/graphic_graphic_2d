@@ -19,10 +19,8 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-class Text {
-
-};
-}
-}
-}
+class Text {};
+} // namespace Drawing
+} // namespace Rosen
+} // namespace OHOS
 #endif

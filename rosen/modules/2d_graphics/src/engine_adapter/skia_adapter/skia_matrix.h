@@ -30,7 +30,10 @@ public:
     static inline constexpr AdapterType TYPE = AdapterType::SKIA_ADAPTER;
     SkiaMatrix();
     virtual ~SkiaMatrix() override {}
-    AdapterType GetType() const override { return AdapterType::SKIA_ADAPTER; }
+    AdapterType GetType() const override
+    {
+        return AdapterType::SKIA_ADAPTER;
+    }
 
     void Rotate(scalar degree, scalar px, scalar py) override;
     void Translate(scalar dx, scalar dy) override;
@@ -38,14 +41,14 @@ public:
     const SkMatrix& ExportSkiaMatrix() const;
     void Multiply(const Matrix& a, const Matrix& b) override;
     bool Equals(const Matrix& a, const Matrix& b) override;
-    void SetMatrix(scalar scaleX, scalar skewX, scalar transX,
-        scalar skewY,  scalar scaleY, scalar transY,
+    void SetMatrix(scalar scaleX, scalar skewX, scalar transX, scalar skewY, scalar scaleY, scalar transY,
         scalar persp0, scalar persp1, scalar persp2) override;
     scalar Get(int index) override;
+
 private:
     SkMatrix skMatrix_;
 };
-}
-}
-}
+} // namespace Drawing
+} // namespace Rosen
+} // namespace OHOS
 #endif

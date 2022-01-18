@@ -19,6 +19,7 @@
 #include <memory>
 
 #include "base_impl.h"
+
 #include "draw/path.h"
 #include "utils/scalar.h"
 
@@ -32,7 +33,10 @@ public:
     static inline constexpr AdapterType TYPE = AdapterType::BASE_INTERFACE;
     PathEffectImpl() noexcept {}
     virtual ~PathEffectImpl() {}
-    AdapterType GetType() const override { return AdapterType::BASE_INTERFACE; }
+    AdapterType GetType() const override
+    {
+        return AdapterType::BASE_INTERFACE;
+    }
 
     virtual void InitWithDash(const scalar intervals[], int count, scalar phase) = 0;
     virtual void InitWithPathDash(const Path& path, scalar advance, scalar phase, PathDashStyle style) = 0;
@@ -40,7 +44,7 @@ public:
     virtual void InitWithSum(const PathEffect& e1, const PathEffect& e2) = 0;
     virtual void InitWithCompose(const PathEffect& e1, const PathEffect& e2) = 0;
 };
-}
-}
-}
+} // namespace Drawing
+} // namespace Rosen
+} // namespace OHOS
 #endif

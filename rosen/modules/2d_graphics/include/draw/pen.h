@@ -40,19 +40,19 @@ public:
     };
 
     Pen() noexcept;
-    Pen(const Pen &p) noexcept = default;
-    Pen(const Color &c) noexcept;
+    Pen(const Pen& p) noexcept = default;
+    Pen(const Color& c) noexcept;
     Pen(int rgba) noexcept;
     ~Pen() {};
 
     Color GetColor() const;
-    void SetColor(const Color &c);
+    void SetColor(const Color& c);
     void SetColor(int c);
     void SetARGB(int r, int g, int b, int a);
 
     Color4f GetColor4f();
     std::shared_ptr<ColorSpace> GetColorSpace() const;
-    void SetColor(const Color4f &cf, std::shared_ptr<ColorSpace> s);
+    void SetColor(const Color4f& cf, std::shared_ptr<ColorSpace> s);
 
     int GetAlpha() const;
     void SetAlpha(int a);
@@ -79,7 +79,7 @@ public:
     void SetPathEffect(std::shared_ptr<PathEffect> e);
     std::shared_ptr<PathEffect> GetPathEffect() const;
 
-    void SetFilter(const Filter &filter);
+    void SetFilter(const Filter& filter);
     Filter GetFilter() const;
 
     void SetShaderEffect(std::shared_ptr<ShaderEffect> e);
@@ -87,8 +87,9 @@ public:
 
     void Reset();
 
-    friend bool operator==(const Pen &p1, const Pen &p2);
-    friend bool operator!=(const Pen &p1, const Pen &p2);
+    friend bool operator==(const Pen& p1, const Pen& p2);
+    friend bool operator!=(const Pen& p1, const Pen& p2);
+
 private:
     scalar width_;
     scalar miterLimit_;
@@ -98,7 +99,7 @@ private:
 
     Brush brush_;
 };
-}
-}
-}
+} // namespace Drawing
+} // namespace Rosen
+} // namespace OHOS
 #endif

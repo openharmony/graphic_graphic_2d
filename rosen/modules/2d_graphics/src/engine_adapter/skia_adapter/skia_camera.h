@@ -30,7 +30,10 @@ public:
     static inline constexpr AdapterType TYPE = AdapterType::SKIA_ADAPTER;
     SkiaCamera() noexcept;
     ~SkiaCamera() {}
-    AdapterType GetType() const override { return AdapterType::SKIA_ADAPTER; }
+    AdapterType GetType() const override
+    {
+        return AdapterType::SKIA_ADAPTER;
+    }
 
     void Save() override;
     void Restore() override;
@@ -46,10 +49,11 @@ public:
     scalar GetCameraPosZ() const override;
 
     void ApplyToMatrix(Matrix& m) override;
+
 private:
     Sk3DView view_;
 };
-}
-}
-}
+} // namespace Drawing
+} // namespace Rosen
+} // namespace OHOS
 #endif

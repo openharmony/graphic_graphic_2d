@@ -17,6 +17,7 @@
 #define MATRIX_IMPL_H
 
 #include "base_impl.h"
+
 #include "utils/scalar.h"
 
 namespace OHOS {
@@ -28,19 +29,21 @@ public:
     static inline constexpr AdapterType TYPE = AdapterType::BASE_INTERFACE;
     MatrixImpl() {}
     virtual ~MatrixImpl() {}
-    AdapterType GetType() const override { return AdapterType::BASE_INTERFACE; }
+    AdapterType GetType() const override
+    {
+        return AdapterType::BASE_INTERFACE;
+    }
 
     virtual void Rotate(scalar degree, scalar px, scalar py) = 0;
     virtual void Translate(scalar dx, scalar dy) = 0;
     virtual void Scale(scalar sx, scalar sy, scalar px, scalar py) = 0;
     virtual void Multiply(const Matrix& a, const Matrix& b) = 0;
     virtual bool Equals(const Matrix& a, const Matrix& b) = 0;
-    virtual void SetMatrix(scalar scaleX, scalar skewX, scalar transX,
-        scalar skewY,  scalar scaleY, scalar transY,
+    virtual void SetMatrix(scalar scaleX, scalar skewX, scalar transX, scalar skewY, scalar scaleY, scalar transY,
         scalar persp0, scalar persp1, scalar persp2) = 0;
     virtual scalar Get(int index) = 0;
 };
-}
-}
-}
+} // namespace Drawing
+} // namespace Rosen
+} // namespace OHOS
 #endif

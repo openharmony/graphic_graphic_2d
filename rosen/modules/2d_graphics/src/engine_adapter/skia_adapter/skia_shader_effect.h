@@ -28,26 +28,29 @@ public:
     static inline constexpr AdapterType TYPE = AdapterType::SKIA_ADAPTER;
     SkiaShaderEffect() noexcept;
     ~SkiaShaderEffect() {};
-    AdapterType GetType() const override { return AdapterType::SKIA_ADAPTER; }
+    AdapterType GetType() const override
+    {
+        return AdapterType::SKIA_ADAPTER;
+    }
 
     void InitWithColor(ColorQuad color) override;
     void InitWithBlend(const ShaderEffect& s1, const ShaderEffect& s2, BlendMode mode) override;
-    void InitWithImage(const Image& image, TileMode tileX, TileMode tileY,
-        const SamplingOptions& sampling, const Matrix& matrix) override;
-    void InitWithLinearGradient(const Point& startPt, const Point& endPt,
-        const std::vector<ColorQuad>& colors, const std::vector<scalar>& pos, TileMode mode) override;
-    void InitWithRadialGradient(const Point& centerPt, scalar radius,
-        const std::vector<ColorQuad>& colors, const std::vector<scalar>& pos, TileMode mode) override;
+    void InitWithImage(const Image& image, TileMode tileX, TileMode tileY, const SamplingOptions& sampling,
+        const Matrix& matrix) override;
+    void InitWithLinearGradient(const Point& startPt, const Point& endPt, const std::vector<ColorQuad>& colors,
+        const std::vector<scalar>& pos, TileMode mode) override;
+    void InitWithRadialGradient(const Point& centerPt, scalar radius, const std::vector<ColorQuad>& colors,
+        const std::vector<scalar>& pos, TileMode mode) override;
     void InitWithTwoPointConical(const Point& startPt, scalar startRadius, const Point& endPtr, scalar endRadius,
         const std::vector<ColorQuad>& colors, const std::vector<scalar>& pos, TileMode mode) override;
-    void InitWithSweepGradient(const Point& centerPt,
-        const std::vector<ColorQuad>& colors, const std::vector<scalar>& pos, TileMode mode,
-        scalar startAngle, scalar endAngle) override;
+    void InitWithSweepGradient(const Point& centerPt, const std::vector<ColorQuad>& colors,
+        const std::vector<scalar>& pos, TileMode mode, scalar startAngle, scalar endAngle) override;
     sk_sp<SkShader> GetShader() const;
+
 private:
     sk_sp<SkShader> shader_;
 };
-}
-}
-}
+} // namespace Drawing
+} // namespace Rosen
+} // namespace OHOS
 #endif

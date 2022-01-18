@@ -17,6 +17,7 @@
 #define CAMERA_IMPL_H
 
 #include "base_impl.h"
+
 #include "utils/matrix.h"
 #include "utils/scalar.h"
 
@@ -28,7 +29,10 @@ public:
     static inline constexpr AdapterType TYPE = AdapterType::BASE_INTERFACE;
     CameraImpl() {}
     virtual ~CameraImpl() {}
-    AdapterType GetType() const override { return AdapterType::BASE_INTERFACE; }
+    AdapterType GetType() const override
+    {
+        return AdapterType::BASE_INTERFACE;
+    }
 
     virtual void Save() = 0;
     virtual void Restore() = 0;
@@ -45,7 +49,7 @@ public:
 
     virtual void ApplyToMatrix(Matrix& m) = 0;
 };
-}
-}
-}
+} // namespace Drawing
+} // namespace Rosen
+} // namespace OHOS
 #endif

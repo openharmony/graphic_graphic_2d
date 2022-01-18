@@ -35,7 +35,8 @@ public:
 
     ~ColorMatrix() {}
 
-    void SetIdentity() {
+    void SetIdentity()
+    {
         for (size_t i = 0; i < sizeof(array_); i = i + 6) {
             array_[i] = 1;
         }
@@ -59,10 +60,10 @@ public:
 
     void SetConcat(const ColorMatrix& m1, const ColorMatrix& m2)
     {
-        scalar tmp[20] = {0};
+        scalar tmp[20] = { 0 };
         scalar* target;
 
-        if (array_ ==  m1.array_ || array_ == m2.array_) {
+        if (array_ == m1.array_ || array_ == m2.array_) {
             target = tmp;
         } else {
             target = array_;
@@ -108,10 +109,11 @@ public:
         array_[12] = sb;
         array_[18] = sa;
     }
+
 private:
-    scalar array_[20] = {0};
+    scalar array_[20] = { 0 };
 };
-}
-}
-}
+} // namespace Drawing
+} // namespace Rosen
+} // namespace OHOS
 #endif

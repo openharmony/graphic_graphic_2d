@@ -16,18 +16,16 @@
 #ifndef RENDER_CONTEXT_H
 #define RENDER_CONTEXT_H
 
-#include "include/gpu/GrContext.h"
-#include "include/gpu/GrBackendSurface.h"
-#include "include/gpu/gl/GrGLInterface.h"
-#include "include/core/SkCanvas.h"
-#include "include/core/SkColorSpace.h"
-#include "include/core/SkSurface.h"
-#include "include/core/SkImageInfo.h"
-
 #include "EGL/egl.h"
 #include "EGL/eglext.h"
-
 #include "GLES3/gl32.h"
+#include "include/core/SkCanvas.h"
+#include "include/core/SkColorSpace.h"
+#include "include/core/SkImageInfo.h"
+#include "include/core/SkSurface.h"
+#include "include/gpu/GrBackendSurface.h"
+#include "include/gpu/GrContext.h"
+#include "include/gpu/gl/GrGLInterface.h"
 
 #define GLES_VERSION 2
 namespace OHOS {
@@ -68,6 +66,7 @@ public:
     {
         return eglContext_ != EGL_NO_DISPLAY;
     }
+
 private:
     sk_sp<GrContext> grContext_;
     sk_sp<SkSurface> skSurface_;
@@ -112,6 +111,6 @@ private:
 
     RenderContext* context_;
 };
-}
-}
+} // namespace Rosen
+} // namespace OHOS
 #endif

@@ -30,7 +30,7 @@ public:
     Canvas() {}
     virtual ~Canvas() {};
 };
-}
-}
-}
+} // namespace Drawing
+} // namespace Rosen
+} // namespace OHOS
 #endif

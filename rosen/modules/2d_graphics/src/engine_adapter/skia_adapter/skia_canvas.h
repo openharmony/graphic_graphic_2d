@@ -23,12 +23,12 @@
 #include "include/core/SkPoint3.h"
 #include "include/core/SkRRect.h"
 #include "include/utils/SkShadowUtils.h"
-
-#include "impl_interface/core_canvas_impl.h"
 #include "skia_bitmap.h"
 #include "skia_image.h"
 #include "skia_matrix.h"
 #include "skia_paint.h"
+
+#include "impl_interface/core_canvas_impl.h"
 #include "utils/log.h"
 
 namespace OHOS {
@@ -39,7 +39,10 @@ public:
     static inline constexpr AdapterType TYPE = AdapterType::SKIA_ADAPTER;
     SkiaCanvas();
     virtual ~SkiaCanvas();
-    AdapterType GetType() const override { return AdapterType::SKIA_ADAPTER; }
+    AdapterType GetType() const override
+    {
+        return AdapterType::SKIA_ADAPTER;
+    }
 
     void Bind(const Bitmap& bitmap) override;
 
@@ -55,8 +58,8 @@ public:
     void DrawCircle(const Point& centerPt, scalar radius) override;
     void DrawPath(const Path& path) override;
     void DrawBackground(const Brush& brush) override;
-    void DrawShadow(const Path& path, const Point3& planeParams, const Point3& devLightPos,
-                    scalar lightRadius, Color ambientColor, Color spotColor, ShadowFlags flag) override;
+    void DrawShadow(const Path& path, const Point3& planeParams, const Point3& devLightPos, scalar lightRadius,
+        Color ambientColor, Color spotColor, ShadowFlags flag) override;
 
     // image
     void DrawBitmap(const Bitmap& bitmap, const scalar px, const scalar py) override;
@@ -94,12 +97,13 @@ public:
     void DetachBrush() override;
 
     const std::shared_ptr<SkCanvas> ExportSkiaCanvas() const;
+
 private:
     void RoundRectCastToSkRRect(const RoundRect& roundRect, SkRRect& skRRect);
     std::shared_ptr<SkCanvas> skiaCanvas_;
     SkiaPaint skiaPaint_;
 };
-}
-}
-}
+} // namespace Drawing
+} // namespace Rosen
+} // namespace OHOS
 #endif

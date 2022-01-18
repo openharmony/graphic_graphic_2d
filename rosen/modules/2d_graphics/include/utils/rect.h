@@ -28,7 +28,7 @@ typedef RectF Rect;
 class RectF {
 public:
     inline RectF() noexcept;
-    inline RectF(const RectF &r) noexcept;
+    inline RectF(const RectF& r) noexcept;
     inline RectF(const scalar l, const scalar t, const scalar r, const scalar b) noexcept;
 
     ~RectF() {}
@@ -50,8 +50,8 @@ public:
 
     inline void Offset(scalar dx, scalar dy);
 
-    friend inline bool operator==(const RectF &r1, const RectF &r2);
-    friend inline bool operator!=(const RectF &r1, const RectF &r2);
+    friend inline bool operator==(const RectF& r1, const RectF& r2);
+    friend inline bool operator!=(const RectF& r1, const RectF& r2);
 
 private:
     scalar left_;
@@ -62,11 +62,13 @@ private:
 
 inline RectF::RectF() noexcept : left_(0.0), right_(0.0), top_(0.0), bottom_(0.0) {}
 
-inline RectF::RectF(const RectF &r) noexcept
-    : left_(r.GetLeft()), right_(r.GetRight()), top_(r.GetTop()), bottom_(r.GetBottom()) {}
+inline RectF::RectF(const RectF& r) noexcept
+    : left_(r.GetLeft()), right_(r.GetRight()), top_(r.GetTop()), bottom_(r.GetBottom())
+{}
 
 inline RectF::RectF(const scalar l, const scalar t, const scalar r, const scalar b) noexcept
-    : left_(l), right_(r), top_(t), bottom_(b) {}
+    : left_(l), right_(r), top_(t), bottom_(b)
+{}
 
 inline bool RectF::IsValid() const
 {
@@ -131,13 +133,13 @@ inline void RectF::Offset(scalar dx, scalar dy)
     bottom_ += dy;
 }
 
-inline bool operator==(const RectF &r1, const RectF &r2)
+inline bool operator==(const RectF& r1, const RectF& r2)
 {
     return IsScalarAlmostEqual(r1.left_, r2.left_) && IsScalarAlmostEqual(r1.right_, r2.right_) &&
         IsScalarAlmostEqual(r1.top_, r2.top_) && IsScalarAlmostEqual(r1.bottom_, r2.bottom_);
 }
 
-inline bool operator!=(const RectF &r1, const RectF &r2)
+inline bool operator!=(const RectF& r1, const RectF& r2)
 {
     return !IsScalarAlmostEqual(r1.left_, r2.left_) || !IsScalarAlmostEqual(r1.right_, r2.right_) ||
         !IsScalarAlmostEqual(r1.top_, r2.top_) || !IsScalarAlmostEqual(r1.bottom_, r2.bottom_);
@@ -146,7 +148,7 @@ inline bool operator!=(const RectF &r1, const RectF &r2)
 class RectI {
 public:
     inline RectI() noexcept;
-    inline RectI(const RectI &r) noexcept;
+    inline RectI(const RectI& r) noexcept;
     inline RectI(const int l, const int t, const int r, const int b) noexcept;
 
     ~RectI() {}
@@ -168,8 +170,9 @@ public:
 
     inline void Offset(int dx, int dy);
 
-    friend inline bool operator==(const RectI &r1, const RectI &r2);
-    friend inline bool operator!=(const RectI &r1, const RectI &r2);
+    friend inline bool operator==(const RectI& r1, const RectI& r2);
+    friend inline bool operator!=(const RectI& r1, const RectI& r2);
+
 private:
     int left_;
     int right_;
@@ -179,12 +182,13 @@ private:
 
 inline RectI::RectI() noexcept : left_(0), right_(0), top_(0), bottom_(0) {}
 
-inline RectI::RectI(const RectI &r) noexcept
-    : left_(r.GetLeft()), right_(r.GetRight()), top_(r.GetTop()), bottom_(r.GetBottom()) {}
+inline RectI::RectI(const RectI& r) noexcept
+    : left_(r.GetLeft()), right_(r.GetRight()), top_(r.GetTop()), bottom_(r.GetBottom())
+{}
 
 inline RectI::RectI(const int l, const int t, const int r, const int b) noexcept
-    : left_(l), right_(r), top_(t), bottom_(b) {}
-
+    : left_(l), right_(r), top_(t), bottom_(b)
+{}
 
 inline bool RectI::IsValid() const
 {
@@ -249,18 +253,16 @@ inline void RectI::Offset(int dx, int dy)
     bottom_ += dy;
 }
 
-inline bool operator==(const RectI &r1, const RectI &r2)
+inline bool operator==(const RectI& r1, const RectI& r2)
 {
-    return r1.left_ == r2.left_ && r1.right_ == r2.right_ &&
-        r1.top_ == r2.top_ && r1.bottom_ == r2.bottom_;
+    return r1.left_ == r2.left_ && r1.right_ == r2.right_ && r1.top_ == r2.top_ && r1.bottom_ == r2.bottom_;
 }
 
-inline bool operator!=(const RectI &r1, const RectI &r2)
+inline bool operator!=(const RectI& r1, const RectI& r2)
 {
-    return r1.left_ != r2.left_ || r1.right_ != r2.right_ ||
-        r1.top_ != r2.top_ || r1.bottom_ != r2.bottom_;
+    return r1.left_ != r2.left_ || r1.right_ != r2.right_ || r1.top_ != r2.top_ || r1.bottom_ != r2.bottom_;
 }
-}
-}
-}
+} // namespace Drawing
+} // namespace Rosen
+} // namespace OHOS
 #endif

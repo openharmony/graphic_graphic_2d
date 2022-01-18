@@ -94,7 +94,7 @@ public:
 
 public:
     Color() noexcept;
-    Color(const Color &c) noexcept;
+    Color(const Color& c) noexcept;
     Color(int r, int g, int b, int a) noexcept;
     Color(ColorQuad rgba) noexcept;
 
@@ -123,8 +123,9 @@ public:
     void SetColorQuad(int c);
     ColorQuad CastToColorQuad() const;
 
-    friend bool operator==(const Color &c1, const Color &c2);
-    friend bool operator!=(const Color &c1, const Color &c2);
+    friend bool operator==(const Color& c1, const Color& c2);
+    friend bool operator!=(const Color& c1, const Color& c2);
+
 private:
     int alpha_;
     int red_;
@@ -132,7 +133,7 @@ private:
     int blue_;
     Color4f color4f_;
 };
-}
-}
-}
+} // namespace Drawing
+} // namespace Rosen
+} // namespace OHOS
 #endif

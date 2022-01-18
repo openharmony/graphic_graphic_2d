@@ -51,7 +51,7 @@ enum class BlendMode {
     COLOR,
     LUMINOSITY,
 };
-}
-}
-}
+} // namespace Drawing
+} // namespace Rosen
+} // namespace OHOS
 #endif

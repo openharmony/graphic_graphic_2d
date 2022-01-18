@@ -28,7 +28,10 @@ public:
     static inline constexpr AdapterType TYPE = AdapterType::SKIA_ADAPTER;
     SkiaColorFilter() noexcept;
     ~SkiaColorFilter() {};
-    AdapterType GetType() const override { return AdapterType::SKIA_ADAPTER; }
+    AdapterType GetType() const override
+    {
+        return AdapterType::SKIA_ADAPTER;
+    }
 
     void InitWithBlendMode(ColorQuad c, BlendMode mode) override;
     void InitWithColorMatrix(ColorMatrix& m) override;
@@ -37,10 +40,11 @@ public:
     void InitWithCompose(const ColorFilter& f1, const ColorFilter& f2) override;
     void Compose(const ColorFilter& f) override;
     sk_sp<SkColorFilter> GetColorFilter() const;
+
 private:
     sk_sp<SkColorFilter> filter_;
 };
-}
-}
-}
+} // namespace Drawing
+} // namespace Rosen
+} // namespace OHOS
 #endif

@@ -33,15 +33,19 @@ public:
     void Scale(scalar sx, scalar sy, scalar px, scalar py);
     Matrix operator*(const Matrix& other);
     bool operator==(const Matrix& other);
-    void SetMatrix(scalar scaleX, scalar skewX,  scalar transX,
-        scalar skewY,  scalar scaleY, scalar transY,
+    void SetMatrix(scalar scaleX, scalar skewX, scalar transX, scalar skewY, scalar scaleY, scalar transY,
         scalar persp0, scalar persp1, scalar persp2);
     scalar Get(int index);
-    template<typename T> const std::shared_ptr<T> GetImpl() const { return matrixImplPtr->DowncastingTo<T>(); }
+    template<typename T>
+    const std::shared_ptr<T> GetImpl() const
+    {
+        return matrixImplPtr->DowncastingTo<T>();
+    }
+
 private:
     std::shared_ptr<MatrixImpl> matrixImplPtr;
 };
-}
-}
-}
+} // namespace Drawing
+} // namespace Rosen
+} // namespace OHOS
 #endif

@@ -28,16 +28,20 @@ public:
     static inline constexpr AdapterType TYPE = AdapterType::SKIA_ADAPTER;
     SkiaColorSpace() noexcept;
     ~SkiaColorSpace() {};
-    AdapterType GetType() const override { return AdapterType::SKIA_ADAPTER; }
+    AdapterType GetType() const override
+    {
+        return AdapterType::SKIA_ADAPTER;
+    }
 
     void InitWithSRGB() override;
     void InitWithSRGBLinear() override;
     void InitWithImage(const Image& image) override;
     sk_sp<SkColorSpace> GetColorSpace() const;
+
 private:
     sk_sp<SkColorSpace> colorSpace_;
 };
-}
-}
-}
+} // namespace Drawing
+} // namespace Rosen
+} // namespace OHOS
 #endif

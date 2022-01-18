@@ -41,7 +41,12 @@ public:
     ColorQuad GetColor(int x, int y);
     void Free();
     BitmapFormat GetFormat();
-    template<typename T> const std::shared_ptr<T> GetImpl() const { return bmpImplPtr->DowncastingTo<T>(); }
+    template<typename T>
+    const std::shared_ptr<T> GetImpl() const
+    {
+        return bmpImplPtr->DowncastingTo<T>();
+    }
+
 private:
     std::shared_ptr<BitmapImpl> bmpImplPtr;
     void* pixels_;
@@ -49,7 +54,7 @@ private:
     int height_;
     BitmapFormat format_;
 };
-}
-}
-}
+} // namespace Drawing
+} // namespace Rosen
+} // namespace OHOS
 #endif

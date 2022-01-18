@@ -28,15 +28,19 @@ public:
     static inline constexpr AdapterType TYPE = AdapterType::SKIA_ADAPTER;
     SkiaImage() noexcept;
     virtual ~SkiaImage() override {}
-    AdapterType GetType() const override { return AdapterType::SKIA_ADAPTER; }
+    AdapterType GetType() const override
+    {
+        return AdapterType::SKIA_ADAPTER;
+    }
     void* BuildFromBitmap(const Bitmap& bitmap) override;
     int GetWidth() override;
     int GetHeight() override;
     const sk_sp<SkImage> GetImage() const;
+
 private:
     sk_sp<SkImage> skiaImage_;
 };
-}
-}
-}
+} // namespace Drawing
+} // namespace Rosen
+} // namespace OHOS
 #endif

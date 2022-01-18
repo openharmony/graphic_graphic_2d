@@ -48,15 +48,16 @@ public:
     FilterQuality GetFilterQuality() const;
     void SetFilterQuality(FilterQuality fq);
 
-    friend bool operator==(const Filter &f1, const Filter &f2);
-    friend bool operator!=(const Filter &f1, const Filter &f2);
+    friend bool operator==(const Filter& f1, const Filter& f2);
+    friend bool operator!=(const Filter& f1, const Filter& f2);
+
 private:
     std::shared_ptr<ColorFilter> colorFilter_;
     std::shared_ptr<ImageFilter> imageFilter_;
     std::shared_ptr<MaskFilter> maskFilter_;
     FilterQuality filterQuality_;
 };
-}
-}
-}
+} // namespace Drawing
+} // namespace Rosen
+} // namespace OHOS
 #endif

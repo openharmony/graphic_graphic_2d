@@ -27,7 +27,7 @@ typedef SizeF Size;
 class SizeF {
 public:
     inline SizeF() noexcept;
-    inline SizeF(const SizeF &s) noexcept;
+    inline SizeF(const SizeF& s) noexcept;
     inline SizeF(scalar w, scalar h) noexcept;
 
     inline bool IsZero() const;
@@ -39,8 +39,8 @@ public:
     inline void SetWidth(scalar w);
     inline void SetHeight(scalar h);
 
-    friend inline bool operator==(const SizeF &s1, const SizeF &s2);
-    friend inline bool operator!=(const SizeF &s1, const SizeF &s2);
+    friend inline bool operator==(const SizeF& s1, const SizeF& s2);
+    friend inline bool operator!=(const SizeF& s1, const SizeF& s2);
 
 private:
     scalar width_;
@@ -49,7 +49,7 @@ private:
 
 inline SizeF::SizeF() noexcept : width_(0.0), height_(0.0) {}
 
-inline SizeF::SizeF(const SizeF &s) noexcept : width_(s.Width()), height_(s.Height()) {}
+inline SizeF::SizeF(const SizeF& s) noexcept : width_(s.Width()), height_(s.Height()) {}
 
 inline SizeF::SizeF(scalar w, scalar h) noexcept : width_(w), height_(h) {}
 
@@ -83,12 +83,12 @@ inline void SizeF::SetHeight(scalar h)
     height_ = h;
 }
 
-inline bool operator==(const SizeF &s1, const SizeF &s2)
+inline bool operator==(const SizeF& s1, const SizeF& s2)
 {
     return s1.width_ == s2.width_ && s1.height_ == s2.height_;
 }
 
-inline bool operator!=(const SizeF &s1, const SizeF &s2)
+inline bool operator!=(const SizeF& s1, const SizeF& s2)
 {
     return s1.width_ != s2.width_ || s1.height_ != s2.height_;
 }
@@ -96,7 +96,7 @@ inline bool operator!=(const SizeF &s1, const SizeF &s2)
 class SizeI {
 public:
     inline SizeI() noexcept;
-    inline SizeI(const SizeI &s) noexcept;
+    inline SizeI(const SizeI& s) noexcept;
     inline SizeI(int w, int h) noexcept;
 
     inline bool IsZero() const;
@@ -108,8 +108,8 @@ public:
     inline void SetWidth(int w);
     inline void SetHeight(int h);
 
-    friend inline bool operator==(const SizeI &s1, const SizeI &s2);
-    friend inline bool operator!=(const SizeI &s1, const SizeI &s2);
+    friend inline bool operator==(const SizeI& s1, const SizeI& s2);
+    friend inline bool operator!=(const SizeI& s1, const SizeI& s2);
 
 private:
     int width_;
@@ -118,7 +118,7 @@ private:
 
 inline SizeI::SizeI() noexcept : width_(0.0), height_(0.0) {}
 
-inline SizeI::SizeI(const SizeI &s) noexcept : width_(s.Width()), height_(s.Height()) {}
+inline SizeI::SizeI(const SizeI& s) noexcept : width_(s.Width()), height_(s.Height()) {}
 
 inline SizeI::SizeI(int w, int h) noexcept : width_(w), height_(h) {}
 
@@ -152,16 +152,16 @@ inline void SizeI::SetHeight(int h)
     height_ = h;
 }
 
-inline bool operator==(const SizeI &s1, const SizeI &s2)
+inline bool operator==(const SizeI& s1, const SizeI& s2)
 {
     return s1.width_ == s2.width_ && s1.height_ == s2.height_;
 }
 
-inline bool operator!=(const SizeI &s1, const SizeI &s2)
+inline bool operator!=(const SizeI& s1, const SizeI& s2)
 {
     return s1.width_ != s2.width_ || s1.height_ != s2.height_;
 }
-}
-}
-}
+} // namespace Drawing
+} // namespace Rosen
+} // namespace OHOS
 #endif

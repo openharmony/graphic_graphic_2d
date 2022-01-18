@@ -28,7 +28,10 @@ public:
     static inline constexpr AdapterType TYPE = AdapterType::SKIA_ADAPTER;
     SkiaBitmap();
     virtual ~SkiaBitmap() override {}
-    AdapterType GetType() const override { return AdapterType::SKIA_ADAPTER; }
+    AdapterType GetType() const override
+    {
+        return AdapterType::SKIA_ADAPTER;
+    }
 
     void Build(const int width, const int height, const BitmapFormat& format) override;
     int GetWidth() override;
@@ -41,10 +44,11 @@ public:
     ColorQuad GetColor(int x, int y) override;
     void Free() override;
     bool IsValid() override;
+
 private:
     SkBitmap skiaBitmap_;
 };
-}
-}
-}
+} // namespace Drawing
+} // namespace Rosen
+} // namespace OHOS
 #endif

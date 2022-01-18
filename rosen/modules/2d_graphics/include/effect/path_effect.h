@@ -23,14 +23,14 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-enum class PathDashStyle{
+enum class PathDashStyle {
     TRANSLATE,
     ROTATE,
     MORPH,
 };
 class PathEffect {
 public:
-    enum class PathEffectType{
+    enum class PathEffectType {
         NO_TYPE,
         DASH,
         PATH_DASH,
@@ -39,8 +39,9 @@ public:
         COMPOSE,
     };
 
-    static std::shared_ptr<PathEffect> CreateDashPathEffect(const scalar intervals[], int count, scalar  phase);
-    static std::shared_ptr<PathEffect> CreatePathDashEffect(const Path& path, scalar advance, scalar phase, PathDashStyle style);
+    static std::shared_ptr<PathEffect> CreateDashPathEffect(const scalar intervals[], int count, scalar phase);
+    static std::shared_ptr<PathEffect> CreatePathDashEffect(
+        const Path& path, scalar advance, scalar phase, PathDashStyle style);
     static std::shared_ptr<PathEffect> CreateCornerPathEffect(scalar radius);
     static std::shared_ptr<PathEffect> CreateSumPathEffect(PathEffect& e1, PathEffect& e2);
     static std::shared_ptr<PathEffect> CreateComposePathEffect(PathEffect& e1, PathEffect& e2);
@@ -53,14 +54,20 @@ public:
     PathEffect(PathEffectType t, scalar radius) noexcept;
     PathEffect(PathEffectType t, PathEffect& e1, PathEffect& e2) noexcept;
 
-    template<typename T> const std::shared_ptr<T> GetImpl() const { return impl_->DowncastingTo<T>(); }
+    template<typename T>
+    const std::shared_ptr<T> GetImpl() const
+    {
+        return impl_->DowncastingTo<T>();
+    }
+
 protected:
     PathEffect() noexcept;
+
 private:
     PathEffectType type_;
     std::shared_ptr<PathEffectImpl> impl_;
 };
-}
-}
-}
+} // namespace Drawing
+} // namespace Rosen
+} // namespace OHOS
 #endif

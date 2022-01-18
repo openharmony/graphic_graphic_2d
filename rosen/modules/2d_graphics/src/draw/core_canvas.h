@@ -41,8 +41,8 @@ public:
     void DrawCircle(const Point& centerPt, scalar radius);
     void DrawPath(const Path& path);
     void DrawBackground(const Brush& brush);
-    void DrawShadow(const Path& path, const Point3& planeParams, const Point3& devLightPos,
-                    scalar lightRadius, Color ambientColor, Color spotColor, ShadowFlags flag);
+    void DrawShadow(const Path& path, const Point3& planeParams, const Point3& devLightPos, scalar lightRadius,
+        Color ambientColor, Color spotColor, ShadowFlags flag);
 
     // image
     void DrawBitmap(const Bitmap& bitmap, const scalar px, const scalar py);
@@ -79,11 +79,16 @@ public:
     CoreCanvas& DetachPen();
     CoreCanvas& DetachBrush();
 
-    template<typename T> const std::shared_ptr<T> GetImpl() const { return impl_->DowncastingTo<T>(); }
+    template<typename T>
+    const std::shared_ptr<T> GetImpl() const
+    {
+        return impl_->DowncastingTo<T>();
+    }
+
 private:
     std::shared_ptr<CoreCanvasImpl> impl_;
 };
-}
-}
-}
+} // namespace Drawing
+} // namespace Rosen
+} // namespace OHOS
 #endif

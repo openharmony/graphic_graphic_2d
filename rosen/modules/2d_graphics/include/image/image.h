@@ -28,13 +28,18 @@ public:
     Image* BuildFromBitmap(const Bitmap& bitmap);
     int GetWidth();
     int GetHeight();
-    template<typename T> const std::shared_ptr<T> GetImpl() const { return imageImplPtr->DowncastingTo<T>(); }
+    template<typename T>
+    const std::shared_ptr<T> GetImpl() const
+    {
+        return imageImplPtr->DowncastingTo<T>();
+    }
+
 private:
     std::shared_ptr<ImageImpl> imageImplPtr;
     int width_;
     int height_;
 };
-}
-}
-}
+} // namespace Drawing
+} // namespace Rosen
+} // namespace OHOS
 #endif

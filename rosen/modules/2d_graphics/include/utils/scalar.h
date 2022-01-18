@@ -24,10 +24,11 @@ namespace Rosen {
 namespace Drawing {
 typedef float scalar;
 
-inline bool IsScalarAlmostEqual(scalar a, scalar b) {
+inline bool IsScalarAlmostEqual(scalar a, scalar b)
+{
     return fabs(a - b) < std::numeric_limits<scalar>::min();
 }
-}
-}
-}
+} // namespace Drawing
+} // namespace Rosen
+} // namespace OHOS
 #endif

@@ -25,7 +25,7 @@ enum class ShadowFlags {
     GEOMETRIC_ONLY,
     ALL,
 };
-}
-}
-}
+} // namespace Drawing
+} // namespace Rosen
+} // namespace OHOS
 #endif
