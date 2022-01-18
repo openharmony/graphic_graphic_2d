@@ -184,8 +184,8 @@ GSError BufferQueue::RequestBuffer(const BufferRequestConfig &config, BufferExtr
         return ret;
     }
 
+    std::unique_lock<std::mutex> lock(mutex_);
     // dequeue from free list
-    std::lock_guard<std::mutex> lockGuard(mutex_);
     sptr<SurfaceBufferImpl> bufferImpl = SurfaceBufferImpl::FromBase(retval.buffer);
     ret = PopFromFreeList(bufferImpl, config);
     if (ret == GSERROR_OK) {
@@ -195,8 +195,17 @@ GSError BufferQueue::RequestBuffer(const BufferRequestConfig &config, BufferExtr
 
     // check queue size
     if (GetUsedSize() >= GetQueueSize()) {
-        BLOGN_FAILURE("all buffer are using");
-        return GSERROR_NO_BUFFER;
+        std::condition_variable con;
+        con.wait_for(lock, std::chrono::milliseconds(config.timeout));
+        // try dequeue from free list again
+        ret = PopFromFreeList(bufferImpl, config);
+        if (ret == GSERROR_OK) {
+            retval.buffer = bufferImpl;
+            return ReuseBuffer(config, bedata, retval);
+        } else {
+            BLOGN_FAILURE("all buffer are using");
+            return GSERROR_NO_BUFFER;
+        }
     }
 
     ret = AllocBuffer(bufferImpl, config);
