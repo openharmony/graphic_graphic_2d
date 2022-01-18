@@ -121,7 +121,6 @@ ohos_executable("render_service_client_surface_node_demo") {
     "//foundation/graphic/standard/rosen/modules/render_service_base:librender_service_base",
     "//foundation/graphic/standard/rosen/modules/render_service_client:librender_service_client",
     "//foundation/multimedia/image_standard/interfaces/innerkits:image_native",
-    "//foundation/windowmanager/adapter:libwmadapter",
     "//foundation/windowmanager/wm:libwm",
     "//foundation/windowmanager/wmserver:libwms",
     "//third_party/zlib:libz",
