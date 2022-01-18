@@ -304,7 +304,8 @@ ScreenId RSScreenManager::CreateVirtualScreen(
     uint32_t height,
     sptr<Surface> surface,
     ScreenId mirrorId,
-    int32_t flags)
+    int32_t flags
+    )
 {
     std::lock_guard<std::mutex> lock(mutex_);
 

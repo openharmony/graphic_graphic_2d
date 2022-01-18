@@ -398,7 +398,7 @@ int main()
         cout << "ImgReader init failed!" << endl;
     }
     DisplayId virtualDisplayId = RSInterfaces::GetInstance().CreateVirtualScreen("virtualDisplay",
-        modeInfo.GetScreenWidth(), modeInfo.GetScreenHeight(), imgReader.GetSurface(), INVALID_SCREEN_ID, -1);
+        modeInfo.GetScreenWidth(), modeInfo.GetScreenHeight(), imgReader.GetSurface());
     cout << "VirtualScreenId: " << virtualDisplayId << endl;
     cout << "------------------------------------------------------------------" << endl;
     RSDisplayNodeConfig mirrorConfig {virtualDisplayId, true, sourceDisplayNode->GetId()};

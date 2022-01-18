@@ -77,11 +77,6 @@ int32_t RSScreenModeInfo::GetScreenModeId() const
     return modeId_;
 }
 
-float RSScreenModeInfo::GetScreenDensity() const
-{
-    return density_;
-}
-
 void RSScreenModeInfo::SetScreenWidth(int32_t width)
 {
     width_ = width;
@@ -100,12 +95,6 @@ void RSScreenModeInfo::SetScreenFreshRate(uint32_t freshRate)
 void RSScreenModeInfo::SetScreenModeId(int32_t id)
 {
     modeId_ = id;
-}
-
-void RSScreenModeInfo::SetScreenDensity(float density)
-{
-    density_ = density;
-    // TODO : SET DENSIYT
 }
 } // namespace Rosen
 } // namespace OHOS

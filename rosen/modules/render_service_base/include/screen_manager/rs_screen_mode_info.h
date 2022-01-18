@@ -37,19 +37,16 @@ public:
     int32_t GetScreenHeight() const;
     uint32_t GetScreenFreshRate() const;
     int32_t GetScreenModeId() const;
-    float GetScreenDensity() const;
     void SetScreenWidth(int32_t width);
     void SetScreenHeight(int32_t height);
     void SetScreenFreshRate(uint32_t freshRate);
     void SetScreenModeId(int32_t id);
-    void SetScreenDensity(float density);
 
 private:
     int32_t width_ = -1;
     int32_t height_ = -1;
     uint32_t freshRate_ = 0;
     int32_t modeId_ = -1;
-    float density_ = 2.0;
 };
 } // namespace Rosen
 } // namespace OHOS

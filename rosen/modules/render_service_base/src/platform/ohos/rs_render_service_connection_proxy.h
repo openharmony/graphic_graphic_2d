@@ -40,8 +40,8 @@ public:
         uint32_t width,
         uint32_t height,
         sptr<Surface> surface,
-        ScreenId mirrorId,
-        int32_t flags) override;
+        ScreenId mirrorId = 0,
+        int32_t flags = 0) override;
 
     void RemoveVirtualScreen(ScreenId id) override;
 
