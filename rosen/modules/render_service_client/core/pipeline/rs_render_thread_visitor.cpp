@@ -91,6 +91,10 @@ void RSRenderThreadVisitor::ProcessBaseRenderNode(RSBaseRenderNode& node)
 
 void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
 {
+    if (!isIdle_) {
+        ProcessCanvasRenderNode(node);
+        return;
+    }
     std::shared_ptr<RSSurface> rsSurface = nullptr;
     NodeId surfaceId = node.GetRSSurfaceNodeId();
     auto ptr = std::static_pointer_cast<RSSurfaceNode>(RSNodeMap::Instance().GetNode(surfaceId).lock());
@@ -99,11 +103,6 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
         return;
     }
     rsSurface = RSSurfaceExtractor::ExtractRSSurface(ptr);
-    if (!isIdle_) {
-        ProcessCanvasRenderNode(node);
-        return;
-    }
-
     if (rsSurface == nullptr) {
         ROSEN_LOGE("No RSSurface found");
         return;
