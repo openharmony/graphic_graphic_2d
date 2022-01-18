@@ -1,0 +1,134 @@
+# Copyright (c) 2021 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/test.gni")
+
+module_out_path = "graphic_standard/composer"
+
+group("systemtest") {
+  testonly = true
+
+  deps = [
+    ":hdibackend_test",
+    ":hdilayer_test",
+    ":hdioutput_test",
+    ":hdiscreen_test",
+  ]
+}
+
+## SystemTest hdibackend_test {{{
+ohos_systemtest("hdibackend_test") {
+  module_out_path = module_out_path
+
+  sources = [ "hdibackend_test.cpp" ]
+
+  include_dirs = [
+    "//foundation/graphic/standard/rosen/modules/composer/hdi_backend/include",
+    "//foundation/graphic/standard/rosen/modules/composer/hdi_backend/test",
+    "//foundation/graphic/standard/interfaces/innerkits/surface",
+  ]
+
+  cflags = [
+    "-Wall",
+    "-Werror",
+    "-g3",
+  ]
+
+  deps = [
+    "//foundation/graphic/standard/rosen/modules/composer:libcomposer",
+    "//third_party/googletest:gtest_main",
+  ]
+}
+
+## SystemTest hdibackend_test }}}
+
+## SystemTest hdilayer_test {{{
+ohos_systemtest("hdilayer_test") {
+  module_out_path = module_out_path
+
+  sources = [ "hdilayer_test.cpp" ]
+
+  include_dirs = [
+    "//foundation/graphic/standard/rosen/modules/composer/hdi_backend/include",
+    "//foundation/graphic/standard/rosen/modules/composer/hdi_backend/test",
+    "//foundation/graphic/standard/interfaces/innerkits/surface",
+  ]
+
+  cflags = [
+    "-Wall",
+    "-Werror",
+    "-g3",
+  ]
+
+  deps = [
+    "//foundation/graphic/standard/rosen/modules/composer:libcomposer",
+    "//third_party/googletest:gtest_main",
+  ]
+}
+
+## SystemTest hdilayer_test }}}
+
+## SystemTest hdioutput_test {{{
+ohos_systemtest("hdioutput_test") {
+  module_out_path = module_out_path
+
+  sources = [ "hdioutput_test.cpp" ]
+
+  include_dirs = [
+    "//foundation/graphic/standard/rosen/modules/composer/hdi_backend/include",
+    "//foundation/graphic/standard/rosen/modules/composer/hdi_backend/test",
+    "//foundation/graphic/standard/interfaces/innerkits/surface",
+  ]
+
+  cflags = [
+    "-Wall",
+    "-Werror",
+    "-g3",
+  ]
+
+  deps = [
+    "//foundation/graphic/standard/rosen/modules/composer:libcomposer",
+    "//third_party/googletest:gtest_main",
+  ]
+}
+
+## SystemTest hdioutput_test }}}
+
+## SystemTest hdiscreen_test {{{
+ohos_systemtest("hdiscreen_test") {
+  module_out_path = module_out_path
+
+  sources = [
+    "hdiscreen_test.cpp",
+    "mock_hdi_device_systest.cpp",
+  ]
+
+  include_dirs = [
+    "//foundation/graphic/standard/rosen/modules/composer/hdi_backend/include",
+    "//foundation/graphic/standard/rosen/modules/composer/hdi_backend/test",
+    "//foundation/graphic/standard/interfaces/innerkits/surface",
+  ]
+
+  cflags = [
+    "-Wall",
+    "-Werror",
+    "-g3",
+  ]
+
+  deps = [
+    "//foundation/graphic/standard/rosen/modules/composer:libcomposer",
+    "//third_party/googletest:gmock_main",
+    "//third_party/googletest:gtest_main",
+  ]
+}
+## SystemTest hdiscreen_test }}}

@@ -42,6 +42,7 @@ group("test") {
     "frameworks/vsync:test",
     "frameworks/wm:test",
     "frameworks/wmtest:wmtest",
+    "rosen/modules/composer:test",
   ]
 }
 
