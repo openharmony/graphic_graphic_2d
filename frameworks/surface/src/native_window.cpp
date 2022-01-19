@@ -16,9 +16,10 @@
 #include "native_window.h"
 
 #include <map>
-#include "surface_type.h"
-#include "display_type.h"
 #include "buffer_log.h"
+#include "display_type.h"
+#include "external_window.h"
+#include "surface_type.h"
 
 #ifndef weak_alias
     #define weak_alias(old, new) \
