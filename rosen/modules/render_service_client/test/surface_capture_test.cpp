@@ -29,9 +29,9 @@
 #include "ui/rs_node.h"
 #include "ui/rs_surface_extractor.h"
 #include "ui/rs_ui_director.h"
-#include "core/transaction/rs_interfaces.h"
-#include "core/ui/rs_display_node.h"
-#include "core/ui/rs_surface_node.h"
+#include "transaction/rs_interfaces.h"
+#include "ui/rs_display_node.h"
+#include "ui/rs_surface_node.h"
 #include "pixel_map.h"
 
 using namespace OHOS;
@@ -266,7 +266,7 @@ int main()
     displayNode->AddChild(surfaceNode1, -1);
     displayNode->AddChild(surfaceNode2, -1);
     displayNode->AddChild(surfaceNode3, -1);
-    RSTransactionProxy::GetInstance().FlushImplicitTransaction();
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
 
     class TestSurfaceCapture : public SurfaceCaptureCallback {
     public:
