@@ -186,8 +186,15 @@ void RSRenderThread::OnVsync(uint64_t timestamp)
     mValue = (mValue + 1) % 2;
     RS_TRACE_INT("Vsync-client", mValue);
     timestamp_ = timestamp;
-    StartTimer(0); // start render-loop now
+    if (!backgroundStatus_.load()) {
+        StartTimer(0); // start render-loop now
+    }
     ROSEN_TRACE_END(BYTRACE_TAG_GRAPHIC_AGP);
+}
+
+void RSRenderThread::SetBackgroundStatus(bool status)
+{
+    backgroundStatus_.store(status);
 }
 
 void RSRenderThread::StartTimer(uint64_t interval)

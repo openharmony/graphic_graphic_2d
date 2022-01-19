@@ -51,6 +51,16 @@ void RSUIDirector::Init()
     RSRenderThread::Instance().Start();
 }
 
+void RSUIDirector::GoForeground()
+{
+    RSRenderThread::Instance().SetBackgroundStatus(false);
+}
+
+void RSUIDirector::GoBackground()
+{
+    RSRenderThread::Instance().SetBackgroundStatus(true);
+}
+
 void RSUIDirector::Destory()
 {
     if (root_ != 0) {
