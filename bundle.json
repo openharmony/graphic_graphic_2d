@@ -1,0 +1,101 @@
+{
+    "name": "@openharmony/graphic_standard",
+    "version": "3.1.0",
+    "description": "graphic_standard",
+    "repository": "",
+    "license": "Apache License 2.0",
+    "component": {
+      "name": "graphic_standard",
+      "subsystem": "graphic",
+      "adapted_system_type": [ "standard" ],
+      "rom": {},
+      "ram": {},
+      "deps": {
+        "components": [
+        ],
+        "third_party": [
+        ]
+      },
+      "build": {
+        "sub_component": [
+          "//third_party/wayland-ivi-extension:ivi-controller",
+          "//third_party/wayland-ivi-extension:ivi-input-controller",
+          "//third_party/wayland-ivi-extension:libscreen-info-module",
+          "//third_party/wayland-ivi-extension:layer-add-surfaces",
+          "//third_party/wayland-ivi-extension:LayerManagerControl",
+          "//third_party/wayland-ivi-extension:simple-weston-client",
+          "//third_party/weston:default",
+          "//foundation/graphic/standard:default",
+          "//foundation/graphic/standard/rosen/samples/composer:hello_composer",
+          "//foundation/graphic/standard/rosen/modules/composer:libcomposer",
+          "//foundation/graphic/standard/rosen/modules/2d_graphics:2d_graphics",
+          "//foundation/graphic/standard/rosen/samples/2d_graphics:drawing_sample_rs",
+          "//foundation/graphic/standard/rosen/modules/render_service_base:librender_service_base",
+          "//foundation/graphic/standard/rosen/modules/render_service_base/test:render_service_client",
+          "//foundation/graphic/standard/rosen/modules/render_service_client/test:render_service_client_surface_node_demo",
+          "//foundation/graphic/standard/rosen/modules/render_service_client:librender_service_client",
+          "//foundation/graphic/standard/rosen/modules/render_service:librender_service",
+          "//foundation/graphic/standard/rosen/modules/render_service:render_service",
+          "//foundation/graphic/standard/interfaces/kits/napi/graphic/webgl:libwebglnapi"
+        ],
+        "inner_kits": [
+          {
+            "type": "so",
+            "name": "//foundation/graphic/standard/frameworks/surface:surface",
+            "header": {
+              "header_files": [
+                "buffer_extra_data.h",
+                "egl_data.h",
+                "egl_surface.h",
+                "external_window.h",
+                "ibuffer_consumer_listener.h",
+                "ibuffer_producer.h",
+                "surface.h",
+                "surface_buffer.h",
+                "surface_type.h",
+                "surface_utils.h",
+                "window.h"
+              ],
+              "header_base": "//foundation/graphic/standard/interfaces/innerkits/surface"
+            }
+          },
+          {
+            "type": "so",
+            "name": "//foundation/graphic/standard/frameworks/wm:libwmclient",
+            "header": {
+              "header_files": [
+                "iscreen_shot_callback.h",
+                "iwindow_shot_callback.h",
+                "subwindow.h",
+                "subwindow_option.h",
+                "virtual_display_option.h",
+                "window.h",
+                "window_manager.h",
+                "window_manager_type.h",
+                "window_option.h",
+                "wm_common.h"
+              ],
+              "header_base": "//foundation/graphic/standard/interfaces/innerkits/wmclient"
+            }
+          },
+          {
+            "type": "so",
+            "name": "//foundation/graphic/standard/frameworks/wmservice:libwmservice",
+            "header": {
+              "header_files": [
+                "iwindow_change_listener_clazz.h",
+                "iwindow_manager_display_listener_clazz.h",
+                "iwindow_manager_service.h",
+                "window_manager_service_client.h",
+                "window_manager_service_type.h"
+              ],
+              "header_base": "//foundation/graphic/standard/interfaces/innerkits/wmservice"
+            }
+          }
+        ],
+        "test": [
+          "//foundation/graphic/standard:graphic_standard_test"
+        ]
+      }
+    }
+  }
