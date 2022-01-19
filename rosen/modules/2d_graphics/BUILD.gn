@@ -70,14 +70,14 @@ ohos_shared_library("2d_graphics") {
     "//utils/native/base:utils",
   ]
 
-  if (ace_enable_gpu) {
-    public_deps += [ "//foundation/graphic/standard:libgl" ]
-  }
-
   public_deps = [
     "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
     "//foundation/graphic/standard:libsurface",
   ]
+
+  if (ace_enable_gpu) {
+    public_deps += [ "//foundation/graphic/standard:libgl" ]
+  }
 
   part_name = "graphic_standard"
   subsystem_name = "graphic"
