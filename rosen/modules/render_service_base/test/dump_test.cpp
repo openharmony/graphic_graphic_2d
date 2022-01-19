@@ -13,37 +13,21 @@
  * limitations under the License.
  */
 
-#include <iostream>
-#include <vector>
-#include<unistd.h>
-
-#include <if_system_ability_manager.h>
-#include <iservice_registry.h>
-#include <system_ability_definition.h>
-#include "platform/ohos/rs_irender_service.h"
-#include "platform/ohos/rs_render_service_proxy.h"
-#include "platform/common/rs_log.h"
-
+#include "service_dumper.h"
+#include "system_ability_definition.h"
 
 using namespace OHOS;
-using namespace OHOS::Rosen;
+
 // dump
-int main()
+int main(int argc, char *argv[])
 {
     sptr<ISystemAbilityManager> samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-    sptr<IRemoteObject> remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
-    sptr<RSIRenderService> renderService = iface_cast<RSRenderServiceProxy>(remoteObject);
-    int sfd[2];
-    if (pipe(sfd) != 0) {
-        return 0;
+    sptr<IRemoteObject> renderService = samgr->GetSystemAbility(RENDER_SERVICE);
+    if (renderService == nullptr) {
+        fprintf(stderr, "Can't find render service!");
+        return -1;
     }
-    std::vector<std::u16string> args;
-    (void)remoteObject->Dump(sfd[1], args);
-    char buf[1024];
-    bzero(buf, sizeof(buf));
-    close(sfd[1]);
-    while (read(sfd[0], buf, sizeof(buf)-1) > 0) {
-        std::cout<< buf;
-        bzero(buf, sizeof(buf));
-    };
+
+    Detail::ServiceDumper dumper(renderService, "Render_Service", 10000); // timeout: 10000 ms.
+    return dumper.Run(argc, argv);
 }
