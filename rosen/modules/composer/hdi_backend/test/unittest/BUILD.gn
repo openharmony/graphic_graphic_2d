@@ -1,0 +1,129 @@
+# Copyright (c) 2021 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/test.gni")
+
+module_out_path = "graphic_standard/composer"
+
+group("unittest") {
+  testonly = true
+
+  deps = [
+    ":hdibackend_test",
+    ":hdiframebuffersurface_test",
+    ":hdilayer_test",
+    ":hdilayerinfo_test",
+    ":hdioutput_test",
+    ":hdiscreen_test",
+  ]
+}
+
+## UnitTest hdibackend_test {{{
+ohos_unittest("hdibackend_test") {
+  module_out_path = module_out_path
+
+  sources = [ "hdibackend_test.cpp" ]
+
+  deps = [ ":hdibackend_test_common" ]
+}
+
+## UnitTest hdibackend_test }}}
+
+## UnitTest hdiframebuffersurface_test {{{
+ohos_unittest("hdiframebuffersurface_test") {
+  module_out_path = module_out_path
+
+  sources = [ "hdiframebuffersurface_test.cpp" ]
+
+  deps = [ ":hdibackend_test_common" ]
+}
+
+## UnitTest hdiframebuffersurface_test }}}
+
+## UnitTest hdilayer_test {{{
+ohos_unittest("hdilayer_test") {
+  module_out_path = module_out_path
+
+  sources = [ "hdilayer_test.cpp" ]
+
+  deps = [ ":hdibackend_test_common" ]
+}
+
+## UnitTest hdilayer_test }}}
+
+## UnitTest hdilayerinfo_test {{{
+ohos_unittest("hdilayerinfo_test") {
+  module_out_path = module_out_path
+
+  sources = [ "hdilayerinfo_test.cpp" ]
+
+  deps = [ ":hdibackend_test_common" ]
+}
+
+## UnitTest hdilayerinfo_test }}}
+
+## UnitTest hdioutput_test {{{
+ohos_unittest("hdioutput_test") {
+  module_out_path = module_out_path
+
+  sources = [ "hdioutput_test.cpp" ]
+
+  deps = [ ":hdibackend_test_common" ]
+}
+
+## UnitTest hdioutput_test }}}
+
+## UnitTest hdiscreen_test {{{
+ohos_unittest("hdiscreen_test") {
+  module_out_path = module_out_path
+
+  sources = [
+    "hdiscreen_test.cpp",
+    "mock_hdi_device.cpp",
+  ]
+
+  deps = [ ":hdibackend_test_common" ]
+}
+
+## UnitTest hdiscreen_test }}}
+
+## Build hdibackend_test_common.a {{{
+config("hdibackend_test_common_public_config") {
+  include_dirs = [
+    "//foundation/graphic/standard/rosen/modules/composer/hdi_backend/include",
+    "//foundation/graphic/standard/rosen/modules/composer/hdi_backend/test",
+    "//foundation/graphic/standard/interfaces/innerkits/surface",
+  ]
+
+  cflags = [
+    "-Wall",
+    "-Werror",
+    "-g3",
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
+}
+
+ohos_static_library("hdibackend_test_common") {
+  visibility = [ ":*" ]
+  testonly = true
+
+  public_configs = [ ":hdibackend_test_common_public_config" ]
+
+  public_deps = [
+    "//foundation/graphic/standard/rosen/modules/composer:libcomposer",
+    "//third_party/googletest:gmock_main",
+    "//third_party/googletest:gtest_main",
+  ]
+}
+## Build hdibackend_test_common.a }}}
