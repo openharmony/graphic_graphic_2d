@@ -45,6 +45,10 @@ void RsRenderServiceUtil::DrawBuffer(SkCanvas* canvas, const SkMatrix& matrix, s
         ROSEN_LOGE("RsRenderServiceUtil::DrawBuffer canvas is nullptr");
         return;
     }
+    if (!buffer) {
+        ROSEN_LOGE("RsRenderServiceUtil::DrawBuffer buffer is nullptr");
+        return;
+    }
     auto addr = static_cast<uint32_t*>(buffer->GetVirAddr());
     if (addr == nullptr || buffer->GetWidth() <= 0 || buffer->GetHeight() <= 0) {
         ROSEN_LOGE("RsRenderServiceUtil::DrawBuffer this buffer have no vir add or width or height is negative");
