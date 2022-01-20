@@ -217,7 +217,7 @@ void RSRenderAnimation::ProcessFillModeOnFinish(float endFraction)
 bool RSRenderAnimation::Animate(int64_t time)
 {
     if (!IsRunning()) {
-        ROSEN_LOGE("RSRenderAnimation::Animate, IsRunning is false!");
+        ROSEN_LOGI("RSRenderAnimation::Animate, IsRunning is false!");
         return state_ == AnimationState::FINISHED;
     }
 
@@ -231,14 +231,14 @@ bool RSRenderAnimation::Animate(int64_t time)
     float fraction = animationFraction_.GetAnimationFraction(time, isInStartDelay, isFinished);
     if (isInStartDelay) {
         ProcessFillModeOnStart(fraction);
-        ROSEN_LOGE("RSRenderAnimation::Animate, isInStartDelay is true");
+        ROSEN_LOGI("RSRenderAnimation::Animate, isInStartDelay is true");
         return false;
     }
 
     OnAnimate(fraction);
     if (isFinished) {
         ProcessFillModeOnFinish(fraction);
-        ROSEN_LOGD("RSRenderAnimation::Animate, isFinished is true");
+        ROSEN_LOGI("RSRenderAnimation::Animate, isFinished is true");
         return true;
     }
     return isFinished;

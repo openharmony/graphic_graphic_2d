@@ -47,6 +47,7 @@ public:
     T GetLength() const;
     T Normalize();
     void Identity();
+    bool IsInfinite() const;
     bool IsIdentity() const;
     void SetValues(T x, T y, T z, T w);
     void SetZero();
@@ -450,6 +451,13 @@ void Vector4<T>::Absolute()
     data_[2] = abs(data_[2]);
     data_[1] = abs(data_[1]);
     data_[0] = abs(data_[0]);
+}
+
+template<typename T>
+bool Vector4<T>::IsInfinite() const
+{
+    return std::isinf(data_[0]) || std::isinf(data_[1]) ||
+        std::isinf(data_[2]) || std::isinf(data_[3]);
 }
 } // namespace Rosen
 } // namespace OHOS

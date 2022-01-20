@@ -207,6 +207,11 @@ bool IsValid(const Vector2f& value)
 {
     return !value.IsInfinite();
 }
+template<>
+bool IsValid(const Vector4f& value)
+{
+    return !value.IsInfinite();
+}
 } // namespace
 
 #define SET_ANIMATABLE_PROPERTY(propertyName, value, property)                                          \
