@@ -68,8 +68,8 @@ bool RSAnimationManager::Animate(int64_t time)
         auto& animation = animationItr->second;
         bool isFinished = animation->Animate(time);
         if (isFinished) {
-            animationItr = animations_.erase(animationItr);
             OnAnimationFinished(animation);
+            animationItr = animations_.erase(animationItr);
         } else {
             if (animation->IsRunning()) {
                 requestVsync = true;
