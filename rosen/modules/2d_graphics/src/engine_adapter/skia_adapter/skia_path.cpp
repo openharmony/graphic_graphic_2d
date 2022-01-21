@@ -14,10 +14,10 @@
  */
 
 #include "skia_path.h"
-#include "skia_matrix.h"
 
-#include "include/pathops/SkPathOps.h"
 #include "include/core/SkMatrix.h"
+#include "include/pathops/SkPathOps.h"
+#include "skia_matrix.h"
 
 #include "draw/path.h"
 
@@ -41,8 +41,7 @@ void SkiaPath::ArcTo(scalar pt1X, scalar pt1Y, scalar pt2X, scalar pt2Y, scalar 
     path_.arcTo(SkRect::MakeLTRB(pt1X, pt1Y, pt2X, pt2Y), startAngle, sweepAngle, false);
 }
 
-void SkiaPath::CubicTo(scalar ctrlPt1X, scalar ctrlPt1Y, scalar ctrlPt2X, scalar ctrlPt2Y,
-                       scalar endPtX, scalar endPtY)
+void SkiaPath::CubicTo(scalar ctrlPt1X, scalar ctrlPt1Y, scalar ctrlPt2X, scalar ctrlPt2Y, scalar endPtX, scalar endPtY)
 {
     path_.cubicTo(ctrlPt1X, ctrlPt1Y, ctrlPt2X, ctrlPt2Y, endPtX, endPtY);
 }
@@ -96,8 +95,8 @@ void SkiaPath::AddCircle(scalar x, scalar y, scalar radius, PathDirection dir)
     path_.addCircle(x, y, radius, pathDir);
 }
 
-void SkiaPath::AddRoundRect(scalar left, scalar top, scalar right, scalar bottom,
-                            scalar xRadius, scalar yRadius, PathDirection dir)
+void SkiaPath::AddRoundRect(
+    scalar left, scalar top, scalar right, scalar bottom, scalar xRadius, scalar yRadius, PathDirection dir)
 {
 #if defined(USE_CANVASKIT0310_SKIA)
     SkPathDirection pathDir = static_cast<SkPathDirection>(dir);
@@ -123,7 +122,7 @@ void SkiaPath::AddPath(const Path& src)
     }
 }
 
-void SkiaPath::AddPathWithMatrix(const Path& src, const Matrix &matrix)
+void SkiaPath::AddPathWithMatrix(const Path& src, const Matrix& matrix)
 {
     auto skPathImpl = src.GetImpl<SkiaPath>();
     auto skMatrixImpl = matrix.GetImpl<SkiaMatrix>();
@@ -210,6 +209,6 @@ const SkPath& SkiaPath::GetPath() const
 {
     return path_;
 }
-}
-}
-}
+} // namespace Drawing
+} // namespace Rosen
+} // namespace OHOS

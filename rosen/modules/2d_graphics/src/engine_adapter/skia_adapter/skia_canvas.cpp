@@ -15,13 +15,12 @@
 
 #include "skia_canvas.h"
 
-#include "image/bitmap.h"
-#include "image/image.h"
+#include "include/core/SkImage.h"
+#include "pixel_map.h"
 #include "skia_path.h"
 
-#include "include/core/SkImage.h"
-
-#include "pixel_map.h"
+#include "image/bitmap.h"
+#include "image/image.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -56,8 +55,8 @@ void SkiaCanvas::DrawLine(const Point& startPt, const Point& endPt)
 {
     for (auto d : skiaPaint_.GetSortedPaints()) {
         if (d != nullptr) {
-            skiaCanvas_->drawLine(SkPoint::Make(startPt.GetX(), startPt.GetY()),
-                SkPoint::Make(endPt.GetX(), endPt.GetY()), d->paint);
+            skiaCanvas_->drawLine(
+                SkPoint::Make(startPt.GetX(), startPt.GetY()), SkPoint::Make(endPt.GetX(), endPt.GetY()), d->paint);
         }
     }
 }
@@ -154,12 +153,12 @@ void SkiaCanvas::DrawBackground(const Brush& brush)
     skiaCanvas_->drawPaint(paint);
 }
 
-void SkiaCanvas::DrawShadow(const Path& path, const Point3& planeParams, const Point3& devLightPos,
-                            scalar lightRadius, Color ambientColor, Color spotColor, ShadowFlags flag)
+void SkiaCanvas::DrawShadow(const Path& path, const Point3& planeParams, const Point3& devLightPos, scalar lightRadius,
+    Color ambientColor, Color spotColor, ShadowFlags flag)
 {
     auto skPathImpl = path.GetImpl<SkiaPath>();
-    SkPoint3 point1 =  SkPoint3::Make(planeParams.GetX(), planeParams.GetY(), planeParams.GetZ());
-    SkPoint3 point2 =  SkPoint3::Make(devLightPos.GetX(), devLightPos.GetY(), devLightPos.GetZ());
+    SkPoint3 point1 = SkPoint3::Make(planeParams.GetX(), planeParams.GetY(), planeParams.GetZ());
+    SkPoint3 point2 = SkPoint3::Make(devLightPos.GetX(), devLightPos.GetY(), devLightPos.GetZ());
     SkColor color1 = ambientColor.CastToColorQuad();
     SkColor color2 = spotColor.CastToColorQuad();
     SkShadowFlags flags = static_cast<SkShadowFlags>(flag);
@@ -184,7 +183,7 @@ void SkiaCanvas::DrawBitmap(const Bitmap& bitmap, const scalar px, const scalar 
 #else
         skiaCanvas_->drawBitmap(bmp, px, py);
 #endif
-         return;
+        return;
     }
 
     for (auto d : skiaPaint_.GetSortedPaints()) {
@@ -260,7 +259,7 @@ void SkiaCanvas::DrawBitmap(Media::PixelMap& pixelMap, const scalar px, const sc
     }
     SkBitmap bitmap;
     auto imageInfo = MakeSkImageInfoFromPixelMap(pixelMap);
-    bitmap.installPixels(imageInfo, (void*) pixelMap.GetPixels(), pixelMap.GetRowBytes());
+    bitmap.installPixels(imageInfo, (void*)pixelMap.GetPixels(), pixelMap.GetRowBytes());
 
     auto paints = skiaPaint_.GetSortedPaints();
     if (paints.empty()) {
@@ -269,7 +268,7 @@ void SkiaCanvas::DrawBitmap(Media::PixelMap& pixelMap, const scalar px, const sc
 #else
         skiaCanvas_->drawBitmap(bitmap, px, py);
 #endif
-         return;
+        return;
     }
 
     for (auto d : paints) {
@@ -303,7 +302,7 @@ void SkiaCanvas::DrawImage(const Image& image, const scalar px, const scalar py,
 #if defined(USE_CANVASKIT0310_SKIA)
             SkSamplingOptions samplingOptions;
             if (sampling.GetUseCubic()) {
-                samplingOptions = SkSamplingOptions({sampling.GetCubicCoffB(), sampling.GetCubicCoffC()});
+                samplingOptions = SkSamplingOptions({ sampling.GetCubicCoffB(), sampling.GetCubicCoffC() });
             } else {
                 samplingOptions = SkSamplingOptions(static_cast<SkFilterMode>(sampling.GetFilterMode()),
                     static_cast<SkMipmapMode>(sampling.GetMipmapMode()));
@@ -450,6 +449,6 @@ void SkiaCanvas::RoundRectCastToSkRRect(const RoundRect& roundRect, SkRRect& skR
 
     skRRect.setRectRadii(outer, radii);
 }
-}
-}
-}
+} // namespace Drawing
+} // namespace Rosen
+} // namespace OHOS

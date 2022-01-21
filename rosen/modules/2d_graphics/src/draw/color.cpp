@@ -18,14 +18,12 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-Color::Color() noexcept
-    : alpha_(RGB_MAX), red_(0), green_(0), blue_(0) {}
+Color::Color() noexcept : alpha_(RGB_MAX), red_(0), green_(0), blue_(0) {}
 
-Color::Color(const Color &c) noexcept
-    : alpha_(c.GetAlpha()), red_(c.GetRed()), green_(c.GetGreen()), blue_(c.GetBlue()) {}
+Color::Color(const Color& c) noexcept : alpha_(c.GetAlpha()), red_(c.GetRed()), green_(c.GetGreen()), blue_(c.GetBlue())
+{}
 
-Color::Color(int r, int g, int b, int a) noexcept
-    : alpha_(a), red_(r), green_(g), blue_(b) {}
+Color::Color(int r, int g, int b, int a) noexcept : alpha_(a), red_(r), green_(g), blue_(b) {}
 
 Color::Color(ColorQuad rgba) noexcept
 {
@@ -92,7 +90,7 @@ scalar Color::GetBlueF() const
 
 scalar Color::GetAlphaF() const
 {
-     return static_cast<scalar>(alpha_) / RGB_MAX;
+    return static_cast<scalar>(alpha_) / RGB_MAX;
 }
 
 Color4f Color::GetColor4f()
@@ -153,16 +151,14 @@ ColorQuad Color::CastToColorQuad() const
     return Color::ColorQuadSetARGB(red_, green_, blue_, alpha_);
 }
 
-bool operator==(const Color &c1, const Color &c2)
+bool operator==(const Color& c1, const Color& c2)
 {
-    return c1.alpha_ == c2.alpha_ && c1.red_ == c2.red_ &&
-        c1.green_ == c2.green_ && c1.blue_ == c2.blue_;
+    return c1.alpha_ == c2.alpha_ && c1.red_ == c2.red_ && c1.green_ == c2.green_ && c1.blue_ == c2.blue_;
 }
-bool operator!=(const Color &c1, const Color &c2)
+bool operator!=(const Color& c1, const Color& c2)
 {
-    return c1.alpha_ != c2.alpha_ || c1.red_ != c2.red_ ||
-        c1.green_ != c2.green_ || c1.blue_ != c2.blue_;
+    return c1.alpha_ != c2.alpha_ || c1.red_ != c2.red_ || c1.green_ != c2.green_ || c1.blue_ != c2.blue_;
 }
-}
-}
-}
+} // namespace Drawing
+} // namespace Rosen
+} // namespace OHOS

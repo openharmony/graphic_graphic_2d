@@ -61,18 +61,16 @@ bool SkiaMatrix::Equals(const Matrix& a, const Matrix& b)
     return false;
 }
 
-void SkiaMatrix::SetMatrix(scalar scaleX, scalar skewX, scalar transX,
-        scalar skewY,  scalar scaleY, scalar transY,
-        scalar persp0, scalar persp1, scalar persp2)
+void SkiaMatrix::SetMatrix(scalar scaleX, scalar skewX, scalar transX, scalar skewY, scalar scaleY, scalar transY,
+    scalar persp0, scalar persp1, scalar persp2)
 {
-    skMatrix_.setAll(scaleX, skewX, transX, skewY, scaleY, transY,
-        persp0, persp1, persp2);
+    skMatrix_.setAll(scaleX, skewX, transX, skewY, scaleY, transY, persp0, persp1, persp2);
 }
 
 scalar SkiaMatrix::Get(int index)
 {
     return skMatrix_.get(index);
 }
-}
-}
-}
+} // namespace Drawing
+} // namespace Rosen
+} // namespace OHOS

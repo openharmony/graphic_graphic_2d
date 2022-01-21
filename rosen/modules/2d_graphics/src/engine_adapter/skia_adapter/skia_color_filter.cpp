@@ -36,7 +36,7 @@ void SkiaColorFilter::InitWithColorMatrix(ColorMatrix& m)
 
 void SkiaColorFilter::InitWithLinearToSrgbGamma()
 {
-   filter_ = SkColorFilters::LinearToSRGBGamma();
+    filter_ = SkColorFilters::LinearToSRGBGamma();
 }
 
 void SkiaColorFilter::InitWithSrgbGammaToLinear()
@@ -55,16 +55,16 @@ void SkiaColorFilter::InitWithCompose(const ColorFilter& f1, const ColorFilter& 
 
 void SkiaColorFilter::Compose(const ColorFilter& f)
 {
-     auto skColorFilterImpl = f.GetImpl<SkiaColorFilter>();
-     if (skColorFilterImpl != nullptr) {
+    auto skColorFilterImpl = f.GetImpl<SkiaColorFilter>();
+    if (skColorFilterImpl != nullptr) {
         filter_ = filter_->makeComposed(skColorFilterImpl->GetColorFilter());
-     }
+    }
 }
 
 sk_sp<SkColorFilter> SkiaColorFilter::GetColorFilter() const
 {
     return filter_;
 }
-}
-}
-}
+} // namespace Drawing
+} // namespace Rosen
+} // namespace OHOS

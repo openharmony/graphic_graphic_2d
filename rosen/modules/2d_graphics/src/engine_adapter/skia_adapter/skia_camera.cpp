@@ -90,10 +90,9 @@ void SkiaCamera::ApplyToMatrix(Matrix& m)
 {
     SkMatrix matrix;
     view_.getMatrix(&matrix);
-    m.SetMatrix(matrix.getScaleX(), matrix.getSkewX(), matrix.getTranslateX(),
-                matrix.getScaleY(), matrix.getSkewY(), matrix.getTranslateY(),
-                matrix.getPerspX(), matrix.getPerspY(), matrix.get(SkMatrix::kMPersp2));
+    m.SetMatrix(matrix.getScaleX(), matrix.getSkewX(), matrix.getTranslateX(), matrix.getScaleY(), matrix.getSkewY(),
+        matrix.getTranslateY(), matrix.getPerspX(), matrix.getPerspY(), matrix.get(SkMatrix::kMPersp2));
 }
-}
-}
-}
+} // namespace Drawing
+} // namespace Rosen
+} // namespace OHOS

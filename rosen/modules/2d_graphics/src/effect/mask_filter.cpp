@@ -16,6 +16,7 @@
 #include "effect/mask_filter.h"
 
 #include "impl_factory.h"
+
 #include "impl_interface/mask_filter_impl.h"
 
 namespace OHOS {
@@ -27,9 +28,8 @@ MaskFilter::MaskFilter(FilterType t, BlurType blurType, scalar radius) noexcept 
     impl_->InitWithBlur(blurType, radius);
 }
 
-MaskFilter::MaskFilter() noexcept
-    : type_(MaskFilter::FilterType::NO_TYPE),
-    impl_(ImplFactory::CreateMaskFilterImpl()) {}
+MaskFilter::MaskFilter() noexcept : type_(MaskFilter::FilterType::NO_TYPE), impl_(ImplFactory::CreateMaskFilterImpl())
+{}
 
 MaskFilter::FilterType MaskFilter::GetType() const
 {
@@ -40,6 +40,6 @@ std::shared_ptr<MaskFilter> MaskFilter::CreateBlurMaskFilter(BlurType blurType, 
 {
     return std::make_shared<MaskFilter>(MaskFilter::FilterType::BLUR, blurType, radius);
 }
-}
-}
-}
+} // namespace Drawing
+} // namespace Rosen
+} // namespace OHOS

@@ -22,9 +22,7 @@ namespace Rosen {
 namespace Drawing {
 Path::Path() noexcept : impl_(ImplFactory::CreatePathImpl()) {}
 
-Path::~Path()
-{
-}
+Path::~Path() {}
 
 void Path::MoveTo(scalar x, scalar y)
 {
@@ -41,18 +39,17 @@ void Path::ArcTo(scalar pt1X, scalar pt1Y, scalar pt2X, scalar pt2Y, scalar star
     impl_->ArcTo(pt1X, pt1Y, pt2X, pt2Y, startAngle, sweepAngle);
 }
 
-void Path::ArcTo(const Point &pt1, const Point &pt2, scalar startAngle, scalar sweepAngle)
+void Path::ArcTo(const Point& pt1, const Point& pt2, scalar startAngle, scalar sweepAngle)
 {
     impl_->ArcTo(pt1.GetX(), pt1.GetY(), pt2.GetX(), pt2.GetY(), startAngle, sweepAngle);
 }
 
-void Path::CubicTo(scalar ctrlPt1X, scalar ctrlPt1Y, scalar ctrlPt2X, scalar ctrlPt2Y,
-    scalar endPtX, scalar endPtY)
+void Path::CubicTo(scalar ctrlPt1X, scalar ctrlPt1Y, scalar ctrlPt2X, scalar ctrlPt2Y, scalar endPtX, scalar endPtY)
 {
     impl_->CubicTo(ctrlPt1X, ctrlPt1Y, ctrlPt2X, ctrlPt2Y, endPtX, endPtY);
 }
 
-void Path::CubicTo(const Point &ctrlPt1, const Point &ctrlPt2, const Point &endPt)
+void Path::CubicTo(const Point& ctrlPt1, const Point& ctrlPt2, const Point& endPt)
 {
     impl_->CubicTo(ctrlPt1.GetX(), ctrlPt1.GetY(), ctrlPt2.GetX(), ctrlPt2.GetY(), endPt.GetX(), endPt.GetY());
 }
@@ -62,12 +59,12 @@ void Path::QuadTo(scalar ctrlPtX, scalar ctrlPtY, scalar endPtX, scalar endPtY)
     impl_->QuadTo(ctrlPtX, ctrlPtY, endPtX, endPtY);
 }
 
-void Path::QuadTo(const Point &ctrlPt, const Point endPt)
+void Path::QuadTo(const Point& ctrlPt, const Point endPt)
 {
     impl_->QuadTo(ctrlPt.GetX(), ctrlPt.GetY(), endPt.GetX(), endPt.GetY());
 }
 
-void Path::AddRect(const Rect &rect, PathDirection dir)
+void Path::AddRect(const Rect& rect, PathDirection dir)
 {
     impl_->AddRect(rect.GetLeft(), rect.GetTop(), rect.GetRight(), rect.GetBottom(), dir);
 }
@@ -77,12 +74,12 @@ void Path::AddRect(scalar left, scalar top, scalar right, scalar bottom, PathDir
     impl_->AddRect(left, top, right, bottom, dir);
 }
 
-void Path::AddOval(const Rect &oval, PathDirection dir)
+void Path::AddOval(const Rect& oval, PathDirection dir)
 {
     impl_->AddOval(oval.GetLeft(), oval.GetTop(), oval.GetRight(), oval.GetBottom(), dir);
 }
 
-void Path::AddArc(const Rect &oval,scalar startAngle, scalar sweepAngle)
+void Path::AddArc(const Rect& oval, scalar startAngle, scalar sweepAngle)
 {
     impl_->AddArc(oval.GetLeft(), oval.GetTop(), oval.GetRight(), oval.GetBottom(), startAngle, sweepAngle);
 }
@@ -102,17 +99,17 @@ void Path::AddRoundRect(const Rect& rect, scalar xRadius, scalar yRadius, PathDi
     impl_->AddRoundRect(rect.GetLeft(), rect.GetTop(), rect.GetRight(), rect.GetBottom(), xRadius, yRadius, dir);
 }
 
-void Path::AddPath(const Path &src, scalar dx, scalar dy)
+void Path::AddPath(const Path& src, scalar dx, scalar dy)
 {
     impl_->AddPath(src, dx, dy);
 }
 
-void Path::AddPath(const Path &src)
+void Path::AddPath(const Path& src)
 {
     impl_->AddPath(src);
 }
 
-void Path::AddPath(const Path &src, const Matrix &matrix)
+void Path::AddPath(const Path& src, const Matrix& matrix)
 {
     impl_->AddPathWithMatrix(src, matrix);
 }
@@ -142,9 +139,8 @@ void Path::Offset(scalar dx, scalar dy)
     impl_->Offset(dx, dy);
 }
 
-bool Path::Op(const Path &path1, Path &path2, PathOp op)
+bool Path::Op(const Path& path1, Path& path2, PathOp op)
 {
-
     return impl_->OpWith(path1, path2, op);
 }
 
@@ -157,6 +153,6 @@ void Path::Close()
 {
     impl_->Close();
 }
-}
-}
-}
+} // namespace Drawing
+} // namespace Rosen
+} // namespace OHOS

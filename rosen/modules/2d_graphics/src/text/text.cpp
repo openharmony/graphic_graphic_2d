@@ -15,7 +15,6 @@
 
 namespace OHOS {
 namespace Rosen {
-namespace Drawing {
-}
-}
-}
+namespace Drawing {}
+} // namespace Rosen
+} // namespace OHOS

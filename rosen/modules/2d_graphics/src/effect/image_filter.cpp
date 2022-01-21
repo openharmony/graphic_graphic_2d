@@ -16,6 +16,7 @@
 #include "effect/image_filter.h"
 
 #include "impl_factory.h"
+
 #include "impl_interface/image_filter_impl.h"
 
 namespace OHOS {
@@ -38,7 +39,8 @@ ImageFilter::ImageFilter(FilterType t, ColorFilter& cf, ImageFilter& input) noex
 }
 
 ImageFilter::ImageFilter(FilterType t, scalar k1, scalar k2, scalar k3, scalar k4, bool enforcePMColor,
-                         ImageFilter& background, ImageFilter& foreground) noexcept : ImageFilter()
+    ImageFilter& background, ImageFilter& foreground) noexcept
+    : ImageFilter()
 {
     type_ = t;
     impl_->InitWithArithmetic(k1, k2, k3, k4, enforcePMColor, background, foreground);
@@ -51,8 +53,8 @@ ImageFilter::ImageFilter(FilterType t, ImageFilter& f1, ImageFilter& f2) noexcep
 }
 
 ImageFilter::ImageFilter() noexcept
-    : type_(ImageFilter::FilterType::NO_TYPE),
-    impl_(ImplFactory::CreateImageFilterImpl()) {}
+    : type_(ImageFilter::FilterType::NO_TYPE), impl_(ImplFactory::CreateImageFilterImpl())
+{}
 
 ImageFilter::FilterType ImageFilter::GetType() const
 {
@@ -74,16 +76,17 @@ std::shared_ptr<ImageFilter> ImageFilter::CreateOffsetImageFilter(scalar dx, sca
     return std::make_shared<ImageFilter>(ImageFilter::FilterType::OFFSET, dx, dy, input);
 }
 
-std::shared_ptr<ImageFilter> ImageFilter::CreateArithmeticImageFilter(scalar k1, scalar k2, scalar k3, scalar k4,
-    bool enforcePMColor, ImageFilter& background, ImageFilter& foreground)
+std::shared_ptr<ImageFilter> ImageFilter::CreateArithmeticImageFilter(
+    scalar k1, scalar k2, scalar k3, scalar k4, bool enforcePMColor, ImageFilter& background, ImageFilter& foreground)
 {
-    return std::make_shared<ImageFilter>(ImageFilter::FilterType::ARITHMETIC, k1, k2, k3, k4, enforcePMColor, background, foreground);
+    return std::make_shared<ImageFilter>(
+        ImageFilter::FilterType::ARITHMETIC, k1, k2, k3, k4, enforcePMColor, background, foreground);
 }
 
 std::shared_ptr<ImageFilter> ImageFilter::CreateComposeImageFilter(ImageFilter& f1, ImageFilter& f2)
 {
     return std::make_shared<ImageFilter>(ImageFilter::FilterType::COMPOSE, f1, f2);
 }
-}
-}
-}
+} // namespace Drawing
+} // namespace Rosen
+} // namespace OHOS

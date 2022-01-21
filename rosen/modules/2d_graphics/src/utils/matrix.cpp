@@ -16,14 +16,13 @@
 #include "utils/matrix.h"
 
 #include "impl_factory.h"
+
 #include "utils/log.h"
 
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-Matrix::Matrix() : matrixImplPtr(ImplFactory::CreateMatrixImpl())
-{
-}
+Matrix::Matrix() : matrixImplPtr(ImplFactory::CreateMatrixImpl()) {}
 
 void Matrix::Rotate(scalar degree, scalar px, scalar py)
 {
@@ -51,18 +50,16 @@ bool Matrix::operator==(const Matrix& m)
     return matrixImplPtr->Equals(*this, m);
 }
 
-void Matrix::SetMatrix(scalar scaleX, scalar skewX,  scalar transX,
-                scalar skewY,  scalar scaleY, scalar transY,
-                scalar persp0, scalar persp1, scalar persp2)
+void Matrix::SetMatrix(scalar scaleX, scalar skewX, scalar transX, scalar skewY, scalar scaleY, scalar transY,
+    scalar persp0, scalar persp1, scalar persp2)
 {
-    matrixImplPtr->SetMatrix(scaleX, skewX, transX, skewY, scaleY, transY,
-                persp0, persp1, persp2);
+    matrixImplPtr->SetMatrix(scaleX, skewX, transX, skewY, scaleY, transY, persp0, persp1, persp2);
 }
 
 scalar Matrix::Get(int index)
 {
     return matrixImplPtr->Get(index);
 }
-}
-}
-}
+} // namespace Drawing
+} // namespace Rosen
+} // namespace OHOS

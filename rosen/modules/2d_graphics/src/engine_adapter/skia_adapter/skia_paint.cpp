@@ -27,7 +27,8 @@ namespace OHOS {
 namespace Rosen {
 namespace Drawing {
 SkiaPaint::SkiaPaint() noexcept
-    : stroke_(std::make_shared<PaintData>()), fill_(std::make_shared<PaintData>()), isStrokeFirst_(false) {}
+    : stroke_(std::make_shared<PaintData>()), fill_(std::make_shared<PaintData>()), isStrokeFirst_(false)
+{}
 
 void SkiaPaint::ApplyBrushToFill(const Brush& brush)
 {
@@ -43,7 +44,7 @@ void SkiaPaint::ApplyPenToStroke(const Pen& pen)
     PenToSkPaint(pen, stroke_->paint);
 }
 
-void SkiaPaint::BrushToSkPaint(const Brush& brush, SkPaint &paint)
+void SkiaPaint::BrushToSkPaint(const Brush& brush, SkPaint& paint)
 {
     paint.setColor(brush.GetColor().CastToColorQuad());
 
@@ -71,7 +72,7 @@ void SkiaPaint::BrushToSkPaint(const Brush& brush, SkPaint &paint)
     paint.setStyle(SkPaint::kFill_Style);
 }
 
-void SkiaPaint::PenToSkPaint(const Pen& pen, SkPaint &paint)
+void SkiaPaint::PenToSkPaint(const Pen& pen, SkPaint& paint)
 {
     paint.setColor(pen.GetColor().CastToColorQuad());
 
@@ -151,8 +152,7 @@ void SkiaPaint::DisableFill()
 std::vector<std::shared_ptr<PaintData>> SkiaPaint::GetSortedPaints()
 {
     std::vector<std::shared_ptr<PaintData>> paints;
-    if (IsStrokeFirst() && stroke_->isEnabled && fill_->isEnabled)
-    {
+    if (IsStrokeFirst() && stroke_->isEnabled && fill_->isEnabled) {
         paints.push_back(stroke_);
         paints.push_back(fill_);
         return paints;
@@ -177,7 +177,7 @@ bool SkiaPaint::IsStrokeFirst()
     return isStrokeFirst_;
 }
 
-void SkiaPaint::ApplyFilter(SkPaint &paint, const Filter& filter)
+void SkiaPaint::ApplyFilter(SkPaint& paint, const Filter& filter)
 {
 #if !defined(USE_CANVASKIT0310_SKIA)
     switch (filter.GetFilterQuality()) {
@@ -227,6 +227,6 @@ void SkiaPaint::ApplyFilter(SkPaint &paint, const Filter& filter)
         paint.setMaskFilter(nullptr);
     }
 }
-}
-}
-}
+} // namespace Drawing
+} // namespace Rosen
+} // namespace OHOS

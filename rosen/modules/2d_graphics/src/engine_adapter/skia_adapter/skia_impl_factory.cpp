@@ -90,6 +90,6 @@ std::unique_ptr<CameraImpl> SkiaImplFactory::CreateCamera()
 {
     return std::make_unique<SkiaCamera>();
 }
-}
-}
-}
+} // namespace Drawing
+} // namespace Rosen
+} // namespace OHOS

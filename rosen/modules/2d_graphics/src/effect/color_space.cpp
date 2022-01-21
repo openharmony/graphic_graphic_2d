@@ -42,8 +42,8 @@ ColorSpace::ColorSpace(ColorSpaceType t, const Image& image) noexcept : ColorSpa
 }
 
 ColorSpace::ColorSpace() noexcept
-    : type_(ColorSpace::ColorSpaceType::NO_TYPE),
-    impl_(ImplFactory::CreateColorSpaceImpl()) {}
+    : type_(ColorSpace::ColorSpaceType::NO_TYPE), impl_(ImplFactory::CreateColorSpaceImpl())
+{}
 
 ColorSpace::ColorSpaceType ColorSpace::GetType() const
 {
@@ -64,6 +64,6 @@ std::shared_ptr<ColorSpace> ColorSpace::CreateRefImage(const Image& image)
 {
     return std::make_shared<ColorSpace>(ColorSpace::ColorSpaceType::REF_IMAGE, image);
 }
-}
-}
-}
+} // namespace Drawing
+} // namespace Rosen
+} // namespace OHOS

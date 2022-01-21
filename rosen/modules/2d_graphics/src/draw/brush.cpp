@@ -18,24 +18,43 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-Brush::Brush() noexcept : color_(), blendMode_(BlendMode::SRC_OVER),
-    filter_(), colorSpace_(nullptr), shaderEffect_(nullptr), antiAlias_(false) {}
+Brush::Brush() noexcept
+    : color_(),
+      blendMode_(BlendMode::SRC_OVER),
+      filter_(),
+      colorSpace_(nullptr),
+      shaderEffect_(nullptr),
+      antiAlias_(false)
+{}
 
-Brush::Brush(const Color &c) noexcept : color_(c), blendMode_(BlendMode::SRC_OVER),
-    filter_(), colorSpace_(nullptr), shaderEffect_(nullptr), antiAlias_(false) {}
+Brush::Brush(const Color& c) noexcept
+    : color_(c),
+      blendMode_(BlendMode::SRC_OVER),
+      filter_(),
+      colorSpace_(nullptr),
+      shaderEffect_(nullptr),
+      antiAlias_(false)
+{}
 
-Brush::Brush(int rgba) noexcept : color_(rgba), blendMode_(BlendMode::SRC_OVER),
-    filter_(), colorSpace_(nullptr), shaderEffect_(nullptr), antiAlias_(false) {}
+Brush::Brush(int rgba) noexcept
+    : color_(rgba),
+      blendMode_(BlendMode::SRC_OVER),
+      filter_(),
+      colorSpace_(nullptr),
+      shaderEffect_(nullptr),
+      antiAlias_(false)
+{}
 
-Brush::Brush(std::shared_ptr<ShaderEffect> e) noexcept : color_(), blendMode_(BlendMode::SRC_OVER),
-    filter_(), colorSpace_(nullptr), shaderEffect_(e), antiAlias_(false) {}
+Brush::Brush(std::shared_ptr<ShaderEffect> e) noexcept
+    : color_(), blendMode_(BlendMode::SRC_OVER), filter_(), colorSpace_(nullptr), shaderEffect_(e), antiAlias_(false)
+{}
 
 Color Brush::GetColor() const
 {
     return color_;
 }
 
-void Brush::SetColor(const Color &c)
+void Brush::SetColor(const Color& c)
 {
     color_ = c;
 }
@@ -60,7 +79,7 @@ std::shared_ptr<ColorSpace> Brush::GetColorSpace() const
     return colorSpace_;
 }
 
-void Brush::SetColor(const Color4f &cf, std::shared_ptr<ColorSpace> s)
+void Brush::SetColor(const Color4f& cf, std::shared_ptr<ColorSpace> s)
 {
     color_.SetRgbF(cf.redF_, cf.greenF_, cf.blueF_, cf.alphaF_);
     colorSpace_ = s;
@@ -91,7 +110,7 @@ void Brush::SetBlendMode(BlendMode mode)
     blendMode_ = mode;
 }
 
-void Brush::SetFilter(const Filter &filter)
+void Brush::SetFilter(const Filter& filter)
 {
     filter_ = filter;
 }
@@ -126,17 +145,17 @@ void Brush::Reset()
     *this = Brush();
 }
 
-bool operator==(const Brush &b1, const Brush &b2)
+bool operator==(const Brush& b1, const Brush& b2)
 {
     return b1.color_ == b2.color_ && b1.blendMode_ == b2.blendMode_ && b1.shaderEffect_ == b2.shaderEffect_ &&
         b1.colorSpace_ == b2.colorSpace_ && b1.filter_ == b2.filter_ && b1.antiAlias_ == b2.antiAlias_;
 }
 
-bool operator!=(const Brush &b1, const Brush &b2)
+bool operator!=(const Brush& b1, const Brush& b2)
 {
     return b1.color_ != b2.color_ || b1.blendMode_ == b2.blendMode_ || b1.shaderEffect_ != b2.shaderEffect_ ||
         b1.colorSpace_ == b2.colorSpace_ || b1.filter_ != b2.filter_ || b1.antiAlias_ == b2.antiAlias_;
 }
-}
-}
-}
+} // namespace Drawing
+} // namespace Rosen
+} // namespace OHOS

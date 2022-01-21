@@ -21,10 +21,12 @@ namespace OHOS {
 namespace Rosen {
 namespace Drawing {
 Bitmap::Bitmap()
-    : bmpImplPtr(ImplFactory::CreateBitmapImpl()), pixels_(nullptr),
-      width_(0), height_(0), format_({COLORTYPE_UNKNOWN, ALPHATYPE_UNKNOWN})
-{
-}
+    : bmpImplPtr(ImplFactory::CreateBitmapImpl()),
+      pixels_(nullptr),
+      width_(0),
+      height_(0),
+      format_({ COLORTYPE_UNKNOWN, ALPHATYPE_UNKNOWN })
+{}
 
 Bitmap::~Bitmap() {}
 
@@ -86,6 +88,6 @@ BitmapFormat Bitmap::GetFormat()
 {
     return format_;
 }
-}
-}
-}
+} // namespace Drawing
+} // namespace Rosen
+} // namespace OHOS

@@ -16,6 +16,7 @@
 #include "effect/path_effect.h"
 
 #include "impl_factory.h"
+
 #include "impl_interface/path_effect_impl.h"
 
 namespace OHOS {
@@ -45,14 +46,14 @@ PathEffect::PathEffect(PathEffectType t, PathEffect& e1, PathEffect& e2) noexcep
     type_ = t;
     if (type_ == PathEffect::PathEffectType::SUM) {
         impl_->InitWithSum(e1, e2);
-    } else if(type_ == PathEffect::PathEffectType::COMPOSE) {
+    } else if (type_ == PathEffect::PathEffectType::COMPOSE) {
         impl_->InitWithCompose(e1, e2);
     }
 }
 
 PathEffect::PathEffect() noexcept
-    : type_(PathEffect::PathEffectType::NO_TYPE),
-    impl_(ImplFactory::CreatePathEffectImpl()) {}
+    : type_(PathEffect::PathEffectType::NO_TYPE), impl_(ImplFactory::CreatePathEffectImpl())
+{}
 
 PathEffect::PathEffectType PathEffect::GetType() const
 {
@@ -64,8 +65,8 @@ std::shared_ptr<PathEffect> PathEffect::CreateDashPathEffect(const scalar interv
     return std::make_shared<PathEffect>(PathEffect::PathEffectType::DASH, intervals, count, phase);
 }
 
-std::shared_ptr<PathEffect> PathEffect::CreatePathDashEffect(const Path& path, scalar advance,
-                                                             scalar phase, PathDashStyle style)
+std::shared_ptr<PathEffect> PathEffect::CreatePathDashEffect(
+    const Path& path, scalar advance, scalar phase, PathDashStyle style)
 {
     return std::make_shared<PathEffect>(PathEffect::PathEffectType::PATH_DASH, path, advance, phase, style);
 }
@@ -84,6 +85,6 @@ std::shared_ptr<PathEffect> PathEffect::CreateComposePathEffect(PathEffect& e1, 
 {
     return std::make_shared<PathEffect>(PathEffect::PathEffectType::COMPOSE, e1, e2);
 }
-}
-}
-}
+} // namespace Drawing
+} // namespace Rosen
+} // namespace OHOS

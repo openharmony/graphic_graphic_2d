@@ -18,8 +18,9 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-Filter::Filter() noexcept : colorFilter_(nullptr), imageFilter_(nullptr),
-    maskFilter_(nullptr), filterQuality_(FilterQuality::NONE) {}
+Filter::Filter() noexcept
+    : colorFilter_(nullptr), imageFilter_(nullptr), maskFilter_(nullptr), filterQuality_(FilterQuality::NONE)
+{}
 
 void Filter::SetColorFilter(std::shared_ptr<ColorFilter> colorFilter)
 {
@@ -61,17 +62,17 @@ Filter::FilterQuality Filter::GetFilterQuality() const
     return filterQuality_;
 }
 
-bool operator==(const Filter &f1, const Filter &f2)
+bool operator==(const Filter& f1, const Filter& f2)
 {
     return f1.colorFilter_ == f2.colorFilter_ && f1.imageFilter_ == f2.imageFilter_ &&
         f1.maskFilter_ == f2.maskFilter_ && f1.filterQuality_ == f2.filterQuality_;
 }
 
-bool operator!=(const Filter &f1, const Filter &f2)
+bool operator!=(const Filter& f1, const Filter& f2)
 {
     return f1.colorFilter_ != f2.colorFilter_ || f1.imageFilter_ != f2.imageFilter_ ||
         f1.maskFilter_ != f2.maskFilter_ || f1.filterQuality_ != f2.filterQuality_;
 }
-}
-}
-}
+} // namespace Drawing
+} // namespace Rosen
+} // namespace OHOS

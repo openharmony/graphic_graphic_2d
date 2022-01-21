@@ -13,11 +13,11 @@
  * limitations under the License.
  */
 
+#include "skia_bitmap.h"
+
 #include "include/core/SkImageInfo.h"
 
 #include "image/bitmap.h"
-
-#include "skia_bitmap.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -62,8 +62,8 @@ static inline SkAlphaType ConvertToSkAlphaType(const AlphaType& format)
 
 static inline SkImageInfo MakeSkImageInfo(const int width, const int height, const BitmapFormat& format)
 {
-    auto imageInfo = SkImageInfo::Make(width, height, ConvertToSkColorType(format.colorType),
-        ConvertToSkAlphaType(format.alphaType));
+    auto imageInfo = SkImageInfo::Make(
+        width, height, ConvertToSkColorType(format.colorType), ConvertToSkAlphaType(format.alphaType));
     return imageInfo;
 }
 
@@ -136,6 +136,6 @@ bool SkiaBitmap::IsValid()
 {
     return skiaBitmap_.drawsNothing();
 }
-}
-}
-}
+} // namespace Drawing
+} // namespace Rosen
+} // namespace OHOS

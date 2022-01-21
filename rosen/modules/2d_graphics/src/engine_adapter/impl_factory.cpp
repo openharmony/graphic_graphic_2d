@@ -81,6 +81,6 @@ std::unique_ptr<CameraImpl> ImplFactory::CreateCameraImpl()
 {
     return EngineImplFactory::CreateCamera();
 }
-}
-}
-}
+} // namespace Drawing
+} // namespace Rosen
+} // namespace OHOS

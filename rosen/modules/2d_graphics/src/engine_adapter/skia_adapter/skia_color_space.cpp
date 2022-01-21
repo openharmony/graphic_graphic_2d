@@ -15,9 +15,9 @@
 
 #include "skia_color_space.h"
 
-#include "image/image.h"
-
 #include "skia_image.h"
+
+#include "image/image.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -47,6 +47,6 @@ sk_sp<SkColorSpace> SkiaColorSpace::GetColorSpace() const
 {
     return colorSpace_;
 }
-}
-}
-}
+} // namespace Drawing
+} // namespace Rosen
+} // namespace OHOS

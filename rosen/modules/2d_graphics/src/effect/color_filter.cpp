@@ -16,6 +16,7 @@
 #include "effect/color_filter.h"
 
 #include "impl_factory.h"
+
 #include "impl_interface/color_filter_impl.h"
 
 namespace OHOS {
@@ -55,8 +56,8 @@ ColorFilter::ColorFilter(FilterType t) noexcept : ColorFilter()
 }
 
 ColorFilter::ColorFilter() noexcept
-    : type_(ColorFilter::FilterType::NO_TYPE),
-    impl_(ImplFactory::CreateColorFilterImpl()) {}
+    : type_(ColorFilter::FilterType::NO_TYPE), impl_(ImplFactory::CreateColorFilterImpl())
+{}
 
 ColorFilter::FilterType ColorFilter::GetType() const
 {
@@ -92,6 +93,6 @@ std::shared_ptr<ColorFilter> ColorFilter::CreateSrgbGammaToLinear()
 {
     return std::make_shared<ColorFilter>(ColorFilter::FilterType::SRGB_GAMMA_TO_LINEAR);
 }
-}
-}
-}
+} // namespace Drawing
+} // namespace Rosen
+} // namespace OHOS

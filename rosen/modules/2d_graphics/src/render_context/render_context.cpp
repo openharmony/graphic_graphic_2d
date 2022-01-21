@@ -18,23 +18,24 @@
 #include <sstream>
 #include <string>
 
-#include "utils/log.h"
 #include "window.h"
+
+#include "utils/log.h"
 
 namespace OHOS {
 namespace Rosen {
 using GetPlatformDisplayExt = PFNEGLGETPLATFORMDISPLAYEXTPROC;
-constexpr const char *EGL_EXT_PLATFORM_WAYLAND = "EGL_EXT_platform_wayland";
-constexpr const char *EGL_KHR_PLATFORM_WAYLAND = "EGL_KHR_platform_wayland";
+constexpr const char* EGL_EXT_PLATFORM_WAYLAND = "EGL_EXT_platform_wayland";
+constexpr const char* EGL_KHR_PLATFORM_WAYLAND = "EGL_KHR_platform_wayland";
 constexpr int32_t EGL_CONTEXT_CLIENT_VERSION_NUM = 2;
 constexpr char CHARACTER_WHITESPACE = ' ';
-constexpr const char *CHARACTER_STRING_WHITESPACE = " ";
-constexpr const char *EGL_GET_PLATFORM_DISPLAY_EXT = "eglGetPlatformDisplayEXT";
+constexpr const char* CHARACTER_STRING_WHITESPACE = " ";
+constexpr const char* EGL_GET_PLATFORM_DISPLAY_EXT = "eglGetPlatformDisplayEXT";
 
-static bool CheckEglExtension(const char *extensions, const char *extension)
+static bool CheckEglExtension(const char* extensions, const char* extension)
 {
     size_t extlen = strlen(extension);
-    const char *end = extensions + strlen(extensions);
+    const char* end = extensions + strlen(extensions);
 
     while (extensions < end) {
         size_t n = 0;
@@ -56,15 +57,15 @@ static bool CheckEglExtension(const char *extensions, const char *extension)
     return false;
 }
 
-static EGLDisplay GetPlatformEglDisplay(EGLenum platform, void *native_display, const EGLint *attrib_list)
+static EGLDisplay GetPlatformEglDisplay(EGLenum platform, void* native_display, const EGLint* attrib_list)
 {
     static GetPlatformDisplayExt eglGetPlatformDisplayExt = NULL;
 
     if (!eglGetPlatformDisplayExt) {
-        const char *extensions = eglQueryString(EGL_NO_DISPLAY, EGL_EXTENSIONS);
+        const char* extensions = eglQueryString(EGL_NO_DISPLAY, EGL_EXTENSIONS);
         if (extensions &&
             (CheckEglExtension(extensions, EGL_EXT_PLATFORM_WAYLAND) ||
-            CheckEglExtension(extensions, EGL_KHR_PLATFORM_WAYLAND))) {
+                CheckEglExtension(extensions, EGL_KHR_PLATFORM_WAYLAND))) {
             eglGetPlatformDisplayExt = (GetPlatformDisplayExt)eglGetProcAddress(EGL_GET_PLATFORM_DISPLAY_EXT);
         }
     }
@@ -73,14 +74,18 @@ static EGLDisplay GetPlatformEglDisplay(EGLenum platform, void *native_display, 
         return eglGetPlatformDisplayExt(platform, native_display, attrib_list);
     }
 
-    return eglGetDisplay((EGLNativeDisplayType) native_display);
+    return eglGetDisplay((EGLNativeDisplayType)native_display);
 }
 
 RenderContext::RenderContext()
-    : grContext_(nullptr), skSurface_(nullptr), nativeWindow_(nullptr),
-    eglDisplay_(EGL_NO_DISPLAY), eglContext_(EGL_NO_CONTEXT), eglSurface_(EGL_NO_SURFACE), config_(nullptr)
-{
-}
+    : grContext_(nullptr),
+      skSurface_(nullptr),
+      nativeWindow_(nullptr),
+      eglDisplay_(EGL_NO_DISPLAY),
+      eglContext_(EGL_NO_CONTEXT),
+      eglSurface_(EGL_NO_SURFACE),
+      config_(nullptr)
+{}
 
 RenderContext::~RenderContext()
 {
@@ -124,15 +129,8 @@ void RenderContext::InitializeEglContext()
     }
 
     EGLint ret, count;
-    EGLint config_attribs[] = {
-        EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
-        EGL_RED_SIZE, 8,
-        EGL_GREEN_SIZE, 8,
-        EGL_BLUE_SIZE, 8,
-        EGL_ALPHA_SIZE, 8,
-        EGL_RENDERABLE_TYPE, EGL_OPENGL_ES3_BIT,
-        EGL_NONE
-    };
+    EGLint config_attribs[] = { EGL_SURFACE_TYPE, EGL_WINDOW_BIT, EGL_RED_SIZE, 8, EGL_GREEN_SIZE, 8, EGL_BLUE_SIZE, 8,
+        EGL_ALPHA_SIZE, 8, EGL_RENDERABLE_TYPE, EGL_OPENGL_ES3_BIT, EGL_NONE };
 
     ret = eglChooseConfig(eglDisplay_, config_attribs, &config_, 1, &count);
     if (!(ret && count >= 1)) {
@@ -140,10 +138,7 @@ void RenderContext::InitializeEglContext()
         return;
     }
 
-    static const EGLint context_attribs[] = {
-        EGL_CONTEXT_CLIENT_VERSION, EGL_CONTEXT_CLIENT_VERSION_NUM,
-        EGL_NONE
-    };
+    static const EGLint context_attribs[] = { EGL_CONTEXT_CLIENT_VERSION, EGL_CONTEXT_CLIENT_VERSION_NUM, EGL_NONE };
 
     eglContext_ = eglCreateContext(eglDisplay_, config_, EGL_NO_CONTEXT, context_attribs);
     if (eglContext_ == EGL_NO_CONTEXT) {
@@ -180,7 +175,7 @@ EGLSurface RenderContext::CreateEGLSurface(EGLNativeWindowType eglNativeWindow)
 
     eglMakeCurrent(eglDisplay_, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
 
-    EGLint winAttribs[] = {EGL_GL_COLORSPACE_KHR, EGL_GL_COLORSPACE_SRGB_KHR, EGL_NONE};
+    EGLint winAttribs[] = { EGL_GL_COLORSPACE_KHR, EGL_GL_COLORSPACE_SRGB_KHR, EGL_NONE };
     EGLSurface surface = eglCreateWindowSurface(eglDisplay_, config_, nativeWindow_, winAttribs);
     if (surface == EGL_NO_SURFACE) {
         LOGW("Failed to create eglsurface!!! %{public}x", eglGetError());
@@ -237,8 +232,8 @@ SkCanvas* RenderContext::AcquireCanvas(int width, int height)
     GrBackendRenderTarget backendRenderTarget(width, height, 0, 8, framebufferInfo);
     SkSurfaceProps surfaceProps = SkSurfaceProps::kLegacyFontHost_InitType;
 
-    skSurface_ = SkSurface::MakeFromBackendRenderTarget(GetGrContext(), backendRenderTarget,
-        kBottomLeft_GrSurfaceOrigin, colorType, nullptr, &surfaceProps);
+    skSurface_ = SkSurface::MakeFromBackendRenderTarget(
+        GetGrContext(), backendRenderTarget, kBottomLeft_GrSurfaceOrigin, colorType, nullptr, &surfaceProps);
     if (skSurface_ == nullptr) {
         LOGW("skSurface is nullptr");
         return nullptr;
@@ -282,5 +277,5 @@ void RenderContext::DamageFrame(int32_t left, int32_t top, int32_t width, int32_
     }
 #endif
 }
-}
-}
+} // namespace Rosen
+} // namespace OHOS

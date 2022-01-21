@@ -34,6 +34,6 @@ sk_sp<SkMaskFilter> SkiaMaskFilter::GetMaskFilter() const
 {
     return filter_;
 }
-}
-}
-}
+} // namespace Drawing
+} // namespace Rosen
+} // namespace OHOS

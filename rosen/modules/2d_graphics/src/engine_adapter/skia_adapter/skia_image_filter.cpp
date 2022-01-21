@@ -21,16 +21,17 @@
 #include "include/effects/SkBlurImageFilter.h"
 #endif
 
+#include "skia_color_filter.h"
+
 #include "effect/color_filter.h"
 #include "effect/image_filter.h"
-#include "skia_color_filter.h"
 
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
 SkiaImageFilter::SkiaImageFilter() noexcept : filter_(nullptr) {}
 
-void SkiaImageFilter::InitWithBlur(scalar sigmaX , scalar sigmaY, const ImageFilter& f)
+void SkiaImageFilter::InitWithBlur(scalar sigmaX, scalar sigmaY, const ImageFilter& f)
 {
     auto input = f.GetImpl<SkiaImageFilter>();
     if (input != nullptr) {
@@ -59,14 +60,14 @@ void SkiaImageFilter::InitWithOffset(scalar dx, scalar dy, const ImageFilter& f)
     }
 }
 
-void SkiaImageFilter::InitWithArithmetic(scalar k1, scalar k2, scalar k3, scalar k4, bool enforcePMColor,
-                                         const ImageFilter& f1, const ImageFilter& f2)
+void SkiaImageFilter::InitWithArithmetic(
+    scalar k1, scalar k2, scalar k3, scalar k4, bool enforcePMColor, const ImageFilter& f1, const ImageFilter& f2)
 {
     auto background = f1.GetImpl<SkiaImageFilter>();
     auto foreground = f2.GetImpl<SkiaImageFilter>();
     if (background != nullptr && foreground != nullptr) {
-        filter_ = SkImageFilters::Arithmetic(k1, k2, k3, k4, enforcePMColor,
-            background->GetImageFilter(), foreground->GetImageFilter());
+        filter_ = SkImageFilters::Arithmetic(
+            k1, k2, k3, k4, enforcePMColor, background->GetImageFilter(), foreground->GetImageFilter());
     }
 }
 
@@ -83,6 +84,6 @@ sk_sp<SkImageFilter> SkiaImageFilter::GetImageFilter() const
 {
     return filter_;
 }
-}
-}
-}
+} // namespace Drawing
+} // namespace Rosen
+} // namespace OHOS

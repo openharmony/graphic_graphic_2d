@@ -17,19 +17,19 @@
 
 #include <vector>
 
-#include "include/effects/SkGradientShader.h"
 #include "include/core/SkMatrix.h"
 #include "include/core/SkTileMode.h"
+#include "include/effects/SkGradientShader.h"
 #if defined(USE_CANVASKIT0310_SKIA)
 #include "include/core/SkSamplingOptions.h"
 #endif
 
+#include "skia_image.h"
+#include "skia_matrix.h"
+
 #include "effect/shader_effect.h"
 #include "image/image.h"
 #include "utils/matrix.h"
-
-#include "skia_image.h"
-#include "skia_matrix.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -50,8 +50,8 @@ void SkiaShaderEffect::InitWithBlend(const ShaderEffect& s1, const ShaderEffect&
     }
 }
 
-void SkiaShaderEffect::InitWithImage(const Image& image, TileMode tileX, TileMode tileY,
-    const SamplingOptions& sampling, const Matrix& matrix)
+void SkiaShaderEffect::InitWithImage(
+    const Image& image, TileMode tileX, TileMode tileY, const SamplingOptions& sampling, const Matrix& matrix)
 {
     SkTileMode modeX = static_cast<SkTileMode>(tileX);
     SkTileMode modeY = static_cast<SkTileMode>(tileY);
@@ -68,10 +68,10 @@ void SkiaShaderEffect::InitWithImage(const Image& image, TileMode tileX, TileMod
 #if defined(USE_CANVASKIT0310_SKIA)
     SkSamplingOptions samplingOptions;
     if (sampling.GetUseCubic()) {
-        samplingOptions = SkSamplingOptions({sampling.GetCubicCoffB(), sampling.GetCubicCoffC()});
+        samplingOptions = SkSamplingOptions({ sampling.GetCubicCoffB(), sampling.GetCubicCoffC() });
     } else {
-        samplingOptions = SkSamplingOptions(static_cast<SkFilterMode>(sampling.GetFilterMode()),
-            static_cast<SkMipmapMode>(sampling.GetMipmapMode()));
+        samplingOptions = SkSamplingOptions(
+            static_cast<SkFilterMode>(sampling.GetFilterMode()), static_cast<SkMipmapMode>(sampling.GetMipmapMode()));
     }
     shader_ = skiaImage->makeShader(modeX, modeY, samplingOptions, &skiaMatrix);
 #else
@@ -89,8 +89,7 @@ void SkiaShaderEffect::InitWithLinearGradient(const Point& startPt, const Point&
     int count = (colors.size() == pos.size()) ? colors.size() : 0;
     SkColor c[count];
     SkScalar p[count];
-    for (auto i = 0; i < count; ++i)
-    {
+    for (auto i = 0; i < count; ++i) {
         c[i] = colors[i];
         p[i] = pos[i];
     }
@@ -106,17 +105,15 @@ void SkiaShaderEffect::InitWithRadialGradient(const Point& centerPt, scalar radi
     int count = (colors.size() == pos.size()) ? colors.size() : 0;
     SkColor c[count];
     SkScalar p[count];
-    for (auto i = 0; i < count; ++i)
-    {
+    for (auto i = 0; i < count; ++i) {
         c[i] = colors[i];
         p[i] = pos[i];
     }
     shader_ = SkGradientShader::MakeRadial(center, radius, c, p, count, static_cast<SkTileMode>(mode));
 }
 
-void SkiaShaderEffect::InitWithTwoPointConical(const Point& startPt, scalar startRadius,
-    const Point& endPt, scalar endRadius,
-    const std::vector<ColorQuad>& colors, const std::vector<scalar>& pos, TileMode mode)
+void SkiaShaderEffect::InitWithTwoPointConical(const Point& startPt, scalar startRadius, const Point& endPt,
+    scalar endRadius, const std::vector<ColorQuad>& colors, const std::vector<scalar>& pos, TileMode mode)
 {
     SkPoint start;
     SkPoint end;
@@ -126,35 +123,32 @@ void SkiaShaderEffect::InitWithTwoPointConical(const Point& startPt, scalar star
     int count = (colors.size() == pos.size()) ? colors.size() : 0;
     SkColor c[count];
     SkScalar p[count];
-    for (auto i = 0; i < count; ++i)
-    {
+    for (auto i = 0; i < count; ++i) {
         c[i] = colors[i];
         p[i] = pos[i];
     }
-    shader_ = SkGradientShader::MakeTwoPointConical(start, startRadius, end, endRadius,
-        c, p, count, static_cast<SkTileMode>(mode));
+    shader_ = SkGradientShader::MakeTwoPointConical(
+        start, startRadius, end, endRadius, c, p, count, static_cast<SkTileMode>(mode));
 }
 
-void SkiaShaderEffect::InitWithSweepGradient(const Point& centerPt,
-    const std::vector<ColorQuad>& colors, const std::vector<scalar>& pos, TileMode mode,
-    scalar startAngle, scalar endAngle)
+void SkiaShaderEffect::InitWithSweepGradient(const Point& centerPt, const std::vector<ColorQuad>& colors,
+    const std::vector<scalar>& pos, TileMode mode, scalar startAngle, scalar endAngle)
 {
     int count = (colors.size() == pos.size()) ? colors.size() : 0;
     SkColor c[count];
     SkScalar p[count];
-    for (auto i = 0; i < count; ++i)
-    {
+    for (auto i = 0; i < count; ++i) {
         c[i] = colors[i];
         p[i] = pos[i];
     }
-    shader_ = SkGradientShader::MakeSweep(centerPt.GetX(), centerPt.GetY(), c, p, count,
-        static_cast<SkTileMode>(mode), startAngle, endAngle, 0, nullptr);
+    shader_ = SkGradientShader::MakeSweep(
+        centerPt.GetX(), centerPt.GetY(), c, p, count, static_cast<SkTileMode>(mode), startAngle, endAngle, 0, nullptr);
 }
 
 sk_sp<SkShader> SkiaShaderEffect::GetShader() const
 {
     return shader_;
 }
-}
-}
-}
+} // namespace Drawing
+} // namespace Rosen
+} // namespace OHOS

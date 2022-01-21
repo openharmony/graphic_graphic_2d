@@ -77,6 +77,6 @@ void Camera3D::ApplyToMatrix(Matrix& m)
 {
     impl_->ApplyToMatrix(m);
 }
-}
-}
-}
+} // namespace Drawing
+} // namespace Rosen
+} // namespace OHOS

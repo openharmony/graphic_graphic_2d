@@ -21,10 +21,15 @@ namespace OHOS {
 namespace Rosen {
 namespace Drawing {
 Pen::Pen() noexcept
-    : width_(0), miterLimit_(), join_(Pen::JoinStyle::MITER_JOIN),
-    cap_(Pen::CapStyle::FLAT_CAP), pathEffect_(nullptr), brush_() {}
+    : width_(0),
+      miterLimit_(),
+      join_(Pen::JoinStyle::MITER_JOIN),
+      cap_(Pen::CapStyle::FLAT_CAP),
+      pathEffect_(nullptr),
+      brush_()
+{}
 
-Pen::Pen(const Color &c) noexcept : Pen()
+Pen::Pen(const Color& c) noexcept : Pen()
 {
     brush_.SetColor(c);
 }
@@ -39,7 +44,7 @@ Color Pen::GetColor() const
     return brush_.GetColor();
 }
 
-void Pen::SetColor(const Color &c)
+void Pen::SetColor(const Color& c)
 {
     brush_.SetColor(c);
 }
@@ -64,7 +69,7 @@ std::shared_ptr<ColorSpace> Pen::GetColorSpace() const
     return brush_.GetColorSpace();
 }
 
-void Pen::SetColor(const Color4f &cf, std::shared_ptr<ColorSpace> s)
+void Pen::SetColor(const Color4f& cf, std::shared_ptr<ColorSpace> s)
 {
     brush_.SetColor(cf, s);
 }
@@ -154,7 +159,7 @@ std::shared_ptr<PathEffect> Pen::GetPathEffect() const
     return pathEffect_;
 }
 
-void Pen::SetFilter(const Filter &filter)
+void Pen::SetFilter(const Filter& filter)
 {
     brush_.SetFilter(filter);
 }
@@ -179,17 +184,17 @@ void Pen::Reset()
     *this = Pen();
 }
 
-bool operator==(const Pen &p1, const Pen &p2)
+bool operator==(const Pen& p1, const Pen& p2)
 {
-    return p1.width_ == p2.width_ && p1.miterLimit_ == p2.miterLimit_ &&
-        p1.join_ == p2.join_ && p1.cap_ == p2.cap_ && p1.pathEffect_ == p2.pathEffect_ && p1.brush_ == p2.brush_;
+    return p1.width_ == p2.width_ && p1.miterLimit_ == p2.miterLimit_ && p1.join_ == p2.join_ && p1.cap_ == p2.cap_ &&
+        p1.pathEffect_ == p2.pathEffect_ && p1.brush_ == p2.brush_;
 }
 
-bool operator!=(const Pen &p1, const Pen &p2)
+bool operator!=(const Pen& p1, const Pen& p2)
 {
-    return p1.width_ != p2.width_ || p1.miterLimit_ != p2.miterLimit_ ||
-        p1.join_ != p2.join_ || p1.cap_ != p2.cap_ || p1.pathEffect_ != p2.pathEffect_ || p1.brush_ != p2.brush_;
+    return p1.width_ != p2.width_ || p1.miterLimit_ != p2.miterLimit_ || p1.join_ != p2.join_ || p1.cap_ != p2.cap_ ||
+        p1.pathEffect_ != p2.pathEffect_ || p1.brush_ != p2.brush_;
 }
-}
-}
-}
+} // namespace Drawing
+} // namespace Rosen
+} // namespace OHOS

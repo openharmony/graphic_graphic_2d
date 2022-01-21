@@ -21,11 +21,11 @@
 #include "include/core/SkSamplingOptions.h"
 #endif
 
-#include "image/bitmap.h"
-#include "image/image.h"
-
 #include "skia_bitmap.h"
 #include "skia_image.h"
+
+#include "image/bitmap.h"
+#include "image/image.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -56,6 +56,6 @@ const sk_sp<SkImage> SkiaImage::GetImage() const
 {
     return skiaImage_;
 }
-}
-}
-}
+} // namespace Drawing
+} // namespace Rosen
+} // namespace OHOS

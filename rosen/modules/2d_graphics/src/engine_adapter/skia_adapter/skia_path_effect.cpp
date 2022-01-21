@@ -14,13 +14,16 @@
  */
 
 #include "skia_path_effect.h"
-#include "skia_path.h"
-#include "effect/path_effect.h"
+
+#include <memory>
+
 #include "include/core/SkPathEffect.h"
 #include "include/effects/Sk1DPathEffect.h"
 #include "include/effects/SkCornerPathEffect.h"
 #include "include/effects/SkDashPathEffect.h"
-#include <memory>
+#include "skia_path.h"
+
+#include "effect/path_effect.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -36,8 +39,8 @@ void SkiaPathEffect::InitWithPathDash(const Path& path, scalar advance, scalar p
 {
     auto p = path.GetImpl<SkiaPath>();
     if (p != nullptr) {
-        pathEffect_ = SkPath1DPathEffect::Make(p->GetPath(), 
-            advance, phase, static_cast<SkPath1DPathEffect::Style>(style));
+        pathEffect_ =
+            SkPath1DPathEffect::Make(p->GetPath(), advance, phase, static_cast<SkPath1DPathEffect::Style>(style));
     }
 }
 
@@ -68,6 +71,6 @@ sk_sp<SkPathEffect> SkiaPathEffect::GetPathEffect() const
 {
     return pathEffect_;
 }
-}
-}
-}
+} // namespace Drawing
+} // namespace Rosen
+} // namespace OHOS
