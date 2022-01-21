@@ -44,6 +44,7 @@ public:
     int32_t SetScreenPowerStatus(DispPowerStatus status) const;
     int32_t GetScreenBacklight(uint32_t &level) const;
     int32_t SetScreenBacklight(uint32_t level) const;
+    int32_t SetScreenVsyncEnabled(bool enabled) const;
 
     static void OnVsync(uint32_t sequence, uint64_t ns, void *data);
 

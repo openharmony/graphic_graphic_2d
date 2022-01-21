@@ -168,6 +168,15 @@ int32_t HdiScreen::SetScreenBacklight(uint32_t level) const
     return device_->SetScreenBacklight(screenId_, level);
 }
 
+int32_t HdiScreen::SetScreenVsyncEnabled(bool enabled) const
+{
+    if (device_ == nullptr) {
+        return DISPLAY_NULL_PTR;
+    }
+
+    return device_->SetScreenVsyncEnabled(screenId_, enabled);
+}
+
 void HdiScreen::Destory()
 {
     // stop vsync

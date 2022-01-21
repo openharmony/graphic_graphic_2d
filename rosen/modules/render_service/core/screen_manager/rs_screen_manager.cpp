@@ -386,6 +386,18 @@ void RSScreenManager::SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status
         return;
     }
     screens_.at(id)->SetPowerStatus(static_cast<uint32_t>(status));
+
+    /*
+     * If app adds the first frame when power on the screen, delete the code
+     */
+    if (status == ScreenPowerStatus::POWER_STATUS_ON) {
+        auto mainThread = RSMainThread::Instance();
+        if (mainThread == nullptr) {
+            return;
+        }
+        mainThread->RequestNextVSync();
+        HiLog::Info(LOG_LABEL, "Set system power on, request a frame");
+    }
 }
 
 void RSScreenManager::GetScreenActiveMode(ScreenId id, RSScreenModeInfo& screenModeInfo) const
