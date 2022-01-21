@@ -126,10 +126,11 @@ private:
     sptr<IBufferConsumerListener> listener_ = nullptr;
     IBufferConsumerListenerClazz *listenerClazz_ = nullptr;
     std::mutex mutex_;
-	const uint64_t uniqueId_;
+    const uint64_t uniqueId_;
     sptr<BufferManager> bufferManager_ = nullptr;
     OnReleaseFunc onBufferRelease = nullptr;
     bool isShared_ = false;
+    std::condition_variable waitReqCon_;
 };
 }; // namespace OHOS
 

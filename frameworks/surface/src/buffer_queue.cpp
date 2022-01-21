@@ -195,8 +195,7 @@ GSError BufferQueue::RequestBuffer(const BufferRequestConfig &config, BufferExtr
 
     // check queue size
     if (GetUsedSize() >= GetQueueSize()) {
-        std::condition_variable con;
-        con.wait_for(lock, std::chrono::milliseconds(config.timeout));
+        waitReqCon_.wait_for(lock, std::chrono::milliseconds(config.timeout));
         // try dequeue from free list again
         ret = PopFromFreeList(bufferImpl, config);
         if (ret == GSERROR_OK) {
@@ -287,6 +286,7 @@ GSError BufferQueue::CancelBuffer(int32_t sequence, const BufferExtraData &bedat
     freeList_.push_back(sequence);
     bufferQueueCache_[sequence].buffer->SetExtraData(bedata);
 
+    waitReqCon_.notify_all();
     BLOGD("Success Buffer id: %{public}d Queue id: %{public}" PRIu64 "", sequence, uniqueId_);
 
     return GSERROR_OK;
@@ -460,7 +460,7 @@ GSError BufferQueue::ReleaseBuffer(sptr<SurfaceBufferImpl> &buffer, int32_t fenc
         auto sret = onBufferRelease(buf);
         BLOGNI("onBufferRelease end return %{public}s", GSErrorStr(sret).c_str());
 
-        if (sret == GSERROR_OK) {
+        if (sret == GSERROR_OK) {   // need to check why directly return?
             return sret;
         }
     }
@@ -476,7 +476,7 @@ GSError BufferQueue::ReleaseBuffer(sptr<SurfaceBufferImpl> &buffer, int32_t fenc
         freeList_.push_back(sequence);
         BLOGD("Success push Buffer id: %{public}d Queue id: %{public}" PRIu64 " to free list", sequence, uniqueId_);
     }
-
+    waitReqCon_.notify_all();
     return GSERROR_OK;
 }
 
