@@ -36,6 +36,7 @@
           "//foundation/graphic/standard/rosen/modules/render_service_client:librender_service_client",
           "//foundation/graphic/standard/rosen/modules/render_service:librender_service",
           "//foundation/graphic/standard/rosen/modules/render_service:render_service",
+          "//foundation/graphic/standard/rosen/modules/render_service:render_service_dump",
           "//foundation/graphic/standard/interfaces/kits/napi/graphic/webgl:libwebglnapi"
         ],
         "inner_kits": [

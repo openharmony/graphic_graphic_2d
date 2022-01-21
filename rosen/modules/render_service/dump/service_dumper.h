@@ -76,7 +76,7 @@ public:
                 }
             }
 
-            if (service_->Dump(remoteFd, args) != ERR_NONE) {
+            if (service_->Dump(remoteFd, args) != NO_ERROR) {
                 (void)fprintf(stderr, "Dump failed for %s.\n", serviceName_.c_str());
             }
         }

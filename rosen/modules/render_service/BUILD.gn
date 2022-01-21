@@ -86,6 +86,29 @@ ohos_executable("render_service") {
   subsystem_name = "graphic"
 }
 
+## Build render_service_dump.bin
+ohos_executable("render_service_dump") {
+  sources = [ "dump/render_service_dump.cpp" ]
+
+  include_dirs = [
+    "//foundation/graphic/standard/rosen/modules/render_service_base/include",
+    "//foundation/graphic/standard/rosen/modules/render_service_base/src",
+    "//utils/system/safwk/native/include",
+  ]
+
+  deps = [ "//foundation/graphic/standard/rosen/modules/render_service_base:librender_service_base" ]
+
+  public_deps = [ "//foundation/graphic/standard:libsurface" ]
+
+  external_deps = [
+    "ipc:ipc_core",
+    "samgr_standard:samgr_proxy",
+  ]
+
+  part_name = "graphic_standard"
+  subsystem_name = "graphic"
+}
+
 group("test") {
   testonly = true
 

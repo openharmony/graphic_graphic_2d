@@ -23,36 +23,3 @@ ohos_executable("render_service_client") {
   part_name = "graphic_standard"
   subsystem_name = "graphic"
 }
-
-config("export_config") {
-  include_dirs = [
-    "//foundation/graphic/standard/rosen/include",
-    "//utils/native/base/include",
-    "//utils/system/safwk/native/include",
-    "//foundation/graphic/standard/frameworks/surface/src",
-    "//foundation/graphic/standard/rosen/modules/2d_graphics/src",
-    "//foundation/multimedia/image_standard/interfaces/innerkits/include",
-  ]
-}
-
-ohos_executable("render_service_dump_demo") {
-  sources = [ "dump_test.cpp" ]
-
-  include_dirs = [
-    "//foundation/graphic/standard/rosen/modules/render_service_base/include",
-    "//foundation/graphic/standard/rosen/modules/render_service_base/src",
-    "//utils/system/safwk/native/include",
-  ]
-
-  deps = [ "//foundation/graphic/standard/rosen/modules/render_service_base:librender_service_base" ]
-
-  public_deps = [ "//foundation/graphic/standard:libsurface" ]
-
-  external_deps = [
-    "ipc:ipc_core",
-    "samgr_standard:samgr_proxy",
-  ]
-
-  part_name = "graphic_standard"
-  subsystem_name = "graphic"
-}
