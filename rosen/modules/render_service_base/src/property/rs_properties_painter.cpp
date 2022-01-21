@@ -198,7 +198,7 @@ void RSPropertiesPainter::SaveLayerForFilter(RSProperties& properties, SkCanvas&
 {
     SkPaint paint;
     paint.setAntiAlias(true);
-    //filter->ApplyTo(paint);
+    filter->ApplyTo(paint);
     if (properties.GetClipBounds() != nullptr) {
         canvas.clipPath(properties.GetClipBounds()->GetSkiaPath(), true);
     } else {

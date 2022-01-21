@@ -50,9 +50,6 @@ ohos_shared_library("2d_graphics") {
     "src/utils/camera3d.cpp",
     "src/utils/matrix.cpp",
   ]
-  if (ace_enable_gpu) {
-    sources += [ "src/render_context/render_context.cpp" ]
-  }
 
   include_dirs = [
     "include",
@@ -74,10 +71,6 @@ ohos_shared_library("2d_graphics") {
     "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
     "//foundation/graphic/standard:libsurface",
   ]
-
-  if (ace_enable_gpu) {
-    public_deps += [ "//foundation/graphic/standard:libgl" ]
-  }
 
   part_name = "graphic_standard"
   subsystem_name = "graphic"
