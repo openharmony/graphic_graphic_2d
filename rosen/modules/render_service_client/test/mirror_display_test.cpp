@@ -59,7 +59,7 @@ constexpr int MICRO_SECS_PER_SECOND = MICRO_SECS_PER_MILLISECOND * MILLI_SECS_PE
 constexpr uint8_t BIT_DEPTH_VALUE = 8;
 constexpr int SETW_VALUE = 2;
 constexpr char SETFILL_VALUE = '0';
-constexpr int SLEEP_TIME = 20;
+constexpr int SLEEP_TIME = 1;
 
 RenderContext* renderContext = nullptr;
 
@@ -161,7 +161,6 @@ RenderContext* GetRenderContext()
 #endif // ACE_ENABLE_GL
 } // namespace detail
 
-static std::unique_ptr<RSSurfaceFrame> framePtr;
 constexpr int SKSCALAR_X = 0;
 constexpr int SKSCALAR_Y = 0;
 constexpr int SKSCALAR_W = 1400;
@@ -201,50 +200,7 @@ static void DrawSurface(
     rsSurface->FlushFrame(framPtr1);
 }
 
-static void DrawSurfaceToCapture(std::shared_ptr<RSSurfaceNode> surfaceNode)
-{
-    SkRect surfaceGeometry = SkRect::MakeXYWH(100, 100, 256, 256);
-    SkRect shapeGeometry = SkRect::MakeXYWH(40, 60, 100, 120);
-    auto x = surfaceGeometry.x();
-    auto y = surfaceGeometry.y();
-    auto width = surfaceGeometry.width();
-    auto height = surfaceGeometry.height();
-    surfaceNode->SetBounds(x, y, width, height);
-    std::shared_ptr<RSSurface> rsSurface = RSSurfaceExtractor::ExtractRSSurface(surfaceNode);
-    if (rsSurface == nullptr) {
-        std::cout<< "***SurfaceCaptureTest*** DrawSurfaceToCapture: rsSurface == nullptr" <<std::endl;
-        return;
-    }
-    auto frame = rsSurface->RequestFrame(width, height);
-    framePtr = std::move(frame);
-
-    auto canvas = framePtr->GetCanvas();
-    if (canvas == nullptr) {
-        std::cout<< "***SurfaceCaptureTest*** DrawSurfaceToCapture: canvas == nullptr" << std::endl;
-        return;
-    }
-    SkPaint paint;
-    paint.setAntiAlias(true);
-    paint.setStyle(SkPaint::kFill_Style);
-    paint.setStrokeWidth(20); // 20: SkSCalar Width
-    paint.setStrokeJoin(SkPaint::kRound_Join);
-    paint.setColor(0xffff0000);
-    SkPath path;
-    path.cubicTo(20, 20, 50, 160, 120, 160); // 20 50 160 120: SkScalar parameter
-    SkPaint pathPaint;
-    pathPaint.setAntiAlias(true);
-    pathPaint.setStyle(SkPaint::kFill_Style);
-    pathPaint.setStrokeWidth(5); // 5: SKSCalar Width
-    pathPaint.setStrokeJoin(SkPaint::kRound_Join);
-    pathPaint.setColor(0xffFFD700);
-    canvas->drawRect(shapeGeometry, paint);
-    canvas->drawPath(path, pathPaint);
-    framePtr->SetDamageRegion(0, 0, width, height);
-    auto framePtr1 = std::move(framePtr);
-    rsSurface->FlushFrame(framePtr1);
-}
-
-std::shared_ptr<RSSurfaceNode> CreateSurface()
+static std::shared_ptr<RSSurfaceNode> CreateSurface()
 {
     RSSurfaceNodeConfig config;
     return RSSurfaceNode::Create(config);
@@ -380,15 +336,12 @@ int main()
     cout << "RS default screen id is " << id << ".\n";
 
     auto surfaceLauncher = CreateSurface();
-    auto surfaceNode = CreateSurface();
     DrawSurface(SkRect::MakeXYWH(SKSCALAR_X, SKSCALAR_Y, SKSCALAR_W, SKSCALAR_H), 0xFFF0FFF0,
         SkRect::MakeXYWH(SKSCALAR_X, SKSCALAR_Y, SKSCALAR_W, SKSCALAR_H), surfaceLauncher);
-    DrawSurfaceToCapture(surfaceNode);
     RSDisplayNodeConfig config;
     config.screenId = id;
     RSDisplayNode::SharedPtr sourceDisplayNode = RSDisplayNode::Create(config);
     sourceDisplayNode->AddChild(surfaceLauncher, -1);
-    sourceDisplayNode->AddChild(surfaceNode, -1);
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
 
     RSScreenModeInfo modeInfo = RSInterfaces::GetInstance().GetScreenActiveMode(id);
@@ -405,20 +358,16 @@ int main()
     RSDisplayNode::SharedPtr displayNode = RSDisplayNode::Create(mirrorConfig);
     sleep(1);
     
-    DrawSurface(SkRect::MakeXYWH(SKSCALAR_X, SKSCALAR_Y, SKSCALAR_W, SKSCALAR_H), 0xFFF0FFF0,
-        SkRect::MakeXYWH(SKSCALAR_X, SKSCALAR_Y, SKSCALAR_W, SKSCALAR_H), surfaceLauncher);
-    DrawSurfaceToCapture(surfaceNode);
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
-    sleep(detail::SLEEP_TIME);
-
-    DrawSurface(SkRect::MakeXYWH(SKSCALAR_X, SKSCALAR_Y, SKSCALAR_W, SKSCALAR_H), 0xFFF0FFF0,
-        SkRect::MakeXYWH(SKSCALAR_X, SKSCALAR_Y, SKSCALAR_W, SKSCALAR_H), surfaceLauncher);
-    DrawSurfaceToCapture(surfaceNode);
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
-    sleep(detail::SLEEP_TIME);
+    int frameCnt = 5; // test 5 frames.
+    for (int i = 0; i < frameCnt; ++i) {
+        DrawSurface(SkRect::MakeXYWH(SKSCALAR_X, SKSCALAR_Y, SKSCALAR_W, SKSCALAR_H), 0xFFF0FFF0,
+            SkRect::MakeXYWH(SKSCALAR_X, SKSCALAR_Y, SKSCALAR_W, SKSCALAR_H), surfaceLauncher);
+        RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+        sleep(detail::SLEEP_TIME);
+    }
 
     sourceDisplayNode->ClearChildren();
     sourceDisplayNode->RemoveFromTree();
-    
+
     return 0;
 }
