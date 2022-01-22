@@ -24,12 +24,8 @@ RSRenderAnimation::RSRenderAnimation(AnimationId id) : id_(id) {}
 #ifdef ROSEN_OHOS
 bool RSRenderAnimation::Marshalling(Parcel& parcel) const
 {
-    if (target_ == nullptr) {
-        ROSEN_LOGE("RSRenderAnimation::Marshalling, target_ is nullptr");
-        return false;
-    }
     // animationId, targetId
-    if (!(parcel.WriteUint64(id_) && parcel.WriteUint64(target_->GetId()))) {
+    if (!(parcel.WriteUint64(id_))) {
         ROSEN_LOGE("RSRenderAnimation::Marshalling, write id failed");
         return false;
     }
@@ -49,7 +45,6 @@ bool RSRenderAnimation::Marshalling(Parcel& parcel) const
 
 bool RSRenderAnimation::ParseParam(Parcel& parcel)
 {
-    uint64_t targetId = 0;
     int32_t duration = 0;
     int32_t startDelay = 0;
     int32_t repeatCount = 0;
@@ -57,9 +52,9 @@ bool RSRenderAnimation::ParseParam(Parcel& parcel)
     float speed = 0.0;
     bool autoReverse = false;
     bool direction = false;
-    if (!(parcel.ReadUint64(id_) && parcel.ReadUint64(targetId) && parcel.ReadInt32(duration) &&
-            parcel.ReadInt32(startDelay) && parcel.ReadFloat(speed) && parcel.ReadInt32(repeatCount) &&
-            parcel.ReadBool(autoReverse) && parcel.ReadBool(direction) && parcel.ReadInt32(fillMode))) {
+    if (!(parcel.ReadUint64(id_) && parcel.ReadInt32(duration) && parcel.ReadInt32(startDelay) &&
+            parcel.ReadFloat(speed) && parcel.ReadInt32(repeatCount) && parcel.ReadBool(autoReverse) &&
+            parcel.ReadBool(direction) && parcel.ReadInt32(fillMode))) {
         ROSEN_LOGE("RSRenderAnimation::ParseParam, read param failed");
         return false;
     }

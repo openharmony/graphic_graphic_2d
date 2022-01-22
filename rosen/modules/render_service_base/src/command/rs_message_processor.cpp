@@ -39,6 +39,17 @@ void RSMessageProcessor::AddUIMessage(uint32_t pid, std::unique_ptr<RSCommand>&&
     transactionMap_[pid].AddCommand(std::move(command));
 }
 
+bool RSMessageProcessor::HasTransaction() const
+{
+    return !transactionMap_.empty();
+}
+
+bool RSMessageProcessor::HasTransaction(uint32_t pid) const
+{
+    auto iter = transactionMap_.find(pid);
+    return iter != transactionMap_.end() && !iter->second.IsEmpty();
+}
+
 RSTransactionData&& RSMessageProcessor::GetTransaction(uint32_t pid)
 {
     return std::move(transactionMap_[pid]);

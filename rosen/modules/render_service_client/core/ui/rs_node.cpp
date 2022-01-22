@@ -214,54 +214,60 @@ bool IsValid(const Vector4f& value)
 }
 } // namespace
 
-#define SET_ANIMATABLE_PROPERTY(propertyName, value, property)                                          \
-    auto currentValue = stagingProperties_.Get##propertyName();                                         \
-    if (ROSEN_EQ(value, currentValue)) {                                                                \
-        return;                                                                                         \
-    }                                                                                                   \
-    if (RSImplicitAnimator::Instance().NeedImplicitAnimaton() && IsValid(currentValue)) {               \
-        RSImplicitAnimator::Instance().CreateImplicitAnimation(*this, property, currentValue, value);   \
-    } else if (HasPropertyAnimation(property)) {                                                        \
-        std::unique_ptr<RSCommand> command =                                                            \
-            std::make_unique<RSNodeSet##propertyName##Delta>(GetId(), value - currentValue);            \
-        auto transactionProxy = RSTransactionProxy::GetInstance();                                      \
-        if (transactionProxy != nullptr) {                                                              \
-            transactionProxy->AddCommand(command, IsRenderServiceNodeForProperty());                    \
+#define SET_ANIMATABLE_PROPERTY(propertyName, value, property)                                              \
+    do {                                                                                                    \
+        auto currentValue = stagingProperties_.Get##propertyName();                                         \
+        if (ROSEN_EQ(value, currentValue)) {                                                                \
+            return;                                                                                         \
+        }                                                                                                   \
+        if (RSImplicitAnimator::Instance().NeedImplicitAnimaton() && IsValid(currentValue)) {               \
+            RSImplicitAnimator::Instance().CreateImplicitAnimation(*this, property, currentValue, value);   \
+        } else if (HasPropertyAnimation(property)) {                                                        \
+            std::unique_ptr<RSCommand> command =                                                            \
+                std::make_unique<RSNodeSet##propertyName##Delta>(GetId(), (value)-currentValue);            \
+            auto transactionProxy = RSTransactionProxy::GetInstance();                                      \
+            if (transactionProxy != nullptr) {                                                              \
+                transactionProxy->AddCommand(command, IsRenderServiceNodeForProperty());                    \
+            }                                                                                               \
+            stagingProperties_.Set##propertyName(value);                                                    \
+        } else {                                                                                            \
+            std::unique_ptr<RSCommand> command = std::make_unique<RSNodeSet##propertyName>(GetId(), value); \
+            auto transactionProxy = RSTransactionProxy::GetInstance();                                      \
+            if (transactionProxy != nullptr) {                                                              \
+                transactionProxy->AddCommand(command, IsRenderServiceNodeForProperty());                    \
+            }                                                                                               \
+            stagingProperties_.Set##propertyName(value);                                                    \
+        }                                                                                                   \
+    } while (0)
+
+#define SET_NONANIMATABLE_PROPERTY(propertyName, value)                                                 \
+    do {                                                                                                \
+        auto currentValue = stagingProperties_.Get##propertyName();                                     \
+        if (ROSEN_EQ(value, currentValue)) {                                                            \
+            return;                                                                                     \
         }                                                                                               \
-        stagingProperties_.Set##propertyName(value);                                                    \
-    } else {                                                                                            \
         std::unique_ptr<RSCommand> command = std::make_unique<RSNodeSet##propertyName>(GetId(), value); \
         auto transactionProxy = RSTransactionProxy::GetInstance();                                      \
         if (transactionProxy != nullptr) {                                                              \
             transactionProxy->AddCommand(command, IsRenderServiceNodeForProperty());                    \
         }                                                                                               \
         stagingProperties_.Set##propertyName(value);                                                    \
-    }
+    } while (0)
 
-#define SET_NONANIMATABLE_PROPERTY(propertyName, value)                                             \
-    auto currentValue = stagingProperties_.Get##propertyName();                                     \
-    if (ROSEN_EQ(value, currentValue)) {                                                            \
-        return;                                                                                     \
-    }                                                                                               \
-    std::unique_ptr<RSCommand> command = std::make_unique<RSNodeSet##propertyName>(GetId(), value); \
-    auto transactionProxy = RSTransactionProxy::GetInstance();                                      \
-    if (transactionProxy != nullptr) {                                                              \
-        transactionProxy->AddCommand(command, IsRenderServiceNodeForProperty());                    \
-    }                                                                                               \
-    stagingProperties_.Set##propertyName(value);
-
-#define GET_ANIMATABLE_PROPERTY(propertyName, property)                                       \
-    if (HasPropertyAnimation(property)) {                                                     \
-        auto task = std::make_shared<RSNodeGet##propertyName>(GetId());                       \
-        auto transactionProxy = RSTransactionProxy::GetInstance();                            \
-        if (transactionProxy != nullptr) {                                                    \
-            transactionProxy->ExecuteSynchronousTask(task, IsRenderServiceNodeForProperty()); \
-        }                                                                                     \
-        if (task->GetResult()) {                                                              \
-            return task->GetValue();                                                          \
-        }                                                                                     \
-    }                                                                                         \
-    return stagingProperties_.Get##propertyName();
+#define GET_ANIMATABLE_PROPERTY(propertyName, property)                                           \
+    do {                                                                                          \
+        if (HasPropertyAnimation(property)) {                                                     \
+            auto task = std::make_shared<RSNodeGet##propertyName>(GetId());                       \
+            auto transactionProxy = RSTransactionProxy::GetInstance();                            \
+            if (transactionProxy != nullptr) {                                                    \
+                transactionProxy->ExecuteSynchronousTask(task, IsRenderServiceNodeForProperty()); \
+            }                                                                                     \
+            if (task->GetResult()) {                                                              \
+                return task->GetValue();                                                          \
+            }                                                                                     \
+        }                                                                                         \
+        return stagingProperties_.Get##propertyName();                                            \
+    } while (0)
 
 #define GET_NONANIMATABLE_PROPERTY(propertyName) return stagingProperties_.Get##propertyName();
 

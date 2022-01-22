@@ -142,8 +142,6 @@ sptr<OHOS::Surface> RSSurfaceNode::GetSurface() const
 }
 #endif
 
-RSSurfaceNode::RSSurfaceNode(bool isRenderServiceNode) : RSNode(isRenderServiceNode) {}
-
 RSSurfaceNode::RSSurfaceNode(const RSSurfaceNodeConfig& config, bool isRenderServiceNode)
     : RSNode(isRenderServiceNode), name_(config.SurfaceNodeName)
 {}

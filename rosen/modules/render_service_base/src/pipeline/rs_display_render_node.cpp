@@ -15,8 +15,6 @@
 
 #include "pipeline/rs_display_render_node.h"
 
-#include <algorithm>
-
 #include "platform/common/rs_log.h"
 #include "visitor/rs_node_visitor.h"
 

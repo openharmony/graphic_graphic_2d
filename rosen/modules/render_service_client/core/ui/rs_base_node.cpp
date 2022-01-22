@@ -42,6 +42,7 @@ NodeId RSBaseNode::GenerateId()
         ROSEN_LOGE("Node Id overflow");
     }
 
+    // concat two 32-bit numbers to one 64-bit number
     return ((NodeId)pid_ << 32) | currentId_;
 }
 

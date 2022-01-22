@@ -28,6 +28,10 @@ public:
 
     void AddUIMessage(uint32_t pid, std::unique_ptr<RSCommand>& command);
     void AddUIMessage(uint32_t pid, std::unique_ptr<RSCommand>&& command);
+
+    bool HasTransaction() const;
+    bool HasTransaction(uint32_t pid) const;
+
     RSTransactionData&& GetTransaction(uint32_t pid);
     std::unordered_map<uint32_t, RSTransactionData>&& GetAllTransactions();
 private:

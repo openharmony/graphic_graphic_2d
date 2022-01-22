@@ -104,6 +104,7 @@ void RSAnimationManager::OnAnimationFinished(const std::shared_ptr<RSRenderAnima
 {
     NodeId targetId = animation->GetTarget() ? animation->GetTarget()->GetId() : 0;
     AnimationId animationId = animation->GetAnimationId();
+
     std::unique_ptr<RSCommand> command =
         std::make_unique<RSAnimationFinishCallback>(targetId, animationId);
     RSMessageProcessor::Instance().AddUIMessage(ExtractPid(animationId), command);

@@ -18,6 +18,7 @@
 #include <mutex>
 
 #include "common/rs_common_def.h"
+
 namespace OHOS {
 class Surface;
 namespace Rosen {

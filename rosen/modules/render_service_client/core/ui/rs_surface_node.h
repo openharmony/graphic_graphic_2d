@@ -58,7 +58,6 @@ public:
         return RSUINodeType::SURFACE_NODE;
     }
 protected:
-    RSSurfaceNode(bool isRenderServiceNode);
     explicit RSSurfaceNode(const RSSurfaceNodeConfig& config, bool isRenderServiceNode);
     RSSurfaceNode(const RSSurfaceNode&) = delete;
     RSSurfaceNode(const RSSurfaceNode&&) = delete;

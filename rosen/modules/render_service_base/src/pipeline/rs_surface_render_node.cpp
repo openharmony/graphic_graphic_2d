@@ -15,8 +15,6 @@
 
 #include "pipeline/rs_surface_render_node.h"
 
-#include <algorithm>
-
 #include "command/rs_surface_node_command.h"
 #include "pipeline/rs_root_render_node.h"
 #include "platform/common/rs_log.h"
