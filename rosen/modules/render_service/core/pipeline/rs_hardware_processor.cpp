@@ -160,7 +160,8 @@ void RSHardwareProcessor::Redraw(sptr<Surface>& surface, const struct PrepareCom
         ROSEN_LOGE("RsDebug RSHardwareProcessor::Redraw layer [%d %d %d %d]", (*iter)->GetLayerSize().x,
             (*iter)->GetLayerSize().y, (*iter)->GetLayerSize().w, (*iter)->GetLayerSize().h);
         RsRenderServiceUtil::DrawBuffer(canvas.get(), matrix, (*iter)->GetBuffer(), (*iter)->GetLayerSize().x,
-            (*iter)->GetLayerSize().y, (*iter)->GetLayerSize().w, (*iter)->GetLayerSize().h);
+            (*iter)->GetLayerSize().y, (*iter)->GetLayerSize().w, (*iter)->GetLayerSize().h,
+            (*iter)->GetDirtyRegion().w, (*iter)->GetDirtyRegion().h);
     }
     BufferFlushConfig flushConfig = {
         .damage = {
