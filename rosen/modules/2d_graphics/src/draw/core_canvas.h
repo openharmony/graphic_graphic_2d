@@ -48,6 +48,7 @@ public:
     void DrawBitmap(const Bitmap& bitmap, const scalar px, const scalar py);
     void DrawBitmap(Media::PixelMap& pixelMap, const scalar px, const scalar py);
     void DrawImage(const Image& image, const scalar px, const scalar py, const SamplingOptions& sampling);
+    void DrawPicture(const Picture& picture);
 
     // text
     void DrawText(const Text& text); // TODO...

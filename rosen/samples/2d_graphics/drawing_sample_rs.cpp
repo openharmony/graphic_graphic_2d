@@ -38,6 +38,7 @@
 
 #include "image/bitmap.h"
 #include "image/image.h"
+#include "image/picture.h"
 
 #include "draw/brush.h"
 #include "draw/canvas.h"
@@ -277,6 +278,30 @@ void TestDrawImage(Canvas& canvas, uint32_t width, uint32_t height)
     canvas.DrawImage(image, 500, 500, sampling);
 
     LOGI("------- TestDrawImage");
+}
+
+void TestPicture(Canvas& canvas, uint32_t width, uint32_t height)
+{
+    LOGI("+++++++ TestPicture");
+    Image image;
+    Picture picture;
+    Matrix matrix;
+    auto srgbColorSpace = Drawing::ColorSpace::CreateSRGB();
+
+    Brush brush;
+    brush.SetColor(Drawing::Color::COLOR_BLUE);
+    image.BuildFromPicture(picture, {50, 50}, matrix, brush, BitDepth::KU8, srgbColorSpace);
+
+    auto e = ShaderEffect::CreatePictureShader(picture, TileMode::REPEAT, TileMode::MIRROR, FilterMode::NEAREST, matrix, {1000, 0, 1300, 300});
+    Pen pen;
+    pen.SetAntiAlias(true);
+    pen.SetColor(Drawing::Color::COLOR_BLUE);
+    pen.SetWidth(10);
+    pen.SetShaderEffect(e);
+    canvas.AttachPen(pen);
+    canvas.DrawPicture(picture);
+
+    LOGI("------- TestPicture");
 }
 
 void TestMatrix(Canvas &canvas, uint32_t width, uint32_t height)
@@ -527,6 +552,7 @@ int main()
     testFuncVec.push_back(TestDrawPathEffect);
     testFuncVec.push_back(TestDrawBitmap);
     testFuncVec.push_back(TestDrawImage);
+    testFuncVec.push_back(TestPicture);
     testFuncVec.push_back(TestDrawFilter);
     testFuncVec.push_back(TestDrawShader);
     testFuncVec.push_back(TestDrawShadow);

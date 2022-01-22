@@ -23,7 +23,6 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-class Image;
 class ColorSpace {
 public:
     enum class ColorSpaceType {

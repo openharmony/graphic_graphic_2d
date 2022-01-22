@@ -18,11 +18,17 @@
 
 #include "base_impl.h"
 
+#include "draw/brush.h"
+#include "effect/color_space.h"
+#include "image/bitmap.h"
+#include "image/picture.h"
+#include "utils/matrix.h"
+#include "utils/size.h"
+
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-class Bitmap;
-class Image;
+enum class BitDepth;
 class ImageImpl : public BaseImpl {
 public:
     static inline constexpr AdapterType TYPE = AdapterType::BASE_INTERFACE;
@@ -33,6 +39,8 @@ public:
         return AdapterType::BASE_INTERFACE;
     }
     virtual void* BuildFromBitmap(const Bitmap& bitmap) = 0;
+    virtual void* BuildFromPicture(const Picture& picture, const SizeI& dimensions, const Matrix& matrix,
+        const Brush& brush, BitDepth bitDepth, std::shared_ptr<ColorSpace> colorSpace) = 0;
     virtual int GetWidth() = 0;
     virtual int GetHeight() = 0;
 };

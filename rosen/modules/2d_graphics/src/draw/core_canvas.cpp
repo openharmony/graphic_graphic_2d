@@ -106,6 +106,11 @@ void CoreCanvas::DrawImage(const Image& image, const scalar px, const scalar py,
     impl_->DrawImage(image, px, py, sampling);
 }
 
+void CoreCanvas::DrawPicture(const Picture& picture)
+{
+    impl_->DrawPicture(picture);
+}
+
 void CoreCanvas::DrawText(const Text& text)
 {
     impl_->DrawText(text);

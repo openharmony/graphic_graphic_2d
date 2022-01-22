@@ -27,6 +27,13 @@ Image* Image::BuildFromBitmap(const Bitmap& bitmap)
     return static_cast<Image*>(imageImplPtr->BuildFromBitmap(bitmap));
 }
 
+Image* Image::BuildFromPicture(const Picture& picture, const SizeI& dimensions, const Matrix& matrix,
+    const Brush& brush, BitDepth bitDepth, std::shared_ptr<ColorSpace> colorSpace)
+{
+    return static_cast<Image*>(
+        imageImplPtr->BuildFromPicture(picture, dimensions, matrix, brush, bitDepth, colorSpace));
+}
+
 int Image::GetWidth()
 {
     width_ = imageImplPtr->GetWidth();

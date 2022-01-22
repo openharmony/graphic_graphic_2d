@@ -22,7 +22,6 @@ namespace OHOS {
 namespace Rosen {
 namespace Drawing {
 class Image;
-class ColorSpace;
 class ColorSpaceImpl : public BaseImpl {
 public:
     static inline constexpr AdapterType TYPE = AdapterType::BASE_INTERFACE;

@@ -26,9 +26,11 @@
 
 #include "skia_image.h"
 #include "skia_matrix.h"
+#include "skia_picture.h"
 
 #include "effect/shader_effect.h"
 #include "image/image.h"
+#include "image/picture.h"
 #include "utils/matrix.h"
 
 namespace OHOS {
@@ -63,20 +65,42 @@ void SkiaShaderEffect::InitWithImage(
     if (m != nullptr && i != nullptr) {
         skiaMatrix = m->ExportSkiaMatrix();
         skiaImage = i->GetImage();
-    }
-
 #if defined(USE_CANVASKIT0310_SKIA)
-    SkSamplingOptions samplingOptions;
-    if (sampling.GetUseCubic()) {
-        samplingOptions = SkSamplingOptions({ sampling.GetCubicCoffB(), sampling.GetCubicCoffC() });
-    } else {
-        samplingOptions = SkSamplingOptions(
-            static_cast<SkFilterMode>(sampling.GetFilterMode()), static_cast<SkMipmapMode>(sampling.GetMipmapMode()));
-    }
-    shader_ = skiaImage->makeShader(modeX, modeY, samplingOptions, &skiaMatrix);
+        SkSamplingOptions samplingOptions;
+        if (sampling.GetUseCubic()) {
+            samplingOptions = SkSamplingOptions({ sampling.GetCubicCoffB(), sampling.GetCubicCoffC() });
+        } else {
+            samplingOptions = SkSamplingOptions(static_cast<SkFilterMode>(sampling.GetFilterMode()),
+                static_cast<SkMipmapMode>(sampling.GetMipmapMode()));
+        }
+        shader_ = skiaImage->makeShader(modeX, modeY, samplingOptions, &skiaMatrix);
 #else
-    shader_ = skiaImage->makeShader(modeX, modeY, &skiaMatrix);
+        shader_ = skiaImage->makeShader(modeX, modeY, &skiaMatrix);
 #endif
+    }
+}
+
+void SkiaShaderEffect::InitWithPicture(
+    const Picture& picture, TileMode tileX, TileMode tileY, FilterMode mode, const Matrix& matrix, const Rect& rect)
+{
+    SkTileMode modeX = static_cast<SkTileMode>(tileX);
+    SkTileMode modeY = static_cast<SkTileMode>(tileY);
+    SkRect r = SkRect::MakeLTRB(rect.GetLeft(), rect.GetTop(), rect.GetRight(), rect.GetBottom());
+
+    auto p = picture.GetImpl<SkiaPicture>();
+    auto m = matrix.GetImpl<SkiaMatrix>();
+    sk_sp<SkPicture> skiaPicture;
+    SkMatrix skiaMatrix;
+    if (p != nullptr && m != nullptr) {
+        skiaPicture = p->GetPicture();
+        skiaMatrix = m->ExportSkiaMatrix();
+#if defined(USE_CANVASKIT0310_SKIA)
+        SkFilterMode m = static_cast<SkFilterMode>(mode);
+        shader_ = skiaPicture->makeShader(modeX, modeY, m, &skiaMatrix, &r);
+#else
+        shader_ = skiaPicture->makeShader(modeX, modeY, &skiaMatrix, &r);
+#endif
+    }
 }
 
 void SkiaShaderEffect::InitWithLinearGradient(const Point& startPt, const Point& endPt,

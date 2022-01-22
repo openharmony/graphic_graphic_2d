@@ -13,19 +13,14 @@
  * limitations under the License.
  */
 
-#include <iostream>
-#include <string>
-
-#include "include/core/SkBitmap.h"
-#if defined(USE_CANVASKIT0310_SKIA)
-#include "include/core/SkSamplingOptions.h"
-#endif
+#include "skia_image.h"
 
 #include "skia_bitmap.h"
-#include "skia_image.h"
 
 #include "image/bitmap.h"
 #include "image/image.h"
+#include "image/picture.h"
+#include "utils/log.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -39,6 +34,27 @@ void* SkiaImage::BuildFromBitmap(const Bitmap& bitmap)
         const SkBitmap skBitmap = skBitmapImpl->ExportSkiaBitmap();
         skiaImage_ = SkImage::MakeFromBitmap(skBitmap);
     }
+    return nullptr;
+}
+
+void* SkiaImage::BuildFromPicture(const Picture& picture, const SizeI& dimensions, const Matrix& matrix,
+    const Brush& brush, BitDepth bitDepth, std::shared_ptr<ColorSpace> colorSpace)
+{
+    LOGI("+++++++ TestBuildFromPicture");
+    auto skPictureImpl = picture.GetImpl<SkiaPicture>();
+    auto skMatrixImpl = matrix.GetImpl<SkiaMatrix>();
+    auto skColorSpaceImpl = colorSpace->GetImpl<SkiaColorSpace>();
+
+    SkISize skISize = SkISize::Make(dimensions.Width(), dimensions.Height());
+    SkPaint paint;
+    skiaPaint_.BrushToSkPaint(brush, paint);
+    SkImage::BitDepth b = static_cast<SkImage::BitDepth>(bitDepth);
+
+    if (skPictureImpl != nullptr && skMatrixImpl != nullptr && skColorSpaceImpl != nullptr) {
+        skiaImage_ = SkImage::MakeFromPicture(skPictureImpl->GetPicture(), skISize, &skMatrixImpl->ExportSkiaMatrix(),
+            &paint, b, skColorSpaceImpl->GetColorSpace());
+    }
+    LOGI("------- TestBuildFromPicture");
     return nullptr;
 }
 

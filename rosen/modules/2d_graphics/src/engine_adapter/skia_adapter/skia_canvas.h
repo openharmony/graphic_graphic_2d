@@ -18,8 +18,10 @@
 
 #include "include/core/SkBitmap.h"
 #include "include/core/SkCanvas.h"
+#include "include/core/SkImage.h"
 #include "include/core/SkMatrix.h"
 #include "include/core/SkPaint.h"
+#include "include/core/SkPicture.h"
 #include "include/core/SkPoint3.h"
 #include "include/core/SkRRect.h"
 #include "include/utils/SkShadowUtils.h"
@@ -27,6 +29,7 @@
 #include "skia_image.h"
 #include "skia_matrix.h"
 #include "skia_paint.h"
+#include "skia_picture.h"
 
 #include "impl_interface/core_canvas_impl.h"
 #include "utils/log.h"
@@ -65,6 +68,7 @@ public:
     void DrawBitmap(const Bitmap& bitmap, const scalar px, const scalar py) override;
     void DrawBitmap(Media::PixelMap& pixelMap, const scalar px, const scalar py) override;
     void DrawImage(const Image& image, const scalar px, const scalar py, const SamplingOptions& sampling) override;
+    void DrawPicture(const Picture& picture) override;
 
     // text
     void DrawText(const Text& text) override; // TODO...

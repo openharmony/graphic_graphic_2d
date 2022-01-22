@@ -27,6 +27,7 @@
 #include "effect/filter.h"
 #include "image/bitmap.h"
 #include "image/image.h"
+#include "image/picture.h"
 #include "text/text.h"
 #include "utils/log.h"
 #include "utils/matrix.h"
@@ -74,6 +75,7 @@ public:
     virtual void DrawBitmap(const Bitmap& bitmap, const scalar px, const scalar py) = 0;
     virtual void DrawBitmap(Media::PixelMap& pixelMap, const scalar px, const scalar py) = 0;
     virtual void DrawImage(const Image& image, const scalar px, const scalar p, const SamplingOptions& sampling) = 0;
+    virtual void DrawPicture(const Picture& picture) = 0;
 
     // text
     virtual void DrawText(const Text& text) = 0; // TODO...

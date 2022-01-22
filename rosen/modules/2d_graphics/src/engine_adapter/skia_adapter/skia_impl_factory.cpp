@@ -26,6 +26,7 @@
 #include "skia_adapter/skia_matrix.h"
 #include "skia_adapter/skia_path.h"
 #include "skia_adapter/skia_path_effect.h"
+#include "skia_adapter/skia_picture.h"
 #include "skia_adapter/skia_shader_effect.h"
 
 namespace OHOS {
@@ -44,6 +45,11 @@ std::unique_ptr<BitmapImpl> SkiaImplFactory::CreateBitmap()
 std::unique_ptr<ImageImpl> SkiaImplFactory::CreateImage()
 {
     return std::make_unique<SkiaImage>();
+}
+
+std::unique_ptr<PictureImpl> SkiaImplFactory::CreatePicture()
+{
+    return std::make_unique<SkiaPicture>();
 }
 
 std::unique_ptr<PathImpl> SkiaImplFactory::CreatePath()

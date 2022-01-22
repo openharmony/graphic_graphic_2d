@@ -21,7 +21,6 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-class Image;
 enum class TileMode {
     CLAMP,
     REPEAT,
@@ -35,6 +34,7 @@ public:
         COLOR,
         BLEND,
         IMAGE,
+        PICTURE,
         LINEAR_GRADIENT,
         RADIAL_GRADIENT,
         CONICAL_GRADIENT,
@@ -45,6 +45,8 @@ public:
     static std::shared_ptr<ShaderEffect> CreateBlendShader(ShaderEffect& dst, ShaderEffect& src, BlendMode mode);
     static std::shared_ptr<ShaderEffect> CreateImageShader(
         const Image& image, TileMode tileX, TileMode tileY, const SamplingOptions& sampling, const Matrix& matrix);
+    static std::shared_ptr<ShaderEffect> CreatePictureShader(const Picture& picture, TileMode tileX, TileMode tileY,
+        FilterMode mode, const Matrix& matrix, const Rect& rect);
     static std::shared_ptr<ShaderEffect> CreateLinearGradient(const Point& startPt, const Point& endPt,
         const std::vector<ColorQuad>& colors, const std::vector<scalar>& pos, TileMode mode);
     static std::shared_ptr<ShaderEffect> CreateRadialGradient(const Point& centerPt, scalar radius,
@@ -68,6 +70,8 @@ public:
     ShaderEffect(ShaderEffectType t, ShaderEffect& dst, ShaderEffect& src, BlendMode mode) noexcept;
     ShaderEffect(ShaderEffectType t, const Image& image, TileMode tileX, TileMode tileY,
         const SamplingOptions& sampling, const Matrix& matrix) noexcept;
+    ShaderEffect(ShaderEffectType t, const Picture& picture, TileMode tileX, TileMode tileY, FilterMode mode,
+        const Matrix& matrix, const Rect& rect) noexcept;
     ShaderEffect(ShaderEffectType t, const Point& startPt, const Point& endPt, const std::vector<ColorQuad>& colors,
         const std::vector<scalar>& pos, TileMode mode) noexcept;
     ShaderEffect(ShaderEffectType t, const Point& centerPt, scalar radius, const std::vector<ColorQuad>& colors,

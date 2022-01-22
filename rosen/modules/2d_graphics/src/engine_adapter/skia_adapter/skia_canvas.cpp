@@ -15,7 +15,6 @@
 
 #include "skia_canvas.h"
 
-#include "include/core/SkImage.h"
 #include "pixel_map.h"
 #include "skia_path.h"
 
@@ -313,6 +312,19 @@ void SkiaCanvas::DrawImage(const Image& image, const scalar px, const scalar py,
 #endif
         }
     }
+}
+
+void SkiaCanvas::DrawPicture(const Picture& picture)
+{
+    LOGI("+++++++ DrawPicture");
+    sk_sp<SkPicture> p;
+
+    auto skPictureImpl = picture.GetImpl<SkiaPicture>();
+    if (skPictureImpl != nullptr) {
+        p = skPictureImpl->GetPicture();
+        skiaCanvas_->drawPicture(p.get());
+    }
+    LOGI("------- DrawPicture");
 }
 
 void SkiaCanvas::DrawText(const Text& text) {} // TODO...

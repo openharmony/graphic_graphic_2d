@@ -21,11 +21,18 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
+enum class BitDepth {
+    KU8,
+    KF16,
+};
+
 class Image {
 public:
     Image() noexcept;
     virtual ~Image() {};
     Image* BuildFromBitmap(const Bitmap& bitmap);
+    Image* BuildFromPicture(const Picture& picture, const SizeI& dimensions, const Matrix& matrix, const Brush& brush,
+        BitDepth bitDepth, std::shared_ptr<ColorSpace> colorSpace);
     int GetWidth();
     int GetHeight();
     template<typename T>
