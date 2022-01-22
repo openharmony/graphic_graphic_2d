@@ -204,7 +204,6 @@ HWTEST_F(RSInterfacesTest, GetScreenActiveMode001, Function | SmallTest | Level2
     rsInterfaces->SetScreenActiveMode(screenId, 0);
     auto modeInfo = rsInterfaces->GetScreenActiveMode(screenId);
     EXPECT_EQ(modeInfo.GetScreenModeId(), 0);
-    EXPECT_NE(modeInfo.GetScreenDensity(), 0.0f);
     EXPECT_NE(modeInfo.GetScreenFreshRate(), 0);
     EXPECT_NE(modeInfo.GetScreenHeight(), -1);
     EXPECT_NE(modeInfo.GetScreenWidth(), -1);
@@ -393,7 +392,6 @@ HWTEST_F(RSInterfacesTest, GetScreenData001, Function | SmallTest | Level2)
 
     auto modeInfo = screenData.GetActivityModeInfo();
     EXPECT_EQ(modeInfo.GetScreenModeId(), 0);
-    EXPECT_NE(modeInfo.GetScreenDensity(), 0.0f);
     EXPECT_NE(modeInfo.GetScreenFreshRate(), 0);
     EXPECT_NE(modeInfo.GetScreenHeight(), -1);
     EXPECT_NE(modeInfo.GetScreenWidth(), -1);
