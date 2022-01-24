@@ -36,7 +36,7 @@ public:
 
     virtual ~RSRenderNode();
 
-    bool Animate(int64_t timestamp);
+    bool Animate(int64_t timestamp) override;
     bool Update(RSDirtyRegionManager& dirtyManager, const RSProperties* parent, bool parentDirty);
 
     RSProperties& GetRenderProperties();
@@ -48,10 +48,6 @@ public:
         return animationManager_;
     }
 
-    void OnAddChild(RSBaseRenderNode::SharedPtr& child) override;
-    void OnRemoveChild(RSBaseRenderNode::SharedPtr& child) override;
-    bool OnUnregister() override;
-
     virtual void ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas);
     virtual void ProcessRenderContents(RSPaintFilterCanvas& canvas) {}
     virtual void ProcessRenderAfterChildren(RSPaintFilterCanvas& canvas);
@@ -61,8 +57,13 @@ public:
         return RSRenderNodeType::RS_NODE;
     }
 
+    bool HasTransition() const override
+    {
+        return animationManager_.HasTransition() || RSBaseRenderNode::HasTransition();
+    }
+
 protected:
-    explicit RSRenderNode(NodeId id);
+    explicit RSRenderNode(NodeId id, std::weak_ptr<RSContext> context = {});
     void UpdateDirtyRegion(RSDirtyRegionManager& dirtyManager);
     bool IsDirty() const override;
 

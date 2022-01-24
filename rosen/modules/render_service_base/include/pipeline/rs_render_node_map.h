@@ -24,12 +24,9 @@
 namespace OHOS {
 namespace Rosen {
 class RSRenderNode;
-class RSRenderManager;
 
 class RSRenderNodeMap final {
 public:
-    static RSRenderNodeMap& Instance();
-
     bool RegisterRenderNode(const std::shared_ptr<RSBaseRenderNode>& nodePtr);
     void UnregisterRenderNode(NodeId id);
 
@@ -55,7 +52,8 @@ private:
 private:
     std::unordered_map<NodeId, std::shared_ptr<RSBaseRenderNode>> renderNodeMap_;
 
-    friend class RSRenderManager;
+    friend class RSContext;
+    friend class RSMainThread;
     friend class RSRenderThread;
 };
 

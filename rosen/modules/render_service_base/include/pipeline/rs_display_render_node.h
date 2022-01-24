@@ -32,10 +32,11 @@ public:
     using SharedPtr = std::shared_ptr<RSDisplayRenderNode>;
     static inline constexpr RSRenderNodeType Type = RSRenderNodeType::DISPLAY_NODE;
 
-    explicit RSDisplayRenderNode(NodeId id, const RSDisplayNodeConfig& config);
+    explicit RSDisplayRenderNode(NodeId id, const RSDisplayNodeConfig& config, std::weak_ptr<RSContext> context = {});
     virtual ~RSDisplayRenderNode();
 
-    void SetScreenId(uint64_t screenId) {
+    void SetScreenId(uint64_t screenId)
+    {
         screenId_ = screenId;
     }
 
@@ -65,12 +66,10 @@ public:
         return mirrorSource_;
     }
 
-protected:
-
 private:
-    CompositeType compositeType_{HARDWARE_COMPOSITE};
+    CompositeType compositeType_ { HARDWARE_COMPOSITE };
     uint64_t screenId_;
-    bool forceSoftComposite_{false};
+    bool forceSoftComposite_ { false };
     bool isMirroredDisplay_ = false;
     WeakPtr mirrorSource_;
 };

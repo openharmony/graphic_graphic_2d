@@ -18,5 +18,20 @@
 namespace OHOS {
 namespace Rosen {
 
+namespace {
+static AnimationCommandHelper::FinishCallbackProcessor finishCallbackProcessor = nullptr;
+}
+
+void AnimationCommandHelper::AnimationFinishCallback(RSContext& context, NodeId targetId, AnimationId animId)
+{
+    if (finishCallbackProcessor != nullptr) {
+        finishCallbackProcessor(targetId, animId);
+    }
+}
+
+void AnimationCommandHelper::SetFinisCallbackProcessor(FinishCallbackProcessor processor)
+{
+    finishCallbackProcessor = processor;
+}
 } // namespace Rosen
 } // namespace OHOS

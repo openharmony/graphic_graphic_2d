@@ -19,10 +19,10 @@
 #include <unordered_map>
 
 #include "common/rs_common_def.h"
+#include "ui/rs_base_node.h"
 
 namespace OHOS {
 namespace Rosen {
-class RSBaseNode;
 class RSNode;
 
 class RSNodeMap final {
@@ -32,7 +32,14 @@ public:
     bool RegisterNode(const std::shared_ptr<RSBaseNode>& nodePtr);
     void UnregisterNode(NodeId id);
 
-    std::weak_ptr<RSBaseNode> GetNode(NodeId id);
+    // Get RSNode with type T, return nullptr if node not found or wrong type
+    template<typename T = RSBaseNode>
+    std::shared_ptr<T> GetNode(NodeId id)
+    {
+        return RSBaseNode::ReinterpretCast<T>(GetNode<RSBaseNode>(id));
+    }
+    template<>
+    std::shared_ptr<RSBaseNode> GetNode(NodeId id);
 
     std::shared_ptr<RSNode> GetAnimationFallbackNode();
 private:

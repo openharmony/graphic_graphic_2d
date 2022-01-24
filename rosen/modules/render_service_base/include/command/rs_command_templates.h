@@ -152,9 +152,6 @@ public:
 private:
     T1 parameter1_;
     T2 parameter2_;
-
-    // todo for finishcallback
-    friend class RSUIDirector;
 };
 
 template<uint16_t commandType, uint16_t commandSubType, auto processFunc, typename T1, typename T2, typename T3>

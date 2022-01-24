@@ -16,6 +16,8 @@
 #include "command/rs_message_processor.h"
 
 #include "command/rs_command.h"
+#include "platform/common/rs_log.h"
+#include "transaction/rs_transaction_data.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -27,19 +29,36 @@ RSMessageProcessor& RSMessageProcessor::Instance()
 
 RSMessageProcessor::~RSMessageProcessor() {}
 
-void RSMessageProcessor::AddUIMessage(std::shared_ptr<RSCommand>& command)
+void RSMessageProcessor::AddUIMessage(uint32_t pid, std::unique_ptr<RSCommand>& command)
 {
-    commands_.push(std::move(command));
+    transactionMap_[pid].AddCommand(std::move(command));
 }
 
-void RSMessageProcessor::AddUIMessage(std::shared_ptr<RSCommand>&& command)
+void RSMessageProcessor::AddUIMessage(uint32_t pid, std::unique_ptr<RSCommand>&& command)
 {
-    commands_.push(std::move(command));
+    transactionMap_[pid].AddCommand(std::move(command));
 }
 
-void RSMessageProcessor::CommitUIMsg(std::queue<std::shared_ptr<RSCommand>>& commands)
+bool RSMessageProcessor::HasTransaction() const
 {
-    commands = std::move(commands_);
+    return !transactionMap_.empty();
 }
+
+bool RSMessageProcessor::HasTransaction(uint32_t pid) const
+{
+    auto iter = transactionMap_.find(pid);
+    return iter != transactionMap_.end() && !iter->second.IsEmpty();
+}
+
+RSTransactionData&& RSMessageProcessor::GetTransaction(uint32_t pid)
+{
+    return std::move(transactionMap_[pid]);
+}
+
+std::unordered_map<uint32_t, RSTransactionData>&& RSMessageProcessor::GetAllTransactions()
+{
+    return std::move(transactionMap_);
+}
+
 } // namespace Rosen
 } // namespace OHOS

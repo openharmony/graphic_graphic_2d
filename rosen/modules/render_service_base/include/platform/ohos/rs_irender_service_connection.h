@@ -16,18 +16,18 @@
 #ifndef ROSEN_RENDER_SERVICE_BASE_TRANSACTION_RS_IRENDER_SERVICE_CONNECTION_H
 #define ROSEN_RENDER_SERVICE_BASE_TRANSACTION_RS_IRENDER_SERVICE_CONNECTION_H
 
-#include <string>
-
 #include <iremote_broker.h>
+#include <string>
 #include <surface.h>
 
 #include "command/rs_command.h"
-#include "screen_manager/screen_types.h"
-#include "screen_manager/rs_screen_mode_info.h"
-#include "screen_manager/rs_screen_capability.h"
-#include "screen_manager/rs_screen_data.h"
+#include "ipc_callbacks/iapplication_render_thread.h"
 #include "ipc_callbacks/screen_change_callback.h"
 #include "ipc_callbacks/surface_capture_callback.h"
+#include "screen_manager/rs_screen_capability.h"
+#include "screen_manager/rs_screen_data.h"
+#include "screen_manager/rs_screen_mode_info.h"
+#include "screen_manager/screen_types.h"
 #include "transaction/rs_transaction_data.h"
 
 namespace OHOS {
@@ -59,6 +59,7 @@ public:
         GET_SCREEN_BACK_LIGHT,
         GET_SCREEN_DATA,
         EXECUTE_SYNCHRONOUS_TASK,
+        REGISTER_APPLICATION_RENDER_THREAD,
     };
 
     virtual void CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData) = 0;
@@ -87,6 +88,8 @@ public:
     virtual void SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status) = 0;
 
     virtual void TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback) = 0;
+
+    virtual void RegisterApplicationRenderThread(uint32_t pid, sptr<IApplicationRenderThread> app) = 0;
 
     virtual RSScreenModeInfo GetScreenActiveMode(ScreenId id) = 0;
 

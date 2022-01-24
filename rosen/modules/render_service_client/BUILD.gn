@@ -49,7 +49,6 @@ ohos_source_set("render_service_client_src") {
 
     #pipeline
     "core/pipeline/rs_node_map.cpp",
-    "core/pipeline/rs_render_manager.cpp",
     "core/pipeline/rs_render_thread.cpp",
     "core/pipeline/rs_render_thread_visitor.cpp",
 

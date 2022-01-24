@@ -27,12 +27,6 @@ RSRenderNodeMap::RSRenderNodeMap()
     renderNodeMap_.emplace(0, new RSCanvasRenderNode(0));
 }
 
-RSRenderNodeMap& RSRenderNodeMap::Instance()
-{
-    static RSRenderNodeMap renderThread;
-    return renderThread;
-}
-
 bool RSRenderNodeMap::RegisterRenderNode(const std::shared_ptr<RSBaseRenderNode>& nodePtr)
 {
     NodeId id = nodePtr->GetId();

@@ -15,16 +15,16 @@
 
 #include "pipeline/rs_texture_render_node.h"
 
-#include "include/core/SkCanvas.h"
-#include "include/core/SkRect.h"
-#include "include/core/SkMatrix.h"
-#include "include/core/SkDrawable.h"
 #include <algorithm>
 
-#include "platform/common/rs_log.h"
 #include "flutter/flow/ohos_layers/texture_register.h"
+#include "include/core/SkCanvas.h"
+#include "include/core/SkDrawable.h"
+#include "include/core/SkMatrix.h"
+#include "include/core/SkRect.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_render_thread.h"
+#include "platform/common/rs_log.h"
 #include "property/rs_properties_painter.h"
 //#include "rs_trace.h"
 
@@ -33,7 +33,8 @@ std::shared_ptr<flutter::OHOS::TextureRegistry> g_textureRegistry;
 }
 namespace OHOS {
 namespace Rosen {
-RSTextureRenderNode::RSTextureRenderNode(NodeId id) : RSCanvasRenderNode(id) {}
+RSTextureRenderNode::RSTextureRenderNode(NodeId id, std::weak_ptr<RSContext> context) : RSCanvasRenderNode(id, context)
+{}
 
 RSTextureRenderNode::~RSTextureRenderNode() {}
 

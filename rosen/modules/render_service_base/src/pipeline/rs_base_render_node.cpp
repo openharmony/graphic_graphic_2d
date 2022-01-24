@@ -27,59 +27,69 @@
 
 namespace OHOS {
 namespace Rosen {
-RSBaseRenderNode::RSBaseRenderNode(NodeId id) : id_(id) {}
-
-RSBaseRenderNode::~RSBaseRenderNode()
-{
-}
-
-void RSBaseRenderNode::AddChild(SharedPtr child, int index)
+void RSBaseRenderNode::AddChild(const SharedPtr& child, int index)
 {
     if (child == nullptr) {
         return;
     }
-    if (child->GetParent().lock()) {
-        child->RemoveFromTree();
+    // if child already has a parent, remove it from its parent
+    if (auto prevParent = child->GetParent().lock()) {
+        prevParent->RemoveChild(child);
     }
+
+    // Set parent-child relationship
+    child->SetParent(weak_from_this());
     if (index < 0 || index >= static_cast<int>(children_.size())) {
         children_.push_back(child);
     } else {
         children_.insert(children_.begin() + index, child);
     }
+
     OnAddChild(child);
-    child->SetParent(weak_from_this());
 }
 
-void RSBaseRenderNode::RemoveChild(SharedPtr child)
+void RSBaseRenderNode::RemoveChild(const SharedPtr& child)
 {
     if (child == nullptr) {
         return;
     }
+    // break parent-child relationship
     auto itr = std::find_if(children_.begin(), children_.end(), [&](WeakPtr& ptr) {
-        auto existingChild = ptr.lock();
-        return existingChild && child->GetId() == existingChild->GetId();
+        return ROSEN_EQ<RSBaseRenderNode>(ptr, child);
     });
-    SetDirty();
     if (itr == children_.end()) {
         return;
     }
     children_.erase(itr);
+    SetDirty();
+
     OnRemoveChild(child);
-    child->ResetParent();
+}
+
+void RSBaseRenderNode::OnAddChild(const SharedPtr& child)
+{
+    RemoveDisappearingChild(child);
+}
+
+void RSBaseRenderNode::OnRemoveChild(const SharedPtr& child)
+{
+    if (child->HasTransition()) {
+        AddDisappearingChild(child);
+    } else {
+        child->ResetParent();
+    }
 }
 
 void RSBaseRenderNode::RemoveFromTree()
 {
-    auto parentPtr = parent_.lock();
-    auto thisPtr = shared_from_this();
-    if (parentPtr != nullptr) {
-        parentPtr->RemoveChild(thisPtr);
+    if (auto parentPtr = parent_.lock()) {
+        parentPtr->RemoveChild(shared_from_this());
     }
 }
 
 void RSBaseRenderNode::ClearChildren()
 {
-    for (auto child : children_) {
+    for (auto& child : children_) {
         if (auto c = child.lock()) {
             OnRemoveChild(c);
             c->ResetParent();
@@ -99,7 +109,7 @@ void RSBaseRenderNode::ResetParent()
     parent_.reset();
 }
 
-RSBaseRenderNode::WeakPtr RSBaseRenderNode::GetParent()
+RSBaseRenderNode::WeakPtr RSBaseRenderNode::GetParent() const
 {
     return parent_;
 }
@@ -159,6 +169,26 @@ void RSBaseRenderNode::Process(const std::shared_ptr<RSNodeVisitor>& visitor)
         return;
     }
     visitor->ProcessBaseRenderNode(*this);
+}
+
+void RSBaseRenderNode::AddDisappearingChild(const SharedPtr& child)
+{
+    disappearingChildren_.emplace_back(child);
+}
+
+void RSBaseRenderNode::RemoveDisappearingChild(const SharedPtr& child)
+{
+    disappearingChildren_.remove(child);
+}
+
+bool RSBaseRenderNode::Animate(int64_t timestamp)
+{
+    bool hasRunningAnimation = false;
+    // process disappearing children
+    for (auto& node : disappearingChildren_) {
+        hasRunningAnimation = node->Animate(timestamp) || hasRunningAnimation;
+    }
+    return hasRunningAnimation;
 }
 
 template<typename T>

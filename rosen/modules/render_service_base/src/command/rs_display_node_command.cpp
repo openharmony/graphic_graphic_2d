@@ -13,18 +13,18 @@
  * limitations under the License.
  */
 
-
 #include "command/rs_display_node_command.h"
 
-#include "platform/common/rs_log.h"
 #include "pipeline/rs_display_render_node.h"
+#include "platform/common/rs_log.h"
 
 namespace OHOS {
 namespace Rosen {
 
 void DisplayNodeCommandHelper::Create(RSContext& context, NodeId id, const RSDisplayNodeConfig& config)
 {
-    std::shared_ptr<RSBaseRenderNode> node = std::make_shared<RSDisplayRenderNode>(id, config);
+    std::shared_ptr<RSBaseRenderNode> node =
+        std::make_shared<RSDisplayRenderNode>(id, config, context.weak_from_this());
     auto& nodeMap = context.GetNodeMap();
     nodeMap.RegisterRenderNode(node);
     context.GetGlobalRootRenderNode()->AddChild(node);

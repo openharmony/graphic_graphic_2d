@@ -30,7 +30,7 @@ public:
     using SharedPtr = std::shared_ptr<RSCanvasRenderNode>;
     static inline constexpr RSRenderNodeType Type = RSRenderNodeType::CANVAS_NODE;
 
-    explicit RSCanvasRenderNode(NodeId id);
+    explicit RSCanvasRenderNode(NodeId id, std::weak_ptr<RSContext> context = {});
     virtual ~RSCanvasRenderNode();
 
     void UpdateRecording(std::shared_ptr<DrawCmdList> drawCmds, bool drawContentLast);

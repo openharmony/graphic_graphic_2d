@@ -16,15 +16,14 @@
 #define RENDER_SERVICE_CLIENT_CORE_UI_RS_UI_DIRECTOR_H
 
 #include <mutex>
-#include <queue>
-#include <vector>
 
 #include "common/rs_common_def.h"
+
 namespace OHOS {
 class Surface;
 namespace Rosen {
-class RSCommand;
 class RSSurfaceNode;
+class RSTransactionData;
 using TaskRunner = std::function<void(const std::function<void()>&)>;
 
 class RS_EXPORT RSUIDirector final {
@@ -46,9 +45,10 @@ public:
 
 private:
     void Destory();
-    static void RecvMessages(); // receive message
-    static void ProcessMessages(std::queue<std::shared_ptr<RSCommand>> cmds); // receive message
-
+    static void RecvMessages();
+    static void RecvMessages(std::shared_ptr<RSTransactionData> cmds);
+    static void ProcessMessages(std::shared_ptr<RSTransactionData> cmds); // receive message
+    static void AnimationCallbackProcessor(NodeId nodeId, AnimationId animId);
 
     RSUIDirector() = default;
     RSUIDirector(const RSUIDirector&) = delete;
@@ -64,6 +64,7 @@ private:
     std::shared_ptr<RSSurfaceNode> surfaceNode_ = nullptr;
     int surfaceWidth_ = 0;
     int surfaceHeight_ = 0;
+
     friend class RSRenderThread;
 };
 } // namespace Rosen

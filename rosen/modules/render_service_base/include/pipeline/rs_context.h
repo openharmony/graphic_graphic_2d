@@ -21,16 +21,12 @@
 namespace OHOS {
 namespace Rosen {
 
-class RSContext {
+class RSContext : public std::enable_shared_from_this<RSContext> {
 public:
     RSContext() = default;
     ~RSContext() = default;
 
     RSRenderNodeMap& GetNodeMap()
-    {
-        return nodeMap;
-    }
-    const RSRenderNodeMap& GetNodeMap() const
     {
         return nodeMap;
     }
@@ -41,7 +37,7 @@ public:
     }
 
 private:
-    static inline RSRenderNodeMap& nodeMap = RSRenderNodeMap::Instance();
+    RSRenderNodeMap nodeMap;
     std::shared_ptr<RSBaseRenderNode> globalRootRenderNode_ = std::make_shared<RSBaseRenderNode>(0);
 
     RSContext(const RSContext&) = delete;

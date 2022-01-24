@@ -19,7 +19,6 @@
 
 #include "animation/rs_render_animation.h"
 #include "common/rs_obj_abs_geometry.h"
-#include "pipeline/rs_render_node_map.h"
 #include "platform/common/rs_log.h"
 #ifdef ROSEN_OHOS
 #include "pipeline/rs_paint_filter_canvas.h"
@@ -27,8 +26,8 @@
 
 namespace OHOS {
 namespace Rosen {
-RSRenderNode::RSRenderNode(NodeId id)
-    : RSBaseRenderNode(id), renderProperties_(true), animationManager_(this)
+RSRenderNode::RSRenderNode(NodeId id, std::weak_ptr<RSContext> context)
+    : RSBaseRenderNode(id, context), renderProperties_(true)
 {}
 
 RSRenderNode::~RSRenderNode()
@@ -38,7 +37,12 @@ RSRenderNode::~RSRenderNode()
 
 void RSRenderNode::FallbackAnimationsToRoot()
 {
-    auto target = RSRenderNodeMap::Instance().GetAnimationFallbackNode();
+    auto context = GetContext().lock();
+    if (!context) {
+        ROSEN_LOGE("Invalid context");
+        return;
+    }
+    auto target = context->GetNodeMap().GetAnimationFallbackNode();
     if (!target) {
         ROSEN_LOGE("Failed to move animation to root, root render node is null!");
         return;
@@ -46,25 +50,31 @@ void RSRenderNode::FallbackAnimationsToRoot()
 
     for (const auto& [animationId, animation] : animationManager_.animations_) {
         animation->Detach();
-        target->animationManager_.OnAnimationAdd(animation->GetProperty());
-        target->animationManager_.animations_[animationId] = animation;
+        target->animationManager_.AddAnimation(animation);
     }
 }
 
 bool RSRenderNode::Animate(int64_t timestamp)
 {
-    return animationManager_.Animate(timestamp);
+    return animationManager_.Animate(timestamp) || RSBaseRenderNode::Animate(timestamp);
 }
 
 bool RSRenderNode::Update(RSDirtyRegionManager& dirtyManager, const RSProperties* parent, bool parentDirty)
 {
+    GetDisappearingChildren().remove_if([this](std::shared_ptr<RSBaseRenderNode>& child) {
+        bool needToDelete = !child->HasTransition();
+        if (needToDelete && ROSEN_EQ<RSBaseRenderNode>(child->GetParent(), weak_from_this())) {
+            child->ResetParent();
+        }
+        return needToDelete;
+    });
+
     if (!renderProperties_.GetVisible()) {
         return false;
     }
     bool dirty = renderProperties_.UpdateGeometry(parent, parentDirty);
     UpdateDirtyRegion(dirtyManager);
     renderProperties_.ResetDirty();
-    animationManager_.UpdateDisappearingChildren(dirtyManager, &renderProperties_, dirty);
     return dirty;
 }
 
@@ -96,33 +106,6 @@ bool RSRenderNode::IsDirty() const
     return RSBaseRenderNode::IsDirty() || renderProperties_.IsDirty();
 }
 
-void RSRenderNode::OnAddChild(RSBaseRenderNode::SharedPtr& child)
-{
-    auto childPtr = RSBaseRenderNode::ReinterpretCast<RSRenderNode>(child);
-    animationManager_.RemoveDisappearingChild(childPtr);
-}
-
-void RSRenderNode::OnRemoveChild(RSBaseRenderNode::SharedPtr& child)
-{
-    auto childPtr = RSBaseRenderNode::ReinterpretCast<RSRenderNode>(child);
-
-    if (childPtr && childPtr->GetAnimationManager().HasTransition()) {
-        animationManager_.AddDisappearingChild(childPtr);
-    } else {
-        child->ResetParent();
-    }
-}
-
-bool RSRenderNode::OnUnregister()
-{
-    if (!GetAnimationManager().HasTransition()) {
-        ROSEN_LOGW("RSRenderNode::OnUnregister, HasTransition is false");
-        return true;
-    }
-    SetPendingRemoval(true);
-    return false;
-}
-
 void RSRenderNode::ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas)
 {
 #ifdef ROSEN_OHOS
@@ -138,7 +121,6 @@ void RSRenderNode::ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas)
 void RSRenderNode::ProcessRenderAfterChildren(RSPaintFilterCanvas& canvas)
 {
 #ifdef ROSEN_OHOS
-    GetAnimationManager().RenderDisappearingChildren(canvas);
     GetRenderProperties().ResetBounds();
     canvas.RestoreAlpha();
     canvas.restore();

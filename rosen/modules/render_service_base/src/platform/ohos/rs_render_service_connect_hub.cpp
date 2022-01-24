@@ -23,14 +23,16 @@
 #include <unistd.h>
 
 #include "message_parcel.h"
-#include "rs_render_service_proxy.h"
-#include "rs_render_service_connection_proxy.h"
+#include "pipeline/rs_render_thread.h"
 #include "platform/common/rs_log.h"
+#include "rs_render_service_connection_proxy.h"
+#include "rs_render_service_proxy.h"
 
 namespace OHOS {
 namespace Rosen {
 std::once_flag RSRenderServiceConnectHub::flag_;
 RSRenderServiceConnectHub* RSRenderServiceConnectHub::instance_ = nullptr;
+OnConnectCallback RSRenderServiceConnectHub::onConnectCallback_ = nullptr;
 
 RSRenderServiceConnectHub* RSRenderServiceConnectHub::GetInstance()
 {
@@ -86,7 +88,7 @@ bool RSRenderServiceConnectHub::Connect()
 {
     int tryCnt = 0;
     do {
-        // sleep move time (1000us * tryCnt) wthen tryCnt++
+        // sleep move time (1000us * tryCnt) when tryCnt++
         usleep(1000 * tryCnt);
         ++tryCnt;
         // try most 5 times to get render service.
@@ -127,6 +129,10 @@ bool RSRenderServiceConnectHub::Connect()
     if (conn_ == nullptr) {
         ROSEN_LOGE("RSRenderServiceConnect::Connect, failed to CreateConnection to render service.");
         return false;
+    }
+
+    if (onConnectCallback_) {
+        onConnectCallback_(conn_);
     }
 
     return true;

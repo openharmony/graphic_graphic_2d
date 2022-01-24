@@ -14,15 +14,14 @@
  */
 
 #include "rs_render_service_connection.h"
-#include "rs_main_thread.h"
-#include "rs_trace.h"
 
 #include "pipeline/rs_render_node_map.h"
 #include "pipeline/rs_render_service_listener.h"
-#include "pipeline/rs_surface_render_node.h"
-#include "pipeline/rs_render_node_map.h"
 #include "pipeline/rs_surface_capture_task.h"
+#include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_log.h"
+#include "rs_main_thread.h"
+#include "rs_trace.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -37,7 +36,8 @@ RSRenderServiceConnection::RSRenderServiceConnection(
       mainThread_(mainThread),
       screenManager_(screenManager),
       token_(token),
-      connDeathRecipient_(new RSConnectionDeathRecipient(this))
+      connDeathRecipient_(new RSConnectionDeathRecipient(this)),
+      ApplicationDeathRecipient_(new RSApplicationRenderThreadDeathRecipient(this))
 {
     if (!token_->AddDeathRecipient(connDeathRecipient_)) {
         ROSEN_LOGW("RSRenderServiceConnection: Failed to set death recipient.");
@@ -93,8 +93,7 @@ RSRenderServiceConnection::RSConnectionDeathRecipient::RSConnectionDeathRecipien
 {
 }
 
-void RSRenderServiceConnection::RSConnectionDeathRecipient::OnRemoteDied(
-    const wptr<IRemoteObject> &token)
+void RSRenderServiceConnection::RSConnectionDeathRecipient::OnRemoteDied(const wptr<IRemoteObject>& token)
 {
     auto tokenSptr = token.promote();
     if (tokenSptr == nullptr) {
@@ -117,6 +116,29 @@ void RSRenderServiceConnection::RSConnectionDeathRecipient::OnRemoteDied(
     rsConn->CleanAll(true);
 }
 
+RSRenderServiceConnection::RSApplicationRenderThreadDeathRecipient::RSApplicationRenderThreadDeathRecipient(
+    wptr<RSRenderServiceConnection> conn) : conn_(conn)
+{}
+
+void RSRenderServiceConnection::RSApplicationRenderThreadDeathRecipient::OnRemoteDied(const wptr<IRemoteObject>& token)
+{
+    auto tokenSptr = token.promote();
+    if (tokenSptr == nullptr) {
+        ROSEN_LOGW("RSApplicationRenderThreadDeathRecipient::OnRemoteDied: can't promote remote object.");
+        return;
+    }
+
+    auto rsConn = conn_.promote();
+    if (rsConn == nullptr) {
+        ROSEN_LOGW("RSApplicationRenderThreadDeathRecipient::OnRemoteDied: RSRenderServiceConnection was dead, do nothing.");
+        return;
+    }
+
+    ROSEN_LOGI("RSApplicationRenderThreadDeathRecipient::OnRemoteDied: Unregister.");
+    auto app = iface_cast<IApplicationRenderThread>(tokenSptr);
+    rsConn->UnregisterApplicationRenderThread(app);
+}
+
 void RSRenderServiceConnection::CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData)
 {
     mainThread_->RecvRSTransactionData(transactionData);
@@ -136,7 +158,8 @@ void RSRenderServiceConnection::ExecuteSynchronousTask(const std::shared_ptr<RSS
 
 sptr<Surface> RSRenderServiceConnection::CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config)
 {
-    std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(config);
+    std::shared_ptr<RSSurfaceRenderNode> node =
+        std::make_shared<RSSurfaceRenderNode>(config, mainThread_->GetContext().weak_from_this());
     if (node == nullptr) {
         ROSEN_LOGE("RSRenderService::CreateNodeAndSurface CreateNode fail");
         return nullptr;
@@ -231,6 +254,24 @@ void RSRenderServiceConnection::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCap
         std::unique_ptr<Media::PixelMap> pixelmap = task.Run();
         callback->OnSurfaceCapture(id, pixelmap.get());
         ROSEN_TRACE_END(BYTRACE_TAG_GRAPHIC_AGP);
+    };
+    mainThread_->PostTask(captureTask);
+}
+
+void RSRenderServiceConnection::RegisterApplicationRenderThread(uint32_t pid, sptr<IApplicationRenderThread> app)
+{
+    auto captureTask = [=]() -> void {
+        mainThread_->RegisterApplicationRenderThread(pid, app);
+    };
+    mainThread_->PostTask(captureTask);
+
+    app->AsObject()->AddDeathRecipient(ApplicationDeathRecipient_);
+}
+
+void RSRenderServiceConnection::UnregisterApplicationRenderThread(sptr<IApplicationRenderThread> app)
+{
+    auto captureTask = [=]() -> void {
+        mainThread_->UnregisterApplicationRenderThread(app);
     };
     mainThread_->PostTask(captureTask);
 }

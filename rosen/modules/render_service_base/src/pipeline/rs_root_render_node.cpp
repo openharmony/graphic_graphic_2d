@@ -15,21 +15,19 @@
 
 #include "pipeline/rs_root_render_node.h"
 
-#include "platform/drawing/rs_surface.h"
-#include "visitor/rs_node_visitor.h"
 #include "command/rs_surface_node_command.h"
+#include "platform/drawing/rs_surface.h"
 #include "transaction/rs_transaction_proxy.h"
+#include "visitor/rs_node_visitor.h"
 #ifdef ROSEN_OHOS
 #include <surface.h>
-
 #endif
 
 namespace OHOS {
 namespace Rosen {
-RSRootRenderNode::RSRootRenderNode(NodeId id) : RSCanvasRenderNode(id) {}
+RSRootRenderNode::RSRootRenderNode(NodeId id, std::weak_ptr<RSContext> context) : RSCanvasRenderNode(id, context) {}
 
 RSRootRenderNode::~RSRootRenderNode() {}
-
 
 void RSRootRenderNode::AttachRSSurfaceNode(NodeId surfaceNodeId, int width, int height)
 {

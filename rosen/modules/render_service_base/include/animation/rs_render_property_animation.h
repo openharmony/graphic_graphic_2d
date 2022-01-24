@@ -78,7 +78,7 @@ protected:
 #ifdef ROSEN_OHOS
     bool ParseParam(Parcel& parcel) override
     {
-        if (RSRenderAnimation::ParseParam(parcel)) {
+        if (!RSRenderAnimation::ParseParam(parcel)) {
             ROSEN_LOGE("RSRenderPropertyAnimation::ParseParam, RenderAnimation failed");
             return false;
         }

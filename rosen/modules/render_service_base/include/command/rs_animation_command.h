@@ -56,9 +56,11 @@ enum RSAnimationCommandType : uint16_t {
     ANIMATION_PAUSE,
     ANIMATION_RESUME,
     ANIMATION_FINISH,
-    ANIMATION_FINISH_CALLBACK,
     ANIMATION_REVERSE,
     ANIMATION_SET_FRACTION,
+
+    // UI operation
+    ANIMATION_FINISH_CALLBACK,
 };
 
 class AnimationCommandHelper {
@@ -97,8 +99,13 @@ public:
             return;
         }
         node->GetAnimationManager().AddAnimation(animation);
+        animation->Attach(node.get());
         animation->Start();
     }
+
+    using FinishCallbackProcessor = void (*)(NodeId, AnimationId);
+    static void AnimationFinishCallback(RSContext& context, NodeId targetId, AnimationId animId);
+    static void SetFinisCallbackProcessor(FinishCallbackProcessor processor);
 };
 
 // animation operation
@@ -110,15 +117,15 @@ ADD_COMMAND(RSAnimationResume,
     ARG(ANIMATION, ANIMATION_RESUME, AnimationCommandHelper::AnimOp<&RSRenderAnimation::Resume>, NodeId, AnimationId))
 ADD_COMMAND(RSAnimationFinish,
     ARG(ANIMATION, ANIMATION_FINISH, AnimationCommandHelper::AnimOp<&RSRenderAnimation::Finish>, NodeId, AnimationId))
-ADD_COMMAND(
-    RSAnimationFinishCallback, ARG(ANIMATION, ANIMATION_FINISH_CALLBACK,
-                                   AnimationCommandHelper::AnimOp<&RSRenderAnimation::Finish>, NodeId, AnimationId))
 ADD_COMMAND(RSAnimationReverse,
     ARG(ANIMATION, ANIMATION_REVERSE, AnimationCommandHelper::AnimOp<bool, &RSRenderAnimation::SetReversed>, NodeId,
         AnimationId, bool))
 ADD_COMMAND(RSAnimationSetFraction,
     ARG(ANIMATION, ANIMATION_SET_FRACTION, AnimationCommandHelper::AnimOp<float, &RSRenderAnimation::SetFraction>,
         NodeId, AnimationId, float))
+
+ADD_COMMAND(RSAnimationFinishCallback,
+    ARG(ANIMATION, ANIMATION_FINISH_CALLBACK, AnimationCommandHelper::AnimationFinishCallback, NodeId, AnimationId))
 
 // create curve animation
 ADD_COMMAND(

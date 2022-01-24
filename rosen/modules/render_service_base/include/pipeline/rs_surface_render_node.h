@@ -29,8 +29,8 @@ public:
     using SharedPtr = std::shared_ptr<RSSurfaceRenderNode>;
     static inline constexpr RSRenderNodeType Type = RSRenderNodeType::SURFACE_NODE;
 
-    explicit RSSurfaceRenderNode(NodeId id);
-    explicit RSSurfaceRenderNode(const RSSurfaceRenderNodeConfig& config);
+    explicit RSSurfaceRenderNode(NodeId id, std::weak_ptr<RSContext> context = {});
+    explicit RSSurfaceRenderNode(const RSSurfaceRenderNodeConfig& config, std::weak_ptr<RSContext> context = {});
     virtual ~RSSurfaceRenderNode();
 
     void SetConsumer(const sptr<Surface>& consumer);

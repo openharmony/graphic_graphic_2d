@@ -36,6 +36,7 @@ AnimationId RSAnimation::GenerateId()
         ROSEN_LOGE("Animation Id overflow");
     }
 
+    // concat two 32-bit numbers to one 64-bit number
     return ((AnimationId)pid_ << 32) | (currentId_);
 }
 

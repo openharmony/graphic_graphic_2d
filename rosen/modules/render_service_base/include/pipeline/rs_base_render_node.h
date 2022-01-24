@@ -15,6 +15,7 @@
 #ifndef RENDER_SERVICE_CLIENT_CORE_PIPELINE_RS_BASE_RENDER_NODE_H
 #define RENDER_SERVICE_CLIENT_CORE_PIPELINE_RS_BASE_RENDER_NODE_H
 
+#include <list>
 #include <memory>
 #include <vector>
 
@@ -22,6 +23,7 @@
 
 namespace OHOS {
 namespace Rosen {
+class RSContext;
 class RSNodeVisitor;
 
 class RSBaseRenderNode : public std::enable_shared_from_this<RSBaseRenderNode> {
@@ -30,18 +32,19 @@ public:
     using SharedPtr = std::shared_ptr<RSBaseRenderNode>;
     static inline constexpr RSRenderNodeType Type = RSRenderNodeType::BASE_NODE;
 
-    explicit RSBaseRenderNode(NodeId id);
-    virtual ~RSBaseRenderNode();
+    explicit RSBaseRenderNode(NodeId id, std::weak_ptr<RSContext> context = {}) : id_(id), context_(context) {};
+    virtual ~RSBaseRenderNode() = default;
 
-    void AddChild(SharedPtr child, int index = -1);
-    void RemoveChild(SharedPtr child);
+    void AddChild(const SharedPtr& child, int index = -1);
+    void RemoveChild(const SharedPtr& child);
     void ClearChildren();
     void RemoveFromTree();
 
+    virtual bool Animate(int64_t timestamp);
     virtual void Prepare(const std::shared_ptr<RSNodeVisitor>& visitor);
     virtual void Process(const std::shared_ptr<RSNodeVisitor>& visitor);
 
-    WeakPtr GetParent();
+    WeakPtr GetParent() const;
     void ResetParent();
 
     NodeId GetId() const
@@ -54,27 +57,17 @@ public:
         return children_;
     }
 
-    const std::vector<WeakPtr>& GetChildren() const
+    std::list<SharedPtr>& GetDisappearingChildren()
     {
-        return children_;
+        return disappearingChildren_;
     }
 
     void DumpTree(std::string& out) const;
 
-    void SetPendingRemoval(bool pendingRemoval)
+    virtual bool HasTransition() const
     {
-        pendingRemoval_ = pendingRemoval;
-    }
-    bool IsPendingRemoval()
-    {
-        return pendingRemoval_;
-    }
-
-    virtual void OnAddChild(RSBaseRenderNode::SharedPtr& child) {};
-    virtual void OnRemoveChild(RSBaseRenderNode::SharedPtr& child) {};
-    virtual bool OnUnregister()
-    {
-        return true;
+        auto parent = GetParent().lock();
+        return parent ? parent->HasTransition() : false;
     }
 
     virtual RSRenderNodeType GetType() const
@@ -89,7 +82,7 @@ public:
     template<typename T>
     static std::shared_ptr<T> ReinterpretCast(const std::shared_ptr<RSBaseRenderNode>& node)
     {
-        return (node && node->IsInstanceOf<T>()) ? std::static_pointer_cast<T>(node) : nullptr;
+        return node ? node->ReinterpretCastTo<T>() : nullptr;
     }
     template<typename T>
     std::shared_ptr<T> ReinterpretCastTo()
@@ -106,14 +99,27 @@ protected:
     void SetDirty();
     void SetClean();
 
+    const std::weak_ptr<RSContext> GetContext() const
+    {
+        return context_;
+    }
+
 private:
     NodeId id_;
+
     WeakPtr parent_;
-    std::vector<WeakPtr> children_;
     void SetParent(WeakPtr parent);
 
+    std::vector<WeakPtr> children_;
+    void OnAddChild(const SharedPtr& child);
+    void OnRemoveChild(const SharedPtr& child);
+
+    std::list<SharedPtr> disappearingChildren_;
+    void AddDisappearingChild(const SharedPtr& child);
+    void RemoveDisappearingChild(const SharedPtr& child);
+
+    const std::weak_ptr<RSContext> context_;
     NodeDirty dirtyStatus_ = NodeDirty::DIRTY;
-    bool pendingRemoval_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS

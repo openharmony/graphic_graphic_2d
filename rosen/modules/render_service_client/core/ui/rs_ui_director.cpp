@@ -20,8 +20,9 @@
 #include "pipeline/rs_node_map.h"
 #include "pipeline/rs_render_thread.h"
 #include "platform/common/rs_log.h"
-#include "transaction/rs_transaction_proxy.h"
 #include "rs_trace.h"
+#include "transaction/rs_interfaces.h"
+#include "transaction/rs_transaction_proxy.h"
 #include "ui/rs_root_node.h"
 #include "ui/rs_surface_extractor.h"
 #include "ui/rs_surface_node.h"
@@ -32,8 +33,7 @@ static TaskRunner g_uiTaskRunner;
 
 std::shared_ptr<RSUIDirector> RSUIDirector::Create()
 {
-    auto instance = std::shared_ptr<RSUIDirector>(new RSUIDirector());
-    return instance;
+    return std::shared_ptr<RSUIDirector>(new RSUIDirector());
 }
 
 RSUIDirector::~RSUIDirector()
@@ -48,6 +48,9 @@ void RSUIDirector::Init()
     if (transactionProxy != nullptr) {
         transactionProxy->SetRenderThreadClient(renderThreadClient);
     }
+
+    AnimationCommandHelper::SetFinisCallbackProcessor(AnimationCallbackProcessor);
+
     RSRenderThread::Instance().Start();
 }
 
@@ -80,12 +83,12 @@ void RSUIDirector::SetRSSurfaceNode(std::shared_ptr<RSSurfaceNode> surfaceNode)
         ROSEN_LOGE("RSUIDirector::SetRSSurfaceNode, no root exists");
         return;
     }
-    auto node = RSNodeMap::Instance().GetNode(root_).lock();
+    auto node = RSNodeMap::Instance().GetNode<RSRootNode>(root_);
     if (node == nullptr) {
         ROSEN_LOGE("RSUIDirector::SetRSSurfaceNode, get root node failed");
         return;
     }
-    std::static_pointer_cast<RSRootNode>(node)->AttachRSSurfaceNode(surfaceNode_, surfaceWidth_, surfaceHeight_);
+    node->AttachRSSurfaceNode(surfaceNode_, surfaceWidth_, surfaceHeight_);
 }
 
 void RSUIDirector::SetSurfaceNodeSize(int width, int height)
@@ -96,9 +99,8 @@ void RSUIDirector::SetSurfaceNodeSize(int width, int height)
         ROSEN_LOGE("RSUIDirector::SetSurfaceNodeSize, No root or SurfaceNode exists");
         return;
     }
-    auto node = RSNodeMap::Instance().GetNode(root_).lock();
-    if (node != nullptr) {
-        std::static_pointer_cast<RSRootNode>(node)->AttachRSSurfaceNode(surfaceNode_, surfaceWidth_, surfaceHeight_);
+    if (auto node = RSNodeMap::Instance().GetNode<RSRootNode>(root_)) {
+        node->AttachRSSurfaceNode(surfaceNode_, surfaceWidth_, surfaceHeight_);
     }
 }
 
@@ -109,7 +111,7 @@ void RSUIDirector::SetRoot(NodeId root)
         return;
     }
     root_ = root;
-    auto node = RSNodeMap::Instance().GetNode(root_).lock();
+    auto node = RSNodeMap::Instance().GetNode<RSRootNode>(root_);
     if (node == nullptr) {
         ROSEN_LOGE("RSUIDirector::SetRoot, fail to get node");
         return;
@@ -119,7 +121,7 @@ void RSUIDirector::SetRoot(NodeId root)
         return;
     }
 
-    std::static_pointer_cast<RSRootNode>(node)->AttachRSSurfaceNode(surfaceNode_, surfaceWidth_, surfaceHeight_);
+    node->AttachRSSurfaceNode(surfaceNode_, surfaceWidth_, surfaceHeight_);
 }
 
 void RSUIDirector::SetTimeStamp(uint64_t timeStamp)
@@ -144,31 +146,39 @@ void RSUIDirector::SendMessages()
 
 void RSUIDirector::RecvMessages()
 {
+    static const uint32_t pid = getpid();
+    if (!RSMessageProcessor::Instance().HasTransaction(pid)) {
+        return;
+    }
+    auto transactionDataPtr = std::make_shared<RSTransactionData>(RSMessageProcessor::Instance().GetTransaction(pid));
+    RecvMessages(transactionDataPtr);
+}
+
+void RSUIDirector::RecvMessages(std::shared_ptr<RSTransactionData> cmds)
+{
     if (g_uiTaskRunner == nullptr) {
         ROSEN_LOGE("RSUIDirector::RecvMessages, Notify ui message failed, uiTaskRunner is null");
         return;
     }
+    if (cmds == nullptr || cmds->IsEmpty()) {
+        return;
+    }
 
-    std::queue<std::shared_ptr<RSCommand>> cmds;
-    RSMessageProcessor::Instance().CommitUIMsg(cmds);
-    g_uiTaskRunner([msgs = cmds]() { RSUIDirector::ProcessMessages(msgs); });
+    g_uiTaskRunner([cmds]() { RSUIDirector::ProcessMessages(cmds); });
 }
 
-void RSUIDirector::ProcessMessages(std::queue<std::shared_ptr<RSCommand>> cmds)
+void RSUIDirector::ProcessMessages(std::shared_ptr<RSTransactionData> cmds)
 {
-    while (!(cmds.empty())) {
-        auto msg = cmds.front();
-        if (msg != nullptr) {
-            auto cmd = std::static_pointer_cast<RSAnimationFinishCallback>(msg);
-            auto nodePtr = RSNodeMap::Instance().GetNode(cmd->parameter1_).lock();
-            if (nodePtr == nullptr) {
-                ROSEN_LOGW("RSUIDirector::ProcessMessages, node is nullptr");
-                return;
-            }
-            std::static_pointer_cast<RSNode>(nodePtr)->AnimationFinish(cmd->parameter2_);
-        }
-        cmds.pop();
+    static RSContext context; // RSCommand->process() needs it
+    cmds->Process(context);
+}
+
+void RSUIDirector::AnimationCallbackProcessor(NodeId nodeId, AnimationId animId)
+{
+    if (auto nodePtr = RSNodeMap::Instance().GetNode<RSNode>(nodeId)) {
+        nodePtr->AnimationFinish(animId);
     }
 }
+
 } // namespace Rosen
 } // namespace OHOS

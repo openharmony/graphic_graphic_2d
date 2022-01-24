@@ -41,7 +41,7 @@ RSRenderServiceVisitor::~RSRenderServiceVisitor() {}
 
 void RSRenderServiceVisitor::PrepareBaseRenderNode(RSBaseRenderNode &node)
 {
-    for (auto child : node.GetChildren()) {
+    for (auto& child : node.GetChildren()) {
         auto existingChild = child.lock();
         if (!existingChild) {
             ROSEN_LOGI("RSRenderServiceVisitor::PrepareBaseRenderNode this child haven't existed");
@@ -49,17 +49,25 @@ void RSRenderServiceVisitor::PrepareBaseRenderNode(RSBaseRenderNode &node)
         }
         existingChild->Prepare(shared_from_this());
     }
+
+    for (auto& child : node.GetDisappearingChildren()) {
+        child->Prepare(shared_from_this());
+    }
 }
 
 void RSRenderServiceVisitor::ProcessBaseRenderNode(RSBaseRenderNode &node)
 {
-    for (auto child : node.GetChildren()) {
+    for (auto& child : node.GetChildren()) {
         auto existingChild = child.lock();
         if (!existingChild) {
             ROSEN_LOGI("RSRenderServiceVisitor::ProcessBaseRenderNode this child haven't existed");
             continue;
         }
         existingChild->Process(shared_from_this());
+    }
+
+    for (auto& child : node.GetDisappearingChildren()) {
+        child->Process(shared_from_this());
     }
 }
 

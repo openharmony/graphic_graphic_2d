@@ -23,7 +23,7 @@ class RSSurface;
 class RSRootRenderNode : public RSCanvasRenderNode {
 public:
     static inline constexpr RSRenderNodeType Type = RSRenderNodeType::ROOT_NODE;
-    explicit RSRootRenderNode(NodeId id);
+    explicit RSRootRenderNode(NodeId id, std::weak_ptr<RSContext> context = {});
     ~RSRootRenderNode() override;
 
     virtual void Prepare(const std::shared_ptr<RSNodeVisitor>& visitor) override;
@@ -43,6 +43,7 @@ public:
 
     void AddSurfaceRenderNode(NodeId id);
     void ClearSurfaceNodeInRS();
+
 private:
     int32_t surfaceWidth_ = 0;
     int32_t surfaceHeight_ = 0;

@@ -13,20 +13,16 @@
  * limitations under the License.
  */
 
-
 #include "pipeline/rs_display_render_node.h"
-
-#include <algorithm>
 
 #include "platform/common/rs_log.h"
 #include "visitor/rs_node_visitor.h"
 
 namespace OHOS {
 namespace Rosen {
-RSDisplayRenderNode::RSDisplayRenderNode(NodeId id, const RSDisplayNodeConfig& config)
-    : RSBaseRenderNode(id), screenId_(config.screenId), isMirroredDisplay_(config.isMirrored)
-{
-}
+RSDisplayRenderNode::RSDisplayRenderNode(NodeId id, const RSDisplayNodeConfig& config, std::weak_ptr<RSContext> context)
+    : RSBaseRenderNode(id, context), screenId_(config.screenId), isMirroredDisplay_(config.isMirrored)
+{}
 
 RSDisplayRenderNode::~RSDisplayRenderNode() {}
 

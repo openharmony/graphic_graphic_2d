@@ -55,7 +55,7 @@ public:
     template<typename T>
     static std::shared_ptr<T> ReinterpretCast(const std::shared_ptr<RSBaseNode>& node)
     {
-        return (node && node->IsInstanceOf<T>()) ? std::static_pointer_cast<T>(node) : nullptr;
+        return node ? node->ReinterpretCastTo<T>() : nullptr;
     }
     template<typename T>
     std::shared_ptr<T> ReinterpretCastTo()

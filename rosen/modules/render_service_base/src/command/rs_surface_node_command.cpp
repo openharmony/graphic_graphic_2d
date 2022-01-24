@@ -22,7 +22,7 @@ namespace Rosen {
 
 void SurfaceNodeCommandHelper::Create(RSContext& context, NodeId id)
 {
-    auto node = std::make_shared<RSSurfaceRenderNode>(id);
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, context.weak_from_this());
     auto& nodeMap = context.GetNodeMap();
     nodeMap.RegisterRenderNode(node);
 }

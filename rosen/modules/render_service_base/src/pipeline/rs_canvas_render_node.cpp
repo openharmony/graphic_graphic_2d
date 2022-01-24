@@ -18,9 +18,8 @@
 #include <algorithm>
 
 #ifdef ROSEN_OHOS
-#include "include/core/SkCanvas.h"
-
 #include "common/rs_obj_abs_geometry.h"
+#include "include/core/SkCanvas.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "property/rs_properties_painter.h"
 #include "render/rs_blur_filter.h"
@@ -31,7 +30,7 @@
 namespace OHOS {
 namespace Rosen {
 
-RSCanvasRenderNode::RSCanvasRenderNode(NodeId id) : RSRenderNode(id) {}
+RSCanvasRenderNode::RSCanvasRenderNode(NodeId id, std::weak_ptr<RSContext> context) : RSRenderNode(id, context) {}
 
 RSCanvasRenderNode::~RSCanvasRenderNode() {}
 

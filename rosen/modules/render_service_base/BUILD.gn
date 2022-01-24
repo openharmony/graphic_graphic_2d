@@ -66,6 +66,8 @@ ohos_shared_library("librender_service_base") {
     "src/common/rs_thread_looper_impl.cpp",
 
     #ipc_callbacks
+    "src/ipc_callbacks/rs_application_render_thread_proxy.cpp",
+    "src/ipc_callbacks/rs_application_render_thread_stub.cpp",
     "src/ipc_callbacks/screen_change_callback_proxy.cpp",
     "src/ipc_callbacks/screen_change_callback_stub.cpp",
     "src/ipc_callbacks/surface_capture_callback_proxy.cpp",

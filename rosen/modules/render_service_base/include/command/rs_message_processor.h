@@ -16,18 +16,24 @@
 #define RENDER_SERVICE_CLIENT_CORE_MESSAGE_RS_MESSAGE_PROCESSOR_H
 
 #include <memory>
-#include <queue>
+#include <unordered_map>
 
 namespace OHOS {
 namespace Rosen {
 class RSCommand;
+class RSTransactionData;
 class RSMessageProcessor final {
 public:
     static RSMessageProcessor& Instance();
 
-    void AddUIMessage(std::shared_ptr<RSCommand>& command);
-    void AddUIMessage(std::shared_ptr<RSCommand>&& command);
-    void CommitUIMsg(std::queue<std::shared_ptr<RSCommand>>& queue);
+    void AddUIMessage(uint32_t pid, std::unique_ptr<RSCommand>& command);
+    void AddUIMessage(uint32_t pid, std::unique_ptr<RSCommand>&& command);
+
+    bool HasTransaction() const;
+    bool HasTransaction(uint32_t pid) const;
+
+    RSTransactionData&& GetTransaction(uint32_t pid);
+    std::unordered_map<uint32_t, RSTransactionData>&& GetAllTransactions();
 private:
     RSMessageProcessor() = default;
     ~RSMessageProcessor();
@@ -37,7 +43,7 @@ private:
     RSMessageProcessor& operator=(const RSMessageProcessor&&) = delete;
 
 private:
-    std::queue<std::shared_ptr<RSCommand>> commands_;
+    std::unordered_map<uint32_t, RSTransactionData> transactionMap_;
 };
 } // namespace Rosen
 } // namespace OHOS

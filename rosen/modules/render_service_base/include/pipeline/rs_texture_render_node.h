@@ -30,7 +30,7 @@ public:
     static void SetTextureRegistry(std::shared_ptr<flutter::OHOS::TextureRegistry> registry);
     void UpdateTexture(int64_t textureId, bool freeze, RectF drawRect);
 
-    explicit RSTextureRenderNode(NodeId id);
+    explicit RSTextureRenderNode(NodeId id, std::weak_ptr<RSContext> context = {});
     ~RSTextureRenderNode() override;
 
     void ProcessRenderContents(RSPaintFilterCanvas& canvas) override;

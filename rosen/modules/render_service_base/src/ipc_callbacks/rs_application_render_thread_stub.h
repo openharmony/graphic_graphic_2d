@@ -13,28 +13,25 @@
  * limitations under the License.
  */
 
-#include "command/rs_root_node_command.h"
+#ifndef ROSEN_RENDER_SERVICE_BASE_RS_APPLICATION_RENDER_THREAD_STUB_H
+#define ROSEN_RENDER_SERVICE_BASE_RS_APPLICATION_RENDER_THREAD_STUB_H
 
-#include "pipeline/rs_root_render_node.h"
-#include "pipeline/rs_surface_render_node.h"
+#ifdef ROSEN_OHOS
+#include <iremote_stub.h>
+
+#include "ipc_callbacks/iapplication_render_thread.h"
 
 namespace OHOS {
 namespace Rosen {
+class RSApplicationRenderThreadStub : public IRemoteStub<IApplicationRenderThread> {
+public:
+    RSApplicationRenderThreadStub() = default;
+    ~RSApplicationRenderThreadStub() = default;
 
-void RootNodeCommandHelper::Create(RSContext& context, NodeId id)
-{
-    auto node = std::make_shared<RSRootRenderNode>(id, context.weak_from_this());
-    context.GetNodeMap().RegisterRenderNode(node);
-}
-
-void RootNodeCommandHelper::AttachRSSurfaceNode(
-    RSContext& context, NodeId id, NodeId surfaceNodeId, int width, int height)
-{
-    if (auto node = context.GetNodeMap().GetRenderNode<RSRootRenderNode>(id)) {
-        node->AttachRSSurfaceNode(surfaceNodeId, width, height);
-        context.GetGlobalRootRenderNode()->AddChild(node);
-    }
-}
-
+    int OnRemoteRequest(uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option) override;
+};
 } // namespace Rosen
 } // namespace OHOS
+#endif // ROSEN_OHOS
+
+#endif // ROSEN_RENDER_SERVICE_BASE_RS_APPLICATION_RENDER_THREAD_STUB_H

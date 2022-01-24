@@ -82,13 +82,13 @@ void RSSurfaceNode::SetBoundsSize(float width, float height)
 void RSSurfaceNode::SetBoundsWidth(float width)
 {
     RSNode::SetBoundsWidth(width);
-    UpdateSurfaceDefaultSize(width, GetBoundsHeight());
+    UpdateSurfaceDefaultSize(width, GetStagingProperties().GetBoundsHeight());
 }
 
 void RSSurfaceNode::SetBoundsHeight(float height)
 {
     RSNode::SetBoundsHeight(height);
-    UpdateSurfaceDefaultSize(GetBoundsWidth(), height);
+    UpdateSurfaceDefaultSize(GetStagingProperties().GetBoundsWidth(), height);
 }
 
 void RSSurfaceNode::UpdateSurfaceDefaultSize(float width, float height)
@@ -141,8 +141,6 @@ sptr<OHOS::Surface> RSSurfaceNode::GetSurface() const
     return ohosSurface;
 }
 #endif
-
-RSSurfaceNode::RSSurfaceNode(bool isRenderServiceNode) : RSNode(isRenderServiceNode) {}
 
 RSSurfaceNode::RSSurfaceNode(const RSSurfaceNodeConfig& config, bool isRenderServiceNode)
     : RSNode(isRenderServiceNode), name_(config.SurfaceNodeName)

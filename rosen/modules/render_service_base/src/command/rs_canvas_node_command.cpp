@@ -22,7 +22,7 @@ namespace Rosen {
 
 void RSCanvasNodeCommandHelper::Create(RSContext& context, NodeId id)
 {
-    auto node = std::make_shared<RSCanvasRenderNode>(id);
+    auto node = std::make_shared<RSCanvasRenderNode>(id, context.weak_from_this());
     context.GetNodeMap().RegisterRenderNode(node);
 }
 

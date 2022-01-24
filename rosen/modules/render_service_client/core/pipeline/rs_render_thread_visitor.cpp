@@ -19,17 +19,16 @@
 
 #include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_dirty_region_manager.h"
+#include "pipeline/rs_node_map.h"
 #include "pipeline/rs_render_thread.h"
 #include "pipeline/rs_root_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_log.h"
 #include "platform/drawing/rs_surface.h"
 #include "rs_trace.h"
-#include "pipeline/rs_node_map.h"
 #include "transaction/rs_transaction_proxy.h"
-
-#include "ui/rs_surface_node.h"
 #include "ui/rs_surface_extractor.h"
+#include "ui/rs_surface_node.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -39,10 +38,14 @@ RSRenderThreadVisitor::~RSRenderThreadVisitor() {}
 
 void RSRenderThreadVisitor::PrepareBaseRenderNode(RSBaseRenderNode& node)
 {
-    for (auto child : node.GetChildren()) {
+    for (auto& child : node.GetChildren()) {
         if (auto c = child.lock()) {
             c->Prepare(shared_from_this());
         }
+    }
+
+    for (auto& child : node.GetDisappearingChildren()) {
+        child->Prepare(shared_from_this());
     }
 }
 
@@ -82,10 +85,14 @@ void RSRenderThreadVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
 
 void RSRenderThreadVisitor::ProcessBaseRenderNode(RSBaseRenderNode& node)
 {
-    for (auto child : node.GetChildren()) {
+    for (auto& child : node.GetChildren()) {
         if (auto c = child.lock()) {
             c->Process(shared_from_this());
         }
+    }
+
+    for (auto& child : node.GetDisappearingChildren()) {
+        child->Process(shared_from_this());
     }
 }
 
@@ -97,7 +104,7 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
     }
     std::shared_ptr<RSSurface> rsSurface = nullptr;
     NodeId surfaceId = node.GetRSSurfaceNodeId();
-    auto ptr = std::static_pointer_cast<RSSurfaceNode>(RSNodeMap::Instance().GetNode(surfaceId).lock());
+    auto ptr = RSNodeMap::Instance().GetNode<RSSurfaceNode>(surfaceId);
     if (ptr == nullptr) {
         ROSEN_LOGE("No RSSurfaceNode found");
         return;

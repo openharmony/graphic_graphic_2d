@@ -18,12 +18,22 @@
 
 #include <mutex>
 #include <platform/ohos/rs_irender_service.h>
+#include "platform/common/rs_log.h"
 
 namespace OHOS {
 namespace Rosen {
+using OnConnectCallback = std::function<void(sptr<RSIRenderServiceConnection>&)>;
 class RSRenderServiceConnectHub : public RefBase {
 public:
     static sptr<RSIRenderServiceConnection> GetRenderService();
+    static void SetOnConnectCallback(OnConnectCallback cb)
+    {
+        onConnectCallback_ = cb;
+        // if already connected, call the callback immediately
+        if (instance_ && instance_->conn_ && onConnectCallback_) {
+            onConnectCallback_(instance_->conn_);
+        }
+    }
 
 private:
     static RSRenderServiceConnectHub* GetInstance();
@@ -59,6 +69,7 @@ private:
 
     static std::once_flag flag_;
     static RSRenderServiceConnectHub* instance_;
+    static OnConnectCallback onConnectCallback_;
 };
 } // namespace Rosen
 } // namespace OHOS

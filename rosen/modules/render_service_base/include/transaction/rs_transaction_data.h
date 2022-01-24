@@ -16,8 +16,8 @@
 #ifndef ROSEN_RENDER_SERVICE_BASE_RS_TRANSACTION_DATA_H
 #define ROSEN_RENDER_SERVICE_BASE_RS_TRANSACTION_DATA_H
 
-#include <list>
 #include <memory>
+#include <vector>
 
 #ifdef ROSEN_OHOS
 #include <parcel.h>
@@ -35,6 +35,7 @@ class RSTransactionData {
 #endif
 public:
     RSTransactionData() = default;
+    RSTransactionData(RSTransactionData&& other) : commands_(std::move(other.commands_)) {}
     ~RSTransactionData() noexcept;
 
 #ifdef ROSEN_OHOS
@@ -64,9 +65,10 @@ private:
     bool UnmarshallingCommand(Parcel& parcel);
 #endif
 
-    std::list<std::unique_ptr<RSCommand>> commands_;
+    std::vector<std::unique_ptr<RSCommand>> commands_;
 
     friend class RSTransactionProxy;
+    friend class RSMessageProcessor;
 };
 
 } // namespace Rosen

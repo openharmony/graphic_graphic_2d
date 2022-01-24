@@ -131,6 +131,7 @@ public:
 
     void Attach(RSRenderNode* renderNode);
     void Detach();
+    RSRenderNode* GetTarget() const;
 
     virtual RSAnimatableProperty GetProperty() const;
 
@@ -140,8 +141,6 @@ protected:
 #ifdef ROSEN_OHOS
     virtual bool ParseParam(Parcel& parcel);
 #endif
-    RSRenderNode* GetTarget() const;
-
     void SetFractionInner(float fraction);
 
     virtual void OnSetFraction(float fraction);

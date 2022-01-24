@@ -39,12 +39,12 @@ bool RSNodeMap::RegisterNode(const RSBaseNode::SharedPtr& nodePtr)
 {
     NodeId id = nodePtr->GetId();
     auto itr = nodeMap_.find(id);
-    if (itr == nodeMap_.end()) {
-        RSBaseNode::WeakPtr ptr(nodePtr);
-        nodeMap_.emplace(id, ptr);
-        return true;
+    if (itr != nodeMap_.end()) {
+        return false;
     }
-    return false;
+    RSBaseNode::WeakPtr ptr(nodePtr);
+    nodeMap_.emplace(id, ptr);
+    return true;
 }
 
 void RSNodeMap::UnregisterNode(NodeId id)
@@ -55,14 +55,14 @@ void RSNodeMap::UnregisterNode(NodeId id)
     }
 }
 
-RSBaseNode::WeakPtr RSNodeMap::GetNode(NodeId id)
+template<>
+std::shared_ptr<RSBaseNode> RSNodeMap::GetNode<RSBaseNode>(NodeId id)
 {
     auto itr = nodeMap_.find(id);
-    if (itr != nodeMap_.end()) {
-        return itr->second;
+    if (itr == nodeMap_.end()) {
+        return nullptr;
     }
-
-    return RSBaseNode::WeakPtr();
+    return itr->second;
 }
 
 std::shared_ptr<RSNode> RSNodeMap::GetAnimationFallbackNode()

@@ -40,6 +40,7 @@ public:
     {
         return token_;
     }
+
 private:
     void CleanAll(bool toDelete = false) noexcept;
 
@@ -69,6 +70,10 @@ private:
 
     void TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback) override;
 
+    void RegisterApplicationRenderThread(uint32_t pid, sptr<IApplicationRenderThread> app) override;
+
+    void UnregisterApplicationRenderThread(sptr<IApplicationRenderThread> app);
+
     RSScreenModeInfo GetScreenActiveMode(ScreenId id) override;
 
     std::vector<RSScreenModeInfo> GetScreenSupportedModes(ScreenId id) override;
@@ -93,13 +98,27 @@ private:
         explicit RSConnectionDeathRecipient(wptr<RSRenderServiceConnection> conn);
         virtual ~RSConnectionDeathRecipient() = default;
 
-        void OnRemoteDied(const wptr<IRemoteObject> &remote) override;
+        void OnRemoteDied(const wptr<IRemoteObject>& remote) override;
 
     private:
         wptr<RSRenderServiceConnection> conn_;
     };
     friend class RSConnectionDeathRecipient;
     sptr<RSConnectionDeathRecipient> connDeathRecipient_;
+
+    class RSApplicationRenderThreadDeathRecipient : public IRemoteObject::DeathRecipient {
+    public:
+        explicit RSApplicationRenderThreadDeathRecipient(wptr<RSRenderServiceConnection> conn);
+        virtual ~RSApplicationRenderThreadDeathRecipient() = default;
+
+        void OnRemoteDied(const wptr<IRemoteObject>& remote) override;
+
+    private:
+        wptr<RSRenderServiceConnection> conn_;
+    };
+    friend class RSApplicationRenderThreadDeathRecipient;
+    sptr<RSApplicationRenderThreadDeathRecipient> ApplicationDeathRecipient_;
+
     mutable std::mutex mutex_;
     bool cleanDone_ = false;
 
@@ -107,7 +126,7 @@ private:
     std::unordered_set<ScreenId> virtualScreenIds_;
     sptr<RSIScreenChangeCallback> screenChangeCallback_;
 };
-} // Rosen
-} // OHOS
+} // namespace Rosen
+} // namespace OHOS
 
 #endif // RENDER_SERVICE_PIPELINE_RS_RENDER_SERVICE_CONNECTION_H
