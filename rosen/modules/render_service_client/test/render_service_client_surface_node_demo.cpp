@@ -35,9 +35,6 @@
 #include "ui/rs_surface_node.h"
 #include "ui/rs_surface_extractor.h"
 #include "ui/rs_ui_director.h"
-#include "image/bitmap.h"
-#include "draw/canvas.h"
-#include "draw/color.h"
 
 #include "media_callback.h"
 
@@ -50,10 +47,15 @@ constexpr int32_t SURFACE_QUEUE_SIZE = 5;
 
 using namespace OHOS;
 using namespace OHOS::Rosen;
-using namespace OHOS::Rosen::Drawing;
 using namespace std;
 
 std::map<std::string, std::function<int32_t()>> playerTable;
+
+// If you want compile this demo, please add
+// "//foundation/graphic/standard/rosen/modules/render_service_client/test:render_service_client_surface_node_demo",
+// to bundle.json.
+// Attention: Before use this demo, please push any mp4 file which must be renamed "H264_Main.mp4" to /data,
+// otherwise the demo would stop unnormally.
 
 void RegisterTable(std::shared_ptr<OHOS::Media::Player> player)
 {
@@ -88,7 +90,7 @@ void DoNext()
 
 void Init(std::shared_ptr<RSUIDirector> rsUiDirector, int width, int height)
 {
-    std::cout << "rs app demo Init Rosen Backend!" << std::endl;
+    std::cout << "rs SurfaceNode demo Init Rosen Backend!" << std::endl;
 
     if (!rsUiDirector) {
         return;
@@ -105,14 +107,16 @@ void Init(std::shared_ptr<RSUIDirector> rsUiDirector, int width, int height)
 
     auto canvasNode = RSCanvasNode::Create();
     cout << "canvasNode id = " << canvasNode->GetId() << endl;
-    canvasNode->SetFrame(100, 100, 960, 1000);
+    // SetFrame also can be (100, 100, 960, 1000)
+    canvasNode->SetFrame(10, 10, 100, 100);
     canvasNode->SetBackgroundColor(SK_ColorRED);
     rootNode->AddChild(canvasNode, -1);
 
     struct RSSurfaceNodeConfig rsSurfaceNodeConfig;
     auto surfaceNode = RSSurfaceNode::Create(rsSurfaceNodeConfig, false);
     cout << "surfaceNode id = " << surfaceNode->GetId() << endl;
-    surfaceNode->SetBounds(300, 300, 960, 540);
+    // SetBounds also can be (300, 300, 960, 540);
+    surfaceNode->SetBounds(30, 30, 320, 160);
 
     canvasNode->AddChild(surfaceNode, -1);
     rsUiDirector->SendMessages();
@@ -158,15 +162,17 @@ void Init(std::shared_ptr<RSUIDirector> rsUiDirector, int width, int height)
 
 int main()
 {
-    std::cout << "rs app demo start!" << std::endl;
+    std::cout << "rs SurfaceNode demo start!" << std::endl;
     sptr<WindowOption> option = new WindowOption();
     option->SetWindowMode(WindowMode::WINDOW_MODE_FLOATING);
-    option->SetWindowRect({200, 200, 1501, 1200});
-    auto window = Window::Create("app_demo", option);
+    // SetWindowRect also can be {200, 200, 1501, 1200}
+    option->SetWindowRect( {120, 120, 500, 500} );
+
+    auto window = Window::Create("SurfaceNode_demo", option);
 
     window->Show();
     auto rect = window->GetRect();
-    std::cout << "rs app demo create window " << rect.width_ << " " << rect.height_ << std::endl;
+    std::cout << "rs SurfaceNode demo create window " << rect.width_ << " " << rect.height_ << std::endl;
     auto windowSurfaceNode = window->GetSurfaceNode();
     cout << "windowSurfaceNode id = " << windowSurfaceNode->GetId() << endl;
 
@@ -177,7 +183,7 @@ int main()
 
     rsUiDirector->SetRSSurfaceNode(windowSurfaceNode);
     Init(rsUiDirector, rect.width_, rect.height_);
-    std::cout << "rs app demo end!" << std::endl;
+    std::cout << "rs SurfaceNode demo end!" << std::endl;
     window->Hide();
     window->Destroy();
     return 0;
