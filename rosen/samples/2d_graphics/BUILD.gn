@@ -43,11 +43,9 @@ if (ace_enable_gpu) {
       "//foundation/graphic/standard/utils/sync_fence/export",
       "//foundation/graphic/standard/rosen/include/common",
       "//foundation/graphic/standard/rosen/modules/render_service_base/include",
-      "//foundation/multimedia/image_standard/interfaces/innerkits/include",
     ]
 
     deps = [
-      "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
       "//foundation/ace/ace_engine/build/external_config/flutter/skia:ace_skia_ohos",
       "//foundation/graphic/standard:libsurface",
       "//foundation/graphic/standard:libvsync_client",
@@ -58,12 +56,14 @@ if (ace_enable_gpu) {
       "//foundation/graphic/standard/rosen/modules/composer:libcomposer",
       "//foundation/graphic/standard/rosen/modules/render_service_base:librender_service_base",
       "//foundation/graphic/standard/utils:sync_fence",
-      "//foundation/multimedia/image_standard/interfaces/innerkits:image_native",
       "//third_party/zlib:libz",
-      "//utils/native/base:utils",
     ]
 
-    public_deps = []
+    external_deps = [
+      "hilog_native:libhilog",
+      "multimedia_image_standard:image_native",
+      "utils_base:utils",
+    ]
 
     subsystem_name = "graphic"
     part_name = "graphic_standard"
@@ -84,21 +84,21 @@ ohos_executable("drawing_sample_rs") {
     "//foundation/graphic/standard/interfaces/innerkits/vsync_module",
     "//foundation/graphic/standard/rosen/include/common",
     "//foundation/windowmanager/interfaces/innerkits/wm",
-    "//foundation/multimedia/image_standard/interfaces/innerkits/include",
   ]
 
   deps = [
-    "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
     "//foundation/graphic/standard:libvsync_client",
+    "//foundation/graphic/standard/rosen/modules/2d_graphics:2d_graphics",
     "//foundation/graphic/standard/rosen/modules/render_service_base:librender_service_base",
     "//foundation/graphic/standard/rosen/modules/render_service_client:librender_service_client",
-    "//foundation/multimedia/image_standard/interfaces/innerkits:image_native",
     "//foundation/windowmanager/wm:libwm",
     "//third_party/zlib:libz",
   ]
 
-  public_deps =
-      [ "//foundation/graphic/standard/rosen/modules/2d_graphics:2d_graphics" ]
+  external_deps = [
+    "hilog_native:libhilog",
+    "multimedia_image_standard:image_native",
+  ]
 
   part_name = "graphic_standard"
   subsystem_name = "graphic"
@@ -121,7 +121,6 @@ ohos_executable("drawing_sample_canvaskit0310") {
   ]
 
   deps = [
-    "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
     "//foundation/graphic/standard:libsurface",
     "//foundation/graphic/standard:libvsync_client",
     "//foundation/graphic/standard/rosen/modules/2d_graphics:2d_graphics_canvaskit0310",
@@ -130,7 +129,10 @@ ohos_executable("drawing_sample_canvaskit0310") {
     "//foundation/graphic/standard/utils:sync_fence",
   ]
 
-  external_deps = [ "ipc:ipc_core" ]
+  external_deps = [
+    "hilog_native:libhilog",
+    "ipc:ipc_core",
+  ]
 
   part_name = "graphic_standard"
   subsystem_name = "graphic"

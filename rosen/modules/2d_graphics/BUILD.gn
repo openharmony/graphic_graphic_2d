@@ -57,21 +57,19 @@ ohos_shared_library("2d_graphics") {
     "include",
     "src",
     "src/engine_adapter",
-    "//foundation/graphic/standard/interfaces/innerkits/surface",
-    "//foundation/multimedia/image_standard/interfaces/innerkits/include",
   ]
 
   defines = [ "USE_ACE_SKIA" ]
 
   deps = [
     "//foundation/ace/ace_engine/build/external_config/flutter/skia:ace_skia_ohos",
-    "//foundation/multimedia/image_standard/interfaces/innerkits:image_native",
-    "//utils/native/base:utils",
+    "//foundation/graphic/standard:libsurface",
   ]
 
-  public_deps = [
-    "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
-    "//foundation/graphic/standard:libsurface",
+  external_deps = [
+    "hilog_native:libhilog",
+    "multimedia_image_standard:image_native",
+    "utils_base:utils",
   ]
 
   part_name = "graphic_standard"
@@ -123,20 +121,17 @@ ohos_shared_library("2d_graphics_canvaskit0310") {
     "include",
     "src",
     "src/engine_adapter",
-    "//foundation/graphic/standard/interfaces/innerkits/surface",
-
-    "//foundation/multimedia/image_standard/interfaces/innerkits/include",
   ]
 
   deps = [
+    "//foundation/graphic/standard:libsurface",
     # "//third_party/skia_canvaskit0310:skia",
-    "//foundation/multimedia/image_standard/interfaces/innerkits:image_native",
-    "//utils/native/base:utils",
   ]
 
-  public_deps = [
-    "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
-    "//foundation/graphic/standard:libsurface",
+  external_deps = [
+    "hilog_native:libhilog",
+    "multimedia_image_standard:image_native",
+    "utils_base:utils",
   ]
 
   part_name = "graphic_standard"
