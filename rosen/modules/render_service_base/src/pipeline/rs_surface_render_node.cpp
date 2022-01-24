@@ -120,6 +120,16 @@ float RSSurfaceRenderNode::GetAlpha() const
     return alpha_;
 }
 
+void RSSurfaceRenderNode::SetGlobalZOrder(float globalZOrder)
+{
+    globalZOrder_ = globalZOrder;
+}
+
+float RSSurfaceRenderNode::GetGlobalZOrder() const
+{
+    return globalZOrder_;
+}
+
 void RSSurfaceRenderNode::SetParentId(NodeId parentId, bool sendMsg)
 {
     parentId_ = parentId;

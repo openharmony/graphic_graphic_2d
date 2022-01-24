@@ -44,7 +44,7 @@ public:
     void UpdateGeometry(RSBaseRenderNode &displayNode);
 
 private:
-    float zOrder_ = 0.0f;
+    float globalZOrder_ = 0.0f;
     std::shared_ptr<RSProcessor> processor_ = nullptr;
 };
 

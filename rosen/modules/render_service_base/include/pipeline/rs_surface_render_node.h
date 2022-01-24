@@ -89,6 +89,10 @@ public:
     void SetAlpha(float alpha, bool sendMsg = true);
     float GetAlpha() const;
 
+    // Only use in Render Service
+    void SetGlobalZOrder(float globalZOrder);
+    float GetGlobalZOrder() const;
+
     void SetParentId(NodeId parentId, bool sendMsg = true);
     NodeId GetParentId() const;
 
@@ -103,6 +107,7 @@ private:
     std::atomic<int> bufferAvailableCount_ = 0;
     SkMatrix matrix_;
     float alpha_ = 0.0f;
+    float globalZOrder_ = 0.0f;
     NodeId parentId_ = 0;
     sptr<SurfaceBuffer> buffer_;
     sptr<SurfaceBuffer> preBuffer_;
