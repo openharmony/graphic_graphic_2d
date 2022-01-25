@@ -54,9 +54,10 @@ void RsRenderServiceUtil::DrawBuffer(SkCanvas* canvas, const SkMatrix& matrix, s
         ROSEN_LOGE("RsRenderServiceUtil::DrawBuffer this buffer have no vir add or width or height is negative");
         return;
     }
-
+    SkColorType colorType;
+    colorType = buffer->GetFormat() == PIXEL_FMT_BGRA_8888 ? kBGRA_8888_SkColorType : kRGBA_8888_SkColorType;
     SkImageInfo layerInfo = SkImageInfo::Make(bufferWidth, bufferHeight,
-        kRGBA_8888_SkColorType, kPremul_SkAlphaType);
+        colorType, kPremul_SkAlphaType);
     SkPixmap pixmap(layerInfo, addr, layerInfo.bytesPerPixel() * bufferWidth);
     SkBitmap bitmap;
     float scaleX = width / static_cast<float>(bufferWidth);
