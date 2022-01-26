@@ -142,7 +142,7 @@ void RSHardwareProcessor::Redraw(sptr<Surface>& surface, const struct PrepareCom
         .height = curScreenInfo_.GetScreenHeight(),
         .strideAlignment = 0x8,
         .format = PIXEL_FMT_RGBA_8888,      // [TODO] different soc need different format
-        .usage = HBM_USE_CPU_READ | HBM_USE_CPU_WRITE | HBM_USE_MEM_DMA,
+        .usage = HBM_USE_CPU_READ | HBM_USE_CPU_WRITE | HBM_USE_MEM_DMA | HBM_USE_MEM_FB,
         .timeout = 0,
     };
     auto canvas = CreateCanvas(surface, requestConfig);
