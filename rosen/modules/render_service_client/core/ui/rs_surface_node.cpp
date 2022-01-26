@@ -146,7 +146,7 @@ sptr<OHOS::Surface> RSSurfaceNode::GetSurface() const
 }
 #endif
 
-bool RSSurfaceNode::IsMessageNeedSendToBothSide() const
+bool RSSurfaceNode::NeedForcedSendToRemote() const
 {
     if (IsRenderServiceNode()) {
         // RSRenderSurfaceNode in RS only need send property message to RenderService.

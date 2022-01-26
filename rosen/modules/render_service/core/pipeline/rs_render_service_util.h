@@ -20,6 +20,7 @@
 #include "include/core/SkMatrix.h"
 #include "hdi_layer_info.h"
 #include "hdi_backend.h"
+#include "display_type.h"
 #include <surface.h>
 #include "pipeline/rs_surface_render_node.h"
 
@@ -36,7 +37,7 @@ struct ComposeInfo {
     int32_t fence;
     sptr<SurfaceBuffer> preBuffer;
     int32_t preFence;
-    bool isSetBlendTypeToSrc;
+    BlendType blendType;
 };
 
 class RsRenderServiceUtil {

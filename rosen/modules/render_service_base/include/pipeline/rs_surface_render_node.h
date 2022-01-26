@@ -18,6 +18,8 @@
 #include <memory>
 #include <surface.h>
 
+#include "display_type.h"
+
 #include "pipeline/rs_render_node.h"
 #include "ipc_callbacks/buffer_available_callback.h"
 #include "refbase.h"
@@ -107,8 +109,8 @@ public:
 
     static void SendPropertyCommand(std::unique_ptr<RSCommand>& command);
 
-    bool IsBlendTypeSetToSrc();
-    void SetBlendTypeToSrc(bool isBlendTypeSetToSrc);
+    BlendType GetBlendType();
+    void SetBlendType(BlendType blendType);
 
     void RegisterBufferAvailableListener(sptr<RSIBufferAvailableCallback> callback);
     void SetBufferAvailableListener();
@@ -133,7 +135,7 @@ private:
     int32_t preFence_ = -1;
     Rect damageRect_;
     std::string name_;
-    bool isBlendTypeSetToSrc_ = false;
+    BlendType blendType_ = BlendType::BLEND_SRCOVER;
     std::atomic<bool> isBufferAvailable_ = false;
 };
 } // namespace Rosen

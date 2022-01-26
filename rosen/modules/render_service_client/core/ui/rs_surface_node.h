@@ -58,7 +58,7 @@ public:
         return RSUINodeType::SURFACE_NODE;
     }
 protected:
-    bool IsMessageNeedSendToBothSide() const override;
+    bool NeedForcedSendToRemote() const override;
     explicit RSSurfaceNode(const RSSurfaceNodeConfig& config, bool isRenderServiceNode);
     RSSurfaceNode(const RSSurfaceNode&) = delete;
     RSSurfaceNode(const RSSurfaceNode&&) = delete;

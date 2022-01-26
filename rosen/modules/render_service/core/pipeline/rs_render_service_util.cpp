@@ -33,11 +33,7 @@ void RsRenderServiceUtil::ComposeSurface(std::shared_ptr<HdiLayerInfo> layer, sp
     layer->SetCompositionType(CompositionType::COMPOSITION_DEVICE);
     layer->SetVisibleRegion(1, info.srcRect);
     layer->SetDirtyRegion(info.srcRect);
-    if (info.isSetBlendTypeToSrc == false) {
-        layer->SetBlendType(BlendType::BLEND_SRCOVER);
-    } else {
-        layer->SetBlendType(BlendType::BLEND_SRC);
-    }
+    layer->SetBlendType(info.blendType);
     layer->SetCropRect(info.srcRect);
     layers.emplace_back(layer);
 }

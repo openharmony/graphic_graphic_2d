@@ -16,6 +16,7 @@
 #include "pipeline/rs_surface_render_node.h"
 
 #include "command/rs_surface_node_command.h"
+#include "display_type.h"
 #include "pipeline/rs_root_render_node.h"
 #include "platform/common/rs_log.h"
 #include "transaction/rs_transaction_proxy.h"
@@ -177,14 +178,14 @@ void RSSurfaceRenderNode::SendPropertyCommand(std::unique_ptr<RSCommand>& comman
     }
 }
 
-bool RSSurfaceRenderNode::IsBlendTypeSetToSrc()
+BlendType RSSurfaceRenderNode::GetBlendType()
 {
-    return isBlendTypeSetToSrc_;
+    return blendType_;
 }
 
-void RSSurfaceRenderNode::SetBlendTypeToSrc(bool isBlendTypeSetToSrc)
+void RSSurfaceRenderNode::SetBlendType(BlendType blendType)
 {
-    isBlendTypeSetToSrc_ = isBlendTypeSetToSrc;
+    blendType_ = blendType;
 }
 
 void RSSurfaceRenderNode::RegisterBufferAvailableListener(sptr<RSIBufferAvailableCallback> callback)

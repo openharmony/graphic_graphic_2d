@@ -174,7 +174,7 @@ protected:
     void OnRemoveChildren() override;
     void AnimationFinish(long long animationId);
 
-    virtual bool IsMessageNeedSendToBothSide() const
+    virtual bool NeedForcedSendToRemote() const
     {
         return false;
     }

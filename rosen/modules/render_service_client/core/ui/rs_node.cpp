@@ -228,7 +228,7 @@ bool IsValid(const Vector4f& value)
             auto transactionProxy = RSTransactionProxy::GetInstance();                                                              \
             if (transactionProxy != nullptr) {                                                                                      \
                 transactionProxy->AddCommand(command, IsRenderServiceNode());                                                       \
-                if (IsMessageNeedSendToBothSide()) {                                                                                \
+                if (NeedForcedSendToRemote()) {                                                                                     \
                     std::unique_ptr<RSCommand> commandForRemote =                                                                   \
                         std::make_unique<RSNodeSet##propertyName##Delta>(GetId(), (value)-currentValue);                            \
                     transactionProxy->AddCommand(commandForRemote, true);                                                           \
@@ -240,7 +240,7 @@ bool IsValid(const Vector4f& value)
             auto transactionProxy = RSTransactionProxy::GetInstance();                                                              \
             if (transactionProxy != nullptr) {                                                                                      \
                 transactionProxy->AddCommand(command, IsRenderServiceNode());                                                       \
-                if (IsMessageNeedSendToBothSide()) {                                                                                \
+                if (NeedForcedSendToRemote()) {                                                                                     \
                     std::unique_ptr<RSCommand> commandForRemote = std::make_unique<RSNodeSet##propertyName>(GetId(), value);        \
                     transactionProxy->AddCommand(commandForRemote, true);                                                           \
                 }                                                                                                                   \
@@ -259,7 +259,7 @@ bool IsValid(const Vector4f& value)
         auto transactionProxy = RSTransactionProxy::GetInstance();                                                       \
         if (transactionProxy != nullptr) {                                                                               \
             transactionProxy->AddCommand(command, IsRenderServiceNode());                                                \
-            if (IsMessageNeedSendToBothSide()) {                                                                         \
+            if (NeedForcedSendToRemote()) {                                                                              \
                 std::unique_ptr<RSCommand> commandForRemote = std::make_unique<RSNodeSet##propertyName>(GetId(), value); \
                 transactionProxy->AddCommand(commandForRemote, true);                                                    \
             }                                                                                                            \
