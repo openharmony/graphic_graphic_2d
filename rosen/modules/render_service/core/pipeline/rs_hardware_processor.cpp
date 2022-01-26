@@ -89,10 +89,9 @@ void RSHardwareProcessor::ProcessSurface(RSSurfaceRenderNode &node)
         ROSEN_LOGE("RsDebug RSHardwareProcessor::ProcessSurface consume buffer fail");
         return;
     }
-    if (node.callback_ != nullptr && node.IsBufferAvailable() == false) {
+    if (node.IsBufferAvailable() == false) {
         // Only ipc for one time.
         node.NotifyBufferAvailable(true);
-        node.callback_->OnBufferAvailable(true);
     }
     auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(node.GetRenderProperties().GetBoundsGeometry());
     if (geoPtr == nullptr) {

@@ -50,7 +50,7 @@ RSSurfaceNode::SharedPtr RSSurfaceNode::Create(const RSSurfaceNodeConfig& surfac
         if (transactionProxy != nullptr) {
             transactionProxy->AddCommand(command, isWindow);
         }
-        command = std::make_unique<RSSurfaceNodeSetBufferAvailableListener>(node->GetId());
+        command = std::make_unique<RSSurfaceNodeConnectToNodeInRenderService>(node->GetId());
         if (transactionProxy != nullptr) {
             transactionProxy->AddCommand(command, isWindow);
         }

@@ -305,10 +305,13 @@ bool RSRenderServiceClient::RegisterBufferAvailableListener(NodeId id, const Buf
     if (renderService == nullptr) {
         return false;
     }
-    if (bufferAvailableCb_ == nullptr) {
-        bufferAvailableCb_ = new CustomBufferAvailableCallback(callback);
+    auto iter = bufferAvailableCbMap_.find(id);
+    if (iter != bufferAvailableCbMap_.end()) {
+        return true;
     }
-    renderService->RegisterBufferAvailableListener(id, bufferAvailableCb_);
+    sptr<RSIBufferAvailableCallback> bufferAvailableCb = new CustomBufferAvailableCallback(callback);
+    renderService->RegisterBufferAvailableListener(id, bufferAvailableCb);
+    bufferAvailableCbMap_.emplace(id, bufferAvailableCb);
     return true;
 }
 } // namespace Rosen

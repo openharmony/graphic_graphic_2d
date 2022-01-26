@@ -68,10 +68,10 @@ void SurfaceNodeCommandHelper::UpdateSurfaceDefaultSize(RSContext& context, Node
     }
 }
 
-void SurfaceNodeCommandHelper::SetBufferAvailableListener(RSContext& context, NodeId id)
+void SurfaceNodeCommandHelper::ConnectToNodeInRenderService(RSContext& context, NodeId id)
 {
     if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(id)) {
-        node->SetBufferAvailableListener();
+        node->ConnectToNodeInRenderService();
     }
 }
 

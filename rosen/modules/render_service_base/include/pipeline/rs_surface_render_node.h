@@ -112,18 +112,20 @@ public:
     BlendType GetBlendType();
     void SetBlendType(BlendType blendType);
 
+    // Only SurfaceNode in RS calls "RegisterBufferAvailableListener" to save callback method sent by RT
     void RegisterBufferAvailableListener(sptr<RSIBufferAvailableCallback> callback);
-    void SetBufferAvailableListener();
+
+    // Only SurfaceNode in RT calls "ConnectToNodeInRenderService" to send callback method to RS
+    void ConnectToNodeInRenderService();
 
     void NotifyBufferAvailable(bool isBufferAvailable);
     bool IsBufferAvailable() const;
-
-    sptr<RSIBufferAvailableCallback> callback_ = nullptr;
 
 private:
     friend class RSRenderTransition;
     sptr<Surface> consumer_;
 
+    std::mutex mutex_;
     std::atomic<int> bufferAvailableCount_ = 0;
     SkMatrix matrix_;
     float alpha_ = 0.0f;
@@ -137,6 +139,7 @@ private:
     std::string name_;
     BlendType blendType_ = BlendType::BLEND_SRCOVER;
     std::atomic<bool> isBufferAvailable_ = false;
+    sptr<RSIBufferAvailableCallback> callback_ = nullptr;
 };
 } // namespace Rosen
 } // namespace OHOS

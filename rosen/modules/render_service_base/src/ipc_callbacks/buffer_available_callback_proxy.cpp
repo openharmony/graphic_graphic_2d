@@ -19,6 +19,8 @@
 #include <message_option.h>
 #include <message_parcel.h>
 
+#include "platform/common/rs_log.h"
+
 namespace OHOS {
 namespace Rosen {
 RSBufferAvailableCallbackProxy::RSBufferAvailableCallbackProxy(const sptr<IRemoteObject>& impl)
@@ -41,7 +43,7 @@ void RSBufferAvailableCallbackProxy::OnBufferAvailable(bool isBufferAvailable)
     option.SetFlags(MessageOption::TF_ASYNC);
     int32_t err = Remote()->SendRequest(RSIBufferAvailableCallback::ON_BUFFER_AVAILABLE, data, reply, option);
     if (err != NO_ERROR) {
-        // TODO: Error log
+        ROSEN_LOGE("RSBufferAvailableCallbackProxy::OnBufferAvailable error = %d", err);
     }
 }
 } // namespace Rosen

@@ -190,13 +190,16 @@ void RSSurfaceRenderNode::SetBlendType(BlendType blendType)
 
 void RSSurfaceRenderNode::RegisterBufferAvailableListener(sptr<RSIBufferAvailableCallback> callback)
 {
-    callback_ = callback;
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        callback_ = callback;
+    }
 }
 
-void RSSurfaceRenderNode::SetBufferAvailableListener()
+void RSSurfaceRenderNode::ConnectToNodeInRenderService()
 {
     auto renderServiceClinet =
-    std::static_pointer_cast<RSRenderServiceClient>(RSIRenderClient::CreateRenderServiceClient());
+        std::static_pointer_cast<RSRenderServiceClient>(RSIRenderClient::CreateRenderServiceClient());
     if (renderServiceClinet != nullptr) {
         renderServiceClinet->RegisterBufferAvailableListener(GetId(),
             [this](bool isBufferAvailable) {
@@ -207,7 +210,16 @@ void RSSurfaceRenderNode::SetBufferAvailableListener()
 
 void RSSurfaceRenderNode::NotifyBufferAvailable(bool isBufferAvailable)
 {
+    // In RS, "isBufferAvailable_ = true" means buffer is ready and need to trigger ipc callback.
+    // In RT, "isBufferAvailable_ = true" means RT know that RS have had available buffer
+    // and ready to "clip" on parent surface.
     isBufferAvailable_ = isBufferAvailable;
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        if (callback_ != nullptr) {
+            callback_->OnBufferAvailable(true);
+        }
+    }
 }
 
 bool RSSurfaceRenderNode::IsBufferAvailable() const
