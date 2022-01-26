@@ -124,7 +124,7 @@ void RSHardwareProcessor::ProcessSurface(RSSurfaceRenderNode &node)
     std::shared_ptr<HdiLayerInfo> layer = HdiLayerInfo::CreateHdiLayerInfo();
     ROSEN_LOGE("RsDebug RSHardwareProcessor::ProcessSurface surfaceNode id:%llu name:[%s] [%d %d %d %d]"\
         "SrcRect [%d %d] bufferSize [%d %d] DamageSize [%d %d] buffaddr:%p, z:%f, globalZOrder:%d, IsBlendTypeSetToSrc = %s",
-        node.GetId(),node.GetName().c_str(),
+        node.GetId(), node.GetName().c_str(),
         info.dstRect.x, info.dstRect.y, info.dstRect.w, info.dstRect.h,
         info.srcRect.w, info.srcRect.h, node.GetBuffer()->GetWidth(), node.GetBuffer()->GetHeight(),
         node.GetDamageRegion().w, node.GetDamageRegion().h, node.GetBuffer().GetRefPtr(),

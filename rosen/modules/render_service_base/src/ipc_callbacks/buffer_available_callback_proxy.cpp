@@ -32,7 +32,7 @@ void RSBufferAvailableCallbackProxy::OnBufferAvailable(bool isBufferAvailable)
     MessageParcel reply;
     MessageOption option;
 
-    if(!data.WriteInterfaceToken(RSIBufferAvailableCallback::GetDescriptor())) {
+    if (!data.WriteInterfaceToken(RSIBufferAvailableCallback::GetDescriptor())) {
         return;
     }
 

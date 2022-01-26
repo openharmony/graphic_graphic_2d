@@ -213,6 +213,5 @@ bool RSSurfaceRenderNode::IsBufferAvailable() const
 {
     return isBufferAvailable_;
 }
-
 } // namespace Rosen
 } // namespace OHOS

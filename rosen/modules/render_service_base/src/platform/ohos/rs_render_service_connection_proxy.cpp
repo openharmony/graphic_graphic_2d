@@ -446,6 +446,5 @@ void RSRenderServiceConnectionProxy::RegisterBufferAvailableListener(NodeId id, 
         ROSEN_LOGE("RSRenderServiceConnectionProxy::RegisterBufferAvailableListener: Send Request err.");
     }
 }
-
 } // namespace Rosen
 } // namespace OHOS

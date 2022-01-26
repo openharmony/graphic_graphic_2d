@@ -285,7 +285,7 @@ void RSRenderServiceClient::SetScreenBacklight(ScreenId id, uint32_t level)
 class CustomBufferAvailableCallback : public RSBufferAvailableCallbackStub
 {
 public:
-    CustomBufferAvailableCallback(const BufferAvailableCallback &callback) : cb_(callback){}
+    explicit CustomBufferAvailableCallback(const BufferAvailableCallback &callback) : cb_(callback) {}
     ~CustomBufferAvailableCallback() override {};
 
     void OnBufferAvailable(bool isBufferAvailable) override
