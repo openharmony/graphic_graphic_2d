@@ -131,8 +131,8 @@ int32_t NativeWindowFlushBuffer(struct NativeWindow *window, struct NativeWindow
     }  else {
         config.damage.x = 0;
         config.damage.y = 0;
-        config.damage.w = window->config.width;
-        config.damage.h = window->config.height;
+        config.damage.w = 0;
+        config.damage.h = 0;
         config.timestamp = 0;
     }
 
