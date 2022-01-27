@@ -18,7 +18,11 @@
 #include <memory>
 #include <surface.h>
 
+#include "display_type.h"
+
 #include "pipeline/rs_render_node.h"
+#include "ipc_callbacks/buffer_available_callback.h"
+#include "refbase.h"
 
 class SkCanvas;
 namespace OHOS {
@@ -105,10 +109,23 @@ public:
 
     static void SendPropertyCommand(std::unique_ptr<RSCommand>& command);
 
+    BlendType GetBlendType();
+    void SetBlendType(BlendType blendType);
+
+    // Only SurfaceNode in RS calls "RegisterBufferAvailableListener" to save callback method sent by RT
+    void RegisterBufferAvailableListener(sptr<RSIBufferAvailableCallback> callback);
+
+    // Only SurfaceNode in RT calls "ConnectToNodeInRenderService" to send callback method to RS
+    void ConnectToNodeInRenderService();
+
+    void NotifyBufferAvailable(bool isBufferAvailable);
+    bool IsBufferAvailable() const;
+
 private:
     friend class RSRenderTransition;
     sptr<Surface> consumer_;
 
+    std::mutex mutex_;
     std::atomic<int> bufferAvailableCount_ = 0;
     SkMatrix matrix_;
     float alpha_ = 0.0f;
@@ -120,6 +137,9 @@ private:
     int32_t preFence_ = -1;
     Rect damageRect_;
     std::string name_;
+    BlendType blendType_ = BlendType::BLEND_SRCOVER;
+    std::atomic<bool> isBufferAvailable_ = false;
+    sptr<RSIBufferAvailableCallback> callback_ = nullptr;
 };
 } // namespace Rosen
 } // namespace OHOS

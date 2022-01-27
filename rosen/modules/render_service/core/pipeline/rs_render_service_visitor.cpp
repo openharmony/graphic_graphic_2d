@@ -21,6 +21,7 @@
 #include <window.h>
 
 #include "common/rs_obj_abs_geometry.h"
+#include "display_type.h"
 #include "pipeline/rs_base_render_node.h"
 #include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_processor.h"
@@ -158,6 +159,7 @@ void RSRenderServiceVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode &node)
             ROSEN_LOGI("RSRenderServiceVisitor::PrepareSurfaceRenderNode this child is not SurfaceNode");
             continue;
         }
+        surfaceChild->SetBlendType(BlendType::BLEND_SRC);
         auto childGeoPtr = std::static_pointer_cast<RSObjAbsGeometry>(
             surfaceChild->GetRenderProperties().GetBoundsGeometry());
         if (childGeoPtr != nullptr) {
@@ -173,10 +175,10 @@ void RSRenderServiceVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode &node)
         ROSEN_LOGE("RSRenderServiceVisitor::ProcessSurfaceRenderNode processor is nullptr");
         return;
     }
+    ProcessBaseRenderNode(node);
     node.SetGlobalZOrder(globalZOrder_);
     globalZOrder_ = globalZOrder_ + 1;
     processor_->ProcessSurface(node);
-    ProcessBaseRenderNode(node);
 }
 
 void RSRenderServiceVisitor::SortZOrder(RSBaseRenderNode &node)

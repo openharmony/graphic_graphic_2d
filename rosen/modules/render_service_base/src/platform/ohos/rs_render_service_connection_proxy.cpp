@@ -422,5 +422,29 @@ void RSRenderServiceConnectionProxy::SetScreenBacklight(ScreenId id, uint32_t le
         return;
     }
 }
+
+void RSRenderServiceConnectionProxy::RegisterBufferAvailableListener(NodeId id, sptr<RSIBufferAvailableCallback> callback)
+{
+    if (callback == nullptr) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::RegisterBufferAvailableListener: callback is nullptr.");
+        return;
+    }
+
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return;
+    }
+
+    option.SetFlags(MessageOption::TF_ASYNC);
+    data.WriteUint64(id);
+    data.WriteRemoteObject(callback->AsObject());
+    int32_t err = Remote()->SendRequest(RSIRenderServiceConnection::SET_BUFFER_AVAILABLE_LISTENER, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::RegisterBufferAvailableListener: Send Request err.");
+    }
+}
 } // namespace Rosen
 } // namespace OHOS

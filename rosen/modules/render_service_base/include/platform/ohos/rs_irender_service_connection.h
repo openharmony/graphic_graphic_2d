@@ -21,6 +21,7 @@
 #include <surface.h>
 
 #include "command/rs_command.h"
+#include "ipc_callbacks/buffer_available_callback.h"
 #include "ipc_callbacks/iapplication_render_thread.h"
 #include "ipc_callbacks/screen_change_callback.h"
 #include "ipc_callbacks/surface_capture_callback.h"
@@ -60,6 +61,7 @@ public:
         GET_SCREEN_DATA,
         EXECUTE_SYNCHRONOUS_TASK,
         REGISTER_APPLICATION_RENDER_THREAD,
+        SET_BUFFER_AVAILABLE_LISTENER,
     };
 
     virtual void CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData) = 0;
@@ -104,6 +106,8 @@ public:
     virtual int32_t GetScreenBacklight(ScreenId id) = 0;
 
     virtual void SetScreenBacklight(ScreenId id, uint32_t level) = 0;
+
+    virtual void RegisterBufferAvailableListener(NodeId id, sptr<RSIBufferAvailableCallback> callback) = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

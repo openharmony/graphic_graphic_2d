@@ -69,6 +69,8 @@ public:
 
     void SetScreenBacklight(ScreenId id, uint32_t level) override;
 
+    void RegisterBufferAvailableListener(NodeId id, sptr<RSIBufferAvailableCallback> callback) override;
+
 private:
     static inline BrokerDelegator<RSRenderServiceConnectionProxy> delegator_;
 };

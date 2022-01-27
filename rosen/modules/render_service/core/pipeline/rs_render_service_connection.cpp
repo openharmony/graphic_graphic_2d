@@ -328,5 +328,14 @@ void RSRenderServiceConnection::SetScreenBacklight(ScreenId id, uint32_t level)
         screenManager_->SetScreenBacklight(id, level);
     }).wait();
 }
+
+void RSRenderServiceConnection::RegisterBufferAvailableListener(NodeId id, sptr<RSIBufferAvailableCallback> callback)
+{
+    std::shared_ptr<RSSurfaceRenderNode> node =
+        mainThread_->GetContext().GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(id);
+    if (node != nullptr) {
+        node->RegisterBufferAvailableListener(callback);
+    }
+}
 } // namespace Rosen
 } // namespace OHOS

@@ -58,15 +58,12 @@ public:
         return RSUINodeType::SURFACE_NODE;
     }
 protected:
+    bool NeedForcedSendToRemote() const override;
     explicit RSSurfaceNode(const RSSurfaceNodeConfig& config, bool isRenderServiceNode);
     RSSurfaceNode(const RSSurfaceNode&) = delete;
     RSSurfaceNode(const RSSurfaceNode&&) = delete;
     RSSurfaceNode& operator=(const RSSurfaceNode&) = delete;
     RSSurfaceNode& operator=(const RSSurfaceNode&&) = delete;
-    bool IsRenderServiceNodeForProperty() const override
-    {
-        return true;
-    }
 
 private:
     bool CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config);

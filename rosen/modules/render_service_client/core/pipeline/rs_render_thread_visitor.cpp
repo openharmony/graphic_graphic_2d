@@ -16,6 +16,8 @@
 #include "pipeline/rs_render_thread_visitor.h"
 
 #include <include/core/SkFont.h>
+#include <include/core/SkColor.h>
+#include <include/core/SkPaint.h>
 
 #include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_dirty_region_manager.h"
@@ -167,6 +169,17 @@ void RSRenderThreadVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
     node.SetMatrix(canvas_->getTotalMatrix());
     node.SetAlpha(canvas_->GetAlpha());
     node.SetParentId(node.GetParent().lock()->GetId());
+
+    canvas_->save();
+    canvas_->clipRect({node.GetRenderProperties().GetBoundsPositionX(), node.GetRenderProperties().GetBoundsPositionY(),
+                       node.GetRenderProperties().GetBoundsWidth(), node.GetRenderProperties().GetBoundsHeight()});
+    if (node.IsBufferAvailable() == true) {
+        canvas_->clear(SK_ColorTRANSPARENT);
+    } else {
+        canvas_->clear(SK_ColorBLACK);
+    }
+    canvas_->restore();
+
 #endif
     ProcessBaseRenderNode(node);
 }
