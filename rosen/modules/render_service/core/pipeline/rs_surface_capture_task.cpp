@@ -149,8 +149,11 @@ void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::ProcessSurfaceRenderNode(RSS
     } else {
         float scaleX = node.GetRenderProperties().GetBoundsWidth();
         float scaleY = node.GetRenderProperties().GetBoundsHeight();
+        bool needUseBufferRegion = node.GetDamageRegion().w <= 0 || node.GetDamageRegion().h <= 0;
+        int32_t damageRegionWidth = needUseBufferRegion ? node.GetBuffer()->GetWidth() : node.GetDamageRegion().w;
+        int32_t damageRegionHeight = needUseBufferRegion ? node.GetBuffer()->GetHeight() : node.GetDamageRegion().h;
         RsRenderServiceUtil::DrawBuffer(canvas_.get(), node.GetMatrix(), node.GetBuffer(), 0, 0, scaleX, scaleY,
-            node.GetDamageRegion().w, node.GetDamageRegion().h);
+            damageRegionWidth, damageRegionHeight);
     }
     for (auto child : node.GetChildren()) {
         auto existingChild = child.lock();
