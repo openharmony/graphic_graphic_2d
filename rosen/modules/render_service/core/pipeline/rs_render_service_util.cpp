@@ -75,10 +75,13 @@ void RsRenderServiceUtil::DrawBuffer(SkCanvas* canvas, const SkMatrix& matrix, s
 void RsRenderServiceUtil::DrawBuffer(SkCanvas* canvas, const SkMatrix& matrix, sptr<OHOS::SurfaceBuffer> buffer,
         RSSurfaceRenderNode& node)
 {
+    bool needUseBufferRegion = node.GetDamageRegion().w <= 0 || node.GetDamageRegion().h <= 0;
+    int32_t damageRegionWidth = needUseBufferRegion ? node.GetBuffer()->GetWidth() : node.GetDamageRegion().w;
+    int32_t damageRegionHeight = needUseBufferRegion ? node.GetBuffer()->GetHeight() : node.GetDamageRegion().h;
     DrawBuffer(canvas, matrix, node.GetBuffer(),
         node.GetRenderProperties().GetBoundsPositionX(), node.GetRenderProperties().GetBoundsPositionY(),
         node.GetRenderProperties().GetBoundsWidth(), node.GetRenderProperties().GetBoundsHeight(),
-        node.GetDamageRegion().w, node.GetDamageRegion().h);
+        damageRegionWidth, damageRegionHeight);
 }
 
 } // namespace Rosen
