@@ -20,17 +20,16 @@
 
 namespace OHOS {
 namespace Rosen {
-Quaternion RSValueEstimator::Estimate(float fraction, const Quaternion& startValue, const Quaternion& endValue) const
+Quaternion RSValueEstimator::Estimate(float fraction, const Quaternion& startValue, const Quaternion& endValue)
 {
     auto value = startValue;
     return value.Slerp(endValue, fraction);
 }
 
-std::shared_ptr<RSFilter> RSValueEstimator::Estimate(float fraction, const std::shared_ptr<RSFilter>& startValue,
-    const std::shared_ptr<RSFilter>& endValue) const
+std::shared_ptr<RSFilter> RSValueEstimator::Estimate(
+    float fraction, const std::shared_ptr<RSFilter>& startValue, const std::shared_ptr<RSFilter>& endValue)
 {
-    if ((startValue == nullptr || !startValue->IsAnimatable()) &&
-        (endValue == nullptr || !endValue->IsAnimatable())) {
+    if ((startValue == nullptr || !startValue->IsAnimatable()) && (endValue == nullptr || !endValue->IsAnimatable())) {
         return endValue;
     }
 
@@ -50,38 +49,38 @@ std::shared_ptr<RSFilter> RSValueEstimator::Estimate(float fraction, const std::
 }
 
 float RSValueEstimator::EstimateFraction(const std::shared_ptr<RSInterpolator>& interpolator, const Vector2f& value,
-    const Vector2f& startValue, const Vector2f& endValue) const
+    const Vector2f& startValue, const Vector2f& endValue)
 {
     return 0.0f;
 }
 
 float RSValueEstimator::EstimateFraction(const std::shared_ptr<RSInterpolator>& interpolator, const Vector4f& value,
-    const Vector4f& startValue, const Vector4f& endValue) const
+    const Vector4f& startValue, const Vector4f& endValue)
 {
     return 0.0f;
 }
 
 float RSValueEstimator::EstimateFraction(const std::shared_ptr<RSInterpolator>& interpolator, const Quaternion& value,
-    const Quaternion& startValue, const Quaternion& endValue) const
+    const Quaternion& startValue, const Quaternion& endValue)
 {
     return 0.0f;
 }
 
 float RSValueEstimator::EstimateFraction(const std::shared_ptr<RSInterpolator>& interpolator, const RSColor& value,
-    const RSColor& startValue, const RSColor& endValue) const
+    const RSColor& startValue, const RSColor& endValue)
 {
     return 0.0f;
 }
 
 float RSValueEstimator::EstimateFraction(const std::shared_ptr<RSInterpolator>& interpolator, const Matrix3f& value,
-    const Matrix3f& startValue, const Matrix3f& endValue) const
+    const Matrix3f& startValue, const Matrix3f& endValue)
 {
     return 0.0f;
 }
 
-float RSValueEstimator::EstimateFraction(
-    const std::shared_ptr<RSInterpolator>& interpolator, const std::shared_ptr<RSFilter>& value,
-    const std::shared_ptr<RSFilter>& startValue, const std::shared_ptr<RSFilter>& endValue) const
+float RSValueEstimator::EstimateFraction(const std::shared_ptr<RSInterpolator>& interpolator,
+    const std::shared_ptr<RSFilter>& value, const std::shared_ptr<RSFilter>& startValue,
+    const std::shared_ptr<RSFilter>& endValue)
 {
     return 0.0f;
 }

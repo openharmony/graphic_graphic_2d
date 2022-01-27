@@ -16,154 +16,167 @@
 #include "animation/rs_render_transition_effect.h"
 
 #include "animation/rs_animation_common.h"
-#include "include/core/SkMatrix44.h"
+#include "animation/rs_value_estimator.h"
 #include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_paint_filter_canvas.h"
+#include "platform/common/rs_log.h"
+#include "transaction/rs_marshalling_helper.h"
 
 namespace OHOS {
 namespace Rosen {
-std::shared_ptr<RSRenderTransitionEffect> RSRenderTransitionEffect::CreateTransitionEffect(
-    const RSTransitionEffect& effect)
-{
-    std::shared_ptr<RSRenderTransitionEffect> renderEffect = nullptr;
-    switch (effect.GetType()) {
-        case RSTransitionEffectType::FADE_IN: {
-            renderEffect = std::make_shared<RSTransitionFadeIn>();
-            break;
-        }
-        case RSTransitionEffectType::FADE_OUT: {
-            renderEffect = std::make_shared<RSTransitionFadeOut>();
-            break;
-        }
-        case RSTransitionEffectType::SCALE_IN: {
-            renderEffect = std::make_shared<RSTransitionScaleIn>(effect.GetScaleParams());
-            break;
-        }
-        case RSTransitionEffectType::SCALE_OUT: {
-            renderEffect = std::make_shared<RSTransitionScaleOut>(effect.GetScaleParams());
-            break;
-        }
-        case RSTransitionEffectType::TRANSLATE_IN: {
-            renderEffect = std::make_shared<RSTransitionTranslateIn>(effect.GetTranslateParams());
-            break;
-        }
-        case RSTransitionEffectType::TRANSLATE_OUT: {
-            renderEffect = std::make_shared<RSTransitionTranslateOut>(effect.GetTranslateParams());
-            break;
-        }
-        case RSTransitionEffectType::ROTATE_IN: {
-            renderEffect = std::make_shared<RSTransitionRotateIn>(effect.GetRotateParams());
-            break;
-        }
-        case RSTransitionEffectType::ROTATE_OUT: {
-            renderEffect = std::make_shared<RSTransitionRotateOut>(effect.GetRotateParams());
-            break;
-        }
-        default:
-            break;
-    }
-    return renderEffect;
-}
-
-void RSTransitionFadeIn::OnTransition(
-    RSPaintFilterCanvas& canvas, const RSProperties& renderProperties, float fraction)
-{
 #ifdef ROSEN_OHOS
-    canvas.MultiplyAlpha(fraction);
-#endif
+RSRenderTransitionEffect* RSRenderTransitionEffect::Unmarshalling(Parcel& parcel)
+{
+    uint16_t transitionType;
+    if (!parcel.ReadUint16(transitionType)) {
+        ROSEN_LOGE("RSRenderTransitionEffect::Unmarshalling, ParseParam Failed");
+        return nullptr;
+    }
+    RSRenderTransitionEffect* ret = nullptr;
+    switch (transitionType) {
+        case RSTransitionEffectType::FADE:
+            ret = RSTransitionFade::Unmarshalling(parcel);
+            break;
+        case RSTransitionEffectType::SCALE:
+            ret = RSTransitionScale::Unmarshalling(parcel);
+            break;
+        case RSTransitionEffectType::ROTATE:
+            ret = RSTransitionRotate::Unmarshalling(parcel);
+            break;
+        case RSTransitionEffectType::TRANSLATE:
+            ret = RSTransitionTranslate::Unmarshalling(parcel);
+            break;
+        default:
+            return nullptr;
+    }
+    return ret;
 }
 
-void RSTransitionFadeOut::OnTransition(
-    RSPaintFilterCanvas& canvas, const RSProperties& renderProperties, float fraction)
+bool RSTransitionFade::Marshalling(Parcel& parcel) const
+{
+    return parcel.WriteUint16(RSTransitionEffectType::FADE) && parcel.WriteFloat(alpha_);
+}
+
+RSRenderTransitionEffect* RSTransitionFade::Unmarshalling(Parcel& parcel)
+{
+    float alpha;
+    if (!RSMarshallingHelper::Unmarshalling(parcel, alpha)) {
+        ROSEN_LOGE("RSTransitionFade::Unmarshalling, unmarshalling alpha failed");
+        return nullptr;
+    }
+    return new RSTransitionFade(alpha);
+}
+
+bool RSTransitionScale::Marshalling(Parcel& parcel) const
+{
+    return parcel.WriteUint16(RSTransitionEffectType::SCALE) && parcel.WriteFloat(scaleX_) &&
+           parcel.WriteFloat(scaleY_) && parcel.WriteFloat(scaleZ_) && parcel.WriteFloat(pivotX_) &&
+           parcel.WriteFloat(pivotY_);
+}
+
+RSRenderTransitionEffect* RSTransitionScale::Unmarshalling(Parcel& parcel)
+{
+    float scaleX;
+    float scaleY;
+    float scaleZ;
+    float pivotX;
+    float pivotY;
+    if (!parcel.ReadFloat(scaleX) || !parcel.ReadFloat(scaleY) || !parcel.ReadFloat(scaleZ) ||
+        !parcel.ReadFloat(pivotX) || !parcel.ReadFloat(pivotY)) {
+        ROSEN_LOGE("RSTransitionScale::Unmarshalling, unmarshalling failed");
+        return nullptr;
+    }
+    return new RSTransitionScale(scaleX, scaleY, scaleZ, pivotX, pivotY);
+}
+
+bool RSTransitionTranslate::Marshalling(Parcel& parcel) const
+{
+    return parcel.WriteUint16(RSTransitionEffectType::TRANSLATE) && parcel.WriteFloat(translateX_) &&
+           parcel.WriteFloat(translateY_) && parcel.WriteFloat(translateZ_);
+}
+
+RSRenderTransitionEffect* RSTransitionTranslate::Unmarshalling(Parcel& parcel)
+{
+    float translateX;
+    float translateY;
+    float translateZ;
+    if (!parcel.ReadFloat(translateX) || !parcel.ReadFloat(translateY) || !parcel.ReadFloat(translateZ)) {
+        ROSEN_LOGE("RSTransitionTranslate::Unmarshalling, unmarshalling failed");
+        return nullptr;
+    }
+    return new RSTransitionTranslate(translateX, translateY, translateZ);
+}
+
+bool RSTransitionRotate::Marshalling(Parcel& parcel) const
+{
+    return parcel.WriteUint16(RSTransitionEffectType::ROTATE) && parcel.WriteFloat(dx_) && parcel.WriteFloat(dy_) &&
+           parcel.WriteFloat(dz_) && parcel.WriteFloat(angle_) && parcel.WriteFloat(pivotX_) &&
+           parcel.WriteFloat(pivotY_);
+}
+
+RSRenderTransitionEffect* RSTransitionRotate::Unmarshalling(Parcel& parcel)
+{
+    Quaternion quaternion;
+    float dx;
+    float dy;
+    float dz;
+    float angle;
+    float pivotX;
+    float pivotY;
+    if (!parcel.ReadFloat(dx) || !parcel.ReadFloat(dy) || !parcel.ReadFloat(dz) || !parcel.ReadFloat(angle) ||
+        !parcel.ReadFloat(pivotX) || !parcel.ReadFloat(pivotY)) {
+        ROSEN_LOGE("RSTransitionRotate::Unmarshalling, unmarshalling failed");
+        return nullptr;
+    }
+    return new RSTransitionRotate(dx, dy, dz, angle, pivotX, pivotY);
+}
+#endif
+
+void RSTransitionFade::OnTransition(RSPaintFilterCanvas& canvas, const RSProperties& renderProperties, float fraction)
 {
 #ifdef ROSEN_OHOS
     canvas.MultiplyAlpha(1.0f - fraction);
 #endif
 }
 
-void RSTransitionScaleIn::OnTransition(
-    RSPaintFilterCanvas& canvas, const RSProperties& renderProperties, float fraction)
-{
-#ifdef ROSEN_OHOS
-    Vector2f startValue(scaleParams_.scaleX, scaleParams_.scaleY);
-    Vector2f endValue(1.0f, 1.0f);
-    auto value = valueEstimator_->Estimate(fraction, startValue, endValue);
-    SkMatrix matrix;
-    matrix.setScale(value.x_, value.y_,
-                    GetBoundsWidth(renderProperties) * scaleParams_.pivotX,
-                    GetBoundsHeight(renderProperties) * scaleParams_.pivotY);
-    canvas.concat(matrix);
-#endif
-}
-
-void RSTransitionScaleOut::OnTransition(
-    RSPaintFilterCanvas& canvas, const RSProperties& renderProperties, float fraction)
+void RSTransitionScale::OnTransition(RSPaintFilterCanvas& canvas, const RSProperties& renderProperties, float fraction)
 {
 #ifdef ROSEN_OHOS
     Vector2f startValue(1.0f, 1.0f);
-    Vector2f endValue(scaleParams_.scaleX, scaleParams_.scaleY);
-    auto value = valueEstimator_->Estimate(fraction, startValue, endValue);
+    Vector2f endValue(scaleX_, scaleY_);
+    auto value = RSValueEstimator::Estimate(fraction, startValue, endValue);
     SkMatrix matrix;
-    matrix.setScale(value.x_, value.y_,
-                    GetBoundsWidth(renderProperties) * scaleParams_.pivotX,
-                    GetBoundsHeight(renderProperties) * scaleParams_.pivotY);
+
+    Vector2f pivot { renderProperties.GetBoundsWidth() * pivotX_, renderProperties.GetBoundsHeight() * pivotY_ };
+    matrix.setScale(value.x_, value.y_, pivot.x_, pivot.y_);
+
     canvas.concat(matrix);
 #endif
 }
 
-void RSTransitionTranslateIn::OnTransition(
-    RSPaintFilterCanvas& canvas, const RSProperties& renderProperties, float fraction)
-{
-#ifdef ROSEN_OHOS
-    Vector2f startValue(translateParams_.dx, translateParams_.dy);
-    Vector2f endValue(0.0f, 0.0f);
-    auto value = valueEstimator_->Estimate(fraction, startValue, endValue);
-    canvas.translate(value.x_, value.y_);
-#endif
-}
-
-void RSTransitionTranslateOut::OnTransition(
+void RSTransitionTranslate::OnTransition(
     RSPaintFilterCanvas& canvas, const RSProperties& renderProperties, float fraction)
 {
 #ifdef ROSEN_OHOS
     Vector2f startValue(0.0f, 0.0f);
-    Vector2f endValue(translateParams_.dx, translateParams_.dy);
-    auto value = valueEstimator_->Estimate(fraction, startValue, endValue);
+    Vector2f endValue(translateX_, translateY_);
+    auto value = RSValueEstimator::Estimate(fraction, startValue, endValue);
     canvas.translate(value.x_, value.y_);
 #endif
 }
 
-void RSTransitionRotateIn::OnTransition(
-    RSPaintFilterCanvas& canvas, const RSProperties& renderProperties, float fraction)
+void RSTransitionRotate::OnTransition(RSPaintFilterCanvas& canvas, const RSProperties& renderProperties, float fraction)
 {
 #ifdef ROSEN_OHOS
-    float startValue = rotateParams_.angle;
-    float endValue = 0.0f;
-    auto value = valueEstimator_->Estimate(fraction, startValue, endValue);
-    SkMatrix44 matrix;
-    canvas.translate(GetBoundsWidth(renderProperties) * rotateParams_.pivotX,
-                     GetBoundsHeight(renderProperties) * rotateParams_.pivotY);
-    matrix.setRotateDegreesAbout(rotateParams_.dx, rotateParams_.dy, rotateParams_.dz, value);
-    canvas.concat(SkMatrix(matrix));
-    canvas.translate(-GetBoundsWidth(renderProperties) * rotateParams_.pivotX,
-                     -GetBoundsHeight(renderProperties) * rotateParams_.pivotY);
-#endif
-}
+    auto angle = angle_ * fraction;
+    auto rotateMatrix = SkMatrix44::I();
+    rotateMatrix.setRotateDegreesAbout(dx_, dy_, dz_, angle);
 
-void RSTransitionRotateOut::OnTransition(
-    RSPaintFilterCanvas& canvas, const RSProperties& renderProperties, float fraction)
-{
-#ifdef ROSEN_OHOS
-    float startValue = 0.0f;
-    float endValue = rotateParams_.angle;
-    auto value = valueEstimator_->Estimate(fraction, startValue, endValue);
-    SkMatrix44 matrix;
-    canvas.translate(GetBoundsWidth(renderProperties) * rotateParams_.pivotX,
-                     GetBoundsHeight(renderProperties) * rotateParams_.pivotY);
-    matrix.setRotateDegreesAbout(rotateParams_.dx, rotateParams_.dy, rotateParams_.dz, value);
-    canvas.concat(SkMatrix(matrix));
-    canvas.translate(-GetBoundsWidth(renderProperties) * rotateParams_.pivotX,
-                     -GetBoundsHeight(renderProperties) * rotateParams_.pivotY);
+    Vector2f pivot { renderProperties.GetBoundsWidth() * pivotX_, renderProperties.GetBoundsHeight() * pivotY_ };
+
+    canvas.translate(pivot.x_, pivot.y_);
+    canvas.concat(rotateMatrix);
+    canvas.translate(-pivot.x_, -pivot.y_);
 #endif
 }
 } // namespace Rosen

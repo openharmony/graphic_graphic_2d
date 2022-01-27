@@ -623,7 +623,7 @@ HWTEST_F(RSAnimationTest, ImplicitTransitionAnimationParamTest001, TestSize.Leve
     RSAnimationTimingCurve curve = RSAnimationTimingCurve::EASE_IN_OUT;
     std::unique_ptr<RSImplicitTransitionParam> animationParam =
         std::make_unique<RSImplicitTransitionParam>(protocol, curve,
-                                                    RSTransitionEffect(RSTransitionEffectType::FADE_IN));
+                                                    RSTransitionEffect(RSTransitionEffectType::FADE));
     std::shared_ptr<RSAnimation> animation = animationParam->CreateAnimation();
     /**
      * @tc.steps: step2. start implicit animation test
@@ -653,7 +653,7 @@ HWTEST_F(RSAnimationTest, ImplicitAnimatorTest001, TestSize.Level1)
     float fraction = 0.2f;
     RSImplicitAnimator::Instance().BeginImplicitKeyFrameAnimation(fraction, curve);
     RSImplicitAnimator::Instance().BeginImplicitKeyFrameAnimation(fraction);
-    RSImplicitAnimator::Instance().BeginImplicitTransition(RSTransitionEffect(RSTransitionEffectType::FADE_OUT));
+    // RSImplicitAnimator::Instance().BeginImplicitTransition(RSTransitionEffect(RSTransitionEffectType::FADE));
     /**
      * @tc.steps: step2. start implicit animator test
      */
@@ -754,8 +754,8 @@ HWTEST_F(RSAnimationTest, TransitionTest001, TestSize.Level1)
      * @tc.steps: step1. init transition animation
      */
     std::unique_ptr<RSTransition> animation =
-        std::make_unique<RSTransition>(RSTransitionEffect(RSTransitionEffectType::FADE_IN));
-    animation->SetTransitionEffect(RSTransitionEffect(RSTransitionEffectType::FADE_OUT));
+        std::make_unique<RSTransition>(RSTransitionEffect(RSTransitionEffectType::FADE));
+    animation->SetTransitionEffect(RSTransitionEffect(RSTransitionEffectType::FADE));
     animation->SetTimingCurve(RSAnimationTimingCurve::EASE);
     /**
      * @tc.steps: step2. start animation test

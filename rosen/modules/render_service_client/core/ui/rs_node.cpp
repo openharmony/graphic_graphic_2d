@@ -639,39 +639,28 @@ void RSNode::SetClipToFrame(bool clipToFrame)
 void RSNode::SetVisible(bool visible)
 {
     SET_NONANIMATABLE_PROPERTY(Visible, visible);
-    auto type = visible ? RSTransitionEffectType::FADE_IN : RSTransitionEffectType::FADE_OUT;
-    NotifyTransition({ RSTransitionEffect(type) }, GetId());
+    auto type = visible ? RSTransitionType::APPEARING : RSTransitionType::DISAPPEARING;
+    NotifyTransition({ RSTransitionEffect::OPACITY }, type);
 }
 
-void RSNode::NotifyTransition(const std::vector<RSTransitionEffect> effects, NodeId nodeId)
+void RSNode::NotifyTransition(const RSTransitionEffect& effect, RSTransitionType type)
 {
-    if (!RSImplicitAnimator::Instance().NeedImplicitAnimaton() || effects.empty()) {
+    if (!RSImplicitAnimator::Instance().NeedImplicitAnimaton()) {
         return;
     }
-    auto node = RSNodeMap::Instance().GetNode<RSNode>(nodeId);
-    if (node == nullptr) {
-        ROSEN_LOGE("RSNode::NotifyTransition, node is nullptr");
-        return;
-    }
-    for (auto effect : effects) {
-        if (effect.GetType() == RSTransitionEffectType::UNDEFINED) {
-            ROSEN_LOGW("RSNode::NotifyTransition, effect.GetType is UNDEFINED");
-            continue;
-        }
-        RSImplicitAnimator::Instance().BeginImplicitTransition(effect);
-        RSImplicitAnimator::Instance().CreateImplicitTransition(*node);
-        RSImplicitAnimator::Instance().EndImplicitTransition();
-    }
+    RSImplicitAnimator::Instance().BeginImplicitTransition(effect);
+    RSImplicitAnimator::Instance().CreateImplicitTransition(*this, type);
+    RSImplicitAnimator::Instance().EndImplicitTransition();
 }
 
 void RSNode::OnAddChildren()
 {
-    NotifyTransition({ RSTransitionEffect(RSTransitionEffectType::FADE_IN) }, GetId());
+    NotifyTransition({ RSTransitionEffect::OPACITY }, RSTransitionType::APPEARING);
 }
 
 void RSNode::OnRemoveChildren()
 {
-    NotifyTransition({ RSTransitionEffect(RSTransitionEffectType::FADE_OUT) }, GetId());
+    NotifyTransition({ RSTransitionEffect::OPACITY }, RSTransitionType::DISAPPEARING);
 }
 
 void RSNode::AnimationFinish(long long animationId)

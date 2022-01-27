@@ -34,7 +34,7 @@ RSSurfaceNode::SharedPtr RSSurfaceNode::Create(const RSSurfaceNodeConfig& surfac
 {
     SharedPtr node(new RSSurfaceNode(surfaceNodeConfig, isWindow));
 
-    RSNodeMap::Instance().RegisterNode(node);
+    RSNodeMap::MutableInstance().RegisterNode(node);
 
     // create node in RS
     RSSurfaceRenderNodeConfig config = { .id = node->GetId(), .name = node->name_ };

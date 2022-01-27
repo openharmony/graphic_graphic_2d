@@ -108,7 +108,7 @@ protected:
                 }
 
                 float intervalFraction = (fraction - preKeyframeFraction) / (keyframeFraction - preKeyframeFraction);
-                auto interpolationValue = valueEstimator_->Estimate(
+                auto interpolationValue = RSValueEstimator::Estimate(
                     keyframeInterpolator->Interpolate(intervalFraction), preKeyframeValue, keyframeValue);
                 RSRenderPropertyAnimation<T>::SetAnimationValue(interpolationValue);
                 break;
@@ -149,7 +149,6 @@ private:
     }
 #endif
     std::vector<std::tuple<float, T, std::shared_ptr<RSInterpolator>>> keyframes_;
-    std::shared_ptr<RSValueEstimator> valueEstimator_ { std::make_shared<RSValueEstimator>() };
 };
 } // namespace Rosen
 } // namespace OHOS

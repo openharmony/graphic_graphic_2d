@@ -15,8 +15,8 @@
 
 #include "animation/rs_implicit_animation_param.h"
 
-#include "platform/common/rs_log.h"
 #include "animation/rs_transition.h"
+#include "platform/common/rs_log.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -81,16 +81,14 @@ std::shared_ptr<RSAnimation> RSImplicitPathAnimationParam::CreateAnimation(
 
 RSImplicitTransitionParam::RSImplicitTransitionParam(const RSAnimationTimingProtocol& timingProtocol,
     const RSAnimationTimingCurve& timingCurve, const RSTransitionEffect& effect)
-    : RSImplicitAnimationParam(timingProtocol),
-      timingCurve_(timingCurve),
-      effect_(effect)
+    : RSImplicitAnimationParam(timingProtocol), timingCurve_(timingCurve), effect_(effect)
 {
     animationType_ = ImplicitAnimationParamType::TRANSITION;
 }
 
-std::shared_ptr<RSAnimation> RSImplicitTransitionParam::CreateAnimation()
+std::shared_ptr<RSAnimation> RSImplicitTransitionParam::CreateAnimation(RSTransitionType type)
 {
-    auto transition = std::make_shared<RSTransition>(effect_);
+    auto transition = std::make_shared<RSTransition>(effect_, type);
     transition->SetTimingCurve(timingCurve_);
     ApplyTimingProtocol(transition);
     return transition;

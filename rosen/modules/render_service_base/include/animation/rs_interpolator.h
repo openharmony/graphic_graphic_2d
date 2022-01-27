@@ -47,8 +47,8 @@ public:
     virtual ~RSInterpolator() = default;
 
 #ifdef ROSEN_OHOS
-    static RSInterpolator* Unmarshalling(Parcel& parcel);
     virtual bool Marshalling(Parcel& parcel) const override = 0;
+    static RSInterpolator* Unmarshalling(Parcel& parcel);
 #endif
 
     virtual float Interpolate(float input) const = 0;

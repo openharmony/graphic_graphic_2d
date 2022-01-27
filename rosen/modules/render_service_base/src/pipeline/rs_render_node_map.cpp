@@ -43,7 +43,7 @@ void RSRenderNodeMap::UnregisterRenderNode(NodeId id)
 }
 
 template<>
-std::shared_ptr<RSBaseRenderNode> RSRenderNodeMap::GetRenderNode(NodeId id)
+const std::shared_ptr<RSBaseRenderNode> RSRenderNodeMap::GetRenderNode(NodeId id) const
 {
     auto itr = renderNodeMap_.find(id);
     if (itr == renderNodeMap_.end()) {
@@ -52,7 +52,7 @@ std::shared_ptr<RSBaseRenderNode> RSRenderNodeMap::GetRenderNode(NodeId id)
     return itr->second;
 }
 
-std::shared_ptr<RSRenderNode> RSRenderNodeMap::GetAnimationFallbackNode()
+const std::shared_ptr<RSRenderNode> RSRenderNodeMap::GetAnimationFallbackNode() const
 {
     return std::static_pointer_cast<RSRenderNode>(renderNodeMap_.at(0));
 }

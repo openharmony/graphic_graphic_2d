@@ -24,7 +24,7 @@ namespace Rosen {
 void RootNodeCommandHelper::Create(RSContext& context, NodeId id)
 {
     auto node = std::make_shared<RSRootRenderNode>(id, context.weak_from_this());
-    context.GetNodeMap().RegisterRenderNode(node);
+    context.GetMutableNodeMap().RegisterRenderNode(node);
 }
 
 void RootNodeCommandHelper::AttachRSSurfaceNode(

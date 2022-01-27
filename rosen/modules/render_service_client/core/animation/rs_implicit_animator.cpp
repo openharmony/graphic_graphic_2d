@@ -238,7 +238,7 @@ void RSImplicitAnimator::ProcessPostCreateAnimation(const RSNode& target, const 
     }
 }
 
-std::shared_ptr<RSAnimation> RSImplicitAnimator::CreateImplicitTransition(RSNode& target)
+std::shared_ptr<RSAnimation> RSImplicitAnimator::CreateImplicitTransition(RSNode& target, RSTransitionType type)
 {
     if (globalImplicitParams_.empty() || implicitAnimations_.empty() || keyframeAnimations_.empty()) {
         ROSEN_LOGE("Failed to create implicit transition, need to open implicit transition firstly!");
@@ -249,7 +249,7 @@ std::shared_ptr<RSAnimation> RSImplicitAnimator::CreateImplicitTransition(RSNode
     switch (params->GetType()) {
         case ImplicitAnimationParamType::TRANSITION: {
             auto transitionImplicitParam = std::static_pointer_cast<RSImplicitTransitionParam>(params);
-            transition = transitionImplicitParam->CreateAnimation();
+            transition = transitionImplicitParam->CreateAnimation(type);
             break;
         }
         default:
@@ -272,5 +272,80 @@ void RSImplicitAnimator::CreateEmptyAnimation()
     CreateImplicitAnimation(*target, RSAnimatableProperty::INVALID, 0.f, 0.f);
     return;
 }
+template<typename T>
+std::shared_ptr<RSAnimation> RSImplicitAnimator::CreateImplicitAnimation(
+    RSNode& target, const RSAnimatableProperty& property, const T& startValue, const T& endValue)
+{
+    if (globalImplicitParams_.empty() || implicitAnimations_.empty() || keyframeAnimations_.empty()) {
+        ROSEN_LOGE("Failed to create implicit animation, need to open implicit animation firstly!");
+        return {};
+    }
+
+    ProcessPreCreateAnimation(target, property);
+
+    std::shared_ptr<RSAnimation> animation;
+    auto params = implicitAnimationParams_.top();
+    switch (params->GetType()) {
+        case ImplicitAnimationParamType::CURVE: {
+            auto curveImplicitParam = static_cast<RSImplicitCurveAnimationParam*>(params.get());
+            animation = curveImplicitParam->CreateAnimation(property, startValue, endValue);
+            break;
+        }
+        case ImplicitAnimationParamType::KEYFRAME: {
+            auto keyframeImplicitParam = static_cast<RSImplicitKeyframeAnimationParam*>(params.get());
+            auto& keyframeAnimations = keyframeAnimations_.top();
+            auto keyframeIter = keyframeAnimations.find({ target.GetId(), property });
+            SetPropertyValue(target, property, endValue);
+            if (keyframeIter == keyframeAnimations.end()) {
+                animation = keyframeImplicitParam->CreateAnimation(property, startValue, endValue);
+                keyframeAnimations[{ target.GetId(), property }] = animation;
+            } else {
+                keyframeImplicitParam->AddKeyframe(keyframeIter->second, startValue, endValue);
+                return keyframeIter->second;
+            }
+            break;
+        }
+        case ImplicitAnimationParamType::PATH: {
+            auto pathImplicitParam = static_cast<RSImplicitPathAnimationParam*>(params.get());
+            animation = pathImplicitParam->CreateAnimation(property, startValue, endValue);
+            break;
+        }
+        default:
+            ROSEN_LOGE("Failed to create animation, unknow type!");
+            break;
+    }
+
+    ProcessPostCreateAnimation(target, property);
+
+    if (animation == nullptr) {
+        ROSEN_LOGE("Failed to create animation!");
+        return nullptr;
+    }
+
+    if (params->GetType() != ImplicitAnimationParamType::KEYFRAME) {
+        target.AddAnimation(animation);
+    }
+
+    implicitAnimations_.top().push_back({ animation, target.GetId() });
+    return animation;
+}
+
+template std::shared_ptr<RSAnimation> RSImplicitAnimator::CreateImplicitAnimation(
+    RSNode& target, const RSAnimatableProperty& property, const int& startValue, const int& endValue);
+template std::shared_ptr<RSAnimation> RSImplicitAnimator::CreateImplicitAnimation(
+    RSNode& target, const RSAnimatableProperty& property, const float& startValue, const float& endValue);
+template std::shared_ptr<RSAnimation> RSImplicitAnimator::CreateImplicitAnimation(
+    RSNode& target, const RSAnimatableProperty& property, const Color& startValue, const Color& endValue);
+template std::shared_ptr<RSAnimation> RSImplicitAnimator::CreateImplicitAnimation(
+    RSNode& target, const RSAnimatableProperty& property, const Matrix3f& startValue, const Matrix3f& endValue);
+template std::shared_ptr<RSAnimation> RSImplicitAnimator::CreateImplicitAnimation(
+    RSNode& target, const RSAnimatableProperty& property, const Vector2f& startValue, const Vector2f& endValue);
+template std::shared_ptr<RSAnimation> RSImplicitAnimator::CreateImplicitAnimation(
+    RSNode& target, const RSAnimatableProperty& property, const Vector4f& startValue, const Vector4f& endValue);
+template std::shared_ptr<RSAnimation> RSImplicitAnimator::CreateImplicitAnimation(
+    RSNode& target, const RSAnimatableProperty& property, const Quaternion& startValue, const Quaternion& endValue);
+template std::shared_ptr<RSAnimation> RSImplicitAnimator::CreateImplicitAnimation(RSNode& target,
+    const RSAnimatableProperty& property, const std::shared_ptr<RSFilter>& startValue,
+    const std::shared_ptr<RSFilter>& endValue);
 } // namespace Rosen
 } // namespace OHOS

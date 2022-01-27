@@ -32,7 +32,7 @@ namespace Rosen {
 RSCanvasNode::SharedPtr RSCanvasNode::Create(bool isRenderServiceNode)
 {
     SharedPtr node(new RSCanvasNode(isRenderServiceNode));
-    RSNodeMap::Instance().RegisterNode(node);
+    RSNodeMap::MutableInstance().RegisterNode(node);
 
     std::unique_ptr<RSCommand> command = std::make_unique<RSCanvasNodeCreate>(node->GetId());
     auto transactionProxy = RSTransactionProxy::GetInstance();

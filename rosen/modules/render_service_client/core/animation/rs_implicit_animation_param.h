@@ -137,7 +137,7 @@ public:
         const RSAnimationTimingCurve& timingCurve, const RSTransitionEffect& effect);
     virtual ~RSImplicitTransitionParam() = default;
 
-    std::shared_ptr<RSAnimation> CreateAnimation();
+    std::shared_ptr<RSAnimation> CreateAnimation(RSTransitionType type);
 
 private:
     RSAnimationTimingCurve timingCurve_;

@@ -36,8 +36,9 @@ template<typename T>
 class RSRenderCurveAnimation;
 template<typename T>
 class RSRenderKeyframeAnimation;
-class RSRenderTransition;
 class RSRenderPathAnimation;
+class RSRenderTransition;
+class RSRenderTransitionEffect;
 
 class RSMarshallingHelper {
 public:
@@ -81,6 +82,7 @@ public:
     DECLARE_FUNCTION_OVERLOAD(RSPath)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSRenderPathAnimation>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSRenderTransition>)
+    DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSRenderTransitionEffect>)
 #undef DECLARE_FUNCTION_OVERLOAD
 
 #define DECLARE_TEMPLATE_OVERLOAD(TEMPLATE)                                           \
@@ -92,6 +94,11 @@ public:
     DECLARE_TEMPLATE_OVERLOAD(RSRenderCurveAnimation)
     DECLARE_TEMPLATE_OVERLOAD(RSRenderKeyframeAnimation)
 #undef DECLARE_TEMPLATE_OVERLOAD
+
+    template<typename T>
+    static bool Marshalling(Parcel& parcel, const std::vector<T>& val);
+    template<typename T>
+    static bool Unmarshalling(Parcel& parcel, std::vector<T>& val);
 };
 
 } // namespace Rosen

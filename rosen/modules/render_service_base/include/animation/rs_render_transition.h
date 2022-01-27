@@ -22,10 +22,11 @@
 
 namespace OHOS {
 namespace Rosen {
+class RSTransitionEffect;
 
 class RSRenderTransition : public RSRenderAnimation {
 public:
-    RSRenderTransition(AnimationId id, const RSTransitionEffect& effect);
+    RSRenderTransition(AnimationId id, const RSTransitionEffect& effect, RSTransitionType type);
     void SetInterpolator(const std::shared_ptr<RSInterpolator>& interpolator)
     {
         interpolator_ = interpolator;
@@ -34,7 +35,6 @@ public:
     bool Marshalling(Parcel& parcel) const override;
     static RSRenderTransition* Unmarshalling(Parcel& parcel);
 #endif
-    RSTransitionEffect effectType_;
 
 protected:
 #ifdef ROSEN_OHOS
@@ -45,8 +45,10 @@ protected:
     void OnDetach() override;
 
     float currentFraction_ { 0.0f };
-    std::shared_ptr<RSRenderTransitionEffect> effect_ { nullptr };
+
+    std::vector<std::shared_ptr<RSRenderTransitionEffect>> effects_;
     std::shared_ptr<RSInterpolator> interpolator_ { RSInterpolator::DEFAULT };
+
 private:
     RSRenderTransition() = default;
 };

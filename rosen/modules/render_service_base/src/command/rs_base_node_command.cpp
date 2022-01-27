@@ -22,7 +22,7 @@ namespace Rosen {
 
 void BaseNodeCommandHelper::Destroy(RSContext& context, NodeId nodeId)
 {
-    auto& nodeMap = context.GetNodeMap();
+    auto& nodeMap = context.GetMutableNodeMap();
     auto node = nodeMap.GetRenderNode<RSBaseRenderNode>(nodeId);
     if (node == nullptr) {
         return;

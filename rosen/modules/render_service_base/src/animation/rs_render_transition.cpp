@@ -15,17 +15,23 @@
 
 #include "animation/rs_render_transition.h"
 
+#include "animation/rs_transition_effect.h"
 #include "pipeline/rs_canvas_render_node.h"
 #include "platform/common/rs_log.h"
 #include "transaction/rs_marshalling_helper.h"
 
 namespace OHOS {
 namespace Rosen {
-RSRenderTransition::RSRenderTransition(AnimationId id, const RSTransitionEffect& effect) : RSRenderAnimation(id)
+RSRenderTransition::RSRenderTransition(AnimationId id, const RSTransitionEffect& effect, RSTransitionType type)
+    : RSRenderAnimation(id)
 {
-    effect_ = RSRenderTransitionEffect::CreateTransitionEffect(effect);
-    effectType_ = effect;
+    if (type == RSTransitionType::APPEARING) {
+        effects_ = effect.GetTransitionInEffect();
+    } else if (type == RSTransitionType::DISAPPEARING) {
+        effects_ = effect.GetTransitionOutEffect();
+    }
 }
+
 #ifdef ROSEN_OHOS
 bool RSRenderTransition::Marshalling(Parcel& parcel) const
 {
@@ -33,7 +39,7 @@ bool RSRenderTransition::Marshalling(Parcel& parcel) const
         ROSEN_LOGE("RSRenderTransition::Marshalling, step1 failed");
         return false;
     }
-    if (!(RSMarshallingHelper::Marshalling(parcel, effectType_) && interpolator_->Marshalling(parcel))) {
+    if (!RSMarshallingHelper::Marshalling(parcel, effects_) || !interpolator_->Marshalling(parcel)) {
         ROSEN_LOGE("RSRenderTransition::Marshalling, step2 failed");
         return false;
     }
@@ -57,12 +63,10 @@ bool RSRenderTransition::ParseParam(Parcel& parcel)
         ROSEN_LOGE("RSRenderTransition::ParseParam, RenderAnimation failed");
         return false;
     }
-    RSTransitionEffect effect;
-    if (!RSMarshallingHelper::Unmarshalling(parcel, effect)) {
+    if (!RSMarshallingHelper::Unmarshalling(parcel, effects_)) {
         ROSEN_LOGE("RSRenderTransition::ParseParam, effect is failed");
         return false;
     }
-    effect_ = RSRenderTransitionEffect::CreateTransitionEffect(effect);
     std::shared_ptr<RSInterpolator> interpolator(RSInterpolator::Unmarshalling(parcel));
     if (interpolator == nullptr) {
         ROSEN_LOGE("RSRenderTransition::ParseParam, interpolator is nullptr");
@@ -86,18 +90,20 @@ void RSRenderTransition::OnAnimate(float fraction)
 void RSRenderTransition::OnAttach()
 {
     auto target = GetTarget();
-    if (target == nullptr || effect_ == nullptr) {
+    if (target == nullptr) {
         ROSEN_LOGE("RSRenderTransition::OnAttach, target is nullptr");
         return;
     }
-    target->GetAnimationManager().RegisterTransition(GetAnimationId(),
-        [=](RSPaintFilterCanvas& canvas, const RSProperties& renderProperties) {
-        if (effect_ == nullptr) {
-            ROSEN_LOGE("RSRenderTransition::OnAttach, effect_ is nullptr");
-            return;
-        }
-        effect_->OnTransition(canvas, renderProperties, currentFraction_);
-    });
+    if (effects_.empty()) {
+        ROSEN_LOGE("RSRenderTransition::OnAttach, effects is empty");
+        return;
+    }
+    target->GetAnimationManager().RegisterTransition(
+        GetAnimationId(), [=](RSPaintFilterCanvas& canvas, const RSProperties& renderProperties) {
+            for (auto& effect : effects_) {
+                effect->OnTransition(canvas, renderProperties, currentFraction_);
+            }
+        });
 }
 
 void RSRenderTransition::OnDetach()

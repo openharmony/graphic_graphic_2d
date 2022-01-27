@@ -50,6 +50,7 @@ RSInterpolator* RSInterpolator::Unmarshalling(Parcel& parcel)
     }
     return ret;
 }
+
 RSCustomInterpolator* RSCustomInterpolator::Unmarshalling(Parcel& parcel)
 {
     std::vector<float> times, values;
@@ -59,7 +60,6 @@ RSCustomInterpolator* RSCustomInterpolator::Unmarshalling(Parcel& parcel)
     }
     return new RSCustomInterpolator(std::move(times), std::move(values));
 }
-
 #endif
 
 RSCustomInterpolator::RSCustomInterpolator(const std::vector<float>&& times, const std::vector<float>&& values)

@@ -16,101 +16,114 @@
 #ifndef RENDER_SERVICE_CLIENT_CORE_TRANSITION_RS_RENDER_TRANSITION_EFFECT_H
 #define RENDER_SERVICE_CLIENT_CORE_TRANSITION_RS_RENDER_TRANSITION_EFFECT_H
 
+#ifdef ROSEN_OHOS
+#include <parcel.h>
+#include <refbase.h>
+#endif
 #include <memory>
-#include "animation/rs_value_estimator.h"
-#include "property/rs_properties.h"
+
 #include "animation/rs_animation_common.h"
+#include "common/rs_vector4.h"
 
 namespace OHOS {
 namespace Rosen {
 class RSCanvasRenderNode;
 class RSPaintFilterCanvas;
+class RSProperties;
 
+#ifdef ROSEN_OHOS
+class RSRenderTransitionEffect : public Parcelable {
+#else
 class RSRenderTransitionEffect {
+#endif
 public:
-    static std::shared_ptr<RSRenderTransitionEffect> CreateTransitionEffect(
-        const RSTransitionEffect& effect);
     RSRenderTransitionEffect() = default;
     virtual ~RSRenderTransitionEffect() = default;
     virtual void OnTransition(RSPaintFilterCanvas& canvas, const RSProperties& renderProperties, float fraction) = 0;
+
+#ifdef ROSEN_OHOS
+    virtual bool Marshalling(Parcel& parcel) const override = 0;
+    static RSRenderTransitionEffect* Unmarshalling(Parcel& parcel);
+#endif
+
 protected:
-    const std::unique_ptr<RSValueEstimator> valueEstimator_ { std::make_unique<RSValueEstimator>() };
-    float GetBoundsWidth(const RSProperties& rsProperties) const { return rsProperties.GetBoundsRect().width_; };
-    float GetBoundsHeight(const RSProperties& rsProperties) const { return rsProperties.GetBoundsRect().height_; };
 };
 
-class RSTransitionFadeIn : public RSRenderTransitionEffect {
+class RSTransitionFade : public RSRenderTransitionEffect {
 public:
-    RSTransitionFadeIn() = default;
-    virtual ~RSTransitionFadeIn() = default;
+    explicit RSTransitionFade(float alpha) : alpha_(alpha = 0.0f) {}
+    virtual ~RSTransitionFade() = default;
     void OnTransition(RSPaintFilterCanvas& canvas, const RSProperties& renderProperties, float fraction) override;
-};
 
-class RSTransitionFadeOut : public RSRenderTransitionEffect {
-public:
-    RSTransitionFadeOut() = default;
-    virtual ~RSTransitionFadeOut() = default;
-    void OnTransition(RSPaintFilterCanvas& canvas, const RSProperties& renderProperties, float fraction) override;
-};
-
-class RSTransitionScaleIn : public RSRenderTransitionEffect {
-public:
-    RSTransitionScaleIn() = default;
-    explicit RSTransitionScaleIn(ScaleParams scale) : scaleParams_(scale) {};
-    virtual ~RSTransitionScaleIn() = default;
-    void OnTransition(RSPaintFilterCanvas& canvas, const RSProperties& renderProperties, float fraction) override;
+#ifdef ROSEN_OHOS
+    bool Marshalling(Parcel& parcel) const override;
+    static RSRenderTransitionEffect* Unmarshalling(Parcel& parcel);
+#endif
 private:
-    ScaleParams scaleParams_;
+    float alpha_;
 };
 
-class RSTransitionScaleOut : public RSRenderTransitionEffect {
+class RSTransitionScale : public RSRenderTransitionEffect {
 public:
-    RSTransitionScaleOut() = default;
-    explicit RSTransitionScaleOut(ScaleParams scale) : scaleParams_(scale) {};
-    virtual ~RSTransitionScaleOut() = default;
+    RSTransitionScale() = default;
+    explicit RSTransitionScale(
+        float scaleX = 0.0f, float scaleY = 0.0f, float scaleZ = 0.0f, float pivotX = 0.5, float pivotY = 0.5)
+        : scaleX_(scaleX), scaleY_(scaleY), scaleZ_(scaleZ), pivotX_(pivotX), pivotY_(pivotY)
+    {}
+    virtual ~RSTransitionScale() = default;
     void OnTransition(RSPaintFilterCanvas& canvas, const RSProperties& renderProperties, float fraction) override;
+
+#ifdef ROSEN_OHOS
+    bool Marshalling(Parcel& parcel) const override;
+    static RSRenderTransitionEffect* Unmarshalling(Parcel& parcel);
+#endif
 private:
-    ScaleParams scaleParams_;
+    float scaleX_;
+    float scaleY_;
+    float scaleZ_;
+    float pivotX_;
+    float pivotY_;
 };
 
-class RSTransitionTranslateIn : public RSRenderTransitionEffect {
+class RSTransitionTranslate : public RSRenderTransitionEffect {
 public:
-    RSTransitionTranslateIn() = default;
-    explicit RSTransitionTranslateIn(TranslateParams translate) : translateParams_(translate) {};
-    virtual ~RSTransitionTranslateIn() = default;
+    RSTransitionTranslate() = default;
+    explicit RSTransitionTranslate(float translateX, float translateY, float translateZ)
+        : translateX_(translateX), translateY_(translateY), translateZ_(translateZ)
+    {}
+    virtual ~RSTransitionTranslate() = default;
     void OnTransition(RSPaintFilterCanvas& canvas, const RSProperties& renderProperties, float fraction) override;
+
+#ifdef ROSEN_OHOS
+    bool Marshalling(Parcel& parcel) const override;
+    static RSRenderTransitionEffect* Unmarshalling(Parcel& parcel);
+#endif
 private:
-    TranslateParams translateParams_;
+    float translateX_;
+    float translateY_;
+    float translateZ_;
 };
 
-class RSTransitionTranslateOut : public RSRenderTransitionEffect {
+class RSTransitionRotate : public RSRenderTransitionEffect {
 public:
-    RSTransitionTranslateOut() = default;
-    explicit RSTransitionTranslateOut(TranslateParams translate) : translateParams_(translate) {};
-    virtual ~RSTransitionTranslateOut() = default;
+    RSTransitionRotate() = default;
+    explicit RSTransitionRotate(float dx, float dy, float dz, float angle, float pivotX = 0.5, float pivotY = 0.5)
+        : dx_(dx), dy_(dy), dz_(dz), angle_(angle), pivotX_(pivotX), pivotY_(pivotY)
+    {}
+    virtual ~RSTransitionRotate() = default;
     void OnTransition(RSPaintFilterCanvas& canvas, const RSProperties& renderProperties, float fraction) override;
-private:
-    TranslateParams translateParams_;
-};
 
-class RSTransitionRotateIn : public RSRenderTransitionEffect {
-public:
-    RSTransitionRotateIn() = default;
-    explicit RSTransitionRotateIn(RotateParams rotate) : rotateParams_(rotate) {};
-    virtual ~RSTransitionRotateIn() = default;
-    void OnTransition(RSPaintFilterCanvas& canvas, const RSProperties& renderProperties, float fraction) override;
+#ifdef ROSEN_OHOS
+    bool Marshalling(Parcel& parcel) const override;
+    static RSRenderTransitionEffect* Unmarshalling(Parcel& parcel);
+#endif
 private:
-    RotateParams rotateParams_;
-};
-
-class RSTransitionRotateOut : public RSRenderTransitionEffect {
-public:
-    RSTransitionRotateOut() = default;
-    explicit RSTransitionRotateOut(RotateParams rotate) : rotateParams_(rotate) {};
-    virtual ~RSTransitionRotateOut() = default;
-    void OnTransition(RSPaintFilterCanvas& canvas, const RSProperties& renderProperties, float fraction) override;
-private:
-    RotateParams rotateParams_;
+    float dx_;
+    float dy_;
+    float dz_;
+    float angle_;
+    float pivotX_;
+    float pivotY_;
 };
 } // namespace Rosen
 } // namespace OHOS

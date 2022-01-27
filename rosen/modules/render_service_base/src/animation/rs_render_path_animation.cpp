@@ -168,7 +168,7 @@ void RSRenderPathAnimation::OnRemoveOnCompletion()
         return;
     }
 
-    target->GetRenderProperties().SetRotation(originRotation_);
+    target->GetMutableRenderProperties().SetRotation(originRotation_);
     RSRenderPropertyAnimation::OnRemoveOnCompletion();
 }
 
@@ -182,10 +182,10 @@ void RSRenderPathAnimation::SetPathValue(const Vector2f& position, float tangent
 
     switch (GetRotationMode()) {
         case RotationMode::ROTATE_AUTO:
-            target->GetRenderProperties().SetRotation(tangent);
+            target->GetMutableRenderProperties().SetRotation(tangent);
             break;
         case RotationMode::ROTATE_AUTO_REVERSE:
-            target->GetRenderProperties().SetRotation(tangent + 180.0f);
+            target->GetMutableRenderProperties().SetRotation(tangent + 180.0f);
             break;
         case RotationMode::ROTATE_NONE:
             break;

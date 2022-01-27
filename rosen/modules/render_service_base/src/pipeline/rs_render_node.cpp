@@ -78,7 +78,7 @@ bool RSRenderNode::Update(RSDirtyRegionManager& dirtyManager, const RSProperties
     return dirty;
 }
 
-RSProperties& RSRenderNode::GetRenderProperties()
+RSProperties& RSRenderNode::GetMutableRenderProperties()
 {
     return renderProperties_;
 }
@@ -121,7 +121,7 @@ void RSRenderNode::ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas)
 void RSRenderNode::ProcessRenderAfterChildren(RSPaintFilterCanvas& canvas)
 {
 #ifdef ROSEN_OHOS
-    GetRenderProperties().ResetBounds();
+    GetMutableRenderProperties().ResetBounds();
     canvas.RestoreAlpha();
     canvas.restore();
 #endif

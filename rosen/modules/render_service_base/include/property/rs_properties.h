@@ -106,7 +106,6 @@ public:
     float GetScaleX() const;
     float GetScaleY() const;
 
-
     void SetAlpha(float alpha);
     float GetAlpha() const;
 

@@ -26,7 +26,12 @@ public:
     RSContext() = default;
     ~RSContext() = default;
 
-    RSRenderNodeMap& GetNodeMap()
+    RSRenderNodeMap& GetMutableNodeMap()
+    {
+        return nodeMap;
+    }
+
+    const RSRenderNodeMap& GetNodeMap() const
     {
         return nodeMap;
     }

@@ -143,7 +143,7 @@ public:
     static void SetProperty(RSContext& context, NodeId nodeId, const T& value)
     {
         if (auto node = context.GetNodeMap().GetRenderNode<RSRenderNode>(nodeId)) {
-            (node->GetRenderProperties().*setter)(value);
+            (node->GetMutableRenderProperties().*setter)(value);
         }
     }
 
@@ -152,7 +152,7 @@ public:
     {
         if (auto node = context.GetNodeMap().GetRenderNode<RSRenderNode>(nodeId)) {
             T newValue = (node->GetRenderProperties().*getter)() + value;
-            (node->GetRenderProperties().*setter)(newValue);
+            (node->GetMutableRenderProperties().*setter)(newValue);
         }
     }
 };

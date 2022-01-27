@@ -71,7 +71,7 @@ protected:
     RSRenderPropertyAnimation(AnimationId id, const RSAnimatableProperty& property, const T& originValue)
         : RSRenderAnimation(id), property_(property), originValue_(originValue), lastValue_(originValue)
     {
-        propertyAccess_ = std::static_pointer_cast<RSPropertyAccessors<T>>(
+        propertyAccessor_ = std::static_pointer_cast<RSPropertyAccessors<T>>(
             RSBasePropertyAccessors::GetAccessor(property));
     }
     RSRenderPropertyAnimation() =default;
@@ -89,7 +89,7 @@ protected:
             return false;
         }
         property_ = static_cast<RSAnimatableProperty>(property);
-        propertyAccess_ = std::static_pointer_cast<RSPropertyAccessors<T>>(
+        propertyAccessor_ = std::static_pointer_cast<RSPropertyAccessors<T>>(
             RSBasePropertyAccessors::GetAccessor(property_));
 
         return true;
@@ -98,22 +98,22 @@ protected:
     void SetPropertyValue(const T& value)
     {
         auto target = GetTarget();
-        if (target == nullptr || propertyAccess_->getter_ == nullptr) {
+        if (target == nullptr || propertyAccessor_->getter_ == nullptr) {
             ROSEN_LOGE("Failed to set property value, target is null!");
             return;
         }
-        (target->GetRenderProperties().*propertyAccess_->setter_)(value);
+        (target->GetMutableRenderProperties().*propertyAccessor_->setter_)(value);
     }
 
     auto GetPropertyValue() const
     {
         auto target = GetTarget();
-        if (target == nullptr || propertyAccess_->getter_ == nullptr) {
+        if (target == nullptr || propertyAccessor_->getter_ == nullptr) {
             ROSEN_LOGE("Failed to get property value, target is null!");
             return lastValue_;
         }
 
-        return (target->GetRenderProperties().*propertyAccess_->getter_)();
+        return (target->GetRenderProperties().*propertyAccessor_->getter_)();
     }
 
     auto GetOriginValue() const
@@ -156,7 +156,7 @@ private:
     T originValue_;
     T lastValue_;
     bool isAdditive_ { true };
-    std::shared_ptr<RSPropertyAccessors<T>> propertyAccess_;
+    std::shared_ptr<RSPropertyAccessors<T>> propertyAccessor_;
 };
 } // namespace Rosen
 } // namespace OHOS

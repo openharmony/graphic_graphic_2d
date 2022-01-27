@@ -25,7 +25,7 @@ void DisplayNodeCommandHelper::Create(RSContext& context, NodeId id, const RSDis
 {
     std::shared_ptr<RSBaseRenderNode> node =
         std::make_shared<RSDisplayRenderNode>(id, config, context.weak_from_this());
-    auto& nodeMap = context.GetNodeMap();
+    auto& nodeMap = context.GetMutableNodeMap();
     nodeMap.RegisterRenderNode(node);
     context.GetGlobalRootRenderNode()->AddChild(node);
     if (config.isMirrored) {

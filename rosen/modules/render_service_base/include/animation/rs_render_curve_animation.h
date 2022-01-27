@@ -43,15 +43,6 @@ public:
         return interpolator_;
     }
 
-    void SetValueEstimator(const std::shared_ptr<RSValueEstimator>& valueEstimator)
-    {
-        valueEstimator_ = valueEstimator;
-    }
-
-    const std::shared_ptr<RSValueEstimator>& GetValueEstimator() const
-    {
-        return valueEstimator_;
-    }
 #ifdef ROSEN_OHOS
     bool Marshalling(Parcel& parcel) const override
     {
@@ -82,7 +73,7 @@ protected:
     void OnSetFraction(float fraction) override
     {
         OnAnimateInner(fraction, linearInterpolator_);
-        RSRenderAnimation::SetFractionInner(valueEstimator_->EstimateFraction(
+        RSRenderAnimation::SetFractionInner(RSValueEstimator::EstimateFraction(
             interpolator_, RSRenderPropertyAnimation<T>::GetLastValue(), startValue_, endValue_));
     }
 
@@ -117,7 +108,7 @@ private:
             return;
         }
         auto interpolationValue =
-            valueEstimator_->Estimate(interpolator_->Interpolate(fraction), startValue_, endValue_);
+            RSValueEstimator::Estimate(interpolator_->Interpolate(fraction), startValue_, endValue_);
         RSRenderPropertyAnimation<T>::SetAnimationValue(interpolationValue);
     }
 
@@ -125,7 +116,6 @@ private:
     T endValue_ {};
     std::shared_ptr<RSInterpolator> interpolator_ { RSInterpolator::DEFAULT };
     std::shared_ptr<RSInterpolator> linearInterpolator_ { std::make_shared<LinearInterpolator>() };
-    std::shared_ptr<RSValueEstimator> valueEstimator_ { std::make_shared<RSValueEstimator>() };
 };
 } // namespace Rosen
 } // namespace OHOS

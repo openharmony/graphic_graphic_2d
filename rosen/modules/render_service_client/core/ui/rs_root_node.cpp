@@ -27,7 +27,7 @@ namespace Rosen {
 std::shared_ptr<RSNode> RSRootNode::Create(bool isRenderServiceNode)
 {
     std::shared_ptr<RSRootNode> node(new RSRootNode(isRenderServiceNode));
-    RSNodeMap::Instance().RegisterNode(node);
+    RSNodeMap::MutableInstance().RegisterNode(node);
 
     std::unique_ptr<RSCommand> command = std::make_unique<RSRootNodeCreate>(node->GetId());
     auto transactionProxy = RSTransactionProxy::GetInstance();

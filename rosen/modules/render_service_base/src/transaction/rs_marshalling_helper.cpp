@@ -171,6 +171,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, RSPath& val)
     }
 MARSHALLING_AND_UNMARSHALLING(RSRenderPathAnimation)
 MARSHALLING_AND_UNMARSHALLING(RSRenderTransition)
+MARSHALLING_AND_UNMARSHALLING(RSRenderTransitionEffect)
 #undef MARSHALLING_AND_UNMARSHALLING
 
 #define MARSHALLING_AND_UNMARSHALLING(TEMPLATE)                                                    \
@@ -210,6 +211,40 @@ BATCH_EXPLICIT_INSTANTIATION(RSRenderKeyframeAnimation)
 
 #undef EXPLICIT_INSTANTIATION
 #undef BATCH_EXPLICIT_INSTANTIATION
+
+template<typename T>
+bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::vector<T>& val)
+{
+    bool success = parcel.WriteUint32(val.size());
+    for (const auto& item : val) {
+        success = success && Marshalling(parcel, item);
+    }
+    return success;
+}
+
+template<typename T>
+bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::vector<T>& val)
+{
+    auto size = parcel.ReadUint32();
+    if (!Unmarshalling(parcel, size)) {
+        return false;
+    }
+    val.reserve(size);
+    for (uint32_t i = 0; i < size; ++i) {
+        T item;
+        if (!Unmarshalling(parcel, item)) {
+            return false;
+        }
+        val.push_back(std::move(item));
+    }
+    return true;
+}
+
+// explicit instantiation
+template bool RSMarshallingHelper::Marshalling(
+    Parcel& parcel, const std::vector<std::shared_ptr<RSRenderTransitionEffect>>& val);
+template bool RSMarshallingHelper::Unmarshalling(
+    Parcel& parcel, std::vector<std::shared_ptr<RSRenderTransitionEffect>>& val);
 
 } // namespace Rosen
 } // namespace OHOS

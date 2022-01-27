@@ -26,14 +26,15 @@ class RSPaintFilterCanvas;
 class RSPropertiesPainter {
 public:
     static void Clip(SkCanvas& canvas, RectF rect);
-    static void DrawBackground(RSProperties& properties, SkCanvas& canvas);
-    static void DrawBorder(RSProperties& properties, SkCanvas& canvas);
-    static void DrawFrame(RSProperties& properties, RSPaintFilterCanvas& canvas, std::shared_ptr<DrawCmdList>& drawCmdList);
-    static void DrawShadow(RSProperties& properties, SkCanvas& canvas);
-    static void SaveLayerForFilter(RSProperties& properties, SkCanvas& canvas,
-        std::shared_ptr<RSSkiaFilter>& filter);
+    static void DrawBackground(const RSProperties& properties, SkCanvas& canvas);
+    static void DrawBorder(const RSProperties& properties, SkCanvas& canvas);
+    static void DrawFrame(
+        const RSProperties& properties, RSPaintFilterCanvas& canvas, std::shared_ptr<DrawCmdList>& drawCmdList);
+    static void DrawShadow(const RSProperties& properties, SkCanvas& canvas);
+    static void SaveLayerForFilter(
+        const RSProperties& properties, SkCanvas& canvas, std::shared_ptr<RSSkiaFilter>& filter);
     static void RestoreForFilter(SkCanvas& canvas);
-    static void DrawForegroundColor(RSProperties& properties, SkCanvas& canvas);
+    static void DrawForegroundColor(const RSProperties& properties, SkCanvas& canvas);
 };
 } // namespace Rosen
 } // namespace OHOS

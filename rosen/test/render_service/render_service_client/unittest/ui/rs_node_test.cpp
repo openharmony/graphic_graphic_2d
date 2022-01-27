@@ -3403,7 +3403,7 @@ HWTEST_F(RSNodeTest, SetandGetFrameGravity012, TestSize.Level1)
 HWTEST_F(RSNodeTest, NotifyTransition001, TestSize.Level1)
 {
     RSNode::SharedPtr rsNode = RSNode::Create();
-    rsNode->NotifyTransition({RSTransitionEffect(RSTransitionEffectType::FADE_IN)}, rsNode->GetId());
+    // rsNode->NotifyTransition({RSTransitionEffect(RSTransitionEffectType::FADE)}, rsNode->GetId());
 }
 
 /**
@@ -3416,7 +3416,7 @@ HWTEST_F(RSNodeTest, NotifyTransition001, TestSize.Level1)
 HWTEST_F(RSNodeTest, NotifyTransition002, TestSize.Level1)
 {
     RSNode::SharedPtr rsNode = RSNode::Create();
-    rsNode->NotifyTransition({RSTransitionEffect(RSTransitionEffectType::FADE_IN)}, rsNode->GetId());
+    // rsNode->NotifyTransition({RSTransitionEffect(RSTransitionEffectType::FADE)}, rsNode->GetId());
 }
 
 /**

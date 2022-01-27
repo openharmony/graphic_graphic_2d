@@ -36,9 +36,9 @@ enum class AnimationState {
 };
 
 #ifdef ROSEN_OHOS
-class RSRenderAnimation  : public Parcelable {
+class RSRenderAnimation : public Parcelable {
 #else
-class RSRenderAnimation   {
+class RSRenderAnimation {
 #endif
 public:
     virtual ~RSRenderAnimation() = default;
@@ -50,7 +50,7 @@ public:
     void SetFraction(float fraction);
     void SetReversed(bool isReversed);
 #ifdef ROSEN_OHOS
-    virtual bool Marshalling(Parcel &parcel) const override;
+    virtual bool Marshalling(Parcel& parcel) const override;
 #endif
     bool Animate(int64_t time);
 

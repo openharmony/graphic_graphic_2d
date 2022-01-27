@@ -26,7 +26,7 @@ std::shared_ptr<RSNode> RSTextureNode::Create()
 {
 #ifdef USE_FLUTTER_TEXTURE
     std::shared_ptr<RSTextureNode> node(new RSTextureNode());
-    RSNodeMap::Instance().RegisterNode(node);
+    RSNodeMap::MutableInstance().RegisterNode(node);
 
     // RSMsgPtr msgPtr = std::make_unique<CreateTextureNodeMsg>(node->GetId());
     // auto transactionProxy = RSTransactionProxy::GetInstance();

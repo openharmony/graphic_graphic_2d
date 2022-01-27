@@ -28,21 +28,20 @@ namespace OHOS {
 namespace Rosen {
 std::unique_ptr<Media::PixelMap> RSSurfaceCaptureTask::Run()
 {
-    std::shared_ptr<RSBaseRenderNode> node =
-        RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode<RSBaseRenderNode>(nodeId_);
+    auto node = RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode(nodeId_);
     if (node == nullptr) {
         ROSEN_LOGE("RSSurfaceCaptureTask::Run: node is nullptr");
         return nullptr;
     }
     std::unique_ptr<Media::PixelMap> pixelmap;
     std::shared_ptr<RSSurfaceCaptureVisitor> visitor = std::make_shared<RSSurfaceCaptureVisitor>();
-    if (node->GetType() == RSRenderNodeType::SURFACE_NODE) {
+    if (auto surfaceNode = node->ReinterpretCastTo<RSSurfaceRenderNode>()) {
         ROSEN_LOGI("RSSurfaceCaptureTask::Run: Into SURFACE_NODE SurfaceRenderNodeId:[%llu]", node->GetId());
-        pixelmap = CreatePixelMapBySurfaceNode(std::static_pointer_cast<RSSurfaceRenderNode>(node));
+        pixelmap = CreatePixelMapBySurfaceNode(surfaceNode);
         visitor->IsDisplayNode(false);
-    } else if (node->GetType() == RSRenderNodeType::DISPLAY_NODE) {
+    } else if (auto displayNode = node->ReinterpretCastTo<RSDisplayRenderNode>()) {
         ROSEN_LOGI("RSSurfaceCaptureTask::Run: Into DISPLAY_NODE DisplayRenderNodeId:[%llu]", node->GetId());
-        pixelmap = CreatePixelMapByDisplayNode(std::static_pointer_cast<RSDisplayRenderNode>(node));
+        pixelmap = CreatePixelMapByDisplayNode(displayNode);
         visitor->IsDisplayNode(true);
     } else {
         ROSEN_LOGE("RSSurfaceCaptureTask::Run: Invalid RSRenderNodeType!");

@@ -51,7 +51,7 @@ RSBaseNode::RSBaseNode(bool isRenderServiceNode) : id_(GenerateId()), isRenderSe
 RSBaseNode::~RSBaseNode()
 {
     RemoveFromTree();
-    RSNodeMap::Instance().UnregisterNode(id_);
+    RSNodeMap::MutableInstance().UnregisterNode(id_);
     std::unique_ptr<RSCommand> command = std::make_unique<RSBaseNodeDestroy>(id_);
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy != nullptr) {

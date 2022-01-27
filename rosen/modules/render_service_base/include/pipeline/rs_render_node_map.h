@@ -30,16 +30,16 @@ public:
     bool RegisterRenderNode(const std::shared_ptr<RSBaseRenderNode>& nodePtr);
     void UnregisterRenderNode(NodeId id);
 
-    // Get RenderNode with type T, return nullptr if node not found or wrong type
-    template<typename T>
-    std::shared_ptr<T> GetRenderNode(NodeId id)
+    // Get RenderNode with type T, return nullptr if not found or type mismatch
+    template<typename T = RSBaseRenderNode>
+    const std::shared_ptr<T> GetRenderNode(NodeId id) const
     {
         return RSBaseRenderNode::ReinterpretCast<T>(GetRenderNode<RSBaseRenderNode>(id));
     }
     template<>
-    std::shared_ptr<RSBaseRenderNode> GetRenderNode(NodeId id);
+    const std::shared_ptr<RSBaseRenderNode> GetRenderNode(NodeId id) const;
 
-    std::shared_ptr<RSRenderNode> GetAnimationFallbackNode();
+    const std::shared_ptr<RSRenderNode> GetAnimationFallbackNode() const;
 
 private:
     explicit RSRenderNodeMap();

@@ -25,7 +25,7 @@ namespace Rosen {
 RSDisplayNode::SharedPtr RSDisplayNode::Create(const RSDisplayNodeConfig& displayNodeConfig)
 {
     SharedPtr node(new RSDisplayNode(displayNodeConfig));
-    RSNodeMap::Instance().RegisterNode(node);
+    RSNodeMap::MutableInstance().RegisterNode(node);
 
     std::unique_ptr<RSCommand> command = std::make_unique<RSDisplayNodeCreate>(node->GetId(), displayNodeConfig);
     auto transactionProxy = RSTransactionProxy::GetInstance();
