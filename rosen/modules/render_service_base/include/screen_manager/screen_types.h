@@ -31,10 +31,6 @@ constexpr ScreenId INVALID_SCREEN_ID = ~(static_cast<ScreenId>(0));
 
 constexpr int32_t INVALID_BACKLIGHT_VALUE = -1;
 
-constexpr int32_t SUCCESS = 0;
-
-constexpr int32_t SCREEN_NOT_FOUND = 1;
-
 inline constexpr ScreenId ToScreenId(ScreenPhysicalId physicalId)
 {
     return static_cast<ScreenId>(physicalId);
@@ -77,26 +73,31 @@ typedef enum : uint32_t {
 }ScreenInterfaceType;
 
 typedef enum : uint32_t {
-    COLOR_GAMUT_INVALID = -1,
+    COLOR_GAMUT_INVALID = UINT32_MAX,
     COLOR_GAMUT_NATIVE = 0,
-    COLOR_GAMUT_STANDARD_BT601 = 1,
-    COLOR_GAMUT_STANDARD_BT709 = 2,
-    COLOR_GAMUT_DCI_P3 = 3,
-    COLOR_GAMUT_SRGB = 4,
-    COLOR_GAMUT_ADOBE_RGB = 5,
-    COLOR_GAMUT_DISPLAY_P3 = 6,
-    COLOR_GAMUT_BT2020 = 7,
-    COLOR_GAMUT_BT2100_PQ = 8,
-    COLOR_GAMUT_BT2100_HLG = 9,
-    COLOR_GAMUT_DISPLAY_BT2020 = 10,
+    COLOR_GAMUT_STANDARD_BT601,
+    COLOR_GAMUT_STANDARD_BT709,
+    COLOR_GAMUT_DCI_P3,
+    COLOR_GAMUT_SRGB,
+    COLOR_GAMUT_ADOBE_RGB,
+    COLOR_GAMUT_DISPLAY_P3,
+    COLOR_GAMUT_BT2020,
+    COLOR_GAMUT_BT2100_PQ,
+    COLOR_GAMUT_BT2100_HLG,
+    COLOR_GAMUT_DISPLAY_BT2020,
 } ScreenColorGamut;
 
 typedef enum : uint32_t {
     GAMUT_MAP_CONSTANT = 0,
-    GAMUT_MAP_EXTENSION = 1,
-    GAMUT_MAP_HDR_CONSTANT = 2,
-    GAMUT_MAP_HDR_EXTENSION = 3,
+    GAMUT_MAP_EXTENSION,
+    GAMUT_MAP_HDR_CONSTANT,
+    GAMUT_MAP_HDR_EXTENSION,
 } ScreenGamutMap;
+
+typedef enum : uint32_t {
+    SUCCESS = 0,
+    SCREEN_NOT_FOUND,
+} StatusCode;
 
 // get the underlying type of an enum value.
 template<typename EnumType>

@@ -15,7 +15,6 @@
 
 #include "rs_screen_manager.h"
 #include "pipeline/rs_main_thread.h"
-#include "screen_manager/screen_types.h"
 
 #include <cinttypes>
 
@@ -562,8 +561,8 @@ int32_t RSScreenManager::GetScreenSupportedColorGamutsLocked(ScreenId id, std::v
     }
     // Stub, waiting for HDI interfaces
     mode.clear();
-    mode.push_back(ScreenColorGamut::COLOR_GAMUT_SRGB);
-    mode.push_back(ScreenColorGamut::COLOR_GAMUT_NATIVE);
+    mode.push_back(COLOR_GAMUT_SRGB);
+    mode.push_back(COLOR_GAMUT_NATIVE);
     return SUCCESS;
 }
 
@@ -574,7 +573,7 @@ int32_t RSScreenManager::GetScreenColorGamutLocked(ScreenId id, ScreenColorGamut
         return SCREEN_NOT_FOUND;
     }
     // Stub, waiting for HDI interfaces
-    mode = ScreenColorGamut::COLOR_GAMUT_SRGB;
+    mode = COLOR_GAMUT_SRGB;
     return SUCCESS;
 }
 
@@ -605,6 +604,7 @@ int32_t RSScreenManager::GetScreenGamutMapLocked(ScreenId id, ScreenGamutMap &mo
         return SCREEN_NOT_FOUND;
     }
     // Stub, waiting for HDI interfaces
+    mode = GAMUT_MAP_CONSTANT;
     return SUCCESS;
 }
 

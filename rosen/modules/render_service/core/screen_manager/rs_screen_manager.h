@@ -21,7 +21,6 @@
 #include <mutex>
 #include <queue>
 #include <unordered_map>
-#include <vector>
 
 #include <hdi_backend.h>
 #include <hilog/log.h>
