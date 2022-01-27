@@ -43,7 +43,7 @@ class BootAnimation {
 public:
     void Init(int32_t width, int32_t height);
     void Draw();
-    void ExitAnimation();
+    void CheckExitAnimation();
 private:
     void OnDraw(SkCanvas* canvas);
     void InitBootWindow();
@@ -64,6 +64,7 @@ private:
     int32_t pointX_ = 0;
     int32_t pointY_ = 0;
     int32_t maxPicNum_ = 0;
+    bool needCheckExit = false;
 };
 } // namespace OHOS
 

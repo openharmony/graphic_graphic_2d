@@ -17,13 +17,23 @@ import("//build/ohos.gni")
 config("bootanimation_config") {
   visibility = [ ":*" ]
 
-  include_dirs = [ "include" ]
+  include_dirs = [
+    "include",
+    "//foundation/graphic/standard/utils/log",
+  ]
 
   cflags = [
     "-Wall",
     "-Werror",
     "-g3",
   ]
+
+  if ("${product_name}" == "rk3566" || "${product_name}" == "rk3568" ||
+      "${product_name}" == "Hi3516DV300" || "${product_name}" == "ohos-arm64") {
+    defines = [ "ACE_DISABLE_GL" ]
+  } else {
+    defines = [ "ACE_ENABLE_GL" ]
+  }
 }
 
 ohos_executable("bootanimation") {
@@ -60,7 +70,10 @@ ohos_executable("bootanimation") {
     "//third_party/zlib:libz",
   ]
 
-  external_deps = [ "ipc:ipc_core" ]
+  external_deps = [
+    "bytrace_standard:bytrace_core",
+    "ipc:ipc_core",
+  ]
 
   if (is_standard_system) {
     external_deps += [ "startup_l2:syspara" ]

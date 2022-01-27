@@ -15,6 +15,7 @@
 
 #include "boot_animation.h"
 #include "util.h"
+#include "rs_trace.h"
 
 using namespace OHOS;
 static const std::string BOOT_PIC_ZIP = "/system/etc/init/bootpic.zip";
@@ -24,6 +25,7 @@ static const int32_t EXIT_TIME = 10 * 1000;
 
 void BootAnimation::OnDraw(SkCanvas* canvas)
 {
+    ROSEN_TRACE_BEGIN(BYTRACE_TAG_GRAPHIC_AGP, "BootAnimation::OnDraw before codec");
     std::string imgPath = BOOT_PIC_DIR + std::to_string(bootPicCurNo_) + ".jpg";
     // pic is named from 0
     if (bootPicCurNo_ != (maxPicNum_ - 1)) {
@@ -34,7 +36,8 @@ void BootAnimation::OnDraw(SkCanvas* canvas)
         LOG("OnDraw file is nullptr");
         return;
     }
-
+    ROSEN_TRACE_END(BYTRACE_TAG_GRAPHIC_AGP);
+    ROSEN_TRACE_BEGIN(BYTRACE_TAG_GRAPHIC_AGP, "BootAnimation::OnDraw in codec");
     auto skData = SkData::MakeFromFILE(file.get());
     if (!skData) {
         LOG("skdata memory data is null. update data failed");
@@ -42,6 +45,8 @@ void BootAnimation::OnDraw(SkCanvas* canvas)
     }
     auto codec = SkCodec::MakeFromData(skData);
     sk_sp<SkImage> image = SkImage::MakeFromEncoded(skData);
+    ROSEN_TRACE_END(BYTRACE_TAG_GRAPHIC_AGP);
+    ROSEN_TRACE_BEGIN(BYTRACE_TAG_GRAPHIC_AGP, "BootAnimation::OnDraw in drawimage");
     SkPaint backPaint;
     backPaint.setColor(SK_ColorBLACK);
     canvas->drawRect(SkRect::MakeXYWH(0.0, 0.0, windowWidth_, windowHeight_), backPaint);
@@ -49,25 +54,32 @@ void BootAnimation::OnDraw(SkCanvas* canvas)
     SkRect rect;
     rect.setXYWH(pointX_, pointY_, realWidth_, realHeight_);
     canvas->drawImageRect(image.get(), rect, &paint);
+    ROSEN_TRACE_END(BYTRACE_TAG_GRAPHIC_AGP);
 
+    ROSEN_TRACE_BEGIN(BYTRACE_TAG_GRAPHIC_AGP, "BootAnimation::OnDraw in FlushFrame");
     rsSurface_->FlushFrame(framePtr_);
+    ROSEN_TRACE_END(BYTRACE_TAG_GRAPHIC_AGP);
 }
 
 void BootAnimation::Draw()
 {
+    ROSEN_TRACE_BEGIN(BYTRACE_TAG_GRAPHIC_AGP, "BootAnimation::Draw");
     auto frame = rsSurface_->RequestFrame(windowWidth_, windowHeight_);
     if (frame == nullptr) {
         LOG("OnDraw frame is nullptr");
+        RequestNextVsync();
         return;
     }
     framePtr_ = std::move(frame);
     auto canvas = framePtr_->GetCanvas();
+    ROSEN_TRACE_END(BYTRACE_TAG_GRAPHIC_AGP);
     OnDraw(canvas);
     RequestNextVsync();
 }
 
 void BootAnimation::Init(int32_t width, int32_t height)
 {
+    ROSEN_TRACE_BEGIN(BYTRACE_TAG_GRAPHIC_AGP, "BootAnimation::Init");
     windowWidth_ = width;
     windowHeight_ = height;
     LOG("Init enter, width: %{public}d, height: %{public}d", width, height);
@@ -86,9 +98,10 @@ void BootAnimation::Init(int32_t width, int32_t height)
     UnzipFile(BOOT_PIC_ZIP, DST_FILE_PATH);
     CountPicNum(DST_FILE_PATH.c_str(), maxPicNum_);
     LOG("unzip pics finish, maxPicNum: %{public}d", maxPicNum_);
+    ROSEN_TRACE_END(BYTRACE_TAG_GRAPHIC_AGP);
 
     Draw();
-    PostTask(std::bind(&BootAnimation::ExitAnimation, this), EXIT_TIME);
+    PostTask(std::bind(&BootAnimation::CheckExitAnimation, this), EXIT_TIME);
 }
 
 void BootAnimation::InitBootWindow()
@@ -149,6 +162,9 @@ void BootAnimation::InitPicCoordinates()
 
 void BootAnimation::RequestNextVsync()
 {
+    if (needCheckExit) {
+        CheckExitAnimation();
+    }
     struct FrameCallback cb = {
         .frequency_ = freq_,
         .timestamp_ = 0,
@@ -162,21 +178,17 @@ void BootAnimation::RequestNextVsync()
     }
 }
 
-void BootAnimation::ExitAnimation()
+void BootAnimation::CheckExitAnimation()
 {
-    LOG("ExitAnimation enter");
-    while (true) {
-        std::string windowInit = system::GetParameter("persist.window.boot.inited", "0");
-        if (windowInit == "1") {
-            LOG("ExitAnimation read windowInit is 1");
-            break;
-        }
-        LOG("ExitAnimation continue check windowInit");
-        sleep(1);
+    LOG("CheckExitAnimation enter");
+    std::string windowInit = system::GetParameter("persist.window.boot.inited", "0");
+    if (windowInit == "1") {
+        LOG("CheckExitAnimation read windowInit is 1");
+        window_->Destroy();
+        int delRet = RemoveDir(DST_FILE_PATH.c_str());
+        LOG("clean resources and exit animation, delRet: %{public}d", delRet);
+        exit(0);
     }
-    window_->Destroy();
-    int delRet = RemoveDir(DST_FILE_PATH.c_str());
-    LOG("clean resources and exit animation, delRet: %{public}d", delRet);
-    exit(0);
+    needCheckExit = true;
 }
 
