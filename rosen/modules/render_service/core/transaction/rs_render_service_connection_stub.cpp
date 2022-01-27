@@ -254,6 +254,22 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             SetScreenBacklight(id, level);
             break;
         }
+        case SET_BUFFER_AVAILABLE_LISTENER: {
+            auto token = data.ReadInterfaceToken();
+            if (token != RSIRenderServiceConnection::GetDescriptor()) {
+                ret = ERR_INVALID_STATE;
+                break;
+            }
+            NodeId id = data.ReadUint64();
+            auto remoteObject = data.ReadRemoteObject();
+            if (remoteObject == nullptr) {
+                ret = ERR_NULL_OBJECT;
+                break;
+            }
+            sptr<RSIBufferAvailableCallback> cb = iface_cast<RSIBufferAvailableCallback>(remoteObject);
+            RegisterBufferAvailableListener(id, cb);
+            break;
+        }
         default: {
             ret = ERR_UNKNOWN_TRANSACTION;
             break;

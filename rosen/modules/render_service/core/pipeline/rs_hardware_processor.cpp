@@ -89,6 +89,10 @@ void RSHardwareProcessor::ProcessSurface(RSSurfaceRenderNode &node)
         ROSEN_LOGE("RsDebug RSHardwareProcessor::ProcessSurface consume buffer fail");
         return;
     }
+    if (node.IsBufferAvailable() == false) {
+        // Only ipc for one time.
+        node.NotifyBufferAvailable(true);
+    }
     auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(node.GetRenderProperties().GetBoundsGeometry());
     if (geoPtr == nullptr) {
         ROSEN_LOGE("RsDebug RSHardwareProcessor::ProcessSurface geoPtr == nullptr");
@@ -114,14 +118,16 @@ void RSHardwareProcessor::ProcessSurface(RSSurfaceRenderNode &node)
         .fence = node.GetFence(),
         .preBuffer = node.GetPreBuffer(),
         .preFence = node.GetPreFence(),
+        .blendType = node.GetBlendType(),
     };
     std::shared_ptr<HdiLayerInfo> layer = HdiLayerInfo::CreateHdiLayerInfo();
     ROSEN_LOGE("RsDebug RSHardwareProcessor::ProcessSurface surfaceNode id:%llu name:[%s] [%d %d %d %d]"\
-        "SrcRect [%d %d] bufferSize [%d %d] DamageSize [%d %d] buffaddr:%p, z:%f, globalZOrder:%d", node.GetId(),
-        node.GetName().c_str(), info.dstRect.x, info.dstRect.y, info.dstRect.w, info.dstRect.h,
+        "SrcRect [%d %d] bufferSize [%d %d] DamageSize [%d %d] buffaddr:%p, z:%f, globalZOrder:%d, blendType = %d",
+        node.GetId(), node.GetName().c_str(),
+        info.dstRect.x, info.dstRect.y, info.dstRect.w, info.dstRect.h,
         info.srcRect.w, info.srcRect.h, node.GetBuffer()->GetWidth(), node.GetBuffer()->GetHeight(),
         node.GetDamageRegion().w, node.GetDamageRegion().h, node.GetBuffer().GetRefPtr(),
-        node.GetRenderProperties().GetPositionZ(), info.zOrder);
+        node.GetRenderProperties().GetPositionZ(), info.zOrder, info.blendType);
     RsRenderServiceUtil::ComposeSurface(layer, node.GetConsumer(), layers_, info);
 }
 

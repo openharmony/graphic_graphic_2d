@@ -16,9 +16,11 @@
 #include "pipeline/rs_surface_render_node.h"
 
 #include "command/rs_surface_node_command.h"
+#include "display_type.h"
 #include "pipeline/rs_root_render_node.h"
 #include "platform/common/rs_log.h"
 #include "transaction/rs_transaction_proxy.h"
+#include "transaction/rs_render_service_client.h"
 #include "visitor/rs_node_visitor.h"
 
 namespace OHOS {
@@ -174,6 +176,55 @@ void RSSurfaceRenderNode::SendPropertyCommand(std::unique_ptr<RSCommand>& comman
     if (transactionProxy != nullptr) {
         transactionProxy->AddCommand(command, true);
     }
+}
+
+BlendType RSSurfaceRenderNode::GetBlendType()
+{
+    return blendType_;
+}
+
+void RSSurfaceRenderNode::SetBlendType(BlendType blendType)
+{
+    blendType_ = blendType;
+}
+
+void RSSurfaceRenderNode::RegisterBufferAvailableListener(sptr<RSIBufferAvailableCallback> callback)
+{
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        callback_ = callback;
+    }
+}
+
+void RSSurfaceRenderNode::ConnectToNodeInRenderService()
+{
+    auto renderServiceClinet =
+        std::static_pointer_cast<RSRenderServiceClient>(RSIRenderClient::CreateRenderServiceClient());
+    if (renderServiceClinet != nullptr) {
+        renderServiceClinet->RegisterBufferAvailableListener(GetId(),
+            [this](bool isBufferAvailable) {
+                this->NotifyBufferAvailable(isBufferAvailable);
+            });
+    }
+}
+
+void RSSurfaceRenderNode::NotifyBufferAvailable(bool isBufferAvailable)
+{
+    // In RS, "isBufferAvailable_ = true" means buffer is ready and need to trigger ipc callback.
+    // In RT, "isBufferAvailable_ = true" means RT know that RS have had available buffer
+    // and ready to "clip" on parent surface.
+    isBufferAvailable_ = isBufferAvailable;
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        if (callback_ != nullptr) {
+            callback_->OnBufferAvailable(true);
+        }
+    }
+}
+
+bool RSSurfaceRenderNode::IsBufferAvailable() const
+{
+    return isBufferAvailable_;
 }
 } // namespace Rosen
 } // namespace OHOS

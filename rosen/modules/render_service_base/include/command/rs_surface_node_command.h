@@ -30,6 +30,7 @@ enum RSSurfaceNodeCommandType : uint16_t {
     SURFACE_NODE_SET_PARENT_SURFACE,
     SURFACE_NODE_REMOVE_SELF,
     SURFACE_NODE_UPDATE_SURFACE_SIZE,
+    SURFACE_NODE_CONNECT_TO_NODE_IN_RENDER_SERVICE,
 };
 
 class SurfaceNodeCommandHelper {
@@ -40,6 +41,7 @@ public:
     static void SetParentSurface(RSContext& context, NodeId nodeId, NodeId parentId);
     static void RemoveSelf(RSContext& context, NodeId nodeId);
     static void UpdateSurfaceDefaultSize(RSContext& context, NodeId nodeId, float width, float height);
+    static void ConnectToNodeInRenderService(RSContext& context, NodeId id);
 };
 
 ADD_COMMAND(RSSurfaceNodeCreate, ARG(SURFACE_NODE, SURFACE_NODE_CREATE, SurfaceNodeCommandHelper::Create, NodeId))
@@ -53,6 +55,9 @@ ADD_COMMAND(RSSurfaceNodeRemoveSelf,
     ARG(SURFACE_NODE, SURFACE_NODE_REMOVE_SELF, SurfaceNodeCommandHelper::RemoveSelf, NodeId))
 ADD_COMMAND(RSSurfaceNodeUpdateSurfaceDefaultSize, ARG(SURFACE_NODE, SURFACE_NODE_UPDATE_SURFACE_SIZE,
     SurfaceNodeCommandHelper::UpdateSurfaceDefaultSize, NodeId, float, float))
+ADD_COMMAND(RSSurfaceNodeConnectToNodeInRenderService,
+    ARG(SURFACE_NODE, SURFACE_NODE_CONNECT_TO_NODE_IN_RENDER_SERVICE,
+    SurfaceNodeCommandHelper::ConnectToNodeInRenderService, NodeId))
 
 } // namespace Rosen
 } // namespace OHOS

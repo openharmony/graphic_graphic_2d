@@ -50,6 +50,10 @@ RSSurfaceNode::SharedPtr RSSurfaceNode::Create(const RSSurfaceNodeConfig& surfac
         if (transactionProxy != nullptr) {
             transactionProxy->AddCommand(command, isWindow);
         }
+        command = std::make_unique<RSSurfaceNodeConnectToNodeInRenderService>(node->GetId());
+        if (transactionProxy != nullptr) {
+            transactionProxy->AddCommand(command, isWindow);
+        }
     }
     ROSEN_LOGD("RsDebug RSSurfaceNode::Create id:%llu", node->GetId());
     return node;
@@ -141,6 +145,17 @@ sptr<OHOS::Surface> RSSurfaceNode::GetSurface() const
     return ohosSurface;
 }
 #endif
+
+bool RSSurfaceNode::NeedForcedSendToRemote() const
+{
+    if (IsRenderServiceNode()) {
+        // RSRenderSurfaceNode in RS only need send property message to RenderService.
+        return false;
+    } else {
+        // RSRenderSurfaceNode in RT need send property message both to RenderService & RenderThread.
+        return true;
+    }
+}
 
 RSSurfaceNode::RSSurfaceNode(const RSSurfaceNodeConfig& config, bool isRenderServiceNode)
     : RSNode(isRenderServiceNode), name_(config.SurfaceNodeName)

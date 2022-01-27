@@ -20,6 +20,7 @@
 #include "command/rs_command.h"
 #include "ipc_callbacks/screen_change_callback_stub.h"
 #include "ipc_callbacks/surface_capture_callback_stub.h"
+#include "ipc_callbacks/buffer_available_callback_stub.h"
 #include "platform/common/rs_log.h"
 #include "rs_render_service_connect_hub.h"
 #include "rs_surface_ohos.h"
@@ -279,6 +280,39 @@ void RSRenderServiceClient::SetScreenBacklight(ScreenId id, uint32_t level)
     }
 
     renderService->SetScreenBacklight(id, level);
+}
+
+class CustomBufferAvailableCallback : public RSBufferAvailableCallbackStub
+{
+public:
+    explicit CustomBufferAvailableCallback(const BufferAvailableCallback &callback) : cb_(callback) {}
+    ~CustomBufferAvailableCallback() override {};
+
+    void OnBufferAvailable(bool isBufferAvailable) override
+    {
+        if (cb_ != nullptr) {
+            cb_(isBufferAvailable);
+        }
+    }
+
+private:
+    BufferAvailableCallback cb_;
+};
+
+bool RSRenderServiceClient::RegisterBufferAvailableListener(NodeId id, const BufferAvailableCallback &callback)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        return false;
+    }
+    auto iter = bufferAvailableCbMap_.find(id);
+    if (iter != bufferAvailableCbMap_.end()) {
+        return true;
+    }
+    sptr<RSIBufferAvailableCallback> bufferAvailableCb = new CustomBufferAvailableCallback(callback);
+    renderService->RegisterBufferAvailableListener(id, bufferAvailableCb);
+    bufferAvailableCbMap_.emplace(id, bufferAvailableCb);
+    return true;
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -19,6 +19,7 @@
 #include <mutex>
 #include <unordered_set>
 
+#include "ipc_callbacks/buffer_available_callback.h"
 #include "pipeline/rs_render_service.h"
 #include "screen_manager/rs_screen_manager.h"
 #include "transaction/rs_render_service_connection_stub.h"
@@ -87,6 +88,8 @@ private:
     int32_t GetScreenBacklight(ScreenId id) override;
 
     void SetScreenBacklight(ScreenId id, uint32_t level) override;
+
+    void RegisterBufferAvailableListener(NodeId id, sptr<RSIBufferAvailableCallback> callback) override;
 
     wptr<RSRenderService> renderService_;
     RSMainThread* mainThread_ = nullptr;
