@@ -34,7 +34,7 @@ RSVsyncClientOhos::RSVsyncClientOhos()
 
 void RSVsyncClientOhos::RequestNextVsync()
 {
-    if (!requestFlag_) {
+    if (!requestFlag_.load()) {
         requestFlag_.store(true);
         handler_->PostTask([this]() {
             struct FrameCallback cb = {

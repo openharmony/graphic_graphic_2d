@@ -57,13 +57,6 @@ RSRenderThread::RSRenderThread()
     mainFunc_ = [&]() {
         ROSEN_TRACE_BEGIN(BYTRACE_TAG_GRAPHIC_AGP, "RSRenderThread::DrawFrame");
         {
-            if (timestamp_ == prevTimestamp_) {
-                if (hasRunningAnimation_) {
-                    RSRenderThread::Instance().RequestNextVSync();
-                }
-                ROSEN_TRACE_END(BYTRACE_TAG_GRAPHIC_AGP);
-                return;
-            }
             prevTimestamp_ = timestamp_;
             if (!cmds_.empty()) {
                 ProcessCommands();

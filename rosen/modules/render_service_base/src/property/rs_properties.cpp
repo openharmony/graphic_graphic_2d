@@ -915,8 +915,10 @@ void RSProperties::ResetBounds()
 std::string RSProperties::Dump() const
 {
     char buffer[UINT8_MAX];
-    if (sprintf_s(buffer, UINT8_MAX, "Bounds[%.2f %.2f %.2f %.2f] bgcolor[#%08X]",
-        GetBoundsPositionX(), GetBoundsPositionY(), GetBoundsWidth(), GetBoundsHeight(), GetBackgroundColor().AsArgbInt()) != -1) {
+    if (sprintf_s(buffer, UINT8_MAX, "Bounds[%.1f %.1f %.1f %.1f] Frame[%.1f %.1f %.1f %.1f] bgcolor[#%08X]",
+        GetBoundsPositionX(), GetBoundsPositionY(), GetBoundsWidth(), GetBoundsHeight(),
+        GetFramePositionX(), GetFramePositionY(), GetFrameWidth(), GetFrameHeight(),
+        GetBackgroundColor().AsArgbInt()) != -1) {
         return std::string(buffer);
     }
     return "";
