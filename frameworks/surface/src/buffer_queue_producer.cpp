@@ -16,6 +16,7 @@
 #include "buffer_queue_producer.h"
 
 #include <cassert>
+#include <mutex>
 #include <set>
 
 #include "buffer_extra_data_impl.h"
@@ -212,19 +213,22 @@ GSError BufferQueueProducer::RequestBuffer(const BufferRequestConfig &config, Bu
 {
     static std::map<int32_t, wptr<SurfaceBuffer>> cache;
     static std::map<pid_t, std::set<int32_t>> sendeds;
+    static std::mutex mutex;
     if (bufferQueue_ == nullptr) {
         return GSERROR_INVALID_ARGUMENTS;
     }
 
+    auto sret = bufferQueue_->RequestBuffer(config, bedata, retval);
+
+    std::lock_guard<std::mutex> lock(mutex);
     auto callingPid = GetCallingPid();
     auto &sended = sendeds[callingPid];
-    auto sret = bufferQueue_->RequestBuffer(config, bedata, retval);
     if (sret == GSERROR_OK) {
         if (retval.buffer != nullptr) {
             cache[retval.sequence] = retval.buffer;
             sended.insert(retval.sequence);
             BLOGND("client pid: [%{public}d] add cache", callingPid);
-        } else if (GetCallingPid() == getpid()) {
+        } else if (callingPid == getpid()) {
             // for BufferQueue not first
             // A local call always returns a non-null pointer
             retval.buffer = cache[retval.sequence].promote();
