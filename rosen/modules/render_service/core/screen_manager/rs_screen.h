@@ -62,6 +62,11 @@ public:
     virtual void SurfaceDump(int32_t screenIndex, std::string& dumpString) = 0;
     virtual void SetScreenBacklight(uint32_t level) = 0;
     virtual int32_t GetScreenBacklight() const = 0;
+    virtual int32_t GetScreenSupportedColorGamuts(std::vector<ScreenColorGamut> &mode) const = 0;
+    virtual int32_t GetScreenColorGamut(ScreenColorGamut &mode) const = 0;
+    virtual int32_t SetScreenColorGamut(int32_t modeIdx) = 0;
+    virtual int32_t SetScreenGamutMap(ScreenGamutMap mode) = 0;
+    virtual int32_t GetScreenGamutMap(ScreenGamutMap &mode) const = 0;
 };
 
 namespace impl {
@@ -98,6 +103,11 @@ public:
     void SurfaceDump(int32_t screenIndex, std::string& dumpString) override;
     void SetScreenBacklight(uint32_t level) override;
     int32_t GetScreenBacklight() const override;
+    int32_t GetScreenSupportedColorGamuts(std::vector<ScreenColorGamut> &mode) const override;
+    int32_t GetScreenColorGamut(ScreenColorGamut &mode) const override;
+    int32_t SetScreenColorGamut(int32_t modeIdx) override;
+    int32_t SetScreenGamutMap(ScreenGamutMap mode) override;
+    int32_t GetScreenGamutMap(ScreenGamutMap &mode) const override;
 
 private:
     // TODO: fixme -- domain 0 only for debug.

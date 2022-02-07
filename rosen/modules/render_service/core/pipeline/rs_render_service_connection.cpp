@@ -337,5 +337,40 @@ void RSRenderServiceConnection::RegisterBufferAvailableListener(NodeId id, sptr<
         node->RegisterBufferAvailableListener(callback);
     }
 }
+
+int32_t RSRenderServiceConnection::GetScreenSupportedColorGamuts(ScreenId id, std::vector<ScreenColorGamut>& mode)
+{
+    return mainThread_->ScheduleTask([=, &mode]() {
+        return screenManager_->GetScreenSupportedColorGamuts(id, mode);
+    }).get();
+}
+
+int32_t RSRenderServiceConnection::GetScreenColorGamut(ScreenId id, ScreenColorGamut& mode)
+{
+    return mainThread_->ScheduleTask([=, &mode]() {
+        return screenManager_->GetScreenColorGamut(id, mode);
+    }).get();
+}
+
+int32_t RSRenderServiceConnection::SetScreenColorGamut(ScreenId id, int32_t modeIdx)
+{
+    return mainThread_->ScheduleTask([=]() {
+        return screenManager_->SetScreenColorGamut(id, modeIdx);
+    }).get();
+}
+
+int32_t RSRenderServiceConnection::SetScreenGamutMap(ScreenId id, ScreenGamutMap mode)
+{
+    return mainThread_->ScheduleTask([=]() {
+        return screenManager_->SetScreenGamutMap(id, mode);
+    }).get();
+}
+
+int32_t RSRenderServiceConnection::GetScreenGamutMap(ScreenId id, ScreenGamutMap& mode)
+{
+    return mainThread_->ScheduleTask([=, &mode]() {
+        return screenManager_->GetScreenGamutMap(id, mode);
+    }).get();
+}
 } // namespace Rosen
 } // namespace OHOS

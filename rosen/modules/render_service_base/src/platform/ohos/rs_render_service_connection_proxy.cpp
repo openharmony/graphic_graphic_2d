@@ -18,6 +18,8 @@
 #include <message_option.h>
 #include <message_parcel.h>
 #include "platform/common/rs_log.h"
+#include "screen_manager/screen_types.h"
+#include "stdint.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -446,5 +448,112 @@ void RSRenderServiceConnectionProxy::RegisterBufferAvailableListener(NodeId id, 
         ROSEN_LOGE("RSRenderServiceConnectionProxy::RegisterBufferAvailableListener: Send Request err.");
     }
 }
+
+int32_t RSRenderServiceConnectionProxy::GetScreenSupportedColorGamuts(ScreenId id, std::vector<ScreenColorGamut>& mode)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return RS_CONNECTION_ERROR;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    data.WriteUint64(id);
+    int32_t err = Remote()->SendRequest(RSIRenderServiceConnection::GET_SCREEN_SUPPORTED_GAMUTS, data, reply, option);
+    if (err != NO_ERROR) {
+        return RS_CONNECTION_ERROR;
+    }
+    int32_t result = reply.ReadInt32();
+    if (result == SUCCESS) {
+        mode.clear();
+        std::vector<uint32_t> modeRecv;
+        reply.ReadUInt32Vector(&modeRecv);
+        for (auto i : modeRecv) {
+            mode.push_back(static_cast<ScreenColorGamut>(i));
+        }
+    }
+    return result;
+}
+
+int32_t RSRenderServiceConnectionProxy::GetScreenColorGamut(ScreenId id, ScreenColorGamut& mode)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return RS_CONNECTION_ERROR;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    data.WriteUint64(id);
+    int32_t err = Remote()->SendRequest(RSIRenderServiceConnection::GET_SCREEN_GAMUT, data, reply, option);
+    if (err != NO_ERROR) {
+        return RS_CONNECTION_ERROR;
+    }
+    int32_t result = reply.ReadInt32();
+    if (result == SUCCESS) {
+        mode = static_cast<ScreenColorGamut>(reply.ReadUint32());
+    }
+    return result;
+}
+
+int32_t RSRenderServiceConnectionProxy::SetScreenColorGamut(ScreenId id, int32_t modeIdx)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return RS_CONNECTION_ERROR;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    data.WriteUint64(id);
+    data.WriteInt32(modeIdx);
+    int32_t err = Remote()->SendRequest(RSIRenderServiceConnection::SET_SCREEN_GAMUT, data, reply, option);
+    if (err != NO_ERROR) {
+        return RS_CONNECTION_ERROR;
+    }
+    int32_t result = reply.ReadInt32();
+    return result;
+}
+
+int32_t RSRenderServiceConnectionProxy::SetScreenGamutMap(ScreenId id, ScreenGamutMap mode)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return RS_CONNECTION_ERROR;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    data.WriteUint64(id);
+    data.WriteUint32(mode);
+    int32_t err = Remote()->SendRequest(RSIRenderServiceConnection::SET_SCREEN_GAMUT_MAP, data, reply, option);
+    if (err != NO_ERROR) {
+        return RS_CONNECTION_ERROR;
+    }
+    int32_t result = reply.ReadInt32();
+    return result;
+}
+
+int32_t RSRenderServiceConnectionProxy::GetScreenGamutMap(ScreenId id, ScreenGamutMap& mode)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return RS_CONNECTION_ERROR;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    data.WriteUint64(id);
+    int32_t err = Remote()->SendRequest(RSIRenderServiceConnection::GET_SCREEN_GAMUT_MAP, data, reply, option);
+    if (err != NO_ERROR) {
+        return RS_CONNECTION_ERROR;
+    }
+    int32_t result = reply.ReadInt32();
+    if (result == SUCCESS) {
+        mode = static_cast<ScreenGamutMap>(reply.ReadUint32());
+    }
+    return result;
+}
+
 } // namespace Rosen
 } // namespace OHOS

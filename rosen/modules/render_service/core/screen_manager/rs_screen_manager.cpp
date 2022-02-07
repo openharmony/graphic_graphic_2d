@@ -570,55 +570,45 @@ int32_t RSScreenManager::GetScreenSupportedColorGamutsLocked(ScreenId id, std::v
 {
     if (screens_.count(id) == 0) {
         HiLog::Error(LOG_LABEL, "%{public}s: There is no screen for id %{public}" PRIu64 ".\n", __func__, id);
-        return SCREEN_NOT_FOUND;
+        return StatusCode::SCREEN_NOT_FOUND;
     }
-    // Stub, waiting for HDI interfaces
-    mode.clear();
-    mode.push_back(COLOR_GAMUT_SRGB);
-    mode.push_back(COLOR_GAMUT_NATIVE);
-    return SUCCESS;
+    return screens_.at(id)->GetScreenSupportedColorGamuts(mode);
 }
 
 int32_t RSScreenManager::GetScreenColorGamutLocked(ScreenId id, ScreenColorGamut& mode) const
 {
     if (screens_.count(id) == 0) {
         HiLog::Error(LOG_LABEL, "%{public}s: There is no screen for id %{public}" PRIu64 ".\n", __func__, id);
-        return SCREEN_NOT_FOUND;
+        return StatusCode::SCREEN_NOT_FOUND;
     }
-    // Stub, waiting for HDI interfaces
-    mode = COLOR_GAMUT_SRGB;
-    return SUCCESS;
+    return screens_.at(id)->GetScreenColorGamut(mode);
 }
 
 int32_t RSScreenManager::SetScreenColorGamutLocked(ScreenId id, int32_t modeIdx)
 {
     if (screens_.count(id) == 0) {
         HiLog::Error(LOG_LABEL, "%{public}s: There is no screen for id %{public}" PRIu64 ".\n", __func__, id);
-        return SCREEN_NOT_FOUND;
+        return StatusCode::SCREEN_NOT_FOUND;
     }
-    // Stub, waiting for HDI interfaces
-    return SUCCESS;
+    return screens_.at(id)->SetScreenColorGamut(modeIdx);
 }
 
 int32_t RSScreenManager::SetScreenGamutMapLocked(ScreenId id, ScreenGamutMap mode)
 {
     if (screens_.count(id) == 0) {
         HiLog::Error(LOG_LABEL, "%{public}s: There is no screen for id %{public}" PRIu64 ".\n", __func__, id);
-        return SCREEN_NOT_FOUND;
+        return StatusCode::SCREEN_NOT_FOUND;
     }
-    // Stub, waiting for HDI interfaces
-    return SUCCESS;
+    return screens_.at(id)->SetScreenGamutMap(mode);
 }
 
 int32_t RSScreenManager::GetScreenGamutMapLocked(ScreenId id, ScreenGamutMap &mode) const
 {
     if (screens_.count(id) == 0) {
         HiLog::Error(LOG_LABEL, "%{public}s: There is no screen for id %{public}" PRIu64 ".\n", __func__, id);
-        return SCREEN_NOT_FOUND;
+        return StatusCode::SCREEN_NOT_FOUND;
     }
-    // Stub, waiting for HDI interfaces
-    mode = GAMUT_MAP_CONSTANT;
-    return SUCCESS;
+    return screens_.at(id)->GetScreenGamutMap(mode);
 }
 
 int32_t RSScreenManager::GetScreenSupportedColorGamuts(ScreenId id, std::vector<ScreenColorGamut>& mode) const

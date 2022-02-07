@@ -359,6 +359,37 @@ int32_t RSScreen::GetScreenBacklight() const
     }
     return static_cast<int32_t>(level);
 }
+
+int32_t RSScreen::GetScreenSupportedColorGamuts(std::vector<ScreenColorGamut> &mode) const
+{
+    // Stub, waiting for HDIScreen interfaces
+    mode.clear();
+    mode.push_back(COLOR_GAMUT_SRGB);
+    return StatusCode::SUCCESS;
+}
+
+int32_t RSScreen::GetScreenColorGamut(ScreenColorGamut &mode) const
+{
+    // Stub, waiting for HDIScreen interfaces
+    mode = COLOR_GAMUT_SRGB;
+    return StatusCode::SUCCESS;
+}
+
+int32_t RSScreen::SetScreenColorGamut(int32_t modeIdx)
+{
+    return StatusCode::SUCCESS;
+}
+
+int32_t RSScreen::SetScreenGamutMap(ScreenGamutMap mode)
+{
+    return StatusCode::SUCCESS;
+}
+
+int32_t RSScreen::GetScreenGamutMap(ScreenGamutMap &mode) const
+{
+    mode = GAMUT_MAP_CONSTANT;
+    return StatusCode::SUCCESS;
+}
 } // namespace impl
 } // namespace Rosen
 } // namespace OHOS

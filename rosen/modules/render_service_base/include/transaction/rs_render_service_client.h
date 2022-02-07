@@ -90,6 +90,16 @@ public:
 
     bool RegisterBufferAvailableListener(NodeId id, const BufferAvailableCallback &callback);
 
+    int32_t GetScreenSupportedColorGamuts(ScreenId id, std::vector<ScreenColorGamut>& mode);
+
+    int32_t GetScreenColorGamut(ScreenId id, ScreenColorGamut& mode);
+
+    int32_t SetScreenColorGamut(ScreenId id, int32_t modeIdx);
+
+    int32_t SetScreenGamutMap(ScreenId id, ScreenGamutMap mode);
+
+    int32_t GetScreenGamutMap(ScreenId id, ScreenGamutMap& mode);
+
 private:
     void TriggerSurfaceCaptureCallback(NodeId id, Media::PixelMap* pixelmap);
     std::mutex mutex_;

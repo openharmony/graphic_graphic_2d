@@ -16,6 +16,7 @@
 #include "rs_render_service_connection_stub.h"
 
 #include "command/rs_command_factory.h"
+#include "screen_manager/screen_types.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -268,6 +269,82 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             }
             sptr<RSIBufferAvailableCallback> cb = iface_cast<RSIBufferAvailableCallback>(remoteObject);
             RegisterBufferAvailableListener(id, cb);
+            break;
+        }
+        case GET_SCREEN_SUPPORTED_GAMUTS: {
+            auto token = data.ReadInterfaceToken();
+            if (token != RSIRenderServiceConnection::GetDescriptor()) {
+                ret = ERR_INVALID_STATE;
+                break;
+            }
+            ScreenId id = data.ReadUint64();
+            std::vector<uint32_t> modeSend;
+            std::vector<ScreenColorGamut> mode;
+            int32_t result = GetScreenSupportedColorGamuts(id, mode);
+            reply.WriteInt32(result);
+            if (result != StatusCode::SUCCESS) {
+                break;
+            }
+            for (auto i : mode) {
+                modeSend.push_back(i);
+            }
+            reply.WriteUInt32Vector(modeSend);
+            break;
+        }
+        case GET_SCREEN_GAMUT: {
+            auto token = data.ReadInterfaceToken();
+            if (token != RSIRenderServiceConnection::GetDescriptor()) {
+                ret = ERR_INVALID_STATE;
+                break;
+            }
+            ScreenId id = data.ReadUint64();
+            ScreenColorGamut mode;
+            int32_t result = GetScreenColorGamut(id, mode);
+            reply.WriteInt32(result);
+            if (result != StatusCode::SUCCESS) {
+                break;
+            }
+            reply.WriteUint32(mode);
+            break;
+        }
+        case SET_SCREEN_GAMUT: {
+            auto token = data.ReadInterfaceToken();
+            if (token != RSIRenderServiceConnection::GetDescriptor()) {
+                ret = ERR_INVALID_STATE;
+                break;
+            }
+            ScreenId id = data.ReadUint64();
+            int32_t modeIdx = data.ReadInt32();
+            int32_t result = SetScreenColorGamut(id, modeIdx);
+            reply.WriteInt32(result);
+            break;
+        }
+        case SET_SCREEN_GAMUT_MAP: {
+            auto token = data.ReadInterfaceToken();
+            if (token != RSIRenderServiceConnection::GetDescriptor()) {
+                ret = ERR_INVALID_STATE;
+                break;
+            }
+            ScreenId id = data.ReadUint64();
+            ScreenGamutMap mode = static_cast<ScreenGamutMap>(data.ReadInt32());
+            int32_t result = SetScreenGamutMap(id, mode);
+            reply.WriteInt32(result);
+            break;
+        }
+        case GET_SCREEN_GAMUT_MAP: {
+            auto token = data.ReadInterfaceToken();
+            if (token != RSIRenderServiceConnection::GetDescriptor()) {
+                ret = ERR_INVALID_STATE;
+                break;
+            }
+            ScreenId id = data.ReadUint64();
+            ScreenGamutMap mode;
+            int32_t result = GetScreenGamutMap(id, mode);
+            reply.WriteInt32(result);
+            if (result != StatusCode::SUCCESS) {
+                break;
+            }
+            reply.WriteUint32(mode);
             break;
         }
         default: {

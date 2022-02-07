@@ -113,5 +113,30 @@ void RSInterfaces::SetScreenBacklight(ScreenId id, uint32_t level)
 {
     renderServiceClient_->SetScreenBacklight(id, level);
 }
+
+int32_t RSInterfaces::GetScreenSupportedColorGamuts(ScreenId id, std::vector<ScreenColorGamut>& mode)
+{
+    return renderServiceClient_->GetScreenSupportedColorGamuts(id, mode);
+}
+
+int32_t RSInterfaces::GetScreenColorGamut(ScreenId id, ScreenColorGamut& mode)
+{
+    return renderServiceClient_->GetScreenColorGamut(id, mode);
+}
+
+int32_t RSInterfaces::SetScreenColorGamut(ScreenId id, int32_t modeIdx)
+{
+    return renderServiceClient_->SetScreenColorGamut(id, modeIdx);
+}
+
+int32_t RSInterfaces::SetScreenGamutMap(ScreenId id, ScreenGamutMap mode)
+{
+    return renderServiceClient_->SetScreenGamutMap(id, mode);
+}
+
+int32_t RSInterfaces::GetScreenGamutMap(ScreenId id, ScreenGamutMap& mode)
+{
+    return renderServiceClient_->GetScreenGamutMap(id, mode);
+}
 } // namespace Rosen
 } // namespace OHOS

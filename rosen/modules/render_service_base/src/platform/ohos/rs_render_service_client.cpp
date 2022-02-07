@@ -24,6 +24,7 @@
 #include "platform/common/rs_log.h"
 #include "rs_render_service_connect_hub.h"
 #include "rs_surface_ohos.h"
+#include "screen_manager/screen_types.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -313,6 +314,51 @@ bool RSRenderServiceClient::RegisterBufferAvailableListener(NodeId id, const Buf
     renderService->RegisterBufferAvailableListener(id, bufferAvailableCb);
     bufferAvailableCbMap_.emplace(id, bufferAvailableCb);
     return true;
+}
+
+int32_t RSRenderServiceClient::GetScreenSupportedColorGamuts(ScreenId id, std::vector<ScreenColorGamut>& mode)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        return RS_NOT_CONNECTED;
+    }
+    return renderService->GetScreenSupportedColorGamuts(id, mode);
+}
+
+int32_t RSRenderServiceClient::GetScreenColorGamut(ScreenId id, ScreenColorGamut& mode)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        return RS_NOT_CONNECTED;
+    }
+    return renderService->GetScreenColorGamut(id, mode);
+}
+
+int32_t RSRenderServiceClient::SetScreenColorGamut(ScreenId id, int32_t modeIdx)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        return RS_NOT_CONNECTED;
+    }
+    return renderService->SetScreenColorGamut(id, modeIdx);
+}
+
+int32_t RSRenderServiceClient::SetScreenGamutMap(ScreenId id, ScreenGamutMap mode)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        return RS_NOT_CONNECTED;
+    }
+    return renderService->SetScreenGamutMap(id, mode);
+}
+
+int32_t RSRenderServiceClient::GetScreenGamutMap(ScreenId id, ScreenGamutMap& mode)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        return RS_NOT_CONNECTED;
+    }
+    return renderService->GetScreenGamutMap(id, mode);
 }
 } // namespace Rosen
 } // namespace OHOS

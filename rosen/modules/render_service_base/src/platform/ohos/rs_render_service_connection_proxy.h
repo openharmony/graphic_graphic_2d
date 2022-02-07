@@ -71,6 +71,16 @@ public:
 
     void RegisterBufferAvailableListener(NodeId id, sptr<RSIBufferAvailableCallback> callback) override;
 
+    int32_t GetScreenSupportedColorGamuts(ScreenId id, std::vector<ScreenColorGamut>& mode) override;
+
+    int32_t GetScreenColorGamut(ScreenId id, ScreenColorGamut& mode) override;
+
+    int32_t SetScreenColorGamut(ScreenId id, int32_t modeIdx) override;
+
+    int32_t SetScreenGamutMap(ScreenId id, ScreenGamutMap mode) override;
+
+    int32_t GetScreenGamutMap(ScreenId id, ScreenGamutMap& mode) override;
+
 private:
     static inline BrokerDelegator<RSRenderServiceConnectionProxy> delegator_;
 };

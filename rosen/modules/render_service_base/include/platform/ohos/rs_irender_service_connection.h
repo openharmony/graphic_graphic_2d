@@ -62,6 +62,11 @@ public:
         EXECUTE_SYNCHRONOUS_TASK,
         REGISTER_APPLICATION_RENDER_THREAD,
         SET_BUFFER_AVAILABLE_LISTENER,
+        GET_SCREEN_SUPPORTED_GAMUTS,
+        GET_SCREEN_GAMUT,
+        SET_SCREEN_GAMUT,
+        SET_SCREEN_GAMUT_MAP,
+        GET_SCREEN_GAMUT_MAP,
     };
 
     virtual void CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData) = 0;
@@ -108,6 +113,16 @@ public:
     virtual void SetScreenBacklight(ScreenId id, uint32_t level) = 0;
 
     virtual void RegisterBufferAvailableListener(NodeId id, sptr<RSIBufferAvailableCallback> callback) = 0;
+
+    virtual int32_t GetScreenSupportedColorGamuts(ScreenId id, std::vector<ScreenColorGamut>& mode) = 0;
+
+    virtual int32_t GetScreenColorGamut(ScreenId id, ScreenColorGamut& mode) = 0;
+
+    virtual int32_t SetScreenColorGamut(ScreenId id, int32_t modeIdx) = 0;
+
+    virtual int32_t SetScreenGamutMap(ScreenId id, ScreenGamutMap mode) = 0;
+
+    virtual int32_t GetScreenGamutMap(ScreenId id, ScreenGamutMap& mode) = 0;
 };
 } // namespace Rosen
 } // namespace OHOS
