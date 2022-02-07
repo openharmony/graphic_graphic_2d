@@ -52,6 +52,11 @@ public:
     BufferHandle *GetBufferHandle() const override;
     int32_t GetWidth() const override;
     int32_t GetHeight() const override;
+    int32_t GetStride() const override;
+    int32_t GetSurfaceBufferWidth() const override;
+    int32_t GetSurfaceBufferHeight() const override;
+    GSError SetSurfaceBufferWidth(int32_t width) override;
+    GSError SetSurfaceBufferHeight(int32_t height) override;
     int32_t GetFormat() const override;
     int64_t GetUsage() const override;
     uint64_t GetPhyAddr() const override;
@@ -92,6 +97,8 @@ private:
     int32_t sequenceNumber = -1;
     BufferExtraDataImpl bedataimpl;
     sptr<EglData> eglData_ = nullptr;
+    int32_t surfaceBufferWidth_ = 0;
+    int32_t surfaceBufferHeight_ = 0;
 };
 } // namespace OHOS
 

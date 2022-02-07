@@ -39,7 +39,7 @@ void RsRenderServiceUtil::ComposeSurface(std::shared_ptr<HdiLayerInfo> layer, sp
 }
 
 void RsRenderServiceUtil::DrawBuffer(SkCanvas* canvas, const SkMatrix& matrix, sptr<OHOS::SurfaceBuffer> buffer,
-    float tranX, float tranY, float width, float height, int32_t bufferWidth, int32_t bufferHeight)
+    float tranX, float tranY, float width, float height)
 {
     if (!canvas) {
         ROSEN_LOGE("RsRenderServiceUtil::DrawBuffer canvas is nullptr");
@@ -50,24 +50,24 @@ void RsRenderServiceUtil::DrawBuffer(SkCanvas* canvas, const SkMatrix& matrix, s
         return;
     }
     auto addr = static_cast<uint32_t*>(buffer->GetVirAddr());
-    if (addr == nullptr || bufferWidth <= 0 || bufferHeight <= 0) {
+    if (addr == nullptr || buffer->GetWidth() <= 0 || buffer->GetHeight() <= 0) {
         ROSEN_LOGE("RsRenderServiceUtil::DrawBuffer this buffer have no vir add or width or height is negative");
         return;
     }
     SkColorType colorType;
     colorType = buffer->GetFormat() == PIXEL_FMT_BGRA_8888 ? kBGRA_8888_SkColorType : kRGBA_8888_SkColorType;
-    SkImageInfo layerInfo = SkImageInfo::Make(bufferWidth, bufferHeight,
+    SkImageInfo layerInfo = SkImageInfo::Make(buffer->GetWidth(), buffer->GetHeight(),
         colorType, kPremul_SkAlphaType);
-    SkPixmap pixmap(layerInfo, addr, layerInfo.bytesPerPixel() * bufferWidth);
+    SkPixmap pixmap(layerInfo, addr, buffer->GetStride());
     SkBitmap bitmap;
-    float scaleX = width / static_cast<float>(bufferWidth);
-    float scaleY = height / static_cast<float>(bufferHeight);
+    float scaleX = width / static_cast<float>(buffer->GetWidth());
+    float scaleY = height / static_cast<float>(buffer->GetHeight());
     if (bitmap.installPixels(pixmap)) {
         canvas->save();
         canvas->setMatrix(matrix);
         canvas->translate(tranX, tranY);
         canvas->scale(scaleX, scaleY);
-        canvas->drawBitmapRect(bitmap, SkRect::MakeXYWH(0, 0, bufferWidth, bufferHeight), nullptr);
+        canvas->drawBitmapRect(bitmap, SkRect::MakeXYWH(0, 0, buffer->GetWidth(), buffer->GetHeight()), nullptr);
         canvas->restore();
     }
 }
@@ -75,13 +75,9 @@ void RsRenderServiceUtil::DrawBuffer(SkCanvas* canvas, const SkMatrix& matrix, s
 void RsRenderServiceUtil::DrawBuffer(SkCanvas* canvas, const SkMatrix& matrix, sptr<OHOS::SurfaceBuffer> buffer,
         RSSurfaceRenderNode& node)
 {
-    bool needUseBufferRegion = node.GetDamageRegion().w <= 0 || node.GetDamageRegion().h <= 0;
-    int32_t damageRegionWidth = needUseBufferRegion ? node.GetBuffer()->GetWidth() : node.GetDamageRegion().w;
-    int32_t damageRegionHeight = needUseBufferRegion ? node.GetBuffer()->GetHeight() : node.GetDamageRegion().h;
     DrawBuffer(canvas, matrix, node.GetBuffer(),
         node.GetRenderProperties().GetBoundsPositionX(), node.GetRenderProperties().GetBoundsPositionY(),
-        node.GetRenderProperties().GetBoundsWidth(), node.GetRenderProperties().GetBoundsHeight(),
-        damageRegionWidth, damageRegionHeight);
+        node.GetRenderProperties().GetBoundsWidth(), node.GetRenderProperties().GetBoundsHeight());
 }
 
 } // namespace Rosen

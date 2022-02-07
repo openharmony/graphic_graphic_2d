@@ -102,8 +102,7 @@ void RSCompatibleProcessor::ProcessSurface(RSSurfaceRenderNode& node)
     matrix.reset();
     RsRenderServiceUtil::DrawBuffer(canvas_.get(), matrix, node.GetBuffer(),
         static_cast<float>(geoPtr->GetAbsRect().left_), static_cast<float>(geoPtr->GetAbsRect().top_),
-        static_cast<float>(geoPtr->GetAbsRect().width_), static_cast<float>(geoPtr->GetAbsRect().height_),
-        node.GetDamageRegion().w, node.GetDamageRegion().h);
+        static_cast<float>(geoPtr->GetAbsRect().width_), static_cast<float>(geoPtr->GetAbsRect().height_));
 }
 
 void RSCompatibleProcessor::PostProcess()

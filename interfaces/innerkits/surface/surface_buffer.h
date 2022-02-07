@@ -30,6 +30,11 @@ public:
     virtual BufferHandle *GetBufferHandle() const = 0;
     virtual int32_t GetWidth() const = 0;
     virtual int32_t GetHeight() const = 0;
+    virtual int32_t GetStride() const = 0;
+    virtual int32_t GetSurfaceBufferWidth() const = 0;
+    virtual int32_t GetSurfaceBufferHeight() const = 0;
+    virtual GSError SetSurfaceBufferWidth(int32_t width) = 0;
+    virtual GSError SetSurfaceBufferHeight(int32_t height) = 0;
     virtual int32_t GetFormat() const = 0;
     virtual int64_t GetUsage() const = 0;
     virtual uint64_t GetPhyAddr() const = 0;

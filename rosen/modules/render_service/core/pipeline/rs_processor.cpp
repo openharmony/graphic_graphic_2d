@@ -41,7 +41,7 @@ std::unique_ptr<SkCanvas> RSProcessor::CreateCanvas(sptr<Surface> producerSurfac
     }
     SkImageInfo info = SkImageInfo::Make(buffer_->GetWidth(), buffer_->GetHeight(),
                                         kRGBA_8888_SkColorType, kPremul_SkAlphaType);
-    return SkCanvas::MakeRasterDirect(info, addr, buffer_->GetSize() / buffer_->GetHeight());
+    return SkCanvas::MakeRasterDirect(info, addr, buffer_->GetStride());
 }
 
 void RSProcessor::FlushBuffer(sptr<Surface> surface, BufferFlushConfig flushConfig)

@@ -505,11 +505,10 @@ GSError BufferQueue::AllocBuffer(sptr<SurfaceBufferImpl> &buffer,
         .fence = -1
     };
 
-    bufferQueueCache_[sequence] = ele;
-
     ret = bufferManager_->Map(buffer);
     if (ret == GSERROR_OK) {
         BLOGN_SUCCESS_ID(sequence, "Map");
+        bufferQueueCache_[sequence] = ele;
         return GSERROR_OK;
     }
 

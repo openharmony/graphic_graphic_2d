@@ -23,9 +23,8 @@ namespace Rosen {
 
 RSSurfaceFrameOhosRaster::RSSurfaceFrameOhosRaster(int32_t width, int32_t height)
 {
-    constexpr int32_t pixelBase = 16;
-    requestConfig_.width = (width % pixelBase == 0) ? width : ((width / pixelBase + 1) * pixelBase);
-    requestConfig_.height = (height % pixelBase == 0) ? height : ((height / pixelBase + 1) * pixelBase);
+    requestConfig_.width = width;
+    requestConfig_.height = height;
     flushConfig_.damage.w = width;
     flushConfig_.damage.h = height;
 }

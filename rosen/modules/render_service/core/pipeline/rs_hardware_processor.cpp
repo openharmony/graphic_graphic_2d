@@ -99,13 +99,12 @@ void RSHardwareProcessor::ProcessSurface(RSSurfaceRenderNode &node)
         ROSEN_LOGE("RsDebug RSHardwareProcessor::ProcessSurface geoPtr == nullptr");
         return;
     }
-    bool needUseBufferRegion = node.GetDamageRegion().w <= 0 || node.GetDamageRegion().h <= 0;
     ComposeInfo info = {
         .srcRect = {
             .x = 0,
             .y = 0,
-            .w = needUseBufferRegion ? node.GetBuffer()->GetWidth() : node.GetDamageRegion().w,
-            .h = needUseBufferRegion ? node.GetBuffer()->GetHeight() : node.GetDamageRegion().h,
+            .w = node.GetBuffer()->GetSurfaceBufferWidth(),
+            .h = node.GetBuffer()->GetSurfaceBufferHeight(),
         },
         .dstRect = {
             .x = geoPtr->GetAbsRect().left_,
@@ -122,12 +121,12 @@ void RSHardwareProcessor::ProcessSurface(RSSurfaceRenderNode &node)
         .blendType = node.GetBlendType(),
     };
     std::shared_ptr<HdiLayerInfo> layer = HdiLayerInfo::CreateHdiLayerInfo();
-    ROSEN_LOGE("RsDebug RSHardwareProcessor::ProcessSurface surfaceNode id:%llu name:[%s] [%d %d %d %d]"\
-        "SrcRect [%d %d] bufferSize [%d %d] DamageSize [%d %d] buffaddr:%p, z:%f, globalZOrder:%d, blendType = %d",
+    ROSEN_LOGE("RsDebug RSHardwareProcessor::ProcessSurface surfaceNode id:%llu name:[%s] dst [%d %d %d %d]"\
+        "SrcRect [%d %d] rawbuffer [%d %d] surfaceBuffer [%d %d] buffaddr:%p, z:%f, globalZOrder:%d, blendType = %d",
         node.GetId(), node.GetName().c_str(),
-        info.dstRect.x, info.dstRect.y, info.dstRect.w, info.dstRect.h,
-        info.srcRect.w, info.srcRect.h, node.GetBuffer()->GetWidth(), node.GetBuffer()->GetHeight(),
-        node.GetDamageRegion().w, node.GetDamageRegion().h, node.GetBuffer().GetRefPtr(),
+        info.dstRect.x, info.dstRect.y, info.dstRect.w, info.dstRect.h, info.srcRect.w, info.srcRect.h,
+        node.GetBuffer()->GetWidth(), node.GetBuffer()->GetHeight(), node.GetBuffer()->GetSurfaceBufferWidth(),
+        node.GetBuffer()->GetSurfaceBufferHeight(), node.GetBuffer().GetRefPtr(),
         node.GetRenderProperties().GetPositionZ(), info.zOrder, info.blendType);
     RsRenderServiceUtil::ComposeSurface(layer, node.GetConsumer(), layers_, info);
 }
@@ -168,8 +167,7 @@ void RSHardwareProcessor::Redraw(sptr<Surface>& surface, const struct PrepareCom
         ROSEN_LOGE("RsDebug RSHardwareProcessor::Redraw layer [%d %d %d %d]", (*iter)->GetLayerSize().x,
             (*iter)->GetLayerSize().y, (*iter)->GetLayerSize().w, (*iter)->GetLayerSize().h);
         RsRenderServiceUtil::DrawBuffer(canvas.get(), matrix, (*iter)->GetBuffer(), (*iter)->GetLayerSize().x,
-            (*iter)->GetLayerSize().y, (*iter)->GetLayerSize().w, (*iter)->GetLayerSize().h,
-            (*iter)->GetDirtyRegion().w, (*iter)->GetDirtyRegion().h);
+            (*iter)->GetLayerSize().y, (*iter)->GetLayerSize().w, (*iter)->GetLayerSize().h);
     }
     BufferFlushConfig flushConfig = {
         .damage = {

@@ -52,7 +52,7 @@ SurfaceBufferImpl::SurfaceBufferImpl(int seqNum)
 
 SurfaceBufferImpl::~SurfaceBufferImpl()
 {
-    BLOGD("dtor ~[%{public}d]", sequenceNumber);
+    BLOGD("dtor ~[%{public}d] handle_ %{public}p", sequenceNumber, handle_);
     if (handle_) {
         FreeBufferHandle(handle_);
     }
@@ -67,6 +67,28 @@ SurfaceBufferImpl *SurfaceBufferImpl::FromBase(const sptr<SurfaceBuffer>& buffer
 BufferHandle *SurfaceBufferImpl::GetBufferHandle() const
 {
     return handle_;
+}
+
+GSError SurfaceBufferImpl::SetSurfaceBufferWidth(int32_t width)
+{
+    surfaceBufferWidth_ = width;
+    return GSERROR_OK;
+}
+
+GSError SurfaceBufferImpl::SetSurfaceBufferHeight(int32_t height)
+{
+    surfaceBufferHeight_ = height;
+    return GSERROR_OK;
+}
+
+int32_t SurfaceBufferImpl::GetSurfaceBufferHeight() const
+{
+    return surfaceBufferHeight_;
+}
+
+int32_t SurfaceBufferImpl::GetSurfaceBufferWidth() const
+{
+    return surfaceBufferWidth_;
 }
 
 int32_t SurfaceBufferImpl::GetWidth() const
@@ -85,6 +107,15 @@ int32_t SurfaceBufferImpl::GetHeight() const
         return -1;
     }
     return handle_->height;
+}
+
+int32_t SurfaceBufferImpl::GetStride() const
+{
+    if (handle_ == nullptr) {
+        BLOGW("handle is nullptr");
+        return -1;
+    }
+    return handle_->stride;
 }
 
 int32_t SurfaceBufferImpl::GetFormat() const

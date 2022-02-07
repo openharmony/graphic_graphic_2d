@@ -45,7 +45,7 @@ public:
     static void ComposeSurface(std::shared_ptr<HdiLayerInfo> layer, sptr<Surface> consumerSurface,
         std::vector<LayerInfoPtr>& layers, ComposeInfo info);
     static void DrawBuffer(SkCanvas* canvas, const SkMatrix& matrix, sptr<OHOS::SurfaceBuffer> buffer,
-        float tranX, float tranY, float width, float height, int32_t bufferWidth, int32_t bufferHeight);
+        float tranX, float tranY, float width, float height);
     static void DrawBuffer(SkCanvas* canvas, const SkMatrix& matrix, sptr<OHOS::SurfaceBuffer> buffer,
         RSSurfaceRenderNode& node);
 };

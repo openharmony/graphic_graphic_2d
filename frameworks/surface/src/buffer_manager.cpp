@@ -103,6 +103,9 @@ GSError BufferManager::Alloc(const BufferRequestConfig &config, sptr<SurfaceBuff
     auto dret = displayGralloc_->AllocMem(info, handle);
     if (dret == DISPLAY_SUCCESS) {
         buffer->SetBufferHandle(handle);
+        buffer->SetSurfaceBufferWidth(config.width);
+        buffer->SetSurfaceBufferHeight(config.height);
+        BLOGI("buffer handle %{public}p w: %{public}d h: %{public}d", handle, config.width, config.height);
         return GSERROR_OK;
     }
     BLOGW("Failed with %{public}d", dret);
@@ -176,12 +179,12 @@ GSError BufferManager::Free(sptr<SurfaceBufferImpl> &buffer)
     CHECK_BUFFER(buffer);
 
     BufferHandle *handle = buffer->GetBufferHandle();
+    buffer->SetBufferHandle(nullptr);
     if (handle == nullptr) {
         return GSERROR_INVALID_ARGUMENTS;
     }
 
     displayGralloc_->FreeMem(*handle);
-    buffer->SetBufferHandle(nullptr);
     return GSERROR_OK;
 }
 } // namespace OHOS
