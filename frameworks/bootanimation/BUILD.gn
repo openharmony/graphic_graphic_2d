@@ -28,7 +28,7 @@ config("bootanimation_config") {
     "-g3",
   ]
 
-  if ("${product_name}" == "rk3566" || "${product_name}" == "rk3568" ||
+  if ("${product_name}" == "rk3566" || "${product_name}" == "rk3568" || "${product_name}" == "watchos" ||
       "${product_name}" == "Hi3516DV300" || "${product_name}" == "ohos-arm64") {
     defines = [ "ACE_DISABLE_GL" ]
   } else {
