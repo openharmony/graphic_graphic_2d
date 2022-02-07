@@ -83,6 +83,18 @@ void RSTransactionProxy::AddCommand(std::unique_ptr<RSCommand>& command, bool is
     }
 }
 
+void RSTransactionProxy::AddCommandFromRT(std::unique_ptr<RSCommand>& command)
+{
+    if (renderServiceClient_ == nullptr || command == nullptr) {
+        return;
+    }
+
+    {
+        std::unique_lock<std::mutex> cmdLock(mutexForRT_);
+        implicitTransactionDataFromRT_->AddCommand(command);
+    }
+}
+
 void RSTransactionProxy::ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task, bool isRenderServiceTask)
 {
     if ((renderServiceClient_ == nullptr && renderThreadClient_ == nullptr) || task == nullptr) {
@@ -113,12 +125,12 @@ void RSTransactionProxy::FlushImplicitTransaction()
     }
 }
 
-void RSTransactionProxy::FlushImplicitRemoteTransaction()
+void RSTransactionProxy::FlushImplicitTransactionFromRT()
 {
-    std::unique_lock<std::mutex> cmdLock(mutex_);
-    if (renderServiceClient_ != nullptr && !implicitRemoteTransactionData_->IsEmpty()) {
-        renderServiceClient_->CommitTransaction(implicitRemoteTransactionData_);
-        implicitRemoteTransactionData_ = std::make_unique<RSTransactionData>();
+    std::unique_lock<std::mutex> cmdLock(mutexForRT_);
+    if (renderServiceClient_ != nullptr && !implicitTransactionDataFromRT_->IsEmpty()) {
+        renderServiceClient_->CommitTransaction(implicitTransactionDataFromRT_);
+        implicitTransactionDataFromRT_ = std::make_unique<RSTransactionData>();
     }
 }
 

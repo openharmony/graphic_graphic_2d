@@ -174,7 +174,7 @@ void RSSurfaceRenderNode::SendPropertyCommand(std::unique_ptr<RSCommand>& comman
 {
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy != nullptr) {
-        transactionProxy->AddCommand(command, true);
+        transactionProxy->AddCommandFromRT(command);
     }
 }
 

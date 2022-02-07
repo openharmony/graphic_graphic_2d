@@ -70,7 +70,7 @@ RSRenderThread::RSRenderThread()
         SendCommands();
         auto transactionProxy = RSTransactionProxy::GetInstance();
         if (transactionProxy != nullptr) {
-            transactionProxy->FlushImplicitRemoteTransaction();
+            transactionProxy->FlushImplicitTransactionFromRT();
         }
         ROSEN_TRACE_END(BYTRACE_TAG_GRAPHIC_AGP);
     };

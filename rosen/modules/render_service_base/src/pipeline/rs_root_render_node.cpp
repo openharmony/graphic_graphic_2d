@@ -67,7 +67,7 @@ void RSRootRenderNode::ClearSurfaceNodeInRS()
         std::unique_ptr<RSCommand> command = std::make_unique<RSSurfaceNodeRemoveSelf>(childId);
         auto transactionProxy = RSTransactionProxy::GetInstance();
         if (transactionProxy != nullptr) {
-            transactionProxy->AddCommand(command, true);
+            transactionProxy->AddCommandFromRT(command);
         }
     }
     childSurfaceNodeId_.clear();

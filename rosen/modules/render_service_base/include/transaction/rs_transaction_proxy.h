@@ -35,9 +35,10 @@ public:
     void SetRenderServiceClient(const std::shared_ptr<RSIRenderClient>& renderServiceClient);
 
     void AddCommand(std::unique_ptr<RSCommand>& command, bool isRenderServiceCommand = false);
+    void AddCommandFromRT(std::unique_ptr<RSCommand>& command);
 
     void FlushImplicitTransaction();
-    void FlushImplicitRemoteTransaction();
+    void FlushImplicitTransactionFromRT();
 
     void ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task, bool isRenderServiceTask = false);
 private:
@@ -54,9 +55,15 @@ private:
     void AddCommonCommand(std::unique_ptr<RSCommand>& command);
     void AddRemoteCommand(std::unique_ptr<RSCommand>& command);
 
+    // Command Transaction Triggered by UI Thread.
     std::mutex mutex_;
     std::unique_ptr<RSTransactionData> implicitCommonTransactionData_{std::make_unique<RSTransactionData>()};
     std::unique_ptr<RSTransactionData> implicitRemoteTransactionData_{std::make_unique<RSTransactionData>()};
+
+    // Command Transaction Triggered by Render Thread which is definitely send to Render Service.
+    std::mutex mutexForRT_;
+    std::unique_ptr<RSTransactionData> implicitTransactionDataFromRT_{std::make_unique<RSTransactionData>()};
+
     std::shared_ptr<RSIRenderClient> renderServiceClient_ = RSIRenderClient::CreateRenderServiceClient();
     std::unique_ptr<RSIRenderClient> renderThreadClient_ = nullptr;
 
