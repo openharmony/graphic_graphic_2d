@@ -28,9 +28,9 @@
 #include "ui/rs_canvas_node.h"
 #include "ui/rs_surface_extractor.h"
 #include "ui/rs_ui_director.h"
-#include "core/transaction/rs_interfaces.h"
-#include "core/ui/rs_display_node.h"
-#include "core/ui/rs_surface_node.h"
+#include "transaction/rs_interfaces.h"
+#include "ui/rs_display_node.h"
+#include "ui/rs_surface_node.h"
 #include "render_context/render_context.h"
 // temporary debug
 #include "foundation/graphic/standard/rosen/modules/render_service_base/src/platform/ohos/rs_surface_frame_ohos.h"
@@ -40,57 +40,159 @@ using namespace OHOS;
 using namespace OHOS::Rosen;
 using namespace std;
 
-std::unique_ptr<RSSurfaceFrame> framePtr;
-RenderContext* rc_ = nullptr;
+namespace OHOS::Rosen {
+#ifdef ACE_ENABLE_GPU
+    RenderContext* rc_ = nullptr;
+#endif
 
-void DrawSurface(
-    SkRect surfaceGeometry, uint32_t color, SkRect shapeGeometry, std::shared_ptr<RSSurfaceNode> surfaceNode)
-{
-    auto x = surfaceGeometry.x();
-    auto y = surfaceGeometry.y();
-    auto width = surfaceGeometry.width();
-    auto height = surfaceGeometry.height();
-    surfaceNode->SetBounds(x, y, width, height);
-    std::shared_ptr<RSSurface> rsSurface = RSSurfaceExtractor::ExtractRSSurface(surfaceNode);
-    if (rsSurface == nullptr) {
-        return;
-    }
-    if (rc_) {
-        rsSurface->SetRenderContext(rc_);
-    }
-    auto frame = rsSurface->RequestFrame(width, height);
-    framePtr = std::move(frame);
-    if (!framePtr) {
-        printf("DrawSurface frameptr is nullptr");
-        return;
-    }
-    auto canvas = framePtr->GetCanvas();
-    if (!canvas) {
-        printf("DrawSurface canvas is nullptr");
-        return;
-    }
-    SkPaint paint;
-    paint.setAntiAlias(true);
-    paint.setStyle(SkPaint::kFill_Style);
-    paint.setStrokeWidth(20);
-    paint.setStrokeJoin(SkPaint::kRound_Join);
-    paint.setColor(color);
+namespace pipelineTestUtils {
+    constexpr bool wrongExit = false;
+    constexpr bool successExit = false;
+    struct Circle {
+        Circle(float x, float y, float r)
+            :x_(x), y_(y), r_(r) {};
+        float x_ = 0.0f;
+        float y_ = 0.0f;
+        float r_ = 0.0f;
+    }; // class Circle
 
-    canvas->drawRect(shapeGeometry, paint);
-    framePtr->SetDamageRegion(0, 0, width, height);
-    auto framePtr1 = std::move(framePtr);
-    rsSurface->FlushFrame(framePtr1);
-}
+    class ToDrawSurface {
+    public:
+        using drawFun = std::function<void(SkCanvas&, SkPaint&)>;
+        ToDrawSurface()
+        {
+            // Do not hold it. Use it As ToDrawSurface::Sample().
+        };
 
-std::shared_ptr<RSSurfaceNode> CreateSurface()
-{
-    RSSurfaceNodeConfig config;
-    return RSSurfaceNode::Create(config);
-}
+        inline ToDrawSurface& SetSurfaceNode(std::shared_ptr<RSSurfaceNode> &surfaceNode)
+        {
+            surfaceNode_ = surfaceNode;
+            return *this;
+        }
+
+        inline ToDrawSurface& SetSurfaceNodeSize(SkRect surfaceGeometry)
+        {
+            surfaceGeometry_ = surfaceGeometry;
+            return *this;
+        }
+
+        inline ToDrawSurface& SetBufferSize(int width, int height)
+        {
+            bufferSize_ = SkRect::MakeXYWH(0, 0, width, height);
+            return *this;
+        }
+
+        inline ToDrawSurface& SetBufferSizeAuto()
+        {
+            bufferSize_ = surfaceGeometry_;
+            return *this;
+        }
+
+        inline ToDrawSurface& SetBufferSize(SkRect bufferSize)
+        {
+            // bufferSize has no XY
+            bufferSize_ = bufferSize;
+            return *this;
+        }
+
+        inline ToDrawSurface& SetShapeColor(uint32_t color)
+        {
+            color_ = color;
+            return *this;
+        }
+
+        inline ToDrawSurface& SetDraw(drawFun drawShape)
+        {
+            drawShape_ = drawShape;
+            return *this;
+        }
+
+        bool Run()
+        {
+            printf("ToDrawSurface::Run() start\n");
+            if (surfaceNode_ == nullptr) {
+                printf("DrawSurface: surfaceNode_ is nullptr\n");
+                return false;
+            }
+            auto x = surfaceGeometry_.x();
+            auto y = surfaceGeometry_.y();
+            auto width = surfaceGeometry_.width();
+            auto height = surfaceGeometry_.height();
+            surfaceNode_->SetBounds(x, y, width, height);
+            std::shared_ptr<RSSurface> rsSurface = RSSurfaceExtractor::ExtractRSSurface(surfaceNode_);
+            if (rsSurface == nullptr) {
+                return wrongExit;
+            }
+#ifdef ACE_ENABLE_GPU
+            // SetRenderContext must before rsSurface->RequestFrame, or it will failed.
+            if (rc_) {
+                rsSurface->SetRenderContext(rc_);
+            } else {
+                printf("DrawSurface: RenderContext is nullptr\n");
+            }
+#endif
+            auto framePtr = rsSurface->RequestFrame(bufferSize_.width(), bufferSize_.height());
+            if (!framePtr) {
+                // SetRenderContext must before rsSurface->RequestFrame,
+                //      or frameptr will be nullptr.
+                printf("DrawSurface: frameptr is nullptr\n");
+                return wrongExit;
+            }
+            auto canvas = framePtr->GetCanvas();
+            if (!canvas) {
+                printf("DrawSurface: canvas is nullptr\n");
+                return wrongExit;
+            }
+            canvas->clear(SK_ColorTRANSPARENT);
+            SkPaint paint;
+            paint.setAntiAlias(true);
+            paint.setStyle(SkPaint::kFill_Style);
+            paint.setStrokeWidth(20);
+            paint.setStrokeJoin(SkPaint::kRound_Join);
+            paint.setColor(color_);
+            if (!drawShape_) {
+                printf("DrawSurface: drawShape_ is nullptr\n");
+                return wrongExit;
+            }
+            drawShape_(*(canvas), paint);
+            framePtr->SetDamageRegion(0, 0, surfaceGeometry_.width(), surfaceGeometry_.height());
+            rsSurface->FlushFrame(framePtr);
+            return successExit;
+            printf("ToDrawSurface::Run() end\n");
+        }
+    private:
+        static void Sample()
+        {
+            auto surfaceNode = RSSurfaceNode::Create(RSSurfaceNodeConfig());
+            pipelineTestUtils::ToDrawSurface()
+                .SetSurfaceNode(surfaceNode)
+                .SetShapeColor(0xff00ffff)
+                .SetSurfaceNodeSize(SkRect::MakeXYWH(80, 500, 500, 300))
+                .SetBufferSizeAuto()
+                .SetDraw([&](SkCanvas &canvas, SkPaint &paint) -> void {
+                    canvas.drawRect(
+                        SkRect::MakeXYWH(0, 0, 500, 300),
+                        paint);
+                })
+                .Run();
+        }
+        SkRect surfaceGeometry_;
+        SkRect bufferSize_;
+        drawFun drawShape_;
+        uint32_t color_ = 0;
+        std::shared_ptr<RSSurfaceNode> surfaceNode_;
+    }; // class ToDrawSurface
+
+    static std::shared_ptr<RSSurfaceNode> CreateSurface()
+    {
+        RSSurfaceNodeConfig config;
+        return RSSurfaceNode::Create(config);
+    }
+} // namespace pipelineTestUtils
 
 // Toy DMS.
 using DisplayId = ScreenId;
-class MyDMS {
+class DmsMock {
 private:
     struct Display {
         DisplayId id;
@@ -100,6 +202,11 @@ private:
     mutable std::recursive_mutex mutex_;
     RSInterfaces& rsInterface_;
     DisplayId defaultDisplayId_;
+
+    DmsMock() : rsInterface_(RSInterfaces::GetInstance())
+    {
+        Init();
+    }
 
     void Init()
     {
@@ -125,11 +232,13 @@ private:
     }
 
 public:
-    MyDMS() : rsInterface_(RSInterfaces::GetInstance())
+    inline static DmsMock& GetInstance()
     {
-        Init();
+        static DmsMock c;
+        return c;
     }
-    ~MyDMS() noexcept = default;
+
+    ~DmsMock() noexcept = default;
 
     DisplayId GetDefaultDisplayId()
     {
@@ -141,7 +250,7 @@ public:
     {
         std::lock_guard<std::recursive_mutex> lock(mutex_);
         if (displays_.count(id) == 0) {
-            cout << "MyDMS: No display " << id << "!" << endl;
+            cout << "DmsMock: No display " << id << "!" << endl;
             return {};
         }
         return displays_.at(id).activeMode;
@@ -151,90 +260,183 @@ public:
     {
         std::lock_guard<std::recursive_mutex> lock(mutex_);
         displays_[id] = Display { id, rsInterface_.GetScreenActiveMode(id) };
-        std::cout << "MyDMS: Display " << id << " connected." << endl;
+        std::cout << "DmsMock: Display " << id << " connected." << endl;
     }
 
     void OnDisplayDisConnected(ScreenId id)
     {
         std::lock_guard<std::recursive_mutex> lock(mutex_);
         if (displays_.count(id) == 0) {
-            cout << "MyDMS: No display " << id << "!" << endl;
+            cout << "DmsMock: No display " << id << "!" << endl;
         } else {
-            std::cout << "MyDMS: Display " << id << " disconnected." << endl;
+            std::cout << "DmsMock: Display " << id << " disconnected." << endl;
             displays_.erase(id);
             if (id == defaultDisplayId_) {
                 defaultDisplayId_ = rsInterface_.GetDefaultScreenId();
-                std::cout << "MyDMS: DefaultDisplayId changed, new DefaultDisplayId is" << defaultDisplayId_ << "."
+                std::cout << "DmsMock: DefaultDisplayId changed, new DefaultDisplayId is" << defaultDisplayId_ << "."
                           << endl;
             }
         }
     }
-};
-MyDMS g_dms;
+}; // class DmsMock
+
+class RSDemoTestCase {
+public:
+    inline static RSDemoTestCase& GetInstance()
+    {
+        static RSDemoTestCase c;
+        return c;
+    }
+
+    void Testhello() const
+    {
+        std::cout << "Render service Client rs Demo.cpp Start\n";
+        std::cout << "If you want to get more information, \n";
+        std::cout << "please type 'hilog | grep Rs' in another hdc shell window\n";
+        std::cout << "-------------------------------------------------------\n";
+    }
+
+    void TestInit()
+    {
+        isInit_ = true;
+        std::cout << "-------------------------------------------------------\n";
+        std::cout << "Render service Client rs Demo.cpp testInit Start\n";
+
+#ifdef ACE_ENABLE_GPU
+        std::cout << "ACE_ENABLE_GPU is enabled\n";
+        isGPU_ = true;
+#else
+        std::cout << "ACE_ENABLE_GPU is disabled\n";
+        isGPU_ = false;
+#endif
+
+#ifdef ACE_ENABLE_GL
+        std::cout << "ACE_ENABLE_GL is enabled\n";
+#else
+        std::cout << "ACE_ENABLE_GL is disabled\n";
+#endif
+        DisplayId id = DmsMock::GetInstance().GetDefaultDisplayId();
+        std::cout << "RS default screen id is " << id << ".\n";
+        auto activeModeInfo = DmsMock::GetInstance().GetDisplayActiveMode(id);
+        if (activeModeInfo) {
+            screenWidth_ = activeModeInfo->GetScreenWidth();
+            screenheight_ = activeModeInfo->GetScreenHeight();
+            screenFreshRate_ = activeModeInfo->GetScreenFreshRate();
+            std::cout << "Display " << id << " active mode info:\n";
+            std::cout << "Width: " << screenWidth_ << ", Height: " << screenheight_;
+            std::cout << ", FreshRate: " << screenFreshRate_ << "Hz.\n";
+        } else {
+            std::cout << "Display " << id << " has no active mode!\n";
+        }
+        RenderContextInit();
+        std::cout << "Render service Client rs Demo.cpp testInit end\n";
+        std::cout << "-------------------------------------------------------\n";
+        return;
+    }
+
+    void TestCaseDefault()
+    {
+        std::cout << "-------------------------------------------------------\n";
+        std::cout << "Render service Client rs Demo.cpp testCaseDefault Start\n";
+        auto surfaceNode1 = pipelineTestUtils::CreateSurface();
+        auto surfaceNode2 = pipelineTestUtils::CreateSurface();
+
+        pipelineTestUtils::ToDrawSurface()
+            .SetSurfaceNode(surfaceNode1)
+            .SetShapeColor(0xff00ffff)
+            .SetSurfaceNodeSize(SkRect::MakeXYWH(screenWidth_ * 0.4f, screenheight_ * 0.4f, 500, 300))
+            .SetBufferSizeAuto()
+            .SetDraw([&](SkCanvas &canvas, SkPaint &paint) -> void {
+                canvas.drawRect(
+                    SkRect::MakeXYWH(0, 0, 500, 300),
+                    paint);
+            })
+            .Run();
+        pipelineTestUtils::ToDrawSurface()
+            .SetSurfaceNode(surfaceNode2)
+            .SetShapeColor(0xffff0000)
+            .SetSurfaceNodeSize(SkRect::MakeXYWH(screenWidth_ * 0.6f, screenheight_ * 0.6f, 500, 300))
+            .SetBufferSizeAuto()
+            .SetDraw([&](SkCanvas &canvas, SkPaint &paint) -> void {
+                canvas.drawRect(
+                    SkRect::MakeXYWH(0, 0, 400, 100),
+                    paint);
+            })
+            .Run();
+
+        RSDisplayNodeConfig config;
+        RSDisplayNode::SharedPtr displayNode = RSDisplayNode::Create(config);
+        displayNode->AddChild(surfaceNode1, -1);
+        displayNode->AddChild(surfaceNode2, -1);
+
+        auto transactionProxy = RSTransactionProxy::GetInstance();
+        if (transactionProxy != nullptr) {
+            transactionProxy->FlushImplicitTransaction();
+        }
+        for (float alpha = 0; alpha <= 1.f; alpha += 0.2f) {
+            printf("printf alpha=%f \n", alpha);
+            surfaceNode2->SetAlpha(alpha);
+            if (transactionProxy != nullptr) {
+                transactionProxy->FlushImplicitTransaction();
+            }
+            usleep(300000);
+        }
+        for (float scale = 0; scale < 2.f; scale += 0.2f) {
+            printf("scale=%f\n", scale);
+            surfaceNode2->SetScaleX(scale);
+            if (transactionProxy != nullptr) {
+                transactionProxy->FlushImplicitTransaction();
+            }
+            usleep(300000);
+        }
+        surfaceNode2->SetScaleX(1.f);
+        std::cout << "Compatible rotation test start\n";
+        for (float rotate = 0; rotate <= 360.f; rotate += 15) {
+            printf("roate=%f\n", rotate);
+            surfaceNode2->SetRotation(rotate);
+            if (transactionProxy != nullptr) {
+                transactionProxy->FlushImplicitTransaction();
+            }
+            usleep(300000);
+        }
+        displayNode->RemoveFromTree();
+        if (transactionProxy != nullptr) {
+            transactionProxy->FlushImplicitTransaction();
+        }
+        std::cout << "Compatible rotation test end\n";
+        std::cout << "Render service Client rs Demo.cpp testCaseDefault end\n";
+        std::cout << "-------------------------------------------------------\n";
+    }
+private:
+    RSDemoTestCase() = default;
+    void RenderContextInit()
+    {
+#ifdef ACE_ENABLE_GPU
+        std::cout << "ACE_ENABLE_GPU is true. \n";
+        std::cout << "Init RenderContext start. \n";
+            rc_ = RenderContextFactory::GetInstance().CreateEngine();
+            if (rc_) {
+                std::cout << "Init RenderContext success.\n";
+                rc_->InitializeEglContext();
+            } else {
+                std::cout << "Init RenderContext failed, RenderContext is nullptr.\n";
+            }
+        std::cout << "Init RenderContext start.\n";
+#endif
+    }
+
+    bool isInit_ = false;
+    bool isGPU_ = false;
+    int screenWidth_ = 0;
+    int screenheight_ = 0;
+    int screenFreshRate_ = 0;
+}; // class RSDemoTestCase
+} // namespace OHOS::Rosen
 
 int main()
 {
-    DisplayId id = g_dms.GetDefaultDisplayId();
-    cout << "RS default screen id is " << id << ".\n";
-
-    auto activeModeInfo = g_dms.GetDisplayActiveMode(id);
-    if (activeModeInfo) {
-        cout << "Display " << id << " active mode info:\n";
-        cout << "Width: " << activeModeInfo->GetScreenWidth() << ", Height: " << activeModeInfo->GetScreenHeight();
-        cout << ", FreshRate: " << activeModeInfo->GetScreenFreshRate() << "Hz.\n";
-    } else {
-        cout << "Display " << id << " has no active mode!\n";
-    }
-    cout << "-------------------------------------------------------" << endl;
-
-    auto surfaceLauncher = CreateSurface();
-    auto surfaceNode1 = CreateSurface();
-    surfaceNode1->SetAlpha(0.5);
-    auto surfaceNode2 = CreateSurface();
-    surfaceNode2->SetAlpha(0.3);
-    rc_ = RenderContextFactory::GetInstance().CreateEngine();
-    if (rc_) {
-        rc_->InitializeEglContext();
-    }
-    DrawSurface(SkRect::MakeXYWH(0, 0, 2800, 1600), 0xffffe4c4, SkRect::MakeXYWH(0, 0, 2800, 1600), surfaceLauncher);
-    DrawSurface(SkRect::MakeXYWH(80, 80, 200, 200), 0xffff0000, SkRect::MakeXYWH(0, 0, 200, 200), surfaceNode1);
-    DrawSurface(SkRect::MakeXYWH(300, 300, 200, 200), 0xff00ff00, SkRect::MakeXYWH(40, 40, 150, 150), surfaceNode2);
-    RSDisplayNodeConfig config;
-    RSDisplayNode::SharedPtr displayNode = RSDisplayNode::Create(config);
-    displayNode->AddChild(surfaceLauncher, -1);
-    displayNode->AddChild(surfaceNode1, -1);
-    displayNode->AddChild(surfaceNode2, -1);
-    auto transactionProxy = RSTransactionProxy::GetInstance();
-    if (transactionProxy != nullptr) {
-        transactionProxy->FlushImplicitTransaction();
-    }
-    sleep(4);
-    int positionX = 80;
-    int positionY = 80;
-    while (1) {
-        displayNode->RemoveChild(surfaceNode1);
-        auto transactionProxy = RSTransactionProxy::GetInstance();
-        if (transactionProxy != nullptr) {
-            transactionProxy->FlushImplicitTransaction();
-        }
-        sleep(4);
-        if (positionY == 80 && (positionX >= 80 && positionX <= 2160)) {
-            positionX += 80;
-        } else if ((positionX == 2240) && (positionY >= 80 && positionY <= 1200)) {
-            positionY += 80;
-        } else if ((positionX >= 160 && positionX <= 2240) && (positionY == 1280)) {
-            positionX -= 80;
-        } else if ((positionX == 80) && (positionY >= 160 && positionY <= 1280)) {
-            positionY -= 80;
-        }
-        displayNode->AddChild(surfaceNode1, -1);
-        DrawSurface(SkRect::MakeXYWH(positionX, positionY, 200, 200), 0xffff0000, SkRect::MakeXYWH(0, 0, 200, 200),
-            surfaceNode1);
-        auto transactionProxy = RSTransactionProxy::GetInstance();
-        if (transactionProxy != nullptr) {
-            transactionProxy->FlushImplicitTransaction();
-        }
-        sleep(4);
-    }
+    RSDemoTestCase::GetInstance().Testhello();
+    RSDemoTestCase::GetInstance().TestInit();
+    RSDemoTestCase::GetInstance().TestCaseDefault();
     return 0;
 }

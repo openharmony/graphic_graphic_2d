@@ -22,7 +22,13 @@ group("test") {
 ohos_executable("render_service_client_rs_demo") {
   sources = [ "render_service_client_rs_demo.cpp" ]
 
-  include_dirs = []
+  include_dirs = [
+    # render_service_base include
+    "//foundation/graphic/standard/rosen/modules/render_service_base/src",
+    "//foundation/graphic/standard/rosen/include",
+    "//drivers/peripheral/display/interfaces/include",
+    "//foundation/multimedia/image_standard/interfaces/innerkits/include",
+  ]
 
   deps = [
     "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
