@@ -381,5 +381,25 @@ int32_t RSRenderServiceClient::GetScreenGamutMap(ScreenId id, ScreenGamutMap& mo
     }
     return renderService->GetScreenGamutMap(id, mode);
 }
+
+bool RSRenderServiceClient::RequestRotation(ScreenId id, ScreenRotation rotation)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        ROSEN_LOGE("RSRenderServiceClient::RequestRotation renderService == nullptr!");
+        return false;
+    }
+    return renderService->RequestRotation(id, rotation);
+}
+
+ScreenRotation RSRenderServiceClient::GetRotation(ScreenId id)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        ROSEN_LOGE("RSRenderServiceClient::GetRotation renderService == nullptr!");
+        return ScreenRotation::INVALID_SCREEN_ROTATION;
+    }
+    return renderService->GetRotation(id);
+}
 } // namespace Rosen
 } // namespace OHOS

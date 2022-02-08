@@ -68,6 +68,8 @@ public:
     virtual int32_t SetScreenColorGamut(int32_t modeIdx) = 0;
     virtual int32_t SetScreenGamutMap(ScreenGamutMap mode) = 0;
     virtual int32_t GetScreenGamutMap(ScreenGamutMap &mode) const = 0;
+    virtual bool SetRotation(ScreenRotation rotation) = 0;
+    virtual ScreenRotation GetRotation() const = 0;
 };
 
 namespace impl {
@@ -110,6 +112,8 @@ public:
     int32_t SetScreenColorGamut(int32_t modeIdx) override;
     int32_t SetScreenGamutMap(ScreenGamutMap mode) override;
     int32_t GetScreenGamutMap(ScreenGamutMap &mode) const override;
+    bool SetRotation(ScreenRotation rotation) override;
+    ScreenRotation GetRotation() const override;
 
 private:
     // TODO: fixme -- domain 0 only for debug.
@@ -137,6 +141,7 @@ private:
 
     int32_t width_ = 0;
     int32_t height_ = 0;
+    ScreenRotation rotation_ = ScreenRotation::ROTATION_0;
 
     bool isVirtual_ = true;
     std::shared_ptr<HdiOutput> hdiOutput_; // has value if the screen is physical

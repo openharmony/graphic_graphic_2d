@@ -109,6 +109,10 @@ private:
     int32_t SetScreenGamutMap(ScreenId id, ScreenGamutMap mode) override;
 
     int32_t GetScreenGamutMap(ScreenId id, ScreenGamutMap& mode) override;
+    
+    bool RequestRotation(ScreenId id, ScreenRotation rotation) override;
+
+    ScreenRotation GetRotation(ScreenId id) override;
 
     pid_t remotePid_;
     wptr<RSRenderService> renderService_;

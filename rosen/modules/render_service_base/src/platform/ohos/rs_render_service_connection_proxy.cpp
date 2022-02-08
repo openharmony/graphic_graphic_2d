@@ -601,5 +601,44 @@ int32_t RSRenderServiceConnectionProxy::GetScreenGamutMap(ScreenId id, ScreenGam
     }
     return result;
 }
+
+bool RSRenderServiceConnectionProxy::RequestRotation(ScreenId id, ScreenRotation rotation)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return false;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    data.WriteUint64(id);
+    data.WriteUint32(static_cast<uint32_t>(rotation));
+    int32_t err = Remote()->SendRequest(RSIRenderServiceConnection::REQUEST_ROTATION, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::RequestRotation: Send Request err.");
+        return false;
+    }
+    bool res = reply.ReadBool();
+    return res;
+}
+
+ScreenRotation RSRenderServiceConnectionProxy::GetRotation(ScreenId id)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return ScreenRotation::INVALID_SCREEN_ROTATION;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    data.WriteUint64(id);
+    int32_t err = Remote()->SendRequest(RSIRenderServiceConnection::GET_ROTATION, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::GetRotation: Send Request err.");
+        return ScreenRotation::INVALID_SCREEN_ROTATION;
+    }
+    ScreenRotation rotation = static_cast<ScreenRotation>(reply.ReadUint32());
+    return rotation;
+}
 } // namespace Rosen
 } // namespace OHOS

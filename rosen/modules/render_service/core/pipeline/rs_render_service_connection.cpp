@@ -445,5 +445,25 @@ int32_t RSRenderServiceConnection::GetScreenGamutMap(ScreenId id, ScreenGamutMap
         return screenManager_->GetScreenGamutMap(id, mode);
     }).get();
 }
+
+bool RSRenderServiceConnection::RequestRotation(ScreenId id, ScreenRotation rotation)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (screenManager_ == nullptr) {
+        ROSEN_LOGE("RequestRotation failed: screenManager_ is nullptr");
+        return false;
+    }
+    return screenManager_->RequestRotation(id, rotation);
+}
+
+ScreenRotation RSRenderServiceConnection::GetRotation(ScreenId id)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (screenManager_ == nullptr) {
+        ROSEN_LOGE("GetRotation failed: screenManager_ is nullptr");
+        return ScreenRotation::INVALID_SCREEN_ROTATION;
+    }
+    return screenManager_->GetRotation(id);
+}
 } // namespace Rosen
 } // namespace OHOS

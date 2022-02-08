@@ -636,6 +636,26 @@ int32_t RSScreenManager::GetScreenGamutMapLocked(ScreenId id, ScreenGamutMap &mo
     return screens_.at(id)->GetScreenGamutMap(mode);
 }
 
+bool RSScreenManager::RequestRotationLocked(ScreenId id, ScreenRotation rotation)
+{
+    auto iter = screens_.find(id);
+    if (iter == screens_.end()) {
+        HiLog::Error(LOG_LABEL, "%{public}s: There is no screen for id %{public}" PRIu64 ".\n", __func__, id);
+        return false;
+    }
+    return iter->second->SetRotation(rotation);
+}
+
+ScreenRotation RSScreenManager::GetRotationLocked(ScreenId id) const
+{
+    auto iter = screens_.find(id);
+    if (iter == screens_.end()) {
+        HiLog::Error(LOG_LABEL, "%{public}s: There is no screen for id %{public}" PRIu64 ".\n", __func__, id);
+        return ScreenRotation::INVALID_SCREEN_ROTATION;
+    }
+    return iter->second->GetRotation();
+}
+
 int32_t RSScreenManager::GetScreenSupportedColorGamuts(ScreenId id, std::vector<ScreenColorGamut>& mode) const
 {
     std::lock_guard<std::mutex> lock(mutex_);
@@ -666,6 +686,17 @@ int32_t RSScreenManager::GetScreenGamutMap(ScreenId id, ScreenGamutMap &mode) co
     return GetScreenGamutMapLocked(id, mode);
 }
 
+bool RSScreenManager::RequestRotation(ScreenId id, ScreenRotation rotation)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    return RequestRotationLocked(id, rotation);
+}
+
+ScreenRotation RSScreenManager::GetRotation(ScreenId id) const
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    return GetRotationLocked(id);
+}
 } // namespace impl
 
 sptr<RSScreenManager> CreateOrGetScreenManager()

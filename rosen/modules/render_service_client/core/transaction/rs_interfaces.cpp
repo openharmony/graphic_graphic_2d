@@ -150,5 +150,15 @@ std::shared_ptr<VSyncReceiver> RSInterfaces::CreateVSyncReceiver(
 {
     return renderServiceClient_->CreateVSyncReceiver(name, looper);
 }
+
+bool RSInterfaces::RequestRotation(ScreenId id, ScreenRotation rotation)
+{
+    return renderServiceClient_->RequestRotation(id, rotation);
+}
+
+ScreenRotation RSInterfaces::GetRotation(ScreenId id)
+{
+    return renderServiceClient_->GetRotation(id);
+}
 } // namespace Rosen
 } // namespace OHOS

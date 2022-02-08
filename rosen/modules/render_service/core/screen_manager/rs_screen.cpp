@@ -395,6 +395,17 @@ int32_t RSScreen::GetScreenGamutMap(ScreenGamutMap &mode) const
     mode = GAMUT_MAP_CONSTANT;
     return StatusCode::SUCCESS;
 }
+
+bool RSScreen::SetRotation(ScreenRotation rotation)
+{
+    rotation_ = rotation;
+    return true;
+}
+
+ScreenRotation RSScreen::GetRotation() const
+{
+    return rotation_;
+}
 } // namespace impl
 } // namespace Rosen
 } // namespace OHOS

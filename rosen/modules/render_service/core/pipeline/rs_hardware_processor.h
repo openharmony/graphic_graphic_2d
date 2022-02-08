@@ -43,11 +43,13 @@ public:
 
 private:
     void Redraw(sptr<Surface>& surface, const struct PrepareCompleteParam& param, void* data);
+    void OnRotate();
     HdiBackend* backend_ = nullptr;
     sptr<RSScreenManager> screenManager_;
     RSScreenModeInfo curScreenInfo_;
     std::shared_ptr<HdiOutput> output_;
     std::vector<LayerInfoPtr> layers_;
+    ScreenRotation rotation_ {ScreenRotation::ROTATION_0};
 };
 } // namespace Rosen
 } // namespace OHOS

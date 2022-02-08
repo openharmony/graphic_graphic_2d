@@ -47,6 +47,14 @@ enum class ScreenEvent : uint8_t {
     UNKNOWN,
 };
 
+enum class ScreenRotation : uint32_t {
+    ROTATION_0 = 0,
+    ROTATION_90,
+    ROTATION_180,
+    ROTATION_270,
+    INVALID_SCREEN_ROTATION,
+};
+
 typedef enum : uint32_t {
     POWER_STATUS_ON = 0,
     POWER_STATUS_STANDBY,

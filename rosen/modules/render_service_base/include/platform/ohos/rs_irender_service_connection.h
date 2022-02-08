@@ -70,6 +70,8 @@ public:
         SET_SCREEN_GAMUT_MAP,
         GET_SCREEN_GAMUT_MAP,
         CREATE_VSYNC_CONNECTION,
+        REQUEST_ROTATION,
+        GET_ROTATION,
     };
 
     virtual void CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData) = 0;
@@ -130,6 +132,10 @@ public:
     virtual int32_t SetScreenGamutMap(ScreenId id, ScreenGamutMap mode) = 0;
 
     virtual int32_t GetScreenGamutMap(ScreenId id, ScreenGamutMap& mode) = 0;
+    
+    virtual bool RequestRotation(ScreenId id, ScreenRotation rotation) = 0;
+
+    virtual ScreenRotation GetRotation(ScreenId id) = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -122,6 +122,10 @@ public:
     virtual int32_t SetScreenGamutMap(ScreenId id, ScreenGamutMap mode) = 0;
 
     virtual int32_t GetScreenGamutMap(ScreenId id, ScreenGamutMap& mode) const = 0;
+
+    virtual bool RequestRotation(ScreenId id, ScreenRotation rotation) = 0;
+
+    virtual ScreenRotation GetRotation(ScreenId id) const = 0;
 };
 
 sptr<RSScreenManager> CreateOrGetScreenManager();
@@ -206,6 +210,10 @@ public:
     int32_t SetScreenGamutMap(ScreenId id, ScreenGamutMap mode) override;
 
     int32_t GetScreenGamutMap(ScreenId id, ScreenGamutMap& mode) const override;
+
+    bool RequestRotation(ScreenId id, ScreenRotation rotation) override;
+
+    ScreenRotation GetRotation(ScreenId id) const override;
 private:
     RSScreenManager();
     ~RSScreenManager() noexcept override;
@@ -235,6 +243,8 @@ private:
     int32_t SetScreenColorGamutLocked(ScreenId id, int32_t modeIdx);
     int32_t SetScreenGamutMapLocked(ScreenId id, ScreenGamutMap mode);
     int32_t GetScreenGamutMapLocked(ScreenId id, ScreenGamutMap& mode) const;
+    bool RequestRotationLocked(ScreenId id, ScreenRotation rotation);
+    ScreenRotation GetRotationLocked(ScreenId id) const;
 
     mutable std::mutex mutex_;
     HdiBackend *composer_ = nullptr;

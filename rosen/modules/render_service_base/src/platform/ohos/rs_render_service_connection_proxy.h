@@ -84,6 +84,10 @@ public:
     int32_t SetScreenGamutMap(ScreenId id, ScreenGamutMap mode) override;
 
     int32_t GetScreenGamutMap(ScreenId id, ScreenGamutMap& mode) override;
+    
+    bool RequestRotation(ScreenId id, ScreenRotation rotation) override;
+
+    ScreenRotation GetRotation(ScreenId id) override;
 
 private:
     static inline BrokerDelegator<RSRenderServiceConnectionProxy> delegator_;
