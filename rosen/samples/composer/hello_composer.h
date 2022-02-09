@@ -16,6 +16,7 @@
 #ifndef HELLO_COMPOSER_H
 #define HELLO_COMPOSER_H
 
+#include <vsync_helper.h>
 #include <display_type.h>
 #include <surface.h>
 #include "hdi_backend.h"
@@ -31,35 +32,41 @@ public:
     HelloComposer() = default;
     virtual ~HelloComposer() = default;
 
+    void Init();
     void Run(std::vector<std::string> &runArgs);
 
 private:
     uint32_t freq_ = 30;
-    uint32_t extraLayerWidth_ = 100;
-    uint32_t extraLayerHeight_ = 100;
-    uint32_t displayWidth_ = 360;
-    uint32_t displayHeight_ = 720;
+    uint32_t currScreenId_ = 0;
+    // key is screenId
+    std::unordered_map<uint32_t, uint32_t> displayWidthsMap_;
+    std::unordered_map<uint32_t, uint32_t> displayHeightsMap_;
     uint32_t currentModeIndex_ = 0;
     std::vector<DisplayModeInfo> displayModeInfos_;
-    std::vector<std::shared_ptr<HdiOutput>> outputs_;
+    // key is screenId
+    std::unordered_map<uint32_t, std::shared_ptr<HdiOutput>> outputMap_;
     bool dump_ = false;
     bool ready_ = false;
     bool initDeviceFinished_ = false;
     bool deviceConnected_ = false;
+    bool postHotPlugEvent_ = false;
     HdiBackend* backend_ = nullptr;
-    std::unique_ptr<HdiScreen> screen_ = nullptr;
-    std::shared_ptr<HdiOutput> output_ = nullptr;
-    std::vector<std::unique_ptr<LayerContext>> drawLayers;
+    std::vector<std::unique_ptr<HdiScreen>> screens_;
+    std::shared_ptr<HdiOutput> curOutput_;
+    // key is screenId
+    std::unordered_map<uint32_t, std::vector<std::unique_ptr<LayerContext>>> drawLayersMap_;
+    std::shared_ptr<OHOS::AppExecFwk::EventHandler> mainThreadHandler_;
 
-    void Init();
+    void InitLayers(uint32_t screenId);
+    void RequestSync();
+    void CreateShowLayers();
     void DrawFrameBufferData(void *image, uint32_t width, uint32_t height);
     void Draw();
-    void DrawSurface();
     void Sync(int64_t, void *data);
-    void CreatePhysicalScreen();
     void DoPrepareCompleted(sptr<Surface> &surface, const struct PrepareCompleteParam &param);
-    void CreateBaseSurface(uint32_t index);
+    void OnHotPlug(std::shared_ptr<HdiOutput> &output, bool connected);
     void OnHotPlugEvent(std::shared_ptr<HdiOutput> &output, bool connected);
+    uint32_t CreatePhysicalScreen();
 
     static void OnScreenPlug(std::shared_ptr<HdiOutput> &output, bool connected, void* data);
     static void OnPrepareCompleted(OHOS::sptr<Surface> &surface, const struct PrepareCompleteParam &param, void* data);

@@ -115,7 +115,7 @@ void HdiBackend::Repaint(std::vector<OutputPtr> &outputs)
         ret = device_->Commit(screenId, fbFence);
         if (ret != DISPLAY_SUCCESS) {
             HLOGE("commit failed, ret is %{public}d", ret);
-            //return;
+            // return
         }
 
         ReleaseLayerBuffer(screenId, layersMap);

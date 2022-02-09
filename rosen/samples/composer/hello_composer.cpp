@@ -17,7 +17,6 @@
 
 #include <securec.h>
 #include <sync_fence.h>
-#include <vsync_helper.h>
 
 using namespace OHOS;
 using namespace OHOS::Rosen;
@@ -42,14 +41,14 @@ void HelloComposer::Run(std::vector<std::string> &runArgs)
 
     backend_->RegScreenHotplug(HelloComposer::OnScreenPlug, this);
     while (1) {
-        if (output_ != nullptr) {
+        if (!outputMap_.empty()) {
             break;
         }
     }
 
     if (!initDeviceFinished_) {
         if (deviceConnected_) {
-            CreatePhysicalScreen();
+            CreateShowLayers();
         }
         initDeviceFinished_ = true;
     }
@@ -65,9 +64,9 @@ void HelloComposer::Run(std::vector<std::string> &runArgs)
 
     sleep(1);
 
-    auto runner = OHOS::AppExecFwk::EventRunner::Create(false);
-    auto handler = std::make_shared<OHOS::AppExecFwk::EventHandler>(runner);
-    handler->PostTask(std::bind(&HelloComposer::Init, this));
+    std::shared_ptr<OHOS::AppExecFwk::EventRunner> runner = OHOS::AppExecFwk::EventRunner::Create(false);
+    mainThreadHandler_ = std::make_shared<OHOS::AppExecFwk::EventHandler>(runner);
+    mainThreadHandler_->PostTask(std::bind(&HelloComposer::RequestSync, this));
     runner->Run();
 }
 
@@ -84,44 +83,69 @@ void HelloComposer::OnPrepareCompleted(sptr<Surface> &surface, const struct Prep
         return;
     }
 
-    if (data == nullptr) {
+    if (surface == nullptr) {
+        LOGE("surface is null");
         return;
     }
 
-    LOGI("OnPrepareCompleted param.layer size is %{public}zu", param.layers.size());
+    if (data == nullptr) {
+        LOGE("data ptr is null");
+        return;
+    }
+
     auto* thisPtr = static_cast<HelloComposer *>(data);
     thisPtr->DoPrepareCompleted(surface, param);
 }
 
-void HelloComposer::Init()
+void HelloComposer::CreateShowLayers()
 {
-    uint32_t statusHeight = displayHeight_ / 10; // statusHeight is 1 / 10 displayHeight
-    uint32_t launcherHeight = displayHeight_ - statusHeight * 2; // index 1, cal launcher height 2
-    uint32_t navigationY = displayHeight_ - statusHeight;
+    uint32_t screenId = CreatePhysicalScreen();
+
+    LOGI("Create %{public}zu screens", screens_.size());
+
+    InitLayers(screenId);
+}
+
+void HelloComposer::RequestSync()
+{
+    Sync(0, nullptr);
+}
+
+void HelloComposer::InitLayers(uint32_t screenId)
+{
+    LOGI("Init layers, screenId is %{public}d", screenId);
+    uint32_t displayWidth = displayWidthsMap_[screenId];
+    uint32_t displayHeight = displayHeightsMap_[screenId];
+
+    std::vector<std::unique_ptr<LayerContext>> &drawLayers = drawLayersMap_[screenId];
+
+    uint32_t statusHeight = displayHeight / 10; // statusHeight is 1 / 10 displayHeight
+    uint32_t launcherHeight = displayHeight - statusHeight * 2; // index 1, cal launcher height 2
+    uint32_t navigationY = displayHeight - statusHeight;
     LOGI("displayWidth[%{public}d], displayHeight[%{public}d], statusHeight[%{public}d], "
-         "launcherHeight[%{public}d], navigationY[%{public}d]", displayWidth_, displayHeight_,
+         "launcherHeight[%{public}d], navigationY[%{public}d]", displayWidth, displayHeight,
          statusHeight, launcherHeight, navigationY);
 
     // status bar
     drawLayers.emplace_back(std::make_unique<LayerContext>(
-        IRect { 0, 0, displayWidth_, statusHeight },
-        IRect { 0, 0, displayWidth_, statusHeight },
+        IRect { 0, 0, displayWidth, statusHeight },
+        IRect { 0, 0, displayWidth, statusHeight },
         1, LayerType::LAYER_STATUS));
 
     // launcher
     drawLayers.emplace_back(std::make_unique<LayerContext>(
-        IRect { 0, statusHeight, displayWidth_, launcherHeight },
-        IRect { 0, 0, displayWidth_, launcherHeight },
+        IRect { 0, statusHeight, displayWidth, launcherHeight },
+        IRect { 0, 0, displayWidth, launcherHeight },
         0, LayerType::LAYER_LAUNCHER));
 
     // navigation bar
     drawLayers.emplace_back(std::make_unique<LayerContext>(
-        IRect { 0, navigationY, displayWidth_, statusHeight },
-        IRect { 0, 0, displayWidth_, statusHeight },
+        IRect { 0, navigationY, displayWidth, statusHeight },
+        IRect { 0, 0, displayWidth, statusHeight },
         1, LayerType::LAYER_NAVIGATION));
 
-    uint32_t extraLayerWidth = displayWidth_ / 4; // layer width is 1 / 4 displayWidth
-    uint32_t extraLayerHeight = displayHeight_ / 4; // layer height is 1 / 4 of displayHeight
+    uint32_t extraLayerWidth = displayWidth / 4; // layer width is 1 / 4 displayWidth
+    uint32_t extraLayerHeight = displayHeight / 4; // layer height is 1 / 4 of displayHeight
     LOGI("extraLayerWidth[%{public}d], extraLayerHeight[%{public}d]", extraLayerWidth, extraLayerHeight);
 
     // extra layer 1
@@ -129,8 +153,6 @@ void HelloComposer::Init()
         IRect { 300, 300, extraLayerWidth, extraLayerHeight }, // 300 is position
         IRect { 0, 0, extraLayerWidth, extraLayerHeight },
         1, LayerType::LAYER_EXTRA)); // 2 is zorder
-
-    Sync(0, nullptr);
 }
 
 void HelloComposer::Sync(int64_t, void *data)
@@ -156,44 +178,50 @@ void HelloComposer::Sync(int64_t, void *data)
 
 void HelloComposer::Draw()
 {
-    std::vector<LayerInfoPtr> layerVec;
-    for (auto &drawLayer : drawLayers) { // producer
-        drawLayer->DrawBufferColor();
-    }
+    for (auto iter = drawLayersMap_.begin(); iter != drawLayersMap_.end(); ++iter) {
+        std::vector<std::shared_ptr<HdiOutput>> outputs;
+        uint32_t screenId = iter->first;
+        std::vector<std::unique_ptr<LayerContext>> &drawLayers = drawLayersMap_[screenId];
+        std::vector<LayerInfoPtr> layerVec;
+        for (auto &drawLayer : drawLayers) { // producer
+            drawLayer->DrawBufferColor();
+        }
 
-    for (auto &drawLayer : drawLayers) { // consumer
-        drawLayer->FillHDILayer();
-        layerVec.emplace_back(drawLayer->GetHdiLayer());
-    }
+        for (auto &drawLayer : drawLayers) { // consumer
+            drawLayer->FillHDILayer();
+            layerVec.emplace_back(drawLayer->GetHdiLayer());
+        }
 
-    LOGI("Draw layer size %{public}zu", layerVec.size());
-    output_->SetLayerInfo(layerVec);
+        curOutput_ = outputMap_[screenId];
+        outputs.emplace_back(curOutput_);
+        curOutput_->SetLayerInfo(layerVec);
 
-    IRect damageRect;
-    damageRect.x = 0;
-    damageRect.y = 0;
-    damageRect.w = displayWidth_;
-    damageRect.h = displayHeight_;
-    output_->SetOutputDamage(1, damageRect);
+        IRect damageRect;
+        damageRect.x = 0;
+        damageRect.y = 0;
+        damageRect.w = displayWidthsMap_[screenId];
+        damageRect.h = displayHeightsMap_[screenId];
+        curOutput_->SetOutputDamage(1, damageRect);
 
-    backend_->Repaint(outputs_);
+        if (dump_) {
+            std::string result;
+            curOutput_->Dump(result);
+            LOGI("Dump layer result after ReleaseBuffer : %{public}s", result.c_str());
+        }
 
-    if (dump_) {
-        std::string result;
-        output_->Dump(result);
-        LOGI("Dump layer result after ReleaseBuffer : %{public}s", result.c_str());
+        backend_->Repaint(outputs);
     }
 }
 
-void HelloComposer::CreatePhysicalScreen()
+uint32_t HelloComposer::CreatePhysicalScreen()
 {
-    screen_ = HdiScreen::CreateHdiScreen(output_->GetScreenId());
-    screen_->Init();
-    screen_->GetScreenSuppportedModes(displayModeInfos_);
-    outputs_.push_back(output_);
+    uint32_t screenId = currScreenId_;
+    std::unique_ptr<HdiScreen> screen = HdiScreen::CreateHdiScreen(screenId);
+    screen->Init();
+    screen->GetScreenSuppportedModes(displayModeInfos_);
     size_t supportModeNum = displayModeInfos_.size();
     if (supportModeNum > 0) {
-        screen_->GetScreenMode(currentModeIndex_);
+        screen->GetScreenMode(currentModeIndex_);
         LOGI("currentModeIndex:%{public}d", currentModeIndex_);
         for (size_t i = 0; i < supportModeNum; i++) {
             LOGI("modes(%{public}d) %{public}dx%{public}d freq:%{public}d",
@@ -201,23 +229,22 @@ void HelloComposer::CreatePhysicalScreen()
                 displayModeInfos_[i].height, displayModeInfos_[i].freshRate);
             if (displayModeInfos_[i].id == static_cast<int32_t>(currentModeIndex_)) {
                 freq_ = 30; // 30 freq
-                displayWidth_ = displayModeInfos_[i].width;
-                displayHeight_ = displayModeInfos_[i].height;
+                displayWidthsMap_[screenId] = displayModeInfos_[i].width;
+                displayHeightsMap_[screenId] = displayModeInfos_[i].height;
                 break;
             }
         }
-        screen_->SetScreenPowerStatus(DispPowerStatus::POWER_STATUS_ON);
-        screen_->SetScreenMode(currentModeIndex_);
+        screen->SetScreenPowerStatus(DispPowerStatus::POWER_STATUS_ON);
+        screen->SetScreenMode(currentModeIndex_);
         LOGI("SetScreenMode: currentModeIndex(%{public}d)", currentModeIndex_);
 
         DispPowerStatus powerState;
-        screen_->SetScreenPowerStatus(DispPowerStatus::POWER_STATUS_ON);
-        screen_->GetScreenPowerStatus(powerState);
+        screen->GetScreenPowerStatus(powerState);
         LOGI("get poweState:%{public}d", powerState);
     }
 
     DisplayCapability info;
-    screen_->GetScreenCapability(info);
+    screen->GetScreenCapability(info);
     LOGI("ScreenCapability: name(%{public}s), type(%{public}d), phyWidth(%{public}d), "
          "phyHeight(%{public}d)", info.name, info.type, info.phyWidth, info.phyHeight);
     LOGI("ScreenCapability: supportLayers(%{public}d), virtualDispCount(%{public}d), "
@@ -225,15 +252,33 @@ void HelloComposer::CreatePhysicalScreen()
          info.virtualDispCount, info.supportWriteBack, info.propertyCount);
 
     ready_ = true;
+
+    screens_.emplace_back(std::move(screen));
+
+    LOGE("CreatePhysicalScreen, screenId is %{public}d", screenId);
+
+    return screenId;
 }
 
 void HelloComposer::OnHotPlugEvent(std::shared_ptr<HdiOutput> &output, bool connected)
+{
+    if (mainThreadHandler_ == nullptr) {
+        LOGI("In main thread, call OnHotPlug directly");
+        OnHotPlug(output, connected);
+    } else {
+        LOGI("In sub thread, post msg to main thread");
+        mainThreadHandler_->PostTask(std::bind(&HelloComposer::OnHotPlug, this, output, connected));
+    }
+}
+
+void HelloComposer::OnHotPlug(std::shared_ptr<HdiOutput> &output, bool connected)
 {
     /*
      * Currently, IPC communication cannot be nested. Therefore, Vblank registration can be
      * initiated only after the initialization of the device is complete.
      */
-    output_ = output;
+    currScreenId_ = output->GetScreenId();
+    outputMap_[currScreenId_] = output;
     deviceConnected_ = connected;
 
     if (!initDeviceFinished_) {
@@ -244,25 +289,24 @@ void HelloComposer::OnHotPlugEvent(std::shared_ptr<HdiOutput> &output, bool conn
     LOGI("Callback HotPlugEvent, connected is %{public}u", connected);
 
     if (connected) {
-        CreatePhysicalScreen();
+        CreateShowLayers();
     }
 }
 
 void HelloComposer::DoPrepareCompleted(sptr<Surface> &surface, const struct PrepareCompleteParam &param)
 {
+    uint32_t screenId = curOutput_->GetScreenId();
+    uint32_t displayWidth = displayWidthsMap_[screenId];
+    uint32_t displayHeight = displayHeightsMap_[screenId];
+
     BufferRequestConfig requestConfig = {
-        .width = displayWidth_,  // need display width
-        .height = displayHeight_, // need display height
+        .width = displayWidth,  // need display width
+        .height = displayHeight, // need display height
         .strideAlignment = 0x8,
         .format = PIXEL_FMT_BGRA_8888,
         .usage = HBM_USE_CPU_READ | HBM_USE_CPU_WRITE | HBM_USE_MEM_DMA,
         .timeout = 0,
     };
-
-    if (surface == nullptr) {
-        LOGE("surface is null");
-        return;
-    }
 
     int32_t releaseFence = -1;
     sptr<SurfaceBuffer> fbBuffer = nullptr;
@@ -285,8 +329,6 @@ void HelloComposer::DoPrepareCompleted(sptr<Surface> &surface, const struct Prep
         }
     }
 
-    LOGI("fb fence is %{public}d, clientCount is %{public}d", releaseFence, clientCount);
-
     auto addr = static_cast<uint8_t *>(fbBuffer->GetVirAddr());
     if (hasClient) {
         DrawFrameBufferData(addr, fbBuffer->GetWidth(), fbBuffer->GetHeight());
@@ -299,8 +341,8 @@ void HelloComposer::DoPrepareCompleted(sptr<Surface> &surface, const struct Prep
 
     BufferFlushConfig flushConfig = {
         .damage = {
-            .w = displayWidth_,
-            .h = displayHeight_,
+            .w = displayWidth,
+            .h = displayHeight,
         }
     };
 
