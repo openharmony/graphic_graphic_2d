@@ -47,6 +47,7 @@ public:
         CREATE_NODE_AND_SURFACE,
         GET_DEFAULT_SCREEN_ID,
         CREATE_VIRTUAL_SCREEN,
+        SET_VIRTUAL_SCREEN_SURFACE,
         REMOVE_VIRTUAL_SCREEN,
         SET_SCREEN_CHANGE_CALLBACK,
         SET_SCREEN_ACTIVE_MODE,
@@ -85,6 +86,8 @@ public:
         sptr<Surface> surface,
         ScreenId mirrorId = 0,
         int32_t flags = 0) = 0;
+
+    virtual int32_t SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface) = 0;
 
     virtual void RemoveVirtualScreen(ScreenId id) = 0;
 

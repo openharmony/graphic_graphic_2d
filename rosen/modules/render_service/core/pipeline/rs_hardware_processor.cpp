@@ -109,11 +109,14 @@ void RSHardwareProcessor::ProcessSurface(RSSurfaceRenderNode &node)
         .dstRect = {
             .x = geoPtr->GetAbsRect().left_,
             .y = geoPtr->GetAbsRect().top_,
-            .w = geoPtr->GetAbsRect().width_,
-            .h = geoPtr->GetAbsRect().height_,
+            .w = geoPtr->GetAbsRect().width_ * node.GetRenderProperties().GetScaleX(), //TODO deal with rotate
+            .h = geoPtr->GetAbsRect().height_ * node.GetRenderProperties().GetScaleY(),
         },
         .zOrder = node.GetGlobalZOrder(),
-        .alpha = alpha_,
+        .alpha = {
+            .enGlobalAlpha = true,
+            .gAlpha = node.GetAlpha() * node.GetRenderProperties().GetAlpha() * 255,
+        },
         .buffer = node.GetBuffer(),
         .fence = node.GetFence(),
         .preBuffer = node.GetPreBuffer(),
@@ -128,7 +131,7 @@ void RSHardwareProcessor::ProcessSurface(RSSurfaceRenderNode &node)
         node.GetBuffer()->GetWidth(), node.GetBuffer()->GetHeight(), node.GetBuffer()->GetSurfaceBufferWidth(),
         node.GetBuffer()->GetSurfaceBufferHeight(), node.GetBuffer().GetRefPtr(),
         node.GetRenderProperties().GetPositionZ(), info.zOrder, info.blendType);
-    RsRenderServiceUtil::ComposeSurface(layer, node.GetConsumer(), layers_, info);
+    RsRenderServiceUtil::ComposeSurface(layer, node.GetConsumer(), layers_, info, &node);
 }
 
 void RSHardwareProcessor::Redraw(sptr<Surface>& surface, const struct PrepareCompleteParam& param, void* data)
@@ -162,12 +165,10 @@ void RSHardwareProcessor::Redraw(sptr<Surface>& surface, const struct PrepareCom
         if ((*iter) == nullptr || (*iter)->GetCompositionType() == CompositionType::COMPOSITION_DEVICE) {
             continue;
         }
-        SkMatrix matrix;
-        matrix.reset();
         ROSEN_LOGE("RsDebug RSHardwareProcessor::Redraw layer [%d %d %d %d]", (*iter)->GetLayerSize().x,
             (*iter)->GetLayerSize().y, (*iter)->GetLayerSize().w, (*iter)->GetLayerSize().h);
-        RsRenderServiceUtil::DrawBuffer(canvas.get(), matrix, (*iter)->GetBuffer(), (*iter)->GetLayerSize().x,
-            (*iter)->GetLayerSize().y, (*iter)->GetLayerSize().w, (*iter)->GetLayerSize().h);
+        RsRenderServiceUtil::DrawBuffer(canvas.get(), (*iter)->GetBuffer(),
+            *static_cast<RSSurfaceRenderNode *>((*iter)->GetLayerAdditionalInfo()));
     }
     BufferFlushConfig flushConfig = {
         .damage = {

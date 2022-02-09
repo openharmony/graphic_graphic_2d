@@ -138,7 +138,7 @@ private:
     std::mutex mutex_;
     std::atomic<int> bufferAvailableCount_ = 0;
     SkMatrix matrix_;
-    float alpha_ = 0.0f;
+    float alpha_ = 1.0f;
     float globalZOrder_ = 0.0f;
     NodeId parentId_ = 0;
     sptr<SurfaceBuffer> buffer_;

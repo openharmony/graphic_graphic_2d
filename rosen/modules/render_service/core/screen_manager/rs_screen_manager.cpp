@@ -309,19 +309,23 @@ ScreenId RSScreenManager::CreateVirtualScreen(
 {
     std::lock_guard<std::mutex> lock(mutex_);
 
-    uint64_t surfaceId = surface->GetUniqueId();
-    for (auto &[_, screen] : screens_) {
-        if (!screen->IsVirtual()) {
-            continue;
+    if (surface != nullptr) {
+        uint64_t surfaceId = surface->GetUniqueId();
+        for (auto &[_, screen] : screens_) {
+            if (!screen->IsVirtual()) {
+                continue;
+            }
+            auto screenSurface = screen->GetProducerSurface();
+            if (screenSurface == nullptr) {
+                continue;
+            }
+            if (screenSurface->GetUniqueId() == surfaceId) {
+                HiLog::Error(LOG_LABEL, "surface %{public}" PRIu64 " is used, create virtualscreen failed!", surfaceId);
+                return INVALID_SCREEN_ID;
+            }
         }
-        auto screenSurface = screen->GetProducerSurface();
-        if (screenSurface == nullptr) {
-            continue;
-        }
-        if (screenSurface->GetUniqueId() == surfaceId) {
-            HiLog::Error(LOG_LABEL, "surface %{public}" PRIu64 " is used, create virtualscreen failed!", surfaceId);
-            return INVALID_SCREEN_ID;
-        }
+    } else {
+        HiLog::Debug(LOG_LABEL, "%{public}s: surface is nullptr.\n", __func__);
     }
 
     VirtualScreenConfigs configs;
@@ -337,6 +341,27 @@ ScreenId RSScreenManager::CreateVirtualScreen(
     screens_[newId] = std::make_unique<RSScreen>(configs);
     HiLog::Debug(LOG_LABEL, "%{public}s: create virtual screen(id %{public}" PRIu64 ").\n", __func__, newId);
     return newId;
+}
+
+int32_t RSScreenManager::SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface)
+{
+    uint64_t surfaceId = surface->GetUniqueId();
+    for (auto &[screenId, screen] : screens_) {
+        if (!screen->IsVirtual() || screenId == id) {
+            continue;
+        }
+        auto screenSurface = screen->GetProducerSurface();
+        if (screenSurface == nullptr) {
+            continue;
+        }
+        if (screenSurface->GetUniqueId() == surface->GetUniqueId()) {
+            HiLog::Error(LOG_LABEL, "surface %{public}" PRIu64 " is used, set surface failed!", surfaceId);
+            return SURFACE_NOT_UNIQUE;
+        }
+    }
+    screens_.at(id)->SetProducerSurface(surface);
+    HiLog::Debug(LOG_LABEL, "%{public}s:  set virtual screen surface success! \n", __func__);
+    return SUCCESS;
 }
 
 void RSScreenManager::RemoveVirtualScreen(ScreenId id)

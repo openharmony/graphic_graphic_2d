@@ -61,6 +61,29 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             std::string name = data.ReadString();
             uint32_t width = data.ReadUint32();
             uint32_t height = data.ReadUint32();
+            sptr<Surface> surface = nullptr;
+            auto remoteObject = data.ReadRemoteObject();
+            if (remoteObject != nullptr) {
+                auto bufferProducer = iface_cast<IBufferProducer>(remoteObject);
+                surface = Surface::CreateSurfaceAsProducer(bufferProducer);
+            }
+
+            ScreenId mirrorId = data.ReadUint64();
+            int32_t flags = data.ReadInt32();
+
+            ScreenId id = CreateVirtualScreen(name, width, height, surface, mirrorId, flags);
+            reply.WriteUint64(id);
+            break;
+        }
+        case SET_VIRTUAL_SCREEN_SURFACE: {
+            auto token = data.ReadInterfaceToken();
+            if (token != RSIRenderServiceConnection::GetDescriptor()) {
+                ret = ERR_INVALID_STATE;
+                break;
+            }
+
+            // read the parcel data.
+            ScreenId id = data.ReadUint64();
             auto remoteObject = data.ReadRemoteObject();
             if (remoteObject == nullptr) {
                 ret = ERR_NULL_OBJECT;
@@ -68,11 +91,9 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             }
             auto bufferProducer = iface_cast<IBufferProducer>(remoteObject);
             sptr<Surface> surface = Surface::CreateSurfaceAsProducer(bufferProducer);
-            ScreenId mirrorId = data.ReadUint64();
-            int32_t flags = data.ReadInt32();
 
-            ScreenId id = CreateVirtualScreen(name, width, height, surface, mirrorId, flags);
-            reply.WriteUint64(id);
+            int32_t status = SetVirtualScreenSurface(id, surface);
+            reply.WriteInt32(status);
             break;
         }
         case REMOVE_VIRTUAL_SCREEN: {

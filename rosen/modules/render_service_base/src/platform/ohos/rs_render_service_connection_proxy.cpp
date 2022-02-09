@@ -123,9 +123,6 @@ ScreenId RSRenderServiceConnectionProxy::CreateVirtualScreen(
     ScreenId mirrorId,
     int32_t flags)
 {
-    if (surface == nullptr) {
-        return INVALID_SCREEN_ID;
-    }
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -138,8 +135,14 @@ ScreenId RSRenderServiceConnectionProxy::CreateVirtualScreen(
     data.WriteString(name);
     data.WriteUint32(width);
     data.WriteUint32(height);
-    auto producer = surface->GetProducer();
-    data.WriteRemoteObject(producer->AsObject());
+    
+    if (surface==nullptr) {
+        data.WriteRemoteObject(nullptr);
+    } else {
+        auto producer = surface->GetProducer();
+        data.WriteRemoteObject(producer->AsObject());
+    }
+    
     data.WriteUint64(mirrorId);
     data.WriteInt32(flags);
     int32_t err = Remote()->SendRequest(RSIRenderServiceConnection::CREATE_VIRTUAL_SCREEN, data, reply, option);
@@ -149,6 +152,34 @@ ScreenId RSRenderServiceConnectionProxy::CreateVirtualScreen(
 
     ScreenId id = reply.ReadUint64();
     return id;
+}
+
+int32_t RSRenderServiceConnectionProxy::SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface)
+{
+    if (surface == nullptr) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::SetVirtualScreenSurface: Send surface is nullptr!");
+        return INVALID_AUGMENTS;
+    }
+
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return WRITE_PARCEL_ERR;
+    }
+
+    option.SetFlags(MessageOption::TF_ASYNC);
+    data.WriteUint64(id);
+    auto producer = surface->GetProducer();
+    data.WriteRemoteObject(producer->AsObject());
+    int32_t err = Remote()->SendRequest(RSIRenderServiceConnection::SET_VIRTUAL_SCREEN_SURFACE, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::SetVirtualScreenSurface: Send Request err.");
+    }
+    
+    int32_t status = reply.ReadInt32();
+    return status;
 }
 
 void RSRenderServiceConnectionProxy::RemoveVirtualScreen(ScreenId id)

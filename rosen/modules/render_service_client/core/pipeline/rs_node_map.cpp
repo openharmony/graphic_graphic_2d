@@ -20,7 +20,6 @@
 
 namespace OHOS {
 namespace Rosen {
-
 RSNodeMap::RSNodeMap()
 {
     // add animation fallback node
@@ -29,10 +28,17 @@ RSNodeMap::RSNodeMap()
     nodeMap_.emplace(0, fallback_node);
 }
 
+RSNodeMap::~RSNodeMap()  noexcept
+{
+    for (auto &[id, node] : nodeMap_) {
+        node = nullptr;
+    }
+}
+
 RSNodeMap& RSNodeMap::MutableInstance()
 {
-    static RSNodeMap renderThread;
-    return renderThread;
+    static RSNodeMap nodeMap;
+    return nodeMap;
 }
 
 const RSNodeMap& RSNodeMap::Instance()

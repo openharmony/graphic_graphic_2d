@@ -43,6 +43,8 @@ public:
         ScreenId mirrorId = 0,
         int32_t flags = 0) override;
 
+    int32_t SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface) override;
+
     void RemoveVirtualScreen(ScreenId id) override;
 
     void SetScreenChangeCallback(sptr<RSIScreenChangeCallback> callback) override;

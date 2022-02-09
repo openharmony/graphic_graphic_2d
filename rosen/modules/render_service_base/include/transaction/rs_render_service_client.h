@@ -66,6 +66,8 @@ public:
     ScreenId CreateVirtualScreen(const std::string& name, uint32_t width, uint32_t height, sptr<Surface> surface,
         ScreenId mirrorId, int32_t flags);
 
+    int32_t SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface);
+    
     void RemoveVirtualScreen(ScreenId id);
 
     void SetScreenChangeCallback(const ScreenChangeCallback& callback);

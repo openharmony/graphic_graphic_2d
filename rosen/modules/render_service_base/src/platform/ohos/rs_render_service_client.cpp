@@ -154,6 +154,16 @@ ScreenId RSRenderServiceClient::CreateVirtualScreen(
     return renderService->CreateVirtualScreen(name, width, height, surface, mirrorId, flags);
 }
 
+int32_t RSRenderServiceClient::SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        return RENDER_SERVICE_NULL;
+    }
+
+    return renderService->SetVirtualScreenSurface(id, surface);
+}
+
 void RSRenderServiceClient::RemoveVirtualScreen(ScreenId id)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();

@@ -58,6 +58,7 @@ public:
     virtual uint32_t GetPowerStatus() const = 0;
     virtual std::shared_ptr<HdiOutput> GetOutput() const = 0;
     virtual sptr<Surface> GetProducerSurface() const = 0;
+    virtual void SetProducerSurface(sptr<Surface> producerSurface) = 0;
     virtual void DisplayDump(int32_t screenIndex, std::string& dumpString) = 0;
     virtual void SurfaceDump(int32_t screenIndex, std::string& dumpString) = 0;
     virtual void SetScreenBacklight(uint32_t level) = 0;
@@ -99,6 +100,7 @@ public:
     uint32_t GetPowerStatus() const override;
     std::shared_ptr<HdiOutput> GetOutput() const override;
     sptr<Surface> GetProducerSurface() const override;
+    void SetProducerSurface(sptr<Surface> producerSurface) override;
     void DisplayDump(int32_t screenIndex, std::string& dumpString) override;
     void SurfaceDump(int32_t screenIndex, std::string& dumpString) override;
     void SetScreenBacklight(uint32_t level) override;

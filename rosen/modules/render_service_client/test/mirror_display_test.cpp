@@ -328,7 +328,7 @@ int main()
         cout << "ImgReader init failed!" << endl;
     }
     DisplayId virtualDisplayId = RSInterfaces::GetInstance().CreateVirtualScreen("virtualDisplay",
-        modeInfo.GetScreenWidth(), modeInfo.GetScreenHeight(), imgReader.GetSurface());
+        modeInfo.GetScreenWidth(), modeInfo.GetScreenHeight(), nullptr);
     cout << "VirtualScreenId: " << virtualDisplayId << endl;
     cout << "------------------------------------------------------------------" << endl;
     RSDisplayNodeConfig mirrorConfig {virtualDisplayId, true, sourceDisplayNode->GetId()};
@@ -336,6 +336,15 @@ int main()
     sleep(1);
     
     int frameCnt = 5; // test 5 frames.
+    for (int i = 0; i < frameCnt; ++i) {
+        DrawSurface(SkRect::MakeXYWH(SKSCALAR_X, SKSCALAR_Y, SKSCALAR_W, SKSCALAR_H), 0xFFF0FFF0,
+            SkRect::MakeXYWH(SKSCALAR_X, SKSCALAR_Y, SKSCALAR_W, SKSCALAR_H), surfaceLauncher);
+        RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+        sleep(detail::SLEEP_TIME);
+    }
+
+    int32_t flag = RSInterfaces::GetInstance().SetVirtualScreenSurface(virtualDisplayId, imgReader.GetSurface());
+    cout<< "The flag of SetVirtualScreenSurface is "<< flag << endl;
     for (int i = 0; i < frameCnt; ++i) {
         DrawSurface(SkRect::MakeXYWH(SKSCALAR_X, SKSCALAR_Y, SKSCALAR_W, SKSCALAR_H), 0xFFF0FFF0,
             SkRect::MakeXYWH(SKSCALAR_X, SKSCALAR_Y, SKSCALAR_W, SKSCALAR_H), surfaceLauncher);

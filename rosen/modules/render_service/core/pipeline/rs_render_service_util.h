@@ -16,12 +16,13 @@
 #ifndef RENDER_SERVICE_CORE_PIPELINE_RS_RENDER_SERVICE_UTIL_H
 #define RENDER_SERVICE_CORE_PIPELINE_RS_RENDER_SERVICE_UTIL_H
 
+#include <surface.h>
+#include "display_type.h"
+#include "hdi_backend.h"
+#include "hdi_layer_info.h"
+#include "common/rs_obj_abs_geometry.h"
 #include "include/core/SkCanvas.h"
 #include "include/core/SkMatrix.h"
-#include "hdi_layer_info.h"
-#include "hdi_backend.h"
-#include "display_type.h"
-#include <surface.h>
 #include "pipeline/rs_surface_render_node.h"
 
 namespace OHOS {
@@ -43,10 +44,10 @@ struct ComposeInfo {
 class RsRenderServiceUtil {
 public:
     static void ComposeSurface(std::shared_ptr<HdiLayerInfo> layer, sptr<Surface> consumerSurface,
-        std::vector<LayerInfoPtr>& layers, ComposeInfo info);
-    static void DrawBuffer(SkCanvas* canvas, const SkMatrix& matrix, sptr<OHOS::SurfaceBuffer> buffer,
-        float tranX, float tranY, float width, float height);
-    static void DrawBuffer(SkCanvas* canvas, const SkMatrix& matrix, sptr<OHOS::SurfaceBuffer> buffer,
+        std::vector<LayerInfoPtr>& layers, ComposeInfo info, RSSurfaceRenderNode* node = nullptr);
+    static void DrawBuffer(SkCanvas* canvas, sptr<OHOS::SurfaceBuffer> buffer,
+        const std::shared_ptr<RSObjAbsGeometry> geotry, float alpha = 1.0f);
+    static void DrawBuffer(SkCanvas* canvas, sptr<OHOS::SurfaceBuffer> buffer,
         RSSurfaceRenderNode& node);
 };
 

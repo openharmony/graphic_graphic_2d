@@ -73,6 +73,8 @@ public:
         ScreenId mirrorId = 0,
         int flags = 0) = 0;
 
+    virtual int32_t SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface) = 0;
+
     virtual void RemoveVirtualScreen(ScreenId id) = 0;
 
     virtual void SetScreenActiveMode(ScreenId id, uint32_t modeId) = 0;
@@ -156,6 +158,8 @@ public:
         sptr<Surface> surface,
         ScreenId mirrorId,
         int32_t flags) override;
+
+    int32_t SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface) override;
 
     void RemoveVirtualScreen(ScreenId id) override;
 

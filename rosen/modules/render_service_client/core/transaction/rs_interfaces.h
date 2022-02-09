@@ -41,6 +41,8 @@ public:
         ScreenId mirrorId = 0,
         int flags = 0);
 
+    int32_t SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface);
+
     void RemoveVirtualScreen(ScreenId id);
 
     void SetScreenChangeCallback(const ScreenChangeCallback &callback);

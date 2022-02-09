@@ -58,9 +58,7 @@ RSRenderThread::RSRenderThread()
         ROSEN_TRACE_BEGIN(BYTRACE_TAG_GRAPHIC_AGP, "RSRenderThread::DrawFrame");
         {
             prevTimestamp_ = timestamp_;
-            if (!cmds_.empty()) {
-                ProcessCommands();
-            }
+            ProcessCommands();
         }
 
         ROSEN_LOGD("RSRenderThread DrawFrame(%llu) in %s", prevTimestamp_, renderContext_ ? "GPU" : "CPU");
@@ -85,6 +83,8 @@ RSRenderThread::RSRenderThread()
 
 RSRenderThread::~RSRenderThread()
 {
+    Stop();
+
     if (renderContext_ != nullptr) {
         ROSEN_LOGD("Destory renderContext!!");
         delete renderContext_;
@@ -96,6 +96,7 @@ void RSRenderThread::Start()
 {
     ROSEN_LOGD("RSRenderThread start.");
     running_.store(true);
+    SetBackgroundStatus(false);
     if (thread_ == nullptr) {
         thread_ = std::make_unique<std::thread>(&RSRenderThread::RenderLoop, this);
     }
@@ -222,13 +223,17 @@ void RSRenderThread::StopTimer()
 
 void RSRenderThread::ProcessCommands()
 {
-    ROSEN_LOGD("RSRenderThread ProcessCommands size: %lu\n", cmds_.size());
-    ROSEN_TRACE_BEGIN(BYTRACE_TAG_GRAPHIC_AGP, "ProcessCommands");
-    std::vector<std::unique_ptr<RSTransactionData>> cmds;
-    {
-        std::unique_lock<std::mutex> cmdLock(cmdMutex_);
-        std::swap(cmds, cmds_);
+    std::unique_lock<std::mutex> cmdLock(cmdMutex_);
+    if (cmds_.empty()) {
+        return;
     }
+
+    ROSEN_LOGD("RSRenderThread ProcessCommands size: %lu\n", cmds_.size());
+    std::vector<std::unique_ptr<RSTransactionData>> cmds;
+    std::swap(cmds, cmds_);
+    cmdLock.unlock();
+
+    ROSEN_TRACE_BEGIN(BYTRACE_TAG_GRAPHIC_AGP, "ProcessCommands");
     for (auto& cmdData : cmds) {
         cmdData->Process(context_);
     }

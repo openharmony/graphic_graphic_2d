@@ -47,6 +47,11 @@ ScreenId RSInterfaces::CreateVirtualScreen(
     return renderServiceClient_->CreateVirtualScreen(name, width, height, surface, mirrorId, flags);
 }
 
+int32_t RSInterfaces::SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface)
+{
+    return renderServiceClient_->SetVirtualScreenSurface(id, surface);
+}
+
 void RSInterfaces::RemoveVirtualScreen(ScreenId id)
 {
     renderServiceClient_->RemoveVirtualScreen(id);

@@ -46,7 +46,7 @@ public:
 
 private:
     explicit RSNodeMap();
-    ~RSNodeMap() = default;
+    ~RSNodeMap() noexcept;
     RSNodeMap(const RSNodeMap&) = delete;
     RSNodeMap(const RSNodeMap&&) = delete;
     RSNodeMap& operator=(const RSNodeMap&) = delete;

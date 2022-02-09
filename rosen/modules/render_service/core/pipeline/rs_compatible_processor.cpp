@@ -100,9 +100,7 @@ void RSCompatibleProcessor::ProcessSurface(RSSurfaceRenderNode& node)
 
     SkMatrix matrix;
     matrix.reset();
-    RsRenderServiceUtil::DrawBuffer(canvas_.get(), matrix, node.GetBuffer(),
-        static_cast<float>(geoPtr->GetAbsRect().left_), static_cast<float>(geoPtr->GetAbsRect().top_),
-        static_cast<float>(geoPtr->GetAbsRect().width_), static_cast<float>(geoPtr->GetAbsRect().height_));
+    RsRenderServiceUtil::DrawBuffer(canvas_.get(), node.GetBuffer(), node);
 }
 
 void RSCompatibleProcessor::PostProcess()

@@ -219,6 +219,11 @@ sptr<Surface> RSScreen::GetProducerSurface() const
     return producerSurface_;
 }
 
+void RSScreen::SetProducerSurface(sptr<Surface> producerSurface)
+{
+    producerSurface_ = producerSurface;
+}
+
 void RSScreen::ModeInfoDump(std::string& dumpString)
 {
     decltype(supportedModes_.size()) modeIndex = 0;
