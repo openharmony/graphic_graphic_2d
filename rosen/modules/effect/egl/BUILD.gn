@@ -1,0 +1,64 @@
+# Copyright (c) 2022 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/ohos.gni")
+import("//foundation/graphic/standard/graphic_config.gni")
+import("//foundation/graphic/standard/rosen/modules/effect/effect_config.gni")
+
+## Build libegl_effect.so
+
+ohos_shared_library("libegl_effect") {
+  include_dirs = [
+    "//foundation/graphic/standard/interfaces/innerkits/surface",
+    "//third_party/EGL/api",
+    "//third_party/openGLES/api",
+    "//foundation/graphic/standard/utils/log",
+    "include",
+  ]
+
+  cflags = [
+    "-Wall",
+    "-Werror",
+    "-g3",
+    "-Wall",
+    "-Wno-pointer-arith",
+    "-Wno-non-virtual-dtor",
+    "-Wno-missing-field-initializers",
+    "-Wno-c++11-narrowing",
+  ]
+
+  cflags_cc = [ "-std=c++17" ]
+
+  sources = []
+
+  deps = [ "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog" ]
+
+  if (effect_enable_gpu) {
+    sources += [ "src/egl_manager.cpp" ]
+
+    deps += [
+      "//foundation/graphic/standard:libgl",
+      "//foundation/graphic/standard:libsurface",
+      "//foundation/graphic/standard/interfaces/kits/napi/graphic/common:graphic_napi_common",
+    ]
+  }
+
+  if (effect_enable_gpu) {
+    install_enable = true
+  } else {
+    install_enable = false
+  }
+
+  part_name = "graphic_standard"
+  subsystem_name = "graphic"
+}

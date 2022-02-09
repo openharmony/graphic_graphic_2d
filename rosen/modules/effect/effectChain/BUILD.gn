@@ -1,0 +1,95 @@
+# Copyright (c) 2022 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/ohos.gni")
+import("//foundation/graphic/standard/graphic_config.gni")
+import("//foundation/graphic/standard/rosen/modules/effect/effect_config.gni")
+
+## Build libeffectchain.so
+
+config("effect_config") {
+  cflags = [
+    "-Wall",
+    "-Werror",
+    "-g3",
+    "-Wall",
+    "-Wno-pointer-arith",
+    "-Wno-non-virtual-dtor",
+    "-Wno-missing-field-initializers",
+    "-Wno-c++11-narrowing",
+  ]
+  defines = [ "EGL_EGLEXT_PROTOTYPES" ]
+}
+
+config("effect_public_config") {
+  include_dirs = [
+    "//third_party/cJSON",
+    "//foundation/multimedia/image_standard/interfaces/innerkits/include",
+    "//foundation/graphic/standard/utils/log",
+    "include",
+  ]
+  if (effect_enable_gpu) {
+    include_dirs += [ "//third_party/openGLES/api" ]
+  }
+}
+
+ohos_shared_library("libeffectchain") {
+  sources = [ "//third_party/cJSON/cJSON.c" ]
+
+  deps = [
+    "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
+    "//foundation/graphic/standard/interfaces/kits/napi/graphic/common:graphic_napi_common",
+    "//foundation/multimedia/image_standard:image_framework",
+  ]
+
+  if (effect_enable_gpu) {
+    sources += [
+      "src/algo_filter.cpp",
+      "src/brightness_filter.cpp",
+      "src/builder.cpp",
+      "src/contrast_filter.cpp",
+      "src/filter.cpp",
+      "src/filter_factory.cpp",
+      "src/gaussian_blur_filter.cpp",
+      "src/horizontal_blur_filter.cpp",
+      "src/image_chain.cpp",
+      "src/input.cpp",
+      "src/mesh.cpp",
+      "src/output.cpp",
+      "src/program.cpp",
+      "src/saturation_filter.cpp",
+      "src/scale_filter.cpp",
+      "src/vertical_blur_filter.cpp",
+    ]
+
+    deps += [ "//foundation/graphic/standard:libgl" ]
+  }
+
+  configs = [ ":effect_config" ]
+
+  public_configs = [
+    ":effect_public_config",
+    "//utils/native/base:utils_config",
+  ]
+
+  cflags_cc = [ "-std=c++17" ]
+
+  if (effect_enable_gpu) {
+    install_enable = true
+  } else {
+    install_enable = false
+  }
+
+  part_name = "graphic_standard"
+  subsystem_name = "graphic"
+}
