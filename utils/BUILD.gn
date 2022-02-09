@@ -30,6 +30,10 @@ group("semaphore") {
   public_deps = [ "semaphore:semaphore" ]
 }
 
+group("socketpair") {
+  public_deps = [ "socketpair:socketpair" ]
+}
+
 group("test_header") {
   public_deps = [ "test_header:test_header" ]
 }
