@@ -14,18 +14,7 @@
 import("//build/ohos.gni")
 import("//build/ohos/ndk/ndk.gni")
 
-ohos_ndk_headers("GLES_header") {
-  dest_dir = "$ndk_headers_out_dir/GLES"
-  sources = [
-    "//third_party/openGLES/api/GLES3/gl3.h",
-    "//third_party/openGLES/api/GLES3/gl31.h",
-    "//third_party/openGLES/api/GLES3/gl32.h",
-    "//third_party/openGLES/api/GLES3/gl3platform.h",
-  ]
-}
-
-ohos_ndk_library("libGLES_ndk") {
-  output_name = "GLES"
-  output_extension = "so"
-  ndk_description_file = "./libGLES.ndk.json"
+ohos_ndk_headers("KHR_header") {
+  dest_dir = "$ndk_headers_out_dir/KHR"
+  sources = [ "//third_party/EGL/api/KHR/khrplatform.h" ]
 }
