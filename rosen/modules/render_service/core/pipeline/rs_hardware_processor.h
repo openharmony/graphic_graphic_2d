@@ -47,7 +47,6 @@ private:
     sptr<RSScreenManager> screenManager_;
     RSScreenModeInfo curScreenInfo_;
     std::shared_ptr<HdiOutput> output_;
-    LayerAlpha alpha_ = { .enPixelAlpha = true };
     std::vector<LayerInfoPtr> layers_;
 };
 } // namespace Rosen

@@ -23,6 +23,7 @@
 #include "platform/drawing/rs_surface.h"
 #include "screen_manager/rs_screen_manager.h"
 #include "screen_manager/rs_screen_mode_info.h"
+#include <memory>
 
 namespace OHOS {
 namespace Rosen {
@@ -148,11 +149,10 @@ void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::ProcessSurfaceRenderNode(RSS
         return;
     }
     if (isDisplayNode_) {
-        RsRenderServiceUtil::DrawBuffer(canvas_.get(), node.GetMatrix(), node.GetBuffer(), node);
+        RsRenderServiceUtil::DrawBuffer(canvas_.get(), node.GetBuffer(), node);
     } else {
-        float scaleX = node.GetRenderProperties().GetBoundsWidth();
-        float scaleY = node.GetRenderProperties().GetBoundsHeight();
-        RsRenderServiceUtil::DrawBuffer(canvas_.get(), node.GetMatrix(), node.GetBuffer(), 0, 0, scaleX, scaleY);
+        std::shared_ptr<RSObjAbsGeometry> geotry = std::make_shared<RSObjAbsGeometry>();
+        RsRenderServiceUtil::DrawBuffer(canvas_.get(), node.GetBuffer(), geotry);
     }
     for (auto child : node.GetChildren()) {
         auto existingChild = child.lock();
