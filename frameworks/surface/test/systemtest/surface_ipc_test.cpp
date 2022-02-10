@@ -83,7 +83,8 @@ pid_t SurfaceIPCTest::ChildProcessMain()
     auto psurf = Surface::CreateSurfaceAsProducer(producer);
 
     sptr<SurfaceBuffer> buffer = nullptr;
-    auto sret = psurf->RequestBufferNoFence(buffer, requestConfig);
+    int releaseFence = -1;
+    auto sret = psurf->RequestBuffer(buffer, releaseFence, requestConfig);
     if (sret != OHOS::GSERROR_OK) {
         data = sret;
         write(pipeFd[1], &data, sizeof(data));
@@ -164,11 +165,11 @@ HWTEST_F(SurfaceIPCTest, BufferIPC001, Function | MediumTest | Level2)
 }
 
 /*
-* Function: RequestBufferNoFence and flush buffer
+* Function: RequestBuffer and flush buffer
 * Type: Function
 * Rank: Important(2)
 * EnvConditions: N/A
-* CaseDescription: 1. call RequestBufferNoFence, check sret and buffer
+* CaseDescription: 1. call RequestBuffer, check sret and buffer
 *                  2. call flushbuffer and check sret
  */
 HWTEST_F(SurfaceIPCTest, Cache001, Function | MediumTest | Level2)
@@ -178,7 +179,8 @@ HWTEST_F(SurfaceIPCTest, Cache001, Function | MediumTest | Level2)
     auto psurf = Surface::CreateSurfaceAsProducer(producer);
 
     sptr<SurfaceBuffer> buffer = nullptr;
-    auto sret = psurf->RequestBufferNoFence(buffer, requestConfig);
+    int releaseFence = -1;
+    auto sret = psurf->RequestBuffer(buffer, releaseFence, requestConfig);
     ASSERT_EQ(sret, OHOS::GSERROR_OK);
     ASSERT_NE(buffer, nullptr);
     int32_t int32;

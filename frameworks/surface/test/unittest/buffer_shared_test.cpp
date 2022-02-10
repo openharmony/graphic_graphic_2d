@@ -67,7 +67,7 @@ void BufferSharedTest::TearDownTestCase()
 * Type: Reliability
 * Rank: Important(2)
 * EnvConditions: N/A
-* CaseDescription: 1. call RequestBufferNoFence with buffer=buffer1, buffer2，the param is same
+* CaseDescription: 1. call RequestBuffer with buffer=buffer1, buffer2，the param is same
 *                  2. check ret1 and ret2 are OHOS::GSERROR_OK, check buffer1 and buffer2 is not nullptr
 *                  3. check the addr of buffer1 EQ buffer2
 * */
@@ -85,8 +85,9 @@ HWTEST_F(BufferSharedTest, RequestBuffer001, Function | MediumTest | Level2)
                 .usage = HBM_USE_CPU_READ | HBM_USE_CPU_WRITE | HBM_USE_MEM_DMA,
                 .timeout = 0,
             };
-            ret1 = producerSurface1->RequestBufferNoFence(buffer1, requestConfig);
-            ret2 = producerSurface2->RequestBufferNoFence(buffer2, requestConfig);
+            int releaseFence = -1;
+            ret1 = producerSurface1->RequestBuffer(buffer1, releaseFence, requestConfig);
+            ret2 = producerSurface2->RequestBuffer(buffer2, releaseFence, requestConfig);
         }
         STEP("2: check ret1 ret2 buffer1 buffer2") {
             STEP_ASSERT_EQ(ret1, OHOS::GSERROR_OK);
@@ -104,7 +105,7 @@ HWTEST_F(BufferSharedTest, RequestBuffer001, Function | MediumTest | Level2)
 * Type: Reliability
 * Rank: Important(2)
 * EnvConditions: N/A
-* CaseDescription: 1. call RequestBufferNoFence with buffer=bufferDiff,
+* CaseDescription: 1. call RequestBuffer with buffer=bufferDiff,
 *                     the requestconfig is not same with buffer1
 *                  2. check ret1 is GSERROR_INVALID_ARGUMENTS
 * */
@@ -123,7 +124,8 @@ HWTEST_F(BufferSharedTest, RequestBufferDiff001, Function | MediumTest | Level2)
                 .usage = HBM_USE_CPU_READ | HBM_USE_CPU_WRITE | HBM_USE_MEM_DMA,
                 .timeout = 0,
             };
-            ret1 = producerSurface1->RequestBufferNoFence(bufferDiff, diffRequestConfig);
+            int releaseFence = -1;
+            ret1 = producerSurface1->RequestBuffer(bufferDiff, releaseFence, diffRequestConfig);
         }
         STEP("2: check ret1") {
             STEP_ASSERT_EQ(ret1, GSERROR_INVALID_ARGUMENTS);

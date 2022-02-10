@@ -35,24 +35,13 @@ public:
     virtual bool IsConsumer() const = 0;
     virtual sptr<IBufferProducer> GetProducer() const = 0;
 
-    // use RequestBufferNoFence or RequestBufferWithFence
     virtual GSError RequestBuffer(sptr<SurfaceBuffer>& buffer,
                                        int32_t &fence, BufferRequestConfig &config) = 0;
-
-    virtual GSError RequestBufferNoFence(sptr<SurfaceBuffer>& buffer,
-                                              BufferRequestConfig &config) = 0;
-
-    // need close fence, or destroy fence
-    virtual GSError RequestBufferWithFence(sptr<SurfaceBuffer>& buffer,
-                                             int32_t &fence, BufferRequestConfig &config) = 0;
 
     virtual GSError CancelBuffer(sptr<SurfaceBuffer>& buffer) = 0;
 
     virtual GSError FlushBuffer(sptr<SurfaceBuffer>& buffer,
                                      int32_t fence, BufferFlushConfig &config) = 0;
-
-    virtual GSError FlushBufferNoFence(sptr<SurfaceBuffer>& buffer,
-                                            BufferFlushConfig &config) = 0;
 
     virtual GSError AcquireBuffer(sptr<SurfaceBuffer>& buffer, int32_t &fence,
                                        int64_t &timestamp, Rect &damage) = 0;

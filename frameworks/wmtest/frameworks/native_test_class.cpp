@@ -87,7 +87,8 @@ void NativeTestSync::Sync(int64_t, void *data)
         rconfig = *reinterpret_cast<BufferRequestConfig *>(data);
     }
 
-    auto ret = surf->RequestBufferNoFence(buffer, rconfig);
+    int releaseFence = -1;
+    auto ret = surf->RequestBuffer(buffer, releaseFence, rconfig);
     if (ret == GSERROR_NO_BUFFER) {
         RequestSync(std::bind(&NativeTestSync::Sync, this, SYNC_FUNC_ARG), data);
         return;
@@ -164,7 +165,8 @@ void NativeTestDrawer::Sync(int64_t, void *)
         rconfig = *reinterpret_cast<BufferRequestConfig *>(data);
     }
 
-    GSError ret = surf->RequestBufferNoFence(buffer, rconfig);
+    int releaseFence = -1;
+    GSError ret = surf->RequestBuffer(buffer, releaseFence, rconfig);
     if (ret == GSERROR_NO_BUFFER) {
         DrawOnce();
         return;

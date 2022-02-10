@@ -126,22 +126,22 @@ HWTEST_F(ConsumerSurfaceTest, QueueSize002, Function | MediumTest | Level2)
 }
 
 /*
-* Function: RequestBufferNoFence and FlushBuffer
+* Function: RequestBuffer and FlushBuffer
 * Type: Function
 * Rank: Important(2)
 * EnvConditions: N/A
-* CaseDescription: 1. call RequestBufferNoFence by cs and ps
+* CaseDescription: 1. call RequestBuffer by cs and ps
 *                  2. call FlushBuffer both
 *                  3. check ret
  */
 HWTEST_F(ConsumerSurfaceTest, ReqCanFluAcqRel001, Function | MediumTest | Level2)
 {
     sptr<SurfaceBuffer> buffer;
-
-    GSError ret = cs->RequestBufferNoFence(buffer, requestConfig);
+    int releaseFence = -1;
+    GSError ret = cs->RequestBuffer(buffer, releaseFence, requestConfig);
     ASSERT_NE(ret, OHOS::GSERROR_OK);
 
-    ret = ps->RequestBufferNoFence(buffer, requestConfig);
+    ret = ps->RequestBuffer(buffer, releaseFence, requestConfig);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
     ASSERT_NE(buffer, nullptr);
 
@@ -151,7 +151,7 @@ HWTEST_F(ConsumerSurfaceTest, ReqCanFluAcqRel001, Function | MediumTest | Level2
     ret = ps->FlushBuffer(buffer, -1, flushConfig);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
-    ret = ps->RequestBufferNoFence(buffer, requestConfig);
+    ret = ps->RequestBuffer(buffer, releaseFence, requestConfig);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
     ret = ps->FlushBuffer(buffer, -1, flushConfig);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
@@ -205,21 +205,22 @@ HWTEST_F(ConsumerSurfaceTest, ReqCanFluAcqRel003, Function | MediumTest | Level2
 }
 
 /*
-* Function: RequestBufferNoFence and CancelBuffer
+* Function: RequestBuffer and CancelBuffer
 * Type: Function
 * Rank: Important(2)
 * EnvConditions: N/A
-* CaseDescription: 1. call RequestBufferNoFence by cs and ps
+* CaseDescription: 1. call RequestBuffer by cs and ps
 *                  2. call CancelBuffer both
 *                  3. check ret
  */
 HWTEST_F(ConsumerSurfaceTest, ReqCanFluAcqRel004, Function | MediumTest | Level2)
 {
     sptr<SurfaceBuffer> buffer;
-    GSError ret = cs->RequestBufferNoFence(buffer, requestConfig);
+    int releaseFence = -1;
+    GSError ret = cs->RequestBuffer(buffer, releaseFence, requestConfig);
     ASSERT_NE(ret, OHOS::GSERROR_OK);
 
-    ret = ps->RequestBufferNoFence(buffer, requestConfig);
+    ret = ps->RequestBuffer(buffer, releaseFence, requestConfig);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
     ret = cs->CancelBuffer(buffer);
@@ -296,7 +297,8 @@ HWTEST_F(ConsumerSurfaceTest, RegisterConsumerListener001, Function | MediumTest
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
     sptr<SurfaceBuffer> buffer;
-    ret = ps->RequestBufferNoFence(buffer, requestConfig);
+    int releaseFence = -1;
+    ret = ps->RequestBuffer(buffer, releaseFence, requestConfig);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
     ASSERT_NE(buffer, nullptr);
 
@@ -312,12 +314,12 @@ HWTEST_F(ConsumerSurfaceTest, RegisterConsumerListener001, Function | MediumTest
 }
 
 /*
-* Function: RegisterConsumerListener, RequestBufferNoFence and FlushBuffer
+* Function: RegisterConsumerListener, RequestBuffer and FlushBuffer
 * Type: Function
 * Rank: Important(2)
 * EnvConditions: N/A
 * CaseDescription: 1. call RegisterConsumerListener
-*                  2. call RequestBufferNoFence
+*                  2. call RequestBuffer
 *                  3. call FlushBuffer
 *                  4. check ret
  */
@@ -328,7 +330,8 @@ HWTEST_F(ConsumerSurfaceTest, RegisterConsumerListener002, Function | MediumTest
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
     sptr<SurfaceBuffer> buffer;
-    ret = ps->RequestBufferNoFence(buffer, requestConfig);
+    int releaseFence = -1;
+    ret = ps->RequestBuffer(buffer, releaseFence, requestConfig);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
     ASSERT_NE(buffer, nullptr);
 

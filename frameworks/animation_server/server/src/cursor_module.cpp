@@ -84,9 +84,10 @@ void CursorModule::Update()
         .format = PIXEL_FMT_RGBA_8888,
         .usage = surface->GetDefaultUsage(),
     };
-    auto ret = surface->RequestBufferNoFence(buffer, rconfig);
+    int releaseFence = -1;
+    auto ret = surface->RequestBuffer(buffer, releaseFence, rconfig);
     if (ret != SURFACE_ERROR_OK) {
-        GSLOG2HI(ERROR) << "RequestBufferNoFence failed with " << ret;
+        GSLOG2HI(ERROR) << "RequestBuffer failed with " << ret;
         return;
     }
 

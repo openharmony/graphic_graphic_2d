@@ -38,19 +38,10 @@ public:
     GSError RequestBuffer(sptr<SurfaceBuffer>& buffer,
                                int32_t &fence, BufferRequestConfig &config) override;
 
-    GSError RequestBufferNoFence(sptr<SurfaceBuffer>& buffer,
-                                      BufferRequestConfig &config) override;
-
-    GSError RequestBufferWithFence(sptr<SurfaceBuffer>& buffer,
-                                     int32_t &fence, BufferRequestConfig &config) override;
-
     GSError CancelBuffer(sptr<SurfaceBuffer>& buffer) override;
 
     GSError FlushBuffer(sptr<SurfaceBuffer>& buffer,
                              int32_t fence, BufferFlushConfig &config) override;
-
-    GSError FlushBufferNoFence(sptr<SurfaceBuffer>& buffer,
-                                    BufferFlushConfig &config) override;
 
     GSError AcquireBuffer(sptr<SurfaceBuffer>& buffer, int32_t &fence,
                                int64_t &timestamp, Rect &damage) override;

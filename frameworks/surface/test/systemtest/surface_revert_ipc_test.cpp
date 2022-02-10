@@ -77,7 +77,8 @@ pid_t SurfaceRevertIPCTest::ChildProcessMain()
 
     int64_t data;
     sptr<SurfaceBuffer> buffer = nullptr;
-    auto sret = psurf->RequestBufferNoFence(buffer, requestConfig);
+    int releaseFence = -1;
+    auto sret = psurf->RequestBuffer(buffer, releaseFence, requestConfig);
     if (sret != OHOS::GSERROR_OK) {
         data = sret;
         write(pipeFd[1], &data, sizeof(data));
@@ -115,7 +116,7 @@ pid_t SurfaceRevertIPCTest::ChildProcessMain()
 }
 
 /*
-* Function: RequestBufferNoFence and flush buffer
+* Function: RequestBuffer and flush buffer
 * Type: Function
 * Rank: Important(2)
 * EnvConditions: N/A
@@ -137,7 +138,8 @@ HWTEST_F(SurfaceRevertIPCTest, Fork001, Function | MediumTest | Level2)
     auto psurf = Surface::CreateSurfaceAsProducer(producer);
 
     sptr<SurfaceBuffer> buffer = nullptr;
-    auto sret = psurf->RequestBufferNoFence(buffer, requestConfig);
+    int releaseFence = -1;
+    auto sret = psurf->RequestBuffer(buffer, releaseFence, requestConfig);
     EXPECT_EQ(sret, OHOS::GSERROR_OK);
     EXPECT_NE(buffer, nullptr);
     if (buffer != nullptr) {

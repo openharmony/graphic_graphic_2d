@@ -65,25 +65,6 @@ sptr<IBufferProducer> ProducerSurface::GetProducer() const
 GSError ProducerSurface::RequestBuffer(sptr<SurfaceBuffer>& buffer,
     int32_t &fence, BufferRequestConfig &config)
 {
-    fence = -1;
-    return RequestBufferNoFence(buffer, config);
-}
-
-GSError ProducerSurface::RequestBufferNoFence(sptr<SurfaceBuffer>& buffer,
-    BufferRequestConfig &config)
-{
-    int32_t releaseFence = -1;
-    auto sret = RequestBufferWithFence(buffer, releaseFence, config);
-    if (sret == GSERROR_OK && releaseFence >= 0) {
-        BLOGI("closing fence: %{public}d", releaseFence);
-        close(releaseFence);
-    }
-    return sret;
-}
-
-GSError ProducerSurface::RequestBufferWithFence(sptr<SurfaceBuffer>& buffer,
-    int32_t &fence, BufferRequestConfig &config)
-{
     IBufferProducer::RequestBufferReturnValue retval;
     BufferExtraDataImpl bedataimpl;
     GSError ret = GetProducer()->RequestBuffer(config, bedataimpl, retval);
@@ -153,12 +134,6 @@ GSError ProducerSurface::FlushBuffer(sptr<SurfaceBuffer>& buffer,
     BufferExtraDataImpl bedataimpl;
     bufferImpl->GetExtraData(bedataimpl);
     return GetProducer()->FlushBuffer(bufferImpl->GetSeqNum(), bedataimpl, fence, config);
-}
-
-GSError ProducerSurface::FlushBufferNoFence(sptr<SurfaceBuffer>& buffer,
-    BufferFlushConfig &config)
-{
-    return FlushBuffer(buffer, -1, config);
 }
 
 GSError ProducerSurface::AcquireBuffer(sptr<SurfaceBuffer>& buffer, int32_t &fence,

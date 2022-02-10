@@ -101,11 +101,11 @@ HWTEST_F(ProducerSurfaceTest, QueueSize001, Function | MediumTest | Level2)
 }
 
 /*
-* Function: RequestBufferNoFence and FlushBuffer
+* Function: RequestBuffer and FlushBuffer
 * Type: Function
 * Rank: Important(2)
 * EnvConditions: N/A
-* CaseDescription: 1. call RequestBufferNoFence
+* CaseDescription: 1. call RequestBuffer
 *                  2. call FlushBuffer
 *                  3. check ret
  */
@@ -113,7 +113,8 @@ HWTEST_F(ProducerSurfaceTest, ReqCanFluAcqRel001, Function | MediumTest | Level2
 {
     sptr<SurfaceBuffer> buffer;
 
-    GSError ret = psurf->RequestBufferNoFence(buffer, requestConfig);
+    int releaseFence = -1;
+    GSError ret = psurf->RequestBuffer(buffer, releaseFence, requestConfig);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
     ASSERT_NE(buffer, nullptr);
 
@@ -122,19 +123,20 @@ HWTEST_F(ProducerSurfaceTest, ReqCanFluAcqRel001, Function | MediumTest | Level2
 }
 
 /*
-* Function: RequestBufferNoFence and FlushBuffer
+* Function: RequestBuffer and FlushBuffer
 * Type: Function
 * Rank: Important(2)
 * EnvConditions: N/A
-* CaseDescription: 1. call RequestBufferNoFence
+* CaseDescription: 1. call RequestBuffer
 *                  2. call FlushBuffer 2 times
 *                  3. check ret
  */
 HWTEST_F(ProducerSurfaceTest, ReqCanFluAcqRel002, Function | MediumTest | Level2)
 {
     sptr<SurfaceBuffer> buffer;
+    int releaseFence = -1;
 
-    GSError ret = psurf->RequestBufferNoFence(buffer, requestConfig);
+    GSError ret = psurf->RequestBuffer(buffer, releaseFence, requestConfig);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
     ASSERT_NE(buffer, nullptr);
 
@@ -178,11 +180,11 @@ HWTEST_F(ProducerSurfaceTest, ReqCanFluAcqRel003, Function | MediumTest | Level2
 }
 
 /*
-* Function: RequestBufferNoFence and CancelBuffer
+* Function: RequestBuffer and CancelBuffer
 * Type: Function
 * Rank: Important(2)
 * EnvConditions: N/A
-* CaseDescription: 1. call RequestBufferNoFence
+* CaseDescription: 1. call RequestBuffer
 *                  2. call CancelBuffer
 *                  3. check ret
  */
@@ -190,7 +192,8 @@ HWTEST_F(ProducerSurfaceTest, ReqCanFluAcqRel004, Function | MediumTest | Level2
 {
     sptr<SurfaceBuffer> buffer;
 
-    GSError ret = psurf->RequestBufferNoFence(buffer, requestConfig);
+    int releaseFence = -1;
+    GSError ret = psurf->RequestBuffer(buffer, releaseFence, requestConfig);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
     ret = psurf->CancelBuffer(buffer);
@@ -198,11 +201,11 @@ HWTEST_F(ProducerSurfaceTest, ReqCanFluAcqRel004, Function | MediumTest | Level2
 }
 
 /*
-* Function: RequestBufferNoFence and CancelBuffer
+* Function: RequestBuffer and CancelBuffer
 * Type: Function
 * Rank: Important(2)
 * EnvConditions: N/A
-* CaseDescription: 1. call RequestBufferNoFence
+* CaseDescription: 1. call RequestBuffer
 *                  2. call CancelBuffer 2 times
 *                  3. check ret
  */
@@ -210,7 +213,8 @@ HWTEST_F(ProducerSurfaceTest, ReqCanFluAcqRel005, Function | MediumTest | Level2
 {
     sptr<SurfaceBuffer> buffer;
 
-    GSError ret = psurf->RequestBufferNoFence(buffer, requestConfig);
+    int releaseFence = -1;
+    GSError ret = psurf->RequestBuffer(buffer, releaseFence, requestConfig);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
     ret = psurf->CancelBuffer(buffer);
@@ -221,11 +225,11 @@ HWTEST_F(ProducerSurfaceTest, ReqCanFluAcqRel005, Function | MediumTest | Level2
 }
 
 /*
-* Function: RequestBufferNoFence and CancelBuffer
+* Function: RequestBuffer and CancelBuffer
 * Type: Function
 * Rank: Important(2)
 * EnvConditions: N/A
-* CaseDescription: 1. call RequestBufferNoFence and CancelBuffer many times
+* CaseDescription: 1. call RequestBuffer and CancelBuffer many times
 *                  2. check ret
  */
 HWTEST_F(ProducerSurfaceTest, ReqCanFluAcqRel006, Function | MediumTest | Level2)
@@ -233,14 +237,15 @@ HWTEST_F(ProducerSurfaceTest, ReqCanFluAcqRel006, Function | MediumTest | Level2
     sptr<SurfaceBuffer> buffer;
     sptr<SurfaceBuffer> buffer1;
     sptr<SurfaceBuffer> buffer2;
+    int releaseFence = -1;
 
-    GSError ret = psurf->RequestBufferNoFence(buffer, requestConfig);
+    GSError ret = psurf->RequestBuffer(buffer, releaseFence, requestConfig);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
-    ret = psurf->RequestBufferNoFence(buffer1, requestConfig);
+    ret = psurf->RequestBuffer(buffer1, releaseFence, requestConfig);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
-    ret = psurf->RequestBufferNoFence(buffer2, requestConfig);
+    ret = psurf->RequestBuffer(buffer2, releaseFence, requestConfig);
     ASSERT_NE(ret, OHOS::GSERROR_OK);
 
     ret = psurf->CancelBuffer(buffer);
@@ -276,11 +281,11 @@ HWTEST_F(ProducerSurfaceTest, SetQueueSizeDeleting001, Function | MediumTest | L
 }
 
 /*
-* Function: RequestBufferNoFence, ReleaseBuffer and CancelBuffer
+* Function: RequestBuffer, ReleaseBuffer and CancelBuffer
 * Type: Function
 * Rank: Important(2)
 * EnvConditions: N/A
-* CaseDescription: 1. call RequestBufferNoFence
+* CaseDescription: 1. call RequestBuffer
 *                  2. call ReleaseBuffer
 *                  3. call CancelBuffer
 *                  4. check ret
@@ -289,7 +294,8 @@ HWTEST_F(ProducerSurfaceTest, ReqCanFluAcqRel007, Function | MediumTest | Level2
 {
     sptr<SurfaceBuffer> buffer;
 
-    GSError ret = psurf->RequestBufferNoFence(buffer, requestConfig);
+    int releaseFence = -1;
+    GSError ret = psurf->RequestBuffer(buffer, releaseFence, requestConfig);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
     ret = psurf->ReleaseBuffer(buffer, -1);

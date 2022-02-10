@@ -133,7 +133,8 @@ void AnimationServer::SplitWindowUpdate()
         .timeout = 0,
     };
 
-    GSError ret = surf->RequestBufferNoFence(buffer, rconfig);
+    int releaseFence = -1;
+    GSError ret = surf->RequestBuffer(buffer, releaseFence, rconfig);
     if (ret == GSERROR_NO_BUFFER) {
         return;
     } else if (ret != GSERROR_OK || buffer == nullptr) {
@@ -237,7 +238,8 @@ void AnimationServer::LaunchPageWindowUpdate()
         .timeout = 0,
     };
 
-    SurfaceError ret = surf->RequestBufferNoFence(buffer, rconfig);
+    int releaseFence = -1;
+    SurfaceError ret = surf->RequestBuffer(buffer, releaseFence, rconfig);
     if (ret == SURFACE_ERROR_NO_BUFFER) {
         return;
     } else if (ret != SURFACE_ERROR_OK || buffer == nullptr) {
