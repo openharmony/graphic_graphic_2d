@@ -30,9 +30,6 @@ public:
     void Clear();
     const RectI& GetDirtyRegion() const;
     bool IsDirty() const;
-    void SetSurfaceSize(int w, int h);
-    int GetSurfaceWidth() const;
-    int GetSurfaceHeight() const;
     void UpdateDirty();
 
 private:

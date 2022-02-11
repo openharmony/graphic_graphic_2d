@@ -94,13 +94,6 @@ void RSUIDirector::SetRSSurfaceNode(std::shared_ptr<RSSurfaceNode> surfaceNode)
     AttachSurface();
 }
 
-void RSUIDirector::SetSurfaceNodeSize(int width, int height)
-{
-    surfaceWidth_ = width;
-    surfaceHeight_ = height;
-    AttachSurface();
-}
-
 void RSUIDirector::SetRoot(NodeId root)
 {
     if (root_ == root) {
@@ -115,7 +108,7 @@ void RSUIDirector::AttachSurface()
 {
     auto node = RSNodeMap::Instance().GetNode<RSRootNode>(root_);
     if (node != nullptr && surfaceNode_ != nullptr) {
-        node->AttachRSSurfaceNode(surfaceNode_, surfaceWidth_, surfaceHeight_);
+        node->AttachRSSurfaceNode(surfaceNode_);
         ROSEN_LOGD("RSUIDirector::AttachSurface [%llu]", surfaceNode_->GetId());
     } else {
         ROSEN_LOGD("RSUIDirector::AttachSurface not ready");

@@ -36,7 +36,6 @@ public:
     void GoForeground();
     void Init();
     void SetRSSurfaceNode(std::shared_ptr<RSSurfaceNode> surfaceNode);
-    void SetSurfaceNodeSize(int width, int height);
 
     void SetRoot(NodeId root);
     void SetUITaskRunner(const TaskRunner& uiTaskRunner);

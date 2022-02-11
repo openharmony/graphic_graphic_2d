@@ -19,8 +19,8 @@
 #include "pipeline/rs_node_map.h"
 #include "platform/common/rs_log.h"
 #include "transaction/rs_transaction_proxy.h"
-#include "ui/rs_ui_director.h"
 #include "ui/rs_surface_node.h"
+#include "ui/rs_ui_director.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -39,10 +39,9 @@ std::shared_ptr<RSNode> RSRootNode::Create(bool isRenderServiceNode)
 
 RSRootNode::RSRootNode(bool isRenderServiceNode) : RSCanvasNode(isRenderServiceNode) {}
 
-void RSRootNode::AttachRSSurfaceNode(std::shared_ptr<RSSurfaceNode> surfaceNode, int width, int height) const
+void RSRootNode::AttachRSSurfaceNode(std::shared_ptr<RSSurfaceNode> surfaceNode) const
 {
-    std::unique_ptr<RSCommand> command =
-        std::make_unique<RSRootNodeAttachRSSurfaceNode>(GetId(), surfaceNode->GetId(), width, height);
+    std::unique_ptr<RSCommand> command = std::make_unique<RSRootNodeAttachRSSurfaceNode>(GetId(), surfaceNode->GetId());
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy != nullptr) {
         transactionProxy->AddCommand(command, IsRenderServiceNode());

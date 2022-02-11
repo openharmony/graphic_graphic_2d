@@ -29,21 +29,19 @@ RSRootRenderNode::RSRootRenderNode(NodeId id, std::weak_ptr<RSContext> context) 
 
 RSRootRenderNode::~RSRootRenderNode() {}
 
-void RSRootRenderNode::AttachRSSurfaceNode(NodeId surfaceNodeId, int width, int height)
+void RSRootRenderNode::AttachRSSurfaceNode(NodeId surfaceNodeId)
 {
     surfaceNodeId_ = surfaceNodeId;
-    surfaceWidth_ = width;
-    surfaceHeight_ = height;
 }
 
 int32_t RSRootRenderNode::GetSurfaceWidth() const
 {
-    return surfaceWidth_;
+    return GetRenderProperties().GetFrameWidth();
 }
 
 int32_t RSRootRenderNode::GetSurfaceHeight() const
 {
-    return surfaceHeight_;
+    return GetRenderProperties().GetFrameHeight();
 }
 
 std::shared_ptr<RSSurface> RSRootRenderNode::GetSurface()

@@ -49,32 +49,6 @@ void RSUIDirectorTest::SetUp() {}
 void RSUIDirectorTest::TearDown() {}
 
 /**
- * @tc.name: SetSurfaceNodeSize001
- * @tc.desc:
- * @tc.type:FUNC
- * @tc.require:AR000GGR40
- * @tc.author:
- */
-HWTEST_F(RSUIDirectorTest, SetSurfaceNodeSize001, TestSize.Level1)
-{
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
-    director->SetSurfaceNodeSize(g_normalInt_1, g_normalInt_2);
-}
-
-/**
- * @tc.name: SetSurfaceNodeSize002
- * @tc.desc:
- * @tc.type:FUNC
- * @tc.require:AR000GGR40
- * @tc.author:
- */
-HWTEST_F(RSUIDirectorTest, SetSurfaceNodeSize002, TestSize.Level1)
-{
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
-    director->SetSurfaceNodeSize(std::numeric_limits<int>::max(), std::numeric_limits<int>::min());
-}
-
-/**
  * @tc.name: SetTimeStamp001
  * @tc.desc:
  * @tc.type:FUNC
@@ -220,8 +194,6 @@ HWTEST_F(RSUIDirectorTest, UIDirectorTotal001, TestSize.Level1)
     std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
 
     director->Init();
-
-    director->SetSurfaceNodeSize(800, 600);
 
     director->SetRoot(rootNode->GetId());
 

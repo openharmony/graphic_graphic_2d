@@ -51,22 +51,6 @@ bool RSDirtyRegionManager::IsDirty() const
     return (dirtyRegion_.width_ > 0) && (dirtyRegion_.height_ > 0);
 }
 
-void RSDirtyRegionManager::SetSurfaceSize(int w, int h)
-{
-    surfaceWidth_ = w;
-    surfaceHeight_ = h;
-}
-
-int RSDirtyRegionManager::GetSurfaceWidth() const
-{
-    return surfaceWidth_;
-}
-
-int RSDirtyRegionManager::GetSurfaceHeight() const
-{
-    return surfaceHeight_;
-}
-
 void RSDirtyRegionManager::UpdateDirty()
 {
     PushHistory(dirtyRegion_);

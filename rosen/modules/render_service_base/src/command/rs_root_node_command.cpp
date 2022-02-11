@@ -27,11 +27,10 @@ void RootNodeCommandHelper::Create(RSContext& context, NodeId id)
     context.GetMutableNodeMap().RegisterRenderNode(node);
 }
 
-void RootNodeCommandHelper::AttachRSSurfaceNode(
-    RSContext& context, NodeId id, NodeId surfaceNodeId, int width, int height)
+void RootNodeCommandHelper::AttachRSSurfaceNode(RSContext& context, NodeId id, NodeId surfaceNodeId)
 {
     if (auto node = context.GetNodeMap().GetRenderNode<RSRootRenderNode>(id)) {
-        node->AttachRSSurfaceNode(surfaceNodeId, width, height);
+        node->AttachRSSurfaceNode(surfaceNodeId);
         context.GetGlobalRootRenderNode()->AddChild(node);
     }
 }

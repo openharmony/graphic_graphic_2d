@@ -37,7 +37,7 @@ public:
     }
 
 protected:
-    void AttachRSSurfaceNode(std::shared_ptr<RSSurfaceNode> surfaceNode, int width, int height) const;
+    void AttachRSSurfaceNode(std::shared_ptr<RSSurfaceNode> surfaceNode) const;
 
     RSRootNode(bool isRenderServiceNode);
     RSRootNode(const RSRootNode&) = delete;

@@ -15,8 +15,8 @@
 
 #include "pipeline/rs_render_thread_visitor.h"
 
-#include <include/core/SkFont.h>
 #include <include/core/SkColor.h>
+#include <include/core/SkFont.h>
 #include <include/core/SkPaint.h>
 
 #include "pipeline/rs_canvas_render_node.h"

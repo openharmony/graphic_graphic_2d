@@ -29,7 +29,7 @@ public:
     virtual void Prepare(const std::shared_ptr<RSNodeVisitor>& visitor) override;
     virtual void Process(const std::shared_ptr<RSNodeVisitor>& visitor) override;
 
-    void AttachRSSurfaceNode(NodeId SurfaceNodeId, int width, int height);
+    void AttachRSSurfaceNode(NodeId SurfaceNodeId);
 
     RSRenderNodeType GetType() const override
     {
@@ -45,8 +45,6 @@ public:
     void ClearSurfaceNodeInRS();
 
 private:
-    int32_t surfaceWidth_ = 0;
-    int32_t surfaceHeight_ = 0;
     std::shared_ptr<RSSurface> rsSurface_ = nullptr;
     NodeId surfaceNodeId_;
     std::vector<NodeId> childSurfaceNodeId_;

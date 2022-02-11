@@ -68,7 +68,6 @@ int main()
 
     std::cout << "rs app demo stage 1 " << std::endl;
     rsUiDirector->SetRSSurfaceNode(surfaceNode);
-    rsUiDirector->SetSurfaceNodeSize(rect.width_, rect.height_);
     Init(rsUiDirector, rect.width_, rect.height_);
     rsUiDirector->SendMessages();
     sleep(1);
@@ -78,7 +77,6 @@ int main()
     window->Resize(2560, resizeH);
     rootNode->SetBounds(0, 0, 2560, resizeH);
     rootNode->SetBackgroundColor(SK_ColorYELLOW);
-    rsUiDirector->SetSurfaceNodeSize(2560, resizeH);
     rsUiDirector->SendMessages();
     sleep(4);
 
@@ -102,7 +100,6 @@ int main()
     // window->Resize(2560, resizeH);
     // rootNode->SetBounds(0, 0, 2560, resizeH);
     // rootNode->SetBackgroundColor(SK_ColorYELLOW);
-    // rsUiDirector->SetSurfaceNodeSize(2560, resizeH);
     // rsUiDirector->SendMessages();
     // sleep(4);
 

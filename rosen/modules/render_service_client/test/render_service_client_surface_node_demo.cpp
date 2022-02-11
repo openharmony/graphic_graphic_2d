@@ -96,7 +96,6 @@ void Init(std::shared_ptr<RSUIDirector> rsUiDirector, int width, int height)
     if (!rsUiDirector) {
         return;
     }
-    rsUiDirector->SetSurfaceNodeSize(width, height);
     rsUiDirector->Init();
     std::cout << "Init Rosen Backend" << std::endl;
 
