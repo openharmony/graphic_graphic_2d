@@ -22,24 +22,119 @@
 extern "C" {
 #endif
 
+/*
+ * @brief Create a NativeWindow from producer surface, Each call will generates a new NativeWindow
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeWindow
+ * @param pSurface Indicates producer surface
+ * @return NativeWindow
+ */
 struct NativeWindow* OH_NativeWindow_CreateNativeWindowFromSurface(void* pSurface);
+
+/*
+ * @brief Unreference nativewindow object, When the reference count == 0, destory the NativeWindow
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeWindow
+ * @param window Indicates NativeWindow
+ */
 void OH_NativeWindow_DestoryNativeWindow(struct NativeWindow* window);
 
+/*
+ * @brief Create a NativeWindowBuffer from producer surface buffer
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeWindow
+ * @param pSurfaceBuffer Indicates producer surface buffer
+ * @return NativeWindowBuffer
+ */
 struct NativeWindowBuffer* OH_NativeWindow_CreateNativeWindowBufferFromSurfaceBuffer(void* pSurfaceBuffer);
+
+/*
+ * @brief Unreference NativeWindowBuffer object, when the reference count == 0, destory a NativeWindow buffer
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeWindow
+ * @param buffer Indicates NativeWindow buffer
+ */
 void OH_NativeWindow_DestoryNativeWindowBuffer(struct NativeWindowBuffer* buffer);
 
+/*
+ * @brief Dequeue a buffer from NativeWindow
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeWindow
+ * @param window Indicates NativeWindow
+ * @param buffer Indicates [out] get NativeWindowBuffer
+ * @param fenceFd Indicates [out] get release fence
+ * @return GSError
+ */
 int32_t OH_NativeWindow_NativeWindowRequestBuffer(struct NativeWindow *window,
-    /* [out] */ struct NativeWindowBuffer **buffer,
-    /* [out] get release fence */ int *fenceFd);
+    struct NativeWindowBuffer **buffer, int *fenceFd);
+
+/*
+ * @brief Queue a buffer to NativeWindow
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeWindow
+ * @param window Indicates NativeWindow
+ * @param buffer Indicates NativeWindowBuffer
+ * @param fenceFd Indicates acquire fence
+ * @param region Indicates the Buffer dirty size
+ * @return GSError
+ */
 int32_t OH_NativeWindow_NativeWindowFlushBuffer(struct NativeWindow *window, struct NativeWindowBuffer *buffer,
     int fenceFd, Region region);
+
+/*
+ * @brief Cancel the NativeWindowBuffer to be queued
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeWindow
+ * @param window Indicates NativeWindow
+ * @param buffer Indicates NativeWindowBuffer
+ * @return GSError
+ */
 int32_t OH_NativeWindow_NativeWindowCancelBuffer(struct NativeWindow *window, struct NativeWindowBuffer *buffer);
 
+/*
+ * @brief Handle the NativeWindowOperation of the NativeWindow
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeWindow
+ * @param window Indicates NativeWindow
+ * @param code Indicates NativeWindowOperation
+ * @return GSError
+ */
 int32_t OH_NativeWindow_NativeWindowHandleOpt(struct NativeWindow *window, int code, ...);
+
+/*
+ * @brief Get the BufferHandle from the NativeWindowBuffer
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeWindow
+ * @param buffer Indicates NativeWindowBuffer
+ * @return BufferHandle
+ */
 BufferHandle *OH_NativeWindow_GetBufferHandleFromNative(struct NativeWindowBuffer *buffer);
 
+/*
+ * @brief Increase the reference count of the NativeObject
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeWindow
+ * @param obj Indicates NativeWindow or NativeWindowBuffer
+ * @return GSError
+ */
 int32_t OH_NativeWindow_NativeObjectReference(void *obj);
+
+/*
+ * @brief decrease the reference count of the NativeObject
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeWindow
+ * @param obj Indicates NativeWindow or NativeWindowBuffer
+ * @return GSError
+ */
 int32_t OH_NativeWindow_NativeObjectUnreference(void *obj);
+
+/*
+ * @brief Get the MagicId of the NativeObject
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeWindow
+ * @param obj Indicates NativeWindow or NativeWindowBuffer
+ * @return MagicId
+ */
 int32_t OH_NativeWindow_GetNativeObjectMagic(void *obj);
 
 #ifdef __cplusplus
