@@ -197,7 +197,7 @@ private:
     std::map<RSAnimatableProperty, int> animatingPropertyNum_;
     std::shared_ptr<RSMotionPathOption> motionPathOption_;
 
-    std::shared_ptr<const RSTransitionEffect> transitionEffect_ = RSTransitionEffect::OPACITY;
+    std::shared_ptr<const RSTransitionEffect> transitionEffect_ = nullptr;
 
     RSProperties stagingProperties_;
 

@@ -64,14 +64,6 @@ bool RSRenderNode::Animate(int64_t timestamp)
 
 bool RSRenderNode::Update(RSDirtyRegionManager& dirtyManager, const RSProperties* parent, bool parentDirty)
 {
-    GetDisappearingChildren().remove_if([this](std::shared_ptr<RSBaseRenderNode>& child) {
-        bool needToDelete = !child->HasTransition();
-        if (needToDelete && ROSEN_EQ<RSBaseRenderNode>(child->GetParent(), weak_from_this())) {
-            child->ResetParent();
-        }
-        return needToDelete;
-    });
-
     if (!renderProperties_.GetVisible()) {
         return false;
     }

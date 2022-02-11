@@ -25,6 +25,7 @@ enum class RS_EXPORT FillMode { FORWARDS = 0, BACKWARDS, BOTH, NONE };
 class RS_EXPORT RSAnimationTimingProtocol {
 public:
     RSAnimationTimingProtocol() = default;
+    RSAnimationTimingProtocol(int duration) : duration_(duration) {}
     virtual ~RSAnimationTimingProtocol() = default;
 
     void SetDuration(int duration)

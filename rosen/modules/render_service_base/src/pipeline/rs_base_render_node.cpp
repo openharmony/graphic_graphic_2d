@@ -185,12 +185,20 @@ void RSBaseRenderNode::RemoveDisappearingChild(const SharedPtr& child)
 
 bool RSBaseRenderNode::Animate(int64_t timestamp)
 {
-    bool hasRunningAnimation = false;
-    // process disappearing children
-    for (auto& node : disappearingChildren_) {
-        hasRunningAnimation = node->Animate(timestamp) || hasRunningAnimation;
+    if (disappearingChildren_.empty()) {
+        return false;
     }
-    return hasRunningAnimation;
+
+    // process animation in disappearing children, remove child if animation is finished
+    GetDisappearingChildren().remove_if([this, timestamp](std::shared_ptr<RSBaseRenderNode>& child) {
+        bool needToDelete = !child->Animate(timestamp);
+        if (needToDelete && ROSEN_EQ<RSBaseRenderNode>(child->GetParent(), weak_from_this())) {
+            child->ResetParent();
+        }
+        return needToDelete;
+    });
+
+    return true;
 }
 
 template<typename T>

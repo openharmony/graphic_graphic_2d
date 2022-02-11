@@ -36,29 +36,23 @@ enum RSTransitionEffectType : uint16_t {
 
 RSRenderTransitionEffect* RSRenderTransitionEffect::Unmarshalling(Parcel& parcel)
 {
-    uint16_t transitionType;
+    uint16_t transitionType = 0;
     if (!parcel.ReadUint16(transitionType)) {
         ROSEN_LOGE("RSRenderTransitionEffect::Unmarshalling, ParseParam Failed");
         return nullptr;
     }
-    RSRenderTransitionEffect* ret = nullptr;
     switch (transitionType) {
         case RSTransitionEffectType::FADE:
-            ret = RSTransitionFade::Unmarshalling(parcel);
-            break;
+            return RSTransitionFade::Unmarshalling(parcel);
         case RSTransitionEffectType::SCALE:
-            ret = RSTransitionScale::Unmarshalling(parcel);
-            break;
-        case RSTransitionEffectType::ROTATE:
-            ret = RSTransitionRotate::Unmarshalling(parcel);
-            break;
+            return RSTransitionScale::Unmarshalling(parcel);
         case RSTransitionEffectType::TRANSLATE:
-            ret = RSTransitionTranslate::Unmarshalling(parcel);
-            break;
+            return RSTransitionTranslate::Unmarshalling(parcel);
+        case RSTransitionEffectType::ROTATE:
+            return RSTransitionRotate::Unmarshalling(parcel);
         default:
             return nullptr;
     }
-    return ret;
 }
 
 bool RSTransitionFade::Marshalling(Parcel& parcel) const
