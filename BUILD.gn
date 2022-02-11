@@ -42,6 +42,7 @@ group("graphic_standard_test") {
     "frameworks/vsync:test",
     "frameworks/wmtest:wmtest",
     "rosen/modules/composer:test",
+    "rosen/modules/effect/test/unittest:test",
   ]
 }
 
