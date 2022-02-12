@@ -73,7 +73,7 @@ if (ace_enable_gpu) {
 ohos_executable("drawing_sample_rs") {
   install_enable = true
 
-  sources = [ "drawing_sample_rs.cpp" ]
+  sources = [ "drawing_c_sample.cpp" ]
 
   include_dirs = [
     "//foundation/graphic/standard/rosen/modules/2d_graphics/include",
