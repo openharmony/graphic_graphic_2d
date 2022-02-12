@@ -12,22 +12,19 @@
 # limitations under the License.
 
 import("//build/config/clang/clang.gni")
-import("//build/ohos.gni")
-import("//build/ohos_var.gni")
 
-if ("${product_name}" == "rk3566" || "${product_name}" == "rk3568" ||
-    "${product_name}" == "watchos" || "${product_name}" == "Hi3516DV300" ||
+if ("${product_name}" == "watchos" || "${product_name}" == "Hi3516DV300" ||
     "${product_name}" == "ohos-arm64" ||
     "${product_name}" == "qemu-arm-linux-min") {
   gpu_defines = [ "ACE_DISABLE_GL" ]
-  ace_enable_gpu = false  # temporary gpu
+  ace_enable_gpu = false
+  libgl = []
+} else if ("${product_name}" == "rk3566" || "${product_name}" == "rk3568") {
+  gpu_defines = [ "ACE_ENABLE_GL" ]
+  ace_enable_gpu = true
+  libgl = [ "//device/hihope/hardware/gpu:mali-bifrost-g52-g2p0-ohos" ]
 } else {
   gpu_defines = [ "ACE_ENABLE_GL" ]
   ace_enable_gpu = true
-}
-
-if (ace_enable_gpu) {
   libgl = [ "//device/hisilicon/hardware/gpu:gpu_libs" ]
-} else {
-  libgl = []
 }
