@@ -112,8 +112,8 @@ void RSHardwareProcessor::ProcessSurface(RSSurfaceRenderNode &node)
         .dstRect = {
             .x = geoPtr->GetAbsRect().left_,
             .y = geoPtr->GetAbsRect().top_,
-            .w = geoPtr->GetAbsRect().width_ * node.GetRenderProperties().GetScaleX(), //TODO deal with rotate
-            .h = geoPtr->GetAbsRect().height_ * node.GetRenderProperties().GetScaleY(),
+            .w = geoPtr->GetAbsRect().width_,
+            .h = geoPtr->GetAbsRect().height_,
         },
         .zOrder = node.GetGlobalZOrder(),
         .alpha = {
@@ -126,6 +126,8 @@ void RSHardwareProcessor::ProcessSurface(RSSurfaceRenderNode &node)
         .preFence = node.GetPreFence(),
         .blendType = node.GetBlendType(),
     };
+    auto transitionProperties = node.GetAnimationManager().GetTransitionProperties();
+    CalculateInfo(transitionProperties, info, node);
     std::shared_ptr<HdiLayerInfo> layer = HdiLayerInfo::CreateHdiLayerInfo();
     ROSEN_LOGE("RsDebug RSHardwareProcessor::ProcessSurface surfaceNode id:%llu name:[%s] dst [%d %d %d %d]"\
         "SrcRect [%d %d] rawbuffer [%d %d] surfaceBuffer [%d %d] buffaddr:%p, z:%f, globalZOrder:%d, blendType = %d",
@@ -135,6 +137,31 @@ void RSHardwareProcessor::ProcessSurface(RSSurfaceRenderNode &node)
         node.GetBuffer()->GetSurfaceBufferHeight(), node.GetBuffer().GetRefPtr(),
         node.GetRenderProperties().GetPositionZ(), info.zOrder, info.blendType);
     RsRenderServiceUtil::ComposeSurface(layer, node.GetConsumer(), layers_, info, &node);
+}
+
+void RSHardwareProcessor::CalculateInfo(const std::unique_ptr<RSTransitionProperties>& transitionProperties,
+    ComposeInfo& info, RSSurfaceRenderNode& node)
+{
+    if (!transitionProperties) {
+        return;
+    }
+    auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(node.GetRenderProperties().GetBoundsGeometry());
+    if (geoPtr == nullptr) {
+        ROSEN_LOGE("RsDebug RSHardwareProcessor::ProcessSurface geoPtr == nullptr");
+        return;
+    }
+    auto delx = (1 - transitionProperties->GetScale().x_) * geoPtr->GetAbsRect().width_ / 2;
+    auto dely = (1 - transitionProperties->GetScale().y_) * geoPtr->GetAbsRect().height_ / 2;
+    info.dstRect = {
+        .x = geoPtr->GetAbsRect().left_ + transitionProperties->GetTranslate().x_ + delx,
+        .y = geoPtr->GetAbsRect().top_ + transitionProperties->GetTranslate().y_ + dely,
+        .w = geoPtr->GetAbsRect().width_ * transitionProperties->GetScale().x_,
+        .h = geoPtr->GetAbsRect().height_ * transitionProperties->GetScale().y_,
+    };
+    info.alpha = {
+        .enGlobalAlpha = true,
+        .gAlpha = node.GetAlpha() * node.GetRenderProperties().GetAlpha() * transitionProperties->GetAlpha() * 255,
+    };
 }
 
 void RSHardwareProcessor::Redraw(sptr<Surface>& surface, const struct PrepareCompleteParam& param, void* data)
@@ -157,16 +184,20 @@ void RSHardwareProcessor::Redraw(sptr<Surface>& surface, const struct PrepareCom
         .usage = HBM_USE_CPU_READ | HBM_USE_CPU_WRITE | HBM_USE_MEM_DMA | HBM_USE_MEM_FB,
         .timeout = 0,
     };
-    auto canvas = CreateCanvas(surface, requestConfig);
-    if (canvas == nullptr) {
-        ROSEN_LOGE("RSHardwareProcessor::Redraw: canvas is null.");
-        return;
-    }
+    std::unique_ptr<SkCanvas> canvas;
     std::vector<LayerInfoPtr>::const_reverse_iterator iter = param.layers.rbegin();
     for (; iter != param.layers.rend(); ++iter) {
         ROSEN_LOGD("RsDebug RSHardwareProcessor::Redraw layer composition Type:%d", (*iter)->GetCompositionType());
         if ((*iter) == nullptr || (*iter)->GetCompositionType() == CompositionType::COMPOSITION_DEVICE) {
             continue;
+        }
+        if (!canvas) {
+            auto tempCanvas = CreateCanvas(surface, requestConfig);
+            canvas = std::move(tempCanvas);
+        }
+        if (canvas == nullptr) {
+            ROSEN_LOGE("RSHardwareProcessor::Redraw: canvas is null.");
+            return;
         }
         ROSEN_LOGE("RsDebug RSHardwareProcessor::Redraw layer [%d %d %d %d]", (*iter)->GetLayerSize().x,
             (*iter)->GetLayerSize().y, (*iter)->GetLayerSize().w, (*iter)->GetLayerSize().h);
