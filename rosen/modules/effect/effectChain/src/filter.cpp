@@ -13,13 +13,16 @@
  * limitations under the License.
  */
 
+#include "rs_trace.h"
 #include "filter.h"
 
 namespace OHOS {
 namespace Rosen {
 void Filter::Process(ProcessData& data)
 {
+    ROSEN_TRACE_BEGIN(BYTRACE_TAG_GRAPHIC_AGP, "Filter::DoProcess");
     DoProcess(data);
+    ROSEN_TRACE_END(BYTRACE_TAG_GRAPHIC_AGP);
     if (this->GetFilterType() == FILTER_TYPE::ALGOFILTER) {
         std::swap(data.srcTextureID, data.dstTextureID);
     }

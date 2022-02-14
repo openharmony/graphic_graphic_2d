@@ -64,7 +64,7 @@ void Builder::AnalyseFilters(cJSON* filters)
         if (type != nullptr && name != nullptr) {
             nameType_[name->valuestring] = type->valuestring;
             auto tempFilter = algoFilterFactory->GetFilter(type);
-            if (tempFilter != nullptr && params != nullptr) {
+            if (tempFilter != nullptr) {
                 ParseParams(tempFilter, params);
                 nameFilter_[name->valuestring] = tempFilter;
             }
@@ -74,6 +74,9 @@ void Builder::AnalyseFilters(cJSON* filters)
 
 void Builder::ParseParams(std::shared_ptr<Filter> filter, cJSON* params)
 {
+    if (params == nullptr) {
+        return;
+    }
     cJSON* childParam = params->child;
     while (childParam != nullptr) {
         if (cJSON_IsArray(childParam)) {
@@ -113,10 +116,14 @@ void Builder::ConnectPipeline(cJSON* connections)
                 if (fFilter->GetFilterType() == FILTER_TYPE::INPUT) {
                     inputs_.push_back(std::static_pointer_cast<Input>(fFilter));
                 }
+            } else {
+                LOGE("The from filter %{public}s fails to be connected", from->valuestring);
             }
             auto itTo = nameFilter_.find(to->valuestring);
             if (itTo != nameFilter_.end()) {
                 tFilter = itTo->second;
+            } else {
+                LOGE("The to filter %{public}s fails to be connected", to->valuestring);
             }
             if (fFilter != nullptr && tFilter != nullptr) {
                 fFilter->AddNextFilter(tFilter);
