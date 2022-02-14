@@ -22,24 +22,25 @@
 
 namespace OHOS {
 namespace Rosen {
-enum class FilterAnimType {
-    UNANIMATABLE,
-    BLUR,
-};
 class RS_EXPORT RSFilter : public std::enable_shared_from_this<RSFilter> {
 public:
     virtual ~RSFilter();
     static std::shared_ptr<RSFilter> CreateBlurFilter(float blurRadiusX, float blurRadiusY);
-    FilterAnimType GetFilterAnimType() const
+
+    enum FilterType {
+        NONE = 0,
+        BLUR,
+    };
+    FilterType GetFilterType() const
     {
         return type_;
     }
-    bool IsAnimatable() const
+    bool IsValid() const
     {
-        return type_ != FilterAnimType::UNANIMATABLE;
+        return type_ != FilterType::NONE;
     }
 protected:
-    FilterAnimType type_;
+    FilterType type_;
     RSFilter();
     virtual std::shared_ptr<RSFilter> Add(const std::shared_ptr<RSFilter>& rhs) { return nullptr; }
     virtual std::shared_ptr<RSFilter> Sub(const std::shared_ptr<RSFilter>& rhs) { return nullptr; }

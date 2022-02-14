@@ -22,7 +22,7 @@ RSBlurFilter::RSBlurFilter(float blurRadiusX, float blurRadiusY)
     : RSSkiaFilter(SkBlurImageFilter::Make(blurRadiusX, blurRadiusY, nullptr)), blurRadiusX_(blurRadiusX),
       blurRadiusY_(blurRadiusY)
 {
-    type_ = FilterAnimType::BLUR;
+    type_ = FilterType::BLUR;
 }
 
 RSBlurFilter::~RSBlurFilter() {}
@@ -39,7 +39,7 @@ float RSBlurFilter::GetBlurRadiusY()
 
 std::shared_ptr<RSFilter> RSBlurFilter::Add(const std::shared_ptr<RSFilter>& rhs)
 {
-    if ((rhs == nullptr) || (rhs->GetFilterAnimType() != FilterAnimType::BLUR)) {
+    if ((rhs == nullptr) || (rhs->GetFilterType() != FilterType::BLUR)) {
         return shared_from_this();
     }
     auto blurR = std::static_pointer_cast<RSBlurFilter>(rhs);
@@ -49,7 +49,7 @@ std::shared_ptr<RSFilter> RSBlurFilter::Add(const std::shared_ptr<RSFilter>& rhs
 
 std::shared_ptr<RSFilter> RSBlurFilter::Sub(const std::shared_ptr<RSFilter>& rhs)
 {
-    if ((rhs == nullptr) || (rhs->GetFilterAnimType() != FilterAnimType::BLUR)) {
+    if ((rhs == nullptr) || (rhs->GetFilterType() != FilterType::BLUR)) {
         return shared_from_this();
     }
     auto blurR = std::static_pointer_cast<RSBlurFilter>(rhs);

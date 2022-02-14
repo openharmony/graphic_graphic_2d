@@ -16,6 +16,7 @@
 #ifndef RENDER_SERVICE_BASE_TRANSACTION_RS_MARSHALLING_HELPER_H
 #define RENDER_SERVICE_BASE_TRANSACTION_RS_MARSHALLING_HELPER_H
 
+#include <memory>
 #ifdef ROSEN_OHOS
 
 #include <parcel.h>
@@ -30,6 +31,7 @@ class SkPath;
 
 namespace OHOS {
 namespace Rosen {
+class RSFilter;
 class RSPath;
 class RSShader;
 template<typename T>
@@ -82,6 +84,7 @@ public:
     DECLARE_FUNCTION_OVERLOAD(SkPath)
     DECLARE_FUNCTION_OVERLOAD(RSShader)
     DECLARE_FUNCTION_OVERLOAD(RSPath)
+    DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSFilter>)
     // animation
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSRenderPathAnimation>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSRenderTransition>)

@@ -29,19 +29,19 @@ Quaternion RSValueEstimator::Estimate(float fraction, const Quaternion& startVal
 std::shared_ptr<RSFilter> RSValueEstimator::Estimate(
     float fraction, const std::shared_ptr<RSFilter>& startValue, const std::shared_ptr<RSFilter>& endValue)
 {
-    if ((startValue == nullptr || !startValue->IsAnimatable()) && (endValue == nullptr || !endValue->IsAnimatable())) {
+    if ((startValue == nullptr || !startValue->IsValid()) && (endValue == nullptr || !endValue->IsValid())) {
         return endValue;
     }
 
-    if (startValue == nullptr || !startValue->IsAnimatable()) {
+    if (startValue == nullptr || !startValue->IsValid()) {
         return endValue * fraction;
     }
 
-    if (endValue == nullptr || !endValue->IsAnimatable()) {
+    if (endValue == nullptr || !endValue->IsValid()) {
         return (fraction < 0.5f) ? startValue * (1.0f - fraction * 2) : endValue;
     }
 
-    if (startValue->GetFilterAnimType() == endValue->GetFilterAnimType()) {
+    if (startValue->GetFilterType() == endValue->GetFilterType()) {
         return startValue * (1.0f - fraction) + endValue * fraction;
     } else {
         return (fraction < 0.5f) ? startValue * (1.0f - fraction * 2) : endValue * (fraction * 2 - 1.0f);

@@ -23,7 +23,7 @@
 namespace OHOS {
 namespace Rosen {
 RSFilter::RSFilter()
-    : type_(FilterAnimType::UNANIMATABLE)
+    : type_(FilterType::NONE)
 {}
 
 RSFilter::~RSFilter() {}

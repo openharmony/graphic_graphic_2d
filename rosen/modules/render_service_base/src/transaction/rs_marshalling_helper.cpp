@@ -23,12 +23,15 @@
 #include "common/rs_matrix3.h"
 #include "common/rs_vector4.h"
 #include "include/core/SkPaint.h"
+#include "render/rs_blur_filter.h"
+#include "render/rs_filter.h"
 #include "render/rs_path.h"
 #include "render/rs_shader.h"
 #include "src/core/SkAutoMalloc.h"
 #include "src/core/SkPaintPriv.h"
 #include "src/core/SkReadBuffer.h"
 #include "src/core/SkWriteBuffer.h"
+#include <memory>
 
 #ifdef ROSEN_OHOS
 namespace OHOS {
@@ -157,6 +160,44 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, RSPath& val)
     reader.readPath(&path);
     val.SetSkiaPath(path);
     return true;
+}
+
+// RSFilter
+bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSFilter>& val)
+{
+    if (!val) {
+        return parcel.WriteInt32(RSFilter::NONE);
+    }
+    bool success = parcel.WriteInt32(static_cast<int>(val->GetFilterType()));
+    switch (val->GetFilterType()) {
+        case RSFilter::BLUR: {
+            auto blur = std::static_pointer_cast<RSBlurFilter>(val);
+            success &= parcel.WriteFloat(blur->GetBlurRadiusX());
+            success &= parcel.WriteFloat(blur->GetBlurRadiusY());
+            break;
+        }
+        default:
+            break;
+    }
+    return success;
+}
+bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSFilter>& val)
+{
+    int type = 0;
+    bool success = parcel.ReadInt32(type);
+    switch (static_cast<RSFilter::FilterType>(type)) {
+        case RSFilter::BLUR: {
+            float blurRadiusX;
+            float blurRadiusY;
+            success &= parcel.ReadFloat(blurRadiusX);
+            success &= parcel.ReadFloat(blurRadiusY);
+            break;
+        }
+        default:
+            val = nullptr;
+            break;
+    }
+    return success;
 }
 
 #define MARSHALLING_AND_UNMARSHALLING(TYPE)                                                 \
