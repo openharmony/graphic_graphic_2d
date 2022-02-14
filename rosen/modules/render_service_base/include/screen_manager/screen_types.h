@@ -108,8 +108,9 @@ typedef enum : uint32_t {
     RS_CONNECTION_ERROR,
     SURFACE_NOT_UNIQUE,
     RENDER_SERVICE_NULL,
-    INVALID_AUGMENTS,
+    INVALID_ARGUMENTS,
     WRITE_PARCEL_ERR,
+    HDI_ERROR,
 } StatusCode;
 
 // get the underlying type of an enum value.

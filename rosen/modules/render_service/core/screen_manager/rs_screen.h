@@ -150,6 +150,10 @@ private:
     DisplayCapability capability_;
     sptr<Surface> producerSurface_;  // has value if the screen is virtual
     DispPowerStatus powerStatus_;
+
+    std::vector<ScreenColorGamut> supportedColorGamuts_ = { COLOR_GAMUT_SRGB }; // valid if the screen is virtual
+    int32_t currentGamutIdx_ = 0; // valid if the screen is virtual
+    ScreenGamutMap currentGamutMap_ = GAMUT_MAP_CONSTANT; // valid if the screen is virtual
 };
 } // namespace impl
 } // namespace Rosen

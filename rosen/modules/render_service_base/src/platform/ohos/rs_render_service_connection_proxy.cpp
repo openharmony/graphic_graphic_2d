@@ -176,7 +176,7 @@ int32_t RSRenderServiceConnectionProxy::SetVirtualScreenSurface(ScreenId id, spt
 {
     if (surface == nullptr) {
         ROSEN_LOGE("RSRenderServiceConnectionProxy::SetVirtualScreenSurface: Send surface is nullptr!");
-        return INVALID_AUGMENTS;
+        return INVALID_ARGUMENTS;
     }
 
     MessageParcel data;
