@@ -184,20 +184,16 @@ void RSHardwareProcessor::Redraw(sptr<Surface>& surface, const struct PrepareCom
         .usage = HBM_USE_CPU_READ | HBM_USE_CPU_WRITE | HBM_USE_MEM_DMA | HBM_USE_MEM_FB,
         .timeout = 0,
     };
-    std::unique_ptr<SkCanvas> canvas;
+    auto canvas = CreateCanvas(surface, requestConfig);
+    if (canvas == nullptr) {
+        ROSEN_LOGE("RSHardwareProcessor::Redraw: canvas is null.");
+        return;
+    }
     std::vector<LayerInfoPtr>::const_reverse_iterator iter = param.layers.rbegin();
     for (; iter != param.layers.rend(); ++iter) {
         ROSEN_LOGD("RsDebug RSHardwareProcessor::Redraw layer composition Type:%d", (*iter)->GetCompositionType());
         if ((*iter) == nullptr || (*iter)->GetCompositionType() == CompositionType::COMPOSITION_DEVICE) {
             continue;
-        }
-        if (!canvas) {
-            auto tempCanvas = CreateCanvas(surface, requestConfig);
-            canvas = std::move(tempCanvas);
-        }
-        if (canvas == nullptr) {
-            ROSEN_LOGE("RSHardwareProcessor::Redraw: canvas is null.");
-            return;
         }
         ROSEN_LOGE("RsDebug RSHardwareProcessor::Redraw layer [%d %d %d %d]", (*iter)->GetLayerSize().x,
             (*iter)->GetLayerSize().y, (*iter)->GetLayerSize().w, (*iter)->GetLayerSize().h);
