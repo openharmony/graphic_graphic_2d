@@ -36,6 +36,16 @@ RSDisplayNode::SharedPtr RSDisplayNode::Create(const RSDisplayNodeConfig& displa
     return node;
 }
 
+void RSDisplayNode::SetScreenId(uint64_t screenId)
+{
+    std::unique_ptr<RSCommand> command = std::make_unique<RSDisplayNodeSetScreenId>(GetId(), screenId);
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        transactionProxy->AddCommand(command, true);
+    }
+    ROSEN_LOGD("RSDisplayNode::SetScreenId, ScreenId:%llu", screenId);
+}
+
 RSDisplayNode::RSDisplayNode(const RSDisplayNodeConfig& config)
     : RSBaseNode(true), screenId_(config.screenId)
 {
