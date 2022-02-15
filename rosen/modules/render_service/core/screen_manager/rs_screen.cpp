@@ -369,7 +369,7 @@ int32_t RSScreen::GetScreenSupportedColorGamuts(std::vector<ScreenColorGamut> &m
 {
     if (isVirtual_) {
         mode.clear();
-        mode = supportedColorGamuts_;
+        mode = supportedVirtualColorGamuts_;
         return StatusCode::SUCCESS;
     }
     std::vector<ColorGamut> hdiMode;
@@ -387,7 +387,7 @@ int32_t RSScreen::GetScreenSupportedColorGamuts(std::vector<ScreenColorGamut> &m
 int32_t RSScreen::GetScreenColorGamut(ScreenColorGamut &mode) const
 {
     if (isVirtual_) {
-        mode = supportedColorGamuts_[currentGamutIdx_];
+        mode = supportedVirtualColorGamuts_[currentVirtualColorGamutIdx_];
         return StatusCode::SUCCESS;
     }
     ColorGamut hdiMode;
@@ -402,10 +402,10 @@ int32_t RSScreen::GetScreenColorGamut(ScreenColorGamut &mode) const
 int32_t RSScreen::SetScreenColorGamut(int32_t modeIdx)
 {
     if (isVirtual_) {
-        if (modeIdx >= supportedColorGamuts_.size()) {
+        if (modeIdx >= supportedVirtualColorGamuts_.size()) {
             return StatusCode::INVALID_ARGUMENTS;
         }
-        currentGamutIdx_ = modeIdx;
+        currentVirtualColorGamutIdx_ = modeIdx;
         return StatusCode::SUCCESS;
     }
     std::vector<ColorGamut> hdiMode;
@@ -425,7 +425,7 @@ int32_t RSScreen::SetScreenColorGamut(int32_t modeIdx)
 int32_t RSScreen::SetScreenGamutMap(ScreenGamutMap mode)
 {
     if (isVirtual_) {
-        currentGamutMap_ = mode;
+        currentVirtualGamutMap_ = mode;
         return StatusCode::SUCCESS;
     }
     int32_t result = hdiScreen_->SetScreenGamutMap(static_cast<GamutMap>(mode));
@@ -438,7 +438,7 @@ int32_t RSScreen::SetScreenGamutMap(ScreenGamutMap mode)
 int32_t RSScreen::GetScreenGamutMap(ScreenGamutMap &mode) const
 {
     if (isVirtual_) {
-        mode = currentGamutMap_;
+        mode = currentVirtualGamutMap_;
         return StatusCode::SUCCESS;
     }
     GamutMap hdiMode;
