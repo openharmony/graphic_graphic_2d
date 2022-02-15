@@ -304,15 +304,15 @@ void RSPropertiesPainter::DrawBorder(const RSProperties& properties, SkCanvas& c
             // draw left and right border
             SetBorderEffect(paint, borderStyle, borderWidth, borderLengthVert / rawNumberVert, borderLengthVert);
             canvas.drawLine(rect.left_ + borderWidth / PARAM_DOUBLE, rect.top_ + addLen * borderWidth,
-                rect.left_ + borderWidth / PARAM_DOUBLE, rect.GetBottom(), paint);
-            canvas.drawLine(rect.GetRight() - borderWidth / PARAM_DOUBLE, rect.top_ + addLen * borderWidth,
-                rect.GetRight() - borderWidth / PARAM_DOUBLE, rect.GetBottom(), paint);
+                rect.left_ + borderWidth / PARAM_DOUBLE, rect.GetBottom() - borderWidth, paint);
+            canvas.drawLine(rect.GetRight() - borderWidth / PARAM_DOUBLE, rect.GetBottom() - addLen * borderWidth,
+                rect.GetRight() - borderWidth / PARAM_DOUBLE, rect.top_ + borderWidth, paint);
             // draw top and bottom border
             SetBorderEffect(paint, borderStyle, borderWidth, borderLengthHoriz / rawNumberHoriz, borderLengthHoriz);
-            canvas.drawLine(rect.left_ + addLen * borderWidth, rect.top_ + borderWidth / PARAM_DOUBLE, rect.GetRight(),
-                rect.top_ + borderWidth / PARAM_DOUBLE, paint);
+            canvas.drawLine(rect.GetRight() - addLen * borderWidth, rect.top_ + borderWidth / PARAM_DOUBLE,
+                rect.left_ + borderWidth, rect.top_ + borderWidth / PARAM_DOUBLE, paint);
             canvas.drawLine(rect.left_ + addLen * borderWidth, rect.GetBottom() - borderWidth / PARAM_DOUBLE,
-                rect.GetRight(), rect.GetBottom() - borderWidth / PARAM_DOUBLE, paint);
+                rect.GetRight() - borderWidth, rect.GetBottom() - borderWidth / PARAM_DOUBLE, paint);
         }
     }
 }
