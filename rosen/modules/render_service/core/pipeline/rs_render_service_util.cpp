@@ -53,8 +53,8 @@ bool RsRenderServiceUtil::IsNeedClient(RSSurfaceRenderNode* node)
         ROSEN_LOGE("RsRenderServiceUtil::ComposeSurface node is empty");
         return false;
     }
-    auto filter = node->GetRenderProperties().GetBackgroundFilter();
-    if (filter != nullptr) {
+    auto filter = std::static_pointer_cast<RSBlurFilter>(node->GetRenderProperties().GetBackgroundFilter());
+    if (filter != nullptr && filter->GetBlurRadiusX() > 0 && filter->GetBlurRadiusY() > 0) {
         return true;
     }
     auto transitionProperties = node->GetAnimationManager().GetTransitionProperties();
