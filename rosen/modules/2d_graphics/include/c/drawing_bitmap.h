@@ -29,7 +29,7 @@ typedef struct {
 
 OH_Drawing_Bitmap* OH_Drawing_BitmapCreate(void);
 
-void OH_Drawing_BitmapDestory(OH_Drawing_Bitmap*);
+void OH_Drawing_BitmapDestroy(OH_Drawing_Bitmap*);
 
 void OH_Drawing_BitmapBuild(
     OH_Drawing_Bitmap*, const uint32_t width, const uint32_t height, const OH_Drawing_BitmapFormat*);

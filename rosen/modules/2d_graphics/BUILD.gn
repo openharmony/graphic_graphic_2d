@@ -16,12 +16,13 @@ import("//foundation/graphic/standard/graphic_config.gni")
 
 ## Build 2d_graphics.so
 ohos_shared_library("2d_graphics") {
-  symlink_target_name = [ "libnative_graphics.so" ]
+  symlink_target_name = [ "libnative_drawing.so" ]
 
   sources = [
     "src/c/drawing_bitmap.cpp",
     "src/c/drawing_brush.cpp",
     "src/c/drawing_canvas.cpp",
+    "src/c/drawing_color.cpp",
     "src/c/drawing_path.cpp",
     "src/c/drawing_pen.cpp",
     "src/draw/brush.cpp",

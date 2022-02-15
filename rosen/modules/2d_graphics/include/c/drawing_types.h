@@ -24,13 +24,6 @@ extern "C" {
 
 typedef uint32_t OH_Drawing_Color;
 
-#define OH_Drawing_ColorSetArgb(a, r, g, b) \
-    ((((a)&0xFF) << 24) | (((r)&0xFF) << 16) | (((g)&0xFF) << 8) | (((b)&0xFF) << 0))
-#define OH_Drawing_ColorGetA(c) (((c) >> 24) & 0xFF)
-#define OH_Drawing_ColorGetR(c) (((c) >> 16) & 0xFF)
-#define OH_Drawing_ColorGetG(c) (((c) >> 8) & 0xFF)
-#define OH_Drawing_ColorGetB(c) (((c) >> 0) & 0xFF)
-
 typedef struct OH_Drawing_Canvas OH_Drawing_Canvas;
 
 typedef struct OH_Drawing_Pen OH_Drawing_Pen;

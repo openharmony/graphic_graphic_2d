@@ -36,6 +36,7 @@
 #include "foundation/graphic/standard/rosen/modules/render_service_base/src/platform/ohos/rs_surface_ohos.h"
 
 #include "c/drawing_canvas.h"
+#include "c/drawing_color.h"
 #include "c/drawing_bitmap.h"
 #include "c/drawing_path.h"
 #include "c/drawing_pen.h"
@@ -50,25 +51,33 @@ using namespace Rosen;
 using namespace std;
 
 using TestFunc = std::function<void(OH_Drawing_Canvas*, uint32_t, uint32_t)>;
-std::vector<TestFunc> testFuncVec;
+static std::vector<TestFunc> testFuncVec;
+constexpr static int32_t WIDTH = 720;
+constexpr static int32_t HEIGHT = 1280;
 
-void TestDrawPathPro(OH_Drawing_Canvas* cCanvas, uint32_t width, uint32_t height)
+static void TestDrawPathPro(OH_Drawing_Canvas* cCanvas, uint32_t width, uint32_t height)
 {
     LOGI("+++++++ TestDrawPathPro");
+    // 300 means length of pentagram border
     int len = 300;
 
+    // point a position
     float aX = 500;
     float aY = 500;
 
+    // point d position, 18 means degree of pentagram
     float dX = aX - len * std::sin(18.0f);
     float dY = aY + len * std::cos(18.0f);
 
+    // point c position, 18 means degree of pentagram
     float cX = aX + len * std::sin(18.0f);
     float cY = dY;
 
+    // point b position
     float bX = aX + (len / 2.0);
     float bY = aY + std::sqrt((cX - dX) * (cX - dX) + (len / 2.0) * (len / 2.0));
 
+    // point e position
     float eX = aX - (len / 2.0);
     float eY = bY;
 
@@ -83,6 +92,7 @@ void TestDrawPathPro(OH_Drawing_Canvas* cCanvas, uint32_t width, uint32_t height
     OH_Drawing_Pen* cPen = OH_Drawing_PenCreate();
     OH_Drawing_PenSetAntiAlias(cPen, true);
     OH_Drawing_PenSetColor(cPen, OH_Drawing_ColorSetArgb(0xFF, 0xFF, 0x00, 0x00));
+    // 10.0 means pentagram border line width
     OH_Drawing_PenSetWidth(cPen, 10.0);
     OH_Drawing_PenSetJoin(cPen, LINE_ROUND_JOIN);
     OH_Drawing_CanvasAttachPen(cCanvas, cPen);
@@ -93,25 +103,28 @@ void TestDrawPathPro(OH_Drawing_Canvas* cCanvas, uint32_t width, uint32_t height
 
     OH_Drawing_CanvasDrawPath(cCanvas, cPath);
 
+    // (500, 500) means start position of line
     float lineStartX = 500;
     float lineStartY = 500;
 
+    // (500, 1000) means end position of line
     float lineEndX = 500;
     float lineEndY = 1000;
 
+    // 10.0 means line width
     OH_Drawing_PenSetWidth(cPen, 20.0);
     OH_Drawing_PenSetCap(cPen, LINE_ROUND_CAP);
     OH_Drawing_CanvasAttachPen(cCanvas, cPen);
     OH_Drawing_CanvasDetachBrush(cCanvas);
     OH_Drawing_CanvasDrawLine(cCanvas, lineStartX, lineStartY, lineEndX, lineEndY);
 
-    OH_Drawing_BrushDestory(cBrush);
-    OH_Drawing_PenDestory(cPen);
-    OH_Drawing_PathDestory(cPath);
+    OH_Drawing_BrushDestroy(cBrush);
+    OH_Drawing_PenDestroy(cPen);
+    OH_Drawing_PathDestroy(cPath);
     LOGI("+++++++ TestDrawPathPro");
 }
 
-void DoDraw(uint8_t *addr, uint32_t width, uint32_t height, size_t index)
+static void DoDraw(uint8_t *addr, uint32_t width, uint32_t height, size_t index)
 {
     OH_Drawing_Bitmap* cBitmap = OH_Drawing_BitmapCreate();
     OH_Drawing_BitmapFormat cFormat {COLOR_FORMAT_RGBA_8888, ALPHA_FORMAT_OPAQUYE};
@@ -124,6 +137,7 @@ void DoDraw(uint8_t *addr, uint32_t width, uint32_t height, size_t index)
 
     testFuncVec[index](cCanvas, width, height);
 
+    // 4 means stride
     constexpr uint32_t stride = 4;
     int32_t addrSize = width * height * stride;
     void* bitmapAddr = OH_Drawing_BitmapGetPixels(cBitmap);
@@ -131,11 +145,11 @@ void DoDraw(uint8_t *addr, uint32_t width, uint32_t height, size_t index)
     if (ret != EOK) {
         LOGI("memcpy_s failed");
     }
-    OH_Drawing_CanvasDestory(cCanvas);
-    OH_Drawing_BitmapDestory(cBitmap);
+    OH_Drawing_CanvasDestroy(cCanvas);
+    OH_Drawing_BitmapDestroy(cBitmap);
 }
 
-void DrawSurface(std::shared_ptr<RSSurfaceNode> surfaceNode, int32_t width, int32_t height, size_t index)
+static void DrawSurface(std::shared_ptr<RSSurfaceNode> surfaceNode, int32_t width, int32_t height, size_t index)
 {
     sptr<Surface> surface = surfaceNode->GetSurface();
     if (surface == nullptr) {
@@ -178,7 +192,7 @@ void DrawSurface(std::shared_ptr<RSSurfaceNode> surfaceNode, int32_t width, int3
     LOGI("flushBuffer ret is: %{public}s", SurfaceErrorStr(ret).c_str());
 }
 
-std::shared_ptr<RSSurfaceNode> CreateSurface()
+static std::shared_ptr<RSSurfaceNode> CreateSurface()
 {
     RSSurfaceNodeConfig config;
     return RSSurfaceNode::Create(config);
@@ -195,11 +209,13 @@ int main()
         if (transactionProxy == nullptr) {
             continue;
         }
+        // sleep 2s
         sleep(2);
         displayNode->AddChild(surfaceNode, -1);
-        surfaceNode->SetBounds(0, 0, 720, 1280);
+        surfaceNode->SetBounds(0, 0, WIDTH, HEIGHT);
         transactionProxy->FlushImplicitTransaction();
-        DrawSurface(surfaceNode, 720, 1280, i);
+        DrawSurface(surfaceNode, WIDTH, HEIGHT, i);
+        // sleep 8s
         sleep(8);
         displayNode->RemoveChild(surfaceNode);
         transactionProxy->FlushImplicitTransaction();

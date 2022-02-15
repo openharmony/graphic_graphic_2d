@@ -26,7 +26,7 @@ typedef enum { PATH_CW_DIRECTION, PATH_CCW_DIRECTION } OH_Drawing_PathDirection;
 
 OH_Drawing_Path* OH_Drawing_PathCreate(void);
 
-void OH_Drawing_PathDestory(OH_Drawing_Path*);
+void OH_Drawing_PathDestroy(OH_Drawing_Path*);
 
 void OH_Drawing_PathMoveTo(OH_Drawing_Path*, float x, float y);
 

@@ -31,7 +31,7 @@ OH_Drawing_Path* OH_Drawing_PathCreate()
     return (OH_Drawing_Path*)new Path;
 }
 
-void OH_Drawing_PathDestory(OH_Drawing_Path* cPath)
+void OH_Drawing_PathDestroy(OH_Drawing_Path* cPath)
 {
     delete CastToPath(cPath);
 }

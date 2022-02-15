@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef C_INCLUDE_DRAWING_BRUSH_H
-#define C_INCLUDE_DRAWING_BRUSH_H
+#ifndef C_INCLUDE_DRAWING_COLOR_H
+#define C_INCLUDE_DRAWING_COLOR_H
 
 #include "drawing_types.h"
 
@@ -22,17 +22,7 @@
 extern "C" {
 #endif
 
-OH_Drawing_Brush* OH_Drawing_BrushCreate(void);
-
-void OH_Drawing_BrushDestroy(OH_Drawing_Brush*);
-
-bool OH_Drawing_BrushIsAntiAlias(const OH_Drawing_Brush*);
-
-void OH_Drawing_BrushSetAntiAlias(OH_Drawing_Brush*, bool);
-
-OH_Drawing_Color OH_Drawing_BrushGetColor(const OH_Drawing_Brush*);
-
-void OH_Drawing_BrushSetColor(OH_Drawing_Brush*, OH_Drawing_Color);
+OH_Drawing_Color OH_Drawing_ColorSetArgb(uint32_t alpha, uint32_t red, uint32_t green, uint32_t blue);
 
 #ifdef __cplusplus
 }

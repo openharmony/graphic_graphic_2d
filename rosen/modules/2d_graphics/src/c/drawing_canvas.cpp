@@ -51,7 +51,7 @@ OH_Drawing_Canvas* OH_Drawing_CanvasCreate()
     return (OH_Drawing_Canvas*)new Canvas;
 }
 
-void OH_Drawing_CanvasDestory(OH_Drawing_Canvas* cCanvas)
+void OH_Drawing_CanvasDestroy(OH_Drawing_Canvas* cCanvas)
 {
     delete CastToCanvas(cCanvas);
 }

@@ -24,7 +24,7 @@ extern "C" {
 
 OH_Drawing_Pen* OH_Drawing_PenCreate(void);
 
-void OH_Drawing_PenDestory(OH_Drawing_Pen*);
+void OH_Drawing_PenDestroy(OH_Drawing_Pen*);
 
 bool OH_Drawing_PenIsAntiAlias(const OH_Drawing_Pen*);
 

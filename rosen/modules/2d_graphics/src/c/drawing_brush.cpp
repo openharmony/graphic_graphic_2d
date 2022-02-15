@@ -36,7 +36,7 @@ OH_Drawing_Brush* OH_Drawing_BrushCreate()
     return (OH_Drawing_Brush*)new Brush;
 }
 
-void OH_Drawing_BrushDestory(OH_Drawing_Brush* cBrush)
+void OH_Drawing_BrushDestroy(OH_Drawing_Brush* cBrush)
 {
     delete CastToBrush(cBrush);
 }

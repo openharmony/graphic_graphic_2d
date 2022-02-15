@@ -24,7 +24,7 @@ extern "C" {
 
 OH_Drawing_Canvas* OH_Drawing_CanvasCreate(void);
 
-void OH_Drawing_CanvasDestory(OH_Drawing_Canvas*);
+void OH_Drawing_CanvasDestroy(OH_Drawing_Canvas*);
 
 void OH_Drawing_CanvasBind(OH_Drawing_Canvas*, OH_Drawing_Bitmap*);
 

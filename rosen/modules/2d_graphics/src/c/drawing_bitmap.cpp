@@ -27,32 +27,53 @@ static Bitmap* CastToBitmap(OH_Drawing_Bitmap* cBitmap)
     return reinterpret_cast<Bitmap*>(cBitmap);
 }
 
-static OHOS::Rosen::Drawing::ColorType CColorFormatCastToColorType(OH_Drawing_ColorFormat cColorFormat)
+static ColorType CColorFormatCastToColorType(OH_Drawing_ColorFormat cColorFormat)
 {
-    OHOS::Rosen::Drawing::ColorType colorType = OHOS::Rosen::Drawing::COLORTYPE_UNKNOWN;
+    ColorType colorType = COLORTYPE_UNKNOWN;
     switch (cColorFormat) {
-#define CASE_MAP(S, T) case (S): colorType = (T); break
-        CASE_MAP(COLOR_FORMAT_UNKNOWN, OHOS::Rosen::Drawing::COLORTYPE_UNKNOWN);
-        CASE_MAP(COLOR_FORMAT_ALPHA_8, OHOS::Rosen::Drawing::COLORTYPE_ALPHA_8);
-        CASE_MAP(COLOR_FORMAT_RGB_565, OHOS::Rosen::Drawing::COLORTYPE_RGB_565);
-        CASE_MAP(COLOR_FORMAT_ARGB_4444, OHOS::Rosen::Drawing::COLORTYPE_ARGB_4444);
-        CASE_MAP(COLOR_FORMAT_RGBA_8888, OHOS::Rosen::Drawing::COLORTYPE_RGBA_8888);
-        CASE_MAP(COLOR_FORMAT_BGRA_8888, OHOS::Rosen::Drawing::COLORTYPE_BGRA_8888);
-#undef CASE_MAP
+        case COLOR_FORMAT_UNKNOWN:
+            colorType = COLORTYPE_UNKNOWN;
+            break;
+        case COLOR_FORMAT_ALPHA_8:
+            colorType = COLORTYPE_ALPHA_8;
+            break;
+        case COLOR_FORMAT_RGB_565:
+            colorType = COLORTYPE_RGB_565;
+            break;
+        case COLOR_FORMAT_ARGB_4444:
+            colorType = COLORTYPE_ARGB_4444;
+            break;
+        case COLOR_FORMAT_RGBA_8888:
+            colorType = COLORTYPE_RGBA_8888;
+            break;
+        case COLOR_FORMAT_BGRA_8888:
+            colorType = COLORTYPE_BGRA_8888;
+            break;
+        default:
+            break;
     }
     return colorType;
 }
 
-static OHOS::Rosen::Drawing::AlphaType CAlphaFormatCastToAlphaType(OH_Drawing_AlphaFormat cAlphaFormat)
+static AlphaType CAlphaFormatCastToAlphaType(OH_Drawing_AlphaFormat cAlphaFormat)
 {
-    OHOS::Rosen::Drawing::AlphaType alphaType = OHOS::Rosen::Drawing::ALPHATYPE_UNKNOWN;
+    AlphaType alphaType = ALPHATYPE_UNKNOWN;
+
     switch (cAlphaFormat) {
-#define CASE_MAP(S, T) case (S): alphaType = (T); break
-        CASE_MAP(ALPHA_FORMAT_UNKNOWN, OHOS::Rosen::Drawing::ALPHATYPE_UNKNOWN);
-        CASE_MAP(ALPHA_FORMAT_OPAQUYE, OHOS::Rosen::Drawing::ALPHATYPE_OPAQUYE);
-        CASE_MAP(ALPHA_FORMAT_PREMUL, OHOS::Rosen::Drawing::ALPHATYPE_PREMUL);
-        CASE_MAP(ALPHA_FORMAT_UNPREMUL, OHOS::Rosen::Drawing::ALPHATYPE_UNPREMUL);
-#undef CASE_MAP
+        case ALPHA_FORMAT_UNKNOWN:
+            alphaType = ALPHATYPE_UNKNOWN;
+            break;
+        case ALPHA_FORMAT_OPAQUYE:
+            alphaType = ALPHATYPE_OPAQUYE;
+            break;
+        case ALPHA_FORMAT_PREMUL:
+            alphaType = ALPHATYPE_PREMUL;
+            break;
+        case ALPHA_FORMAT_UNPREMUL:
+            alphaType = ALPHATYPE_UNPREMUL;
+            break;
+        default:
+            break;
     }
     return alphaType;
 }
@@ -62,7 +83,7 @@ OH_Drawing_Bitmap* OH_Drawing_BitmapCreate()
     return (OH_Drawing_Bitmap*)new Bitmap;
 }
 
-void OH_Drawing_BitmapDestory(OH_Drawing_Bitmap* cBitmap)
+void OH_Drawing_BitmapDestroy(OH_Drawing_Bitmap* cBitmap)
 {
     delete CastToBitmap(cBitmap);
 }
