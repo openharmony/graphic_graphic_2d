@@ -14,6 +14,7 @@
       "subsystem": "graphic",
       "syscap": [
         "SystemCapability.Graphic.Graphic2D.NativeWindow",
+        "SystemCapability.Graphic.Graphic2D.NativeDrawing",
         "SystemCapability.Graphic.Graphic2D.WebGL",
         "SystemCapability.Graphic.Graphic2D.WebGL2"
       ],

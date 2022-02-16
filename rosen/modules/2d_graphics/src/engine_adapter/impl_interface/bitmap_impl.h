@@ -29,7 +29,7 @@ class BitmapImpl : public BaseImpl {
 public:
     static inline constexpr AdapterType TYPE = AdapterType::BASE_INTERFACE;
     BitmapImpl() {}
-    virtual ~BitmapImpl() {}
+    ~BitmapImpl() override {}
     AdapterType GetType() const override
     {
         return AdapterType::BASE_INTERFACE;

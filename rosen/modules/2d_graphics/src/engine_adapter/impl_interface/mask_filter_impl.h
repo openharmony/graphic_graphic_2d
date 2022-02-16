@@ -30,7 +30,7 @@ class MaskFilterImpl : public BaseImpl {
 public:
     static inline constexpr AdapterType TYPE = AdapterType::BASE_INTERFACE;
     MaskFilterImpl() noexcept {}
-    virtual ~MaskFilterImpl() {}
+    ~MaskFilterImpl() override {}
     AdapterType GetType() const override
     {
         return AdapterType::BASE_INTERFACE;

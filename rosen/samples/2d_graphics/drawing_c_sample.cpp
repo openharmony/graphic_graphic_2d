@@ -111,7 +111,7 @@ static void TestDrawPathPro(OH_Drawing_Canvas* cCanvas, uint32_t width, uint32_t
     float lineEndX = 500;
     float lineEndY = 1000;
 
-    // 10.0 means line width
+    // 20.0 means line width
     OH_Drawing_PenSetWidth(cPen, 20.0);
     OH_Drawing_PenSetCap(cPen, LINE_ROUND_CAP);
     OH_Drawing_CanvasAttachPen(cCanvas, cPen);
@@ -127,7 +127,7 @@ static void TestDrawPathPro(OH_Drawing_Canvas* cCanvas, uint32_t width, uint32_t
 static void DoDraw(uint8_t *addr, uint32_t width, uint32_t height, size_t index)
 {
     OH_Drawing_Bitmap* cBitmap = OH_Drawing_BitmapCreate();
-    OH_Drawing_BitmapFormat cFormat {COLOR_FORMAT_RGBA_8888, ALPHA_FORMAT_OPAQUYE};
+    OH_Drawing_BitmapFormat cFormat {COLOR_FORMAT_RGBA_8888, ALPHA_FORMAT_OPAQUE};
     OH_Drawing_BitmapBuild(cBitmap, width, height, &cFormat);
 
     OH_Drawing_Canvas* cCanvas = OH_Drawing_CanvasCreate();

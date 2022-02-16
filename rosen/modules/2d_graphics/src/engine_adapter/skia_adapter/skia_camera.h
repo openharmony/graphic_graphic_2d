@@ -29,7 +29,7 @@ class SkiaCamera : public CameraImpl {
 public:
     static inline constexpr AdapterType TYPE = AdapterType::SKIA_ADAPTER;
     SkiaCamera() noexcept;
-    ~SkiaCamera() {}
+    ~SkiaCamera() override {}
     AdapterType GetType() const override
     {
         return AdapterType::SKIA_ADAPTER;

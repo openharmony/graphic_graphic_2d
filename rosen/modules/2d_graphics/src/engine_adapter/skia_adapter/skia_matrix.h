@@ -29,7 +29,7 @@ class SkiaMatrix : public MatrixImpl {
 public:
     static inline constexpr AdapterType TYPE = AdapterType::SKIA_ADAPTER;
     SkiaMatrix();
-    virtual ~SkiaMatrix() override {}
+    ~SkiaMatrix() override {}
     AdapterType GetType() const override
     {
         return AdapterType::SKIA_ADAPTER;

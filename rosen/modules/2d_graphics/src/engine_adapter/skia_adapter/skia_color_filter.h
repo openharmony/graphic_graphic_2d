@@ -27,7 +27,7 @@ class SkiaColorFilter : public ColorFilterImpl {
 public:
     static inline constexpr AdapterType TYPE = AdapterType::SKIA_ADAPTER;
     SkiaColorFilter() noexcept;
-    ~SkiaColorFilter() {};
+    ~SkiaColorFilter() override {};
     AdapterType GetType() const override
     {
         return AdapterType::SKIA_ADAPTER;

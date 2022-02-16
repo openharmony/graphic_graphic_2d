@@ -26,8 +26,6 @@ namespace Rosen {
 namespace Drawing {
 SkiaCanvas::SkiaCanvas() : skiaCanvas_(std::make_shared<SkCanvas>()), skiaPaint_() {}
 
-SkiaCanvas::~SkiaCanvas() {}
-
 const std::shared_ptr<SkCanvas> SkiaCanvas::ExportSkiaCanvas() const
 {
     return skiaCanvas_;

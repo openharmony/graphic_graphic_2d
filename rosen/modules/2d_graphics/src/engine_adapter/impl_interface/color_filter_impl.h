@@ -30,7 +30,7 @@ class ColorFilterImpl : public BaseImpl {
 public:
     static inline constexpr AdapterType TYPE = AdapterType::BASE_INTERFACE;
     ColorFilterImpl() noexcept {}
-    virtual ~ColorFilterImpl() {}
+    ~ColorFilterImpl() override {}
     AdapterType GetType() const override
     {
         return AdapterType::BASE_INTERFACE;

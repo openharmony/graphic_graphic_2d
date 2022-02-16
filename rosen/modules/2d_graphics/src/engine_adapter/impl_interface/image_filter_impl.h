@@ -31,7 +31,7 @@ class ImageFilterImpl : public BaseImpl {
 public:
     static inline constexpr AdapterType TYPE = AdapterType::BASE_INTERFACE;
     ImageFilterImpl() noexcept {}
-    virtual ~ImageFilterImpl() {}
+    ~ImageFilterImpl() override {}
     AdapterType GetType() const override
     {
         return AdapterType::BASE_INTERFACE;

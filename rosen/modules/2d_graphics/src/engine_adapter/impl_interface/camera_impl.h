@@ -28,7 +28,7 @@ class CameraImpl : public BaseImpl {
 public:
     static inline constexpr AdapterType TYPE = AdapterType::BASE_INTERFACE;
     CameraImpl() {}
-    virtual ~CameraImpl() {}
+    ~CameraImpl() override {}
     AdapterType GetType() const override
     {
         return AdapterType::BASE_INTERFACE;

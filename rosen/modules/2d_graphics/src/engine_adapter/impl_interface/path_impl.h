@@ -36,7 +36,7 @@ class PathImpl : public BaseImpl {
 public:
     static inline constexpr AdapterType TYPE = AdapterType::BASE_INTERFACE;
     PathImpl() noexcept {}
-    virtual ~PathImpl() {}
+    ~PathImpl() override {}
     AdapterType GetType() const override
     {
         return AdapterType::BASE_INTERFACE;

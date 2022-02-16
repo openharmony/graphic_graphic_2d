@@ -22,36 +22,146 @@
 extern "C" {
 #endif
 
+/**
+ * @brief Create a new Pen.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @return a pointer to created OH_Drawing_Pen
+ */
 OH_Drawing_Pen* OH_Drawing_PenCreate(void);
 
+/**
+ * @brief Release the memory storing the OH_Drawing_Pen object.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Pen a pointer to OH_Drawing_Pen object
+ */
 void OH_Drawing_PenDestroy(OH_Drawing_Pen*);
 
+/**
+ * @brief Returns true if pixels on the active edges of shapes are drawn with partial transparency.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Pen a pointer to OH_Drawing_Pen object
+ * @return antialiasing state
+ */
 bool OH_Drawing_PenIsAntiAlias(const OH_Drawing_Pen*);
 
+/**
+ * @brief Sets antialiasing state, that edge pixels drawn opaque or with partial transparency.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Pen a pointer to OH_Drawing_Pen object
+ * @param bool antialiasing state
+ */
 void OH_Drawing_PenSetAntiAlias(OH_Drawing_Pen*, bool);
 
+/**
+ * @brief Returns OH_Drawing_Pen stroke color, that is a 32-bit ARGB quantity.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Pen a pointer to OH_Drawing_Pen object
+ * @return OH_Drawing_Pen stroke color
+ */
 OH_Drawing_Color OH_Drawing_PenGetColor(const OH_Drawing_Pen*);
 
+/**
+ * @brief Sets OH_Drawing_Pen stroke color, that is a 32-bit ARGB quantity.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Pen a pointer to OH_Drawing_Pen object
+ * @param OH_Drawing_Color a 32-bit ARGB quantity
+ */
 void OH_Drawing_PenSetColor(OH_Drawing_Pen*, OH_Drawing_Color);
 
+/**
+ * @brief Returns OH_Drawing_Pen stroke width.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Pen a pointer to OH_Drawing_Pen object
+ * @return stroke width
+ */
 float OH_Drawing_PenGetWidth(const OH_Drawing_Pen*);
 
+/**
+ * @brief Sets the thickness of OH_Drawing_Pen stroke.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Pen a pointer to OH_Drawing_Pen object
+ * @param width stroke width
+ */
 void OH_Drawing_PenSetWidth(OH_Drawing_Pen*, float width);
 
+/**
+ * @brief Returns the limit at which a sharp corner is drawn beveled.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Pen a pointer to OH_Drawing_Pen object
+ * @return miter limit
+ */
 float OH_Drawing_PenGetMiterLimit(const OH_Drawing_Pen*);
 
+/**
+ * @brief Sets the limit at which a sharp corner is drawn beveled.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Pen a pointer to OH_Drawing_Pen object
+ * @param miter miter limit
+ */
 void OH_Drawing_PenSetMiterLimit(OH_Drawing_Pen*, float miter);
 
-typedef enum { LINE_FLAT_CAP, LINE_SQUARE_CAP, LINE_ROUND_CAP } OH_Drawing_PenLineCapStyle;
+/**
+ * @brief OH_Drawing_PenLineCapStyle used to describe the beginning and end of line.
+ */
+typedef enum {
+    LINE_FLAT_CAP,   /**< no cap. */
+    LINE_SQUARE_CAP, /**< adds square cap. */
+    LINE_ROUND_CAP   /**< adds round cap. */
+} OH_Drawing_PenLineCapStyle;
 
+/**
+ * @brief Returns the geometry drawn at the beginning and end of line.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Pen a pointer to OH_Drawing_Pen object
+ * @return line cap
+ */
 OH_Drawing_PenLineCapStyle OH_Drawing_PenGetCap(const OH_Drawing_Pen*);
 
+/**
+ * @brief Sets the geometry drawn at the beginning and end of line.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Pen a pointer to OH_Drawing_Pen object
+ * @param OH_Drawing_PenLineCapStyle line cap
+ */
 void OH_Drawing_PenSetCap(OH_Drawing_Pen*, OH_Drawing_PenLineCapStyle);
 
-typedef enum { LINE_MITER_JOIN, LINE_ROUND_JOIN, LINE_BEVEL_JOIN } OH_Drawing_PenLineJoinStyle;
+/**
+ * @brief OH_Drawing_PenLineJoinStyle used to describe the corners of line.
+ */
+typedef enum {
+    LINE_MITER_JOIN, /**< extends miter limit. */
+    LINE_ROUND_JOIN, /**< adds round. */
+    LINE_BEVEL_JOIN  /**< connects outside edges. */
+} OH_Drawing_PenLineJoinStyle;
 
+/**
+ * @brief Returns the geometry drawn at the corners of line.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Pen a pointer to OH_Drawing_Pen object
+ * @return line join
+ */
 OH_Drawing_PenLineJoinStyle OH_Drawing_PenGetJoin(const OH_Drawing_Pen*);
 
+/**
+ * @brief Sets the geometry drawn at the corners of line.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Pen a pointer to OH_Drawing_Pen object
+ * @param OH_Drawing_PenLineJoinStyle line join
+ */
 void OH_Drawing_PenSetJoin(OH_Drawing_Pen*, OH_Drawing_PenLineJoinStyle);
 
 #ifdef __cplusplus

@@ -35,7 +35,7 @@ class SkiaImage : public ImageImpl {
 public:
     static inline constexpr AdapterType TYPE = AdapterType::SKIA_ADAPTER;
     SkiaImage() noexcept;
-    virtual ~SkiaImage() override {}
+    ~SkiaImage() override {}
     AdapterType GetType() const override
     {
         return AdapterType::SKIA_ADAPTER;

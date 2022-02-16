@@ -27,7 +27,7 @@ class SkiaMaskFilter : public MaskFilterImpl {
 public:
     static inline constexpr AdapterType TYPE = AdapterType::SKIA_ADAPTER;
     SkiaMaskFilter() noexcept;
-    ~SkiaMaskFilter() {};
+    ~SkiaMaskFilter() override {};
     AdapterType GetType() const override
     {
         return AdapterType::SKIA_ADAPTER;

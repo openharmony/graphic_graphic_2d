@@ -25,7 +25,7 @@ class PictureImpl : public BaseImpl {
 public:
     static inline constexpr AdapterType TYPE = AdapterType::BASE_INTERFACE;
     PictureImpl() noexcept {}
-    virtual ~PictureImpl() {}
+    ~PictureImpl() override {}
     AdapterType GetType() const override
     {
         return AdapterType::BASE_INTERFACE;

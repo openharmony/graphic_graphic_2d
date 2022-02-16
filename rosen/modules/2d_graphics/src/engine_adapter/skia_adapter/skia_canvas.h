@@ -41,7 +41,7 @@ class SkiaCanvas : public CoreCanvasImpl {
 public:
     static inline constexpr AdapterType TYPE = AdapterType::SKIA_ADAPTER;
     SkiaCanvas();
-    virtual ~SkiaCanvas();
+    ~SkiaCanvas() override {};
     AdapterType GetType() const override
     {
         return AdapterType::SKIA_ADAPTER;

@@ -39,7 +39,7 @@ class ShaderEffectImpl : public BaseImpl {
 public:
     static inline constexpr AdapterType TYPE = AdapterType::BASE_INTERFACE;
     ShaderEffectImpl() noexcept {}
-    virtual ~ShaderEffectImpl() {}
+    ~ShaderEffectImpl() override {}
     AdapterType GetType() const override
     {
         return AdapterType::BASE_INTERFACE;

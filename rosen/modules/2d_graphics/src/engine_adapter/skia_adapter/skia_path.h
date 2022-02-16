@@ -27,7 +27,7 @@ class SkiaPath : public PathImpl {
 public:
     static inline constexpr AdapterType TYPE = AdapterType::SKIA_ADAPTER;
     SkiaPath() noexcept;
-    ~SkiaPath() {};
+    ~SkiaPath() override {};
     AdapterType GetType() const override
     {
         return AdapterType::SKIA_ADAPTER;

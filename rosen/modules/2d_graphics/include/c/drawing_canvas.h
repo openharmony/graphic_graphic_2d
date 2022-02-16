@@ -22,28 +22,109 @@
 extern "C" {
 #endif
 
+/**
+ * @brief Create a new Canvas.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @return a pointer to created OH_Drawing_Canvas
+ */
 OH_Drawing_Canvas* OH_Drawing_CanvasCreate(void);
 
+/**
+ * @brief Release the memory storing the OH_Drawing_Canvas object.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Canvas a pointer to OH_Drawing_Canvas object
+ */
 void OH_Drawing_CanvasDestroy(OH_Drawing_Canvas*);
 
+/**
+ * @brief Binds bitmap to make canvas draw into bitmap.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Canvas a pointer to OH_Drawing_Canvas object
+ * @param OH_Drawing_Bitmap a pointer to OH_Drawing_Bitmap object
+ */
 void OH_Drawing_CanvasBind(OH_Drawing_Canvas*, OH_Drawing_Bitmap*);
 
+/**
+ * @brief Sets OH_Drawing_Pen to OH_Drawing_Canvas, canvas will use OH_Drawing_Pen to draw shape stroke.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Canvas a pointer to OH_Drawing_Canvas object
+ * @param OH_Drawing_Pen a pointer to OH_Drawing_Pen object
+ */
 void OH_Drawing_CanvasAttachPen(OH_Drawing_Canvas*, const OH_Drawing_Pen*);
 
+/**
+ * @brief Removes OH_Drawing_Pen from OH_Drawing_Canvas, canvas will not draw shape stroke.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Canvas a pointer to OH_Drawing_Canvas object
+ */
 void OH_Drawing_CanvasDetachPen(OH_Drawing_Canvas*);
 
+/**
+ * @brief Sets OH_Drawing_Brush to OH_Drawing_Canvas, canvas will use OH_Drawing_Brush to fill the shape.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Canvas a pointer to OH_Drawing_Canvas object
+ * @param OH_Drawing_Brush a pointer to OH_Drawing_Brush object
+ */
 void OH_Drawing_CanvasAttachBrush(OH_Drawing_Canvas*, const OH_Drawing_Brush*);
 
+/**
+ * @brief Removes OH_Drawing_Brush from OH_Drawing_Canvas, canvas will not fill the shape.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Canvas a pointer to OH_Drawing_Canvas object
+ */
 void OH_Drawing_CanvasDetachBrush(OH_Drawing_Canvas*);
 
+/**
+ * @brief Saves OH_Drawing_Canvas current state that is put on a stack.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Canvas a pointer to OH_Drawing_Canvas object
+ */
 void OH_Drawing_CanvasSave(OH_Drawing_Canvas*);
 
+/**
+ * @brief Restores to OH_Drawing_Canvas last saved state.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Canvas a pointer to OH_Drawing_Canvas object
+ */
 void OH_Drawing_CanvasRestore(OH_Drawing_Canvas*);
 
+/**
+ * @brief Draws line from (x1, y1) to (x2, y2).
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Canvas a pointer to OH_Drawing_Canvas object
+ * @param x1 x-axis value of line start point
+ * @param y1 y-axis value of line start point
+ * @param x2 x-axis value of line end point
+ * @param y2 y-axis value of line end point
+ */
 void OH_Drawing_CanvasDrawLine(OH_Drawing_Canvas*, float x1, float y1, float x2, float y2);
 
+/**
+ * @brief Draws path.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Canvas a pointer to OH_Drawing_Canvas object
+ * @param OH_Drawing_Path a pointer to OH_Drawing_Path object
+ */
 void OH_Drawing_CanvasDrawPath(OH_Drawing_Canvas*, const OH_Drawing_Path*);
 
+/**
+ * @brief Fills canvas with color.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Canvas a pointer to OH_Drawing_Canvas object
+ * @param OH_Drawing_Color a 32-bit ARGB color quantity
+ */
 void OH_Drawing_CanvasClear(OH_Drawing_Canvas*, OH_Drawing_Color);
 
 #ifdef __cplusplus

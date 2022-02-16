@@ -27,7 +27,7 @@ class SkiaBitmap : public BitmapImpl {
 public:
     static inline constexpr AdapterType TYPE = AdapterType::SKIA_ADAPTER;
     SkiaBitmap();
-    virtual ~SkiaBitmap() override {}
+    ~SkiaBitmap() override {}
     AdapterType GetType() const override
     {
         return AdapterType::SKIA_ADAPTER;
