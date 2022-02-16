@@ -41,7 +41,6 @@ void GaussianBlurFilter::DoProcess(ProcessData& data)
     horizontalBlurFilter_->Process(data);
     verticalBlurFilter_->Process(data);
     upSampleFilter_->Process(data);
-    std::swap(data.srcTextureID, data.dstTextureID);
 }
 
 void GaussianBlurFilter::SetValue(const std::string& key, void* value, int size)

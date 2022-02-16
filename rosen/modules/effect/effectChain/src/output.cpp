@@ -43,6 +43,7 @@ void Output::DoProcess(ProcessData& data)
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, data.textureWidth, data.textureHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, data.dstTextureID, 0);
     Use();
+    glViewPort(0, 0, data.textureWidth, data.textureHeight);
     glBindVertexArray(mesh_->VAO_);
     glBindTexture(GL_TEXTURE_2D, data.srcTextureID);
     glDrawElements(GL_TRIANGLES, AlgoFilter::DRAW_ELEMENTS_NUMBER, GL_UNSIGNED_INT, 0);
@@ -70,7 +71,6 @@ void Output::DoProcess(ProcessData& data)
     imagePacker.AddImage(*pixelMap);
     int64_t packedSize = 0;
     imagePacker.FinalizePacking(packedSize);
-    AddNextFilter(nullptr);
 }
 
 void Output::SetValue(const std::string& key, void* value, int size)
