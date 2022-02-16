@@ -43,7 +43,7 @@ void Output::DoProcess(ProcessData& data)
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, data.textureWidth, data.textureHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, data.dstTextureID, 0);
     Use();
-    glViewPort(0, 0, data.textureWidth, data.textureHeight);
+    glViewport(0, 0, data.textureWidth, data.textureHeight);
     glBindVertexArray(mesh_->VAO_);
     glBindTexture(GL_TEXTURE_2D, data.srcTextureID);
     glDrawElements(GL_TRIANGLES, AlgoFilter::DRAW_ELEMENTS_NUMBER, GL_UNSIGNED_INT, 0);
