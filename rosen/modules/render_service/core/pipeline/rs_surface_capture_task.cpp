@@ -148,7 +148,6 @@ void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::ProcessSurfaceRenderNode(RSS
         ROSEN_LOGD("RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::ProcessSurfaceRenderNode: node Buffer is nullptr!");
         return;
     }
-    RsRenderServiceUtil::DrawBuffer(canvas_.get(), node.GetBuffer(), node, isDisplayNode_);
     for (auto child : node.GetChildren()) {
         auto existingChild = child.lock();
         if (!existingChild) {
@@ -157,6 +156,7 @@ void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::ProcessSurfaceRenderNode(RSS
         }
         existingChild->Process(shared_from_this());
     }
+    RsRenderServiceUtil::DrawBuffer(canvas_.get(), node.GetBuffer(), node, isDisplayNode_);
 }
 }
 }

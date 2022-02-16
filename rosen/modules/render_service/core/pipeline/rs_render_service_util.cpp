@@ -119,9 +119,11 @@ void RsRenderServiceUtil::DrawBuffer(SkCanvas* canvas, sptr<OHOS::SurfaceBuffer>
             std::make_unique<SkRect>(SkRect::MakeXYWH(0, 0, buffer->GetWidth(), buffer->GetHeight()));
         if (isDrawnOnDisplay) {
             const RSProperties& property = node.GetRenderProperties();
-            auto geotry = std::static_pointer_cast<RSObjAbsGeometry>(property.GetBoundsGeometry());
-            if (geotry) {
-                canvas->setMatrix(geotry->GetAbsMatrix());
+            auto geoptr = std::static_pointer_cast<RSObjAbsGeometry>(property.GetBoundsGeometry());
+            if (geoptr) {
+                canvas->setMatrix(geoptr->GetAbsMatrix());
+                canvas->scale(static_cast<double>(geoptr->GetAbsRect().width_)/static_cast<double>(buffer->GetWidth()),
+                              static_cast<double>(geoptr->GetAbsRect().height_)/static_cast<double>(buffer->GetHeight()));
             }
             DealAnimation(canvas, paint, property, node.GetAnimationManager().GetTransitionProperties());
             auto filter = std::static_pointer_cast<RSSkiaFilter>(property.GetBackgroundFilter());
