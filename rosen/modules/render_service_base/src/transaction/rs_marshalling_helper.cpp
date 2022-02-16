@@ -191,11 +191,15 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSFilter
             float blurRadiusY;
             success &= parcel.ReadFloat(blurRadiusX);
             success &= parcel.ReadFloat(blurRadiusY);
+            if (success) {
+                val = RSFilter::CreateBlurFilter(blurRadiusX, blurRadiusY);
+            }
             break;
         }
-        default:
+        default: {
             val = nullptr;
             break;
+        }
     }
     return success;
 }
