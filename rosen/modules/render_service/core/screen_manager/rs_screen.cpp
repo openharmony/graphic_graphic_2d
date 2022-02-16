@@ -66,8 +66,8 @@ void RSScreen::PhysicalScreenInit() noexcept
     }
 
     hdiScreen_->Init();
-    if (hdiScreen_->GetScreenSuppportedModes(supportedModes_) < 0) {
-        HiLog::Error(LOG_LABEL, "%{public}s: RSScreen(id %{public}" PRIu64 ") failed to GetScreenSuppportedModes.",
+    if (hdiScreen_->GetScreenSupportedModes(supportedModes_) < 0) {
+        HiLog::Error(LOG_LABEL, "%{public}s: RSScreen(id %{public}" PRIu64 ") failed to GetScreenSupportedModes.",
             __func__, id_);
     }
     if (hdiScreen_->GetScreenCapability(capability_) < 0) {

@@ -120,19 +120,19 @@ int32_t HdiDevice::GetScreenCapability(uint32_t screenId, DisplayCapability &inf
     return deviceFuncs_->GetDisplayCapability(screenId, &info);
 }
 
-int32_t HdiDevice::GetScreenSuppportedModes(uint32_t screenId, std::vector<DisplayModeInfo> &modes)
+int32_t HdiDevice::GetScreenSupportedModes(uint32_t screenId, std::vector<DisplayModeInfo> &modes)
 {
-    CHECK_FUNC(deviceFuncs_, deviceFuncs_->GetDisplaySuppportedModes);
+    CHECK_FUNC(deviceFuncs_, deviceFuncs_->GetDisplaySupportedModes);
 
     int32_t num = 0;
-    int32_t ret = deviceFuncs_->GetDisplaySuppportedModes(screenId, &num, nullptr);
+    int32_t ret = deviceFuncs_->GetDisplaySupportedModes(screenId, &num, nullptr);
     if (ret != DISPLAY_SUCCESS) {
         return ret;
     }
 
     if (num > 0) {
         modes.resize(num);
-        return deviceFuncs_->GetDisplaySuppportedModes(screenId, &num, modes.data());
+        return deviceFuncs_->GetDisplaySupportedModes(screenId, &num, modes.data());
     }
 
     return ret;

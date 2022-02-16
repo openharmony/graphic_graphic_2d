@@ -37,7 +37,7 @@ public:
     bool Init();
 
     int32_t GetScreenCapability(DisplayCapability &info) const;
-    int32_t GetScreenSuppportedModes(std::vector<DisplayModeInfo> &modes) const;
+    int32_t GetScreenSupportedModes(std::vector<DisplayModeInfo> &modes) const;
     int32_t GetScreenMode(uint32_t &modeId) const;
     int32_t SetScreenMode(uint32_t modeId) const;
     int32_t GetScreenPowerStatus(DispPowerStatus &status) const;

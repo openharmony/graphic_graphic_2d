@@ -456,7 +456,7 @@ void HelloDrawing::CreatePyhsicalScreen()
 {
     screen = HdiScreen::CreateHdiScreen(output->GetScreenId());
     screen->Init();
-    screen->GetScreenSuppportedModes(displayModeInfos_);
+    screen->GetScreenSupportedModes(displayModeInfos_);
     outputs_.push_back(output);
     size_t supportModeNum = displayModeInfos_.size();
     if (supportModeNum > 0) {

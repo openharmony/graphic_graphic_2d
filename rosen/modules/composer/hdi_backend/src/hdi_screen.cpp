@@ -112,13 +112,13 @@ int32_t HdiScreen::GetScreenCapability(DisplayCapability &dcap) const
     return device_->GetScreenCapability(screenId_, dcap);
 }
 
-int32_t HdiScreen::GetScreenSuppportedModes(std::vector<DisplayModeInfo> &modes) const
+int32_t HdiScreen::GetScreenSupportedModes(std::vector<DisplayModeInfo> &modes) const
 {
     if (device_ == nullptr) {
         return DISPLAY_NULL_PTR;
     }
 
-    return device_->GetScreenSuppportedModes(screenId_, modes);
+    return device_->GetScreenSupportedModes(screenId_, modes);
 }
 
 int32_t HdiScreen::GetScreenMode(uint32_t &modeId) const

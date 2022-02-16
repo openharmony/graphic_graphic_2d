@@ -218,7 +218,7 @@ uint32_t HelloComposer::CreatePhysicalScreen()
     uint32_t screenId = currScreenId_;
     std::unique_ptr<HdiScreen> screen = HdiScreen::CreateHdiScreen(screenId);
     screen->Init();
-    screen->GetScreenSuppportedModes(displayModeInfos_);
+    screen->GetScreenSupportedModes(displayModeInfos_);
     size_t supportModeNum = displayModeInfos_.size();
     if (supportModeNum > 0) {
         screen->GetScreenMode(currentModeIndex_);

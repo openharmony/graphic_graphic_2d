@@ -37,7 +37,7 @@ public:
     virtual int32_t RegHotPlugCallback(HotPlugCallback callback, void *data) = 0;
     virtual int32_t RegScreenVBlankCallback(uint32_t screenId, VBlankCallback callback, void *data) = 0;
     virtual int32_t GetScreenCapability(uint32_t screenId, DisplayCapability &info) = 0;
-    virtual int32_t GetScreenSuppportedModes(uint32_t screenId, std::vector<DisplayModeInfo> &modes) = 0;
+    virtual int32_t GetScreenSupportedModes(uint32_t screenId, std::vector<DisplayModeInfo> &modes) = 0;
     virtual int32_t GetScreenMode(uint32_t screenId, uint32_t &modeId) = 0;
     virtual int32_t SetScreenMode(uint32_t screenId, uint32_t modeId) = 0;
     virtual int32_t GetScreenPowerStatus(uint32_t screenId, DispPowerStatus &status) = 0;
@@ -107,7 +107,7 @@ public:
     int32_t RegHotPlugCallback(HotPlugCallback callback, void *data) override;
     int32_t RegScreenVBlankCallback(uint32_t screenId, VBlankCallback callback, void *data) override;
     int32_t GetScreenCapability(uint32_t screenId, DisplayCapability &info) override;
-    int32_t GetScreenSuppportedModes(uint32_t screenId, std::vector<DisplayModeInfo> &modes) override;
+    int32_t GetScreenSupportedModes(uint32_t screenId, std::vector<DisplayModeInfo> &modes) override;
     int32_t GetScreenMode(uint32_t screenId, uint32_t &modeId) override;
     int32_t SetScreenMode(uint32_t screenId, uint32_t modeId) override;
     int32_t GetScreenPowerStatus(uint32_t screenId, DispPowerStatus &status) override;

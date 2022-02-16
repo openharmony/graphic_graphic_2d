@@ -409,7 +409,7 @@ void RenderContextSample::CreatePhysicalScreen()
 {
     screen_ = HdiScreen::CreateHdiScreen(output_->GetScreenId());
     screen_->Init();
-    screen_->GetScreenSuppportedModes(displayModeInfos_);
+    screen_->GetScreenSupportedModes(displayModeInfos_);
     outputs_.push_back(output_);
     size_t supportModeNum = displayModeInfos_.size();
     if (supportModeNum > 0) {

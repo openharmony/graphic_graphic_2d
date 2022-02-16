@@ -34,7 +34,7 @@ public:
     MOCK_METHOD2(RegHotPlugCallback, int32_t(HotPlugCallback, void*));
     MOCK_METHOD3(RegScreenVBlankCallback, int32_t(uint32_t, VBlankCallback, void*));
     MOCK_METHOD2(GetScreenCapability, int32_t(uint32_t, DisplayCapability&));
-    MOCK_METHOD2(GetScreenSuppportedModes, int32_t(uint32_t, std::vector<DisplayModeInfo>&));
+    MOCK_METHOD2(GetScreenSupportedModes, int32_t(uint32_t, std::vector<DisplayModeInfo>&));
     MOCK_METHOD2(GetScreenMode, int32_t(uint32_t, uint32_t&));
     MOCK_METHOD2(SetScreenMode, int32_t(uint32_t, uint32_t));
     MOCK_METHOD2(GetScreenPowerStatus, int32_t(uint32_t, DispPowerStatus&));

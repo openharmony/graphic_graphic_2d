@@ -39,7 +39,7 @@ void HdiScreenSysTest::SetUpTestCase()
     mockDevice_ = MockSys::HdiDevice::GetInstance();
 
     EXPECT_CALL(*mockDevice_, GetScreenCapability(_, _)).WillRepeatedly(testing::Return(0));
-    EXPECT_CALL(*mockDevice_, GetScreenSuppportedModes(_, _)).WillRepeatedly(testing::Return(0));
+    EXPECT_CALL(*mockDevice_, GetScreenSupportedModes(_, _)).WillRepeatedly(testing::Return(0));
     EXPECT_CALL(*mockDevice_, GetScreenMode(_, _)).WillRepeatedly(testing::Return(0));
     EXPECT_CALL(*mockDevice_, SetScreenMode(_, _)).WillRepeatedly(testing::Return(0));
     EXPECT_CALL(*mockDevice_, GetScreenPowerStatus(_, _)).WillRepeatedly(testing::Return(0));
@@ -84,7 +84,7 @@ HWTEST_F(HdiScreenSysTest, TestHdiScreen001, Function | MediumTest| Level3)
         .id = 0,
     };
     std::vector<DisplayModeInfo> modeInfo = { displayModeInfo };
-    ASSERT_EQ(HdiScreenSysTest::hdiScreen_->GetScreenSuppportedModes(modeInfo), 0);
+    ASSERT_EQ(HdiScreenSysTest::hdiScreen_->GetScreenSupportedModes(modeInfo), 0);
 
     uint32_t modeId = 0;
     ASSERT_EQ(HdiScreenSysTest::hdiScreen_->SetScreenMode(modeId), 0);

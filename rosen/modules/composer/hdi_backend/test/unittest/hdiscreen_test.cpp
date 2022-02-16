@@ -39,7 +39,7 @@ void HdiScreenTest::SetUpTestCase()
     mockDevice_ = Mock::HdiDevice::GetInstance();
 
     EXPECT_CALL(*mockDevice_, GetScreenCapability(_, _)).WillRepeatedly(testing::Return(0));
-    EXPECT_CALL(*mockDevice_, GetScreenSuppportedModes(_, _)).WillRepeatedly(testing::Return(0));
+    EXPECT_CALL(*mockDevice_, GetScreenSupportedModes(_, _)).WillRepeatedly(testing::Return(0));
     EXPECT_CALL(*mockDevice_, GetScreenMode(_, _)).WillRepeatedly(testing::Return(0));
     EXPECT_CALL(*mockDevice_, SetScreenMode(_, _)).WillRepeatedly(testing::Return(0));
     EXPECT_CALL(*mockDevice_, GetScreenPowerStatus(_, _)).WillRepeatedly(testing::Return(0));
@@ -96,13 +96,13 @@ HWTEST_F(HdiScreenTest, GetScreenCapability001, Function | MediumTest| Level3)
 }
 
 /**
- * @tc.name: GetScreenSuppportedModes001
- * @tc.desc: Verify the GetScreenSuppportedModes of hdiscreen
+ * @tc.name: GetScreenSupportedModes001
+ * @tc.desc: Verify the GetScreenSupportedModes of hdiscreen
  * @tc.type:FUNC
  * @tc.require:AR000GGP0P
  * @tc.author:
  */
-HWTEST_F(HdiScreenTest, GetScreenSuppportedModes001, Function | MediumTest| Level3)
+HWTEST_F(HdiScreenTest, GetScreenSupportedModes001, Function | MediumTest| Level3)
 {
     DisplayModeInfo displayModeInfo = {
         .width = 800,
@@ -111,7 +111,7 @@ HWTEST_F(HdiScreenTest, GetScreenSuppportedModes001, Function | MediumTest| Leve
         .id = 0,
     };
     std::vector<DisplayModeInfo> modeInfo = { displayModeInfo };
-    ASSERT_EQ(HdiScreenTest::hdiScreen_->GetScreenSuppportedModes(modeInfo), 0);
+    ASSERT_EQ(HdiScreenTest::hdiScreen_->GetScreenSupportedModes(modeInfo), 0);
 }
 
 /**
