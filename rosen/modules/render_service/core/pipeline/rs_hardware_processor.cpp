@@ -222,8 +222,8 @@ void RSHardwareProcessor::OnRotate()
         switch (rotation_) {
             case ScreenRotation::ROTATION_90: {
                 ROSEN_LOGI("RsDebug RSHardwareProcessor::OnRotate 90.");
-                layer->SetLayerSize({ width - rect.y - rect.h, rect.x, rect.h, rect.w });
-                layer->SetTransform(TransformType::ROTATE_90);
+                layer->SetLayerSize({ rect.y, height - rect.x - rect.w, rect.h, rect.w });
+                layer->SetTransform(TransformType::ROTATE_270);
                 break;
             }
             case ScreenRotation::ROTATION_180: {
@@ -234,8 +234,8 @@ void RSHardwareProcessor::OnRotate()
             }
             case ScreenRotation::ROTATION_270: {
                 ROSEN_LOGI("RsDebug RSHardwareProcessor::OnRotate 270.");
-                layer->SetLayerSize({ rect.y, height - rect.x - rect.w, rect.h, rect.w });
-                layer->SetTransform(TransformType::ROTATE_270);
+                layer->SetLayerSize({ width - rect.y - rect.h, rect.x, rect.h, rect.w });
+                layer->SetTransform(TransformType::ROTATE_90);
                 break;
             }
             case ScreenRotation::INVALID_SCREEN_ROTATION: {
