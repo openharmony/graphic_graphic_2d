@@ -123,12 +123,4 @@ void BufferQueueConsumer::Dump(std::string &result) const
     }
     return bufferQueue_->Dump(result);
 }
-
-GSError BufferQueueConsumer::GetColorGamut(SurfaceColorGamut &colorGamut)
-{
-    if (bufferQueue_ == nullptr) {
-        return GSERROR_INVALID_ARGUMENTS;
-    }
-    return bufferQueue_->GetColorGamut(colorGamut);
-}
 } // namespace OHOS

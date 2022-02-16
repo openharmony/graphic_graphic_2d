@@ -178,8 +178,7 @@ HWTEST_F(BufferManagerTest, FlushBufferAfterUnmap001, Function | MediumTest | Le
     ASSERT_NE(handle, nullptr);
     ASSERT_EQ(handle->virAddr, nullptr);
 
-    GSError ret = BufferManager::GetInstance()->FlushCache(buffer);
-    ASSERT_EQ(ret, OHOS::GSERROR_OK);
+    BufferManager::GetInstance()->FlushCache(buffer);
 
     handle = buffer->GetBufferHandle();
     ASSERT_NE(handle, nullptr);

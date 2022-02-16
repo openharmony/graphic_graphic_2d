@@ -39,32 +39,6 @@ using Rect = struct Rect {
     int32_t h;
 };
 
-using BufferRequestConfig = struct BufferRequestConfig {
-    int32_t width;
-    int32_t height;
-    int32_t strideAlignment;
-    int32_t format; // PixelFormat
-    int32_t usage;
-    int32_t timeout;
-    bool operator ==(const struct BufferRequestConfig &config) const
-    {
-        return width == config.width &&
-               height == config.height &&
-               strideAlignment == config.strideAlignment &&
-               format == config.format &&
-               usage == config.usage;
-    }
-    bool operator != (const struct BufferRequestConfig &config) const
-    {
-        return !(*this == config);
-    }
-};
-
-using BufferFlushConfig = struct BufferFlushConfig {
-    Rect damage;
-    int64_t timestamp;
-};
-
 typedef enum {
     COLOR_GAMUT_INVALID = -1,
     COLOR_GAMUT_NATIVE = 0,
@@ -79,6 +53,34 @@ typedef enum {
     COLOR_GAMUT_BT2100_HLG = 9,
     COLOR_GAMUT_DISPLAY_BT2020 = 10,
 } SurfaceColorGamut;
+
+using BufferRequestConfig = struct BufferRequestConfig {
+    int32_t width;
+    int32_t height;
+    int32_t strideAlignment;
+    int32_t format; // PixelFormat
+    int32_t usage;
+    int32_t timeout;
+    SurfaceColorGamut colorGamut = SurfaceColorGamut::COLOR_GAMUT_SRGB;
+    bool operator ==(const struct BufferRequestConfig &config) const
+    {
+        return width == config.width &&
+               height == config.height &&
+               strideAlignment == config.strideAlignment &&
+               format == config.format &&
+               usage == config.usage &&
+               colorGamut == config.colorGamut;
+    }
+    bool operator != (const struct BufferRequestConfig &config) const
+    {
+        return !(*this == config);
+    }
+};
+
+using BufferFlushConfig = struct BufferFlushConfig {
+    Rect damage;
+    int64_t timestamp;
+};
 } // namespace OHOS
 
 #endif // INTERFACES_INNERKITS_SURFACE_SURFACE_TYPE_H

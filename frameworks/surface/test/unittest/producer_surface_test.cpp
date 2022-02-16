@@ -367,22 +367,4 @@ HWTEST_F(ProducerSurfaceTest, UniqueId001, Function | MediumTest | Level2)
     uint64_t uniqueId = psurf->GetUniqueId();
     ASSERT_NE(uniqueId, 0);
 }
-
-/*
-* Function: SetColorGamut and GetColorGamut
-* Type: Function
-* Rank: Important(2)
-* EnvConditions: N/A
-* CaseDescription: 1. call SetColorGamut and GetColorGamut
-*                  2. check ret
- */
-HWTEST_F(ProducerSurfaceTest, ColorGamut001, Function | MediumTest | Level2)
-{
-    SurfaceColorGamut colorGamut = SurfaceColorGamut::COLOR_GAMUT_DCI_P3;
-    GSError ret = psurf->SetColorGamut(colorGamut);
-    ASSERT_EQ(ret, OHOS::GSERROR_OK);
-
-    ret = psurf->GetColorGamut(colorGamut);
-    ASSERT_EQ(ret, OHOS::GSERROR_NOT_SUPPORT);
-}
 }

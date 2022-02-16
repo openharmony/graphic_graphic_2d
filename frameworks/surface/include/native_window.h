@@ -29,6 +29,7 @@ struct NativeBufferRequestConfig {
     int32_t format; // PixelFormat
     int32_t usage;
     int32_t timeout;
+    OHOS::SurfaceColorGamut colorGamut = OHOS::SurfaceColorGamut::COLOR_GAMUT_SRGB;  // ColorGamut
 };
 
 struct NativeWindowMagic : public OHOS::RefBase

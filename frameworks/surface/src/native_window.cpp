@@ -49,6 +49,7 @@ struct NativeWindow* CreateNativeWindowFromSurface(void* pSuface)
     nativeWindow->config.format = PIXEL_FMT_RGBA_8888;
     nativeWindow->config.stride = 8; // default stride is 8
     nativeWindow->config.timeout = 3000; // default timout is 3s
+    nativeWindow->config.colorGamut = OHOS::SurfaceColorGamut::COLOR_GAMUT_SRGB;
 
     BLOGD("CreateNativeWindowFromSurface width is %{public}d, height is %{public}d", nativeWindow->config.width, \
         nativeWindow->config.height);
@@ -99,6 +100,7 @@ int32_t NativeWindowRequestBuffer(struct NativeWindow *window,
         .format = window->config.format,
         .usage = window->config.usage,
         .timeout = window->config.timeout,
+        .colorGamut = window->config.colorGamut,
     };
     OHOS::sptr<OHOS::SurfaceBuffer> sfbuffer;
     if (window->surface->RequestBuffer(sfbuffer, *fenceFd, config) != OHOS::GSError::GSERROR_OK ||
@@ -183,6 +185,12 @@ static int32_t InternalHanleNativeWindowOpt(struct NativeWindow *window, int cod
             window->config.stride = stride;
             break;
         }
+        case SET_COLOR_GAMUT:
+        {
+            int32_t colorGamut = va_arg(args, int32_t);
+            window->config.colorGamut = static_cast<OHOS::SurfaceColorGamut>(colorGamut);
+            break;
+        }
         case GET_USAGE:
         {
             int32_t *value = va_arg(args, int32_t*);
@@ -208,6 +216,12 @@ static int32_t InternalHanleNativeWindowOpt(struct NativeWindow *window, int cod
         {
             int32_t *stride = va_arg(args, int32_t*);
             *stride = window->config.stride;
+            break;
+        }
+        case GET_COLOR_GAMUT:
+        {
+            int32_t *colorGamut = va_arg(args, int32_t*);
+            *colorGamut = static_cast<int32_t>(window->config.colorGamut);
             break;
         }
         default:

@@ -345,24 +345,4 @@ HWTEST_F(ConsumerSurfaceTest, RegisterConsumerListener002, Function | MediumTest
     ret = ps->FlushBuffer(buffer, -1, flushConfig);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 }
-
-/*
-* Function: SetColorGamut and GetColorGamut
-* Type: Function
-* Rank: Important(2)
-* EnvConditions: N/A
-* CaseDescription: 1. call SetColorGamut and GetColorGamut
-*                  2. check ret
- */
-HWTEST_F(ConsumerSurfaceTest, ColorGamut001, Function | MediumTest | Level2)
-{
-    SurfaceColorGamut colorGamut = SurfaceColorGamut::COLOR_GAMUT_DCI_P3;
-    GSError ret = cs->SetColorGamut(colorGamut);
-    ASSERT_EQ(ret, OHOS::GSERROR_OK);
-
-    colorGamut = SurfaceColorGamut::COLOR_GAMUT_INVALID;
-    ret = cs->GetColorGamut(colorGamut);
-    ASSERT_EQ(ret, OHOS::GSERROR_OK);
-    ASSERT_EQ(colorGamut, SurfaceColorGamut::COLOR_GAMUT_DCI_P3);
-}
 }

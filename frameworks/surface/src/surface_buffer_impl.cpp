@@ -91,6 +91,17 @@ int32_t SurfaceBufferImpl::GetSurfaceBufferWidth() const
     return surfaceBufferWidth_;
 }
 
+GSError SurfaceBufferImpl::SetSurfaceBufferColorGamut(SurfaceColorGamut colorGamut)
+{
+    surfaceBufferColorGamut_ = colorGamut;
+    return GSERROR_OK;
+}
+
+SurfaceColorGamut SurfaceBufferImpl::GetSurfaceBufferColorGamut() const
+{
+    return surfaceBufferColorGamut_;
+}
+
 int32_t SurfaceBufferImpl::GetWidth() const
 {
     if (handle_ == nullptr) {

@@ -153,6 +153,14 @@ GSError BufferQueue::CheckRequestConfig(const BufferRequestConfig &config)
         return GSERROR_INVALID_ARGUMENTS;
     }
 
+    if (config.colorGamut <= SurfaceColorGamut::COLOR_GAMUT_INVALID ||
+        config.colorGamut > SurfaceColorGamut::COLOR_GAMUT_DISPLAY_BT2020 + 1) {
+        BLOGN_INVALID("config.colorGamut [0, %{public}d], now is %{public}d",
+            static_cast<uint32_t>(SurfaceColorGamut::COLOR_GAMUT_DISPLAY_BT2020),
+            static_cast<uint32_t>(config.colorGamut));
+        return GSERROR_INVALID_ARGUMENTS;
+    }
+
     return GSERROR_OK;
 }
 
@@ -799,17 +807,5 @@ void BufferQueue::Dump(std::string &result)
 
     result.append("      bufferQueueCache:\n");
     DumpCache(result);
-}
-
-GSError BufferQueue::SetColorGamut(SurfaceColorGamut colorGamut)
-{
-    colorGamut_ = colorGamut;
-    return GSERROR_OK;
-}
-
-GSError BufferQueue::GetColorGamut(SurfaceColorGamut &colorGamut)
-{
-    colorGamut = colorGamut_;
-    return GSERROR_OK;
 }
 }; // namespace OHOS

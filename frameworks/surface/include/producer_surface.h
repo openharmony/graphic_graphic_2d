@@ -76,8 +76,6 @@ public:
 
     GSError CleanCache() override;
 
-    GSError SetColorGamut(SurfaceColorGamut colorGamut) override;
-    GSError GetColorGamut(SurfaceColorGamut &colorGamut) override;
 private:
     bool IsRemote();
 

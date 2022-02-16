@@ -208,14 +208,6 @@ int32_t BufferQueueProducer::RegisterReleaseListenerRemote(MessageParcel &argume
     return 0;
 }
 
-int BufferQueueProducer::SetColorGamutRemote(MessageParcel &arguments, MessageParcel &reply, MessageOption &option)
-{
-    int32_t colorGamut = arguments.ReadInt32();
-    GSError sret = SetColorGamut(static_cast<SurfaceColorGamut>(colorGamut));
-    reply.WriteInt32(sret);
-    return 0;
-}
-
 GSError BufferQueueProducer::RequestBuffer(const BufferRequestConfig &config, BufferExtraData &bedata,
                                            RequestBufferReturnValue &retval)
 {
@@ -366,13 +358,5 @@ GSError BufferQueueProducer::RegisterReleaseListener(OnReleaseFunc func)
         return GSERROR_INVALID_ARGUMENTS;
     }
     return bufferQueue_->RegisterReleaseListener(func);
-}
-
-GSError BufferQueueProducer::SetColorGamut(SurfaceColorGamut colorGamut)
-{
-    if (bufferQueue_ == nullptr) {
-        return GSERROR_INVALID_ARGUMENTS;
-    }
-    return bufferQueue_->SetColorGamut(colorGamut);
 }
 }; // namespace OHOS

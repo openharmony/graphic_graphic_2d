@@ -195,6 +195,24 @@ HWTEST_F(NativeWindowTest, HandleOpt005, Function | MediumTest | Level2)
 }
 
 /*
+* Function: NativeWindowHandleOpt
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call NativeWindowHandleOpt by different param
+*                  2. check ret
+ */
+HWTEST_F(NativeWindowTest, HandleOpt006, Function | MediumTest | Level2)
+{
+    int code = SET_COLOR_GAMUT;
+    int32_t colorGamut = static_cast<int32_t>(SurfaceColorGamut::COLOR_GAMUT_DCI_P3);
+    ASSERT_EQ(NativeWindowHandleOpt(nativeWindow, code, colorGamut), OHOS::GSERROR_OK);
+
+    code = GET_COLOR_GAMUT;
+    ASSERT_EQ(NativeWindowHandleOpt(nativeWindow, code, &colorGamut), OHOS::GSERROR_OK);
+}
+
+/*
 * Function: CreateNativeWindowBufferFromSurfaceBuffer
 * Type: Function
 * Rank: Important(2)
@@ -245,20 +263,6 @@ HWTEST_F(NativeWindowTest, RequestBuffer001, Function | MediumTest | Level2)
 HWTEST_F(NativeWindowTest, RequestBuffer002, Function | MediumTest | Level2)
 {
     ASSERT_EQ(NativeWindowRequestBuffer(nativeWindow, nullptr, nullptr), OHOS::GSERROR_INVALID_ARGUMENTS);
-}
-
-/*
-* Function: NativeWindowRequestBuffer
-* Type: Function
-* Rank: Important(2)
-* EnvConditions: N/A
-* CaseDescription: 1. call NativeWindowRequestBuffer
-*                  2. check ret
- */
-HWTEST_F(NativeWindowTest, RequestBuffer003, Function | MediumTest | Level2)
-{
-    int fenceFd = -1;
-    ASSERT_EQ(NativeWindowRequestBuffer(nativeWindow, &nativeWindowBuffer, &fenceFd), OHOS::GSERROR_NO_BUFFER);
 }
 
 /*

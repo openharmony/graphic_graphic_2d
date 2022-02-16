@@ -258,14 +258,4 @@ uint64_t ProducerSurface::GetUniqueId() const
 {
     return producer_->GetUniqueId();
 }
-
-GSError ProducerSurface::SetColorGamut(SurfaceColorGamut colorGamut)
-{
-    return producer_->SetColorGamut(colorGamut);
-}
-
-GSError ProducerSurface::GetColorGamut(SurfaceColorGamut &colorGamut)
-{
-    return GSERROR_NOT_SUPPORT;
-}
 } // namespace OHOS

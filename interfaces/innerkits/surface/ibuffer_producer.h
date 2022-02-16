@@ -57,8 +57,6 @@ public:
     virtual uint64_t     GetUniqueId() = 0;
     virtual GSError CleanCache() = 0;
 
-    virtual GSError SetColorGamut(SurfaceColorGamut colorGamut) = 0;
-
     virtual GSError RegisterReleaseListener(OnReleaseFunc func) = 0;
 
     DECLARE_INTERFACE_DESCRIPTOR(u"surf.IBufferProducer");
@@ -79,7 +77,6 @@ protected:
         BUFFER_PRODUCER_DETACH_BUFFER = 11,
         BUFFER_PRODUCER_REGISTER_RELEASE_LISTENER = 12,
         BUFFER_PRODUCER_GET_UNIQUE_ID = 13,
-        BUFFER_PRODUCER_SET_COLOR_GAMUT = 14,
     };
 };
 } // namespace OHOS

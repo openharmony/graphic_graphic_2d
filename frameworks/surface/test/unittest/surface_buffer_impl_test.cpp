@@ -211,7 +211,7 @@ HWTEST_F(SurfaceBufferImplTest, GetterSetter006, Function | MediumTest | Level2)
 * Rank: Important(2)
 * EnvConditions: N/A
 * CaseDescription: 1. call GetBufferHandle and Alloc
-*                  2. check buffer state, such as bufferhandle, virAddr, fileDescriptor and size
+*                  2. check buffer state, such as bufferhandle, virAddr and size
 *                  3. call Free
 *                  4. check ret
  */
@@ -223,7 +223,6 @@ HWTEST_F(SurfaceBufferImplTest, State002, Function | MediumTest | Level2)
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
     ASSERT_EQ(buffer->GetVirAddr(), nullptr);
-    ASSERT_NE(buffer->GetFileDescriptor(), -1);
     ASSERT_NE(buffer->GetSize(), 0u);
     ASSERT_NE(buffer->GetBufferHandle(), nullptr);
 
