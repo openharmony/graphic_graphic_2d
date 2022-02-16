@@ -23,12 +23,25 @@
 #include "common/rs_obj_abs_geometry.h"
 #include "include/core/SkCanvas.h"
 #include "include/core/SkMatrix.h"
+#include "include/core/SkRect.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "property/rs_transition_properties.h"
 
 namespace OHOS {
 
 namespace Rosen {
+
+struct BufferDrawParameters {
+    bool antiAlias = true;
+    bool onDisplay = true;
+    float alpha = 1.0f;
+    double widthScale = 1.0f;
+    double heightScale = 1.0f;
+    SkPixmap pixmap;
+    SkBitmap bitmap;
+    SkMatrix transform;
+    SkRect dstRect;
+};
 
 struct ComposeInfo {
     IRect srcRect;
@@ -49,9 +62,11 @@ public:
         std::vector<LayerInfoPtr>& layers, ComposeInfo info, RSSurfaceRenderNode* node = nullptr);
     static void DrawBuffer(SkCanvas* canvas, sptr<OHOS::SurfaceBuffer> buffer, RSSurfaceRenderNode& node,
         bool isDrawnOnDisplay = true);
+    static void DrawBuffer(SkCanvas& canvas, const sptr<OHOS::SurfaceBuffer>& buffer,
+        RSSurfaceRenderNode& node, ColorGamut dstGamut, bool isDrawnOnDisplay = true);
 private:
-    static void DealAnimation(SkCanvas* canvas, SkPaint& paint, const RSProperties& property,
-        const std::unique_ptr<RSTransitionProperties>& transitionProperties);
+    static void Draw(SkCanvas& canvas, BufferDrawParameters& params, RSSurfaceRenderNode& node);
+    static void DealAnimation(SkCanvas& canvas, SkPaint& paint, RSSurfaceRenderNode& node);
     static bool IsNeedClient(RSSurfaceRenderNode* node);
 };
 } // Rosen

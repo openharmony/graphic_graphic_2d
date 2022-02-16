@@ -18,11 +18,10 @@
 
 #include "pipeline/rs_main_thread.h"
 #include "pipeline/rs_processor.h"
-#include "display_type.h"
 #include "platform/common/rs_log.h"
+
 namespace OHOS {
 namespace Rosen {
-
 std::unique_ptr<SkCanvas> RSProcessor::CreateCanvas(sptr<Surface> producerSurface, BufferRequestConfig requestConfig)
 {
     auto ret = producerSurface->RequestBuffer(buffer_, releaseFence_, requestConfig);
@@ -90,5 +89,5 @@ bool RSProcessor::ConsumeAndUpdateBuffer(RSSurfaceRenderNode& node, SpecialTask&
     }
     return true;
 }
-}
-}
+} // namespace Rosen
+} // namespace OHOS

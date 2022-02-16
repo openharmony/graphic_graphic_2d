@@ -14,17 +14,12 @@
  */
 
 #include "pipeline/rs_hardware_processor.h"
-
-#include <iterator>
-
+#include "display_type.h"
 #include "pipeline/rs_main_thread.h"
-#include "pipeline/rs_render_service_util.h"
 #include "platform/common/rs_log.h"
 
-#include "common/rs_obj_abs_geometry.h"
 namespace OHOS {
 namespace Rosen {
-
 RSHardwareProcessor::RSHardwareProcessor() {}
 
 RSHardwareProcessor::~RSHardwareProcessor() {}
@@ -45,14 +40,15 @@ void RSHardwareProcessor::Init(ScreenId id)
         ROSEN_LOGE("RSHardwareProcessor::Init output_ is nullptr");
         return;
     }
-    screenManager_->GetScreenActiveMode(id, curScreenInfo_);
+
+    currScreenInfo_ = screenManager_->QueryScreenInfo(id);
     ROSEN_LOGI("RSHardwareProcessor::Init screen w:%{public}d, w:%{public}d",
-        curScreenInfo_.GetScreenWidth(), curScreenInfo_.GetScreenHeight());
+        currScreenInfo_.width, currScreenInfo_.height);
     IRect damageRect;
     damageRect.x = 0;
     damageRect.y = 0;
-    damageRect.w = curScreenInfo_.GetScreenWidth();
-    damageRect.h = curScreenInfo_.GetScreenHeight();
+    damageRect.w = currScreenInfo_.width;
+    damageRect.h = currScreenInfo_.height;
     output_->SetOutputDamage(1, damageRect);
 }
 
@@ -81,8 +77,8 @@ void RSHardwareProcessor::CropLayers()
         IRect dstRect = layer->GetLayerSize();
         IRect srcRect = layer->GetCropRect();
         IRect orgSrcRect = srcRect;
-        int32_t screenWidth = curScreenInfo_.GetScreenWidth();
-        int32_t screenHeight = curScreenInfo_.GetScreenHeight();
+        int32_t screenWidth = currScreenInfo_.width;
+        int32_t screenHeight = currScreenInfo_.height;
         if (dstRect.x < 0 && dstRect.x + dstRect.w > 0) {
             srcRect.w = srcRect.w * (dstRect.w + dstRect.x) / dstRect.w;
             srcRect.x = orgSrcRect.w - srcRect.w;
@@ -124,8 +120,8 @@ void RSHardwareProcessor::ProcessSurface(RSSurfaceRenderNode &node)
         ROSEN_LOGE("RSHardwareProcessor::ProcessSurface output is nullptr");
         return;
     }
-    if (node.GetRenderProperties().GetBoundsPositionX() >= curScreenInfo_.GetScreenWidth() ||
-        node.GetRenderProperties().GetBoundsPositionY() >= curScreenInfo_.GetScreenHeight()) {
+    if (node.GetRenderProperties().GetBoundsPositionX() >= currScreenInfo_.width ||
+        node.GetRenderProperties().GetBoundsPositionY() >= currScreenInfo_.height) {
         ROSEN_LOGE("RsDebug RSHardwareProcessor::ProcessSurface this node:%llu no need to composite", node.GetId());
         return;
     }
@@ -136,7 +132,7 @@ void RSHardwareProcessor::ProcessSurface(RSSurfaceRenderNode &node)
         ROSEN_LOGE("RsDebug RSHardwareProcessor::ProcessSurface consume buffer fail");
         return;
     }
-    if (node.IsBufferAvailable() == false) {
+    if (!node.IsBufferAvailable()) {
         // Only ipc for one time.
         ROSEN_LOGI("RsDebug RSHardwareProcessor::ProcessSurface id = %llu Notify RT buffer available", node.GetId());
         node.NotifyBufferAvailable(true);
@@ -162,8 +158,8 @@ void RSHardwareProcessor::ProcessSurface(RSSurfaceRenderNode &node)
         .visibleRect = {
             .x = 0,
             .y = 0,
-            .w = curScreenInfo_.GetScreenWidth(),
-            .h = curScreenInfo_.GetScreenHeight(),
+            .w = currScreenInfo_.width,
+            .h = currScreenInfo_.height,
         },
         .zOrder = node.GetGlobalZOrder(),
         .alpha = {
@@ -187,6 +183,9 @@ void RSHardwareProcessor::ProcessSurface(RSSurfaceRenderNode &node)
         node.GetBuffer()->GetSurfaceBufferHeight(), node.GetBuffer().GetRefPtr(),
         node.GetRenderProperties().GetPositionZ(), info.zOrder, info.blendType);
     RsRenderServiceUtil::ComposeSurface(layer, node.GetConsumer(), layers_, info, &node);
+    if (info.buffer->GetSurfaceBufferColorGamut() != static_cast<SurfaceColorGamut>(currScreenInfo_.colorGamut)) {
+        layer->SetCompositionType(CompositionType::COMPOSITION_CLIENT);
+    }
 }
 
 void RSHardwareProcessor::CalculateInfo(const std::unique_ptr<RSTransitionProperties>& transitionProperties,
@@ -227,8 +226,8 @@ void RSHardwareProcessor::Redraw(sptr<Surface>& surface, const struct PrepareCom
     }
     ROSEN_LOGI("RsDebug RSHardwareProcessor::Redraw flush frame buffer start");
     BufferRequestConfig requestConfig = {
-        .width = curScreenInfo_.GetScreenWidth(),
-        .height = curScreenInfo_.GetScreenHeight(),
+        .width = currScreenInfo_.width,
+        .height = currScreenInfo_.height,
         .strideAlignment = 0x8,
         .format = PIXEL_FMT_RGBA_8888,      // [PLANNING] different soc need different format
         .usage = HBM_USE_CPU_READ | HBM_USE_CPU_WRITE | HBM_USE_MEM_DMA | HBM_USE_MEM_FB,
@@ -239,23 +238,35 @@ void RSHardwareProcessor::Redraw(sptr<Surface>& surface, const struct PrepareCom
         ROSEN_LOGE("RSHardwareProcessor::Redraw: canvas is null.");
         return;
     }
-    std::vector<LayerInfoPtr>::const_reverse_iterator iter = param.layers.rbegin();
-    for (; iter != param.layers.rend(); ++iter) {
-        ROSEN_LOGD("RsDebug RSHardwareProcessor::Redraw layer composition Type:%d", (*iter)->GetCompositionType());
-        if ((*iter) == nullptr || (*iter)->GetCompositionType() == CompositionType::COMPOSITION_DEVICE) {
+
+    for (auto it = param.layers.rbegin(); it != param.layers.rend(); ++it) {
+        LayerInfoPtr layerInfo = *it;
+        if (layerInfo == nullptr || layerInfo->GetCompositionType() == CompositionType::COMPOSITION_DEVICE) {
             continue;
         }
-        ROSEN_LOGE("RsDebug RSHardwareProcessor::Redraw layer [%d %d %d %d]", (*iter)->GetLayerSize().x,
-            (*iter)->GetLayerSize().y, (*iter)->GetLayerSize().w, (*iter)->GetLayerSize().h);
-        RsRenderServiceUtil::DrawBuffer(canvas.get(), (*iter)->GetBuffer(),
-            *static_cast<RSSurfaceRenderNode *>((*iter)->GetLayerAdditionalInfo()));
+
+        ROSEN_LOGD("RsDebug RSHardwareProcessor::Redraw layer composition Type:%d, [%d %d %d %d]",
+            layerInfo->GetCompositionType(), layerInfo->GetLayerSize().x, layerInfo->GetLayerSize().y,
+            layerInfo->GetLayerSize().w, layerInfo->GetLayerSize().h);
+
+        sptr<SurfaceBuffer> buffer = layerInfo->GetBuffer();
+        SurfaceColorGamut bufferColorGamut = buffer->GetSurfaceBufferColorGamut();
+        if (bufferColorGamut == static_cast<SurfaceColorGamut>(currScreenInfo_.colorGamut)) {
+            RsRenderServiceUtil::DrawBuffer(canvas.get(), buffer,
+                *(static_cast<RSSurfaceRenderNode *>(layerInfo->GetLayerAdditionalInfo())));
+        } else {
+            ROSEN_LOGW("RSHardwareProcessor::Redraw: need to convert color gamut.");
+            RsRenderServiceUtil::DrawBuffer(canvas.get(), buffer,
+                *(static_cast<RSSurfaceRenderNode *>(layerInfo->GetLayerAdditionalInfo())),
+                static_cast<ColorGamut>(currScreenInfo_.colorGamut));
+        }
     }
     BufferFlushConfig flushConfig = {
         .damage = {
             .x = 0,
             .y = 0,
-            .w = curScreenInfo_.GetScreenWidth(),
-            .h = curScreenInfo_.GetScreenHeight(),
+            .w = currScreenInfo_.width,
+            .h = currScreenInfo_.height,
         },
     };
     FlushBuffer(surface, flushConfig);
@@ -263,8 +274,8 @@ void RSHardwareProcessor::Redraw(sptr<Surface>& surface, const struct PrepareCom
 
 void RSHardwareProcessor::OnRotate()
 {
-    int32_t width = curScreenInfo_.GetScreenWidth();
-    int32_t height = curScreenInfo_.GetScreenHeight();
+    int32_t width = currScreenInfo_.width;
+    int32_t height = currScreenInfo_.height;
     for (auto& layer: layers_) {
         IRect rect = layer->GetLayerSize();
         ROSEN_LOGI("RsDebug RSHardwareProcessor::OnRotate Before Rotate layer size [%d %d %d %d]",

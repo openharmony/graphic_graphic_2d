@@ -15,10 +15,8 @@
 
 #include "rs_screen.h"
 
-#include <algorithm>
 #include <cinttypes>
 
-#include "screen_manager/screen_types.h"
 #include "string_utils.h"
 
 namespace OHOS {
