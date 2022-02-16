@@ -912,14 +912,211 @@ void RSProperties::ResetBounds()
 
 std::string RSProperties::Dump() const
 {
-    char buffer[UINT8_MAX];
-    if (sprintf_s(buffer, UINT8_MAX, "Bounds[%.1f %.1f %.1f %.1f] Frame[%.1f %.1f %.1f %.1f] bgcolor[#%08X]",
+    std::string dumpInfo;
+    char buffer[UINT8_MAX] = { 0 };
+    if (sprintf_s(buffer, UINT8_MAX, "Bounds[%.1f %.1f %.1f %.1f] Frame[%.1f %.1f %.1f %.1f]",
         GetBoundsPositionX(), GetBoundsPositionY(), GetBoundsWidth(), GetBoundsHeight(),
-        GetFramePositionX(), GetFramePositionY(), GetFrameWidth(), GetFrameHeight(),
-        GetBackgroundColor().AsArgbInt()) != -1) {
-        return std::string(buffer);
+        GetFramePositionX(), GetFramePositionY(), GetFrameWidth(), GetFrameHeight()) != -1) {
+        dumpInfo.append(buffer);
     }
-    return "";
+
+    // PositionZ
+    memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
+    if (!ROSEN_EQ(GetPositionZ(), 0.f) &&
+        sprintf_s(buffer, UINT8_MAX, ", PositionZ[%.1f]", GetPositionZ()) != -1) {
+        dumpInfo.append(buffer);
+    }
+
+    // Pivot
+    std::unique_ptr<Transform> defaultTrans = std::make_unique<Transform>();
+    memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
+    Vector2f pivot = GetPivot();
+    if ((!ROSEN_EQ(pivot[0], defaultTrans->pivotX_) || !ROSEN_EQ(pivot[1], defaultTrans->pivotY_)) &&
+        sprintf_s(buffer, UINT8_MAX, ", Pivot[%.1f,%.1f]", pivot[0], pivot[1]) != -1) {
+        dumpInfo.append(buffer);
+    }
+
+    // CornerRadius
+    std::unique_ptr<Border> defaultBorder = std::make_unique<Border>();
+    memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
+    if (!ROSEN_EQ(GetCornerRadius(), defaultBorder->cornerRadius_) &&
+        sprintf_s(buffer, UINT8_MAX, ", CornerRadius[%.1f]", GetCornerRadius()) != -1) {
+        dumpInfo.append(buffer);
+    }
+
+    // Rotation
+    memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
+    if (!ROSEN_EQ(GetRotation(), defaultTrans->rotation_) &&
+        sprintf_s(buffer, UINT8_MAX, ", Rotation[%.1f]", GetRotation()) != -1) {
+        dumpInfo.append(buffer);
+    }
+    // RotationX
+    memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
+    if (!ROSEN_EQ(GetRotationX(), defaultTrans->rotationX_) &&
+        sprintf_s(buffer, UINT8_MAX, ", RotationX[%.1f]", GetRotationX()) != -1) {
+        dumpInfo.append(buffer);
+    }
+    // RotationY
+    memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
+    if (!ROSEN_EQ(GetRotationY(), defaultTrans->rotationY_) &&
+        sprintf_s(buffer, UINT8_MAX, ", RotationY[%.1f]", GetRotationY()) != -1) {
+        dumpInfo.append(buffer);
+    }
+
+    // TranslateX
+    memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
+    if (!ROSEN_EQ(GetTranslateX(), defaultTrans->translateX_) &&
+        sprintf_s(buffer, UINT8_MAX, ", TranslateX[%.1f]", GetTranslateX()) != -1) {
+        dumpInfo.append(buffer);
+    }
+
+    // TranslateY
+    memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
+    if (!ROSEN_EQ(GetTranslateY(), defaultTrans->translateY_) &&
+        sprintf_s(buffer, UINT8_MAX, ", TranslateY[%.1f]", GetTranslateY()) != -1) {
+        dumpInfo.append(buffer);
+    }
+
+    // TranslateZ
+    memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
+    if (!ROSEN_EQ(GetTranslateZ(), defaultTrans->translateZ_) &&
+        sprintf_s(buffer, UINT8_MAX, ", TranslateZ[%.1f]", GetTranslateZ()) != -1) {
+        dumpInfo.append(buffer);
+    }
+
+    // ScaleX
+    memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
+    if (!ROSEN_EQ(GetScaleX(), defaultTrans->scaleX_) &&
+        sprintf_s(buffer, UINT8_MAX, ", ScaleX[%.1f]", GetScaleX()) != -1) {
+        dumpInfo.append(buffer);
+    }
+
+    // ScaleY
+    memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
+    if (!ROSEN_EQ(GetScaleY(), defaultTrans->scaleY_) &&
+        sprintf_s(buffer, UINT8_MAX, ", ScaleY[%.1f]", GetScaleY()) != -1) {
+        dumpInfo.append(buffer);
+    }
+
+    // Alpha
+    memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
+    if (!ROSEN_EQ(GetAlpha(), 1.f) &&
+        sprintf_s(buffer, UINT8_MAX, ", Alpha[%.1f]", GetAlpha()) != -1) {
+        dumpInfo.append(buffer);
+    }
+
+    // ForegroundColor
+    memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
+    if (!ROSEN_EQ(GetForegroundColor(), RgbPalette::Transparent()) &&
+        sprintf_s(buffer, UINT8_MAX, ", ForegroundColor[#%08X]", GetForegroundColor().AsArgbInt()) != -1) {
+        dumpInfo.append(buffer);
+    }
+
+    // BackgroundColor
+    memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
+    if (!ROSEN_EQ(GetBackgroundColor(), RgbPalette::Transparent()) &&
+        sprintf_s(buffer, UINT8_MAX, ", BackgroundColor[#%08X]", GetBackgroundColor().AsArgbInt()) != -1) {
+        dumpInfo.append(buffer);
+    }
+
+    // BgImage
+    std::unique_ptr<Decoration> defaultDecoration = std::make_unique<Decoration>();
+    memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
+    if ((!ROSEN_EQ(GetBgImagePositionX(), defaultDecoration->bgImageRect_.left_) ||
+        !ROSEN_EQ(GetBgImagePositionY(), defaultDecoration->bgImageRect_.top_) ||
+        !ROSEN_EQ(GetBgImageWidth(), defaultDecoration->bgImageRect_.width_) ||
+        !ROSEN_EQ(GetBgImageHeight(), defaultDecoration->bgImageRect_.height_)) &&
+        sprintf_s(buffer, UINT8_MAX, ", BgImage[%.1f %.1f %.1f %.1f]", GetBgImagePositionX(),
+            GetBgImagePositionY(), GetBgImageWidth(), GetBgImageHeight()) != -1) {
+        dumpInfo.append(buffer);
+    }
+
+    // BorderColor
+    memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
+    if (!ROSEN_EQ(GetBorderColor(), RgbPalette::Transparent()) &&
+        sprintf_s(buffer, UINT8_MAX, ", BorderColor[#%08X]", GetBorderColor().AsArgbInt()) != -1) {
+        dumpInfo.append(buffer);
+    }
+
+    // BorderWidth
+    memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
+    if (!ROSEN_EQ(GetBorderWidth(), defaultBorder->borderWidth_) &&
+        sprintf_s(buffer, UINT8_MAX, ", BorderWidth[%.1f]", GetBorderWidth()) != -1) {
+        dumpInfo.append(buffer);
+    }
+
+    // BorderStyle
+    memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
+    if (!ROSEN_EQ(GetBorderStyle(), defaultBorder->borderStyle_) &&
+        sprintf_s(buffer, UINT8_MAX, ", BorderStyle[%d]", GetBorderStyle()) != -1) {
+        dumpInfo.append(buffer);
+    }
+
+    // ShadowColor
+    memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
+    if (!ROSEN_EQ(GetShadowColor(), Color(DEFAULT_SPOT_COLOR)) &&
+        sprintf_s(buffer, UINT8_MAX, ", ShadowColor[#%08X]", GetShadowColor().AsArgbInt()) != -1) {
+        dumpInfo.append(buffer);
+    }
+
+    // ShadowOffsetX
+    memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
+    if (!ROSEN_EQ(GetShadowOffsetX(), DEFAULT_SHADOW_OFFSET_X) &&
+        sprintf_s(buffer, UINT8_MAX, ", ShadowOffsetX[%.1f]", GetShadowOffsetX()) != -1) {
+        dumpInfo.append(buffer);
+    }
+
+    // ShadowOffsetY
+    memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
+    if (!ROSEN_EQ(GetShadowOffsetY(), DEFAULT_SHADOW_OFFSET_Y) &&
+        sprintf_s(buffer, UINT8_MAX, ", ShadowOffsetY[%.1f]", GetShadowOffsetY()) != -1) {
+        dumpInfo.append(buffer);
+    }
+
+    // ShadowAlpha
+    memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
+    if (!ROSEN_EQ(GetShadowAlpha(), 0.f) &&
+        sprintf_s(buffer, UINT8_MAX, ", ShadowAlpha[%.1f]", GetShadowAlpha()) != -1) {
+        dumpInfo.append(buffer);
+    }
+
+    // ShadowElevation
+    memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
+    if (!ROSEN_EQ(GetShadowElevation(), 0.f) &&
+        sprintf_s(buffer, UINT8_MAX, ", ShadowElevation[%.1f]", GetShadowElevation()) != -1) {
+        dumpInfo.append(buffer);
+    }
+
+    // ShadowRadius
+    memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
+    if (!ROSEN_EQ(GetShadowRadius(), 0.f) &&
+        sprintf_s(buffer, UINT8_MAX, ", ShadowRadius[%.1f]", GetShadowRadius()) != -1) {
+        dumpInfo.append(buffer);
+    }
+
+    // FrameGravity
+    memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
+    if (!ROSEN_EQ(GetFrameGravity(), Gravity::DEFAULT) &&
+        sprintf_s(buffer, UINT8_MAX, ", FrameGravity[%d]", GetFrameGravity()) != -1) {
+        dumpInfo.append(buffer);
+    }
+
+    // IsClipToBounds
+    if (GetClipToBounds()) {
+        dumpInfo.append(", IsClipToBounds[true]");
+    }
+
+    // IsClipToFrame
+    if (GetClipToFrame()) {
+        dumpInfo.append(", IsClipToFrame[true]");
+    }
+
+    // IsVisible
+    if (!GetVisible()) {
+        dumpInfo.append(", IsVisible[false]");
+    }
+
+    return dumpInfo;
 }
 } // namespace Rosen
 } // namespace OHOS

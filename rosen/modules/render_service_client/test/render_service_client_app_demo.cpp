@@ -118,6 +118,17 @@ int main()
     // rsUiDirector->SendMessages();
     // sleep(1);
 
+    std::cout << "rs app demo start dump test --> " << std::endl;
+    rootNode->SetRotation(20.f);
+    rootNode->SetAlpha(0.5f);
+    rootNode->SetForegroundColor(SK_ColorRED);
+    rsUiDirector->SendMessages();
+    sleep(1);
+
+    const RSProperties& prop = rootNode->GetStagingProperties();
+    std::string dumpInfo = prop.Dump();
+    std::cout << "dumpInfo: " << dumpInfo.c_str() << std::endl;
+    sleep(1);
 
     std::cout << "rs app demo end!" << std::endl;
     window->Hide();
