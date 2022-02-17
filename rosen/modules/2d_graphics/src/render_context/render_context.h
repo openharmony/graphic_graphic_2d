@@ -73,7 +73,7 @@ public:
 private:
     sk_sp<GrContext> grContext_;
     sk_sp<SkSurface> skSurface_;
-    
+
     EGLNativeWindowType nativeWindow_;
 
     EGLDisplay eglDisplay_;

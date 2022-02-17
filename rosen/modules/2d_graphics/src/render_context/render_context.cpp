@@ -165,7 +165,7 @@ void RenderContext::SwapBuffers(EGLSurface surface) const
     }
 }
 
-EGLSurface RenderContext::CreateEGLSurface(EGLNativeWindowType eglNativeWindow， SurfaceColorGamut colorGamut)
+EGLSurface RenderContext::CreateEGLSurface(EGLNativeWindowType eglNativeWindow, SurfaceColorGamut colorGamut)
 {
     if (!IsEglContextReady()) {
         LOGE("EGL context has not initialized");
@@ -237,7 +237,7 @@ bool RenderContext::SetUpGrContext()
     return true;
 }
 
-SkCanvas* RenderContext::AcquireCanvas(int width, int height， SurfaceColorGamut colorGamut)
+SkCanvas* RenderContext::AcquireCanvas(int width, int height, SurfaceColorGamut colorGamut)
 {
     if (!SetUpGrContext()) {
         LOGE("GrContext is not ready!!!");
@@ -253,16 +253,13 @@ SkCanvas* RenderContext::AcquireCanvas(int width, int height， SurfaceColorGamu
     GrBackendRenderTarget backendRenderTarget(width, height, 0, 8, framebufferInfo);
     SkSurfaceProps surfaceProps = SkSurfaceProps::kLegacyFontHost_InitType;
 
-    auto skColorSpace = nullptr;
+    sk_sp<SkColorSpace> skColorSpace = nullptr;
 
     switch (colorGamut) {
-        // in order to stay consistant with the colorspace used before, we disabled COLOR_GAMUT_SRGB
-        // to let the branch to default, then skColorSpace is set to nullptr
-        // case COLOR_GAMUT_SRGB:
-        //     skColorSpace_ = SkColorSpace::MakeSRGB();
-        //     break;
+        // [planning] in order to stay consistant with the colorspace used before, we disabled
+        // COLOR_GAMUT_SRGB to let the branch to default, then skColorSpace is set to nullptr
         case COLOR_GAMUT_DISPLAY_P3:
-            skColorSpace = SkColorSpace::MakeRGB(SkNamedTransferFn::kSRGB, SkNamedGamut::kDisplayP3);
+            skColorSpace = SkColorSpace::MakeRGB(SkNamedTransferFn::kSRGB, SkNamedGamut::kDCIP3);
             break;
         case COLOR_GAMUT_ADOBE_RGB:
             skColorSpace = SkColorSpace::MakeRGB(SkNamedTransferFn::kSRGB, SkNamedGamut::kAdobeRGB);
