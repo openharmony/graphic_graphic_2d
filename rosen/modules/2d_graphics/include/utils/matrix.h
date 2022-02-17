@@ -35,6 +35,7 @@ public:
     bool operator==(const Matrix& other);
     void SetMatrix(scalar scaleX, scalar skewX, scalar transX, scalar skewY, scalar scaleY, scalar transY,
         scalar persp0, scalar persp1, scalar persp2);
+    void MapPoints(std::vector<Point>& dst, const std::vector<Point>& src, int count) const;
     scalar Get(int index) const;
     template<typename T>
     const std::shared_ptr<T> GetImpl() const

@@ -106,6 +106,17 @@ void CoreCanvas::DrawImage(const Image& image, const scalar px, const scalar py,
     impl_->DrawImage(image, px, py, sampling);
 }
 
+void CoreCanvas::DrawImageRect(
+    const Image& image, const Rect& src, const Rect& dst, const SamplingOptions& sampling, SrcRectConstraint constraint)
+{
+    impl_->DrawImageRect(image, src, dst, sampling, constraint);
+}
+
+void CoreCanvas::DrawImageRect(const Image& image, const Rect& dst, const SamplingOptions& sampling)
+{
+    impl_->DrawImageRect(image, dst, sampling);
+}
+
 void CoreCanvas::DrawPicture(const Picture& picture)
 {
     impl_->DrawPicture(picture);

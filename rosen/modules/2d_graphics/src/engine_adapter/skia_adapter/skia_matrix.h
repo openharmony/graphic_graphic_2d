@@ -43,6 +43,7 @@ public:
     bool Equals(const Matrix& a, const Matrix& b) const override;
     void SetMatrix(scalar scaleX, scalar skewX, scalar transX, scalar skewY, scalar scaleY, scalar transY,
         scalar persp0, scalar persp1, scalar persp2) override;
+    void MapPoints(std::vector<Point>& dst, const std::vector<Point>& src, int count) const override;
     scalar Get(int index) const override;
 
 private:

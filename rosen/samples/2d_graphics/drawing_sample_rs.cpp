@@ -69,6 +69,8 @@ namespace {
 }
 
 std::vector<TestFunc> testFuncVec;
+constexpr static int32_t WIDTH = 720;
+constexpr static int32_t HEIGHT = 1280;
 
 void TestDrawPath(Canvas &canvas, uint32_t width, uint32_t height)
 {
@@ -280,6 +282,30 @@ void TestDrawImage(Canvas& canvas, uint32_t width, uint32_t height)
     LOGI("------- TestDrawImage");
 }
 
+void TestDrawImageRect(Canvas& canvas, uint32_t width, uint32_t height)
+{
+    LOGI("+++++++ TestDrawImageRect");
+    Bitmap bmp;
+    BitmapFormat format {COLORTYPE_RGBA_8888, ALPHATYPE_OPAQUYE};
+    // bitmap width and height
+    bmp.Build(300, 300, format);
+    bmp.ClearWithColor(Drawing::Color::COLOR_BLUE);
+
+    Image image;
+    image.BuildFromBitmap(bmp);
+    // rect size
+    Drawing::Rect r1(100, 100, 200, 200);
+    Drawing::Rect r2(300, 300, 500, 500);
+    SamplingOptions sampling = SamplingOptions(Drawing::FilterMode::NEAREST, Drawing::MipmapMode::NEAREST);
+
+    Brush brush;
+    brush.SetColor(Drawing::Color::COLOR_RED);
+    canvas.AttachBrush(brush);
+    canvas.DrawImageRect(image, r1, r2, sampling, SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT);
+
+    LOGI("------- TestDrawImageRect");
+}
+
 void TestPicture(Canvas& canvas, uint32_t width, uint32_t height)
 {
     LOGI("+++++++ TestPicture");
@@ -340,23 +366,14 @@ void TestMatrix(Canvas &canvas, uint32_t width, uint32_t height)
     canvas.SetMatrix(m);
     canvas.DrawRect({1200, 100, 1500, 400});
 
-    Matrix a;
-    a.SetMatrix(1, 1, 0, 1, 0, 0, 0, 0, 0);
-    Matrix b;
-    b.SetMatrix(1, 1, 0, 1, 0, 0, 0, 0, 0);
-    Matrix c;
-    c.SetMatrix(1, 1, 0, 1, 0, 0, 0, 1, 0);
-
-    if (a == b) {
-        LOGI("+++++++ matrix a is equals to matrix b");
-    } else {
-        LOGI("+++++++ matrix a is not equals to matrix b");
-    }
-
-    if (a == c) {
-        LOGI("+++++++ matrix a is equals to matrix c");
-    } else {
-        LOGI("+++++++ matrix a is not equals to matrix c");
+    Matrix matrix;
+    // 100 means offset size
+    matrix.Translate(100, 100);
+    // {0, 0} means point position
+    std::vector<Point> point = {{0, 0}};
+    matrix.MapPoints(point, point, point.size());
+    for (auto i = 0; i < point.size(); i++) {
+        LOGI("mapped point fx = %{public}f, fy = %{public}f", point[i].GetX(), point[i].GetY());
     }
 
     LOGI("------- TestMatrix");
@@ -552,6 +569,7 @@ int main()
     testFuncVec.push_back(TestDrawPathEffect);
     testFuncVec.push_back(TestDrawBitmap);
     testFuncVec.push_back(TestDrawImage);
+    testFuncVec.push_back(TestDrawImageRect);
     testFuncVec.push_back(TestPicture);
     testFuncVec.push_back(TestDrawFilter);
     testFuncVec.push_back(TestDrawShader);
@@ -569,9 +587,9 @@ int main()
         }
         sleep(2);
         displayNode->AddChild(surfaceNode, -1);
-        surfaceNode->SetBounds(0, 0, 2560, 1600);
+        surfaceNode->SetBounds(0, 0, WIDTH, HEIGHT);
         transactionProxy->FlushImplicitTransaction();
-        DrawSurface(surfaceNode, 2560, 1600, i);
+        DrawSurface(surfaceNode, WIDTH, HEIGHT, i);
         sleep(4);
         displayNode->RemoveChild(surfaceNode);
         transactionProxy->FlushImplicitTransaction();

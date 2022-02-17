@@ -44,6 +44,7 @@ class PixelMap;
 }
 namespace Rosen {
 namespace Drawing {
+enum class SrcRectConstraint;
 class CoreCanvasImpl : public BaseImpl {
 public:
     static inline constexpr AdapterType TYPE = AdapterType::BASE_INTERFACE;
@@ -75,6 +76,9 @@ public:
     virtual void DrawBitmap(const Bitmap& bitmap, const scalar px, const scalar py) = 0;
     virtual void DrawBitmap(Media::PixelMap& pixelMap, const scalar px, const scalar py) = 0;
     virtual void DrawImage(const Image& image, const scalar px, const scalar p, const SamplingOptions& sampling) = 0;
+    virtual void DrawImageRect(const Image& image, const Rect& src, const Rect& dst, const SamplingOptions& sampling,
+        SrcRectConstraint constraint) = 0;
+    virtual void DrawImageRect(const Image& image, const Rect& dst, const SamplingOptions& sampling) = 0;
     virtual void DrawPicture(const Picture& picture) = 0;
 
     // text

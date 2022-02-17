@@ -296,7 +296,7 @@ void SkiaCanvas::DrawImage(const Image& image, const scalar px, const scalar py,
         return;
     }
 
-    for (auto d : skiaPaint_.GetSortedPaints()) {
+    for (auto d : paints) {
         if (d != nullptr) {
 #if defined(USE_CANVASKIT0310_SKIA)
             SkSamplingOptions samplingOptions;
@@ -309,6 +309,88 @@ void SkiaCanvas::DrawImage(const Image& image, const scalar px, const scalar py,
             skiaCanvas_->drawImage(img, px, py, samplingOptions, &d->paint);
 #else
             skiaCanvas_->drawImage(img, px, py, &d->paint);
+#endif
+        }
+    }
+}
+
+void SkiaCanvas::DrawImageRect(
+    const Image& image, const Rect& src, const Rect& dst, const SamplingOptions& sampling, SrcRectConstraint constraint)
+{
+    sk_sp<SkImage> img;
+    auto skImageImpl = image.GetImpl<SkiaImage>();
+    if (skImageImpl != nullptr) {
+        img = skImageImpl->GetImage();
+    }
+
+    SkRect srcRect = SkRect::MakeLTRB(src.GetLeft(), src.GetTop(), src.GetRight(), src.GetBottom());
+    SkRect dstRect = SkRect::MakeLTRB(dst.GetLeft(), dst.GetTop(), dst.GetRight(), dst.GetBottom());
+
+    auto paints = skiaPaint_.GetSortedPaints();
+    if (paints.empty()) {
+#if defined(USE_CANVASKIT0310_SKIA)
+        skiaCanvas_->drawImageRect(
+            img, srcRect, dstRect, samplingOptions, nullptr, static_cast<SkCanvas::SrcRectConstraint>(constraint));
+#else
+        skiaCanvas_->drawImageRect(
+            img, srcRect, dstRect, nullptr, static_cast<SkCanvas::SrcRectConstraint>(constraint));
+#endif
+        return;
+    }
+
+    for (auto d : paints) {
+        if (d != nullptr) {
+#if defined(USE_CANVASKIT0310_SKIA)
+            SkSamplingOptions samplingOptions;
+            if (sampling.GetUseCubic()) {
+                samplingOptions = SkSamplingOptions({ sampling.GetCubicCoffB(), sampling.GetCubicCoffC() });
+            } else {
+                samplingOptions = SkSamplingOptions(static_cast<SkFilterMode>(sampling.GetFilterMode()),
+                    static_cast<SkMipmapMode>(sampling.GetMipmapMode()));
+            }
+            skiaCanvas_->drawImageRect(img, srcRect, dstRect, samplingOptions, &d->paint,
+                static_cast<SkCanvas::SrcRectConstraint>(constraint));
+#else
+            skiaCanvas_->drawImageRect(
+                img, srcRect, dstRect, &d->paint, static_cast<SkCanvas::SrcRectConstraint>(constraint));
+#endif
+        }
+    }
+}
+
+void SkiaCanvas::DrawImageRect(const Image& image, const Rect& dst, const SamplingOptions& sampling)
+{
+    sk_sp<SkImage> img;
+    auto skImageImpl = image.GetImpl<SkiaImage>();
+    if (skImageImpl != nullptr) {
+        img = skImageImpl->GetImage();
+    }
+
+    SkRect dstRect = SkRect::MakeLTRB(dst.GetLeft(), dst.GetTop(), dst.GetRight(), dst.GetBottom());
+
+    auto paints = skiaPaint_.GetSortedPaints();
+    if (paints.empty()) {
+#if defined(USE_CANVASKIT0310_SKIA)
+        skiaCanvas_->drawImageRect(img, dstRect, samplingOptions, nullptr);
+#else
+        skiaCanvas_->drawImageRect(img, dstRect, nullptr);
+#endif
+        return;
+    }
+
+    for (auto d : paints) {
+        if (d != nullptr) {
+#if defined(USE_CANVASKIT0310_SKIA)
+            SkSamplingOptions samplingOptions;
+            if (sampling.GetUseCubic()) {
+                samplingOptions = SkSamplingOptions({ sampling.GetCubicCoffB(), sampling.GetCubicCoffC() });
+            } else {
+                samplingOptions = SkSamplingOptions(static_cast<SkFilterMode>(sampling.GetFilterMode()),
+                    static_cast<SkMipmapMode>(sampling.GetMipmapMode()));
+            }
+            skiaCanvas_->drawImageRect(img, dstRect, samplingOptions, &d->paint);
+#else
+            skiaCanvas_->drawImageRect(img, dstRect, &d->paint);
 #endif
         }
     }
