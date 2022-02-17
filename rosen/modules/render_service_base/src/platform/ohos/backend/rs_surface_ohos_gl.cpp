@@ -44,7 +44,8 @@ std::unique_ptr<RSSurfaceFrame> RSSurfaceOhosGl::RequestFrame(int32_t width, int
 
     if (mWindow == nullptr) {
         mWindow = CreateNativeWindowFromSurface(&producer_);
-        mEglSurface = context->CreateEGLSurface((EGLNativeWindowType)mWindow, colorSpace_);
+        mEglSurface = context->CreateEGLSurface((EGLNativeWindowType)mWindow);
+        // mEglSurface = context->CreateEGLSurface((EGLNativeWindowType)mWindow, colorSpace_);
         ROSEN_LOGI("RSSurfaceOhosGl: Init EglSurface %{public}p", mEglSurface);
     }
 
@@ -57,6 +58,7 @@ std::unique_ptr<RSSurfaceFrame> RSSurfaceOhosGl::RequestFrame(int32_t width, int
 
     NativeWindowHandleOpt(mWindow, SET_BUFFER_GEOMETRY, width, height);
     NativeWindowHandleOpt(mWindow, GET_BUFFER_GEOMETRY, &mHeight, &mWidth);
+    NativeWindowHandleOpt(mWindow, SET_COLOR_GAMUT, colorSpace_）;
 
     context->MakeCurrent(mEglSurface);
 
@@ -83,11 +85,6 @@ bool RSSurfaceOhosGl::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame)
     context->SwapBuffers(mEglSurface);
     ROSEN_LOGD("RSSurfaceOhosGl: FlushFrame, SwapBuffers eglsurface is %p", mEglSurface);
     return true;
-}
-
-void RSSurfaceOhosGl::SetColorSpace(SurfaceColorGamut colorSpace)
-{
-    colorSpace_ = colorSpace;
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -80,7 +80,6 @@ static EGLDisplay GetPlatformEglDisplay(EGLenum platform, void* native_display, 
 RenderContext::RenderContext()
     : grContext_(nullptr),
       skSurface_(nullptr),
-      skColorSpace_(nullptr),
       nativeWindow_(nullptr),
       eglDisplay_(EGL_NO_DISPLAY),
       eglContext_(EGL_NO_CONTEXT),
@@ -254,25 +253,29 @@ SkCanvas* RenderContext::AcquireCanvas(int width, int height， SurfaceColorGamu
     GrBackendRenderTarget backendRenderTarget(width, height, 0, 8, framebufferInfo);
     SkSurfaceProps surfaceProps = SkSurfaceProps::kLegacyFontHost_InitType;
 
+    auto skColorSpace = nullptr;
+
     switch (colorGamut) {
-        case COLOR_GAMUT_SRGB:
-            skColorSpace_ = SkColorSpace::MakeSRGB();
-            break;
+        // in order to stay consistant with the colorspace used before, we disabled COLOR_GAMUT_SRGB
+        // to let the branch to default, then skColorSpace is set to nullptr
+        // case COLOR_GAMUT_SRGB:
+        //     skColorSpace_ = SkColorSpace::MakeSRGB();
+        //     break;
         case COLOR_GAMUT_DISPLAY_P3:
-            skColorSpace_ = SkColorSpace::MakeRGB(SkNamedTransferFn::kSRGB, SkNamedGamut::kDisplayP3);
+            skColorSpace = SkColorSpace::MakeRGB(SkNamedTransferFn::kSRGB, SkNamedGamut::kDisplayP3);
             break;
         case COLOR_GAMUT_ADOBE_RGB:
-            skColorSpace_ = SkColorSpace::MakeRGB(SkNamedTransferFn::kSRGB, SkNamedGamut::kAdobeRGB);
+            skColorSpace = SkColorSpace::MakeRGB(SkNamedTransferFn::kSRGB, SkNamedGamut::kAdobeRGB);
             break;
         case COLOR_GAMUT_BT2020:
-            skColorSpace_ = SkColorSpace::MakeRGB(SkNamedTransferFn::kSRGB, SkNamedGamut::kRec2020);
+            skColorSpace = SkColorSpace::MakeRGB(SkNamedTransferFn::kSRGB, SkNamedGamut::kRec2020);
             break;
         default:
             break;
     }
 
     skSurface_ = SkSurface::MakeFromBackendRenderTarget(
-        GetGrContext(), backendRenderTarget, kBottomLeft_GrSurfaceOrigin, colorType, skColorSpace_, &surfaceProps);
+        GetGrContext(), backendRenderTarget, kBottomLeft_GrSurfaceOrigin, colorType, skColorSpace, &surfaceProps);
     if (skSurface_ == nullptr) {
         LOGW("skSurface is nullptr");
         return nullptr;
@@ -284,7 +287,7 @@ SkCanvas* RenderContext::AcquireCanvas(int width, int height， SurfaceColorGamu
 
 SkCanvas* RenderContext::AcquireCanvas(int width, int height)
 {
-    return AcquireCanvas(width, height, SurfaceColorGamut::COLOR_GAMUT_NATIVE);
+    return AcquireCanvas(width, height, SurfaceColorGamut::COLOR_GAMUT_SRGB);
 }
 
 void RenderContext::RenderFrame()

@@ -37,6 +37,7 @@ public:
     virtual ~RenderContext();
     void CreateCanvas(int width, int height);
     SkCanvas* AcquireCanvas(int width, int height);
+    SkCanvas* AcquireCanvas(int width, int height, SurfaceColorGamut colorGamut);
 
     void InitializeEglContext();
 
@@ -72,7 +73,6 @@ public:
 private:
     sk_sp<GrContext> grContext_;
     sk_sp<SkSurface> skSurface_;
-    sk_sp<SkColorSpace> skColorSpace_;
     
     EGLNativeWindowType nativeWindow_;
 
