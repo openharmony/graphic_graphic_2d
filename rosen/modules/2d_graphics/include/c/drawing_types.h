@@ -23,11 +23,6 @@ extern "C" {
 #endif
 
 /**
- * @brief OH_Drawing_Color is a 32-bit ARGB color quantity.
- */
-typedef uint32_t OH_Drawing_Color;
-
-/**
  * @brief OH_Drawing_Canvas contains the current state of the rendering,
  * used to draw some destination such as shapes, bitmap.
  */

@@ -61,18 +61,18 @@ void OH_Drawing_PenSetAntiAlias(OH_Drawing_Pen*, bool);
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @param OH_Drawing_Pen a pointer to OH_Drawing_Pen object
- * @return OH_Drawing_Pen stroke color
+ * @return OH_Drawing_Pen stroke color, a 32-bit ARGB quantity
  */
-OH_Drawing_Color OH_Drawing_PenGetColor(const OH_Drawing_Pen*);
+uint32_t OH_Drawing_PenGetColor(const OH_Drawing_Pen*);
 
 /**
  * @brief Sets OH_Drawing_Pen stroke color, that is a 32-bit ARGB quantity.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @param OH_Drawing_Pen a pointer to OH_Drawing_Pen object
- * @param OH_Drawing_Color a 32-bit ARGB quantity
+ * @param color a 32-bit ARGB quantity
  */
-void OH_Drawing_PenSetColor(OH_Drawing_Pen*, OH_Drawing_Color);
+void OH_Drawing_PenSetColor(OH_Drawing_Pen*, uint32_t color);
 
 /**
  * @brief Returns OH_Drawing_Pen stroke width.

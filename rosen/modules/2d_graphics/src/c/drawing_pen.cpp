@@ -127,14 +127,14 @@ void OH_Drawing_PenSetAntiAlias(OH_Drawing_Pen* cPen, bool aa)
     CastToPen(cPen)->SetAntiAlias(aa);
 }
 
-OH_Drawing_Color OH_Drawing_PenGetColor(const OH_Drawing_Pen* cPen)
+uint32_t OH_Drawing_PenGetColor(const OH_Drawing_Pen* cPen)
 {
     return CastToPen(*cPen).GetColor().CastToColorQuad();
 }
 
-void OH_Drawing_PenSetColor(OH_Drawing_Pen* cPen, OH_Drawing_Color c)
+void OH_Drawing_PenSetColor(OH_Drawing_Pen* cPen, uint32_t color)
 {
-    CastToPen(cPen)->SetColor(c);
+    CastToPen(cPen)->SetColor(color);
 }
 
 float OH_Drawing_PenGetWidth(const OH_Drawing_Pen* cPen)

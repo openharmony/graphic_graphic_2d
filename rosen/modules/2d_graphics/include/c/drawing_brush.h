@@ -61,18 +61,18 @@ void OH_Drawing_BrushSetAntiAlias(OH_Drawing_Brush*, bool);
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @param OH_Drawing_Brush a pointer to OH_Drawing_Brush object
- * @return OH_Drawing_Brush fill color
+ * @return OH_Drawing_Brush fill color, a 32-bit ARGB quantity
  */
-OH_Drawing_Color OH_Drawing_BrushGetColor(const OH_Drawing_Brush*);
+uint32_t OH_Drawing_BrushGetColor(const OH_Drawing_Brush*);
 
 /**
  * @brief Sets OH_Drawing_Brush fill color, that is a 32-bit ARGB quantity.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @param OH_Drawing_Brush a pointer to OH_Drawing_Brush object
- * @param OH_Drawing_Color a 32-bit ARGB quantity
+ * @param color a 32-bit ARGB quantity
  */
-void OH_Drawing_BrushSetColor(OH_Drawing_Brush*, OH_Drawing_Color);
+void OH_Drawing_BrushSetColor(OH_Drawing_Brush*, uint32_t color);
 
 #ifdef __cplusplus
 }

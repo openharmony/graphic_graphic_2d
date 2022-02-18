@@ -81,9 +81,6 @@ public:
     virtual void DrawImageRect(const Image& image, const Rect& dst, const SamplingOptions& sampling) = 0;
     virtual void DrawPicture(const Picture& picture) = 0;
 
-    // text
-    virtual void DrawText(const Text& text) = 0; // TODO...
-
     // clip
     virtual void ClipRect(const Rect& rect, ClipOp op) = 0;
     virtual void ClipRoundRect(const RoundRect& roundRect, ClipOp op) = 0;

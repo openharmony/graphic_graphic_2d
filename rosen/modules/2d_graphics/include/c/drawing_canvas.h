@@ -123,9 +123,9 @@ void OH_Drawing_CanvasDrawPath(OH_Drawing_Canvas*, const OH_Drawing_Path*);
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @param OH_Drawing_Canvas a pointer to OH_Drawing_Canvas object
- * @param OH_Drawing_Color a 32-bit ARGB color quantity
+ * @param color a 32-bit ARGB color quantity
  */
-void OH_Drawing_CanvasClear(OH_Drawing_Canvas*, OH_Drawing_Color);
+void OH_Drawing_CanvasClear(OH_Drawing_Canvas*, uint32_t color);
 
 #ifdef __cplusplus
 }

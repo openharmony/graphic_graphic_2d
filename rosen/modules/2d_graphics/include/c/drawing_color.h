@@ -32,7 +32,7 @@ extern "C" {
  * @param blue blue, which range is 0x00~0xFF
  * @return a 32-bit ARGB color quantity
  */
-OH_Drawing_Color OH_Drawing_ColorSetArgb(uint32_t alpha, uint32_t red, uint32_t green, uint32_t blue);
+uint32_t OH_Drawing_ColorSetArgb(uint32_t alpha, uint32_t red, uint32_t green, uint32_t blue);
 
 #ifdef __cplusplus
 }

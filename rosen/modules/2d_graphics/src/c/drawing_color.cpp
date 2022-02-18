@@ -15,7 +15,7 @@
 
 #include "c/drawing_color.h"
 
-OH_Drawing_Color OH_Drawing_ColorSetArgb(uint32_t alpha, uint32_t red, uint32_t green, uint32_t blue)
+uint32_t OH_Drawing_ColorSetArgb(uint32_t alpha, uint32_t red, uint32_t green, uint32_t blue)
 {
     // alpha left-shifted 24, red left-shifted 16, green left-shifted 8, blue left-shifted 0
     return ((alpha & 0xffu) << 24) | ((red & 0xffu) << 16) | ((green & 0xffu) << 8) | ((blue & 0xffu) << 0);

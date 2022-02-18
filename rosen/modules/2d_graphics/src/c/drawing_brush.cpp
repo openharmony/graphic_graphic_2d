@@ -51,12 +51,12 @@ void OH_Drawing_BrushSetAntiAlias(OH_Drawing_Brush* cBrush, bool aa)
     CastToBrush(cBrush)->SetAntiAlias(aa);
 }
 
-OH_Drawing_Color OH_Drawing_BrushGetColor(const OH_Drawing_Brush* cBrush)
+uint32_t OH_Drawing_BrushGetColor(const OH_Drawing_Brush* cBrush)
 {
     return CastToBrush(*cBrush).GetColor().CastToColorQuad();
 }
 
-void OH_Drawing_BrushSetColor(OH_Drawing_Brush* cBrush, OH_Drawing_Color c)
+void OH_Drawing_BrushSetColor(OH_Drawing_Brush* cBrush, uint32_t color)
 {
-    CastToBrush(cBrush)->SetColor(c);
+    CastToBrush(cBrush)->SetColor(color);
 }

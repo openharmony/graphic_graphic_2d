@@ -407,8 +407,6 @@ void SkiaCanvas::DrawPicture(const Picture& picture)
     LOGI("------- DrawPicture");
 }
 
-void SkiaCanvas::DrawText(const Text& text) {} // TODO...
-
 void SkiaCanvas::ClipRect(const Rect& rect, ClipOp op)
 {
     SkRect clipRect = SkRect::MakeLTRB(rect.GetLeft(), rect.GetTop(), rect.GetRight(), rect.GetBottom());

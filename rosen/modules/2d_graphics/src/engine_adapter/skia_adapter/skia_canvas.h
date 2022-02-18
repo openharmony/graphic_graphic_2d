@@ -73,9 +73,6 @@ public:
     void DrawImageRect(const Image& image, const Rect& dst, const SamplingOptions& sampling) override;
     void DrawPicture(const Picture& picture) override;
 
-    // text
-    void DrawText(const Text& text) override; // TODO...
-
     // clip
     void ClipRect(const Rect& rect, ClipOp op) override;
     void ClipRoundRect(const RoundRect& roundRect, ClipOp op) override;

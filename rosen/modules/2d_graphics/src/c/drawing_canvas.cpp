@@ -103,7 +103,7 @@ void OH_Drawing_CanvasDrawPath(OH_Drawing_Canvas* cCanvas, const OH_Drawing_Path
     CastToCanvas(cCanvas)->DrawPath(CastToPath(*cPath));
 }
 
-void OH_Drawing_CanvasClear(OH_Drawing_Canvas* cCanvas, OH_Drawing_Color c)
+void OH_Drawing_CanvasClear(OH_Drawing_Canvas* cCanvas, uint32_t color)
 {
-    CastToCanvas(cCanvas)->Clear(c);
+    CastToCanvas(cCanvas)->Clear(color);
 }
