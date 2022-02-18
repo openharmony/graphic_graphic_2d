@@ -25,7 +25,6 @@
 
 namespace OHOS {
 namespace Rosen {
-
 void RsRenderServiceUtil::ComposeSurface(std::shared_ptr<HdiLayerInfo> layer, sptr<Surface> consumerSurface,
     std::vector<LayerInfoPtr>& layers,  ComposeInfo info, RSSurfaceRenderNode* node)
 {
