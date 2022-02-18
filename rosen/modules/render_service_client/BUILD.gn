@@ -20,6 +20,8 @@ config("render_service_client_config") {
     "$rosen_root/modules",
     "$rosen_root/modules/render_service_client/core",
     "$rosen_root/modules/render_service_base/include",
+    "//foundation/graphic/standard/interfaces/innerkits/common",
+    "//foundation/graphic/standard/interfaces/innerkits/surface",
   ]
 }
 
@@ -32,6 +34,7 @@ ohos_source_set("render_service_client_src") {
     "$rosen_root/modules/2d_graphics/src",
     "//foundation/graphic/utils/log",
     "//foundation/graphic/standard/utils/log",
+    "//foundation/graphic/standard/interfaces/innerkits/surface",
   ]
 
   sources = [

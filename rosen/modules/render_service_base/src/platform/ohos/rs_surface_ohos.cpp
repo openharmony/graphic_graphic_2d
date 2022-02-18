@@ -26,5 +26,15 @@ void RSSurfaceOhos::SetRenderContext(RenderContext* context)
 {
     context_ = context;
 }
+
+void RSSurfaceOhos::SetColorSpace(SurfaceColorGamut colorSpace)
+{
+    colorSpace_ = colorSpace;
+}
+
+SurfaceColorGamut RSSurfaceOhos::GetColorSpace()
+{
+    return colorSpace_;
+}
 } // namespace Rosen
 } // namespace OHOS

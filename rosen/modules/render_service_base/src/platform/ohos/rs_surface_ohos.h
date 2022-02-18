@@ -35,12 +35,14 @@ public:
         return producer_;
     }
 
-    virtual RenderContext* GetRenderContext();
-    virtual void SetRenderContext(RenderContext* context);
-
+    virtual RenderContext* GetRenderContext() override;
+    virtual void SetRenderContext(RenderContext* context) override;
+    virtual void SetColorSpace(SurfaceColorGamut colorSpace) override;
+    virtual SurfaceColorGamut GetColorSpace() override;
 protected:
     sptr<Surface> producer_;
     RenderContext* context_;
+    SurfaceColorGamut colorSpace_ = SurfaceColorGamut::COLOR_GAMUT_SRGB;
 };
 
 } // namespace Rosen

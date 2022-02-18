@@ -113,11 +113,21 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
         ROSEN_LOGE("No valid RSSurfaceNode");
         return;
     }
+
+    auto surfaceNodeColorSpace = ptr->GetColorSpace();
+
     std::shared_ptr<RSSurface> rsSurface = RSSurfaceExtractor::ExtractRSSurface(ptr);
     if (rsSurface == nullptr) {
         ROSEN_LOGE("No RSSurface found");
         return;
     }
+
+    auto rsSurfaceColorSpace = rsSurface->GetColorSpace();
+
+    if (surfaceNodeColorSpace != rsSurfaceColorSpace) {
+        rsSurface->SetColorSpace(surfaceNodeColorSpace);
+    }
+
 #ifdef ACE_ENABLE_GL
     RenderContext* rc = RSRenderThread::Instance().GetRenderContext();
     rsSurface->SetRenderContext(rc);

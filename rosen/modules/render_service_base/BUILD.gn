@@ -22,6 +22,7 @@ config("export_config") {
     "//foundation/graphic/standard/rosen/include",
     "//drivers/peripheral/display/interfaces/include",
     "//foundation/multimedia/image_standard/interfaces/innerkits/include",
+    "//foundation/graphic/standard/interfaces/innerkits/surface",
   ]
 
   defines = rs_common_define

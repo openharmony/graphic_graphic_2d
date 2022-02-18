@@ -65,6 +65,7 @@ ohos_shared_library("2d_graphics") {
     "include",
     "src",
     "src/engine_adapter",
+    "//foundation/graphic/standard/interfaces/innerkits/surface",
   ]
 
   defines = [ "USE_ACE_SKIA" ]

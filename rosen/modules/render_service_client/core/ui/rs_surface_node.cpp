@@ -105,6 +105,11 @@ void RSSurfaceNode::UpdateSurfaceDefaultSize(float width, float height)
     }
 }
 
+void RSSurfaceNode::SetColorSpace(SurfaceColorGamut colorSpace)
+{
+    colorSpace_ = colorSpace;
+}
+
 bool RSSurfaceNode::Marshalling(Parcel& parcel) const
 {
     return parcel.WriteUint64(GetId()) && parcel.WriteString(name_) && parcel.WriteBool(IsRenderServiceNode());

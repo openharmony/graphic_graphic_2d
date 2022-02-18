@@ -19,6 +19,7 @@
 #include <memory>
 
 #include "rs_surface_frame.h"
+#include "surface_type.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -36,7 +37,8 @@ public:
     virtual bool FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame) = 0;
     virtual RenderContext* GetRenderContext() = 0;
     virtual void SetRenderContext(RenderContext* context) = 0;
-
+    virtual SurfaceColorGamut GetColorSpace() = 0;
+    virtual void SetColorSpace(SurfaceColorGamut colorSpace) = 0;
 protected:
 private:
 };

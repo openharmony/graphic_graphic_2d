@@ -24,6 +24,8 @@
 #include <transaction/rs_transaction_proxy.h>
 #include "platform/drawing/rs_surface.h"
 #include "ui/rs_node.h"
+#include "surface_type.h"
+
 class SkCanvas;
 
 namespace OHOS {
@@ -49,6 +51,7 @@ public:
     void SetBoundsSize(float width, float height) override;
     void SetBoundsWidth(float width) override;
     void SetBoundsHeight(float height) override;
+    void SetColorSpace(SurfaceColorGamut colorSpace);
 
     bool Marshalling(Parcel& parcel) const override;
     static RSSurfaceNode* Unmarshalling(Parcel& parcel);
@@ -56,6 +59,10 @@ public:
     RSUINodeType GetType() const override
     {
         return RSUINodeType::SURFACE_NODE;
+    }
+    SurfaceColorGamut GetColorSpace()
+    {
+        return colorSpace_;
     }
 protected:
     bool NeedForcedSendToRemote() const override;
@@ -70,6 +77,8 @@ private:
     void UpdateSurfaceDefaultSize(float width, float height);
     std::shared_ptr<RSSurface> surface_;
     std::string name_;
+    SurfaceColorGamut colorSpace_;
+
     friend class RSUIDirector;
     friend class RSAnimation;
     friend class RSPathAnimation;
