@@ -23,7 +23,7 @@ Color::Color() noexcept : alpha_(RGB_MAX), red_(0), green_(0), blue_(0) {}
 Color::Color(const Color& c) noexcept : alpha_(c.GetAlpha()), red_(c.GetRed()), green_(c.GetGreen()), blue_(c.GetBlue())
 {}
 
-Color::Color(int r, int g, int b, int a) noexcept : alpha_(a), red_(r), green_(g), blue_(b) {}
+Color::Color(uint32_t r, uint32_t g, uint32_t b, uint32_t a) noexcept : alpha_(a), red_(r), green_(g), blue_(b) {}
 
 Color::Color(ColorQuad rgba) noexcept
 {
@@ -33,42 +33,42 @@ Color::Color(ColorQuad rgba) noexcept
     blue_ = (rgba >> 0) & 0xff;
 }
 
-int Color::GetRed() const
+uint32_t Color::GetRed() const
 {
     return red_;
 }
 
-int Color::GetGreen() const
+uint32_t Color::GetGreen() const
 {
     return green_;
 }
 
-int Color::GetBlue() const
+uint32_t Color::GetBlue() const
 {
     return blue_;
 }
 
-int Color::GetAlpha() const
+uint32_t Color::GetAlpha() const
 {
     return alpha_;
 }
 
-void Color::SetRed(int r)
+void Color::SetRed(uint32_t r)
 {
     red_ = r;
 }
 
-void Color::SetGreen(int g)
+void Color::SetGreen(uint32_t g)
 {
     green_ = g;
 }
 
-void Color::SetBlue(int b)
+void Color::SetBlue(uint32_t b)
 {
     blue_ = b;
 }
 
-void Color::SetAlpha(int a)
+void Color::SetAlpha(uint32_t a)
 {
     alpha_ = a;
 }
@@ -138,7 +138,7 @@ void Color::SetRgbF(scalar r, scalar g, scalar b, scalar a)
     blue_ = static_cast<int>(round(b * RGB_MAX));
 }
 
-void Color::SetColorQuad(int c)
+void Color::SetColorQuad(uint32_t c)
 {
     alpha_ = Color::ColorQuadGetA(c);
     red_ = Color::ColorQuadGetR(c);

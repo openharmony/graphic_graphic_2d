@@ -31,7 +31,8 @@ enum class MipmapMode {
 };
 
 struct CubicResampler {
-    float cubicCoffB, cubicCoffC;
+    float cubicCoffB = 0;
+    float cubicCoffC = 0;
     static constexpr CubicResampler Mitchell()
     {
         return { 1 / 3.0f, 1 / 3.0f };

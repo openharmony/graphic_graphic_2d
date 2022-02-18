@@ -109,7 +109,7 @@ void SkiaBitmap::CopyPixels(Bitmap& dst, int srcLeft, int srcTop, int width, int
     SkImageInfo imageInfo = MakeSkImageInfo(w, h, format);
     int srcX = srcLeft;
     int srcY = srcTop;
-    size_t dstRowBytes = width * height;
+    size_t dstRowBytes = static_cast<size_t>(width * height);
 
     skiaBitmap_.readPixels(imageInfo, dstPixels, dstRowBytes, srcX, srcY);
 }

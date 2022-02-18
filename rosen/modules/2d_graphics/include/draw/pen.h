@@ -54,8 +54,8 @@ public:
     std::shared_ptr<ColorSpace> GetColorSpace() const;
     void SetColor(const Color4f& cf, std::shared_ptr<ColorSpace> s);
 
-    int GetAlpha() const;
-    void SetAlpha(int a);
+    uint32_t GetAlpha() const;
+    void SetAlpha(uint32_t a);
     void SetAlphaF(scalar a);
 
     scalar GetWidth() const;

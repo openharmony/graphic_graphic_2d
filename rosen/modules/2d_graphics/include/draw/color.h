@@ -95,17 +95,17 @@ public:
 public:
     Color() noexcept;
     Color(const Color& c) noexcept;
-    Color(int r, int g, int b, int a) noexcept;
+    Color(uint32_t r, uint32_t g, uint32_t b, uint32_t a) noexcept;
     Color(ColorQuad rgba) noexcept;
 
-    int GetRed() const;
-    int GetGreen() const;
-    int GetBlue() const;
-    int GetAlpha() const;
-    void SetRed(int r);
-    void SetGreen(int g);
-    void SetBlue(int b);
-    void SetAlpha(int a);
+    uint32_t GetRed() const;
+    uint32_t GetGreen() const;
+    uint32_t GetBlue() const;
+    uint32_t GetAlpha() const;
+    void SetRed(uint32_t r);
+    void SetGreen(uint32_t g);
+    void SetBlue(uint32_t b);
+    void SetAlpha(uint32_t a);
 
     scalar GetRedF() const;
     scalar GetGreenF() const;
@@ -120,17 +120,17 @@ public:
     void SetRgb(int r, int g, int b, int a = 255);
     void SetRgbF(scalar r, scalar g, scalar b, scalar a = 1.0);
 
-    void SetColorQuad(int c);
+    void SetColorQuad(uint32_t c);
     ColorQuad CastToColorQuad() const;
 
     friend bool operator==(const Color& c1, const Color& c2);
     friend bool operator!=(const Color& c1, const Color& c2);
 
 private:
-    int alpha_;
-    int red_;
-    int green_;
-    int blue_;
+    uint32_t alpha_;
+    uint32_t red_;
+    uint32_t green_;
+    uint32_t blue_;
     Color4f color4f_;
 };
 } // namespace Drawing

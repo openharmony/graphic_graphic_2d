@@ -74,12 +74,12 @@ void Pen::SetColor(const Color4f& cf, std::shared_ptr<ColorSpace> s)
     brush_.SetColor(cf, s);
 }
 
-int Pen::GetAlpha() const
+uint32_t Pen::GetAlpha() const
 {
     return brush_.GetAlpha();
 }
 
-void Pen::SetAlpha(int a)
+void Pen::SetAlpha(uint32_t a)
 {
     return brush_.SetAlpha(a);
 }

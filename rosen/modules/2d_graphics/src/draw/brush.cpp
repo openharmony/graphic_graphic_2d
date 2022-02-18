@@ -85,12 +85,12 @@ void Brush::SetColor(const Color4f& cf, std::shared_ptr<ColorSpace> s)
     colorSpace_ = s;
 }
 
-int Brush::GetAlpha() const
+uint32_t Brush::GetAlpha() const
 {
     return color_.GetAlpha();
 }
 
-void Brush::SetAlpha(int a)
+void Brush::SetAlpha(uint32_t a)
 {
     color_.SetAlpha(a);
 }

@@ -256,7 +256,7 @@ void SkiaCanvas::DrawBitmap(Media::PixelMap& pixelMap, const scalar px, const sc
     }
     SkBitmap bitmap;
     auto imageInfo = MakeSkImageInfoFromPixelMap(pixelMap);
-    bitmap.installPixels(imageInfo, (void*)pixelMap.GetPixels(), pixelMap.GetRowBytes());
+    bitmap.installPixels(imageInfo, (void*)pixelMap.GetPixels(), static_cast<uint32_t>(pixelMap.GetRowBytes()));
 
     auto paints = skiaPaint_.GetSortedPaints();
     if (paints.empty()) {

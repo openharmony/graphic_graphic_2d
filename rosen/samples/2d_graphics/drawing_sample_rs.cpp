@@ -442,8 +442,8 @@ void TestDrawShadow(Canvas &canvas, uint32_t width, uint32_t height)
 
 std::unique_ptr<PixelMap> ConstructPixmap()
 {
-    int32_t pixelMapWidth = 50;
-    int32_t pixelMapHeight = 50;
+    uint32_t pixelMapWidth = 50;
+    uint32_t pixelMapHeight = 50;
     std::unique_ptr<PixelMap> pixelMap = std::make_unique<PixelMap>();
     ImageInfo info;
     info.size.width = pixelMapWidth;
@@ -455,7 +455,7 @@ std::unique_ptr<PixelMap> ConstructPixmap()
     LOGI("Constructed pixelMap info: width = %{public}d, height = %{public}d, pixelformat = %{public}d, alphatype = %{public}d, colorspace = %{public}d",
         info.size.width, info.size.height, info.pixelFormat, info.alphaType, info.colorSpace);
 
-    int32_t rowDataSize = pixelMapWidth;
+    uint32_t rowDataSize = pixelMapWidth;
     uint32_t bufferSize = rowDataSize * pixelMapHeight;
     void *buffer = malloc(bufferSize);
     if (buffer == nullptr) {
@@ -504,7 +504,7 @@ void DoDraw(uint8_t *addr, uint32_t width, uint32_t height, size_t index)
     testFuncVec[index](canvas, width, height);
 
     constexpr uint32_t stride = 4;
-    int32_t addrSize = width * height * stride;
+    uint32_t addrSize = width * height * stride;
     auto ret = memcpy_s(addr, addrSize, bitmap.GetPixels(), addrSize);
     if (ret != EOK) {
         LOGI("memcpy_s failed");
