@@ -101,9 +101,8 @@ void Gslogger::FileLog(Gslogger& logger, enum LOG_PHASE phase)
         return;
     }
 
-    constexpr uint32_t FILE_PATH_MAX = 255;
-    char path[FILE_PATH_MAX] = { 0x00 };
-    if (strlen(data->filename) > FILE_PATH_MAX || realpath(data->filename, path) == NULL) {
+    char path[PATH_MAX + 1] = { 0x00 };
+    if (strlen(data->filename) > PATH_MAX || realpath(data->filename, path) == NULL) {
         std::cerr << "File path error!" << std::endl;
         return;
     }
