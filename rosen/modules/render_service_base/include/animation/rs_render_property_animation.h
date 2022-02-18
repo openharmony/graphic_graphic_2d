@@ -60,7 +60,8 @@ public:
             ROSEN_LOGE("RSRenderPropertyAnimation::Marshalling, write type failed");
             return false;
         }
-        if (!RSMarshallingHelper::Marshalling(parcel, originValue_)) {
+        if (!(RSMarshallingHelper::Marshalling(parcel, originValue_) &&
+                RSMarshallingHelper::Marshalling(parcel, isAdditive_))) {
             ROSEN_LOGE("RSRenderPropertyAnimation::Marshalling, write value failed");
             return false;
         }
@@ -84,10 +85,12 @@ protected:
         }
 
         int32_t property = 0;
-        if (!(parcel.ReadInt32(property) && RSMarshallingHelper::Unmarshalling(parcel, originValue_))) {
+        if (!(parcel.ReadInt32(property) && RSMarshallingHelper::Unmarshalling(parcel, originValue_) &&
+                RSMarshallingHelper::Unmarshalling(parcel, isAdditive_))) {
             ROSEN_LOGE("RSRenderPropertyAnimation::ParseParam, Unmarshalling failed");
             return false;
         }
+        lastValue_ = originValue_;
         property_ = static_cast<RSAnimatableProperty>(property);
         propertyAccessor_ = std::static_pointer_cast<RSPropertyAccessors<T>>(
             RSBasePropertyAccessors::GetAccessor(property_));
