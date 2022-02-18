@@ -122,6 +122,11 @@ void HdiBackend::Repaint(std::vector<OutputPtr> &outputs)
             // return
         }
 
+        for (auto iter = layersMap.begin(); iter != layersMap.end(); ++iter) {
+            const LayerPtr &layer = iter->second;
+            layer->RecordPresentTime(fbFence);
+        }
+
         ReleaseLayerBuffer(screenId, layersMap);
 
         // wrong check

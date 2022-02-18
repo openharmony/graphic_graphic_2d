@@ -107,10 +107,12 @@ int RSRenderService::Dump(int fd, const std::vector<std::u16string>& args)
     std::unordered_set<std::u16string> argSets;
     std::u16string arg1(u"display");
     std::u16string arg2(u"surface");
+    std::u16string arg3(u"fps");
     for (decltype(args.size()) index = 0; index < args.size(); ++index) {
         argSets.insert(args[index]);
     }
     std::string dumpString;
+    std::string layerArg;
     if (screenManager_ == nullptr) {
         return OHOS::INVALID_OPERATION;
     }
@@ -120,6 +122,16 @@ int RSRenderService::Dump(int fd, const std::vector<std::u16string>& args)
     if (args.size() == 0 || argSets.count(arg2) != 0) {
         mainThread_->ScheduleTask([this, &dumpString]() {
             return screenManager_->SurfaceDump(dumpString);
+        }).wait();
+    }
+    auto iter = argSets.find(arg3);
+    if (iter != argSets.end()) {
+        argSets.erase(iter);
+        if (!argSets.empty()) {
+            layerArg = std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> {}.to_bytes(*argSets.begin());
+        }
+        mainThread_->ScheduleTask([this, &dumpString, &layerArg]() {
+            return screenManager_->FpsDump(dumpString, layerArg);
         }).wait();
     }
     if (dumpString.size() == 0) {

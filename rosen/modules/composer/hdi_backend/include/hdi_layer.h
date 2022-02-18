@@ -34,6 +34,8 @@ public:
     explicit HdiLayer(uint32_t screenId);
     virtual ~HdiLayer();
 
+    static constexpr int FRAME_RECORDS_NUM = 128;
+
     /* output create and set layer info */
     static std::shared_ptr<HdiLayer> CreateHdiLayer(uint32_t screenId);
 
@@ -49,6 +51,8 @@ public:
     void UpdateLayerInfo(const LayerInfoPtr &layerInfo);
     void SetHdiLayerInfo();
     uint32_t GetLayerId() const;
+    void RecordPresentTime(const sptr<SyncFence> &fbFence);
+    void Dump(std::string &result);
 
     int32_t SetLayerColorTransform(const float *matrix) const;
     int32_t SetLayerColorDataSpace(ColorDataSpace colorSpace) const;
@@ -67,6 +71,13 @@ private:
         sptr<SyncFence> releaseFence_ = SyncFence::INVALID_FENCE;
     };
 
+    struct PresentTimeRecord {
+        int64_t presentTime = 0;
+        sptr<SyncFence> presentFence = SyncFence::INVALID_FENCE;
+    };
+
+    PresentTimeRecord presentTimeRecords[FRAME_RECORDS_NUM];
+    uint32_t count = 0;
     uint32_t screenId_ = INT_MAX;
     uint32_t layerId_ = INT_MAX;
     bool isInUsing_ = false;

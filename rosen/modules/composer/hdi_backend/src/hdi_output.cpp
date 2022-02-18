@@ -206,9 +206,26 @@ void HdiOutput::Dump(std::string &result) const
     for (auto iter = surfaceIdMap_.begin(); iter != surfaceIdMap_.end(); ++iter) {
         iter->second->SetLayerStatus(false);
         const LayerPtr &layer = iter->second;
+        std::string name;
+        layer->GetLayerInfo()->GetSurface()->GetName(name);
         const LayerInfoPtr &info = layer->GetLayerInfo();
-        result += "  surfaceId[" + std::to_string(iter->first) + "]:\n";
+        result += "  surface [" + name + "] Id[" + std::to_string(iter->first) + "]:\n";
         info->Dump(result);
+    }
+}
+
+void HdiOutput::DumpFps(std::string &result, const std::string &arg) const
+{
+    result.append("\n");
+    for (auto iter = surfaceIdMap_.begin(); iter != surfaceIdMap_.end(); ++iter) {
+        iter->second->SetLayerStatus(false);
+        const LayerPtr &layer = iter->second;
+        std::string name;
+        layer->GetLayerInfo()->GetSurface()->GetName(name);
+        if (name == arg) {
+            result += "  surface [" + name + "] Id[" + std::to_string(iter->first) + "]:\n";
+            layer->Dump(result);
+        }
     }
 }
 } // namespace Rosen

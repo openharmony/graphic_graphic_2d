@@ -349,6 +349,14 @@ void RSScreen::SurfaceDump(int32_t screenIndex, std::string& dumpString)
     hdiOutput_->Dump(dumpString);
 }
 
+void RSScreen::FpsDump(int32_t screenIndex, std::string& dumpString, std::string& arg)
+{
+    if (hdiOutput_ == nullptr) {
+        return;
+    }
+    hdiOutput_->DumpFps(dumpString, arg);
+}
+
 void RSScreen::SetScreenBacklight(uint32_t level)
 {
     if (hdiScreen_->SetScreenBacklight(level) < 0) {
