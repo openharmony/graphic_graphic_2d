@@ -42,7 +42,7 @@ public:
 protected:
     sptr<Surface> producer_;
     RenderContext* context_;
-    SurfaceColorGamut colorSpace_;
+    SurfaceColorGamut colorSpace_ = SurfaceColorGamut::COLOR_GAMUT_SRGB;
 };
 
 } // namespace Rosen

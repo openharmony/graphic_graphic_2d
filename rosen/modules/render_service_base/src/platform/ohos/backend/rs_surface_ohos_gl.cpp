@@ -41,7 +41,7 @@ std::unique_ptr<RSSurfaceFrame> RSSurfaceOhosGl::RequestFrame(int32_t width, int
         ROSEN_LOGE("RSSurfaceOhosGl::RequestFrame, GetRenderContext failed!");
         return nullptr;
     }
-
+    context->SetColorSpace(colorSpace_);
     if (mWindow == nullptr) {
         mWindow = CreateNativeWindowFromSurface(&producer_);
         mEglSurface = context->CreateEGLSurface((EGLNativeWindowType)mWindow);

@@ -30,7 +30,6 @@ namespace Rosen {
 class RSSurfaceFrameOhosGl : public RSSurfaceFrameOhos {
 public:
     RSSurfaceFrameOhosGl(int32_t width, int32_t height);
-    RSSurfaceFrameOhosGl(int32_t width, int32_t height, SurfaceColorGamut colorSpace);
     ~RSSurfaceFrameOhosGl() = default;
 
     SkCanvas* GetCanvas() override;
@@ -39,13 +38,10 @@ public:
     int32_t GetReleaseFence() const;
     void SetReleaseFence(const int32_t& fence);
 
-    void SetColorSpace(SurfaceColorGamut colorSpace);
-
 private:
     int32_t releaseFence_;
     int width_;
     int height_;
-    SurfaceColorGamut colorSpace_;
     void CreateCanvas();
 };
 } // namespace Rosen
