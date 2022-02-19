@@ -153,7 +153,7 @@ private:
     std::unordered_set<ScreenId> virtualScreenIds_;
     sptr<RSIScreenChangeCallback> screenChangeCallback_;
     sptr<VSyncDistributor> appVSyncDistributor_;
-    sptr<VSyncConnection> conn_;
+    sptr<VSyncConnection> vsyncConnection_ = nullptr;;
 };
 } // namespace Rosen
 } // namespace OHOS
