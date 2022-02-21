@@ -19,6 +19,7 @@
 
 #include "base/hiviewdfx/hisysevent/interfaces/native/innerkits/hisysevent/include/hisysevent.h"
 
+#include "pipeline/rs_frame_report.h"
 #include "pipeline/rs_render_node_map.h"
 #include "pipeline/rs_root_render_node.h"
 #include "platform/common/rs_log.h"
@@ -263,6 +264,9 @@ void RSRenderThread::ProcessCommands()
     if (cmds_.empty()) {
         return;
     }
+    if (RsFrameReport::GetInstance().GetEnable()) {
+        RsFrameReport::GetInstance().ProcessCommandsStart();
+    }
 
     ROSEN_LOGD("RSRenderThread ProcessCommands size: %lu\n", cmds_.size());
     std::vector<std::unique_ptr<RSTransactionData>> cmds;
@@ -279,6 +283,9 @@ void RSRenderThread::ProcessCommands()
 void RSRenderThread::Animate(uint64_t timestamp)
 {
     ROSEN_TRACE_BEGIN(BYTRACE_TAG_GRAPHIC_AGP, "Animate");
+    if (RsFrameReport::GetInstance().GetEnable()) {
+        RsFrameReport::GetInstance().AnimateStart();
+    }
     hasRunningAnimation_ = false;
     for (const auto& [id, node] : context_.GetNodeMap().renderNodeMap_) {
         hasRunningAnimation_ = node->Animate(timestamp) || hasRunningAnimation_;
@@ -293,6 +300,9 @@ void RSRenderThread::Animate(uint64_t timestamp)
 void RSRenderThread::Render()
 {
     ROSEN_TRACE_BEGIN(BYTRACE_TAG_GRAPHIC_AGP, "RSRenderThread::Render");
+    if (RsFrameReport::GetInstance().GetEnable()) {
+        RsFrameReport::GetInstance().RenderStart();
+    }
     std::unique_lock<std::mutex> lock(mutex_);
     const auto& rootNode = context_.GetGlobalRootRenderNode();
     if (rootNode == nullptr) {
@@ -310,6 +320,10 @@ void RSRenderThread::Render()
 void RSRenderThread::SendCommands()
 {
     ROSEN_TRACE_BEGIN(BYTRACE_TAG_GRAPHIC_AGP, "RSRenderThread::SendCommands");
+    if (RsFrameReport::GetInstance().GetEnable()) {
+        RsFrameReport::GetInstance().SendCommandsStart();
+    }
+
     RSUIDirector::RecvMessages();
     ROSEN_TRACE_END(BYTRACE_TAG_GRAPHIC_AGP);
 }
