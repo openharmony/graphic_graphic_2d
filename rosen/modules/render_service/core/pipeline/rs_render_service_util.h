@@ -33,6 +33,7 @@ namespace Rosen {
 struct ComposeInfo {
     IRect srcRect;
     IRect dstRect;
+    IRect visibleRect;
     int32_t zOrder{0};
     LayerAlpha alpha;
     sptr<SurfaceBuffer> buffer;

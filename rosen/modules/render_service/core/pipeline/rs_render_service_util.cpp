@@ -36,7 +36,7 @@ void RsRenderServiceUtil::ComposeSurface(std::shared_ptr<HdiLayerInfo> layer, sp
     layer->SetLayerAdditionalInfo(node);
     layer->SetCompositionType(IsNeedClient(node) ?
         CompositionType::COMPOSITION_CLIENT : CompositionType::COMPOSITION_DEVICE);
-    layer->SetVisibleRegion(1, info.srcRect);
+    layer->SetVisibleRegion(1, info.visibleRect);
     layer->SetDirtyRegion(info.srcRect);
     layer->SetBlendType(info.blendType);
     layer->SetCropRect(info.srcRect);

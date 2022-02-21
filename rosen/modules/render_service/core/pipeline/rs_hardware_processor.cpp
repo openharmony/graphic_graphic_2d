@@ -160,6 +160,12 @@ void RSHardwareProcessor::ProcessSurface(RSSurfaceRenderNode &node)
             .w = geoPtr->GetAbsRect().width_,
             .h = geoPtr->GetAbsRect().height_,
         },
+        .visibleRect = {
+            .x = 0,
+            .y = 0,
+            .w = curScreenInfo_.GetScreenWidth(),
+            .h = curScreenInfo_.GetScreenHeight(),
+        },
         .zOrder = node.GetGlobalZOrder(),
         .alpha = {
             .enGlobalAlpha = true,
