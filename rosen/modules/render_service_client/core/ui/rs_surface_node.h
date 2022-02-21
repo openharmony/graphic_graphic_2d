@@ -77,7 +77,7 @@ private:
     void UpdateSurfaceDefaultSize(float width, float height);
     std::shared_ptr<RSSurface> surface_;
     std::string name_;
-    SurfaceColorGamut colorSpace_;
+    SurfaceColorGamut colorSpace_ = SurfaceColorGamut::COLOR_GAMUT_SRGB;
 
     friend class RSUIDirector;
     friend class RSAnimation;
