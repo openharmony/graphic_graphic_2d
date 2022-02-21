@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -25,8 +25,8 @@ public:
     Color() {};
     Color(float r, float g, float b, float a);
     Color(float r, float g, float b, float a, const ColorSpaceName name);
-    Color(int color);
-    Color(int64_t color);
+    explicit Color(int color);
+    explicit Color(int64_t color);
 
     // Packs the 3 RGBA into a color int in the specified color space.
     int64_t PackValue() const;

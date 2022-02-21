@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -126,12 +126,6 @@ public:
     float GetGamma() const
     {
         return transferFunc.g;
-    }
-
-    static Vector3 XYZ(const Vector3& xyY)
-    {
-        return Vector3 {(xyY[0] * xyY[2]) / xyY[1], xyY[2],
-            ((1 - xyY[0] - xyY[1]) * xyY[2]) / xyY[1]};
     }
 
     // convert OHOS ColorSpce to SKColorSpace

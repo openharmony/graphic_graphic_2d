@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -214,15 +214,15 @@ Matrix3x3 Invert(const Matrix3x3& src)
     b4 *= invdet;
     b5 *= invdet;
 
-    dst[0][0] = (float)(a11 * b5 - a12 * b4); // compute dst[0][0] value
-    dst[1][0] = (float)(a02 * b4 - a01 * b5); // compute dst[1][0] value
-    dst[2][0] = (float)(+b2); // compute dst[2][0] value
-    dst[0][1] = (float)(a12 * b3 - a10 * b5); // compute dst[0][1] value
-    dst[1][1] = (float)(a00 * b5 - a02 * b3); // compute dst[1][1] value
-    dst[2][1] = (float)(-b1); // compute dst[2][1] value
-    dst[0][2] = (float)(a10 * b4 - a11 * b3); // compute dst[0][2] value
-    dst[1][2] = (float)(a01 * b3 - a00 * b4); // compute dst[1][2] value
-    dst[2][2] = (float)(+b0); // compute dst[2][2] value
+    dst[0][0] = static_cast<float>(a11 * b5 - a12 * b4); // compute dst[0][0] value
+    dst[1][0] = static_cast<float>(a02 * b4 - a01 * b5); // compute dst[1][0] value
+    dst[2][0] = static_cast<float>(+b2); // compute dst[2][0] value
+    dst[0][1] = static_cast<float>(a12 * b3 - a10 * b5); // compute dst[0][1] value
+    dst[1][1] = static_cast<float>(a00 * b5 - a02 * b3); // compute dst[1][1] value
+    dst[2][1] = static_cast<float>(-b1); // compute dst[2][1] value
+    dst[0][2] = static_cast<float>(a10 * b4 - a11 * b3); // compute dst[0][2] value
+    dst[1][2] = static_cast<float>(a01 * b3 - a00 * b4); // compute dst[1][2] value
+    dst[2][2] = static_cast<float>(+b0); // compute dst[2][2] value
 
     for (int r = 0; r < dst.size(); ++r) {
         for (int c = 0; c < dst[0].size(); ++c) {

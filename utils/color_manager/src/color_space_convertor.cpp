@@ -1,5 +1,5 @@
   /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -43,6 +43,12 @@ static Matrix3x3 Adaptation(const Matrix3x3& matrix,
     return Invert(matrix) * (dstLMS / srcLMS) * matrix;
 }
 
+static Vector3 XYZ(const Vector3& xyY)
+{
+    return Vector3 {(xyY[0] * xyY[2]) / xyY[1], xyY[2],
+        ((1 - xyY[0] - xyY[1]) * xyY[2]) / xyY[1]};
+}
+
 ColorSpaceConvertor::ColorSpaceConvertor(const ColorSpace &src,
     const ColorSpace &dst, GamutMappingMode mappingMode)
     : srcColorSpace(src), dstColorSpace(dst), mappingMode(mappingMode)
@@ -53,16 +59,16 @@ ColorSpaceConvertor::ColorSpaceConvertor(const ColorSpace &src,
         Matrix3x3 rgbToXYZ(srcColorSpace.GetRGBToXYZ());
         Matrix3x3 xyzToRGB(dstColorSpace.GetXYZToRGB());
 
-        Vector3 srcXYZ = ColorSpace::XYZ(Vector3 {srcColorSpace.GetWhitePoint()[0],
-            srcColorSpace.GetWhitePoint()[0], 1});
-        Vector3 dstXYZ = ColorSpace::XYZ(Vector3 {dstColorSpace.GetWhitePoint()[0],
+        Vector3 srcXYZ = XYZ(Vector3 {srcColorSpace.GetWhitePoint()[0],
+            srcColorSpace.GetWhitePoint()[1], 1});
+        Vector3 dstXYZ = XYZ(Vector3 {dstColorSpace.GetWhitePoint()[0],
             dstColorSpace.GetWhitePoint()[1], 1});
 
-        if (!Equal(dstColorSpace.GetWhitePoint(), ILLUMINANT_D50_XY)) {
+        if (!Equal(srcColorSpace.GetWhitePoint(), ILLUMINANT_D50_XY)) {
             rgbToXYZ = srcColorSpace.GetRGBToXYZ() * Adaptation(BRADFORD, srcXYZ, ILLUMINANT_D50_XYZ);
         }
 
-        if (!Equal(srcColorSpace.GetWhitePoint(), ILLUMINANT_D50_XY)) {
+        if (!Equal(dstColorSpace.GetWhitePoint(), ILLUMINANT_D50_XY)) {
             xyzToRGB = dstColorSpace.GetRGBToXYZ() * Invert(Adaptation(BRADFORD, dstXYZ, ILLUMINANT_D50_XYZ));
         }
 

@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -50,13 +50,13 @@ Color::Color(float r, float g, float b, float a)
 Color::Color(float r, float g, float b, float a, const ColorSpaceName name)
     : r(r), g(g), b(b), a(a), colorSpaceName(name) {}
 
-Color::Color(int color)
+explicit Color::Color(int color)
     : r(Red((int64_t)color<<32)),
       g(Green((int64_t)color<<32)),
       b(Blue((int64_t)color<<32)),
       a(Alpha((int64_t)color<<32)) {}
 
-Color::Color(int64_t color)
+explicit Color::Color(int64_t color)
     : r(Red(color)),
       g(Green(color)),
       b(Blue(color)),
