@@ -125,6 +125,7 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
     auto rsSurfaceColorSpace = rsSurface->GetColorSpace();
 
     if (surfaceNodeColorSpace != rsSurfaceColorSpace) {
+        ROSEN_LOGD("Set new colorspace %d to rsSurface", surfaceNodeColorSpace);
         rsSurface->SetColorSpace(surfaceNodeColorSpace);
     }
 
