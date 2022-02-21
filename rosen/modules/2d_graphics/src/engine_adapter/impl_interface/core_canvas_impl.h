@@ -49,7 +49,7 @@ class CoreCanvasImpl : public BaseImpl {
 public:
     static inline constexpr AdapterType TYPE = AdapterType::BASE_INTERFACE;
     CoreCanvasImpl() {};
-    virtual ~CoreCanvasImpl() {};
+    ~CoreCanvasImpl() override {};
     AdapterType GetType() const override
     {
         return AdapterType::BASE_INTERFACE;

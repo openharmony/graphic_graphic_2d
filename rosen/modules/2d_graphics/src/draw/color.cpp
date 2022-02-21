@@ -25,6 +25,7 @@ Color::Color(const Color& c) noexcept : alpha_(c.GetAlpha()), red_(c.GetRed()), 
 
 Color::Color(uint32_t r, uint32_t g, uint32_t b, uint32_t a) noexcept : alpha_(a), red_(r), green_(g), blue_(b) {}
 
+// Return alpha byte, red component, green component and blue component of color rgba.
 Color::Color(ColorQuad rgba) noexcept
 {
     alpha_ = rgba >> 24;

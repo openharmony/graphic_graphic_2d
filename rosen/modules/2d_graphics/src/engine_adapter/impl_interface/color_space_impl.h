@@ -26,7 +26,7 @@ class ColorSpaceImpl : public BaseImpl {
 public:
     static inline constexpr AdapterType TYPE = AdapterType::BASE_INTERFACE;
     ColorSpaceImpl() noexcept {}
-    virtual ~ColorSpaceImpl() {}
+    ~ColorSpaceImpl() override {}
     AdapterType GetType() const override
     {
         return AdapterType::BASE_INTERFACE;
