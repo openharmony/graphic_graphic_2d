@@ -79,7 +79,7 @@ void RSHardwareProcessor::CropLayers()
     for (auto layer : layers_) {
         bool cut = false;
         IRect dstRect = layer->GetLayerSize();
-        IRect srcRect = layer->GetVisibleRegion();
+        IRect srcRect = layer->GetCropRect();
         IRect orgSrcRect = srcRect;
         int32_t screenWidth = curScreenInfo_.GetScreenWidth();
         int32_t screenHeight = curScreenInfo_.GetScreenHeight();
@@ -109,7 +109,6 @@ void RSHardwareProcessor::CropLayers()
         }
         if (cut) {
             layer->SetLayerSize(dstRect);
-            layer->SetVisibleRegion(1, srcRect);
             layer->SetDirtyRegion(srcRect);
             layer->SetCropRect(srcRect);
             ROSEN_LOGD("RsDebug RSHardwareProcessor::PostProcess: layer has been cropped to fit the Screen");
