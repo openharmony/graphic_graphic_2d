@@ -129,8 +129,13 @@ void RSRenderServiceConnection::CleanAll(bool toDelete) noexcept
         CleanRenderNodes();
     }).wait();
 
+    for (auto& conn : vsyncConnections_) {
+        appVSyncDistributor_->RemoveConnection(conn);
+    }
+
     {
         std::lock_guard<std::mutex> lock(mutex_);
+        vsyncConnections_.clear();
         cleanDone_ = true;
     }
 
@@ -142,7 +147,6 @@ void RSRenderServiceConnection::CleanAll(bool toDelete) noexcept
             renderService->RemoveConnection(GetToken());
         }
     }
-    appVSyncDistributor_->RemoveConnection(vsyncConnection_);
 
     ROSEN_LOGD("RSRenderServiceConnection::CleanAll() end.");
 }
@@ -243,15 +247,16 @@ sptr<Surface> RSRenderServiceConnection::CreateNodeAndSurface(const RSSurfaceRen
     return surface;
 }
 
+
 sptr<IVSyncConnection> RSRenderServiceConnection::CreateVSyncConnection(const std::string& name)
 {
-    std::lock_guard<std::mutex> lock(mutex_);
-    if (vsyncConnection_ == nullptr) {
-        sptr<VSyncConnection> conn = new VSyncConnection(appVSyncDistributor_, name);
-        vsyncConnection_ = conn;
+    sptr<VSyncConnection> conn = new VSyncConnection(appVSyncDistributor_, name);
+    appVSyncDistributor_->AddConnection(conn);
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        vsyncConnections_.push_back(conn);
     }
-    appVSyncDistributor_->AddConnection(vsyncConnection_);
-    return vsyncConnection_;
+    return conn;
 }
 
 ScreenId RSRenderServiceConnection::GetDefaultScreenId()
