@@ -274,7 +274,7 @@ void OH_Drawing_TypographyHandlerPushStyle(OH_Drawing_TypographyCreate* handler,
 void OH_Drawing_TypographyHandlerAddText(OH_Drawing_TypographyCreate* handler, const char* text)
 {
     const std::u16string wideText =
-        std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t>{}.from_bytes(text);
+        std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> {}.from_bytes(text);
     ConvertToOriginalText(handler)->AddText(wideText);
 }
 
