@@ -20,7 +20,7 @@
 #include "rosen_text/ui/typography.h"
 #include "rosen_text/ui/typography_create.h"
 
-namespace rosen{
+namespace rosen {
 FontCollection* ConvertToOriginalText(OH_Drawing_FontCollection* fontCollection)
 {
     return reinterpret_cast<FontCollection*>(fontCollection);

@@ -21,7 +21,7 @@
 #include "rosen_text/ui/typography.h"
 #include "rosen_text/ui/typography_create.h"
 
-namespace rosen{
+namespace rosen {
 /**
  * @brief convert OH_Drawing_FontCollection to FontCollection.
  *
