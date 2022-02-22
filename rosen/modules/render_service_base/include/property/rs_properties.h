@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -26,6 +26,7 @@
 #include "render/rs_path.h"
 #include "render/rs_shader.h"
 #include "render/rs_shadow.h"
+#include "render/rs_mask.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -176,6 +177,9 @@ public:
     bool SetId(NodeId id);
     std::string Dump() const;
 
+    void SetMask(std::shared_ptr<RSMask> mask);
+    std::shared_ptr<RSMask> GetMask() const;
+
     const std::shared_ptr<RSObjGeometry>& GetBoundsGeometry() const;
     const std::shared_ptr<RSObjGeometry>& GetFrameGeometry() const;
     bool UpdateGeometry(const RSProperties* parent, bool dirtyFlag);
@@ -218,6 +222,7 @@ private:
     std::shared_ptr<RSFilter> backgroundFilter_ = nullptr;
     std::shared_ptr<RSFilter> filter_ = nullptr;
     std::shared_ptr<RSPath> clipPath_ = nullptr;
+    std::shared_ptr<RSMask> mask_ = nullptr;
 
     friend class RSPropertiesPainter;
     friend class RSTextureRenderNode;

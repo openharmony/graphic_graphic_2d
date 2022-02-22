@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -82,6 +82,7 @@ enum RSNodeCommandType : uint16_t {
     SET_SHADOW_ELEVATION,
     SET_SHADOW_RADIUS,
     SET_SHADOW_PATH,
+    SET_MASK,
 
     SET_BOUNDS_DELTA,
     SET_BOUNDS_SIZE_DELTA,
