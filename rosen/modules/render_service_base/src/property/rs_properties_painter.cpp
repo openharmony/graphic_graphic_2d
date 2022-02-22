@@ -222,7 +222,7 @@ void RSPropertiesPainter::DrawBackground(const RSProperties& properties, SkCanva
     if (properties.GetClipBounds() != nullptr) {
         canvas.clipPath(properties.GetClipBounds()->GetSkiaPath(), true);
     } else if (properties.GetClipToBounds()) {
-        canvas.clipRect(Rect2SkRect(properties.GetBoundsRect()), true);
+        canvas.clipRRect(RRect2SkRRect(properties.GetRRect()), true);
     }
     // paint backgroundColor
     if (filter != nullptr) {
