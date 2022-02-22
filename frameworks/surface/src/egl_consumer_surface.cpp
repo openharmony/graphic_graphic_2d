@@ -16,17 +16,12 @@
 #include "egl_consumer_surface.h"
 
 #include <gslogger.h>
-#include <vector>
 
 #include "buffer_queue_producer.h"
 #include "egl_data_impl.h"
 #include "egl_manager.h"
 
 namespace OHOS {
-namespace {
-DEFINE_HILOG_LABEL("EglConsumerSurface");
-} // namespace
-
 EglConsumerSurface::EglConsumerSurface(const std::string &name, bool isShared)
     : ConsumerSurface(name, isShared)
 {

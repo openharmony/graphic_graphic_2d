@@ -28,12 +28,6 @@
 
 using namespace OHOS;
 
-namespace OHOS {
-namespace {
-constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, 0, "NativeWindow" };
-}
-}
-
 struct NativeWindow* CreateNativeWindowFromSurface(void* pSuface)
 {
     if (pSuface == nullptr) {
@@ -91,7 +85,7 @@ int32_t NativeWindowRequestBuffer(struct NativeWindow *window,
         BLOGD("NativeWindowRequestBuffer window or buffer or fenceid is nullptr");
         return OHOS::GSERROR_INVALID_ARGUMENTS;
     }
-    BLOGD("NativeWindow* NativeWindowRequestBuffer width is %{public}d, height is %{public}d",
+    BLOGD("NativeWindowRequestBuffer width is %{public}d, height is %{public}d",
         window->config.width, window->config.height);
     OHOS::BufferRequestConfig config = {
         .width = window->config.width,
@@ -138,6 +132,8 @@ int32_t NativeWindowFlushBuffer(struct NativeWindow *window, struct NativeWindow
         config.timestamp = 0;
     }
 
+    BLOGD("NativeWindowFlushBuffer damage w is %{public}d, h is %{public}d, acquire fence: %{public}d",
+        config.damage.w, config.damage.h, fenceFd);
     window->surface->FlushBuffer(buffer->sfbuffer, fenceFd, config);
 
     // unreference nativewindowbuffer object
@@ -285,22 +281,22 @@ int32_t NativeObjectUnreference(void *obj)
 
 NativeWindow::NativeWindow() : NativeWindowMagic(NATIVE_OBJECT_MAGIC_WINDOW)
 {
-    BLOGD("NativeWindow  %p", this);
+    BLOGD("NativeWindow %{public}p", this);
 }
 
 NativeWindow::~NativeWindow()
 {
-    BLOGD("~NativeWindow  %p", this);
+    BLOGD("~NativeWindow %{public}p", this);
 }
 
 NativeWindowBuffer::~NativeWindowBuffer()
 {
-    BLOGD("~NativeWindowBuffer  %p", this);
+    BLOGD("~NativeWindowBuffer %{public}p", this);
 }
 
 NativeWindowBuffer::NativeWindowBuffer() : NativeWindowMagic(NATIVE_OBJECT_MAGIC_WINDOW_BUFFER)
 {
-    BLOGD("NativeWindowBuffer  %p", this);
+    BLOGD("NativeWindowBuffer %{public}p", this);
 }
 
 weak_alias(CreateNativeWindowFromSurface, OH_NativeWindow_CreateNativeWindowFromSurface);

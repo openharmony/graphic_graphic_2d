@@ -19,10 +19,6 @@
 #include "buffer_manager.h"
 
 namespace OHOS {
-namespace {
-constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, 0, "ProducerSurface" };
-}
-
 ProducerSurface::ProducerSurface(sptr<IBufferProducer>& producer)
 {
     producer_ = producer;

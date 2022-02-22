@@ -51,7 +51,7 @@ public:
 
     virtual GSError DetachBuffer(sptr<SurfaceBuffer>& buffer) = 0;
 
-    virtual uint32_t     GetQueueSize() = 0;
+    virtual uint32_t GetQueueSize() = 0;
     virtual GSError SetQueueSize(uint32_t queueSize) = 0;
 
     virtual GSError SetDefaultWidthAndHeight(int32_t width, int32_t height) = 0;

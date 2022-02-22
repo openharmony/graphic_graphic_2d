@@ -51,7 +51,7 @@ public:
 
     GSError DetachBuffer(sptr<SurfaceBuffer>& buffer) override;
 
-    uint32_t     GetQueueSize() override;
+    uint32_t GetQueueSize() override;
     GSError SetQueueSize(uint32_t queueSize) override;
 
     GSError GetName(std::string &name) override;
@@ -63,7 +63,7 @@ public:
     uint32_t GetDefaultUsage() override;
 
     GSError SetUserData(const std::string &key, const std::string &val) override;
-    std::string  GetUserData(const std::string &key) override;
+    std::string GetUserData(const std::string &key) override;
 
     GSError RegisterConsumerListener(sptr<IBufferConsumerListener>& listener) override;
     GSError RegisterConsumerListener(IBufferConsumerListenerClazz *listener) override;

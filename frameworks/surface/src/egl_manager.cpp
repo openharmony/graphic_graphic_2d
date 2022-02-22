@@ -24,7 +24,6 @@
 
 namespace OHOS {
 namespace {
-constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, 0, "EglManager" };
 constexpr int32_t EGL_CONTEXT_CLIENT_VERSION_NUM = 2;
 constexpr char CHARACTER_WHITESPACE = ' ';
 constexpr const char *CHARACTER_STRING_WHITESPACE = " ";

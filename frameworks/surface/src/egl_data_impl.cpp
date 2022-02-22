@@ -22,10 +22,6 @@
 #include "egl_manager.h"
 
 namespace OHOS {
-namespace {
-constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, 0, "EglDataImpl" };
-} // namespace
-
 EglDataImpl::EglDataImpl()
 {
     BLOGD("ctor");

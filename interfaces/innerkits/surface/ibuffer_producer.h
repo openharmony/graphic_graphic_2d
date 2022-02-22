@@ -45,16 +45,16 @@ public:
     virtual GSError AttachBuffer(sptr<SurfaceBuffer>& buffer) = 0;
     virtual GSError DetachBuffer(sptr<SurfaceBuffer>& buffer) = 0;
 
-    virtual uint32_t     GetQueueSize() = 0;
+    virtual uint32_t GetQueueSize() = 0;
     virtual GSError SetQueueSize(uint32_t queueSize) = 0;
 
     virtual GSError GetName(std::string &name) = 0;
 
-    virtual int32_t      GetDefaultWidth() = 0;
-    virtual int32_t      GetDefaultHeight() = 0;
-    virtual uint32_t     GetDefaultUsage() = 0;
+    virtual int32_t GetDefaultWidth() = 0;
+    virtual int32_t GetDefaultHeight() = 0;
+    virtual uint32_t GetDefaultUsage() = 0;
 
-    virtual uint64_t     GetUniqueId() = 0;
+    virtual uint64_t GetUniqueId() = 0;
     virtual GSError CleanCache() = 0;
 
     virtual GSError RegisterReleaseListener(OnReleaseFunc func) = 0;

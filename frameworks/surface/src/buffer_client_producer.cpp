@@ -23,7 +23,7 @@
     MessageOption opt;                                \
     MessageParcel arg;                                \
     MessageParcel ret;                                \
-    BLOGND("sending");                                \
+    BLOGND("client sending");                         \
     if (!arg.WriteInterfaceToken(GetDescriptor())) {  \
         LOGE("write interface token failed");         \
     }
@@ -56,10 +56,6 @@
     } while (0)
 
 namespace OHOS {
-namespace {
-constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, 0, "BufferClientProducer" };
-}
-
 BufferClientProducer::BufferClientProducer(const sptr<IRemoteObject>& impl)
     : IRemoteProxy<IBufferProducer>(impl)
 {

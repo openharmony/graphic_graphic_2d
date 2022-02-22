@@ -19,9 +19,6 @@
 
 namespace OHOS {
 using namespace HiviewDFX;
-namespace {
-constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, 0, "SurfaceUtils" };
-}
 
 SurfaceUtils* SurfaceUtils::GetInstance()
 {

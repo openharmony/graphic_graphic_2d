@@ -22,9 +22,6 @@
 
 namespace OHOS {
 namespace {
-constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, 0, "EglSurface" };
-}
-
 sptr<EglSurface> EglSurface::CreateEglSurfaceAsProducer(sptr<IBufferProducer>& producer)
 {
     if (producer == nullptr) {

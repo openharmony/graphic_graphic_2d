@@ -30,7 +30,6 @@
 
 namespace OHOS {
 namespace {
-constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, 0, "BufferQueue" };
 constexpr uint32_t UNIQUE_ID_OFFSET = 32;
 }
 
@@ -219,11 +218,15 @@ GSError BufferQueue::RequestBuffer(const BufferRequestConfig &config, BufferExtr
     if (ret == GSERROR_OK) {
         retval.sequence = bufferImpl->GetSeqNum();
         BLOGN_SUCCESS_ID(retval.sequence, "alloc");
+
+        bufferImpl->GetExtraData(bedata);
+        retval.buffer = bufferImpl;
+        retval.fence = -1;
+        BLOGD("Success alloc Buffer id: %{public}d Queue id: %{public}" PRIu64 "", retval.sequence, uniqueId_);
+    } else {
+        BLOGE("Fail to alloc or map buffer ret: %{public}d", ret);
     }
-    bufferImpl->GetExtraData(bedata);
-    retval.buffer = bufferImpl;
-    retval.fence = -1;
-    BLOGD("Success alloc Buffer id: %{public}d Queue id: %{public}" PRIu64 "", retval.sequence, uniqueId_);
+
     return ret;
 }
 

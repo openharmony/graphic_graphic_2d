@@ -23,10 +23,6 @@
 #include "egl_consumer_surface.h"
 
 namespace OHOS {
-namespace {
-constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, 0, "Surface" };
-}
-
 sptr<Surface> Surface::CreateSurfaceAsConsumer(std::string name, bool isShared)
 {
     sptr<ConsumerSurface> surf = new ConsumerSurface(name, isShared);
