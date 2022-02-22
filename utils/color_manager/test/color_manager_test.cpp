@@ -97,7 +97,7 @@ HWTEST_F(ColorManagerTest, sRGBToAdobe, Function | SmallTest | Level2)
 HWTEST_F(ColorManagerTest, Display_P3TosRGB, Function | SmallTest | Level2)
 {
     auto convertor = ColorSpaceConvertor(ColorSpace(DISPLAY_P3), ColorSpace(SRGB), GAMUT_MAP_CONSTANT);
-    std::array<float> rgb = {0.1, 0.2, 0.3};
+    std::array<float, 3> rgb = {0.1, 0.2, 0.3};
     auto result = convertor.Convert(rgb);
     ASSERT_EQ(result[0], 0.0594);
     ASSERT_EQ(result[1], 0.2031);
@@ -114,7 +114,7 @@ HWTEST_F(ColorManagerTest, Display_P3TosRGB, Function | SmallTest | Level2)
 HWTEST_F(ColorManagerTest, sRGBTosRGBConvertor, Function | SmallTest | Level2)
 {
     auto convertor = ColorSpaceConvertor(ColorSpace(SRGB), ColorSpace(SRGB), GAMUT_MAP_CONSTANT);
-    std::array<float> rgb = {0.1, 0.2, 0.3};
+    std::array<float, 3> rgb = {0.1, 0.2, 0.3};
     auto result = convertor.Convert(rgb);
     ASSERT_EQ(result[0], 0.1);
     ASSERT_EQ(result[1], 0.2);
@@ -131,7 +131,7 @@ HWTEST_F(ColorManagerTest, sRGBTosRGBConvertor, Function | SmallTest | Level2)
 HWTEST_F(ColorManagerTest, AdobeToDisplay_P3, Function | SmallTest | Level2)
 {
     auto convertor = ColorSpaceConvertor(ColorSpace(ADOBE_RGB), ColorSpace(DISPLAY_P3), GAMUT_MAP_CONSTANT);
-    std::array<float> rgb = {0.1, 0.2, 0.3};
+    std::array<float, 3> rgb = {0.1, 0.2, 0.3};
     auto result = convertor.Convert(rgb);
     ASSERT_EQ(result[0], 0.1020);
     ASSERT_EQ(result[1], 0.1837);
@@ -148,7 +148,7 @@ HWTEST_F(ColorManagerTest, AdobeToDisplay_P3, Function | SmallTest | Level2)
 HWTEST_F(ColorManagerTest, Display_P3ToAdobe, Function | SmallTest | Level2)
 {
     auto convertor = ColorSpaceConvertor(ColorSpace(DISPLAY_P3), ColorSpace(ADOBE_RGB), GAMUT_MAP_CONSTANT);
-    std::array<float> rgb = {0.1, 0.2, 0.3};
+    std::array<float, 3> rgb = {0.1, 0.2, 0.3};
     auto result = convertor.Convert(rgb);
     ASSERT_EQ(result[0], 0.0886);
     ASSERT_EQ(result[1], 0.2152);
@@ -165,7 +165,7 @@ HWTEST_F(ColorManagerTest, Display_P3ToAdobe, Function | SmallTest | Level2)
 HWTEST_F(ColorManagerTest, AdobeToSRGB, Function | SmallTest | Level2)
 {
     auto convertor = ColorSpaceConvertor(ColorSpace(ADOBE_RGB), ColorSpace(SRGB), GAMUT_MAP_CONSTANT);
-    std::array<float> rgb = {0.1, 0.2, 0.3};
+    std::array<float, 3> rgb = {0.1, 0.2, 0.3};
     auto result = convertor.Convert(rgb);
     ASSERT_EQ(result[0], 0.0728);
     ASSERT_EQ(result[1], 0.1862);
