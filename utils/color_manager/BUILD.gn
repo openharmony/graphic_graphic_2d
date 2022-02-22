@@ -27,9 +27,7 @@ config("color_manager_config") {
 }
 
 config("color_manager_public_config") {
-  include_dirs = [
-    "export",
-  ]
+  include_dirs = [ "export" ]
 }
 
 ohos_static_library("color_manager") {
@@ -43,8 +41,8 @@ ohos_static_library("color_manager") {
 
   public_configs = [ ":color_manager_public_config" ]
 
-  deps = [ ]
+  deps = []
 }
-## Build color_manager_config.a }}}
 
+## Build color_manager_config.a }}}
 

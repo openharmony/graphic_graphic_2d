@@ -37,7 +37,7 @@ public:
     {}
 };
 
-staticbool FloatEqual(const float input, const float actual_value)
+static bool FloatEqual(const float input, const float actual_value)
 {
     return std::abs(input - actual_value) < 1e-3f;
 }
