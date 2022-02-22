@@ -30,7 +30,7 @@ ohos_shared_library("2d_graphics") {
     "src/c/drawing_path.cpp",
     "src/c/drawing_pen.cpp",
     "src/c/drawing_text_convertor.cpp",
-    "src/c/drawing_typography.cpp",
+    "src/c/drawing_text_typography.cpp",
     "src/draw/brush.cpp",
     "src/draw/color.cpp",
     "src/draw/core_canvas.cpp",
