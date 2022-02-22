@@ -19,6 +19,10 @@ group("color_manager_unit_test") {
   deps = [ "//foundation/graphic/standard/utils/color_manager/test:unittest" ]
 }
 
+group("color_manager") {
+  public_deps = [ "color_manager:color_manager" ]
+}
+
 group("buffer_handle") {
   public_deps = [ "buffer_handle:buffer_handle" ]
 }
@@ -84,6 +88,7 @@ ohos_shared_library("libgraphic_utils") {
   public_configs = [ ":libgraphic_utils_public_config" ]
 
   public_deps = [
+    "color_manager:color_manager",
     "buffer_handle:buffer_handle",
     "cpudraw:cpudraw",
     "gl_utils:gl_utils",
