@@ -95,6 +95,16 @@
           },
           {
             "type": "so",
+            "name": "//foundation/graphic/standard/rosen/modules/composer:libcomposer",
+            "header": {
+              "header_files": [
+                "vsync_receiver.h"
+              ],
+              "header_base": "//foundation/graphic/standard/interfaces/innerkits/composer"
+            }
+          },
+          {
+            "type": "so",
             "name": "//foundation/graphic/standard/frameworks/vsync:libvsync_module",
             "header": {
               "header_files": [

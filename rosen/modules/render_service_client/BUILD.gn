@@ -22,6 +22,7 @@ config("render_service_client_config") {
     "$rosen_root/modules/render_service_base/include",
     "//foundation/graphic/standard/interfaces/innerkits/common",
     "//foundation/graphic/standard/interfaces/innerkits/surface",
+    "//foundation/graphic/standard/interfaces/innerkits/composer",
   ]
 }
 

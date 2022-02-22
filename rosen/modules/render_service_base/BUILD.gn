@@ -23,6 +23,7 @@ config("export_config") {
     "//drivers/peripheral/display/interfaces/include",
     "//foundation/multimedia/image_standard/interfaces/innerkits/include",
     "//foundation/graphic/standard/interfaces/innerkits/surface",
+    "//foundation/graphic/standard/interfaces/innerkits/composer",
   ]
 
   defines = rs_common_define
