@@ -42,13 +42,13 @@ RSMainThread::~RSMainThread() noexcept
 void RSMainThread::Init()
 {
     mainLoop_ = [&]() {
-        ROSEN_LOGE("RsDebug mainLoop start");
+        ROSEN_LOGI("RsDebug mainLoop start");
         ROSEN_TRACE_BEGIN(BYTRACE_TAG_GRAPHIC_AGP, "RSMainThread::DoComposition");
         ProcessCommand();
         Animate(timestamp_);
         Draw();
         ROSEN_TRACE_END(BYTRACE_TAG_GRAPHIC_AGP);
-        ROSEN_LOGE("RsDebug mainLoop end");
+        ROSEN_LOGI("RsDebug mainLoop end");
     };
 
     threadLooper_ = RSThreadLooper::Create();

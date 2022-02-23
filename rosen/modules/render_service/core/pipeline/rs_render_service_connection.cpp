@@ -232,6 +232,10 @@ sptr<Surface> RSRenderServiceConnection::CreateNodeAndSurface(const RSSurfaceRen
         ROSEN_LOGE("RSRenderService::CreateNodeAndSurface get consumer surface fail");
         return nullptr;
     }
+    std::string surfaceName;
+    surface->GetName(surfaceName);
+    ROSEN_LOGE("RsDebug RSRenderService::CreateNodeAndSurface node id:%llu name:%s surface id:%llu name:%s",
+        node->GetId(), node->GetName().c_str(), surface->GetUniqueId(), surfaceName.c_str());
     node->SetConsumer(surface);
     std::function<void()> registerNode = [node, this]() -> void {
         this->mainThread_->GetContext().GetMutableNodeMap().RegisterRenderNode(node);

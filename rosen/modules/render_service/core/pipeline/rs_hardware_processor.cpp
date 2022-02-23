@@ -40,10 +40,8 @@ void RSHardwareProcessor::Init(ScreenId id)
         ROSEN_LOGE("RSHardwareProcessor::Init output_ is nullptr");
         return;
     }
-
     currScreenInfo_ = screenManager_->QueryScreenInfo(id);
-    ROSEN_LOGI("RSHardwareProcessor::Init screen w:%{public}d, w:%{public}d",
-        currScreenInfo_.width, currScreenInfo_.height);
+    ROSEN_LOGI("RSHardwareProcessor::Init screen w:%d, w:%d", currScreenInfo_.width, currScreenInfo_.height);
     IRect damageRect;
     damageRect.x = 0;
     damageRect.y = 0;
@@ -114,8 +112,8 @@ void RSHardwareProcessor::CropLayers()
 
 void RSHardwareProcessor::ProcessSurface(RSSurfaceRenderNode &node)
 {
-    ROSEN_LOGE("RsDebug RSHardwareProcessor::ProcessSurface start node id:%llu available buffer:%d", node.GetId(),
-        node.GetAvailableBufferCount());
+    ROSEN_LOGI("RsDebug RSHardwareProcessor::ProcessSurface start node id:%llu available buffer:%d name:[%s]",
+        node.GetId(), node.GetAvailableBufferCount(), node.GetName().c_str());
     if (!output_) {
         ROSEN_LOGE("RSHardwareProcessor::ProcessSurface output is nullptr");
         return;
@@ -129,7 +127,7 @@ void RSHardwareProcessor::ProcessSurface(RSSurfaceRenderNode &node)
     RSProcessor::SpecialTask task = [] () -> void{};
     bool ret = ConsumeAndUpdateBuffer(node, task, cbuffer);
     if (!ret) {
-        ROSEN_LOGE("RsDebug RSHardwareProcessor::ProcessSurface consume buffer fail");
+        ROSEN_LOGI("RsDebug RSHardwareProcessor::ProcessSurface consume buffer fail");
         return;
     }
     if (!node.IsBufferAvailable()) {

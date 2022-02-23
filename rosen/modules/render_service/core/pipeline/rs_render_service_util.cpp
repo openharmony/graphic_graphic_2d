@@ -507,10 +507,14 @@ void RsRenderServiceUtil::DrawBuffer(SkCanvas* canvas, sptr<OHOS::SurfaceBuffer>
         ROSEN_LOGE("RsRenderServiceUtil::DrawBuffer buffer is nullptr");
         return;
     }
-
     auto addr = buffer->GetVirAddr();
-    if (addr == nullptr || buffer->GetWidth() <= 0 || buffer->GetHeight() <= 0) {
-        ROSEN_LOGE("RsRenderServiceUtil::DrawBuffer this buffer have no vir add or width or height is negative");
+    if (addr == nullptr) {
+        ROSEN_LOGE("RsRenderServiceUtil::DrawBuffer this buffer have no vir addr");
+        return;
+    }
+    if (buffer->GetWidth() <= 0 || buffer->GetHeight() <= 0) {
+        ROSEN_LOGE("RsRenderServiceUtil::DrawBuffer this buffer width or height is negative [%d %d]",
+            buffer->GetWidth(), buffer->GetHeight());
         return;
     }
 
