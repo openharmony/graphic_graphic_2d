@@ -15,8 +15,6 @@
 
 #include "rosen_text/properties/typography_create_txt.h"
 
-#include <memory>
-
 #include "rosen_text/properties/font_collection_txt.h"
 #include "rosen_text/properties/rosen_converter_txt.h"
 #include "rosen_text/ui/typography.h"

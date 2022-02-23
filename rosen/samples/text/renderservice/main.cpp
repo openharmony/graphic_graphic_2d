@@ -75,7 +75,7 @@ void DoDraw(uint8_t *addr, uint32_t width, uint32_t height, size_t index)
     TypographyStyle typoStype;
     typoStype.textDirection_ = TextDirection::LTR;
     typoStype.textAlign_ = TextAlign::START;
-    typoStype.maxLines_ = 1000; // maxLines
+    typoStype.maxLines_ = 1000; // maxLines 1000
     typoStype.locale_ = "en";
     typoStype.wordBreakType_ = WordBreakType::WordBreakTypeBreakWord;
     std::unique_ptr<TypographyCreate> builder = TypographyCreate::CreateRosenBuilder(
@@ -96,9 +96,9 @@ void DoDraw(uint8_t *addr, uint32_t width, uint32_t height, size_t index)
     if (typography == nullptr) {
         LOGD("typography == nullptr");
     }
-    double lastLayoutMaxWidth = 1000.0; // width
+    double lastLayoutMaxWidth = 1000.0; // width 1000.0
     typography->Layout(lastLayoutMaxWidth);
-    typography->Paint(&canvas, 10.0, 15.0); // pos to paint
+    typography->Paint(&canvas, 10.0, 15.0); // pos to paint 10.0, 15.0
     constexpr uint32_t stride = 4;
     int32_t addrSize = width * height * stride;
     auto ret = memcpy_s(addr, addrSize, bitmapCache.GetPixels(), addrSize);
@@ -163,12 +163,12 @@ int main(int argc, char** argv)
     auto surfaceNode = CreateSurface();
     RSDisplayNodeConfig config;
     RSDisplayNode::SharedPtr displayNode = RSDisplayNode::Create(config);
-    for (size_t i = 0; i < 5; i++) { // Draw multiple times
+    for (size_t i = 0; i < 5; i++) { // Draw 5 times
         sleep(2); // delay 2 second
         displayNode->AddChild(surfaceNode, -1);
-        surfaceNode->SetBounds(0, 0, 2560, 1600); // Draw Range
+        surfaceNode->SetBounds(0, 0, 2560, 1600); // Draw Range 2560, 1600
         RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
-        DrawSurface(surfaceNode, 2560, 1600, i); // Draw Range
+        DrawSurface(surfaceNode, 2560, 1600, i); // Draw Range 2560, 1600
         sleep(4); // delay 4 second
         displayNode->RemoveChild(surfaceNode);
         RSTransactionProxy::GetInstance()->FlushImplicitTransaction();

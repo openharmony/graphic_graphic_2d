@@ -24,21 +24,11 @@ namespace rosen {
 class FontCollectionBase {
 public:
     FontCollectionBase() {}
-
     virtual ~FontCollectionBase() {}
 
-    // this is not work now , no need to transalte C interface
-    // static void RegisterNatives(tonic::DartLibraryNatives* natives);
     virtual std::shared_ptr<FontCollectionTxtBase> GetFontCollection();
-
-    // this is not work now , no need to transalte C interface
-    // virtual void RegisterFonts(std::shared_ptr<flutter::AssetManager> asset_manager);
-
     virtual void RegisterTestFonts();
-    virtual void LoadFontFromList(const uint8_t* font_data,
-                                  int length,
-                                  std::string family_name);
-    // FML_DISALLOW_COPY_AND_ASSIGN(FontCollectionCommon);
+    virtual void LoadFontFromList(const uint8_t* font_data, int length, std::string family_name);
     FontCollectionBase(const FontCollectionBase&) = delete;
     FontCollectionBase& operator=(const FontCollectionBase&) = delete;
 };

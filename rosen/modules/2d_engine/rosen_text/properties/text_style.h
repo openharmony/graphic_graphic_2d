@@ -80,7 +80,7 @@ public:
     OHOS::Rosen::Drawing::Color color_ = OHOS::Rosen::Drawing::Color::COLOR_BLACK;
     OHOS::Rosen::Drawing::Point offset_;
     double blurRadius_ = 0.0;
-    TextShadow(){};
+    TextShadow() {};
     TextShadow(OHOS::Rosen::Drawing::Color color, OHOS::Rosen::Drawing::Point offset, double blurRadius);
     bool operator == (const TextShadow& rhs) const;
     bool operator != (const TextShadow& rhs) const;

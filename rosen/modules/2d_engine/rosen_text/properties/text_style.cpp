@@ -15,8 +15,6 @@
 
 #include "txt/text_style.h"
 
-#include <sstream>
-
 #include "rosen_text/properties/rosen_converter_txt.h"
 #include "rosen_text/properties/text_style.h"
 #include "txt/platform.h"

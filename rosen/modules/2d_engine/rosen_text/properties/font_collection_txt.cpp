@@ -15,8 +15,6 @@
 
 #include "rosen_text/properties/font_collection_txt.h"
 
-#include <mutex>
-
 #include "flutter/fml/icu_util.h"
 #include "third_party/flutter/skia/include/core/SkFontMgr.h"
 #include "third_party/flutter/skia/include/core/SkGraphics.h"
