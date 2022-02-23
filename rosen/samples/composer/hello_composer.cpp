@@ -14,7 +14,10 @@
  */
 
 #include "hello_composer.h"
-
+#include <vsync_generator.h>
+#include <vsync_controller.h>
+#include <vsync_distributor.h>
+#include <vsync_receiver.h>
 #include <securec.h>
 #include <sync_fence.h>
 
@@ -28,10 +31,18 @@ namespace {
 #define LOGE(fmt, ...) ::OHOS::HiviewDFX::HiLog::Error(           \
     ::OHOS::HiviewDFX::HiLogLabel {LOG_CORE, 0, "HelloComposer"}, \
     "%{public}s: " fmt, __func__, ##__VA_ARGS__)
+
+sptr<VSyncReceiver> g_receiver = nullptr;
 }
 
 void HelloComposer::Run(std::vector<std::string> &runArgs)
 {
+    auto generator = CreateVSyncGenerator();
+    sptr<VSyncController> vsyncController = new VSyncController(generator, 0);
+    sptr<VSyncDistributor> vsyncDistributor = new VSyncDistributor(vsyncController, "HelloComposer");
+    sptr<VSyncConnection> vsyncConnection = new VSyncConnection(vsyncDistributor, "HelloComposer");
+    vsyncDistributor->AddConnection(vsyncConnection);
+
     LOGI("start to run hello composer");
     backend_ = OHOS::Rosen::HdiBackend::GetInstance();
     if (backend_ == nullptr) {
@@ -63,9 +74,10 @@ void HelloComposer::Run(std::vector<std::string> &runArgs)
     }
 
     sleep(1);
-
     std::shared_ptr<OHOS::AppExecFwk::EventRunner> runner = OHOS::AppExecFwk::EventRunner::Create(false);
     mainThreadHandler_ = std::make_shared<OHOS::AppExecFwk::EventHandler>(runner);
+    g_receiver = new VSyncReceiver(vsyncConnection, mainThreadHandler_);
+    g_receiver->Init();
     mainThreadHandler_->PostTask(std::bind(&HelloComposer::RequestSync, this));
     runner->Run();
 }
@@ -157,18 +169,13 @@ void HelloComposer::InitLayers(uint32_t screenId)
 
 void HelloComposer::Sync(int64_t, void *data)
 {
-    struct OHOS::FrameCallback cb = {
-        .frequency_ = freq_,
-        .timestamp_ = 0,
-        .userdata_ = data,
-        .callback_ = std::bind(&HelloComposer::Sync, this, SYNC_FUNC_ARG),
+    VSyncReceiver::FrameCallback fcb = {
+        .userData_ = data,
+        .callback_ = std::bind(&HelloComposer::Sync, this, ::std::placeholders::_1, ::std::placeholders::_2),
     };
-
-    OHOS::VsyncError ret = OHOS::VsyncHelper::Current()->RequestFrameCallback(cb);
-    if (ret) {
-        LOGE("RequestFrameCallback inner %{public}d\n", ret);
+    if (g_receiver != nullptr) {
+        g_receiver->RequestNextVSync(fcb);
     }
-
     if (!ready_) {
         return;
     }

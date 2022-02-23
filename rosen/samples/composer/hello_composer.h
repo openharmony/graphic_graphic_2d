@@ -16,9 +16,9 @@
 #ifndef HELLO_COMPOSER_H
 #define HELLO_COMPOSER_H
 
-#include <vsync_helper.h>
 #include <display_type.h>
 #include <surface.h>
+#include <event_handler.h>
 #include "hdi_backend.h"
 #include "hdi_layer_info.h"
 #include "hdi_output.h"

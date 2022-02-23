@@ -76,10 +76,11 @@ VsyncError VSyncConnection::SetVSyncRate(int32_t rate)
 
 VSyncDistributor::VSyncDistributor(sptr<VSyncController> controller, std::string name)
     : controller_(controller), mutex_(), con_(), connections_(),
-    vsyncEnabled_(false), name_(name), vsyncThreadRunning_(false)
+    vsyncEnabled_(false), name_(name)
 {
     event_.timestamp = 0;
     event_.vsyncCount = 0;
+    vsyncThreadRunning_ = true;
     threadLoop_ = std::thread(std::bind(&VSyncDistributor::ThreadMain, this));
 }
 
@@ -122,7 +123,6 @@ VsyncError VSyncDistributor::RemoveConnection(const sptr<VSyncConnection>& conne
 
 void VSyncDistributor::ThreadMain()
 {
-    vsyncThreadRunning_ = true;
     int64_t timestamp;
     int64_t vsyncCount;
     while (vsyncThreadRunning_ == true) {
@@ -216,11 +216,11 @@ void VSyncDistributor::OnVSyncEvent(int64_t now)
 
 VsyncError VSyncDistributor::RequestNextVSync(const sptr<VSyncConnection>& connection)
 {
-    ScopedBytrace func(connection->GetName() + "_RequestNextVSync");
     if (connection == nullptr) {
         VLOGE("connection is nullptr");
         return VSYNC_ERROR_NULLPTR;
     }
+    ScopedBytrace func(connection->GetName() + "_RequestNextVSync");
     std::lock_guard<std::mutex> locker(mutex_);
     auto it = find(connections_.begin(), connections_.end(), connection);
     if (it == connections_.end()) {
