@@ -253,8 +253,7 @@ int32_t HdiDevice::GetScreenReleaseFence(uint32_t screenId, std::vector<uint32_t
 
 int32_t HdiDevice::GetScreenSupportedColorGamuts(uint32_t screenId, std::vector<ColorGamut> &gamuts)
 {
-    uint32_t mockGamutsNum = 1;
-    gamuts.resize(mockGamutsNum);
+    gamuts.clear();
     gamuts.push_back(ColorGamut::COLOR_GAMUT_SRGB);
     return DISPLAY_SUCCESS;
 }
@@ -298,8 +297,7 @@ int32_t HdiDevice::GetHDRCapabilityInfos(uint32_t screenId, HDRCapability &info)
 
 int32_t HdiDevice::GetSupportedMetaDataKey(uint32_t screenId, std::vector<HDRMetadataKey> &keys)
 {
-    uint32_t keysNum = 14;  // keys number is 14
-    keys.resize(keysNum);
+    keys.clear();
     keys.push_back(HDRMetadataKey::MATAKEY_RED_PRIMARY_X);
     keys.push_back(HDRMetadataKey::MATAKEY_RED_PRIMARY_Y);
     keys.push_back(HDRMetadataKey::MATAKEY_GREEN_PRIMARY_X);
