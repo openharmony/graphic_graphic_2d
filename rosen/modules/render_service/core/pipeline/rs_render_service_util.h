@@ -35,8 +35,10 @@ struct BufferDrawParameters {
     bool antiAlias = true;
     bool onDisplay = true;
     float alpha = 1.0f;
-    double widthScale = 1.0f;
-    double heightScale = 1.0f;
+    uint32_t dstLeft = 0;
+    uint32_t dstTop = 0;
+    uint32_t dstWidth = 0;
+    uint32_t dstHeight = 0;
     SkPixmap pixmap;
     SkBitmap bitmap;
     SkMatrix transform;

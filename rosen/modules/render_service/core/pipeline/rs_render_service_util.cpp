@@ -16,6 +16,7 @@
 
 #include <unordered_set>
 
+#include "include/core/SkRect.h"
 #include "platform/common/rs_log.h"
 #include "property/rs_properties_painter.h"
 #include "render/rs_blur_filter.h"
@@ -395,12 +396,14 @@ void FillDrawParameters(BufferDrawParameters& params, const sptr<OHOS::SurfaceBu
     params.antiAlias = true;
     const RSProperties& property = node.GetRenderProperties();
     params.alpha = node.GetAlpha() * property.GetAlpha();
-    params.dstRect = SkRect::MakeXYWH(0, 0, buffer->GetWidth(), buffer->GetHeight());
+    params.dstRect = SkRect::MakeXYWH(0, 0, buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight());
     auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(property.GetBoundsGeometry());
     if (geoPtr) {
         params.transform = geoPtr->GetAbsMatrix();
-        params.widthScale = static_cast<double>(geoPtr->GetAbsRect().width_ * 1.0 / buffer->GetWidth());
-        params.heightScale = static_cast<double>(geoPtr->GetAbsRect().height_ * 1.0 / buffer->GetHeight());
+        params.dstLeft = geoPtr->GetAbsRect().left_;
+        params.dstTop = geoPtr->GetAbsRect().top_;
+        params.dstWidth = geoPtr->GetAbsRect().width_;
+        params.dstHeight = geoPtr->GetAbsRect().height_;
     }
 }
 } // namespace Detail
@@ -479,8 +482,8 @@ void RsRenderServiceUtil::Draw(SkCanvas& canvas, BufferDrawParameters& params, R
     if (bitmap.installPixels(pixmap)) {
         canvas.save();
         if (params.onDisplay) {
+            canvas.clipRect(SkRect::MakeXYWH(params.dstLeft, params.dstTop, params.dstWidth, params.dstHeight));
             canvas.setMatrix(params.transform);
-            canvas.scale(params.widthScale, params.heightScale);
             DealAnimation(canvas, paint, node);
             const RSProperties& property = node.GetRenderProperties();
             auto filter = std::static_pointer_cast<RSSkiaFilter>(property.GetBackgroundFilter());
@@ -491,7 +494,8 @@ void RsRenderServiceUtil::Draw(SkCanvas& canvas, BufferDrawParameters& params, R
                 RSPropertiesPainter::RestoreForFilter(canvas);
             }
         }
-        canvas.drawBitmapRect(bitmap, params.dstRect, &paint);
+        canvas.drawBitmapRect(bitmap, params.dstRect, SkRect::MakeXYWH(0, 0, params.dstWidth, params.dstHeight),
+            &paint);
         canvas.restore();
     }
 }
