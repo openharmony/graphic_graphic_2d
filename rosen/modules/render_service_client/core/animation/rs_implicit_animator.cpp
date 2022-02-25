@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -238,7 +238,7 @@ void RSImplicitAnimator::ProcessPostCreateAnimation(const RSNode& target, const 
     }
 }
 
-std::shared_ptr<RSAnimation> RSImplicitAnimator::CreateImplicitTransition(RSNode& target, bool appearing)
+std::shared_ptr<RSAnimation> RSImplicitAnimator::CreateImplicitTransition(RSNode& target, bool isTransitionIn)
 {
     if (globalImplicitParams_.empty() || implicitAnimations_.empty() || keyframeAnimations_.empty()) {
         ROSEN_LOGE("Failed to create implicit transition, need to open implicit transition firstly!");
@@ -249,7 +249,7 @@ std::shared_ptr<RSAnimation> RSImplicitAnimator::CreateImplicitTransition(RSNode
     switch (params->GetType()) {
         case ImplicitAnimationParamType::TRANSITION: {
             auto transitionImplicitParam = std::static_pointer_cast<RSImplicitTransitionParam>(params);
-            transition = transitionImplicitParam->CreateAnimation(appearing);
+            transition = transitionImplicitParam->CreateAnimation(isTransitionIn);
             break;
         }
         default:

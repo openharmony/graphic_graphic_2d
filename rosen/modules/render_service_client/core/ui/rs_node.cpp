@@ -648,13 +648,13 @@ void RSNode::SetVisible(bool visible)
     }
 }
 
-void RSNode::NotifyTransition(const std::shared_ptr<const RSTransitionEffect>& effect, bool appearing)
+void RSNode::NotifyTransition(const std::shared_ptr<const RSTransitionEffect>& effect, bool isTransitionIn)
 {
     if (!RSImplicitAnimator::Instance().NeedImplicitAnimaton()) {
         return;
     }
     RSImplicitAnimator::Instance().BeginImplicitTransition(effect);
-    RSImplicitAnimator::Instance().CreateImplicitTransition(*this, appearing);
+    RSImplicitAnimator::Instance().CreateImplicitTransition(*this, isTransitionIn);
     RSImplicitAnimator::Instance().EndImplicitTransition();
 }
 

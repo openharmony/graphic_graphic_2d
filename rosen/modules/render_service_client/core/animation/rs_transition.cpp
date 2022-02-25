@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -22,8 +22,8 @@
 
 namespace OHOS {
 namespace Rosen {
-RSTransition::RSTransition(const std::shared_ptr<const RSTransitionEffect>& effect, bool appearing)
-    : appearing_(appearing), effect_(effect)
+RSTransition::RSTransition(const std::shared_ptr<const RSTransitionEffect>& effect, bool isTransitionIn)
+    : isTransitionIn_(isTransitionIn), effect_(effect)
 {}
 
 void RSTransition::OnStart()
@@ -32,7 +32,7 @@ void RSTransition::OnStart()
     if (target == nullptr) {
         return;
     }
-    auto transition = std::make_shared<RSRenderTransition>(GetId(), effect_, appearing_);
+    auto transition = std::make_shared<RSRenderTransition>(GetId(), effect_, isTransitionIn_);
     if (transition == nullptr) {
         return;
     }
@@ -42,7 +42,7 @@ void RSTransition::OnStart()
     transition->SetRepeatCount(GetRepeatCount());
     transition->SetAutoReverse(GetAutoReverse());
     transition->SetSpeed(GetSpeed());
-    transition->SetDirection(!appearing_);
+    transition->SetDirection(GetDirection());
     transition->SetFillMode(GetFillMode());
     transition->SetInterpolator(interpolator);
     std::unique_ptr<RSCommand> command =

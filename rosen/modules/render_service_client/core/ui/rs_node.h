@@ -58,7 +58,7 @@ public:
         float fraction, const RSAnimationTimingCurve& timingCurve, const PropertyCallback& callback);
     static void AddKeyFrame(float fraction, const PropertyCallback& callback);
 
-    void NotifyTransition(const std::shared_ptr<const RSTransitionEffect>& effect, bool appearing);
+    void NotifyTransition(const std::shared_ptr<const RSTransitionEffect>& effect, bool isTransitionIn);
 
     void AddAnimation(const std::shared_ptr<RSAnimation>& animation);
     void RemoveAllAnimations();
