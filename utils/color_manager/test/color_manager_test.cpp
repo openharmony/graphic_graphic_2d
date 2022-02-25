@@ -133,9 +133,9 @@ HWTEST_F(ColorManagerTest, sRGBToDCI_P3, Function | SmallTest | Level2)
 {
     Color color = Color(0.1, 0.2, 0.3, 0.4, SRGB);
     Color result = color.Convert(DCI_P3);
-    ASSERT_EQ(FloatEqual(result.r, 0.18801f), true);
-    ASSERT_EQ(FloatEqual(result.g, 0.26705f), true);
-    ASSERT_EQ(FloatEqual(result.b, 0.35889f), true);
+    ASSERT_EQ(FloatEqual(result.r, 0.189058f), true);
+    ASSERT_EQ(FloatEqual(result.g, 0.267553f), true);
+    ASSERT_EQ(FloatEqual(result.b, 0.358257f), true);
 }
 
 /*
@@ -215,9 +215,9 @@ HWTEST_F(ColorManagerTest, Display_P3ToDCI_P3, Function | SmallTest | Level2)
 {
     Color color = Color(0.1, 0.2, 0.3, 0.4, DISPLAY_P3);
     Color result = color.Convert(DCI_P3);
-    ASSERT_EQ(FloatEqual(result.r, 0.16016f), true);
-    ASSERT_EQ(FloatEqual(result.g, 0.26943f), true);
-    ASSERT_EQ(FloatEqual(result.b, 0.36672f), true);
+    ASSERT_EQ(FloatEqual(result.r, 0.161843f), true);
+    ASSERT_EQ(FloatEqual(result.g, 0.269979f), true);
+    ASSERT_EQ(FloatEqual(result.b, 0.366057f), true);
 }
 
 /*
