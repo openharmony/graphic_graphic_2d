@@ -30,6 +30,12 @@ namespace Rosen {
 
 using LayerPtr = std::shared_ptr<HdiLayer>;
 
+// dump layer
+struct LayerDumpInfo {
+    uint64_t surfaceId;
+    LayerPtr layer;
+};
+
 class HdiOutput {
 public:
     HdiOutput(uint32_t screenId);
@@ -67,6 +73,7 @@ private:
     int32_t CreateLayer(uint64_t surfaceId, const LayerInfoPtr &layerInfo);
     void DeletePrevLayers();
     void ResetLayerStatus();
+    void ReorderLayerInfo(std::vector<LayerDumpInfo> &dumpLayerInfos) const;
 
     inline bool CheckFbSurface();
 };

@@ -201,32 +201,56 @@ bool HdiOutput::CheckFbSurface()
 
 void HdiOutput::Dump(std::string &result) const
 {
+    std::vector<LayerDumpInfo> dumpLayerInfos;
+    ReorderLayerInfo(dumpLayerInfos);
+
     result.append("\n");
     result.append("-- LayerInfo\n");
-    for (auto iter = surfaceIdMap_.begin(); iter != surfaceIdMap_.end(); ++iter) {
-        iter->second->SetLayerStatus(false);
-        const LayerPtr &layer = iter->second;
+
+    for (const LayerDumpInfo &layerInfo : dumpLayerInfos) {
+        const LayerPtr &layer = layerInfo.layer;
         std::string name;
         layer->GetLayerInfo()->GetSurface()->GetName(name);
         const LayerInfoPtr &info = layer->GetLayerInfo();
-        result += "  surface [" + name + "] Id[" + std::to_string(iter->first) + "]:\n";
+        result += "\n surface [" + name + "] Id[" + std::to_string(layerInfo.surfaceId) + "]:\n";
         info->Dump(result);
     }
 }
 
 void HdiOutput::DumpFps(std::string &result, const std::string &arg) const
 {
+    std::vector<LayerDumpInfo> dumpLayerInfos;
+    ReorderLayerInfo(dumpLayerInfos);
+
     result.append("\n");
-    for (auto iter = surfaceIdMap_.begin(); iter != surfaceIdMap_.end(); ++iter) {
-        iter->second->SetLayerStatus(false);
-        const LayerPtr &layer = iter->second;
+
+    for (const LayerDumpInfo &layerInfo : dumpLayerInfos) {
+        const LayerPtr &layer = layerInfo.layer;
         std::string name;
         layer->GetLayerInfo()->GetSurface()->GetName(name);
         if (name == arg) {
-            result += "  surface [" + name + "] Id[" + std::to_string(iter->first) + "]:\n";
+            result += "\n surface [" + name + "] Id[" + std::to_string(layerInfo.surfaceId) + "]:\n";
             layer->Dump(result);
         }
     }
+}
+
+static inline bool Cmp(const LayerDumpInfo &layer1, const LayerDumpInfo &layer2)
+{
+    return layer1.layer->GetLayerInfo()->GetZorder() < layer2.layer->GetLayerInfo()->GetZorder();
+}
+
+void HdiOutput::ReorderLayerInfo(std::vector<LayerDumpInfo> &dumpLayerInfos) const
+{
+    for (auto iter = surfaceIdMap_.begin(); iter != surfaceIdMap_.end(); ++iter) {
+        struct LayerDumpInfo layerInfo = {
+            .surfaceId = iter->first,
+            .layer = iter->second,
+        };
+        dumpLayerInfos.emplace_back(layerInfo);
+    }
+
+    std::sort(dumpLayerInfos.begin(), dumpLayerInfos.end(), Cmp);
 }
 } // namespace Rosen
 } // namespace OHOS
