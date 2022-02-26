@@ -117,7 +117,9 @@ int RSRenderService::Dump(int fd, const std::vector<std::u16string>& args)
         return OHOS::INVALID_OPERATION;
     }
     if (args.size() == 0 || argSets.count(arg1) != 0) {
-        screenManager_->DisplayDump(dumpString);
+        mainThread_->ScheduleTask([this, &dumpString]() {
+            screenManager_->DisplayDump(dumpString);
+        }).wait();
     }
     if (args.size() == 0 || argSets.count(arg2) != 0) {
         mainThread_->ScheduleTask([this, &dumpString]() {

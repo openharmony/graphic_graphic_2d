@@ -138,6 +138,10 @@ bool RSScreen::IsVirtual() const
 
 void RSScreen::SetActiveMode(uint32_t modeId)
 {
+    if (IsVirtual()) {
+        return;
+    }
+
     if (hdiScreen_->SetScreenMode(modeId) < 0) {
         return;
     }
@@ -150,6 +154,10 @@ void RSScreen::SetActiveMode(uint32_t modeId)
 
 void RSScreen::SetPowerStatus(uint32_t powerStatus)
 {
+    if (IsVirtual()) {
+        return;
+    }
+
     HiLog::Info(LOG_LABEL, "SetPowerStatus, status is %{public}u", powerStatus);
     if (hdiScreen_->SetScreenPowerStatus(static_cast<DispPowerStatus>(powerStatus)) < 0) {
         return;
@@ -165,6 +173,10 @@ void RSScreen::SetPowerStatus(uint32_t powerStatus)
 
 std::optional<DisplayModeInfo> RSScreen::GetActiveMode() const
 {
+    if (IsVirtual()) {
+        return {};
+    }
+
     uint32_t modeId = 0;
 
     if (hdiScreen_ == nullptr) {
@@ -200,6 +212,10 @@ const DisplayCapability& RSScreen::GetCapability() const
 
 uint32_t RSScreen::GetPowerStatus() const
 {
+    if (IsVirtual()) {
+        return DispPowerStatus::POWER_STATUS_OFF;
+    }
+
     DispPowerStatus status;
     if (hdiScreen_->GetScreenPowerStatus(status) < 0) {
         return INVALID_POWER_STATUS;
@@ -231,8 +247,10 @@ void RSScreen::ModeInfoDump(std::string& dumpString)
                      supportedModes_[modeIndex].height, supportedModes_[modeIndex].freshRate);
     }
     std::optional<DisplayModeInfo> activeMode = GetActiveMode();
-    AppendFormat(dumpString, "  activeMode: %dx%d, freshrate=%d\n",
-                 activeMode->width, activeMode->height, activeMode->freshRate);
+    if (activeMode) {
+        AppendFormat(dumpString, "  activeMode: %dx%d, freshrate=%d\n",
+            activeMode->width, activeMode->height, activeMode->freshRate);
+    }
 }
 
 void RSScreen::CapabilityTypeDump(InterfaceType capabilityType, std::string& dumpString)
