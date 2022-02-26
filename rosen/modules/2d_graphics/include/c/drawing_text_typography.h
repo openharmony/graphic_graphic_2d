@@ -21,7 +21,7 @@
  * @{
  *
  * @brief Provides 2d drawing functions.
- * 
+ *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  *
  * @since 8
