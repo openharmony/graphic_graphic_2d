@@ -28,18 +28,18 @@ namespace OHOS {
 namespace Rosen {
 static const std::map<TransformType, std::string> TransformTypeStrs = {
     {ROTATE_NONE,                    "0 <no rotation>"},
-    {ROTATE_90,                      "1 <Rotation by 90 degrees>"},
-    {ROTATE_180,                     "2 <Rotation by 180 degrees>"},
-    {ROTATE_270,                     "3 <Rotation by 270 degrees>"},
-    {ROTATE_BUTT,                    "4 <Invalid operation>"},
+    {ROTATE_90,                      "1 <rotation by 90 degrees>"},
+    {ROTATE_180,                     "2 <rotation by 180 degrees>"},
+    {ROTATE_270,                     "3 <rotation by 270 degrees>"},
+    {ROTATE_BUTT,                    "4 <uninitialized>"},
 };
 
 static const std::map<CompositionType, std::string> CompositionTypeStrs = {
-    {COMPOSITION_CLIENT,             "0 <client composistion type>"},
-    {COMPOSITION_DEVICE,             "1 <device composistion type>"},
-    {COMPOSITION_CURSOR,             "2 <cursor composistion type>"},
-    {COMPOSITION_VIDEO,              "3 <video composistion type>"},
-    {COMPOSITION_BUTT,               "4 <Invalid operation>"},
+    {COMPOSITION_CLIENT,             "0 <client composistion>"},
+    {COMPOSITION_DEVICE,             "1 <device composistion>"},
+    {COMPOSITION_CURSOR,             "2 <cursor composistion>"},
+    {COMPOSITION_VIDEO,              "3 <video composistion>"},
+    {COMPOSITION_BUTT,               "4 <uninitialized>"},
 };
 
 static const std::map<BlendType, std::string> BlendTypeStrs = {
@@ -59,7 +59,7 @@ static const std::map<BlendType, std::string> BlendTypeStrs = {
     {BLEND_DST,                      "13 <DST blending>"},
     {BLEND_AKS,                      "14 <AKS blending>"},
     {BLEND_AKD,                      "15 <AKD blending>"},
-    {BLEND_BUTT,                     "16 <Invalid operation>"},
+    {BLEND_BUTT,                     "16 <Uninitialized>"},
 };
 
 class HdiLayerInfo {
@@ -232,7 +232,7 @@ public:
 
     void Dump(std::string &result) const
     {
-        result += "    zOrder = " + std::to_string(zOrder_) +
+        result += " zOrder = " + std::to_string(zOrder_) +
             ", visibleNum = " + std::to_string(visibleNum_) +
             ", transformType = " + TransformTypeStrs.at(transformType_) +
             ", compositionType = " + CompositionTypeStrs.at(compositionType_) +
@@ -243,7 +243,7 @@ public:
             std::to_string(layerAlpha_.alpha1) + "), gAlpha(" +
             std::to_string(layerAlpha_.gAlpha) + ")].\n";
 
-        result += "    layerRect = [" + std::to_string(layerRect_.x) + ", " +
+        result += " layerRect = [" + std::to_string(layerRect_.x) + ", " +
             std::to_string(layerRect_.y) + ", " +
             std::to_string(layerRect_.w) + ", " +
             std::to_string(layerRect_.h) + "], ";

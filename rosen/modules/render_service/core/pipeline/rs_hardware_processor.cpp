@@ -237,7 +237,7 @@ void RSHardwareProcessor::Redraw(sptr<Surface>& surface, const struct PrepareCom
         return;
     }
 
-    for (auto it = param.layers.rbegin(); it != param.layers.rend(); ++it) {
+    for (auto it = param.layers.begin(); it != param.layers.end(); ++it) {
         LayerInfoPtr layerInfo = *it;
         if (layerInfo == nullptr || layerInfo->GetCompositionType() == CompositionType::COMPOSITION_DEVICE) {
             continue;
