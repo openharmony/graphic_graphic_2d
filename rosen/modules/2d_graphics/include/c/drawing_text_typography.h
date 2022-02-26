@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,6 +16,27 @@
 #ifndef C_INCLUDE_DRAWING_TEXT_TYPOGRAPHY_H
 #define C_INCLUDE_DRAWING_TEXT_TYPOGRAPHY_H
 
+/**
+ * @addtogroup Drawing
+ * @{
+ *
+ * @brief Provides 2d drawing functions.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ *
+ * @since 8
+ * @version 1.0
+ */
+
+/**
+ * @file drawing_text_typography.h
+ *
+ * @brief Defines the typography functions of the Drawing module.
+ *
+ * @since 8
+ * @version 1.0
+ */
+
 #include "drawing_canvas.h"
 #include "drawing_color.h"
 #include "drawing_text_declaration.h"
@@ -28,63 +49,100 @@ extern "C" {
 #endif
 
 /**
- * @brief OH_Drawing_TextDirection used to the direction of text.
+ * @brief direction of text.
  */
 enum OH_Drawing_TextDirection {
+    /** direction: from right to left */
     TEXT_DIRECTION_RTL,
+    /** direction: from left to right */
     TEXT_DIRECTION_LTR,
 };
 
 /**
- * @brief OH_Drawing_TextAlign used to describe layout.
+ * @brief text layout.
  */
 enum OH_Drawing_TextAlign {
+    /** Lines start at the left edge */
     TEXT_ALIGN_LEFT,
+    /** Lines start at the right edge */
     TEXT_ALIGN_RIGHT,
+    /** Lines are centered within the the line box */
     TEXT_ALIGN_CENTER,
+    /**
+     * Lines are justified.
+     * Text is spaced to line up its left and right edges,
+     * except for the last line.
+     */
     TEXT_ALIGN_JUSTIFY,
+    /**
+     * The same as TEXT_ALIGN_LEFT if OH_Drawing_TextDirection
+     * is TEXT_DIRECTION_LTR. Similarly, it is TEXT_ALIGN_RIGHT
+     * if OH_Drawing_TextDirection is TEXT_DIRECTION_RTL.
+     */
     TEXT_ALIGN_START,
+    /**
+     * The same as TEXT_ALIGN_RIGHT if OH_Drawing_TextDirection
+     * is TEXT_DIRECTION_LTR. Similarly, it is TEXT_ALIGN_LEFT
+     * if OH_Drawing_TextDirection is TEXT_DIRECTION_RTL.
+     */
     TEXT_ALIGN_END,
 };
 
 /**
- * @brief OH_Drawing_FontWeight used to describe font weight.
+ * @brief font weight.
  */
 enum OH_Drawing_FontWeight {
-    FONT_WEIGHT_100, // Thin
-    FONT_WEIGHT_200, // Extra-Light
-    FONT_WEIGHT_300, // Light
-    FONT_WEIGHT_400, // Normal/Regular
-    FONT_WEIGHT_500, // Medium
-    FONT_WEIGHT_600, // Semi-bold
-    FONT_WEIGHT_700, // Bold
-    FONT_WEIGHT_800, // Extra-Bold
-    FONT_WEIGHT_900, // Black
+    /** font weight is thin */
+    FONT_WEIGHT_100,
+    /** font weight is extra-light */
+    FONT_WEIGHT_200,
+    /** font weight is light */
+    FONT_WEIGHT_300,
+    /** font weight is normal/regular */
+    FONT_WEIGHT_400,
+    /** font weight is medium */
+    FONT_WEIGHT_500,
+    /** font weight is semi-bold */
+    FONT_WEIGHT_600,
+    /** font weight is bold */
+    FONT_WEIGHT_700,
+    /** font weight is extra-bold */
+    FONT_WEIGHT_800,
+    /** font weight is black */
+    FONT_WEIGHT_900,
 };
 
 /**
- * @brief OH_Drawing_TextBaseline used to distinguish baseline position.
+ * @brief baseline position.
  */
 enum OH_Drawing_TextBaseline {
+    /** It is used by alphabetic language, baseline is at the lower center */
     TEXT_BASELINE_ALPHABETIC,
+    /** It is used by ideographic language, baseline is at the bottom */
     TEXT_BASELINE_IDEOGRAPHIC,
 };
 
 /**
- * @brief OH_Drawing_TextDecoration used to describe decorations.
+ * @brief text decoration.
  */
 enum OH_Drawing_TextDecoration {
+    /** no decorations */
     TEXT_DECORATION_NONE = 0x0,
+    /** a line at the bottom of text */
     TEXT_DECORATION_UNDERLINE = 0x1,
+    /** a line at the top of text */
     TEXT_DECORATION_OVERLINE = 0x2,
+    /** a line through the text */
     TEXT_DECORATION_LINE_THROUGH = 0x4,
 };
 
 /**
- * @brief OH_Drawing_FontStyle used to describe if fonts are italic.
+ * @brief to distinguish if fonts are italic.
  */
 enum OH_Drawing_FontStyle {
+    /** font is normal */
     FONT_STYLE_NORMAL,
+    /** font is italic */
     FONT_STYLE_ITALIC,
 };
 
@@ -93,6 +151,8 @@ enum OH_Drawing_FontStyle {
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @return a pointer to created OH_Drawing_TypographyStyle
+ * @since 8
+ * @version 1.0
  */
 OH_Drawing_TypographyStyle* OH_Drawing_CreateTypographyStyle(void);
 
@@ -101,6 +161,8 @@ OH_Drawing_TypographyStyle* OH_Drawing_CreateTypographyStyle(void);
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @param OH_Drawing_TypographyStyle a pointer to OH_Drawing_TypographyStyle object
+ * @since 8
+ * @version 1.0
  */
 void OH_Drawing_DestroyTypographyStyle(OH_Drawing_TypographyStyle*);
 
@@ -110,6 +172,8 @@ void OH_Drawing_DestroyTypographyStyle(OH_Drawing_TypographyStyle*);
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @param OH_Drawing_TypographyStyle a pointer to OH_Drawing_TypographyStyle object
  * @param int enum OH_Drawing_TextDirection
+ * @since 8
+ * @version 1.0
  */
 void OH_Drawing_SetTypographyTextDirection(OH_Drawing_TypographyStyle*, int /* OH_Drawing_TextDirection */);
 
@@ -119,6 +183,8 @@ void OH_Drawing_SetTypographyTextDirection(OH_Drawing_TypographyStyle*, int /* O
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @param OH_Drawing_TypographyStyle a pointer to OH_Drawing_TypographyStyle object
  * @param int enum OH_Drawing_TextAlign
+ * @since 8
+ * @version 1.0
  */
 void OH_Drawing_SetTypographyTextAlign(OH_Drawing_TypographyStyle*, int /* OH_Drawing_TextAlign */);
 
@@ -128,6 +194,8 @@ void OH_Drawing_SetTypographyTextAlign(OH_Drawing_TypographyStyle*, int /* OH_Dr
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @param OH_Drawing_TypographyStyle a pointer to OH_Drawing_TypographyStyle object
  * @param int max lines
+ * @since 8
+ * @version 1.0
  */
 void OH_Drawing_SetTypographyTextMaxLines(OH_Drawing_TypographyStyle*, int /* maxLines */);
 
@@ -135,7 +203,9 @@ void OH_Drawing_SetTypographyTextMaxLines(OH_Drawing_TypographyStyle*, int /* ma
  * @brief Create a new OH_Drawing_TextStyle.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
- * @return a pointer to created OH_Drawing_TextStyle
+ * @return OH_Drawing_TextStyle a pointer to created OH_Drawing_TextStyle
+ * @since 8
+ * @version 1.0
  */
 OH_Drawing_TextStyle* OH_Drawing_CreateTextStyle(void);
 
@@ -144,6 +214,8 @@ OH_Drawing_TextStyle* OH_Drawing_CreateTextStyle(void);
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @param OH_Drawing_TypographyStyle a pointer to OH_Drawing_TextStyle object
+ * @since 8
+ * @version 1.0
  */
 void OH_Drawing_DestroyTextStyle(OH_Drawing_TextStyle*);
 
@@ -153,6 +225,8 @@ void OH_Drawing_DestroyTextStyle(OH_Drawing_TextStyle*);
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @param OH_Drawing_TextStyle a pointer to OH_Drawing_TextStyle object
  * @param uint32_t color
+ * @since 8
+ * @version 1.0
  */
 void OH_Drawing_SetTextStyleColor(OH_Drawing_TextStyle*, uint32_t /* color */);
 
@@ -162,6 +236,8 @@ void OH_Drawing_SetTextStyleColor(OH_Drawing_TextStyle*, uint32_t /* color */);
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @param OH_Drawing_TextStyle a pointer to OH_Drawing_TextStyle object
  * @param double font size
+ * @since 8
+ * @version 1.0
  */
 void OH_Drawing_SetTextStyleFontSize(OH_Drawing_TextStyle*, double /* fontSize */);
 
@@ -170,7 +246,9 @@ void OH_Drawing_SetTextStyleFontSize(OH_Drawing_TextStyle*, double /* fontSize *
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @param OH_Drawing_TextStyle a pointer to OH_Drawing_TextStyle object
- * @param int font weight
+ * @param int enum OH_Drawing_FontWeight
+ * @since 8
+ * @version 1.0
  */
 void OH_Drawing_SetTextStyleFontWeight(OH_Drawing_TextStyle*, int /* OH_Drawing_FontWeight */);
 
@@ -179,7 +257,9 @@ void OH_Drawing_SetTextStyleFontWeight(OH_Drawing_TextStyle*, int /* OH_Drawing_
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @param OH_Drawing_TextStyle a pointer to OH_Drawing_TextStyle object
- * @param int baseline position(enum OH_Drawing_TextBaseline)
+ * @param int enum OH_Drawing_TextBaseline
+ * @since 8
+ * @version 1.0
  */
 void OH_Drawing_SetTextStyleBaseLine(OH_Drawing_TextStyle*, int /* OH_Drawing_TextBaseline */);
 
@@ -189,6 +269,8 @@ void OH_Drawing_SetTextStyleBaseLine(OH_Drawing_TextStyle*, int /* OH_Drawing_Te
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @param OH_Drawing_TextStyle a pointer to OH_Drawing_TextStyle object
  * @param int enum OH_Drawing_TextDecoration
+ * @since 8
+ * @version 1.0
  */
 void OH_Drawing_SetTextStyleDecoration(OH_Drawing_TextStyle*, int /* OH_Drawing_TextDecoration */);
 
@@ -198,6 +280,8 @@ void OH_Drawing_SetTextStyleDecoration(OH_Drawing_TextStyle*, int /* OH_Drawing_
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @param OH_Drawing_TextStyle a pointer to OH_Drawing_TextStyle object
  * @param uint32_t color
+ * @since 8
+ * @version 1.0
  */
 void OH_Drawing_SetTextStyleDecorationColor(OH_Drawing_TextStyle*, uint32_t /* color */);
 
@@ -207,6 +291,8 @@ void OH_Drawing_SetTextStyleDecorationColor(OH_Drawing_TextStyle*, uint32_t /* c
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @param OH_Drawing_TextStyle a pointer to OH_Drawing_TextStyle object
  * @param double font height
+ * @since 8
+ * @version 1.0
  */
 void OH_Drawing_SetTextStyleFontHeight(OH_Drawing_TextStyle*, double /* fontHeight */);
 
@@ -216,7 +302,9 @@ void OH_Drawing_SetTextStyleFontHeight(OH_Drawing_TextStyle*, double /* fontHeig
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @param OH_Drawing_TextStyle a pointer to OH_Drawing_TextStyle object
  * @param int number of font families
- * @param char* fontFamilies name
+ * @param char a pointer to fontFamilies name
+ * @since 8
+ * @version 1.0
  */
 void OH_Drawing_SetTextStyleFontFamilies(OH_Drawing_TextStyle*,
     int /* fontFamiliesNumber */, const char* fontFamilies[]);
@@ -227,6 +315,8 @@ void OH_Drawing_SetTextStyleFontFamilies(OH_Drawing_TextStyle*,
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @param OH_Drawing_TextStyle a pointer to OH_Drawing_TextStyle object
  * @param int fontStyle
+ * @since 8
+ * @version 1.0
  */
 void OH_Drawing_SetTextStyleFontStyle(OH_Drawing_TextStyle*, int /* fontStyle */);
 
@@ -235,7 +325,9 @@ void OH_Drawing_SetTextStyleFontStyle(OH_Drawing_TextStyle*, int /* fontStyle */
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @param OH_Drawing_TextStyle a pointer to OH_Drawing_TextStyle object
- * @param char* locale
+ * @param char locale, a pointer to char
+ * @since 8
+ * @version 1.0
  */
 void OH_Drawing_SetTextStyleLocale(OH_Drawing_TextStyle*, const char*);
 
@@ -243,7 +335,11 @@ void OH_Drawing_SetTextStyleLocale(OH_Drawing_TextStyle*, const char*);
  * @brief Generate a new OH_Drawing_TypographyCreate.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_TypographyStyle a pointer to OH_Drawing_TypographyStyle
+ * @param OH_Drawing_FontCollection a pointer to OH_Drawing_FontCollection
  * @return a pointer to created OH_Drawing_TypographyCreate
+ * @since 8
+ * @version 1.0
  */
 OH_Drawing_TypographyCreate* OH_Drawing_CreateTypographyHandler(OH_Drawing_TypographyStyle*,
     OH_Drawing_FontCollection*);
@@ -253,6 +349,8 @@ OH_Drawing_TypographyCreate* OH_Drawing_CreateTypographyHandler(OH_Drawing_Typog
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @param OH_Drawing_TypographyCreate a pointer to OH_Drawing_TypographyCreate object
+ * @since 8
+ * @version 1.0
  */
 void OH_Drawing_DestroyTypographyHandler(OH_Drawing_TypographyCreate*);
 
@@ -262,6 +360,8 @@ void OH_Drawing_DestroyTypographyHandler(OH_Drawing_TypographyCreate*);
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @param OH_Drawing_TypographyCreate a pointer to OH_Drawing_TypographyCreate object
  * @param OH_Drawing_TextStyle a pointer to OH_Drawing_TextStyle object
+ * @since 8
+ * @version 1.0
  */
 void OH_Drawing_TypographyHandlerPushStyle(OH_Drawing_TypographyCreate*, OH_Drawing_TextStyle*);
 
@@ -271,6 +371,8 @@ void OH_Drawing_TypographyHandlerPushStyle(OH_Drawing_TypographyCreate*, OH_Draw
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @param OH_Drawing_TypographyCreate a pointer to OH_Drawing_TypographyCreate object
  * @param char describe text
+ * @since 8
+ * @version 1.0
  */
 void OH_Drawing_TypographyHandlerAddText(OH_Drawing_TypographyCreate*, const char*);
 
@@ -279,6 +381,8 @@ void OH_Drawing_TypographyHandlerAddText(OH_Drawing_TypographyCreate*, const cha
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @param OH_Drawing_TypographyCreate a pointer to OH_Drawing_TypographyCreate object
+ * @since 8
+ * @version 1.0
  */
 void OH_Drawing_TypographyHandlerPop(OH_Drawing_TypographyCreate*);
 
@@ -286,7 +390,10 @@ void OH_Drawing_TypographyHandlerPop(OH_Drawing_TypographyCreate*);
  * @brief Generate a new OH_Drawing_Typography.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
- * @return a pointer to OH_Drawing_Typography
+ * @param OH_Drawing_TypographyCreate a pointer to OH_Drawing_Typography
+ * @return OH_Drawing_Typography a pointer to OH_Drawing_Typography
+ * @since 8
+ * @version 1.0
  */
 OH_Drawing_Typography* OH_Drawing_CreateTypography(OH_Drawing_TypographyCreate*);
 
@@ -295,6 +402,8 @@ OH_Drawing_Typography* OH_Drawing_CreateTypography(OH_Drawing_TypographyCreate*)
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @param OH_Drawing_Typography a pointer to OH_Drawing_Typography object
+ * @since 8
+ * @version 1.0
  */
 void OH_Drawing_DestroyTypography(OH_Drawing_Typography*);
 
@@ -304,6 +413,8 @@ void OH_Drawing_DestroyTypography(OH_Drawing_Typography*);
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @param OH_Drawing_Typography a pointer to OH_Drawing_Typography object
  * @param double max width of text
+ * @since 8
+ * @version 1.0
  */
 void OH_Drawing_TypographyLayout(OH_Drawing_Typography*, double /* maxWidth */);
 
@@ -315,6 +426,8 @@ void OH_Drawing_TypographyLayout(OH_Drawing_Typography*, double /* maxWidth */);
  * @param OH_Drawing_Canvas a pointer to OH_Drawing_Canvas object
  * @param double position X
  * @param double position Y
+ * @since 8
+ * @version 1.0
  */
 void OH_Drawing_TypographyPaint(OH_Drawing_Typography*, OH_Drawing_Canvas*,
     double /* potisionX */, double /* potisionY */);
@@ -322,5 +435,5 @@ void OH_Drawing_TypographyPaint(OH_Drawing_Typography*, OH_Drawing_Canvas*,
 #ifdef __cplusplus
 }
 #endif
-
+/** @} */
 #endif

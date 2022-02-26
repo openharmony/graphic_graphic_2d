@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,6 +16,27 @@
 #ifndef C_INCLUDE_DRAWING_FONT_COLLECTION_H
 #define C_INCLUDE_DRAWING_FONT_COLLECTION_H
 
+/**
+ * @addtogroup Drawing
+ * @{
+ *
+ * @brief Provides 2d drawing functions.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ *
+ * @since 8
+ * @version 1.0
+ */
+
+/**
+ * @file drawing_font_collection.h
+ *
+ * @brief Defines the fontCollection functions of the Drawing module.
+ *
+ * @since 8
+ * @version 1.0
+ */
+
 #include "drawing_text_declaration.h"
 
 #ifdef __cplusplus
@@ -26,6 +47,8 @@ extern "C" {
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @return a pointer to created OH_Drawing_FontCollection
+ * @since 8
+ * @version 1.0
  */
 OH_Drawing_FontCollection* OH_Drawing_CreateFontCollection(void);
 
@@ -34,11 +57,13 @@ OH_Drawing_FontCollection* OH_Drawing_CreateFontCollection(void);
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @param OH_Drawing_FontCollection a pointer to OH_Drawing_FontCollection object
+ * @since 8
+ * @version 1.0
  */
 void OH_Drawing_DestroyFontCollection(OH_Drawing_FontCollection*);
 
 #ifdef __cplusplus
 }
 #endif
-
+/** @} */
 #endif
