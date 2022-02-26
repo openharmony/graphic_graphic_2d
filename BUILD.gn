@@ -67,6 +67,9 @@ wmlayout_scss("default.scss") {
 
 group("libsurface") {
   public_deps = [ "frameworks/surface:surface" ]
+  if (ace_enable_gpu) {
+    public_deps += [ "frameworks/surfaceimage:libsurfaceimage" ]
+  }
 }
 
 group("libvsync_client") {
