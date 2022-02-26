@@ -325,12 +325,14 @@ void HdiLayer::CheckRet(int32_t ret, const char* func)
 
 void HdiLayer::Dump(std::string &result)
 {
+    const int offset = count;
     for (int i = 0; i < FRAME_RECORDS_NUM; i++) {
-        if (presentTimeRecords[i].presentFence != SyncFence::INVALID_FENCE) {
-            presentTimeRecords[i].presentTime = presentTimeRecords[i].presentFence->SyncFileReadTimestamp();
-            presentTimeRecords[i].presentFence = SyncFence::INVALID_FENCE;
+        int order = (offset + i) % FRAME_RECORDS_NUM;
+        if (presentTimeRecords[order].presentFence != SyncFence::INVALID_FENCE) {
+            presentTimeRecords[order].presentTime = presentTimeRecords[order].presentFence->SyncFileReadTimestamp();
+            presentTimeRecords[order].presentFence = SyncFence::INVALID_FENCE;
         }
-        result += std::to_string(presentTimeRecords[i].presentTime) + "\n";
+        result += std::to_string(presentTimeRecords[order].presentTime) + "\n";
     }
 }
 
