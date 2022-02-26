@@ -45,6 +45,7 @@ void RsFrameReport::Init()
     int ret = LoadLibrary();
     if (!ret) {
         ROSEN_LOGE("RsFrameReport:[Init] dlopen libframe_ui_intf.so failed!");
+        return;
     }
     ROSEN_LOGI("RsFrameReport:[Init] dlopen libframe_ui_intf.so success!");
 }
@@ -90,6 +91,9 @@ void *RsFrameReport::LoadSymbol(const char *symName)
 
 int RsFrameReport::GetEnable()
 {
+    if (!frameSchedSoLoaded_) {
+        return 0;
+    }
     frameGetEnableFunc_ = (FrameGetEnableFunc)LoadSymbol("GetSenseSchedEnable");
     if (frameGetEnableFunc_ != nullptr) {
         return frameGetEnableFunc_();
