@@ -15,7 +15,6 @@
 
 #include "c/drawing_text_typography.h"
 
-#include "c/drawing_text_convertor.h"
 #include "rosen_text/ui/font_collection.h"
 #include "rosen_text/ui/typography.h"
 #include "rosen_text/ui/typography_create.h"
@@ -25,9 +24,45 @@
 #include <string>
 
 using namespace rosen;
+
+static FontCollection* ConvertToOriginalText(OH_Drawing_FontCollection* fontCollection)
+{
+    return reinterpret_cast<FontCollection*>(fontCollection);
+}
+
+static TypographyStyle* ConvertToOriginalText(OH_Drawing_TypographyStyle* style)
+{
+    return reinterpret_cast<TypographyStyle*>(style);
+}
+
+static TypographyCreate* ConvertToOriginalText(OH_Drawing_TypographyCreate* handler)
+{
+    return reinterpret_cast<TypographyCreate*>(handler);
+}
+
+static OH_Drawing_TypographyCreate* ConvertToNDKText(TypographyCreate* handler)
+{
+    return reinterpret_cast<OH_Drawing_TypographyCreate*>(handler);
+}
+
+static TextStyle* ConvertToOriginalText(OH_Drawing_TextStyle* style)
+{
+    return reinterpret_cast<TextStyle*>(style);
+}
+
+static Typography* ConvertToOriginalText(OH_Drawing_Typography* typography)
+{
+    return reinterpret_cast<Typography*>(typography);
+}
+
+static OH_Drawing_Typography* ConvertToNDKText(Typography* typography)
+{
+    return reinterpret_cast<OH_Drawing_Typography*>(typography);
+}
+
 OH_Drawing_TypographyStyle* OH_Drawing_CreateTypographyStyle(void)
 {
-    return (OH_Drawing_TypographyStyle*)new rosen::TypographyStyle;
+    return (OH_Drawing_TypographyStyle*)new TypographyStyle;
 }
 
 void OH_Drawing_DestroyTypographyStyle(OH_Drawing_TypographyStyle* style)
@@ -37,18 +72,18 @@ void OH_Drawing_DestroyTypographyStyle(OH_Drawing_TypographyStyle* style)
 
 void OH_Drawing_SetTypographyTextDirection(OH_Drawing_TypographyStyle* style, int direction)
 {
-    rosen::TextDirection textDirection;
+    TextDirection textDirection;
     switch (direction) {
         case TEXT_DIRECTION_RTL: {
-            textDirection = rosen::TextDirection::RTL;
+            textDirection = TextDirection::RTL;
             break;
         }
         case TEXT_DIRECTION_LTR: {
-            textDirection = rosen::TextDirection::LTR;
+            textDirection = TextDirection::LTR;
             break;
         }
         default: {
-            textDirection = rosen::TextDirection::LTR;
+            textDirection = TextDirection::LTR;
             break;
         }
     }
@@ -57,34 +92,34 @@ void OH_Drawing_SetTypographyTextDirection(OH_Drawing_TypographyStyle* style, in
 
 void OH_Drawing_SetTypographyTextAlign(OH_Drawing_TypographyStyle* style, int align)
 {
-    rosen::TextAlign textAlign;
+    TextAlign textAlign;
     switch (align) {
         case TEXT_ALIGN_LEFT: {
-            textAlign = rosen::TextAlign::LEFT;
+            textAlign = TextAlign::LEFT;
             break;
         }
         case TEXT_ALIGN_RIGHT: {
-            textAlign = rosen::TextAlign::RIGHT;
+            textAlign = TextAlign::RIGHT;
             break;
         }
         case TEXT_ALIGN_CENTER: {
-            textAlign = rosen::TextAlign::CENTER;
+            textAlign = TextAlign::CENTER;
             break;
         }
         case TEXT_ALIGN_JUSTIFY: {
-            textAlign = rosen::TextAlign::JUSTIFY;
+            textAlign = TextAlign::JUSTIFY;
             break;
         }
         case TEXT_ALIGN_START: {
-            textAlign = rosen::TextAlign::START;
+            textAlign = TextAlign::START;
             break;
         }
         case TEXT_ALIGN_END: {
-            textAlign = rosen::TextAlign::END;
+            textAlign = TextAlign::END;
             break;
         }
         default: {
-            textAlign = rosen::TextAlign::LEFT;
+            textAlign = TextAlign::LEFT;
         }
     }
     ConvertToOriginalText(style)->textAlign_ = textAlign;
@@ -97,7 +132,7 @@ void OH_Drawing_SetTypographyTextMaxLines(OH_Drawing_TypographyStyle* style, int
 
 OH_Drawing_TextStyle* OH_Drawing_CreateTextStyle(void)
 {
-    return (OH_Drawing_TextStyle*)new rosen::TextStyle;
+    return (OH_Drawing_TextStyle*)new TextStyle;
 }
 
 void OH_Drawing_DestroyTextStyle(OH_Drawing_TextStyle* style)
@@ -117,46 +152,46 @@ void OH_Drawing_SetTextStyleFontSize(OH_Drawing_TextStyle* style, double fontSiz
 
 void OH_Drawing_SetTextStyleFontWeight(OH_Drawing_TextStyle* style, int fontWeight)
 {
-    rosen::FontWeight rosenFontWeight;
+    FontWeight rosenFontWeight;
     switch (fontWeight) {
         case FONT_WEIGHT_100: {
-            rosenFontWeight = rosen::FontWeight::W100;
+            rosenFontWeight = FontWeight::W100;
             break;
         }
         case FONT_WEIGHT_200: {
-            rosenFontWeight = rosen::FontWeight::W200;
+            rosenFontWeight = FontWeight::W200;
             break;
         }
         case FONT_WEIGHT_300: {
-            rosenFontWeight = rosen::FontWeight::W300;
+            rosenFontWeight = FontWeight::W300;
             break;
         }
         case FONT_WEIGHT_400: {
-            rosenFontWeight = rosen::FontWeight::W400;
+            rosenFontWeight = FontWeight::W400;
             break;
         }
         case FONT_WEIGHT_500: {
-            rosenFontWeight = rosen::FontWeight::W500;
+            rosenFontWeight = FontWeight::W500;
             break;
         }
         case FONT_WEIGHT_600: {
-            rosenFontWeight = rosen::FontWeight::W600;
+            rosenFontWeight = FontWeight::W600;
             break;
         }
         case FONT_WEIGHT_700: {
-            rosenFontWeight = rosen::FontWeight::W700;
+            rosenFontWeight = FontWeight::W700;
             break;
         }
         case FONT_WEIGHT_800: {
-            rosenFontWeight = rosen::FontWeight::W800;
+            rosenFontWeight = FontWeight::W800;
             break;
         }
         case FONT_WEIGHT_900: {
-            rosenFontWeight = rosen::FontWeight::W900;
+            rosenFontWeight = FontWeight::W900;
             break;
         }
         default: {
-            rosenFontWeight = rosen::FontWeight::W400;
+            rosenFontWeight = FontWeight::W400;
         }
     }
     ConvertToOriginalText(style)->fontWeight_ = rosenFontWeight;
@@ -164,18 +199,18 @@ void OH_Drawing_SetTextStyleFontWeight(OH_Drawing_TextStyle* style, int fontWeig
 
 void OH_Drawing_SetTextStyleBaseLine(OH_Drawing_TextStyle* style, int baseline)
 {
-    rosen::TextBaseline rosenBaseLine;
+    TextBaseline rosenBaseLine;
     switch (baseline) {
         case TEXT_BASELINE_ALPHABETIC: {
-            rosenBaseLine = rosen::TextBaseline::ALPHABETIC;
+            rosenBaseLine = TextBaseline::ALPHABETIC;
             break;
         }
         case TEXT_BASELINE_IDEOGRAPHIC: {
-            rosenBaseLine = rosen::TextBaseline::IDEOGRAPHIC;
+            rosenBaseLine = TextBaseline::IDEOGRAPHIC;
             break;
         }
         default: {
-            rosenBaseLine = rosen::TextBaseline::ALPHABETIC;
+            rosenBaseLine = TextBaseline::ALPHABETIC;
         }
     }
     ConvertToOriginalText(style)->textBaseline_ = rosenBaseLine;
@@ -183,26 +218,26 @@ void OH_Drawing_SetTextStyleBaseLine(OH_Drawing_TextStyle* style, int baseline)
 
 void OH_Drawing_SetTextStyleDecoration(OH_Drawing_TextStyle* style, int decoration)
 {
-    rosen::TextDecoration rosenDecoration;
+    TextDecoration rosenDecoration;
     switch (decoration) {
         case TEXT_DECORATION_NONE: {
-            rosenDecoration = rosen::TextDecoration::NONE;
+            rosenDecoration = TextDecoration::NONE;
             break;
         }
         case TEXT_DECORATION_UNDERLINE: {
-            rosenDecoration = rosen::TextDecoration::UNDERLINE;
+            rosenDecoration = TextDecoration::UNDERLINE;
             break;
         }
         case TEXT_DECORATION_OVERLINE: {
-            rosenDecoration = rosen::TextDecoration::OVERLINE;
+            rosenDecoration = TextDecoration::OVERLINE;
             break;
         }
         case TEXT_DECORATION_LINE_THROUGH: {
-            rosenDecoration = rosen::TextDecoration::LINETHROUGH;
+            rosenDecoration = TextDecoration::LINETHROUGH;
             break;
         }
         default: {
-            rosenDecoration = rosen::TextDecoration::NONE;
+            rosenDecoration = TextDecoration::NONE;
         }
     }
     ConvertToOriginalText(style)->decoration_ = rosenDecoration;
@@ -230,18 +265,18 @@ void OH_Drawing_SetTextStyleFontFamilies(OH_Drawing_TextStyle* style,
 
 void OH_Drawing_SetTextStyleFontStyle(OH_Drawing_TextStyle* style, int fontStyle)
 {
-    rosen::FontStyle rosenFontStyle;
+    FontStyle rosenFontStyle;
     switch (fontStyle) {
         case FONT_STYLE_NORMAL: {
-            rosenFontStyle = rosen::FontStyle::NORMAL;
+            rosenFontStyle = FontStyle::NORMAL;
             break;
         }
         case FONT_STYLE_ITALIC: {
-            rosenFontStyle = rosen::FontStyle::ITALIC;
+            rosenFontStyle = FontStyle::ITALIC;
             break;
         }
         default: {
-            rosenFontStyle = rosen::FontStyle::NORMAL;
+            rosenFontStyle = FontStyle::NORMAL;
         }
     }
     ConvertToOriginalText(style)->fontStyle_ = rosenFontStyle;
@@ -255,9 +290,9 @@ void OH_Drawing_SetTextStyleLocale(OH_Drawing_TextStyle* style, const char* loca
 OH_Drawing_TypographyCreate* OH_Drawing_CreateTypographyHandler(OH_Drawing_TypographyStyle* style,
     OH_Drawing_FontCollection* fontCollection)
 {
-    const rosen::TypographyStyle* typoStyle = ConvertToOriginalText(style);
-    std::unique_ptr<rosen::TypographyCreate> handler = rosen::TypographyCreate::CreateRosenBuilder(*typoStyle,
-        std::shared_ptr<rosen::FontCollection>(ConvertToOriginalText(fontCollection)));
+    const TypographyStyle* typoStyle = ConvertToOriginalText(style);
+    std::unique_ptr<TypographyCreate> handler = TypographyCreate::CreateRosenBuilder(*typoStyle,
+        std::shared_ptr<FontCollection>(ConvertToOriginalText(fontCollection)));
     return ConvertToNDKText(handler.release());
 }
 
@@ -268,7 +303,7 @@ void OH_Drawing_DestroyTypographyHandler(OH_Drawing_TypographyCreate* handler)
 
 void OH_Drawing_TypographyHandlerPushStyle(OH_Drawing_TypographyCreate* handler, OH_Drawing_TextStyle* style)
 {
-    const rosen::TextStyle* rosenTextStyle = ConvertToOriginalText(style);
+    const TextStyle* rosenTextStyle = ConvertToOriginalText(style);
     ConvertToOriginalText(handler)->PushStyle(*rosenTextStyle);
 }
 
@@ -286,8 +321,8 @@ void OH_Drawing_TypographyHandlerPop(OH_Drawing_TypographyCreate* handler)
 
 OH_Drawing_Typography* OH_Drawing_CreateTypography(OH_Drawing_TypographyCreate* handler)
 {
-    rosen::TypographyCreate* rosenHandler = ConvertToOriginalText(handler);
-    std::unique_ptr<rosen::Typography> typography = rosenHandler->Build();
+    TypographyCreate* rosenHandler = ConvertToOriginalText(handler);
+    std::unique_ptr<Typography> typography = rosenHandler->Build();
     return ConvertToNDKText(typography.release());
 }
 

@@ -14,9 +14,10 @@
  */
 
 #include "c/drawing_font_collection.h"
-#include "c/drawing_text_convertor.h"
+#include "rosen_text/ui/font_collection.h"
 
 OH_Drawing_FontCollection* OH_Drawing_CreateFontCollection(void)
 {
     return (OH_Drawing_FontCollection*)new rosen::FontCollection;
 }
+

@@ -43,6 +43,7 @@ extern "C" {
 
 /**
  * @brief OH_Drawing_FontCollection is to load fonts.
+ *
  * @since 8
  * @version 1.0
  */
@@ -50,6 +51,7 @@ struct OH_Drawing_FontCollection;
 
 /**
  * @brief OH_Drawing_Typography is to manage layout and paint text.
+ *
  * @since 8
  * @version 1.0
  */
@@ -57,6 +59,7 @@ struct OH_Drawing_Typography;
 
 /**
  * @brief OH_Drawing_TextStyle is to manage font color, decoration, etc.
+ *
  * @since 8
  * @version 1.0
  */
@@ -64,6 +67,7 @@ struct OH_Drawing_TextStyle;
 
 /**
  * @brief OH_Drawing_TypographyStyle is to manage typography layout.
+ *
  * @since 8
  * @version 1.0
  */
@@ -71,6 +75,7 @@ struct OH_Drawing_TypographyStyle;
 
 /**
  * @brief OH_Drawing_TypographyCreate is to create OH_Drawing_Typography.
+ *
  * @since 8
  * @version 1.0
  */
