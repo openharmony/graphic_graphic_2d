@@ -54,10 +54,7 @@ private:
     sptr<Window> splitWindow = nullptr;
     bool haveMiddleLine = false;
     bool midlineDown = false;
-    int32_t midlineYBackup = -100;
     int32_t midlineY = -100;
-    int32_t downX = 0;
-    int32_t downY = 0;
     sptr<Window> launchPageWindow = nullptr;
     RawParser resource;
     sptr<IRemoteObject> token = new IPCObjectStub(u"animation_server");
