@@ -123,7 +123,7 @@ void Color::SetAlphaF(scalar a)
     alpha_ = static_cast<uint8_t>(a * RGB_MAX);
 }
 
-void Color::SetRgb(int r, int g, int b, int a)
+void Color::SetRgb(uint32_t r, uint32_t g, uint32_t b, uint32_t a)
 {
     alpha_ = a;
     red_ = r;
@@ -133,10 +133,10 @@ void Color::SetRgb(int r, int g, int b, int a)
 
 void Color::SetRgbF(scalar r, scalar g, scalar b, scalar a)
 {
-    alpha_ = static_cast<int>(round(a * RGB_MAX));
-    red_ = static_cast<int>(round(r * RGB_MAX));
-    green_ = static_cast<int>(round(g * RGB_MAX));
-    blue_ = static_cast<int>(round(b * RGB_MAX));
+    alpha_ = static_cast<uint32_t>(round(a * RGB_MAX));
+    red_ = static_cast<uint32_t>(round(r * RGB_MAX));
+    green_ = static_cast<uint32_t>(round(g * RGB_MAX));
+    blue_ = static_cast<uint32_t>(round(b * RGB_MAX));
 }
 
 void Color::SetColorQuad(uint32_t c)

@@ -110,10 +110,10 @@ void SkiaShaderEffect::InitWithLinearGradient(const Point& startPt, const Point&
     pts[0].set(startPt.GetX(), startPt.GetY());
     pts[1].set(endPt.GetX(), endPt.GetY());
 
-    int count = (colors.size() == pos.size()) ? colors.size() : 0;
+    size_t count = (colors.size() == pos.size()) ? colors.size() : 0;
     SkColor c[count];
     SkScalar p[count];
-    for (auto i = 0; i < count; ++i) {
+    for (size_t i = 0; i < count; ++i) {
         c[i] = colors[i];
         p[i] = pos[i];
     }
@@ -126,10 +126,10 @@ void SkiaShaderEffect::InitWithRadialGradient(const Point& centerPt, scalar radi
     SkPoint center;
     center.set(centerPt.GetX(), centerPt.GetY());
 
-    int count = (colors.size() == pos.size()) ? colors.size() : 0;
+    size_t count = (colors.size() == pos.size()) ? colors.size() : 0;
     SkColor c[count];
     SkScalar p[count];
-    for (auto i = 0; i < count; ++i) {
+    for (size_t i = 0; i < count; ++i) {
         c[i] = colors[i];
         p[i] = pos[i];
     }
@@ -144,10 +144,10 @@ void SkiaShaderEffect::InitWithTwoPointConical(const Point& startPt, scalar star
     start.set(startPt.GetX(), startPt.GetY());
     end.set(endPt.GetX(), endPt.GetY());
 
-    int count = (colors.size() == pos.size()) ? colors.size() : 0;
+    size_t count = (colors.size() == pos.size()) ? colors.size() : 0;
     SkColor c[count];
     SkScalar p[count];
-    for (auto i = 0; i < count; ++i) {
+    for (size_t i = 0; i < count; ++i) {
         c[i] = colors[i];
         p[i] = pos[i];
     }
@@ -158,10 +158,10 @@ void SkiaShaderEffect::InitWithTwoPointConical(const Point& startPt, scalar star
 void SkiaShaderEffect::InitWithSweepGradient(const Point& centerPt, const std::vector<ColorQuad>& colors,
     const std::vector<scalar>& pos, TileMode mode, scalar startAngle, scalar endAngle)
 {
-    int count = (colors.size() == pos.size()) ? colors.size() : 0;
+    size_t count = (colors.size() == pos.size()) ? colors.size() : 0;
     SkColor c[count];
     SkScalar p[count];
-    for (auto i = 0; i < count; ++i) {
+    for (size_t i = 0; i < count; ++i) {
         c[i] = colors[i];
         p[i] = pos[i];
     }

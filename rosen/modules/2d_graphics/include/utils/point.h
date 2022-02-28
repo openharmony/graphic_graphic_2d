@@ -108,6 +108,9 @@ inline PointF& PointF::operator*=(scalar scale)
 
 inline PointF& PointF::operator/=(scalar divisor)
 {
+    if (divisor == 0) {
+        return *this;
+    }
     x_ /= divisor;
     y_ /= divisor;
     return *this;

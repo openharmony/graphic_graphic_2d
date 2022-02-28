@@ -73,25 +73,25 @@ public:
     }
 
     // Return alpha byte from color value.
-    static inline int ColorQuadGetA(ColorQuad c)
+    static inline uint32_t ColorQuadGetA(ColorQuad c)
     {
         return ((c >> 24) & 0xff);
     }
 
     // Return red component of color, from zero to 255.
-    static inline int ColorQuadGetR(ColorQuad c)
+    static inline uint32_t ColorQuadGetR(ColorQuad c)
     {
         return ((c >> 16) & 0xff);
     }
 
     // Return green component of color, from zero to 255.
-    static inline int ColorQuadGetG(ColorQuad c)
+    static inline uint32_t ColorQuadGetG(ColorQuad c)
     {
         return ((c >> 8) & 0xff);
     }
 
     // Return blue component of color, from zero to 255.
-    static inline int ColorQuadGetB(ColorQuad c)
+    static inline uint32_t ColorQuadGetB(ColorQuad c)
     {
         return ((c >> 0) & 0xff);
     }
@@ -123,7 +123,7 @@ public:
     void SetBlueF(scalar b);
     void SetAlphaF(scalar a);
 
-    void SetRgb(int r, int g, int b, int a = 255);
+    void SetRgb(uint32_t r, uint32_t g, uint32_t b, uint32_t a = 255);
     void SetRgbF(scalar r, scalar g, scalar b, scalar a = 1.0);
 
     void SetColorQuad(uint32_t c);
