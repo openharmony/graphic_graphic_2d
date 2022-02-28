@@ -183,15 +183,19 @@ void RSRenderThreadVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
     node.SetAlpha(canvas_->GetAlpha());
     node.SetParentId(node.GetParent().lock()->GetId());
 
+    auto x = node.GetRenderProperties().GetBoundsPositionX();
+    auto y = node.GetRenderProperties().GetBoundsPositionY();
+    auto width = node.GetRenderProperties().GetBoundsWidth();
+    auto height = node.GetRenderProperties().GetBoundsHeight();
     canvas_->save();
-    canvas_->clipRect(SkRect::MakeXYWH(
-                            node.GetRenderProperties().GetBoundsPositionX(), node.GetRenderProperties().GetBoundsPositionY(),
-                            node.GetRenderProperties().GetBoundsWidth(), node.GetRenderProperties().GetBoundsHeight()));
+    canvas_->clipRect(SkRect::MakeXYWH(x, y, width, height));
     if (node.IsBufferAvailable() == true) {
-        ROSEN_LOGI("RSRenderThreadVisitor::ProcessSurfaceRenderNode CILP (set transparent)");
+        ROSEN_LOGI("RSRenderThreadVisitor::ProcessSurfaceRenderNode CILP (set transparent) [%f, %f, %f, %f]",
+            x, y, width, height);
         canvas_->clear(SK_ColorTRANSPARENT);
     } else {
-        ROSEN_LOGI("RSRenderThreadVisitor::ProcessSurfaceRenderNode NOT CILP (set black)");
+        ROSEN_LOGI("RSRenderThreadVisitor::ProcessSurfaceRenderNode NOT CILP (set black) [%f, %f, %f, %f]",
+            x, y, width, height);
         if (node.NeedSetCallbackForRenderThreadRefresh() == true) {
             node.SetCallbackForRenderThreadRefresh([] {
                 RSRenderThread::Instance().RequestNextVSync();
