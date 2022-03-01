@@ -39,7 +39,7 @@ struct NativeWindow* CreateNativeWindowFromSurface(void* pSuface)
                 *reinterpret_cast<OHOS::sptr<OHOS::Surface> *>(pSuface);
     nativeWindow->config.width = nativeWindow->surface->GetDefaultWidth();
     nativeWindow->config.height = nativeWindow->surface->GetDefaultHeight();
-    nativeWindow->config.usage = HBM_USE_CPU_READ | HBM_USE_CPU_WRITE | HBM_USE_MEM_DMA;
+    nativeWindow->config.usage = HBM_USE_CPU_READ | HBM_USE_MEM_DMA;
     nativeWindow->config.format = PIXEL_FMT_RGBA_8888;
     nativeWindow->config.stride = 8; // default stride is 8
     nativeWindow->config.timeout = 3000; // default timout is 3000 ms

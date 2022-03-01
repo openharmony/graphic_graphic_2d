@@ -89,9 +89,11 @@ GSError ProducerSurface::RequestBuffer(sptr<SurfaceBuffer>& buffer,
     fence = retval.fence;
 
     sptr<SurfaceBufferImpl> bufferImpl = SurfaceBufferImpl::FromBase(retval.buffer);
-    ret = BufferManager::GetInstance()->InvalidateCache(bufferImpl);
-    if (ret != GSERROR_OK) {
-        BLOGNW("Warning [%{public}d], InvalidateCache failed", retval.sequence);
+    if (static_cast<uint32_t>(config.usage) & HBM_USE_CPU_WRITE) {
+        ret = BufferManager::GetInstance()->InvalidateCache(bufferImpl);
+        if (ret != GSERROR_OK) {
+            BLOGNW("Warning [%{public}d], InvalidateCache failed", retval.sequence);
+        }
     }
 
     if (bufferImpl != nullptr) {
