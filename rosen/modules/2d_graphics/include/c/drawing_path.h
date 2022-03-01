@@ -46,6 +46,7 @@ extern "C" {
 /**
  * @brief Create a new Path.
  *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @return a pointer to created OH_Drawing_Path
  * @since 8
  * @version 1.0
@@ -55,6 +56,7 @@ OH_Drawing_Path* OH_Drawing_PathCreate(void);
 /**
  * @brief Release the memory storing the OH_Drawing_Path object.
  *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @param OH_Drawing_Path a pointer to OH_Drawing_Path object
  * @since 8
  * @version 1.0
@@ -64,6 +66,7 @@ void OH_Drawing_PathDestroy(OH_Drawing_Path*);
 /**
  * @brief Sets the beginning of the path at target point(x, y).
  *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @param OH_Drawing_Path a pointer to OH_Drawing_Path object
  * @param x x-axis value of target point
  * @param y y-axis value of target point
@@ -75,6 +78,7 @@ void OH_Drawing_PathMoveTo(OH_Drawing_Path*, float x, float y);
 /**
  * @brief Adds line from path last point to target point(x, y).
  *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @param OH_Drawing_Path a pointer to OH_Drawing_Path object
  * @param x x-axis value of target point
  * @param y y-axis value of target point
@@ -86,6 +90,7 @@ void OH_Drawing_PathLineTo(OH_Drawing_Path*, float x, float y);
 /**
  * @brief Adds a arc, and then adds line from path last point to point that is beginning of the arc.
  *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @param OH_Drawing_Path a pointer to OH_Drawing_Path object
  * @param x1 x-axis value of the top-left point of rectangle that surrounding the ellipse
  * @param y1 y-axis value of the top-left point of rectangle that surrounding the ellipse
@@ -99,6 +104,7 @@ void OH_Drawing_PathArcTo(OH_Drawing_Path*, float x1, float y1, float x2, float 
 /**
  * @brief Adds quad from path last point to target point(endX, endY).
  *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @param OH_Drawing_Path a pointer to OH_Drawing_Path object
  * @param ctrlX x-axis value of control point
  * @param ctrlY y-axis value of control point
@@ -112,6 +118,7 @@ void OH_Drawing_PathQuadTo(OH_Drawing_Path*, float ctrlX, float ctrlY, float end
 /**
  * @brief Adds cubic from path last point to target point(endX, endY).
  *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @param OH_Drawing_Path a pointer to OH_Drawing_Path object
  * @param ctrlX1 x-axis value of first control point
  * @param ctrlY1 y-axis value of first control point
@@ -128,6 +135,7 @@ void OH_Drawing_PathCubicTo(
 /**
  * @brief Adds line from path first point to path last point.
  *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @param OH_Drawing_Path a pointer to OH_Drawing_Path object
  * @since 8
  * @version 1.0
@@ -137,6 +145,7 @@ void OH_Drawing_PathClose(OH_Drawing_Path*);
 /**
  * @brief Sets path to its initial state.
  *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @param OH_Drawing_Path a pointer to OH_Drawing_Path object
  * @since 8
  * @version 1.0

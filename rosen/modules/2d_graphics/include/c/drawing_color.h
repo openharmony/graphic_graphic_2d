@@ -46,6 +46,7 @@ extern "C" {
 /**
  * @brief Returns a 32-bit ARGB color quantity.
  *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @param alpha alpha, which range is 0x00~0xFF
  * @param red red, which range is 0x00~0xFF
  * @param green green, which range is 0x00~0xFF
