@@ -63,8 +63,7 @@
           "//foundation/graphic/standard/rosen/modules/render_service:render_service_dump",
           "//foundation/graphic/standard/interfaces/kits/napi/graphic/webgl:libwebglnapi",
           "//foundation/graphic/standard/rosen/modules/effect/effectChain:libeffectchain",
-          "//foundation/graphic/standard/rosen/modules/effect/egl:libegl_effect",
-          "//foundation/graphic/standard/rosen/samples/text/renderservice:rendertest"
+          "//foundation/graphic/standard/rosen/modules/effect/egl:libegl_effect"
         ],
         "inner_kits": [
           {
