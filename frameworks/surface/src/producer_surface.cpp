@@ -34,7 +34,7 @@ ProducerSurface::~ProducerSurface()
     BLOGND("dtor");
     if (IsRemote()) {
         for (auto it = bufferProducerCache_.begin(); it != bufferProducerCache_.end(); it++) {
-            if (it->second->GetVirAddr() != nullptr) {
+            if (it->second != nullptr && it->second->GetVirAddr() != nullptr) {
                 BufferManager::GetInstance()->Unmap(it->second);
             }
         }
