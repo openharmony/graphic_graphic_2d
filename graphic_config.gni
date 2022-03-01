@@ -11,10 +11,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import("//build/config/clang/clang.gni")
-
 if ("${product_name}" == "watchos" || "${product_name}" == "Hi3516DV300" ||
-    "${product_name}" == "ohos-arm64" ||
+    "${product_name}" == "ohos-arm64" || "${product_name}" == "ohos-sdk" ||
     "${product_name}" == "qemu-arm-linux-min") {
   gpu_defines = [ "ACE_DISABLE_GL" ]
   ace_enable_gpu = false
