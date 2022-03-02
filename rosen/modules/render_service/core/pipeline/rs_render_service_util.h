@@ -35,6 +35,8 @@ struct BufferDrawParameters {
     bool antiAlias = true;
     bool onDisplay = true;
     float alpha = 1.0f;
+    float scaleX = 1.0f;
+    float scaleY = 1.0f;
     uint32_t dstLeft = 0;
     uint32_t dstTop = 0;
     uint32_t dstWidth = 0;
@@ -63,7 +65,7 @@ public:
     static void ComposeSurface(std::shared_ptr<HdiLayerInfo> layer, sptr<Surface> consumerSurface,
         std::vector<LayerInfoPtr>& layers, ComposeInfo info, RSSurfaceRenderNode* node = nullptr);
     static void DrawBuffer(SkCanvas* canvas, sptr<OHOS::SurfaceBuffer> buffer, RSSurfaceRenderNode& node,
-        bool isDrawnOnDisplay = true);
+        bool isDrawnOnDisplay = true, float scaleX = 1.0f, float scaleY = 1.0f);
     static void DrawBuffer(SkCanvas& canvas, const sptr<OHOS::SurfaceBuffer>& buffer,
         RSSurfaceRenderNode& node, ColorGamut dstGamut, bool isDrawnOnDisplay = true);
 private:

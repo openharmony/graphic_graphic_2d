@@ -29,6 +29,10 @@ namespace OHOS {
 namespace Rosen {
 std::unique_ptr<Media::PixelMap> RSSurfaceCaptureTask::Run()
 {
+    if (scaleX_ <= 0 || scaleY_ <= 0) {
+        ROSEN_LOGE("RSSurfaceCaptureTask::Run: SurfaceCapture scale is invalid.");
+        return nullptr;
+    }
     auto node = RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode(nodeId_);
     if (node == nullptr) {
         ROSEN_LOGE("RSSurfaceCaptureTask::Run: node is nullptr");
@@ -58,6 +62,7 @@ std::unique_ptr<Media::PixelMap> RSSurfaceCaptureTask::Run()
         return nullptr;
     }
     visitor->SetCanvas(std::move(canvas));
+    visitor->SetScale(scaleX_, scaleY_);
     node->Process(visitor);
     return pixelmap;
 }
@@ -72,10 +77,11 @@ std::unique_ptr<Media::PixelMap> RSSurfaceCaptureTask::CreatePixelMapBySurfaceNo
     int pixmapWidth = node->GetRenderProperties().GetBoundsWidth();
     int pixmapHeight = node->GetRenderProperties().GetBoundsHeight();
     Media::InitializationOptions opts;
-    opts.size.width = pixmapWidth;
-    opts.size.height = pixmapHeight;
-    ROSEN_LOGD("RSSurfaceCaptureTask::CreatePixelMapBySurfaceNode: pixelmap width is [%u], height is [%u].",
-        pixmapWidth, pixmapHeight);
+    opts.size.width = ceil(pixmapWidth * scaleX_);
+    opts.size.height = ceil(pixmapHeight * scaleY_);
+    ROSEN_LOGD("RSSurfaceCaptureTask::CreatePixelMapBySurfaceNode: origin pixelmap width is [%u], height is [%u], "\
+        "created pixelmap width is [%u], height is [%u], the scale is scaleY:[%f], scaleY:[%f]",
+        pixmapWidth, pixmapHeight, opts.size.width, opts.size.height, scaleX_, scaleY_);
     return Media::PixelMap::Create(opts);
 }
 
@@ -97,10 +103,11 @@ std::unique_ptr<Media::PixelMap> RSSurfaceCaptureTask::CreatePixelMapByDisplayNo
     int pixmapWidth = screenModeInfo.GetScreenWidth();
     int pixmapHeight = screenModeInfo.GetScreenHeight();
     Media::InitializationOptions opts;
-    opts.size.width = pixmapWidth;
-    opts.size.height = pixmapHeight;
-    ROSEN_LOGD("RSSurfaceCaptureTask::CreatePixelMapByDisplayNode: pixelmap width is [%u], height is [%u].",
-        pixmapWidth, pixmapHeight);
+    opts.size.width = ceil(pixmapWidth * scaleX_);
+    opts.size.height = ceil(pixmapHeight * scaleY_);
+    ROSEN_LOGD("RSSurfaceCaptureTask::CreatePixelMapByDisplayNode: origin pixelmap width is [%u], height is [%u], "\
+        "created pixelmap width is [%u], height is [%u], the scale is scaleY:[%f], scaleY:[%f]",
+        pixmapWidth, pixmapHeight, opts.size.width, opts.size.height, scaleX_, scaleY_);
     return Media::PixelMap::Create(opts);
 }
 
@@ -156,7 +163,7 @@ void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::ProcessSurfaceRenderNode(RSS
         }
         existingChild->Process(shared_from_this());
     }
-    RsRenderServiceUtil::DrawBuffer(canvas_.get(), node.GetBuffer(), node, isDisplayNode_);
+    RsRenderServiceUtil::DrawBuffer(canvas_.get(), node.GetBuffer(), node, isDisplayNode_, scaleX_, scaleY_);
 }
 }
 }

@@ -495,8 +495,13 @@ void RsRenderServiceUtil::Draw(SkCanvas& canvas, BufferDrawParameters& params, R
     if (bitmap.installPixels(pixmap)) {
         canvas.save();
         if (params.onDisplay) {
-            canvas.clipRect(SkRect::MakeXYWH(params.dstLeft, params.dstTop, params.dstWidth, params.dstHeight));
+            canvas.clipRect(SkRect::MakeXYWH(floor(params.dstLeft * params.scaleX),
+                floor(params.dstTop * params.scaleY), ceil(params.dstWidth * params.scaleX),
+                ceil(params.dstHeight * params.scaleY)));
             canvas.setMatrix(params.transform);
+            canvas.translate(floor(params.dstLeft * params.scaleX - params.dstLeft),
+                floor(params.dstTop * params.scaleY - params.dstTop));
+            canvas.scale(params.scaleX, params.scaleY);
             DealAnimation(canvas, paint, node);
             const RSProperties& property = node.GetRenderProperties();
             auto filter = std::static_pointer_cast<RSSkiaFilter>(property.GetBackgroundFilter());
@@ -506,15 +511,19 @@ void RsRenderServiceUtil::Draw(SkCanvas& canvas, BufferDrawParameters& params, R
                 RSPropertiesPainter::SaveLayerForFilter(property, canvas, filter, skRectPtr);
                 RSPropertiesPainter::RestoreForFilter(canvas);
             }
+            canvas.drawBitmapRect(bitmap, params.dstRect, SkRect::MakeXYWH(0, 0,
+                node.GetRenderProperties().GetBoundsWidth(), node.GetRenderProperties().GetBoundsHeight()), &paint);
+        } else {
+            canvas.drawBitmapRect(bitmap, params.dstRect, SkRect::MakeXYWH(0, 0,
+                node.GetRenderProperties().GetBoundsWidth() * params.scaleX,
+                node.GetRenderProperties().GetBoundsHeight() * params.scaleY), &paint);
         }
-        canvas.drawBitmapRect(bitmap, params.dstRect, SkRect::MakeXYWH(0, 0, params.dstWidth, params.dstHeight),
-            &paint);
         canvas.restore();
     }
 }
 
 void RsRenderServiceUtil::DrawBuffer(SkCanvas* canvas, sptr<OHOS::SurfaceBuffer> buffer,
-    RSSurfaceRenderNode& node, bool isDrawnOnDisplay)
+    RSSurfaceRenderNode& node, bool isDrawnOnDisplay, float scaleX, float scaleY)
 {
     if (!canvas) {
         ROSEN_LOGE("RsRenderServiceUtil::DrawBuffer canvas is nullptr");
@@ -540,7 +549,8 @@ void RsRenderServiceUtil::DrawBuffer(SkCanvas* canvas, sptr<OHOS::SurfaceBuffer>
     params.pixmap = SkPixmap(imageInfo, buffer->GetVirAddr(), buffer->GetStride());
     Detail::FillDrawParameters(params, buffer, node);
     params.onDisplay = isDrawnOnDisplay;
-
+    params.scaleX = scaleX;
+    params.scaleY = scaleY;
     Draw(*canvas, params, node);
 }
 

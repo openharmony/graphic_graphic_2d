@@ -330,12 +330,13 @@ void RSRenderServiceConnection::SetScreenPowerStatus(ScreenId id, ScreenPowerSta
     }).wait();
 }
 
-void RSRenderServiceConnection::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback)
+void RSRenderServiceConnection::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback,
+    float scaleX, float scaleY)
 {
-    std::function<void()> captureTask = [callback, id]() -> void {
+    std::function<void()> captureTask = [scaleY, scaleX, callback, id]() -> void {
         ROSEN_LOGD("RSRenderService::TakeSurfaceCapture callback->OnSurfaceCapture nodeId:[%llu]", id);
         ROSEN_TRACE_BEGIN(BYTRACE_TAG_GRAPHIC_AGP, "RSRenderService::TakeSurfaceCapture");
-        RSSurfaceCaptureTask task(id);
+        RSSurfaceCaptureTask task(id, scaleX, scaleY);
         std::unique_ptr<Media::PixelMap> pixelmap = task.Run();
         callback->OnSurfaceCapture(id, pixelmap.get());
         ROSEN_TRACE_END(BYTRACE_TAG_GRAPHIC_AGP);

@@ -47,9 +47,11 @@ public:
 
     void SetScreenChangeCallback(const ScreenChangeCallback &callback);
 
-    bool TakeSurfaceCapture(std::shared_ptr<RSSurfaceNode> node, std::shared_ptr<SurfaceCaptureCallback> callback);
+    bool TakeSurfaceCapture(std::shared_ptr<RSSurfaceNode> node,
+        std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX = 1.0f, float scaleY = 1.0f);
 
-    bool TakeSurfaceCapture(std::shared_ptr<RSDisplayNode> node, std::shared_ptr<SurfaceCaptureCallback> callback);
+    bool TakeSurfaceCapture(std::shared_ptr<RSDisplayNode> node,
+        std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX = 1.0f, float scaleY = 1.0f);
 
     void SetScreenActiveMode(ScreenId id, uint32_t modeId);
 
