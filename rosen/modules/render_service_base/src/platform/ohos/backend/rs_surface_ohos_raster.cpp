@@ -42,7 +42,6 @@ std::unique_ptr<RSSurfaceFrame> RSSurfaceOhosRaster::RequestFrame(int32_t width,
     int res = tempFence->Wait(3000);
     if (res < 0) {
         ROSEN_LOGE("RsDebug RSProcessor::RequestFrame this buffer is not available");
-        //TODO deal with the buffer is not available
     }
     std::unique_ptr<RSSurfaceFrame> ret(std::move(frame));
     return ret;

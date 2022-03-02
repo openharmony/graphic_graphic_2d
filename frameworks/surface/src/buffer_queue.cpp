@@ -507,10 +507,6 @@ GSError BufferQueue::AllocBuffer(sptr<SurfaceBufferImpl> &buffer,
         return ret;
     }
 
-    if (buffer == nullptr) {
-        BLOGN_FAILURE_ID_RET(sequence, GSERROR_INVALID_ARGUMENTS);
-    }
-
     BufferElement ele = {
         .buffer = buffer,
         .state = BUFFER_STATE_REQUESTED,

@@ -201,7 +201,7 @@ SurfaceError SurfaceImage::DetachContext()
     return SURFACE_ERROR_OK;
 }
 
-uint64_t SurfaceImage::GetTimeStamp()
+int64_t SurfaceImage::GetTimeStamp()
 {
     std::lock_guard<std::mutex> lockGuard(opMutex_);
     return currentTimeStamp_;

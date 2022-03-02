@@ -59,7 +59,7 @@ public:
     SurfaceError SetDefaultSize(int32_t width, int32_t height);
 
     SurfaceError UpdateSurfaceImage();
-    uint64_t GetTimeStamp();
+    int64_t GetTimeStamp();
 
     // update buffer available state, updateSurfaceImage_ and a private mutex
     void OnUpdateBufferAvailableState(bool updated)
