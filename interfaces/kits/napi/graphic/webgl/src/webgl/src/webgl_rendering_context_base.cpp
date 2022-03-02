@@ -2561,7 +2561,7 @@ napi_value WebGLRenderingContextBase::IsRenderbuffer(napi_env env, napi_callback
     if (renderbufferStatus != napi_ok) {
         return NVal::CreateBool(env, res).val_;
     }
-    unsigned int renderbuffer = webGLRenderbuffer->GetRenderbuffer();
+    unsigned int renderbuffer = static_cast<unsigned int>(webGLRenderbuffer->GetRenderbuffer());
     LOGI("WebGL WebGLRenderContext::isRenderbuffer renderbuffer = %{public}u", renderbuffer);
     res = static_cast<bool>(glIsRenderbuffer(static_cast<GLuint>(renderbuffer)));
     LOGI("WebGL isRenderbuffer end");
@@ -2584,7 +2584,7 @@ napi_value WebGLRenderingContextBase::IsShader(napi_env env, napi_callback_info 
     if (shaderStatus != napi_ok) {
         return NVal::CreateBool(env, res).val_;
     }
-    unsigned int shader = webGLShader->GetShaderId();
+    unsigned int shader = static_cast<unsigned int>(webGLShader->GetShaderId());
     LOGI("WebGL WebGLRenderContext::isShader shader = %{public}u", shader);
     res = static_cast<bool>(glIsShader(static_cast<GLuint>(shader)));
     LOGI("WebGL isShader end");
@@ -2650,7 +2650,7 @@ napi_value WebGLRenderingContextBase::LinkProgram(napi_env env, napi_callback_in
     if (programStatus != napi_ok) {
         return nullptr;
     }
-    unsigned int linkprogram = webGLProgram->GetProgramId();
+    unsigned int linkprogram = static_cast<unsigned int>(webGLProgram->GetProgramId());
     LOGI("WebGL WebGLRenderContext::linkProgram linkprogram = %{public}u", linkprogram);
     glLinkProgram(static_cast<GLuint>(linkprogram));
     LOGI("WebGL linkProgram end");
@@ -3921,7 +3921,7 @@ napi_value WebGLRenderingContextBase::GetShaderSource(napi_env env, napi_callbac
     if (shaderStatus != napi_ok) {
         return nullptr;
     }
-    GLuint shaderId = webGlShader->GetShaderId();
+    GLuint shaderId = static_cast<GLuint>(webGlShader->GetShaderId());
     LOGI("WebGL WebGLRenderContext::getShaderSource shaderId = %{public}u", shaderId);
     auto objects = ObjectSource::GetInstance().GetObjectMap();
     auto it = objects.find(shaderId);
