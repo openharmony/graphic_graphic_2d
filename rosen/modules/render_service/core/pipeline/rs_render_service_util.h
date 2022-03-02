@@ -26,6 +26,7 @@
 #include "include/core/SkRect.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "property/rs_transition_properties.h"
+#include "screen_manager/rs_screen_manager.h"
 
 namespace OHOS {
 
@@ -37,14 +38,11 @@ struct BufferDrawParameters {
     float alpha = 1.0f;
     float scaleX = 1.0f;
     float scaleY = 1.0f;
-    uint32_t dstLeft = 0;
-    uint32_t dstTop = 0;
-    uint32_t dstWidth = 0;
-    uint32_t dstHeight = 0;
     SkPixmap pixmap;
     SkBitmap bitmap;
     SkMatrix transform;
     SkRect srcRect;
+    SkRect dstRect;
 };
 
 struct ComposeInfo {
@@ -64,10 +62,11 @@ class RsRenderServiceUtil {
 public:
     static void ComposeSurface(std::shared_ptr<HdiLayerInfo> layer, sptr<Surface> consumerSurface,
         std::vector<LayerInfoPtr>& layers, ComposeInfo info, RSSurfaceRenderNode* node = nullptr);
+    static SkMatrix GetCanvasTransform(ScreenRotation screenRotation, ScreenInfo screenInfo);
     static void DrawBuffer(SkCanvas* canvas, sptr<OHOS::SurfaceBuffer> buffer, RSSurfaceRenderNode& node,
         bool isDrawnOnDisplay = true, float scaleX = 1.0f, float scaleY = 1.0f);
-    static void DrawBuffer(SkCanvas& canvas, const sptr<OHOS::SurfaceBuffer>& buffer,
-        RSSurfaceRenderNode& node, ColorGamut dstGamut, bool isDrawnOnDisplay = true);
+    static void DrawLayer(SkCanvas& canvas, const LayerInfoPtr& layer, const SkMatrix& layerTransform,
+        ColorGamut dstGamut, bool isDrawnOnDisplay = true);
 private:
     static void Draw(SkCanvas& canvas, BufferDrawParameters& params, RSSurfaceRenderNode& node);
     static void DealAnimation(SkCanvas& canvas, SkPaint& paint, RSSurfaceRenderNode& node);
