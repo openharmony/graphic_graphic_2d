@@ -139,10 +139,12 @@ bool RSScreen::IsVirtual() const
 void RSScreen::SetActiveMode(uint32_t modeId)
 {
     if (IsVirtual()) {
+        HiLog::Warn(LOG_LABEL, "%{public}s: virtual screen not support SetActiveMode.\n", __func__);
         return;
     }
 
     if (hdiScreen_->SetScreenMode(modeId) < 0) {
+        HiLog::Error(LOG_LABEL, "%{public}s: SetScreenMode fails.\n", __func__);
         return;
     }
     auto activeMode = GetActiveMode();
@@ -155,6 +157,7 @@ void RSScreen::SetActiveMode(uint32_t modeId)
 void RSScreen::SetPowerStatus(uint32_t powerStatus)
 {
     if (IsVirtual()) {
+        HiLog::Warn(LOG_LABEL, "%{public}s: virtual screen not support SetPowerStatus.\n", __func__);
         return;
     }
 
@@ -174,6 +177,7 @@ void RSScreen::SetPowerStatus(uint32_t powerStatus)
 std::optional<DisplayModeInfo> RSScreen::GetActiveMode() const
 {
     if (IsVirtual()) {
+        HiLog::Warn(LOG_LABEL, "%{public}s: virtual screen not support GetActiveMode.\n", __func__);
         return {};
     }
 
@@ -213,7 +217,8 @@ const DisplayCapability& RSScreen::GetCapability() const
 uint32_t RSScreen::GetPowerStatus() const
 {
     if (IsVirtual()) {
-        return DispPowerStatus::POWER_STATUS_OFF;
+        HiLog::Warn(LOG_LABEL, "%{public}s: virtual screen not support GetPowerStatus.\n", __func__);
+        return ScreenPowerStatus::INVALID_POWER_STATUS;
     }
 
     DispPowerStatus status;
@@ -336,7 +341,7 @@ void RSScreen::PowerStatusDump(DispPowerStatus powerStatus, std::string& dumpStr
 void RSScreen::DisplayDump(int32_t screenIndex, std::string& dumpString)
 {
     dumpString += "-- ScreenInfo\n";
-    if (isVirtual_) {
+    if (IsVirtual()) {
         dumpString += "screen[" + std::to_string(screenIndex) + "]: ";
         dumpString += "id=";
         dumpString += (id_ == INVALID_SCREEN_ID) ? "INVALID_SCREEN_ID" : std::to_string(id_);
@@ -375,6 +380,10 @@ void RSScreen::FpsDump(int32_t screenIndex, std::string& dumpString, std::string
 
 void RSScreen::SetScreenBacklight(uint32_t level)
 {
+    if (IsVirtual()) {
+        HiLog::Warn(LOG_LABEL, "%{public}s: virtual screen not support SetScreenBacklight.\n", __func__);
+        return;
+    }
     if (hdiScreen_->SetScreenBacklight(level) < 0) {
         return;
     }
@@ -382,6 +391,10 @@ void RSScreen::SetScreenBacklight(uint32_t level)
 
 int32_t RSScreen::GetScreenBacklight() const
 {
+    if (IsVirtual()) {
+        HiLog::Warn(LOG_LABEL, "%{public}s: virtual screen not support GetScreenBacklight.\n", __func__);
+        return INVALID_BACKLIGHT_VALUE;
+    }
     uint32_t level = 0;
     if (hdiScreen_->GetScreenBacklight(level) < 0) {
         return INVALID_BACKLIGHT_VALUE;
@@ -391,7 +404,7 @@ int32_t RSScreen::GetScreenBacklight() const
 
 int32_t RSScreen::GetScreenSupportedColorGamuts(std::vector<ScreenColorGamut> &mode) const
 {
-    if (isVirtual_) {
+    if (IsVirtual()) {
         mode.clear();
         mode = supportedVirtualColorGamuts_;
         return StatusCode::SUCCESS;
@@ -410,7 +423,7 @@ int32_t RSScreen::GetScreenSupportedColorGamuts(std::vector<ScreenColorGamut> &m
 
 int32_t RSScreen::GetScreenColorGamut(ScreenColorGamut &mode) const
 {
-    if (isVirtual_) {
+    if (IsVirtual()) {
         mode = supportedVirtualColorGamuts_[currentVirtualColorGamutIdx_];
         return StatusCode::SUCCESS;
     }
@@ -425,7 +438,7 @@ int32_t RSScreen::GetScreenColorGamut(ScreenColorGamut &mode) const
 
 int32_t RSScreen::SetScreenColorGamut(int32_t modeIdx)
 {
-    if (isVirtual_) {
+    if (IsVirtual()) {
         if (modeIdx >= static_cast<int32_t>(supportedVirtualColorGamuts_.size())) {
             return StatusCode::INVALID_ARGUMENTS;
         }
@@ -448,7 +461,7 @@ int32_t RSScreen::SetScreenColorGamut(int32_t modeIdx)
 
 int32_t RSScreen::SetScreenGamutMap(ScreenGamutMap mode)
 {
-    if (isVirtual_) {
+    if (IsVirtual()) {
         currentVirtualGamutMap_ = mode;
         return StatusCode::SUCCESS;
     }
@@ -461,7 +474,7 @@ int32_t RSScreen::SetScreenGamutMap(ScreenGamutMap mode)
 
 int32_t RSScreen::GetScreenGamutMap(ScreenGamutMap &mode) const
 {
-    if (isVirtual_) {
+    if (IsVirtual()) {
         mode = currentVirtualGamutMap_;
         return StatusCode::SUCCESS;
     }

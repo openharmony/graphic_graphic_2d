@@ -265,6 +265,11 @@ RSScreenCapability RSScreenManager::GetScreenCapabilityLocked(ScreenId id) const
         HiLog::Error(LOG_LABEL, "%{public}s: There is no screen for id %{public}" PRIu64 ".\n", __func__, id);
         return screenCapability;
     }
+    if (screens_.at(id)->IsVirtual()) {
+        HiLog::Warn(LOG_LABEL, "%{public}s: only name attribute is valid for virtual screen.\n", __func__);
+        screenCapability.SetName(screens_.at(id)->Name());
+        return screenCapability;
+    }
 
     const auto& capability = screens_.at(id)->GetCapability();
     std::vector<RSScreenProps> props;
