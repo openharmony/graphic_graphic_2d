@@ -20,9 +20,9 @@ namespace ColorManager {
 static const std::array<float, DIMES_2> ILLUMINANT_D50_XY = {0.34567f, 0.35850f};
 static const Vector3 ILLUMINANT_D50_XYZ = {0.964212f, 1.0f, 0.825188f};
 static const Matrix3x3 BRADFORD = {{
-    {0.8951f, -0.7502f, 0.0389f},
-    {0.2664f, 1.7135f, -0.0685f},
-    {-0.1614f, 0.0367f, 1.0296f}}};
+    {0.8951f, 0.2664f, -0.1614f},
+    {-0.7502f, 1.7135f, 0.0367f},
+    {0.0389f, -0.0685f, 1.0296f}}};
 
 static bool Equal(std::array<float, DIMES_2> vecA, std::array<float, DIMES_2> vecB)
 {
@@ -54,7 +54,7 @@ ColorSpaceConvertor::ColorSpaceConvertor(const ColorSpace &src,
     : srcColorSpace(src), dstColorSpace(dst), mappingMode(mappingMode)
 {
     if (Equal(srcColorSpace.GetWhitePoint(), dstColorSpace.GetWhitePoint())) {
-        transferMatrix = srcColorSpace.GetRGBToXYZ() * dstColorSpace.GetXYZToRGB();
+        transferMatrix = dstColorSpace.GetXYZToRGB() * srcColorSpace.GetRGBToXYZ();
     } else {
         Matrix3x3 rgbToXYZ(srcColorSpace.GetRGBToXYZ());
         Matrix3x3 xyzToRGB(dstColorSpace.GetXYZToRGB());
@@ -65,14 +65,14 @@ ColorSpaceConvertor::ColorSpaceConvertor(const ColorSpace &src,
             dstColorSpace.GetWhitePoint()[1], 1});
 
         if (!Equal(srcColorSpace.GetWhitePoint(), ILLUMINANT_D50_XY)) {
-            rgbToXYZ = srcColorSpace.GetRGBToXYZ() * Adaptation(BRADFORD, srcXYZ, ILLUMINANT_D50_XYZ);
+            rgbToXYZ = Adaptation(BRADFORD, srcXYZ, ILLUMINANT_D50_XYZ) * srcColorSpace.GetRGBToXYZ();
         }
 
         if (!Equal(dstColorSpace.GetWhitePoint(), ILLUMINANT_D50_XY)) {
-            xyzToRGB = dstColorSpace.GetRGBToXYZ() * Invert(Adaptation(BRADFORD, dstXYZ, ILLUMINANT_D50_XYZ));
+            xyzToRGB = Invert(Adaptation(BRADFORD, dstXYZ, ILLUMINANT_D50_XYZ) * dstColorSpace.GetRGBToXYZ());
         }
 
-        transferMatrix = rgbToXYZ * xyzToRGB;
+        transferMatrix = xyzToRGB * rgbToXYZ;
     }
 }
 
@@ -85,7 +85,7 @@ Vector3 ColorSpaceConvertor::Convert(const Vector3& v) const
     srcLinear = srcColorSpace.ToLinear(srcLinear);
 
     Vector3 dstNonLinear =
-        dstColorSpace.ToNonLinear(srcLinear * transferMatrix);
+        dstColorSpace.ToNonLinear(transferMatrix * srcLinear);
     for (auto& n : dstNonLinear) {
         n = std::clamp(n, dstColorSpace.clampMin, dstColorSpace.clampMax);
     }
@@ -99,7 +99,7 @@ Vector3 ColorSpaceConvertor::ConvertLinear(const Vector3& v) const
         n = std::clamp(n, srcColorSpace.clampMin, srcColorSpace.clampMax);
     }
 
-    Vector3 dstLinear = srcLinear * transferMatrix;
+    Vector3 dstLinear = transferMatrix * srcLinear;
     for (auto& n : dstLinear) {
         n = std::clamp(n, dstColorSpace.clampMin, dstColorSpace.clampMax);
     }

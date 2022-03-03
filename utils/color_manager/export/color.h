@@ -33,12 +33,13 @@ public:
 
     Color Convert(ColorSpaceConvertor &convertor) const;
     Color Convert(const ColorSpace &dst) const;
+    Color Convert(ColorSpaceName colorSpaceName) const;
 
     float r = 0.0f;
     float g = 0.0f;
     float b = 0.0f;
     float a = 0.0f;
-    ColorSpaceName colorSpaceName = ColorSpaceName::SRGB;
+    ColorSpaceName srcName = ColorSpaceName::SRGB;
 };
 }  // namespace ColorManager
 }  // namespace OHOS

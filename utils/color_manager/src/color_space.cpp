@@ -38,7 +38,7 @@ const ColorSpace CS_BT2020 = {
     {1 / 0.45f, 1 / 1.099f, 0.099f / 1.099f, 1 / 4.5f, 0.081f, 0.0f, 0.0f}};
 
 const ColorSpace CS_ADOBE_RGB = {
-    ColorSpacePrimaries {0.640f, 0.330f, 0.300f, 0.600f, 0.150f, 0.060f, 0.3127f, 0.3290f},
+    ColorSpacePrimaries {0.640f, 0.330f, 0.21f, 0.71f, 0.150f, 0.060f, 0.3127f, 0.3290f},
     {2.2f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f}};
 
 const ColorSpace CS_PRO_PHOTO_RGB = {
@@ -172,9 +172,11 @@ Matrix3x3 ComputeXYZ(const ColorSpacePrimaries& primaries)
     float GYGy = GY / primaries.gY;
     float BYBy = BY / primaries.bY;
 
-    return {{{RYRy * primaries.rX, RY, RYRy * (1 - primaries.rX - primaries.rY)},
-        {GYGy * primaries.gX, GY, GYGy * (1 - primaries.gX - primaries.gY)},
-        {BYBy * primaries.bX, BY, BYBy * (1 - primaries.bX - primaries.bY)}}};
+    return {{{RYRy * primaries.rX, GYGy * primaries.gX, BYBy * primaries.bX},
+        {RY, GY, BY},
+        {RYRy * (1 - primaries.rX - primaries.rY),
+        GYGy * (1 - primaries.gX - primaries.gY),
+        BYBy * (1 - primaries.bX - primaries.bY)}}};
 }
 
 static bool IsFinite(float x)

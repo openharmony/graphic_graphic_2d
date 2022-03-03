@@ -51,8 +51,8 @@ static bool FloatEqual(const float input, const float actual_value)
 */
 HWTEST_F(ColorManagerTest, sRGBTosRGB, Function | SmallTest | Level2)
 {
-    auto color = Color(0.1, 0.2, 0.3, 0.4);
-    Color result = color.Convert(ColorSpace(SRGB));
+    Color color = Color(0.1, 0.2, 0.3, 0.4);
+    Color result = color.Convert(SRGB);
     ASSERT_EQ(FloatEqual(result.r, 0.1f), true);
     ASSERT_EQ(FloatEqual(result.g, 0.2f), true);
     ASSERT_EQ(FloatEqual(result.b, 0.3f), true);
@@ -67,7 +67,7 @@ HWTEST_F(ColorManagerTest, sRGBTosRGB, Function | SmallTest | Level2)
 */
 HWTEST_F(ColorManagerTest, sRGBToDisplay_P3, Function | SmallTest | Level2)
 {
-    auto color = Color(0.1, 0.2, 0.3, 0.4);
+    Color color = Color(0.1, 0.2, 0.3, 0.4);
     Color result = color.Convert(ColorSpace(DISPLAY_P3));
     ASSERT_EQ(FloatEqual(result.r, 0.1237f), true);
     ASSERT_EQ(FloatEqual(result.g, 0.1975f), true);
@@ -79,32 +79,15 @@ HWTEST_F(ColorManagerTest, sRGBToDisplay_P3, Function | SmallTest | Level2)
 * Type: Function
 * Rank: Important(2)
 * EnvConditions: N/A
-* CaseDescription: sRGB convert to Adobe
-*/
-HWTEST_F(ColorManagerTest, sRGBToAdobe, Function | SmallTest | Level2)
-{
-    auto color = Color(0.1, 0.2, 0.3, 0.4);
-    Color result = color.Convert(ColorSpace(ADOBE_RGB));
-    ASSERT_EQ(FloatEqual(result.r, 0.1234f), true);
-    ASSERT_EQ(FloatEqual(result.g, 0.2124f), true);
-    ASSERT_EQ(FloatEqual(result.b, 0.3047f), true);
-}
-
-/*
-* Function: ColorManagerTest
-* Type: Function
-* Rank: Important(2)
-* EnvConditions: N/A
 * CaseDescription: Display_P3 convert to sRGB
 */
 HWTEST_F(ColorManagerTest, Display_P3TosRGB, Function | SmallTest | Level2)
 {
-    auto convertor = ColorSpaceConvertor(ColorSpace(DISPLAY_P3), ColorSpace(SRGB), GAMUT_MAP_CONSTANT);
-    std::array<float, 3> rgb = {0.1, 0.2, 0.3};
-    auto result = convertor.Convert(rgb);
-    ASSERT_EQ(FloatEqual(result[0], 0.0594f), true);
-    ASSERT_EQ(FloatEqual(result[1], 0.2031f), true);
-    ASSERT_EQ(FloatEqual(result[2], 0.3087f), true);
+    Color color = Color(0.1, 0.2, 0.3, 0.4, DISPLAY_P3);
+    Color result = color.Convert(ColorSpace(SRGB));
+    ASSERT_EQ(FloatEqual(result.r, 0.0594f), true);
+    ASSERT_EQ(FloatEqual(result.g, 0.2031f), true);
+    ASSERT_EQ(FloatEqual(result.b, 0.3087f), true);
 }
 
 /*
@@ -112,16 +95,63 @@ HWTEST_F(ColorManagerTest, Display_P3TosRGB, Function | SmallTest | Level2)
 * Type: Function
 * Rank: Important(2)
 * EnvConditions: N/A
-* CaseDescription: sRGB convert to sRGB
+* CaseDescription: sRGB convert to Adobe
 */
-HWTEST_F(ColorManagerTest, sRGBTosRGBConvertor, Function | SmallTest | Level2)
+HWTEST_F(ColorManagerTest, sRGBToAdobe, Function | SmallTest | Level2)
 {
-    auto convertor = ColorSpaceConvertor(ColorSpace(SRGB), ColorSpace(SRGB), GAMUT_MAP_CONSTANT);
-    std::array<float, 3> rgb = {0.1, 0.2, 0.3};
-    auto result = convertor.Convert(rgb);
-    ASSERT_EQ(FloatEqual(result[0], 0.1f), true);
-    ASSERT_EQ(FloatEqual(result[1], 0.2f), true);
-    ASSERT_EQ(FloatEqual(result[2], 0.3f), true);
+    Color color = Color(0.1, 0.2, 0.3, 0.4);
+    Color result = color.Convert(ColorSpace(ADOBE_RGB));
+    ASSERT_EQ(FloatEqual(result.r, 0.155216f), true);
+    ASSERT_EQ(FloatEqual(result.g, 0.212433f), true);
+    ASSERT_EQ(FloatEqual(result.b, 0.301627f), true);
+}
+
+/*
+* Function: ColorManagerTest
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: Adobe convert to sRGB
+*/
+HWTEST_F(ColorManagerTest, AdobeTosRGB, Function | SmallTest | Level2)
+{
+    Color color = Color(0.1, 0.2, 0.3, 0.4, ADOBE_RGB);
+    Color result = color.Convert(ColorSpace(SRGB));
+    ASSERT_EQ(FloatEqual(result.r, 0.0f), true);
+    ASSERT_EQ(FloatEqual(result.g, 0.186285f), true);
+    ASSERT_EQ(FloatEqual(result.b, 0.298569f), true);
+}
+
+/*
+* Function: ColorManagerTest
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: sRGB convert to DCI_P3
+*/
+HWTEST_F(ColorManagerTest, sRGBToDCI_P3, Function | SmallTest | Level2)
+{
+    Color color = Color(0.1, 0.2, 0.3, 0.4, SRGB);
+    Color result = color.Convert(DCI_P3);
+    ASSERT_EQ(FloatEqual(result.r, 0.189058f), true);
+    ASSERT_EQ(FloatEqual(result.g, 0.267553f), true);
+    ASSERT_EQ(FloatEqual(result.b, 0.358257f), true);
+}
+
+/*
+* Function: ColorManagerTest
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: DCI_P3 convert to sRGB
+*/
+HWTEST_F(ColorManagerTest, DCI_P3TosRGB, Function | SmallTest | Level2)
+{
+    Color color = Color(0.1, 0.2, 0.3, 0.4, DCI_P3);
+    Color result = color.Convert(SRGB);
+    ASSERT_EQ(FloatEqual(result.r, 0.005633f), true);
+    ASSERT_EQ(FloatEqual(result.g, 0.131560f), true);
+    ASSERT_EQ(FloatEqual(result.b, 0.239266f), true);
 }
 
 /*
@@ -136,9 +166,9 @@ HWTEST_F(ColorManagerTest, AdobeToDisplay_P3, Function | SmallTest | Level2)
     auto convertor = ColorSpaceConvertor(ColorSpace(ADOBE_RGB), ColorSpace(DISPLAY_P3), GAMUT_MAP_CONSTANT);
     std::array<float, 3> rgb = {0.1, 0.2, 0.3};
     auto result = convertor.Convert(rgb);
-    ASSERT_EQ(FloatEqual(result[0], 0.1020f), true);
-    ASSERT_EQ(FloatEqual(result[1], 0.1837f), true);
-    ASSERT_EQ(FloatEqual(result[2], 0.2863f), true);
+    ASSERT_EQ(FloatEqual(result[0], 0.0375351f), true);
+    ASSERT_EQ(FloatEqual(result[1], 0.182594f), true);
+    ASSERT_EQ(FloatEqual(result[2], 0.289389f), true);
 }
 
 /*
@@ -153,9 +183,9 @@ HWTEST_F(ColorManagerTest, Display_P3ToAdobe, Function | SmallTest | Level2)
     auto convertor = ColorSpaceConvertor(ColorSpace(DISPLAY_P3), ColorSpace(ADOBE_RGB), GAMUT_MAP_CONSTANT);
     std::array<float, 3> rgb = {0.1, 0.2, 0.3};
     auto result = convertor.Convert(rgb);
-    ASSERT_EQ(FloatEqual(result[0], 0.0886f), true);
-    ASSERT_EQ(FloatEqual(result[1], 0.2152f), true);
-    ASSERT_EQ(FloatEqual(result[2], 0.3130f), true);
+    ASSERT_EQ(FloatEqual(result[0], 0.139683f), true);
+    ASSERT_EQ(FloatEqual(result[1], 0.215243f), true);
+    ASSERT_EQ(FloatEqual(result[2], 0.30965f), true);
 }
 
 /*
@@ -163,16 +193,63 @@ HWTEST_F(ColorManagerTest, Display_P3ToAdobe, Function | SmallTest | Level2)
 * Type: Function
 * Rank: Important(2)
 * EnvConditions: N/A
-* CaseDescription: Adobe convert to sRGB
+* CaseDescription: DCI_P3 convert to Display_P3
 */
-HWTEST_F(ColorManagerTest, AdobeToSRGB, Function | SmallTest | Level2)
+HWTEST_F(ColorManagerTest, DCI_P3ToDisplay_P3, Function | SmallTest | Level2)
 {
-    auto convertor = ColorSpaceConvertor(ColorSpace(ADOBE_RGB), ColorSpace(SRGB), GAMUT_MAP_CONSTANT);
-    std::array<float, 3> rgb = {0.1, 0.2, 0.3};
-    auto result = convertor.Convert(rgb);
-    ASSERT_EQ(FloatEqual(result[0], 0.0728f), true);
-    ASSERT_EQ(FloatEqual(result[1], 0.1862f), true);
-    ASSERT_EQ(FloatEqual(result[2], 0.2949f), true);
+    Color color = Color(0.1, 0.2, 0.3, 0.4, DCI_P3);
+    Color result = color.Convert(DISPLAY_P3);
+    ASSERT_EQ(FloatEqual(result.r, 0.04051f), true);
+    ASSERT_EQ(FloatEqual(result.g, 0.12905f), true);
+    ASSERT_EQ(FloatEqual(result.b, 0.23113f), true);
+}
+
+/*
+* Function: ColorManagerTest
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: DISPLAY_P3 convert to DCI_P3
+*/
+HWTEST_F(ColorManagerTest, Display_P3ToDCI_P3, Function | SmallTest | Level2)
+{
+    Color color = Color(0.1, 0.2, 0.3, 0.4, DISPLAY_P3);
+    Color result = color.Convert(DCI_P3);
+    ASSERT_EQ(FloatEqual(result.r, 0.161843f), true);
+    ASSERT_EQ(FloatEqual(result.g, 0.269979f), true);
+    ASSERT_EQ(FloatEqual(result.b, 0.366057f), true);
+}
+
+/*
+* Function: ColorManagerTest
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: Adobe convert to DCI_P3
+*/
+HWTEST_F(ColorManagerTest, AdobeToDCI_P3, Function | SmallTest | Level2)
+{
+    Color color = Color(0.1, 0.2, 0.3, 0.4, ADOBE_RGB);
+    Color result = color.Convert(DCI_P3);
+    ASSERT_EQ(FloatEqual(result.r, 0.083082f), true);
+    ASSERT_EQ(FloatEqual(result.g, 0.252975f), true);
+    ASSERT_EQ(FloatEqual(result.b, 0.355959f), true);
+}
+
+/*
+* Function: ColorManagerTest
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: DCI_P3 convert to Adobe
+*/
+HWTEST_F(ColorManagerTest, DCI_P3ToAdobe, Function | SmallTest | Level2)
+{
+    Color color = Color(0.1, 0.2, 0.3, 0.4, DCI_P3);
+    Color result = color.Convert(ADOBE_RGB);
+    ASSERT_EQ(FloatEqual(result.r, 0.0880399f), true);
+    ASSERT_EQ(FloatEqual(result.g, 0.151082f), true);
+    ASSERT_EQ(FloatEqual(result.b, 0.245245f), true);
 }
 }
 }
