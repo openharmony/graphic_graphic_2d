@@ -403,14 +403,14 @@ void FillDrawParameters(BufferDrawParameters& params, const sptr<OHOS::SurfaceBu
     params.antiAlias = true;
     const RSProperties& property = node.GetRenderProperties();
     params.alpha = node.GetAlpha() * property.GetAlpha();
-    params.dstRect = SkRect::MakeXYWH(0, 0, buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight());
+    params.srcRect = SkRect::MakeXYWH(0, 0, buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight());
     auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(property.GetBoundsGeometry());
     if (geoPtr) {
         params.transform = geoPtr->GetAbsMatrix();
-        params.dstLeft = geoPtr->GetAbsRect().left_;
-        params.dstTop = geoPtr->GetAbsRect().top_;
-        params.dstWidth = geoPtr->GetAbsRect().width_;
-        params.dstHeight = geoPtr->GetAbsRect().height_;
+        params.dstLeft = node.GetDstRect().left_;
+        params.dstTop = node.GetDstRect().top_;
+        params.dstWidth = node.GetDstRect().width_;
+        params.dstHeight = node.GetDstRect().height_;
     }
 }
 } // namespace Detail
@@ -507,14 +507,14 @@ void RsRenderServiceUtil::Draw(SkCanvas& canvas, BufferDrawParameters& params, R
             auto filter = std::static_pointer_cast<RSSkiaFilter>(property.GetBackgroundFilter());
             if (filter != nullptr) {
                 auto skRectPtr = std::make_unique<SkRect>();
-                skRectPtr->setXYWH(0, 0, params.dstRect.width(), params.dstRect.height());
+                skRectPtr->setXYWH(0, 0, params.srcRect.width(), params.srcRect.height());
                 RSPropertiesPainter::SaveLayerForFilter(property, canvas, filter, skRectPtr);
                 RSPropertiesPainter::RestoreForFilter(canvas);
             }
-            canvas.drawBitmapRect(bitmap, params.dstRect, SkRect::MakeXYWH(0, 0,
+            canvas.drawBitmapRect(bitmap, params.srcRect, SkRect::MakeXYWH(0, 0,
                 node.GetRenderProperties().GetBoundsWidth(), node.GetRenderProperties().GetBoundsHeight()), &paint);
         } else {
-            canvas.drawBitmapRect(bitmap, params.dstRect, SkRect::MakeXYWH(0, 0,
+            canvas.drawBitmapRect(bitmap, params.srcRect, SkRect::MakeXYWH(0, 0,
                 node.GetRenderProperties().GetBoundsWidth() * params.scaleX,
                 node.GetRenderProperties().GetBoundsHeight() * params.scaleY), &paint);
         }

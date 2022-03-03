@@ -122,6 +122,20 @@ float RSSurfaceRenderNode::GetAlpha() const
     return alpha_;
 }
 
+void RSSurfaceRenderNode::SetClipRegion(Vector4f clipRegion, bool sendMsg)
+{
+    if (clipRect_ == clipRegion) {
+        return;
+    }
+    clipRect_ = clipRegion;
+    if (!sendMsg) {
+        return;
+    }
+    // send a Command
+    std::unique_ptr<RSCommand> command = std::make_unique<RSSurfaceNodeSetClipRegion>(GetId(), clipRegion);
+    SendPropertyCommand(command);
+}
+
 void RSSurfaceRenderNode::SetGlobalZOrder(float globalZOrder)
 {
     globalZOrder_ = globalZOrder;

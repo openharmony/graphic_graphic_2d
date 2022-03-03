@@ -44,7 +44,7 @@ struct BufferDrawParameters {
     SkPixmap pixmap;
     SkBitmap bitmap;
     SkMatrix transform;
-    SkRect dstRect;
+    SkRect srcRect;
 };
 
 struct ComposeInfo {

@@ -41,6 +41,13 @@ void SurfaceNodeCommandHelper::SetAlpha(RSContext& context, NodeId id, float alp
     }
 }
 
+void SurfaceNodeCommandHelper::SetClipRegion(RSContext& context, NodeId id, Vector4f clipRect)
+{
+    if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(id)) {
+        node->SetClipRegion(clipRect, false);
+    }
+}
+
 void SurfaceNodeCommandHelper::SetParentSurface(RSContext& context, NodeId id, NodeId parentId)
 {
     auto& nodeMap = context.GetNodeMap();

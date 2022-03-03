@@ -14,6 +14,8 @@
  */
 
 #include "pipeline/rs_hardware_processor.h"
+
+#include "common/rs_vector4.h"
 #include "display_type.h"
 #include "pipeline/rs_main_thread.h"
 #include "platform/common/rs_log.h"
@@ -170,8 +172,10 @@ void RSHardwareProcessor::ProcessSurface(RSSurfaceRenderNode &node)
         .preFence = node.GetPreFence(),
         .blendType = node.GetBlendType(),
     };
+    CalculateInfoWithVideo(info, node);
     auto transitionProperties = node.GetAnimationManager().GetTransitionProperties();
-    CalculateInfo(transitionProperties, info, node);
+    CalculateInfoWithAnimation(transitionProperties, info, node);
+    node.SetDstRect({info.dstRect.x, info.dstRect.y, info.dstRect.w, info.dstRect.h});
     std::shared_ptr<HdiLayerInfo> layer = HdiLayerInfo::CreateHdiLayerInfo();
     ROSEN_LOGE("RsDebug RSHardwareProcessor::ProcessSurface surfaceNode id:%llu name:[%s] dst [%d %d %d %d]"\
         "SrcRect [%d %d] rawbuffer [%d %d] surfaceBuffer [%d %d] buffaddr:%p, z:%f, globalZOrder:%d, blendType = %d",
@@ -186,8 +190,41 @@ void RSHardwareProcessor::ProcessSurface(RSSurfaceRenderNode &node)
     }
 }
 
-void RSHardwareProcessor::CalculateInfo(const std::unique_ptr<RSTransitionProperties>& transitionProperties,
-    ComposeInfo& info, RSSurfaceRenderNode& node)
+void RSHardwareProcessor::CalculateInfoWithVideo(ComposeInfo& info, RSSurfaceRenderNode& node)
+{
+    const Vector4f& rect = node.GetClipRegion();
+    RectI clipRegion(rect.x_, rect.y_, rect.z_, rect.w_);
+    if (clipRegion.IsEmpty()) {
+        return;
+    }
+    auto existedParent = node.GetParent().lock();
+    if (existedParent && existedParent->IsInstanceOf<RSSurfaceRenderNode>()) {
+        auto geoParent = std::static_pointer_cast<RSObjAbsGeometry>(std::static_pointer_cast<RSSurfaceRenderNode>
+            (existedParent)->GetRenderProperties().GetBoundsGeometry());
+        if (geoParent) {
+            clipRegion.left_ = rect.x_ + geoParent->GetAbsRect().left_;
+            clipRegion.top_ = rect.y_ + geoParent->GetAbsRect().top_;
+        }
+    }
+    RectI originDstRect(info.dstRect.x, info.dstRect.y, info.dstRect.w, info.dstRect.h);
+    RectI resDstRect = clipRegion.IntersectRect(originDstRect);
+    info.dstRect = {
+        .x = resDstRect.left_,
+        .y = resDstRect.top_,
+        .w = resDstRect.width_,
+        .h = resDstRect.height_,
+    };
+    IRect originSrcRect = info.srcRect;
+    info.srcRect.x = resDstRect.IsEmpty() ? 0 : (resDstRect.left_ - originDstRect.left_) / originDstRect.width_ *
+        originSrcRect.w;
+    info.srcRect.y = resDstRect.IsEmpty() ? 0 : (resDstRect.top_ - originDstRect.top_) / originDstRect.height_ *
+        originSrcRect.h;
+    info.srcRect.w = originDstRect.IsEmpty() ? 0 : originSrcRect.w * resDstRect.width_ / originDstRect.width_;
+    info.srcRect.h = originDstRect.IsEmpty() ? 0 : originSrcRect.h * resDstRect.height_ / originDstRect.height_;
+}
+
+void RSHardwareProcessor::CalculateInfoWithAnimation(
+    const std::unique_ptr<RSTransitionProperties>& transitionProperties, ComposeInfo& info, RSSurfaceRenderNode& node)
 {
     if (!transitionProperties) {
         return;
@@ -200,10 +237,10 @@ void RSHardwareProcessor::CalculateInfo(const std::unique_ptr<RSTransitionProper
     float paddingX = (1 - transitionProperties->GetScale().x_) * geoPtr->GetAbsRect().width_ / 2;
     float paddingY = (1 - transitionProperties->GetScale().y_) * geoPtr->GetAbsRect().height_ / 2;
     info.dstRect = {
-        .x = geoPtr->GetAbsRect().left_ + transitionProperties->GetTranslate().x_ + paddingX,
-        .y = geoPtr->GetAbsRect().top_ + transitionProperties->GetTranslate().y_ + paddingY,
-        .w = geoPtr->GetAbsRect().width_ * transitionProperties->GetScale().x_,
-        .h = geoPtr->GetAbsRect().height_ * transitionProperties->GetScale().y_,
+        .x = info.dstRect.x + transitionProperties->GetTranslate().x_ + paddingX,
+        .y = info.dstRect.y + transitionProperties->GetTranslate().y_ + paddingY,
+        .w = info.dstRect.w * transitionProperties->GetScale().x_,
+        .h = info.dstRect.h * transitionProperties->GetScale().y_,
     };
     info.alpha = {
         .enGlobalAlpha = true,
@@ -242,7 +279,6 @@ void RSHardwareProcessor::Redraw(sptr<Surface>& surface, const struct PrepareCom
         if (layerInfo == nullptr || layerInfo->GetCompositionType() == CompositionType::COMPOSITION_DEVICE) {
             continue;
         }
-
         ROSEN_LOGD("RsDebug RSHardwareProcessor::Redraw layer composition Type:%d, [%d %d %d %d]",
             layerInfo->GetCompositionType(), layerInfo->GetLayerSize().x, layerInfo->GetLayerSize().y,
             layerInfo->GetLayerSize().w, layerInfo->GetLayerSize().h);

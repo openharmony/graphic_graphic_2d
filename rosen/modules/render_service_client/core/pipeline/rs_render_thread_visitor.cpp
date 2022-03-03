@@ -182,6 +182,8 @@ void RSRenderThreadVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
     node.SetMatrix(canvas_->getTotalMatrix());
     node.SetAlpha(canvas_->GetAlpha());
     node.SetParentId(node.GetParent().lock()->GetId());
+    auto clipRect = canvas_->getDeviceClipBounds();
+    node.SetClipRegion({clipRect.left(), clipRect.top(), clipRect.width(), clipRect.height()});
 
     auto x = node.GetRenderProperties().GetBoundsPositionX();
     auto y = node.GetRenderProperties().GetBoundsPositionY();

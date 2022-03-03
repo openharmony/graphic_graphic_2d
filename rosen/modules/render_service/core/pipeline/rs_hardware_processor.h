@@ -46,8 +46,9 @@ public:
 private:
     void Redraw(sptr<Surface>& surface, const struct PrepareCompleteParam& param, void* data);
     void OnRotate();
-    void CalculateInfo(const std::unique_ptr<RSTransitionProperties>& transitionProperties, ComposeInfo& info,
-        RSSurfaceRenderNode& node);
+    void CalculateInfoWithAnimation(const std::unique_ptr<RSTransitionProperties>& transitionProperties,
+        ComposeInfo& info, RSSurfaceRenderNode& node);
+    void CalculateInfoWithVideo(ComposeInfo& info, RSSurfaceRenderNode& node);
     HdiBackend* backend_ = nullptr;
     sptr<RSScreenManager> screenManager_;
     ScreenInfo currScreenInfo_;
