@@ -98,7 +98,7 @@ RSRenderThread::RSRenderThread()
         clock_t endTime = clock();
         float drawTime = endTime - startTime;
         // Due to the calibration problem, there is a larger error on the windows.
-        if (CLOCKS_PER_SEC < drawTime * 60) { // 60FPS
+        if (drawTime > CLOCKS_PER_SEC * 6) { // The drawing timeout reaches 6 seconds.
             drawTime = static_cast<float>(drawTime) / CLOCKS_PER_SEC;
             DrawEventReport(drawTime);
             ROSEN_LOGD("RSRenderThread DrawFrame took %fs.", drawTime);
