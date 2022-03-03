@@ -29,7 +29,7 @@ namespace OHOS {
 namespace Rosen {
 std::unique_ptr<Media::PixelMap> RSSurfaceCaptureTask::Run()
 {
-    if (scaleX_ <= 0 || scaleY_ <= 0) {
+    if (ROSEN_EQ(scaleX_, 0.f) || ROSEN_EQ(scaleY_, 0.f) || scaleX_ < 0.f || scaleY_ < 0.f) {
         ROSEN_LOGE("RSSurfaceCaptureTask::Run: SurfaceCapture scale is invalid.");
         return nullptr;
     }
