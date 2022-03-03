@@ -57,7 +57,7 @@ public:
 
     void RegisterApplicationRenderThread(uint32_t pid, sptr<IApplicationRenderThread> app) override;
 
-    void TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback) override;
+    void TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback, float scaleX, float scaleY) override;
 
     RSScreenModeInfo GetScreenActiveMode(ScreenId id) override;
 

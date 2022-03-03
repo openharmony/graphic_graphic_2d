@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2022 Huawei Device Co., Ltd.. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -26,9 +26,9 @@ namespace Rosen {
 namespace Drawing {
 SkiaCanvas::SkiaCanvas() : skiaCanvas_(std::make_shared<SkCanvas>()), skiaPaint_() {}
 
-const std::shared_ptr<SkCanvas> SkiaCanvas::ExportSkiaCanvas() const
+SkCanvas* SkiaCanvas::ExportSkCanvas() const
 {
-    return skiaCanvas_;
+    return skiaCanvas_.get();
 }
 
 void SkiaCanvas::Bind(const Bitmap& bitmap)

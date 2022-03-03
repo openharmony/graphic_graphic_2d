@@ -18,10 +18,6 @@
 #include "buffer_log.h"
 
 namespace OHOS {
-namespace {
-constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, 0, "BufferQueueConsumer" };
-}
-
 BufferQueueConsumer::BufferQueueConsumer(sptr<BufferQueue>& bufferQueue)
 {
     bufferQueue_ = bufferQueue;

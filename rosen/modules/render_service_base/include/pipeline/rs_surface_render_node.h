@@ -145,11 +145,11 @@ private:
     sptr<SurfaceBuffer> preBuffer_;
     int32_t fence_ = -1;
     int32_t preFence_ = -1;
-    Rect damageRect_;
+    Rect damageRect_ = {0, 0, 0, 0};
     std::string name_;
     BlendType blendType_ = BlendType::BLEND_SRCOVER;
     std::atomic<bool> isBufferAvailable_ = false;
-    sptr<RSIBufferAvailableCallback> callback_ = nullptr;
+    sptr<RSIBufferAvailableCallback> callback_;
     std::function<void(void)> callbackForRenderThreadRefresh_ = nullptr;
 };
 } // namespace Rosen

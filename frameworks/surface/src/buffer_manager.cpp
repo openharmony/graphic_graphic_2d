@@ -40,8 +40,6 @@
 
 namespace OHOS {
 namespace {
-constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, 0, "BufferManager" };
-
 GSError GenerateError(GSError err, DispErrCode code)
 {
     switch (code) {

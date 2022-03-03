@@ -22,6 +22,7 @@ config("render_service_client_config") {
     "$rosen_root/modules/render_service_base/include",
     "//foundation/graphic/standard/interfaces/innerkits/common",
     "//foundation/graphic/standard/interfaces/innerkits/surface",
+    "//foundation/graphic/standard/interfaces/innerkits/composer",
   ]
 }
 
@@ -92,7 +93,10 @@ ohos_source_set("render_service_client_src") {
     defines += [ "ENABLE_EXPORT_MACRO" ]
   }
 
-  external_deps = [ "bytrace_standard:bytrace_core" ]
+  external_deps = [
+    "bytrace_standard:bytrace_core",
+    "hisysevent_native:libhisysevent",
+  ]
   public_deps =
       [ "$rosen_root/modules/render_service_base:librender_service_base" ]
 }

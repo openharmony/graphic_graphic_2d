@@ -50,7 +50,7 @@ private:
         RSSurfaceRenderNode& node);
     HdiBackend* backend_ = nullptr;
     sptr<RSScreenManager> screenManager_;
-    RSScreenModeInfo curScreenInfo_;
+    ScreenInfo currScreenInfo_;
     std::shared_ptr<HdiOutput> output_;
     std::vector<LayerInfoPtr> layers_;
     ScreenRotation rotation_ {ScreenRotation::ROTATION_0};

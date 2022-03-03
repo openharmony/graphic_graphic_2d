@@ -15,6 +15,11 @@
 
 #include "pipeline/rs_render_thread.h"
 
+#include <ctime>
+
+#include "base/hiviewdfx/hisysevent/interfaces/native/innerkits/hisysevent/include/hisysevent.h"
+
+#include "pipeline/rs_frame_report.h"
 #include "pipeline/rs_render_node_map.h"
 #include "pipeline/rs_root_render_node.h"
 #include "platform/common/rs_log.h"
@@ -39,6 +44,25 @@ static void SystemCallSetThreadName(const std::string& name)
 #endif
 }
 
+namespace {
+void DrawEventReport(float frameLength)
+{
+    int32_t pid = getpid();
+    int32_t uid = getuid();
+    std::string domain = "GRAPHIC";
+    std::string stringId = "NO_DRAW";
+    std::string processName = "RS_THREAD";
+    std::string msg = "It took " + std::to_string(frameLength * 1000) + "ms to draw."; // 1s = 1000ms
+
+    OHOS::HiviewDFX::HiSysEvent::Write(domain, stringId,
+        OHOS::HiviewDFX::HiSysEvent::EventType::FAULT,
+        "PID", pid,
+        "UID", uid,
+        "PROCESS_NAME", processName,
+        "MSG", msg);
+}
+}
+
 namespace OHOS {
 namespace Rosen {
 RSRenderThread& RSRenderThread::Instance()
@@ -50,11 +74,11 @@ RSRenderThread& RSRenderThread::Instance()
 RSRenderThread::RSRenderThread()
 {
 #ifdef ACE_ENABLE_GL
-    // renderContext_ = *(RenderContextFactory::GetInstance().CreateEngine());
     renderContext_ = new RenderContext();
     ROSEN_LOGD("Create RenderContext, its pointer is %p", renderContext_);
 #endif
     mainFunc_ = [&]() {
+        clock_t startTime = clock();
         ROSEN_TRACE_BEGIN(BYTRACE_TAG_GRAPHIC_AGP, "RSRenderThread::DrawFrame");
         {
             prevTimestamp_ = timestamp_;
@@ -71,14 +95,15 @@ RSRenderThread::RSRenderThread()
             transactionProxy->FlushImplicitTransactionFromRT();
         }
         ROSEN_TRACE_END(BYTRACE_TAG_GRAPHIC_AGP);
+        clock_t endTime = clock();
+        float drawTime = endTime - startTime;
+        // Due to the calibration problem, there is a larger error on the windows.
+        if (CLOCKS_PER_SEC < drawTime * 60) { // 60FPS
+            drawTime = static_cast<float>(drawTime) / CLOCKS_PER_SEC;
+            DrawEventReport(drawTime);
+            ROSEN_LOGD("RSRenderThread DrawFrame took %fs.", drawTime);
+        }
     };
-
-#ifdef ROSEN_OHOS
-    RSRenderServiceConnectHub::SetOnConnectCallback([this](sptr<RSIRenderServiceConnection>& conn) {
-        sptr<IApplicationRenderThread> renderThreadSptr = sptr<RSRenderThread>(this);
-        conn->RegisterApplicationRenderThread(getpid(), renderThreadSptr);
-    });
-#endif
 }
 
 RSRenderThread::~RSRenderThread()
@@ -99,6 +124,17 @@ void RSRenderThread::Start()
     if (thread_ == nullptr) {
         thread_ = std::make_unique<std::thread>(&RSRenderThread::RenderLoop, this);
     }
+
+#ifdef ROSEN_OHOS
+    RSRenderServiceConnectHub::SetOnConnectCallback(
+        [weakThis = wptr<RSRenderThread>(this)](sptr<RSIRenderServiceConnection>& conn) {
+            sptr<IApplicationRenderThread> renderThreadSptr = weakThis.promote();
+            if (renderThreadSptr == nullptr) {
+                return;
+            }
+            conn->RegisterApplicationRenderThread(getpid(), renderThreadSptr);
+        });
+#endif
 }
 
 void RSRenderThread::Stop()
@@ -123,7 +159,6 @@ void RSRenderThread::WakeUp()
 
 void RSRenderThread::RecvTransactionData(std::unique_ptr<RSTransactionData>& transactionData)
 {
-    // StopTimer();
     {
         std::unique_lock<std::mutex> cmdLock(cmdMutex_);
         cmds_.emplace_back(std::move(transactionData));
@@ -186,7 +221,7 @@ void RSRenderThread::RenderLoop()
 void RSRenderThread::OnVsync(uint64_t timestamp)
 {
     ROSEN_TRACE_BEGIN(BYTRACE_TAG_GRAPHIC_AGP, "RSRenderThread::OnVsync");
-    mValue = (mValue + 1) % 2;
+    mValue = (mValue + 1) % 2; // 1 and 2 is Calculated parameters
     RS_TRACE_INT("Vsync-client", mValue);
     timestamp_ = timestamp;
     if (activeWindowCnt_.load() > 0) {
@@ -231,6 +266,9 @@ void RSRenderThread::ProcessCommands()
     if (cmds_.empty()) {
         return;
     }
+    if (RsFrameReport::GetInstance().GetEnable()) {
+        RsFrameReport::GetInstance().ProcessCommandsStart();
+    }
 
     ROSEN_LOGD("RSRenderThread ProcessCommands size: %lu\n", cmds_.size());
     std::vector<std::unique_ptr<RSTransactionData>> cmds;
@@ -247,6 +285,9 @@ void RSRenderThread::ProcessCommands()
 void RSRenderThread::Animate(uint64_t timestamp)
 {
     ROSEN_TRACE_BEGIN(BYTRACE_TAG_GRAPHIC_AGP, "Animate");
+    if (RsFrameReport::GetInstance().GetEnable()) {
+        RsFrameReport::GetInstance().AnimateStart();
+    }
     hasRunningAnimation_ = false;
     for (const auto& [id, node] : context_.GetNodeMap().renderNodeMap_) {
         hasRunningAnimation_ = node->Animate(timestamp) || hasRunningAnimation_;
@@ -261,6 +302,9 @@ void RSRenderThread::Animate(uint64_t timestamp)
 void RSRenderThread::Render()
 {
     ROSEN_TRACE_BEGIN(BYTRACE_TAG_GRAPHIC_AGP, "RSRenderThread::Render");
+    if (RsFrameReport::GetInstance().GetEnable()) {
+        RsFrameReport::GetInstance().RenderStart();
+    }
     std::unique_lock<std::mutex> lock(mutex_);
     const auto& rootNode = context_.GetGlobalRootRenderNode();
     if (rootNode == nullptr) {
@@ -278,6 +322,10 @@ void RSRenderThread::Render()
 void RSRenderThread::SendCommands()
 {
     ROSEN_TRACE_BEGIN(BYTRACE_TAG_GRAPHIC_AGP, "RSRenderThread::SendCommands");
+    if (RsFrameReport::GetInstance().GetEnable()) {
+        RsFrameReport::GetInstance().SendCommandsStart();
+    }
+
     RSUIDirector::RecvMessages();
     ROSEN_TRACE_END(BYTRACE_TAG_GRAPHIC_AGP);
 }
@@ -304,6 +352,5 @@ void RSRenderThread::PostTask(RSTaskMessage::RSTask task)
         threadHandler_->PostTask(taskHandle, 0);
     }
 }
-
 } // namespace Rosen
 } // namespace OHOS

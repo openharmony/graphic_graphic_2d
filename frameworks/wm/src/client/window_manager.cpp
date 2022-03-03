@@ -369,19 +369,6 @@ Window::~Window()
     LayerControllerClient::GetInstance()->DestroyWindow(m_windowid);
 }
 
-void Window::RegistOnTouchCb(funcOnTouch cb)
-{
-    WMLOG_I("Window::RegistOnTouchCb start, windowid %{public}d", this->m_windowid);
-    LayerControllerClient::GetInstance()->RegistOnTouchCb(m_windowid, cb);
-    WMLOG_I("Window::RegistOnTouchCb end windowid %{public}d", this->m_windowid);
-}
-
-void Window::RegistOnKeyCb(funcOnKey cb)
-{
-    WMLOG_I("Window::RegistOnKeyCb start");
-    LayerControllerClient::GetInstance()->RegistOnKeyCb(m_windowid, cb);
-    WMLOG_I("Window::RegistOnKeyCb end");
-}
 void Window::Move(int32_t x, int32_t y)
 {
     WMLOG_I("Window::Move start");

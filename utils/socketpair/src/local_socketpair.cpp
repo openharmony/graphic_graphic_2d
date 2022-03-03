@@ -60,6 +60,15 @@ int32_t LocalSocketPair::CreateChannel(size_t sendSize, size_t receiveSize)
         receiveFd_ = INVALID_FD;
         return -1;
     }
+
+    int32_t fd = ::dup(socketPair[0]);
+    close(socketPair[0]);
+    socketPair[0] = fd;
+
+    fd = ::dup(socketPair[1]);
+    close(socketPair[1]);
+    socketPair[1] = fd;
+
     // set socket attr
     setsockopt(socketPair[0], SOL_SOCKET, SO_SNDBUF, &sendSize, sizeof(sendSize));
     setsockopt(socketPair[1], SOL_SOCKET, SO_RCVBUF, &receiveSize, sizeof(receiveSize));

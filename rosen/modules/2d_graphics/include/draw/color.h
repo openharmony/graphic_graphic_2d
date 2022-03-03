@@ -41,6 +41,7 @@ enum AlphaType {
     ALPHATYPE_UNPREMUL,
 };
 
+// Default RGBA color value is black.
 struct Color4f {
     scalar redF_ = 0;
     scalar greenF_ = 0;
@@ -65,27 +66,32 @@ public:
     constexpr static ColorQuad COLOR_MAGENTA = 0xFFFF00FF;
 
     constexpr static uint8_t RGB_MAX = 255;
+    // Return color value from component values.
     static inline ColorQuad ColorQuadSetARGB(uint32_t r, uint32_t g, uint32_t b, uint32_t a)
     {
         return ((a & 0xffu) << 24) | ((r & 0xffu) << 16) | ((g & 0xffu) << 8) | ((b & 0xffu) << 0);
     }
 
-    static inline int ColorQuadGetA(ColorQuad c)
+    // Return alpha byte from color value.
+    static inline uint32_t ColorQuadGetA(ColorQuad c)
     {
         return ((c >> 24) & 0xff);
     }
 
-    static inline int ColorQuadGetR(ColorQuad c)
+    // Return red component of color, from zero to 255.
+    static inline uint32_t ColorQuadGetR(ColorQuad c)
     {
         return ((c >> 16) & 0xff);
     }
 
-    static inline int ColorQuadGetG(ColorQuad c)
+    // Return green component of color, from zero to 255.
+    static inline uint32_t ColorQuadGetG(ColorQuad c)
     {
         return ((c >> 8) & 0xff);
     }
 
-    static inline int ColorQuadGetB(ColorQuad c)
+    // Return blue component of color, from zero to 255.
+    static inline uint32_t ColorQuadGetB(ColorQuad c)
     {
         return ((c >> 0) & 0xff);
     }
@@ -117,7 +123,7 @@ public:
     void SetBlueF(scalar b);
     void SetAlphaF(scalar a);
 
-    void SetRgb(int r, int g, int b, int a = 255);
+    void SetRgb(uint32_t r, uint32_t g, uint32_t b, uint32_t a = 255);
     void SetRgbF(scalar r, scalar g, scalar b, scalar a = 1.0);
 
     void SetColorQuad(uint32_t c);

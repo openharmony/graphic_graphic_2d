@@ -98,16 +98,17 @@ public:
 #ifdef ROSEN_OHOS
     bool Marshalling(Parcel& parcel) const override
     {
-        bool success = true;
-        success &= RSMarshallingHelper::Marshalling(parcel, commandType);
-        success &= RSMarshallingHelper::Marshalling(parcel, commandSubType);
-        success &= RSMarshallingHelper::Marshalling(parcel, targetId_);
-        success &= RSMarshallingHelper::Marshalling(parcel, timeoutNS_);
-        success &= RSMarshallingHelper::Marshalling(parcel, result_);
-        if (result_) {
-            success &= RSMarshallingHelper::Marshalling(parcel, value_);
+        if (!(RSMarshallingHelper::Marshalling(parcel, commandType) &&
+            RSMarshallingHelper::Marshalling(parcel, commandSubType) &&
+            RSMarshallingHelper::Marshalling(parcel, targetId_) &&
+            RSMarshallingHelper::Marshalling(parcel, timeoutNS_) &&
+            RSMarshallingHelper::Marshalling(parcel, result_))) {
+            return false;
         }
-        return success;
+        if (result_) {
+            return RSMarshallingHelper::Marshalling(parcel, value_);
+        }
+        return true;
     }
 
     static RSCommand* Unmarshalling(Parcel& parcel)
@@ -140,12 +141,13 @@ public:
 
     bool ReadFromParcel(Parcel& parcel) override
     {
-        bool success = true;
-        success &= RSMarshallingHelper::Unmarshalling(parcel, result_);
-        if (result_) {
-            success &= RSMarshallingHelper::Unmarshalling(parcel, value_);
+        if (!(RSMarshallingHelper::Unmarshalling(parcel, result_))) {
+            return false;
         }
-        return success;
+        if (result_) {
+            return RSMarshallingHelper::Unmarshalling(parcel, value_);
+        }
+        return true;
     }
 
     static inline RSCommandRegister<commandType, commandSubType, Unmarshalling> registry;

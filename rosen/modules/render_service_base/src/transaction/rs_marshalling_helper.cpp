@@ -172,8 +172,7 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSFi
     switch (val->GetFilterType()) {
         case RSFilter::BLUR: {
             auto blur = std::static_pointer_cast<RSBlurFilter>(val);
-            success &= parcel.WriteFloat(blur->GetBlurRadiusX());
-            success &= parcel.WriteFloat(blur->GetBlurRadiusY());
+            success = success && parcel.WriteFloat(blur->GetBlurRadiusX()) && parcel.WriteFloat(blur->GetBlurRadiusY());
             break;
         }
         default:
@@ -189,8 +188,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSFilter
         case RSFilter::BLUR: {
             float blurRadiusX;
             float blurRadiusY;
-            success &= parcel.ReadFloat(blurRadiusX);
-            success &= parcel.ReadFloat(blurRadiusY);
+            success = success && parcel.ReadFloat(blurRadiusX) && parcel.ReadFloat(blurRadiusY);
             if (success) {
                 val = RSFilter::CreateBlurFilter(blurRadiusX, blurRadiusY);
             }

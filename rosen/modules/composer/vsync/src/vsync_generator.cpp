@@ -45,8 +45,9 @@ void VSyncGenerator::DeleteInstance() noexcept
 }
 
 VSyncGenerator::VSyncGenerator()
-    : period_(0), phase_(0), refrenceTime_(0), wakeupDelay_(0), vsyncThreadRunning_(false)
+    : period_(0), phase_(0), refrenceTime_(0), wakeupDelay_(0)
 {
+    vsyncThreadRunning_ = true;
     thread_ = std::thread(std::bind(&VSyncGenerator::ThreadLoop, this));
 }
 
@@ -61,7 +62,6 @@ VSyncGenerator::~VSyncGenerator()
 
 void VSyncGenerator::ThreadLoop()
 {
-    vsyncThreadRunning_ = true;
     int64_t occurTimestamp = GetSysTimeNs();
     while (vsyncThreadRunning_ == true) {
         std::vector<Listener> listeners;

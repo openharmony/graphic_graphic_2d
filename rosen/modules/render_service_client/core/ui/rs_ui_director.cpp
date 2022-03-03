@@ -17,6 +17,7 @@
 
 #include "command/rs_animation_command.h"
 #include "command/rs_message_processor.h"
+#include "pipeline/rs_frame_report.h"
 #include "pipeline/rs_node_map.h"
 #include "pipeline/rs_render_thread.h"
 #include "platform/common/rs_log.h"
@@ -51,6 +52,7 @@ void RSUIDirector::Init()
 
     AnimationCommandHelper::SetFinisCallbackProcessor(AnimationCallbackProcessor);
 
+    RsFrameReport::GetInstance().Init();
     RSRenderThread::Instance().Start();
     GoForeground();
 }
@@ -137,7 +139,10 @@ void RSUIDirector::SendMessages()
 
 void RSUIDirector::RecvMessages()
 {
-    static const uint32_t pid = getpid();
+    if (getpid() == -1) {
+        return;
+    }
+    static const uint32_t pid = static_cast<uint32_t>(getpid());
     if (!RSMessageProcessor::Instance().HasTransaction(pid)) {
         return;
     }
@@ -170,6 +175,5 @@ void RSUIDirector::AnimationCallbackProcessor(NodeId nodeId, AnimationId animId)
         nodePtr->AnimationFinish(animId);
     }
 }
-
 } // namespace Rosen
 } // namespace OHOS

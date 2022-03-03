@@ -58,7 +58,10 @@ int CreateFenceFromTimeline(int timeline, const char* name, unsigned int totalSt
         .value = totalSteps
     };
 
-    strcpy_s(data.name, sizeof(data.name), name);
+    if (strcpy_s(data.name, sizeof(data.name), name)) {
+        HiLogPrint(LOG_CORE, LOG_ERROR, 0, "fence", "Create Fence From Timeline Failed");
+        return -1;
+    }
     ioctl(timeline, _IOWR('W', 0, struct sw_sync_create_fence_data), &data);
     return data.fence;
 }
@@ -108,7 +111,10 @@ int FenceMerge(const char* name, int fd1, int fd2)
 {
     int result_code;
     struct sync_merge_data sync_merge_data = {};
-    strcpy_s(sync_merge_data.name, sizeof(sync_merge_data.name), name);
+    if (strcpy_s(sync_merge_data.name, sizeof(sync_merge_data.name), name)) {
+        HiLogPrint(LOG_CORE, LOG_ERROR, 0, "fence", "FenceMerge strcpy name failed");
+        return -1;
+    }
 
     if (fd1 >= 0 && fd2 < 0) {
         sync_merge_data.fd2 = fd1;

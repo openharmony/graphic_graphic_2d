@@ -99,7 +99,8 @@ private:
                 break;
             }
 
-            auto ret = TEMP_FAILURE_RETRY(read(readFd_, buf, sizeof(buf)));
+            auto ret = TEMP_FAILURE_RETRY(read(readFd_, buf, sizeof(buf)-1));
+            buf[ret] = '\0';
             if (ret == 0) {
                 // Reach to the EOF
                 break;

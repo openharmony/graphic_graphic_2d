@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -39,6 +39,7 @@ public:
     static void DrawForegroundColor(const RSProperties& properties, SkCanvas& canvas);
     static void DrawTransitionProperties(const std::unique_ptr<RSTransitionProperties>& transitionProperties,
         const RSProperties& properties, RSPaintFilterCanvas& canvas);
+    static void DrawMask(const RSProperties& properties, SkCanvas& canvas);
 };
 } // namespace Rosen
 } // namespace OHOS

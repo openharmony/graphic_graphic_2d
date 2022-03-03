@@ -1,0 +1,7 @@
+service renderservice /system/bin/renderservice
+    class weston
+    disabled
+    seclabel u:r:renderservice:s0
+
+on weston_start
+    start renderservice

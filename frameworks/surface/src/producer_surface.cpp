@@ -19,10 +19,6 @@
 #include "buffer_manager.h"
 
 namespace OHOS {
-namespace {
-constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, 0, "ProducerSurface" };
-}
-
 ProducerSurface::ProducerSurface(sptr<IBufferProducer>& producer)
 {
     producer_ = producer;
@@ -38,7 +34,7 @@ ProducerSurface::~ProducerSurface()
     BLOGND("dtor");
     if (IsRemote()) {
         for (auto it = bufferProducerCache_.begin(); it != bufferProducerCache_.end(); it++) {
-            if (it->second->GetVirAddr() != nullptr) {
+            if (it->second != nullptr && it->second->GetVirAddr() != nullptr) {
                 BufferManager::GetInstance()->Unmap(it->second);
             }
         }
@@ -93,9 +89,11 @@ GSError ProducerSurface::RequestBuffer(sptr<SurfaceBuffer>& buffer,
     fence = retval.fence;
 
     sptr<SurfaceBufferImpl> bufferImpl = SurfaceBufferImpl::FromBase(retval.buffer);
-    ret = BufferManager::GetInstance()->InvalidateCache(bufferImpl);
-    if (ret != GSERROR_OK) {
-        BLOGNW("Warning [%{public}d], InvalidateCache failed", retval.sequence);
+    if (static_cast<uint32_t>(config.usage) & HBM_USE_CPU_WRITE) {
+        ret = BufferManager::GetInstance()->InvalidateCache(bufferImpl);
+        if (ret != GSERROR_OK) {
+            BLOGNW("Warning [%{public}d], InvalidateCache failed", retval.sequence);
+        }
     }
 
     if (bufferImpl != nullptr) {
@@ -103,7 +101,8 @@ GSError ProducerSurface::RequestBuffer(sptr<SurfaceBuffer>& buffer,
     }
 
     for (auto it = retval.deletingBuffers.begin(); it != retval.deletingBuffers.end(); it++) {
-        if (IsRemote() && bufferProducerCache_[*it]->GetVirAddr() != nullptr) {
+        if (IsRemote() && bufferProducerCache_.find(*it) != bufferProducerCache_.end() &&
+                bufferProducerCache_[*it]->GetVirAddr() != nullptr) {
             BufferManager::GetInstance()->Unmap(bufferProducerCache_[*it]);
         }
         bufferProducerCache_.erase(*it);

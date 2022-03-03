@@ -23,9 +23,7 @@
 #include <vector>
 
 #include <ipc_object_stub.h>
-#include <key_event_handler.h>
 #include <multimodal_event_handler.h>
-#include <touch_event_handler.h>
 #include <vsync_helper.h>
 #include <window_manager.h>
 #include <window_manager_service_client.h>
@@ -66,8 +64,6 @@ public:
     sptr<IWindowManagerService> windowManagerService = nullptr;
 
     // input
-    virtual bool OnKey(const KeyEvent &event);
-    virtual bool OnTouch(const TouchEvent &event);
     int32_t ListenWindowKeyEvent(int32_t windowID);
     int32_t ListenWindowTouchEvent(int32_t windowID);
     void ListenWindowInputEvent(int32_t windowID); // key and touch
@@ -101,8 +97,6 @@ private:
 
     static inline std::vector<INativeTest *> tests;
     std::shared_ptr<AppExecFwk::EventHandler> handler = nullptr;
-    std::map<int32_t, sptr<MMI::KeyEventHandler>> keyHandlerMap;
-    std::map<int32_t, sptr<MMI::TouchEventHandler>> touchHandlerMap;
     sptr<IRemoteObject> token = nullptr;
     sptr<INativeTestIpc> remoteIpc = nullptr;
     std::map<pid_t, int32_t> pidToSeq;

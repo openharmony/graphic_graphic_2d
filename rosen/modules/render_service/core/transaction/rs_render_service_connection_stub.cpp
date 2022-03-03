@@ -153,7 +153,9 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 break;
             }
             sptr<RSISurfaceCaptureCallback> cb = iface_cast<RSISurfaceCaptureCallback>(remoteObject);
-            TakeSurfaceCapture(id, cb);
+            float scaleX = data.ReadFloat();
+            float scaleY = data.ReadFloat();
+            TakeSurfaceCapture(id, cb, scaleX, scaleY);
             break;
         }
         case REGISTER_APPLICATION_RENDER_THREAD: {

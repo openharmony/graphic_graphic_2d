@@ -27,7 +27,7 @@ int main(int argc, const char *argv[])
     WaitRenderServiceInit();
 
     auto& dms = OHOS::Rosen::DisplayManager::GetInstance();
-    std::vector<const sptr<OHOS::Rosen::Display>> displays = dms.GetAllDisplays();
+    auto displays = dms.GetAllDisplays();
     while (displays.empty()) {
         LOG("displays is empty, retry to get displays");
         displays = dms.GetAllDisplays();

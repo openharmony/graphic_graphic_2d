@@ -21,7 +21,6 @@
 
 namespace OHOS {
 namespace {
-constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, 0, "BufferExtraDataImpl" };
 constexpr int32_t BUFFER_EXTRA_DATA_MAGIC = 0x4567;
 } // namespace
 

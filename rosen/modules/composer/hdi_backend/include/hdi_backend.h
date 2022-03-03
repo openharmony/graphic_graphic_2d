@@ -71,6 +71,7 @@ private:
     void OnHdiBackendConnected(uint32_t screenId, bool connected);
     void CreateHdiOutput(uint32_t screenId);
     void OnScreenHotplug(uint32_t screenId, bool connected);
+    void ReorderLayerInfo(std::vector<LayerInfoPtr> &newLayerInfos);
     void SetHdiLayerInfo(uint32_t screenId, uint32_t layerId, LayerPtr &layer);
     void OnPrepareComplete(bool needFlush, OutputPtr &output, std::vector<LayerInfoPtr> &newLayerInfos);
     void ReleaseLayerBuffer(uint32_t screenId, const std::unordered_map<uint32_t, LayerPtr> &layersMap);

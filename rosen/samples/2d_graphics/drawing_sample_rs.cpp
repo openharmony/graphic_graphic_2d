@@ -76,14 +76,16 @@ void TestDrawPath(Canvas &canvas, uint32_t width, uint32_t height)
 {
     LOGI("+++++++ TestDrawPath");
     Path path1;
+    // Add beginning of contour at point {200, 200}.
     path1.MoveTo(200, 200);
+    // Add quad from last point towards (600, 200), to (600, 600).
     path1.QuadTo(600, 200, 600, 600);
     path1.Close();
 
     Pen pen;
     pen.SetAntiAlias(true);
     pen.SetColor(Drawing::Color::COLOR_GRAY);
-    pen.SetWidth(10);
+    pen.SetWidth(10); // The thickness of the pen is 10
     canvas.AttachPen(pen);
 
     Brush brush;
@@ -91,6 +93,7 @@ void TestDrawPath(Canvas &canvas, uint32_t width, uint32_t height)
     canvas.AttachBrush(brush);
 
     Path path2;
+    // Add oval to path, bounds of ellipse added is {200, 200, 600, 1000}.
     path2.AddOval({200, 200, 600, 1000});
 
     Path dest;
@@ -103,7 +106,7 @@ void TestDrawPathPro(Canvas &canvas, uint32_t width, uint32_t height)
 {
     LOGI("+++++++ TestDrawPathPro");
     int len = 300;
-    Point a(500, 500);
+    Point a(500, 500); // point at {500, 500}
 
     Point c;
     Point d;
@@ -133,7 +136,7 @@ void TestDrawPathPro(Canvas &canvas, uint32_t width, uint32_t height)
     Pen pen;
     pen.SetAntiAlias(true);
     pen.SetColor(Drawing::Color::COLOR_RED);
-    pen.SetWidth(10);
+    pen.SetWidth(10); // The thickness of the pen is 10
     canvas.AttachPen(pen);
 
     Brush brush;
@@ -153,11 +156,12 @@ void TestDrawBase(Canvas &canvas, uint32_t width, uint32_t height)
     pen.SetColor(Drawing::Color::COLOR_RED);
     canvas.AttachPen(pen);
 
+    // Draw line segment from Point(0, 0) to Point(width, height)
     canvas.DrawLine(Point(0, 0), Point(width, height));
 
     pen.Reset();
     pen.SetColor(Drawing::Color::COLOR_RED);
-    pen.SetWidth(100);
+    pen.SetWidth(100); // The thickness of the pen is 100
     Point point;
     point.SetX(width / 2.0);
     point.SetY(height / 2.0);
@@ -168,7 +172,7 @@ void TestDrawBase(Canvas &canvas, uint32_t width, uint32_t height)
     brush.SetColor(Drawing::Color::COLOR_BLUE);
     brush.Reset();
     canvas.AttachBrush(brush);
-    canvas.DrawRect({1200, 100, 1500, 700});
+    canvas.DrawRect({1200, 100, 1500, 700}); // rect is set to (fLeft, fTop, fRight, fBottom)
     LOGI("------- TestDrawBase");
 }
 
@@ -179,19 +183,19 @@ void TestDrawPathEffect(Canvas &canvas, uint32_t width, uint32_t height)
     Pen pen;
     pen.SetAntiAlias(true);
     pen.SetColor(Drawing::Color::COLOR_RED);
-    pen.SetWidth(10);
+    pen.SetWidth(10); // The thickness of the pen is 10
     scalar vals[] = {10.0, 20.0};
+    // Number of elements in the intervals array is 2; offset into the intervals array is 25.
     pen.SetPathEffect(PathEffect::CreateDashPathEffect(vals, 2, 25));
     canvas.AttachPen(pen);
 
     Brush brush;
     brush.SetColor(Drawing::Color::COLOR_BLUE);
     canvas.AttachBrush(brush);
-    canvas.DrawRect({1200, 300, 1500, 600});
+    canvas.DrawRect({1200, 300, 1500, 600}); // rect is set to (fLeft, fTop, fRight, fBottom)
 
     canvas.DetachPen();
-    //canvas.DetachBrush();
-    canvas.DrawRect({1200, 700, 1500, 1000});
+    canvas.DrawRect({1200, 700, 1500, 1000}); // rect is set to (fLeft, fTop, fRight, fBottom)
     LOGI("------- TestDrawPathEffect");
 }
 
@@ -203,29 +207,26 @@ void TestDrawFilter(Canvas &canvas, uint32_t width, uint32_t height)
     pen.SetAntiAlias(true);
     pen.SetColor(Drawing::Color::COLOR_BLUE);
     pen.SetColor(pen.GetColor4f(), Drawing::ColorSpace::CreateSRGBLinear());
-    // pen.SetARGB(0x00, 0xFF, 0x00, 0x80);
-    pen.SetAlpha(0x44);
-    pen.SetWidth(10);
+    pen.SetAlpha(0x44); // alpha value is 0x44
+    pen.SetWidth(10); // The thickness of the pen is 10
     Filter filter;
     filter.SetColorFilter(ColorFilter::CreateBlendModeColorFilter(Drawing::Color::COLOR_RED, BlendMode::SRC_ATOP));
+    // Radius of the Gaussian blur to apply is 10.
     filter.SetMaskFilter(MaskFilter::CreateBlurMaskFilter(BlurType::NORMAL, 10));
-    // filter.SetFilterQuality(Filter::FilterQuality::NONE);
     pen.SetFilter(filter);
     canvas.AttachPen(pen);
 
     Brush brush;
     brush.SetColor(Drawing::Color::COLOR_BLUE);
     brush.SetColor(brush.GetColor4f(), Drawing::ColorSpace::CreateSRGBLinear());
-    // brush.SetARGB(0x00, 0xFF, 0x00, 0x80);
-    brush.SetAlpha(0x44);
+    brush.SetAlpha(0x44); // alpha value is 0x44
     brush.SetBlendMode(BlendMode::SRC_ATOP);
     brush.SetFilter(filter);
     canvas.AttachBrush(brush);
-    canvas.DrawRect({1200, 300, 1500, 600});
+    canvas.DrawRect({1200, 300, 1500, 600}); // rect is set to (fLeft, fTop, fRight, fBottom)
 
     canvas.DetachPen();
-    // canvas.DetachBrush();
-    canvas.DrawRect({1200, 700, 1500, 1000});
+    canvas.DrawRect({1200, 700, 1500, 1000}); // rect is set to (fLeft, fTop, fRight, fBottom)
     LOGI("------- TestDrawFilter");
 }
 
@@ -234,17 +235,15 @@ void TestDrawBitmap(Canvas &canvas, uint32_t width, uint32_t height)
     LOGI("+++++++ TestDrawBitmap");
     Bitmap bmp;
     BitmapFormat format {COLORTYPE_RGBA_8888, ALPHATYPE_OPAQUYE};
-    bmp.Build(200, 200, format);
+    bmp.Build(200, 200, format); // bitmap width and height
     bmp.ClearWithColor(Drawing::Color::COLOR_BLUE);
 
     Pen pen;
     pen.SetAntiAlias(true);
     pen.SetColor(Drawing::Color::COLOR_BLUE);
-    pen.SetWidth(10);
+    pen.SetWidth(10); // The thickness of the pen is 10
     canvas.AttachPen(pen);
-
     canvas.DrawBitmap(bmp, 500, 500);
-    //canvas.DrawRect({1200, 100, 1500, 700});
 
     LOGI("------- TestDrawBitmap");
 }
@@ -254,7 +253,7 @@ void TestDrawImage(Canvas& canvas, uint32_t width, uint32_t height)
     LOGI("+++++++ TestDrawImage");
     Bitmap bmp;
     BitmapFormat format {COLORTYPE_RGBA_8888, ALPHATYPE_OPAQUYE};
-    bmp.Build(300, 300, format);
+    bmp.Build(300, 300, format); // bitmap width and height
     bmp.ClearWithColor(Drawing::Color::COLOR_BLUE);
 
     Image image;
@@ -263,6 +262,7 @@ void TestDrawImage(Canvas& canvas, uint32_t width, uint32_t height)
     int imageHeight = image.GetHeight();
     LOGI("image width = %{public}d, image height = %{public}d", imageWidth, imageHeight);
     Matrix matrix;
+    // Set matrix to rotate by degrees 45 about a pivot point at (0, 0).
     matrix.Rotate(45, 0, 0);
     SamplingOptions sampling = SamplingOptions(Drawing::FilterMode::NEAREST, Drawing::MipmapMode::NEAREST);
     auto e = ShaderEffect::CreateImageShader(image, TileMode::REPEAT, TileMode::MIRROR, sampling, matrix);
@@ -274,10 +274,10 @@ void TestDrawImage(Canvas& canvas, uint32_t width, uint32_t height)
     pen.SetAntiAlias(true);
     pen.SetColor(Drawing::Color::COLOR_BLUE);
     pen.SetColor(pen.GetColor4f(), c);
-    pen.SetWidth(10);
+    pen.SetWidth(10); // The thickness of the pen is 10
     pen.SetShaderEffect(e);
     canvas.AttachPen(pen);
-    canvas.DrawImage(image, 500, 500, sampling);
+    canvas.DrawImage(image, 500, 500, sampling); // Draw image at (500,500)
 
     LOGI("------- TestDrawImage");
 }
@@ -287,14 +287,12 @@ void TestDrawImageRect(Canvas& canvas, uint32_t width, uint32_t height)
     LOGI("+++++++ TestDrawImageRect");
     Bitmap bmp;
     BitmapFormat format {COLORTYPE_RGBA_8888, ALPHATYPE_OPAQUYE};
-    // bitmap width and height
-    bmp.Build(300, 300, format);
+    bmp.Build(300, 300, format); // bitmap width and height
     bmp.ClearWithColor(Drawing::Color::COLOR_BLUE);
 
     Image image;
     image.BuildFromBitmap(bmp);
-    // rect size
-    Drawing::Rect r1(100, 100, 200, 200);
+    Drawing::Rect r1(100, 100, 200, 200); // rect is set to (fLeft, fTop, fRight, fBottom)
     Drawing::Rect r2(300, 300, 500, 500);
     SamplingOptions sampling = SamplingOptions(Drawing::FilterMode::NEAREST, Drawing::MipmapMode::NEAREST);
 
@@ -316,13 +314,15 @@ void TestPicture(Canvas& canvas, uint32_t width, uint32_t height)
 
     Brush brush;
     brush.SetColor(Drawing::Color::COLOR_BLUE);
+    // Created image width and height are set by {50, 50}
     image.BuildFromPicture(picture, {50, 50}, matrix, brush, BitDepth::KU8, srgbColorSpace);
 
-    auto e = ShaderEffect::CreatePictureShader(picture, TileMode::REPEAT, TileMode::MIRROR, FilterMode::NEAREST, matrix, {1000, 0, 1300, 300});
+    Drawing::Rect rect(1000, 0, 1300, 300); // The tile rectangle size in picture coordinates.
+    auto e = ShaderEffect::CreatePictureShader(picture, TileMode::REPEAT, TileMode::MIRROR, FilterMode::NEAREST, matrix, rect);
     Pen pen;
     pen.SetAntiAlias(true);
     pen.SetColor(Drawing::Color::COLOR_BLUE);
-    pen.SetWidth(10);
+    pen.SetWidth(10); // The thickness of the pen is 10
     pen.SetShaderEffect(e);
     canvas.AttachPen(pen);
     canvas.DrawPicture(picture);
@@ -336,43 +336,48 @@ void TestMatrix(Canvas &canvas, uint32_t width, uint32_t height)
     Brush brush;
     brush.SetColor(Drawing::Color::COLOR_BLUE);
     canvas.AttachBrush(brush);
-    canvas.DrawRect({1200, 100, 1500, 400});
+    canvas.DrawRect({1200, 100, 1500, 400}); // rect is set to (fLeft, fTop, fRight, fBottom)
 
     brush.SetColor(Drawing::Color::COLOR_RED);
     canvas.AttachBrush(brush);
     Matrix m;
+    // Set matrix to scale by 0.5 and 1.5, about a pivot point at (0, 0).
     m.Scale(0.5, 1.5, 0, 0);
 
     canvas.SetMatrix(m);
-    canvas.DrawRect({1000, 0, 1300, 300});
+    canvas.DrawRect({1000, 0, 1300, 300}); // rect is set to (fLeft, fTop, fRight, fBottom)
 
     Matrix n;
+    /* Set matrix to:
+        | 1  0  100 |
+        | 0  1  300 |
+        | 0  0   1  |
+    */
     n.SetMatrix(1, 0, 100,
          0, 1, 300,
          0, 0, 1);
     brush.SetColor(Drawing::Color::COLOR_GREEN);
     canvas.AttachBrush(brush);
     canvas.SetMatrix(n);
-    canvas.DrawRect({1200, 100, 1500, 400});
+    canvas.DrawRect({1200, 100, 1500, 400}); // rect is set to (fLeft, fTop, fRight, fBottom)
 
     Matrix m1;
     Matrix m2;
-    m1.Translate(100, 300);
+    m1.Translate(100, 300); // Set matrix to translate by (100, 300).
+    // Set matrix to rotate by degrees 45 about a pivot point at (0, 0).
     m2.Rotate(45, 0, 0);
     m = m1 * m2;
 
     brush.SetColor(Drawing::Color::COLOR_BLACK);
     canvas.AttachBrush(brush);
     canvas.SetMatrix(m);
-    canvas.DrawRect({1200, 100, 1500, 400});
+    canvas.DrawRect({1200, 100, 1500, 400}); // rect is set to (fLeft, fTop, fRight, fBottom)
 
     Matrix matrix;
-    // 100 means offset size
-    matrix.Translate(100, 100);
-    // {0, 0} means point position
-    std::vector<Point> point = {{0, 0}};
+    matrix.Translate(100, 100); // 100 means offset size
+    std::vector<Point> point = {{0, 0}}; // {0, 0} means point position
     matrix.MapPoints(point, point, point.size());
-    for (auto i = 0; i < point.size(); i++) {
+    for (size_t i = 0; i < point.size(); i++) {
         LOGI("mapped point fx = %{public}f, fy = %{public}f", point[i].GetX(), point[i].GetY());
     }
 
@@ -385,18 +390,18 @@ void TestCamera(Canvas &canvas, uint32_t width, uint32_t height)
 
     Brush brush;
     Matrix m0;
-    m0.Translate(width / 2.0, height / 2.0);
+    m0.Translate(width / 2.0, height / 2.0); // Set matrix m0 to translate by (width / 2.0, height / 2.0).
     canvas.SetMatrix(m0);
 
     Camera3D camera;
-    camera.RotateXDegrees(-25);
-    camera.RotateYDegrees(45);
-    camera.Translate(-50, 50, 50);
-    Drawing::Rect r(0, 0, 500, 500);
+    camera.RotateXDegrees(-25); // Set camera to rotate by degrees -25 at x-aixs.
+    camera.RotateYDegrees(45); // Set camera to rotate by degrees 45 at y-aixs.
+    camera.Translate(-50, 50, 50); // Set camera to translate by (-50, 50, 50).
+    Drawing::Rect r(0, 0, 500, 500); // rect is set to (fLeft, fTop, fRight, fBottom)
 
     canvas.Save();
     camera.Save();
-    camera.RotateYDegrees(90);
+    camera.RotateYDegrees(90); // Set camera to rotate by degrees 90 at y-aixs.
     Matrix m1;
     camera.ApplyToMatrix(m1);
     camera.Restore();
@@ -416,11 +421,12 @@ void TestDrawShader(Canvas &canvas, uint32_t width, uint32_t height)
     brush.SetColor(Drawing::Color::COLOR_BLUE);
     std::vector<ColorQuad> colors{Drawing::Color::COLOR_GREEN, Drawing::Color::COLOR_BLUE, Drawing::Color::COLOR_RED};
     std::vector<scalar> pos{0.0, 0.5, 1.0};
+    // The start and end points for the gradient: {1200, 700}, {1300, 800}.
     auto e = ShaderEffect::CreateLinearGradient({1200, 700}, {1300, 800}, colors, pos, TileMode::MIRROR);
     brush.SetShaderEffect(e);
 
     canvas.AttachBrush(brush);
-    canvas.DrawRect({1200, 700, 1500, 1000});
+    canvas.DrawRect({1200, 700, 1500, 1000}); // rect is set to (fLeft, fTop, fRight, fBottom)
     LOGI("------- TestDrawShader");
 }
 
@@ -429,6 +435,7 @@ void TestDrawShadow(Canvas &canvas, uint32_t width, uint32_t height)
     LOGI("+++++++ TestDrawShadow");
 
     Path path;
+    // Add oval to path, bounds of ellipse added is {200, 200, 600, 1000}.
     path.AddOval({200, 200, 600, 1000});
     Point3 planeParams = { 540.0, 0.0, 600.0 };
     Point3 devLightPos = {0, 0, 0};
@@ -462,9 +469,9 @@ std::unique_ptr<PixelMap> ConstructPixmap()
         LOGE("alloc memory size:[%{public}d] error.", bufferSize);
         return nullptr;
     }
-    char *ch = (char *)buffer;
+    char *ch = static_cast<char *>(buffer);
     for (unsigned int i = 0; i < bufferSize; i++) {
-        *(ch++) = (char)i;
+        *(ch++) = static_cast<char>(i);
     }
 
     pixelMap->SetPixelsAddr(buffer, nullptr, bufferSize, AllocatorType::HEAP_ALLOC, nullptr);
@@ -480,7 +487,7 @@ void TestDrawPixelmap(Canvas &canvas, uint32_t width, uint32_t height)
     Pen pen;
     pen.SetAntiAlias(true);
     pen.SetColor(Drawing::Color::COLOR_BLUE);
-    pen.SetWidth(10);
+    pen.SetWidth(10); // The thickness of the pen is 10
     canvas.AttachPen(pen);
 
     Brush brush;
@@ -585,12 +592,12 @@ int main()
         if (transactionProxy == nullptr) {
             continue;
         }
-        sleep(2);
+        sleep(2); // wait 2s
         displayNode->AddChild(surfaceNode, -1);
         surfaceNode->SetBounds(0, 0, WIDTH, HEIGHT);
         transactionProxy->FlushImplicitTransaction();
         DrawSurface(surfaceNode, WIDTH, HEIGHT, i);
-        sleep(4);
+        sleep(4); // wait 4s
         displayNode->RemoveChild(surfaceNode);
         transactionProxy->FlushImplicitTransaction();
     }

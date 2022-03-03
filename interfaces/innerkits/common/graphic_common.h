@@ -70,8 +70,9 @@ static inline std::string LowErrorStr(GSError lowerr)
 {
     std::string lowError = LowErrorStrSpecial(lowerr);
     if (lowError == "" && lowerr != 0) {
-        lowError = std::strerror(lowerr);
-        lowError = std::string("with low error <") + lowError + ">";
+        char buf[256] = {0}; // 256 mean buffer max length
+        strerror_r(lowerr, buf, sizeof buf);
+        lowError = std::string("with low error <") + buf + ">";
     }
     return lowError;
 }

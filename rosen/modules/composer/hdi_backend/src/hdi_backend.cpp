@@ -170,9 +170,12 @@ int32_t HdiBackend::UpdateLayerCompType(uint32_t screenId, const std::unordered_
     return ret;
 }
 
-void HdiBackend::OnPrepareComplete(bool needFlush, OutputPtr &output,
-        std::vector<LayerInfoPtr> &newLayerInfos)
+void HdiBackend::OnPrepareComplete(bool needFlush, OutputPtr &output, std::vector<LayerInfoPtr> &newLayerInfos)
 {
+    if (needFlush) {
+        ReorderLayerInfo(newLayerInfos);
+    }
+
     struct PrepareCompleteParam param = {
         .needFlushFramebuffer = needFlush,
         .layers = newLayerInfos,
@@ -183,6 +186,16 @@ void HdiBackend::OnPrepareComplete(bool needFlush, OutputPtr &output,
     if (onPrepareCompleteCb_ != nullptr) {
         onPrepareCompleteCb_(producerSurface, param, onPrepareCompleteCbData_);
     }
+}
+
+static inline bool Cmp(const LayerInfoPtr &layer1, const LayerInfoPtr &layer2)
+{
+    return layer1->GetZorder() < layer2->GetZorder();
+}
+
+void HdiBackend::ReorderLayerInfo(std::vector<LayerInfoPtr> &newLayerInfos)
+{
+    std::sort(newLayerInfos.begin(), newLayerInfos.end(), Cmp);
 }
 
 int32_t HdiBackend::FlushScreen(uint32_t screenId, OutputPtr &output,

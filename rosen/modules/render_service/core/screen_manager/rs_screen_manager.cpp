@@ -16,8 +16,6 @@
 #include "rs_screen_manager.h"
 #include "pipeline/rs_main_thread.h"
 
-#include <cinttypes>
-
 namespace OHOS {
 namespace Rosen {
 using namespace HiviewDFX;
@@ -514,6 +512,7 @@ ScreenInfo RSScreenManager::QueryScreenInfo(ScreenId id) const
 
     info.width = screen->Width();
     info.height = screen->Height();
+    (void)screen->GetScreenColorGamut(info.colorGamut);
 
     if (!screen->IsEnable()) {
         info.state = ScreenState::DISABLED;

@@ -41,7 +41,7 @@ public:
     virtual SurfaceColorGamut GetColorSpace() override;
 protected:
     sptr<Surface> producer_;
-    RenderContext* context_;
+    RenderContext* context_ = nullptr;
     SurfaceColorGamut colorSpace_ = SurfaceColorGamut::COLOR_GAMUT_SRGB;
 };
 

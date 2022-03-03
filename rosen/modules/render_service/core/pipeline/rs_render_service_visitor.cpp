@@ -144,7 +144,7 @@ void RSRenderServiceVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
         currentGeoPtr->UpdateByMatrixFromSelf();
     }
 
-    static const auto updateGeometryFunc = [&](const std::shared_ptr<RSBaseRenderNode>& node) {
+    const auto updateGeometryFunc = [&](const std::shared_ptr<RSBaseRenderNode>& node) {
         if (!node) {
             ROSEN_LOGI("RSRenderServiceVisitor::PrepareSurfaceRenderNode this child haven't existed");
             return;

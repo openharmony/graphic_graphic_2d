@@ -101,10 +101,20 @@ uint32_t Shader::CompileShader(uint32_t type, const std::string& source)
     if (result == GL_FALSE) {
         int32_t length = 0;
         glGetShaderiv(id, GL_INFO_LOG_LENGTH, &length);
-        char* message = static_cast<char*>(alloca(length));
+        if (length < 0) {
+            GSLOG2HI(ERROR) << "CompileShader Failed length is not right";
+            return 0;
+        }
+        char* message = static_cast<char*>(malloc(length));
+        if (message == nullptr) {
+            GSLOG2HI(ERROR) << "CompileShader Failed malloc failed";
+            return 0;
+        }
         glGetShaderInfoLog(id, length, &length, message);
         GSLOG2HI(ERROR) << "CompileShader[" << type << "] Failed: " << message;
         glDeleteShader(id);
+        free(message);
+        message = nullptr;
         return 0;
     }
 
@@ -128,9 +138,19 @@ uint32_t Shader::CreateShader(const std::string& vertexShader, const std::string
     if (result == GL_FALSE) {
         int32_t length = 0;
         glGetProgramiv(program, GL_INFO_LOG_LENGTH, &length);
-        char* message = static_cast<char*>(alloca(length));
+        if (length < 0) {
+            GSLOG2HI(ERROR) << "CreateShader Failed length is not right";
+            return 0;
+        }
+        char* message = static_cast<char*>(malloc(length));
+        if (message == nullptr) {
+            GSLOG2HI(ERROR) << "CreateShader Failed malloc failed";
+            return 0;
+        }
         glGetProgramInfoLog(program, length, nullptr, message);
         GSLOG2HI(ERROR) << "program error[" << glGetError() << "]: " << message;
+        free(message);
+        message = nullptr;
         return 0;
     }
 

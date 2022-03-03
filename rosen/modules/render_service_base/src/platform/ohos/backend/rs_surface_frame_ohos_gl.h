@@ -39,9 +39,9 @@ public:
     void SetReleaseFence(const int32_t& fence);
 
 private:
-    int32_t releaseFence_;
-    int width_;
-    int height_;
+    int32_t releaseFence_ = 0;
+    int width_ = 0;
+    int height_ = 0;
     void CreateCanvas();
 };
 } // namespace Rosen

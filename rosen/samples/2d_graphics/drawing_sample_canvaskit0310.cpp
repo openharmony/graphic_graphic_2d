@@ -113,15 +113,15 @@ void HelloDrawing::OnBufferAvailable()
 void HelloDrawing::TestDrawPathPro(Canvas &canvas, uint32_t width, uint32_t height)
 {
     int len = 300;
-    Point a(500, 500);
+    Point a(500, 500); // point position
 
     Point c;
     Point d;
 
-    d.SetX(a.GetX() - len * std::sin(18.0f));
-    d.SetY(a.GetY() + len * std::cos(18.0f));
+    d.SetX(a.GetX() - len * std::sin(18.0f)); // degree is 18
+    d.SetY(a.GetY() + len * std::cos(18.0f)); // degree is 18
 
-    c.SetX(a.GetX() + len * std::sin(18.0f));
+    c.SetX(a.GetX() + len * std::sin(18.0f)); // degree is 18
     c.SetY(d.GetY());
 
     Point b;
@@ -143,7 +143,7 @@ void HelloDrawing::TestDrawPathPro(Canvas &canvas, uint32_t width, uint32_t heig
     Pen pen;
     pen.SetAntiAlias(true);
     pen.SetColor(Drawing::Color::COLOR_RED);
-    pen.SetWidth(10);
+    pen.SetWidth(10); // The thickness of the pen is 10
     canvas.AttachPen(pen);
 
     Brush brush;
@@ -158,7 +158,7 @@ void HelloDrawing::TestDrawImage(Canvas& canvas, uint32_t width, uint32_t height
     LOGI("+++++++ TestDrawImage");
     Bitmap bmp;
     BitmapFormat format {COLORTYPE_RGBA_8888, ALPHATYPE_OPAQUYE};
-    bmp.Build(300, 300, format);
+    bmp.Build(300, 300, format); // bitmap width and height
     bmp.ClearWithColor(Drawing::Color::COLOR_BLUE);
 
     Image image;
@@ -167,6 +167,7 @@ void HelloDrawing::TestDrawImage(Canvas& canvas, uint32_t width, uint32_t height
     int imageHeight = image.GetHeight();
     LOGI("image width = %{public}d, image height = %{public}d", imageWidth, imageHeight);
     Matrix matrix;
+    // Set matrix to rotate by degrees 45 about a pivot point at (0, 0).
     matrix.Rotate(45, 0, 0);
     auto e = ShaderEffect::CreateImageShader(image, TileMode::REPEAT, TileMode::MIRROR, SamplingOptions(), matrix);
     auto c = Drawing::ColorSpace::CreateRefImage(image);
@@ -175,10 +176,10 @@ void HelloDrawing::TestDrawImage(Canvas& canvas, uint32_t width, uint32_t height
     pen.SetAntiAlias(true);
     pen.SetColor(Drawing::Color::COLOR_BLUE);
     pen.SetColor(pen.GetColor4f(), c);
-    pen.SetWidth(10);
+    pen.SetWidth(10); // The thickness of the pen is 10
     pen.SetShaderEffect(e);
     canvas.AttachPen(pen);
-    canvas.DrawImage(image, 500, 500, SamplingOptions());
+    canvas.DrawImage(image, 500, 500, SamplingOptions()); // draw image at (500,500)
 
     LOGI("------- TestDrawImage");
 }
@@ -245,7 +246,7 @@ SurfaceError HelloDrawing::ProduceBuffer(sptr<Surface> &produceSurface, uint32_t
     }
 
     sptr<SyncFence> tempFence = new SyncFence(releaseFence);
-    tempFence->Wait(100);
+    tempFence->Wait(100); // 100ms
 
     if (buffer == nullptr) {
         LOGE("%s: buffer is nullptr", __func__);
@@ -297,7 +298,7 @@ void HelloDrawing::Draw()
         output->SetLayerInfo(layerVec);
 
         IRect damageRect;
-        damageRect.x = 0;
+        damageRect.x = 0; // Absolute coordinates, with offset
         damageRect.y = 0;
         damageRect.w = display_w;
         damageRect.h = display_h;
@@ -545,7 +546,7 @@ void HelloDrawing::DoPrepareCompleted(sptr<Surface> &surface, const struct Prepa
     }
 
     sptr<SyncFence> tempFence = new SyncFence(releaseFence);
-    tempFence->Wait(100);
+    tempFence->Wait(100); // 100ms
 
     uint32_t clientCount = 0;
     bool hasClient = false;
@@ -628,9 +629,9 @@ int32_t main(int32_t argc, const char *argv[])
 
     backend->RegPrepareComplete(OnPrepareCompleted, &m);
 
-    m.width_ = 480;
-    m.height_ = 960;
-    sleep(1);
+    m.width_ = 480; // display width
+    m.height_ = 960; // display height
+    sleep(1); // wait 1s
 
     auto runner = OHOS::AppExecFwk::EventRunner::Create(false);
     auto handler = std::make_shared<OHOS::AppExecFwk::EventHandler>(runner);

@@ -75,10 +75,6 @@ public:
     virtual GSError ExitPIPMode() override;
     virtual GSError OnPIPModeChange(WindowPIPModeChangeFunc func) override;
 
-    // listener
-    virtual GSError OnTouch(OnTouchFunc cb) override;
-    virtual GSError OnKey(OnKeyFunc cb) override;
-
 private:
     WindowImpl() = default;
     virtual ~WindowImpl() override;

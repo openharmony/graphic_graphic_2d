@@ -24,9 +24,6 @@
 #include <sys/wait.h>
 #include <unistd.h>
 #include <vector>
-
-#include "inative_test_key_event_handler.h"
-#include "inative_test_touch_event_handler.h"
 #include "util.h"
 
 namespace OHOS {
@@ -76,16 +73,6 @@ AutoLoadService INativeTest::GetAutoLoadService() const
     return AutoLoadService::Null;
 }
 
-bool INativeTest::OnKey(const KeyEvent &event)
-{
-    return false;
-}
-
-bool INativeTest::OnTouch(const TouchEvent &event)
-{
-    return false;
-}
-
 void INativeTest::GetToken()
 {
     if (token == nullptr) {
@@ -100,15 +87,13 @@ void INativeTest::GetToken()
 int32_t INativeTest::ListenWindowKeyEvent(int32_t windowID)
 {
     GetToken();
-    keyHandlerMap[windowID] = new INativeTestKeyEventHandler(this);
-    return MMIEventHdl.RegisterStandardizedEventHandle(token, windowID, keyHandlerMap[windowID]);
+    return -1;
 }
 
 int32_t INativeTest::ListenWindowTouchEvent(int32_t windowID)
 {
     GetToken();
-    touchHandlerMap[windowID] = new INativeTestTouchEventHandler(this);
-    return MMIEventHdl.RegisterStandardizedEventHandle(token, windowID, touchHandlerMap[windowID]);
+    return -1;
 }
 
 void INativeTest::ListenWindowInputEvent(int32_t windowID)

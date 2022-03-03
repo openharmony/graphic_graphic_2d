@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -39,7 +39,7 @@ int RSLog::Output(RSLog::Level level, const char* format, ...)
     va_list args;
     va_start(args, format);
     int ret = vsprintf_s(logStr, MAX_LOG_LENGTH, format, args);
-    if (ret == -1) { // The call of vsprintf_s is failed
+    if (ret == -1) { // vsprintf_s failed
         OHOS::HiviewDFX::HiLog::Error(GenerateLabel(tag_), "print log error in vsprintf_s");
         va_end(args);
         return -1;

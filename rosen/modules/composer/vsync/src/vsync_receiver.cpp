@@ -15,6 +15,7 @@
 
 #include "vsync_receiver.h"
 #include <memory>
+#include <scoped_bytrace.h>
 #include "event_handler.h"
 #include "graphic_common.h"
 
@@ -36,6 +37,7 @@ void VSyncCallBackListener::OnReadable(int32_t fileDescriptor)
         cb = vsyncCallbacks_;
     }
     if (retVal > 0 && cb != nullptr) {
+        ScopedBytrace func("ReceiveVsync");
         cb(now, userData_);
     }
 }

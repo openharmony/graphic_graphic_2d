@@ -67,7 +67,7 @@ void DestoryNativeWindowBuffer(struct NativeWindowBuffer* buffer);
 int32_t NativeWindowRequestBuffer(struct NativeWindow *window, /* [out] */ struct NativeWindowBuffer **buffer,
     /* [out] get release fence */ int *fenceFd);
 int32_t NativeWindowFlushBuffer(struct NativeWindow *window, struct NativeWindowBuffer *buffer,
-    int fenceFd, Region region);
+    int fenceFd, struct Region region);
 int32_t NativeWindowCancelBuffer(struct NativeWindow *window, struct NativeWindowBuffer *buffer);
 
 // The meaning and quantity of parameters vary according to the code type.

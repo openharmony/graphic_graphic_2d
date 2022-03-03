@@ -1,0 +1,30 @@
+# Copyright (c) 2022 Huawei Device Co., Ltd.. All rights reserved.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/ohos.gni")
+import(
+    "//foundation/graphic/standard/rosen/modules/2d_engine/rosen_text/config.gni")
+
+## Build librosen_text.so
+config("rosen_text_config") {
+  include_dirs = [ "$rosen_2d_engine_root" ]
+}
+
+ohos_shared_library("rosen_text") {
+  public_configs = [ ":rosen_text_config" ]
+
+  public_deps = [ "ui:rosen_text_ui" ]
+
+  part_name = "graphic_standard"
+  subsystem_name = "graphic"
+}

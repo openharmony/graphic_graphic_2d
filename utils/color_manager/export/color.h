@@ -25,11 +25,11 @@ public:
     Color() {};
     Color(float r, float g, float b, float a);
     Color(float r, float g, float b, float a, const ColorSpaceName name);
-    explicit Color(int color);
-    explicit Color(int64_t color);
+    explicit Color(unsigned int color);
+    explicit Color(uint64_t color);
 
     // Packs the 3 RGBA into a color int in the specified color space.
-    int64_t PackValue() const;
+    uint64_t PackValue() const;
 
     Color Convert(ColorSpaceConvertor &convertor) const;
     Color Convert(const ColorSpace &dst) const;

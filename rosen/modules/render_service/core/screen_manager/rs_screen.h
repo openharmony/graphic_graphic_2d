@@ -149,9 +149,9 @@ private:
     std::shared_ptr<HdiOutput> hdiOutput_; // has value if the screen is physical
     std::unique_ptr<HdiScreen> hdiScreen_; // has value if the screen is physical
     std::vector<DisplayModeInfo> supportedModes_;
-    DisplayCapability capability_;
+    DisplayCapability capability_ = {"", ::DISP_INTF_HDMI, 0, 0, 0, 0, true, 0, nullptr};
     sptr<Surface> producerSurface_;  // has value if the screen is virtual
-    DispPowerStatus powerStatus_;
+    DispPowerStatus powerStatus_ = ::POWER_STATUS_ON;
 
     std::vector<ScreenColorGamut> supportedVirtualColorGamuts_ = {
         COLOR_GAMUT_SRGB,

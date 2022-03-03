@@ -28,6 +28,8 @@ namespace Rosen {
 namespace Drawing {
 class ColorMatrix {
 public:
+    // Color matrix is a 4x5 float type matrix.
+    constexpr static int MATRIX_SIZE = 20;
     ColorMatrix() noexcept
     {
         SetIdentity();
@@ -38,29 +40,29 @@ public:
     void SetIdentity()
     {
         for (size_t i = 0; i < sizeof(array_); i = i + 6) {
-            array_[i] = 1;
+            array_[i] = 1; // identity matrix, the value of the elements on the main diagonal is 1
         }
     }
 
-    void SetArray(const scalar src[20])
+    void SetArray(const scalar src[MATRIX_SIZE])
     {
         auto ret = memcpy_s(array_, sizeof(array_), src, sizeof(array_));
         if (ret != EOK) {
-            LOGE("Drawing：ColorMatrix memcpy_s failed");
+            LOGE("Drawing: ColorMatrix memcpy_s failed");
         }
     }
 
-    void GetArray(scalar dst[20]) const
+    void GetArray(scalar dst[MATRIX_SIZE]) const
     {
         auto ret = memcpy_s(dst, sizeof(array_), array_, sizeof(array_));
         if (ret != EOK) {
-            LOGE("Drawing：ColorMatrix memcpy_s failed");
+            LOGE("Drawing: ColorMatrix memcpy_s failed");
         }
     }
 
     void SetConcat(const ColorMatrix& m1, const ColorMatrix& m2)
     {
-        scalar tmp[20] = { 0 };
+        scalar tmp[MATRIX_SIZE] = { 0 };
         scalar* target;
 
         if (array_ == m1.array_ || array_ == m2.array_) {
@@ -70,8 +72,8 @@ public:
         }
 
         int index = 0;
-        for (int j = 0; j < 20; j = j + 5) {
-            for (int i = 0; i < 4; i++) {
+        for (int j = 0; j < MATRIX_SIZE; j = j + 5) {
+            for (int i = 0; i < 4; i++) { // Color matrix is a 4x5 float type matrix.
                 target[index++] = m1.array_[j + 0] * m2.array_[i + 0] + m1.array_[j + 1] * m2.array_[i + 5] +
                     m1.array_[j + 2] * m2.array_[i + 10] + m1.array_[j + 3] * m2.array_[i + 15];
             }
@@ -82,7 +84,7 @@ public:
         if (target != array_) {
             auto ret = memcpy_s(array_, sizeof(array_), target, sizeof(array_));
             if (ret != EOK) {
-                LOGE("Drawing：ColorMatrix memcpy_s failed");
+                LOGE("Drawing: ColorMatrix memcpy_s failed");
             }
         }
     }
@@ -101,17 +103,17 @@ public:
     {
         auto ret = memset_s(array_, sizeof(array_), 0, sizeof(array_));
         if (ret != EOK) {
-            LOGE("Drawing：ColorMatrix memset_s failed");
+            LOGE("Drawing: ColorMatrix memset_s failed");
             return;
         }
-        array_[0] = sr;
-        array_[6] = sg;
-        array_[12] = sb;
-        array_[18] = sa;
+        array_[0] = sr;  // red vector scale
+        array_[6] = sg;  // green vector scale
+        array_[12] = sb; // blue vector scale
+        array_[18] = sa; // alpha vetor scale
     }
 
 private:
-    scalar array_[20] = { 0 };
+    scalar array_[MATRIX_SIZE] = { 0 };
 };
 } // namespace Drawing
 } // namespace Rosen

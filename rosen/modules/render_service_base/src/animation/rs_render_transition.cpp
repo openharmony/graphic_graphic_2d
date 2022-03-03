@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -23,10 +23,10 @@
 namespace OHOS {
 namespace Rosen {
 RSRenderTransition::RSRenderTransition(
-    AnimationId id, const std::shared_ptr<const RSTransitionEffect>& effect, bool appearing)
-    : RSRenderAnimation(id)
+    AnimationId id, const std::shared_ptr<const RSTransitionEffect>& effect, bool isTransitionIn)
+    : RSRenderAnimation(id), isTransitionIn_(isTransitionIn)
 {
-    if (appearing) {
+    if (isTransitionIn) {
         effects_ = effect->GetTransitionInEffects();
     } else {
         effects_ = effect->GetTransitionOutEffects();
@@ -40,7 +40,9 @@ bool RSRenderTransition::Marshalling(Parcel& parcel) const
         ROSEN_LOGE("RSRenderTransition::Marshalling, step1 failed");
         return false;
     }
-    if (!RSMarshallingHelper::Marshalling(parcel, effects_) || !interpolator_->Marshalling(parcel)) {
+    if (!RSMarshallingHelper::Marshalling(parcel, effects_) ||
+        !RSMarshallingHelper::Marshalling(parcel, isTransitionIn_) ||
+        !interpolator_->Marshalling(parcel)) {
         ROSEN_LOGE("RSRenderTransition::Marshalling, step2 failed");
         return false;
     }
@@ -65,7 +67,11 @@ bool RSRenderTransition::ParseParam(Parcel& parcel)
         return false;
     }
     if (!RSMarshallingHelper::Unmarshalling(parcel, effects_)) {
-        ROSEN_LOGE("RSRenderTransition::ParseParam, effect is failed");
+        ROSEN_LOGE("RSRenderTransition::ParseParam, effect failed");
+        return false;
+    }
+    if (!RSMarshallingHelper::Unmarshalling(parcel, isTransitionIn_)) {
+        ROSEN_LOGE("RSRenderTransition::ParseParam, transition direction failed");
         return false;
     }
     std::shared_ptr<RSInterpolator> interpolator(RSInterpolator::Unmarshalling(parcel));
@@ -80,6 +86,9 @@ bool RSRenderTransition::ParseParam(Parcel& parcel)
 void RSRenderTransition::OnAnimate(float fraction)
 {
     currentFraction_ = interpolator_->Interpolate(fraction);
+    if (isTransitionIn_) {
+        currentFraction_ = 1 - currentFraction_;
+    }
     auto target = GetTarget();
     if (target == nullptr) {
         ROSEN_LOGE("RSRenderTransition::OnAnimate, target is nullptr");

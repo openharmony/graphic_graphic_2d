@@ -371,7 +371,10 @@ void PictureOpItem::Draw(RSPaintFilterCanvas& canvas, const SkRect*) const
 PointsOpItem::PointsOpItem(SkCanvas::PointMode mode, int count, const SkPoint processedPoints[], const SkPaint& paint)
     : OpItemWithPaint(sizeof(PointsOpItem)), mode_(mode), count_(count), processedPoints_(new SkPoint[count])
 {
-    memcpy_s(processedPoints_, count * sizeof(SkPoint), processedPoints, count * sizeof(SkPoint));
+    errno_t ret = memcpy_s(processedPoints_, count * sizeof(SkPoint), processedPoints, count * sizeof(SkPoint));
+    if (ret != EOK) {
+        ROSEN_LOGE("PointsOpItem: memcpy failed!");
+    }
     paint_ = paint;
 }
 
@@ -385,7 +388,10 @@ VerticesOpItem::VerticesOpItem(const SkVertices* vertices, const SkVertices::Bon
     : OpItemWithPaint(sizeof(VerticesOpItem)), vertices_(sk_ref_sp(const_cast<SkVertices*>(vertices))),
       bones_(new SkVertices::Bone[boneCount]), boneCount_(boneCount), mode_(mode)
 {
-    memcpy_s(bones_, boneCount * sizeof(SkVertices::Bone), bones, boneCount * sizeof(SkVertices::Bone));
+    errno_t ret = memcpy_s(bones_, boneCount * sizeof(SkVertices::Bone), bones, boneCount * sizeof(SkVertices::Bone));
+    if (ret != EOK) {
+        ROSEN_LOGE("VerticesOpItem: memcpy failed!");
+    }
     paint_ = paint;
 }
 

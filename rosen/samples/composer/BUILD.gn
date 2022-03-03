@@ -29,8 +29,8 @@ config("hello_composer_public_config") {
     "//foundation/graphic/standard/rosen/modules/composer/hdi_backend/include",
     "//drivers/peripheral/display/interfaces/include",
     "//foundation/graphic/standard/rosen/include/common",
-    "//foundation/graphic/standard/interfaces/innerkits/vsync_module",
     "//foundation/graphic/standard/rosen/modules/composer/vsync/include",
+    "//foundation/graphic/standard/interfaces/innerkits/composer",
   ]
 }
 
@@ -50,7 +50,6 @@ ohos_executable("hello_composer") {
   deps = [
     "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
     "//foundation/graphic/standard:libsurface",
-    "//foundation/graphic/standard:libvsync_client",
     "//foundation/graphic/standard/rosen/modules/composer:libcomposer",
     "//foundation/graphic/standard/utils:libgraphic_utils",
     "//foundation/graphic/standard/utils:sync_fence",

@@ -24,7 +24,6 @@
 
 namespace OHOS {
 namespace {
-constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, 0, "EglManager" };
 constexpr int32_t EGL_CONTEXT_CLIENT_VERSION_NUM = 2;
 constexpr char CHARACTER_WHITESPACE = ' ';
 constexpr const char *CHARACTER_STRING_WHITESPACE = " ";
@@ -173,7 +172,7 @@ GSError EglManager::EglCheckExt()
         conf_ = EGL_NO_CONFIG_KHR;
     } else {
         BLOGW("EGL_KHR_no_config_context not supported");
-        EGLint ret, count;
+        EGLint count;
         EGLint config_attribs[] = {
             EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
             EGL_RED_SIZE, 1,
@@ -183,7 +182,7 @@ GSError EglManager::EglCheckExt()
             EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT,
             EGL_NONE
         };
-        ret = eglChooseConfig(display_, config_attribs, &conf_, 1, &count);
+        EGLBoolean ret = eglChooseConfig(display_, config_attribs, &conf_, 1, &count);
         if (!(ret && count >= 1)) {
             BLOGE("Failed to eglChooseConfig");
             return GSERROR_INTERNEL;

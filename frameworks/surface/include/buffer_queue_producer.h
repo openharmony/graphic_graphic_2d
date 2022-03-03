@@ -49,16 +49,16 @@ public:
 
     GSError DetachBuffer(sptr<SurfaceBuffer>& buffer) override;
 
-    uint32_t     GetQueueSize() override;
+    uint32_t GetQueueSize() override;
     GSError SetQueueSize(uint32_t queueSize) override;
 
     GSError GetName(std::string &name) override;
 
-    int32_t      GetDefaultWidth() override;
-    int32_t      GetDefaultHeight() override;
-    uint32_t     GetDefaultUsage() override;
+    int32_t GetDefaultWidth() override;
+    int32_t GetDefaultHeight() override;
+    uint32_t GetDefaultUsage() override;
 
-    uint64_t     GetUniqueId() override;
+    uint64_t GetUniqueId() override;
 
     GSError CleanCache() override;
 

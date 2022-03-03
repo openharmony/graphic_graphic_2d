@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -1101,22 +1101,24 @@ std::string RSProperties::Dump() const
         dumpInfo.append(buffer);
     }
 
-    // IsClipToBounds
-    if (GetClipToBounds()) {
-        dumpInfo.append(", IsClipToBounds[true]");
-    }
-
-    // IsClipToFrame
-    if (GetClipToFrame()) {
-        dumpInfo.append(", IsClipToFrame[true]");
-    }
-
     // IsVisible
     if (!GetVisible()) {
         dumpInfo.append(", IsVisible[false]");
     }
 
     return dumpInfo;
+}
+
+// mask properties
+void RSProperties::SetMask(std::shared_ptr<RSMask> mask)
+{
+    mask_ = mask;
+    SetDirty();
+}
+
+std::shared_ptr<RSMask> RSProperties::GetMask() const
+{
+    return mask_;
 }
 } // namespace Rosen
 } // namespace OHOS

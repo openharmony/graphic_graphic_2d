@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -26,6 +26,7 @@
 #include "pipeline/rs_recording_canvas.h"
 #include "property/rs_properties.h"
 #include "render/rs_path.h"
+#include "render/rs_mask.h"
 #include "ui/rs_base_node.h"
 
 class SkCanvas;
@@ -57,7 +58,7 @@ public:
         float fraction, const RSAnimationTimingCurve& timingCurve, const PropertyCallback& callback);
     static void AddKeyFrame(float fraction, const PropertyCallback& callback);
 
-    void NotifyTransition(const std::shared_ptr<const RSTransitionEffect>& effect, bool appearing);
+    void NotifyTransition(const std::shared_ptr<const RSTransitionEffect>& effect, bool isTransitionIn);
 
     void AddAnimation(const std::shared_ptr<RSAnimation>& animation);
     void RemoveAllAnimations();
@@ -157,6 +158,7 @@ public:
 
     void SetVisible(bool visible);
     void SetPaintOrder(bool drawContentLast);
+    void SetMask(std::shared_ptr<RSMask> mask);
 
     void SetTransitionEffect(const std::shared_ptr<const RSTransitionEffect>& effect)
     {

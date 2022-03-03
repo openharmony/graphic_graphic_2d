@@ -15,16 +15,10 @@
 
 #include "consumer_surface.h"
 
-#include <vector>
-
 #include "buffer_log.h"
 #include "buffer_queue_producer.h"
 
 namespace OHOS {
-namespace {
-static constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, 0, "ConsumerSurface" };
-}
-
 ConsumerSurface::ConsumerSurface(const std::string &name, bool isShared)
     : name_(name), isShared_(isShared)
 {

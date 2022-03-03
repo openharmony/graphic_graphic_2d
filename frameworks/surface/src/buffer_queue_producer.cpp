@@ -25,10 +25,6 @@
 #include "buffer_utils.h"
 
 namespace OHOS {
-namespace {
-constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, 0, "BufferQueueProducer" };
-}
-
 BufferQueueProducer::BufferQueueProducer(sptr<BufferQueue>& bufferQueue)
 {
     bufferQueue_ = bufferQueue;

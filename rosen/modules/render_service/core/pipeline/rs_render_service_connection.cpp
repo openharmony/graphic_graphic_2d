@@ -129,8 +129,13 @@ void RSRenderServiceConnection::CleanAll(bool toDelete) noexcept
         CleanRenderNodes();
     }).wait();
 
+    for (auto& conn : vsyncConnections_) {
+        appVSyncDistributor_->RemoveConnection(conn);
+    }
+
     {
         std::lock_guard<std::mutex> lock(mutex_);
+        vsyncConnections_.clear();
         cleanDone_ = true;
     }
 
@@ -142,7 +147,6 @@ void RSRenderServiceConnection::CleanAll(bool toDelete) noexcept
             renderService->RemoveConnection(GetToken());
         }
     }
-    appVSyncDistributor_->RemoveConnection(conn_);
 
     ROSEN_LOGD("RSRenderServiceConnection::CleanAll() end.");
 }
@@ -228,6 +232,10 @@ sptr<Surface> RSRenderServiceConnection::CreateNodeAndSurface(const RSSurfaceRen
         ROSEN_LOGE("RSRenderService::CreateNodeAndSurface get consumer surface fail");
         return nullptr;
     }
+    std::string surfaceName;
+    surface->GetName(surfaceName);
+    ROSEN_LOGE("RsDebug RSRenderService::CreateNodeAndSurface node id:%llu name:%s surface id:%llu name:%s",
+        node->GetId(), node->GetName().c_str(), surface->GetUniqueId(), surfaceName.c_str());
     node->SetConsumer(surface);
     std::function<void()> registerNode = [node, this]() -> void {
         this->mainThread_->GetContext().GetMutableNodeMap().RegisterRenderNode(node);
@@ -243,11 +251,15 @@ sptr<Surface> RSRenderServiceConnection::CreateNodeAndSurface(const RSSurfaceRen
     return surface;
 }
 
+
 sptr<IVSyncConnection> RSRenderServiceConnection::CreateVSyncConnection(const std::string& name)
 {
     sptr<VSyncConnection> conn = new VSyncConnection(appVSyncDistributor_, name);
-    conn_ = conn;
     appVSyncDistributor_->AddConnection(conn);
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        vsyncConnections_.push_back(conn);
+    }
     return conn;
 }
 
@@ -318,12 +330,13 @@ void RSRenderServiceConnection::SetScreenPowerStatus(ScreenId id, ScreenPowerSta
     }).wait();
 }
 
-void RSRenderServiceConnection::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback)
+void RSRenderServiceConnection::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback,
+    float scaleX, float scaleY)
 {
-    std::function<void()> captureTask = [callback, id]() -> void {
+    std::function<void()> captureTask = [scaleY, scaleX, callback, id]() -> void {
         ROSEN_LOGD("RSRenderService::TakeSurfaceCapture callback->OnSurfaceCapture nodeId:[%llu]", id);
         ROSEN_TRACE_BEGIN(BYTRACE_TAG_GRAPHIC_AGP, "RSRenderService::TakeSurfaceCapture");
-        RSSurfaceCaptureTask task(id);
+        RSSurfaceCaptureTask task(id, scaleX, scaleY);
         std::unique_ptr<Media::PixelMap> pixelmap = task.Run();
         callback->OnSurfaceCapture(id, pixelmap.get());
         ROSEN_TRACE_END(BYTRACE_TAG_GRAPHIC_AGP);

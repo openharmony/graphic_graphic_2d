@@ -120,12 +120,10 @@ public:
 #ifdef ROSEN_OHOS
     bool Marshalling(Parcel& parcel) const override
     {
-        bool success = true;
-        success &= RSMarshallingHelper::Marshalling(parcel, commandType);
-        success &= RSMarshallingHelper::Marshalling(parcel, commandSubType);
-        success &= RSMarshallingHelper::Marshalling(parcel, parameter1_);
-        success &= RSMarshallingHelper::Marshalling(parcel, parameter2_);
-        return success;
+        return RSMarshallingHelper::Marshalling(parcel, commandType) &&
+            RSMarshallingHelper::Marshalling(parcel, commandSubType) &&
+            RSMarshallingHelper::Marshalling(parcel, parameter1_) &&
+            RSMarshallingHelper::Marshalling(parcel, parameter2_);
     }
 
     static RSCommand* Unmarshalling(Parcel& parcel)

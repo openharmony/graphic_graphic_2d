@@ -16,6 +16,7 @@ group("unittest") {
 
   deps = [
     "render_service/unittest/pipeline:unittest",
+    "render_service_base/unittest/render:unittest",
     "render_service_client/unittest/transaction:unittest",
     "render_service_client/unittest/ui:unittest",
   ]

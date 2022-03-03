@@ -22,14 +22,12 @@
 
 #include <promise.h>
 #include <raw_parser.h>
-#include <touch_event_handler.h>
 #include <vsync_helper.h>
 #include <window_manager.h>
 #include <window_manager_service_client.h>
 
 #include "animation_service_stub.h"
 #include "animation_module.h"
-#include "cursor_module.h"
 
 namespace OHOS {
 class AnimationServer : public AnimationServiceStub {
@@ -43,7 +41,6 @@ public:
     GSError CancelLaunchPage() override;
 
     void OnSplitStatusChange(SplitStatus status);
-    bool OnTouch(const TouchEvent &event);
 
 private:
     void SplitWindowUpdate();
@@ -57,30 +54,10 @@ private:
     sptr<Window> splitWindow = nullptr;
     bool haveMiddleLine = false;
     bool midlineDown = false;
-    int32_t midlineYBackup = -100;
     int32_t midlineY = -100;
-    int32_t downX = 0;
-    int32_t downY = 0;
     sptr<Window> launchPageWindow = nullptr;
     RawParser resource;
-
-    class TouchEventHandler : public MMI::TouchEventHandler {
-    public:
-        explicit TouchEventHandler(AnimationServer *server) : server_(server)
-        {
-        }
-
-        virtual bool OnTouch(const TouchEvent &event) override
-        {
-            return server_->OnTouch(event);
-        }
-
-    private:
-        AnimationServer *server_ = nullptr;
-    };
-    sptr<TouchEventHandler> thandler = nullptr;
     sptr<IRemoteObject> token = new IPCObjectStub(u"animation_server");
-    CursorModule cursorModule;
 };
 } // namespace OHOS
 

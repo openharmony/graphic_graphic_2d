@@ -114,7 +114,7 @@ void BootAnimation::Init(int32_t width, int32_t height, const std::shared_ptr<Ap
 void BootAnimation::InitBootWindow()
 {
     sptr<OHOS::Rosen::WindowOption> option = new OHOS::Rosen::WindowOption();
-    option->SetWindowType(OHOS::Rosen::WindowType::SYSTEM_WINDOW_END);
+    option->SetWindowType(OHOS::Rosen::WindowType::WINDOW_TYPE_BOOT_ANIMATION);
     option->RemoveWindowFlag(OHOS::Rosen::WindowFlag::WINDOW_FLAG_NEED_AVOID);
     option->SetWindowRect({0, 0, windowWidth_, windowHeight_} );
     int displayId = 0;

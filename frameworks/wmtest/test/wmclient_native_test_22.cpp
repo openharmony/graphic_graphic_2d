@@ -54,33 +54,6 @@ public:
         return AutoLoadService::WindowManager;
     }
 
-    bool OnTouch(const TouchEvent &event) override
-    {
-        int32_t x = event.GetPointerPosition(event.GetIndex()).GetX();
-        int32_t y = event.GetPointerPosition(event.GetIndex()).GetY();
-        if (event.GetAction() == TouchEnum::PRIMARY_POINT_DOWN) {
-            if (event.GetWindowID() == window2->GetID()) {
-                OnWin2TouchDown(x, y);
-            } else if (event.GetWindowID() == window3->GetID()) {
-                OnWin3TouchDown(x, y);
-            }
-        }
-
-        if (event.GetAction() == TouchEnum::POINT_MOVE) {
-            if (event.GetWindowID() == window1->GetID()) {
-                OnWin1TouchMotion(x, y);
-            }
-        }
-
-        if (event.GetAction() == TouchEnum::PRIMARY_POINT_UP) {
-            if (event.GetWindowID() == window1->GetID()) {
-                OnWin1TouchUp();
-            }
-        }
-
-        return false;
-    }
-
     void OnWin1TouchMotion(double x, double y)
     {
         percent = x / maxWidth;

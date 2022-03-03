@@ -428,11 +428,12 @@ HWTEST_F(BufferQueueTest, RequestBuffer002, Function | MediumTest | Level2)
 {
     IBufferProducer::RequestBufferReturnValue retval;
     BufferRequestConfig config = requestConfig;
-    config.width = SURFACE_MAX_WIDTH + 1;
+    config.height = -1;
 
     GSError ret = bq->RequestBuffer(config, bedata, retval);
     ASSERT_EQ(ret, OHOS::GSERROR_INVALID_ARGUMENTS);
 }
+
 
 /*
 * Function: RequestBuffer
@@ -444,44 +445,6 @@ HWTEST_F(BufferQueueTest, RequestBuffer002, Function | MediumTest | Level2)
 *                  3. check ret
  */
 HWTEST_F(BufferQueueTest, RequestBuffer003, Function | MediumTest | Level2)
-{
-    IBufferProducer::RequestBufferReturnValue retval;
-    BufferRequestConfig config = requestConfig;
-    config.height = -1;
-
-    GSError ret = bq->RequestBuffer(config, bedata, retval);
-    ASSERT_EQ(ret, OHOS::GSERROR_INVALID_ARGUMENTS);
-}
-
-/*
-* Function: RequestBuffer
-* Type: Function
-* Rank: Important(2)
-* EnvConditions: N/A
-* CaseDescription: 1. set BufferRequestConfig with abnormal value
-*                  2. call RequestBuffer
-*                  3. check ret
- */
-HWTEST_F(BufferQueueTest, RequestBuffer004, Function | MediumTest | Level2)
-{
-    IBufferProducer::RequestBufferReturnValue retval;
-    BufferRequestConfig config = requestConfig;
-    config.height = SURFACE_MAX_HEIGHT + 1;
-
-    GSError ret = bq->RequestBuffer(config, bedata, retval);
-    ASSERT_EQ(ret, OHOS::GSERROR_INVALID_ARGUMENTS);
-}
-
-/*
-* Function: RequestBuffer
-* Type: Function
-* Rank: Important(2)
-* EnvConditions: N/A
-* CaseDescription: 1. set BufferRequestConfig with abnormal value
-*                  2. call RequestBuffer
-*                  3. check ret
- */
-HWTEST_F(BufferQueueTest, RequestBuffer005, Function | MediumTest | Level2)
 {
     IBufferProducer::RequestBufferReturnValue retval;
     BufferRequestConfig config = requestConfig;
@@ -500,7 +463,7 @@ HWTEST_F(BufferQueueTest, RequestBuffer005, Function | MediumTest | Level2)
 *                  2. call RequestBuffer
 *                  3. check ret
  */
-HWTEST_F(BufferQueueTest, RequestBuffer006, Function | MediumTest | Level2)
+HWTEST_F(BufferQueueTest, RequestBuffer004, Function | MediumTest | Level2)
 {
     IBufferProducer::RequestBufferReturnValue retval;
     BufferRequestConfig config = requestConfig;
@@ -519,7 +482,7 @@ HWTEST_F(BufferQueueTest, RequestBuffer006, Function | MediumTest | Level2)
 *                  2. call RequestBuffer
 *                  3. check ret
  */
-HWTEST_F(BufferQueueTest, RequestBuffer007, Function | MediumTest | Level2)
+HWTEST_F(BufferQueueTest, RequestBuffer005, Function | MediumTest | Level2)
 {
     IBufferProducer::RequestBufferReturnValue retval;
     BufferRequestConfig config = requestConfig;
@@ -538,7 +501,7 @@ HWTEST_F(BufferQueueTest, RequestBuffer007, Function | MediumTest | Level2)
 *                  2. call RequestBuffer
 *                  3. check ret
  */
-HWTEST_F(BufferQueueTest, RequestBuffer008, Function | MediumTest | Level2)
+HWTEST_F(BufferQueueTest, RequestBuffer006, Function | MediumTest | Level2)
 {
     IBufferProducer::RequestBufferReturnValue retval;
     BufferRequestConfig config = requestConfig;
@@ -557,7 +520,7 @@ HWTEST_F(BufferQueueTest, RequestBuffer008, Function | MediumTest | Level2)
 *                  2. call RequestBuffer
 *                  3. check ret
  */
-HWTEST_F(BufferQueueTest, RequestBuffer009, Function | MediumTest | Level2)
+HWTEST_F(BufferQueueTest, RequestBuffer007, Function | MediumTest | Level2)
 {
     IBufferProducer::RequestBufferReturnValue retval;
     BufferRequestConfig config = requestConfig;

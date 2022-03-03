@@ -77,10 +77,6 @@ public:
     {
         return GSERROR_NOT_SUPPORT;
     }
-
-    // listener
-    virtual GSError OnTouch(OnTouchFunc cb) = 0;
-    virtual GSError OnKey(OnKeyFunc cb) = 0;
 };
 } // namespace OHOS
 

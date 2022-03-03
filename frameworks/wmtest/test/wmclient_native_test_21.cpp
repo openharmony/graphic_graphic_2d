@@ -207,26 +207,6 @@ public:
         return -1;
     }
 
-    bool OnKey(const KeyEvent &event) override
-    {
-        GSLOG7SO(DEBUG) << "[" << event.GetKeyCode() << "]";
-        if (event.IsKeyDown() ==  true && event.GetKeyCode() == KeyEventEnum::KEY_BACK) {
-            IPCClientSendMessage(0, "quit");
-            ExitTest();
-            return false;
-        }
-        return true;
-    }
-
-    bool OnTouch(const TouchEvent &event) override
-    {
-        if (event.GetAction() == TouchEnum::PRIMARY_POINT_DOWN) {
-            window->SwitchTop();
-            return true;
-        }
-        return false;
-    }
-
 private:
     sptr<Window> window = nullptr;
     sptr<Subwindow> subwindow = nullptr;

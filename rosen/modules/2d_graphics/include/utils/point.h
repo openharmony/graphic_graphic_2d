@@ -108,6 +108,9 @@ inline PointF& PointF::operator*=(scalar scale)
 
 inline PointF& PointF::operator/=(scalar divisor)
 {
+    if (divisor == 0) {
+        return *this;
+    }
     x_ /= divisor;
     y_ /= divisor;
     return *this;
@@ -234,13 +237,16 @@ inline PointI& PointI::operator-=(const PointI& p)
 
 inline PointI& PointI::operator*=(scalar scale)
 {
-    x_ = static_cast<int>(x_ * scale);
-    y_ = static_cast<int>(y_ * scale);
+    x_ = static_cast<int64_t>(x_ * scale);
+    y_ = static_cast<int64_t>(y_ * scale);
     return *this;
 }
 
 inline PointI& PointI::operator/=(scalar divisor)
 {
+    if (divisor == 0) {
+        return *this;
+    }
     x_ = static_cast<int>(x_ / divisor);
     y_ = static_cast<int>(y_ / divisor);
     return *this;
@@ -258,16 +264,19 @@ inline const PointI operator-(const PointI& p1, const PointI& p2)
 
 inline const PointI operator*(scalar scale, const PointI& p)
 {
-    return PointI(static_cast<int>(scale * p.x_), static_cast<int>(scale * p.y_));
+    return PointI(static_cast<int64_t>(scale * p.x_), static_cast<int64_t>(scale * p.y_));
 }
 
 inline const PointI operator*(const PointI& p, scalar scale)
 {
-    return PointI(static_cast<int>(p.x_ * scale), static_cast<int>(p.y_ * scale));
+    return PointI(static_cast<int64_t>(p.x_ * scale), static_cast<int64_t>(p.y_ * scale));
 }
 
 inline const PointI operator/(const PointI& p, scalar divisor)
 {
+    if (divisor == 0) {
+        return PointI(p.x_, p.y_);
+    }
     return PointI(static_cast<int>(p.x_ / divisor), static_cast<int>(p.y_ / divisor));
 }
 

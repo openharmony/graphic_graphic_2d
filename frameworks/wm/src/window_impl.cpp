@@ -487,18 +487,6 @@ void WindowImpl::OnBeforeFrameSubmit(BeforeFrameSubmitFunc func)
     onBeforeFrameSubmitFunc = func;
 }
 
-GSError WindowImpl::OnTouch(OnTouchFunc cb)
-{
-    CHECK_DESTROY(GSERROR_DESTROYED_OBJECT);
-    return GSERROR_OK;
-}
-
-GSError WindowImpl::OnKey(OnKeyFunc cb)
-{
-    CHECK_DESTROY(GSERROR_DESTROYED_OBJECT);
-    return GSERROR_OK;
-}
-
 void WindowImpl::OnWlBufferRelease(struct wl_buffer *wbuffer, int32_t fence)
 {
     ScopedBytrace bytrace("OnWlBufferRelease");

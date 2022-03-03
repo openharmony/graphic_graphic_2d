@@ -79,8 +79,6 @@ public:
     int32_t GetMaxWidth();
     int32_t GetMaxHeight();
     void ChangeWindowType(int32_t id, WindowType type);
-    void RegistOnTouchCb(int id, funcOnTouch cb);
-    void RegistOnKeyCb(int id, funcOnKey cb);
     void RegistWindowInfoChangeCb(int id, funcWindowInfoChange cb);
     void RegistOnWindowCreateCb(int32_t id, void(* cb)(uint32_t pid));
     void SendWindowCreate(uint32_t pid);

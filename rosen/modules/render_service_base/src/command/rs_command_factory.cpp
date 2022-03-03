@@ -25,6 +25,7 @@
 #include "command/rs_canvas_node_command.h"
 #include "command/rs_display_node_command.h"
 #include "command/rs_node_command.h"
+#include "command/rs_root_node_command.h"
 #include "command/rs_surface_node_command.h"
 // animation
 #include "command/rs_animation_command.h"
@@ -53,7 +54,8 @@ void RSCommandFactory::Register(uint16_t type, uint16_t subtype, UnmarshallingFu
 {
     auto result = unmarshallingFuncLUT_.try_emplace(MakeKey(type, subtype), func);
     if (!result.second) {
-        ROSEN_LOGE("RSCommandFactory::Register, Duplicate command & sub_command detected! type: %d subtype: %d", type, subtype);
+        ROSEN_LOGE("RSCommandFactory::Register, Duplicate command & sub_command detected! type: %d subtype: %d", type,
+            subtype);
     }
 }
 

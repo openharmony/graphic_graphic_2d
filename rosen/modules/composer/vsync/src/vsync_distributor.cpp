@@ -17,6 +17,7 @@
 #include <chrono>
 #include <condition_variable>
 #include <algorithm>
+#include <scoped_bytrace.h>
 #include "vsync_log.h"
 
 namespace OHOS {
@@ -75,10 +76,11 @@ VsyncError VSyncConnection::SetVSyncRate(int32_t rate)
 
 VSyncDistributor::VSyncDistributor(sptr<VSyncController> controller, std::string name)
     : controller_(controller), mutex_(), con_(), connections_(),
-    vsyncEnabled_(false), name_(name), vsyncThreadRunning_(false)
+    vsyncEnabled_(false), name_(name)
 {
     event_.timestamp = 0;
     event_.vsyncCount = 0;
+    vsyncThreadRunning_ = true;
     threadLoop_ = std::thread(std::bind(&VSyncDistributor::ThreadMain, this));
 }
 
@@ -97,6 +99,10 @@ VsyncError VSyncDistributor::AddConnection(const sptr<VSyncConnection>& connecti
         return VSYNC_ERROR_NULLPTR;
     }
     std::lock_guard<std::mutex> locker(mutex_);
+    auto it = find(connections_.begin(), connections_.end(), connection);
+    if (it != connections_.end()) {
+        return VSYNC_ERROR_INVALID_ARGUMENTS;
+    }
     connections_.push_back(connection);
     return VSYNC_ERROR_OK;
 }
@@ -117,7 +123,6 @@ VsyncError VSyncDistributor::RemoveConnection(const sptr<VSyncConnection>& conne
 
 void VSyncDistributor::ThreadMain()
 {
-    vsyncThreadRunning_ = true;
     int64_t timestamp;
     int64_t vsyncCount;
     while (vsyncThreadRunning_ == true) {
@@ -149,7 +154,7 @@ void VSyncDistributor::ThreadMain()
             if (timestamp == 0) {
                 // there is some connections request next vsync, enable vsync if vsync disable and
                 // and start the software vsync with wait_for function
-                if (waitForVSync == true) {
+                if (waitForVSync == true && vsyncEnabled_ == false) {
                     EnableVSync();
                     if (con_.wait_for(locker, std::chrono::milliseconds(SOFT_VSYNC_PERIOD)) ==
                         std::cv_status::timeout) {
@@ -169,7 +174,7 @@ void VSyncDistributor::ThreadMain()
                 continue;
             }
         }
-
+        ScopedBytrace func(name_ + "_SendVsync");
         for (uint32_t i = 0; i < conns.size(); i++) {
             int32_t ret = conns[i]->PostEvent(timestamp);
             VLOGI("Distributor name:%{public}s, connection name:%{public}s, ret:%{public}d",
@@ -215,6 +220,7 @@ VsyncError VSyncDistributor::RequestNextVSync(const sptr<VSyncConnection>& conne
         VLOGE("connection is nullptr");
         return VSYNC_ERROR_NULLPTR;
     }
+    ScopedBytrace func(connection->GetName() + "_RequestNextVSync");
     std::lock_guard<std::mutex> locker(mutex_);
     auto it = find(connections_.begin(), connections_.end(), connection);
     if (it == connections_.end()) {

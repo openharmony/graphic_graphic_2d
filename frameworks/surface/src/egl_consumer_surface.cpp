@@ -15,34 +15,28 @@
 
 #include "egl_consumer_surface.h"
 
-#include <gslogger.h>
-#include <vector>
+#include "buffer_log.h"
 
 #include "buffer_queue_producer.h"
 #include "egl_data_impl.h"
 #include "egl_manager.h"
-
 namespace OHOS {
-namespace {
-DEFINE_HILOG_LABEL("EglConsumerSurface");
-} // namespace
-
 EglConsumerSurface::EglConsumerSurface(const std::string &name, bool isShared)
     : ConsumerSurface(name, isShared)
 {
-    GSLOG2HI(DEBUG) << "ctor";
+    BLOGD("ctor");
 }
 
 EglConsumerSurface::~EglConsumerSurface()
 {
-    GSLOG2HI(DEBUG) << "dtor";
+    BLOGD("dtor");
 }
 
 GSError EglConsumerSurface::Init()
 {
     auto ret = ConsumerSurface::Init();
     if (ret) {
-        GSLOG2HI(ERROR) << "ConsumerSurface::Init failed with " << ret;
+        BLOGE("ConsumerSurface::Init failed with %{public}d", ret);
         return ret;
     }
 
@@ -62,7 +56,7 @@ GSError EglConsumerSurface::AcquireBuffer(sptr<SurfaceBuffer>& buffer, int32_t &
         auto eglDataImpl = new EglDataImpl();
         auto ret = eglDataImpl->CreateEglData(buffer);
         if (ret) {
-            GSLOG2HI(ERROR) << "EglDataImpl::CreateEglData failed with " << ret;
+            BLOGE("EglDataImpl::CreateEglData failed with %{public}d", ret);
             return GSERROR_INTERNEL;
         } else {
             eglData = eglDataImpl;

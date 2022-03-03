@@ -23,10 +23,6 @@
 #include "buffer_log.h"
 
 namespace OHOS {
-namespace {
-constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, 0, "SurfaceBufferImpl" };
-}
-
 SurfaceBufferImpl::SurfaceBufferImpl()
 {
     {

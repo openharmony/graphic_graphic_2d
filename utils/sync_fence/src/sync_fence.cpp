@@ -72,9 +72,8 @@ sptr<SyncFence> SyncFence::MergeFence(const std::string &name,
     }
 
     if (newFenceFd == INVALID_FD) {
-        int32_t err = -errno;
         HiLog::Error(LABEL, "sync_merge(%{public}s) failed, error: %{public}s (%{public}d)",
-                     name.c_str(), strerror(-err), err);
+                     name.c_str(), strerror(errno), errno);
         return INVALID_FENCE;
     }
 

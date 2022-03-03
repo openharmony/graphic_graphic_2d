@@ -99,27 +99,6 @@ public:
         ListenWindowTouchEvent(freeWindow->GetID());
     }
 
-    bool OnTouch(const TouchEvent &event) override
-    {
-        int32_t x = event.GetPointerPosition(event.GetIndex()).GetX();
-        int32_t y = event.GetPointerPosition(event.GetIndex()).GetY();
-        if (event.GetAction() == TouchEnum::PRIMARY_POINT_DOWN) {
-            downX = x;
-            downY = y;
-            backupX = freeWindow->GetX();
-            backupY = freeWindow->GetY();
-            return false;
-        }
-
-        if (event.GetAction() == TouchEnum::POINT_MOVE) {
-            freeWindow->Move(backupX + x - downX, backupY + y - downY)
-                ->Then(std::bind(&WMClientNativeTest27::OnMoveReturn, this, std::placeholders::_1));
-            return false;
-        }
-
-        return true;
-    }
-
     void OnMoveReturn(const GSError &err)
     {
         if (err != GSERROR_OK) {
@@ -133,9 +112,5 @@ private:
     sptr<Window> freeWindow = nullptr;
     sptr<NativeTestSync> freeWindowSync = nullptr;
     BufferRequestConfig config = {};
-    double downX = 0;
-    double downY = 0;
-    double backupX = 0;
-    double backupY = 0;
 } g_autoload;
 } // namespace

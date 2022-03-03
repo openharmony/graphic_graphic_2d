@@ -131,16 +131,8 @@ struct WindowInfo {
 };
 
 #ifdef __cplusplus
-class TouchEvent;
-class KeyEvent;
 
 using funcWindowInfoChange = std::function<void(WindowInfo &info)>;
-
-using funcOnKey = std::function<bool(KeyEvent)>;
-using funcOnTouch = std::function<bool(TouchEvent)>;
-
-using OnKeyFunc = std::function<bool(KeyEvent)>;
-using OnTouchFunc = std::function<bool(TouchEvent)>;
 using WindowPositionChangeFunc   = std::function<void(int32_t x, int32_t y)>;
 using WindowSizeChangeFunc       = std::function<void(uint32_t width, uint32_t height)>;
 using WindowVisibilityChangeFunc = std::function<void(bool visibility)>;

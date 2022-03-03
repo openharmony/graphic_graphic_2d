@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -24,6 +24,7 @@
 #include "include/core/SkRRect.h"
 #include "include/effects/Sk1DPathEffect.h"
 #include "include/effects/SkDashPathEffect.h"
+#include "include/effects/SkLumaColorFilter.h"
 #include "include/utils/SkShadowUtils.h"
 #include "pipeline/rs_draw_cmd_list.h"
 #include "pipeline/rs_paint_filter_canvas.h"
@@ -33,6 +34,7 @@
 #include "render/rs_image.h"
 #include "render/rs_path.h"
 #include "render/rs_shader.h"
+#include "render/rs_mask.h"
 #include "render/rs_skia_filter.h"
 
 namespace OHOS {
@@ -222,7 +224,7 @@ void RSPropertiesPainter::DrawBackground(const RSProperties& properties, SkCanva
     if (properties.GetClipBounds() != nullptr) {
         canvas.clipPath(properties.GetClipBounds()->GetSkiaPath(), true);
     } else if (properties.GetClipToBounds()) {
-        canvas.clipRect(Rect2SkRect(properties.GetBoundsRect()), true);
+        canvas.clipRRect(RRect2SkRRect(properties.GetRRect()), true);
     }
     // paint backgroundColor
     if (filter != nullptr) {
@@ -358,5 +360,50 @@ void RSPropertiesPainter::DrawTransitionProperties(const std::unique_ptr<RSTrans
     canvas.translate(-center.x_, -center.y_);
 }
 
+void RSPropertiesPainter::DrawMask(const RSProperties& properties, SkCanvas& canvas)
+{
+    std::shared_ptr<RSMask> mask = properties.GetMask();
+    if (mask == nullptr) {
+        ROSEN_LOGD("RSPropertiesPainter::DrawMask not has mask property");
+        return;
+    }
+    if (mask->IsSvgMask() && !mask->GetSvgDom()) {
+        ROSEN_LOGD("RSPropertiesPainter::DrawMask not has Svg Mask property");
+        return;
+    }
+
+    SkAutoCanvasRestore save(&canvas, true);
+    SkRect maskBounds = Rect2SkRect(properties.GetBoundsRect());
+    canvas.saveLayer(maskBounds, nullptr);
+    int tmpLayer = canvas.getSaveCount();
+
+    SkPaint maskfilter;
+    auto filter = SkColorFilters::Compose(SkLumaColorFilter::Make(), SkColorFilters::SRGBToLinearGamma());
+    maskfilter.setColorFilter(filter);
+    canvas.saveLayer(maskBounds, &maskfilter);
+    if (mask->IsSvgMask()) {
+        SkAutoCanvasRestore maskSave(&canvas, true);
+        canvas.translate(maskBounds.fLeft + mask->GetSvgX(), maskBounds.fTop + mask->GetSvgY());
+        canvas.scale(mask->GetScaleX(), mask->GetScaleY());
+        mask->GetSvgDom()->render(&canvas);
+    } else if (mask->IsGradientMask()) {
+        SkAutoCanvasRestore maskSave(&canvas, true);
+        canvas.translate(maskBounds.fLeft, maskBounds.fTop);
+        SkRect skRect = SkRect::MakeIWH(maskBounds.fRight - maskBounds.fLeft, maskBounds.fBottom - maskBounds.fTop);
+        canvas.drawRect(skRect, mask->GetMaskPaint());
+    } else if (mask->IsPathMask()) {
+        SkAutoCanvasRestore maskSave(&canvas, true);
+        canvas.translate(maskBounds.fLeft, maskBounds.fTop);
+        canvas.drawPath(mask->GetMaskPath(), mask->GetMaskPaint());
+    }
+
+    // back to mask layer
+    canvas.restoreToCount(tmpLayer);
+    // create content layer
+    SkPaint maskPaint;
+    maskPaint.setBlendMode(SkBlendMode::kSrcIn);
+    canvas.saveLayer(maskBounds, &maskPaint);
+    canvas.clipRect(maskBounds, true);
+}
 } // namespace Rosen
 } // namespace OHOS

@@ -139,7 +139,7 @@ static void DoDraw(uint8_t *addr, uint32_t width, uint32_t height, size_t index)
 
     // 4 means stride
     constexpr uint32_t stride = 4;
-    int32_t addrSize = width * height * stride;
+    uint32_t addrSize = width * height * stride;
     void* bitmapAddr = OH_Drawing_BitmapGetPixels(cBitmap);
     auto ret = memcpy_s(addr, addrSize, bitmapAddr, addrSize);
     if (ret != EOK) {

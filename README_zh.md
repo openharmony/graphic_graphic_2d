@@ -10,47 +10,26 @@
 
 ## 简介
 
-**Graphic子系统** 提供了图形接口能力和窗口管理接口能力，
+**Graphic子系统** 提供了图形接口能力。
 
 其主要的结构如下图所示：
 
-![Graphic子系统架构图](./figures/graphic.png)
+![Graphic子系统架构图](./figures/graphic_rosen_architecture.jpg)
 
-- **Surface**
+OpenHarmony 图形栈的分层说明如下：
 
-    图形缓冲区管理接口，负责管理图形缓冲区和高效便捷的轮转缓冲区。
+• 接口层：提供图形的 NDK（native development kit，原生开发包）能力，包括：WebGL、Native Drawing的绘制能力、OpenGL 指令级的绘制能力支撑等。
 
-- **Vsync**
+• 框架层：分为 Render Service、Drawing、Animation、Effect、显示与内存管理五个模块。
+| 模块                     | 能力描述                                                                                       |
+|------------------------|--------------------------------------------------------------------------------------------|
+| Render Servicel （渲染服务） | 提供UI框架的绘制能力，其核心职责是将ArkUI的控件描述转换成绘制树信息，根据对应的渲染策略，进行最佳路径渲染。同时，负责多窗口流畅和空间态下UI共享的核心底层机制。       |
+| Drawing （绘制）           | 提供图形子系统内部的标准化接口，主要完成2D渲染、3D渲染和渲染引擎的管理等基本功能。                                                |
+| Animation (动画）         | 提供动画引擎的相关能力。                                                                               |
+| Effect （效果）            | 主要完成图片效果、渲染特效等效果处理的能力，包括：多效果的串联、并联处理，在布局时加入渲染特效、控件交互特效等相关能力。                               |
+| 显示与内存管理                | 此模块是图形栈与硬件解耦的主要模块，主要定义了OpenHarmony 显示与内存管理的能力，其定义的南向HDI 接口需要让不同的OEM厂商完成对OpenHarmony图形栈的适配． |
 
-    垂直同步信号管理接口，负责管理所有垂直同步信号注册和响应。
-
-- **WindowManager**
-
-    窗口管理器接口，负责创建和管理窗口。
-
-- **WaylandProtocols**
-
-    窗口管理器和合成器的通信协议。
-
-- **Compositor**
-
-    合成器，负责合成各个图层。
-
-- **Renderer**
-
-    合成器的后端渲染模块。
-
-- **Wayland protocols**
-
-    Wayland 进程间通信协议
-
-- **Shell**
-
-    提供多窗口能力
-
-- **Input Manger**
-
-    多模输入模块，负责接收事件输入
+• 引擎层：包括 2D 图形库和 3D 图形引擎两个模块。2D 图形库提供 2D 图形绘制底层 API，支持图形绘制与文本绘制底层能力。3D 图形引擎能力尚在构建中。
 
 
 ## 目录
@@ -62,284 +41,34 @@ foundation/graphic/standard/
 │   ├── bootanimation       # 开机动画目录
 │   ├── dumper              # graphic dumper代码
 │   ├── fence               # fence代码
-│   ├── surface             # Surface代码
-│   ├── vsync               # Vsync代码
-│   ├── wm                  # WindowManager代码
-│   ├── wmserver            # libwmserver代码
-│   ├── wmservice           # WindowManagerService代码
-│   └── wmtest              # wmtest代码，可以视为demo
-├── interfaces              # 对外接口存放目录
-│   ├── innerkits           # native接口存放目录
-│   └── kits                # js/napi接口存放目录
+│   ├── surface             # Surface代码
+│   ├── vsync               # Vsync代码
+├── rosen                   # 框架代码目录
+│   ├── build               # 构建说明
+│   ├── doc                 # doc
+│   ├── include             # 对外头文件代码
+│   ├── lib                 # lib
+│   ├── modules             # graphic 子系统各模块代码
+│   ├── samples             # 实例代码
+│   ├── test                # 开发测试代码
+│   ├── tools               # 工具代码
+├── interfaces              # 图形接口存放目录
+│   ├── innerkits           # 内部native接口存放目录
+│   └── kits                # js/napi外部接口存放目录
 └── utils                   # 小部件存放目录
 ```
 
 ## 约束
-- 语言版本
-    - C++11或以上
+
 
 ## 编译构建
-可以依赖的接口有:
-- graphic_standard:libsurface
-- graphic_standard:libvsync_client
-- graphic_standard:libwmclient
-- graphic_standard:libwmservice
+
 
 ## 接口说明
 
-### WindowManager
-
-| 接口名          | 职责                        |
-|-----------------|-----------------------------|
-| GetInstance     | 获取WindowManager的单例指针 |
-| GetMaxWidth     | 获取当前屏幕宽度            |
-| GetMaxHeight    | 获取当前屏幕高度            |
-| CreateWindow    | 创建一个标准窗口            |
-| CreateSubWindow | 创建一个子窗口              |
-| StartShotScreen | 截屏操作                    |
-| StartShotWindow | 截取窗口操作                |
-| SwitchTop       | 将指定窗口调整至最上层显示  |
-
-### Window
-| 接口名                      | 职责                         |
-|-----------------------------|------------------------------|
-| Show                        | 显示当前窗口                 |
-| Hide                        | 隐藏当前窗口                 |
-| Move                        | 移动当前窗口至指定位置       |
-| SwitchTop                   | 将当前窗口调整到最上层显示   |
-| ChangeWindowType            | 更改当前窗口类型             |
-| ReSize                      | 调整当前窗口至指定大小       |
-| Rotate                      | 旋转当前窗口                 |
-
-### SubWindow
-| 接口名           | 职责               |
-|------------------|--------------------|
-| Move             | 移动当前子窗口     |
-| SetSubWindowSize | 调整当前子窗口位置 |
-
-### Surface
-| 接口名                     | 职责                                                              |
-|----------------------------|-------------------------------------------------------------------|
-| CreateSurfaceAsConsumer    | Buffer的消费者来使用该函数创建一个Surface                         |
-| CreateSurfaceAsProducer    | Buffer的生产者使用该函数创建一个Surface，只能使用与生产相关的接口 |
-| GetProducer                | 获得一个Surface内部的IBufferProducer对象                          |
-| RequestBuffer              | 请求一个待生产的SurfaceBuffer对象                                 |
-| CancelBuffer               | 取消、归还一个待生产的SurfaceBuffer对象                           |
-| FlushBuffer                | 归还一个生产好的SurfaceBuffer对象并携带一些信息                   |
-| AcquireBuffer              | 请求一个待消费的SurfaceBuffer对象                                 |
-| ReleaseBuffer              | 归还一个已消费的SurfaceBuffer对象                                 |
-| GetQueueSize               | 获得当前同时能并存buffer的数量                                    |
-| SetQueueSize               | 设置当前同时能并存buffer的数量                                    |
-| SetDefaultWidthAndHeight   | 设置默认宽和高                                                    |
-| GetDefaultWidth            | 获得默认宽度                                                      |
-| GetDefaultHeight           | 获得默认高度                                                      |
-| SetUserData                | 存贮字符串数据，不随着IPC传递                                     |
-| GetUserData                | 取出字符串数据                                                    |
-| RegisterConsumerListener   | 注册一个消费监听器，监听Buffer的Flush事件                         |
-| UnregisterConsumerListener | 取消监听                                                          |
-
-### SurfaceBuffer
-| 接口名          | 职责                                |
-|-----------------|-------------------------------------|
-| GetBufferHandle | 获得SurfaceBuffer的BufferHandle指针 |
-| GetWidth        | 获得SurfaceBuffer的宽度             |
-| GetHeight       | 获得SurfaceBuffer的高度             |
-| GetFormat       | 获得SurfaceBuffer的颜色格式         |
-| GetUsage        | 获得SurfaceBuffer的用途             |
-| GetPhyAddr      | 获得SurfaceBuffer的物理地址         |
-| GetKey          | 获得SurfaceBuffer的key              |
-| GetVirAddr      | 获得SurfaceBuffer的虚拟地址         |
-| GetSize         | 获得SurfaceBuffer的文件句柄         |
-| SetInt32        | 获得SurfaceBuffer的缓冲区大小       |
-| GetInt32        | 设置SurfaceBuffer的32位整数         |
-| SetInt64        | 获得SurfaceBuffer的32位整数         |
-| GetInt64        | 设置SurfaceBuffer的64位整数         |
-
-### VsyncHelper
-| 接口名               | 职责                              |
-|----------------------|-----------------------------------|
-| Current              | 获取当前runner对应的VsyncHelper   |
-| VsyncHelper          | 用EventHandler对象构造VsyncHelper |
-| RequestFrameCallback | 注册一个帧回调                    |
 
 ## 使用说明
 
-### 具名服务-传递一个生产型Surface
-
-#### 注册
-```cpp
-// 拿到一个消费型Surface
-sptr<Surface> surf = Surface::CreateSurfaceAsConsumer();
-
-// 拿出里面的生产者对象
-sptr<IBufferProducer> producer = surf->GetProducer();
-
-// 注册服务
-auto sm = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-sm->AddSystemAbility(IPC_SA_ID, producer->AsObject());
-```
-
-#### 客户端获得生产型Surface
-```cpp
-// 获得远程对象
-auto sm = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-sptr<IRemoteObject> robj = sm->GetSystemAbility(IPC_SA_ID);
-
-// 构造Surface
-sptr<IBufferProducer> bp = iface_cast<IBufferProducer>(robj);
-sptr<Surface> surf = Surface::CreateSurfaceAsProducer(bp);
-```
-
-### 匿名服务-传递一个生产型Surface
-场景: 在一次IPC过程中
-
-#### 发送
-```cpp
-// 拿到一个消费型Surface
-sptr<Surface> surf = CreateSurfaceAsConsumer();
-
-// 拿出里面的生产者对象
-sptr<IRemoteObject> producer = surf->GetProducer();
-
-// 返回给客户端
-parcel.WriteRemoteObject(producer);
-```
-
-#### 接受并获得生产型Surface
-```cpp
-// 获得远程对象
-sptr<IRemoteObject> remoteObject = parcel.ReadRemoteObject();
-
-// 构造Surface
-sptr<IBufferProducer> bp = iface_cast<IBufferProducer>(robj);
-sptr<Surface> surf = Surface::CreateSurfaceAsProducer(bp);
-```
-
-### 生产一个SurfaceBuffer
-条件： 一个生产型Surface
-
-```cpp
-BufferRequestConfig requestConfig = {
-    .width = 1920, // 屏幕宽度
-    .height = 1080, // 屏幕高度
-    .strideAlignment = 8, // stride对齐字节
-    .format = PIXEL_FMT_RGBA_8888, // 颜色格式
-    .usage = HBM_USE_CPU_READ | HBM_USE_CPU_WRITE | HBM_USE_MEM_DMA, // 用法
-    .timeout = 0, // 时延
-};
-
-sptr<SurfaceBuffer> buffer;
-int32_t releaseFence;
-
-GSError ret = surf->RequestBuffer(buffer, releaseFence, requestConfig);
-if (ret != GSERROR_OK) {
-    // failed
-}
-
-BufferFlushConfig flushConfig = {
-    .damage = {                   // 重绘区域
-        .x = 0,                   // 起点横坐标
-        .y = 0,                   // 起点纵坐标
-        .w = buffer->GetWidth(),  // 区域宽度
-        .h = buffer->GetHeight(), // 区域高度
-    },
-    .timestamp = 0 // 给消费者看的时间，0为使用当前时间
-};
-
-ret = surf->FlushBuffer(buffer, -1, flushConfig);
-if (ret != GSERROR_OK) {
-    // failed
-}
-```
-
-### 消费一个SurfaceBuffer
-条件： 一个消费型Surface
-
-```cpp
-class TestConsumerListener : public IBufferConsumerListener {
-public:
-    void OnBufferAvailable() override {
-        sptr<SurfaceBuffer> buffer;
-        int32_t flushFence;
-
-        GSError ret = surf->AcquireBuffer(buffer, flushFence, timestamp, damage);
-        if (ret != GSERROR_OK) {
-            // failed
-        }
-
-        // ...
-
-        ret = surf->ReleaseBuffer(buffer, -1);
-        if (ret != GSERROR_OK) {
-            // failed
-        }
-    }
-};
-
-sptr<IBufferConsumerListener> listener = new TestConsumerListener();
-GSError ret = surf->RegisterConsumerListener(listener);
-if (ret != GSERROR_OK) {
-    // failed
-}
-```
-
-### 给SurfaceBuffer带上自定义数据
-```cpp
-sptr<SurfaceBuffer> buffer;
-GSError ret = buffer->SetInt32(1, 3);
-if (ret != GSERROR_OK) {
-    // failed
-}
-
-int32_t val;
-ret = buffer->GetInt32(1, val);
-if (ret != GSERROR_OK) {
-    // failed
-}
-```
-
-### 注册一个Vsync回调事件
-#### 用handler构造VsyncHelper
-```cpp
-auto runner = AppExecFwk::EventRunner::Create(true);
-auto handler = std::make_shared<AppExecFwk::EventHandler>(runner);
-auto helper = new VsyncHelper(handler);
-runner->Run();
-
-struct FrameCallback cb = {
-    .timestamp_ = 0,
-    .userdata_ = nullptr,
-    .callback_ = [](int64_t timestamp, void* userdata) {
-    },
-};
-
-GSError ret = helper->RequestFrameCallback(cb);
-if (ret != GSERROR_OK) {
-    // failed
-}
-```
-
-#### 在handler里用Current
-```cpp
-auto runner = AppExecFwk::EventRunner::Create(true);
-auto handler = std::make_shared<AppExecFwk::EventHandler>(runner);
-handler->PostTask([]() {
-    auto helper = VsyncHelper::Current();
-    struct FrameCallback cb = {
-        .timestamp_ = 0,
-        .userdata_ = nullptr,
-        .callback_ = [](int64_t timestamp, void* userdata) {
-        },
-    };
-
-    GSError ret = helper->RequestFrameCallback(cb);
-    if (ret != GSERROR_OK) {
-        // failed
-    }
-});
-
-runner->Run();
-```
 
 ## 相关仓
 - **graphic_standard**
@@ -347,3 +76,4 @@ runner->Run();
 - aafwk_standard
 - multimedia_media_standard
 - multimedia_camera_standard
+- Window Manager

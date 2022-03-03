@@ -112,17 +112,20 @@ inline Point3& Point3::operator-=(const Point3& p)
 
 inline Point3& Point3::operator*=(scalar scale)
 {
-    x_ *= scale;
-    y_ *= scale;
-    z_ *= scale;
+    x_ = static_cast<int64_t>(x_ * scale);
+    y_ = static_cast<int64_t>(y_ * scale);
+    z_ = static_cast<int64_t>(z_ * scale);
     return *this;
 }
 
 inline Point3& Point3::operator/=(scalar divisor)
 {
-    x_ /= divisor;
-    y_ /= divisor;
-    z_ /= divisor;
+    if (divisor == 0) {
+        return *this;
+    }
+    x_ = static_cast<int>(x_ / divisor);
+    y_ = static_cast<int>(y_ / divisor);
+    z_ = static_cast<int>(z_ / divisor);
     return *this;
 }
 
@@ -138,16 +141,21 @@ inline const Point3 operator-(const Point3& p1, const Point3& p2)
 
 inline const Point3 operator*(scalar scale, const Point3& p)
 {
-    return Point3(scale * p.x_, scale * p.y_, scale * p.z_);
+    return Point3(
+        static_cast<int64_t>(scale * p.x_), static_cast<int64_t>(scale * p.y_), static_cast<int64_t>(scale * p.z_));
 }
 
 inline const Point3 operator*(const Point3& p, scalar scale)
 {
-    return Point3(p.x_ * scale, p.y_ * scale, p.z_ * scale);
+    return Point3(
+        static_cast<int64_t>(p.x_ * scale), static_cast<int64_t>(p.y_ * scale), static_cast<int64_t>(p.z_ * scale));
 }
 
 inline const Point3 operator/(const Point3& p, scalar divisor)
 {
+    if (divisor == 0) {
+        return Point3(p.x_, p.y_, p.z_);
+    }
     return Point3(p.x_ / divisor, p.y_ / divisor, p.z_ / divisor);
 }
 

@@ -46,7 +46,7 @@ public:
 
 private:
     std::shared_ptr<RSSurface> rsSurface_ = nullptr;
-    NodeId surfaceNodeId_;
+    NodeId surfaceNodeId_ = 0;
     std::vector<NodeId> childSurfaceNodeId_;
 };
 } // namespace Rosen

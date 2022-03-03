@@ -1,4 +1,4 @@
-# Copyright (c) 2021 Huawei Device Co., Ltd.
+# Copyright (c) 2021-2022 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -23,6 +23,7 @@ config("export_config") {
     "//drivers/peripheral/display/interfaces/include",
     "//foundation/multimedia/image_standard/interfaces/innerkits/include",
     "//foundation/graphic/standard/interfaces/innerkits/surface",
+    "//foundation/graphic/standard/interfaces/innerkits/composer",
   ]
 
   defines = rs_common_define
@@ -85,6 +86,7 @@ ohos_shared_library("librender_service_base") {
     "src/pipeline/rs_display_render_node.cpp",
     "src/pipeline/rs_draw_cmd.cpp",
     "src/pipeline/rs_draw_cmd_list.cpp",
+    "src/pipeline/rs_frame_report.cpp",
     "src/pipeline/rs_paint_filter_canvas.cpp",
     "src/pipeline/rs_recording_canvas.cpp",
     "src/pipeline/rs_render_node.cpp",
@@ -100,6 +102,7 @@ ohos_shared_library("librender_service_base") {
     "src/render/rs_blur_filter.cpp",
     "src/render/rs_filter.cpp",
     "src/render/rs_image.cpp",
+    "src/render/rs_mask.cpp",
     "src/render/rs_path.cpp",
     "src/render/rs_shader.cpp",
     "src/render/rs_shadow.cpp",

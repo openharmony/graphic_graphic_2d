@@ -176,11 +176,11 @@ namespace pipelineTestUtils {
                 })
                 .Run();
         }
-        SkRect surfaceGeometry_;
-        SkRect bufferSize_;
+        SkRect surfaceGeometry_ = {0.f, 0.f, 0.f, 0.f};
+        SkRect bufferSize_ = {0.f, 0.f, 0.f, 0.f};
         drawFun drawShape_;
         uint32_t color_ = 0;
-        std::shared_ptr<RSSurfaceNode> surfaceNode_;
+        std::shared_ptr<RSSurfaceNode> surfaceNode_ = nullptr;
     }; // class ToDrawSurface
 
     static std::shared_ptr<RSSurfaceNode> CreateSurface()
@@ -321,7 +321,7 @@ public:
         if (activeModeInfo) {
             screenWidth_ = activeModeInfo->GetScreenWidth();
             screenheight_ = activeModeInfo->GetScreenHeight();
-            screenFreshRate_ = activeModeInfo->GetScreenFreshRate();
+            screenFreshRate_ = static_cast<int>(activeModeInfo->GetScreenFreshRate());
             std::cout << "Display " << id << " active mode info:\n";
             std::cout << "Width: " << screenWidth_ << ", Height: " << screenheight_;
             std::cout << ", FreshRate: " << screenFreshRate_ << "Hz.\n";
@@ -373,25 +373,31 @@ public:
         if (transactionProxy != nullptr) {
             transactionProxy->FlushImplicitTransaction();
         }
-        for (float alpha = 0; alpha <= 1.f; alpha += 0.2f) {
+        float alpha = 0;
+        for (int index = 0; index <= 10; index += 2) { // 10 is boundary, 2 is step
             printf("printf alpha=%f \n", alpha);
             surfaceNode2->SetAlpha(alpha);
             if (transactionProxy != nullptr) {
                 transactionProxy->FlushImplicitTransaction();
             }
             usleep(300000);
+            alpha += 0.2f;
         }
-        for (float scale = 0; scale < 2.f; scale += 0.2f) {
+        float scale = 0;
+        for (int index = 0; index < 20; index += 2) { // 20 is boundary, 2 is step
             printf("scale=%f\n", scale);
             surfaceNode2->SetScaleX(scale);
             if (transactionProxy != nullptr) {
                 transactionProxy->FlushImplicitTransaction();
             }
             usleep(300000);
+            scale += 0.2f;
         }
         surfaceNode2->SetScaleX(1.f);
         std::cout << "Compatible rotation test start\n";
-        for (float rotate = 0; rotate <= 360.f; rotate += 15) {
+        float rotate = 0;
+        for (int index = 0; index <= 360; index += 15) { // 360 is boundary, 15 is step
+            rotate = static_cast<float>(index);
             printf("roate=%f\n", rotate);
             surfaceNode2->SetRotation(rotate);
             if (transactionProxy != nullptr) {

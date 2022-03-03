@@ -62,8 +62,6 @@ public:
     void ChangeWindowType(WindowType type);
     void ReSize(int32_t width, int32_t height);
     void Rotate(rotateType type);
-    void RegistOnTouchCb(funcOnTouch cb);
-    void RegistOnKeyCb(funcOnKey cb);
     void RegistOnWindowCreateCb(void(* cb)(uint32_t pid));
 };
 

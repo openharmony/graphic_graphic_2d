@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -39,7 +39,7 @@ RSSurfaceNode::SharedPtr RSSurfaceNode::Create(const RSSurfaceNodeConfig& surfac
     // create node in RS
     RSSurfaceRenderNodeConfig config = { .id = node->GetId(), .name = node->name_ };
     if (!node->CreateNodeAndSurface(config)) {
-        ROSEN_LOGE("RSSurfaceNode::Create, create node and surface is failed");
+        ROSEN_LOGE("RSSurfaceNode::Create, create node and surface failed");
         return nullptr;
     }
 
@@ -121,7 +121,7 @@ RSSurfaceNode* RSSurfaceNode::Unmarshalling(Parcel& parcel)
     std::string name;
     bool isRenderServiceNode = false;
     if (!(parcel.ReadUint64(id) && parcel.ReadString(name) && parcel.ReadBool(isRenderServiceNode))) {
-        ROSEN_LOGE("RSSurfaceNode::Unmarshalling, read param is failed");
+        ROSEN_LOGE("RSSurfaceNode::Unmarshalling, read param failed");
         return nullptr;
     }
     RSSurfaceNodeConfig config = { name };

@@ -329,34 +329,6 @@ InnerWindowInfo *LayerControllerClient::CreateSubWindow(int32_t subid, int32_t p
     return GetInnerWindowInfoFromId(subid);
 }
 
-void LayerControllerClient::RegistOnTouchCb(int id, funcOnTouch cb)
-{
-    LOCK(mutex);
-    WMLOG_I("LayerControllerClient::%{public}s", __func__);
-    if (cb) {
-        WMLOG_I("LayerControllerClient::RegistOnTouchCb OK");
-        InnerWindowInfo *windowInfo = LayerControllerClient::GetInstance()->GetInnerWindowInfoFromId((uint32_t)id);
-        if (windowInfo == nullptr) {
-            WMLOGFE("id: %{public}d, window info is nullptr", id);
-            return;
-        }
-    }
-}
-
-void LayerControllerClient::RegistOnKeyCb(int id, funcOnKey cb)
-{
-    LOCK(mutex);
-    WMLOG_I("LayerControllerClient::RegistOnKeyCb start");
-    if (cb) {
-        WMLOG_I("LayerControllerClient::RegistOnKeyCb OK");
-        InnerWindowInfo *windowInfo = LayerControllerClient::GetInstance()->GetInnerWindowInfoFromId((uint32_t)id);
-        if (windowInfo == nullptr) {
-            WMLOGFE("id: %{public}d, window info is nullptr", id);
-            return;
-        }
-    }
-}
-
 void LayerControllerClient::RegistWindowInfoChangeCb(int id, funcWindowInfoChange cb)
 {
     LOCK(mutex);

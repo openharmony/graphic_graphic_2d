@@ -113,11 +113,11 @@ void SkiaShaderEffect::InitWithLinearGradient(const Point& startPt, const Point&
     size_t count = (colors.size() == pos.size()) ? colors.size() : 0;
     SkColor c[count];
     SkScalar p[count];
-    for (auto i = 0; i < count; ++i) {
+    for (size_t i = 0; i < count; ++i) {
         c[i] = colors[i];
         p[i] = pos[i];
     }
-    shader_ = SkGradientShader::MakeLinear(pts, c, p, colors.size(), static_cast<SkTileMode>(mode));
+    shader_ = SkGradientShader::MakeLinear(pts, c, p, count, static_cast<SkTileMode>(mode));
 }
 
 void SkiaShaderEffect::InitWithRadialGradient(const Point& centerPt, scalar radius,
@@ -129,7 +129,7 @@ void SkiaShaderEffect::InitWithRadialGradient(const Point& centerPt, scalar radi
     size_t count = (colors.size() == pos.size()) ? colors.size() : 0;
     SkColor c[count];
     SkScalar p[count];
-    for (auto i = 0; i < count; ++i) {
+    for (size_t i = 0; i < count; ++i) {
         c[i] = colors[i];
         p[i] = pos[i];
     }
@@ -147,7 +147,7 @@ void SkiaShaderEffect::InitWithTwoPointConical(const Point& startPt, scalar star
     size_t count = (colors.size() == pos.size()) ? colors.size() : 0;
     SkColor c[count];
     SkScalar p[count];
-    for (auto i = 0; i < count; ++i) {
+    for (size_t i = 0; i < count; ++i) {
         c[i] = colors[i];
         p[i] = pos[i];
     }
@@ -161,7 +161,7 @@ void SkiaShaderEffect::InitWithSweepGradient(const Point& centerPt, const std::v
     size_t count = (colors.size() == pos.size()) ? colors.size() : 0;
     SkColor c[count];
     SkScalar p[count];
-    for (auto i = 0; i < count; ++i) {
+    for (size_t i = 0; i < count; ++i) {
         c[i] = colors[i];
         p[i] = pos[i];
     }

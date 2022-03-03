@@ -90,7 +90,6 @@ ohos_executable("animation_server") {
   sources = [
     "server/src/animation_server.cpp",
     "server/src/animation_service_stub.cpp",
-    "server/src/cursor_module.cpp",
     "server/src/main.cpp",
   ]
 

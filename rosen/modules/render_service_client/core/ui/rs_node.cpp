@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -648,13 +648,13 @@ void RSNode::SetVisible(bool visible)
     }
 }
 
-void RSNode::NotifyTransition(const std::shared_ptr<const RSTransitionEffect>& effect, bool appearing)
+void RSNode::NotifyTransition(const std::shared_ptr<const RSTransitionEffect>& effect, bool isTransitionIn)
 {
     if (!RSImplicitAnimator::Instance().NeedImplicitAnimaton()) {
         return;
     }
     RSImplicitAnimator::Instance().BeginImplicitTransition(effect);
-    RSImplicitAnimator::Instance().CreateImplicitTransition(*this, appearing);
+    RSImplicitAnimator::Instance().CreateImplicitTransition(*this, isTransitionIn);
     RSImplicitAnimator::Instance().EndImplicitTransition();
 }
 
@@ -706,5 +706,9 @@ std::string RSNode::DumpNode(int depth) const
     return ss.str();
 }
 
+void RSNode::SetMask(std::shared_ptr<RSMask> mask)
+{
+    SET_NONANIMATABLE_PROPERTY(Mask, mask);
+}
 } // namespace Rosen
 } // namespace OHOS

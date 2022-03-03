@@ -1,0 +1,57 @@
+# Copyright (c) 2021 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/ohos.gni")
+import("//foundation/graphic/standard/graphic_config.gni")
+
+## Build libsurfaceimage.so {{{
+config("surfaceimage_config") {
+  visibility = [ ":*" ]
+
+  cflags = [
+    "-Wall",
+    "-Werror",
+    "-g3",
+  ]
+}
+
+config("libsurfaceimage_public_config") {
+  include_dirs = [
+    "//foundation/graphic/standard/frameworks/surface/include",
+    "include",
+  ]
+}
+
+ohos_shared_library("libsurfaceimage") {
+  sources = [ "src/surface_image.cpp" ]
+
+  configs = [ ":surfaceimage_config" ]
+
+  public_configs = [ ":libsurfaceimage_public_config" ]
+
+  deps = [ "//foundation/graphic/standard/frameworks/surface:surface" ]
+
+  public_deps = [
+    "//foundation/graphic/standard:libgl",
+    "//foundation/graphic/standard/utils:sync_fence",
+  ]
+
+  external_deps = [
+    "hilog_native:libhilog",
+    "utils_base:utils",
+  ]
+
+  part_name = "graphic_standard"
+  subsystem_name = "graphic"
+}
+## Build libsurfaceimage.so }}}

@@ -24,10 +24,6 @@
 #include "egl_data_impl.h"
 
 namespace OHOS {
-namespace {
-constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, 0, "ProducerEglSurface" };
-}
-
 ProducerEglSurface::ProducerEglSurface(sptr<IBufferProducer>& producer)
 {
     producer_ = producer;

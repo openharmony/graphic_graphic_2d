@@ -199,12 +199,16 @@ void RSSurfaceRenderNode::RegisterBufferAvailableListener(sptr<RSIBufferAvailabl
 void RSSurfaceRenderNode::ConnectToNodeInRenderService()
 {
     ROSEN_LOGI("RSSurfaceRenderNode::ConnectToNodeInRenderService nodeId = %llu", this->GetId());
-    auto renderServiceClinet =
+    auto renderServiceClient =
         std::static_pointer_cast<RSRenderServiceClient>(RSIRenderClient::CreateRenderServiceClient());
-    if (renderServiceClinet != nullptr) {
-        renderServiceClinet->RegisterBufferAvailableListener(GetId(),
-            [this](bool isBufferAvailable) {
-                this->NotifyBufferAvailable(isBufferAvailable);
+    if (renderServiceClient != nullptr) {
+        renderServiceClient->RegisterBufferAvailableListener(
+            GetId(), [weakThis = weak_from_this()](bool isBufferAvailable) {
+                auto node = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(weakThis.lock());
+                if (node == nullptr) {
+                    return;
+                }
+                node->NotifyBufferAvailable(isBufferAvailable);
             });
     }
 }
