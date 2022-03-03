@@ -64,7 +64,7 @@ bool RSRenderAnimation::ParseParam(Parcel& parcel)
     SetAutoReverse(autoReverse);
     SetSpeed(speed);
     SetDirection(direction);
-    // TODO: fillMode check
+    // [PLANNING]: fillMode check
     SetFillMode(static_cast<FillMode>(fillMode));
     return true;
 }

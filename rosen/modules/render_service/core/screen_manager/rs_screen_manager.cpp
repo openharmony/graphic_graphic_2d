@@ -131,7 +131,7 @@ void RSScreenManager::ProcessScreenConnectedLocked(std::shared_ptr<HdiOutput> &o
     if (screens_.count(id) == 1) {
         HiLog::Warn(LOG_LABEL, "%{public}s: The screen for id %{public}" PRIu64 " already existed.", __func__, id);
 
-        // TODO: should we erase it and create a new one?
+        // [PLANNING]: should we erase it and create a new one?
         for (auto &cb : screenChangeCallbacks_) {
             cb->OnScreenChanged(id, ScreenEvent::DISCONNECTED);
         }

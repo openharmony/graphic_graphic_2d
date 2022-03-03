@@ -32,7 +32,7 @@ AnimationId RSAnimation::GenerateId()
 
     ++currentId_;
     if (currentId_ == UINT32_MAX) {
-        // TODO:handle the overflow situation
+        // [PLANNING]:handle the overflow situation
         ROSEN_LOGE("Animation Id overflow");
     }
 

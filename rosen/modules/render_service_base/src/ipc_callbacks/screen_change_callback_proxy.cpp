@@ -42,7 +42,7 @@ void RSScreenChangeCallbackProxy::OnScreenChanged(ScreenId id, ScreenEvent event
     option.SetFlags(MessageOption::TF_ASYNC);
     int32_t err = Remote()->SendRequest(RSIScreenChangeCallback::ON_SCREEN_CHANGED, data, reply, option);
     if (err != NO_ERROR) {
-        // TODO: Error log
+        // [PLANNING]: Error log
     }
 }
 } // namespace Rosen

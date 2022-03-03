@@ -163,7 +163,7 @@ void RSRenderThread::RecvTransactionData(std::unique_ptr<RSTransactionData>& tra
         std::unique_lock<std::mutex> cmdLock(cmdMutex_);
         cmds_.emplace_back(std::move(transactionData));
     }
-    // todo process in next vsync (temporarily)
+    // [PLANNING]: process in next vsync (temporarily)
     RSRenderThread::Instance().RequestNextVSync();
 }
 

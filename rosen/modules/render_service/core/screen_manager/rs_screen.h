@@ -118,7 +118,7 @@ public:
     ScreenRotation GetRotation() const override;
 
 private:
-    // TODO: fixme -- domain 0 only for debug.
+    // [PLANNING]: fixme -- domain 0 only for debug.
     static constexpr HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, 0, "RSScreen" };
 
     // create hdiScreen and get some information from drivers.

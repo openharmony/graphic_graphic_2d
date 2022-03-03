@@ -32,7 +32,7 @@ std::unique_ptr<SkCanvas> RSProcessor::CreateCanvas(sptr<Surface> producerSurfac
     int res = tempFence->Wait(3000);
     if (res < 0) {
         ROSEN_LOGE("RsDebug RSProcessor::CreateCanvas this buffer is not available");
-        //TODO deal with the buffer is not available
+        //[PLANNING]: deal with the buffer is not available
     }
     auto addr = static_cast<uint32_t*>(buffer_->GetVirAddr());
     if (addr == nullptr) {

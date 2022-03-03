@@ -38,7 +38,7 @@ NodeId RSBaseNode::GenerateId()
 
     ++currentId_;
     if (currentId_ == UINT32_MAX) {
-        // TODO:process the overflow situations
+        // [PLANNING]:process the overflow situations
         ROSEN_LOGE("Node Id overflow");
     }
 

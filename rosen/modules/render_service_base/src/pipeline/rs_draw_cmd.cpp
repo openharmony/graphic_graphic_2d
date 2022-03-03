@@ -18,6 +18,8 @@
 #include "platform/common/rs_log.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "securec.h"
+#include <cstddef>
+#include <type_traits>
 namespace OHOS {
 namespace Rosen {
 RectOpItem::RectOpItem(SkRect rect, const SkPaint& paint) : OpItemWithPaint(sizeof(RectOpItem)), rect_(rect)
@@ -182,9 +184,13 @@ BitmapRectOpItem::BitmapRectOpItem(
     const sk_sp<SkImage> bitmapInfo, const SkRect* rectSrc, const SkRect& rectDst, const SkPaint* paint)
     : OpItemWithPaint(sizeof(BitmapRectOpItem)), rectDst_(rectDst)
 {
-    rectSrc_ = (rectSrc == nullptr) ? SkRect::MakeWH(bitmapInfo->width(), bitmapInfo->height()) : *rectSrc;
     if (bitmapInfo != nullptr) {
+        rectSrc_ = (rectSrc == nullptr) ? SkRect::MakeWH(bitmapInfo->width(), bitmapInfo->height()) : *rectSrc;
         bitmapInfo_ = bitmapInfo;
+    } else {
+        if (rectSrc != nullptr) {
+            rectSrc_ = *rectSrc;
+        }
     }
     if (paint) {
         paint_ = *paint;

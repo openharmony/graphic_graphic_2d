@@ -127,7 +127,7 @@ bool RSScreen::IsEnable() const
         return false;
     }
 
-    // TODO: maybe need more information to judge whether this screen is enable.
+    // [PLANNING]: maybe need more information to judge whether this screen is enable.
     return true;
 }
 
