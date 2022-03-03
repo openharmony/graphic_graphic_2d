@@ -79,26 +79,26 @@ void RSHardwareProcessor::CropLayers()
         IRect orgSrcRect = srcRect;
         int32_t screenWidth = currScreenInfo_.width;
         int32_t screenHeight = currScreenInfo_.height;
-        if (dstRect.x < 0 && dstRect.x + dstRect.w > 0) {
+        if (dstRect.x < 0 && dstRect.x + dstRect.w > 0 && dstRect.x + dstRect.w < screenWidth) {
             srcRect.w = srcRect.w * (dstRect.w + dstRect.x) / dstRect.w;
             srcRect.x = orgSrcRect.w - srcRect.w;
             dstRect.w = dstRect.w + dstRect.x;
             dstRect.x = 0;
             cut = true;
         }
-        if (dstRect.x + dstRect.w > screenWidth) {
+        if (dstRect.x + dstRect.w > screenWidth && dstRect.x < screenWidth && dstRect.x >= 0) {
             srcRect.w = srcRect.w * (screenWidth - dstRect.x) / dstRect.w;
             dstRect.w = screenWidth - dstRect.x;
             cut = true;
         }
-        if (dstRect.y < 0 && dstRect.y + dstRect.h > 0) {
+        if (dstRect.y < 0 && dstRect.y + dstRect.h > 0 && dstRect.y + dstRect.h < screenHeight) {
             srcRect.h = srcRect.h * (dstRect.h + dstRect.y) / dstRect.h;
             srcRect.y = orgSrcRect.h - srcRect.h;
             dstRect.h = dstRect.h + dstRect.y;
             dstRect.y = 0;
             cut = true;
         }
-        if (dstRect.y + dstRect.h > screenHeight) {
+        if (dstRect.y + dstRect.h > screenHeight && dstRect.y < screenHeight && dstRect.y >= 0) {
             srcRect.h = srcRect.h * (screenHeight - dstRect.y) / dstRect.h;
             dstRect.h = screenHeight - dstRect.y;
             cut = true;
