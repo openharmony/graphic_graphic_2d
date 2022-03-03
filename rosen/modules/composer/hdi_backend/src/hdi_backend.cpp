@@ -258,6 +258,9 @@ void HdiBackend::ReleaseLayerBuffer(uint32_t screenId, const std::unordered_map<
 
         const LayerPtr &layer = iter->second;
         layer->MergeWithLayerFence(fences[i]);
+    }
+    for (auto iter = layersMap.begin(); iter != layersMap.end(); ++iter) {
+        const LayerPtr &layer = iter->second;
         layer->ReleaseBuffer();
     }
 }
