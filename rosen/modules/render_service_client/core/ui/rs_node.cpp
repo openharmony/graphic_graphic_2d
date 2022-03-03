@@ -448,17 +448,17 @@ void RSNode::SetTranslate(float translateX, float translateY, float translateZ)
 
 void RSNode::SetTranslateX(float translate)
 {
-    SET_ANIMATABLE_PROPERTY(TranslateX, translate, RSAnimatableProperty::TRANSLATE);
+    SET_ANIMATABLE_PROPERTY(TranslateX, translate, RSAnimatableProperty::TRANSLATE_X);
 }
 
 void RSNode::SetTranslateY(float translate)
 {
-    SET_ANIMATABLE_PROPERTY(TranslateY, translate, RSAnimatableProperty::TRANSLATE);
+    SET_ANIMATABLE_PROPERTY(TranslateY, translate, RSAnimatableProperty::TRANSLATE_Y);
 }
 
 void RSNode::SetTranslateZ(float translate)
 {
-    SET_ANIMATABLE_PROPERTY(TranslateZ, translate, RSAnimatableProperty::TRANSLATE);
+    SET_ANIMATABLE_PROPERTY(TranslateZ, translate, RSAnimatableProperty::TRANSLATE_Z);
 }
 
 void RSNode::SetScale(float scale)
