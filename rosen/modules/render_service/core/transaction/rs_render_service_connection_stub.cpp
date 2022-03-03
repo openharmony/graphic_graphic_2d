@@ -27,7 +27,9 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
     switch (code) {
         case COMMIT_TRANSACTION: {
             auto token = data.ReadInterfaceToken();
+            ROSEN_LOGE("unirender: before data.ReadParcelable");
             auto transactionData = data.ReadParcelable<RSTransactionData>();
+            ROSEN_LOGE("unirender: after data.ReadParcelable");
             std::unique_ptr<RSTransactionData> transData(transactionData);
             CommitTransaction(transData);
             break;

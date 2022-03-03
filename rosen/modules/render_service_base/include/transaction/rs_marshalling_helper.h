@@ -28,6 +28,7 @@ class sk_sp;
 class SkData;
 class SkFlattenable;
 class SkPath;
+class SkTextBlob;
 
 namespace OHOS {
 namespace Rosen {
@@ -41,6 +42,7 @@ class RSRenderKeyframeAnimation;
 class RSRenderPathAnimation;
 class RSRenderTransition;
 class RSRenderTransitionEffect;
+class DrawCmdList;
 
 class RSMarshallingHelper {
 public:
@@ -81,6 +83,7 @@ public:
     // skia types
     DECLARE_FUNCTION_OVERLOAD(sk_sp<SkData>)
     DECLARE_FUNCTION_OVERLOAD(sk_sp<SkFlattenable>)
+    DECLARE_FUNCTION_OVERLOAD(sk_sp<SkTextBlob>)
     DECLARE_FUNCTION_OVERLOAD(SkPath)
     DECLARE_FUNCTION_OVERLOAD(RSShader)
     DECLARE_FUNCTION_OVERLOAD(RSPath)
@@ -89,6 +92,8 @@ public:
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSRenderPathAnimation>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSRenderTransition>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSRenderTransitionEffect>)
+
+    DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<DrawCmdList>)
 #undef DECLARE_FUNCTION_OVERLOAD
 
     // reloaded marshalling & unmarshalling function for animation template

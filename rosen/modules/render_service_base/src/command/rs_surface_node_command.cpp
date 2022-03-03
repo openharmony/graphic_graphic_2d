@@ -16,12 +16,14 @@
 #include "command/rs_surface_node_command.h"
 
 #include "pipeline/rs_surface_render_node.h"
+#include "platform/common/rs_log.h"
 
 namespace OHOS {
 namespace Rosen {
 
 void SurfaceNodeCommandHelper::Create(RSContext& context, NodeId id)
 {
+    ROSEN_LOGI("unirender: SurfaceNodeCommandHelper::Create");
     auto node = std::make_shared<RSSurfaceRenderNode>(id, context.weak_from_this());
     auto& nodeMap = context.GetMutableNodeMap();
     nodeMap.RegisterRenderNode(node);

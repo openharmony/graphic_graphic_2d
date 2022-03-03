@@ -29,11 +29,22 @@ std::shared_ptr<RSNode> RSRootNode::Create(bool isRenderServiceNode)
     std::shared_ptr<RSRootNode> node(new RSRootNode(isRenderServiceNode));
     RSNodeMap::MutableInstance().RegisterNode(node);
 
+    ROSEN_LOGI("unirender: RSRootNode::Create id = %llu", node->GetId());
     std::unique_ptr<RSCommand> command = std::make_unique<RSRootNodeCreate>(node->GetId());
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy != nullptr) {
         transactionProxy->AddCommand(command, isRenderServiceNode);
     }
+
+    if (isUni_) {
+        ROSEN_LOGI("unirender: RSRootNode::Create isUni_ id = %llu", node->GetId());
+        std::unique_ptr<RSCommand> command = std::make_unique<RSRootNodeCreate>(node->GetId());
+        auto transactionProxy = RSTransactionProxy::GetInstance();
+        if (transactionProxy != nullptr) {
+            transactionProxy->AddCommand(command, isUni_);
+        }
+    }
+
     return node;
 }
 
@@ -41,10 +52,20 @@ RSRootNode::RSRootNode(bool isRenderServiceNode) : RSCanvasNode(isRenderServiceN
 
 void RSRootNode::AttachRSSurfaceNode(std::shared_ptr<RSSurfaceNode> surfaceNode) const
 {
+    ROSEN_LOGE("unirender: RSRootNode::AttachRSSurfaceNode id = %llu", surfaceNode->GetId());
     std::unique_ptr<RSCommand> command = std::make_unique<RSRootNodeAttachRSSurfaceNode>(GetId(), surfaceNode->GetId());
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy != nullptr) {
         transactionProxy->AddCommand(command, IsRenderServiceNode());
+    }
+
+    if (isUni_) {
+        ROSEN_LOGE("unirender: AddToSurfaceNode isUni_");
+        std::unique_ptr<RSCommand> command = std::make_unique<RSRootNodeAddToSurfaceNode>(GetId(), surfaceNode->GetId());
+        auto transactionProxy = RSTransactionProxy::GetInstance();
+        if (transactionProxy != nullptr) {
+            transactionProxy->AddCommand(command, isUni_);
+        }
     }
 }
 

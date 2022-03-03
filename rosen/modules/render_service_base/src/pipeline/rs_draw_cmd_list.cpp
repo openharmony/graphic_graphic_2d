@@ -80,5 +80,88 @@ int DrawCmdList::GetHeight() const
 {
     return height_;
 }
+
+bool DrawCmdList::Marshalling(Parcel& parcel) const
+{
+    bool success = true;
+    success &= RSMarshallingHelper::Marshalling(parcel, width_);
+    success &= RSMarshallingHelper::Marshalling(parcel, height_);
+    success &= RSMarshallingHelper::Marshalling(parcel, GetSize());
+    ROSEN_LOGE("unirender: DrawCmdList::Marshalling start, sussess = %d", success);
+    for (const auto& item : ops_) {
+        auto type = item->GetType();
+        bool result = false;
+        switch (type) {
+            case RSOpType::TEXTBLOBOPITEM :
+            case RSOpType::SAVEALPHAOPITEM :
+            case RSOpType::RESTOREALPHAOPITEM :
+            case RSOpType::SAVEOPITEM :
+            case RSOpType::RESTOREOPITEM :
+            case RSOpType::MULTIPLYALPHAOPITEM :
+                ROSEN_LOGE("unirender: opItem Marshalling, optype = %d", type);
+                result = item->Marshalling(parcel);
+                success &= result;
+                ROSEN_LOGE("unirender: opItem Marshalling end, optype = %d, sussess = %d", type, result);
+                break;
+            default :
+                ROSEN_LOGE("unirender: opItem no Marshalling, optype = %d", type);
+        }
+    }
+    ROSEN_LOGE("unirender: DrawCmdList::Marshalling end, sussess = %d", success);
+    return success;
+}
+
+DrawCmdList* DrawCmdList::Unmarshalling(Parcel& parcel)
+{
+    int width;
+    int height;
+    int size;
+    if (!RSMarshallingHelper::Unmarshalling(parcel, width)) {
+        return nullptr;
+    }
+    if (!RSMarshallingHelper::Unmarshalling(parcel, height)) {
+        return nullptr;
+    }
+    if (!RSMarshallingHelper::Unmarshalling(parcel, size)) {
+        return nullptr;
+    }
+    
+    DrawCmdList* drawCmdList = new DrawCmdList(width, height);
+    for (int i = 0; i < size; ++i) {
+        RSOpType type;
+        if (!RSMarshallingHelper::Unmarshalling(parcel, type)) {
+            return nullptr;
+        }
+        OpItem* item = nullptr;
+        switch (type) {
+            case RSOpType::TEXTBLOBOPITEM :
+                item = TextBlobOpItem::Unmarshalling(parcel);
+                break;
+            case RSOpType::SAVEALPHAOPITEM : 
+                item = SaveAlphaOpItem::Unmarshalling(parcel);
+                break;
+            case RSOpType::RESTOREALPHAOPITEM : 
+                item = RestoreAlphaOpItem::Unmarshalling(parcel);
+                break;
+            case RSOpType::SAVEOPITEM :
+                item = SaveOpItem::Unmarshalling(parcel);
+                break;
+            case RSOpType::RESTOREOPITEM :
+                item = RestoreOpItem::Unmarshalling(parcel);
+                break;
+            case RSOpType::MULTIPLYALPHAOPITEM :
+                item = MultiplyAlphaOpItem::Unmarshalling(parcel);
+                break;
+            default :
+                item = nullptr;
+                ROSEN_LOGE("unirender: no Unmarshalling func, RSOpType = %d", type);
+        }
+        if (item) {
+            drawCmdList->AddOp(std::unique_ptr<OpItem>(item));
+        }
+    }
+    return drawCmdList;
+}
+
 } // namespace Rosen
 } // namespace OHOS
