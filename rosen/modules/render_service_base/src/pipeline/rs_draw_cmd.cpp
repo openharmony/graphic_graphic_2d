@@ -449,12 +449,12 @@ void RestoreAlphaOpItem::Draw(RSPaintFilterCanvas& canvas, const SkRect*) const
 
 #ifdef ROSEN_OHOS
 
-    // ImageWithParmOpItem
+    // ImageWithParmOpItem // 4
     bool ImageWithParmOpItem::Marshalling(Parcel& parcel) const
     {
         bool success = true;
         success &= OpItem::Marshalling(parcel);
-        success &= RSMarshallingHelper::Marshalling(parcel, rsImage_);
+        success &= rsImage_->Marshalling(parcel);
         success &= RSMarshallingHelper::Marshalling(parcel, paint_);
         return success;
     }

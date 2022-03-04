@@ -321,6 +321,17 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSMask>&
     return true;
 }
 
+// RSImage
+bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSImage>& val)
+{
+    return val->Marshalling(parcel);
+}
+bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSImage>& val)
+{
+    val.reset(RSImage::Unmarshalling(parcel));
+    return val != nullptr;
+}
+
 #define MARSHALLING_AND_UNMARSHALLING(TYPE)                                                 \
     bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<TYPE>& val) \
     {                                                                                       \
@@ -334,7 +345,6 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSMask>&
 MARSHALLING_AND_UNMARSHALLING(RSRenderPathAnimation)
 MARSHALLING_AND_UNMARSHALLING(RSRenderTransition)
 MARSHALLING_AND_UNMARSHALLING(RSRenderTransitionEffect)
-MARSHALLING_AND_UNMARSHALLING(RSImage)
 MARSHALLING_AND_UNMARSHALLING(DrawCmdList)
 #undef MARSHALLING_AND_UNMARSHALLING
 
