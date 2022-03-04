@@ -247,13 +247,13 @@ void RSScreen::ModeInfoDump(std::string& dumpString)
 {
     decltype(supportedModes_.size()) modeIndex = 0;
     for (; modeIndex < supportedModes_.size(); ++modeIndex) {
-        AppendFormat(dumpString, "  supportedMode[%d]: %dx%d, freshrate=%d\n",
+        AppendFormat(dumpString, "  supportedMode[%d]: %dx%d, refreshrate=%d\n",
                      modeIndex, supportedModes_[modeIndex].width,
                      supportedModes_[modeIndex].height, supportedModes_[modeIndex].freshRate);
     }
     std::optional<DisplayModeInfo> activeMode = GetActiveMode();
     if (activeMode) {
-        AppendFormat(dumpString, "  activeMode: %dx%d, freshrate=%d\n",
+        AppendFormat(dumpString, "  activeMode: %dx%d, refreshrate=%d\n",
             activeMode->width, activeMode->height, activeMode->freshRate);
     }
 }

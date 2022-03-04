@@ -321,10 +321,10 @@ public:
         if (activeModeInfo) {
             screenWidth_ = activeModeInfo->GetScreenWidth();
             screenheight_ = activeModeInfo->GetScreenHeight();
-            screenFreshRate_ = static_cast<int>(activeModeInfo->GetScreenFreshRate());
+            screenRefreshRate_ = static_cast<int>(activeModeInfo->GetScreenRefreshRate());
             std::cout << "Display " << id << " active mode info:\n";
             std::cout << "Width: " << screenWidth_ << ", Height: " << screenheight_;
-            std::cout << ", FreshRate: " << screenFreshRate_ << "Hz.\n";
+            std::cout << ", RefreshRate: " << screenRefreshRate_ << "Hz.\n";
         } else {
             std::cout << "Display " << id << " has no active mode!\n";
         }
@@ -435,7 +435,7 @@ private:
     bool isGPU_ = false;
     int screenWidth_ = 0;
     int screenheight_ = 0;
-    int screenFreshRate_ = 0;
+    int screenRefreshRate_ = 0;
 }; // class RSDemoTestCase
 } // namespace OHOS::Rosen
 
