@@ -37,6 +37,7 @@
 #include <window.h>
 #include <window_option.h>
 #include <window_scene.h>
+#include "player.h"
 #include "vsync_receiver.h"
 
 namespace OHOS {
@@ -45,6 +46,7 @@ public:
     void Init(int32_t width, int32_t height, const std::shared_ptr<AppExecFwk::EventHandler>& handler);
     void Draw();
     void CheckExitAnimation();
+    void PlaySound();
 private:
     void OnDraw(SkCanvas* canvas);
     void InitBootWindow();
@@ -67,6 +69,7 @@ private:
     int32_t maxPicNum_ = 0;
     bool needCheckExit = false;
     std::shared_ptr<OHOS::Rosen::VSyncReceiver> receiver_ = nullptr;
+    std::shared_ptr<Media::Player> soundPlayer_ = nullptr;
 };
 } // namespace OHOS
 
