@@ -99,6 +99,8 @@ bool DrawCmdList::Marshalling(Parcel& parcel) const
             case RSOpType::SAVEOPITEM :
             case RSOpType::RESTOREOPITEM :
             case RSOpType::MULTIPLYALPHAOPITEM :
+            case RSOpType::CLIPRECTOPITEM :
+            case RSOpType::IMAGEWITHPARMOPITEM :
                 funcDefine = true;
                 break;
             default :
@@ -152,6 +154,12 @@ DrawCmdList* DrawCmdList::Unmarshalling(Parcel& parcel)
                 break;
             case RSOpType::MULTIPLYALPHAOPITEM :
                 item = MultiplyAlphaOpItem::Unmarshalling(parcel);
+                break;
+            case RSOpType::CLIPRECTOPITEM :
+                item = ClipRectOpItem::Unmarshalling(parcel);
+                break;
+            case RSOpType::IMAGEWITHPARMOPITEM :
+                item = ImageWithParmOpItem::Unmarshalling(parcel);
                 break;
             default :
                 item = nullptr;

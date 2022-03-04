@@ -33,9 +33,6 @@
 #include "property/rs_properties_def.h"
 #include <parcel.h>
 #include "transaction/rs_marshalling_helper.h"
-#ifdef ROSEN_OHOS
-#include <parcel.h>
-#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -111,12 +108,6 @@ public:
     RSOpType GetType() const override {
         return RSOpType::OPITEMWITHPAINT;
     }
-#ifdef ROSEN_OHOS
-    bool Marshalling(Parcel& parcel) const override
-    {
-        return OpItem::Marshalling(parcel);
-    }
-#endif
 
 protected:
     SkPaint paint_;
@@ -161,6 +152,11 @@ public:
     RSOpType GetType() const override {
         return RSOpType::IMAGEWITHPARMOPITEM;
     }
+
+#ifdef ROSEN_OHOS
+    bool Marshalling(Parcel& parcel) const override;
+    static ImageWithParmOpItem* Unmarshalling(Parcel& parcel);
+#endif
 
 private:
     std::shared_ptr<RSImage> rsImage_;
@@ -237,14 +233,8 @@ public:
     }
 
 #ifdef ROSEN_OHOS
-    bool Marshalling(Parcel& parcel) const override
-    {
-        return OpItem::Marshalling(parcel);
-    }
-    static SaveOpItem* Unmarshalling(Parcel& parcel)
-    {
-        return new SaveOpItem();
-    }
+    bool Marshalling(Parcel& parcel) const override;
+    static SaveOpItem* Unmarshalling(Parcel& parcel);
 #endif
 };
 
@@ -259,14 +249,8 @@ public:
     }
 
 #ifdef ROSEN_OHOS
-    bool Marshalling(Parcel& parcel) const override
-    {
-        return OpItem::Marshalling(parcel);
-    }
-    static RestoreOpItem* Unmarshalling(Parcel& parcel)
-    {
-        return new RestoreOpItem();
-    }
+    bool Marshalling(Parcel& parcel) const override;
+    static RestoreOpItem* Unmarshalling(Parcel& parcel);
 #endif
 };
 
@@ -305,6 +289,10 @@ public:
     RSOpType GetType() const override {
         return RSOpType::CLIPRECTOPITEM;
     }
+#ifdef ROSEN_OHOS
+    bool Marshalling(Parcel& parcel) const override;
+    static ClipRectOpItem* Unmarshalling(Parcel& parcel);
+#endif
 
 private:
     SkRect rect_;
@@ -368,33 +356,8 @@ public:
         return RSOpType::TEXTBLOBOPITEM;
     }
 #ifdef ROSEN_OHOS
-    bool Marshalling(Parcel& parcel) const override
-    {
-        bool success = true;
-        success &= OpItemWithPaint::Marshalling(parcel);
-        success &= RSMarshallingHelper::Marshalling(parcel, textBlob_);
-        success &= RSMarshallingHelper::Marshalling(parcel, x_);
-        success &= RSMarshallingHelper::Marshalling(parcel, y_);
-        return success;
-    }
-    static TextBlobOpItem* Unmarshalling(Parcel& parcel)
-    {
-        sk_sp<SkTextBlob> textBlob;
-        float x;
-        float y;
-        if (!RSMarshallingHelper::Unmarshalling(parcel, textBlob)) {
-            return nullptr;
-        }
-        if (!RSMarshallingHelper::Unmarshalling(parcel, x)) {
-            return nullptr;
-        }
-        if (!RSMarshallingHelper::Unmarshalling(parcel, y)) {
-            return nullptr;
-        }
-
-        SkPaint paint;
-        return new TextBlobOpItem(textBlob, x, y, paint);
-    }
+    bool Marshalling(Parcel& parcel) const override;
+    static TextBlobOpItem* Unmarshalling(Parcel& parcel);
 #endif
 
 private:
@@ -652,22 +615,10 @@ public:
     }
 
 #ifdef ROSEN_OHOS
-    bool Marshalling(Parcel& parcel) const override
-    {
-        bool success = true;
-        success &= OpItem::Marshalling(parcel);
-        success &= RSMarshallingHelper::Marshalling(parcel, alpha_);
-        return success;
-    }
-    static MultiplyAlphaOpItem* Unmarshalling(Parcel& parcel)
-    {
-        float alpha;
-        if (!RSMarshallingHelper::Unmarshalling(parcel, alpha)) {
-            return nullptr;
-        }
-        return new MultiplyAlphaOpItem(alpha);
-    }
+    bool Marshalling(Parcel& parcel) const override;
+    static MultiplyAlphaOpItem* Unmarshalling(Parcel& parcel);
 #endif
+
 private:
     float alpha_;
 };
@@ -678,19 +629,13 @@ public:
     ~SaveAlphaOpItem() override {}
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
-#ifdef ROSEN_OHOS
     RSOpType GetType() const override {
         return RSOpType::SAVEALPHAOPITEM;
     }
 
-    bool Marshalling(Parcel& parcel) const override
-    {
-        return OpItem::Marshalling(parcel);
-    }
-    static SaveAlphaOpItem* Unmarshalling(Parcel& parcel)
-    {
-        return new SaveAlphaOpItem();
-    }
+#ifdef ROSEN_OHOS
+    bool Marshalling(Parcel& parcel) const override;
+    static SaveAlphaOpItem* Unmarshalling(Parcel& parcel);
 #endif
 };
 
@@ -705,14 +650,8 @@ public:
     }
 
 #ifdef ROSEN_OHOS
-    bool Marshalling(Parcel& parcel) const override
-    {
-        return OpItem::Marshalling(parcel);
-    }
-    static RestoreAlphaOpItem* Unmarshalling(Parcel& parcel)
-    {
-        return new RestoreAlphaOpItem();
-    }
+    bool Marshalling(Parcel& parcel) const override;
+    static RestoreAlphaOpItem* Unmarshalling(Parcel& parcel);
 #endif
 };
 

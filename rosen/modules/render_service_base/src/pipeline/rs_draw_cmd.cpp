@@ -446,5 +446,161 @@ void RestoreAlphaOpItem::Draw(RSPaintFilterCanvas& canvas, const SkRect*) const
 {
     canvas.RestoreAlpha();
 }
+
+#ifdef ROSEN_OHOS
+
+    // ImageWithParmOpItem
+    bool ImageWithParmOpItem::Marshalling(Parcel& parcel) const
+    {
+        bool success = true;
+        success &= OpItem::Marshalling(parcel);
+        success &= RSMarshallingHelper::Marshalling(parcel, rsImage_);
+        success &= RSMarshallingHelper::Marshalling(parcel, paint_);
+        return success;
+    }
+    ImageWithParmOpItem* ImageWithParmOpItem::Unmarshalling(Parcel& parcel)
+    {
+        sk_sp<SkImage> img;
+        int fitNum;
+        int repeatNum;
+        float radius;
+        SkPaint paint;
+        if (!RSMarshallingHelper::Unmarshalling(parcel, img)) {
+            return nullptr;
+        }
+        if (!RSMarshallingHelper::Unmarshalling(parcel, fitNum)) {
+            return nullptr;
+        }
+        if (!RSMarshallingHelper::Unmarshalling(parcel, repeatNum)) {
+            return nullptr;
+        }
+        if (!RSMarshallingHelper::Unmarshalling(parcel, radius)) {
+            return nullptr;
+        }
+        if (!RSMarshallingHelper::Unmarshalling(parcel, paint)) {
+            return nullptr;
+        }
+
+        return new ImageWithParmOpItem(img, fitNum, repeatNum, radius, paint);
+    }
+
+    // SaveOpItem
+    bool SaveOpItem::Marshalling(Parcel& parcel) const
+    {
+        return OpItem::Marshalling(parcel);
+    }
+    SaveOpItem* SaveOpItem::Unmarshalling(Parcel& parcel)
+    {
+        return new SaveOpItem();
+    }
+
+    // RestoreOpItem
+    bool RestoreOpItem::Marshalling(Parcel& parcel) const
+    {
+        return OpItem::Marshalling(parcel);
+    }
+    RestoreOpItem* RestoreOpItem::Unmarshalling(Parcel& parcel)
+    {
+        return new RestoreOpItem();
+    }
+
+    // ClipRectOpItem
+    bool ClipRectOpItem::Marshalling(Parcel& parcel) const
+    {
+        bool success = true;
+        success &= OpItem::Marshalling(parcel);
+        success &= RSMarshallingHelper::Marshalling(parcel, rect_);
+        success &= RSMarshallingHelper::Marshalling(parcel, clipOp_);
+        success &= RSMarshallingHelper::Marshalling(parcel, doAA_);
+        return success;
+    }
+    ClipRectOpItem* ClipRectOpItem::Unmarshalling(Parcel& parcel)
+    {
+        SkRect rect;
+        SkClipOp clipOp;
+        bool doAA;
+        if (!RSMarshallingHelper::Unmarshalling(parcel, rect)) {
+            return nullptr;
+        }
+        if (!RSMarshallingHelper::Unmarshalling(parcel, clipOp)) {
+            return nullptr;
+        }
+        if (!RSMarshallingHelper::Unmarshalling(parcel, doAA)) {
+            return nullptr;
+        }
+        return new ClipRectOpItem(rect, clipOp, doAA);
+    }
+
+    // TextBlobOpItem
+    bool TextBlobOpItem::Marshalling(Parcel& parcel) const
+    {
+        bool success = true;
+        success &= OpItem::Marshalling(parcel);
+        success &= RSMarshallingHelper::Marshalling(parcel, textBlob_);
+        success &= RSMarshallingHelper::Marshalling(parcel, x_);
+        success &= RSMarshallingHelper::Marshalling(parcel, y_);
+        success &= RSMarshallingHelper::Marshalling(parcel, paint_);
+        return success;
+    }
+    TextBlobOpItem* TextBlobOpItem::Unmarshalling(Parcel& parcel)
+    {
+        sk_sp<SkTextBlob> textBlob;
+        float x;
+        float y;
+        SkPaint paint;
+        if (!RSMarshallingHelper::Unmarshalling(parcel, textBlob)) {
+            return nullptr;
+        }
+        if (!RSMarshallingHelper::Unmarshalling(parcel, x)) {
+            return nullptr;
+        }
+        if (!RSMarshallingHelper::Unmarshalling(parcel, y)) {
+            return nullptr;
+        }
+        if (!RSMarshallingHelper::Unmarshalling(parcel, paint)) {
+            return nullptr;
+        }
+
+        return new TextBlobOpItem(textBlob, x, y, paint);
+    }
+
+    // MultiplyAlphaOpItem
+    bool MultiplyAlphaOpItem::Marshalling(Parcel& parcel) const
+    {
+        bool success = true;
+        success &= OpItem::Marshalling(parcel);
+        success &= RSMarshallingHelper::Marshalling(parcel, alpha_);
+        return success;
+    }
+    MultiplyAlphaOpItem* MultiplyAlphaOpItem::Unmarshalling(Parcel& parcel)
+    {
+        float alpha;
+        if (!RSMarshallingHelper::Unmarshalling(parcel, alpha)) {
+            return nullptr;
+        }
+        return new MultiplyAlphaOpItem(alpha);
+    }
+
+    // SaveAlphaOpItem
+    bool SaveAlphaOpItem::Marshalling(Parcel& parcel) const
+    {
+        return OpItem::Marshalling(parcel);
+    }
+    SaveAlphaOpItem* SaveAlphaOpItem::Unmarshalling(Parcel& parcel)
+    {
+        return new SaveAlphaOpItem();
+    }
+
+    // RestoreAlphaOpItem
+    bool RestoreAlphaOpItem::Marshalling(Parcel& parcel) const
+    {
+        return OpItem::Marshalling(parcel);
+    }
+    RestoreAlphaOpItem* RestoreAlphaOpItem::Unmarshalling(Parcel& parcel)
+    {
+        return new RestoreAlphaOpItem();
+    }
+
+#endif
 } // namespace Rosen
 } // namespace OHOS

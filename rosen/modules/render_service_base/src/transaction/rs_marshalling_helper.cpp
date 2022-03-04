@@ -32,6 +32,7 @@
 #include "src/core/SkReadBuffer.h"
 #include "src/core/SkWriteBuffer.h"
 #include "include/core/SkTextBlob.h"
+#include "include/core/SkImage.h"
 #include "include/core/SkSerialProcs.h"
 #include "pipeline/rs_draw_cmd_list.h"
 #include <memory>
@@ -122,6 +123,46 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, sk_sp<SkTextBlob>& val)
     val = SkTextBlob::Deserialize(data->data(), data->size(), SkDeserialProcs());
     return true;
 }
+
+// SkPaint
+bool RSMarshallingHelper::Marshalling(Parcel& parcel, const SkPaint& val)
+{
+    SkBinaryWriteBuffer writer;
+    writer.writePaint(val);
+
+    size_t length = writer.bytesWritten();
+    sk_sp<SkData> data = SkData::MakeUninitialized(length);
+    writer.writeToMemory(data->writable_data());
+    return Marshalling(parcel, data);
+}
+bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, SkPaint& val)
+{
+    sk_sp<SkData> data;
+    Unmarshalling(parcel, data);
+    SkReadBuffer reader(data->data(), data->size());
+    reader.readPaint(&val, nullptr);
+    return true;
+}
+
+// SkImage
+bool RSMarshallingHelper::Marshalling(Parcel& parcel, const sk_sp<SkImage>& val)
+{
+    SkBinaryWriteBuffer writer;
+    writer.writeImage(val.get());
+    size_t length = writer.bytesWritten();
+    sk_sp<SkData> data = SkData::MakeUninitialized(length);
+    writer.writeToMemory(data->writable_data());
+    return Marshalling(parcel, data);
+}
+bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, sk_sp<SkImage>& val)
+{
+    sk_sp<SkData> data;
+    Unmarshalling(parcel, data);
+    SkReadBuffer reader(data->data(), data->size());
+    val = reader.readImage();
+    return true;
+}
+
 
 // // SkDrawable
 // bool RSMarshallingHelper::Marshalling(Parcel& parcel, const sk_sp<SkDrawable>& val)
@@ -281,6 +322,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSFilter
 MARSHALLING_AND_UNMARSHALLING(RSRenderPathAnimation)
 MARSHALLING_AND_UNMARSHALLING(RSRenderTransition)
 MARSHALLING_AND_UNMARSHALLING(RSRenderTransitionEffect)
+MARSHALLING_AND_UNMARSHALLING(RSImage)
 MARSHALLING_AND_UNMARSHALLING(DrawCmdList)
 #undef MARSHALLING_AND_UNMARSHALLING
 
