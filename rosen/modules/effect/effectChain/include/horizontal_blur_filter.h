@@ -37,8 +37,8 @@ public:
 
 private:
     void LoadFilterParams() override;
-    GLuint weightID_;
-    GLuint offsetID_;
+    GLint weightID_ = 0;
+    GLint offsetID_ = 0;
     float weight_[RADIUS] = {DEFAULT_WEIGHT_ONE, DEFAULT_WEIGHT_TWO, DEFAULT_WEIGHT_THREE};
     float offset_[RADIUS] = {DEFAULT_OFFSET_ONE, DEFAULT_OFFSET_TWO, DEFAULT_OFFSET_THREE};
 };

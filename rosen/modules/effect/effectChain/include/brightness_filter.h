@@ -32,7 +32,7 @@ public:
 private:
     void LoadFilterParams() override;
     float brightness_ = DEFAULT_BRIGHTNESS;
-    GLuint brightnessID_;
+    GLint brightnessID_ = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

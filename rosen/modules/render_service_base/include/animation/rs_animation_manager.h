@@ -40,7 +40,7 @@ public:
 
     void AddAnimation(const std::shared_ptr<RSRenderAnimation>& animation);
     void RemoveAnimation(AnimationId keyId);
-    const std::shared_ptr<RSRenderAnimation>& GetAnimation(AnimationId id) const;
+    const std::shared_ptr<RSRenderAnimation> GetAnimation(AnimationId id) const;
 
     bool Animate(int64_t time);
 

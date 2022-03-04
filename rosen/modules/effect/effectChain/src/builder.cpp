@@ -21,9 +21,13 @@ namespace OHOS {
 namespace Rosen {
 ImageChain* Builder::CreateFromConfig(std::string path)
 {
+    char newpath[PATH_MAX + 1] = { 0x00 };
+    if (strlen(path.c_str()) > PATH_MAX || realpath(path.c_str(), newpath) == NULL) {
+        return nullptr;
+    }
     std::ifstream configFile;
     // open files
-    configFile.open(path.c_str());
+    configFile.open(newpath);
     std::stringstream JFilterParamsStream;
     // read file's buffer contents into streams
     JFilterParamsStream << configFile.rdbuf();

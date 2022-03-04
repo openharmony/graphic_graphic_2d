@@ -78,7 +78,7 @@ void RSCustomInterpolator::Convert(int duration)
         ROSEN_LOGE("RSCustomInterpolator::Convert, interpolateFunc_ is nullptr");
         return;
     }
-    uint64_t frameInterval = 16666667; // [PLANNING]: need to get from the client
+    uint64_t frameInterval = 16666667;
     int numAnim = static_cast<int>(std::ceil(static_cast<double>(duration * MS_TO_NS) / frameInterval));
     const int maxSamplePoints = 300;
     const int minSamplePoints = 2;

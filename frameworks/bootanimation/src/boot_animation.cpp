@@ -33,7 +33,17 @@ void BootAnimation::OnDraw(SkCanvas* canvas)
     if (bootPicCurNo_ != (maxPicNum_ - 1)) {
         bootPicCurNo_ = bootPicCurNo_ + 1;
     }
-    std::unique_ptr<FILE, decltype(&fclose)> file(fopen(imgPath.c_str(), "rb"), fclose);
+    char newpath[PATH_MAX + 1] = { 0x00 };
+    if (strlen(imgPath.c_str()) > PATH_MAX || realpath(imgPath.c_str(), newpath) == NULL) {
+        LOG("OnDraw imgPath is invalid");
+        return;
+    }
+    FILE *fp = fopen(newpath, "rb");
+    if (fp == nullptr) {
+        LOG("OnDraw fopen image file is nullptr");
+        return;
+    }
+    std::unique_ptr<FILE, decltype(&fclose)> file(fp, fclose);
     if (file == nullptr) {
         LOG("OnDraw file is nullptr");
         return;
@@ -96,7 +106,7 @@ void BootAnimation::Init(int32_t width, int32_t height, const std::shared_ptr<Ap
     InitRsSurface();
     InitPicCoordinates();
 
-    std::vector<uint32_t> freqs = {60, 30};
+    std::vector<int32_t> freqs = {60, 30};
     if (freqs.size() >= 0x2) {
         freq_ = freqs[0];
     }

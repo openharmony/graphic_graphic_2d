@@ -55,13 +55,13 @@ private:
     double CalculateDisplacement(double mappedTime) const;
 
     // common intermediate coefficient
-    float coeffDecay_;
-    float coeffScale_;
+    float coeffDecay_ { 0.0f };
+    float coeffScale_ { 0.0f };
     // only for under-damped systems
-    float dampedAngularVelocity_;
+    float dampedAngularVelocity_ { 0.0f };
     // only for over-damped systems
-    float coeffScaleMinus_;
-    float coeffDecayMinus_;
+    float coeffScaleMinus_ { 0.0f };
+    float coeffDecayMinus_ { 0.0f };
 };
 
 class RSValueSpringInterpolator : public RSSpringInterpolator {

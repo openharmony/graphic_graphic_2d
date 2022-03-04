@@ -42,7 +42,7 @@ class RSRenderAnimation {
 #endif
 public:
     virtual ~RSRenderAnimation() = default;
-    long long GetAnimationId() const;
+    AnimationId GetAnimationId() const;
     void Start();
     void Finish();
     void Pause();

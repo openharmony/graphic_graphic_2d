@@ -64,12 +64,11 @@ bool RSRenderAnimation::ParseParam(Parcel& parcel)
     SetAutoReverse(autoReverse);
     SetSpeed(speed);
     SetDirection(direction);
-    // [PLANNING]: fillMode check
     SetFillMode(static_cast<FillMode>(fillMode));
     return true;
 }
 #endif
-long long RSRenderAnimation::GetAnimationId() const
+AnimationId RSRenderAnimation::GetAnimationId() const
 {
     return id_;
 }
