@@ -48,7 +48,7 @@ namespace {
 void DrawEventReport(float frameLength)
 {
     int32_t pid = getpid();
-    int32_t uid = getuid();
+    uint32_t uid = getuid();
     std::string domain = "GRAPHIC";
     std::string stringId = "NO_DRAW";
     std::string processName = "RS_THREAD";
