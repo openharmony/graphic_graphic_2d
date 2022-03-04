@@ -37,7 +37,9 @@ void RSRenderServiceConnectionProxy::CommitTransaction(std::unique_ptr<RSTransac
         return;
     }
 
+    ROSEN_LOGE("unirender: RSRenderServiceConnectionProxy::CommitTransaction, begin data.WriteParcelable");
     if (!data.WriteParcelable(transactionData.get())) {
+        ROSEN_LOGE("unirender: RSRenderServiceConnectionProxy::CommitTransaction, !data.WriteParcelable");
         return;
     }
 

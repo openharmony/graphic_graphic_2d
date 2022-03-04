@@ -69,6 +69,11 @@ public:
     {
         return colorSpace_;
     }
+    std::string GetName() const
+    {
+        return name_;
+    }
+
 protected:
     bool NeedForcedSendToRemote() const override;
     explicit RSSurfaceNode(const RSSurfaceNodeConfig& config, bool isRenderServiceNode);

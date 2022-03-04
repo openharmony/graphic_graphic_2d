@@ -38,6 +38,7 @@ class RSFilter;
 class RSPath;
 class RSShader;
 class RSImage;
+class RSMask;
 template<typename T>
 class RSRenderCurveAnimation;
 template<typename T>
@@ -91,6 +92,7 @@ public:
     DECLARE_FUNCTION_OVERLOAD(RSShader)
     DECLARE_FUNCTION_OVERLOAD(RSPath)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSFilter>)
+    DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSMask>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSImage>)
     DECLARE_FUNCTION_OVERLOAD(sk_sp<SkImage>)
     DECLARE_FUNCTION_OVERLOAD(SkPaint)

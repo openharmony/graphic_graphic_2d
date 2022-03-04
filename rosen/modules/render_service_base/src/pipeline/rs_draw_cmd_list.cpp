@@ -88,7 +88,7 @@ bool DrawCmdList::Marshalling(Parcel& parcel) const
     success &= RSMarshallingHelper::Marshalling(parcel, width_);
     success &= RSMarshallingHelper::Marshalling(parcel, height_);
     success &= RSMarshallingHelper::Marshalling(parcel, GetSize());
-    ROSEN_LOGI("unirender: DrawCmdList::Marshalling start, sussess = %d", success);
+    ROSEN_LOGE("unirender: DrawCmdList::Marshalling start, sussess = %d", success);
     for (const auto& item : ops_) {
         auto type = item->GetType();
         bool funcDefine = false;
@@ -108,9 +108,9 @@ bool DrawCmdList::Marshalling(Parcel& parcel) const
         }
         bool result = item->Marshalling(parcel);
         success &= result;
-        ROSEN_LOGI("unirender: opItem Marshalling, result = %d, optype = %d, funcDefine = %d", result, type, funcDefine);
+        ROSEN_LOGE("unirender: opItem Marshalling, result = %d, optype = %d, funcDefine = %d", result, type, funcDefine);
     }
-    ROSEN_LOGI("unirender: DrawCmdList::Marshalling end, sussess = %d", success);
+    ROSEN_LOGE("unirender: DrawCmdList::Marshalling end, sussess = %d", success);
     return success;
 }
 
@@ -128,7 +128,8 @@ DrawCmdList* DrawCmdList::Unmarshalling(Parcel& parcel)
     if (!RSMarshallingHelper::Unmarshalling(parcel, size)) {
         return nullptr;
     }
-    
+
+    ROSEN_LOGE("unirender: DrawCmdList::Unmarshalling start");
     DrawCmdList* drawCmdList = new DrawCmdList(width, height);
     for (int i = 0; i < size; ++i) {
         RSOpType type;
@@ -136,6 +137,7 @@ DrawCmdList* DrawCmdList::Unmarshalling(Parcel& parcel)
             return nullptr;
         }
         OpItem* item = nullptr;
+        bool funcDefine = true;
         switch (type) {
             case RSOpType::TEXTBLOBOPITEM :
                 item = TextBlobOpItem::Unmarshalling(parcel);
@@ -163,12 +165,14 @@ DrawCmdList* DrawCmdList::Unmarshalling(Parcel& parcel)
                 break;
             default :
                 item = nullptr;
-                ROSEN_LOGE("unirender: no Unmarshalling func, RSOpType = %d", type);
+                funcDefine = false;
         }
         if (item) {
             drawCmdList->AddOp(std::unique_ptr<OpItem>(item));
         }
+        ROSEN_LOGE("unirender: opItem Unmarshalling, result = %d, optype = %d, funcDefine = %d", item != nullptr, type, funcDefine);
     }
+    ROSEN_LOGE("unirender: DrawCmdList::Unmarshalling finish.");
     return drawCmdList;
 }
 #endif

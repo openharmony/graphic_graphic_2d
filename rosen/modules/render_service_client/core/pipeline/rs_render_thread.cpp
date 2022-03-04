@@ -119,7 +119,7 @@ RSRenderThread::~RSRenderThread()
 
 void RSRenderThread::Start()
 {
-    ROSEN_LOGD("RSRenderThread start.");
+    ROSEN_LOGI("unirender: RSRenderThread start.");
     running_.store(true);
     if (thread_ == nullptr) {
         thread_ = std::make_unique<std::thread>(&RSRenderThread::RenderLoop, this);
