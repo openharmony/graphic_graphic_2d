@@ -154,6 +154,11 @@ void RSAnimation::OnPause()
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy != nullptr) {
         transactionProxy->AddCommand(command, target->IsRenderServiceNode());
+        if (target->NeedForcedSendToRemote()) {
+            std::unique_ptr<RSCommand> commandForRemote =
+                std::make_unique<RSAnimationPause>(target->GetId(), id_);
+            transactionProxy->AddCommand(commandForRemote, true);
+        }
     }
 }
 
@@ -186,6 +191,11 @@ void RSAnimation::OnResume()
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy != nullptr) {
         transactionProxy->AddCommand(command, target->IsRenderServiceNode());
+        if (target->NeedForcedSendToRemote()) {
+            std::unique_ptr<RSCommand> commandForRemote =
+                std::make_unique<RSAnimationResume>(target->GetId(), id_);
+            transactionProxy->AddCommand(commandForRemote, true);
+        }
     }
 }
 
@@ -218,6 +228,11 @@ void RSAnimation::OnFinish()
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy != nullptr) {
         transactionProxy->AddCommand(command, target->IsRenderServiceNode());
+        if (target->NeedForcedSendToRemote()) {
+            std::unique_ptr<RSCommand> commandForRemote =
+                std::make_unique<RSAnimationFinish>(target->GetId(), id_);
+            transactionProxy->AddCommand(commandForRemote, true);
+        }
     }
 }
 
@@ -251,6 +266,11 @@ void RSAnimation::OnReverse()
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy != nullptr) {
         transactionProxy->AddCommand(command, target->IsRenderServiceNode());
+        if (target->NeedForcedSendToRemote()) {
+            std::unique_ptr<RSCommand> commandForRemote =
+                std::make_unique<RSAnimationReverse>(target->GetId(), id_, isReversed_);
+            transactionProxy->AddCommand(commandForRemote, true);
+        }
     }
 }
 
@@ -287,6 +307,11 @@ void RSAnimation::OnSetFraction(float fraction)
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy != nullptr) {
         transactionProxy->AddCommand(command, target->IsRenderServiceNode());
+        if (target->NeedForcedSendToRemote()) {
+            std::unique_ptr<RSCommand> commandForRemote =
+                std::make_unique<RSAnimationSetFraction>(target->GetId(), id_, fraction);
+            transactionProxy->AddCommand(commandForRemote, true);
+        }
     }
 }
 

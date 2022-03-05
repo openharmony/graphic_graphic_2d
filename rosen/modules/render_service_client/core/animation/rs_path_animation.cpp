@@ -140,10 +140,15 @@ void RSPathAnimation::OnStart()
     animation->SetRotationMode(GetRotationMode());
     animation->SetBeginFraction(GetBeginFraction());
     animation->SetEndFraction(GetEndFraction());
-    std::unique_ptr<RSCommand> command = std::make_unique<RSAnimationCreatePath>(target->GetId(), std::move(animation));
+    std::unique_ptr<RSCommand> command = std::make_unique<RSAnimationCreatePath>(target->GetId(), animation);
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy != nullptr) {
         transactionProxy->AddCommand(command, target->IsRenderServiceNode());
+        if (target->NeedForcedSendToRemote()) {
+            std::unique_ptr<RSCommand> commandForRemote =
+                std::make_unique<RSAnimationCreatePath>(target->GetId(), animation);
+            transactionProxy->AddCommand(commandForRemote, true);
+        }
     }
 }
 
