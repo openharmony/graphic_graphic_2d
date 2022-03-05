@@ -61,6 +61,7 @@ void RSCanvasRenderNode::ProcessRenderContents(RSPaintFilterCanvas& canvas)
 void RSCanvasRenderNode::ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas)
 {
 #ifdef ROSEN_OHOS
+    ROSEN_LOGI("cqx RSCanvasRenderNode::ProcessRenderBeforeChildren start");
     RSRenderNode::ProcessRenderBeforeChildren(canvas);
 
     RSPropertiesPainter::DrawBackground(GetRenderProperties(), canvas);
@@ -73,6 +74,7 @@ void RSCanvasRenderNode::ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas
     canvas.translate(GetRenderProperties().GetFrameOffsetX(), GetRenderProperties().GetFrameOffsetY());
 
     if (GetRenderProperties().GetClipToFrame()) {
+        ROSEN_LOGI("cqx RSCanvasRenderNode::ProcessRenderBeforeChildren GetClipToFrame");
         RSPropertiesPainter::Clip(canvas, GetRenderProperties().GetFrameRect());
     }
     if (!drawContentLast_) {
@@ -84,6 +86,7 @@ void RSCanvasRenderNode::ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas
 void RSCanvasRenderNode::ProcessRenderAfterChildren(RSPaintFilterCanvas& canvas)
 {
 #ifdef ROSEN_OHOS
+    ROSEN_LOGI("cqx RSCanvasRenderNode::ProcessRenderAfterChildren start");
     if (drawContentLast_) {
         ProcessRenderContents(canvas);
     }

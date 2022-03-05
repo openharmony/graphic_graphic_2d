@@ -187,11 +187,13 @@ void RSUnifiedRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
         RenderContext* rc = RSRenderThread::Instance().GetRenderContext();
         rsSurface->SetRenderContext(rc);
 #endif
+        ROSEN_LOGI("RSUnifiedRenderVisitor::ProcessDisplayRenderNode RequestFrame start");
         auto surfaceFrame = rsSurface->RequestFrame(screenInfo_.width, screenInfo_.height);
         if (surfaceFrame == nullptr) {
             ROSEN_LOGE("RSUnifiedRenderVisitor Request Frame Failed");
             return;
         }
+        ROSEN_LOGI("RSUnifiedRenderVisitor::ProcessDisplayRenderNode RequestFrame end");
         canvas_ = new RSPaintFilterCanvas(surfaceFrame->GetCanvas());
         canvas_->clear(SK_ColorTRANSPARENT);
 
@@ -204,6 +206,15 @@ void RSUnifiedRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
         node.SetGlobalZOrder(globalZOrder_++);
         processor_->ProcessSurface(node);
     } else {
+        OHOS::sptr<SurfaceBuffer> buffer;
+        RSProcessor::SpecialTask task = [] () {};
+        bool ret = processor_->ConsumeAndUpdateBuffer(node, task, buffer);
+        auto& surfaceConsumer = node.GetConsumer();
+        if (ret && surfaceConsumer != nullptr) {
+            ROSEN_LOGI("cqx RSUnifiedRenderVisitor::ProcessDisplayRenderNode ReleaseBuffer");
+            (void)surfaceConsumer->ReleaseBuffer(node.GetBuffer(), -1);
+        }
+        ROSEN_LOGI("cqx RSUnifiedRenderVisitor::ProcessDisplayRenderNode ConsumeAndUpdateBuffer end");
         ProcessBaseRenderNode(node);
     }
     processor_->PostProcess();

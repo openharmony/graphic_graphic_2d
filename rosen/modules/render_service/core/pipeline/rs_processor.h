@@ -38,6 +38,7 @@ public:
     virtual void Init(ScreenId id, int32_t offsetX, int32_t offsetY) = 0;
     virtual void PostProcess() = 0;
     bool ConsumeAndUpdateBuffer(RSSurfaceRenderNode& node, SpecialTask& task, sptr<SurfaceBuffer>& buffer);
+    bool ConsumeAndUpdateBuffer(RSDisplayRenderNode& node, SpecialTask& task, sptr<SurfaceBuffer>& buffer);
 
 protected:
     std::unique_ptr<SkCanvas> CreateCanvas(sptr<Surface> producerSurface, BufferRequestConfig requestConfig);
