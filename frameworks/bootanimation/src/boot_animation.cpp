@@ -24,6 +24,7 @@ static const std::string BOOT_PIC_ZIP = "/system/etc/init/bootpic.zip";
 static const std::string DST_FILE_PATH = "/data/media/bootpic";
 static const std::string BOOT_PIC_DIR = "/data/media/bootpic/OpenHarmony_";
 static const int32_t EXIT_TIME = 10 * 1000;
+static const std::string BOOT_SOUND_URI = "file://system/etc/init/bootsound.wav";
 
 void BootAnimation::OnDraw(SkCanvas* canvas)
 {
@@ -204,3 +205,16 @@ void BootAnimation::CheckExitAnimation()
     needCheckExit = true;
 }
 
+void BootAnimation::PlaySound()
+{
+    LOG("PlaySound start");
+    if (soundPlayer_ == nullptr) {
+        soundPlayer_ = Media::PlayerFactory::CreatePlayer();
+    }
+    std::string uri = BOOT_SOUND_URI;
+    soundPlayer_->SetSource(uri);
+    soundPlayer_->SetLooping(false);
+    soundPlayer_->Prepare();
+    soundPlayer_->Play();
+    LOG("PlaySound end");
+}
