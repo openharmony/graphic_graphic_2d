@@ -117,8 +117,6 @@ void RSRenderNode::ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas)
     canvas.MultiplyAlpha(GetRenderProperties().GetAlpha());
     auto boundsGeo = std::static_pointer_cast<RSObjAbsGeometry>(GetRenderProperties().GetBoundsGeometry());
     if (boundsGeo && !boundsGeo->IsEmpty()) {
-        ROSEN_LOGE("cqx RSRenderNode::ProcessRenderBeforeChildren canvas.concat [%.1f, %.1f, %.1f, %.1f]",
-            boundsGeo->GetX(), boundsGeo->GetY(), boundsGeo->GetWidth(), boundsGeo->GetHeight());
         canvas.concat(boundsGeo->GetMatrix());
     }
     auto transitionProperties = GetAnimationManager().GetTransitionProperties();

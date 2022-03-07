@@ -226,7 +226,7 @@ void RSHardwareProcessor::ProcessSurface(RSSurfaceRenderNode &node)
 
 void RSHardwareProcessor::ProcessSurface(RSDisplayRenderNode& node)
 {
-    ROSEN_LOGI("cqx RsDebug RSHardwareProcessor::ProcessSurface displayNode id:%llu available buffer:%d", node.GetId(),
+    ROSEN_LOGI("RsDebug RSHardwareProcessor::ProcessSurface displayNode id:%llu available buffer:%d", node.GetId(),
         node.GetAvailableBufferCount());
     if (!output_) {
         ROSEN_LOGE("RSHardwareProcessor::ProcessSurface output is nullptr");
@@ -269,7 +269,7 @@ void RSHardwareProcessor::ProcessSurface(RSDisplayRenderNode& node)
         .blendType = BLEND_NONE,
     };
     std::shared_ptr<HdiLayerInfo> layer = HdiLayerInfo::CreateHdiLayerInfo();
-    ROSEN_LOGE("cqx RsDebug RSHardwareProcessor::ProcessSurface displayNode id:%llu dst [%d %d %d %d]"\
+    ROSEN_LOGE("RsDebug RSHardwareProcessor::ProcessSurface displayNode id:%llu dst [%d %d %d %d]"\
         "SrcRect [%d %d] rawbuffer [%d %d] surfaceBuffer [%d %d] buffaddr:%p, globalZOrder:%d, blendType = %d",
         node.GetId(),
         info.dstRect.x, info.dstRect.y, info.dstRect.w, info.dstRect.h, info.srcRect.w, info.srcRect.h,

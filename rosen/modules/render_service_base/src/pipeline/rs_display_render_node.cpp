@@ -139,7 +139,7 @@ int32_t RSDisplayRenderNode::ReduceAvailableBuffer()
 bool RSDisplayRenderNode::CreateSurface(sptr<IBufferConsumerListener> listener)
 {
     if (consumer_ != nullptr && surface_ != nullptr) {
-        ROSEN_LOGI("cqx RSDisplayRenderNode::CreateSurface already created, return");
+        ROSEN_LOGI("RSDisplayRenderNode::CreateSurface already created, return");
         return true;
     }
     consumer_ = Surface::CreateSurfaceAsConsumer("Display Node");
@@ -161,7 +161,7 @@ bool RSDisplayRenderNode::CreateSurface(sptr<IBufferConsumerListener> listener)
     // CPU render
     surface_ = std::make_shared<RSSurfaceOhosRaster>(surface);
 #endif
-    ROSEN_LOGI("cqx RSDisplayRenderNode::CreateSurface end");
+    ROSEN_LOGI("RSDisplayRenderNode::CreateSurface end");
     return true;
 }
 } // namespace Rosen

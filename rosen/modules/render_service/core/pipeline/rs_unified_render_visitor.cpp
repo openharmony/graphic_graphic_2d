@@ -51,7 +51,6 @@ RSUnifiedRenderVisitor::~RSUnifiedRenderVisitor() {}
 
 void RSUnifiedRenderVisitor::PrepareBaseRenderNode(RSBaseRenderNode& node)
 {
-    ROSEN_LOGI("cqx RSUnifiedRenderVisitor::PrepareBaseRenderNode");
     for (auto& child : node.GetChildren()) {
         if (auto c = child.lock()) {
             c->Prepare(shared_from_this());
@@ -64,16 +63,14 @@ void RSUnifiedRenderVisitor::PrepareBaseRenderNode(RSBaseRenderNode& node)
 
 void RSUnifiedRenderVisitor::PrepareDisplayRenderNode(RSDisplayRenderNode& node)
 {
-    ROSEN_LOGI("cqx RSUnifiedRenderVisitor::PrepareDisplayRenderNode child size:%d", node.GetChildren().size());
     SortZOrder(node);
     PrepareBaseRenderNode(node);
 }
 
 void RSUnifiedRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
 {
-    ROSEN_LOGI("cqx RSUnifiedRenderVisitor::PrepareSurfaceRenderNode child size:%d", node.GetChildren().size());
     if (APP_FOR_UNI_RENDER.find(node.GetName()) != APP_FOR_UNI_RENDER.end()) {
-        ROSEN_LOGI("cqx RSUnifiedRenderVisitor::ProcessSurfaceRenderNode uniRender for:%s", node.GetName().c_str());
+        ROSEN_LOGI("RSUnifiedRenderVisitor::ProcessSurfaceRenderNode uniRender for:%s", node.GetName().c_str());
         isUniRender_ = true;
         hasUniRender_ = true;
     }
@@ -99,34 +96,21 @@ void RSUnifiedRenderVisitor::PrepareRootRenderNode(RSRootRenderNode& node)
     if (!isUniRender_) {
         return;
     }
-    ROSEN_LOGI("cqx RSUnifiedRenderVisitor::PrepareRootRenderNode nodeId:%llu, child size:%d", node.GetId(),
-        node.GetChildren().size());
     parent_ = nullptr;
     dirtyFlag_ = false;
     PrepareCanvasRenderNode(node);
-
-    auto& property = node.GetRenderProperties();
-    ROSEN_LOGI("cqx RSUnifiedRenderVisitor::PrepareRootRenderNode end bounds:[%.1f, %.1f, %.1f, %.1f]",
-        property.GetBoundsPositionX(), property.GetBoundsPositionY(), property.GetBoundsWidth(), property.GetBoundsHeight());
 }
 
 void RSUnifiedRenderVisitor::PrepareCanvasRenderNode(RSCanvasRenderNode &node)
 {
-    ROSEN_LOGI("cqx RSUnifiedRenderVisitor::PrepareCanvasRenderNode nodeId:%llu, child size:%d", node.GetId(),
-        node.GetChildren().size());
     bool dirtyFlag = dirtyFlag_;
     dirtyFlag_ = node.Update(dirtyManager_, parent_ ? &(parent_->GetRenderProperties()) : nullptr, dirtyFlag_);
     PrepareBaseRenderNode(node);
     dirtyFlag_ = dirtyFlag;
-
-    auto& property = node.GetRenderProperties();
-    ROSEN_LOGI("cqx RSUnifiedRenderVisitor::PrepareCanvasRenderNode end bounds:[%.1f, %.1f, %.1f, %.1f]",
-        property.GetBoundsPositionX(), property.GetBoundsPositionY(), property.GetBoundsWidth(), property.GetBoundsHeight());
 }
 
 void RSUnifiedRenderVisitor::ProcessBaseRenderNode(RSBaseRenderNode& node)
 {
-    ROSEN_LOGI("cqx RSUnifiedRenderVisitor::ProcessBaseRenderNode");
     for (auto& child : node.GetChildren()) {
         if (auto c = child.lock()) {
             c->Process(shared_from_this());
@@ -139,7 +123,7 @@ void RSUnifiedRenderVisitor::ProcessBaseRenderNode(RSBaseRenderNode& node)
 
 void RSUnifiedRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
 {
-    ROSEN_LOGI("cqx RSUnifiedRenderVisitor::ProcessDisplayRenderNode child size:%d", node.GetChildren().size());
+    ROSEN_LOGI("RSUnifiedRenderVisitor::ProcessDisplayRenderNode child size:%d", node.GetChildren().size());
     globalZOrder_ = 0.0f;
     sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
     if (!screenManager) {
@@ -211,29 +195,24 @@ void RSUnifiedRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
         bool ret = processor_->ConsumeAndUpdateBuffer(node, task, buffer);
         auto& surfaceConsumer = node.GetConsumer();
         if (ret && surfaceConsumer != nullptr) {
-            ROSEN_LOGI("cqx RSUnifiedRenderVisitor::ProcessDisplayRenderNode ReleaseBuffer");
             (void)surfaceConsumer->ReleaseBuffer(node.GetBuffer(), -1);
         }
-        ROSEN_LOGI("cqx RSUnifiedRenderVisitor::ProcessDisplayRenderNode ConsumeAndUpdateBuffer end");
         ProcessBaseRenderNode(node);
     }
     processor_->PostProcess();
-    ROSEN_LOGI("cqx RSUnifiedRenderVisitor::ProcessDisplayRenderNode end");
+    ROSEN_LOGI("RSUnifiedRenderVisitor::ProcessDisplayRenderNode end");
 }
 
 void RSUnifiedRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
 {
-    ROSEN_LOGI("cqx RSUnifiedRenderVisitor::ProcessSurfaceRenderNode child size:%d", node.GetChildren().size());
+    ROSEN_LOGI("RSUnifiedRenderVisitor::ProcessSurfaceRenderNode child size:%d", node.GetChildren().size());
     if (APP_FOR_UNI_RENDER.find(node.GetName()) != APP_FOR_UNI_RENDER.end()) {
-        ROSEN_LOGI("cqx RSUnifiedRenderVisitor::ProcessSurfaceRenderNode uniRender for:%s", node.GetName().c_str());
+        ROSEN_LOGI("RSUnifiedRenderVisitor::ProcessSurfaceRenderNode uniRender for:%s", node.GetName().c_str());
         isUniRender_ = true;
-        auto& property = node.GetRenderProperties();
-        ROSEN_LOGI("cqx RSUnifiedRenderVisitor::ProcessSurfaceRenderNode bounds:[%.1f, %.1f, %.1f, %.1f]",
-            property.GetBoundsPositionX(), property.GetBoundsPositionY(), property.GetBoundsWidth(), property.GetBoundsHeight());
     }
     // for uniRender
-    // for window surface node - whose parent is display node
     if (isUniRender_) {
+        // for window surface node - whose parent is display node
         if (IsChildOfDisplayNode(node)) {
             if (node.GetRenderProperties().GetBoundsPositionX() >= screenInfo_.width ||
                 node.GetRenderProperties().GetBoundsPositionY() >= screenInfo_.height) {
@@ -257,10 +236,9 @@ void RSUnifiedRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
             bool ret = processor_->ConsumeAndUpdateBuffer(node, task, buffer);
             auto& surfaceConsumer = node.GetConsumer();
             if (ret && surfaceConsumer != nullptr) {
-                ROSEN_LOGI("cqx RSUnifiedRenderVisitor::ProcessSurfaceRenderNode ReleaseBuffer");
                 (void)surfaceConsumer->ReleaseBuffer(node.GetBuffer(), -1);
             }
-            ROSEN_LOGI("cqx RSUnifiedRenderVisitor::ProcessSurfaceRenderNode ConsumeAndUpdateBuffer end");
+
             uniZOrder_ = globalZOrder_++;
             canvas_->save();
             canvas_->setMatrix(geoPtr->GetAbsMatrix());
@@ -299,7 +277,6 @@ void RSUnifiedRenderVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
     if (!isUniRender_) {
         return;
     }
-    ROSEN_LOGI("cqx RSUnifiedRenderVisitor::ProcessRootRenderNode child size:%d", node.GetChildren().size());
     if (!node.GetRenderProperties().GetVisible()) {
         return;
     }
@@ -317,9 +294,6 @@ void RSUnifiedRenderVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
         ROSEN_LOGI("RSUnifiedRenderVisitor::ProcessRootRenderNode this parent is not SurfaceNode");
         return;
     }
-    auto& property = node.GetRenderProperties();
-    ROSEN_LOGI("cqx RSUnifiedRenderVisitor::ProcessRootRenderNode bounds:[%.1f, %.1f, %.1f, %.1f]",
-        property.GetBoundsPositionX(), property.GetBoundsPositionY(), property.GetBoundsWidth(), property.GetBoundsHeight());
     canvas_->save();
     ProcessCanvasRenderNode(node);
     canvas_->restore();
@@ -327,7 +301,6 @@ void RSUnifiedRenderVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
 
 void RSUnifiedRenderVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
 {
-    ROSEN_LOGI("cqx RSUnifiedRenderVisitor::ProcessCanvasRenderNode child size:%d", node.GetChildren().size());
     if (!node.GetRenderProperties().GetVisible()) {
         return;
     }
@@ -342,7 +315,6 @@ void RSUnifiedRenderVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
 
 void RSUnifiedRenderVisitor::SortZOrder(RSBaseRenderNode& node)
 {
-    ROSEN_LOGI("cqx RSUnifiedRenderVisitor::SortZOrder");
     auto& children = node.GetChildren();
     static auto compare = [](std::weak_ptr<RSBaseRenderNode> first, std::weak_ptr<RSBaseRenderNode> second) -> bool {
         auto node1 = RSBaseRenderNode::ReinterpretCast<RSRenderNode>(first.lock());
@@ -367,7 +339,6 @@ bool RSUnifiedRenderVisitor::IsChildOfDisplayNode(RSBaseRenderNode& node)
         ROSEN_LOGI("RSUnifiedRenderVisitor::IsChildOfDisplayNode this parent is not DisplayNode");
         return false;
     }
-    ROSEN_LOGI("cqx RSUnifiedRenderVisitor::IsChildOfDisplayNode end");
     return true;
 }
 

@@ -134,7 +134,6 @@ void RSPropertiesPainter::Clip(SkCanvas& canvas, RectF rect)
 void RSPropertiesPainter::DrawShadow(const RSProperties& properties, SkCanvas& canvas)
 {
     if (properties.shadow_ && properties.shadow_->IsValid()) {
-        ROSEN_LOGE("cqx RSPropertiesPainter::DrawShadow start");
         canvas.save();
         SkPath skPath;
         if (properties.GetShadowPath()) {
@@ -191,7 +190,6 @@ void RSPropertiesPainter::RestoreForFilter(SkCanvas& canvas)
 
 void RSPropertiesPainter::DrawBackground(const RSProperties& properties, SkCanvas& canvas)
 {
-    ROSEN_LOGE("cqx RSPropertiesPainter::DrawBackground start");
     auto filter = std::static_pointer_cast<RSSkiaFilter>(properties.GetBackgroundFilter());
     DrawShadow(properties, canvas);
     // clip
@@ -209,19 +207,14 @@ void RSPropertiesPainter::DrawBackground(const RSProperties& properties, SkCanva
     canvas.save();
     auto bgColor = properties.GetBackgroundColor();
     if (bgColor != RgbPalette::Transparent()) {
-        ROSEN_LOGE("cqx RSPropertiesPainter::DrawBackground bgColor.AsArgbInt():%u", bgColor.AsArgbInt());
         paint.setColor(bgColor.AsArgbInt());
         canvas.drawRRect(RRect2SkRRect(properties.GetRRect()), paint);
-        ROSEN_LOGE("cqx RSPropertiesPainter::DrawBackground SkRRect [%.1f, %.1f, %.1f, %.1f]",
-            properties.GetRRect().rect_.left_, properties.GetRRect().rect_.top_, properties.GetRRect().rect_.width_, properties.GetRRect().rect_.height_);
     } else if (const auto& bgImage = properties.GetBgImage()) {
-        ROSEN_LOGE("cqx RSPropertiesPainter::DrawBackground bgImage");
         canvas.clipRRect(RRect2SkRRect(properties.GetRRect()), true);
         auto boundsRect = Rect2SkRect(properties.GetBoundsRect());
         bgImage->SetDstRect(properties.GetBgImageRect());
         bgImage->CanvasDrawImage(canvas, boundsRect, paint, true);
     } else if (const auto& bgShader = properties.GetBackgroundShader()) {
-        ROSEN_LOGE("cqx RSPropertiesPainter::DrawBackground bgShader");
         canvas.clipRRect(RRect2SkRRect(properties.GetRRect()), true);
         paint.setShader(bgShader->GetSkShader());
         canvas.drawPaint(paint);
@@ -235,7 +228,6 @@ void RSPropertiesPainter::DrawBackground(const RSProperties& properties, SkCanva
 void RSPropertiesPainter::DrawFrame(
     const RSProperties& properties, RSPaintFilterCanvas& canvas, std::shared_ptr<DrawCmdList>& cmds)
 {
-    ROSEN_LOGE("cqx RSPropertiesPainter::DrawFrame start cmds size:%d", cmds->GetSize());
     if (cmds != nullptr) {
         SkMatrix mat;
         if (GetGravityMatrix(
@@ -243,10 +235,7 @@ void RSPropertiesPainter::DrawFrame(
             canvas.concat(mat);
         }
         auto frameRect = Rect2SkRect(properties.GetFrameRect());
-        ROSEN_LOGE("cqx RSPropertiesPainter::DrawBackground SkRRect [%.1f, %.1f, %.1f, %.1f]",
-            properties.GetFrameRect().left_, properties.GetFrameRect().top_, properties.GetFrameRect().width_, properties.GetFrameRect().height_);
         cmds->Playback(canvas, &frameRect);
-        ROSEN_LOGE("cqx RSPropertiesPainter::DrawFrame Playback end");
     }
 }
 
