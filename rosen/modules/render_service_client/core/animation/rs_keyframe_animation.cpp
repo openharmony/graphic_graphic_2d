@@ -45,15 +45,10 @@ namespace Rosen {
     animation->SetSpeed(GetSpeed());                                                                       \
     animation->SetFillMode(GetFillMode());                                                                 \
     animation->SetDirection(GetDirection());                                                               \
-    std::unique_ptr<RSCommand> command = std::make_unique<Command>(target->GetId(), animation);            \
+    std::unique_ptr<RSCommand> command = std::make_unique<Command>(target->GetId(), std::move(animation)); \
     auto transactionProxy = RSTransactionProxy::GetInstance();                                             \
     if (transactionProxy != nullptr) {                                                                     \
         transactionProxy->AddCommand(command, target->IsRenderServiceNode());                              \
-        if (target->NeedForcedSendToRemote()) {                                                            \
-            std::unique_ptr<RSCommand> commandForRemote =                                                  \
-                std::make_unique<Command>(target->GetId(), animation);                                     \
-            transactionProxy->AddCommand(commandForRemote, true);                                          \
-        }                                                                                                  \
     }
 
 template<>

@@ -46,15 +46,10 @@ void RSTransition::OnStart()
     transition->SetFillMode(GetFillMode());
     transition->SetInterpolator(interpolator);
     std::unique_ptr<RSCommand> command =
-        std::make_unique<RSAnimationCreateTransition>(target->GetId(), transition);
+        std::make_unique<RSAnimationCreateTransition>(target->GetId(), std::move(transition));
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy != nullptr) {
         transactionProxy->AddCommand(command, target->IsRenderServiceNode());
-        if (target->NeedForcedSendToRemote()) {
-            std::unique_ptr<RSCommand> commandForRemote =
-                std::make_unique<RSAnimationCreateTransition>(target->GetId(), transition);
-            transactionProxy->AddCommand(commandForRemote, true);
-        }
     }
 }
 } // namespace Rosen
