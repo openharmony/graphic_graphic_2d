@@ -2538,7 +2538,7 @@ napi_value WebGLRenderingContextBase::IsProgram(napi_env env, napi_callback_info
     if (programStatus != napi_ok) {
         return NVal::CreateBool(env, res).val_;
     }
-    unsigned int program = webGLProgram->GetProgramId();
+    unsigned int program = static_cast<unsigned int>(webGLProgram->GetProgramId());
     LOGI("WebGL WebGLRenderContext::isProgram program = %{public}u", program);
     res = static_cast<bool>(glIsProgram(static_cast<GLuint>(program)));
     LOGI("WebGL isProgram end");
