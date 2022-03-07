@@ -72,7 +72,6 @@ public:
     using CanvasPostProcess = std::function<void(SkCanvas&, BufferDrawParam&)>;
     static void ComposeSurface(std::shared_ptr<HdiLayerInfo> layer, sptr<Surface> consumerSurface,
         std::vector<LayerInfoPtr>& layers, ComposeInfo info, RSSurfaceRenderNode* node = nullptr);
-    static SkMatrix GetCanvasTransform(ScreenRotation screenRotation, ScreenInfo screenInfo);
     static void DrawBuffer(SkCanvas* canvas, sptr<OHOS::SurfaceBuffer> buffer, RSSurfaceRenderNode& node,
         bool isDrawnOnDisplay = true, float scaleX = 1.0f, float scaleY = 1.0f);
     static void DrawLayer(SkCanvas& canvas, const LayerInfoPtr& layer, const SkMatrix& layerTransform,

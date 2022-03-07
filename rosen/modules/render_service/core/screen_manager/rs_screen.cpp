@@ -24,6 +24,14 @@ namespace Rosen {
 using namespace HiviewDFX;
 
 namespace impl {
+namespace detail {
+template <int ROTATE_DEGREES>
+constexpr SkMatrix RotateMatrix()
+{
+    return SkMatrix().setRotate(ROTATE_DEGREES);
+}
+} // namespace detail
+
 RSScreen::RSScreen(ScreenId id,
     bool isVirtual,
     std::shared_ptr<HdiOutput> output,
@@ -487,9 +495,44 @@ int32_t RSScreen::GetScreenGamutMap(ScreenGamutMap &mode) const
     return StatusCode::HDI_ERROR;
 }
 
+void RSScreen::UpdateRotationMatrix()
+{
+    switch (rotation_) {
+        case ScreenRotation::ROTATION_90: {
+            // rotate 90 degrees anticlockwise
+            rotationMatrix_ = detail::RotateMatrix<-90>().postTranslate(0.0, static_cast<float>(height_));
+            break;
+        }
+        case ScreenRotation::ROTATION_180: {
+            // rotate 180 degrees
+            rotationMatrix_ = detail::RotateMatrix<180>().postTranslate(
+                static_cast<float>(width_), static_cast<float>(height_));
+            break;
+        }
+        case ScreenRotation::ROTATION_270: {
+            // rotate 270 degrees anticlockwise
+            rotationMatrix_ = detail::RotateMatrix<-270>().postTranslate(static_cast<float>(width_), 0.0);
+            break;
+        }
+        default: {
+            rotationMatrix_ = SkMatrix();
+            break;
+        }
+    };
+}
+
+SkMatrix RSScreen::GetRotationMatrix() const
+{
+    return rotationMatrix_;
+}
+
 bool RSScreen::SetRotation(ScreenRotation rotation)
 {
-    rotation_ = rotation;
+    if (rotation_ != rotation) {
+        rotation_ = rotation;
+        UpdateRotationMatrix();
+    }
+
     return true;
 }
 

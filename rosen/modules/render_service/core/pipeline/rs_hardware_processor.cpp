@@ -318,7 +318,7 @@ void RSHardwareProcessor::Redraw(sptr<Surface>& surface, const struct PrepareCom
         return;
     }
 
-    SkMatrix canvasTransform = RsRenderServiceUtil::GetCanvasTransform(rotation_, currScreenInfo_);
+    const SkMatrix& canvasTransform = currScreenInfo_.rotationMatrix;
     for (auto it = param.layers.begin(); it != param.layers.end(); ++it) {
         LayerInfoPtr layerInfo = *it;
         if (layerInfo == nullptr || layerInfo->GetCompositionType() == CompositionType::COMPOSITION_DEVICE) {

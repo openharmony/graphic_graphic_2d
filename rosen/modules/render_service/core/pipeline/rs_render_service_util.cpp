@@ -418,33 +418,6 @@ void FillDrawParameters(BufferDrawParameters& params, const sptr<OHOS::SurfaceBu
 }
 } // namespace Detail
 
-SkMatrix RsRenderServiceUtil::GetCanvasTransform(ScreenRotation screenRotation, ScreenInfo screenInfo)
-{
-    SkMatrix canvasTransform;
-    switch (screenRotation) {
-        case ScreenRotation::ROTATION_90: {
-            canvasTransform.postRotate(-90.0f); // rotate 90 degrees anticlockwise
-            canvasTransform.postTranslate(0.0, static_cast<float>(screenInfo.height));
-            break;
-        }
-        case ScreenRotation::ROTATION_180: {
-            canvasTransform.postRotate(180.0f);  // rotate 180 degrees
-            canvasTransform.postTranslate(static_cast<float>(screenInfo.width), static_cast<float>(screenInfo.height));
-            break;
-        }
-        case ScreenRotation::ROTATION_270: {
-            canvasTransform.postRotate(-270.0f);  // rotate 270 degrees anticlockwise
-            canvasTransform.postTranslate(static_cast<float>(screenInfo.width), 0.0);
-            break;
-        }
-        default: {
-            break;
-        }
-    };
-
-    return canvasTransform;
-}
-
 void RsRenderServiceUtil::ComposeSurface(std::shared_ptr<HdiLayerInfo> layer, sptr<Surface> consumerSurface,
     std::vector<LayerInfoPtr>& layers,  ComposeInfo info, RSSurfaceRenderNode* node)
 {

@@ -526,6 +526,7 @@ ScreenInfo RSScreenManager::QueryScreenInfo(ScreenId id) const
     } else {
         info.state = ScreenState::PRODUCER_SURFACE_ENABLE;
     }
+    info.rotationMatrix = screen->GetRotationMatrix();
 
     return info;
 }
