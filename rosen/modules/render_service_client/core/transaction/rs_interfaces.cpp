@@ -57,9 +57,9 @@ void RSInterfaces::RemoveVirtualScreen(ScreenId id)
     renderServiceClient_->RemoveVirtualScreen(id);
 }
 
-void RSInterfaces::SetScreenChangeCallback(const ScreenChangeCallback &callback)
+int32_t RSInterfaces::SetScreenChangeCallback(const ScreenChangeCallback &callback)
 {
-    renderServiceClient_->SetScreenChangeCallback(callback);
+    return renderServiceClient_->SetScreenChangeCallback(callback);
 }
 
 bool RSInterfaces::TakeSurfaceCapture(std::shared_ptr<RSSurfaceNode> node,

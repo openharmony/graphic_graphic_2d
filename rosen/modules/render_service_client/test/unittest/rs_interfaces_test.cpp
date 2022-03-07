@@ -503,9 +503,10 @@ HWTEST_F(RSInterfacesTest, SetScreenChangeCallback, Function | SmallTest | Level
         screenEvent = event;
         callbacked = true;
     };
-    rsInterfaces->SetScreenChangeCallback(callback);
+    int32_t status = rsInterfaces->SetScreenChangeCallback(callback);
+    EXPECT_EQ(status, StatusCode::SUCCESS);
     sleep(2); // wait 2s to check if the callback returned.
-    if (callbacked) {
+    if (status == StatusCode::SUCCESS) {
         EXPECT_NE(screenId, INVALID_SCREEN_ID);
         EXPECT_NE(screenEvent, ScreenEvent::UNKNOWN);
     } else {

@@ -309,8 +309,8 @@ void RSScreen::PropDump(std::string& dumpString)
 {
     decltype(capability_.propertyCount) propIndex = 0;
     for (; propIndex < capability_.propertyCount; ++propIndex) {
-        AppendFormat(dumpString, "prop[%u]: name=%s, propid=%d, value=%d\n",
-                     propIndex, capability_.props[propIndex].name, capability_.props[propIndex].propId,
+        AppendFormat(dumpString, "prop[%d]: name=%s, propid=%d, value=%d\n",
+                     capability_.props[propIndex].name, capability_.props[propIndex].propId,
                      capability_.props[propIndex].value);
     }
 }

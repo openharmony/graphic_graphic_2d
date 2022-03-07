@@ -101,7 +101,7 @@ public:
     // Can only be called after QueryScreenState and the state is ScreenState::HDI_OUTPUT_ENABLE;
     virtual std::shared_ptr<HdiOutput> GetOutput(ScreenId id) const = 0;
 
-    virtual void AddScreenChangeCallback(const sptr<RSIScreenChangeCallback> &callback) = 0;
+    virtual int32_t AddScreenChangeCallback(const sptr<RSIScreenChangeCallback> &callback) = 0;
 
     virtual void RemoveScreenChangeCallback(const sptr<RSIScreenChangeCallback> &callback) = 0;
 
@@ -191,7 +191,7 @@ public:
 
     std::shared_ptr<HdiOutput> GetOutput(ScreenId id) const override;
 
-    void AddScreenChangeCallback(const sptr<RSIScreenChangeCallback> &callback) override;
+    int32_t AddScreenChangeCallback(const sptr<RSIScreenChangeCallback> &callback) override;
 
     void RemoveScreenChangeCallback(const sptr<RSIScreenChangeCallback> &callback) override;
 

@@ -75,7 +75,7 @@ public:
     
     void RemoveVirtualScreen(ScreenId id);
 
-    void SetScreenChangeCallback(const ScreenChangeCallback& callback);
+    int32_t SetScreenChangeCallback(const ScreenChangeCallback& callback);
 
     void SetScreenActiveMode(ScreenId id, uint32_t modeId);
 

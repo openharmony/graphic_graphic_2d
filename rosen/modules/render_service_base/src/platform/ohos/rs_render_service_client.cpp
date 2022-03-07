@@ -204,15 +204,15 @@ private:
     ScreenChangeCallback cb_;
 };
 
-void RSRenderServiceClient::SetScreenChangeCallback(const ScreenChangeCallback &callback)
+int32_t RSRenderServiceClient::SetScreenChangeCallback(const ScreenChangeCallback &callback)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
-        return;
+        return RENDER_SERVICE_NULL;
     }
 
     screenChangeCb_ = new CustomScreenChangeCallback(callback);
-    renderService->SetScreenChangeCallback(screenChangeCb_);
+    return renderService->SetScreenChangeCallback(screenChangeCb_);
 }
 
 void RSRenderServiceClient::SetScreenActiveMode(ScreenId id, uint32_t modeId)
