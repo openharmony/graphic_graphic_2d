@@ -97,7 +97,7 @@ public:
 
     virtual void RemoveVirtualScreen(ScreenId id) = 0;
 
-    virtual void SetScreenChangeCallback(sptr<RSIScreenChangeCallback> callback) = 0;
+    virtual int32_t SetScreenChangeCallback(sptr<RSIScreenChangeCallback> callback) = 0;
 
     virtual void SetScreenActiveMode(ScreenId id, uint32_t modeId) = 0;
 

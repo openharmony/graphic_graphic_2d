@@ -120,7 +120,8 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 break;
             }
             sptr<RSIScreenChangeCallback> cb = iface_cast<RSIScreenChangeCallback>(remoteObject);
-            SetScreenChangeCallback(cb);
+            int32_t status = SetScreenChangeCallback(cb);
+            reply.WriteInt32(status);
             break;
         }
         case SET_SCREEN_ACTIVE_MODE: {

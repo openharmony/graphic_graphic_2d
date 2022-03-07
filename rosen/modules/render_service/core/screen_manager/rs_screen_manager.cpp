@@ -547,11 +547,11 @@ std::shared_ptr<HdiOutput> RSScreenManager::GetOutput(ScreenId id) const
     return screens_.at(id)->GetOutput();
 }
 
-void RSScreenManager::AddScreenChangeCallback(const sptr<RSIScreenChangeCallback> &callback)
+int32_t RSScreenManager::AddScreenChangeCallback(const sptr<RSIScreenChangeCallback> &callback)
 {
     if (callback == nullptr) {
         HiLog::Error(LOG_LABEL, "%{public}s: callback is NULL.", __func__);
-        return;
+        return INVALID_ARGUMENTS;
     }
 
     std::lock_guard<std::mutex> lock(mutex_);
@@ -564,6 +564,7 @@ void RSScreenManager::AddScreenChangeCallback(const sptr<RSIScreenChangeCallback
     }
     screenChangeCallbacks_.push_back(callback);
     HiLog::Debug(LOG_LABEL, "%{public}s: add a remote callback succeed.", __func__);
+    return SUCCESS;
 }
 
 void RSScreenManager::RemoveScreenChangeCallback(const sptr<RSIScreenChangeCallback> &callback)

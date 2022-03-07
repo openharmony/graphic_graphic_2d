@@ -297,11 +297,11 @@ void RSRenderServiceConnection::RemoveVirtualScreen(ScreenId id)
     virtualScreenIds_.erase(id);
 }
 
-void RSRenderServiceConnection::SetScreenChangeCallback(sptr<RSIScreenChangeCallback> callback)
+int32_t RSRenderServiceConnection::SetScreenChangeCallback(sptr<RSIScreenChangeCallback> callback)
 {
     std::unique_lock<std::mutex> lock(mutex_);
     if (screenChangeCallback_ == callback) {
-        return;
+        return INVALID_ARGUMENTS;
     }
 
     if (screenChangeCallback_ != nullptr) {
@@ -310,10 +310,11 @@ void RSRenderServiceConnection::SetScreenChangeCallback(sptr<RSIScreenChangeCall
     }
 
     // update
-    screenManager_->AddScreenChangeCallback(callback);
+    int32_t status = screenManager_->AddScreenChangeCallback(callback);
     auto tmp = screenChangeCallback_;
     screenChangeCallback_ = callback;
     lock.unlock();
+    return status;
 }
 
 void RSRenderServiceConnection::SetScreenActiveMode(ScreenId id, uint32_t modeId)

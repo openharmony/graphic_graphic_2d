@@ -45,7 +45,7 @@ public:
 
     void RemoveVirtualScreen(ScreenId id);
 
-    void SetScreenChangeCallback(const ScreenChangeCallback &callback);
+    int32_t SetScreenChangeCallback(const ScreenChangeCallback &callback);
 
     bool TakeSurfaceCapture(std::shared_ptr<RSSurfaceNode> node,
         std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX = 1.0f, float scaleY = 1.0f);

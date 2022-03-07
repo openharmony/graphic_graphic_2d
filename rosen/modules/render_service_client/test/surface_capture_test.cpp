@@ -223,7 +223,7 @@ public:
     void Init()
     {
         std::lock_guard<std::recursive_mutex> lock(mutex_);
-        rsInterface_.SetScreenChangeCallback([this](ScreenId id, ScreenEvent event) {
+        (void)rsInterface_.SetScreenChangeCallback([this](ScreenId id, ScreenEvent event) {
             switch (event) {
                 case ScreenEvent::CONNECTED: {
                     this->OnDisplayConnected(id);
