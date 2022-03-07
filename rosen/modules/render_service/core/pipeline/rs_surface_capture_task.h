@@ -64,8 +64,8 @@ private:
         void DrawSurface(RSSurfaceRenderNode &node);
         std::unique_ptr<SkCanvas> canvas_ = nullptr;
         bool isDisplayNode_ = false;
-        float scaleX_;
-        float scaleY_;
+        float scaleX_ = 1.0f;
+        float scaleY_ = 1.0f;
     };
 
     std::unique_ptr<SkCanvas> CreateCanvas(const std::unique_ptr<Media::PixelMap>& pixelmap);

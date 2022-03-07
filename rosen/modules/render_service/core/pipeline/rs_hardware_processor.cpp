@@ -48,8 +48,8 @@ void RSHardwareProcessor::Init(ScreenId id)
     IRect damageRect;
     damageRect.x = 0;
     damageRect.y = 0;
-    damageRect.w = currScreenInfo_.width;
-    damageRect.h = currScreenInfo_.height;
+    damageRect.w = static_cast<int32_t>(currScreenInfo_.width);
+    damageRect.h = static_cast<int32_t>(currScreenInfo_.height);
     output_->SetOutputDamage(1, damageRect);
 }
 
@@ -78,8 +78,8 @@ void RSHardwareProcessor::CropLayers()
         IRect dstRect = layer->GetLayerSize();
         IRect srcRect = layer->GetCropRect();
         IRect orgSrcRect = srcRect;
-        uint32_t screenWidth = currScreenInfo_.width;
-        uint32_t screenHeight = currScreenInfo_.height;
+        int32_t screenWidth = static_cast<int32_t>(currScreenInfo_.width);
+        int32_t screenHeight = static_cast<int32_t>(currScreenInfo_.height);
         if (dstRect.x < 0 && dstRect.x + dstRect.w > 0 && dstRect.x + dstRect.w < screenWidth) {
             srcRect.w = srcRect.w * (dstRect.w + dstRect.x) / dstRect.w;
             srcRect.x = orgSrcRect.w - srcRect.w;
@@ -164,8 +164,8 @@ void RSHardwareProcessor::ProcessSurface(RSSurfaceRenderNode &node)
         .visibleRect = {
             .x = 0,
             .y = 0,
-            .w = currScreenInfo_.width,
-            .h = currScreenInfo_.height,
+            .w = static_cast<int32_t>(currScreenInfo_.width),
+            .h = static_cast<int32_t>(currScreenInfo_.height),
         },
         .zOrder = node.GetGlobalZOrder(),
         .alpha = {
@@ -305,8 +305,8 @@ void RSHardwareProcessor::Redraw(sptr<Surface>& surface, const struct PrepareCom
     }
     ROSEN_LOGI("RsDebug RSHardwareProcessor::Redraw flush frame buffer start");
     BufferRequestConfig requestConfig = {
-        .width = static_cast<int>(currScreenInfo_.width),
-        .height = static_cast<int>(currScreenInfo_.height),
+        .width = static_cast<int32_t>(currScreenInfo_.width),
+        .height = static_cast<int32_t>(currScreenInfo_.height),
         .strideAlignment = 0x8,
         .format = PIXEL_FMT_RGBA_8888,      // [PLANNING] different soc need different format
         .usage = HBM_USE_CPU_READ | HBM_USE_CPU_WRITE | HBM_USE_MEM_DMA | HBM_USE_MEM_FB,
@@ -343,8 +343,8 @@ void RSHardwareProcessor::Redraw(sptr<Surface>& surface, const struct PrepareCom
         .damage = {
             .x = 0,
             .y = 0,
-            .w = static_cast<int>(currScreenInfo_.width),
-            .h = static_cast<int>(currScreenInfo_.height),
+            .w = static_cast<int32_t>(currScreenInfo_.width),
+            .h = static_cast<int32_t>(currScreenInfo_.height),
         },
     };
     FlushBuffer(surface, flushConfig);
@@ -352,8 +352,8 @@ void RSHardwareProcessor::Redraw(sptr<Surface>& surface, const struct PrepareCom
 
 void RSHardwareProcessor::OnRotate()
 {
-    uint32_t width = currScreenInfo_.width;
-    uint32_t height = currScreenInfo_.height;
+    int32_t width = static_cast<int32_t>(currScreenInfo_.width);
+    int32_t height = static_cast<int32_t>(currScreenInfo_.height);
     for (auto& layer: layers_) {
         IRect rect = layer->GetLayerSize();
         ROSEN_LOGI("RsDebug RSHardwareProcessor::OnRotate Before Rotate layer size [%d %d %d %d]",
