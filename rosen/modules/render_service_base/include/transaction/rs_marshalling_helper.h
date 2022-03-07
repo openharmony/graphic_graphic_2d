@@ -31,6 +31,11 @@ class SkPath;
 class SkTextBlob;
 class SkImage;
 class SkPaint;
+class SkRegion;
+class SkPicture;
+class SkDrawable;
+class SkImageFilter;
+class SkVertices;
 
 namespace OHOS {
 namespace Rosen {
@@ -67,6 +72,21 @@ public:
         return false;
     }
 
+    template<typename T>
+    static bool Marshalling(Parcel& parcel, const T* val, int count)
+    {
+        return parcel.WriteUnpadBuffer(val, count * sizeof(T));
+    }
+    template<typename T>
+    static bool Unmarshalling(Parcel& parcel, T* val, int count)
+    {
+        if (const uint8_t* buff = parcel.ReadUnpadBuffer(count * sizeof(T))) {
+            val = reinterpret_cast<const T*>(buff);
+            return true;
+        }
+        return false;
+    }
+
     // reloaded marshalling & unmarshalling function for types
 #define DECLARE_FUNCTION_OVERLOAD(TYPE)                       \
     static bool Marshalling(Parcel& parcel, const TYPE& val); \
@@ -85,23 +105,28 @@ public:
     DECLARE_FUNCTION_OVERLOAD(float)
     DECLARE_FUNCTION_OVERLOAD(double)
     // skia types
+    DECLARE_FUNCTION_OVERLOAD(SkPath)
+    DECLARE_FUNCTION_OVERLOAD(SkPaint)
+    DECLARE_FUNCTION_OVERLOAD(SkRegion)
     DECLARE_FUNCTION_OVERLOAD(sk_sp<SkData>)
     DECLARE_FUNCTION_OVERLOAD(sk_sp<SkFlattenable>)
     DECLARE_FUNCTION_OVERLOAD(sk_sp<SkTextBlob>)
-    DECLARE_FUNCTION_OVERLOAD(SkPath)
+    DECLARE_FUNCTION_OVERLOAD(sk_sp<SkPicture>)
+    DECLARE_FUNCTION_OVERLOAD(sk_sp<SkDrawable>)
+    DECLARE_FUNCTION_OVERLOAD(sk_sp<SkImageFilter>)
+    DECLARE_FUNCTION_OVERLOAD(sk_sp<SkImage>)
+    DECLARE_FUNCTION_OVERLOAD(sk_sp<SkVertices>)
+    // RS types
     DECLARE_FUNCTION_OVERLOAD(RSShader)
     DECLARE_FUNCTION_OVERLOAD(RSPath)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSFilter>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSMask>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSImage>)
-    DECLARE_FUNCTION_OVERLOAD(sk_sp<SkImage>)
-    DECLARE_FUNCTION_OVERLOAD(SkPaint)
+    DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<DrawCmdList>)
     // animation
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSRenderPathAnimation>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSRenderTransition>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSRenderTransitionEffect>)
-
-    DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<DrawCmdList>)
 #undef DECLARE_FUNCTION_OVERLOAD
 
     // reloaded marshalling & unmarshalling function for animation template
