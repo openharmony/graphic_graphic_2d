@@ -117,5 +117,7 @@ ohos_static_library("vsync_test_common") {
     "//third_party/libdrm:libdrm",
     "//utils/native/base:utils",
   ]
+  subsystem_name = "graphic"
+  part_name = "graphic_standard"
 }
 ## Build vsync_test_common.a }}}

@@ -72,13 +72,13 @@ private:
 
     void RemoveVirtualScreen(ScreenId id) override;
 
-    void SetScreenChangeCallback(sptr<RSIScreenChangeCallback> callback) override;
+    int32_t SetScreenChangeCallback(sptr<RSIScreenChangeCallback> callback) override;
 
     void SetScreenActiveMode(ScreenId id, uint32_t modeId) override;
 
     void SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status) override;
 
-    void TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback) override;
+    void TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback, float scaleX, float scaleY) override;
 
     void RegisterApplicationRenderThread(uint32_t pid, sptr<IApplicationRenderThread> app) override;
 

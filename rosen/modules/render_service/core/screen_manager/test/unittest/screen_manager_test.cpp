@@ -56,13 +56,13 @@ HWTEST_F(RSScreenManagerTest, GetScreenActiveMode, testing::ext::TestSize.Level1
     screenManager->GetScreenActiveMode(screenId, screenModeInfo0);
     ASSERT_NE(screenModeInfo0.GetScreenWidth(), -1);
     ASSERT_NE(screenModeInfo0.GetScreenHeight(), -1);
-    ASSERT_NE(screenModeInfo0.GetScreenFreshRate(), 0);
+    ASSERT_NE(screenModeInfo0.GetScreenRefreshRate(), 0);
     ASSERT_NE(screenModeInfo0.GetScreenModeId(), -1);
     RSScreenModeInfo screenModeInfo1;
     screenManager->GetScreenActiveMode(OHOS::Rosen::INVALID_SCREEN_ID, screenModeInfo1);
     ASSERT_EQ(screenModeInfo1.GetScreenWidth(), -1);
     ASSERT_EQ(screenModeInfo1.GetScreenHeight(), -1);
-    ASSERT_EQ(screenModeInfo1.GetScreenFreshRate(), 0);
+    ASSERT_EQ(screenModeInfo1.GetScreenRefreshRate(), 0);
     ASSERT_EQ(screenModeInfo1.GetScreenModeId(), -1);
 }
 
@@ -73,7 +73,7 @@ HWTEST_F(RSScreenManagerTest, GetScreenSupportedModes, testing::ext::TestSize.Le
     ASSERT_NE(screenSupportedModes0.size(), 0);
     ASSERT_NE(screenSupportedModes0[0].GetScreenWidth(), -1);
     ASSERT_NE(screenSupportedModes0[0].GetScreenHeight(), -1);
-    ASSERT_NE(screenSupportedModes0[0].GetScreenFreshRate(), 0);
+    ASSERT_NE(screenSupportedModes0[0].GetScreenRefreshRate(), 0);
     ASSERT_NE(screenSupportedModes0[0].GetScreenModeId(), -1);
     std::vector<RSScreenModeInfo> screenSupportedModes1;
     screenSupportedModes1 = screenManager->GetScreenSupportedModes(OHOS::Rosen::INVALID_SCREEN_ID);
@@ -105,13 +105,13 @@ HWTEST_F(RSScreenManagerTest, SetScreenActiveMode, testing::ext::TestSize.Level2
     screenManager->SetScreenActiveMode(screenId, 1);
     RSScreenModeInfo screenModeInfo0;
     screenManager->GetScreenActiveMode(screenId, screenModeInfo0);
-    // TODO: ASSERT_NE
+    // [PLANNING]: ASSERT_NE
     RSScreenModeInfo screenModeInfo1;
     std::vector<RSScreenModeInfo> screenSupportedModes;
     screenSupportedModes = screenManager->GetScreenSupportedModes(screenId);
     screenManager->SetScreenActiveMode(screenId, screenSupportedModes.size()+3);
     screenManager->GetScreenActiveMode(screenId, screenModeInfo1);
-    // TODO: ASSERT_EQ
+    // [PLANNING]: ASSERT_EQ
 }
 
 HWTEST_F(RSScreenManagerTest, GetScreenDump, testing::ext::TestSize.Level2)

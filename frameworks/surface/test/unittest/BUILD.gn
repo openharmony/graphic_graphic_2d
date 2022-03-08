@@ -195,5 +195,7 @@ ohos_static_library("surface_test_common") {
     "//foundation/graphic/standard/utils:libgraphic_utils",
     "//third_party/googletest:gtest_main",
   ]
+  subsystem_name = "graphic"
+  part_name = "graphic_standard"
 }
 ## Build surface_test_common.a }}}

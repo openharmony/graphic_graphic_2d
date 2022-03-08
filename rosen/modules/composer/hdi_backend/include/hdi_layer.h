@@ -76,7 +76,7 @@ private:
         sptr<SyncFence> presentFence = SyncFence::INVALID_FENCE;
     };
 
-    PresentTimeRecord presentTimeRecords[FRAME_RECORDS_NUM];
+    PresentTimeRecord presentTimeRecords[FRAME_RECORDS_NUM] = {};
     uint32_t count = 0;
     uint32_t screenId_ = INT_MAX;
     uint32_t layerId_ = INT_MAX;

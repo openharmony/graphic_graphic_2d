@@ -91,6 +91,7 @@ HWTEST_F(RSInterfacesTest, CreateVirtualScreen002, Function | SmallTest | Level2
     ScreenId virtualScreenId = rsInterfaces->CreateVirtualScreen(
         "virtual0", 320, 180, nullptr, INVALID_SCREEN_ID, -1);
     EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
+    rsInterfaces->RemoveVirtualScreen(virtualScreenId);
 }
 
 /*
@@ -116,6 +117,41 @@ HWTEST_F(RSInterfacesTest, CreateVirtualScreen003, Function | SmallTest | Level2
     ScreenId virtualScreenId2 = rsInterfaces->CreateVirtualScreen(
         "virtual2", 320, 180, psurface, INVALID_SCREEN_ID, -1);
     EXPECT_EQ(virtualScreenId2, INVALID_SCREEN_ID);
+}
+
+/*
+* Function: CreateVirtualScreen
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call CreateVirtualScreen with other get/set funcs
+*                  2. check ret
+*/
+HWTEST_F(RSInterfacesTest, CreateVirtualScreen004, Function | SmallTest | Level2)
+{
+    ScreenId virtualScreenId = rsInterfaces->CreateVirtualScreen(
+        "virtual0", 320, 180, nullptr, INVALID_SCREEN_ID, -1);
+    EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
+
+    auto supportedScreenModes = rsInterfaces->GetScreenSupportedModes(virtualScreenId);
+    EXPECT_EQ(supportedScreenModes.size(), 0);
+
+    rsInterfaces->SetScreenActiveMode(virtualScreenId, 0);
+    auto modeInfo = rsInterfaces->GetScreenActiveMode(virtualScreenId);
+    EXPECT_EQ(modeInfo.GetScreenModeId(), -1);
+
+    rsInterfaces->SetScreenPowerStatus(virtualScreenId, ScreenPowerStatus::POWER_STATUS_ON);
+    usleep(50000); // wait 50000us to ensure SetScreenPowerStatus done.
+    auto powerStatus = rsInterfaces->GetScreenPowerStatus(virtualScreenId);
+    EXPECT_EQ(powerStatus, ScreenPowerStatus::INVALID_POWER_STATUS);
+
+    auto screenCapability = rsInterfaces->GetScreenCapability(virtualScreenId);
+    EXPECT_EQ(screenCapability.GetPhyWidth(), 0);
+    EXPECT_EQ(screenCapability.GetName(), "virtual0");
+
+    auto backLight = rsInterfaces->GetScreenBacklight(virtualScreenId);
+    EXPECT_EQ(backLight, -1);
+    rsInterfaces->RemoveVirtualScreen(virtualScreenId);
 }
 
 /*
@@ -204,7 +240,7 @@ HWTEST_F(RSInterfacesTest, GetScreenActiveMode001, Function | SmallTest | Level2
     rsInterfaces->SetScreenActiveMode(screenId, 0);
     auto modeInfo = rsInterfaces->GetScreenActiveMode(screenId);
     EXPECT_EQ(modeInfo.GetScreenModeId(), 0);
-    EXPECT_NE(modeInfo.GetScreenFreshRate(), 0);
+    EXPECT_NE(modeInfo.GetScreenRefreshRate(), 0);
     EXPECT_NE(modeInfo.GetScreenHeight(), -1);
     EXPECT_NE(modeInfo.GetScreenWidth(), -1);
 }
@@ -354,7 +390,7 @@ HWTEST_F(RSInterfacesTest, GetScreenData001, Function | SmallTest | Level2)
 
     auto modeInfo = screenData.GetActivityModeInfo();
     EXPECT_EQ(modeInfo.GetScreenModeId(), 0);
-    EXPECT_NE(modeInfo.GetScreenFreshRate(), 0);
+    EXPECT_NE(modeInfo.GetScreenRefreshRate(), 0);
     EXPECT_NE(modeInfo.GetScreenHeight(), -1);
     EXPECT_NE(modeInfo.GetScreenWidth(), -1);
 }
@@ -467,9 +503,10 @@ HWTEST_F(RSInterfacesTest, SetScreenChangeCallback, Function | SmallTest | Level
         screenEvent = event;
         callbacked = true;
     };
-    rsInterfaces->SetScreenChangeCallback(callback);
+    int32_t status = rsInterfaces->SetScreenChangeCallback(callback);
+    EXPECT_EQ(status, StatusCode::SUCCESS);
     sleep(2); // wait 2s to check if the callback returned.
-    if (callbacked) {
+    if (status == StatusCode::SUCCESS) {
         EXPECT_NE(screenId, INVALID_SCREEN_ID);
         EXPECT_NE(screenEvent, ScreenEvent::UNKNOWN);
     } else {

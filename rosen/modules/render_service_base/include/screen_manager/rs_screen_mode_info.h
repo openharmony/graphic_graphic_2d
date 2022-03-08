@@ -24,7 +24,7 @@ namespace Rosen {
 class RSScreenModeInfo : public Parcelable {
 public:
     RSScreenModeInfo() = default;
-    RSScreenModeInfo(int32_t width, int32_t height, uint32_t freshRate, int32_t id);
+    RSScreenModeInfo(int32_t width, int32_t height, uint32_t refreshRate, int32_t id);
     ~RSScreenModeInfo() noexcept = default;
 
     RSScreenModeInfo(const RSScreenModeInfo& other);
@@ -35,17 +35,21 @@ public:
 
     int32_t GetScreenWidth() const;
     int32_t GetScreenHeight() const;
+    // Depreted: there is a spelling error in GetScreenFreshRate, so it will be removed later.
     uint32_t GetScreenFreshRate() const;
+    uint32_t GetScreenRefreshRate() const;
     int32_t GetScreenModeId() const;
     void SetScreenWidth(int32_t width);
     void SetScreenHeight(int32_t height);
+    // Depreted: there is a spelling error in SetScreenFreshRate, so it will be removed later.
     void SetScreenFreshRate(uint32_t freshRate);
+    void SetScreenRefreshRate(uint32_t refreshRate);
     void SetScreenModeId(int32_t id);
 
 private:
     int32_t width_ = -1;
     int32_t height_ = -1;
-    uint32_t freshRate_ = 0;
+    uint32_t refreshRate_ = 0;
     int32_t modeId_ = -1;
 };
 } // namespace Rosen

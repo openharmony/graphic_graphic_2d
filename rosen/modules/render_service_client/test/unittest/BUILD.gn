@@ -59,5 +59,7 @@ ohos_static_library("rs_client_test_common") {
     "//third_party/googletest:gtest_main",
     "//utils/native/base:utils",
   ]
+  subsystem_name = "graphic"
+  part_name = "graphic_standard"
 }
 ## Build rs_client_test_common.a }}}

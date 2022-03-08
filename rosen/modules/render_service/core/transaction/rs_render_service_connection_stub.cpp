@@ -120,7 +120,8 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 break;
             }
             sptr<RSIScreenChangeCallback> cb = iface_cast<RSIScreenChangeCallback>(remoteObject);
-            SetScreenChangeCallback(cb);
+            int32_t status = SetScreenChangeCallback(cb);
+            reply.WriteInt32(status);
             break;
         }
         case SET_SCREEN_ACTIVE_MODE: {
@@ -153,7 +154,9 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 break;
             }
             sptr<RSISurfaceCaptureCallback> cb = iface_cast<RSISurfaceCaptureCallback>(remoteObject);
-            TakeSurfaceCapture(id, cb);
+            float scaleX = data.ReadFloat();
+            float scaleY = data.ReadFloat();
+            TakeSurfaceCapture(id, cb, scaleX, scaleY);
             break;
         }
         case REGISTER_APPLICATION_RENDER_THREAD: {

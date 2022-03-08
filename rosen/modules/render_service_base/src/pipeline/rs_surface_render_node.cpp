@@ -122,6 +122,20 @@ float RSSurfaceRenderNode::GetAlpha() const
     return alpha_;
 }
 
+void RSSurfaceRenderNode::SetClipRegion(Vector4f clipRegion, bool sendMsg)
+{
+    if (clipRect_ == clipRegion) {
+        return;
+    }
+    clipRect_ = clipRegion;
+    if (!sendMsg) {
+        return;
+    }
+    // send a Command
+    std::unique_ptr<RSCommand> command = std::make_unique<RSSurfaceNodeSetClipRegion>(GetId(), clipRegion);
+    SendPropertyCommand(command);
+}
+
 void RSSurfaceRenderNode::SetGlobalZOrder(float globalZOrder)
 {
     globalZOrder_ = globalZOrder;
@@ -199,12 +213,16 @@ void RSSurfaceRenderNode::RegisterBufferAvailableListener(sptr<RSIBufferAvailabl
 void RSSurfaceRenderNode::ConnectToNodeInRenderService()
 {
     ROSEN_LOGI("RSSurfaceRenderNode::ConnectToNodeInRenderService nodeId = %llu", this->GetId());
-    auto renderServiceClinet =
+    auto renderServiceClient =
         std::static_pointer_cast<RSRenderServiceClient>(RSIRenderClient::CreateRenderServiceClient());
-    if (renderServiceClinet != nullptr) {
-        renderServiceClinet->RegisterBufferAvailableListener(GetId(),
-            [this](bool isBufferAvailable) {
-                this->NotifyBufferAvailable(isBufferAvailable);
+    if (renderServiceClient != nullptr) {
+        renderServiceClient->RegisterBufferAvailableListener(
+            GetId(), [weakThis = weak_from_this()](bool isBufferAvailable) {
+                auto node = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(weakThis.lock());
+                if (node == nullptr) {
+                    return;
+                }
+                node->NotifyBufferAvailable(isBufferAvailable);
             });
     }
 }

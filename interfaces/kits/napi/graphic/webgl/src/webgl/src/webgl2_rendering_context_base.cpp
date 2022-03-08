@@ -1049,7 +1049,7 @@ napi_value WebGL2RenderingContextBase::DeleteTransformFeedback(napi_env env, nap
     if (transformFeedbackStatus != napi_ok) {
         return nullptr;
     }
-    unsigned int transformFeedback = webGlTransformFeedback->GetTransformFeedback();
+    unsigned int transformFeedback = static_cast<unsigned int>(webGlTransformFeedback->GetTransformFeedback());
 
     glDeleteTransformFeedbacks(1, &transformFeedback);
     LOGI("WebGL2 deleteTransformFeedback end");
@@ -1074,7 +1074,7 @@ napi_value WebGL2RenderingContextBase::IsTransformFeedback(napi_env env, napi_ca
     if (transformFeedbackStatus != napi_ok) {
         return NVal::CreateBool(env, false).val_;
     }
-    unsigned int transformFeedback = webGlTransformFeedback->GetTransformFeedback();
+    unsigned int transformFeedback = static_cast<unsigned int>(webGlTransformFeedback->GetTransformFeedback());
 
     GLboolean returnValue = glIsTransformFeedback(static_cast<GLuint>(transformFeedback));
     bool res = static_cast<bool>(returnValue);
@@ -1102,7 +1102,7 @@ napi_value WebGL2RenderingContextBase::BindTransformFeedback(napi_env env, napi_
     if (transformFeedbackStatus != napi_ok) {
         return nullptr;
     }
-    unsigned int transformFeedback = webGlTransformFeedback->GetTransformFeedback();
+    unsigned int transformFeedback = static_cast<unsigned int>(webGlTransformFeedback->GetTransformFeedback());
 
     glBindTransformFeedback(static_cast<GLenum>(target), static_cast<GLuint>(transformFeedback));
     LOGI("WebGL2 bindTransformFeedback end");
@@ -4078,7 +4078,7 @@ napi_value WebGL2RenderingContextBase::InvalidateSubFramebuffer(napi_env env, na
                 return nullptr;
             }
             LOGI("WebGL2 WebGL2RenderingContextBase::invalidateSubFramebuffer ele = %{public}u", ele);
-            attachments1[i] = ele;
+            attachments1[i] = static_cast<uint64_t>(ele);
         }
         attachments = attachments1;
     } else {

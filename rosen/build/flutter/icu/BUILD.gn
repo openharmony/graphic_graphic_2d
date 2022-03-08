@@ -55,7 +55,8 @@ config("icu_compile_flags") {
   cflags_cc = [
     "-std=c++14",
     "-fno-exceptions",
-    "-fvisibility-inlines-hidden",
+
+    # "-fvisibility-inlines-hidden",
     "-Os",
   ]
 
@@ -68,7 +69,8 @@ config("icu_compile_flags") {
     "-gline-tables-only",
     "-funwind-tables",
     "-Wno-unused-parameter",
-    "-fvisibility=hidden",
+
+    # "-fvisibility=hidden",
     "-Os",
   ]
   if (use_mingw_win) {
@@ -76,7 +78,7 @@ config("icu_compile_flags") {
   }
 }
 
-template("ace_icu_make_data_assembly") {
+template("rosen_icu_make_data_assembly") {
   forward_variables_from(invoker, "*")
 
   action(target_name) {
@@ -88,7 +90,7 @@ template("ace_icu_make_data_assembly") {
       inputs =
           [ "$flutter_root/skia/third_party/externals/icu/flutter/icudtl.dat" ]
     }
-    outputs = [ "$root_out_dir/ace_icu_$platform/icudtl_dat.S" ]
+    outputs = [ "$root_out_dir/rosen_icu_$platform/icudtl_dat.S" ]
     args = [
       rebase_path(inputs[0], root_build_dir),
       rebase_path(outputs[0], root_build_dir),
@@ -100,12 +102,12 @@ template("ace_icu_make_data_assembly") {
 }
 
 foreach(item, ace_platforms) {
-  ace_icu_make_data_assembly("ace_icu_make_data_assembly_" + item.name) {
+  rosen_icu_make_data_assembly("rosen_icu_make_data_assembly_" + item.name) {
     platform = item.name
   }
 }
 
-template("ace_libicu") {
+template("rosen_libicu") {
   forward_variables_from(invoker, "*")
 
   ohos_source_set(target_name) {
@@ -559,13 +561,15 @@ template("ace_libicu") {
         "$root_out_dir/ace_icu_$platform/icudtl_dat.S",
       ]
 
-      deps = [ ":ace_icu_make_data_assembly_$platform" ]
+      deps = [
+        "$ace_flutter_engine_root/icu:ace_icu_make_data_assembly_$platform",
+      ]
     }
   }
 }
 
 foreach(item, ace_platforms) {
-  ace_libicu("ace_libicu_" + item.name) {
+  rosen_libicu("rosen_libicu_" + item.name) {
     platform = item.name
     defines = []
     cflags_cc = []

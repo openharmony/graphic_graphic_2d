@@ -38,7 +38,7 @@ const ColorSpace CS_BT2020 = {
     {1 / 0.45f, 1 / 1.099f, 0.099f / 1.099f, 1 / 4.5f, 0.081f, 0.0f, 0.0f}};
 
 const ColorSpace CS_ADOBE_RGB = {
-    ColorSpacePrimaries {0.640f, 0.330f, 0.300f, 0.600f, 0.150f, 0.060f, 0.3127f, 0.3290f},
+    ColorSpacePrimaries {0.640f, 0.330f, 0.21f, 0.71f, 0.150f, 0.060f, 0.3127f, 0.3290f},
     {2.2f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f}};
 
 const ColorSpace CS_PRO_PHOTO_RGB = {
@@ -110,9 +110,9 @@ ColorSpace::ColorSpace(const Matrix3x3 &toXYZ, const std::array<float, 2>& white
 Matrix3x3 operator*(const Matrix3x3& a, const Matrix3x3& b)
 {
     Matrix3x3 c = {};
-    for (int i = 0; i < a.size(); ++i) {
-        for (int j = 0; j < b.size(); ++j) {
-            for (int k = 0; k < b[0].size(); ++k) {
+    for (size_t i = 0; i < a.size(); ++i) {
+        for (size_t j = 0; j < b.size(); ++j) {
+            for (size_t k = 0; k < b[0].size(); ++k) {
                 c[i][j] += a[i][k] * b[k][j];
             }
         }
@@ -123,8 +123,8 @@ Matrix3x3 operator*(const Matrix3x3& a, const Matrix3x3& b)
 Vector3 operator*(const Vector3& x, const Matrix3x3& a)
 {
     Vector3 b = {};
-    for (int i = 0; i < x.size(); ++i) {
-        for (int j = 0; j < a.size(); ++j) {
+    for (size_t i = 0; i < x.size(); ++i) {
+        for (size_t j = 0; j < a.size(); ++j) {
             b[i] += x[j] * a[j][i];
         }
     }
@@ -134,8 +134,8 @@ Vector3 operator*(const Vector3& x, const Matrix3x3& a)
 Vector3 operator*(const Matrix3x3& a, const Vector3& x)
 {
     Vector3 b = {};
-    for (int i = 0; i < a.size(); ++i) {
-        for (int j = 0; j < x.size(); ++j) {
+    for (size_t i = 0; i < a.size(); ++i) {
+        for (size_t j = 0; j < x.size(); ++j) {
             b[i] += a[i][j] * x[j];
         }
     }
@@ -145,7 +145,7 @@ Vector3 operator*(const Matrix3x3& a, const Vector3& x)
 Matrix3x3 operator/(const Vector3& a, const Vector3& b)
 {
     Matrix3x3 diag = {};
-    for (int i = 0; i < a.size(); ++i) {
+    for (size_t i = 0; i < a.size(); ++i) {
         diag[i][i] += a[i] / b[i];
     }
     return diag;
@@ -172,9 +172,11 @@ Matrix3x3 ComputeXYZ(const ColorSpacePrimaries& primaries)
     float GYGy = GY / primaries.gY;
     float BYBy = BY / primaries.bY;
 
-    return {{{RYRy * primaries.rX, RY, RYRy * (1 - primaries.rX - primaries.rY)},
-        {GYGy * primaries.gX, GY, GYGy * (1 - primaries.gX - primaries.gY)},
-        {BYBy * primaries.bX, BY, BYBy * (1 - primaries.bX - primaries.bY)}}};
+    return {{{RYRy * primaries.rX, GYGy * primaries.gX, BYBy * primaries.bX},
+        {RY, GY, BY},
+        {RYRy * (1 - primaries.rX - primaries.rY),
+        GYGy * (1 - primaries.gX - primaries.gY),
+        BYBy * (1 - primaries.bX - primaries.bY)}}};
 }
 
 static bool IsFinite(float x)
@@ -222,8 +224,8 @@ Matrix3x3 Invert(const Matrix3x3& src)
     dst[1][2] = static_cast<float>(a01 * b3 - a00 * b4); // compute dst[1][2] value
     dst[2][2] = static_cast<float>(+b0); // compute dst[2][2] value
 
-    for (int r = 0; r < dst.size(); ++r) {
-        for (int c = 0; c < dst[0].size(); ++c) {
+    for (size_t r = 0; r < dst.size(); ++r) {
+        for (size_t c = 0; c < dst[0].size(); ++c) {
             if (!IsFinite(dst[r][c])) {
                 return {};
             }

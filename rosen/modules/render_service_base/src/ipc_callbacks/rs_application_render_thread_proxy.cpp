@@ -46,7 +46,7 @@ void RSApplicationRenderThreadProxy::OnTransaction(std::shared_ptr<RSTransaction
     option.SetFlags(MessageOption::TF_ASYNC);
     int32_t err = Remote()->SendRequest(IApplicationRenderThread::COMMIT_TRANSACTION, data, reply, option);
     if (err != NO_ERROR) {
-        // TODO: Error log
+        // [PLANNING]: Error log
     }
 }
 } // namespace Rosen

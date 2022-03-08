@@ -19,7 +19,8 @@ config("libharfbuzz_compile_flags") {
     "-std=c++14",
     "-fno-exceptions",
     "-fno-rtti",
-    "-fvisibility-inlines-hidden",
+
+    # "-fvisibility-inlines-hidden",
     "-Os",
   ]
 
@@ -32,7 +33,8 @@ config("libharfbuzz_compile_flags") {
     "-gline-tables-only",
     "-funwind-tables",
     "-Wno-unused-parameter",
-    "-fvisibility=hidden",
+
+    # "-fvisibility=hidden",
   ]
 
   include_dirs = [
@@ -41,7 +43,7 @@ config("libharfbuzz_compile_flags") {
   ]
 }
 
-template("ace_libharfbuzz") {
+template("rosen_libharfbuzz") {
   forward_variables_from(invoker, "*")
 
   ohos_source_set(target_name) {
@@ -116,12 +118,12 @@ template("ace_libharfbuzz") {
       "$flutter_root/skia/third_party/externals/harfbuzz/src/hb-warning.cc",
     ]
 
-    deps = [ "$ace_flutter_engine_root/icu:ace_libicu_$platform" ]
+    deps = [ "//foundation/graphic/standard/rosen/build/flutter/icu:rosen_libicu_$platform" ]
   }
 }
 
 foreach(item, ace_platforms) {
-  ace_libharfbuzz("ace_libharfbuzz_" + item.name) {
+  rosen_libharfbuzz("rosen_libharfbuzz_" + item.name) {
     platform = item.name
     defines = []
     cflags_cc = []

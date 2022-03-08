@@ -30,7 +30,7 @@ namespace ColorManager {
 using Vector3 = std::array<float, DIMES_3>;
 using Matrix3x3 = std::array<Vector3, DIMES_3>;
 
-enum ColorSpaceName : int32_t {
+enum ColorSpaceName : uint32_t {
     NONE = 0,
     ACES,
     ACESCG,
@@ -51,7 +51,7 @@ enum ColorSpaceName : int32_t {
     CUSTOM,
 };
 
-enum GamutMappingMode : int32_t {
+enum GamutMappingMode : uint32_t {
     GAMUT_MAP_CONSTANT = 0,
     GAMUT_MAP_EXPENSION,
     GAMUT_MAP_HDR_CONSTANT,
@@ -137,7 +137,7 @@ public:
     float clampMax = 1.0f;
 
 private:
-    ColorSpaceName colorSpaceName;
+    ColorSpaceName colorSpaceName = ColorSpaceName::SRGB;
     Matrix3x3 toXYZ;
     std::array<float, DIMES_2> whitePoint;
     TransferFunc transferFunc;

@@ -46,5 +46,7 @@ ohos_static_library("graphic_napi_common") {
     "//foundation/ace/napi:ace_napi",
     "//utils/native/base:utils",
   ]
+  subsystem_name = "graphic"
+  part_name = "graphic_standard"
 }
 ## Build graphic_napi_common.a }}}

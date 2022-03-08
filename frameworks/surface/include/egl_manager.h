@@ -81,14 +81,14 @@ private:
 
     bool ctxReleaseFlg_ = false;
     EGLConfig conf_;
-    EglCreateImageFunc createImage_;
-    EglDestroyImageFunc destroyImage_;
-    EglImageTargetTexture2DFunc imageTargetTexture2d_;
-    EglCreateSyncFunc createSync_;
-    EglDestroySyncFunc destroySync_;
-    EglWaitSyncFunc waitSync_;
-    EglClientWaitSyncFunc clientWaitSync_;
-    EglDupNativeFenceFdFunc dupNativeFenceFd_;
+    EglCreateImageFunc createImage_ = nullptr;
+    EglDestroyImageFunc destroyImage_ = nullptr;
+    EglImageTargetTexture2DFunc imageTargetTexture2d_ = nullptr;
+    EglCreateSyncFunc createSync_ = nullptr;
+    EglDestroySyncFunc destroySync_ = nullptr;
+    EglWaitSyncFunc waitSync_ = nullptr;
+    EglClientWaitSyncFunc clientWaitSync_ = nullptr;
+    EglDupNativeFenceFdFunc dupNativeFenceFd_ = nullptr;
 };
 } // namespace OHOS
 

@@ -57,21 +57,21 @@ void RSInterfaces::RemoveVirtualScreen(ScreenId id)
     renderServiceClient_->RemoveVirtualScreen(id);
 }
 
-void RSInterfaces::SetScreenChangeCallback(const ScreenChangeCallback &callback)
+int32_t RSInterfaces::SetScreenChangeCallback(const ScreenChangeCallback &callback)
 {
-    renderServiceClient_->SetScreenChangeCallback(callback);
+    return renderServiceClient_->SetScreenChangeCallback(callback);
 }
 
 bool RSInterfaces::TakeSurfaceCapture(std::shared_ptr<RSSurfaceNode> node,
-    std::shared_ptr<SurfaceCaptureCallback> callback)
+    std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX, float scaleY)
 {
-    return renderServiceClient_->TakeSurfaceCapture(node->GetId(), callback);
+    return renderServiceClient_->TakeSurfaceCapture(node->GetId(), callback, scaleX, scaleY);
 }
 
 bool RSInterfaces::TakeSurfaceCapture(std::shared_ptr<RSDisplayNode> node,
-    std::shared_ptr<SurfaceCaptureCallback> callback)
+    std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX, float scaleY)
 {
-    return renderServiceClient_->TakeSurfaceCapture(node->GetId(), callback);
+    return renderServiceClient_->TakeSurfaceCapture(node->GetId(), callback, scaleX, scaleY);
 }
 
 void RSInterfaces::SetScreenActiveMode(ScreenId id, uint32_t modeId)

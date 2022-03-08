@@ -27,7 +27,8 @@ namespace OHOS {
 namespace Rosen {
 class RSSurfaceCaptureTask {
 public:
-    explicit RSSurfaceCaptureTask(NodeId nodeId) : nodeId_(nodeId) {}
+    explicit RSSurfaceCaptureTask(NodeId nodeId, float scaleX, float scaleY)
+        : nodeId_(nodeId), scaleX_(scaleX), scaleY_(scaleY) {}
     ~RSSurfaceCaptureTask() = default;
 
     std::unique_ptr<Media::PixelMap> Run();
@@ -53,11 +54,18 @@ private:
         {
             isDisplayNode_ = isDisplayNode;
         }
+        void SetScale(float scaleX, float scaleY)
+        {
+            scaleX_ = scaleX;
+            scaleY_ = scaleY;
+        }
 
     private:
         void DrawSurface(RSSurfaceRenderNode &node);
         std::unique_ptr<SkCanvas> canvas_ = nullptr;
         bool isDisplayNode_ = false;
+        float scaleX_ = 1.0f;
+        float scaleY_ = 1.0f;
     };
 
     std::unique_ptr<SkCanvas> CreateCanvas(const std::unique_ptr<Media::PixelMap>& pixelmap);
@@ -67,6 +75,10 @@ private:
     std::unique_ptr<Media::PixelMap> CreatePixelMapByDisplayNode(std::shared_ptr<RSDisplayRenderNode> node);
 
     NodeId nodeId_;
+
+    float scaleX_;
+
+    float scaleY_;
 };
 } // namespace Rosen
 } // namespace OHOS

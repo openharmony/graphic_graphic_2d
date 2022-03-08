@@ -32,14 +32,7 @@ ProducerSurface::ProducerSurface(sptr<IBufferProducer>& producer)
 ProducerSurface::~ProducerSurface()
 {
     BLOGND("dtor");
-    if (IsRemote()) {
-        for (auto it = bufferProducerCache_.begin(); it != bufferProducerCache_.end(); it++) {
-            if (it->second->GetVirAddr() != nullptr) {
-                BufferManager::GetInstance()->Unmap(it->second);
-            }
-        }
-    }
-
+    CleanCache();
     producer_ = nullptr;
 }
 
@@ -89,9 +82,11 @@ GSError ProducerSurface::RequestBuffer(sptr<SurfaceBuffer>& buffer,
     fence = retval.fence;
 
     sptr<SurfaceBufferImpl> bufferImpl = SurfaceBufferImpl::FromBase(retval.buffer);
-    ret = BufferManager::GetInstance()->InvalidateCache(bufferImpl);
-    if (ret != GSERROR_OK) {
-        BLOGNW("Warning [%{public}d], InvalidateCache failed", retval.sequence);
+    if (static_cast<uint32_t>(config.usage) & HBM_USE_CPU_WRITE) {
+        ret = BufferManager::GetInstance()->InvalidateCache(bufferImpl);
+        if (ret != GSERROR_OK) {
+            BLOGNW("Warning [%{public}d], InvalidateCache failed", retval.sequence);
+        }
     }
 
     if (bufferImpl != nullptr) {
@@ -99,7 +94,8 @@ GSError ProducerSurface::RequestBuffer(sptr<SurfaceBuffer>& buffer,
     }
 
     for (auto it = retval.deletingBuffers.begin(); it != retval.deletingBuffers.end(); it++) {
-        if (IsRemote() && bufferProducerCache_[*it]->GetVirAddr() != nullptr) {
+        if (IsRemote() && bufferProducerCache_.find(*it) != bufferProducerCache_.end() &&
+                bufferProducerCache_[*it]->GetVirAddr() != nullptr) {
             BufferManager::GetInstance()->Unmap(bufferProducerCache_[*it]);
         }
         bufferProducerCache_.erase(*it);
@@ -247,6 +243,13 @@ bool ProducerSurface::IsRemote()
 
 GSError ProducerSurface::CleanCache()
 {
+    if (IsRemote()) {
+        for (auto it = bufferProducerCache_.begin(); it != bufferProducerCache_.end(); it++) {
+            if (it->second != nullptr && it->second->GetVirAddr() != nullptr) {
+                BufferManager::GetInstance()->Unmap(it->second);
+            }
+        }
+    }
     return producer_->CleanCache();
 }
 

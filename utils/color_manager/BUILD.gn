@@ -42,6 +42,8 @@ ohos_static_library("color_manager") {
   public_configs = [ ":color_manager_public_config" ]
 
   deps = []
+  subsystem_name = "graphic"
+  part_name = "graphic_standard"
 }
 
 ## Build color_manager_config.a }}}

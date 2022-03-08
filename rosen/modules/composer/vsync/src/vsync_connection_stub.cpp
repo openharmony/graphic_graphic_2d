@@ -39,7 +39,6 @@ int32_t VSyncConnectionStub::OnRemoteRequest(uint32_t code, MessageParcel &data,
                 // check add log
                 return ret;
             }
-            fd = ::dup(fd);
             reply.WriteFileDescriptor(fd);
             break;
         }

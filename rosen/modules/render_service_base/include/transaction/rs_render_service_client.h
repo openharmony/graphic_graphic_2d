@@ -64,7 +64,7 @@ public:
         const std::string& name,
         const std::shared_ptr<OHOS::AppExecFwk::EventHandler> &looper = nullptr);
 
-    bool TakeSurfaceCapture(NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback);
+    bool TakeSurfaceCapture(NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX, float scaleY);
 
     ScreenId GetDefaultScreenId();
 
@@ -75,7 +75,7 @@ public:
     
     void RemoveVirtualScreen(ScreenId id);
 
-    void SetScreenChangeCallback(const ScreenChangeCallback& callback);
+    int32_t SetScreenChangeCallback(const ScreenChangeCallback& callback);
 
     void SetScreenActiveMode(ScreenId id, uint32_t modeId);
 

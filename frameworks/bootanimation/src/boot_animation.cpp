@@ -24,6 +24,7 @@ static const std::string BOOT_PIC_ZIP = "/system/etc/init/bootpic.zip";
 static const std::string DST_FILE_PATH = "/data/media/bootpic";
 static const std::string BOOT_PIC_DIR = "/data/media/bootpic/OpenHarmony_";
 static const int32_t EXIT_TIME = 10 * 1000;
+static const std::string BOOT_SOUND_URI = "file://system/etc/init/bootsound.wav";
 
 void BootAnimation::OnDraw(SkCanvas* canvas)
 {
@@ -33,7 +34,17 @@ void BootAnimation::OnDraw(SkCanvas* canvas)
     if (bootPicCurNo_ != (maxPicNum_ - 1)) {
         bootPicCurNo_ = bootPicCurNo_ + 1;
     }
-    std::unique_ptr<FILE, decltype(&fclose)> file(fopen(imgPath.c_str(), "rb"), fclose);
+    char newpath[PATH_MAX + 1] = { 0x00 };
+    if (strlen(imgPath.c_str()) > PATH_MAX || realpath(imgPath.c_str(), newpath) == NULL) {
+        LOG("OnDraw imgPath is invalid");
+        return;
+    }
+    FILE *fp = fopen(newpath, "rb");
+    if (fp == nullptr) {
+        LOG("OnDraw fopen image file is nullptr");
+        return;
+    }
+    std::unique_ptr<FILE, decltype(&fclose)> file(fp, fclose);
     if (file == nullptr) {
         LOG("OnDraw file is nullptr");
         return;
@@ -96,7 +107,7 @@ void BootAnimation::Init(int32_t width, int32_t height, const std::shared_ptr<Ap
     InitRsSurface();
     InitPicCoordinates();
 
-    std::vector<uint32_t> freqs = {60, 30};
+    std::vector<int32_t> freqs = {60, 30};
     if (freqs.size() >= 0x2) {
         freq_ = freqs[0];
     }
@@ -194,3 +205,16 @@ void BootAnimation::CheckExitAnimation()
     needCheckExit = true;
 }
 
+void BootAnimation::PlaySound()
+{
+    LOG("PlaySound start");
+    if (soundPlayer_ == nullptr) {
+        soundPlayer_ = Media::PlayerFactory::CreatePlayer();
+    }
+    std::string uri = BOOT_SOUND_URI;
+    soundPlayer_->SetSource(uri);
+    soundPlayer_->SetLooping(false);
+    soundPlayer_->Prepare();
+    soundPlayer_->Play();
+    LOG("PlaySound end");
+}

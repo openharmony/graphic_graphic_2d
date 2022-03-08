@@ -113,7 +113,8 @@ private:
     RSRenderServiceClient* client_;
 };
 
-bool RSRenderServiceClient::TakeSurfaceCapture(NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback)
+bool RSRenderServiceClient::TakeSurfaceCapture(NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback,
+    float scaleX, float scaleY)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
@@ -136,7 +137,7 @@ bool RSRenderServiceClient::TakeSurfaceCapture(NodeId id, std::shared_ptr<Surfac
     if (surfaceCaptureCbDirector_ == nullptr) {
         surfaceCaptureCbDirector_ = new SurfaceCaptureCallbackDirector(this);
     }
-    renderService->TakeSurfaceCapture(id, surfaceCaptureCbDirector_);
+    renderService->TakeSurfaceCapture(id, surfaceCaptureCbDirector_, scaleX, scaleY);
     return true;
 }
 
@@ -203,15 +204,15 @@ private:
     ScreenChangeCallback cb_;
 };
 
-void RSRenderServiceClient::SetScreenChangeCallback(const ScreenChangeCallback &callback)
+int32_t RSRenderServiceClient::SetScreenChangeCallback(const ScreenChangeCallback &callback)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
-        return;
+        return RENDER_SERVICE_NULL;
     }
 
     screenChangeCb_ = new CustomScreenChangeCallback(callback);
-    renderService->SetScreenChangeCallback(screenChangeCb_);
+    return renderService->SetScreenChangeCallback(screenChangeCb_);
 }
 
 void RSRenderServiceClient::SetScreenActiveMode(ScreenId id, uint32_t modeId)

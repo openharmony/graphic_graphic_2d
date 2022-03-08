@@ -63,8 +63,8 @@ WebGLRenderingContextBasicBase *Util::GetContextObject(napi_env env, napi_value 
 
 string Util::GetContextAttr(const std::string& str, const std::string& key, int keyLength, int value)
 {
-    int item = str.find(key);
-    if (item > 0) {
+    size_t item = str.find(key);
+    if (item != string::npos) {
         string itemVar = str.substr(item + keyLength, value);
         return itemVar;
     }

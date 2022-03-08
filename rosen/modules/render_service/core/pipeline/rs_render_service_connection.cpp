@@ -297,11 +297,11 @@ void RSRenderServiceConnection::RemoveVirtualScreen(ScreenId id)
     virtualScreenIds_.erase(id);
 }
 
-void RSRenderServiceConnection::SetScreenChangeCallback(sptr<RSIScreenChangeCallback> callback)
+int32_t RSRenderServiceConnection::SetScreenChangeCallback(sptr<RSIScreenChangeCallback> callback)
 {
     std::unique_lock<std::mutex> lock(mutex_);
     if (screenChangeCallback_ == callback) {
-        return;
+        return INVALID_ARGUMENTS;
     }
 
     if (screenChangeCallback_ != nullptr) {
@@ -310,10 +310,11 @@ void RSRenderServiceConnection::SetScreenChangeCallback(sptr<RSIScreenChangeCall
     }
 
     // update
-    screenManager_->AddScreenChangeCallback(callback);
+    int32_t status = screenManager_->AddScreenChangeCallback(callback);
     auto tmp = screenChangeCallback_;
     screenChangeCallback_ = callback;
     lock.unlock();
+    return status;
 }
 
 void RSRenderServiceConnection::SetScreenActiveMode(ScreenId id, uint32_t modeId)
@@ -330,12 +331,13 @@ void RSRenderServiceConnection::SetScreenPowerStatus(ScreenId id, ScreenPowerSta
     }).wait();
 }
 
-void RSRenderServiceConnection::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback)
+void RSRenderServiceConnection::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback,
+    float scaleX, float scaleY)
 {
-    std::function<void()> captureTask = [callback, id]() -> void {
+    std::function<void()> captureTask = [scaleY, scaleX, callback, id]() -> void {
         ROSEN_LOGD("RSRenderService::TakeSurfaceCapture callback->OnSurfaceCapture nodeId:[%llu]", id);
         ROSEN_TRACE_BEGIN(BYTRACE_TAG_GRAPHIC_AGP, "RSRenderService::TakeSurfaceCapture");
-        RSSurfaceCaptureTask task(id);
+        RSSurfaceCaptureTask task(id, scaleX, scaleY);
         std::unique_ptr<Media::PixelMap> pixelmap = task.Run();
         callback->OnSurfaceCapture(id, pixelmap.get());
         ROSEN_TRACE_END(BYTRACE_TAG_GRAPHIC_AGP);

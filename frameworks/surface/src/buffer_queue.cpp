@@ -398,11 +398,14 @@ GSError BufferQueue::DoFlushBuffer(int32_t sequence, const BufferExtraData &beda
     bufferQueueCache_[sequence].fence = fence;
     bufferQueueCache_[sequence].damage = config.damage;
 
-    // api flush
-    auto sret = bufferManager_->FlushCache(bufferQueueCache_[sequence].buffer);
-    if (sret != GSERROR_OK) {
-        BLOGN_FAILURE_ID_API(sequence, FlushCache, sret);
-        return sret;
+    uint32_t usage = static_cast<uint32_t>(bufferQueueCache_[sequence].config.usage);
+    if (usage & HBM_USE_CPU_WRITE) {
+        // api flush
+        auto sret = bufferManager_->FlushCache(bufferQueueCache_[sequence].buffer);
+        if (sret != GSERROR_OK) {
+            BLOGN_FAILURE_ID_API(sequence, FlushCache, sret);
+            return sret;
+        }
     }
 
     if (config.timestamp == 0) {
@@ -502,10 +505,6 @@ GSError BufferQueue::AllocBuffer(sptr<SurfaceBufferImpl> &buffer,
     if (ret != GSERROR_OK) {
         BLOGN_FAILURE_ID_API(sequence, Alloc, ret);
         return ret;
-    }
-
-    if (buffer == nullptr) {
-        BLOGN_FAILURE_ID_RET(sequence, GSERROR_INVALID_ARGUMENTS);
     }
 
     BufferElement ele = {
@@ -770,7 +769,14 @@ uint32_t BufferQueue::GetDefaultUsage()
 
 GSError BufferQueue::CleanCache()
 {
-    DeleteBuffers(queueSize_);
+    auto it = bufferQueueCache_.begin();
+    while (it != bufferQueueCache_.end()) {
+        bufferQueueCache_.erase(it++);
+    }
+    freeList_.clear();
+    dirtyList_.clear();
+    deletingList_.clear();
+    waitReqCon_.notify_all();
     return GSERROR_OK;
 }
 

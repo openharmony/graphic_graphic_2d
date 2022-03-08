@@ -19,27 +19,27 @@
 
 namespace OHOS {
 namespace ColorManager {
-static float Alpha(int64_t color)
+static float Alpha(uint64_t color)
 {
     return ((color >> 56) & 0xff) / 255.0f; // shift 56 bits to get alpha value and 255.0f is the max value
 }
 
-static float Red(int64_t color)
+static float Red(uint64_t color)
 {
     return ((color >> 48) & 0xff) / 255.0f; // shift 48 bits to get red value and 255.0f is the max value
 }
 
-static float Green(int64_t color)
+static float Green(uint64_t color)
 {
     return ((color >> 40) & 0xff) / 255.0f; // shift 40 bits to get green value and 255.0f is the max value
 }
 
-static float Blue(int64_t color)
+static float Blue(uint64_t color)
 {
     return ((color >> 32) & 0xff) / 255.0f; // shift 32 bits to get blue value and 255.0f is the max value
 }
 
-static ColorSpaceName Name(int64_t color)
+static ColorSpaceName Name(uint64_t color)
 {
     return (ColorSpaceName)(color & 0xffffffff);
 }
@@ -48,29 +48,29 @@ Color::Color(float r, float g, float b, float a)
     : r(r), g(g), b(b), a(a) {}
 
 Color::Color(float r, float g, float b, float a, const ColorSpaceName name)
-    : r(r), g(g), b(b), a(a), colorSpaceName(name) {}
+    : r(r), g(g), b(b), a(a), srcName(name) {}
 
-Color::Color(int color)
-    : r(Red((int64_t)color<<32)),
-      g(Green((int64_t)color<<32)),
-      b(Blue((int64_t)color<<32)),
-      a(Alpha((int64_t)color<<32)) {}
+Color::Color(unsigned int color)
+    : r(Red((uint64_t)color<<32)),
+      g(Green((uint64_t)color<<32)),
+      b(Blue((uint64_t)color<<32)),
+      a(Alpha((uint64_t)color<<32)) {}
 
-Color::Color(int64_t color)
+Color::Color(uint64_t color)
     : r(Red(color)),
       g(Green(color)),
       b(Blue(color)),
       a(Alpha(color)),
-      colorSpaceName(Name(color)) {}
+      srcName(Name(color)) {}
 
-int64_t Color::PackValue() const
+uint64_t Color::PackValue() const
 {
     // shift 48, 40, 32 bits to get rgb value and pack the name into it
-    int64_t argbn = ((int64_t)(a * 255.0f + 0.5f) << 56) |
-                    ((int64_t)(r * 255.0f + 0.5f) << 48) |
-                    ((int64_t)(g * 255.0f + 0.5f) << 40) |
-                    ((int64_t)(b * 255.0f + 0.5f) << 32) |
-                    ((int32_t)colorSpaceName);
+    uint64_t argbn = ((uint64_t)(a * 255.0f + 0.5f) << 56) |
+                     ((uint64_t)(r * 255.0f + 0.5f) << 48) |
+                     ((uint64_t)(g * 255.0f + 0.5f) << 40) |
+                     ((uint64_t)(b * 255.0f + 0.5f) << 32) |
+                     ((uint32_t)srcName);
     return argbn;
 }
 
@@ -85,7 +85,13 @@ Color Color::Convert(ColorSpaceConvertor &convertor) const
 
 Color Color::Convert(const ColorSpace &dst) const
 {
-    ColorSpaceConvertor convertor(ColorSpace(colorSpaceName), dst, GamutMappingMode::GAMUT_MAP_CONSTANT);
+    ColorSpaceConvertor convertor(ColorSpace(srcName), dst, GamutMappingMode::GAMUT_MAP_CONSTANT);
+    return Convert(convertor);
+}
+
+Color Color::Convert(const ColorSpaceName dstName) const
+{
+    ColorSpaceConvertor convertor(ColorSpace(srcName), ColorSpace(dstName), GamutMappingMode::GAMUT_MAP_CONSTANT);
     return Convert(convertor);
 }
 }

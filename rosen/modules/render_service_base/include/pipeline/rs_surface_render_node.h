@@ -99,6 +99,23 @@ public:
     void SetAlpha(float alpha, bool sendMsg = true);
     float GetAlpha() const;
 
+    void SetClipRegion(Vector4f clipRegion, bool sendMsg = true);
+
+    const Vector4f& GetClipRegion() const
+    {
+        return clipRect_;
+    }
+
+    void SetDstRect(const RectI& dstRect)
+    {
+        dstRect_ = dstRect;
+    }
+
+    const RectI& GetDstRect() const
+    {
+        return dstRect_;
+    }
+
     // Only use in Render Service
     void SetGlobalZOrder(float globalZOrder);
     float GetGlobalZOrder() const;
@@ -146,6 +163,8 @@ private:
     int32_t fence_ = -1;
     int32_t preFence_ = -1;
     Rect damageRect_ = {0, 0, 0, 0};
+    RectI dstRect_;
+    Vector4f clipRect_;
     std::string name_;
     BlendType blendType_ = BlendType::BLEND_SRCOVER;
     std::atomic<bool> isBufferAvailable_ = false;

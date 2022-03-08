@@ -77,7 +77,7 @@ static napi_value Export(napi_env env, napi_value exports)
         return nullptr;
     }
 
-    int webglItem = vec[0].find("webgl");
+    size_t webglItem = vec[0].find("webgl");
     string webgl2Str = vec[0].substr(webglItem, 6);
     if (webgl2Str == "webgl2") {
         auto& webgl2Objects = ObjectManager::GetInstance().GetWebgl2ObjectMap();

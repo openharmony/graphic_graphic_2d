@@ -95,6 +95,7 @@ ohos_shared_library("2d_graphics") {
   deps = [
     "$ace_flutter_engine_root:flutter_engine_fml_$current_os",
     "//foundation/graphic/standard:libsurface",
+    "//foundation/graphic/standard/rosen/build/flutter/icu:rosen_libicu_$current_os",
     "//foundation/graphic/standard/rosen/build/flutter/libtxt:thirdparty_lib_txt_rosen_$current_os",
     "//utils/native/base:utilsecurec",
   ]

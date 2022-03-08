@@ -45,7 +45,7 @@ class RSRenderTransitionEffect;
 class RSMarshallingHelper {
 public:
     // default marshalling and unmarshalling method for POD types
-    // TODO: implement marshalling & unmarshalling methods for other types (e.g. RSImage, drawCMDList)
+    // [PLANNING]: implement marshalling & unmarshalling methods for other types (e.g. RSImage, drawCMDList)
     template<typename T>
     static bool Marshalling(Parcel& parcel, const T& val)
     {

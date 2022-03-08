@@ -218,11 +218,11 @@ void RSRenderServiceConnectionProxy::RemoveVirtualScreen(ScreenId id)
     }
 }
 
-void RSRenderServiceConnectionProxy::SetScreenChangeCallback(sptr<RSIScreenChangeCallback> callback)
+int32_t RSRenderServiceConnectionProxy::SetScreenChangeCallback(sptr<RSIScreenChangeCallback> callback)
 {
     if (callback == nullptr) {
         ROSEN_LOGE("RSRenderServiceConnectionProxy::SetScreenChangeCallback: callback is nullptr.");
-        return;
+        return INVALID_ARGUMENTS;
     }
 
     MessageParcel data;
@@ -230,7 +230,7 @@ void RSRenderServiceConnectionProxy::SetScreenChangeCallback(sptr<RSIScreenChang
     MessageOption option;
 
     if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
-        return;
+        return WRITE_PARCEL_ERR;
     }
 
     option.SetFlags(MessageOption::TF_ASYNC);
@@ -238,7 +238,10 @@ void RSRenderServiceConnectionProxy::SetScreenChangeCallback(sptr<RSIScreenChang
     int32_t err = Remote()->SendRequest(RSIRenderServiceConnection::SET_SCREEN_CHANGE_CALLBACK, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("RSRenderServiceConnectionProxy::SetScreenChangeCallback: Send Request err.");
+        return RS_CONNECTION_ERROR;
     }
+    int32_t result = reply.ReadInt32();
+    return result;
 }
 
 void RSRenderServiceConnectionProxy::SetScreenActiveMode(ScreenId id, uint32_t modeId)
@@ -297,7 +300,8 @@ void RSRenderServiceConnectionProxy::RegisterApplicationRenderThread(uint32_t pi
     }
 }
 
-void RSRenderServiceConnectionProxy::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback)
+void RSRenderServiceConnectionProxy::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback,
+    float scaleX, float scaleY)
 {
     if (callback == nullptr) {
         ROSEN_LOGE("RSRenderServiceProxy: callback == nullptr\n");
@@ -310,6 +314,8 @@ void RSRenderServiceConnectionProxy::TakeSurfaceCapture(NodeId id, sptr<RSISurfa
     option.SetFlags(MessageOption::TF_ASYNC);
     data.WriteUint64(id);
     data.WriteRemoteObject(callback->AsObject());
+    data.WriteFloat(scaleX);
+    data.WriteFloat(scaleY);
     int32_t err = Remote()->SendRequest(RSIRenderServiceConnection::TAKE_SURFACE_CAPTURE, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("RSRenderServiceProxy: Remote()->SendRequest() error.\n");

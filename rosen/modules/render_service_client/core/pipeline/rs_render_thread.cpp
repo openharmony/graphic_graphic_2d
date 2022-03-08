@@ -48,7 +48,7 @@ namespace {
 void DrawEventReport(float frameLength)
 {
     int32_t pid = getpid();
-    int32_t uid = getuid();
+    uint32_t uid = getuid();
     std::string domain = "GRAPHIC";
     std::string stringId = "NO_DRAW";
     std::string processName = "RS_THREAD";
@@ -98,19 +98,12 @@ RSRenderThread::RSRenderThread()
         clock_t endTime = clock();
         float drawTime = endTime - startTime;
         // Due to the calibration problem, there is a larger error on the windows.
-        if (CLOCKS_PER_SEC < drawTime * 60) { // 60FPS
+        if (drawTime > CLOCKS_PER_SEC * 6) { // The drawing timeout reaches 6 seconds.
             drawTime = static_cast<float>(drawTime) / CLOCKS_PER_SEC;
             DrawEventReport(drawTime);
             ROSEN_LOGD("RSRenderThread DrawFrame took %fs.", drawTime);
         }
     };
-
-#ifdef ROSEN_OHOS
-    RSRenderServiceConnectHub::SetOnConnectCallback([this](sptr<RSIRenderServiceConnection>& conn) {
-        sptr<IApplicationRenderThread> renderThreadSptr = sptr<RSRenderThread>(this);
-        conn->RegisterApplicationRenderThread(getpid(), renderThreadSptr);
-    });
-#endif
 }
 
 RSRenderThread::~RSRenderThread()
@@ -131,6 +124,17 @@ void RSRenderThread::Start()
     if (thread_ == nullptr) {
         thread_ = std::make_unique<std::thread>(&RSRenderThread::RenderLoop, this);
     }
+
+#ifdef ROSEN_OHOS
+    RSRenderServiceConnectHub::SetOnConnectCallback(
+        [weakThis = wptr<RSRenderThread>(this)](sptr<RSIRenderServiceConnection>& conn) {
+            sptr<IApplicationRenderThread> renderThreadSptr = weakThis.promote();
+            if (renderThreadSptr == nullptr) {
+                return;
+            }
+            conn->RegisterApplicationRenderThread(getpid(), renderThreadSptr);
+        });
+#endif
 }
 
 void RSRenderThread::Stop()
@@ -159,7 +163,7 @@ void RSRenderThread::RecvTransactionData(std::unique_ptr<RSTransactionData>& tra
         std::unique_lock<std::mutex> cmdLock(cmdMutex_);
         cmds_.emplace_back(std::move(transactionData));
     }
-    // todo process in next vsync (temporarily)
+    // [PLANNING]: process in next vsync (temporarily)
     RSRenderThread::Instance().RequestNextVSync();
 }
 

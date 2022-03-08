@@ -141,7 +141,7 @@ void RSRecordingCanvas::DrawImageWithParm(const sk_sp<SkImage>img, int fitNum, i
 
 void RSRecordingCanvas::onDrawBehind(const SkPaint& paint)
 {
-    // todo
+    // [PLANNING]: To be implemented
     ROSEN_LOGE("RSRecordingCanvas::onDrawBehind not support yet");
 }
 
@@ -202,7 +202,7 @@ void RSRecordingCanvas::onDrawPicture(const SkPicture* picture, const SkMatrix* 
 
 void RSRecordingCanvas::onDrawAnnotation(const SkRect& rect, const char key[], SkData* val)
 {
-    // todo
+    // [PLANNING]: To be implemented
     ROSEN_LOGE("RSRecordingCanvas::onDrawAnnotation not support yet");
 }
 
@@ -282,7 +282,7 @@ void RSRecordingCanvas::ClipAdaptiveRRect(float radius)
 void RSRecordingCanvas::onDrawPatch(const SkPoint cubics[12], const SkColor colors[4], const SkPoint texCoords[4],
     SkBlendMode bmode, const SkPaint& paint)
 {
-    // todo
+    // [PLANNING]: To be implemented
     ROSEN_LOGE("RSRecordingCanvas::onDrawPatch not support yet");
 }
 
@@ -302,13 +302,13 @@ void RSRecordingCanvas::onDrawVerticesObject(
 void RSRecordingCanvas::onDrawAtlas(const SkImage* atlas, const SkRSXform xforms[], const SkRect texs[],
     const SkColor colors[], int count, SkBlendMode bmode, const SkRect* cull, const SkPaint* paint)
 {
-    // todo
+    // [PLANNING]: To be implemented
     ROSEN_LOGE("RSRecordingCanvas::onDrawAtlas not support yet");
 }
 
 void RSRecordingCanvas::onDrawShadowRec(const SkPath& path, const SkDrawShadowRec& rec)
 {
-    // todo
+    // [PLANNING]: To be implemented
     ROSEN_LOGE("RSRecordingCanvas::onDrawShadowRec not support yet");
 }
 

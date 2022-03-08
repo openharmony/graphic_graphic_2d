@@ -73,7 +73,7 @@ bool RSAnimationManager::Animate(int64_t time)
     return hasRunningAnimation;
 }
 
-const std::shared_ptr<RSRenderAnimation>& RSAnimationManager::GetAnimation(AnimationId id) const
+const std::shared_ptr<RSRenderAnimation> RSAnimationManager::GetAnimation(AnimationId id) const
 {
     auto animationItr = animations_.find(id);
     if (animationItr == animations_.end()) {

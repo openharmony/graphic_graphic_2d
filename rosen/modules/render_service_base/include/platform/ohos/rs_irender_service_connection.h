@@ -97,13 +97,14 @@ public:
 
     virtual void RemoveVirtualScreen(ScreenId id) = 0;
 
-    virtual void SetScreenChangeCallback(sptr<RSIScreenChangeCallback> callback) = 0;
+    virtual int32_t SetScreenChangeCallback(sptr<RSIScreenChangeCallback> callback) = 0;
 
     virtual void SetScreenActiveMode(ScreenId id, uint32_t modeId) = 0;
 
     virtual void SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status) = 0;
 
-    virtual void TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback) = 0;
+    virtual void TakeSurfaceCapture(
+        NodeId id, sptr<RSISurfaceCaptureCallback> callback, float scaleX, float scaleY) = 0;
 
     virtual void RegisterApplicationRenderThread(uint32_t pid, sptr<IApplicationRenderThread> app) = 0;
 

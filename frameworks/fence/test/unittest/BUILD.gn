@@ -56,5 +56,7 @@ ohos_static_library("fence_test_common") {
     "//foundation/graphic/standard:libsurface",
     "//foundation/graphic/standard/utils:libgraphic_utils",
   ]
+  subsystem_name = "graphic"
+  part_name = "graphic_standard"
 }
 ## Build fence_test_common.a }}}

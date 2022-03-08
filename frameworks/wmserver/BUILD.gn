@@ -129,5 +129,8 @@ ohos_static_library("layout_header") {
   configs = [ ":layout_header_config" ]
 
   public_configs = [ ":layout_header_public_config" ]
+
+  subsystem_name = "graphic"
+  part_name = "graphic_standard"
 }
 ## Build layout_header.a }}}

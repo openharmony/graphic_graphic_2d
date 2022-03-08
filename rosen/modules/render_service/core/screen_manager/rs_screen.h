@@ -19,6 +19,7 @@
 #include <memory>
 #include <optional>
 
+#include <include/core/SkMatrix.h>
 #include <display_type.h>
 #include <hdi_output.h>
 #include <hdi_screen.h>
@@ -70,6 +71,7 @@ public:
     virtual int32_t SetScreenGamutMap(ScreenGamutMap mode) = 0;
     virtual int32_t GetScreenGamutMap(ScreenGamutMap &mode) const = 0;
     virtual bool SetRotation(ScreenRotation rotation) = 0;
+    virtual SkMatrix GetRotationMatrix() const = 0;
     virtual ScreenRotation GetRotation() const = 0;
 };
 
@@ -115,10 +117,11 @@ public:
     int32_t SetScreenGamutMap(ScreenGamutMap mode) override;
     int32_t GetScreenGamutMap(ScreenGamutMap &mode) const override;
     bool SetRotation(ScreenRotation rotation) override;
+    SkMatrix GetRotationMatrix() const override;
     ScreenRotation GetRotation() const override;
 
 private:
-    // TODO: fixme -- domain 0 only for debug.
+    // [PLANNING]: fixme -- domain 0 only for debug.
     static constexpr HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, 0, "RSScreen" };
 
     // create hdiScreen and get some information from drivers.
@@ -134,6 +137,8 @@ private:
 
     void CapabilityTypeDump(InterfaceType capabilityType, std::string& dumpString);
 
+    void UpdateRotationMatrix();
+
     // ScreenId for this screen.
     ScreenId id_ = INVALID_SCREEN_ID;
     // If this screen is the mirror of other screen, this member would be a valid id.
@@ -144,6 +149,7 @@ private:
     int32_t width_ = 0;
     int32_t height_ = 0;
     ScreenRotation rotation_ = ScreenRotation::ROTATION_0;
+    SkMatrix rotationMatrix_; // rotation matrix for canvas.
 
     bool isVirtual_ = true;
     std::shared_ptr<HdiOutput> hdiOutput_; // has value if the screen is physical

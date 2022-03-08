@@ -167,8 +167,8 @@ void RSSpringInterpolator::EstimateDuration()
 void RSValueSpringInterpolator::UpdateParameters(
     float response, float dampingRatio, float initialVelocity, float initialOffset, float minimumAmplitude)
 {
-    if (response == response_ && dampingRatio == dampingRatio_ && initialVelocity == initialVelocity &&
-        initialOffset == initialOffset && isReversed_ == false) {
+    if (response == response_ && dampingRatio == dampingRatio_ && initialVelocity == initialVelocity_ &&
+        initialOffset == initialOffset_ && isReversed_ == false) {
         return;
     }
 
