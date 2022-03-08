@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -41,34 +41,18 @@ RSRenderServiceVisitor::~RSRenderServiceVisitor() {}
 
 void RSRenderServiceVisitor::PrepareBaseRenderNode(RSBaseRenderNode& node)
 {
-    for (auto& child : node.GetChildren()) {
-        auto existingChild = child.lock();
-        if (!existingChild) {
-            ROSEN_LOGI("RSRenderServiceVisitor::PrepareBaseRenderNode this child haven't existed");
-            continue;
-        }
-        existingChild->Prepare(shared_from_this());
-    }
-
-    for (auto& child : node.GetDisappearingChildren()) {
+    for (auto& child : node.GetSortedChildren()) {
         child->Prepare(shared_from_this());
     }
 }
 
 void RSRenderServiceVisitor::ProcessBaseRenderNode(RSBaseRenderNode& node)
 {
-    for (auto& child : node.GetChildren()) {
-        auto existingChild = child.lock();
-        if (!existingChild) {
-            ROSEN_LOGI("RSRenderServiceVisitor::ProcessBaseRenderNode this child haven't existed");
-            continue;
-        }
-        existingChild->Process(shared_from_this());
-    }
-
-    for (auto& child : node.GetDisappearingChildren()) {
+    for (auto& child : node.GetSortedChildren()) {
         child->Process(shared_from_this());
     }
+    // clear SortedChildren, it will be generated again in next frame
+    node.ResetSortedChildren();
 }
 
 void RSRenderServiceVisitor::PrepareDisplayRenderNode(RSDisplayRenderNode& node)
@@ -80,11 +64,9 @@ void RSRenderServiceVisitor::PrepareDisplayRenderNode(RSDisplayRenderNode& node)
             ROSEN_LOGI("RSRenderServiceVisitor::PrepareDisplayRenderNode mirrorSource haven't existed");
             return;
         }
-        SortZOrder(*existingSource);
         UpdateGeometry(*existingSource);
         PrepareBaseRenderNode(*existingSource);
     } else {
-        SortZOrder(node);
         UpdateGeometry(node);
         PrepareBaseRenderNode(node);
     }
@@ -92,7 +74,8 @@ void RSRenderServiceVisitor::PrepareDisplayRenderNode(RSDisplayRenderNode& node)
 
 void RSRenderServiceVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
 {
-    ROSEN_LOGI("RsDebug RSRenderServiceVisitor::ProcessDisplayRenderNode child size:%d", node.GetChildren().size());
+    ROSEN_LOGD("RsDebug RSRenderServiceVisitor::ProcessDisplayRenderNode child size:[%d] total size:[%d]",
+        node.GetChildrenCount(), node.GetSortedChildren().size());
     globalZOrder_ = 0.0f;
     sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
     if (!screenManager) {
@@ -136,8 +119,6 @@ void RSRenderServiceVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
 
 void RSRenderServiceVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
 {
-    SortZOrder(node);
-
     auto currentGeoPtr = std::static_pointer_cast<RSObjAbsGeometry>(node.GetRenderProperties().GetBoundsGeometry());
     if (currentGeoPtr != nullptr) {
         currentGeoPtr->UpdateByMatrixFromRenderThread(node.GetMatrix());
@@ -161,12 +142,8 @@ void RSRenderServiceVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
         }
     };
 
-    for (auto& child : node.GetChildren()) {
-        auto existingChild = child.lock();
-        updateGeometryFunc(existingChild);
-    }
-    for (auto& disappearingChild : node.GetDisappearingChildren()) {
-        updateGeometryFunc(disappearingChild);
+    for (auto& child : node.GetSortedChildren()) {
+        updateGeometryFunc(child);
     }
     PrepareBaseRenderNode(node);
 }
@@ -181,20 +158,6 @@ void RSRenderServiceVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
     node.SetGlobalZOrder(globalZOrder_);
     globalZOrder_ = globalZOrder_ + 1;
     processor_->ProcessSurface(node);
-}
-
-void RSRenderServiceVisitor::SortZOrder(RSBaseRenderNode& node)
-{
-    auto& children = node.GetChildren();
-    auto compare = [](std::weak_ptr<RSBaseRenderNode> first, std::weak_ptr<RSBaseRenderNode> second) -> bool {
-        auto node1 = RSBaseRenderNode::ReinterpretCast<RSRenderNode>(first.lock());
-        auto node2 = RSBaseRenderNode::ReinterpretCast<RSRenderNode>(second.lock());
-        if (node1 == nullptr || node2 == nullptr) {
-            return false;
-        }
-        return node1->GetRenderProperties().GetPositionZ() < node2->GetRenderProperties().GetPositionZ();
-    };
-    std::stable_sort(children.begin(), children.end(), compare);
 }
 
 void RSRenderServiceVisitor::UpdateGeometry(RSBaseRenderNode& displayNode)
@@ -215,12 +178,8 @@ void RSRenderServiceVisitor::UpdateGeometry(RSBaseRenderNode& displayNode)
             childGeoPtr->UpdateByMatrixFromParent(nullptr);
         }
     };
-    for (auto& child : displayNode.GetChildren()) {
-        auto existingChild = child.lock();
-        updateGeometryFunc(existingChild);
-    }
-    for (auto& disappearingChild : displayNode.GetDisappearingChildren()) {
-        updateGeometryFunc(disappearingChild);
+    for (auto& child : displayNode.GetSortedChildren()) {
+        updateGeometryFunc(child);
     }
 }
 } // namespace Rosen

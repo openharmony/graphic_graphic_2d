@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -28,6 +28,7 @@ namespace Rosen {
 class RSDirtyRegionManager;
 class RSProperties;
 class RSRenderNode;
+
 class RSRenderThreadVisitor : public RSNodeVisitor {
 public:
     RSRenderThreadVisitor();
@@ -44,6 +45,7 @@ public:
     virtual void ProcessCanvasRenderNode(RSCanvasRenderNode& node) override;
     virtual void ProcessSurfaceRenderNode(RSSurfaceRenderNode& node) override;
     virtual void ProcessRootRenderNode(RSRootRenderNode& node) override;
+
 private:
     RSDirtyRegionManager dirtyManager_;
     RSRenderNode* parent_ = nullptr;

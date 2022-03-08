@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -57,14 +57,16 @@ public:
         return isOnTheTree_;
     }
 
-    std::vector<WeakPtr>& GetChildren()
+    const std::list<SharedPtr>& GetSortedChildren();
+
+    void ResetSortedChildren()
     {
-        return children_;
+        sortedChildren_.clear();
     }
 
-    std::list<SharedPtr>& GetDisappearingChildren()
+    uint32_t GetChildrenCount() const
     {
-        return disappearingChildren_;
+        return children_.size();
     }
 
     void DumpTree(std::string& out) const;
@@ -115,12 +117,10 @@ private:
     void SetParent(WeakPtr parent);
 
     std::vector<WeakPtr> children_;
-    void OnAddChild(const SharedPtr& child);
-    void OnRemoveChild(const SharedPtr& child);
+    std::list<std::pair<SharedPtr, uint32_t>> disappearingChildren_;
 
-    std::list<SharedPtr> disappearingChildren_;
-    void AddDisappearingChild(const SharedPtr& child);
-    void RemoveDisappearingChild(const SharedPtr& child);
+    std::list<SharedPtr> sortedChildren_;
+    void GenerateSortedChildren();
 
     const std::weak_ptr<RSContext> context_;
     NodeDirty dirtyStatus_ = NodeDirty::DIRTY;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -66,7 +66,9 @@ void RSRenderNode::FallbackAnimationsToRoot()
 
 bool RSRenderNode::Animate(int64_t timestamp)
 {
-    return animationManager_.Animate(timestamp) || RSBaseRenderNode::Animate(timestamp);
+    bool hasAnimate = animationManager_.Animate(timestamp);
+    bool hasTransitionAnimate = RSBaseRenderNode::Animate(timestamp);
+    return hasAnimate || hasTransitionAnimate;
 }
 
 bool RSRenderNode::Update(RSDirtyRegionManager& dirtyManager, const RSProperties* parent, bool parentDirty)

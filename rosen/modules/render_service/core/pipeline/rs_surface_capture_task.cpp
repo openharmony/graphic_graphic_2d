@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,12 +14,15 @@
  */
 
 #include "pipeline/rs_surface_capture_task.h"
+
+#include <memory>
+
 #include "include/core/SkCanvas.h"
 #include "include/core/SkMatrix.h"
 #include "include/core/SkRect.h"
-#include "pipeline/rs_main_thread.h"
 #include "pipeline/rs_base_render_node.h"
 #include "pipeline/rs_display_render_node.h"
+#include "pipeline/rs_main_thread.h"
 #include "pipeline/rs_render_service_util.h"
 #include "pipeline/rs_render_service_connection.h"
 #include "pipeline/rs_surface_render_node.h"
@@ -27,7 +30,6 @@
 #include "platform/drawing/rs_surface.h"
 #include "screen_manager/rs_screen_manager.h"
 #include "screen_manager/rs_screen_mode_info.h"
-#include <memory>
 
 namespace OHOS {
 namespace Rosen {
@@ -146,15 +148,13 @@ void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::SetCanvas(std::unique_ptr<Sk
 
 void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode &node)
 {
-    ROSEN_LOGD("RsDebug RSSurfaceCaptureVisitor::ProcessDisplayRenderNode child size:[%d]", node.GetChildren().size());
-    for (auto child : node.GetChildren()) {
-        auto existingChild = child.lock();
-        if (!existingChild) {
-            ROSEN_LOGD("RSSurfaceCaptureVisitor::ProcessDisplayRenderNode this child haven't existed");
-            continue;
-        }
-        existingChild->Process(shared_from_this());
+    ROSEN_LOGD("RsDebug RSSurfaceCaptureVisitor::ProcessDisplayRenderNode child size:[%d] total size:[%d]",
+        node.GetChildrenCount(), node.GetSortedChildren().size());
+    for (auto child : node.GetSortedChildren()) {
+        child->Process(shared_from_this());
     }
+    // clear SortedChildren, it will be generated again in next frame
+    node.ResetSortedChildren();
 }
 
 void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode &node)
@@ -163,14 +163,11 @@ void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::ProcessSurfaceRenderNode(RSS
         ROSEN_LOGD("RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::ProcessSurfaceRenderNode: node Buffer is nullptr!");
         return;
     }
-    for (auto child : node.GetChildren()) {
-        auto existingChild = child.lock();
-        if (!existingChild) {
-            ROSEN_LOGD("RSSurfaceCaptureVisitor::ProcessSurfaceRenderNode this child haven't existed");
-            continue;
-        }
-        existingChild->Process(shared_from_this());
+    for (auto child : node.GetSortedChildren()) {
+        child->Process(shared_from_this());
     }
+    // clear SortedChildren, it will be generated again in next frame
+    node.ResetSortedChildren();
 
     auto param = RsRenderServiceUtil::CreateBufferDrawParam(node);
     if (!isDisplayNode_) {
@@ -219,5 +216,5 @@ void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::ProcessSurfaceRenderNode(RSS
         });
     }
 }
-}
-}
+} // namespace Rosen
+} // namespace OHOS

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -19,7 +19,6 @@
 #include <memory>
 
 #include "include/core/SkCanvas.h"
-
 #include "pipeline/rs_processor.h"
 #include "visitor/rs_node_visitor.h"
 
@@ -30,17 +29,19 @@ class RSRenderServiceVisitor : public RSNodeVisitor {
 public:
     RSRenderServiceVisitor();
     ~RSRenderServiceVisitor();
+
     virtual void PrepareBaseRenderNode(RSBaseRenderNode &node) override;
     virtual void PrepareDisplayRenderNode(RSDisplayRenderNode &node) override;
     virtual void PrepareSurfaceRenderNode(RSSurfaceRenderNode &node) override;
     virtual void PrepareCanvasRenderNode(RSCanvasRenderNode &node) override {}
     virtual void PrepareRootRenderNode(RSRootRenderNode& node) override {}
+    
     virtual void ProcessBaseRenderNode(RSBaseRenderNode &node) override;
     virtual void ProcessDisplayRenderNode(RSDisplayRenderNode &node) override;
     virtual void ProcessSurfaceRenderNode(RSSurfaceRenderNode &node) override;
     virtual void ProcessCanvasRenderNode(RSCanvasRenderNode& node) override {}
     virtual void ProcessRootRenderNode(RSRootRenderNode& node) override {}
-    void SortZOrder(RSBaseRenderNode &node);
+
     void UpdateGeometry(RSBaseRenderNode &displayNode);
 
 private:

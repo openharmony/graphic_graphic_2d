@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -40,13 +40,7 @@ RSRenderThreadVisitor::~RSRenderThreadVisitor() {}
 
 void RSRenderThreadVisitor::PrepareBaseRenderNode(RSBaseRenderNode& node)
 {
-    for (auto& child : node.GetChildren()) {
-        if (auto c = child.lock()) {
-            c->Prepare(shared_from_this());
-        }
-    }
-
-    for (auto& child : node.GetDisappearingChildren()) {
+    for (auto& child : node.GetSortedChildren()) {
         child->Prepare(shared_from_this());
     }
 }
@@ -87,15 +81,11 @@ void RSRenderThreadVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
 
 void RSRenderThreadVisitor::ProcessBaseRenderNode(RSBaseRenderNode& node)
 {
-    for (auto& child : node.GetChildren()) {
-        if (auto c = child.lock()) {
-            c->Process(shared_from_this());
-        }
-    }
-
-    for (auto& child : node.GetDisappearingChildren()) {
+    for (auto& child : node.GetSortedChildren()) {
         child->Process(shared_from_this());
     }
+    // clear SortedChildren, it will be generated again in next frame
+    node.ResetSortedChildren();
 }
 
 void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)

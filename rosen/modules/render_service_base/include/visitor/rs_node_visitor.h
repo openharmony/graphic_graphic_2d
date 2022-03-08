@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -31,6 +31,7 @@ class RSNodeVisitor : public std::enable_shared_from_this<RSNodeVisitor> {
 public:
     RSNodeVisitor() {}
     virtual ~RSNodeVisitor() {}
+
     virtual void PrepareBaseRenderNode(RSBaseRenderNode& node) = 0;
     virtual void PrepareDisplayRenderNode(RSDisplayRenderNode& node) = 0;
     virtual void PrepareCanvasRenderNode(RSCanvasRenderNode& node) = 0;

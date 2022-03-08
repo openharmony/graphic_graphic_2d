@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -25,14 +25,6 @@
 
 namespace OHOS {
 namespace Rosen {
-namespace Detail {
-static inline bool BelongThisConnection(const std::shared_ptr<RSBaseRenderNode>& node, pid_t remotePid)
-{
-    auto nodePid = static_cast<pid_t>(node->GetId() >> 32); // High 32 bits is the remote pid of this node.
-    return nodePid == remotePid;
-}
-} // namespace Detail
-
 // we guarantee that when constructing this object,
 // all these pointers are valid, so will not check them.
 RSRenderServiceConnection::RSRenderServiceConnection(
@@ -79,40 +71,9 @@ void RSRenderServiceConnection::CleanVirtualScreens() noexcept
 void RSRenderServiceConnection::CleanRenderNodes() noexcept
 {
     auto& context = mainThread_->GetContext();
-    auto rootNode = context.GetGlobalRootRenderNode();
-    if (rootNode == nullptr) {
-        return;
-    }
-
-    std::vector<RSBaseRenderNode::SharedPtr> nodesToRemove;
-    std::queue<RSBaseRenderNode::SharedPtr> nodes;
-
-    // Traversal the RenderNode tree and find all nodes that were created by this connection,
-    // then store them with the vector "nodesToRemove" and remove them from the tree later.
-    nodes.push(rootNode);
-    while (!nodes.empty()) {
-        auto tmpNode = nodes.front();
-        nodes.pop();
-
-        for (const auto& child : tmpNode->GetChildren()) {
-            auto existingChild = child.lock();
-            if (existingChild == nullptr) {
-                continue;
-            }
-
-            if (Detail::BelongThisConnection(existingChild, remotePid_)) {
-                nodesToRemove.push_back(existingChild);
-            }
-            nodes.push(existingChild);
-        }
-    }
-
-    // remove the nodes from the tree and unregister them from the nodeMap.
     auto& nodeMap = context.GetMutableNodeMap();
-    for (auto& node : nodesToRemove) {
-        node->RemoveFromTree();
-        nodeMap.UnregisterRenderNode(node->GetId());
-    }
+
+    nodeMap.FilterNodeByPid(remotePid_);
 }
 
 void RSRenderServiceConnection::CleanAll(bool toDelete) noexcept
