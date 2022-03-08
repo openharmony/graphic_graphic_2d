@@ -140,11 +140,31 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
         ROSEN_LOGE("Request Frame Failed");
         return;
     }
-    canvas_ = new RSPaintFilterCanvas(surfaceFrame->GetCanvas());
+
+    sk_sp<SkSurface> skSurface = nullptr;
+    if (RSRootRenderNode::NeedForceRaster()) {
+        ROSEN_LOGD("Force Raster draw");
+        RSRootRenderNode::MarkForceRaster(false);
+        SkImageInfo imageInfo = SkImageInfo::Make(node.GetSurfaceWidth(), node.GetSurfaceHeight(),
+            kRGBA_8888_SkColorType, kOpaque_SkAlphaType, SkColorSpace::MakeSRGB());
+        skSurface = SkSurface::MakeRaster(imageInfo);
+        canvas_ = new RSPaintFilterCanvas(skSurface->getCanvas());
+    } else {
+        canvas_ = new RSPaintFilterCanvas(surfaceFrame->GetCanvas());
+    }
     canvas_->clear(SK_ColorTRANSPARENT);
+
 
     isIdle_ = false;
     ProcessCanvasRenderNode(node);
+
+    if (skSurface) {
+        canvas_->flush();
+        surfaceFrame->GetCanvas()->clear(SK_ColorTRANSPARENT);
+        skSurface->draw(surfaceFrame->GetCanvas(), 0.f, 0.f, nullptr);
+    } else if (RSRootRenderNode::NeedForceRaster()) {
+        RSRenderThread::Instance().RequestNextVSync();
+    }
 
     RS_TRACE_BEGIN("rsSurface->FlushFrame");
     rsSurface->FlushFrame(surfaceFrame);

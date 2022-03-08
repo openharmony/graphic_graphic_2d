@@ -28,6 +28,7 @@
 #include "include/utils/SkShadowUtils.h"
 #include "pipeline/rs_draw_cmd_list.h"
 #include "pipeline/rs_paint_filter_canvas.h"
+#include "pipeline/rs_root_render_node.h"
 #include "platform/common/rs_log.h"
 #include "property/rs_transition_properties.h"
 #include "render/rs_blur_filter.h"
@@ -209,6 +210,7 @@ void RSPropertiesPainter::SaveLayerForFilter(const RSProperties& properties, SkC
     }
     SkCanvas::SaveLayerRec slr(nullptr, &paint, SkCanvas::kInitWithPrevious_SaveLayerFlag);
     canvas.saveLayer(slr);
+    RSRootRenderNode::MarkForceRaster();
 }
 
 void RSPropertiesPainter::RestoreForFilter(SkCanvas& canvas)
