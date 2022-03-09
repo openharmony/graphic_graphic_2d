@@ -190,20 +190,20 @@ uint32_t SurfaceBufferImpl::GetSize() const
 
 GSError SurfaceBufferImpl::SetInt32(uint32_t key, int32_t val)
 {
-    ExtraData int32 = {
+    ExtraData data = {
         .value = val,
         .type = EXTRA_DATA_TYPE_INT32,
     };
-    return SetData(key, int32);
+    return SetData(key, data);
 }
 
 GSError SurfaceBufferImpl::GetInt32(uint32_t key, int32_t &val)
 {
-    ExtraData int32;
-    GSError ret = GetData(key, int32);
+    ExtraData data;
+    GSError ret = GetData(key, data);
     if (ret == GSERROR_OK) {
-        if (int32.type == EXTRA_DATA_TYPE_INT32) {
-            auto pVal = std::any_cast<int32_t>(&int32.value);
+        if (data.type == EXTRA_DATA_TYPE_INT32) {
+            auto pVal = std::any_cast<int32_t>(&data.value);
             if (pVal != nullptr) {
                 val = *pVal;
             } else {
@@ -218,20 +218,20 @@ GSError SurfaceBufferImpl::GetInt32(uint32_t key, int32_t &val)
 
 GSError SurfaceBufferImpl::SetInt64(uint32_t key, int64_t val)
 {
-    ExtraData int64 = {
+    ExtraData data = {
         .value = val,
         .type = EXTRA_DATA_TYPE_INT64,
     };
-    return SetData(key, int64);
+    return SetData(key, data);
 }
 
 GSError SurfaceBufferImpl::GetInt64(uint32_t key, int64_t &val)
 {
-    ExtraData int64;
-    GSError ret = GetData(key, int64);
+    ExtraData data;
+    GSError ret = GetData(key, data);
     if (ret == GSERROR_OK) {
-        if (int64.type == EXTRA_DATA_TYPE_INT64) {
-            auto pVal = std::any_cast<int64_t>(&int64.value);
+        if (data.type == EXTRA_DATA_TYPE_INT64) {
+            auto pVal = std::any_cast<int64_t>(&data.value);
             if (pVal != nullptr) {
                 val = *pVal;
             } else {

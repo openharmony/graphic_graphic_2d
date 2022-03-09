@@ -62,7 +62,11 @@ int CreateFenceFromTimeline(int timeline, const char* name, unsigned int totalSt
         HiLogPrint(LOG_CORE, LOG_ERROR, 0, "fence", "Create Fence From Timeline Failed");
         return -1;
     }
-    ioctl(timeline, _IOWR('W', 0, struct sw_sync_create_fence_data), &data);
+    int ret = ioctl(timeline, _IOWR('W', 0, struct sw_sync_create_fence_data), &data);
+    if (ret != 0) {
+        HiLogPrint(LOG_CORE, LOG_ERROR, 0, "fence", " data.fence are invalid");
+        return -1;
+    }
     return data.fence;
 }
 

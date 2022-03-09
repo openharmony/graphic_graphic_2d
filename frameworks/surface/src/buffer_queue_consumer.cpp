@@ -88,6 +88,7 @@ GSError BufferQueueConsumer::RegisterReleaseListener(OnReleaseFunc func)
     }
     return bufferQueue_->RegisterReleaseListener(func);
 }
+
 GSError BufferQueueConsumer::UnregisterConsumerListener()
 {
     if (bufferQueue_ == nullptr) {

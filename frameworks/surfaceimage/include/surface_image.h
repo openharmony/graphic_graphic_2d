@@ -100,7 +100,7 @@ private:
     int32_t currentSurfaceImage_;
     sptr<SurfaceBuffer> currentSurfaceBuffer_;
     int32_t currentSurfaceBufferFence_;
-    uint64_t currentTimeStamp_;
+    int64_t currentTimeStamp_;
 };
 
 class SurfaceImageListener : public IBufferConsumerListener {
