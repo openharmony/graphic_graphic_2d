@@ -52,7 +52,6 @@ ohos_executable("bootanimation") {
     "//base/global/resmgr_standard/frameworks/resmgr:global_resmgr",
     "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
     "//foundation/ace/ace_engine/build/external_config/flutter/skia:ace_skia_ohos",
-    "//foundation/distributedschedule/dmsfwk/services/dtbschedmgr:distributedschedsvr",
     "//foundation/distributedschedule/samgr/interfaces/innerkits/samgr_proxy:samgr_proxy",
     "//foundation/graphic/standard:libsurface",
     "//foundation/graphic/standard:libvsync_client",
