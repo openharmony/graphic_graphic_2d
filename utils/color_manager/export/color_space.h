@@ -140,7 +140,7 @@ private:
     ColorSpaceName colorSpaceName = ColorSpaceName::SRGB;
     Matrix3x3 toXYZ;
     std::array<float, DIMES_2> whitePoint;
-    TransferFunc transferFunc;
+    TransferFunc transferFunc = {};
 };
 } // namespace ColorSpace
 } // namespace OHOS

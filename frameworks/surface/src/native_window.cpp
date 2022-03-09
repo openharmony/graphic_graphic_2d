@@ -124,7 +124,7 @@ int32_t NativeWindowFlushBuffer(struct NativeWindow *window, struct NativeWindow
         config.damage.w = static_cast<int32_t>(region.rects->w);
         config.damage.h = static_cast<int32_t>(region.rects->h);
         config.timestamp = 0;
-    }  else {
+    } else {
         config.damage.x = 0;
         config.damage.y = 0;
         config.damage.w = window->config.width;

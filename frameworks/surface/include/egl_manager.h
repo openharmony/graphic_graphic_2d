@@ -80,7 +80,7 @@ private:
     std::map<uint32_t, EGLContext> sharedContextCache;
 
     bool ctxReleaseFlg_ = false;
-    EGLConfig conf_;
+    EGLConfig conf_ = NULL;
     EglCreateImageFunc createImage_ = nullptr;
     EglDestroyImageFunc destroyImage_ = nullptr;
     EglImageTargetTexture2DFunc imageTargetTexture2d_ = nullptr;

@@ -110,7 +110,7 @@ int32_t RawParser::GetNextData(uint32_t *addr)
         }
     }
 
-    lastID = count;
+    lastID =  static_cast<int32_t>(count);
     if (length > 0 && memcpy_s(lastData.get() + offset, GetSize() - offset,
                                uncompressed.get(), length) != EOK) {
         GSLOG2HI(ERROR) << "memcpy failed";
