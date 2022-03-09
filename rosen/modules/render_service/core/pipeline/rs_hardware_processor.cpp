@@ -333,6 +333,9 @@ void RSHardwareProcessor::Redraw(sptr<Surface>& surface, const struct PrepareCom
             continue;
         }
         auto params = RsRenderServiceUtil::CreateBufferDrawParam(*node);
+        params.targetColorGamut = static_cast<ColorGamut>(currScreenInfo_.colorGamut);
+        const auto& clipRect = layerInfo->GetLayerSize();
+        params.clipRect = SkRect::MakeXYWH(clipRect.x, clipRect.y, clipRect.w, clipRect.h);
         RsRenderServiceUtil::DrawBuffer(*canvas, params, [this, node, &canvasTransform, &layerInfo](SkCanvas& canvas,
             BufferDrawParam& params) -> void {
             RsRenderServiceUtil::DealAnimation(canvas, *node, params);

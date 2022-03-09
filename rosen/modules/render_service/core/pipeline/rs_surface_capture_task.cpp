@@ -103,9 +103,13 @@ std::unique_ptr<Media::PixelMap> RSSurfaceCaptureTask::CreatePixelMapByDisplayNo
         ROSEN_LOGE("RSSurfaceCaptureTask::CreatePixelMapByDisplayNode: screenManager is nullptr!");
         return nullptr;
     }
-    screenManager->GetScreenActiveMode(screenId, screenModeInfo);
-    int pixmapWidth = screenModeInfo.GetScreenWidth();
-    int pixmapHeight = screenModeInfo.GetScreenHeight();
+    auto screenInfo = screenManager->QueryScreenInfo(screenId);
+    int pixmapWidth = screenInfo.width;
+    int pixmapHeight = screenInfo.height;
+    auto rotation = screenManager->GetRotation(screenId);
+    if (rotation == ScreenRotation::ROTATION_90 || rotation == ScreenRotation::ROTATION_270) {
+        std::swap(pixmapWidth, pixmapHeight);
+    }
     Media::InitializationOptions opts;
     opts.size.width = ceil(pixmapWidth * scaleX_);
     opts.size.height = ceil(pixmapHeight * scaleY_);

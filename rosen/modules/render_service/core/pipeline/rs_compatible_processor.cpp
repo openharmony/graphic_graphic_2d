@@ -100,7 +100,8 @@ void RSCompatibleProcessor::ProcessSurface(RSSurfaceRenderNode& node)
 
     SkMatrix matrix;
     matrix.reset();
-    RsRenderServiceUtil::DrawBuffer(canvas_.get(), node.GetBuffer(), node);
+    auto params = RsRenderServiceUtil::CreateBufferDrawParam(node);
+    RsRenderServiceUtil::DrawBuffer(*canvas_, params);
 }
 
 void RSCompatibleProcessor::PostProcess()
