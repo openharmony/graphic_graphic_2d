@@ -17,6 +17,7 @@
 
 #include "platform/common/rs_log.h"
 #include "pipeline/rs_paint_filter_canvas.h"
+#include "pipeline/rs_root_render_node.h"
 #include "securec.h"
 namespace OHOS {
 namespace Rosen {
@@ -341,6 +342,9 @@ void SaveLayerOpItem::Draw(RSPaintFilterCanvas& canvas, const SkRect*) const
 {
     canvas.saveLayer(
         { rectPtr_, &paint_, backdrop_.get(), mask_.get(), matrix_.isIdentity() ? nullptr : &matrix_, flags_ });
+    if (paint_.getImageFilter() || paint_.getColorFilter()) {
+        RSRootRenderNode::MarkForceRaster();
+    }
 }
 
 DrawableOpItem::DrawableOpItem(SkDrawable* drawable, const SkMatrix* matrix) : OpItem(sizeof(DrawableOpItem))

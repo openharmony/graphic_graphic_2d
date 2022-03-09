@@ -44,10 +44,15 @@ public:
     void AddSurfaceRenderNode(NodeId id);
     void ClearSurfaceNodeInRS();
 
+    static void MarkForceRaster(bool flag = true);
+    static bool NeedForceRaster();
+
 private:
     std::shared_ptr<RSSurface> rsSurface_ = nullptr;
     NodeId surfaceNodeId_ = 0;
     std::vector<NodeId> childSurfaceNodeId_;
+
+    static bool forceRaster_;
 };
 } // namespace Rosen
 } // namespace OHOS
