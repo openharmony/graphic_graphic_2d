@@ -15,13 +15,16 @@
 
 #include "vsync_receiver.h"
 #include <memory>
+#include <unistd.h>
 #include <scoped_bytrace.h>
 #include "event_handler.h"
 #include "graphic_common.h"
+#include "vsync_log.h"
 
 namespace OHOS {
 namespace Rosen {
 namespace {
+constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, 0, "VsyncReceiver" };
 constexpr int32_t INVALID_FD = -1;
 }
 void VSyncCallBackListener::OnReadable(int32_t fileDescriptor)
@@ -36,6 +39,7 @@ void VSyncCallBackListener::OnReadable(int32_t fileDescriptor)
         std::lock_guard<std::mutex> locker(mtx_);
         cb = vsyncCallbacks_;
     }
+    VLOGI("retVal:%{public}d, cb == nullptr:%{public}d", retVal, (cb == nullptr));
     if (retVal > 0 && cb != nullptr) {
         ScopedBytrace func("ReceiveVsync");
         cb(now, userData_);
@@ -43,11 +47,13 @@ void VSyncCallBackListener::OnReadable(int32_t fileDescriptor)
 }
 
 VSyncReceiver::VSyncReceiver(const sptr<IVSyncConnection>& conn,
-    const std::shared_ptr<OHOS::AppExecFwk::EventHandler> looper)
+    const std::shared_ptr<OHOS::AppExecFwk::EventHandler>& looper,
+    const std::string& name)
     : connection_(conn), looper_(looper),
     listener_(std::make_shared<VSyncCallBackListener>()),
     init_(false),
-    fd_(INVALID_FD)
+    fd_(INVALID_FD),
+    name_(name)
 {
 };
 
@@ -93,6 +99,7 @@ VsyncError VSyncReceiver::RequestNextVSync(FrameCallback callback)
         return VSYNC_ERROR_API_FAILED;
     }
     listener_->SetCallback(callback);
+    ScopedBytrace func("VSyncReceiver::RequestNextVSync_pid:" + std::to_string(getpid()) + "_name:" + name_);
     return connection_->RequestNextVSync();
 }
 

@@ -41,7 +41,11 @@ void HdiScreen::OnVsync(uint32_t sequence, uint64_t ns, void *data)
     // trigger vsync
     const auto &now = std::chrono::steady_clock::now().time_since_epoch();
     int64_t occurTimestamp = std::chrono::duration_cast<std::chrono::nanoseconds>(now).count();
-    CreateVSyncSampler()->AddSample(occurTimestamp);
+    auto sampler = CreateVSyncSampler();
+    if (sampler->GetHardwareVSyncStatus()) {
+        bool enable = sampler->AddSample(occurTimestamp);
+        sampler->SetHardwareVSyncStatus(enable);
+    }
 
     // this old version will be removed
     OHOS::VsyncError ret = OHOS::VsyncModule::GetInstance()->Trigger();
