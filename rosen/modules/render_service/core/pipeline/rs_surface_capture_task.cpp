@@ -24,10 +24,10 @@
 #include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_main_thread.h"
 #include "pipeline/rs_render_service_util.h"
+#include "pipeline/rs_render_service_connection.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_log.h"
 #include "platform/drawing/rs_surface.h"
-#include "rs_render_service_util.h"
 #include "screen_manager/rs_screen_manager.h"
 #include "screen_manager/rs_screen_mode_info.h"
 
@@ -171,11 +171,37 @@ void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::ProcessSurfaceRenderNode(RSS
 
     auto param = RsRenderServiceUtil::CreateBufferDrawParam(node);
     if (!isDisplayNode_) {
-        param.matrix = SkMatrix::I();
-        param.clipRect.offsetTo(0, 0);
-        param.dstRect = SkRect::MakeXYWH(0, 0, node.GetRenderProperties().GetBoundsWidth() * scaleX_,
-            node.GetRenderProperties().GetBoundsHeight() * scaleY_);
-        RsRenderServiceUtil::DrawBuffer(*canvas_, param);
+        if (param.clipRect.isEmpty()) {
+            return;
+        }
+        auto existedParent = node.GetParent().lock();
+        if (existedParent && existedParent->IsInstanceOf<RSSurfaceRenderNode>()) {
+            auto matrix = node.GetMatrix();
+            param.matrix = matrix;
+            auto parentRect = std::static_pointer_cast<RSSurfaceRenderNode>(existedParent)->GetDstRect();
+            //Changes the clip area from absolute to relative to the parent window and deal with clip area with scale
+            //Based on the origin of the parent window. 
+            param.clipRect.offsetTo(param.clipRect.left() - parentRect.left_, param.clipRect.top() - parentRect.top_);
+            SkMatrix scaleMatrix = SkMatrix::I();
+            scaleMatrix.preScale(scaleX_, scaleY_, 0, 0);
+            param.clipRect = scaleMatrix.mapRect(param.clipRect);
+
+            param.dstRect = SkRect::MakeXYWH(0, 0, node.GetRenderProperties().GetBoundsWidth(),
+                node.GetRenderProperties().GetBoundsHeight());
+            RsRenderServiceUtil::DrawBuffer(*canvas_, param,
+                [this, &matrix](SkCanvas& canvas, BufferDrawParam& params) -> void {
+                    canvas.translate(-matrix.getTranslateX() * scaleX_, -matrix.getTranslateY() * scaleY_);
+                    canvas.scale(scaleX_, scaleY_);
+                });
+        } else {
+            param.matrix = SkMatrix::I();
+            param.clipRect.offsetTo(0, 0);
+            param.dstRect = SkRect::MakeXYWH(0, 0, node.GetRenderProperties().GetBoundsWidth(),
+                node.GetRenderProperties().GetBoundsHeight());
+            RsRenderServiceUtil::DrawBuffer(*canvas_, param, [this](SkCanvas& canvas, BufferDrawParam& params) -> void {
+                    canvas.scale(scaleX_, scaleY_);
+                });
+        }
     } else {
         param.clipRect = SkRect::MakeXYWH(floor(param.clipRect.left() * scaleX_),
             floor(param.clipRect.top() * scaleY_), ceil(param.clipRect.width() * scaleX_),
