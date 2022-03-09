@@ -542,26 +542,56 @@ bool RsRenderServiceUtil::IsNeedClient(RSSurfaceRenderNode* node)
     }
 }
 
-void RsRenderServiceUtil::DealAnimation(SkCanvas& canvas, RSSurfaceRenderNode& node, BufferDrawParam& params)
+void RsRenderServiceUtil::ExtractAnimationInfo(const std::unique_ptr<RSTransitionProperties>& transitionProperties,
+        RSSurfaceRenderNode& node, AnimationInfo& info)
 {
-    auto transitionProperties = node.GetAnimationManager().GetTransitionProperties();
-    if (transitionProperties == nullptr) {
-        ROSEN_LOGD("RsRenderServiceUtil::dealAnimation: node's transitionProperties is nullptr.");
+    auto existedParent = node.GetParent().lock();
+    if (!existedParent) {
+        ROSEN_LOGI("RsDebug RsRenderServiceUtil::ExtractAnimationInfo this node[%s] have no parent",
+            node.GetName().c_str());
         return;
     }
+    if (existedParent->IsInstanceOf<RSSurfaceRenderNode>()) {
+        auto parentTransitionProperties = std::static_pointer_cast<RSSurfaceRenderNode>(existedParent)->
+            GetAnimationManager().GetTransitionProperties();
+        if (!parentTransitionProperties) {
+            ROSEN_LOGI("RsDebug RSHardwareProcessor::CalculateInfoWithAnimation this node[%s] parent have no effect",
+                node.GetName().c_str());
+            return;
+        }
+        info.scale = parentTransitionProperties->GetScale();
+        info.translate = parentTransitionProperties->GetTranslate();
+        info.alpha = parentTransitionProperties->GetAlpha();
+        info.rotateMatrix = parentTransitionProperties->GetRotate();
+    } else {
+        if (!transitionProperties) {
+            ROSEN_LOGI("RsDebug RSHardwareProcessor::CalculateInfoWithAnimation this node have no effect",
+                node.GetName().c_str());
+            return;
+        }
+        info.scale = transitionProperties->GetScale();
+        info.translate = transitionProperties->GetTranslate();
+        info.alpha = transitionProperties->GetAlpha();
+        info.rotateMatrix = transitionProperties->GetRotate();
+    }
+}
+
+void RsRenderServiceUtil::DealAnimation(SkCanvas& canvas, RSSurfaceRenderNode& node, BufferDrawParam& params)
+{
+    AnimationInfo animationInfo;
+    auto transitionProperties = node.GetAnimationManager().GetTransitionProperties();
+    ExtractAnimationInfo(transitionProperties, node, animationInfo);
 
     const RSProperties& property = node.GetRenderProperties();
 
-    params.paint.setAlphaf(params.paint.getAlphaf() * transitionProperties->GetAlpha());
-    auto translate = transitionProperties->GetTranslate();
-    canvas.translate(translate.x_, translate.y_);
+    params.paint.setAlphaf(params.paint.getAlphaf() * animationInfo.alpha);
+    canvas.translate(animationInfo.translate.x_, animationInfo.translate.y_);
 
     // scale and rotate about the center of node, currently scaleZ is not used
     auto center = property.GetBoundsSize() * 0.5f;
-    auto scale = transitionProperties->GetScale();
     canvas.translate(center.x_, center.y_);
-    canvas.scale(scale.x_, scale.y_);
-    canvas.concat(transitionProperties->GetRotate());
+    canvas.scale(animationInfo.scale.x_, animationInfo.scale.y_);
+    canvas.concat(animationInfo.rotateMatrix);
     canvas.translate(-center.x_, -center.y_);
     auto filter = std::static_pointer_cast<RSSkiaFilter>(property.GetBackgroundFilter());
     if (filter != nullptr) {

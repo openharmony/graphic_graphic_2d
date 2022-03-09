@@ -40,6 +40,13 @@ struct BufferDrawParam {
     ColorGamut targetColorGamut = ColorGamut::COLOR_GAMUT_SRGB;
 };
 
+struct AnimationInfo {
+    Vector3f scale = { 1.0f, 1.0f, 1.0f };
+    Vector3f translate = { 0.0f, 0.0f, 0.0f };
+    float alpha = 1.0f;
+    SkMatrix44 rotateMatrix = SkMatrix44::I();
+};
+
 struct ComposeInfo {
     IRect srcRect;
     IRect dstRect;
@@ -61,7 +68,8 @@ public:
     static void DrawBuffer(SkCanvas& canvas, BufferDrawParam& bufferDrawParam, CanvasPostProcess process = nullptr);
     static BufferDrawParam CreateBufferDrawParam(RSSurfaceRenderNode& node);
     static void DealAnimation(SkCanvas& canvas, RSSurfaceRenderNode& node, BufferDrawParam& params);
-
+    static void ExtractAnimationInfo(const std::unique_ptr<RSTransitionProperties>& transitionProperties,
+        RSSurfaceRenderNode& node, AnimationInfo& info);
 private:
     static bool IsNeedClient(RSSurfaceRenderNode* node);
     static bool CreateBitmap(sptr<OHOS::SurfaceBuffer> buffer, SkBitmap& bitmap);
