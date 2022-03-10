@@ -55,6 +55,9 @@ class DrawCmdList;
 
 class RSMarshallingHelper {
 public:
+    static bool WriteToParcel(Parcel &parcel, const void* data, size_t size);
+    static const void* ReadFromParcel(Parcel& parcel, size_t size);
+
     // default marshalling and unmarshalling method for POD types
     // [PLANNING]: implement marshalling & unmarshalling methods for other types (e.g. RSImage, drawCMDList)
     template<typename T>
@@ -147,6 +150,11 @@ public:
     static bool Marshalling(Parcel& parcel, const std::vector<T>& val);
     template<typename T>
     static bool Unmarshalling(Parcel& parcel, std::vector<T>& val);
+private:
+    static void ReleaseMemory(void* data, int* fd, size_t size);
+    inline static uint32_t count = 0;
+    static constexpr size_t MAX_DATA_SIZE = 128 * 1024 * 1024; // 128M
+    static constexpr size_t MIN_DATA_SIZE = 32 * 1024;         // 32k
 };
 
 } // namespace Rosen
