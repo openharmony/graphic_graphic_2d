@@ -13,17 +13,20 @@
  * limitations under the License.
  */
 
+#include "pipeline/rs_processor.h"
+
 #include "unique_fd.h"
 #include <sync_fence.h>
+#include "rs_trace.h"
 
 #include "pipeline/rs_main_thread.h"
-#include "pipeline/rs_processor.h"
 #include "platform/common/rs_log.h"
 
 namespace OHOS {
 namespace Rosen {
 std::unique_ptr<SkCanvas> RSProcessor::CreateCanvas(sptr<Surface> producerSurface, BufferRequestConfig requestConfig)
 {
+    RS_TRACE_NAME("CreateCanvas");
     auto ret = producerSurface->RequestBuffer(buffer_, releaseFence_, requestConfig);
     if (ret != SURFACE_ERROR_OK || buffer_ == nullptr) {
         return nullptr;
