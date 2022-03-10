@@ -82,7 +82,6 @@ int32_t GraphicDumperCommandStub::OnRemoteRequest(uint32_t code, MessageParcel& 
         }
         default: {
             return 1;
-            break;
         }
     }
     return 0;

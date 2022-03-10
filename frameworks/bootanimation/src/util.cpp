@@ -206,8 +206,8 @@ int CountPicNum(const char *dir, int32_t& picNum)
             CountPicNum(dirName.c_str(), picNum);
         }
         closedir(dirp);
-        return picNum;
         LOG("remove empty dir finally");
+        return picNum;
     } else {
         LOG("unknown file type");
     }

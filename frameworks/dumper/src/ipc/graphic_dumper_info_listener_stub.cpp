@@ -42,7 +42,6 @@ int32_t GraphicDumperInfoListenerStub::OnRemoteRequest(uint32_t code, MessagePar
         default: {
             GDLOGFE("code %{public}d cannot process", code);
             return 1;
-            break;
         }
     }
     return 0;

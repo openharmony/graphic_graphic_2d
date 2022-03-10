@@ -166,7 +166,6 @@ GSError GraphicDumperCommandLine::OptionParse(const char option)
         case 'h': {
             Helper();
             return GSERROR_OK;
-            break;
         }
         case 'w': {
             dumperArgs_.wait = true;
