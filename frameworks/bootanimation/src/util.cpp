@@ -91,14 +91,8 @@ bool UnzipFile(const std::string& srcFilePath, const std::string& dstFilePath)
                 unzClose(zipfile);
                 return false;
             }
-            char newpath[PATH_MAX + 1] = { 0x00 };
-            if (strlen(fileStr.c_str()) > PATH_MAX || realpath(fileStr.c_str(), newpath) == NULL) {
-                LOG("destination file path error");
-                unzCloseCurrentFile(zipfile);
-                unzClose(zipfile);
-                return false;
-            }
-            FILE *out = fopen(newpath, "wb");
+
+            FILE *out = fopen(fileStr.c_str(), "wb");
             if (out == nullptr) {
                 LOG("could not open destination file");
                 unzCloseCurrentFile(zipfile);
