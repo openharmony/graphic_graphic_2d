@@ -19,7 +19,6 @@
 #include "display_type.h"
 #include "pipeline/rs_main_thread.h"
 #include "platform/common/rs_log.h"
-#include "rs_render_service_util.h"
 
 namespace OHOS {
 namespace Rosen {
