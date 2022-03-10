@@ -118,6 +118,10 @@ GSError BufferManager::Map(sptr<SurfaceBufferImpl> &buffer)
     CHECK_BUFFER(buffer);
 
     BufferHandle *handle = buffer->GetBufferHandle();
+    if (handle == nullptr) {
+        return GSERROR_INVALID_ARGUMENTS;
+    }
+
     void *virAddr = displayGralloc_->Mmap(*handle);
     if (virAddr == nullptr || virAddr == MAP_FAILED) {
         return GSERROR_API_FAILED;
@@ -135,6 +139,10 @@ GSError BufferManager::Unmap(sptr<SurfaceBufferImpl> &buffer)
     }
 
     BufferHandle *handle = buffer->GetBufferHandle();
+    if (handle == nullptr) {
+        return GSERROR_INVALID_ARGUMENTS;
+    }
+
     auto dret = displayGralloc_->Unmap(*handle);
     if (dret == DISPLAY_SUCCESS) {
         handle->virAddr = nullptr;
@@ -150,6 +158,10 @@ GSError BufferManager::FlushCache(sptr<SurfaceBufferImpl> &buffer)
     CHECK_BUFFER(buffer);
 
     BufferHandle *handle = buffer->GetBufferHandle();
+    if (handle == nullptr) {
+        return GSERROR_INVALID_ARGUMENTS;
+    }
+
     auto dret = displayGralloc_->FlushCache(*handle);
     if (dret == DISPLAY_SUCCESS) {
         return GSERROR_OK;
@@ -164,6 +176,10 @@ GSError BufferManager::InvalidateCache(sptr<SurfaceBufferImpl> &buffer)
     CHECK_BUFFER(buffer);
 
     BufferHandle *handle = buffer->GetBufferHandle();
+    if (handle == nullptr) {
+        return GSERROR_INVALID_ARGUMENTS;
+    }
+
     auto dret = displayGralloc_->InvalidateCache(*handle);
     if (dret == DISPLAY_SUCCESS) {
         return GSERROR_OK;
