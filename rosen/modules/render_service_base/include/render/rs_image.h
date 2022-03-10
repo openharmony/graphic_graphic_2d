@@ -42,11 +42,7 @@ enum class ImageFit {
     SCALE_DOWN,
 };
 
-#ifdef ROSEN_OHOS
-class RSImage : public Parcelable {
-#else
 class RSImage {
-#endif
 public:
     RSImage() = default;
     ~RSImage() = default;
@@ -59,10 +55,8 @@ public:
     void SetRadius(float radius);
     void SetScale(double scale);
 
-#ifdef ROSEN_OHOS
-    bool Marshalling(Parcel& parcel) const override;
+    bool Marshalling(Parcel& parcel) const;
     static RSImage* Unmarshalling(Parcel& parcel);
-#endif
 
 private:
     void ApplyImageFit();

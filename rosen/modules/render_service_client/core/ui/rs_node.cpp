@@ -47,11 +47,7 @@ RSNode::~RSNode()
 
 bool RSNode::NeedForcedSendToRemote() const
 {
-    bool res = false;
-    res = RSRenderThread::Instance().isUni_;
-    // return false;
-    if (res) { ROSEN_LOGI("unirender: RSRenderThread::Instance().isUni_"); }
-    return res;
+    return !IsRenderServiceNode();
 }
 
 void RSNode::OpenImplicitAnimation(const RSAnimationTimingProtocol& timingProtocol,

@@ -40,10 +40,10 @@ class SkVertices;
 namespace OHOS {
 namespace Rosen {
 class RSFilter;
+class RSMask;
 class RSPath;
 class RSShader;
 class RSImage;
-class RSMask;
 template<typename T>
 class RSRenderCurveAnimation;
 template<typename T>
@@ -119,6 +119,8 @@ public:
     // RS types
     DECLARE_FUNCTION_OVERLOAD(RSShader)
     DECLARE_FUNCTION_OVERLOAD(RSPath)
+    DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSShader>)
+    DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSPath>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSFilter>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSMask>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSImage>)

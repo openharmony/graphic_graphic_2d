@@ -121,7 +121,7 @@ void RSUIDirector::AttachSurface()
 
         if (APP_FOR_UNI_RENDER.find(surfaceNode_->GetName()) != APP_FOR_UNI_RENDER.end()) {
             RSRenderThread::Instance().isUni_ = true;
-            RSRenderThread::Instance().Stop();
+            // RSRenderThread::Instance().Stop();
         }
         ROSEN_LOGE("unirender: RSUIDirector::AttachSurface for:%s, isUni_ = %d", surfaceNode_->GetName().c_str(), RSRenderThread::Instance().isUni_);
 
