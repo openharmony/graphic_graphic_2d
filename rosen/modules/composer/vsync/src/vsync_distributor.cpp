@@ -158,7 +158,6 @@ void VSyncDistributor::ThreadMain()
                     waitForVSync = true;
                 }
             }
-
             VLOGI("Distributor name:%{public}s, WaitforVSync:%{public}d, timestamp:" VPUBI64 "",
                 name_.c_str(), waitForVSync, timestamp);
             // no vsync signal
@@ -176,7 +175,9 @@ void VSyncDistributor::ThreadMain()
                     }
                 } else {
                     // just wait request or vsync signal
-                    con_.wait(locker);
+                    if (vsyncThreadRunning_ == true) {
+                        con_.wait(locker);
+                    }
                 }
                 continue;
             } else if ((timestamp > 0) && (waitForVSync == false)) {

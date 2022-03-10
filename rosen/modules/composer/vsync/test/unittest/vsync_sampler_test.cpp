@@ -22,6 +22,9 @@ using namespace testing::ext;
 
 namespace OHOS {
 namespace Rosen {
+namespace {
+constexpr int32_t SAMPLER_NUMBER = 12;
+}
 class VSyncSamplerTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -47,7 +50,7 @@ namespace {
  */
 HWTEST_F(VSyncSamplerTest, AddSample001, Function | MediumTest| Level3)
 {
-    ASSERT_EQ(VSyncSamplerTest::vsyncSampler->AddSample(0), false);
+    ASSERT_EQ(VSyncSamplerTest::vsyncSampler->AddSample(0), true);
     VSyncSamplerTest::vsyncSampler->Reset();
 }
 
@@ -60,11 +63,11 @@ HWTEST_F(VSyncSamplerTest, AddSample001, Function | MediumTest| Level3)
  */
 HWTEST_F(VSyncSamplerTest, AddSample002, Function | MediumTest| Level3)
 {
-    bool ret = false;
-    for (int i = 0; i < 6; i++) {
+    bool ret = true;
+    for (int i = 0; i < SAMPLER_NUMBER; i++) {
         ret = VSyncSamplerTest::vsyncSampler->AddSample(i);
     }
-    ASSERT_EQ(ret, true);
+    ASSERT_EQ(ret, false);
     VSyncSamplerTest::vsyncSampler->Reset();
 }
 
@@ -77,14 +80,14 @@ HWTEST_F(VSyncSamplerTest, AddSample002, Function | MediumTest| Level3)
  */
 HWTEST_F(VSyncSamplerTest, BeginSample001, Function | MediumTest| Level3)
 {
-    bool ret = false;
-    for (int i = 0; i < 6; i++) {
+    bool ret = true;
+    for (int i = 0; i < SAMPLER_NUMBER; i++) {
         ret = VSyncSamplerTest::vsyncSampler->AddSample(i);
     }
-    ASSERT_EQ(ret, true);
+    ASSERT_EQ(ret, false);
     
     VSyncSamplerTest::vsyncSampler->BeginSample();
-    ASSERT_EQ(VSyncSamplerTest::vsyncSampler->AddSample(6), false);
+    ASSERT_EQ(VSyncSamplerTest::vsyncSampler->AddSample(6), true);
     VSyncSamplerTest::vsyncSampler->Reset();
 }
 
@@ -109,11 +112,11 @@ HWTEST_F(VSyncSamplerTest, GetPeriod001, Function | MediumTest| Level3)
  */
 HWTEST_F(VSyncSamplerTest, GetPeriod002, Function | MediumTest| Level3)
 {
-    bool ret = false;
-    for (int i = 0; i < 6; i++) {
+    bool ret = true;
+    for (int i = 0; i < SAMPLER_NUMBER; i++) {
         ret = VSyncSamplerTest::vsyncSampler->AddSample(i);
     }
-    ASSERT_EQ(ret, true);
+    ASSERT_EQ(ret, false);
     ASSERT_EQ(VSyncSamplerTest::vsyncSampler->GetPeriod(), 1);
     VSyncSamplerTest::vsyncSampler->Reset();
 }
@@ -141,11 +144,11 @@ HWTEST_F(VSyncSamplerTest, GetPhase001, Function | MediumTest| Level3)
  */
 HWTEST_F(VSyncSamplerTest, GetPhase002, Function | MediumTest| Level3)
 {
-    bool ret = false;
-    for (int i = 0; i < 6; i++) {
+    bool ret = true;
+    for (int i = 0; i < SAMPLER_NUMBER; i++) {
         ret = VSyncSamplerTest::vsyncSampler->AddSample(i);
     }
-    ASSERT_EQ(ret, true);
+    ASSERT_EQ(ret, false);
     ASSERT_EQ(VSyncSamplerTest::vsyncSampler->GetPhase(), 0);
     VSyncSamplerTest::vsyncSampler->Reset();
 }
@@ -171,11 +174,11 @@ HWTEST_F(VSyncSamplerTest, GetRefrenceTime001, Function | MediumTest| Level3)
  */
 HWTEST_F(VSyncSamplerTest, GetRefrenceTime002, Function | MediumTest| Level3)
 {
-    bool ret = false;
-    for (int i = 1; i < 7; i++) {
+    bool ret = true;
+    for (int i = 1; i < SAMPLER_NUMBER + 1; i++) {
         ret = VSyncSamplerTest::vsyncSampler->AddSample(i);
     }
-    ASSERT_EQ(ret, true);
+    ASSERT_EQ(ret, false);
     ASSERT_EQ(VSyncSamplerTest::vsyncSampler->GetRefrenceTime(), 1);
 }
 
@@ -201,11 +204,11 @@ HWTEST_F(VSyncSamplerTest, AddPresentFenceTime001, Function | MediumTest| Level3
  */
 HWTEST_F(VSyncSamplerTest, AddPresentFenceTime002, Function | MediumTest| Level3)
 {
-    bool ret = false;
-    for (int i = 1; i < 7; i++) {
+    bool ret = true;
+    for (int i = 1; i < SAMPLER_NUMBER + 1; i++) {
         ret = VSyncSamplerTest::vsyncSampler->AddSample(i);
     }
-    ASSERT_EQ(ret, true);
+    ASSERT_EQ(ret, false);
     ASSERT_EQ(VSyncSamplerTest::vsyncSampler->AddPresentFenceTime(7), false);
     VSyncSamplerTest::vsyncSampler->Reset();
 }

@@ -33,7 +33,7 @@ namespace OHOS::Rosen {
 namespace {
 int32_t appVSyncFlag = 0;
 constexpr int32_t SOFT_VSYNC_PERIOD = 16;
-constexpr int32_t SAMPLER_NUMBER = 6;
+constexpr int32_t SAMPLER_NUMBER = 12;
 static void OnVSyncApp(int64_t time, void *data)
 {
     std::cout << "OnVSyncApp in\n";

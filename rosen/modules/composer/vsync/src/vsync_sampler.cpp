@@ -214,7 +214,7 @@ int64_t VSyncSampler::GetPeriod() const
     return period_;
 }
 
-int64_t VSyncSampler::GetPhase() const 
+int64_t VSyncSampler::GetPhase() const
 {
     std::lock_guard<std::mutex> lock(mutex_);
     return phase_;
