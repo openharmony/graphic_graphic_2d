@@ -76,7 +76,7 @@ std::shared_ptr<VSyncReceiver> RSRenderServiceClient::CreateVSyncReceiver(
         return nullptr;
     }
     sptr<IVSyncConnection> conn = renderService->CreateVSyncConnection(name);
-    return std::make_shared<VSyncReceiver>(conn, looper);
+    return std::make_shared<VSyncReceiver>(conn, looper, name);
 }
 
 void RSRenderServiceClient::TriggerSurfaceCaptureCallback(NodeId id, Media::PixelMap* pixelmap)

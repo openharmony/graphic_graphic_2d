@@ -14,6 +14,10 @@
  */
 
 #include "vsync_generator.h"
+#include <scoped_bytrace.h>
+#include <sched.h>
+#include <sys/resource.h>
+#include <string>
 
 namespace OHOS {
 namespace Rosen {
@@ -24,6 +28,10 @@ static int64_t GetSysTimeNs()
     auto now = std::chrono::steady_clock::now().time_since_epoch();
     return std::chrono::duration_cast<std::chrono::nanoseconds>(now).count();
 }
+// 1.5ms
+constexpr int64_t maxWaleupDelay = 1500000;
+constexpr int32_t THREAD_PRIORTY = -6;
+constexpr int32_t SCHED_PRIORITY = 2;
 }
 
 std::once_flag VSyncGenerator::createFlag_;
@@ -62,7 +70,13 @@ VSyncGenerator::~VSyncGenerator()
 
 void VSyncGenerator::ThreadLoop()
 {
-    int64_t occurTimestamp = GetSysTimeNs();
+    // set thread priorty
+    setpriority(PRIO_PROCESS, 0, THREAD_PRIORTY);
+    struct sched_param param = {0};
+    param.sched_priority = SCHED_PRIORITY;
+    sched_setscheduler(0, SCHED_FIFO, &param);
+
+    int64_t occurTimestamp = 0;
     while (vsyncThreadRunning_ == true) {
         std::vector<Listener> listeners;
         {
@@ -71,27 +85,34 @@ void VSyncGenerator::ThreadLoop()
                 con_.wait(locker);
                 continue;
             }
-
+            occurTimestamp = GetSysTimeNs();
             int64_t nextTimeStamp = ComputeNextVSyncTimeStamp(occurTimestamp);
             if (nextTimeStamp == INT64_MAX) {
                 con_.wait(locker);
                 continue;
             }
 
-            // check
-            bool isWakeUp = false;
+            bool isWakeup = false;
             if (occurTimestamp < nextTimeStamp) {
-                auto err = con_.wait_for(locker, std::chrono::nanoseconds(nextTimeStamp - occurTimestamp));
+                std::unique_lock<std::mutex> lck(waitForTimeoutMtx_);
+                auto err = waitForTimeoutCon_.wait_for(lck, std::chrono::nanoseconds(nextTimeStamp - occurTimestamp));
                 if (err == std::cv_status::timeout) {
-                    isWakeUp = true;
+                    isWakeup = true;
                 } else {
+                    ScopedBytrace func("VSyncGenerator::ThreadLoop::Continue");
                     continue;
                 }
             }
 
             occurTimestamp = GetSysTimeNs();
+            if (isWakeup) {
+                // 63, 1 / 64
+                wakeupDelay_ = ((wakeupDelay_ * 63) + (occurTimestamp - nextTimeStamp)) / 64;
+                wakeupDelay_ = wakeupDelay_ > maxWaleupDelay ? maxWaleupDelay : wakeupDelay_;
+            }
             listeners = GetListenerTimeouted(occurTimestamp);
         }
+        ScopedBytrace func("GenerateVsyncCount:" + std::to_string(listeners.size()));
         for (uint32_t i = 0; i < listeners.size(); i++) {
             listeners[i].callback_->OnVSyncEvent(listeners[i].lastTime_);
         }
@@ -128,12 +149,11 @@ int64_t VSyncGenerator::ComputeListenerNextVSyncTimeStamp(const Listener& listen
     int64_t nextTime = (numPeriod + 1) * period_ + phase;
     nextTime += refrenceTime_;
 
-    // 3/5 just empirical value
-    if (nextTime - listener.lastTime_ < (3 * period_ / 5)) {
+    // 2 / 5 just empirical value
+    if (nextTime - listener.lastTime_ < (2 * period_ / 5)) {
         nextTime += period_;
     }
 
-    // check wakeupDelay_
     nextTime -= wakeupDelay_;
     return nextTime;
 }
@@ -175,7 +195,8 @@ VsyncError VSyncGenerator::AddListener(int64_t phase, const sptr<OHOS::Rosen::VS
     Listener listener;
     listener.phase_ = phase;
     listener.callback_ = cb;
-    listener.lastTime_ = 0;
+    // just correct period / 2 time
+    listener.lastTime_ = GetSysTimeNs() - period_ / 2 + phase_;
 
     listeners_.push_back(listener);
     con_.notify_all();

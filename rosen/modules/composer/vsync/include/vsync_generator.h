@@ -84,6 +84,8 @@ private:
 
     std::mutex mutex_;
     std::condition_variable con_;
+    std::mutex waitForTimeoutMtx_;
+    std::condition_variable waitForTimeoutCon_;
     std::thread thread_;
     bool vsyncThreadRunning_;
     static std::once_flag createFlag_;

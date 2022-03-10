@@ -25,7 +25,7 @@
 #include <functional>
 #include <memory>
 #include <mutex>
-#include <unistd.h>
+#include <string>
 
 namespace OHOS {
 namespace Rosen {
@@ -63,7 +63,8 @@ public:
     using FrameCallback = VSyncCallBackListener::FrameCallback;
 
     VSyncReceiver(const sptr<IVSyncConnection>& conn,
-        const std::shared_ptr<OHOS::AppExecFwk::EventHandler> looper = nullptr);
+        const std::shared_ptr<OHOS::AppExecFwk::EventHandler>& looper = nullptr,
+        const std::string& name = "Uninitialized");
     ~VSyncReceiver();
     // nocopyable
     VSyncReceiver(const VSyncReceiver &) = delete;
@@ -81,6 +82,7 @@ private:
     std::mutex initMutex_;
     bool init_;
     int32_t fd_;
+    std::string name_;
 };
 } // namespace Rosen
 } // namespace OHOS

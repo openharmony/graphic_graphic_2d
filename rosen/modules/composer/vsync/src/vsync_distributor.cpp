@@ -17,6 +17,8 @@
 #include <chrono>
 #include <condition_variable>
 #include <algorithm>
+#include <sched.h>
+#include <sys/resource.h>
 #include <scoped_bytrace.h>
 #include "vsync_log.h"
 
@@ -27,6 +29,8 @@ constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, 0, "VsyncDistributor" };
 constexpr int32_t SOFT_VSYNC_PERIOD = 16;
 constexpr int32_t ERRNO_EAGAIN = -1;
 constexpr int32_t ERRNO_OTHER = -2;
+constexpr int32_t THREAD_PRIORTY = -6;
+constexpr int32_t SCHED_PRIORITY = 2;
 }
 VSyncConnection::VSyncConnection(const sptr<VSyncDistributor>& distributor, std::string name)
     : rate_(-1), distributor_(distributor), name_(name)
@@ -48,6 +52,7 @@ VsyncError VSyncConnection::RequestNextVSync()
     if (distributor == nullptr) {
         return VSYNC_ERROR_NULLPTR;
     }
+    ScopedBytrace func(name_ + "RequestNextVSync");
     return distributor->RequestNextVSync(this);
 }
 
@@ -123,6 +128,12 @@ VsyncError VSyncDistributor::RemoveConnection(const sptr<VSyncConnection>& conne
 
 void VSyncDistributor::ThreadMain()
 {
+    // set thread priorty
+    setpriority(PRIO_PROCESS, 0, THREAD_PRIORTY);
+    struct sched_param param = {0};
+    param.sched_priority = SCHED_PRIORITY;
+    sched_setscheduler(0, SCHED_FIFO, &param);
+
     int64_t timestamp;
     int64_t vsyncCount;
     while (vsyncThreadRunning_ == true) {
@@ -134,9 +145,9 @@ void VSyncDistributor::ThreadMain()
             event_.timestamp = 0;
             vsyncCount = event_.vsyncCount;
             for (uint32_t i = 0; i <connections_.size(); i++) {
-                VLOGI("conn name:%{public}s, rate:%{public}d",
-                    connections_[i]->GetName().c_str(), connections_[i]->rate_);
                 if (connections_[i]->rate_ == 0) {
+                    VLOGI("conn name:%{public}s, rate:%{public}d",
+                        connections_[i]->GetName().c_str(), connections_[i]->rate_);
                     waitForVSync = true;
                     if (timestamp > 0) {
                         connections_[i]->rate_ = -1;
@@ -169,8 +180,9 @@ void VSyncDistributor::ThreadMain()
                 }
                 continue;
             } else if ((timestamp > 0) && (waitForVSync == false)) {
-                // if there is a vsync signal but no vaild connections, we will disable vsync
-                DisableVSync();
+                // if there is a vsync signal but no vaild connections, we should disable vsync,
+                // but the system was unstable, so we didn't choose to disable it
+                // DisableVSync()
                 continue;
             }
         }

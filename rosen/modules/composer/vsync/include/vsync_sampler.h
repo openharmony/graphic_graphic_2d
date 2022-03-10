@@ -35,6 +35,8 @@ public:
     virtual int64_t GetPhase() const = 0;
     virtual int64_t GetRefrenceTime() const = 0;
     virtual bool AddPresentFenceTime(int64_t timestamp) = 0;
+    virtual void SetHardwareVSyncStatus(bool enabled) = 0;
+    virtual bool GetHardwareVSyncStatus() const = 0;
 };
 
 sptr<VSyncSampler> CreateVSyncSampler();
@@ -54,11 +56,13 @@ public:
     virtual int64_t GetPhase() const override;
     virtual int64_t GetRefrenceTime() const override;
     virtual bool AddPresentFenceTime(int64_t timestamp) override;
+    virtual void SetHardwareVSyncStatus(bool enabled) override;
+    virtual bool GetHardwareVSyncStatus() const override;
 
 private:
     friend class OHOS::Rosen::VSyncSampler;
     enum { MAX_SAMPLES = 32 };
-    enum { MIN_SAMPLES_FOR_UPDATE = 6 };
+    enum { MIN_SAMPLES_FOR_UPDATE = 12 };
     enum { MAX_SAMPLES_WITHOUT_PRESENT = 4 };
     enum { NUM_PRESENT = 8 };
 
@@ -81,10 +85,11 @@ private:
     uint32_t numResyncSamplesSincePresent_ = 0;
     uint32_t presentFenceTimeOffset_ = 0;
 
-    std::mutex mutex_;
+    mutable std::mutex mutex_;
 
     static std::once_flag createFlag_;
     static sptr<OHOS::Rosen::VSyncSampler> instance_;
+    bool hardwareVSyncStatus_ = true;
 };
 } // impl
 } // namespace Rosen
