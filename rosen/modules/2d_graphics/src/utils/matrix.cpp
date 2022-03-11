@@ -56,7 +56,7 @@ void Matrix::SetMatrix(scalar scaleX, scalar skewX, scalar transX, scalar skewY,
     matrixImplPtr->SetMatrix(scaleX, skewX, transX, skewY, scaleY, transY, persp0, persp1, persp2);
 }
 
-void Matrix::MapPoints(std::vector<Point>& dst, const std::vector<Point>& src, int count) const
+void Matrix::MapPoints(std::vector<Point>& dst, const std::vector<Point>& src, uint32_t count) const
 {
     matrixImplPtr->MapPoints(dst, src, count);
 }
