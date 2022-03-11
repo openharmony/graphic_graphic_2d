@@ -176,7 +176,7 @@ void AnimationServer::SplitWindowDraw(uint32_t *vaddr, uint32_t width, uint32_t 
         auto midlineYlocal = midlineY - splitWindow->GetY();
         draw.SetColor(midlineDown ? 0xffffffff : 0xffcccccc);
         constexpr double lineHeight = 0.1;
-        draw.DrawRect(0, midlineYlocal - height * lineHeight / 0x2, width, height * lineHeight);
+        draw.DrawRect(0, midlineYlocal - (int32_t)(height * lineHeight / 0x2), width, height * lineHeight);
     }
 }
 
