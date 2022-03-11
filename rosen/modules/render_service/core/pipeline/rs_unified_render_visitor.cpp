@@ -167,10 +167,6 @@ void RSUnifiedRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
             ROSEN_LOGE("RSUnifiedRenderVisitor::ProcessDisplayRenderNode No RSSurface found");
             return;
         }
-#ifdef ACE_ENABLE_GL
-        RenderContext* rc = RSRenderThread::Instance().GetRenderContext();
-        rsSurface->SetRenderContext(rc);
-#endif
         ROSEN_LOGI("RSUnifiedRenderVisitor::ProcessDisplayRenderNode RequestFrame start");
         auto surfaceFrame = rsSurface->RequestFrame(screenInfo_.width, screenInfo_.height);
         if (surfaceFrame == nullptr) {

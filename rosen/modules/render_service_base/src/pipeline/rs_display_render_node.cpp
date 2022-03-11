@@ -157,6 +157,10 @@ bool RSDisplayRenderNode::CreateSurface(sptr<IBufferConsumerListener> listener)
 #ifdef ACE_ENABLE_GL
     // GPU render
     surface_ = std::make_shared<RSSurfaceOhosGl>(surface);
+    ROSEN_LOGI("RSDisplayRenderNode::CreateSurface SetRenderContext start");
+    RenderContext* rc = new RenderContext();
+    rc->InitializeEglContext();
+    surface_->SetRenderContext(rc);
 #else
     // CPU render
     surface_ = std::make_shared<RSSurfaceOhosRaster>(surface);
