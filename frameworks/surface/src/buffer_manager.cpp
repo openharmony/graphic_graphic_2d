@@ -152,6 +152,24 @@ GSError BufferManager::Unmap(sptr<SurfaceBufferImpl> &buffer)
     return GenerateError(GSERROR_API_FAILED, dret);
 }
 
+GSError BufferManager::Unmap(BufferHandle *bufferHandle)
+{
+    CHECK_INIT();
+    if (bufferHandle == nullptr) {
+        return GSERROR_OK;
+    }
+    if (bufferHandle->virAddr == nullptr) {
+        return GSERROR_OK;
+    }
+    auto dret = displayGralloc_->Unmap(*bufferHandle);
+    if (dret == DISPLAY_SUCCESS) {
+        bufferHandle->virAddr = nullptr;
+        return GSERROR_OK;
+    }
+    BLOGW("Failed with %{public}d", dret);
+    return GenerateError(GSERROR_API_FAILED, dret);
+}
+
 GSError BufferManager::FlushCache(sptr<SurfaceBufferImpl> &buffer)
 {
     CHECK_INIT();

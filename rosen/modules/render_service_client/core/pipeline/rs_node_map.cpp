@@ -22,24 +22,17 @@ namespace OHOS {
 namespace Rosen {
 RSNodeMap::RSNodeMap()
 {
-    // add animation fallback node
+    // create animation fallback node
     auto fallback_node = new RSCanvasNode(false);
     fallback_node->SetId(0);
-    nodeMap_.emplace(0, fallback_node);
+    animationFallbackNode_.reset(fallback_node);
+    nodeMap_.emplace(0, animationFallbackNode_);
 }
 
 RSNodeMap::~RSNodeMap()  noexcept
 {
-    // In this deconstructor, the object's member nodeMap_ will be cleared, but the nodes in nodeMap_,
-    // whose deconstrcutor will indirectly call RSNodeMap::GetNode() that accesses incomplete nodeMap_
-    // in the clearing progress, which will cause a segment error.
-
-    // To work-around for this case, we put these nodes' releasing work after clearing the nodeMap_.
-    std::vector<std::shared_ptr<RSBaseNode>> delayReleasedNodes;
-    for (auto &[id, node] : nodeMap_) {
-        delayReleasedNodes.push_back(node);
-    }
     nodeMap_.clear();
+    animationFallbackNode_ = nullptr;
 }
 
 RSNodeMap& RSNodeMap::MutableInstance()
@@ -80,16 +73,12 @@ const std::shared_ptr<RSBaseNode> RSNodeMap::GetNode<RSBaseNode>(NodeId id) cons
     if (itr == nodeMap_.end()) {
         return nullptr;
     }
-    return itr->second;
+    return itr->second.lock();
 }
 
 const std::shared_ptr<RSNode> RSNodeMap::GetAnimationFallbackNode() const
 {
-    auto itr = nodeMap_.find(0);
-    if (itr == nodeMap_.end()) {
-        return nullptr;
-    }
-    return std::static_pointer_cast<RSNode>(nodeMap_.at(0));
+    return animationFallbackNode_;
 }
 
 } // namespace Rosen

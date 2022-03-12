@@ -49,6 +49,7 @@ public:
     bool SetUpGrContext();
 
     EGLSurface CreateEGLSurface(EGLNativeWindowType eglNativeWindow);
+    void DestroyEGLSurface(EGLSurface surface);
     void MakeCurrent(EGLSurface surface) const;
     void SwapBuffers(EGLSurface surface) const;
     void RenderFrame();

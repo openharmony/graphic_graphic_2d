@@ -32,6 +32,7 @@ public:
     GSError Alloc(const BufferRequestConfig &config, sptr<SurfaceBufferImpl>& buffer);
     GSError Map(sptr<SurfaceBufferImpl>& buffer);
     GSError Unmap(sptr<SurfaceBufferImpl>& buffer);
+    GSError Unmap(BufferHandle *bufferHandle);
     GSError FlushCache(sptr<SurfaceBufferImpl>& buffer);
     GSError InvalidateCache(sptr<SurfaceBufferImpl>& buffer);
     GSError Free(sptr<SurfaceBufferImpl>& buffer);

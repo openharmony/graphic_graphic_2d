@@ -79,6 +79,7 @@ public:
 private:
     bool IsRemote();
 
+    std::mutex mutex_;
     std::map<int32_t, sptr<SurfaceBufferImpl>> bufferProducerCache_;
     std::map<std::string, std::string> userData_;
     sptr<IBufferProducer> producer_ = nullptr;

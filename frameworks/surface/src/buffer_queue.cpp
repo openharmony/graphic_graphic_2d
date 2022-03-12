@@ -769,6 +769,7 @@ uint32_t BufferQueue::GetDefaultUsage()
 
 GSError BufferQueue::CleanCache()
 {
+    std::lock_guard<std::mutex> lockGuard(mutex_);
     auto it = bufferQueueCache_.begin();
     while (it != bufferQueueCache_.end()) {
         bufferQueueCache_.erase(it++);

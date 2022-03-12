@@ -30,6 +30,9 @@ RSSurfaceOhosGl::RSSurfaceOhosGl(const sptr<Surface>& producer) : RSSurfaceOhos(
 RSSurfaceOhosGl::~RSSurfaceOhosGl()
 {
     DestoryNativeWindow(mWindow);
+    if (context_ != nullptr) {
+        context_->DestroyEGLSurface(mEglSurface);
+    }
     mWindow = nullptr;
     mEglSurface = EGL_NO_SURFACE;
 }
@@ -45,7 +48,7 @@ std::unique_ptr<RSSurfaceFrame> RSSurfaceOhosGl::RequestFrame(int32_t width, int
     if (mWindow == nullptr) {
         mWindow = CreateNativeWindowFromSurface(&producer_);
         mEglSurface = context->CreateEGLSurface((EGLNativeWindowType)mWindow);
-        ROSEN_LOGI("RSSurfaceOhosGl: Init EglSurface %{public}p", mEglSurface);
+        ROSEN_LOGI("RSSurfaceOhosGl: create and Init EglSurface %p", mEglSurface);
     }
 
     if (mEglSurface == EGL_NO_SURFACE) {

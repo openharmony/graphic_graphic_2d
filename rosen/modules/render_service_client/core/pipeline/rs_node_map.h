@@ -53,7 +53,8 @@ private:
     RSNodeMap& operator=(const RSNodeMap&&) = delete;
 
 private:
-    std::unordered_map<NodeId, std::shared_ptr<RSBaseNode>> nodeMap_;
+    std::unordered_map<NodeId, std::weak_ptr<RSBaseNode>> nodeMap_;
+    std::shared_ptr<RSNode> animationFallbackNode_;
 };
 } // namespace Rosen
 } // namespace OHOS

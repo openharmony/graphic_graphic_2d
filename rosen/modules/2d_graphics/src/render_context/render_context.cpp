@@ -18,6 +18,7 @@
 #include <sstream>
 #include <string>
 
+#include "EGL/egl.h"
 #include "window.h"
 
 #include "utils/log.h"
@@ -163,6 +164,13 @@ void RenderContext::SwapBuffers(EGLSurface surface) const
         LOGE("Failed to SwapBuffers on surface %{public}p, error is %{public}x", surface, eglGetError());
     } else {
         LOGW("SwapBuffers successfully, surface is %{public}p", surface);
+    }
+}
+
+void RenderContext::DestroyEGLSurface(EGLSurface surface)
+{
+    if (!eglDestroySurface(eglDisplay_, surface)) {
+        LOGE("Failed to DestroyEGLSurface surface %{public}p, error is %{public}x", surface, eglGetError());
     }
 }
 

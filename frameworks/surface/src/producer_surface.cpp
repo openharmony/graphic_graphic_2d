@@ -62,12 +62,14 @@ GSError ProducerSurface::RequestBuffer(sptr<SurfaceBuffer>& buffer,
         return ret;
     }
 
+    std::lock_guard<std::mutex> lockGuard(mutex_);
     // add cache
     if (retval.buffer != nullptr && IsRemote()) {
         sptr<SurfaceBufferImpl> bufferImpl = SurfaceBufferImpl::FromBase(retval.buffer);
         ret = BufferManager::GetInstance()->Map(bufferImpl);
         if (ret != GSERROR_OK) {
             BLOGN_FAILURE_ID(retval.sequence, "Map failed");
+            return GSERROR_API_FAILED;
         } else {
             BLOGN_SUCCESS_ID(retval.sequence, "Map");
         }
@@ -75,6 +77,8 @@ GSError ProducerSurface::RequestBuffer(sptr<SurfaceBuffer>& buffer,
 
     if (retval.buffer != nullptr) {
         bufferProducerCache_[retval.sequence] = SurfaceBufferImpl::FromBase(retval.buffer);
+    } else if (bufferProducerCache_.find(retval.sequence) == bufferProducerCache_.end()) {
+        return GSERROR_API_FAILED;
     } else {
         retval.buffer = bufferProducerCache_[retval.sequence];
     }
@@ -244,10 +248,12 @@ bool ProducerSurface::IsRemote()
 GSError ProducerSurface::CleanCache()
 {
     if (IsRemote()) {
-        for (auto it = bufferProducerCache_.begin(); it != bufferProducerCache_.end(); it++) {
+        std::lock_guard<std::mutex> lockGuard(mutex_);
+        for (auto it = bufferProducerCache_.begin(); it != bufferProducerCache_.end();) {
             if (it->second != nullptr && it->second->GetVirAddr() != nullptr) {
                 BufferManager::GetInstance()->Unmap(it->second);
             }
+            bufferProducerCache_.erase(it++);
         }
     }
     return producer_->CleanCache();

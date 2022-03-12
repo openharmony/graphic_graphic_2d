@@ -21,6 +21,7 @@
 #include <securec.h>
 
 #include "buffer_log.h"
+#include "buffer_manager.h"
 
 namespace OHOS {
 SurfaceBufferImpl::SurfaceBufferImpl()
@@ -50,6 +51,10 @@ SurfaceBufferImpl::~SurfaceBufferImpl()
 {
     BLOGD("dtor ~[%{public}d] handle_ %{public}p", sequenceNumber, handle_);
     if (handle_) {
+        if (handle_->virAddr != nullptr) {
+            BLOGD("dtor ~[%{public}d] virAddr %{public}p", sequenceNumber, handle_->virAddr);
+            BufferManager::GetInstance()->Unmap(handle_);
+        }
         FreeBufferHandle(handle_);
     }
     eglData_ = nullptr;
