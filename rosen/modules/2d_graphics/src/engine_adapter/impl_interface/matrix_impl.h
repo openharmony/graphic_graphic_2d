@@ -44,7 +44,7 @@ public:
     virtual bool Equals(const Matrix& a, const Matrix& b) const = 0;
     virtual void SetMatrix(scalar scaleX, scalar skewX, scalar transX, scalar skewY, scalar scaleY, scalar transY,
         scalar persp0, scalar persp1, scalar persp2) = 0;
-    virtual void MapPoints(std::vector<Point>& dst, const std::vector<Point>& src, int count) const;
+    virtual void MapPoints(std::vector<Point>& dst, const std::vector<Point>& src, uint32_t count) const;
     virtual scalar Get(int index) const = 0;
 };
 } // namespace Drawing
