@@ -25,7 +25,7 @@ sptr<OHOS::Rosen::VSyncSampler> VSyncSampler::instance_ = nullptr;
 
 namespace {
 constexpr double PI = 3.1415926;
-constexpr int64_t g_errorThreshold = 90000000000; // 300 usec squared
+constexpr int64_t g_errorThreshold = 160000000000; // 400 usec squared
 constexpr int32_t INVAILD_TIMESTAMP = -1;
 constexpr int32_t MINES_SAMPLE_NUMS = 3;
 }

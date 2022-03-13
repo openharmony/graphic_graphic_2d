@@ -73,9 +73,7 @@ int BufferQueueProducer::OnRemoteRequest(uint32_t code, MessageParcel &arguments
         return ERR_INVALID_STATE;
     }
 
-    BLOGND("OnRemoteRequest call %{public}d start", code);
     auto ret = (this->*(it->second))(arguments, reply, option);
-    BLOGND("OnRemoteRequest call %{public}d end", code);
     return ret;
 }
 
@@ -223,20 +221,14 @@ GSError BufferQueueProducer::RequestBuffer(const BufferRequestConfig &config, Bu
         if (retval.buffer != nullptr) {
             cache[retval.sequence] = retval.buffer;
             sended.insert(retval.sequence);
-            BLOGND("client pid: [%{public}d] add cache", callingPid);
         } else if (callingPid == getpid()) {
             // for BufferQueue not first
             // A local call always returns a non-null pointer
             retval.buffer = cache[retval.sequence].promote();
-            BLOGND("client pid: [%{public}d] get cache by local", callingPid);
         } else if (sended.find(retval.sequence) == sended.end()) {
             // The first remote call from a different process returns a non-null pointer
             retval.buffer = cache[retval.sequence].promote();
             sended.insert(retval.sequence);
-            BLOGND("client pid: [%{public}d] get cache by remote", callingPid);
-        } else {
-            // and all others return null pointers
-            BLOGND("client pid: [%{public}d] nullptr by remote", callingPid);
         }
     } else {
         BLOGNI("BufferQueue::RequestBuffer failed with %{public}s", GSErrorStr(sret).c_str());
