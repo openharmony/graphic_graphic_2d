@@ -15,7 +15,6 @@
 
 #include "buffer_queue_producer.h"
 
-#include <cassert>
 #include <mutex>
 #include <set>
 
@@ -132,13 +131,13 @@ int BufferQueueProducer::FlushBufferRemote(MessageParcel &arguments, MessageParc
 
 int32_t BufferQueueProducer::AttachBufferRemote(MessageParcel &arguments, MessageParcel &reply, MessageOption &option)
 {
-    assert(!"not support remote");
+    BLOGNE("BufferQueueProducer::AttachBufferRemote not support remote");
     return 0;
 }
 
 int32_t BufferQueueProducer::DetachBufferRemote(MessageParcel &arguments, MessageParcel &reply, MessageOption &option)
 {
-    assert(!"not support remote");
+    BLOGNE("BufferQueueProducer::DetachBufferRemote not support remote");
     return 0;
 }
 
@@ -200,7 +199,7 @@ int BufferQueueProducer::CleanCacheRemote(MessageParcel &arguments, MessageParce
 int32_t BufferQueueProducer::RegisterReleaseListenerRemote(MessageParcel &arguments,
     MessageParcel &reply, MessageOption &option)
 {
-    assert(!"not support remote");
+    BLOGNE("BufferQueueProducer::RegisterReleaseListenerRemote not support remote");
     return 0;
 }
 

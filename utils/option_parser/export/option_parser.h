@@ -16,7 +16,6 @@
 #ifndef UTILS_OPTION_PARSER_EXPORT_OPTION_PARSER_H
 #define UTILS_OPTION_PARSER_EXPORT_OPTION_PARSER_H
 
-#include <cassert>
 #include <list>
 #include <string>
 #include <vector>
@@ -29,7 +28,6 @@ public:
     template<typename T>
     int32_t AddOption(const std::string &shortOpt, const std::string &longOpt, T &result)
     {
-        assert(!"not support");
         return 0;
     }
 
@@ -72,7 +70,6 @@ public:
     template<typename T>
     int32_t AddArguments(T &result)
     {
-        assert(!"not support");
         return 0;
     }
 
