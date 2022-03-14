@@ -35,12 +35,12 @@ public:
     unsigned int VAO_;
 
 private:
-    unsigned int VBO_;
-    unsigned int EBO_;
-    int verticesSize_;
-    int indicesSize_;
-    int verticesNumber_;
-    int indicesNumber_;
+    unsigned int VBO_ = 0;
+    unsigned int EBO_ = 0;
+    unsigned int verticesSize_ = 0;
+    unsigned int indicesSize_ = 0;
+    unsigned int verticesNumber_ = 0;
+    unsigned int indicesNumber_ = 0;
     float* mVertices_ = nullptr;
     unsigned int* mIndices_ = nullptr;
 };
