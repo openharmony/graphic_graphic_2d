@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -222,10 +222,10 @@ void RSHardwareProcessor::CalculateInfoWithVideo(ComposeInfo& info, RSSurfaceRen
         .h = resDstRect.height_,
     };
     IRect originSrcRect = info.srcRect;
-    info.srcRect.x = resDstRect.IsEmpty() ? 0 : (resDstRect.left_ - originDstRect.left_) / originDstRect.width_ *
-        originSrcRect.w;
-    info.srcRect.y = resDstRect.IsEmpty() ? 0 : (resDstRect.top_ - originDstRect.top_) / originDstRect.height_ *
-        originSrcRect.h;
+    info.srcRect.x = resDstRect.IsEmpty() ? 0 : std::ceil((resDstRect.left_ - originDstRect.left_) *
+        originSrcRect.w / originDstRect.width_);
+    info.srcRect.y = resDstRect.IsEmpty() ? 0 : std::ceil((resDstRect.top_ - originDstRect.top_) *
+        originSrcRect.h / originDstRect.height_);
     info.srcRect.w = originDstRect.IsEmpty() ? 0 : originSrcRect.w * resDstRect.width_ / originDstRect.width_;
     info.srcRect.h = originDstRect.IsEmpty() ? 0 : originSrcRect.h * resDstRect.height_ / originDstRect.height_;
 }
@@ -240,8 +240,8 @@ void RSHardwareProcessor::CalculateInfoWithAnimation(
         ROSEN_LOGE("RsDebug RSHardwareProcessor::ProcessSurface geoPtr == nullptr");
         return;
     }
-    float paddingX = (1 - animationInfo.scale.x_) * geoPtr->GetAbsRect().width_ / 2;
-    float paddingY = (1 - animationInfo.scale.y_) * geoPtr->GetAbsRect().height_ / 2;
+    float paddingX = (1 - animationInfo.scale.x_) * animationInfo.pivot.x_;
+    float paddingY = (1 - animationInfo.scale.y_) * animationInfo.pivot.y_;
     info.dstRect = {
         .x = info.dstRect.x + animationInfo.translate.x_ + paddingX,
         .y = info.dstRect.y + animationInfo.translate.y_ + paddingY,
