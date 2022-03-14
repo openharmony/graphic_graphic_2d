@@ -48,10 +48,7 @@ void RSRenderServiceConnectHub::Init()
 
 void RSRenderServiceConnectHub::Destory()
 {
-    if (instance_ != nullptr) {
-        delete instance_;
-        instance_ = nullptr;
-    }
+    instance_ = nullptr;
 }
 
 RSRenderServiceConnectHub::RSRenderServiceConnectHub()
