@@ -293,13 +293,13 @@ NativeWindowBuffer::NativeWindowBuffer() : NativeWindowMagic(NATIVE_OBJECT_MAGIC
 {
 }
 
-weak_alias(CreateNativeWindowFromSurface, OH_NativeWindow_CreateNativeWindowFromSurface);
+weak_alias(CreateNativeWindowFromSurface, OH_NativeWindow_CreateNativeWindow);
 weak_alias(DestoryNativeWindow, OH_NativeWindow_DestroyNativeWindow);
 weak_alias(CreateNativeWindowBufferFromSurfaceBuffer, OH_NativeWindow_CreateNativeWindowBufferFromSurfaceBuffer);
 weak_alias(DestoryNativeWindowBuffer, OH_NativeWindow_DestroyNativeWindowBuffer);
 weak_alias(NativeWindowRequestBuffer, OH_NativeWindow_NativeWindowRequestBuffer);
 weak_alias(NativeWindowFlushBuffer, OH_NativeWindow_NativeWindowFlushBuffer);
-weak_alias(NativeWindowCancelBuffer, OH_NativeWindow_NativeWindowCancelBuffer);
+weak_alias(NativeWindowCancelBuffer, OH_NativeWindow_NativeWindowAbortBuffer);
 weak_alias(NativeWindowHandleOpt, OH_NativeWindow_NativeWindowHandleOpt);
 weak_alias(GetBufferHandleFromNative, OH_NativeWindow_GetBufferHandleFromNative);
 weak_alias(NativeObjectReference, OH_NativeWindow_NativeObjectReference);

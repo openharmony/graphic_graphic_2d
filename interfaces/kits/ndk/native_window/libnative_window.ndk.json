@@ -1,11 +1,11 @@
 [
-    { "name": "OH_NativeWindow_CreateNativeWindowFromSurface" },
+    { "name": "OH_NativeWindow_CreateNativeWindow" },
     { "name": "OH_NativeWindow_DestroyNativeWindow" },
     { "name": "OH_NativeWindow_CreateNativeWindowBufferFromSurfaceBuffer" },
     { "name": "OH_NativeWindow_DestroyNativeWindowBuffer" },
     { "name": "OH_NativeWindow_NativeWindowRequestBuffer" },
     { "name": "OH_NativeWindow_NativeWindowFlushBuffer" },
-    { "name": "OH_NativeWindow_NativeWindowCancelBuffer" },
+    { "name": "OH_NativeWindow_NativeWindowAbortBuffer" },
     { "name": "OH_NativeWindow_NativeWindowHandleOpt" },
     { "name": "OH_NativeWindow_GetBufferHandleFromNative" },
     { "name": "OH_NativeWindow_NativeObjectReference" },
