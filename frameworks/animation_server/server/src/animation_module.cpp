@@ -16,7 +16,6 @@
 #include "animation_module.h"
 
 #include <cerrno>
-#include <cassert>
 
 #include <gslogger.h>
 #include <scoped_bytrace.h>
@@ -106,8 +105,6 @@ void AnimationModule::StartAnimation(struct Animation &animation)
         return;
     }
 
-    assert(asinfo.wmimage.width == window->GetWidth());
-    assert(asinfo.wmimage.height == window->GetHeight());
     window->Show();
 
     auto sret = eglSurface->InitContext();
