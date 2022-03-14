@@ -45,7 +45,7 @@ public:
 private:
     ColorSpace srcColorSpace;
     ColorSpace dstColorSpace;
-    GamutMappingMode mappingMode;
+    [[maybe_unused]]GamutMappingMode mappingMode;
     Matrix3x3 transferMatrix;
 };
 }  // namespace ColorManager

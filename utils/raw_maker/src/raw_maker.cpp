@@ -15,7 +15,6 @@
 
 #include "raw_maker.h"
 
-#include <cassert>
 #include <cerrno>
 #include <string>
 
@@ -33,7 +32,9 @@ void RawMaker::SetFilename(const std::string &filename)
     if (firstFrame) {
         this->filename = filename;
     }
-    assert(this->height == height);
+    if (this->filename != filename) {
+        GSLOG2HI(ERROR) << "RawMaker::SetFilename now filename is different to first frame filename";
+    }
 }
 
 void RawMaker::SetWidth(uint32_t width)
@@ -41,7 +42,9 @@ void RawMaker::SetWidth(uint32_t width)
     if (firstFrame) {
         this->width = width;
     }
-    assert(this->width == width);
+    if (this->width != width) {
+        GSLOG2HI(ERROR) << "RawMaker::SetWidth now width is different to first frame width";
+    }
     size = static_cast<int32_t>(width * height * 0x4);
 }
 
@@ -50,14 +53,18 @@ void RawMaker::SetHeight(uint32_t height)
     if (firstFrame) {
         this->height = height;
     }
-    assert(this->height == height);
+    if (this->height != height) {
+        GSLOG2HI(ERROR) << "RawMaker::SetHeight now height is different to first frame height";
+    }
     size = static_cast<int32_t>(width * height * 0x4);
 }
 
 void RawMaker::SetHeaderType(RawHeaderType type)
 {
     this->type = type;
-    assert(type != RAW_HEADER_TYPE_NONE);
+    if (type != RAW_HEADER_TYPE_NONE) {
+        GSLOG2HI(ERROR) << "RawMaker::SetHeaderType now type is not RAW_HEADER_TYPE_NONE";
+    }
 }
 
 int32_t RawMaker::WriteNextData(const uint8_t *addr)

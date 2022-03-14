@@ -16,14 +16,6 @@ import("//build/ohos.gni")
 ## Build color_manager_config.a {{{
 config("color_manager_config") {
   visibility = [ ":*" ]
-
-  cflags = [
-    "-Wno-unused-variable",
-    "-Wno-unused-private-field",
-    "-Wno-implicit-fallthrough",
-    "-Wno-reorder-ctor",
-    "-Wno-sign-compare",
-  ]
 }
 
 config("color_manager_public_config") {

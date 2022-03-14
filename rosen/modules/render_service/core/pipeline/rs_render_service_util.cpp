@@ -459,7 +459,7 @@ bool ConvertYUV420SPToRGBA(std::vector<uint8_t>& rgbaBuf, const sptr<OHOS::Surfa
     }
     uint8_t* ybase = src;
     uint8_t* ubase = &src[bufferWidth*bufferHeight];
-    
+
     int rgb[3] = {0, 0, 0};
     int idx = 0;
     int rdif = 0;

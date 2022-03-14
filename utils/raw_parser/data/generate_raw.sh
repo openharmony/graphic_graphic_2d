@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+set -e
+
 GENERATE_RAW=raw.raw
 # put jpg
 # bash generate_raw.sh <width> <height>

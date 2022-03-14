@@ -112,7 +112,6 @@ int32_t OptionParser::ParseShortOption(const char *arg1, const char *arg2)
                     ss >> option.result->str;
                     break;
                 default:
-                    assert(!"no way");
                     break;
             }
 
@@ -190,7 +189,6 @@ int32_t OptionParser::ParseLongOption(const char *arg1, const char *arg2)
                     ss >> option.result->str;
                     break;
                 default:
-                    assert(!"no way");
                     break;
             }
 
