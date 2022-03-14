@@ -45,6 +45,7 @@ ImageChain* Builder::CreateFromConfig(std::string path)
         if (connections_ != nullptr) {
             ConnectPipeline(connections_);
         }
+        cJSON_Delete(overallData);
     } else {
         LOGE("The json file fails to compile.");
         return nullptr;

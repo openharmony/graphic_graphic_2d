@@ -106,6 +106,7 @@ bool UnzipFile(const std::string& srcFilePath, const std::string& dstFilePath)
                     LOG("unzReadCurrentFile error %{public}d", error);
                     unzCloseCurrentFile(zipfile);
                     unzClose(zipfile);
+                    fclose(out);
                     return false;
                 }
                 if (error > 0) {
