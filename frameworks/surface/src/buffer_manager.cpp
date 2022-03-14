@@ -96,15 +96,21 @@ GSError BufferManager::Alloc(const BufferRequestConfig &config, sptr<SurfaceBuff
     CHECK_BUFFER(buffer);
 
     BufferHandle *handle = nullptr;
-    int32_t width = (config.width + 15) / 16 * 16;
-    AllocInfo info = {width, config.height, config.usage, (PixelFormat)config.format};
+    int32_t allocWidth = config.width;
+    int32_t allocHeight = config.height;
+    if (config.transform == TransformType::ROTATE_90 || config.transform == TransformType::ROTATE_270) {
+        std::swap(allocWidth, allocHeight);
+    }
+    AllocInfo info = {allocWidth, allocHeight, config.usage, (PixelFormat)config.format};
     auto dret = displayGralloc_->AllocMem(info, handle);
     if (dret == DISPLAY_SUCCESS) {
         buffer->SetBufferHandle(handle);
-        buffer->SetSurfaceBufferWidth(config.width);
-        buffer->SetSurfaceBufferHeight(config.height);
+        buffer->SetSurfaceBufferWidth(allocWidth);
+        buffer->SetSurfaceBufferHeight(allocHeight);
         buffer->SetSurfaceBufferColorGamut(config.colorGamut);
-        BLOGI("buffer handle %{public}p w: %{public}d h: %{public}d", handle, config.width, config.height);
+        buffer->SetSurfaceBufferTransform(config.transform);
+        BLOGI("buffer handle %{public}p w: %{public}d h: %{public}d t: %{public}d", handle,
+            allocWidth, allocHeight, config.transform);
         return GSERROR_OK;
     }
     BLOGW("Failed with %{public}d", dret);

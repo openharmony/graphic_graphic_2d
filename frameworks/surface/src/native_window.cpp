@@ -44,6 +44,7 @@ struct NativeWindow* CreateNativeWindowFromSurface(void* pSuface)
     nativeWindow->config.strideAlignment = 8;   // default stride is 8
     nativeWindow->config.timeout = 3000;        // default timout is 3000 ms
     nativeWindow->config.colorGamut = ColorGamut::COLOR_GAMUT_SRGB;
+    nativeWindow->config.transform = TransformType::ROTATE_NONE;
 
     BLOGD("CreateNativeWindowFromSurface width is %{public}d, height is %{public}d", nativeWindow->config.width, \
         nativeWindow->config.height);
@@ -173,6 +174,11 @@ static int32_t InternalHanleNativeWindowOpt(struct NativeWindow *window, int cod
             window->config.colorGamut = static_cast<ColorGamut>(colorGamut);
             break;
         }
+        case SET_TRANSFORM : {
+            int32_t transform = va_arg(args, int32_t);
+            window->config.transform = static_cast<TransformType>(transform);
+            break;
+        }
         case GET_USAGE: {
             int32_t *value = va_arg(args, int32_t*);
             int32_t usage = window->config.usage;
@@ -199,6 +205,11 @@ static int32_t InternalHanleNativeWindowOpt(struct NativeWindow *window, int cod
         case GET_COLOR_GAMUT: {
             int32_t *colorGamut = va_arg(args, int32_t*);
             *colorGamut = static_cast<int32_t>(window->config.colorGamut);
+            break;
+        }
+        case GET_TRANSFORM: {
+            int32_t *transform = va_arg(args, int32_t*);
+            *transform = static_cast<int32_t>(window->config.transform);
             break;
         }
         default:

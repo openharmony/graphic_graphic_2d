@@ -103,6 +103,17 @@ ColorGamut SurfaceBufferImpl::GetSurfaceBufferColorGamut() const
     return surfaceBufferColorGamut_;
 }
 
+GSError SurfaceBufferImpl::SetSurfaceBufferTransform(TransformType transform)
+{
+    transform_ = transform;
+    return GSERROR_OK;
+}
+
+TransformType SurfaceBufferImpl::GetSurfaceBufferTransform() const
+{
+    return transform_;
+}
+
 int32_t SurfaceBufferImpl::GetWidth() const
 {
     if (handle_ == nullptr) {

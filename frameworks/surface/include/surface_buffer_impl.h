@@ -56,9 +56,11 @@ public:
     int32_t GetSurfaceBufferWidth() const override;
     int32_t GetSurfaceBufferHeight() const override;
     ColorGamut GetSurfaceBufferColorGamut() const override;
+    TransformType GetSurfaceBufferTransform() const override;
     GSError SetSurfaceBufferWidth(int32_t width) override;
     GSError SetSurfaceBufferHeight(int32_t height) override;
     GSError SetSurfaceBufferColorGamut(ColorGamut colorGamut) override;
+    GSError SetSurfaceBufferTransform(TransformType transform) override;
     int32_t GetFormat() const override;
     int64_t GetUsage() const override;
     uint64_t GetPhyAddr() const override;
@@ -102,6 +104,7 @@ private:
     int32_t surfaceBufferWidth_ = 0;
     int32_t surfaceBufferHeight_ = 0;
     ColorGamut surfaceBufferColorGamut_ = ColorGamut::COLOR_GAMUT_SRGB;
+    TransformType transform_ = TransformType::ROTATE_NONE;
 };
 } // namespace OHOS
 

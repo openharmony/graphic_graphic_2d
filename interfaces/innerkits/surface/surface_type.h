@@ -46,6 +46,7 @@ using BufferRequestConfig = struct BufferRequestConfig {
     int32_t usage;
     int32_t timeout;
     ColorGamut colorGamut = ColorGamut::COLOR_GAMUT_SRGB;
+    TransformType transform = TransformType::ROTATE_NONE;
     bool operator ==(const struct BufferRequestConfig &config) const
     {
         return width == config.width &&
@@ -53,7 +54,8 @@ using BufferRequestConfig = struct BufferRequestConfig {
                strideAlignment == config.strideAlignment &&
                format == config.format &&
                usage == config.usage &&
-               colorGamut == config.colorGamut;
+               colorGamut == config.colorGamut &&
+               transform == config.transform;
     }
     bool operator != (const struct BufferRequestConfig &config) const
     {
