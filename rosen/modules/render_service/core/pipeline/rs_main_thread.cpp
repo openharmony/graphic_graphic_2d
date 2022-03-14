@@ -16,6 +16,7 @@
 
 #include "command/rs_message_processor.h"
 #include "pipeline/rs_base_render_node.h"
+#include "pipeline/rs_render_service_util.h"
 #include "pipeline/rs_render_service_visitor.h"
 #include "platform/common/rs_log.h"
 #include "platform/drawing/rs_vsync_client.h"
@@ -58,6 +59,7 @@ void RSMainThread::Init()
     rsVSyncDistributor_->AddConnection(conn);
     receiver_ = std::make_shared<VSyncReceiver>(conn);
     receiver_->Init();
+    RsRenderServiceUtil::InitEnableClient();
 }
 
 void RSMainThread::Start()

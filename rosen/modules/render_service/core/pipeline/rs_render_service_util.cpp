@@ -497,6 +497,8 @@ bool ConvertYUV420SPToRGBA(std::vector<uint8_t>& rgbaBuf, const sptr<OHOS::Surfa
 }
 } // namespace Detail
 
+bool RsRenderServiceUtil::enableClient = false;
+
 void RsRenderServiceUtil::ComposeSurface(std::shared_ptr<HdiLayerInfo> layer, sptr<Surface> consumerSurface,
     std::vector<LayerInfoPtr>& layers,  ComposeInfo info, RSSurfaceRenderNode* node)
 {
@@ -517,6 +519,10 @@ void RsRenderServiceUtil::ComposeSurface(std::shared_ptr<HdiLayerInfo> layer, sp
 
 bool RsRenderServiceUtil::IsNeedClient(RSSurfaceRenderNode* node)
 {
+    if (enableClient) {
+        ROSEN_LOGI("RsDebug RsRenderServiceUtil::IsNeedClient enable composition client");
+        return true;
+    }
     if (node == nullptr) {
         ROSEN_LOGE("RsRenderServiceUtil::ComposeSurface node is empty");
         return false;
@@ -713,6 +719,15 @@ void RsRenderServiceUtil::DrawBuffer(SkCanvas& canvas, BufferDrawParam& bufferDr
     }
     canvas.drawBitmapRect(bitmap, bufferDrawParam.srcRect, bufferDrawParam.dstRect, &(bufferDrawParam.paint));
     canvas.restore();
+}
+
+void RsRenderServiceUtil::InitEnableClient()
+{
+    if (access("/etc/enable_client", F_OK) == 0) {
+        enableClient = true;
+    } else {
+        enableClient = false;
+    }
 }
 } // namespace Rosen
 } // namespace OHOS

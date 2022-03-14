@@ -15,9 +15,15 @@
 
 #include "pipeline/rs_hardware_processor.h"
 
+#include <algorithm>
+#include <securec.h>
+#include <string>
+
 #include "common/rs_vector3.h"
 #include "common/rs_vector4.h"
 #include "display_type.h"
+#include "rs_trace.h"
+#include "common/rs_vector4.h"
 #include "pipeline/rs_main_thread.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_log.h"
@@ -116,6 +122,7 @@ void RSHardwareProcessor::CropLayers()
 
 void RSHardwareProcessor::ProcessSurface(RSSurfaceRenderNode &node)
 {
+    RS_TRACE_NAME(std::string("ProcessSurfaceNode Name:") + node.GetName().c_str());
     ROSEN_LOGI("RsDebug RSHardwareProcessor::ProcessSurface start node id:%llu available buffer:%d name:[%s]",
         node.GetId(), node.GetAvailableBufferCount(), node.GetName().c_str());
     if (!output_) {
@@ -312,6 +319,7 @@ void RSHardwareProcessor::Redraw(sptr<Surface>& surface, const struct PrepareCom
         .usage = HBM_USE_CPU_READ | HBM_USE_CPU_WRITE | HBM_USE_MEM_DMA | HBM_USE_MEM_FB,
         .timeout = 0,
     };
+    RS_TRACE_NAME("Redraw");
     auto canvas = CreateCanvas(surface, requestConfig);
     if (canvas == nullptr) {
         ROSEN_LOGE("RSHardwareProcessor::Redraw: canvas is null.");
@@ -321,24 +329,36 @@ void RSHardwareProcessor::Redraw(sptr<Surface>& surface, const struct PrepareCom
     const SkMatrix& canvasTransform = currScreenInfo_.rotationMatrix;
     for (auto it = param.layers.begin(); it != param.layers.end(); ++it) {
         LayerInfoPtr layerInfo = *it;
-        if (layerInfo == nullptr || layerInfo->GetCompositionType() == CompositionType::COMPOSITION_DEVICE) {
+        if (layerInfo == nullptr) {
+            continue;
+        }
+        RSSurfaceRenderNode* nodePtr = static_cast<RSSurfaceRenderNode *>(layerInfo->GetLayerAdditionalInfo());
+        if (nodePtr == nullptr) {
+            ROSEN_LOGE("RSHardwareProcessor::DrawBuffer surfaceNode is nullptr!");
+            continue;
+        }
+        RSSurfaceRenderNode& node = *nodePtr;
+        std::string info;
+        char strBuffer[UINT8_MAX] = { 0 };
+        if (sprintf_s(strBuffer, UINT8_MAX, "Node name:%s DstRect[%d %d %d %d]", node.GetName().c_str(),
+            layerInfo->GetLayerSize().x, layerInfo->GetLayerSize().y, layerInfo->GetLayerSize().w,
+            layerInfo->GetLayerSize().h) != -1) {
+            info.append(strBuffer);
+        }
+        RS_TRACE_NAME(info.c_str());
+        if (layerInfo->GetCompositionType() == CompositionType::COMPOSITION_DEVICE) {
             continue;
         }
         ROSEN_LOGD("RsDebug RSHardwareProcessor::Redraw layer composition Type:%d, [%d %d %d %d]",
             layerInfo->GetCompositionType(), layerInfo->GetLayerSize().x, layerInfo->GetLayerSize().y,
             layerInfo->GetLayerSize().w, layerInfo->GetLayerSize().h);
-        RSSurfaceRenderNode *node = static_cast<RSSurfaceRenderNode *>(layerInfo->GetLayerAdditionalInfo());
-        if (node == nullptr) {
-            ROSEN_LOGE("RSHardwareProcessor::DrawBuffer surfaceNode is nullptr!");
-            continue;
-        }
-        auto params = RsRenderServiceUtil::CreateBufferDrawParam(*node);
+        auto params = RsRenderServiceUtil::CreateBufferDrawParam(node);
         params.targetColorGamut = static_cast<ColorGamut>(currScreenInfo_.colorGamut);
         const auto& clipRect = layerInfo->GetLayerSize();
         params.clipRect = SkRect::MakeXYWH(clipRect.x, clipRect.y, clipRect.w, clipRect.h);
-        RsRenderServiceUtil::DrawBuffer(*canvas, params, [this, node, &canvasTransform, &layerInfo](SkCanvas& canvas,
+        RsRenderServiceUtil::DrawBuffer(*canvas, params, [this, &node, &canvasTransform, &layerInfo](SkCanvas& canvas,
             BufferDrawParam& params) -> void {
-            RsRenderServiceUtil::DealAnimation(canvas, *node, params);
+            RsRenderServiceUtil::DealAnimation(canvas, node, params);
             canvas.setMatrix(GetLayerTransform(canvasTransform, layerInfo));
         });
     }
