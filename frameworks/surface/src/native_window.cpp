@@ -45,8 +45,6 @@ struct NativeWindow* CreateNativeWindowFromSurface(void* pSuface)
     nativeWindow->config.timeout = 3000; // default timout is 3000 ms
     nativeWindow->config.colorGamut = OHOS::SurfaceColorGamut::COLOR_GAMUT_SRGB;
 
-    BLOGD("CreateNativeWindowFromSurface width is %{public}d, height is %{public}d", nativeWindow->config.width, \
-        nativeWindow->config.height);
     NativeObjectReference(nativeWindow);
     return nativeWindow;
 }
@@ -281,22 +279,18 @@ int32_t NativeObjectUnreference(void *obj)
 
 NativeWindow::NativeWindow() : NativeWindowMagic(NATIVE_OBJECT_MAGIC_WINDOW)
 {
-    BLOGD("NativeWindow %{public}p", this);
 }
 
 NativeWindow::~NativeWindow()
 {
-    BLOGD("~NativeWindow %{public}p", this);
 }
 
 NativeWindowBuffer::~NativeWindowBuffer()
 {
-    BLOGD("~NativeWindowBuffer %{public}p", this);
 }
 
 NativeWindowBuffer::NativeWindowBuffer() : NativeWindowMagic(NATIVE_OBJECT_MAGIC_WINDOW_BUFFER)
 {
-    BLOGD("NativeWindowBuffer %{public}p", this);
 }
 
 weak_alias(CreateNativeWindowFromSurface, OH_NativeWindow_CreateNativeWindowFromSurface);

@@ -50,7 +50,7 @@ static uint64_t GetUniqueIdImpl()
 BufferQueue::BufferQueue(const std::string &name, bool isShared)
     : name_(name), uniqueId_(GetUniqueIdImpl()), isShared_(isShared)
 {
-    BLOGNI("ctor");
+    BLOGNI("ctor, Queue id: %{public}" PRIu64 "", uniqueId_);
     bufferManager_ = BufferManager::GetInstance();
     if (isShared_ == true) {
         queueSize_ = 1;
@@ -59,7 +59,7 @@ BufferQueue::BufferQueue(const std::string &name, bool isShared)
 
 BufferQueue::~BufferQueue()
 {
-    BLOGNI("dtor");
+    BLOGNI("dtor, Queue id: %{public}" PRIu64 "", uniqueId_);
     std::lock_guard<std::mutex> lockGuard(mutex_);
     for (auto it = bufferQueueCache_.begin(); it != bufferQueueCache_.end(); it++) {
         FreeBuffer(it->second.buffer);
@@ -202,14 +202,15 @@ GSError BufferQueue::RequestBuffer(const BufferRequestConfig &config, BufferExtr
 
     // check queue size
     if (GetUsedSize() >= GetQueueSize()) {
-        waitReqCon_.wait_for(lock, std::chrono::milliseconds(config.timeout));
+        waitReqCon_.wait_for(lock, std::chrono::milliseconds(config.timeout),
+            [this]() { return !freeList_.empty() || (GetUsedSize() < GetQueueSize()); });
         // try dequeue from free list again
         ret = PopFromFreeList(bufferImpl, config);
         if (ret == GSERROR_OK) {
             retval.buffer = bufferImpl;
             return ReuseBuffer(config, bedata, retval);
-        } else {
-            BLOGN_FAILURE("all buffer are using");
+        } else if (GetUsedSize() >= GetQueueSize()) {
+            BLOGN_FAILURE("all buffer are using, Queue id: %{public}" PRIu64 "", uniqueId_);
             return GSERROR_NO_BUFFER;
         }
     }
@@ -217,14 +218,13 @@ GSError BufferQueue::RequestBuffer(const BufferRequestConfig &config, BufferExtr
     ret = AllocBuffer(bufferImpl, config);
     if (ret == GSERROR_OK) {
         retval.sequence = bufferImpl->GetSeqNum();
-        BLOGN_SUCCESS_ID(retval.sequence, "alloc");
 
         bufferImpl->GetExtraData(bedata);
         retval.buffer = bufferImpl;
         retval.fence = -1;
         BLOGD("Success alloc Buffer id: %{public}d Queue id: %{public}" PRIu64 "", retval.sequence, uniqueId_);
     } else {
-        BLOGE("Fail to alloc or map buffer ret: %{public}d", ret);
+        BLOGE("Fail to alloc or map buffer ret: %{public}d, Queue id: %{public}" PRIu64 "", ret, uniqueId_);
     }
 
     return ret;
@@ -694,7 +694,7 @@ GSError BufferQueue::SetQueueSize(uint32_t queueSize)
     DeleteBuffers(queueSize_ - queueSize);
     queueSize_ = queueSize;
 
-    BLOGN_SUCCESS("queue size: %{public}d", queueSize);
+    BLOGN_SUCCESS("queue size: %{public}d, Queue id: %{public}" PRIu64 "", queueSize, uniqueId_);
     return GSERROR_OK;
 }
 

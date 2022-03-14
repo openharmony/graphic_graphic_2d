@@ -91,7 +91,10 @@ VSyncDistributor::VSyncDistributor(sptr<VSyncController> controller, std::string
 
 VSyncDistributor::~VSyncDistributor()
 {
-    vsyncThreadRunning_ = false;
+    {
+        std::unique_lock<std::mutex> locker(mutex_);
+        vsyncThreadRunning_ = false;
+    }
     if (threadLoop_.joinable()) {
         con_.notify_all();
         threadLoop_.join();
@@ -146,8 +149,6 @@ void VSyncDistributor::ThreadMain()
             vsyncCount = event_.vsyncCount;
             for (uint32_t i = 0; i <connections_.size(); i++) {
                 if (connections_[i]->rate_ == 0) {
-                    VLOGI("conn name:%{public}s, rate:%{public}d",
-                        connections_[i]->GetName().c_str(), connections_[i]->rate_);
                     waitForVSync = true;
                     if (timestamp > 0) {
                         connections_[i]->rate_ = -1;
@@ -158,8 +159,6 @@ void VSyncDistributor::ThreadMain()
                     waitForVSync = true;
                 }
             }
-            VLOGI("Distributor name:%{public}s, WaitforVSync:%{public}d, timestamp:" VPUBI64 "",
-                name_.c_str(), waitForVSync, timestamp);
             // no vsync signal
             if (timestamp == 0) {
                 // there is some connections request next vsync, enable vsync if vsync disable and

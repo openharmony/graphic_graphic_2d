@@ -61,7 +61,10 @@ VSyncGenerator::VSyncGenerator()
 
 VSyncGenerator::~VSyncGenerator()
 {
-    vsyncThreadRunning_ = false;
+    {
+        std::unique_lock<std::mutex> locker(mutex_);
+        vsyncThreadRunning_ = false;
+    }
     if (thread_.joinable()) {
         con_.notify_all();
         thread_.join();
@@ -77,33 +80,40 @@ void VSyncGenerator::ThreadLoop()
     sched_setscheduler(0, SCHED_FIFO, &param);
 
     int64_t occurTimestamp = 0;
+    int64_t nextTimeStamp = 0;
     while (vsyncThreadRunning_ == true) {
         std::vector<Listener> listeners;
         {
             std::unique_lock<std::mutex> locker(mutex_);
             if (period_ == 0) {
-                con_.wait(locker);
+                if (vsyncThreadRunning_ == true) {
+                    con_.wait(locker);
+                }
                 continue;
             }
             occurTimestamp = GetSysTimeNs();
-            int64_t nextTimeStamp = ComputeNextVSyncTimeStamp(occurTimestamp);
+            nextTimeStamp = ComputeNextVSyncTimeStamp(occurTimestamp);
             if (nextTimeStamp == INT64_MAX) {
-                con_.wait(locker);
+                if (vsyncThreadRunning_ == true) {
+                    con_.wait(locker);
+                }
                 continue;
             }
+        }
 
-            bool isWakeup = false;
-            if (occurTimestamp < nextTimeStamp) {
-                std::unique_lock<std::mutex> lck(waitForTimeoutMtx_);
-                auto err = waitForTimeoutCon_.wait_for(lck, std::chrono::nanoseconds(nextTimeStamp - occurTimestamp));
-                if (err == std::cv_status::timeout) {
-                    isWakeup = true;
-                } else {
-                    ScopedBytrace func("VSyncGenerator::ThreadLoop::Continue");
-                    continue;
-                }
+        bool isWakeup = false;
+        if (occurTimestamp < nextTimeStamp) {
+            std::unique_lock<std::mutex> lck(waitForTimeoutMtx_);
+            auto err = waitForTimeoutCon_.wait_for(lck, std::chrono::nanoseconds(nextTimeStamp - occurTimestamp));
+            if (err == std::cv_status::timeout) {
+                isWakeup = true;
+            } else {
+                ScopedBytrace func("VSyncGenerator::ThreadLoop::Continue");
+                continue;
             }
-
+        }
+        {
+            std::unique_lock<std::mutex> locker(mutex_);
             occurTimestamp = GetSysTimeNs();
             if (isWakeup) {
                 // 63, 1 / 64

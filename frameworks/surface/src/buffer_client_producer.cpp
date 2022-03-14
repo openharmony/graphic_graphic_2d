@@ -23,7 +23,6 @@
     MessageOption opt;                                \
     MessageParcel arg;                                \
     MessageParcel ret;                                \
-    BLOGND("client sending");                         \
     if (!arg.WriteInterfaceToken(GetDescriptor())) {  \
         LOGE("write interface token failed");         \
     }
