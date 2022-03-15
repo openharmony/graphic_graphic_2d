@@ -213,7 +213,7 @@ OH_Drawing_TextStyle* OH_Drawing_CreateTextStyle(void);
  * @brief Release the memory storing the OH_Drawing_TextStyle object.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
- * @param OH_Drawing_TypographyStyle a pointer to OH_Drawing_TextStyle object
+ * @param OH_Drawing_TextStyle a pointer to OH_Drawing_TextStyle object
  * @since 8
  * @version 1.0
  */
@@ -363,7 +363,7 @@ void OH_Drawing_DestroyTypographyHandler(OH_Drawing_TypographyCreate*);
  * @since 8
  * @version 1.0
  */
-void OH_Drawing_TypographyHandlerPushStyle(OH_Drawing_TypographyCreate*, OH_Drawing_TextStyle*);
+void OH_Drawing_TypographyHandlerPushTextStyle(OH_Drawing_TypographyCreate*, OH_Drawing_TextStyle*);
 
 /**
  * @brief set typography text.
@@ -384,7 +384,7 @@ void OH_Drawing_TypographyHandlerAddText(OH_Drawing_TypographyCreate*, const cha
  * @since 8
  * @version 1.0
  */
-void OH_Drawing_TypographyHandlerPop(OH_Drawing_TypographyCreate*);
+void OH_Drawing_TypographyHandlerPopTextStyle(OH_Drawing_TypographyCreate*);
 
 /**
  * @brief Generate a new OH_Drawing_Typography.

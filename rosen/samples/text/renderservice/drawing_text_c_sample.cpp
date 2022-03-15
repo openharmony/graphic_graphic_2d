@@ -89,11 +89,11 @@ void DoDraw(uint8_t *addr, uint32_t width, uint32_t height, size_t index)
     OH_Drawing_SetTextStyleFontStyle(txtStyle, FONT_STYLE_NORMAL);
     OH_Drawing_SetTextStyleLocale(txtStyle, "en");
 
-    OH_Drawing_TypographyHandlerPushStyle(handler, txtStyle);
+    OH_Drawing_TypographyHandlerPushTextStyle(handler, txtStyle);
 
     const char* text = "OpenHarmony\n";
     OH_Drawing_TypographyHandlerAddText(handler, text);
-    OH_Drawing_TypographyHandlerPop(handler);
+    OH_Drawing_TypographyHandlerPopTextStyle(handler);
 
     OH_Drawing_Typography* typography = OH_Drawing_CreateTypography(handler);
     double maxWidth = 800.0;
