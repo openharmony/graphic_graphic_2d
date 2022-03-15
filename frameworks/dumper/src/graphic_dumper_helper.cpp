@@ -36,6 +36,7 @@ int SendInfo(const char* tag, const char *fmt, ...)
     va_start(args, fmt);
     int ret = vsnprintf_s(info, sizeof(info), (sizeof(info) - 1), fmt, args);
     if (ret < 0) {
+        va_end(args);
         return 0;
     }
     va_end(args);

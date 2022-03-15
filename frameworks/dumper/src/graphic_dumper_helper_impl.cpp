@@ -198,6 +198,7 @@ GSError GraphicDumperHelperImpl::SendInfo(const std::string &tag, const char *fm
         va_start(args, fmt);
         int ret = vsnprintf_s(info, sizeof(info), (sizeof(info) - 1), fmt, args);
         if (ret < 0) {
+            va_end(args);
             return GSERROR_INVALID_ARGUMENTS;
         }
         va_end(args);
