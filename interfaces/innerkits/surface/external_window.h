@@ -51,7 +51,7 @@ extern "C" {
  * @since 8
  * @version 1.0
  */
-struct NativeWindow* OH_NativeWindow_CreateNativeWindowFromSurface(void* pSurface);
+struct NativeWindow* OH_NativeWindow_CreateNativeWindow(void* pSurface);
 
 /**
  * @brief Unreference NativeWindow object, When the reference count == 0, destroy the NativeWindow
@@ -123,7 +123,7 @@ int32_t OH_NativeWindow_NativeWindowFlushBuffer(struct NativeWindow *window, str
  * @since 8
  * @version 1.0
  */
-int32_t OH_NativeWindow_NativeWindowCancelBuffer(struct NativeWindow *window, struct NativeWindowBuffer *buffer);
+int32_t OH_NativeWindow_NativeWindowAbortBuffer(struct NativeWindow *window, struct NativeWindowBuffer *buffer);
 
 /**
  * @brief Handle the NativeWindowOperation of the NativeWindow
