@@ -104,8 +104,8 @@ std::unique_ptr<Media::PixelMap> RSSurfaceCaptureTask::CreatePixelMapByDisplayNo
         return nullptr;
     }
     auto screenInfo = screenManager->QueryScreenInfo(screenId);
-    int pixmapWidth = screenInfo.width;
-    int pixmapHeight = screenInfo.height;
+    uint32_t pixmapWidth = screenInfo.width;
+    uint32_t pixmapHeight = screenInfo.height;
     auto rotation = screenManager->GetRotation(screenId);
     if (rotation == ScreenRotation::ROTATION_90 || rotation == ScreenRotation::ROTATION_270) {
         std::swap(pixmapWidth, pixmapHeight);
