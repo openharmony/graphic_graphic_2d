@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -41,6 +41,7 @@ struct BufferDrawParam {
 };
 
 struct AnimationInfo {
+    Vector2f pivot = { 0.0f, 0.0f };
     Vector3f scale = { 1.0f, 1.0f, 1.0f };
     Vector3f translate = { 0.0f, 0.0f, 0.0f };
     float alpha = 1.0f;

@@ -189,8 +189,9 @@ void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::ProcessSurfaceRenderNode(RSS
             scaleMatrix.preScale(scaleX_, scaleY_, 0, 0);
             param.clipRect = scaleMatrix.mapRect(param.clipRect);
 
-            param.dstRect = SkRect::MakeXYWH(0, 0, node.GetRenderProperties().GetBoundsWidth(),
-                node.GetRenderProperties().GetBoundsHeight());
+            param.dstRect = SkRect::MakeXYWH(
+                node.GetRenderProperties().GetBoundsPositionX(), node.GetRenderProperties().GetBoundsPositionY(),
+                node.GetRenderProperties().GetBoundsWidth(), node.GetRenderProperties().GetBoundsHeight());
             RsRenderServiceUtil::DrawBuffer(*canvas_, param,
                 [this, &matrix](SkCanvas& canvas, BufferDrawParam& params) -> void {
                     canvas.translate(-matrix.getTranslateX() * scaleX_, -matrix.getTranslateY() * scaleY_);

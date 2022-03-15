@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -146,7 +146,7 @@ Vector2<T> Vector2<T>::operator+(const Vector2<T>& other) const
 template<typename T>
 Vector2<T> Vector2<T>::operator/(T scale) const
 {
-    if (AGP_EQ(scale, 0)) {
+    if (ROSEN_EQ(scale, 0)) {
         return *this;
     }
     const T invScale = 1.0f / scale;

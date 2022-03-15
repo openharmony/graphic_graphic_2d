@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -563,6 +563,8 @@ void RsRenderServiceUtil::ExtractAnimationInfo(const std::unique_ptr<RSTransitio
         info.translate = parentTransitionProperties->GetTranslate();
         info.alpha = parentTransitionProperties->GetAlpha();
         info.rotateMatrix = parentTransitionProperties->GetRotate();
+        info.pivot =
+            std::static_pointer_cast<RSSurfaceRenderNode>(existedParent)->GetRenderProperties().GetBoundsSize() * 0.5f;
     } else {
         if (!transitionProperties) {
             ROSEN_LOGI("RsDebug RSHardwareProcessor::CalculateInfoWithAnimation this node have no effect",
@@ -573,6 +575,7 @@ void RsRenderServiceUtil::ExtractAnimationInfo(const std::unique_ptr<RSTransitio
         info.translate = transitionProperties->GetTranslate();
         info.alpha = transitionProperties->GetAlpha();
         info.rotateMatrix = transitionProperties->GetRotate();
+        info.pivot = node.GetRenderProperties().GetBoundsSize() * 0.5f;
     }
 }
 
@@ -588,11 +591,10 @@ void RsRenderServiceUtil::DealAnimation(SkCanvas& canvas, RSSurfaceRenderNode& n
     canvas.translate(animationInfo.translate.x_, animationInfo.translate.y_);
 
     // scale and rotate about the center of node, currently scaleZ is not used
-    auto center = property.GetBoundsSize() * 0.5f;
-    canvas.translate(center.x_, center.y_);
+    canvas.translate(animationInfo.pivot.x_, animationInfo.pivot.y_);
     canvas.scale(animationInfo.scale.x_, animationInfo.scale.y_);
     canvas.concat(animationInfo.rotateMatrix);
-    canvas.translate(-center.x_, -center.y_);
+    canvas.translate(-animationInfo.pivot.x_, -animationInfo.pivot.y_);
     auto filter = std::static_pointer_cast<RSSkiaFilter>(property.GetBackgroundFilter());
     if (filter != nullptr) {
         auto skRectPtr = std::make_unique<SkRect>();
