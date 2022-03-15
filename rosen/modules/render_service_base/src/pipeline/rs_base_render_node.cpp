@@ -65,7 +65,7 @@ void RSBaseRenderNode::RemoveChild(const SharedPtr& child)
     disappearingChildren_.remove_if([&child](const auto& pair) { return pair.first == child; });
     if (child->HasTransition()) {
         // keep shared_ptr alive for transition
-        uint32_t origPos = std::distance(children_.begin(), it);
+        uint32_t origPos = static_cast<uint32_t>(std::distance(children_.begin(), it));
         disappearingChildren_.emplace_back(child, origPos);
     } else {
         child->ResetParent();
