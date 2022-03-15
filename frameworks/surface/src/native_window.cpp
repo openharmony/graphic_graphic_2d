@@ -101,8 +101,6 @@ int32_t NativeWindowRequestBuffer(struct NativeWindow *window,
     }
     NativeWindowBuffer *nwBuffer = new NativeWindowBuffer();
     nwBuffer->sfbuffer = sfbuffer;
-    // reference nativewindowbuffer object
-    NativeObjectReference(nwBuffer);
     *buffer = nwBuffer;
     return OHOS::GSERROR_OK;
 }
@@ -134,7 +132,6 @@ int32_t NativeWindowFlushBuffer(struct NativeWindow *window, struct NativeWindow
         config.damage.w, config.damage.h, fenceFd);
     window->surface->FlushBuffer(buffer->sfbuffer, -1, config);
 
-    // unreference nativewindowbuffer object
     return OHOS::GSERROR_OK;
 }
 
@@ -145,8 +142,6 @@ int32_t NativeWindowCancelBuffer(struct NativeWindow *window, struct NativeWindo
     }
     window->surface->CancelBuffer(buffer->sfbuffer);
 
-    // unreference nativewindowbuffer object
-    NativeObjectUnreference(buffer);
     return OHOS::GSERROR_OK;
 }
 
