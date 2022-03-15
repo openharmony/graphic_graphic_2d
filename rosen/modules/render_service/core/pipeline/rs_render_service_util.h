@@ -71,6 +71,7 @@ public:
     static void DealAnimation(SkCanvas& canvas, RSSurfaceRenderNode& node, BufferDrawParam& params);
     static void ExtractAnimationInfo(const std::unique_ptr<RSTransitionProperties>& transitionProperties,
         RSSurfaceRenderNode& node, AnimationInfo& info);
+    static void InitEnableClient();
 private:
     static bool IsNeedClient(RSSurfaceRenderNode* node);
     static bool CreateBitmap(sptr<OHOS::SurfaceBuffer> buffer, SkBitmap& bitmap);
@@ -78,6 +79,7 @@ private:
         SkBitmap& bitmap);
     static bool CreateNewColorGamutBitmap(sptr<OHOS::SurfaceBuffer> buffer, std::vector<uint8_t>& newGamutBuffer,
         SkBitmap& bitmap, ColorGamut srcGamut, ColorGamut dstGamut);
+    static bool enableClient;
 };
 } // Rosen
 } // OHOS
