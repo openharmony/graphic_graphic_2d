@@ -524,11 +524,12 @@ bool RsRenderServiceUtil::IsNeedClient(RSSurfaceRenderNode* node)
         return true;
     }
     if (node == nullptr) {
-        ROSEN_LOGE("RsRenderServiceUtil::ComposeSurface node is empty");
+        ROSEN_LOGE("RsRenderServiceUtil::IsNeedClient node is empty");
         return false;
     }
     auto filter = std::static_pointer_cast<RSBlurFilter>(node->GetRenderProperties().GetBackgroundFilter());
     if (filter != nullptr && filter->GetBlurRadiusX() > 0 && filter->GetBlurRadiusY() > 0) {
+        ROSEN_LOGI("RsDebug RsRenderServiceUtil::IsNeedClient enable composition client need filter");
         return true;
     }
     auto transitionProperties = node->GetAnimationManager().GetTransitionProperties();
@@ -544,7 +545,11 @@ bool RsRenderServiceUtil::IsNeedClient(RSSurfaceRenderNode* node)
         return false;
     } else {
         float rAngle = -round(atan2(value[SkMatrix::kMSkewX], value[SkMatrix::kMScaleX]) * (180 / PI));
-        return rAngle > 0;
+        bool isNeedClient = rAngle > 0;
+        if (isNeedClient) {
+            ROSEN_LOGI("RsDebug RsRenderServiceUtil::IsNeedClient enable composition client need animation rotate");
+        }
+        return isNeedClient;
     }
 }
 
