@@ -467,9 +467,9 @@ bool ConvertYUV420SPToRGBA(std::vector<uint8_t>& rgbaBuf, const sptr<OHOS::Surfa
     int bdif = 0;
     for (int i = 0; i < bufferHeight; i++) {
         for (int j = 0; j < bufferWidth; j++) {
-            int Y = ybase[i * bufferWidth + j];
-            int U = ubase[i / 2 * bufferWidth + (j / 2) * 2 + 1];
-            int V = ubase[i / 2 * bufferWidth + (j / 2) * 2];
+            int Y = static_cast<int>(ybase[i * bufferWidth + j]);
+            int U = static_cast<int>(ubase[i / 2 * bufferWidth + (j / 2) * 2 + 1]);
+            int V = static_cast<int>(ubase[i / 2 * bufferWidth + (j / 2) * 2]);
             if (srcBuf->GetFormat() == PIXEL_FMT_YCBCR_420_SP) {
                 std::swap(U, V);
             }
