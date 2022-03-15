@@ -301,7 +301,7 @@ void OH_Drawing_DestroyTypographyHandler(OH_Drawing_TypographyCreate* handler)
     delete ConvertToOriginalText(handler);
 }
 
-void OH_Drawing_TypographyHandlerPushStyle(OH_Drawing_TypographyCreate* handler, OH_Drawing_TextStyle* style)
+void OH_Drawing_TypographyHandlerPushTextStyle(OH_Drawing_TypographyCreate* handler, OH_Drawing_TextStyle* style)
 {
     const TextStyle* rosenTextStyle = ConvertToOriginalText(style);
     ConvertToOriginalText(handler)->PushStyle(*rosenTextStyle);
@@ -314,7 +314,7 @@ void OH_Drawing_TypographyHandlerAddText(OH_Drawing_TypographyCreate* handler, c
     ConvertToOriginalText(handler)->AddText(wideText);
 }
 
-void OH_Drawing_TypographyHandlerPop(OH_Drawing_TypographyCreate* handler)
+void OH_Drawing_TypographyHandlerPopTextStyle(OH_Drawing_TypographyCreate* handler)
 {
     ConvertToOriginalText(handler)->Pop();
 }
