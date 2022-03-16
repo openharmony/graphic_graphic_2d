@@ -20,7 +20,7 @@
  * @addtogroup Drawing
  * @{
  *
- * @brief Provides 2d drawing functions.
+ * @brief Provides functions such as 2D graphics rendering, text drawing, and image display.
  * 
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  *
@@ -31,7 +31,7 @@
 /**
  * @file drawing_color.h
  *
- * @brief Defines the color functions of the Drawing module.
+ * @brief Declares functions related to the <b>color</b> object in the drawing module.
  *
  * @since 8
  * @version 1.0
@@ -44,14 +44,14 @@ extern "C" {
 #endif
 
 /**
- * @brief Returns a 32-bit ARGB color quantity.
+ * @brief Converts four variables (alpha, red, green, and blue) into a 32-bit (ARGB) variable that describes a color.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
- * @param alpha alpha, which range is 0x00~0xFF
- * @param red red, which range is 0x00~0xFF
- * @param green green, which range is 0x00~0xFF
- * @param blue blue, which range is 0x00~0xFF
- * @return a 32-bit ARGB color quantity
+ * @param alpha Indicates a variable that describes alpha. The value ranges from 0x00 to 0xFF.
+ * @param red Indicates a variable that describes red. The value ranges from 0x00 to 0xFF.
+ * @param green Indicates a variable that describes green. The value ranges from 0x00 to 0xFF.
+ * @param blue Indicates a variable that describes blue. The value ranges from 0x00 to 0xFF.
+ * @return Returns a 32-bit (ARGB) variable that describes the color.
  * @since 8
  * @version 1.0
  */
