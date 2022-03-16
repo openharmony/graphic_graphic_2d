@@ -20,7 +20,7 @@
  * @addtogroup Drawing
  * @{
  *
- * @brief Provides 2d drawing functions.
+ * @brief Provides functions such as 2D graphics rendering, text drawing, and image display.
  * 
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  *
@@ -31,7 +31,7 @@
 /**
  * @file drawing_types.h
  *
- * @brief Defines types include canvas, pen, brush, bitmap and path.
+ * @brief Declares the data types for drawing 2D graphics, including the canvas, brush, pen, bitmap, and path.
  *
  * @since 8
  * @version 1.0
@@ -44,8 +44,8 @@ extern "C" {
 #endif
 
 /**
- * @brief OH_Drawing_Canvas contains the current state of the rendering,
- * used to draw some destination such as shapes, bitmap.
+ * @brief Defines a rectangular canvas on which various shapes, images,
+ * and texts can be drawn by using the brush and pen.
  * 
  * @since 8
  * @version 1.0
@@ -53,7 +53,7 @@ extern "C" {
 typedef struct OH_Drawing_Canvas OH_Drawing_Canvas;
 
 /**
- * @brief OH_Drawing_Pen used to describe the style and color information about shape stroke.
+ * @brief Defines a pen, which is used to describe the style and color to outline a shape.
  * 
  * @since 8
  * @version 1.0
@@ -61,7 +61,7 @@ typedef struct OH_Drawing_Canvas OH_Drawing_Canvas;
 typedef struct OH_Drawing_Pen OH_Drawing_Pen;
 
 /**
- * @brief OH_Drawing_Brush used to describe the style and color information about shape fill.
+ * @brief Defines as a brush, which is used to describe the style and color to fill in a shape.
  * 
  * @since 8
  * @version 1.0
@@ -69,7 +69,7 @@ typedef struct OH_Drawing_Pen OH_Drawing_Pen;
 typedef struct OH_Drawing_Brush OH_Drawing_Brush;
 
 /**
- * @brief OH_Drawing_Path used to make custom shapes.
+ * @brief Defines a path, which is used to customize various shapes.
  * 
  * @since 8
  * @version 1.0
@@ -77,7 +77,7 @@ typedef struct OH_Drawing_Brush OH_Drawing_Brush;
 typedef struct OH_Drawing_Path OH_Drawing_Path;
 
 /**
- * @brief OH_Drawing_Bitmap used to describe image data.
+ * @brief Defines a bitmap, which is a memory that contains the pixel data of a shape.
  * 
  * @since 8
  * @version 1.0
@@ -85,40 +85,52 @@ typedef struct OH_Drawing_Path OH_Drawing_Path;
 typedef struct OH_Drawing_Bitmap OH_Drawing_Bitmap;
 
 /**
- * @brief OH_Drawing_ColorFormat used to describe the memory format of image data.
+ * @brief Enumerates storage formats of bitmap pixels.
  * 
  * @since 8
  * @version 1.0
  */
 typedef enum {
-    /** no such format exists or is supported. */
+    /** Unknown format. */
     COLOR_FORMAT_UNKNOWN,
-    /** each pixel is a 8-bit quantity with 8-bit alpha. */
+    /** Each pixel is represented by 8 bits, which together indicate alpha. */
     COLOR_FORMAT_ALPHA_8,
-    /** each pixel is a 16-bit quantity with 5-bit red, 6-bit green, 5-bit blue. */
+    /**
+     * Each pixel is represented by 16 bits. From the most significant bit to the least significant bit,
+     * the first 5 bits indicate red, the subsequent 6 bits indicate green, and the last 5 bits indicate blue.
+     */
     COLOR_FORMAT_RGB_565,
-    /** each pixel is a 16-bit quantity with 4-bit for alpha, red, green, blue. */
+    /**
+     * Each pixel is represented by 16 bits. From the most significant bit to the least significant bit,
+     * every 4 bits indicate alpha, red, green, and blue, respectively.
+     */
     COLOR_FORMAT_ARGB_4444,
-    /** each pixel is a 32-bit quantity with 8-bit for alpha, red, green, blue. */
+    /**
+     * Each pixel is represented by 32 bits. From the most significant bit to the least significant bit,
+     * every 8 bits indicate alpha, red, green, and blue, respectively.
+     */
     COLOR_FORMAT_RGBA_8888,
-    /** each pixel is a 32-bit quantity with 8-bit for blue, green, red, alpha. */
+    /**
+     * Each pixel is represented by 32 bits. From the most significant bit to the least significant bit,
+     * every 8 bits indicate blue, green, red, and alpha, respectively.
+     */
     COLOR_FORMAT_BGRA_8888
 } OH_Drawing_ColorFormat;
 
 /**
- * @brief OH_Drawing_AlphaFormat used to describe the alpha format of each pixel.
+ * @brief Enumerates alpha formats of bitmap pixels.
  * 
  * @since 8
  * @version 1.0
  */
 typedef enum {
-    /** no such format exists or is supported. */
+    /** Unknown format. */
     ALPHA_FORMAT_UNKNOWN,
-    /** each pixel is opaque. */
+    /** The bitmap does not have the alpha component. */
     ALPHA_FORMAT_OPAQUE,
-    /** pixel components are premultiplied by alpha */
+    /** The color component of each pixel is premultiplied by the alpha component. */
     ALPHA_FORMAT_PREMUL,
-    /** pixel components are independent of alpha */
+    /** The color component of each pixel is not premultiplied by the alpha component. */
     ALPHA_FORMAT_UNPREMUL
 } OH_Drawing_AlphaFormat;
 
