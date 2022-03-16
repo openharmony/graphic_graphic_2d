@@ -20,7 +20,7 @@
  * @addtogroup Drawing
  * @{
  *
- * @brief Provides 2d drawing functions.
+ * @brief Provides functions such as 2D graphics rendering, text drawing, and image display.
  * 
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  *
@@ -31,7 +31,7 @@
 /**
  * @file drawing_brush.h
  *
- * @brief Defines the brush functions of the Drawing module.
+ * @brief Declares functions related to the <b>brush</b> object in the drawing module.
  *
  * @since 8
  * @version 1.0
@@ -44,64 +44,67 @@ extern "C" {
 #endif
 
 /**
- * @brief Create a new Brush.
+ * @brief Creates an <b>OH_Drawing_Brush</b> object.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
- * @return a pointer to created OH_Drawing_Brush
+ * @return Returns the pointer to the <b>OH_Drawing_Brush</b> object created.
  * @since 8
  * @version 1.0
  */
 OH_Drawing_Brush* OH_Drawing_BrushCreate(void);
 
 /**
- * @brief Release the memory storing the OH_Drawing_Brush object.
+ * @brief Destroys an <b>OH_Drawing_Brush</b> object and reclaims the memory occupied by the object.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
- * @param OH_Drawing_Brush a pointer to OH_Drawing_Brush object
+ * @param OH_Drawing_Brush Indicates the pointer to an <b>OH_Drawing_Brush</b> object.
  * @since 8
  * @version 1.0
  */
 void OH_Drawing_BrushDestroy(OH_Drawing_Brush*);
 
 /**
- * @brief Returns true if pixels on the active edges of shapes are drawn with partial transparency.
+ * @brief Checks whether anti-aliasing is enabled for a brush. If anti-aliasing is enabled,
+ * edges will be drawn with partial transparency.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
- * @param OH_Drawing_Brush a pointer to OH_Drawing_Brush object
- * @return antialiasing state
+ * @param OH_Drawing_Brush Indicates the pointer to an <b>OH_Drawing_Brush</b> object.
+ * @return Returns <b>true</b> if anti-aliasing is enabled; returns <b>false</b> otherwise.
  * @since 8
  * @version 1.0
  */
 bool OH_Drawing_BrushIsAntiAlias(const OH_Drawing_Brush*);
 
 /**
- * @brief Sets antialiasing state, that edge pixels drawn opaque or with partial transparency.
+ * @brief Enables or disables anti-aliasing for a brush. If anti-aliasing is enabled,
+ * edges will be drawn with partial transparency.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
- * @param OH_Drawing_Brush a pointer to OH_Drawing_Brush object
- * @param bool antialiasing state
+ * @param OH_Drawing_Brush Indicates the pointer to an <b>OH_Drawing_Brush</b> object.
+ * @param bool Specifies whether to enable anti-aliasing. The value <b>true</b> means 
+ *             to enable anti-aliasing, and <b>false</b> means the opposite.
  * @since 8
  * @version 1.0
  */
 void OH_Drawing_BrushSetAntiAlias(OH_Drawing_Brush*, bool);
 
 /**
- * @brief Returns OH_Drawing_Brush fill color, that is a 32-bit ARGB quantity.
+ * @brief Obtains the color of a brush. The color is used by the brush to fill in a shape.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
- * @param OH_Drawing_Brush a pointer to OH_Drawing_Brush object
- * @return OH_Drawing_Brush fill color, a 32-bit ARGB quantity
+ * @param OH_Drawing_Brush Indicates the pointer to an <b>OH_Drawing_Brush</b> object.
+ * @return Returns a 32-bit (ARGB) variable that describes the color.
  * @since 8
  * @version 1.0
  */
 uint32_t OH_Drawing_BrushGetColor(const OH_Drawing_Brush*);
 
 /**
- * @brief Sets OH_Drawing_Brush fill color, that is a 32-bit ARGB quantity.
+ * @brief Sets the color for a brush. The color will be used by the brush to fill in a shape.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
- * @param OH_Drawing_Brush a pointer to OH_Drawing_Brush object
- * @param color a 32-bit ARGB quantity
+ * @param OH_Drawing_Brush Indicates the pointer to an <b>OH_Drawing_Brush</b> object.
+ * @param color Indicates the color to set, which is a 32-bit (ARGB) variable.
  * @since 8
  * @version 1.0
  */

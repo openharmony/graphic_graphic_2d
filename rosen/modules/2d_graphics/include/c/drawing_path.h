@@ -20,7 +20,7 @@
  * @addtogroup Drawing
  * @{
  *
- * @brief Provides 2d drawing functions.
+ * @brief Provides functions such as 2D graphics rendering, text drawing, and image display.
  * 
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  *
@@ -31,7 +31,7 @@
 /**
  * @file drawing_path.h
  *
- * @brief Defines the path functions of the Drawing module.
+ * @brief Declares functions related to the <b>path</b> object in the drawing module.
  *
  * @since 8
  * @version 1.0
@@ -44,88 +44,93 @@ extern "C" {
 #endif
 
 /**
- * @brief Create a new Path.
+ * @brief Creates an <b>OH_Drawing_Path</b> object.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
- * @return a pointer to created OH_Drawing_Path
+ * @return Returns the pointer to the <b>OH_Drawing_Path</b> object created.
  * @since 8
  * @version 1.0
  */
 OH_Drawing_Path* OH_Drawing_PathCreate(void);
 
 /**
- * @brief Release the memory storing the OH_Drawing_Path object.
+ * @brief Destroys an <b>OH_Drawing_Path</b> object and reclaims the memory occupied by the object.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
- * @param OH_Drawing_Path a pointer to OH_Drawing_Path object
+ * @param OH_Drawing_Path Indicates the pointer to an <b>OH_Drawing_Path</b> object.
  * @since 8
  * @version 1.0
  */
 void OH_Drawing_PathDestroy(OH_Drawing_Path*);
 
 /**
- * @brief Sets the beginning of the path at target point(x, y).
+ * @brief Sets the start point of a path.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
- * @param OH_Drawing_Path a pointer to OH_Drawing_Path object
- * @param x x-axis value of target point
- * @param y y-axis value of target point
+ * @param OH_Drawing_Path Indicates the pointer to an <b>OH_Drawing_Path</b> object.
+ * @param x Indicates the x coordinate of the start point.
+ * @param y Indicates the y coordinate of the start point.
  * @since 8
  * @version 1.0
  */
 void OH_Drawing_PathMoveTo(OH_Drawing_Path*, float x, float y);
 
 /**
- * @brief Adds line from path last point to target point(x, y).
+ * @brief Draws a line segment from the last point of a path to the target point.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
- * @param OH_Drawing_Path a pointer to OH_Drawing_Path object
- * @param x x-axis value of target point
- * @param y y-axis value of target point
+ * @param OH_Drawing_Path Indicates the pointer to an <b>OH_Drawing_Path</b> object.
+ * @param x Indicates the x coordinate of the target point.
+ * @param y Indicates the y coordinate of the target point.
  * @since 8
  * @version 1.0
  */
 void OH_Drawing_PathLineTo(OH_Drawing_Path*, float x, float y);
 
 /**
- * @brief Adds a arc, and then adds line from path last point to point that is beginning of the arc.
+ * @brief Draws an arc to a path. 
+ * 
+ * This is done by using angle arc mode. In this mode, a rectangle that encloses an ellipse is specified first,
+ * and then a start angle and a sweep angle are specified.
+ * The arc is a portion of the ellipse defined by the start angle and the sweep angle. 
+ * By default, a line segment from the last point of the path to the start point of the arc is also added.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
- * @param OH_Drawing_Path a pointer to OH_Drawing_Path object
- * @param x1 x-axis value of the top-left point of rectangle that surrounding the ellipse
- * @param y1 y-axis value of the top-left point of rectangle that surrounding the ellipse
- * @param x2 x-axis value of the bottom-right point of rectangle that surrounding the ellipse
- * @param y3 y-axis value of the bottom-right point of rectangle that surrounding the ellipse
+ * @param OH_Drawing_Path Indicates the pointer to an <b>OH_Drawing_Path</b> object.
+ * @param x1 Indicates the x coordinate of the upper left corner of the rectangle.
+ * @param y1 Indicates the y coordinate of the upper left corner of the rectangle.
+ * @param x2 Indicates the x coordinate of the lower right corner of the rectangle.
+ * @param y3 Indicates the y coordinate of the lower right corner of the rectangle.
  * @since 8
  * @version 1.0
  */
 void OH_Drawing_PathArcTo(OH_Drawing_Path*, float x1, float y1, float x2, float y2, float startDeg, float sweepDeg);
 
 /**
- * @brief Adds quad from path last point to target point(endX, endY).
+ * @brief Draws a quadratic Bezier curve from the last point of a path to the target point.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
- * @param OH_Drawing_Path a pointer to OH_Drawing_Path object
- * @param ctrlX x-axis value of control point
- * @param ctrlY y-axis value of control point
- * @param endX x-axis value of target point
- * @param endY y-axis value of target point
+ * @param OH_Drawing_Path Indicates the pointer to an <b>OH_Drawing_Path</b> object.
+ * @param ctrlX Indicates the x coordinate of the control point.
+ * @param ctrlY Indicates the y coordinate of the control point.
+ * @param endX Indicates the x coordinate of the target point.
+ * @param endY Indicates the y coordinate of the target point.
  * @since 8
  * @version 1.0
  */
 void OH_Drawing_PathQuadTo(OH_Drawing_Path*, float ctrlX, float ctrlY, float endX, float endY);
 
 /**
- * @brief Adds cubic from path last point to target point(endX, endY).
+ * @brief Draws a cubic Bezier curve from the last point of a path to the target point.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
- * @param OH_Drawing_Path a pointer to OH_Drawing_Path object
- * @param ctrlX1 x-axis value of first control point
- * @param ctrlY1 y-axis value of first control point
- * @param ctrlX2 x-axis value of second control point
- * @param ctrlY2 y-axis value of second control point
- * @param endX x-axis value of target point
- * @param endY y-axis value of target point
+ * @param OH_Drawing_Path Indicates the pointer to an <b>OH_Drawing_Path</b> object.
+ * @param ctrlX1 Indicates the x coordinate of the first control point.
+ * @param ctrlY1 Indicates the y coordinate of the first control point.
+ * @param ctrlX2 Indicates the x coordinate of the second control point.
+ * @param ctrlY2 Indicates the y coordinate of the second control point.
+ * @param endX Indicates the x coordinate of the target point.
+ * @param endY Indicates the y coordinate of the target point.
  * @since 8
  * @version 1.0
  */
@@ -133,20 +138,20 @@ void OH_Drawing_PathCubicTo(
     OH_Drawing_Path*, float ctrlX1, float ctrlY1, float ctrlX2, float ctrlY2, float endX, float endY);
 
 /**
- * @brief Adds line from path first point to path last point.
+ * @brief Closes a path. A line segment from the start point to the last point of the path is added.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
- * @param OH_Drawing_Path a pointer to OH_Drawing_Path object
+ * @param OH_Drawing_Path Indicates the pointer to an <b>OH_Drawing_Path</b> object.
  * @since 8
  * @version 1.0
  */
 void OH_Drawing_PathClose(OH_Drawing_Path*);
 
 /**
- * @brief Sets path to its initial state.
+ * @brief Resets path data.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
- * @param OH_Drawing_Path a pointer to OH_Drawing_Path object
+ * @param OH_Drawing_Path Indicates the pointer to an <b>OH_Drawing_Path</b> object.
  * @since 8
  * @version 1.0
  */
