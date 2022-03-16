@@ -15,6 +15,7 @@
 
 #include "pipeline/rs_processor.h"
 
+#include <ctime>
 #include "unique_fd.h"
 #include <sync_fence.h>
 #include "rs_trace.h"
@@ -53,6 +54,22 @@ void RSProcessor::FlushBuffer(sptr<Surface> surface, BufferFlushConfig flushConf
         return;
     }
     surface->FlushBuffer(buffer_, -1, flushConfig);
+}
+
+void RSProcessor::SetBufferTimeStamp()
+{
+    if (!buffer_) {
+        ROSEN_LOGE("RSProcessor::SetBufferTimeStamp buffer is nullptr");
+        return;
+    }
+    struct timespec curTime = {0, 0};
+    clock_gettime(CLOCK_MONOTONIC, &curTime);
+    // 1000000000 is used for transfer second to nsec
+    uint64_t duration = curTime.tv_sec * 1000000000 + curTime.tv_nsec;
+    GSError ret = buffer_->ExtraSet("timeStamp", static_cast<int64_t>(duration));
+    if (ret != GSERROR_OK) {
+        ROSEN_LOGE("RSProcessor::SetBufferTimeStamp buffer ExtraSet failed");
+    }
 }
 
 bool RSProcessor::ConsumeAndUpdateBuffer(RSSurfaceRenderNode& node, SpecialTask& task, sptr<SurfaceBuffer>& buffer)
