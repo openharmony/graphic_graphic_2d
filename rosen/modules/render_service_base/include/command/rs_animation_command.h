@@ -100,6 +100,7 @@ public:
         }
         node->GetAnimationManager().AddAnimation(animation);
         animation->Attach(node.get());
+        context.RegisterAnimatingRenderNode(node);
         animation->Start();
     }
 

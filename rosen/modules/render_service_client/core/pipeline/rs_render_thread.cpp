@@ -288,12 +288,17 @@ void RSRenderThread::Animate(uint64_t timestamp)
     if (RsFrameReport::GetInstance().GetEnable()) {
         RsFrameReport::GetInstance().AnimateStart();
     }
-    hasRunningAnimation_ = false;
-    for (const auto& [id, node] : context_.GetNodeMap().renderNodeMap_) {
-        hasRunningAnimation_ = node->Animate(timestamp) || hasRunningAnimation_;
-    }
 
-    if (hasRunningAnimation_) {
+    std::__libcpp_erase_if_container(context_.animatingNodeList_, [timestamp](const auto& iter) {
+        auto node = iter.second.lock();
+        if (node == nullptr) {
+            return true;
+        }
+
+        return !node->Animate(timestamp);
+    });
+
+    if (!context_.animatingNodeList_.empty()) {
         RSRenderThread::Instance().RequestNextVSync();
     }
     ROSEN_TRACE_END(BYTRACE_TAG_GRAPHIC_AGP);

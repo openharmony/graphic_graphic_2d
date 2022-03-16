@@ -56,7 +56,6 @@ private:
 
     friend class RSContext;
     friend class RSMainThread;
-    friend class RSRenderThread;
 };
 
 } // namespace Rosen

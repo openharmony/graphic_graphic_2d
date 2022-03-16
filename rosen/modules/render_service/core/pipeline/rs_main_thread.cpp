@@ -136,6 +136,7 @@ void RSMainThread::Animate(uint64_t timestamp)
     for (const auto& [id, node] : context_.GetNodeMap().renderNodeMap_) {
         hasAnimate = node->Animate(timestamp) || hasAnimate;
     }
+    context_.animatingNodeList_.clear();
     if (hasAnimate) {
         RequestNextVSync();
     }
