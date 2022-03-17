@@ -20,7 +20,7 @@
  * @addtogroup Drawing
  * @{
  *
- * @brief Provides 2d drawing functions.
+ * @brief Provides the 2D drawing capability.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  *
@@ -31,7 +31,7 @@
 /**
  * @file drawing_text_declaration.h
  *
- * @brief declare structs of the Drawing module.
+ * @brief Declares the data structure related to text in 2D drawing.
  *
  * @since 8
  * @version 1.0
@@ -42,7 +42,7 @@ extern "C" {
 #endif
 
 /**
- * @brief OH_Drawing_FontCollection is to load fonts.
+ * @brief Defines an <b>OH_Drawing_FontCollection</b>, which is used to load fonts.
  *
  * @since 8
  * @version 1.0
@@ -50,7 +50,7 @@ extern "C" {
 typedef struct OH_Drawing_FontCollection OH_Drawing_FontCollection;
 
 /**
- * @brief OH_Drawing_Typography is to manage layout and paint text.
+ * @brief Defines an <b>OH_Drawing_Typography</b>, which is used to manage the typography layout and display.
  *
  * @since 8
  * @version 1.0
@@ -58,7 +58,7 @@ typedef struct OH_Drawing_FontCollection OH_Drawing_FontCollection;
 typedef struct OH_Drawing_Typography OH_Drawing_Typography;
 
 /**
- * @brief OH_Drawing_TextStyle is to manage font color, decoration, etc.
+ * @brief Defines an <b>OH_Drawing_TextStyle</b>, which is used to manage text colors and decorations.
  *
  * @since 8
  * @version 1.0
@@ -66,7 +66,8 @@ typedef struct OH_Drawing_Typography OH_Drawing_Typography;
 typedef struct OH_Drawing_TextStyle OH_Drawing_TextStyle;
 
 /**
- * @brief OH_Drawing_TypographyStyle is to manage typography layout.
+ * @brief Defines an <b>OH_Drawing_TypographyStyle</b>, which is used to manage the typography style,
+ * such as the text direction.
  *
  * @since 8
  * @version 1.0
@@ -74,7 +75,7 @@ typedef struct OH_Drawing_TextStyle OH_Drawing_TextStyle;
 typedef struct OH_Drawing_TypographyStyle OH_Drawing_TypographyStyle;
 
 /**
- * @brief OH_Drawing_TypographyCreate is to create OH_Drawing_Typography.
+ * @brief Defines an <b>OH_Drawing_TypographyCreate</b>, which is used to create an <b>OH_Drawing_Typography</b> object.
  *
  * @since 8
  * @version 1.0

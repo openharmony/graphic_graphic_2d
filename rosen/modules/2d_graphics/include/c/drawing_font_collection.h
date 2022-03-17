@@ -20,7 +20,7 @@
  * @addtogroup Drawing
  * @{
  *
- * @brief Provides 2d drawing functions.
+ * @brief Provides the 2D drawing capability.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  *
@@ -31,7 +31,7 @@
 /**
  * @file drawing_font_collection.h
  *
- * @brief Defines the fontCollection functions of the Drawing module.
+ * @brief Declares functions related to <b>FontCollection</b> in the drawing module.
  *
  * @since 8
  * @version 1.0
@@ -43,20 +43,20 @@
 extern "C" {
 #endif
 /**
- * @brief Create a new fontCollection.
+ * @brief Creates an <b>OH_Drawing_FontCollection</b> object.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
- * @return a pointer to created OH_Drawing_FontCollection
+ * @return Returns the pointer to the <b>OH_Drawing_FontCollection</b> object created.
  * @since 8
  * @version 1.0
  */
 OH_Drawing_FontCollection* OH_Drawing_CreateFontCollection(void);
 
 /**
- * @brief Release the memory storing the OH_Drawing_FontCollection object.
+ * @brief Releases the memory occupied by an <b>OH_Drawing_FontCollection</b> object.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
- * @param OH_Drawing_FontCollection a pointer to OH_Drawing_FontCollection object
+ * @param OH_Drawing_FontCollection Indicates the pointer to an <b>OH_Drawing_FontCollection</b> object.
  * @since 8
  * @version 1.0
  */

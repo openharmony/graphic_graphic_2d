@@ -20,7 +20,7 @@
  * @addtogroup Drawing
  * @{
  *
- * @brief Provides 2d drawing functions.
+ * @brief Provides the 2D drawing capability.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  *
@@ -31,7 +31,7 @@
 /**
  * @file drawing_text_typography.h
  *
- * @brief Defines the typography functions of the Drawing module.
+ * @brief Declares functions related to <b>typography</b> in the drawing module.
  *
  * @since 8
  * @version 1.0
@@ -49,260 +49,261 @@ extern "C" {
 #endif
 
 /**
- * @brief direction of text.
+ * @brief Enumerates text directions.
  */
 enum OH_Drawing_TextDirection {
-    /** direction: from right to left */
+    /** Right to left (RTL) */
     TEXT_DIRECTION_RTL,
-    /** direction: from left to right */
+    /** Left to right (LTR) */
     TEXT_DIRECTION_LTR,
 };
 
 /**
- * @brief text layout.
+ * @brief Enumerates text alignment modes.
  */
 enum OH_Drawing_TextAlign {
-    /** Lines start at the left edge */
+    /** Left-aligned */
     TEXT_ALIGN_LEFT,
-    /** Lines start at the right edge */
+    /** Right-aligned */
     TEXT_ALIGN_RIGHT,
-    /** Lines are centered within the the line box */
+    /** Center-aligned */
     TEXT_ALIGN_CENTER,
     /**
-     * Lines are justified.
-     * Text is spaced to line up its left and right edges,
-     * except for the last line.
+     * Justified, which means that each line (except the last line) is stretched so that every line has equal width,
+     * and the left and right margins are straight.
      */
     TEXT_ALIGN_JUSTIFY,
     /**
-     * The same as TEXT_ALIGN_LEFT if OH_Drawing_TextDirection
-     * is TEXT_DIRECTION_LTR. Similarly, it is TEXT_ALIGN_RIGHT
-     * if OH_Drawing_TextDirection is TEXT_DIRECTION_RTL.
+     * <b>TEXT_ALIGN_START</b> achieves the same effect as <b>TEXT_ALIGN_LEFT</b>
+     * when <b>OH_Drawing_TextDirection</b> is <b>TEXT_DIRECTION_LTR</b>;
+     * it achieves the same effect as <b>TEXT_ALIGN_RIGHT</b>
+     * when <b>OH_Drawing_TextDirection</b> is <b>TEXT_DIRECTION_RTL</b>.
      */
     TEXT_ALIGN_START,
     /**
-     * The same as TEXT_ALIGN_RIGHT if OH_Drawing_TextDirection
-     * is TEXT_DIRECTION_LTR. Similarly, it is TEXT_ALIGN_LEFT
-     * if OH_Drawing_TextDirection is TEXT_DIRECTION_RTL.
+     * <b>TEXT_ALIGN_END</b> achieves the same effect as <b>TEXT_ALIGN_RIGHT</b>
+     * when <b>OH_Drawing_TextDirection</b> is <b>TEXT_DIRECTION_LTR</b>;
+     * it achieves the same effect as <b>TEXT_ALIGN_LEFT</b>
+     * when <b>OH_Drawing_TextDirection</b> is <b>TEXT_DIRECTION_RTL</b>.
      */
     TEXT_ALIGN_END,
 };
 
 /**
- * @brief font weight.
+ * @brief Enumerates font weights.
  */
 enum OH_Drawing_FontWeight {
-    /** font weight is thin */
+    /** Thin */
     FONT_WEIGHT_100,
-    /** font weight is extra-light */
+    /** Extra-light */
     FONT_WEIGHT_200,
-    /** font weight is light */
+    /** Light */
     FONT_WEIGHT_300,
-    /** font weight is normal/regular */
+    /** Normal/Regular */
     FONT_WEIGHT_400,
-    /** font weight is medium */
+    /** Medium*/
     FONT_WEIGHT_500,
-    /** font weight is semi-bold */
+    /** Semi-bold */
     FONT_WEIGHT_600,
-    /** font weight is bold */
+    /** Bold */
     FONT_WEIGHT_700,
-    /** font weight is extra-bold */
+    /** Extra-bold */
     FONT_WEIGHT_800,
-    /** font weight is black */
+    /** Black */
     FONT_WEIGHT_900,
 };
 
 /**
- * @brief baseline position.
+ * @brief Enumerates text baselines.
  */
 enum OH_Drawing_TextBaseline {
-    /** It is used by alphabetic language, baseline is at the lower center */
+    /** Alphabetic, where the letters in alphabets like English sit on. */
     TEXT_BASELINE_ALPHABETIC,
-    /** It is used by ideographic language, baseline is at the bottom */
+    /** Ideographic. The baseline is at the bottom of the text area. */
     TEXT_BASELINE_IDEOGRAPHIC,
 };
 
 /**
- * @brief text decoration.
+ * @brief Enumerates text decorations.
  */
 enum OH_Drawing_TextDecoration {
-    /** no decorations */
+    /** No decoration. */
     TEXT_DECORATION_NONE = 0x0,
-    /** a line at the bottom of text */
+    /** A underline is used for decoration. */
     TEXT_DECORATION_UNDERLINE = 0x1,
-    /** a line at the top of text */
+    /** An overline is used for decoration. */
     TEXT_DECORATION_OVERLINE = 0x2,
-    /** a line through the text */
+    /** A strikethrough is used for decoration. */
     TEXT_DECORATION_LINE_THROUGH = 0x4,
 };
 
 /**
- * @brief to distinguish if fonts are italic.
+ * @brief Enumerates font styles.
  */
 enum OH_Drawing_FontStyle {
-    /** font is normal */
+    /** Normal style */
     FONT_STYLE_NORMAL,
-    /** font is italic */
+    /** Italic style */
     FONT_STYLE_ITALIC,
 };
 
 /**
- * @brief Create a new TypographyStyle.
+ * @brief Creates an <b>OH_Drawing_TypographyStyle</b> object.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
- * @return a pointer to created OH_Drawing_TypographyStyle
+ * @return Returns the pointer to the <b>OH_Drawing_TypographyStyle</b> object created.
  * @since 8
  * @version 1.0
  */
 OH_Drawing_TypographyStyle* OH_Drawing_CreateTypographyStyle(void);
 
 /**
- * @brief Release the memory storing the OH_Drawing_TypographyStyle object.
+ * @brief Releases the memory occupied by an <b>OH_Drawing_TypographyStyle</b> object.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
- * @param OH_Drawing_TypographyStyle a pointer to OH_Drawing_TypographyStyle object
+ * @param OH_Drawing_TypographyStyle Indicates the pointer to an <b>OH_Drawing_TypographyStyle</b> object.
  * @since 8
  * @version 1.0
  */
 void OH_Drawing_DestroyTypographyStyle(OH_Drawing_TypographyStyle*);
 
 /**
- * @brief set typography text direction.
+ * @brief Sets the text direction.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
- * @param OH_Drawing_TypographyStyle a pointer to OH_Drawing_TypographyStyle object
- * @param int enum OH_Drawing_TextDirection
+ * @param OH_Drawing_TypographyStyle Indicates the pointer to an <b>OH_Drawing_TypographyStyle</b> object.
+ * @param int Indicates the text direction to set. For details, see the enum <b>OH_Drawing_TextDirection</b>.
  * @since 8
  * @version 1.0
  */
 void OH_Drawing_SetTypographyTextDirection(OH_Drawing_TypographyStyle*, int /* OH_Drawing_TextDirection */);
 
 /**
- * @brief set typography text align.
+ * @brief Sets the text alignment mode.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
- * @param OH_Drawing_TypographyStyle a pointer to OH_Drawing_TypographyStyle object
- * @param int enum OH_Drawing_TextAlign
+ * @param OH_Drawing_TypographyStyle Indicates the pointer to an <b>OH_Drawing_TypographyStyle</b> object.
+ * @param int Indicates the text alignment mode to set. For details, see the enum <b>OH_Drawing_TextAlign</b>.
  * @since 8
  * @version 1.0
  */
 void OH_Drawing_SetTypographyTextAlign(OH_Drawing_TypographyStyle*, int /* OH_Drawing_TextAlign */);
 
 /**
- * @brief set typography text max lines.
+ * @brief Sets the maximum number of lines in a text file.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
- * @param OH_Drawing_TypographyStyle a pointer to OH_Drawing_TypographyStyle object
- * @param int max lines
+ * @param OH_Drawing_TypographyStyle Indicates the pointer to an <b>OH_Drawing_TypographyStyle</b> object.
+ * @param int Indicates the maximum number of lines to set.
  * @since 8
  * @version 1.0
  */
 void OH_Drawing_SetTypographyTextMaxLines(OH_Drawing_TypographyStyle*, int /* maxLines */);
 
 /**
- * @brief Create a new OH_Drawing_TextStyle.
+ * @brief Creates an <b>OH_Drawing_TextStyle</b> object.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
- * @return OH_Drawing_TextStyle a pointer to created OH_Drawing_TextStyle
+ * @return Returns the pointer to the <b>OH_Drawing_TextStyle</b> object created.
  * @since 8
  * @version 1.0
  */
 OH_Drawing_TextStyle* OH_Drawing_CreateTextStyle(void);
 
 /**
- * @brief Release the memory storing the OH_Drawing_TextStyle object.
+ * @brief Releases the memory occupied by an <b>OH_Drawing_TextStyle</b> object.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
- * @param OH_Drawing_TextStyle a pointer to OH_Drawing_TextStyle object
+ * @param OH_Drawing_TextStyle Indicates the pointer to an <b>OH_Drawing_TextStyle</b> object.
  * @since 8
  * @version 1.0
  */
 void OH_Drawing_DestroyTextStyle(OH_Drawing_TextStyle*);
 
 /**
- * @brief set typography text color.
+ * @brief Sets the text color.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
- * @param OH_Drawing_TextStyle a pointer to OH_Drawing_TextStyle object
- * @param uint32_t color
+ * @param OH_Drawing_TextStyle Indicates the pointer to an <b>OH_Drawing_TextStyle</b> object.
+ * @param uint32_t Indicates the color to set.
  * @since 8
  * @version 1.0
  */
 void OH_Drawing_SetTextStyleColor(OH_Drawing_TextStyle*, uint32_t /* color */);
 
 /**
- * @brief set typography font size.
+ * @brief Sets the font size.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
- * @param OH_Drawing_TextStyle a pointer to OH_Drawing_TextStyle object
- * @param double font size
+ * @param OH_Drawing_TextStyle Indicates the pointer to an <b>OH_Drawing_TextStyle</b> object.
+ * @param double Indicates the font size to set.
  * @since 8
  * @version 1.0
  */
 void OH_Drawing_SetTextStyleFontSize(OH_Drawing_TextStyle*, double /* fontSize */);
 
 /**
- * @brief set typography font weight.
+ * @brief Sets the font weight.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
- * @param OH_Drawing_TextStyle a pointer to OH_Drawing_TextStyle object
- * @param int enum OH_Drawing_FontWeight
+ * @param OH_Drawing_TextStyle Indicates the pointer to an <b>OH_Drawing_TextStyle</b> object.
+ * @param int Indicates the font weight to set. For details, see the enum <b>OH_Drawing_FontWeight</b>.
  * @since 8
  * @version 1.0
  */
 void OH_Drawing_SetTextStyleFontWeight(OH_Drawing_TextStyle*, int /* OH_Drawing_FontWeight */);
 
 /**
- * @brief set typography baseline.
+ * @brief Sets the text baseline.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
- * @param OH_Drawing_TextStyle a pointer to OH_Drawing_TextStyle object
- * @param int enum OH_Drawing_TextBaseline
+ * @param OH_Drawing_TextStyle Indicates the pointer to an <b>OH_Drawing_TextStyle</b> object.
+ * @param int Indicates the text baseline to set. For details, see the enum <b>OH_Drawing_TextBaseline</b>.
  * @since 8
  * @version 1.0
  */
 void OH_Drawing_SetTextStyleBaseLine(OH_Drawing_TextStyle*, int /* OH_Drawing_TextBaseline */);
 
 /**
- * @brief set typography decoration.
+ * @brief Sets the text decoration.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
- * @param OH_Drawing_TextStyle a pointer to OH_Drawing_TextStyle object
- * @param int enum OH_Drawing_TextDecoration
+ * @param OH_Drawing_TextStyle Indicates the pointer to an <b>OH_Drawing_TextStyle</b> object.
+ * @param int Indicates the text decoration to set. For details, see the enum <b>OH_Drawing_TextDecoration</b>.
  * @since 8
  * @version 1.0
  */
 void OH_Drawing_SetTextStyleDecoration(OH_Drawing_TextStyle*, int /* OH_Drawing_TextDecoration */);
 
 /**
- * @brief set typography decoration color.
+ * @brief Sets the color for the text decoration.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
- * @param OH_Drawing_TextStyle a pointer to OH_Drawing_TextStyle object
- * @param uint32_t color
+ * @param OH_Drawing_TextStyle Indicates the pointer to an <b>OH_Drawing_TextStyle</b> object.
+ * @param uint32_t Indicates the color to set.
  * @since 8
  * @version 1.0
  */
 void OH_Drawing_SetTextStyleDecorationColor(OH_Drawing_TextStyle*, uint32_t /* color */);
 
 /**
- * @brief set typography font height.
+ * @brief Sets the font height.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
- * @param OH_Drawing_TextStyle a pointer to OH_Drawing_TextStyle object
- * @param double font height
+ * @param OH_Drawing_TextStyle Indicates the pointer to an <b>OH_Drawing_TextStyle</b> object.
+ * @param double Indicates the font height to set.
  * @since 8
  * @version 1.0
  */
 void OH_Drawing_SetTextStyleFontHeight(OH_Drawing_TextStyle*, double /* fontHeight */);
 
 /**
- * @brief set typography font families.
+ * @brief Sets the font families.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
- * @param OH_Drawing_TextStyle a pointer to OH_Drawing_TextStyle object
- * @param int number of font families
- * @param char a pointer to fontFamilies name
+ * @param OH_Drawing_TextStyle Indicates the pointer to an <b>OH_Drawing_TextStyle</b> object.
+ * @param int Indicates the number of font families to set.
+ * @param char Indicates the pointer to the font families to set.
  * @since 8
  * @version 1.0
  */
@@ -310,34 +311,34 @@ void OH_Drawing_SetTextStyleFontFamilies(OH_Drawing_TextStyle*,
     int /* fontFamiliesNumber */, const char* fontFamilies[]);
 
 /**
- * @brief set typography font style.
+ * @brief Sets the font style.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
- * @param OH_Drawing_TextStyle a pointer to OH_Drawing_TextStyle object
- * @param int fontStyle
+ * @param OH_Drawing_TextStyle Indicates the pointer to an <b>OH_Drawing_TextStyle</b> object.
+ * @param int Indicates the font style to set. For details, see the enum <b>OH_Drawing_FontStyle</b>.
  * @since 8
  * @version 1.0
  */
-void OH_Drawing_SetTextStyleFontStyle(OH_Drawing_TextStyle*, int /* fontStyle */);
+void OH_Drawing_SetTextStyleFontStyle(OH_Drawing_TextStyle*, int /* OH_Drawing_FontStyle */);
 
 /**
- * @brief set typography locale.
+ * @brief Sets the locale.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
- * @param OH_Drawing_TextStyle a pointer to OH_Drawing_TextStyle object
- * @param char locale, a pointer to char
+ * @param OH_Drawing_TextStyle Indicates the pointer to an <b>OH_Drawing_TextStyle</b> object.
+ * @param char Indicates the pointer to the locale to set.
  * @since 8
  * @version 1.0
  */
 void OH_Drawing_SetTextStyleLocale(OH_Drawing_TextStyle*, const char*);
 
 /**
- * @brief Generate a new OH_Drawing_TypographyCreate.
+ * @brief Creates a pointer to an <b>OH_Drawing_TypographyCreate</b> object.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
- * @param OH_Drawing_TypographyStyle a pointer to OH_Drawing_TypographyStyle
- * @param OH_Drawing_FontCollection a pointer to OH_Drawing_FontCollection
- * @return a pointer to created OH_Drawing_TypographyCreate
+ * @param OH_Drawing_TypographyStyle Indicates the pointer to an <b>OH_Drawing_TypographyStyle</b> object.
+ * @param OH_Drawing_FontCollection Indicates the pointer to an <b>OH_Drawing_FontCollection</b> object.
+ * @return Returns the pointer to the <b>OH_Drawing_TypographyCreate</b> object created.
  * @since 8
  * @version 1.0
  */
@@ -345,87 +346,87 @@ OH_Drawing_TypographyCreate* OH_Drawing_CreateTypographyHandler(OH_Drawing_Typog
     OH_Drawing_FontCollection*);
 
 /**
- * @brief Release the memory storing the OH_Drawing_TypographyCreate object.
+ * @brief Releases the memory occupied by an <b>OH_Drawing_TypographyCreate</b> object.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
- * @param OH_Drawing_TypographyCreate a pointer to OH_Drawing_TypographyCreate object
+ * @param OH_Drawing_TypographyCreate Indicates the pointer to an <b>OH_Drawing_TypographyCreate</b> object.
  * @since 8
  * @version 1.0
  */
 void OH_Drawing_DestroyTypographyHandler(OH_Drawing_TypographyCreate*);
 
 /**
- * @brief set typography style.
+ * @brief Sets the text style.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
- * @param OH_Drawing_TypographyCreate a pointer to OH_Drawing_TypographyCreate object
- * @param OH_Drawing_TextStyle a pointer to OH_Drawing_TextStyle object
+ * @param OH_Drawing_TypographyCreate Indicates the pointer to an <b>OH_Drawing_TypographyCreate</b> object.
+ * @param OH_Drawing_TextStyle Indicates the pointer to an <b>OH_Drawing_TextStyle</b> object.
  * @since 8
  * @version 1.0
  */
 void OH_Drawing_TypographyHandlerPushTextStyle(OH_Drawing_TypographyCreate*, OH_Drawing_TextStyle*);
 
 /**
- * @brief set typography text.
+ * @brief Sets the text content.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
- * @param OH_Drawing_TypographyCreate a pointer to OH_Drawing_TypographyCreate object
- * @param char describe text
+ * @param OH_Drawing_TypographyCreate Indicates the pointer to an <b>OH_Drawing_TypographyCreate</b> object.
+ * @param char Indicates the pointer to the text content to set.
  * @since 8
  * @version 1.0
  */
 void OH_Drawing_TypographyHandlerAddText(OH_Drawing_TypographyCreate*, const char*);
 
 /**
- * @brief pop typography text.
+ * @brief Removes the topmost style in the stack, leaving the remaining styles in effect.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
- * @param OH_Drawing_TypographyCreate a pointer to OH_Drawing_TypographyCreate object
+ * @param OH_Drawing_TypographyCreate Indicates the pointer to an <b>OH_Drawing_TypographyCreate</b> object.
  * @since 8
  * @version 1.0
  */
 void OH_Drawing_TypographyHandlerPopTextStyle(OH_Drawing_TypographyCreate*);
 
 /**
- * @brief Generate a new OH_Drawing_Typography.
+ * @brief Creates an <b>OH_Drawing_Typography</b> object.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
- * @param OH_Drawing_TypographyCreate a pointer to OH_Drawing_Typography
- * @return OH_Drawing_Typography a pointer to OH_Drawing_Typography
+ * @param OH_Drawing_TypographyCreate Indicates the pointer to an <b>OH_Drawing_TypographyCreate</b> object.
+ * @return Returns the pointer to the <b>OH_Drawing_Typography</b> object created.
  * @since 8
  * @version 1.0
  */
 OH_Drawing_Typography* OH_Drawing_CreateTypography(OH_Drawing_TypographyCreate*);
 
 /**
- * @brief Release the memory storing the OH_Drawing_Typography object.
+ * @brief Releases the memory occupied by an <b>OH_Drawing_Typography</b> object.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
- * @param OH_Drawing_Typography a pointer to OH_Drawing_Typography object
+ * @param OH_Drawing_Typography Indicates the pointer to an <b>OH_Drawing_Typography</b> object.
  * @since 8
  * @version 1.0
  */
 void OH_Drawing_DestroyTypography(OH_Drawing_Typography*);
 
 /**
- * @brief typography layout.
+ * @brief Lays out the typography.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
- * @param OH_Drawing_Typography a pointer to OH_Drawing_Typography object
- * @param double max width of text
+ * @param OH_Drawing_Typography Indicates the pointer to an <b>OH_Drawing_Typography</b> object.
+ * @param double Indicates the maximum text width to set.
  * @since 8
  * @version 1.0
  */
 void OH_Drawing_TypographyLayout(OH_Drawing_Typography*, double /* maxWidth */);
 
 /**
- * @brief typography paint.
+ * @brief Paints text on the canvas.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
- * @param OH_Drawing_Typography a pointer to OH_Drawing_Typography object
- * @param OH_Drawing_Canvas a pointer to OH_Drawing_Canvas object
- * @param double position X
- * @param double position Y
+ * @param OH_Drawing_Typography Indicates the pointer to an <b>OH_Drawing_Typography</b> object.
+ * @param OH_Drawing_Canvas Indicates the pointer to an <b>OH_Drawing_Canvas</b> object.
+ * @param double Indicates the x coordinate.
+ * @param double Indicates the y coordinate.
  * @since 8
  * @version 1.0
  */
