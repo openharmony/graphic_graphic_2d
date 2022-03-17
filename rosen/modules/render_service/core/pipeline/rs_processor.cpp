@@ -15,8 +15,6 @@
 
 #include "pipeline/rs_processor.h"
 
-#include <ctime>
-#include "unique_fd.h"
 #include <sync_fence.h>
 #include "rs_trace.h"
 
@@ -89,6 +87,7 @@ bool RSProcessor::ConsumeAndUpdateBuffer(RSSurfaceRenderNode& node, SpecialTask&
         int64_t timestamp = 0;
         Rect damage;
         auto sret = surfaceConsumer->AcquireBuffer(buffer, fence, timestamp, damage);
+        UniqueFd fenceFd(fence);
         if (!buffer || sret != OHOS::SURFACE_ERROR_OK) {
             ROSEN_LOGE("RSProcessor::ProcessSurface: AcquireBuffer failed! sret: %{public}d", sret);
             if (sret == OHOS::GSERROR_NO_BUFFER) {
@@ -98,7 +97,7 @@ bool RSProcessor::ConsumeAndUpdateBuffer(RSSurfaceRenderNode& node, SpecialTask&
         }
         task();
         node.SetBuffer(buffer);
-        node.SetFence(fence);
+        node.SetFence(new SyncFence(fenceFd.Release()));
         node.SetDamageRegion(damage);
         if (node.ReduceAvailableBuffer() >= 1) {
             if (auto mainThread = RSMainThread::Instance()) {

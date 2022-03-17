@@ -18,6 +18,8 @@
 
 #include <display_type.h>
 #include <surface.h>
+#include <sync_fence.h>
+
 #include "hdi_backend.h"
 #include "hdi_layer_info.h"
 #include "hdi_output.h"
@@ -64,7 +66,7 @@ private:
     EGLSurface eglSurface = EGL_NO_SURFACE;
 
     std::unordered_map<uint64_t, sptr<SurfaceBuffer>> prevBufferMap_;
-    std::unordered_map<uint64_t, int32_t> prevFenceMap_;
+    std::unordered_map<uint64_t, sptr<SyncFence>> prevFenceMap_;
 
     void Init();
     void InitEGL();

@@ -47,10 +47,10 @@ void RSSurfaceRenderNode::SetBuffer(const sptr<SurfaceBuffer>& buffer)
     }
 }
 
-void RSSurfaceRenderNode::SetFence(int32_t fence)
+void RSSurfaceRenderNode::SetFence(sptr<SyncFence> fence)
 {
     preFence_ = fence_;
-    fence_ = fence;
+    fence_ = std::move(fence);
 }
 
 void RSSurfaceRenderNode::SetDamageRegion(const Rect& damage)

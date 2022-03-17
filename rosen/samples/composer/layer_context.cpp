@@ -16,7 +16,6 @@
 #include "layer_context.h"
 
 #include <securec.h>
-#include <sync_fence.h>
 #include "hdi_log.h"
 
 using namespace OHOS;
@@ -116,6 +115,7 @@ SurfaceError LayerContext::FillHDILayer()
     int64_t timestamp;
     Rect damage;
     SurfaceError ret = cSurface_->AcquireBuffer(buffer, acquireFence, timestamp, damage);
+    UniqueFd acquireFenceFd(acquireFence);
     if (ret != SURFACE_ERROR_OK) {
         LOGE("Acquire buffer failed");
         return ret;
@@ -124,7 +124,8 @@ SurfaceError LayerContext::FillHDILayer()
     LayerAlpha alpha = { .enPixelAlpha = true };
 
     hdiLayer_->SetSurface(cSurface_);
-    hdiLayer_->SetBuffer(buffer, acquireFence, prevBuffer_, prevFence_);
+    auto acquireSyncFence = new SyncFence(acquireFenceFd.Release());
+    hdiLayer_->SetBuffer(buffer, acquireSyncFence, prevBuffer_, prevFence_);
     hdiLayer_->SetZorder(static_cast<int32_t>(zorder_));
     hdiLayer_->SetAlpha(alpha);
     hdiLayer_->SetCompositionType(CompositionType::COMPOSITION_DEVICE);
@@ -136,7 +137,7 @@ SurfaceError LayerContext::FillHDILayer()
     hdiLayer_->SetPreMulti(false);
 
     prevBuffer_ = buffer;
-    prevFence_ = acquireFence;
+    prevFence_ = acquireSyncFence;
 
     return ret;
 }

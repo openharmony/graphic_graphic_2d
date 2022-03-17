@@ -78,13 +78,13 @@ public:
         cSurface_ = surface;
     }
 
-    void SetBuffer(const sptr<SurfaceBuffer> &sbuffer, int32_t acquireFence,
-        const sptr<SurfaceBuffer> &preBuffer, int32_t preAcquireFence)
+    void SetBuffer(const sptr<SurfaceBuffer> &sbuffer, const sptr<SyncFence>& acquireFence,
+        const sptr<SurfaceBuffer> &preBuffer, const sptr<SyncFence>& preAcquireFence)
     {
         sbuffer_ = sbuffer;
-        acquireFence_ = new SyncFence(acquireFence);
+        acquireFence_ = acquireFence;
         preBuffer_ = preBuffer;
-        preAcquireFence_ = new SyncFence(preAcquireFence);
+        preAcquireFence_ = preAcquireFence;
     }
 
     void SetZorder(int32_t zOrder)
