@@ -40,6 +40,10 @@ RSRenderNode::~RSRenderNode()
 
 void RSRenderNode::FallbackAnimationsToRoot()
 {
+    if (animationManager_.animations_.empty()) {
+        return;
+    }
+
     auto context = GetContext().lock();
     if (!context) {
         ROSEN_LOGE("Invalid context");
@@ -51,6 +55,9 @@ void RSRenderNode::FallbackAnimationsToRoot()
         return;
     }
 
+    if (context != nullptr) {
+        context->RegisterAnimatingRenderNode(target);
+    }
     for (const auto& [animationId, animation] : animationManager_.animations_) {
         animation->Detach();
         target->animationManager_.AddAnimation(animation);

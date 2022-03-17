@@ -17,6 +17,7 @@
 
 #include <algorithm>
 
+#include "pipeline/rs_context.h"
 #include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_render_node_map.h"
 #include "pipeline/rs_root_render_node.h"
@@ -77,6 +78,10 @@ void RSBaseRenderNode::OnRemoveChild(const SharedPtr& child)
 {
     if (child->HasTransition()) {
         AddDisappearingChild(child);
+        auto context = context_.lock();
+        if (context != nullptr) {
+            context->RegisterAnimatingRenderNode(shared_from_this());
+        }
     } else {
         child->ResetParent();
     }
@@ -91,6 +96,10 @@ void RSBaseRenderNode::RemoveFromTree()
 
 void RSBaseRenderNode::ClearChildren()
 {
+    auto context = context_.lock();
+    if (context != nullptr) {
+        context->RegisterAnimatingRenderNode(shared_from_this());
+    }
     for (auto& child : children_) {
         if (auto c = child.lock()) {
             OnRemoveChild(c);
