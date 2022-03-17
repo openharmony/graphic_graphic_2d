@@ -26,6 +26,7 @@
 #include "include/core/SkRect.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "property/rs_transition_properties.h"
+#include "sync_fence.h"
 
 namespace OHOS {
 
@@ -55,9 +56,9 @@ struct ComposeInfo {
     int32_t zOrder{0};
     LayerAlpha alpha;
     sptr<SurfaceBuffer> buffer;
-    int32_t fence;
+    sptr<SyncFence> fence;
     sptr<SurfaceBuffer> preBuffer;
-    int32_t preFence;
+    sptr<SyncFence> preFence;
     BlendType blendType;
 };
 

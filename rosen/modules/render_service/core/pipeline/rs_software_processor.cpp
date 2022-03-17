@@ -22,7 +22,7 @@
 #include "include/core/SkMatrix.h"
 #include "pipeline/rs_main_thread.h"
 #include "platform/common/rs_log.h"
-#include "unique_fd.h"
+#include "sync_fence.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -103,7 +103,7 @@ void RSSoftwareProcessor::ProcessSurface(RSSurfaceRenderNode& node)
         }
 
         node.SetBuffer(cbuffer);
-        node.SetFence(fenceFd.Release());
+        node.SetFence(new SyncFence(fenceFd.Release()));
 
         if (node.ReduceAvailableBuffer() > 0) {
             if (auto mainThread = RSMainThread::Instance()) {

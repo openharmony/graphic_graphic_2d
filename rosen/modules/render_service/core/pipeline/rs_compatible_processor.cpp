@@ -15,7 +15,7 @@
 
 #include "pipeline/rs_compatible_processor.h"
 
-#include "unique_fd.h"
+#include "sync_fence.h"
 
 #include "pipeline/rs_main_thread.h"
 #include "pipeline/rs_render_service_util.h"
@@ -151,7 +151,7 @@ void RSCompatibleProcessor::DoComposeSurfaces()
         },
         .alpha = alpha_,
         .buffer = cbuffer,
-        .fence = fenceFd.Release(),
+        .fence = new SyncFence(fenceFd.Release()),
     };
     std::shared_ptr<HdiLayerInfo> layer = HdiLayerInfo::CreateHdiLayerInfo();
     std::vector<LayerInfoPtr> layers;

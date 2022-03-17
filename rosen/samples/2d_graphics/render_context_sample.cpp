@@ -17,7 +17,6 @@
 
 #include "window.h"
 #include <securec.h>
-#include <sync_fence.h>
 #include <vsync_helper.h>
 #include <iostream>
 
@@ -135,7 +134,7 @@ void RenderContextSample::CreateBackGroundSurface()
     backGroundCSurface->RegisterConsumerListener(this);
 
     prevBufferMap_[backGroundCSurface->GetUniqueId()] = nullptr;
-    prevFenceMap_[backGroundCSurface->GetUniqueId()] = -1;
+    prevFenceMap_[backGroundCSurface->GetUniqueId()] = SyncFence::INVALID_FENCE;
 }
 
 void RenderContextSample::CreateDrawingSurface()
@@ -149,7 +148,7 @@ void RenderContextSample::CreateDrawingSurface()
     drawingCSurface->RegisterConsumerListener(this);
 
     prevBufferMap_[drawingCSurface->GetUniqueId()] = nullptr;
-    prevFenceMap_[drawingCSurface->GetUniqueId()] = -1;
+    prevFenceMap_[drawingCSurface->GetUniqueId()] = SyncFence::INVALID_FENCE;
 }
 
 void RenderContextSample::OnBufferAvailable()
@@ -322,6 +321,7 @@ bool RenderContextSample::FillDrawingLayer(std::shared_ptr<HdiLayerInfo> &showLa
     int64_t timestamp;
     Rect damage;
     SurfaceError ret = drawingCSurface->AcquireBuffer(cbuffer, fence, timestamp, damage);
+    UniqueFd fenceFd(fence);
     if (ret != SURFACE_ERROR_OK) {
         std::cout << "Acquire cBuffer failed: " << ret << std::endl;
         return false;
@@ -336,7 +336,8 @@ bool RenderContextSample::FillDrawingLayer(std::shared_ptr<HdiLayerInfo> &showLa
     LayerAlpha alpha = { .enPixelAlpha = true };
 
     showLayer->SetSurface(drawingCSurface);
-    showLayer->SetBuffer(cbuffer, fence, prevBufferMap_[drawingCSurface->GetUniqueId()],
+    auto acquireSyncFence = new SyncFence(fenceFd.Release());
+    showLayer->SetBuffer(cbuffer, acquireSyncFence, prevBufferMap_[drawingCSurface->GetUniqueId()],
         prevFenceMap_[drawingCSurface->GetUniqueId()]);
     showLayer->SetZorder(zorder);
     showLayer->SetAlpha(alpha);
@@ -355,7 +356,7 @@ bool RenderContextSample::FillDrawingLayer(std::shared_ptr<HdiLayerInfo> &showLa
     showLayer->SetPreMulti(false);
 
     prevBufferMap_[drawingCSurface->GetUniqueId()] = cbuffer;
-    prevFenceMap_[drawingCSurface->GetUniqueId()] = fence;
+    prevFenceMap_[drawingCSurface->GetUniqueId()] = acquireSyncFence;
 
     return true;
 }
@@ -372,6 +373,7 @@ bool RenderContextSample::FillBackGroundLayer(std::shared_ptr<HdiLayerInfo> &sho
     int64_t timestamp;
     Rect damage;
     SurfaceError ret = backGroundCSurface->AcquireBuffer(cbuffer, fence, timestamp, damage);
+    UniqueFd fenceFd(fence);
     if (ret != SURFACE_ERROR_OK) {
         std::cout << "Acquire cBuffer failed" << std::endl;
         return false;
@@ -386,7 +388,8 @@ bool RenderContextSample::FillBackGroundLayer(std::shared_ptr<HdiLayerInfo> &sho
     LayerAlpha alpha = { .enPixelAlpha = true };
 
     showLayer->SetSurface(backGroundCSurface);
-    showLayer->SetBuffer(cbuffer, fence, prevBufferMap_[backGroundCSurface->GetUniqueId()],
+    auto acquireSyncFence = new SyncFence(fenceFd.Release());
+    showLayer->SetBuffer(cbuffer, acquireSyncFence, prevBufferMap_[backGroundCSurface->GetUniqueId()],
         prevFenceMap_[backGroundCSurface->GetUniqueId()]);
     showLayer->SetZorder(zorder);
     showLayer->SetAlpha(alpha);
@@ -399,7 +402,7 @@ bool RenderContextSample::FillBackGroundLayer(std::shared_ptr<HdiLayerInfo> &sho
     showLayer->SetPreMulti(false);
 
     prevBufferMap_[backGroundCSurface->GetUniqueId()] = cbuffer;
-    prevFenceMap_[backGroundCSurface->GetUniqueId()] = fence;
+    prevFenceMap_[backGroundCSurface->GetUniqueId()] = acquireSyncFence;
 
     std::cout << "FillBackGroundLayer finished" << std::endl;
     return true;

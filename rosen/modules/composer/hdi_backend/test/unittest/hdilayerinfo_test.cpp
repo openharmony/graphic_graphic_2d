@@ -14,6 +14,7 @@
  */
 
 #include "hdi_layer_info.h"
+#include "sync_fence.h"
 
 #include <gtest/gtest.h>
 
@@ -74,10 +75,10 @@ HWTEST_F(HdiLayerInfoTest, GetSurface001, Function | MediumTest| Level3)
  */
 HWTEST_F(HdiLayerInfoTest, GetBuffer001, Function | MediumTest| Level3)
 {
-    int32_t acquireFence = 1;
+    sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
     sptr<SurfaceBuffer> sbuffer = nullptr;
     sptr<SurfaceBuffer> preBuffer = nullptr;
-    int32_t preAcquireFence = 2;
+    sptr<SyncFence> preAcquireFence = SyncFence::INVALID_FENCE;
     HdiLayerInfoTest::hdiLayerInfo_->SetBuffer(sbuffer, acquireFence, preBuffer, preAcquireFence);
     ASSERT_EQ(HdiLayerInfoTest::hdiLayerInfo_->GetBuffer(), nullptr);
     ASSERT_EQ(HdiLayerInfoTest::hdiLayerInfo_->GetPreBuffer(), nullptr);
