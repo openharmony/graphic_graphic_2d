@@ -66,6 +66,7 @@ void RSSoftwareProcessor::PostProcess()
             .h = currScreenInfo_.height,
         },
     };
+    SetBufferTimeStamp();
     FlushBuffer(producerSurface_, flushConfig);
 }
 

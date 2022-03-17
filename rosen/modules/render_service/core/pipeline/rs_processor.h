@@ -40,6 +40,7 @@ public:
 protected:
     std::unique_ptr<SkCanvas> CreateCanvas(sptr<Surface> producerSurface, BufferRequestConfig requestConfig);
     void FlushBuffer(sptr<Surface> surface, BufferFlushConfig flushConfig);
+    void SetBufferTimeStamp();
     bool ConsumeAndUpdateBuffer(RSSurfaceRenderNode& node, SpecialTask& task, sptr<SurfaceBuffer>& buffer);
 
 private:
