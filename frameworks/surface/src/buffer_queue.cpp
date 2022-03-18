@@ -253,12 +253,14 @@ GSError BufferQueue::ReuseBuffer(const BufferRequestConfig &config, BufferExtraD
 
         retval.buffer = bufferImpl;
         retval.sequence = bufferImpl->GetSeqNum();
-        retval.fence = -1;
         bufferQueueCache_[retval.sequence].config = config;
     }
 
     bufferQueueCache_[retval.sequence].state = BUFFER_STATE_REQUESTED;
     retval.fence = bufferQueueCache_[retval.sequence].fence;
+
+    // Prevent releasefence from being repeatedly closed after cancel.
+    bufferQueueCache_[retval.sequence].fence = -1;
     bufferImpl->GetExtraData(bedata);
 
     auto &dbs = retval.deletingBuffers;
@@ -437,6 +439,7 @@ GSError BufferQueue::AcquireBuffer(sptr<SurfaceBufferImpl> &buffer,
         bufferQueueCache_[sequence].state = BUFFER_STATE_ACQUIRED;
 
         fence = bufferQueueCache_[sequence].fence;
+        bufferQueueCache_[sequence].fence = -1;
         timestamp = bufferQueueCache_[sequence].timestamp;
         damage = bufferQueueCache_[sequence].damage;
 
@@ -547,6 +550,9 @@ void BufferQueue::DeleteBufferInCache(int32_t sequence)
     auto it = bufferQueueCache_.find(sequence);
     if (it != bufferQueueCache_.end()) {
         FreeBuffer(it->second.buffer);
+        if (it->second.fence > 0) {
+            close(it->second.fence);
+        }
         bufferQueueCache_.erase(it);
         deletingList_.push_back(sequence);
     }
@@ -773,6 +779,9 @@ GSError BufferQueue::CleanCache()
     std::lock_guard<std::mutex> lockGuard(mutex_);
     auto it = bufferQueueCache_.begin();
     while (it != bufferQueueCache_.end()) {
+        if (it->second.fence > 0) {
+            close(it->second.fence);
+        }
         bufferQueueCache_.erase(it++);
     }
     freeList_.clear();

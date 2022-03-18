@@ -19,6 +19,7 @@
 #include <display_type.h>
 #include <surface.h>
 #include "hdi_layer_info.h"
+#include "sync_fence.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -47,7 +48,7 @@ private:
     uint32_t frameCounter_ = 0;
     uint32_t color_ = 0xffff1111;
     uint32_t zorder_ = 0;
-    int32_t prevFence_ = -1;
+    sptr<SyncFence> prevFence_;
     OHOS::sptr<Surface> pSurface_;
     OHOS::sptr<Surface> cSurface_;
     OHOS::sptr<SurfaceBuffer> prevBuffer_;

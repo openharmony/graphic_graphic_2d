@@ -107,12 +107,6 @@ void HdiLayer::SetHdiLayerInfo()
         return;
     }
 
-    const auto rect = layerInfo_->GetLayerSize();
-    if (rect.w <= 0 || rect.h <= 0) {
-        HLOGE("SetHdiLayerInfo: empty layer size!");
-        return;
-    }
-
     int32_t ret = device->SetLayerAlpha(screenId_, layerId_, layerInfo_->GetAlpha());
     CheckRet(ret, "SetLayerAlpha");
 

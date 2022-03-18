@@ -17,6 +17,7 @@
 
 #include "platform/common/rs_log.h"
 #include "pipeline/rs_main_thread.h"
+#include "sync_fence.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -50,6 +51,7 @@ void RSRenderServiceListener::OnBufferAvailable()
             int64_t timestamp = 0;
             Rect damage;
             auto ret = surfaceConsumer->AcquireBuffer(buffer, fence, timestamp, damage);
+            UniqueFd fenceFd(fence);
             if (buffer == nullptr || ret != SURFACE_ERROR_OK) {
                 ROSEN_LOGE("RsDebug RSRenderServiceListener::OnBufferAvailable: AcquireBuffer failed!");
                 return;
@@ -59,7 +61,7 @@ void RSRenderServiceListener::OnBufferAvailable()
                 (void)surfaceConsumer->ReleaseBuffer(node->GetBuffer(), -1);
             }
             node->SetBuffer(buffer);
-            node->SetFence(fence);
+            node->SetFence(new SyncFence(fenceFd.Release()));
         });
     } else {
         node->IncreaseAvailableBuffer();
