@@ -74,7 +74,7 @@ bool RSProcessor::ConsumeAndUpdateBuffer(RSSurfaceRenderNode& node, SpecialTask&
 {
     if (node.GetAvailableBufferCount() == 0 && !node.GetBuffer()) {
         ROSEN_LOGI("RsDebug RSProcessor::ProcessSurface have no Available Buffer and"\
-        "Node have no buffer node id:%llu", node.GetId());
+            "Node have no buffer node id:%llu", node.GetId());
         return false;
     }
     auto& surfaceConsumer = node.GetConsumer();
