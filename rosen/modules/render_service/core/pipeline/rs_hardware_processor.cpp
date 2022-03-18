@@ -81,42 +81,36 @@ void RSHardwareProcessor::PostProcess()
 void RSHardwareProcessor::CropLayers()
 {
     for (auto layer : layers_) {
-        bool cut = false;
         IRect dstRect = layer->GetLayerSize();
         IRect srcRect = layer->GetCropRect();
-        IRect orgSrcRect = srcRect;
+        IRect originSrcRect = srcRect;
+
+        RectI dstRectI(dstRect.x, dstRect.y, dstRect.w, dstRect.h);
         int32_t screenWidth = static_cast<int32_t>(currScreenInfo_.width);
         int32_t screenHeight = static_cast<int32_t>(currScreenInfo_.height);
-        if (dstRect.x < 0 && dstRect.x + dstRect.w > 0 && dstRect.x + dstRect.w < screenWidth) {
-            srcRect.w = srcRect.w * (dstRect.w + dstRect.x) / dstRect.w;
-            srcRect.x = orgSrcRect.w - srcRect.w;
-            dstRect.w = dstRect.w + dstRect.x;
-            dstRect.x = 0;
-            cut = true;
+        RectI screenRectI(0, 0, screenWidth, screenHeight);
+        RectI resDstRect = dstRectI.IntersectRect(screenRectI);
+        if (resDstRect == dstRectI) {
+            ROSEN_LOGD("RsDebug RSHardwareProcessor::CropLayers this layer no need to crop");
+            continue;
         }
-        if (dstRect.x + dstRect.w > screenWidth && dstRect.x < screenWidth && dstRect.x >= 0) {
-            srcRect.w = srcRect.w * (screenWidth - dstRect.x) / dstRect.w;
-            dstRect.w = screenWidth - dstRect.x;
-            cut = true;
-        }
-        if (dstRect.y < 0 && dstRect.y + dstRect.h > 0 && dstRect.y + dstRect.h < screenHeight) {
-            srcRect.h = srcRect.h * (dstRect.h + dstRect.y) / dstRect.h;
-            srcRect.y = orgSrcRect.h - srcRect.h;
-            dstRect.h = dstRect.h + dstRect.y;
-            dstRect.y = 0;
-            cut = true;
-        }
-        if (dstRect.y + dstRect.h > screenHeight && dstRect.y < screenHeight && dstRect.y >= 0) {
-            srcRect.h = srcRect.h * (screenHeight - dstRect.y) / dstRect.h;
-            dstRect.h = screenHeight - dstRect.y;
-            cut = true;
-        }
-        if (cut) {
-            layer->SetLayerSize(dstRect);
-            layer->SetDirtyRegion(srcRect);
-            layer->SetCropRect(srcRect);
-            ROSEN_LOGD("RsDebug RSHardwareProcessor::PostProcess: layer has been cropped to fit the Screen");
-        }
+        dstRect = {
+            .x = resDstRect.left_,
+            .y = resDstRect.top_,
+            .w = resDstRect.width_,
+            .h = resDstRect.height_,
+        };
+        srcRect.x = resDstRect.IsEmpty() ? 0 : std::ceil((resDstRect.left_ - dstRectI.left_) *
+            originSrcRect.w / dstRectI.width_);
+        srcRect.y = resDstRect.IsEmpty() ? 0 : std::ceil((resDstRect.top_ - dstRectI.top_) *
+            originSrcRect.h / dstRectI.height_);
+        srcRect.w = dstRectI.IsEmpty() ? 0 : originSrcRect.w * resDstRect.width_ / dstRectI.width_;
+        srcRect.h = dstRectI.IsEmpty() ? 0 : originSrcRect.h * resDstRect.height_ / dstRectI.height_;
+        layer->SetLayerSize(dstRect);
+        layer->SetDirtyRegion(srcRect);
+        layer->SetCropRect(srcRect);
+        ROSEN_LOGD("RsDebug RSHardwareProcessor::CropLayers layer has been cropped dst[%d %d %d %d] src[%d %d %d %d]",
+            dstRect.x, dstRect.y, dstRect.w, dstRect.h, srcRect.x, srcRect.y, srcRect.w, srcRect.h);
     }
 }
 
