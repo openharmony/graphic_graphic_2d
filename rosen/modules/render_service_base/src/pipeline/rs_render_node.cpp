@@ -66,9 +66,7 @@ void RSRenderNode::FallbackAnimationsToRoot()
 
 bool RSRenderNode::Animate(int64_t timestamp)
 {
-    bool hasAnimate = animationManager_.Animate(timestamp);
-    bool hasTransitionAnimate = RSBaseRenderNode::Animate(timestamp);
-    return hasAnimate || hasTransitionAnimate;
+    return animationManager_.Animate(timestamp);
 }
 
 bool RSRenderNode::Update(RSDirtyRegionManager& dirtyManager, const RSProperties* parent, bool parentDirty)

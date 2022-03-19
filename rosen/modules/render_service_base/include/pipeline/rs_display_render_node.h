@@ -66,6 +66,11 @@ public:
         return mirrorSource_;
     }
 
+    bool HasTransition(bool) const override
+    {
+        return false;
+    }
+
 private:
     CompositeType compositeType_ { HARDWARE_COMPOSITE };
     uint64_t screenId_;

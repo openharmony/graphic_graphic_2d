@@ -98,7 +98,10 @@ private:
 
     void OnVsync(uint64_t timestamp, void *data);
     void ProcessCommand();
-    void Draw();
+    void Animate(uint64_t timestamp);
+    void Render();
+    void SendCommands();
+
     std::mutex transitionDataMutex_;
     std::unique_ptr<RSThreadLooper> threadLooper_ = nullptr;
     std::unique_ptr<RSThreadHandler> threadHandler_ = nullptr;
@@ -108,7 +111,6 @@ private:
     std::queue<std::unique_ptr<RSTransactionData>> cacheCommandQueue_;
     std::queue<std::unique_ptr<RSTransactionData>> effectCommandQueue_;
 
-    void Animate(uint64_t timestamp);
     uint64_t timestamp_ = 0;
     std::unordered_map<uint32_t, sptr<IApplicationRenderThread>> applicationRenderThreadMap_;
 

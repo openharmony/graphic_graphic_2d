@@ -47,7 +47,8 @@ void RSMainThread::Init()
         ROSEN_TRACE_BEGIN(BYTRACE_TAG_GRAPHIC_AGP, "RSMainThread::DoComposition");
         ProcessCommand();
         Animate(timestamp_);
-        Draw();
+        Render();
+        SendCommands();
         ROSEN_TRACE_END(BYTRACE_TAG_GRAPHIC_AGP);
         ROSEN_LOGI("RsDebug mainLoop end");
     };
@@ -85,7 +86,7 @@ void RSMainThread::ProcessCommand()
     }
 }
 
-void RSMainThread::Draw()
+void RSMainThread::Render()
 {
     const std::shared_ptr<RSBaseRenderNode> rootNode = context_.GetGlobalRootRenderNode();
     if (rootNode == nullptr) {
@@ -132,33 +133,26 @@ void RSMainThread::OnVsync(uint64_t timestamp, void *data)
 void RSMainThread::Animate(uint64_t timestamp)
 {
     RS_TRACE_FUNC();
-    bool hasAnimate = false;
-    for (const auto& [id, node] : context_.GetNodeMap().renderNodeMap_) {
-        hasAnimate = node->Animate(timestamp) || hasAnimate;
-    }
-    context_.animatingNodeList_.clear();
-    if (hasAnimate) {
-        RequestNextVSync();
-    }
 
-    if (!RSMessageProcessor::Instance().HasTransaction()) {
+    if (context_.animatingNodeList_.empty()) {
         return;
     }
 
-    auto transactionMapPtr = std::make_shared<std::unordered_map<uint32_t, RSTransactionData>>(
-        RSMessageProcessor::Instance().GetAllTransactions());
-    PostTask([this, transactionMapPtr]() {
-        for (auto& transactionIter : *transactionMapPtr) {
-            auto pid = transactionIter.first;
-            auto appIter = applicationRenderThreadMap_.find(pid);
-            if (appIter == applicationRenderThreadMap_.end()) {
-                continue;
-            }
-            auto& app = appIter->second;
-            auto transactionPtr = std::make_shared<RSTransactionData>(std::move(transactionIter.second));
-            app->OnTransaction(transactionPtr);
+    // iterate and animate all animating nodes, remove if animation finished
+    std::__libcpp_erase_if_container(context_.animatingNodeList_, [timestamp](const auto& iter) -> bool {
+        auto node = iter.second.lock();
+        if (node == nullptr) {
+            ROSEN_LOGD("RSMainThread::Animate removing expired animating node");
+            return true;
         }
+        bool animationFinished = !node->Animate(timestamp);
+        if (animationFinished) {
+            ROSEN_LOGD("RSMainThread::Animate removing finished animating node %llu", node->GetId());
+        }
+        return animationFinished;
     });
+
+    RequestNextVSync();
 }
 
 void RSMainThread::RecvRSTransactionData(std::unique_ptr<RSTransactionData>& rsTransactionData)
@@ -186,6 +180,31 @@ void RSMainThread::RegisterApplicationRenderThread(uint32_t pid, sptr<IApplicati
 void RSMainThread::UnregisterApplicationRenderThread(sptr<IApplicationRenderThread> app)
 {
     std::__libcpp_erase_if_container(applicationRenderThreadMap_, [&app](auto& iter) { return iter.second == app; });
+}
+
+void RSMainThread::SendCommands()
+{
+    RS_TRACE_FUNC();
+    if (!RSMessageProcessor::Instance().HasTransaction()) {
+        return;
+    }
+
+    // dispatch messages to corresponding application
+    auto transactionMapPtr = std::make_shared<std::unordered_map<uint32_t, RSTransactionData>>(
+        RSMessageProcessor::Instance().GetAllTransactions());
+    PostTask([this, transactionMapPtr]() {
+        for (auto& transactionIter : *transactionMapPtr) {
+            auto pid = transactionIter.first;
+            auto appIter = applicationRenderThreadMap_.find(pid);
+            if (appIter == applicationRenderThreadMap_.end()) {
+                ROSEN_LOGI("RSMainThread::SendCommand no application found for pid %d", pid);
+                continue;
+            }
+            auto& app = appIter->second;
+            auto transactionPtr = std::make_shared<RSTransactionData>(std::move(transactionIter.second));
+            app->OnTransaction(transactionPtr);
+        }
+    });
 }
 } // namespace Rosen
 } // namespace OHOS

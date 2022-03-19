@@ -58,16 +58,16 @@ bool RSAnimationManager::Animate(int64_t time)
     // process animation
     bool hasRunningAnimation = false;
 
-    std::__libcpp_erase_if_container(animations_, [this, &hasRunningAnimation, time](auto& iter) {
+    // iterate and execute all animations, remove finished animations
+    std::__libcpp_erase_if_container(animations_, [this, &hasRunningAnimation, time](auto& iter) -> bool {
         auto& animation = iter.second;
         bool isFinished = animation->Animate(time);
         if (isFinished) {
             OnAnimationFinished(animation);
-            return true;
         } else {
             hasRunningAnimation = animation->IsRunning() || hasRunningAnimation ;
-            return false;
         }
+        return isFinished;
     });
 
     return hasRunningAnimation;
@@ -129,9 +129,8 @@ void RSAnimationManager::ClearTransition(AnimationId id)
         ROSEN_LOGE("RSAnimationManager::ClearTransition, transition_ is empty");
         return;
     }
-    transition_.remove_if([&](std::pair<AnimationId, TransitionCallback>& transition) {
-        return id == transition.first;
-    });
+    transition_.remove_if(
+        [&](std::pair<AnimationId, TransitionCallback>& transition) -> bool { return id == transition.first; });
 }
 
 std::unique_ptr<RSTransitionProperties> RSAnimationManager::GetTransitionProperties()
