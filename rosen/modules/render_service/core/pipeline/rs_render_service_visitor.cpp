@@ -154,7 +154,6 @@ void RSRenderServiceVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
             ROSEN_LOGI("RSRenderServiceVisitor::PrepareSurfaceRenderNode this child is not SurfaceNode");
             return;
         }
-        surfaceChild->SetBlendType(BlendType::BLEND_SRC);
         auto childGeoPtr =
             std::static_pointer_cast<RSObjAbsGeometry>(surfaceChild->GetRenderProperties().GetBoundsGeometry());
         if (childGeoPtr != nullptr) {

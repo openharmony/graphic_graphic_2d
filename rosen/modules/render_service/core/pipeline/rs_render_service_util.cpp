@@ -560,6 +560,7 @@ void RsRenderServiceUtil::ExtractAnimationInfo(const std::unique_ptr<RSTransitio
     if (existedParent->IsInstanceOf<RSSurfaceRenderNode>()) {
         auto parentTransitionProperties = std::static_pointer_cast<RSSurfaceRenderNode>(existedParent)->
             GetAnimationManager().GetTransitionProperties();
+        auto& parentProperties = std::static_pointer_cast<RSSurfaceRenderNode>(existedParent)->GetRenderProperties();
         if (!parentTransitionProperties) {
             ROSEN_LOGI("RsDebug RSHardwareProcessor::CalculateInfoWithAnimation this node[%s] parent have no effect",
                 node.GetName().c_str());
@@ -569,8 +570,7 @@ void RsRenderServiceUtil::ExtractAnimationInfo(const std::unique_ptr<RSTransitio
         info.translate = parentTransitionProperties->GetTranslate();
         info.alpha = parentTransitionProperties->GetAlpha();
         info.rotateMatrix = parentTransitionProperties->GetRotate();
-        info.pivot =
-            std::static_pointer_cast<RSSurfaceRenderNode>(existedParent)->GetRenderProperties().GetBoundsSize() * 0.5f;
+        info.pivot = parentProperties.GetBoundsPosition() + parentProperties.GetBoundsSize() * 0.5f;
     } else {
         if (!transitionProperties) {
             ROSEN_LOGI("RsDebug RSHardwareProcessor::CalculateInfoWithAnimation this node have no effect",
@@ -581,7 +581,7 @@ void RsRenderServiceUtil::ExtractAnimationInfo(const std::unique_ptr<RSTransitio
         info.translate = transitionProperties->GetTranslate();
         info.alpha = transitionProperties->GetAlpha();
         info.rotateMatrix = transitionProperties->GetRotate();
-        info.pivot = node.GetRenderProperties().GetBoundsSize() * 0.5f;
+        info.pivot = node.GetRenderProperties().GetBoundsPosition() + node.GetRenderProperties().GetBoundsSize() * 0.5f;
     }
 }
 
