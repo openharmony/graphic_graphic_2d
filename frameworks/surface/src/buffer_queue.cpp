@@ -796,6 +796,17 @@ uint64_t BufferQueue::GetUniqueId() const
     return uniqueId_;
 }
 
+GSError BufferQueue::SetTransform(TransformType transform)
+{
+    transform_ = transform;
+    return GSERROR_OK;
+}
+
+TransformType BufferQueue::GetTransform() const
+{
+    return transform_;
+}
+
 void BufferQueue::DumpCache(std::string &result)
 {
     for (auto it = bufferQueueCache_.begin(); it != bufferQueueCache_.end(); it++) {

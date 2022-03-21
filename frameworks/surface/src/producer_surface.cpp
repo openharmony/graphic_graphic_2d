@@ -263,4 +263,14 @@ uint64_t ProducerSurface::GetUniqueId() const
 {
     return producer_->GetUniqueId();
 }
+
+GSError ProducerSurface::SetTransform(TransformType transform)
+{
+    return producer_->SetTransform(transform);
+}
+
+TransformType ProducerSurface::GetTransform() const
+{
+    return TransformType::ROTATE_BUTT;
+}
 } // namespace OHOS

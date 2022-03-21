@@ -98,9 +98,6 @@ GSError BufferManager::Alloc(const BufferRequestConfig &config, sptr<SurfaceBuff
     BufferHandle *handle = nullptr;
     int32_t allocWidth = config.width;
     int32_t allocHeight = config.height;
-    if (config.transform == TransformType::ROTATE_90 || config.transform == TransformType::ROTATE_270) {
-        std::swap(allocWidth, allocHeight);
-    }
     AllocInfo info = {allocWidth, allocHeight, config.usage, (PixelFormat)config.format};
     auto dret = displayGralloc_->AllocMem(info, handle);
     if (dret == DISPLAY_SUCCESS) {

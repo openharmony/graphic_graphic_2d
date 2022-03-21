@@ -76,6 +76,9 @@ public:
     virtual void Dump(std::string &result) const = 0;
 
     virtual GSError CleanCache() = 0;
+
+    virtual GSError SetTransform(TransformType transform) = 0;
+    virtual TransformType GetTransform() const = 0;
 protected:
     Surface() = default;
 };

@@ -48,6 +48,7 @@ public:
     int32_t GetDefaultWidth() override;
     int32_t GetDefaultHeight() override;
     uint32_t GetDefaultUsage() override;
+    GSError SetTransform(TransformType transform) override;
     uint64_t GetUniqueId() override;
 
     GSError CleanCache() override;

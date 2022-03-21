@@ -74,6 +74,9 @@ public:
 
     GSError CleanCache() override;
 
+    GSError SetTransform(TransformType transform) override;
+    TransformType GetTransform() const override;
+
 private:
     std::map<std::string, std::string> userData_;
     sptr<BufferQueueProducer> producer_ = nullptr;

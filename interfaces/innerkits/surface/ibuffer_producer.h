@@ -59,6 +59,8 @@ public:
 
     virtual GSError RegisterReleaseListener(OnReleaseFunc func) = 0;
 
+    virtual GSError SetTransform(TransformType transform) = 0;
+
     DECLARE_INTERFACE_DESCRIPTOR(u"surf.IBufferProducer");
 
 protected:
@@ -77,6 +79,7 @@ protected:
         BUFFER_PRODUCER_DETACH_BUFFER = 11,
         BUFFER_PRODUCER_REGISTER_RELEASE_LISTENER = 12,
         BUFFER_PRODUCER_GET_UNIQUE_ID = 13,
+        BUFFER_PRODUCER_SET_TRANSFORM = 14,
     };
 };
 } // namespace OHOS

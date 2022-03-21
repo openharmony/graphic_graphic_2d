@@ -45,6 +45,7 @@ public:
     GSError SetDefaultWidthAndHeight(int32_t width, int32_t height);
     GSError SetDefaultUsage(uint32_t usage);
     void Dump(std::string &result) const;
+    TransformType GetTransform() const;
 
 private:
     sptr<BufferQueue> bufferQueue_ = nullptr;

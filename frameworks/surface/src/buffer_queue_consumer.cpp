@@ -120,4 +120,12 @@ void BufferQueueConsumer::Dump(std::string &result) const
     }
     return bufferQueue_->Dump(result);
 }
+
+TransformType BufferQueueConsumer::GetTransform() const
+{
+    if (bufferQueue_ == nullptr) {
+        return TransformType::ROTATE_BUTT;
+    }
+    return bufferQueue_->GetTransform();
+}
 } // namespace OHOS

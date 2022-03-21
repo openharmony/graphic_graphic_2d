@@ -98,6 +98,9 @@ public:
 
     void Dump(std::string &result);
 
+    GSError SetTransform(TransformType transform);
+    TransformType GetTransform() const;
+
 private:
     GSError AllocBuffer(sptr<SurfaceBufferImpl>& buffer, const BufferRequestConfig &config);
     GSError FreeBuffer(sptr<SurfaceBufferImpl>& buffer);
@@ -118,6 +121,7 @@ private:
     int32_t defaultHeight = 0;
     uint32_t defaultUsage = 0;
     uint32_t queueSize_ = SURFACE_DEFAULT_QUEUE_SIZE;
+    TransformType transform_ = TransformType::ROTATE_NONE;
     std::string name_;
     std::list<int32_t> freeList_;
     std::list<int32_t> dirtyList_;

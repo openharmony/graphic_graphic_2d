@@ -367,4 +367,29 @@ HWTEST_F(ProducerSurfaceTest, UniqueId001, Function | MediumTest | Level2)
     uint64_t uniqueId = psurf->GetUniqueId();
     ASSERT_NE(uniqueId, 0);
 }
+
+/*
+* Function: SetTransform and GetTransform
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call GetTransform and check ret
+*                  2. call SetTransform and check ret
+*                  3. call SetTransform with other parameters and check ret
+ */
+HWTEST_F(ProducerSurfaceTest, transform001, Function | MediumTest | Level2)
+{
+    ASSERT_EQ(psurf->GetTransform(), TransformType::ROTATE_BUTT);
+    GSError ret = psurf->SetTransform(TransformType::ROTATE_NONE);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
+
+    ret = psurf->SetTransform(TransformType::ROTATE_90);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
+
+    ret = psurf->SetTransform(TransformType::ROTATE_180);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
+
+    ret = psurf->SetTransform(TransformType::ROTATE_270);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
+}
 }

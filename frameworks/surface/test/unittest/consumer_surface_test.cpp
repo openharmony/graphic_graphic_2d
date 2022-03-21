@@ -345,4 +345,38 @@ HWTEST_F(ConsumerSurfaceTest, RegisterConsumerListener002, Function | MediumTest
     ret = ps->FlushBuffer(buffer, -1, flushConfig);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 }
+
+/*
+* Function: SetTransform and GetTransform
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call GetTransform by default
+*                  2. call SetTransform with different paramaters and call GetTransform
+*                  3. check ret
+ */
+HWTEST_F(ConsumerSurfaceTest, transform001, Function | MediumTest | Level2)
+{
+    ASSERT_EQ(cs->GetTransform(), TransformType::ROTATE_NONE);
+
+    TransformType transform = TransformType::ROTATE_90;
+    GSError ret = ps->SetTransform(transform);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
+    ASSERT_EQ(cs->GetTransform(), TransformType::ROTATE_90);
+
+    transform = TransformType::ROTATE_180;
+    ret = ps->SetTransform(transform);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
+    ASSERT_EQ(cs->GetTransform(), TransformType::ROTATE_180);
+
+    transform = TransformType::ROTATE_270;
+    ret = ps->SetTransform(transform);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
+    ASSERT_EQ(cs->GetTransform(), TransformType::ROTATE_270);
+
+    transform = TransformType::ROTATE_NONE;
+    ret = ps->SetTransform(transform);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
+    ASSERT_EQ(cs->GetTransform(), TransformType::ROTATE_NONE);
+}
 }
