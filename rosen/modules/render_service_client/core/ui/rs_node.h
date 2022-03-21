@@ -195,8 +195,8 @@ private:
     void RemoveAnimationInner(const std::shared_ptr<RSAnimation>& animation);
     void FinishAnimationByProperty(const RSAnimatableProperty& property);
 
-    std::map<AnimationId, std::shared_ptr<RSAnimation>> animations_;
-    std::map<RSAnimatableProperty, int> animatingPropertyNum_;
+    std::unordered_map<AnimationId, std::shared_ptr<RSAnimation>> animations_;
+    std::unordered_map<RSAnimatableProperty, uint32_t> animatingPropertyNum_;
     std::shared_ptr<RSMotionPathOption> motionPathOption_;
 
     std::shared_ptr<const RSTransitionEffect> transitionEffect_ = nullptr;

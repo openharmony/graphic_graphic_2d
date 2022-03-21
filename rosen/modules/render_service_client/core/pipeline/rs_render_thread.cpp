@@ -284,24 +284,31 @@ void RSRenderThread::ProcessCommands()
 
 void RSRenderThread::Animate(uint64_t timestamp)
 {
-    ROSEN_TRACE_BEGIN(BYTRACE_TAG_GRAPHIC_AGP, "Animate");
+    RS_TRACE_FUNC();
+
     if (RsFrameReport::GetInstance().GetEnable()) {
         RsFrameReport::GetInstance().AnimateStart();
     }
 
-    std::__libcpp_erase_if_container(context_.animatingNodeList_, [timestamp](const auto& iter) {
+    if (context_.animatingNodeList_.empty()) {
+        return;
+    }
+
+    // iterate and animate all animating nodes, remove if animation finished
+    std::__libcpp_erase_if_container(context_.animatingNodeList_, [timestamp](const auto& iter) -> bool {
         auto node = iter.second.lock();
         if (node == nullptr) {
+            ROSEN_LOGD("RSRenderThread::Animate removing expired animating node");
             return true;
         }
-
-        return !node->Animate(timestamp);
+        bool animationFinished = !node->Animate(timestamp);
+        if (animationFinished) {
+            ROSEN_LOGD("RSRenderThread::Animate removing finished animating node %llu", node->GetId());
+        }
+        return animationFinished;
     });
 
-    if (!context_.animatingNodeList_.empty()) {
-        RSRenderThread::Instance().RequestNextVSync();
-    }
-    ROSEN_TRACE_END(BYTRACE_TAG_GRAPHIC_AGP);
+    RSRenderThread::Instance().RequestNextVSync();
 }
 
 void RSRenderThread::Render()

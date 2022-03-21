@@ -57,13 +57,9 @@ public:
         return RSRenderNodeType::RS_NODE;
     }
 
-    bool HasTransition() const override
+    bool HasTransition(bool recursive) const override
     {
-        if (animationManager_.HasTransition()) {
-            return true;
-        }
-        auto parent = GetParent().lock();
-        return parent ? parent->HasTransition() : false;
+        return animationManager_.HasTransition() || RSBaseRenderNode::HasTransition(recursive);
     }
 
 protected:

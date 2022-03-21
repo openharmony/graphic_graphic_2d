@@ -17,7 +17,6 @@
 
 #include <list>
 #include <memory>
-#include <vector>
 
 #include "common/rs_common_def.h"
 
@@ -40,9 +39,14 @@ public:
     void ClearChildren();
     void RemoveFromTree();
 
-    virtual bool Animate(int64_t timestamp);
     virtual void Prepare(const std::shared_ptr<RSNodeVisitor>& visitor);
     virtual void Process(const std::shared_ptr<RSNodeVisitor>& visitor);
+
+    // return if any animation is running
+    virtual bool Animate(int64_t timestamp)
+    {
+        return false;
+    }
 
     WeakPtr GetParent() const;
     void ResetParent();
@@ -52,9 +56,10 @@ public:
         return id_;
     }
 
+    // node is on the render tree as long as it has a valid parent
     bool IsOnTheTree() const
     {
-        return isOnTheTree_;
+        return !parent_.expired();
     }
 
     const std::list<SharedPtr>& GetSortedChildren();
@@ -71,9 +76,14 @@ public:
 
     void DumpTree(std::string& out) const;
 
-    virtual bool HasTransition() const
+    virtual bool HasTransition(bool recursive = true) const
     {
-        return false;
+        if (recursive == false) {
+            return false;
+        } else {
+            auto parent = GetParent().lock();
+            return parent ? parent->HasTransition(true) : false;
+        }
     }
 
     virtual RSRenderNodeType GetType() const
@@ -116,7 +126,7 @@ private:
     WeakPtr parent_;
     void SetParent(WeakPtr parent);
 
-    std::vector<WeakPtr> children_;
+    std::list<WeakPtr> children_;
     std::list<std::pair<SharedPtr, uint32_t>> disappearingChildren_;
 
     std::list<SharedPtr> sortedChildren_;
@@ -124,7 +134,6 @@ private:
 
     const std::weak_ptr<RSContext> context_;
     NodeDirty dirtyStatus_ = NodeDirty::DIRTY;
-    bool isOnTheTree_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS
