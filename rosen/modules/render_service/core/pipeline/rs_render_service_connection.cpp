@@ -379,10 +379,16 @@ void RSRenderServiceConnection::SetScreenBacklight(ScreenId id, uint32_t level)
 
 void RSRenderServiceConnection::RegisterBufferAvailableListener(NodeId id, sptr<RSIBufferAvailableCallback> callback)
 {
-    std::shared_ptr<RSSurfaceRenderNode> node =
-        mainThread_->GetContext().GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(id);
-    if (node != nullptr) {
-        node->RegisterBufferAvailableListener(callback);
+    auto registerBufferAvailableListener = [id, callback, this]() -> bool {
+        if (auto node = this->mainThread_->GetContext().GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(id)) {
+            node->RegisterBufferAvailableListener(callback);
+            return true;
+        }
+        return false;
+    };
+    if (!registerBufferAvailableListener()) {
+        ROSEN_LOGI("RegisterBufferAvailableListener: node not found, post task to retry");
+        mainThread_->PostTask(registerBufferAvailableListener);
     }
 }
 
