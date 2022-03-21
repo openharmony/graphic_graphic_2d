@@ -39,18 +39,12 @@ HdiScreen::~HdiScreen()
 void HdiScreen::OnVsync(uint32_t sequence, uint64_t ns, void *data)
 {
     // trigger vsync
-    const auto &now = std::chrono::steady_clock::now().time_since_epoch();
-    int64_t occurTimestamp = std::chrono::duration_cast<std::chrono::nanoseconds>(now).count();
+    // if the sampler->GetHardwareVSyncStatus() is false, this OnVsync callback will be disable
+    // we need to add this process
     auto sampler = CreateVSyncSampler();
     if (sampler->GetHardwareVSyncStatus()) {
-        bool enable = sampler->AddSample(occurTimestamp);
+        bool enable = sampler->AddSample(ns);
         sampler->SetHardwareVSyncStatus(enable);
-    }
-
-    // this old version will be removed
-    OHOS::VsyncError ret = OHOS::VsyncModule::GetInstance()->Trigger();
-    if (ret != OHOS::VSYNC_ERROR_OK) {
-        HLOGE("vsync trigger failed, ret is %{public}d", ret);
     }
 }
 
@@ -63,14 +57,6 @@ bool HdiScreen::Init()
 
     device_ = HdiDevice::GetInstance();
     if (device_ == nullptr) {
-        return false;
-    }
-
-    // start vsync
-    // this old version will be removed
-    OHOS::VsyncError vsyncRet = VsyncModule::GetInstance()->Start();
-    if (vsyncRet != OHOS::VSYNC_ERROR_OK) {
-        HLOGE("vsync start failed, ret is %{public}d", vsyncRet);
         return false;
     }
 
