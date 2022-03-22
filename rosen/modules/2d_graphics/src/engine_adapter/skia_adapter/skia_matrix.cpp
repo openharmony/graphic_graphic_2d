@@ -80,7 +80,7 @@ void SkiaMatrix::MapPoints(std::vector<Point>& dst, const std::vector<Point>& sr
     }
     skMatrix_.mapPoints(&pt1[0], &pt2[0], count);
     dst.clear();
-    for (auto i = 0; i < count; ++i) {
+    for (uint32_t i = 0; i < count; ++i) {
         dst.emplace_back(Point(pt1[i].fX, pt1[i].fY));
     }
 }
