@@ -36,10 +36,10 @@ Mesh::Mesh()
 
     mVertices_ = new float[verticesNumber_];
     mIndices_ = new unsigned int[indicesNumber_];
-    for (int i = 0; i < verticesNumber_; i++) {
+    for (unsigned int i = 0; i < verticesNumber_; i++) {
         mVertices_[i] = vertices[i];
     }
-    for (int i = 0; i < indicesNumber_; i++) {
+    for (unsigned int i = 0; i < indicesNumber_; i++) {
         mIndices_[i] = indices[i];
     }
     glGenVertexArrays(1, &VAO_);
