@@ -50,6 +50,8 @@ private:
     bool initDeviceFinished_ = false;
     bool deviceConnected_ = false;
     bool postHotPlugEvent_ = false;
+    bool testClient_ = false;
+    bool testLayerRotate_ = false;
     HdiBackend* backend_ = nullptr;
     std::vector<std::unique_ptr<HdiScreen>> screens_;
     std::shared_ptr<HdiOutput> curOutput_;
@@ -66,6 +68,8 @@ private:
     void DoPrepareCompleted(sptr<Surface> &surface, const struct PrepareCompleteParam &param);
     void OnHotPlug(std::shared_ptr<HdiOutput> &output, bool connected);
     void OnHotPlugEvent(std::shared_ptr<HdiOutput> &output, bool connected);
+    void ParseArgs(std::vector<std::string> &runArgs);
+    void SetRunArgs(const std::unique_ptr<LayerContext> &drawLayer);
     uint32_t CreatePhysicalScreen();
 
     static void OnScreenPlug(std::shared_ptr<HdiOutput> &output, bool connected, void* data);

@@ -67,11 +67,7 @@ void HelloComposer::Run(std::vector<std::string> &runArgs)
 
     backend_->RegPrepareComplete(HelloComposer::OnPrepareCompleted, this);
 
-    for (std::string &arg : runArgs) {
-        if (arg == "--dump") {
-            dump_ = true;
-        }
-    }
+    ParseArgs(runArgs);
 
     sleep(1);
     std::shared_ptr<OHOS::AppExecFwk::EventRunner> runner = OHOS::AppExecFwk::EventRunner::Create(false);
@@ -80,6 +76,19 @@ void HelloComposer::Run(std::vector<std::string> &runArgs)
     g_receiver->Init();
     mainThreadHandler_->PostTask(std::bind(&HelloComposer::RequestSync, this));
     runner->Run();
+}
+
+void HelloComposer::ParseArgs(std::vector<std::string> &runArgs)
+{
+    for (std::string &arg : runArgs) {
+        if (arg == "--dump") {
+            dump_ = true;
+        } else if (arg == "--testClient") {
+            testClient_ = true;
+        } else if (arg == "--testLayerRotate") {
+            testLayerRotate_ = true;
+        }
+    }
 }
 
 void HelloComposer::OnScreenPlug(std::shared_ptr<HdiOutput> &output, bool connected, void* data)
@@ -156,14 +165,17 @@ void HelloComposer::InitLayers(uint32_t screenId)
         IRect { 0, 0, displayWidth, statusHeight },
         1, LayerType::LAYER_NAVIGATION));
 
-    uint32_t extraLayerWidth = displayWidth / 4; // layer width is 1 / 4 displayWidth
-    uint32_t extraLayerHeight = displayHeight / 4; // layer height is 1 / 4 of displayHeight
-    LOGI("extraLayerWidth[%{public}d], extraLayerHeight[%{public}d]", extraLayerWidth, extraLayerHeight);
+    uint32_t layerWidth = displayWidth / 4; // layer width is 1/4 displayWidth
+    uint32_t layerHeight = displayHeight / 4; // layer height is 1/4 of displayHeight
+    uint32_t layerPositionX = displayWidth / 2 - layerWidth / 2; // x is (displayWidth - layerWidth) / 2
+    uint32_t layerPositionY = displayHeight / 2 - layerHeight / 2; // y is (displayHeight - layerHeight) / 2
+    LOGI("Layer position is: [x, y, w, h: [%{public}d, %{public}d, %{public}d, %{public}d]]",
+          layerPositionX, layerPositionY, layerWidth, layerHeight);
 
     // extra layer 1
     drawLayers.emplace_back(std::make_unique<LayerContext>(
-        IRect { 300, 300, extraLayerWidth, extraLayerHeight }, // 300 is position
-        IRect { 0, 0, extraLayerWidth, extraLayerHeight },
+        IRect { layerPositionX, layerPositionY, layerWidth, layerHeight },
+        IRect { 0, 0, layerWidth, layerHeight },
         1, LayerType::LAYER_EXTRA)); // 2 is zorder
 }
 
@@ -183,6 +195,23 @@ void HelloComposer::Sync(int64_t, void *data)
     Draw();
 }
 
+void HelloComposer::SetRunArgs(const std::unique_ptr<LayerContext> &drawLayer)
+{
+    if (testClient_) {
+        LayerType type = drawLayer->GetLayerType();
+        if (type >= LayerType::LAYER_EXTRA) {
+            drawLayer->SetTestClientStatus(true);
+        }
+    }
+
+    if (testLayerRotate_) {
+        LayerType type = drawLayer->GetLayerType();
+        if (type >= LayerType::LAYER_EXTRA) {
+            drawLayer->SetTestRotateStatus(true);
+        }
+    }
+}
+
 void HelloComposer::Draw()
 {
     for (auto iter = drawLayersMap_.begin(); iter != drawLayersMap_.end(); ++iter) {
@@ -191,6 +220,7 @@ void HelloComposer::Draw()
         std::vector<std::unique_ptr<LayerContext>> &drawLayers = drawLayersMap_[screenId];
         std::vector<LayerInfoPtr> layerVec;
         for (auto &drawLayer : drawLayers) { // producer
+            SetRunArgs(drawLayer);
             drawLayer->DrawBufferColor();
         }
 
