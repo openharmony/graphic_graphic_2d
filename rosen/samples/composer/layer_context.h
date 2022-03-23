@@ -39,6 +39,9 @@ public:
     SurfaceError DrawBufferColor();
     SurfaceError FillHDILayer();
     const std::shared_ptr<HdiLayerInfo> GetHdiLayer();
+    void SetTestClientStatus(bool status);
+    void SetTestRotateStatus(bool status);
+    LayerType GetLayerType() const;
 
 private:
     const std::vector<uint32_t> colors_ = {0xff0000ff, 0xffff00ff, 0xaa00ff00, 0xff00ffaa, 0xff0f0f00};
@@ -54,10 +57,14 @@ private:
     OHOS::sptr<SurfaceBuffer> prevBuffer_;
     std::shared_ptr<HdiLayerInfo> hdiLayer_;
     LayerType layerType_ = LayerType::LAYER_EXTRA;
+    bool testClient_ = false;
+    bool testRotate_ = false;
 
     void DrawColor(void *image, int width, int height);
     void DrawExtraColor(void *image, uint32_t width, uint32_t height);
     void DrawBaseColor(void *image, uint32_t width, uint32_t height);
+    void SetLayerTransformType();
+    void SetLayerCompositionType();
 };
 } // namespace Rosen
 } // namespace OHOS

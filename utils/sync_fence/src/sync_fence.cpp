@@ -37,7 +37,6 @@ const sptr<SyncFence> SyncFence::INVALID_FENCE = sptr<SyncFence>(new SyncFence(I
 
 SyncFence::SyncFence(int32_t fenceFd) : fenceFd_(fenceFd)
 {
-    HiLog::Debug(LABEL, "%{public}s fenceFd: %{public}d", __func__, fenceFd_.Get());
 }
 
 SyncFence::~SyncFence()
