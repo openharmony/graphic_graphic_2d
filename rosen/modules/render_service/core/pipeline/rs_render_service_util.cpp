@@ -449,16 +449,32 @@ static int Table_fu2[256] = { -227, -226, -224, -222, -220, -219, -217, -215, -2
 
 bool ConvertYUV420SPToRGBA(std::vector<uint8_t>& rgbaBuf, const sptr<OHOS::SurfaceBuffer>& srcBuf)
 {
+    if (srcBuf == nullptr || rgbaBuf.empty()) {
+        ROSEN_LOGE("RsRenderServiceUtil::ConvertYUV420SPToRGBA invalid params");
+        return false;
+    }
     int32_t bufferHeight = srcBuf->GetHeight();
-    int32_t bufferWidth = srcBuf->GetStride();
+    int32_t bufferStride = srcBuf->GetStride();
+    int32_t bufferWidth = srcBuf->GetWidth();
+    if (bufferStride < 1 || bufferWidth < 1 || bufferHeight < 1) {
+        ROSEN_LOGE("RsRenderServiceUtil::ConvertYUV420SPToRGBA invalid buffer size");
+        return false;
+    }
     uint8_t* rgbaDst = &rgbaBuf[0];
     auto bufferAddr = srcBuf->GetVirAddr();
     uint8_t* src = static_cast<uint8_t*>(bufferAddr);
-    if (bufferWidth < 1 || bufferHeight < 1 || src == nullptr || rgbaDst == nullptr) {
+    if (src == nullptr || rgbaDst == nullptr) {
+        ROSEN_LOGE("RsRenderServiceUtil::ConvertYUV420SPToRGBA null buffer ptr");
         return false;
     }
     uint8_t* ybase = src;
-    uint8_t* ubase = &src[bufferWidth*bufferHeight];
+    int32_t len = bufferStride * bufferHeight;
+#ifdef PADDING_HEIGHT_32
+    int32_t paddingBase = 32;
+    int32_t paddingHeight = ((bufferHeight - 1) / paddingBase + 1) * paddingBase;
+    len = bufferStride * paddingHeight;
+#endif
+    uint8_t* ubase = &src[len];
 
     int rgb[3] = {0, 0, 0};
     int idx = 0;
@@ -467,9 +483,9 @@ bool ConvertYUV420SPToRGBA(std::vector<uint8_t>& rgbaBuf, const sptr<OHOS::Surfa
     int bdif = 0;
     for (int i = 0; i < bufferHeight; i++) {
         for (int j = 0; j < bufferWidth; j++) {
-            int Y = static_cast<int>(ybase[i * bufferWidth + j]);
-            int U = static_cast<int>(ubase[i / 2 * bufferWidth + (j / 2) * 2 + 1]);
-            int V = static_cast<int>(ubase[i / 2 * bufferWidth + (j / 2) * 2]);
+            int Y = static_cast<int>(ybase[i * bufferStride + j]);
+            int U = static_cast<int>(ubase[i / 2 * bufferStride + (j / 2) * 2 + 1]);
+            int V = static_cast<int>(ubase[i / 2 * bufferStride + (j / 2) * 2]);
             if (srcBuf->GetFormat() == PIXEL_FMT_YCBCR_420_SP) {
                 std::swap(U, V);
             }
@@ -644,7 +660,7 @@ bool RsRenderServiceUtil::CreateNewColorGamutBitmap(sptr<OHOS::SurfaceBuffer> bu
 bool RsRenderServiceUtil::CreateYuvToRGBABitMap(sptr<OHOS::SurfaceBuffer> buffer,
     std::vector<uint8_t>& newBuffer, SkBitmap& bitmap)
 {
-    newBuffer.resize(buffer->GetStride() * buffer->GetHeight() * 4, 0); // 4 is color channel
+    newBuffer.resize(buffer->GetWidth() * buffer->GetHeight() * 4, 0); // 4 is color channel
     if (!Detail::ConvertYUV420SPToRGBA(newBuffer, buffer)) {
         return false;
     }
@@ -652,7 +668,7 @@ bool RsRenderServiceUtil::CreateYuvToRGBABitMap(sptr<OHOS::SurfaceBuffer> buffer
     SkColorType colorType = kRGBA_8888_SkColorType;
     SkImageInfo imageInfo = SkImageInfo::Make(buffer->GetWidth(), buffer->GetHeight(),
         colorType, kPremul_SkAlphaType);
-    SkPixmap pixmap(imageInfo, newBuffer.data(), buffer->GetStride() * 4); // 4 is color channel
+    SkPixmap pixmap(imageInfo, newBuffer.data(), buffer->GetWidth() * 4); // 4 is color channel
     return bitmap.installPixels(pixmap);
 }
 
