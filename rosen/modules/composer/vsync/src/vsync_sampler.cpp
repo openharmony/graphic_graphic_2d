@@ -25,7 +25,7 @@ sptr<OHOS::Rosen::VSyncSampler> VSyncSampler::instance_ = nullptr;
 
 namespace {
 constexpr double PI = 3.1415926;
-constexpr int64_t g_errorThreshold = 160000000000; // 400 usec squared
+constexpr int64_t g_errorThreshold = 40000000000; // 200 usec squared
 constexpr int32_t INVAILD_TIMESTAMP = -1;
 constexpr int32_t MINES_SAMPLE_NUMS = 3;
 }
@@ -199,13 +199,9 @@ bool VSyncSampler::AddPresentFenceTime(int64_t timestamp)
     presentFenceTimeOffset_ = (presentFenceTimeOffset_ + 1) % NUM_PRESENT;
     numResyncSamplesSincePresent_ = 0;
 
-    if (!modeUpdated_) {
-        return false;
-    }
-
     UpdateErrorLocked();
 
-    return error_ > g_errorThreshold;
+    return !modeUpdated_ || error_ > g_errorThreshold;
 }
 
 int64_t VSyncSampler::GetPeriod() const
