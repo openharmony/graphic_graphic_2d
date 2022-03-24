@@ -164,7 +164,8 @@
         ],
         "test": [
           "//foundation/graphic/standard:graphic_standard_test",
-          "//foundation/graphic/standard/rosen/test/render_service:unittest"
+          "//foundation/graphic/standard/rosen/test/render_service:unittest",
+          "//foundation/graphic/standard/rosen/test/2d_graphics:unittest"
         ]
       }
     }
