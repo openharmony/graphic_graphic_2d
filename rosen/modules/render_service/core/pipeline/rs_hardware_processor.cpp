@@ -212,6 +212,8 @@ void RSHardwareProcessor::CalculateInfoWithVideo(ComposeInfo& info, RSSurfaceRen
         if (geoParent) {
             clipRegion.left_ = rect.x_ + geoParent->GetAbsRect().left_;
             clipRegion.top_ = rect.y_ + geoParent->GetAbsRect().top_;
+            clipRegion.SetRight(std::min(clipRegion.GetRight(), geoParent->GetAbsRect().GetRight()));
+            clipRegion.SetBottom(std::min(clipRegion.GetBottom(), geoParent->GetAbsRect().GetBottom()));
         }
     }
     RectI originDstRect(info.dstRect.x, info.dstRect.y, info.dstRect.w, info.dstRect.h);
