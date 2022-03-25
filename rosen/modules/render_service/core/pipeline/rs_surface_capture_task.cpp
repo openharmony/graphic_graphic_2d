@@ -80,6 +80,10 @@ std::unique_ptr<Media::PixelMap> RSSurfaceCaptureTask::CreatePixelMapBySurfaceNo
         ROSEN_LOGE("CreatePixelMapBySurfaceNode: node == nullptr");
         return nullptr;
     }
+    if (node->GetBuffer() == nullptr) {
+        ROSEN_LOGE("CreatePixelMapBySurfaceNode: node GetBuffer == nullptr");
+        return nullptr;
+    }
     int pixmapWidth = node->GetRenderProperties().GetBoundsWidth();
     int pixmapHeight = node->GetRenderProperties().GetBoundsHeight();
     Media::InitializationOptions opts;
