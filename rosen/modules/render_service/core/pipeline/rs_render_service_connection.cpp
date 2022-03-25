@@ -44,7 +44,7 @@ RSRenderServiceConnection::RSRenderServiceConnection(
       appVSyncDistributor_(distributor)
 {
     if (!token_->AddDeathRecipient(connDeathRecipient_)) {
-        ROSEN_LOGW("RSRenderServiceConnection: Failed to set death recipient.");
+        RS_LOGW("RSRenderServiceConnection: Failed to set death recipient.");
     }
 }
 
@@ -84,7 +84,7 @@ void RSRenderServiceConnection::CleanAll(bool toDelete) noexcept
             return;
         }
     }
-    ROSEN_LOGD("RSRenderServiceConnection::CleanAll() start.");
+    RS_LOGD("RSRenderServiceConnection::CleanAll() start.");
     mainThread_->ScheduleTask([this]() {
         CleanVirtualScreens();
         CleanRenderNodes();
@@ -103,13 +103,13 @@ void RSRenderServiceConnection::CleanAll(bool toDelete) noexcept
     if (toDelete) {
         auto renderService = renderService_.promote();
         if (renderService == nullptr) {
-            ROSEN_LOGW("RSRenderServiceConnection::CleanAll() RenderService is dead.");
+            RS_LOGW("RSRenderServiceConnection::CleanAll() RenderService is dead.");
         } else {
             renderService->RemoveConnection(GetToken());
         }
     }
 
-    ROSEN_LOGD("RSRenderServiceConnection::CleanAll() end.");
+    RS_LOGD("RSRenderServiceConnection::CleanAll() end.");
 }
 
 RSRenderServiceConnection::RSConnectionDeathRecipient::RSConnectionDeathRecipient(
@@ -121,22 +121,22 @@ void RSRenderServiceConnection::RSConnectionDeathRecipient::OnRemoteDied(const w
 {
     auto tokenSptr = token.promote();
     if (tokenSptr == nullptr) {
-        ROSEN_LOGW("RSConnectionDeathRecipient::OnRemoteDied: can't promote remote object.");
+        RS_LOGW("RSConnectionDeathRecipient::OnRemoteDied: can't promote remote object.");
         return;
     }
 
     auto rsConn = conn_.promote();
     if (rsConn == nullptr) {
-        ROSEN_LOGW("RSConnectionDeathRecipient::OnRemoteDied: RSRenderServiceConnection was dead, do nothing.");
+        RS_LOGW("RSConnectionDeathRecipient::OnRemoteDied: RSRenderServiceConnection was dead, do nothing.");
         return;
     }
 
     if (rsConn->GetToken() != tokenSptr) {
-        ROSEN_LOGI("RSConnectionDeathRecipient::OnRemoteDied: token doesn't match, ignore it.");
+        RS_LOGI("RSConnectionDeathRecipient::OnRemoteDied: token doesn't match, ignore it.");
         return;
     }
 
-    ROSEN_LOGI("RSConnectionDeathRecipient::OnRemoteDied: do the clean work.");
+    RS_LOGI("RSConnectionDeathRecipient::OnRemoteDied: do the clean work.");
     rsConn->CleanAll(true);
 }
 
@@ -148,17 +148,17 @@ void RSRenderServiceConnection::RSApplicationRenderThreadDeathRecipient::OnRemot
 {
     auto tokenSptr = token.promote();
     if (tokenSptr == nullptr) {
-        ROSEN_LOGW("RSApplicationRenderThreadDeathRecipient::OnRemoteDied: can't promote remote object.");
+        RS_LOGW("RSApplicationRenderThreadDeathRecipient::OnRemoteDied: can't promote remote object.");
         return;
     }
 
     auto rsConn = conn_.promote();
     if (rsConn == nullptr) {
-        ROSEN_LOGW("RSApplicationRenderThreadDeathRecipient::OnRemoteDied: RSRenderServiceConnection was dead, do nothing.");
+        RS_LOGW("RSApplicationRenderThreadDeathRecipient::OnRemoteDied: RSRenderServiceConnection was dead, do nothing.");
         return;
     }
 
-    ROSEN_LOGI("RSApplicationRenderThreadDeathRecipient::OnRemoteDied: Unregister.");
+    RS_LOGI("RSApplicationRenderThreadDeathRecipient::OnRemoteDied: Unregister.");
     auto app = iface_cast<IApplicationRenderThread>(tokenSptr);
     rsConn->UnregisterApplicationRenderThread(app);
 }
@@ -185,17 +185,17 @@ sptr<Surface> RSRenderServiceConnection::CreateNodeAndSurface(const RSSurfaceRen
     std::shared_ptr<RSSurfaceRenderNode> node =
         std::make_shared<RSSurfaceRenderNode>(config, mainThread_->GetContext().weak_from_this());
     if (node == nullptr) {
-        ROSEN_LOGE("RSRenderService::CreateNodeAndSurface CreateNode fail");
+        RS_LOGE("RSRenderService::CreateNodeAndSurface CreateNode fail");
         return nullptr;
     }
     sptr<Surface> surface = Surface::CreateSurfaceAsConsumer(config.name);
     if (surface == nullptr) {
-        ROSEN_LOGE("RSRenderService::CreateNodeAndSurface get consumer surface fail");
+        RS_LOGE("RSRenderService::CreateNodeAndSurface get consumer surface fail");
         return nullptr;
     }
     std::string surfaceName;
     surface->GetName(surfaceName);
-    ROSEN_LOGE("RsDebug RSRenderService::CreateNodeAndSurface node id:%llu name:%s surface id:%llu name:%s",
+    RS_LOGE("RsDebug RSRenderService::CreateNodeAndSurface node id:%llu name:%s surface id:%llu name:%s",
         node->GetId(), node->GetName().c_str(), surface->GetUniqueId(), surfaceName.c_str());
     node->SetConsumer(surface);
     std::function<void()> registerNode = [node, this]() -> void {
@@ -206,7 +206,7 @@ sptr<Surface> RSRenderServiceConnection::CreateNodeAndSurface(const RSSurfaceRen
     sptr<IBufferConsumerListener> listener = new RSRenderServiceListener(surfaceRenderNode);
     SurfaceError ret = surface->RegisterConsumerListener(listener);
     if (ret != SURFACE_ERROR_OK) {
-        ROSEN_LOGE("RSRenderService::CreateNodeAndSurface Register Consumer Listener fail");
+        RS_LOGE("RSRenderService::CreateNodeAndSurface Register Consumer Listener fail");
         return nullptr;
     }
     return surface;
@@ -296,7 +296,7 @@ void RSRenderServiceConnection::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCap
     float scaleX, float scaleY)
 {
     std::function<void()> captureTask = [scaleY, scaleX, callback, id]() -> void {
-        ROSEN_LOGD("RSRenderService::TakeSurfaceCapture callback->OnSurfaceCapture nodeId:[%llu]", id);
+        RS_LOGD("RSRenderService::TakeSurfaceCapture callback->OnSurfaceCapture nodeId:[%llu]", id);
         ROSEN_TRACE_BEGIN(BYTRACE_TAG_GRAPHIC_AGP, "RSRenderService::TakeSurfaceCapture");
         RSSurfaceCaptureTask task(id, scaleX, scaleY);
         std::unique_ptr<Media::PixelMap> pixelmap = task.Run();
@@ -387,7 +387,7 @@ void RSRenderServiceConnection::RegisterBufferAvailableListener(NodeId id, sptr<
         return false;
     };
     if (!registerBufferAvailableListener()) {
-        ROSEN_LOGI("RegisterBufferAvailableListener: node not found, post task to retry");
+        RS_LOGI("RegisterBufferAvailableListener: node not found, post task to retry");
         mainThread_->PostTask(registerBufferAvailableListener);
     }
 }
@@ -431,7 +431,7 @@ bool RSRenderServiceConnection::RequestRotation(ScreenId id, ScreenRotation rota
 {
     std::lock_guard<std::mutex> lock(mutex_);
     if (screenManager_ == nullptr) {
-        ROSEN_LOGE("RequestRotation failed: screenManager_ is nullptr");
+        RS_LOGE("RequestRotation failed: screenManager_ is nullptr");
         return false;
     }
     return screenManager_->RequestRotation(id, rotation);
@@ -441,7 +441,7 @@ ScreenRotation RSRenderServiceConnection::GetRotation(ScreenId id)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     if (screenManager_ == nullptr) {
-        ROSEN_LOGE("GetRotation failed: screenManager_ is nullptr");
+        RS_LOGE("GetRotation failed: screenManager_ is nullptr");
         return ScreenRotation::INVALID_SCREEN_ROTATION;
     }
     return screenManager_->GetRotation(id);

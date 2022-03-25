@@ -43,14 +43,14 @@ RSMainThread::~RSMainThread() noexcept
 void RSMainThread::Init()
 {
     mainLoop_ = [&]() {
-        ROSEN_LOGI("RsDebug mainLoop start");
+        RS_LOGI("RsDebug mainLoop start");
         ROSEN_TRACE_BEGIN(BYTRACE_TAG_GRAPHIC_AGP, "RSMainThread::DoComposition");
         ProcessCommand();
         Animate(timestamp_);
         Render();
         SendCommands();
         ROSEN_TRACE_END(BYTRACE_TAG_GRAPHIC_AGP);
-        ROSEN_LOGI("RsDebug mainLoop end");
+        RS_LOGI("RsDebug mainLoop end");
     };
 
     threadLooper_ = RSThreadLooper::Create();
@@ -90,7 +90,7 @@ void RSMainThread::Render()
 {
     const std::shared_ptr<RSBaseRenderNode> rootNode = context_.GetGlobalRootRenderNode();
     if (rootNode == nullptr) {
-        ROSEN_LOGE("RSMainThread::Draw GetGlobalRootRenderNode fail");
+        RS_LOGE("RSMainThread::Draw GetGlobalRootRenderNode fail");
         return;
     }
     std::shared_ptr<RSNodeVisitor> visitor = std::make_shared<RSRenderServiceVisitor>();
@@ -142,12 +142,12 @@ void RSMainThread::Animate(uint64_t timestamp)
     std::__libcpp_erase_if_container(context_.animatingNodeList_, [timestamp](const auto& iter) -> bool {
         auto node = iter.second.lock();
         if (node == nullptr) {
-            ROSEN_LOGD("RSMainThread::Animate removing expired animating node");
+            RS_LOGD("RSMainThread::Animate removing expired animating node");
             return true;
         }
         bool animationFinished = !node->Animate(timestamp);
         if (animationFinished) {
-            ROSEN_LOGD("RSMainThread::Animate removing finished animating node %llu", node->GetId());
+            RS_LOGD("RSMainThread::Animate removing finished animating node %llu", node->GetId());
         }
         return animationFinished;
     });
@@ -197,7 +197,7 @@ void RSMainThread::SendCommands()
             auto pid = transactionIter.first;
             auto appIter = applicationRenderThreadMap_.find(pid);
             if (appIter == applicationRenderThreadMap_.end()) {
-                ROSEN_LOGI("RSMainThread::SendCommand no application found for pid %d", pid);
+                RS_LOGI("RSMainThread::SendCommand no application found for pid %d", pid);
                 continue;
             }
             auto& app = appIter->second;

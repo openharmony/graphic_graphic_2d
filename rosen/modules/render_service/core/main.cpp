@@ -34,14 +34,14 @@ int main(int argc, const char *argv[])
     struct sched_param param = {0};
     param.sched_priority = 2;
     if (sched_setscheduler(0, SCHED_FIFO, &param) != 0) {
-        ROSEN_LOGE("RSRenderService Couldn't set SCHED_FIFO.");
+        RS_LOGE("RSRenderService Couldn't set SCHED_FIFO.");
     } else {
-        ROSEN_LOGE("RSRenderService set SCHED_FIFO succeed.");
+        RS_LOGE("RSRenderService set SCHED_FIFO succeed.");
     }
 
     sptr<RSRenderService> renderService(new RSRenderService());
     if (!renderService->Init()) {
-        ROSEN_LOGE("RSRenderService init failed.");
+        RS_LOGE("RSRenderService init failed.");
         return -1;
     }
 
