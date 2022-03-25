@@ -132,9 +132,10 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
     }
 
     sk_sp<SkSurface> skSurface = nullptr;
-    if (RSRootRenderNode::NeedForceRaster()) {
+    auto iter = forceRasterNodes.find(node.GetId());
+    if (iter != forceRasterNodes.end()) {
         ROSEN_LOGD("Force Raster draw");
-        RSRootRenderNode::MarkForceRaster(false);
+        forceRasterNodes.erase(iter);
         SkImageInfo imageInfo = SkImageInfo::Make(node.GetSurfaceWidth(), node.GetSurfaceHeight(),
             kRGBA_8888_SkColorType, kOpaque_SkAlphaType, SkColorSpace::MakeSRGB());
         skSurface = SkSurface::MakeRaster(imageInfo);
@@ -152,8 +153,13 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
         canvas_->flush();
         surfaceFrame->GetCanvas()->clear(SK_ColorTRANSPARENT);
         skSurface->draw(surfaceFrame->GetCanvas(), 0.f, 0.f, nullptr);
-    } else if (RSRootRenderNode::NeedForceRaster()) {
-        RSRenderThread::Instance().RequestNextVSync();
+    }
+    if (RSRootRenderNode::NeedForceRaster()) {
+        RSRootRenderNode::MarkForceRaster(false);
+        forceRasterNodes.insert(node.GetId());
+        if (!skSurface) {
+            RSRenderThread::Instance().RequestNextVSync();
+        }
     }
 
     RS_TRACE_BEGIN("rsSurface->FlushFrame");

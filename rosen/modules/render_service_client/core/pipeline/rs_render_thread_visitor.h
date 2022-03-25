@@ -17,7 +17,7 @@
 #define RENDER_SERVICE_CLIENT_CORE_RENDER_RS_RENDER_THREAD_VISITOR_H
 
 #include <memory>
-#include <stack>
+#include <set>
 
 #include "visitor/rs_node_visitor.h"
 #include "pipeline/rs_dirty_region_manager.h"
@@ -53,6 +53,7 @@ private:
     bool isIdle_ = true;
     RSPaintFilterCanvas* canvas_;
     RSRootRenderNode* curTreeRoot_ = nullptr;
+    std::set<NodeId> forceRasterNodes;
 };
 } // namespace Rosen
 } // namespace OHOS
