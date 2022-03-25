@@ -130,7 +130,7 @@ SurfaceError LayerContext::FillHDILayer()
     int64_t timestamp;
     Rect damage;
     SurfaceError ret = cSurface_->AcquireBuffer(buffer, acquireFence, timestamp, damage);
-    UniqueFd acquireFenceFd(acquireFence);
+    sptr<SyncFence> acquireSyncFence = new SyncFence(acquireFence);
     if (ret != SURFACE_ERROR_OK) {
         LOGE("Acquire buffer failed");
         return ret;
@@ -139,7 +139,6 @@ SurfaceError LayerContext::FillHDILayer()
     LayerAlpha alpha = { .enPixelAlpha = true };
 
     hdiLayer_->SetSurface(cSurface_);
-    auto acquireSyncFence = new SyncFence(acquireFenceFd.Release());
     hdiLayer_->SetBuffer(buffer, acquireSyncFence, prevBuffer_, prevFence_);
     hdiLayer_->SetZorder(static_cast<int32_t>(zorder_));
     hdiLayer_->SetAlpha(alpha);

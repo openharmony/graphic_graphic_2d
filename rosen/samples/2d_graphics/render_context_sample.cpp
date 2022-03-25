@@ -321,7 +321,7 @@ bool RenderContextSample::FillDrawingLayer(std::shared_ptr<HdiLayerInfo> &showLa
     int64_t timestamp;
     Rect damage;
     SurfaceError ret = drawingCSurface->AcquireBuffer(cbuffer, fence, timestamp, damage);
-    UniqueFd fenceFd(fence);
+    sptr<SyncFence> acquireSyncFence = new SyncFence(fence);
     if (ret != SURFACE_ERROR_OK) {
         std::cout << "Acquire cBuffer failed: " << ret << std::endl;
         return false;
@@ -336,7 +336,6 @@ bool RenderContextSample::FillDrawingLayer(std::shared_ptr<HdiLayerInfo> &showLa
     LayerAlpha alpha = { .enPixelAlpha = true };
 
     showLayer->SetSurface(drawingCSurface);
-    auto acquireSyncFence = new SyncFence(fenceFd.Release());
     showLayer->SetBuffer(cbuffer, acquireSyncFence, prevBufferMap_[drawingCSurface->GetUniqueId()],
         prevFenceMap_[drawingCSurface->GetUniqueId()]);
     showLayer->SetZorder(zorder);
@@ -373,7 +372,7 @@ bool RenderContextSample::FillBackGroundLayer(std::shared_ptr<HdiLayerInfo> &sho
     int64_t timestamp;
     Rect damage;
     SurfaceError ret = backGroundCSurface->AcquireBuffer(cbuffer, fence, timestamp, damage);
-    UniqueFd fenceFd(fence);
+    sptr<SyncFence> acquireSyncFence = new SyncFence(fence);
     if (ret != SURFACE_ERROR_OK) {
         std::cout << "Acquire cBuffer failed" << std::endl;
         return false;
@@ -388,7 +387,6 @@ bool RenderContextSample::FillBackGroundLayer(std::shared_ptr<HdiLayerInfo> &sho
     LayerAlpha alpha = { .enPixelAlpha = true };
 
     showLayer->SetSurface(backGroundCSurface);
-    auto acquireSyncFence = new SyncFence(fenceFd.Release());
     showLayer->SetBuffer(cbuffer, acquireSyncFence, prevBufferMap_[backGroundCSurface->GetUniqueId()],
         prevFenceMap_[backGroundCSurface->GetUniqueId()]);
     showLayer->SetZorder(zorder);
