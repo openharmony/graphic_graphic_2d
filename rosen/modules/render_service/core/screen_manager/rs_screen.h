@@ -73,6 +73,7 @@ public:
     virtual bool SetRotation(ScreenRotation rotation) = 0;
     virtual SkMatrix GetRotationMatrix() const = 0;
     virtual ScreenRotation GetRotation() const = 0;
+    virtual int32_t GetActiveModePosByModeId(int32_t modeId) const = 0;
 };
 
 namespace impl {
@@ -119,6 +120,7 @@ public:
     bool SetRotation(ScreenRotation rotation) override;
     SkMatrix GetRotationMatrix() const override;
     ScreenRotation GetRotation() const override;
+    int32_t GetActiveModePosByModeId(int32_t modeId) const override;
 
 private:
     // [PLANNING]: fixme -- domain 0 only for debug.

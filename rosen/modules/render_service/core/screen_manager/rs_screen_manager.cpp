@@ -236,7 +236,7 @@ void RSScreenManager::GetScreenActiveModeLocked(ScreenId id, RSScreenModeInfo& s
     screenModeInfo.SetScreenWidth(modeInfo->width);
     screenModeInfo.SetScreenHeight(modeInfo->height);
     screenModeInfo.SetScreenRefreshRate(modeInfo->freshRate);
-    screenModeInfo.SetScreenModeId(modeInfo->id);
+    screenModeInfo.SetScreenModeId(screens_.at(id)->GetActiveModePosByModeId(modeInfo->id));
 }
 
 std::vector<RSScreenModeInfo> RSScreenManager::GetScreenSupportedModesLocked(ScreenId id) const
