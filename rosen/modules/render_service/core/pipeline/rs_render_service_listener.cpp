@@ -35,7 +35,7 @@ void RSRenderServiceListener::OnBufferAvailable()
         ROSEN_LOGE("RSRenderServiceListener::OnBufferAvailable node is nullptr");
         return;
     }
-    ROSEN_LOGE("RsDebug RSRenderServiceListener::OnBufferAvailable node id:%llu", node->GetId());
+    ROSEN_LOGI("RsDebug RSRenderServiceListener::OnBufferAvailable node id:%llu", node->GetId());
 
     if (!node->IsOnTheTree()) {
         RSMainThread::Instance()->PostTask([node]() {

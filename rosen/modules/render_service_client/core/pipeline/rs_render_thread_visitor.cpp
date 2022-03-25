@@ -94,8 +94,13 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
         ProcessCanvasRenderNode(node);
         return;
     }
-    if (!node.GetRenderProperties().GetVisible() || node.GetSurfaceWidth() <= 0 || node.GetSurfaceHeight() <= 0) {
+    if (!node.GetRenderProperties().GetVisible()) {
         ROSEN_LOGE("No valid RSRootRenderNode");
+        return;
+    }
+    if (node.GetSurfaceWidth() <= 0 || node.GetSurfaceHeight() <= 0) {
+        ROSEN_LOGE("RSRootRenderNode have negative width or height [%d %d]", node.GetSurfaceWidth(),
+            node.GetSurfaceHeight());
         return;
     }
     auto ptr = RSNodeMap::Instance().GetNode<RSSurfaceNode>(node.GetRSSurfaceNodeId());
