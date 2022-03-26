@@ -62,7 +62,7 @@ public:
 private:
     friend class OHOS::Rosen::VSyncSampler;
     enum { MAX_SAMPLES = 32 };
-    enum { MIN_SAMPLES_FOR_UPDATE = 12 };
+    enum { MIN_SAMPLES_FOR_UPDATE = 6 };
     enum { MAX_SAMPLES_WITHOUT_PRESENT = 4 };
     enum { NUM_PRESENT = 8 };
 

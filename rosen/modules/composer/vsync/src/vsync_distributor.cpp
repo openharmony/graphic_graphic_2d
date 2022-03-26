@@ -195,7 +195,10 @@ void VSyncDistributor::ThreadMain()
                 RemoveConnection(conns[i]);
             } else if (ret == ERRNO_EAGAIN) {
                 std::unique_lock<std::mutex> locker(mutex_);
-                conns[i]->rate_ = 0;
+                // Exclude SetVSyncRate
+                if (conns[i]->rate_ < 0) {
+                    conns[i]->rate_ = 0;
+                }
             }
         }
     }
@@ -261,6 +264,7 @@ VsyncError VSyncDistributor::SetVSyncRate(int32_t rate, const sptr<VSyncConnecti
         return VSYNC_ERROR_INVALID_ARGUMENTS;
     }
     connection->rate_ = rate;
+    VLOGI("in, conn name:%{public}s", connection->GetName().c_str());
     con_.notify_all();
     return VSYNC_ERROR_OK;
 }
