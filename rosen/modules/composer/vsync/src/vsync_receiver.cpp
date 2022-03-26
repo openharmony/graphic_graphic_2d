@@ -39,7 +39,7 @@ void VSyncCallBackListener::OnReadable(int32_t fileDescriptor)
         std::lock_guard<std::mutex> locker(mtx_);
         cb = vsyncCallbacks_;
     }
-    VLOGI("retVal:%{public}d, cb == nullptr:%{public}d", retVal, (cb == nullptr));
+    VLOGI("retVal:%{public}ld, cb == nullptr:%{public}d", (long)retVal, (cb == nullptr));
     if (retVal > 0 && cb != nullptr) {
         ScopedBytrace func("ReceiveVsync");
         cb(now, userData_);
