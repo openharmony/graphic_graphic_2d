@@ -88,7 +88,7 @@ void RSSoftwareProcessor::ProcessSurface(RSSurfaceRenderNode& node)
         int32_t fence = -1;
         int64_t timestamp = 0;
         auto sret = consumerSurface->AcquireBuffer(cbuffer, fence, timestamp, damage);
-        UniqueFd fenceFd(fence);
+        sptr<SyncFence> acquireFence = new SyncFence(fence);
         if (sret != OHOS::SURFACE_ERROR_OK) {
             RS_LOGE("RSSoftwareProcessor::ProcessSurface: AcquireBuffer failed!");
             return;
@@ -103,7 +103,7 @@ void RSSoftwareProcessor::ProcessSurface(RSSurfaceRenderNode& node)
         }
 
         node.SetBuffer(cbuffer);
-        node.SetFence(new SyncFence(fenceFd.Release()));
+        node.SetFence(acquireFence);
 
         if (node.ReduceAvailableBuffer() > 0) {
             if (auto mainThread = RSMainThread::Instance()) {

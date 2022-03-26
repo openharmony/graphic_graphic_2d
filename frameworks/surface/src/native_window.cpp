@@ -122,7 +122,7 @@ int32_t NativeWindowFlushBuffer(struct NativeWindow *window, struct NativeWindow
 
     BLOGD("NativeWindowFlushBuffer damage w is %{public}d, h is %{public}d, acquire fence: %{public}d",
         config.damage.w, config.damage.h, fenceFd);
-    window->surface->FlushBuffer(buffer->sfbuffer, -1, config);
+    window->surface->FlushBuffer(buffer->sfbuffer, fenceFd, config);
 
     return OHOS::GSERROR_OK;
 }

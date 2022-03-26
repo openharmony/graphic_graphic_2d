@@ -88,7 +88,7 @@ bool RSProcessor::ConsumeAndUpdateBuffer(RSSurfaceRenderNode& node, SpecialTask&
         int64_t timestamp = 0;
         Rect damage;
         auto sret = surfaceConsumer->AcquireBuffer(buffer, fence, timestamp, damage);
-        UniqueFd fenceFd(fence);
+        sptr<SyncFence> acquireFence = new SyncFence(fence);
         if (!buffer || sret != OHOS::SURFACE_ERROR_OK) {
             RS_LOGE("RSProcessor::ProcessSurface: AcquireBuffer failed! sret: %{public}d", sret);
             if (sret == OHOS::GSERROR_NO_BUFFER) {
@@ -98,7 +98,7 @@ bool RSProcessor::ConsumeAndUpdateBuffer(RSSurfaceRenderNode& node, SpecialTask&
         }
         task();
         node.SetBuffer(buffer);
-        node.SetFence(new SyncFence(fenceFd.Release()));
+        node.SetFence(acquireFence);
         node.SetDamageRegion(damage);
         if (node.ReduceAvailableBuffer() >= 1) {
             if (auto mainThread = RSMainThread::Instance()) {

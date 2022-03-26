@@ -129,7 +129,7 @@ void RSCompatibleProcessor::DoComposeSurfaces()
     int64_t timestamp;
     Rect damage;
     auto sret = consumerSurface_->AcquireBuffer(cbuffer, fence, timestamp, damage);
-    UniqueFd fenceFd(fence);
+    sptr<SyncFence> acquireFence = new SyncFence(fence);
     if (!cbuffer || sret != OHOS::SURFACE_ERROR_OK) {
         RS_LOGE("RSCompatibleProcessor::DoComposeSurfaces: AcquireBuffer failed!");
         return;
@@ -151,7 +151,7 @@ void RSCompatibleProcessor::DoComposeSurfaces()
         },
         .alpha = alpha_,
         .buffer = cbuffer,
-        .fence = new SyncFence(fenceFd.Release()),
+        .fence = std::move(acquireFence),
     };
     std::shared_ptr<HdiLayerInfo> layer = HdiLayerInfo::CreateHdiLayerInfo();
     std::vector<LayerInfoPtr> layers;

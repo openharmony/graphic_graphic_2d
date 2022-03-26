@@ -274,7 +274,6 @@ SurfaceError HdiLayer::ReleasePrevBuffer()
     }
 
     prevSbuffer_->sbuffer_ = nullptr;
-    prevSbuffer_->releaseFence_ = nullptr;
 
     return ret;
 }

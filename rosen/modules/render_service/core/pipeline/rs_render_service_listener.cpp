@@ -51,7 +51,7 @@ void RSRenderServiceListener::OnBufferAvailable()
             int64_t timestamp = 0;
             Rect damage;
             auto ret = surfaceConsumer->AcquireBuffer(buffer, fence, timestamp, damage);
-            UniqueFd fenceFd(fence);
+            sptr<SyncFence> acquireFence = new SyncFence(fence);
             if (buffer == nullptr || ret != SURFACE_ERROR_OK) {
                 RS_LOGE("RsDebug RSRenderServiceListener::OnBufferAvailable: AcquireBuffer failed!");
                 return;
@@ -61,7 +61,7 @@ void RSRenderServiceListener::OnBufferAvailable()
                 (void)surfaceConsumer->ReleaseBuffer(node->GetBuffer(), -1);
             }
             node->SetBuffer(buffer);
-            node->SetFence(new SyncFence(fenceFd.Release()));
+            node->SetFence(acquireFence);
         });
     } else {
         node->IncreaseAvailableBuffer();
