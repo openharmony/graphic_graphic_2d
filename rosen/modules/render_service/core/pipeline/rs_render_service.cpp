@@ -35,7 +35,7 @@ bool RSRenderService::Init()
 {
     screenManager_ = CreateOrGetScreenManager();
     if (screenManager_ == nullptr || !screenManager_->Init()) {
-        ROSEN_LOGE("RSRenderService CreateOrGetScreenManager fail.");
+        RS_LOGE("RSRenderService CreateOrGetScreenManager fail.");
         return false;
     }
 
@@ -56,7 +56,7 @@ bool RSRenderService::Init()
  
     auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     if (samgr == nullptr) {
-        ROSEN_LOGE("RSRenderService GetSystemAbilityManager fail.");
+        RS_LOGE("RSRenderService GetSystemAbilityManager fail.");
         return false;
     }
     samgr->AddSystemAbility(RENDER_SERVICE, this);
@@ -66,7 +66,7 @@ bool RSRenderService::Init()
 
 void RSRenderService::Run()
 {
-    ROSEN_LOGE("RSRenderService::Run");
+    RS_LOGE("RSRenderService::Run");
     mainThread_->Start();
 }
 

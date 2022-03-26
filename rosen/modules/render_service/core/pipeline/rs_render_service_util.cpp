@@ -340,7 +340,7 @@ uint8_t ConvertColorGamut(uint8_t *dst, uint8_t* src, int32_t pixelFormat, Color
             break;
         }
         default: {
-            ROSEN_LOGE("ConvertColorGamut: unexpected pixelFormat(%d).", pixelFormat);
+            RS_LOGE("ConvertColorGamut: unexpected pixelFormat(%d).", pixelFormat);
             return 0;
         }
     }
@@ -362,7 +362,7 @@ bool ConvertBufferColorGamut(std::vector<uint8_t>& dstBuf, const sptr<OHOS::Surf
 
     int32_t pixelFormat = srcBuf->GetFormat();
     if (!IsSupportedFormatForGamutConvertion(pixelFormat)) {
-        ROSEN_LOGE("ConvertBufferColorGamut: the buffer's format is not supported.");
+        RS_LOGE("ConvertBufferColorGamut: the buffer's format is not supported.");
         return false;
     }
     if (!IsSupportedColorGamut(srcGamut) || !IsSupportedColorGamut(dstGamut)) {
@@ -451,21 +451,21 @@ static int Table_fu2[256] = { -227, -226, -224, -222, -220, -219, -217, -215, -2
 bool ConvertYUV420SPToRGBA(std::vector<uint8_t>& rgbaBuf, const sptr<OHOS::SurfaceBuffer>& srcBuf)
 {
     if (srcBuf == nullptr || rgbaBuf.empty()) {
-        ROSEN_LOGE("RsRenderServiceUtil::ConvertYUV420SPToRGBA invalid params");
+        RS_LOGE("RsRenderServiceUtil::ConvertYUV420SPToRGBA invalid params");
         return false;
     }
     int32_t bufferHeight = srcBuf->GetHeight();
     int32_t bufferStride = srcBuf->GetStride();
     int32_t bufferWidth = srcBuf->GetWidth();
     if (bufferStride < 1 || bufferWidth < 1 || bufferHeight < 1) {
-        ROSEN_LOGE("RsRenderServiceUtil::ConvertYUV420SPToRGBA invalid buffer size");
+        RS_LOGE("RsRenderServiceUtil::ConvertYUV420SPToRGBA invalid buffer size");
         return false;
     }
     uint8_t* rgbaDst = &rgbaBuf[0];
     auto bufferAddr = srcBuf->GetVirAddr();
     uint8_t* src = static_cast<uint8_t*>(bufferAddr);
     if (src == nullptr || rgbaDst == nullptr) {
-        ROSEN_LOGE("RsRenderServiceUtil::ConvertYUV420SPToRGBA null buffer ptr");
+        RS_LOGE("RsRenderServiceUtil::ConvertYUV420SPToRGBA null buffer ptr");
         return false;
     }
     uint8_t* ybase = src;
@@ -545,16 +545,16 @@ void RsRenderServiceUtil::ComposeSurface(std::shared_ptr<HdiLayerInfo> layer, sp
 bool RsRenderServiceUtil::IsNeedClient(RSSurfaceRenderNode* node)
 {
     if (enableClient) {
-        ROSEN_LOGI("RsDebug RsRenderServiceUtil::IsNeedClient enable composition client");
+        RS_LOGI("RsDebug RsRenderServiceUtil::IsNeedClient enable composition client");
         return true;
     }
     if (node == nullptr) {
-        ROSEN_LOGE("RsRenderServiceUtil::IsNeedClient node is empty");
+        RS_LOGE("RsRenderServiceUtil::IsNeedClient node is empty");
         return false;
     }
     auto filter = std::static_pointer_cast<RSBlurFilter>(node->GetRenderProperties().GetBackgroundFilter());
     if (filter != nullptr && filter->GetBlurRadiusX() > 0 && filter->GetBlurRadiusY() > 0) {
-        ROSEN_LOGI("RsDebug RsRenderServiceUtil::IsNeedClient enable composition client need filter");
+        RS_LOGI("RsDebug RsRenderServiceUtil::IsNeedClient enable composition client need filter");
         return true;
     }
     auto transitionProperties = node->GetAnimationManager().GetTransitionProperties();
@@ -566,13 +566,13 @@ bool RsRenderServiceUtil::IsNeedClient(RSSurfaceRenderNode* node)
     matrix.get9(value);
     if (SkMatrix::kMSkewX < 0 || SkMatrix::kMSkewX >= 9 || // 9 is the upper bound
         SkMatrix::kMScaleX < 0 || SkMatrix::kMScaleX >= 9) { // 9 is the upper bound
-        ROSEN_LOGE("RsRenderServiceUtil:: The value of kMSkewX or kMScaleX is illegal");
+        RS_LOGE("RsRenderServiceUtil:: The value of kMSkewX or kMScaleX is illegal");
         return false;
     } else {
         float rAngle = -round(atan2(value[SkMatrix::kMSkewX], value[SkMatrix::kMScaleX]) * (180 / PI));
         bool isNeedClient = rAngle > 0;
         if (isNeedClient) {
-            ROSEN_LOGI("RsDebug RsRenderServiceUtil::IsNeedClient enable composition client need animation rotate");
+            RS_LOGI("RsDebug RsRenderServiceUtil::IsNeedClient enable composition client need animation rotate");
         }
         return isNeedClient;
     }
@@ -583,7 +583,7 @@ void RsRenderServiceUtil::ExtractAnimationInfo(const std::unique_ptr<RSTransitio
 {
     auto existedParent = node.GetParent().lock();
     if (!existedParent) {
-        ROSEN_LOGI("RsDebug RsRenderServiceUtil::ExtractAnimationInfo this node[%s] have no parent",
+        RS_LOGI("RsDebug RsRenderServiceUtil::ExtractAnimationInfo this node[%s] have no parent",
             node.GetName().c_str());
         return;
     }
@@ -592,7 +592,7 @@ void RsRenderServiceUtil::ExtractAnimationInfo(const std::unique_ptr<RSTransitio
             GetAnimationManager().GetTransitionProperties();
         auto& parentProperties = std::static_pointer_cast<RSSurfaceRenderNode>(existedParent)->GetRenderProperties();
         if (!parentTransitionProperties) {
-            ROSEN_LOGI("RsDebug RSHardwareProcessor::CalculateInfoWithAnimation this node[%s] parent have no effect",
+            RS_LOGI("RsDebug RSHardwareProcessor::CalculateInfoWithAnimation this node[%s] parent have no effect",
                 node.GetName().c_str());
             return;
         }
@@ -603,7 +603,7 @@ void RsRenderServiceUtil::ExtractAnimationInfo(const std::unique_ptr<RSTransitio
         info.pivot = parentProperties.GetBoundsPosition() + parentProperties.GetBoundsSize() * 0.5f;
     } else {
         if (!transitionProperties) {
-            ROSEN_LOGI("RsDebug RSHardwareProcessor::CalculateInfoWithAnimation this node have no effect",
+            RS_LOGI("RsDebug RSHardwareProcessor::CalculateInfoWithAnimation this node have no effect",
                 node.GetName().c_str());
             return;
         }
@@ -643,7 +643,7 @@ void RsRenderServiceUtil::DealAnimation(SkCanvas& canvas, RSSurfaceRenderNode& n
 bool RsRenderServiceUtil::CreateBitmap(sptr<OHOS::SurfaceBuffer> buffer, SkBitmap& bitmap)
 {
     if (!buffer) {
-        ROSEN_LOGE("RsRenderServiceUtil::CreateBitmap buffer is nullptr");
+        RS_LOGE("RsRenderServiceUtil::CreateBitmap buffer is nullptr");
         return false;
     }
     SkImageInfo imageInfo = Detail::GenerateSkImageInfo(buffer);
@@ -656,12 +656,12 @@ bool RsRenderServiceUtil::CreateNewColorGamutBitmap(sptr<OHOS::SurfaceBuffer> bu
 {
     bool convertRes = Detail::ConvertBufferColorGamut(newGamutBuffer, buffer, srcGamut, dstGamut);
     if (convertRes) {
-        ROSEN_LOGW("CreateNewColorGamutBitmap: convert color gamut succeed, use new buffer to create bitmap.");
+        RS_LOGW("CreateNewColorGamutBitmap: convert color gamut succeed, use new buffer to create bitmap.");
         SkImageInfo imageInfo = Detail::GenerateSkImageInfo(buffer);
         SkPixmap pixmap(imageInfo, newGamutBuffer.data(), buffer->GetStride());
         return bitmap.installPixels(pixmap);
     } else {
-        ROSEN_LOGW("CreateNewColorGamutBitmap: convert color gamut failed, use old buffer to create bitmap.");
+        RS_LOGW("CreateNewColorGamutBitmap: convert color gamut failed, use old buffer to create bitmap.");
         return CreateBitmap(buffer, bitmap);
     }
 }
@@ -826,16 +826,16 @@ void RsRenderServiceUtil::DrawBuffer(SkCanvas& canvas, BufferDrawParam& bufferDr
 {
     sptr<SurfaceBuffer> buffer = bufferDrawParam.buffer;
     if (!buffer) {
-        ROSEN_LOGE("RsRenderServiceUtil::DrawBuffer buffer is nullptr");
+        RS_LOGE("RsRenderServiceUtil::DrawBuffer buffer is nullptr");
         return;
     }
     auto addr = buffer->GetVirAddr();
     if (addr == nullptr) {
-        ROSEN_LOGE("RsRenderServiceUtil::DrawBuffer this buffer have no vir addr");
+        RS_LOGE("RsRenderServiceUtil::DrawBuffer this buffer have no vir addr");
         return;
     }
     if (buffer->GetWidth() <= 0 || buffer->GetHeight() <= 0) {
-        ROSEN_LOGE("RsRenderServiceUtil::DrawBuffer this buffer width or height is negative [%d %d]",
+        RS_LOGE("RsRenderServiceUtil::DrawBuffer this buffer width or height is negative [%d %d]",
             buffer->GetWidth(), buffer->GetHeight());
         return;
     }
@@ -849,14 +849,14 @@ void RsRenderServiceUtil::DrawBuffer(SkCanvas& canvas, BufferDrawParam& bufferDr
     if (buffer->GetFormat() == PIXEL_FMT_YCRCB_420_SP || buffer->GetFormat() == PIXEL_FMT_YCBCR_420_SP) {
         bitmapCreated = CreateYuvToRGBABitMap(buffer, newTmpBuffer, bitmap);
     } else if (srcGamut != dstGamut) {
-        ROSEN_LOGW("RsRenderServiceUtil::DrawBuffer: need to convert color gamut.");
+        RS_LOGW("RsRenderServiceUtil::DrawBuffer: need to convert color gamut.");
         bitmapCreated = CreateNewColorGamutBitmap(buffer, newTmpBuffer, bitmap, srcGamut, dstGamut);
     } else {
         bitmapCreated = CreateBitmap(buffer, bitmap);
     }
 
     if (!bitmapCreated) {
-        ROSEN_LOGE("RsRenderServiceUtil::DrawBuffer: create bitmap failed.");
+        RS_LOGE("RsRenderServiceUtil::DrawBuffer: create bitmap failed.");
         return;
     }
 

@@ -36,7 +36,7 @@ void RSCompatibleProcessor::Init(ScreenId id)
     backend_ = HdiBackend::GetInstance();
     screenManager_ = CreateOrGetScreenManager();
     if (!screenManager_) {
-        ROSEN_LOGE("RSCompatibleProcessor::Init ScreenManager is nullptr");
+        RS_LOGE("RSCompatibleProcessor::Init ScreenManager is nullptr");
         return;
     }
     output_ = screenManager_->GetOutput(id);
@@ -45,7 +45,7 @@ void RSCompatibleProcessor::Init(ScreenId id)
     sptr<IBufferConsumerListener> listener = new RSRenderBufferListener(*this);
     SurfaceError ret = consumerSurface_->RegisterConsumerListener(listener);
     if (ret != SURFACE_ERROR_OK) {
-        ROSEN_LOGE("RSCompatibleProcessor::Init Register Consumer Listener fail");
+        RS_LOGE("RSCompatibleProcessor::Init Register Consumer Listener fail");
         return;
     }
     sptr<IBufferProducer> producer = consumerSurface_->GetProducer();
@@ -64,10 +64,10 @@ void RSCompatibleProcessor::Init(ScreenId id)
 
 void RSCompatibleProcessor::ProcessSurface(RSSurfaceRenderNode& node)
 {
-    ROSEN_LOGI("RsDebug RSCompatibleProcessor::ProcessSurface start node:%llu available buffer:%d", node.GetId(),
+    RS_LOGI("RsDebug RSCompatibleProcessor::ProcessSurface start node:%llu available buffer:%d", node.GetId(),
         node.GetAvailableBufferCount());
     if (!canvas_) {
-        ROSEN_LOGE("RsDebug RSCompatibleProcessor::ProcessSurface canvas is nullptr");
+        RS_LOGE("RsDebug RSCompatibleProcessor::ProcessSurface canvas is nullptr");
         return;
     }
     OHOS::sptr<SurfaceBuffer> cbuffer;
@@ -76,24 +76,24 @@ void RSCompatibleProcessor::ProcessSurface(RSSurfaceRenderNode& node)
             auto& surfaceConsumer = node.GetConsumer();
             SurfaceError ret = surfaceConsumer->ReleaseBuffer(node.GetBuffer(), -1);
             if (ret != SURFACE_ERROR_OK) {
-                ROSEN_LOGE("RSCompatibleProcessor::ProcessSurface: ReleaseBuffer buffer error! error: %d.", ret);
+                RS_LOGE("RSCompatibleProcessor::ProcessSurface: ReleaseBuffer buffer error! error: %d.", ret);
                 return;
             }
         }
     };
     bool ret = ConsumeAndUpdateBuffer(node, task, cbuffer);
     if (!ret) {
-        ROSEN_LOGE("RsDebug RSCompatibleProcessor::ProcessSurface consume buffer fail");
+        RS_LOGE("RsDebug RSCompatibleProcessor::ProcessSurface consume buffer fail");
         return;
     }
 
     auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(node.GetRenderProperties().GetBoundsGeometry());
     if (geoPtr == nullptr) {
-        ROSEN_LOGE("RsDebug RSCompatibleProcessor::ProcessSurface geoPtr == nullptr");
+        RS_LOGE("RsDebug RSCompatibleProcessor::ProcessSurface geoPtr == nullptr");
         return;
     }
 
-    ROSEN_LOGI("RsDebug RSCompatibleProcessor::ProcessSurface surfaceNode id:%llu [%d %d %d %d] buffer [%d %d]",
+    RS_LOGI("RsDebug RSCompatibleProcessor::ProcessSurface surfaceNode id:%llu [%d %d %d %d] buffer [%d %d]",
         node.GetId(), geoPtr->GetAbsRect().left_, geoPtr->GetAbsRect().top_,
         geoPtr->GetAbsRect().width_, geoPtr->GetAbsRect().height_,
         node.GetDamageRegion().w, node.GetDamageRegion().y);
@@ -120,7 +120,7 @@ void RSCompatibleProcessor::PostProcess()
 void RSCompatibleProcessor::DoComposeSurfaces()
 {
     if (!backend_ || !output_ || !consumerSurface_) {
-        ROSEN_LOGE("RSCompatibleProcessor::DoComposeSurfaces either backend output or consumer is nullptr");
+        RS_LOGE("RSCompatibleProcessor::DoComposeSurfaces either backend output or consumer is nullptr");
         return;
     }
 
@@ -131,10 +131,10 @@ void RSCompatibleProcessor::DoComposeSurfaces()
     auto sret = consumerSurface_->AcquireBuffer(cbuffer, fence, timestamp, damage);
     UniqueFd fenceFd(fence);
     if (!cbuffer || sret != OHOS::SURFACE_ERROR_OK) {
-        ROSEN_LOGE("RSCompatibleProcessor::DoComposeSurfaces: AcquireBuffer failed!");
+        RS_LOGE("RSCompatibleProcessor::DoComposeSurfaces: AcquireBuffer failed!");
         return;
     }
-    ROSEN_LOGI("RSCompatibleProcessor::DoComposeSurfaces start");
+    RS_LOGI("RSCompatibleProcessor::DoComposeSurfaces start");
 
     ComposeInfo info = {
         .srcRect = {

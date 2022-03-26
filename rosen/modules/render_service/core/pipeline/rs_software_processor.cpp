@@ -35,13 +35,13 @@ void RSSoftwareProcessor::Init(ScreenId id)
 {
     sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
     if (screenManager == nullptr) {
-        ROSEN_LOGE("RSSoftwareProcessor::Init: failed to get screen manager!");
+        RS_LOGE("RSSoftwareProcessor::Init: failed to get screen manager!");
         return;
     }
 
     producerSurface_ = screenManager->GetProducerSurface(id);
     if (producerSurface_ == nullptr) {
-        ROSEN_LOGE("RSSoftwareProcessor::Init for Screen(id %{public}" PRIu64 "): ProducerSurface is null!", id);
+        RS_LOGE("RSSoftwareProcessor::Init for Screen(id %{public}" PRIu64 "): ProducerSurface is null!", id);
         return;
     }
     currScreenInfo_ = screenManager->QueryScreenInfo(id);
@@ -73,12 +73,12 @@ void RSSoftwareProcessor::PostProcess()
 void RSSoftwareProcessor::ProcessSurface(RSSurfaceRenderNode& node)
 {
     if (!canvas_) {
-        ROSEN_LOGE("RSSoftwareProcessor::ProcessSurface: Canvas is null!");
+        RS_LOGE("RSSoftwareProcessor::ProcessSurface: Canvas is null!");
         return;
     }
     auto consumerSurface = node.GetConsumer();
     if (!consumerSurface) {
-        ROSEN_LOGE("RSSoftwareProcessor::ProcessSurface: node's consumerSurface is null!");
+        RS_LOGE("RSSoftwareProcessor::ProcessSurface: node's consumerSurface is null!");
         return;
     }
 
@@ -90,14 +90,14 @@ void RSSoftwareProcessor::ProcessSurface(RSSurfaceRenderNode& node)
         auto sret = consumerSurface->AcquireBuffer(cbuffer, fence, timestamp, damage);
         UniqueFd fenceFd(fence);
         if (sret != OHOS::SURFACE_ERROR_OK) {
-            ROSEN_LOGE("RSSoftwareProcessor::ProcessSurface: AcquireBuffer failed!");
+            RS_LOGE("RSSoftwareProcessor::ProcessSurface: AcquireBuffer failed!");
             return;
         }
 
         if (cbuffer != node.GetBuffer() && node.GetBuffer() != nullptr) {
             SurfaceError ret = consumerSurface->ReleaseBuffer(node.GetBuffer(), -1);
             if (ret != SURFACE_ERROR_OK) {
-                ROSEN_LOGE("RSSoftwareProcessor::ProcessSurface: ReleaseBuffer buffer error! error: %{public}d.", ret);
+                RS_LOGE("RSSoftwareProcessor::ProcessSurface: ReleaseBuffer buffer error! error: %{public}d.", ret);
                 return;
             }
         }
@@ -115,7 +115,7 @@ void RSSoftwareProcessor::ProcessSurface(RSSurfaceRenderNode& node)
     }
 
     if (cbuffer == nullptr) {
-        ROSEN_LOGE("RSSoftwareProcessor::ProcessSurface: surface buffer is null!");
+        RS_LOGE("RSSoftwareProcessor::ProcessSurface: surface buffer is null!");
         return;
     }
     auto params = RsRenderServiceUtil::CreateBufferDrawParam(node);
