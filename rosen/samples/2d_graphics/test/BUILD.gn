@@ -1,0 +1,76 @@
+# Copyright (c) 2022 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/ohos.gni")
+
+## Build drawing_sample {{{
+config("drawing_sample_config") {
+  visibility = [ ":*" ]
+
+  cflags = [
+    "-Wall",
+    "-Werror",
+    "-g3",
+  ]
+}
+
+ohos_executable("drawing_sample") {
+  install_enable = true
+
+  sources = [
+    "drawing_sample.cpp",
+    "include/shadow_test.h",
+    "main.cpp",
+    "src/bitmap_test.cpp",
+    "src/camera_test.cpp",
+    "src/filter_test.cpp",
+    "src/image_test.cpp",
+    "src/layer_context.cpp",
+    "src/matrix_test.cpp",
+    "src/path_effect_test.cpp",
+    "src/path_test.cpp",
+    "src/shader_test.cpp",
+  ]
+
+  configs = [ ":drawing_sample_config" ]
+
+  include_dirs = [
+    "//foundation/graphic/standard/rosen/modules/2d_graphics/include",
+    "//foundation/graphic/standard/rosen/modules/2d_graphics/src",
+    "//foundation/graphic/standard/rosen/samples/2d_graphics/test/include",
+    "//foundation/multimedia/image_standard/interfaces/innerkits/include",
+    "//foundation/graphic/standard/rosen/modules/composer/hdi_backend/include",
+    "//drivers/peripheral/display/interfaces/include",
+    "//foundation/graphic/standard/rosen/include/common",
+    "//foundation/graphic/standard/rosen/modules/composer/vsync/include",
+    "//foundation/graphic/standard/interfaces/innerkits/composer",
+  ]
+
+  deps = [
+    "//foundation/graphic/standard:libsurface",
+    "//foundation/graphic/standard/rosen/modules/2d_graphics:2d_graphics",
+    "//foundation/graphic/standard/rosen/modules/composer:libcomposer",
+    "//foundation/graphic/standard/utils:libgraphic_utils",
+    "//foundation/graphic/standard/utils:sync_fence",
+  ]
+
+  external_deps = [
+    "hilog_native:libhilog",
+    "ipc:ipc_core",
+    "multimedia_image_standard:image_native",
+  ]
+
+  part_name = "graphic_standard"
+  subsystem_name = "graphic"
+}
+## Build drawing_sample }}}
