@@ -694,14 +694,15 @@ GSError BufferQueue::SetQueueSize(uint32_t queueSize)
     }
 
     if (queueSize > SURFACE_MAX_QUEUE_SIZE) {
-        BLOGN_INVALID("queue size (%{public}d) > %{public}d", queueSize, SURFACE_MAX_QUEUE_SIZE);
+        BLOGN_INVALID("invalid queueSize[%{public}d] > SURFACE_MAX_QUEUE_SIZE[%{public}d]",
+            queueSize, SURFACE_MAX_QUEUE_SIZE);
         return GSERROR_INVALID_ARGUMENTS;
     }
 
     DeleteBuffers(queueSize_ - queueSize);
     queueSize_ = queueSize;
 
-    BLOGN_SUCCESS("queue size: %{public}d, Queue id: %{public}" PRIu64 "", queueSize, uniqueId_);
+    BLOGN_SUCCESS("queue size: %{public}d, Queue id: %{public}" PRIu64 "", queueSize_, uniqueId_);
     return GSERROR_OK;
 }
 
