@@ -25,6 +25,7 @@ namespace Rosen {
 class ImageChain {
 public:
     ImageChain(std::vector<std::shared_ptr<Input> > inputs);
+    ~ImageChain() {}
     void Render();
 
 private:
