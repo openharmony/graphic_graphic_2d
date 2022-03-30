@@ -15,6 +15,16 @@ import("//build/ohos.gni")
 
 ## Build librender_service.so
 ohos_shared_library("librender_service") {
+  defines = []
+  if ("${product_name}" == "watchos" || "${product_name}" == "Hi3516DV300" ||
+      "${product_name}" == "ohos-arm64" || "${product_name}" == "ohos-sdk" ||
+      "${product_name}" == "qemu-arm-linux-min" ||
+      "${product_name}" == "rk3566" || "${product_name}" == "rk3568") {
+    defines += []
+  } else {
+    defines += [ "PADDING_HEIGHT_32" ]
+  }
+
   sources = [
     "core/pipeline/rs_compatible_processor.cpp",
     "core/pipeline/rs_hardware_processor.cpp",
