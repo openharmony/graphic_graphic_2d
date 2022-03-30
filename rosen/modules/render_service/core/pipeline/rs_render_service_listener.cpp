@@ -37,10 +37,12 @@ void RSRenderServiceListener::OnBufferAvailable()
     }
     RS_LOGI("RsDebug RSRenderServiceListener::OnBufferAvailable node id:%llu", node->GetId());
 
-    if (!node->IsOnTheTree()) {
+    if (!node->IsOnTheTree() || !node->GetRenderProperties().GetVisible()) {
         RSMainThread::Instance()->PostTask([node]() {
-            RS_LOGI("RsDebug RSRenderServiceListener::OnBufferAvailable node id:%llu: is not on the tree",
-                node->GetId());
+            RS_LOGI("RsDebug RSRenderServiceListener::OnBufferAvailable node id:%llu:"\
+                "IsOnTheTree = %s, IsVisible = %s",
+                node->GetId(), node->IsOnTheTree() ? "true" : "false",
+                node->GetRenderProperties().GetVisible() ? "true" : "false");
             auto& surfaceConsumer = node->GetConsumer();
             if (surfaceConsumer == nullptr) {
                 RS_LOGE("RsDebug RSRenderServiceListener::OnBufferAvailable: consumer is null!");
@@ -56,7 +58,6 @@ void RSRenderServiceListener::OnBufferAvailable()
                 RS_LOGE("RsDebug RSRenderServiceListener::OnBufferAvailable: AcquireBuffer failed!");
                 return;
             }
-
             if (node->GetBuffer() != nullptr && node->GetBuffer() != buffer) {
                 (void)surfaceConsumer->ReleaseBuffer(node->GetBuffer(), -1);
             }

@@ -197,6 +197,10 @@ void RSRenderThreadVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
         ROSEN_LOGE("RSRenderThreadVisitor::ProcessSurfaceRenderNode, canvas is nullptr");
         return;
     }
+    if (!node.GetRenderProperties().GetVisible()) {
+        ROSEN_LOGI("RSRenderThreadVisitor::ProcessSurfaceRenderNode node : %llu is unvisible", node.GetId());
+        return;
+    }
     // RSSurfaceRenderNode in RSRenderThreadVisitor do not have information of property.
     // We only get parent's matrix and send it to RenderService
 #ifdef ROSEN_OHOS
@@ -213,12 +217,12 @@ void RSRenderThreadVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
     canvas_->save();
     canvas_->clipRect(SkRect::MakeXYWH(x, y, width, height));
     if (node.IsBufferAvailable() == true) {
-        ROSEN_LOGI("RSRenderThreadVisitor::ProcessSurfaceRenderNode CILP (set transparent) [%f, %f, %f, %f]",
-            x, y, width, height);
+        ROSEN_LOGI("RSRenderThreadVisitor::ProcessSurfaceRenderNode node : %llu, clip [%f, %f, %f, %f]",
+            node.GetId(), x, y, width, height);
         canvas_->clear(SK_ColorTRANSPARENT);
     } else {
-        ROSEN_LOGI("RSRenderThreadVisitor::ProcessSurfaceRenderNode NOT CILP (set black) [%f, %f, %f, %f]",
-            x, y, width, height);
+        ROSEN_LOGI("RSRenderThreadVisitor::ProcessSurfaceRenderNode node : %llu, not clip [%f, %f, %f, %f]",
+            node.GetId(), x, y, width, height);
         if (node.NeedSetCallbackForRenderThreadRefresh() == true) {
             node.SetCallbackForRenderThreadRefresh([] {
                 RSRenderThread::Instance().RequestNextVSync();
