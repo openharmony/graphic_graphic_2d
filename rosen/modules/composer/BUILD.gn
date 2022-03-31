@@ -79,7 +79,6 @@ ohos_shared_library("libcomposer") {
     "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
     "//foundation/graphic/standard/utils:buffer_handle",
     "//foundation/graphic/standard/utils:scoped_bytrace",
-    "//foundation/graphic/standard/utils:semaphore",
     "//foundation/graphic/standard/utils:socketpair",
     "//foundation/graphic/standard/utils:sync_fence",
     "//utils/native/base:utils",

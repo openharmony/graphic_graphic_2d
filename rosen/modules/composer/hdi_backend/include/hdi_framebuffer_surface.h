@@ -19,7 +19,6 @@
 #include <refbase.h>
 
 #include <surface.h>
-#include <local_semaphore.h>
 #include <sync_fence.h>
 
 namespace OHOS {
@@ -32,7 +31,6 @@ public:
     sptr<OHOS::SurfaceBuffer> GetFramebuffer();
     sptr<SyncFence> GetFramebufferFence();
     int32_t ReleaseFramebuffer(const sptr<SyncFence> &releaseFence);
-    void FramebufferSemWait();
 
 private:
     sptr<OHOS::Surface> consumerSurface_ = nullptr;
@@ -41,7 +39,6 @@ private:
     sptr<OHOS::SurfaceBuffer> oldBuffer_ = nullptr;
     sptr<SyncFence> fbAcquireFence_ = SyncFence::INVALID_FENCE;
     static constexpr uint32_t MAX_BUFFER_SIZE = 3;
-    LocalSemaphore framebufferSem_;
 
     HdiFramebufferSurface();
     virtual ~HdiFramebufferSurface();

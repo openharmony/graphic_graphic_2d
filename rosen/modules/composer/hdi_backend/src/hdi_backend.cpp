@@ -200,13 +200,6 @@ void HdiBackend::ReorderLayerInfo(std::vector<LayerInfoPtr> &newLayerInfos)
 int32_t HdiBackend::FlushScreen(uint32_t screenId, OutputPtr &output,
         std::vector<LayerPtr> &compClientLayers)
 {
-    /*
-     * We may not be able to get the framebuffer at this time, so we
-     * have to wait here. If the framebuffer is available, it'll signal us.
-     */
-
-    output->FramebufferSemWait();
-
     sptr<SyncFence> fbAcquireFence = output->GetFramebufferFence();
     for (auto &layer : compClientLayers) {
         layer->MergeWithFramebufferFence(fbAcquireFence);

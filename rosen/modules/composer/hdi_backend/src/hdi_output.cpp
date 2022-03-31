@@ -180,15 +180,6 @@ int32_t HdiOutput::ReleaseFramebuffer(const sptr<SyncFence> &releaseFence)
     return fbSurface_->ReleaseFramebuffer(releaseFence);
 }
 
-void HdiOutput::FramebufferSemWait()
-{
-    if (!CheckFbSurface()) {
-        return;
-    }
-
-    fbSurface_->FramebufferSemWait();
-}
-
 bool HdiOutput::CheckFbSurface()
 {
     if (fbSurface_ == nullptr) {

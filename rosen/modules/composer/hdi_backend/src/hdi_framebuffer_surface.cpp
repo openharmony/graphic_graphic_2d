@@ -91,9 +91,6 @@ void HdiFramebufferSurface::OnBufferAvailable()
     }
 
     fbAcquireFence_ = new SyncFence(fbAcquireFence);
-
-    // We've got framebuffer, signal now
-    framebufferSem_.Inc();
 }
 
 sptr<Surface> HdiFramebufferSurface::GetProducerSurface()
@@ -130,12 +127,6 @@ int32_t HdiFramebufferSurface::ReleaseFramebuffer(const sptr<SyncFence> &release
     oldBuffer_ = nullptr;
 
     return ret;
-}
-
-void HdiFramebufferSurface::FramebufferSemWait()
-{
-    // wait for framebuffer available
-    framebufferSem_.Dec();
 }
 
 } // namespace Rosen
