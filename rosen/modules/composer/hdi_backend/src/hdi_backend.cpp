@@ -71,6 +71,7 @@ void HdiBackend::Repaint(std::vector<OutputPtr> &outputs)
     for (auto &output : outputs) {
         const std::unordered_map<uint32_t, LayerPtr> &layersMap = output->GetLayers();
         if (layersMap.empty()) {
+            HLOGI("layer map is empty, drop this frame");
             continue;
         }
 

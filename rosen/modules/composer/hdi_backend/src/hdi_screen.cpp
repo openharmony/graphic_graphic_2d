@@ -29,15 +29,23 @@ std::unique_ptr<HdiScreen> HdiScreen::CreateHdiScreen(uint32_t screenId)
 
 HdiScreen::HdiScreen(uint32_t screenId) : screenId_(screenId)
 {
+    HLOGI("Create screen, screenId is %{public}d", screenId);
 }
 
 HdiScreen::~HdiScreen()
 {
+    HLOGI("Destroy screen, screenId is %{public}d", screenId_);
+
     Destroy();
 }
 
 void HdiScreen::OnVsync(uint32_t sequence, uint64_t ns, void *data)
 {
+    if (ns == 0) {
+        HLOGW("Vsync ns is 0, drop this callback");
+        return;
+    }
+
     // trigger vsync
     // if the sampler->GetHardwareVSyncStatus() is false, this OnVsync callback will be disable
     // we need to add this process

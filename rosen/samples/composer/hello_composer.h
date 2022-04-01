@@ -38,13 +38,6 @@ public:
 private:
     uint32_t freq_ = 30;
     uint32_t currScreenId_ = 0;
-    // key is screenId
-    std::unordered_map<uint32_t, uint32_t> displayWidthsMap_;
-    std::unordered_map<uint32_t, uint32_t> displayHeightsMap_;
-    uint32_t currentModeIndex_ = 0;
-    std::vector<DisplayModeInfo> displayModeInfos_;
-    // key is screenId
-    std::unordered_map<uint32_t, std::shared_ptr<HdiOutput>> outputMap_;
     bool dump_ = false;
     bool ready_ = false;
     bool initDeviceFinished_ = false;
@@ -55,12 +48,18 @@ private:
     HdiBackend* backend_ = nullptr;
     std::vector<std::unique_ptr<HdiScreen>> screens_;
     std::shared_ptr<HdiOutput> curOutput_;
-    // key is screenId
-    std::unordered_map<uint32_t, std::vector<std::unique_ptr<LayerContext>>> drawLayersMap_;
     std::shared_ptr<OHOS::AppExecFwk::EventHandler> mainThreadHandler_;
+
+    /* map: key is screenId */
+    std::unordered_map<uint32_t, uint32_t> displayWidthsMap_;
+    std::unordered_map<uint32_t, uint32_t> displayHeightsMap_;
+    std::unordered_map<uint32_t, std::shared_ptr<HdiOutput>> outputMap_;
+    std::unordered_map<uint32_t, std::unique_ptr<HdiScreen>> screensMap_;
+    std::unordered_map<uint32_t, std::vector<std::unique_ptr<LayerContext>>> drawLayersMap_;
 
     void InitLayers(uint32_t screenId);
     void RequestSync();
+    void CreateLayers();
     void CreateShowLayers();
     void DrawFrameBufferData(void *image, uint32_t width, uint32_t height);
     void Draw();
@@ -70,6 +69,7 @@ private:
     void OnHotPlugEvent(std::shared_ptr<HdiOutput> &output, bool connected);
     void ParseArgs(std::vector<std::string> &runArgs);
     void SetRunArgs(const std::unique_ptr<LayerContext> &drawLayer);
+    void RemoveOffScreenData(uint32_t offScreenId);
     uint32_t CreatePhysicalScreen();
 
     static void OnScreenPlug(std::shared_ptr<HdiOutput> &output, bool connected, void* data);
