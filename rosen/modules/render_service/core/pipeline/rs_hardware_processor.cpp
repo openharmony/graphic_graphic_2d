@@ -112,15 +112,36 @@ void RSHardwareProcessor::CropLayers()
     }
 }
 
+void RSHardwareProcessor::ReleaseNodePrevBuffer(RSSurfaceRenderNode& node)
+{
+    const auto& consumer = node.GetConsumer();
+    if (consumer == nullptr) {
+        RS_LOGE("RSHardwareProcessor::ReleaseNodePrevBuffer: node's consumer is null.");
+        return;
+    }
+
+    (void)consumer->ReleaseBuffer(node.GetPreBuffer(), -1);
+}
+
 void RSHardwareProcessor::ProcessSurface(RSSurfaceRenderNode &node)
 {
+    OHOS::sptr<SurfaceBuffer> cbuffer;
+    RSProcessor::SpecialTask task = [] () -> void {};
+    bool ret = ConsumeAndUpdateBuffer(node, task, cbuffer);
+    if (!ret) {
+        RS_LOGI("RsDebug RSHardwareProcessor::ProcessSurface consume buffer fail");
+        return;
+    }
+
     RS_TRACE_NAME(std::string("ProcessSurfaceNode Name:") + node.GetName().c_str());
     RS_LOGI("RsDebug RSHardwareProcessor::ProcessSurface start node id:%llu available buffer:%d name:[%s]",
         node.GetId(), node.GetAvailableBufferCount(), node.GetName().c_str());
     if (!output_) {
         RS_LOGE("RSHardwareProcessor::ProcessSurface output is nullptr");
+        ReleaseNodePrevBuffer(node);
         return;
     }
+
     uint32_t boundWidth = currScreenInfo_.width;
     uint32_t boundHeight = currScreenInfo_.height;
     if (rotation_ == ScreenRotation::ROTATION_90 || rotation_ == ScreenRotation::ROTATION_270) {
@@ -129,15 +150,10 @@ void RSHardwareProcessor::ProcessSurface(RSSurfaceRenderNode &node)
     if (node.GetRenderProperties().GetBoundsPositionX() >= boundWidth ||
         node.GetRenderProperties().GetBoundsPositionY() >= boundHeight) {
         RS_LOGE("RsDebug RSHardwareProcessor::ProcessSurface this node:%llu no need to composite", node.GetId());
+        ReleaseNodePrevBuffer(node);
         return;
     }
-    OHOS::sptr<SurfaceBuffer> cbuffer;
-    RSProcessor::SpecialTask task = [] () -> void {};
-    bool ret = ConsumeAndUpdateBuffer(node, task, cbuffer);
-    if (!ret) {
-        RS_LOGI("RsDebug RSHardwareProcessor::ProcessSurface consume buffer fail");
-        return;
-    }
+
     if (!node.IsBufferAvailable()) {
         // Only ipc for one time.
         RS_LOGI("RsDebug RSHardwareProcessor::ProcessSurface id = %llu Notify RT buffer available", node.GetId());
@@ -146,6 +162,7 @@ void RSHardwareProcessor::ProcessSurface(RSSurfaceRenderNode &node)
     auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(node.GetRenderProperties().GetBoundsGeometry());
     if (geoPtr == nullptr) {
         RS_LOGE("RsDebug RSHardwareProcessor::ProcessSurface geoPtr == nullptr");
+        ReleaseNodePrevBuffer(node);
         return;
     }
     ComposeInfo info = {
@@ -182,6 +199,11 @@ void RSHardwareProcessor::ProcessSurface(RSSurfaceRenderNode &node)
     auto transitionProperties = node.GetAnimationManager().GetTransitionProperties();
     CalculateInfoWithAnimation(transitionProperties, info, node);
     node.SetDstRect({info.dstRect.x, info.dstRect.y, info.dstRect.w, info.dstRect.h});
+    if (info.dstRect.w <= 0 || info.dstRect.h <= 0) {
+        ReleaseNodePrevBuffer(node);
+        return;
+    }
+
     std::shared_ptr<HdiLayerInfo> layer = HdiLayerInfo::CreateHdiLayerInfo();
     RS_LOGI("RsDebug RSHardwareProcessor::ProcessSurface surfaceNode id:%llu name:[%s] dst [%d %d %d %d]"\
         "SrcRect [%d %d] rawbuffer [%d %d] surfaceBuffer [%d %d] buffaddr:%p, z:%f, globalZOrder:%d, blendType = %d",

@@ -49,6 +49,7 @@ private:
     void CalculateInfoWithAnimation(const std::unique_ptr<RSTransitionProperties>& transitionProperties,
         ComposeInfo& info, RSSurfaceRenderNode& node);
     void CalculateInfoWithVideo(ComposeInfo& info, RSSurfaceRenderNode& node);
+    void ReleaseNodePrevBuffer(RSSurfaceRenderNode& node);
     HdiBackend* backend_ = nullptr;
     sptr<RSScreenManager> screenManager_;
     ScreenInfo currScreenInfo_;
