@@ -111,6 +111,33 @@ void RSSurfaceNode::SetColorSpace(ColorGamut colorSpace)
     colorSpace_ = colorSpace;
 }
 
+bool RSSurfaceNode::SetFirstTimeOnScreenCallback(FirstTimeOnScreenCallback callback)
+{
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        callback_ = callback;
+    }
+    auto renderServiceClient =
+        std::static_pointer_cast<RSRenderServiceClient>(RSIRenderClient::CreateRenderServiceClient());
+    if (renderServiceClient != nullptr) {
+        return renderServiceClient->RegisterBufferAvailableListener(GetId(), [weakThis = weak_from_this()]() {
+            auto rsSurfaceNode = RSBaseNode::ReinterpretCast<RSSurfaceNode>(weakThis.lock());
+            if (rsSurfaceNode) {
+                FirstTimeOnScreenCallback actualCallback;
+                {
+                    std::lock_guard<std::mutex> lock(rsSurfaceNode->mutex_);
+                    actualCallback = rsSurfaceNode->callback_;
+                }
+                actualCallback();
+            } else {
+                ROSEN_LOGE("RSSurfaceNode::SetFirstTimeOnScreenCallback this == null");
+            }
+        });
+    } else {
+        return false;
+    }
+}
+
 bool RSSurfaceNode::Marshalling(Parcel& parcel) const
 {
     return parcel.WriteUint64(GetId()) && parcel.WriteString(name_) && parcel.WriteBool(IsRenderServiceNode());

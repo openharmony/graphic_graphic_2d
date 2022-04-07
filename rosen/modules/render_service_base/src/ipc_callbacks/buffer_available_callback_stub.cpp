@@ -31,8 +31,7 @@ int RSBufferAvailableCallbackStub::OnRemoteRequest(
     int ret = ERR_NONE;
     switch (code) {
         case ON_BUFFER_AVAILABLE: {
-            bool isBufferAvailable = data.ReadBool();
-            OnBufferAvailable(isBufferAvailable);
+            OnBufferAvailable();
             break;
         }
         default: {

@@ -34,7 +34,7 @@ public:
         ON_BUFFER_AVAILABLE,
     };
 
-    virtual void OnBufferAvailable(bool isBufferAvailable) = 0;
+    virtual void OnBufferAvailable() = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

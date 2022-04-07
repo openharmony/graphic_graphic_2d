@@ -28,7 +28,7 @@ RSBufferAvailableCallbackProxy::RSBufferAvailableCallbackProxy(const sptr<IRemot
 {
 }
 
-void RSBufferAvailableCallbackProxy::OnBufferAvailable(bool isBufferAvailable)
+void RSBufferAvailableCallbackProxy::OnBufferAvailable()
 {
     MessageParcel data;
     MessageParcel reply;
@@ -37,8 +37,6 @@ void RSBufferAvailableCallbackProxy::OnBufferAvailable(bool isBufferAvailable)
     if (!data.WriteInterfaceToken(RSIBufferAvailableCallback::GetDescriptor())) {
         return;
     }
-
-    data.WriteBool(isBufferAvailable);
 
     option.SetFlags(MessageOption::TF_ASYNC);
     int32_t err = Remote()->SendRequest(RSIBufferAvailableCallback::ON_BUFFER_AVAILABLE, data, reply, option);

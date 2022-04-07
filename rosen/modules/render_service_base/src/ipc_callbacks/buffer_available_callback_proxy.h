@@ -28,7 +28,7 @@ public:
     explicit RSBufferAvailableCallbackProxy(const sptr<IRemoteObject>& impl);
     virtual ~RSBufferAvailableCallbackProxy() noexcept = default;
 
-    void OnBufferAvailable(bool isBufferAvaiable) override;
+    void OnBufferAvailable() override;
 
 private:
     static inline BrokerDelegator<RSBufferAvailableCallbackProxy> delegator_;

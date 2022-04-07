@@ -137,7 +137,7 @@ public:
     // Only SurfaceNode in RT calls "ConnectToNodeInRenderService" to send callback method to RS
     void ConnectToNodeInRenderService();
 
-    void NotifyBufferAvailable(bool isBufferAvailable);
+    void NotifyBufferAvailable();
     bool IsBufferAvailable() const;
 
     // UI Thread would not be notified when SurfaceNode created by Video/Camera in RenderService has available buffer.

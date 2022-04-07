@@ -311,10 +311,10 @@ public:
     explicit CustomBufferAvailableCallback(const BufferAvailableCallback &callback) : cb_(callback) {}
     ~CustomBufferAvailableCallback() override {};
 
-    void OnBufferAvailable(bool isBufferAvailable) override
+    void OnBufferAvailable() override
     {
         if (cb_ != nullptr) {
-            cb_(isBufferAvailable);
+            cb_();
         }
     }
 
@@ -336,6 +336,19 @@ bool RSRenderServiceClient::RegisterBufferAvailableListener(NodeId id, const Buf
     renderService->RegisterBufferAvailableListener(id, bufferAvailableCb);
     bufferAvailableCbMap_.emplace(id, bufferAvailableCb);
     return true;
+}
+
+bool RSRenderServiceClient::UnregisterBufferAvailableListener(NodeId id)
+{
+    auto iter = bufferAvailableCbMap_.find(id);
+    if (iter != bufferAvailableCbMap_.end()) {
+        bufferAvailableCbMap_.erase(iter);
+        return true;
+    } else {
+        ROSEN_LOGI("RSRenderServiceClient::UnregisterBufferAvailableListener "\
+            "Node %llu has not regiatered callback", id);
+        return false;
+    }
 }
 
 int32_t RSRenderServiceClient::GetScreenSupportedColorGamuts(ScreenId id, std::vector<ScreenColorGamut>& mode)

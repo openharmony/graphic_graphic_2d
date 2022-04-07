@@ -158,9 +158,10 @@ void RSHardwareProcessor::ProcessSurface(RSSurfaceRenderNode &node)
 
     if (!node.IsBufferAvailable()) {
         // Only ipc for one time.
-        RS_LOGI("RsDebug RSHardwareProcessor::ProcessSurface id = %llu Notify RT buffer available", node.GetId());
-        node.NotifyBufferAvailable(true);
+        RS_LOGI("RsDebug RSHardwareProcessor::ProcessSurface id = %llu Notify buffer available", node.GetId());
+        node.NotifyBufferAvailable();
     }
+
     auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(node.GetRenderProperties().GetBoundsGeometry());
     if (geoPtr == nullptr) {
         RS_LOGE("RsDebug RSHardwareProcessor::ProcessSurface geoPtr == nullptr");
