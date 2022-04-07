@@ -21,7 +21,7 @@ config("bootanimation_config") {
   include_dirs = [
     "include",
     "//foundation/graphic/standard/utils/log",
-    "//foundation/multimedia/media_standard/interfaces/innerkits/native/media/include",
+    "//foundation/multimedia/media_standard/interfaces/inner_api/native",
   ]
 
   cflags = [
@@ -60,7 +60,7 @@ ohos_executable("bootanimation") {
     "//foundation/graphic/standard/rosen/modules/2d_graphics:2d_graphics",
     "//foundation/graphic/standard/rosen/modules/render_service_base/src/platform:platform",
     "//foundation/graphic/standard/rosen/modules/render_service_client:librender_service_client",
-    "//foundation/multimedia/media_standard/interfaces/innerkits/native/media:media_client",
+    "//foundation/multimedia/media_standard/interfaces/inner_api/native:media_client",
     "//foundation/windowmanager/dm:libdm",
     "//foundation/windowmanager/dmserver:libdms",
     "//foundation/windowmanager/wm:libwm",
