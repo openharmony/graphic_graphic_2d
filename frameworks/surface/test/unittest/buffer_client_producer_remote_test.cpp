@@ -56,7 +56,7 @@ public:
     static inline pid_t pid = 0;
     static inline int pipeFd[2] = {};
     static inline int32_t systemAbilityID = 345135;
-    static inline BufferExtraDataImpl bedata;
+    static inline sptr<BufferExtraData> bedata = new BufferExtraDataImpl;
 };
 
 void BufferClientProducerRemoteTest::SetUpTestCase()

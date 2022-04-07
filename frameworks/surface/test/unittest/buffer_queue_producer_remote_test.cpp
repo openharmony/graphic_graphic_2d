@@ -50,7 +50,7 @@ public:
     static inline sptr<IBufferProducer> bp = nullptr;
     static inline sptr<BufferQueue> bq = nullptr;
     static inline sptr<BufferQueueProducer> bqp = nullptr;
-    static inline BufferExtraDataImpl bedata;
+    static inline sptr<BufferExtraData> bedata = nullptr;
     static inline int32_t systemAbilityID = 345154;
 };
 
@@ -67,6 +67,8 @@ void BufferQueueProducerRemoteTest::SetUpTestCase()
 
     robj = sm->GetSystemAbility(systemAbilityID);
     bp = iface_cast<IBufferProducer>(robj);
+
+    bedata = new OHOS::BufferExtraDataImpl;
 }
 
 void BufferQueueProducerRemoteTest::TearDownTestCase()
@@ -131,8 +133,7 @@ HWTEST_F(BufferQueueProducerRemoteTest, ReqCan001, Function | MediumTest | Level
     ret = bp->CancelBuffer(retval.sequence, bedata);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
-    sptr<SurfaceBufferImpl> bufferImpl = static_cast<SurfaceBufferImpl*>(retval.buffer.GetRefPtr());
-    ret = bq->AcquireBuffer(bufferImpl, retval.fence, timestamp, damage);
+    ret = bq->AcquireBuffer(retval.buffer, retval.fence, timestamp, damage);
     ASSERT_NE(ret, OHOS::GSERROR_OK);
 }
 
@@ -158,8 +159,7 @@ HWTEST_F(BufferQueueProducerRemoteTest, ReqCan002, Function | MediumTest | Level
     ret = bp->CancelBuffer(retval.sequence, bedata);
     ASSERT_NE(ret, OHOS::GSERROR_OK);
 
-    sptr<SurfaceBufferImpl> bufferImpl = static_cast<SurfaceBufferImpl*>(retval.buffer.GetRefPtr());
-    ret = bq->AcquireBuffer(bufferImpl, retval.fence, timestamp, damage);
+    ret = bq->AcquireBuffer(retval.buffer, retval.fence, timestamp, damage);
     ASSERT_NE(ret, OHOS::GSERROR_OK);
 }
 
@@ -199,8 +199,7 @@ HWTEST_F(BufferQueueProducerRemoteTest, ReqCan003, Function | MediumTest | Level
     ret = bp->CancelBuffer(retval3.sequence, bedata);
     ASSERT_NE(ret, OHOS::GSERROR_OK);
 
-    sptr<SurfaceBufferImpl> bufferImpl = static_cast<SurfaceBufferImpl*>(retval1.buffer.GetRefPtr());
-    ret = bq->AcquireBuffer(bufferImpl, retval1.fence, timestamp, damage);
+    ret = bq->AcquireBuffer(retval1.buffer, retval1.fence, timestamp, damage);
     ASSERT_NE(ret, OHOS::GSERROR_OK);
 }
 
@@ -223,14 +222,13 @@ HWTEST_F(BufferQueueProducerRemoteTest, ReqFlu001, Function | MediumTest | Level
     ret = bp->FlushBuffer(retval.sequence, bedata, -1, flushConfig);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
-    sptr<SurfaceBufferImpl> bufferImpl = static_cast<SurfaceBufferImpl*>(retval.buffer.GetRefPtr());
-    ret = bq->AcquireBuffer(bufferImpl, retval.fence, timestamp, damage);
+    ret = bq->AcquireBuffer(retval.buffer, retval.fence, timestamp, damage);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
-    ret = bq->ReleaseBuffer(bufferImpl, -1);
+    ret = bq->ReleaseBuffer(retval.buffer, -1);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
-    ret = bq->AcquireBuffer(bufferImpl, retval.fence, timestamp, damage);
+    ret = bq->AcquireBuffer(retval.buffer, retval.fence, timestamp, damage);
     ASSERT_NE(ret, OHOS::GSERROR_OK);
 }
 
@@ -257,14 +255,13 @@ HWTEST_F(BufferQueueProducerRemoteTest, ReqFlu002, Function | MediumTest | Level
     ret = bp->FlushBuffer(retval.sequence, bedata, -1, flushConfig);
     ASSERT_NE(ret, OHOS::GSERROR_OK);
 
-    sptr<SurfaceBufferImpl> bufferImpl = static_cast<SurfaceBufferImpl*>(retval.buffer.GetRefPtr());
-    ret = bq->AcquireBuffer(bufferImpl, retval.fence, timestamp, damage);
+    ret = bq->AcquireBuffer(retval.buffer, retval.fence, timestamp, damage);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
-    ret = bq->ReleaseBuffer(bufferImpl, -1);
+    ret = bq->ReleaseBuffer(retval.buffer, -1);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
-    ret = bq->AcquireBuffer(bufferImpl, retval.fence, timestamp, damage);
+    ret = bq->AcquireBuffer(retval.buffer, retval.fence, timestamp, damage);
     ASSERT_NE(ret, OHOS::GSERROR_OK);
 }
 }

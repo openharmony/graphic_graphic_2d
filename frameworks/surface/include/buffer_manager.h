@@ -21,7 +21,7 @@
 #include <surface_type.h>
 #include <idisplay_gralloc.h>
 
-#include "surface_buffer_impl.h"
+#include "surface_buffer.h"
 
 namespace OHOS {
 class BufferManager : public RefBase {
@@ -29,13 +29,13 @@ public:
     static sptr<BufferManager> GetInstance();
 
     GSError Init();
-    GSError Alloc(const BufferRequestConfig &config, sptr<SurfaceBufferImpl>& buffer);
-    GSError Map(sptr<SurfaceBufferImpl>& buffer);
-    GSError Unmap(sptr<SurfaceBufferImpl>& buffer);
+    GSError Alloc(const BufferRequestConfig &config, sptr<SurfaceBuffer>& buffer);
+    GSError Map(sptr<SurfaceBuffer>& buffer);
+    GSError Unmap(sptr<SurfaceBuffer>& buffer);
     GSError Unmap(BufferHandle *bufferHandle);
-    GSError FlushCache(sptr<SurfaceBufferImpl>& buffer);
-    GSError InvalidateCache(sptr<SurfaceBufferImpl>& buffer);
-    GSError Free(sptr<SurfaceBufferImpl>& buffer);
+    GSError FlushCache(sptr<SurfaceBuffer>& buffer);
+    GSError InvalidateCache(sptr<SurfaceBuffer>& buffer);
+    GSError Free(sptr<SurfaceBuffer>& buffer);
 
 private:
     BufferManager() = default;

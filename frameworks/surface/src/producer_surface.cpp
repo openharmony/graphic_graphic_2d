@@ -17,6 +17,7 @@
 
 #include "buffer_log.h"
 #include "buffer_manager.h"
+#include "buffer_extra_data_impl.h"
 
 namespace OHOS {
 ProducerSurface::ProducerSurface(sptr<IBufferProducer>& producer)
@@ -55,7 +56,7 @@ GSError ProducerSurface::RequestBuffer(sptr<SurfaceBuffer>& buffer,
     int32_t &fence, BufferRequestConfig &config)
 {
     IBufferProducer::RequestBufferReturnValue retval;
-    BufferExtraDataImpl bedataimpl;
+    sptr<BufferExtraData> bedataimpl = new BufferExtraDataImpl;
     GSError ret = GetProducer()->RequestBuffer(config, bedataimpl, retval);
     if (ret != GSERROR_OK) {
         BLOGN_FAILURE("Producer report %{public}s", GSErrorStr(ret).c_str());
@@ -65,8 +66,7 @@ GSError ProducerSurface::RequestBuffer(sptr<SurfaceBuffer>& buffer,
     std::lock_guard<std::mutex> lockGuard(mutex_);
     // add cache
     if (retval.buffer != nullptr && IsRemote()) {
-        sptr<SurfaceBufferImpl> bufferImpl = SurfaceBufferImpl::FromBase(retval.buffer);
-        ret = BufferManager::GetInstance()->Map(bufferImpl);
+        ret = BufferManager::GetInstance()->Map(retval.buffer);
         if (ret != GSERROR_OK) {
             BLOGN_FAILURE_ID(retval.sequence, "Map failed");
             return GSERROR_API_FAILED;
@@ -76,7 +76,7 @@ GSError ProducerSurface::RequestBuffer(sptr<SurfaceBuffer>& buffer,
     }
 
     if (retval.buffer != nullptr) {
-        bufferProducerCache_[retval.sequence] = SurfaceBufferImpl::FromBase(retval.buffer);
+        bufferProducerCache_[retval.sequence] = retval.buffer;
     } else if (bufferProducerCache_.find(retval.sequence) == bufferProducerCache_.end()) {
         return GSERROR_API_FAILED;
     } else {
@@ -85,16 +85,15 @@ GSError ProducerSurface::RequestBuffer(sptr<SurfaceBuffer>& buffer,
     buffer = retval.buffer;
     fence = retval.fence;
 
-    sptr<SurfaceBufferImpl> bufferImpl = SurfaceBufferImpl::FromBase(retval.buffer);
     if (static_cast<uint32_t>(config.usage) & HBM_USE_CPU_WRITE) {
-        ret = BufferManager::GetInstance()->InvalidateCache(bufferImpl);
+        ret = BufferManager::GetInstance()->InvalidateCache(buffer);
         if (ret != GSERROR_OK) {
             BLOGNW("Warning [%{public}d], InvalidateCache failed", retval.sequence);
         }
     }
 
-    if (bufferImpl != nullptr) {
-        bufferImpl->SetExtraData(bedataimpl);
+    if (buffer != nullptr) {
+        buffer->SetExtraData(bedataimpl);
     }
 
     for (auto it = retval.deletingBuffers.begin(); it != retval.deletingBuffers.end(); it++) {
@@ -113,14 +112,9 @@ GSError ProducerSurface::CancelBuffer(sptr<SurfaceBuffer>& buffer)
         return GSERROR_INVALID_ARGUMENTS;
     }
 
-    auto bufferImpl = SurfaceBufferImpl::FromBase(buffer);
-    if (bufferImpl == nullptr) {
-        BLOGNW("ProducerSurface::CancelBuffer get SurfaceBufferImpl form base failed");
-        return GSERROR_INVALID_ARGUMENTS;
-    }
-    BufferExtraDataImpl bedataimpl;
-    bufferImpl->GetExtraData(bedataimpl);
-    return GetProducer()->CancelBuffer(bufferImpl->GetSeqNum(), bedataimpl);
+    sptr<BufferExtraData> bedata = nullptr;
+    buffer->GetExtraData(bedata);
+    return GetProducer()->CancelBuffer(buffer->GetSeqNum(), bedata);
 }
 
 GSError ProducerSurface::FlushBuffer(sptr<SurfaceBuffer>& buffer,
@@ -130,14 +124,9 @@ GSError ProducerSurface::FlushBuffer(sptr<SurfaceBuffer>& buffer,
         return GSERROR_INVALID_ARGUMENTS;
     }
 
-    auto bufferImpl = SurfaceBufferImpl::FromBase(buffer);
-    if (bufferImpl == nullptr) {
-        BLOGNW("ProducerSurface::FlushBuffer get SurfaceBufferImpl form base failed");
-        return GSERROR_INVALID_ARGUMENTS;
-    }
-    BufferExtraDataImpl bedataimpl;
-    bufferImpl->GetExtraData(bedataimpl);
-    return GetProducer()->FlushBuffer(bufferImpl->GetSeqNum(), bedataimpl, fence, config);
+    sptr<BufferExtraData> bedata = nullptr;
+    buffer->GetExtraData(bedata);
+    return GetProducer()->FlushBuffer(buffer->GetSeqNum(), bedata, fence, config);
 }
 
 GSError ProducerSurface::AcquireBuffer(sptr<SurfaceBuffer>& buffer, int32_t &fence,

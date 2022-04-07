@@ -90,7 +90,7 @@ GSError BufferManager::Init()
     return GSERROR_OK;
 }
 
-GSError BufferManager::Alloc(const BufferRequestConfig &config, sptr<SurfaceBufferImpl> &buffer)
+GSError BufferManager::Alloc(const BufferRequestConfig &config, sptr<SurfaceBuffer> &buffer)
 {
     CHECK_INIT();
     CHECK_BUFFER(buffer);
@@ -115,7 +115,7 @@ GSError BufferManager::Alloc(const BufferRequestConfig &config, sptr<SurfaceBuff
     return GenerateError(GSERROR_API_FAILED, dret);
 }
 
-GSError BufferManager::Map(sptr<SurfaceBufferImpl> &buffer)
+GSError BufferManager::Map(sptr<SurfaceBuffer> &buffer)
 {
     CHECK_INIT();
     CHECK_BUFFER(buffer);
@@ -132,7 +132,7 @@ GSError BufferManager::Map(sptr<SurfaceBufferImpl> &buffer)
     return GSERROR_OK;
 }
 
-GSError BufferManager::Unmap(sptr<SurfaceBufferImpl> &buffer)
+GSError BufferManager::Unmap(sptr<SurfaceBuffer> &buffer)
 {
     CHECK_INIT();
     CHECK_BUFFER(buffer);
@@ -173,7 +173,7 @@ GSError BufferManager::Unmap(BufferHandle *bufferHandle)
     return GenerateError(GSERROR_API_FAILED, dret);
 }
 
-GSError BufferManager::FlushCache(sptr<SurfaceBufferImpl> &buffer)
+GSError BufferManager::FlushCache(sptr<SurfaceBuffer> &buffer)
 {
     CHECK_INIT();
     CHECK_BUFFER(buffer);
@@ -191,7 +191,7 @@ GSError BufferManager::FlushCache(sptr<SurfaceBufferImpl> &buffer)
     return GenerateError(GSERROR_API_FAILED, dret);
 }
 
-GSError BufferManager::InvalidateCache(sptr<SurfaceBufferImpl> &buffer)
+GSError BufferManager::InvalidateCache(sptr<SurfaceBuffer> &buffer)
 {
     CHECK_INIT();
     CHECK_BUFFER(buffer);
@@ -209,7 +209,7 @@ GSError BufferManager::InvalidateCache(sptr<SurfaceBufferImpl> &buffer)
     return GenerateError(GSERROR_API_FAILED, dret);
 }
 
-GSError BufferManager::Free(sptr<SurfaceBufferImpl> &buffer)
+GSError BufferManager::Free(sptr<SurfaceBuffer> &buffer)
 {
     CHECK_INIT();
     CHECK_BUFFER(buffer);

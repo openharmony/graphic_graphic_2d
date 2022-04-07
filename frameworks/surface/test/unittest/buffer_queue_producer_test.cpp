@@ -47,7 +47,7 @@ public:
     static inline Rect damage = {};
     static inline sptr<BufferQueue> bq = nullptr;
     static inline sptr<BufferQueueProducer> bqp = nullptr;
-    static inline BufferExtraDataImpl bedata;
+    static inline sptr<BufferExtraData> bedata = nullptr;
 };
 
 void BufferQueueProducerTest::SetUpTestCase()
@@ -57,6 +57,7 @@ void BufferQueueProducerTest::SetUpTestCase()
     sptr<IBufferConsumerListener> listener = new BufferConsumerListener();
     bq->RegisterConsumerListener(listener);
     bqp = new BufferQueueProducer(bq);
+    bedata = new OHOS::BufferExtraDataImpl;
 }
 
 void BufferQueueProducerTest::TearDownTestCase()
@@ -185,11 +186,10 @@ HWTEST_F(BufferQueueProducerTest, ReqFlu001, Function | MediumTest | Level2)
     ret = bqp->FlushBuffer(retval.sequence, bedata, -1, flushConfig);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
-    sptr<SurfaceBufferImpl> bufferImpl = SurfaceBufferImpl::FromBase(retval.buffer);
-    ret = bq->AcquireBuffer(bufferImpl, retval.fence, timestamp, damage);
+    ret = bq->AcquireBuffer(retval.buffer, retval.fence, timestamp, damage);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
-    ret = bq->ReleaseBuffer(bufferImpl, -1);
+    ret = bq->ReleaseBuffer(retval.buffer, -1);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 }
 
@@ -215,11 +215,10 @@ HWTEST_F(BufferQueueProducerTest, ReqFlu002, Function | MediumTest | Level2)
     ret = bqp->FlushBuffer(retval.sequence, bedata, -1, flushConfig);
     ASSERT_NE(ret, OHOS::GSERROR_OK);
 
-    sptr<SurfaceBufferImpl> bufferImpl = SurfaceBufferImpl::FromBase(retval.buffer);
-    ret = bq->AcquireBuffer(bufferImpl, retval.fence, timestamp, damage);
+    ret = bq->AcquireBuffer(retval.buffer, retval.fence, timestamp, damage);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
-    ret = bq->ReleaseBuffer(bufferImpl, -1);
+    ret = bq->ReleaseBuffer(retval.buffer, -1);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 }
 }

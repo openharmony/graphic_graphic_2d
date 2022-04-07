@@ -23,7 +23,7 @@
 #include <ibuffer_producer.h>
 
 #include "egl_manager.h"
-#include "surface_buffer_impl.h"
+#include "surface_buffer.h"
 
 namespace OHOS {
 class ProducerEglSurface : public EglSurface {
@@ -50,7 +50,7 @@ private:
     GSError CreateEglFenceFd(int32_t &fd);
     GSError WaitForReleaseFence(int32_t fd);
 
-    std::map<int32_t, sptr<SurfaceBufferImpl>> bufferProducerCache_;
+    std::map<int32_t, sptr<SurfaceBuffer>> bufferProducerCache_;
     sptr<IBufferProducer> producer_ = nullptr;
     std::string name_ = "not init";
     bool initFlag_ = false;

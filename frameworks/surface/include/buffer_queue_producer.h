@@ -37,12 +37,12 @@ public:
     virtual int OnRemoteRequest(uint32_t code, MessageParcel &arguments,
                                 MessageParcel &reply, MessageOption &option) override;
 
-    virtual GSError RequestBuffer(const BufferRequestConfig &config, BufferExtraData &bedata,
+    virtual GSError RequestBuffer(const BufferRequestConfig &config, sptr<BufferExtraData> &bedata,
                                        RequestBufferReturnValue &retval) override;
 
-    GSError CancelBuffer(int32_t sequence, BufferExtraData &bedata) override;
+    GSError CancelBuffer(int32_t sequence, const sptr<BufferExtraData> &bedata) override;
 
-    GSError FlushBuffer(int32_t sequence, BufferExtraData &bedata,
+    GSError FlushBuffer(int32_t sequence, const sptr<BufferExtraData> &bedata,
                              int32_t fence, BufferFlushConfig &config) override;
 
     GSError AttachBuffer(sptr<SurfaceBuffer>& buffer) override;

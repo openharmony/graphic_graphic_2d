@@ -26,7 +26,7 @@
 #include <surface_type.h>
 #include <buffer_manager.h>
 
-#include "surface_buffer_impl.h"
+#include "surface_buffer.h"
 
 namespace OHOS {
 enum BufferState {
@@ -38,7 +38,7 @@ enum BufferState {
 };
 
 typedef struct {
-    sptr<SurfaceBufferImpl> buffer;
+    sptr<SurfaceBuffer> buffer;
     BufferState state;
     bool isDeleting;
 
@@ -54,27 +54,27 @@ public:
     virtual ~BufferQueue();
     GSError Init();
 
-    GSError RequestBuffer(const BufferRequestConfig &config, BufferExtraData &bedata,
+    GSError RequestBuffer(const BufferRequestConfig &config, sptr<BufferExtraData> &bedata,
                                struct IBufferProducer::RequestBufferReturnValue &retval);
 
-    GSError ReuseBuffer(const BufferRequestConfig &config, BufferExtraData &bedata,
+    GSError ReuseBuffer(const BufferRequestConfig &config, sptr<BufferExtraData> &bedata,
                              struct IBufferProducer::RequestBufferReturnValue &retval);
 
-    GSError CancelBuffer(int32_t sequence, const BufferExtraData &bedata);
+    GSError CancelBuffer(int32_t sequence, const sptr<BufferExtraData> &bedata);
 
-    GSError FlushBuffer(int32_t sequence, const BufferExtraData &bedata,
+    GSError FlushBuffer(int32_t sequence, const sptr<BufferExtraData> &bedata,
                              int32_t fence, const BufferFlushConfig &config);
 
-    GSError DoFlushBuffer(int32_t sequence, const BufferExtraData &bedata,
+    GSError DoFlushBuffer(int32_t sequence, const sptr<BufferExtraData> &bedata,
                                int32_t fence, const BufferFlushConfig &config);
 
-    GSError AcquireBuffer(sptr<SurfaceBufferImpl>& buffer, int32_t &fence,
+    GSError AcquireBuffer(sptr<SurfaceBuffer>& buffer, int32_t &fence,
                                int64_t &timestamp, Rect &damage);
-    GSError ReleaseBuffer(sptr<SurfaceBufferImpl>& buffer, int32_t fence);
+    GSError ReleaseBuffer(sptr<SurfaceBuffer>& buffer, int32_t fence);
 
-    GSError AttachBuffer(sptr<SurfaceBufferImpl>& buffer);
+    GSError AttachBuffer(sptr<SurfaceBuffer>& buffer);
 
-    GSError DetachBuffer(sptr<SurfaceBufferImpl>& buffer);
+    GSError DetachBuffer(sptr<SurfaceBuffer>& buffer);
 
     uint32_t GetQueueSize();
     GSError SetQueueSize(uint32_t queueSize);
@@ -102,16 +102,16 @@ public:
     TransformType GetTransform() const;
 
 private:
-    GSError AllocBuffer(sptr<SurfaceBufferImpl>& buffer, const BufferRequestConfig &config);
-    GSError FreeBuffer(sptr<SurfaceBufferImpl>& buffer);
+    GSError AllocBuffer(sptr<SurfaceBuffer>& buffer, const BufferRequestConfig &config);
+    GSError FreeBuffer(sptr<SurfaceBuffer>& buffer);
     void DeleteBufferInCache(int sequence);
     void DumpToFile(int32_t sequence);
 
     uint32_t GetUsedSize();
     void DeleteBuffers(int32_t count);
 
-    GSError PopFromFreeList(sptr<SurfaceBufferImpl>& buffer, const BufferRequestConfig &config);
-    GSError PopFromDirtyList(sptr<SurfaceBufferImpl>& buffer);
+    GSError PopFromFreeList(sptr<SurfaceBuffer>& buffer, const BufferRequestConfig &config);
+    GSError PopFromDirtyList(sptr<SurfaceBuffer>& buffer);
 
     GSError CheckRequestConfig(const BufferRequestConfig &config);
     GSError CheckFlushConfig(const BufferFlushConfig &config);

@@ -111,48 +111,48 @@ GSError BufferExtraDataImpl::WriteToParcel(MessageParcel &parcel)
     return GSERROR_OK;
 }
 
-GSError BufferExtraDataImpl::ExtraGet(std::string &key, int32_t &value) const
+GSError BufferExtraDataImpl::ExtraGet(const std::string &key, int32_t &value) const
 {
     return ExtraGet<int32_t>(key, ExtraDataType::i32, value);
 }
 
-GSError BufferExtraDataImpl::ExtraGet(std::string &key, int64_t &value) const
+GSError BufferExtraDataImpl::ExtraGet(const std::string &key, int64_t &value) const
 {
     return ExtraGet<int64_t>(key, ExtraDataType::i64, value);
 }
 
-GSError BufferExtraDataImpl::ExtraGet(std::string &key, double &value) const
+GSError BufferExtraDataImpl::ExtraGet(const std::string &key, double &value) const
 {
     return ExtraGet<double>(key, ExtraDataType::f64, value);
 }
 
-GSError BufferExtraDataImpl::ExtraGet(std::string &key, std::string &value) const
+GSError BufferExtraDataImpl::ExtraGet(const std::string &key, std::string &value) const
 {
     return ExtraGet<std::string>(key, ExtraDataType::string, value);
 }
 
-GSError BufferExtraDataImpl::ExtraSet(std::string &key, int32_t value)
+GSError BufferExtraDataImpl::ExtraSet(const std::string &key, int32_t value)
 {
     return ExtraSet(key, ExtraDataType::i32, value);
 }
 
-GSError BufferExtraDataImpl::ExtraSet(std::string &key, int64_t value)
+GSError BufferExtraDataImpl::ExtraSet(const std::string &key, int64_t value)
 {
     return ExtraSet(key, ExtraDataType::i64, value);
 }
 
-GSError BufferExtraDataImpl::ExtraSet(std::string &key, double value)
+GSError BufferExtraDataImpl::ExtraSet(const std::string &key, double value)
 {
     return ExtraSet(key, ExtraDataType::f64, value);
 }
 
-GSError BufferExtraDataImpl::ExtraSet(std::string &key, std::string value)
+GSError BufferExtraDataImpl::ExtraSet(const std::string &key, const std::string value)
 {
     return ExtraSet(key, ExtraDataType::string, value);
 }
 
 template<class T>
-GSError BufferExtraDataImpl::ExtraGet(std::string &key, ExtraDataType type, T &value) const
+GSError BufferExtraDataImpl::ExtraGet(const std::string &key, ExtraDataType type, T &value) const
 {
     auto it = datas.find(key);
     if (it == datas.end()) {
@@ -169,7 +169,7 @@ GSError BufferExtraDataImpl::ExtraGet(std::string &key, ExtraDataType type, T &v
     return GSERROR_OK;
 }
 
-GSError BufferExtraDataImpl::ExtraSet(std::string &key, ExtraDataType type, std::any val)
+GSError BufferExtraDataImpl::ExtraSet(const std::string &key, ExtraDataType type, std::any val)
 {
     auto it = datas.find(key);
     if (it == datas.end() && datas.size() > SURFACE_MAX_USER_DATA_COUNT) {

@@ -80,7 +80,7 @@ int BufferQueueProducer::OnRemoteRequest(uint32_t code, MessageParcel &arguments
 int32_t BufferQueueProducer::RequestBufferRemote(MessageParcel &arguments, MessageParcel &reply, MessageOption &option)
 {
     RequestBufferReturnValue retval;
-    BufferExtraDataImpl bedataimpl;
+    sptr<BufferExtraData> bedataimpl = new BufferExtraDataImpl;
     BufferRequestConfig config = {};
 
     ReadRequestConfig(arguments, config);
@@ -90,7 +90,7 @@ int32_t BufferQueueProducer::RequestBufferRemote(MessageParcel &arguments, Messa
     reply.WriteInt32(sret);
     if (sret == GSERROR_OK) {
         WriteSurfaceBufferImpl(reply, retval.sequence, retval.buffer);
-        bedataimpl.WriteToParcel(reply);
+        bedataimpl->WriteToParcel(reply);
         WriteFence(reply, retval.fence);
         reply.WriteInt32Vector(retval.deletingBuffers);
     }
@@ -100,10 +100,10 @@ int32_t BufferQueueProducer::RequestBufferRemote(MessageParcel &arguments, Messa
 int BufferQueueProducer::CancelBufferRemote(MessageParcel &arguments, MessageParcel &reply, MessageOption &option)
 {
     int32_t sequence;
-    BufferExtraDataImpl bedataimpl;
+    sptr<BufferExtraData> bedataimpl = new BufferExtraDataImpl;
 
     sequence = arguments.ReadInt32();
-    bedataimpl.ReadFromParcel(arguments);
+    bedataimpl->ReadFromParcel(arguments);
 
     GSError sret = CancelBuffer(sequence, bedataimpl);
     reply.WriteInt32(sret);
@@ -115,10 +115,10 @@ int BufferQueueProducer::FlushBufferRemote(MessageParcel &arguments, MessageParc
     int32_t fence;
     int32_t sequence;
     BufferFlushConfig config;
-    BufferExtraDataImpl bedataimpl;
+    sptr<BufferExtraData> bedataimpl = new BufferExtraDataImpl;
 
     sequence = arguments.ReadInt32();
-    bedataimpl.ReadFromParcel(arguments);
+    bedataimpl->ReadFromParcel(arguments);
     ReadFence(arguments, fence);
     ReadFlushConfig(arguments, config);
 
@@ -210,7 +210,7 @@ int BufferQueueProducer::SetTransformRemote(MessageParcel &arguments, MessagePar
     return 0;
 }
 
-GSError BufferQueueProducer::RequestBuffer(const BufferRequestConfig &config, BufferExtraData &bedata,
+GSError BufferQueueProducer::RequestBuffer(const BufferRequestConfig &config, sptr<BufferExtraData> &bedata,
                                            RequestBufferReturnValue &retval)
 {
     static std::map<int32_t, wptr<SurfaceBuffer>> cache;
@@ -249,7 +249,7 @@ GSError BufferQueueProducer::RequestBuffer(const BufferRequestConfig &config, Bu
     return sret;
 }
 
-GSError BufferQueueProducer::CancelBuffer(int32_t sequence, BufferExtraData &bedata)
+GSError BufferQueueProducer::CancelBuffer(int32_t sequence, const sptr<BufferExtraData> &bedata)
 {
     if (bufferQueue_ == nullptr) {
         return GSERROR_INVALID_ARGUMENTS;
@@ -257,7 +257,7 @@ GSError BufferQueueProducer::CancelBuffer(int32_t sequence, BufferExtraData &bed
     return bufferQueue_->CancelBuffer(sequence, bedata);
 }
 
-GSError BufferQueueProducer::FlushBuffer(int32_t sequence, BufferExtraData &bedata,
+GSError BufferQueueProducer::FlushBuffer(int32_t sequence, const sptr<BufferExtraData> &bedata,
                                          int32_t fence, BufferFlushConfig &config)
 {
     if (bufferQueue_ == nullptr) {
@@ -271,8 +271,7 @@ GSError BufferQueueProducer::AttachBuffer(sptr<SurfaceBuffer>& buffer)
     if (bufferQueue_ == nullptr) {
         return GSERROR_INVALID_ARGUMENTS;
     }
-    sptr<SurfaceBufferImpl> bufferImpl = SurfaceBufferImpl::FromBase(buffer);
-    return bufferQueue_->AttachBuffer(bufferImpl);
+    return bufferQueue_->AttachBuffer(buffer);
 }
 
 GSError BufferQueueProducer::DetachBuffer(sptr<SurfaceBuffer>& buffer)
@@ -280,8 +279,7 @@ GSError BufferQueueProducer::DetachBuffer(sptr<SurfaceBuffer>& buffer)
     if (bufferQueue_ == nullptr) {
         return GSERROR_INVALID_ARGUMENTS;
     }
-    sptr<SurfaceBufferImpl> bufferImpl = SurfaceBufferImpl::FromBase(buffer);
-    return bufferQueue_->DetachBuffer(bufferImpl);
+    return bufferQueue_->DetachBuffer(buffer);
 }
 
 uint32_t BufferQueueProducer::GetQueueSize()

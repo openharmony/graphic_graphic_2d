@@ -23,8 +23,10 @@
 #include "buffer_handle_utils.h"
 #include "surface_type.h"
 #include "egl_data.h"
+#include "buffer_extra_data.h"
 
 namespace OHOS {
+class MessageParcel;
 class SurfaceBuffer : public RefBase {
 public:
     virtual BufferHandle *GetBufferHandle() const = 0;
@@ -51,6 +53,12 @@ public:
     virtual GSError SetInt64(uint32_t key, int64_t value) = 0;
     virtual GSError GetInt64(uint32_t key, int64_t &value) = 0;
     virtual sptr<EglData> GetEglData() const = 0;
+    virtual void SetEglData(const sptr<EglData>& data) = 0;
+
+    virtual void SetExtraData(const sptr<BufferExtraData> &bedata) = 0;
+    virtual void GetExtraData(sptr<BufferExtraData> &bedata) const = 0;
+    virtual void WriteToMessageParcel(MessageParcel &parcel) = 0;
+    virtual void SetBufferHandle(BufferHandle *handle) = 0;
 
     // support ipc data
     virtual GSError ExtraGet(std::string key, int32_t &value) const = 0;
@@ -61,6 +69,8 @@ public:
     virtual GSError ExtraSet(std::string key, int64_t value) = 0;
     virtual GSError ExtraSet(std::string key, double value) = 0;
     virtual GSError ExtraSet(std::string key, std::string value) = 0;
+
+    virtual int32_t GetSeqNum() const = 0;
 
 protected:
     SurfaceBuffer(){}

@@ -48,7 +48,7 @@ public:
     static inline Rect damage = {};
     static inline sptr<BufferQueue> bq = nullptr;
     static inline std::map<int32_t, sptr<SurfaceBuffer>> cache;
-    static inline BufferExtraDataImpl bedata;
+    static inline sptr<BufferExtraData> bedata = nullptr;
 };
 
 void BufferQueueTest::SetUpTestCase()
@@ -56,6 +56,7 @@ void BufferQueueTest::SetUpTestCase()
     bq = new BufferQueue("test");
     sptr<IBufferConsumerListener> listener = new BufferConsumerListener();
     bq->RegisterConsumerListener(listener);
+    bedata = new OHOS::BufferExtraDataImpl;
 }
 
 void BufferQueueTest::TearDownTestCase()
@@ -149,8 +150,7 @@ HWTEST_F(BufferQueueTest, ReqCanFluAcqRel001, Function | MediumTest | Level2)
     ret = bq->FlushBuffer(retval.sequence, bedata, -1, flushConfig);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
-    sptr<SurfaceBufferImpl> bufferImpl = SurfaceBufferImpl::FromBase(retval.buffer);
-    ret = bq->AcquireBuffer(bufferImpl, retval.fence, timestamp, damage);
+    ret = bq->AcquireBuffer(retval.buffer, retval.fence, timestamp, damage);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
     ASSERT_NE(retval.buffer, nullptr);
 
@@ -160,7 +160,7 @@ HWTEST_F(BufferQueueTest, ReqCanFluAcqRel001, Function | MediumTest | Level2)
         ASSERT_EQ(addr2[0], 5u);
     }
 
-    ret = bq->ReleaseBuffer(bufferImpl, -1);
+    ret = bq->ReleaseBuffer(retval.buffer, -1);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 }
 
@@ -250,7 +250,7 @@ HWTEST_F(BufferQueueTest, ReqCanFluAcqRel004, Function | MediumTest | Level2)
  */
 HWTEST_F(BufferQueueTest, ReqCanFluAcqRel005, Function | MediumTest | Level2)
 {
-    sptr<SurfaceBufferImpl> buffer;
+    sptr<SurfaceBuffer> buffer;
     int32_t flushFence;
 
     GSError ret = bq->AcquireBuffer(buffer, flushFence, timestamp, damage);
@@ -329,8 +329,7 @@ HWTEST_F(BufferQueueTest, ReqCanFluAcqRel007, Function | MediumTest | Level2)
 
     retval.buffer = cache[retval.sequence];
 
-    sptr<SurfaceBufferImpl> bufferImpl = SurfaceBufferImpl::FromBase(retval.buffer);
-    ret = bq->ReleaseBuffer(bufferImpl, -1);
+    ret = bq->ReleaseBuffer(retval.buffer, -1);
     ASSERT_NE(ret, OHOS::GSERROR_OK);
 
     ret = bq->FlushBuffer(retval.sequence, bedata, -1, flushConfig);
@@ -349,16 +348,16 @@ HWTEST_F(BufferQueueTest, ReqCanFluAcqRel007, Function | MediumTest | Level2)
  */
 HWTEST_F(BufferQueueTest, ReqCanFluAcqRel008, Function | MediumTest | Level2)
 {
-    sptr<SurfaceBufferImpl> bufferImpl;
+    sptr<SurfaceBuffer> buffer;
     int32_t flushFence;
 
     // acq from last test
-    GSError ret = bq->AcquireBuffer(bufferImpl, flushFence, timestamp, damage);
+    GSError ret = bq->AcquireBuffer(buffer, flushFence, timestamp, damage);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
     int32_t sequence;
     for (auto it = cache.begin(); it != cache.end(); it++) {
-        if (it->second.GetRefPtr() == bufferImpl.GetRefPtr()) {
+        if (it->second.GetRefPtr() == buffer.GetRefPtr()) {
             sequence = it->first;
         }
     }
@@ -367,7 +366,7 @@ HWTEST_F(BufferQueueTest, ReqCanFluAcqRel008, Function | MediumTest | Level2)
     ret = bq->FlushBuffer(sequence, bedata, -1, flushConfig);
     ASSERT_NE(ret, OHOS::GSERROR_OK);
 
-    ret = bq->ReleaseBuffer(bufferImpl, -1);
+    ret = bq->ReleaseBuffer(buffer, -1);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 }
 

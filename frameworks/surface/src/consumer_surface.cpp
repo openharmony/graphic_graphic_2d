@@ -78,34 +78,22 @@ GSError ConsumerSurface::FlushBuffer(sptr<SurfaceBuffer>& buffer,
 GSError ConsumerSurface::AcquireBuffer(sptr<SurfaceBuffer>& buffer, int32_t &fence,
                                        int64_t &timestamp, Rect &damage)
 {
-    sptr<SurfaceBufferImpl> bufferImpl = SurfaceBufferImpl::FromBase(buffer);
-    GSError ret = consumer_->AcquireBuffer(bufferImpl, fence, timestamp, damage);
-    buffer = bufferImpl;
-    return ret;
+    return consumer_->AcquireBuffer(buffer, fence, timestamp, damage);
 }
 
 GSError ConsumerSurface::ReleaseBuffer(sptr<SurfaceBuffer>& buffer, int32_t fence)
 {
-    sptr<SurfaceBufferImpl> bufferImpl = SurfaceBufferImpl::FromBase(buffer);
-    GSError ret = consumer_->ReleaseBuffer(bufferImpl, fence);
-    buffer = bufferImpl;
-    return ret;
+    return consumer_->ReleaseBuffer(buffer, fence);
 }
 
 GSError ConsumerSurface::AttachBuffer(sptr<SurfaceBuffer>& buffer)
 {
-    sptr<SurfaceBufferImpl> bufferImpl = SurfaceBufferImpl::FromBase(buffer);
-    GSError ret = consumer_->AttachBuffer(bufferImpl);
-    buffer = bufferImpl;
-    return ret;
+    return consumer_->AttachBuffer(buffer);
 }
 
 GSError ConsumerSurface::DetachBuffer(sptr<SurfaceBuffer>& buffer)
 {
-    sptr<SurfaceBufferImpl> bufferImpl = SurfaceBufferImpl::FromBase(buffer);
-    GSError ret = consumer_->DetachBuffer(bufferImpl);
-    buffer = bufferImpl;
-    return ret;
+    return consumer_->DetachBuffer(buffer);
 }
 
 uint32_t ConsumerSurface::GetQueueSize()

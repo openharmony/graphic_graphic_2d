@@ -32,7 +32,7 @@ BufferQueueConsumer::~BufferQueueConsumer()
     BLOGNI("dtor");
 }
 
-GSError BufferQueueConsumer::AcquireBuffer(sptr<SurfaceBufferImpl>& buffer, int32_t &fence,
+GSError BufferQueueConsumer::AcquireBuffer(sptr<SurfaceBuffer>& buffer, int32_t &fence,
     int64_t &timestamp, Rect &damage)
 {
     if (bufferQueue_ == nullptr) {
@@ -41,7 +41,7 @@ GSError BufferQueueConsumer::AcquireBuffer(sptr<SurfaceBufferImpl>& buffer, int3
     return bufferQueue_->AcquireBuffer(buffer, fence, timestamp, damage);
 }
 
-GSError BufferQueueConsumer::ReleaseBuffer(sptr<SurfaceBufferImpl>& buffer, int32_t fence)
+GSError BufferQueueConsumer::ReleaseBuffer(sptr<SurfaceBuffer>& buffer, int32_t fence)
 {
     if (bufferQueue_ == nullptr) {
         return GSERROR_INVALID_ARGUMENTS;
@@ -49,7 +49,7 @@ GSError BufferQueueConsumer::ReleaseBuffer(sptr<SurfaceBufferImpl>& buffer, int3
     return bufferQueue_->ReleaseBuffer(buffer, fence);
 }
 
-GSError BufferQueueConsumer::AttachBuffer(sptr<SurfaceBufferImpl>& buffer)
+GSError BufferQueueConsumer::AttachBuffer(sptr<SurfaceBuffer>& buffer)
 {
     if (bufferQueue_ == nullptr) {
         return GSERROR_INVALID_ARGUMENTS;
@@ -57,7 +57,7 @@ GSError BufferQueueConsumer::AttachBuffer(sptr<SurfaceBufferImpl>& buffer)
     return bufferQueue_->AttachBuffer(buffer);
 }
 
-GSError BufferQueueConsumer::DetachBuffer(sptr<SurfaceBufferImpl>& buffer)
+GSError BufferQueueConsumer::DetachBuffer(sptr<SurfaceBuffer>& buffer)
 {
     if (bufferQueue_ == nullptr) {
         return GSERROR_INVALID_ARGUMENTS;

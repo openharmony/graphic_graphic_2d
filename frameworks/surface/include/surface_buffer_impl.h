@@ -23,8 +23,6 @@
 #include <buffer_handle_parcel.h>
 #include <buffer_handle_utils.h>
 #include <surface_buffer.h>
-
-#include "buffer_extra_data_impl.h"
 #include "egl_data.h"
 
 namespace OHOS {
@@ -40,7 +38,6 @@ typedef struct {
     ExtraDataType type;
 } ExtraData;
 
-class MessageParcel;
 class SurfaceBufferImpl : public SurfaceBuffer {
 public:
     SurfaceBufferImpl();
@@ -69,16 +66,16 @@ public:
     int32_t GetFileDescriptor() const override;
     uint32_t GetSize() const override;
     sptr<EglData> GetEglData() const override;
-    void SetEglData(const sptr<EglData>& data);
+    void SetEglData(const sptr<EglData>& data) override;
 
-    int32_t GetSeqNum();
+    int32_t GetSeqNum() const override;
     GSError SetInt32(uint32_t key, int32_t val) override;
     GSError GetInt32(uint32_t key, int32_t &val) override;
     GSError SetInt64(uint32_t key, int64_t val) override;
     GSError GetInt64(uint32_t key, int64_t &val) override;
 
-    void SetExtraData(const BufferExtraData &bedata);
-    void GetExtraData(BufferExtraData &bedata) const;
+    void SetExtraData(const sptr<BufferExtraData> &bedata) override;
+    void GetExtraData(sptr<BufferExtraData> &bedata) const override;
     virtual GSError ExtraGet(std::string key, int32_t &value) const override;
     virtual GSError ExtraGet(std::string key, int64_t &value) const override;
     virtual GSError ExtraGet(std::string key, double &value) const override;
@@ -88,9 +85,8 @@ public:
     virtual GSError ExtraSet(std::string key, double value) override;
     virtual GSError ExtraSet(std::string key, std::string value) override;
 
-    void SetBufferHandle(BufferHandle *handle);
-
-    void WriteToMessageParcel(MessageParcel &parcel);
+    void SetBufferHandle(BufferHandle *handle) override;
+    void WriteToMessageParcel(MessageParcel &parcel) override;
 
 private:
     GSError SetData(uint32_t key, ExtraData data);
@@ -98,8 +94,8 @@ private:
     std::map<uint32_t, ExtraData> extraDatas_;
 
     BufferHandle *handle_ = nullptr;
-    int32_t sequenceNumber = -1;
-    BufferExtraDataImpl bedataimpl;
+    int32_t sequenceNumber_ = -1;
+    sptr<BufferExtraData> bedata_ = nullptr;
     sptr<EglData> eglData_ = nullptr;
     int32_t surfaceBufferWidth_ = 0;
     int32_t surfaceBufferHeight_ = 0;

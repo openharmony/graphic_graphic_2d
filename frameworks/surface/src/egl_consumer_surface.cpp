@@ -60,8 +60,7 @@ GSError EglConsumerSurface::AcquireBuffer(sptr<SurfaceBuffer>& buffer, int32_t &
             return GSERROR_INTERNEL;
         } else {
             eglData = eglDataImpl;
-            sptr<SurfaceBufferImpl> bufferImpl = SurfaceBufferImpl::FromBase(buffer);
-            bufferImpl->SetEglData(eglData);
+            buffer->SetEglData(eglData);
         }
     }
     EglManager::GetInstance()->EglMakeCurrent();

@@ -20,7 +20,7 @@
 #include <message_parcel.h>
 #include <surface_type.h>
 
-#include "surface_buffer_impl.h"
+#include "surface_buffer.h"
 
 namespace OHOS {
 void ReadFence(MessageParcel &parcel, int32_t &fence);

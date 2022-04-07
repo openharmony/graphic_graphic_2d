@@ -100,10 +100,8 @@ SurfaceError SurfaceImage::UpdateSurfaceImage()
         }
         return ret;
     }
-    
-    auto bufferImpl = SurfaceBufferImpl::FromBase(buffer);
 
-    int32_t seqNum = bufferImpl->GetSeqNum();
+    int32_t seqNum = buffer->GetSeqNum();
     SLOGI("seqNum %{public}d", seqNum);
     EGLImageKHR img = imageCacheSeqs_[seqNum].eglImage_;
     glBindTexture(textureTarget_, textureId_);
@@ -216,8 +214,7 @@ SurfaceError SurfaceImage::AcquireBuffer(sptr<SurfaceBuffer>& buffer, int32_t &f
         return ret;
     }
     // get seq num
-    auto bufferImpl = SurfaceBufferImpl::FromBase(buffer);
-    int32_t seqNum = bufferImpl->GetSeqNum();
+    int32_t seqNum = buffer->GetSeqNum();
 
     if (buffer != nullptr) {
         if (imageCacheSeqs_[seqNum].eglImage_ != EGL_NO_IMAGE_KHR) {
@@ -244,8 +241,7 @@ SurfaceError SurfaceImage::ReleaseBuffer(sptr<SurfaceBuffer>& buffer, int32_t fe
         SLOGE("ReleaseBuffer error");
         return error;
     }
-    auto bufferImpl = SurfaceBufferImpl::FromBase(buffer);
-    int32_t seqNum = bufferImpl->GetSeqNum();
+    int32_t seqNum = buffer->GetSeqNum();
 
     imageCacheSeqs_[seqNum].eglSync_ = EGL_NO_SYNC_KHR;
     return SURFACE_ERROR_OK;
@@ -272,7 +268,7 @@ SurfaceError SurfaceImage::ValidateEglState()
 
 EGLImageKHR SurfaceImage::CreateEGLImage(EGLDisplay disp, const sptr<SurfaceBuffer>& buffer)
 {
-    sptr<SurfaceBufferImpl> bufferImpl = SurfaceBufferImpl::FromBase(buffer);
+    sptr<SurfaceBuffer> bufferImpl = buffer;
     NativeWindowBuffer* nBuffer = CreateNativeWindowBufferFromSurfaceBuffer(&bufferImpl);
     EGLint attrs[] = {
         EGL_IMAGE_PRESERVED,

@@ -22,6 +22,7 @@
 
 #include "buffer_log.h"
 #include "buffer_manager.h"
+#include "buffer_extra_data_impl.h"
 
 namespace OHOS {
 SurfaceBufferImpl::SurfaceBufferImpl()
@@ -31,28 +32,30 @@ SurfaceBufferImpl::SurfaceBufferImpl()
         mutex.lock();
 
         static int sequence_number_ = 0;
-        sequenceNumber = sequence_number_++;
+        sequenceNumber_ = sequence_number_++;
 
         mutex.unlock();
     }
+    bedata_ = new BufferExtraDataImpl;
     handle_ = nullptr;
     eglData_ = nullptr;
-    BLOGD("ctor +[%{public}d]", sequenceNumber);
+    BLOGD("ctor +[%{public}d]", sequenceNumber_);
 }
 
 SurfaceBufferImpl::SurfaceBufferImpl(int seqNum)
 {
-    sequenceNumber = seqNum;
+    sequenceNumber_ = seqNum;
     handle_ = nullptr;
-    BLOGD("ctor =[%{public}d]", sequenceNumber);
+    bedata_ = new BufferExtraDataImpl;
+    BLOGD("ctor =[%{public}d]", sequenceNumber_);
 }
 
 SurfaceBufferImpl::~SurfaceBufferImpl()
 {
-    BLOGD("dtor ~[%{public}d] handle_ %{public}p", sequenceNumber, handle_);
+    BLOGD("dtor ~[%{public}d] handle_ %{public}p", sequenceNumber_, handle_);
     if (handle_) {
         if (handle_->virAddr != nullptr) {
-            BLOGD("dtor ~[%{public}d] virAddr %{public}p", sequenceNumber, handle_->virAddr);
+            BLOGD("dtor ~[%{public}d] virAddr %{public}p", sequenceNumber_, handle_->virAddr);
             BufferManager::GetInstance()->Unmap(handle_);
         }
         FreeBufferHandle(handle_);
@@ -287,56 +290,54 @@ GSError SurfaceBufferImpl::GetData(uint32_t key, ExtraData &data)
     return GSERROR_OK;
 }
 
-void SurfaceBufferImpl::SetExtraData(const BufferExtraData &bedata)
+void SurfaceBufferImpl::SetExtraData(const sptr<BufferExtraData> &bedata)
 {
-    auto bedatai = static_cast<const BufferExtraDataImpl*>(&bedata);
-    bedataimpl = *bedatai;
+    bedata_ = bedata;
 }
 
-void SurfaceBufferImpl::GetExtraData(BufferExtraData &bedata) const
+void SurfaceBufferImpl::GetExtraData(sptr<BufferExtraData> &bedata) const
 {
-    auto bedatai = static_cast<BufferExtraDataImpl*>(&bedata);
-    *bedatai = bedataimpl;
+    bedata = bedata_;
 }
 
 GSError SurfaceBufferImpl::ExtraGet(std::string key, int32_t &value) const
 {
-    return bedataimpl.ExtraGet(key, value);
+    return bedata_->ExtraGet(key, value);
 }
 
 GSError SurfaceBufferImpl::ExtraGet(std::string key, int64_t &value) const
 {
-    return bedataimpl.ExtraGet(key, value);
+    return bedata_->ExtraGet(key, value);
 }
 
 GSError SurfaceBufferImpl::ExtraGet(std::string key, double &value) const
 {
-    return bedataimpl.ExtraGet(key, value);
+    return bedata_->ExtraGet(key, value);
 }
 
 GSError SurfaceBufferImpl::ExtraGet(std::string key, std::string &value) const
 {
-    return bedataimpl.ExtraGet(key, value);
+    return bedata_->ExtraGet(key, value);
 }
 
 GSError SurfaceBufferImpl::ExtraSet(std::string key, int32_t value)
 {
-    return bedataimpl.ExtraSet(key, value);
+    return bedata_->ExtraSet(key, value);
 }
 
 GSError SurfaceBufferImpl::ExtraSet(std::string key, int64_t value)
 {
-    return bedataimpl.ExtraSet(key, value);
+    return bedata_->ExtraSet(key, value);
 }
 
 GSError SurfaceBufferImpl::ExtraSet(std::string key, double value)
 {
-    return bedataimpl.ExtraSet(key, value);
+    return bedata_->ExtraSet(key, value);
 }
 
 GSError SurfaceBufferImpl::ExtraSet(std::string key, std::string value)
 {
-    return bedataimpl.ExtraSet(key, value);
+    return bedata_->ExtraSet(key, value);
 }
 
 void SurfaceBufferImpl::SetBufferHandle(BufferHandle *handle)
@@ -379,9 +380,9 @@ void SurfaceBufferImpl::WriteToMessageParcel(MessageParcel &parcel)
     }
 }
 
-int32_t SurfaceBufferImpl::GetSeqNum()
+int32_t SurfaceBufferImpl::GetSeqNum() const
 {
-    return sequenceNumber;
+    return sequenceNumber_;
 }
 
 sptr<EglData> SurfaceBufferImpl::GetEglData() const

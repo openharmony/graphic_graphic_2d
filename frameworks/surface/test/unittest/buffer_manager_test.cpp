@@ -36,7 +36,7 @@ public:
         .usage = HBM_USE_CPU_READ | HBM_USE_CPU_WRITE | HBM_USE_MEM_DMA,
         .timeout = 0,
     };
-    static inline sptr<SurfaceBufferImpl> buffer = nullptr;
+    static inline sptr<SurfaceBuffer> buffer = nullptr;
 };
 
 void BufferManagerTest::SetUpTestCase()
@@ -260,7 +260,7 @@ HWTEST_F(BufferManagerTest, CMALeak001, Function | MediumTest | Level2)
     int32_t first = getCmaFree();
 
     // 2. alloc
-    sptr<SurfaceBufferImpl> buffer = new SurfaceBufferImpl();
+    sptr<SurfaceBuffer> buffer = new SurfaceBufferImpl();
     GSError ret = BufferManager::GetInstance()->Alloc(requestConfig, buffer);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 

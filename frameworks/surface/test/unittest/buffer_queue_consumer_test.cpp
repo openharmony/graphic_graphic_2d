@@ -17,6 +17,7 @@
 #include <surface.h>
 #include <buffer_queue_consumer.h>
 #include "buffer_consumer_listener.h"
+#include "buffer_extra_data_impl.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -45,7 +46,7 @@ public:
     static inline Rect damage = {};
     static inline sptr<BufferQueue> bq = nullptr;
     static inline sptr<BufferQueueConsumer> bqc = nullptr;
-    static inline BufferExtraDataImpl bedata;
+    static inline sptr<BufferExtraData> bedata = nullptr;
 };
 
 void BufferQueueConsumerTest::SetUpTestCase()
@@ -55,6 +56,7 @@ void BufferQueueConsumerTest::SetUpTestCase()
     bqc = new BufferQueueConsumer(bq);
     sptr<IBufferConsumerListener> listener = new BufferConsumerListener();
     bqc->RegisterConsumerListener(listener);
+    bedata = new BufferExtraDataImpl;
 }
 
 void BufferQueueConsumerTest::TearDownTestCase()
@@ -86,11 +88,10 @@ HWTEST_F(BufferQueueConsumerTest, AcqRel001, Function | MediumTest | Level2)
     ret = bq->FlushBuffer(retval.sequence, bedata, -1, flushConfig);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
-    sptr<SurfaceBufferImpl> bufferImpl = SurfaceBufferImpl::FromBase(retval.buffer);
-    ret = bqc->AcquireBuffer(bufferImpl, retval.fence, timestamp, damage);
+    ret = bqc->AcquireBuffer(retval.buffer, retval.fence, timestamp, damage);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
-    ret = bqc->ReleaseBuffer(bufferImpl, -1);
+    ret = bqc->ReleaseBuffer(retval.buffer, -1);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 }
 
@@ -115,14 +116,14 @@ HWTEST_F(BufferQueueConsumerTest, AcqRel002, Function | MediumTest | Level2)
     ret = bq->FlushBuffer(retval.sequence, bedata, -1, flushConfig);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
-    sptr<SurfaceBufferImpl> bufferImpl = SurfaceBufferImpl::FromBase(retval.buffer);
-    ret = bqc->AcquireBuffer(bufferImpl, retval.fence, timestamp, damage);
+    sptr<SurfaceBuffer>& buffer = retval.buffer;
+    ret = bqc->AcquireBuffer(buffer, retval.fence, timestamp, damage);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
-    ret = bqc->ReleaseBuffer(bufferImpl, -1);
+    ret = bqc->ReleaseBuffer(buffer, -1);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
-    ret = bqc->ReleaseBuffer(bufferImpl, -1);
+    ret = bqc->ReleaseBuffer(buffer, -1);
     ASSERT_NE(ret, OHOS::GSERROR_OK);
 }
 }

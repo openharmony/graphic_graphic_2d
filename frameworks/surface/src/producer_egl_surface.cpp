@@ -22,6 +22,7 @@
 #include "buffer_log.h"
 #include "buffer_manager.h"
 #include "egl_data_impl.h"
+#include "buffer_extra_data_impl.h"
 
 namespace OHOS {
 ProducerEglSurface::ProducerEglSurface(sptr<IBufferProducer>& producer)
@@ -50,10 +51,9 @@ ProducerEglSurface::~ProducerEglSurface()
     }
 
     if (currentBuffer_ != nullptr) {
-        auto bufferImpl = SurfaceBufferImpl::FromBase(currentBuffer_);
-        BufferExtraDataImpl bedataimpl;
-        bufferImpl->GetExtraData(bedataimpl);
-        producer_->CancelBuffer(bufferImpl->GetSeqNum(), bedataimpl);
+        sptr<BufferExtraData> bedataimpl = new BufferExtraDataImpl;
+        currentBuffer_->GetExtraData(bedataimpl);
+        producer_->CancelBuffer(currentBuffer_->GetSeqNum(), bedataimpl);
         currentBuffer_ = nullptr;
     }
     sEglManager_ = nullptr;
@@ -64,7 +64,7 @@ GSError ProducerEglSurface::RequestBuffer(sptr<SurfaceBuffer> &buffer,
     int32_t& fence, BufferRequestConfig &config)
 {
     IBufferProducer::RequestBufferReturnValue retval;
-    BufferExtraDataImpl bedataimpl;
+    sptr<BufferExtraData> bedataimpl = new BufferExtraDataImpl;
     retval.fence = EGL_NO_NATIVE_FENCE_FD_ANDROID;
     GSError ret = producer_->RequestBuffer(config, bedataimpl, retval);
     if (ret != GSERROR_OK) {
@@ -74,8 +74,7 @@ GSError ProducerEglSurface::RequestBuffer(sptr<SurfaceBuffer> &buffer,
 
     // add cache
     if (retval.buffer != nullptr && IsRemote()) {
-        sptr<SurfaceBufferImpl> bufferImpl = SurfaceBufferImpl::FromBase(retval.buffer);
-        ret = BufferManager::GetInstance()->Map(bufferImpl);
+        ret = BufferManager::GetInstance()->Map(retval.buffer);
         if (ret != GSERROR_OK) {
             BLOGN_FAILURE_ID(retval.sequence, "Map failed");
         } else {
@@ -84,20 +83,19 @@ GSError ProducerEglSurface::RequestBuffer(sptr<SurfaceBuffer> &buffer,
     }
 
     if (retval.buffer != nullptr) {
-        bufferProducerCache_[retval.sequence] = SurfaceBufferImpl::FromBase(retval.buffer);
+        bufferProducerCache_[retval.sequence] = retval.buffer;
     } else {
         retval.buffer = bufferProducerCache_[retval.sequence];
     }
     buffer = retval.buffer;
 
-    sptr<SurfaceBufferImpl> bufferImpl = SurfaceBufferImpl::FromBase(retval.buffer);
-    ret = BufferManager::GetInstance()->InvalidateCache(bufferImpl);
+    ret = BufferManager::GetInstance()->InvalidateCache(buffer);
     if (ret != GSERROR_OK) {
         BLOGNW("Warning [%{public}d], InvalidateCache failed", retval.sequence);
     }
 
-    if (bufferImpl != nullptr) {
-        bufferImpl->SetExtraData(bedataimpl);
+    if (buffer != nullptr) {
+        buffer->SetExtraData(bedataimpl);
     }
 
     for (auto it = retval.deletingBuffers.begin(); it != retval.deletingBuffers.end(); it++) {
@@ -119,10 +117,9 @@ GSError ProducerEglSurface::FlushBuffer(sptr<SurfaceBuffer> &buffer,
         return GSERROR_INVALID_ARGUMENTS;
     }
 
-    auto bufferImpl = SurfaceBufferImpl::FromBase(buffer);
-    BufferExtraDataImpl bedataimpl;
-    bufferImpl->GetExtraData(bedataimpl);
-    return producer_->FlushBuffer(bufferImpl->GetSeqNum(), bedataimpl, fence, config);
+    sptr<BufferExtraData> bedataimpl = new BufferExtraDataImpl;
+    buffer->GetExtraData(bedataimpl);
+    return producer_->FlushBuffer(buffer->GetSeqNum(), bedataimpl, fence, config);
 }
 
 GSError ProducerEglSurface::InitContext(EGLContext context)
@@ -179,8 +176,7 @@ EGLSurface ProducerEglSurface::GetEglSurface() const
 GLuint ProducerEglSurface::GetEglFbo() const
 {
     if (initFlag_ && currentBuffer_ != nullptr) {
-        auto bufferImpl = SurfaceBufferImpl::FromBase(currentBuffer_);
-        return bufferImpl->GetEglData()->GetFrameBufferObj();
+        return currentBuffer_->GetEglData()->GetFrameBufferObj();
     }
 
     BLOGNE("ProducerEglSurface is not init.");
@@ -347,11 +343,10 @@ bool ProducerEglSurface::IsRemote()
 GSError ProducerEglSurface::AddEglData(sptr<SurfaceBuffer> &buffer)
 {
     ScopedBytrace func(__func__);
-    sptr<SurfaceBufferImpl> bufferImpl = SurfaceBufferImpl::FromBase(buffer);
-    sptr<EglData> sEglData = bufferImpl->GetEglData();
+    sptr<EglData> sEglData = buffer->GetEglData();
     if (sEglData != nullptr) {
         glBindFramebuffer(GL_FRAMEBUFFER, sEglData->GetFrameBufferObj());
-        BLOGI("bufferImpl is reused return.");
+        BLOGI("buffer is reused return.");
         return GSERROR_OK;
     }
 
@@ -360,10 +355,10 @@ GSError ProducerEglSurface::AddEglData(sptr<SurfaceBuffer> &buffer)
         BLOGNE("new failed.");
         return GSERROR_NO_MEM;
     }
-    auto sret = sEglDataImpl->CreateEglData(bufferImpl);
+    auto sret = sEglDataImpl->CreateEglData(buffer);
     if (sret == GSERROR_OK) {
-        bufferImpl->SetEglData(sEglDataImpl);
-        BLOGI("bufferImpl FBO=%{public}d.", sEglDataImpl->GetFrameBufferObj());
+        buffer->SetEglData(sEglDataImpl);
+        BLOGI("buffer FBO=%{public}d.", sEglDataImpl->GetFrameBufferObj());
     }
     return sret;
 }

@@ -94,7 +94,7 @@ void ReadSurfaceBufferImpl(MessageParcel &parcel,
 {
     sequence = parcel.ReadInt32();
     if (parcel.ReadBool()) {
-        sptr<SurfaceBufferImpl> bufferImpl = new SurfaceBufferImpl(sequence);
+        sptr<SurfaceBuffer> bufferImpl = new SurfaceBufferImpl(sequence);
         auto handle = ReadBufferHandle(parcel);
         bufferImpl->SetBufferHandle(handle);
         int32_t size = parcel.ReadInt32();
@@ -116,11 +116,10 @@ void WriteSurfaceBufferImpl(MessageParcel &parcel,
     int32_t sequence, const sptr<SurfaceBuffer> &buffer)
 {
     parcel.WriteInt32(sequence);
-    auto bufferImpl = SurfaceBufferImpl::FromBase(buffer);
-    parcel.WriteBool(bufferImpl != nullptr);
-    if (bufferImpl == nullptr) {
+    parcel.WriteBool(buffer != nullptr);
+    if (buffer == nullptr) {
         return;
     }
-    bufferImpl->WriteToMessageParcel(parcel);
+    buffer->WriteToMessageParcel(parcel);
 }
 } // namespace OHOS

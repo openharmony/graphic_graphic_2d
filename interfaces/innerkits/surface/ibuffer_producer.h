@@ -34,12 +34,12 @@ public:
         int32_t fence;
         std::vector<int32_t> deletingBuffers;
     };
-    virtual GSError RequestBuffer(const BufferRequestConfig &config, BufferExtraData &bedata,
+    virtual GSError RequestBuffer(const BufferRequestConfig &config, sptr<BufferExtraData> &bedata,
                                        RequestBufferReturnValue &retval) = 0;
 
-    virtual GSError CancelBuffer(int32_t sequence, BufferExtraData &bedata) = 0;
+    virtual GSError CancelBuffer(int32_t sequence, const sptr<BufferExtraData> &bedata) = 0;
 
-    virtual GSError FlushBuffer(int32_t sequence, BufferExtraData &bedata,
+    virtual GSError FlushBuffer(int32_t sequence, const sptr<BufferExtraData> &bedata,
                                      int32_t fence, BufferFlushConfig &config) = 0;
 
     virtual GSError AttachBuffer(sptr<SurfaceBuffer>& buffer) = 0;

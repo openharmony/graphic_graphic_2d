@@ -36,7 +36,7 @@ public:
         .usage = HBM_USE_CPU_READ | HBM_USE_CPU_WRITE | HBM_USE_MEM_DMA,
         .timeout = 0,
     };
-    static inline sptr<SurfaceBufferImpl> buffer = nullptr;
+    static inline sptr<SurfaceBuffer> buffer = nullptr;
     static inline int32_t val32 = 0;
     static inline int64_t val64 = 0;
 };
@@ -243,7 +243,7 @@ HWTEST_F(SurfaceBufferImplTest, State002, Function | MediumTest | Level2)
  */
 HWTEST_F(SurfaceBufferImplTest, Parcel001, Function | MediumTest | Level2)
 {
-    sptr<SurfaceBufferImpl> sbi = new SurfaceBufferImpl(0);
+    sptr<SurfaceBuffer> sbi = new SurfaceBufferImpl(0);
     const auto &bm = BufferManager::GetInstance();
     auto sret = bm->Alloc(requestConfig, sbi);
     ASSERT_EQ(sret, OHOS::GSERROR_OK);
