@@ -23,7 +23,7 @@ using namespace testing::ext;
 namespace OHOS {
 namespace Rosen {
 namespace {
-constexpr int32_t SAMPLER_NUMBER = 12;
+constexpr int32_t SAMPLER_NUMBER = 6;
 }
 class VSyncSamplerTest : public testing::Test {
 public:
@@ -209,7 +209,7 @@ HWTEST_F(VSyncSamplerTest, AddPresentFenceTime002, Function | MediumTest| Level3
         ret = VSyncSamplerTest::vsyncSampler->AddSample(i);
     }
     ASSERT_EQ(ret, false);
-    ASSERT_EQ(VSyncSamplerTest::vsyncSampler->AddPresentFenceTime(7), false);
+    ASSERT_EQ(VSyncSamplerTest::vsyncSampler->AddPresentFenceTime(SAMPLER_NUMBER + 1), false);
     VSyncSamplerTest::vsyncSampler->Reset();
 }
 } // namespace

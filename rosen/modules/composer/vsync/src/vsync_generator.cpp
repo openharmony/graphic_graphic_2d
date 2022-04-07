@@ -32,6 +32,7 @@ static int64_t GetSysTimeNs()
 constexpr int64_t maxWaleupDelay = 1500000;
 constexpr int32_t THREAD_PRIORTY = -6;
 constexpr int32_t SCHED_PRIORITY = 2;
+constexpr int64_t errorThreshold = 500000;
 }
 
 std::once_flag VSyncGenerator::createFlag_;
@@ -159,8 +160,8 @@ int64_t VSyncGenerator::ComputeListenerNextVSyncTimeStamp(const Listener& listen
     int64_t nextTime = (numPeriod + 1) * period_ + phase;
     nextTime += refrenceTime_;
 
-    // 2 / 5 just empirical value
-    if (nextTime - listener.lastTime_ < (2 * period_ / 5)) {
+    // 3 / 5 just empirical value
+    if (nextTime - listener.lastTime_ < (3 * period_ / 5)) {
         nextTime += period_;
     }
 
@@ -175,7 +176,7 @@ std::vector<VSyncGenerator::Listener> VSyncGenerator::GetListenerTimeouted(int64
 
     for (uint32_t i = 0; i < listeners_.size(); i++) {
         int64_t t = ComputeListenerNextVSyncTimeStamp(listeners_[i], onePeriodAgo);
-        if (t < now) {
+        if (t < now || (t - now < errorThreshold)) {
             listeners_[i].lastTime_ = t;
             ret.push_back(listeners_[i]);
         }
