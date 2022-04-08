@@ -27,9 +27,7 @@ ohos_shared_library("windowanimationmanager_napi") {
     "rs_window_animation_utils.cpp",
   ]
 
-  cflags_cc = [
-    "-std=c++17",
-  ]
+  cflags_cc = [ "-std=c++17" ]
 
   deps = [
     "//foundation/graphic/standard/rosen/modules/animation/window_animation:window_animation",
