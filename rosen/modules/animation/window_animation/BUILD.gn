@@ -14,32 +14,24 @@
 import("//build/ohos.gni")
 
 config("window_animation_config") {
-  include_dirs = [
-    "//foundation/graphic/standard/rosen/modules/animation/window_animation/include",
-  ]
+  include_dirs = [ "//foundation/graphic/standard/rosen/modules/animation/window_animation/include" ]
 }
 
 ohos_shared_library("window_animation") {
   sources = [
     "src/rs_window_animation_finish_callback_stub.cpp",
-    "src/rs_window_animation_finished_callback_proxy.cpp",
     "src/rs_window_animation_finished_callback.cpp",
+    "src/rs_window_animation_finished_callback_proxy.cpp",
     "src/rs_window_animation_proxy.cpp",
     "src/rs_window_animation_stub.cpp",
     "src/rs_window_animation_target.cpp",
   ]
 
-  public_configs = [
-    ":window_animation_config",
-  ]
+  public_configs = [ ":window_animation_config" ]
 
-  cflags_cc = [
-    "-std=c++17",
-  ]
+  cflags_cc = [ "-std=c++17" ]
 
-  public_deps = [
-    "//foundation/graphic/standard/rosen/modules/render_service_client:librender_service_client",
-  ]
+  public_deps = [ "//foundation/graphic/standard/rosen/modules/render_service_client:librender_service_client" ]
 
   external_deps = [
     "hilog_native:libhilog",
