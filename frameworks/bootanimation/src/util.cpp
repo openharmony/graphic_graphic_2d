@@ -130,8 +130,8 @@ bool UnzipFile(const std::string& srcFilePath, const std::string& dstFilePath)
 
 int RemoveDir(const char *dir)
 {
-    char curDir[] = ".";
-    char upDir[] = "..";
+    std::string curDir{"."};
+    std::string upDir{".."};
     DIR *dirp;
     struct dirent *dp;
     struct stat dirStat;
@@ -151,7 +151,8 @@ int RemoveDir(const char *dir)
     } else if (S_ISDIR(dirStat.st_mode)) {
         dirp = opendir(dir);
         while ((dp = readdir(dirp)) != nullptr) {
-            if ((strcmp(curDir, dp->d_name) == 0) || (strcmp(upDir, dp->d_name) == 0)) {
+            std::string dName = dp->d_name;
+            if (curDir == dName || upDir == dName) {
                 continue;
             }
 
@@ -171,8 +172,8 @@ int RemoveDir(const char *dir)
 
 int CountPicNum(const char *dir, int32_t& picNum)
 {
-    char curDir[] = ".";
-    char upDir[] = "..";
+    std::string curDir{"."};
+    std::string upDir{".."};
     DIR *dirp;
     struct dirent *dp;
     struct stat dirStat;
@@ -191,7 +192,8 @@ int CountPicNum(const char *dir, int32_t& picNum)
     } else  if (S_ISDIR(dirStat.st_mode)) {
         dirp = opendir(dir);
         while ((dp = readdir(dirp)) != nullptr) {
-            if ((strcmp(curDir, dp->d_name) == 0) || (strcmp(upDir, dp->d_name) == 0)) {
+            std::string dName = dp->d_name;
+            if (curDir == dName || upDir == dName) {
                 continue;
             }
 
