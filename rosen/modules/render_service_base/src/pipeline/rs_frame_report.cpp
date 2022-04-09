@@ -25,7 +25,11 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
+#ifdef __aarch64__
+    const std::string FRAME_AWARE_SO_PATH = "/system/lib64/libframe_ui_intf.z.so";
+#else
     const std::string FRAME_AWARE_SO_PATH = "/system/lib/libframe_ui_intf.z.so";
+#endif
 }
 RsFrameReport& RsFrameReport::GetInstance()
 {
