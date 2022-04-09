@@ -34,4 +34,17 @@ ohos_ndk_library("libnative_drawing_ndk") {
   output_name = "native_drawing"
   output_extension = "so"
   ndk_description_file = "./libnative_drawing.ndk.json"
+  system_capability = "SystemCapability.Graphic.Graphic2D.NativeDrawing"
+  system_capability_headers = [
+    "native_drawing/drawing_bitmap.h",
+    "native_drawing/drawing_brush.h",
+    "native_drawing/drawing_canvas.h",
+    "native_drawing/drawing_color.h",
+    "native_drawing/drawing_font_collection.h",
+    "native_drawing/drawing_path.h",
+    "native_drawing/drawing_pen.h",
+    "native_drawing/drawing_text_declaration.h",
+    "native_drawing/drawing_text_typography.h",
+    "native_drawing/drawing_types.h",
+  ]
 }

@@ -27,4 +27,10 @@ ohos_ndk_library("libnative_window_ndk") {
   output_name = "native_window"
   output_extension = "so"
   ndk_description_file = "./libnative_window.ndk.json"
+  system_capability = "SystemCapability.Graphic.Graphic2D.NativeWindow"
+  system_capability_headers = [
+    "native_window/buffer_handle.h",
+    "native_window/external_window.h",
+    "native_window/window.h",
+  ]
 }
