@@ -603,7 +603,7 @@ void RsRenderServiceUtil::ExtractAnimationInfo(const std::unique_ptr<RSTransitio
         info.pivot = parentProperties.GetBoundsPosition() + parentProperties.GetBoundsSize() * 0.5f;
     } else {
         if (!transitionProperties) {
-            RS_LOGI("RsDebug RSHardwareProcessor::CalculateInfoWithAnimation this node have no effect",
+            RS_LOGI("RsDebug RSHardwareProcessor::CalculateInfoWithAnimation this node[%s] have no effect",
                 node.GetName().c_str());
             return;
         }
