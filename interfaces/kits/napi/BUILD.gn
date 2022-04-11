@@ -13,7 +13,7 @@
 
 group("napi_packages") {
   deps = [
-    "graphic/display:display",
-    "graphic/window:window",
+    "graphic/animation/window_animation_manager:windowanimationmanager_napi",
+    "graphic/webgl:libwebglnapi",
   ]
 }

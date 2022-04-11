@@ -50,6 +50,7 @@
           "//third_party/wayland-ivi-extension:simple-weston-client",
           "//third_party/weston:default",
           "//foundation/graphic/standard:default",
+          "//foundation/graphic/standard/interfaces/kits/napi:napi_packages",
           "//foundation/graphic/standard/rosen/samples/composer:hello_composer",
           "//foundation/graphic/standard/rosen/modules/composer:libcomposer",
           "//foundation/graphic/standard/rosen/modules/2d_graphics:2d_graphics",
@@ -62,7 +63,6 @@
           "//foundation/graphic/standard/rosen/modules/render_service:librender_service",
           "//foundation/graphic/standard/rosen/modules/render_service:render_service",
           "//foundation/graphic/standard/rosen/modules/render_service:render_service_dump",
-          "//foundation/graphic/standard/interfaces/kits/napi/graphic/webgl:libwebglnapi",
           "//foundation/graphic/standard/rosen/modules/effect/effectChain:libeffectchain",
           "//foundation/graphic/standard/rosen/modules/effect/egl:libegl_effect"
         ],
@@ -160,6 +160,21 @@
                 "window_manager_service_type.h"
               ],
               "header_base": "//foundation/graphic/standard/interfaces/innerkits/wmservice"
+            }
+          },
+          {
+            "type": "so",
+            "name": "//foundation/graphic/standard/rosen/modules/animation/window_animation:window_animation",
+            "header": {
+              "header_files": [
+                "rs_iwindow_animation_controller.h",
+                "rs_iwindow_animation_finished_callback.h",
+                "rs_window_animation_finished_callback_stub.h",
+                "rs_window_animation_finished_callback.h",
+                "rs_window_animation_stub.h",
+                "rs_window_animation_target.h"
+              ],
+              "header_base": "//foundation/graphic/standard/rosen/modules/animation/window_animation/include"
             }
           }
         ],
