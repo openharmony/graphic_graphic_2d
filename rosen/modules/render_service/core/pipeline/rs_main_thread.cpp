@@ -61,6 +61,9 @@ void RSMainThread::Init()
     receiver_ = std::make_shared<VSyncReceiver>(conn);
     receiver_->Init();
     RsRenderServiceUtil::InitEnableClient();
+
+    drawingProxy_ = std::make_shared<DrawingProxy>();
+    drawingProxy_->InitDrawContext();
 }
 
 void RSMainThread::Start()

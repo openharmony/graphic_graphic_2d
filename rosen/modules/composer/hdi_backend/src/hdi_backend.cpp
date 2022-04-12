@@ -181,10 +181,9 @@ void HdiBackend::OnPrepareComplete(bool needFlush, OutputPtr &output, std::vecto
         .layers = newLayerInfos,
     };
 
-    sptr<Surface> producerSurface = output->GetProducerSurface();
-
+    auto fbSurface = output->GetFrameBufferSurface();
     if (onPrepareCompleteCb_ != nullptr) {
-        onPrepareCompleteCb_(producerSurface, param, onPrepareCompleteCbData_);
+        onPrepareCompleteCb_(fbSurface, param, onPrepareCompleteCbData_);
     }
 }
 

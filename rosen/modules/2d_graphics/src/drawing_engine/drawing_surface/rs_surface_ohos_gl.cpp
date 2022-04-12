@@ -32,10 +32,13 @@ RSSurfaceOhosGl::~RSSurfaceOhosGl()
 
 std::unique_ptr<RSSurfaceFrame> RSSurfaceOhosGl::RequestFrame(int32_t width, int32_t height)
 {
+    struct NativeWindow* nativeWindow = CreateNativeWindowFromSurface(&producer_);
+    if (nativeWindow == nullptr) {
+        return nullptr;
+    }
+
     frame_ = std::make_unique<RSSurfaceFrameOhosGl>(width, height);
     frame_->SetColorSpace(ColorGamut::COLOR_GAMUT_SRGB);
-
-    struct NativeWindow* nativeWindow = CreateNativeWindowFromSurface(&producer_);
     frame_->SetSurface(static_cast<EGLSurface>(drawingProxy_->CreateSurface((EGLNativeWindowType)nativeWindow)));
     NativeWindowHandleOpt(nativeWindow, SET_BUFFER_GEOMETRY, frame_->GetWidth(), frame_->GetHeight());
     NativeWindowHandleOpt(nativeWindow, SET_COLOR_GAMUT, frame_->GetColorSpace());

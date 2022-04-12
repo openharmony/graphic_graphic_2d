@@ -23,11 +23,12 @@
 
 namespace OHOS {
 namespace Rosen {
+class RSSurface;
 
 class HdiFramebufferSurface : public IBufferConsumerListener {
 public:
     static sptr<HdiFramebufferSurface> CreateFramebufferSurface();
-    sptr<OHOS::Surface> GetProducerSurface();
+    std::shared_ptr<RSSurface> GetSurface();
     sptr<OHOS::SurfaceBuffer> GetFramebuffer();
     sptr<SyncFence> GetFramebufferFence();
     int32_t ReleaseFramebuffer(const sptr<SyncFence> &releaseFence);
@@ -46,6 +47,8 @@ private:
     void OnBufferAvailable() override;
     OHOS::SurfaceError SetBufferQueueSize(uint32_t bufferSize);
     OHOS::SurfaceError CreateSurface(sptr<HdiFramebufferSurface> &fbSurface);
+
+    std::shared_ptr<RSSurface> rsSurface_;
 };
 } // namespace Rosen
 } // namespace OHOS

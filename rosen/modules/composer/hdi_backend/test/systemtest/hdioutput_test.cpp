@@ -81,7 +81,7 @@ HWTEST_F(HdiOutputSysTest, TestHdiOutput001, Function | MediumTest| Level3)
     HdiOutputSysTest::hdiOutput_->SetOutputDamage(num, iRect2);
     ASSERT_EQ(HdiOutputSysTest::hdiOutput_->GetOutputDamageNum(), 1u);
 
-    ASSERT_NE(HdiOutputSysTest::hdiOutput_->GetProducerSurface(), nullptr);
+    ASSERT_NE(HdiOutputSysTest::hdiOutput_->GetFrameBufferSurface(), nullptr);
     ASSERT_EQ(HdiOutputSysTest::hdiOutput_->GetFramebuffer(), nullptr);
     ASSERT_NE(HdiOutputSysTest::hdiOutput_->GetFramebufferFence(), nullptr);
 }

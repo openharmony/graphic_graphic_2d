@@ -12,6 +12,7 @@
 # limitations under the License.
 
 import("//build/ohos.gni")
+import("//foundation/graphic/standard/graphic_config.gni")
 
 ## Build librender_service.so
 ohos_shared_library("librender_service") {
@@ -24,6 +25,7 @@ ohos_shared_library("librender_service") {
   } else {
     defines += [ "PADDING_HEIGHT_32" ]
   }
+  defines += gpu_defines
 
   sources = [
     "core/pipeline/rs_compatible_processor.cpp",

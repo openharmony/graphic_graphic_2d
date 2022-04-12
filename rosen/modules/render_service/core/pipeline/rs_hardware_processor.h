@@ -21,7 +21,6 @@
 #include "display_type.h"
 #include "hdi_backend.h"
 #include "hdi_layer_info.h"
-#include "hdi_output.h"
 #include "hdi_screen.h"
 #include <surface.h>
 
@@ -44,7 +43,7 @@ public:
     void CropLayers();
 
 private:
-    void Redraw(sptr<Surface>& surface, const struct PrepareCompleteParam& param, void* data);
+    void Redraw(std::shared_ptr<RSSurface>& surface, const struct PrepareCompleteParam& param, void* data);
     void OnRotate();
     void CalculateInfoWithAnimation(const std::unique_ptr<RSTransitionProperties>& transitionProperties,
         ComposeInfo& info, RSSurfaceRenderNode& node);

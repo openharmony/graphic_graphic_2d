@@ -144,13 +144,13 @@ uint32_t HdiOutput::GetScreenId() const
     return screenId_;
 }
 
-sptr<Surface> HdiOutput::GetProducerSurface()
+std::shared_ptr<RSSurface> HdiOutput::GetFrameBufferSurface()
 {
     if (!CheckFbSurface()) {
         return nullptr;
     }
 
-    return fbSurface_->GetProducerSurface();
+    return fbSurface_->GetSurface();
 }
 
 sptr<SurfaceBuffer> HdiOutput::GetFramebuffer()

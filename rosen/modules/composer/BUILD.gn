@@ -57,9 +57,16 @@ ohos_shared_library("libcomposer") {
     "vsync/src/vsync_sampler.cpp",
   ]
 
-  include_dirs = [ "//foundation/graphic/standard/utils/log" ]
+  include_dirs = [
+    "//foundation/graphic/standard/rosen/modules/2d_graphics/src",
+    "//foundation/graphic/standard/rosen/modules/2d_graphics/src/drawing_engine",
+    "//foundation/graphic/standard/utils/log",
+  ]
 
   configs = [ ":composer_config" ]
+
+  defines = []
+  defines += gpu_defines
 
   public_configs = [
     ":composer_public_config",
@@ -69,8 +76,10 @@ ohos_shared_library("libcomposer") {
   deps = [
     "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
     "//drivers/peripheral/display/hal:hdi_display_device",
+    "//foundation/ace/ace_engine/build/external_config/flutter/skia:ace_skia_ohos",
     "//foundation/graphic/standard:libsurface",
     "//foundation/graphic/standard/frameworks/vsync:libvsync_module",
+    "//foundation/graphic/standard/rosen/modules/2d_graphics:2d_graphics",
     "//foundation/graphic/standard/utils:libgraphic_utils",
   ]
 

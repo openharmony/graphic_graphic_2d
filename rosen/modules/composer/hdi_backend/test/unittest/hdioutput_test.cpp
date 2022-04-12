@@ -115,7 +115,7 @@ HWTEST_F(HdiOutputTest, GetOutputDamageNum001, Function | MediumTest| Level3)
  */
 HWTEST_F(HdiOutputTest, GetProducerSurface001, Function | MediumTest| Level3)
 {
-    ASSERT_NE(HdiOutputTest::hdiOutput_->GetProducerSurface(), nullptr);
+    ASSERT_NE(HdiOutputTest::hdiOutput_->GetFrameBufferSurface(), nullptr);
 }
 
 /**
