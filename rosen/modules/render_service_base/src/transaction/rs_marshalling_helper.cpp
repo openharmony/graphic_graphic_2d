@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -246,7 +246,8 @@ MARSHALLING_AND_UNMARSHALLING(RSRenderKeyframeAnimation)
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector2f) \
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector4f) \
     EXPLICIT_INSTANTIATION(TEMPLATE, Quaternion) \
-    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSFilter>)
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSFilter>) \
+    EXPLICIT_INSTANTIATION(TEMPLATE, Vector4<Color>)
     // [PLANNING]:complete the marshing and unmarshalling
 // EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSFilter>)
 

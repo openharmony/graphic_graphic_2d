@@ -67,8 +67,8 @@ DECLARE_DELTA_COMMAND(RSNodeSetPivotXDelta, SET_PIVOT_X_DELTA, float, SetPivotX,
 DECLARE_SET_COMMAND(RSNodeSetPivotY, SET_PIVOT_Y, float, SetPivotY)
 DECLARE_DELTA_COMMAND(RSNodeSetPivotYDelta, SET_PIVOT_Y_DELTA, float, SetPivotY, GetPivotY)
 
-DECLARE_SET_COMMAND(RSNodeSetCornerRadius, SET_CORNER_RADIUS, float, SetCornerRadius)
-DECLARE_DELTA_COMMAND(RSNodeSetCornerRadiusDelta, SET_CORNER_RADIUS_DELTA, float, SetCornerRadius, GetCornerRadius)
+DECLARE_SET_COMMAND(RSNodeSetCornerRadius, SET_CORNER_RADIUS, Vector4f, SetCornerRadius)
+DECLARE_DELTA_COMMAND(RSNodeSetCornerRadiusDelta, SET_CORNER_RADIUS_DELTA, Vector4f, SetCornerRadius, GetCornerRadius)
 
 DECLARE_SET_COMMAND(RSNodeSetQuaternion, SET_QUATERNION, Quaternion, SetQuaternion)
 DECLARE_DELTA_COMMAND(RSNodeSetQuaternionDelta, SET_QUATERNION_DELTA, Quaternion, SetQuaternion, GetQuaternion)
@@ -129,13 +129,13 @@ DECLARE_DELTA_COMMAND(RSNodeSetBgImagePositionXDelta, SET_BG_IMAGE_POSITION_X_DE
 DECLARE_SET_COMMAND(RSNodeSetBgImagePositionY, SET_BG_IMAGE_POSITION_Y, float, SetBgImagePositionY)
 DECLARE_DELTA_COMMAND(RSNodeSetBgImagePositionYDelta, SET_BG_IMAGE_POSITION_Y_DELTA, float, SetBgImagePositionY, GetBgImagePositionY)
 
-DECLARE_SET_COMMAND(RSNodeSetBorderColor, SET_BORDER_COLOR, Color, SetBorderColor)
-DECLARE_DELTA_COMMAND(RSNodeSetBorderColorDelta, SET_BORDER_COLOR_DELTA, Color, SetBorderColor, GetBorderColor)
+DECLARE_SET_COMMAND(RSNodeSetBorderColor, SET_BORDER_COLOR, Vector4<Color>, SetBorderColor)
+DECLARE_DELTA_COMMAND(RSNodeSetBorderColorDelta, SET_BORDER_COLOR_DELTA, Vector4<Color>, SetBorderColor, GetBorderColor)
 
-DECLARE_SET_COMMAND(RSNodeSetBorderWidth, SET_BORDER_WIDTH, float, SetBorderWidth)
-DECLARE_DELTA_COMMAND(RSNodeSetBorderWidthDelta, SET_BORDER_WIDTH_DELTA, float, SetBorderWidth, GetBorderWidth)
+DECLARE_SET_COMMAND(RSNodeSetBorderWidth, SET_BORDER_WIDTH, Vector4f, SetBorderWidth)
+DECLARE_DELTA_COMMAND(RSNodeSetBorderWidthDelta, SET_BORDER_WIDTH_DELTA, Vector4f, SetBorderWidth, GetBorderWidth)
 
-DECLARE_SET_COMMAND(RSNodeSetBorderStyle, SET_BORDER_STYLE, BorderStyle, SetBorderStyle)
+DECLARE_SET_COMMAND(RSNodeSetBorderStyle, SET_BORDER_STYLE, Vector4<BorderStyle>, SetBorderStyle)
 
 DECLARE_SET_COMMAND(RSNodeSetSublayerTransform, SET_SUBLAYER_TRANSFORM, Matrix3f, SetSublayerTransform)
 DECLARE_DELTA_COMMAND(RSNodeSetSublayerTransformDelta, SET_SUBLAYER_TRANSFORM_DELTA, Matrix3f, SetSublayerTransform, GetSublayerTransform)

@@ -37,6 +37,7 @@ public:
     };
 
     Vector4();
+    Vector4(T value);
     Vector4(T x, T y, T z, T w);
     explicit Vector4(const T* array);
     ~Vector4();
@@ -49,13 +50,14 @@ public:
     void Identity();
     bool IsInfinite() const;
     bool IsIdentity() const;
+    bool IsZero() const;
     void SetValues(T x, T y, T z, T w);
     void SetZero();
     Vector4 operator-() const;
     Vector4 operator-(const Vector4<T>& other) const;
     Vector4 operator+(const Vector4<T>& other) const;
-    Vector4 operator/(T scale) const;
-    Vector4 operator*(T scale) const;
+    Vector4 operator/(float scale) const;
+    Vector4 operator*(float scale) const;
     Vector4 operator*(const Vector4<T>& other) const;
     Vector4& operator*=(const Vector4<T>& other);
     Vector4& operator=(const Vector4<T>& other);
@@ -66,7 +68,7 @@ public:
     T& operator[](int index);
     T* GetData();
 
-    void Scale(T arg);
+    void Scale(float arg);
     void Sub(const Vector4<T>& arg);
     void Add(const Vector4<T>& arg);
     void Multiply(const Vector4<T>& arg);
@@ -94,7 +96,16 @@ public:
 template<typename T>
 Vector4<T>::Vector4()
 {
-    Identity();
+    SetZero();
+}
+
+template<typename T>
+Vector4<T>::Vector4(T value)
+{
+    data_[0] = value;
+    data_[1] = value;
+    data_[2] = value;
+    data_[3] = value;
 }
 
 template<typename T>
@@ -266,6 +277,13 @@ bool Vector4<T>::IsIdentity() const
 }
 
 template<typename T>
+bool Vector4<T>::IsZero() const
+{
+    return ROSEN_EQ<T>(data_[0], 0.f) && ROSEN_EQ<T>(data_[1], 0.f) &&
+           ROSEN_EQ<T>(data_[2], 0.f) && ROSEN_EQ<T>(data_[3], 0.f);
+}
+
+template<typename T>
 void Vector4<T>::SetValues(T x, T y, T z, T w)
 {
     data_[0] = x;
@@ -277,7 +295,7 @@ void Vector4<T>::SetValues(T x, T y, T z, T w)
 template<typename T>
 void Vector4<T>::SetZero()
 {
-    SetValues(0.f, 0.f, 0.f, 0.f);
+    SetValues(T(0.f), T(0.f), T(0.f), T(0.f));
 }
 
 template<typename T>
@@ -300,9 +318,9 @@ Vector4<T> Vector4<T>::operator+(const Vector4<T>& other) const
 }
 
 template<typename T>
-Vector4<T> Vector4<T>::operator/(T scale) const
+Vector4<T> Vector4<T>::operator/(float scale) const
 {
-    if (ROSEN_EQ(scale, 0)) {
+    if (ROSEN_EQ<float>(scale, 0)) {
         return *this;
     }
     Vector4<T> clone(data_);
@@ -311,7 +329,7 @@ Vector4<T> Vector4<T>::operator/(T scale) const
 }
 
 template<typename T>
-Vector4<T> Vector4<T>::operator*(T scale) const
+Vector4<T> Vector4<T>::operator*(float scale) const
 {
     Vector4<T> clone(data_);
     clone.Scale(scale);
@@ -387,7 +405,7 @@ T& Vector4<T>::operator[](int index)
 }
 
 template<typename T>
-void Vector4<T>::Scale(T arg)
+void Vector4<T>::Scale(float arg)
 {
     data_[3] *= arg;
     data_[2] *= arg;

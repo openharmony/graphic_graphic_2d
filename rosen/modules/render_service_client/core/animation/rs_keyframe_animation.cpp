@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -102,6 +102,12 @@ template<>
 void RSKeyframeAnimation<std::shared_ptr<RSFilter>>::OnStart()
 {
     START_KEYFRAME_ANIMATION(RSAnimationCreateKeyframeFilter, std::shared_ptr<RSFilter>);
+}
+
+template<>
+void RSKeyframeAnimation<Vector4<Color>>::OnStart()
+{
+    START_KEYFRAME_ANIMATION(RSAnimationCreateKeyframeVec4Color, Vector4<Color>);
 }
 } // namespace Rosen
 } // namespace OHOS

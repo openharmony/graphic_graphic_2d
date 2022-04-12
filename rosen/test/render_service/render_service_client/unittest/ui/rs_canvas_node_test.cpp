@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -1010,7 +1010,7 @@ HWTEST_F(RSCanvasNodeTest, SetandGetCornerRadius001, TestSize.Level1)
 {
     RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
     canvasNode->SetCornerRadius(floatData[1]);
-    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetCornerRadius(), floatData[1]));
+    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetCornerRadius().x_, floatData[1]));
 }
 
 /**
@@ -1022,7 +1022,7 @@ HWTEST_F(RSCanvasNodeTest, SetandGetCornerRadius002, TestSize.Level1)
 {
     RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
     canvasNode->SetCornerRadius(floatData[2]);
-    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetCornerRadius(), floatData[2]));
+    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetCornerRadius().y_, floatData[2]));
 }
 
 /**
@@ -1034,7 +1034,7 @@ HWTEST_F(RSCanvasNodeTest, SetandGetCornerRadius003, TestSize.Level1)
 {
     RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
     canvasNode->SetCornerRadius(floatData[3]);
-    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetCornerRadius(), floatData[3]));
+    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetCornerRadius().z_, floatData[3]));
 }
 
 /**
@@ -1046,7 +1046,7 @@ HWTEST_F(RSCanvasNodeTest, SetandGetCornerRadius004, TestSize.Level1)
 {
     RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
     canvasNode->SetCornerRadius(floatData[4]);
-    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetCornerRadius(), floatData[4]));
+    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetCornerRadius().w_, floatData[4]));
 }
 
 /**
@@ -1058,7 +1058,7 @@ HWTEST_F(RSCanvasNodeTest, SetandGetCornerRadius005, TestSize.Level1)
 {
     RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
     canvasNode->SetCornerRadius(floatData[0]);
-    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetCornerRadius(), floatData[0]));
+    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetCornerRadius().x_, floatData[0]));
 }
 
 /**
@@ -1825,7 +1825,7 @@ HWTEST_F(RSCanvasNodeTest, SetandGetBorderWidth001, TestSize.Level1)
 {
     RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
     canvasNode->SetBorderWidth(floatData[1]);
-    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetBorderWidth(), floatData[1]));
+    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetBorderWidth().x_, floatData[1]));
 }
 
 /**
@@ -1837,7 +1837,7 @@ HWTEST_F(RSCanvasNodeTest, SetandGetBorderWidth002, TestSize.Level1)
 {
     RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
     canvasNode->SetBorderWidth(floatData[2]);
-    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetBorderWidth(), floatData[2]));
+    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetBorderWidth().y_, floatData[2]));
 }
 
 /**
@@ -1849,7 +1849,7 @@ HWTEST_F(RSCanvasNodeTest, SetandGetBorderWidth003, TestSize.Level1)
 {
     RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
     canvasNode->SetBorderWidth(floatData[3]);
-    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetBorderWidth(), floatData[3]));
+    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetBorderWidth().z_, floatData[3]));
 }
 
 /**
@@ -1861,7 +1861,7 @@ HWTEST_F(RSCanvasNodeTest, SetandGetBorderWidth004, TestSize.Level1)
 {
     RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
     canvasNode->SetBorderWidth(floatData[4]);
-    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetBorderWidth(), floatData[4]));
+    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetBorderWidth().w_, floatData[4]));
 }
 
 /**
@@ -1873,7 +1873,7 @@ HWTEST_F(RSCanvasNodeTest, SetandGetBorderWidth005, TestSize.Level1)
 {
     RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
     canvasNode->SetBorderWidth(floatData[0]);
-    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetBorderWidth(), floatData[0]));
+    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetBorderWidth().x_, floatData[0]));
 }
 
 /**

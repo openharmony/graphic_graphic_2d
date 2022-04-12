@@ -98,6 +98,7 @@ public:
     void SetPivotY(float pivotY);
 
     void SetCornerRadius(float cornerRadius);
+    void SetCornerRadius(const Vector4f& cornerRadius);
 
     void SetRotation(const Quaternion& quaternion);
     void SetRotation(float degreeX, float degreeY, float degreeZ);
@@ -134,6 +135,9 @@ public:
     void SetBorderColor(uint32_t colorValue);
     void SetBorderWidth(float width);
     void SetBorderStyle(uint32_t styleValue);
+    void SetBorderColor(uint32_t left, uint32_t top, uint32_t right, uint32_t bottom);
+    void SetBorderWidth(float left, float top, float right, float bottom);
+    void SetBorderStyle(uint32_t left, uint32_t top, uint32_t right, uint32_t bottomalue);
 
     void SetSublayerTransform(Matrix3f sublayerTransform);
 

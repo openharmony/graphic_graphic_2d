@@ -58,6 +58,15 @@ RSColor RSColor::operator*(float scale) const
         static_cast<int>(alpha_) * scale);
 }
 
+RSColor& RSColor::operator*=(float scale)
+{
+    red_ = static_cast<int>(red_) * scale;
+    green_ = static_cast<int>(green_) * scale;
+    blue_ = static_cast<int>(blue_) * scale;
+    alpha_ = static_cast<int>(alpha_) * scale;
+    return *this;
+}
+
 RSColor RSColor::operator/(float scale) const
 {
     return operator*(1 / scale);
