@@ -29,7 +29,8 @@
 #include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_log.h"
 
-#include <platform/ohos/rs_surface_ohos.h>
+#include <platform/ohos/backend/rs_surface_ohos_gl.h>
+#include <platform/ohos/backend/rs_surface_ohos_raster.h>
 
 namespace OHOS {
 namespace Rosen {
@@ -68,6 +69,7 @@ void RSHardwareProcessor::Init(ScreenId id, int32_t offsetX, int32_t offsetY)
     auto mainThread = RSMainThread::Instance();
     if (mainThread != nullptr) {
         renderContext_ = mainThread->GetRenderContext();
+        eglImageManager_ =  mainThread->GetRSEglImageManager();
     }
 #endif // RS_ENABLE_GL
 }
@@ -130,7 +132,9 @@ void RSHardwareProcessor::ReleaseNodePrevBuffer(RSSurfaceRenderNode& node)
         RS_LOGE("RSHardwareProcessor::ReleaseNodePrevBuffer: node's consumer is null.");
         return;
     }
-
+    if (node.GetPreBuffer() == nullptr) {
+        return;
+    }
     (void)consumer->ReleaseBuffer(node.GetPreBuffer(), -1);
 }
 
@@ -293,6 +297,31 @@ void RSHardwareProcessor::CalculateInfoWithAnimation(
     };
 }
 
+bool IfUseGPUClient(const struct PrepareCompleteParam& param)
+{
+    for (auto it = param.layers.begin(); it != param.layers.end(); ++it) {
+        LayerInfoPtr layerInfo = *it;
+        if (layerInfo == nullptr) {
+            continue;
+        }
+        RSSurfaceRenderNode* nodePtr = static_cast<RSSurfaceRenderNode *>(layerInfo->GetLayerAdditionalInfo());
+        if (nodePtr == nullptr) {
+            RS_LOGE("RSHardwareProcessor::DrawBuffer surfaceNode is nullptr!");
+            continue;
+        }
+        RSSurfaceRenderNode& node = *nodePtr;
+        auto buffer = node.GetBuffer();
+        ColorGamut srcGamut = static_cast<ColorGamut>(buffer->GetSurfaceBufferColorGamut());
+        ColorGamut dstGamut = ColorGamut::COLOR_GAMUT_SRGB;
+        if (buffer->GetFormat() == PIXEL_FMT_YCRCB_420_SP || buffer->GetFormat() == PIXEL_FMT_YCBCR_420_SP) {
+            return false;
+        } else if (srcGamut != dstGamut) {
+            return false;
+        }
+    }
+    return true;
+}
+
 void RSHardwareProcessor::Redraw(
     sptr<Surface>& surface, const struct PrepareCompleteParam& param, void* data)
 {
@@ -300,7 +329,6 @@ void RSHardwareProcessor::Redraw(
         RS_LOGI("RsDebug RSHardwareProcessor::Redraw no need to flush frame buffer");
         return;
     }
-
     if (surface == nullptr) {
         RS_LOGE("RSHardwareProcessor::Redraw: surface is null.");
         return;
@@ -315,10 +343,19 @@ void RSHardwareProcessor::Redraw(
         .timeout = 0,
     };
     RS_TRACE_NAME("Redraw");
-
-    // [PLANNING]: use surface to create egl surface and use new CreateCanvas()
-
-    auto canvas = CreateCanvas(surface, requestConfig);
+    bool ifUseGPU = IfUseGPUClient(param);
+    RS_LOGE("RSHardwareProcessor::Redraw if use GPU client: %d!", ifUseGPU);
+    std::shared_ptr<RSSurfaceOhos> rsSurface;
+#ifdef RS_ENABLE_GL
+    if (ifUseGPU) {
+        rsSurface = std::make_shared<RSSurfaceOhosGl>(surface);
+    } else {
+        rsSurface = std::make_shared<RSSurfaceOhosRaster>(surface);
+    }
+#else
+    rsSurface = std::make_shared<RSSurfaceOhosRaster>(surface);
+#endif
+    auto canvas = CreateCanvas(rsSurface, requestConfig);
     if (canvas == nullptr) {
         RS_LOGE("RSHardwareProcessor::Redraw: canvas is null.");
         return;
@@ -353,20 +390,25 @@ void RSHardwareProcessor::Redraw(
         params.targetColorGamut = static_cast<ColorGamut>(currScreenInfo_.colorGamut);
         const auto& clipRect = layerInfo->GetLayerSize();
         params.clipRect = SkRect::MakeXYWH(clipRect.x, clipRect.y, clipRect.w, clipRect.h);
+#ifdef RS_ENABLE_GL
+        if (ifUseGPU) {
+            RsRenderServiceUtil::DrawImage(eglImageManager_, renderContext_->GetGrContext(), *canvas, params,
+                [this, &node](SkCanvas& canvas, BufferDrawParam& params) -> void {
+                    RsRenderServiceUtil::DealAnimation(canvas, node, params);
+            });
+        } else {
+            RsRenderServiceUtil::DrawBuffer(*canvas, params, [this, &node](SkCanvas& canvas,
+                BufferDrawParam& params) -> void { RsRenderServiceUtil::DealAnimation(canvas, node, params);
+            });
+        }
+#else
         RsRenderServiceUtil::DrawBuffer(*canvas, params, [this, &node](SkCanvas& canvas,
             BufferDrawParam& params) -> void {
             RsRenderServiceUtil::DealAnimation(canvas, node, params);
         });
+#endif // RS_ENABLE_GL
     }
-    BufferFlushConfig flushConfig = {
-        .damage = {
-            .x = 0,
-            .y = 0,
-            .w = static_cast<int32_t>(currScreenInfo_.width),
-            .h = static_cast<int32_t>(currScreenInfo_.height),
-        },
-    };
-    FlushBuffer(surface, flushConfig);
+    rsSurface->FlushFrame(currFrame_);
 }
 
 void RSHardwareProcessor::OnRotate()

@@ -31,6 +31,7 @@
 #include "platform/ohos/rs_surface_ohos.h"
 #ifdef RS_ENABLE_GL
 #include "render_context/render_context.h"
+#include "rs_egl_image_manager.h"
 #endif // RS_ENABLE_GL
 
 namespace OHOS {
@@ -61,6 +62,7 @@ protected:
 
 #ifdef RS_ENABLE_GL
     std::shared_ptr<RenderContext> renderContext_;
+    std::shared_ptr<RSEglImageManager> eglImageManager_;
 #endif // RS_ENABLE_GL
     std::unique_ptr<RSSurfaceFrame> currFrame_;
 

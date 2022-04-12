@@ -16,6 +16,7 @@
 #include "hdi_backend.h"
 
 #include <scoped_bytrace.h>
+#include "surface_buffer.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -69,6 +70,9 @@ void HdiBackend::Repaint(std::vector<OutputPtr> &outputs)
 
     int32_t ret = DISPLAY_SUCCESS;
     for (auto &output : outputs) {
+        if (output == nullptr) {
+            continue;
+        }
         const std::unordered_map<uint32_t, LayerPtr> &layersMap = output->GetLayers();
         if (layersMap.empty()) {
             HLOGI("layer map is empty, drop this frame");
@@ -111,7 +115,7 @@ void HdiBackend::Repaint(std::vector<OutputPtr> &outputs)
         OnPrepareComplete(needFlush, output, newLayerInfos);
 
         if (needFlush) {
-            if (FlushScreen(screenId, output, compClientLayers) != DISPLAY_SUCCESS) {
+            if (FlushScreen(output, compClientLayers) != DISPLAY_SUCCESS) {
                 // return
             }
         }
@@ -124,9 +128,6 @@ void HdiBackend::Repaint(std::vector<OutputPtr> &outputs)
         }
 
         ReleaseLayerBuffer(screenId, layersMap);
-
-        // wrong check
-        output->ReleaseFramebuffer(fbFence);
 
         int64_t timestamp = lastPresentFence_->SyncFileReadTimestamp();
         bool ret = false;
@@ -197,28 +198,43 @@ void HdiBackend::ReorderLayerInfo(std::vector<LayerInfoPtr> &newLayerInfos)
     std::sort(newLayerInfos.begin(), newLayerInfos.end(), Cmp);
 }
 
-int32_t HdiBackend::FlushScreen(uint32_t screenId, OutputPtr &output,
-        std::vector<LayerPtr> &compClientLayers)
+int32_t HdiBackend::FlushScreen(const OutputPtr &output, std::vector<LayerPtr> &compClientLayers)
 {
-    sptr<SyncFence> fbAcquireFence = output->GetFramebufferFence();
+    auto fbEntry = output->GetFramebuffer();
+    if (fbEntry == nullptr) {
+        HLOGE("HdiBackend::FlushScreen: GetFramebuffer failed!");
+        return -1;
+    }
+
+    if (lastFrameBuffer_ != nullptr) {
+        // wrong check
+        (void)output->ReleaseFramebuffer(lastFrameBuffer_, lastPresentFence_);
+    }
+    lastFrameBuffer_ = fbEntry->buffer;
+
+    const auto& fbAcquireFence = fbEntry->acquireFence;
     for (auto &layer : compClientLayers) {
         layer->MergeWithFramebufferFence(fbAcquireFence);
     }
 
-    return SetScreenClientInfo(screenId, fbAcquireFence, output);
+    return SetScreenClientInfo(*fbEntry, output);
 }
 
-int32_t HdiBackend::SetScreenClientInfo(uint32_t screenId, const sptr<SyncFence> &fbAcquireFence,
-        OutputPtr &output)
+int32_t HdiBackend::SetScreenClientInfo(const FrameBufferEntry &fbEntry, const OutputPtr &output)
 {
-    int32_t ret = device_->SetScreenClientBuffer(screenId,
-                        output->GetFramebuffer()->GetBufferHandle(), fbAcquireFence);
+    if (fbEntry.buffer == nullptr) {
+        HLOGE("SetScreenClientBuffer failed: frame buffer is null");
+        return -1;
+    }
+
+    int ret = device_->SetScreenClientBuffer(output->GetScreenId(),
+        fbEntry.buffer->GetBufferHandle(), fbEntry.acquireFence);
     if (ret != DISPLAY_SUCCESS) {
         HLOGE("SetScreenClientBuffer failed, ret is %{public}d", ret);
         return ret;
     }
 
-    ret = device_->SetScreenClientDamage(screenId, output->GetOutputDamageNum(),
+    ret = device_->SetScreenClientDamage(output->GetScreenId(), output->GetOutputDamageNum(),
                                          output->GetOutputDamage());
     if (ret != DISPLAY_SUCCESS) {
         HLOGE("SetScreenClientDamage failed, ret is %{public}d", ret);

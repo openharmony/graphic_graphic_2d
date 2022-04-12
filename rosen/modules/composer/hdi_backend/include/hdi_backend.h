@@ -75,13 +75,14 @@ private:
     void SetHdiLayerInfo(uint32_t screenId, uint32_t layerId, LayerPtr &layer);
     void OnPrepareComplete(bool needFlush, OutputPtr &output, std::vector<LayerInfoPtr> &newLayerInfos);
     void ReleaseLayerBuffer(uint32_t screenId, const std::unordered_map<uint32_t, LayerPtr> &layersMap);
-    int32_t FlushScreen(uint32_t screenId, OutputPtr &output, std::vector<LayerPtr> &compClientLayers);
-    int32_t SetScreenClientInfo(uint32_t screenId, const sptr<SyncFence> &fbAcquireFence, OutputPtr &output);
+    int32_t FlushScreen(const OutputPtr &output, std::vector<LayerPtr> &compClientLayers);
+    int32_t SetScreenClientInfo(const FrameBufferEntry &fbEntry, const OutputPtr &output);
     int32_t UpdateLayerCompType(uint32_t screenId, const std::unordered_map<uint32_t, LayerPtr> &layersMap);
 
     inline void CheckRet(int32_t ret, const char* func);
 
     sptr<VSyncSampler> sampler_ = nullptr;
+    sptr<SurfaceBuffer> lastFrameBuffer_;
     sptr<SyncFence> lastPresentFence_ = SyncFence::INVALID_FENCE;
 };
 } // namespace Rosen

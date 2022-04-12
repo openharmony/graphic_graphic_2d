@@ -53,9 +53,9 @@ public:
     IRect& GetOutputDamage();
     uint32_t GetOutputDamageNum() const;
     sptr<Surface> GetFrameBufferSurface();
-    sptr<SurfaceBuffer> GetFramebuffer();
-    sptr<SyncFence> GetFramebufferFence();
-    int32_t ReleaseFramebuffer(const sptr<SyncFence> &releaseFence);
+    std::unique_ptr<FrameBufferEntry> GetFramebuffer();
+    int32_t ReleaseFramebuffer(
+        sptr<SurfaceBuffer> &buffer, const sptr<SyncFence>& releaseFence);
 
     void Dump(std::string &result) const;
     void DumpFps(std::string &result, const std::string &arg) const;

@@ -29,6 +29,7 @@ ohos_shared_library("librender_service") {
 
   sources = [
     "core/pipeline/rs_compatible_processor.cpp",
+    "core/pipeline/rs_egl_image_manager.cpp",
     "core/pipeline/rs_hardware_processor.cpp",
     "core/pipeline/rs_main_thread.cpp",
     "core/pipeline/rs_processor.cpp",
@@ -48,6 +49,7 @@ ohos_shared_library("librender_service") {
 
   include_dirs = [
     "core",
+    "//foundation/graphic/standard/frameworks/surface/include",
     "//foundation/graphic/standard/rosen/include",
     "//foundation/graphic/standard/rosen/modules/composer/vsync/include",
     "//foundation/graphic/standard/rosen/modules/render_service_base/src",

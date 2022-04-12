@@ -22,6 +22,11 @@
 #include "property/rs_properties_painter.h"
 #include "render/rs_blur_filter.h"
 #include "rs_trace.h"
+#ifdef RS_ENABLE_GL
+#include "include/gpu/gl/GrGLTypes.h"
+#include "include/gpu/GrBackendSurface.h"
+
+#endif // RS_ENABLE_GL
 
 namespace OHOS {
 namespace Rosen {
@@ -800,7 +805,6 @@ BufferDrawParam RsRenderServiceUtil::CreateBufferDrawParam(RSSurfaceRenderNode& 
     if (!buffer || !surface) {
         return params;
     }
-
     SkPaint paint;
     paint.setAlphaf(node.GetAlpha() * property.GetAlpha());
 
@@ -819,24 +823,31 @@ BufferDrawParam RsRenderServiceUtil::CreateBufferDrawParam(RSSurfaceRenderNode& 
     return params;
 }
 
-void RsRenderServiceUtil::DrawBuffer(SkCanvas& canvas, BufferDrawParam& bufferDrawParam, CanvasPostProcess process)
+bool IsBufferValid(const sptr<SurfaceBuffer>& buffer)
 {
-    sptr<SurfaceBuffer> buffer = bufferDrawParam.buffer;
     if (!buffer) {
-        RS_LOGE("RsRenderServiceUtil::DrawBuffer buffer is nullptr");
-        return;
+        RS_LOGE("RS check: buffer is nullptr");
+        return false;
     }
     auto addr = buffer->GetVirAddr();
     if (addr == nullptr) {
-        RS_LOGE("RsRenderServiceUtil::DrawBuffer this buffer have no vir addr");
-        return;
+        RS_LOGE("RS check: buffer has no vir addr");
+        return false;
     }
     if (buffer->GetWidth() <= 0 || buffer->GetHeight() <= 0) {
-        RS_LOGE("RsRenderServiceUtil::DrawBuffer this buffer width or height is negative [%d %d]",
+        RS_LOGE("RS check: this buffer has negative width or height [%d %d]",
             buffer->GetWidth(), buffer->GetHeight());
+        return false;
+    }
+    return true;
+}
+
+void RsRenderServiceUtil::DrawBuffer(SkCanvas& canvas, BufferDrawParam& bufferDrawParam, CanvasPostProcess process)
+{
+    sptr<SurfaceBuffer> buffer = bufferDrawParam.buffer;
+    if (!IsBufferValid(buffer)) {
         return;
     }
-
     bool bitmapCreated = false;
     SkBitmap bitmap;
     ColorGamut srcGamut = static_cast<ColorGamut>(buffer->GetSurfaceBufferColorGamut());
@@ -866,6 +877,61 @@ void RsRenderServiceUtil::DrawBuffer(SkCanvas& canvas, BufferDrawParam& bufferDr
     canvas.drawBitmapRect(bitmap, bufferDrawParam.srcRect, bufferDrawParam.dstRect, &(bufferDrawParam.paint));
     canvas.restore();
 }
+
+#ifdef RS_ENABLE_GL
+void RsRenderServiceUtil::DrawImage(std::shared_ptr<RSEglImageManager> eglImageManager, GrContext* grContext,
+    SkCanvas& canvas, BufferDrawParam& bufferDrawParam, CanvasPostProcess process)
+{
+    RS_TRACE_NAME("GpuClientComposition");
+    RS_LOGI("RsRenderServiceUtil::DrawImage start");
+    sptr<SurfaceBuffer> buffer = bufferDrawParam.buffer;
+    if (!IsBufferValid(buffer)) {
+        return;
+    }
+    sk_sp<SkImage> image;
+    uint32_t eglTextureId = eglImageManager->MapEglImageFromSurfaceBuffer(buffer);
+    if (eglTextureId == 0) {
+        RS_LOGE("RsRenderServiceUtil::MapEglImageFromSurfaceBuffer return invalid EGL texture ID");
+        return;
+    }
+    bool bitmapCreated = false;
+    SkBitmap bitmap;
+    ColorGamut srcGamut = static_cast<ColorGamut>(buffer->GetSurfaceBufferColorGamut());
+    ColorGamut dstGamut = bufferDrawParam.targetColorGamut;
+    std::vector<uint8_t> newTmpBuffer;
+    if (buffer->GetFormat() == PIXEL_FMT_YCRCB_420_SP || buffer->GetFormat() == PIXEL_FMT_YCBCR_420_SP) {
+        bitmapCreated = CreateYuvToRGBABitMap(buffer, newTmpBuffer, bitmap);
+        if (!bitmapCreated) {
+            RS_LOGE("RsRenderServiceUtil::DrawImage: create bitmap failed.");
+            return;
+        }
+    } else if (srcGamut != dstGamut) {
+        bitmapCreated = CreateNewColorGamutBitmap(buffer, newTmpBuffer, bitmap, srcGamut, dstGamut);
+        if (!bitmapCreated) {
+            RS_LOGE("RsRenderServiceUtil::DrawImage: create bitmap failed.");
+            return;
+        }
+    } else {
+        GrGLTextureInfo grExternalTextureInfo = {GL_TEXTURE_EXTERNAL_OES, eglTextureId, GL_RGBA8};
+        GrBackendTexture backendTexture(bufferDrawParam.srcRect.width(), bufferDrawParam.srcRect.height(),
+            GrMipMapped::kNo, grExternalTextureInfo);
+        image = SkImage::MakeFromTexture(grContext, backendTexture,
+            kTopLeft_GrSurfaceOrigin, kRGBA_8888_SkColorType, kPremul_SkAlphaType, nullptr);
+    }
+    canvas.save();
+    canvas.clipRect(bufferDrawParam.clipRect);
+    canvas.setMatrix(bufferDrawParam.matrix);
+    if (process) {
+        process(canvas, bufferDrawParam);
+    }
+    if (bitmapCreated) {
+        canvas.drawBitmapRect(bitmap, bufferDrawParam.srcRect, bufferDrawParam.dstRect, &(bufferDrawParam.paint));
+    } else {
+        canvas.drawImageRect(image, bufferDrawParam.srcRect, bufferDrawParam.dstRect, &(bufferDrawParam.paint));
+    }
+    canvas.restore();
+}
+#endif // RS_ENABLE_GL
 
 void RsRenderServiceUtil::InitEnableClient()
 {

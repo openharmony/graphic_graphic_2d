@@ -153,7 +153,7 @@ sptr<Surface> HdiOutput::GetFrameBufferSurface()
     return fbSurface_->GetSurface();
 }
 
-sptr<SurfaceBuffer> HdiOutput::GetFramebuffer()
+std::unique_ptr<FrameBufferEntry> HdiOutput::GetFramebuffer()
 {
     if (!CheckFbSurface()) {
         return nullptr;
@@ -162,22 +162,15 @@ sptr<SurfaceBuffer> HdiOutput::GetFramebuffer()
     return fbSurface_->GetFramebuffer();
 }
 
-sptr<SyncFence> HdiOutput::GetFramebufferFence()
-{
-    if (!CheckFbSurface()) {
-        return SyncFence::INVALID_FENCE;
-    }
-
-    return fbSurface_->GetFramebufferFence();
-}
-
-int32_t HdiOutput::ReleaseFramebuffer(const sptr<SyncFence> &releaseFence)
+int32_t HdiOutput::ReleaseFramebuffer(
+    sptr<SurfaceBuffer> &buffer,
+    const sptr<SyncFence>& releaseFence)
 {
     if (!CheckFbSurface()) {
         return -1;
     }
 
-    return fbSurface_->ReleaseFramebuffer(releaseFence);
+    return fbSurface_->ReleaseFramebuffer(buffer, releaseFence);
 }
 
 bool HdiOutput::CheckFbSurface()
@@ -205,6 +198,12 @@ void HdiOutput::Dump(std::string &result) const
         const LayerInfoPtr &info = layer->GetLayerInfo();
         result += "\n surface [" + name + "] Id[" + std::to_string(layerInfo.surfaceId) + "]:\n";
         info->Dump(result);
+    }
+
+    if (fbSurface_ != nullptr) {
+        result += "\n";
+        result += "FrameBufferSurface\n";
+        fbSurface_->Dump(result);
     }
 }
 

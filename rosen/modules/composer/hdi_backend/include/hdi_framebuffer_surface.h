@@ -16,31 +16,49 @@
 #ifndef HDI_BACKEND_HDI_FRAMEBUFFER_SURFACE_H
 #define HDI_BACKEND_HDI_FRAMEBUFFER_SURFACE_H
 
+#include <condition_variable>
+#include <queue>
 #include <refbase.h>
-
 #include <surface.h>
 #include <sync_fence.h>
+#include "surface_buffer.h"
 
 namespace OHOS {
 namespace Rosen {
+struct FrameBufferEntry {
+    FrameBufferEntry(sptr<SurfaceBuffer> buf, sptr<SyncFence> fence, int64_t timeStamp, const Rect& damage)
+        : buffer(std::move(buf)), acquireFence(std::move(fence)), acquireTime(timeStamp), damageRect(damage)
+    {
+    }
+    ~FrameBufferEntry() noexcept = default;
+
+    sptr<SurfaceBuffer> buffer;
+    sptr<SyncFence> acquireFence;
+    int64_t acquireTime = 0;
+    Rect damageRect = {0};
+};
+
 class HdiFramebufferSurface : public IBufferConsumerListener {
 public:
     static sptr<HdiFramebufferSurface> CreateFramebufferSurface();
     sptr<OHOS::Surface> GetSurface();
-    sptr<OHOS::SurfaceBuffer> GetFramebuffer();
-    sptr<SyncFence> GetFramebufferFence();
-    int32_t ReleaseFramebuffer(const sptr<SyncFence> &releaseFence);
+    std::unique_ptr<FrameBufferEntry> GetFramebuffer();
+    int32_t ReleaseFramebuffer(
+        sptr<SurfaceBuffer> &buffer, const sptr<SyncFence> &releaseFence);
+
+    void Dump(std::string &result);
 
 private:
+    mutable std::mutex mutex_;
+    std::condition_variable bufferCond_;
     sptr<OHOS::Surface> consumerSurface_ = nullptr;
     sptr<OHOS::Surface> producerSurface_ = nullptr;
-    sptr<OHOS::SurfaceBuffer> currentBuffer_ = nullptr;
-    sptr<OHOS::SurfaceBuffer> oldBuffer_ = nullptr;
-    sptr<SyncFence> fbAcquireFence_ = SyncFence::INVALID_FENCE;
+    std::queue<std::unique_ptr<FrameBufferEntry>> availableBuffers_;
+
     static constexpr uint32_t MAX_BUFFER_SIZE = 3;
 
     HdiFramebufferSurface();
-    virtual ~HdiFramebufferSurface();
+    virtual ~HdiFramebufferSurface() noexcept;
 
     void OnBufferAvailable() override;
     OHOS::SurfaceError SetBufferQueueSize(uint32_t bufferSize);

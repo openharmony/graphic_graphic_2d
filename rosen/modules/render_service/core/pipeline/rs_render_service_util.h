@@ -24,10 +24,14 @@
 #include "include/core/SkCanvas.h"
 #include "include/core/SkMatrix.h"
 #include "include/core/SkRect.h"
+#include "include/core/SkImage.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "property/rs_transition_properties.h"
 #include "screen_manager/screen_types.h"
 #include "sync_fence.h"
+#ifdef RS_ENABLE_GL
+#include "rs_egl_image_manager.h"
+#endif // RS_ENABLE_GL
 
 namespace OHOS {
 
@@ -40,6 +44,7 @@ struct BufferDrawParam {
     SkRect clipRect;
     SkPaint paint;
     ColorGamut targetColorGamut = ColorGamut::COLOR_GAMUT_SRGB;
+    uint32_t textureId = 0; // EGL texture ID
 };
 
 struct AnimationInfo {
@@ -69,6 +74,10 @@ public:
     static void ComposeSurface(std::shared_ptr<HdiLayerInfo> layer, sptr<Surface> consumerSurface,
         std::vector<LayerInfoPtr>& layers, ComposeInfo info, RSSurfaceRenderNode* node = nullptr);
     static void DrawBuffer(SkCanvas& canvas, BufferDrawParam& bufferDrawParam, CanvasPostProcess process = nullptr);
+#ifdef RS_ENABLE_GL
+    static void DrawImage(std::shared_ptr<RSEglImageManager> eglImageManager, GrContext* grContext, SkCanvas& canvas,
+        BufferDrawParam& bufferDrawParam, CanvasPostProcess process);
+#endif // RS_ENABLE_GL
     static BufferDrawParam CreateBufferDrawParam(RSSurfaceRenderNode& node, SkMatrix canvasMatrix = SkMatrix(),
         ScreenRotation rotation = ScreenRotation::ROTATION_0);
     static void DealAnimation(SkCanvas& canvas, RSSurfaceRenderNode& node, BufferDrawParam& params);

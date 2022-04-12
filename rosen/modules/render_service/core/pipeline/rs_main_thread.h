@@ -33,6 +33,7 @@
 
 #ifdef RS_ENABLE_GL
 #include "render_context/render_context.h"
+#include "rs_egl_image_manager.h"
 #endif // RS_ENABLE_GL
 
 namespace OHOS {
@@ -86,6 +87,10 @@ public:
     {
         return renderContext_;
     }
+    std::shared_ptr<RSEglImageManager> GetRSEglImageManager() const
+    {
+        return eglImageManager_;
+    }
 #endif // RS_ENABLE_GL
 
     RSContext& GetContext()
@@ -132,6 +137,7 @@ private:
 
 #ifdef RS_ENABLE_GL
     std::shared_ptr<RenderContext> renderContext_;
+    std::shared_ptr<RSEglImageManager> eglImageManager_;
 #endif // RS_ENABLE_GL
 };
 } // namespace Rosen

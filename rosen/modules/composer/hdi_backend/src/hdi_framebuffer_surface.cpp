@@ -26,7 +26,7 @@ HdiFramebufferSurface::HdiFramebufferSurface()
 {
 }
 
-HdiFramebufferSurface::~HdiFramebufferSurface()
+HdiFramebufferSurface::~HdiFramebufferSurface() noexcept
 {
 }
 
@@ -78,19 +78,21 @@ SurfaceError HdiFramebufferSurface::SetBufferQueueSize(uint32_t bufferSize)
 
 void HdiFramebufferSurface::OnBufferAvailable()
 {
-    // check, how to use timestamp and damage
-    oldBuffer_ = currentBuffer_;
-    int64_t timestamp;
-    Rect damage;
-    int32_t fbAcquireFence = -1;
-    SurfaceError ret = consumerSurface_->AcquireBuffer(currentBuffer_, fbAcquireFence,
+    sptr<SurfaceBuffer> buffer;
+    int64_t timestamp = 0;
+    Rect damage = {0};
+    int32_t fenceFd = -1;
+    SurfaceError ret = consumerSurface_->AcquireBuffer(buffer, fenceFd,
                                                        timestamp, damage);
-    if (ret != SURFACE_ERROR_OK) {
+    auto acquireFence = new SyncFence(fenceFd);
+    if (ret != SURFACE_ERROR_OK || buffer == nullptr) {
         HLOGE("AcquireBuffer failed, ret is %{public}d", ret);
         return;
     }
 
-    fbAcquireFence_ = new SyncFence(fbAcquireFence);
+    std::lock_guard<std::mutex> lock(mutex_);
+    availableBuffers_.push(std::make_unique<FrameBufferEntry>(buffer, acquireFence, timestamp, damage));
+    bufferCond_.notify_one();
 }
 
 sptr<OHOS::Surface> HdiFramebufferSurface::GetSurface()
@@ -98,36 +100,48 @@ sptr<OHOS::Surface> HdiFramebufferSurface::GetSurface()
     return producerSurface_;
 }
 
-sptr<SurfaceBuffer> HdiFramebufferSurface::GetFramebuffer()
+std::unique_ptr<FrameBufferEntry> HdiFramebufferSurface::GetFramebuffer()
 {
-    return currentBuffer_;
+    using namespace std::chrono_literals;
+    std::unique_lock<std::mutex> lock(mutex_);
+    if (availableBuffers_.empty()) {
+        bufferCond_.wait_for(lock, 1000ms, [this]() { return !availableBuffers_.empty(); });
+    }
+    if (availableBuffers_.empty()) {
+        return nullptr;
+    }
+    auto fbEntry = std::move(availableBuffers_.front());
+    availableBuffers_.pop();
+    return fbEntry;
 }
 
-sptr<SyncFence> HdiFramebufferSurface::GetFramebufferFence()
+int32_t HdiFramebufferSurface::ReleaseFramebuffer(
+    sptr<SurfaceBuffer> &buffer, const sptr<SyncFence>& releaseFence)
 {
-    return fbAcquireFence_;
-}
-
-int32_t HdiFramebufferSurface::ReleaseFramebuffer(const sptr<SyncFence> &releaseFence)
-{
-    if (oldBuffer_ == nullptr) {
-        return SURFACE_ERROR_OK;
+    if (buffer == nullptr) {
+        HLOGI("HdiFramebufferSurface::ReleaseFramebuffer: buffer is null, no need to release.");
+        return 0;
     }
 
-    if (releaseFence == nullptr) {
-        return SURFACE_ERROR_NULLPTR;
+    // [PLANNING]: we should not wait fence at here, this is just a work-around.
+    // mali driver maybe not use this fence.
+    if (releaseFence != nullptr) {
+        releaseFence->Wait(3000); // timeout: 3000ms
     }
 
-    int32_t fenceFd = releaseFence->Dup();
-    SurfaceError ret = consumerSurface_->ReleaseBuffer(oldBuffer_, fenceFd);
+    SurfaceError ret = consumerSurface_->ReleaseBuffer(buffer, -1);
     if (ret != SURFACE_ERROR_OK) {
         HLOGE("ReleaseBuffer failed ret is %{public}d", ret);
     }
 
-    oldBuffer_ = nullptr;
-
     return ret;
 }
 
+void HdiFramebufferSurface::Dump(std::string &result)
+{
+    if (consumerSurface_ != nullptr) {
+        consumerSurface_->Dump(result);
+    }
+}
 } // namespace Rosen
 } // namespace OHOS
