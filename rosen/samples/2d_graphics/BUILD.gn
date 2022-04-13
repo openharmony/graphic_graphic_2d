@@ -15,59 +15,57 @@ import("//build/ohos.gni")
 import("//foundation/graphic/standard/graphic_config.gni")
 import("//third_party/wayland_standard/wayland_protocol.gni")
 
-if (ace_enable_gpu) {
-  ohos_executable("render_context_sample") {
-    install_enable = true
-    cflags = [
-      "-Wall",
-      "-Werror",
-      "-Wno-unused-parameter",
-      "-Wno-missing-field-initializers",
-      "-Wno-unused-variable",
-    ]
+ohos_executable("drawing_engine_sample") {
+  install_enable = true
+  cflags = [
+    "-Wall",
+    "-Werror",
+    "-Wno-unused-parameter",
+    "-Wno-missing-field-initializers",
+    "-Wno-unused-variable",
+  ]
 
-    sources = [
-      "main.cpp",
-      "render_context_sample.cpp",
-    ]
+  sources = [
+    "drawing_engine_sample.cpp",
+    "main.cpp",
+  ]
 
-    configs = []
+  configs = []
 
-    include_dirs = [
-      "include",
-      "//foundation/graphic/standard/rosen/modules/2d_graphics/include",
-      "//foundation/graphic/standard/rosen/modules/2d_graphics/src",
-      "//foundation/graphic/standard/rosen/modules/render_service_base/src",
-      "//foundation/graphic/standard/rosen/modules/composer/hdi_backend/include",
-      "//foundation/graphic/standard/interfaces/innerkits/vsync_module",
-      "//foundation/graphic/standard/utils/sync_fence/export",
-      "//foundation/graphic/standard/rosen/include/common",
-      "//foundation/graphic/standard/rosen/modules/render_service_base/include",
-    ]
+  include_dirs = [
+    "include",
+    "//foundation/graphic/standard/rosen/modules/2d_graphics/include",
+    "//foundation/graphic/standard/rosen/modules/2d_graphics/src",
+    "//foundation/graphic/standard/rosen/modules/render_service_base/src",
+    "//foundation/graphic/standard/rosen/modules/composer/hdi_backend/include",
+    "//foundation/graphic/standard/interfaces/innerkits/vsync_module",
+    "//foundation/graphic/standard/utils/sync_fence/export",
+    "//foundation/graphic/standard/rosen/include/common",
+    "//foundation/graphic/standard/rosen/modules/render_service_base/include",
+  ]
 
-    deps = [
-      "//foundation/ace/ace_engine/build/external_config/flutter/skia:ace_skia_ohos",
-      "//foundation/graphic/standard:libsurface",
-      "//foundation/graphic/standard:libvsync_client",
-      "//foundation/graphic/standard:libwmclient",
-      "//foundation/graphic/standard:libwmservice",
-      "//foundation/graphic/standard/frameworks/vsync:libvsync_module",
-      "//foundation/graphic/standard/rosen/modules/2d_graphics:2d_graphics",
-      "//foundation/graphic/standard/rosen/modules/composer:libcomposer",
-      "//foundation/graphic/standard/rosen/modules/render_service_base:librender_service_base",
-      "//foundation/graphic/standard/utils:sync_fence",
-      "//third_party/zlib:libz",
-    ]
+  deps = [
+    "//foundation/ace/ace_engine/build/external_config/flutter/skia:ace_skia_ohos",
+    "//foundation/graphic/standard:libsurface",
+    "//foundation/graphic/standard:libvsync_client",
+    "//foundation/graphic/standard:libwmclient",
+    "//foundation/graphic/standard:libwmservice",
+    "//foundation/graphic/standard/frameworks/vsync:libvsync_module",
+    "//foundation/graphic/standard/rosen/modules/2d_graphics:2d_graphics",
+    "//foundation/graphic/standard/rosen/modules/composer:libcomposer",
+    "//foundation/graphic/standard/rosen/modules/render_service_base:librender_service_base",
+    "//foundation/graphic/standard/utils:sync_fence",
+    "//third_party/zlib:libz",
+  ]
 
-    external_deps = [
-      "hilog_native:libhilog",
-      "multimedia_image_standard:image_native",
-      "utils_base:utils",
-    ]
+  external_deps = [
+    "hilog_native:libhilog",
+    "multimedia_image_standard:image_native",
+    "utils_base:utils",
+  ]
 
-    subsystem_name = "graphic"
-    part_name = "graphic_standard"
-  }
+  subsystem_name = "graphic"
+  part_name = "graphic_standard"
 }
 
 ohos_executable("drawing_sample_rs") {
