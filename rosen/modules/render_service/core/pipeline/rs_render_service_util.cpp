@@ -695,9 +695,9 @@ SkMatrix RsRenderServiceUtil::GetCanvasTransform(const RSSurfaceRenderNode& node
     }
 
     const auto &geoAbsRect = node.GetDstRect();
+    transform.preTranslate(geoAbsRect.left_, geoAbsRect.top_);
     switch (rotation) {
         case ScreenRotation::ROTATION_90: {
-            transform.preTranslate(geoAbsRect.top_, -geoAbsRect.left_);
             switch (surface->GetTransform()) {
                 case TransformType::ROTATE_90: {
                     transform.preTranslate(geoAbsRect.height_, 0);
@@ -720,7 +720,6 @@ SkMatrix RsRenderServiceUtil::GetCanvasTransform(const RSSurfaceRenderNode& node
             break;
         }
         case ScreenRotation::ROTATION_180: {
-            transform.preTranslate(-geoAbsRect.left_, -geoAbsRect.top_);
             switch (surface->GetTransform()) {
                 case TransformType::ROTATE_90: {
                     transform.preTranslate(0, -geoAbsRect.height_);
@@ -743,7 +742,6 @@ SkMatrix RsRenderServiceUtil::GetCanvasTransform(const RSSurfaceRenderNode& node
             break;
         }
         case ScreenRotation::ROTATION_270: {
-            transform.preTranslate(-geoAbsRect.top_, geoAbsRect.left_);
             switch (surface->GetTransform()) {
                 case TransformType::ROTATE_90: {
                     transform.preTranslate(-geoAbsRect.height_, 0);
