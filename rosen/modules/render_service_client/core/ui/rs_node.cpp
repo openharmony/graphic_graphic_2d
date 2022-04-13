@@ -404,6 +404,11 @@ void RSNode::SetPivotY(float pivotY)
 
 void RSNode::SetCornerRadius(float cornerRadius)
 {
+    SetCornerRadius(Vector4f(cornerRadius));
+}
+
+void RSNode::SetCornerRadius(const Vector4f& cornerRadius)
+{
     SET_ANIMATABLE_PROPERTY(CornerRadius, cornerRadius, RSAnimatableProperty::CORNER_RADIUS);
 }
 
@@ -545,18 +550,38 @@ void RSNode::SetBgImagePositionY(float positionY)
 // border
 void RSNode::SetBorderColor(uint32_t colorValue)
 {
-    auto color = Color::FromArgbInt(colorValue);
+    Vector4<Color> color(Color::FromArgbInt(colorValue));
     SET_ANIMATABLE_PROPERTY(BorderColor, color, RSAnimatableProperty::BORDER_COLOR);
 }
 
 void RSNode::SetBorderWidth(float width)
 {
-    SET_ANIMATABLE_PROPERTY(BorderWidth, width, RSAnimatableProperty::BORDER_WIDTH);
+    SET_ANIMATABLE_PROPERTY(BorderWidth, Vector4f(width), RSAnimatableProperty::BORDER_WIDTH);
 }
 
 void RSNode::SetBorderStyle(uint32_t styleValue)
 {
-    BorderStyle style = static_cast<BorderStyle>(styleValue);
+    Vector4<BorderStyle> style(static_cast<BorderStyle>(styleValue));
+    SET_NONANIMATABLE_PROPERTY(BorderStyle, style);
+}
+
+void RSNode::SetBorderColor(uint32_t left, uint32_t top, uint32_t right, uint32_t bottom)
+{
+    Vector4<Color> color(Color::FromArgbInt(left), Color::FromArgbInt(top),
+                         Color::FromArgbInt(right), Color::FromArgbInt(bottom));
+    SET_ANIMATABLE_PROPERTY(BorderColor, color, RSAnimatableProperty::BORDER_COLOR);
+}
+
+void RSNode::SetBorderWidth(float left, float top, float right, float bottom)
+{
+    Vector4f width(left, top, right, bottom);
+    SET_ANIMATABLE_PROPERTY(BorderWidth, width, RSAnimatableProperty::BORDER_WIDTH);
+}
+
+void RSNode::SetBorderStyle(uint32_t left, uint32_t top, uint32_t right, uint32_t bottom)
+{
+    Vector4<BorderStyle> style(static_cast<BorderStyle>(left), static_cast<BorderStyle>(top),
+                               static_cast<BorderStyle>(right), static_cast<BorderStyle>(bottom));
     SET_NONANIMATABLE_PROPERTY(BorderStyle, style);
 }
 

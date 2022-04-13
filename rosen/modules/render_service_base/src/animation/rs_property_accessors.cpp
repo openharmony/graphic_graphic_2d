@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -96,7 +96,7 @@ const std::unordered_map<RSAnimatableProperty, std::shared_ptr<RSBasePropertyAcc
                 &RSProperties::SetPivot, &RSProperties::GetPivot) },
 
         { RSAnimatableProperty::CORNER_RADIUS,
-            std::make_shared<RSPropertyAccessors<float>>(
+            std::make_shared<RSPropertyAccessors<Vector4f>>(
                 &RSProperties::SetCornerRadius, &RSProperties::GetCornerRadius) },
 
         { RSAnimatableProperty::ROTATION,
@@ -157,10 +157,10 @@ const std::unordered_map<RSAnimatableProperty, std::shared_ptr<RSBasePropertyAcc
             std::make_shared<RSPropertyAccessors<float>>(
                 &RSProperties::SetBgImagePositionY, &RSProperties::GetBgImagePositionY) },
         { RSAnimatableProperty::BORDER_COLOR,
-            std::make_shared<RSPropertyAccessors<Color>>(
+            std::make_shared<RSPropertyAccessors<Vector4<Color>>>(
                 &RSProperties::SetBorderColor, &RSProperties::GetBorderColor) },
         { RSAnimatableProperty::BORDER_WIDTH,
-            std::make_shared<RSPropertyAccessors<float>>(
+            std::make_shared<RSPropertyAccessors<Vector4f>>(
                 &RSProperties::SetBorderWidth, &RSProperties::GetBorderWidth) },
         { RSAnimatableProperty::SUB_LAYER_TRANSFORM,
             std::make_shared<RSPropertyAccessors<Matrix3f>>(

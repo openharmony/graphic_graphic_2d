@@ -42,7 +42,6 @@ namespace OHOS {
 namespace Rosen {
 namespace {
 constexpr int PARAM_DOUBLE = 2;
-constexpr int32_t DASHED_LINE_LENGTH = 3;
 } // namespace
 
 SkRect Rect2SkRect(const RectF& r)
@@ -124,35 +123,6 @@ bool GetGravityMatrix(Gravity gravity, RectF rect, float w, float h, SkMatrix& m
             ROSEN_LOGE("GetGravityMatrix unknow gravity=[%d]", gravity);
             return false;
         }
-    }
-}
-
-void SetBorderEffect(SkPaint& paint, BorderStyle style, float width, float spaceBetweenDot, float borderLength)
-{
-    if (style == BorderStyle::DOTTED) {
-        SkPath dotPath;
-        if (ROSEN_EQ(spaceBetweenDot, 0.f)) {
-            spaceBetweenDot = width * PARAM_DOUBLE;
-        }
-        dotPath.addCircle(0.0f, 0.0f, width / PARAM_DOUBLE);
-        paint.setPathEffect(SkPath1DPathEffect::Make(dotPath, spaceBetweenDot, 0.0, SkPath1DPathEffect::kRotate_Style));
-    } else if (style == BorderStyle::DASHED) {
-        double addLen = 0.0; // When left < 2 * gap, splits left to gaps.
-        double delLen = 0.0; // When left > 2 * gap, add one dash and shortening them.
-        if (!ROSEN_EQ(borderLength, 0.f)) {
-            float count = borderLength / width;
-            float leftLen = fmod((count - DASHED_LINE_LENGTH), (DASHED_LINE_LENGTH + 1));
-            if (leftLen > DASHED_LINE_LENGTH - 1) {
-                delLen = (DASHED_LINE_LENGTH + 1 - leftLen) * width /
-                         static_cast<int>((count - DASHED_LINE_LENGTH) / (DASHED_LINE_LENGTH + 1) + 2);
-            } else {
-                addLen = leftLen * width / static_cast<int>((count - DASHED_LINE_LENGTH) / (DASHED_LINE_LENGTH + 1));
-            }
-        }
-        const float intervals[] = { width * DASHED_LINE_LENGTH - delLen, width + addLen };
-        paint.setPathEffect(SkDashPathEffect::Make(intervals, SK_ARRAY_COUNT(intervals), 0.0));
-    } else {
-        paint.setPathEffect(nullptr);
     }
 }
 
@@ -272,51 +242,53 @@ void RSPropertiesPainter::DrawFrame(
 
 void RSPropertiesPainter::DrawBorder(const RSProperties& properties, SkCanvas& canvas)
 {
-    if (properties.GetBorderWidth() > 0.f) {
-        auto borderWidth = properties.GetBorderWidth();
-        auto borderStyle = properties.GetBorderStyle();
+    auto border = properties.GetBorder();
+    if (border && border->HasBorder()) {
         SkPaint paint;
         paint.setAntiAlias(true);
-        paint.setColor(properties.GetBorderColor().AsArgbInt());
-        if (BorderStyle::SOLID == borderStyle || BorderStyle::NONE == borderStyle) {
-            paint.setStyle(SkPaint::Style::kFill_Style);
+        if (properties.GetCornerRadius().IsZero() && border->ApplyFourLine(paint)) {
+            RectF rect = properties.GetBoundsRect();
+            float borderLeftWidth = border->GetWidth(RSBorder::LEFT);
+            float borderRightWidth = border->GetWidth(RSBorder::RIGHT);
+            float borderTopWidth = border->GetWidth(RSBorder::TOP);
+            float borderBottomWidth = border->GetWidth(RSBorder::BOTTOM);
+            if (border->ApplyLineStyle(paint, RSBorder::LEFT, rect.height_)) {
+                float addLen = (border->GetStyle(RSBorder::LEFT) != BorderStyle::DOTTED) ? 0.0f : 0.5f;
+                canvas.drawLine(
+                    rect.left_ + borderLeftWidth / PARAM_DOUBLE, rect.top_ + addLen * borderTopWidth,
+                    rect.left_ + borderLeftWidth / PARAM_DOUBLE, rect.GetBottom() - borderBottomWidth, paint);
+            }
+            if (border->ApplyLineStyle(paint, RSBorder::RIGHT, rect.height_)) {
+                float addLen = (border->GetStyle(RSBorder::RIGHT) != BorderStyle::DOTTED) ? 0.0f : 0.5f;
+                canvas.drawLine(
+                    rect.GetRight() - borderRightWidth / PARAM_DOUBLE, rect.GetBottom() - addLen * borderBottomWidth,
+                    rect.GetRight() - borderRightWidth / PARAM_DOUBLE, rect.top_ + borderTopWidth, paint);
+            }
+            if (border->ApplyLineStyle(paint, RSBorder::TOP, rect.height_)) {
+                float addLen = (border->GetStyle(RSBorder::TOP) != BorderStyle::DOTTED) ? 0.0f : 0.5f;
+                canvas.drawLine(
+                    rect.GetRight() - addLen * borderRightWidth, rect.top_ + borderTopWidth / PARAM_DOUBLE,
+                    rect.left_ + borderLeftWidth, rect.top_ + borderTopWidth / PARAM_DOUBLE, paint);
+            }
+            if (border->ApplyLineStyle(paint, RSBorder::BOTTOM, rect.height_)) {
+                float addLen = (border->GetStyle(RSBorder::BOTTOM) != BorderStyle::DOTTED) ? 0.0f : 0.5f;
+                canvas.drawLine(
+                    rect.left_ + addLen * borderLeftWidth, rect.GetBottom() - borderBottomWidth / PARAM_DOUBLE,
+                    rect.GetRight() - borderRightWidth, rect.GetBottom() - borderBottomWidth / PARAM_DOUBLE, paint);
+            }
+        } else if (border->ApplyFillStyle(paint)) {
             canvas.drawDRRect(RRect2SkRRect(properties.GetRRect()), RRect2SkRRect(properties.GetInnerRRect()), paint);
-            return;
-        }
-        paint.setStrokeWidth(borderWidth);
-        paint.setStyle(SkPaint::Style::kStroke_Style);
-        if (properties.GetCornerRadius() > 0.f) {
+        } else if (border->ApplyPathStyle(paint)) {
+            auto borderWidth = border->GetWidth();
             RRect rrect = properties.GetRRect();
             rrect.rect_.width_ -= borderWidth;
             rrect.rect_.height_ -= borderWidth;
             rrect.rect_.Move(borderWidth / PARAM_DOUBLE, borderWidth / PARAM_DOUBLE);
             SkPath borderPath;
             borderPath.addRRect(RRect2SkRRect(rrect));
-            SetBorderEffect(paint, borderStyle, borderWidth, 0.f, 0.f);
             canvas.drawPath(borderPath, paint);
         } else {
-            float addLen = (borderStyle != BorderStyle::DOTTED) ? 0.0f : 0.5f;
-            RectF rect = properties.GetBoundsRect();
-            auto borderLengthVert = properties.GetBoundsHeight() - borderWidth * addLen * PARAM_DOUBLE;
-            int32_t rawNumberVert = borderLengthVert / (PARAM_DOUBLE * borderWidth);
-            auto borderLengthHoriz = properties.GetBoundsWidth() - borderWidth * addLen * PARAM_DOUBLE;
-            int32_t rawNumberHoriz = borderLengthHoriz / (PARAM_DOUBLE * borderWidth);
-            if (rawNumberVert == 0 || rawNumberHoriz == 0) {
-                ROSEN_LOGE("number of dot is zero");
-                return;
-            }
-            // draw left and right border
-            SetBorderEffect(paint, borderStyle, borderWidth, borderLengthVert / rawNumberVert, borderLengthVert);
-            canvas.drawLine(rect.left_ + borderWidth / PARAM_DOUBLE, rect.top_ + addLen * borderWidth,
-                rect.left_ + borderWidth / PARAM_DOUBLE, rect.GetBottom() - borderWidth, paint);
-            canvas.drawLine(rect.GetRight() - borderWidth / PARAM_DOUBLE, rect.GetBottom() - addLen * borderWidth,
-                rect.GetRight() - borderWidth / PARAM_DOUBLE, rect.top_ + borderWidth, paint);
-            // draw top and bottom border
-            SetBorderEffect(paint, borderStyle, borderWidth, borderLengthHoriz / rawNumberHoriz, borderLengthHoriz);
-            canvas.drawLine(rect.GetRight() - addLen * borderWidth, rect.top_ + borderWidth / PARAM_DOUBLE,
-                rect.left_ + borderWidth, rect.top_ + borderWidth / PARAM_DOUBLE, paint);
-            canvas.drawLine(rect.left_ + addLen * borderWidth, rect.GetBottom() - borderWidth / PARAM_DOUBLE,
-                rect.GetRight() - borderWidth, rect.GetBottom() - borderWidth / PARAM_DOUBLE, paint);
+            ROSEN_LOGW("Border style not support yet");
         }
     }
 }

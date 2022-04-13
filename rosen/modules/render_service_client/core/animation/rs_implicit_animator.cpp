@@ -347,5 +347,7 @@ template std::shared_ptr<RSAnimation> RSImplicitAnimator::CreateImplicitAnimatio
 template std::shared_ptr<RSAnimation> RSImplicitAnimator::CreateImplicitAnimation(RSNode& target,
     const RSAnimatableProperty& property, const std::shared_ptr<RSFilter>& startValue,
     const std::shared_ptr<RSFilter>& endValue);
+template std::shared_ptr<RSAnimation> RSImplicitAnimator::CreateImplicitAnimation(RSNode& target,
+    const RSAnimatableProperty& property, const Vector4<Color>& startValue, const Vector4<Color>& endValue);
 } // namespace Rosen
 } // namespace OHOS

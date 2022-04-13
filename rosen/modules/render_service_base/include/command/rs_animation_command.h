@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -169,7 +169,9 @@ ADD_COMMAND(RSAnimationCreateCurveQuaternion,
 ADD_COMMAND(
     RSAnimationCreateCurveFilter, ARG(ANIMATION, ANIMATION_CREATE_CURVE_FILTER, AnimationCommandHelper::CreateAnimation,
                                      NodeId, std::shared_ptr<RSRenderCurveAnimation<std::shared_ptr<RSFilter>>>))
-
+ADD_COMMAND(RSAnimationCreateCurveVec4Color,
+    ARG(ANIMATION, ANIMATION_CREATE_CURVE_VEC4F, AnimationCommandHelper::CreateAnimation,
+                                     NodeId, std::shared_ptr<RSRenderCurveAnimation<Vector4<Color>>>))
 // create keyframe animation
 ADD_COMMAND(
     RSAnimationCreateKeyframeInt, ARG(ANIMATION, ANIMATION_CREATE_KEYFRAME_INT, AnimationCommandHelper::CreateAnimation,
@@ -195,7 +197,9 @@ ADD_COMMAND(RSAnimationCreateKeyframeQuaternion,
 ADD_COMMAND(RSAnimationCreateKeyframeFilter,
     ARG(ANIMATION, ANIMATION_CREATE_KEYFRAME_FILTER, AnimationCommandHelper::CreateAnimation, NodeId,
         std::shared_ptr<RSRenderKeyframeAnimation<std::shared_ptr<RSFilter>>>))
-
+ADD_COMMAND(RSAnimationCreateKeyframeVec4Color,
+    ARG(ANIMATION, ANIMATION_CREATE_KEYFRAME_VEC4F, AnimationCommandHelper::CreateAnimation, NodeId,
+        std::shared_ptr<RSRenderKeyframeAnimation<Vector4<Color>>>))
 // create path animation
 ADD_COMMAND(RSAnimationCreatePath, ARG(ANIMATION, ANIMATION_CREATE_PATH, AnimationCommandHelper::CreateAnimation,
                                        NodeId, std::shared_ptr<RSRenderPathAnimation>))

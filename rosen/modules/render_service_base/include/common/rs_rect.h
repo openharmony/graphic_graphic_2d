@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -19,6 +19,7 @@
 
 #include "common/rs_common_def.h"
 #include "common/rs_vector2.h"
+#include "common/rs_vector4.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -166,6 +167,14 @@ public:
         radius_[1] = radius[1];
         radius_[2] = radius[2];
         radius_[3] = radius[3];
+    }
+    RRectT(RectT<T> rect, const Vector4f& radius)
+    {
+        rect_ = rect;
+        radius_[0] = { radius[0], radius[0] };
+        radius_[1] = { radius[1], radius[1] };
+        radius_[2] = { radius[2], radius[2] };
+        radius_[3] = { radius[3], radius[3] };
     }
 };
 typedef RRectT<float> RRect;

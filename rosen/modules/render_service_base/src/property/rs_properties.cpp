@@ -308,18 +308,18 @@ float RSProperties::GetPivotY() const
     return boundsGeo_->GetPivotY();
 }
 
-void RSProperties::SetCornerRadius(float cornerRadius)
+void RSProperties::SetCornerRadius(Vector4f cornerRadius)
 {
-    if (!border_) {
-        border_ = std::make_unique<Border>();
+    if (!cornerRadius_) {
+        cornerRadius_ = std::make_unique<Vector4f>();
     }
-    border_->cornerRadius_ = cornerRadius;
+    cornerRadius_->SetValues(cornerRadius.x_, cornerRadius.y_, cornerRadius.z_, cornerRadius.w_);
     SetDirty();
 }
 
-float RSProperties::GetCornerRadius() const
+Vector4f RSProperties::GetCornerRadius() const
 {
-    return border_ ? border_->cornerRadius_ : 0.f;
+    return cornerRadius_ ? *cornerRadius_ : Vector4f();
 }
 
 void RSProperties::SetQuaternion(Quaternion quaternion)
@@ -596,46 +596,51 @@ float RSProperties::GetBgImagePositionY() const
 }
 
 // border properties
-void RSProperties::SetBorderColor(Color color)
+void RSProperties::SetBorderColor(Vector4<Color> color)
 {
     if (!border_) {
-        border_ = std::make_unique<Border>();
+        border_ = std::make_shared<RSBorder>();
     }
-    border_->borderColor_ = color;
+    border_->SetColorFour(color);
     SetDirty();
 }
 
-void RSProperties::SetBorderWidth(float width)
+void RSProperties::SetBorderWidth(Vector4f width)
 {
     if (!border_) {
-        border_ = std::make_unique<Border>();
+        border_ = std::make_shared<RSBorder>();
     }
-    border_->borderWidth_ = width;
+    border_->SetWidthFour(width);
     SetDirty();
 }
 
-void RSProperties::SetBorderStyle(BorderStyle style)
+void RSProperties::SetBorderStyle(Vector4<BorderStyle> style)
 {
     if (!border_) {
-        border_ = std::make_unique<Border>();
+        border_ = std::make_shared<RSBorder>();
     }
-    border_->borderStyle_ = style;
+    border_->SetStyleFour(style);
     SetDirty();
 }
 
-Color RSProperties::GetBorderColor() const
+Vector4<Color> RSProperties::GetBorderColor() const
 {
-    return border_ ? border_->borderColor_ : RgbPalette::Transparent();
+    return border_ ? border_->GetColorFour() : Vector4<Color>(RgbPalette::Transparent());
 }
 
-float RSProperties::GetBorderWidth() const
+Vector4f RSProperties::GetBorderWidth() const
 {
-    return border_ ? border_->borderWidth_ : 0.f;
+    return border_ ? border_->GetWidthFour() : Vector4f(0.f);
 }
 
-BorderStyle RSProperties::GetBorderStyle() const
+Vector4<BorderStyle> RSProperties::GetBorderStyle() const
 {
-    return border_ ? border_->borderStyle_ : BorderStyle::SOLID;
+    return border_ ? border_->GetStyleFour() : Vector4<BorderStyle>(BorderStyle::NONE);
+}
+
+std::shared_ptr<RSBorder> RSProperties::GetBorder() const
+{
+    return border_;
 }
 
 void RSProperties::SetBackgroundFilter(std::shared_ptr<RSFilter> backgroundFilter)
@@ -846,18 +851,22 @@ bool RSProperties::GetVisible() const
 RRect RSProperties::GetRRect() const
 {
     RectF rect = GetBoundsRect();
-    RRect rrect = RRect(rect, GetCornerRadius(), GetCornerRadius());
+    RRect rrect = RRect(rect, GetCornerRadius());
     return rrect;
 }
 
 RRect RSProperties::GetInnerRRect() const
 {
     auto rect = GetBoundsRect();
-    float borderWidth = GetBorderWidth();
-    rect.SetAll(rect.left_ + borderWidth, rect.top_ + borderWidth, rect.width_ - borderWidth * 2,
-        rect.height_ - borderWidth * 2);
-    float cornerRadius = std::max(0.0f, GetCornerRadius() - borderWidth);
-    RRect rrect = RRect(rect, cornerRadius, cornerRadius);
+    Vector4f cornerRadius = GetCornerRadius();
+    if (border_) {
+        rect.left_ += border_->GetWidth(RSBorder::LEFT);
+        rect.top_ += border_->GetWidth(RSBorder::TOP);
+        rect.width_ -= border_->GetWidth(RSBorder::LEFT) + border_->GetWidth(RSBorder::RIGHT);
+        rect.height_ -= border_->GetWidth(RSBorder::TOP) + border_->GetWidth(RSBorder::BOTTOM);
+        cornerRadius = cornerRadius - GetBorderWidth();
+    }
+    RRect rrect = RRect(rect, cornerRadius);
     return rrect;
 }
 
@@ -949,10 +958,10 @@ std::string RSProperties::Dump() const
     }
 
     // CornerRadius
-    std::unique_ptr<Border> defaultBorder = std::make_unique<Border>();
     memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
-    if (!ROSEN_EQ(GetCornerRadius(), defaultBorder->cornerRadius_) &&
-        sprintf_s(buffer, UINT8_MAX, ", CornerRadius[%.1f]", GetCornerRadius()) != -1) {
+    if (!GetCornerRadius().IsZero() &&
+        sprintf_s(buffer, UINT8_MAX, ", CornerRadius[%.1f %.1f %.1f %.1f]",
+            GetCornerRadius().x_, GetCornerRadius().y_, GetCornerRadius().z_, GetCornerRadius().w_) != -1) {
         dumpInfo.append(buffer);
     }
 
@@ -1043,24 +1052,10 @@ std::string RSProperties::Dump() const
         dumpInfo.append(buffer);
     }
 
-    // BorderColor
+    // Border
     memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
-    if (!ROSEN_EQ(GetBorderColor(), RgbPalette::Transparent()) &&
-        sprintf_s(buffer, UINT8_MAX, ", BorderColor[#%08X]", GetBorderColor().AsArgbInt()) != -1) {
-        dumpInfo.append(buffer);
-    }
-
-    // BorderWidth
-    memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
-    if (!ROSEN_EQ(GetBorderWidth(), defaultBorder->borderWidth_) &&
-        sprintf_s(buffer, UINT8_MAX, ", BorderWidth[%.1f]", GetBorderWidth()) != -1) {
-        dumpInfo.append(buffer);
-    }
-
-    // BorderStyle
-    memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
-    if (!ROSEN_EQ(GetBorderStyle(), defaultBorder->borderStyle_) &&
-        sprintf_s(buffer, UINT8_MAX, ", BorderStyle[%d]", GetBorderStyle()) != -1) {
+    if (!border_ && border_->HasBorder() &&
+        sprintf_s(buffer, UINT8_MAX, ", Border[%s]", border_->ToString().c_str()) != -1) {
         dumpInfo.append(buffer);
     }
 

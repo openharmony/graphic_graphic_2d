@@ -21,6 +21,7 @@
 #include "common/rs_matrix3.h"
 #include "common/rs_vector4.h"
 #include "property/rs_properties_def.h"
+#include "render/rs_border.h"
 #include "render/rs_filter.h"
 #include "render/rs_image.h"
 #include "render/rs_path.h"
@@ -78,8 +79,8 @@ public:
     float GetPivotX() const;
     float GetPivotY() const;
 
-    void SetCornerRadius(float cornerRadius);
-    float GetCornerRadius() const;
+    void SetCornerRadius(Vector4f cornerRadius);
+    Vector4f GetCornerRadius() const;
 
     void SetQuaternion(Quaternion quaternion);
     void SetRotation(float degree);
@@ -133,12 +134,13 @@ public:
     float GetBgImagePositionY() const;
 
     // border properties
-    void SetBorderColor(Color color);
-    void SetBorderWidth(float width);
-    void SetBorderStyle(BorderStyle style);
-    Color GetBorderColor() const;
-    float GetBorderWidth() const;
-    BorderStyle GetBorderStyle() const;
+    void SetBorderColor(Vector4<Color> color);
+    void SetBorderWidth(Vector4f width);
+    void SetBorderStyle(Vector4<BorderStyle> style);
+    Vector4<Color> GetBorderColor() const;
+    Vector4f GetBorderWidth() const;
+    Vector4<BorderStyle> GetBorderStyle() const;
+    std::shared_ptr<RSBorder> GetBorder() const;
 
     // filter properties
     void SetBackgroundFilter(std::shared_ptr<RSFilter> backgroundFilter);
@@ -214,11 +216,12 @@ private:
 
     std::unique_ptr<Matrix3f> sublayerTransform_ = nullptr;
     std::unique_ptr<Decoration> decoration_ = nullptr;
-    std::unique_ptr<Border> border_ = nullptr;
+    std::unique_ptr<Vector4f> cornerRadius_ = nullptr;
     std::unique_ptr<RSShadow> shadow_ = nullptr;
 
     std::shared_ptr<RSObjGeometry> boundsGeo_;
     std::shared_ptr<RSObjGeometry> frameGeo_;
+    std::shared_ptr<RSBorder> border_ = nullptr;
     std::shared_ptr<RSFilter> backgroundFilter_ = nullptr;
     std::shared_ptr<RSFilter> filter_ = nullptr;
     std::shared_ptr<RSPath> clipPath_ = nullptr;
