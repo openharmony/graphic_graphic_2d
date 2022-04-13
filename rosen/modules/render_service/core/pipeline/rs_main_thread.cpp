@@ -20,6 +20,7 @@
 #include "pipeline/rs_render_service_visitor.h"
 #include "pipeline/rs_unified_render_visitor.h"
 #include "platform/common/rs_log.h"
+#include "platform/common/rs_system_properties.h"
 #include "platform/drawing/rs_vsync_client.h"
 #include "rs_trace.h"
 #include "screen_manager/rs_screen_manager.h"
@@ -94,9 +95,14 @@ void RSMainThread::Render()
         RS_LOGE("RSMainThread::Draw GetGlobalRootRenderNode fail");
         return;
     }
-    ROSEN_LOGI("RSMainThread::Draw with RSUnifiedRenderVisitor");
-//    ROSEN_LOGI("RSMainThread::Draw RSRenderServiceVisitor");
-    std::shared_ptr<RSNodeVisitor> visitor = std::make_shared<RSUnifiedRenderVisitor>();
+    bool isUniRender = RSSystemProperties::GetUniRenderEnabledType() != UniRenderEnabledType::UNI_RENDER_DISABLED;
+    ROSEN_LOGI("RSMainThread::Render isUni:%d", isUniRender);
+    std::shared_ptr<RSNodeVisitor> visitor;
+    if (isUniRender) {
+        visitor = std::make_shared<RSUnifiedRenderVisitor>();
+    } else {
+        visitor = std::make_shared<RSRenderServiceVisitor>();
+    }
     rootNode->Prepare(visitor);
     rootNode->Process(visitor);
 }

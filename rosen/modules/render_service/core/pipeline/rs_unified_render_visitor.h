@@ -15,6 +15,9 @@
 #ifndef RENDER_SERVICE_CORE_PIPELINE_RS_UNIFIED_RENDER_VISITOR_H
 #define RENDER_SERVICE_CORE_PIPELINE_RS_UNIFIED_RENDER_VISITOR_H
 
+#include <set>
+#include <string>
+
 #include "pipeline/rs_processor.h"
 #include "pipeline/rs_dirty_region_manager.h"
 #include "pipeline/rs_paint_filter_canvas.h"
@@ -49,13 +52,15 @@ private:
     RSDirtyRegionManager dirtyManager_;
     RSRenderNode* parent_ = nullptr;
     bool dirtyFlag_ = false;
-    RSPaintFilterCanvas* canvas_;
+    RSPaintFilterCanvas* canvas_ = nullptr;
 
     float globalZOrder_ = 0.0f;
     float uniZOrder_ = 0.0f;
-    std::shared_ptr<RSProcessor> processor_ = nullptr;
-    bool isUniRender_ { true };
-    bool hasUniRender_ { true };
+    std::shared_ptr<RSProcessor> processor_;
+    bool isUniRender_ { false };
+    bool hasUniRender_ { false };
+    bool isUniRenderForAll_ { false };
+    std::set<std::string> uniRenderList_;
 };
 } // namespace Rosen
 } // namespace OHOS

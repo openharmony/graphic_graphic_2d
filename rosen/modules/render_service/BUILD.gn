@@ -75,6 +75,7 @@ ohos_shared_library("librender_service") {
     "bytrace_standard:bytrace_core",
     "ipc:ipc_core",
     "samgr_standard:samgr_proxy",
+    "startup_l2:syspara",
   ]
 
   part_name = "graphic_standard"

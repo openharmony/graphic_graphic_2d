@@ -16,19 +16,29 @@
 #ifndef RENDER_SERVICE_BASE_COMMON_RS_COMMON_DEF_H
 #define RENDER_SERVICE_BASE_COMMON_RS_COMMON_DEF_H
 
+#include <set>
+#include <string>
+
 namespace OHOS {
 namespace Rosen {
+enum UniRenderEnabledType : uint32_t {
+    UNI_RENDER_DISABLED = 0,
+    UNI_RENDER_ENABLED_FOR_ALL,
+    UNI_RENDER_PARTIALLY_ENABLED,
+};
 
 class RSSystemProperties final {
 public:
     ~RSSystemProperties() = default;
 
-    static bool GetUniRenderEnabled();
+    static UniRenderEnabledType GetUniRenderEnabledType();
+    static const std::set<std::string>& GetUniRenderEnabledList();
 
 private:
     RSSystemProperties() = default;
 
-    static bool isUniRenderEnabled_;
+    static inline UniRenderEnabledType uniRenderEnabledType_ = UniRenderEnabledType::UNI_RENDER_DISABLED;
+    static inline std::set<std::string> uniRenderEnabledList_ { "clock0" };
 };
 
 } // namespace Rosen

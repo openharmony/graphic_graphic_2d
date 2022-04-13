@@ -15,17 +15,44 @@
 
 #include "platform/common/rs_system_properties.h"
 
+#include <sstream>
+#include <vector>
+
 #include <parameters.h>
+#include "platform/common/rs_log.h"
 
 namespace OHOS {
 namespace Rosen {
-
-bool RSSystemProperties::isUniRenderEnabled_ = system::GetParameter("rosen.unirenderenabled", "0") == "1";
-
-bool RSSystemProperties::GetUniRenderEnabled()
-{
-    return isUniRenderEnabled_;
+template <typename Out>
+void SplitHelper(const std::string &s, char delimiter, Out result) {
+    std::istringstream iss(s);
+    std::string item;
+    while (std::getline(iss, item, delimiter)) {
+        *result++ = item;
+    }
 }
 
+std::vector<std::string> GetSplitResult(const std::string &s, char delimiter) {
+    std::vector<std::string> elems;
+    SplitHelper(s, delimiter, std::back_inserter(elems));
+    return elems;
+}
+
+UniRenderEnabledType RSSystemProperties::GetUniRenderEnabledType()
+{
+    return static_cast<UniRenderEnabledType>(std::atoi((system::GetParameter("rosen.unirender.enabled", "0")).c_str()));
+}
+
+const std::set<std::string>& RSSystemProperties::GetUniRenderEnabledList()
+{
+    uniRenderEnabledList_.clear();
+    std::string paramUniLayers = system::GetParameter("rosen.unirender.layers", "clock0");
+    auto uniLayers = GetSplitResult(paramUniLayers, ',');
+    for (auto& layer: uniLayers) {
+        RS_LOGI("RSSystemProperties::GetUniRenderEnabledList uniRender for:%s", layer.c_str());
+        uniRenderEnabledList_.insert(layer);
+    }
+    return uniRenderEnabledList_;
+}
 } // namespace Rosen
 } // namespace OHOS
