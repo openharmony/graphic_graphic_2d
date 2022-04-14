@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,29 +16,35 @@
 #ifndef RS_SURFACE_FRAME_OHOS_GL_H
 #define RS_SURFACE_FRAME_OHOS_GL_H
 
-#include "EGL/egl.h"
-#include "EGL/eglext.h"
-
 #include <display_type.h>
 #include <surface.h>
-#include "surface_type.h"
-#include "rs_surface_frame.h"
-#include "rs_surface_frame_ohos.h"
+
+#include "include/gpu/GrContext.h"
+
+#include "platform/drawing/rs_surface_frame.h"
+#include "platform/ohos/rs_surface_frame_ohos.h"
 
 namespace OHOS {
 namespace Rosen {
+
 class RSSurfaceFrameOhosGl : public RSSurfaceFrameOhos {
 public:
     RSSurfaceFrameOhosGl(int32_t width, int32_t height);
-    ~RSSurfaceFrameOhosGl() override;
-    void SetDamageRegion(int32_t left, int32_t top, int32_t width, int32_t height) override {};
-    void SetSurface(EGLSurface surface);
-    void SetColorSpace(ColorGamut colorSpace) override;
-    ColorGamut GetColorSpace() const override;
+    ~RSSurfaceFrameOhosGl() = default;
+
+    SkCanvas* GetCanvas() override;
+
+    void SetDamageRegion(int32_t left, int32_t top, int32_t width, int32_t height) override;
+    int32_t GetReleaseFence() const;
+    void SetReleaseFence(const int32_t& fence);
+
 private:
-    EGLSurface eglSurface_;
-    ColorGamut colorSpace_;
+    int32_t releaseFence_ = 0;
+    int width_ = 0;
+    int height_ = 0;
+    void CreateCanvas();
 };
 } // namespace Rosen
 } // namespace OHOS
-#endif
+
+#endif // RENDER_SERVICE_BASE_PLATFORM_RS_SURFACE_FRAME_OHOS_H

@@ -27,7 +27,7 @@
 #include "ipc_callbacks/iapplication_render_thread.h"
 #include "ipc_callbacks/screen_change_callback.h"
 #include "ipc_callbacks/surface_capture_callback.h"
-#include "drawing_engine/drawing_surface/rs_surface.h"
+#include "platform/drawing/rs_surface.h"
 #include "rs_irender_client.h"
 #include "screen_manager/rs_screen_capability.h"
 #include "screen_manager/rs_screen_data.h"

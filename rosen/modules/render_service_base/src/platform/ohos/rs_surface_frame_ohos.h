@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,49 +13,26 @@
  * limitations under the License.
  */
 
-#ifndef RS_SURFACE_FRAME_OHOS_H
-#define RS_SURFACE_FRAME_OHOS_H
+#ifndef RENDER_SERVICE_BASE_PLATFORM_RS_SURFACE_FRAME_OHOS_H
+#define RENDER_SERVICE_BASE_PLATFORM_RS_SURFACE_FRAME_OHOS_H
 
 #include <display_type.h>
 #include <surface.h>
-#include "rs_surface_frame.h"
+
+#include "platform/drawing/rs_surface_frame.h"
+#include "render_context/render_context.h"
 
 namespace OHOS {
 namespace Rosen {
+
 class RSSurfaceFrameOhos : public RSSurfaceFrame {
 public:
-    RSSurfaceFrameOhos() = default;
-    RSSurfaceFrameOhos(int32_t width, int32_t height)
-        : width_(width), height_(height)
-    {
-    }
-
-    ~RSSurfaceFrameOhos() = default;
-
-    int32_t GetReleaseFence() const
-    {
-        return releaseFence_;
-    }
-
-    void SetReleaseFence(const int32_t& fence)
-    {
-        releaseFence_ = fence;
-    }
-
-    int32_t GetWidth() const
-    {
-        return width_;
-    }
-
-    int32_t GetHeight() const
-    {
-        return height_;
-    }
+    virtual void SetRenderContext(RenderContext* context);
 protected:
-    int32_t width_ = -1;
-    int32_t height_ = -1;
-    int32_t releaseFence_;
+    RenderContext* renderContext_;
 };
+
 } // namespace Rosen
 } // namespace OHOS
-#endif
+
+#endif // RENDER_SERVICE_BASE_PLATFORM_RS_SURFACE_FRAME_OHOS_H

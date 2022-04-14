@@ -26,6 +26,7 @@
 #include "platform/drawing/rs_surface_converter.h"
 #include "transaction/rs_render_service_client.h"
 #include "transaction/rs_transaction_proxy.h"
+#include "render_context/render_context.h"
 
 namespace OHOS {
 namespace Rosen {

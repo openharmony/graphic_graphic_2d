@@ -15,6 +15,7 @@
 #ifndef RENDER_SERVICE_CLIENT_CORE_UI_RS_ROOT_NODE_H
 #define RENDER_SERVICE_CLIENT_CORE_UI_RS_ROOT_NODE_H
 
+#include "platform/drawing/rs_surface.h"
 #include "ui/rs_canvas_node.h"
 
 namespace OHOS {

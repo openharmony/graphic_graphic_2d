@@ -15,12 +15,12 @@
 #ifndef RENDER_SERVICE_CLIENT_CORE_UI_RS_SURFACE_EXECTOR_H
 #define RENDER_SERVICE_CLIENT_CORE_UI_RS_SURFACE_EXECTOR_H
 
+#include "platform/drawing/rs_surface.h"
 #include "ui/rs_surface_node.h"
 
 namespace OHOS {
 namespace Rosen {
 
-class RSSurface;
 class RS_EXPORT RSSurfaceExtractor {
 public:
     static std::shared_ptr<RSSurface> ExtractRSSurface(std::shared_ptr<RSSurfaceNode> node);

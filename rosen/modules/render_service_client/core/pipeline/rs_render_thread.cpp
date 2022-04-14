@@ -35,7 +35,6 @@
 #ifdef USE_FLUTTER_TEXTURE
 #include "pipeline/rs_texture_render_node.h"
 #endif
-#include "drawing_engine/drawing_proxy.h"
 
 static void SystemCallSetThreadName(const std::string& name)
 {
@@ -75,7 +74,10 @@ RSRenderThread& RSRenderThread::Instance()
 
 RSRenderThread::RSRenderThread()
 {
-    DrawingProxy_ = new DrawingProxy();
+#ifdef ACE_ENABLE_GL
+    renderContext_ = new RenderContext();
+    ROSEN_LOGD("Create RenderContext, its pointer is %p", renderContext_);
+#endif
     mainFunc_ = [&]() {
         clock_t startTime = clock();
         ROSEN_TRACE_BEGIN(BYTRACE_TAG_GRAPHIC_AGP, "RSRenderThread::DrawFrame");
@@ -84,7 +86,7 @@ RSRenderThread::RSRenderThread()
             ProcessCommands();
         }
 
-        ROSEN_LOGD("RSRenderThread DrawFrame(%llu)", prevTimestamp_);
+        ROSEN_LOGD("RSRenderThread DrawFrame(%llu) in %s", prevTimestamp_, renderContext_ ? "GPU" : "CPU");
         Animate(prevTimestamp_);
         Render();
         RS_ASYNC_TRACE_BEGIN("waiting GPU running", 1111); // 1111 means async trace code for gpu
@@ -109,10 +111,10 @@ RSRenderThread::~RSRenderThread()
 {
     Stop();
 
-    if (DrawingProxy_  != nullptr) {
+    if (renderContext_ != nullptr) {
         ROSEN_LOGD("Destroy renderContext!!");
-        delete DrawingProxy_ ;
-        DrawingProxy_  = nullptr;
+        delete renderContext_;
+        renderContext_ = nullptr;
     }
 }
 
@@ -186,7 +188,9 @@ void RSRenderThread::RenderLoop()
 #ifdef ROSEN_OHOS
     tid_ = gettid();
 #endif
-    DrawingProxy_->InitDrawContext();
+#ifdef ACE_ENABLE_GL
+    renderContext_->InitializeEglContext(); // init egl context on RT
+#endif
     std::string name = "RSRenderThread_" + std::to_string(::getpid());
     runner_ = AppExecFwk::EventRunner::Create(false);
     handler_ = std::make_shared<AppExecFwk::EventHandler>(runner_);

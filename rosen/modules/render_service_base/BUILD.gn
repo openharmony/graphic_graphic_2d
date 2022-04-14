@@ -33,6 +33,7 @@ config("export_config") {
 ohos_shared_library("librender_service_base") {
   public_configs = [ ":export_config" ]
   defines = []
+  defines += gpu_defines
 
   sources = [
     #animation

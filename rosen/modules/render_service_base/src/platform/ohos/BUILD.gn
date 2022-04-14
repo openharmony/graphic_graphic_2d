@@ -38,21 +38,35 @@ ohos_source_set("rosen_ohos_sources") {
   defines += gpu_defines
 
   sources = [
+    "backend/rs_surface_frame_ohos_raster.cpp",
+    "backend/rs_surface_ohos_raster.cpp",
     "rs_log.cpp",
     "rs_render_service_client.cpp",
     "rs_render_service_connect_hub.cpp",
     "rs_render_service_connection_proxy.cpp",
     "rs_render_service_proxy.cpp",
+    "rs_surface_frame_ohos.cpp",
+    "rs_surface_ohos.cpp",
     "rs_surface_ohos_converter.cpp",
     "rs_system_properties.cpp",
     "rs_vsync_client_ohos.cpp",
   ]
+
+  if (ace_enable_gpu) {
+    sources += [
+      "backend/rs_surface_frame_ohos_gl.cpp",
+      "backend/rs_surface_ohos_gl.cpp",
+    ]
+
+    sources += [ "//foundation/graphic/standard/rosen/modules/2d_graphics/src/render_context/render_context.cpp" ]
+  }
 
   include_dirs = [
     "//foundation/graphic/standard/rosen/modules/render_service_base/include",
     "//foundation/graphic/standard/rosen/modules/render_service_base/src",
     "//utils/native/base/include",
     "//utils/system/safwk/native/include",
+    "//foundation/graphic/standard/prebuilts/librarys/gpu/include",
     "//drivers/peripheral/display/interfaces/include/",
     "//foundation/graphic/standard/rosen/modules/render_service_client/core",
   ]
@@ -61,12 +75,15 @@ ohos_source_set("rosen_ohos_sources") {
     "//foundation/ace/ace_engine/build/external_config/flutter/skia:ace_skia_ohos",
     "//foundation/graphic/standard:libsurface",
     "//foundation/graphic/standard:libvsync_client",
-    "//foundation/graphic/standard/rosen/modules/2d_graphics:2d_graphics",
     "//foundation/graphic/standard/rosen/modules/composer:libcomposer",
     "//foundation/graphic/standard/utils:sync_fence",
     "//foundation/multimedia/image_standard/interfaces/innerkits:image_native",
     "//utils/native/base:utils",
   ]
+
+  if (ace_enable_gpu) {
+    public_deps += [ "//foundation/graphic/standard:libgl" ]
+  }
 
   external_deps = [
     "hiviewdfx_hilog_native:libhilog",

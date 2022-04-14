@@ -30,12 +30,12 @@
 #include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_render_thread_visitor.h"
 #include "platform/drawing/rs_vsync_client.h"
+#include "render_context/render_context.h"
 #include "transaction/rs_transaction_proxy.h"
 #include "vsync_receiver.h"
 
 namespace OHOS {
 namespace Rosen {
-class DrawingProxy;
 class RSRenderThread final : public RSApplicationRenderThreadStub {
 public:
     static RSRenderThread& Instance();
@@ -54,9 +54,9 @@ public:
 
     std::string DumpRenderTree() const;
 
-    DrawingProxy* GetDrawingProxy()
+    RenderContext* GetRenderContext()
     {
-        return DrawingProxy_;
+        return renderContext_;
     }
 
     RSContext& GetContext()
@@ -110,7 +110,7 @@ private:
 
     RSContext context_;
 
-    DrawingProxy* DrawingProxy_ = nullptr;
+    RenderContext* renderContext_ = nullptr;
 };
 } // namespace Rosen
 } // namespace OHOS

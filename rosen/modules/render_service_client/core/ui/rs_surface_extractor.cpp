@@ -16,7 +16,6 @@
 #include "ui/rs_surface_extractor.h"
 
 #include "platform/common/rs_log.h"
-#include "drawing_engine/drawing_surface/rs_surface.h"
 
 namespace OHOS {
 namespace Rosen {

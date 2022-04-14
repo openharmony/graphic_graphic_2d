@@ -79,49 +79,25 @@ ohos_shared_library("2d_graphics") {
     "$rosen_text_root/ui/typography_create.cpp",
   ]
 
-  sources += [
-    "src/drawing_engine/canvas_context.cpp",
-    "src/drawing_engine/drawing_proxy.cpp",
-    "src/drawing_engine/drawing_surface/rs_surface_frame_ohos_raster.cpp",
-    "src/drawing_engine/drawing_surface/rs_surface_ohos.cpp",
-    "src/drawing_engine/drawing_surface/rs_surface_ohos_raster.cpp",
-    "src/drawing_engine/software_render_backend.cpp",
-  ]
-
-  if (ace_enable_gpu) {
-    sources += [
-      "src/drawing_engine/drawing_surface/rs_surface_frame_ohos_gl.cpp",
-      "src/drawing_engine/drawing_surface/rs_surface_ohos_gl.cpp",
-      "src/drawing_engine/egl_manager.cpp",
-      "src/drawing_engine/gles_render_backend.cpp",
-    ]
-  }
-
   include_dirs = [
     "include",
     "src",
     "src/engine_adapter",
-    "src/drawing_engine",
-    "src/drawing_engine/drawing_surface",
     "//foundation/graphic/standard/interfaces/innerkits/surface",
     "$rosen_2d_engine_root",
     "$flutter_root/engine/flutter/third_party/txt/src",
     "//foundation/ace/ace_engine/frameworks",
     "$flutter_root/engine",
     "//third_party/bounds_checking_function/include",
-    "//foundation/graphic/standard/utils/sync_fence/export",
   ]
 
   defines = [ "USE_ACE_SKIA" ]
-  defines += gpu_defines
 
   deps = [
     "$ace_flutter_engine_root:flutter_engine_fml_$current_os",
-    "//foundation/graphic/standard:libgl",
     "//foundation/graphic/standard:libsurface",
     "//foundation/graphic/standard/rosen/build/flutter/icu:rosen_libicu_$current_os",
     "//foundation/graphic/standard/rosen/build/flutter/libtxt:thirdparty_lib_txt_rosen_$current_os",
-    "//foundation/graphic/standard/utils:sync_fence",
     "//third_party/bounds_checking_function:libsec_static",
   ]
 

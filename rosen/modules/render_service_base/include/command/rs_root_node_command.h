@@ -17,7 +17,7 @@
 #define ROSEN_RENDER_SERVICE_ROOT_COMMAND_RS_ROOT_NODE_COMMAND_H
 
 #include "command/rs_command_templates.h"
-#include "drawing_engine/drawing_surface/rs_surface.h"
+#include "platform/drawing/rs_surface.h"
 
 namespace OHOS {
 namespace Rosen {

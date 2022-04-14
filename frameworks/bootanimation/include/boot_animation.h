@@ -30,7 +30,7 @@
 #include <iservice_registry.h>
 #include <platform/ohos/rs_irender_service.h>
 #include <parameters.h>
-#include <drawing_engine/drawing_proxy.h>
+#include <render_context/render_context.h>
 #include <system_ability_definition.h>
 #include <ui/rs_surface_extractor.h>
 #include <vsync_helper.h>
@@ -59,7 +59,7 @@ private:
     sptr<OHOS::Rosen::WindowScene> scene_;
     std::unique_ptr<OHOS::Rosen::RSSurfaceFrame> framePtr_;
     std::shared_ptr<OHOS::Rosen::RSSurface> rsSurface_;
-    OHOS::Rosen::DrawingProxy* dp_;
+    OHOS::Rosen::RenderContext* rc_;
     int32_t freq_ = 30;
     int32_t bootPicCurNo_ = 0;
     int32_t realHeight_ = 0;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,37 +13,39 @@
  * limitations under the License.
  */
 
-#ifndef RS_SURFACE_OHOS_H
-#define RS_SURFACE_OHOS_H
+#ifndef RENDER_SERVICE_BASE_PLATFORM_RS_SURFACE_OHOS_H
+#define RENDER_SERVICE_BASE_PLATFORM_RS_SURFACE_OHOS_H
 
 #include <surface.h>
-#include "rs_surface.h"
-#include "window.h"
-#include "rs_surface_frame_ohos.h"
-#include "drawing_engine/drawing_utils.h"
-#include "drawing_engine/drawing_proxy.h"
+
+#include "platform/drawing/rs_surface.h"
+#include "render_context/render_context.h"
 
 namespace OHOS {
 namespace Rosen {
 class RSSurfaceOhos : public RSSurface {
 public:
-    static std::shared_ptr<RSSurface> CreateSurface(sptr<Surface> surface);
-
-    explicit RSSurfaceOhos(const sptr<Surface>& producer);
-    ~RSSurfaceOhos() override {};
-
-    bool IsValid() const override
+    RSSurfaceOhos(const sptr<Surface>& producer) : producer_(producer)
     {
-        return producer_ != nullptr;
+        producer_->SetQueueSize(5); // set buffer queue size to 5
     }
 
     sptr<Surface> GetSurface() const
     {
         return producer_;
     }
+
+    virtual RenderContext* GetRenderContext() override;
+    virtual void SetRenderContext(RenderContext* context) override;
+    virtual void SetColorSpace(ColorGamut colorSpace) override;
+    virtual ColorGamut GetColorSpace() override;
 protected:
     sptr<Surface> producer_;
+    RenderContext* context_ = nullptr;
+    ColorGamut colorSpace_ = ColorGamut::COLOR_GAMUT_SRGB;
 };
+
 } // namespace Rosen
 } // namespace OHOS
-#endif
+
+#endif // RENDER_SERVICE_BASE_PLATFORM_RS_SURFACE_OHOS_H
