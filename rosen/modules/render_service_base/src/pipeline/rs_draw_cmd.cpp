@@ -307,6 +307,19 @@ ImageWithParmOpItem::ImageWithParmOpItem(
     paint_ = paint;
 }
 
+ImageWithParmOpItem::ImageWithParmOpItem(const sk_sp<SkImage> img,
+    const RsImageInfo& rsimageInfo, const SkPaint& paint)
+    : OpItemWithPaint(sizeof(ImageWithParmOpItem))
+{
+    rsImage_ = std::make_shared<RSImage>();
+    rsImage_->SetImage(img);
+    rsImage_->SetImageFit(rsimageInfo.fitNum_);
+    rsImage_->SetImageRepeat(rsimageInfo.repeatNum_);
+    rsImage_->SetRadius(rsimageInfo.radius_);
+    rsImage_->SetScale(rsimageInfo.scale_);
+    paint_ = paint;
+}
+
 void ImageWithParmOpItem::Draw(RSPaintFilterCanvas& canvas, const SkRect* rect) const
 {
     if (!rect) {

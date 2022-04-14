@@ -37,8 +37,8 @@ void RSImage::CanvasDrawImage(SkCanvas& canvas, const SkRect& rect, const SkPain
 
 void RSImage::ApplyImageFit()
 {
-    const float srcW = srcRect_.width_;
-    const float srcH = srcRect_.height_;
+    const float srcW = srcRect_.width_ / scale_;
+    const float srcH = srcRect_.height_ / scale_;
     const float frameW = frameRect_.width_;
     const float frameH = frameRect_.height_;
     float dstW = frameW;
@@ -157,6 +157,13 @@ void RSImage::SetImageRepeat(int repeatNum)
 void RSImage::SetRadius(float radius)
 {
     cornerRadius_ = radius;
+}
+
+void RSImage::SetScale(double scale)
+{
+    if (scale > 0.0) {
+        scale_ = scale;
+    }
 }
 } // namespace Rosen
 } // namespace OHOS

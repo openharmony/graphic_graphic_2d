@@ -26,6 +26,8 @@
 #include "include/core/SkRect.h"
 #include "include/utils/SkNoDrawCanvas.h"
 #include "pipeline/rs_draw_cmd_list.h"
+#include "property/rs_properties_def.h"
+
 
 namespace OHOS {
 namespace Rosen {
@@ -98,6 +100,7 @@ public:
     void DrawAdaptiveRRect(float radius, const SkPaint& paint);
     void ClipAdaptiveRRect(float radius);
     void DrawImageWithParm(const sk_sp<SkImage>, int, int, float, const SkPaint& paint);
+    void DrawImageWithParm(const sk_sp<SkImage>, const Rosen::RsImageInfo& rsImageInfo, const SkPaint& paint);
 
     void MultiplyAlpha(float alpha);
     void SaveAlpha();

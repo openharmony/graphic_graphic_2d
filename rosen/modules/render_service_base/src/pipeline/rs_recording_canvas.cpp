@@ -139,6 +139,13 @@ void RSRecordingCanvas::DrawImageWithParm(const sk_sp<SkImage>img, int fitNum, i
     AddOp(std::move(op));
 }
 
+void RSRecordingCanvas::DrawImageWithParm(const sk_sp<SkImage>img, const Rosen::RsImageInfo& rsimageInfo,
+    const SkPaint& paint)
+{
+    std::unique_ptr<OpItem> op = std::make_unique<ImageWithParmOpItem>(img, rsimageInfo, paint);
+    AddOp(std::move(op));
+}
+
 void RSRecordingCanvas::onDrawBehind(const SkPaint& paint)
 {
     // [PLANNING]: To be implemented
