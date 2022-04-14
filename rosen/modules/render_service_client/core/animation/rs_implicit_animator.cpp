@@ -27,12 +27,6 @@ static constexpr int TIMING_CURVE_INDEX = 1;
 static constexpr int FINISH_INDEX = 2;
 } // namespace
 
-RSImplicitAnimator& RSImplicitAnimator::Instance()
-{
-    static RSImplicitAnimator instance;
-    return instance;
-}
-
 void RSImplicitAnimator::OpenImplicitAnimation(const RSAnimationTimingProtocol& timingProtocol,
     const RSAnimationTimingCurve& timingCurve, const std::function<void()>& finishCallback)
 {

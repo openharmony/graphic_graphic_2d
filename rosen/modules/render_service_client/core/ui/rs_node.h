@@ -37,6 +37,7 @@ using PropertyCallback = std::function<void()>;
 class RSAnimation;
 class RSCommand;
 class RSImplicitAnimParam;
+class RSImplicitAnimator;
 class RSBasePropertyAccessors;
 
 class RS_EXPORT RSNode : public RSBaseNode {
@@ -202,6 +203,7 @@ private:
     std::unordered_map<AnimationId, std::shared_ptr<RSAnimation>> animations_;
     std::unordered_map<RSAnimatableProperty, uint32_t> animatingPropertyNum_;
     std::shared_ptr<RSMotionPathOption> motionPathOption_;
+    std::shared_ptr<RSImplicitAnimator> implicitAnimator_;
 
     std::shared_ptr<const RSTransitionEffect> transitionEffect_ = nullptr;
 

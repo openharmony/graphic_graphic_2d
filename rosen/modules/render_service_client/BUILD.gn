@@ -49,6 +49,7 @@ ohos_source_set("render_service_client_src") {
     "core/animation/rs_curve_animation.cpp",
     "core/animation/rs_implicit_animation_param.cpp",
     "core/animation/rs_implicit_animator.cpp",
+    "core/animation/rs_implicit_animator_map.cpp",
     "core/animation/rs_keyframe_animation.cpp",
     "core/animation/rs_path_animation.cpp",
     "core/animation/rs_transition.cpp",
