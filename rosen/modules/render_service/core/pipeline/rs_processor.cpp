@@ -101,7 +101,7 @@ void RSProcessor::SetBufferTimeStamp()
     struct timespec curTime = {0, 0};
     clock_gettime(CLOCK_MONOTONIC, &curTime);
     // 1000000000 is used for transfer second to nsec
-    uint64_t duration = curTime.tv_sec * 1000000000 + curTime.tv_nsec;
+    uint64_t duration = static_cast<uint64_t>(curTime.tv_sec) * 1000000000 + static_cast<uint64_t>(curTime.tv_nsec);
     GSError ret = buffer_->GetExtraData()->ExtraSet("timeStamp", static_cast<int64_t>(duration));
     if (ret != GSERROR_OK) {
         RS_LOGE("RSProcessor::SetBufferTimeStamp buffer ExtraSet failed");
