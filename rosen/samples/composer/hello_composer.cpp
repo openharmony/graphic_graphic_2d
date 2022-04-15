@@ -15,7 +15,6 @@
 
 #include "hello_composer.h"
 
-#include <drawing_surface/rs_surface_ohos.h>
 #include <vsync_generator.h>
 #include <vsync_controller.h>
 #include <vsync_distributor.h>
@@ -27,19 +26,13 @@ using namespace OHOS;
 using namespace OHOS::Rosen;
 
 namespace {
-#ifdef LOGI
-#undef LOGI
 #define LOGI(fmt, ...) ::OHOS::HiviewDFX::HiLog::Info(            \
     ::OHOS::HiviewDFX::HiLogLabel {LOG_CORE, 0, "HelloComposer"}, \
     "%{public}s: " fmt, __func__, ##__VA_ARGS__)
-#endif
 
-#ifdef LOGE
-#undef LOGE
 #define LOGE(fmt, ...) ::OHOS::HiviewDFX::HiLog::Error(           \
     ::OHOS::HiviewDFX::HiLogLabel {LOG_CORE, 0, "HelloComposer"}, \
     "%{public}s: " fmt, __func__, ##__VA_ARGS__)
-#endif
 
 sptr<VSyncReceiver> g_receiver = nullptr;
 }
@@ -108,13 +101,13 @@ void HelloComposer::OnScreenPlug(std::shared_ptr<HdiOutput> &output, bool connec
 }
 
 void HelloComposer::OnPrepareCompleted(
-    std::shared_ptr<RSSurface> &rsSurface, const struct PrepareCompleteParam &param, void* data)
+    sptr<Surface> &surface, const struct PrepareCompleteParam &param, void* data)
 {
     if (!param.needFlushFramebuffer) {
         return;
     }
 
-    if (rsSurface == nullptr) {
+    if (surface == nullptr) {
         LOGE("surface is null");
         return;
     }
@@ -125,7 +118,6 @@ void HelloComposer::OnPrepareCompleted(
     }
 
     auto* thisPtr = static_cast<HelloComposer *>(data);
-    sptr<Surface> surface = std::static_pointer_cast<RSSurfaceOhos>(rsSurface)->GetSurface();
     thisPtr->DoPrepareCompleted(surface, param);
 }
 

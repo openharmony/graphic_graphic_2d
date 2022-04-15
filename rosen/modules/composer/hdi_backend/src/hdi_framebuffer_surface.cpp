@@ -17,8 +17,6 @@
 
 #include "hdi_log.h"
 
-#include <drawing_surface/rs_surface_ohos.h>
-
 using namespace OHOS;
 
 namespace OHOS {
@@ -58,8 +56,6 @@ SurfaceError HdiFramebufferSurface::CreateSurface(sptr<HdiFramebufferSurface> &f
     sptr<IBufferProducer> producer = consumerSurface_->GetProducer();
     producerSurface_ = Surface::CreateSurfaceAsProducer(producer);
 
-    rsSurface_ = RSSurfaceOhos::CreateSurface(producerSurface_);
-
     sptr<IBufferConsumerListener> listener = fbSurface;
     SurfaceError ret = consumerSurface_->RegisterConsumerListener(listener);
     if (ret != SURFACE_ERROR_OK) {
@@ -97,9 +93,9 @@ void HdiFramebufferSurface::OnBufferAvailable()
     fbAcquireFence_ = new SyncFence(fbAcquireFence);
 }
 
-std::shared_ptr<RSSurface> HdiFramebufferSurface::GetSurface()
+sptr<Surface> HdiFramebufferSurface::GetSurface()
 {
-    return rsSurface_;
+    return producerSurface_;
 }
 
 sptr<SurfaceBuffer> HdiFramebufferSurface::GetFramebuffer()

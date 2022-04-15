@@ -15,7 +15,6 @@
 
 #include "drawing_sample.h"
 
-#include <drawing_engine/drawing_surface/rs_surface_ohos.h>
 #include <securec.h>
 #include <sync_fence.h>
 #include <vsync_controller.h>
@@ -80,13 +79,13 @@ void DrawingSample::OnScreenPlug(std::shared_ptr<HdiOutput>& output, bool connec
 }
 
 void DrawingSample::OnPrepareCompleted(
-    std::shared_ptr<RSSurface>& rsSurface, const struct PrepareCompleteParam& param, void* data)
+    sptr<Surface>& surface, const struct PrepareCompleteParam& param, void* data)
 {
     if (!param.needFlushFramebuffer) {
         return;
     }
 
-    if (rsSurface == nullptr) {
+    if (surface == nullptr) {
         LOGE("surface is null");
         return;
     }
@@ -97,7 +96,6 @@ void DrawingSample::OnPrepareCompleted(
     }
 
     auto* thisPtr = static_cast<DrawingSample*>(data);
-    sptr<Surface> surface = std::static_pointer_cast<RSSurfaceOhos>(rsSurface)->GetSurface();
     thisPtr->DoPrepareCompleted(surface, param);
 }
 
