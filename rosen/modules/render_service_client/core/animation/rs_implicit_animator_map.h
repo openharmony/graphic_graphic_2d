@@ -26,7 +26,7 @@ class RSImplicitAnimatorMap final {
 public:
     static RSImplicitAnimatorMap& Instance();
 
-    const std::shared_ptr<RSImplicitAnimator>& GetAnimator(const int32_t id);
+    const std::shared_ptr<RSImplicitAnimator> GetAnimator(const int32_t id);
 
 private:
     RSImplicitAnimatorMap() = default;
