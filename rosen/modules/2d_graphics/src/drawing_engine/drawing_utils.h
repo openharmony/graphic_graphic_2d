@@ -43,11 +43,7 @@ class Setting {
 public:
     static RenderBackendType GetRenderBackendType()
     {
-#ifdef ACE_ENABLE_GL
         RenderBackendType type = RenderBackendType::GLES;
-#else
-        RenderBackendType type = RenderBackendType::SOFTWARE;
-#endif
         return type;
     }
 };
