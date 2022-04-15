@@ -16,7 +16,7 @@
 #include "pipeline/rs_root_render_node.h"
 
 #include "command/rs_surface_node_command.h"
-#include "drawing_engine/drawing_surface/rs_surface.h"
+#include "platform/drawing/rs_surface.h"
 #include "transaction/rs_transaction_proxy.h"
 #include "visitor/rs_node_visitor.h"
 #ifdef ROSEN_OHOS

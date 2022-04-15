@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,21 +14,19 @@
  */
 
 #include "rs_surface_frame_ohos_raster.h"
-
 #include <cstdint>
+
+#include "platform/common/rs_log.h"
 
 namespace OHOS {
 namespace Rosen {
+
 RSSurfaceFrameOhosRaster::RSSurfaceFrameOhosRaster(int32_t width, int32_t height)
 {
     requestConfig_.width = width;
     requestConfig_.height = height;
     flushConfig_.damage.w = width;
     flushConfig_.damage.h = height;
-}
-
-RSSurfaceFrameOhosRaster::~RSSurfaceFrameOhosRaster()
-{
 }
 
 void RSSurfaceFrameOhosRaster::SetDamageRegion(int32_t left, int32_t top, int32_t width, int32_t height)
@@ -39,14 +37,41 @@ void RSSurfaceFrameOhosRaster::SetDamageRegion(int32_t left, int32_t top, int32_
     flushConfig_.damage.h = height;
 }
 
-void RSSurfaceFrameOhosRaster::SetColorSpace(ColorGamut colorSpace)
+SkCanvas* RSSurfaceFrameOhosRaster::GetCanvas()
 {
-    colorSpace_ = colorSpace;
+    if (buffer_ == nullptr || buffer_->GetWidth() <= 0 || buffer_->GetHeight() <= 0) {
+        ROSEN_LOGW("buffer is invalid");
+        return nullptr;
+    }
+    if (canvas_ == nullptr) {
+        CreateCanvas();
+    }
+
+    return canvas_.get();
 }
 
-ColorGamut RSSurfaceFrameOhosRaster::GetColorSpace() const
+void RSSurfaceFrameOhosRaster::CreateCanvas()
 {
-    return colorSpace_;
+    auto addr = static_cast<uint32_t*>(buffer_->GetVirAddr());
+    if (addr == nullptr) {
+        ROSEN_LOGW("buffer addr is invalid");
+        return;
+    }
+    SkImageInfo info =
+        SkImageInfo::Make(buffer_->GetWidth(), buffer_->GetHeight(), kRGBA_8888_SkColorType, kPremul_SkAlphaType);
+    auto uniqueCanvasPtr = SkCanvas::MakeRasterDirect(info, addr, buffer_->GetSize() / buffer_->GetHeight());
+    canvas_ = std::move(uniqueCanvasPtr);
 }
+
+int32_t RSSurfaceFrameOhosRaster::GetReleaseFence() const
+{
+    return releaseFence_;
+}
+
+void RSSurfaceFrameOhosRaster::SetReleaseFence(const int32_t& fence)
+{
+    releaseFence_ = fence;
+}
+
 } // namespace Rosen
 } // namespace OHOS

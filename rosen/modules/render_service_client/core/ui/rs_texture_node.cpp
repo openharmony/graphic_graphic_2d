@@ -19,7 +19,6 @@
 #include "transaction/rs_transaction_proxy.h"
 #include "pipeline/rs_node_map.h"
 #include "ui/rs_ui_director.h"
-#include "drawing_engine/drawing_surface/rs_surface.h"
 
 namespace OHOS {
 namespace Rosen {

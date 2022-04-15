@@ -15,13 +15,15 @@
 
 #include "transaction/rs_render_service_client.h"
 
+#include "backend/rs_surface_ohos_gl.h"
+#include "backend/rs_surface_ohos_raster.h"
 #include "command/rs_command.h"
 #include "ipc_callbacks/screen_change_callback_stub.h"
 #include "ipc_callbacks/surface_capture_callback_stub.h"
 #include "ipc_callbacks/buffer_available_callback_stub.h"
 #include "platform/common/rs_log.h"
 #include "rs_render_service_connect_hub.h"
-#include "drawing_engine/drawing_surface/rs_surface_ohos.h"
+#include "rs_surface_ohos.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -55,7 +57,13 @@ std::shared_ptr<RSSurface> RSRenderServiceClient::CreateNodeAndSurface(const RSS
     }
     sptr<Surface> surface = renderService->CreateNodeAndSurface(config);
 
-    std::shared_ptr<RSSurface> producer = OHOS::Rosen::RSSurfaceOhos::CreateSurface(surface);
+#ifdef ACE_ENABLE_GL
+    // GPU render
+    std::shared_ptr<RSSurface> producer = std::make_shared<RSSurfaceOhosGl>(surface);
+#else
+    // CPU render
+    std::shared_ptr<RSSurface> producer = std::make_shared<RSSurfaceOhosRaster>(surface);
+#endif
     return producer;
 }
 

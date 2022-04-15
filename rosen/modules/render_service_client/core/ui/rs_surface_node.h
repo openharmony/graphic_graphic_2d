@@ -22,6 +22,7 @@
 #include "surface.h"
 
 #include <transaction/rs_transaction_proxy.h>
+#include "platform/drawing/rs_surface.h"
 #include "ui/rs_node.h"
 #include "surface_type.h"
 
@@ -29,8 +30,8 @@ class SkCanvas;
 
 namespace OHOS {
 namespace Rosen {
+
 using FirstTimeOnScreenCallback = std::function<void()>;
-class RSSurface;
 struct RSSurfaceNodeConfig {
     std::string SurfaceNodeName = "SurfaceNode";
 };

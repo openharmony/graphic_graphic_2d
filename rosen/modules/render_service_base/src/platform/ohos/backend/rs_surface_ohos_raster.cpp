@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,43 +15,35 @@
 
 #include "rs_surface_ohos_raster.h"
 
-#include "sync_fence.h"
+#include <sync_fence.h>
+
+#include "platform/common/rs_log.h"
 #include "rs_surface_frame_ohos_raster.h"
-#include "drawing_utils.h"
 
 namespace OHOS {
 namespace Rosen {
-RSSurfaceOhosRaster::RSSurfaceOhosRaster(const sptr<Surface>& producer) : RSSurfaceOhos(producer)
-{
-}
 
-RSSurfaceOhosRaster::~RSSurfaceOhosRaster()
-{
-    frame_ = nullptr;
-}
+RSSurfaceOhosRaster::RSSurfaceOhosRaster(const sptr<Surface>& producer) : RSSurfaceOhos(producer) {}
 
 std::unique_ptr<RSSurfaceFrame> RSSurfaceOhosRaster::RequestFrame(int32_t width, int32_t height)
 {
-    if (IsValid() == false) {
-        LOGE("RSSurfaceOhosRaster::RequestFrame, producer is nullptr");
+    if (producer_ == nullptr) {
+        ROSEN_LOGE("RSSurfaceOhosRaster::RequestFrame, producer is nullptr");
         return nullptr;
     }
-    frame_ = std::make_unique<RSSurfaceFrameOhosRaster>(width, height);
-    SurfaceError err = producer_->RequestBuffer(frame_->buffer_, frame_->releaseFence_, frame_->requestConfig_);
+
+    std::unique_ptr<RSSurfaceFrameOhosRaster> frame = std::make_unique<RSSurfaceFrameOhosRaster>(width, height);
+    SurfaceError err = producer_->RequestBuffer(frame->buffer_, frame->releaseFence_, frame->requestConfig_);
     if (err != SURFACE_ERROR_OK) {
-        LOGE("RSSurfaceOhosRaster::Requestframe Failed, error is : %{public}s", SurfaceErrorStr(err).c_str());
+        ROSEN_LOGE("RSSurfaceOhosRaster::Requestframe Failed, error is : %s", SurfaceErrorStr(err).c_str());
         return nullptr;
     }
-    sptr<SyncFence> tempFence = new SyncFence(frame_->releaseFence_);
+    sptr<SyncFence> tempFence = new SyncFence(frame->releaseFence_);
     int res = tempFence->Wait(3000);
     if (res < 0) {
-        LOGE("RsDebug RSProcessor::RequestFrame this buffer is not available");
+        ROSEN_LOGE("RsDebug RSProcessor::RequestFrame this buffer is not available");
     }
-
-    LOGD("RSSurfaceOhosRaster RequestFrame successfully!, buffer width is %{public}d, height is %{public}d",
-        frame_->buffer_->GetWidth(), frame_->buffer_->GetHeight());
-
-    std::unique_ptr<RSSurfaceFrame> ret(std::move(frame_));
+    std::unique_ptr<RSSurfaceFrame> ret(std::move(frame));
     return ret;
 }
 
@@ -64,16 +56,12 @@ bool RSSurfaceOhosRaster::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame)
     RSSurfaceFrameOhosRaster* oriFramePtr = static_cast<RSSurfaceFrameOhosRaster*>(frame.get());
     SurfaceError err = producer_->FlushBuffer(oriFramePtr->buffer_, -1, oriFramePtr->flushConfig_);
     if (err != SURFACE_ERROR_OK) {
-        LOGE("RSSurfaceOhosRaster::Flushframe Failed, error is : %s", SurfaceErrorStr(err).c_str());
+        ROSEN_LOGE("RSSurfaceOhosRaster::Flushframe Failed, error is : %s", SurfaceErrorStr(err).c_str());
         return false;
     }
-    LOGE("RsDebug RSSurfaceOhosRaster::FlushFrame fence:%d", oriFramePtr->releaseFence_);
+    ROSEN_LOGE("RsDebug RSSurfaceOhosRaster::FlushFrame fence:%d", oriFramePtr->releaseFence_);
     return true;
 }
 
-SkCanvas* RSSurfaceOhosRaster::GetCanvas(std::unique_ptr<RSSurfaceFrame>& frame)
-{
-    return drawingProxy_->AcquireCanvas(frame);
-}
 } // namespace Rosen
 } // namespace OHOS

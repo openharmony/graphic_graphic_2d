@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,24 +13,37 @@
  * limitations under the License.
  */
 
-#ifndef RS_SURFACE_FRAME_H
-#define RS_SURFACE_FRAME_H
+#ifndef RENDER_SERVICE_BASE_DRAWING_RS_SURFACE_H
+#define RENDER_SERVICE_BASE_DRAWING_RS_SURFACE_H
 
 #include <memory>
 
+#include "rs_surface_frame.h"
 #include "surface_type.h"
 
 namespace OHOS {
 namespace Rosen {
-class RSSurfaceFrame {
+class RenderContext;
+class RSSurface {
 public:
-    RSSurfaceFrame() = default;
-    virtual ~RSSurfaceFrame() = default;
-    virtual void SetDamageRegion(int32_t left, int32_t top, int32_t width, int32_t height) = 0;
-    virtual ColorGamut GetColorSpace() const = 0;
+    RSSurface() = default;
+
+    virtual ~RSSurface() = default;
+
+    virtual bool IsValid() const = 0;
+
+    virtual std::unique_ptr<RSSurfaceFrame> RequestFrame(int32_t width, int32_t height) = 0;
+
+    virtual bool FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame) = 0;
+    virtual RenderContext* GetRenderContext() = 0;
+    virtual void SetRenderContext(RenderContext* context) = 0;
+    virtual ColorGamut GetColorSpace() = 0;
     virtual void SetColorSpace(ColorGamut colorSpace) = 0;
+protected:
+private:
 };
+
 } // namespace Rosen
 } // namespace OHOS
 
-#endif
+#endif // RENDER_SERVICE_BASE_DRAWING_RS_SURFACE_H
