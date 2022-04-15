@@ -24,7 +24,6 @@
 
 #include "common/rs_thread_handler.h"
 #include "common/rs_thread_looper.h"
-#include "drawing_engine/drawing_proxy.h"
 #include "ipc_callbacks/iapplication_render_thread.h"
 #include "pipeline/rs_context.h"
 #include "platform/drawing/rs_vsync_client.h"
@@ -86,10 +85,6 @@ public:
     {
         return mainThreadId_;
     }
-    std::shared_ptr<DrawingProxy> GetDrawingProxy() const
-    {
-        return drawingProxy_;
-    }
     void RegisterApplicationRenderThread(uint32_t pid, sptr<IApplicationRenderThread> app);
     void UnregisterApplicationRenderThread(sptr<IApplicationRenderThread> app);
 
@@ -123,8 +118,6 @@ private:
     RSContext context_;
     std::thread::id mainThreadId_;
     std::shared_ptr<VSyncReceiver> receiver_ = nullptr;
-
-    std::shared_ptr<DrawingProxy> drawingProxy_;
 };
 } // namespace Rosen
 } // namespace OHOS

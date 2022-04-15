@@ -20,7 +20,6 @@
 #include "include/core/SkMatrix.h"
 #include <surface.h>
 
-#include "drawing_engine/drawing_proxy.h"
 #include "hdi_output.h"
 #include "pipeline/rs_base_render_node.h"
 #include "pipeline/rs_display_render_node.h"
@@ -42,18 +41,12 @@ public:
 protected:
     std::unique_ptr<SkCanvas> CreateCanvas(sptr<Surface> producerSurface, BufferRequestConfig requestConfig);
     void FlushBuffer(sptr<Surface> surface, BufferFlushConfig flushConfig);
-    SkCanvas* CreateCanvas(
-        const std::shared_ptr<RSSurface>& surface, BufferRequestConfig requestConfig);
-    void FlushFrame(const std::shared_ptr<RSSurface>& surface, BufferFlushConfig flushConfig);
     bool ConsumeAndUpdateBuffer(RSSurfaceRenderNode& node, SpecialTask& task, sptr<SurfaceBuffer>& buffer);
     void SetBufferTimeStamp();
     int32_t GetOffsetX();
     int32_t GetOffsetY();
 
-    std::shared_ptr<DrawingProxy> drawingProxy_;
-
 private:
-    std::unique_ptr<RSSurfaceFrame> currFrame_;
     sptr<SurfaceBuffer> buffer_;
     int32_t releaseFence_ = -1;
 };

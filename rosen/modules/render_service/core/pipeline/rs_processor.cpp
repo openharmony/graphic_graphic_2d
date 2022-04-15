@@ -24,43 +24,6 @@
 
 namespace OHOS {
 namespace Rosen {
-SkCanvas* RSProcessor::CreateCanvas(
-    const std::shared_ptr<RSSurface>& surface, BufferRequestConfig requestConfig)
-{
-    RS_TRACE_NAME("CreateCanvas");
-
-    if (surface == nullptr) {
-        RS_LOGE("RSProcessor::CreateCanvas: surface is null!");
-        return nullptr;
-    }
-
-    if (drawingProxy_ == nullptr) {
-        RS_LOGE("RSProcessor::CreateCanvas: drawingProxy_ is null!");
-        return nullptr;
-    }
-
-    RS_TRACE_NAME("CreateCanvas");
-    surface->SetDrawingProxy(drawingProxy_.get());
-    currFrame_ = surface->RequestFrame(requestConfig.width, requestConfig.height);
-    if (currFrame_ == nullptr) {
-        RS_LOGE("RSProcessor::CreateCanvas: requestFrame failed!");
-        return nullptr;
-    }
-
-    return surface->GetCanvas(currFrame_);
-}
-
-void RSProcessor::FlushFrame(const std::shared_ptr<RSSurface>& surface, BufferFlushConfig flushConfig)
-{
-    if (surface == nullptr) {
-        RS_LOGE("RSProcessor::FlushBuffer surface is null!");
-        return;
-    }
-
-    RS_TRACE_NAME("FlushBuffer");
-    surface->FlushFrame(currFrame_);
-}
-
 std::unique_ptr<SkCanvas> RSProcessor::CreateCanvas(sptr<Surface> producerSurface, BufferRequestConfig requestConfig)
 {
     RS_TRACE_NAME("CreateCanvas");

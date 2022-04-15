@@ -43,7 +43,7 @@ public:
     void CropLayers();
 
 private:
-    void Redraw(std::shared_ptr<RSSurface>& surface, const struct PrepareCompleteParam& param, void* data);
+    void Redraw(sptr<Surface>& surface, const struct PrepareCompleteParam& param, void* data);
     void OnRotate();
     void CalculateInfoWithAnimation(const std::unique_ptr<RSTransitionProperties>& transitionProperties,
         ComposeInfo& info, RSSurfaceRenderNode& node);

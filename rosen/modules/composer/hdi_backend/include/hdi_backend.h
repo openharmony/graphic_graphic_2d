@@ -38,7 +38,7 @@ struct PrepareCompleteParam {
 };
 
 using OnScreenHotplugFunc = std::function<void(OutputPtr &output, bool connected, void* data)>;
-using OnPrepareCompleteFunc = std::function<void(std::shared_ptr<RSSurface> &surface,
+using OnPrepareCompleteFunc = std::function<void(sptr<Surface> &surface,
                                                  const struct PrepareCompleteParam &param, void* data)>;
 
 class HdiBackend {

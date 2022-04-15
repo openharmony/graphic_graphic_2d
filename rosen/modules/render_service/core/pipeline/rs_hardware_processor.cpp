@@ -22,7 +22,6 @@
 #include "common/rs_vector3.h"
 #include "common/rs_vector4.h"
 #include "display_type.h"
-#include <drawing_engine/drawing_surface/rs_surface_ohos.h>
 #include "rs_trace.h"
 #include "common/rs_vector4.h"
 #include "pipeline/rs_main_thread.h"
@@ -61,11 +60,6 @@ void RSHardwareProcessor::Init(ScreenId id, int32_t offsetX, int32_t offsetY)
     damageRect.w = static_cast<int32_t>(currScreenInfo_.width);
     damageRect.h = static_cast<int32_t>(currScreenInfo_.height);
     output_->SetOutputDamage(1, damageRect);
-
-    auto mainThread = RSMainThread::Instance();
-    if (mainThread != nullptr) {
-        drawingProxy_ = mainThread->GetDrawingProxy();
-    }
 }
 
 void RSHardwareProcessor::PostProcess()
@@ -283,15 +277,13 @@ void RSHardwareProcessor::CalculateInfoWithAnimation(
     };
 }
 
-void RSHardwareProcessor::Redraw(
-    std::shared_ptr<RSSurface>& rsSurface, const struct PrepareCompleteParam& param, void* data)
+void RSHardwareProcessor::Redraw(sptr<Surface>& surface, const struct PrepareCompleteParam& param, void* data)
 {
     if (!param.needFlushFramebuffer) {
         RS_LOGI("RsDebug RSHardwareProcessor::Redraw no need to flush frame buffer");
         return;
     }
 
-    sptr<Surface> surface = std::static_pointer_cast<RSSurfaceOhos>(rsSurface)->GetSurface();
     if (surface == nullptr) {
         RS_LOGE("RSHardwareProcessor::Redraw: surface is null.");
         return;
