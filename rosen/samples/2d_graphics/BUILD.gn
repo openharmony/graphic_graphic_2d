@@ -69,8 +69,10 @@ ohos_executable("drawing_engine_sample") {
     "//foundation/graphic/standard/utils:sync_fence",
   ]
 
-  #defines = [ "USE_CANVASKIT0310_SKIA" ]
+  defines = gpu_defines
 
+  #defines = [ "USE_CANVASKIT0310_SKIA" ]
+  #defines += gpu_defines
   deps += [
     #"//third_party/skia:skia",
   ]
