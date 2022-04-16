@@ -268,4 +268,13 @@ TransformType ProducerSurface::GetTransform() const
 {
     return TransformType::ROTATE_BUTT;
 }
+
+GSError ProducerSurface::IsSupportedAlloc(const std::vector<VerifyAllocInfo> &infos,
+                                          std::vector<bool> &supporteds)
+{
+    if (infos.size() == 0 || infos.size() != supporteds.size()) {
+        return GSERROR_INVALID_ARGUMENTS;
+    }
+    return producer_->IsSupportedAlloc(infos, supporteds);
+}
 } // namespace OHOS

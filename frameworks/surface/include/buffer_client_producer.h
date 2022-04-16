@@ -57,6 +57,8 @@ public:
     virtual GSError DetachBuffer(sptr<SurfaceBuffer>& buffer) override;
     virtual GSError RegisterReleaseListener(OnReleaseFunc func) override;
 
+    GSError IsSupportedAlloc(const std::vector<VerifyAllocInfo> &infos, std::vector<bool> &supporteds) override;
+
 private:
     static inline BrokerDelegator<BufferClientProducer> delegator_;
     std::string name_ = "not init";

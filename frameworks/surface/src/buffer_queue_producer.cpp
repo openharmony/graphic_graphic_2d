@@ -210,6 +210,21 @@ int BufferQueueProducer::SetTransformRemote(MessageParcel &arguments, MessagePar
     return 0;
 }
 
+int BufferQueueProducer::IsSupportedAllocRemote(MessageParcel &arguments, MessageParcel &reply, MessageOption &option)
+{
+    std::vector<VerifyAllocInfo> infos;
+    ReadVerifyAllocInfo(arguments, infos);
+
+    std::vector<bool> supporteds;
+    GSError sret = IsSupportedAlloc(infos, supporteds);
+    reply.WriteInt32(sret);
+    if (sret == GSERROR_OK) {
+        reply.WriteBoolVector(supporteds);
+    }
+
+    return 0;
+}
+
 GSError BufferQueueProducer::RequestBuffer(const BufferRequestConfig &config, sptr<BufferExtraData> &bedata,
                                            RequestBufferReturnValue &retval)
 {
@@ -360,5 +375,15 @@ GSError BufferQueueProducer::SetTransform(TransformType transform)
         return GSERROR_INVALID_ARGUMENTS;
     }
     return bufferQueue_->SetTransform(transform);
+}
+
+GSError BufferQueueProducer::IsSupportedAlloc(const std::vector<VerifyAllocInfo> &infos,
+                                              std::vector<bool> &supporteds)
+{
+    if (bufferQueue_ == nullptr) {
+        return GSERROR_INVALID_ARGUMENTS;
+    }
+
+    return bufferQueue_->IsSupportedAlloc(infos, supporteds);
 }
 }; // namespace OHOS

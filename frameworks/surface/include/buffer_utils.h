@@ -34,6 +34,9 @@ void WriteFlushConfig(MessageParcel &parcel, const BufferFlushConfig &config);
 
 void ReadSurfaceBufferImpl(MessageParcel &parcel, int32_t &sequence, sptr<SurfaceBuffer> &buffer);
 void WriteSurfaceBufferImpl(MessageParcel &parcel, int32_t sequence, const sptr<SurfaceBuffer> &buffer);
+
+void ReadVerifyAllocInfo(MessageParcel &parcel, std::vector<VerifyAllocInfo> &infos);
+void WriteVerifyAllocInfo(MessageParcel &parcel, const std::vector<VerifyAllocInfo> &infos);
 } // namespace OHOS
 
 #endif // FRAMEWORKS_SURFACE_INCLUDE_BUFFER_UTILS_H

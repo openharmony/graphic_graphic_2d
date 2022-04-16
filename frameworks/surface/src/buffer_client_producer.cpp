@@ -235,4 +235,26 @@ GSError BufferClientProducer::SetTransform(TransformType transform)
 
     return GSERROR_OK;
 }
+
+GSError BufferClientProducer::IsSupportedAlloc(const std::vector<VerifyAllocInfo> &infos,
+                                               std::vector<bool> &supporteds)
+{
+    DEFINE_MESSAGE_VARIABLES(arguments, reply, option, BLOGE);
+
+    WriteVerifyAllocInfo(arguments, infos);
+
+    SEND_REQUEST(BUFFER_PRODUCER_IS_SUPPORTED_ALLOC, arguments, reply, option);
+    int32_t ret = reply.ReadInt32();
+    if (ret != GSERROR_OK) {
+        BLOGN_FAILURE("Remote return %{public}d", ret);
+        return static_cast<GSError>(ret);
+    }
+
+    if (reply.ReadBoolVector(&supporteds) == false) {
+        BLOGN_FAILURE("reply.ReadBoolVector return false");
+        return GSERROR_BINDER;
+    }
+
+    return static_cast<GSError>(ret);
+}
 }; // namespace OHOS

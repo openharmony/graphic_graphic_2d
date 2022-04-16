@@ -392,4 +392,45 @@ HWTEST_F(ProducerSurfaceTest, transform001, Function | MediumTest | Level2)
     ret = psurf->SetTransform(TransformType::ROTATE_270);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 }
+
+/*
+* Function: IsSupportedAlloc
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call IsSupportedAlloc with abnormal parameters and check ret
+*                  2. call IsSupportedAlloc with normal parameters and check ret
+ */
+HWTEST_F(ProducerSurfaceTest, isSupportedAlloc001, Function | MediumTest | Level2)
+{
+    std::vector<VerifyAllocInfo> infos;
+    std::vector<bool> supporteds;
+    GSError ret = psurf->IsSupportedAlloc(infos, supporteds);
+    ASSERT_EQ(ret, OHOS::GSERROR_INVALID_ARGUMENTS);
+
+    VerifyAllocInfo info = {
+        .width = 0x100,
+        .height = 0x100,
+        .usage = HBM_USE_CPU_READ | HBM_USE_CPU_WRITE | HBM_USE_MEM_DMA,
+        .format = PIXEL_FMT_RGBA_8888,
+    };
+    infos.push_back(info);
+    info.format = PIXEL_FMT_YCRCB_420_SP;
+    infos.push_back(info);
+    info.format = PIXEL_FMT_YUV_422_I;
+    infos.push_back(info);
+
+    ret = psurf->IsSupportedAlloc(infos, supporteds);
+    ASSERT_EQ(ret, OHOS::GSERROR_INVALID_ARGUMENTS);
+
+    supporteds.push_back(false);
+    supporteds.push_back(false);
+    supporteds.push_back(false);
+
+    ret = psurf->IsSupportedAlloc(infos, supporteds);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);  // mock data result
+    ASSERT_EQ(supporteds[0], true);  // mock data result
+    ASSERT_EQ(supporteds[1], true);  // mock data result
+    ASSERT_EQ(supporteds[2], false);  // mock data result
+}
 }

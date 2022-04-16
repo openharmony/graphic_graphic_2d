@@ -111,4 +111,29 @@ void WriteSurfaceBufferImpl(MessageParcel &parcel,
     }
     buffer->WriteToMessageParcel(parcel);
 }
+
+void ReadVerifyAllocInfo(MessageParcel &parcel, std::vector<VerifyAllocInfo> &infos)
+{
+    uint32_t size = parcel.ReadUint32();
+    infos.clear();
+    VerifyAllocInfo info;
+    for (uint32_t index = 0; index < size; index++) {
+        info.width = parcel.ReadUint32();
+        info.height = parcel.ReadUint32();
+        info.usage = parcel.ReadUint64();
+        info.format = static_cast<PixelFormat>(parcel.ReadInt32());
+        infos.push_back(info);
+    }
+}
+
+void WriteVerifyAllocInfo(MessageParcel &parcel, const std::vector<VerifyAllocInfo> &infos)
+{
+    parcel.WriteUint32(infos.size());
+    for (const auto &info : infos) {
+        parcel.WriteUint32(info.width);
+        parcel.WriteUint32(info.height);
+        parcel.WriteUint64(info.usage);
+        parcel.WriteInt32(info.format);
+    }
+}
 } // namespace OHOS

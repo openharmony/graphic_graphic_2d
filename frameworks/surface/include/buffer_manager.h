@@ -36,6 +36,8 @@ public:
     GSError FlushCache(sptr<SurfaceBuffer>& buffer);
     GSError InvalidateCache(sptr<SurfaceBuffer>& buffer);
     GSError Free(sptr<SurfaceBuffer>& buffer);
+    GSError IsSupportedAlloc(const std::vector<VerifyAllocInfo> &infos,
+                             std::vector<bool> &supporteds);
 
 private:
     BufferManager() = default;

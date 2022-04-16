@@ -101,6 +101,9 @@ public:
     GSError SetTransform(TransformType transform);
     TransformType GetTransform() const;
 
+    GSError IsSupportedAlloc(const std::vector<VerifyAllocInfo> &infos,
+                             std::vector<bool> &supporteds) const;
+
 private:
     GSError AllocBuffer(sptr<SurfaceBuffer>& buffer, const BufferRequestConfig &config);
     GSError FreeBuffer(sptr<SurfaceBuffer>& buffer);

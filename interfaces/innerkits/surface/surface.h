@@ -79,6 +79,9 @@ public:
 
     virtual GSError SetTransform(TransformType transform) = 0;
     virtual TransformType GetTransform() const = 0;
+
+    virtual GSError IsSupportedAlloc(const std::vector<VerifyAllocInfo> &infos,
+                                     std::vector<bool> &supporteds) = 0;
 protected:
     Surface() = default;
 };

@@ -199,4 +199,10 @@ TransformType ConsumerSurface::GetTransform() const
 {
     return consumer_->GetTransform();
 }
+
+GSError ConsumerSurface::IsSupportedAlloc(const std::vector<VerifyAllocInfo> &infos,
+                                          std::vector<bool> &supporteds)
+{
+    return GSERROR_NOT_SUPPORT;
+}
 } // namespace OHOS

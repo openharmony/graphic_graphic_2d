@@ -77,6 +77,8 @@ public:
     GSError SetTransform(TransformType transform) override;
     TransformType GetTransform() const override;
 
+    GSError IsSupportedAlloc(const std::vector<VerifyAllocInfo> &infos, std::vector<bool> &supporteds) override;
+
 private:
     std::map<std::string, std::string> userData_;
     sptr<BufferQueueProducer> producer_ = nullptr;

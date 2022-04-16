@@ -379,4 +379,20 @@ HWTEST_F(ConsumerSurfaceTest, transform001, Function | MediumTest | Level2)
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
     ASSERT_EQ(cs->GetTransform(), TransformType::ROTATE_NONE);
 }
+
+/*
+* Function: IsSupportedAlloc
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call IsSupportedAlloc
+*                  2. check ret
+ */
+HWTEST_F(ConsumerSurfaceTest, isSupportedAlloc001, Function | MediumTest | Level2)
+{
+    std::vector<VerifyAllocInfo> infos;
+    std::vector<bool> supporteds;
+    GSError ret = cs->IsSupportedAlloc(infos, supporteds);
+    ASSERT_EQ(ret, OHOS::GSERROR_NOT_SUPPORT);
+}
 }

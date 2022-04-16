@@ -805,6 +805,16 @@ TransformType BufferQueue::GetTransform() const
     return transform_;
 }
 
+GSError BufferQueue::IsSupportedAlloc(const std::vector<VerifyAllocInfo> &infos,
+                                      std::vector<bool> &supporteds) const
+{
+    GSError ret = bufferManager_->IsSupportedAlloc(infos, supporteds);
+    if (ret != GSERROR_OK) {
+        BLOGN_FAILURE_API(IsSupportedAlloc, ret);
+    }
+    return ret;
+}
+
 void BufferQueue::DumpCache(std::string &result)
 {
     for (auto it = bufferQueueCache_.begin(); it != bufferQueueCache_.end(); it++) {
