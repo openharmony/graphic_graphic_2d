@@ -62,7 +62,7 @@ typedef enum : uint32_t {
     POWER_STATUS_OFF,
     POWER_STATUS_BUTT,
     INVALID_POWER_STATUS,
-}ScreenPowerStatus;
+} ScreenPowerStatus;
 
 typedef enum : uint32_t {
     DISP_INTF_HDMI = 0,
@@ -78,7 +78,7 @@ typedef enum : uint32_t {
     DISP_INTF_PANEL,
     DISP_INTF_BUTT,
     DISP_INVALID,
-}ScreenInterfaceType;
+} ScreenInterfaceType;
 
 typedef enum : uint32_t {
     COLOR_GAMUT_INVALID = UINT32_MAX,
@@ -103,6 +103,15 @@ typedef enum : uint32_t {
 } ScreenGamutMap;
 
 typedef enum : uint32_t {
+    NOT_SUPPORT_HDR = 0,
+    DOLBY_VISION,
+    HDR10,
+    HLG,
+    HDR10_PLUS,
+    HDR_VIVID,
+} ScreenHDRFormat;
+
+typedef enum : uint32_t {
     SUCCESS = 0,
     SCREEN_NOT_FOUND,
     RS_CONNECTION_ERROR,
@@ -111,6 +120,7 @@ typedef enum : uint32_t {
     INVALID_ARGUMENTS,
     WRITE_PARCEL_ERR,
     HDI_ERROR,
+    SCREEN_MANAGER_NULL,
 } StatusCode;
 
 // get the underlying type of an enum value.

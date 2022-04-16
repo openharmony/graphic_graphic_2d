@@ -445,5 +445,11 @@ ScreenRotation RSRenderServiceConnection::GetRotation(ScreenId id)
     }
     return screenManager_->GetRotation(id);
 }
+
+int32_t RSRenderServiceConnection::GetScreenHDRCapability(ScreenId id, RSScreenHDRCapability& screenHdrCapability)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    return screenManager_->GetScreenHDRCapability(id, screenHdrCapability);
+}
 } // namespace Rosen
 } // namespace OHOS

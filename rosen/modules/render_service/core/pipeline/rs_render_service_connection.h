@@ -114,6 +114,8 @@ private:
 
     ScreenRotation GetRotation(ScreenId id) override;
 
+    int32_t GetScreenHDRCapability(ScreenId id, RSScreenHDRCapability& screenHdrCapability) override;
+
     pid_t remotePid_;
     wptr<RSRenderService> renderService_;
     RSMainThread* mainThread_ = nullptr;

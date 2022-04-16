@@ -415,5 +415,15 @@ ScreenRotation RSRenderServiceClient::GetRotation(ScreenId id)
     }
     return renderService->GetRotation(id);
 }
+
+int32_t RSRenderServiceClient::GetScreenHDRCapability(ScreenId id, RSScreenHDRCapability& screenHdrCapability)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        ROSEN_LOGE("RSRenderServiceClient::GetScreenHDRCapability renderService == nullptr!");
+        return RENDER_SERVICE_NULL;
+    }
+    return renderService->GetScreenHDRCapability(id, screenHdrCapability);
+}
 } // namespace Rosen
 } // namespace OHOS

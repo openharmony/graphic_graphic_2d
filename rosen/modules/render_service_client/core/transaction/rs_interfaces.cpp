@@ -160,5 +160,10 @@ ScreenRotation RSInterfaces::GetRotation(ScreenId id)
 {
     return renderServiceClient_->GetRotation(id);
 }
+
+int32_t RSInterfaces::GetScreenHDRCapability(ScreenId id, RSScreenHDRCapability& screenHdrCapability)
+{
+    return renderServiceClient_->GetScreenHDRCapability(id, screenHdrCapability);
+}
 } // namespace Rosen
 } // namespace OHOS

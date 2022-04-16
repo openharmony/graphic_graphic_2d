@@ -646,5 +646,31 @@ ScreenRotation RSRenderServiceConnectionProxy::GetRotation(ScreenId id)
     ScreenRotation rotation = static_cast<ScreenRotation>(reply.ReadUint32());
     return rotation;
 }
+
+int32_t RSRenderServiceConnectionProxy::GetScreenHDRCapability(ScreenId id, RSScreenHDRCapability& screenHdrCapability)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return RS_CONNECTION_ERROR;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    data.WriteUint64(id);
+    int32_t err = Remote()->SendRequest(RSIRenderServiceConnection::GET_SCREEN_HDR_CAPABILITY, data, reply, option);
+    if (err != NO_ERROR) {
+        return RS_CONNECTION_ERROR;
+    }
+    int32_t result = reply.ReadInt32();
+    if (result != SUCCESS) {
+        return result;
+    }
+    sptr<RSScreenHDRCapability> pScreenCapability = reply.ReadParcelable<RSScreenHDRCapability>();
+    if (pScreenCapability == nullptr) {
+        return RS_CONNECTION_ERROR;
+    }
+    screenHdrCapability = *pScreenCapability;
+    return SUCCESS;
+}
 } // namespace Rosen
 } // namespace OHOS

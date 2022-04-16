@@ -80,6 +80,10 @@ void RSScreen::PhysicalScreenInit() noexcept
         HiLog::Error(LOG_LABEL, "%{public}s: RSScreen(id %{public}" PRIu64 ") failed to GetScreenCapability.",
             __func__, id_);
     }
+    if (hdiScreen_->GetHDRCapabilityInfos(hdrCapability_) < 0) {
+        HiLog::Error(LOG_LABEL, "%{public}s: RSScreen(id %{public}" PRIu64 ") failed to GetHDRCapabilityInfos.",
+            __func__, id_);
+    }
     auto status = DispPowerStatus::POWER_STATUS_ON;
     if (hdiScreen_->SetScreenPowerStatus(status) < 0) {
         HiLog::Error(LOG_LABEL, "%{public}s: RSScreen(id %{public}" PRIu64 ") failed to SetScreenPowerStatus.",
@@ -555,6 +559,11 @@ bool RSScreen::SetRotation(ScreenRotation rotation)
 ScreenRotation RSScreen::GetRotation() const
 {
     return rotation_;
+}
+
+const HDRCapability& RSScreen::GetHDRCapability() const
+{
+    return hdrCapability_;
 }
 } // namespace impl
 } // namespace Rosen

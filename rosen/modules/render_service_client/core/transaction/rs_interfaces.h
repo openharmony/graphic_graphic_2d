@@ -85,6 +85,8 @@ public:
 
     ScreenRotation GetRotation(ScreenId id);
 
+    int32_t GetScreenHDRCapability(ScreenId id, RSScreenHDRCapability& screenHdrCapability);
+
     std::shared_ptr<VSyncReceiver> CreateVSyncReceiver(
         const std::string& name,
         const std::shared_ptr<OHOS::AppExecFwk::EventHandler> &looper = nullptr);

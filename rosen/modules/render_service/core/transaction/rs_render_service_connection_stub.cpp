@@ -399,6 +399,22 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             reply.WriteUint32(static_cast<uint32_t>(rotation));
             break;
         }
+        case GET_SCREEN_HDR_CAPABILITY: {
+            auto token = data.ReadInterfaceToken();
+            if (token != RSIRenderServiceConnection::GetDescriptor()) {
+                ret = ERR_INVALID_STATE;
+                break;
+            }
+            ScreenId id = data.ReadUint64();
+            RSScreenHDRCapability screenHDRCapability;
+            int32_t result = GetScreenHDRCapability(id, screenHDRCapability);
+            reply.WriteInt32(result);
+            if (result != StatusCode::SUCCESS) {
+                break;
+            }
+            reply.WriteParcelable(&screenHDRCapability);
+            break;
+        }
         default: {
             ret = ERR_UNKNOWN_TRANSACTION;
             break;

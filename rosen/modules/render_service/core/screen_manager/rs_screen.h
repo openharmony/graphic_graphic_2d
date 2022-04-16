@@ -74,6 +74,7 @@ public:
     virtual SkMatrix GetRotationMatrix() const = 0;
     virtual ScreenRotation GetRotation() const = 0;
     virtual int32_t GetActiveModePosByModeId(int32_t modeId) const = 0;
+    virtual const HDRCapability& GetHDRCapability() const = 0;
 };
 
 namespace impl {
@@ -121,6 +122,7 @@ public:
     SkMatrix GetRotationMatrix() const override;
     ScreenRotation GetRotation() const override;
     int32_t GetActiveModePosByModeId(int32_t modeId) const override;
+    const HDRCapability& GetHDRCapability() const override;
 
 private:
     // [PLANNING]: fixme -- domain 0 only for debug.
@@ -158,6 +160,7 @@ private:
     std::unique_ptr<HdiScreen> hdiScreen_; // has value if the screen is physical
     std::vector<DisplayModeInfo> supportedModes_;
     DisplayCapability capability_ = {"", ::DISP_INTF_HDMI, 0, 0, 0, 0, true, 0, nullptr};
+    HDRCapability hdrCapability_;
     sptr<Surface> producerSurface_;  // has value if the screen is virtual
     DispPowerStatus powerStatus_ = ::POWER_STATUS_ON;
 

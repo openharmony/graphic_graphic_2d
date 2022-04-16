@@ -31,6 +31,7 @@
 #include "rs_irender_client.h"
 #include "screen_manager/rs_screen_capability.h"
 #include "screen_manager/rs_screen_data.h"
+#include "screen_manager/rs_screen_hdr_capability.h"
 #include "screen_manager/rs_screen_mode_info.h"
 #include "screen_manager/screen_types.h"
 #include "vsync_receiver.h"
@@ -112,6 +113,7 @@ public:
 
     ScreenRotation GetRotation(ScreenId id);
 
+    int32_t GetScreenHDRCapability(ScreenId id, RSScreenHDRCapability& screenHdrCapability);
 private:
     void TriggerSurfaceCaptureCallback(NodeId id, Media::PixelMap* pixelmap);
     std::mutex mutex_;

@@ -27,6 +27,7 @@
 #include "ipc_callbacks/surface_capture_callback.h"
 #include "screen_manager/rs_screen_capability.h"
 #include "screen_manager/rs_screen_data.h"
+#include "screen_manager/rs_screen_hdr_capability.h"
 #include "screen_manager/rs_screen_mode_info.h"
 #include "screen_manager/screen_types.h"
 #include "transaction/rs_transaction_data.h"
@@ -72,6 +73,7 @@ public:
         CREATE_VSYNC_CONNECTION,
         REQUEST_ROTATION,
         GET_ROTATION,
+        GET_SCREEN_HDR_CAPABILITY,
     };
 
     virtual void CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData) = 0;
@@ -137,6 +139,8 @@ public:
     virtual bool RequestRotation(ScreenId id, ScreenRotation rotation) = 0;
 
     virtual ScreenRotation GetRotation(ScreenId id) = 0;
+
+    virtual int32_t GetScreenHDRCapability(ScreenId id, RSScreenHDRCapability& screenHdrCapability) = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

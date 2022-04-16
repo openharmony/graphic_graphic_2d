@@ -30,6 +30,7 @@
 #include <screen_manager/rs_screen_mode_info.h>
 #include <screen_manager/rs_screen_capability.h>
 #include <screen_manager/rs_screen_data.h>
+#include <screen_manager/rs_screen_hdr_capability.h>
 #include <screen_manager/screen_types.h>
 #include <surface.h>
 
@@ -130,6 +131,8 @@ public:
     virtual bool RequestRotation(ScreenId id, ScreenRotation rotation) = 0;
 
     virtual ScreenRotation GetRotation(ScreenId id) const = 0;
+
+    virtual int32_t GetScreenHDRCapability(ScreenId id, RSScreenHDRCapability& screenHdrCapability) const = 0;
 };
 
 sptr<RSScreenManager> CreateOrGetScreenManager();
@@ -220,6 +223,8 @@ public:
     bool RequestRotation(ScreenId id, ScreenRotation rotation) override;
 
     ScreenRotation GetRotation(ScreenId id) const override;
+
+    int32_t GetScreenHDRCapability(ScreenId id, RSScreenHDRCapability& screenHdrCapability) const override;
 private:
     RSScreenManager();
     ~RSScreenManager() noexcept override;
@@ -251,6 +256,7 @@ private:
     int32_t GetScreenGamutMapLocked(ScreenId id, ScreenGamutMap& mode) const;
     bool RequestRotationLocked(ScreenId id, ScreenRotation rotation);
     ScreenRotation GetRotationLocked(ScreenId id) const;
+    int32_t GetScreenHDRCapabilityLocked(ScreenId id, RSScreenHDRCapability& screenHdrCapability) const;
 
     mutable std::mutex mutex_;
     HdiBackend *composer_ = nullptr;

@@ -89,6 +89,7 @@ public:
 
     ScreenRotation GetRotation(ScreenId id) override;
 
+    int32_t GetScreenHDRCapability(ScreenId id, RSScreenHDRCapability& screenHdrCapability) override;
 private:
     static inline BrokerDelegator<RSRenderServiceConnectionProxy> delegator_;
 };

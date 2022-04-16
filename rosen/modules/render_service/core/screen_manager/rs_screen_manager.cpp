@@ -671,6 +671,26 @@ ScreenRotation RSScreenManager::GetRotationLocked(ScreenId id) const
     return iter->second->GetRotation();
 }
 
+int32_t RSScreenManager::GetScreenHDRCapabilityLocked(ScreenId id, RSScreenHDRCapability& screenHdrCapability) const
+{
+    if (screens_.count(id) == 0) {
+        HiLog::Error(LOG_LABEL, "%{public}s: There is no screen for id %{public}" PRIu64 ".\n", __func__, id);
+        return StatusCode::SCREEN_NOT_FOUND;
+    }
+    HDRCapability hdrCapability = screens_.at(id)->GetHDRCapability();
+    std::vector<ScreenHDRFormat> hdrFormats;
+    uint32_t formatCount = hdrCapability.formatCount;
+    hdrFormats.resize(formatCount);
+    for (uint32_t index = 0; index < formatCount; index++) {
+        hdrFormats[index] = static_cast<ScreenHDRFormat>(hdrCapability.formats[index]);
+    }
+    screenHdrCapability.SetMaxLum(hdrCapability.maxLum);
+    screenHdrCapability.SetMaxAverageLum(hdrCapability.maxAverageLum);
+    screenHdrCapability.SetMinLum(hdrCapability.minLum);
+    screenHdrCapability.SetHdrFormats(hdrFormats);
+    return StatusCode::SUCCESS;
+}
+
 int32_t RSScreenManager::GetScreenSupportedColorGamuts(ScreenId id, std::vector<ScreenColorGamut>& mode) const
 {
     std::lock_guard<std::mutex> lock(mutex_);
@@ -711,6 +731,12 @@ ScreenRotation RSScreenManager::GetRotation(ScreenId id) const
 {
     std::lock_guard<std::mutex> lock(mutex_);
     return GetRotationLocked(id);
+}
+
+int32_t RSScreenManager::GetScreenHDRCapability(ScreenId id, RSScreenHDRCapability& screenHdrCapability) const
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    return GetScreenHDRCapabilityLocked(id, screenHdrCapability);
 }
 } // namespace impl
 

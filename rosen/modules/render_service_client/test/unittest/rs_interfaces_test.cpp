@@ -767,5 +767,39 @@ HWTEST_F(RSInterfacesTest, GetScreenGamutMap002, Function | SmallTest | Level2)
     int ret = rsInterfaces->GetScreenGamutMap(INVALID_SCREEN_ID, gamutMap);
     EXPECT_EQ(ret, StatusCode::SCREEN_NOT_FOUND);
 }
+
+/*
+* Function: GetScreenHDRCapability
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call GetScreenHDRCapability
+*                  2. check ret
+*/
+HWTEST_F(RSInterfacesTest, GetScreenHDRCapability001, Function | SmallTest | Level2)
+{
+    auto screenId = rsInterfaces->GetDefaultScreenId();
+    EXPECT_NE(screenId, INVALID_SCREEN_ID);
+
+    RSScreenHDRCapability hdrCapability;
+    int ret = rsInterfaces->GetScreenHDRCapability(screenId, hdrCapability);
+    EXPECT_EQ(ret, StatusCode::SUCCESS);
+    EXPECT_EQ(hdrCapability.GetMaxLum(), 1000); // maxLum now is mock data
+}
+
+/*
+* Function: GetScreenHDRCapability
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call GetScreenHDRCapability with INVALID_SCREEN_ID
+*                  2. check ret
+*/
+HWTEST_F(RSInterfacesTest, GetScreenHDRCapability002, Function | SmallTest | Level2)
+{
+    RSScreenHDRCapability hdrCapability;
+    int ret = rsInterfaces->GetScreenHDRCapability(INVALID_SCREEN_ID, hdrCapability);
+    EXPECT_EQ(ret, StatusCode::SCREEN_NOT_FOUND);
+}
 } // namespace Rosen
 } // namespace OHOS
