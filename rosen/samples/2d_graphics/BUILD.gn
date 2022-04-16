@@ -13,61 +13,75 @@
 
 import("//build/ohos.gni")
 import("//foundation/graphic/standard/graphic_config.gni")
-import("//third_party/wayland_standard/wayland_protocol.gni")
 
-if (ace_enable_gpu) {
-  ohos_executable("render_context_sample") {
-    install_enable = true
-    cflags = [
-      "-Wall",
-      "-Werror",
-      "-Wno-unused-parameter",
-      "-Wno-missing-field-initializers",
-      "-Wno-unused-variable",
+ohos_executable("drawing_engine_sample") {
+  install_enable = true
+  cflags = [
+    "-Wall",
+    "-Werror",
+    "-Wno-unused-parameter",
+    "-Wno-missing-field-initializers",
+    "-Wno-unused-variable",
+    "-Werror,-Wreturn-type",
+  ]
+
+  sources = [
+    "drawing_engine_sample.cpp",
+    "main.cpp",
+  ]
+
+  sources += [
+    "drawing_engine/canvas_context.cpp",
+    "drawing_engine/drawing_proxy.cpp",
+    "drawing_engine/drawing_surface/surface_frame_ohos_raster.cpp",
+    "drawing_engine/drawing_surface/surface_ohos.cpp",
+    "drawing_engine/drawing_surface/surface_ohos_raster.cpp",
+    "drawing_engine/software_render_backend.cpp",
+  ]
+
+  if (ace_enable_gpu) {
+    sources += [
+      "drawing_engine/drawing_surface/surface_frame_ohos_gl.cpp",
+      "drawing_engine/drawing_surface/surface_ohos_gl.cpp",
+      "drawing_engine/egl_manager.cpp",
+      "drawing_engine/gles_render_backend.cpp",
     ]
-
-    sources = [
-      "main.cpp",
-      "render_context_sample.cpp",
-    ]
-
-    configs = []
-
-    include_dirs = [
-      "include",
-      "//foundation/graphic/standard/rosen/modules/2d_graphics/include",
-      "//foundation/graphic/standard/rosen/modules/2d_graphics/src",
-      "//foundation/graphic/standard/rosen/modules/render_service_base/src",
-      "//foundation/graphic/standard/rosen/modules/composer/hdi_backend/include",
-      "//foundation/graphic/standard/interfaces/innerkits/vsync_module",
-      "//foundation/graphic/standard/utils/sync_fence/export",
-      "//foundation/graphic/standard/rosen/include/common",
-      "//foundation/graphic/standard/rosen/modules/render_service_base/include",
-    ]
-
-    deps = [
-      "//foundation/ace/ace_engine/build/external_config/flutter/skia:ace_skia_ohos",
-      "//foundation/graphic/standard:libsurface",
-      "//foundation/graphic/standard:libvsync_client",
-      "//foundation/graphic/standard:libwmclient",
-      "//foundation/graphic/standard:libwmservice",
-      "//foundation/graphic/standard/frameworks/vsync:libvsync_module",
-      "//foundation/graphic/standard/rosen/modules/2d_graphics:2d_graphics",
-      "//foundation/graphic/standard/rosen/modules/composer:libcomposer",
-      "//foundation/graphic/standard/rosen/modules/render_service_base:librender_service_base",
-      "//foundation/graphic/standard/utils:sync_fence",
-      "//third_party/zlib:libz",
-    ]
-
-    external_deps = [
-      "hilog_native:libhilog",
-      "multimedia_image_standard:image_native",
-      "utils_base:utils",
-    ]
-
-    subsystem_name = "graphic"
-    part_name = "graphic_standard"
   }
+
+  configs = []
+
+  include_dirs = [
+    "include",
+    "drawing_engine",
+    "drawing_engine/drawing_surface",
+    "//foundation/graphic/standard/rosen/modules/composer/hdi_backend/include",
+    "//foundation/graphic/standard/interfaces/innerkits/vsync_module",
+    "//foundation/graphic/standard/utils/sync_fence/export",
+    "//foundation/graphic/standard/rosen/include/common",
+  ]
+
+  deps = [
+    "//foundation/ace/ace_engine/build/external_config/flutter/skia:ace_skia_ohos",
+    "//foundation/graphic/standard:libsurface",
+    "//foundation/graphic/standard:libvsync_client",
+    "//foundation/graphic/standard/frameworks/vsync:libvsync_module",
+    "//foundation/graphic/standard/rosen/modules/composer:libcomposer",
+    "//foundation/graphic/standard/utils:sync_fence",
+  ]
+
+  #defines = [ "USE_CANVASKIT0310_SKIA" ]
+
+  deps += [
+    #"//third_party/skia:skia",
+  ]
+
+  external_deps = [
+    "hilog_native:libhilog",
+    "utils_base:utils",
+  ]
+
+  subsystem_name = "graphic"
+  part_name = "graphic_standard"
 }
 
 ohos_executable("drawing_sample_rs") {
