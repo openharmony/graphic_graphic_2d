@@ -19,6 +19,9 @@
         "SystemCapability.Graphic.Graphic2D.WebGL2"
       ],
       "adapted_system_type": [ "standard" ],
+      "features": [
+        "graphic_standard_feature_ace_enable_gpu"
+      ],
       "rom": "10000KB",
       "ram": "10000KB",
       "hisysevent_config": [
