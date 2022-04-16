@@ -55,6 +55,10 @@ ohos_executable("drawing_engine_sample") {
     "drawing_engine",
     "drawing_engine/drawing_surface",
     "//foundation/graphic/standard/rosen/modules/composer/hdi_backend/include",
+    "//foundation/graphic/standard/rosen/modules/2d_graphics/include",
+    "//foundation/graphic/standard/rosen/modules/2d_graphics/src",
+    "//foundation/graphic/standard/rosen/modules/render_service_base/include",
+    "//foundation/graphic/standard/rosen/modules/render_service_base/src",
     "//foundation/graphic/standard/interfaces/innerkits/vsync_module",
     "//foundation/graphic/standard/utils/sync_fence/export",
     "//foundation/graphic/standard/rosen/include/common",
@@ -65,7 +69,9 @@ ohos_executable("drawing_engine_sample") {
     "//foundation/graphic/standard:libsurface",
     "//foundation/graphic/standard:libvsync_client",
     "//foundation/graphic/standard/frameworks/vsync:libvsync_module",
+    "//foundation/graphic/standard/rosen/modules/2d_graphics:2d_graphics",
     "//foundation/graphic/standard/rosen/modules/composer:libcomposer",
+    "//foundation/graphic/standard/rosen/modules/render_service_base:librender_service_base",
     "//foundation/graphic/standard/utils:sync_fence",
   ]
 

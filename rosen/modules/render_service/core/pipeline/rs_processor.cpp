@@ -22,8 +22,38 @@
 #include "pipeline/rs_main_thread.h"
 #include "platform/common/rs_log.h"
 
+#include <platform/ohos/rs_surface_ohos.h>
+
 namespace OHOS {
 namespace Rosen {
+SkCanvas* RSProcessor::CreateCanvas(
+    const std::shared_ptr<RSSurfaceOhos>& surface,
+    const BufferRequestConfig& requestConfig)
+{
+    RS_TRACE_NAME("CreateCanvas");
+
+    if (surface == nullptr) {
+        RS_LOGE("RSProcessor::CreateCanvas: surface is null!");
+        return nullptr;
+    }
+
+#ifdef RS_ENABLE_GL
+    if (renderContext_ == nullptr) {
+        RS_LOGE("RSProcessor::CreateCanvas: render context is null!");
+        return nullptr;
+    }
+    surface->SetRenderContext(renderContext_.get());
+#endif
+
+    currFrame_ = surface->RequestFrame(requestConfig.width, requestConfig.height);
+    if (currFrame_ == nullptr) {
+        RS_LOGE("RSProcessor::CreateCanvas: requestFrame failed!");
+        return nullptr;
+    }
+
+    return currFrame_->GetCanvas();
+}
+
 std::unique_ptr<SkCanvas> RSProcessor::CreateCanvas(sptr<Surface> producerSurface, BufferRequestConfig requestConfig)
 {
     RS_TRACE_NAME("CreateCanvas");

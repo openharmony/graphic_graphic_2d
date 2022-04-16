@@ -53,6 +53,7 @@ ohos_executable("drawing_sample") {
     "//drivers/peripheral/display/interfaces/include",
     "//foundation/graphic/standard/rosen/include/common",
     "//foundation/graphic/standard/rosen/modules/composer/vsync/include",
+    "//foundation/graphic/standard/rosen/modules/render_service_base/src",
     "//foundation/graphic/standard/interfaces/innerkits/composer",
   ]
 
@@ -61,6 +62,7 @@ ohos_executable("drawing_sample") {
     "//foundation/graphic/standard:libsurface",
     "//foundation/graphic/standard/rosen/modules/2d_graphics:2d_graphics",
     "//foundation/graphic/standard/rosen/modules/composer:libcomposer",
+    "//foundation/graphic/standard/rosen/modules/render_service_base:librender_service_base",
     "//foundation/graphic/standard/utils:libgraphic_utils",
     "//foundation/graphic/standard/utils:sync_fence",
   ]

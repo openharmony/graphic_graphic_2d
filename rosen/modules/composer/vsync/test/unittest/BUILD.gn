@@ -96,8 +96,10 @@ ohos_unittest("vsync_sampler_test") {
 
 ## Build vsync_test_common.a {{{
 config("vsync_test_common_public_config") {
-  include_dirs =
-      [ "//foundation/graphic/standard/rosen/modules/composer/vsync/include" ]
+  include_dirs = [
+    "//foundation/graphic/standard/interfaces/innerkits/common",
+    "//foundation/graphic/standard/rosen/modules/composer/vsync/include",
+  ]
 
   cflags = [
     "-Wall",
@@ -115,7 +117,7 @@ ohos_static_library("vsync_test_common") {
   public_configs = [ ":vsync_test_common_public_config" ]
 
   public_deps = [
-    "//foundation/graphic/standard/rosen/modules/composer:libcomposer",
+    "//foundation/graphic/standard/rosen/modules/composer/vsync:libvsync",
     "//third_party/googletest:gmock_main",
     "//third_party/googletest:gtest_main",
   ]

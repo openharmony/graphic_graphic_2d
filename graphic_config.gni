@@ -16,8 +16,12 @@ declare_args() {
 }
 
 if (graphic_standard_feature_ace_enable_gpu) {
-  gpu_defines = [ "ACE_ENABLE_GL" ]
+  gpu_defines = [
+    "ACE_ENABLE_GL",
+    "RS_ENABLE_GL",
+  ]
   ace_enable_gpu = true
+  rs_enable_gpu = true
 
   # libgl is a native stub for decoupling system.img and vendor.img
   # real libgl installed in /vendor/lib/chipsetsdk
@@ -28,5 +32,6 @@ if (graphic_standard_feature_ace_enable_gpu) {
 } else {
   gpu_defines = [ "ACE_DISABLE_GL" ]
   ace_enable_gpu = false
+  rs_enable_gpu = false
   libgl = []
 }

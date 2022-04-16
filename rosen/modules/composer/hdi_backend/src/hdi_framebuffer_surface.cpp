@@ -17,6 +17,9 @@
 
 #include "hdi_log.h"
 
+#include <platform/ohos/backend/rs_surface_ohos_gl.h>
+#include <platform/ohos/backend/rs_surface_ohos_raster.h>
+
 using namespace OHOS;
 
 namespace OHOS {
@@ -56,6 +59,12 @@ SurfaceError HdiFramebufferSurface::CreateSurface(sptr<HdiFramebufferSurface> &f
     sptr<IBufferProducer> producer = consumerSurface_->GetProducer();
     producerSurface_ = Surface::CreateSurfaceAsProducer(producer);
 
+#ifdef RS_ENABLE_GL
+    rsSurface_ = std::make_shared<RSSurfaceOhosGl>(producerSurface_);
+#else
+    rsSurface_ = std::make_shared<RSSurfaceOhosRaster>(producerSurface_);
+#endif
+
     sptr<IBufferConsumerListener> listener = fbSurface;
     SurfaceError ret = consumerSurface_->RegisterConsumerListener(listener);
     if (ret != SURFACE_ERROR_OK) {
@@ -93,9 +102,9 @@ void HdiFramebufferSurface::OnBufferAvailable()
     fbAcquireFence_ = new SyncFence(fbAcquireFence);
 }
 
-sptr<Surface> HdiFramebufferSurface::GetSurface()
+std::shared_ptr<RSSurfaceOhos> HdiFramebufferSurface::GetSurface()
 {
-    return producerSurface_;
+    return rsSurface_;
 }
 
 sptr<SurfaceBuffer> HdiFramebufferSurface::GetFramebuffer()

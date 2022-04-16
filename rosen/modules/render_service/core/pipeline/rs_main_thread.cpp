@@ -61,6 +61,11 @@ void RSMainThread::Init()
     receiver_ = std::make_shared<VSyncReceiver>(conn);
     receiver_->Init();
     RsRenderServiceUtil::InitEnableClient();
+
+#ifdef RS_ENABLE_GL
+    renderContext_ = std::make_shared<RenderContext>();
+    renderContext_->InitializeEglContext();
+#endif // RS_ENABLE_GL
 }
 
 void RSMainThread::Start()

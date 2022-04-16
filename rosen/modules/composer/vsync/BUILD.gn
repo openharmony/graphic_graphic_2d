@@ -13,8 +13,9 @@
 
 import("//build/ohos.gni")
 
-## Build hello_composer {{{
-config("hello_composer_config") {
+## Build libvsync.so
+
+config("vsync_config") {
   visibility = [ ":*" ]
 
   cflags = [
@@ -24,44 +25,58 @@ config("hello_composer_config") {
   ]
 }
 
-config("hello_composer_public_config") {
+config("vsync_public_config") {
   include_dirs = [
-    "//foundation/graphic/standard/rosen/modules/composer/hdi_backend/include",
     "//drivers/peripheral/display/interfaces/include",
+    "//foundation/graphic/standard/interfaces/innerkits/composer",
+    "//foundation/graphic/standard/frameworks/vsync/include",
     "//foundation/graphic/standard/rosen/include/common",
     "//foundation/graphic/standard/rosen/modules/composer/vsync/include",
-    "//foundation/graphic/standard/rosen/modules/render_service_base/src",
-    "//foundation/graphic/standard/interfaces/innerkits/composer",
   ]
 }
 
-ohos_executable("hello_composer") {
-  install_enable = true
-
+ohos_shared_library("libvsync") {
   sources = [
-    "hello_composer.cpp",
-    "layer_context.cpp",
-    "main.cpp",
+    "src/vsync.cpp",
+    "src/vsync_connection_proxy.cpp",
+    "src/vsync_connection_stub.cpp",
+    "src/vsync_controller.cpp",
+    "src/vsync_distributor.cpp",
+    "src/vsync_generator.cpp",
+    "src/vsync_receiver.cpp",
+    "src/vsync_sampler.cpp",
   ]
 
-  configs = [ ":hello_composer_config" ]
+  include_dirs = [ "//foundation/graphic/standard/utils/log" ]
 
-  public_configs = [ ":hello_composer_public_config" ]
+  configs = [ ":vsync_config" ]
+
+  public_configs = [
+    ":vsync_public_config",
+    "//utils/native/base:utils_config",
+  ]
 
   deps = [
     "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
-    "//foundation/graphic/standard:libsurface",
-    "//foundation/graphic/standard/rosen/modules/composer:libcomposer",
-    "//foundation/graphic/standard/rosen/modules/render_service_base:librender_service_base",
     "//foundation/graphic/standard/utils:libgraphic_utils",
-    "//foundation/graphic/standard/utils:sync_fence",
   ]
 
-  external_deps = [ "ipc:ipc_core" ]
+  public_deps = [
+    "//foundation/appexecfwk/standard/interfaces/innerkits/libeventhandler:libeventhandler",
+    "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
+    "//foundation/graphic/standard/utils:scoped_bytrace",
+    "//foundation/graphic/standard/utils:socketpair",
+    "//utils/native/base:utils",
+  ]
 
   part_name = "graphic_standard"
   subsystem_name = "graphic"
 }
 
-## Build hello_composer }}}
+## Build libvsync.so
 
+group("test") {
+  testonly = true
+
+  deps = [ "test:test" ]
+}

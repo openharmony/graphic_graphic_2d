@@ -68,7 +68,7 @@ private:
     void OutPutDisplay();
     void Sync(int64_t, void *data);
     void CreatePhysicalScreen();
-    void DoPrepareCompleted(sptr<Surface> &surface, const struct PrepareCompleteParam &param);
+    void DoPrepareCompleted(sptr<Surface> surface, const struct PrepareCompleteParam &param);
     virtual void OnBufferAvailable() override;
     SurfaceError DoDraw();
     void Draw(SkCanvas* canvas);
@@ -76,7 +76,8 @@ private:
     void CreateDrawingSurface();
     void OnHotPlugEvent(std::shared_ptr<HdiOutput> &output, bool connected);
     static void OnScreenPlug(std::shared_ptr<HdiOutput> &output, bool connected, void* data);
-    static void OnPrepareCompleted(sptr<Surface> &surface, const struct PrepareCompleteParam &param, void* data);
+    static void OnPrepareCompleted(
+        std::shared_ptr<RSSurfaceOhos> &rsSurface, const struct PrepareCompleteParam &param, void* data);
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -60,7 +60,7 @@ HWTEST_F(HdiBackendTest, RegScreenHotplug001, Function | MediumTest| Level3)
 
 HWTEST_F(HdiBackendTest, RegPrepareComplete001, Function | MediumTest| Level3)
 {
-    auto func = [](sptr<Surface> &surface, const struct PrepareCompleteParam &param, void* data) -> void {};
+    auto func = [](std::shared_ptr<RSSurfaceOhos> &, const struct PrepareCompleteParam &param, void* data) -> void {};
     ASSERT_EQ(HdiBackendTest::hdiBackend_->RegPrepareComplete(func, nullptr), ROSEN_ERROR_OK);
 }
 

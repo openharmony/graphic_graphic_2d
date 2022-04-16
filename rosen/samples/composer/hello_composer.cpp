@@ -22,6 +22,8 @@
 #include <securec.h>
 #include <sync_fence.h>
 
+#include <platform/ohos/rs_surface_ohos.h>
+
 using namespace OHOS;
 using namespace OHOS::Rosen;
 
@@ -101,13 +103,13 @@ void HelloComposer::OnScreenPlug(std::shared_ptr<HdiOutput> &output, bool connec
 }
 
 void HelloComposer::OnPrepareCompleted(
-    sptr<Surface> &surface, const struct PrepareCompleteParam &param, void* data)
+    std::shared_ptr<RSSurfaceOhos> &rsSurface, const struct PrepareCompleteParam &param, void* data)
 {
     if (!param.needFlushFramebuffer) {
         return;
     }
 
-    if (surface == nullptr) {
+    if (rsSurface == nullptr) {
         LOGE("surface is null");
         return;
     }
@@ -118,7 +120,7 @@ void HelloComposer::OnPrepareCompleted(
     }
 
     auto* thisPtr = static_cast<HelloComposer *>(data);
-    thisPtr->DoPrepareCompleted(surface, param);
+    thisPtr->DoPrepareCompleted(rsSurface->GetSurface(), param);
 }
 
 void HelloComposer::CreateLayers()
@@ -410,7 +412,7 @@ void HelloComposer::RemoveOffScreenData(uint32_t offScreenId)
     }
 }
 
-void HelloComposer::DoPrepareCompleted(sptr<Surface> &surface, const struct PrepareCompleteParam &param)
+void HelloComposer::DoPrepareCompleted(sptr<Surface> surface, const struct PrepareCompleteParam &param)
 {
     uint32_t screenId = curOutput_->GetScreenId();
     uint32_t displayWidth = displayWidthsMap_[screenId];

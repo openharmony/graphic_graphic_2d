@@ -20,6 +20,8 @@
 #include <vsync_helper.h>
 #include <iostream>
 
+#include <platform/ohos/rs_surface_ohos.h>
+
 using namespace OHOS;
 using namespace OHOS::Rosen;
 
@@ -64,9 +66,14 @@ void RenderContextSample::OnScreenPlug(std::shared_ptr<HdiOutput> &output, bool 
     thisPtr->OnHotPlugEvent(output, connected);
 }
 
-void RenderContextSample::OnPrepareCompleted(sptr<Surface> &surface, const struct PrepareCompleteParam &param, void* data)
+void RenderContextSample::OnPrepareCompleted(
+    std::shared_ptr<RSSurfaceOhos> &rsSurface, const struct PrepareCompleteParam &param, void* data)
 {
     if (!param.needFlushFramebuffer) {
+        return;
+    }
+
+    if (rsSurface == nullptr) {
         return;
     }
 
@@ -76,7 +83,7 @@ void RenderContextSample::OnPrepareCompleted(sptr<Surface> &surface, const struc
 
     std::cout << "OnPrepareCompleted param.layer size is " << (int)param.layers.size() << std::endl;
     auto* thisPtr = static_cast<RenderContextSample *>(data);
-    thisPtr->DoPrepareCompleted(surface, param);
+    thisPtr->DoPrepareCompleted(rsSurface->GetSurface(), param);
 }
 
 void RenderContextSample::InitEGL()
@@ -457,7 +464,7 @@ void RenderContextSample::OnHotPlugEvent(std::shared_ptr<HdiOutput> &output, boo
     }
  }
 
-void RenderContextSample::DoPrepareCompleted(sptr<Surface> &surface, const struct PrepareCompleteParam &param)
+void RenderContextSample::DoPrepareCompleted(sptr<Surface> surface, const struct PrepareCompleteParam &param)
 {
     BufferRequestConfig requestConfig = {
         .width = display_w,  // need display width

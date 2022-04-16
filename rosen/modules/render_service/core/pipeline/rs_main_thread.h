@@ -31,6 +31,10 @@
 #include "vsync_receiver.h"
 #include "vsync_distributor.h"
 
+#ifdef RS_ENABLE_GL
+#include "render_context/render_context.h"
+#endif // RS_ENABLE_GL
+
 namespace OHOS {
 namespace Rosen {
 class RSTransactionData;
@@ -77,6 +81,13 @@ public:
         return std::move(taskFuture);
     }
 
+#ifdef RS_ENABLE_GL
+    std::shared_ptr<RenderContext> GetRenderContext() const
+    {
+        return renderContext_;
+    }
+#endif // RS_ENABLE_GL
+
     RSContext& GetContext()
     {
         return context_;
@@ -118,6 +129,10 @@ private:
     RSContext context_;
     std::thread::id mainThreadId_;
     std::shared_ptr<VSyncReceiver> receiver_ = nullptr;
+
+#ifdef RS_ENABLE_GL
+    std::shared_ptr<RenderContext> renderContext_;
+#endif // RS_ENABLE_GL
 };
 } // namespace Rosen
 } // namespace OHOS

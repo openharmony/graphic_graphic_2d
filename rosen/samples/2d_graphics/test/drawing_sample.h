@@ -73,13 +73,14 @@ private:
     void CreateShowLayers();
     void Draw();
     void Sync(int64_t, void* data);
-    void DoPrepareCompleted(sptr<Surface>& surface, const struct PrepareCompleteParam& param);
+    void DoPrepareCompleted(sptr<Surface> surface, const struct PrepareCompleteParam& param);
     void OnHotPlug(std::shared_ptr<HdiOutput>& output, bool connected);
     void OnHotPlugEvent(std::shared_ptr<HdiOutput>& output, bool connected);
     uint32_t CreatePhysicalScreen();
 
     static void OnScreenPlug(std::shared_ptr<HdiOutput>& output, bool connected, void* data);
-    static void OnPrepareCompleted(sptr<Surface>& surface, const struct PrepareCompleteParam& param, void* data);
+    static void OnPrepareCompleted(
+        std::shared_ptr<RSSurfaceOhos> &rsSurface, const struct PrepareCompleteParam& param, void* data);
 };
 } // namespace Drawing
 } // namespace Rosen

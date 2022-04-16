@@ -27,6 +27,8 @@ ohos_shared_library("librender_service") {
   }
   defines += gpu_defines
 
+  defines += gpu_defines
+
   sources = [
     "core/pipeline/rs_compatible_processor.cpp",
     "core/pipeline/rs_hardware_processor.cpp",
@@ -50,6 +52,7 @@ ohos_shared_library("librender_service") {
     "core",
     "//foundation/graphic/standard/rosen/include",
     "//foundation/graphic/standard/rosen/modules/composer/vsync/include",
+    "//foundation/graphic/standard/rosen/modules/render_service_base/src",
     "//foundation/graphic/standard/rosen/modules/utils",
     "//utils/native/base/include",
     "//utils/system/safwk/native/include",

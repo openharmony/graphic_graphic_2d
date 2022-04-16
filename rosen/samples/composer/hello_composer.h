@@ -64,7 +64,7 @@ private:
     void DrawFrameBufferData(void *image, uint32_t width, uint32_t height);
     void Draw();
     void Sync(int64_t, void *data);
-    void DoPrepareCompleted(sptr<Surface> &surface, const struct PrepareCompleteParam &param);
+    void DoPrepareCompleted(sptr<Surface> surface, const struct PrepareCompleteParam &param);
     void OnHotPlug(std::shared_ptr<HdiOutput> &output, bool connected);
     void OnHotPlugEvent(std::shared_ptr<HdiOutput> &output, bool connected);
     void ParseArgs(std::vector<std::string> &runArgs);
@@ -74,7 +74,7 @@ private:
 
     static void OnScreenPlug(std::shared_ptr<HdiOutput> &output, bool connected, void* data);
     static void OnPrepareCompleted(
-        sptr<Surface> &rsSurface, const struct PrepareCompleteParam &param, void* data);
+        std::shared_ptr<RSSurfaceOhos> &rsSurface, const struct PrepareCompleteParam &param, void* data);
 };
 } // namespace Rosen
 } // namespace OHOS

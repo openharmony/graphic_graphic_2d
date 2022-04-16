@@ -22,6 +22,8 @@
 #include <vsync_generator.h>
 #include <vsync_receiver.h>
 
+#include <platform/ohos/rs_surface_ohos.h>
+
 using namespace OHOS;
 using namespace Rosen;
 using namespace Drawing;
@@ -79,13 +81,13 @@ void DrawingSample::OnScreenPlug(std::shared_ptr<HdiOutput>& output, bool connec
 }
 
 void DrawingSample::OnPrepareCompleted(
-    sptr<Surface>& surface, const struct PrepareCompleteParam& param, void* data)
+    std::shared_ptr<RSSurfaceOhos> &rsSurface, const struct PrepareCompleteParam& param, void* data)
 {
     if (!param.needFlushFramebuffer) {
         return;
     }
 
-    if (surface == nullptr) {
+    if (rsSurface == nullptr) {
         LOGE("surface is null");
         return;
     }
@@ -96,7 +98,7 @@ void DrawingSample::OnPrepareCompleted(
     }
 
     auto* thisPtr = static_cast<DrawingSample*>(data);
-    thisPtr->DoPrepareCompleted(surface, param);
+    thisPtr->DoPrepareCompleted(rsSurface->GetSurface(), param);
 }
 
 void DrawingSample::CreateShowLayers()
@@ -254,7 +256,7 @@ void DrawingSample::OnHotPlug(std::shared_ptr<HdiOutput>& output, bool connected
     }
 }
 
-void DrawingSample::DoPrepareCompleted(sptr<Surface>& surface, const struct PrepareCompleteParam& param)
+void DrawingSample::DoPrepareCompleted(sptr<Surface> surface, const struct PrepareCompleteParam& param)
 {
     uint32_t screenId = curOutput_->GetScreenId();
     uint32_t displayWidth = displayWidthsMap_[screenId];
