@@ -780,6 +780,8 @@ BufferDrawParam RsRenderServiceUtil::CreateBufferDrawParam(RSSurfaceRenderNode& 
     }
     params.clipRect = dstRect;
     params.paint = paint;
+    params.cornerRadius = property.GetCornerRadius();
+    params.isNeedClip = property.GetClipToFrame();
     return params;
 }
 
@@ -800,6 +802,26 @@ bool IsBufferValid(const sptr<SurfaceBuffer>& buffer)
         return false;
     }
     return true;
+}
+
+void SetPropertiesForCanvas(RSPaintFilterCanvas& canvas, BufferDrawParam& bufferDrawParam,
+    RsRenderServiceUtil::CanvasPostProcess process)
+{
+    canvas.save();
+    if (bufferDrawParam.isNeedClip) {
+        SkRect clipRect = bufferDrawParam.clipRect;
+        if (!bufferDrawParam.cornerRadius.IsZero()) {
+            RectF rect(clipRect.left(), clipRect.top(), clipRect.width(), clipRect.height());
+            RRect rrect = RRect(rect, bufferDrawParam.cornerRadius);
+            canvas.clipRRect(RSPropertiesPainter::RRect2SkRRect(rrect), true);
+        } else {
+            canvas.clipRect(bufferDrawParam.clipRect);
+        }
+    }
+    canvas.setMatrix(bufferDrawParam.matrix);
+    if (process) {
+        process(canvas, bufferDrawParam);
+    }
 }
 
 void RsRenderServiceUtil::DrawBuffer(RSPaintFilterCanvas& canvas, BufferDrawParam& bufferDrawParam,
@@ -828,13 +850,7 @@ void RsRenderServiceUtil::DrawBuffer(RSPaintFilterCanvas& canvas, BufferDrawPara
         RS_LOGE("RsRenderServiceUtil::DrawBuffer: create bitmap failed.");
         return;
     }
-
-    canvas.save();
-    canvas.clipRect(bufferDrawParam.clipRect);
-    canvas.setMatrix(bufferDrawParam.matrix);
-    if (process) {
-        process(canvas, bufferDrawParam);
-    }
+    SetPropertiesForCanvas(canvas, bufferDrawParam, process);
     canvas.drawBitmapRect(bitmap, bufferDrawParam.srcRect, bufferDrawParam.dstRect, &(bufferDrawParam.paint));
     canvas.restore();
 }
@@ -860,12 +876,7 @@ void RsRenderServiceUtil::DrawImage(std::shared_ptr<RSEglImageManager> eglImageM
         GrMipMapped::kNo, grExternalTextureInfo);
     image = SkImage::MakeFromTexture(grContext, backendTexture,
         kTopLeft_GrSurfaceOrigin, kRGBA_8888_SkColorType, kPremul_SkAlphaType, nullptr);
-    canvas.save();
-    canvas.clipRect(bufferDrawParam.clipRect);
-    canvas.setMatrix(bufferDrawParam.matrix);
-    if (process) {
-        process(canvas, bufferDrawParam);
-    }
+    SetPropertiesForCanvas(canvas, bufferDrawParam, process);
     canvas.drawImageRect(image, bufferDrawParam.srcRect, bufferDrawParam.dstRect, &(bufferDrawParam.paint));
     canvas.restore();
 }

@@ -44,6 +44,8 @@ struct BufferDrawParam {
     SkRect srcRect;
     SkRect dstRect;
     SkRect clipRect;
+    Vector4f cornerRadius;
+    bool isNeedClip = true;
     SkPaint paint;
     ColorGamut targetColorGamut = ColorGamut::COLOR_GAMUT_SRGB;
 };

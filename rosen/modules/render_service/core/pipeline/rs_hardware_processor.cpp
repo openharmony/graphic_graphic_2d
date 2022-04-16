@@ -36,9 +36,9 @@
 #include "pipeline/rs_render_service_util.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_log.h"
-
-#include <platform/ohos/backend/rs_surface_ohos_gl.h>
-#include <platform/ohos/backend/rs_surface_ohos_raster.h>
+#include "platform/ohos/backend/rs_surface_ohos_gl.h"
+#include "platform/ohos/backend/rs_surface_ohos_raster.h"
+#include "property/rs_properties_painter.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -275,6 +275,14 @@ bool IfUseGPUClient(const struct PrepareCompleteParam& param)
     return true;
 }
 
+void DrawBufferPostProcess(RSPaintFilterCanvas& canvas, RSSurfaceRenderNode& node, BufferDrawParam& params,
+    Vector2f& center)
+{
+    RsRenderServiceUtil::DealAnimation(canvas, node, params, center);
+    RectF maskBounds(0, 0, params.dstRect.width(), params.dstRect.height());
+    RSPropertiesPainter::DrawMask(node.GetRenderProperties(), canvas, RSPropertiesPainter::Rect2SkRect(maskBounds));
+}
+
 void RSHardwareProcessor::Redraw(
     sptr<Surface>& surface, const struct PrepareCompleteParam& param, void* data)
 {
@@ -341,6 +349,7 @@ void RSHardwareProcessor::Redraw(
         RS_LOGD("RsDebug RSHardwareProcessor::Redraw layer composition Type:%d, [%d %d %d %d]",
             layerInfo->GetCompositionType(), layerInfo->GetLayerSize().x, layerInfo->GetLayerSize().y,
             layerInfo->GetLayerSize().w, layerInfo->GetLayerSize().h);
+        int saveCount = canvas->getSaveCount();
         auto params = RsRenderServiceUtil::CreateBufferDrawParam(node, currScreenInfo_.rotationMatrix, rotation_);
         params.targetColorGamut = static_cast<ColorGamut>(currScreenInfo_.colorGamut);
         const auto& clipRect = layerInfo->GetLayerSize();
@@ -351,7 +360,7 @@ void RSHardwareProcessor::Redraw(
         if (ifUseGPU) {
             RsRenderServiceUtil::DrawImage(eglImageManager_, renderContext_->GetGrContext(), *canvas, params,
                 [this, &node, &center](RSPaintFilterCanvas& canvas, BufferDrawParam& params) -> void {
-                    RsRenderServiceUtil::DealAnimation(canvas, node, params, center);
+                    DrawBufferPostProcess(canvas, node, params, center);
             });
             auto consumerSurface = node.GetConsumer();
             GSError error = consumerSurface->RegisterDeleteBufferListener([eglImageManager = eglImageManager_]
@@ -363,14 +372,16 @@ void RSHardwareProcessor::Redraw(
         } else {
             RsRenderServiceUtil::DrawBuffer(*canvas, params, [this, &node, &center](RSPaintFilterCanvas& canvas,
                 BufferDrawParam& params) -> void {
-                    RsRenderServiceUtil::DealAnimation(canvas, node, params, center);
+                    DrawBufferPostProcess(canvas, node, params, center);
             });
         }
+        canvas->restoreToCount(saveCount);
 #else
         RsRenderServiceUtil::DrawBuffer(*canvas, params, [this, &node, &center](RSPaintFilterCanvas& canvas,
             BufferDrawParam& params) -> void {
-            RsRenderServiceUtil::DealAnimation(canvas, node, params, center);
+            DrawBufferPostProcess(canvas, node, params, center);
         });
+        canvas->restoreToCount(saveCount);
 #endif // RS_ENABLE_GL
     }
     rsSurface_->FlushFrame(currFrame_);

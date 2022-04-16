@@ -43,7 +43,7 @@ RSSurfaceNode::SharedPtr RSSurfaceNode::Create(const RSSurfaceNodeConfig& surfac
         ROSEN_LOGE("RSSurfaceNode::Create, create node and surface failed");
         return nullptr;
     }
-
+    node->SetClipToFrame(true);
     // create node in RT
     if (!isWindow) {
         std::unique_ptr<RSCommand> command = std::make_unique<RSSurfaceNodeCreate>(node->GetId());

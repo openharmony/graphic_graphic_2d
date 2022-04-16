@@ -17,12 +17,10 @@
 
 #include "include/core/SkPaint.h"
 #include "include/core/SkRRect.h"
+#include "property/rs_properties_painter.h"
 
 namespace OHOS {
 namespace Rosen {
-SkRect Rect2SkRect(const RectF& r);
-SkRRect RRect2SkRRect(const RRect& rr);
-
 void RSImage::CanvasDrawImage(SkCanvas& canvas, const SkRect& rect, const SkPaint& paint, bool isBackground)
 {
     canvas.save();
@@ -84,11 +82,11 @@ void RSImage::ApplyCanvasClip(SkCanvas& canvas)
     if (imageRepeat_ == ImageRepeat::NO_REPEAT) {
         // clip dst & frame intersect rect
         RRect rrect = RRect(dstRect_.IntersectRect(frameRect_), cornerRadius_, cornerRadius_);
-        canvas.clipRRect(RRect2SkRRect(rrect), true);
+        canvas.clipRRect(RSPropertiesPainter::RRect2SkRRect(rrect), true);
     } else {
         // clip frame rect
         RRect rrect = RRect(frameRect_, cornerRadius_, cornerRadius_);
-        canvas.clipRRect(RRect2SkRRect(rrect), true);
+        canvas.clipRRect(RSPropertiesPainter::RRect2SkRRect(rrect), true);
     }
 }
 
@@ -121,7 +119,7 @@ void RSImage::DrawImageRepeatRect(const SkPaint& paint, SkCanvas& canvas)
         }
     }
     // draw repeat rect
-    auto src = Rect2SkRect(srcRect_);
+    auto src = RSPropertiesPainter::Rect2SkRect(srcRect_);
     for (int i = minX; i <= maxX; ++i) {
         for (int j = minY; j <= maxY; ++j) {
             auto dst = SkRect::MakeXYWH(dstRect_.left_ + i * dstRect_.width_, dstRect_.top_ + j * dstRect_.height_,

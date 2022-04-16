@@ -45,12 +45,12 @@ namespace {
 constexpr int PARAM_DOUBLE = 2;
 } // namespace
 
-SkRect Rect2SkRect(const RectF& r)
+SkRect RSPropertiesPainter::Rect2SkRect(const RectF& r)
 {
     return SkRect::MakeXYWH(r.left_, r.top_, r.width_, r.height_);
 }
 
-SkRRect RRect2SkRRect(const RRect& rr)
+SkRRect RSPropertiesPainter::RRect2SkRRect(const RRect& rr)
 {
     SkRect rect = SkRect::MakeXYWH(rr.rect_.left_, rr.rect_.top_, rr.rect_.width_, rr.rect_.height_);
     SkRRect rrect = SkRRect::MakeEmpty();
@@ -340,7 +340,7 @@ void RSPropertiesPainter::DrawTransitionProperties(const std::unique_ptr<RSTrans
     canvas.translate(-center.x_, -center.y_);
 }
 
-void RSPropertiesPainter::DrawMask(const RSProperties& properties, SkCanvas& canvas)
+void RSPropertiesPainter::DrawMask(const RSProperties& properties, SkCanvas& canvas, SkRect maskBounds)
 {
     std::shared_ptr<RSMask> mask = properties.GetMask();
     if (mask == nullptr) {
@@ -352,7 +352,6 @@ void RSPropertiesPainter::DrawMask(const RSProperties& properties, SkCanvas& can
     }
 
     canvas.save();
-    SkRect maskBounds = Rect2SkRect(properties.GetBoundsRect());
     canvas.saveLayer(maskBounds, nullptr);
     int tmpLayer = canvas.getSaveCount();
 
@@ -383,6 +382,12 @@ void RSPropertiesPainter::DrawMask(const RSProperties& properties, SkCanvas& can
     maskPaint.setBlendMode(SkBlendMode::kSrcIn);
     canvas.saveLayer(maskBounds, &maskPaint);
     canvas.clipRect(maskBounds, true);
+}
+
+void RSPropertiesPainter::DrawMask(const RSProperties& properties, SkCanvas& canvas)
+{
+    SkRect maskBounds = Rect2SkRect(properties.GetBoundsRect());
+    DrawMask(properties, canvas, maskBounds);
 }
 } // namespace Rosen
 } // namespace OHOS
