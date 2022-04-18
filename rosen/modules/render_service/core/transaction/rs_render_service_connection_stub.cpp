@@ -18,18 +18,23 @@
 
 #include "command/rs_command_factory.h"
 #include "platform/common/rs_log.h"
+#include "rs_trace.h"
 
 namespace OHOS {
 namespace Rosen {
 int RSRenderServiceConnectionStub::OnRemoteRequest(
     uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option)
 {
+    RS_ASYNC_TRACE_END("RSProxySendRequest", data.GetDataSize());
     int ret = ERR_NONE;
     switch (code) {
         case COMMIT_TRANSACTION: {
-            RS_LOGI("unirender: RSRenderServiceConnectionStub::OnRemoteRequest, case COMMIT_TRANSACTION");
             auto token = data.ReadInterfaceToken();
+
+            RS_TRACE_BEGIN("UnMarsh RSTransactionData: data size:" + std::to_string(data.GetDataSize()));
             auto transactionData = data.ReadParcelable<RSTransactionData>();
+            RS_TRACE_END();
+
             std::unique_ptr<RSTransactionData> transData(transactionData);
             CommitTransaction(transData);
             break;
@@ -242,7 +247,6 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_STATE;
                 break;
             }
-            RS_LOGI("unirender: RSRenderServiceConnectionStub::OnRemoteRequest, case EXECUTE_SYNCHRONOUS_TASK: type=%d subtype=%d", type, subType);
             auto func = RSCommandFactory::Instance().GetUnmarshallingFunc(type, subType);
             if (func == nullptr) {
                 ret = ERR_INVALID_STATE;

@@ -18,6 +18,7 @@
 #include <message_option.h>
 #include <message_parcel.h>
 #include "platform/common/rs_log.h"
+#include "rs_trace.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -36,13 +37,16 @@ void RSRenderServiceConnectionProxy::CommitTransaction(std::unique_ptr<RSTransac
         return;
     }
 
-    if (!data.WriteParcelable(transactionData.get())) {
-        ROSEN_LOGE("unirender: failed RSRenderServiceConnectionProxy::CommitTransaction data.WriteParcelable");
+    RS_TRACE_BEGIN("Marsh RSTransactionData: cmd count:" + std::to_string(transactionData->GetCommandCount()));
+    bool success = data.WriteParcelable(transactionData.get());
+    RS_TRACE_END();
+    if (!success) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::CommitTransaction data.WriteParcelable failed!");
         return;
     }
 
     option.SetFlags(MessageOption::TF_ASYNC);
-    ROSEN_LOGD("unirender: RSRenderServiceConnectionProxy::CommitTransaction, Remote()->SendRequest");
+    RS_ASYNC_TRACE_BEGIN("RSProxySendRequest", data.GetDataSize());
     int32_t err = Remote()->SendRequest(RSIRenderServiceConnection::COMMIT_TRANSACTION, data, reply, option);
     if (err != NO_ERROR) {
         return;

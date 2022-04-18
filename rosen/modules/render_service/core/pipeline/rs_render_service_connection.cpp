@@ -165,7 +165,6 @@ void RSRenderServiceConnection::RSApplicationRenderThreadDeathRecipient::OnRemot
 
 void RSRenderServiceConnection::CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData)
 {
-    RS_LOGI("unirender: RSRenderServiceConnection::CommitTransaction, mainThread_->RecvRSTransactionData");
     mainThread_->RecvRSTransactionData(transactionData);
 }
 

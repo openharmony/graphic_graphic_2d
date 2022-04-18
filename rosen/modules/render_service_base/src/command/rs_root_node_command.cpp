@@ -42,10 +42,10 @@ void RootNodeCommandHelper::AddToSurfaceNode(RSContext& context, NodeId id, Node
     auto parent = nodeMap.GetRenderNode<RSSurfaceRenderNode>(surfaceNodeId);
     auto node = nodeMap.GetRenderNode<RSRootRenderNode>(id);
     if (!parent) {
-        ROSEN_LOGE("unirender: RootNodeCommandHelper::AddToSurfaceNode no parent surfaceNode");
+        RS_LOGE("unirender: RootNodeCommandHelper::AddToSurfaceNode no parent surfaceNode");
     }
     if (!node) {
-        ROSEN_LOGE("unirender: RootNodeCommandHelper::AddToSurfaceNode no RootRenderNode");
+        RS_LOGE("unirender: RootNodeCommandHelper::AddToSurfaceNode no RootRenderNode");
     }
     if (node && parent) {
         parent->AddChild(node);

@@ -43,7 +43,7 @@ bool RSTransactionData::Marshalling(Parcel& parcel) const
     for (auto& command : commands_) {
         success &= command->Marshalling(parcel);
         if (!success) {
-            ROSEN_LOGE("unirender: failed RSTransactionData::Marshalling type:%s", command->PrintType().c_str());
+            ROSEN_LOGE("failed RSTransactionData::Marshalling type:%s", command->PrintType().c_str());
         }
     }
 
@@ -93,7 +93,7 @@ bool RSTransactionData::UnmarshallingCommand(Parcel& parcel)
         }
         auto command = (*func)(parcel);
         if (command == nullptr) {
-            ROSEN_LOGE("unirender: failed RSTransactionData::UnmarshallingCommand, type=%d subtype=%d", commandType, commandSubType);
+            ROSEN_LOGE("failed RSTransactionData::UnmarshallingCommand, type=%d subtype=%d", commandType, commandSubType);
             break;
         }
         AddCommand(std::unique_ptr<RSCommand>(command));
