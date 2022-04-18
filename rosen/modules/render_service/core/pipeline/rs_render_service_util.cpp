@@ -794,12 +794,13 @@ BufferDrawParam RsRenderServiceUtil::CreateBufferDrawParam(RSSurfaceRenderNode& 
 {
     const RSProperties& property = node.GetRenderProperties();
     BufferDrawParam params;
-    auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(property.GetBoundsGeometry());
+
     auto buffer = node.GetBuffer();
     sptr<Surface> surface = node.GetConsumer();
-    if (!geoPtr || !buffer || !surface) {
+    if (!buffer || !surface) {
         return params;
     }
+
     SkPaint paint;
     paint.setAlphaf(node.GetAlpha() * property.GetAlpha());
 
@@ -808,9 +809,11 @@ BufferDrawParam RsRenderServiceUtil::CreateBufferDrawParam(RSSurfaceRenderNode& 
     params.srcRect = SkRect::MakeXYWH(0, 0, buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight());
     const auto surfaceTransform = surface->GetTransform();
     if (surfaceTransform == TransformType::ROTATE_90 || surfaceTransform == TransformType::ROTATE_270) {
-        params.dstRect = SkRect::MakeXYWH(0, 0, property.GetBoundsHeight(), property.GetBoundsWidth());
+        params.dstRect = SkRect::MakeXYWH(node.GetDstRect().left_, node.GetDstRect().top_,
+            node.GetDstRect().height_, node.GetDstRect().width_);
     } else {
-        params.dstRect = SkRect::MakeXYWH(0, 0, property.GetBoundsWidth(), property.GetBoundsHeight());
+        params.dstRect = SkRect::MakeXYWH(node.GetDstRect().left_, node.GetDstRect().top_,
+            node.GetDstRect().width_, node.GetDstRect().height_);
     }
     params.clipRect = SkRect::MakeXYWH(node.GetDstRect().left_, node.GetDstRect().top_, node.GetDstRect().width_,
         node.GetDstRect().height_);

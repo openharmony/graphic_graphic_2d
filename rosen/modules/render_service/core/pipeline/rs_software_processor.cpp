@@ -120,6 +120,15 @@ void RSSoftwareProcessor::ProcessSurface(RSSurfaceRenderNode& node)
         RS_LOGE("RSSoftwareProcessor::ProcessSurface: surface buffer is null!");
         return;
     }
+
+    auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(node.GetRenderProperties().GetBoundsGeometry());
+    if (geoPtr == nullptr) {
+        RS_LOGE("RsDebug RSSoftwareProcessor::ProcessSurface geoPtr == nullptr");
+        return;
+    }
+    node.SetDstRect({geoPtr->GetAbsRect().left_ - offsetX_, geoPtr->GetAbsRect().top_ - offsetY_,
+        geoPtr->GetAbsRect().width_, geoPtr->GetAbsRect().height_});
+
     auto params = RsRenderServiceUtil::CreateBufferDrawParam(node);
     RsRenderServiceUtil::DrawBuffer(*canvas_, params);
 }
