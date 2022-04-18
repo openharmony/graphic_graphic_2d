@@ -11,22 +11,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-declare_args() {
-  graphic_standard_feature_ace_enable_gpu = false
+import("//build/ohos/native_stub/native_stub.gni")
+
+ohos_native_stub_headers("GLES3_header") {
+  sources = [
+    "//third_party/openGLES/api/GLES3/gl3.h",
+    "//third_party/openGLES/api/GLES3/gl31.h",
+    "//third_party/openGLES/api/GLES3/gl32.h",
+    "//third_party/openGLES/api/GLES3/gl3platform.h",
+  ]
 }
 
-if (graphic_standard_feature_ace_enable_gpu) {
-  gpu_defines = [ "ACE_ENABLE_GL" ]
-  ace_enable_gpu = true
-
-  # libgl is a native stub for decoupling system.img and vendor.img
-  # real libgl installed in /vendor/lib/chipsetsdk
-  libgl = [
-    "//foundation/graphic/standard/frameworks/opengl/libs/EGL:libEGL_stub",
-    "//foundation/graphic/standard/frameworks/opengl/libs/GLES3:libGLESv3_stub",
-  ]
-} else {
-  gpu_defines = [ "ACE_DISABLE_GL" ]
-  ace_enable_gpu = false
-  libgl = []
+ohos_native_stub_library("libGLESv3_stub") {
+  output_name = "GLESv3"
+  output_extension = "so"
+  stub_description_file = "./libGLESv3.stub.json"
 }
