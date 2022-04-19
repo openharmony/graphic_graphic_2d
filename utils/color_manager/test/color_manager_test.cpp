@@ -37,11 +37,6 @@ public:
     {}
 };
 
-static bool FloatEqual(const float input, const float actual_value)
-{
-    return std::abs(input - actual_value) < 1e-3f;
-}
-
 /*
 * Function: ColorManagerTest
 * Type: Function
@@ -250,6 +245,30 @@ HWTEST_F(ColorManagerTest, DCI_P3ToAdobe, Function | SmallTest | Level2)
     ASSERT_EQ(FloatEqual(result.r, 0.0880399f), true);
     ASSERT_EQ(FloatEqual(result.g, 0.151082f), true);
     ASSERT_EQ(FloatEqual(result.b, 0.245245f), true);
+}
+
+/*
+* Function: ColorManagerTest
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: sRGB convert to DCI_P3
+*/
+HWTEST_F(ColorManagerTest, skiaToColorSpace, Function | SmallTest | Level2)
+{
+    sk_sp<SkColorSpace> skiaSrgb = SkColorSpace::MakeSRGB();
+    ASSERT_NE(nullptr, skiaSrgb);
+    Color color = Color(0.1, 0.2, 0.3, 0.4);
+    ColorSpace srgb = ColorSpace(skiaSrgb);
+    Color result = color.Convert(srgb);
+    ASSERT_EQ(color.ColorEqual(result), true);
+
+    sk_sp<SkColorSpace> skiaP3 = SkColorSpace::MakeRGB(SkNamedTransferFn::kSRGB, SkNamedGamut::kDCIP3);
+    ASSERT_NE(nullptr, skiaP3);
+    ColorSpace displayP3 = ColorSpace(skiaP3);
+    result = color.Convert(displayP3);
+    Color p3Color = Color(0.1238f, 0.19752f, 0.29182f, 0.4, ColorSpaceName::DISPLAY_P3);
+    ASSERT_EQ(p3Color.ColorEqual(result), true);
 }
 }
 }

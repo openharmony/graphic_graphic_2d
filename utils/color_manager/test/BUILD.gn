@@ -36,6 +36,7 @@ config("color_manager_test_config") {
     "-g3",
     "-Dprivate=public",
     "-Dprotected=public",
+    "-Os",
   ]
 }
 
@@ -46,6 +47,7 @@ ohos_static_library("color_manager_test") {
 
   public_deps = [
     "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
+    "//foundation/graphic/standard/rosen/build/skia:skia_ohos",
     "//foundation/graphic/standard/utils/color_manager:color_manager",
     "//third_party/googletest:gtest_main",
   ]

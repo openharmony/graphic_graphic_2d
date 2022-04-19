@@ -13,16 +13,27 @@
 
 import("//build/ohos.gni")
 
-## Build color_manager_config.a {{{
+## Build color_manager.so {{{
 config("color_manager_config") {
   visibility = [ ":*" ]
+
+  cflags = [
+    "-Wall",
+    "-Werror",
+    "-g3",
+    "-Wno-error=missing-braces",
+    "-Wno-error=#warnings",
+    "-Os",
+  ]
+
+  ldflags = [ "-Wl" ]
 }
 
 config("color_manager_public_config") {
   include_dirs = [ "export" ]
 }
 
-ohos_static_library("color_manager") {
+ohos_shared_library("color_manager") {
   sources = [
     "src/color.cpp",
     "src/color_space.cpp",
@@ -33,10 +44,11 @@ ohos_static_library("color_manager") {
 
   public_configs = [ ":color_manager_public_config" ]
 
-  deps = []
+  public_deps = [ "//foundation/graphic/standard/rosen/build/skia:skia_ohos" ]
+
   subsystem_name = "graphic"
   part_name = "graphic_standard"
 }
 
-## Build color_manager_config.a }}}
+## Build color_manager.so }}}
 
