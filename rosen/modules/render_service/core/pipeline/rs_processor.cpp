@@ -103,43 +103,52 @@ void RSProcessor::SetBufferTimeStamp()
 
 bool RSProcessor::ConsumeAndUpdateBuffer(RSSurfaceRenderNode& node, SpecialTask& task, sptr<SurfaceBuffer>& buffer)
 {
-    if (node.GetAvailableBufferCount() == 0 && !node.GetBuffer()) {
-        RS_LOGI("RsDebug RSProcessor::ProcessSurface have no Available Buffer and"\
-            "Node have no buffer node id:%llu", node.GetId());
-        return false;
-    }
-    auto& surfaceConsumer = node.GetConsumer();
-    if (!surfaceConsumer) {
-        RS_LOGI("RSProcessor::ProcessSurface output is nullptr");
-        return false;
-    }
-    if (node.GetAvailableBufferCount() >= 1) {
-        int32_t fence = -1;
-        int64_t timestamp = 0;
-        Rect damage;
-        auto sret = surfaceConsumer->AcquireBuffer(buffer, fence, timestamp, damage);
-        sptr<SyncFence> acquireFence = new SyncFence(fence);
-        if (!buffer || sret != OHOS::SURFACE_ERROR_OK) {
-            RS_LOGE("RSProcessor::ProcessSurface: AcquireBuffer failed! sret: %{public}d", sret);
-            if (sret == OHOS::GSERROR_NO_BUFFER) {
-                node.ReduceAvailableBuffer();
-            }
+    sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
+    Rect damage = {0};
+
+    auto availableBufferCnt = node.GetAvailableBufferCount();
+    if (availableBufferCnt == 0) {
+        RS_LOGD("RSProcessor::ProcessSurface(node: %lld): no new buffer, try use old buffer.", node.GetId());
+        buffer = node.GetBuffer();
+        acquireFence = node.GetFence();
+        damage = node.GetDamageRegion();
+    } else {
+        const auto& surfaceConsumer = node.GetConsumer();
+        if (surfaceConsumer == nullptr) {
+            RS_LOGE("RSProcessor::ProcessSurface(node: %lld): surfaceConsumer is null!", node.GetId());
             return false;
         }
-        task();
-        node.SetBuffer(buffer);
-        node.SetFence(acquireFence);
-        node.SetDamageRegion(damage);
-        if (node.ReduceAvailableBuffer() >= 1) {
-            if (auto mainThread = RSMainThread::Instance()) {
-                mainThread->RequestNextVSync();
-            }
+
+        int32_t fenceFd = -1;
+        int64_t timeStamp = 0;
+        auto ret = surfaceConsumer->AcquireBuffer(buffer, fenceFd, timeStamp, damage);
+        acquireFence = new SyncFence(fenceFd);
+        if (ret != OHOS::SURFACE_ERROR_OK) {
+            RS_LOGW("RSProcessor::ProcessSurface(node: %lld): AcquireBuffer failed(ret: %d), try use old buffer.",
+                node.GetId(), ret);
+            buffer = node.GetBuffer();
+            acquireFence = node.GetFence();
+            damage = node.GetDamageRegion();
+        } else {
+            availableBufferCnt = node.ReduceAvailableBuffer();
         }
-    } else {
-        node.SetBuffer(node.GetBuffer());
-        node.SetFence(node.GetFence());
-        node.SetDamageRegion(node.GetDamageRegion());
     }
+
+    if (buffer == nullptr) {
+        RS_LOGE("RSProcessor::ProcessSurface(node: %lld): no avaliable buffer!", node.GetId());
+        return false;
+    }
+
+    task();
+    node.SetBuffer(buffer);
+    node.SetFence(acquireFence);
+    node.SetDamageRegion(damage);
+
+    // still hava buffer(s) to consume.
+    if (availableBufferCnt > 0) {
+        RSMainThread::Instance()->RequestNextVSync();
+    }
+
     return true;
 }
 } // namespace Rosen
