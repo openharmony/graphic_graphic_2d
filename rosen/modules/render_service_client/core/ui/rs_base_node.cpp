@@ -26,7 +26,6 @@
 #include "ui/rs_display_node.h"
 #include "ui/rs_root_node.h"
 #include "ui/rs_surface_node.h"
-#include "ui/rs_texture_node.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -180,7 +179,6 @@ template bool RSBaseNode::IsInstanceOf<RSNode>();
 template bool RSBaseNode::IsInstanceOf<RSSurfaceNode>();
 template bool RSBaseNode::IsInstanceOf<RSCanvasNode>();
 template bool RSBaseNode::IsInstanceOf<RSRootNode>();
-template bool RSBaseNode::IsInstanceOf<RSTextureNode>();
 
 } // namespace Rosen
 } // namespace OHOS

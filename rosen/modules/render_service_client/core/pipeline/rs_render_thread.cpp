@@ -32,9 +32,6 @@
 
 #include "platform/ohos/rs_render_service_connect_hub.h"
 #endif
-#ifdef USE_FLUTTER_TEXTURE
-#include "pipeline/rs_texture_render_node.h"
-#endif
 
 static void SystemCallSetThreadName(const std::string& name)
 {

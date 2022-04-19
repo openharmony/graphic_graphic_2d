@@ -26,7 +26,6 @@ ohos_unittest("RSRenderServiceClientUITest") {
     "rs_root_node_test.cpp",
     "rs_surface_extractor_test.cpp",
     "rs_surface_node_test.cpp",
-    "rs_texture_node_test.cpp",
     "rs_ui_director_test.cpp",
   ]
 

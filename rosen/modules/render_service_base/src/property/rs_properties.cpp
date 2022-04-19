@@ -1054,7 +1054,7 @@ std::string RSProperties::Dump() const
 
     // Border
     memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
-    if (!border_ && border_->HasBorder() &&
+    if (border_ && border_->HasBorder() &&
         sprintf_s(buffer, UINT8_MAX, ", Border[%s]", border_->ToString().c_str()) != -1) {
         dumpInfo.append(buffer);
     }

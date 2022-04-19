@@ -22,7 +22,6 @@
 #include "pipeline/rs_render_node_map.h"
 #include "pipeline/rs_root_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
-#include "pipeline/rs_texture_render_node.h"
 #include "platform/common/rs_log.h"
 #include "visitor/rs_node_visitor.h"
 
@@ -254,7 +253,6 @@ template bool RSBaseRenderNode::IsInstanceOf<RSRenderNode>();
 template bool RSBaseRenderNode::IsInstanceOf<RSSurfaceRenderNode>();
 template bool RSBaseRenderNode::IsInstanceOf<RSCanvasRenderNode>();
 template bool RSBaseRenderNode::IsInstanceOf<RSRootRenderNode>();
-template bool RSBaseRenderNode::IsInstanceOf<RSTextureRenderNode>();
 
 } // namespace Rosen
 } // namespace OHOS

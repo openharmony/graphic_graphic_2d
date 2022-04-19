@@ -228,7 +228,6 @@ private:
     std::shared_ptr<RSMask> mask_ = nullptr;
 
     friend class RSPropertiesPainter;
-    friend class RSTextureRenderNode;
     friend class RSRenderNode;
     friend class RSCanvasRenderNode;
     friend class RSCanvasNode;

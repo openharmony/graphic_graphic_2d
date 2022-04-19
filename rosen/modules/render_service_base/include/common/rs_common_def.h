@@ -38,7 +38,6 @@ enum class RSUINodeType {
     SURFACE_NODE = 0x01210,
     CANVAS_NODE  = 0x02210,   // formerly RSNode
     ROOT_NODE    = 0x12210,
-    TEXTURE_NODE = 0x22210,
 };
 
 static const std::map<RSUINodeType, std::string> RSUINodeTypeStrs = {
@@ -48,7 +47,6 @@ static const std::map<RSUINodeType, std::string> RSUINodeTypeStrs = {
     {RSUINodeType::SURFACE_NODE, "SurfaceNode"},
     {RSUINodeType::CANVAS_NODE,  "CanvasNode"},
     {RSUINodeType::ROOT_NODE,    "RootNode"},
-    {RSUINodeType::TEXTURE_NODE, "TextureNode"},
 };
 
 // types for RenderNode
@@ -59,7 +57,6 @@ enum class RSRenderNodeType {
     SURFACE_NODE = 0x01211,
     CANVAS_NODE  = 0x02211,   // formerly RSRenderNode
     ROOT_NODE    = 0x12211,
-    TEXTURE_NODE = 0x22211,
 };
 
 struct RSSurfaceRenderNodeConfig {
