@@ -16,6 +16,7 @@
 #ifndef FRAMEWORKS_SURFACE_INCLUDE_PRODUCER_SURFACE_H
 #define FRAMEWORKS_SURFACE_INCLUDE_PRODUCER_SURFACE_H
 
+#include <atomic>
 #include <map>
 #include <string>
 
@@ -31,6 +32,8 @@ class ProducerSurface : public Surface {
 public:
     ProducerSurface(sptr<IBufferProducer>& producer);
     virtual ~ProducerSurface();
+
+    // thread unsafe
     GSError Init();
 
     bool IsConsumer() const override;
@@ -54,7 +57,8 @@ public:
     uint32_t GetQueueSize() override;
     GSError SetQueueSize(uint32_t queueSize) override;
 
-    GSError GetName(std::string &name) override;
+    const std::string& GetName() override;
+    uint64_t GetUniqueId() const override;
 
     GSError SetDefaultWidthAndHeight(int32_t width, int32_t height) override;
     int32_t GetDefaultWidth() override;
@@ -70,10 +74,9 @@ public:
     GSError RegisterReleaseListener(OnReleaseFunc func) override;
     GSError UnregisterConsumerListener() override;
 
-    uint64_t GetUniqueId() const override;
-
     void Dump(std::string &result) const override {};
 
+    // Call carefully. This interface will empty all caches of the current process
     GSError CleanCache() override;
 
     GSError SetTransform(TransformType transform) override;
@@ -85,10 +88,12 @@ private:
     bool IsRemote();
 
     std::mutex mutex_;
+    std::atomic_bool inited_ = false;
     std::map<int32_t, sptr<SurfaceBuffer>> bufferProducerCache_;
     std::map<std::string, std::string> userData_;
     sptr<IBufferProducer> producer_ = nullptr;
     std::string name_ = "not init";
+    uint64_t queueId_ = 0;
 };
 } // namespace OHOS
 

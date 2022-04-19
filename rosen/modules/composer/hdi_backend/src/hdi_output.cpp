@@ -200,8 +200,7 @@ void HdiOutput::Dump(std::string &result) const
 
     for (const LayerDumpInfo &layerInfo : dumpLayerInfos) {
         const LayerPtr &layer = layerInfo.layer;
-        std::string name;
-        layer->GetLayerInfo()->GetSurface()->GetName(name);
+        const std::string& name = layer->GetLayerInfo()->GetSurface()->GetName();
         const LayerInfoPtr &info = layer->GetLayerInfo();
         result += "\n surface [" + name + "] Id[" + std::to_string(layerInfo.surfaceId) + "]:\n";
         info->Dump(result);
@@ -217,8 +216,7 @@ void HdiOutput::DumpFps(std::string &result, const std::string &arg) const
 
     for (const LayerDumpInfo &layerInfo : dumpLayerInfos) {
         const LayerPtr &layer = layerInfo.layer;
-        std::string name;
-        layer->GetLayerInfo()->GetSurface()->GetName(name);
+        const std::string& name = layer->GetLayerInfo()->GetSurface()->GetName();
         if (name == arg) {
             result += "\n surface [" + name + "] Id[" + std::to_string(layerInfo.surfaceId) + "]:\n";
             layer->Dump(result);

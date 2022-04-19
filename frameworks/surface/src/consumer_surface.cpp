@@ -106,10 +106,9 @@ GSError ConsumerSurface::SetQueueSize(uint32_t queueSize)
     return producer_->SetQueueSize(queueSize);
 }
 
-GSError ConsumerSurface::GetName(std::string &name)
+const std::string& ConsumerSurface::GetName()
 {
-    name = name_;
-    return GSERROR_OK;
+    return name_;
 }
 
 GSError ConsumerSurface::SetDefaultWidthAndHeight(int32_t width, int32_t height)

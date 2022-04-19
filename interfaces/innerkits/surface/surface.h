@@ -64,17 +64,15 @@ public:
     virtual GSError SetUserData(const std::string &key, const std::string &val) = 0;
     virtual std::string GetUserData(const std::string &key) = 0;
 
-    virtual GSError GetName(std::string &name) = 0;
+    virtual const std::string& GetName() = 0;
+    virtual uint64_t GetUniqueId() const = 0;
 
     virtual GSError RegisterConsumerListener(sptr<IBufferConsumerListener>& listener) = 0;
     virtual GSError RegisterConsumerListener(IBufferConsumerListenerClazz *listener) = 0;
     virtual GSError RegisterReleaseListener(OnReleaseFunc func) = 0;
     virtual GSError UnregisterConsumerListener() = 0;
 
-    virtual uint64_t GetUniqueId() const = 0;
-
-    virtual void Dump(std::string &result) const = 0;
-
+    // Call carefully. This interface will empty all caches of the current process
     virtual GSError CleanCache() = 0;
 
     virtual GSError SetTransform(TransformType transform) = 0;
@@ -82,6 +80,8 @@ public:
 
     virtual GSError IsSupportedAlloc(const std::vector<VerifyAllocInfo> &infos,
                                      std::vector<bool> &supporteds) = 0;
+    
+    virtual void Dump(std::string &result) const = 0;
 protected:
     Surface() = default;
 };

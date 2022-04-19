@@ -15,6 +15,8 @@
 
 #include "producer_surface.h"
 
+#include <cinttypes>
+
 #include "buffer_log.h"
 #include "buffer_manager.h"
 #include "buffer_extra_data_impl.h"
@@ -23,22 +25,29 @@ namespace OHOS {
 ProducerSurface::ProducerSurface(sptr<IBufferProducer>& producer)
 {
     producer_ = producer;
-    auto sret = producer_->GetName(name_);
-    if (sret != GSERROR_OK) {
-        BLOGNE("GetName failed, %{public}s", GSErrorStr(sret).c_str());
-    }
     BLOGND("ctor");
 }
 
 ProducerSurface::~ProducerSurface()
 {
-    BLOGND("dtor");
-    CleanCache();
-    producer_ = nullptr;
+    BLOGND("dtor, name:%{public}s, Queue Id:%{public}" PRIu64 "", name_.c_str(), queueId_);
+    auto ret = producer_->Disconnect();
+    if (ret != GSERROR_OK) {
+        BLOGNE("Disconnect failed, %{public}s", GSErrorStr(ret).c_str());
+    }
 }
 
 GSError ProducerSurface::Init()
 {
+    if (inited_.load()) {
+        return GSERROR_OK;
+    }
+    auto ret = producer_->GetNameAndUniqueId(name_, queueId_);
+    if (ret != GSERROR_OK) {
+        BLOGNE("GetNameAndUniqueId failed, %{public}s", GSErrorStr(ret).c_str());
+    }
+    inited_.store(true);
+    BLOGND("ctor, name:%{public}s, Queue Id:%{public}" PRIu64 "", name_.c_str(), queueId_);
     return GSERROR_OK;
 }
 
@@ -57,7 +66,7 @@ GSError ProducerSurface::RequestBuffer(sptr<SurfaceBuffer>& buffer,
 {
     IBufferProducer::RequestBufferReturnValue retval;
     sptr<BufferExtraData> bedataimpl = new BufferExtraDataImpl;
-    GSError ret = GetProducer()->RequestBuffer(config, bedataimpl, retval);
+    GSError ret = producer_->RequestBuffer(config, bedataimpl, retval);
     if (ret != GSERROR_OK) {
         BLOGN_FAILURE("Producer report %{public}s", GSErrorStr(ret).c_str());
         return ret;
@@ -66,7 +75,7 @@ GSError ProducerSurface::RequestBuffer(sptr<SurfaceBuffer>& buffer,
     std::lock_guard<std::mutex> lockGuard(mutex_);
     // add cache
     if (retval.buffer != nullptr && IsRemote()) {
-        ret = BufferManager::GetInstance()->Map(retval.buffer);
+        ret = retval.buffer->Map();
         if (ret != GSERROR_OK) {
             BLOGN_FAILURE_ID(retval.sequence, "Map failed");
             return GSERROR_API_FAILED;
@@ -86,7 +95,7 @@ GSError ProducerSurface::RequestBuffer(sptr<SurfaceBuffer>& buffer,
     fence = retval.fence;
 
     if (static_cast<uint32_t>(config.usage) & HBM_USE_CPU_WRITE) {
-        ret = BufferManager::GetInstance()->InvalidateCache(buffer);
+        ret = buffer->InvalidateCache();
         if (ret != GSERROR_OK) {
             BLOGNW("Warning [%{public}d], InvalidateCache failed", retval.sequence);
         }
@@ -97,10 +106,6 @@ GSError ProducerSurface::RequestBuffer(sptr<SurfaceBuffer>& buffer,
     }
 
     for (auto it = retval.deletingBuffers.begin(); it != retval.deletingBuffers.end(); it++) {
-        if (IsRemote() && bufferProducerCache_.find(*it) != bufferProducerCache_.end() &&
-                bufferProducerCache_[*it]->GetVirAddr() != nullptr) {
-            BufferManager::GetInstance()->Unmap(bufferProducerCache_[*it]);
-        }
         bufferProducerCache_.erase(*it);
     }
     return GSERROR_OK;
@@ -113,7 +118,7 @@ GSError ProducerSurface::CancelBuffer(sptr<SurfaceBuffer>& buffer)
     }
 
     const sptr<BufferExtraData>& bedata = buffer->GetExtraData();
-    return GetProducer()->CancelBuffer(buffer->GetSeqNum(), bedata);
+    return producer_->CancelBuffer(buffer->GetSeqNum(), bedata);
 }
 
 GSError ProducerSurface::FlushBuffer(sptr<SurfaceBuffer>& buffer,
@@ -124,7 +129,7 @@ GSError ProducerSurface::FlushBuffer(sptr<SurfaceBuffer>& buffer,
     }
 
     const sptr<BufferExtraData>& bedata = buffer->GetExtraData();
-    return GetProducer()->FlushBuffer(buffer->GetSeqNum(), bedata, fence, config);
+    return producer_->FlushBuffer(buffer->GetSeqNum(), bedata, fence, config);
 }
 
 GSError ProducerSurface::AcquireBuffer(sptr<SurfaceBuffer>& buffer, int32_t &fence,
@@ -143,8 +148,9 @@ GSError ProducerSurface::AttachBuffer(sptr<SurfaceBuffer>& buffer)
     if (buffer == nullptr) {
         return GSERROR_INVALID_ARGUMENTS;
     }
+
     BLOGND("the addr : %{public}p", buffer.GetRefPtr());
-    return GetProducer()->AttachBuffer(buffer);
+    return producer_->AttachBuffer(buffer);
 }
 
 GSError ProducerSurface::DetachBuffer(sptr<SurfaceBuffer>& buffer)
@@ -152,7 +158,7 @@ GSError ProducerSurface::DetachBuffer(sptr<SurfaceBuffer>& buffer)
     if (buffer == nullptr) {
         return GSERROR_INVALID_ARGUMENTS;
     }
-    return GetProducer()->DetachBuffer(buffer);
+    return producer_->DetachBuffer(buffer);
 }
 
 uint32_t ProducerSurface::GetQueueSize()
@@ -165,11 +171,12 @@ GSError ProducerSurface::SetQueueSize(uint32_t queueSize)
     return producer_->SetQueueSize(queueSize);
 }
 
-GSError ProducerSurface::GetName(std::string &name)
+const std::string& ProducerSurface::GetName()
 {
-    auto sret = producer_->GetName(name);
-    name_ = name;
-    return sret;
+    if (!inited_.load()) {
+        BLOGNW("Warning ProducerSurface is not initialized, the name you get is uninitialized.");
+    }
+    return name_;
 }
 
 GSError ProducerSurface::SetDefaultWidthAndHeight(int32_t width, int32_t height)
@@ -242,21 +249,20 @@ bool ProducerSurface::IsRemote()
 
 GSError ProducerSurface::CleanCache()
 {
+    BLOGND("Queue Id:%{public}" PRIu64 "", queueId_);
     if (IsRemote()) {
         std::lock_guard<std::mutex> lockGuard(mutex_);
-        for (auto it = bufferProducerCache_.begin(); it != bufferProducerCache_.end();) {
-            if (it->second != nullptr && it->second->GetVirAddr() != nullptr) {
-                BufferManager::GetInstance()->Unmap(it->second);
-            }
-            bufferProducerCache_.erase(it++);
-        }
+        bufferProducerCache_.clear();
     }
     return producer_->CleanCache();
 }
 
 uint64_t ProducerSurface::GetUniqueId() const
 {
-    return producer_->GetUniqueId();
+    if (!inited_.load()) {
+        BLOGNW("Warning ProducerSurface is not initialized, the uniquedId you get is uninitialized.");
+    }
+    return queueId_;
 }
 
 GSError ProducerSurface::SetTransform(TransformType transform)

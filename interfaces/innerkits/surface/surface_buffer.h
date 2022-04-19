@@ -18,6 +18,7 @@
 
 #include <functional>
 
+#include <memory>
 #include <refbase.h>
 
 #include "buffer_handle_utils.h"
@@ -38,17 +39,18 @@ public:
     virtual uint64_t GetPhyAddr() const = 0;
     virtual int32_t GetKey() const = 0;
     virtual void *GetVirAddr() const = 0;
-    virtual int GetFileDescriptor() const = 0;
+    virtual int32_t GetFileDescriptor() const = 0;
     virtual uint32_t GetSize() const = 0;
+
+    virtual const ColorGamut& GetSurfaceBufferColorGamut() const = 0;
+    virtual const TransformType& GetSurfaceBufferTransform() const = 0;
+    virtual void SetSurfaceBufferColorGamut(const ColorGamut& colorGamut) = 0;
+    virtual void SetSurfaceBufferTransform(const TransformType& transform) = 0;
 
     virtual int32_t GetSurfaceBufferWidth() const = 0;
     virtual int32_t GetSurfaceBufferHeight() const = 0;
-    virtual ColorGamut GetSurfaceBufferColorGamut() const = 0;
-    virtual TransformType GetSurfaceBufferTransform() const = 0;
-    virtual GSError SetSurfaceBufferWidth(int32_t width) = 0;
-    virtual GSError SetSurfaceBufferHeight(int32_t height) = 0;
-    virtual GSError SetSurfaceBufferColorGamut(ColorGamut colorGamut) = 0;
-    virtual GSError SetSurfaceBufferTransform(TransformType transform) = 0;
+    virtual void SetSurfaceBufferWidth(int32_t width) = 0;
+    virtual void SetSurfaceBufferHeight(int32_t width) = 0;
 
     virtual int32_t GetSeqNum() const = 0;
 
@@ -58,8 +60,16 @@ public:
 
     virtual void SetExtraData(const sptr<BufferExtraData> &bedata) = 0;
     virtual const sptr<BufferExtraData>& GetExtraData() const = 0;
-    virtual void WriteToMessageParcel(MessageParcel &parcel) = 0;
+    virtual GSError WriteToMessageParcel(MessageParcel &parcel) = 0;
+    virtual GSError ReadFromMessageParcel(MessageParcel &parcel) = 0;
     virtual void SetBufferHandle(BufferHandle *handle) = 0;
+
+    // gralloc
+    virtual GSError Alloc(const BufferRequestConfig &config) = 0;
+    virtual GSError Map() = 0;
+    virtual GSError Unmap() = 0;
+    virtual GSError FlushCache() = 0;
+    virtual GSError InvalidateCache() = 0;
 protected:
     SurfaceBuffer(){}
     SurfaceBuffer(const SurfaceBuffer&) = delete;

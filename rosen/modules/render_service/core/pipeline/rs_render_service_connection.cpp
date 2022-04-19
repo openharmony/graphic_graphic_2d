@@ -193,8 +193,7 @@ sptr<Surface> RSRenderServiceConnection::CreateNodeAndSurface(const RSSurfaceRen
         RS_LOGE("RSRenderService::CreateNodeAndSurface get consumer surface fail");
         return nullptr;
     }
-    std::string surfaceName;
-    surface->GetName(surfaceName);
+    const std::string& surfaceName = surface->GetName();
     RS_LOGE("RsDebug RSRenderService::CreateNodeAndSurface node id:%llu name:%s surface id:%llu name:%s",
         node->GetId(), node->GetName().c_str(), surface->GetUniqueId(), surfaceName.c_str());
     node->SetConsumer(surface);

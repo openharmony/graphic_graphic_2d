@@ -61,10 +61,7 @@ BufferQueue::BufferQueue(const std::string &name, bool isShared)
 BufferQueue::~BufferQueue()
 {
     BLOGNI("dtor, Queue id: %{public}" PRIu64 "", uniqueId_);
-    std::lock_guard<std::mutex> lockGuard(mutex_);
-    for (auto it = bufferQueueCache_.begin(); it != bufferQueueCache_.end(); it++) {
-        FreeBuffer(it->second.buffer);
-    }
+    // we don't have to do anything
 }
 
 GSError BufferQueue::Init()
@@ -401,7 +398,7 @@ GSError BufferQueue::DoFlushBuffer(int32_t sequence, const sptr<BufferExtraData>
     uint32_t usage = static_cast<uint32_t>(bufferQueueCache_[sequence].config.usage);
     if (usage & HBM_USE_CPU_WRITE) {
         // api flush
-        auto sret = bufferManager_->FlushCache(bufferQueueCache_[sequence].buffer);
+        auto sret = bufferQueueCache_[sequence].buffer->FlushCache();
         if (sret != GSERROR_OK) {
             BLOGN_FAILURE_ID_API(sequence, FlushCache, sret);
             return sret;
@@ -499,54 +496,38 @@ GSError BufferQueue::AllocBuffer(sptr<SurfaceBuffer> &buffer,
     const BufferRequestConfig &config)
 {
     ScopedBytrace func(__func__);
-    buffer = new SurfaceBufferImpl();
-    int32_t sequence = buffer->GetSeqNum();
+    sptr<SurfaceBuffer> bufferImpl = new SurfaceBufferImpl();
+    int32_t sequence = bufferImpl->GetSeqNum();
 
-    GSError ret = bufferManager_->Alloc(config, buffer);
+    GSError ret = bufferImpl->Alloc(config);
     if (ret != GSERROR_OK) {
         BLOGN_FAILURE_ID_API(sequence, Alloc, ret);
         return ret;
     }
 
     BufferElement ele = {
-        .buffer = buffer,
+        .buffer = bufferImpl,
         .state = BUFFER_STATE_REQUESTED,
         .isDeleting = false,
         .config = config,
-        .fence = -1
+        .fence = -1,
     };
 
-    ret = bufferManager_->Map(buffer);
+    ret = bufferImpl->Map();
     if (ret == GSERROR_OK) {
         BLOGN_SUCCESS_ID(sequence, "Map");
         bufferQueueCache_[sequence] = ele;
-        return GSERROR_OK;
-    }
-
-    GSError freeRet = bufferManager_->Free(buffer);
-    if (freeRet != GSERROR_OK) {
-        BLOGN_FAILURE_ID(sequence, "Map failed, Free failed");
+        buffer = bufferImpl;
     } else {
-        BLOGN_FAILURE_ID(sequence, "Map failed, Free success");
+        BLOGN_FAILURE_ID(sequence, "Map failed");
     }
-
     return ret;
-}
-
-GSError BufferQueue::FreeBuffer(sptr<SurfaceBuffer> &buffer)
-{
-    BLOGND("Free [%{public}d]", buffer->GetSeqNum());
-    buffer->SetEglData(nullptr);
-    bufferManager_->Unmap(buffer);
-    bufferManager_->Free(buffer);
-    return GSERROR_OK;
 }
 
 void BufferQueue::DeleteBufferInCache(int32_t sequence)
 {
     auto it = bufferQueueCache_.find(sequence);
     if (it != bufferQueueCache_.end()) {
-        FreeBuffer(it->second.buffer);
         if (it->second.fence > 0) {
             close(it->second.fence);
         }
@@ -588,10 +569,7 @@ void BufferQueue::DeleteBuffers(int32_t count)
 
     for (auto&& ele : bufferQueueCache_) {
         ele.second.isDeleting = true;
-        if (ele.second.state == BUFFER_STATE_ACQUIRED) {
-            FreeBuffer(ele.second.buffer);
-        }
-
+        // we don't have to do anything
         count--;
         if (count <= 0) {
             break;

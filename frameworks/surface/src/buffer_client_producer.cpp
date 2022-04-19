@@ -154,6 +154,13 @@ GSError BufferClientProducer::SetQueueSize(uint32_t queueSize)
 
 GSError BufferClientProducer::GetName(std::string &name)
 {
+    {
+        std::lock_guard<std::mutex> lockGuard(mutex_);
+        if (name_ != "not init") {
+            name = name_;
+            return GSERROR_OK;
+        }
+    }
     DEFINE_MESSAGE_VARIABLES(arguments, reply, option, BLOGE);
 
     SEND_REQUEST(BUFFER_PRODUCER_GET_NAME, arguments, reply, option);
@@ -166,7 +173,59 @@ GSError BufferClientProducer::GetName(std::string &name)
         BLOGN_FAILURE("reply.ReadString return false");
         return GSERROR_BINDER;
     }
-    name_ = name;
+    {
+        std::lock_guard<std::mutex> lockGuard(mutex_);
+        name_ = name;
+    }
+    return static_cast<GSError>(ret);
+}
+
+uint64_t BufferClientProducer::GetUniqueId()
+{
+    {
+        std::lock_guard<std::mutex> lockGuard(mutex_);
+        if (uniqueId_ != 0) {
+            return uniqueId_;
+        }
+    }
+    DEFINE_MESSAGE_VARIABLES(arguments, reply, option, BLOGE);
+    SEND_REQUEST(BUFFER_PRODUCER_GET_UNIQUE_ID, arguments, reply, option);
+    {
+        std::lock_guard<std::mutex> lockGuard(mutex_);
+        uniqueId_ = reply.ReadUint64();
+    }
+    return uniqueId_;
+}
+
+GSError BufferClientProducer::GetNameAndUniqueId(std::string& name, uint64_t& uniqueId)
+{
+    {
+        std::lock_guard<std::mutex> lockGuard(mutex_);
+        if (uniqueId_ != 0 && name_ != "not init") {
+            uniqueId = uniqueId_;
+            name = name_;
+            return GSERROR_OK;
+        }
+    }
+    DEFINE_MESSAGE_VARIABLES(arguments, reply, option, BLOGE);
+
+    SEND_REQUEST(BUFFER_PRODUCER_GET_NAMEANDUNIQUEDID, arguments, reply, option);
+    int32_t ret = reply.ReadInt32();
+    if (ret != GSERROR_OK) {
+        BLOGN_FAILURE("Remote return %{public}d", ret);
+        return static_cast<GSError>(ret);
+    }
+    if (reply.ReadString(name) == false) {
+        BLOGN_FAILURE("reply.ReadString return false");
+        return GSERROR_BINDER;
+    }
+
+    uniqueId = reply.ReadUint64();
+    {
+        std::lock_guard<std::mutex> lockGuard(mutex_);
+        name_ = name;
+        uniqueId_ = uniqueId;
+    }
     return static_cast<GSError>(ret);
 }
 
@@ -195,15 +254,6 @@ uint32_t BufferClientProducer::GetDefaultUsage()
     SEND_REQUEST(BUFFER_PRODUCER_GET_DEFAULT_USAGE, arguments, reply, option);
 
     return reply.ReadUint32();
-}
-
-uint64_t BufferClientProducer::GetUniqueId()
-{
-    DEFINE_MESSAGE_VARIABLES(arguments, reply, option, BLOGE);
-
-    SEND_REQUEST(BUFFER_PRODUCER_GET_UNIQUE_ID, arguments, reply, option);
-
-    return reply.ReadUint64();
 }
 
 GSError BufferClientProducer::CleanCache()
@@ -256,5 +306,18 @@ GSError BufferClientProducer::IsSupportedAlloc(const std::vector<VerifyAllocInfo
     }
 
     return static_cast<GSError>(ret);
+}
+
+GSError BufferClientProducer::Disconnect()
+{
+    DEFINE_MESSAGE_VARIABLES(arguments, reply, option, BLOGE);
+    SEND_REQUEST(BUFFER_PRODUCER_DISCONNECT, arguments, reply, option);
+    int32_t ret = reply.ReadInt32();
+    if (ret != GSERROR_OK) {
+        BLOGN_FAILURE("Remote return %{public}d", ret);
+        return (GSError)ret;
+    }
+
+    return GSERROR_OK;
 }
 }; // namespace OHOS

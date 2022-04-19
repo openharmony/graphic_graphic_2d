@@ -49,12 +49,13 @@ public:
     virtual GSError SetQueueSize(uint32_t queueSize) = 0;
 
     virtual GSError GetName(std::string &name) = 0;
+    virtual uint64_t GetUniqueId() = 0;
+    virtual GSError GetNameAndUniqueId(std::string& name, uint64_t& uniqueId) = 0;
 
     virtual int32_t GetDefaultWidth() = 0;
     virtual int32_t GetDefaultHeight() = 0;
     virtual uint32_t GetDefaultUsage() = 0;
 
-    virtual uint64_t GetUniqueId() = 0;
     virtual GSError CleanCache() = 0;
 
     virtual GSError RegisterReleaseListener(OnReleaseFunc func) = 0;
@@ -63,6 +64,8 @@ public:
 
     virtual GSError IsSupportedAlloc(const std::vector<VerifyAllocInfo> &infos,
                                      std::vector<bool> &supporteds) = 0;
+    
+    virtual GSError Disconnect() = 0;
 
     DECLARE_INTERFACE_DESCRIPTOR(u"surf.IBufferProducer");
 
@@ -84,6 +87,8 @@ protected:
         BUFFER_PRODUCER_GET_UNIQUE_ID = 13,
         BUFFER_PRODUCER_SET_TRANSFORM = 14,
         BUFFER_PRODUCER_IS_SUPPORTED_ALLOC = 15,
+        BUFFER_PRODUCER_GET_NAMEANDUNIQUEDID = 16,
+        BUFFER_PRODUCER_DISCONNECT = 17,
     };
 };
 } // namespace OHOS

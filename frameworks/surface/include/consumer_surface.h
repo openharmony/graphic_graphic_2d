@@ -52,7 +52,7 @@ public:
     uint32_t GetQueueSize() override;
     GSError SetQueueSize(uint32_t queueSize) override;
 
-    GSError GetName(std::string &name) override;
+    const std::string& GetName() override;
 
     GSError SetDefaultWidthAndHeight(int32_t width, int32_t height) override;
     int32_t GetDefaultWidth() override;

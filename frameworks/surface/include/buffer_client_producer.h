@@ -18,6 +18,7 @@
 
 #include <map>
 #include <vector>
+#include <mutex>
 
 #include <iremote_proxy.h>
 #include <iremote_object.h>
@@ -44,14 +45,13 @@ public:
     GSError SetQueueSize(uint32_t queueSize) override;
 
     GSError GetName(std::string &name) override;
+    uint64_t GetUniqueId() override;
+    GSError GetNameAndUniqueId(std::string& name, uint64_t& uniqueId) override;
 
     int32_t GetDefaultWidth() override;
     int32_t GetDefaultHeight() override;
     uint32_t GetDefaultUsage() override;
     GSError SetTransform(TransformType transform) override;
-    uint64_t GetUniqueId() override;
-
-    GSError CleanCache() override;
 
     virtual GSError AttachBuffer(sptr<SurfaceBuffer>& buffer) override;
     virtual GSError DetachBuffer(sptr<SurfaceBuffer>& buffer) override;
@@ -59,9 +59,15 @@ public:
 
     GSError IsSupportedAlloc(const std::vector<VerifyAllocInfo> &infos, std::vector<bool> &supporteds) override;
 
+    // Call carefully. This interface will empty all caches of the current process
+    GSError CleanCache() override;
+    GSError Disconnect() override;
+
 private:
     static inline BrokerDelegator<BufferClientProducer> delegator_;
     std::string name_ = "not init";
+    uint64_t uniqueId_;
+    std::mutex mutex_;
 };
 }; // namespace OHOS
 

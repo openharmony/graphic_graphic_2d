@@ -53,12 +53,12 @@ public:
     GSError SetQueueSize(uint32_t queueSize) override;
 
     GSError GetName(std::string &name) override;
+    uint64_t GetUniqueId() override;
+    GSError GetNameAndUniqueId(std::string& name, uint64_t& uniqueId) override;
 
     int32_t GetDefaultWidth() override;
     int32_t GetDefaultHeight() override;
     uint32_t GetDefaultUsage() override;
-
-    uint64_t GetUniqueId() override;
 
     GSError CleanCache() override;
 
@@ -68,7 +68,11 @@ public:
 
     GSError IsSupportedAlloc(const std::vector<VerifyAllocInfo> &infos, std::vector<bool> &supporteds) override;
 
+    GSError Disconnect() override;
+
 private:
+    GSError CheckConnectLocked();
+
     int32_t RequestBufferRemote(MessageParcel &arguments, MessageParcel &reply, MessageOption &option);
     int32_t CancelBufferRemote(MessageParcel &arguments, MessageParcel &reply, MessageOption &option);
     int32_t FlushBufferRemote(MessageParcel &arguments, MessageParcel &reply, MessageOption &option);
@@ -85,13 +89,17 @@ private:
     int32_t RegisterReleaseListenerRemote(MessageParcel &arguments, MessageParcel &reply, MessageOption &option);
     int32_t SetTransformRemote(MessageParcel &arguments, MessageParcel &reply, MessageOption &option);
     int32_t IsSupportedAllocRemote(MessageParcel &arguments, MessageParcel &reply, MessageOption &option);
+    int32_t GetNameAndUniqueIdRemote(MessageParcel &arguments, MessageParcel &reply, MessageOption &option);
+    int32_t DisconnectRemote(MessageParcel &arguments, MessageParcel &reply, MessageOption &option);
 
     using BufferQueueProducerFunc = int32_t (BufferQueueProducer::*)(MessageParcel &arguments,
         MessageParcel &reply, MessageOption &option);
     std::map<uint32_t, BufferQueueProducerFunc> memberFuncMap_;
 
+    int32_t connectedPid_ = 0;
     sptr<BufferQueue> bufferQueue_ = nullptr;
     std::string name_ = "not init";
+    std::mutex mutex_;
 };
 }; // namespace OHOS
 

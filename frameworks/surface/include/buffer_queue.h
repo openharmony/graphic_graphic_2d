@@ -106,7 +106,6 @@ public:
 
 private:
     GSError AllocBuffer(sptr<SurfaceBuffer>& buffer, const BufferRequestConfig &config);
-    GSError FreeBuffer(sptr<SurfaceBuffer>& buffer);
     void DeleteBufferInCache(int sequence);
     void DumpToFile(int32_t sequence);
 

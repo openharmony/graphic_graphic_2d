@@ -16,6 +16,7 @@
 #include "native_window.h"
 
 #include <map>
+#include <cinttypes>
 #include "buffer_log.h"
 #include "display_type.h"
 #include "external_window.h"
@@ -84,8 +85,8 @@ int32_t NativeWindowRequestBuffer(struct NativeWindow *window,
         BLOGD("NativeWindowRequestBuffer window or buffer or fenceid is nullptr");
         return OHOS::GSERROR_INVALID_ARGUMENTS;
     }
-    BLOGD("NativeWindowRequestBuffer width is %{public}d, height is %{public}d",
-        window->config.width, window->config.height);
+    BLOGD("NativeWindowRequestBuffer width is %{public}d, height is %{public}d, Queue Id:%{public}" PRIu64 "",
+        window->config.width, window->config.height, window->surface->GetUniqueId());
     OHOS::sptr<OHOS::SurfaceBuffer> sfbuffer;
     if (window->surface->RequestBuffer(sfbuffer, *fenceFd, window->config) != OHOS::GSError::GSERROR_OK ||
         sfbuffer == nullptr) {
@@ -101,7 +102,7 @@ int32_t NativeWindowFlushBuffer(struct NativeWindow *window, struct NativeWindow
     int fenceFd, struct Region region)
 {
     if (window == nullptr || buffer == nullptr || window->surface == nullptr) {
-        BLOGD("NativeWindowFlushBuffer window,buffer  is nullptr");
+        BLOGD("NativeWindowFlushBuffer window, buffer is nullptr");
         return OHOS::GSERROR_INVALID_ARGUMENTS;
     }
 
@@ -120,8 +121,9 @@ int32_t NativeWindowFlushBuffer(struct NativeWindow *window, struct NativeWindow
         config.timestamp = 0;
     }
 
-    BLOGD("NativeWindowFlushBuffer damage w is %{public}d, h is %{public}d, acquire fence: %{public}d",
-        config.damage.w, config.damage.h, fenceFd);
+    BLOGD("NativeWindowFlushBuffer damage w is %{public}d, h is %{public}d, \
+        Queue Id:%{public}" PRIu64 ", acquire fence: %{public}d",
+        config.damage.w, config.damage.h, window->surface->GetUniqueId(), fenceFd);
     window->surface->FlushBuffer(buffer->sfbuffer, fenceFd, config);
 
     return OHOS::GSERROR_OK;
