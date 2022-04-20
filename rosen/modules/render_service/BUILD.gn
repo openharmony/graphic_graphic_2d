@@ -40,6 +40,8 @@ ohos_shared_library("librender_service") {
     "core/pipeline/rs_render_service_visitor.cpp",
     "core/pipeline/rs_software_processor.cpp",
     "core/pipeline/rs_surface_capture_task.cpp",
+    "core/pipeline/rs_uni_render_listener.cpp",
+    "core/pipeline/rs_uni_render_visitor.cpp",
     "core/screen_manager/rs_screen.cpp",
     "core/screen_manager/rs_screen_manager.cpp",
     "core/transaction/rs_render_service_connection_stub.cpp",
@@ -73,6 +75,7 @@ ohos_shared_library("librender_service") {
     "bytrace_standard:bytrace_core",
     "ipc:ipc_core",
     "samgr_standard:samgr_proxy",
+    "startup_l2:syspara",
   ]
 
   part_name = "graphic_standard"

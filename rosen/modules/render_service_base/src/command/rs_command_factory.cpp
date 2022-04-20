@@ -63,7 +63,7 @@ UnmarshallingFunc RSCommandFactory::GetUnmarshallingFunc(uint16_t type, uint16_t
 {
     auto it = unmarshallingFuncLUT_.find(MakeKey(type, subtype));
     if (it == unmarshallingFuncLUT_.end()) {
-        ROSEN_LOGE("RSCommandFactory::GetUnmarshallingFunc, Func is not found");
+        ROSEN_LOGE("RSCommandFactory::GetUnmarshallingFunc, Func is not found, type=%d subtype=%d", type, subtype);
         return nullptr;
     }
     return it->second;

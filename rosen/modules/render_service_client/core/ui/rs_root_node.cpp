@@ -34,6 +34,15 @@ std::shared_ptr<RSNode> RSRootNode::Create(bool isRenderServiceNode)
     if (transactionProxy != nullptr) {
         transactionProxy->AddCommand(command, isRenderServiceNode);
     }
+
+    if (isUni_ && !isRenderServiceNode) {
+        std::unique_ptr<RSCommand> command = std::make_unique<RSRootNodeCreate>(node->GetId());
+        auto transactionProxy = RSTransactionProxy::GetInstance();
+        if (transactionProxy != nullptr) {
+            transactionProxy->AddCommand(command, isUni_);
+        }
+    }
+
     return node;
 }
 
@@ -45,6 +54,14 @@ void RSRootNode::AttachRSSurfaceNode(std::shared_ptr<RSSurfaceNode> surfaceNode)
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy != nullptr) {
         transactionProxy->AddCommand(command, IsRenderServiceNode());
+    }
+
+    if (isUni_ && !IsRenderServiceNode()) {
+        std::unique_ptr<RSCommand> command = std::make_unique<RSRootNodeAddToSurfaceNode>(GetId(), surfaceNode->GetId());
+        auto transactionProxy = RSTransactionProxy::GetInstance();
+        if (transactionProxy != nullptr) {
+            transactionProxy->AddCommand(command, isUni_);
+        }
     }
 }
 

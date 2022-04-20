@@ -165,5 +165,46 @@ void RSImage::SetScale(double scale)
         scale_ = scale;
     }
 }
+
+#ifdef ROSEN_OHOS
+bool RSImage::Marshalling(Parcel& parcel) const
+{
+    bool success = true;
+    int imageFit = static_cast<int>(imageFit_);
+    int imageRepeat = static_cast<int>(imageRepeat_);
+    success &= RSMarshallingHelper::Marshalling(parcel, image_);
+    success &= RSMarshallingHelper::Marshalling(parcel, imageFit);
+    success &= RSMarshallingHelper::Marshalling(parcel, imageRepeat);
+    success &= RSMarshallingHelper::Marshalling(parcel, cornerRadius_);
+    return success;
+}
+RSImage* RSImage::Unmarshalling(Parcel& parcel)
+{
+    sk_sp<SkImage> img;
+    int fitNum;
+    int repeatNum;
+    float radius;
+    if (!RSMarshallingHelper::Unmarshalling(parcel, img)) {
+        return nullptr;
+    }
+    if (!RSMarshallingHelper::Unmarshalling(parcel, fitNum)) {
+        return nullptr;
+    }
+    if (!RSMarshallingHelper::Unmarshalling(parcel, repeatNum)) {
+        return nullptr;
+    }
+    if (!RSMarshallingHelper::Unmarshalling(parcel, radius)) {
+        return nullptr;
+    }
+
+    RSImage* rsImage = new RSImage();
+    rsImage->SetImage(img);
+    rsImage->SetImageFit(fitNum);
+    rsImage->SetImageRepeat(repeatNum);
+    rsImage->SetRadius(radius);
+
+    return rsImage;
+}
+#endif
 } // namespace Rosen
 } // namespace OHOS

@@ -101,6 +101,7 @@ private:
     std::vector<std::unique_ptr<RSTransactionData>> cmds_;
     bool hasRunningAnimation_ = false;
     std::shared_ptr<RSNodeVisitor> visitor_;
+    bool isUni_ = false;
 
     uint64_t timestamp_ = 0;
     uint64_t prevTimestamp_ = 0;

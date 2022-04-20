@@ -84,6 +84,8 @@ protected:
         return isRenderServiceNode_;
     }
 
+    static bool isUni_;
+
 private:
     static NodeId GenerateId();
     NodeId id_;

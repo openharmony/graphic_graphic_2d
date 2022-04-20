@@ -31,17 +31,71 @@
 #include "pipeline/rs_draw_cmd_list.h"
 #include "render/rs_image.h"
 #include "property/rs_properties_def.h"
+#include "transaction/rs_marshalling_helper.h"
 
 namespace OHOS {
 namespace Rosen {
 class RSPaintFilterCanvas;
 
+enum RSOpType : uint16_t {
+    OPITEM,
+    OPITEMWITHPAINT,
+    RECTOPITEM,
+    ROUNDRECTOPITEM,
+    IMAGEWITHPARMOPITEM,
+    DRRECTOPITEM,
+    OVALOPITEM,
+    REGIONOPITEM,
+    ARCOPITEM,
+    SAVEOPITEM,
+    RESTOREOPITEM,
+    FLUSHOPITEM,
+    MATRIXOPITEM,
+    CLIPRECTOPITEM,
+    CLIPRRECTOPITEM,
+    CLIPREGIONOPITEM,
+    TRANSLATEOPITEM,
+    TEXTBLOBOPITEM,
+    BITMAPOPITEM,
+    BITMAPRECTOPITEM,
+    BITMAPLATTICEOPITEM, // TODO: marshalling
+    BITMAPNINEOPITEM,
+    ADAPTIVERRECTOPITEM,
+    CLIPADAPTIVERRECTOPITEM,
+    PATHOPITEM,
+    CLIPPATHOPITEM,
+    PAINTOPITEM,
+    CONCATOPITEM,
+    SAVELAYEROPITEM,
+    DRAWABLEOPITEM,
+    PICTUREOPITEM,
+    POINTSOPITEM,
+    VERTICESOPITEM,
+    MULTIPLYALPHAOPITEM,
+    SAVEALPHAOPITEM,
+    RESTOREALPHAOPITEM,
+};
+
+#ifdef ROSEN_OHOS
+class OpItem : public MemObject, public Parcelable {
+#else
 class OpItem : public MemObject {
+#endif
 public:
     explicit OpItem(size_t size) : MemObject(size) {}
     virtual ~OpItem() {}
 
     virtual void Draw(RSPaintFilterCanvas& canvas, const SkRect* rect) const {};
+
+    virtual RSOpType GetType() const {
+        return RSOpType::OPITEM;
+    }
+#ifdef ROSEN_OHOS
+    bool Marshalling(Parcel& parcel) const override
+    {
+        return true;
+    }
+#endif
 };
 
 class OpItemWithPaint : public OpItem {
@@ -49,6 +103,10 @@ public:
     explicit OpItemWithPaint(size_t size) : OpItem(size) {}
 
     ~OpItemWithPaint() override {}
+
+    RSOpType GetType() const override {
+        return RSOpType::OPITEMWITHPAINT;
+    }
 
 protected:
     SkPaint paint_;
@@ -60,6 +118,15 @@ public:
     ~RectOpItem() override {}
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
+    RSOpType GetType() const override {
+        return RSOpType::RECTOPITEM;
+    }
+
+#ifdef ROSEN_OHOS
+    bool Marshalling(Parcel& parcel) const override;
+    static OpItem* Unmarshalling(Parcel& parcel);
+#endif
+
 private:
     SkRect rect_;
 };
@@ -69,6 +136,15 @@ public:
     RoundRectOpItem(const SkRRect& rrect, const SkPaint& paint);
     ~RoundRectOpItem() override {}
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
+
+    RSOpType GetType() const override {
+        return RSOpType::ROUNDRECTOPITEM;
+    }
+
+#ifdef ROSEN_OHOS
+    bool Marshalling(Parcel& parcel) const override;
+    static OpItem* Unmarshalling(Parcel& parcel);
+#endif
 
 private:
     SkRRect rrect_;
@@ -82,6 +158,15 @@ public:
     ~ImageWithParmOpItem() override {}
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
+    RSOpType GetType() const override {
+        return RSOpType::IMAGEWITHPARMOPITEM;
+    }
+
+#ifdef ROSEN_OHOS
+    bool Marshalling(Parcel& parcel) const override;
+    static OpItem* Unmarshalling(Parcel& parcel);
+#endif
+
 private:
     std::shared_ptr<RSImage> rsImage_;
 };
@@ -91,6 +176,15 @@ public:
     DRRectOpItem(const SkRRect& outer, const SkRRect& inner, const SkPaint& paint);
     ~DRRectOpItem() override {}
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
+
+    RSOpType GetType() const override {
+        return RSOpType::DRRECTOPITEM;
+    }
+
+#ifdef ROSEN_OHOS
+    bool Marshalling(Parcel& parcel) const override;
+    static OpItem* Unmarshalling(Parcel& parcel);
+#endif
 
 private:
     SkRRect outer_;
@@ -103,6 +197,15 @@ public:
     ~OvalOpItem() override {}
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
+    RSOpType GetType() const override {
+        return RSOpType::OVALOPITEM;
+    }
+
+#ifdef ROSEN_OHOS
+    bool Marshalling(Parcel& parcel) const override;
+    static OpItem* Unmarshalling(Parcel& parcel);
+#endif
+
 private:
     SkRect rect_;
 };
@@ -113,6 +216,15 @@ public:
     ~RegionOpItem() override {}
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
+    RSOpType GetType() const override {
+        return RSOpType::REGIONOPITEM;
+    }
+
+#ifdef ROSEN_OHOS
+    bool Marshalling(Parcel& parcel) const override;
+    static OpItem* Unmarshalling(Parcel& parcel);
+#endif
+
 private:
     SkRegion region_;
 };
@@ -122,6 +234,15 @@ public:
     ArcOpItem(const SkRect& rect, float startAngle, float sweepAngle, bool useCenter, const SkPaint& paint);
     ~ArcOpItem() override {}
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
+
+    RSOpType GetType() const override {
+        return RSOpType::ARCOPITEM;
+    }
+
+#ifdef ROSEN_OHOS
+    bool Marshalling(Parcel& parcel) const override;
+    static OpItem* Unmarshalling(Parcel& parcel);
+#endif
 
 private:
     SkRect rect_;
@@ -135,6 +256,14 @@ public:
     SaveOpItem();
     ~SaveOpItem() override {}
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
+
+    RSOpType GetType() const override {
+        return RSOpType::SAVEOPITEM;
+    }
+
+#ifdef ROSEN_OHOS
+    static OpItem* Unmarshalling(Parcel& parcel);
+#endif
 };
 
 class RestoreOpItem : public OpItem {
@@ -142,6 +271,14 @@ public:
     RestoreOpItem();
     ~RestoreOpItem() override {}
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
+
+    RSOpType GetType() const override {
+        return RSOpType::RESTOREOPITEM;
+    }
+
+#ifdef ROSEN_OHOS
+    static OpItem* Unmarshalling(Parcel& parcel);
+#endif
 };
 
 class FlushOpItem : public OpItem {
@@ -149,6 +286,14 @@ public:
     FlushOpItem();
     ~FlushOpItem() override {}
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
+
+    RSOpType GetType() const override {
+        return RSOpType::FLUSHOPITEM;
+    }
+
+#ifdef ROSEN_OHOS
+    static OpItem* Unmarshalling(Parcel& parcel);
+#endif
 };
 
 class MatrixOpItem : public OpItem {
@@ -156,6 +301,15 @@ public:
     MatrixOpItem(const SkMatrix& matrix);
     ~MatrixOpItem() override {}
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
+
+    RSOpType GetType() const override {
+        return RSOpType::MATRIXOPITEM;
+    }
+
+#ifdef ROSEN_OHOS
+    bool Marshalling(Parcel& parcel) const override;
+    static OpItem* Unmarshalling(Parcel& parcel);
+#endif
 
 private:
     SkMatrix matrix_;
@@ -166,6 +320,15 @@ public:
     ClipRectOpItem(const SkRect& rect, SkClipOp op, bool doAA);
     ~ClipRectOpItem() override {}
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
+
+    RSOpType GetType() const override {
+        return RSOpType::CLIPRECTOPITEM;
+    }
+
+#ifdef ROSEN_OHOS
+    bool Marshalling(Parcel& parcel) const override;
+    static OpItem* Unmarshalling(Parcel& parcel);
+#endif
 
 private:
     SkRect rect_;
@@ -179,6 +342,15 @@ public:
     ~ClipRRectOpItem() override {}
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
+    RSOpType GetType() const override {
+        return RSOpType::CLIPRRECTOPITEM;
+    }
+
+#ifdef ROSEN_OHOS
+    bool Marshalling(Parcel& parcel) const override;
+    static OpItem* Unmarshalling(Parcel& parcel);
+#endif
+
 private:
     SkRRect rrect_;
     SkClipOp clipOp_;
@@ -191,6 +363,15 @@ public:
     ~ClipRegionOpItem() override {}
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
+    RSOpType GetType() const override {
+        return RSOpType::CLIPREGIONOPITEM;
+    }
+
+#ifdef ROSEN_OHOS
+    bool Marshalling(Parcel& parcel) const override;
+    static OpItem* Unmarshalling(Parcel& parcel);
+#endif
+
 private:
     SkRegion region_;
     SkClipOp clipOp_;
@@ -201,6 +382,15 @@ public:
     TranslateOpItem(float distanceX, float distanceY);
     ~TranslateOpItem() override {}
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
+
+    RSOpType GetType() const override {
+        return RSOpType::TRANSLATEOPITEM;
+    }
+
+#ifdef ROSEN_OHOS
+    bool Marshalling(Parcel& parcel) const override;
+    static OpItem* Unmarshalling(Parcel& parcel);
+#endif
 
 private:
     float distanceX_;
@@ -213,6 +403,14 @@ public:
     ~TextBlobOpItem() override {}
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
+    RSOpType GetType() const override{
+        return RSOpType::TEXTBLOBOPITEM;
+    }
+#ifdef ROSEN_OHOS
+    bool Marshalling(Parcel& parcel) const override;
+    static OpItem* Unmarshalling(Parcel& parcel);
+#endif
+
 private:
     sk_sp<SkTextBlob> textBlob_;
     float x_;
@@ -224,6 +422,15 @@ public:
     BitmapOpItem(const sk_sp<SkImage> bitmapInfo, float left, float top, const SkPaint* paint);
     ~BitmapOpItem() override {}
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
+
+    RSOpType GetType() const override {
+        return RSOpType::BITMAPOPITEM;
+    }
+
+#ifdef ROSEN_OHOS
+    bool Marshalling(Parcel& parcel) const override;
+    static OpItem* Unmarshalling(Parcel& parcel);
+#endif
 
 private:
     float left_;
@@ -238,6 +445,15 @@ public:
     ~BitmapRectOpItem() override {}
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
+    RSOpType GetType() const override {
+        return RSOpType::BITMAPRECTOPITEM;
+    }
+
+#ifdef ROSEN_OHOS
+    bool Marshalling(Parcel& parcel) const override;
+    static OpItem* Unmarshalling(Parcel& parcel);
+#endif
+
 private:
     SkRect rectSrc_;
     SkRect rectDst_;
@@ -250,6 +466,10 @@ public:
         const sk_sp<SkImage> bitmapInfo, const SkCanvas::Lattice& lattice, const SkRect& rect, const SkPaint* paint);
     ~BitmapLatticeOpItem() override {}
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
+
+    RSOpType GetType() const override {
+        return RSOpType::BITMAPLATTICEOPITEM;
+    }
 
 private:
     SkRect rect_;
@@ -264,6 +484,15 @@ public:
     ~BitmapNineOpItem() override {}
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
+    RSOpType GetType() const override {
+        return RSOpType::BITMAPNINEOPITEM;
+    }
+
+#ifdef ROSEN_OHOS
+    bool Marshalling(Parcel& parcel) const override;
+    static OpItem* Unmarshalling(Parcel& parcel);
+#endif
+
 private:
     SkIRect center_;
     SkRect rectDst_;
@@ -276,6 +505,15 @@ public:
     ~AdaptiveRRectOpItem() override {}
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
+    RSOpType GetType() const override {
+        return RSOpType::ADAPTIVERRECTOPITEM;
+    }
+
+#ifdef ROSEN_OHOS
+    bool Marshalling(Parcel& parcel) const override;
+    static OpItem* Unmarshalling(Parcel& parcel);
+#endif
+
 private:
     float radius_;
     SkPaint paint_;
@@ -287,6 +525,15 @@ public:
     ~ClipAdaptiveRRectOpItem() override {}
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
+    RSOpType GetType() const override {
+        return RSOpType::CLIPADAPTIVERRECTOPITEM;
+    }
+
+#ifdef ROSEN_OHOS
+    bool Marshalling(Parcel& parcel) const override;
+    static OpItem* Unmarshalling(Parcel& parcel);
+#endif
+
 private:
     float radius_;
 };
@@ -297,6 +544,15 @@ public:
     ~PathOpItem() override {}
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
+    RSOpType GetType() const override {
+        return RSOpType::PATHOPITEM;
+    }
+
+#ifdef ROSEN_OHOS
+    bool Marshalling(Parcel& parcel) const override;
+    static OpItem* Unmarshalling(Parcel& parcel);
+#endif
+
 private:
     SkPath path_;
 };
@@ -306,6 +562,15 @@ public:
     ClipPathOpItem(const SkPath& path, SkClipOp clipOp, bool doAA);
     ~ClipPathOpItem() override {}
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
+
+    RSOpType GetType() const override {
+        return RSOpType::CLIPPATHOPITEM;
+    }
+
+#ifdef ROSEN_OHOS
+    bool Marshalling(Parcel& parcel) const override;
+    static OpItem* Unmarshalling(Parcel& parcel);
+#endif
 
 private:
     SkPath path_;
@@ -318,6 +583,15 @@ public:
     PaintOpItem(const SkPaint& paint);
     ~PaintOpItem() override {}
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
+
+    RSOpType GetType() const override {
+        return RSOpType::PAINTOPITEM;
+    }
+
+#ifdef ROSEN_OHOS
+    bool Marshalling(Parcel& parcel) const override;
+    static OpItem* Unmarshalling(Parcel& parcel);
+#endif
 };
 
 class ConcatOpItem : public OpItem {
@@ -325,6 +599,15 @@ public:
     ConcatOpItem(const SkMatrix& matrix);
     ~ConcatOpItem() override {}
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
+
+    RSOpType GetType() const override {
+        return RSOpType::CONCATOPITEM;
+    }
+
+#ifdef ROSEN_OHOS
+    bool Marshalling(Parcel& parcel) const override;
+    static OpItem* Unmarshalling(Parcel& parcel);
+#endif
 
 private:
     SkMatrix matrix_;
@@ -335,6 +618,15 @@ public:
     SaveLayerOpItem(const SkCanvas::SaveLayerRec& rec);
     ~SaveLayerOpItem() override {}
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
+
+    RSOpType GetType() const override {
+        return RSOpType::SAVELAYEROPITEM;
+    }
+
+#ifdef ROSEN_OHOS
+    bool Marshalling(Parcel& parcel) const override;
+    static OpItem* Unmarshalling(Parcel& parcel);
+#endif
 
 private:
     SkRect* rectPtr_ = nullptr;
@@ -351,6 +643,15 @@ public:
     ~DrawableOpItem() override {}
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
+    RSOpType GetType() const override {
+        return RSOpType::DRAWABLEOPITEM;
+    }
+
+#ifdef ROSEN_OHOS
+    bool Marshalling(Parcel& parcel) const override;
+    static OpItem* Unmarshalling(Parcel& parcel);
+#endif
+
 private:
     sk_sp<SkDrawable> drawable_;
     SkMatrix matrix_ = SkMatrix::I();
@@ -361,6 +662,15 @@ public:
     PictureOpItem(const sk_sp<SkPicture> picture, const SkMatrix* matrix, const SkPaint* paint);
     ~PictureOpItem() override {}
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
+
+    RSOpType GetType() const override {
+        return RSOpType::PICTUREOPITEM;
+    }
+
+#ifdef ROSEN_OHOS
+    bool Marshalling(Parcel& parcel) const override;
+    static OpItem* Unmarshalling(Parcel& parcel);
+#endif
 
 private:
     sk_sp<SkPicture> picture_ { nullptr };
@@ -376,6 +686,15 @@ public:
     }
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
+    RSOpType GetType() const override {
+        return RSOpType::POINTSOPITEM;
+    }
+
+#ifdef ROSEN_OHOS
+    bool Marshalling(Parcel& parcel) const override;
+    static OpItem* Unmarshalling(Parcel& parcel);
+#endif
+
 private:
     SkCanvas::PointMode mode_;
     int count_;
@@ -388,6 +707,15 @@ public:
         int boneCount, SkBlendMode mode, const SkPaint& paint);
     ~VerticesOpItem() override;
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
+
+    RSOpType GetType() const override {
+        return RSOpType::VERTICESOPITEM;
+    }
+
+#ifdef ROSEN_OHOS
+    bool Marshalling(Parcel& parcel) const override;
+    static OpItem* Unmarshalling(Parcel& parcel);
+#endif
 
 private:
     sk_sp<SkVertices> vertices_;
@@ -402,6 +730,15 @@ public:
     ~MultiplyAlphaOpItem() override {}
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
+    RSOpType GetType() const override {
+        return RSOpType::MULTIPLYALPHAOPITEM;
+    }
+
+#ifdef ROSEN_OHOS
+    bool Marshalling(Parcel& parcel) const override;
+    static OpItem* Unmarshalling(Parcel& parcel);
+#endif
+
 private:
     float alpha_;
 };
@@ -411,6 +748,14 @@ public:
     SaveAlphaOpItem();
     ~SaveAlphaOpItem() override {}
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
+
+    RSOpType GetType() const override {
+        return RSOpType::SAVEALPHAOPITEM;
+    }
+
+#ifdef ROSEN_OHOS
+    static OpItem* Unmarshalling(Parcel& parcel);
+#endif
 };
 
 class RestoreAlphaOpItem : public OpItem {
@@ -418,6 +763,14 @@ public:
     RestoreAlphaOpItem();
     ~RestoreAlphaOpItem() override {}
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
+
+    RSOpType GetType() const override {
+        return RSOpType::RESTOREALPHAOPITEM;
+    }
+
+#ifdef ROSEN_OHOS
+    static OpItem* Unmarshalling(Parcel& parcel);
+#endif
 };
 
 } // namespace Rosen

@@ -28,12 +28,22 @@ class sk_sp;
 class SkData;
 class SkFlattenable;
 class SkPath;
+class SkTextBlob;
+class SkImage;
+class SkPaint;
+class SkRegion;
+class SkPicture;
+class SkDrawable;
+class SkImageFilter;
+class SkVertices;
 
 namespace OHOS {
 namespace Rosen {
 class RSFilter;
+class RSMask;
 class RSPath;
 class RSShader;
+class RSImage;
 template<typename T>
 class RSRenderCurveAnimation;
 template<typename T>
@@ -41,9 +51,13 @@ class RSRenderKeyframeAnimation;
 class RSRenderPathAnimation;
 class RSRenderTransition;
 class RSRenderTransitionEffect;
+class DrawCmdList;
 
 class RSMarshallingHelper {
 public:
+    static bool WriteToParcel(Parcel &parcel, const void* data, size_t size);
+    static const void* ReadFromParcel(Parcel& parcel, size_t size);
+
     // default marshalling and unmarshalling method for POD types
     // [PLANNING]: implement marshalling & unmarshalling methods for other types (e.g. RSImage, drawCMDList)
     template<typename T>
@@ -56,6 +70,21 @@ public:
     {
         if (const uint8_t* buff = parcel.ReadUnpadBuffer(sizeof(T))) {
             val = *(reinterpret_cast<const T*>(buff));
+            return true;
+        }
+        return false;
+    }
+
+    template<typename T>
+    static bool Marshalling(Parcel& parcel, const T* val, int count)
+    {
+        return parcel.WriteUnpadBuffer(val, count * sizeof(T));
+    }
+    template<typename T>
+    static bool Unmarshalling(Parcel& parcel, T*& val, int count)
+    {
+        if (const uint8_t* buff = parcel.ReadUnpadBuffer(count * sizeof(T))) {
+            val = reinterpret_cast<const T*>(buff);
             return true;
         }
         return false;
@@ -79,12 +108,24 @@ public:
     DECLARE_FUNCTION_OVERLOAD(float)
     DECLARE_FUNCTION_OVERLOAD(double)
     // skia types
+    DECLARE_FUNCTION_OVERLOAD(SkPath)
+    DECLARE_FUNCTION_OVERLOAD(SkPaint)
+    DECLARE_FUNCTION_OVERLOAD(SkRegion)
     DECLARE_FUNCTION_OVERLOAD(sk_sp<SkData>)
     DECLARE_FUNCTION_OVERLOAD(sk_sp<SkFlattenable>)
-    DECLARE_FUNCTION_OVERLOAD(SkPath)
-    DECLARE_FUNCTION_OVERLOAD(RSShader)
-    DECLARE_FUNCTION_OVERLOAD(RSPath)
+    DECLARE_FUNCTION_OVERLOAD(sk_sp<SkTextBlob>)
+    DECLARE_FUNCTION_OVERLOAD(sk_sp<SkPicture>)
+    DECLARE_FUNCTION_OVERLOAD(sk_sp<SkDrawable>)
+    DECLARE_FUNCTION_OVERLOAD(sk_sp<SkImageFilter>)
+    DECLARE_FUNCTION_OVERLOAD(sk_sp<SkImage>)
+    DECLARE_FUNCTION_OVERLOAD(sk_sp<SkVertices>)
+    // RS types
+    DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSShader>)
+    DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSPath>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSFilter>)
+    DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSMask>)
+    DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSImage>)
+    DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<DrawCmdList>)
     // animation
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSRenderPathAnimation>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSRenderTransition>)
@@ -107,6 +148,11 @@ public:
     static bool Marshalling(Parcel& parcel, const std::vector<T>& val);
     template<typename T>
     static bool Unmarshalling(Parcel& parcel, std::vector<T>& val);
+private:
+    static void ReleaseMemory(void* data, int* fd, size_t size);
+    inline static std::atomic<uint32_t> shmemCount = 0;
+    static constexpr size_t MAX_DATA_SIZE = 128 * 1024 * 1024; // 128M
+    static constexpr size_t MIN_DATA_SIZE = 8 * 1024;         // 8k
 };
 
 } // namespace Rosen

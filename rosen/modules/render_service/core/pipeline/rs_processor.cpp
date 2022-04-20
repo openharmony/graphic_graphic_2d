@@ -70,47 +70,5 @@ void RSProcessor::SetBufferTimeStamp()
         RS_LOGE("RSProcessor::SetBufferTimeStamp buffer ExtraSet failed");
     }
 }
-
-bool RSProcessor::ConsumeAndUpdateBuffer(RSSurfaceRenderNode& node, SpecialTask& task, sptr<SurfaceBuffer>& buffer)
-{
-    if (node.GetAvailableBufferCount() == 0 && !node.GetBuffer()) {
-        RS_LOGI("RsDebug RSProcessor::ProcessSurface have no Available Buffer and"\
-            "Node have no buffer node id:%llu", node.GetId());
-        return false;
-    }
-    auto& surfaceConsumer = node.GetConsumer();
-    if (!surfaceConsumer) {
-        RS_LOGI("RSProcessor::ProcessSurface output is nullptr");
-        return false;
-    }
-    if (node.GetAvailableBufferCount() >= 1) {
-        int32_t fence = -1;
-        int64_t timestamp = 0;
-        Rect damage;
-        auto sret = surfaceConsumer->AcquireBuffer(buffer, fence, timestamp, damage);
-        sptr<SyncFence> acquireFence = new SyncFence(fence);
-        if (!buffer || sret != OHOS::SURFACE_ERROR_OK) {
-            RS_LOGE("RSProcessor::ProcessSurface: AcquireBuffer failed! sret: %{public}d", sret);
-            if (sret == OHOS::GSERROR_NO_BUFFER) {
-                node.ReduceAvailableBuffer();
-            }
-            return false;
-        }
-        task();
-        node.SetBuffer(buffer);
-        node.SetFence(acquireFence);
-        node.SetDamageRegion(damage);
-        if (node.ReduceAvailableBuffer() >= 1) {
-            if (auto mainThread = RSMainThread::Instance()) {
-                mainThread->RequestNextVSync();
-            }
-        }
-    } else {
-        node.SetBuffer(node.GetBuffer());
-        node.SetFence(node.GetFence());
-        node.SetDamageRegion(node.GetDamageRegion());
-    }
-    return true;
-}
 } // namespace Rosen
 } // namespace OHOS

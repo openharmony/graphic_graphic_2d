@@ -32,6 +32,10 @@ namespace OHOS {
 namespace Rosen {
 static TaskRunner g_uiTaskRunner;
 
+namespace {
+    const std::set<std::string> APP_FOR_UNI_RENDER = { "clock0" };
+}
+
 std::shared_ptr<RSUIDirector> RSUIDirector::Create()
 {
     return std::shared_ptr<RSUIDirector>(new RSUIDirector());

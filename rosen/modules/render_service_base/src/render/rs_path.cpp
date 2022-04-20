@@ -43,7 +43,10 @@ std::shared_ptr<RSPath> RSPath::CreateRSPath(const std::string& path)
     return RSPath::CreateRSPath(skAnimationPath);
 }
 
-RSPath::RSPath() {}
+RSPath::RSPath()
+{
+    skPath_ = new SkPath();
+}
 
 RSPath::~RSPath()
 {

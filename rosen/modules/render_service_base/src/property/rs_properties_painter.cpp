@@ -235,7 +235,6 @@ void RSPropertiesPainter::DrawFrame(
             canvas.concat(mat);
         }
         auto frameRect = Rect2SkRect(properties.GetFrameRect());
-
         cmds->Playback(canvas, &frameRect);
     }
 }

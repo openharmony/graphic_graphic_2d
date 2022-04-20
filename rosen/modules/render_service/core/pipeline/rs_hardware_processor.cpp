@@ -27,6 +27,7 @@
 #include "pipeline/rs_main_thread.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_log.h"
+#include "platform/common/rs_system_properties.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -128,10 +129,7 @@ void RSHardwareProcessor::ProcessSurface(RSSurfaceRenderNode &node)
 {
     RS_LOGI("RsDebug RSHardwareProcessor::ProcessSurface start node id:%llu available buffer:%d name:[%s]",
         node.GetId(), node.GetAvailableBufferCount(), node.GetName().c_str());
-    OHOS::sptr<SurfaceBuffer> cbuffer;
-    RSProcessor::SpecialTask task = [] () -> void {};
-    bool ret = ConsumeAndUpdateBuffer(node, task, cbuffer);
-    if (!ret) {
+    if (!RsRenderServiceUtil::ConsumeAndUpdateBuffer(node)) {
         RS_LOGI("RsDebug RSHardwareProcessor::ProcessSurface consume buffer fail");
         return;
     }
@@ -222,6 +220,58 @@ void RSHardwareProcessor::ProcessSurface(RSSurfaceRenderNode &node)
     if (info.buffer->GetSurfaceBufferColorGamut() != static_cast<ColorGamut>(currScreenInfo_.colorGamut)) {
         layer->SetCompositionType(CompositionType::COMPOSITION_CLIENT);
     }
+}
+
+void RSHardwareProcessor::ProcessSurface(RSDisplayRenderNode& node)
+{
+    RS_LOGI("RSHardwareProcessor::ProcessSurface displayNode id:%llu available buffer:%d", node.GetId(),
+        node.GetAvailableBufferCount());
+    if (!output_) {
+        RS_LOGE("RSHardwareProcessor::ProcessSurface output is nullptr");
+        return;
+    }
+    if (!RsRenderServiceUtil::ConsumeAndUpdateBuffer(node)) {
+        RS_LOGE("RSHardwareProcessor::ProcessSurface consume buffer fail");
+        return;
+    }
+    ComposeInfo info = {
+        .srcRect = {
+            .x = 0,
+            .y = 0,
+            .w = node.GetBuffer()->GetSurfaceBufferWidth(),
+            .h = node.GetBuffer()->GetSurfaceBufferHeight(),
+        },
+        .dstRect = {
+            .x = 0,
+            .y = 0,
+            .w = static_cast<int32_t>(currScreenInfo_.width),
+            .h = static_cast<int32_t>(currScreenInfo_.height),
+        },
+        .visibleRect = {
+            .x = 0,
+            .y = 0,
+            .w = static_cast<int32_t>(currScreenInfo_.width),
+            .h = static_cast<int32_t>(currScreenInfo_.height),
+        },
+        .zOrder = static_cast<int32_t>(node.GetGlobalZOrder()),
+        .alpha = {
+            .enGlobalAlpha = false,
+        },
+        .buffer = node.GetBuffer(),
+        .fence = node.GetFence(),
+        .preBuffer = node.GetPreBuffer(),
+        .preFence = node.GetPreFence(),
+        .blendType = BLEND_NONE,
+    };
+    std::shared_ptr<HdiLayerInfo> layer = HdiLayerInfo::CreateHdiLayerInfo();
+    RS_LOGI("RSHardwareProcessor::ProcessSurface displayNode id:%llu dst [%d %d %d %d]"\
+        "SrcRect [%d %d] rawbuffer [%d %d] surfaceBuffer [%d %d] buffaddr:%p, globalZOrder:%d, blendType = %d",
+        node.GetId(),
+        info.dstRect.x, info.dstRect.y, info.dstRect.w, info.dstRect.h, info.srcRect.w, info.srcRect.h,
+        node.GetBuffer()->GetWidth(), node.GetBuffer()->GetHeight(), node.GetBuffer()->GetSurfaceBufferWidth(),
+        node.GetBuffer()->GetSurfaceBufferHeight(), node.GetBuffer().GetRefPtr(),
+        info.zOrder, info.blendType);
+    RsRenderServiceUtil::ComposeSurface(layer, node.GetConsumer(), layers_, info, &node);
 }
 
 void RSHardwareProcessor::CalculateInfoWithVideo(ComposeInfo& info, RSSurfaceRenderNode& node)
@@ -357,6 +407,9 @@ void RSHardwareProcessor::Redraw(sptr<Surface>& surface, const struct PrepareCom
 
 void RSHardwareProcessor::OnRotate()
 {
+    if (RSSystemProperties::GetUniRenderEnabledType() != UniRenderEnabledType::UNI_RENDER_DISABLED) {
+        return;
+    }
     int32_t width = static_cast<int32_t>(currScreenInfo_.width);
     int32_t height = static_cast<int32_t>(currScreenInfo_.height);
     for (auto& layer: layers_) {

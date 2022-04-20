@@ -124,6 +124,14 @@ ohos_shared_library("librender_service_base") {
     "src/screen_manager/rs_screen_props.cpp",
   ]
 
+  include_dirs = [
+    "//foundation/graphic/standard/rosen/modules/render_service_base/src",
+  ]
+
+  deps = [
+    "//foundation/graphic/standard/rosen/modules/render_service_base/src/platform:platform",
+  ]
+
   public_deps = [
     "src/platform:platform",
     "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",

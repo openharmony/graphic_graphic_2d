@@ -24,6 +24,7 @@
 #include "include/core/SkCanvas.h"
 #include "include/core/SkMatrix.h"
 #include "include/core/SkRect.h"
+#include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "property/rs_transition_properties.h"
 #include "screen_manager/screen_types.h"
@@ -68,6 +69,8 @@ public:
     using CanvasPostProcess = std::function<void(SkCanvas&, BufferDrawParam&)>;
     static void ComposeSurface(std::shared_ptr<HdiLayerInfo> layer, sptr<Surface> consumerSurface,
         std::vector<LayerInfoPtr>& layers, ComposeInfo info, RSSurfaceRenderNode* node = nullptr);
+    static void ComposeSurface(std::shared_ptr<HdiLayerInfo> layer, sptr<Surface> consumerSurface,
+        std::vector<LayerInfoPtr>& layers, ComposeInfo info, RSDisplayRenderNode* node);
     static void DrawBuffer(SkCanvas& canvas, BufferDrawParam& bufferDrawParam, CanvasPostProcess process = nullptr);
     static BufferDrawParam CreateBufferDrawParam(RSSurfaceRenderNode& node, SkMatrix canvasMatrix = SkMatrix(),
         ScreenRotation rotation = ScreenRotation::ROTATION_0);
@@ -75,13 +78,18 @@ public:
     static void ExtractAnimationInfo(const std::unique_ptr<RSTransitionProperties>& transitionProperties,
         RSSurfaceRenderNode& node, AnimationInfo& info);
     static void InitEnableClient();
+    static bool CreateYuvToRGBABitMap(sptr<OHOS::SurfaceBuffer> buffer, std::vector<uint8_t>& newBuffer,
+        SkBitmap& bitmap);
+
+    static bool ConsumeAndUpdateBuffer(RSDisplayRenderNode& node, bool toReleaseBuffer = false);
+    static bool ConsumeAndUpdateBuffer(RSSurfaceRenderNode& node, bool toReleaseBuffer = false);
+
 private:
     static SkMatrix GetCanvasTransform(const RSSurfaceRenderNode& node, const SkMatrix& canvasMatrix,
         ScreenRotation rotation);
     static bool IsNeedClient(RSSurfaceRenderNode* node);
     static bool CreateBitmap(sptr<OHOS::SurfaceBuffer> buffer, SkBitmap& bitmap);
-    static bool CreateYuvToRGBABitMap(sptr<OHOS::SurfaceBuffer> buffer, std::vector<uint8_t>& newBuffer,
-        SkBitmap& bitmap);
+
     static bool CreateNewColorGamutBitmap(sptr<OHOS::SurfaceBuffer> buffer, std::vector<uint8_t>& newGamutBuffer,
         SkBitmap& bitmap, ColorGamut srcGamut, ColorGamut dstGamut);
     static bool enableClient;
