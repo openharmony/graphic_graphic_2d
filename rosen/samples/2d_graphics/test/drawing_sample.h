@@ -80,7 +80,7 @@ private:
 
     static void OnScreenPlug(std::shared_ptr<HdiOutput>& output, bool connected, void* data);
     static void OnPrepareCompleted(
-        std::shared_ptr<RSSurfaceOhos> &rsSurface, const struct PrepareCompleteParam& param, void* data);
+        sptr<Surface> &surface, const struct PrepareCompleteParam& param, void* data);
 };
 } // namespace Drawing
 } // namespace Rosen

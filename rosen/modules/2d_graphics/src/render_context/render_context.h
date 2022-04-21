@@ -76,9 +76,9 @@ private:
 
     EGLNativeWindowType nativeWindow_;
 
-    EGLDisplay eglDisplay_;
-    EGLContext eglContext_;
-    EGLSurface eglSurface_;
+    EGLDisplay eglDisplay_ = EGL_NO_DISPLAY;
+    EGLContext eglContext_ = EGL_NO_CONTEXT;
+    EGLSurface eglSurface_ = EGL_NO_SURFACE;
     EGLConfig config_;
     ColorGamut colorSpace_ = ColorGamut::COLOR_GAMUT_SRGB;
 };

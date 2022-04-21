@@ -48,15 +48,7 @@ ohos_shared_library("libcomposer") {
     "hdi_backend/src/hdi_screen.cpp",
   ]
 
-  defines = []
-  defines += gpu_defines
-
-  include_dirs = [
-    "//foundation/graphic/standard/rosen/modules/2d_graphics/include",
-    "//foundation/graphic/standard/rosen/modules/2d_graphics/src",
-    "//foundation/graphic/standard/rosen/modules/render_service_base/src",
-    "//foundation/graphic/standard/utils/log",
-  ]
+  include_dirs = [ "//foundation/graphic/standard/utils/log" ]
 
   configs = [ ":composer_config" ]
 
@@ -69,17 +61,15 @@ ohos_shared_library("libcomposer") {
   ]
 
   deps = [
-    "vsync:libvsync",
     "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
     "//drivers/peripheral/display/hal:hdi_display_device",
-    "//foundation/appexecfwk/standard/interfaces/innerkits/libeventhandler:libeventhandler",
     "//foundation/graphic/standard:libsurface",
     "//foundation/graphic/standard/frameworks/vsync:libvsync_module",
-    "//foundation/graphic/standard/rosen/modules/render_service_base:librender_service_base",
     "//foundation/graphic/standard/utils:libgraphic_utils",
   ]
 
   public_deps = [
+    "vsync:libvsync",
     "//foundation/appexecfwk/standard/interfaces/innerkits/libeventhandler:libeventhandler",
     "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
     "//foundation/graphic/standard/utils:buffer_handle",

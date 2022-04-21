@@ -20,8 +20,6 @@
 #include <vsync_helper.h>
 #include <iostream>
 
-#include <platform/ohos/rs_surface_ohos.h>
-
 using namespace OHOS;
 using namespace OHOS::Rosen;
 
@@ -67,13 +65,13 @@ void RenderContextSample::OnScreenPlug(std::shared_ptr<HdiOutput> &output, bool 
 }
 
 void RenderContextSample::OnPrepareCompleted(
-    std::shared_ptr<RSSurfaceOhos> &rsSurface, const struct PrepareCompleteParam &param, void* data)
+    sptr<Surface> &surface, const struct PrepareCompleteParam &param, void* data)
 {
     if (!param.needFlushFramebuffer) {
         return;
     }
 
-    if (rsSurface == nullptr) {
+    if (surface == nullptr) {
         return;
     }
 
@@ -83,7 +81,7 @@ void RenderContextSample::OnPrepareCompleted(
 
     std::cout << "OnPrepareCompleted param.layer size is " << (int)param.layers.size() << std::endl;
     auto* thisPtr = static_cast<RenderContextSample *>(data);
-    thisPtr->DoPrepareCompleted(rsSurface->GetSurface(), param);
+    thisPtr->DoPrepareCompleted(surface, param);
 }
 
 void RenderContextSample::InitEGL()

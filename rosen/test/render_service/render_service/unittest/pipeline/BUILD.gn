@@ -35,6 +35,7 @@ ohos_unittest("RSRenderServiceCommonPipelineTest") {
 
   include_dirs = [
     "//foundation/graphic/standard/rosen/modules/render_service/core",
+    "//foundation/graphic/standard/rosen/modules/render_service_base/src",
     "//foundation/graphic/standard/rosen/include",
     "//foundation/graphic/standard/rosen/test/include",
   ]

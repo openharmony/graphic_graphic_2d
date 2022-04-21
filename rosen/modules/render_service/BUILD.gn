@@ -27,8 +27,6 @@ ohos_shared_library("librender_service") {
   }
   defines += gpu_defines
 
-  defines += gpu_defines
-
   sources = [
     "core/pipeline/rs_compatible_processor.cpp",
     "core/pipeline/rs_hardware_processor.cpp",

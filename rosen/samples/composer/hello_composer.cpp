@@ -22,8 +22,6 @@
 #include <securec.h>
 #include <sync_fence.h>
 
-#include <platform/ohos/rs_surface_ohos.h>
-
 using namespace OHOS;
 using namespace OHOS::Rosen;
 
@@ -103,13 +101,13 @@ void HelloComposer::OnScreenPlug(std::shared_ptr<HdiOutput> &output, bool connec
 }
 
 void HelloComposer::OnPrepareCompleted(
-    std::shared_ptr<RSSurfaceOhos> &rsSurface, const struct PrepareCompleteParam &param, void* data)
+    sptr<Surface> &surface, const struct PrepareCompleteParam &param, void* data)
 {
     if (!param.needFlushFramebuffer) {
         return;
     }
 
-    if (rsSurface == nullptr) {
+    if (surface == nullptr) {
         LOGE("surface is null");
         return;
     }
@@ -120,7 +118,7 @@ void HelloComposer::OnPrepareCompleted(
     }
 
     auto* thisPtr = static_cast<HelloComposer *>(data);
-    thisPtr->DoPrepareCompleted(rsSurface->GetSurface(), param);
+    thisPtr->DoPrepareCompleted(surface, param);
 }
 
 void HelloComposer::CreateLayers()

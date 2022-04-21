@@ -49,7 +49,7 @@ HWTEST_F(HdiBackendSysTest, TestHdiBeckend001, Function | MediumTest| Level3)
 {
     ASSERT_EQ(HdiBackendSysTest::hdiBackend_->RegScreenHotplug(nullptr, nullptr), ROSEN_ERROR_INVALID_ARGUMENTS);
 
-    auto func = [](std::shared_ptr<RSSurfaceOhos> &, const struct PrepareCompleteParam &, void*) -> void {};
+    auto func = [](sptr<Surface> &, const struct PrepareCompleteParam &, void*) -> void {};
     ASSERT_EQ(HdiBackendSysTest::hdiBackend_->RegPrepareComplete(func, nullptr), ROSEN_ERROR_OK);
 }
 } // namespace

@@ -52,7 +52,7 @@ public:
     const std::unordered_map<uint32_t, LayerPtr>& GetLayers();
     IRect& GetOutputDamage();
     uint32_t GetOutputDamageNum() const;
-    std::shared_ptr<RSSurfaceOhos> GetFrameBufferSurface();
+    sptr<Surface> GetFrameBufferSurface();
     sptr<SurfaceBuffer> GetFramebuffer();
     sptr<SyncFence> GetFramebufferFence();
     int32_t ReleaseFramebuffer(const sptr<SyncFence> &releaseFence);

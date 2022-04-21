@@ -27,6 +27,8 @@
 #include "screen_manager/screen_types.h"
 
 #include "platform/drawing/rs_surface_frame.h"
+
+#include "platform/ohos/rs_surface_ohos.h"
 #ifdef RS_ENABLE_GL
 #include "render_context/render_context.h"
 #endif // RS_ENABLE_GL

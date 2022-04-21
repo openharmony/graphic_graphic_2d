@@ -294,14 +294,14 @@ void RSHardwareProcessor::CalculateInfoWithAnimation(
 }
 
 void RSHardwareProcessor::Redraw(
-    std::shared_ptr<RSSurfaceOhos>& rsSurface, const struct PrepareCompleteParam& param, void* data)
+    sptr<Surface>& surface, const struct PrepareCompleteParam& param, void* data)
 {
     if (!param.needFlushFramebuffer) {
         RS_LOGI("RsDebug RSHardwareProcessor::Redraw no need to flush frame buffer");
         return;
     }
 
-    if (rsSurface == nullptr) {
+    if (surface == nullptr) {
         RS_LOGE("RSHardwareProcessor::Redraw: surface is null.");
         return;
     }
@@ -315,7 +315,9 @@ void RSHardwareProcessor::Redraw(
         .timeout = 0,
     };
     RS_TRACE_NAME("Redraw");
-    auto surface = rsSurface->GetSurface();
+
+    // [PLANNING]: use surface to create egl surface and use new CreateCanvas()
+
     auto canvas = CreateCanvas(surface, requestConfig);
     if (canvas == nullptr) {
         RS_LOGE("RSHardwareProcessor::Redraw: canvas is null.");

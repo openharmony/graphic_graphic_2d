@@ -24,8 +24,6 @@
 #include <vsync_receiver.h>
 #include <iostream>
 
-#include <platform/ohos/rs_surface_ohos.h>
-
 using namespace OHOS;
 using namespace OHOS::Rosen;
 
@@ -83,13 +81,13 @@ void DrawingEngineSample::OnScreenPlug(std::shared_ptr<HdiOutput> &output, bool 
 }
 
 void DrawingEngineSample::OnPrepareCompleted(
-    std::shared_ptr<RSSurfaceOhos> &rsSurface, const struct PrepareCompleteParam &param, void* data)
+    sptr<Surface> &surface, const struct PrepareCompleteParam &param, void* data)
 {
     if (!param.needFlushFramebuffer) {
         return;
     }
 
-    if (rsSurface == nullptr) {
+    if (surface == nullptr) {
         LOGE("surface is null");
         return;
     }
@@ -100,7 +98,7 @@ void DrawingEngineSample::OnPrepareCompleted(
     }
 
     auto* thisPtr = static_cast<DrawingEngineSample *>(data);
-    thisPtr->DoPrepareCompleted(rsSurface->GetSurface(), param);
+    thisPtr->DoPrepareCompleted(surface, param);
 }
 
 void DrawingEngineSample::InitContext()
