@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,11 +16,50 @@
 #ifndef UTILS_INCLUDE_SYNC_FENCE_H
 #define UTILS_INCLUDE_SYNC_FENCE_H
 
+#include <cstddef>
+#include <cstdint>
 #include <string>
+#include <mutex>
+#include <vector>
+
 #include <refbase.h>
 #include <unique_fd.h>
 
 namespace OHOS {
+// same to linux/sync_file define
+enum FenceStatus {
+    ERROR = -1,
+    ACTIVE = 0,
+    SIGNALED = 1
+};
+
+struct SyncPointInfo {
+    uint64_t timestampNs;
+    FenceStatus status;
+};
+
+class SyncTimeline : public RefBase {
+public:
+    SyncTimeline() noexcept;
+    ~SyncTimeline() noexcept;
+
+    SyncTimeline(const SyncTimeline& rhs) = delete;
+    SyncTimeline& operator=(const SyncTimeline& rhs) = delete;
+    SyncTimeline(SyncTimeline&& rhs) = delete;
+    SyncTimeline& operator=(SyncTimeline&& rhs) = delete;
+
+    bool IsValid();
+    int32_t IncreaseSyncPoint(uint32_t step = 1);
+    int32_t GenerateFence(std::string name, uint32_t point);
+    int32_t Dup() const;
+    /* this is dangerous, when you use it, do not operator the fd */
+    int32_t Get() const;
+
+private:
+    int32_t timeLineFd_ = -1;
+    int32_t timeLineNextPoint = 0;
+    bool isValid_ = false;
+};
 
 class SyncFence : public RefBase {
 public:
@@ -44,22 +83,8 @@ public:
     int32_t Get() const;
 
 private:
-    struct SyncFenceInfo {
-        char objName_[32];
-        char driverName_[32];
-        int32_t status_;
-        uint32_t flags_;
-        uint64_t timestampNs_;
-    };
-
-    struct SyncFileInfo {
-        char name_[32];
-        int32_t status_;
-        uint32_t flags_;
-        uint32_t numFences_;
-        uint32_t pad_;
-        uint64_t syncFenceInfo_;
-    };
+    std::vector<SyncPointInfo> GetFenceInfo();
+    FenceStatus GetStatus();
 
     UniqueFd fenceFd_;
 };

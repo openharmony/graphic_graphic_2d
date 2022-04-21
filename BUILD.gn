@@ -43,6 +43,7 @@ group("graphic_standard_test") {
     "frameworks/wmtest:wmtest",
     "rosen/modules/composer:test",
     "rosen/modules/effect/test/unittest:test",
+    "utils/sync_fence:test",
   ]
 }
 

@@ -1,4 +1,4 @@
-# Copyright (c) 2021 Huawei Device Co., Ltd.
+# Copyright (c) 2022 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -35,7 +35,7 @@ config("sync_fence_public_config") {
   ]
 }
 
-ohos_static_library("sync_fence") {
+ohos_shared_library("sync_fence") {
   sources = [ "src/sync_fence.cpp" ]
 
   configs = [ ":sync_fence_config" ]
@@ -49,5 +49,11 @@ ohos_static_library("sync_fence") {
 
   part_name = "graphic_standard"
   subsystem_name = "graphic"
+}
+
+group("test") {
+  testonly = true
+
+  deps = [ "test:test" ]
 }
 ## Build sync_fence.so }}}
