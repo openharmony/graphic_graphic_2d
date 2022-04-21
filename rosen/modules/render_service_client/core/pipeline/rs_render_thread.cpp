@@ -164,13 +164,17 @@ void RSRenderThread::RecvTransactionData(std::unique_ptr<RSTransactionData>& tra
 
 void RSRenderThread::RequestNextVSync()
 {
-    RS_TRACE_FUNC();
-    VSyncReceiver::FrameCallback fcb = {
-        .userData_ = this,
-        .callback_ = std::bind(&RSRenderThread::OnVsync, this, std::placeholders::_1),
-    };
-    if (receiver_ != nullptr) {
-        receiver_->RequestNextVSync(fcb);
+    if (handler_) {
+        RS_TRACE_FUNC();
+        handler_->PostTask([this]() {
+            VSyncReceiver::FrameCallback fcb = {
+                .userData_ = this,
+                .callback_ = std::bind(&RSRenderThread::OnVsync, this, std::placeholders::_1),
+            };
+            if (receiver_ != nullptr) {
+                receiver_->RequestNextVSync(fcb);
+            }
+        });
     }
 }
 
