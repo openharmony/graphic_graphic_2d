@@ -17,6 +17,7 @@
 
 #include "pipeline/rs_base_render_node.h"
 #include "pipeline/rs_canvas_render_node.h"
+#include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_log.h"
 
 namespace OHOS {
@@ -54,6 +55,23 @@ void RSRenderNodeMap::FilterNodeByPid(pid_t pid)
         pair.second->RemoveFromTree();
         return true;
     });
+}
+
+void RSRenderNodeMap::DumpNodeNotOnTree(std::string& dumpString) const
+{
+    dumpString.append("\n");
+    dumpString.append("-- Node Not On Tree\n");
+    for (auto it = renderNodeMap_.begin(); it != renderNodeMap_.end(); it++) {
+        if ((*it).second->GetType() == RSRenderNodeType::SURFACE_NODE && !(*it).second->IsOnTheTree()) {
+            dumpString += "\n node Id[" + std::to_string((*it).first) + "]:\n";
+            auto node = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>((*it).second);
+            auto& surfaceConsumer = node->GetConsumer();
+            if (surfaceConsumer == nullptr) {
+                continue;
+            }
+            surfaceConsumer->Dump(dumpString);
+        }
+    }
 }
 
 template<>

@@ -43,6 +43,8 @@ public:
 
     void FilterNodeByPid(pid_t pid);
 
+    void DumpNodeNotOnTree(std::string& dumpString) const;
+
 private:
     explicit RSRenderNodeMap();
     ~RSRenderNodeMap() = default;
