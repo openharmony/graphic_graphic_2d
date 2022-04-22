@@ -88,5 +88,8 @@ ohos_shared_library("libcomposer") {
 group("test") {
   testonly = true
 
-  deps = [ "hdi_backend/test:test" ]
+  deps = [
+    "hdi_backend/test:test",
+    "vsync/test:test",
+  ]
 }
