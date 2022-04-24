@@ -322,33 +322,50 @@ private:
     BufferAvailableCallback cb_;
 };
 
-bool RSRenderServiceClient::RegisterBufferAvailableListener(NodeId id, const BufferAvailableCallback &callback)
+bool RSRenderServiceClient::RegisterBufferAvailableListener(
+    NodeId id, const BufferAvailableCallback &callback, bool isFromRenderThread)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
         return false;
     }
-    auto iter = bufferAvailableCbMap_.find(id);
-    if (iter != bufferAvailableCbMap_.end()) {
+
+    auto iter = isFromRenderThread ? bufferAvailableCbRTMap_.find(id) : bufferAvailableCbUIMap_.find(id);
+    if (isFromRenderThread && iter != bufferAvailableCbRTMap_.end()) {
         return true;
     }
+
+    if (!isFromRenderThread && iter != bufferAvailableCbUIMap_.end()) {
+        return true;
+    }
+
     sptr<RSIBufferAvailableCallback> bufferAvailableCb = new CustomBufferAvailableCallback(callback);
-    renderService->RegisterBufferAvailableListener(id, bufferAvailableCb);
-    bufferAvailableCbMap_.emplace(id, bufferAvailableCb);
+    renderService->RegisterBufferAvailableListener(id, bufferAvailableCb, isFromRenderThread);
+    if (isFromRenderThread) {
+        bufferAvailableCbRTMap_.emplace(id, bufferAvailableCb);
+    } else {
+        bufferAvailableCbUIMap_.emplace(id, bufferAvailableCb);
+    }
     return true;
 }
 
 bool RSRenderServiceClient::UnregisterBufferAvailableListener(NodeId id)
 {
-    auto iter = bufferAvailableCbMap_.find(id);
-    if (iter != bufferAvailableCbMap_.end()) {
-        bufferAvailableCbMap_.erase(iter);
-        return true;
+    auto iter = bufferAvailableCbRTMap_.find(id);
+    if (iter != bufferAvailableCbRTMap_.end()) {
+        bufferAvailableCbRTMap_.erase(iter);
     } else {
         ROSEN_LOGI("RSRenderServiceClient::UnregisterBufferAvailableListener "\
-            "Node %llu has not regiatered callback", id);
-        return false;
+            "Node %llu has not regiatered RT callback", id);
     }
+    iter = bufferAvailableCbUIMap_.find(id);
+    if (iter != bufferAvailableCbUIMap_.end()) {
+        bufferAvailableCbUIMap_.erase(iter);
+    } else {
+        ROSEN_LOGI("RSRenderServiceClient::UnregisterBufferAvailableListener "\
+            "Node %llu has not regiatered UI callback", id);
+    }
+    return true;
 }
 
 int32_t RSRenderServiceClient::GetScreenSupportedColorGamuts(ScreenId id, std::vector<ScreenColorGamut>& mode)

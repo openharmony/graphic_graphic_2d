@@ -212,17 +212,22 @@ void RSSurfaceRenderNode::SetBlendType(BlendType blendType)
     blendType_ = blendType;
 }
 
-void RSSurfaceRenderNode::RegisterBufferAvailableListener(sptr<RSIBufferAvailableCallback> callback)
+void RSSurfaceRenderNode::RegisterBufferAvailableListener(
+    sptr<RSIBufferAvailableCallback> callback, bool isFromRenderThread)
 {
     {
         std::lock_guard<std::mutex> lock(mutex_);
-        callback_ = callback;
+        if (isFromRenderThread) {
+            callbackFromRT_ = callback;
+        } else {
+            callbackFromUI_ = callback;
+        }
     }
 }
 
 void RSSurfaceRenderNode::ConnectToNodeInRenderService()
 {
-    ROSEN_LOGI("RSSurfaceRenderNode::ConnectToNodeInRenderService nodeId = %llu", this->GetId());
+    ROSEN_LOGI("RSSurfaceRenderNode::ConnectToNodeInRenderService nodeId = %llu", GetId());
     auto renderServiceClient =
         std::static_pointer_cast<RSRenderServiceClient>(RSIRenderClient::CreateRenderServiceClient());
     if (renderServiceClient != nullptr) {
@@ -233,13 +238,13 @@ void RSSurfaceRenderNode::ConnectToNodeInRenderService()
                     return;
                 }
                 node->NotifyBufferAvailable();
-            });
+            }, true);
     }
 }
 
 void RSSurfaceRenderNode::NotifyBufferAvailable()
 {
-    ROSEN_LOGI("RSSurfaceRenderNode::NotifyBufferAvailable nodeId = %llu", this->GetId());
+    ROSEN_LOGI("RSSurfaceRenderNode::NotifyBufferAvailable nodeId = %llu", GetId());
 
     // In RS, "isBufferAvailable_ = true" means buffer is ready and need to trigger ipc callback.
     // In RT, "isBufferAvailable_ = true" means RT know that RS have had available buffer
@@ -247,7 +252,6 @@ void RSSurfaceRenderNode::NotifyBufferAvailable()
     if (isBufferAvailable_) {
         return;
     }
-
     isBufferAvailable_ = true;
 
     if (callbackForRenderThreadRefresh_) {
@@ -256,8 +260,11 @@ void RSSurfaceRenderNode::NotifyBufferAvailable()
 
     {
         std::lock_guard<std::mutex> lock(mutex_);
-        if (callback_) {
-            callback_->OnBufferAvailable();
+        if (callbackFromRT_) {
+            callbackFromRT_->OnBufferAvailable();
+        }
+        if (callbackFromUI_) {
+            callbackFromUI_->OnBufferAvailable();
         }
     }
 }

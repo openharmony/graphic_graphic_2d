@@ -134,8 +134,10 @@ public:
     BlendType GetBlendType();
     void SetBlendType(BlendType blendType);
 
-    // Only SurfaceNode in RS calls "RegisterBufferAvailableListener" to save callback method sent by RT
-    void RegisterBufferAvailableListener(sptr<RSIBufferAvailableCallback> callback);
+    // Only SurfaceNode in RS calls "RegisterBufferAvailableListener"
+    // to save callback method sent by RT or UI which depands on the value of "isFromRenderThread".
+    void RegisterBufferAvailableListener(
+        sptr<RSIBufferAvailableCallback> callback, bool isFromRenderThread);
 
     // Only SurfaceNode in RT calls "ConnectToNodeInRenderService" to send callback method to RS
     void ConnectToNodeInRenderService();
@@ -173,7 +175,8 @@ private:
     std::string name_;
     BlendType blendType_ = BlendType::BLEND_SRCOVER;
     std::atomic<bool> isBufferAvailable_ = false;
-    sptr<RSIBufferAvailableCallback> callback_;
+    sptr<RSIBufferAvailableCallback> callbackFromRT_;
+    sptr<RSIBufferAvailableCallback> callbackFromUI_;
     std::function<void(void)> callbackForRenderThreadRefresh_ = nullptr;
 };
 } // namespace Rosen

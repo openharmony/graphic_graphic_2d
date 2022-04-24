@@ -484,7 +484,8 @@ void RSRenderServiceConnectionProxy::SetScreenBacklight(ScreenId id, uint32_t le
     }
 }
 
-void RSRenderServiceConnectionProxy::RegisterBufferAvailableListener(NodeId id, sptr<RSIBufferAvailableCallback> callback)
+void RSRenderServiceConnectionProxy::RegisterBufferAvailableListener(
+    NodeId id, sptr<RSIBufferAvailableCallback> callback, bool isFromRenderThread)
 {
     if (callback == nullptr) {
         ROSEN_LOGE("RSRenderServiceConnectionProxy::RegisterBufferAvailableListener: callback is nullptr.");
@@ -502,6 +503,7 @@ void RSRenderServiceConnectionProxy::RegisterBufferAvailableListener(NodeId id, 
     option.SetFlags(MessageOption::TF_ASYNC);
     data.WriteUint64(id);
     data.WriteRemoteObject(callback->AsObject());
+    data.WriteBool(isFromRenderThread);
     int32_t err = Remote()->SendRequest(RSIRenderServiceConnection::SET_BUFFER_AVAILABLE_LISTENER, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("RSRenderServiceConnectionProxy::RegisterBufferAvailableListener: Send Request err.");

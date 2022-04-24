@@ -294,12 +294,13 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             }
             NodeId id = data.ReadUint64();
             auto remoteObject = data.ReadRemoteObject();
+            bool isFromRenderThread = data.ReadBool();
             if (remoteObject == nullptr) {
                 ret = ERR_NULL_OBJECT;
                 break;
             }
             sptr<RSIBufferAvailableCallback> cb = iface_cast<RSIBufferAvailableCallback>(remoteObject);
-            RegisterBufferAvailableListener(id, cb);
+            RegisterBufferAvailableListener(id, cb, isFromRenderThread);
             break;
         }
         case GET_SCREEN_SUPPORTED_GAMUTS: {

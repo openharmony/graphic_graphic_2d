@@ -96,7 +96,8 @@ public:
 
     void SetScreenBacklight(ScreenId id, uint32_t level);
 
-    bool RegisterBufferAvailableListener(NodeId id, const BufferAvailableCallback &callback);
+    bool RegisterBufferAvailableListener(
+        NodeId id, const BufferAvailableCallback &callback, bool isFromRenderThread = false);
     bool UnregisterBufferAvailableListener(NodeId id);
 
     int32_t GetScreenSupportedColorGamuts(ScreenId id, std::vector<ScreenColorGamut>& mode);
@@ -117,7 +118,8 @@ public:
 private:
     void TriggerSurfaceCaptureCallback(NodeId id, Media::PixelMap* pixelmap);
     std::mutex mutex_;
-    std::map<NodeId, sptr<RSIBufferAvailableCallback>> bufferAvailableCbMap_;
+    std::map<NodeId, sptr<RSIBufferAvailableCallback>> bufferAvailableCbRTMap_;
+    std::map<NodeId, sptr<RSIBufferAvailableCallback>> bufferAvailableCbUIMap_;
     sptr<RSIScreenChangeCallback> screenChangeCb_;
     sptr<RSISurfaceCaptureCallback> surfaceCaptureCbDirector_;
     std::map<NodeId, std::shared_ptr<SurfaceCaptureCallback>> surfaceCaptureCbMap_;

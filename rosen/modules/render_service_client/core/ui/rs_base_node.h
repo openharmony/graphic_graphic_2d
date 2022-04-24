@@ -64,6 +64,8 @@ public:
     }
     virtual std::string DumpNode(int depth) const;
 protected:
+    static bool isUni_;
+
     RSBaseNode(bool isRenderServiceNode);
     RSBaseNode(const RSBaseNode&) = delete;
     RSBaseNode(const RSBaseNode&&) = delete;
@@ -84,12 +86,15 @@ protected:
         return isRenderServiceNode_;
     }
 
-    static bool isUni_;
+    void SetRenderServiceNodeType(bool isRenderServiceNode)
+    {
+        isRenderServiceNode_ = isRenderServiceNode;
+    }
 
 private:
     static NodeId GenerateId();
     NodeId id_;
-    const bool isRenderServiceNode_;
+    bool isRenderServiceNode_;
 
     NodeId parent_ = 0;
     std::vector<NodeId> children_;

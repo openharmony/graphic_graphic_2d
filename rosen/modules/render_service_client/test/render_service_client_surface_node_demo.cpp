@@ -44,7 +44,7 @@
 #include "media_data_source.h"
 
 const char* SURFACE_STRIDE_ALIGNMENT = "8";
-constexpr int32_t SURFACE_QUEUE_SIZE = 5;
+constexpr int32_t SURFACE_QUEUE_SIZE = 3;
 
 using namespace OHOS;
 using namespace OHOS::Rosen;
@@ -113,10 +113,20 @@ void Init(std::shared_ptr<RSUIDirector> rsUiDirector, int width, int height)
     rootNode->AddChild(canvasNode, -1);
 
     struct RSSurfaceNodeConfig rsSurfaceNodeConfig;
+
+    // Create surfaceView node
     auto surfaceNode = RSSurfaceNode::Create(rsSurfaceNodeConfig, false);
+
+    // Create abilityView node
+    // "auto surfaceNode = RSSurfaceNode::Create(rsSurfaceNodeConfig);"
+    // "surfaceNode->CreateNodeInRenderThread();"
+
     cout << "surfaceNode id = " << surfaceNode->GetId() << endl;
     // SetBounds also can be (300, 300, 960, 540);
-    surfaceNode->SetBounds(30, 30, 320, 160);
+    surfaceNode->SetBounds(30, 30, 512, 256);
+    surfaceNode->SetFirstTimeOnScreenCallback([]() {
+         cout << "SetFirstTimeOnScreenCallback" << endl;
+    });
 
     canvasNode->AddChild(surfaceNode, -1);
     rsUiDirector->SendMessages();
@@ -167,7 +177,7 @@ int main()
     sptr<WindowOption> option = new WindowOption();
     option->SetWindowMode(WindowMode::WINDOW_MODE_FLOATING);
     // SetWindowRect also can be {200, 200, 1501, 1200}
-    option->SetWindowRect({120, 120, 500, 500});
+    option->SetWindowRect({120, 120, 512, 512});
 
     auto scene = new WindowScene();
 

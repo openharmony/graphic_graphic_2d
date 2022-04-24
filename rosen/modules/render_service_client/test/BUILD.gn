@@ -165,7 +165,7 @@ ohos_executable("render_service_client_surface_node_demo") {
 
   external_deps = [
     "hiviewdfx_hilog_native:libhilog",
-    "multimedia_media_standard:media_client",
+    #"multimedia_media_standard:media_client",
   ]
 
   part_name = "graphic_standard"

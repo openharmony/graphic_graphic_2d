@@ -148,6 +148,8 @@ void RenderContext::InitializeEglContext()
         return;
     }
 
+    eglMakeCurrent(eglDisplay_, EGL_NO_SURFACE, EGL_NO_SURFACE, eglContext_);
+
     LOGW("Create EGL context successfully, version %{public}d.%{public}d", major, minor);
 }
 
