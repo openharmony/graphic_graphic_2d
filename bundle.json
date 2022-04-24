@@ -13,6 +13,8 @@
       "name": "graphic_standard",
       "subsystem": "graphic",
       "syscap": [
+        "SystemCapability.Graphic.Graphic2D.EGL",
+        "SystemCapability.Graphic.Graphic2D.GLES3",
         "SystemCapability.Graphic.Graphic2D.NativeWindow",
         "SystemCapability.Graphic.Graphic2D.NativeDrawing",
         "SystemCapability.Graphic.Graphic2D.WebGL",
