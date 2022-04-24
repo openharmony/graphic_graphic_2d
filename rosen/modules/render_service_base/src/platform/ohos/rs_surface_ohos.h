@@ -27,7 +27,6 @@ class RSSurfaceOhos : public RSSurface {
 public:
     RSSurfaceOhos(const sptr<Surface>& producer) : producer_(producer)
     {
-        producer_->SetQueueSize(5); // set buffer queue size to 5
     }
 
     sptr<Surface> GetSurface() const
