@@ -27,6 +27,7 @@
 
 #include "buffer_log.h"
 #include "buffer_manager.h"
+#include "bytrace.h"
 #include "surface_buffer_impl.h"
 
 namespace OHOS {
@@ -273,6 +274,7 @@ GSError BufferQueue::ReuseBuffer(const BufferRequestConfig &config, sptr<BufferE
         retval.buffer = nullptr;
     }
 
+    ScopedBytrace bufferName(name_ + ":" + std::to_string(retval.sequence));
     return GSERROR_OK;
 }
 
@@ -340,6 +342,7 @@ GSError BufferQueue::FlushBuffer(int32_t sequence, const sptr<BufferExtraData> &
     if (sret != GSERROR_OK) {
         return sret;
     }
+    CountTrace(BYTRACE_TAG_GRAPHIC_AGP, name_, static_cast<int32_t>(dirtyList_.size()));
     BLOGD("Success Buffer id: %{public}d Queue id: %{public}" PRIu64 "", sequence, uniqueId_);
 
     if (sret == GSERROR_OK) {
@@ -385,6 +388,7 @@ GSError BufferQueue::DoFlushBuffer(int32_t sequence, const sptr<BufferExtraData>
     int32_t fence, const BufferFlushConfig &config)
 {
     ScopedBytrace func(__func__);
+    ScopedBytrace bufferName(name_ + ":" + std::to_string(sequence));
     std::lock_guard<std::mutex> lockGuard(mutex_);
     if (bufferQueueCache_[sequence].isDeleting) {
         DeleteBufferInCache(sequence);
@@ -440,11 +444,13 @@ GSError BufferQueue::AcquireBuffer(sptr<SurfaceBuffer> &buffer,
         timestamp = bufferQueueCache_[sequence].timestamp;
         damage = bufferQueueCache_[sequence].damage;
 
-    BLOGD("Success Buffer id: %{public}d Queue id: %{public}" PRIu64 "", sequence, uniqueId_);
+        ScopedBytrace bufferName(name_ + ":" + std::to_string(sequence));
+        BLOGD("Success Buffer id: %{public}d Queue id: %{public}" PRIu64 "", sequence, uniqueId_);
     } else if (ret == GSERROR_NO_BUFFER) {
         BLOGN_FAILURE("there is no dirty buffer");
     }
 
+    CountTrace(BYTRACE_TAG_GRAPHIC_AGP, name_, static_cast<int32_t>(dirtyList_.size()));
     return ret;
 }
 
@@ -452,6 +458,7 @@ GSError BufferQueue::ReleaseBuffer(sptr<SurfaceBuffer> &buffer, int32_t fence)
 {
     ScopedBytrace func(__func__);
     int32_t sequence = buffer->GetSeqNum();
+    ScopedBytrace bufferName(name_ + ":" + std::to_string(sequence));
     {
         std::lock_guard<std::mutex> lockGuard(mutex_);
         if (bufferQueueCache_.find(sequence) == bufferQueueCache_.end()) {
