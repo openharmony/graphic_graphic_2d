@@ -108,6 +108,7 @@ int RSRenderService::Dump(int fd, const std::vector<std::u16string>& args)
     std::u16string arg1(u"display");
     std::u16string arg2(u"surface");
     std::u16string arg3(u"fps");
+    std::u16string arg4(u"nodeNotOnTree");
     for (decltype(args.size()) index = 0; index < args.size(); ++index) {
         argSets.insert(args[index]);
     }
@@ -124,6 +125,11 @@ int RSRenderService::Dump(int fd, const std::vector<std::u16string>& args)
     if (args.size() == 0 || argSets.count(arg2) != 0) {
         mainThread_->ScheduleTask([this, &dumpString]() {
             return screenManager_->SurfaceDump(dumpString);
+        }).wait();
+    }
+    if (args.size() == 0 || argSets.count(arg4) != 0) {
+        mainThread_->ScheduleTask([this, &dumpString]() {
+            mainThread_->GetContext().GetNodeMap().DumpNodeNotOnTree(dumpString);
         }).wait();
     }
     auto iter = argSets.find(arg3);
