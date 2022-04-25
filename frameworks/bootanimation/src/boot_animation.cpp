@@ -12,114 +12,131 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 #include "boot_animation.h"
-#include "util.h"
+#include "event_handler.h"
 #include "rs_trace.h"
 #include "transaction/rs_render_service_client.h"
 #include "transaction/rs_interfaces.h"
 
 using namespace OHOS;
 static const std::string BOOT_PIC_ZIP = "/system/etc/init/bootpic.zip";
-static const std::string DST_FILE_PATH = "/data/media/bootpic";
-static const std::string BOOT_PIC_DIR = "/data/media/bootpic/OpenHarmony_";
-static const int32_t EXIT_TIME = 10 * 1000;
 static const std::string BOOT_SOUND_URI = "file://system/etc/init/bootsound.wav";
 
-void BootAnimation::OnDraw(SkCanvas* canvas)
+
+void BootAnimation::OnDraw(SkCanvas* canvas, int32_t curNo)
 {
-    ROSEN_TRACE_BEGIN(BYTRACE_TAG_GRAPHIC_AGP, "BootAnimation::OnDraw before codec");
-    std::string imgPath = BOOT_PIC_DIR + std::to_string(bootPicCurNo_) + ".jpg";
-    // pic is named from 0
-    if (bootPicCurNo_ != (maxPicNum_ - 1)) {
-        bootPicCurNo_ = bootPicCurNo_ + 1;
-    }
-    char newpath[PATH_MAX + 1] = { 0x00 };
-    if (strlen(imgPath.c_str()) > PATH_MAX || realpath(imgPath.c_str(), newpath) == NULL) {
-        LOG("OnDraw imgPath is invalid");
+    if (canvas == nullptr) {
+        LOGE("OnDraw canvas is nullptr");
         return;
     }
-    FILE *fp = fopen(newpath, "rb");
-    if (fp == nullptr) {
-        LOG("OnDraw fopen image file is nullptr");
+    if (curNo > (imgVecSize_ - 1) || curNo < 0) {
         return;
     }
-    std::unique_ptr<FILE, decltype(&fclose)> file(fp, fclose);
-    if (file == nullptr) {
-        LOG("OnDraw file is nullptr");
-        return;
-    }
-    ROSEN_TRACE_END(BYTRACE_TAG_GRAPHIC_AGP);
-    ROSEN_TRACE_BEGIN(BYTRACE_TAG_GRAPHIC_AGP, "BootAnimation::OnDraw in codec");
-    auto skData = SkData::MakeFromFILE(file.get());
-    if (!skData) {
-        LOG("skdata memory data is null. update data failed");
-        return;
-    }
-    auto codec = SkCodec::MakeFromData(skData);
-    sk_sp<SkImage> image = SkImage::MakeFromEncoded(skData);
-    ROSEN_TRACE_END(BYTRACE_TAG_GRAPHIC_AGP);
-    ROSEN_TRACE_BEGIN(BYTRACE_TAG_GRAPHIC_AGP, "BootAnimation::OnDraw in drawimage");
+    std::shared_ptr<ImageStruct> imgstruct = imageVector_[curNo];
+    sk_sp<SkImage> image = imgstruct->imageData;
+
+    ROSEN_TRACE_BEGIN(BYTRACE_TAG_GRAPHIC_AGP, "BootAnimation::OnDraw in drawRect");
     SkPaint backPaint;
     backPaint.setColor(SK_ColorBLACK);
     canvas->drawRect(SkRect::MakeXYWH(0.0, 0.0, windowWidth_, windowHeight_), backPaint);
+    ROSEN_TRACE_END(BYTRACE_TAG_GRAPHIC_AGP);
+    ROSEN_TRACE_BEGIN(BYTRACE_TAG_GRAPHIC_AGP, "BootAnimation::OnDraw in drawImageRect");
     SkPaint paint;
     SkRect rect;
     rect.setXYWH(pointX_, pointY_, realWidth_, realHeight_);
     canvas->drawImageRect(image.get(), rect, &paint);
     ROSEN_TRACE_END(BYTRACE_TAG_GRAPHIC_AGP);
-
-    ROSEN_TRACE_BEGIN(BYTRACE_TAG_GRAPHIC_AGP, "BootAnimation::OnDraw in FlushFrame");
-    rsSurface_->FlushFrame(framePtr_);
-    ROSEN_TRACE_END(BYTRACE_TAG_GRAPHIC_AGP);
 }
 
 void BootAnimation::Draw()
 {
-    ROSEN_TRACE_BEGIN(BYTRACE_TAG_GRAPHIC_AGP, "BootAnimation::Draw");
-    auto frame = rsSurface_->RequestFrame(windowWidth_, windowHeight_);
-    if (frame == nullptr) {
-        LOG("OnDraw frame is nullptr");
-        RequestNextVsync();
+    if (picCurNo_ < (imgVecSize_ - 1)) {
+        picCurNo_ = picCurNo_ + 1;
+    } else {
+        CheckExitAnimation();
         return;
     }
+    ROSEN_TRACE_BEGIN(BYTRACE_TAG_GRAPHIC_AGP, "BootAnimation::Draw RequestFrame");
+    auto frame = rsSurface_->RequestFrame(windowWidth_, windowHeight_);
+    if (frame == nullptr) {
+        LOGE("Draw frame is nullptr");
+        return;
+    }
+    ROSEN_TRACE_END(BYTRACE_TAG_GRAPHIC_AGP);
     framePtr_ = std::move(frame);
     auto canvas = framePtr_->GetCanvas();
+    OnDraw(canvas, picCurNo_);
+    ROSEN_TRACE_BEGIN(BYTRACE_TAG_GRAPHIC_AGP, "BootAnimation::Draw FlushFrame");
+    rsSurface_->FlushFrame(framePtr_);
     ROSEN_TRACE_END(BYTRACE_TAG_GRAPHIC_AGP);
-    OnDraw(canvas);
-    RequestNextVsync();
 }
 
-void BootAnimation::Init(int32_t width, int32_t height, const std::shared_ptr<AppExecFwk::EventHandler>& handler)
+bool BootAnimation::CheckFrameRateValid(int32_t ratevalue)
+{
+    std::vector<int> freqs = {60, 30};
+    int nCount = std::count(freqs.begin(), freqs.end(), ratevalue);
+    if (nCount <= 0) {
+        return false;
+    }
+    return true;
+}
+
+void BootAnimation::Init(int32_t width, int32_t height, const std::shared_ptr<AppExecFwk::EventHandler>& handler,
+    std::shared_ptr<AppExecFwk::EventRunner>& runner)
 {
     ROSEN_TRACE_BEGIN(BYTRACE_TAG_GRAPHIC_AGP, "BootAnimation::Init");
     windowWidth_ = width;
     windowHeight_ = height;
-    LOG("Init enter, width: %{public}d, height: %{public}d", width, height);
+    LOGI("Init enter, width: %{public}d, height: %{public}d", width, height);
+
+    mainHandler_ = handler;
+    runner_ = runner;
 
     auto& rsClient = OHOS::Rosen::RSInterfaces::GetInstance();
     while (receiver_ == nullptr) {
-        receiver_ = rsClient.CreateVSyncReceiver("BootAnimation", handler);
+        receiver_ = rsClient.CreateVSyncReceiver("BootAnimation", mainHandler_);
     }
-    receiver_->Init();
+    VsyncError ret = receiver_->Init();
+    if (ret) {
+        LOGE("vsync receiver init failed: %{public}d", ret);
+        return;
+    } else {
+        LOGI("vsync receiver init ok");
+    }
 
     InitBootWindow();
     InitRsSurface();
     InitPicCoordinates();
-
-    std::vector<int32_t> freqs = {60, 30};
-    if (freqs.size() >= 0x2) {
-        freq_ = freqs[0];
+    LOGI("begin to Readzip pics");
+    ROSEN_TRACE_END(BYTRACE_TAG_GRAPHIC_AGP);
+    ROSEN_TRACE_BEGIN(BYTRACE_TAG_GRAPHIC_AGP, "BootAnimation::preload");
+    BootAniConfig jsonConfig;
+    ReadZipFile(BOOT_PIC_ZIP, imageVector_, jsonConfig);
+    imgVecSize_ = static_cast<int32_t>(imageVector_.size());
+    if (imgVecSize_ <= 0) {
+        LOGE("zip pic num is 0.");
+        return;
     }
-
-    LOG("ready to unzip pics, freq is %{public}d", freq_);
-    UnzipFile(BOOT_PIC_ZIP, DST_FILE_PATH);
-    CountPicNum(DST_FILE_PATH.c_str(), maxPicNum_);
-    LOG("unzip pics finish, maxPicNum: %{public}d", maxPicNum_);
+    SortZipFile(imageVector_);
+    if (CheckFrameRateValid(jsonConfig.frameRate)) {
+        freq_ = jsonConfig.frameRate;
+    } else {
+        LOGI("Only Support 30, 60 frame rate: %{public}d", jsonConfig.frameRate);
+    }
+    LOGI("end to Readzip pics freq: %{public}d totalPicNum: %{public}d", freq_, imgVecSize_);
     ROSEN_TRACE_END(BYTRACE_TAG_GRAPHIC_AGP);
 
-    Draw();
-    PostTask(std::bind(&BootAnimation::CheckExitAnimation, this), EXIT_TIME);
+    OHOS::Rosen::VSyncReceiver::FrameCallback fcb = {
+        .userData_ = this,
+        .callback_ = std::bind(&BootAnimation::OnVsync, this),
+    };
+    int32_t changefreq = static_cast<int32_t>((1000.0 / freq_) / 16);
+    ret = receiver_->SetVSyncRate(fcb, changefreq);
+    if (ret) {
+        LOGE("SetVSyncRate failed: %{public}d %{public}d %{public}d", ret, freq_, changefreq);
+    } else {
+        LOGI("SetVSyncRate success: %{public}d %{public}d", freq_, changefreq);
+    }
 }
 
 void BootAnimation::InitBootWindow()
@@ -134,7 +151,7 @@ void BootAnimation::InitBootWindow()
     scene_->Init(displayId, nullptr, listener, option);
     window_ = scene_->GetMainWindow();
     while (window_ == nullptr) {
-        LOG("window is nullptr, continue to init window");
+        LOGI("window is nullptr, continue to init window");
         scene_->Init(displayId, nullptr, listener, option);
         window_ = scene_->GetMainWindow();
         sleep(1);
@@ -146,23 +163,28 @@ void BootAnimation::InitRsSurface()
 {
     rsSurface_ = OHOS::Rosen::RSSurfaceExtractor::ExtractRSSurface(window_->GetSurfaceNode());
     if (rsSurface_ == nullptr) {
-        LOG("rsSurface is nullptr");
+        LOGE("rsSurface is nullptr");
         return;
     }
 #ifdef ACE_ENABLE_GL
     rc_ = OHOS::Rosen::RenderContextFactory::GetInstance().CreateEngine();
     if (rc_ == nullptr) {
-        LOG("InitilizeEglContext failed");
+        LOGE("InitilizeEglContext failed");
         return;
     } else {
-        LOG("init egl context");
+        LOGI("init egl context");
         rc_->InitializeEglContext();
         rsSurface_->SetRenderContext(rc_);
     }
 #endif
     if (rc_ == nullptr) {
-        LOG("rc is nullptr, use cpu");
+        LOGI("rc is nullptr, use cpu");
     }
+}
+
+BootAnimation::~BootAnimation()
+{
+    window_->Destroy();
 }
 
 void BootAnimation::InitPicCoordinates()
@@ -178,36 +200,25 @@ void BootAnimation::InitPicCoordinates()
     }
 }
 
-void BootAnimation::RequestNextVsync()
+void BootAnimation::OnVsync()
 {
-    if (needCheckExit) {
-        CheckExitAnimation();
-    }
-
-    OHOS::Rosen::VSyncReceiver::FrameCallback fcb = {
-        .userData_ = this,
-        .callback_ = std::bind(&BootAnimation::Draw, this),
-    };
-    receiver_->RequestNextVSync(fcb);
+    PostTask(std::bind(&BootAnimation::Draw, this));
 }
 
 void BootAnimation::CheckExitAnimation()
 {
-    LOG("CheckExitAnimation enter");
+    LOGI("CheckExitAnimation enter");
     std::string windowInit = system::GetParameter("persist.window.boot.inited", "0");
     if (windowInit == "1") {
-        LOG("CheckExitAnimation read windowInit is 1");
-        window_->Destroy();
-        int delRet = RemoveDir(DST_FILE_PATH.c_str());
-        LOG("clean resources and exit animation, delRet: %{public}d", delRet);
-        exit(0);
+        PostTask(std::bind(&AppExecFwk::EventRunner::Stop, runner_));
+        LOGI("CheckExitAnimation read windowInit is 1");
+        return;
     }
-    needCheckExit = true;
 }
 
 void BootAnimation::PlaySound()
 {
-    LOG("PlaySound start");
+    LOGI("PlaySound start");
     if (soundPlayer_ == nullptr) {
         soundPlayer_ = Media::PlayerFactory::CreatePlayer();
     }
@@ -216,5 +227,5 @@ void BootAnimation::PlaySound()
     soundPlayer_->SetLooping(false);
     soundPlayer_->Prepare();
     soundPlayer_->Play();
-    LOG("PlaySound end");
+    LOGI("PlaySound end");
 }

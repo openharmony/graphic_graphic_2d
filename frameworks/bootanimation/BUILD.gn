@@ -21,6 +21,7 @@ config("bootanimation_config") {
   include_dirs = [
     "include",
     "//foundation/graphic/standard/utils/log",
+    "//third_party/cJSON",
     "//foundation/multimedia/media_standard/interfaces/inner_api/native",
   ]
 
@@ -52,6 +53,7 @@ ohos_executable("bootanimation") {
     "//base/global/resmgr_standard/frameworks/resmgr:global_resmgr",
     "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
     "//foundation/ace/ace_engine/build/external_config/flutter/skia:ace_skia_ohos",
+    "//foundation/appexecfwk/standard/interfaces/innerkits/libeventhandler:libeventhandler",
     "//foundation/distributedschedule/samgr/interfaces/innerkits/samgr_proxy:samgr_proxy",
     "//foundation/graphic/standard:libsurface",
     "//foundation/graphic/standard:libvsync_client",
@@ -65,6 +67,7 @@ ohos_executable("bootanimation") {
     "//foundation/windowmanager/dmserver:libdms",
     "//foundation/windowmanager/wm:libwm",
     "//foundation/windowmanager/wmserver:libwms",
+    "//third_party/cJSON:cjson_static",
     "//third_party/zlib:libz",
   ]
 
