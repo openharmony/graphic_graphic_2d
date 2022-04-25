@@ -99,6 +99,7 @@ void BootAnimation::Init(int32_t width, int32_t height, const std::shared_ptr<Ap
     VsyncError ret = receiver_->Init();
     if (ret) {
         LOGE("vsync receiver init failed: %{public}d", ret);
+        PostTask(std::bind(&AppExecFwk::EventRunner::Stop, runner_));
         return;
     } else {
         LOGI("vsync receiver init ok");
@@ -114,6 +115,7 @@ void BootAnimation::Init(int32_t width, int32_t height, const std::shared_ptr<Ap
     ReadZipFile(BOOT_PIC_ZIP, imageVector_, jsonConfig);
     imgVecSize_ = static_cast<int32_t>(imageVector_.size());
     if (imgVecSize_ <= 0) {
+        PostTask(std::bind(&AppExecFwk::EventRunner::Stop, runner_));
         LOGE("zip pic num is 0.");
         return;
     }
