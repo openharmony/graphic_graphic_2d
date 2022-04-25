@@ -31,6 +31,15 @@
 namespace OHOS {
 namespace Rosen {
 class VSyncDistributor;
+struct ConnectionInfo {
+    std::string name_;
+    uint64_t postVSyncCount_;
+    ConnectionInfo(std::string name): postVSyncCount_(0)
+    {
+        this->name_ = name;
+    }
+};
+
 class VSyncConnection : public VSyncConnectionStub {
 public:
 
@@ -42,17 +51,15 @@ public:
     virtual VsyncError SetVSyncRate(int32_t rate) override;
 
     int32_t PostEvent(int64_t now);
-    std::string GetName() const
-    {
-        return name_;
-    }
 
     int32_t rate_;
+    int32_t highPriorityRate_ = -1;
+    bool highPriorityState_ = false;
+    ConnectionInfo info_;
 private:
     // Circular reference， need check
     wptr<VSyncDistributor> distributor_;
     sptr<LocalSocketPair> socketPair_;
-    std::string name_;
 };
 
 class VSyncDistributor : public RefBase, public VSyncController::Callback {
@@ -68,6 +75,8 @@ public:
     VsyncError RemoveConnection(const sptr<VSyncConnection> &connection);
     VsyncError RequestNextVSync(const sptr<VSyncConnection>& connection);
     VsyncError SetVSyncRate(int32_t rate, const sptr<VSyncConnection>& connection);
+    VsyncError SetHighPriorityVSyncRate(int32_t highPriorityRate, const sptr<VSyncConnection>& connection);
+    VsyncError GetVSyncConnectionInfos(std::vector<ConnectionInfo>& infos);
 
 private:
 
@@ -80,6 +89,8 @@ private:
     void EnableVSync();
     void DisableVSync();
     void OnVSyncEvent(int64_t now);
+    void CollectConnections(bool &waitForVSync, int64_t timestamp,
+                            std::vector<sptr<VSyncConnection>> &conns, int64_t vsyncCount);
 
     std::thread threadLoop_;
     sptr<VSyncController> controller_;

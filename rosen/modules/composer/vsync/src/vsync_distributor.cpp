@@ -33,7 +33,7 @@ constexpr int32_t THREAD_PRIORTY = -6;
 constexpr int32_t SCHED_PRIORITY = 2;
 }
 VSyncConnection::VSyncConnection(const sptr<VSyncDistributor>& distributor, std::string name)
-    : rate_(-1), distributor_(distributor), name_(name)
+    : rate_(-1), info_(name), distributor_(distributor)
 {
     socketPair_ = new LocalSocketPair();
     socketPair_->CreateChannel(sizeof(int64_t), sizeof(int64_t));
@@ -52,7 +52,7 @@ VsyncError VSyncConnection::RequestNextVSync()
     if (distributor == nullptr) {
         return VSYNC_ERROR_NULLPTR;
     }
-    ScopedBytrace func(name_ + "RequestNextVSync");
+    ScopedBytrace func(info_.name_ + "RequestNextVSync");
     return distributor->RequestNextVSync(this);
 }
 
@@ -64,7 +64,11 @@ VsyncError VSyncConnection::GetReceiveFd(int32_t &fd)
 
 int32_t VSyncConnection::PostEvent(int64_t now)
 {
-    return socketPair_->SendData(&now, sizeof(int64_t));
+    int32_t ret = socketPair_->SendData(&now, sizeof(int64_t));
+    if (ret > -1) {
+        info_.postVSyncCount_++;
+    }
+    return ret;
 }
 
 VsyncError VSyncConnection::SetVSyncRate(int32_t rate)
@@ -140,25 +144,14 @@ void VSyncDistributor::ThreadMain()
     int64_t timestamp;
     int64_t vsyncCount;
     while (vsyncThreadRunning_ == true) {
-        std::vector<sptr<VSyncConnection> > conns;
+        std::vector<sptr<VSyncConnection>> conns;
         bool waitForVSync = false;
         {
             std::unique_lock<std::mutex> locker(mutex_);
             timestamp = event_.timestamp;
             event_.timestamp = 0;
             vsyncCount = event_.vsyncCount;
-            for (uint32_t i = 0; i <connections_.size(); i++) {
-                if (connections_[i]->rate_ == 0) {
-                    waitForVSync = true;
-                    if (timestamp > 0) {
-                        connections_[i]->rate_ = -1;
-                        conns.push_back(connections_[i]);
-                    }
-                } else if ((connections_[i]->rate_) > 0 && (vsyncCount % connections_[i]->rate_ == 0)) {
-                    conns.push_back(connections_[i]);
-                    waitForVSync = true;
-                }
-            }
+            CollectConnections(waitForVSync, timestamp, conns, vsyncCount);
             // no vsync signal
             if (timestamp == 0) {
                 // there is some connections request next vsync, enable vsync if vsync disable and
@@ -190,7 +183,7 @@ void VSyncDistributor::ThreadMain()
         for (uint32_t i = 0; i < conns.size(); i++) {
             int32_t ret = conns[i]->PostEvent(timestamp);
             VLOGI("Distributor name:%{public}s, connection name:%{public}s, ret:%{public}d",
-                name_.c_str(), conns[i]->GetName().c_str(), ret);
+                name_.c_str(), conns[i]->info_.name_.c_str(), ret);
             if (ret == 0 || ret == ERRNO_OTHER) {
                 RemoveConnection(conns[i]);
             } else if (ret == ERRNO_EAGAIN) {
@@ -229,13 +222,42 @@ void VSyncDistributor::OnVSyncEvent(int64_t now)
     con_.notify_all();
 }
 
+void VSyncDistributor::CollectConnections(bool &waitForVSync, int64_t timestamp,
+                                          std::vector<sptr<VSyncConnection>> &conns, int64_t vsyncCount)
+{
+    for (uint32_t i = 0; i < connections_.size(); i++) {
+        int32_t rate = connections_[i]->highPriorityState_ ? connections_[i]->highPriorityRate_ :
+                                                             connections_[i]->rate_;
+        if (rate == 0) {  // for RequestNextVSync
+            waitForVSync = true;
+            if (timestamp > 0) {
+                connections_[i]->rate_ = -1;
+                conns.push_back(connections_[i]);
+            }
+        } else if (rate > 0 && (vsyncCount % rate == 0)) {
+            if (connections_[i]->rate_ == 0) {  // for SetHighPriorityVSyncRate with RequestNextVSync
+                waitForVSync = true;
+                if (timestamp > 0) {
+                    connections_[i]->rate_ = -1;
+                    conns.push_back(connections_[i]);
+                }
+            } else if (connections_[i]->rate_ > 0) {  // for SetVSyncRate
+                waitForVSync = true;
+                if (timestamp > 0) {
+                    conns.push_back(connections_[i]);
+                }
+            }
+        }
+    }
+}
+
 VsyncError VSyncDistributor::RequestNextVSync(const sptr<VSyncConnection>& connection)
 {
     if (connection == nullptr) {
         VLOGE("connection is nullptr");
         return VSYNC_ERROR_NULLPTR;
     }
-    ScopedBytrace func(connection->GetName() + "_RequestNextVSync");
+    ScopedBytrace func(connection->info_.name_ + "_RequestNextVSync");
     std::lock_guard<std::mutex> locker(mutex_);
     auto it = find(connections_.begin(), connections_.end(), connection);
     if (it == connections_.end()) {
@@ -246,7 +268,7 @@ VsyncError VSyncDistributor::RequestNextVSync(const sptr<VSyncConnection>& conne
         connection->rate_ = 0;
         con_.notify_all();
     }
-    VLOGI("conn name:%{public}s, rate:%{public}d", connection->GetName().c_str(), connection->rate_);
+    VLOGI("conn name:%{public}s, rate:%{public}d", connection->info_.name_.c_str(), connection->rate_);
     return VSYNC_ERROR_OK;
 }
 
@@ -264,8 +286,38 @@ VsyncError VSyncDistributor::SetVSyncRate(int32_t rate, const sptr<VSyncConnecti
         return VSYNC_ERROR_INVALID_ARGUMENTS;
     }
     connection->rate_ = rate;
-    VLOGI("in, conn name:%{public}s", connection->GetName().c_str());
+    VLOGI("in, conn name:%{public}s", connection->info_.name_.c_str());
     con_.notify_all();
+    return VSYNC_ERROR_OK;
+}
+
+VsyncError VSyncDistributor::SetHighPriorityVSyncRate(int32_t highPriorityRate, const sptr<VSyncConnection>& connection)
+{
+    if (highPriorityRate <= 0 || connection == nullptr) {
+        return VSYNC_ERROR_INVALID_ARGUMENTS;
+    }
+
+    std::lock_guard<std::mutex> locker(mutex_);
+    auto it = find(connections_.begin(), connections_.end(), connection);
+    if (it == connections_.end()) {
+        return VSYNC_ERROR_INVALID_ARGUMENTS;
+    }
+    if (connection->highPriorityRate_ == highPriorityRate) {
+        return VSYNC_ERROR_INVALID_ARGUMENTS;
+    }
+    connection->highPriorityRate_ = highPriorityRate;
+    connection->highPriorityState_ = true;
+    VLOGI("in, conn name:%{public}s, highPriorityRate:%{public}d", connection->info_.name_.c_str(),
+          connection->highPriorityRate_);
+    con_.notify_all();
+    return VSYNC_ERROR_OK;
+}
+VsyncError VSyncDistributor::GetVSyncConnectionInfos(std::vector<ConnectionInfo>& infos)
+{
+    infos.clear();
+    for (auto &connection : connections_) {
+        infos.push_back(connection->info_);
+    }
     return VSYNC_ERROR_OK;
 }
 }
