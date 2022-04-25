@@ -23,6 +23,7 @@
 #include <vector>
 
 #include <refbase.h>
+#include <message_parcel.h>
 #include <unique_fd.h>
 
 namespace OHOS {
@@ -81,6 +82,9 @@ public:
 
     /* this is dangerous, when you use it, do not operator the fd */
     int32_t Get() const;
+
+    void WriteToMessageParcel(MessageParcel &parcel);
+    void ReadFromMessageParcel(MessageParcel &parcel);
 
 private:
     std::vector<SyncPointInfo> GetFenceInfo();

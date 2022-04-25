@@ -89,6 +89,7 @@ ohos_shared_library("surface") {
     "//foundation/graphic/standard:libgl",
     "//foundation/graphic/standard/utils:buffer_handle",
     "//foundation/graphic/standard/utils:libgraphic_utils",
+    "//foundation/graphic/standard/utils:sync_fence",
     "//utils/native/base:utils",
   ]
 

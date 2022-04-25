@@ -119,10 +119,9 @@ bool RSProcessor::ConsumeAndUpdateBuffer(RSSurfaceRenderNode& node, SpecialTask&
             return false;
         }
 
-        int32_t fenceFd = -1;
-        int64_t timeStamp = 0;
-        auto ret = surfaceConsumer->AcquireBuffer(buffer, fenceFd, timeStamp, damage);
-        acquireFence = new SyncFence(fenceFd);
+        sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
+        int64_t timestamp = 0;
+        auto ret = surfaceConsumer->AcquireBuffer(buffer, acquireFence, timestamp, damage);
         if (ret != OHOS::SURFACE_ERROR_OK) {
             RS_LOGW("RSProcessor::ProcessSurface(node: %lld): AcquireBuffer failed(ret: %d), try use old buffer.",
                 node.GetId(), ret);

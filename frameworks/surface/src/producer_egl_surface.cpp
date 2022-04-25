@@ -23,6 +23,7 @@
 #include "buffer_manager.h"
 #include "egl_data_impl.h"
 #include "buffer_extra_data_impl.h"
+#include "sync_fence.h"
 
 namespace OHOS {
 ProducerEglSurface::ProducerEglSurface(sptr<IBufferProducer>& producer)
@@ -64,7 +65,7 @@ GSError ProducerEglSurface::RequestBuffer(sptr<SurfaceBuffer> &buffer,
 {
     IBufferProducer::RequestBufferReturnValue retval;
     sptr<BufferExtraData> bedataimpl = new BufferExtraDataImpl;
-    retval.fence = EGL_NO_NATIVE_FENCE_FD_ANDROID;
+    retval.fence = SyncFence::INVALID_FENCE;
     GSError ret = producer_->RequestBuffer(config, bedataimpl, retval);
     if (ret != GSERROR_OK) {
         BLOGN_FAILURE("Producer report %{public}s", GSErrorStr(ret).c_str());
@@ -105,7 +106,7 @@ GSError ProducerEglSurface::RequestBuffer(sptr<SurfaceBuffer> &buffer,
         bufferProducerCache_.erase(*it);
     }
 
-    fence = retval.fence;
+    fence = retval.fence->Get();
     return GSERROR_OK;
 }
 
@@ -115,9 +116,9 @@ GSError ProducerEglSurface::FlushBuffer(sptr<SurfaceBuffer> &buffer,
     if (buffer == nullptr) {
         return GSERROR_INVALID_ARGUMENTS;
     }
-
+    sptr<SyncFence> syncFence = new SyncFence(fence);
     const sptr<BufferExtraData>& bedataimpl = buffer->GetExtraData();
-    return producer_->FlushBuffer(buffer->GetSeqNum(), bedataimpl, fence, config);
+    return producer_->FlushBuffer(buffer->GetSeqNum(), bedataimpl, syncFence, config);
 }
 
 GSError ProducerEglSurface::InitContext(EGLContext context)

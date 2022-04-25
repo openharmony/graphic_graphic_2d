@@ -17,6 +17,7 @@
 
 #include "buffer_log.h"
 #include "buffer_queue_producer.h"
+#include "sync_fence.h"
 
 namespace OHOS {
 ConsumerSurface::ConsumerSurface(const std::string &name, bool isShared)
@@ -59,6 +60,25 @@ sptr<IBufferProducer> ConsumerSurface::GetProducer() const
 }
 
 GSError ConsumerSurface::RequestBuffer(sptr<SurfaceBuffer>& buffer,
+                                       sptr<SyncFence>& fence, BufferRequestConfig &config)
+{
+    return GSERROR_NOT_SUPPORT;
+}
+GSError ConsumerSurface::FlushBuffer(sptr<SurfaceBuffer>& buffer,
+                                     const sptr<SyncFence>& fence, BufferFlushConfig &config)
+{
+    return GSERROR_NOT_SUPPORT;
+}
+GSError ConsumerSurface::AcquireBuffer(sptr<SurfaceBuffer>& buffer, sptr<SyncFence>& fence,
+                                       int64_t &timestamp, Rect &damage)
+{
+    return consumer_->AcquireBuffer(buffer, fence, timestamp, damage);
+}
+GSError ConsumerSurface::ReleaseBuffer(sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& fence)
+{
+    return consumer_->ReleaseBuffer(buffer, fence);
+}
+GSError ConsumerSurface::RequestBuffer(sptr<SurfaceBuffer>& buffer,
                                        int32_t &fence, BufferRequestConfig &config)
 {
     return GSERROR_NOT_SUPPORT;
@@ -78,12 +98,20 @@ GSError ConsumerSurface::FlushBuffer(sptr<SurfaceBuffer>& buffer,
 GSError ConsumerSurface::AcquireBuffer(sptr<SurfaceBuffer>& buffer, int32_t &fence,
                                        int64_t &timestamp, Rect &damage)
 {
-    return consumer_->AcquireBuffer(buffer, fence, timestamp, damage);
+    sptr<SyncFence> syncFence = SyncFence::INVALID_FENCE;
+    auto ret = AcquireBuffer(buffer, syncFence, timestamp, damage);
+    if (ret != GSERROR_OK) {
+        fence = -1;
+        return ret;
+    }
+    fence = syncFence->Dup();
+    return GSERROR_OK;
 }
 
 GSError ConsumerSurface::ReleaseBuffer(sptr<SurfaceBuffer>& buffer, int32_t fence)
 {
-    return consumer_->ReleaseBuffer(buffer, fence);
+    sptr<SyncFence> syncFence = new SyncFence(fence);
+    return ReleaseBuffer(buffer, syncFence);
 }
 
 GSError ConsumerSurface::AttachBuffer(sptr<SurfaceBuffer>& buffer)

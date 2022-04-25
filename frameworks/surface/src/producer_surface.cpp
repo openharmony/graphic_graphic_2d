@@ -20,6 +20,7 @@
 #include "buffer_log.h"
 #include "buffer_manager.h"
 #include "buffer_extra_data_impl.h"
+#include "sync_fence.h"
 
 namespace OHOS {
 ProducerSurface::ProducerSurface(sptr<IBufferProducer>& producer)
@@ -62,7 +63,7 @@ sptr<IBufferProducer> ProducerSurface::GetProducer() const
 }
 
 GSError ProducerSurface::RequestBuffer(sptr<SurfaceBuffer>& buffer,
-    int32_t &fence, BufferRequestConfig &config)
+                                       sptr<SyncFence>& fence, BufferRequestConfig &config)
 {
     IBufferProducer::RequestBufferReturnValue retval;
     sptr<BufferExtraData> bedataimpl = new BufferExtraDataImpl;
@@ -110,6 +111,38 @@ GSError ProducerSurface::RequestBuffer(sptr<SurfaceBuffer>& buffer,
     }
     return GSERROR_OK;
 }
+GSError ProducerSurface::FlushBuffer(sptr<SurfaceBuffer>& buffer,
+                                     const sptr<SyncFence>& fence, BufferFlushConfig &config)
+{
+    if (buffer == nullptr) {
+        return GSERROR_INVALID_ARGUMENTS;
+    }
+
+    const sptr<BufferExtraData>& bedata = buffer->GetExtraData();
+    return producer_->FlushBuffer(buffer->GetSeqNum(), bedata, fence, config);
+}
+GSError ProducerSurface::AcquireBuffer(sptr<SurfaceBuffer>& buffer, sptr<SyncFence>& fence,
+                                       int64_t &timestamp, Rect &damage)
+{
+    return GSERROR_NOT_SUPPORT;
+}
+GSError ProducerSurface::ReleaseBuffer(sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& fence)
+{
+    return GSERROR_NOT_SUPPORT;
+}
+
+GSError ProducerSurface::RequestBuffer(sptr<SurfaceBuffer>& buffer,
+    int32_t &fence, BufferRequestConfig &config)
+{
+    sptr<SyncFence> syncFence = SyncFence::INVALID_FENCE;
+    auto ret = RequestBuffer(buffer, syncFence, config);
+    if (ret != GSERROR_OK) {
+        fence = -1;
+        return ret;
+    }
+    fence = syncFence->Dup();
+    return GSERROR_OK;
+}
 
 GSError ProducerSurface::CancelBuffer(sptr<SurfaceBuffer>& buffer)
 {
@@ -124,12 +157,9 @@ GSError ProducerSurface::CancelBuffer(sptr<SurfaceBuffer>& buffer)
 GSError ProducerSurface::FlushBuffer(sptr<SurfaceBuffer>& buffer,
     int32_t fence, BufferFlushConfig &config)
 {
-    if (buffer == nullptr) {
-        return GSERROR_INVALID_ARGUMENTS;
-    }
-
-    const sptr<BufferExtraData>& bedata = buffer->GetExtraData();
-    return producer_->FlushBuffer(buffer->GetSeqNum(), bedata, fence, config);
+    // fence need close?
+    sptr<SyncFence> syncFence = new SyncFence(fence);
+    return FlushBuffer(buffer, syncFence, config);
 }
 
 GSError ProducerSurface::AcquireBuffer(sptr<SurfaceBuffer>& buffer, int32_t &fence,

@@ -39,7 +39,7 @@ public:
     GSError CancelBuffer(int32_t sequence, const sptr<BufferExtraData> &bedata) override;
 
     GSError FlushBuffer(int32_t sequence, const sptr<BufferExtraData> &bedata,
-                             int32_t fence, BufferFlushConfig &config) override;
+                             const sptr<SyncFence>& fence, BufferFlushConfig &config) override;
 
     uint32_t GetQueueSize() override;
     GSError SetQueueSize(uint32_t queueSize) override;

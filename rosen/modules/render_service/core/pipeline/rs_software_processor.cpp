@@ -87,17 +87,16 @@ void RSSoftwareProcessor::ProcessSurface(RSSurfaceRenderNode& node)
     OHOS::sptr<SurfaceBuffer> cbuffer;
     Rect damage;
     if (node.GetAvailableBufferCount() > 0) {
-        int32_t fence = -1;
+        sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
         int64_t timestamp = 0;
-        auto sret = consumerSurface->AcquireBuffer(cbuffer, fence, timestamp, damage);
-        sptr<SyncFence> acquireFence = new SyncFence(fence);
+        auto sret = consumerSurface->AcquireBuffer(cbuffer, acquireFence, timestamp, damage);
         if (sret != OHOS::SURFACE_ERROR_OK) {
             RS_LOGE("RSSoftwareProcessor::ProcessSurface: AcquireBuffer failed!");
             return;
         }
 
         if (cbuffer != node.GetBuffer() && node.GetBuffer() != nullptr) {
-            SurfaceError ret = consumerSurface->ReleaseBuffer(node.GetBuffer(), -1);
+            SurfaceError ret = consumerSurface->ReleaseBuffer(node.GetBuffer(), SyncFence::INVALID_FENCE);
             if (ret != SURFACE_ERROR_OK) {
                 RS_LOGE("RSSoftwareProcessor::ProcessSurface: ReleaseBuffer buffer error! error: %{public}d.", ret);
                 return;

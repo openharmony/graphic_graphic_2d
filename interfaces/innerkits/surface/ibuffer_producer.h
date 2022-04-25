@@ -26,12 +26,13 @@
 #include "surface_type.h"
 
 namespace OHOS {
+class SyncFence;
 class IBufferProducer : public IRemoteBroker {
 public:
     struct RequestBufferReturnValue {
         int32_t sequence;
         sptr<SurfaceBuffer> buffer;
-        int32_t fence;
+        sptr<SyncFence> fence;
         std::vector<int32_t> deletingBuffers;
     };
     virtual GSError RequestBuffer(const BufferRequestConfig &config, sptr<BufferExtraData> &bedata,
@@ -40,7 +41,7 @@ public:
     virtual GSError CancelBuffer(int32_t sequence, const sptr<BufferExtraData> &bedata) = 0;
 
     virtual GSError FlushBuffer(int32_t sequence, const sptr<BufferExtraData> &bedata,
-                                     int32_t fence, BufferFlushConfig &config) = 0;
+                                     const sptr<SyncFence>& fence, BufferFlushConfig &config) = 0;
 
     virtual GSError AttachBuffer(sptr<SurfaceBuffer>& buffer) = 0;
     virtual GSError DetachBuffer(sptr<SurfaceBuffer>& buffer) = 0;

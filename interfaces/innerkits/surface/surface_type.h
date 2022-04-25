@@ -45,7 +45,6 @@ using BufferRequestConfig = struct BufferRequestConfig {
     int32_t format; // PixelFormat
     int32_t usage;
     int32_t timeout;
-    int32_t pid;
     ColorGamut colorGamut = ColorGamut::COLOR_GAMUT_SRGB;
     TransformType transform = TransformType::ROTATE_NONE;
     bool operator ==(const struct BufferRequestConfig &config) const

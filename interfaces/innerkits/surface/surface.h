@@ -47,6 +47,14 @@ public:
                                        int64_t &timestamp, Rect &damage) = 0;
     virtual GSError ReleaseBuffer(sptr<SurfaceBuffer>& buffer, int32_t fence) = 0;
 
+    virtual GSError RequestBuffer(sptr<SurfaceBuffer>& buffer,
+                                       sptr<SyncFence>& fence, BufferRequestConfig &config) = 0;
+    virtual GSError FlushBuffer(sptr<SurfaceBuffer>& buffer,
+                                     const sptr<SyncFence>& fence, BufferFlushConfig &config) = 0;
+    virtual GSError AcquireBuffer(sptr<SurfaceBuffer>& buffer, sptr<SyncFence>& fence,
+                                       int64_t &timestamp, Rect &damage) = 0;
+    virtual GSError ReleaseBuffer(sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& fence) = 0;
+
     virtual GSError AttachBuffer(sptr<SurfaceBuffer>& buffer) = 0;
 
     virtual GSError DetachBuffer(sptr<SurfaceBuffer>& buffer) = 0;

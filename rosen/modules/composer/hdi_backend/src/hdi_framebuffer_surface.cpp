@@ -16,6 +16,7 @@
 #include "hdi_framebuffer_surface.h"
 
 #include "hdi_log.h"
+#include "sync_fence.h"
 
 using namespace OHOS;
 
@@ -81,10 +82,9 @@ void HdiFramebufferSurface::OnBufferAvailable()
     sptr<SurfaceBuffer> buffer;
     int64_t timestamp = 0;
     Rect damage = {0};
-    int32_t fenceFd = -1;
-    SurfaceError ret = consumerSurface_->AcquireBuffer(buffer, fenceFd,
+    sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
+    SurfaceError ret = consumerSurface_->AcquireBuffer(buffer, acquireFence,
                                                        timestamp, damage);
-    auto acquireFence = new SyncFence(fenceFd);
     if (ret != SURFACE_ERROR_OK || buffer == nullptr) {
         HLOGE("AcquireBuffer failed, ret is %{public}d", ret);
         return;
@@ -129,7 +129,7 @@ int32_t HdiFramebufferSurface::ReleaseFramebuffer(
         releaseFence->Wait(3000); // timeout: 3000ms
     }
 
-    SurfaceError ret = consumerSurface_->ReleaseBuffer(buffer, -1);
+    SurfaceError ret = consumerSurface_->ReleaseBuffer(buffer, releaseFence);
     if (ret != SURFACE_ERROR_OK) {
         HLOGE("ReleaseBuffer failed ret is %{public}d", ret);
     }
