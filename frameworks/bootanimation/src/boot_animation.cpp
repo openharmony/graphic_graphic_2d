@@ -84,7 +84,6 @@ bool BootAnimation::CheckFrameRateValid(int32_t ratevalue)
 void BootAnimation::Init(int32_t width, int32_t height, const std::shared_ptr<AppExecFwk::EventHandler>& handler,
     std::shared_ptr<AppExecFwk::EventRunner>& runner)
 {
-    ROSEN_TRACE_BEGIN(BYTRACE_TAG_GRAPHIC_AGP, "BootAnimation::Init");
     windowWidth_ = width;
     windowHeight_ = height;
     LOGI("Init enter, width: %{public}d, height: %{public}d", width, height);
@@ -101,15 +100,11 @@ void BootAnimation::Init(int32_t width, int32_t height, const std::shared_ptr<Ap
         LOGE("vsync receiver init failed: %{public}d", ret);
         PostTask(std::bind(&AppExecFwk::EventRunner::Stop, runner_));
         return;
-    } else {
-        LOGI("vsync receiver init ok");
     }
 
     InitBootWindow();
     InitRsSurface();
     InitPicCoordinates();
-    LOGI("begin to Readzip pics");
-    ROSEN_TRACE_END(BYTRACE_TAG_GRAPHIC_AGP);
     ROSEN_TRACE_BEGIN(BYTRACE_TAG_GRAPHIC_AGP, "BootAnimation::preload");
     BootAniConfig jsonConfig;
     ReadZipFile(BOOT_PIC_ZIP, imageVector_, jsonConfig);
@@ -135,7 +130,9 @@ void BootAnimation::Init(int32_t width, int32_t height, const std::shared_ptr<Ap
     int32_t changefreq = static_cast<int32_t>((1000.0 / freq_) / 16);
     ret = receiver_->SetVSyncRate(fcb, changefreq);
     if (ret) {
+        PostTask(std::bind(&AppExecFwk::EventRunner::Stop, runner_));
         LOGE("SetVSyncRate failed: %{public}d %{public}d %{public}d", ret, freq_, changefreq);
+        return;
     } else {
         LOGI("SetVSyncRate success: %{public}d %{public}d", freq_, changefreq);
     }
