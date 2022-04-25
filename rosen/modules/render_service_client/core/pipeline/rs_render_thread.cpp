@@ -156,7 +156,10 @@ void RSRenderThread::RecvTransactionData(std::unique_ptr<RSTransactionData>& tra
 {
     {
         std::unique_lock<std::mutex> cmdLock(cmdMutex_);
+        std::string str = "RecvCommands ptr:" + std::to_string(reinterpret_cast<uintptr_t>(transactionData.get()));
+        ROSEN_TRACE_BEGIN(BYTRACE_TAG_GRAPHIC_AGP, str.c_str());
         cmds_.emplace_back(std::move(transactionData));
+        ROSEN_TRACE_END(BYTRACE_TAG_GRAPHIC_AGP);
     }
     // [PLANNING]: process in next vsync (temporarily)
     RSRenderThread::Instance().RequestNextVSync();
@@ -245,11 +248,12 @@ void RSRenderThread::ProcessCommands()
     std::swap(cmds, cmds_);
     cmdLock.unlock();
 
-    ROSEN_TRACE_BEGIN(BYTRACE_TAG_GRAPHIC_AGP, "ProcessCommands");
     for (auto& cmdData : cmds) {
+        std::string str = "ProcessCommands ptr:" + std::to_string(reinterpret_cast<uintptr_t>(cmdData.get()));
+        ROSEN_TRACE_BEGIN(BYTRACE_TAG_GRAPHIC_AGP, str.c_str());
         cmdData->Process(context_);
+        ROSEN_TRACE_END(BYTRACE_TAG_GRAPHIC_AGP);
     }
-    ROSEN_TRACE_END(BYTRACE_TAG_GRAPHIC_AGP);
 }
 
 void RSRenderThread::Animate(uint64_t timestamp)
