@@ -111,8 +111,14 @@ void RSScreenManager::ProcessScreenHotPlugEvents()
             ProcessScreenDisConnectedLocked(event.output);
         }
     }
-
+    for (auto id : connectedIds_) {
+        for (auto &cb : screenChangeCallbacks_) {
+            cb->OnScreenChanged(id, ScreenEvent::CONNECTED);
+        }
+    }
+    mipiCheckInFirstHotPlugEvent_ = true;
     pendingHotPlugEvents_.clear();
+    connectedIds_.clear();
 }
 
 void RSScreenManager::ProcessScreenConnectedLocked(std::shared_ptr<HdiOutput> &output)
@@ -124,9 +130,6 @@ void RSScreenManager::ProcessScreenConnectedLocked(std::shared_ptr<HdiOutput> &o
 
     bool isVirtual = false;
     ScreenId id = ToScreenId(output->GetScreenId());
-    if (defaultScreenId_ == INVALID_SCREEN_ID) {
-        defaultScreenId_ = id;
-    }
 
     if (screens_.count(id) == 1) {
         HiLog::Warn(LOG_LABEL, "%{public}s: The screen for id %{public}" PRIu64 " already existed.", __func__, id);
@@ -139,10 +142,18 @@ void RSScreenManager::ProcessScreenConnectedLocked(std::shared_ptr<HdiOutput> &o
     }
 
     screens_[id] = std::make_unique<RSScreen>(id, isVirtual, output, nullptr);
-    HiLog::Info(LOG_LABEL, "%{public}s: A new screen(id %{public}" PRIu64 ") connected.", __func__, id);
-    for (auto &cb : screenChangeCallbacks_) {
-        cb->OnScreenChanged(id, ScreenEvent::CONNECTED);
+
+    if (screens_[id]->GetCapability().type == InterfaceType::DISP_INTF_MIPI) {
+        if (!mipiCheckInFirstHotPlugEvent_) {
+            defaultScreenId_ = id;
+        }
+        mipiCheckInFirstHotPlugEvent_ = true;
+    } else if (defaultScreenId_ == INVALID_SCREEN_ID) {
+        defaultScreenId_ = id;
     }
+
+    HiLog::Info(LOG_LABEL, "%{public}s: A new screen(id %{public}" PRIu64 ") connected.", __func__, id);
+    connectedIds_.emplace_back(id);
 }
 
 void RSScreenManager::ProcessScreenDisConnectedLocked(std::shared_ptr<HdiOutput> &output)
