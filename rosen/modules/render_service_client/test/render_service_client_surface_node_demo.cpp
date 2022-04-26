@@ -124,8 +124,8 @@ void Init(std::shared_ptr<RSUIDirector> rsUiDirector, int width, int height)
     cout << "surfaceNode id = " << surfaceNode->GetId() << endl;
     // SetBounds also can be (300, 300, 960, 540);
     surfaceNode->SetBounds(30, 30, 512, 256);
-    surfaceNode->SetFirstTimeOnScreenCallback([]() {
-         cout << "SetFirstTimeOnScreenCallback" << endl;
+    surfaceNode->SetBufferAvailableCallback([]() {
+         cout << "SetBufferAvailableCallback" << endl;
     });
 
     canvasNode->AddChild(surfaceNode, -1);

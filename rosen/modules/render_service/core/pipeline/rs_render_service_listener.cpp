@@ -68,6 +68,12 @@ void RSRenderServiceListener::OnBufferAvailable()
         node->IncreaseAvailableBuffer();
     }
 
+    if (!node->IsBufferAvailable()) {
+        // Only ipc for one time.
+        RS_LOGI("RsDebug RSRenderServiceListener::OnBufferAvailable id = %llu "\
+                "Notify buffer available", node->GetId());
+        node->NotifyBufferAvailable();
+    }
     RSMainThread::Instance()->RequestNextVSync();
 }
 } // namespace Rosen
