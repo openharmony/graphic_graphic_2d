@@ -264,13 +264,13 @@ void RSPropertiesPainter::DrawBorder(const RSProperties& properties, SkCanvas& c
                     rect.GetRight() - borderRightWidth / PARAM_DOUBLE, rect.GetBottom() - addLen * borderBottomWidth,
                     rect.GetRight() - borderRightWidth / PARAM_DOUBLE, rect.top_ + borderTopWidth, paint);
             }
-            if (border->ApplyLineStyle(paint, RSBorder::TOP, rect.height_)) {
+            if (border->ApplyLineStyle(paint, RSBorder::TOP, rect.width_)) {
                 float addLen = (border->GetStyle(RSBorder::TOP) != BorderStyle::DOTTED) ? 0.0f : 0.5f;
                 canvas.drawLine(
                     rect.GetRight() - addLen * borderRightWidth, rect.top_ + borderTopWidth / PARAM_DOUBLE,
                     rect.left_ + borderLeftWidth, rect.top_ + borderTopWidth / PARAM_DOUBLE, paint);
             }
-            if (border->ApplyLineStyle(paint, RSBorder::BOTTOM, rect.height_)) {
+            if (border->ApplyLineStyle(paint, RSBorder::BOTTOM, rect.width_)) {
                 float addLen = (border->GetStyle(RSBorder::BOTTOM) != BorderStyle::DOTTED) ? 0.0f : 0.5f;
                 canvas.drawLine(
                     rect.left_ + addLen * borderLeftWidth, rect.GetBottom() - borderBottomWidth / PARAM_DOUBLE,
