@@ -95,6 +95,7 @@ int32_t NativeWindowRequestBuffer(struct NativeWindow *window,
     NativeWindowBuffer *nwBuffer = new NativeWindowBuffer();
     nwBuffer->sfbuffer = sfbuffer;
     *buffer = nwBuffer;
+    NativeObjectReference(*buffer);
     return OHOS::GSERROR_OK;
 }
 
@@ -125,7 +126,7 @@ int32_t NativeWindowFlushBuffer(struct NativeWindow *window, struct NativeWindow
         Queue Id:%{public}" PRIu64 ", acquire fence: %{public}d",
         config.damage.w, config.damage.h, window->surface->GetUniqueId(), fenceFd);
     window->surface->FlushBuffer(buffer->sfbuffer, fenceFd, config);
-
+    NativeObjectUnreference(buffer);
     return OHOS::GSERROR_OK;
 }
 
@@ -134,8 +135,9 @@ int32_t NativeWindowCancelBuffer(struct NativeWindow *window, struct NativeWindo
     if (window == nullptr || buffer == nullptr) {
         return OHOS::GSERROR_INVALID_ARGUMENTS;
     }
-    window->surface->CancelBuffer(buffer->sfbuffer);
 
+    window->surface->CancelBuffer(buffer->sfbuffer);
+    NativeObjectUnreference(buffer);
     return OHOS::GSERROR_OK;
 }
 
