@@ -82,7 +82,7 @@ private:
     inline void CheckRet(int32_t ret, const char* func);
 
     sptr<VSyncSampler> sampler_ = nullptr;
-    sptr<SurfaceBuffer> lastFrameBuffer_;
+    std::unordered_map<int, sptr<SurfaceBuffer>> lastFrameBuffers_;
     sptr<SyncFence> lastPresentFence_ = SyncFence::INVALID_FENCE;
 };
 } // namespace Rosen

@@ -206,11 +206,11 @@ int32_t HdiBackend::FlushScreen(const OutputPtr &output, std::vector<LayerPtr> &
         return -1;
     }
 
-    if (lastFrameBuffer_ != nullptr) {
+    if (lastFrameBuffers_.find(output->GetScreenId()) != lastFrameBuffers_.end()) {
         // wrong check
-        (void)output->ReleaseFramebuffer(lastFrameBuffer_, lastPresentFence_);
+        (void)output->ReleaseFramebuffer(lastFrameBuffers_[output->GetScreenId()], lastPresentFence_);
     }
-    lastFrameBuffer_ = fbEntry->buffer;
+    lastFrameBuffers_[output->GetScreenId()] = fbEntry->buffer;
 
     const auto& fbAcquireFence = fbEntry->acquireFence;
     for (auto &layer : compClientLayers) {

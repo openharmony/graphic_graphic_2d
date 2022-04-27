@@ -282,7 +282,7 @@ int32_t NativeObjectUnreference(void *obj)
     return OHOS::GSERROR_OK;
 }
 
-NativeWindow::NativeWindow() : NativeWindowMagic(NATIVE_OBJECT_MAGIC_WINDOW)
+NativeWindow::NativeWindow() : NativeWindowMagic(NATIVE_OBJECT_MAGIC_WINDOW), surface(nullptr)
 {
 }
 
@@ -294,7 +294,7 @@ NativeWindowBuffer::~NativeWindowBuffer()
 {
 }
 
-NativeWindowBuffer::NativeWindowBuffer() : NativeWindowMagic(NATIVE_OBJECT_MAGIC_WINDOW_BUFFER)
+NativeWindowBuffer::NativeWindowBuffer() : NativeWindowMagic(NATIVE_OBJECT_MAGIC_WINDOW_BUFFER), sfbuffer(nullptr)
 {
 }
 
