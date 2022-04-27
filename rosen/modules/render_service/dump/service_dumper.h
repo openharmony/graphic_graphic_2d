@@ -22,7 +22,7 @@
 #include <string>
 #include <unistd.h>
 #include <vector>
-
+#include <iostream>
 #include "ipc_types.h"
 #include "iservice_registry.h"
 #include "unique_fd.h"
@@ -82,6 +82,28 @@ public:
         }
 
         return ReadAndWriteDumpInfo();
+    }
+
+    int PrintHelpInfo(int argc, char *argv[])
+    {
+        int retCode = -1;
+        if (argc <= 1) {
+            return retCode;
+        }
+
+        std::string param1(argv[1]);
+        if (param1 == "--help") {
+            std::cout << "-- help info:" << std::endl;
+            std::cout << "display:           Show the screens info." << std::endl;
+            std::cout << "surface:           Show the foreground surfaces info." << std::endl;
+            std::cout << "fps:               Show the fps info." << std::endl;
+            std::cout << "nodeNotOnTree:     Show the surfaces info which are not on the tree." << std::endl;
+            std::cout << "allSurfacesMem:    Show the memory size of all surfaces buffer." << std::endl;
+            std::cout << "NULL:              Show all of the information above." << std::endl;
+            retCode = 1;
+        }
+
+        return retCode;
     }
 
 private:

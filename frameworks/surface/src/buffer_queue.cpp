@@ -14,9 +14,9 @@
  */
 
 #include "buffer_queue.h"
-
 #include <algorithm>
 #include <fstream>
+#include <iostream>
 #include <sstream>
 #include <sys/time.h>
 #include <cinttypes>
@@ -34,6 +34,8 @@
 namespace OHOS {
 namespace {
 constexpr uint32_t UNIQUE_ID_OFFSET = 32;
+constexpr uint32_t BUFFER_MEMSIZE_RATE = 1024;
+constexpr uint32_t BUFFER_MEMSIZE_FORMAT = 2;
 }
 
 static const std::map<BufferState, std::string> BufferStateStrs = {
@@ -804,18 +806,60 @@ void BufferQueue::DumpCache(std::string &result)
             std::to_string(element.config.strideAlignment) + ", " +
             std::to_string(element.config.format) +", " +
             std::to_string(element.config.usage) + ", " +
-            std::to_string(element.config.timeout) + "].\n";
+            std::to_string(element.config.timeout) + "],";
+        result += " bufferWith = " + std::to_string(element.buffer->GetWidth()) +
+                  ", bufferHeight = " + std::to_string(element.buffer->GetHeight());
+        double bufferMemSize = static_cast<double>(element.buffer->GetSize()) / BUFFER_MEMSIZE_RATE;
+        std::ostringstream ss;
+        ss.precision(BUFFER_MEMSIZE_FORMAT);
+        ss.setf(std::ios::fixed);
+        ss << bufferMemSize;
+        std::string str = ss.str();
+        result += ", bufferMemSize = " + str + "(KiB).\n";
     }
 }
 
 void BufferQueue::Dump(std::string &result)
 {
     std::lock_guard<std::mutex> lockGuard(mutex_);
+    std::ostringstream ss;
+    ss.precision(BUFFER_MEMSIZE_FORMAT);
+    ss.setf(std::ios::fixed);
+    static double allSurfacesMemSize = 0;
+    uint32_t totalBufferListSize = 0;
+    double memSizeInKB = 0;
+
+    for (auto it = bufferQueueCache_.begin(); it != bufferQueueCache_.end(); it++) {
+        BufferElement element = it->second;
+        totalBufferListSize += element.buffer->GetSize();
+    }
+    memSizeInKB = static_cast<double>(totalBufferListSize) / BUFFER_MEMSIZE_RATE;
+
+    allSurfacesMemSize += memSizeInKB;
+    uint32_t resultLen = result.size();
+    std::string dumpEndFlag = "dumpend";
+    std::string dumpEndIn(result, resultLen - dumpEndFlag.size(), resultLen - 1);
+    if (dumpEndIn == dumpEndFlag) {
+        ss << allSurfacesMemSize;
+        std::string dumpEndStr = ss.str();
+        result.erase(resultLen - dumpEndFlag.size(), resultLen - 1);
+        result += dumpEndStr + " KiB.\n";
+        allSurfacesMemSize = 0;
+        return;
+    }
+
+    ss.str("");
+    ss << memSizeInKB;
+    std::string str = ss.str();
     result.append("    BufferQueue:\n");
     result += "      default-size = [" + std::to_string(defaultWidth) + "x" + std::to_string(defaultHeight) + "]" +
         ", FIFO = " + std::to_string(queueSize_) +
         ", name = " + name_ +
-        ", uniqueId = " + std::to_string(uniqueId_) + ".\n";
+        ", uniqueId = " + std::to_string(uniqueId_) +
+        ", usedBufferListLen = " + std::to_string(GetUsedSize()) +
+        ", freeBufferListLen = " + std::to_string(freeList_.size()) +
+        ", dirtyBufferListLen = " + std::to_string(dirtyList_.size()) +
+        ", totalBuffersMemSize = " + str + "(KiB).\n";
 
     result.append("      bufferQueueCache:\n");
     DumpCache(result);

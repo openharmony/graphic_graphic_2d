@@ -14,7 +14,6 @@
  */
 
 #include "pipeline/rs_render_node_map.h"
-
 #include "pipeline/rs_base_render_node.h"
 #include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
@@ -73,6 +72,24 @@ void RSRenderNodeMap::DumpNodeNotOnTree(std::string& dumpString) const
         }
     }
 }
+
+void RSRenderNodeMap::DumpAllNodeMemSize(std::string& dumpString) const
+{
+    dumpString.append("\n");
+    dumpString.append("-- All Surfaces Memory Size\n");
+    dumpString.append("the memory size of all surfaces buffer is : dumpend");
+
+    for (auto it = renderNodeMap_.begin(); it != renderNodeMap_.end(); it++) {
+        if ((*it).second->GetType() != RSRenderNodeType::SURFACE_NODE) {
+            continue;
+        }
+        auto node = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>((*it).second);
+        auto& surfaceConsumer = node->GetConsumer();
+        surfaceConsumer->Dump(dumpString);
+        break;
+    }
+}
+
 
 template<>
 const std::shared_ptr<RSBaseRenderNode> RSRenderNodeMap::GetRenderNode(NodeId id) const
