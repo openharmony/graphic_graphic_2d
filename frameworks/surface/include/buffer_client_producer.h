@@ -66,7 +66,7 @@ public:
 private:
     static inline BrokerDelegator<BufferClientProducer> delegator_;
     std::string name_ = "not init";
-    uint64_t uniqueId_;
+    uint64_t uniqueId_ = 0;
     std::mutex mutex_;
 };
 }; // namespace OHOS
