@@ -889,7 +889,7 @@ void RsRenderServiceUtil::DrawImage(std::shared_ptr<RSEglImageManager> eglImageM
         return;
     }
     sk_sp<SkImage> image;
-    uint32_t eglTextureId = eglImageManager->MapEglImageFromSurfaceBuffer(buffer);
+    auto eglTextureId = eglImageManager->MapEglImageFromSurfaceBuffer(buffer);
     if (eglTextureId == 0) {
         RS_LOGE("RsRenderServiceUtil::MapEglImageFromSurfaceBuffer return invalid EGL texture ID");
         return;

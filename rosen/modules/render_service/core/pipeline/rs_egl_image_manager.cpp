@@ -12,132 +12,277 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifdef RS_ENABLE_GL
-#define GL_GLEXT_PROTOTYPES
-#define EGL_EGLEXT_PROTOTYPES
 
 #include "rs_egl_image_manager.h"
+
 #include <native_window.h>
-#include "pipeline/rs_surface_render_node.h"
-#include "platform/common/rs_log.h"
+#include <platform/common/rs_log.h>
+
+#ifndef NDEBUG
+#include <cassert>
+#endif
 
 namespace OHOS {
 namespace Rosen {
-RSEglImageManager::RSEglImageManager(EGLDisplay display) : eglDisplay_(display) {}
+namespace Detail {
+#ifdef NDEBUG
+#define RS_ASSERT(exp) (void)((exp))
+#else
+#define RS_ASSERT(exp) assert((exp))
+#endif
 
-ImageCacheSeq::~ImageCacheSeq()
+#define RS_EGL_ERR_CASE_STR(value) case value: return #value
+const char *EGLErrorString(GLint error)
 {
-    eglDestroySyncKHR(eglGetCurrentDisplay(), eglSync_);
-    eglSync_ = EGL_NO_SYNC_KHR;
-    eglDestroyImageKHR(eglGetCurrentDisplay(), eglImage_);
-    eglImage_ = EGL_NO_IMAGE_KHR;
-    glDeleteTextures(1, &textureId_);
-    textureId_ = 0;
+    switch (error) {
+        RS_EGL_ERR_CASE_STR(EGL_SUCCESS);
+        RS_EGL_ERR_CASE_STR(EGL_NOT_INITIALIZED);
+        RS_EGL_ERR_CASE_STR(EGL_BAD_ACCESS);
+        RS_EGL_ERR_CASE_STR(EGL_BAD_ALLOC);
+        RS_EGL_ERR_CASE_STR(EGL_BAD_ATTRIBUTE);
+        RS_EGL_ERR_CASE_STR(EGL_BAD_CONFIG);
+        RS_EGL_ERR_CASE_STR(EGL_BAD_CONTEXT);
+        RS_EGL_ERR_CASE_STR(EGL_BAD_CURRENT_SURFACE);
+        RS_EGL_ERR_CASE_STR(EGL_BAD_DISPLAY);
+        RS_EGL_ERR_CASE_STR(EGL_BAD_MATCH);
+        RS_EGL_ERR_CASE_STR(EGL_BAD_NATIVE_PIXMAP);
+        RS_EGL_ERR_CASE_STR(EGL_BAD_NATIVE_WINDOW);
+        RS_EGL_ERR_CASE_STR(EGL_BAD_PARAMETER);
+        RS_EGL_ERR_CASE_STR(EGL_BAD_SURFACE);
+        RS_EGL_ERR_CASE_STR(EGL_CONTEXT_LOST);
+        default: return "Unknown";
+    }
 }
 
-uint32_t RSEglImageManager::MapEglImageFromSurfaceBuffer(sptr<OHOS::SurfaceBuffer>& buffer)
-{
-    std::lock_guard<std::mutex> lock(opMutex_);
-    while (GL_NO_ERROR != glGetError()) {} // clear GL error
-    // get seq num
-    int32_t seqNum = buffer->GetSeqNum();
-    // create image
-    if (imageCacheSeqs_.find(seqNum) == imageCacheSeqs_.end() ||
-        imageCacheSeqs_[seqNum].eglImage_ == EGL_NO_IMAGE_KHR) {
-        EGLImageKHR eglImage = CreateEGLImage(buffer);
-        if (eglImage == EGL_NO_IMAGE_KHR) {
-            RS_LOGE("RSEglImageManager::MapEglImageFromSurfaceBuffer: fail to create EGLImage");
-            return 0;
-        }
-        uint32_t textureId;
-        glGenTextures(1, &textureId);
-        if (textureId == 0) {
-            glDeleteTextures(1, &textureId);
-            textureId = 0;
-            eglDestroyImageKHR(eglDisplay_, eglImage);
-            eglImage = EGL_NO_IMAGE_KHR;
-            RS_LOGE("RSEglImageManager::MapEglImageFromSurfaceBuffer: glGenTextures error");
-            return 0;
-        }
-        if (!WaitReleaseEGLSync(seqNum)) {
-            glDeleteTextures(1, &textureId);
-            textureId = 0;
-            eglDestroyImageKHR(eglDisplay_, eglImage);
-            eglImage = EGL_NO_IMAGE_KHR;
-            RS_LOGE("RSEglImageManager::MapEglImageFromSurfaceBuffer: WaitReleaseEGLSync error");
-            return 0;
-        }
-        imageCacheSeqs_[seqNum].eglImage_ = eglImage;
-        imageCacheSeqs_[seqNum].textureId_ = textureId;
+// RAII object for NativeWindowBuffer
+class NativeWindowBufferObject {
+public:
+    explicit NativeWindowBufferObject(sptr<OHOS::SurfaceBuffer> buffer)
+        : handle_(CreateNativeWindowBufferFromSurfaceBuffer(&buffer))
+    {
+    }
+    explicit NativeWindowBufferObject(NativeWindowBuffer* nativeBuffer)
+        : handle_(nativeBuffer)
+    {
     }
 
-    EGLImageKHR img = imageCacheSeqs_[seqNum].eglImage_;
-    uint32_t textureCacheId = imageCacheSeqs_[seqNum].textureId_;
-    glBindTexture(GL_TEXTURE_EXTERNAL_OES, textureCacheId);
-    glEGLImageTargetTexture2DOES(GL_TEXTURE_EXTERNAL_OES, img);
-    if (GL_NO_ERROR != glGetError()) {
-        RS_LOGE("RSEglImageManager::MapEglImageFromSurfaceBuffer: glEGLImageTargetTexture2DOES error");
-        return 0;
+    ~NativeWindowBufferObject() noexcept
+    {
+        if (handle_ != nullptr) {
+            DestoryNativeWindowBuffer(handle_);
+        }
     }
-    return textureCacheId;
+
+    NativeWindowBufferObject(const NativeWindowBufferObject&) = delete;
+    void operator=(const NativeWindowBufferObject&) = delete;
+
+    bool operator==(std::nullptr_t)
+    {
+        return handle_ == nullptr;
+    }
+    bool operator!=(std::nullptr_t)
+    {
+        return handle_ != nullptr;
+    }
+
+    // not explicit so you can use it to do the implicit-cast.
+    // you should not delete or call DestoryNativeWindowBuffer for this pointer.
+    operator NativeWindowBuffer* () const
+    {
+        return Get();
+    }
+    // you should not delete or call DestoryNativeWindowBuffer for this pointer.
+    NativeWindowBuffer* Get() const
+    {
+        return handle_;
+    }
+
+    NativeWindowBuffer* Release()
+    {
+        NativeWindowBuffer* out = handle_;
+        handle_ = nullptr;
+        return out;
+    }
+
+private:
+    NativeWindowBuffer* handle_ = nullptr;
+};
+
+NativeWindowBufferObject CreateNativeWindowBuffer(const sptr<OHOS::SurfaceBuffer>& buffer)
+{
+    return NativeWindowBufferObject(buffer);
 }
 
-EGLImageKHR RSEglImageManager::CreateEGLImage(const sptr<SurfaceBuffer>& buffer)
+EGLClientBuffer CastToEGLClientBuffer(NativeWindowBuffer* nativeBuffer)
 {
-    sptr<SurfaceBuffer> bufferImpl = buffer;
-    NativeWindowBuffer* nBuffer = CreateNativeWindowBufferFromSurfaceBuffer(&bufferImpl);
+    return static_cast<EGLClientBuffer>(nativeBuffer);
+}
+
+NativeWindowBuffer* CastFromEGLClientBuffer(EGLClientBuffer eglClientBuffer)
+{
+    return static_cast<NativeWindowBuffer*>(eglClientBuffer);
+}
+
+EGLImageKHR CreateEGLImage(
+    EGLDisplay eglDisplay,
+    EGLContext EGLContext,
+    const NativeWindowBufferObject& nativeBuffer)
+{
     EGLint attrs[] = {
         EGL_IMAGE_PRESERVED_KHR,
         EGL_TRUE,
         EGL_NONE,
     };
 
-    EGLImageKHR img = eglCreateImageKHR(eglDisplay_, EGL_NO_CONTEXT, EGL_NATIVE_BUFFER_OHOS, nBuffer, attrs);
-    if (img == EGL_NO_IMAGE_KHR) {
-        EGLint error = eglGetError();
-        RS_LOGE("failed, error %d", error);
-    }
-    return img;
+    return eglCreateImageKHR(
+        eglDisplay, EGLContext, EGL_NATIVE_BUFFER_OHOS, CastToEGLClientBuffer(nativeBuffer), attrs);
+}
+} // namespace Detail
+
+ImageCacheSeq::ImageCacheSeq(
+    EGLDisplay eglDisplay, EGLImageKHR eglImage, EGLClientBuffer eglClientbuffer)
+    : eglDisplay_(eglDisplay),
+      eglImage_(eglImage),
+      eglClientbuffer_(eglClientbuffer)
+{
 }
 
-bool RSEglImageManager::WaitReleaseEGLSync(int32_t seqNum)
+ImageCacheSeq::~ImageCacheSeq() noexcept
 {
-    // check fence extension
-    EGLSyncKHR fence = EGL_NO_SYNC_KHR;
-    auto iter = imageCacheSeqs_.find(currentImageSeqs_);
-    if (iter != imageCacheSeqs_.end()) {
-        fence = imageCacheSeqs_[currentImageSeqs_].eglSync_;
+    if (eglSync_ != EGL_NO_SYNC_KHR) {
+        eglDestroySyncKHR(eglDisplay_, eglSync_);
+        eglSync_ = EGL_NO_SYNC_KHR;
     }
-    if (fence != EGL_NO_SYNC_KHR) {
-        EGLint ret = eglClientWaitSyncKHR(eglDisplay_, fence, 0, 1000000000);
-        if (ret == EGL_FALSE) {
-            RS_LOGE("eglClientWaitSyncKHR error 0x%x", eglGetError());
-            return false;
-        } else if (ret == EGL_TIMEOUT_EXPIRED_KHR) {
-            RS_LOGE("eglClientWaitSyncKHR timeout");
-            return false;
-        }
-        eglDestroySyncKHR(eglDisplay_, fence);
+
+    if (eglImage_ != EGL_NO_IMAGE_KHR) {
+        eglDestroyImageKHR(eglDisplay_, eglImage_);
+        eglImage_ = EGL_NO_IMAGE_KHR;
     }
-    fence = eglCreateSyncKHR(eglDisplay_, EGL_SYNC_FENCE_KHR, NULL);
-    if (fence == EGL_NO_SYNC_KHR) {
-        RS_LOGE("eglCreateSyncKHR error 0x%x", eglGetError());
+
+    if (textureId_ != 0) {
+        glDeleteTextures(1, &textureId_);
+        textureId_ = 0;
+    }
+
+    // auto dec ref.
+    Detail::NativeWindowBufferObject nBufferDecRef(
+        Detail::CastFromEGLClientBuffer(eglClientbuffer_));
+}
+
+bool ImageCacheSeq::BindToTexture()
+{
+    // no image check.
+    if (eglImage_ == EGL_NO_IMAGE_KHR) {
+        RS_LOGE("ImageCacheSeq::BindToTexture: eglImage_ is null.");
         return false;
     }
-    glFlush();
-    imageCacheSeqs_[seqNum].eglSync_ = fence;
-    currentImageSeqs_ = seqNum;
+
+    glGenTextures(1, &textureId_);
+    if (textureId_ == 0) {
+        RS_LOGE("ImageCacheSeq::BindToTexture: glGenTextures error.");
+        return false;
+    }
+
+    // bind this eglImage_ to textureId_.
+    glBindTexture(GL_TEXTURE_EXTERNAL_OES, textureId_);
+    glEGLImageTargetTexture2DOES(GL_TEXTURE_EXTERNAL_OES, eglImage_);
     return true;
+}
+
+bool ImageCacheSeq::WaitReleaseFence()
+{
+    constexpr EGLTime fenceTimeout = 1000000000; // nano seconds.
+    if (eglSync_ != EGL_NO_SYNC_KHR) {
+        EGLint ret = eglClientWaitSyncKHR(eglDisplay_, eglSync_, 0, fenceTimeout);
+        if (ret == EGL_FALSE) {
+            RS_LOGE("ImageCacheSeq::WaitReleaseFence: eglClientWaitSyncKHR error %s.",
+                Detail::EGLErrorString(eglGetError()));
+            return false;
+        }
+    }
+
+    eglSync_ = eglCreateSyncKHR(eglDisplay_, EGL_SYNC_FENCE_KHR, NULL);
+    if (eglSync_ == EGL_NO_SYNC_KHR) {
+        RS_LOGE("ImageCacheSeq::WaitReleaseFence: eglCreateSyncKHR error %s.",
+            Detail::EGLErrorString(eglGetError()));
+        return false;
+    }
+
+    glFlush();
+    return true;
+}
+
+std::unique_ptr<ImageCacheSeq> ImageCacheSeq::Create(
+    EGLDisplay eglDisplay,
+    EGLContext eglContext,
+    const sptr<OHOS::SurfaceBuffer>& buffer)
+{
+    auto nativeBuffer = Detail::CreateNativeWindowBuffer(buffer);
+    if (nativeBuffer == nullptr) {
+        return nullptr;
+    }
+
+    EGLImageKHR img = Detail::CreateEGLImage(eglDisplay, eglContext, nativeBuffer);
+    if (img == EGL_NO_IMAGE_KHR) {
+        RS_LOGE("ImageCacheSeq::Create: eglCreateImageKHR failed, error %s.",
+            Detail::EGLErrorString(eglGetError()));
+        return nullptr;
+    }
+
+    auto imageCache = std::make_unique<ImageCacheSeq>(
+        eglDisplay, img, Detail::CastToEGLClientBuffer(nativeBuffer.Release()));
+    if (!imageCache->BindToTexture()) {
+        return nullptr;
+    }
+
+    if (!imageCache->WaitReleaseFence()) {
+        return nullptr;
+    }
+
+    return imageCache;
+}
+
+RSEglImageManager::RSEglImageManager(EGLDisplay display) : eglDisplay_(display)
+{
+}
+
+GLuint RSEglImageManager::CreateImageCacheFromBuffer(const sptr<OHOS::SurfaceBuffer>& buffer)
+{
+    auto bufferId = buffer->GetSeqNum();
+    auto imageCache = ImageCacheSeq::Create(eglDisplay_, EGL_NO_CONTEXT, buffer);
+    if (imageCache == nullptr) {
+        RS_LOGE("RSEglImageManager::MapEglImageFromSurfaceBuffer: failed to create ImageCache for buffer id %d.",
+            bufferId);
+        return 0; // return texture id 0.
+    }
+    auto textureId = imageCache->TextureId();
+    imageCacheSeqs_[bufferId] = std::move(imageCache);
+    return textureId;
+}
+
+GLuint RSEglImageManager::MapEglImageFromSurfaceBuffer(sptr<OHOS::SurfaceBuffer>& buffer)
+{
+    std::lock_guard<std::mutex> lock(opMutex_);
+    auto bufferId = buffer->GetSeqNum();
+    if (imageCacheSeqs_.count(bufferId) == 0) {
+        // cache not found, create it.
+        return CreateImageCacheFromBuffer(buffer);
+    } else {
+        if (!imageCacheSeqs_[bufferId]->WaitReleaseFence()) {
+            // wait fence failed for this buffer, remove its cache and create a new one.
+            auto n = imageCacheSeqs_.erase(bufferId);
+            RS_ASSERT(n == 1); // we do not care about map::erase()'s return value in release mode.
+            return CreateImageCacheFromBuffer(buffer);
+        }
+        return imageCacheSeqs_[bufferId]->TextureId();
+    }
 }
 
 void RSEglImageManager::UnMapEglImageFromSurfaceBuffer(int32_t seqNum)
 {
     std::lock_guard<std::mutex> lock(opMutex_);
-    int32_t ret = imageCacheSeqs_.erase(seqNum);
-    if (ret != 1) {
-        RS_LOGE("UnMapEglImageFromSurfaceBuffer can not find error %d imageCache", seqNum);
-    }
+    auto n = imageCacheSeqs_.erase(seqNum);
+    RS_ASSERT(n <= 1); // we do not care about map::erase()'s return value in release mode.
 }
 } // namespace Rosen
 } // namespace OHOS
-#endif // RS_ENABLE_GL

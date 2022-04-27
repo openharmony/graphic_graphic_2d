@@ -15,9 +15,11 @@
 
 #ifndef RS_EGL_IMAGE_MANAGER_H
 #define RS_EGL_IMAGE_MANAGER_H
-#ifdef RS_ENABLE_GL
-#include <map>
+
+#include <memory>
 #include <mutex>
+#include <unordered_map>
+
 #include <surface.h>
 #include "EGL/egl.h"
 #include "EGL/eglext.h"
@@ -28,31 +30,53 @@
 
 namespace OHOS {
 namespace Rosen {
-struct ImageCacheSeq {
-    ImageCacheSeq() : eglImage_(EGL_NO_IMAGE_KHR), eglSync_(EGL_NO_SYNC_KHR) {}
-    EGLImageKHR eglImage_;
-    EGLSyncKHR eglSync_;
-    uint32_t textureId_ = 0;
-    ~ImageCacheSeq();
+class ImageCacheSeq {
+public:
+    static std::unique_ptr<ImageCacheSeq> Create(
+        EGLDisplay eglDisplay,
+        EGLContext eglContext,
+        const sptr<OHOS::SurfaceBuffer>& buffer);
+
+    ImageCacheSeq(
+        EGLDisplay eglDisplay,
+        EGLImageKHR eglImage,
+        EGLClientBuffer eglClientbuffer);
+    ~ImageCacheSeq() noexcept;
+
+    // wait release fence and generate a new fence.
+    bool WaitReleaseFence();
+
+    GLuint TextureId() const
+    {
+        return textureId_;
+    }
+
+private:
+    // generate a texture and bind eglImage to it.
+    bool BindToTexture();
+
+    EGLDisplay eglDisplay_ = EGL_NO_DISPLAY;
+    EGLImageKHR eglImage_ = EGL_NO_IMAGE_KHR;
+    EGLClientBuffer eglClientbuffer_ = nullptr;
+    GLuint textureId_ = 0;
+    EGLSyncKHR eglSync_ = EGL_NO_SYNC_KHR;
 };
 
 class RSEglImageManager {
 public:
     explicit RSEglImageManager(EGLDisplay display);
-    ~RSEglImageManager() {};
-    uint32_t MapEglImageFromSurfaceBuffer(sptr<OHOS::SurfaceBuffer>& buffer);
-    void UnMapEglImageFromSurfaceBuffer(int32_t seqNum);
+    ~RSEglImageManager() noexcept = default;
 
-    EGLImageKHR CreateEGLImage(const sptr<OHOS::SurfaceBuffer>& buffer);
-    bool WaitReleaseEGLSync(int32_t seqNum);
+    GLuint MapEglImageFromSurfaceBuffer(sptr<OHOS::SurfaceBuffer>& buffer);
+    void UnMapEglImageFromSurfaceBuffer(int32_t seqNum);
 private:
-    std::mutex opMutex_;
-    std::map<int32_t, ImageCacheSeq> imageCacheSeqs_;
-    EGLDisplay eglDisplay_;
-    int32_t currentImageSeqs_ = -1;
+    GLuint CreateImageCacheFromBuffer(const sptr<OHOS::SurfaceBuffer>& buffer);
+
+    mutable std::mutex opMutex_;
+    std::unordered_map<int32_t, std::unique_ptr<ImageCacheSeq>> imageCacheSeqs_; // guarded by opMutex_.
+    EGLDisplay eglDisplay_ = EGL_NO_DISPLAY;
 };
 } // namespace Rosen
 } // namespace OHOS
-#endif // RS_ENABLE_GL
 
-#endif
+#endif // RS_EGL_IMAGE_MANAGER_H

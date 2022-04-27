@@ -26,10 +26,13 @@ ohos_shared_library("librender_service") {
     defines += [ "PADDING_HEIGHT_32" ]
   }
   defines += gpu_defines
+  if (rs_enable_gpu) {
+    defines += [ "GL_GLEXT_PROTOTYPES" ]
+    defines += [ "EGL_EGLEXT_PROTOTYPES" ]
+  }
 
   sources = [
     "core/pipeline/rs_compatible_processor.cpp",
-    "core/pipeline/rs_egl_image_manager.cpp",
     "core/pipeline/rs_hardware_processor.cpp",
     "core/pipeline/rs_main_thread.cpp",
     "core/pipeline/rs_processor.cpp",
@@ -46,6 +49,10 @@ ohos_shared_library("librender_service") {
     "core/transaction/rs_render_service_connection_stub.cpp",
     "core/transaction/rs_render_service_stub.cpp",
   ]
+
+  if (rs_enable_gpu) {
+    sources += [ "core/pipeline/rs_egl_image_manager.cpp" ]
+  }
 
   include_dirs = [
     "core",
