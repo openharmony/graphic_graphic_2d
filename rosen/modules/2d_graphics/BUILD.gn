@@ -12,7 +12,7 @@
 # limitations under the License.
 
 import("//build/ohos.gni")
-import("//foundation/ace/ace_engine/ace_config.gni")
+import("//foundation/arkui/ace_engine/ace_config.gni")
 import("//foundation/graphic/standard/graphic_config.gni")
 import(
     "//foundation/graphic/standard/rosen/modules/2d_engine/rosen_text/config.gni")
@@ -86,7 +86,7 @@ ohos_shared_library("2d_graphics") {
     "//foundation/graphic/standard/interfaces/inner_api/surface",
     "$rosen_2d_engine_root",
     "$flutter_root/engine/flutter/third_party/txt/src",
-    "//foundation/ace/ace_engine/frameworks",
+    "//foundation/arkui/ace_engine/frameworks",
     "$flutter_root/engine",
     "//third_party/bounds_checking_function/include",
   ]

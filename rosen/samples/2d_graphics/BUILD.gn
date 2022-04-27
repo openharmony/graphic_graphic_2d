@@ -61,7 +61,7 @@ ohos_executable("drawing_engine_sample") {
   ]
 
   deps = [
-    "//foundation/ace/ace_engine/build/external_config/flutter/skia:ace_skia_ohos",
+    "//foundation/arkui/ace_engine/build/external_config/flutter/skia:ace_skia_ohos",
     "//foundation/graphic/standard:libsurface",
     "//foundation/graphic/standard:libvsync_client",
     "//foundation/graphic/standard/frameworks/vsync:libvsync_module",

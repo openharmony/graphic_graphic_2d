@@ -37,7 +37,7 @@ ohos_source_set("webgl_src") {
 
   deps = [
     "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
-    "//foundation/ace/napi:ace_napi",
+    "//foundation/arkui/napi:ace_napi",
     "//foundation/graphic/standard:libsurface",
     "//third_party/bounds_checking_function:libsec_static",
     "//third_party/libuv:uv_static",

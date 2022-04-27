@@ -106,7 +106,7 @@ ohos_source_set("render_service_client_src") {
 ohos_shared_library("librender_service_client") {
   public_deps = [
     ":render_service_client_src",
-    "//foundation/ace/ace_engine/build/external_config/flutter/skia:ace_skia_ohos",
+    "//foundation/arkui/ace_engine/build/external_config/flutter/skia:ace_skia_ohos",
   ]
 
   public_configs = [ ":render_service_client_config" ]

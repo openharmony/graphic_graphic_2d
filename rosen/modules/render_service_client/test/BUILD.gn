@@ -40,7 +40,7 @@ ohos_executable("render_service_client_rs_demo") {
     "//third_party/zlib:libz",
   ]
 
-  public_deps = [ "//foundation/ace/ace_engine/build/external_config/flutter/skia:ace_skia_ohos" ]
+  public_deps = [ "//foundation/arkui/ace_engine/build/external_config/flutter/skia:ace_skia_ohos" ]
 
   part_name = "graphic_standard"
   subsystem_name = "graphic"
@@ -62,7 +62,7 @@ ohos_executable("render_service_client_app_demo") {
     "//third_party/zlib:libz",
   ]
 
-  public_deps = [ "//foundation/ace/ace_engine/build/external_config/flutter/skia:ace_skia_ohos" ]
+  public_deps = [ "//foundation/arkui/ace_engine/build/external_config/flutter/skia:ace_skia_ohos" ]
 
   part_name = "graphic_standard"
   subsystem_name = "graphic"
@@ -84,7 +84,7 @@ ohos_executable("render_service_client_rs_animation_demo") {
     "//third_party/zlib:libz",
   ]
 
-  public_deps = [ "//foundation/ace/ace_engine/build/external_config/flutter/skia:ace_skia_ohos" ]
+  public_deps = [ "//foundation/arkui/ace_engine/build/external_config/flutter/skia:ace_skia_ohos" ]
 
   part_name = "graphic_standard"
   subsystem_name = "graphic"
@@ -104,7 +104,7 @@ ohos_executable("surface_capture_demo") {
     "//third_party/zlib:libz",
   ]
 
-  public_deps = [ "//foundation/ace/ace_engine/build/external_config/flutter/skia:ace_skia_ohos" ]
+  public_deps = [ "//foundation/arkui/ace_engine/build/external_config/flutter/skia:ace_skia_ohos" ]
 
   part_name = "graphic_standard"
   subsystem_name = "graphic"
@@ -141,7 +141,7 @@ ohos_executable("mirror_display_demo") {
   include_dirs =
       [ "//foundation/graphic/standard/rosen/modules/render_service_base/src" ]
 
-  public_deps = [ "//foundation/ace/ace_engine/build/external_config/flutter/skia:ace_skia_ohos" ]
+  public_deps = [ "//foundation/arkui/ace_engine/build/external_config/flutter/skia:ace_skia_ohos" ]
 
   part_name = "graphic_standard"
   subsystem_name = "graphic"
@@ -161,7 +161,7 @@ ohos_executable("render_service_client_surface_node_demo") {
     "//third_party/zlib:libz",
   ]
 
-  public_deps = [ "//foundation/ace/ace_engine/build/external_config/flutter/skia:ace_skia_ohos" ]
+  public_deps = [ "//foundation/arkui/ace_engine/build/external_config/flutter/skia:ace_skia_ohos" ]
 
   external_deps = [
     "hiviewdfx_hilog_native:libhilog",

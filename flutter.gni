@@ -12,9 +12,9 @@
 # limitations under the License.
 
 ace_flutter_gn_root =
-    "//foundation/ace/ace_engine/build/external_config/flutter"
+    "//foundation/arkui/ace_engine/build/external_config/flutter"
 rosen_flutter_gn_root = "//foundation/graphic/standard/rosen/build/flutter"
 
-ace_root = "//foundation/ace/ace_engine"
+ace_root = "//foundation/arkui/ace_engine"
 ace_flutter_engine_root = "$ace_root/build/external_config/flutter"
 flutter_root = "//third_party/flutter"

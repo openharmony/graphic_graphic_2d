@@ -77,7 +77,7 @@ ohos_shared_library("librender_service") {
     "//utils/native/base:utils",
   ]
 
-  public_deps = [ "//foundation/ace/ace_engine/build/external_config/flutter/skia:ace_skia_ohos" ]
+  public_deps = [ "//foundation/arkui/ace_engine/build/external_config/flutter/skia:ace_skia_ohos" ]
 
   external_deps = [
     "bytrace_standard:bytrace_core",

@@ -12,7 +12,7 @@
 # limitations under the License.
 
 import("//build/ohos.gni")
-import("//foundation/ace/ace_engine/ace_config.gni")
+import("//foundation/arkui/ace_engine/ace_config.gni")
 import(
     "//foundation/graphic/standard/rosen/modules/2d_engine/rosen_text/config.gni")
 
@@ -59,7 +59,7 @@ ohos_source_set("rosen_text_ui") {
     "../properties/typography_txt.cpp",
   ]
   deps = [
-    "//foundation/ace/ace_engine/build/external_config/flutter/libtxt:thirdparty_lib_txt_$current_os",
+    "//foundation/arkui/ace_engine/build/external_config/flutter/libtxt:thirdparty_lib_txt_$current_os",
     "//foundation/graphic/standard/rosen/modules/2d_graphics:2d_graphics",
     "//third_party/bounds_checking_function:libsec_static",
   ]
