@@ -81,7 +81,7 @@ group("sync_fence") {
 
 ## Build libgraphic_utils.so {{{
 config("libgraphic_utils_public_config") {
-  include_dirs = [ "//foundation/graphic/standard/interfaces/innerkits/common" ]
+  include_dirs = [ "//foundation/graphic/standard/interfaces/inner_api/common" ]
 }
 
 ohos_shared_library("libgraphic_utils") {

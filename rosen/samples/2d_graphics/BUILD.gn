@@ -55,7 +55,7 @@ ohos_executable("drawing_engine_sample") {
     "drawing_engine",
     "drawing_engine/drawing_surface",
     "//foundation/graphic/standard/rosen/modules/composer/hdi_backend/include",
-    "//foundation/graphic/standard/interfaces/innerkits/vsync_module",
+    "//foundation/graphic/standard/interfaces/inner_api/vsync_module",
     "//foundation/graphic/standard/utils/sync_fence/export",
     "//foundation/graphic/standard/rosen/include/common",
   ]
@@ -97,7 +97,7 @@ ohos_executable("drawing_sample_rs") {
     "//foundation/graphic/standard/rosen/modules/render_service_base/src",
     "//foundation/graphic/standard/rosen/modules/render_service_base/include",
     "//foundation/graphic/standard/rosen/modules/render_service_client",
-    "//foundation/graphic/standard/interfaces/innerkits/vsync_module",
+    "//foundation/graphic/standard/interfaces/inner_api/vsync_module",
     "//foundation/graphic/standard/rosen/include/common",
     "//foundation/windowmanager/interfaces/innerkits/wm",
   ]
@@ -129,8 +129,8 @@ ohos_executable("drawing_sample_canvaskit0310") {
     "//foundation/graphic/standard/rosen/modules/composer/hdi_backend/include",
     "//drivers/peripheral/display/interfaces/include",
     "//foundation/graphic/standard/rosen/include/common",
-    "//foundation/graphic/standard/interfaces/innerkits/vsync_module",
-    "//foundation/graphic/standard/interfaces/innerkits/common",
+    "//foundation/graphic/standard/interfaces/inner_api/vsync_module",
+    "//foundation/graphic/standard/interfaces/inner_api/common",
     "//foundation/graphic/standard/rosen/modules/composer/vsync/include",
     "//foundation/graphic/standard/rosen/modules/2d_graphics/include",
     "//foundation/graphic/standard/rosen/modules/2d_graphics/src",

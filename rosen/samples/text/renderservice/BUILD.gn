@@ -27,7 +27,7 @@ ohos_executable("rendertest") {
     "//foundation/graphic/standard/rosen/modules/render_service_base/src",
     "//foundation/graphic/standard/rosen/modules/render_service_base/include",
     "//foundation/graphic/standard/rosen/modules/render_service_client",
-    "//foundation/graphic/standard/interfaces/innerkits/vsync_module",
+    "//foundation/graphic/standard/interfaces/inner_api/vsync_module",
     "//foundation/graphic/standard/rosen/include/common",
     "//foundation/windowmanager/interfaces/innerkits/wm",
     "//foundation/graphic/standard/rosen/2d_engine/ui",

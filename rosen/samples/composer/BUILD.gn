@@ -31,7 +31,7 @@ config("hello_composer_public_config") {
     "//foundation/graphic/standard/rosen/include/common",
     "//foundation/graphic/standard/rosen/modules/composer/vsync/include",
     "//foundation/graphic/standard/rosen/modules/render_service_base/src",
-    "//foundation/graphic/standard/interfaces/innerkits/composer",
+    "//foundation/graphic/standard/interfaces/inner_api/composer",
   ]
 }
 

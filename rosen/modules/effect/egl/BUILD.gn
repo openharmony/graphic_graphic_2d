@@ -19,7 +19,7 @@ import("//foundation/graphic/standard/rosen/modules/effect/effect_config.gni")
 
 ohos_shared_library("libegl_effect") {
   include_dirs = [
-    "//foundation/graphic/standard/interfaces/innerkits/surface",
+    "//foundation/graphic/standard/interfaces/inner_api/surface",
     "//third_party/EGL/api",
     "//third_party/openGLES/api",
     "//foundation/graphic/standard/utils/log",

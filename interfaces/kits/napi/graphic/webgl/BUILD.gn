@@ -22,7 +22,7 @@ config("render_config") {
 
 ohos_source_set("webgl_src") {
   include_dirs = [
-    "//foundation/graphic/standard/interfaces/innerkits/surface",
+    "//foundation/graphic/standard/interfaces/inner_api/surface",
     "src",
     "//third_party/node/src",
     "//utils/native/base/include",

@@ -83,7 +83,7 @@ ohos_shared_library("2d_graphics") {
     "include",
     "src",
     "src/engine_adapter",
-    "//foundation/graphic/standard/interfaces/innerkits/surface",
+    "//foundation/graphic/standard/interfaces/inner_api/surface",
     "$rosen_2d_engine_root",
     "$flutter_root/engine/flutter/third_party/txt/src",
     "//foundation/ace/ace_engine/frameworks",

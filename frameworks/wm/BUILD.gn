@@ -32,9 +32,9 @@ config("wms_client_config") {
 
 config("wms_client_public_config") {
   include_dirs = [
-    "//foundation/graphic/standard/interfaces/innerkits",
-    "//foundation/graphic/standard/interfaces/innerkits/wm",
-    "//foundation/graphic/standard/interfaces/innerkits/common",
+    "//foundation/graphic/standard/interfaces/inner_api",
+    "//foundation/graphic/standard/interfaces/inner_api/wm",
+    "//foundation/graphic/standard/interfaces/inner_api/common",
   ]
 }
 
@@ -128,7 +128,7 @@ config("libwmclient_config") {
 
 config("libwmclient_public_config") {
   include_dirs =
-      [ "//foundation/graphic/standard/interfaces/innerkits/wmclient" ]
+      [ "//foundation/graphic/standard/interfaces/inner_api/wmclient" ]
 }
 
 ohos_shared_library("libwmclient") {

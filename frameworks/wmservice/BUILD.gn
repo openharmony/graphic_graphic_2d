@@ -31,9 +31,9 @@ config("libwmservice_config") {
 
 config("libwmservice_public_config") {
   include_dirs = [
-    "//foundation/graphic/standard/interfaces/innerkits/common",
-    "//foundation/graphic/standard/interfaces/innerkits/wmclient",
-    "//foundation/graphic/standard/interfaces/innerkits/wmservice",
+    "//foundation/graphic/standard/interfaces/inner_api/common",
+    "//foundation/graphic/standard/interfaces/inner_api/wmclient",
+    "//foundation/graphic/standard/interfaces/inner_api/wmservice",
     "//drivers/peripheral/base",
     "//drivers/peripheral/display/interfaces/include",
     "//third_party/bounds_checking_function/include",

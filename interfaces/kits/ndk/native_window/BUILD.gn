@@ -18,8 +18,8 @@ ohos_ndk_headers("native_window_header") {
   dest_dir = "$ndk_headers_out_dir/native_window"
   sources = [
     "//drivers/peripheral/base/buffer_handle.h",
-    "//foundation/graphic/standard/interfaces/innerkits/surface/external_window.h",
-    "//foundation/graphic/standard/interfaces/innerkits/surface/window.h",
+    "//foundation/graphic/standard/interfaces/inner_api/surface/external_window.h",
+    "//foundation/graphic/standard/interfaces/inner_api/surface/window.h",
   ]
 }
 

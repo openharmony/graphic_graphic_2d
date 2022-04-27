@@ -35,7 +35,7 @@ ohos_systemtest("hdibackend_test") {
   include_dirs = [
     "//foundation/graphic/standard/rosen/modules/composer/hdi_backend/include",
     "//foundation/graphic/standard/rosen/modules/composer/hdi_backend/test",
-    "//foundation/graphic/standard/interfaces/innerkits/surface",
+    "//foundation/graphic/standard/interfaces/inner_api/surface",
   ]
 
   cflags = [
@@ -61,7 +61,7 @@ ohos_systemtest("hdilayer_test") {
   include_dirs = [
     "//foundation/graphic/standard/rosen/modules/composer/hdi_backend/include",
     "//foundation/graphic/standard/rosen/modules/composer/hdi_backend/test",
-    "//foundation/graphic/standard/interfaces/innerkits/surface",
+    "//foundation/graphic/standard/interfaces/inner_api/surface",
   ]
 
   cflags = [
@@ -87,7 +87,7 @@ ohos_systemtest("hdioutput_test") {
   include_dirs = [
     "//foundation/graphic/standard/rosen/modules/composer/hdi_backend/include",
     "//foundation/graphic/standard/rosen/modules/composer/hdi_backend/test",
-    "//foundation/graphic/standard/interfaces/innerkits/surface",
+    "//foundation/graphic/standard/interfaces/inner_api/surface",
   ]
 
   cflags = [
@@ -116,7 +116,7 @@ ohos_systemtest("hdiscreen_test") {
   include_dirs = [
     "//foundation/graphic/standard/rosen/modules/composer/hdi_backend/include",
     "//foundation/graphic/standard/rosen/modules/composer/hdi_backend/test",
-    "//foundation/graphic/standard/interfaces/innerkits/surface",
+    "//foundation/graphic/standard/interfaces/inner_api/surface",
   ]
 
   cflags = [

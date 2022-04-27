@@ -53,7 +53,7 @@ ohos_executable("drawing_sample") {
     "//drivers/peripheral/display/interfaces/include",
     "//foundation/graphic/standard/rosen/include/common",
     "//foundation/graphic/standard/rosen/modules/composer/vsync/include",
-    "//foundation/graphic/standard/interfaces/innerkits/composer",
+    "//foundation/graphic/standard/interfaces/inner_api/composer",
   ]
 
   deps = [

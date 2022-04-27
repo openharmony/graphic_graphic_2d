@@ -102,7 +102,7 @@ config("hdibackend_test_common_public_config") {
   include_dirs = [
     "//foundation/graphic/standard/rosen/modules/composer/hdi_backend/include",
     "//foundation/graphic/standard/rosen/modules/composer/hdi_backend/test",
-    "//foundation/graphic/standard/interfaces/innerkits/surface",
+    "//foundation/graphic/standard/interfaces/inner_api/surface",
   ]
 
   cflags = [
