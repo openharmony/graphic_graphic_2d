@@ -43,7 +43,7 @@ typedef struct {
     bool isDeleting;
 
     BufferRequestConfig config;
-    int32_t fence;
+    sptr<SyncFence> fence;
     int64_t timestamp;
     Rect damage;
 } BufferElement;
@@ -63,14 +63,14 @@ public:
     GSError CancelBuffer(int32_t sequence, const sptr<BufferExtraData> &bedata);
 
     GSError FlushBuffer(int32_t sequence, const sptr<BufferExtraData> &bedata,
-                             int32_t fence, const BufferFlushConfig &config);
+                             const sptr<SyncFence>& fence, const BufferFlushConfig &config);
 
     GSError DoFlushBuffer(int32_t sequence, const sptr<BufferExtraData> &bedata,
-                               int32_t fence, const BufferFlushConfig &config);
+                               const sptr<SyncFence>& fence, const BufferFlushConfig &config);
 
-    GSError AcquireBuffer(sptr<SurfaceBuffer>& buffer, int32_t &fence,
+    GSError AcquireBuffer(sptr<SurfaceBuffer>& buffer, sptr<SyncFence>& fence,
                                int64_t &timestamp, Rect &damage);
-    GSError ReleaseBuffer(sptr<SurfaceBuffer>& buffer, int32_t fence);
+    GSError ReleaseBuffer(sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& fence);
 
     GSError AttachBuffer(sptr<SurfaceBuffer>& buffer);
 

@@ -21,6 +21,7 @@
 #include "display_type.h"
 #include "external_window.h"
 #include "surface_type.h"
+#include "sync_fence.h"
 
 #ifndef weak_alias
     #define weak_alias(old, new) \
@@ -82,19 +83,21 @@ int32_t NativeWindowRequestBuffer(struct NativeWindow *window,
     struct NativeWindowBuffer **buffer, int *fenceFd)
 {
     if (window == nullptr || buffer == nullptr || fenceFd == nullptr) {
-        BLOGD("NativeWindowRequestBuffer window or buffer or fenceid is nullptr");
+        BLOGD("window or buffer or fenceid is nullptr");
         return OHOS::GSERROR_INVALID_ARGUMENTS;
     }
-    BLOGD("NativeWindowRequestBuffer width is %{public}d, height is %{public}d, Queue Id:%{public}" PRIu64 "",
+    BLOGD("width is %{public}d, height is %{public}d, Queue Id:%{public}" PRIu64 "",
         window->config.width, window->config.height, window->surface->GetUniqueId());
     OHOS::sptr<OHOS::SurfaceBuffer> sfbuffer;
-    if (window->surface->RequestBuffer(sfbuffer, *fenceFd, window->config) != OHOS::GSError::GSERROR_OK ||
+    OHOS::sptr<OHOS::SyncFence> relaeaseFence = OHOS::SyncFence::INVALID_FENCE;
+    if (window->surface->RequestBuffer(sfbuffer, relaeaseFence, window->config) != OHOS::GSError::GSERROR_OK ||
         sfbuffer == nullptr) {
         return OHOS::GSERROR_NO_BUFFER;
     }
     NativeWindowBuffer *nwBuffer = new NativeWindowBuffer();
     nwBuffer->sfbuffer = sfbuffer;
     *buffer = nwBuffer;
+    *fenceFd = relaeaseFence->Dup();
     NativeObjectReference(*buffer);
     return OHOS::GSERROR_OK;
 }
@@ -122,11 +125,12 @@ int32_t NativeWindowFlushBuffer(struct NativeWindow *window, struct NativeWindow
         config.timestamp = 0;
     }
 
-    BLOGD("NativeWindowFlushBuffer damage w is %{public}d, h is %{public}d, \
-        Queue Id:%{public}" PRIu64 ", acquire fence: %{public}d",
+    BLOGD("damage w is %{public}d, h is %{public}d, Queue Id:%{public}" PRIu64 ", acquire fence: %{public}d",
         config.damage.w, config.damage.h, window->surface->GetUniqueId(), fenceFd);
-    window->surface->FlushBuffer(buffer->sfbuffer, fenceFd, config);
+    OHOS::sptr<OHOS::SyncFence> acquireFence = new OHOS::SyncFence(fenceFd);
+    window->surface->FlushBuffer(buffer->sfbuffer, acquireFence, config);
     NativeObjectUnreference(buffer);
+
     return OHOS::GSERROR_OK;
 }
 

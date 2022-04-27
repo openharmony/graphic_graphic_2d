@@ -20,6 +20,7 @@
 #include <buffer_queue.h>
 #include <buffer_manager.h>
 #include "buffer_consumer_listener.h"
+#include "sync_fence.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -147,7 +148,8 @@ HWTEST_F(BufferQueueTest, ReqCanFluAcqRel001, Function | MediumTest | Level2)
     ASSERT_NE(addr1, nullptr);
     addr1[0] = 5;
 
-    ret = bq->FlushBuffer(retval.sequence, bedata, -1, flushConfig);
+    sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
+    ret = bq->FlushBuffer(retval.sequence, bedata, acquireFence, flushConfig);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
     ret = bq->AcquireBuffer(retval.buffer, retval.fence, timestamp, damage);
@@ -160,7 +162,8 @@ HWTEST_F(BufferQueueTest, ReqCanFluAcqRel001, Function | MediumTest | Level2)
         ASSERT_EQ(addr2[0], 5u);
     }
 
-    ret = bq->ReleaseBuffer(retval.buffer, -1);
+    sptr<SyncFence> releaseFence = SyncFence::INVALID_FENCE;
+    ret = bq->ReleaseBuffer(retval.buffer, releaseFence);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 }
 
@@ -232,10 +235,11 @@ HWTEST_F(BufferQueueTest, ReqCanFluAcqRel004, Function | MediumTest | Level2)
     ASSERT_GE(retval.sequence, 0);
     ASSERT_EQ(retval.buffer, nullptr);
 
-    ret = bq->FlushBuffer(retval.sequence, bedata, -1, flushConfig);
+    sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
+    ret = bq->FlushBuffer(retval.sequence, bedata, acquireFence, flushConfig);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
-    ret = bq->FlushBuffer(retval.sequence, bedata, -1, flushConfig);
+    ret = bq->FlushBuffer(retval.sequence, bedata, acquireFence, flushConfig);
     ASSERT_NE(ret, OHOS::GSERROR_OK);
 }
 
@@ -251,15 +255,16 @@ HWTEST_F(BufferQueueTest, ReqCanFluAcqRel004, Function | MediumTest | Level2)
 HWTEST_F(BufferQueueTest, ReqCanFluAcqRel005, Function | MediumTest | Level2)
 {
     sptr<SurfaceBuffer> buffer;
-    int32_t flushFence;
 
-    GSError ret = bq->AcquireBuffer(buffer, flushFence, timestamp, damage);
+    sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
+    GSError ret = bq->AcquireBuffer(buffer, acquireFence, timestamp, damage);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
-    ret = bq->ReleaseBuffer(buffer, -1);
+    sptr<SyncFence> ReleaseFence = SyncFence::INVALID_FENCE;
+    ret = bq->ReleaseBuffer(buffer, ReleaseFence);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
-    ret = bq->ReleaseBuffer(buffer, -1);
+    ret = bq->ReleaseBuffer(buffer, ReleaseFence);
     ASSERT_NE(ret, OHOS::GSERROR_OK);
 }
 
@@ -329,10 +334,12 @@ HWTEST_F(BufferQueueTest, ReqCanFluAcqRel007, Function | MediumTest | Level2)
 
     retval.buffer = cache[retval.sequence];
 
-    ret = bq->ReleaseBuffer(retval.buffer, -1);
+    sptr<SyncFence> releaseFence = SyncFence::INVALID_FENCE;
+    ret = bq->ReleaseBuffer(retval.buffer, releaseFence);
     ASSERT_NE(ret, OHOS::GSERROR_OK);
 
-    ret = bq->FlushBuffer(retval.sequence, bedata, -1, flushConfig);
+    sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
+    ret = bq->FlushBuffer(retval.sequence, bedata, acquireFence, flushConfig);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 }
 
@@ -349,10 +356,10 @@ HWTEST_F(BufferQueueTest, ReqCanFluAcqRel007, Function | MediumTest | Level2)
 HWTEST_F(BufferQueueTest, ReqCanFluAcqRel008, Function | MediumTest | Level2)
 {
     sptr<SurfaceBuffer> buffer;
-    int32_t flushFence;
+    sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
 
     // acq from last test
-    GSError ret = bq->AcquireBuffer(buffer, flushFence, timestamp, damage);
+    GSError ret = bq->AcquireBuffer(buffer, acquireFence, timestamp, damage);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
     int32_t sequence;
@@ -363,10 +370,11 @@ HWTEST_F(BufferQueueTest, ReqCanFluAcqRel008, Function | MediumTest | Level2)
     }
     ASSERT_GE(sequence, 0);
 
-    ret = bq->FlushBuffer(sequence, bedata, -1, flushConfig);
+    ret = bq->FlushBuffer(sequence, bedata, acquireFence, flushConfig);
     ASSERT_NE(ret, OHOS::GSERROR_OK);
 
-    ret = bq->ReleaseBuffer(buffer, -1);
+    sptr<SyncFence> releaseFence = SyncFence::INVALID_FENCE;
+    ret = bq->ReleaseBuffer(buffer, releaseFence);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 }
 

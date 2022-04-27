@@ -266,9 +266,7 @@ SurfaceError HdiLayer::ReleasePrevBuffer()
         return SURFACE_ERROR_NULLPTR;
     }
 
-    int32_t fenceFd = prevSbuffer_->releaseFence_->Dup();
-
-    SurfaceError ret = layerInfo_->GetSurface()->ReleaseBuffer(prevSbuffer_->sbuffer_, fenceFd);
+    SurfaceError ret = layerInfo_->GetSurface()->ReleaseBuffer(prevSbuffer_->sbuffer_, prevSbuffer_->releaseFence_);
     if (ret != SURFACE_ERROR_OK) {
         return ret;
     }

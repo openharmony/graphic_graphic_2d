@@ -76,7 +76,7 @@ void RSCompatibleProcessor::ProcessSurface(RSSurfaceRenderNode& node)
     RSProcessor::SpecialTask task = [&node, &cbuffer] () -> void{
         if (cbuffer != node.GetBuffer() && node.GetBuffer() != nullptr) {
             auto& surfaceConsumer = node.GetConsumer();
-            SurfaceError ret = surfaceConsumer->ReleaseBuffer(node.GetBuffer(), -1);
+            SurfaceError ret = surfaceConsumer->ReleaseBuffer(node.GetBuffer(), SyncFence::INVALID_FENCE);
             if (ret != SURFACE_ERROR_OK) {
                 RS_LOGE("RSCompatibleProcessor::ProcessSurface: ReleaseBuffer buffer error! error: %d.", ret);
                 return;
@@ -127,11 +127,10 @@ void RSCompatibleProcessor::DoComposeSurfaces()
     }
 
     OHOS::sptr<SurfaceBuffer> cbuffer = nullptr;
-    int32_t fence = -1;
+    sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
     int64_t timestamp;
     Rect damage;
-    auto sret = consumerSurface_->AcquireBuffer(cbuffer, fence, timestamp, damage);
-    sptr<SyncFence> acquireFence = new SyncFence(fence);
+    auto sret = consumerSurface_->AcquireBuffer(cbuffer, acquireFence, timestamp, damage);
     if (!cbuffer || sret != OHOS::SURFACE_ERROR_OK) {
         RS_LOGE("RSCompatibleProcessor::DoComposeSurfaces: AcquireBuffer failed!");
         return;

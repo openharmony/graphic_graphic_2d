@@ -21,6 +21,7 @@
 #include <unistd.h>
 #include <errno.h>
 #include <securec.h>
+#include <fcntl.h>
 
 #include <linux/sync_file.h>
 #include <libsync.h>
@@ -239,6 +240,35 @@ FenceStatus SyncFence::GetStatus()
 int32_t SyncFence::Get() const
 {
     return fenceFd_;
+}
+
+void SyncFence::ReadFromMessageParcel(MessageParcel &parcel)
+{
+    int32_t fence = parcel.ReadInt32();
+    if (fence < 0) {
+        HiLog::Warn(LABEL, "ReadFromMessageParcel fence is invalid : %{public}d", fence);
+        return;
+    }
+
+    fence = parcel.ReadFileDescriptor();
+    fenceFd_ = UniqueFd(fence);
+}
+
+void SyncFence::WriteToMessageParcel(MessageParcel &parcel)
+{
+    int32_t fence = fenceFd_;
+    if (fence >= 0 && fcntl(fence, F_GETFL) == -1 && errno == EBADF) {
+        fence = -1;
+    }
+
+    parcel.WriteInt32(fence);
+
+    if (fence < 0) {
+        HiLog::Warn(LABEL, "WriteToMessageParcel fence is invalid : %{public}d", fence);
+        return;
+    }
+
+    parcel.WriteFileDescriptor(fence);
 }
 
 } // namespace OHOS

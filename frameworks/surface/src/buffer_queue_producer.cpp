@@ -22,6 +22,7 @@
 #include "buffer_log.h"
 #include "buffer_manager.h"
 #include "buffer_utils.h"
+#include "sync_fence.h"
 
 namespace OHOS {
 BufferQueueProducer::BufferQueueProducer(sptr<BufferQueue>& bufferQueue)
@@ -109,7 +110,7 @@ int32_t BufferQueueProducer::RequestBufferRemote(MessageParcel &arguments, Messa
     if (sret == GSERROR_OK) {
         WriteSurfaceBufferImpl(reply, retval.sequence, retval.buffer);
         bedataimpl->WriteToParcel(reply);
-        WriteFence(reply, retval.fence);
+        retval.fence->WriteToMessageParcel(reply);
         reply.WriteInt32Vector(retval.deletingBuffers);
     }
     return 0;
@@ -130,14 +131,15 @@ int BufferQueueProducer::CancelBufferRemote(MessageParcel &arguments, MessagePar
 
 int BufferQueueProducer::FlushBufferRemote(MessageParcel &arguments, MessageParcel &reply, MessageOption &option)
 {
-    int32_t fence;
+    sptr<SyncFence> fence = SyncFence::INVALID_FENCE;
     int32_t sequence;
     BufferFlushConfig config;
     sptr<BufferExtraData> bedataimpl = new BufferExtraDataImpl;
 
     sequence = arguments.ReadInt32();
     bedataimpl->ReadFromParcel(arguments);
-    ReadFence(arguments, fence);
+
+    fence->ReadFromMessageParcel(arguments);
     ReadFlushConfig(arguments, config);
 
     GSError sret = FlushBuffer(sequence, bedataimpl, fence, config);
@@ -320,7 +322,7 @@ GSError BufferQueueProducer::CancelBuffer(int32_t sequence, const sptr<BufferExt
 }
 
 GSError BufferQueueProducer::FlushBuffer(int32_t sequence, const sptr<BufferExtraData> &bedata,
-                                         int32_t fence, BufferFlushConfig &config)
+                                         const sptr<SyncFence>& fence, BufferFlushConfig &config)
 {
     if (bufferQueue_ == nullptr) {
         return GSERROR_INVALID_ARGUMENTS;

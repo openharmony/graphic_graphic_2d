@@ -43,7 +43,7 @@ public:
     GSError CancelBuffer(int32_t sequence, const sptr<BufferExtraData> &bedata) override;
 
     GSError FlushBuffer(int32_t sequence, const sptr<BufferExtraData> &bedata,
-                             int32_t fence, BufferFlushConfig &config) override;
+                             const sptr<SyncFence>& fence, BufferFlushConfig &config) override;
 
     GSError AttachBuffer(sptr<SurfaceBuffer>& buffer) override;
 

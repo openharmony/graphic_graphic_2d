@@ -18,6 +18,7 @@
 #include "buffer_log.h"
 #include "buffer_manager.h"
 #include "buffer_utils.h"
+#include "sync_fence.h"
 
 #define DEFINE_MESSAGE_VARIABLES(arg, ret, opt, LOGE) \
     MessageOption opt;                                \
@@ -78,7 +79,8 @@ GSError BufferClientProducer::RequestBuffer(const BufferRequestConfig &config, s
 
     ReadSurfaceBufferImpl(reply, retval.sequence, retval.buffer);
     bedata->ReadFromParcel(reply);
-    ReadFence(reply, retval.fence);
+    retval.fence = SyncFence::INVALID_FENCE;
+    retval.fence->ReadFromMessageParcel(reply);
     reply.ReadInt32Vector(&retval.deletingBuffers);
     return GSERROR_OK;
 }
@@ -97,13 +99,13 @@ GSError BufferClientProducer::CancelBuffer(int32_t sequence, const sptr<BufferEx
 }
 
 GSError BufferClientProducer::FlushBuffer(int32_t sequence, const sptr<BufferExtraData> &bedata,
-                                          int32_t fence, BufferFlushConfig &config)
+                                          const sptr<SyncFence>& fence, BufferFlushConfig &config)
 {
     DEFINE_MESSAGE_VARIABLES(arguments, reply, option, BLOGE);
 
     arguments.WriteInt32(sequence);
     bedata->WriteToParcel(arguments);
-    WriteFence(arguments, fence);
+    fence->WriteToMessageParcel(arguments);
     WriteFlushConfig(arguments, config);
 
     SEND_REQUEST_WITH_SEQ(BUFFER_PRODUCER_FLUSH_BUFFER, arguments, reply, option, sequence);

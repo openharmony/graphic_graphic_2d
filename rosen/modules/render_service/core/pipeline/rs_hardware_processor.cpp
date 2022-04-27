@@ -24,6 +24,7 @@
 #include "display_type.h"
 #include "rs_render_service.h"
 #include "rs_trace.h"
+#include "sync_fence.h"
 #include "common/rs_vector4.h"
 #include "pipeline/rs_main_thread.h"
 #include "pipeline/rs_surface_render_node.h"
@@ -135,7 +136,7 @@ void RSHardwareProcessor::ReleaseNodePrevBuffer(RSSurfaceRenderNode& node)
     if (node.GetPreBuffer() == nullptr) {
         return;
     }
-    (void)consumer->ReleaseBuffer(node.GetPreBuffer(), -1);
+    (void)consumer->ReleaseBuffer(node.GetPreBuffer(), SyncFence::INVALID_FENCE);
 }
 
 void RSHardwareProcessor::ProcessSurface(RSSurfaceRenderNode &node)

@@ -26,6 +26,7 @@
 #include <buffer_client_producer.h>
 #include <buffer_queue_producer.h>
 #include "buffer_consumer_listener.h"
+#include "sync_fence.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -266,7 +267,8 @@ HWTEST_F(BufferClientProducerRemoteTest, ReqFlu001, Function | MediumTest | Leve
     GSError ret = bp->RequestBuffer(requestConfig, bedata, retval);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
-    ret = bp->FlushBuffer(retval.sequence, bedata, -1, flushConfig);
+    sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
+    ret = bp->FlushBuffer(retval.sequence, bedata, acquireFence, flushConfig);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 }
 
@@ -284,10 +286,11 @@ HWTEST_F(BufferClientProducerRemoteTest, ReqFlu002, Function | MediumTest | Leve
     GSError ret = bp->RequestBuffer(requestConfig, bedata, retval);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
-    ret = bp->FlushBuffer(retval.sequence, bedata, -1, flushConfig);
+    sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
+    ret = bp->FlushBuffer(retval.sequence, bedata, acquireFence, flushConfig);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
-    ret = bp->FlushBuffer(retval.sequence, bedata, -1, flushConfig);
+    ret = bp->FlushBuffer(retval.sequence, bedata, acquireFence, flushConfig);
     ASSERT_NE(ret, OHOS::GSERROR_OK);
 }
 }

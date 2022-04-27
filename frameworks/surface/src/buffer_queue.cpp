@@ -29,6 +29,7 @@
 #include "buffer_manager.h"
 #include "bytrace.h"
 #include "surface_buffer_impl.h"
+#include "sync_fence.h"
 
 namespace OHOS {
 namespace {
@@ -217,7 +218,7 @@ GSError BufferQueue::RequestBuffer(const BufferRequestConfig &config, sptr<Buffe
     if (ret == GSERROR_OK) {
         retval.sequence = buffer->GetSeqNum();
         bedata = buffer->GetExtraData();
-        retval.fence = -1;
+        retval.fence = SyncFence::INVALID_FENCE;
         BLOGD("Success alloc Buffer id: %{public}d Queue id: %{public}" PRIu64 "", retval.sequence, uniqueId_);
     } else {
         BLOGE("Fail to alloc or map buffer ret: %{public}d, Queue id: %{public}" PRIu64 "", ret, uniqueId_);
@@ -253,9 +254,6 @@ GSError BufferQueue::ReuseBuffer(const BufferRequestConfig &config, sptr<BufferE
 
     bufferQueueCache_[retval.sequence].state = BUFFER_STATE_REQUESTED;
     retval.fence = bufferQueueCache_[retval.sequence].fence;
-
-    // Prevent releasefence from being repeatedly closed after cancel.
-    bufferQueueCache_[retval.sequence].fence = -1;
     bedata = retval.buffer->GetExtraData();
 
     auto &dbs = retval.deletingBuffers;
@@ -303,7 +301,7 @@ GSError BufferQueue::CancelBuffer(int32_t sequence, const sptr<BufferExtraData> 
 }
 
 GSError BufferQueue::FlushBuffer(int32_t sequence, const sptr<BufferExtraData> &bedata,
-    int32_t fence, const BufferFlushConfig &config)
+    const sptr<SyncFence>& fence, const BufferFlushConfig &config)
 {
     ScopedBytrace func(__func__);
     // check param
@@ -382,7 +380,7 @@ void BufferQueue::DumpToFile(int32_t sequence)
 }
 
 GSError BufferQueue::DoFlushBuffer(int32_t sequence, const sptr<BufferExtraData> &bedata,
-    int32_t fence, const BufferFlushConfig &config)
+    const sptr<SyncFence>& fence, const BufferFlushConfig &config)
 {
     ScopedBytrace func(__func__);
     ScopedBytrace bufferName(name_ + ":" + std::to_string(sequence));
@@ -423,7 +421,7 @@ GSError BufferQueue::DoFlushBuffer(int32_t sequence, const sptr<BufferExtraData>
 }
 
 GSError BufferQueue::AcquireBuffer(sptr<SurfaceBuffer> &buffer,
-    int32_t &fence, int64_t &timestamp, Rect &damage)
+    sptr<SyncFence> &fence, int64_t &timestamp, Rect &damage)
 {
     ScopedBytrace func(__func__);
     // dequeue from dirty list
@@ -437,7 +435,6 @@ GSError BufferQueue::AcquireBuffer(sptr<SurfaceBuffer> &buffer,
         bufferQueueCache_[sequence].state = BUFFER_STATE_ACQUIRED;
 
         fence = bufferQueueCache_[sequence].fence;
-        bufferQueueCache_[sequence].fence = -1;
         timestamp = bufferQueueCache_[sequence].timestamp;
         damage = bufferQueueCache_[sequence].damage;
 
@@ -451,7 +448,7 @@ GSError BufferQueue::AcquireBuffer(sptr<SurfaceBuffer> &buffer,
     return ret;
 }
 
-GSError BufferQueue::ReleaseBuffer(sptr<SurfaceBuffer> &buffer, int32_t fence)
+GSError BufferQueue::ReleaseBuffer(sptr<SurfaceBuffer> &buffer, const sptr<SyncFence>& fence)
 {
     ScopedBytrace func(__func__);
     int32_t sequence = buffer->GetSeqNum();
@@ -517,7 +514,7 @@ GSError BufferQueue::AllocBuffer(sptr<SurfaceBuffer> &buffer,
         .state = BUFFER_STATE_REQUESTED,
         .isDeleting = false,
         .config = config,
-        .fence = -1,
+        .fence = SyncFence::INVALID_FENCE,
     };
 
     ret = bufferImpl->Map();
@@ -535,9 +532,6 @@ void BufferQueue::DeleteBufferInCache(int32_t sequence)
 {
     auto it = bufferQueueCache_.find(sequence);
     if (it != bufferQueueCache_.end()) {
-        if (it->second.fence > 0) {
-            close(it->second.fence);
-        }
         bufferQueueCache_.erase(it);
         deletingList_.push_back(sequence);
     }
@@ -760,13 +754,7 @@ uint32_t BufferQueue::GetDefaultUsage()
 GSError BufferQueue::CleanCache()
 {
     std::lock_guard<std::mutex> lockGuard(mutex_);
-    auto it = bufferQueueCache_.begin();
-    while (it != bufferQueueCache_.end()) {
-        if (it->second.fence > 0) {
-            close(it->second.fence);
-        }
-        bufferQueueCache_.erase(it++);
-    }
+    bufferQueueCache_.clear();
     freeList_.clear();
     dirtyList_.clear();
     deletingList_.clear();

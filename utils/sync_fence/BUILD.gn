@@ -44,6 +44,7 @@ ohos_shared_library("sync_fence") {
 
   public_deps = [
     "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
+    "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
     "//utils/native/base:utils",
   ]
 
