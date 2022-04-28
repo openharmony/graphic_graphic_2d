@@ -89,7 +89,7 @@ ohos_source_set("render_service_client_src") {
     "-fvisibility-inlines-hidden",
   ]
 
-  deps = []
+  deps = [ "//foundation/resourceschedule/resource_schedule_service/ressched/interfaces/innerkits/ressched_client:ressched_client" ]
 
   if (enable_export_macro) {
     defines += [ "ENABLE_EXPORT_MACRO" ]
