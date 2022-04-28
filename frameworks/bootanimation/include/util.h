@@ -46,12 +46,8 @@ static const std::string BOOT_PIC_CONFIGFILE = "config.json";
 using MemStruct = struct MemStruct {
 public:
     char* memBuffer = nullptr;
-    int32_t bufsize = READ_SIZE * 2;
+    unsigned long bufsize = 0;
     sk_sp<SkData> skData_ = nullptr;
-    MemStruct()
-    {
-        memBuffer = static_cast<char *>(malloc(bufsize));
-    }
     ~MemStruct()
     {
         if (skData_ != nullptr) {
@@ -66,17 +62,16 @@ public:
     {
         skData_ = skData;
     }
-    bool reallocBuffer()
+    void SetBufferSize(unsigned long ibufsize)
     {
-        char *buffer = static_cast<char *>(realloc(memBuffer, bufsize+READ_SIZE));
-        if (buffer == nullptr) {
-            LOGE("realloc Buffer failed");
-            return false;
+        if (ibufsize == 0) {
+            LOGE("MemStruct SetBuffer size is invalid!");
+            return;
         }
-        bufsize += READ_SIZE;
-        memBuffer = buffer;
-        LOGI("realloc Buffer success");
-        return true;
+        if (memBuffer == nullptr) {
+            bufsize = ibufsize + 1;
+            memBuffer = static_cast<char *>(malloc(bufsize + 1));
+        }
     }
 };
 using ImageStruct = struct ImageStruct {
@@ -87,7 +82,7 @@ public:
     ~ImageStruct()
     {
         imageData = nullptr;
-        LOGI("~ImageStruct()");
+        LOGI("~ImageStruct() %{public}s", fileName.c_str());
     }
 };
 using BootAniConfig = struct {
@@ -100,7 +95,7 @@ void PostTask(std::function<void()> func, uint32_t delayTime = 0);
 bool ReadZipFile(const std::string& srcFilePath, ImageStructVec& outBgImgVec, BootAniConfig& aniconfig);
 void WaitRenderServiceInit();
 bool ReadCurrentFile(const unzFile zipfile, const std::string& filename, ImageStructVec& outBgImgVec,
-    BootAniConfig& aniconfig);
+    BootAniConfig& aniconfig, unsigned long fileSize);
 bool GenImageData(const std::string& filename, std::shared_ptr<ImageStruct> imagetruct, int32_t bufferlen,
     ImageStructVec& outBgImgVec);
 bool ReadJsonConfig(const std::string& filebuffer, BootAniConfig& aniconfig);
