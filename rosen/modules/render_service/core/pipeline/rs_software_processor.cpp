@@ -78,6 +78,9 @@ void RSSoftwareProcessor::ProcessSurface(RSSurfaceRenderNode& node)
         RS_LOGE("RSSoftwareProcessor::ProcessSurface: Canvas is null!");
         return;
     }
+    
+    DropFrameProcess(node);
+
     auto consumerSurface = node.GetConsumer();
     if (!consumerSurface) {
         RS_LOGE("RSSoftwareProcessor::ProcessSurface: node's consumerSurface is null!");
