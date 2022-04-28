@@ -77,7 +77,7 @@ bool GenImageData(const std::string& filename, std::shared_ptr<ImageStruct> imag
 }
 
 bool ReadCurrentFile(const unzFile zipfile, const std::string& filename, ImageStructVec& outBgImgVec,
-    BootAniConfig& aniconfig)
+    BootAniConfig& aniconfig, unsigned long fileSize)
 {
     if (zipfile == nullptr) {
         LOGE("Readzip Json zipfile is null.");
@@ -87,25 +87,25 @@ bool ReadCurrentFile(const unzFile zipfile, const std::string& filename, ImageSt
     int totalLen = 0;
     char readBuffer[READ_SIZE] = {0};
     std::shared_ptr<ImageStruct> imagestrct = std::make_shared<ImageStruct>();
+    imagestrct->memPtr.SetBufferSize(fileSize);
     do {
         readlen = unzReadCurrentFile(zipfile, readBuffer, READ_SIZE);
         if (readlen < 0) {
             LOGE("Readzip readCurrFile failed");
             return false;
         }
-        if (totalLen + readlen > imagestrct->memPtr.bufsize) {
-            if (!imagestrct->memPtr.reallocBuffer()) {
-                LOGE("Readzip reallocBuffer failed");
-                return false;
-            }
+        if (imagestrct->memPtr.memBuffer == nullptr) {
+            LOGE("Readzip memPtr is null.");
+            return false;
         }
-        if (memcpy_s(imagestrct->memPtr.memBuffer + totalLen, imagestrct->memPtr.bufsize - readlen, \
+        if (memcpy_s(imagestrct->memPtr.memBuffer + totalLen, fileSize - totalLen, \
             readBuffer, readlen) == EOK) {
             totalLen += readlen;
         }
     } while (readlen > 0);
 
     if (totalLen > 0) {
+        LOGD("filename:%{public}s fileSize:%{public}lu totalLen:%{public}d", filename.c_str(), fileSize, totalLen);
         if (strstr(filename.c_str(), BOOT_PIC_CONFIGFILE.c_str()) != nullptr) {
             ReadJsonConfig(std::string(imagestrct->memPtr.memBuffer), aniconfig);
         } else {
@@ -151,11 +151,11 @@ bool ReadZipFile(const std::string& srcFilePath, ImageStructVec& outBgImgVec, Bo
                 return false;
             }
             std::string strfilename = std::string(filename);
-            int npos = strfilename.find_last_of("//");
-            if (npos != -1) {
+            size_t npos = strfilename.find_last_of("//");
+            if (npos != std::string::npos) {
                 strfilename = strfilename.substr(npos + 1, strfilename.length());
             }
-            if (!ReadCurrentFile(zipfile, strfilename, outBgImgVec, aniconfig)) {
+            if (!ReadCurrentFile(zipfile, strfilename, outBgImgVec, aniconfig, fileInfo.uncompressed_size)) {
                 LOGE("Readzip deal single file failed");
                 unzCloseCurrentFile(zipfile);
                 unzClose(zipfile);
