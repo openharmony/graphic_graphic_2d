@@ -25,6 +25,12 @@ namespace Rosen {
 
 RSSurfaceOhosRaster::RSSurfaceOhosRaster(const sptr<Surface>& producer) : RSSurfaceOhos(producer) {}
 
+
+void RSSurfaceOhosRaster::SetSurfaceBufferUsage(int32_t usage)
+{
+    bufferUsage_ = usage;
+}
+
 std::unique_ptr<RSSurfaceFrame> RSSurfaceOhosRaster::RequestFrame(int32_t width, int32_t height)
 {
     if (producer_ == nullptr) {
@@ -33,6 +39,7 @@ std::unique_ptr<RSSurfaceFrame> RSSurfaceOhosRaster::RequestFrame(int32_t width,
     }
 
     std::unique_ptr<RSSurfaceFrameOhosRaster> frame = std::make_unique<RSSurfaceFrameOhosRaster>(width, height);
+    frame->requestConfig_.usage = bufferUsage_;
     SurfaceError err = producer_->RequestBuffer(frame->buffer_, frame->releaseFence_, frame->requestConfig_);
     if (err != SURFACE_ERROR_OK) {
         ROSEN_LOGE("RSSurfaceOhosRaster::Requestframe Failed, error is : %s", SurfaceErrorStr(err).c_str());

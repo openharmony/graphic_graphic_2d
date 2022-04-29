@@ -344,11 +344,14 @@ void RSHardwareProcessor::Redraw(
 #ifdef RS_ENABLE_GL
     if (ifUseGPU) {
         rsSurface = std::make_shared<RSSurfaceOhosGl>(surface);
+        rsSurface->SetSurfaceBufferUsage(HBM_USE_CPU_READ | HBM_USE_MEM_DMA | HBM_USE_MEM_FB);
     } else {
         rsSurface = std::make_shared<RSSurfaceOhosRaster>(surface);
+        rsSurface->SetSurfaceBufferUsage(HBM_USE_CPU_READ | HBM_USE_CPU_WRITE | HBM_USE_MEM_DMA | HBM_USE_MEM_FB);
     }
 #else
     rsSurface = std::make_shared<RSSurfaceOhosRaster>(surface);
+    rsSurface->SetSurfaceBufferUsage(HBM_USE_CPU_READ | HBM_USE_CPU_WRITE | HBM_USE_MEM_DMA | HBM_USE_MEM_FB);
 #endif
     auto canvas = CreateCanvas(rsSurface, requestConfig);
     if (canvas == nullptr) {
