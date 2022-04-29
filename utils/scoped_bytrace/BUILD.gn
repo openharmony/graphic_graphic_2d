@@ -35,10 +35,9 @@ ohos_static_library("scoped_bytrace") {
 
   public_configs = [ ":scoped_bytrace_public_config" ]
 
-  deps = [
-    "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
-    "//developtools/bytrace_standard/interfaces/innerkits/native:bytrace_core",
-  ]
+  deps = [ "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog" ]
+
+  external_deps = [ "hitrace_native:hitrace_meter" ]
 
   subsystem_name = "graphic"
   part_name = "graphic_standard"

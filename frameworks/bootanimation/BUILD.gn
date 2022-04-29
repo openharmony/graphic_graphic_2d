@@ -71,7 +71,7 @@ ohos_executable("bootanimation") {
   ]
 
   external_deps = [
-    "bytrace_standard:bytrace_core",
+    "hitrace_native:hitrace_meter",
     "ipc:ipc_core",
   ]
 

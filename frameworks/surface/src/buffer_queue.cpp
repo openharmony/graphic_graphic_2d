@@ -27,7 +27,7 @@
 
 #include "buffer_log.h"
 #include "buffer_manager.h"
-#include "bytrace.h"
+#include "hitrace_meter.h"
 #include "surface_buffer_impl.h"
 #include "sync_fence.h"
 
