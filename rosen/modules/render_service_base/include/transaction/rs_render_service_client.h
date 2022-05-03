@@ -115,6 +115,8 @@ public:
     ScreenRotation GetRotation(ScreenId id);
 
     int32_t GetScreenHDRCapability(ScreenId id, RSScreenHDRCapability& screenHdrCapability);
+
+    int32_t GetScreenType(ScreenId id, RSScreenType& screenType);
 private:
     void TriggerSurfaceCaptureCallback(NodeId id, Media::PixelMap* pixelmap);
     std::mutex mutex_;

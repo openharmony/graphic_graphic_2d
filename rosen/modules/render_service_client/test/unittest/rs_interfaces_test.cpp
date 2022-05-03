@@ -801,5 +801,38 @@ HWTEST_F(RSInterfacesTest, GetScreenHDRCapability002, Function | SmallTest | Lev
     int ret = rsInterfaces->GetScreenHDRCapability(INVALID_SCREEN_ID, hdrCapability);
     EXPECT_EQ(ret, StatusCode::SCREEN_NOT_FOUND);
 }
+
+/*
+* Function: GetScreenType
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call GetScreenType
+*                  2. check ret
+*/
+HWTEST_F(RSInterfacesTest, GetScreenType001, Function | SmallTest | Level2)
+{
+    auto screenId = rsInterfaces->GetDefaultScreenId();
+    EXPECT_NE(screenId, INVALID_SCREEN_ID);
+
+    RSScreenType type;
+    int ret = rsInterfaces->GetScreenType(screenId, type);
+    EXPECT_EQ(ret, StatusCode::SUCCESS);
+}
+
+/*
+* Function: GetScreenType
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call GetScreenType with INVALID_SCREEN_ID
+*                  2. check ret
+*/
+HWTEST_F(RSInterfacesTest, GetScreenType002, Function | SmallTest | Level2)
+{
+    RSScreenType type;
+    int ret = rsInterfaces->GetScreenType(INVALID_SCREEN_ID, type);
+    EXPECT_EQ(ret, StatusCode::SCREEN_NOT_FOUND);
+}
 } // namespace Rosen
 } // namespace OHOS

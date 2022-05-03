@@ -451,5 +451,11 @@ int32_t RSRenderServiceConnection::GetScreenHDRCapability(ScreenId id, RSScreenH
     std::lock_guard<std::mutex> lock(mutex_);
     return screenManager_->GetScreenHDRCapability(id, screenHdrCapability);
 }
+
+int32_t RSRenderServiceConnection::GetScreenType(ScreenId id, RSScreenType& screenType)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    return screenManager_->GetScreenType(id, screenType);
+}
 } // namespace Rosen
 } // namespace OHOS

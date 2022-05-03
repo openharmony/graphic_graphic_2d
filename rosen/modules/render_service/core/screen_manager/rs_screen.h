@@ -75,6 +75,7 @@ public:
     virtual ScreenRotation GetRotation() const = 0;
     virtual int32_t GetActiveModePosByModeId(int32_t modeId) const = 0;
     virtual const HDRCapability& GetHDRCapability() const = 0;
+    virtual const RSScreenType& GetScreenType() const = 0;
 };
 
 namespace impl {
@@ -123,6 +124,7 @@ public:
     ScreenRotation GetRotation() const override;
     int32_t GetActiveModePosByModeId(int32_t modeId) const override;
     const HDRCapability& GetHDRCapability() const override;
+    const RSScreenType& GetScreenType() const override;
 
 private:
     // [PLANNING]: fixme -- domain 0 only for debug.
@@ -170,6 +172,7 @@ private:
         COLOR_GAMUT_ADOBE_RGB };
     int32_t currentVirtualColorGamutIdx_ = 0;
     ScreenGamutMap currentVirtualGamutMap_ = GAMUT_MAP_CONSTANT;
+    RSScreenType screenType_ = RSScreenType::UNKNOWN_TYPE_SCREEN;
 };
 } // namespace impl
 } // namespace Rosen

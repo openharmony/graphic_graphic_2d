@@ -56,6 +56,13 @@ enum class ScreenRotation : uint32_t {
 };
 
 typedef enum : uint32_t {
+    BUILT_IN_TYPE_SCREEN = 0,
+    EXTERNAL_TYPE_SCREEN,
+    VIRTUAL_TYPE_SCREEN,
+    UNKNOWN_TYPE_SCREEN,
+} RSScreenType;
+
+typedef enum : uint32_t {
     POWER_STATUS_ON = 0,
     POWER_STATUS_STANDBY,
     POWER_STATUS_SUSPEND,
