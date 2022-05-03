@@ -60,6 +60,19 @@ ohos_executable("drawing_engine_sample") {
     "//foundation/graphic/standard/rosen/include/common",
   ]
 
+  sources += [
+    "benchmarks/benchmark_config.cpp",
+    "benchmarks/benchmark_multithread/drawing_mutilthread.cpp",
+    "benchmarks/benchmark_singlethread/drawing_singlethread.cpp",
+  ]
+
+  include_dirs += [
+    "benchmarks",
+    "benchmarks/benchmark_singlethread",
+    "benchmarks/benchmark_multithread",
+    "benchmarks/benchmark_api",
+  ]
+
   deps = [
     "//foundation/arkui/ace_engine/build/external_config/flutter/skia:ace_skia_ohos",
     "//foundation/graphic/standard:libsurface",
