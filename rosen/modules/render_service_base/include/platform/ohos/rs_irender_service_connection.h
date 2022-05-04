@@ -74,6 +74,7 @@ public:
         REQUEST_ROTATION,
         GET_ROTATION,
         GET_SCREEN_HDR_CAPABILITY,
+        GET_SCREEN_TYPE,
     };
 
     virtual void CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData) = 0;
@@ -142,6 +143,8 @@ public:
     virtual ScreenRotation GetRotation(ScreenId id) = 0;
 
     virtual int32_t GetScreenHDRCapability(ScreenId id, RSScreenHDRCapability& screenHdrCapability) = 0;
+
+    virtual int32_t GetScreenType(ScreenId id, RSScreenType& screenType) = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

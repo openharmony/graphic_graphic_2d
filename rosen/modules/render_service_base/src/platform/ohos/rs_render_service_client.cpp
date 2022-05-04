@@ -442,5 +442,15 @@ int32_t RSRenderServiceClient::GetScreenHDRCapability(ScreenId id, RSScreenHDRCa
     }
     return renderService->GetScreenHDRCapability(id, screenHdrCapability);
 }
+
+int32_t RSRenderServiceClient::GetScreenType(ScreenId id, RSScreenType& screenType)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        ROSEN_LOGE("RSRenderServiceClient::GetScreenType renderService == nullptr!");
+        return RENDER_SERVICE_NULL;
+    }
+    return renderService->GetScreenType(id, screenType);
+}
 } // namespace Rosen
 } // namespace OHOS

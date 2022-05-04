@@ -165,5 +165,10 @@ int32_t RSInterfaces::GetScreenHDRCapability(ScreenId id, RSScreenHDRCapability&
 {
     return renderServiceClient_->GetScreenHDRCapability(id, screenHdrCapability);
 }
+
+int32_t RSInterfaces::GetScreenType(ScreenId id, RSScreenType& screenType)
+{
+    return renderServiceClient_->GetScreenType(id, screenType);
+}
 } // namespace Rosen
 } // namespace OHOS

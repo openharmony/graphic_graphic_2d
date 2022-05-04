@@ -702,6 +702,17 @@ int32_t RSScreenManager::GetScreenHDRCapabilityLocked(ScreenId id, RSScreenHDRCa
     return StatusCode::SUCCESS;
 }
 
+int32_t RSScreenManager::GetScreenTypeLocked(ScreenId id, RSScreenType& type) const
+{
+    if (screens_.count(id) == 0) {
+        HiLog::Error(LOG_LABEL, "%{public}s: There is no screen for id %{public}" PRIu64 ".\n", __func__, id);
+        return StatusCode::SCREEN_NOT_FOUND;
+    }
+
+    type = screens_.at(id)->GetScreenType();
+    return StatusCode::SUCCESS;
+}
+
 int32_t RSScreenManager::GetScreenSupportedColorGamuts(ScreenId id, std::vector<ScreenColorGamut>& mode) const
 {
     std::lock_guard<std::mutex> lock(mutex_);
@@ -748,6 +759,12 @@ int32_t RSScreenManager::GetScreenHDRCapability(ScreenId id, RSScreenHDRCapabili
 {
     std::lock_guard<std::mutex> lock(mutex_);
     return GetScreenHDRCapabilityLocked(id, screenHdrCapability);
+}
+
+int32_t RSScreenManager::GetScreenType(ScreenId id, RSScreenType& type) const
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    return GetScreenTypeLocked(id, type);
 }
 } // namespace impl
 

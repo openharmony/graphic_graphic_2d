@@ -56,6 +56,7 @@ RSScreen::RSScreen(const VirtualScreenConfigs &configs)
       isVirtual_(true),
       producerSurface_(configs.surface)
 {
+    screenType_ = RSScreenType::VIRTUAL_TYPE_SCREEN;
 }
 
 RSScreen::~RSScreen() noexcept
@@ -96,6 +97,11 @@ void RSScreen::PhysicalScreenInit() noexcept
     }
     if (hdiScreen_->GetScreenPowerStatus(powerStatus_) < 0) {
         powerStatus_ = static_cast<DispPowerStatus>(INVALID_POWER_STATUS);
+    }
+    if (capability_.type == InterfaceType::DISP_INTF_MIPI) {
+        screenType_ = RSScreenType::BUILT_IN_TYPE_SCREEN;
+    } else {
+        screenType_ = RSScreenType::EXTERNAL_TYPE_SCREEN;
     }
 }
 
@@ -564,6 +570,11 @@ ScreenRotation RSScreen::GetRotation() const
 const HDRCapability& RSScreen::GetHDRCapability() const
 {
     return hdrCapability_;
+}
+
+const RSScreenType& RSScreen::GetScreenType() const
+{
+    return screenType_;
 }
 } // namespace impl
 } // namespace Rosen

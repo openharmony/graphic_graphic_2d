@@ -674,5 +674,26 @@ int32_t RSRenderServiceConnectionProxy::GetScreenHDRCapability(ScreenId id, RSSc
     screenHdrCapability = *pScreenCapability;
     return SUCCESS;
 }
+
+int32_t RSRenderServiceConnectionProxy::GetScreenType(ScreenId id, RSScreenType& screenType)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return RS_CONNECTION_ERROR;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    data.WriteUint64(id);
+    int32_t err = Remote()->SendRequest(RSIRenderServiceConnection::GET_SCREEN_TYPE, data, reply, option);
+    if (err != NO_ERROR) {
+        return RS_CONNECTION_ERROR;
+    }
+    int32_t result = reply.ReadInt32();
+    if (result == SUCCESS) {
+        screenType = static_cast<RSScreenType>(reply.ReadUint32());
+    }
+    return result;
+}
 } // namespace Rosen
 } // namespace OHOS
