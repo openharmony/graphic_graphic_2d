@@ -31,6 +31,7 @@ namespace Drawing {
         Matrix matrix;
         if (size > FUZZ_DATA_LEN) {
             result = matrix.Get(reinterpret_cast<const uint32_t>(data));
+            return result;
         }
         return result;
     }

@@ -33,6 +33,7 @@ namespace Drawing {
         Path out;
         if (size > FUZZ_DATA_LEN) {
             result = path.Interpolate(ending, reinterpret_cast<const uint32_t>(data), out);
+            return result;
         }
         return result;
     }
