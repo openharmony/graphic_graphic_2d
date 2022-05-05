@@ -51,6 +51,39 @@ HWTEST_F(RSSurfaceNodeTest, Create001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: CreateNodeInRenderThread001
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSSurfaceNodeTest, CreateNodeInRenderThread001, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    ASSERT_TRUE(surfaceNode != nullptr);
+
+    surfaceNode->CreateNodeInRenderThread();
+}
+
+/**
+ * @tc.name: SetBufferAvailableCallback001
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSSurfaceNodeTest, SetBufferAvailableCallback001, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    ASSERT_TRUE(surfaceNode != nullptr);
+
+    bool isSuccess = surfaceNode->SetBufferAvailableCallback([]() {
+        std::cout << "SetBufferAvailableCallback" << std::endl;
+    });
+    ASSERT_TRUE(isSuccess);
+}
+
+/**
  * @tc.name: SetandGetBounds001
  * @tc.desc:
  * @tc.type:FUNC
