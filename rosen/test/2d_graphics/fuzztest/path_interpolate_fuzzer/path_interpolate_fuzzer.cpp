@@ -35,7 +35,6 @@ namespace Drawing {
             result = path.Interpolate(ending, reinterpret_cast<const uint32_t>(data), out);
         }
         return result;
-
     }
 } // namespace Drawing
 } // namespace Rosen
