@@ -57,7 +57,9 @@ HWTEST_F(RSSoftwareProcessorTest, CreateAndDestory001, TestSize.Level1)
  */
 HWTEST_F(RSSoftwareProcessorTest, CreateAndDestory002, TestSize.Level1)
 {
-    RSSoftwareProcessor rsSoftwareProcessor;
+    RSProcessorFactory factory;
+    auto p = factory.CreateProcessor(RSDisplayRenderNode::CompositeType::SOFTWARE_COMPOSITE);
+    EXPECT_NE(p.get(), nullptr);
 }
 
 /**
@@ -69,114 +71,10 @@ HWTEST_F(RSSoftwareProcessorTest, CreateAndDestory002, TestSize.Level1)
  */
 HWTEST_F(RSSoftwareProcessorTest, ProcessSurface001, TestSize.Level1)
 {
-    constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[1];
-    auto rsSoftwareProcessor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::SOFTWARE_COMPOSITE);
-    RSSurfaceRenderNode rsSurfaceRenderNode(nodeId);
-    rsSoftwareProcessor->ProcessSurface(rsSurfaceRenderNode);
-}
-
-/**
- * @tc.name: ProcessSurface002
- * @tc.desc:
- * @tc.type:
- * @tc.require:
- * @tc.author:
- */
-HWTEST_F(RSSoftwareProcessorTest, ProcessSurface002, TestSize.Level1)
-{
-    constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[2];
-    auto rsSoftwareProcessor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::SOFTWARE_COMPOSITE);
-    RSSurfaceRenderNode rsSurfaceRenderNode(nodeId);
-    rsSoftwareProcessor->ProcessSurface(rsSurfaceRenderNode);
-}
-
-/**
- * @tc.name: ProcessSurface003
- * @tc.desc:
- * @tc.type:
- * @tc.require:
- * @tc.author:
- */
-HWTEST_F(RSSoftwareProcessorTest, ProcessSurface003, TestSize.Level1)
-{
-    constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[3];
-    auto rsSoftwareProcessor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::SOFTWARE_COMPOSITE);
-    RSSurfaceRenderNode rsSurfaceRenderNode(nodeId);
-    rsSoftwareProcessor->ProcessSurface(rsSurfaceRenderNode);
-}
-
-/**
- * @tc.name: ProcessSurface004
- * @tc.desc:
- * @tc.type:
- * @tc.require:
- * @tc.author:
- */
-HWTEST_F(RSSoftwareProcessorTest, ProcessSurface004, TestSize.Level1)
-{
-    constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[4];
-    auto rsSoftwareProcessor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::SOFTWARE_COMPOSITE);
-    RSSurfaceRenderNode rsSurfaceRenderNode(nodeId);
-    rsSoftwareProcessor->ProcessSurface(rsSurfaceRenderNode);
-}
-
-/**
- * @tc.name: ProcessSurface005
- * @tc.desc:
- * @tc.type:
- * @tc.require:
- * @tc.author:
- */
-HWTEST_F(RSSoftwareProcessorTest, ProcessSurface005, TestSize.Level1)
-{
-    constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[5];
-    auto rsSoftwareProcessor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::SOFTWARE_COMPOSITE);
-    RSSurfaceRenderNode rsSurfaceRenderNode(nodeId);
-    rsSoftwareProcessor->ProcessSurface(rsSurfaceRenderNode);
-}
-
-/**
- * @tc.name: ProcessSurface006
- * @tc.desc:
- * @tc.type:
- * @tc.require:
- * @tc.author:
- */
-HWTEST_F(RSSoftwareProcessorTest, ProcessSurface006, TestSize.Level1)
-{
-    constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[6];
-    auto rsSoftwareProcessor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::SOFTWARE_COMPOSITE);
-    RSSurfaceRenderNode rsSurfaceRenderNode(nodeId);
-    rsSoftwareProcessor->ProcessSurface(rsSurfaceRenderNode);
-}
-
-/**
- * @tc.name: ProcessSurface007
- * @tc.desc:
- * @tc.type:
- * @tc.require:
- * @tc.author:
- */
-HWTEST_F(RSSoftwareProcessorTest, ProcessSurface007, TestSize.Level1)
-{
-    constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[7];
-    auto rsSoftwareProcessor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::SOFTWARE_COMPOSITE);
-    RSSurfaceRenderNode rsSurfaceRenderNode(nodeId);
-    rsSoftwareProcessor->ProcessSurface(rsSurfaceRenderNode);
-}
-
-/**
- * @tc.name: ProcessSurface008
- * @tc.desc:
- * @tc.type:
- * @tc.require:
- * @tc.author:
- */
-HWTEST_F(RSSoftwareProcessorTest, ProcessSurface008, TestSize.Level1)
-{
-    constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[0];
-    auto rsSoftwareProcessor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::SOFTWARE_COMPOSITE);
-    RSSurfaceRenderNode rsSurfaceRenderNode(nodeId);
+    RSSurfaceRenderNodeConfig config;
+    RSSurfaceRenderNode rsSurfaceRenderNode(config);
+    auto rsSoftwareProcessor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::
+        SOFTWARE_COMPOSITE);
     rsSoftwareProcessor->ProcessSurface(rsSurfaceRenderNode);
 }
 
