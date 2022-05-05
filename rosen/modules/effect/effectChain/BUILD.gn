@@ -52,7 +52,7 @@ ohos_shared_library("libeffectchain") {
     "//foundation/multimedia/image_standard:image_framework",
   ]
 
-  external_deps = [ "bytrace_standard:bytrace_core" ]
+  external_deps = [ "hitrace_native:hitrace_meter" ]
 
   if (effect_enable_gpu) {
     sources += [

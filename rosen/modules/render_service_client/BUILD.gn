@@ -96,8 +96,8 @@ ohos_source_set("render_service_client_src") {
   }
 
   external_deps = [
-    "bytrace_standard:bytrace_core",
     "hisysevent_native:libhisysevent",
+    "hitrace_native:hitrace_meter",
   ]
   public_deps =
       [ "$rosen_root/modules/render_service_base:librender_service_base" ]
