@@ -68,17 +68,17 @@ pid_t SurfaceRevertIPCTest::ChildProcessMain()
     }
 
     GTEST_LOG_(INFO) << getpid();
-    auto csurf = Surface::CreateSurfaceAsConsumer("test");
-    csurf->RegisterConsumerListener(this);
-    auto producer = csurf->GetProducer();
+    auto cSurface = Surface::CreateSurfaceAsConsumer("test");
+    cSurface->RegisterConsumerListener(this);
+    auto producer = cSurface->GetProducer();
     auto sam = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     sam->AddSystemAbility(ipcSystemAbilityID, producer->AsObject());
-    auto psurf = Surface::CreateSurfaceAsProducer(producer);
+    auto pSurface = Surface::CreateSurfaceAsProducer(producer);
 
     int64_t data;
     sptr<SurfaceBuffer> buffer = nullptr;
     int releaseFence = -1;
-    auto sret = psurf->RequestBuffer(buffer, releaseFence, requestConfig);
+    auto sret = pSurface->RequestBuffer(buffer, releaseFence, requestConfig);
     if (sret != OHOS::GSERROR_OK) {
         data = sret;
         write(pipeFd[1], &data, sizeof(data));
@@ -89,7 +89,7 @@ pid_t SurfaceRevertIPCTest::ChildProcessMain()
     buffer->GetExtraData()->ExtraSet("345", (int64_t)0x345);
     buffer->GetExtraData()->ExtraSet("567", "567");
 
-    sret = psurf->FlushBuffer(buffer, -1, flushConfig);
+    sret = pSurface->FlushBuffer(buffer, -1, flushConfig);
     if (sret != OHOS::GSERROR_OK) {
         data = sret;
         write(pipeFd[1], &data, sizeof(data));
@@ -98,14 +98,14 @@ pid_t SurfaceRevertIPCTest::ChildProcessMain()
 
     Rect damage;
     int32_t fence;
-    sret = csurf->AcquireBuffer(buffer, fence, data, damage);
+    sret = cSurface->AcquireBuffer(buffer, fence, data, damage);
     if (sret != OHOS::GSERROR_OK) {
         data = sret;
         write(pipeFd[1], &data, sizeof(data));
         exit(0);
     }
 
-    sret = csurf->ReleaseBuffer(buffer, -1);
+    sret = cSurface->ReleaseBuffer(buffer, -1);
     data = sret;
     write(pipeFd[1], &data, sizeof(data));
     sleep(0);
@@ -135,12 +135,12 @@ HWTEST_F(SurfaceRevertIPCTest, Fork001, Function | MediumTest | Level2)
     auto sam = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     auto robj = sam->GetSystemAbility(ipcSystemAbilityID);
     auto producer = iface_cast<IBufferProducer>(robj);
-    auto psurf = Surface::CreateSurfaceAsProducer(producer);
+    auto pSurface = Surface::CreateSurfaceAsProducer(producer);
 
     sptr<SurfaceBuffer> buffer = nullptr;
     int releaseFence = -1;
-    auto sret = psurf->RequestBuffer(buffer, releaseFence, requestConfig);
-    EXPECT_EQ(sret, OHOS::GSERROR_OK);
+    auto sRet = pSurface->RequestBuffer(buffer, releaseFence, requestConfig);
+    EXPECT_EQ(sRet, OHOS::GSERROR_OK);
     EXPECT_NE(buffer, nullptr);
     if (buffer != nullptr) {
         int32_t int32;
