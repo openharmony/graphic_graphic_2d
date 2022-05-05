@@ -33,6 +33,14 @@ enum WindowAnimationTargetType {
     SYSTEM_UI,
 };
 
+enum WindowAnimationActionType {
+    NO_CHANGE = 0,
+    GO_FOREGROUND,
+    GO_BACKGROUND,
+    MINIMIZE,
+    CLOSE
+};
+
 struct RSWindowAnimationTarget : Parcelable {
     static RSWindowAnimationTarget* Unmarshalling(Parcel& parcel);
 
@@ -45,7 +53,8 @@ struct RSWindowAnimationTarget : Parcelable {
     std::string abilityName_;
     RRect windowBounds_;
     uint32_t windowId_;
-    sptr<RSSurfaceNode> surfaceNode_;
+    std::shared_ptr<RSSurfaceNode> surfaceNode_;
+    WindowAnimationActionType actionType_ = WindowAnimationActionType::NO_CHANGE;
 };
 } // namespace Rosen
 } // namespace OHOS

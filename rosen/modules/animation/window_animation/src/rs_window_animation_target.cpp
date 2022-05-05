@@ -42,7 +42,7 @@ bool RSWindowAnimationTarget::Marshalling(Parcel& parcel) const
     parcel.WriteFloat(windowBounds_.rect_.height_);
     parcel.WriteFloat(windowBounds_.radius_[0].x_);
     parcel.WriteUint32(windowId_);
-    parcel.WriteParcelable(surfaceNode_);
+    parcel.WriteParcelable(surfaceNode_.get());
     return true;
 }
 
@@ -57,7 +57,7 @@ bool RSWindowAnimationTarget::ReadFromParcel(Parcel& parcel)
     windowBounds_.rect_.height_ = parcel.ReadFloat();
     windowBounds_.radius_[0].x_ = parcel.ReadFloat();
     windowId_ = parcel.ReadUint32();
-    surfaceNode_ = parcel.ReadParcelable<RSSurfaceNode>();
+    surfaceNode_ = std::shared_ptr<RSSurfaceNode>(parcel.ReadParcelable<RSSurfaceNode>());
     return true;
 }
 } // namespace Rosen
