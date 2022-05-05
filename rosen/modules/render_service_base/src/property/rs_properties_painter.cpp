@@ -26,6 +26,7 @@
 #include "include/effects/SkDashPathEffect.h"
 #include "include/effects/SkLumaColorFilter.h"
 #include "include/utils/SkShadowUtils.h"
+#include "common/rs_vector2.h"
 #include "pipeline/rs_draw_cmd_list.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_root_render_node.h"
@@ -315,6 +316,12 @@ void RSPropertiesPainter::DrawForegroundColor(const RSProperties& properties, Sk
 void RSPropertiesPainter::DrawTransitionProperties(const std::unique_ptr<RSTransitionProperties>& transitionProperties,
     const RSProperties& properties, RSPaintFilterCanvas& canvas)
 {
+    DrawTransitionProperties(transitionProperties, properties.GetBoundsSize() * 0.5f, canvas);
+}
+
+void RSPropertiesPainter::DrawTransitionProperties(const std::unique_ptr<RSTransitionProperties>& transitionProperties,
+    const Vector2f& center, RSPaintFilterCanvas& canvas)
+{
     if (transitionProperties == nullptr) {
         return;
     }
@@ -326,7 +333,6 @@ void RSPropertiesPainter::DrawTransitionProperties(const std::unique_ptr<RSTrans
     canvas.translate(translate.x_, translate.y_);
 
     // scale and rotate about the center of node, currently scaleZ is not used
-    auto center = properties.GetBoundsSize() * 0.5f;
     auto scale = transitionProperties->GetScale();
     canvas.translate(center.x_, center.y_);
     canvas.scale(scale.x_, scale.y_);

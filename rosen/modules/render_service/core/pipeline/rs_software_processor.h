@@ -32,7 +32,7 @@ public:
 
 private:
     sptr<Surface> producerSurface_;
-    std::unique_ptr<SkCanvas> canvas_;
+    std::unique_ptr<RSPaintFilterCanvas> canvas_;
     ScreenInfo currScreenInfo_;
     int32_t offsetX_ = 0;
     int32_t offsetY_ = 0;

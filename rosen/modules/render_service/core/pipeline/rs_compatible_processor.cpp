@@ -17,11 +17,11 @@
 
 #include "sync_fence.h"
 
+#include "common/rs_obj_abs_geometry.h"
 #include "pipeline/rs_main_thread.h"
 #include "pipeline/rs_render_service_util.h"
 #include "platform/common/rs_log.h"
-
-#include "common/rs_obj_abs_geometry.h"
+#include "platform/ohos/backend/rs_surface_ohos_raster.h"
 
 namespace OHOS {
 
@@ -60,8 +60,13 @@ void RSCompatibleProcessor::Init(ScreenId id, int32_t offsetX, int32_t offsetY)
         .usage = HBM_USE_CPU_READ | HBM_USE_CPU_WRITE | HBM_USE_MEM_DMA,
         .timeout = 0,
     };
-    auto uniqueCanvasPtr = CreateCanvas(producerSurface_, requestConfig);
-    canvas_ = std::move(uniqueCanvasPtr);
+    rsSurface_ = std::make_shared<RSSurfaceOhosRaster>(producerSurface_);
+    auto skCanvas = CreateCanvas(rsSurface_, requestConfig);
+    if (skCanvas == nullptr) {
+        RS_LOGE("RSHardwareProcessor::Redraw: canvas is null.");
+        return;
+    }
+    canvas_ = std::make_unique<RSPaintFilterCanvas>(skCanvas);
 }
 
 void RSCompatibleProcessor::ProcessSurface(RSSurfaceRenderNode& node)
@@ -108,15 +113,7 @@ void RSCompatibleProcessor::ProcessSurface(RSSurfaceRenderNode& node)
 
 void RSCompatibleProcessor::PostProcess()
 {
-    BufferFlushConfig flushConfig = {
-        .damage = {
-            .x = 0,
-            .y = 0,
-            .w = 2800,
-            .h = 1600,
-        },
-    };
-    FlushBuffer(producerSurface_, flushConfig);
+    rsSurface_->FlushFrame(currFrame_);
 }
 
 void RSCompatibleProcessor::DoComposeSurfaces()

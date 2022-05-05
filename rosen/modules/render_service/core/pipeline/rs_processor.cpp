@@ -54,37 +54,6 @@ SkCanvas* RSProcessor::CreateCanvas(
     return currFrame_->GetCanvas();
 }
 
-std::unique_ptr<SkCanvas> RSProcessor::CreateCanvas(sptr<Surface> producerSurface, BufferRequestConfig requestConfig)
-{
-    RS_TRACE_NAME("CreateCanvas");
-    auto ret = producerSurface->RequestBuffer(buffer_, releaseFence_, requestConfig);
-    if (ret != SURFACE_ERROR_OK || buffer_ == nullptr) {
-        return nullptr;
-    }
-    sptr<SyncFence> tempFence = new SyncFence(releaseFence_);
-    int res = tempFence->Wait(3000);
-    if (res < 0) {
-        RS_LOGE("RsDebug RSProcessor::CreateCanvas this buffer is not available");
-        //[PLANNING]: deal with the buffer is not available
-    }
-    auto addr = static_cast<uint32_t*>(buffer_->GetVirAddr());
-    if (addr == nullptr) {
-        return nullptr;
-    }
-    SkImageInfo info = SkImageInfo::Make(buffer_->GetWidth(), buffer_->GetHeight(),
-                                        kRGBA_8888_SkColorType, kPremul_SkAlphaType);
-    return SkCanvas::MakeRasterDirect(info, addr, buffer_->GetStride());
-}
-
-void RSProcessor::FlushBuffer(sptr<Surface> surface, BufferFlushConfig flushConfig)
-{
-    if (!surface || !buffer_) {
-        RS_LOGE("RSProcessor::FlushBuffer surface or buffer is nullptr");
-        return;
-    }
-    surface->FlushBuffer(buffer_, -1, flushConfig);
-}
-
 void RSProcessor::SetBufferTimeStamp()
 {
     if (!buffer_) {

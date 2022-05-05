@@ -45,12 +45,13 @@ public:
         RSCompatibleProcessor& processor_;
     };
 private:
+    std::shared_ptr<RSSurfaceOhos> rsSurface_;
     HdiBackend* backend_ = nullptr;
     sptr<RSScreenManager> screenManager_;
     std::shared_ptr<HdiOutput> output_;
     sptr<Surface> consumerSurface_;
     sptr<Surface> producerSurface_;
-    std::unique_ptr<SkCanvas> canvas_;
+    std::unique_ptr<RSPaintFilterCanvas> canvas_;
     LayerAlpha alpha_ = { .enPixelAlpha = true };
     int32_t offsetX_ = 0;
     int32_t offsetY_ = 0;

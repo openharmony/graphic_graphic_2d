@@ -17,12 +17,13 @@
 #include "pipeline/rs_software_processor.h"
 
 #include <cinttypes>
+#include "sync_fence.h"
 
-#include "pipeline/rs_render_service_util.h"
 #include "include/core/SkMatrix.h"
 #include "pipeline/rs_main_thread.h"
+#include "pipeline/rs_render_service_util.h"
 #include "platform/common/rs_log.h"
-#include "sync_fence.h"
+#include "platform/ohos/backend/rs_surface_ohos_raster.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -55,21 +56,23 @@ void RSSoftwareProcessor::Init(ScreenId id, int32_t offsetX, int32_t offsetY)
         .usage = HBM_USE_CPU_READ | HBM_USE_CPU_WRITE | HBM_USE_MEM_DMA,
         .timeout = 0,
     };
-    canvas_ = CreateCanvas(producerSurface_, requestConfig);
+    rsSurface_ = std::make_shared<RSSurfaceOhosRaster>(producerSurface_);
+    auto skCanvas = CreateCanvas(rsSurface_, requestConfig);
+    if (skCanvas == nullptr) {
+        RS_LOGE("RSSoftwareProcessor canvas is null.");
+        return;
+    }
+    canvas_ = std::make_unique<RSPaintFilterCanvas>(skCanvas);
 }
 
 void RSSoftwareProcessor::PostProcess()
 {
-    BufferFlushConfig flushConfig = {
-        .damage = {
-            .x = 0,
-            .y = 0,
-            .w = currScreenInfo_.width,
-            .h = currScreenInfo_.height,
-        },
-    };
     SetBufferTimeStamp();
-    FlushBuffer(producerSurface_, flushConfig);
+    if (!rsSurface_) {
+        RS_LOGE("RSSoftwareProcessor::PostProcess rsSurface_ is null.");
+        return;
+    }
+    rsSurface_->FlushFrame(currFrame_);
 }
 
 void RSSoftwareProcessor::ProcessSurface(RSSurfaceRenderNode& node)
@@ -130,7 +133,6 @@ void RSSoftwareProcessor::ProcessSurface(RSSurfaceRenderNode& node)
     }
     node.SetDstRect({geoPtr->GetAbsRect().left_ - offsetX_, geoPtr->GetAbsRect().top_ - offsetY_,
         geoPtr->GetAbsRect().width_, geoPtr->GetAbsRect().height_});
-
     auto params = RsRenderServiceUtil::CreateBufferDrawParam(node);
     RsRenderServiceUtil::DrawBuffer(*canvas_, params);
 }

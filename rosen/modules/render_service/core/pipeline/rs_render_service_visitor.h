@@ -19,6 +19,7 @@
 #include <memory>
 
 #include "include/core/SkCanvas.h"
+#include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_processor.h"
 #include "visitor/rs_node_visitor.h"
 
@@ -45,7 +46,10 @@ public:
     void UpdateGeometry(RSBaseRenderNode &displayNode);
 
 private:
+    std::shared_ptr<RSPaintFilterCanvas> canvas_;
     float globalZOrder_ = 0.0f;
+    int32_t offsetX_ = 0;
+    int32_t offsetY_ = 0;
     bool isSecurityDisplay_ = false;
     std::shared_ptr<RSProcessor> processor_ = nullptr;
 };

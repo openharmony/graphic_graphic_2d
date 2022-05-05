@@ -17,7 +17,10 @@
 #include <unordered_set>
 
 #include "display_type.h"
+#include "include/core/SkCanvas.h"
 #include "include/core/SkRect.h"
+#include "common/rs_vector2.h"
+#include "pipeline/rs_paint_filter_canvas.h"
 #include "platform/common/rs_log.h"
 #include "property/rs_properties_painter.h"
 #include "render/rs_blur_filter.h"
@@ -528,7 +531,7 @@ bool ConvertYUV420SPToRGBA(std::vector<uint8_t>& rgbaBuf, const sptr<OHOS::Surfa
 bool RsRenderServiceUtil::enableClient = false;
 
 void RsRenderServiceUtil::ComposeSurface(std::shared_ptr<HdiLayerInfo> layer, sptr<Surface> consumerSurface,
-    std::vector<LayerInfoPtr>& layers,  ComposeInfo info, RSSurfaceRenderNode* node)
+    std::vector<LayerInfoPtr>& layers, ComposeInfo info, RSSurfaceRenderNode* node)
 {
     layer->SetSurface(consumerSurface);
     layer->SetBuffer(info.buffer, info.fence, info.preBuffer, info.preFence);
@@ -581,59 +584,12 @@ bool RsRenderServiceUtil::IsNeedClient(RSSurfaceRenderNode* node)
     }
 }
 
-void RsRenderServiceUtil::ExtractAnimationInfo(const std::unique_ptr<RSTransitionProperties>& transitionProperties,
-    RSSurfaceRenderNode& node, AnimationInfo& info)
+void RsRenderServiceUtil::DealAnimation(RSPaintFilterCanvas& canvas, RSSurfaceRenderNode& node, BufferDrawParam& params,
+    const Vector2f& center)
 {
-    auto existedParent = node.GetParent().lock();
-    if (!existedParent) {
-        RS_LOGI("RsDebug RsRenderServiceUtil::ExtractAnimationInfo this node[%s] have no parent",
-            node.GetName().c_str());
-        return;
-    }
-    if (existedParent->IsInstanceOf<RSSurfaceRenderNode>()) {
-        auto parentTransitionProperties = std::static_pointer_cast<RSSurfaceRenderNode>(existedParent)->
-            GetAnimationManager().GetTransitionProperties();
-        auto& parentProperties = std::static_pointer_cast<RSSurfaceRenderNode>(existedParent)->GetRenderProperties();
-        if (!parentTransitionProperties) {
-            RS_LOGI("RsDebug RSHardwareProcessor::CalculateInfoWithAnimation this node[%s] parent have no effect",
-                node.GetName().c_str());
-            return;
-        }
-        info.scale = parentTransitionProperties->GetScale();
-        info.translate = parentTransitionProperties->GetTranslate();
-        info.alpha = parentTransitionProperties->GetAlpha();
-        info.rotateMatrix = parentTransitionProperties->GetRotate();
-        info.pivot = parentProperties.GetBoundsPosition() + parentProperties.GetBoundsSize() * 0.5f;
-    } else {
-        if (!transitionProperties) {
-            RS_LOGI("RsDebug RSHardwareProcessor::CalculateInfoWithAnimation this node[%s] have no effect",
-                node.GetName().c_str());
-            return;
-        }
-        info.scale = transitionProperties->GetScale();
-        info.translate = transitionProperties->GetTranslate();
-        info.alpha = transitionProperties->GetAlpha();
-        info.rotateMatrix = transitionProperties->GetRotate();
-        info.pivot = node.GetRenderProperties().GetBoundsPosition() + node.GetRenderProperties().GetBoundsSize() * 0.5f;
-    }
-}
-
-void RsRenderServiceUtil::DealAnimation(SkCanvas& canvas, RSSurfaceRenderNode& node, BufferDrawParam& params)
-{
-    AnimationInfo animationInfo;
     auto transitionProperties = node.GetAnimationManager().GetTransitionProperties();
-    ExtractAnimationInfo(transitionProperties, node, animationInfo);
-
+    RSPropertiesPainter::DrawTransitionProperties(transitionProperties, center, canvas);
     const RSProperties& property = node.GetRenderProperties();
-
-    params.paint.setAlphaf(params.paint.getAlphaf() * animationInfo.alpha);
-    canvas.translate(animationInfo.translate.x_, animationInfo.translate.y_);
-
-    // scale and rotate about the center of node, currently scaleZ is not used
-    canvas.translate(animationInfo.pivot.x_, animationInfo.pivot.y_);
-    canvas.scale(animationInfo.scale.x_, animationInfo.scale.y_);
-    canvas.concat(animationInfo.rotateMatrix);
-    canvas.translate(-animationInfo.pivot.x_, -animationInfo.pivot.y_);
     auto filter = std::static_pointer_cast<RSSkiaFilter>(property.GetBackgroundFilter());
     if (filter != nullptr) {
         auto skRectPtr = std::make_unique<SkRect>();
@@ -685,7 +641,7 @@ bool RsRenderServiceUtil::CreateYuvToRGBABitMap(sptr<OHOS::SurfaceBuffer> buffer
 }
 
 SkMatrix RsRenderServiceUtil::GetCanvasTransform(const RSSurfaceRenderNode& node, const SkMatrix& canvasMatrix,
-    ScreenRotation rotation)
+    ScreenRotation rotation, SkRect clipRect)
 {
     SkMatrix transform = canvasMatrix;
     auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(node.GetRenderProperties().GetBoundsGeometry());
@@ -697,7 +653,7 @@ SkMatrix RsRenderServiceUtil::GetCanvasTransform(const RSSurfaceRenderNode& node
         return transform;
     }
 
-    const auto &geoAbsRect = node.GetDstRect();
+    const auto geoAbsRect = RectI(clipRect.left(), clipRect.top(), clipRect.width(), clipRect.height());
     transform.preTranslate(geoAbsRect.left_, geoAbsRect.top_);
     switch (rotation) {
         case ScreenRotation::ROTATION_90: {
@@ -798,6 +754,9 @@ BufferDrawParam RsRenderServiceUtil::CreateBufferDrawParam(RSSurfaceRenderNode& 
     ScreenRotation rotation)
 {
     const RSProperties& property = node.GetRenderProperties();
+    SkRect dstRect = SkRect::MakeXYWH(node.GetDstRect().left_, node.GetDstRect().top_,
+        node.GetDstRect().width_, node.GetDstRect().height_);
+    auto alpha = node.GetGlobalAlhpa();
     BufferDrawParam params;
 
     auto buffer = node.GetBuffer();
@@ -806,10 +765,10 @@ BufferDrawParam RsRenderServiceUtil::CreateBufferDrawParam(RSSurfaceRenderNode& 
         return params;
     }
     SkPaint paint;
-    paint.setAlphaf(node.GetAlpha() * property.GetAlpha());
+    paint.setAlphaf(alpha);
 
     params.buffer = buffer;
-    params.matrix = GetCanvasTransform(node, canvasMatrix, rotation);
+    params.matrix = GetCanvasTransform(node, canvasMatrix, rotation, dstRect);
     params.srcRect = SkRect::MakeXYWH(0, 0, buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight());
     const auto surfaceTransform = surface->GetTransform();
     if (surfaceTransform == TransformType::ROTATE_90 || surfaceTransform == TransformType::ROTATE_270) {
@@ -817,8 +776,7 @@ BufferDrawParam RsRenderServiceUtil::CreateBufferDrawParam(RSSurfaceRenderNode& 
     } else {
         params.dstRect = SkRect::MakeXYWH(0, 0, property.GetBoundsWidth(), property.GetBoundsHeight());
     }
-    params.clipRect = SkRect::MakeXYWH(node.GetDstRect().left_, node.GetDstRect().top_, node.GetDstRect().width_,
-        node.GetDstRect().height_);
+    params.clipRect = dstRect;
     params.paint = paint;
     return params;
 }
@@ -842,7 +800,8 @@ bool IsBufferValid(const sptr<SurfaceBuffer>& buffer)
     return true;
 }
 
-void RsRenderServiceUtil::DrawBuffer(SkCanvas& canvas, BufferDrawParam& bufferDrawParam, CanvasPostProcess process)
+void RsRenderServiceUtil::DrawBuffer(RSPaintFilterCanvas& canvas, BufferDrawParam& bufferDrawParam,
+    CanvasPostProcess process)
 {
     sptr<SurfaceBuffer> buffer = bufferDrawParam.buffer;
     if (!IsBufferValid(buffer)) {
@@ -880,7 +839,7 @@ void RsRenderServiceUtil::DrawBuffer(SkCanvas& canvas, BufferDrawParam& bufferDr
 
 #ifdef RS_ENABLE_GL
 void RsRenderServiceUtil::DrawImage(std::shared_ptr<RSEglImageManager> eglImageManager, GrContext* grContext,
-    SkCanvas& canvas, BufferDrawParam& bufferDrawParam, CanvasPostProcess process)
+    RSPaintFilterCanvas& canvas, BufferDrawParam& bufferDrawParam, CanvasPostProcess process)
 {
     RS_TRACE_NAME("GpuClientComposition");
     RS_LOGI("RsRenderServiceUtil::DrawImage start");

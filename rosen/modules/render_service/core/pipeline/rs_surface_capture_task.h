@@ -49,7 +49,7 @@ private:
 
         virtual void ProcessDisplayRenderNode(RSDisplayRenderNode &node) override;
         virtual void ProcessSurfaceRenderNode(RSSurfaceRenderNode &node) override;
-        void SetCanvas(std::unique_ptr<SkCanvas> canvas);
+        void SetCanvas(SkCanvas* canvas);
         void IsDisplayNode(bool isDisplayNode)
         {
             isDisplayNode_ = isDisplayNode;
@@ -62,7 +62,7 @@ private:
 
     private:
         void DrawSurface(RSSurfaceRenderNode &node);
-        std::unique_ptr<SkCanvas> canvas_ = nullptr;
+        std::unique_ptr<RSPaintFilterCanvas> canvas_ = nullptr;
         bool isDisplayNode_ = false;
         float scaleX_ = 1.0f;
         float scaleY_ = 1.0f;

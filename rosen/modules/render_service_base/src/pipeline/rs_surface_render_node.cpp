@@ -16,15 +16,24 @@
 #include "pipeline/rs_surface_render_node.h"
 
 #include "command/rs_surface_node_command.h"
+#include "common/rs_obj_abs_geometry.h"
 #include "display_type.h"
+#include "include/core/SkRect.h"
+#include "common/rs_rect.h"
+#include "common/rs_vector2.h"
+#include "pipeline/rs_render_node.h"
 #include "pipeline/rs_root_render_node.h"
 #include "platform/common/rs_log.h"
+#include "property/rs_properties_painter.h"
+#include "property/rs_transition_properties.h"
 #include "transaction/rs_transaction_proxy.h"
 #include "transaction/rs_render_service_client.h"
 #include "visitor/rs_node_visitor.h"
 
 namespace OHOS {
 namespace Rosen {
+static const int rectBounds = 2;
+
 RSSurfaceRenderNode::RSSurfaceRenderNode(NodeId id, std::weak_ptr<RSContext> context) : RSRenderNode(id, context) {}
 RSSurfaceRenderNode::RSSurfaceRenderNode(const RSSurfaceRenderNodeConfig& config, std::weak_ptr<RSContext> context)
     : RSRenderNode(config.id, context), name_(config.name)
@@ -45,6 +54,56 @@ void RSSurfaceRenderNode::SetBuffer(const sptr<SurfaceBuffer>& buffer)
     } else {
         buffer_ = buffer;
     }
+}
+
+void RSSurfaceRenderNode::ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas)
+{
+    canvas.SaveAlpha();
+    canvas.MultiplyAlpha(GetRenderProperties().GetAlpha() * GetAlpha());
+    SkIRect clipBounds = canvas.getDeviceClipBounds();  // this clip region from parent node from render service
+    RS_LOGE("chen RSSurfaceRenderNode::ProcessRenderBeforeChildren cliBoundsFromParent[%d %d %d %d]",
+        clipBounds.left(), clipBounds.top(), clipBounds.width(), clipBounds.height());
+    clipRegionFromParent_.SetAll(clipBounds.left(), clipBounds.top(), clipBounds.width(), clipBounds.height());
+    RectI clipRegion = CalculateClipRegion(canvas);
+    SkRect rect;
+    SkPoint points[] = {{clipRegion.left_, clipRegion.top_}, {clipRegion.GetRight(), clipRegion.GetBottom()}};
+    rect.setBounds(points, rectBounds);
+    RS_LOGE("chen RSSurfaceRenderNode::ProcessRenderBeforeChildren cliBoundsFromParent[%f %f %f %f]",
+        rect.left(), rect.top(), rect.width(), rect.height());
+    canvas.clipRect(rect);
+    auto currentClipRegion = canvas.getDeviceClipBounds();
+    SetDstRect({ currentClipRegion.left(), currentClipRegion.top(), currentClipRegion.width(),
+        currentClipRegion.height() });
+    SetGlobalAlpha(canvas.GetAlpha());
+}
+
+RectI RSSurfaceRenderNode::CalculateClipRegion(RSPaintFilterCanvas& canvas)
+{
+    const Vector4f& clipRegionFromRT = GetClipRegion(); // this clip region from render thread, it`s relative position
+    RectI clipRegion(clipRegionFromRT.x_, clipRegionFromRT.y_, clipRegionFromRT.z_, clipRegionFromRT.w_);
+    clipRegion.left_ = clipRegionFromRT.x_ + clipRegionFromParent_.left_;
+    clipRegion.top_ = clipRegionFromRT.y_ + clipRegionFromParent_.top_;
+    clipRegion.SetRight(clipRegion.IsEmpty() ? clipRegionFromParent_.GetRight() :
+        std::min(clipRegion.GetRight(), clipRegionFromParent_.GetRight()));
+    clipRegion.SetBottom(clipRegion.IsEmpty() ? clipRegionFromParent_.GetBottom() :
+        std::min(clipRegion.GetBottom(), clipRegionFromParent_.GetBottom()));
+    auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(GetRenderProperties().GetBoundsGeometry());
+    if (geoPtr == nullptr) {
+        RS_LOGE("RsDebug RSSurfaceRenderNode::ProcessRenderBeforeChildren geoPtr == nullptr");
+        return RectI();
+    }
+    RectI originDstRect(geoPtr->GetAbsRect().left_ - offsetX_, geoPtr->GetAbsRect().top_ - offsetY_,
+            geoPtr->GetAbsRect().width_, geoPtr->GetAbsRect().height_);
+    RectI resClipRegion = clipRegion.IntersectRect(originDstRect);
+    auto transitionProperties = GetAnimationManager().GetTransitionProperties();
+    Vector2f center(resClipRegion.width_ * 0.5f, resClipRegion.height_ * 0.5f);
+    RSPropertiesPainter::DrawTransitionProperties(transitionProperties, center, canvas);
+    return resClipRegion;
+}
+
+void RSSurfaceRenderNode::ProcessRenderAfterChildren(RSPaintFilterCanvas& canvas)
+{
+    canvas.RestoreAlpha();
 }
 
 void RSSurfaceRenderNode::SetFence(sptr<SyncFence> fence)
