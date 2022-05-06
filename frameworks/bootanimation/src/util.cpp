@@ -85,6 +85,7 @@ bool ReadCurrentFile(const unzFile zipfile, const std::string& filename, ImageSt
     }
     int readlen = UNZ_OK;
     int totalLen = 0;
+    int ifileSize = static_cast<int>(fileSize);
     char readBuffer[READ_SIZE] = {0};
     std::shared_ptr<ImageStruct> imagestrct = std::make_shared<ImageStruct>();
     imagestrct->memPtr.SetBufferSize(fileSize);
@@ -98,14 +99,14 @@ bool ReadCurrentFile(const unzFile zipfile, const std::string& filename, ImageSt
             LOGE("Readzip memPtr is null.");
             return false;
         }
-        if (memcpy_s(imagestrct->memPtr.memBuffer + totalLen, fileSize - totalLen, \
+        if (memcpy_s(imagestrct->memPtr.memBuffer + totalLen, ifileSize - totalLen, \
             readBuffer, readlen) == EOK) {
             totalLen += readlen;
         }
     } while (readlen > 0);
 
     if (totalLen > 0) {
-        LOGD("filename:%{public}s fileSize:%{public}lu totalLen:%{public}d", filename.c_str(), fileSize, totalLen);
+        LOGD("filename:%{public}s fileSize:%{public}d totalLen:%{public}d", filename.c_str(), ifileSize, totalLen);
         if (strstr(filename.c_str(), BOOT_PIC_CONFIGFILE.c_str()) != nullptr) {
             ReadJsonConfig(std::string(imagestrct->memPtr.memBuffer), aniconfig);
         } else {
