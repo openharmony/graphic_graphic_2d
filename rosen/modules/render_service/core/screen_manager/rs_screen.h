@@ -134,14 +134,12 @@ private:
     void PhysicalScreenInit() noexcept;
 
     void ModeInfoDump(std::string& dumpString);
-
     void CapabilityDump(std::string& dumpString);
-
     void PropDump(std::string& dumpString);
-
-    void PowerStatusDump(DispPowerStatus powerStatus, std::string& dumpString);
-
+    void PowerStatusDump(std::string& dumpString);
     void CapabilityTypeDump(InterfaceType capabilityType, std::string& dumpString);
+    void ScreenTypeDump(std::string& dumpString);
+    void ScreenRotationDump(std::string& dumpString);
 
     void UpdateRotationMatrix();
 

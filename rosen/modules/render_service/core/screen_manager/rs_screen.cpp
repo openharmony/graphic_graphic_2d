@@ -341,10 +341,10 @@ void RSScreen::PropDump(std::string& dumpString)
     }
 }
 
-void RSScreen::PowerStatusDump(DispPowerStatus powerStatus, std::string& dumpString)
+void RSScreen::PowerStatusDump(std::string& dumpString)
 {
     dumpString += "powerstatus=";
-    switch (powerStatus) {
+    switch (powerStatus_) {
         case POWER_STATUS_ON: {
             dumpString += "POWER_STATUS_ON";
             break;
@@ -365,9 +365,10 @@ void RSScreen::PowerStatusDump(DispPowerStatus powerStatus, std::string& dumpStr
             dumpString += "POWER_STATUS_BUTT";
             break;
         }
-        default:
+        default: {
             dumpString += "INVALID_POWER_STATUS";
             break;
+        }
     }
 }
 
@@ -389,11 +390,67 @@ void RSScreen::DisplayDump(int32_t screenIndex, std::string& dumpString)
         dumpString += "id=";
         dumpString += (id_ == INVALID_SCREEN_ID) ? "INVALID_SCREEN_ID" : std::to_string(id_);
         dumpString += ", ";
-        PowerStatusDump(powerStatus_, dumpString);
+        PowerStatusDump(dumpString);
+        dumpString += ", ";
+        dumpString += "backlight=" + std::to_string(GetScreenBacklight());
+        dumpString += ", ";
+        ScreenTypeDump(dumpString);
+        dumpString += ", ";
+        ScreenRotationDump(dumpString);
         dumpString += "\n";
         ModeInfoDump(dumpString);
         CapabilityDump(dumpString);
     }
+}
+
+void RSScreen::ScreenTypeDump(std::string& dumpString)
+{
+    dumpString += "screenType=";
+    switch (screenType_) {
+        case RSScreenType::BUILT_IN_TYPE_SCREEN: {
+            dumpString += "BUILT_IN_TYPE";
+            break;
+        }
+        case RSScreenType::EXTERNAL_TYPE_SCREEN: {
+            dumpString += "EXTERNAL_TYPE";
+            break;
+        }
+        case RSScreenType::VIRTUAL_TYPE_SCREEN: {
+            dumpString += "VIRTUAL_TYPE";
+            break;
+        }
+        default: {
+            dumpString += "UNKNOWN_TYPE";
+            break;
+        }
+    }
+}
+
+void RSScreen::ScreenRotationDump(std::string& dumpString)
+{
+    dumpString += "rotationStatus=";
+    switch (rotation_) {
+        case ScreenRotation::ROTATION_0: {
+            dumpString += "ROTATION_0";
+            break;
+        }
+        case ScreenRotation::ROTATION_90: {
+            dumpString += "ROTATION_90";
+            break;
+        }
+        case ScreenRotation::ROTATION_180: {
+            dumpString += "ROTATION_180";
+            break;
+        }
+        case ScreenRotation::ROTATION_270: {
+            dumpString += "ROTATION_270";
+            break;
+        }
+        default: {
+            dumpString += "INVALID_SCREEN_ROTATION";
+            break;
+        }
+    };
 }
 
 void RSScreen::SurfaceDump(int32_t screenIndex, std::string& dumpString)
