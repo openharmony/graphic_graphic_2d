@@ -28,8 +28,10 @@ config("surface_config") {
 }
 
 config("surface_public_config") {
-  include_dirs =
-      [ "//foundation/graphic/standard/interfaces/inner_api/surface" ]
+  include_dirs = [
+    "//foundation/graphic/standard/interfaces/inner_api/surface",
+    "//foundation/graphic/standard/interfaces/inner_api/common",
+  ]
 
   if (ace_enable_gpu) {
     defines = [ "ACE_ENABLE_GPU" ]
@@ -86,12 +88,16 @@ ohos_shared_library("surface") {
     "//drivers/peripheral/display/hal:hdi_display_gralloc",
     "//drivers/peripheral/display/hdi_service/gralloc/client:hdi_gralloc_client",
     "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
-    "//foundation/graphic/standard:libgl",
-    "//foundation/graphic/standard/utils:buffer_handle",
-    "//foundation/graphic/standard/utils:libgraphic_utils",
-    "//foundation/graphic/standard/utils:sync_fence",
+    "//foundation/graphic/standard/utils/buffer_handle:buffer_handle",
+    "//foundation/graphic/standard/utils/gslogger:libgslogger",
+    "//foundation/graphic/standard/utils/scoped_bytrace:scoped_bytrace",
+    "//foundation/graphic/standard/utils/sync_fence:sync_fence",
+    "//third_party/EGL:libEGL",
+    "//third_party/openGLES:libGLES",
     "//utils/native/base:utils",
   ]
+
+  public_deps += libgl
 
   external_deps = [ "hitrace_native:hitrace_meter" ]
 
@@ -100,11 +106,4 @@ ohos_shared_library("surface") {
   part_name = "graphic_standard"
   subsystem_name = "graphic"
 }
-
 ## Build surface.so }}}
-
-group("test") {
-  testonly = true
-
-  deps = [ "test:test" ]
-}

@@ -49,7 +49,7 @@ ohos_static_library("sync_fence_common") {
 
   public_configs = [ ":sync_fence_common_public_config" ]
 
-  public_deps = [ "//foundation/graphic/standard/utils:sync_fence" ]
+  public_deps = [ "//foundation/graphic/standard/utils/sync_fence:sync_fence" ]
   subsystem_name = "graphic"
   part_name = "graphic_standard"
 }

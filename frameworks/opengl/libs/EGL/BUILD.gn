@@ -13,16 +13,17 @@
 
 import("//build/ohos/native_stub/native_stub.gni")
 
-ohos_native_stub_headers("EGL_header") {
-  sources = [
-    "//third_party/EGL/api/EGL/egl.h",
-    "//third_party/EGL/api/EGL/eglext.h",
-    "//third_party/EGL/api/EGL/eglplatform.h",
+config("egl_configs") {
+  include_dirs = [ "//third_party/EGL/api" ]
+  defines = [
+    "ENABLE_EGL",
+    "OHOS_PLATFORM",
   ]
 }
 
 ohos_native_stub_library("libEGL_stub") {
   output_name = "EGL"
   output_extension = "so"
+  public_configs = [ ":egl_configs" ]
   stub_description_file = "./libEGL.stub.json"
 }

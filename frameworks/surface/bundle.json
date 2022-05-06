@@ -1,0 +1,73 @@
+{
+    "name": "@ohos/graphic_chipsetsdk",
+    "description": "graphic chipset sdk",
+    "version": "3.1",
+    "license": "Apache License 2.0",
+    "publishAs": "code-segment",
+    "segment": {
+      "destPath": "foundation/graphic/standard"
+    },
+    "dirs": {},
+    "scripts": {},
+    "component": {
+      "name": "graphic_chipsetsdk",
+      "subsystem": "graphic",
+      "adapted_system_type": [ "standard" ],
+      "rom": "10000KB",
+      "ram": "10000KB",
+      "deps": {
+        "components": [
+          "libhilog",
+          "ipc_core",
+          "samgr_proxy",
+          "utils",
+          "libeventhandler",
+          "hdi_display_device",
+          "bytrace_core"
+        ],
+        "third_party": [
+          "libz",
+          "libdrm"
+        ]
+      },
+      "build": {
+        "sub_component": [
+          "//foundation/graphic/standard/frameworks/surface:surface",
+          "//foundation/graphic/standard/utils/buffer_handle:buffer_handle"
+        ],
+        "inner_kits": [
+          {
+            "type": "so",
+            "name": "//foundation/graphic/standard/frameworks/surface:surface",
+            "header": {
+              "header_files": [
+                "buffer_extra_data.h",
+                "egl_data.h",
+                "egl_surface.h",
+                "external_window.h",
+                "ibuffer_consumer_listener.h",
+                "ibuffer_producer.h",
+                "surface.h",
+                "surface_buffer.h",
+                "surface_type.h",
+                "surface_utils.h",
+                "window.h"
+              ],
+              "header_base": "//foundation/graphic/standard/interfaces/inner_api/surface"
+            }
+          },
+          {
+            "type": "so",
+            "name": "//foundation/graphic/standard/utils/buffer_handle:buffer_handle",
+            "header": {
+              "header_files": [
+                "buffer_handle_parcel.h",
+                "buffer_handle_utils.h"
+              ],
+              "header_base": "//foundation/graphic/standard/utils/buffer_handle/export"
+            }
+          }
+        ]
+      }
+    }
+  }

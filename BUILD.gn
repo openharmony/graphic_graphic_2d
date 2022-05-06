@@ -38,7 +38,7 @@ group("graphic_standard_test") {
   testonly = true
 
   public_deps = [
-    "frameworks/surface:test",
+    "frameworks/surface/test:test",
     "frameworks/wmtest:wmtest",
     "rosen/modules/composer:test",
     "rosen/modules/effect/test/unittest:test",
@@ -90,11 +90,7 @@ group("libfence") {
 }
 
 group("libgl") {
-  public_deps = [
-    "//third_party/EGL:libEGL",
-    "//third_party/openGLES:libGLES",
-  ]
-  public_deps += libgl
+  public_deps = libgl
 }
 
 group("libgraphic_dumper_client") {
