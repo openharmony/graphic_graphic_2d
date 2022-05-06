@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -25,6 +25,9 @@ extern "C" {
 
 struct NativeWindow;
 struct NativeWindowBuffer;
+
+typedef struct NativeWindow OHNativeWindow;
+typedef struct NativeWindowBuffer OHNativeWindowBuffer;
 
 #define MKMAGIC(a, b, c, d) (((a) << 24) + ((b) << 16) + ((c) << 8) + ((d) << 0))
 
@@ -66,23 +69,23 @@ enum NativeWindowOperation {
 };
 
 // pSurface type is OHOS::sptr<OHOS::Surface>*
-struct NativeWindow* CreateNativeWindowFromSurface(void* pSurface);
-void DestoryNativeWindow(struct NativeWindow* window);
+OHNativeWindow* CreateNativeWindowFromSurface(void* pSurface);
+void DestoryNativeWindow(OHNativeWindow* window);
 
 // pSurfaceBuffer type is OHOS::sptr<OHOS::SurfaceBuffer>*
-struct NativeWindowBuffer* CreateNativeWindowBufferFromSurfaceBuffer(void* pSurfaceBuffer);
-void DestoryNativeWindowBuffer(struct NativeWindowBuffer* buffer);
+OHNativeWindowBuffer* CreateNativeWindowBufferFromSurfaceBuffer(void* pSurfaceBuffer);
+void DestoryNativeWindowBuffer(OHNativeWindowBuffer* buffer);
 
-int32_t NativeWindowRequestBuffer(struct NativeWindow *window, /* [out] */ struct NativeWindowBuffer **buffer,
+int32_t NativeWindowRequestBuffer(OHNativeWindow *window, /* [out] */ OHNativeWindowBuffer **buffer,
     /* [out] get release fence */ int *fenceFd);
-int32_t NativeWindowFlushBuffer(struct NativeWindow *window, struct NativeWindowBuffer *buffer,
+int32_t NativeWindowFlushBuffer(OHNativeWindow *window, OHNativeWindowBuffer *buffer,
     int fenceFd, Region region);
-int32_t NativeWindowCancelBuffer(struct NativeWindow *window, struct NativeWindowBuffer *buffer);
+int32_t NativeWindowCancelBuffer(OHNativeWindow *window, OHNativeWindowBuffer *buffer);
 
 // The meaning and quantity of parameters vary according to the code type.
 // For details, see the NativeWindowOperation comment.
-int32_t NativeWindowHandleOpt(struct NativeWindow *window, int code, ...);
-BufferHandle *GetBufferHandleFromNative(struct NativeWindowBuffer *buffer);
+int32_t NativeWindowHandleOpt(OHNativeWindow *window, int code, ...);
+BufferHandle *GetBufferHandleFromNative(OHNativeWindowBuffer *buffer);
 
 // NativeObject: NativeWindow, NativeWindowBuffer
 int32_t NativeObjectReference(void *obj);

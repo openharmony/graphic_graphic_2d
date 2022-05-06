@@ -51,7 +51,7 @@ extern "C" {
  * @since 8
  * @version 1.0
  */
-struct NativeWindow* OH_NativeWindow_CreateNativeWindow(void* pSurface);
+OHNativeWindow* OH_NativeWindow_CreateNativeWindow(void* pSurface);
 
 /**
  * @brief 将NativeWindow对象的引用计数减1，当引用计数为0的时候，该NativeWindow对象会被析构掉
@@ -61,7 +61,7 @@ struct NativeWindow* OH_NativeWindow_CreateNativeWindow(void* pSurface);
  * @since 8
  * @version 1.0
  */
-void OH_NativeWindow_DestroyNativeWindow(struct NativeWindow* window);
+void OH_NativeWindow_DestroyNativeWindow(OHNativeWindow* window);
 
 /**
  * @brief 创建NativeWindowBuffer实例，每次调用都会产生一个新的NativeWindow实例
@@ -72,7 +72,7 @@ void OH_NativeWindow_DestroyNativeWindow(struct NativeWindow* window);
  * @since 8
  * @version 1.0
  */
-struct NativeWindowBuffer* OH_NativeWindow_CreateNativeWindowBufferFromSurfaceBuffer(void* pSurfaceBuffer);
+OHNativeWindowBuffer* OH_NativeWindow_CreateNativeWindowBufferFromSurfaceBuffer(void* pSurfaceBuffer);
 
 /**
  * @brief 将NativeWindowBuffer对象的引用计数减1，当引用计数为0的时候，该NativeWindowBuffer对象会被析构掉
@@ -82,7 +82,7 @@ struct NativeWindowBuffer* OH_NativeWindow_CreateNativeWindowBufferFromSurfaceBu
  * @since 8
  * @version 1.0
  */
-void OH_NativeWindow_DestroyNativeWindowBuffer(struct NativeWindowBuffer* buffer);
+void OH_NativeWindow_DestroyNativeWindowBuffer(OHNativeWindowBuffer* buffer);
 
 /**
  * @brief 通过NativeWindow对象申请一块NativeWindowBuffer，用以内容生产
@@ -95,8 +95,8 @@ void OH_NativeWindow_DestroyNativeWindowBuffer(struct NativeWindowBuffer* buffer
  * @since 8
  * @version 1.0
  */
-int32_t OH_NativeWindow_NativeWindowRequestBuffer(struct NativeWindow *window,
-    struct NativeWindowBuffer **buffer, int *fenceFd);
+int32_t OH_NativeWindow_NativeWindowRequestBuffer(OHNativeWindow *window,
+    OHNativeWindowBuffer **buffer, int *fenceFd);
 
 /**
  * @brief 通过NativeWindow将生产好内容的NativeWindowBuffer放回到Buffer队列中，用以内容消费
@@ -110,7 +110,7 @@ int32_t OH_NativeWindow_NativeWindowRequestBuffer(struct NativeWindow *window,
  * @since 8
  * @version 1.0
  */
-int32_t OH_NativeWindow_NativeWindowFlushBuffer(struct NativeWindow *window, struct NativeWindowBuffer *buffer,
+int32_t OH_NativeWindow_NativeWindowFlushBuffer(OHNativeWindow *window, OHNativeWindowBuffer *buffer,
     int fenceFd, Region region);
 
 /**
@@ -123,7 +123,7 @@ int32_t OH_NativeWindow_NativeWindowFlushBuffer(struct NativeWindow *window, str
  * @since 8
  * @version 1.0
  */
-int32_t OH_NativeWindow_NativeWindowAbortBuffer(struct NativeWindow *window, struct NativeWindowBuffer *buffer);
+int32_t OH_NativeWindow_NativeWindowAbortBuffer(OHNativeWindow *window, OHNativeWindowBuffer *buffer);
 
 /**
  * @brief 设置/获取NativeWindow的属性，包括设置/获取宽高、内容格式等
@@ -135,7 +135,7 @@ int32_t OH_NativeWindow_NativeWindowAbortBuffer(struct NativeWindow *window, str
  * @since 8
  * @version 1.0
  */
-int32_t OH_NativeWindow_NativeWindowHandleOpt(struct NativeWindow *window, int code, ...);
+int32_t OH_NativeWindow_NativeWindowHandleOpt(OHNativeWindow *window, int code, ...);
 
 /**
  * @brief 通过NativeWindowBuffer获取该buffer的BufferHandle指针
@@ -146,7 +146,7 @@ int32_t OH_NativeWindow_NativeWindowHandleOpt(struct NativeWindow *window, int c
  * @since 8
  * @version 1.0
  */
-BufferHandle *OH_NativeWindow_GetBufferHandleFromNative(struct NativeWindowBuffer *buffer);
+BufferHandle *OH_NativeWindow_GetBufferHandleFromNative(OHNativeWindowBuffer *buffer);
 
 /**
  * @brief 增加一个NativeObject的引用计数

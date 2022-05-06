@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -30,13 +30,13 @@
 
 using namespace OHOS;
 
-struct NativeWindow* CreateNativeWindowFromSurface(void* pSuface)
+OHNativeWindow* CreateNativeWindowFromSurface(void* pSuface)
 {
     if (pSuface == nullptr) {
         BLOGD("CreateNativeWindowFromSurface pSuface is nullptr");
         return nullptr;
     }
-    NativeWindow* nativeWindow = new NativeWindow();
+    OHNativeWindow* nativeWindow = new OHNativeWindow();
     nativeWindow->surface =
                 *reinterpret_cast<OHOS::sptr<OHOS::Surface> *>(pSuface);
     nativeWindow->config.width = nativeWindow->surface->GetDefaultWidth();
@@ -52,7 +52,7 @@ struct NativeWindow* CreateNativeWindowFromSurface(void* pSuface)
     return nativeWindow;
 }
 
-void DestoryNativeWindow(struct NativeWindow *window)
+void DestoryNativeWindow(OHNativeWindow *window)
 {
     if (window == nullptr) {
         return;
@@ -61,17 +61,17 @@ void DestoryNativeWindow(struct NativeWindow *window)
     NativeObjectUnreference(window);
 }
 
-struct NativeWindowBuffer* CreateNativeWindowBufferFromSurfaceBuffer(void* pSurfaceBuffer)
+OHNativeWindowBuffer* CreateNativeWindowBufferFromSurfaceBuffer(void* pSurfaceBuffer)
 {
     if (pSurfaceBuffer == nullptr) {
         return nullptr;
     }
-    NativeWindowBuffer *nwBuffer = new NativeWindowBuffer();
+    OHNativeWindowBuffer *nwBuffer = new OHNativeWindowBuffer();
     nwBuffer->sfbuffer = *reinterpret_cast<OHOS::sptr<OHOS::SurfaceBuffer> *>(pSurfaceBuffer);
     NativeObjectReference(nwBuffer);
     return nwBuffer;
 }
-void DestoryNativeWindowBuffer(struct NativeWindowBuffer* buffer)
+void DestoryNativeWindowBuffer(OHNativeWindowBuffer* buffer)
 {
     if (buffer == nullptr) {
         return;
@@ -79,8 +79,8 @@ void DestoryNativeWindowBuffer(struct NativeWindowBuffer* buffer)
     NativeObjectUnreference(buffer);
 }
 
-int32_t NativeWindowRequestBuffer(struct NativeWindow *window,
-    struct NativeWindowBuffer **buffer, int *fenceFd)
+int32_t NativeWindowRequestBuffer(OHNativeWindow *window,
+    OHNativeWindowBuffer **buffer, int *fenceFd)
 {
     if (window == nullptr || buffer == nullptr || fenceFd == nullptr) {
         BLOGD("window or buffer or fenceid is nullptr");
@@ -94,7 +94,7 @@ int32_t NativeWindowRequestBuffer(struct NativeWindow *window,
         sfbuffer == nullptr) {
         return OHOS::GSERROR_NO_BUFFER;
     }
-    NativeWindowBuffer *nwBuffer = new NativeWindowBuffer();
+    OHNativeWindowBuffer *nwBuffer = new OHNativeWindowBuffer();
     nwBuffer->sfbuffer = sfbuffer;
     *buffer = nwBuffer;
     *fenceFd = relaeaseFence->Dup();
@@ -102,7 +102,7 @@ int32_t NativeWindowRequestBuffer(struct NativeWindow *window,
     return OHOS::GSERROR_OK;
 }
 
-int32_t NativeWindowFlushBuffer(struct NativeWindow *window, struct NativeWindowBuffer *buffer,
+int32_t NativeWindowFlushBuffer(OHNativeWindow *window, OHNativeWindowBuffer *buffer,
     int fenceFd, struct Region region)
 {
     if (window == nullptr || buffer == nullptr || window->surface == nullptr) {
@@ -134,7 +134,7 @@ int32_t NativeWindowFlushBuffer(struct NativeWindow *window, struct NativeWindow
     return OHOS::GSERROR_OK;
 }
 
-int32_t NativeWindowCancelBuffer(struct NativeWindow *window, struct NativeWindowBuffer *buffer)
+int32_t NativeWindowCancelBuffer(OHNativeWindow *window, OHNativeWindowBuffer *buffer)
 {
     if (window == nullptr || buffer == nullptr) {
         return OHOS::GSERROR_INVALID_ARGUMENTS;
@@ -145,7 +145,7 @@ int32_t NativeWindowCancelBuffer(struct NativeWindow *window, struct NativeWindo
     return OHOS::GSERROR_OK;
 }
 
-static int32_t InternalHanleNativeWindowOpt(struct NativeWindow *window, int code, va_list args)
+static int32_t InternalHanleNativeWindowOpt(OHNativeWindow *window, int code, va_list args)
 {
     switch (code) {
         case SET_USAGE: {
@@ -219,7 +219,7 @@ static int32_t InternalHanleNativeWindowOpt(struct NativeWindow *window, int cod
     return OHOS::GSERROR_OK;
 }
 
-int32_t NativeWindowHandleOpt(struct NativeWindow *window, int code, ...)
+int32_t NativeWindowHandleOpt(OHNativeWindow *window, int code, ...)
 {
     if (window == nullptr) {
         return OHOS::GSERROR_INVALID_ARGUMENTS;
@@ -231,7 +231,7 @@ int32_t NativeWindowHandleOpt(struct NativeWindow *window, int code, ...)
     return OHOS::GSERROR_OK;
 }
 
-BufferHandle *GetBufferHandleFromNative(struct NativeWindowBuffer *buffer)
+BufferHandle *GetBufferHandleFromNative(OHNativeWindowBuffer *buffer)
 {
     if (buffer == nullptr) {
         return nullptr;
