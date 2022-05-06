@@ -54,20 +54,21 @@ static const std::map<GSError, std::string> GSErrorStrs = {
 static inline std::string LowErrorStrSpecial(GSError err)
 {
     if (err == LOWERROR_INVALID) {
-        char num[] = {err / 0x64 % 0xa, err / 0xa % 0xa, err % 0xa, 0}; // int to string (in 1000)
-        return std::string("with low error <") + num + ">";
+        return "with low error <invalid>";
     } else if (err == LOWERROR_FAILURE) {
         return "with low error <failure>";
     }
     return "";
 }
 
-static inline std::string LowErrorStr(GSError lowerr)
+static inline std::string LowErrorStr(GSError err)
 {
-    std::string lowError = LowErrorStrSpecial(lowerr);
-    if (lowError == "" && lowerr != 0) {
-        lowError = std::strerror(lowerr);
-        lowError = std::string("with low error <") + lowError + ">";
+    std::string lowError = LowErrorStrSpecial(err);
+    if (lowError == "" && err != 0) {
+        char str[] = {static_cast<char>(((err / 0x64) % 0xa) + '0'),
+                      static_cast<char>(((err / 0xa) % 0xa) + '0'),
+                      static_cast<char>((err % 0xa) + '0'), '\0'};
+        lowError = std::string("with low err <") + str + ">";
     }
     return lowError;
 }
