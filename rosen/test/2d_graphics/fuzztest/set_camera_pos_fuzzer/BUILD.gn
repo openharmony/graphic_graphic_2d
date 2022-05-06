@@ -17,11 +17,11 @@ import("//build/test.gni")
 module_output_path = "graphic/2d_graphics"
 
 ##############################fuzztest##########################################
-ohos_fuzztest("DrawingColorOHDrawingColorSetArgbFuzzTest") {
+ohos_fuzztest("SetCameraPosFuzzTest") {
   module_out_path = module_output_path
-  fuzz_config_file = "//foundation/graphic/standard/rosen/test/2d_graphics/fuzztest/drawing_color_oh_drawing_color_setargb_fuzzer"
+  fuzz_config_file = "//foundation/graphic/standard/rosen/test/2d_graphics/fuzztest/set_camera_pos_fuzzer"
 
-  sources = [ "drawing_color_oh_drawing_color_setargb_fuzzer.cpp" ]
+  sources = [ "set_camera_pos_fuzzer.cpp" ]
 
   cflags = [
     "-g",
@@ -30,8 +30,10 @@ ohos_fuzztest("DrawingColorOHDrawingColorSetArgbFuzzTest") {
     "-fno-omit-frame-pointer",
   ]
 
-  include_dirs =
-      [ "//foundation/graphic/standard/rosen/modules/2d_graphics/include" ]
+  include_dirs = [
+    "//foundation/graphic/standard/rosen/modules/2d_graphics/include",
+    "//foundation/graphic/standard/rosen/modules/2d_graphics/src",
+  ]
 
   deps =
       [ "//foundation/graphic/standard/rosen/modules/2d_graphics:2d_graphics" ]

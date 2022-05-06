@@ -28,7 +28,7 @@ namespace Drawing {
         bool result = false;
         Bitmap bitmap;
         BitmapFormat bitmapFormat = {COLORTYPE_ARGB_4444, ALPHATYPE_OPAQUYE};
-        bitmap.Build(reinterpret_cast<const uint32_t>(data), reinterpret_cast<const uint32_t>(data), bitmapFormat);
+        bitmap.Build(reinterpret_cast<const uint32_t>(data), size, bitmapFormat);
         if (!bitmap.GetWidth()) {
             result = true;
         }

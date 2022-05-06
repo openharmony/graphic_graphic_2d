@@ -20,6 +20,8 @@
 
 #include "utils/matrix.h"
 
+const int FUZZ_DATA_LEN = 0;
+
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
@@ -27,8 +29,9 @@ namespace Drawing {
     {
         bool result = false;
         Matrix matrix;
-        if (!matrix.Get(reinterpret_cast<const uint32_t>(data))) {
-            result = true;
+        if (size > FUZZ_DATA_LEN) {
+            result = matrix.Get(reinterpret_cast<const uint32_t>(data));
+            return result;
         }
         return result;
     }
