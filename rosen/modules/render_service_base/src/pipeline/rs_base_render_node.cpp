@@ -124,7 +124,9 @@ RSBaseRenderNode::WeakPtr RSBaseRenderNode::GetParent() const
 
 void RSBaseRenderNode::DumpTree(std::string& out) const
 {
-    out += "id: " + std::to_string(GetId()) + "\n";
+    out += "id: " + std::to_string(GetId()) + ", type: ";
+    DumpNodeType(out);
+    out += "\n";
     auto p = parent_.lock();
     if (p != nullptr) {
         out += "parent: " + std::to_string(p->GetId()) + "\n";
@@ -146,6 +148,40 @@ void RSBaseRenderNode::DumpTree(std::string& out) const
     for (auto child : children_) {
         if (auto c = child.lock()) {
             c->DumpTree(out);
+        }
+    }
+}
+
+void RSBaseRenderNode::DumpNodeType(std::string& out) const
+{
+    switch (GetType()) {
+        case RSRenderNodeType::BASE_NODE: {
+            out += "BASE_NODE";
+            break;
+        }
+        case RSRenderNodeType::DISPLAY_NODE: {
+            out += "DISPLAY_NODE";
+            break;
+        }
+        case RSRenderNodeType::RS_NODE: {
+            out += "RS_NODE";
+            break;
+        }
+        case RSRenderNodeType::SURFACE_NODE: {
+            out += "SURFACE_NODE";
+            break;
+        }
+        case RSRenderNodeType::CANVAS_NODE: {
+            out += "CANVAS_NODE";
+            break;
+        }
+        case RSRenderNodeType::ROOT_NODE: {
+            out += "ROOT_NODE";
+            break;
+        }
+        default: {
+            out += "UNKNOWN_NODE";
+            break;
         }
     }
 }

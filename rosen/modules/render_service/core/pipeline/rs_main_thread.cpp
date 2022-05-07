@@ -212,5 +212,17 @@ void RSMainThread::SendCommands()
         }
     });
 }
+
+void RSMainThread::RenderServiceTreeDump(std::string& dumpString)
+{
+    dumpString.append("\n");
+    dumpString.append("-- RenderServiceTreeDump: \n");
+    const std::shared_ptr<RSBaseRenderNode> rootNode = context_.GetGlobalRootRenderNode();
+    if (rootNode == nullptr) {
+        dumpString.append("rootNode is null\n");
+        return;
+    }
+    rootNode->DumpTree(dumpString);
+}
 } // namespace Rosen
 } // namespace OHOS

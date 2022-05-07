@@ -115,6 +115,8 @@ protected:
     void SetDirty();
     void SetClean();
 
+    void DumpNodeType(std::string& out) const;
+
     const std::weak_ptr<RSContext> GetContext() const
     {
         return context_;

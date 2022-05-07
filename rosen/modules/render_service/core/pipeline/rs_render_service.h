@@ -16,6 +16,7 @@
 #ifndef RENDER_SERVICE_PIPELINE_RS_RENDER_SERVICE_H
 #define RENDER_SERVICE_PIPELINE_RS_RENDER_SERVICE_H
 #include <map>
+#include <unordered_set>
 
 #include "screen_manager/rs_screen_manager.h"
 #include "transaction/rs_render_service_stub.h"
@@ -41,6 +42,7 @@ public:
 
 private:
     int Dump(int fd, const std::vector<std::u16string>& args) override;
+    void DoDump(std::unordered_set<std::u16string>& argSets, std::string& dumpString) const;
     sptr<RSIRenderServiceConnection> CreateConnection(const sptr<RSIConnectionToken>& token) override;
     void RemoveConnection(sptr<IRemoteObject> token);
 
