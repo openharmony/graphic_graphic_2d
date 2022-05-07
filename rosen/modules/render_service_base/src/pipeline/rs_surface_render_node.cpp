@@ -61,15 +61,11 @@ void RSSurfaceRenderNode::ProcessRenderBeforeChildren(RSPaintFilterCanvas& canva
     canvas.SaveAlpha();
     canvas.MultiplyAlpha(GetRenderProperties().GetAlpha() * GetAlpha());
     SkIRect clipBounds = canvas.getDeviceClipBounds();  // this clip region from parent node from render service
-    RS_LOGE("chen RSSurfaceRenderNode::ProcessRenderBeforeChildren cliBoundsFromParent[%d %d %d %d]",
-        clipBounds.left(), clipBounds.top(), clipBounds.width(), clipBounds.height());
     clipRegionFromParent_.SetAll(clipBounds.left(), clipBounds.top(), clipBounds.width(), clipBounds.height());
     RectI clipRegion = CalculateClipRegion(canvas);
     SkRect rect;
     SkPoint points[] = {{clipRegion.left_, clipRegion.top_}, {clipRegion.GetRight(), clipRegion.GetBottom()}};
     rect.setBounds(points, rectBounds);
-    RS_LOGE("chen RSSurfaceRenderNode::ProcessRenderBeforeChildren cliBoundsFromParent[%f %f %f %f]",
-        rect.left(), rect.top(), rect.width(), rect.height());
     canvas.clipRect(rect);
     auto currentClipRegion = canvas.getDeviceClipBounds();
     SetDstRect({ currentClipRegion.left(), currentClipRegion.top(), currentClipRegion.width(),
