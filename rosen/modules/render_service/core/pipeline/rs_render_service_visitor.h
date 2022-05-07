@@ -46,6 +46,7 @@ public:
 
 private:
     float globalZOrder_ = 0.0f;
+    bool isSecurityDisplay_ = false;
     std::shared_ptr<RSProcessor> processor_ = nullptr;
 };
 } // namespace Rosen

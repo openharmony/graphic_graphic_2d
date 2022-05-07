@@ -33,6 +33,10 @@ public:
 
     void SetScreenId(uint64_t screenId);
 
+    void SetSecurityDisplay(bool isSecurityDisplay);
+
+    bool GetSecurityDisplay() const;
+
     RSUINodeType GetType() const override
     {
         return RSUINodeType::DISPLAY_NODE;
@@ -47,6 +51,7 @@ protected:
 
 private:
     uint64_t screenId_;
+    bool isSecurityDisplay_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS

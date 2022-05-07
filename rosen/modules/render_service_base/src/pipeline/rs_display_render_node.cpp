@@ -75,5 +75,15 @@ bool RSDisplayRenderNode::IsMirrorDisplay() const
     return isMirroredDisplay_;
 }
 
+void RSDisplayRenderNode::SetSecurityDisplay(bool isSecurityDisplay)
+{
+    isSecurityDisplay_ = isSecurityDisplay;
+}
+
+bool RSDisplayRenderNode::GetSecurityDisplay() const
+{
+    return isSecurityDisplay_;
+}
+
 } // namespace Rosen
 } // namespace OHOS

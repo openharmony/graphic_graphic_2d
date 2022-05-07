@@ -45,5 +45,12 @@ void DisplayNodeCommandHelper::SetScreenId(RSContext& context, NodeId id, uint64
     }
 }
 
+void DisplayNodeCommandHelper::SetSecurityDisplay(RSContext& context, NodeId id, bool isSecurityDisplay)
+{
+    if (auto node = context.GetNodeMap().GetRenderNode<RSDisplayRenderNode>(id)) {
+        node->SetSecurityDisplay(isSecurityDisplay);
+    }
+}
+
 } // namespace Rosen
 } // namespace OHOS

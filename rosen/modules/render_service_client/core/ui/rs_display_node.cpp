@@ -46,6 +46,22 @@ void RSDisplayNode::SetScreenId(uint64_t screenId)
     ROSEN_LOGD("RSDisplayNode::SetScreenId, ScreenId:%llu", screenId);
 }
 
+void RSDisplayNode::SetSecurityDisplay(bool isSecurityDisplay)
+{
+    isSecurityDisplay_ = isSecurityDisplay;
+    std::unique_ptr<RSCommand> command = std::make_unique<RSDisplayNodeSetSecurityDisplay>(GetId(), isSecurityDisplay);
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        transactionProxy->AddCommand(command, true);
+    }
+    ROSEN_LOGD("RSDisplayNode::SetSecurityDisplay, isSecurityDisplay:%s", isSecurityDisplay ? "true" : "false");
+}
+
+bool RSDisplayNode::GetSecurityDisplay() const
+{
+    return isSecurityDisplay_;
+}
+
 RSDisplayNode::RSDisplayNode(const RSDisplayNodeConfig& config)
     : RSBaseNode(true), screenId_(config.screenId)
 {
