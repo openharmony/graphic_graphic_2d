@@ -85,7 +85,10 @@ typedef Vector4<double> Vector4d;
 
 class Quaternion : public Vector4f {
 public:
-    Quaternion() : Vector4f() {}
+    Quaternion()
+    {
+        Identity();
+    }
     Quaternion(float x, float y, float z, float w) : Vector4f(x, y, z, w) {}
     Quaternion(const Vector4f& other) : Vector4f(other) {}
     Quaternion(const Vector4f&& other) : Vector4f(other) {}
