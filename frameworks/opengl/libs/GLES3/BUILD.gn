@@ -13,17 +13,13 @@
 
 import("//build/ohos/native_stub/native_stub.gni")
 
-ohos_native_stub_headers("GLES3_header") {
-  sources = [
-    "//third_party/openGLES/api/GLES3/gl3.h",
-    "//third_party/openGLES/api/GLES3/gl31.h",
-    "//third_party/openGLES/api/GLES3/gl32.h",
-    "//third_party/openGLES/api/GLES3/gl3platform.h",
-  ]
+config("glesv3_configs") {
+  include_dirs = [ "//third_party/openGLES/api" ]
 }
 
 ohos_native_stub_library("libGLESv3_stub") {
   output_name = "GLESv3"
   output_extension = "so"
+  public_configs = [ ":glesv3_configs" ]
   stub_description_file = "./libGLESv3.stub.json"
 }

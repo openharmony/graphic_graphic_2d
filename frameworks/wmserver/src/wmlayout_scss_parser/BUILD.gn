@@ -24,7 +24,7 @@ config("wmlayout_scss_parser_config") {
   visibility = [ ":*" ]
 
   include_dirs =
-      [ "//foundation/graphic/standard/interfaces/innerkits/wmclient" ]
+      [ "//foundation/graphic/standard/interfaces/inner_api/wmclient" ]
 
   cflags = [
     "-Wall",

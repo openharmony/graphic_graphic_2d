@@ -169,6 +169,6 @@ HWTEST_F(NativeWindowBufferTest, Surface001, Function | MediumTest | Level2)
     close(pipeFd[0]);
     close(pipeFd[1]);
     sam->RemoveSystemAbility(ipcSystemAbilityID);
-    waitpid(pid, nullptr, NULL);
+    waitpid(pid, nullptr, 0);
 }
 }

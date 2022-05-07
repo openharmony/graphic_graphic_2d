@@ -16,6 +16,10 @@
 #include "service_dumper.h"
 #include "system_ability_definition.h"
 
+namespace {
+    constexpr const int32_t DUMP_HELP_RET_CODE = 1;
+}
+
 using namespace OHOS;
 
 // dump
@@ -29,5 +33,9 @@ int main(int argc, char *argv[])
     }
 
     Detail::ServiceDumper dumper(renderService, "Render_Service", 10000); // timeout: 10000 ms.
+    int retCode = dumper.PrintHelpInfo(argc, argv);
+    if (retCode == DUMP_HELP_RET_CODE) {
+        return retCode;
+    }
     return dumper.Run(argc, argv);
 }

@@ -25,6 +25,12 @@ namespace Rosen {
 
 RSSurfaceOhosGl::RSSurfaceOhosGl(const sptr<Surface>& producer) : RSSurfaceOhos(producer)
 {
+    bufferUsage_ = HBM_USE_CPU_READ | HBM_USE_MEM_DMA;
+}
+
+void RSSurfaceOhosGl::SetSurfaceBufferUsage(int32_t usage)
+{
+    bufferUsage_ = usage;
 }
 
 RSSurfaceOhosGl::~RSSurfaceOhosGl()
@@ -58,6 +64,7 @@ std::unique_ptr<RSSurfaceFrame> RSSurfaceOhosGl::RequestFrame(int32_t width, int
 
     std::unique_ptr<RSSurfaceFrameOhosGl> frame = std::make_unique<RSSurfaceFrameOhosGl>(width, height);
 
+    NativeWindowHandleOpt(mWindow, SET_USAGE, bufferUsage_);
     NativeWindowHandleOpt(mWindow, SET_BUFFER_GEOMETRY, width, height);
     NativeWindowHandleOpt(mWindow, GET_BUFFER_GEOMETRY, &mHeight, &mWidth);
     NativeWindowHandleOpt(mWindow, SET_COLOR_GAMUT, colorSpace_);

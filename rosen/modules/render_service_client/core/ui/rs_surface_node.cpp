@@ -147,7 +147,7 @@ void RSSurfaceNode::SetColorSpace(ColorGamut colorSpace)
     colorSpace_ = colorSpace;
 }
 
-bool RSSurfaceNode::SetFirstTimeOnScreenCallback(FirstTimeOnScreenCallback callback)
+bool RSSurfaceNode::SetBufferAvailableCallback(BufferAvailableCallback callback)
 {
     {
         std::lock_guard<std::mutex> lock(mutex_);
@@ -159,14 +159,14 @@ bool RSSurfaceNode::SetFirstTimeOnScreenCallback(FirstTimeOnScreenCallback callb
         return renderServiceClient->RegisterBufferAvailableListener(GetId(), [weakThis = weak_from_this()]() {
             auto rsSurfaceNode = RSBaseNode::ReinterpretCast<RSSurfaceNode>(weakThis.lock());
             if (rsSurfaceNode) {
-                FirstTimeOnScreenCallback actualCallback;
+                BufferAvailableCallback actualCallback;
                 {
                     std::lock_guard<std::mutex> lock(rsSurfaceNode->mutex_);
                     actualCallback = rsSurfaceNode->callback_;
                 }
                 actualCallback();
             } else {
-                ROSEN_LOGE("RSSurfaceNode::SetFirstTimeOnScreenCallback this == null");
+                ROSEN_LOGE("RSSurfaceNode::SetBufferAvailableCallback this == null");
             }
         });
     } else {

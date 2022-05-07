@@ -133,6 +133,8 @@ public:
     virtual ScreenRotation GetRotation(ScreenId id) const = 0;
 
     virtual int32_t GetScreenHDRCapability(ScreenId id, RSScreenHDRCapability& screenHdrCapability) const = 0;
+
+    virtual int32_t GetScreenType(ScreenId id, RSScreenType& type) const = 0;
 };
 
 sptr<RSScreenManager> CreateOrGetScreenManager();
@@ -225,6 +227,8 @@ public:
     ScreenRotation GetRotation(ScreenId id) const override;
 
     int32_t GetScreenHDRCapability(ScreenId id, RSScreenHDRCapability& screenHdrCapability) const override;
+
+    int32_t GetScreenType(ScreenId id, RSScreenType& type) const override;
 private:
     RSScreenManager();
     ~RSScreenManager() noexcept override;
@@ -257,6 +261,7 @@ private:
     bool RequestRotationLocked(ScreenId id, ScreenRotation rotation);
     ScreenRotation GetRotationLocked(ScreenId id) const;
     int32_t GetScreenHDRCapabilityLocked(ScreenId id, RSScreenHDRCapability& screenHdrCapability) const;
+    int32_t GetScreenTypeLocked(ScreenId id, RSScreenType& type) const;
 
     mutable std::mutex mutex_;
     HdiBackend *composer_ = nullptr;
@@ -265,6 +270,8 @@ private:
     std::queue<ScreenId> freeVirtualScreenIds_;
     uint32_t maxVirtualScreenNum_ = 0;
     std::vector<sptr<RSIScreenChangeCallback>> screenChangeCallbacks_;
+    bool mipiCheckInFirstHotPlugEvent_ = false;
+    std::vector<ScreenId> connectedIds_;
 
     static std::once_flag createFlag_;
     static sptr<OHOS::Rosen::RSScreenManager> instance_;

@@ -55,13 +55,26 @@ ohos_executable("drawing_engine_sample") {
     "drawing_engine",
     "drawing_engine/drawing_surface",
     "//foundation/graphic/standard/rosen/modules/composer/hdi_backend/include",
-    "//foundation/graphic/standard/interfaces/innerkits/vsync_module",
+    "//foundation/graphic/standard/interfaces/inner_api/vsync_module",
     "//foundation/graphic/standard/utils/sync_fence/export",
     "//foundation/graphic/standard/rosen/include/common",
   ]
 
+  sources += [
+    "benchmarks/benchmark_config.cpp",
+    "benchmarks/benchmark_multithread/drawing_mutilthread.cpp",
+    "benchmarks/benchmark_singlethread/drawing_singlethread.cpp",
+  ]
+
+  include_dirs += [
+    "benchmarks",
+    "benchmarks/benchmark_singlethread",
+    "benchmarks/benchmark_multithread",
+    "benchmarks/benchmark_api",
+  ]
+
   deps = [
-    "//foundation/ace/ace_engine/build/external_config/flutter/skia:ace_skia_ohos",
+    "//foundation/arkui/ace_engine/build/external_config/flutter/skia:ace_skia_ohos",
     "//foundation/graphic/standard:libsurface",
     "//foundation/graphic/standard:libvsync_client",
     "//foundation/graphic/standard/frameworks/vsync:libvsync_module",
@@ -97,7 +110,7 @@ ohos_executable("drawing_sample_rs") {
     "//foundation/graphic/standard/rosen/modules/render_service_base/src",
     "//foundation/graphic/standard/rosen/modules/render_service_base/include",
     "//foundation/graphic/standard/rosen/modules/render_service_client",
-    "//foundation/graphic/standard/interfaces/innerkits/vsync_module",
+    "//foundation/graphic/standard/interfaces/inner_api/vsync_module",
     "//foundation/graphic/standard/rosen/include/common",
     "//foundation/windowmanager/interfaces/innerkits/wm",
   ]
@@ -129,8 +142,8 @@ ohos_executable("drawing_sample_canvaskit0310") {
     "//foundation/graphic/standard/rosen/modules/composer/hdi_backend/include",
     "//drivers/peripheral/display/interfaces/include",
     "//foundation/graphic/standard/rosen/include/common",
-    "//foundation/graphic/standard/interfaces/innerkits/vsync_module",
-    "//foundation/graphic/standard/interfaces/innerkits/common",
+    "//foundation/graphic/standard/interfaces/inner_api/vsync_module",
+    "//foundation/graphic/standard/interfaces/inner_api/common",
     "//foundation/graphic/standard/rosen/modules/composer/vsync/include",
     "//foundation/graphic/standard/rosen/modules/2d_graphics/include",
     "//foundation/graphic/standard/rosen/modules/2d_graphics/src",

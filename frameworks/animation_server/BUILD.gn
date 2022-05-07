@@ -33,7 +33,7 @@ config("libanimation_service_config") {
 config("libanimation_service_public_config") {
   include_dirs = [
     "export",
-    "//foundation/graphic/standard/interfaces/innerkits/common",
+    "//foundation/graphic/standard/interfaces/inner_api/common",
   ]
 }
 

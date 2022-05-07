@@ -37,6 +37,7 @@ enum RSAnimationCommandType : uint16_t {
     ANIMATION_CREATE_CURVE_VEC4F,
     ANIMATION_CREATE_CURVE_QUATERNION,
     ANIMATION_CREATE_CURVE_FILTER,
+    ANIMATION_CREATE_CURVE_VEC4_COLOR,
     // keyframe animation
     ANIMATION_CREATE_KEYFRAME_INT,
     ANIMATION_CREATE_KEYFRAME_FLOAT,
@@ -46,6 +47,7 @@ enum RSAnimationCommandType : uint16_t {
     ANIMATION_CREATE_KEYFRAME_VEC4F,
     ANIMATION_CREATE_KEYFRAME_QUATERNION,
     ANIMATION_CREATE_KEYFRAME_FILTER,
+    ANIMATION_CREATE_KEYFRAME_VEC4_COLOR,
     // path animation
     ANIMATION_CREATE_PATH,
     // transition animation
@@ -170,8 +172,9 @@ ADD_COMMAND(
     RSAnimationCreateCurveFilter, ARG(ANIMATION, ANIMATION_CREATE_CURVE_FILTER, AnimationCommandHelper::CreateAnimation,
                                      NodeId, std::shared_ptr<RSRenderCurveAnimation<std::shared_ptr<RSFilter>>>))
 ADD_COMMAND(RSAnimationCreateCurveVec4Color,
-    ARG(ANIMATION, ANIMATION_CREATE_CURVE_VEC4F, AnimationCommandHelper::CreateAnimation,
+    ARG(ANIMATION, ANIMATION_CREATE_CURVE_VEC4_COLOR, AnimationCommandHelper::CreateAnimation,
                                      NodeId, std::shared_ptr<RSRenderCurveAnimation<Vector4<Color>>>))
+
 // create keyframe animation
 ADD_COMMAND(
     RSAnimationCreateKeyframeInt, ARG(ANIMATION, ANIMATION_CREATE_KEYFRAME_INT, AnimationCommandHelper::CreateAnimation,
@@ -198,8 +201,9 @@ ADD_COMMAND(RSAnimationCreateKeyframeFilter,
     ARG(ANIMATION, ANIMATION_CREATE_KEYFRAME_FILTER, AnimationCommandHelper::CreateAnimation, NodeId,
         std::shared_ptr<RSRenderKeyframeAnimation<std::shared_ptr<RSFilter>>>))
 ADD_COMMAND(RSAnimationCreateKeyframeVec4Color,
-    ARG(ANIMATION, ANIMATION_CREATE_KEYFRAME_VEC4F, AnimationCommandHelper::CreateAnimation, NodeId,
+    ARG(ANIMATION, ANIMATION_CREATE_KEYFRAME_VEC4_COLOR, AnimationCommandHelper::CreateAnimation, NodeId,
         std::shared_ptr<RSRenderKeyframeAnimation<Vector4<Color>>>))
+
 // create path animation
 ADD_COMMAND(RSAnimationCreatePath, ARG(ANIMATION, ANIMATION_CREATE_PATH, AnimationCommandHelper::CreateAnimation,
                                        NodeId, std::shared_ptr<RSRenderPathAnimation>))

@@ -46,6 +46,7 @@ HWTEST_F(RSHardwareProcessorTest, CreateAndDestory001, TestSize.Level1)
 {
     // The best way to create RSHardwareProcessor.
     auto p = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::HARDWARE_COMPOSITE);
+    EXPECT_NE(p.get(), nullptr);
 }
 
 /**
@@ -57,7 +58,9 @@ HWTEST_F(RSHardwareProcessorTest, CreateAndDestory001, TestSize.Level1)
  */
 HWTEST_F(RSHardwareProcessorTest, CreateAndDestory002, TestSize.Level1)
 {
-    RSHardwareProcessor rsHardwareProcessor;
+    RSProcessorFactory factory;
+    auto p = factory.CreateProcessor(RSDisplayRenderNode::CompositeType::HARDWARE_COMPOSITE);
+    EXPECT_NE(p.get(), nullptr);
 }
 
 /**
@@ -69,9 +72,10 @@ HWTEST_F(RSHardwareProcessorTest, CreateAndDestory002, TestSize.Level1)
  */
 HWTEST_F(RSHardwareProcessorTest, ProcessSurface001, TestSize.Level1)
 {
-    constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[1];
-    auto rsHardwareProcessor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::HARDWARE_COMPOSITE);
-    RSSurfaceRenderNode rsSurfaceRenderNode(nodeId);
+    auto rsHardwareProcessor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::
+        HARDWARE_COMPOSITE);
+    RSSurfaceRenderNodeConfig config;
+    RSSurfaceRenderNode rsSurfaceRenderNode(config);
     rsHardwareProcessor->ProcessSurface(rsSurfaceRenderNode);
 }
 
@@ -84,9 +88,10 @@ HWTEST_F(RSHardwareProcessorTest, ProcessSurface001, TestSize.Level1)
  */
 HWTEST_F(RSHardwareProcessorTest, ProcessSurface002, TestSize.Level1)
 {
-    constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[2];
-    auto rsHardwareProcessor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::HARDWARE_COMPOSITE);
-    RSSurfaceRenderNode rsSurfaceRenderNode(nodeId);
+    auto rsHardwareProcessor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::
+        HARDWARE_COMPOSITE);
+    RSSurfaceRenderNodeConfig config;
+    RSSurfaceRenderNode rsSurfaceRenderNode(config);
     rsHardwareProcessor->ProcessSurface(rsSurfaceRenderNode);
 }
 
@@ -99,9 +104,10 @@ HWTEST_F(RSHardwareProcessorTest, ProcessSurface002, TestSize.Level1)
  */
 HWTEST_F(RSHardwareProcessorTest, ProcessSurface003, TestSize.Level1)
 {
-    constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[3];
-    auto rsHardwareProcessor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::HARDWARE_COMPOSITE);
-    RSSurfaceRenderNode rsSurfaceRenderNode(nodeId);
+    auto rsHardwareProcessor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::
+        HARDWARE_COMPOSITE);
+    RSSurfaceRenderNodeConfig config;
+    RSSurfaceRenderNode rsSurfaceRenderNode(config);
     rsHardwareProcessor->ProcessSurface(rsSurfaceRenderNode);
 }
 
@@ -114,9 +120,10 @@ HWTEST_F(RSHardwareProcessorTest, ProcessSurface003, TestSize.Level1)
  */
 HWTEST_F(RSHardwareProcessorTest, ProcessSurface004, TestSize.Level1)
 {
-    constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[4];
-    auto rsHardwareProcessor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::HARDWARE_COMPOSITE);
-    RSSurfaceRenderNode rsSurfaceRenderNode(nodeId);
+    auto rsHardwareProcessor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::
+        HARDWARE_COMPOSITE);
+    RSSurfaceRenderNodeConfig config;
+    RSSurfaceRenderNode rsSurfaceRenderNode(config);
     rsHardwareProcessor->ProcessSurface(rsSurfaceRenderNode);
 }
 
@@ -129,9 +136,10 @@ HWTEST_F(RSHardwareProcessorTest, ProcessSurface004, TestSize.Level1)
  */
 HWTEST_F(RSHardwareProcessorTest, ProcessSurface005, TestSize.Level1)
 {
-    constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[5];
-    auto rsHardwareProcessor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::HARDWARE_COMPOSITE);
-    RSSurfaceRenderNode rsSurfaceRenderNode(nodeId);
+    auto rsHardwareProcessor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::
+        HARDWARE_COMPOSITE);
+    RSSurfaceRenderNodeConfig config;
+    RSSurfaceRenderNode rsSurfaceRenderNode(config);
     rsHardwareProcessor->ProcessSurface(rsSurfaceRenderNode);
 }
 
@@ -144,9 +152,10 @@ HWTEST_F(RSHardwareProcessorTest, ProcessSurface005, TestSize.Level1)
  */
 HWTEST_F(RSHardwareProcessorTest, ProcessSurface006, TestSize.Level1)
 {
-    constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[6];
-    auto rsHardwareProcessor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::HARDWARE_COMPOSITE);
-    RSSurfaceRenderNode rsSurfaceRenderNode(nodeId);
+    auto rsHardwareProcessor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::
+        HARDWARE_COMPOSITE);
+    RSSurfaceRenderNodeConfig config;
+    RSSurfaceRenderNode rsSurfaceRenderNode(config);
     rsHardwareProcessor->ProcessSurface(rsSurfaceRenderNode);
 }
 
@@ -159,9 +168,10 @@ HWTEST_F(RSHardwareProcessorTest, ProcessSurface006, TestSize.Level1)
  */
 HWTEST_F(RSHardwareProcessorTest, ProcessSurface007, TestSize.Level1)
 {
-    constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[7];
-    auto rsHardwareProcessor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::HARDWARE_COMPOSITE);
-    RSSurfaceRenderNode rsSurfaceRenderNode(nodeId);
+    auto rsHardwareProcessor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::
+        HARDWARE_COMPOSITE);
+    RSSurfaceRenderNodeConfig config;
+    RSSurfaceRenderNode rsSurfaceRenderNode(config);
     rsHardwareProcessor->ProcessSurface(rsSurfaceRenderNode);
 }
 
@@ -174,9 +184,10 @@ HWTEST_F(RSHardwareProcessorTest, ProcessSurface007, TestSize.Level1)
  */
 HWTEST_F(RSHardwareProcessorTest, ProcessSurface008, TestSize.Level1)
 {
-    constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[0];
-    auto rsHardwareProcessor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::HARDWARE_COMPOSITE);
-    RSSurfaceRenderNode rsSurfaceRenderNode(nodeId);
+    auto rsHardwareProcessor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::
+        HARDWARE_COMPOSITE);
+    RSSurfaceRenderNodeConfig config;
+    RSSurfaceRenderNode rsSurfaceRenderNode(config);
     rsHardwareProcessor->ProcessSurface(rsSurfaceRenderNode);
 }
 
@@ -189,7 +200,8 @@ HWTEST_F(RSHardwareProcessorTest, ProcessSurface008, TestSize.Level1)
  */
 HWTEST_F(RSHardwareProcessorTest, PostProcess001, TestSize.Level1)
 {
-    auto rsHardwareProcessor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::HARDWARE_COMPOSITE);
+    auto rsHardwareProcessor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::
+        HARDWARE_COMPOSITE);
     rsHardwareProcessor->PostProcess();
 }
 } // namespace OHOS::Rosen

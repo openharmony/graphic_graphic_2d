@@ -129,18 +129,6 @@ HWTEST_F(HdiOutputTest, GetFramebuffer001, Function | MediumTest| Level3)
 {
     ASSERT_EQ(HdiOutputTest::hdiOutput_->GetFramebuffer(), nullptr);
 }
-
-/**
- * @tc.name: GetFramebufferFence001
- * @tc.desc: Verify the GetFramebufferFence of hdioutput
- * @tc.type:FUNC
- * @tc.require:AR000GGP0P
- * @tc.author:
- */
-HWTEST_F(HdiOutputTest, GetFramebufferFence001, Function | MediumTest| Level3)
-{
-    ASSERT_NE(HdiOutputTest::hdiOutput_->GetFramebufferFence(), nullptr);
-}
 } // namespace
 } // namespace Rosen
 } // namespace OHOS

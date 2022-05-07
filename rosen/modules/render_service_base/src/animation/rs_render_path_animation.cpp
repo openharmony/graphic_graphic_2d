@@ -156,7 +156,7 @@ void RSRenderPathAnimation::OnAnimate(float fraction)
     Vector2f position;
     float tangent = 0;
     animationPath_->GetPosTan(distance * progress, position, tangent);
-    SetPathValue(position, tangent);
+    SetPathValue(position + RSRenderPropertyAnimation::GetOriginValue(), tangent);
 #endif
 }
 

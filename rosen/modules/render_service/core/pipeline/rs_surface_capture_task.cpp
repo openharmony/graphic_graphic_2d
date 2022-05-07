@@ -67,7 +67,7 @@ std::unique_ptr<Media::PixelMap> RSSurfaceCaptureTask::Run()
         RS_LOGE("RSSurfaceCaptureTask::Run: canvas is nullptr!");
         return nullptr;
     }
-    visitor->SetCanvas(std::move(canvas));
+    visitor->SetCanvas(canvas.get());
     visitor->SetScale(scaleX_, scaleY_);
     node->Process(visitor);
     return pixelmap;
@@ -141,13 +141,13 @@ std::unique_ptr<SkCanvas> RSSurfaceCaptureTask::CreateCanvas(const std::unique_p
     return SkCanvas::MakeRasterDirect(info, address, pixelmap->GetRowBytes());
 }
 
-void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::SetCanvas(std::unique_ptr<SkCanvas> canvas)
+void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::SetCanvas(SkCanvas* canvas)
 {
     if (canvas == nullptr) {
         RS_LOGE("RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::SetCanvas: address == nullptr");
         return;
     }
-    canvas_ = std::move(canvas);
+    canvas_ = std::make_unique<RSPaintFilterCanvas>(canvas);
 }
 
 void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode &node)
@@ -219,10 +219,11 @@ void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::ProcessSurfaceRenderNode(RSS
         auto existedParent = node.GetParent().lock();
         if (existedParent && existedParent->IsInstanceOf<RSSurfaceRenderNode>()) {
             param.matrix = node.GetMatrix();
-            auto parentRect = std::static_pointer_cast<RSSurfaceRenderNode>(existedParent)->GetDstRect();
+            auto& parent = *std::static_pointer_cast<RSSurfaceRenderNode>(existedParent);
+            auto parentRect = RsRenderServiceUtil::CreateBufferDrawParam(parent).clipRect;
             //Changes the clip area from absolute to relative to the parent window and deal with clip area with scale
             //Based on the origin of the parent window.
-            param.clipRect.offsetTo(param.clipRect.left() - parentRect.left_, param.clipRect.top() - parentRect.top_);
+            param.clipRect.offsetTo(param.clipRect.left() - parentRect.left(), param.clipRect.top() - parentRect.top());
             SkMatrix scaleMatrix = SkMatrix::I();
             scaleMatrix.preScale(scaleX_, scaleY_, 0, 0);
             param.clipRect = scaleMatrix.mapRect(param.clipRect);

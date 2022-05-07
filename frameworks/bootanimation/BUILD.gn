@@ -21,6 +21,7 @@ config("bootanimation_config") {
   include_dirs = [
     "include",
     "//foundation/graphic/standard/utils/log",
+    "//third_party/cJSON",
     "//foundation/multimedia/media_standard/interfaces/inner_api/native",
   ]
 
@@ -49,9 +50,9 @@ ohos_executable("bootanimation") {
   ]
 
   deps = [
-    "//base/global/resmgr_standard/frameworks/resmgr:global_resmgr",
+    "//base/global/resource_management/frameworks/resmgr:global_resmgr",
     "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
-    "//foundation/ace/ace_engine/build/external_config/flutter/skia:ace_skia_ohos",
+    "//foundation/arkui/ace_engine/build/external_config/flutter/skia:ace_skia_ohos",
     "//foundation/distributedschedule/samgr/interfaces/innerkits/samgr_proxy:samgr_proxy",
     "//foundation/graphic/standard:libsurface",
     "//foundation/graphic/standard:libvsync_client",
@@ -65,11 +66,12 @@ ohos_executable("bootanimation") {
     "//foundation/windowmanager/dmserver:libdms",
     "//foundation/windowmanager/wm:libwm",
     "//foundation/windowmanager/wmserver:libwms",
+    "//third_party/cJSON:cjson_static",
     "//third_party/zlib:libz",
   ]
 
   external_deps = [
-    "bytrace_standard:bytrace_core",
+    "hitrace_native:hitrace_meter",
     "ipc:ipc_core",
   ]
 

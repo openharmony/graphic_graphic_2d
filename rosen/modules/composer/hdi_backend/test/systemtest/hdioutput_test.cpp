@@ -83,7 +83,6 @@ HWTEST_F(HdiOutputSysTest, TestHdiOutput001, Function | MediumTest| Level3)
 
     ASSERT_NE(HdiOutputSysTest::hdiOutput_->GetFrameBufferSurface(), nullptr);
     ASSERT_EQ(HdiOutputSysTest::hdiOutput_->GetFramebuffer(), nullptr);
-    ASSERT_NE(HdiOutputSysTest::hdiOutput_->GetFramebufferFence(), nullptr);
 }
 } // namespace
 } // namespace Rosen

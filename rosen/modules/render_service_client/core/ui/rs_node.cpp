@@ -299,6 +299,24 @@ bool IsValid(const Vector4f& value)
         stagingProperties_.Set##propertyName(value);                                                    \
     } while (0)
 
+#define CREATE_PATH_ANIMATION(propertyName, value, property)                                            \
+    do {                                                                                                \
+        auto currentValue = stagingProperties_.Get##propertyName();                                     \
+        if (implicitAnimator_ && implicitAnimator_->NeedImplicitAnimaton() && IsValid(currentValue)) {  \
+            implicitAnimator_->BeginImplicitPathAnimation(motionPathOption_);                           \
+            implicitAnimator_->CreateImplicitAnimation(*this, property, currentValue, value);           \
+            implicitAnimator_->EndImplicitPathAnimation();                                              \
+            return;                                                                                     \
+        } else if (HasPropertyAnimation(property)) {                                                    \
+            FinishAnimationByProperty(property);                                                        \
+            SET_NONANIMATABLE_PROPERTY(propertyName, value);                                            \
+            return;                                                                                     \
+        } else {                                                                                        \
+            SET_NONANIMATABLE_PROPERTY(propertyName, value);                                            \
+            return;                                                                                     \
+        }                                                                                               \
+    } while (0)
+
 // alpha
 void RSNode::SetAlpha(float alpha)
 {
@@ -308,6 +326,13 @@ void RSNode::SetAlpha(float alpha)
 // Bounds
 void RSNode::SetBounds(const Vector4f& bounds)
 {
+    if (motionPathOption_ != nullptr) {
+        auto value = bounds;
+        SetBoundsPosition(value[0], value[1]);
+        SetBoundsSize(value[2], value[3]);
+        return;
+    }
+
     SET_ANIMATABLE_PROPERTY(Bounds, bounds, RSAnimatableProperty::BOUNDS);
 }
 
@@ -338,6 +363,11 @@ void RSNode::SetBoundsHeight(float height)
 
 void RSNode::SetBoundsPosition(const Vector2f& boundsPosition)
 {
+    if (motionPathOption_ != nullptr) {
+        CREATE_PATH_ANIMATION(BoundsPosition, boundsPosition, RSAnimatableProperty::BOUNDS_POSITION);
+        return;
+    }
+
     SET_ANIMATABLE_PROPERTY(BoundsPosition, boundsPosition, RSAnimatableProperty::BOUNDS_POSITION);
 }
 
@@ -359,6 +389,13 @@ void RSNode::SetBoundsPositionY(float positionY)
 // Frame
 void RSNode::SetFrame(const Vector4f& bounds)
 {
+    if (motionPathOption_ != nullptr) {
+        auto value = bounds;
+        SetFramePosition(value[0], value[1]);
+        SetFrameSize(value[2], value[3]);
+        return;
+    }
+
     SET_ANIMATABLE_PROPERTY(Frame, bounds, RSAnimatableProperty::FRAME);
 }
 
@@ -389,6 +426,11 @@ void RSNode::SetFrameHeight(float height)
 
 void RSNode::SetFramePosition(const Vector2f& position)
 {
+    if (motionPathOption_ != nullptr) {
+        CREATE_PATH_ANIMATION(FramePosition, position, RSAnimatableProperty::FRAME_POSITION);
+        return;
+    }
+
     SET_ANIMATABLE_PROPERTY(FramePosition, position, RSAnimatableProperty::FRAME_POSITION);
 }
 
@@ -473,6 +515,11 @@ void RSNode::SetRotationY(float degree)
 
 void RSNode::SetTranslate(const Vector2f& translate)
 {
+    if (motionPathOption_ != nullptr) {
+        CREATE_PATH_ANIMATION(Translate, translate, RSAnimatableProperty::TRANSLATE);
+        return;
+    }
+
     SET_ANIMATABLE_PROPERTY(Translate, translate, RSAnimatableProperty::TRANSLATE);
 }
 

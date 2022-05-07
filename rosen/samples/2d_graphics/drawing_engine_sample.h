@@ -29,6 +29,7 @@
 #include "drawing_utils.h"
 #include "drawing_proxy.h"
 #include "surface_ohos.h"
+#include "benchmark.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -37,13 +38,15 @@ public:
     DrawingEngineSample() = default;
     virtual ~DrawingEngineSample() = default;
     void Run();
+    void SetBenchMark(OHOS::Rosen::BenchMark* benchMark);
 private:
+    OHOS::Rosen::BenchMark* benchMark_ = nullptr;
     uint32_t freq_ = 30;
-    uint32_t display_w = 0;
-    uint32_t display_h = 0;
+    int32_t display_w = 0;
+    int32_t display_h = 0;
     uint32_t currentModeIndex_ = 0;
-    uint32_t drawingWidth = 0;
-    uint32_t drawingHeight = 0;
+    int32_t drawingWidth = 0;
+    int32_t drawingHeight = 0;
     std::vector<DisplayModeInfo> displayModeInfos_;
     std::vector<std::shared_ptr<HdiOutput>> outputs_;
     std::shared_ptr<OHOS::AppExecFwk::EventHandler> handler;
@@ -71,7 +74,7 @@ private:
     void DoPrepareCompleted(sptr<Surface> surface, const struct PrepareCompleteParam &param);
     virtual void OnBufferAvailable() override;
     SurfaceError DoDraw();
-    void Draw(SkCanvas* canvas);
+    void ExcuteBenchMark(SkCanvas* canvas);
     bool DrawDrawingLayer(std::shared_ptr<HdiLayerInfo> &layer);
     void CreateDrawingSurface();
     void OnHotPlugEvent(std::shared_ptr<HdiOutput> &output, bool connected);

@@ -15,7 +15,7 @@
 
 #include "scoped_bytrace.h"
 
-#include <bytrace.h>
+#include <hitrace_meter.h>
 #include <hilog/log.h>
 
 ScopedBytrace::ScopedBytrace(const std::string &proc) : proc_(proc)

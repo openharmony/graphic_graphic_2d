@@ -39,6 +39,8 @@ public:
     static void DrawForegroundColor(const RSProperties& properties, SkCanvas& canvas);
     static void DrawTransitionProperties(const std::unique_ptr<RSTransitionProperties>& transitionProperties,
         const RSProperties& properties, RSPaintFilterCanvas& canvas);
+    static void DrawTransitionProperties(const std::unique_ptr<RSTransitionProperties>& transitionProperties,
+        const Vector2f& center, RSPaintFilterCanvas& canvas);
     static void DrawMask(const RSProperties& properties, SkCanvas& canvas);
 };
 } // namespace Rosen

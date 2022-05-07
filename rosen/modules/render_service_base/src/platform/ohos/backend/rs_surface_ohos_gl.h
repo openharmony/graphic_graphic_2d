@@ -39,6 +39,8 @@ public:
 
     std::unique_ptr<RSSurfaceFrame> RequestFrame(int32_t width, int32_t height) override;
     bool FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame) override;
+
+    void SetSurfaceBufferUsage(int32_t usage) override;
 private:
     EGLSurface mEglSurface = EGL_NO_SURFACE;
     struct NativeWindow* mWindow = nullptr;

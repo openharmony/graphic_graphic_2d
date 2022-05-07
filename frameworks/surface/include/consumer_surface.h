@@ -46,13 +46,21 @@ public:
         int64_t &timestamp, Rect &damage) override;
     GSError ReleaseBuffer(sptr<SurfaceBuffer>& buffer, int32_t fence) override;
 
+    GSError RequestBuffer(sptr<SurfaceBuffer>& buffer,
+                                       sptr<SyncFence>& fence, BufferRequestConfig &config) override;
+    GSError FlushBuffer(sptr<SurfaceBuffer>& buffer,
+                                     const sptr<SyncFence>& fence, BufferFlushConfig &config) override;
+    GSError AcquireBuffer(sptr<SurfaceBuffer>& buffer, sptr<SyncFence>& fence,
+                                       int64_t &timestamp, Rect &damage) override;
+    GSError ReleaseBuffer(sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& fence) override;
+
     GSError AttachBuffer(sptr<SurfaceBuffer>& buffer) override;
     GSError DetachBuffer(sptr<SurfaceBuffer>& buffer) override;
 
     uint32_t GetQueueSize() override;
     GSError SetQueueSize(uint32_t queueSize) override;
 
-    GSError GetName(std::string &name) override;
+    const std::string& GetName() override;
 
     GSError SetDefaultWidthAndHeight(int32_t width, int32_t height) override;
     int32_t GetDefaultWidth() override;
@@ -66,6 +74,7 @@ public:
     GSError RegisterConsumerListener(sptr<IBufferConsumerListener>& listener) override;
     GSError RegisterConsumerListener(IBufferConsumerListenerClazz *listener) override;
     GSError RegisterReleaseListener(OnReleaseFunc func) override;
+    GSError RegisterDeleteBufferListener(OnDeleteBufferFunc func) override;
     GSError UnregisterConsumerListener() override;
 
     uint64_t GetUniqueId() const override;

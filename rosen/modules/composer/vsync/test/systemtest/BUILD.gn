@@ -28,7 +28,7 @@ ohos_systemtest("vsync_test") {
   sources = [ "vsync_test.cpp" ]
 
   include_dirs = [
-    "//foundation/graphic/standard/interfaces/innerkits/common",
+    "//foundation/graphic/standard/interfaces/inner_api/common",
     "//foundation/graphic/standard/rosen/modules/composer/vsync/include",
     "//foundation/graphic/standard/rosen/modules/composer/vsync/test",
     "//utils/system/safwk/native/include",

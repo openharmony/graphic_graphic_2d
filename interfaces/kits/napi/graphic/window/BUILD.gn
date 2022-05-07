@@ -18,8 +18,6 @@ ohos_shared_library("window") {
   sources = [ "native_window_module.cpp" ]
 
   configs = [
-    "//foundation/appexecfwk/standard/interfaces/innerkits/appexecfwk_core:bundlemgr_sdk_config",
-    "//foundation/appexecfwk/standard/interfaces/innerkits/appexecfwk_base:appexecfwk_base_sdk_config",
     "//foundation/aafwk/standard/interfaces/innerkits/want:want_public_config",
     "//foundation/aafwk/standard/interfaces/innerkits/ability_manager:ability_manager_public_config",
     "//foundation/aafwk/standard/services/abilitymgr:abilityms_config",

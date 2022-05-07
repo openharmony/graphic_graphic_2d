@@ -43,7 +43,7 @@ typedef struct {
     bool isDeleting;
 
     BufferRequestConfig config;
-    int32_t fence;
+    sptr<SyncFence> fence;
     int64_t timestamp;
     Rect damage;
 } BufferElement;
@@ -63,14 +63,14 @@ public:
     GSError CancelBuffer(int32_t sequence, const sptr<BufferExtraData> &bedata);
 
     GSError FlushBuffer(int32_t sequence, const sptr<BufferExtraData> &bedata,
-                             int32_t fence, const BufferFlushConfig &config);
+                             const sptr<SyncFence>& fence, const BufferFlushConfig &config);
 
     GSError DoFlushBuffer(int32_t sequence, const sptr<BufferExtraData> &bedata,
-                               int32_t fence, const BufferFlushConfig &config);
+                               const sptr<SyncFence>& fence, const BufferFlushConfig &config);
 
-    GSError AcquireBuffer(sptr<SurfaceBuffer>& buffer, int32_t &fence,
+    GSError AcquireBuffer(sptr<SurfaceBuffer>& buffer, sptr<SyncFence>& fence,
                                int64_t &timestamp, Rect &damage);
-    GSError ReleaseBuffer(sptr<SurfaceBuffer>& buffer, int32_t fence);
+    GSError ReleaseBuffer(sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& fence);
 
     GSError AttachBuffer(sptr<SurfaceBuffer>& buffer);
 
@@ -84,6 +84,7 @@ public:
     GSError RegisterConsumerListener(sptr<IBufferConsumerListener>& listener);
     GSError RegisterConsumerListener(IBufferConsumerListenerClazz *listener);
     GSError RegisterReleaseListener(OnReleaseFunc func);
+    GSError RegisterDeleteBufferListener(OnDeleteBufferFunc func);
     GSError UnregisterConsumerListener();
 
     GSError SetDefaultWidthAndHeight(int32_t width, int32_t height);
@@ -106,7 +107,6 @@ public:
 
 private:
     GSError AllocBuffer(sptr<SurfaceBuffer>& buffer, const BufferRequestConfig &config);
-    GSError FreeBuffer(sptr<SurfaceBuffer>& buffer);
     void DeleteBufferInCache(int sequence);
     void DumpToFile(int32_t sequence);
 
@@ -136,6 +136,7 @@ private:
     const uint64_t uniqueId_;
     sptr<BufferManager> bufferManager_ = nullptr;
     OnReleaseFunc onBufferRelease = nullptr;
+    OnDeleteBufferFunc onBufferDelete_ = nullptr;
     bool isShared_ = false;
     std::condition_variable waitReqCon_;
 };

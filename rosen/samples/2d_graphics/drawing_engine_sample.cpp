@@ -24,11 +24,19 @@
 #include <vsync_receiver.h>
 #include <iostream>
 
+#include "include/core/SkBitmap.h"
+
 using namespace OHOS;
 using namespace OHOS::Rosen;
 
 namespace {
     sptr<VSyncReceiver> g_receiver = nullptr;
+}
+
+void DrawingEngineSample::SetBenchMark(OHOS::Rosen::BenchMark* benchMark)
+{
+    benchMark_ = benchMark;
+    std::cout << "SetBenchMark is " << benchMark_ << std::endl;
 }
 
 void DrawingEngineSample::Run()
@@ -109,16 +117,17 @@ void DrawingEngineSample::InitContext()
 
 void DrawingEngineSample::Init()
 {
-    LOGI("DrawingEngineSample::Init+");
+    std::cout << "DrawingEngineSample::Init+" << std::endl;
     CreateDrawingSurface();
     InitContext();
     Sync(0, nullptr);
     Initilized = true;
-    LOGI("DrawingEngineSample::Init-");
+    std::cout << "DrawingEngineSample::Init-" << std::endl;
 }
 
 void DrawingEngineSample::Sync(int64_t, void *data)
 {
+    std::cout << "Sync+" << std::endl;
     VSyncReceiver::FrameCallback fcb = {
         .userData_ = data,
         .callback_ = std::bind(&DrawingEngineSample::Sync, this, ::std::placeholders::_1, ::std::placeholders::_2),
@@ -139,6 +148,7 @@ void DrawingEngineSample::Sync(int64_t, void *data)
     }
 
     OutPutDisplay();
+    std::cout << "Sync-" << std::endl;
 }
 
 void DrawingEngineSample::CreateDrawingSurface()
@@ -159,16 +169,15 @@ void DrawingEngineSample::OnBufferAvailable()
 {
 }
 
-void DrawingEngineSample::Draw(SkCanvas* canvas)
+void DrawingEngineSample::ExcuteBenchMark(SkCanvas* canvas)
 {
-    SkPaint paint;
-    paint.setAntiAlias(true);
-    paint.setColor(0xFF9A67BE);
-    paint.setStrokeWidth(20);
-    canvas->skew(1, 0);
-    canvas->drawLine(32, 96,32, 160, paint); // point position
-    canvas->skew(-2, 0);
-    canvas->drawLine(288, 96, 288, 160, paint); // point position
+    std::cout << "ExcuteBenchMark benchmark is " << benchMark_ << std::endl;
+    if (benchMark_ == nullptr) {
+        return;
+    }
+    benchMark_->Start();
+    benchMark_->Test(canvas, drawingWidth, drawingHeight);
+    benchMark_->Stop();
 }
 
 SurfaceError DrawingEngineSample::DoDraw()
@@ -185,7 +194,8 @@ SurfaceError DrawingEngineSample::DoDraw()
     }
 
     SkCanvas* canvas = surface->GetCanvas(surfaceFrame);
-    Draw(canvas);
+
+    ExcuteBenchMark(canvas);
 
     surface->FlushFrame(surfaceFrame);
     
@@ -256,9 +266,6 @@ void DrawingEngineSample::OutPutDisplay()
     static int32_t count = 0;
     std::shared_ptr<HdiLayerInfo> drawingLayer = HdiLayerInfo::CreateHdiLayerInfo();
     do {
-        std::cout << " draw count " << count << std::endl;
-        LOGI("OutPutDisplay draw count is %{pubic}d", count);
-
         if (!DrawDrawingLayer(drawingLayer)) {
             std::cout << "DrawDrawingLayer failed!" << std::endl;
             return;

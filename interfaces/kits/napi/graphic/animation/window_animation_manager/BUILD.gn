@@ -36,6 +36,7 @@ ohos_shared_library("windowanimationmanager_napi") {
   ]
 
   external_deps = [
+    "ability_runtime:ability_manager",
     "ability_runtime:runtime",
     "eventhandler:libeventhandler",
     "ipc:ipc_core",

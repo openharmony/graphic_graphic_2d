@@ -26,6 +26,7 @@
 #include "include/effects/SkDashPathEffect.h"
 #include "include/effects/SkLumaColorFilter.h"
 #include "include/utils/SkShadowUtils.h"
+#include "common/rs_vector2.h"
 #include "pipeline/rs_draw_cmd_list.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_root_render_node.h"
@@ -263,13 +264,13 @@ void RSPropertiesPainter::DrawBorder(const RSProperties& properties, SkCanvas& c
                     rect.GetRight() - borderRightWidth / PARAM_DOUBLE, rect.GetBottom() - addLen * borderBottomWidth,
                     rect.GetRight() - borderRightWidth / PARAM_DOUBLE, rect.top_ + borderTopWidth, paint);
             }
-            if (border->ApplyLineStyle(paint, RSBorder::TOP, rect.height_)) {
+            if (border->ApplyLineStyle(paint, RSBorder::TOP, rect.width_)) {
                 float addLen = (border->GetStyle(RSBorder::TOP) != BorderStyle::DOTTED) ? 0.0f : 0.5f;
                 canvas.drawLine(
                     rect.GetRight() - addLen * borderRightWidth, rect.top_ + borderTopWidth / PARAM_DOUBLE,
                     rect.left_ + borderLeftWidth, rect.top_ + borderTopWidth / PARAM_DOUBLE, paint);
             }
-            if (border->ApplyLineStyle(paint, RSBorder::BOTTOM, rect.height_)) {
+            if (border->ApplyLineStyle(paint, RSBorder::BOTTOM, rect.width_)) {
                 float addLen = (border->GetStyle(RSBorder::BOTTOM) != BorderStyle::DOTTED) ? 0.0f : 0.5f;
                 canvas.drawLine(
                     rect.left_ + addLen * borderLeftWidth, rect.GetBottom() - borderBottomWidth / PARAM_DOUBLE,
@@ -314,6 +315,12 @@ void RSPropertiesPainter::DrawForegroundColor(const RSProperties& properties, Sk
 void RSPropertiesPainter::DrawTransitionProperties(const std::unique_ptr<RSTransitionProperties>& transitionProperties,
     const RSProperties& properties, RSPaintFilterCanvas& canvas)
 {
+    DrawTransitionProperties(transitionProperties, properties.GetBoundsSize() * 0.5f, canvas);
+}
+
+void RSPropertiesPainter::DrawTransitionProperties(const std::unique_ptr<RSTransitionProperties>& transitionProperties,
+    const Vector2f& center, RSPaintFilterCanvas& canvas)
+{
     if (transitionProperties == nullptr) {
         return;
     }
@@ -325,7 +332,6 @@ void RSPropertiesPainter::DrawTransitionProperties(const std::unique_ptr<RSTrans
     canvas.translate(translate.x_, translate.y_);
 
     // scale and rotate about the center of node, currently scaleZ is not used
-    auto center = properties.GetBoundsSize() * 0.5f;
     auto scale = transitionProperties->GetScale();
     canvas.translate(center.x_, center.y_);
     canvas.scale(scale.x_, scale.y_);

@@ -32,8 +32,8 @@ config("wmserver_config") {
     "//third_party/weston/libweston",
     "//third_party/wayland-ivi-extension/ivi-input-modules/ivi-input-controller/src/",
     "//utils/native/base/include",
-    "//foundation/graphic/standard/interfaces/innerkits/wmclient",
-    "//foundation/graphic/standard/interfaces/innerkits/wmservice",
+    "//foundation/graphic/standard/interfaces/inner_api/wmclient",
+    "//foundation/graphic/standard/interfaces/inner_api/wmservice",
   ]
 
   cflags = [

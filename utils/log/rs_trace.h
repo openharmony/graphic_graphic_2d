@@ -17,7 +17,7 @@
 #define GRAPHIC_RS_TRACE_H
 
 #ifndef ROSEN_TRACE_DISABLE
-#include "bytrace.h"
+#include "hitrace_meter.h"
 #define ROSEN_TRACE_BEGIN(tag, name) StartTrace(tag, name)
 #define RS_TRACE_BEGIN(name) ROSEN_TRACE_BEGIN(BYTRACE_TAG_GRAPHIC_AGP, name)
 #define ROSEN_TRACE_END(tag) FinishTrace(tag)

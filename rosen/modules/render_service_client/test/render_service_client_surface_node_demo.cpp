@@ -55,6 +55,7 @@ std::map<std::string, std::function<int32_t()>> playerTable;
 // If you want compile this demo, please add
 // "//foundation/graphic/standard/rosen/modules/render_service_client/test:render_service_client_surface_node_demo",
 // to bundle.json.
+// and add "multimedia_media_standard:media_client" to external_deps in BUILD.gn.
 // Attention: Before use this demo, please push any mp4 file which must be renamed "H264_Main.mp4" to /data,
 // otherwise the demo would stop unnormally.
 
@@ -124,8 +125,8 @@ void Init(std::shared_ptr<RSUIDirector> rsUiDirector, int width, int height)
     cout << "surfaceNode id = " << surfaceNode->GetId() << endl;
     // SetBounds also can be (300, 300, 960, 540);
     surfaceNode->SetBounds(30, 30, 512, 256);
-    surfaceNode->SetFirstTimeOnScreenCallback([]() {
-         cout << "SetFirstTimeOnScreenCallback" << endl;
+    surfaceNode->SetBufferAvailableCallback([]() {
+         cout << "SetBufferAvailableCallback" << endl;
     });
 
     canvasNode->AddChild(surfaceNode, -1);

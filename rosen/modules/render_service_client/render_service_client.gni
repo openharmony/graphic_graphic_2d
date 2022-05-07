@@ -11,7 +11,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import("//build/ohos.gni")
+
 declare_args() {
   enable_export_macro = true
   rosen_root = "//foundation/graphic/standard/rosen"
+
+  rss_enabled = false
+  if (defined(global_parts_info) &&
+      defined(global_parts_info.resourceschedule_resource_schedule_service)) {
+    rss_enabled = true
+  }
 }

@@ -11,13 +11,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-group("unittest") {
+group("test") {
   testonly = true
 
   deps = [
-    "unittest/draw:unittest",
-    "unittest/effect:unittest",
-    "unittest/image:unittest",
-    "unittest/utils:unittest",
+    "fuzztest:fuzztest",
+    "unittest:unittest",
   ]
 }

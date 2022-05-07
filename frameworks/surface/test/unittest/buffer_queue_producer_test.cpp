@@ -18,6 +18,7 @@
 #include <buffer_extra_data_impl.h>
 #include <buffer_queue_producer.h>
 #include "buffer_consumer_listener.h"
+#include "sync_fence.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -183,13 +184,15 @@ HWTEST_F(BufferQueueProducerTest, ReqFlu001, Function | MediumTest | Level2)
     GSError ret = bqp->RequestBuffer(requestConfig, bedata, retval);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
-    ret = bqp->FlushBuffer(retval.sequence, bedata, -1, flushConfig);
+    sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
+    ret = bqp->FlushBuffer(retval.sequence, bedata, acquireFence, flushConfig);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
     ret = bq->AcquireBuffer(retval.buffer, retval.fence, timestamp, damage);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
-    ret = bq->ReleaseBuffer(retval.buffer, -1);
+    sptr<SyncFence> releaseFence = SyncFence::INVALID_FENCE;
+    ret = bq->ReleaseBuffer(retval.buffer, releaseFence);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 }
 
@@ -209,16 +212,18 @@ HWTEST_F(BufferQueueProducerTest, ReqFlu002, Function | MediumTest | Level2)
     GSError ret = bqp->RequestBuffer(requestConfig, bedata, retval);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
-    ret = bqp->FlushBuffer(retval.sequence, bedata, -1, flushConfig);
+    sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
+    ret = bqp->FlushBuffer(retval.sequence, bedata, acquireFence, flushConfig);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
-    ret = bqp->FlushBuffer(retval.sequence, bedata, -1, flushConfig);
+    ret = bqp->FlushBuffer(retval.sequence, bedata, acquireFence, flushConfig);
     ASSERT_NE(ret, OHOS::GSERROR_OK);
 
     ret = bq->AcquireBuffer(retval.buffer, retval.fence, timestamp, damage);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
-    ret = bq->ReleaseBuffer(retval.buffer, -1);
+    sptr<SyncFence> releaseFence = SyncFence::INVALID_FENCE;
+    ret = bq->ReleaseBuffer(retval.buffer, releaseFence);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 }
 }

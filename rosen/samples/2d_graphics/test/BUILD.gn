@@ -53,11 +53,11 @@ ohos_executable("drawing_sample") {
     "//drivers/peripheral/display/interfaces/include",
     "//foundation/graphic/standard/rosen/include/common",
     "//foundation/graphic/standard/rosen/modules/composer/vsync/include",
-    "//foundation/graphic/standard/interfaces/innerkits/composer",
+    "//foundation/graphic/standard/interfaces/inner_api/composer",
   ]
 
   deps = [
-    "//foundation/ace/ace_engine/build/external_config/flutter/skia:ace_skia_ohos",
+    "//foundation/arkui/ace_engine/build/external_config/flutter/skia:ace_skia_ohos",
     "//foundation/graphic/standard:libsurface",
     "//foundation/graphic/standard/rosen/modules/2d_graphics:2d_graphics",
     "//foundation/graphic/standard/rosen/modules/composer:libcomposer",

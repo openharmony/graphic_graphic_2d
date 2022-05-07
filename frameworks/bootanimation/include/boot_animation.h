@@ -33,26 +33,30 @@
 #include <render_context/render_context.h>
 #include <system_ability_definition.h>
 #include <ui/rs_surface_extractor.h>
-#include <vsync_helper.h>
 #include <window.h>
 #include <window_option.h>
 #include <window_scene.h>
+#include "event_handler.h"
 #include "player.h"
 #include "vsync_receiver.h"
+#include "util.h"
 
 namespace OHOS {
 class BootAnimation {
 public:
-    void Init(int32_t width, int32_t height, const std::shared_ptr<AppExecFwk::EventHandler>& handler);
+    void Init(int32_t width, int32_t height, const std::shared_ptr<AppExecFwk::EventHandler>& handler,
+        std::shared_ptr<AppExecFwk::EventRunner>& runner);
     void Draw();
     void CheckExitAnimation();
     void PlaySound();
+    bool CheckFrameRateValid(int32_t ratevalue);
+    ~BootAnimation();
 private:
-    void OnDraw(SkCanvas* canvas);
+    void OnVsync();
+    void OnDraw(SkCanvas* canvas, int32_t curNo);
     void InitBootWindow();
     void InitRsSurface();
     void InitPicCoordinates();
-    void RequestNextVsync();
     int32_t windowWidth_;
     int32_t windowHeight_;
     sptr<OHOS::Rosen::Window> window_;
@@ -61,15 +65,17 @@ private:
     std::shared_ptr<OHOS::Rosen::RSSurface> rsSurface_;
     OHOS::Rosen::RenderContext* rc_;
     int32_t freq_ = 30;
-    int32_t bootPicCurNo_ = 0;
     int32_t realHeight_ = 0;
     int32_t realWidth_ = 0;
     int32_t pointX_ = 0;
     int32_t pointY_ = 0;
-    int32_t maxPicNum_ = 0;
-    bool needCheckExit = false;
+    int32_t picCurNo_ = -1;
+    int32_t imgVecSize_ = 0;
     std::shared_ptr<OHOS::Rosen::VSyncReceiver> receiver_ = nullptr;
     std::shared_ptr<Media::Player> soundPlayer_ = nullptr;
+    ImageStructVec imageVector_;
+    std::shared_ptr<OHOS::AppExecFwk::EventHandler> mainHandler_ = nullptr;
+    std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
 };
 } // namespace OHOS
 

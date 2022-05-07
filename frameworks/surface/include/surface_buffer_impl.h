@@ -20,16 +20,26 @@
 #include <buffer_handle_parcel.h>
 #include <buffer_handle_utils.h>
 #include <surface_buffer.h>
+#include <idisplay_gralloc.h>
 #include "egl_data.h"
 
 namespace OHOS {
 class SurfaceBufferImpl : public SurfaceBuffer {
 public:
+    using IDisplayGrallocSptr = std::shared_ptr<::OHOS::HDI::Display::V1_0::IDisplayGralloc>;
+    static IDisplayGrallocSptr GetDisplayGralloc();
+
     SurfaceBufferImpl();
     SurfaceBufferImpl(int seqNum);
     virtual ~SurfaceBufferImpl();
 
     static SurfaceBufferImpl *FromBase(const sptr<SurfaceBuffer>& buffer);
+
+    GSError Alloc(const BufferRequestConfig &config) override;
+    GSError Map() override;
+    GSError Unmap() override;
+    GSError FlushCache() override;
+    GSError InvalidateCache() override;
 
     BufferHandle *GetBufferHandle() const override;
     int32_t GetWidth() const override;
@@ -42,14 +52,17 @@ public:
     void *GetVirAddr() const override;
     int32_t GetFileDescriptor() const override;
     uint32_t GetSize() const override;
+
+    const ColorGamut& GetSurfaceBufferColorGamut() const override;
+    const TransformType& GetSurfaceBufferTransform() const override;
+    void SetSurfaceBufferColorGamut(const ColorGamut& colorGamut) override;
+    void SetSurfaceBufferTransform(const TransformType& transform) override;
+
     int32_t GetSurfaceBufferWidth() const override;
     int32_t GetSurfaceBufferHeight() const override;
-    ColorGamut GetSurfaceBufferColorGamut() const override;
-    TransformType GetSurfaceBufferTransform() const override;
-    GSError SetSurfaceBufferWidth(int32_t width) override;
-    GSError SetSurfaceBufferHeight(int32_t height) override;
-    GSError SetSurfaceBufferColorGamut(ColorGamut colorGamut) override;
-    GSError SetSurfaceBufferTransform(TransformType transform) override;
+    void SetSurfaceBufferWidth(int32_t width) override;
+    void SetSurfaceBufferHeight(int32_t width) override;
+
     int32_t GetSeqNum() const override;
     
     sptr<EglData> GetEglData() const override;
@@ -59,17 +72,23 @@ public:
     const sptr<BufferExtraData>& GetExtraData() const override;
 
     void SetBufferHandle(BufferHandle *handle) override;
-    void WriteToMessageParcel(MessageParcel &parcel) override;
+    GSError WriteToMessageParcel(MessageParcel &parcel) override;
+    GSError ReadFromMessageParcel(MessageParcel &parcel) override;
 
 private:
+    void FreeBufferHandleLocked();
+
     BufferHandle *handle_ = nullptr;
     int32_t sequenceNumber_ = -1;
     sptr<BufferExtraData> bedata_ = nullptr;
     sptr<EglData> eglData_ = nullptr;
-    int32_t surfaceBufferWidth_ = 0;
-    int32_t surfaceBufferHeight_ = 0;
     ColorGamut surfaceBufferColorGamut_ = ColorGamut::COLOR_GAMUT_SRGB;
     TransformType transform_ = TransformType::ROTATE_NONE;
+    int32_t surfaceBufferWidth_ = 0;
+    int32_t surfaceBufferHeight_ = 0;
+    mutable std::mutex mutex_;
+
+    static IDisplayGrallocSptr displayGralloc_;
 };
 } // namespace OHOS
 

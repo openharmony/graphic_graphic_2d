@@ -30,11 +30,11 @@ config("composer_public_config") {
   include_dirs = [
     "//foundation/graphic/standard/rosen/include/common",
     "//drivers/peripheral/display/interfaces/include",
-    "//foundation/graphic/standard/interfaces/innerkits/vsync_module",
-    "//foundation/graphic/standard/interfaces/innerkits/common",
+    "//foundation/graphic/standard/interfaces/inner_api/vsync_module",
+    "//foundation/graphic/standard/interfaces/inner_api/common",
     "//foundation/graphic/standard/rosen/modules/composer/hdi_backend/include",
     "//foundation/graphic/standard/rosen/modules/composer/vsync/include",
-    "//foundation/graphic/standard/interfaces/innerkits/composer",
+    "//foundation/graphic/standard/interfaces/inner_api/composer",
   ]
 }
 

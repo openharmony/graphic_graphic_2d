@@ -31,6 +31,7 @@
 #include "platform/ohos/rs_surface_ohos.h"
 #ifdef RS_ENABLE_GL
 #include "render_context/render_context.h"
+#include "rs_egl_image_manager.h"
 #endif // RS_ENABLE_GL
 
 namespace OHOS {
@@ -51,19 +52,18 @@ protected:
         const std::shared_ptr<RSSurfaceOhos>& surface,
         const BufferRequestConfig& requestConfig);
 
-    // [PLANNING] use new CreateCanvas above and delete these two old interfaces: CreateCanvas and FlushBuffer.
-    std::unique_ptr<SkCanvas> CreateCanvas(sptr<Surface> producerSurface, BufferRequestConfig requestConfig);
-    void FlushBuffer(sptr<Surface> surface, BufferFlushConfig flushConfig);
-
+    bool ConsumeAndUpdateBuffer(RSSurfaceRenderNode& node, SpecialTask& task, sptr<SurfaceBuffer>& buffer);
     void SetBufferTimeStamp();
     int32_t GetOffsetX();
     int32_t GetOffsetY();
-
+    void DropFrameProcess(RSSurfaceRenderNode& node);
+    
 #ifdef RS_ENABLE_GL
     std::shared_ptr<RenderContext> renderContext_;
+    std::shared_ptr<RSEglImageManager> eglImageManager_;
 #endif // RS_ENABLE_GL
     std::unique_ptr<RSSurfaceFrame> currFrame_;
-
+    std::shared_ptr<RSSurfaceOhos> rsSurface_;
 private:
     sptr<SurfaceBuffer> buffer_;
     int32_t releaseFence_ = -1;

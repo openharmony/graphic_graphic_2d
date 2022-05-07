@@ -218,20 +218,6 @@ void RSImplicitAnimator::PopImplicitParam()
     implicitAnimationParams_.pop();
 }
 
-void RSImplicitAnimator::ProcessPreCreateAnimation(const RSNode& target, const RSAnimatableProperty& property)
-{
-    if (target.GetMotionPathOption() != nullptr && RSPathAnimation::IsAnimatablePathProperty(property)) {
-        BeginImplicitPathAnimation(target.GetMotionPathOption());
-    }
-}
-
-void RSImplicitAnimator::ProcessPostCreateAnimation(const RSNode& target, const RSAnimatableProperty& property)
-{
-    if (target.GetMotionPathOption() != nullptr && RSPathAnimation::IsAnimatablePathProperty(property)) {
-        EndImplicitPathAnimation();
-    }
-}
-
 std::shared_ptr<RSAnimation> RSImplicitAnimator::CreateImplicitTransition(RSNode& target, bool isTransitionIn)
 {
     if (globalImplicitParams_.empty() || implicitAnimations_.empty() || keyframeAnimations_.empty()) {
@@ -275,8 +261,6 @@ std::shared_ptr<RSAnimation> RSImplicitAnimator::CreateImplicitAnimation(
         return {};
     }
 
-    ProcessPreCreateAnimation(target, property);
-
     std::shared_ptr<RSAnimation> animation;
     auto params = implicitAnimationParams_.top();
     switch (params->GetType()) {
@@ -308,8 +292,6 @@ std::shared_ptr<RSAnimation> RSImplicitAnimator::CreateImplicitAnimation(
             ROSEN_LOGE("Failed to create animation, unknow type!");
             break;
     }
-
-    ProcessPostCreateAnimation(target, property);
 
     if (animation == nullptr) {
         ROSEN_LOGE("Failed to create animation!");

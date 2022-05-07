@@ -46,7 +46,7 @@ public:
     static inline Rect damage = {};
     static inline sptr<Surface> csurf = nullptr;
     static inline sptr<IBufferProducer> producer = nullptr;
-    static inline sptr<Surface> psurf = nullptr;
+    static inline sptr<Surface> pSurface = nullptr;
 };
 
 void ProducerSurfaceTest::SetUpTestCase()
@@ -55,14 +55,14 @@ void ProducerSurfaceTest::SetUpTestCase()
     sptr<IBufferConsumerListener> listener = new BufferConsumerListener();
     csurf->RegisterConsumerListener(listener);
     producer = csurf->GetProducer();
-    psurf = Surface::CreateSurfaceAsProducer(producer);
+    pSurface = Surface::CreateSurfaceAsProducer(producer);
 }
 
 void ProducerSurfaceTest::TearDownTestCase()
 {
     csurf = nullptr;
     producer = nullptr;
-    psurf = nullptr;
+    pSurface = nullptr;
 }
 
 /*
@@ -70,11 +70,11 @@ void ProducerSurfaceTest::TearDownTestCase()
 * Type: Function
 * Rank: Important(2)
 * EnvConditions: N/A
-* CaseDescription: 1. check psurf
+* CaseDescription: 1. check pSurface
  */
 HWTEST_F(ProducerSurfaceTest, ProducerSurface001, Function | MediumTest | Level2)
 {
-    ASSERT_NE(psurf, nullptr);
+    ASSERT_NE(pSurface, nullptr);
 }
 
 /*
@@ -90,14 +90,14 @@ HWTEST_F(ProducerSurfaceTest, ProducerSurface001, Function | MediumTest | Level2
  */
 HWTEST_F(ProducerSurfaceTest, QueueSize001, Function | MediumTest | Level2)
 {
-    ASSERT_EQ(psurf->GetQueueSize(), (uint32_t)SURFACE_DEFAULT_QUEUE_SIZE);
-    GSError ret = psurf->SetQueueSize(2);
+    ASSERT_EQ(pSurface->GetQueueSize(), (uint32_t)SURFACE_DEFAULT_QUEUE_SIZE);
+    GSError ret = pSurface->SetQueueSize(2);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
-    ret = psurf->SetQueueSize(SURFACE_MAX_QUEUE_SIZE + 1);
+    ret = pSurface->SetQueueSize(SURFACE_MAX_QUEUE_SIZE + 1);
     ASSERT_NE(ret, OHOS::GSERROR_OK);
 
-    ASSERT_EQ(psurf->GetQueueSize(), 2u);
+    ASSERT_EQ(pSurface->GetQueueSize(), 2u);
 }
 
 /*
@@ -114,11 +114,11 @@ HWTEST_F(ProducerSurfaceTest, ReqCanFluAcqRel001, Function | MediumTest | Level2
     sptr<SurfaceBuffer> buffer;
 
     int releaseFence = -1;
-    GSError ret = psurf->RequestBuffer(buffer, releaseFence, requestConfig);
+    GSError ret = pSurface->RequestBuffer(buffer, releaseFence, requestConfig);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
     ASSERT_NE(buffer, nullptr);
 
-    ret = psurf->FlushBuffer(buffer, -1, flushConfig);
+    ret = pSurface->FlushBuffer(buffer, -1, flushConfig);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 }
 
@@ -136,14 +136,14 @@ HWTEST_F(ProducerSurfaceTest, ReqCanFluAcqRel002, Function | MediumTest | Level2
     sptr<SurfaceBuffer> buffer;
     int releaseFence = -1;
 
-    GSError ret = psurf->RequestBuffer(buffer, releaseFence, requestConfig);
+    GSError ret = pSurface->RequestBuffer(buffer, releaseFence, requestConfig);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
     ASSERT_NE(buffer, nullptr);
 
-    ret = psurf->FlushBuffer(buffer, -1, flushConfig);
+    ret = pSurface->FlushBuffer(buffer, -1, flushConfig);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
-    ret = psurf->FlushBuffer(buffer, -1, flushConfig);
+    ret = pSurface->FlushBuffer(buffer, -1, flushConfig);
     ASSERT_NE(ret, OHOS::GSERROR_OK);
 }
 
@@ -160,10 +160,10 @@ HWTEST_F(ProducerSurfaceTest, ReqCanFluAcqRel003, Function | MediumTest | Level2
     sptr<SurfaceBuffer> buffer;
     int32_t flushFence;
 
-    GSError ret = psurf->AcquireBuffer(buffer, flushFence, timestamp, damage);
+    GSError ret = pSurface->AcquireBuffer(buffer, flushFence, timestamp, damage);
     ASSERT_NE(ret, OHOS::GSERROR_OK);
 
-    ret = psurf->ReleaseBuffer(buffer, -1);
+    ret = pSurface->ReleaseBuffer(buffer, -1);
     ASSERT_NE(ret, OHOS::GSERROR_OK);
 
     ret = csurf->AcquireBuffer(buffer, flushFence, timestamp, damage);
@@ -193,10 +193,10 @@ HWTEST_F(ProducerSurfaceTest, ReqCanFluAcqRel004, Function | MediumTest | Level2
     sptr<SurfaceBuffer> buffer;
 
     int releaseFence = -1;
-    GSError ret = psurf->RequestBuffer(buffer, releaseFence, requestConfig);
+    GSError ret = pSurface->RequestBuffer(buffer, releaseFence, requestConfig);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
-    ret = psurf->CancelBuffer(buffer);
+    ret = pSurface->CancelBuffer(buffer);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 }
 
@@ -214,13 +214,13 @@ HWTEST_F(ProducerSurfaceTest, ReqCanFluAcqRel005, Function | MediumTest | Level2
     sptr<SurfaceBuffer> buffer;
 
     int releaseFence = -1;
-    GSError ret = psurf->RequestBuffer(buffer, releaseFence, requestConfig);
+    GSError ret = pSurface->RequestBuffer(buffer, releaseFence, requestConfig);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
-    ret = psurf->CancelBuffer(buffer);
+    ret = pSurface->CancelBuffer(buffer);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
-    ret = psurf->CancelBuffer(buffer);
+    ret = pSurface->CancelBuffer(buffer);
     ASSERT_NE(ret, OHOS::GSERROR_OK);
 }
 
@@ -239,22 +239,22 @@ HWTEST_F(ProducerSurfaceTest, ReqCanFluAcqRel006, Function | MediumTest | Level2
     sptr<SurfaceBuffer> buffer2;
     int releaseFence = -1;
 
-    GSError ret = psurf->RequestBuffer(buffer, releaseFence, requestConfig);
+    GSError ret = pSurface->RequestBuffer(buffer, releaseFence, requestConfig);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
-    ret = psurf->RequestBuffer(buffer1, releaseFence, requestConfig);
+    ret = pSurface->RequestBuffer(buffer1, releaseFence, requestConfig);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
-    ret = psurf->RequestBuffer(buffer2, releaseFence, requestConfig);
+    ret = pSurface->RequestBuffer(buffer2, releaseFence, requestConfig);
     ASSERT_NE(ret, OHOS::GSERROR_OK);
 
-    ret = psurf->CancelBuffer(buffer);
+    ret = pSurface->CancelBuffer(buffer);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
-    ret = psurf->CancelBuffer(buffer1);
+    ret = pSurface->CancelBuffer(buffer1);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
-    ret = psurf->CancelBuffer(buffer2);
+    ret = pSurface->CancelBuffer(buffer2);
     ASSERT_NE(ret, OHOS::GSERROR_OK);
 }
 
@@ -270,13 +270,13 @@ HWTEST_F(ProducerSurfaceTest, ReqCanFluAcqRel006, Function | MediumTest | Level2
 HWTEST_F(ProducerSurfaceTest, SetQueueSizeDeleting001, Function | MediumTest | Level2)
 {
     sptr<ConsumerSurface> cs = static_cast<ConsumerSurface*>(csurf.GetRefPtr());
-    sptr<BufferQueueProducer> bqp = static_cast<BufferQueueProducer*>(cs->producer_.GetRefPtr());
-    ASSERT_EQ(bqp->bufferQueue_->GetQueueSize(), 2u);
+    sptr<BufferQueueProducer> bqp = static_cast<BufferQueueProducer*>(cs->GetProducer().GetRefPtr());
+    ASSERT_EQ(bqp->GetQueueSize(), 2u);
 
-    GSError ret = psurf->SetQueueSize(1);
+    GSError ret = pSurface->SetQueueSize(1);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
-    ret = psurf->SetQueueSize(2);
+    ret = pSurface->SetQueueSize(2);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 }
 
@@ -295,13 +295,13 @@ HWTEST_F(ProducerSurfaceTest, ReqCanFluAcqRel007, Function | MediumTest | Level2
     sptr<SurfaceBuffer> buffer;
 
     int releaseFence = -1;
-    GSError ret = psurf->RequestBuffer(buffer, releaseFence, requestConfig);
+    GSError ret = pSurface->RequestBuffer(buffer, releaseFence, requestConfig);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
-    ret = psurf->ReleaseBuffer(buffer, -1);
+    ret = pSurface->ReleaseBuffer(buffer, -1);
     ASSERT_NE(ret, OHOS::GSERROR_OK);
 
-    ret = psurf->CancelBuffer(buffer);
+    ret = pSurface->CancelBuffer(buffer);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 }
 
@@ -325,16 +325,16 @@ HWTEST_F(ProducerSurfaceTest, UserData001, Function | MediumTest | Level2)
         ASSERT_GT(secRet, 0);
 
         strs[i] = str;
-        ret = psurf->SetUserData(strs[i], "magic");
+        ret = pSurface->SetUserData(strs[i], "magic");
         ASSERT_EQ(ret, OHOS::GSERROR_OK);
     }
 
-    ret = psurf->SetUserData("-1", "error");
+    ret = pSurface->SetUserData("-1", "error");
     ASSERT_NE(ret, OHOS::GSERROR_OK);
 
     std::string retStr;
     for (int i = 0; i < SURFACE_MAX_USER_DATA_COUNT; i++) {
-        retStr = psurf->GetUserData(strs[i]);
+        retStr = pSurface->GetUserData(strs[i]);
         ASSERT_EQ(retStr, "magic");
     }
 }
@@ -350,7 +350,7 @@ HWTEST_F(ProducerSurfaceTest, UserData001, Function | MediumTest | Level2)
 HWTEST_F(ProducerSurfaceTest, RegisterConsumerListener001, Function | MediumTest | Level2)
 {
     sptr<IBufferConsumerListener> listener = new BufferConsumerListener();
-    GSError ret = psurf->RegisterConsumerListener(listener);
+    GSError ret = pSurface->RegisterConsumerListener(listener);
     ASSERT_NE(ret, OHOS::GSERROR_OK);
 }
 
@@ -364,7 +364,7 @@ HWTEST_F(ProducerSurfaceTest, RegisterConsumerListener001, Function | MediumTest
  */
 HWTEST_F(ProducerSurfaceTest, UniqueId001, Function | MediumTest | Level2)
 {
-    uint64_t uniqueId = psurf->GetUniqueId();
+    uint64_t uniqueId = pSurface->GetUniqueId();
     ASSERT_NE(uniqueId, 0);
 }
 
@@ -379,17 +379,17 @@ HWTEST_F(ProducerSurfaceTest, UniqueId001, Function | MediumTest | Level2)
  */
 HWTEST_F(ProducerSurfaceTest, transform001, Function | MediumTest | Level2)
 {
-    ASSERT_EQ(psurf->GetTransform(), TransformType::ROTATE_BUTT);
-    GSError ret = psurf->SetTransform(TransformType::ROTATE_NONE);
+    ASSERT_EQ(pSurface->GetTransform(), TransformType::ROTATE_BUTT);
+    GSError ret = pSurface->SetTransform(TransformType::ROTATE_NONE);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
-    ret = psurf->SetTransform(TransformType::ROTATE_90);
+    ret = pSurface->SetTransform(TransformType::ROTATE_90);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
-    ret = psurf->SetTransform(TransformType::ROTATE_180);
+    ret = pSurface->SetTransform(TransformType::ROTATE_180);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
-    ret = psurf->SetTransform(TransformType::ROTATE_270);
+    ret = pSurface->SetTransform(TransformType::ROTATE_270);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 }
 
@@ -405,7 +405,7 @@ HWTEST_F(ProducerSurfaceTest, isSupportedAlloc001, Function | MediumTest | Level
 {
     std::vector<VerifyAllocInfo> infos;
     std::vector<bool> supporteds;
-    GSError ret = psurf->IsSupportedAlloc(infos, supporteds);
+    GSError ret = pSurface->IsSupportedAlloc(infos, supporteds);
     ASSERT_EQ(ret, OHOS::GSERROR_INVALID_ARGUMENTS);
 
     VerifyAllocInfo info = {
@@ -420,14 +420,14 @@ HWTEST_F(ProducerSurfaceTest, isSupportedAlloc001, Function | MediumTest | Level
     info.format = PIXEL_FMT_YUV_422_I;
     infos.push_back(info);
 
-    ret = psurf->IsSupportedAlloc(infos, supporteds);
+    ret = pSurface->IsSupportedAlloc(infos, supporteds);
     ASSERT_EQ(ret, OHOS::GSERROR_INVALID_ARGUMENTS);
 
     supporteds.push_back(false);
     supporteds.push_back(false);
     supporteds.push_back(false);
 
-    ret = psurf->IsSupportedAlloc(infos, supporteds);
+    ret = pSurface->IsSupportedAlloc(infos, supporteds);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);  // mock data result
     ASSERT_EQ(supporteds[0], true);  // mock data result
     ASSERT_EQ(supporteds[1], true);  // mock data result

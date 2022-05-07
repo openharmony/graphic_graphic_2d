@@ -61,6 +61,7 @@ VsyncError VSyncConnectionProxy::SetVSyncRate(int32_t rate)
     MessageParcel arg;
     MessageParcel ret;
 
+    arg.WriteInterfaceToken(GetDescriptor());
     arg.WriteInt32(rate);
     int res = Remote()->SendRequest(IVSYNC_CONNECTION_SET_RATE, arg, ret, opt);
     if (res != NO_ERROR) {

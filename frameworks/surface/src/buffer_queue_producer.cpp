@@ -22,6 +22,7 @@
 #include "buffer_log.h"
 #include "buffer_manager.h"
 #include "buffer_utils.h"
+#include "sync_fence.h"
 
 namespace OHOS {
 BufferQueueProducer::BufferQueueProducer(sptr<BufferQueue>& bufferQueue)
@@ -47,11 +48,29 @@ BufferQueueProducer::BufferQueueProducer(sptr<BufferQueue>& bufferQueue)
     memberFuncMap_[BUFFER_PRODUCER_CLEAN_CACHE] = &BufferQueueProducer::CleanCacheRemote;
     memberFuncMap_[BUFFER_PRODUCER_REGISTER_RELEASE_LISTENER] = &BufferQueueProducer::RegisterReleaseListenerRemote;
     memberFuncMap_[BUFFER_PRODUCER_SET_TRANSFORM] = &BufferQueueProducer::SetTransformRemote;
+    memberFuncMap_[BUFFER_PRODUCER_IS_SUPPORTED_ALLOC] = &BufferQueueProducer::IsSupportedAllocRemote;
+    memberFuncMap_[BUFFER_PRODUCER_GET_NAMEANDUNIQUEDID] = &BufferQueueProducer::GetNameAndUniqueIdRemote;
+    memberFuncMap_[BUFFER_PRODUCER_DISCONNECT] = &BufferQueueProducer::DisconnectRemote;
 }
 
 BufferQueueProducer::~BufferQueueProducer()
 {
     BLOGNI("dtor");
+}
+
+GSError BufferQueueProducer::CheckConnectLocked()
+{
+    if (connectedPid_ == 0) {
+        BLOGNI("this BufferQueue has no connections");
+        return GSERROR_OK;
+    }
+
+    if (connectedPid_ != GetCallingPid()) {
+        BLOGNW("this BufferQueue has been connected by :%{public}d, you can not disconnect", connectedPid_);
+        return GSERROR_INVALID_OPERATING;
+    }
+
+    return GSERROR_OK;
 }
 
 int BufferQueueProducer::OnRemoteRequest(uint32_t code, MessageParcel &arguments,
@@ -91,7 +110,7 @@ int32_t BufferQueueProducer::RequestBufferRemote(MessageParcel &arguments, Messa
     if (sret == GSERROR_OK) {
         WriteSurfaceBufferImpl(reply, retval.sequence, retval.buffer);
         bedataimpl->WriteToParcel(reply);
-        WriteFence(reply, retval.fence);
+        retval.fence->WriteToMessageParcel(reply);
         reply.WriteInt32Vector(retval.deletingBuffers);
     }
     return 0;
@@ -112,14 +131,15 @@ int BufferQueueProducer::CancelBufferRemote(MessageParcel &arguments, MessagePar
 
 int BufferQueueProducer::FlushBufferRemote(MessageParcel &arguments, MessageParcel &reply, MessageOption &option)
 {
-    int32_t fence;
+    sptr<SyncFence> fence = SyncFence::INVALID_FENCE;
     int32_t sequence;
     BufferFlushConfig config;
     sptr<BufferExtraData> bedataimpl = new BufferExtraDataImpl;
 
     sequence = arguments.ReadInt32();
     bedataimpl->ReadFromParcel(arguments);
-    ReadFence(arguments, fence);
+
+    fence->ReadFromMessageParcel(arguments);
     ReadFlushConfig(arguments, config);
 
     GSError sret = FlushBuffer(sequence, bedataimpl, fence, config);
@@ -161,6 +181,19 @@ int BufferQueueProducer::GetNameRemote(MessageParcel &arguments, MessageParcel &
     reply.WriteInt32(sret);
     if (sret == GSERROR_OK) {
         reply.WriteString(name);
+    }
+    return 0;
+}
+
+int BufferQueueProducer::GetNameAndUniqueIdRemote(MessageParcel &arguments, MessageParcel &reply, MessageOption &option)
+{
+    std::string name = "not init";
+    uint64_t uniqueId = 0;
+    auto ret = GetNameAndUniqueId(name, uniqueId);
+    reply.WriteInt32(ret);
+    if (ret == GSERROR_OK) {
+        reply.WriteString(name);
+        reply.WriteUint64(uniqueId);
     }
     return 0;
 }
@@ -225,6 +258,13 @@ int BufferQueueProducer::IsSupportedAllocRemote(MessageParcel &arguments, Messag
     return 0;
 }
 
+int BufferQueueProducer::DisconnectRemote(MessageParcel &arguments, MessageParcel &reply, MessageOption &option)
+{
+    GSError sret = Disconnect();
+    reply.WriteInt32(sret);
+    return 0;
+}
+
 GSError BufferQueueProducer::RequestBuffer(const BufferRequestConfig &config, sptr<BufferExtraData> &bedata,
                                            RequestBufferReturnValue &retval)
 {
@@ -233,6 +273,15 @@ GSError BufferQueueProducer::RequestBuffer(const BufferRequestConfig &config, sp
     static std::mutex mutex;
     if (bufferQueue_ == nullptr) {
         return GSERROR_INVALID_ARGUMENTS;
+    }
+
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        if (connectedPid_ != 0 && connectedPid_ != GetCallingPid()) {
+            BLOGNW("this BufferQueue has been connected by :%{public}d", connectedPid_);
+            return GSERROR_INVALID_OPERATING;
+        }
+        connectedPid_ = GetCallingPid();
     }
 
     auto sret = bufferQueue_->RequestBuffer(config, bedata, retval);
@@ -273,7 +322,7 @@ GSError BufferQueueProducer::CancelBuffer(int32_t sequence, const sptr<BufferExt
 }
 
 GSError BufferQueueProducer::FlushBuffer(int32_t sequence, const sptr<BufferExtraData> &bedata,
-                                         int32_t fence, BufferFlushConfig &config)
+                                         const sptr<SyncFence>& fence, BufferFlushConfig &config)
 {
     if (bufferQueue_ == nullptr) {
         return GSERROR_INVALID_ARGUMENTS;
@@ -358,6 +407,15 @@ GSError BufferQueueProducer::CleanCache()
     if (bufferQueue_ == nullptr) {
         return GSERROR_INVALID_ARGUMENTS;
     }
+
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        auto ret = CheckConnectLocked();
+        if (ret != GSERROR_OK) {
+            return ret;
+        }
+    }
+
     return bufferQueue_->CleanCache();
 }
 
@@ -385,5 +443,31 @@ GSError BufferQueueProducer::IsSupportedAlloc(const std::vector<VerifyAllocInfo>
     }
 
     return bufferQueue_->IsSupportedAlloc(infos, supporteds);
+}
+
+GSError BufferQueueProducer::GetNameAndUniqueId(std::string& name, uint64_t& uniqueId)
+{
+    if (bufferQueue_ == nullptr) {
+        return GSERROR_INVALID_ARGUMENTS;
+    }
+    uniqueId = GetUniqueId();
+    return GetName(name);
+}
+
+GSError BufferQueueProducer::Disconnect()
+{
+    if (bufferQueue_ == nullptr) {
+        return GSERROR_INVALID_ARGUMENTS;
+    }
+
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        auto ret = CheckConnectLocked();
+        if (ret != GSERROR_OK) {
+            return ret;
+        }
+        connectedPid_ = 0;
+    }
+    return bufferQueue_->CleanCache();
 }
 }; // namespace OHOS
