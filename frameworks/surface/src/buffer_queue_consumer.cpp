@@ -24,12 +24,10 @@ BufferQueueConsumer::BufferQueueConsumer(sptr<BufferQueue>& bufferQueue)
     if (bufferQueue_ != nullptr) {
         bufferQueue_->GetName(name_);
     }
-    BLOGNI("ctor");
 }
 
 BufferQueueConsumer::~BufferQueueConsumer()
 {
-    BLOGNI("dtor");
 }
 
 GSError BufferQueueConsumer::AcquireBuffer(sptr<SurfaceBuffer>& buffer, sptr<SyncFence>& fence,

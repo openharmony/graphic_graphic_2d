@@ -59,12 +59,10 @@ namespace OHOS {
 BufferClientProducer::BufferClientProducer(const sptr<IRemoteObject>& impl)
     : IRemoteProxy<IBufferProducer>(impl)
 {
-    BLOGNI("ctor");
 }
 
 BufferClientProducer::~BufferClientProducer()
 {
-    BLOGNI("dtor");
 }
 
 GSError BufferClientProducer::RequestBuffer(const BufferRequestConfig &config, sptr<BufferExtraData> &bedata,

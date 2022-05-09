@@ -31,7 +31,6 @@ BufferQueueProducer::BufferQueueProducer(sptr<BufferQueue>& bufferQueue)
     if (bufferQueue_ != nullptr) {
         bufferQueue_->GetName(name_);
     }
-    BLOGNI("ctor");
 
     memberFuncMap_[BUFFER_PRODUCER_REQUEST_BUFFER] = &BufferQueueProducer::RequestBufferRemote;
     memberFuncMap_[BUFFER_PRODUCER_CANCEL_BUFFER] = &BufferQueueProducer::CancelBufferRemote;
@@ -55,7 +54,6 @@ BufferQueueProducer::BufferQueueProducer(sptr<BufferQueue>& bufferQueue)
 
 BufferQueueProducer::~BufferQueueProducer()
 {
-    BLOGNI("dtor");
 }
 
 GSError BufferQueueProducer::CheckConnectLocked()
