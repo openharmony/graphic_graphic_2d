@@ -12,19 +12,19 @@
 # limitations under the License.
 
 import("//build/ohos.gni")
-import("//foundation/graphic/standard/graphic_config.gni")
+import("//foundation/graphic/graphic/graphic_config.gni")
 import(
-    "//foundation/graphic/standard/rosen/modules/render_service_base/config.gni")
+    "//foundation/graphic/graphic/rosen/modules/render_service_base/config.gni")
 
 config("export_config") {
   cflags_cc = [ "-std=c++17" ]
   include_dirs = [
     "include",
-    "//foundation/graphic/standard/rosen/include",
+    "//foundation/graphic/graphic/rosen/include",
     "//drivers/peripheral/display/interfaces/include",
     "//foundation/multimedia/image_standard/interfaces/innerkits/include",
-    "//foundation/graphic/standard/interfaces/inner_api/surface",
-    "//foundation/graphic/standard/interfaces/inner_api/composer",
+    "//foundation/graphic/graphic/interfaces/inner_api/surface",
+    "//foundation/graphic/graphic/interfaces/inner_api/composer",
   ]
 
   defines = rs_common_define

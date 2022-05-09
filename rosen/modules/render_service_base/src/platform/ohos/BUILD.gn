@@ -12,7 +12,7 @@
 # limitations under the License.
 
 import("//build/ohos.gni")
-import("//foundation/graphic/standard/graphic_config.gni")
+import("//foundation/graphic/graphic/graphic_config.gni")
 
 group("ohos") {
   public_deps = [ ":rosen_ohos_sources" ]
@@ -20,13 +20,13 @@ group("ohos") {
 
 config("export_config") {
   include_dirs = [
-    "//foundation/graphic/standard/rosen/include",
-    "//foundation/graphic/standard/rosen/modules/composer/vsync/include",
+    "//foundation/graphic/graphic/rosen/include",
+    "//foundation/graphic/graphic/rosen/modules/composer/vsync/include",
     "//utils/native/base/include",
     "//utils/system/safwk/native/include",
-    "//foundation/graphic/standard/frameworks/surface/src",
-    "//foundation/graphic/standard/rosen/modules/2d_graphics/src",
-    "//foundation/graphic/standard/rosen/modules/2d_graphics/include",
+    "//foundation/graphic/graphic/frameworks/surface/src",
+    "//foundation/graphic/graphic/rosen/modules/2d_graphics/src",
+    "//foundation/graphic/graphic/rosen/modules/2d_graphics/include",
     "//foundation/multimedia/image_standard/interfaces/innerkits/include",
   ]
 }
@@ -58,31 +58,31 @@ ohos_source_set("rosen_ohos_sources") {
       "backend/rs_surface_ohos_gl.cpp",
     ]
 
-    sources += [ "//foundation/graphic/standard/rosen/modules/2d_graphics/src/render_context/render_context.cpp" ]
+    sources += [ "//foundation/graphic/graphic/rosen/modules/2d_graphics/src/render_context/render_context.cpp" ]
   }
 
   include_dirs = [
-    "//foundation/graphic/standard/rosen/modules/render_service_base/include",
-    "//foundation/graphic/standard/rosen/modules/render_service_base/src",
+    "//foundation/graphic/graphic/rosen/modules/render_service_base/include",
+    "//foundation/graphic/graphic/rosen/modules/render_service_base/src",
     "//utils/native/base/include",
     "//utils/system/safwk/native/include",
-    "//foundation/graphic/standard/prebuilts/librarys/gpu/include",
+    "//foundation/graphic/graphic/prebuilts/librarys/gpu/include",
     "//drivers/peripheral/display/interfaces/include/",
-    "//foundation/graphic/standard/rosen/modules/render_service_client/core",
+    "//foundation/graphic/graphic/rosen/modules/render_service_client/core",
   ]
 
   public_deps = [
     "//foundation/arkui/ace_engine/build/external_config/flutter/skia:ace_skia_ohos",
-    "//foundation/graphic/standard:libsurface",
-    "//foundation/graphic/standard:libvsync_client",
-    "//foundation/graphic/standard/rosen/modules/composer/vsync:libvsync",
-    "//foundation/graphic/standard/utils:sync_fence",
+    "//foundation/graphic/graphic:libsurface",
+    "//foundation/graphic/graphic:libvsync_client",
+    "//foundation/graphic/graphic/rosen/modules/composer/vsync:libvsync",
+    "//foundation/graphic/graphic/utils:sync_fence",
     "//foundation/multimedia/image_standard/interfaces/innerkits:image_native",
     "//utils/native/base:utils",
   ]
 
   if (ace_enable_gpu) {
-    public_deps += [ "//foundation/graphic/standard:libgl" ]
+    public_deps += [ "//foundation/graphic/graphic:libgl" ]
   }
 
   external_deps = [

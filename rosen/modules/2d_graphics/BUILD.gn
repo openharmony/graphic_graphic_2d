@@ -13,9 +13,9 @@
 
 import("//build/ohos.gni")
 import("//foundation/arkui/ace_engine/ace_config.gni")
-import("//foundation/graphic/standard/graphic_config.gni")
+import("//foundation/graphic/graphic/graphic_config.gni")
 import(
-    "//foundation/graphic/standard/rosen/modules/2d_engine/rosen_text/config.gni")
+    "//foundation/graphic/graphic/rosen/modules/2d_engine/rosen_text/config.gni")
 
 ## Build 2d_graphics.so
 ohos_shared_library("2d_graphics") {
@@ -83,7 +83,7 @@ ohos_shared_library("2d_graphics") {
     "include",
     "src",
     "src/engine_adapter",
-    "//foundation/graphic/standard/interfaces/inner_api/surface",
+    "//foundation/graphic/graphic/interfaces/inner_api/surface",
     "$rosen_2d_engine_root",
     "$flutter_root/engine/flutter/third_party/txt/src",
     "//foundation/arkui/ace_engine/frameworks",
@@ -95,9 +95,9 @@ ohos_shared_library("2d_graphics") {
 
   deps = [
     "$ace_flutter_engine_root:flutter_engine_fml_$current_os",
-    "//foundation/graphic/standard:libsurface",
-    "//foundation/graphic/standard/rosen/build/flutter/icu:rosen_libicu_$current_os",
-    "//foundation/graphic/standard/rosen/build/flutter/libtxt:thirdparty_lib_txt_rosen_$current_os",
+    "//foundation/graphic/graphic:libsurface",
+    "//foundation/graphic/graphic/rosen/build/flutter/icu:rosen_libicu_$current_os",
+    "//foundation/graphic/graphic/rosen/build/flutter/libtxt:thirdparty_lib_txt_rosen_$current_os",
     "//third_party/bounds_checking_function:libsec_static",
   ]
 
@@ -159,7 +159,7 @@ ohos_shared_library("2d_graphics_canvaskit0310") {
   ]
 
   deps = [
-    "//foundation/graphic/standard:libsurface",
+    "//foundation/graphic/graphic:libsurface",
     # "//third_party/skia_canvaskit0310:skia",
   ]
 

@@ -169,7 +169,7 @@ ohos_unittest("native_window_test") {
 ## Build surface_test_common.a {{{
 config("surface_test_common_public_config") {
   include_dirs = [
-    "//foundation/graphic/standard/frameworks/surface/include",
+    "//foundation/graphic/graphic/frameworks/surface/include",
     "//drivers/peripheral/display/interfaces/include",
   ]
 
@@ -191,9 +191,9 @@ ohos_static_library("surface_test_common") {
   public_deps = [
     "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
     "//foundation/distributedschedule/samgr/interfaces/innerkits/samgr_proxy:samgr_proxy",
-    "//foundation/graphic/standard:libsurface",
-    "//foundation/graphic/standard/utils:buffer_handle",
-    "//foundation/graphic/standard/utils:libgraphic_utils",
+    "//foundation/graphic/graphic:libsurface",
+    "//foundation/graphic/graphic/utils:buffer_handle",
+    "//foundation/graphic/graphic/utils:libgraphic_utils",
     "//third_party/googletest:gtest_main",
   ]
   subsystem_name = "graphic"

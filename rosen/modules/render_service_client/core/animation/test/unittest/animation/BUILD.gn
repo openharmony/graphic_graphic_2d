@@ -13,9 +13,9 @@
 
 import("//build/test.gni")
 import(
-    "//foundation/graphic/standard/rosen/modules/render_service_client/render_service_client.gni")
+    "//foundation/graphic/graphic/rosen/modules/render_service_client/render_service_client.gni")
 
-#import("//foundation/graphic/standard/rosen/modules/render_service_base/config.gni")
+#import("//foundation/graphic/graphic/rosen/modules/render_service_base/config.gni")
 
 module_output_path = "graphic_standard/rosen/modules/render_service_client"
 

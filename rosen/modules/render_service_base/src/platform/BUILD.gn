@@ -12,7 +12,7 @@
 # limitations under the License.
 
 import(
-    "//foundation/graphic/standard/rosen/modules/render_service_base/config.gni")
+    "//foundation/graphic/graphic/rosen/modules/render_service_base/config.gni")
 
 group("platform") {
   if (rosen_is_ohos) {

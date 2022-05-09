@@ -34,17 +34,17 @@ ohos_unittest("RSRenderServiceCommonPipelineTest") {
   ]
 
   include_dirs = [
-    "//foundation/graphic/standard/rosen/modules/render_service/core",
-    "//foundation/graphic/standard/rosen/modules/render_service_base/src",
-    "//foundation/graphic/standard/rosen/include",
-    "//foundation/graphic/standard/rosen/test/include",
+    "//foundation/graphic/graphic/rosen/modules/render_service/core",
+    "//foundation/graphic/graphic/rosen/modules/render_service_base/src",
+    "//foundation/graphic/graphic/rosen/include",
+    "//foundation/graphic/graphic/rosen/test/include",
   ]
 
   deps = [
     "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
-    "//foundation/graphic/standard/rosen/modules/composer:libcomposer",
-    "//foundation/graphic/standard/rosen/modules/render_service:librender_service",
-    "//foundation/graphic/standard/rosen/modules/render_service_base:librender_service_base",
+    "//foundation/graphic/graphic/rosen/modules/composer:libcomposer",
+    "//foundation/graphic/graphic/rosen/modules/render_service:librender_service",
+    "//foundation/graphic/graphic/rosen/modules/render_service_base:librender_service_base",
     "//third_party/googletest:gtest_main",
     "//utils/native/base:utils",
   ]
@@ -56,7 +56,7 @@ ohos_unittest("RSRenderServiceCommonPipelineTest") {
 config("pipeline_test") {
   #visibility = [ ":*" ]
   include_dirs =
-      [ "//foundation/graphic/standard/rosen/modules/render_service/core" ]
+      [ "//foundation/graphic/graphic/rosen/modules/render_service/core" ]
 }
 
 group("unittest") {

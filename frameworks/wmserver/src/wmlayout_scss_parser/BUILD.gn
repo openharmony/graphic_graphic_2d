@@ -12,7 +12,7 @@
 # limitations under the License.
 
 import("//build/ohos.gni")
-import("//foundation/graphic/standard/utils/lex_yacc/lex_yacc.gni")
+import("//foundation/graphic/graphic/utils/lex_yacc/lex_yacc.gni")
 
 ## Build wmlayout_scss_parser {{{
 lex_yacc("wmlayout_scss_parser_parser") {
@@ -24,7 +24,7 @@ config("wmlayout_scss_parser_config") {
   visibility = [ ":*" ]
 
   include_dirs =
-      [ "//foundation/graphic/standard/interfaces/inner_api/wmclient" ]
+      [ "//foundation/graphic/graphic/interfaces/inner_api/wmclient" ]
 
   cflags = [
     "-Wall",

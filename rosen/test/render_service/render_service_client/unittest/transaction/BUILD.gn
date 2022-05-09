@@ -25,11 +25,11 @@ ohos_unittest("RSRenderTransactionTest") {
   configs = [
     ":ui_test",
     "$ace_root:ace_test_config",
-    "//foundation/graphic/standard/rosen/modules/render_service_client:render_service_client_config",
+    "//foundation/graphic/graphic/rosen/modules/render_service_client:render_service_client_config",
   ]
 
   deps = [
-    "//foundation/graphic/standard/rosen/modules/render_service_client:librender_service_client",
+    "//foundation/graphic/graphic/rosen/modules/render_service_client:librender_service_client",
     "//third_party/googletest:gtest_main",
     "//utils/native/base:utils",
   ]
@@ -42,7 +42,7 @@ config("ui_test") {
   visibility = [ ":*" ]
   include_dirs = [
     "$ace_root",
-    "//foundation/graphic/standard/rosen/modules/render_service_client",
+    "//foundation/graphic/graphic/rosen/modules/render_service_client",
   ]
 }
 

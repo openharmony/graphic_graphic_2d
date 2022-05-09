@@ -12,7 +12,7 @@
 # limitations under the License.
 
 import("//build/ohos.gni")
-import("//foundation/graphic/standard/graphic_config.gni")
+import("//foundation/graphic/graphic/graphic_config.gni")
 
 ## Build gl_utils.a {{{
 config("gl_utils_config") {
@@ -55,7 +55,7 @@ ohos_static_library("gl_utils") {
   public_deps = [
     "..:libgslogger",
     "..:matrix",
-    "//foundation/graphic/standard:libgl",
+    "//foundation/graphic/graphic:libgl",
   ]
 
   part_name = "graphic_standard"

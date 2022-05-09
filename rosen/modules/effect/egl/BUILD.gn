@@ -12,17 +12,17 @@
 # limitations under the License.
 
 import("//build/ohos.gni")
-import("//foundation/graphic/standard/graphic_config.gni")
-import("//foundation/graphic/standard/rosen/modules/effect/effect_config.gni")
+import("//foundation/graphic/graphic/graphic_config.gni")
+import("//foundation/graphic/graphic/rosen/modules/effect/effect_config.gni")
 
 ## Build libegl_effect.so
 
 ohos_shared_library("libegl_effect") {
   include_dirs = [
-    "//foundation/graphic/standard/interfaces/inner_api/surface",
+    "//foundation/graphic/graphic/interfaces/inner_api/surface",
     "//third_party/EGL/api",
     "//third_party/openGLES/api",
-    "//foundation/graphic/standard/utils/log",
+    "//foundation/graphic/graphic/utils/log",
     "include",
   ]
 
@@ -47,9 +47,9 @@ ohos_shared_library("libegl_effect") {
     sources += [ "src/egl_manager.cpp" ]
 
     deps += [
-      "//foundation/graphic/standard:libgl",
-      "//foundation/graphic/standard:libsurface",
-      "//foundation/graphic/standard/interfaces/kits/napi/graphic/common:graphic_napi_common",
+      "//foundation/graphic/graphic:libgl",
+      "//foundation/graphic/graphic:libsurface",
+      "//foundation/graphic/graphic/interfaces/kits/napi/graphic/common:graphic_napi_common",
     ]
   }
 

@@ -13,7 +13,7 @@
 
 import("//build/ohos.gni")
 
-wmlayout_scss_gni_filepath = "//foundation/graphic/standard/utils/wmlayout"
+wmlayout_scss_gni_filepath = "//foundation/graphic/graphic/utils/wmlayout"
 
 template("wmlayout_scss") {
   scss_name = invoker.scss
@@ -28,7 +28,7 @@ template("wmlayout_scss") {
       scss_name,
     ]
     outputs = [ scss_filename ]
-    label = "//foundation/graphic/standard/frameworks/wmserver/src/wmlayout_scss_parser:wmlayout_scss_parser($host_toolchain)"
+    label = "//foundation/graphic/graphic/frameworks/wmserver/src/wmlayout_scss_parser:wmlayout_scss_parser($host_toolchain)"
     deps = [ label ]
     args = [
       "--cmd",

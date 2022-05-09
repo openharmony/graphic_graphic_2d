@@ -31,8 +31,8 @@ ohos_unittest("RSInterfacesTest") {
 ## Build rs_client_test_common.a {{{
 config("rs_client_test_common_public_config") {
   include_dirs = [
-    "//foundation/graphic/standard/frameworks/surface/include",
-    "//foundation/graphic/standard/rosen/modules/render_service_client/core",
+    "//foundation/graphic/graphic/frameworks/surface/include",
+    "//foundation/graphic/graphic/rosen/modules/render_service_client/core",
   ]
 
   cflags = [
@@ -53,9 +53,9 @@ ohos_static_library("rs_client_test_common") {
   public_deps = [
     "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
     "//foundation/distributedschedule/samgr/interfaces/innerkits/samgr_proxy:samgr_proxy",
-    "//foundation/graphic/standard:libsurface",
-    "//foundation/graphic/standard/rosen/modules/render_service_base:librender_service_base",
-    "//foundation/graphic/standard/rosen/modules/render_service_client:librender_service_client",
+    "//foundation/graphic/graphic:libsurface",
+    "//foundation/graphic/graphic/rosen/modules/render_service_base:librender_service_base",
+    "//foundation/graphic/graphic/rosen/modules/render_service_client:librender_service_client",
     "//third_party/googletest:gtest_main",
     "//utils/native/base:utils",
   ]

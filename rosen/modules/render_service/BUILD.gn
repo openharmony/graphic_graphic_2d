@@ -12,7 +12,7 @@
 # limitations under the License.
 
 import("//build/ohos.gni")
-import("//foundation/graphic/standard/graphic_config.gni")
+import("//foundation/graphic/graphic/graphic_config.gni")
 
 ## Build librender_service.so
 ohos_shared_library("librender_service") {
@@ -52,22 +52,22 @@ ohos_shared_library("librender_service") {
 
   include_dirs = [
     "core",
-    "//foundation/graphic/standard/frameworks/surface/include",
-    "//foundation/graphic/standard/rosen/include",
-    "//foundation/graphic/standard/rosen/modules/composer/vsync/include",
-    "//foundation/graphic/standard/rosen/modules/render_service_base/src",
-    "//foundation/graphic/standard/rosen/modules/utils",
+    "//foundation/graphic/graphic/frameworks/surface/include",
+    "//foundation/graphic/graphic/rosen/include",
+    "//foundation/graphic/graphic/rosen/modules/composer/vsync/include",
+    "//foundation/graphic/graphic/rosen/modules/render_service_base/src",
+    "//foundation/graphic/graphic/rosen/modules/utils",
     "//utils/native/base/include",
     "//utils/system/safwk/native/include",
-    "//foundation/graphic/standard/utils/log",
+    "//foundation/graphic/graphic/utils/log",
   ]
 
   deps = [
     "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
-    "//foundation/graphic/standard:libsurface",
-    "//foundation/graphic/standard:libwmclient",
-    "//foundation/graphic/standard/rosen/modules/composer:libcomposer",
-    "//foundation/graphic/standard/rosen/modules/render_service_base:librender_service_base",
+    "//foundation/graphic/graphic:libsurface",
+    "//foundation/graphic/graphic:libwmclient",
+    "//foundation/graphic/graphic/rosen/modules/composer:libcomposer",
+    "//foundation/graphic/graphic/rosen/modules/render_service_base:librender_service_base",
     "//utils/native/base:utils",
   ]
 
@@ -95,8 +95,8 @@ ohos_executable("render_service") {
   deps = [
     ":librender_service",
     "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
-    "//foundation/graphic/standard/rosen/modules/composer:libcomposer",
-    "//foundation/graphic/standard/rosen/modules/render_service_base:librender_service_base",
+    "//foundation/graphic/graphic/rosen/modules/composer:libcomposer",
+    "//foundation/graphic/graphic/rosen/modules/render_service_base:librender_service_base",
   ]
 
   external_deps = [ "ipc:ipc_core" ]
@@ -110,14 +110,14 @@ ohos_executable("render_service_dump") {
   sources = [ "dump/render_service_dump.cpp" ]
 
   include_dirs = [
-    "//foundation/graphic/standard/rosen/modules/render_service_base/include",
-    "//foundation/graphic/standard/rosen/modules/render_service_base/src",
+    "//foundation/graphic/graphic/rosen/modules/render_service_base/include",
+    "//foundation/graphic/graphic/rosen/modules/render_service_base/src",
     "//utils/system/safwk/native/include",
   ]
 
-  deps = [ "//foundation/graphic/standard/rosen/modules/render_service_base:librender_service_base" ]
+  deps = [ "//foundation/graphic/graphic/rosen/modules/render_service_base:librender_service_base" ]
 
-  public_deps = [ "//foundation/graphic/standard:libsurface" ]
+  public_deps = [ "//foundation/graphic/graphic:libsurface" ]
 
   external_deps = [
     "ipc:ipc_core",

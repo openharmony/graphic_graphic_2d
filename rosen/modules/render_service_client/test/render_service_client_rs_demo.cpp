@@ -33,8 +33,8 @@
 #include "ui/rs_surface_node.h"
 #include "render_context/render_context.h"
 // temporary debug
-#include "foundation/graphic/standard/rosen/modules/render_service_base/src/platform/ohos/rs_surface_frame_ohos.h"
-#include "foundation/graphic/standard/rosen/modules/render_service_base/src/platform/ohos/rs_surface_ohos.h"
+#include "foundation/graphic/graphic/rosen/modules/render_service_base/src/platform/ohos/rs_surface_frame_ohos.h"
+#include "foundation/graphic/graphic/rosen/modules/render_service_base/src/platform/ohos/rs_surface_ohos.h"
 
 using namespace OHOS;
 using namespace OHOS::Rosen;

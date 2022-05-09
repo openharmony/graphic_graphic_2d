@@ -31,7 +31,7 @@ config("libvsync_client_config") {
 
 config("libvsync_client_public_config") {
   include_dirs = [
-    "//foundation/graphic/standard/interfaces/inner_api/vsync",
+    "//foundation/graphic/graphic/interfaces/inner_api/vsync",
     "//utils/native/base/include",
   ]
 }
@@ -53,14 +53,14 @@ ohos_shared_library("libvsync_client") {
   deps = [
     "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
     "//foundation/distributedschedule/samgr/interfaces/innerkits/samgr_proxy:samgr_proxy",
-    "//foundation/graphic/standard/utils:libgraphic_utils",
+    "//foundation/graphic/graphic/utils:libgraphic_utils",
   ]
 
   external_deps = [ "ipc:ipc_core" ]
 
   public_deps = [
     "//foundation/appexecfwk/standard/interfaces/innerkits/libeventhandler:libeventhandler",
-    "//foundation/graphic/standard:libgraphic_dumper_client",
+    "//foundation/graphic/graphic:libgraphic_dumper_client",
     "//utils/native/base:utils",
   ]
 
@@ -88,8 +88,8 @@ config("libvsync_module_config") {
 
 config("libvsync_module_public_config") {
   include_dirs = [
-    "//foundation/graphic/standard/interfaces/inner_api/common",
-    "//foundation/graphic/standard/interfaces/inner_api/vsync_module",
+    "//foundation/graphic/graphic/interfaces/inner_api/common",
+    "//foundation/graphic/graphic/interfaces/inner_api/vsync_module",
   ]
 }
 
@@ -113,12 +113,12 @@ ohos_shared_library("libvsync_module") {
     "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
     "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
     "//foundation/distributedschedule/samgr/interfaces/innerkits/samgr_proxy:samgr_proxy",
-    "//foundation/graphic/standard/utils:libgraphic_utils",
+    "//foundation/graphic/graphic/utils:libgraphic_utils",
     "//third_party/libdrm:libdrm",
   ]
 
   public_deps = [
-    "//foundation/graphic/standard/utils:semaphore",
+    "//foundation/graphic/graphic/utils:semaphore",
     "//utils/native/base:utils",
   ]
 
