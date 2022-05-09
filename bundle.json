@@ -52,6 +52,8 @@
           "//third_party/wayland-ivi-extension:LayerManagerControl",
           "//third_party/wayland-ivi-extension:simple-weston-client",
           "//third_party/weston:default",
+          "//third_party/harfbuzz:harfbuzz_static",
+          "//third_party/skia:skia",
           "//foundation/graphic/graphic:default",
           "//foundation/graphic/graphic/interfaces/kits/napi:napi_packages",
           "//foundation/graphic/graphic/rosen/samples/composer:hello_composer",
