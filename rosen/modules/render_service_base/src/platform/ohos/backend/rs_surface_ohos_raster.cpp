@@ -45,6 +45,14 @@ std::unique_ptr<RSSurfaceFrame> RSSurfaceOhosRaster::RequestFrame(int32_t width,
         ROSEN_LOGE("RSSurfaceOhosRaster::Requestframe Failed, error is : %s", SurfaceErrorStr(err).c_str());
         return nullptr;
     }
+
+    err = frame->buffer_->Map();
+    if (err != SURFACE_ERROR_OK) {
+        ROSEN_LOGE("RSSurfaceOhosRaster::Map Failed, error is : %s", SurfaceErrorStr(err).c_str());
+        return nullptr;
+    }
+
+
     sptr<SyncFence> tempFence = new SyncFence(frame->releaseFence_);
     int res = tempFence->Wait(3000);
     if (res < 0) {

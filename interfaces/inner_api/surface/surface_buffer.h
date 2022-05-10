@@ -38,7 +38,7 @@ public:
     virtual int64_t GetUsage() const = 0;
     virtual uint64_t GetPhyAddr() const = 0;
     virtual int32_t GetKey() const = 0;
-    virtual void *GetVirAddr() const = 0;
+    virtual void *GetVirAddr() = 0;
     virtual int32_t GetFileDescriptor() const = 0;
     virtual uint32_t GetSize() const = 0;
 

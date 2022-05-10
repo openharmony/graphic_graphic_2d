@@ -49,7 +49,7 @@ public:
     int64_t GetUsage() const override;
     uint64_t GetPhyAddr() const override;
     int32_t GetKey() const override;
-    void *GetVirAddr() const override;
+    void *GetVirAddr() override;
     int32_t GetFileDescriptor() const override;
     uint32_t GetSize() const override;
 

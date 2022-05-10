@@ -56,7 +56,6 @@ SurfaceBufferImpl::IDisplayGrallocSptr SurfaceBufferImpl::GetDisplayGralloc()
     static std::mutex mutex;
     std::lock_guard<std::mutex> lock(mutex);
     if (displayGralloc_ != nullptr) {
-        BLOGD("IDisplayGralloc has been initialized successfully.");
         return displayGralloc_;
     }
 
@@ -145,6 +144,9 @@ GSError SurfaceBufferImpl::Map()
         if (handle_ == nullptr) {
             BLOGE("handle is nullptr");
             return GSERROR_INVALID_OPERATING;
+        } else if (handle_->virAddr != nullptr) {
+            BLOGI("handle_->virAddr has been maped");
+            return GSERROR_OK;
         }
         handle = handle_;
     }
@@ -166,6 +168,9 @@ GSError SurfaceBufferImpl::Unmap()
         if (handle_ == nullptr) {
             BLOGE("handle is nullptr");
             return GSERROR_INVALID_OPERATING;
+        } else if (handle_->virAddr == nullptr) {
+            BLOGW("handle has been unmaped");
+            return GSERROR_OK;
         }
         handle = handle_;
     }
@@ -365,11 +370,11 @@ int32_t SurfaceBufferImpl::GetKey() const
     return handle_->key;
 }
 
-void *SurfaceBufferImpl::GetVirAddr() const
+void *SurfaceBufferImpl::GetVirAddr()
 {
-    std::lock_guard<std::mutex> lock(mutex_);
-    if (handle_ == nullptr) {
-        BLOGW("handle is nullptr");
+    GSError ret = this->Map();
+    if (ret != GSERROR_OK) {
+        BLOGW("Map failed");
         return nullptr;
     }
     return handle_->virAddr;
