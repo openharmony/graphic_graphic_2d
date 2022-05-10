@@ -197,6 +197,12 @@ void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::ProcessSurfaceRenderNode(RSS
     }
     if (node.GetBuffer() == nullptr) {
         RS_LOGD("RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::ProcessSurfaceRenderNode: node Buffer is nullptr!");
+        for (auto child : node.GetSortedChildren()) {
+            child->Process(shared_from_this());
+        }
+        if (node.GetSortedChildren().size() > 0) {
+            node.ResetSortedChildren();
+        }
         return;
     }
     sptr<Surface> surface = node.GetConsumer();
