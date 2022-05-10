@@ -125,7 +125,8 @@ void RSRenderServiceVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
         if (rotation == ScreenRotation::ROTATION_90 || rotation == ScreenRotation::ROTATION_270) {
             std::swap(boundWidth, boundHeight);
         }
-        canvas_ = std::make_shared<RSPaintFilterCanvas>(new SkCanvas(boundWidth, boundHeight));
+        skCanvas_ = std::make_unique<SkCanvas>(boundWidth, boundHeight);
+        canvas_ = std::make_shared<RSPaintFilterCanvas>(skCanvas_.get());
         ProcessBaseRenderNode(node);
     }
     processor_->PostProcess();
