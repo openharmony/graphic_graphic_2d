@@ -25,7 +25,6 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
-constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, 0, "VsyncDistributor" };
 constexpr int32_t SOFT_VSYNC_PERIOD = 16;
 constexpr int32_t ERRNO_EAGAIN = -1;
 constexpr int32_t ERRNO_OTHER = -2;
@@ -182,7 +181,7 @@ void VSyncDistributor::ThreadMain()
         ScopedBytrace func(name_ + "_SendVsync");
         for (uint32_t i = 0; i < conns.size(); i++) {
             int32_t ret = conns[i]->PostEvent(timestamp);
-            VLOGI("Distributor name:%{public}s, connection name:%{public}s, ret:%{public}d",
+            VLOGD("Distributor name:%{public}s, connection name:%{public}s, ret:%{public}d",
                 name_.c_str(), conns[i]->info_.name_.c_str(), ret);
             if (ret == 0 || ret == ERRNO_OTHER) {
                 RemoveConnection(conns[i]);
@@ -268,7 +267,7 @@ VsyncError VSyncDistributor::RequestNextVSync(const sptr<VSyncConnection>& conne
         connection->rate_ = 0;
         con_.notify_all();
     }
-    VLOGI("conn name:%{public}s, rate:%{public}d", connection->info_.name_.c_str(), connection->rate_);
+    VLOGD("conn name:%{public}s, rate:%{public}d", connection->info_.name_.c_str(), connection->rate_);
     return VSYNC_ERROR_OK;
 }
 
@@ -286,7 +285,7 @@ VsyncError VSyncDistributor::SetVSyncRate(int32_t rate, const sptr<VSyncConnecti
         return VSYNC_ERROR_INVALID_ARGUMENTS;
     }
     connection->rate_ = rate;
-    VLOGI("in, conn name:%{public}s", connection->info_.name_.c_str());
+    VLOGD("conn name:%{public}s", connection->info_.name_.c_str());
     con_.notify_all();
     return VSYNC_ERROR_OK;
 }
@@ -307,7 +306,7 @@ VsyncError VSyncDistributor::SetHighPriorityVSyncRate(int32_t highPriorityRate, 
     }
     connection->highPriorityRate_ = highPriorityRate;
     connection->highPriorityState_ = true;
-    VLOGI("in, conn name:%{public}s, highPriorityRate:%{public}d", connection->info_.name_.c_str(),
+    VLOGD("in, conn name:%{public}s, highPriorityRate:%{public}d", connection->info_.name_.c_str(),
           connection->highPriorityRate_);
     con_.notify_all();
     return VSYNC_ERROR_OK;
