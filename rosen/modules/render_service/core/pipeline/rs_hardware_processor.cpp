@@ -67,9 +67,7 @@ void RSHardwareProcessor::PostProcess()
         return;
     }
     // Rotaion must be executed before CropLayers.
-    if (rotation_ != ScreenRotation::ROTATION_0) {
-        OnRotate();
-    }
+    OnRotate();
     CropLayers();
     output_->SetLayerInfo(layers_);
     std::vector<std::shared_ptr<HdiOutput>> outputs{output_};
@@ -396,13 +394,10 @@ void RSHardwareProcessor::OnRotate()
                 layer->SetTransform(TransformType::ROTATE_90);
                 break;
             }
-            case ScreenRotation::INVALID_SCREEN_ROTATION: {
-                ROSEN_LOGE("RsDebug RSHardwareProcessor::OnRotate Failed.");
-                layer->SetTransform(TransformType::ROTATE_BUTT);
+            default: {
+                layer->SetTransform(TransformType::ROTATE_NONE);
                 break;
             }
-            default:
-                break;
         }
         ROSEN_LOGI("RsDebug RSHardwareProcessor::OnRotate After Rotate layer size [%d %d %d %d]",
             layer->GetLayerSize().x, layer->GetLayerSize().y, layer->GetLayerSize().w, layer->GetLayerSize().h);
