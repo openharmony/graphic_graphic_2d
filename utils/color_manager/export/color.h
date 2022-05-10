@@ -34,6 +34,7 @@ public:
     Color Convert(ColorSpaceConvertor &convertor) const;
     Color Convert(const ColorSpace &dst) const;
     Color Convert(ColorSpaceName colorSpaceName) const;
+    bool ColorEqual(const Color &val) const;
 
     float r = 0.0f;
     float g = 0.0f;
