@@ -46,6 +46,10 @@ void RSBaseRenderNode::AddChild(const SharedPtr& child, int index)
     }
 
     disappearingChildren_.remove_if([&child](const auto& pair) -> bool { return pair.first == child; });
+    // A child is not on the tree until its parent is on the tree
+    if (isOnTheTree_) {
+        child->SetIsOnTheTree(true);
+    }
 }
 
 void RSBaseRenderNode::RemoveChild(const SharedPtr& child)
@@ -70,6 +74,24 @@ void RSBaseRenderNode::RemoveChild(const SharedPtr& child)
     }
     children_.erase(it);
     SetDirty();
+}
+
+
+void RSBaseRenderNode::SetIsOnTheTree(bool flag)
+{
+    // We do not need to label a child when the child is removed from a parent that is not on the tree
+    if (!flag && !isOnTheTree_) {
+        return;
+    }
+
+    isOnTheTree_ = flag;
+    for (auto& childWeakPtr : children_) {
+        auto child = childWeakPtr.lock();
+        if (child == nullptr) {
+            continue;
+        }
+        child->SetIsOnTheTree(flag);
+    }
 }
 
 void RSBaseRenderNode::RemoveFromTree()
@@ -115,6 +137,7 @@ void RSBaseRenderNode::SetParent(WeakPtr parent)
 void RSBaseRenderNode::ResetParent()
 {
     parent_.reset();
+    SetIsOnTheTree(false);
 }
 
 RSBaseRenderNode::WeakPtr RSBaseRenderNode::GetParent() const

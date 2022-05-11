@@ -49,7 +49,7 @@ public:
 
 private:
     RSRenderNodeMap nodeMap;
-    std::shared_ptr<RSBaseRenderNode> globalRootRenderNode_ = std::make_shared<RSBaseRenderNode>(0);
+    std::shared_ptr<RSBaseRenderNode> globalRootRenderNode_ = std::make_shared<RSBaseRenderNode>(0, true);
     std::unordered_map<NodeId, std::weak_ptr<RSBaseRenderNode>> animatingNodeList_;
 
     RSContext(const RSContext&) = delete;

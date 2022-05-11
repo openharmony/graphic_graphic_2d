@@ -32,6 +32,8 @@ public:
     static inline constexpr RSRenderNodeType Type = RSRenderNodeType::BASE_NODE;
 
     explicit RSBaseRenderNode(NodeId id, std::weak_ptr<RSContext> context = {}) : id_(id), context_(context) {};
+    explicit RSBaseRenderNode(NodeId id, bool isOnTheTree = false, std::weak_ptr<RSContext> context = {}) : 
+        id_(id), isOnTheTree_(isOnTheTree), context_(context) {};
     virtual ~RSBaseRenderNode() = default;
 
     void AddChild(const SharedPtr& child, int index = -1);
@@ -56,10 +58,10 @@ public:
         return id_;
     }
 
-    // node is on the render tree as long as it has a valid parent
+    void SetIsOnTheTree(bool flag);
     bool IsOnTheTree() const
     {
-        return !parent_.expired();
+        return isOnTheTree_;
     }
 
     const std::list<SharedPtr>& GetSortedChildren();
@@ -127,6 +129,7 @@ private:
 
     WeakPtr parent_;
     void SetParent(WeakPtr parent);
+    bool isOnTheTree_ = false;
 
     std::list<WeakPtr> children_;
     std::list<std::pair<SharedPtr, uint32_t>> disappearingChildren_;
