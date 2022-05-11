@@ -24,7 +24,6 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
-constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, 0, "VsyncReceiver" };
 constexpr int32_t INVALID_FD = -1;
 }
 void VSyncCallBackListener::OnReadable(int32_t fileDescriptor)
@@ -39,7 +38,7 @@ void VSyncCallBackListener::OnReadable(int32_t fileDescriptor)
         std::lock_guard<std::mutex> locker(mtx_);
         cb = vsyncCallbacks_;
     }
-    VLOGI("retVal:%{public}ld, cb == nullptr:%{public}d", (long)retVal, (cb == nullptr));
+    VLOGD("retVal:%{public}ld, cb == nullptr:%{public}d", (long)retVal, (cb == nullptr));
     if (retVal > 0 && cb != nullptr) {
         ScopedBytrace func("ReceiveVsync");
         cb(now, userData_);

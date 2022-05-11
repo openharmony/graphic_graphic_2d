@@ -29,7 +29,6 @@ config("vsync_public_config") {
   include_dirs = [
     "//drivers/peripheral/display/interfaces/include",
     "//foundation/graphic/graphic/interfaces/inner_api/composer",
-    "//foundation/graphic/graphic/frameworks/vsync/include",
     "//foundation/graphic/graphic/rosen/include/common",
     "//foundation/graphic/graphic/rosen/modules/composer/vsync/include",
   ]
@@ -37,7 +36,6 @@ config("vsync_public_config") {
 
 ohos_shared_library("libvsync") {
   sources = [
-    "src/vsync.cpp",
     "src/vsync_connection_proxy.cpp",
     "src/vsync_connection_stub.cpp",
     "src/vsync_controller.cpp",
