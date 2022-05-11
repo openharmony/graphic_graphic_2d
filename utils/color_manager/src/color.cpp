@@ -94,15 +94,5 @@ Color Color::Convert(const ColorSpaceName dstName) const
     ColorSpaceConvertor convertor(ColorSpace(srcName), ColorSpace(dstName), GamutMappingMode::GAMUT_MAP_CONSTANT);
     return Convert(convertor);
 }
-
-bool Color::ColorEqual(const Color &val) const
-{
-    if ((val.srcName != srcName)) {
-        if ((srcName != ColorSpaceName::CUSTOM) && (val.srcName != ColorSpaceName::CUSTOM)) {
-            return false;
-        }
-    }
-    return FloatEqual(r, val.r) && FloatEqual(g, val.g) && FloatEqual(b, val.b) && FloatEqual(a, val.a);
-}
 }
 }

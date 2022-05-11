@@ -137,18 +137,6 @@
           },
           {
             "type": "so",
-            "name": "//foundation/graphic/graphic/utils/color_manager:color_manager",
-            "header": {
-              "header_files": [
-                "color.h",
-                "color_space.h",
-                "color_space_convertor.h"
-              ],
-              "header_base": "//foundation/graphic/graphic/utils/color_manager/export"
-            }
-          },
-          {
-            "type": "so",
             "name": "//foundation/graphic/graphic/frameworks/wm:libwmclient",
             "header": {
               "header_files": [
