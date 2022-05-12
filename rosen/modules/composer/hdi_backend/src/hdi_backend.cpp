@@ -136,6 +136,7 @@ void HdiBackend::Repaint(std::vector<OutputPtr> &outputs)
             for (auto iter = layersMap.begin(); iter != layersMap.end(); ++iter) {
                 const LayerPtr &layer = iter->second;
                 layer->RecordPresentTime(timestamp);
+                output->RecordCompositionTime(timestamp);
             }
         }
         if (ret) {
