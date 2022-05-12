@@ -72,8 +72,8 @@ foundation/graphic/graphic/
 
 ## 相关仓
 - **graphic_standard**
-- ace_ace_engine
-- aafwk_standard
-- multimedia_media_standard
-- multimedia_camera_standard
-- Window Manager
+- [ace_ace_engine](https://gitee.com/openharmony/ace_ace_engine)
+- [aafwk_standard](https://gitee.com/openharmony/aafwk_standard)
+- [multimedia_media_standard](https://gitee.com/openharmony/multimedia_media_standard)
+- [multimedia_camera_standard](https://gitee.com/openharmony/multimedia_camera_standard)
+- [Windowmanager](https://gitee.com/openharmony/windowmanager)
