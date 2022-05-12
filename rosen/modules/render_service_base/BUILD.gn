@@ -38,6 +38,7 @@ ohos_shared_library("librender_service_base") {
   sources = [
     #animation
     "src/animation/rs_animation_fraction.cpp",
+    "src/animation/rs_animation_log.cpp",
     "src/animation/rs_animation_manager.cpp",
     "src/animation/rs_interpolator.cpp",
     "src/animation/rs_property_accessors.cpp",
