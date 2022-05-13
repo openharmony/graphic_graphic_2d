@@ -19,13 +19,13 @@
 #ifndef ROSEN_TRACE_DISABLE
 #include "hitrace_meter.h"
 #define ROSEN_TRACE_BEGIN(tag, name) StartTrace(tag, name)
-#define RS_TRACE_BEGIN(name) ROSEN_TRACE_BEGIN(BYTRACE_TAG_GRAPHIC_AGP, name)
+#define RS_TRACE_BEGIN(name) ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, name)
 #define ROSEN_TRACE_END(tag) FinishTrace(tag)
-#define RS_TRACE_END() ROSEN_TRACE_END(BYTRACE_TAG_GRAPHIC_AGP)
-#define RS_TRACE_NAME(name) BYTRACE_NAME(BYTRACE_TAG_GRAPHIC_AGP, name)
-#define RS_ASYNC_TRACE_BEGIN(name, value) StartAsyncTrace(BYTRACE_TAG_GRAPHIC_AGP, name, value)
-#define RS_ASYNC_TRACE_END(name, value) FinishAsyncTrace(BYTRACE_TAG_GRAPHIC_AGP, name, value)
-#define RS_TRACE_INT(name, value) CountTrace(BYTRACE_TAG_GRAPHIC_AGP, name, value)
+#define RS_TRACE_END() ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP)
+#define RS_TRACE_NAME(name) HITRACE_METER_NAME(HITRACE_TAG_GRAPHIC_AGP, name)
+#define RS_ASYNC_TRACE_BEGIN(name, value) StartAsyncTrace(HITRACE_TAG_GRAPHIC_AGP, name, value)
+#define RS_ASYNC_TRACE_END(name, value) FinishAsyncTrace(HITRACE_TAG_GRAPHIC_AGP, name, value)
+#define RS_TRACE_INT(name, value) CountTrace(HITRACE_TAG_GRAPHIC_AGP, name, value)
 #define RS_TRACE_FUNC() RS_TRACE_NAME(__func__)
 #else
 #define ROSEN_TRACE_BEGIN(tag, name)

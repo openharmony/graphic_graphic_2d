@@ -85,7 +85,7 @@ RSRenderThread::RSRenderThread()
     mainFunc_ = [&]() {
         clock_t startTime = clock();
         std::string str = "RSRenderThread DrawFrame: " + std::to_string(timestamp_);
-        ROSEN_TRACE_BEGIN(BYTRACE_TAG_GRAPHIC_AGP, str.c_str());
+        ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, str.c_str());
         {
             prevTimestamp_ = timestamp_;
             ProcessCommands();
@@ -100,7 +100,7 @@ RSRenderThread::RSRenderThread()
         if (transactionProxy != nullptr) {
             transactionProxy->FlushImplicitTransactionFromRT();
         }
-        ROSEN_TRACE_END(BYTRACE_TAG_GRAPHIC_AGP);
+        ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
         clock_t endTime = clock();
         float drawTime = endTime - startTime;
         // Due to the calibration problem, there is a larger error on the windows.
@@ -164,9 +164,9 @@ void RSRenderThread::RecvTransactionData(std::unique_ptr<RSTransactionData>& tra
     {
         std::unique_lock<std::mutex> cmdLock(cmdMutex_);
         std::string str = "RecvCommands ptr:" + std::to_string(reinterpret_cast<uintptr_t>(transactionData.get()));
-        ROSEN_TRACE_BEGIN(BYTRACE_TAG_GRAPHIC_AGP, str.c_str());
+        ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, str.c_str());
         cmds_.emplace_back(std::move(transactionData));
-        ROSEN_TRACE_END(BYTRACE_TAG_GRAPHIC_AGP);
+        ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
     }
     // [PLANNING]: process in next vsync (temporarily)
     RSRenderThread::Instance().RequestNextVSync();
@@ -227,14 +227,14 @@ void RSRenderThread::RenderLoop()
 
 void RSRenderThread::OnVsync(uint64_t timestamp)
 {
-    ROSEN_TRACE_BEGIN(BYTRACE_TAG_GRAPHIC_AGP, "RSRenderThread::OnVsync");
+    ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSRenderThread::OnVsync");
     mValue = (mValue + 1) % 2; // 1 and 2 is Calculated parameters
     RS_TRACE_INT("Vsync-client", mValue);
     timestamp_ = timestamp;
     if (activeWindowCnt_.load() > 0) {
         mainFunc_(); // start render-loop now
     }
-    ROSEN_TRACE_END(BYTRACE_TAG_GRAPHIC_AGP);
+    ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
 }
 
 void RSRenderThread::UpdateWindowStatus(bool active)
@@ -264,9 +264,9 @@ void RSRenderThread::ProcessCommands()
 
     for (auto& cmdData : cmds) {
         std::string str = "ProcessCommands ptr:" + std::to_string(reinterpret_cast<uintptr_t>(cmdData.get()));
-        ROSEN_TRACE_BEGIN(BYTRACE_TAG_GRAPHIC_AGP, str.c_str());
+        ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, str.c_str());
         cmdData->Process(context_);
-        ROSEN_TRACE_END(BYTRACE_TAG_GRAPHIC_AGP);
+        ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
     }
 }
 
@@ -301,7 +301,7 @@ void RSRenderThread::Animate(uint64_t timestamp)
 
 void RSRenderThread::Render()
 {
-    ROSEN_TRACE_BEGIN(BYTRACE_TAG_GRAPHIC_AGP, "RSRenderThread::Render");
+    ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSRenderThread::Render");
     if (RsFrameReport::GetInstance().GetEnable()) {
         RsFrameReport::GetInstance().RenderStart();
     }
@@ -316,25 +316,25 @@ void RSRenderThread::Render()
     }
     rootNode->Prepare(visitor_);
     rootNode->Process(visitor_);
-    ROSEN_TRACE_END(BYTRACE_TAG_GRAPHIC_AGP);
+    ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
 }
 
 void RSRenderThread::SendCommands()
 {
-    ROSEN_TRACE_BEGIN(BYTRACE_TAG_GRAPHIC_AGP, "RSRenderThread::SendCommands");
+    ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSRenderThread::SendCommands");
     if (RsFrameReport::GetInstance().GetEnable()) {
         RsFrameReport::GetInstance().SendCommandsStart();
     }
 
     RSUIDirector::RecvMessages();
-    ROSEN_TRACE_END(BYTRACE_TAG_GRAPHIC_AGP);
+    ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
 }
 
 void RSRenderThread::OnTransaction(std::shared_ptr<RSTransactionData> transactionData)
 {
-    ROSEN_TRACE_BEGIN(BYTRACE_TAG_GRAPHIC_AGP, "RSRenderThread::OnTransaction");
+    ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSRenderThread::OnTransaction");
     RSUIDirector::RecvMessages(transactionData);
-    ROSEN_TRACE_END(BYTRACE_TAG_GRAPHIC_AGP);
+    ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
 }
 
 void RSRenderThread::Detach(NodeId id)

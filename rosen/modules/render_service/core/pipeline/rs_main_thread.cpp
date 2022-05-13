@@ -44,12 +44,12 @@ void RSMainThread::Init()
 {
     mainLoop_ = [&]() {
         RS_LOGI("RsDebug mainLoop start");
-        ROSEN_TRACE_BEGIN(BYTRACE_TAG_GRAPHIC_AGP, "RSMainThread::DoComposition");
+        ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSMainThread::DoComposition");
         ProcessCommand();
         Animate(timestamp_);
         Render();
         SendCommands();
-        ROSEN_TRACE_END(BYTRACE_TAG_GRAPHIC_AGP);
+        ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
         RS_LOGI("RsDebug mainLoop end");
     };
 
@@ -118,7 +118,7 @@ void RSMainThread::RequestNextVSync()
 
 void RSMainThread::OnVsync(uint64_t timestamp, void *data)
 {
-    ROSEN_TRACE_BEGIN(BYTRACE_TAG_GRAPHIC_AGP, "RSMainThread::OnVsync");
+    ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSMainThread::OnVsync");
     timestamp_ = timestamp;
     if (threadHandler_) {
         if (!taskHandle_) {
@@ -133,7 +133,7 @@ void RSMainThread::OnVsync(uint64_t timestamp, void *data)
             });
         }
     }
-    ROSEN_TRACE_END(BYTRACE_TAG_GRAPHIC_AGP);
+    ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
 }
 
 void RSMainThread::Animate(uint64_t timestamp)

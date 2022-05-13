@@ -35,17 +35,17 @@ void BootAnimation::OnDraw(SkCanvas* canvas, int32_t curNo)
     std::shared_ptr<ImageStruct> imgstruct = imageVector_[curNo];
     sk_sp<SkImage> image = imgstruct->imageData;
 
-    ROSEN_TRACE_BEGIN(BYTRACE_TAG_GRAPHIC_AGP, "BootAnimation::OnDraw in drawRect");
+    ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "BootAnimation::OnDraw in drawRect");
     SkPaint backPaint;
     backPaint.setColor(SK_ColorBLACK);
     canvas->drawRect(SkRect::MakeXYWH(0.0, 0.0, windowWidth_, windowHeight_), backPaint);
-    ROSEN_TRACE_END(BYTRACE_TAG_GRAPHIC_AGP);
-    ROSEN_TRACE_BEGIN(BYTRACE_TAG_GRAPHIC_AGP, "BootAnimation::OnDraw in drawImageRect");
+    ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
+    ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "BootAnimation::OnDraw in drawImageRect");
     SkPaint paint;
     SkRect rect;
     rect.setXYWH(pointX_, pointY_, realWidth_, realHeight_);
     canvas->drawImageRect(image.get(), rect, &paint);
-    ROSEN_TRACE_END(BYTRACE_TAG_GRAPHIC_AGP);
+    ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
 }
 
 void BootAnimation::Draw()
@@ -56,19 +56,19 @@ void BootAnimation::Draw()
         CheckExitAnimation();
         return;
     }
-    ROSEN_TRACE_BEGIN(BYTRACE_TAG_GRAPHIC_AGP, "BootAnimation::Draw RequestFrame");
+    ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "BootAnimation::Draw RequestFrame");
     auto frame = rsSurface_->RequestFrame(windowWidth_, windowHeight_);
     if (frame == nullptr) {
         LOGE("Draw frame is nullptr");
         return;
     }
-    ROSEN_TRACE_END(BYTRACE_TAG_GRAPHIC_AGP);
+    ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
     framePtr_ = std::move(frame);
     auto canvas = framePtr_->GetCanvas();
     OnDraw(canvas, picCurNo_);
-    ROSEN_TRACE_BEGIN(BYTRACE_TAG_GRAPHIC_AGP, "BootAnimation::Draw FlushFrame");
+    ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "BootAnimation::Draw FlushFrame");
     rsSurface_->FlushFrame(framePtr_);
-    ROSEN_TRACE_END(BYTRACE_TAG_GRAPHIC_AGP);
+    ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
 }
 
 bool BootAnimation::CheckFrameRateValid(int32_t ratevalue)
@@ -105,7 +105,7 @@ void BootAnimation::Init(int32_t width, int32_t height, const std::shared_ptr<Ap
     InitBootWindow();
     InitRsSurface();
     InitPicCoordinates();
-    ROSEN_TRACE_BEGIN(BYTRACE_TAG_GRAPHIC_AGP, "BootAnimation::preload");
+    ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "BootAnimation::preload");
     BootAniConfig jsonConfig;
     ReadZipFile(BOOT_PIC_ZIP, imageVector_, jsonConfig);
     imgVecSize_ = static_cast<int32_t>(imageVector_.size());
@@ -121,7 +121,7 @@ void BootAnimation::Init(int32_t width, int32_t height, const std::shared_ptr<Ap
         LOGI("Only Support 30, 60 frame rate: %{public}d", jsonConfig.frameRate);
     }
     LOGI("end to Readzip pics freq: %{public}d totalPicNum: %{public}d", freq_, imgVecSize_);
-    ROSEN_TRACE_END(BYTRACE_TAG_GRAPHIC_AGP);
+    ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
 
     OHOS::Rosen::VSyncReceiver::FrameCallback fcb = {
         .userData_ = this,

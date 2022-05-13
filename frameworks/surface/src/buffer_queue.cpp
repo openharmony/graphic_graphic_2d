@@ -342,7 +342,7 @@ GSError BufferQueue::FlushBuffer(int32_t sequence, const sptr<BufferExtraData> &
     if (sret != GSERROR_OK) {
         return sret;
     }
-    CountTrace(BYTRACE_TAG_GRAPHIC_AGP, name_, static_cast<int32_t>(dirtyList_.size()));
+    CountTrace(HITRACE_TAG_GRAPHIC_AGP, name_, static_cast<int32_t>(dirtyList_.size()));
     if (sret == GSERROR_OK) {
         if (listener_ != nullptr) {
             ScopedBytrace bufferIPCSend("OnBufferAvailable");
@@ -448,7 +448,7 @@ GSError BufferQueue::AcquireBuffer(sptr<SurfaceBuffer> &buffer,
         BLOGN_FAILURE("there is no dirty buffer");
     }
 
-    CountTrace(BYTRACE_TAG_GRAPHIC_AGP, name_, static_cast<int32_t>(dirtyList_.size()));
+    CountTrace(HITRACE_TAG_GRAPHIC_AGP, name_, static_cast<int32_t>(dirtyList_.size()));
     return ret;
 }
 
