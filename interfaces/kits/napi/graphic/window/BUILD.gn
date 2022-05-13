@@ -13,20 +13,23 @@
 
 import("//build/ohos.gni")
 
+aakits_path = "//foundation/aafwk/standard/frameworks/kits"
+aainnerkits_path = "//foundation/aafwk/standard/interfaces/innerkits"
+
 ## Build window.so {{{
 ohos_shared_library("window") {
   sources = [ "native_window_module.cpp" ]
 
   configs = [
-    "//foundation/aafwk/standard/interfaces/innerkits/want:want_public_config",
-    "//foundation/aafwk/standard/interfaces/innerkits/ability_manager:ability_manager_public_config",
-    "//foundation/aafwk/standard/services/abilitymgr:abilityms_config",
+    "${aainnerkits_path}/want:want_public_config",
+    "${aainnerkits_path}/ability_manager:ability_manager_public_config",
+    "${aaservices_path}/abilitymgr:abilityms_config",
   ]
 
   deps = [
+    "${aakits_path}/ability/native:abilitykit_native",
+    "${aakits_path}/appkit:appkit_native",
     "../common:graphic_napi_common",
-    "//foundation/aafwk/standard/frameworks/kits/ability/native:abilitykit_native",
-    "//foundation/aafwk/standard/frameworks/kits/appkit:appkit_native",
     "//foundation/graphic/graphic:libwmclient",
     "//foundation/graphic/graphic:libwmservice",
   ]
