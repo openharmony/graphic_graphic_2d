@@ -35,10 +35,11 @@ using namespace OHOS::HiviewDFX;
 namespace {
 constexpr HiLogLabel LABEL = { LOG_CORE, 0xD001400, "SyncFence" };
 constexpr int32_t INVALID_FD = -1;
-constexpr int64_t INVALID_TIMESTAMP = -1;
 }  // namespace
 
 const sptr<SyncFence> SyncFence::INVALID_FENCE = sptr<SyncFence>(new SyncFence(INVALID_FD));
+const ns_sec_t SyncFence::INVALID_TIMESTAMP = -1;
+const ns_sec_t SyncFence::FENCE_PENDING_TIMESTAMP = INT64_MAX;
 
 SyncTimeline::SyncTimeline() noexcept
 {
@@ -139,11 +140,11 @@ sptr<SyncFence> SyncFence::MergeFence(const std::string &name,
     return sptr<SyncFence>(new SyncFence(newFenceFd));
 }
 
-int64_t SyncFence::SyncFileReadTimestamp()
+ns_sec_t SyncFence::SyncFileReadTimestamp()
 {
     std::vector<SyncPointInfo> ptInfos = GetFenceInfo();
     if (ptInfos.empty()) {
-        return INVALID_TIMESTAMP;
+        return FENCE_PENDING_TIMESTAMP;
     }
     size_t signalFenceCount = 0;
     for (auto &info : ptInfos) {
@@ -159,10 +160,10 @@ int64_t SyncFence::SyncFileReadTimestamp()
                 timestamp = ptInfo.timestampNs;
             }
         }
-        return static_cast<int64_t>(timestamp);
+        return static_cast<ns_sec_t>(timestamp);
     } else {
         // fence still active
-        return INVALID_TIMESTAMP;
+        return FENCE_PENDING_TIMESTAMP;
     }
 }
 
@@ -240,6 +241,11 @@ FenceStatus SyncFence::GetStatus()
 int32_t SyncFence::Get() const
 {
     return fenceFd_;
+}
+
+bool SyncFence::IsValid() const
+{
+    return fenceFd_ != -1;
 }
 
 void SyncFence::ReadFromMessageParcel(MessageParcel &parcel)
