@@ -21,6 +21,7 @@
 
 #include "pipeline/rs_main_thread.h"
 #include "platform/common/rs_log.h"
+#include "platform/ohos/backend/rs_surface_frame_ohos_raster.h"
 
 #include <platform/ohos/rs_surface_ohos.h>
 
@@ -48,13 +49,17 @@ SkCanvas* RSProcessor::CreateCanvas(
         RS_LOGE("RSProcessor::CreateCanvas: requestFrame failed!");
         return nullptr;
     }
-
     return currFrame_->GetCanvas();
 }
 
 void RSProcessor::SetBufferTimeStamp()
 {
-    if (!buffer_) {
+    if (!currFrame_) {
+        RS_LOGE("RSProcessor::SetBufferTimeStamp currFrame_ is nullptr");
+        return;
+    }
+    auto frameOhosRaster =  static_cast<RSSurfaceFrameOhosRaster *>(currFrame_.get());
+    if (!frameOhosRaster || !(frameOhosRaster->GetBuffer())) {
         RS_LOGE("RSProcessor::SetBufferTimeStamp buffer is nullptr");
         return;
     }
@@ -62,7 +67,7 @@ void RSProcessor::SetBufferTimeStamp()
     clock_gettime(CLOCK_MONOTONIC, &curTime);
     // 1000000000 is used for transfer second to nsec
     uint64_t duration = static_cast<uint64_t>(curTime.tv_sec) * 1000000000 + static_cast<uint64_t>(curTime.tv_nsec);
-    GSError ret = buffer_->GetExtraData()->ExtraSet("timeStamp", static_cast<int64_t>(duration));
+    GSError ret = frameOhosRaster->GetBuffer()->GetExtraData()->ExtraSet("timeStamp", static_cast<int64_t>(duration));
     if (ret != GSERROR_OK) {
         RS_LOGE("RSProcessor::SetBufferTimeStamp buffer ExtraSet failed");
     }
@@ -76,32 +81,32 @@ void RSProcessor::DropFrameProcess(RSSurfaceRenderNode& node)
 
     const auto& surfaceConsumer = node.GetConsumer();
     if (surfaceConsumer == nullptr) {
-        RS_LOGE("RsDebug RSProcessor::DropFrameProcess (node: %lld): surfaceConsumer is null!", node.GetId());
+        RS_LOGE("RsDebug RSProcessor::DropFrameProcess (node: %llu): surfaceConsumer is null!", node.GetId());
         return;
     }
      
     // availableBufferCnt>= 2 means QueueSize >=2 too
     if (availableBufferCnt >= 2 && surfaceConsumer->GetQueueSize() == static_cast<uint32_t>(availableBufferCnt)) {
-        RS_LOGI("RsDebug RSProcessor::DropFrameProcess (node: %lld) queueBlock, start to drop one frame", node.GetId());
+        RS_LOGI("RsDebug RSProcessor::DropFrameProcess (node: %llu) queueBlock, start to drop one frame", node.GetId());
         OHOS::sptr<SurfaceBuffer> cbuffer;
         Rect damage;
         sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
         int64_t timestamp = 0;
         auto ret = surfaceConsumer->AcquireBuffer(cbuffer, acquireFence, timestamp, damage);
         if (ret != OHOS::SURFACE_ERROR_OK) {
-            RS_LOGW("RSProcessor::DropFrameProcess(node: %lld): AcquireBuffer failed(ret: %d), do nothing ",
+            RS_LOGW("RSProcessor::DropFrameProcess(node: %llu): AcquireBuffer failed(ret: %d), do nothing ",
                 node.GetId(), ret);
             return;
         }
 
         ret = surfaceConsumer->ReleaseBuffer(cbuffer, SyncFence::INVALID_FENCE);
         if (ret != OHOS::SURFACE_ERROR_OK) {
-            RS_LOGW("RSProcessor::DropFrameProcess(node: %lld): ReleaseBuffer failed(ret: %d), Acquire done ",
+            RS_LOGW("RSProcessor::DropFrameProcess(node: %llu): ReleaseBuffer failed(ret: %d), Acquire done ",
                 node.GetId(), ret);
             return;
         }
         availableBufferCnt = node.ReduceAvailableBuffer();
-        RS_LOGI("RsDebug RSProcessor::DropFrameProcess (node: %lld), drop one frame finished", node.GetId());
+        RS_LOGI("RsDebug RSProcessor::DropFrameProcess (node: %llu), drop one frame finished", node.GetId());
     }
 
     return;
@@ -116,14 +121,14 @@ bool RSProcessor::ConsumeAndUpdateBuffer(RSSurfaceRenderNode& node, SpecialTask&
 
     auto availableBufferCnt = node.GetAvailableBufferCount();
     if (availableBufferCnt == 0) {
-        RS_LOGD("RSProcessor::ProcessSurface(node: %lld): no new buffer, try use old buffer.", node.GetId());
+        RS_LOGD("RSProcessor::ProcessSurface(node: %llu): no new buffer, try use old buffer.", node.GetId());
         buffer = node.GetBuffer();
         acquireFence = node.GetFence();
         damage = node.GetDamageRegion();
     } else {
         const auto& surfaceConsumer = node.GetConsumer();
         if (surfaceConsumer == nullptr) {
-            RS_LOGE("RSProcessor::ProcessSurface(node: %lld): surfaceConsumer is null!", node.GetId());
+            RS_LOGE("RSProcessor::ProcessSurface(node: %llu): surfaceConsumer is null!", node.GetId());
             return false;
         }
 
@@ -131,7 +136,7 @@ bool RSProcessor::ConsumeAndUpdateBuffer(RSSurfaceRenderNode& node, SpecialTask&
         int64_t timestamp = 0;
         auto ret = surfaceConsumer->AcquireBuffer(buffer, acquireFence, timestamp, damage);
         if (ret != OHOS::SURFACE_ERROR_OK) {
-            RS_LOGW("RSProcessor::ProcessSurface(node: %lld): AcquireBuffer failed(ret: %d), try use old buffer.",
+            RS_LOGW("RSProcessor::ProcessSurface(node: %llu): AcquireBuffer failed(ret: %d), try use old buffer.",
                 node.GetId(), ret);
             buffer = node.GetBuffer();
             acquireFence = node.GetFence();
@@ -142,7 +147,7 @@ bool RSProcessor::ConsumeAndUpdateBuffer(RSSurfaceRenderNode& node, SpecialTask&
     }
 
     if (buffer == nullptr) {
-        RS_LOGE("RSProcessor::ProcessSurface(node: %lld): no avaliable buffer!", node.GetId());
+        RS_LOGE("RSProcessor::ProcessSurface(node: %llu): no avaliable buffer!", node.GetId());
         return false;
     }
 

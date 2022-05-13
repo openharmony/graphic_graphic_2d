@@ -59,7 +59,10 @@ bool RSSurfaceOhosRaster::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame)
     // RSSurfaceOhosRaster is the class for platform OHOS, the input pointer should be the pointer to the class
     // RSSurfaceFrameOhos.
     // We use static_cast instead of RTTI and dynamic_cast which are not permitted
-
+    if (!frame) {
+        ROSEN_LOGE("RSSurfaceOhosRaster::Flushframe Failed, frame is nullptr");
+        return false;
+    }
     RSSurfaceFrameOhosRaster* oriFramePtr = static_cast<RSSurfaceFrameOhosRaster*>(frame.get());
     SurfaceError err = producer_->FlushBuffer(oriFramePtr->buffer_, -1, oriFramePtr->flushConfig_);
     if (err != SURFACE_ERROR_OK) {
