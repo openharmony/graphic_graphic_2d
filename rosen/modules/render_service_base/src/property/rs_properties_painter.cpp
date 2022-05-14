@@ -137,7 +137,7 @@ void RSPropertiesPainter::DrawShadow(const RSProperties& properties, SkCanvas& c
     if (properties.shadow_ && properties.shadow_->IsValid()) {
         canvas.save();
         SkPath skPath;
-        if (properties.GetShadowPath()) {
+        if (properties.GetShadowPath() && !properties.GetShadowPath()->GetSkiaPath().isEmpty()) {
             skPath = properties.GetShadowPath()->GetSkiaPath();
             canvas.clipPath(skPath, SkClipOp::kDifference, true);
         } else if (properties.GetClipBounds()) {
@@ -151,7 +151,8 @@ void RSPropertiesPainter::DrawShadow(const RSProperties& properties, SkCanvas& c
         SkColor spotColor = properties.GetShadowColor().AsArgbInt();
         if (properties.shadow_->GetHardwareAcceleration()) {
             SkPoint3 planeParams = { 0.0f, 0.0f, properties.GetShadowElevation() };
-            SkPoint3 lightPos = { DEFAULT_LIGHT_POSITION_X, DEFAULT_LIGHT_POSITION_Y, DEFAULT_LIGHT_HEIGHT };
+            SkPoint3 lightPos = { canvas.getTotalMatrix().getTranslateX() + skPath.getBounds().centerX(),
+                canvas.getTotalMatrix().getTranslateY() + skPath.getBounds().centerY(), DEFAULT_LIGHT_HEIGHT };
             SkColor ambientColor = DEFAULT_AMBIENT_COLOR;
             SkShadowUtils::DrawShadow(&canvas, skPath, planeParams, lightPos, DEFAULT_LIGHT_RADIUS, ambientColor,
                 spotColor, SkShadowFlags::kTransparentOccluder_ShadowFlag);

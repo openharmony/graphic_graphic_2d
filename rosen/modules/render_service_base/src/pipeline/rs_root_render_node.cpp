@@ -73,11 +73,17 @@ void RSRootRenderNode::ClearSurfaceNodeInRS()
 
 void RSRootRenderNode::Prepare(const std::shared_ptr<RSNodeVisitor>& visitor)
 {
+    if (!visitor) {
+        return;
+    }
     visitor->PrepareRootRenderNode(*this);
 }
 
 void RSRootRenderNode::Process(const std::shared_ptr<RSNodeVisitor>& visitor)
 {
+    if (!visitor) {
+        return;
+    }
     visitor->ProcessRootRenderNode(*this);
 }
 

@@ -43,11 +43,17 @@ void RSCanvasRenderNode::UpdateRecording(std::shared_ptr<DrawCmdList> drawCmds, 
 
 void RSCanvasRenderNode::Prepare(const std::shared_ptr<RSNodeVisitor>& visitor)
 {
+    if (!visitor) {
+        return;
+    }
     visitor->PrepareCanvasRenderNode(*this);
 }
 
 void RSCanvasRenderNode::Process(const std::shared_ptr<RSNodeVisitor>& visitor)
 {
+    if (!visitor) {
+        return;
+    }
     visitor->ProcessCanvasRenderNode(*this);
 }
 
