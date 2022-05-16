@@ -110,6 +110,7 @@ private:
         auto interpolationValue =
             RSValueEstimator::Estimate(interpolator_->Interpolate(fraction), startValue_, endValue_);
         RSRenderPropertyAnimation<T>::SetAnimationValue(interpolationValue);
+        RSRenderPropertyAnimation<T>::WriteAnimationInfoToLog(startValue_, endValue_);
     }
 
     T startValue_ {};

@@ -28,4 +28,11 @@ ohos_ndk_library("libGLESv3_ndk") {
   output_name = "GLESv3"
   output_extension = "so"
   ndk_description_file = "./libGLESv3.ndk.json"
+  system_capability = "SystemCapability.Graphic.Graphic2D.GLES3"
+  system_capability_headers = [
+    "GLES3/gl3.h",
+    "GLES3/gl31.h",
+    "GLES3/gl32.h",
+    "GLES3/gl3platform.h",
+  ]
 }

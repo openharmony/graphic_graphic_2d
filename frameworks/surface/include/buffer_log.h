@@ -40,8 +40,8 @@ constexpr ::OHOS::HiviewDFX::HiLogLabel LABEL = { LOG_CORE, 0xD001400, "Bufferqu
 #define _B_EFUNC HiviewDFX::HiLog::Error
 
 #define _B_CNPRINTF(func, fmt, ...) \
-    func(LABEL, "(%{public}s)<%{public}d>%{public}s: " fmt, \
-        name_.c_str(), __LINE__, __func__, ##__VA_ARGS__)
+    func(LABEL, "(%{public}s) %{public}s: " fmt, \
+        name_.c_str(), __func__, ##__VA_ARGS__)
 
 #define _B_CPRINTF(func, fmt, ...) \
     func(LABEL, "<%{public}d>%{public}s: " fmt, \

@@ -21,6 +21,7 @@
 
 #include "pipeline/rs_main_thread.h"
 #include "platform/common/rs_log.h"
+#include "platform/ohos/backend/rs_surface_frame_ohos_raster.h"
 
 #include <platform/ohos/rs_surface_ohos.h>
 
@@ -38,11 +39,9 @@ SkCanvas* RSProcessor::CreateCanvas(
     }
 
 #ifdef RS_ENABLE_GL
-    if (renderContext_ == nullptr) {
-        RS_LOGE("RSProcessor::CreateCanvas: render context is null!");
-        return nullptr;
+    if (renderContext_ != nullptr) {
+        surface->SetRenderContext(renderContext_.get());
     }
-    surface->SetRenderContext(renderContext_.get());
 #endif
 
     currFrame_ = surface->RequestFrame(requestConfig.width, requestConfig.height);
@@ -50,13 +49,17 @@ SkCanvas* RSProcessor::CreateCanvas(
         RS_LOGE("RSProcessor::CreateCanvas: requestFrame failed!");
         return nullptr;
     }
-
     return currFrame_->GetCanvas();
 }
 
 void RSProcessor::SetBufferTimeStamp()
 {
-    if (!buffer_) {
+    if (!currFrame_) {
+        RS_LOGE("RSProcessor::SetBufferTimeStamp currFrame_ is nullptr");
+        return;
+    }
+    auto frameOhosRaster =  static_cast<RSSurfaceFrameOhosRaster *>(currFrame_.get());
+    if (!frameOhosRaster || !(frameOhosRaster->GetBuffer())) {
         RS_LOGE("RSProcessor::SetBufferTimeStamp buffer is nullptr");
         return;
     }
@@ -64,7 +67,7 @@ void RSProcessor::SetBufferTimeStamp()
     clock_gettime(CLOCK_MONOTONIC, &curTime);
     // 1000000000 is used for transfer second to nsec
     uint64_t duration = static_cast<uint64_t>(curTime.tv_sec) * 1000000000 + static_cast<uint64_t>(curTime.tv_nsec);
-    GSError ret = buffer_->GetExtraData()->ExtraSet("timeStamp", static_cast<int64_t>(duration));
+    GSError ret = frameOhosRaster->GetBuffer()->GetExtraData()->ExtraSet("timeStamp", static_cast<int64_t>(duration));
     if (ret != GSERROR_OK) {
         RS_LOGE("RSProcessor::SetBufferTimeStamp buffer ExtraSet failed");
     }

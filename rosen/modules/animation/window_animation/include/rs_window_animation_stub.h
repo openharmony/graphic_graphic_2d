@@ -36,11 +36,15 @@ public:
     int OnRemoteRequest(uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option) override;
 
 private:
-    int Transition(MessageParcel& data, MessageParcel& reply);
+    int StartApp(MessageParcel& data, MessageParcel& reply);
+
+    int AppTransition(MessageParcel& data, MessageParcel& reply);
 
     int MinimizeWindow(MessageParcel& data, MessageParcel& reply);
 
     int CloseWindow(MessageParcel& data, MessageParcel& reply);
+
+    int ScreenUnlock(MessageParcel& data, MessageParcel& reply);
 
     static const std::map<uint32_t, WindowAnimationStubFunc> stubFuncMap_;
     DISALLOW_COPY_AND_MOVE(RSWindowAnimationStub);

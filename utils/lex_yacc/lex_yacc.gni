@@ -13,7 +13,7 @@
 
 import("//build/ohos.gni")
 
-gni_filepath = "//foundation/graphic/standard/utils/lex_yacc"
+gni_filepath = "//foundation/graphic/graphic/utils/lex_yacc"
 
 template("lex_yacc") {
   lex_name = invoker.lex

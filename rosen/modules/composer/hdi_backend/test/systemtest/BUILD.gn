@@ -33,9 +33,9 @@ ohos_systemtest("hdibackend_test") {
   sources = [ "hdibackend_test.cpp" ]
 
   include_dirs = [
-    "//foundation/graphic/standard/rosen/modules/composer/hdi_backend/include",
-    "//foundation/graphic/standard/rosen/modules/composer/hdi_backend/test",
-    "//foundation/graphic/standard/interfaces/inner_api/surface",
+    "//foundation/graphic/graphic/rosen/modules/composer/hdi_backend/include",
+    "//foundation/graphic/graphic/rosen/modules/composer/hdi_backend/test",
+    "//foundation/graphic/graphic/interfaces/inner_api/surface",
   ]
 
   cflags = [
@@ -45,7 +45,7 @@ ohos_systemtest("hdibackend_test") {
   ]
 
   deps = [
-    "//foundation/graphic/standard/rosen/modules/composer:libcomposer",
+    "//foundation/graphic/graphic/rosen/modules/composer:libcomposer",
     "//third_party/googletest:gtest_main",
   ]
 }
@@ -59,9 +59,9 @@ ohos_systemtest("hdilayer_test") {
   sources = [ "hdilayer_test.cpp" ]
 
   include_dirs = [
-    "//foundation/graphic/standard/rosen/modules/composer/hdi_backend/include",
-    "//foundation/graphic/standard/rosen/modules/composer/hdi_backend/test",
-    "//foundation/graphic/standard/interfaces/inner_api/surface",
+    "//foundation/graphic/graphic/rosen/modules/composer/hdi_backend/include",
+    "//foundation/graphic/graphic/rosen/modules/composer/hdi_backend/test",
+    "//foundation/graphic/graphic/interfaces/inner_api/surface",
   ]
 
   cflags = [
@@ -71,7 +71,7 @@ ohos_systemtest("hdilayer_test") {
   ]
 
   deps = [
-    "//foundation/graphic/standard/rosen/modules/composer:libcomposer",
+    "//foundation/graphic/graphic/rosen/modules/composer:libcomposer",
     "//third_party/googletest:gtest_main",
   ]
 }
@@ -85,9 +85,9 @@ ohos_systemtest("hdioutput_test") {
   sources = [ "hdioutput_test.cpp" ]
 
   include_dirs = [
-    "//foundation/graphic/standard/rosen/modules/composer/hdi_backend/include",
-    "//foundation/graphic/standard/rosen/modules/composer/hdi_backend/test",
-    "//foundation/graphic/standard/interfaces/inner_api/surface",
+    "//foundation/graphic/graphic/rosen/modules/composer/hdi_backend/include",
+    "//foundation/graphic/graphic/rosen/modules/composer/hdi_backend/test",
+    "//foundation/graphic/graphic/interfaces/inner_api/surface",
   ]
 
   cflags = [
@@ -97,7 +97,7 @@ ohos_systemtest("hdioutput_test") {
   ]
 
   deps = [
-    "//foundation/graphic/standard/rosen/modules/composer:libcomposer",
+    "//foundation/graphic/graphic/rosen/modules/composer:libcomposer",
     "//third_party/googletest:gtest_main",
   ]
 }
@@ -114,9 +114,9 @@ ohos_systemtest("hdiscreen_test") {
   ]
 
   include_dirs = [
-    "//foundation/graphic/standard/rosen/modules/composer/hdi_backend/include",
-    "//foundation/graphic/standard/rosen/modules/composer/hdi_backend/test",
-    "//foundation/graphic/standard/interfaces/inner_api/surface",
+    "//foundation/graphic/graphic/rosen/modules/composer/hdi_backend/include",
+    "//foundation/graphic/graphic/rosen/modules/composer/hdi_backend/test",
+    "//foundation/graphic/graphic/interfaces/inner_api/surface",
   ]
 
   cflags = [
@@ -126,7 +126,7 @@ ohos_systemtest("hdiscreen_test") {
   ]
 
   deps = [
-    "//foundation/graphic/standard/rosen/modules/composer:libcomposer",
+    "//foundation/graphic/graphic/rosen/modules/composer:libcomposer",
     "//third_party/googletest:gmock_main",
     "//third_party/googletest:gtest_main",
   ]

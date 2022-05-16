@@ -37,8 +37,6 @@ public:
 
 private:
     NativeValue* OnSetController(NativeEngine& engine, NativeCallbackInfo& info);
-
-    std::shared_ptr<AppExecFwk::EventHandler> handler_;
 };
 } // namespace Rosen
 } // namespace OHOS

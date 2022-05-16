@@ -14,7 +14,7 @@
 import("//build/ohos.gni")
 import("//foundation/arkui/ace_engine/ace_config.gni")
 import(
-    "//foundation/graphic/standard/rosen/modules/2d_engine/rosen_text/config.gni")
+    "//foundation/graphic/graphic/rosen/modules/2d_engine/rosen_text/config.gni")
 
 config("rosen_text_config") {
   cflags_cc = [

@@ -26,21 +26,6 @@
 
 namespace OHOS {
 namespace Rosen {
-enum WindowAnimationTargetType {
-    NORMAL_APP = 0,
-    LAUNCHER,
-    SCREEN_LOCK,
-    SYSTEM_UI,
-};
-
-enum WindowAnimationActionType {
-    NO_CHANGE = 0,
-    GO_FOREGROUND,
-    GO_BACKGROUND,
-    MINIMIZE,
-    CLOSE
-};
-
 struct RSWindowAnimationTarget : Parcelable {
     static RSWindowAnimationTarget* Unmarshalling(Parcel& parcel);
 
@@ -48,13 +33,10 @@ struct RSWindowAnimationTarget : Parcelable {
 
     bool ReadFromParcel(Parcel& parcel);
 
-    WindowAnimationTargetType type_{ WindowAnimationTargetType::NORMAL_APP };
     std::string bundleName_;
     std::string abilityName_;
     RRect windowBounds_;
-    uint32_t windowId_;
     std::shared_ptr<RSSurfaceNode> surfaceNode_;
-    WindowAnimationActionType actionType_ = WindowAnimationActionType::NO_CHANGE;
 };
 } // namespace Rosen
 } // namespace OHOS

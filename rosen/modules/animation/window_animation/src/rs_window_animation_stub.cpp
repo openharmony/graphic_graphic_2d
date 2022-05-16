@@ -22,9 +22,11 @@
 namespace OHOS {
 namespace Rosen {
 const std::map<uint32_t, WindowAnimationStubFunc> RSWindowAnimationStub::stubFuncMap_{
-    std::make_pair(RSIWindowAnimationController::ON_TRANSITION, &RSWindowAnimationStub::Transition),
+    std::make_pair(RSIWindowAnimationController::ON_START_APP, &RSWindowAnimationStub::StartApp),
+    std::make_pair(RSIWindowAnimationController::ON_APP_TRANSITION, &RSWindowAnimationStub::AppTransition),
     std::make_pair(RSIWindowAnimationController::ON_MINIMIZE_WINDOW, &RSWindowAnimationStub::MinimizeWindow),
     std::make_pair(RSIWindowAnimationController::ON_CLOSE_WINDOW, &RSWindowAnimationStub::CloseWindow),
+    std::make_pair(RSIWindowAnimationController::ON_SCREEN_UNLOCK, &RSWindowAnimationStub::ScreenUnlock),
 };
 
 int RSWindowAnimationStub::OnRemoteRequest(uint32_t code, MessageParcel& data,
@@ -45,28 +47,52 @@ int RSWindowAnimationStub::OnRemoteRequest(uint32_t code, MessageParcel& data,
     return (this->*(func->second))(data, reply);
 }
 
-int RSWindowAnimationStub::Transition(MessageParcel& data, MessageParcel& reply)
+int RSWindowAnimationStub::StartApp(MessageParcel& data, MessageParcel& reply)
 {
-    WALOGD("Window animation transition!");
-    sptr<RSWindowAnimationTarget> from(data.ReadParcelable<RSWindowAnimationTarget>());
-    if (from == nullptr) {
-        WALOGE("Failed to read animation target from!");
+    WALOGD("Window animation start app!");
+    StartingAppType type = static_cast<StartingAppType>(data.ReadInt32());
+    sptr<RSWindowAnimationTarget> startingWindowTarget(data.ReadParcelable<RSWindowAnimationTarget>());
+    if (startingWindowTarget == nullptr) {
+        WALOGE("Failed to read starting window target!");
         return ERR_INVALID_DATA;
     }
 
-    sptr<RSWindowAnimationTarget> to(data.ReadParcelable<RSWindowAnimationTarget>());
-    if (to == nullptr) {
-        WALOGE("Failed to read animation target to!");
-        return ERR_INVALID_DATA;
-    }
-
-    auto finishedCallback = iface_cast<RSIWindowAnimationFinishedCallback>(data.ReadParcelable<IRemoteObject>());
+    sptr<IRemoteObject> finishcallbackObject = data.ReadRemoteObject();
+    sptr<RSIWindowAnimationFinishedCallback> finishedCallback =
+        iface_cast<RSIWindowAnimationFinishedCallback>(finishcallbackObject);
     if (finishedCallback == nullptr) {
         WALOGE("Failed to read animation finished callback!");
         return ERR_INVALID_DATA;
     }
 
-    OnTransition(from, to, finishedCallback);
+    OnStartApp(type, startingWindowTarget, finishedCallback);
+    return ERR_NONE;
+}
+
+int RSWindowAnimationStub::AppTransition(MessageParcel& data, MessageParcel& reply)
+{
+    WALOGD("Window animation transition!");
+    sptr<RSWindowAnimationTarget> fromWindowTarget(data.ReadParcelable<RSWindowAnimationTarget>());
+    if (fromWindowTarget == nullptr) {
+        WALOGE("Failed to read animation target from!");
+        return ERR_INVALID_DATA;
+    }
+
+    sptr<RSWindowAnimationTarget> toWindowTarget(data.ReadParcelable<RSWindowAnimationTarget>());
+    if (toWindowTarget == nullptr) {
+        WALOGE("Failed to read animation target to!");
+        return ERR_INVALID_DATA;
+    }
+
+    sptr<IRemoteObject> finishcallbackObject = data.ReadRemoteObject();
+    sptr<RSIWindowAnimationFinishedCallback> finishedCallback =
+        iface_cast<RSIWindowAnimationFinishedCallback>(finishcallbackObject);
+    if (finishedCallback == nullptr) {
+        WALOGE("Failed to read animation finished callback!");
+        return ERR_INVALID_DATA;
+    }
+
+    OnAppTransition(fromWindowTarget, toWindowTarget, finishedCallback);
     return ERR_NONE;
 }
 
@@ -79,7 +105,9 @@ int RSWindowAnimationStub::MinimizeWindow(MessageParcel& data, MessageParcel& re
         return ERR_INVALID_DATA;
     }
 
-    auto finishedCallback = iface_cast<RSIWindowAnimationFinishedCallback>(data.ReadParcelable<IRemoteObject>());
+    sptr<IRemoteObject> finishcallbackObject = data.ReadRemoteObject();
+    sptr<RSIWindowAnimationFinishedCallback> finishedCallback =
+        iface_cast<RSIWindowAnimationFinishedCallback>(finishcallbackObject);
     if (finishedCallback == nullptr) {
         WALOGE("Failed to read animation finished callback!");
         return ERR_INVALID_DATA;
@@ -98,13 +126,30 @@ int RSWindowAnimationStub::CloseWindow(MessageParcel& data, MessageParcel& reply
         return ERR_INVALID_DATA;
     }
 
-    auto finishedCallback = iface_cast<RSIWindowAnimationFinishedCallback>(data.ReadParcelable<IRemoteObject>());
+    sptr<IRemoteObject> finishcallbackObject = data.ReadRemoteObject();
+    sptr<RSIWindowAnimationFinishedCallback> finishedCallback =
+        iface_cast<RSIWindowAnimationFinishedCallback>(finishcallbackObject);
     if (finishedCallback == nullptr) {
         WALOGE("Failed to read animation finished callback!");
         return ERR_INVALID_DATA;
     }
 
     OnCloseWindow(closingWindow, finishedCallback);
+    return ERR_NONE;
+}
+
+int RSWindowAnimationStub::ScreenUnlock(MessageParcel& data, MessageParcel& reply)
+{
+    WALOGD("Window animation screen unlock!");
+    sptr<IRemoteObject> finishcallbackObject = data.ReadRemoteObject();
+    sptr<RSIWindowAnimationFinishedCallback> finishedCallback =
+        iface_cast<RSIWindowAnimationFinishedCallback>(finishcallbackObject);
+    if (finishedCallback == nullptr) {
+        WALOGE("Failed to read animation finished callback!");
+        return ERR_INVALID_DATA;
+    }
+
+    OnScreenUnlock(finishedCallback);
     return ERR_NONE;
 }
 } // namespace Rosen

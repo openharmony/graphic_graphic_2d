@@ -33,7 +33,6 @@ RSWindowAnimationTarget* RSWindowAnimationTarget::Unmarshalling(Parcel& parcel)
 
 bool RSWindowAnimationTarget::Marshalling(Parcel& parcel) const
 {
-    parcel.WriteInt32(type_);
     parcel.WriteString(bundleName_);
     parcel.WriteString(abilityName_);
     parcel.WriteFloat(windowBounds_.rect_.left_);
@@ -41,14 +40,12 @@ bool RSWindowAnimationTarget::Marshalling(Parcel& parcel) const
     parcel.WriteFloat(windowBounds_.rect_.width_);
     parcel.WriteFloat(windowBounds_.rect_.height_);
     parcel.WriteFloat(windowBounds_.radius_[0].x_);
-    parcel.WriteUint32(windowId_);
     parcel.WriteParcelable(surfaceNode_.get());
     return true;
 }
 
 bool RSWindowAnimationTarget::ReadFromParcel(Parcel& parcel)
 {
-    type_ = static_cast<WindowAnimationTargetType>(parcel.ReadInt32());
     bundleName_ = parcel.ReadString();
     abilityName_ = parcel.ReadString();
     windowBounds_.rect_.left_ = parcel.ReadFloat();
@@ -56,7 +53,6 @@ bool RSWindowAnimationTarget::ReadFromParcel(Parcel& parcel)
     windowBounds_.rect_.width_ = parcel.ReadFloat();
     windowBounds_.rect_.height_ = parcel.ReadFloat();
     windowBounds_.radius_[0].x_ = parcel.ReadFloat();
-    windowId_ = parcel.ReadUint32();
     surfaceNode_ = std::shared_ptr<RSSurfaceNode>(parcel.ReadParcelable<RSSurfaceNode>());
     return true;
 }

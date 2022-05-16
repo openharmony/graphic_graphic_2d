@@ -27,6 +27,13 @@ void SurfaceNodeCommandHelper::Create(RSContext& context, NodeId id)
     nodeMap.RegisterRenderNode(node);
 }
 
+void SurfaceNodeCommandHelper::SetProxy(RSContext& context, NodeId id)
+{
+    if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(id)) {
+        node->SetProxy();
+    }
+}
+
 void SurfaceNodeCommandHelper::SetMatrix(RSContext& context, NodeId id, SkMatrix matrix)
 {
     if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(id)) {

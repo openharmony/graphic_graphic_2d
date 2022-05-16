@@ -27,20 +27,27 @@ namespace Rosen {
 class RSWindowAnimationProxy : public IRemoteProxy<RSIWindowAnimationController> {
 public:
     explicit RSWindowAnimationProxy(const sptr<IRemoteObject>& impl);
-    virtual ~RSWindowAnimationProxy() =default;
+    virtual ~RSWindowAnimationProxy() = default;
 
-    virtual void OnTransition(const sptr<RSWindowAnimationTarget>& from,
-                              const sptr<RSWindowAnimationTarget>& to,
-                              const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback) override;
+    virtual void OnStartApp(StartingAppType type, const sptr<RSWindowAnimationTarget>& startingWindowTarget,
+        const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback);
 
-    virtual void OnMinimizeWindow(const sptr<RSWindowAnimationTarget>& minimizingWindow,
-                                  const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback) override;
+    virtual void OnAppTransition(const sptr<RSWindowAnimationTarget>& fromWindowTarget,
+        const sptr<RSWindowAnimationTarget>& toWindowTarget,
+        const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback);
 
-    virtual void OnCloseWindow(const sptr<RSWindowAnimationTarget>& closingWindow,
-                               const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback) override;
+    virtual void OnMinimizeWindow(const sptr<RSWindowAnimationTarget>& minimizingWindowTarget,
+        const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback);
+
+    virtual void OnCloseWindow(const sptr<RSWindowAnimationTarget>& closingWindowTarget,
+        const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback);
+
+    virtual void OnScreenUnlock(const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback);
 
 private:
     bool WriteInterfaceToken(MessageParcel& data);
+    bool WriteTargetAndCallback(MessageParcel& data, const sptr<RSWindowAnimationTarget>& windowTarget,
+        const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback);
     static inline BrokerDelegator<RSWindowAnimationProxy> delegator_;
 };
 } // namespace Rosen

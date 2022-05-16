@@ -13,9 +13,9 @@
 
 import("//build/ohos.gni")
 import("//foundation/arkui/ace_engine/ace_config.gni")
-import("//foundation/graphic/standard/graphic_config.gni")
+import("//foundation/graphic/graphic/graphic_config.gni")
 
-rosen_flutter_engine_root = "//foundation/graphic/standard/rosen/build/flutter"
+rosen_flutter_engine_root = "//foundation/graphic/graphic/rosen/build/flutter"
 
 # ------------------------------------------------
 #      Skia shared library
@@ -605,7 +605,7 @@ ohos_source_set("rosen_skia_core_ohos") {
     ]
   } else {
     if (is_standard_system) {
-      public_deps = [ "//foundation/graphic/standard:libgl" ]
+      public_deps = [ "//foundation/graphic/graphic:libgl" ]
     } else {
       aosp_deps = [
         "shared_library:libEGL",
@@ -948,7 +948,7 @@ ohos_source_set("rosen_gpu_ohos") {
   if (ace_enable_gpu) {
     # Ohos or Android platform
     if (is_standard_system) {
-      public_deps = [ "//foundation/graphic/standard:libgl" ]
+      public_deps = [ "//foundation/graphic/graphic:libgl" ]
     } else {
       aosp_deps = [
         "shared_library:libEGL",

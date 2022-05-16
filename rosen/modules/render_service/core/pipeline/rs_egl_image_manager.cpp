@@ -56,6 +56,25 @@ const char *EGLErrorString(GLint error)
     }
 }
 
+static PFNEGLCREATEIMAGEKHRPROC GetEGLCreateImageKHRFunc()
+{
+    static auto func = reinterpret_cast<PFNEGLCREATEIMAGEKHRPROC>(eglGetProcAddress("eglCreateImageKHR"));
+    return func;
+}
+
+static PFNEGLDESTROYIMAGEKHRPROC GetEGLDestroyImageKHRFunc()
+{
+    static auto func = reinterpret_cast<PFNEGLDESTROYIMAGEKHRPROC>(eglGetProcAddress("eglDestroyImageKHR"));
+    return func;
+}
+
+static PFNGLEGLIMAGETARGETTEXTURE2DOESPROC GetGLEGLImageTargetTexture2DOESFunc()
+{
+    static auto func = reinterpret_cast<PFNGLEGLIMAGETARGETTEXTURE2DOESPROC>(
+        eglGetProcAddress("glEGLImageTargetTexture2DOES"));
+    return func;
+}
+
 // RAII object for NativeWindowBuffer
 class NativeWindowBufferObject {
 public:
@@ -136,7 +155,7 @@ EGLImageKHR CreateEGLImage(
         EGL_NONE,
     };
 
-    return eglCreateImageKHR(
+    return GetEGLCreateImageKHRFunc()(
         eglDisplay, EGLContext, EGL_NATIVE_BUFFER_OHOS, CastToEGLClientBuffer(nativeBuffer), attrs);
 }
 } // namespace Detail
@@ -152,7 +171,7 @@ ImageCacheSeq::ImageCacheSeq(
 ImageCacheSeq::~ImageCacheSeq() noexcept
 {
     if (eglImage_ != EGL_NO_IMAGE_KHR) {
-        eglDestroyImageKHR(eglDisplay_, eglImage_);
+        Detail::GetEGLDestroyImageKHRFunc()(eglDisplay_, eglImage_);
         eglImage_ = EGL_NO_IMAGE_KHR;
     }
 
@@ -182,7 +201,7 @@ bool ImageCacheSeq::BindToTexture()
 
     // bind this eglImage_ to textureId_.
     glBindTexture(GL_TEXTURE_EXTERNAL_OES, textureId_);
-    glEGLImageTargetTexture2DOES(GL_TEXTURE_EXTERNAL_OES, eglImage_);
+    Detail::GetGLEGLImageTargetTexture2DOESFunc()(GL_TEXTURE_EXTERNAL_OES, eglImage_);
     return true;
 }
 

@@ -29,36 +29,45 @@ namespace OHOS {
 namespace Rosen {
 class RSWindowAnimationController : public RSWindowAnimationStub {
 public:
-    RSWindowAnimationController(NativeEngine& engine, const std::shared_ptr<AppExecFwk::EventHandler>& handler);
+    explicit RSWindowAnimationController(NativeEngine& engine);
     virtual ~RSWindowAnimationController() = default;
 
     void SetJsController(NativeValue* jsController);
 
-    void OnTransition(const sptr<RSWindowAnimationTarget>& from,
-                      const sptr<RSWindowAnimationTarget>& to,
-                      const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback) override;
+    void OnStartApp(StartingAppType type, const sptr<RSWindowAnimationTarget>& startingWindowTarget,
+        const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback);
 
-    void OnMinimizeWindow(const sptr<RSWindowAnimationTarget>& minimizingWindow,
-                          const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback) override;
+    void OnAppTransition(const sptr<RSWindowAnimationTarget>& fromWindowTarget,
+        const sptr<RSWindowAnimationTarget>& toWindowTarget,
+        const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback);
 
-    void OnCloseWindow(const sptr<RSWindowAnimationTarget>& closingWindow,
-                       const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback) override;
+    void OnMinimizeWindow(const sptr<RSWindowAnimationTarget>& minimizingWindowTarget,
+        const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback);
+
+    void OnCloseWindow(const sptr<RSWindowAnimationTarget>& closingWindowTarget,
+        const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback);
+
+    void OnScreenUnlock(const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback);
 
 private:
-    void HandleOnTransition(const sptr<RSWindowAnimationTarget>& from,
-                            const sptr<RSWindowAnimationTarget>& to,
-                            const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback);
+    void HandleOnStartApp(StartingAppType type, const sptr<RSWindowAnimationTarget>& startingWindowTarget,
+        const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback);
 
-    void HandleOnMinimizeWindow(const sptr<RSWindowAnimationTarget>& minimizingWindow,
-                                const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback);
+    void HandleOnAppTransition(const sptr<RSWindowAnimationTarget>& fromWindowTarget,
+        const sptr<RSWindowAnimationTarget>& toWindowTarget,
+        const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback);
 
-    void HandleOnCloseWindow(const sptr<RSWindowAnimationTarget>& closingWindow,
-                             const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback);
+    void HandleOnMinimizeWindow(const sptr<RSWindowAnimationTarget>& minimizingWindowTarget,
+        const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback);
+
+    void HandleOnCloseWindow(const sptr<RSWindowAnimationTarget>& closingWindowTarget,
+        const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback);
+
+    void HandleOnScreenUnlock(const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback);
 
     void CallJsFunction(const std::string& methodName, NativeValue* const* argv, size_t argc);
 
     NativeEngine& engine_;
-    std::shared_ptr<AppExecFwk::EventHandler> handler_;
     std::unique_ptr<NativeReference> jsController_;
 };
 } // namespace Rosen

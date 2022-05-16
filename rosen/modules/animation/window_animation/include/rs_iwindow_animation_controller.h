@@ -23,25 +23,37 @@ namespace Rosen {
 struct RSWindowAnimationTarget;
 class RSIWindowAnimationFinishedCallback;
 
+enum StartingAppType {
+    FROM_LAUNCHER,
+    FROM_RECENT,
+    FROM_OTHER,
+};
+
 class RSIWindowAnimationController : public IRemoteBroker {
 public:
     DECLARE_INTERFACE_DESCRIPTOR(u"ohos.rosen.RSIWindowAnimationController");
 
     enum {
-        ON_TRANSITION,
+        ON_START_APP,
+        ON_APP_TRANSITION,
         ON_MINIMIZE_WINDOW,
         ON_CLOSE_WINDOW,
+        ON_SCREEN_UNLOCK,
     };
 
-    virtual void OnTransition(const sptr<RSWindowAnimationTarget>& from,
-                              const sptr<RSWindowAnimationTarget>& to,
-                              const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback) = 0;
+    virtual void OnStartApp(StartingAppType type, const sptr<RSWindowAnimationTarget>& startingWindowTarget,
+        const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback) = 0;
+
+    virtual void OnAppTransition(const sptr<RSWindowAnimationTarget>& from, const sptr<RSWindowAnimationTarget>& to,
+        const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback) = 0;
 
     virtual void OnMinimizeWindow(const sptr<RSWindowAnimationTarget>& minimizingWindow,
-                                  const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback) = 0;
+        const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback) = 0;
 
     virtual void OnCloseWindow(const sptr<RSWindowAnimationTarget>& closingWindow,
-                               const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback) = 0;
+        const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback) = 0;
+
+    virtual void OnScreenUnlock(const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback) = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

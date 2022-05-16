@@ -33,21 +33,9 @@
 #include "ui/rs_surface_node.h"
 #include "render_context/render_context.h"
 // temporary debug
-#include "foundation/graphic/standard/rosen/modules/render_service_base/src/platform/ohos/rs_surface_frame_ohos.h"
-#include "foundation/graphic/standard/rosen/modules/render_service_base/src/platform/ohos/rs_surface_ohos.h"
+#include "foundation/graphic/graphic/rosen/modules/render_service_base/src/platform/ohos/rs_surface_frame_ohos.h"
+#include "foundation/graphic/graphic/rosen/modules/render_service_base/src/platform/ohos/rs_surface_ohos.h"
 
-#include "include/core/SkFont.h"
-#include "include/core/SkMaskFilter.h"
-#include "include/core/SkPath.h"
-#include "include/core/SkTypeface.h"
-#include "include/private/SkTo.h"
-#include "include/utils/SkRandom.h"
-#include "src/core/SkAutoMalloc.h"
-#include "src/core/SkBlurMask.h"
-#include "src/core/SkPaintPriv.h"
-#include "src/core/SkReadBuffer.h"
-#include "src/core/SkWriteBuffer.h"
-#include "src/utils/SkUTF.h"
 using namespace OHOS;
 using namespace OHOS::Rosen;
 using namespace std;
@@ -162,22 +150,11 @@ namespace pipelineTestUtils {
             paint.setStrokeWidth(20);
             paint.setStrokeJoin(SkPaint::kRound_Join);
             paint.setColor(color_);
-
-            SkBinaryWriteBuffer writer;
-            SkPaintPriv::Flatten(paint, writer);
-
-            SkAutoMalloc buf(writer.bytesWritten());
-            writer.writeToMemory(buf.get());
-            SkReadBuffer reader(buf.get(), writer.bytesWritten());
-
-//            SkPaint other = reader.readPaint();
-            SkPaint other;
-            SkPaintPriv::Unflatten(&other, reader, nullptr);
             if (!drawShape_) {
                 printf("DrawSurface: drawShape_ is nullptr\n");
                 return wrongExit;
             }
-            drawShape_(*(canvas), other);
+            drawShape_(*(canvas), paint);
             framePtr->SetDamageRegion(0, 0, surfaceGeometry_.width(), surfaceGeometry_.height());
             rsSurface->FlushFrame(framePtr);
             return successExit;

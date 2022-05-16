@@ -19,7 +19,7 @@ module_output_path = "graphic/2d_graphics"
 ##############################fuzztest##########################################
 ohos_fuzztest("DrawingColorSetArgbFuzzTest") {
   module_out_path = module_output_path
-  fuzz_config_file = "//foundation/graphic/standard/rosen/test/2d_graphics/fuzztest/drawing_color_set_argb_fuzzer"
+  fuzz_config_file = "//foundation/graphic/graphic/rosen/test/2d_graphics/fuzztest/drawing_color_set_argb_fuzzer"
 
   sources = [ "drawing_color_set_argb_fuzzer.cpp" ]
 
@@ -31,10 +31,10 @@ ohos_fuzztest("DrawingColorSetArgbFuzzTest") {
   ]
 
   include_dirs =
-      [ "//foundation/graphic/standard/rosen/modules/2d_graphics/include" ]
+      [ "//foundation/graphic/graphic/rosen/modules/2d_graphics/include" ]
 
   deps =
-      [ "//foundation/graphic/standard/rosen/modules/2d_graphics:2d_graphics" ]
+      [ "//foundation/graphic/graphic/rosen/modules/2d_graphics:2d_graphics" ]
 
   external_deps = [
     "hilog_native:libhilog",

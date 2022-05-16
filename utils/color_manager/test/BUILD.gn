@@ -28,7 +28,7 @@ ohos_unittest("ColorManagerTest") {
 }
 
 config("color_manager_test_config") {
-  include_dirs = [ "//foundation/graphic/standard/utils/color_manager/export" ]
+  include_dirs = [ "//foundation/graphic/graphic/utils/color_manager/export" ]
 
   cflags = [
     "-Wall",
@@ -46,7 +46,7 @@ ohos_static_library("color_manager_test") {
 
   public_deps = [
     "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
-    "//foundation/graphic/standard/utils/color_manager:color_manager",
+    "//foundation/graphic/graphic/utils/color_manager:color_manager",
     "//third_party/googletest:gtest_main",
   ]
 }

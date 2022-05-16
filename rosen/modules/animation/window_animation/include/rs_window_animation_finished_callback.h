@@ -27,9 +27,9 @@ public:
     explicit RSWindowAnimationFinishedCallback(const std::function<void(void)>& callback);
     virtual ~RSWindowAnimationFinishedCallback() = default;
 
-private:
     void OnAnimationFinished() override;
 
+private:
     std::function<void(void)> callback_;
 };
 } // namespace Rosen

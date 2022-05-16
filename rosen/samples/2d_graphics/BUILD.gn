@@ -12,7 +12,7 @@
 # limitations under the License.
 
 import("//build/ohos.gni")
-import("//foundation/graphic/standard/graphic_config.gni")
+import("//foundation/graphic/graphic/graphic_config.gni")
 
 ohos_executable("drawing_engine_sample") {
   install_enable = true
@@ -54,10 +54,10 @@ ohos_executable("drawing_engine_sample") {
     "include",
     "drawing_engine",
     "drawing_engine/drawing_surface",
-    "//foundation/graphic/standard/rosen/modules/composer/hdi_backend/include",
-    "//foundation/graphic/standard/interfaces/inner_api/vsync_module",
-    "//foundation/graphic/standard/utils/sync_fence/export",
-    "//foundation/graphic/standard/rosen/include/common",
+    "//foundation/graphic/graphic/rosen/modules/composer/hdi_backend/include",
+    "//foundation/graphic/graphic/interfaces/inner_api/vsync_module",
+    "//foundation/graphic/graphic/utils/sync_fence/export",
+    "//foundation/graphic/graphic/rosen/include/common",
   ]
 
   sources += [
@@ -75,11 +75,11 @@ ohos_executable("drawing_engine_sample") {
 
   deps = [
     "//foundation/arkui/ace_engine/build/external_config/flutter/skia:ace_skia_ohos",
-    "//foundation/graphic/standard:libsurface",
-    "//foundation/graphic/standard:libvsync_client",
-    "//foundation/graphic/standard/frameworks/vsync:libvsync_module",
-    "//foundation/graphic/standard/rosen/modules/composer:libcomposer",
-    "//foundation/graphic/standard/utils:sync_fence",
+    "//foundation/graphic/graphic:libsurface",
+    "//foundation/graphic/graphic:libvsync_client",
+    "//foundation/graphic/graphic/frameworks/vsync:libvsync_module",
+    "//foundation/graphic/graphic/rosen/modules/composer:libcomposer",
+    "//foundation/graphic/graphic/utils:sync_fence",
   ]
 
   defines = gpu_defines
@@ -105,21 +105,21 @@ ohos_executable("drawing_sample_rs") {
   sources = [ "drawing_c_sample.cpp" ]
 
   include_dirs = [
-    "//foundation/graphic/standard/rosen/modules/2d_graphics/include",
-    "//foundation/graphic/standard/rosen/modules/2d_graphics/src",
-    "//foundation/graphic/standard/rosen/modules/render_service_base/src",
-    "//foundation/graphic/standard/rosen/modules/render_service_base/include",
-    "//foundation/graphic/standard/rosen/modules/render_service_client",
-    "//foundation/graphic/standard/interfaces/inner_api/vsync_module",
-    "//foundation/graphic/standard/rosen/include/common",
+    "//foundation/graphic/graphic/rosen/modules/2d_graphics/include",
+    "//foundation/graphic/graphic/rosen/modules/2d_graphics/src",
+    "//foundation/graphic/graphic/rosen/modules/render_service_base/src",
+    "//foundation/graphic/graphic/rosen/modules/render_service_base/include",
+    "//foundation/graphic/graphic/rosen/modules/render_service_client",
+    "//foundation/graphic/graphic/interfaces/inner_api/vsync_module",
+    "//foundation/graphic/graphic/rosen/include/common",
     "//foundation/windowmanager/interfaces/innerkits/wm",
   ]
 
   deps = [
-    "//foundation/graphic/standard:libvsync_client",
-    "//foundation/graphic/standard/rosen/modules/2d_graphics:2d_graphics",
-    "//foundation/graphic/standard/rosen/modules/render_service_base:librender_service_base",
-    "//foundation/graphic/standard/rosen/modules/render_service_client:librender_service_client",
+    "//foundation/graphic/graphic:libvsync_client",
+    "//foundation/graphic/graphic/rosen/modules/2d_graphics:2d_graphics",
+    "//foundation/graphic/graphic/rosen/modules/render_service_base:librender_service_base",
+    "//foundation/graphic/graphic/rosen/modules/render_service_client:librender_service_client",
     "//foundation/windowmanager/wm:libwm",
     "//third_party/zlib:libz",
   ]
@@ -139,23 +139,23 @@ ohos_executable("drawing_sample_canvaskit0310") {
   sources = [ "drawing_sample_canvaskit0310.cpp" ]
 
   include_dirs = [
-    "//foundation/graphic/standard/rosen/modules/composer/hdi_backend/include",
+    "//foundation/graphic/graphic/rosen/modules/composer/hdi_backend/include",
     "//drivers/peripheral/display/interfaces/include",
-    "//foundation/graphic/standard/rosen/include/common",
-    "//foundation/graphic/standard/interfaces/inner_api/vsync_module",
-    "//foundation/graphic/standard/interfaces/inner_api/common",
-    "//foundation/graphic/standard/rosen/modules/composer/vsync/include",
-    "//foundation/graphic/standard/rosen/modules/2d_graphics/include",
-    "//foundation/graphic/standard/rosen/modules/2d_graphics/src",
+    "//foundation/graphic/graphic/rosen/include/common",
+    "//foundation/graphic/graphic/interfaces/inner_api/vsync_module",
+    "//foundation/graphic/graphic/interfaces/inner_api/common",
+    "//foundation/graphic/graphic/rosen/modules/composer/vsync/include",
+    "//foundation/graphic/graphic/rosen/modules/2d_graphics/include",
+    "//foundation/graphic/graphic/rosen/modules/2d_graphics/src",
   ]
 
   deps = [
-    "//foundation/graphic/standard:libsurface",
-    "//foundation/graphic/standard:libvsync_client",
-    "//foundation/graphic/standard/rosen/modules/2d_graphics:2d_graphics_canvaskit0310",
-    "//foundation/graphic/standard/rosen/modules/composer:libcomposer",
-    "//foundation/graphic/standard/utils:libgraphic_utils",
-    "//foundation/graphic/standard/utils:sync_fence",
+    "//foundation/graphic/graphic:libsurface",
+    "//foundation/graphic/graphic:libvsync_client",
+    "//foundation/graphic/graphic/rosen/modules/2d_graphics:2d_graphics_canvaskit0310",
+    "//foundation/graphic/graphic/rosen/modules/composer:libcomposer",
+    "//foundation/graphic/graphic/utils:libgraphic_utils",
+    "//foundation/graphic/graphic/utils:sync_fence",
   ]
 
   external_deps = [

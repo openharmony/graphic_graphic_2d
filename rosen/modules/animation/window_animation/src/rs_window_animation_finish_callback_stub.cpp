@@ -35,6 +35,7 @@ int RSWindowAnimationFinishedCallbackStub::OnRemoteRequest(uint32_t code,Message
             break;
         }
         default: {
+            WALOGE("Unknown transaction!");
             ret = ERR_UNKNOWN_TRANSACTION;
             break;
         }

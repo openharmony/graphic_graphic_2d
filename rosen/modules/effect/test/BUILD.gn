@@ -12,8 +12,8 @@
 # limitations under the License.
 
 import("//build/ohos.gni")
-import("//foundation/graphic/standard/graphic_config.gni")
-import("//foundation/graphic/standard/rosen/modules/effect/effect_config.gni")
+import("//foundation/graphic/graphic/graphic_config.gni")
+import("//foundation/graphic/graphic/rosen/modules/effect/effect_config.gni")
 
 ohos_executable("test_effect_chain") {
   sources = []
@@ -26,19 +26,19 @@ ohos_executable("test_effect_chain") {
     sources = [ "test_effect_chain.cpp" ]
 
     include_dirs = [
-      "//foundation/graphic/standard/rosen/modules/effect/effectChain/include",
-      "//foundation/graphic/standard/rosen/modules/effect/egl/include",
-      "//foundation/graphic/standard/interfaces/inner_api/surface",
+      "//foundation/graphic/graphic/rosen/modules/effect/effectChain/include",
+      "//foundation/graphic/graphic/rosen/modules/effect/egl/include",
+      "//foundation/graphic/graphic/interfaces/inner_api/surface",
       "//third_party/EGL/api",
       "//third_party/openGLES/api",
     ]
 
     deps = [
-      "//foundation/graphic/standard:libgl",
-      "//foundation/graphic/standard:libsurface",
-      "//foundation/graphic/standard/interfaces/kits/napi/graphic/common:graphic_napi_common",
-      "//foundation/graphic/standard/rosen/modules/effect/effectChain:libeffectchain",
-      "//foundation/graphic/standard/rosen/modules/effect/egl:libegl_effect",
+      "//foundation/graphic/graphic:libgl",
+      "//foundation/graphic/graphic:libsurface",
+      "//foundation/graphic/graphic/interfaces/kits/napi/graphic/common:graphic_napi_common",
+      "//foundation/graphic/graphic/rosen/modules/effect/effectChain:libeffectchain",
+      "//foundation/graphic/graphic/rosen/modules/effect/egl:libegl_effect",
     ]
   }
 

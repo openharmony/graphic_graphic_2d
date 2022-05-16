@@ -12,7 +12,7 @@
 # limitations under the License.
 
 import("//build/ohos.gni")
-import("//foundation/graphic/standard/graphic_config.gni")
+import("//foundation/graphic/graphic/graphic_config.gni")
 
 ## Build libsurfaceimage.so {{{
 config("surfaceimage_config") {
@@ -27,7 +27,7 @@ config("surfaceimage_config") {
 
 config("libsurfaceimage_public_config") {
   include_dirs = [
-    "//foundation/graphic/standard/frameworks/surface/include",
+    "//foundation/graphic/graphic/frameworks/surface/include",
     "include",
   ]
 }
@@ -39,11 +39,11 @@ ohos_shared_library("libsurfaceimage") {
 
   public_configs = [ ":libsurfaceimage_public_config" ]
 
-  deps = [ "//foundation/graphic/standard/frameworks/surface:surface" ]
+  deps = [ "//foundation/graphic/graphic/frameworks/surface:surface" ]
 
   public_deps = [
-    "//foundation/graphic/standard:libgl",
-    "//foundation/graphic/standard/utils:sync_fence",
+    "//foundation/graphic/graphic:libgl",
+    "//foundation/graphic/graphic/utils:sync_fence",
   ]
 
   external_deps = [

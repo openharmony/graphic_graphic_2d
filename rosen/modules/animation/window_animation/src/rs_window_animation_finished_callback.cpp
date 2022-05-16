@@ -15,6 +15,8 @@
 
 #include "rs_window_animation_finished_callback.h"
 
+#include "rs_window_animation_log.h"
+
 namespace OHOS {
 namespace Rosen {
 RSWindowAnimationFinishedCallback::RSWindowAnimationFinishedCallback(const std::function<void(void)>& callback)
@@ -24,9 +26,13 @@ RSWindowAnimationFinishedCallback::RSWindowAnimationFinishedCallback(const std::
 
 void RSWindowAnimationFinishedCallback::OnAnimationFinished()
 {
-    if (callback_ != nullptr) {
-        callback_();
+    WALOGD("On animation finished!");
+    if (callback_ == nullptr) {
+        WALOGE("Callback is null!");
+        return;
     }
+
+    callback_();
 }
 } // namespace Rosen
 } // namespace OHOS

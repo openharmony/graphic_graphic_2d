@@ -118,7 +118,7 @@ template("rosen_libharfbuzz") {
       "$flutter_root/skia/third_party/externals/harfbuzz/src/hb-warning.cc",
     ]
 
-    deps = [ "//foundation/graphic/standard/rosen/build/flutter/icu:rosen_libicu_$platform" ]
+    deps = [ "//foundation/graphic/graphic/rosen/build/flutter/icu:rosen_libicu_$platform" ]
   }
 }
 

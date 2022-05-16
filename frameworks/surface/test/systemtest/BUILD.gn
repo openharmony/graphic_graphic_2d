@@ -31,7 +31,7 @@ ohos_systemtest("native_window_buffer_test") {
   sources = [ "native_window_buffer_test.cpp" ]
 
   include_dirs = [
-    "//foundation/graphic/standard/frameworks/surface/include",
+    "//foundation/graphic/graphic/frameworks/surface/include",
     "//drivers/peripheral/display/interfaces/include",
   ]
 
@@ -46,8 +46,8 @@ ohos_systemtest("native_window_buffer_test") {
   deps = [
     "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
     "//foundation/distributedschedule/samgr/interfaces/innerkits/samgr_proxy:samgr_proxy",
-    "//foundation/graphic/standard:libsurface",
-    "//foundation/graphic/standard/utils:libgraphic_utils",
+    "//foundation/graphic/graphic:libsurface",
+    "//foundation/graphic/graphic/utils:libgraphic_utils",
     "//third_party/googletest:gtest_main",
   ]
 }
@@ -61,7 +61,7 @@ ohos_systemtest("surface_ipc_test") {
   sources = [ "surface_ipc_test.cpp" ]
 
   include_dirs = [
-    "//foundation/graphic/standard/frameworks/surface/include",
+    "//foundation/graphic/graphic/frameworks/surface/include",
     "//drivers/peripheral/display/interfaces/include",
   ]
 
@@ -73,7 +73,7 @@ ohos_systemtest("surface_ipc_test") {
 
   deps = [
     "//foundation/distributedschedule/samgr/interfaces/innerkits/samgr_proxy:samgr_proxy",
-    "//foundation/graphic/standard:libsurface",
+    "//foundation/graphic/graphic:libsurface",
     "//third_party/googletest:gtest_main",
   ]
 }

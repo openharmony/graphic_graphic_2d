@@ -72,7 +72,9 @@ void RSRenderThreadVisitor::PrepareCanvasRenderNode(RSCanvasRenderNode& node)
 
 void RSRenderThreadVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
 {
-    curTreeRoot_->AddSurfaceRenderNode(node.GetId());
+    if (!node.IsProxy()) {
+        curTreeRoot_->AddSurfaceRenderNode(node.GetId());
+    }
     bool dirtyFlag = dirtyFlag_;
     dirtyFlag_ = node.Update(dirtyManager_, parent_ ? &(parent_->GetRenderProperties()) : nullptr, dirtyFlag_);
     PrepareBaseRenderNode(node);
@@ -196,7 +198,7 @@ void RSRenderThreadVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
         return;
     }
     if (!node.GetRenderProperties().GetVisible()) {
-        ROSEN_LOGI("RSRenderThreadVisitor::ProcessSurfaceRenderNode node : %llu is unvisible", node.GetId());
+        ROSEN_LOGI("RSRenderThreadVisitor::ProcessSurfaceRenderNode node : %llu is invisible", node.GetId());
         return;
     }
     // RSSurfaceRenderNode in RSRenderThreadVisitor do not have information of property.
@@ -204,6 +206,12 @@ void RSRenderThreadVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
 #ifdef ROSEN_OHOS
     node.SetMatrix(canvas_->getTotalMatrix());
     node.SetAlpha(canvas_->GetAlpha());
+    // for proxied nodes (i.e. remote window components), we only set matrix & alpha, do not change its hierarchy and
+    // clip status.
+    if (node.IsProxy()) {
+        ProcessBaseRenderNode(node);
+        return;
+    }
     node.SetParentId(node.GetParent().lock()->GetId());
     auto clipRect = canvas_->getDeviceClipBounds();
     node.SetClipRegion({ clipRect.left(), clipRect.top(), clipRect.width(), clipRect.height() });

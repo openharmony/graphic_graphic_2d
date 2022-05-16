@@ -68,7 +68,7 @@ void RSSoftwareProcessor::Init(ScreenId id, int32_t offsetX, int32_t offsetY)
 void RSSoftwareProcessor::PostProcess()
 {
     SetBufferTimeStamp();
-    if (!rsSurface_) {
+    if (!rsSurface_ || !currFrame_) {
         RS_LOGE("RSSoftwareProcessor::PostProcess rsSurface_ is null.");
         return;
     }

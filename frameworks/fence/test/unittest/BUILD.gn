@@ -52,9 +52,9 @@ ohos_static_library("fence_test_common") {
   public_configs = [ ":fence_test_common_public_config" ]
 
   public_deps = [
-    "//foundation/graphic/standard:libfence",
-    "//foundation/graphic/standard:libsurface",
-    "//foundation/graphic/standard/utils:libgraphic_utils",
+    "//foundation/graphic/graphic:libfence",
+    "//foundation/graphic/graphic:libsurface",
+    "//foundation/graphic/graphic/utils:libgraphic_utils",
   ]
   subsystem_name = "graphic"
   part_name = "graphic_standard"

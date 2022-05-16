@@ -16,6 +16,8 @@
 #ifndef HDI_BACKEND_HDI_OUTPUT_H
 #define HDI_BACKEND_HDI_OUTPUT_H
 
+#include <array>
+#include <stdint.h>
 #include <vector>
 #include <unordered_map>
 
@@ -41,6 +43,7 @@ public:
     HdiOutput(uint32_t screenId);
     virtual ~HdiOutput();
 
+    static constexpr uint COMPOSITION_RECORDS_NUM = 128;
     /* for RS begin */
     void SetLayerInfo(const std::vector<LayerInfoPtr> &layerInfos);
     void SetOutputDamage(uint32_t num, const IRect &outputDamage);
@@ -59,8 +62,11 @@ public:
 
     void Dump(std::string &result) const;
     void DumpFps(std::string &result, const std::string &arg) const;
+    void RecordCompositionTime(int64_t timeStamp);
 
 private:
+    std::array<int64_t, COMPOSITION_RECORDS_NUM> compositionTimeRecords_ = {};
+    uint32_t compTimeRcdIndex_ = 0;
     sptr<HdiFramebufferSurface> fbSurface_ = nullptr;
     // layerId -- layer ptr
     std::unordered_map<uint32_t, LayerPtr> layerIdMap_;

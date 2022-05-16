@@ -15,6 +15,8 @@
 
 #include "rs_window_animation_controller.h"
 
+#include <memory>
+
 #include <js_runtime_utils.h>
 #include <rs_window_animation_log.h>
 
@@ -27,129 +29,201 @@ constexpr size_t ARGC_ONE = 1;
 constexpr size_t ARGC_TWO = 2;
 constexpr size_t ARGC_THREE = 3;
 
-RSWindowAnimationController::RSWindowAnimationController(NativeEngine& engine,
-    const std::shared_ptr<AppExecFwk::EventHandler>& handler)
-    : engine_(engine),
-      handler_(handler)
+RSWindowAnimationController::RSWindowAnimationController(NativeEngine& engine)
+    : engine_(engine)
 {
 }
 
 void RSWindowAnimationController::SetJsController(NativeValue* jsController)
 {
+    WALOGD("SetJsController.");
     jsController_ = std::unique_ptr<NativeReference>(engine_.CreateReference(jsController, ARGC_ONE));
 }
 
-void RSWindowAnimationController::OnTransition(const sptr<RSWindowAnimationTarget>& from,
-                                               const sptr<RSWindowAnimationTarget>& to,
-                                               const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback)
-{
-    WALOGI("Window animation controller on transition.");
-    if (handler_ == nullptr) {
-        WALOGE("Handler is null!");
-        return;
-    }
-
-    wptr<RSWindowAnimationController> controllerWptr = this;
-    auto task = [controllerWptr, from, to, finishedCallback]() {
-        auto controllerSptr = controllerWptr.promote();
-        if (controllerSptr == nullptr) {
-            WALOGE("Controller is null!");
-            return;
-        }
-
-        controllerSptr->HandleOnTransition(from, to, finishedCallback);
-    };
-
-    handler_->PostTask(task, AppExecFwk::EventHandler::Priority::IMMEDIATE);
-}
-
-void RSWindowAnimationController::OnMinimizeWindow(const sptr<RSWindowAnimationTarget>& minimizingWindow,
-                                                   const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback)
-{
-    WALOGI("Window animation controller on minize window.");
-    if (handler_ == nullptr) {
-        WALOGE("Handler is null!");
-        return;
-    }
-
-    wptr<RSWindowAnimationController> controllerWptr = this;
-    auto task = [controllerWptr, minimizingWindow, finishedCallback]() {
-        auto controllerSptr = controllerWptr.promote();
-        if (controllerSptr == nullptr) {
-            WALOGE("Controller is null!");
-            return;
-        }
-
-        controllerSptr->HandleOnMinimizeWindow(minimizingWindow, finishedCallback);
-    };
-
-    handler_->PostTask(task, AppExecFwk::EventHandler::Priority::IMMEDIATE);
-}
-
-void RSWindowAnimationController::OnCloseWindow(const sptr<RSWindowAnimationTarget>& closingWindow,
-                                                const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback)
-{
-    WALOGI("Window animation controller on close window.");
-    if (handler_ == nullptr) {
-        WALOGE("Handler is null!");
-        return;
-    }
-
-    wptr<RSWindowAnimationController> controllerWptr = this;
-    auto task = [controllerWptr, closingWindow, finishedCallback]() {
-        auto controllerSptr = controllerWptr.promote();
-        if (controllerSptr == nullptr) {
-            WALOGE("Controller is null!");
-            return;
-        }
-
-        controllerSptr->HandleOnCloseWindow(closingWindow, finishedCallback);
-    };
-
-    handler_->PostTask(task, AppExecFwk::EventHandler::Priority::IMMEDIATE);
-}
-
-
-void RSWindowAnimationController::HandleOnTransition(const sptr<RSWindowAnimationTarget>& from,
-                                                     const sptr<RSWindowAnimationTarget>& to,
-                                                     const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback)
-{
-    WALOGI("Handle on transition.");
-    NativeValue* argv[] = {
-        RSWindowAnimationUtils::CreateJsWindowAnimationTarget(engine_, *from),
-        RSWindowAnimationUtils::CreateJsWindowAnimationTarget(engine_, *to),
-        RSWindowAnimationUtils::CreateJsWindowAnimationFinishedCallback(engine_, finishedCallback),
-    };
-    CallJsFunction("onTransition", argv, ARGC_THREE);
-}
-
-void RSWindowAnimationController::HandleOnMinimizeWindow(
-    const sptr<RSWindowAnimationTarget>& minimizingWindow,
+void RSWindowAnimationController::OnStartApp(StartingAppType type,
+    const sptr<RSWindowAnimationTarget>& startingWindowTarget,
     const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback)
 {
-    WALOGI("Handle on minimize window.");
+    WALOGD("Window animation controller on start app.");
+    wptr<RSWindowAnimationController> controllerWptr = this;
+    std::unique_ptr<AsyncTask::CompleteCallback> complete = std::make_unique<AsyncTask::CompleteCallback> (
+        [controllerWptr, type, startingWindowTarget, finishedCallback](NativeEngine&, AsyncTask&, int32_t) {
+            auto controllerSptr = controllerWptr.promote();
+            if (controllerSptr == nullptr) {
+                WALOGE("Controller is null!");
+                return;
+            }
+
+            controllerSptr->HandleOnStartApp(type, startingWindowTarget, finishedCallback);
+        }
+    );
+
+    NativeReference* callback = nullptr;
+    std::unique_ptr<AsyncTask::ExecuteCallback> execute = nullptr;
+    AsyncTask::Schedule(engine_, std::make_unique<AsyncTask>(callback, std::move(execute), std::move(complete)));
+}
+
+void RSWindowAnimationController::OnAppTransition(const sptr<RSWindowAnimationTarget>& fromWindowTarget,
+    const sptr<RSWindowAnimationTarget>& toWindowTarget,
+    const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback)
+{
+    WALOGD("Window animation controller on app transition.");
+    wptr<RSWindowAnimationController> controllerWptr = this;
+    std::unique_ptr<AsyncTask::CompleteCallback> complete = std::make_unique<AsyncTask::CompleteCallback> (
+        [controllerWptr, fromWindowTarget, toWindowTarget, finishedCallback](NativeEngine&, AsyncTask&, int32_t) {
+            auto controllerSptr = controllerWptr.promote();
+            if (controllerSptr == nullptr) {
+                WALOGE("Controller is null!");
+                return;
+            }
+
+            controllerSptr->HandleOnAppTransition(fromWindowTarget, toWindowTarget, finishedCallback);
+        }
+    );
+
+    NativeReference* callback = nullptr;
+    std::unique_ptr<AsyncTask::ExecuteCallback> execute = nullptr;
+    AsyncTask::Schedule(engine_, std::make_unique<AsyncTask>(callback, std::move(execute), std::move(complete)));
+}
+
+void RSWindowAnimationController::OnMinimizeWindow(const sptr<RSWindowAnimationTarget>& minimizingWindowTarget,
+    const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback)
+{
+    WALOGD("Window animation controller on minimize window.");
+    wptr<RSWindowAnimationController> controllerWptr = this;
+    std::unique_ptr<AsyncTask::CompleteCallback> complete = std::make_unique<AsyncTask::CompleteCallback> (
+        [controllerWptr, minimizingWindowTarget, finishedCallback](NativeEngine&, AsyncTask&, int32_t) {
+            auto controllerSptr = controllerWptr.promote();
+            if (controllerSptr == nullptr) {
+                WALOGE("Controller is null!");
+                return;
+            }
+
+            controllerSptr->HandleOnMinimizeWindow(minimizingWindowTarget, finishedCallback);
+        }
+    );
+
+    NativeReference* callback = nullptr;
+    std::unique_ptr<AsyncTask::ExecuteCallback> execute = nullptr;
+    AsyncTask::Schedule(engine_, std::make_unique<AsyncTask>(callback, std::move(execute), std::move(complete)));
+}
+
+void RSWindowAnimationController::OnCloseWindow(const sptr<RSWindowAnimationTarget>& closingWindowTarget,
+    const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback)
+{
+    WALOGD("Window animation controller on close window.");
+    wptr<RSWindowAnimationController> controllerWptr = this;
+    std::unique_ptr<AsyncTask::CompleteCallback> complete = std::make_unique<AsyncTask::CompleteCallback> (
+        [controllerWptr, closingWindowTarget, finishedCallback](NativeEngine&, AsyncTask&, int32_t) {
+            auto controllerSptr = controllerWptr.promote();
+            if (controllerSptr == nullptr) {
+                WALOGE("Controller is null!");
+                return;
+            }
+
+            controllerSptr->HandleOnCloseWindow(closingWindowTarget, finishedCallback);
+        }
+    );
+
+    NativeReference* callback = nullptr;
+    std::unique_ptr<AsyncTask::ExecuteCallback> execute = nullptr;
+    AsyncTask::Schedule(engine_, std::make_unique<AsyncTask>(callback, std::move(execute), std::move(complete)));
+}
+
+void RSWindowAnimationController::OnScreenUnlock(const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback)
+{
+    WALOGD("Window animation controller on screen unlock.");
+    wptr<RSWindowAnimationController> controllerWptr = this;
+    std::unique_ptr<AsyncTask::CompleteCallback> complete = std::make_unique<AsyncTask::CompleteCallback> (
+        [controllerWptr, finishedCallback](NativeEngine&, AsyncTask&, int32_t) {
+            auto controllerSptr = controllerWptr.promote();
+            if (controllerSptr == nullptr) {
+                WALOGE("Controller is null!");
+                return;
+            }
+
+            controllerSptr->HandleOnScreenUnlock(finishedCallback);
+        }
+    );
+
+    NativeReference* callback = nullptr;
+    std::unique_ptr<AsyncTask::ExecuteCallback> execute = nullptr;
+    AsyncTask::Schedule(engine_, std::make_unique<AsyncTask>(callback, std::move(execute), std::move(complete)));
+}
+
+void RSWindowAnimationController::HandleOnStartApp(StartingAppType type,
+    const sptr<RSWindowAnimationTarget>& startingWindowTarget,
+    const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback)
+{
+    WALOGD("Handle on start app.");
     NativeValue* argv[] = {
-        RSWindowAnimationUtils::CreateJsWindowAnimationTarget(engine_, *minimizingWindow),
+        RSWindowAnimationUtils::CreateJsWindowAnimationTarget(engine_, *startingWindowTarget),
+        RSWindowAnimationUtils::CreateJsWindowAnimationFinishedCallback(engine_, finishedCallback),
+    };
+
+    switch (type) {
+        case StartingAppType::FROM_LAUNCHER:
+            CallJsFunction("onStartAppFromLauncher", argv, ARGC_TWO);
+            break;
+        case StartingAppType::FROM_RECENT:
+            CallJsFunction("onStartAppFromRecent", argv, ARGC_TWO);
+            break;
+        case StartingAppType::FROM_OTHER:
+            CallJsFunction("onStartAppFromOther", argv, ARGC_TWO);
+            break;
+        default:
+            WALOGE("Unknow starting app type.");
+            break;
+    }
+}
+
+void RSWindowAnimationController::HandleOnAppTransition(const sptr<RSWindowAnimationTarget>& fromWindowTarget,
+    const sptr<RSWindowAnimationTarget>& toWindowTarget,
+    const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback)
+{
+    WALOGD("Handle on app transition.");
+    NativeValue* argv[] = {
+        RSWindowAnimationUtils::CreateJsWindowAnimationTarget(engine_, *fromWindowTarget),
+        RSWindowAnimationUtils::CreateJsWindowAnimationTarget(engine_, *toWindowTarget),
+        RSWindowAnimationUtils::CreateJsWindowAnimationFinishedCallback(engine_, finishedCallback),
+    };
+    CallJsFunction("onAppTransition", argv, ARGC_THREE);
+}
+
+void RSWindowAnimationController::HandleOnMinimizeWindow(const sptr<RSWindowAnimationTarget>& minimizingWindowTarget,
+    const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback)
+{
+    WALOGD("Handle on minimize window.");
+    NativeValue* argv[] = {
+        RSWindowAnimationUtils::CreateJsWindowAnimationTarget(engine_, *minimizingWindowTarget),
         RSWindowAnimationUtils::CreateJsWindowAnimationFinishedCallback(engine_, finishedCallback),
     };
     CallJsFunction("onMinimizeWindow", argv, ARGC_TWO);
 }
 
-void RSWindowAnimationController::HandleOnCloseWindow(
-    const sptr<RSWindowAnimationTarget>& closingWindow,
+void RSWindowAnimationController::HandleOnCloseWindow(const sptr<RSWindowAnimationTarget>& closingWindowTarget,
     const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback)
 {
-    WALOGI("Handle on close window.");
+    WALOGD("Handle on close window.");
     NativeValue* argv[] = {
-        RSWindowAnimationUtils::CreateJsWindowAnimationTarget(engine_, *closingWindow),
+        RSWindowAnimationUtils::CreateJsWindowAnimationTarget(engine_, *closingWindowTarget),
         RSWindowAnimationUtils::CreateJsWindowAnimationFinishedCallback(engine_, finishedCallback),
     };
     CallJsFunction("onCloseWindow", argv, ARGC_TWO);
 }
 
+void RSWindowAnimationController::HandleOnScreenUnlock(const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback)
+{
+    WALOGD("Handle on screen unlock.");
+    NativeValue* argv[] = {
+        RSWindowAnimationUtils::CreateJsWindowAnimationFinishedCallback(engine_, finishedCallback),
+    };
+    CallJsFunction("onScreenUnlock", argv, ARGC_ONE);
+}
+
 void RSWindowAnimationController::CallJsFunction(const std::string& methodName, NativeValue* const* argv, size_t argc)
 {
-    WALOGI("Call js function:%{public}s.", methodName.c_str());
+    WALOGD("Call js function:%{public}s.", methodName.c_str());
     if (jsController_ == nullptr) {
         WALOGE("JsConterller is null!");
         return;

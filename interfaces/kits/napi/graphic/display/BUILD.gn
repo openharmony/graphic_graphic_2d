@@ -21,7 +21,7 @@ ohos_shared_library("display") {
     "../common:graphic_napi_common",
 
     # "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
-    "//foundation/graphic/standard:libwmservice",
+    "//foundation/graphic/graphic:libwmservice",
   ]
 
   relative_install_dir = "module"

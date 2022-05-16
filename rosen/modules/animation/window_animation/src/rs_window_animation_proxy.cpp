@@ -36,30 +36,81 @@ bool RSWindowAnimationProxy::WriteInterfaceToken(MessageParcel& data)
     return true;
 }
 
-void RSWindowAnimationProxy::OnTransition(const sptr<RSWindowAnimationTarget>& from,
-                                          const sptr<RSWindowAnimationTarget>& to,
-                                          const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback)
+bool RSWindowAnimationProxy::WriteTargetAndCallback(MessageParcel& data,
+    const sptr<RSWindowAnimationTarget>& windowTarget,
+    const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback)
+{
+    if (!data.WriteParcelable(windowTarget.GetRefPtr())) {
+        WALOGE("Failed to write window animation target!");
+        return false;
+    }
+
+    if (!data.WriteRemoteObject(finishedCallback->AsObject())) {
+        WALOGE("Failed to write finished callback!");
+        return false;
+    }
+
+    return true;
+}
+
+void RSWindowAnimationProxy::OnStartApp(StartingAppType type, const sptr<RSWindowAnimationTarget>& startingWindowTarget,
+    const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback)
 {
     MessageParcel data;
     MessageParcel reply;
     MessageOption option(MessageOption::TF_ASYNC);
 
-    WALOGD("Window animation proxy on transition!");
+    WALOGD("Window animation proxy on start app!");
     if (!WriteInterfaceToken(data)) {
         return;
     }
 
-    if (!data.WriteParcelable(from.GetRefPtr())) {
-        WALOGE("Failed to write animation target from!");
+    if (!data.WriteInt32(type)) {
+        WALOGE("Failed to write starting app type!");
         return;
     }
 
-    if (!data.WriteParcelable(to.GetRefPtr())) {
-        WALOGE("Failed to write animation target to!");
+    if (!WriteTargetAndCallback(data, startingWindowTarget, finishedCallback)) {
+        WALOGE("Failed to write window animation target or callback!");
         return;
     }
 
-    if (!data.WriteParcelable(finishedCallback->AsObject())) {
+    auto remote = Remote();
+    if (remote == nullptr) {
+        WALOGE("remote is null!");
+        return;
+    }
+
+    auto ret = remote->SendRequest(RSIWindowAnimationController::ON_START_APP, data, reply, option);
+    if (ret != NO_ERROR) {
+        WALOGE("Failed to send start app request, error code:%d", ret);
+    }
+}
+
+void RSWindowAnimationProxy::OnAppTransition(const sptr<RSWindowAnimationTarget>& fromWindowTarget,
+    const sptr<RSWindowAnimationTarget>& toWindowTarget,
+    const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option(MessageOption::TF_ASYNC);
+
+    WALOGD("Window animation proxy on app transition!");
+    if (!WriteInterfaceToken(data)) {
+        return;
+    }
+
+    if (!data.WriteParcelable(fromWindowTarget.GetRefPtr())) {
+        WALOGE("Failed to write from animation target!");
+        return;
+    }
+
+    if (!data.WriteParcelable(toWindowTarget.GetRefPtr())) {
+        WALOGE("Failed to write to animation target!");
+        return;
+    }
+
+    if (!data.WriteRemoteObject(finishedCallback->AsObject())) {
         WALOGE("Failed to write finished callback!");
         return;
     }
@@ -70,14 +121,14 @@ void RSWindowAnimationProxy::OnTransition(const sptr<RSWindowAnimationTarget>& f
         return;
     }
 
-    auto ret = remote->SendRequest(RSIWindowAnimationController::ON_TRANSITION, data, reply, option);
+    auto ret = remote->SendRequest(RSIWindowAnimationController::ON_APP_TRANSITION, data, reply, option);
     if (ret != NO_ERROR) {
-        WALOGE("Failed to send transition request, error code:%d", ret);
+        WALOGE("Failed to send app transition request, error code:%d", ret);
     }
 }
 
-void RSWindowAnimationProxy::OnMinimizeWindow(const sptr<RSWindowAnimationTarget>& minimizingWindow,
-                                              const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback)
+void RSWindowAnimationProxy::OnMinimizeWindow(const sptr<RSWindowAnimationTarget>& minimizingWindowTarget,
+    const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -88,13 +139,8 @@ void RSWindowAnimationProxy::OnMinimizeWindow(const sptr<RSWindowAnimationTarget
         return;
     }
 
-    if (!data.WriteParcelable(minimizingWindow.GetRefPtr())) {
-        WALOGE("Failed to write minimizing window!");
-        return;
-    }
-
-    if (!data.WriteParcelable(finishedCallback->AsObject())) {
-        WALOGE("Failed to write finished callback!");
+    if (!WriteTargetAndCallback(data, minimizingWindowTarget, finishedCallback)) {
+        WALOGE("Failed to write window animation target or callback!");
         return;
     }
 
@@ -110,8 +156,8 @@ void RSWindowAnimationProxy::OnMinimizeWindow(const sptr<RSWindowAnimationTarget
     }
 }
 
-void RSWindowAnimationProxy::OnCloseWindow(const sptr<RSWindowAnimationTarget>& closingWindow,
-                                           const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback)
+void RSWindowAnimationProxy::OnCloseWindow(const sptr<RSWindowAnimationTarget>& closingWindowTarget,
+    const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -122,13 +168,8 @@ void RSWindowAnimationProxy::OnCloseWindow(const sptr<RSWindowAnimationTarget>& 
         return;
     }
 
-    if (!data.WriteParcelable(closingWindow.GetRefPtr())) {
-        WALOGE("Failed to write closing window!");
-        return;
-    }
-
-    if (!data.WriteParcelable(finishedCallback->AsObject())) {
-        WALOGE("Failed to write finished callback!");
+    if (!WriteTargetAndCallback(data, closingWindowTarget, finishedCallback)) {
+        WALOGE("Failed to write window animation target or callback!");
         return;
     }
 
@@ -141,6 +182,34 @@ void RSWindowAnimationProxy::OnCloseWindow(const sptr<RSWindowAnimationTarget>& 
     auto ret = remote->SendRequest(RSIWindowAnimationController::ON_CLOSE_WINDOW, data, reply, option);
     if (ret != NO_ERROR) {
         WALOGE("Failed to send close window request, error code:%d", ret);
+    }
+}
+
+void RSWindowAnimationProxy::OnScreenUnlock(const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option(MessageOption::TF_ASYNC);
+
+    WALOGD("Window animation proxy on screen unlock!");
+    if (!WriteInterfaceToken(data)) {
+        return;
+    }
+
+    if (!data.WriteRemoteObject(finishedCallback->AsObject())) {
+        WALOGE("Failed to write finished callback!");
+        return;
+    }
+
+    auto remote = Remote();
+    if (remote == nullptr) {
+        WALOGE("remote is null!");
+        return;
+    }
+
+    auto ret = remote->SendRequest(RSIWindowAnimationController::ON_SCREEN_UNLOCK, data, reply, option);
+    if (ret != NO_ERROR) {
+        WALOGE("Failed to send screen unlock request, error code:%d", ret);
     }
 }
 } // namespace Rosen

@@ -611,6 +611,7 @@ void RSScreenManager::SurfaceDump(std::string& dumpString)
 void RSScreenManager::FpsDump(std::string& dumpString, std::string& arg)
 {
     int32_t index = 0;
+    dumpString += "\n-- The recently fps records info of screens:\n";
     for (const auto &[id, screen] : screens_) {
         screen->FpsDump(index, dumpString, arg);
         index++;

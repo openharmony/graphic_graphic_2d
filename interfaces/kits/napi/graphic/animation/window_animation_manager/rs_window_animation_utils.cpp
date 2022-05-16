@@ -38,13 +38,10 @@ NativeValue* RSWindowAnimationUtils::CreateJsWindowAnimationTarget(NativeEngine&
         return engine.CreateUndefined();
     }
 
-    object->SetProperty("type", CreateJsValue(engine, target.type_));
     object->SetProperty("bundleName", CreateJsValue(engine, target.bundleName_));
     object->SetProperty("abilityName", CreateJsValue(engine, target.abilityName_));
     object->SetProperty("windowBounds", CreateJsRRect(engine, target.windowBounds_));
-    object->SetProperty("windowId", CreateJsValue(engine, target.windowId_));
-    object->SetProperty("surfaceNodeId",
-        engine.CreateBigInt(target.surfaceNode_ != nullptr ? target.surfaceNode_->GetId() : -1));
+
     return objValue;
 }
 
@@ -76,7 +73,7 @@ NativeValue* RSWindowAnimationUtils::CreateJsWindowAnimationFinishedCallback(
     object->SetNativePointer(finishedCallback.GetRefPtr(), finalizeCallback, nullptr);
 
     NativeCallback jsFinishedCallback = [](NativeEngine* engine, NativeCallbackInfo* info) -> NativeValue* {
-        WALOGI("Native finished callback is called!");
+        WALOGD("Native finished callback is called!");
         auto nativeFinishedCallback = CheckParamsAndGetThis<RSIWindowAnimationFinishedCallback>(engine, info);
         if (nativeFinishedCallback == nullptr) {
             WALOGE("Finished callback is null!");

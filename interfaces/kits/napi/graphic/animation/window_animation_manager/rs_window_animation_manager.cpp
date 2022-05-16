@@ -31,7 +31,7 @@ constexpr size_t ARGC_ONE = 1;
 
 NativeValue* RSWindowAnimationManager::Init(NativeEngine* engine, NativeValue* exportObj)
 {
-    WALOGI("Init");
+    WALOGD("Init");
     if (engine == nullptr || exportObj == nullptr) {
         WALOGE("Engine or exportObj is null!");
         return nullptr;
@@ -47,39 +47,34 @@ NativeValue* RSWindowAnimationManager::Init(NativeEngine* engine, NativeValue* e
     object->SetNativePointer(windowAnimationManager.release(), RSWindowAnimationManager::Finalizer, nullptr);
 
     BindNativeFunction(*engine, *object, "setController", RSWindowAnimationManager::SetController);
-    return engine->CreateUndefined();
+    return nullptr;
 }
 
 void RSWindowAnimationManager::Finalizer(NativeEngine* engine, void* data, void* hint)
 {
-    WALOGI("Finalizer is called");
     std::unique_ptr<RSWindowAnimationManager>(static_cast<RSWindowAnimationManager*>(data));
 }
 
 NativeValue* RSWindowAnimationManager::SetController(NativeEngine* engine, NativeCallbackInfo* info)
 {
-    WALOGI("SetController");
+    WALOGD("SetController");
     auto me = CheckParamsAndGetThis<RSWindowAnimationManager>(engine, info);
     return (me != nullptr) ? me->OnSetController(*engine, *info) : nullptr;
 }
 
 NativeValue* RSWindowAnimationManager::OnSetController(NativeEngine& engine, NativeCallbackInfo& info)
 {
-    WALOGI("OnSetController");
+    WALOGD("OnSetController");
     // only support one param
     if (info.argc != ARGC_ONE) {
         WALOGE("No enough params!");
-        return engine.CreateUndefined();
+        return nullptr;
     }
 
-    if (handler_ == nullptr) {
-        handler_ = std::make_shared<AppExecFwk::EventHandler>(AppExecFwk::EventRunner::GetMainEventRunner());
-    }
-
-    auto controller = new RSWindowAnimationController(engine, handler_);
+    sptr<RSWindowAnimationController> controller = new RSWindowAnimationController(engine);
     controller->SetJsController(info.argv[0]);
     SingletonContainer::Get<WindowAdapter>().SetWindowAnimationController(controller);
-    return engine.CreateUndefined();
+    return nullptr;
 }
 } // namespace Rosen
 } // namespace OHOS

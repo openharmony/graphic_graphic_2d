@@ -46,6 +46,7 @@ public:
     void UpdateGeometry(RSBaseRenderNode &displayNode);
 
 private:
+    std::unique_ptr<SkCanvas> skCanvas_;
     std::shared_ptr<RSPaintFilterCanvas> canvas_;
     float globalZOrder_ = 0.0f;
     int32_t offsetX_ = 0;

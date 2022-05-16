@@ -25,14 +25,14 @@ ohos_unittest("2d_graphics_image_test") {
   ]
 
   include_dirs = [
-    "//foundation/graphic/standard/rosen/modules/2d_graphics/include",
-    "//foundation/graphic/standard/rosen/modules/2d_graphics/src",
+    "//foundation/graphic/graphic/rosen/modules/2d_graphics/include",
+    "//foundation/graphic/graphic/rosen/modules/2d_graphics/src",
     "//third_party/googletest/googletest/include",
   ]
 
   deps = [
     "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
-    "//foundation/graphic/standard/rosen/modules/2d_graphics:2d_graphics",
+    "//foundation/graphic/graphic/rosen/modules/2d_graphics:2d_graphics",
     "//third_party/googletest:gtest_main",
     "//utils/native/base:utils",
   ]

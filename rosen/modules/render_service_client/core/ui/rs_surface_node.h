@@ -47,7 +47,7 @@ public:
     static SharedPtr Create(const RSSurfaceNodeConfig& surfaceNodeConfig, bool isWindow = true);
     // This API is only for abilityView create RSRenderSurfaceNode in RenderThread.
     // Do not call this API unless you are sure what you do.
-    void CreateNodeInRenderThread();
+    void CreateNodeInRenderThread(bool isProxy = false);
 
     void SetBounds(const Vector4f& bounds) override;
     void SetBounds(float positionX, float positionY, float width, float height) override;

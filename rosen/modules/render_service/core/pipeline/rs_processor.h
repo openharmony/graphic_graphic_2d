@@ -63,7 +63,6 @@ protected:
     std::unique_ptr<RSSurfaceFrame> currFrame_;
     std::shared_ptr<RSSurfaceOhos> rsSurface_;
 private:
-    sptr<SurfaceBuffer> buffer_;
     int32_t releaseFence_ = -1;
 };
 } // namespace Rosen

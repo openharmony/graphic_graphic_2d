@@ -5,7 +5,7 @@
     "license": "Apache License 2.0",
     "publishAs": "code-segment",
     "segment": {
-      "destPath": "foundation/graphic/standard"
+      "destPath": "foundation/graphic/graphic"
     },
     "dirs": {},
     "scripts": {},
@@ -32,13 +32,13 @@
       },
       "build": {
         "sub_component": [
-          "//foundation/graphic/standard/frameworks/surface:surface",
-          "//foundation/graphic/standard/utils/buffer_handle:buffer_handle"
+          "//foundation/graphic/graphic/frameworks/surface:surface",
+          "//foundation/graphic/graphic/utils/buffer_handle:buffer_handle"
         ],
         "inner_kits": [
           {
             "type": "so",
-            "name": "//foundation/graphic/standard/frameworks/surface:surface",
+            "name": "//foundation/graphic/graphic/frameworks/surface:surface",
             "header": {
               "header_files": [
                 "buffer_extra_data.h",
@@ -53,18 +53,18 @@
                 "surface_utils.h",
                 "window.h"
               ],
-              "header_base": "//foundation/graphic/standard/interfaces/inner_api/surface"
+              "header_base": "//foundation/graphic/graphic/interfaces/inner_api/surface"
             }
           },
           {
             "type": "so",
-            "name": "//foundation/graphic/standard/utils/buffer_handle:buffer_handle",
+            "name": "//foundation/graphic/graphic/utils/buffer_handle:buffer_handle",
             "header": {
               "header_files": [
                 "buffer_handle_parcel.h",
                 "buffer_handle_utils.h"
               ],
-              "header_base": "//foundation/graphic/standard/utils/buffer_handle/export"
+              "header_base": "//foundation/graphic/graphic/utils/buffer_handle/export"
             }
           }
         ]

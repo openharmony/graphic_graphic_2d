@@ -28,16 +28,14 @@ config("vsync_config") {
 config("vsync_public_config") {
   include_dirs = [
     "//drivers/peripheral/display/interfaces/include",
-    "//foundation/graphic/standard/interfaces/inner_api/composer",
-    "//foundation/graphic/standard/frameworks/vsync/include",
-    "//foundation/graphic/standard/rosen/include/common",
-    "//foundation/graphic/standard/rosen/modules/composer/vsync/include",
+    "//foundation/graphic/graphic/interfaces/inner_api/composer",
+    "//foundation/graphic/graphic/rosen/include/common",
+    "//foundation/graphic/graphic/rosen/modules/composer/vsync/include",
   ]
 }
 
 ohos_shared_library("libvsync") {
   sources = [
-    "src/vsync.cpp",
     "src/vsync_connection_proxy.cpp",
     "src/vsync_connection_stub.cpp",
     "src/vsync_controller.cpp",
@@ -47,7 +45,7 @@ ohos_shared_library("libvsync") {
     "src/vsync_sampler.cpp",
   ]
 
-  include_dirs = [ "//foundation/graphic/standard/utils/log" ]
+  include_dirs = [ "//foundation/graphic/graphic/utils/log" ]
 
   configs = [ ":vsync_config" ]
 
@@ -58,14 +56,14 @@ ohos_shared_library("libvsync") {
 
   deps = [
     "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
-    "//foundation/graphic/standard/utils:libgraphic_utils",
+    "//foundation/graphic/graphic/utils:libgraphic_utils",
   ]
 
   public_deps = [
     "//foundation/appexecfwk/standard/interfaces/innerkits/libeventhandler:libeventhandler",
     "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
-    "//foundation/graphic/standard/utils:scoped_bytrace",
-    "//foundation/graphic/standard/utils:socketpair",
+    "//foundation/graphic/graphic/utils:scoped_bytrace",
+    "//foundation/graphic/graphic/utils:socketpair",
     "//utils/native/base:utils",
   ]
 

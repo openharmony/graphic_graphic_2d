@@ -76,6 +76,7 @@ private:
     ImageStructVec imageVector_;
     std::shared_ptr<OHOS::AppExecFwk::EventHandler> mainHandler_ = nullptr;
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
+    bool setBootEvent_ = false;
 };
 } // namespace OHOS
 
