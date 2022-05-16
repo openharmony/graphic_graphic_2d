@@ -464,13 +464,13 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSMa
         ROSEN_LOGE("unirender: RSMarshallingHelper::Marshalling RSMask is nullptr");
         return false;
     }
-    // TODO
+    // marshalling func planning to be implemented
     ROSEN_LOGW("unirender: RSMask Marshalling not define");
     return true;
 }
 bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSMask>& val)
 {
-    // TODO
+    // marshalling func planning to be implemented
     ROSEN_LOGW("unirender: RSMask Unmarshalling not define");
     return true;
 }

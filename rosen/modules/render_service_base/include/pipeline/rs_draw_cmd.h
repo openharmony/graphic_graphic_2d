@@ -58,7 +58,7 @@ enum RSOpType : uint16_t {
     TEXTBLOBOPITEM,
     BITMAPOPITEM,
     BITMAPRECTOPITEM,
-    BITMAPLATTICEOPITEM, // TODO: marshalling
+    BITMAPLATTICEOPITEM, // marshalling func planning to be implemented
     BITMAPNINEOPITEM,
     ADAPTIVERRECTOPITEM,
     CLIPADAPTIVERRECTOPITEM,
@@ -87,7 +87,8 @@ public:
 
     virtual void Draw(RSPaintFilterCanvas& canvas, const SkRect* rect) const {};
 
-    virtual RSOpType GetType() const {
+    virtual RSOpType GetType() const
+    {
         return RSOpType::OPITEM;
     }
 #ifdef ROSEN_OHOS

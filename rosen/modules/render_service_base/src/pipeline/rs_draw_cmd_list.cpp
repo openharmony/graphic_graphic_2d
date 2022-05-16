@@ -45,7 +45,6 @@ static std::unordered_map<RSOpType, OpUnmarshallingFunc> opUnmarshallingFuncLUT 
     { TEXTBLOBOPITEM,           TextBlobOpItem::Unmarshalling },
     { BITMAPOPITEM,             BitmapOpItem::Unmarshalling },
     { BITMAPRECTOPITEM,         BitmapRectOpItem::Unmarshalling },
-    // { BITMAPLATTICEOPITEM,      BitmapLatticeOpItem::Unmarshalling },
     { BITMAPNINEOPITEM,         BitmapNineOpItem::Unmarshalling },
     { ADAPTIVERRECTOPITEM,      AdaptiveRRectOpItem::Unmarshalling },
     { CLIPADAPTIVERRECTOPITEM,  ClipAdaptiveRRectOpItem::Unmarshalling },
@@ -194,6 +193,5 @@ DrawCmdList* DrawCmdList::Unmarshalling(Parcel& parcel)
     return drawCmdList.release();
 }
 #endif
-
 } // namespace Rosen
 } // namespace OHOS
