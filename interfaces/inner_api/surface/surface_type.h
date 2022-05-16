@@ -38,6 +38,13 @@ using Rect = struct Rect {
     int32_t h;
 };
 
+using ScalingMode = enum {
+    SCALING_MODE_FREEZE = 0,
+    SCALING_MODE_SCALE_TO_WINDOW,
+    SCALING_MODE_SCALE_CROP,
+    SCALING_MODE_NO_SCALE_CROP,
+};
+
 using BufferRequestConfig = struct BufferRequestConfig {
     int32_t width;
     int32_t height;
@@ -47,6 +54,7 @@ using BufferRequestConfig = struct BufferRequestConfig {
     int32_t timeout;
     ColorGamut colorGamut = ColorGamut::COLOR_GAMUT_SRGB;
     TransformType transform = TransformType::ROTATE_NONE;
+    ScalingMode scalingMode = ScalingMode::SCALING_MODE_SCALE_TO_WINDOW;
     bool operator ==(const struct BufferRequestConfig &config) const
     {
         return width == config.width &&
@@ -54,8 +62,10 @@ using BufferRequestConfig = struct BufferRequestConfig {
                strideAlignment == config.strideAlignment &&
                format == config.format &&
                usage == config.usage &&
+               timeout == config.timeout &&
                colorGamut == config.colorGamut &&
-               transform == config.transform;
+               transform == config.transform &&
+               scalingMode == config.scalingMode;
     }
     bool operator != (const struct BufferRequestConfig &config) const
     {

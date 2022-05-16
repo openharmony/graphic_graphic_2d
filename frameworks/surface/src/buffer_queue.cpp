@@ -163,6 +163,12 @@ GSError BufferQueue::CheckRequestConfig(const BufferRequestConfig &config)
         return GSERROR_INVALID_ARGUMENTS;
     }
 
+    if (config.scalingMode < ScalingMode::SCALING_MODE_FREEZE ||
+        config.scalingMode > ScalingMode::SCALING_MODE_NO_SCALE_CROP) {
+        BLOGN_INVALID("config.scalingMode [0, %{public}d], now is %{public}d",
+            ScalingMode::SCALING_MODE_NO_SCALE_CROP, config.scalingMode);
+        return GSERROR_INVALID_ARGUMENTS;
+    }
     return GSERROR_OK;
 }
 

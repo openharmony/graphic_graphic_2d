@@ -132,11 +132,13 @@ HWTEST_F(NativeWindowTest, HandleOpt001, Function | MediumTest | Level2)
 HWTEST_F(NativeWindowTest, HandleOpt002, Function | MediumTest | Level2)
 {
     int code = SET_USAGE;
-    int32_t usage = HBM_USE_CPU_READ;
-    ASSERT_EQ(NativeWindowHandleOpt(nativeWindow, code, usage), OHOS::GSERROR_OK);
+    int32_t usageSet = HBM_USE_CPU_READ;
+    ASSERT_EQ(NativeWindowHandleOpt(nativeWindow, code, usageSet), OHOS::GSERROR_OK);
 
     code = GET_USAGE;
-    ASSERT_EQ(NativeWindowHandleOpt(nativeWindow, code, &usage), OHOS::GSERROR_OK);
+    int32_t usageGet = HBM_USE_CPU_WRITE;
+    ASSERT_EQ(NativeWindowHandleOpt(nativeWindow, code, &usageGet), OHOS::GSERROR_OK);
+    ASSERT_EQ(usageSet, usageGet);
 }
 
 /*
@@ -150,12 +152,16 @@ HWTEST_F(NativeWindowTest, HandleOpt002, Function | MediumTest | Level2)
 HWTEST_F(NativeWindowTest, HandleOpt003, Function | MediumTest | Level2)
 {
     int code = SET_BUFFER_GEOMETRY;
-    int32_t height = 0x100;
-    int32_t width = 0x100;
-    ASSERT_EQ(NativeWindowHandleOpt(nativeWindow, code, height, width), OHOS::GSERROR_OK);
+    int32_t heightSet = 0x100;
+    int32_t widthSet = 0x100;
+    ASSERT_EQ(NativeWindowHandleOpt(nativeWindow, code, heightSet, widthSet), OHOS::GSERROR_OK);
 
     code = GET_BUFFER_GEOMETRY;
-    ASSERT_EQ(NativeWindowHandleOpt(nativeWindow, code, &height, &width), OHOS::GSERROR_OK);
+    int32_t heightGet = 0;
+    int32_t widthGet = 0;
+    ASSERT_EQ(NativeWindowHandleOpt(nativeWindow, code, &heightGet, &widthGet), OHOS::GSERROR_OK);
+    ASSERT_EQ(heightSet, heightGet);
+    ASSERT_EQ(widthSet, widthGet);
 }
 
 /*
@@ -169,11 +175,13 @@ HWTEST_F(NativeWindowTest, HandleOpt003, Function | MediumTest | Level2)
 HWTEST_F(NativeWindowTest, HandleOpt004, Function | MediumTest | Level2)
 {
     int code = SET_FORMAT;
-    int32_t format = PIXEL_FMT_RGBA_8888;
-    ASSERT_EQ(NativeWindowHandleOpt(nativeWindow, code, format), OHOS::GSERROR_OK);
+    int32_t formatSet = PIXEL_FMT_RGBA_8888;
+    ASSERT_EQ(NativeWindowHandleOpt(nativeWindow, code, formatSet), OHOS::GSERROR_OK);
 
     code = GET_FORMAT;
-    ASSERT_EQ(NativeWindowHandleOpt(nativeWindow, code, &format), OHOS::GSERROR_OK);
+    int32_t formatGet = PIXEL_FMT_CLUT8;
+    ASSERT_EQ(NativeWindowHandleOpt(nativeWindow, code, &formatGet), OHOS::GSERROR_OK);
+    ASSERT_EQ(formatSet, formatGet);
 }
 
 /*
@@ -187,11 +195,13 @@ HWTEST_F(NativeWindowTest, HandleOpt004, Function | MediumTest | Level2)
 HWTEST_F(NativeWindowTest, HandleOpt005, Function | MediumTest | Level2)
 {
     int code = SET_STRIDE;
-    int32_t stride = 0x8;
-    ASSERT_EQ(NativeWindowHandleOpt(nativeWindow, code, stride), OHOS::GSERROR_OK);
+    int32_t strideSet = 0x8;
+    ASSERT_EQ(NativeWindowHandleOpt(nativeWindow, code, strideSet), OHOS::GSERROR_OK);
 
     code = GET_STRIDE;
-    ASSERT_EQ(NativeWindowHandleOpt(nativeWindow, code, &stride), OHOS::GSERROR_OK);
+    int32_t strideGet = 0;
+    ASSERT_EQ(NativeWindowHandleOpt(nativeWindow, code, &strideGet), OHOS::GSERROR_OK);
+    ASSERT_EQ(strideSet, strideGet);
 }
 
 /*
@@ -205,11 +215,53 @@ HWTEST_F(NativeWindowTest, HandleOpt005, Function | MediumTest | Level2)
 HWTEST_F(NativeWindowTest, HandleOpt006, Function | MediumTest | Level2)
 {
     int code = SET_COLOR_GAMUT;
-    int32_t colorGamut = static_cast<int32_t>(ColorGamut::COLOR_GAMUT_DCI_P3);
-    ASSERT_EQ(NativeWindowHandleOpt(nativeWindow, code, colorGamut), OHOS::GSERROR_OK);
+    int32_t colorGamutSet = static_cast<int32_t>(ColorGamut::COLOR_GAMUT_DCI_P3);
+    ASSERT_EQ(NativeWindowHandleOpt(nativeWindow, code, colorGamutSet), OHOS::GSERROR_OK);
 
     code = GET_COLOR_GAMUT;
-    ASSERT_EQ(NativeWindowHandleOpt(nativeWindow, code, &colorGamut), OHOS::GSERROR_OK);
+    int32_t colorGamutGet = 0;
+    ASSERT_EQ(NativeWindowHandleOpt(nativeWindow, code, &colorGamutGet), OHOS::GSERROR_OK);
+    ASSERT_EQ(colorGamutSet, colorGamutGet);
+}
+
+/*
+* Function: NativeWindowHandleOpt
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call NativeWindowHandleOpt by different param
+*                  2. check ret
+ */
+HWTEST_F(NativeWindowTest, HandleOpt007, Function | MediumTest | Level2)
+{
+    int code = SET_TIMEOUT;
+    int32_t timeoutSet = 10;  // 10: for test
+    ASSERT_EQ(NativeWindowHandleOpt(nativeWindow, code, timeoutSet), OHOS::GSERROR_OK);
+
+    code = GET_TIMEOUT;
+    int32_t timeoutGet = 0;
+    ASSERT_EQ(NativeWindowHandleOpt(nativeWindow, code, &timeoutGet), OHOS::GSERROR_OK);
+    ASSERT_EQ(timeoutSet, timeoutGet);
+}
+
+/*
+* Function: NativeWindowHandleOpt
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call NativeWindowHandleOpt by different param
+*                  2. check ret
+ */
+HWTEST_F(NativeWindowTest, HandleOpt008, Function | MediumTest | Level2)
+{
+    int code = SET_SCALING_MODE;
+    ScalingMode scalingModeSet = ScalingMode::SCALING_MODE_SCALE_CROP;
+    ASSERT_EQ(NativeWindowHandleOpt(nativeWindow, code, scalingModeSet), OHOS::GSERROR_OK);
+
+    code = GET_SCALING_MODE;
+    ScalingMode scalingModeGet = ScalingMode::SCALING_MODE_FREEZE;
+    ASSERT_EQ(NativeWindowHandleOpt(nativeWindow, code, &scalingModeGet), OHOS::GSERROR_OK);
+    ASSERT_EQ(scalingModeSet, scalingModeGet);
 }
 
 /*

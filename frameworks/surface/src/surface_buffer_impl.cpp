@@ -122,6 +122,7 @@ GSError SurfaceBufferImpl::Alloc(const BufferRequestConfig &config)
         std::lock_guard<std::mutex> lock(mutex_);
         surfaceBufferColorGamut_ = config.colorGamut;
         transform_ = config.transform;
+        surfaceBufferScalingMode_ = config.scalingMode;
         surfaceBufferWidth_ = config.width;
         surfaceBufferHeight_ = config.height;
         handle_ = handle;
@@ -269,6 +270,12 @@ const TransformType& SurfaceBufferImpl::GetSurfaceBufferTransform() const
 {
     std::lock_guard<std::mutex> lock(mutex_);
     return transform_;
+}
+
+const ScalingMode& SurfaceBufferImpl::GetSurfaceBufferScalingMode() const
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    return surfaceBufferScalingMode_;
 }
 
 int32_t SurfaceBufferImpl::GetSurfaceBufferWidth() const

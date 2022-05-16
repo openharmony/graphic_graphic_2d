@@ -91,6 +91,7 @@ void RSHardwareProcessor::PostProcess()
     // Rotaion must be executed before CropLayers.
     OnRotate();
     CropLayers();
+    ScaleDownLayers();
     output_->SetLayerInfo(layers_);
     std::vector<std::shared_ptr<HdiOutput>> outputs{output_};
     if (backend_) {
@@ -130,6 +131,51 @@ void RSHardwareProcessor::CropLayers()
         layer->SetCropRect(srcRect);
         RS_LOGD("RsDebug RSHardwareProcessor::CropLayers layer has been cropped dst[%d %d %d %d] src[%d %d %d %d]",
             dstRect.x, dstRect.y, dstRect.w, dstRect.h, srcRect.x, srcRect.y, srcRect.w, srcRect.h);
+    }
+}
+
+void RSHardwareProcessor::ScaleDownLayers()
+{
+    for (auto layer : layers_) {
+        if (layer->GetBuffer()->GetSurfaceBufferScalingMode() == ScalingMode::SCALING_MODE_SCALE_CROP) {
+            IRect dstRect = layer->GetLayerSize();
+            IRect srcRect = layer->GetCropRect();
+
+            uint32_t newWidth = static_cast<uint32_t>(srcRect.w);
+            uint32_t newHeight = static_cast<uint32_t>(srcRect.h);
+
+            if (newWidth * dstRect.h > newHeight * dstRect.w) {
+                // too wide
+                newWidth = dstRect.w * newHeight / dstRect.h;
+            } else if (newWidth * dstRect.h < newHeight * dstRect.w) {
+                // too tall
+                newHeight = dstRect.h * newWidth / dstRect.w;
+            } else {
+                continue;
+            }
+
+            uint32_t currentWidth = static_cast<uint32_t>(srcRect.w);
+            uint32_t currentHeight = static_cast<uint32_t>(srcRect.h);
+
+            if (newWidth < currentWidth) {
+                // the crop is too wide
+                uint32_t dw = currentWidth - newWidth;
+                auto halfdw = dw / 2;
+                srcRect.x += halfdw;
+                srcRect.w = newWidth;
+            } else {
+                // thr crop is too tall
+                uint32_t dh = currentHeight - newHeight;
+                auto halfdh = dh / 2;
+                srcRect.y += halfdh;
+                srcRect.h = newHeight;
+            }
+            layer->SetDirtyRegion(srcRect);
+            layer->SetCropRect(srcRect);
+            RS_LOGD("RsDebug RSHardwareProcessor::ScaleDownLayers layer has been scaledown dst[%d %d %d %d]"\
+                "src[%d %d %d %d]", dstRect.x, dstRect.y, dstRect.w, dstRect.h,
+                srcRect.x, srcRect.y, srcRect.w, srcRect.h);
+        }
     }
 }
 

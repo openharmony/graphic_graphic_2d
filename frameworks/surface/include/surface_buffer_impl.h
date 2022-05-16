@@ -58,6 +58,8 @@ public:
     void SetSurfaceBufferColorGamut(const ColorGamut& colorGamut) override;
     void SetSurfaceBufferTransform(const TransformType& transform) override;
 
+    const ScalingMode& GetSurfaceBufferScalingMode() const override;
+
     int32_t GetSurfaceBufferWidth() const override;
     int32_t GetSurfaceBufferHeight() const override;
     void SetSurfaceBufferWidth(int32_t width) override;
@@ -84,6 +86,7 @@ private:
     sptr<EglData> eglData_ = nullptr;
     ColorGamut surfaceBufferColorGamut_ = ColorGamut::COLOR_GAMUT_SRGB;
     TransformType transform_ = TransformType::ROTATE_NONE;
+    ScalingMode surfaceBufferScalingMode_ = ScalingMode::SCALING_MODE_SCALE_TO_WINDOW;
     int32_t surfaceBufferWidth_ = 0;
     int32_t surfaceBufferHeight_ = 0;
     mutable std::mutex mutex_;

@@ -62,10 +62,14 @@ enum NativeWindowOperation {
     GET_STRIDE,             // ([out] int32_t *stride)
     SET_SWAP_INTERVAL,      // ([in] int32_t interval)
     GET_SWAP_INTERVAL,      // ([out] int32_t *interval)
+    SET_TIMEOUT,            // ([in] int32_t timeout)
+    GET_TIMEOUT,            // ([out] int32_t *timeout)
     SET_COLOR_GAMUT,        // ([in] int32_t colorGamut)
     GET_COLOR_GAMUT,        // ([out int32_t *colorGamut])
     SET_TRANSFORM,          // ([in] int32_t transform)
     GET_TRANSFORM,          // ([out] int32_t *transform)
+    SET_SCALING_MODE,       // ([in] int32_t scalingMode)
+    GET_SCALING_MODE,       // ([out] int32_t *scalingMode)
 };
 
 // pSurface type is OHOS::sptr<OHOS::Surface>*
