@@ -39,7 +39,6 @@ RSCanvasNode::SharedPtr RSCanvasNode::Create(bool isRenderServiceNode)
     if (transactionProxy != nullptr) {
         transactionProxy->AddCommand(command, isRenderServiceNode);
     }
-    ROSEN_LOGD("RSCanvasNode::Create, NodeID = %llu", node->GetId());
     return node;
 }
 
