@@ -50,8 +50,15 @@ public:
     virtual ~RSCommand() noexcept = default;
     virtual void Process(RSContext& context) = 0;
     virtual std::string PrintType() const { return "RSCommand"; }
-    virtual uint16_t GetType() const { return 0; }
-    virtual uint16_t GetSubType() const { return 0; }
+    virtual uint16_t GetType() const
+    {
+        return 0;
+    }
+
+    virtual uint16_t GetSubType() const
+    {
+        return 0;
+    }
 };
 
 class RSSyncTask : public RSCommand {

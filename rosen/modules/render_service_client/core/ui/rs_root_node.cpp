@@ -42,14 +42,16 @@ RSRootNode::RSRootNode(bool isRenderServiceNode) : RSCanvasNode(isRenderServiceN
 
 void RSRootNode::AttachRSSurfaceNode(std::shared_ptr<RSSurfaceNode> surfaceNode) const
 {
-    if (!isUni_){
-        std::unique_ptr<RSCommand> command = std::make_unique<RSRootNodeAttachRSSurfaceNode>(GetId(), surfaceNode->GetId());
+    if (!isUni_) {
+        std::unique_ptr<RSCommand> command = std::make_unique<RSRootNodeAttachRSSurfaceNode>(GetId(),
+            surfaceNode->GetId());
         auto transactionProxy = RSTransactionProxy::GetInstance();
         if (transactionProxy != nullptr) {
             transactionProxy->AddCommand(command, IsRenderServiceNode());
         }
     } else {
-        std::unique_ptr<RSCommand> command = std::make_unique<RSRootNodeAttachToUniSurfaceNode>(GetId(), surfaceNode->GetId());
+        std::unique_ptr<RSCommand> command = std::make_unique<RSRootNodeAttachToUniSurfaceNode>(GetId(),
+            surfaceNode->GetId());
         auto transactionProxy = RSTransactionProxy::GetInstance();
         if (transactionProxy != nullptr) {
             transactionProxy->AddCommand(command, isUni_);

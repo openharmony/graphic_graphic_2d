@@ -33,7 +33,6 @@
 
 namespace OHOS {
 namespace Rosen {
-
 RSUniRenderVisitor::RSUniRenderVisitor() {}
 
 RSUniRenderVisitor::~RSUniRenderVisitor() {}
@@ -332,18 +331,18 @@ void RSUniRenderVisitor::DrawBufferOnCanvas(RSSurfaceRenderNode& node)
     auto filter = std::static_pointer_cast<RSSkiaFilter>(property.GetBackgroundFilter());
     if (filter != nullptr) {
         auto skRectPtr = std::make_unique<SkRect>();
-        skRectPtr->setXYWH(node.GetRenderProperties().GetBoundsPositionX(), node.GetRenderProperties().GetBoundsPositionY(),
+        skRectPtr->setXYWH(node.GetRenderProperties().GetBoundsPositionX(),
+            node.GetRenderProperties().GetBoundsPositionY(),
             node.GetRenderProperties().GetBoundsWidth(), node.GetRenderProperties().GetBoundsHeight());
         RSPropertiesPainter::SaveLayerForFilter(property, *canvas_, filter, skRectPtr);
         RSPropertiesPainter::RestoreForFilter(*canvas_);
     }
     canvas_->drawBitmapRect(bitmap,
-        SkRect::MakeXYWH(0, 0,buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight()),
-        SkRect::MakeXYWH(node.GetRenderProperties().GetBoundsPositionX(), node.GetRenderProperties().GetBoundsPositionY(),
+        SkRect::MakeXYWH(0, 0, buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight()),
+        SkRect::MakeXYWH(node.GetRenderProperties().GetBoundsPositionX(),
+            node.GetRenderProperties().GetBoundsPositionY(),
             node.GetRenderProperties().GetBoundsWidth(), node.GetRenderProperties().GetBoundsHeight()), &paint);
     canvas_->restore();
 }
 } // namespace Rosen
 } // namespace OHOS
-
-

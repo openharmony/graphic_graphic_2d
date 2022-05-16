@@ -104,7 +104,8 @@ public:
 
     ~OpItemWithPaint() override {}
 
-    RSOpType GetType() const override {
+    RSOpType GetType() const override
+    {
         return RSOpType::OPITEMWITHPAINT;
     }
 
@@ -118,7 +119,8 @@ public:
     ~RectOpItem() override {}
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
-    RSOpType GetType() const override {
+    RSOpType GetType() const override
+    {
         return RSOpType::RECTOPITEM;
     }
 
@@ -137,7 +139,8 @@ public:
     ~RoundRectOpItem() override {}
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
-    RSOpType GetType() const override {
+    RSOpType GetType() const override
+    {
         return RSOpType::ROUNDRECTOPITEM;
     }
 
@@ -158,7 +161,8 @@ public:
     ~ImageWithParmOpItem() override {}
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
-    RSOpType GetType() const override {
+    RSOpType GetType() const override
+    {
         return RSOpType::IMAGEWITHPARMOPITEM;
     }
 
@@ -177,7 +181,8 @@ public:
     ~DRRectOpItem() override {}
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
-    RSOpType GetType() const override {
+    RSOpType GetType() const override
+    {
         return RSOpType::DRRECTOPITEM;
     }
 
@@ -197,7 +202,8 @@ public:
     ~OvalOpItem() override {}
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
-    RSOpType GetType() const override {
+    RSOpType GetType() const override
+    {
         return RSOpType::OVALOPITEM;
     }
 
@@ -216,7 +222,8 @@ public:
     ~RegionOpItem() override {}
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
-    RSOpType GetType() const override {
+    RSOpType GetType() const override
+    {
         return RSOpType::REGIONOPITEM;
     }
 
@@ -235,7 +242,8 @@ public:
     ~ArcOpItem() override {}
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
-    RSOpType GetType() const override {
+    RSOpType GetType() const override
+    {
         return RSOpType::ARCOPITEM;
     }
 
@@ -257,7 +265,8 @@ public:
     ~SaveOpItem() override {}
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
-    RSOpType GetType() const override {
+    RSOpType GetType() const override
+    {
         return RSOpType::SAVEOPITEM;
     }
 
@@ -272,7 +281,8 @@ public:
     ~RestoreOpItem() override {}
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
-    RSOpType GetType() const override {
+    RSOpType GetType() const override
+    {
         return RSOpType::RESTOREOPITEM;
     }
 
@@ -287,7 +297,8 @@ public:
     ~FlushOpItem() override {}
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
-    RSOpType GetType() const override {
+    RSOpType GetType() const override
+    {
         return RSOpType::FLUSHOPITEM;
     }
 
@@ -302,7 +313,8 @@ public:
     ~MatrixOpItem() override {}
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
-    RSOpType GetType() const override {
+    RSOpType GetType() const override
+    {
         return RSOpType::MATRIXOPITEM;
     }
 
@@ -321,7 +333,8 @@ public:
     ~ClipRectOpItem() override {}
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
-    RSOpType GetType() const override {
+    RSOpType GetType() const override
+    {
         return RSOpType::CLIPRECTOPITEM;
     }
 
@@ -342,7 +355,8 @@ public:
     ~ClipRRectOpItem() override {}
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
-    RSOpType GetType() const override {
+    RSOpType GetType() const override
+    {
         return RSOpType::CLIPRRECTOPITEM;
     }
 
@@ -363,7 +377,8 @@ public:
     ~ClipRegionOpItem() override {}
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
-    RSOpType GetType() const override {
+    RSOpType GetType() const override
+    {
         return RSOpType::CLIPREGIONOPITEM;
     }
 
@@ -383,7 +398,8 @@ public:
     ~TranslateOpItem() override {}
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
-    RSOpType GetType() const override {
+    RSOpType GetType() const override
+    {
         return RSOpType::TRANSLATEOPITEM;
     }
 
@@ -403,7 +419,8 @@ public:
     ~TextBlobOpItem() override {}
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
-    RSOpType GetType() const override{
+    RSOpType GetType() const override
+    {
         return RSOpType::TEXTBLOBOPITEM;
     }
 #ifdef ROSEN_OHOS
@@ -423,7 +440,8 @@ public:
     ~BitmapOpItem() override {}
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
-    RSOpType GetType() const override {
+    RSOpType GetType() const override
+    {
         return RSOpType::BITMAPOPITEM;
     }
 
@@ -445,7 +463,8 @@ public:
     ~BitmapRectOpItem() override {}
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
-    RSOpType GetType() const override {
+    RSOpType GetType() const override
+    {
         return RSOpType::BITMAPRECTOPITEM;
     }
 
@@ -467,7 +486,8 @@ public:
     ~BitmapLatticeOpItem() override {}
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
-    RSOpType GetType() const override {
+    RSOpType GetType() const override
+    {
         return RSOpType::BITMAPLATTICEOPITEM;
     }
 
@@ -484,7 +504,8 @@ public:
     ~BitmapNineOpItem() override {}
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
-    RSOpType GetType() const override {
+    RSOpType GetType() const override
+    {
         return RSOpType::BITMAPNINEOPITEM;
     }
 
@@ -505,7 +526,8 @@ public:
     ~AdaptiveRRectOpItem() override {}
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
-    RSOpType GetType() const override {
+    RSOpType GetType() const override
+    {
         return RSOpType::ADAPTIVERRECTOPITEM;
     }
 
@@ -525,7 +547,8 @@ public:
     ~ClipAdaptiveRRectOpItem() override {}
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
-    RSOpType GetType() const override {
+    RSOpType GetType() const override
+    {
         return RSOpType::CLIPADAPTIVERRECTOPITEM;
     }
 
@@ -544,7 +567,8 @@ public:
     ~PathOpItem() override {}
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
-    RSOpType GetType() const override {
+    RSOpType GetType() const override
+    {
         return RSOpType::PATHOPITEM;
     }
 
@@ -563,7 +587,8 @@ public:
     ~ClipPathOpItem() override {}
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
-    RSOpType GetType() const override {
+    RSOpType GetType() const override
+    {
         return RSOpType::CLIPPATHOPITEM;
     }
 
@@ -584,7 +609,8 @@ public:
     ~PaintOpItem() override {}
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
-    RSOpType GetType() const override {
+    RSOpType GetType() const override
+    {
         return RSOpType::PAINTOPITEM;
     }
 
@@ -600,7 +626,8 @@ public:
     ~ConcatOpItem() override {}
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
-    RSOpType GetType() const override {
+    RSOpType GetType() const override
+    {
         return RSOpType::CONCATOPITEM;
     }
 
@@ -619,7 +646,8 @@ public:
     ~SaveLayerOpItem() override {}
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
-    RSOpType GetType() const override {
+    RSOpType GetType() const override
+    {
         return RSOpType::SAVELAYEROPITEM;
     }
 
@@ -643,7 +671,8 @@ public:
     ~DrawableOpItem() override {}
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
-    RSOpType GetType() const override {
+    RSOpType GetType() const override
+    {
         return RSOpType::DRAWABLEOPITEM;
     }
 
@@ -663,7 +692,8 @@ public:
     ~PictureOpItem() override {}
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
-    RSOpType GetType() const override {
+    RSOpType GetType() const override
+    {
         return RSOpType::PICTUREOPITEM;
     }
 
@@ -686,7 +716,8 @@ public:
     }
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
-    RSOpType GetType() const override {
+    RSOpType GetType() const override
+    {
         return RSOpType::POINTSOPITEM;
     }
 
@@ -708,7 +739,8 @@ public:
     ~VerticesOpItem() override;
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
-    RSOpType GetType() const override {
+    RSOpType GetType() const override
+    {
         return RSOpType::VERTICESOPITEM;
     }
 
@@ -730,7 +762,8 @@ public:
     ~MultiplyAlphaOpItem() override {}
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
-    RSOpType GetType() const override {
+    RSOpType GetType() const override
+    {
         return RSOpType::MULTIPLYALPHAOPITEM;
     }
 
@@ -749,7 +782,8 @@ public:
     ~SaveAlphaOpItem() override {}
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
-    RSOpType GetType() const override {
+    RSOpType GetType() const override
+    {
         return RSOpType::SAVEALPHAOPITEM;
     }
 
@@ -764,7 +798,8 @@ public:
     ~RestoreAlphaOpItem() override {}
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
-    RSOpType GetType() const override {
+    RSOpType GetType() const override
+    {
         return RSOpType::RESTOREALPHAOPITEM;
     }
 

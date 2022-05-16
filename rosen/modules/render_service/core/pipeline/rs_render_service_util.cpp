@@ -532,7 +532,7 @@ bool ConvertYUV420SPToRGBA(std::vector<uint8_t>& rgbaBuf, const sptr<OHOS::Surfa
 bool RsRenderServiceUtil::enableClient = false;
 
 void RsRenderServiceUtil::ComposeSurface(std::shared_ptr<HdiLayerInfo> layer, sptr<Surface> consumerSurface,
-    std::vector<LayerInfoPtr>& layers,  ComposeInfo info, RSBaseRenderNode* node)
+    std::vector<LayerInfoPtr>& layers, ComposeInfo info, RSBaseRenderNode* node)
 {
     layer->SetSurface(consumerSurface);
     layer->SetBuffer(info.buffer, info.fence, info.preBuffer, info.preFence);

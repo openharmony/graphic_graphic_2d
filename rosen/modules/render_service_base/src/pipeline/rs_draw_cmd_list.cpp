@@ -15,15 +15,15 @@
 
 #include "pipeline/rs_draw_cmd_list.h"
 
-#include "platform/common/rs_log.h"
+#include <unordered_map>
+
 #include "pipeline/rs_draw_cmd.h"
 #include "pipeline/rs_paint_filter_canvas.h"
+#include "platform/common/rs_log.h"
 #include "transaction/rs_marshalling_helper.h"
-#include <unordered_map>
 
 namespace OHOS {
 namespace Rosen {
-
 using OpUnmarshallingFunc = OpItem* (*)(Parcel& parcel);
 
 static std::unordered_map<RSOpType, OpUnmarshallingFunc> opUnmarshallingFuncLUT = {
@@ -63,7 +63,8 @@ static std::unordered_map<RSOpType, OpUnmarshallingFunc> opUnmarshallingFuncLUT 
     { RESTOREALPHAOPITEM,       RestoreAlphaOpItem::Unmarshalling },
 };
 
-static OpUnmarshallingFunc GetOpUnmarshallingFunc(RSOpType type) {
+static OpUnmarshallingFunc GetOpUnmarshallingFunc(RSOpType type)
+{
     auto it = opUnmarshallingFuncLUT.find(type);
     if (it == opUnmarshallingFuncLUT.end()) {
         return nullptr;

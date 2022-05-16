@@ -213,13 +213,10 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const sk_sp<SkImage>& val)
         parcel.WriteInt32(width);
         parcel.WriteInt32(height);
 
-        SkColorType colorType = pixmap.colorType();
-        SkAlphaType alphaType = pixmap.alphaType();
-        parcel.WriteUint32(colorType);
-        parcel.WriteUint32(alphaType);
+        parcel.WriteUint32(pixmap.colorType());
+        parcel.WriteUint32(pixmap.alphaType());
 
-        auto colorSpace = pixmap.colorSpace();
-        auto data = colorSpace->serialize();
+        auto data = pixmap.colorSpace()->serialize();
         parcel.WriteUint32(data->size());
         if (!WriteToParcel(parcel, data->data(), data->size())) {
             ROSEN_LOGE("RSMarshallingHelper::Marshalling SkImage WriteToParcel colorSpace failed");

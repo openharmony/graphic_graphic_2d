@@ -24,7 +24,8 @@
 namespace OHOS {
 namespace Rosen {
 template <typename Out>
-void SplitHelper(const std::string &s, char delimiter, Out result) {
+void SplitHelper(const std::string &s, char delimiter, Out result)
+{
     std::istringstream iss(s);
     std::string item;
     while (std::getline(iss, item, delimiter)) {
@@ -32,7 +33,8 @@ void SplitHelper(const std::string &s, char delimiter, Out result) {
     }
 }
 
-std::vector<std::string> GetSplitResult(const std::string &s, char delimiter) {
+std::vector<std::string> GetSplitResult(const std::string &s, char delimiter)
+{
     std::vector<std::string> elems;
     SplitHelper(s, delimiter, std::back_inserter(elems));
     return elems;

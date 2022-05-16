@@ -26,7 +26,6 @@
 
 namespace OHOS {
 namespace Rosen {
-
 class RSUniRenderVisitor : public RSNodeVisitor {
 public:
     RSUniRenderVisitor();

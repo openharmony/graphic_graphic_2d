@@ -46,7 +46,7 @@ NodeId RSBaseNode::GenerateId()
     return ((NodeId)pid_ << 32) | currentId_;
 }
 
-bool RSBaseNode::isUni_ = 
+bool RSBaseNode::isUni_ =
     RSSystemProperties::GetUniRenderEnabledType() != UniRenderEnabledType::UNI_RENDER_DISABLED;
 
 RSBaseNode::RSBaseNode(bool isRenderServiceNode) : id_(GenerateId()), isRenderServiceNode_(isRenderServiceNode) {}
