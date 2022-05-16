@@ -25,22 +25,22 @@ namespace Rosen {
 enum RSRootNodeCommandType : uint16_t {
     ROOT_NODE_CREATE,
     ROOT_NODE_ATTACH,
-    ADD_TO_SURFACENODE,
+    ATTACH_TO_UNI_SURFACENODE,
 };
 
 class RootNodeCommandHelper {
 public:
     static void Create(RSContext& context, NodeId id);
     static void AttachRSSurfaceNode(RSContext& context, NodeId id, NodeId surfaceNodeId);
-    static void AddToSurfaceNode(RSContext& context, NodeId id, NodeId surfaceNodeId);
+    static void AttachToUniSurfaceNode(RSContext& context, NodeId id, NodeId surfaceNodeId);
 };
 
 ADD_COMMAND(RSRootNodeCreate, ARG(ROOT_NODE, ROOT_NODE_CREATE, RootNodeCommandHelper::Create, NodeId))
 ADD_COMMAND(RSRootNodeAttachRSSurfaceNode,
     ARG(ROOT_NODE, ROOT_NODE_ATTACH, RootNodeCommandHelper::AttachRSSurfaceNode, NodeId, NodeId))
 // unirender
-ADD_COMMAND(RSRootNodeAddToSurfaceNode,
-    ARG(ROOT_NODE, ADD_TO_SURFACENODE, RootNodeCommandHelper::AddToSurfaceNode, NodeId, NodeId))
+ADD_COMMAND(RSRootNodeAttachToUniSurfaceNode,
+    ARG(ROOT_NODE, ATTACH_TO_UNI_SURFACENODE, RootNodeCommandHelper::AttachToUniSurfaceNode, NodeId, NodeId))
 
 } // namespace Rosen
 } // namespace OHOS

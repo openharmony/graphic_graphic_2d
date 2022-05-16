@@ -188,7 +188,10 @@ protected:
     void OnRemoveChildren() override;
     void AnimationFinish(long long animationId);
 
-    virtual bool NeedForcedSendToRemote() const;
+    virtual bool NeedForcedSendToRemote() const
+    {
+        return false;
+    }
 
 private:
     bool HasPropertyAnimation(const RSAnimatableProperty& property);

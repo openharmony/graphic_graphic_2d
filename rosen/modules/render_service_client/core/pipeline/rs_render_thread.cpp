@@ -84,6 +84,10 @@ RSRenderThread::RSRenderThread()
     ROSEN_LOGD("Create RenderContext, its pointer is %p", renderContext_);
 #endif
     isUni_ = RSSystemProperties::GetUniRenderEnabledType() != UniRenderEnabledType::UNI_RENDER_DISABLED;
+    if (isUni_) {
+        ROSEN_LOGD("RSRenderThread is invalid under UniRender");
+        return;
+    }
     mainFunc_ = [&]() {
         clock_t startTime = clock();
         std::string str = "RSRenderThread DrawFrame: " + std::to_string(timestamp_);
@@ -127,6 +131,10 @@ RSRenderThread::~RSRenderThread()
 
 void RSRenderThread::Start()
 {
+    if (isUni_) {
+        ROSEN_LOGD("RSRenderThread start is invalid under UniRender");
+        return;
+    }
     ROSEN_LOGD("RSRenderThread start.");
     running_.store(true);
     if (thread_ == nullptr) {
@@ -147,6 +155,11 @@ void RSRenderThread::Start()
 
 void RSRenderThread::Stop()
 {
+    if (isUni_) {
+        ROSEN_LOGD("RSRenderThread stop is invalid under UniRender");
+        return;
+    }
+
     running_.store(false);
 
     if (runner_ != nullptr) {
@@ -233,7 +246,7 @@ void RSRenderThread::OnVsync(uint64_t timestamp)
     mValue = (mValue + 1) % 2; // 1 and 2 is Calculated parameters
     RS_TRACE_INT("Vsync-client", mValue);
     timestamp_ = timestamp;
-    if (activeWindowCnt_.load() > 0 && !isUni_) {
+    if (activeWindowCnt_.load() > 0) {
         mainFunc_(); // start render-loop now
     }
     ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);

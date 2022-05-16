@@ -30,8 +30,6 @@
 #include "render/rs_path.h"
 #include "transaction/rs_transaction_proxy.h"
 
-#include "pipeline/rs_render_thread.h"
-
 namespace OHOS {
 namespace Rosen {
 
@@ -43,11 +41,6 @@ RSNode::RSNode(bool isRenderServiceNode) : RSBaseNode(isRenderServiceNode), stag
 RSNode::~RSNode()
 {
     FallbackAnimationsToRoot();
-}
-
-bool RSNode::NeedForcedSendToRemote() const
-{
-    return !IsRenderServiceNode() && isUni_;
 }
 
 void RSNode::OpenImplicitAnimation(const RSAnimationTimingProtocol& timingProtocol,

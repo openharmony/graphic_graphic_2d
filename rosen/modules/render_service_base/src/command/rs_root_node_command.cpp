@@ -36,7 +36,7 @@ void RootNodeCommandHelper::AttachRSSurfaceNode(RSContext& context, NodeId id, N
     }
 }
 
-void RootNodeCommandHelper::AddToSurfaceNode(RSContext& context, NodeId id, NodeId surfaceNodeId)
+void RootNodeCommandHelper::AttachToUniSurfaceNode(RSContext& context, NodeId id, NodeId surfaceNodeId)
 {
     auto& nodeMap = context.GetNodeMap();
     auto parent = nodeMap.GetRenderNode<RSSurfaceRenderNode>(surfaceNodeId);

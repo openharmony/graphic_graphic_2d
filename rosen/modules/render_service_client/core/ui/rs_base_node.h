@@ -83,7 +83,7 @@ protected:
 
     bool IsRenderServiceNode() const
     {
-        return isRenderServiceNode_;
+        return isUni_ || isRenderServiceNode_;
     }
 
     void SetRenderServiceNodeType(bool isRenderServiceNode)
