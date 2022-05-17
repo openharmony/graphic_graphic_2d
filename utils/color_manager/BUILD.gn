@@ -23,7 +23,13 @@ config("color_manager_config") {
     "-g3",
     "-Wno-error=missing-braces",
     "-Wno-error=#warnings",
+    "-fvisibility=hidden",
     "-Os",
+  ]
+
+  cflags_cc = [
+    "-std=c++17",
+    "-fvisibility-inlines-hidden",
   ]
 
   ldflags = [ "-Wl" ]
@@ -44,7 +50,7 @@ ohos_shared_library("color_manager") {
 
   public_configs = [ ":color_manager_public_config" ]
 
-  public_deps = [ "//foundation/arkui/ace_engine/build/external_config/flutter/skia:ace_skia_ohos" ]
+  public_deps = [ "//third_party/flutter/build/skia:ace_skia_ohos" ]
 
   subsystem_name = "graphic"
   part_name = "graphic_standard"

@@ -44,8 +44,8 @@ ohos_static_library("color_manager_test_common") {
 
   public_deps = [
     "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
-    "//foundation/arkui/ace_engine/build/external_config/flutter/skia:ace_skia_ohos",
     "//foundation/graphic/graphic/utils/color_manager:color_manager",
+    "//third_party/flutter/build/skia:ace_skia_ohos",
     "//third_party/googletest:gtest_main",
   ]
   subsystem_name = "graphic"
