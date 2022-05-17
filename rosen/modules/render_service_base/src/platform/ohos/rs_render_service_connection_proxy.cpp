@@ -262,6 +262,30 @@ void RSRenderServiceConnectionProxy::SetScreenActiveMode(ScreenId id, uint32_t m
     }
 }
 
+int32_t RSRenderServiceConnectionProxy::SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::SetVirtualScreenResolution: WriteInterfaceToken err.");
+        return WRITE_PARCEL_ERR;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    data.WriteUint64(id);
+    data.WriteUint32(width);
+    data.WriteUint32(height);
+    int32_t err = Remote()->SendRequest(RSIRenderServiceConnection::SET_VIRTUAL_SCREEN_RESOLUTION,
+        data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::SetVirtualScreenResolution: Send Request err.");
+        return RS_CONNECTION_ERROR;
+    }
+    int32_t status = reply.ReadInt32();
+    return status;
+}
+
 void RSRenderServiceConnectionProxy::SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status)
 {
     MessageParcel data;
@@ -321,6 +345,32 @@ void RSRenderServiceConnectionProxy::TakeSurfaceCapture(NodeId id, sptr<RSISurfa
         ROSEN_LOGE("RSRenderServiceProxy: Remote()->SendRequest() error.\n");
         return;
     }
+}
+
+RSVirtualScreenResolution RSRenderServiceConnectionProxy::GetVirtualScreenResolution(ScreenId id)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    RSVirtualScreenResolution virtualScreenResolution;
+
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return virtualScreenResolution;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    data.WriteUint64(id);
+    int32_t err = Remote()->SendRequest(RSIRenderServiceConnection::GET_VIRTUAL_SCREEN_RESOLUTION,
+        data, reply, option);
+    if (err != NO_ERROR) {
+        return virtualScreenResolution;
+    }
+
+    sptr<RSVirtualScreenResolution> pVirtualScreenResolution(reply.ReadParcelable<RSVirtualScreenResolution>());
+    if (pVirtualScreenResolution == nullptr) {
+        return virtualScreenResolution;
+    }
+    virtualScreenResolution = *pVirtualScreenResolution;
+    return virtualScreenResolution;
 }
 
 RSScreenModeInfo RSRenderServiceConnectionProxy::GetScreenActiveMode(ScreenId id)

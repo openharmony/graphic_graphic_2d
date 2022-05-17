@@ -834,5 +834,44 @@ HWTEST_F(RSInterfacesTest, GetScreenType002, Function | SmallTest | Level2)
     int ret = rsInterfaces->GetScreenType(INVALID_SCREEN_ID, type);
     EXPECT_EQ(ret, StatusCode::SCREEN_NOT_FOUND);
 }
+
+/*
+* Function: SetVirtualScreenResolution/GetVirtualScreenResolution
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. Call CreateVirtualScreen, use normal parameters.
+*                  2. Use SetVirtualScreenResolution to change the width and height of virtualScreen
+*                  3. Use GetVirtualScreenResolution to get current width and height of virtualScreen
+*                  4. Check current width and height of virtualScreen
+*/
+HWTEST_F(RSInterfacesTest, SetVirtualScreenResolution001, Function | SmallTest | Level2)
+{
+    auto csurface = Surface::CreateSurfaceAsConsumer();
+    EXPECT_NE(csurface, nullptr);
+    auto producer = csurface->GetProducer();
+    auto psurface = Surface::CreateSurfaceAsProducer(producer);
+    uint32_t defaultWidth = 720;
+    uint32_t defaultHeight = 1280;
+    uint32_t newWidth = 1920;
+    uint32_t newHeight = 1080;
+    EXPECT_NE(psurface, nullptr);
+
+    ScreenId virtualScreenId = rsInterfaces->CreateVirtualScreen(
+        "virtual5", defaultWidth, defaultHeight, psurface, INVALID_SCREEN_ID, -1);
+    EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
+
+    auto curVirtualScreenResolution = rsInterfaces->GetVirtualScreenResolution(virtualScreenId);
+    EXPECT_EQ(curVirtualScreenResolution.GetVirtualScreenWidth(), defaultWidth);
+    EXPECT_EQ(curVirtualScreenResolution.GetVirtualScreenHeight(), defaultHeight);
+
+    rsInterfaces->SetVirtualScreenResolution(virtualScreenId, newWidth, newHeight);
+
+    curVirtualScreenResolution = rsInterfaces->GetVirtualScreenResolution(virtualScreenId);
+    EXPECT_EQ(curVirtualScreenResolution.GetVirtualScreenWidth(), newWidth);
+    EXPECT_EQ(curVirtualScreenResolution.GetVirtualScreenHeight(), newHeight);
+
+    rsInterfaces->RemoveVirtualScreen(virtualScreenId);
+}
 } // namespace Rosen
 } // namespace OHOS

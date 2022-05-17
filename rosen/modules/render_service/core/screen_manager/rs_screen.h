@@ -52,6 +52,7 @@ public:
     virtual bool IsEnable() const = 0;
     virtual bool IsVirtual() const = 0;
     virtual void SetActiveMode(uint32_t modeId) = 0;
+    virtual void SetResolution(uint32_t width, uint32_t height) = 0;
     virtual void SetPowerStatus(uint32_t powerStatus) = 0;
     virtual std::optional<DisplayModeInfo> GetActiveMode() const = 0;
     virtual const std::vector<DisplayModeInfo>& GetSupportedModes() const = 0;
@@ -101,6 +102,7 @@ public:
     bool IsEnable() const override;
     bool IsVirtual() const override;
     void SetActiveMode(uint32_t modeId) override;
+    void SetResolution(uint32_t width, uint32_t height) override;
     void SetPowerStatus(uint32_t powerStatus) override;
     std::optional<DisplayModeInfo> GetActiveMode() const override;
     const std::vector<DisplayModeInfo>& GetSupportedModes() const override;

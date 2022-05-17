@@ -55,6 +55,10 @@ public:
 
     void SetScreenActiveMode(ScreenId id, uint32_t modeId);
 
+    int32_t SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height);
+
+    RSVirtualScreenResolution GetVirtualScreenResolution(ScreenId id);
+
     void SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status);
 
     RSScreenModeInfo GetScreenActiveMode(ScreenId id);

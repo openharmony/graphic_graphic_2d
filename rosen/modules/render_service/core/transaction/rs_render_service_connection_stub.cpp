@@ -135,6 +135,19 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             SetScreenActiveMode(id, modeId);
             break;
         }
+        case SET_VIRTUAL_SCREEN_RESOLUTION: {
+            auto token = data.ReadInterfaceToken();
+            if (token != RSIRenderServiceConnection::GetDescriptor()) {
+                ret = ERR_INVALID_STATE;
+                break;
+            }
+            ScreenId id = data.ReadUint64();
+            uint32_t width = data.ReadUint32();
+            uint32_t height = data.ReadUint32();
+            int32_t status = SetVirtualScreenResolution(id, width, height);
+            reply.WriteInt32(status);
+            break;
+        }
         case SET_SCREEN_POWER_STATUS: {
             auto token = data.ReadInterfaceToken();
             if (token != RSIRenderServiceConnection::GetDescriptor()) {
@@ -168,6 +181,17 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             }
             sptr<IApplicationRenderThread> app = iface_cast<IApplicationRenderThread>(remoteObject);
             RegisterApplicationRenderThread(pid, app);
+            break;
+        }
+        case GET_VIRTUAL_SCREEN_RESOLUTION: {
+            auto token = data.ReadInterfaceToken();
+            if (token != RSIRenderServiceConnection::GetDescriptor()) {
+                ret = ERR_INVALID_STATE;
+                break;
+            }
+            ScreenId id = data.ReadUint64();
+            RSVirtualScreenResolution virtualScreenResolution = GetVirtualScreenResolution(id);
+            reply.WriteParcelable(&virtualScreenResolution);
             break;
         }
         case GET_SCREEN_ACTIVE_MODE: {

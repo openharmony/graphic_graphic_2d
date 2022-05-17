@@ -122,6 +122,7 @@ ohos_shared_library("librender_service_base") {
     "src/screen_manager/rs_screen_hdr_capability.cpp",
     "src/screen_manager/rs_screen_mode_info.cpp",
     "src/screen_manager/rs_screen_props.cpp",
+    "src/screen_manager/rs_virtual_screen_resolution.cpp",
   ]
 
   public_deps = [

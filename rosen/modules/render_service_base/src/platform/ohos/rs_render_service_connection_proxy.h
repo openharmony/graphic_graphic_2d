@@ -53,11 +53,15 @@ public:
 
     void SetScreenActiveMode(ScreenId id, uint32_t modeId) override;
 
+    int32_t SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height) override;
+
     void SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status) override;
 
     void RegisterApplicationRenderThread(uint32_t pid, sptr<IApplicationRenderThread> app) override;
 
     void TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback, float scaleX, float scaleY) override;
+
+    RSVirtualScreenResolution GetVirtualScreenResolution(ScreenId id) override;
 
     RSScreenModeInfo GetScreenActiveMode(ScreenId id) override;
 

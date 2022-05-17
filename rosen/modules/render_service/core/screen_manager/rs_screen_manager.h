@@ -32,6 +32,7 @@
 #include <screen_manager/rs_screen_data.h>
 #include <screen_manager/rs_screen_hdr_capability.h>
 #include <screen_manager/screen_types.h>
+#include <screen_manager/rs_virtual_screen_resolution.h>
 #include <surface.h>
 
 #include "rs_screen.h"
@@ -82,7 +83,11 @@ public:
 
     virtual void SetScreenActiveMode(ScreenId id, uint32_t modeId) = 0;
 
+    virtual int32_t SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height) = 0;
+
     virtual void SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status) = 0;
+
+    virtual void GetVirtualScreenResolution(ScreenId id, RSVirtualScreenResolution& virtualScreenResolution) const = 0;
 
     virtual void GetScreenActiveMode(ScreenId id, RSScreenModeInfo& screenModeInfo) const = 0;
 
@@ -178,7 +183,11 @@ public:
 
     void SetScreenActiveMode(ScreenId id, uint32_t modeId) override;
 
+    int32_t SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height) override;
+
     void SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status) override;
+
+    void GetVirtualScreenResolution(ScreenId id, RSVirtualScreenResolution& virtualScreenResolution) const override;
 
     void GetScreenActiveMode(ScreenId id, RSScreenModeInfo& screenModeInfo) const override;
 
@@ -243,6 +252,7 @@ private:
     void HandleDefaultScreenDisConnectedLocked();
     std::vector<ScreenHotPlugEvent> pendingHotPlugEvents_;
 
+    void GetVirtualScreenResolutionLocked(ScreenId id, RSVirtualScreenResolution& virtualScreenResolution) const;
     void GetScreenActiveModeLocked(ScreenId id, RSScreenModeInfo& screenModeInfo) const;
     std::vector<RSScreenModeInfo> GetScreenSupportedModesLocked(ScreenId id) const;
     RSScreenCapability GetScreenCapabilityLocked(ScreenId id) const;

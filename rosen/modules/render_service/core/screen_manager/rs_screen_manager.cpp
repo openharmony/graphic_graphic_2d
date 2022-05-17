@@ -231,6 +231,18 @@ void RSScreenManager::ReuseVirtualScreenIdLocked(ScreenId id)
     freeVirtualScreenIds_.push(id);
 }
 
+void RSScreenManager::GetVirtualScreenResolutionLocked(ScreenId id,
+    RSVirtualScreenResolution& virtualScreenResolution) const
+{
+    if (screens_.count(id) == 0) {
+        HiLog::Error(LOG_LABEL, "%{public}s: There is no screen for id %{public}" PRIu64 ".", __func__, id);
+        return;
+    }
+
+    virtualScreenResolution.SetVirtualScreenWidth(static_cast<uint32_t>(screens_.at(id)->Width()));
+    virtualScreenResolution.SetVirtualScreenHeight(static_cast<uint32_t>(screens_.at(id)->Height()));
+}
+
 void RSScreenManager::GetScreenActiveModeLocked(ScreenId id, RSScreenModeInfo& screenModeInfo) const
 {
     if (screens_.count(id) == 0) {
@@ -416,6 +428,19 @@ void RSScreenManager::SetScreenActiveMode(ScreenId id, uint32_t modeId)
     screens_.at(id)->SetActiveMode(modeId);
 }
 
+int32_t RSScreenManager::SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+
+    if (screens_.count(id) == 0) {
+        HiLog::Error(LOG_LABEL, "%{public}s: There is no virtual screen for id %{public}" PRIu64 ".\n", __func__, id);
+        return SCREEN_NOT_FOUND;
+    }
+    screens_.at(id)->SetResolution(width, height);
+    HiLog::Debug(LOG_LABEL, "%{public}s:  set virtual screen resolution success! \n", __func__);
+    return SUCCESS;
+}
+
 void RSScreenManager::SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status)
 {
     std::lock_guard<std::mutex> lock(mutex_);
@@ -437,6 +462,13 @@ void RSScreenManager::SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status
         mainThread->RequestNextVSync();
         HiLog::Info(LOG_LABEL, "Set system power on, request a frame");
     }
+}
+
+void RSScreenManager::GetVirtualScreenResolution(ScreenId id, RSVirtualScreenResolution& virtualScreenResolution) const
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+
+    GetVirtualScreenResolutionLocked(id, virtualScreenResolution);
 }
 
 void RSScreenManager::GetScreenActiveMode(ScreenId id, RSScreenModeInfo& screenModeInfo) const

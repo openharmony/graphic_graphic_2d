@@ -177,6 +177,16 @@ void RSScreen::SetActiveMode(uint32_t modeId)
     }
 }
 
+void RSScreen::SetResolution(uint32_t width, uint32_t height)
+{
+    if (!IsVirtual()) {
+        HiLog::Warn(LOG_LABEL, "%{public}s: physical screen not support SetResolution.\n", __func__);
+        return;
+    }
+    width_ = static_cast<int32_t>(width);
+    height_ = static_cast<int32_t>(height);
+}
+
 int32_t RSScreen::GetActiveModePosByModeId(int32_t modeId) const
 {
     decltype(supportedModes_.size()) modeIndex = 0;
