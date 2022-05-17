@@ -117,8 +117,6 @@ protected:
             preKeyframeFraction = keyframeFraction;
             preKeyframeValue = keyframeValue;
         }
-        RSRenderPropertyAnimation<T>::WriteAnimationInfoToLog(
-            std::get<1>(keyframes_.front()), std::get<1>(keyframes_.back()));
     }
 
 private:

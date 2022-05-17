@@ -57,12 +57,12 @@ ohos_executable("drawing_sample") {
   ]
 
   deps = [
-    "//foundation/arkui/ace_engine/build/external_config/flutter/skia:ace_skia_ohos",
     "//foundation/graphic/graphic:libsurface",
     "//foundation/graphic/graphic/rosen/modules/2d_graphics:2d_graphics",
     "//foundation/graphic/graphic/rosen/modules/composer:libcomposer",
     "//foundation/graphic/graphic/utils:libgraphic_utils",
     "//foundation/graphic/graphic/utils:sync_fence",
+    "//third_party/flutter/build/skia:ace_skia_ohos",
   ]
 
   external_deps = [

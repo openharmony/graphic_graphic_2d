@@ -17,11 +17,11 @@ import("//build/test.gni")
 module_output_path = "graphic/2d_graphics"
 
 ##############################fuzztest##########################################
-ohos_fuzztest("DrawingColorSetArgbFuzzTest") {
+ohos_fuzztest("PathOpFuzzTest") {
   module_out_path = module_output_path
-  fuzz_config_file = "//foundation/graphic/graphic/rosen/test/2d_graphics/fuzztest/drawing_color_set_argb_fuzzer"
+  fuzz_config_file = "//foundation/graphic/graphic/rosen/test/2d_graphics/fuzztest/pathop_fuzzer"
 
-  sources = [ "drawing_color_set_argb_fuzzer.cpp" ]
+  sources = [ "pathop_fuzzer.cpp" ]
 
   cflags = [
     "-g",
@@ -30,11 +30,12 @@ ohos_fuzztest("DrawingColorSetArgbFuzzTest") {
     "-fno-omit-frame-pointer",
   ]
 
-  include_dirs =
-      [ "//foundation/graphic/graphic/rosen/modules/2d_graphics/include" ]
+  include_dirs = [
+    "//foundation/graphic/graphic/rosen/modules/2d_graphics/include",
+    "//foundation/graphic/graphic/rosen/modules/2d_graphics/src",
+  ]
 
-  deps =
-      [ "//foundation/graphic/graphic/rosen/modules/2d_graphics:2d_graphics" ]
+  deps = [ "//foundation/graphic/graphic/rosen/modules/2d_graphics:2d_graphics" ]
 
   external_deps = [
     "hilog_native:libhilog",

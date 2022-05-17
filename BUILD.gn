@@ -44,6 +44,10 @@ group("graphic_standard_test") {
     "rosen/modules/effect/test/unittest:test",
     "utils/sync_fence:test",
   ]
+
+  if (color_gamut_enable) {
+    public_deps += [ "utils/color_manager:test" ]
+  }
 }
 
 ## Install graphic.rc to /system/etc/init/graphic.rc {{{

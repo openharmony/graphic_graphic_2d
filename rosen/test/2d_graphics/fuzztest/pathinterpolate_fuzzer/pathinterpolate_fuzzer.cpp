@@ -13,27 +13,29 @@
  * limitations under the License.
  */
 
-#include "bitmap_build_fuzzer.h"
+#include "pathinterpolate_fuzzer.h"
 
 #include <cstddef>
 #include <cstdint>
 
-#include "image/bitmap.h"
+#include "draw/path.h"
+
+const int FUZZ_DATA_LEN = 0;
 
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-    bool BitmapBuildFuzzTest(const uint8_t* data, size_t size)
-    {
-        bool result = false;
-        Bitmap bitmap;
-        BitmapFormat bitmapFormat = {COLORTYPE_ARGB_4444, ALPHATYPE_OPAQUYE};
-        bitmap.Build(reinterpret_cast<const uint32_t>(data), size, bitmapFormat);
-        if (!bitmap.GetWidth()) {
-            result = true;
-        }
-        return result;
+bool PathInterpolateFuzzTest(const uint8_t* data, size_t size)
+{
+    bool result = false;
+    Path path;
+    Path ending;
+    Path out;
+    if (size > FUZZ_DATA_LEN) {
+        return path.Interpolate(ending, reinterpret_cast<const uint32_t>(data), out);
     }
+    return result;
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
@@ -42,6 +44,6 @@ namespace Drawing {
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
     /* Run your code on data */
-    OHOS::Rosen::Drawing::BitmapBuildFuzzTest(data, size);
+    OHOS::Rosen::Drawing::PathInterpolateFuzzTest(data, size);
     return 0;
 }

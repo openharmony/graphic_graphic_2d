@@ -13,29 +13,28 @@
  * limitations under the License.
  */
 
-#include "path_interpolate_fuzzer.h"
+#include "setcamerapos_fuzzer.h"
 
 #include <cstddef>
 #include <cstdint>
 
-#include "draw/path.h"
+#include "utils/camera3d.h"
+#include "utils/matrix.h"
+#include "utils/scalar.h"
 
-const int FUZZ_DATA_LEN = 0;
+const int CONSTANTS_NUMBER = 5;
 
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-    bool PathInterpolateFuzzTest(const uint8_t* data, size_t size)
-    {
-        bool result = false;
-        Path path;
-        Path ending;
-        Path out;
-        if (size > FUZZ_DATA_LEN) {
-            return path.Interpolate(ending, reinterpret_cast<const uint32_t>(data), out);
-        }
-        return result;
-    }
+bool SetCameraPosFuzzTest(const uint8_t* data, size_t size)
+{
+    Camera3D camera3d;
+    Matrix matrix;
+    camera3d.ApplyToMatrix(matrix);
+    camera3d.SetCameraPos(reinterpret_cast<uint32_t>(data), reinterpret_cast<uint32_t>(size), CONSTANTS_NUMBER);
+    return true;
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
@@ -44,6 +43,6 @@ namespace Drawing {
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
     /* Run your code on data */
-    OHOS::Rosen::Drawing::PathInterpolateFuzzTest(data, size);
+    OHOS::Rosen::Drawing::SetCameraPosFuzzTest(data, size);
     return 0;
 }

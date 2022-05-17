@@ -22,7 +22,8 @@
       ],
       "adapted_system_type": [ "standard" ],
       "features": [
-        "graphic_standard_feature_ace_enable_gpu"
+        "graphic_standard_feature_ace_enable_gpu",
+        "graphic_standard_feature_color_gamut_enable"
       ],
       "rom": "10000KB",
       "ram": "10000KB",

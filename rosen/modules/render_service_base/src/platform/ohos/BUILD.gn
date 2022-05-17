@@ -73,12 +73,12 @@ ohos_source_set("rosen_ohos_sources") {
   ]
 
   public_deps = [
-    "//foundation/arkui/ace_engine/build/external_config/flutter/skia:ace_skia_ohos",
     "//foundation/graphic/graphic:libsurface",
     "//foundation/graphic/graphic:libvsync_client",
     "//foundation/graphic/graphic/rosen/modules/composer/vsync:libvsync",
     "//foundation/graphic/graphic/utils:sync_fence",
     "//foundation/multimedia/image_standard/interfaces/innerkits:image_native",
+    "//third_party/flutter/build/skia:ace_skia_ohos",
     "//utils/native/base:utils",
   ]
 

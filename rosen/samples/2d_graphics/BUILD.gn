@@ -74,12 +74,12 @@ ohos_executable("drawing_engine_sample") {
   ]
 
   deps = [
-    "//foundation/arkui/ace_engine/build/external_config/flutter/skia:ace_skia_ohos",
     "//foundation/graphic/graphic:libsurface",
     "//foundation/graphic/graphic:libvsync_client",
     "//foundation/graphic/graphic/frameworks/vsync:libvsync_module",
     "//foundation/graphic/graphic/rosen/modules/composer:libcomposer",
     "//foundation/graphic/graphic/utils:sync_fence",
+    "//third_party/flutter/build/skia:ace_skia_ohos",
   ]
 
   defines = gpu_defines

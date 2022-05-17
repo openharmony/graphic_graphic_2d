@@ -13,28 +13,27 @@
  * limitations under the License.
  */
 
-#include "set_camera_pos_fuzzer.h"
+#include "bitmapbuild_fuzzer.h"
 
 #include <cstddef>
 #include <cstdint>
 
-#include "utils/camera3d.h"
-#include "utils/matrix.h"
-#include "utils/scalar.h"
-
-const int CONSTANTS_NUMBER = 5;
+#include "image/bitmap.h"
 
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-    bool SetCameraPosFuzzTest(const uint8_t* data, size_t size)
-    {
-        Camera3D camera3d;
-        Matrix matrix;
-        camera3d.ApplyToMatrix(matrix);
-        camera3d.SetCameraPos(reinterpret_cast<uint32_t>(data), reinterpret_cast<uint32_t>(size), CONSTANTS_NUMBER);
-        return true;
+bool BitmapBuildFuzzTest(const uint8_t* data, size_t size)
+{
+    bool result = false;
+    Bitmap bitmap;
+    BitmapFormat bitmapFormat = { COLORTYPE_ARGB_4444, ALPHATYPE_OPAQUYE };
+    bitmap.Build(reinterpret_cast<const uint32_t>(data), size, bitmapFormat);
+    if (!bitmap.GetWidth()) {
+        result = true;
     }
+    return result;
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
@@ -43,6 +42,6 @@ namespace Drawing {
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
     /* Run your code on data */
-    OHOS::Rosen::Drawing::SetCameraPosFuzzTest(data, size);
+    OHOS::Rosen::Drawing::BitmapBuildFuzzTest(data, size);
     return 0;
 }

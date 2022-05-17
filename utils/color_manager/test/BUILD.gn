@@ -17,19 +17,17 @@ module_out_path = "graphic_standard/utils/color_manager"
 
 group("unittest") {
   testonly = true
-  deps = [ ":ColorManagerTest" ]
-}
-
-## Build RSInterfacesTest
-ohos_unittest("ColorManagerTest") {
-  module_out_path = module_out_path
-  sources = [ "color_manager_test.cpp" ]
   deps = [ ":color_manager_test" ]
 }
 
-config("color_manager_test_config") {
-  include_dirs = [ "//foundation/graphic/graphic/utils/color_manager/export" ]
+## Build color_manager_test
+ohos_unittest("color_manager_test") {
+  module_out_path = module_out_path
+  sources = [ "color_manager_test.cpp" ]
+  deps = [ ":color_manager_test_common" ]
+}
 
+config("color_manager_test_config") {
   cflags = [
     "-Wall",
     "-Werror",
@@ -39,14 +37,17 @@ config("color_manager_test_config") {
   ]
 }
 
-ohos_static_library("color_manager_test") {
+ohos_static_library("color_manager_test_common") {
   visibility = [ ":*" ]
   testonly = true
   public_configs = [ ":color_manager_test_config" ]
 
   public_deps = [
     "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
+    "//foundation/arkui/ace_engine/build/external_config/flutter/skia:ace_skia_ohos",
     "//foundation/graphic/graphic/utils/color_manager:color_manager",
     "//third_party/googletest:gtest_main",
   ]
+  subsystem_name = "graphic"
+  part_name = "graphic_standard"
 }

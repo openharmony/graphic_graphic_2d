@@ -195,7 +195,6 @@ void RSRenderPathAnimation::SetPathValue(const Vector2f& position, float tangent
     }
 
     SetPropertyValue(position);
-    RSRenderPropertyAnimation::WriteAnimationValueToLog(position);
 }
 } // namespace Rosen
 } // namespace OHOS

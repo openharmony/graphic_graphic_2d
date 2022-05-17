@@ -17,11 +17,11 @@ import("//build/test.gni")
 module_output_path = "graphic/2d_graphics"
 
 ##############################fuzztest##########################################
-ohos_fuzztest("MatrixGetFuzzTest") {
+ohos_fuzztest("SetArgbFuzzTest") {
   module_out_path = module_output_path
-  fuzz_config_file = "//foundation/graphic/graphic/rosen/test/2d_graphics/fuzztest/matrix_get_fuzzer"
+  fuzz_config_file = "//foundation/graphic/graphic/rosen/test/2d_graphics/fuzztest/setargb_fuzzer"
 
-  sources = [ "matrix_get_fuzzer.cpp" ]
+  sources = [ "setargb_fuzzer.cpp" ]
 
   cflags = [
     "-g",
@@ -30,13 +30,9 @@ ohos_fuzztest("MatrixGetFuzzTest") {
     "-fno-omit-frame-pointer",
   ]
 
-  include_dirs = [
-    "//foundation/graphic/graphic/rosen/modules/2d_graphics/include",
-    "//foundation/graphic/graphic/rosen/modules/2d_graphics/src",
-  ]
+  include_dirs = [ "//foundation/graphic/graphic/rosen/modules/2d_graphics/include" ]
 
-  deps =
-      [ "//foundation/graphic/graphic/rosen/modules/2d_graphics:2d_graphics" ]
+  deps = [ "//foundation/graphic/graphic/rosen/modules/2d_graphics:2d_graphics" ]
 
   external_deps = [
     "hilog_native:libhilog",

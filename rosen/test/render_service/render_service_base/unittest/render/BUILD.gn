@@ -35,8 +35,8 @@ ohos_unittest("RSRenderServiceBaseRenderTest") {
   ]
 
   deps = [
-    "//foundation/arkui/ace_engine/build/external_config/flutter/skia:ace_skia_ohos",
     "//foundation/graphic/graphic/rosen/modules/render_service_base:librender_service_base",
+    "//third_party/flutter/build/skia:ace_skia_ohos",
     "//third_party/googletest:gtest_main",
     "//utils/native/base:utils",
   ]

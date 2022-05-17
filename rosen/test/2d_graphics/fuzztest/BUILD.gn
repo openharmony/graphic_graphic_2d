@@ -18,11 +18,11 @@ group("fuzztest") {
 
   deps += [
     # deps file
-    "bitmap_build_fuzzer:BitmapBuildFuzzTest",
-    "drawing_color_set_argb_fuzzer:DrawingColorSetArgbFuzzTest",
-    "matrix_get_fuzzer:MatrixGetFuzzTest",
-    "path_interpolate_fuzzer:PathInterpolateFuzzTest",
-    "path_op_fuzzer:PathOpFuzzTest",
-    "set_camera_pos_fuzzer:SetCameraPosFuzzTest",
+    "bitmapbuild_fuzzer:BitmapBuildFuzzTest",
+    "matrixget_fuzzer:MatrixGetFuzzTest",
+    "pathinterpolate_fuzzer:PathInterpolateFuzzTest",
+    "pathop_fuzzer:PathOpFuzzTest",
+    "setargb_fuzzer:SetArgbFuzzTest",
+    "setcamerapos_fuzzer:SetCameraPosFuzzTest",
   ]
 }

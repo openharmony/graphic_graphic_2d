@@ -27,6 +27,9 @@
 #include <unique_fd.h>
 
 namespace OHOS {
+
+using ns_sec_t = int64_t;
+
 // same to linux/sync_file define
 enum FenceStatus {
     ERROR = -1,
@@ -74,11 +77,14 @@ public:
     SyncFence& operator=(SyncFence&& rhs) = delete;
 
     static const sptr<SyncFence> INVALID_FENCE;
+    static const ns_sec_t INVALID_TIMESTAMP;
+    static const ns_sec_t FENCE_PENDING_TIMESTAMP;
     int32_t Wait(uint32_t timeout);
     static sptr<SyncFence> MergeFence(const std::string &name,
             const sptr<SyncFence>& fence1, const sptr<SyncFence>& fence2);
-    int64_t SyncFileReadTimestamp();
+    ns_sec_t SyncFileReadTimestamp();
     int32_t Dup() const;
+    bool IsValid() const;
 
     /* this is dangerous, when you use it, do not operator the fd */
     int32_t Get() const;

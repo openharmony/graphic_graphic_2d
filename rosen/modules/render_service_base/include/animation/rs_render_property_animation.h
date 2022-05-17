@@ -142,7 +142,6 @@ protected:
 
         lastValue_ = value;
         SetPropertyValue(animationValue);
-        WriteAnimationValueToLog(animationValue);
     }
 
     void OnRemoveOnCompletion() override

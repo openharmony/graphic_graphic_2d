@@ -13,28 +13,31 @@
  * limitations under the License.
  */
 
-#include "matrix_get_fuzzer.h"
+#include "pathop_fuzzer.h"
 
 #include <cstddef>
 #include <cstdint>
 
-#include "utils/matrix.h"
+#include "draw/path.h"
 
 const int FUZZ_DATA_LEN = 0;
+const int CONSTANTS_NUMBER_FIVE = 5;
 
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-    bool MatrixGetFuzzTest(const uint8_t* data, size_t size)
-    {
-        bool result = false;
-        Matrix matrix;
-        if (size > FUZZ_DATA_LEN) {
-            result = matrix.Get(reinterpret_cast<const uint32_t>(data));
-            return result;
-        }
-        return result;
+bool PathOpFuzzTest(const uint8_t* data, size_t size)
+{
+    bool result = false;
+    Path path;
+    PathOp pathOp = static_cast<PathOp>(size % CONSTANTS_NUMBER_FIVE);
+    Path path1;
+    Path path2;
+    if (size > FUZZ_DATA_LEN) {
+        return path.Op(path1, path2, pathOp);
     }
+    return result;
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
@@ -43,7 +46,6 @@ namespace Drawing {
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
     /* Run your code on data */
-    OHOS::Rosen::Drawing::MatrixGetFuzzTest(data, size);
+    OHOS::Rosen::Drawing::PathOpFuzzTest(data, size);
     return 0;
 }
-
