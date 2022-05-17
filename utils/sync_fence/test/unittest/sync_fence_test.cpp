@@ -97,7 +97,7 @@ HWTEST_F(SyncFenceTest, GetFenceInfo001, Function | MediumTest | Level2)
         SyncFence syncFence(fd);
         ASSERT_GE(fd, 0);
         int64_t timestamp = syncFence.SyncFileReadTimestamp();
-        ASSERT_LE(timestamp, 0);
+        ASSERT_EQ(timestamp, SyncFence::FENCE_PENDING_TIMESTAMP);
         auto ret = syncTimeline_->IncreaseSyncPoint(1);
         ASSERT_EQ(ret, 0);
         timestamp = syncFence.SyncFileReadTimestamp();
