@@ -101,7 +101,6 @@ int32_t NativeWindowRequestBuffer(OHNativeWindow *window,
     nwBuffer->sfbuffer = sfbuffer;
     *buffer = nwBuffer;
     *fenceFd = relaeaseFence->Dup();
-    NativeObjectReference(*buffer);
     return OHOS::GSERROR_OK;
 }
 
@@ -130,7 +129,6 @@ int32_t NativeWindowFlushBuffer(OHNativeWindow *window, OHNativeWindowBuffer *bu
 
     OHOS::sptr<OHOS::SyncFence> acquireFence = new OHOS::SyncFence(fenceFd);
     window->surface->FlushBuffer(buffer->sfbuffer, acquireFence, config);
-    NativeObjectUnreference(buffer);
 
     return OHOS::GSERROR_OK;
 }
@@ -143,7 +141,6 @@ int32_t NativeWindowCancelBuffer(OHNativeWindow *window, OHNativeWindowBuffer *b
     }
 
     window->surface->CancelBuffer(buffer->sfbuffer);
-    NativeObjectUnreference(buffer);
     return OHOS::GSERROR_OK;
 }
 
