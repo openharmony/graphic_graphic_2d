@@ -21,7 +21,6 @@ ohos_shared_library("window") {
   sources = [ "native_window_module.cpp" ]
 
   configs = [
-    "${aainnerkits_path}/want:want_public_config",
     "${aainnerkits_path}/ability_manager:ability_manager_public_config",
     "${aaservices_path}/abilitymgr:abilityms_config",
   ]
