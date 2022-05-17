@@ -28,11 +28,11 @@ class RSTransitionProperties;
 class RSPropertiesPainter {
 public:
     static void Clip(SkCanvas& canvas, RectF rect);
-    static void DrawBackground(const RSProperties& properties, SkCanvas& canvas);
+    static void DrawBackground(const RSProperties& properties, RSPaintFilterCanvas& canvas);
     static void DrawBorder(const RSProperties& properties, SkCanvas& canvas);
     static void DrawFrame(
         const RSProperties& properties, RSPaintFilterCanvas& canvas, std::shared_ptr<DrawCmdList>& drawCmdList);
-    static void DrawShadow(const RSProperties& properties, SkCanvas& canvas);
+    static void DrawShadow(const RSProperties& properties, RSPaintFilterCanvas& canvas);
     static void SaveLayerForFilter(const RSProperties& properties, SkCanvas& canvas,
         std::shared_ptr<RSSkiaFilter>& filter, const std::unique_ptr<SkRect>& rect = nullptr);
     static void RestoreForFilter(SkCanvas& canvas);

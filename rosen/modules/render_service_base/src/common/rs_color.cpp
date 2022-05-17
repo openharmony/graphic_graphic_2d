@@ -156,7 +156,7 @@ void RSColor::SetAlpha(int16_t alpha)
     alpha_ = alpha;
 }
 
-void RSColor::ApplyAlpha(float alpha)
+void RSColor::MultiplyAlpha(float alpha)
 {
     alpha_ = static_cast<int16_t>(alpha_ * std::clamp(alpha, 0.0f, 1.0f));
 }

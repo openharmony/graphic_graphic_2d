@@ -57,7 +57,7 @@ public:
     void SetGreen(int16_t green);
     void SetRed(int16_t red);
     void SetAlpha(int16_t alpha);
-    void ApplyAlpha(float alpha);
+    void MultiplyAlpha(float alpha);
 
     static constexpr size_t GetBytesPerPixelInt()
     {
