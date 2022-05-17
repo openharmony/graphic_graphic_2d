@@ -105,6 +105,59 @@ void RSBaseNode::RemoveChild(SharedPtr child)
     }
 }
 
+void RSBaseNode::AddCrossParentChild(SharedPtr child, int index)
+{
+    // AddCrossParentChild only used as: the child is under multiple parents(e.g. a window cross multi-screens),
+    // so this child will not remove from the old parent.
+    if (child == nullptr) {
+        ROSEN_LOGE("RSBaseNode::AddCrossScreenChild, child is nullptr");
+        return;
+    }
+    if (!this->IsInstanceOf<RSDisplayNode>()) {
+        ROSEN_LOGE("RSBaseNode::AddCrossScreenChild, only displayNode support AddCrossScreenChild");
+        return;
+    }
+    NodeId childId = child->GetId();
+
+    if (index < 0 || index >= static_cast<int>(children_.size())) {
+        children_.push_back(childId);
+    } else {
+        children_.insert(children_.begin() + index, childId);
+    }
+    child->SetParent(GetId());
+    child->OnAddChildren();
+    std::unique_ptr<RSCommand> command = std::make_unique<RSBaseNodeAddCrossParentChild>(GetId(), childId, index);
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        transactionProxy->AddCommand(command, IsRenderServiceNode());
+    }
+}
+
+void RSBaseNode::RemoveCrossParentChild(SharedPtr child, NodeId newParentId)
+{
+    // RemoveCrossParentChild only used as: the child is under multiple parents(e.g. a window cross multi-screens),
+    // set the newParentId to rebuild the parent-child relationship.
+    if (child == nullptr) {
+        ROSEN_LOGI("RSBaseNode::RemoveCrossScreenChild, child is nullptr");
+        return;
+    }
+    if (!this->IsInstanceOf<RSDisplayNode>()) {
+        ROSEN_LOGE("RSBaseNode::RemoveCrossScreenChild, only displayNode support RemoveCrossScreenChild");
+        return;
+    }
+    NodeId childId = child->GetId();
+    RemoveChildById(childId);
+    child->OnRemoveChildren();
+    child->SetParent(newParentId);
+
+    std::unique_ptr<RSCommand> command =
+        std::make_unique<RSBaseNodeRemoveCrossParentChild>(GetId(), childId, newParentId);
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        transactionProxy->AddCommand(command, IsRenderServiceNode());
+    }
+}
+
 void RSBaseNode::RemoveChildById(NodeId childId)
 {
     auto itr = std::find(children_.begin(), children_.end(), childId);

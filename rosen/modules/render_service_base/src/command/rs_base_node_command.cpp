@@ -52,6 +52,28 @@ void BaseNodeCommandHelper::RemoveChild(RSContext& context, NodeId nodeId, NodeI
     }
 }
 
+void BaseNodeCommandHelper::AddCrossParentChild(RSContext& context, NodeId id, NodeId childId, int32_t index)
+{
+    auto& nodeMap = context.GetNodeMap();
+    auto node = nodeMap.GetRenderNode<RSBaseRenderNode>(id);
+    auto child = nodeMap.GetRenderNode<RSBaseRenderNode>(childId);
+    if (node && child) {
+        node->AddCrossParentChild(child, index);
+    }
+}
+
+void BaseNodeCommandHelper::RemoveCrossParentChild(RSContext& context, NodeId nodeId, NodeId childNodeId,
+    NodeId newParentId)
+{
+    auto& nodeMap = context.GetNodeMap();
+    auto node = nodeMap.GetRenderNode<RSBaseRenderNode>(nodeId);
+    auto child = nodeMap.GetRenderNode<RSBaseRenderNode>(childNodeId);
+    auto newParent = nodeMap.GetRenderNode<RSBaseRenderNode>(newParentId);
+    if (node && child && newParent) {
+        node->RemoveCrossParentChild(child, newParent);
+    }
+}
+
 void BaseNodeCommandHelper::RemoveFromTree(RSContext& context, NodeId nodeId)
 {
     auto& nodeMap = context.GetNodeMap();
