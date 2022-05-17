@@ -70,7 +70,7 @@ RSAnimationLog::RSAnimationLog()
     PreProcessLogFile(logFilePath);
     logFile_ = std::ofstream(logFilePath, std::ios::app);
     if (!logFile_.is_open()) {
-        ROSEN_LOGE("Open file error:[%s]", logFilePath.c_str());
+        ROSEN_LOGI("Open file error:[%s]", logFilePath.c_str());
         logFile_.close();
         return;
     }
@@ -87,7 +87,7 @@ void RSAnimationLog::PreProcessLogFile(const std::string& logFilePath)
 {
     std::ifstream logFile = std::ifstream(logFilePath.c_str(), std::ios::binary);
     if (!logFile) {
-        ROSEN_LOGE("Open file err:[%s]", logFilePath.c_str());
+        ROSEN_LOGI("Open file err:[%s]", logFilePath.c_str());
         logFile.close();
         return;
     }
