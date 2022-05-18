@@ -26,6 +26,7 @@ ohos_unittest("RSRenderServiceCommonPipelineTest") {
     "rs_render_service_listener_test.cpp",
     "rs_render_service_visitor_test.cpp",
     "rs_software_processor_test.cpp",
+    "rs_render_service_drop_frame_test.cpp",
   ]
 
   configs = [
