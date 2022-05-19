@@ -17,22 +17,39 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <securec.h>
 
 #include "image/bitmap.h"
 
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
+template<class T>
+size_t GetObject(T &object, const uint8_t *data, size_t size)
+{
+    size_t objectSize = sizeof(object);
+    if (data == nullptr || objectSize > size) {
+        return 0;
+    }
+    auto ret = memcpy_s(&object, objectSize, data, objectSize);
+    if (ret != EOK) {
+        return 0;
+    }
+    return objectSize;
+}
+
 bool BitmapBuildFuzzTest(const uint8_t* data, size_t size)
 {
-    bool result = false;
+    int width;
+    if (data == nullptr || size < sizeof(int)) {
+        return false;
+    }
     Bitmap bitmap;
     BitmapFormat bitmapFormat = { COLORTYPE_ARGB_4444, ALPHATYPE_OPAQUYE };
-    bitmap.Build(reinterpret_cast<const uint32_t>(data), size, bitmapFormat);
-    if (!bitmap.GetWidth()) {
-        result = true;
-    }
-    return result;
+    size_t startPos = 0;
+    GetObject<int>(width, data + startPos, size - startPos);
+    bitmap.Build(width, size, bitmapFormat);
+    return true;
 }
 } // namespace Drawing
 } // namespace Rosen

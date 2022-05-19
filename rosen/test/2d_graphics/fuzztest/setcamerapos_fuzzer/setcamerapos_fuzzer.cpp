@@ -17,6 +17,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <securec.h>
 
 #include "utils/camera3d.h"
 #include "utils/matrix.h"
@@ -27,12 +28,35 @@ const int CONSTANTS_NUMBER = 5;
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
+template<class T>
+size_t GetObject(T &object, const uint8_t *data, size_t size)
+{
+    size_t objectSize = sizeof(object);
+    if (data == nullptr || objectSize > size) {
+        return 0;
+    }
+    auto ret = memcpy_s(&object, objectSize, data, objectSize);
+    if (ret != EOK) {
+        return 0;
+    }
+    return objectSize;
+}
+
 bool SetCameraPosFuzzTest(const uint8_t* data, size_t size)
 {
+    scalar positionX;
+    scalar positionY;
+    if (data == nullptr || size < sizeof(scalar) + sizeof(scalar)) {
+        return false;
+    }
+
+    size_t startPos = 0;
+    startPos += GetObject<scalar>(positionX, data + startPos, size - startPos);
+    startPos += GetObject<scalar>(positionY, data + startPos, size - startPos);
     Camera3D camera3d;
     Matrix matrix;
     camera3d.ApplyToMatrix(matrix);
-    camera3d.SetCameraPos(reinterpret_cast<uint32_t>(data), reinterpret_cast<uint32_t>(size), CONSTANTS_NUMBER);
+    camera3d.SetCameraPos(positionX, positionY, CONSTANTS_NUMBER);
     return true;
 }
 } // namespace Drawing
