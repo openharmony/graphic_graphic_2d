@@ -17,6 +17,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <securec.h>
 
 #include "c/drawing_color.h"
 
@@ -26,15 +27,31 @@ const int CONSTANTS_NUMBER_FIVE = 5;
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
+template<class T>
+size_t GetObject(T &object, const uint8_t *data, size_t size)
+{
+    size_t objectSize = sizeof(object);
+    if (data == nullptr || objectSize > size) {
+        return 0;
+    }
+    auto ret = memcpy_s(&object, objectSize, data, objectSize);
+    if (ret != EOK) {
+        return 0;
+    }
+    return objectSize;
+}
+
 bool DrawingColorSetArgbFuzzTest(const uint8_t* data, size_t size)
 {
-    bool result = false;
-    uint32_t blue = static_cast<uint32_t>(size % CONSTANTS_NUMBER_FIVE);
-    uint32_t argb = OH_Drawing_ColorSetArgb(reinterpret_cast<const uint32_t>(data), 0, CONSTANTS_GREEN, blue);
-    if (!argb) {
-        result = true;
+    uint32_t alpha;
+    if (data == nullptr || size < sizeof(uint32_t)) {
+        return false;
     }
-    return result;
+    uint32_t blue = static_cast<uint32_t>(size % CONSTANTS_NUMBER_FIVE);
+    size_t startPos = 0;
+    GetObject<uint32_t>(alpha, data + startPos, size - startPos);
+    OH_Drawing_ColorSetArgb(alpha, 0, CONSTANTS_GREEN, blue);
+    return true;
 }
 } // namespace Drawing
 } // namespace Rosen

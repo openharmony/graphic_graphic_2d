@@ -17,6 +17,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <securec.h>
 
 #include "draw/path.h"
 
@@ -28,15 +29,18 @@ namespace Rosen {
 namespace Drawing {
 bool PathOpFuzzTest(const uint8_t* data, size_t size)
 {
-    bool result = false;
-    Path path;
-    PathOp pathOp = static_cast<PathOp>(size % CONSTANTS_NUMBER_FIVE);
-    Path path1;
-    Path path2;
-    if (size > FUZZ_DATA_LEN) {
-        return path.Op(path1, path2, pathOp);
+    if (data == nullptr) {
+        return false;
     }
-    return result;
+    if (size > FUZZ_DATA_LEN) {
+        Path path;
+        PathOp pathOp = static_cast<PathOp>(size % CONSTANTS_NUMBER_FIVE);
+        Path path1;
+        Path path2;
+        path.Op(path1, path2, pathOp);
+        return true;
+    }
+    return false;
 }
 } // namespace Drawing
 } // namespace Rosen
