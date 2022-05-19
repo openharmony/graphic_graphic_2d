@@ -157,7 +157,7 @@ void RSWindowAnimationController::HandleOnStartApp(StartingAppType type,
 {
     WALOGD("Handle on start app.");
     NativeValue* argv[] = {
-        RSWindowAnimationUtils::CreateJsWindowAnimationTarget(engine_, *startingWindowTarget),
+        RSWindowAnimationUtils::CreateJsWindowAnimationTarget(engine_, startingWindowTarget),
         RSWindowAnimationUtils::CreateJsWindowAnimationFinishedCallback(engine_, finishedCallback),
     };
 
@@ -183,8 +183,8 @@ void RSWindowAnimationController::HandleOnAppTransition(const sptr<RSWindowAnima
 {
     WALOGD("Handle on app transition.");
     NativeValue* argv[] = {
-        RSWindowAnimationUtils::CreateJsWindowAnimationTarget(engine_, *fromWindowTarget),
-        RSWindowAnimationUtils::CreateJsWindowAnimationTarget(engine_, *toWindowTarget),
+        RSWindowAnimationUtils::CreateJsWindowAnimationTarget(engine_, fromWindowTarget),
+        RSWindowAnimationUtils::CreateJsWindowAnimationTarget(engine_, toWindowTarget),
         RSWindowAnimationUtils::CreateJsWindowAnimationFinishedCallback(engine_, finishedCallback),
     };
     CallJsFunction("onAppTransition", argv, ARGC_THREE);
@@ -195,7 +195,7 @@ void RSWindowAnimationController::HandleOnMinimizeWindow(const sptr<RSWindowAnim
 {
     WALOGD("Handle on minimize window.");
     NativeValue* argv[] = {
-        RSWindowAnimationUtils::CreateJsWindowAnimationTarget(engine_, *minimizingWindowTarget),
+        RSWindowAnimationUtils::CreateJsWindowAnimationTarget(engine_, minimizingWindowTarget),
         RSWindowAnimationUtils::CreateJsWindowAnimationFinishedCallback(engine_, finishedCallback),
     };
     CallJsFunction("onMinimizeWindow", argv, ARGC_TWO);
@@ -206,7 +206,7 @@ void RSWindowAnimationController::HandleOnCloseWindow(const sptr<RSWindowAnimati
 {
     WALOGD("Handle on close window.");
     NativeValue* argv[] = {
-        RSWindowAnimationUtils::CreateJsWindowAnimationTarget(engine_, *closingWindowTarget),
+        RSWindowAnimationUtils::CreateJsWindowAnimationTarget(engine_, closingWindowTarget),
         RSWindowAnimationUtils::CreateJsWindowAnimationFinishedCallback(engine_, finishedCallback),
     };
     CallJsFunction("onCloseWindow", argv, ARGC_TWO);

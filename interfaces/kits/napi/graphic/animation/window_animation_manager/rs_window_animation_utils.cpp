@@ -23,9 +23,14 @@ namespace Rosen {
 using namespace AbilityRuntime;
 
 NativeValue* RSWindowAnimationUtils::CreateJsWindowAnimationTarget(NativeEngine& engine,
-    const RSWindowAnimationTarget& target)
+    const sptr<RSWindowAnimationTarget>& target)
 {
     WALOGD("Create!");
+    if (target == nullptr) {
+        WALOGE("Target is null!");
+        return engine.CreateUndefined();
+    }
+
     auto objValue = engine.CreateObject();
     if (objValue == nullptr) {
         WALOGE("Failed to create object!");
@@ -38,9 +43,15 @@ NativeValue* RSWindowAnimationUtils::CreateJsWindowAnimationTarget(NativeEngine&
         return engine.CreateUndefined();
     }
 
-    object->SetProperty("bundleName", CreateJsValue(engine, target.bundleName_));
-    object->SetProperty("abilityName", CreateJsValue(engine, target.abilityName_));
-    object->SetProperty("windowBounds", CreateJsRRect(engine, target.windowBounds_));
+    NativeFinalize finalizeCallback = [](NativeEngine* engine, void* data, void* hint) {
+        sptr<RSWindowAnimationTarget>(static_cast<RSWindowAnimationTarget*>(data));
+    };
+    target.GetRefPtr()->IncStrongRef(target.GetRefPtr());
+    object->SetNativePointer(target.GetRefPtr(), finalizeCallback, nullptr);
+
+    object->SetProperty("bundleName", CreateJsValue(engine, target->bundleName_));
+    object->SetProperty("abilityName", CreateJsValue(engine, target->abilityName_));
+    object->SetProperty("windowBounds", CreateJsRRect(engine, target->windowBounds_));
 
     return objValue;
 }

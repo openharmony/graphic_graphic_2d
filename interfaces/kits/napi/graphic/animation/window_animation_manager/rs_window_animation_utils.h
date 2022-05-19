@@ -27,7 +27,8 @@ namespace OHOS {
 namespace Rosen {
 class RSWindowAnimationUtils {
 public:
-    static NativeValue* CreateJsWindowAnimationTarget(NativeEngine& engine, const RSWindowAnimationTarget& target);
+    static NativeValue* CreateJsWindowAnimationTarget(NativeEngine& engine,
+        const sptr<RSWindowAnimationTarget>& target);
 
     static NativeValue* CreateJsWindowAnimationFinishedCallback(
         NativeEngine& engine, const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback);
