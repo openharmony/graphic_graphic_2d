@@ -97,7 +97,7 @@ void HdiOutput::DeletePrevLayers()
 
 void HdiOutput::ResetLayerStatus()
 {
-    for (auto iter = surfaceIdMap_.begin(); iter != surfaceIdMap_.end(); ++iter) {
+    for (auto iter = layerIdMap_.begin(); iter != layerIdMap_.end(); ++iter) {
         iter->second->SetLayerStatus(false);
     }
 }
