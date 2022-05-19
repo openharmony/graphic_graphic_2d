@@ -81,7 +81,7 @@ ohos_executable("drawing_engine_sample") {
     "//foundation/graphic/graphic_2d/utils:sync_fence",
     "//third_party/flutter/build/skia:ace_skia_ohos",
   ]
-
+  public_deps = libgl
   defines = gpu_defines
 
   #defines = [ "USE_CANVASKIT0310_SKIA" ]

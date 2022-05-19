@@ -28,7 +28,6 @@ class Surface : public RefBase {
 public:
     static sptr<Surface> CreateSurfaceAsConsumer(std::string name = "noname", bool isShared = false);
     static sptr<Surface> CreateSurfaceAsProducer(sptr<IBufferProducer>& producer);
-    static sptr<Surface> CreateEglSurfaceAsConsumer(std::string name = "noname", bool isShared = false);
 
     virtual ~Surface() = default;
 

@@ -1,0 +1,212 @@
+# Copyright (c) 2021 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/ohos.gni")
+
+## Build libEGL_wrapper.so {{{
+config("egl_config") {
+  visibility = [ ":*" ]
+
+  #defines = [ "EGL_WRAPPER_DEBUG_ENABLE" ]
+
+  cflags = [
+    "-Wall",
+    "-Werror",
+    "-g3",
+  ]
+}
+
+config("egl_public_config") {
+  include_dirs = [ "include" ]
+}
+
+ohos_shared_library("EGL_wrapper") {
+  sources = [
+    "src/EGL/egl.cpp",
+    "src/EGL/egl_core.cpp",
+    "src/EGL/egl_wrapper_context.cpp",
+    "src/EGL/egl_wrapper_display.cpp",
+    "src/EGL/egl_wrapper_entry.cpp",
+    "src/EGL/egl_wrapper_layer.cpp",
+    "src/EGL/egl_wrapper_loader.cpp",
+    "src/EGL/egl_wrapper_object.cpp",
+    "src/EGL/egl_wrapper_surface.cpp",
+    "src/thread_private_data.cpp",
+  ]
+  configs = [ ":egl_config" ]
+
+  public_configs = [ ":egl_public_config" ]
+
+  public_deps = [
+    "//third_party/EGL:libEGL",
+    "//third_party/openGLES:libGLES",
+  ]
+
+  external_deps = [
+    "hilog_native:libhilog",
+  ]
+
+  part_name = "graphic_standard"
+  subsystem_name = "graphic"
+}
+
+## Build libEGL_wrapper.so }}}
+
+
+## Build libGLESv1_wrapper.so {{{
+config("glesv1_config") {
+  visibility = [ ":*" ]
+
+  cflags = [
+    "-Wall",
+    "-Werror",
+    "-g3",
+  ]
+}
+
+config("glesv1_public_config") {
+  include_dirs = [ "include" ]
+}
+
+ohos_shared_library("GLESv1_wrapper") {
+  sources = [
+    "src/thread_private_data.cpp",
+    "src/GLES1/gles1.cpp",
+  ]
+  configs = [ ":glesv1_config" ]
+
+  public_configs = [ ":glesv1_public_config" ]
+
+  public_deps = [
+    "//third_party/EGL:libEGL",
+    "//third_party/openGLES:libGLES",
+  ]
+
+  external_deps = [
+    "hilog_native:libhilog",
+  ]
+
+  part_name = "graphic_standard"
+  subsystem_name = "graphic"
+}
+
+## Build libGLESv1_wrapper.so }}}
+
+## Build libGLESv2_wrapper.so {{{
+config("glesv2_config") {
+  visibility = [ ":*" ]
+
+  cflags = [
+    "-Wall",
+    "-Werror",
+    "-g3",
+  ]
+}
+
+config("glesv2_public_config") {
+  include_dirs = [ "include" ]
+}
+
+ohos_shared_library("GLESv2_wrapper") {
+  sources = [
+    "src/thread_private_data.cpp",
+    "src/GLES2/gles2.cpp",
+  ]
+  configs = [ ":glesv2_config" ]
+
+  public_configs = [ ":glesv2_public_config" ]
+
+  public_deps = [
+    "//third_party/EGL:libEGL",
+    "//third_party/openGLES:libGLES",
+  ]
+
+  external_deps = [
+    "hilog_native:libhilog",
+  ]
+
+  part_name = "graphic_standard"
+  subsystem_name = "graphic"
+}
+
+## Build libGLESv2_wrapper.so }}}
+
+## Build libGLESv3_wrapper.so {{{
+config("glesv3_config") {
+  visibility = [ ":*" ]
+
+  #defines = [ "EGL_WRAPPER_DEBUG_ENABLE" ]
+
+  cflags = [
+    "-Wall",
+    "-Werror",
+    "-g3",
+  ]
+}
+
+config("glesv3_public_config") {
+  include_dirs = [ "include" ]
+}
+
+ohos_shared_library("GLESv3_wrapper") {
+  sources = [
+    "src/thread_private_data.cpp",
+    "src/GLES3/gles3.cpp",
+  ]
+  configs = [ ":glesv3_config" ]
+
+  public_configs = [ ":glesv3_public_config" ]
+
+  public_deps = [
+    "//third_party/EGL:libEGL",
+    "//third_party/openGLES:libGLES",
+  ]
+
+  external_deps = [
+    "hilog_native:libhilog",
+  ]
+
+  part_name = "graphic_standard"
+  subsystem_name = "graphic"
+}
+
+## Build libGLESv3_wrapper.so }}}
+
+## Build opengl_wrapper_test {{{
+config("opengl_wrapper_test_config") {
+  visibility = [ ":*" ]
+
+  cflags = [
+    "-Wall",
+    "-Werror",
+    "-g3",
+  ]
+}
+
+ohos_executable("opengl_wrapper_test") {
+  install_enable = true
+  sources = [
+    "test/main.cpp",
+  ]
+
+  configs = [ ":opengl_wrapper_test_config" ]
+
+  deps = [
+    ":EGL_wrapper",
+    ":GLESv3_wrapper",
+  ]
+
+  part_name = "graphic_standard"
+  subsystem_name = "graphic"
+}
+## Build opengl_wrapper_test }}}

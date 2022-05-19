@@ -1,0 +1,435 @@
+HOOK_API_ENTRY(void, glAlphaFunc, GLenum func, GLfloat ref)
+CALL_HOOK_API(glAlphaFunc, func, ref)
+
+HOOK_API_ENTRY(void, glClearColor, GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha)
+CALL_HOOK_API(glClearColor, red, green, blue, alpha)
+
+HOOK_API_ENTRY(void, glClearDepthf, GLfloat d)
+CALL_HOOK_API(glClearDepthf, d)
+
+HOOK_API_ENTRY(void, glClipPlanef, GLenum p, const GLfloat *eqn)
+CALL_HOOK_API(glClipPlanef, p, eqn)
+
+HOOK_API_ENTRY(void, glColor4f, GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha)
+CALL_HOOK_API(glColor4f, red, green, blue, alpha)
+
+HOOK_API_ENTRY(void, glDepthRangef, GLfloat n, GLfloat f)
+CALL_HOOK_API(glDepthRangef, n, f)
+
+HOOK_API_ENTRY(void, glFogf, GLenum pname, GLfloat param)
+CALL_HOOK_API(glFogf, pname, param)
+
+HOOK_API_ENTRY(void, glFogfv, GLenum pname, const GLfloat *params)
+CALL_HOOK_API(glFogfv, pname, params)
+
+HOOK_API_ENTRY(void, glFrustumf, GLfloat l, GLfloat r, GLfloat b, GLfloat t, GLfloat n, GLfloat f)
+CALL_HOOK_API(glFrustumf, l, r, b, t, n, f)
+
+HOOK_API_ENTRY(void, glGetClipPlanef, GLenum plane, GLfloat *equation)
+CALL_HOOK_API(glGetClipPlanef, plane, equation)
+
+HOOK_API_ENTRY(void, glGetFloatv, GLenum pname, GLfloat *data)
+CALL_HOOK_API(glGetFloatv, pname, data)
+
+HOOK_API_ENTRY(void, glGetLightfv, GLenum light, GLenum pname, GLfloat *params)
+CALL_HOOK_API(glGetLightfv, light, pname, params)
+
+HOOK_API_ENTRY(void, glGetMaterialfv, GLenum face, GLenum pname, GLfloat *params)
+CALL_HOOK_API(glGetMaterialfv, face, pname, params)
+
+HOOK_API_ENTRY(void, glGetTexEnvfv, GLenum target, GLenum pname, GLfloat *params)
+CALL_HOOK_API(glGetTexEnvfv, target, pname, params)
+
+HOOK_API_ENTRY(void, glGetTexParameterfv, GLenum target, GLenum pname, GLfloat *params)
+CALL_HOOK_API(glGetTexParameterfv, target, pname, params)
+
+HOOK_API_ENTRY(void, glLightModelf, GLenum pname, GLfloat param)
+CALL_HOOK_API(glLightModelf, pname, param)
+
+HOOK_API_ENTRY(void, glLightModelfv, GLenum pname, const GLfloat *params)
+CALL_HOOK_API(glLightModelfv, pname, params)
+
+HOOK_API_ENTRY(void, glLightf, GLenum light, GLenum pname, GLfloat param)
+CALL_HOOK_API(glLightf, light, pname, param)
+
+HOOK_API_ENTRY(void, glLightfv, GLenum light, GLenum pname, const GLfloat *params)
+CALL_HOOK_API(glLightfv, light, pname, params)
+
+HOOK_API_ENTRY(void, glLineWidth, GLfloat width)
+CALL_HOOK_API(glLineWidth, width)
+
+HOOK_API_ENTRY(void, glLoadMatrixf, const GLfloat *m)
+CALL_HOOK_API(glLoadMatrixf, m)
+
+HOOK_API_ENTRY(void, glMaterialf, GLenum face, GLenum pname, GLfloat param)
+CALL_HOOK_API(glMaterialf, face, pname, param)
+
+HOOK_API_ENTRY(void, glMaterialfv, GLenum face, GLenum pname, const GLfloat *params)
+CALL_HOOK_API(glMaterialfv, face, pname, params)
+
+HOOK_API_ENTRY(void, glMultMatrixf, const GLfloat *m)
+CALL_HOOK_API(glMultMatrixf, m)
+
+HOOK_API_ENTRY(void, glMultiTexCoord4f, GLenum target, GLfloat s, GLfloat t, GLfloat r, GLfloat q)
+CALL_HOOK_API(glMultiTexCoord4f, target, s, t, r, q)
+
+HOOK_API_ENTRY(void, glNormal3f, GLfloat nx, GLfloat ny, GLfloat nz)
+CALL_HOOK_API(glNormal3f, nx, ny, nz)
+
+HOOK_API_ENTRY(void, glOrthof, GLfloat l, GLfloat r, GLfloat b, GLfloat t, GLfloat n, GLfloat f)
+CALL_HOOK_API(glOrthof, l, r, b, t, n, f)
+
+HOOK_API_ENTRY(void, glPointParameterf, GLenum pname, GLfloat param)
+CALL_HOOK_API(glPointParameterf, pname, param)
+
+HOOK_API_ENTRY(void, glPointParameterfv, GLenum pname, const GLfloat *params)
+CALL_HOOK_API(glPointParameterfv, pname, params)
+
+HOOK_API_ENTRY(void, glPointSize, GLfloat size)
+CALL_HOOK_API(glPointSize, size)
+
+HOOK_API_ENTRY(void, glPolygonOffset, GLfloat factor, GLfloat units)
+CALL_HOOK_API(glPolygonOffset, factor, units)
+
+HOOK_API_ENTRY(void, glRotatef, GLfloat angle, GLfloat x, GLfloat y, GLfloat z)
+CALL_HOOK_API(glRotatef, angle, x, y, z)
+
+HOOK_API_ENTRY(void, glScalef, GLfloat x, GLfloat y, GLfloat z)
+CALL_HOOK_API(glScalef, x, y, z)
+
+HOOK_API_ENTRY(void, glTexEnvf, GLenum target, GLenum pname, GLfloat param)
+CALL_HOOK_API(glTexEnvf, target, pname, param)
+
+HOOK_API_ENTRY(void, glTexEnvfv, GLenum target, GLenum pname, const GLfloat *params)
+CALL_HOOK_API(glTexEnvfv, target, pname, params)
+
+HOOK_API_ENTRY(void, glTexParameterf, GLenum target, GLenum pname, GLfloat param)
+CALL_HOOK_API(glTexParameterf, target, pname, param)
+
+HOOK_API_ENTRY(void, glTexParameterfv, GLenum target, GLenum pname, const GLfloat *params)
+CALL_HOOK_API(glTexParameterfv, target, pname, params)
+
+HOOK_API_ENTRY(void, glTranslatef, GLfloat x, GLfloat y, GLfloat z)
+CALL_HOOK_API(glTranslatef, x, y, z)
+
+HOOK_API_ENTRY(void, glActiveTexture, GLenum texture)
+CALL_HOOK_API(glActiveTexture, texture)
+
+HOOK_API_ENTRY(void, glAlphaFuncx, GLenum func, GLfixed ref)
+CALL_HOOK_API(glAlphaFuncx, func, ref)
+
+HOOK_API_ENTRY(void, glBindBuffer, GLenum target, GLuint buffer)
+CALL_HOOK_API(glBindBuffer, target, buffer)
+
+HOOK_API_ENTRY(void, glBindTexture, GLenum target, GLuint texture)
+CALL_HOOK_API(glBindTexture, target, texture)
+
+HOOK_API_ENTRY(void, glBlendFunc, GLenum sfactor, GLenum dfactor)
+CALL_HOOK_API(glBlendFunc, sfactor, dfactor)
+
+HOOK_API_ENTRY(void, glBufferData, GLenum target, GLsizeiptr size, const void *data, GLenum usage)
+CALL_HOOK_API(glBufferData, target, size, data, usage)
+
+HOOK_API_ENTRY(void, glBufferSubData, GLenum target, GLintptr offset, GLsizeiptr size, const void *data)
+CALL_HOOK_API(glBufferSubData, target, offset, size, data)
+
+HOOK_API_ENTRY(void, glClear, GLbitfield mask)
+CALL_HOOK_API(glClear, mask)
+
+HOOK_API_ENTRY(void, glClearColorx, GLfixed red, GLfixed green, GLfixed blue, GLfixed alpha)
+CALL_HOOK_API(glClearColorx, red, green, blue, alpha)
+
+HOOK_API_ENTRY(void, glClearDepthx, GLfixed depth)
+CALL_HOOK_API(glClearDepthx, depth)
+
+HOOK_API_ENTRY(void, glClearStencil, GLint s)
+CALL_HOOK_API(glClearStencil, s)
+
+HOOK_API_ENTRY(void, glClientActiveTexture, GLenum texture)
+CALL_HOOK_API(glClientActiveTexture, texture)
+
+HOOK_API_ENTRY(void, glClipPlanex, GLenum plane, const GLfixed *equation)
+CALL_HOOK_API(glClipPlanex, plane, equation)
+
+HOOK_API_ENTRY(void, glColor4ub, GLubyte red, GLubyte green, GLubyte blue, GLubyte alpha)
+CALL_HOOK_API(glColor4ub, red, green, blue, alpha)
+
+HOOK_API_ENTRY(void, glColor4x, GLfixed red, GLfixed green, GLfixed blue, GLfixed alpha)
+CALL_HOOK_API(glColor4x, red, green, blue, alpha)
+
+HOOK_API_ENTRY(void, glColorMask, GLboolean red, GLboolean green, GLboolean blue, GLboolean alpha)
+CALL_HOOK_API(glColorMask, red, green, blue, alpha)
+
+HOOK_API_ENTRY(void, glColorPointer, GLint size, GLenum type, GLsizei stride, const void *pointer)
+CALL_HOOK_API(glColorPointer, size, type, stride, pointer)
+
+HOOK_API_ENTRY(void, glCompressedTexImage2D, GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height, GLint border, GLsizei imageSize, const void *data)
+CALL_HOOK_API(glCompressedTexImage2D, target, level, internalformat, width, height, border, imageSize, data)
+
+HOOK_API_ENTRY(void, glCompressedTexSubImage2D, GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLsizei imageSize, const void *data)
+CALL_HOOK_API(glCompressedTexSubImage2D, target, level, xoffset, yoffset, width, height, format, imageSize, data)
+
+HOOK_API_ENTRY(void, glCopyTexImage2D, GLenum target, GLint level, GLenum internalformat, GLint x, GLint y, GLsizei width, GLsizei height, GLint border)
+CALL_HOOK_API(glCopyTexImage2D, target, level, internalformat, x, y, width, height, border)
+
+HOOK_API_ENTRY(void, glCopyTexSubImage2D, GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint x, GLint y, GLsizei width, GLsizei height)
+CALL_HOOK_API(glCopyTexSubImage2D, target, level, xoffset, yoffset, x, y, width, height)
+
+HOOK_API_ENTRY(void, glCullFace, GLenum mode)
+CALL_HOOK_API(glCullFace, mode)
+
+HOOK_API_ENTRY(void, glDeleteBuffers, GLsizei n, const GLuint *buffers)
+CALL_HOOK_API(glDeleteBuffers, n, buffers)
+
+HOOK_API_ENTRY(void, glDeleteTextures, GLsizei n, const GLuint *textures)
+CALL_HOOK_API(glDeleteTextures, n, textures)
+
+HOOK_API_ENTRY(void, glDepthFunc, GLenum func)
+CALL_HOOK_API(glDepthFunc, func)
+
+HOOK_API_ENTRY(void, glDepthMask, GLboolean flag)
+CALL_HOOK_API(glDepthMask, flag)
+
+HOOK_API_ENTRY(void, glDepthRangex, GLfixed n, GLfixed f)
+CALL_HOOK_API(glDepthRangex, n, f)
+
+HOOK_API_ENTRY(void, glDisable, GLenum cap)
+CALL_HOOK_API(glDisable, cap)
+
+HOOK_API_ENTRY(void, glDisableClientState, GLenum array)
+CALL_HOOK_API(glDisableClientState, array)
+
+HOOK_API_ENTRY(void, glDrawArrays, GLenum mode, GLint first, GLsizei count)
+CALL_HOOK_API(glDrawArrays, mode, first, count)
+
+HOOK_API_ENTRY(void, glDrawElements, GLenum mode, GLsizei count, GLenum type, const void *indices)
+CALL_HOOK_API(glDrawElements, mode, count, type, indices)
+
+HOOK_API_ENTRY(void, glEnable, GLenum cap)
+CALL_HOOK_API(glEnable, cap)
+
+HOOK_API_ENTRY(void, glEnableClientState, GLenum array)
+CALL_HOOK_API(glEnableClientState, array)
+
+HOOK_API_ENTRY(void, glFinish, void)
+CALL_HOOK_API(glFinish)
+
+HOOK_API_ENTRY(void, glFlush, void)
+CALL_HOOK_API(glFlush)
+
+HOOK_API_ENTRY(void, glFogx, GLenum pname, GLfixed param)
+CALL_HOOK_API(glFogx, pname, param)
+
+HOOK_API_ENTRY(void, glFogxv, GLenum pname, const GLfixed *param)
+CALL_HOOK_API(glFogxv, pname, param)
+
+HOOK_API_ENTRY(void, glFrontFace, GLenum mode)
+CALL_HOOK_API(glFrontFace, mode)
+
+HOOK_API_ENTRY(void, glFrustumx, GLfixed l, GLfixed r, GLfixed b, GLfixed t, GLfixed n, GLfixed f)
+CALL_HOOK_API(glFrustumx, l, r, b, t, n, f)
+
+HOOK_API_ENTRY(void, glGetBooleanv, GLenum pname, GLboolean *data)
+CALL_HOOK_API(glGetBooleanv, pname, data)
+
+HOOK_API_ENTRY(void, glGetBufferParameteriv, GLenum target, GLenum pname, GLint *params)
+CALL_HOOK_API(glGetBufferParameteriv, target, pname, params)
+
+HOOK_API_ENTRY(void, glGetClipPlanex, GLenum plane, GLfixed *equation)
+CALL_HOOK_API(glGetClipPlanex, plane, equation)
+
+HOOK_API_ENTRY(void, glGenBuffers, GLsizei n, GLuint *buffers)
+CALL_HOOK_API(glGenBuffers, n, buffers)
+
+HOOK_API_ENTRY(void, glGenTextures, GLsizei n, GLuint *textures)
+CALL_HOOK_API(glGenTextures, n, textures)
+
+HOOK_API_ENTRY(GLenum, glGetError, void)
+CALL_HOOK_API_RET(glGetError)
+
+HOOK_API_ENTRY(void, glGetFixedv, GLenum pname, GLfixed *params)
+CALL_HOOK_API(glGetFixedv, pname, params)
+
+HOOK_API_ENTRY(void, glGetIntegerv, GLenum pname, GLint *data)
+CALL_HOOK_API(glGetIntegerv, pname, data)
+
+HOOK_API_ENTRY(void, glGetLightxv, GLenum light, GLenum pname, GLfixed *params)
+CALL_HOOK_API(glGetLightxv, light, pname, params)
+
+HOOK_API_ENTRY(void, glGetMaterialxv, GLenum face, GLenum pname, GLfixed *params)
+CALL_HOOK_API(glGetMaterialxv, face, pname, params)
+
+HOOK_API_ENTRY(void, glGetPointerv, GLenum pname, void **params)
+CALL_HOOK_API(glGetPointerv, pname, params)
+
+HOOK_API_ENTRY(const GLubyte *, glGetString, GLenum name)
+CALL_HOOK_API_RET(glGetString, name)
+
+HOOK_API_ENTRY(void, glGetTexEnviv, GLenum target, GLenum pname, GLint *params)
+CALL_HOOK_API(glGetTexEnviv, target, pname, params)
+
+HOOK_API_ENTRY(void, glGetTexEnvxv, GLenum target, GLenum pname, GLfixed *params)
+CALL_HOOK_API(glGetTexEnvxv, target, pname, params)
+
+HOOK_API_ENTRY(void, glGetTexParameteriv, GLenum target, GLenum pname, GLint *params)
+CALL_HOOK_API(glGetTexParameteriv, target, pname, params)
+
+HOOK_API_ENTRY(void, glGetTexParameterxv, GLenum target, GLenum pname, GLfixed *params)
+CALL_HOOK_API(glGetTexParameterxv, target, pname, params)
+
+HOOK_API_ENTRY(void, glHint, GLenum target, GLenum mode)
+CALL_HOOK_API(glHint, target, mode)
+
+HOOK_API_ENTRY(GLboolean, glIsBuffer, GLuint buffer)
+CALL_HOOK_API_RET(glIsBuffer, buffer)
+
+HOOK_API_ENTRY(GLboolean, glIsEnabled, GLenum cap)
+CALL_HOOK_API_RET(glIsEnabled, cap)
+
+HOOK_API_ENTRY(GLboolean, glIsTexture, GLuint texture)
+CALL_HOOK_API_RET(glIsTexture, texture)
+
+HOOK_API_ENTRY(void, glLightModelx, GLenum pname, GLfixed param)
+CALL_HOOK_API(glLightModelx, pname, param)
+
+HOOK_API_ENTRY(void, glLightModelxv, GLenum pname, const GLfixed *param)
+CALL_HOOK_API(glLightModelxv, pname, param)
+
+HOOK_API_ENTRY(void, glLightx, GLenum light, GLenum pname, GLfixed param)
+CALL_HOOK_API(glLightx, light, pname, param)
+
+HOOK_API_ENTRY(void, glLightxv, GLenum light, GLenum pname, const GLfixed *params)
+CALL_HOOK_API(glLightxv, light, pname, params)
+
+HOOK_API_ENTRY(void, glLineWidthx, GLfixed width)
+CALL_HOOK_API(glLineWidthx, width)
+
+HOOK_API_ENTRY(void, glLoadIdentity, void)
+CALL_HOOK_API(glLoadIdentity)
+
+HOOK_API_ENTRY(void, glLoadMatrixx, const GLfixed *m)
+CALL_HOOK_API(glLoadMatrixx, m)
+
+HOOK_API_ENTRY(void, glLogicOp, GLenum opcode)
+CALL_HOOK_API(glLogicOp, opcode)
+
+HOOK_API_ENTRY(void, glMaterialx, GLenum face, GLenum pname, GLfixed param)
+CALL_HOOK_API(glMaterialx, face, pname, param)
+
+HOOK_API_ENTRY(void, glMaterialxv, GLenum face, GLenum pname, const GLfixed *param)
+CALL_HOOK_API(glMaterialxv, face, pname, param)
+
+HOOK_API_ENTRY(void, glMatrixMode, GLenum mode)
+CALL_HOOK_API(glMatrixMode, mode)
+
+HOOK_API_ENTRY(void, glMultMatrixx, const GLfixed *m)
+CALL_HOOK_API(glMultMatrixx, m)
+
+HOOK_API_ENTRY(void, glMultiTexCoord4x, GLenum texture, GLfixed s, GLfixed t, GLfixed r, GLfixed q)
+CALL_HOOK_API(glMultiTexCoord4x, texture, s, t, r, q)
+
+HOOK_API_ENTRY(void, glNormal3x, GLfixed nx, GLfixed ny, GLfixed nz)
+CALL_HOOK_API(glNormal3x, nx, ny, nz)
+
+HOOK_API_ENTRY(void, glNormalPointer, GLenum type, GLsizei stride, const void *pointer)
+CALL_HOOK_API(glNormalPointer, type, stride, pointer)
+
+HOOK_API_ENTRY(void, glOrthox, GLfixed l, GLfixed r, GLfixed b, GLfixed t, GLfixed n, GLfixed f)
+CALL_HOOK_API(glOrthox, l, r, b, t, n, f)
+
+HOOK_API_ENTRY(void, glPixelStorei, GLenum pname, GLint param)
+CALL_HOOK_API(glPixelStorei, pname, param)
+
+HOOK_API_ENTRY(void, glPointParameterx, GLenum pname, GLfixed param)
+CALL_HOOK_API(glPointParameterx, pname, param)
+
+HOOK_API_ENTRY(void, glPointParameterxv, GLenum pname, const GLfixed *params)
+CALL_HOOK_API(glPointParameterxv, pname, params)
+
+HOOK_API_ENTRY(void, glPointSizex, GLfixed size)
+CALL_HOOK_API(glPointSizex, size)
+
+HOOK_API_ENTRY(void, glPolygonOffsetx, GLfixed factor, GLfixed units)
+CALL_HOOK_API(glPolygonOffsetx, factor, units)
+
+HOOK_API_ENTRY(void, glPopMatrix, void)
+CALL_HOOK_API(glPopMatrix)
+
+HOOK_API_ENTRY(void, glPushMatrix, void)
+CALL_HOOK_API(glPushMatrix)
+
+HOOK_API_ENTRY(void, glReadPixels, GLint x, GLint y, GLsizei width, GLsizei height, GLenum format, GLenum type, void *pixels)
+CALL_HOOK_API(glReadPixels, x, y, width, height, format, type, pixels)
+
+HOOK_API_ENTRY(void, glRotatex, GLfixed angle, GLfixed x, GLfixed y, GLfixed z)
+CALL_HOOK_API(glRotatex, angle, x, y, z)
+
+HOOK_API_ENTRY(void, glSampleCoverage, GLfloat value, GLboolean invert)
+CALL_HOOK_API(glSampleCoverage, value, invert)
+
+HOOK_API_ENTRY(void, glSampleCoveragex, GLclampx value, GLboolean invert)
+CALL_HOOK_API(glSampleCoveragex, value, invert)
+
+HOOK_API_ENTRY(void, glScalex, GLfixed x, GLfixed y, GLfixed z)
+CALL_HOOK_API(glScalex, x, y, z)
+
+HOOK_API_ENTRY(void, glScissor, GLint x, GLint y, GLsizei width, GLsizei height)
+CALL_HOOK_API(glScissor, x, y, width, height)
+
+HOOK_API_ENTRY(void, glShadeModel, GLenum mode)
+CALL_HOOK_API(glShadeModel, mode)
+
+HOOK_API_ENTRY(void, glStencilFunc, GLenum func, GLint ref, GLuint mask)
+CALL_HOOK_API(glStencilFunc, func, ref, mask)
+
+HOOK_API_ENTRY(void, glStencilMask, GLuint mask)
+CALL_HOOK_API(glStencilMask, mask)
+
+HOOK_API_ENTRY(void, glStencilOp, GLenum fail, GLenum zfail, GLenum zpass)
+CALL_HOOK_API(glStencilOp, fail, zfail, zpass)
+
+HOOK_API_ENTRY(void, glTexCoordPointer, GLint size, GLenum type, GLsizei stride, const void *pointer)
+CALL_HOOK_API(glTexCoordPointer, size, type, stride, pointer)
+
+HOOK_API_ENTRY(void, glTexEnvi, GLenum target, GLenum pname, GLint param)
+CALL_HOOK_API(glTexEnvi, target, pname, param)
+
+HOOK_API_ENTRY(void, glTexEnvx, GLenum target, GLenum pname, GLfixed param)
+CALL_HOOK_API(glTexEnvx, target, pname, param)
+
+HOOK_API_ENTRY(void, glTexEnviv, GLenum target, GLenum pname, const GLint *params)
+CALL_HOOK_API(glTexEnviv, target, pname, params)
+
+HOOK_API_ENTRY(void, glTexEnvxv, GLenum target, GLenum pname, const GLfixed *params)
+CALL_HOOK_API(glTexEnvxv, target, pname, params)
+
+HOOK_API_ENTRY(void, glTexImage2D, GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type, const void *pixels)
+CALL_HOOK_API(glTexImage2D, target, level, internalformat, width, height, border, format, type, pixels)
+
+HOOK_API_ENTRY(void, glTexParameteri, GLenum target, GLenum pname, GLint param)
+CALL_HOOK_API(glTexParameteri, target, pname, param)
+
+HOOK_API_ENTRY(void, glTexParameterx, GLenum target, GLenum pname, GLfixed param)
+CALL_HOOK_API(glTexParameterx, target, pname, param)
+
+HOOK_API_ENTRY(void, glTexParameteriv, GLenum target, GLenum pname, const GLint *params)
+CALL_HOOK_API(glTexParameteriv, target, pname, params)
+
+HOOK_API_ENTRY(void, glTexParameterxv, GLenum target, GLenum pname, const GLfixed *params)
+CALL_HOOK_API(glTexParameterxv, target, pname, params)
+
+HOOK_API_ENTRY(void, glTexSubImage2D, GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, const void *pixels)
+CALL_HOOK_API(glTexSubImage2D, target, level, xoffset, yoffset, width, height, format, type, pixels)
+
+HOOK_API_ENTRY(void, glTranslatex, GLfixed x, GLfixed y, GLfixed z)
+CALL_HOOK_API(glTranslatex, x, y, z)
+
+HOOK_API_ENTRY(void, glVertexPointer, GLint size, GLenum type, GLsizei stride, const void *pointer)
+CALL_HOOK_API(glVertexPointer, size, type, stride, pointer)
+
+HOOK_API_ENTRY(void, glViewport, GLint x, GLint y, GLsizei width, GLsizei height)
+CALL_HOOK_API(glViewport, x, y, width, height)
+
+HOOK_API_ENTRY(void, glPointSizePointerOES, GLenum type, GLsizei stride, const void *pointer)
+CALL_HOOK_API(glPointSizePointerOES, type, stride, pointer)
+

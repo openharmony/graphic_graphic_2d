@@ -41,7 +41,6 @@ GSError AnimationModule::Init()
 
     window->Hide();
     auto producer = window->GetProducer();
-    eglSurface = EglSurface::CreateEglSurfaceAsProducer(producer);
     return GSERROR_OK;
 }
 

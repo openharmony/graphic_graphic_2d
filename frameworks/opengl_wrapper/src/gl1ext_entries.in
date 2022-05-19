@@ -1,0 +1,459 @@
+HOOK_API_ENTRY(void, glEGLImageTargetTexture2DOES, GLenum target, GLeglImageOES image)
+CALL_HOOK_API(glEGLImageTargetTexture2DOES, target, image)
+
+HOOK_API_ENTRY(void, glEGLImageTargetRenderbufferStorageOES, GLenum target, GLeglImageOES image)
+CALL_HOOK_API(glEGLImageTargetRenderbufferStorageOES, target, image)
+
+HOOK_API_ENTRY(void, glBlendEquationSeparateOES, GLenum modeRGB, GLenum modeAlpha)
+CALL_HOOK_API(glBlendEquationSeparateOES, modeRGB, modeAlpha)
+
+HOOK_API_ENTRY(void, glBlendFuncSeparateOES, GLenum srcRGB, GLenum dstRGB, GLenum srcAlpha, GLenum dstAlpha)
+CALL_HOOK_API(glBlendFuncSeparateOES, srcRGB, dstRGB, srcAlpha, dstAlpha)
+
+HOOK_API_ENTRY(void, glBlendEquationOES, GLenum mode)
+CALL_HOOK_API(glBlendEquationOES, mode)
+
+HOOK_API_ENTRY(void, glDrawTexsOES, GLshort x, GLshort y, GLshort z, GLshort width, GLshort height)
+CALL_HOOK_API(glDrawTexsOES, x, y, z, width, height)
+
+HOOK_API_ENTRY(void, glDrawTexiOES, GLint x, GLint y, GLint z, GLint width, GLint height)
+CALL_HOOK_API(glDrawTexiOES, x, y, z, width, height)
+
+HOOK_API_ENTRY(void, glDrawTexxOES, GLfixed x, GLfixed y, GLfixed z, GLfixed width, GLfixed height)
+CALL_HOOK_API(glDrawTexxOES, x, y, z, width, height)
+
+HOOK_API_ENTRY(void, glDrawTexsvOES, const GLshort *coords)
+CALL_HOOK_API(glDrawTexsvOES, coords)
+
+HOOK_API_ENTRY(void, glDrawTexivOES, const GLint *coords)
+CALL_HOOK_API(glDrawTexivOES, coords)
+
+HOOK_API_ENTRY(void, glDrawTexxvOES, const GLfixed *coords)
+CALL_HOOK_API(glDrawTexxvOES, coords)
+
+HOOK_API_ENTRY(void, glDrawTexfOES, GLfloat x, GLfloat y, GLfloat z, GLfloat width, GLfloat height)
+CALL_HOOK_API(glDrawTexfOES, x, y, z, width, height)
+
+HOOK_API_ENTRY(void, glDrawTexfvOES, const GLfloat *coords)
+CALL_HOOK_API(glDrawTexfvOES, coords)
+
+HOOK_API_ENTRY(void, glAlphaFuncxOES, GLenum func, GLfixed ref)
+CALL_HOOK_API(glAlphaFuncxOES, func, ref)
+
+HOOK_API_ENTRY(void, glClearColorxOES, GLfixed red, GLfixed green, GLfixed blue, GLfixed alpha)
+CALL_HOOK_API(glClearColorxOES, red, green, blue, alpha)
+
+HOOK_API_ENTRY(void, glClearDepthxOES, GLfixed depth)
+CALL_HOOK_API(glClearDepthxOES, depth)
+
+HOOK_API_ENTRY(void, glClipPlanexOES, GLenum plane, const GLfixed *equation)
+CALL_HOOK_API(glClipPlanexOES, plane, equation)
+
+HOOK_API_ENTRY(void, glColor4xOES, GLfixed red, GLfixed green, GLfixed blue, GLfixed alpha)
+CALL_HOOK_API(glColor4xOES, red, green, blue, alpha)
+
+HOOK_API_ENTRY(void, glDepthRangexOES, GLfixed n, GLfixed f)
+CALL_HOOK_API(glDepthRangexOES, n, f)
+
+HOOK_API_ENTRY(void, glFogxOES, GLenum pname, GLfixed param)
+CALL_HOOK_API(glFogxOES, pname, param)
+
+HOOK_API_ENTRY(void, glFogxvOES, GLenum pname, const GLfixed *param)
+CALL_HOOK_API(glFogxvOES, pname, param)
+
+HOOK_API_ENTRY(void, glFrustumxOES, GLfixed l, GLfixed r, GLfixed b, GLfixed t, GLfixed n, GLfixed f)
+CALL_HOOK_API(glFrustumxOES, l, r, b, t, n, f)
+
+HOOK_API_ENTRY(void, glGetClipPlanexOES, GLenum plane, GLfixed *equation)
+CALL_HOOK_API(glGetClipPlanexOES, plane, equation)
+
+HOOK_API_ENTRY(void, glGetFixedvOES, GLenum pname, GLfixed *params)
+CALL_HOOK_API(glGetFixedvOES, pname, params)
+
+HOOK_API_ENTRY(void, glGetTexEnvxvOES, GLenum target, GLenum pname, GLfixed *params)
+CALL_HOOK_API(glGetTexEnvxvOES, target, pname, params)
+
+HOOK_API_ENTRY(void, glGetTexParameterxvOES, GLenum target, GLenum pname, GLfixed *params)
+CALL_HOOK_API(glGetTexParameterxvOES, target, pname, params)
+
+HOOK_API_ENTRY(void, glLightModelxOES, GLenum pname, GLfixed param)
+CALL_HOOK_API(glLightModelxOES, pname, param)
+
+HOOK_API_ENTRY(void, glLightModelxvOES, GLenum pname, const GLfixed *param)
+CALL_HOOK_API(glLightModelxvOES, pname, param)
+
+HOOK_API_ENTRY(void, glLightxOES, GLenum light, GLenum pname, GLfixed param)
+CALL_HOOK_API(glLightxOES, light, pname, param)
+
+HOOK_API_ENTRY(void, glLightxvOES, GLenum light, GLenum pname, const GLfixed *params)
+CALL_HOOK_API(glLightxvOES, light, pname, params)
+
+HOOK_API_ENTRY(void, glLineWidthxOES, GLfixed width)
+CALL_HOOK_API(glLineWidthxOES, width)
+
+HOOK_API_ENTRY(void, glLoadMatrixxOES, const GLfixed *m)
+CALL_HOOK_API(glLoadMatrixxOES, m)
+
+HOOK_API_ENTRY(void, glMaterialxOES, GLenum face, GLenum pname, GLfixed param)
+CALL_HOOK_API(glMaterialxOES, face, pname, param)
+
+HOOK_API_ENTRY(void, glMaterialxvOES, GLenum face, GLenum pname, const GLfixed *param)
+CALL_HOOK_API(glMaterialxvOES, face, pname, param)
+
+HOOK_API_ENTRY(void, glMultMatrixxOES, const GLfixed *m)
+CALL_HOOK_API(glMultMatrixxOES, m)
+
+HOOK_API_ENTRY(void, glMultiTexCoord4xOES, GLenum texture, GLfixed s, GLfixed t, GLfixed r, GLfixed q)
+CALL_HOOK_API(glMultiTexCoord4xOES, texture, s, t, r, q)
+
+HOOK_API_ENTRY(void, glNormal3xOES, GLfixed nx, GLfixed ny, GLfixed nz)
+CALL_HOOK_API(glNormal3xOES, nx, ny, nz)
+
+HOOK_API_ENTRY(void, glOrthoxOES, GLfixed l, GLfixed r, GLfixed b, GLfixed t, GLfixed n, GLfixed f)
+CALL_HOOK_API(glOrthoxOES, l, r, b, t, n, f)
+
+HOOK_API_ENTRY(void, glPointParameterxvOES, GLenum pname, const GLfixed *params)
+CALL_HOOK_API(glPointParameterxvOES, pname, params)
+
+HOOK_API_ENTRY(void, glPointSizexOES, GLfixed size)
+CALL_HOOK_API(glPointSizexOES, size)
+
+HOOK_API_ENTRY(void, glPolygonOffsetxOES, GLfixed factor, GLfixed units)
+CALL_HOOK_API(glPolygonOffsetxOES, factor, units)
+
+HOOK_API_ENTRY(void, glRotatexOES, GLfixed angle, GLfixed x, GLfixed y, GLfixed z)
+CALL_HOOK_API(glRotatexOES, angle, x, y, z)
+
+HOOK_API_ENTRY(void, glScalexOES, GLfixed x, GLfixed y, GLfixed z)
+CALL_HOOK_API(glScalexOES, x, y, z)
+
+HOOK_API_ENTRY(void, glTexEnvxOES, GLenum target, GLenum pname, GLfixed param)
+CALL_HOOK_API(glTexEnvxOES, target, pname, param)
+
+HOOK_API_ENTRY(void, glTexEnvxvOES, GLenum target, GLenum pname, const GLfixed *params)
+CALL_HOOK_API(glTexEnvxvOES, target, pname, params)
+
+HOOK_API_ENTRY(void, glTexParameterxOES, GLenum target, GLenum pname, GLfixed param)
+CALL_HOOK_API(glTexParameterxOES, target, pname, param)
+
+HOOK_API_ENTRY(void, glTexParameterxvOES, GLenum target, GLenum pname, const GLfixed *params)
+CALL_HOOK_API(glTexParameterxvOES, target, pname, params)
+
+HOOK_API_ENTRY(void, glTranslatexOES, GLfixed x, GLfixed y, GLfixed z)
+CALL_HOOK_API(glTranslatexOES, x, y, z)
+
+HOOK_API_ENTRY(void, glGetLightxvOES, GLenum light, GLenum pname, GLfixed *params)
+CALL_HOOK_API(glGetLightxvOES, light, pname, params)
+
+HOOK_API_ENTRY(void, glGetMaterialxvOES, GLenum face, GLenum pname, GLfixed *params)
+CALL_HOOK_API(glGetMaterialxvOES, face, pname, params)
+
+HOOK_API_ENTRY(void, glPointParameterxOES, GLenum pname, GLfixed param)
+CALL_HOOK_API(glPointParameterxOES, pname, param)
+
+HOOK_API_ENTRY(void, glSampleCoveragexOES, GLclampx value, GLboolean invert)
+CALL_HOOK_API(glSampleCoveragexOES, value, invert)
+
+HOOK_API_ENTRY(void, glGetTexGenxvOES, GLenum coord, GLenum pname, GLfixed *params)
+CALL_HOOK_API(glGetTexGenxvOES, coord, pname, params)
+
+HOOK_API_ENTRY(void, glTexGenxOES, GLenum coord, GLenum pname, GLfixed param)
+CALL_HOOK_API(glTexGenxOES, coord, pname, param)
+
+HOOK_API_ENTRY(void, glTexGenxvOES, GLenum coord, GLenum pname, const GLfixed *params)
+CALL_HOOK_API(glTexGenxvOES, coord, pname, params)
+
+HOOK_API_ENTRY(GLboolean, glIsRenderbufferOES, GLuint renderbuffer)
+CALL_HOOK_API_RET(glIsRenderbufferOES, renderbuffer)
+
+HOOK_API_ENTRY(void, glBindRenderbufferOES, GLenum target, GLuint renderbuffer)
+CALL_HOOK_API(glBindRenderbufferOES, target, renderbuffer)
+
+HOOK_API_ENTRY(void, glDeleteRenderbuffersOES, GLsizei n, const GLuint *renderbuffers)
+CALL_HOOK_API(glDeleteRenderbuffersOES, n, renderbuffers)
+
+HOOK_API_ENTRY(void, glGenRenderbuffersOES, GLsizei n, GLuint *renderbuffers)
+CALL_HOOK_API(glGenRenderbuffersOES, n, renderbuffers)
+
+HOOK_API_ENTRY(void, glRenderbufferStorageOES, GLenum target, GLenum internalformat, GLsizei width, GLsizei height)
+CALL_HOOK_API(glRenderbufferStorageOES, target, internalformat, width, height)
+
+HOOK_API_ENTRY(void, glGetRenderbufferParameterivOES, GLenum target, GLenum pname, GLint *params)
+CALL_HOOK_API(glGetRenderbufferParameterivOES, target, pname, params)
+
+HOOK_API_ENTRY(GLboolean, glIsFramebufferOES, GLuint framebuffer)
+CALL_HOOK_API_RET(glIsFramebufferOES, framebuffer)
+
+HOOK_API_ENTRY(void, glBindFramebufferOES, GLenum target, GLuint framebuffer)
+CALL_HOOK_API(glBindFramebufferOES, target, framebuffer)
+
+HOOK_API_ENTRY(void, glDeleteFramebuffersOES, GLsizei n, const GLuint *framebuffers)
+CALL_HOOK_API(glDeleteFramebuffersOES, n, framebuffers)
+
+HOOK_API_ENTRY(void, glGenFramebuffersOES, GLsizei n, GLuint *framebuffers)
+CALL_HOOK_API(glGenFramebuffersOES, n, framebuffers)
+
+HOOK_API_ENTRY(GLenum, glCheckFramebufferStatusOES, GLenum target)
+CALL_HOOK_API_RET(glCheckFramebufferStatusOES, target)
+
+HOOK_API_ENTRY(void, glFramebufferRenderbufferOES, GLenum target, GLenum attachment, GLenum renderbuffertarget, GLuint renderbuffer)
+CALL_HOOK_API(glFramebufferRenderbufferOES, target, attachment, renderbuffertarget, renderbuffer)
+
+HOOK_API_ENTRY(void, glFramebufferTexture2DOES, GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level)
+CALL_HOOK_API(glFramebufferTexture2DOES, target, attachment, textarget, texture, level)
+
+HOOK_API_ENTRY(void, glGetFramebufferAttachmentParameterivOES, GLenum target, GLenum attachment, GLenum pname, GLint *params)
+CALL_HOOK_API(glGetFramebufferAttachmentParameterivOES, target, attachment, pname, params)
+
+HOOK_API_ENTRY(void, glGenerateMipmapOES, GLenum target)
+CALL_HOOK_API(glGenerateMipmapOES, target)
+
+HOOK_API_ENTRY(void *, glMapBufferOES, GLenum target, GLenum access)
+CALL_HOOK_API_RET(glMapBufferOES, target, access)
+
+HOOK_API_ENTRY(GLboolean, glUnmapBufferOES, GLenum target)
+CALL_HOOK_API_RET(glUnmapBufferOES, target)
+
+HOOK_API_ENTRY(void, glGetBufferPointervOES, GLenum target, GLenum pname, void **params)
+CALL_HOOK_API(glGetBufferPointervOES, target, pname, params)
+
+HOOK_API_ENTRY(void, glCurrentPaletteMatrixOES, GLuint matrixpaletteindex)
+CALL_HOOK_API(glCurrentPaletteMatrixOES, matrixpaletteindex)
+
+HOOK_API_ENTRY(void, glLoadPaletteFromModelViewMatrixOES, void)
+CALL_HOOK_API(glLoadPaletteFromModelViewMatrixOES)
+
+HOOK_API_ENTRY(void, glMatrixIndexPointerOES, GLint size, GLenum type, GLsizei stride, const void *pointer)
+CALL_HOOK_API(glMatrixIndexPointerOES, size, type, stride, pointer)
+
+HOOK_API_ENTRY(void, glWeightPointerOES, GLint size, GLenum type, GLsizei stride, const void *pointer)
+CALL_HOOK_API(glWeightPointerOES, size, type, stride, pointer)
+
+HOOK_API_ENTRY(GLbitfield, glQueryMatrixxOES, GLfixed *mantissa, GLint *exponent)
+CALL_HOOK_API_RET(glQueryMatrixxOES, mantissa, exponent)
+
+HOOK_API_ENTRY(void, glClearDepthfOES, GLclampf depth)
+CALL_HOOK_API(glClearDepthfOES, depth)
+
+HOOK_API_ENTRY(void, glClipPlanefOES, GLenum plane, const GLfloat *equation)
+CALL_HOOK_API(glClipPlanefOES, plane, equation)
+
+HOOK_API_ENTRY(void, glDepthRangefOES, GLclampf n, GLclampf f)
+CALL_HOOK_API(glDepthRangefOES, n, f)
+
+HOOK_API_ENTRY(void, glFrustumfOES, GLfloat l, GLfloat r, GLfloat b, GLfloat t, GLfloat n, GLfloat f)
+CALL_HOOK_API(glFrustumfOES, l, r, b, t, n, f)
+
+HOOK_API_ENTRY(void, glGetClipPlanefOES, GLenum plane, GLfloat *equation)
+CALL_HOOK_API(glGetClipPlanefOES, plane, equation)
+
+HOOK_API_ENTRY(void, glOrthofOES, GLfloat l, GLfloat r, GLfloat b, GLfloat t, GLfloat n, GLfloat f)
+CALL_HOOK_API(glOrthofOES, l, r, b, t, n, f)
+
+HOOK_API_ENTRY(void, glTexGenfOES, GLenum coord, GLenum pname, GLfloat param)
+CALL_HOOK_API(glTexGenfOES, coord, pname, param)
+
+HOOK_API_ENTRY(void, glTexGenfvOES, GLenum coord, GLenum pname, const GLfloat *params)
+CALL_HOOK_API(glTexGenfvOES, coord, pname, params)
+
+HOOK_API_ENTRY(void, glTexGeniOES, GLenum coord, GLenum pname, GLint param)
+CALL_HOOK_API(glTexGeniOES, coord, pname, param)
+
+HOOK_API_ENTRY(void, glTexGenivOES, GLenum coord, GLenum pname, const GLint *params)
+CALL_HOOK_API(glTexGenivOES, coord, pname, params)
+
+HOOK_API_ENTRY(void, glGetTexGenfvOES, GLenum coord, GLenum pname, GLfloat *params)
+CALL_HOOK_API(glGetTexGenfvOES, coord, pname, params)
+
+HOOK_API_ENTRY(void, glGetTexGenivOES, GLenum coord, GLenum pname, GLint *params)
+CALL_HOOK_API(glGetTexGenivOES, coord, pname, params)
+
+HOOK_API_ENTRY(void, glBindVertexArrayOES, GLuint array)
+CALL_HOOK_API(glBindVertexArrayOES, array)
+
+HOOK_API_ENTRY(void, glDeleteVertexArraysOES, GLsizei n, const GLuint *arrays)
+CALL_HOOK_API(glDeleteVertexArraysOES, n, arrays)
+
+HOOK_API_ENTRY(void, glGenVertexArraysOES, GLsizei n, GLuint *arrays)
+CALL_HOOK_API(glGenVertexArraysOES, n, arrays)
+
+HOOK_API_ENTRY(GLboolean, glIsVertexArrayOES, GLuint array)
+CALL_HOOK_API_RET(glIsVertexArrayOES, array)
+
+HOOK_API_ENTRY(void, glCopyTextureLevelsAPPLE, GLuint destinationTexture, GLuint sourceTexture, GLint sourceBaseLevel, GLsizei sourceLevelCount)
+CALL_HOOK_API(glCopyTextureLevelsAPPLE, destinationTexture, sourceTexture, sourceBaseLevel, sourceLevelCount)
+
+HOOK_API_ENTRY(void, glRenderbufferStorageMultisampleAPPLE, GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height)
+CALL_HOOK_API(glRenderbufferStorageMultisampleAPPLE, target, samples, internalformat, width, height)
+
+HOOK_API_ENTRY(void, glResolveMultisampleFramebufferAPPLE, void)
+CALL_HOOK_API(glResolveMultisampleFramebufferAPPLE)
+
+HOOK_API_ENTRY(GLsync, glFenceSyncAPPLE, GLenum condition, GLbitfield flags)
+CALL_HOOK_API_RET(glFenceSyncAPPLE, condition, flags)
+
+HOOK_API_ENTRY(GLboolean, glIsSyncAPPLE, GLsync sync)
+CALL_HOOK_API_RET(glIsSyncAPPLE, sync)
+
+HOOK_API_ENTRY(void, glDeleteSyncAPPLE, GLsync sync)
+CALL_HOOK_API(glDeleteSyncAPPLE, sync)
+
+HOOK_API_ENTRY(GLenum, glClientWaitSyncAPPLE, GLsync sync, GLbitfield flags, GLuint64 timeout)
+CALL_HOOK_API_RET(glClientWaitSyncAPPLE, sync, flags, timeout)
+
+HOOK_API_ENTRY(void, glWaitSyncAPPLE, GLsync sync, GLbitfield flags, GLuint64 timeout)
+CALL_HOOK_API(glWaitSyncAPPLE, sync, flags, timeout)
+
+HOOK_API_ENTRY(void, glGetInteger64vAPPLE, GLenum pname, GLint64 *params)
+CALL_HOOK_API(glGetInteger64vAPPLE, pname, params)
+
+HOOK_API_ENTRY(void, glGetSyncivAPPLE, GLsync sync, GLenum pname, GLsizei count, GLsizei *length, GLint *values)
+CALL_HOOK_API(glGetSyncivAPPLE, sync, pname, count, length, values)
+
+HOOK_API_ENTRY(void, glInsertEventMarkerEXT, GLsizei length, const GLchar *marker)
+CALL_HOOK_API(glInsertEventMarkerEXT, length, marker)
+
+HOOK_API_ENTRY(void, glPushGroupMarkerEXT, GLsizei length, const GLchar *marker)
+CALL_HOOK_API(glPushGroupMarkerEXT, length, marker)
+
+HOOK_API_ENTRY(void, glPopGroupMarkerEXT, void)
+CALL_HOOK_API(glPopGroupMarkerEXT)
+
+HOOK_API_ENTRY(void, glDiscardFramebufferEXT, GLenum target, GLsizei numAttachments, const GLenum *attachments)
+CALL_HOOK_API(glDiscardFramebufferEXT, target, numAttachments, attachments)
+
+HOOK_API_ENTRY(void *, glMapBufferRangeEXT, GLenum target, GLintptr offset, GLsizeiptr length, GLbitfield access)
+CALL_HOOK_API_RET(glMapBufferRangeEXT, target, offset, length, access)
+
+HOOK_API_ENTRY(void, glFlushMappedBufferRangeEXT, GLenum target, GLintptr offset, GLsizeiptr length)
+CALL_HOOK_API(glFlushMappedBufferRangeEXT, target, offset, length)
+
+HOOK_API_ENTRY(void, glMultiDrawArraysEXT, GLenum mode, const GLint *first, const GLsizei *count, GLsizei primcount)
+CALL_HOOK_API(glMultiDrawArraysEXT, mode, first, count, primcount)
+
+HOOK_API_ENTRY(void, glMultiDrawElementsEXT, GLenum mode, const GLsizei *count, GLenum type, const void *const*indices, GLsizei primcount)
+CALL_HOOK_API(glMultiDrawElementsEXT, mode, count, type, indices, primcount)
+
+HOOK_API_ENTRY(void, glRenderbufferStorageMultisampleEXT, GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height)
+CALL_HOOK_API(glRenderbufferStorageMultisampleEXT, target, samples, internalformat, width, height)
+
+HOOK_API_ENTRY(void, glFramebufferTexture2DMultisampleEXT, GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level, GLsizei samples)
+CALL_HOOK_API(glFramebufferTexture2DMultisampleEXT, target, attachment, textarget, texture, level, samples)
+
+HOOK_API_ENTRY(GLenum, glGetGraphicsResetStatusEXT, void)
+CALL_HOOK_API_RET(glGetGraphicsResetStatusEXT)
+
+HOOK_API_ENTRY(void, glReadnPixelsEXT, GLint x, GLint y, GLsizei width, GLsizei height, GLenum format, GLenum type, GLsizei bufSize, void *data)
+CALL_HOOK_API(glReadnPixelsEXT, x, y, width, height, format, type, bufSize, data)
+
+HOOK_API_ENTRY(void, glGetnUniformfvEXT, GLuint program, GLint location, GLsizei bufSize, GLfloat *params)
+CALL_HOOK_API(glGetnUniformfvEXT, program, location, bufSize, params)
+
+HOOK_API_ENTRY(void, glGetnUniformivEXT, GLuint program, GLint location, GLsizei bufSize, GLint *params)
+CALL_HOOK_API(glGetnUniformivEXT, program, location, bufSize, params)
+
+HOOK_API_ENTRY(void, glTexStorage1DEXT, GLenum target, GLsizei levels, GLenum internalformat, GLsizei width)
+CALL_HOOK_API(glTexStorage1DEXT, target, levels, internalformat, width)
+
+HOOK_API_ENTRY(void, glTexStorage2DEXT, GLenum target, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height)
+CALL_HOOK_API(glTexStorage2DEXT, target, levels, internalformat, width, height)
+
+HOOK_API_ENTRY(void, glTexStorage3DEXT, GLenum target, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth)
+CALL_HOOK_API(glTexStorage3DEXT, target, levels, internalformat, width, height, depth)
+
+HOOK_API_ENTRY(void, glTextureStorage1DEXT, GLuint texture, GLenum target, GLsizei levels, GLenum internalformat, GLsizei width)
+CALL_HOOK_API(glTextureStorage1DEXT, texture, target, levels, internalformat, width)
+
+HOOK_API_ENTRY(void, glTextureStorage2DEXT, GLuint texture, GLenum target, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height)
+CALL_HOOK_API(glTextureStorage2DEXT, texture, target, levels, internalformat, width, height)
+
+HOOK_API_ENTRY(void, glTextureStorage3DEXT, GLuint texture, GLenum target, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth)
+CALL_HOOK_API(glTextureStorage3DEXT, texture, target, levels, internalformat, width, height, depth)
+
+HOOK_API_ENTRY(void, glRenderbufferStorageMultisampleIMG, GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height)
+CALL_HOOK_API(glRenderbufferStorageMultisampleIMG, target, samples, internalformat, width, height)
+
+HOOK_API_ENTRY(void, glFramebufferTexture2DMultisampleIMG, GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level, GLsizei samples)
+CALL_HOOK_API(glFramebufferTexture2DMultisampleIMG, target, attachment, textarget, texture, level, samples)
+
+HOOK_API_ENTRY(void, glClipPlanefIMG, GLenum p, const GLfloat *eqn)
+CALL_HOOK_API(glClipPlanefIMG, p, eqn)
+
+HOOK_API_ENTRY(void, glClipPlanexIMG, GLenum p, const GLfixed *eqn)
+CALL_HOOK_API(glClipPlanexIMG, p, eqn)
+
+HOOK_API_ENTRY(void, glDeleteFencesNV, GLsizei n, const GLuint *fences)
+CALL_HOOK_API(glDeleteFencesNV, n, fences)
+
+HOOK_API_ENTRY(void, glGenFencesNV, GLsizei n, GLuint *fences)
+CALL_HOOK_API(glGenFencesNV, n, fences)
+
+HOOK_API_ENTRY(GLboolean, glIsFenceNV, GLuint fence)
+CALL_HOOK_API_RET(glIsFenceNV, fence)
+
+HOOK_API_ENTRY(GLboolean, glTestFenceNV, GLuint fence)
+CALL_HOOK_API_RET(glTestFenceNV, fence)
+
+HOOK_API_ENTRY(void, glGetFenceivNV, GLuint fence, GLenum pname, GLint *params)
+CALL_HOOK_API(glGetFenceivNV, fence, pname, params)
+
+HOOK_API_ENTRY(void, glFinishFenceNV, GLuint fence)
+CALL_HOOK_API(glFinishFenceNV, fence)
+
+HOOK_API_ENTRY(void, glSetFenceNV, GLuint fence, GLenum condition)
+CALL_HOOK_API(glSetFenceNV, fence, condition)
+
+HOOK_API_ENTRY(void, glGetDriverControlsQCOM, GLint *num, GLsizei size, GLuint *driverControls)
+CALL_HOOK_API(glGetDriverControlsQCOM, num, size, driverControls)
+
+HOOK_API_ENTRY(void, glGetDriverControlStringQCOM, GLuint driverControl, GLsizei bufSize, GLsizei *length, GLchar *driverControlString)
+CALL_HOOK_API(glGetDriverControlStringQCOM, driverControl, bufSize, length, driverControlString)
+
+HOOK_API_ENTRY(void, glEnableDriverControlQCOM, GLuint driverControl)
+CALL_HOOK_API(glEnableDriverControlQCOM, driverControl)
+
+HOOK_API_ENTRY(void, glDisableDriverControlQCOM, GLuint driverControl)
+CALL_HOOK_API(glDisableDriverControlQCOM, driverControl)
+
+HOOK_API_ENTRY(void, glExtGetTexturesQCOM, GLuint *textures, GLint maxTextures, GLint *numTextures)
+CALL_HOOK_API(glExtGetTexturesQCOM, textures, maxTextures, numTextures)
+
+HOOK_API_ENTRY(void, glExtGetBuffersQCOM, GLuint *buffers, GLint maxBuffers, GLint *numBuffers)
+CALL_HOOK_API(glExtGetBuffersQCOM, buffers, maxBuffers, numBuffers)
+
+HOOK_API_ENTRY(void, glExtGetRenderbuffersQCOM, GLuint *renderbuffers, GLint maxRenderbuffers, GLint *numRenderbuffers)
+CALL_HOOK_API(glExtGetRenderbuffersQCOM, renderbuffers, maxRenderbuffers, numRenderbuffers)
+
+HOOK_API_ENTRY(void, glExtGetFramebuffersQCOM, GLuint *framebuffers, GLint maxFramebuffers, GLint *numFramebuffers)
+CALL_HOOK_API(glExtGetFramebuffersQCOM, framebuffers, maxFramebuffers, numFramebuffers)
+
+HOOK_API_ENTRY(void, glExtGetTexLevelParameterivQCOM, GLuint texture, GLenum face, GLint level, GLenum pname, GLint *params)
+CALL_HOOK_API(glExtGetTexLevelParameterivQCOM, texture, face, level, pname, params)
+
+HOOK_API_ENTRY(void, glExtTexObjectStateOverrideiQCOM, GLenum target, GLenum pname, GLint param)
+CALL_HOOK_API(glExtTexObjectStateOverrideiQCOM, target, pname, param)
+
+HOOK_API_ENTRY(void, glExtGetTexSubImageQCOM, GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, void *texels)
+CALL_HOOK_API(glExtGetTexSubImageQCOM, target, level, xoffset, yoffset, zoffset, width, height, depth, format, type, texels)
+
+HOOK_API_ENTRY(void, glExtGetBufferPointervQCOM, GLenum target, void **params)
+CALL_HOOK_API(glExtGetBufferPointervQCOM, target, params)
+
+HOOK_API_ENTRY(void, glExtGetShadersQCOM, GLuint *shaders, GLint maxShaders, GLint *numShaders)
+CALL_HOOK_API(glExtGetShadersQCOM, shaders, maxShaders, numShaders)
+
+HOOK_API_ENTRY(void, glExtGetProgramsQCOM, GLuint *programs, GLint maxPrograms, GLint *numPrograms)
+CALL_HOOK_API(glExtGetProgramsQCOM, programs, maxPrograms, numPrograms)
+
+HOOK_API_ENTRY(GLboolean, glExtIsProgramBinaryQCOM, GLuint program)
+CALL_HOOK_API_RET(glExtIsProgramBinaryQCOM, program)
+
+HOOK_API_ENTRY(void, glExtGetProgramBinarySourceQCOM, GLuint program, GLenum shadertype, GLchar *source, GLint *length)
+CALL_HOOK_API(glExtGetProgramBinarySourceQCOM, program, shadertype, source, length)
+
+HOOK_API_ENTRY(void, glStartTilingQCOM, GLuint x, GLuint y, GLuint width, GLuint height, GLbitfield preserveMask)
+CALL_HOOK_API(glStartTilingQCOM, x, y, width, height, preserveMask)
+
+HOOK_API_ENTRY(void, glEndTilingQCOM, GLbitfield preserveMask)
+CALL_HOOK_API(glEndTilingQCOM, preserveMask)
+

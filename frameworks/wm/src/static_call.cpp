@@ -47,7 +47,7 @@ sptr<Surface> StaticCall::SurfaceCreateSurfaceAsProducer(sptr<IBufferProducer>& 
 
 sptr<Surface> StaticCall::SurfaceCreateEglSurfaceAsConsumer(std::string name)
 {
-    return Surface::CreateEglSurfaceAsConsumer(name);
+    return NULL;
 }
 
 GSError StaticCall::WindowImplCreate(sptr<Window> &window,

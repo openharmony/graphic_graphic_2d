@@ -1,0 +1,99 @@
+/*
+ * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#ifndef FRAMEWORKS_OPENGL_WRAPPER_EGL_WRAPPER_DISPLAY_H
+#define FRAMEWORKS_OPENGL_WRAPPER_EGL_WRAPPER_DISPLAY_H
+
+#include <condition_variable>
+#include <mutex>
+#include <unordered_set>
+#include <EGL/egl.h>
+#include <EGL/eglext.h>
+
+namespace OHOS {
+
+class EglWrapperObject;
+
+class EglWrapperDisplay {
+public:
+    EGLBoolean Init(EGLint *major, EGLint *minor);
+    EGLBoolean Terminate();
+    EGLBoolean MakeCurrent(EGLSurface draw, EGLSurface read, EGLContext ctx);
+    static EglWrapperDisplay *GetWrapperDisplay(EGLDisplay display);
+    static EGLDisplay GetEglDisplay(EGLenum platform, EGLNativeDisplayType disp, const EGLAttrib *attribList);
+    static EGLDisplay GetEglDisplayExt(EGLenum platform, void *disp, const EGLAttrib *attribList);
+    bool ValidateEglContext(EGLContext ctx);
+    bool ValidateEglSurface(EGLSurface surface);
+    EGLContext CreateEglContext(EGLConfig config, EGLContext shareList, const EGLint *attribList);
+    EGLSurface CreateEglSurface(EGLConfig config, NativeWindowType window, const EGLint *attribList);
+    EGLBoolean DestroyEglContext(EGLContext context);
+    EGLBoolean DestroyEglSurface(EGLSurface surface);
+
+    void AddObject(EglWrapperObject *obj);
+    void RemoveObject(EglWrapperObject *obj);
+
+    EGLBoolean CopyBuffers(EGLSurface surface, NativePixmapType target);
+    EGLSurface CreatePbufferSurface(EGLConfig config, const EGLint *attribList);
+    EGLSurface CreatePixmapSurface(EGLConfig config, EGLNativePixmapType pixmap, const EGLint* attribList);
+    inline bool IsReady() const { return (refCnt_ > 0); };
+    inline EGLDisplay GetEglDisplay() const {return disp_;};
+
+    EGLBoolean QueryContext(EGLContext ctx, EGLint attribute, EGLint *value);
+    EGLBoolean QuerySurface(EGLSurface surface, EGLint attribute, EGLint *value);
+    EGLBoolean SwapBuffers(EGLSurface surface);
+    EGLBoolean BindTexImage(EGLSurface surface, EGLint buffer);
+    EGLBoolean ReleaseTexImage(EGLSurface surface, EGLint buffer);
+    EGLBoolean SurfaceAttrib(EGLSurface surface, EGLint attribute, EGLint value);
+    EGLSurface CreatePbufferFromClientBuffer(EGLenum buftype,
+        EGLClientBuffer buffer, EGLConfig config, const EGLint *attribList);
+    EGLImage CreateImage(EGLContext ctx, EGLenum target,
+        EGLClientBuffer buffer, const EGLAttrib *attribList);
+    EGLBoolean DestroyImage(EGLImage img);
+    EGLSurface CreatePlatformWindowSurface(EGLConfig config,
+        void *nativeWindow, const EGLAttrib *attribList);
+    EGLSurface CreatePlatformPixmapSurface(EGLConfig config,
+        void *nativePixmap, const EGLAttrib *attribList);
+    EGLBoolean LockSurfaceKHR(EGLSurface surface, const EGLint *attribList);
+    EGLBoolean UnlockSurfaceKHR(EGLSurface surface);
+
+    EGLImageKHR CreateImageKHR(EGLContext ctx, EGLenum target,
+        EGLClientBuffer buffer, const EGLint *attribList);
+    EGLBoolean DestroyImageKHR(EGLImageKHR img);
+
+    EGLSurface CreateStreamProducerSurfaceKHR(EGLConfig config,
+        EGLStreamKHR stream, const EGLint *attribList);
+
+    EGLBoolean SwapBuffersWithDamageKHR(EGLSurface draw, EGLint *rects, EGLint nRects);
+    EGLBoolean SetDamageRegionKHR(EGLSurface surface, EGLint *rects, EGLint nRects);
+
+private:
+    EglWrapperDisplay();
+    ~EglWrapperDisplay();
+    EGLDisplay GetEglNativeDisplay(EGLenum platform, EGLNativeDisplayType disp, const EGLAttrib *attribList);
+    EGLDisplay GetEglNativeDisplayExt(EGLenum platform, void *disp, const EGLAttrib *attribList);
+    bool CheckObject(EglWrapperObject *obj);
+    void ClearObjects();
+
+    static EglWrapperDisplay wrapperDisp_;
+    EGLDisplay  disp_;
+    std::mutex  lockMutex_;
+    std::mutex  refLockMutex_;    
+    std::unordered_set<EglWrapperObject *> objects_;
+    uint32_t    refCnt_;
+};
+
+} // namespace OHOS
+
+#endif // FRAMEWORKS_OPENGL_WRAPPER_EGL_WRAPPER_DISPLAY_H
