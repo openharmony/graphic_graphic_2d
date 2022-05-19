@@ -95,7 +95,7 @@ void RSNode::AddKeyFrame(float fraction, const PropertyCallback& propertyCallbac
 
 std::vector<std::shared_ptr<RSAnimation>> RSNode::Animate(const RSAnimationTimingProtocol& timingProtocol,
     const RSAnimationTimingCurve& timingCurve, const PropertyCallback& propertyCallback,
-    const std::function<void()>& finshCallback)
+    const std::function<void()>& finishCallback)
 {
     if (propertyCallback == nullptr) {
         ROSEN_LOGE("Failed to add curve animation, property callback is null!");
@@ -107,7 +107,7 @@ std::vector<std::shared_ptr<RSAnimation>> RSNode::Animate(const RSAnimationTimin
         return {};
     }
 
-    OpenImplicitAnimation(timingProtocol, timingCurve, finshCallback);
+    OpenImplicitAnimation(timingProtocol, timingCurve, finishCallback);
     propertyCallback();
     return CloseImplicitAnimation();
 }
@@ -243,7 +243,7 @@ bool IsValid(const Vector4f& value)
         if (ROSEN_EQ(value, currentValue)) {                                                                \
             return;                                                                                         \
         }                                                                                                   \
-        if (implicitAnimator_ && implicitAnimator_->NeedImplicitAnimaton() && IsValid(currentValue)) {      \
+        if (implicitAnimator_ && implicitAnimator_->NeedImplicitAnimation() && IsValid(currentValue)) {     \
             implicitAnimator_->CreateImplicitAnimation(*this, property, currentValue, value);               \
         } else if (HasPropertyAnimation(property)) {                                                        \
             std::unique_ptr<RSCommand> command =                                                            \
@@ -295,7 +295,7 @@ bool IsValid(const Vector4f& value)
 #define CREATE_PATH_ANIMATION(propertyName, value, property)                                            \
     do {                                                                                                \
         auto currentValue = stagingProperties_.Get##propertyName();                                     \
-        if (implicitAnimator_ && implicitAnimator_->NeedImplicitAnimaton() && IsValid(currentValue)) {  \
+        if (implicitAnimator_ && implicitAnimator_->NeedImplicitAnimation() && IsValid(currentValue)) { \
             implicitAnimator_->BeginImplicitPathAnimation(motionPathOption_);                           \
             implicitAnimator_->CreateImplicitAnimation(*this, property, currentValue, value);           \
             implicitAnimator_->EndImplicitPathAnimation();                                              \
@@ -746,12 +746,14 @@ void RSNode::SetVisible(bool visible)
 
 void RSNode::NotifyTransition(const std::shared_ptr<const RSTransitionEffect>& effect, bool isTransitionIn)
 {
+    // temporary fix for multithread issue in implicit animator
+    implicitAnimator_ = RSImplicitAnimatorMap::Instance().GetAnimator(gettid());
     if (implicitAnimator_ == nullptr) {
         ROSEN_LOGE("Failed to notify transition, implicit animator is null!");
         return;
     }
 
-    if (!implicitAnimator_->NeedImplicitAnimaton()) {
+    if (!implicitAnimator_->NeedImplicitAnimation()) {
         return;
     }
 

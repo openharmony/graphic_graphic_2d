@@ -129,7 +129,7 @@ void RSImplicitAnimator::EndImplicitKeyFrameAnimation()
     PopImplicitParam();
 }
 
-bool RSImplicitAnimator::NeedImplicitAnimaton()
+bool RSImplicitAnimator::NeedImplicitAnimation()
 {
     return !implicitAnimationParams_.empty();
 }

@@ -51,7 +51,7 @@ public:
 
     static std::vector<std::shared_ptr<RSAnimation>> Animate(const RSAnimationTimingProtocol& timingProtocol,
         const RSAnimationTimingCurve& timingCurve, const PropertyCallback& callback,
-        const std::function<void()>& finshCallback = nullptr);
+        const std::function<void()>& finishCallback = nullptr);
     static void OpenImplicitAnimation(const RSAnimationTimingProtocol& timingProtocol,
         const RSAnimationTimingCurve& timingCurve, const std::function<void()>& finishCallback = nullptr);
     static std::vector<std::shared_ptr<RSAnimation>> CloseImplicitAnimation();
@@ -138,7 +138,7 @@ public:
     void SetBorderStyle(uint32_t styleValue);
     void SetBorderColor(uint32_t left, uint32_t top, uint32_t right, uint32_t bottom);
     void SetBorderWidth(float left, float top, float right, float bottom);
-    void SetBorderStyle(uint32_t left, uint32_t top, uint32_t right, uint32_t bottomalue);
+    void SetBorderStyle(uint32_t left, uint32_t top, uint32_t right, uint32_t bottom);
 
     void SetSublayerTransform(Matrix3f sublayerTransform);
 

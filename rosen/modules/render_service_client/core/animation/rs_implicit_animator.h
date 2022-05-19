@@ -40,7 +40,7 @@ public:
     void EndImplicitPathAnimation();
     void EndImplicitTransition();
     void EndImplicitKeyFrameAnimation();
-    bool NeedImplicitAnimaton();
+    bool NeedImplicitAnimation();
 
     template<typename T>
     std::shared_ptr<RSAnimation> CreateImplicitAnimation(
