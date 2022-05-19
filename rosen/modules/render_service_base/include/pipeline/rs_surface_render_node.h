@@ -44,6 +44,7 @@ public:
 
     void ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas) override;
     void ProcessRenderAfterChildren(RSPaintFilterCanvas& canvas) override;
+    void ConsumeNodeNotOnTree();
 
     std::string GetName() const
     {

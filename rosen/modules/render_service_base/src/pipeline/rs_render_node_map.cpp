@@ -90,6 +90,19 @@ void RSRenderNodeMap::DumpAllNodeMemSize(std::string& dumpString) const
     }
 }
 
+void RSRenderNodeMap::ConsumeNodesNotOnTree() const
+{
+    for (auto it = renderNodeMap_.begin(); it != renderNodeMap_.end(); it++) {
+        if ((*it).second->GetType() == RSRenderNodeType::SURFACE_NODE && !(*it).second->IsOnTheTree()) {
+            auto node = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>((*it).second);
+            auto& surfaceConsumer = node->GetConsumer();
+            if (surfaceConsumer == nullptr) {
+                continue;
+            }
+            node->ConsumeNodeNotOnTree();
+        }
+    }
+}
 
 template<>
 const std::shared_ptr<RSBaseRenderNode> RSRenderNodeMap::GetRenderNode(NodeId id) const
