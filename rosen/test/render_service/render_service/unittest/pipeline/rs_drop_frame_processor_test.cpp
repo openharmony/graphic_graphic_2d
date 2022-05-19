@@ -64,7 +64,7 @@ void RSDropFrameProcessorTest::SetUp() {}
 void RSDropFrameProcessorTest::TearDown() {}
 
 /**
- * @tc.name: TestDropFrame001 
+ * @tc.name: TestDropFrame001
  * @tc.desc:
  * @tc.type:
  * @tc.require:
@@ -86,9 +86,7 @@ HWTEST_F(RSDropFrameProcessorTest, TestDropFrame001, TestSize.Level1)
     csurf = Surface::CreateSurfaceAsConsumer(config.name);
     ASSERT_NE(csurf, nullptr);
     rsNode->SetConsumer(csurf);
-    RS_LOGI("SetUpTestCase::CreateNodeAndSurface node id:%llu name:%s surface id:%llu ",
-        rsNode->GetId(), rsNode->GetName().c_str(), csurf->GetUniqueId());
-    printf("SetUpTestCase::CreateNodeAndSurface node id:%llu name:%s surface id:%llu ",
+    printf("SetUpTestCase::CreateNodeAndSurface node id:%llu name:%s surface id:%llu \n",
         rsNode->GetId(), rsNode->GetName().c_str(), csurf->GetUniqueId());
     std::weak_ptr<RSSurfaceRenderNode> surfaceRenderNode(rsNode);
     sptr<IBufferConsumerListener> listener = new RSRenderServiceListener(surfaceRenderNode);
@@ -103,7 +101,7 @@ HWTEST_F(RSDropFrameProcessorTest, TestDropFrame001, TestSize.Level1)
     ASSERT_EQ(3, static_cast<int>(psurf->GetQueueSize()));
 
     // request&&flush 3 buffer make queue size full
-    for ( int i = 0; i < 3; i ++ ) {
+    for (int i = 0; i < 3; i ++) {
         sptr<SurfaceBuffer> buffer;
         sptr<SyncFence> requestFence = SyncFence::INVALID_FENCE;
         GSError ret = psurf->RequestBuffer(buffer, requestFence, requestConfig);
@@ -112,15 +110,15 @@ HWTEST_F(RSDropFrameProcessorTest, TestDropFrame001, TestSize.Level1)
         sptr<SyncFence> flushFence = SyncFence::INVALID_FENCE;
         ret = psurf->FlushBuffer(buffer, flushFence, flushConfig);
         ASSERT_EQ(ret, OHOS::GSERROR_OK);
-        printf("RSDropFrameProcessorTest::TestDropFrame001 frame %d finish\n", i);
-        printf("RSDropFrameProcessorTest::TestDropFrame001 AvailableBufferCount: %d \n", rsNode->GetAvailableBufferCount());
+        printf("RSDropFrameProcessorTest::TestDropFrame001 frame %d finish \n", i);
+        printf("RSDropFrameProcessorTest::TestDropFrame001 AvailableCount: %d \n", rsNode->GetAvailableBufferCount());
         sleep(4); // every frame wait 4 seconds
     }
     
     // create RSHardwareProcessor
-    auto rsHardwareProcessor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::HARDWARE_COMPOSITE);
-    ASSERT_NE(rsHardwareProcessor, nullptr);
-    rsHardwareProcessor->ProcessSurface(*rsNode);
+    auto rsHdProcessor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::HARDWARE_COMPOSITE);
+    ASSERT_NE(rsHdProcessor, nullptr);
+    rsHdProcessor->ProcessSurface(*rsNode);
     ASSERT_EQ(1, rsNode->GetAvailableBufferCount());
 }
 } // namespace OHOS::Rosen
