@@ -253,27 +253,32 @@ void RSSurfaceRenderNode::ConnectToNodeInRenderService()
 
 void RSSurfaceRenderNode::NotifyBufferAvailable()
 {
-    ROSEN_LOGI("RSSurfaceRenderNode::NotifyBufferAvailable nodeId = %llu", GetId());
-
     // In RS, "isBufferAvailable_ = true" means buffer is ready and need to trigger ipc callback.
     // In RT, "isBufferAvailable_ = true" means RT know that RS have had available buffer
     // and ready to trigger "callbackForRenderThreadRefresh_" to "clip" on parent surface.
     if (isBufferAvailable_) {
         return;
     }
-    isBufferAvailable_ = true;
 
     if (callbackForRenderThreadRefresh_) {
+        isBufferAvailable_ = true;
         callbackForRenderThreadRefresh_();
     }
 
     {
         std::lock_guard<std::mutex> lock(mutex_);
         if (callbackFromRT_) {
+            ROSEN_LOGI("RSSurfaceRenderNode::NotifyBufferAvailable nodeId = %llu callbackFromRT", GetId());
             callbackFromRT_->OnBufferAvailable();
+            isBufferAvailable_ = true;
         }
         if (callbackFromUI_) {
+            ROSEN_LOGI("RSSurfaceRenderNode::NotifyBufferAvailable nodeId = %llu callbackFromUI", GetId());
             callbackFromUI_->OnBufferAvailable();
+            isBufferAvailable_ = true;
+        }
+        if (!callbackForRenderThreadRefresh_ && !callbackFromRT_ && !callbackFromUI_) {
+            isBufferAvailable_ = false;
         }
     }
 }
