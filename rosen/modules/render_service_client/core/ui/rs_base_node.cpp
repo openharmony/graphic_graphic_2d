@@ -176,7 +176,7 @@ bool RSBaseNode::IsInstanceOf()
     return (static_cast<uint32_t>(GetType()) & targetType) == targetType;
 }
 
-// explicit instantiation with all rendernode types
+// explicit instantiation with all render node types
 template bool RSBaseNode::IsInstanceOf<RSBaseNode>();
 template bool RSBaseNode::IsInstanceOf<RSDisplayNode>();
 template bool RSBaseNode::IsInstanceOf<RSNode>();

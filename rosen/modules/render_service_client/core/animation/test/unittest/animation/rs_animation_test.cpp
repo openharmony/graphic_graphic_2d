@@ -657,7 +657,7 @@ HWTEST_F(RSAnimationTest, ImplicitAnimatorTest001, TestSize.Level1)
     /**
      * @tc.steps: step2. start implicit animator test
      */
-    EXPECT_TRUE(RSImplicitAnimator::Instance().NeedImplicitAnimaton());
+    EXPECT_TRUE(RSImplicitAnimator::Instance().NeedImplicitAnimation());
     std::shared_ptr<RSAnimation> animation =
         RSImplicitAnimator::Instance().CreateImplicitAnimation(*node, RSAnimatableProperty::BOUNDS_WIDTH, 100, 200);
     EXPECT_FALSE(animation != nullptr);
@@ -666,7 +666,7 @@ HWTEST_F(RSAnimationTest, ImplicitAnimatorTest001, TestSize.Level1)
     EXPECT_TRUE(transition != nullptr);
     RSImplicitAnimator::Instance().EndImplicitTransition();
     RSImplicitAnimator::Instance().EndImplicitKeyFrameAnimation();
-    RSImplicitAnimator::Instance().NeedImplicitAnimaton();
+    RSImplicitAnimator::Instance().NeedImplicitAnimation();
 }
 
 /**
