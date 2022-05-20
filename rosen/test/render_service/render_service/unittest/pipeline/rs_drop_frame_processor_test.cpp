@@ -86,8 +86,6 @@ HWTEST_F(RSDropFrameProcessorTest, TestDropFrame001, TestSize.Level1)
     csurf = Surface::CreateSurfaceAsConsumer(config.name);
     ASSERT_NE(csurf, nullptr);
     rsNode->SetConsumer(csurf);
-    printf("SetUpTestCase::CreateNodeAndSurface node id:%llu name:%s surface id:%llu \n",
-        rsNode->GetId(), rsNode->GetName().c_str(), csurf->GetUniqueId());
     std::weak_ptr<RSSurfaceRenderNode> surfaceRenderNode(rsNode);
     sptr<IBufferConsumerListener> listener = new RSRenderServiceListener(surfaceRenderNode);
     ASSERT_NE(listener, nullptr);
