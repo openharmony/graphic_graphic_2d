@@ -106,8 +106,8 @@ void RSAnimationLog::PreProcessLogFile(const std::string& logFilePath)
 void RSAnimationLog::InitNodeAndPropertyInfo()
 {
     std::string configFilePath = ANIMATION_LOG_PATH + CONFIG_FILE_NAME;
-    char newpath[strlen(configFilePath.c_str()) + 1] = { 0x00 };
-    if (strlen(configFilePath.c_str()) > PATH_MAX || realpath(configFilePath.c_str(), newpath) == NULL) {
+    char newpath[PATH_MAX + 1] = { 0x00 };
+    if (strlen(configFilePath.c_str()) > PATH_MAX || realpath(configFilePath.c_str(), newpath) == nullptr) {
         return;
     }
     std::ifstream configFile(newpath);
