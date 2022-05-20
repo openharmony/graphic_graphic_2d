@@ -17,23 +17,38 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <securec.h>
 
 #include "utils/matrix.h"
-
-const int FUZZ_DATA_LEN = 0;
 
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
+template<class T>
+size_t GetObject(T &object, const uint8_t *data, size_t size)
+{
+    size_t objectSize = sizeof(object);
+    if (data == nullptr || objectSize > size) {
+        return 0;
+    }
+    auto ret = memcpy_s(&object, objectSize, data, objectSize);
+    if (ret != EOK) {
+        return 0;
+    }
+    return objectSize;
+}
+
 bool MatrixGetFuzzTest(const uint8_t* data, size_t size)
 {
-    bool result = false;
-    Matrix matrix;
-    if (size > FUZZ_DATA_LEN) {
-        result = matrix.Get(reinterpret_cast<const uint32_t>(data));
-        return result;
+    int index;
+    if (data == nullptr || size < sizeof(int)) {
+        return false;
     }
-    return result;
+    size_t startPos = 0;
+    GetObject<int>(index, data + startPos, size - startPos);
+    Matrix matrix;
+    matrix.Get(index);
+    return true;
 }
 } // namespace Drawing
 } // namespace Rosen

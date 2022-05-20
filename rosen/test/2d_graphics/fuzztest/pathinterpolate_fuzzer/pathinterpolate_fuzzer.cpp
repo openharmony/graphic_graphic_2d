@@ -17,24 +17,40 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <securec.h>
 
 #include "draw/path.h"
-
-const int FUZZ_DATA_LEN = 0;
 
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
+template<class T>
+size_t GetObject(T &object, const uint8_t *data, size_t size)
+{
+    size_t objectSize = sizeof(object);
+    if (data == nullptr || objectSize > size) {
+        return 0;
+    }
+    auto ret = memcpy_s(&object, objectSize, data, objectSize);
+    if (ret != EOK) {
+        return 0;
+    }
+    return objectSize;
+}
+
 bool PathInterpolateFuzzTest(const uint8_t* data, size_t size)
 {
-    bool result = false;
+    scalar weight;
+    if (data == nullptr || size < sizeof(scalar)) {
+        return false;
+    }
     Path path;
     Path ending;
     Path out;
-    if (size > FUZZ_DATA_LEN) {
-        return path.Interpolate(ending, reinterpret_cast<const uint32_t>(data), out);
-    }
-    return result;
+    size_t startPos = 0;
+    GetObject<scalar>(weight, data + startPos, size - startPos);
+    path.Interpolate(ending, weight, out);
+    return true;
 }
 } // namespace Drawing
 } // namespace Rosen
