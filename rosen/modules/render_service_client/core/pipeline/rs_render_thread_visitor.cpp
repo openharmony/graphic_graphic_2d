@@ -141,14 +141,14 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
     sk_sp<SkSurface> skSurface = nullptr;
     auto iter = forceRasterNodes.find(node.GetId());
     if (iter != forceRasterNodes.end()) {
-        ROSEN_LOGD("Force Raster draw");
         forceRasterNodes.erase(iter);
         SkImageInfo imageInfo = SkImageInfo::Make(node.GetSurfaceWidth(), node.GetSurfaceHeight(),
             kRGBA_8888_SkColorType, kOpaque_SkAlphaType, SkColorSpace::MakeSRGB());
         skSurface = SkSurface::MakeRaster(imageInfo);
-        canvas_ = new RSPaintFilterCanvas(skSurface->getCanvas());
+        canvas_ = new RSPaintFilterCanvas(skSurface.get());
     } else {
-        canvas_ = new RSPaintFilterCanvas(surfaceFrame->GetCanvas());
+        auto skSurface = surfaceFrame->GetSurface();
+        canvas_ = new RSPaintFilterCanvas(skSurface.get());
     }
     canvas_->clear(SK_ColorTRANSPARENT);
     isIdle_ = false;

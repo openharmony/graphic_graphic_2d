@@ -22,6 +22,17 @@ RSPaintFilterCanvas::RSPaintFilterCanvas(SkCanvas* canvas, float alpha)
     : SkPaintFilterCanvas(canvas), alpha_(std::clamp(alpha, 0.f, 1.f))
 {}
 
+RSPaintFilterCanvas::RSPaintFilterCanvas(SkSurface* skSurface, float alpha)
+    : SkPaintFilterCanvas(skSurface ? skSurface->getCanvas() : nullptr),
+      alpha_(std::clamp(alpha, 0.f, 1.f)),
+      skSurface_(skSurface)
+{}
+
+SkSurface* RSPaintFilterCanvas::GetSurface() const
+{
+    return skSurface_;
+}
+
 bool RSPaintFilterCanvas::onFilter(SkPaint& paint) const
 {
     if (alpha_ >= 1.f) {

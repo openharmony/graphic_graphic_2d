@@ -43,14 +43,25 @@ SkCanvas* RSSurfaceFrameOhosRaster::GetCanvas()
         ROSEN_LOGW("buffer is invalid");
         return nullptr;
     }
-    if (canvas_ == nullptr) {
-        CreateCanvas();
+    if (skSurface_ == nullptr) {
+        CreateSurface();
     }
-
-    return canvas_.get();
+    return skSurface_->getCanvas();
 }
 
-void RSSurfaceFrameOhosRaster::CreateCanvas()
+sk_sp<SkSurface> RSSurfaceFrameOhosRaster::GetSurface()
+{
+    if (buffer_ == nullptr || buffer_->GetWidth() <= 0 || buffer_->GetHeight() <= 0) {
+        ROSEN_LOGW("buffer is invalid");
+        return nullptr;
+    }
+    if (skSurface_ == nullptr) {
+        CreateSurface();
+    }
+    return skSurface_;
+}
+
+void RSSurfaceFrameOhosRaster::CreateSurface()
 {
     auto addr = static_cast<uint32_t*>(buffer_->GetVirAddr());
     if (addr == nullptr) {
@@ -59,8 +70,7 @@ void RSSurfaceFrameOhosRaster::CreateCanvas()
     }
     SkImageInfo info =
         SkImageInfo::Make(buffer_->GetWidth(), buffer_->GetHeight(), kRGBA_8888_SkColorType, kPremul_SkAlphaType);
-    auto uniqueCanvasPtr = SkCanvas::MakeRasterDirect(info, addr, buffer_->GetStride());
-    canvas_ = std::move(uniqueCanvasPtr);
+    skSurface_ = SkSurface::MakeRasterDirect(info, addr, buffer_->GetStride());
 }
 
 int32_t RSSurfaceFrameOhosRaster::GetReleaseFence() const
