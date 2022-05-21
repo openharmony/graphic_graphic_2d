@@ -30,6 +30,7 @@
 #include "refbase.h"
 #include "vsync_receiver.h"
 #include "vsync_distributor.h"
+#include <vsync_helper.h>
 
 #ifdef RS_ENABLE_GL
 #include "render_context/render_context.h"
@@ -121,9 +122,8 @@ private:
     void SendCommands();
 
     std::mutex transitionDataMutex_;
-    std::unique_ptr<RSThreadLooper> threadLooper_ = nullptr;
-    std::unique_ptr<RSThreadHandler> threadHandler_ = nullptr;
-    RSTaskHandle taskHandle_ = nullptr;
+    std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
+    std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
     RSTaskMessage::RSTask mainLoop_;
     std::unique_ptr<RSVsyncClient> vsyncClient_ = nullptr;
     std::queue<std::unique_ptr<RSTransactionData>> cacheCommandQueue_;

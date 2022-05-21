@@ -55,8 +55,8 @@ void RSMainThread::Init()
         RS_LOGI("RsDebug mainLoop end");
     };
 
-    threadLooper_ = RSThreadLooper::Create();
-    threadHandler_ = RSThreadHandler::Create();
+    runner_ = AppExecFwk::EventRunner::Create(false);
+    handler_ = std::make_shared<AppExecFwk::EventHandler>(runner_);
 
     sptr<VSyncConnection> conn = new VSyncConnection(rsVSyncDistributor_, "rs");
     rsVSyncDistributor_->AddConnection(conn);
@@ -73,8 +73,8 @@ void RSMainThread::Init()
 
 void RSMainThread::Start()
 {
-    while (true) {
-        threadLooper_->ProcessAllMessages(-1);
+    if (runner_) {
+        runner_->Run();
     }
 }
 
@@ -129,11 +129,8 @@ void RSMainThread::OnVsync(uint64_t timestamp, void *data)
 {
     ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSMainThread::OnVsync");
     timestamp_ = timestamp;
-    if (threadHandler_) {
-        if (!taskHandle_) {
-            taskHandle_ = RSThreadHandler::StaticCreateTask(mainLoop_);
-        }
-        threadHandler_->PostTaskDelay(taskHandle_, 0);
+    if (handler_) {
+        handler_->PostTask(mainLoop_);
 
         auto screenManager_ = CreateOrGetScreenManager();
         if (screenManager_ != nullptr) {
@@ -181,9 +178,8 @@ void RSMainThread::RecvRSTransactionData(std::unique_ptr<RSTransactionData>& rsT
 
 void RSMainThread::PostTask(RSTaskMessage::RSTask task)
 {
-    if (threadHandler_) {
-        auto taskHandle = threadHandler_->CreateTask(task);
-        threadHandler_->PostTask(taskHandle, 0);
+    if (handler_) {
+        handler_->PostTask(task);
     }
 }
 
