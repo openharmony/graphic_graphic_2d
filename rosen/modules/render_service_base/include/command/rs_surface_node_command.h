@@ -35,6 +35,7 @@ enum RSSurfaceNodeCommandType : uint16_t {
     SURFACE_NODE_REMOVE_SELF,
     SURFACE_NODE_UPDATE_SURFACE_SIZE,
     SURFACE_NODE_CONNECT_TO_NODE_IN_RENDER_SERVICE,
+    SURFACE_NODE_SET_CALLBACK_FOR_RENDER_THREAD,
 };
 
 class SurfaceNodeCommandHelper {
@@ -49,6 +50,7 @@ public:
     static void RemoveSelf(RSContext& context, NodeId nodeId);
     static void UpdateSurfaceDefaultSize(RSContext& context, NodeId nodeId, float width, float height);
     static void ConnectToNodeInRenderService(RSContext& context, NodeId id);
+    static void SetCallbackForRenderThreadRefresh(RSContext& context, NodeId id, std::function<void(void)> callback);
 };
 
 ADD_COMMAND(RSSurfaceNodeCreate, ARG(SURFACE_NODE, SURFACE_NODE_CREATE, SurfaceNodeCommandHelper::Create, NodeId))
@@ -71,6 +73,9 @@ ADD_COMMAND(RSSurfaceNodeUpdateSurfaceDefaultSize, ARG(SURFACE_NODE, SURFACE_NOD
 ADD_COMMAND(RSSurfaceNodeConnectToNodeInRenderService,
     ARG(SURFACE_NODE, SURFACE_NODE_CONNECT_TO_NODE_IN_RENDER_SERVICE,
     SurfaceNodeCommandHelper::ConnectToNodeInRenderService, NodeId))
+ADD_COMMAND(RSSurfaceNodeSetCallbackForRenderThreadRefresh,
+    ARG(SURFACE_NODE, SURFACE_NODE_SET_CALLBACK_FOR_RENDER_THREAD,
+    SurfaceNodeCommandHelper::SetCallbackForRenderThreadRefresh, NodeId, std::function<void(void)>))
 
 } // namespace Rosen
 } // namespace OHOS

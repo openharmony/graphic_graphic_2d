@@ -96,5 +96,14 @@ void SurfaceNodeCommandHelper::ConnectToNodeInRenderService(RSContext& context, 
     }
 }
 
+void SurfaceNodeCommandHelper::SetCallbackForRenderThreadRefresh(RSContext& context, NodeId id, std::function<void(void)> callback)
+{
+    if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(id)) {
+        if (node->NeedSetCallbackForRenderThreadRefresh()) {
+            node->SetCallbackForRenderThreadRefresh(callback);
+        }
+    }
+}
+
 } // namespace Rosen
 } // namespace OHOS

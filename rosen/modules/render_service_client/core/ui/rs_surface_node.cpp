@@ -22,6 +22,7 @@
 #include "command/rs_surface_node_command.h"
 #include "command/rs_base_node_command.h"
 #include "pipeline/rs_node_map.h"
+#include "pipeline/rs_render_thread.h"
 #include "platform/common/rs_log.h"
 #include "platform/drawing/rs_surface_converter.h"
 #include "transaction/rs_render_service_client.h"
@@ -55,6 +56,12 @@ RSSurfaceNode::SharedPtr RSSurfaceNode::Create(const RSSurfaceNodeConfig& surfac
         if (transactionProxy != nullptr) {
             transactionProxy->AddCommand(command, isWindow);
         }
+        command = std::make_unique<RSSurfaceNodeSetCallbackForRenderThreadRefresh>(node->GetId(), [] {
+                RSRenderThread::Instance().RequestNextVSync();
+            });
+        if (transactionProxy != nullptr) {
+            transactionProxy->AddCommand(command, isWindow);
+        }
     }
     ROSEN_LOGD("RsDebug RSSurfaceNode::Create id:%llu", node->GetId());
     return node;
@@ -78,6 +85,15 @@ void RSSurfaceNode::CreateNodeInRenderThread(bool isProxy)
     }
     if (transactionProxy != nullptr) {
         transactionProxy->AddCommand(command, false);
+    }
+
+    if (!isProxy) {
+        command = std::make_unique<RSSurfaceNodeSetCallbackForRenderThreadRefresh>(GetId(), [] {
+            RSRenderThread::Instance().RequestNextVSync();
+        });
+        if (transactionProxy != nullptr) {
+            transactionProxy->AddCommand(command, false);
+        }
     }
     SetRenderServiceNodeType(false);
 }

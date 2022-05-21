@@ -228,6 +228,13 @@ void RSHardwareProcessor::ProcessSurface(RSSurfaceRenderNode &node)
         ReleaseNodePrevBuffer(node);
         return;
     }
+
+    if (!node.IsNotifyRTBufferAvailable()) {
+        // Only ipc for one time.
+        RS_LOGI("RsDebug RSHardwareProcessor::ProcessSurface id = %llu "\
+                "Notify RT buffer available", node.GetId());
+        node.NotifyRTBufferAvailable();
+    }
     ComposeInfo info = {
         .srcRect = {
             .x = 0,

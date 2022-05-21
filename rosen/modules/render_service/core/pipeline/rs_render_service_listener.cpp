@@ -67,11 +67,11 @@ void RSRenderServiceListener::OnBufferAvailable()
         node->IncreaseAvailableBuffer();
     }
 
-    if (!node->IsBufferAvailable()) {
+    if (!node->IsNotifyUIBufferAvailable()) {
         // Only ipc for one time.
         RS_LOGI("RsDebug RSRenderServiceListener::OnBufferAvailable id = %llu "\
-                "Notify buffer available", node->GetId());
-        node->NotifyBufferAvailable();
+                "Notify UI buffer available", node->GetId());
+        node->NotifyUIBufferAvailable();
     }
     RSMainThread::Instance()->RequestNextVSync();
 }

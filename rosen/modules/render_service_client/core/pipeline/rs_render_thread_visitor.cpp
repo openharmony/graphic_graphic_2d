@@ -222,18 +222,13 @@ void RSRenderThreadVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
     auto height = node.GetRenderProperties().GetBoundsHeight();
     canvas_->save();
     canvas_->clipRect(SkRect::MakeXYWH(x, y, width, height));
-    if (node.IsBufferAvailable() == true) {
+    if (node.IsNotifyRTBufferAvailable() == true) {
         ROSEN_LOGI("RSRenderThreadVisitor::ProcessSurfaceRenderNode node : %llu, clip [%f, %f, %f, %f]",
             node.GetId(), x, y, width, height);
         canvas_->clear(SK_ColorTRANSPARENT);
     } else {
         ROSEN_LOGI("RSRenderThreadVisitor::ProcessSurfaceRenderNode node : %llu, not clip [%f, %f, %f, %f]",
             node.GetId(), x, y, width, height);
-        if (node.NeedSetCallbackForRenderThreadRefresh() == true) {
-            node.SetCallbackForRenderThreadRefresh([] {
-                RSRenderThread::Instance().RequestNextVSync();
-            });
-        }
         auto backgroundColor = node.GetRenderProperties().GetBackgroundColor();
         if (backgroundColor != RgbPalette::Transparent()) {
             canvas_->clear(backgroundColor.AsArgbInt());
