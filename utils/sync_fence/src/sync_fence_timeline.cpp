@@ -45,13 +45,13 @@ ns_sec_t SyncFenceTime::GetSignalTimestamp()
     }
 
     sptr<SyncFence> fence;
-    {
-        std::lock_guard<std::mutex> lock(mutex_);
-        if (fence_.GetRefPtr() == nullptr) {
-            return signaledTimestamps_.load(std::memory_order_relaxed);
-        }
-        fence = fence_;
+    
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (fence_.GetRefPtr() == nullptr) {
+        return signaledTimestamps_.load(std::memory_order_relaxed);
     }
+    fence = fence_;
+    
 
     timestamp = fence->SyncFileReadTimestamp();
     if (timestamp != SyncFence::FENCE_PENDING_TIMESTAMP) {
@@ -59,7 +59,6 @@ ns_sec_t SyncFenceTime::GetSignalTimestamp()
         fence_.clear();
         signaledTimestamps_.store(timestamp, std::memory_order_relaxed);
     }
-
     return timestamp;
 }
 
