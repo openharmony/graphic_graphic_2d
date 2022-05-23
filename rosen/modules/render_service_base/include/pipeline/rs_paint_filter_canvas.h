@@ -21,6 +21,7 @@
 #include <stack>
 
 #include "common/rs_macros.h"
+#include "include/core/SkSurface.h"
 
 class SkDrawable;
 namespace OHOS {
@@ -29,12 +30,14 @@ namespace Rosen {
 class RSPaintFilterCanvas : public SkPaintFilterCanvas {
 public:
     RSPaintFilterCanvas(SkCanvas* canvas, float alpha = 1.0f);
+    RSPaintFilterCanvas(SkSurface* skSurface, float alpha = 1.0f);
     ~RSPaintFilterCanvas() override {};
 
     void MultiplyAlpha(float alpha);
     void SaveAlpha();
     void RestoreAlpha();
     float GetAlpha() { return alpha_; }
+    SkSurface* GetSurface() const;
 
 protected:
     bool onFilter(SkPaint& paint) const override;
@@ -43,6 +46,7 @@ protected:
 private:
     std::stack<float> alphaStack_;
     float alpha_ = 1.0f;
+    SkSurface* skSurface_ = nullptr;
 };
 
 } // namespace Rosen

@@ -36,7 +36,7 @@ public:
     RenderContext();
     virtual ~RenderContext();
     void CreateCanvas(int width, int height);
-    SkCanvas* AcquireCanvas(int width, int height);
+    sk_sp<SkSurface> AcquireSurface(int width, int height);
 
     void SetColorSpace(ColorGamut colorSpace);
     void InitializeEglContext();
@@ -44,6 +44,11 @@ public:
     GrContext* GetGrContext() const
     {
         return grContext_.get();
+    }
+
+    sk_sp<SkSurface> GetSurface() const
+    {
+        return skSurface_;
     }
 
     bool SetUpGrContext();

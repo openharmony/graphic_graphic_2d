@@ -31,6 +31,7 @@ public:
     ~RSSurfaceFrameOhosRaster() = default;
 
     SkCanvas* GetCanvas() override;
+    sk_sp<SkSurface> GetSurface() override;
 
     sptr<SurfaceBuffer> GetBuffer() const
     {
@@ -60,7 +61,7 @@ private:
         },
     };
 
-    void CreateCanvas();
+    void CreateSurface();
 };
 
 } // namespace Rosen

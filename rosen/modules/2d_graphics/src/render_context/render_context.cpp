@@ -186,8 +186,7 @@ EGLSurface RenderContext::CreateEGLSurface(EGLNativeWindowType eglNativeWindow)
 
     eglMakeCurrent(eglDisplay_, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
 
-    EGLint winAttribs[] = { EGL_GL_COLORSPACE_KHR, EGL_GL_COLORSPACE_SRGB_KHR, EGL_NONE };
-    EGLSurface surface = eglCreateWindowSurface(eglDisplay_, config_, nativeWindow_, winAttribs);
+    EGLSurface surface = eglCreateWindowSurface(eglDisplay_, config_, nativeWindow_, NULL);
     if (surface == EGL_NO_SURFACE) {
         LOGW("Failed to create eglsurface!!! %{public}x", eglGetError());
         return EGL_NO_SURFACE;
@@ -232,7 +231,7 @@ bool RenderContext::SetUpGrContext()
     return true;
 }
 
-SkCanvas* RenderContext::AcquireCanvas(int width, int height)
+sk_sp<SkSurface> RenderContext::AcquireSurface(int width, int height)
 {
     if (!SetUpGrContext()) {
         LOGE("GrContext is not ready!!!");
@@ -274,7 +273,7 @@ SkCanvas* RenderContext::AcquireCanvas(int width, int height)
     }
 
     LOGE("CreateCanvas successfully!!! (%{public}p)", skSurface_->getCanvas());
-    return skSurface_->getCanvas();
+    return skSurface_;
 }
 
 void RenderContext::RenderFrame()

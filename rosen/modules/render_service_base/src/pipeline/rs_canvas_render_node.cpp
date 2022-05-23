@@ -70,9 +70,9 @@ void RSCanvasRenderNode::ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas
     RSRenderNode::ProcessRenderBeforeChildren(canvas);
 
     RSPropertiesPainter::DrawBackground(GetRenderProperties(), canvas);
-    auto filter = std::static_pointer_cast<RSSkiaFilter>(GetRenderProperties().GetFilter());
+    auto filter = std::static_pointer_cast<RSSkiaFilter>(GetRenderProperties().GetBackgroundFilter());
     if (filter != nullptr) {
-        RSPropertiesPainter::SaveLayerForFilter(GetRenderProperties(), canvas, filter);
+        RSPropertiesPainter::DrawFilter(GetRenderProperties(), canvas, filter, nullptr, canvas.GetSurface());
     }
 
     canvas.save();
@@ -93,13 +93,12 @@ void RSCanvasRenderNode::ProcessRenderAfterChildren(RSPaintFilterCanvas& canvas)
     if (drawContentLast_) {
         ProcessRenderContents(canvas);
     }
-    canvas.restore();
 
     auto filter = std::static_pointer_cast<RSSkiaFilter>(GetRenderProperties().GetFilter());
     if (filter != nullptr) {
-        RSPropertiesPainter::RestoreForFilter(canvas);
+        RSPropertiesPainter::DrawFilter(GetRenderProperties(), canvas, filter, nullptr, canvas.GetSurface());
     }
-
+    canvas.restore();
     RSPropertiesPainter::DrawBorder(GetRenderProperties(), canvas);
     RSPropertiesPainter::DrawForegroundColor(GetRenderProperties(), canvas);
     RSRenderNode::ProcessRenderAfterChildren(canvas);

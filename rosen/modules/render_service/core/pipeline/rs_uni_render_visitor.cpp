@@ -334,8 +334,7 @@ void RSUniRenderVisitor::DrawBufferOnCanvas(RSSurfaceRenderNode& node)
         skRectPtr->setXYWH(node.GetRenderProperties().GetBoundsPositionX(),
             node.GetRenderProperties().GetBoundsPositionY(),
             node.GetRenderProperties().GetBoundsWidth(), node.GetRenderProperties().GetBoundsHeight());
-        RSPropertiesPainter::SaveLayerForFilter(property, *canvas_, filter, skRectPtr);
-        RSPropertiesPainter::RestoreForFilter(*canvas_);
+        RSPropertiesPainter::DrawFilter(property, *canvas_, filter, skRectPtr);
     }
     canvas_->drawBitmapRect(bitmap,
         SkRect::MakeXYWH(0, 0, buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight()),

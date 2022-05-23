@@ -19,6 +19,7 @@
 #include <memory>
 
 #include "include/core/SkCanvas.h"
+#include "include/core/SkSurface.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -30,9 +31,10 @@ public:
 
     virtual void SetDamageRegion(int32_t left, int32_t top, int32_t width, int32_t height) {};
     virtual SkCanvas* GetCanvas() = 0;
+    virtual sk_sp<SkSurface> GetSurface() = 0;
     virtual void SetRenderContext(RenderContext* context) = 0;
 protected:
-    std::shared_ptr<SkCanvas> canvas_;
+    sk_sp<SkSurface> skSurface_ = nullptr;
 private:
 };
 
