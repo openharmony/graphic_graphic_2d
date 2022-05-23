@@ -299,6 +299,7 @@ void RSHardwareProcessor::CalculateSrcRect(ComposeInfo& info, RectI clipRegion, 
 
 bool IfUseGPUClient(const struct PrepareCompleteParam& param)
 {
+    bool ifDeviceComp = true;
     for (auto it = param.layers.begin(); it != param.layers.end(); ++it) {
         LayerInfoPtr layerInfo = *it;
         if (layerInfo == nullptr) {
@@ -317,6 +318,12 @@ bool IfUseGPUClient(const struct PrepareCompleteParam& param)
         } else if (srcGamut != dstGamut) {
             return false;
         }
+        if (layerInfo->GetCompositionType() == CompositionType::COMPOSITION_CLIENT) {
+            ifDeviceComp = false;
+        }
+    }
+    if (ifDeviceComp == true) {
+        return false;
     }
     return true;
 }
@@ -351,7 +358,7 @@ void RSHardwareProcessor::Redraw(
     };
     RS_TRACE_NAME("Redraw");
     bool ifUseGPU = IfUseGPUClient(param);
-    RS_LOGE("RSHardwareProcessor::Redraw if use GPU client: %d!", ifUseGPU);
+    RS_LOGD("RSHardwareProcessor::Redraw if use GPU client: %d!", ifUseGPU);
 #ifdef RS_ENABLE_GL
     if (ifUseGPU) {
         rsSurface_ = std::make_shared<RSSurfaceOhosGl>(surface);
