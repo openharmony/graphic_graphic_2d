@@ -17,6 +17,10 @@ if ("${product_name}" == "watchos" || "${product_name}" == "Hi3516DV300" ||
   gpu_defines = [ "ACE_DISABLE_GL" ]
   ace_enable_gpu = false
   libgl = []
+} else if ("${product_name}" == "Hi3751V350") {
+  gpu_defines = [ "ACE_ENABLE_GL" ]
+  ace_enable_gpu = true
+  libgl = [ "//device/soc/hisilicon/hi3751v350/gpu:gpu_libs" ]
 } else if ("${product_name}" == "rk3566" || "${product_name}" == "rk3568") {
   gpu_defines = [ "ACE_ENABLE_GL" ]
   ace_enable_gpu = true
