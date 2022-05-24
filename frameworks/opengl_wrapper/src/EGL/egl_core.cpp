@@ -17,6 +17,7 @@
 #include <mutex>
 
 #include "egl_defs.h"
+#include "egl_pre_initializer.h"
 #include "egl_wrapper_layer.h"
 #include "egl_wrapper_loader.h"
 #include "../thread_private_data_ctl.h"
@@ -62,34 +63,8 @@ char const * const gGlApiNames3[GL_API_NUM] = {
 
 using namespace OHOS;
 
-class PreInitializer {
-public:
-    PreInitializer() noexcept
-    {
-        WLOGD("");
-        int numApis = sizeof(gGlHookNoContext) / sizeof(EglWrapperFuncPointer);
-        EglWrapperFuncPointer *iter = reinterpret_cast<EglWrapperFuncPointer*>(&gGlHookNoContext);
-        for (int i = 0; i < numApis; ++i) {
-            *(iter++) = reinterpret_cast<EglWrapperFuncPointer>(CallGlApiNoContext);
-        }
-        ThreadPrivateDataCtl::SetGlHookTable(&gGlHookNoContext);
-        preInitFlag = true;
-    }
-    static void CallGlApiNoContext(void)
-    {
-        WLOGE("Call To OpenGL ES API With No Current Context");
-        return;
-    }
-    bool InitStat()
-    {
-        return preInitFlag;
-    }
-private:
-    bool preInitFlag = false;
-};
-
 static std::mutex gInitMutex;
-static PreInitializer preInitializer;
+static EglPreInitializer preInitializer;
 
 void WrapperHookTableInit() noexcept
 {
