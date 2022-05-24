@@ -60,6 +60,8 @@ private:
 
     ScreenId GetDefaultScreenId() override;
 
+    std::vector<ScreenId> GetAllScreenIds() override;
+
     ScreenId CreateVirtualScreen(
         const std::string &name,
         uint32_t width,

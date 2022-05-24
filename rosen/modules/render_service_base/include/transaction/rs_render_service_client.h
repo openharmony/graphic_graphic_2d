@@ -70,6 +70,8 @@ public:
 
     ScreenId GetDefaultScreenId();
 
+    std::vector<ScreenId> GetAllScreenIds();
+
     ScreenId CreateVirtualScreen(const std::string& name, uint32_t width, uint32_t height, sptr<Surface> surface,
         ScreenId mirrorId, int32_t flags);
 

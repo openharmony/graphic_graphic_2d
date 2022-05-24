@@ -229,6 +229,12 @@ ScreenId RSRenderServiceConnection::GetDefaultScreenId()
     return screenManager_->GetDefaultScreenId();
 }
 
+std::vector<ScreenId> RSRenderServiceConnection::GetAllScreenIds()
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    return screenManager_->GetAllScreenIds();
+}
+
 ScreenId RSRenderServiceConnection::CreateVirtualScreen(
     const std::string &name,
     uint32_t width,

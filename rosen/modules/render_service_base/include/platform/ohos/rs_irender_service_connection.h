@@ -49,6 +49,7 @@ public:
         COMMIT_TRANSACTION,
         CREATE_NODE_AND_SURFACE,
         GET_DEFAULT_SCREEN_ID,
+        GET_ALL_SCREEN_IDS,
         CREATE_VIRTUAL_SCREEN,
         SET_VIRTUAL_SCREEN_RESOLUTION,
         SET_VIRTUAL_SCREEN_SURFACE,
@@ -89,6 +90,8 @@ public:
     virtual sptr<IVSyncConnection> CreateVSyncConnection(const std::string& name) = 0;
 
     virtual ScreenId GetDefaultScreenId() = 0;
+
+    virtual std::vector<ScreenId> GetAllScreenIds() = 0;
 
     // mirrorId: decide which screen id to mirror, INVALID_SCREEN_ID means do not mirror any screen.
     virtual ScreenId CreateVirtualScreen(

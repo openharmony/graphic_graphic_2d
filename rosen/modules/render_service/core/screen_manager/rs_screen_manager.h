@@ -65,6 +65,8 @@ public:
     // get default/primary screen id.
     virtual ScreenId GetDefaultScreenId() const = 0;
 
+    virtual std::vector<ScreenId> GetAllScreenIds() = 0;
+
     virtual void SetDefaultScreenId(ScreenId id) = 0;
 
     virtual void SetScreenMirror(ScreenId id, ScreenId toMirror) = 0;
@@ -164,6 +166,8 @@ public:
     {
         return defaultScreenId_;
     }
+
+    std::vector<ScreenId> GetAllScreenIds() override;
 
     void SetDefaultScreenId(ScreenId id) override;
 

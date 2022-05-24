@@ -139,6 +139,31 @@ ScreenId RSRenderServiceConnectionProxy::GetDefaultScreenId()
     return id;
 }
 
+std::vector<ScreenId> RSRenderServiceConnectionProxy::GetAllScreenIds()
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    std::vector<ScreenId> screenIds;
+
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return std::vector<ScreenId>();
+    }
+
+    option.SetFlags(MessageOption::TF_SYNC);
+    int32_t err = Remote()->SendRequest(RSIRenderServiceConnection::GET_ALL_SCREEN_IDS, data, reply, option);
+    if (err != NO_ERROR) {
+        return std::vector<ScreenId>();
+    }
+
+    int32_t size = reply.ReadUint32();
+    for (int32_t i = 0; i < size; i++) {
+        screenIds.emplace_back(reply.ReadUint64());
+    }
+
+    return screenIds;
+}
+
 ScreenId RSRenderServiceConnectionProxy::CreateVirtualScreen(
     const std::string &name,
     uint32_t width,

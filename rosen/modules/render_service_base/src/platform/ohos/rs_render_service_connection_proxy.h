@@ -36,6 +36,8 @@ public:
 
     ScreenId GetDefaultScreenId() override;
 
+    std::vector<ScreenId> GetAllScreenIds() override;
+
     // mirrorId: decide which screen id to mirror, INVALID_SCREEN_ID means do not mirror any screen.
     ScreenId CreateVirtualScreen(
         const std::string &name,

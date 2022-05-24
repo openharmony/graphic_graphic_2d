@@ -151,6 +151,16 @@ ScreenId RSRenderServiceClient::GetDefaultScreenId()
     return renderService->GetDefaultScreenId();
 }
 
+std::vector<ScreenId> RSRenderServiceClient::GetAllScreenIds()
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        return std::vector<ScreenId>();
+    }
+
+    return renderService->GetAllScreenIds();
+}
+
 ScreenId RSRenderServiceClient::CreateVirtualScreen(
     const std::string &name,
     uint32_t width,

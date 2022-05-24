@@ -117,6 +117,8 @@ HWTEST_F(RSInterfacesTest, CreateVirtualScreen003, Function | SmallTest | Level2
     ScreenId virtualScreenId2 = rsInterfaces->CreateVirtualScreen(
         "virtual2", 320, 180, psurface, INVALID_SCREEN_ID, -1);
     EXPECT_EQ(virtualScreenId2, INVALID_SCREEN_ID);
+
+    rsInterfaces->RemoveVirtualScreen(virtualScreenId1);
 }
 
 /*
@@ -872,6 +874,34 @@ HWTEST_F(RSInterfacesTest, SetVirtualScreenResolution001, Function | SmallTest |
     EXPECT_EQ(curVirtualScreenResolution.GetVirtualScreenHeight(), newHeight);
 
     rsInterfaces->RemoveVirtualScreen(virtualScreenId);
+}
+
+/*
+* Function: GetAllScreenIds
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call GetAllScreenIds
+*                  2. check vector size
+*/
+HWTEST_F(RSInterfacesTest, GetAllScreenIds, Function | SmallTest | Level2)
+{
+    std::vector<ScreenId> ids = rsInterfaces->GetAllScreenIds();
+    int32_t size = ids.size();
+    EXPECT_GT(ids.size(), 0);
+    auto csurface = Surface::CreateSurfaceAsConsumer();
+    EXPECT_NE(csurface, nullptr);
+    auto producer = csurface->GetProducer();
+    auto psurface = Surface::CreateSurfaceAsProducer(producer);
+    uint32_t defaultWidth = 720;
+    uint32_t defaultHeight = 1280;
+    EXPECT_NE(psurface, nullptr);
+
+    ScreenId virtualScreenId = rsInterfaces->CreateVirtualScreen(
+        "virtual6", defaultWidth, defaultHeight, psurface, INVALID_SCREEN_ID, -1);
+    EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
+    ids = rsInterfaces->GetAllScreenIds();
+    EXPECT_EQ(size + 1, ids.size());
 }
 } // namespace Rosen
 } // namespace OHOS

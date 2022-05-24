@@ -36,6 +36,11 @@ ScreenId RSInterfaces::GetDefaultScreenId()
     return renderServiceClient_->GetDefaultScreenId();
 }
 
+std::vector<ScreenId> RSInterfaces::GetAllScreenIds()
+{
+    return renderServiceClient_->GetAllScreenIds();
+}
+
 ScreenId RSInterfaces::CreateVirtualScreen(
     const std::string &name,
     uint32_t width,

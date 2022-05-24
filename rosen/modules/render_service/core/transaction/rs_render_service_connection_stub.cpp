@@ -58,6 +58,19 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             reply.WriteUint64(id);
             break;
         }
+        case GET_ALL_SCREEN_IDS: {
+            auto token = data.ReadInterfaceToken();
+            if (token != RSIRenderServiceConnection::GetDescriptor()) {
+                ret = ERR_INVALID_STATE;
+                break;
+            }
+            std::vector<ScreenId> ids = GetAllScreenIds();
+            reply.WriteUint32(ids.size());
+            for (int32_t i = 0; i < ids.size(); i++) {
+                reply.WriteUint64(ids[i]);
+            }
+            break;
+        }
         case CREATE_VIRTUAL_SCREEN: {
             auto token = data.ReadInterfaceToken();
             if (token != RSIRenderServiceConnection::GetDescriptor()) {
