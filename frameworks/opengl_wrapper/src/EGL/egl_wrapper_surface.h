@@ -19,7 +19,6 @@
 #include <EGL/egl.h>
 #include "egl_wrapper_object.h"
 namespace OHOS {
-
 class EglWrapperDisplay;
 
 class EglWrapperSurface : public EglWrapperObject {
@@ -31,7 +30,7 @@ public:
         return surf_;
     };
 protected:
-    virtual ~EglWrapperSurface() override;
+    ~EglWrapperSurface() override;
 private:
     EGLSurface surf_;
 };

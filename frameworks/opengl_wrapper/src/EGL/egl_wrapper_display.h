@@ -91,9 +91,7 @@ private:
     EGLDisplay GetEglNativeDisplayExt(EGLenum platform, void *disp, const EGLAttrib *attribList);
     bool CheckObject(EglWrapperObject *obj);
     void ClearObjects();
-    EGLBoolean InternalMakeCurrent(
-        EGLSurface actualDraw, EGLSurface actualRead, EGLContext actualCtx,
-        EglWrapperSurface *draw, EglWrapperSurface *read, EglWrapperContext *ctx);
+    EGLBoolean InternalMakeCurrent(EglWrapperSurface *draw, EglWrapperSurface *read, EglWrapperContext *ctx);
 
     static EglWrapperDisplay wrapperDisp_;
     EGLDisplay  disp_;

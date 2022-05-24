@@ -19,7 +19,6 @@
 #include <EGL/egl.h>
 #include "egl_wrapper_object.h"
 namespace OHOS {
-
 class EglWrapperDisplay;
 
 class EglWrapperContext : public EglWrapperObject {
@@ -33,7 +32,7 @@ public:
         return context_;
     };
 protected:
-    virtual ~EglWrapperContext() override;
+    ~EglWrapperContext() override;
 private:
     EGLContext context_;
     EGLSurface read_;

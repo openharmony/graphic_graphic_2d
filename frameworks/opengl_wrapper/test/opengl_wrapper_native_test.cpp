@@ -17,9 +17,9 @@
 #include <surface.h>
 #include <sys/time.h>
 
+#include <hilog/log.h>
 #include "core/ui/rs_display_node.h"
 #include "core/ui/rs_surface_node.h"
-#include <hilog/log.h>
 #include "window.h"
 
 #include <EGL/egl.h>
@@ -27,19 +27,23 @@
 #include <GLES2/gl2.h>
 #include <GLES2/gl2ext.h>
 
-#define TAG "opengl_wrapper_native_test"
-#define LOGD(fmt, ...)               \
-    ::OHOS::HiviewDFX::HiLog::Debug( \
-        ::OHOS::HiviewDFX::HiLogLabel { LOG_CORE, 0, TAG }, "%{public}s:%{public}d " fmt, __func__, __LINE__, ##__VA_ARGS__)
-#define LOGI(fmt, ...)              \
-    ::OHOS::HiviewDFX::HiLog::Info( \
-        ::OHOS::HiviewDFX::HiLogLabel { LOG_CORE, 0, TAG }, "%{public}s:%{public}d " fmt, __func__, __LINE__,##__VA_ARGS__)
-#define LOGW(fmt, ...)              \
-    ::OHOS::HiviewDFX::HiLog::Warn( \
-        ::OHOS::HiviewDFX::HiLogLabel { LOG_CORE, 0, TAG }, "%{public}s:%{public}d " fmt, __func__, __LINE__,##__VA_ARGS__)
-#define LOGE(fmt, ...)               \
-    ::OHOS::HiviewDFX::HiLog::Error( \
-        ::OHOS::HiviewDFX::HiLogLabel { LOG_CORE, 0, TAG }, "%{public}s:%{public}d " fmt, __func__, __LINE__,##__VA_ARGS__)
+
+#define LOGD(fmt, ...)                                                                  \
+    ::OHOS::HiviewDFX::HiLog::Debug(                                                    \
+        ::OHOS::HiviewDFX::HiLogLabel { LOG_CORE, 0, "opengl_wrapper_native_test" },    \
+        "%{public}s:%{public}d " fmt, __func__, __LINE__, ##__VA_ARGS__)
+#define LOGI(fmt, ...)                                                                  \
+    ::OHOS::HiviewDFX::HiLog::Info(                                                     \
+        ::OHOS::HiviewDFX::HiLogLabel { LOG_CORE, 0, "opengl_wrapper_native_test" },    \
+        "%{public}s:%{public}d " fmt, __func__, __LINE__, ##__VA_ARGS__)
+#define LOGW(fmt, ...)                                                                  \
+    ::OHOS::HiviewDFX::HiLog::Warn(                                                     \
+        ::OHOS::HiviewDFX::HiLogLabel { LOG_CORE, 0, "opengl_wrapper_native_test" },    \
+        "%{public}s:%{public}d " fmt, __func__, __LINE__, ##__VA_ARGS__)
+#define LOGE(fmt, ...)                                                                  \
+    ::OHOS::HiviewDFX::HiLog::Error(                                                    \
+        ::OHOS::HiviewDFX::HiLogLabel { LOG_CORE, 0, "opengl_wrapper_native_test" },    \
+        "%{public}s:%{public}d " fmt, __func__, __LINE__, ##__VA_ARGS__)
 
 using namespace OHOS;
 using namespace Rosen;
@@ -49,16 +53,18 @@ using TestFunc = std::function<void(uint32_t, uint32_t)>;
 static std::vector<TestFunc> testFuncVec;
 constexpr static int32_t WIDTH = 720;
 constexpr static int32_t HEIGHT = 1280;
+constexpr static int32_t LOOP_COUNT = 5000;
+constexpr static int32_t FRAME_UPDATE_TIME_INTERVAL = 16000;
 constexpr int32_t EGL_CONTEXT_CLIENT_VERSION_NUM = 3;
-EGLDisplay gEglDisplay = EGL_NO_DISPLAY;
-EGLContext gEglContext = EGL_NO_CONTEXT;
-EGLSurface gEglSurface = EGL_NO_SURFACE;
-EGLConfig gConfig;
-struct NativeWindow *gWindow = nullptr;
-GLuint gProgram;
-GLuint gPos;
-GLuint gColor;
-GLuint gOffsetUniform;
+static EGLDisplay gEglDisplay = EGL_NO_DISPLAY;
+static EGLContext gEglContext = EGL_NO_CONTEXT;
+static EGLSurface gEglSurface = EGL_NO_SURFACE;
+static EGLConfig gConfig;
+static struct NativeWindow *gWindow = nullptr;
+static GLuint gProgram;
+static GLuint gPos;
+static GLuint gColor;
+static GLuint gOffsetUniform;
 
 static const char *gVertShaderText =
     "uniform float offset;\n"
@@ -100,8 +106,7 @@ static GLuint CreateShader(const char *source, GLenum shaderType)
     return shader;
 }
 
-static GLuint
-CreateAndLinkProgram(GLuint vert, GLuint frag)
+static GLuint CreateAndLinkProgram(GLuint vert, GLuint frag)
 {
     GLint status;
     GLuint program = glCreateProgram();
@@ -141,7 +146,6 @@ static bool SetUpGl()
 
 static void render()
 {
-
     /* Complete a movement iteration in 5000 ms. */
     static const uint64_t iterationMs = 5000;
     static const GLfloat verts[4][2] = {
@@ -160,24 +164,29 @@ static void render()
     struct timeval tv;
     uint64_t timeMs;
 
-    gettimeofday(&tv, NULL);
-    timeMs = tv.tv_sec * 1000 + tv.tv_usec / 1000;
+    gettimeofday(&tv, nullptr);
+    const int timeConversionRate = 1000;
+    timeMs = tv.tv_sec * timeConversionRate + tv.tv_usec / timeConversionRate;
 
     /* Split timeMs in repeating windows of [0, iterationMs) and map them
      * to offsets in the [-0.5, 0.5) range. */
-    offset = (timeMs % iterationMs) / (float) iterationMs - 0.5;
+    const float range = 0.5;
+    offset = (timeMs % iterationMs) / (float) iterationMs - range;
 
     glUniform1f(gOffsetUniform, offset);
 
     glClearColor(1.0, 1.0, 1.0, 1.0);
     glClear(GL_COLOR_BUFFER_BIT);
 
-    glVertexAttribPointer(gPos, 2, GL_FLOAT, GL_FALSE, 0, verts);
-    glVertexAttribPointer(gColor, 3, GL_FLOAT, GL_FALSE, 0, colors);
+    const int32_t vertsCnt = 2;
+    glVertexAttribPointer(gPos, vertsCnt, GL_FLOAT, GL_FALSE, 0, verts);
+    const int32_t colorsCnt = 3;
+    glVertexAttribPointer(gColor, colorsCnt, GL_FLOAT, GL_FALSE, 0, colors);
     glEnableVertexAttribArray(gPos);
     glEnableVertexAttribArray(gColor);
 
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    const int32_t pointsCnt = 4;
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, pointsCnt);
 
     glDisableVertexAttribArray(gPos);
     glDisableVertexAttribArray(gColor);
@@ -197,11 +206,10 @@ static void TestDraw(uint32_t width, uint32_t height)
 
     glViewport(0, 0, w, h);
 
-    for (int i= 0; i < 5000; i++)
-    {
+    for (int i = 0; i < LOOP_COUNT; i++) {
         render();
         eglSwapBuffers(gEglDisplay, gEglSurface);
-        usleep(16000);
+        usleep(FRAME_UPDATE_TIME_INTERVAL);
     }
 
     LOGI("+++++++ TestDraw");
@@ -289,8 +297,8 @@ static std::shared_ptr<RSSurfaceNode> CreateSurface()
 {
     RSSurfaceNodeConfig config;
     auto surfaceNode = RSSurfaceNode::Create(config);
-    sptr<Surface> surface = surfaceNode->GetSurface();
-    gWindow = CreateNativeWindowFromSurface(&surface);
+    sptr<Surface> surf = surfaceNode->GetSurface();
+    gWindow = CreateNativeWindowFromSurface(&surf);
 
     NativeWindowHandleOpt(gWindow, SET_USAGE, HBM_USE_CPU_READ | HBM_USE_CPU_WRITE | HBM_USE_MEM_DMA);
     NativeWindowHandleOpt(gWindow, SET_BUFFER_GEOMETRY, WIDTH, HEIGHT);

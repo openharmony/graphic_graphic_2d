@@ -28,12 +28,11 @@ constexpr ::OHOS::HiviewDFX::HiLogLabel LABEL = { LOG_CORE, 0xD001400, "OpenGLWr
         } else {                                                                        \
             WLOGE("%{public}s is invalid.", #api);                                      \
         }                                                                               \
-    } while(0);                                                                         \
+    } while (0);                                                                        \
 }
 
 #undef CALL_HOOK_API_RET
-#define CALL_HOOK_API_RET(api, ...)                                                     \
-    do {                                                                                \
+#define CALL_HOOK_API_RET(api, ...) do {                                                \
         OHOS::GlHookTable const *table = OHOS::ThreadPrivateDataCtl::GetGlHookTable();  \
         if (table && table->table1.api) {                                               \
             return table->table1.api(__VA_ARGS__);                                      \
@@ -41,7 +40,7 @@ constexpr ::OHOS::HiviewDFX::HiLogLabel LABEL = { LOG_CORE, 0xD001400, "OpenGLWr
             WLOGE("%{public}s is invalid.", #api);                                      \
             return 0;                                                                   \
         }                                                                               \
-    } while(0);                                                                         \
+    } while (0);                                                                        \
 }
 
 #undef HOOK_API_ENTRY

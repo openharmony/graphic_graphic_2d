@@ -686,7 +686,7 @@ EGLSurface EglCreatePlatformWindowSurfaceImpl(EGLDisplay dpy,
 }
 
 
-EGLSurface EglCreatePlatformPixmapSurfaceImpl(EGLDisplay dpy, 
+EGLSurface EglCreatePlatformPixmapSurfaceImpl(EGLDisplay dpy,
     EGLConfig config, void *nativePixmap, const EGLAttrib *attribList)
 {
     WLOGD("");

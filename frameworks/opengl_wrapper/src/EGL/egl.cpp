@@ -21,30 +21,30 @@ namespace {
 constexpr ::OHOS::HiviewDFX::HiLogLabel LABEL = { LOG_CORE, 0xD001400, "OpenGLWrapper" };
 }
 #undef CALL_HOOK_API
-#define CALL_HOOK_API(api, ...)                                     \
-    if (OHOS::EglCoreInit()) {                                      \
-        if (OHOS::CheckEglWrapperApi(#api)) {                       \
-            OHOS::gWrapperHook.wrapper.api(__VA_ARGS__);            \
-        } else {                                                    \
-            WLOGE("%{public}s is invalid.", #api);                  \
-        }                                                           \
-    }                                                               \
+#define CALL_HOOK_API(api, ...)                                         \
+    do {                                                                \
+        if (OHOS::EglCoreInit() && OHOS::CheckEglWrapperApi(#api)) {    \
+            OHOS::gWrapperHook.wrapper.api(__VA_ARGS__);                \
+        } else {                                                        \
+            WLOGE("%{public}s is invalid.", #api);                      \
+        }                                                               \
+    } while (0);                                                        \
 }
 
 #undef CALL_HOOK_API_RET
-#define CALL_HOOK_API_RET(api, ...)                                 \
-    if (OHOS::EglCoreInit()) {                                      \
-        if (OHOS::CheckEglWrapperApi(#api)) {                       \
-            return OHOS::gWrapperHook.wrapper.api(__VA_ARGS__);     \
-        } else {                                                    \
-            WLOGE("%{public}s is invalid.", #api);                  \
-        }                                                           \
-    }                                                               \
-    return 0;                                                       \
+#define CALL_HOOK_API_RET(api, ...)                                     \
+    do {                                                                \
+        if (OHOS::EglCoreInit() && OHOS::CheckEglWrapperApi(#api)) {    \
+            return OHOS::gWrapperHook.wrapper.api(__VA_ARGS__);         \
+        } else {                                                        \
+            WLOGE("%{public}s is invalid.", #api);                      \
+            return 0;                                                   \
+        }                                                               \
+    } while (0);                                                        \
 }
 
 #undef HOOK_API_ENTRY
-#define HOOK_API_ENTRY(r, api, ...) r api(__VA_ARGS__) {            \
+#define HOOK_API_ENTRY(r, api, ...) r api(__VA_ARGS__) {                \
 
 extern "C" {
 #pragma GCC diagnostic ignored "-Wunused-parameter"

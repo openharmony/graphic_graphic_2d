@@ -17,7 +17,6 @@
 
 #include <hilog/log.h>
 namespace OHOS {
-
 #ifdef __aarch64__
 #define WPUBI64  "%{public}ld"
 #define WPUBSize "%{public}lu"

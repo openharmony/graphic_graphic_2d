@@ -22,7 +22,6 @@
 #include "../thread_private_data_ctl.h"
 #include "../wrapper_log.h"
 
-using namespace OHOS;
 namespace OHOS {
 namespace {
 constexpr ::OHOS::HiviewDFX::HiLogLabel LABEL = { LOG_CORE, 0xD001400, "OpenGLWrapper" };
@@ -65,13 +64,15 @@ char const * const gGlApiNames3[GL_API_NUM] = {
     nullptr
 };
 
-static void CallGlApiNoContext(void) noexcept
+using namespace OHOS;
+
+static void CallGlApiNoContext(void)
 {
     WLOGE("Call To OpenGL ES API With No Current Context");
     return;
 }
 
-static void PreInit(void) noexcept
+static void PreInit(void)
 {
     WLOGD("");
     int numApis = sizeof(gGlHookNoContext) / sizeof(EglWrapperFuncPointer);
@@ -83,14 +84,28 @@ static void PreInit(void) noexcept
     ThreadPrivateDataCtl::SetGlHookTable(&gGlHookNoContext);
 }
 
-static pthread_once_t gOnceControl = PTHREAD_ONCE_INIT;
-static int gPreInitState = pthread_once(&gOnceControl, &PreInit);
-static std::mutex gInitMutex;
+class PreInitializer {
+public:
+    PreInitializer() noexcept
+    {
+        initState_ = pthread_once(&onceCtl_, &PreInit);
+    }
+    int InitStat()
+    {
+        return initState_;
+    }
+private:
+    pthread_once_t onceCtl_ = PTHREAD_ONCE_INIT;
+    int initState_;
+};
 
-void WrapperHookTableInit()
+static std::mutex gInitMutex;
+PreInitializer preInitializer;
+
+void WrapperHookTableInit() noexcept
 {
     WLOGD("");
-    char const* const *apiName = gWrapperApiNames;
+    char const * const *apiName = gWrapperApiNames;
     EglWrapperFuncPointer *curr = reinterpret_cast<EglWrapperFuncPointer*>(&gWrapperHook.wrapper);
     while (*apiName) {
         std::string name = *apiName;
@@ -111,8 +126,8 @@ bool EglCoreInit()
         return true;
     }
 
-    if (gPreInitState) {
-        WLOGE("PreInitState Error.");
+    if (preInitializer.InitStat()) {
+        WLOGE("initState_ Error.");
         return false;
     }
 

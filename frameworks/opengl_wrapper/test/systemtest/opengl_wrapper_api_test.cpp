@@ -170,7 +170,6 @@ HWTEST_F(OpenglWrapperApiTest, eglChooseConfig, TestSize.Level0)
 
     error = eglGetError();
     EXPECT_EQ(error, EGL_SUCCESS);
-
 }
 
 /*
@@ -246,7 +245,6 @@ HWTEST_F(OpenglWrapperApiTest, eglCreateWindowSurface, TestSize.Level0)
 
     error = eglGetError();
     EXPECT_EQ(error, EGL_SUCCESS);
-
 }
 
 /*
@@ -259,7 +257,7 @@ HWTEST_F(OpenglWrapperApiTest, eglCreateWindowSurface, TestSize.Level0)
  */
 HWTEST_F(OpenglWrapperApiTest, eglMakeCurrent, TestSize.Level0)
 {
-    //abnormal
+    // abnormal
     EGLBoolean ret = eglMakeCurrent(nullptr, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
     EXPECT_EQ(ret, EGL_FALSE);
 
@@ -289,7 +287,6 @@ HWTEST_F(OpenglWrapperApiTest, eglMakeCurrent, TestSize.Level0)
 
     error = eglGetError();
     EXPECT_EQ(error, EGL_SUCCESS);
-
 }
 
 /*
@@ -407,7 +404,6 @@ HWTEST_F(OpenglWrapperApiTest, eglDestroySurface, TestSize.Level0)
     error = eglGetError();
     EXPECT_EQ(error, EGL_SUCCESS);
     eglSurface_ = EGL_NO_SURFACE;
-
 }
 
 /*
@@ -439,7 +435,6 @@ HWTEST_F(OpenglWrapperApiTest, eglDestroyContext, TestSize.Level0)
     error = eglGetError();
     EXPECT_EQ(error, EGL_SUCCESS);
     eglContext_ = EGL_NO_CONTEXT;
-
 }
 
 /*
@@ -465,7 +460,6 @@ HWTEST_F(OpenglWrapperApiTest, eglTerminate, TestSize.Level0)
     error = eglGetError();
     EXPECT_EQ(error, EGL_SUCCESS);
     eglDisplay_ = EGL_NO_DISPLAY;
-
 }
 
 /*
@@ -484,6 +478,5 @@ HWTEST_F(OpenglWrapperApiTest, eglReleaseThread, TestSize.Level0)
 
     EGLint error = eglGetError();
     EXPECT_EQ(error, EGL_SUCCESS);
-
 }
 }

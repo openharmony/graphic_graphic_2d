@@ -32,8 +32,9 @@ namespace OHOS {
 #define CALL_HOOK_API_RET CALL_HOOK_API
 #undef HOOK_API_ENTRY
 #define HOOK_API_ENTRY(r, api, ...) r (*(api))(__VA_ARGS__);
-#define EGL_API_NUM    (100)
-#define GL_API_NUM     (1000)
+
+constexpr int32_t EGL_API_NUM = 100;
+constexpr int32_t GL_API_NUM = 1000;
 
 struct WrapperHookTable {
     #include "wrapper_hook_entries.in"

@@ -64,10 +64,9 @@ EGLBoolean EglWrapperDisplay::Init(EGLint *major, EGLint *minor)
             if (major != nullptr) {
                 *major = table->major;
             }
-
             if (minor != nullptr) {
                 *minor = table->minor;
-            }            
+            }
             refCnt_++;
         } else {
             WLOGE("eglInitialize Error.");
@@ -105,10 +104,24 @@ EGLBoolean EglWrapperDisplay::Terminate()
 }
 
 EGLBoolean EglWrapperDisplay::InternalMakeCurrent(
-    EGLSurface actualDraw, EGLSurface actualRead, EGLContext actualCtx,
     EglWrapperSurface *draw, EglWrapperSurface *read, EglWrapperContext *ctx)
 {
     WLOGD("");
+    EGLContext actualCtx  = EGL_NO_CONTEXT;
+    EGLSurface actualDraw = EGL_NO_SURFACE;
+    EGLSurface actualRead = EGL_NO_SURFACE;
+    if (draw != nullptr) {
+        actualDraw = draw->GetEglSurface();
+    }
+
+    if (read != nullptr) {
+        actualRead = read->GetEglSurface();
+    }
+
+    if (ctx != nullptr) {
+        actualCtx = ctx->GetEglContext();
+    }
+
     EGLBoolean ret = EGL_FALSE;
     EglWrapperDispatchTablePtr table = &gWrapperHook;
     if (table->isLoad && table->egl.eglMakeCurrent) {
@@ -137,9 +150,6 @@ EGLBoolean EglWrapperDisplay::MakeCurrent(EGLSurface draw, EGLSurface read, EGLC
     EglWrapperContext *ctxPtr = nullptr;
     EglWrapperSurface *surDrawPtr = nullptr;
     EglWrapperSurface *surReadPtr = nullptr;
-    EGLContext actualCtx  = EGL_NO_CONTEXT;
-    EGLSurface actualDraw = EGL_NO_SURFACE;
-    EGLSurface actualRead = EGL_NO_SURFACE;
 
     if (ctx != EGL_NO_CONTEXT) {
         ctxPtr = EglWrapperContext::GetWrapperContext(ctx);
@@ -148,7 +158,6 @@ EGLBoolean EglWrapperDisplay::MakeCurrent(EGLSurface draw, EGLSurface read, EGLC
             ThreadPrivateDataCtl::SetError(EGL_BAD_CONTEXT);
             return EGL_FALSE;
         }
-        actualCtx = ctxPtr->GetEglContext();
     } else {
         if (draw != EGL_NO_SURFACE || read != EGL_NO_SURFACE) {
             WLOGE("EGLContext and EGLSurface is bad match.");
@@ -168,7 +177,6 @@ EGLBoolean EglWrapperDisplay::MakeCurrent(EGLSurface draw, EGLSurface read, EGLC
             ThreadPrivateDataCtl::SetError(EGL_BAD_SURFACE);
             return EGL_FALSE;
         }
-        actualDraw = surDrawPtr->GetEglSurface();
     }
 
     if (read != EGL_NO_SURFACE) {
@@ -178,10 +186,9 @@ EGLBoolean EglWrapperDisplay::MakeCurrent(EGLSurface draw, EGLSurface read, EGLC
             ThreadPrivateDataCtl::SetError(EGL_BAD_SURFACE);
             return EGL_FALSE;
         }
-        actualRead = surReadPtr->GetEglSurface();
     }
 
-    return InternalMakeCurrent(actualDraw, actualRead, actualCtx, surDrawPtr, surReadPtr, ctxPtr);
+    return InternalMakeCurrent(surDrawPtr, surReadPtr, ctxPtr);
 }
 
 EglWrapperDisplay *EglWrapperDisplay::GetWrapperDisplay(EGLDisplay display)
@@ -326,7 +333,7 @@ EGLBoolean EglWrapperDisplay::DestroyEglContext(EGLContext context)
 
 EGLSurface EglWrapperDisplay::CreateEglSurface(EGLConfig config, NativeWindowType window, const EGLint *attribList)
 {
-    WLOGD("");    
+    WLOGD("");
     std::lock_guard<std::mutex> lock(refLockMutex_);
 
     if (!window) {
@@ -436,7 +443,7 @@ EGLBoolean EglWrapperDisplay::CopyBuffers(EGLSurface surf, NativePixmapType targ
 
 EGLSurface EglWrapperDisplay::CreatePbufferSurface(EGLConfig config, const EGLint *attribList)
 {
-    WLOGD("");    
+    WLOGD("");
     std::lock_guard<std::mutex> lock(refLockMutex_);
 
     EglWrapperDispatchTablePtr table = &gWrapperHook;
@@ -782,7 +789,7 @@ EGLBoolean EglWrapperDisplay::UnlockSurfaceKHR(EGLSurface surf)
     return ret;
 }
 
-EGLImageKHR EglWrapperDisplay::CreateImageKHR(EGLContext ctx, EGLenum target, 
+EGLImageKHR EglWrapperDisplay::CreateImageKHR(EGLContext ctx, EGLenum target,
     EGLClientBuffer buffer, const EGLint *attribList)
 {
     WLOGD("");
