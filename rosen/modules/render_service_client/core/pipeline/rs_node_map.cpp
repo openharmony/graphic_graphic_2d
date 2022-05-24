@@ -48,6 +48,7 @@ const RSNodeMap& RSNodeMap::Instance()
 
 bool RSNodeMap::RegisterNode(const RSBaseNode::SharedPtr& nodePtr)
 {
+    std::unique_lock<std::mutex> lock(mutex_);
     NodeId id = nodePtr->GetId();
     auto itr = nodeMap_.find(id);
     if (itr != nodeMap_.end()) {
@@ -60,6 +61,7 @@ bool RSNodeMap::RegisterNode(const RSBaseNode::SharedPtr& nodePtr)
 
 void RSNodeMap::UnregisterNode(NodeId id)
 {
+    std::unique_lock<std::mutex> lock(mutex_);
     auto itr = nodeMap_.find(id);
     if (itr != nodeMap_.end()) {
         nodeMap_.erase(itr);
@@ -69,6 +71,7 @@ void RSNodeMap::UnregisterNode(NodeId id)
 template<>
 const std::shared_ptr<RSBaseNode> RSNodeMap::GetNode<RSBaseNode>(NodeId id) const
 {
+    std::unique_lock<std::mutex> lock(mutex_);
     auto itr = nodeMap_.find(id);
     if (itr == nodeMap_.end()) {
         return nullptr;

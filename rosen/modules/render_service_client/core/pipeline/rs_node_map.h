@@ -53,6 +53,7 @@ private:
     RSNodeMap& operator=(const RSNodeMap&&) = delete;
 
 private:
+    mutable std::mutex mutex_;
     std::unordered_map<NodeId, std::weak_ptr<RSBaseNode>> nodeMap_;
     std::shared_ptr<RSNode> animationFallbackNode_;
 };
