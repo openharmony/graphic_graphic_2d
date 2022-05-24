@@ -130,7 +130,7 @@ void RSMainThread::OnVsync(uint64_t timestamp, void *data)
     ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSMainThread::OnVsync");
     timestamp_ = timestamp;
     if (handler_) {
-        handler_->PostTask(mainLoop_);
+        handler_->PostTask(mainLoop_, AppExecFwk::EventQueue::Priority::IDLE);
 
         auto screenManager_ = CreateOrGetScreenManager();
         if (screenManager_ != nullptr) {
@@ -179,7 +179,7 @@ void RSMainThread::RecvRSTransactionData(std::unique_ptr<RSTransactionData>& rsT
 void RSMainThread::PostTask(RSTaskMessage::RSTask task)
 {
     if (handler_) {
-        handler_->PostTask(task);
+        handler_->PostTask(task, AppExecFwk::EventQueue::Priority::IMMEDIATE);
     }
 }
 
