@@ -40,7 +40,6 @@ config("surface_public_config") {
   cflags = [ "-Wno-error=deprecated-declarations" ]
 }
 
-
 ohos_shared_library("surface") {
   sources = [
     "src/buffer_client_producer.cpp",
@@ -93,5 +92,6 @@ ohos_shared_library("surface") {
   part_name = "graphic_standard"
   subsystem_name = "graphic"
 }
+
 ## Build surface.so }}}
 

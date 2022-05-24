@@ -819,7 +819,7 @@ EGLint EglClientWaitSyncKHRImpl(EGLDisplay dpy, EGLSyncKHR sync,
 }
 
 EGLBoolean EglGetSyncAttribKHRImpl(EGLDisplay dpy, EGLSyncKHR sync,
-    EGLint attribute, EGLAttrib *value)
+    EGLint attribute, EGLint *value)
 {
     WLOGD("");
     EglWrapperDisplay *display = ValidateDisplay(dpy);
@@ -828,7 +828,7 @@ EGLBoolean EglGetSyncAttribKHRImpl(EGLDisplay dpy, EGLSyncKHR sync,
     }
 
     if (value == nullptr) {
-        WLOGE("EGLAttrib *value is nullptr.");
+        WLOGE("EGLint *value is nullptr.");
         ThreadPrivateDataCtl::SetError(EGL_BAD_PARAMETER);
         return EGL_FALSE;
     }
