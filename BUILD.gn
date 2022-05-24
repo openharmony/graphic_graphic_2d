@@ -38,12 +38,12 @@ group("graphic_standard_test") {
   testonly = true
 
   public_deps = [
+    "frameworks/opengl_wrapper/test:test",
     "frameworks/surface/test:test",
     "frameworks/wmtest:wmtest",
     "rosen/modules/composer:test",
     "rosen/modules/effect/test/unittest:test",
     "utils/sync_fence:test",
-    "frameworks/opengl_wrapper/test:test",
   ]
 
   if (color_gamut_enable) {

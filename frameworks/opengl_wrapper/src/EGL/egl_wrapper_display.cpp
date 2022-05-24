@@ -230,7 +230,7 @@ EGLDisplay EglWrapperDisplay::GetEglNativeDisplay(EGLenum platform,
 }
 
 EGLDisplay EglWrapperDisplay::GetEglNativeDisplayExt(EGLenum platform,
-    void *disp, const EGLAttrib *attribList)
+    void *disp, const EGLint *attribList)
 {
     WLOGD("");
     EglWrapperDispatchTablePtr table = &gWrapperHook;
@@ -251,7 +251,7 @@ EGLDisplay EglWrapperDisplay::GetEglDisplay(EGLenum platform,
 }
 
 EGLDisplay EglWrapperDisplay::GetEglDisplayExt(EGLenum platform,
-    void *disp, const EGLAttrib *attribList)
+    void *disp, const EGLint *attribList)
 {
     return wrapperDisp_.GetEglNativeDisplayExt(platform, disp, attribList);
 }

@@ -51,16 +51,13 @@ ohos_shared_library("EGL_wrapper") {
     "//third_party/openGLES:libGLES",
   ]
 
-  external_deps = [
-    "hilog_native:libhilog",
-  ]
+  external_deps = [ "hilog_native:libhilog" ]
 
   part_name = "graphic_standard"
   subsystem_name = "graphic"
 }
 
 ## Build libEGL_wrapper.so }}}
-
 
 ## Build libGLESv1_wrapper.so {{{
 config("glesv1_config") {
@@ -79,8 +76,8 @@ config("glesv1_public_config") {
 
 ohos_shared_library("GLESv1_wrapper") {
   sources = [
-    "src/thread_private_data_ctl.cpp",
     "src/GLES1/gles1.cpp",
+    "src/thread_private_data_ctl.cpp",
   ]
   configs = [ ":glesv1_config" ]
 
@@ -91,9 +88,7 @@ ohos_shared_library("GLESv1_wrapper") {
     "//third_party/openGLES:libGLES",
   ]
 
-  external_deps = [
-    "hilog_native:libhilog",
-  ]
+  external_deps = [ "hilog_native:libhilog" ]
 
   part_name = "graphic_standard"
   subsystem_name = "graphic"
@@ -118,8 +113,8 @@ config("glesv2_public_config") {
 
 ohos_shared_library("GLESv2_wrapper") {
   sources = [
-    "src/thread_private_data_ctl.cpp",
     "src/GLES2/gles2.cpp",
+    "src/thread_private_data_ctl.cpp",
   ]
   configs = [ ":glesv2_config" ]
 
@@ -130,9 +125,7 @@ ohos_shared_library("GLESv2_wrapper") {
     "//third_party/openGLES:libGLES",
   ]
 
-  external_deps = [
-    "hilog_native:libhilog",
-  ]
+  external_deps = [ "hilog_native:libhilog" ]
 
   part_name = "graphic_standard"
   subsystem_name = "graphic"
@@ -157,8 +150,8 @@ config("glesv3_public_config") {
 
 ohos_shared_library("GLESv3_wrapper") {
   sources = [
-    "src/thread_private_data_ctl.cpp",
     "src/GLES3/gles3.cpp",
+    "src/thread_private_data_ctl.cpp",
   ]
   configs = [ ":glesv3_config" ]
 
@@ -169,9 +162,7 @@ ohos_shared_library("GLESv3_wrapper") {
     "//third_party/openGLES:libGLES",
   ]
 
-  external_deps = [
-    "hilog_native:libhilog",
-  ]
+  external_deps = [ "hilog_native:libhilog" ]
 
   part_name = "graphic_standard"
   subsystem_name = "graphic"
@@ -192,8 +183,10 @@ ohos_executable("opengl_wrapper_native_test") {
   ]
 
   deps = [
-    "//utils/native/base:utils",
+    ":EGL_wrapper",
+    ":GLESv3_wrapper",
     "//foundation/graphic/graphic/rosen/modules/render_service_client:librender_service_client",
+    "//utils/native/base:utils",
   ]
 
   external_deps = [

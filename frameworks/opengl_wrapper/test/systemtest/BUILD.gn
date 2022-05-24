@@ -18,9 +18,7 @@ module_out_path = "graphic_standard/opengl_wrapper"
 group("systemtest") {
   testonly = true
 
-  deps = [
-    ":opengl_wrapper_api_test",
-  ]
+  deps = [ ":opengl_wrapper_api_test" ]
 }
 
 ## SystemTest opengl_wrapper_api_test {{{
@@ -52,5 +50,4 @@ ohos_systemtest("opengl_wrapper_api_test") {
     "//third_party/googletest:gtest_main",
   ]
 }
-
 ## SystemTest opengl_wrapper_api_test }}}

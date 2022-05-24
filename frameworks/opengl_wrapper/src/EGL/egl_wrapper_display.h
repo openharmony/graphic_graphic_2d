@@ -33,7 +33,7 @@ public:
     EGLBoolean MakeCurrent(EGLSurface draw, EGLSurface read, EGLContext ctx);
     static EglWrapperDisplay *GetWrapperDisplay(EGLDisplay display);
     static EGLDisplay GetEglDisplay(EGLenum platform, EGLNativeDisplayType disp, const EGLAttrib *attribList);
-    static EGLDisplay GetEglDisplayExt(EGLenum platform, void *disp, const EGLAttrib *attribList);
+    static EGLDisplay GetEglDisplayExt(EGLenum platform, void *disp, const EGLint *attribList);
     bool ValidateEglContext(EGLContext ctx);
     bool ValidateEglSurface(EGLSurface surf);
     EGLContext CreateEglContext(EGLConfig config, EGLContext shareList, const EGLint *attribList);
@@ -88,7 +88,7 @@ private:
     EglWrapperDisplay() noexcept;
     ~EglWrapperDisplay();
     EGLDisplay GetEglNativeDisplay(EGLenum platform, EGLNativeDisplayType disp, const EGLAttrib *attribList);
-    EGLDisplay GetEglNativeDisplayExt(EGLenum platform, void *disp, const EGLAttrib *attribList);
+    EGLDisplay GetEglNativeDisplayExt(EGLenum platform, void *disp, const EGLint *attribList);
     bool CheckObject(EglWrapperObject *obj);
     void ClearObjects();
     EGLBoolean InternalMakeCurrent(EglWrapperSurface *draw, EglWrapperSurface *read, EglWrapperContext *ctx);
