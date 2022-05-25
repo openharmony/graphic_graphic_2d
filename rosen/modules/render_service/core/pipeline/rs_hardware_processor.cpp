@@ -495,6 +495,18 @@ void RSHardwareProcessor::Redraw(
 #ifdef RS_ENABLE_GL
     eglImageManager_->ShrinkCachesIfNeeded();
 #endif // RS_ENABLE_GL
+    ConsumeNodesNotOnTheTree();
+}
+
+void RSHardwareProcessor::ConsumeNodesNotOnTheTree()
+{
+    auto mainThread = RSMainThread::Instance();
+    if (mainThread != nullptr) {
+        auto& context = mainThread->GetContext();
+        mainThread->PostTask([&context]() {
+            context.GetMutableNodeMap().ConsumeNodesNotOnTree();
+        });
+    }
 }
 
 void RSHardwareProcessor::OnRotate()
