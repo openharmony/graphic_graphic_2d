@@ -20,7 +20,7 @@
  * @addtogroup NativeWindow
  * @{
  *
- * @brief 提供NativeWindow功能，主要用来和egl对接
+ * @brief Provides the native window capability for connection to the EGL.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeWindow
  * @since 8
@@ -30,7 +30,7 @@
 /**
  * @file external_window.h
  *
- * @brief 定义获取和使用NativeWindow的相关函数
+ * @brief Defines the functions for obtaining and using a native window.
  *
  * @since 8
  * @version 1.0
@@ -43,55 +43,55 @@ extern "C" {
 #endif
 
 /**
- * @brief 创建NativeWindow实例，每次调用都会产生一个新的NativeWindow实例
+ * @brief Creates a <b>NativeWindow</b> instance. A new <b>NativeWindow</b> instance is created each time this function is called.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeWindow
- * @param pSurface 参数是一个指向生产者ProduceSurface的指针，类型为Surface
- * @return 返回一个指针，指向NativeWindow的结构体实例
+ * @param pSurface Indicates the pointer to a <b>ProduceSurface</b>. The type is a pointer to <b>sptr<OHOS::Surface></b>.
+ * @return Returns the pointer to the <b>NativeWindow</b> instance created.
  * @since 8
  * @version 1.0
  */
 OHNativeWindow* OH_NativeWindow_CreateNativeWindow(void* pSurface);
 
 /**
- * @brief 将NativeWindow对象的引用计数减1，当引用计数为0的时候，该NativeWindow对象会被析构掉
+ * @brief Decreases the reference count of a <b>NativeWindow</b> instance by 1, and when the reference count reaches 0, destroys the instance.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeWindow
- * @param window 参数是一个NativeWindow的结构体实例的指针
+ * @param window Indicates the pointer to a <b>NativeWindow</b> instance.
  * @since 8
  * @version 1.0
  */
 void OH_NativeWindow_DestroyNativeWindow(OHNativeWindow* window);
 
 /**
- * @brief 创建NativeWindowBuffer实例，每次调用都会产生一个新的NativeWindow实例
+ * @brief Creates a <b>NativeWindowBuffer</b> instance. A new <b>NativeWindowBuffer</b> instance is created each time this function is called.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeWindow
- * @param pSurfaceBuffer 参数是一个指向生产者buffer的指针，类型为SurfaceBuffer
- * @return 返回一个指针，指向NativeWindowBuffer的结构体实例
+ * @param pSurfaceBuffer Indicates the pointer to a produce buffer. The type is <b>sptr<OHOS::SurfaceBuffer></b>.
+ * @return Returns the pointer to the <b>NativeWindowBuffer</b> instance created.
  * @since 8
  * @version 1.0
  */
 OHNativeWindowBuffer* OH_NativeWindow_CreateNativeWindowBufferFromSurfaceBuffer(void* pSurfaceBuffer);
 
 /**
- * @brief 将NativeWindowBuffer对象的引用计数减1，当引用计数为0的时候，该NativeWindowBuffer对象会被析构掉
+ * @brief Decreases the reference count of a <b>NativeWindowBuffer</b> instance by 1 and, when the reference count reaches 0, destroys the instance.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeWindow
- * @param buffer 参数是一个NativeWindowBuffer的结构体实例的指针
+ * @param buffer Indicates the pointer to a <b>NativeWindowBuffer</b> instance.
  * @since 8
  * @version 1.0
  */
 void OH_NativeWindow_DestroyNativeWindowBuffer(OHNativeWindowBuffer* buffer);
 
 /**
- * @brief 通过NativeWindow对象申请一块NativeWindowBuffer，用以内容生产
+ * @brief Requests a <b>NativeWindowBuffer</b> through a <b>NativeWindow</b> instance for content production.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeWindow
- * @param window 参数是一个NativeWindow的结构体实例的指针
- * @param buffer 参数是一个NativeWindowBuffer的结构体实例的二级指针，作为出参传入
- * @param fenceFd 参数是一个文件描述符句柄，作为出参传入
- * @return GSError 返回值为错误码
+ * @param window Indicates the pointer to a <b>NativeWindow</b> instance.
+ * @param buffer Indicates the double pointer to a <b>NativeWindowBuffer</b> instance.
+ * @param fenceFd Indicates the pointer to a file descriptor handle.
+ * @return Returns an error code defined in <b>GSError</b>.
  * @since 8
  * @version 1.0
  */
@@ -99,83 +99,83 @@ int32_t OH_NativeWindow_NativeWindowRequestBuffer(OHNativeWindow *window,
     OHNativeWindowBuffer **buffer, int *fenceFd);
 
 /**
- * @brief 通过NativeWindow将生产好内容的NativeWindowBuffer放回到Buffer队列中，用以内容消费
+ * @brief Flushes the <b>NativeWindowBuffer</b> filled with the content to the buffer queue through a <b>NativeWindow</b> instance for content consumption.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeWindow
- * @param window 参数是一个NativeWindow的结构体实例的指针
- * @param buffer 参数是一个NativeWindowBuffer的结构体实例的指针
- * @param fenceFd 参数是一个文件描述符句柄，用以同步时序
- * @param region 参数表示一块脏区域，该区域有内容更新
- * @return GSError 返回值为错误码
+ * @param window Indicates the pointer to a <b>NativeWindow</b> instance.
+ * @param buffer Indicates the pointer to a <b>NativeWindowBuffer</b> instance.
+ * @param fenceFd Indicates a file descriptor handle, which is used for timing synchronization.
+ * @param region Indicates a dirty region where content is updated.
+ * @return Returns an error code defined in <b>GSError</b>.
  * @since 8
  * @version 1.0
  */
 int32_t OH_NativeWindow_NativeWindowFlushBuffer(OHNativeWindow *window, OHNativeWindowBuffer *buffer,
     int fenceFd, Region region);
 
-/**
- * @brief 通过NativeWindow将之前申请出来的NativeWindowBuffer返还到Buffer队列中，供下次再申请
+ /**
+ * @brief Returns the <b>NativeWindowBuffer</b> to the buffer queue through a <b>NativeWindow</b> instance, without filling in any content. The <b>NativeWindowBuffer</b> can be used for another request.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeWindow
- * @param window 参数是一个NativeWindow的结构体实例的指针
- * @param buffer 参数是一个NativeWindowBuffer的结构体实例的指针
- * @return GSError 返回值为错误码
+ * @param window Indicates the pointer to a <b>NativeWindow</b> instance.
+ * @param buffer Indicates the pointer to a <b>NativeWindowBuffer</b> instance.
+ * @return Returns an error code defined in <b>GSError</b>.
  * @since 8
  * @version 1.0
  */
 int32_t OH_NativeWindow_NativeWindowAbortBuffer(OHNativeWindow *window, OHNativeWindowBuffer *buffer);
 
 /**
- * @brief 设置/获取NativeWindow的属性，包括设置/获取宽高、内容格式等
+ * @brief Sets or obtains the attributes of a native window, including the width, height, and content format.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeWindow
- * @param window 参数是一个NativeWindow的结构体实例的指针
- * @param code 操作码
- * @return GSError 返回值为错误码
+ * @param window Indicates the pointer to a <b>NativeWindow</b> instance.
+ * @param code Indicates the operation code.
+ * @return Returns an error code defined in <b>GSError</b>.
  * @since 8
  * @version 1.0
  */
 int32_t OH_NativeWindow_NativeWindowHandleOpt(OHNativeWindow *window, int code, ...);
 
 /**
- * @brief 通过NativeWindowBuffer获取该buffer的BufferHandle指针
+ * @brief Obtains the pointer to a <b>BufferHandle</b> of a <b>NativeWindowBuffer</b> instance.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeWindow
- * @param buffer 参数是一个NativeWindowBuffer的结构体实例的指针
- * @return BufferHandle 返回一个指针，指向BufferHandle的结构体实例
+ * @param buffer Indicates the pointer to a <b>NativeWindowBuffer</b> instance.
+ * @return Returns the pointer to the <b>BufferHandle</b> instance obtained.
  * @since 8
  * @version 1.0
  */
 BufferHandle *OH_NativeWindow_GetBufferHandleFromNative(OHNativeWindowBuffer *buffer);
 
 /**
- * @brief 增加一个NativeObject的引用计数
+ * @brief Adds the reference count of a native object.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeWindow
- * @param obj 参数是一个NativeWindow or NativeWindowBuffer的结构体实例的指针
- * @return GSError 返回值为错误码
+ * @param obj Indicates the pointer to a <b>NativeWindow</b> or <b>NativeWindowBuffer</b> instance.
+ * @return Returns an error code defined in <b>GSError</b>.
  * @since 8
  * @version 1.0
  */
 int32_t OH_NativeWindow_NativeObjectReference(void *obj);
 
 /**
- * @brief 减少一个NativeObject的引用计数，当引用计数减少为0时，该NativeObject将被析构掉
+ * @brief Decreases the reference count of a native object and, when the reference count reaches 0, destroys this object.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeWindow
- * @param obj 参数是一个NativeWindow or NativeWindowBuffer的结构体实例的指针
- * @return GSError
+ * @param obj Indicates the pointer to a <b>NativeWindow</b> or <b>NativeWindowBuffer</b> instance.
+ * @return Returns an error code defined in <b>GSError</b>.
  * @since 8
  * @version 1.0
  */
 int32_t OH_NativeWindow_NativeObjectUnreference(void *obj);
 
 /**
- * @brief 获取NativeObject的MagicId
+ * @brief Obtains the magic ID of a native object.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeWindow
- * @param obj 参数是一个NativeWindow or NativeWindowBuffer的结构体实例的指针
- * @return MagicId 返回值为魔鬼数字，每个NativeObject唯一
+ * @param obj Indicates the pointer to a <b>NativeWindow</b> or <b>NativeWindowBuffer</b> instance.
+ * @return Returns the magic ID, which is unique for each native object.
  * @since 8
  * @version 1.0
  */
