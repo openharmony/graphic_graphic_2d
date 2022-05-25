@@ -426,6 +426,15 @@ void VerticesOpItem::Draw(RSPaintFilterCanvas& canvas, const SkRect*) const
     canvas.drawVertices(vertices_, bones_, boneCount_, mode_, paint_);
 }
 
+ShadowRecOpItem::ShadowRecOpItem(const SkPath& path, const SkDrawShadowRec& rec)
+    : OpItem(sizeof(ShadowRecOpItem)), path_(path), rec_(rec)
+{}
+
+void ShadowRecOpItem::Draw(RSPaintFilterCanvas& canvas, const SkRect*) const
+{
+    canvas.private_draw_shadow_rec(path_, rec_);
+}
+
 MultiplyAlphaOpItem::MultiplyAlphaOpItem(float alpha) : OpItem(sizeof(MultiplyAlphaOpItem)), alpha_(alpha) {}
 
 void MultiplyAlphaOpItem::Draw(RSPaintFilterCanvas& canvas, const SkRect*) const

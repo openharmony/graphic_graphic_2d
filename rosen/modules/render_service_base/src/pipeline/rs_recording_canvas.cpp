@@ -315,8 +315,8 @@ void RSRecordingCanvas::onDrawAtlas(const SkImage* atlas, const SkRSXform xforms
 
 void RSRecordingCanvas::onDrawShadowRec(const SkPath& path, const SkDrawShadowRec& rec)
 {
-    // [PLANNING]: To be implemented
-    ROSEN_LOGE("RSRecordingCanvas::onDrawShadowRec not support yet");
+    std::unique_ptr<OpItem> op = std::make_unique<ShadowRecOpItem>(path, rec);
+    AddOp(std::move(op));
 }
 
 void RSRecordingCanvas::MultiplyAlpha(float alpha)

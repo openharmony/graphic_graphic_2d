@@ -28,6 +28,8 @@
 #include "include/core/SkRect.h"
 #include "include/core/SkRegion.h"
 #include "include/core/SkTextBlob.h"
+#include "core/SkDrawShadowInfo.h"
+
 #include "pipeline/rs_draw_cmd_list.h"
 #include "render/rs_image.h"
 #include "property/rs_properties_def.h"
@@ -394,6 +396,17 @@ private:
     SkVertices::Bone* bones_;
     int boneCount_;
     SkBlendMode mode_;
+};
+
+class ShadowRecOpItem : public OpItem {
+public:
+    ShadowRecOpItem(const SkPath& path, const SkDrawShadowRec& rec);
+    ~ShadowRecOpItem() override {}
+    void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
+
+private:
+    SkPath path_;
+    SkDrawShadowRec rec_;
 };
 
 class MultiplyAlphaOpItem : public OpItem {

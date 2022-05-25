@@ -125,6 +125,8 @@ ohos_shared_library("librender_service_base") {
     "src/screen_manager/rs_screen_props.cpp",
   ]
 
+  include_dirs = [ "//third_party/flutter/skia/src" ]
+
   public_deps = [
     "src/platform:platform",
     "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
