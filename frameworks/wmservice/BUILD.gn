@@ -31,9 +31,9 @@ config("libwmservice_config") {
 
 config("libwmservice_public_config") {
   include_dirs = [
-    "//foundation/graphic/graphic/interfaces/inner_api/common",
-    "//foundation/graphic/graphic/interfaces/inner_api/wmclient",
-    "//foundation/graphic/graphic/interfaces/inner_api/wmservice",
+    "//foundation/graphic/graphic_2d/interfaces/inner_api/common",
+    "//foundation/graphic/graphic_2d/interfaces/inner_api/wmclient",
+    "//foundation/graphic/graphic_2d/interfaces/inner_api/wmservice",
     "//drivers/peripheral/base",
     "//drivers/peripheral/display/interfaces/include",
     "//third_party/bounds_checking_function/include",
@@ -54,14 +54,14 @@ ohos_shared_library("libwmservice") {
   deps = [
     "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
     "//foundation/distributedschedule/samgr/interfaces/innerkits/samgr_proxy:samgr_proxy",
-    "//foundation/graphic/graphic/frameworks/animation_server:libanimation_service",
-    "//foundation/graphic/graphic/frameworks/wmserver:wms_protocol",
+    "//foundation/graphic/graphic_2d/frameworks/animation_server:libanimation_service",
+    "//foundation/graphic/graphic_2d/frameworks/wmserver:wms_protocol",
     "//third_party/wayland_standard:libwayland_client",
   ]
 
   public_deps = [
     "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
-    "//foundation/graphic/graphic/utils:promise",
+    "//foundation/graphic/graphic_2d/utils:promise",
     "//utils/native/base:utils",
   ]
 

@@ -29,16 +29,16 @@ ohos_unittest("RSRenderServiceClientUITest") {
     "rs_ui_director_test.cpp",
   ]
 
-  include_dirs = [ "//foundation/graphic/graphic/rosen/test/include" ]
+  include_dirs = [ "//foundation/graphic/graphic_2d/rosen/test/include" ]
 
   configs = [
     ":ui_test",
     "$ace_root:ace_test_config",
-    "//foundation/graphic/graphic/rosen/modules/render_service_client:render_service_client_config",
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:render_service_client_config",
   ]
 
   deps = [
-    "//foundation/graphic/graphic/rosen/modules/render_service_client:librender_service_client",
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:librender_service_client",
     "//third_party/googletest:gtest_main",
     "//utils/native/base:utils",
   ]
@@ -51,7 +51,7 @@ config("ui_test") {
   visibility = [ ":*" ]
   include_dirs = [
     "$ace_root",
-    "//foundation/graphic/graphic/rosen/modules/render_service_client",
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service_client",
   ]
 }
 

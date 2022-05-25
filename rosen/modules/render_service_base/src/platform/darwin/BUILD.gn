@@ -28,7 +28,7 @@ source_set("rosen_darwin_sources") {
   ]
 
   include_dirs = [
-    "//foundation/graphic/graphic/rosen/modules/render_service_base/include",
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/include",
   ]
 
   deps = []

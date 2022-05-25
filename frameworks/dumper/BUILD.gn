@@ -42,7 +42,7 @@ ohos_shared_library("libgraphic_dumper_client") {
 
   public_configs = [ ":graphic_dumper_client_public_config" ]
 
-  deps = [ "//foundation/graphic/graphic/utils:libgraphic_utils" ]
+  deps = [ "//foundation/graphic/graphic_2d/utils:libgraphic_utils" ]
 
   external_deps = [
     "hilog_native:libhilog",
@@ -94,7 +94,7 @@ ohos_executable("graphic_dumper_server") {
   ]
 
   deps = [
-    "//foundation/graphic/graphic/utils:libgraphic_utils",
+    "//foundation/graphic/graphic_2d/utils:libgraphic_utils",
     "//third_party/zlib:libz",
   ]
 
@@ -149,7 +149,7 @@ ohos_executable("gdumper") {
   ]
 
   deps = [
-    "//foundation/graphic/graphic/utils:libgraphic_utils",
+    "//foundation/graphic/graphic_2d/utils:libgraphic_utils",
     "//third_party/zlib:libz",
   ]
 

@@ -436,11 +436,11 @@ template("flutter_engine_shell") {
           "$flutter_root/engine/flutter/shell/platform/ohos/ohos_surface_gl.cc",
         ]
 
-        public_deps = [ "//foundation/graphic/graphic:libgl" ]
+        public_deps = [ "//foundation/graphic/graphic_2d:libgl" ]
       }
       deps += [
-        "//foundation/graphic/graphic:libvsync_client",
-        "//foundation/graphic/graphic/rosen/modules/render_service_client:librender_service_client",
+        "//foundation/graphic/graphic_2d:libvsync_client",
+        "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:librender_service_client",
         "//foundation/windowmanager/wm:libwm",
       ]
       external_deps = [

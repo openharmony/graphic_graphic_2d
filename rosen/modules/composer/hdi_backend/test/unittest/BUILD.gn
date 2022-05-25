@@ -100,9 +100,9 @@ ohos_unittest("hdiscreen_test") {
 ## Build hdibackend_test_common.a {{{
 config("hdibackend_test_common_public_config") {
   include_dirs = [
-    "//foundation/graphic/graphic/rosen/modules/composer/hdi_backend/include",
-    "//foundation/graphic/graphic/rosen/modules/composer/hdi_backend/test",
-    "//foundation/graphic/graphic/interfaces/inner_api/surface",
+    "//foundation/graphic/graphic_2d/rosen/modules/composer/hdi_backend/include",
+    "//foundation/graphic/graphic_2d/rosen/modules/composer/hdi_backend/test",
+    "//foundation/graphic/graphic_2d/interfaces/inner_api/surface",
   ]
 
   cflags = [
@@ -121,7 +121,7 @@ ohos_static_library("hdibackend_test_common") {
   public_configs = [ ":hdibackend_test_common_public_config" ]
 
   public_deps = [
-    "//foundation/graphic/graphic/rosen/modules/composer:libcomposer",
+    "//foundation/graphic/graphic_2d/rosen/modules/composer:libcomposer",
     "//third_party/googletest:gmock_main",
     "//third_party/googletest:gtest_main",
   ]

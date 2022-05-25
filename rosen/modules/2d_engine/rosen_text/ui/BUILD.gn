@@ -14,7 +14,7 @@
 import("//build/ohos.gni")
 import("//foundation/arkui/ace_engine/ace_config.gni")
 import(
-    "//foundation/graphic/graphic/rosen/modules/2d_engine/rosen_text/config.gni")
+    "//foundation/graphic/graphic_2d/rosen/modules/2d_engine/rosen_text/config.gni")
 
 config("rosen_text_ui_config") {
   include_dirs = [
@@ -32,8 +32,8 @@ config("rosen_text_config") {
   include_dirs = [
     "$rosen_2d_engine_root",
     "$flutter_root/engine/flutter/third_party/txt/src",
-    "//foundation/graphic/graphic/rosen/modules/2d_graphics/include",
-    "//foundation/graphic/graphic/rosen/modules/2d_graphics/src",
+    "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics/include",
+    "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics/src",
     "//third_party/bounds_checking_function/include",
   ]
 }
@@ -59,7 +59,7 @@ ohos_source_set("rosen_text_ui") {
     "../properties/typography_txt.cpp",
   ]
   deps = [
-    "//foundation/graphic/graphic/rosen/modules/2d_graphics:2d_graphics",
+    "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics:2d_graphics",
     "//third_party/bounds_checking_function:libsec_static",
     "//third_party/flutter/build/libtxt:thirdparty_lib_txt_$current_os",
   ]

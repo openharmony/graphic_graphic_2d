@@ -53,7 +53,7 @@ using namespace std;
 std::map<std::string, std::function<int32_t()>> playerTable;
 
 // If you want compile this demo, please add
-// "//foundation/graphic/graphic/rosen/modules/render_service_client/test:render_service_client_surface_node_demo",
+// "//foundation/graphic/graphic_2d/rosen/modules/render_service_client/test:render_service_client_surface_node_demo",
 // to bundle.json.
 // and add "multimedia_media_standard:media_client" to external_deps in BUILD.gn.
 // Attention: Before use this demo, please push any mp4 file which must be renamed "H264_Main.mp4" to /data,

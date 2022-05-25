@@ -32,9 +32,9 @@ config("wms_client_config") {
 
 config("wms_client_public_config") {
   include_dirs = [
-    "//foundation/graphic/graphic/interfaces/inner_api",
-    "//foundation/graphic/graphic/interfaces/inner_api/wm",
-    "//foundation/graphic/graphic/interfaces/inner_api/common",
+    "//foundation/graphic/graphic_2d/interfaces/inner_api",
+    "//foundation/graphic/graphic_2d/interfaces/inner_api/wm",
+    "//foundation/graphic/graphic_2d/interfaces/inner_api/common",
   ]
 }
 
@@ -70,8 +70,8 @@ ohos_shared_library("wms_client") {
   ]
 
   deps = [
-    "//foundation/graphic/graphic:libwmservice",
-    "//foundation/graphic/graphic/frameworks/wmserver:wms_protocol",
+    "//foundation/graphic/graphic_2d:libwmservice",
+    "//foundation/graphic/graphic_2d/frameworks/wmserver:wms_protocol",
     "//third_party/wayland-protocols_standard:linux_dmabuf_unstable_v1_protocol",
     "//third_party/wayland-protocols_standard:linux_explicit_synchronization_unstable_v1_protocol",
     "//third_party/wayland-protocols_standard:viewporter_protocol",
@@ -101,7 +101,7 @@ ohos_shared_library("wms_client") {
     "samgr_standard:samgr_proxy",
   ]
 
-  public_deps = [ "//foundation/graphic/graphic:libsurface" ]
+  public_deps = [ "//foundation/graphic/graphic_2d:libsurface" ]
 
   part_name = "graphic_standard"
   subsystem_name = "graphic"
@@ -128,7 +128,7 @@ config("libwmclient_config") {
 
 config("libwmclient_public_config") {
   include_dirs =
-      [ "//foundation/graphic/graphic/interfaces/inner_api/wmclient" ]
+      [ "//foundation/graphic/graphic_2d/interfaces/inner_api/wmclient" ]
 }
 
 ohos_shared_library("libwmclient") {
@@ -171,11 +171,11 @@ ohos_shared_library("libwmclient") {
   public_configs = [ ":libwmclient_public_config" ]
 
   deps = [
-    "//foundation/graphic/graphic:libfence",
-    "//foundation/graphic/graphic:libgraphic_dumper_client",
-    "//foundation/graphic/graphic:libwmservice",
-    "//foundation/graphic/graphic/frameworks/wmserver:wms_protocol",
-    "//foundation/graphic/graphic/utils:libgraphic_utils",
+    "//foundation/graphic/graphic_2d:libfence",
+    "//foundation/graphic/graphic_2d:libgraphic_dumper_client",
+    "//foundation/graphic/graphic_2d:libwmservice",
+    "//foundation/graphic/graphic_2d/frameworks/wmserver:wms_protocol",
+    "//foundation/graphic/graphic_2d/utils:libgraphic_utils",
     "//third_party/wayland-protocols_standard:linux_dmabuf_unstable_v1_protocol",
     "//third_party/wayland-protocols_standard:linux_explicit_synchronization_unstable_v1_protocol",
     "//third_party/wayland-protocols_standard:viewporter_protocol",
@@ -206,8 +206,8 @@ ohos_shared_library("libwmclient") {
   ]
 
   public_deps = [
-    "//foundation/graphic/graphic:libsurface",
-    "//foundation/graphic/graphic/utils:promise",
+    "//foundation/graphic/graphic_2d:libsurface",
+    "//foundation/graphic/graphic_2d/utils:promise",
   ]
 
   part_name = "graphic_standard"

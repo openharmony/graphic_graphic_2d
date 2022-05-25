@@ -14,7 +14,7 @@
 import("//build/ohos.gni")
 
 config("window_animation_config") {
-  include_dirs = [ "//foundation/graphic/graphic/rosen/modules/animation/window_animation/include" ]
+  include_dirs = [ "//foundation/graphic/graphic_2d/rosen/modules/animation/window_animation/include" ]
 }
 
 ohos_shared_library("window_animation") {
@@ -31,7 +31,7 @@ ohos_shared_library("window_animation") {
 
   cflags_cc = [ "-std=c++17" ]
 
-  public_deps = [ "//foundation/graphic/graphic/rosen/modules/render_service_client:librender_service_client" ]
+  public_deps = [ "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:librender_service_client" ]
 
   external_deps = [
     "hilog_native:libhilog",

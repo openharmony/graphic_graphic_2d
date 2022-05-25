@@ -30,7 +30,7 @@ OpenHarmony 图形栈的分层说明如下：
 
 ## 目录
 ```
-foundation/graphic/graphic/
+foundation/graphic/graphic_2d/
 ├── figures                 # Markdown引用的图片目录
 ├── frameworks              # 框架代码目录
 │   ├── animation_server    # AnimationServer代码

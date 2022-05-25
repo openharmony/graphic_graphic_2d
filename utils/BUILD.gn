@@ -12,12 +12,12 @@
 # limitations under the License.
 
 import("//build/ohos.gni")
-import("//foundation/graphic/graphic/graphic_config.gni")
+import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
 if (color_gamut_enable) {
   group("color_manager_unit_test") {
     testonly = true
-    deps = [ "//foundation/graphic/graphic/utils/color_manager:test" ]
+    deps = [ "//foundation/graphic/graphic_2d/utils/color_manager:test" ]
   }
 
   group("color_manager") {
@@ -83,7 +83,8 @@ group("sync_fence") {
 
 ## Build libgraphic_utils.so {{{
 config("libgraphic_utils_public_config") {
-  include_dirs = [ "//foundation/graphic/graphic/interfaces/inner_api/common" ]
+  include_dirs =
+      [ "//foundation/graphic/graphic_2d/interfaces/inner_api/common" ]
 }
 
 ohos_shared_library("libgraphic_utils") {

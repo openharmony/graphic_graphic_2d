@@ -19,7 +19,7 @@ module_output_path = "graphic/2d_graphics"
 ##############################fuzztest##########################################
 ohos_fuzztest("SetArgbFuzzTest") {
   module_out_path = module_output_path
-  fuzz_config_file = "//foundation/graphic/graphic/rosen/test/2d_graphics/fuzztest/setargb_fuzzer"
+  fuzz_config_file = "//foundation/graphic/graphic_2d/rosen/test/2d_graphics/fuzztest/setargb_fuzzer"
 
   sources = [ "setargb_fuzzer.cpp" ]
 
@@ -30,9 +30,12 @@ ohos_fuzztest("SetArgbFuzzTest") {
     "-fno-omit-frame-pointer",
   ]
 
-  include_dirs = [ "//foundation/graphic/graphic/rosen/modules/2d_graphics/include" ]
+  include_dirs =
+      [ "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics/include" ]
 
-  deps = [ "//foundation/graphic/graphic/rosen/modules/2d_graphics:2d_graphics" ]
+  deps = [
+    "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics:2d_graphics",
+  ]
 
   external_deps = [
     "hilog_native:libhilog",

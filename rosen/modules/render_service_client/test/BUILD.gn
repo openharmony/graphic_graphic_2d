@@ -24,19 +24,19 @@ ohos_executable("render_service_client_rs_demo") {
 
   include_dirs = [
     # render_service_base include
-    "//foundation/graphic/graphic/rosen/modules/render_service_base/src",
-    "//foundation/graphic/graphic/rosen/include",
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/src",
+    "//foundation/graphic/graphic_2d/rosen/include",
     "//drivers/peripheral/display/interfaces/include",
     "//foundation/multimedia/image_standard/interfaces/innerkits/include",
   ]
 
   deps = [
     "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
-    "//foundation/graphic/graphic:libvsync_client",
-    "//foundation/graphic/graphic:libwmclient",
-    "//foundation/graphic/graphic/rosen/modules/2d_graphics:2d_graphics",
-    "//foundation/graphic/graphic/rosen/modules/render_service_base:librender_service_base",
-    "//foundation/graphic/graphic/rosen/modules/render_service_client:librender_service_client",
+    "//foundation/graphic/graphic_2d:libvsync_client",
+    "//foundation/graphic/graphic_2d:libwmclient",
+    "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics:2d_graphics",
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:librender_service_base",
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:librender_service_client",
     "//third_party/zlib:libz",
   ]
 
@@ -54,9 +54,9 @@ ohos_executable("render_service_client_app_demo") {
   deps = [
     "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
     "//foundation/distributedschedule/safwk/interfaces/innerkits/safwk:system_ability_fwk",
-    "//foundation/graphic/graphic/rosen/modules/2d_graphics:2d_graphics",
-    "//foundation/graphic/graphic/rosen/modules/render_service_base:librender_service_base",
-    "//foundation/graphic/graphic/rosen/modules/render_service_client:librender_service_client",
+    "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics:2d_graphics",
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:librender_service_base",
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:librender_service_client",
     "//foundation/windowmanager/wm:libwm",
     "//foundation/windowmanager/wmserver:libwms",
     "//third_party/zlib:libz",
@@ -76,9 +76,9 @@ ohos_executable("render_service_client_rs_animation_demo") {
   deps = [
     "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
     "//foundation/distributedschedule/safwk/interfaces/innerkits/safwk:system_ability_fwk",
-    "//foundation/graphic/graphic/rosen/modules/2d_graphics:2d_graphics",
-    "//foundation/graphic/graphic/rosen/modules/render_service_base:librender_service_base",
-    "//foundation/graphic/graphic/rosen/modules/render_service_client:librender_service_client",
+    "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics:2d_graphics",
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:librender_service_base",
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:librender_service_client",
     "//foundation/windowmanager/wm:libwm",
     "//foundation/windowmanager/wmserver:libwms",
     "//third_party/zlib:libz",
@@ -95,11 +95,11 @@ ohos_executable("surface_capture_demo") {
 
   deps = [
     "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
-    "//foundation/graphic/graphic:libvsync_client",
-    "//foundation/graphic/graphic:libwmclient",
-    "//foundation/graphic/graphic/rosen/modules/2d_graphics:2d_graphics",
-    "//foundation/graphic/graphic/rosen/modules/render_service_base:librender_service_base",
-    "//foundation/graphic/graphic/rosen/modules/render_service_client:librender_service_client",
+    "//foundation/graphic/graphic_2d:libvsync_client",
+    "//foundation/graphic/graphic_2d:libwmclient",
+    "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics:2d_graphics",
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:librender_service_base",
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:librender_service_client",
     "//foundation/multimedia/image_standard/interfaces/innerkits:image_native",
     "//third_party/zlib:libz",
   ]
@@ -115,8 +115,8 @@ ohos_executable("security_layer_demo") {
 
   deps = [
     "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
-    "//foundation/graphic/graphic/rosen/modules/render_service_base:librender_service_base",
-    "//foundation/graphic/graphic/rosen/modules/render_service_client:librender_service_client",
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:librender_service_base",
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:librender_service_client",
   ]
 
   part_name = "graphic_standard"
@@ -128,18 +128,19 @@ ohos_executable("mirror_display_demo") {
 
   deps = [
     "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
-    "//foundation/graphic/graphic:libvsync_client",
-    "//foundation/graphic/graphic:libwmclient",
-    "//foundation/graphic/graphic/rosen/modules/2d_graphics:2d_graphics",
-    "//foundation/graphic/graphic/rosen/modules/render_service_base:librender_service_base",
-    "//foundation/graphic/graphic/rosen/modules/render_service_client:librender_service_client",
+    "//foundation/graphic/graphic_2d:libvsync_client",
+    "//foundation/graphic/graphic_2d:libwmclient",
+    "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics:2d_graphics",
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:librender_service_base",
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:librender_service_client",
     "//foundation/multimedia/image_standard/interfaces/innerkits:image_native",
     "//third_party/libpng:libpng",
     "//third_party/zlib:libz",
   ]
 
-  include_dirs =
-      [ "//foundation/graphic/graphic/rosen/modules/render_service_base/src" ]
+  include_dirs = [
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/src",
+  ]
 
   public_deps = [ "//third_party/flutter/build/skia:ace_skia_ohos" ]
 
@@ -154,8 +155,8 @@ ohos_executable("render_service_client_surface_node_demo") {
 
   deps = [
     "//foundation/distributedschedule/safwk/interfaces/innerkits/safwk:system_ability_fwk",
-    "//foundation/graphic/graphic/rosen/modules/render_service_base:librender_service_base",
-    "//foundation/graphic/graphic/rosen/modules/render_service_client:librender_service_client",
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:librender_service_base",
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:librender_service_client",
     "//foundation/windowmanager/wm:libwm",
     "//foundation/windowmanager/wmserver:libwms",
     "//third_party/zlib:libz",

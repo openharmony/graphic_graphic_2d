@@ -13,7 +13,7 @@
 
 import("//build/ohos.gni")
 import(
-    "//foundation/graphic/graphic/rosen/modules/2d_engine/rosen_text/config.gni")
+    "//foundation/graphic/graphic_2d/rosen/modules/2d_engine/rosen_text/config.gni")
 
 ## Build librosen_text.so
 config("rosen_text_config") {

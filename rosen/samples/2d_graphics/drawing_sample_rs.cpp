@@ -31,8 +31,8 @@
 #include "core/ui/rs_display_node.h"
 #include "core/ui/rs_surface_node.h"
 // temporary debug
-#include "foundation/graphic/graphic/rosen/modules/render_service_base/src/platform/ohos/rs_surface_frame_ohos.h"
-#include "foundation/graphic/graphic/rosen/modules/render_service_base/src/platform/ohos/rs_surface_ohos.h"
+#include "foundation/graphic/graphic_2d/rosen/modules/render_service_base/src/platform/ohos/rs_surface_frame_ohos.h"
+#include "foundation/graphic/graphic_2d/rosen/modules/render_service_base/src/platform/ohos/rs_surface_ohos.h"
 
 #include "draw/color.h"
 

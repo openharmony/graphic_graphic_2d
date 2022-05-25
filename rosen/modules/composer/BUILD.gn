@@ -12,7 +12,7 @@
 # limitations under the License.
 
 import("//build/ohos.gni")
-import("//foundation/graphic/graphic/graphic_config.gni")
+import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
 ## Build libcomposer.so
 
@@ -28,13 +28,13 @@ config("composer_config") {
 
 config("composer_public_config") {
   include_dirs = [
-    "//foundation/graphic/graphic/rosen/include/common",
+    "//foundation/graphic/graphic_2d/rosen/include/common",
     "//drivers/peripheral/display/interfaces/include",
-    "//foundation/graphic/graphic/interfaces/inner_api/vsync_module",
-    "//foundation/graphic/graphic/interfaces/inner_api/common",
-    "//foundation/graphic/graphic/rosen/modules/composer/hdi_backend/include",
-    "//foundation/graphic/graphic/rosen/modules/composer/vsync/include",
-    "//foundation/graphic/graphic/interfaces/inner_api/composer",
+    "//foundation/graphic/graphic_2d/interfaces/inner_api/vsync_module",
+    "//foundation/graphic/graphic_2d/interfaces/inner_api/common",
+    "//foundation/graphic/graphic_2d/rosen/modules/composer/hdi_backend/include",
+    "//foundation/graphic/graphic_2d/rosen/modules/composer/vsync/include",
+    "//foundation/graphic/graphic_2d/interfaces/inner_api/composer",
   ]
 }
 
@@ -48,7 +48,7 @@ ohos_shared_library("libcomposer") {
     "hdi_backend/src/hdi_screen.cpp",
   ]
 
-  include_dirs = [ "//foundation/graphic/graphic/utils/log" ]
+  include_dirs = [ "//foundation/graphic/graphic_2d/utils/log" ]
 
   configs = [ ":composer_config" ]
 
@@ -63,19 +63,19 @@ ohos_shared_library("libcomposer") {
   deps = [
     "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
     "//drivers/peripheral/display/hal:hdi_display_device",
-    "//foundation/graphic/graphic:libsurface",
-    "//foundation/graphic/graphic/frameworks/vsync:libvsync_module",
-    "//foundation/graphic/graphic/utils:libgraphic_utils",
+    "//foundation/graphic/graphic_2d:libsurface",
+    "//foundation/graphic/graphic_2d/frameworks/vsync:libvsync_module",
+    "//foundation/graphic/graphic_2d/utils:libgraphic_utils",
   ]
 
   public_deps = [
     "vsync:libvsync",
     "//foundation/bundlemanager/bundle_framework/interfaces/innerkits/libeventhandler:libeventhandler",
     "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
-    "//foundation/graphic/graphic/utils:buffer_handle",
-    "//foundation/graphic/graphic/utils:scoped_bytrace",
-    "//foundation/graphic/graphic/utils:socketpair",
-    "//foundation/graphic/graphic/utils:sync_fence",
+    "//foundation/graphic/graphic_2d/utils:buffer_handle",
+    "//foundation/graphic/graphic_2d/utils:scoped_bytrace",
+    "//foundation/graphic/graphic_2d/utils:socketpair",
+    "//foundation/graphic/graphic_2d/utils:sync_fence",
     "//utils/native/base:utils",
   ]
 

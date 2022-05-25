@@ -5,7 +5,7 @@
     "license": "Apache License 2.0",
     "publishAs": "code-segment",
     "segment": {
-      "destPath": "foundation/graphic/graphic"
+      "destPath": "foundation/graphic/graphic_2d"
     },
     "dirs": {},
     "scripts": {},
@@ -28,7 +28,7 @@
       "rom": "10000KB",
       "ram": "10000KB",
       "hisysevent_config": [
-        "//foundation/graphic/graphic/hisysevent.yaml"
+        "//foundation/graphic/graphic_2d/hisysevent.yaml"
       ],
       "deps": {
         "components": [
@@ -55,28 +55,28 @@
           "//third_party/wayland-ivi-extension:LayerManagerControl",
           "//third_party/wayland-ivi-extension:simple-weston-client",
           "//third_party/weston:default",
-          "//foundation/graphic/graphic:default",
-          "//foundation/graphic/graphic/interfaces/kits/napi:napi_packages",
-          "//foundation/graphic/graphic/rosen/samples/composer:hello_composer",
-          "//foundation/graphic/graphic/rosen/modules/composer:libcomposer",
-          "//foundation/graphic/graphic/rosen/modules/2d_graphics:2d_graphics",
-          "//foundation/graphic/graphic/rosen/samples/2d_graphics:drawing_sample_rs",
-          "//foundation/graphic/graphic/rosen/samples/2d_graphics:drawing_engine_sample",
-          "//foundation/graphic/graphic/rosen/samples/2d_graphics/test:drawing_sample",
-          "//foundation/graphic/graphic/rosen/modules/render_service_base:librender_service_base",
-          "//foundation/graphic/graphic/rosen/modules/render_service_base/test:render_service_client",
-          "//foundation/graphic/graphic/rosen/modules/render_service_client:librender_service_client",
-          "//foundation/graphic/graphic/rosen/modules/render_service_client/test:render_service_client_rs_demo",
-          "//foundation/graphic/graphic/rosen/modules/render_service:librender_service",
-          "//foundation/graphic/graphic/rosen/modules/render_service:render_service",
-          "//foundation/graphic/graphic/rosen/modules/render_service:render_service_dump",
-          "//foundation/graphic/graphic/rosen/modules/effect/effectChain:libeffectchain",
-          "//foundation/graphic/graphic/rosen/modules/effect/egl:libegl_effect"
+          "//foundation/graphic/graphic_2d:default",
+          "//foundation/graphic/graphic_2d/interfaces/kits/napi:napi_packages",
+          "//foundation/graphic/graphic_2d/rosen/samples/composer:hello_composer",
+          "//foundation/graphic/graphic_2d/rosen/modules/composer:libcomposer",
+          "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics:2d_graphics",
+          "//foundation/graphic/graphic_2d/rosen/samples/2d_graphics:drawing_sample_rs",
+          "//foundation/graphic/graphic_2d/rosen/samples/2d_graphics:drawing_engine_sample",
+          "//foundation/graphic/graphic_2d/rosen/samples/2d_graphics/test:drawing_sample",
+          "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:librender_service_base",
+          "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/test:render_service_client",
+          "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:librender_service_client",
+          "//foundation/graphic/graphic_2d/rosen/modules/render_service_client/test:render_service_client_rs_demo",
+          "//foundation/graphic/graphic_2d/rosen/modules/render_service:librender_service",
+          "//foundation/graphic/graphic_2d/rosen/modules/render_service:render_service",
+          "//foundation/graphic/graphic_2d/rosen/modules/render_service:render_service_dump",
+          "//foundation/graphic/graphic_2d/rosen/modules/effect/effectChain:libeffectchain",
+          "//foundation/graphic/graphic_2d/rosen/modules/effect/egl:libegl_effect"
         ],
         "inner_kits": [
           {
             "type": "so",
-            "name": "//foundation/graphic/graphic/frameworks/surface:surface",
+            "name": "//foundation/graphic/graphic_2d/frameworks/surface:surface",
             "header": {
               "header_files": [
                 "buffer_extra_data.h",
@@ -91,54 +91,54 @@
                 "surface_utils.h",
                 "window.h"
               ],
-              "header_base": "//foundation/graphic/graphic/interfaces/inner_api/surface"
+              "header_base": "//foundation/graphic/graphic_2d/interfaces/inner_api/surface"
             }
           },
           {
             "type": "so",
-            "name": "//foundation/graphic/graphic/frameworks/vsync:libvsync_client",
+            "name": "//foundation/graphic/graphic_2d/frameworks/vsync:libvsync_client",
             "header": {
               "header_files": [
                 "vsync_helper.h"
               ],
-              "header_base": "//foundation/graphic/graphic/interfaces/inner_api/vsync"
+              "header_base": "//foundation/graphic/graphic_2d/interfaces/inner_api/vsync"
             }
           },
           {
             "type": "so",
-            "name": "//foundation/graphic/graphic/rosen/modules/composer:libcomposer",
+            "name": "//foundation/graphic/graphic_2d/rosen/modules/composer:libcomposer",
             "header": {
               "header_files": [
                 "vsync_receiver.h"
               ],
-              "header_base": "//foundation/graphic/graphic/interfaces/inner_api/composer"
+              "header_base": "//foundation/graphic/graphic_2d/interfaces/inner_api/composer"
             }
           },
           {
             "type": "so",
-            "name": "//foundation/graphic/graphic/frameworks/vsync:libvsync_module",
+            "name": "//foundation/graphic/graphic_2d/frameworks/vsync:libvsync_module",
             "header": {
               "header_files": [
                 "vsync_module.h",
                 "vsync_module_c.h"
               ],
-              "header_base": "//foundation/graphic/graphic/interfaces/inner_api/vsync_module"
+              "header_base": "//foundation/graphic/graphic_2d/interfaces/inner_api/vsync_module"
             }
           },
           {
             "type": "so",
-            "name": "//foundation/graphic/graphic/utils:libgraphic_utils",
+            "name": "//foundation/graphic/graphic_2d/utils:libgraphic_utils",
             "header": {
               "header_files": [
                 "graphic_common.h",
                 "graphic_common_c.h"
               ],
-              "header_base": "//foundation/graphic/graphic/interfaces/inner_api/common"
+              "header_base": "//foundation/graphic/graphic_2d/interfaces/inner_api/common"
             }
           },
           {
             "type": "so",
-            "name": "//foundation/graphic/graphic/frameworks/wm:libwmclient",
+            "name": "//foundation/graphic/graphic_2d/frameworks/wm:libwmclient",
             "header": {
               "header_files": [
                 "iscreen_shot_callback.h",
@@ -152,12 +152,12 @@
                 "window_option.h",
                 "wm_common.h"
               ],
-              "header_base": "//foundation/graphic/graphic/interfaces/inner_api/wmclient"
+              "header_base": "//foundation/graphic/graphic_2d/interfaces/inner_api/wmclient"
             }
           },
           {
             "type": "so",
-            "name": "//foundation/graphic/graphic/frameworks/wmservice:libwmservice",
+            "name": "//foundation/graphic/graphic_2d/frameworks/wmservice:libwmservice",
             "header": {
               "header_files": [
                 "iwindow_change_listener_clazz.h",
@@ -166,12 +166,12 @@
                 "window_manager_service_client.h",
                 "window_manager_service_type.h"
               ],
-              "header_base": "//foundation/graphic/graphic/interfaces/inner_api/wmservice"
+              "header_base": "//foundation/graphic/graphic_2d/interfaces/inner_api/wmservice"
             }
           },
           {
             "type": "so",
-            "name": "//foundation/graphic/graphic/rosen/modules/animation/window_animation:window_animation",
+            "name": "//foundation/graphic/graphic_2d/rosen/modules/animation/window_animation:window_animation",
             "header": {
               "header_files": [
                 "rs_iwindow_animation_controller.h",
@@ -181,14 +181,14 @@
                 "rs_window_animation_stub.h",
                 "rs_window_animation_target.h"
               ],
-              "header_base": "//foundation/graphic/graphic/rosen/modules/animation/window_animation/include"
+              "header_base": "//foundation/graphic/graphic_2d/rosen/modules/animation/window_animation/include"
             }
           }
         ],
         "test": [
-          "//foundation/graphic/graphic:graphic_standard_test",
-          "//foundation/graphic/graphic/rosen/test/render_service:unittest",
-          "//foundation/graphic/graphic/rosen/test/2d_graphics:test"
+          "//foundation/graphic/graphic_2d:graphic_standard_test",
+          "//foundation/graphic/graphic_2d/rosen/test/render_service:unittest",
+          "//foundation/graphic/graphic_2d/rosen/test/2d_graphics:test"
         ]
       }
     }

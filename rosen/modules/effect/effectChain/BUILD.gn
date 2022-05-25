@@ -12,8 +12,8 @@
 # limitations under the License.
 
 import("//build/ohos.gni")
-import("//foundation/graphic/graphic/graphic_config.gni")
-import("//foundation/graphic/graphic/rosen/modules/effect/effect_config.gni")
+import("//foundation/graphic/graphic_2d/graphic_config.gni")
+import("//foundation/graphic/graphic_2d/rosen/modules/effect/effect_config.gni")
 
 ## Build libeffectchain.so
 
@@ -35,7 +35,7 @@ config("effect_public_config") {
   include_dirs = [
     "//third_party/cJSON",
     "//foundation/multimedia/image_standard/interfaces/innerkits/include",
-    "//foundation/graphic/graphic/utils/log",
+    "//foundation/graphic/graphic_2d/utils/log",
     "include",
   ]
   if (effect_enable_gpu) {
@@ -48,7 +48,7 @@ ohos_shared_library("libeffectchain") {
 
   deps = [
     "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
-    "//foundation/graphic/graphic/interfaces/kits/napi/graphic/common:graphic_napi_common",
+    "//foundation/graphic/graphic_2d/interfaces/kits/napi/graphic/common:graphic_napi_common",
     "//foundation/multimedia/image_standard:image_framework",
   ]
 
@@ -74,7 +74,7 @@ ohos_shared_library("libeffectchain") {
       "src/vertical_blur_filter.cpp",
     ]
 
-    deps += [ "//foundation/graphic/graphic:libgl" ]
+    deps += [ "//foundation/graphic/graphic_2d:libgl" ]
   }
 
   configs = [ ":effect_config" ]

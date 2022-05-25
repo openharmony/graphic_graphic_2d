@@ -12,7 +12,7 @@
 # limitations under the License.
 
 import("//build/test.gni")
-import("//foundation/graphic/graphic/graphic_config.gni")
+import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
 ## Build wmtest {{{
 config("wmtest_config") {
@@ -100,12 +100,12 @@ ohos_systemtest("wmtest") {
   deps = [
     "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
     "//foundation/distributedschedule/samgr/interfaces/innerkits/samgr_proxy:samgr_proxy",
-    "//foundation/graphic/graphic:libgraphic_dumper_client",
-    "//foundation/graphic/graphic:libvsync_client",
-    "//foundation/graphic/graphic:libwmclient",
-    "//foundation/graphic/graphic:libwmservice",
-    "//foundation/graphic/graphic/frameworks/animation_server:libanimation_service",
-    "//foundation/graphic/graphic/utils:libgraphic_utils",
+    "//foundation/graphic/graphic_2d:libgraphic_dumper_client",
+    "//foundation/graphic/graphic_2d:libvsync_client",
+    "//foundation/graphic/graphic_2d:libwmclient",
+    "//foundation/graphic/graphic_2d:libwmservice",
+    "//foundation/graphic/graphic_2d/frameworks/animation_server:libanimation_service",
+    "//foundation/graphic/graphic_2d/utils:libgraphic_utils",
     "//third_party/zlib:libz",
   ]
 

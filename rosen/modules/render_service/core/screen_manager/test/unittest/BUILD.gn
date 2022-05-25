@@ -24,7 +24,7 @@ group("unittest") {
 
 ## Build rs_screen_manager_test {{{
 ohos_unittest("rs_screen_manager_test") {
-  include_dirs = [ "//foundation/graphic/graphic/rosen/modules/render_service/core/screen_manager" ]
+  include_dirs = [ "//foundation/graphic/graphic_2d/rosen/modules/render_service/core/screen_manager" ]
 
   module_out_path = module_out_path
 
@@ -33,9 +33,9 @@ ohos_unittest("rs_screen_manager_test") {
   deps = [
     ":rs_screen_manager_test_common",
     "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
-    "//foundation/graphic/graphic:libsurface",
-    "//foundation/graphic/graphic/rosen/modules/composer:libcomposer",
-    "//foundation/graphic/graphic/rosen/modules/render_service_base:librender_service_base",
+    "//foundation/graphic/graphic_2d:libsurface",
+    "//foundation/graphic/graphic_2d/rosen/modules/composer:libcomposer",
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:librender_service_base",
     "//utils/native/base:utils",
   ]
 }
@@ -60,7 +60,7 @@ ohos_static_library("rs_screen_manager_test_common") {
   public_configs = [ ":rs_screen_manager_test_common_config" ]
 
   public_deps = [
-    "//foundation/graphic/graphic/rosen/modules/render_service:librender_service",
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service:librender_service",
     "//third_party/googletest:gtest_main",
   ]
 }

@@ -12,7 +12,7 @@
 # limitations under the License.
 
 import("//build/ohos.gni")
-import("//foundation/graphic/graphic/graphic_config.gni")
+import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
 config("render_config") {
   cflags = []
@@ -22,7 +22,7 @@ config("render_config") {
 
 ohos_source_set("webgl_src") {
   include_dirs = [
-    "//foundation/graphic/graphic/interfaces/inner_api/surface",
+    "//foundation/graphic/graphic_2d/interfaces/inner_api/surface",
     "src",
     "//third_party/node/src",
     "//utils/native/base/include",
@@ -38,7 +38,7 @@ ohos_source_set("webgl_src") {
   deps = [
     "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
     "//foundation/arkui/napi:ace_napi",
-    "//foundation/graphic/graphic:libsurface",
+    "//foundation/graphic/graphic_2d:libsurface",
     "//third_party/bounds_checking_function:libsec_static",
     "//third_party/libuv:uv_static",
     "//utils/native/base:utils",
@@ -77,7 +77,7 @@ ohos_source_set("webgl_src") {
       "src/webgl/src/webgl_vertex_array_object.cpp",
     ]
 
-    deps += [ "//foundation/graphic/graphic:libgl" ]
+    deps += [ "//foundation/graphic/graphic_2d:libgl" ]
   }
 
   cflags = [

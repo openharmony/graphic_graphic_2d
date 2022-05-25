@@ -14,7 +14,7 @@
 import("//build/ohos.gni")
 
 # Config path
-rosen_root = "//foundation/graphic/graphic/rosen"
+rosen_root = "//foundation/graphic/graphic_2d/rosen"
 rosen_2d_engine_root = "$rosen_root/modules/2d_engine"
 rosen_2d_engine_root_ui = "$rosen_2d_engine_root/ui"
 rosen_text_root = "$rosen_2d_engine_root/rosen_text"

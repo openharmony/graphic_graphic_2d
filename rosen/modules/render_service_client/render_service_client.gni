@@ -15,7 +15,7 @@ import("//build/ohos.gni")
 
 declare_args() {
   enable_export_macro = true
-  rosen_root = "//foundation/graphic/graphic/rosen"
+  rosen_root = "//foundation/graphic/graphic_2d/rosen"
 
   rss_enabled = false
   if (defined(global_parts_info) &&

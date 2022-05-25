@@ -12,7 +12,7 @@
 # limitations under the License.
 
 import("//build/ohos.gni")
-import("//foundation/graphic/graphic/graphic_config.gni")
+import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
 ## Build libanimation_service.so {{{
 config("libanimation_service_config") {
@@ -33,7 +33,7 @@ config("libanimation_service_config") {
 config("libanimation_service_public_config") {
   include_dirs = [
     "export",
-    "//foundation/graphic/graphic/interfaces/inner_api/common",
+    "//foundation/graphic/graphic_2d/interfaces/inner_api/common",
   ]
 }
 
@@ -49,7 +49,7 @@ ohos_shared_library("libanimation_service") {
 
   deps = [
     "//foundation/distributedschedule/samgr/interfaces/innerkits/samgr_proxy:samgr_proxy",
-    "//foundation/graphic/graphic/utils:libgraphic_utils",
+    "//foundation/graphic/graphic_2d/utils:libgraphic_utils",
   ]
 
   public_deps = [
@@ -110,10 +110,10 @@ ohos_executable("animation_server") {
   deps = [
     "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
     "//foundation/distributedschedule/samgr/interfaces/innerkits/samgr_proxy:samgr_proxy",
-    "//foundation/graphic/graphic:libvsync_client",
-    "//foundation/graphic/graphic:libwmclient",
-    "//foundation/graphic/graphic:libwmservice",
-    "//foundation/graphic/graphic/utils:libgraphic_utils",
+    "//foundation/graphic/graphic_2d:libvsync_client",
+    "//foundation/graphic/graphic_2d:libwmclient",
+    "//foundation/graphic/graphic_2d:libwmservice",
+    "//foundation/graphic/graphic_2d/utils:libgraphic_utils",
   ]
 
   part_name = "graphic_standard"
