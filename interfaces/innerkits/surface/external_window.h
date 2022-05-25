@@ -20,7 +20,7 @@
  * @addtogroup NativeWindow
  * @{
  *
- * @brief Provides NativeWindow functions
+ * @brief Provides the native window capability for connection to the EGL.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeWindow
  * @since 8
@@ -30,7 +30,7 @@
 /**
  * @file external_window.h
  *
- * @brief API for accessing a native window
+ * @brief Defines the functions for obtaining and using a native window.
  *
  * @since 8
  * @version 1.0
@@ -43,55 +43,55 @@ extern "C" {
 #endif
 
 /**
- * @brief Create a NativeWindow from producer surface, Each call will generates a new NativeWindow
+ * @brief Creates a <b>NativeWindow</b> instance. A new <b>NativeWindow</b> instance is created each time this function is called.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeWindow
- * @param pSurface Indicates producer surface
- * @return NativeWindow
+ * @param pSurface Indicates the pointer to a <b>ProduceSurface</b>. The type is a pointer to <b>sptr<OHOS::Surface></b>.
+ * @return Returns the pointer to the <b>NativeWindow</b> instance created.
  * @since 8
  * @version 1.0
  */
 struct NativeWindow* OH_NativeWindow_CreateNativeWindow(void* pSurface);
 
 /**
- * @brief Unreference NativeWindow object, When the reference count == 0, destroy the NativeWindow
+ * @brief Decreases the reference count of a <b>NativeWindow</b> instance by 1, and when the reference count reaches 0, destroys the instance.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeWindow
- * @param window Indicates NativeWindow
+ * @param window Indicates the pointer to a <b>NativeWindow</b> instance.
  * @since 8
  * @version 1.0
  */
 void OH_NativeWindow_DestroyNativeWindow(struct NativeWindow* window);
 
 /**
- * @brief Create a NativeWindowBuffer from producer surface buffer
+ * @brief Creates a <b>NativeWindowBuffer</b> instance. A new <b>NativeWindowBuffer</b> instance is created each time this function is called.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeWindow
- * @param pSurfaceBuffer Indicates producer surface buffer
- * @return NativeWindowBuffer
+ * @param pSurfaceBuffer Indicates the pointer to a produce buffer. The type is <b>sptr<OHOS::SurfaceBuffer></b>.
+ * @return Returns the pointer to the <b>NativeWindowBuffer</b> instance created.
  * @since 8
  * @version 1.0
  */
 struct NativeWindowBuffer* OH_NativeWindow_CreateNativeWindowBufferFromSurfaceBuffer(void* pSurfaceBuffer);
 
 /**
- * @brief Unreference NativeWindowBuffer object, when the reference count == 0, destroy a NativeWindow buffer
+ * @brief Decreases the reference count of a <b>NativeWindowBuffer</b> instance by 1 and, when the reference count reaches 0, destroys the instance.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeWindow
- * @param buffer Indicates NativeWindow buffer
+ * @param buffer Indicates the pointer to a <b>NativeWindowBuffer</b> instance.
  * @since 8
  * @version 1.0
  */
 void OH_NativeWindow_DestroyNativeWindowBuffer(struct NativeWindowBuffer* buffer);
 
 /**
- * @brief Dequeue a buffer from NativeWindow
+ * @brief Requests a <b>NativeWindowBuffer</b> through a <b>NativeWindow</b> instance for content production.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeWindow
- * @param window Indicates NativeWindow
- * @param buffer Indicates [out] get NativeWindowBuffer
- * @param fenceFd Indicates [out] get release fence
- * @return GSError
+ * @param window Indicates the pointer to a <b>NativeWindow</b> instance.
+ * @param buffer Indicates the double pointer to a <b>NativeWindowBuffer</b> instance.
+ * @param fenceFd Indicates the pointer to a file descriptor handle.
+ * @return Returns an error code defined in <b>GSError</b>.
  * @since 8
  * @version 1.0
  */
@@ -99,14 +99,14 @@ int32_t OH_NativeWindow_NativeWindowRequestBuffer(struct NativeWindow *window,
     struct NativeWindowBuffer **buffer, int *fenceFd);
 
 /**
- * @brief Queue a buffer to NativeWindow
+ * @brief Flushes the <b>NativeWindowBuffer</b> filled with the content to the buffer queue through a <b>NativeWindow</b> instance for content consumption.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeWindow
- * @param window Indicates NativeWindow
- * @param buffer Indicates NativeWindowBuffer
- * @param fenceFd Indicates acquire fence
- * @param region Indicates the Buffer dirty size
- * @return GSError
+ * @param window Indicates the pointer to a <b>NativeWindow</b> instance.
+ * @param buffer Indicates the pointer to a <b>NativeWindowBuffer</b> instance.
+ * @param fenceFd Indicates a file descriptor handle, which is used for timing synchronization.
+ * @param region Indicates a dirty region where content is updated.
+ * @return Returns an error code defined in <b>GSError</b>.
  * @since 8
  * @version 1.0
  */
@@ -114,68 +114,68 @@ int32_t OH_NativeWindow_NativeWindowFlushBuffer(struct NativeWindow *window, str
     int fenceFd, Region region);
 
 /**
- * @brief Cancel the NativeWindowBuffer to be queued
+ * @brief Returns the <b>NativeWindowBuffer</b> to the buffer queue through a <b>NativeWindow</b> instance, without filling in any content. The <b>NativeWindowBuffer</b> can be used for another request.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeWindow
- * @param window Indicates NativeWindow
- * @param buffer Indicates NativeWindowBuffer
- * @return GSError
+ * @param window Indicates the pointer to a <b>NativeWindow</b> instance.
+ * @param buffer Indicates the pointer to a <b>NativeWindowBuffer</b> instance.
+ * @return Returns an error code defined in <b>GSError</b>.
  * @since 8
  * @version 1.0
  */
 int32_t OH_NativeWindow_NativeWindowAbortBuffer(struct NativeWindow *window, struct NativeWindowBuffer *buffer);
 
 /**
- * @brief Handle the NativeWindowOperation of the NativeWindow
+ * @brief Sets or obtains the attributes of a native window, including the width, height, and content format.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeWindow
- * @param window Indicates NativeWindow
- * @param code Indicates NativeWindowOperation
- * @return GSError
+ * @param window Indicates the pointer to a <b>NativeWindow</b> instance.
+ * @param code Indicates the operation code.
+ * @return Returns an error code defined in <b>GSError</b>.
  * @since 8
  * @version 1.0
  */
 int32_t OH_NativeWindow_NativeWindowHandleOpt(struct NativeWindow *window, int code, ...);
 
 /**
- * @brief Get the BufferHandle from the NativeWindowBuffer
+ * @brief Obtains the pointer to a <b>BufferHandle</b> of a <b>NativeWindowBuffer</b> instance.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeWindow
- * @param buffer Indicates NativeWindowBuffer
- * @return BufferHandle
+ * @param buffer Indicates the pointer to a <b>NativeWindowBuffer</b> instance.
+ * @return Returns the pointer to the <b>BufferHandle</b> instance obtained.
  * @since 8
  * @version 1.0
  */
 BufferHandle *OH_NativeWindow_GetBufferHandleFromNative(struct NativeWindowBuffer *buffer);
 
 /**
- * @brief Increase the reference count of the NativeObject
+ * @brief Adds the reference count of a native object.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeWindow
- * @param obj Indicates NativeWindow or NativeWindowBuffer
- * @return GSError
+ * @param obj Indicates the pointer to a <b>NativeWindow</b> or <b>NativeWindowBuffer</b> instance.
+ * @return Returns an error code defined in <b>GSError</b>.
  * @since 8
  * @version 1.0
  */
 int32_t OH_NativeWindow_NativeObjectReference(void *obj);
 
 /**
- * @brief decrease the reference count of the NativeObject
+ * @brief Decreases the reference count of a native object and, when the reference count reaches 0, destroys this object.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeWindow
- * @param obj Indicates NativeWindow or NativeWindowBuffer
- * @return GSError
+ * @param obj Indicates the pointer to a <b>NativeWindow</b> or <b>NativeWindowBuffer</b> instance.
+ * @return Returns an error code defined in <b>GSError</b>.
  * @since 8
  * @version 1.0
  */
 int32_t OH_NativeWindow_NativeObjectUnreference(void *obj);
 
 /**
- * @brief Get the MagicId of the NativeObject
+ * @brief Obtains the magic ID of a native object.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeWindow
- * @param obj Indicates NativeWindow or NativeWindowBuffer
- * @return MagicId
+ * @param obj Indicates the pointer to a <b>NativeWindow</b> or <b>NativeWindowBuffer</b> instance.
+ * @return Returns the magic ID, which is unique for each native object.
  * @since 8
  * @version 1.0
  */
