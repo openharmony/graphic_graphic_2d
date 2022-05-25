@@ -49,6 +49,7 @@ public:
     int32_t ReduceAvailableBuffer();
     void ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas) override;
     void ProcessRenderAfterChildren(RSPaintFilterCanvas& canvas) override;
+    void ConsumeNodeNotOnTree();
 
     sptr<SurfaceBuffer>& GetBuffer()
     {

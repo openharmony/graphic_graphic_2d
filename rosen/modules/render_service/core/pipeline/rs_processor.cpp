@@ -103,7 +103,6 @@ void RSProcessor::DropFrameProcess(RSSurfaceRenderNode& node)
         if (ret != OHOS::SURFACE_ERROR_OK) {
             RS_LOGW("RSProcessor::DropFrameProcess(node: %llu): ReleaseBuffer failed(ret: %d), Acquire done ",
                 node.GetId(), ret);
-            return;
         }
         availableBufferCnt = node.ReduceAvailableBuffer();
         RS_LOGI("RsDebug RSProcessor::DropFrameProcess (node: %llu), drop one frame finished", node.GetId());
