@@ -48,6 +48,7 @@ private:
     void CalculateSrcRect(ComposeInfo& info, RectI clipRegion, RectI originDstRect);
     void ReleaseNodePrevBuffer(RSSurfaceRenderNode& node);
     void ScaleDownLayers();
+    void ConsumeNodesNotOnTheTree();
     HdiBackend* backend_ = nullptr;
     sptr<RSScreenManager> screenManager_;
     ScreenInfo currScreenInfo_;

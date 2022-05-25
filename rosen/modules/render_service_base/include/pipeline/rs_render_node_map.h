@@ -45,6 +45,7 @@ public:
 
     void DumpNodeNotOnTree(std::string& dumpString) const;
     void DumpAllNodeMemSize(std::string& dumpString) const;
+    void ConsumeNodesNotOnTree() const;
 private:
     explicit RSRenderNodeMap();
     ~RSRenderNodeMap() = default;
