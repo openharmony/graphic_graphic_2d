@@ -24,7 +24,6 @@ config("libsfntly_compile_flags") {
   ]
 
   cflags = [
-    "-w",
     "-fstrict-aliasing",
     "-Os",
     "-fdata-sections",

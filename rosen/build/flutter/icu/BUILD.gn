@@ -61,7 +61,6 @@ config("icu_compile_flags") {
   ]
 
   cflags = [
-    "-w",
     "-fstrict-aliasing",
     "-O3",
     "-fdata-sections",

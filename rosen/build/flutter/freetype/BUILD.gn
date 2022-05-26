@@ -23,7 +23,6 @@ config("ace_libfreetype2_config") {
     "$flutter_root/skia/third_party/externals/libpng",
   ]
   cflags = [
-    "-w",
     "-fstrict-aliasing",
     "-Os",
     "-fdata-sections",
