@@ -13,31 +13,21 @@
  * limitations under the License.
  */
 
-#ifndef IMAGE_CHAIN_H
-#define IMAGE_CHAIN_H
+#ifndef INPUT_UNITTEST_H
+#define INPUT_UNITTEST_H
 
-#include <memory>
-#include "algo_filter.h"
-#include "input.h"
+#include <gtest/gtest.h>
 
 namespace OHOS {
 namespace Rosen {
-class ImageChain {
+class InputUnittest : public testing::Test {
 public:
-    ImageChain(std::vector<std::shared_ptr<Input>> inputs);
-    virtual ~ImageChain() {};
-    bool Render();
-
-private:
-    void CreatTexture(unsigned int& TextureID);
-    bool SeriesRendering(ProcessData& data);
-    bool ParallelRendering();
-    bool flagSeries_ = false;
-    unsigned int frameBufferID_;
-    unsigned int srcTextureID_;
-    unsigned int dstTextureID_;
-    std::vector<std::shared_ptr<Input>> inputs_;
+    static void SetUpTestCase() {};
+    static void TearDownTestCase() {};
+    void SetUp() override {};
+    void TearDown() override {};
 };
 } // namespace Rosen
 } // namespace OHOS
-#endif // IMAGE_CHAIN_H
+
+#endif // INPUT_UNITTEST_H

@@ -19,25 +19,52 @@ module_output_path = "graphic_standard/rosen/modules/effect"
 
 ohos_unittest("EffectTest") {
   module_out_path = module_output_path
-  sources = []
 
   deps = [
+    "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
     "//third_party/googletest:gtest_main",
     "//utils/native/base:utils",
   ]
 
-  if (effect_enable_gpu) {
-    sources += [ "effect_chain_unittest.cpp" ]
+  sources = []
 
-    deps += [
-      "//foundation/graphic/graphic_2d:libgl",
-      "//foundation/graphic/graphic_2d/interfaces/kits/napi/graphic/common:graphic_napi_common",
-      "//foundation/graphic/graphic_2d/rosen/modules/effect/effectChain:libeffectchain",
-      "//foundation/graphic/graphic_2d/rosen/modules/effect/egl:libegl_effect",
+  if (effect_enable_gpu) {
+    sources += [
+      "algo_filter_unittest.cpp",
+      "brightness_filter_unittest.cpp",
+      "contrast_filter_unittest.cpp",
+      "effect_chain_unittest.cpp",
+      "filter_factory_unittest.cpp",
+      "filter_unittest.cpp",
+      "gaussian_blur_filter_unittest.cpp",
+      "horizontal_blur_filter_unittest.cpp",
+      "image_chain_unittest.cpp",
+      "input_unittest.cpp",
+      "mesh_unittest.cpp",
+      "output_unittest.cpp",
+      "program_unittest.cpp",
+      "saturation_filter_unittest.cpp",
+      "scale_filter_unittest.cpp",
+      "vertical_blur_filter_unittest.cpp",
     ]
   }
 
-  configs = [ ":effect_test_config" ]
+  deps += [
+    "//foundation/graphic/graphic_2d:libgl",
+    "//foundation/graphic/graphic_2d/rosen/modules/effect/color_picker:color_picker",
+    "//foundation/graphic/graphic_2d/rosen/modules/effect/effectChain:libeffectchain",
+    "//foundation/graphic/graphic_2d/rosen/modules/effect/egl:libegl_effect",
+    "//foundation/graphic/graphic_2d/utils/color_manager:color_manager",
+    "//foundation/multimedia/image_standard/interfaces/innerkits:image",
+    "//foundation/multimedia/image_standard/interfaces/innerkits:image_native",
+    "//third_party/flutter/build/skia:ace_skia_ohos",
+  ]
+
+
+  configs = [
+    ":effect_test_config",
+    "//foundation/graphic/graphic_2d/utils/color_manager:color_manager_public_config",
+  ]
 }
 
 config("effect_test_config") {
@@ -45,8 +72,12 @@ config("effect_test_config") {
   include_dirs = [
     "//third_party/EGL/api",
     "//third_party/openGLES/api",
+    "//third_party/skia",
+    "//foundation/graphic/graphic_2d/rosen/modules/effect/color_picker/include",
     "//foundation/graphic/graphic_2d/rosen/modules/effect/effectChain/include",
     "//foundation/graphic/graphic_2d/rosen/modules/effect/egl/include",
+    "//foundation/graphic/graphic_2d/utils/color_manager/export",
+    "//foundation/multimedia/image_standard/interfaces/innerkits/include/",
   ]
 }
 

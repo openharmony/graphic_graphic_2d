@@ -26,16 +26,14 @@ namespace OHOS {
 namespace Rosen {
 class GaussianBlurFilter : public AlgoFilter {
 public:
-    static constexpr int RADIUS = 3;
     static constexpr float DOWNSAMPLE_FACTOR = 0.25f;
     static constexpr float INVERSE_DOWNSAMPLE_FACTOR = 1.0f / DOWNSAMPLE_FACTOR;
     GaussianBlurFilter();
-    ~GaussianBlurFilter();
-    void SetValue(const std::string& key, void* value, int size) override;
-
-private:
+    virtual ~GaussianBlurFilter();
+    void SetValue(const std::string& key, std::shared_ptr<void> value, int size) override;
     std::string GetVertexShader() override;
     std::string GetFragmentShader() override;
+private:
     void DoProcess(ProcessData& data) override;
     void LoadFilterParams() override {};
     ScaleFilter* upSampleFilter_ = nullptr;
