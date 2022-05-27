@@ -177,15 +177,15 @@ ohos_executable("opengl_wrapper_native_test") {
   sources = [ "test/opengl_wrapper_native_test.cpp" ]
 
   include_dirs = [
-    "//foundation/graphic/graphic/interfaces/inner_api/surface",
-    "//foundation/graphic/graphic/interfaces/inner_api/common",
-    "//foundation/graphic/graphic/rosen/modules/render_service_client",
+    "//foundation/graphic/graphic_2d/interfaces/inner_api/surface",
+    "//foundation/graphic/graphic_2d/interfaces/inner_api/common",
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service_client",
   ]
 
   deps = [
     ":EGL_wrapper",
     ":GLESv3_wrapper",
-    "//foundation/graphic/graphic/rosen/modules/render_service_client:librender_service_client",
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:librender_service_client",
     "//utils/native/base:utils",
   ]
 

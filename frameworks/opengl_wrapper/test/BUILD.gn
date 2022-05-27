@@ -16,6 +16,6 @@ group("test") {
 
   deps = [
     "systemtest:systemtest",
-    #"unittest:unittest",
+    "unittest:unittest",
   ]
 }

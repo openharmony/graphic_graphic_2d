@@ -28,7 +28,7 @@ ohos_systemtest("opengl_wrapper_api_test") {
   sources = [ "opengl_wrapper_api_test.cpp" ]
 
   include_dirs = [
-    "//foundation/graphic/graphic/frameworks/surface/include",
+    "//foundation/graphic/graphic_2d/frameworks/surface/include",
     "//drivers/peripheral/display/interfaces/include",
   ]
 
@@ -43,10 +43,10 @@ ohos_systemtest("opengl_wrapper_api_test") {
 
   deps = [
     "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
-    "//foundation/graphic/graphic:libsurface",
-    "//foundation/graphic/graphic/frameworks/opengl_wrapper:EGL_wrapper",
-    "//foundation/graphic/graphic/frameworks/opengl_wrapper:GLESv3_wrapper",
-    "//foundation/graphic/graphic/utils:libgraphic_utils",
+    "//foundation/graphic/graphic_2d:libsurface",
+    "//foundation/graphic/graphic_2d/frameworks/opengl_wrapper:EGL_wrapper",
+    "//foundation/graphic/graphic_2d/frameworks/opengl_wrapper:GLESv3_wrapper",
+    "//foundation/graphic/graphic_2d/utils:libgraphic_utils",
     "//third_party/googletest:gtest_main",
   ]
 }

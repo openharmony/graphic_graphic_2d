@@ -13,39 +13,32 @@
 
 import("//build/test.gni")
 
-module_out_path = "graphic_standard/render_service_client"
+module_out_path = "graphic_standard/opengl_wrapper"
 
 group("unittest") {
   testonly = true
 
-  deps = [
-    ":RSDropframeTest",
-    ":RSInterfacesTest",
-  ]
+  deps = [ ":opengl_wrapper_unit_test" ]
 }
 
-## Build RSInterfacesTest
-ohos_unittest("RSInterfacesTest") {
-  module_out_path = module_out_path
-  sources = [ "rs_interfaces_test.cpp" ]
-  deps = [ ":rs_client_test_common" ]
-}
-
-## Build RSDropframeTest
-ohos_unittest("RSDropframeTest") {
+ohos_unittest("opengl_wrapper_unit_test") {
   module_out_path = module_out_path
   sources = [
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/src/pipeline/rs_base_render_node.cpp",
-    "rs_dropframe_test.cpp",
+    "egl_core_test.cpp",
+    "egl_wrapper_context_test.cpp",
+    "egl_wrapper_display_test.cpp",
+    "egl_wrapper_entry_test.cpp",
+    "egl_wrapper_layer_test.cpp",
+    "egl_wrapper_loader_test.cpp",
+    "thread_private_data_ctl_test.cpp",
   ]
-  deps = [ ":rs_client_test_common" ]
+  deps = [ ":opengl_wrapper_test_common" ]
 }
 
-## Build rs_client_test_common.a {{{
-config("rs_client_test_common_public_config") {
+config("opengl_wrapper_test_common_public_config") {
   include_dirs = [
-    "//foundation/graphic/graphic_2d/frameworks/surface/include",
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service_client/core",
+    "//foundation/graphic/graphic_2d/frameworks/opengl_wrapper/src",
+    "//foundation/graphic/graphic_2d/frameworks/opengl_wrapper/src/EGL",
   ]
 
   cflags = [
@@ -57,22 +50,20 @@ config("rs_client_test_common_public_config") {
   ]
 }
 
-ohos_static_library("rs_client_test_common") {
+ohos_static_library("opengl_wrapper_test_common") {
   visibility = [ ":*" ]
   testonly = true
 
-  public_configs = [ ":rs_client_test_common_public_config" ]
+  public_configs = [ ":opengl_wrapper_test_common_public_config" ]
 
   public_deps = [
     "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
     "//foundation/distributedschedule/samgr/interfaces/innerkits/samgr_proxy:samgr_proxy",
-    "//foundation/graphic/graphic_2d:libsurface",
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:librender_service_base",
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:librender_service_client",
+    "//foundation/graphic/graphic_2d/frameworks/opengl_wrapper:EGL_wrapper",
+    "//third_party/googletest:gmock",
     "//third_party/googletest:gtest_main",
     "//utils/native/base:utils",
   ]
   subsystem_name = "graphic"
   part_name = "graphic_standard"
 }
-## Build rs_client_test_common.a }}}
