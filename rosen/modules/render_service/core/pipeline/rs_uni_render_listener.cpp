@@ -32,7 +32,7 @@ void RSUniRenderListener::OnBufferAvailable()
         RS_LOGE("RSUniRenderListener::OnBufferAvailable node is nullptr");
         return;
     }
-    RS_LOGD("RSUniRenderListener::OnBufferAvailable node id:%llu", node->GetId());
+    RS_LOGI("RSUniRenderListener::OnBufferAvailable node id:%llu", node->GetId());
     node->IncreaseAvailableBuffer();
 
     std::shared_ptr<RSProcessor> processor;

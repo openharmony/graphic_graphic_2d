@@ -33,6 +33,11 @@
 
 namespace OHOS {
 namespace Rosen {
+namespace {
+    const std::string SUB_TITLE_OF_LEASH_WINDOW = "leashWindow";
+    const std::string SUB_TITLE_OF_STARTING_WINDOW = "startingWindow";
+    const std::string NAME_OF_BOOT_ANIMATION_NODE = "main window0";
+}
 RSUniRenderVisitor::RSUniRenderVisitor() {}
 
 RSUniRenderVisitor::~RSUniRenderVisitor() {}
@@ -61,7 +66,7 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
         isUniRender_ = true;
         hasUniRender_ = true;
     }
-    if (IsChildOfDisplayNode(node)) {
+    if (IsChildOfDisplayNode(node) || IsChildOfLeashNode(node)) {
         auto currentGeoPtr = std::static_pointer_cast<RSObjAbsGeometry>(node.GetRenderProperties().GetBoundsGeometry());
         if (currentGeoPtr != nullptr) {
             currentGeoPtr->UpdateByMatrixFromParent(nullptr);
@@ -107,7 +112,7 @@ void RSUniRenderVisitor::ProcessBaseRenderNode(RSBaseRenderNode& node)
 
 void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
 {
-    RS_LOGD("RSUniRenderVisitor::ProcessDisplayRenderNode node: %llu, child size:%u", node.GetChildrenCount(),
+    RS_LOGI("RSUniRenderVisitor::ProcessDisplayRenderNode node: %llu, child size:%u", node.GetChildrenCount(),
         node.GetId());
     globalZOrder_ = 0.0f;
     sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
@@ -134,6 +139,8 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
         return;
     }
     processor_->Init(node.GetScreenId(), node.GetDisplayOffsetX(), node.GetDisplayOffsetY());
+    offsetX_ = node.GetDisplayOffsetX();
+    offsetY_ = node.GetDisplayOffsetY();
 
     if (hasUniRender_) {
         std::shared_ptr<RSBaseRenderNode> nodePtr = node.shared_from_this();
@@ -167,19 +174,26 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
             RS_LOGE("RSUniRenderVisitor Request Frame Failed");
             return;
         }
-        canvas_ = new RSPaintFilterCanvas(surfaceFrame->GetCanvas());
+        canvas_ = std::make_unique<RSPaintFilterCanvas>(surfaceFrame->GetCanvas());
         canvas_->clear(SK_ColorTRANSPARENT);
 
         ProcessBaseRenderNode(node);
         RS_TRACE_BEGIN("RSUniRender:FlushFrame");
         rsSurface->FlushFrame(surfaceFrame);
         RS_TRACE_END();
-        delete canvas_;
-        canvas_ = nullptr;
 
         node.SetGlobalZOrder(uniZOrder_);
     } else {
         RsRenderServiceUtil::ConsumeAndUpdateBuffer(node, true);
+
+        ScreenRotation rotation = screenManager->GetRotation(node.GetScreenId());
+        uint32_t boundWidth = screenInfo_.width;
+        uint32_t boundHeight = screenInfo_.height;
+        if (rotation == ScreenRotation::ROTATION_90 || rotation == ScreenRotation::ROTATION_270) {
+            std::swap(boundWidth, boundHeight);
+        }
+        skCanvas_ = std::make_unique<SkCanvas>(boundWidth, boundHeight);
+        canvas_ = std::make_unique<RSPaintFilterCanvas>(skCanvas_.get());
         ProcessBaseRenderNode(node);
     }
     if (!hasUniRender_) {
@@ -190,13 +204,15 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
 
 void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
 {
-    RS_LOGD("RSUniRenderVisitor::ProcessSurfaceRenderNode node: %llu, child size:%u %s", node.GetId(),
+    RS_LOGI("RSUniRenderVisitor::ProcessSurfaceRenderNode node: %llu, child size:%u %s", node.GetId(),
         node.GetChildrenCount(), node.GetName().c_str());
+
     if (isUniRenderForAll_ || uniRenderList_.find(node.GetName()) != uniRenderList_.end()) {
         isUniRender_ = true;
     }
     if (isUniRender_) {
-        if (IsChildOfDisplayNode(node)) {
+        if ((IsChildOfDisplayNode(node) && node.GetName() != NAME_OF_BOOT_ANIMATION_NODE) ||
+            (IsChildOfLeashNode(node) && node.GetName().find(SUB_TITLE_OF_STARTING_WINDOW) == std::string::npos)) {
             if (!node.GetRenderProperties().GetVisible()) {
                 RS_LOGD("RSUniRenderVisitor::ProcessSurfaceRenderNode node: %llu invisible", node.GetId());
                 return;
@@ -212,22 +228,19 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
                     node.GetId());
                 return;
             }
-            RsRenderServiceUtil::ConsumeAndUpdateBuffer(node, true);
             RS_TRACE_BEGIN("RSUniRender::Process:" + node.GetName());
             uniZOrder_ = globalZOrder_++;
             canvas_->save();
             canvas_->SaveAlpha();
-            canvas_->MultiplyAlpha(node.GetAlpha());
-            canvas_->setMatrix(geoPtr->GetAbsMatrix());
+            canvas_->MultiplyAlpha(node.GetRenderProperties().GetAlpha());
+            canvas_->concat(geoPtr->GetAbsMatrix());
+            auto transitionProperties = node.GetAnimationManager().GetTransitionProperties();
+            RSPropertiesPainter::DrawTransitionProperties(transitionProperties, node.GetRenderProperties(), *canvas_);
             ProcessBaseRenderNode(node);
             canvas_->RestoreAlpha();
             canvas_->restore();
             RS_TRACE_END();
         } else {
-            if (IsChildOfSurfaceNode(node)) {
-                RS_LOGI("RSUniRenderVisitor::ProcessSurfaceRenderNode not ChildOfSurfaceNode");
-                return;
-            }
             RS_TRACE_BEGIN("UniRender::Process:" + node.GetName());
             canvas_->save();
             canvas_->clipRect(SkRect::MakeXYWH(
@@ -244,9 +257,14 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
             RS_TRACE_END();
         }
     } else {
+        canvas_->save();
+        node.SetOffset(offsetX_, offsetY_);
+        node.ProcessRenderBeforeChildren(*canvas_);
         ProcessBaseRenderNode(node);
         node.SetGlobalZOrder(globalZOrder_++);
         processor_->ProcessSurface(node);
+        node.ProcessRenderAfterChildren(*canvas_);
+        canvas_->restore();
     }
     isUniRender_ = false;
 }
@@ -295,6 +313,19 @@ bool RSUniRenderVisitor::IsChildOfSurfaceNode(RSBaseRenderNode& node)
 {
     auto parent = node.GetParent().lock();
     return parent && parent->IsInstanceOf<RSSurfaceRenderNode>();
+}
+
+bool RSUniRenderVisitor::IsChildOfLeashNode(RSBaseRenderNode& node)
+{
+    auto parent = node.GetParent().lock();
+    if (parent && parent->IsInstanceOf<RSSurfaceRenderNode>()) {
+        auto surfaceNode = parent->ReinterpretCastTo<RSSurfaceRenderNode>();
+        if (surfaceNode && surfaceNode->GetName().find(SUB_TITLE_OF_LEASH_WINDOW) != std::string::npos) {
+            return true;
+        }
+    }
+    RS_LOGD("RSUniRenderVisitor::IsChildOfLeashNode false");
+    return false;
 }
 
 void RSUniRenderVisitor::DrawBufferOnCanvas(RSSurfaceRenderNode& node)

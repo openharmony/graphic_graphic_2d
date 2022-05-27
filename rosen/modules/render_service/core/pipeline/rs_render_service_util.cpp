@@ -634,7 +634,7 @@ bool RsRenderServiceUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& node, bool to
     }
 
     if (toReleaseBuffer && node.GetBuffer() != nullptr && node.GetBuffer() != buffer) {
-        SurfaceError ret = surfaceConsumer->ReleaseBuffer(node.GetBuffer(), -1);
+        SurfaceError ret = surfaceConsumer->ReleaseBuffer(node.GetBuffer(), SyncFence::INVALID_FENCE);
         if (ret != SURFACE_ERROR_OK) {
             RS_LOGE("RsRenderServiceUtil::ConsumeAndUpdateBuffer ReleaseBuffer error:%d.", ret);
             return false;

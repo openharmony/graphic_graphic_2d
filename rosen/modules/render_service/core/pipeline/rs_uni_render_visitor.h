@@ -47,13 +47,17 @@ private:
     void DrawBufferOnCanvas(RSSurfaceRenderNode& node);
     static bool IsChildOfDisplayNode(RSBaseRenderNode& node);
     static bool IsChildOfSurfaceNode(RSBaseRenderNode& node);
+    static bool IsChildOfLeashNode(RSBaseRenderNode& node);
 
     ScreenInfo screenInfo_;
     RSDirtyRegionManager dirtyManager_;
     RSRenderNode* parent_ = nullptr;
     bool dirtyFlag_ { false };
-    RSPaintFilterCanvas* canvas_ = nullptr;
+    std::unique_ptr<RSPaintFilterCanvas> canvas_;
+    std::unique_ptr<SkCanvas> skCanvas_;
 
+    int32_t offsetX_ { 0 };
+    int32_t offsetY_ { 0 };
     float globalZOrder_ { 0.0f };
     float uniZOrder_ { 0.0f };
     std::shared_ptr<RSProcessor> processor_;
