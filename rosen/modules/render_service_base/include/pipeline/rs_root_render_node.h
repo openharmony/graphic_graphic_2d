@@ -47,8 +47,10 @@ public:
 private:
     std::shared_ptr<RSSurface> rsSurface_ = nullptr;
     NodeId surfaceNodeId_ = 0;
-
     static bool forceRaster_;
+
+    std::vector<NodeId> childSurfaceNodeIds_;
+    friend class RSRenderThreadVisitor;
 };
 } // namespace Rosen
 } // namespace OHOS

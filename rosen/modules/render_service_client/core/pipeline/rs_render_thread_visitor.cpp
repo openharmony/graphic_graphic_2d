@@ -148,11 +148,20 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
     isIdle_ = false;
 
     // clear current children before traversal, we will re-add them again during traversal
-    parentSurfaceNodeId_ = node.GetRSSurfaceNodeId();
-    std::unique_ptr<RSCommand> command = std::make_unique<RSBaseNodeClearChild>(parentSurfaceNodeId_);
-    SendCommandFromRT(command);
+    childSurfaceNodeIds_.clear();
 
     ProcessCanvasRenderNode(node);
+
+    if (childSurfaceNodeIds_ != node.childSurfaceNodeIds_) {
+        auto thisSurfaceNodeId = node.GetRSSurfaceNodeId();
+        std::unique_ptr<RSCommand> command = std::make_unique<RSBaseNodeClearChild>(thisSurfaceNodeId);
+        SendCommandFromRT(command);
+        for (const auto& childSurfaceNodeId : childSurfaceNodeIds_) {
+            command = std::make_unique<RSBaseNodeAddChild>(thisSurfaceNodeId, childSurfaceNodeId, -1);
+            SendCommandFromRT(command);
+        }
+        node.childSurfaceNodeIds_ = std::move(childSurfaceNodeIds_);
+    }
 
     if (skSurface) {
         canvas_->flush();
@@ -219,22 +228,29 @@ void RSRenderThreadVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
     ClipHoleForSurfaceNode(node);
 #endif
     // 1. add this node to parent's children list
-    std::unique_ptr<RSCommand> command = std::make_unique<RSBaseNodeAddChild>(parentSurfaceNodeId_, node.GetId(), -1);
-    SendCommandFromRT(command);
+    childSurfaceNodeIds_.emplace_back(node.GetId());
 
-    // 2. remember current parent node id, will restore it after traversal
-    auto parentSurfaceNodeId = parentSurfaceNodeId_;
+    // 2. backup and clear children list
+    std::vector<NodeId> siblingSurfaceNodeIds(std::move(childSurfaceNodeIds_));
+    childSurfaceNodeIds_.clear();
 
-    // 3. clear children of this node, will be re-add during traversal
-    command = std::make_unique<RSBaseNodeClearChild>(node.GetId());
-    SendCommandFromRT(command);
-
-    // 4. traversal children, set parent node id to this node
-    parentSurfaceNodeId_ = node.GetId();
+    // 3. traversal children, add child surface node to childSurfaceNodeIds_
     ProcessBaseRenderNode(node);
 
-    // 5. restore parent node id
-    parentSurfaceNodeId_ = parentSurfaceNodeId;
+    // 4. if children changed, sync children to RenderService
+    if (childSurfaceNodeIds_ != node.childSurfaceNodeIds_) {
+        auto thisSurfaceNodeId = node.GetId();
+        std::unique_ptr<RSCommand> command = std::make_unique<RSBaseNodeClearChild>(thisSurfaceNodeId);
+        SendCommandFromRT(command);
+        for (const auto& childSurfaceNodeId : childSurfaceNodeIds_) {
+            command = std::make_unique<RSBaseNodeAddChild>(thisSurfaceNodeId, childSurfaceNodeId, -1);
+            SendCommandFromRT(command);
+        }
+        node.childSurfaceNodeIds_ = std::move(childSurfaceNodeIds_);
+    }
+
+    // 5. restore children list and continue traversal siblings
+    childSurfaceNodeIds_ = std::move(siblingSurfaceNodeIds);
 }
 
 void RSRenderThreadVisitor::ClipHoleForSurfaceNode(RSSurfaceRenderNode& node)

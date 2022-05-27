@@ -178,6 +178,7 @@ private:
     int32_t offsetX_ = 0;
     int32_t offsetY_ = 0;
     float globalAlpha_ = 1.0f;
+    RectI clipRegionFromParent_;
 
     std::string name_;
     bool isProxy_ = false;
@@ -187,7 +188,9 @@ private:
     sptr<RSIBufferAvailableCallback> callbackFromRT_;
     sptr<RSIBufferAvailableCallback> callbackFromUI_;
     std::function<void(void)> callbackForRenderThreadRefresh_ = nullptr;
-    RectI clipRegionFromParent_;
+
+    std::vector<NodeId> childSurfaceNodeIds_;
+    friend class RSRenderThreadVisitor;
 };
 } // namespace Rosen
 } // namespace OHOS

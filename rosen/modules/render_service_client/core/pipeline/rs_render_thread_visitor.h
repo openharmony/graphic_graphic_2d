@@ -56,7 +56,8 @@ private:
 
     void ClipHoleForSurfaceNode(RSSurfaceRenderNode& node);
 
-    NodeId parentSurfaceNodeId_ = 0;
+    std::vector<NodeId> childSurfaceNodeIds_;
+
     void SendCommandFromRT(std::unique_ptr<RSCommand>& command);
 };
 } // namespace Rosen
