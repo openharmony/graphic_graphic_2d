@@ -101,4 +101,10 @@ ohos_prebuilt_etc("bootanimation_sounds") {
   part_name = "graphic_standard"
   subsystem_name = "graphic"
 }
+
+ohos_prebuilt_etc("bootanimation.para.dac") {
+  source = "etc/param/bootanimation.para.dac"
+  part_name = "graphic_standard"
+  module_install_dir = "etc/param"
+}
 ## Install data/*.jpg to /system/etc/init/ }}}
