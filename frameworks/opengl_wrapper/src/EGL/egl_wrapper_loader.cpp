@@ -24,7 +24,7 @@
 using namespace OHOS;
 namespace OHOS {
 namespace {
-constexpr const char *VENDOR_LIB_PATH = "/system/lib/";
+constexpr const char *VENDOR_LIB_PATH = "/vendor/lib/chipsetsdk/";
 constexpr const char *LIB_EGL_NAME = "libEGL.so";
 constexpr const char *LIB_GLESV1_NAME = "libGLESv1.so";
 constexpr const char *LIB_GLESV2_NAME = "libGLESv2.so";
