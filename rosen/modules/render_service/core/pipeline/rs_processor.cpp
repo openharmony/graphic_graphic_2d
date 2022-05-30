@@ -72,5 +72,15 @@ void RSProcessor::SetBufferTimeStamp()
         RS_LOGE("RSProcessor::SetBufferTimeStamp buffer ExtraSet failed");
     }
 }
+
+void RSProcessor::SetMirror(bool isMirror)
+{
+    isMirror_ = isMirror;
+}
+
+bool RSProcessor::GetMirror()
+{
+    return isMirror_;
+}
 } // namespace Rosen
 } // namespace OHOS

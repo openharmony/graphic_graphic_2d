@@ -47,6 +47,9 @@ void RSSoftwareProcessor::Init(ScreenId id, int32_t offsetX, int32_t offsetY)
         RS_LOGE("RSSoftwareProcessor::Init for Screen(id %{public}" PRIu64 "): ProducerSurface is null!", id);
         return;
     }
+
+    rotation_ = screenManager->GetRotation(id);
+
     currScreenInfo_ = screenManager->QueryScreenInfo(id);
     BufferRequestConfig requestConfig = {
         .width = currScreenInfo_.width,
@@ -81,7 +84,7 @@ void RSSoftwareProcessor::ProcessSurface(RSSurfaceRenderNode& node)
         RS_LOGE("RSSoftwareProcessor::ProcessSurface: Canvas is null!");
         return;
     }
-    
+
     RsRenderServiceUtil::DropFrameProcess(node);
 
     auto consumerSurface = node.GetConsumer();
@@ -126,15 +129,29 @@ void RSSoftwareProcessor::ProcessSurface(RSSurfaceRenderNode& node)
         return;
     }
 
+    if (!GenerateParamAndDrawBuffer(node)) {
+        return;
+    }
+}
+
+bool RSSoftwareProcessor::GenerateParamAndDrawBuffer(RSSurfaceRenderNode& node)
+{
     auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(node.GetRenderProperties().GetBoundsGeometry());
     if (geoPtr == nullptr) {
         RS_LOGE("RsDebug RSSoftwareProcessor::ProcessSurface geoPtr == nullptr");
-        return;
+        return false;
     }
     node.SetDstRect({geoPtr->GetAbsRect().left_ - offsetX_, geoPtr->GetAbsRect().top_ - offsetY_,
         geoPtr->GetAbsRect().width_, geoPtr->GetAbsRect().height_});
-    auto params = RsRenderServiceUtil::CreateBufferDrawParam(node);
+    BufferDrawParam params;
+    if (GetMirror()) {
+        RS_LOGI("RSSoftwareProcessor::ProcessSurface mirrorScreen is not support rotation");
+        params = RsRenderServiceUtil::CreateBufferDrawParam(node);
+    } else {
+        params = RsRenderServiceUtil::CreateBufferDrawParam(node, currScreenInfo_.rotationMatrix, rotation_);
+    }
     RsRenderServiceUtil::DrawBuffer(*canvas_, params);
+    return true;
 }
 } // namespace Rosen
 } // namespace OHOS
