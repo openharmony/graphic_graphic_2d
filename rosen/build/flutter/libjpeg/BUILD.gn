@@ -21,6 +21,7 @@ config("ace_libjpeg_config") {
     "$flutter_root/skia/third_party/externals/libjpeg-turbo",
   ]
   cflags = [
+    "-w",
     "-fstrict-aliasing",
     "-Os",
     "-fdata-sections",
