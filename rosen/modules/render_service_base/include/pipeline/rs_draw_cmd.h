@@ -64,6 +64,7 @@ enum RSOpType : uint16_t {
     BITMAP_NINE_OPITEM,
     ADAPTIVE_RRECT_OPITEM,
     CLIP_ADAPTIVE_RRECT_OPITEM,
+    CLIP_OUTSET_RECT_OPITEM,
     PATH_OPITEM,
     CLIP_PATH_OPITEM,
     PAINT_OPITEM,
@@ -562,6 +563,27 @@ public:
 
 private:
     float radius_;
+};
+
+class ClipOutsetRectOpItem : public OpItem {
+public:
+    ClipOutsetRectOpItem(float dx, float dy);
+    ~ClipOutsetRectOpItem() override {}
+    void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
+
+    RSOpType GetType() const override
+    {
+        return RSOpType::CLIP_OUTSET_RECT_OPITEM;
+    }
+
+#ifdef ROSEN_OHOS
+    bool Marshalling(Parcel& parcel) const override;
+    static OpItem* Unmarshalling(Parcel& parcel);
+#endif
+
+private:
+    float dx_;
+    float dy_;
 };
 
 class PathOpItem : public OpItemWithPaint {
