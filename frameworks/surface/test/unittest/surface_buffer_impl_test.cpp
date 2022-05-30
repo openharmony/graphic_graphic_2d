@@ -105,7 +105,7 @@ HWTEST_F(SurfaceBufferImplTest, State002, Function | MediumTest | Level2)
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
     ASSERT_NE(buffer->GetBufferHandle(), nullptr);
-    ASSERT_EQ(buffer->GetVirAddr(), nullptr);
+    ASSERT_NE(buffer->GetVirAddr(), nullptr);
     ASSERT_NE(buffer->GetSize(), 0u);
     ASSERT_EQ(buffer->GetFormat(), PIXEL_FMT_RGBA_8888);
     ASSERT_EQ(buffer->GetUsage(), HBM_USE_CPU_READ | HBM_USE_CPU_WRITE | HBM_USE_MEM_DMA);
