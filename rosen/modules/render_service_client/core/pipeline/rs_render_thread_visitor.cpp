@@ -37,6 +37,8 @@
 #include "transaction/rs_transaction_proxy.h"
 #include "ui/rs_surface_extractor.h"
 #include "ui/rs_surface_node.h"
+#include "rs_overdraw_controller.h"
+#include "rs_overdraw_canvas_listener.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -225,6 +227,7 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
 
     auto skSurface = surfaceFrame->GetSurface();
     canvas_ = new RSPaintFilterCanvas(skSurface.get());
+    auto listener = RSOverdrawController::GetInstance().SetHook<RSOverdrawCanvasListener>(canvas_);
 
     canvas_->clipRect(SkRect::MakeWH(node.GetSurfaceWidth(), node.GetSurfaceHeight()));
     canvas_->clear(SK_ColorTRANSPARENT);
@@ -252,6 +255,10 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
     if (dirtyManager_.IsDirty() && dirtyManager_.IsDebugEnabled()) {
         ROSEN_LOGD("ProcessRootRenderNode id %d is dirty", node.GetId());
         DrawDirtyRegion();
+    }
+
+    if (listener != nullptr) {
+        listener->Draw();
     }
 
     RS_TRACE_BEGIN("rsSurface->FlushFrame");
