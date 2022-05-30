@@ -45,6 +45,7 @@ group("graphic_standard_test") {
     "frameworks/surface/test:test",
     "rosen/modules/composer:test",
     "rosen/modules/effect/test/unittest:test",
+    "rosen/test/render_service:unittest",
     "utils/sync_fence:test",
   ]
 
