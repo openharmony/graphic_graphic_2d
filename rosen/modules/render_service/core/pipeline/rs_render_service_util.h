@@ -60,8 +60,6 @@ struct ComposeInfo {
     LayerAlpha alpha;
     sptr<SurfaceBuffer> buffer;
     sptr<SyncFence> fence = SyncFence::INVALID_FENCE;
-    sptr<SurfaceBuffer> preBuffer;
-    sptr<SyncFence> preFence = SyncFence::INVALID_FENCE;
     BlendType blendType;
 };
 
@@ -86,8 +84,8 @@ public:
     static bool CreateYuvToRGBABitMap(sptr<OHOS::SurfaceBuffer> buffer, std::vector<uint8_t>& newBuffer,
         SkBitmap& bitmap);
 
-    static void DropFrameProcess(RSSurfaceHandler& node);
-    static bool ConsumeAndUpdateBuffer(RSSurfaceHandler& node, bool toReleaseBuffer = false);
+    static void DropFrameProcess(RSSurfaceHandler& surfaceHandler);
+    static bool ConsumeAndUpdateBuffer(RSSurfaceHandler& surfaceHandler, bool toReleaseBuffer = false);
 
 private:
     static SkMatrix GetCanvasTransform(const RSSurfaceRenderNode& node, const SkMatrix& canvasMatrix,

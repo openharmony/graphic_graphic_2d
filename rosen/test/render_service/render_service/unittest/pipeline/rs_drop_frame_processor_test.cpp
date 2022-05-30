@@ -17,8 +17,7 @@
 #include "limit_number.h"
 #include "surface.h"
 #include "pipeline/rs_render_service_listener.h"
-#include "pipeline/rs_hardware_processor.h"
-#include "pipeline/rs_processor_factory.h"
+#include "pipeline/rs_render_service_util.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -115,9 +114,7 @@ HWTEST_F(RSDropFrameProcessorTest, TestDropFrame001, TestSize.Level1)
     }
     
     // create RSHardwareProcessor
-    auto rsHdProcessor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::HARDWARE_COMPOSITE);
-    ASSERT_NE(rsHdProcessor, nullptr);
-    rsHdProcessor->ProcessSurface(*rsNode);
-    ASSERT_EQ(1, rsNode->GetAvailableBufferCount());
+    RsRenderServiceUtil::DropFrameProcess(*rsNode.get());
+    ASSERT_EQ(2, rsNode->GetAvailableBufferCount());
 }
 } // namespace OHOS::Rosen

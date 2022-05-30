@@ -42,7 +42,6 @@ public:
     static std::shared_ptr<HdiLayer> CreateHdiLayer(uint32_t screenId);
 
     bool Init(const LayerInfoPtr &layerInfo);
-    void ReleaseBuffer();
     void MergeWithFramebufferFence(const sptr<SyncFence> &fbAcquireFence);
     void MergeWithLayerFence(const sptr<SyncFence> &layerReleaseFence);
     void UpdateCompositionType(CompositionType type);
@@ -61,6 +60,7 @@ public:
     int32_t GetLayerColorDataSpace(ColorDataSpace &colorSpace) const;
     int32_t SetLayerMetaData(const std::vector<HDRMetaData> &metaData) const;
     int32_t SetLayerMetaDataSet(HDRMetadataKey key, const std::vector<uint8_t> &metaData) const;
+    sptr<SyncFence> GetReleaseFence() const;
 private:
     // layer buffer & fence
     class LayerBufferInfo : public RefBase {
@@ -85,7 +85,6 @@ private:
     void CloseLayer();
     int32_t CreateLayer(const LayerInfoPtr &layerInfo);
     sptr<SyncFence> Merge(const sptr<SyncFence> &fence1, const sptr<SyncFence> &fence2);
-    SurfaceError ReleasePrevBuffer();
 
     inline void CheckRet(int32_t ret, const char* func);
 };

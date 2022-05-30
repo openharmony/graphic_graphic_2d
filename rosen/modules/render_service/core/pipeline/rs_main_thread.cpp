@@ -13,12 +13,14 @@
  * limitations under the License.
  */
 #include "pipeline/rs_main_thread.h"
+#include <memory>
 
 #include "command/rs_message_processor.h"
 #include "pipeline/rs_base_render_node.h"
 #include "pipeline/rs_render_service_util.h"
 #include "pipeline/rs_render_service_visitor.h"
 #include "pipeline/rs_uni_render_visitor.h"
+#include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
 #include "platform/drawing/rs_vsync_client.h"
@@ -49,6 +51,7 @@ void RSMainThread::Init()
         ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSMainThread::DoComposition");
         ProcessCommand();
         Animate(timestamp_);
+        ConsumeAndUpdateAllNodes();
         Render();
         SendCommands();
         ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
@@ -91,6 +94,33 @@ void RSMainThread::ProcessCommand()
         if (rsTransaction) {
             rsTransaction->Process(context_);
         }
+    }
+}
+
+void RSMainThread::ConsumeAndUpdateAllNodes()
+{
+    bool needRequestNextVsync = false;
+
+    const auto& nodeMap = GetContext().GetNodeMap();
+    nodeMap.TraversalNodes([this, &needRequestNextVsync](const std::shared_ptr<RSBaseRenderNode>& node) mutable {
+        if (node == nullptr) {
+            return;
+        }
+
+        if (node->IsInstanceOf<RSSurfaceRenderNode>()) {
+            RSSurfaceRenderNode& surfaceNode = *(RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node));
+            RSSurfaceHandler& surfaceHandler = static_cast<RSSurfaceHandler&>(surfaceNode);
+            RsRenderServiceUtil::ConsumeAndUpdateBuffer(surfaceHandler);
+
+            // still have buffer(s) to consume.
+            if (surfaceHandler.GetAvailableBufferCount() > 0) {
+                needRequestNextVsync = true;
+            }
+        }
+    });
+
+    if (needRequestNextVsync) {
+        RequestNextVSync();
     }
 }
 

@@ -246,7 +246,7 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
             canvas_->clipRect(SkRect::MakeXYWH(
                 node.GetRenderProperties().GetBoundsPositionX(), node.GetRenderProperties().GetBoundsPositionY(),
                 node.GetRenderProperties().GetBoundsWidth(), node.GetRenderProperties().GetBoundsHeight()));
-            if (!RsRenderServiceUtil::ConsumeAndUpdateBuffer(node, true)) {
+            if (node.GetBuffer() == nullptr) {
                 RS_LOGI("RSUniRenderVisitor::ProcessSurfaceRenderNode buffer is not available, set black");
                 canvas_->clear(SK_ColorBLACK);
             } else {

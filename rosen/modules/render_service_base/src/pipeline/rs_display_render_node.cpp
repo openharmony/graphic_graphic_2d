@@ -22,10 +22,17 @@
 
 namespace OHOS {
 namespace Rosen {
-RSDisplayRenderNode::RSDisplayRenderNode(NodeId id, const RSDisplayNodeConfig& config, std::weak_ptr<RSContext> context)
-    : RSBaseRenderNode(id, context), screenId_(config.screenId), offsetX_(0), offsetY_(0),
-    isMirroredDisplay_(config.isMirrored)
-{}
+RSDisplayRenderNode::RSDisplayRenderNode(
+    NodeId id,
+    const RSDisplayNodeConfig& config,
+    std::weak_ptr<RSContext> context)
+    : RSBaseRenderNode(id, context),
+      RSSurfaceHandler(id),
+      screenId_(config.screenId),
+      offsetX_(0), offsetY_(0),
+      isMirroredDisplay_(config.isMirrored)
+{
+}
 
 RSDisplayRenderNode::~RSDisplayRenderNode() {}
 
@@ -115,6 +122,7 @@ bool RSDisplayRenderNode::CreateSurface(sptr<IBufferConsumerListener> listener)
     // CPU render
     surface_ = std::make_shared<RSSurfaceOhosRaster>(surface);
 #endif
+    consumer_->SetQueueSize(5); // enlarge queue size to 5 
 
     RS_LOGI("RSDisplayRenderNode::CreateSurface end");
     surfaceCreated_ = true;

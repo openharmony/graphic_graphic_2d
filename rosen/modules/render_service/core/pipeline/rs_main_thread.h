@@ -118,6 +118,7 @@ private:
     void OnVsync(uint64_t timestamp, void *data);
     void ProcessCommand();
     void Animate(uint64_t timestamp);
+    void ConsumeAndUpdateAllNodes();
     void Render();
     void SendCommands();
 

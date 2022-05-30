@@ -42,10 +42,10 @@ public:
     const std::shared_ptr<RSRenderNode> GetAnimationFallbackNode() const;
 
     void FilterNodeByPid(pid_t pid);
+    void TraversalNodes(std::function<void (const std::shared_ptr<RSBaseRenderNode>&)> func) const;
 
     void DumpNodeNotOnTree(std::string& dumpString) const;
     void DumpAllNodeMemSize(std::string& dumpString) const;
-    void ConsumeNodesNotOnTree() const;
 private:
     explicit RSRenderNodeMap();
     ~RSRenderNodeMap() = default;
@@ -60,7 +60,6 @@ private:
     friend class RSContext;
     friend class RSMainThread;
 };
-
 } // namespace Rosen
 } // namespace OHOS
 

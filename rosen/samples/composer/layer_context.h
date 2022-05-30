@@ -42,6 +42,14 @@ public:
     void SetTestClientStatus(bool status);
     void SetTestRotateStatus(bool status);
     LayerType GetLayerType() const;
+    sptr<SurfaceBuffer> GetPreBuffer() const
+    {
+        return prevBuffer_;
+    }
+    sptr<SyncFence> GetPreFence() const
+    {
+        return prevFence_;
+    }
 
 private:
     const std::vector<uint32_t> colors_ = {0xff0000ff, 0xffff00ff, 0xaa00ff00, 0xff00ffaa, 0xff0f0f00};

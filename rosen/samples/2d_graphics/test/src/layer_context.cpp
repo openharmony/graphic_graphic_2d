@@ -116,7 +116,7 @@ SurfaceError LayerContext::FillHDILayer()
 
     hdiLayer_->SetSurface(cSurface_);
     auto acquireSyncFence = new SyncFence(acquireFenceFd.Release());
-    hdiLayer_->SetBuffer(buffer, acquireSyncFence, prevBuffer_, prevFence_);
+    hdiLayer_->SetBuffer(buffer, acquireSyncFence);
     hdiLayer_->SetZorder(static_cast<int32_t>(zorder_));
     hdiLayer_->SetAlpha(alpha);
     hdiLayer_->SetCompositionType(CompositionType::COMPOSITION_DEVICE);

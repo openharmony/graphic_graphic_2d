@@ -305,6 +305,13 @@ void HelloDrawing::Draw()
         output->SetOutputDamage(1, damageRect);
 
         backend->Repaint(outputs_);
+        for (uint32_t i = 0; i < BASE_LAYER_NUM; i++) {
+            int32_t releaseFence = -1;
+            sptr<SyncFence> tempFence = new SyncFence(releaseFence);
+            baseCSurfaceVec_[i]->ReleaseBuffer(baseCSurfaceVec_[i]->GetBuffer(), tempFence);
+            tempFence->Wait(100); // 100 ms
+        }
+        
         count++;
 #ifdef DEBUG_DUMP
         std::string result;
