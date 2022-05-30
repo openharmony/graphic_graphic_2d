@@ -26,7 +26,9 @@
 #include "include/core/SkPaint.h"
 #include "include/core/SkPicture.h"
 #include "include/core/SkSerialProcs.h"
+#include "include/core/SkStream.h"
 #include "include/core/SkTextBlob.h"
+#include "include/core/SkTypeface.h"
 #include "include/core/SkVertices.h"
 #include "securec.h"
 #include "src/core/SkAutoMalloc.h"
@@ -125,6 +127,23 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, sk_sp<SkData>& val)
     return val != nullptr;
 }
 
+// SkTypeface serial proc
+sk_sp<SkData> RSMarshallingHelper::SerializeTypeface(SkTypeface* tf, void* ctx)
+{
+    if (tf == nullptr) {
+        ROSEN_LOGW("unirender: RSMarshallingHelper::SerializeTypeface SkTypeface is nullptr");
+        return nullptr;
+    }
+    return tf->serialize();
+}
+
+// SkTypeface deserial proc
+sk_sp<SkTypeface> RSMarshallingHelper::DeserializeTypeface(const void* data, size_t length, void* ctx)
+{
+    SkMemoryStream stream(data, length);
+    return SkTypeface::MakeDeserialize(&stream);
+}
+
 // SkTextBlob
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const sk_sp<SkTextBlob>& val)
 {
@@ -132,7 +151,9 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const sk_sp<SkTextBlob>& v
         ROSEN_LOGE("unirender: RSMarshallingHelper::Marshalling SkTextBlob is nullptr");
         return false;
     }
-    sk_sp<SkData> data = val->serialize(SkSerialProcs());
+    SkSerialProcs serialProcs;
+    serialProcs.fTypefaceProc = &RSMarshallingHelper::SerializeTypeface;
+    sk_sp<SkData> data = val->serialize(serialProcs);
     return Marshalling(parcel, data);
 }
 bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, sk_sp<SkTextBlob>& val)
@@ -142,7 +163,9 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, sk_sp<SkTextBlob>& val)
         ROSEN_LOGE("unirender: failed RSMarshallingHelper::Unmarshalling SkTextBlob");
         return false;
     }
-    val = SkTextBlob::Deserialize(data->data(), data->size(), SkDeserialProcs());
+    SkDeserialProcs deserialProcs;
+    deserialProcs.fTypefaceProc = &RSMarshallingHelper::DeserializeTypeface;
+    val = SkTextBlob::Deserialize(data->data(), data->size(), deserialProcs);
     return val != nullptr;
 }
 
