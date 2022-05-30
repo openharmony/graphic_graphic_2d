@@ -46,13 +46,13 @@ public:
 
 class MockRSPaintFilterCanvas : public RSPaintFilterCanvas {
 public:
-    MockRSPaintFilterCanvas(SkCanvas *canvas) : RSPaintFilterCanvas(canvas) {}
+    explicit MockRSPaintFilterCanvas(SkCanvas *canvas) : RSPaintFilterCanvas(canvas) {}
     MOCK_METHOD2(onDrawRect, void(const SkRect& rect, const SkPaint& paint));
 };
 
 class MockRSCanvasListener : public RSCanvasListener {
 public:
-    MockRSCanvasListener(SkCanvas &canvas) : RSCanvasListener(canvas) {}
+    explicit MockRSCanvasListener(SkCanvas &canvas) : RSCanvasListener(canvas) {}
     MOCK_METHOD2(onDrawRect, void(const SkRect& rect, const SkPaint& paint));
 };
 

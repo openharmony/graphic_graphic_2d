@@ -71,7 +71,7 @@ void RSCPUOverdrawCanvasListener::onDrawRRect(const SkRRect& rect, const SkPaint
 }
 
 void RSCPUOverdrawCanvasListener::onDrawDRRect(const SkRRect& outer, const SkRRect& inner,
-                  const SkPaint& paint)
+                                               const SkPaint& paint)
 {
     SkPath path;
     path.addRRect(outer);
@@ -86,8 +86,9 @@ void RSCPUOverdrawCanvasListener::onDrawOval(const SkRect& rect, const SkPaint& 
     AppendRegion(path);
 }
 
-void RSCPUOverdrawCanvasListener::onDrawArc(const SkRect& rect, SkScalar startAngle, SkScalar sweepAngle, bool useCenter,
-               const SkPaint& paint)
+void RSCPUOverdrawCanvasListener::onDrawArc(const SkRect& rect, SkScalar startAngle,
+                                            SkScalar sweepAngle, bool useCenter,
+                                            const SkPaint& paint)
 {
     SkPath path;
     path.addArc(rect, startAngle, sweepAngle);
@@ -108,7 +109,7 @@ void RSCPUOverdrawCanvasListener::onDrawRegion(const SkRegion& region, const SkP
 }
 
 void RSCPUOverdrawCanvasListener::onDrawTextBlob(const SkTextBlob* blob, SkScalar x, SkScalar y,
-                    const SkPaint& paint)
+                                                 const SkPaint& paint)
 {
     if (blob == nullptr) {
         return;
@@ -120,26 +121,29 @@ void RSCPUOverdrawCanvasListener::onDrawTextBlob(const SkTextBlob* blob, SkScala
 }
 
 void RSCPUOverdrawCanvasListener::onDrawPatch(const SkPoint cubics[12], const SkColor colors[4],
-                 const SkPoint texCoords[4], SkBlendMode mode,
-                 const SkPaint& paint)
+                                              const SkPoint texCoords[4], SkBlendMode mode,
+                                              const SkPaint& paint)
 {
-    // TODO
+    // need know patch region
 }
 
 void RSCPUOverdrawCanvasListener::onDrawPoints(SkCanvas::PointMode mode, size_t count, const SkPoint pts[],
-                  const SkPaint& paint)
+                                               const SkPaint& paint)
 {
-    // TODO
+    for (size_t i = 0; i < count; i++) {
+        onDrawRect(SkRect::MakeXYWH(pts[i].x(), pts[i].y(), 1, 1), paint);
+    }
 }
 
 void RSCPUOverdrawCanvasListener::onDrawEdgeAAQuad(const SkRect& rect, const SkPoint clip[4],
-        SkCanvas::QuadAAFlags aaFlags, const SkColor4f& color, SkBlendMode mode)
+                                                   SkCanvas::QuadAAFlags aaFlags,
+                                                   const SkColor4f& color, SkBlendMode mode)
 {
-    SkPaint paint{color};
+    SkPaint paint(color);
     paint.setBlendMode(mode);
     if (clip) {
         SkPath clipPath;
-        clipPath.addPoly(clip, 4, true);
+        clipPath.addPoly(clip, 0x4, true); // 4 from clip[4]
         onDrawPath(clipPath, paint);
     } else {
         onDrawRect(rect, paint);
@@ -148,12 +152,12 @@ void RSCPUOverdrawCanvasListener::onDrawEdgeAAQuad(const SkRect& rect, const SkP
 
 void RSCPUOverdrawCanvasListener::onDrawAnnotation(const SkRect& rect, const char key[], SkData* value)
 {
-    // TODO
+    // need know annotation region
 }
 
 void RSCPUOverdrawCanvasListener::onDrawShadowRec(const SkPath& path, const SkDrawShadowRec& rect)
 {
-    // TODO
+    // need know shadow rect region
 }
 
 void RSCPUOverdrawCanvasListener::onDrawDrawable(SkDrawable* drawable, const SkMatrix* matrix)
@@ -174,7 +178,7 @@ void RSCPUOverdrawCanvasListener::onDrawDrawable(SkDrawable* drawable, const SkM
 }
 
 void RSCPUOverdrawCanvasListener::onDrawPicture(const SkPicture* picture, const SkMatrix* matrix,
-                   const SkPaint* paint)
+                                                const SkPaint* paint)
 {
     if (picture == nullptr) {
         return;

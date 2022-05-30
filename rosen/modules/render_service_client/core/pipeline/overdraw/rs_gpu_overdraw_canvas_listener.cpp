@@ -74,7 +74,7 @@ void RSGPUOverdrawCanvasListener::onDrawRRect(const SkRRect& rect, const SkPaint
 }
 
 void RSGPUOverdrawCanvasListener::onDrawDRRect(const SkRRect& outer, const SkRRect& inner,
-                  const SkPaint& paint)
+                                               const SkPaint& paint)
 {
     overdrawCanvas_->drawDRRect(outer, inner, paint);
 }
@@ -84,8 +84,9 @@ void RSGPUOverdrawCanvasListener::onDrawOval(const SkRect& rect, const SkPaint& 
     overdrawCanvas_->drawOval(rect, paint);
 }
 
-void RSGPUOverdrawCanvasListener::onDrawArc(const SkRect& rect, SkScalar startAngle, SkScalar sweepAngle, bool useCenter,
-               const SkPaint& paint)
+void RSGPUOverdrawCanvasListener::onDrawArc(const SkRect& rect, SkScalar startAngle,
+                                            SkScalar sweepAngle, bool useCenter,
+                                            const SkPaint& paint)
 {
     overdrawCanvas_->drawArc(rect, startAngle, sweepAngle, useCenter, paint);
 }
@@ -101,26 +102,27 @@ void RSGPUOverdrawCanvasListener::onDrawRegion(const SkRegion& region, const SkP
 }
 
 void RSGPUOverdrawCanvasListener::onDrawTextBlob(const SkTextBlob* blob, SkScalar x, SkScalar y,
-                    const SkPaint& paint)
+                                                 const SkPaint& paint)
 {
     overdrawCanvas_->drawTextBlob(blob, x, y, paint);
 }
 
 void RSGPUOverdrawCanvasListener::onDrawPatch(const SkPoint cubics[12], const SkColor colors[4],
-                 const SkPoint texCoords[4], SkBlendMode mode,
-                 const SkPaint& paint)
+                                              const SkPoint texCoords[4], SkBlendMode mode,
+                                              const SkPaint& paint)
 {
     overdrawCanvas_->drawPatch(cubics, colors, texCoords, mode, paint);
 }
 
 void RSGPUOverdrawCanvasListener::onDrawPoints(SkCanvas::PointMode mode, size_t count, const SkPoint pts[],
-                  const SkPaint& paint)
+                                               const SkPaint& paint)
 {
     overdrawCanvas_->drawPoints(mode, count, pts, paint);
 }
 
 void RSGPUOverdrawCanvasListener::onDrawEdgeAAQuad(const SkRect& rect, const SkPoint clip[4],
-        SkCanvas::QuadAAFlags aaFlags, const SkColor4f& color, SkBlendMode mode)
+                                                   SkCanvas::QuadAAFlags aaFlags,
+                                                   const SkColor4f& color, SkBlendMode mode)
 {
     overdrawCanvas_->experimental_DrawEdgeAAQuad(rect, clip, aaFlags, color.toSkColor(), mode);
 }
@@ -141,7 +143,7 @@ void RSGPUOverdrawCanvasListener::onDrawDrawable(SkDrawable* drawable, const SkM
 }
 
 void RSGPUOverdrawCanvasListener::onDrawPicture(const SkPicture* picture, const SkMatrix* matrix,
-                   const SkPaint* paint)
+                                                const SkPaint* paint)
 {
     overdrawCanvas_->drawPicture(picture, matrix, paint);
 }

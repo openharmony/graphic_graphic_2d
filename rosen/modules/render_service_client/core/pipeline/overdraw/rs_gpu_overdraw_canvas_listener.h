@@ -27,7 +27,7 @@ namespace OHOS {
 namespace Rosen {
 class RS_EXPORT RSGPUOverdrawCanvasListener : public RSCanvasListener {
 public:
-    RSGPUOverdrawCanvasListener(SkCanvas &canvas);
+    explicit RSGPUOverdrawCanvasListener(SkCanvas &canvas);
     ~RSGPUOverdrawCanvasListener() override;
 
     void Draw() override;

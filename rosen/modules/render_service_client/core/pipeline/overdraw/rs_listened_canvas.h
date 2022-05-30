@@ -24,7 +24,7 @@ class RSCanvasListener;
 
 class RS_EXPORT RSListenedCanvas : public RSPaintFilterCanvas {
 public:
-    RSListenedCanvas(RSPaintFilterCanvas *canvas);
+    explicit RSListenedCanvas(RSPaintFilterCanvas *canvas);
     ~RSListenedCanvas();
 
     void SetListener(const std::shared_ptr<RSCanvasListener> &listener);

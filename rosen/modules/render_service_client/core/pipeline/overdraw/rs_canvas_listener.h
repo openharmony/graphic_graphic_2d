@@ -22,11 +22,19 @@ namespace OHOS {
 namespace Rosen {
 class RSCanvasListener {
 public:
-    RSCanvasListener(SkCanvas &canvas) : canvas_(canvas) {}
+    explicit RSCanvasListener(SkCanvas &canvas) : canvas_(canvas) {}
     virtual ~RSCanvasListener() = default;
     virtual void Draw() {}
-    virtual bool IsValid() const { return false; }
-    virtual const char *Name() const { return "RSCanvasListener"; }
+    virtual bool IsValid() const
+    {
+        return false;
+    }
+
+    virtual const char *Name() const
+    {
+        return "RSCanvasListener";
+    }
+
     virtual void onDrawPaint(const SkPaint& paint) {}
     virtual void onDrawBehind(const SkPaint&) {}
     virtual void onDrawRect(const SkRect& rect, const SkPaint& paint) {}

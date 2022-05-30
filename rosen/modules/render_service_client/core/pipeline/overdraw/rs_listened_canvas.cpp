@@ -71,7 +71,7 @@ void RSListenedCanvas::onDrawRRect(const SkRRect& rrect, const SkPaint& paint)
 }
 
 void RSListenedCanvas::onDrawDRRect(const SkRRect& outer, const SkRRect& inner,
-                  const SkPaint& paint)
+                                    const SkPaint& paint)
 {
     if (listener_ != nullptr) {
         listener_->onDrawDRRect(outer, inner, paint);
@@ -94,7 +94,7 @@ void RSListenedCanvas::onDrawOval(const SkRect& rect, const SkPaint& paint)
 }
 
 void RSListenedCanvas::onDrawArc(const SkRect& rect, SkScalar startAngle, SkScalar sweepAngle, bool useCenter,
-               const SkPaint& paint)
+                                 const SkPaint& paint)
 {
     if (listener_ != nullptr) {
         listener_->onDrawArc(rect, startAngle, sweepAngle, useCenter, paint);
@@ -128,7 +128,7 @@ void RSListenedCanvas::onDrawRegion(const SkRegion& region, const SkPaint& paint
 }
 
 void RSListenedCanvas::onDrawTextBlob(const SkTextBlob* blob, SkScalar x, SkScalar y,
-                    const SkPaint& paint)
+                                      const SkPaint& paint)
 {
     if (listener_ != nullptr) {
         listener_->onDrawTextBlob(blob, x, y, paint);
@@ -140,8 +140,8 @@ void RSListenedCanvas::onDrawTextBlob(const SkTextBlob* blob, SkScalar x, SkScal
 }
 
 void RSListenedCanvas::onDrawPatch(const SkPoint cubics[12], const SkColor colors[4],
-                 const SkPoint texCoords[4], SkBlendMode mode,
-                 const SkPaint& paint)
+                                   const SkPoint texCoords[4], SkBlendMode mode,
+                                   const SkPaint& paint)
 {
     if (listener_ != nullptr) {
         listener_->onDrawPatch(cubics, colors, texCoords, mode, paint);
@@ -153,7 +153,7 @@ void RSListenedCanvas::onDrawPatch(const SkPoint cubics[12], const SkColor color
 }
 
 void RSListenedCanvas::onDrawPoints(SkCanvas::PointMode mode, size_t count, const SkPoint pts[],
-                  const SkPaint& paint)
+                                    const SkPaint& paint)
 {
     if (listener_ != nullptr) {
         listener_->onDrawPoints(mode, count, pts, paint);
@@ -198,7 +198,7 @@ void RSListenedCanvas::onDrawDrawable(SkDrawable* drawable, const SkMatrix* matr
 }
 
 void RSListenedCanvas::onDrawPicture(const SkPicture* picture, const SkMatrix* matrix,
-                   const SkPaint* paint)
+                                     const SkPaint* paint)
 {
     if (listener_ != nullptr) {
         listener_->onDrawPicture(picture, matrix, paint);
