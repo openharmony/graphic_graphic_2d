@@ -21,6 +21,7 @@
 #include "pipeline/rs_node_map.h"
 #include "pipeline/rs_render_thread.h"
 #include "platform/common/rs_log.h"
+#include "platform/common/rs_system_properties.h"
 #include "rs_trace.h"
 #include "transaction/rs_interfaces.h"
 #include "transaction/rs_transaction_proxy.h"
@@ -44,16 +45,21 @@ RSUIDirector::~RSUIDirector()
 
 void RSUIDirector::Init()
 {
-    auto renderThreadClient = RSIRenderClient::CreateRenderThreadClient();
-    auto transactionProxy = RSTransactionProxy::GetInstance();
-    if (transactionProxy != nullptr) {
-        transactionProxy->SetRenderThreadClient(renderThreadClient);
-    }
-
     AnimationCommandHelper::SetFinisCallbackProcessor(AnimationCallbackProcessor);
 
-    RsFrameReport::GetInstance().Init();
-    RSRenderThread::Instance().Start();
+    isUniRenderEnabled_ =
+        RSSystemProperties::GetUniRenderEnabledType() != UniRenderEnabledType::UNI_RENDER_DISABLED;
+    if (!isUniRenderEnabled_) {
+        auto renderThreadClient = RSIRenderClient::CreateRenderThreadClient();
+        auto transactionProxy = RSTransactionProxy::GetInstance();
+        if (transactionProxy != nullptr) {
+            transactionProxy->SetRenderThreadClient(renderThreadClient);
+        }
+
+        RsFrameReport::GetInstance().Init();
+        RSRenderThread::Instance().Start();
+    }
+
     GoForeground();
 }
 
@@ -61,7 +67,9 @@ void RSUIDirector::GoForeground()
 {
     ROSEN_LOGI("RSUIDirector::GoForeground");
     if (!isActive_) {
-        RSRenderThread::Instance().UpdateWindowStatus(true);
+        if (!isUniRenderEnabled_) {
+            RSRenderThread::Instance().UpdateWindowStatus(true);
+        }
         isActive_ = true;
         if (auto node = RSNodeMap::Instance().GetNode<RSRootNode>(root_)) {
             node->SetVisible(true);
@@ -73,7 +81,9 @@ void RSUIDirector::GoBackground()
 {
     ROSEN_LOGI("RSUIDirector::GoBackground");
     if (isActive_) {
-        RSRenderThread::Instance().UpdateWindowStatus(false);
+        if (!isUniRenderEnabled_) {
+            RSRenderThread::Instance().UpdateWindowStatus(false);
+        }
         isActive_ = false;
         if (auto node = RSNodeMap::Instance().GetNode<RSRootNode>(root_)) {
             node->SetVisible(false);
@@ -84,7 +94,9 @@ void RSUIDirector::GoBackground()
 void RSUIDirector::Destroy()
 {
     if (root_ != 0) {
-        RSRenderThread::Instance().Detach(root_);
+        if (!isUniRenderEnabled_) {
+            RSRenderThread::Instance().Detach(root_);
+        }
         root_ = 0;
     }
     GoBackground();
