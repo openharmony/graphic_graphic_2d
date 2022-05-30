@@ -12,7 +12,7 @@
 # limitations under the License.
 import("//build/ohos.gni")
 
-## Build libEGL_wrapper.so {{{
+## Build libEGL.so {{{
 config("egl_config") {
   visibility = [ ":*" ]
 
@@ -29,14 +29,13 @@ config("egl_public_config") {
   include_dirs = [ "include" ]
 }
 
-ohos_shared_library("EGL_wrapper") {
+ohos_shared_library("EGL") {
   sources = [
     "src/EGL/egl.cpp",
     "src/EGL/egl_core.cpp",
     "src/EGL/egl_wrapper_context.cpp",
     "src/EGL/egl_wrapper_display.cpp",
     "src/EGL/egl_wrapper_entry.cpp",
-    "src/EGL/egl_wrapper_layer.cpp",
     "src/EGL/egl_wrapper_loader.cpp",
     "src/EGL/egl_wrapper_object.cpp",
     "src/EGL/egl_wrapper_surface.cpp",
@@ -53,13 +52,15 @@ ohos_shared_library("EGL_wrapper") {
 
   external_deps = [ "hilog_native:libhilog" ]
 
+  symlink_target_name = [ "libEGL.so" ]
+
   part_name = "graphic_standard"
   subsystem_name = "graphic"
 }
 
-## Build libEGL_wrapper.so }}}
+## Build libEGL.so }}}
 
-## Build libGLESv1_wrapper.so {{{
+## Build libGLESv1.so {{{
 config("glesv1_config") {
   visibility = [ ":*" ]
 
@@ -74,7 +75,7 @@ config("glesv1_public_config") {
   include_dirs = [ "include" ]
 }
 
-ohos_shared_library("GLESv1_wrapper") {
+ohos_shared_library("GLESv1") {
   sources = [
     "src/GLES1/gles1.cpp",
     "src/thread_private_data_ctl.cpp",
@@ -90,13 +91,15 @@ ohos_shared_library("GLESv1_wrapper") {
 
   external_deps = [ "hilog_native:libhilog" ]
 
+  symlink_target_name = [ "libGLESv1.so" ]
+
   part_name = "graphic_standard"
   subsystem_name = "graphic"
 }
 
-## Build libGLESv1_wrapper.so }}}
+## Build libGLESv1.so }}}
 
-## Build libGLESv2_wrapper.so {{{
+## Build libGLESv2.so {{{
 config("glesv2_config") {
   visibility = [ ":*" ]
 
@@ -111,7 +114,7 @@ config("glesv2_public_config") {
   include_dirs = [ "include" ]
 }
 
-ohos_shared_library("GLESv2_wrapper") {
+ohos_shared_library("GLESv2") {
   sources = [
     "src/GLES2/gles2.cpp",
     "src/thread_private_data_ctl.cpp",
@@ -127,13 +130,15 @@ ohos_shared_library("GLESv2_wrapper") {
 
   external_deps = [ "hilog_native:libhilog" ]
 
+  symlink_target_name = [ "libGLESv2.so" ]
+
   part_name = "graphic_standard"
   subsystem_name = "graphic"
 }
 
-## Build libGLESv2_wrapper.so }}}
+## Build libGLESv2.so }}}
 
-## Build libGLESv3_wrapper.so {{{
+## Build libGLESv3.so {{{
 config("glesv3_config") {
   visibility = [ ":*" ]
 
@@ -148,7 +153,7 @@ config("glesv3_public_config") {
   include_dirs = [ "include" ]
 }
 
-ohos_shared_library("GLESv3_wrapper") {
+ohos_shared_library("GLESv3") {
   sources = [
     "src/GLES3/gles3.cpp",
     "src/thread_private_data_ctl.cpp",
@@ -164,11 +169,13 @@ ohos_shared_library("GLESv3_wrapper") {
 
   external_deps = [ "hilog_native:libhilog" ]
 
+  symlink_target_name = [ "libGLESv3.so" ]
+
   part_name = "graphic_standard"
   subsystem_name = "graphic"
 }
 
-## Build libGLESv3_wrapper.so }}}
+## Build libGLESv3.so }}}
 
 ## Build opengl_wrapper_native_test {{{
 ohos_executable("opengl_wrapper_native_test") {
@@ -183,8 +190,8 @@ ohos_executable("opengl_wrapper_native_test") {
   ]
 
   deps = [
-    ":EGL_wrapper",
-    ":GLESv3_wrapper",
+    ":EGL",
+    ":GLESv3",
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:librender_service_client",
     "//utils/native/base:utils",
   ]

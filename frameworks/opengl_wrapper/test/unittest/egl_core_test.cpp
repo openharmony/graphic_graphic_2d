@@ -18,7 +18,6 @@
 #include "EGL/egl_core.h"
 
 #include "egl_defs.h"
-#include "egl_wrapper_layer.h"
 
 using namespace testing;
 using namespace testing::ext;
