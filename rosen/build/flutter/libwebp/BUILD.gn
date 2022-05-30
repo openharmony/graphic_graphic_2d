@@ -21,6 +21,7 @@ config("ace_libwebp_config") {
     "$flutter_root/skia/third_party/externals/libwebp",
   ]
   cflags = [
+    "-w",
     "-fstrict-aliasing",
     "-Os",
     "-fdata-sections",
@@ -161,6 +162,7 @@ config("ace_libwebp_sse41_config") {
     "$flutter_root/skia/third_party/externals/libwebp",
   ]
   cflags = [
+    "-w",
     "-fstrict-aliasing",
     "-Os",
     "-fdata-sections",

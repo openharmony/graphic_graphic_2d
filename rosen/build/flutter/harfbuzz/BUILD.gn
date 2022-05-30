@@ -25,6 +25,7 @@ config("libharfbuzz_compile_flags") {
   ]
 
   cflags = [
+    "-w",
     "-fstrict-aliasing",
     "-Os",
     "-fdata-sections",
