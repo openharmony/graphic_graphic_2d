@@ -36,10 +36,11 @@ ohos_executable("test_effect_chain") {
     deps = [
       "//foundation/graphic/graphic_2d:libgl",
       "//foundation/graphic/graphic_2d:libsurface",
-      "//foundation/graphic/graphic_2d/interfaces/kits/napi/graphic/common:graphic_napi_common",
       "//foundation/graphic/graphic_2d/rosen/modules/effect/effectChain:libeffectchain",
       "//foundation/graphic/graphic_2d/rosen/modules/effect/egl:libegl_effect",
     ]
+
+    external_deps = [ "utils_base:utils" ]
   }
 
   if (effect_enable_gpu) {
