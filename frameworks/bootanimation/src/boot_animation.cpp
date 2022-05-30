@@ -223,13 +223,17 @@ void BootAnimation::CheckExitAnimation()
 void BootAnimation::PlaySound()
 {
     LOGI("PlaySound start");
-    if (soundPlayer_ == nullptr) {
-        soundPlayer_ = Media::PlayerFactory::CreatePlayer();
+    bool bootSoundEnabled = system::GetBoolParameter("persist.graphic.bootsound.enabled", true);
+    if (bootSoundEnabled == true) {
+        LOGI("PlaySound read bootSoundEnabled is true");
+        if (soundPlayer_ == nullptr) {
+            soundPlayer_ = Media::PlayerFactory::CreatePlayer();
+        }
+        std::string uri = BOOT_SOUND_URI;
+        soundPlayer_->SetSource(uri);
+        soundPlayer_->SetLooping(false);
+        soundPlayer_->Prepare();
+        soundPlayer_->Play();
     }
-    std::string uri = BOOT_SOUND_URI;
-    soundPlayer_->SetSource(uri);
-    soundPlayer_->SetLooping(false);
-    soundPlayer_->Prepare();
-    soundPlayer_->Play();
     LOGI("PlaySound end");
 }
