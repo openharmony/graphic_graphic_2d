@@ -25,10 +25,6 @@ using namespace std;
 
 EGLConfig EglManager::GetConfig(int version, EGLDisplay eglDisplay)
 {
-    int renderableType = EGL_OPENGL_ES2_BIT;
-    if (version >= EGL_SUPPORT_VERSION) {
-        renderableType = EGL_OPENGL_ES3_BIT_KHR;
-    }
     int attribList[] = {
         EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
         EGL_RED_SIZE, 8,

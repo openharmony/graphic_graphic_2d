@@ -83,7 +83,7 @@ public:
         LOGI("~ImageStruct() %{public}s", fileName.c_str());
     }
 };
-using BootAniConfig = struct {
+using BootAniConfig = struct BootAniConfig {
 public:
     int32_t frameRate = 30;
 };
