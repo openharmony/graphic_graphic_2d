@@ -17,13 +17,10 @@ import("//foundation/graphic/graphic_2d/graphic_config.gni")
 ## Build librender_service.so
 ohos_shared_library("librender_service") {
   defines = []
-  if ("${product_name}" == "watchos" || "${product_name}" == "Hi3516DV300" ||
-      "${product_name}" == "ohos-arm64" || "${product_name}" == "ohos-sdk" ||
-      "${product_name}" == "qemu-arm-linux-min" ||
-      "${product_name}" == "rk3566" || "${product_name}" == "rk3568") {
-    defines += []
-  } else {
+  if (graphic_standard_feature_color_gamut_enable) {
     defines += [ "PADDING_HEIGHT_32" ]
+  } else {
+    defines += []
   }
   defines += gpu_defines
 
