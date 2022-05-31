@@ -286,6 +286,12 @@ void RSRecordingCanvas::ClipAdaptiveRRect(float radius)
     AddOp(std::move(op));
 }
 
+void RSRecordingCanvas::ClipOutsetRect(float dx, float dy)
+{
+    std::unique_ptr<OpItem> op = std::make_unique<ClipOutsetRectOpItem>(dx, dy);
+    AddOp(std::move(op));
+}
+
 void RSRecordingCanvas::onDrawPatch(const SkPoint cubics[12], const SkColor colors[4], const SkPoint texCoords[4],
     SkBlendMode bmode, const SkPaint& paint)
 {

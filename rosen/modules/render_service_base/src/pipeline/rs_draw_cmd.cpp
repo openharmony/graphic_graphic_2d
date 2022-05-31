@@ -265,6 +265,16 @@ void ClipAdaptiveRRectOpItem::Draw(RSPaintFilterCanvas& canvas, const SkRect* re
     canvas.clipRRect(rrect, true);
 }
 
+ClipOutsetRectOpItem::ClipOutsetRectOpItem(float dx, float dy)
+    : OpItem(sizeof(ClipOutsetRectOpItem)), dx_(dx), dy_(dy)
+{}
+
+void ClipOutsetRectOpItem::Draw(RSPaintFilterCanvas& canvas, const SkRect* rect) const
+{
+    auto clipRect = canvas.getLocalClipBounds().makeOutset(dx_, dy_);
+    canvas.clipRect(clipRect, SkClipOp::kExtraEnumNeedInternallyPleaseIgnoreWillGoAway5, true);
+}
+
 PathOpItem::PathOpItem(const SkPath& path, const SkPaint& paint) : OpItemWithPaint(sizeof(PathOpItem))
 {
     path_ = path;
@@ -953,6 +963,28 @@ OpItem* ClipAdaptiveRRectOpItem::Unmarshalling(Parcel& parcel)
         return nullptr;
     }
     return new ClipAdaptiveRRectOpItem(radius);
+}
+
+// ClipOutsetRectOpItem
+bool ClipOutsetRectOpItem::Marshalling(Parcel& parcel) const
+{
+    bool success = true;
+    success &= RSMarshallingHelper::Marshalling(parcel, dx_);
+    success &= RSMarshallingHelper::Marshalling(parcel, dy_);
+    return success;
+}
+
+OpItem* ClipOutsetRectOpItem::Unmarshalling(Parcel& parcel)
+{
+    float dx;
+    float dy;
+    if (!RSMarshallingHelper::Unmarshalling(parcel, dx)) {
+        return nullptr;
+    }
+    if (!RSMarshallingHelper::Unmarshalling(parcel, dy)) {
+        return nullptr;
+    }
+    return new ClipOutsetRectOpItem(dx, dy);
 }
 
 // PathOpItem

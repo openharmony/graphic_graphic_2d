@@ -97,6 +97,7 @@ public:
         const SkRect*, const SkPaint*) override;
     void onDrawShadowRec(const SkPath&, const SkDrawShadowRec&) override;
 
+    void ClipOutsetRect(float dx, float dy);
     void DrawAdaptiveRRect(float radius, const SkPaint& paint);
     void ClipAdaptiveRRect(float radius);
     void DrawImageWithParm(const sk_sp<SkImage>, int, int, float, const SkPaint& paint);
