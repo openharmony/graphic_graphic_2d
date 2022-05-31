@@ -22,6 +22,7 @@ ohos_unittest("EffectTest") {
   sources = []
 
   deps = [
+    "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
     "//third_party/googletest:gtest_main",
     "//utils/native/base:utils",
   ]
@@ -31,7 +32,6 @@ ohos_unittest("EffectTest") {
 
     deps += [
       "//foundation/graphic/graphic_2d:libgl",
-      "//foundation/graphic/graphic_2d/interfaces/kits/napi/graphic/common:graphic_napi_common",
       "//foundation/graphic/graphic_2d/rosen/modules/effect/effectChain:libeffectchain",
       "//foundation/graphic/graphic_2d/rosen/modules/effect/egl:libegl_effect",
     ]

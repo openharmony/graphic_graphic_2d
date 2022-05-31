@@ -23,7 +23,7 @@
 #include "ipc/igraphic_dumper_command.h"
 
 namespace OHOS {
-using DumperArgs = struct {
+struct DumperArgs {
     bool wait = false;
     std::string dumpTag = {};
     std::string logTag = {};
