@@ -23,7 +23,6 @@
 #include "pipeline/rs_render_node_map.h"
 #include "pipeline/rs_root_render_node.h"
 #include "platform/common/rs_log.h"
-#include "platform/common/rs_system_properties.h"
 #ifdef OHOS_RSS_CLIENT
 #include "res_sched_client.h"
 #include "res_type.h"
@@ -61,11 +60,6 @@ RSRenderThread::RSRenderThread()
     renderContext_ = new RenderContext();
     ROSEN_LOGD("Create RenderContext, its pointer is %p", renderContext_);
 #endif
-    isUniRenderEnabled_ = RSSystemProperties::GetUniRenderEnabledType() != UniRenderEnabledType::UNI_RENDER_DISABLED;
-    if (isUniRenderEnabled_) {
-        ROSEN_LOGD("RSRenderThread is invalid under UniRender");
-        return;
-    }
     mainFunc_ = [&]() {
         uint64_t renderStartTimeStamp = jankDetector_.GetSysTimeNs();
         std::string str = "RSRenderThread DrawFrame: " + std::to_string(timestamp_);
@@ -103,10 +97,6 @@ RSRenderThread::~RSRenderThread()
 
 void RSRenderThread::Start()
 {
-    if (isUniRenderEnabled_) {
-        ROSEN_LOGD("RSRenderThread start is invalid under UniRender");
-        return;
-    }
     ROSEN_LOGD("RSRenderThread start.");
     running_.store(true);
     if (thread_ == nullptr) {
@@ -127,11 +117,6 @@ void RSRenderThread::Start()
 
 void RSRenderThread::Stop()
 {
-    if (isUniRenderEnabled_) {
-        ROSEN_LOGD("RSRenderThread stop is invalid under UniRender");
-        return;
-    }
-
     running_.store(false);
 
     if (runner_ != nullptr) {

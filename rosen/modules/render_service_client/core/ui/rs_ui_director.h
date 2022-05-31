@@ -61,6 +61,7 @@ private:
     NodeId root_ = 0;
 
     bool isActive_ = false;
+    bool isUniRenderEnabled_ = false;
     uint64_t refreshPeriod_ = 16666667;
     uint64_t timeStamp_ = 0;
     std::shared_ptr<RSSurfaceNode> surfaceNode_ = nullptr;
