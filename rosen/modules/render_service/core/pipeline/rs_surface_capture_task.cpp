@@ -223,7 +223,8 @@ void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::ProcessSurfaceRenderNode(RSS
             return;
         }
         auto existedParent = node.GetParent().lock();
-        if (existedParent && existedParent->IsInstanceOf<RSSurfaceRenderNode>()) {
+        if (existedParent && existedParent->IsInstanceOf<RSSurfaceRenderNode>() &&
+            (*std::static_pointer_cast<RSSurfaceRenderNode>(existedParent)).GetBuffer() != nullptr) {
             param.matrix = node.GetMatrix();
             auto& parent = *std::static_pointer_cast<RSSurfaceRenderNode>(existedParent);
             auto parentRect = RsRenderServiceUtil::CreateBufferDrawParam(parent).clipRect;
