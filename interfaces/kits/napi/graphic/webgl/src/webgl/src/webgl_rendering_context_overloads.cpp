@@ -700,7 +700,6 @@ napi_value WebGLRenderingContextOverloads::Uniform1fv(napi_env env, napi_callbac
     bool isUniformArray = false;
     tie(succ, isUniformArray) = NVal(env, uniformarray).IsArray();
     if (isUniformArray) {
-        float* a = nullptr;
         LOGI("WebGL uniform1fv is isUniformArray");
         uint32_t count;
         napi_status countStatus = napi_get_array_length(env, uniformarray, &count);
@@ -725,7 +724,6 @@ napi_value WebGLRenderingContextOverloads::Uniform1fv(napi_env env, napi_callbac
             }
             uniformfv[i] = (float)ele;
         }
-        a = uniformfv;
         glUniform1fv(static_cast<GLint>(location), static_cast<GLsizei>(count),
             reinterpret_cast<GLfloat *>(uniformfv));
         LOGI("WebGL uniform1fv uniformarray end");
@@ -778,7 +776,6 @@ napi_value WebGLRenderingContextOverloads::Uniform2fv(napi_env env, napi_callbac
     LOGI("WebGL WebGLRenderingContextOverloads::uniform2fv location = %{public}u", location);
     napi_value uniformarray = funcArg[NARG_POS::SECOND];
     bool isUniformArray = false;
-    float* a = nullptr;
     tie(succ, isUniformArray) = NVal(env, uniformarray).IsArray();
     if (isUniformArray) {
         LOGI("WebGL uniform2fv is isUniformArray");
@@ -804,7 +801,6 @@ napi_value WebGLRenderingContextOverloads::Uniform2fv(napi_env env, napi_callbac
             LOGI("WebGL WebGLRenderingContextOverloads::uniform2fv ele = %{public}f", (float)ele);
             uniformfv[i] = (float)ele;
         }
-        a = uniformfv;
         glUniform2fv(static_cast<GLint>(location), static_cast<GLsizei>(count),
             reinterpret_cast<GLfloat *>(uniformfv));
         LOGI("WebGL uniform2fv uniformarray end");
@@ -862,7 +858,6 @@ napi_value WebGLRenderingContextOverloads::Uniform3fv(napi_env env, napi_callbac
     tie(succ, isUniformArray) = NVal(env, uniformarray).IsArray();
     if (isUniformArray) {
         LOGI("WebGL uniform3fv is isUniformArray");
-        float* a = nullptr;
         uint32_t count;
         napi_status countStatus = napi_get_array_length(env, uniformarray, &count);
         if (countStatus != napi_ok) {
@@ -885,7 +880,6 @@ napi_value WebGLRenderingContextOverloads::Uniform3fv(napi_env env, napi_callbac
             LOGI("WebGL WebGLRenderingContextOverloads::uniform3fv ele = %{public}f", (float)ele);
             uniformfv[i] = (float)ele;
         }
-        a = uniformfv;
         glUniform3fv(static_cast<GLint>(location), static_cast<GLsizei>(count),
             reinterpret_cast<GLfloat *>(uniformfv));
         LOGI("WebGL uniform3fv uniformarray end");
@@ -947,7 +941,6 @@ napi_value WebGLRenderingContextOverloads::Uniform4fv(napi_env env, napi_callbac
             return nullptr;
         }
         LOGI("WebGL WebGLRenderingContextOverloads::uniform4fv count = %{public}u", count);
-        float* a = nullptr;
         float uniformfv[count];
         uint32_t i;
         for (i = 0; i < count; i++) {
@@ -964,7 +957,6 @@ napi_value WebGLRenderingContextOverloads::Uniform4fv(napi_env env, napi_callbac
             LOGI("WebGL WebGLRenderingContextOverloads::uniform4fv ele = %{public}f", (float)ele);
             uniformfv[i] = (float)ele;
         }
-        a = uniformfv;
         glUniform4fv(static_cast<GLint>(location), static_cast<GLsizei>(count),
             reinterpret_cast<GLfloat *>(uniformfv));
         LOGI("WebGL uniform4fv uniformarray end");

@@ -4004,7 +4004,6 @@ napi_value WebGL2RenderingContextBase::InvalidateFramebuffer(napi_env env, napi_
     bool isUniformArray = false;
     tie(succ, isUniformArray) = NVal(env, uniformarray).IsArray();
     if (isUniformArray) {
-        int64_t* a = nullptr;
         LOGI("WebGL2 invalidateFramebuffer is isUniformArray");
         uint32_t numAttachments;
         napi_status countStatus = napi_get_array_length(env, uniformarray, &numAttachments);
@@ -4028,7 +4027,6 @@ napi_value WebGL2RenderingContextBase::InvalidateFramebuffer(napi_env env, napi_
             LOGI("WebGL2 WebGL2RenderingContextBase::invalidateFramebuffer ele = %{public}u", ele);
             attachments[i] = ele;
         }
-        a = attachments;
         glInvalidateFramebuffer(static_cast<GLenum>(target),
             static_cast<GLsizei>(numAttachments), reinterpret_cast<GLenum*>(attachments));
         LOGI("WebGL2 invalidateFramebuffer invalidateFramebuffer end");
