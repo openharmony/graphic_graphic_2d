@@ -14,6 +14,8 @@
  */
 
 #include "pipeline/rs_surface_render_node.h"
+#include <cmath>
+#include <stdint.h>
 
 #include "command/rs_surface_node_command.h"
 #include "common/rs_obj_abs_geometry.h"
@@ -22,6 +24,7 @@
 #include "include/core/SkRect.h"
 #include "common/rs_rect.h"
 #include "common/rs_vector2.h"
+#include "common/rs_vector4.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_root_render_node.h"
 #include "platform/common/rs_log.h"
@@ -63,24 +66,29 @@ void RSSurfaceRenderNode::ProcessRenderBeforeChildren(RSPaintFilterCanvas& canva
     if (!clipRectFromRT.isEmpty()){
         canvas.clipRect(clipRectFromRT);
     }
+
     RectI clipRegion = CalculateClipRegion(canvas);
     SkRect rect;
-    auto currentClipRegion1 = canvas.getDeviceClipBounds();
-    SkPoint points[] = {{clipRegion.left_ + currentClipRegion1.left(), clipRegion.top_ + currentClipRegion1.top()},
-        {clipRegion.GetRight() + currentClipRegion1.left(), clipRegion.GetBottom() + currentClipRegion1.top()}};
+    SkPoint points[] = {{clipRegion.left_, clipRegion.top_}, {clipRegion.GetRight(), clipRegion.GetBottom()}};
     rect.setBounds(points, rectBounds);
     canvas.clipRect(rect);
     auto currentClipRegion = canvas.getDeviceClipBounds();
     SetDstRect({ currentClipRegion.left(), currentClipRegion.top(), currentClipRegion.width(),
         currentClipRegion.height() });
-    SetGlobalAlpha(canvas.GetAlpha());
+    SetGlobalAlpha(canvas.GetAlpha()); 
 }
 
 RectI RSSurfaceRenderNode::CalculateClipRegion(RSPaintFilterCanvas& canvas)
 {
     const RSProperties& properties = GetRenderProperties();
-    RectI originDstRect(properties.GetBoundsPositionX() - offsetX_, properties.GetBoundsPositionY() - offsetY_,
-            properties.GetBoundsWidth(), properties.GetBoundsHeight());
+    float width = std::ceil(properties.GetBoundsWidth());
+    float height = std::ceil(properties.GetBoundsHeight());
+    RectI originDstRect(0, 0, width, height);
+    auto currentGeoPtr = std::static_pointer_cast<RSObjAbsGeometry>(properties.GetBoundsGeometry());
+    if (currentGeoPtr != nullptr) {
+        currentGeoPtr->UpdateByMatrixFromSelf();
+    }
+    canvas.concat(currentGeoPtr->GetMatrix());
     auto transitionProperties = GetAnimationManager().GetTransitionProperties();
     Vector2f center(originDstRect.width_ * 0.5f, originDstRect.height_ * 0.5f);
     RSPropertiesPainter::DrawTransitionProperties(transitionProperties, center, canvas);
@@ -125,6 +133,25 @@ void RSSurfaceRenderNode::SetContextMatrix(const SkMatrix& matrix, bool sendMsg)
 const SkMatrix& RSSurfaceRenderNode::GetContextMatrix() const
 {
     return contextMatrix_;
+}
+
+void RSSurfaceRenderNode::SetSrcRatio(const Vector4f ratio, bool sendMsg)
+{
+    if (srcRatio_ == ratio) {
+        return;
+    }
+    srcRatio_ = ratio;
+    if (!sendMsg) {
+        return;
+    }
+    // send a Command
+    std::unique_ptr<RSCommand> command = std::make_unique<RSSurfaceNodeSetSrcRatio>(GetId(), ratio);
+    SendCommandFromRT(command);
+}
+
+const Vector4f& RSSurfaceRenderNode::GetSrcRatio() const
+{
+    return srcRatio_;
 }
 
 void RSSurfaceRenderNode::SetContextAlpha(float alpha, bool sendMsg)

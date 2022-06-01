@@ -129,6 +129,7 @@ void RSRenderServiceVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
         }
         skCanvas_ = std::make_unique<SkCanvas>(boundWidth, boundHeight);
         canvas_ = std::make_shared<RSPaintFilterCanvas>(skCanvas_.get());
+        canvas_->clipRect(SkRect::MakeWH(boundWidth, boundHeight));
         ProcessBaseRenderNode(node);
     }
     processor_->PostProcess();

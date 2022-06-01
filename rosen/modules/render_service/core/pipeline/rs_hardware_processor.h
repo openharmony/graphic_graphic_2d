@@ -46,7 +46,7 @@ public:
 private:
     void Redraw(sptr<Surface>& surface, const struct PrepareCompleteParam& param, void* data);
     void OnRotate();
-    void CalculateSrcRect(ComposeInfo& info, RectI clipRegion, RectI originDstRect);
+    void CalculateSrcRect(ComposeInfo& info, const Vector4f& ratio);
     void ScaleDownLayers();
     HdiBackend* backend_ = nullptr;
     sptr<RSScreenManager> screenManager_;

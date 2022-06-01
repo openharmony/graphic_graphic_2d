@@ -15,6 +15,7 @@
 
 #include "command/rs_surface_node_command.h"
 
+#include "common/rs_vector4.h"
 #include "pipeline/rs_surface_render_node.h"
 
 namespace OHOS {
@@ -38,6 +39,13 @@ void SurfaceNodeCommandHelper::SetContextMatrix(RSContext& context, NodeId id, S
 {
     if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(id)) {
         node->SetContextMatrix(matrix, false);
+    }
+}
+
+void SurfaceNodeCommandHelper::SetSrcRatio(RSContext& context, NodeId id, Vector4f ratio)
+{
+    if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(id)) {
+        node->SetSrcRatio(ratio, false);
     }
 }
 

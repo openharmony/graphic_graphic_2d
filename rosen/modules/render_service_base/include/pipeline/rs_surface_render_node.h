@@ -20,6 +20,7 @@
 #include <surface.h>
 
 #include "display_type.h"
+#include "common/rs_vector4.h"
 #include "ipc_callbacks/buffer_available_callback.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_paint_filter_canvas.h"
@@ -116,6 +117,10 @@ public:
         return dstRect_;
     }
 
+    const Vector4f& GetSrcRatio() const;
+
+    void SetSrcRatio(const Vector4f ratio, bool sendMsg = true);
+
     void SetGlobalAlpha(float alpha)
     {
         if (globalAlpha_ == alpha) {
@@ -179,6 +184,7 @@ private:
     int32_t offsetY_ = 0;
     float globalAlpha_ = 1.0f;
     RectI clipRegionFromParent_;
+    Vector4f srcRatio_ = {0.0f, 0.0f, 1.0f, 1.0f};
 
     std::string name_;
     bool isProxy_ = false;
