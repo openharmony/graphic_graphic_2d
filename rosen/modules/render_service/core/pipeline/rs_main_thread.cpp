@@ -45,14 +45,14 @@ RSMainThread::~RSMainThread() noexcept
 void RSMainThread::Init()
 {
     mainLoop_ = [&]() {
-        RS_LOGI("RsDebug mainLoop start");
+        RS_LOGD("RsDebug mainLoop start");
         ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSMainThread::DoComposition");
         ProcessCommand();
         Animate(timestamp_);
         Render();
         SendCommands();
         ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
-        RS_LOGI("RsDebug mainLoop end");
+        RS_LOGD("RsDebug mainLoop end");
     };
 
     runner_ = AppExecFwk::EventRunner::Create(false);
