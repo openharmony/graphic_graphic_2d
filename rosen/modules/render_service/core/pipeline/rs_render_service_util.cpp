@@ -551,7 +551,7 @@ void RsRenderServiceUtil::ComposeSurface(std::shared_ptr<HdiLayerInfo> layer, sp
 bool RsRenderServiceUtil::IsNeedClient(RSSurfaceRenderNode* node)
 {
     if (enableClient) {
-        RS_LOGI("RsDebug RsRenderServiceUtil::IsNeedClient enable composition client");
+        RS_LOGD("RsDebug RsRenderServiceUtil::IsNeedClient enable composition client");
         return true;
     }
     if (node == nullptr) {
@@ -560,7 +560,7 @@ bool RsRenderServiceUtil::IsNeedClient(RSSurfaceRenderNode* node)
     }
     auto filter = std::static_pointer_cast<RSBlurFilter>(node->GetRenderProperties().GetBackgroundFilter());
     if (filter != nullptr && filter->GetBlurRadiusX() > 0 && filter->GetBlurRadiusY() > 0) {
-        RS_LOGI("RsDebug RsRenderServiceUtil::IsNeedClient enable composition client need filter");
+        RS_LOGD("RsDebug RsRenderServiceUtil::IsNeedClient enable composition client need filter");
         return true;
     }
     auto transitionProperties = node->GetAnimationManager().GetTransitionProperties();
@@ -578,7 +578,7 @@ bool RsRenderServiceUtil::IsNeedClient(RSSurfaceRenderNode* node)
         float rAngle = -round(atan2(value[SkMatrix::kMSkewX], value[SkMatrix::kMScaleX]) * (180 / PI));
         bool isNeedClient = rAngle > 0;
         if (isNeedClient) {
-            RS_LOGI("RsDebug RsRenderServiceUtil::IsNeedClient enable composition client need animation rotate");
+            RS_LOGD("RsDebug RsRenderServiceUtil::IsNeedClient enable composition client need animation rotate");
         }
         return isNeedClient;
     }

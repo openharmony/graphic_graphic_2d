@@ -35,11 +35,11 @@ void RSRenderServiceListener::OnBufferAvailable()
         RS_LOGE("RSRenderServiceListener::OnBufferAvailable node is nullptr");
         return;
     }
-    RS_LOGI("RsDebug RSRenderServiceListener::OnBufferAvailable node id:%llu", node->GetId());
+    RS_LOGD("RsDebug RSRenderServiceListener::OnBufferAvailable node id:%llu", node->GetId());
 
     if (!node->IsOnTheTree() || !node->GetRenderProperties().GetVisible()) {
         RSMainThread::Instance()->PostTask([node]() {
-            RS_LOGI("RsDebug RSRenderServiceListener::OnBufferAvailable node id:%llu:"\
+            RS_LOGD("RsDebug RSRenderServiceListener::OnBufferAvailable node id:%llu:"\
                 "IsOnTheTree = %s, IsVisible = %s",
                 node->GetId(), node->IsOnTheTree() ? "true" : "false",
                 node->GetRenderProperties().GetVisible() ? "true" : "false");
@@ -69,7 +69,7 @@ void RSRenderServiceListener::OnBufferAvailable()
 
     if (!node->IsNotifyUIBufferAvailable()) {
         // Only ipc for one time.
-        RS_LOGI("RsDebug RSRenderServiceListener::OnBufferAvailable id = %llu "\
+        RS_LOGD("RsDebug RSRenderServiceListener::OnBufferAvailable id = %llu "\
                 "Notify UI buffer available", node->GetId());
         node->NotifyUIBufferAvailable();
     }

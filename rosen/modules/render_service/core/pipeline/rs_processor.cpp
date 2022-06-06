@@ -76,7 +76,7 @@ void RSProcessor::SetBufferTimeStamp()
 void RSProcessor::DropFrameProcess(RSSurfaceRenderNode& node)
 {
     auto availableBufferCnt = node.GetAvailableBufferCount();
-    RS_LOGI("RsDebug RSProcessor::DropFrameProcess start node:%llu available buffer:%d", node.GetId(),
+    RS_LOGD("RsDebug RSProcessor::DropFrameProcess start node:%llu available buffer:%d", node.GetId(),
         availableBufferCnt);
 
     const auto& surfaceConsumer = node.GetConsumer();
@@ -87,7 +87,7 @@ void RSProcessor::DropFrameProcess(RSSurfaceRenderNode& node)
      
     // availableBufferCnt>= 2 means QueueSize >=2 too
     if (availableBufferCnt >= 2 && surfaceConsumer->GetQueueSize() == static_cast<uint32_t>(availableBufferCnt)) {
-        RS_LOGI("RsDebug RSProcessor::DropFrameProcess (node: %llu) queueBlock, start to drop one frame", node.GetId());
+        RS_LOGD("RsDebug RSProcessor::DropFrameProcess (node: %llu) queueBlock, start to drop one frame", node.GetId());
         OHOS::sptr<SurfaceBuffer> cbuffer;
         Rect damage;
         sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
@@ -105,7 +105,7 @@ void RSProcessor::DropFrameProcess(RSSurfaceRenderNode& node)
                 node.GetId(), ret);
         }
         availableBufferCnt = node.ReduceAvailableBuffer();
-        RS_LOGI("RsDebug RSProcessor::DropFrameProcess (node: %llu), drop one frame finished", node.GetId());
+        RS_LOGD("RsDebug RSProcessor::DropFrameProcess (node: %llu), drop one frame finished", node.GetId());
     }
 
     return;
