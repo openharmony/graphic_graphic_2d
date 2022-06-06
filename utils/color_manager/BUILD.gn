@@ -45,8 +45,8 @@ ohos_shared_library("color_manager") {
   public_configs = [ ":color_manager_public_config" ]
 
   public_deps = [
+    "//third_party/bounds_checking_function:libsec_shared",
     "//third_party/flutter/build/skia:ace_skia_ohos",
-    "//utils/native/base:utilsecurec_shared",
   ]
 
   subsystem_name = "graphic"

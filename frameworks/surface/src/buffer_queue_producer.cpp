@@ -266,9 +266,6 @@ int BufferQueueProducer::DisconnectRemote(MessageParcel &arguments, MessageParce
 GSError BufferQueueProducer::RequestBuffer(const BufferRequestConfig &config, sptr<BufferExtraData> &bedata,
                                            RequestBufferReturnValue &retval)
 {
-    static std::map<int32_t, wptr<SurfaceBuffer>> cache;
-    static std::map<pid_t, std::set<int32_t>> sendeds;
-    static std::mutex mutex;
     if (bufferQueue_ == nullptr) {
         return GSERROR_INVALID_ARGUMENTS;
     }
@@ -282,33 +279,7 @@ GSError BufferQueueProducer::RequestBuffer(const BufferRequestConfig &config, sp
         connectedPid_ = GetCallingPid();
     }
 
-    auto sret = bufferQueue_->RequestBuffer(config, bedata, retval);
-
-    std::lock_guard<std::mutex> lock(mutex);
-    auto callingPid = GetCallingPid();
-    auto &sended = sendeds[callingPid];
-    if (sret == GSERROR_OK) {
-        if (retval.buffer != nullptr) {
-            cache[retval.sequence] = retval.buffer;
-            sended.insert(retval.sequence);
-        } else if (callingPid == getpid()) {
-            // for BufferQueue not first
-            // A local call always returns a non-null pointer
-            retval.buffer = cache[retval.sequence].promote();
-        } else if (sended.find(retval.sequence) == sended.end()) {
-            // The first remote call from a different process returns a non-null pointer
-            retval.buffer = cache[retval.sequence].promote();
-            sended.insert(retval.sequence);
-        }
-    } else {
-        BLOGNI("BufferQueue::RequestBuffer failed with %{public}s", GSErrorStr(sret).c_str());
-    }
-
-    for (const auto &buffer : retval.deletingBuffers) {
-        cache.erase(buffer);
-        sended.erase(buffer);
-    }
-    return sret;
+    return bufferQueue_->RequestBuffer(config, bedata, retval);
 }
 
 GSError BufferQueueProducer::CancelBuffer(int32_t sequence, const sptr<BufferExtraData> &bedata)

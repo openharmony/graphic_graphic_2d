@@ -17,6 +17,8 @@
 #include "pipeline/rs_software_processor.h"
 
 #include <cinttypes>
+#include <securec.h>
+#include "rs_trace.h"
 #include "sync_fence.h"
 
 #include "include/core/SkMatrix.h"
@@ -128,6 +130,13 @@ void RSSoftwareProcessor::ProcessSurface(RSSurfaceRenderNode& node)
         RS_LOGE("RSSoftwareProcessor::ProcessSurface: surface buffer is null!");
         return;
     }
+
+    std::string inf;
+    char strBuffer[UINT8_MAX] = { 0 };
+    if (sprintf_s(strBuffer, UINT8_MAX, "ProcessSurfaceNode:%s ", node.GetName().c_str()) != -1) {
+        inf.append(strBuffer);
+    }
+    RS_TRACE_NAME(inf.c_str());
 
     if (!GenerateParamAndDrawBuffer(node)) {
         return;

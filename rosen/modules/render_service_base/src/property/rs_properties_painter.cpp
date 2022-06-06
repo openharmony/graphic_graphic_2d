@@ -177,7 +177,7 @@ void RSPropertiesPainter::DrawFilter(const RSProperties& properties, SkCanvas& c
 {
     SkPaint paint;
     paint.setAntiAlias(true);
-    paint.setBlendMode(SkBlendMode::kSrc);
+    paint.setBlendMode(SkBlendMode::kSrcOver);
     if (skSurface == nullptr) {
         ROSEN_LOGE("skSurface null");
         return ;

@@ -52,7 +52,7 @@ protected:
 
 class RSTransitionFade : public RSRenderTransitionEffect {
 public:
-    explicit RSTransitionFade(float alpha) : alpha_(alpha = 0.0f) {}
+    explicit RSTransitionFade(float alpha) : alpha_(alpha) {}
     virtual ~RSTransitionFade() = default;
     void OnTransition(const std::unique_ptr<RSTransitionProperties>& transitionProperties, float fraction) override;
 

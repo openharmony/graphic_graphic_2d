@@ -81,6 +81,7 @@ HWTEST_F(RSDropFrameProcessorTest, TestDropFrame001, TestSize.Level1)
     rsParentNode = std::make_shared<RSSurfaceRenderNode>(config);
     ASSERT_NE(rsParentNode, nullptr);
     rsParentNode->AddChild(rsNode);
+    rsNode->SetIsOnTheTree(true);
     ASSERT_TRUE(rsNode->IsOnTheTree());
 
     csurf = Surface::CreateSurfaceAsConsumer(config.name);
@@ -95,10 +96,10 @@ HWTEST_F(RSDropFrameProcessorTest, TestDropFrame001, TestSize.Level1)
     ASSERT_NE(producer, nullptr);
     psurf = Surface::CreateSurfaceAsProducer(producer);
     ASSERT_NE(psurf, nullptr);
-    psurf->SetQueueSize(3); // only test 3 frames
-    ASSERT_EQ(3, static_cast<int>(psurf->GetQueueSize()));
+    psurf->SetQueueSize(4); // only test 4 frames
+    ASSERT_EQ(4, static_cast<int>(psurf->GetQueueSize()));
 
-    // request&&flush 3 buffer make queue size full
+    // request&&flush 3 buffer, make dirtyList size equal queuesize -1
     for (int i = 0; i < 3; i ++) {
         sptr<SurfaceBuffer> buffer;
         sptr<SyncFence> requestFence = SyncFence::INVALID_FENCE;

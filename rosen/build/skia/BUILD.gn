@@ -83,6 +83,8 @@ rosen_skia_common_ccflags = [
   "-Wno-undefined-func-template",
   "-Wno-return-std-move-in-c++11",
   "-Wno-implicit-fallthrough",
+  "-Wno-suggest-destructor-override",
+  "-Wno-suggest-override",
 
   # "-fvisibility-inlines-hidden",
   "-Os",
