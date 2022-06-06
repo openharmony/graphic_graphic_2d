@@ -48,6 +48,7 @@ static constexpr int DATA_INDEX_FIVE = 5;
 static constexpr int DATA_INDEX_SIX = 6;
 static constexpr int DATA_INDEX_SEVEN = 7;
 static constexpr int DATA_INDEX_EIGHT = 8;
+static constexpr int DATA_ARRAY_SIZE = 9;
 static constexpr int MAX_LOG_LENGTH = 2048;
 static constexpr size_t LOG_FILE_MAX_SIZE = 10485760;
 
@@ -93,8 +94,8 @@ void RSAnimationLog::PreProcessLogFile(const std::string& logFilePath)
     }
 
     logFile.seekg(0, logFile.end);
-    size_t logFileSize = logFile.tellg();
-    if (logFileSize >= LOG_FILE_MAX_SIZE) {
+    long logFileSize = logFile.tellg();
+    if (logFileSize > 0 && (static_cast<size_t>(logFileSize) >= LOG_FILE_MAX_SIZE)) {
         std::string timestampPath = ANIMATION_LOG_PATH + ANIMATION_LOG_FILE_NAME + std::to_string(GetNowTime())
             + ANIMATION_LOG_FILE_TYPE;
         std::rename(logFilePath.c_str(), timestampPath.c_str());
@@ -105,7 +106,11 @@ void RSAnimationLog::PreProcessLogFile(const std::string& logFilePath)
 void RSAnimationLog::InitNodeAndPropertyInfo()
 {
     std::string configFilePath = ANIMATION_LOG_PATH + CONFIG_FILE_NAME;
-    std::ifstream configFile(configFilePath.c_str());
+    char newpath[PATH_MAX + 1] = { 0x00 };
+    if (strlen(configFilePath.c_str()) > PATH_MAX || realpath(configFilePath.c_str(), newpath) == nullptr) {
+        return;
+    }
+    std::ifstream configFile(newpath);
     if (!configFile.is_open()) {
         return;
     }
@@ -183,7 +188,7 @@ int64_t RSAnimationLog::GetNowTime()
     struct timeval start = {};
     gettimeofday(&start, nullptr);
     constexpr uint32_t secToUsec = 1000 * 1000;
-    return static_cast<uint64_t>(start.tv_sec) * secToUsec + start.tv_usec;
+    return static_cast<uint64_t>(start.tv_sec) * secToUsec + static_cast<uint64_t>(start.tv_usec);
 }
 
 void RSAnimationLog::WriteString(const std::string& log)
@@ -272,11 +277,17 @@ void RSAnimationLog::WriteAnimationValueToLog(const Matrix3f& value,
     const RSAnimatableProperty& property, const NodeId& id)
 {
     auto data = value.GetConstData();
-    WRITE_LOG("RSAnimationValueLog NodeId:{%llu} time:{%lld} property:{%llu} " \
-        "value:{%d %d %d %d %d %d %d %d %d}\n", id, GetNowTime(), property,
-        data[DATA_INDEX_ZERO], data[DATA_INDEX_ONE], data[DATA_INDEX_TWO],
-        data[DATA_INDEX_THREE], data[DATA_INDEX_FOUR], data[DATA_INDEX_FIVE],
-        data[DATA_INDEX_SIX], data[DATA_INDEX_SEVEN], data[DATA_INDEX_EIGHT]);
+    if ((DATA_INDEX_ZERO < DATA_ARRAY_SIZE) && (DATA_INDEX_ONE < DATA_ARRAY_SIZE) &&
+        (DATA_INDEX_TWO < DATA_ARRAY_SIZE) && (DATA_INDEX_THREE < DATA_ARRAY_SIZE) &&
+        (DATA_INDEX_FOUR < DATA_ARRAY_SIZE) && (DATA_INDEX_FIVE < DATA_ARRAY_SIZE) &&
+        (DATA_INDEX_SIX < DATA_ARRAY_SIZE) && (DATA_INDEX_SEVEN < DATA_ARRAY_SIZE) &&
+        (DATA_INDEX_EIGHT < DATA_ARRAY_SIZE)) {
+        WRITE_LOG("RSAnimationValueLog NodeId:{%llu} time:{%lld} property:{%llu} " \
+            "value:{%d %d %d %d %d %d %d %d %d}\n", id, GetNowTime(), property,
+            data[DATA_INDEX_ZERO], data[DATA_INDEX_ONE], data[DATA_INDEX_TWO],
+            data[DATA_INDEX_THREE], data[DATA_INDEX_FOUR], data[DATA_INDEX_FIVE],
+            data[DATA_INDEX_SIX], data[DATA_INDEX_SEVEN], data[DATA_INDEX_EIGHT]);
+    }
 }
 
 template<>
@@ -285,15 +296,21 @@ void RSAnimationLog::WriteAnimationInfoToLog(const RSAnimatableProperty& propert
 {
     auto startData = startValue.GetConstData();
     auto endData = endValue.GetConstData();
-    WRITE_LOG("RSAnimationInfoLog AnimationId:{%llu} time:{%lld} property:{%llu} " \
-        "startValue:{%d %d %d %d %d %d %d %d %d} endValue:{%d %d %d %d %d %d %d %d %d}\n",
-        id, GetNowTime(), property, startData[DATA_INDEX_ZERO], startData[DATA_INDEX_ONE],
-        startData[DATA_INDEX_TWO], startData[DATA_INDEX_THREE], startData[DATA_INDEX_FOUR],
-        startData[DATA_INDEX_FIVE], startData[DATA_INDEX_SIX], startData[DATA_INDEX_SEVEN],
-        startData[DATA_INDEX_EIGHT], endData[DATA_INDEX_ZERO], endData[DATA_INDEX_ONE],
-        endData[DATA_INDEX_TWO], endData[DATA_INDEX_THREE], endData[DATA_INDEX_FOUR],
-        endData[DATA_INDEX_FIVE], endData[DATA_INDEX_SIX], endData[DATA_INDEX_SEVEN],
-        endData[DATA_INDEX_EIGHT]);
+    if ((DATA_INDEX_ZERO < DATA_ARRAY_SIZE) && (DATA_INDEX_ONE < DATA_ARRAY_SIZE) &&
+        (DATA_INDEX_TWO < DATA_ARRAY_SIZE) && (DATA_INDEX_THREE < DATA_ARRAY_SIZE) &&
+        (DATA_INDEX_FOUR < DATA_ARRAY_SIZE) && (DATA_INDEX_FIVE < DATA_ARRAY_SIZE) &&
+        (DATA_INDEX_SIX < DATA_ARRAY_SIZE) && (DATA_INDEX_SEVEN < DATA_ARRAY_SIZE) &&
+        (DATA_INDEX_EIGHT < DATA_ARRAY_SIZE)) {
+        WRITE_LOG("RSAnimationInfoLog AnimationId:{%llu} time:{%lld} property:{%llu} " \
+            "startValue:{%d %d %d %d %d %d %d %d %d} endValue:{%d %d %d %d %d %d %d %d %d}\n",
+            id, GetNowTime(), property, startData[DATA_INDEX_ZERO], startData[DATA_INDEX_ONE],
+            startData[DATA_INDEX_TWO], startData[DATA_INDEX_THREE], startData[DATA_INDEX_FOUR],
+            startData[DATA_INDEX_FIVE], startData[DATA_INDEX_SIX], startData[DATA_INDEX_SEVEN],
+            startData[DATA_INDEX_EIGHT], endData[DATA_INDEX_ZERO], endData[DATA_INDEX_ONE],
+            endData[DATA_INDEX_TWO], endData[DATA_INDEX_THREE], endData[DATA_INDEX_FOUR],
+            endData[DATA_INDEX_FIVE], endData[DATA_INDEX_SIX], endData[DATA_INDEX_SEVEN],
+            endData[DATA_INDEX_EIGHT]);
+    }
 }
 
 template<>
