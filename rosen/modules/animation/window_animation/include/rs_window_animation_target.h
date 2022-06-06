@@ -37,6 +37,8 @@ struct RSWindowAnimationTarget : Parcelable {
     std::string abilityName_;
     RRect windowBounds_;
     std::shared_ptr<RSSurfaceNode> surfaceNode_;
+    uint32_t windowId_;
+    uint64_t displayId_;
 };
 } // namespace Rosen
 } // namespace OHOS
