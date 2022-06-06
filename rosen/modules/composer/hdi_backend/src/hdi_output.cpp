@@ -49,6 +49,10 @@ RosenError HdiOutput::Init()
 void HdiOutput::SetLayerInfo(const std::vector<LayerInfoPtr> &layerInfos)
 {
     for (auto &layerInfo : layerInfos) {
+        if (layerInfo == nullptr || layerInfo->GetSurface() == nullptr) {
+            HLOGE("current layerInfo or layerInfo's cSurface is null");
+            continue;
+        }
         uint64_t surfaceId = layerInfo->GetSurface()->GetUniqueId();
         auto iter = surfaceIdMap_.find(surfaceId);
         if (iter != surfaceIdMap_.end()) {
