@@ -21,9 +21,6 @@ group("default") {
     ":graphic.rc",
     "frameworks/animation_server:animation_server",
     "frameworks/animation_server:cursor.raw",
-    "frameworks/bootanimation:bootanimation",
-    "frameworks/bootanimation:bootanimation_pics",
-    "frameworks/bootanimation:bootanimation_sounds",
     "frameworks/dumper:gdumper",
     "frameworks/dumper:gdumper.ini",
     "frameworks/dumper:graphic_dumper_server",
@@ -32,6 +29,12 @@ group("default") {
     "frameworks/wmserver:wmserver",
     "frameworks/wmservice:wmservice_test",
   ]
+
+  if (graphic_standard_feature_ace_enable_gpu) {
+    public_deps += [ "frameworks/bootanimation:bootanimation" ]
+    public_deps += [ "frameworks/bootanimation:bootanimation_pics" ]
+    public_deps += [ "frameworks/bootanimation:bootanimation_sounds" ]
+  }
 }
 
 group("graphic_standard_test") {

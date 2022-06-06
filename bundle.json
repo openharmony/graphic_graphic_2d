@@ -22,6 +22,7 @@
       ],
       "adapted_system_type": [ "standard" ],
       "features": [
+        "graphic_standard_feature_bootanimation_enable",
         "graphic_standard_feature_ace_enable_gpu",
         "graphic_standard_feature_color_gamut_enable"
       ],
