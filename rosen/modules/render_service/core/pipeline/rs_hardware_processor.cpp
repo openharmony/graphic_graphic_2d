@@ -356,6 +356,7 @@ void RSHardwareProcessor::CalculateSrcRect(ComposeInfo& info, RectI clipRegion, 
 
 bool IfUseGPUClient(const struct PrepareCompleteParam& param)
 {
+    bool ifDeviceComp = true;
     for (auto it = param.layers.begin(); it != param.layers.end(); ++it) {
         LayerInfoPtr layerInfo = *it;
         if (layerInfo == nullptr) {
@@ -374,6 +375,12 @@ bool IfUseGPUClient(const struct PrepareCompleteParam& param)
         } else if (srcGamut != dstGamut) {
             return false;
         }
+        if (layerInfo->GetCompositionType() == CompositionType::COMPOSITION_CLIENT) {
+            ifDeviceComp = false;
+        }
+    }
+    if (ifDeviceComp == true) {
+        return false;
     }
     return true;
 }
