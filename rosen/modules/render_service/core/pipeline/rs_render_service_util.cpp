@@ -567,6 +567,7 @@ void RsRenderServiceUtil::DropFrameProcess(RSSurfaceHandler& node)
     int maxDirtyListSize = surfaceConsumer->GetQueueSize() - 1;
     // maxDirtyListSize > 2 means QueueSize >3 too
     if (maxDirtyListSize > 2 && availableBufferCnt >= maxDirtyListSize) {
+        RS_TRACE_NAME("DropFrame");
         RS_LOGI("RsRenderServiceUtil::DropFrameProcess(node: %llu) queueBlock, start to drop one frame", node.GetId());
         OHOS::sptr<SurfaceBuffer> cbuffer;
         Rect damage;
