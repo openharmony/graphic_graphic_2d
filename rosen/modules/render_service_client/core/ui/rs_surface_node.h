@@ -68,6 +68,14 @@ public:
     {
         return RSUINodeType::SURFACE_NODE;
     }
+    FollowType GetFollowType() const override
+    {
+        if (IsRenderServiceNode()) {
+            return FollowType::FOLLOW_TO_SELF;
+        } else {
+            return FollowType::FOLLOW_TO_PARENT;
+        }
+    }
     ColorGamut GetColorSpace()
     {
         return colorSpace_;

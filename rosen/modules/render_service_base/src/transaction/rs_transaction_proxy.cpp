@@ -61,7 +61,7 @@ void RSTransactionProxy::SetRenderServiceClient(const std::shared_ptr<RSIRenderC
 }
 
 void RSTransactionProxy::AddCommand(std::unique_ptr<RSCommand>& command, bool isRenderServiceCommand,
-                                    RSUINodeType nodeType, NodeId nodeId)
+                                    FollowType followType, NodeId nodeId)
 {
     if ((renderServiceClient_ == nullptr && renderThreadClient_ == nullptr) || command == nullptr) {
         return;
@@ -70,15 +70,7 @@ void RSTransactionProxy::AddCommand(std::unique_ptr<RSCommand>& command, bool is
     std::unique_lock<std::mutex> cmdLock(mutex_);
 
     if (renderThreadClient_ == nullptr || isRenderServiceCommand) {
-        if (nodeType != RSUINodeType::SURFACE_NODE) {
-            AddRemoteCommand(command, nodeId, FollowType::NONE);
-        } else {
-            if (isRenderServiceCommand) {
-                AddRemoteCommand(command, nodeId, FollowType::FOLLOW_TO_SELF);
-            } else {
-                AddRemoteCommand(command, nodeId, FollowType::FOLLOW_TO_PARENT);
-            }
-        }
+        AddRemoteCommand(command, nodeId, followType);
         return;
     }
 

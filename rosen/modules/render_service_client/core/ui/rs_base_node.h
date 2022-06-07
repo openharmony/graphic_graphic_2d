@@ -48,6 +48,11 @@ public:
         return RSUINodeType::BASE_NODE;
     }
 
+    virtual FollowType GetFollowType() const
+    {
+        return FollowType::NONE;
+    }
+
     template<typename T>
     bool IsInstanceOf();
 

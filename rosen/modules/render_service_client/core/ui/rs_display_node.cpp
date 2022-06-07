@@ -30,7 +30,7 @@ RSDisplayNode::SharedPtr RSDisplayNode::Create(const RSDisplayNodeConfig& displa
     std::unique_ptr<RSCommand> command = std::make_unique<RSDisplayNodeCreate>(node->GetId(), displayNodeConfig);
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy != nullptr) {
-        transactionProxy->AddCommand(command, true, node->GetType(), node->GetId());
+        transactionProxy->AddCommand(command, true, node->GetFollowType(), node->GetId());
     }
     ROSEN_LOGD("RSDisplayNode::Create, id:%llu", node->GetId());
     return node;
@@ -41,7 +41,7 @@ void RSDisplayNode::SetScreenId(uint64_t screenId)
     std::unique_ptr<RSCommand> command = std::make_unique<RSDisplayNodeSetScreenId>(GetId(), screenId);
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy != nullptr) {
-        transactionProxy->AddCommand(command, true, GetType(), GetId());
+        transactionProxy->AddCommand(command, true, GetFollowType(), GetId());
     }
     ROSEN_LOGD("RSDisplayNode::SetScreenId, ScreenId:%llu", screenId);
 }
@@ -51,7 +51,7 @@ void RSDisplayNode::SetDisplayOffset(int32_t offsetX, int32_t offsetY)
     std::unique_ptr<RSCommand> command = std::make_unique<RSDisplayNodeSetDisplayOffset>(GetId(), offsetX, offsetY);
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy != nullptr) {
-        transactionProxy->AddCommand(command, true, GetType(), GetId());
+        transactionProxy->AddCommand(command, true, GetFollowType(), GetId());
     }
     ROSEN_LOGD("RSDisplayNode::SetDisplayOffset, offsetX:%d, offsetY:%d", offsetX, offsetY);
 }
@@ -62,7 +62,7 @@ void RSDisplayNode::SetSecurityDisplay(bool isSecurityDisplay)
     std::unique_ptr<RSCommand> command = std::make_unique<RSDisplayNodeSetSecurityDisplay>(GetId(), isSecurityDisplay);
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy != nullptr) {
-        transactionProxy->AddCommand(command, true, GetType(), GetId());
+        transactionProxy->AddCommand(command, true, GetFollowType(), GetId());
     }
     ROSEN_LOGD("RSDisplayNode::SetSecurityDisplay, displayNodeId:[%llu] isSecurityDisplay:[%s]", GetId(),
         isSecurityDisplay ? "true" : "false");

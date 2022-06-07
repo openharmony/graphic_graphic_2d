@@ -32,7 +32,7 @@ std::shared_ptr<RSNode> RSRootNode::Create(bool isRenderServiceNode)
     std::unique_ptr<RSCommand> command = std::make_unique<RSRootNodeCreate>(node->GetId());
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy != nullptr) {
-        transactionProxy->AddCommand(command, isUniRenderEnabled_ || isRenderServiceNode, node->GetType(), node->GetId());
+        transactionProxy->AddCommand(command, isUniRenderEnabled_ || isRenderServiceNode, node->GetFollowType(), node->GetId());
     }
 
     return node;
@@ -47,14 +47,14 @@ void RSRootNode::AttachRSSurfaceNode(std::shared_ptr<RSSurfaceNode> surfaceNode)
             surfaceNode->GetId());
         auto transactionProxy = RSTransactionProxy::GetInstance();
         if (transactionProxy != nullptr) {
-            transactionProxy->AddCommand(command, IsRenderServiceNode(), GetType(), GetId());
+            transactionProxy->AddCommand(command, IsRenderServiceNode(), GetFollowType(), GetId());
         }
     } else {
         std::unique_ptr<RSCommand> command = std::make_unique<RSRootNodeAttachToUniSurfaceNode>(GetId(),
             surfaceNode->GetId());
         auto transactionProxy = RSTransactionProxy::GetInstance();
         if (transactionProxy != nullptr) {
-            transactionProxy->AddCommand(command, isUniRenderEnabled_, GetType(), GetId());
+            transactionProxy->AddCommand(command, isUniRenderEnabled_, GetFollowType(), GetId());
         }
     }
 }

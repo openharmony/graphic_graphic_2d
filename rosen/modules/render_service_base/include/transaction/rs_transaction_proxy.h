@@ -34,7 +34,7 @@ public:
     void SetRenderServiceClient(const std::shared_ptr<RSIRenderClient>& renderServiceClient);
 
     void AddCommand(std::unique_ptr<RSCommand>& command, bool isRenderServiceCommand = false,
-                    RSUINodeType nodeType = RSUINodeType::BASE_NODE, NodeId nodeId = 0);
+                    FollowType followType = FollowType::NONE, NodeId nodeId = 0);
     void AddCommandFromRT(std::unique_ptr<RSCommand>& command, NodeId nodeId);
 
     void FlushImplicitTransaction(uint64_t timestamp);

@@ -54,6 +54,7 @@ private:
     RSPaintFilterCanvas* canvas_;
     RSRootRenderNode* curTreeRoot_ = nullptr;
     std::set<NodeId> forceRasterNodes;
+    uint64_t UITimestamp_ = 0;
 };
 } // namespace Rosen
 } // namespace OHOS
