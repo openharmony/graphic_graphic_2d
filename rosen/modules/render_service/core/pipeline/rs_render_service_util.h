@@ -85,7 +85,7 @@ public:
         SkBitmap& bitmap);
 
     static void DropFrameProcess(RSSurfaceHandler& surfaceHandler);
-    static bool ConsumeAndUpdateBuffer(RSSurfaceHandler& surfaceHandler, bool toReleaseBuffer = false);
+    static bool ConsumeAndUpdateBuffer(RSSurfaceHandler& surfaceHandler);
 
 private:
     static SkMatrix GetCanvasTransform(const RSSurfaceRenderNode& node, const SkMatrix& canvasMatrix,

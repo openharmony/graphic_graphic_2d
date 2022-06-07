@@ -122,7 +122,6 @@ bool RSDisplayRenderNode::CreateSurface(sptr<IBufferConsumerListener> listener)
     // CPU render
     surface_ = std::make_shared<RSSurfaceOhosRaster>(surface);
 #endif
-    consumer_->SetQueueSize(5); // enlarge queue size to 5 
 
     RS_LOGI("RSDisplayRenderNode::CreateSurface end");
     surfaceCreated_ = true;

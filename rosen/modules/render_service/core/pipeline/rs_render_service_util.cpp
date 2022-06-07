@@ -595,7 +595,7 @@ void RsRenderServiceUtil::DropFrameProcess(RSSurfaceHandler& node)
     return;
 }
 
-bool RsRenderServiceUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfaceHandler, bool toReleaseBuffer)
+bool RsRenderServiceUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfaceHandler)
 {
     auto availableBufferCnt = surfaceHandler.GetAvailableBufferCount();
     if (availableBufferCnt <= 0) {

@@ -48,14 +48,6 @@ bool HdiLayer::Init(const LayerInfoPtr &layerInfo)
         return false;
     }
 
-    if (prevSbuffer_ == nullptr) {
-        prevSbuffer_ = new LayerBufferInfo();
-    }
-
-    if (currSbuffer_ == nullptr) {
-        currSbuffer_ = new LayerBufferInfo();
-    }
-
     return true;
 }
 

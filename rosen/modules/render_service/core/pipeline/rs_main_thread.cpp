@@ -124,6 +124,27 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
     }
 }
 
+void RSMainThread::WaitUtilUniRenderFinished()
+{
+    std::unique_lock<std::mutex> lock(uniRenderMutex_);
+    if (uniRenderFinished_) {
+        return;
+    }
+    uniRenderCond_.wait(lock, [this]() { return uniRenderFinished_; });
+    uniRenderFinished_ = false;
+}
+
+void RSMainThread::NotifyUniRenderFinish()
+{
+    if (std::this_thread::get_id() != Id()) {
+        std::lock_guard<std::mutex> lock(uniRenderMutex_);
+        uniRenderFinished_ = true;
+        uniRenderCond_.notify_one();
+    } else {
+        uniRenderFinished_ = true;
+    }
+}
+
 void RSMainThread::Render()
 {
     const std::shared_ptr<RSBaseRenderNode> rootNode = context_.GetGlobalRootRenderNode();
