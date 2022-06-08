@@ -180,6 +180,29 @@ void RSImplicitAnimator::EndImplicitPathAnimation()
     PopImplicitParam();
 }
 
+void RSImplicitAnimator::BeginImplicitSpringAnimation(float response, float dampingRatio)
+{
+    if (globalImplicitParams_.empty()) {
+        ROSEN_LOGE("Failed to begin implicit transition, need to open implicit transition firstly!");
+        return;
+    }
+
+    [[maybe_unused]] auto& [protocol, curve, unused] = globalImplicitParams_.top();
+    auto springParam = std::make_shared<RSImplicitSpringAnimationParam>(protocol, response, dampingRatio);
+    PushImplicitParam(springParam);
+}
+
+void RSImplicitAnimator::EndImplicitSpringAnimation()
+{
+    if (implicitAnimationParams_.empty() ||
+        implicitAnimationParams_.top()->GetType() != ImplicitAnimationParamType::SPRING) {
+        ROSEN_LOGE("Failed to end implicit spring animation, need to begin implicit spring animation firstly!");
+        return;
+    }
+
+    PopImplicitParam();
+}
+
 void RSImplicitAnimator::BeginImplicitTransition(const std::shared_ptr<const RSTransitionEffect>& effect)
 {
     if (globalImplicitParams_.empty()) {
@@ -281,6 +304,11 @@ std::shared_ptr<RSAnimation> RSImplicitAnimator::CreateImplicitAnimation(
                 keyframeImplicitParam->AddKeyframe(keyframeIter->second, startValue, endValue);
                 return keyframeIter->second;
             }
+            break;
+        }
+        case ImplicitAnimationParamType::SPRING: {
+            auto springImplicitParam = static_cast<RSImplicitSpringAnimationParam*>(params.get());
+            animation = springImplicitParam->CreateAnimation(property, endValue);
             break;
         }
         case ImplicitAnimationParamType::PATH: {
