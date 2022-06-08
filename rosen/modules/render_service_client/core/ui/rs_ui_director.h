@@ -35,6 +35,7 @@ public:
     void GoBackground();
     void GoForeground();
     void Init();
+    void Destroy();
     void SetRSSurfaceNode(std::shared_ptr<RSSurfaceNode> surfaceNode);
 
     void SetRoot(NodeId root);
@@ -44,7 +45,6 @@ public:
     void SetTimeStamp(uint64_t timeStamp, const std::string& abilityName);
 
 private:
-    void Destroy();
     void AttachSurface();
     static void RecvMessages();
     static void RecvMessages(std::shared_ptr<RSTransactionData> cmds);
