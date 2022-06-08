@@ -63,7 +63,8 @@ public:
 
     bool HasBorder() const
     {
-        return !colors_.empty() && !widths_.empty() && !styles_.empty();
+        return !colors_.empty() && !widths_.empty() && !styles_.empty() &&
+            (*max_element(widths_.begin(), widths_.end()) > 0.f);
     }
 
     std::string ToString() const;

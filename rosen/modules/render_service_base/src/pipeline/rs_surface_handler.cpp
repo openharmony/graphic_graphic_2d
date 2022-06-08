@@ -22,27 +22,6 @@ void RSSurfaceHandler::SetConsumer(const sptr<Surface>& consumer)
     consumer_ = consumer;
 }
 
-void RSSurfaceHandler::SetBuffer(const sptr<SurfaceBuffer>& buffer)
-{
-    if (buffer_ != nullptr) {
-        preBuffer_ = buffer_;
-        buffer_ = buffer;
-    } else {
-        buffer_ = buffer;
-    }
-}
-
-void RSSurfaceHandler::SetFence(sptr<SyncFence> fence)
-{
-    preFence_ = fence_;
-    fence_ = std::move(fence);
-}
-
-void RSSurfaceHandler::SetDamageRegion(const Rect& damage)
-{
-    damageRect_ = damage;
-}
-
 void RSSurfaceHandler::IncreaseAvailableBuffer()
 {
     bufferAvailableCount_++;
@@ -64,4 +43,3 @@ float RSSurfaceHandler::GetGlobalZOrder() const
 }
 }
 }
-

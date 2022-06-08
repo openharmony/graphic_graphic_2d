@@ -16,6 +16,8 @@
 #include "transaction/rs_transaction_proxy.h"
 #include <stdlib.h>
 
+#include "platform/common/rs_log.h"
+
 namespace OHOS {
 namespace Rosen {
 std::once_flag RSTransactionProxy::flag_;
@@ -69,15 +71,16 @@ void RSTransactionProxy::AddCommand(std::unique_ptr<RSCommand>& command, bool is
 
     std::unique_lock<std::mutex> cmdLock(mutex_);
 
-    if (renderThreadClient_ == nullptr || isRenderServiceCommand) {
+    if (renderServiceClient_ != nullptr && isRenderServiceCommand) {
         AddRemoteCommand(command, nodeId, followType);
         return;
     }
 
-    if (renderServiceClient_ == nullptr || !isRenderServiceCommand) {
+    if (renderThreadClient_ != nullptr && !isRenderServiceCommand) {
         AddCommonCommand(command);
         return;
     }
+    ROSEN_LOGE("RSTransactionProxy::AddCommand failed, command type and client type not match !");
 }
 
 void RSTransactionProxy::AddCommandFromRT(std::unique_ptr<RSCommand>& command, NodeId nodeId)

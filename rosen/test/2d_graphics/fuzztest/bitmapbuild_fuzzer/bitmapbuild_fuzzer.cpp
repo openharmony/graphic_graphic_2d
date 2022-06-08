@@ -21,34 +21,24 @@
 
 #include "image/bitmap.h"
 
+constexpr size_t DATA_MIN_SIZE = 2;
+
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-template<class T>
-size_t GetObject(T &object, const uint8_t *data, size_t size)
-{
-    size_t objectSize = sizeof(object);
-    if (data == nullptr || objectSize > size) {
-        return 0;
-    }
-    auto ret = memcpy_s(&object, objectSize, data, objectSize);
-    if (ret != EOK) {
-        return 0;
-    }
-    return objectSize;
-}
-
 bool BitmapBuildFuzzTest(const uint8_t* data, size_t size)
 {
-    int width;
-    if (data == nullptr || size < sizeof(int)) {
+    if (data == nullptr || size < DATA_MIN_SIZE) {
         return false;
     }
     Bitmap bitmap;
+    int width = static_cast<int>(data[0]);
+    int height = static_cast<int>(data[1]);
     BitmapFormat bitmapFormat = { COLORTYPE_ARGB_4444, ALPHATYPE_OPAQUYE };
-    size_t startPos = 0;
-    GetObject<int>(width, data + startPos, size - startPos);
-    bitmap.Build(width, size, bitmapFormat);
+    bitmap.Build(width, height, bitmapFormat);
+    if (bitmap.GetWidth() != width || bitmap.GetHeight() != height) {
+        return false;
+    }
     return true;
 }
 } // namespace Drawing

@@ -17,8 +17,7 @@
 #include "limit_number.h"
 #include "surface.h"
 #include "pipeline/rs_render_service_listener.h"
-#include "pipeline/rs_hardware_processor.h"
-#include "pipeline/rs_processor_factory.h"
+#include "pipeline/rs_render_service_util.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -81,6 +80,7 @@ HWTEST_F(RSDropFrameProcessorTest, TestDropFrame001, TestSize.Level1)
     rsParentNode = std::make_shared<RSSurfaceRenderNode>(config);
     ASSERT_NE(rsParentNode, nullptr);
     rsParentNode->AddChild(rsNode);
+    rsNode->SetIsOnTheTree(true);
     ASSERT_TRUE(rsNode->IsOnTheTree());
 
     csurf = Surface::CreateSurfaceAsConsumer(config.name);
@@ -95,10 +95,10 @@ HWTEST_F(RSDropFrameProcessorTest, TestDropFrame001, TestSize.Level1)
     ASSERT_NE(producer, nullptr);
     psurf = Surface::CreateSurfaceAsProducer(producer);
     ASSERT_NE(psurf, nullptr);
-    psurf->SetQueueSize(3); // only test 3 frames
-    ASSERT_EQ(3, static_cast<int>(psurf->GetQueueSize()));
+    psurf->SetQueueSize(4); // only test 4 frames
+    ASSERT_EQ(4, static_cast<int>(psurf->GetQueueSize()));
 
-    // request&&flush 3 buffer make queue size full
+    // request&&flush 3 buffer, make dirtyList size equal queuesize -1
     for (int i = 0; i < 3; i ++) {
         sptr<SurfaceBuffer> buffer;
         sptr<SyncFence> requestFence = SyncFence::INVALID_FENCE;
@@ -114,9 +114,7 @@ HWTEST_F(RSDropFrameProcessorTest, TestDropFrame001, TestSize.Level1)
     }
     
     // create RSHardwareProcessor
-    auto rsHdProcessor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::HARDWARE_COMPOSITE);
-    ASSERT_NE(rsHdProcessor, nullptr);
-    rsHdProcessor->ProcessSurface(*rsNode);
-    ASSERT_EQ(1, rsNode->GetAvailableBufferCount());
+    RsRenderServiceUtil::DropFrameProcess(*rsNode.get());
+    ASSERT_EQ(2, rsNode->GetAvailableBufferCount());
 }
 } // namespace OHOS::Rosen

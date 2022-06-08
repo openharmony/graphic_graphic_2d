@@ -123,7 +123,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, sk_sp<SkData>& val)
         return false;
     }
 
-    val = SkData::MakeWithoutCopy(data, size);
+    val = size < MIN_DATA_SIZE ? SkData::MakeWithoutCopy(data, size) : SkData::MakeFromMalloc(data, size);
     return val != nullptr;
 }
 
@@ -283,9 +283,13 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, sk_sp<SkImage>& val)
             return false;
         }
         auto colorSpace = SkColorSpace::Deserialize(data, size);
+        if (size >= MIN_DATA_SIZE) {
+            free(const_cast<void*>(data));
+        }
 
         SkImageInfo imageInfo = SkImageInfo::Make(width, height, colorType, alphaType, colorSpace);
-        auto skData = SkData::MakeWithoutCopy(addr, pixmapSize);
+        auto skData = pixmapSize < MIN_DATA_SIZE ? SkData::MakeWithoutCopy(addr, pixmapSize) :
+            SkData::MakeFromMalloc(addr, pixmapSize);
         val = SkImage::MakeRasterData(imageInfo, skData, rb);
         return val != nullptr;
     }
@@ -672,37 +676,43 @@ bool RSMarshallingHelper::WriteToParcel(Parcel& parcel, const void* data, size_t
     if (size <= MIN_DATA_SIZE) {
         return parcel.WriteUnpadBuffer(data, size);
     }
+
     static pid_t pid_ = getpid();
     uint64_t id = ((uint64_t)pid_ << 32) | shmemCount++;
     std::string name = "Parcel RS" + std::to_string(id);
     int fd = AshmemCreate(name.c_str(), size);
-    ROSEN_LOGE("RSMarshallingHelper::WriteToParcel fd:%d", fd);
+    ROSEN_LOGD("RSMarshallingHelper::WriteToParcel fd:%d", fd);
     if (fd < 0) {
         return false;
     }
 
     int result = AshmemSetProt(fd, PROT_READ | PROT_WRITE);
     if (result < 0) {
+        ::close(fd);
         ROSEN_LOGE("RSMarshallingHelper::WriteToParcel result:%d", result);
         return false;
     }
     void* ptr = ::mmap(nullptr, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
     if (ptr == MAP_FAILED) {
+        ::close(fd);
         ROSEN_LOGE("RSMarshallingHelper::WriteToParcel MAP_FAILED");
         return false;
     }
 
     if (!(static_cast<MessageParcel*>(&parcel)->WriteFileDescriptor(fd))) {
         ::munmap(ptr, size);
+        ::close(fd);
         ROSEN_LOGE("RSMarshallingHelper::WriteToParcel WriteFileDescriptor error");
         return false;
     }
     if (memcpy_s(ptr, size, data, size) != EOK) {
         ::munmap(ptr, size);
+        ::close(fd);
         ROSEN_LOGE("RSMarshallingHelper::WriteToParcel memcpy_s failed");
         return false;
     }
     ROSEN_LOGI("RSMarshallingHelper::WriteToParcel success");
+    ReleaseMemory(ptr, &fd, size);
     return true;
 }
 
@@ -738,10 +748,12 @@ const void* RSMarshallingHelper::ReadFromParcel(Parcel& parcel, size_t size)
     }
     uint8_t* base = static_cast<uint8_t*>(malloc(size));
     if (base == nullptr) {
+        ::munmap(ptr, size);
         ROSEN_LOGE("RSMarshallingHelper::ReadFromParcel malloc(size) failed");
         return nullptr;
     }
     if (memcpy_s(base, size, ptr, size) != 0) {
+        ::munmap(ptr, size);
         free(base);
         base = nullptr;
         ROSEN_LOGE("RSMarshallingHelper::ReadFromParcel memcpy_s failed");

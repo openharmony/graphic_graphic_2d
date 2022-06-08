@@ -136,4 +136,44 @@ void WriteVerifyAllocInfo(MessageParcel &parcel, const std::vector<VerifyAllocIn
         parcel.WriteInt32(info.format);
     }
 }
+
+void ReadHDRMetaData(MessageParcel &parcel, std::vector<HDRMetaData> &metaData)
+{
+    uint32_t size = parcel.ReadUint32();
+    metaData.clear();
+    HDRMetaData data;
+    for (uint32_t index = 0; index < size; index++) {
+        data.key = static_cast<HDRMetadataKey>(parcel.ReadUint32());
+        data.value = parcel.ReadFloat();
+        metaData.push_back(data);
+    }
+}
+
+void WriteHDRMetaData(MessageParcel &parcel, const std::vector<HDRMetaData> &metaData)
+{
+    parcel.WriteUint32(metaData.size());
+    for (const auto &data : metaData) {
+        parcel.WriteUint32(static_cast<uint32_t>(data.key));
+        parcel.WriteFloat(data.value);
+    }
+}
+
+void ReadHDRMetaDataSet(MessageParcel &parcel, std::vector<uint8_t> &metaData)
+{
+    uint32_t size = parcel.ReadUint32();
+    metaData.clear();
+    uint8_t data;
+    for (uint32_t index = 0; index < size; index++) {
+        data = parcel.ReadUint8();
+        metaData.push_back(data);
+    }
+}
+
+void WriteHDRMetaDataSet(MessageParcel &parcel, const std::vector<uint8_t> &metaData)
+{
+    parcel.WriteUint32(metaData.size());
+    for (const auto &data : metaData) {
+        parcel.WriteUint8(data);
+    }
+}
 } // namespace OHOS

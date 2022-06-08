@@ -107,6 +107,9 @@ public:
     void RegisterApplicationRenderThread(uint32_t pid, sptr<IApplicationRenderThread> app);
     void UnregisterApplicationRenderThread(sptr<IApplicationRenderThread> app);
 
+    void WaitUtilUniRenderFinished();
+    void NotifyUniRenderFinish();
+
     sptr<VSyncDistributor> rsVSyncDistributor_;
 private:
     RSMainThread();
@@ -119,6 +122,7 @@ private:
     void OnVsync(uint64_t timestamp, void *data);
     void ProcessCommand();
     void Animate(uint64_t timestamp);
+    void ConsumeAndUpdateAllNodes();
     void Render();
     void SendCommands();
 
@@ -136,6 +140,10 @@ private:
     RSContext context_;
     std::thread::id mainThreadId_;
     std::shared_ptr<VSyncReceiver> receiver_ = nullptr;
+
+    mutable std::mutex uniRenderMutex_;
+    bool uniRenderFinished_ = false;
+    std::condition_variable uniRenderCond_;
 
 #ifdef RS_ENABLE_GL
     std::shared_ptr<RenderContext> renderContext_;

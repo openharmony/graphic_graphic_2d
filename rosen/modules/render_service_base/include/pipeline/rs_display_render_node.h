@@ -95,11 +95,6 @@ public:
         return false;
     }
 
-    NodeId GetId() const override
-    {
-        return RSBaseRenderNode::GetId();
-    }
-
     bool CreateSurface(sptr<IBufferConsumerListener> listener);
 
     std::shared_ptr<RSSurface> GetRSSurface() const

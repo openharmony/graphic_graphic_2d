@@ -24,39 +24,67 @@ namespace OHOS {
 namespace Rosen {
 class RSSurfaceHandler {
 public:
-    RSSurfaceHandler() = default;
-    virtual ~RSSurfaceHandler() = default;
-    virtual NodeId GetId() const = 0;
+    // indicates which node this handler belongs to.
+    explicit RSSurfaceHandler(NodeId id) : id_(id) {}
+    virtual ~RSSurfaceHandler() noexcept = default;
+
+    struct SurfaceBufferEntry {
+        sptr<SurfaceBuffer> buffer;
+        sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
+        sptr<SyncFence> releaseFence = SyncFence::INVALID_FENCE;
+        Rect damageRect = {0, 0, 0, 0};
+    };
+
     void SetConsumer(const sptr<Surface>& consumer);
-    void SetBuffer(const sptr<SurfaceBuffer>& buffer);
-    void SetFence(sptr<SyncFence> fence);
-    void SetDamageRegion(const Rect& damage);
     void IncreaseAvailableBuffer();
     int32_t ReduceAvailableBuffer();
 
-    sptr<SurfaceBuffer>& GetBuffer()
+    NodeId GetNodeId() const
     {
-        return buffer_;
+        return id_;
     }
 
-    sptr<SyncFence> GetFence() const
+    void SetDefaultWidthAndHeight(int32_t width, int32_t height)
     {
-        return fence_;
+        if (consumer_ != nullptr) {
+            consumer_->SetDefaultWidthAndHeight(width, height);
+        }
     }
 
-    sptr<SurfaceBuffer>& GetPreBuffer()
+    void SetBuffer(
+        const sptr<SurfaceBuffer>& buffer,
+        const sptr<SyncFence>& acquireFence,
+        const Rect& damage)
     {
-        return preBuffer_;
+        preBuffer_ = buffer_;
+        buffer_.buffer = buffer;
+        buffer_.acquireFence = acquireFence;
+        buffer_.damageRect = damage;
     }
 
-    sptr<SyncFence> GetPreFence() const
+    sptr<SurfaceBuffer> GetBuffer()
     {
-        return preFence_;
+        return buffer_.buffer;
+    }
+
+    sptr<SyncFence> GetAcquireFence() const
+    {
+        return buffer_.acquireFence;
     }
 
     const Rect& GetDamageRegion() const
     {
-        return damageRect_;
+        return buffer_.damageRect;
+    }
+
+    void SetReleaseFence(sptr<SyncFence> fence)
+    {
+        buffer_.releaseFence = std::move(fence);
+    }
+
+    SurfaceBufferEntry GetPreBuffer()
+    {
+        return preBuffer_;
     }
 
     const sptr<Surface>& GetConsumer() const
@@ -76,13 +104,11 @@ protected:
     sptr<Surface> consumer_;
 
 private:
-    Rect damageRect_;
+    NodeId id_ = 0;
+    SurfaceBufferEntry buffer_;
+    SurfaceBufferEntry preBuffer_;
     float globalZOrder_ = 0.0f;
     std::atomic<int> bufferAvailableCount_ = 0;
-    sptr<SurfaceBuffer> buffer_;
-    sptr<SurfaceBuffer> preBuffer_;
-    sptr<SyncFence> fence_;
-    sptr<SyncFence> preFence_;
 };
 }
 }

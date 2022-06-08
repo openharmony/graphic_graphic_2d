@@ -21,31 +21,17 @@
 
 #include "utils/matrix.h"
 
+constexpr int CONSTANTS_NUMBER_FIVE = 5;
+
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-template<class T>
-size_t GetObject(T &object, const uint8_t *data, size_t size)
-{
-    size_t objectSize = sizeof(object);
-    if (data == nullptr || objectSize > size) {
-        return 0;
-    }
-    auto ret = memcpy_s(&object, objectSize, data, objectSize);
-    if (ret != EOK) {
-        return 0;
-    }
-    return objectSize;
-}
-
 bool MatrixGetFuzzTest(const uint8_t* data, size_t size)
 {
-    int index;
-    if (data == nullptr || size < sizeof(int)) {
+    if (data == nullptr) {
         return false;
     }
-    size_t startPos = 0;
-    GetObject<int>(index, data + startPos, size - startPos);
+    int index = static_cast<int>(size % CONSTANTS_NUMBER_FIVE);
     Matrix matrix;
     matrix.Get(index);
     return true;

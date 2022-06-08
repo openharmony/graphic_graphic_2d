@@ -127,8 +127,6 @@ void HdiBackend::Repaint(std::vector<OutputPtr> &outputs)
             // return
         }
 
-        ReleaseLayerBuffer(screenId, layersMap);
-
         int64_t timestamp = lastPresentFence_->SyncFileReadTimestamp();
         bool ret = false;
         if (timestamp != SyncFence::FENCE_PENDING_TIMESTAMP) {
@@ -245,18 +243,23 @@ int32_t HdiBackend::SetScreenClientInfo(const FrameBufferEntry &fbEntry, const O
     return DISPLAY_SUCCESS;
 }
 
-void HdiBackend::ReleaseLayerBuffer(uint32_t screenId, const std::unordered_map<uint32_t,
-                                    LayerPtr> &layersMap)
+std::map<LayerInfoPtr, sptr<SyncFence>> HdiBackend::GetLayersReleaseFence(const OutputPtr& output)
 {
+    if (output == nullptr) {
+        return {};
+    }
+    uint32_t screenId = output->GetScreenId();
     std::vector<uint32_t> layersId;
     std::vector<sptr<SyncFence>> fences;
     int32_t ret = device_->GetScreenReleaseFence(screenId, layersId, fences);
     if (ret != DISPLAY_SUCCESS || layersId.size() != fences.size()) {
         HLOGE("GetScreenReleaseFence failed, ret is %{public}d, layerId size[%{public}d], fence size[%{public}d]",
                ret, (int)layersId.size(), (int)fences.size());
-        return;
+        return {};
     }
 
+    std::map<LayerInfoPtr, sptr<SyncFence>> res;
+    auto layersMap = output->GetLayers();
     size_t layerNum = layersId.size();
     for (size_t i = 0; i < layerNum; i++) {
         auto iter = layersMap.find(layersId[i]);
@@ -267,11 +270,9 @@ void HdiBackend::ReleaseLayerBuffer(uint32_t screenId, const std::unordered_map<
 
         const LayerPtr &layer = iter->second;
         layer->MergeWithLayerFence(fences[i]);
+        res[layer->GetLayerInfo()] = layer->GetReleaseFence();
     }
-    for (auto iter = layersMap.begin(); iter != layersMap.end(); ++iter) {
-        const LayerPtr &layer = iter->second;
-        layer->ReleaseBuffer();
-    }
+    return res;
 }
 
 void HdiBackend::OnHdiBackendHotPlugEvent(uint32_t screenId, bool connected, void *data)

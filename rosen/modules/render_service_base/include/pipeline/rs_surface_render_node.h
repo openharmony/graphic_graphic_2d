@@ -44,7 +44,6 @@ public:
 
     void ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas) override;
     void ProcessRenderAfterChildren(RSPaintFilterCanvas& canvas) override;
-    void ConsumeNodeNotOnTree();
 
     std::string GetName() const
     {
@@ -133,11 +132,7 @@ public:
         return globalAlpha_;
     }
 
-    NodeId GetId() const override
-    {
-        return RSBaseRenderNode::GetId();
-    }
-
+    void SetConsumer(const sptr<Surface>& consumer);
     void SetParentId(NodeId parentId, bool sendMsg = true);
     NodeId GetParentId() const;
 

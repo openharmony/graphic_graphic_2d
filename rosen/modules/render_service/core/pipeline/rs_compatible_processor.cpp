@@ -71,15 +71,14 @@ void RSCompatibleProcessor::Init(ScreenId id, int32_t offsetX, int32_t offsetY)
 
 void RSCompatibleProcessor::ProcessSurface(RSSurfaceRenderNode& node)
 {
-    RS_LOGI("RsDebug RSCompatibleProcessor::ProcessSurface start node:%llu available buffer:%d", node.GetId(),
+    RS_LOGD("RsDebug RSCompatibleProcessor::ProcessSurface start node:%llu available buffer:%d", node.GetId(),
         node.GetAvailableBufferCount());
     if (!canvas_) {
         RS_LOGE("RsDebug RSCompatibleProcessor::ProcessSurface canvas is nullptr");
         return;
     }
 
-    if (!RsRenderServiceUtil::ConsumeAndUpdateBuffer(node)) {
-        RS_LOGE("RsDebug RSCompatibleProcessor::ProcessSurface consume buffer fail");
+    if (node.GetBuffer() == nullptr) {
         return;
     }
 
@@ -89,7 +88,7 @@ void RSCompatibleProcessor::ProcessSurface(RSSurfaceRenderNode& node)
         return;
     }
 
-    RS_LOGI("RsDebug RSCompatibleProcessor::ProcessSurface surfaceNode id:%llu [%d %d %d %d] buffer [%d %d]",
+    RS_LOGD("RsDebug RSCompatibleProcessor::ProcessSurface surfaceNode id:%llu [%d %d %d %d] buffer [%d %d]",
         node.GetId(), geoPtr->GetAbsRect().left_, geoPtr->GetAbsRect().top_,
         geoPtr->GetAbsRect().width_, geoPtr->GetAbsRect().height_,
         node.GetDamageRegion().w, node.GetDamageRegion().y);
@@ -156,7 +155,5 @@ void RSCompatibleProcessor::RSRenderBufferListener::OnBufferAvailable()
 {
     processor_.DoComposeSurfaces();
 }
-
-
 } // namespace Rosen
 } // namespace OHOS

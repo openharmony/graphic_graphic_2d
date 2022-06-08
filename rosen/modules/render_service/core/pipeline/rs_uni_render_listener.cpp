@@ -35,24 +35,7 @@ void RSUniRenderListener::OnBufferAvailable()
     RS_LOGI("RSUniRenderListener::OnBufferAvailable node id:%llu", node->GetId());
     node->IncreaseAvailableBuffer();
 
-    std::shared_ptr<RSProcessor> processor;
-    {
-        std::lock_guard<std::mutex> lock(mutex_);
-        processor = processor_;
-    }
-    RSMainThread::Instance()->PostTask([node, processor]() {
-        if (processor != nullptr) {
-            processor->ProcessSurface(*node);
-            processor->PostProcess();
-        }
-    });
-}
-
-void RSUniRenderListener::UpdateProcessor(std::shared_ptr<RSProcessor> processor)
-{
-    std::lock_guard<std::mutex> lock(mutex_);
-    processor_ = processor;
+    RSMainThread::Instance()->NotifyUniRenderFinish();
 }
 }
 }
-

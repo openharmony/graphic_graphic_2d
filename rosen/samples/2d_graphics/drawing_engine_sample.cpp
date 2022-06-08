@@ -237,8 +237,7 @@ bool DrawingEngineSample::DrawDrawingLayer(std::shared_ptr<HdiLayerInfo> &layer)
     srcRect.h = drawingHeight;
     LayerAlpha alpha = { .enPixelAlpha = true };
     layer->SetSurface(drawingCSurface);
-    layer->SetBuffer(cbuffer, acquireSyncFence, prevBufferMap_[drawingCSurface->GetUniqueId()],
-        prevFenceMap_[drawingCSurface->GetUniqueId()]);
+    layer->SetBuffer(cbuffer, acquireSyncFence);
     layer->SetZorder(zorder);
     layer->SetAlpha(alpha);
     layer->SetTransform(TransformType::ROTATE_NONE);
@@ -254,7 +253,6 @@ bool DrawingEngineSample::DrawDrawingLayer(std::shared_ptr<HdiLayerInfo> &layer)
     layer->SetBlendType(BlendType::BLEND_SRC);
     layer->SetCropRect(srcRect);
     layer->SetPreMulti(false);
-
     prevBufferMap_[drawingCSurface->GetUniqueId()] = cbuffer;
     prevFenceMap_[drawingCSurface->GetUniqueId()] = acquireSyncFence;
 
@@ -283,6 +281,10 @@ void DrawingEngineSample::OutPutDisplay()
         output_->SetOutputDamage(1, damageRect);
 
         backend_->Repaint(outputs_);
+        int32_t releaseFence = -1;
+        sptr<SyncFence> tempFence = new SyncFence(releaseFence);
+        drawingCSurface->ReleaseBuffer(prevBufferMap_[drawingCSurface->GetUniqueId()], tempFence);
+        tempFence->Wait(100); // 100 ms
         std::cout << "draw count " << count << std::endl;
         std::cout << "display width is " << display_w << ", display height is " << display_h << std::endl;
 

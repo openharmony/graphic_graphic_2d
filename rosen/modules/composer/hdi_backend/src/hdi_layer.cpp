@@ -29,6 +29,8 @@ std::shared_ptr<HdiLayer> HdiLayer::CreateHdiLayer(uint32_t screenId)
 
 HdiLayer::HdiLayer(uint32_t screenId) : screenId_(screenId)
 {
+    prevSbuffer_ = new LayerBufferInfo();
+    currSbuffer_ = new LayerBufferInfo();
 }
 
 HdiLayer::~HdiLayer()
@@ -46,14 +48,6 @@ bool HdiLayer::Init(const LayerInfoPtr &layerInfo)
         return false;
     }
 
-    if (prevSbuffer_ == nullptr) {
-        prevSbuffer_ = new LayerBufferInfo();
-    }
-
-    if (currSbuffer_ == nullptr) {
-        currSbuffer_ = new LayerBufferInfo();
-    }
-
     return true;
 }
 
@@ -66,8 +60,14 @@ int32_t HdiLayer::CreateLayer(const LayerInfoPtr &layerInfo)
         .pixFormat = PIXEL_FMT_RGBA_8888,
     };
 
+    HdiDevice *device = HdiDevice::GetInstance();
+    if (device == nullptr) {
+        HLOGE("device is null");
+        return DISPLAY_NULL_PTR;
+    }
+
     uint32_t layerId = 0;
-    int32_t ret = HdiDevice::GetInstance()->CreateLayer(screenId_, hdiLayerInfo, layerId);
+    int32_t ret = device->CreateLayer(screenId_, hdiLayerInfo, layerId);
     if (ret != DISPLAY_SUCCESS) {
         HLOGE("Create hwc layer failed, ret is %{public}d", ret);
         return ret;
@@ -87,7 +87,13 @@ void HdiLayer::CloseLayer()
         return;
     }
 
-    int32_t ret = HdiDevice::GetInstance()->CloseLayer(screenId_, layerId_);
+    HdiDevice *device = HdiDevice::GetInstance();
+    if (device == nullptr) {
+        HLOGE("device is null");
+        return;
+    }
+
+    int32_t ret = device->CloseLayer(screenId_, layerId_);
     if (ret != DISPLAY_SUCCESS) {
         HLOGE("Close hwc layer[%{public}u] failed, ret is %{public}d", layerId_, ret);
     }
@@ -228,52 +234,19 @@ void HdiLayer::UpdateLayerInfo(const LayerInfoPtr &layerInfo)
     isInUsing_ = true;
     layerInfo_ = layerInfo;
 
+    prevSbuffer_->sbuffer_ = currSbuffer_->sbuffer_;
+    prevSbuffer_->acquireFence_ = currSbuffer_->acquireFence_;
+
     currSbuffer_->sbuffer_ = layerInfo_->GetBuffer();
     currSbuffer_->acquireFence_ = layerInfo_->GetAcquireFence();
-    prevSbuffer_->sbuffer_ = layerInfo_->GetPreBuffer();
-    prevSbuffer_->acquireFence_ = layerInfo_->GetPreAcquireFence();
 }
 
-void HdiLayer::ReleaseBuffer()
+sptr<SyncFence> HdiLayer::GetReleaseFence() const
 {
-    // check gpu buffer release
-    if (currSbuffer_->sbuffer_ != prevSbuffer_->sbuffer_) {
-        SurfaceError ret = ReleasePrevBuffer();
-        if (ret != SURFACE_ERROR_OK) {
-            HLOGW("ReleaseBuffer failed, ret is %{public}d", ret);
-        }
-
-        /* copy currSbuffer to prevSbuffer */
-        prevSbuffer_->releaseFence_ = currSbuffer_->releaseFence_;
-    } else {
-        prevSbuffer_->acquireFence_ = Merge(currSbuffer_->acquireFence_, prevSbuffer_->acquireFence_);
-        prevSbuffer_->releaseFence_ = Merge(currSbuffer_->releaseFence_, prevSbuffer_->releaseFence_);
+    if (currSbuffer_ == nullptr) {
+        return SyncFence::INVALID_FENCE;
     }
-}
-
-SurfaceError HdiLayer::ReleasePrevBuffer()
-{
-    /*
-     * The first time, prevSbuffer is empty and the releaseFence is invalid.
-     * Therefore, we do not release the buffer.
-     */
-
-    if (prevSbuffer_->sbuffer_ == nullptr) {
-        return SURFACE_ERROR_OK;
-    }
-
-    if (layerInfo_ == nullptr) {
-        return SURFACE_ERROR_NULLPTR;
-    }
-
-    SurfaceError ret = layerInfo_->GetSurface()->ReleaseBuffer(prevSbuffer_->sbuffer_, prevSbuffer_->releaseFence_);
-    if (ret != SURFACE_ERROR_OK) {
-        return ret;
-    }
-
-    prevSbuffer_->sbuffer_ = nullptr;
-
-    return ret;
+    return currSbuffer_->releaseFence_;
 }
 
 void HdiLayer::RecordPresentTime(int64_t timestamp)
@@ -294,7 +267,7 @@ void HdiLayer::MergeWithFramebufferFence(const sptr<SyncFence> &fbAcquireFence)
 void HdiLayer::MergeWithLayerFence(const sptr<SyncFence> &layerReleaseFence)
 {
     if (layerReleaseFence != nullptr) {
-        prevSbuffer_->releaseFence_ = Merge(prevSbuffer_->releaseFence_, layerReleaseFence);
+        currSbuffer_->releaseFence_ = layerReleaseFence;
     }
 }
 

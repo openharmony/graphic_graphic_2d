@@ -820,6 +820,83 @@ GSError BufferQueue::IsSupportedAlloc(const std::vector<VerifyAllocInfo> &infos,
     return ret;
 }
 
+GSError BufferQueue::SetMetaData(int32_t sequence, const std::vector<HDRMetaData> &metaData)
+{
+    if (sequence < 0) {
+        BLOGN_INVALID("sequence is greater than 0, now is %{public}d", sequence);
+        return GSERROR_INVALID_ARGUMENTS;
+    }
+    if (metaData.size() == 0) {
+        BLOGN_INVALID("metaData size is 0");
+        return GSERROR_INVALID_ARGUMENTS;
+    }
+    if (bufferQueueCache_.find(sequence) == bufferQueueCache_.end()) {
+        BLOGN_FAILURE_ID(sequence, "not find in cache");
+        return GSERROR_NO_ENTRY;
+    }
+    bufferQueueCache_[sequence].metaData.clear();
+    bufferQueueCache_[sequence].metaData = metaData;
+    return GSERROR_OK;
+}
+
+GSError BufferQueue::SetMetaDataSet(int32_t sequence, HDRMetadataKey key,
+                                    const std::vector<uint8_t> &metaData)
+{
+    if (sequence < 0) {
+        BLOGN_INVALID("sequence is greater than 0, now is %{public}d", sequence);
+        return GSERROR_INVALID_ARGUMENTS;
+    }
+    if (key < HDRMetadataKey::MATAKEY_RED_PRIMARY_X || key > HDRMetadataKey::MATAKEY_HDR_VIVID) {
+        BLOGN_INVALID("key [%{public}d, %{public}d), now is %{public}d",
+            HDRMetadataKey::MATAKEY_RED_PRIMARY_X, HDRMetadataKey::MATAKEY_HDR_VIVID, key);
+        return GSERROR_INVALID_ARGUMENTS;
+    }
+    if (metaData.size() == 0) {
+        BLOGN_INVALID("metaData size is 0");
+        return GSERROR_INVALID_ARGUMENTS;
+    }
+    if (bufferQueueCache_.find(sequence) == bufferQueueCache_.end()) {
+        BLOGN_FAILURE_ID(sequence, "not find in cache");
+        return GSERROR_NO_ENTRY;
+    }
+    bufferQueueCache_[sequence].metaDataSet.clear();
+    bufferQueueCache_[sequence].key = key;
+    bufferQueueCache_[sequence].metaDataSet = metaData;
+    return GSERROR_OK;
+}
+
+GSError BufferQueue::GetMetaData(int32_t sequence, std::vector<HDRMetaData> &metaData) const
+{
+    if (sequence < 0) {
+        BLOGN_INVALID("sequence is greater than 0, now is %{public}d", sequence);
+        return GSERROR_INVALID_ARGUMENTS;
+    }
+    if (bufferQueueCache_.find(sequence) == bufferQueueCache_.end()) {
+        BLOGN_FAILURE_ID(sequence, "not find in cache");
+        return GSERROR_NO_ENTRY;
+    }
+    metaData.clear();
+    metaData = bufferQueueCache_.at(sequence).metaData;
+    return GSERROR_OK;
+}
+
+GSError BufferQueue::GetMetaDataSet(int32_t sequence, HDRMetadataKey &key,
+                                    std::vector<uint8_t> &metaData) const
+{
+    if (sequence < 0) {
+        BLOGN_INVALID("sequence is greater than 0, now is %{public}d", sequence);
+        return GSERROR_INVALID_ARGUMENTS;
+    }
+    if (bufferQueueCache_.find(sequence) == bufferQueueCache_.end()) {
+        BLOGN_FAILURE_ID(sequence, "not find in cache");
+        return GSERROR_NO_ENTRY;
+    }
+    metaData.clear();
+    key = bufferQueueCache_.at(sequence).key;
+    metaData = bufferQueueCache_.at(sequence).metaDataSet;
+    return GSERROR_OK;
+}
+
 void BufferQueue::DumpCache(std::string &result)
 {
     for (auto it = bufferQueueCache_.begin(); it != bufferQueueCache_.end(); it++) {

@@ -944,7 +944,6 @@ HWTEST_F(EglWrapperEntryTest, EglGetPlatformDisplayEXTImpl002, Level2)
     ASSERT_EQ(EGL_NO_DISPLAY, result);
 }
 
-
 /**
  * @tc.name: EglSwapBuffersWithDamageKHRImpl001
  * @tc.desc:

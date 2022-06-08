@@ -60,7 +60,7 @@ ohos_shared_library("libvsync") {
   ]
 
   public_deps = [
-    "//foundation/bundlemanager/bundle_framework/interfaces/innerkits/libeventhandler:libeventhandler",
+    "//base/notification/eventhandler/frameworks/eventhandler:libeventhandler",
     "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
     "//foundation/graphic/graphic_2d/utils:scoped_bytrace",
     "//foundation/graphic/graphic_2d/utils:socketpair",

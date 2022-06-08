@@ -266,6 +266,14 @@ void HelloComposer::Draw()
         }
 
         backend_->Repaint(outputs);
+        auto layersReleaseFence = backend_->GetLayersReleaseFence(curOutput_);
+        for (auto& layerContext : drawLayers) {
+            auto preBuffer = layerContext->GetPreBuffer();
+            int32_t releaseFence = -1;
+            sptr<SyncFence> tempFence = new SyncFence(releaseFence);
+            layerContext->GetHdiLayer()->GetSurface()->ReleaseBuffer(preBuffer, tempFence);
+            tempFence->Wait(100); // 100 ms
+        }
     }
 }
 

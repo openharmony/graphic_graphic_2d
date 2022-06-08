@@ -237,4 +237,39 @@ GSError ConsumerSurface::IsSupportedAlloc(const std::vector<VerifyAllocInfo> &in
 {
     return GSERROR_NOT_SUPPORT;
 }
+
+GSError ConsumerSurface::SetMetaData(int32_t sequence, const std::vector<HDRMetaData> &metaData)
+{
+    if (sequence < 0 || metaData.size() == 0) {
+        return GSERROR_INVALID_ARGUMENTS;
+    }
+    return producer_->SetMetaData(sequence, metaData);
+}
+
+GSError ConsumerSurface::SetMetaDataSet(int32_t sequence, HDRMetadataKey key,
+                                        const std::vector<uint8_t> &metaData)
+{
+    if (sequence < 0 || key < HDRMetadataKey::MATAKEY_RED_PRIMARY_X ||
+        key > HDRMetadataKey::MATAKEY_HDR_VIVID || metaData.size() == 0) {
+        return GSERROR_INVALID_ARGUMENTS;
+    }
+    return producer_->SetMetaDataSet(sequence, key, metaData);
+}
+
+GSError ConsumerSurface::GetMetaData(int32_t sequence, std::vector<HDRMetaData> &metaData) const
+{
+    if (sequence < 0) {
+        return GSERROR_INVALID_ARGUMENTS;
+    }
+    return consumer_->GetMetaData(sequence, metaData);
+}
+
+GSError ConsumerSurface::GetMetaDataSet(int32_t sequence, HDRMetadataKey &key,
+                                        std::vector<uint8_t> &metaData) const
+{
+    if (sequence < 0) {
+        return GSERROR_INVALID_ARGUMENTS;
+    }
+    return consumer_->GetMetaDataSet(sequence, key, metaData);
+}
 } // namespace OHOS

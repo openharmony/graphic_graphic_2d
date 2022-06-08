@@ -79,10 +79,13 @@ rosen_skia_common_ccflags = [
   "-Wno-abstract-vbase-init",
   "-Wno-weak-vtables",
   "-Wno-c++98-compat",
+  "-Wno-tautological-value-range-compare",
   "-Wno-c++98-compat-pedantic",
   "-Wno-undefined-func-template",
   "-Wno-return-std-move-in-c++11",
   "-Wno-implicit-fallthrough",
+  "-Wno-suggest-destructor-override",
+  "-Wno-suggest-override",
 
   # "-fvisibility-inlines-hidden",
   "-Os",
