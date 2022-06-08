@@ -57,12 +57,6 @@ namespace Rosen {
     }
 
 template<>
-void RSKeyframeAnimation<int>::OnStart()
-{
-    START_KEYFRAME_ANIMATION(RSAnimationCreateKeyframeInt, int);
-}
-
-template<>
 void RSKeyframeAnimation<float>::OnStart()
 {
     START_KEYFRAME_ANIMATION(RSAnimationCreateKeyframeFloat, float);

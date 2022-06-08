@@ -86,7 +86,6 @@ private:
 };
 
 
-template class RSKeyframeAnimation<int>;
 template class RSKeyframeAnimation<float>;
 template class RSKeyframeAnimation<Color>;
 template class RSKeyframeAnimation<Matrix3f>;

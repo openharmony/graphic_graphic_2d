@@ -115,7 +115,7 @@ private:
     T startValue_ {};
     T endValue_ {};
     std::shared_ptr<RSInterpolator> interpolator_ { RSInterpolator::DEFAULT };
-    std::shared_ptr<RSInterpolator> linearInterpolator_ { std::make_shared<LinearInterpolator>() };
+    inline static std::shared_ptr<RSInterpolator> linearInterpolator_ { std::make_shared<LinearInterpolator>() };
 };
 } // namespace Rosen
 } // namespace OHOS

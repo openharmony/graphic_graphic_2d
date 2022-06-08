@@ -141,8 +141,8 @@ void RSImplicitAnimator::BeginImplicitCurveAnimation()
         return;
     }
 
-    [[maybe_unused]] auto& [protocal, curve, unused] = globalImplicitParams_.top();
-    auto curveAnimationParam = std::make_shared<RSImplicitCurveAnimationParam>(protocal, curve);
+    [[maybe_unused]] auto& [protocol, curve, unused] = globalImplicitParams_.top();
+    auto curveAnimationParam = std::make_shared<RSImplicitCurveAnimationParam>(protocol, curve);
     PushImplicitParam(curveAnimationParam);
 }
 
@@ -187,8 +187,8 @@ void RSImplicitAnimator::BeginImplicitTransition(const std::shared_ptr<const RST
         return;
     }
 
-    [[maybe_unused]] auto& [protocal, curve, unused] = globalImplicitParams_.top();
-    auto transitionParam = std::make_shared<RSImplicitTransitionParam>(protocal, curve, effect);
+    [[maybe_unused]] auto& [protocol, curve, unused] = globalImplicitParams_.top();
+    auto transitionParam = std::make_shared<RSImplicitTransitionParam>(protocol, curve, effect);
     PushImplicitParam(transitionParam);
 }
 
@@ -306,8 +306,6 @@ std::shared_ptr<RSAnimation> RSImplicitAnimator::CreateImplicitAnimation(
     return animation;
 }
 
-template std::shared_ptr<RSAnimation> RSImplicitAnimator::CreateImplicitAnimation(
-    RSNode& target, const RSAnimatableProperty& property, const int& startValue, const int& endValue);
 template std::shared_ptr<RSAnimation> RSImplicitAnimator::CreateImplicitAnimation(
     RSNode& target, const RSAnimatableProperty& property, const float& startValue, const float& endValue);
 template std::shared_ptr<RSAnimation> RSImplicitAnimator::CreateImplicitAnimation(

@@ -64,7 +64,6 @@ private:
     RSAnimationTimingCurve timingCurve_ { RSAnimationTimingCurve::DEFAULT };
 };
 
-template class RSCurveAnimation<int>;
 template class RSCurveAnimation<float>;
 template class RSCurveAnimation<Color>;
 template class RSCurveAnimation<Matrix3f>;
