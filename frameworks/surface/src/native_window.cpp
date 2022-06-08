@@ -306,6 +306,32 @@ int32_t NativeObjectUnreference(void *obj)
     return OHOS::GSERROR_OK;
 }
 
+int32_t NativeWindowSetMetaData(OHNativeWindow *window, int32_t sequence, int32_t size,
+                                const OHHDRMetaData *metaData)
+{
+    if (window == nullptr || window->surface == nullptr || sequence < 0 || size <= 0 || metaData == nullptr) {
+        BLOGE("para error, please check input parameter");
+        return OHOS::GSERROR_INVALID_ARGUMENTS;
+    }
+
+    std::vector<HDRMetaData> data(reinterpret_cast<const HDRMetaData *>(metaData),
+                                  reinterpret_cast<const HDRMetaData *>(metaData) + size);
+    return window->surface->SetMetaData(sequence, data);
+}
+
+int32_t NativeWindowSetMetaDataSet(OHNativeWindow *window, int32_t sequence, OHHDRMetadataKey key,
+                                   int32_t size, const uint8_t *metaData)
+{
+    if (window == nullptr || window->surface == nullptr || sequence < 0 ||
+        key < OHHDRMetadataKey::OH_MATAKEY_RED_PRIMARY_X || key > OHHDRMetadataKey::OH_MATAKEY_HDR_VIVID ||
+        size <= 0 || metaData == nullptr) {
+        BLOGE("para error, please check input parameter");
+        return OHOS::GSERROR_INVALID_ARGUMENTS;
+    }
+    std::vector<uint8_t> data(metaData, metaData + size);
+    return window->surface->SetMetaDataSet(sequence, static_cast<HDRMetadataKey>(key), data);
+}
+
 NativeWindow::NativeWindow() : NativeWindowMagic(NATIVE_OBJECT_MAGIC_WINDOW), surface(nullptr)
 {
 }
@@ -334,3 +360,5 @@ weak_alias(GetBufferHandleFromNative, OH_NativeWindow_GetBufferHandleFromNative)
 weak_alias(NativeObjectReference, OH_NativeWindow_NativeObjectReference);
 weak_alias(NativeObjectUnreference, OH_NativeWindow_NativeObjectUnreference);
 weak_alias(GetNativeObjectMagic, OH_NativeWindow_GetNativeObjectMagic);
+weak_alias(NativeWindowSetMetaData, OH_NativeWindow_NativeWindowSetMetaData);
+weak_alias(NativeWindowSetMetaDataSet, OH_NativeWindow_NativeWindowSetMetaDataSet);

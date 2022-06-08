@@ -65,8 +65,12 @@ public:
 
     virtual GSError IsSupportedAlloc(const std::vector<VerifyAllocInfo> &infos,
                                      std::vector<bool> &supporteds) = 0;
-    
+
     virtual GSError Disconnect() = 0;
+
+    virtual GSError SetMetaData(int32_t sequence, const std::vector<HDRMetaData> &metaData) = 0;
+    virtual GSError SetMetaDataSet(int32_t sequence, HDRMetadataKey key,
+                                   const std::vector<uint8_t> &metaData) = 0;
 
     DECLARE_INTERFACE_DESCRIPTOR(u"surf.IBufferProducer");
 
@@ -90,6 +94,8 @@ protected:
         BUFFER_PRODUCER_IS_SUPPORTED_ALLOC = 15,
         BUFFER_PRODUCER_GET_NAMEANDUNIQUEDID = 16,
         BUFFER_PRODUCER_DISCONNECT = 17,
+        BUFFER_PRODUCER_SET_METADATA = 18,
+        BUFFER_PRODUCER_SET_METADATASET = 19,
     };
 };
 } // namespace OHOS

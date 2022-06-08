@@ -50,6 +50,8 @@ BufferQueueProducer::BufferQueueProducer(sptr<BufferQueue>& bufferQueue)
     memberFuncMap_[BUFFER_PRODUCER_IS_SUPPORTED_ALLOC] = &BufferQueueProducer::IsSupportedAllocRemote;
     memberFuncMap_[BUFFER_PRODUCER_GET_NAMEANDUNIQUEDID] = &BufferQueueProducer::GetNameAndUniqueIdRemote;
     memberFuncMap_[BUFFER_PRODUCER_DISCONNECT] = &BufferQueueProducer::DisconnectRemote;
+    memberFuncMap_[BUFFER_PRODUCER_SET_METADATA] = &BufferQueueProducer::SetMetaDataRemote;
+    memberFuncMap_[BUFFER_PRODUCER_SET_METADATASET] = &BufferQueueProducer::SetMetaDataSetRemote;
 }
 
 BufferQueueProducer::~BufferQueueProducer()
@@ -71,8 +73,8 @@ GSError BufferQueueProducer::CheckConnectLocked()
     return GSERROR_OK;
 }
 
-int BufferQueueProducer::OnRemoteRequest(uint32_t code, MessageParcel &arguments,
-                                         MessageParcel &reply, MessageOption &option)
+int32_t BufferQueueProducer::OnRemoteRequest(uint32_t code, MessageParcel &arguments,
+                                             MessageParcel &reply, MessageOption &option)
 {
     auto it = memberFuncMap_.find(code);
     if (it == memberFuncMap_.end()) {
@@ -114,7 +116,7 @@ int32_t BufferQueueProducer::RequestBufferRemote(MessageParcel &arguments, Messa
     return 0;
 }
 
-int BufferQueueProducer::CancelBufferRemote(MessageParcel &arguments, MessageParcel &reply, MessageOption &option)
+int32_t BufferQueueProducer::CancelBufferRemote(MessageParcel &arguments, MessageParcel &reply, MessageOption &option)
 {
     int32_t sequence;
     sptr<BufferExtraData> bedataimpl = new BufferExtraDataImpl;
@@ -127,7 +129,7 @@ int BufferQueueProducer::CancelBufferRemote(MessageParcel &arguments, MessagePar
     return 0;
 }
 
-int BufferQueueProducer::FlushBufferRemote(MessageParcel &arguments, MessageParcel &reply, MessageOption &option)
+int32_t BufferQueueProducer::FlushBufferRemote(MessageParcel &arguments, MessageParcel &reply, MessageOption &option)
 {
     sptr<SyncFence> fence = SyncFence::INVALID_FENCE;
     int32_t sequence;
@@ -158,13 +160,13 @@ int32_t BufferQueueProducer::DetachBufferRemote(MessageParcel &arguments, Messag
     return 0;
 }
 
-int BufferQueueProducer::GetQueueSizeRemote(MessageParcel &arguments, MessageParcel &reply, MessageOption &option)
+int32_t BufferQueueProducer::GetQueueSizeRemote(MessageParcel &arguments, MessageParcel &reply, MessageOption &option)
 {
     reply.WriteInt32(GetQueueSize());
     return 0;
 }
 
-int BufferQueueProducer::SetQueueSizeRemote(MessageParcel &arguments, MessageParcel &reply, MessageOption &option)
+int32_t BufferQueueProducer::SetQueueSizeRemote(MessageParcel &arguments, MessageParcel &reply, MessageOption &option)
 {
     int32_t queueSize = arguments.ReadInt32();
     GSError sret = SetQueueSize(queueSize);
@@ -172,7 +174,7 @@ int BufferQueueProducer::SetQueueSizeRemote(MessageParcel &arguments, MessagePar
     return 0;
 }
 
-int BufferQueueProducer::GetNameRemote(MessageParcel &arguments, MessageParcel &reply, MessageOption &option)
+int32_t BufferQueueProducer::GetNameRemote(MessageParcel &arguments, MessageParcel &reply, MessageOption &option)
 {
     std::string name;
     auto sret = bufferQueue_->GetName(name);
@@ -183,7 +185,8 @@ int BufferQueueProducer::GetNameRemote(MessageParcel &arguments, MessageParcel &
     return 0;
 }
 
-int BufferQueueProducer::GetNameAndUniqueIdRemote(MessageParcel &arguments, MessageParcel &reply, MessageOption &option)
+int32_t BufferQueueProducer::GetNameAndUniqueIdRemote(MessageParcel &arguments, MessageParcel &reply,
+                                                      MessageOption &option)
 {
     std::string name = "not init";
     uint64_t uniqueId = 0;
@@ -196,31 +199,34 @@ int BufferQueueProducer::GetNameAndUniqueIdRemote(MessageParcel &arguments, Mess
     return 0;
 }
 
-int BufferQueueProducer::GetDefaultWidthRemote(MessageParcel &arguments, MessageParcel &reply, MessageOption &option)
+int32_t BufferQueueProducer::GetDefaultWidthRemote(MessageParcel &arguments, MessageParcel &reply,
+                                                   MessageOption &option)
 {
     reply.WriteInt32(GetDefaultWidth());
     return 0;
 }
 
-int BufferQueueProducer::GetDefaultHeightRemote(MessageParcel &arguments, MessageParcel &reply, MessageOption &option)
+int32_t BufferQueueProducer::GetDefaultHeightRemote(MessageParcel &arguments, MessageParcel &reply,
+                                                    MessageOption &option)
 {
     reply.WriteInt32(GetDefaultHeight());
     return 0;
 }
 
-int BufferQueueProducer::GetDefaultUsageRemote(MessageParcel &arguments, MessageParcel &reply, MessageOption &option)
+int32_t BufferQueueProducer::GetDefaultUsageRemote(MessageParcel &arguments, MessageParcel &reply,
+                                                   MessageOption &option)
 {
     reply.WriteUint32(GetDefaultUsage());
     return 0;
 }
 
-int BufferQueueProducer::GetUniqueIdRemote(MessageParcel &arguments, MessageParcel &reply, MessageOption &option)
+int32_t BufferQueueProducer::GetUniqueIdRemote(MessageParcel &arguments, MessageParcel &reply, MessageOption &option)
 {
     reply.WriteUint64(GetUniqueId());
     return 0;
 }
 
-int BufferQueueProducer::CleanCacheRemote(MessageParcel &arguments, MessageParcel &reply, MessageOption &option)
+int32_t BufferQueueProducer::CleanCacheRemote(MessageParcel &arguments, MessageParcel &reply, MessageOption &option)
 {
     reply.WriteInt32(CleanCache());
     return 0;
@@ -233,7 +239,7 @@ int32_t BufferQueueProducer::RegisterReleaseListenerRemote(MessageParcel &argume
     return 0;
 }
 
-int BufferQueueProducer::SetTransformRemote(MessageParcel &arguments, MessageParcel &reply, MessageOption &option)
+int32_t BufferQueueProducer::SetTransformRemote(MessageParcel &arguments, MessageParcel &reply, MessageOption &option)
 {
     TransformType transform = static_cast<TransformType>(arguments.ReadUint32());
     GSError sret = SetTransform(transform);
@@ -241,7 +247,8 @@ int BufferQueueProducer::SetTransformRemote(MessageParcel &arguments, MessagePar
     return 0;
 }
 
-int BufferQueueProducer::IsSupportedAllocRemote(MessageParcel &arguments, MessageParcel &reply, MessageOption &option)
+int32_t BufferQueueProducer::IsSupportedAllocRemote(MessageParcel &arguments, MessageParcel &reply,
+                                                    MessageOption &option)
 {
     std::vector<VerifyAllocInfo> infos;
     ReadVerifyAllocInfo(arguments, infos);
@@ -256,9 +263,30 @@ int BufferQueueProducer::IsSupportedAllocRemote(MessageParcel &arguments, Messag
     return 0;
 }
 
-int BufferQueueProducer::DisconnectRemote(MessageParcel &arguments, MessageParcel &reply, MessageOption &option)
+int32_t BufferQueueProducer::DisconnectRemote(MessageParcel &arguments, MessageParcel &reply, MessageOption &option)
 {
     GSError sret = Disconnect();
+    reply.WriteInt32(sret);
+    return 0;
+}
+
+int32_t BufferQueueProducer::SetMetaDataRemote(MessageParcel &arguments, MessageParcel &reply, MessageOption &option)
+{
+    int32_t sequence = arguments.ReadInt32();
+    std::vector<HDRMetaData> metaData;
+    ReadHDRMetaData(arguments, metaData);
+    GSError sret = SetMetaData(sequence, metaData);
+    reply.WriteInt32(sret);
+    return 0;
+}
+
+int32_t BufferQueueProducer::SetMetaDataSetRemote(MessageParcel &arguments, MessageParcel &reply, MessageOption &option)
+{
+    int32_t sequence = arguments.ReadInt32();
+    HDRMetadataKey key = static_cast<HDRMetadataKey>(arguments.ReadUint32());
+    std::vector<uint8_t> metaData;
+    ReadHDRMetaDataSet(arguments, metaData);
+    GSError sret = SetMetaDataSet(sequence, key, metaData);
     reply.WriteInt32(sret);
     return 0;
 }
@@ -438,5 +466,24 @@ GSError BufferQueueProducer::Disconnect()
         connectedPid_ = 0;
     }
     return bufferQueue_->CleanCache();
+}
+
+GSError BufferQueueProducer::SetMetaData(int32_t sequence, const std::vector<HDRMetaData> &metaData)
+{
+    if (bufferQueue_ == nullptr) {
+        return GSERROR_INVALID_ARGUMENTS;
+    }
+
+    return bufferQueue_->SetMetaData(sequence, metaData);
+}
+
+GSError BufferQueueProducer::SetMetaDataSet(int32_t sequence, HDRMetadataKey key,
+                                            const std::vector<uint8_t> &metaData)
+{
+    if (bufferQueue_ == nullptr) {
+        return GSERROR_INVALID_ARGUMENTS;
+    }
+
+    return bufferQueue_->SetMetaDataSet(sequence, key, metaData);
 }
 }; // namespace OHOS

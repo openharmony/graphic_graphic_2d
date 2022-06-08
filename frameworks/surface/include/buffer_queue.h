@@ -46,6 +46,9 @@ typedef struct {
     sptr<SyncFence> fence;
     int64_t timestamp;
     Rect damage;
+    std::vector<HDRMetaData> metaData;
+    HDRMetadataKey key;
+    std::vector<uint8_t> metaDataSet;
 } BufferElement;
 
 class BufferQueue : public RefBase {
@@ -104,6 +107,13 @@ public:
 
     GSError IsSupportedAlloc(const std::vector<VerifyAllocInfo> &infos,
                              std::vector<bool> &supporteds) const;
+
+    GSError SetMetaData(int32_t sequence, const std::vector<HDRMetaData> &metaData);
+    GSError SetMetaDataSet(int32_t sequence, HDRMetadataKey key,
+                           const std::vector<uint8_t> &metaData);
+    GSError GetMetaData(int32_t sequence, std::vector<HDRMetaData> &metaData) const;
+    GSError GetMetaDataSet(int32_t sequence, HDRMetadataKey &key,
+                           std::vector<uint8_t> &metaData) const;
 
 private:
     GSError AllocBuffer(sptr<SurfaceBuffer>& buffer, const BufferRequestConfig &config);

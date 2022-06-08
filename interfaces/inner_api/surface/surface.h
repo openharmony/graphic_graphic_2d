@@ -88,7 +88,14 @@ public:
 
     virtual GSError IsSupportedAlloc(const std::vector<VerifyAllocInfo> &infos,
                                      std::vector<bool> &supporteds) = 0;
-    
+
+    virtual GSError SetMetaData(int32_t sequence, const std::vector<HDRMetaData> &metaData) = 0;
+    virtual GSError SetMetaDataSet(int32_t sequence, HDRMetadataKey key,
+                                   const std::vector<uint8_t> &metaData) = 0;
+    virtual GSError GetMetaData(int32_t sequence, std::vector<HDRMetaData> &metaData) const = 0;
+    virtual GSError GetMetaDataSet(int32_t sequence, HDRMetadataKey &key,
+                                   std::vector<uint8_t> &metaData) const = 0;
+
     virtual void Dump(std::string &result) const = 0;
 protected:
     Surface() = default;

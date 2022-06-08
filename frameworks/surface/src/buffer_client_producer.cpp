@@ -320,4 +320,35 @@ GSError BufferClientProducer::Disconnect()
 
     return GSERROR_OK;
 }
+
+GSError BufferClientProducer::SetMetaData(int32_t sequence, const std::vector<HDRMetaData> &metaData)
+{
+    DEFINE_MESSAGE_VARIABLES(arguments, reply, option, BLOGE);
+    arguments.WriteInt32(sequence);
+    WriteHDRMetaData(arguments, metaData);
+    SEND_REQUEST(BUFFER_PRODUCER_SET_METADATA, arguments, reply, option);
+    int32_t ret = reply.ReadInt32();
+    if (ret != GSERROR_OK) {
+        BLOGN_FAILURE("Remote return %{public}d", ret);
+        return (GSError)ret;
+    }
+
+    return GSERROR_OK;
+}
+
+GSError BufferClientProducer::SetMetaDataSet(int32_t sequence, HDRMetadataKey key, const std::vector<uint8_t> &metaData)
+{
+    DEFINE_MESSAGE_VARIABLES(arguments, reply, option, BLOGE);
+    arguments.WriteInt32(sequence);
+    arguments.WriteUint32(static_cast<uint32_t>(key));
+    WriteHDRMetaDataSet(arguments, metaData);
+    SEND_REQUEST(BUFFER_PRODUCER_SET_METADATASET, arguments, reply, option);
+    int32_t ret = reply.ReadInt32();
+    if (ret != GSERROR_OK) {
+        BLOGN_FAILURE("Remote return %{public}d", ret);
+        return (GSError)ret;
+    }
+
+    return GSERROR_OK;
+}
 }; // namespace OHOS

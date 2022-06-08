@@ -37,6 +37,12 @@ void WriteSurfaceBufferImpl(MessageParcel &parcel, int32_t sequence, const sptr<
 
 void ReadVerifyAllocInfo(MessageParcel &parcel, std::vector<VerifyAllocInfo> &infos);
 void WriteVerifyAllocInfo(MessageParcel &parcel, const std::vector<VerifyAllocInfo> &infos);
+
+void ReadHDRMetaData(MessageParcel &parcel, std::vector<HDRMetaData> &metaData);
+void WriteHDRMetaData(MessageParcel &parcel, const std::vector<HDRMetaData> &metaData);
+
+void ReadHDRMetaDataSet(MessageParcel &parcel, std::vector<uint8_t> &metaData);
+void WriteHDRMetaDataSet(MessageParcel &parcel, const std::vector<uint8_t> &metaData);
 } // namespace OHOS
 
 #endif // FRAMEWORKS_SURFACE_INCLUDE_BUFFER_UTILS_H

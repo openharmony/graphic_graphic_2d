@@ -538,4 +538,45 @@ HWTEST_F(NativeWindowTest, DestoryNativeWindowBuffer002, Function | MediumTest |
 {
     DestoryNativeWindowBuffer(nativeWindowBuffer);
 }
+
+/*
+* Function: NativeWindowSetMetaData
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call NativeWindowSetMetaData with abnormal parameters and check ret
+*                  2. call NativeWindowSetMetaData with normal parameters and check ret
+ */
+HWTEST_F(NativeWindowTest, SetMetaData001, Function | MediumTest | Level2)
+{
+    int32_t sequence = 0;
+    int32_t size = 1;
+    const OHHDRMetaData metaData[] = {{OH_MATAKEY_RED_PRIMARY_X, 0}};
+    ASSERT_EQ(NativeWindowSetMetaData(nullptr, -1, 0, nullptr), OHOS::GSERROR_INVALID_ARGUMENTS);
+    ASSERT_EQ(NativeWindowSetMetaData(nativeWindow, -1, 0, nullptr), OHOS::GSERROR_INVALID_ARGUMENTS);
+    ASSERT_EQ(NativeWindowSetMetaData(nativeWindow, sequence, 0, nullptr), OHOS::GSERROR_INVALID_ARGUMENTS);
+    ASSERT_EQ(NativeWindowSetMetaData(nativeWindow, sequence, size, nullptr), OHOS::GSERROR_INVALID_ARGUMENTS);
+    ASSERT_EQ(NativeWindowSetMetaData(nativeWindow, sequence, size, metaData), OHOS::GSERROR_OK);
+}
+
+/*
+* Function: NativeWindowSetMetaDataSet
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call NativeWindowSetMetaDataSet with abnormal parameters and check ret
+*                  2. call NativeWindowSetMetaDataSet with normal parameters and check ret
+ */
+HWTEST_F(NativeWindowTest, SetMetaDataSet001, Function | MediumTest | Level2)
+{
+    int32_t sequence = 0;
+    int32_t size = 1;
+    OHHDRMetadataKey key = OHHDRMetadataKey::OH_MATAKEY_HDR10_PLUS;
+    const uint8_t metaData[] = {0};
+    ASSERT_EQ(NativeWindowSetMetaDataSet(nullptr, -1, key, 0, nullptr), OHOS::GSERROR_INVALID_ARGUMENTS);
+    ASSERT_EQ(NativeWindowSetMetaDataSet(nativeWindow, -1, key, 0, nullptr), OHOS::GSERROR_INVALID_ARGUMENTS);
+    ASSERT_EQ(NativeWindowSetMetaDataSet(nativeWindow, sequence, key, 0, nullptr), OHOS::GSERROR_INVALID_ARGUMENTS);
+    ASSERT_EQ(NativeWindowSetMetaDataSet(nativeWindow, sequence, key, size, nullptr), OHOS::GSERROR_INVALID_ARGUMENTS);
+    ASSERT_EQ(NativeWindowSetMetaDataSet(nativeWindow, sequence, key, size, metaData), OHOS::GSERROR_OK);
+}
 }

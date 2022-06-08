@@ -72,6 +72,28 @@ enum NativeWindowOperation {
     GET_SCALING_MODE,       // ([out] int32_t *scalingMode)
 };
 
+typedef enum {
+    OH_MATAKEY_RED_PRIMARY_X = 0,
+    OH_MATAKEY_RED_PRIMARY_Y = 1,
+    OH_MATAKEY_GREEN_PRIMARY_X = 2,
+    OH_MATAKEY_GREEN_PRIMARY_Y = 3,
+    OH_MATAKEY_BLUE_PRIMARY_X = 4,
+    OH_MATAKEY_BLUE_PRIMARY_Y = 5,
+    OH_MATAKEY_WHITE_PRIMARY_X = 6,
+    OH_MATAKEY_WHITE_PRIMARY_Y = 7,
+    OH_MATAKEY_MAX_LUMINANCE = 8,
+    OH_MATAKEY_MIN_LUMINANCE = 9,
+    OH_MATAKEY_MAX_CONTENT_LIGHT_LEVEL = 10,
+    OH_MATAKEY_MAX_FRAME_AVERAGE_LIGHT_LEVEL = 11,
+    OH_MATAKEY_HDR10_PLUS = 12,
+    OH_MATAKEY_HDR_VIVID = 13,
+} OHHDRMetadataKey;
+
+typedef struct {
+    OHHDRMetadataKey key;
+    float value;
+} OHHDRMetaData;
+
 // pSurface type is OHOS::sptr<OHOS::Surface>*
 OHNativeWindow* CreateNativeWindowFromSurface(void* pSurface);
 void DestoryNativeWindow(OHNativeWindow* window);
@@ -95,6 +117,11 @@ BufferHandle *GetBufferHandleFromNative(OHNativeWindowBuffer *buffer);
 int32_t NativeObjectReference(void *obj);
 int32_t NativeObjectUnreference(void *obj);
 int32_t GetNativeObjectMagic(void *obj);
+
+int32_t NativeWindowSetMetaData(OHNativeWindow *window, int32_t sequence, int32_t size,
+                                const OHHDRMetaData *metaData);
+int32_t NativeWindowSetMetaDataSet(OHNativeWindow *window, int32_t sequence, OHHDRMetadataKey key,
+                                   int32_t size, const uint8_t *metaData);
 
 #ifdef __cplusplus
 }
