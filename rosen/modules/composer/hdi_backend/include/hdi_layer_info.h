@@ -78,13 +78,10 @@ public:
         cSurface_ = surface;
     }
 
-    void SetBuffer(const sptr<SurfaceBuffer> &sbuffer, const sptr<SyncFence>& acquireFence,
-        const sptr<SurfaceBuffer> &preBuffer, const sptr<SyncFence>& preAcquireFence)
+    void SetBuffer(const sptr<SurfaceBuffer> &sbuffer, const sptr<SyncFence>& acquireFence)
     {
         sbuffer_ = sbuffer;
         acquireFence_ = acquireFence;
-        preBuffer_ = preBuffer;
-        preAcquireFence_ = preAcquireFence;
     }
 
     void SetZorder(int32_t zOrder)
@@ -160,11 +157,6 @@ public:
         return sbuffer_;
     }
 
-    sptr<SurfaceBuffer> GetPreBuffer() const
-    {
-        return preBuffer_;
-    }
-
     uint32_t GetZorder() const
     {
         return zOrder_;
@@ -174,12 +166,7 @@ public:
     {
         return acquireFence_;
     }
-
-    sptr<SyncFence> GetPreAcquireFence() const
-    {
-        return preAcquireFence_;
-    }
-
+    
     /* const */ LayerAlpha& GetAlpha()
     {
         return layerAlpha_;
@@ -279,10 +266,6 @@ private:
     sptr<Surface> cSurface_ = nullptr;
     sptr<SyncFence> acquireFence_ = SyncFence::INVALID_FENCE;
     sptr<SurfaceBuffer> sbuffer_ = nullptr;
-
-    sptr<SyncFence> preAcquireFence_ = SyncFence::INVALID_FENCE;
-    sptr<SurfaceBuffer> preBuffer_ = nullptr;
-
     bool preMulti_ = false;
 };
 } // namespace Rosen

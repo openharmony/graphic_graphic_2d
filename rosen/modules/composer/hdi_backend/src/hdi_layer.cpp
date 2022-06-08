@@ -234,52 +234,19 @@ void HdiLayer::UpdateLayerInfo(const LayerInfoPtr &layerInfo)
     isInUsing_ = true;
     layerInfo_ = layerInfo;
 
+    prevSbuffer_->sbuffer_ = currSbuffer_->sbuffer_;
+    prevSbuffer_->acquireFence_ = currSbuffer_->acquireFence_;
+
     currSbuffer_->sbuffer_ = layerInfo_->GetBuffer();
     currSbuffer_->acquireFence_ = layerInfo_->GetAcquireFence();
-    prevSbuffer_->sbuffer_ = layerInfo_->GetPreBuffer();
-    prevSbuffer_->acquireFence_ = layerInfo_->GetPreAcquireFence();
 }
 
-void HdiLayer::ReleaseBuffer()
+sptr<SyncFence> HdiLayer::GetReleaseFence() const
 {
-    // check gpu buffer release
-    if (currSbuffer_->sbuffer_ != prevSbuffer_->sbuffer_) {
-        SurfaceError ret = ReleasePrevBuffer();
-        if (ret != SURFACE_ERROR_OK) {
-            HLOGW("ReleaseBuffer failed, ret is %{public}d", ret);
-        }
-
-        /* copy currSbuffer to prevSbuffer */
-        prevSbuffer_->releaseFence_ = currSbuffer_->releaseFence_;
-    } else {
-        prevSbuffer_->acquireFence_ = Merge(currSbuffer_->acquireFence_, prevSbuffer_->acquireFence_);
-        prevSbuffer_->releaseFence_ = Merge(currSbuffer_->releaseFence_, prevSbuffer_->releaseFence_);
+    if (currSbuffer_ == nullptr) {
+        return SyncFence::INVALID_FENCE;
     }
-}
-
-SurfaceError HdiLayer::ReleasePrevBuffer()
-{
-    /*
-     * The first time, prevSbuffer is empty and the releaseFence is invalid.
-     * Therefore, we do not release the buffer.
-     */
-
-    if (prevSbuffer_->sbuffer_ == nullptr) {
-        return SURFACE_ERROR_OK;
-    }
-
-    if (layerInfo_ == nullptr) {
-        return SURFACE_ERROR_NULLPTR;
-    }
-
-    SurfaceError ret = layerInfo_->GetSurface()->ReleaseBuffer(prevSbuffer_->sbuffer_, prevSbuffer_->releaseFence_);
-    if (ret != SURFACE_ERROR_OK) {
-        return ret;
-    }
-
-    prevSbuffer_->sbuffer_ = nullptr;
-
-    return ret;
+    return currSbuffer_->releaseFence_;
 }
 
 void HdiLayer::RecordPresentTime(int64_t timestamp)
@@ -300,7 +267,7 @@ void HdiLayer::MergeWithFramebufferFence(const sptr<SyncFence> &fbAcquireFence)
 void HdiLayer::MergeWithLayerFence(const sptr<SyncFence> &layerReleaseFence)
 {
     if (layerReleaseFence != nullptr) {
-        prevSbuffer_->releaseFence_ = Merge(prevSbuffer_->releaseFence_, layerReleaseFence);
+        currSbuffer_->releaseFence_ = layerReleaseFence;
     }
 }
 

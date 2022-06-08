@@ -139,7 +139,7 @@ SurfaceError LayerContext::FillHDILayer()
     LayerAlpha alpha = { .enPixelAlpha = true };
 
     hdiLayer_->SetSurface(cSurface_);
-    hdiLayer_->SetBuffer(buffer, acquireSyncFence, prevBuffer_, prevFence_);
+    hdiLayer_->SetBuffer(buffer, acquireSyncFence);
     hdiLayer_->SetZorder(static_cast<int32_t>(zorder_));
     hdiLayer_->SetAlpha(alpha);
     if (layerType_ >= LayerType::LAYER_EXTRA) {

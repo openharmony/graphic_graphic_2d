@@ -77,11 +77,8 @@ HWTEST_F(HdiLayerInfoTest, GetBuffer001, Function | MediumTest| Level3)
 {
     sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
     sptr<SurfaceBuffer> sbuffer = nullptr;
-    sptr<SurfaceBuffer> preBuffer = nullptr;
-    sptr<SyncFence> preAcquireFence = SyncFence::INVALID_FENCE;
-    HdiLayerInfoTest::hdiLayerInfo_->SetBuffer(sbuffer, acquireFence, preBuffer, preAcquireFence);
+    HdiLayerInfoTest::hdiLayerInfo_->SetBuffer(sbuffer, acquireFence);
     ASSERT_EQ(HdiLayerInfoTest::hdiLayerInfo_->GetBuffer(), nullptr);
-    ASSERT_EQ(HdiLayerInfoTest::hdiLayerInfo_->GetPreBuffer(), nullptr);
 }
 
 /**
@@ -94,18 +91,6 @@ HWTEST_F(HdiLayerInfoTest, GetBuffer001, Function | MediumTest| Level3)
 HWTEST_F(HdiLayerInfoTest, GetAcquireFence001, Function | MediumTest| Level3)
 {
     ASSERT_NE(HdiLayerInfoTest::hdiLayerInfo_->GetAcquireFence(), nullptr);
-}
-
-/**
- * @tc.name: GetPreAcquireFence001
- * @tc.desc: Verify the GetPreAcquireFence of hdilayerinfo
- * @tc.type:FUNC
- * @tc.require:AR000GGP0P
- * @tc.author:
- */
-HWTEST_F(HdiLayerInfoTest, GetPreAcquireFence001, Function | MediumTest| Level3)
-{
-    ASSERT_NE(HdiLayerInfoTest::hdiLayerInfo_->GetPreAcquireFence(), nullptr);
 }
 
 /**

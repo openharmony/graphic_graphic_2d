@@ -28,12 +28,9 @@ public:
     RSUniRenderListener(std::weak_ptr<RSDisplayRenderNode> displayRenderNode);
     ~RSUniRenderListener() override;
     void OnBufferAvailable() override;
-    void UpdateProcessor(std::shared_ptr<RSProcessor> processor);
 
 private:
-    std::mutex mutex_;
     std::weak_ptr<RSDisplayRenderNode> displayRenderNode_;
-    std::shared_ptr<RSProcessor> processor_;
 };
 } // namespace Rosen
 } // namespace OHOS

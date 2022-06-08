@@ -97,6 +97,17 @@ void RSHardwareProcessor::PostProcess()
     std::vector<std::shared_ptr<HdiOutput>> outputs{output_};
     if (backend_) {
         backend_->Repaint(outputs);
+        const auto layersReleaseFence = backend_->GetLayersReleaseFence(output_);
+        for (const auto& [layer, fence] : layersReleaseFence) {
+            if (layerToNodeMap_.count(layer) == 0) {
+                continue;
+            }
+            auto *node = layerToNodeMap_.at(layer);
+            if (node == nullptr) {
+                continue;
+            }
+            node->SetReleaseFence(fence);
+        }
     }
 }
 
@@ -180,31 +191,16 @@ void RSHardwareProcessor::ScaleDownLayers()
     }
 }
 
-void RSHardwareProcessor::ReleaseNodePrevBuffer(RSSurfaceRenderNode& node)
-{
-    const auto& consumer = node.GetConsumer();
-    if (consumer == nullptr) {
-        RS_LOGE("RSHardwareProcessor::ReleaseNodePrevBuffer: node's consumer is null.");
-        return;
-    }
-    if (node.GetPreBuffer() == nullptr) {
-        return;
-    }
-    (void)consumer->ReleaseBuffer(node.GetPreBuffer(), SyncFence::INVALID_FENCE);
-}
-
 void RSHardwareProcessor::ProcessSurface(RSSurfaceRenderNode &node)
 {
     RS_LOGD("RsDebug RSHardwareProcessor::ProcessSurface start node id:%llu available buffer:%d name:[%s]"\
         "[%d %d %d %d]", node.GetId(), node.GetAvailableBufferCount(), node.GetName().c_str(),
         node.GetDstRect().left_, node.GetDstRect().top_, node.GetDstRect().width_, node.GetDstRect().height_);
-    if (!RsRenderServiceUtil::ConsumeAndUpdateBuffer(node)) {
-        RS_LOGD("RsDebug RSHardwareProcessor::ProcessSurface consume buffer fail");
-        return;
-    }
     if (!output_) {
         RS_LOGE("RSHardwareProcessor::ProcessSurface output is nullptr");
-        ReleaseNodePrevBuffer(node);
+        return;
+    }
+    if (node.GetBuffer() == nullptr) {
         return;
     }
 
@@ -216,14 +212,12 @@ void RSHardwareProcessor::ProcessSurface(RSSurfaceRenderNode &node)
     if (node.GetRenderProperties().GetBoundsPositionX() >= boundWidth ||
         node.GetRenderProperties().GetBoundsPositionY() >= boundHeight) {
         RS_LOGE("RsDebug RSHardwareProcessor::ProcessSurface this node:%llu no need to composite", node.GetId());
-        ReleaseNodePrevBuffer(node);
         return;
     }
 
     auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(node.GetRenderProperties().GetBoundsGeometry());
     if (geoPtr == nullptr) {
         RS_LOGE("RsDebug RSHardwareProcessor::ProcessSurface geoPtr == nullptr");
-        ReleaseNodePrevBuffer(node);
         return;
     }
 
@@ -258,13 +252,10 @@ void RSHardwareProcessor::ProcessSurface(RSSurfaceRenderNode &node)
             .gAlpha = node.GetGlobalAlhpa() * 255,
         },
         .buffer = node.GetBuffer(),
-        .fence = node.GetFence(),
-        .preBuffer = node.GetPreBuffer(),
-        .preFence = node.GetPreFence(),
+        .fence = node.GetAcquireFence(),
         .blendType = node.GetBlendType(),
     };
     if (info.dstRect.w <= 0 || info.dstRect.h <= 0) {
-        ReleaseNodePrevBuffer(node);
         return;
     }
     RectI originDstRect(geoPtr->GetAbsRect().left_ - offsetX_, geoPtr->GetAbsRect().top_ - offsetY_,
@@ -287,6 +278,7 @@ void RSHardwareProcessor::ProcessSurface(RSSurfaceRenderNode &node)
         node.GetBuffer()->GetSurfaceBufferHeight(), node.GetBuffer().GetRefPtr(),
         node.GetRenderProperties().GetPositionZ(), info.zOrder, info.blendType);
     RsRenderServiceUtil::ComposeSurface(layer, node.GetConsumer(), layers_, info, &node);
+    layerToNodeMap_[layer] = &(static_cast<RSSurfaceHandler&>(node));
     if (info.buffer->GetSurfaceBufferColorGamut() != static_cast<ColorGamut>(currScreenInfo_.colorGamut)) {
         layer->SetCompositionType(CompositionType::COMPOSITION_CLIENT);
     }
@@ -328,9 +320,7 @@ void RSHardwareProcessor::ProcessSurface(RSDisplayRenderNode& node)
             .enGlobalAlpha = false,
         },
         .buffer = node.GetBuffer(),
-        .fence = node.GetFence(),
-        .preBuffer = node.GetPreBuffer(),
-        .preFence = node.GetPreFence(),
+        .fence = node.GetAcquireFence(),
         .blendType = BLEND_NONE,
     };
     std::shared_ptr<HdiLayerInfo> layer = HdiLayerInfo::CreateHdiLayerInfo();
@@ -342,6 +332,7 @@ void RSHardwareProcessor::ProcessSurface(RSDisplayRenderNode& node)
         node.GetBuffer()->GetSurfaceBufferHeight(), node.GetBuffer().GetRefPtr(),
         info.zOrder, info.blendType);
     RsRenderServiceUtil::ComposeSurface(layer, node.GetConsumer(), layers_, info, &node);
+    layerToNodeMap_[layer] = &(static_cast<RSSurfaceHandler&>(node));
 }
 
 void RSHardwareProcessor::CalculateSrcRect(ComposeInfo& info, RectI clipRegion, RectI originDstRect)
@@ -502,18 +493,6 @@ void RSHardwareProcessor::Redraw(
 #ifdef RS_ENABLE_GL
     eglImageManager_->ShrinkCachesIfNeeded();
 #endif // RS_ENABLE_GL
-    ConsumeNodesNotOnTheTree();
-}
-
-void RSHardwareProcessor::ConsumeNodesNotOnTheTree()
-{
-    auto mainThread = RSMainThread::Instance();
-    if (mainThread != nullptr) {
-        auto& context = mainThread->GetContext();
-        mainThread->PostTask([&context]() {
-            context.GetMutableNodeMap().ConsumeNodesNotOnTree();
-        });
-    }
 }
 
 void RSHardwareProcessor::OnRotate()

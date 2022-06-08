@@ -65,6 +65,7 @@ private:
 
     std::unordered_map<uint64_t, sptr<SurfaceBuffer>> prevBufferMap_;
     std::unordered_map<uint64_t, sptr<SyncFence>> prevFenceMap_;
+    OHOS::sptr<SurfaceBuffer> prevBuffer_;
 
     void Init();
     void InitContext();

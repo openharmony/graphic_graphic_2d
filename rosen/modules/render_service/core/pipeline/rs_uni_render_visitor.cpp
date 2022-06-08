@@ -155,15 +155,12 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
                 RS_LOGE("RSUniRenderVisitor::ProcessDisplayRenderNode CreateSurface failed");
                 return;
             }
-#ifdef ACE_ENABLE_GL
+#ifdef RS_ENABLE_GL
             RS_LOGI("RSUniRenderVisitor::ProcessDisplayRenderNode SetRenderContext");
             node.GetRSSurface()->SetRenderContext(RSMainThread::Instance()->GetRenderContext().get());
 #endif
         }
-        auto consumerListener = static_cast<RSUniRenderListener*>(node.GetConsumerListener().GetRefPtr());
-        if (consumerListener != nullptr) {
-            consumerListener->UpdateProcessor(processor_);
-        }
+
         auto rsSurface = node.GetRSSurface();
         if (rsSurface == nullptr) {
             RS_LOGE("RSUniRenderVisitor::ProcessDisplayRenderNode No RSSurface found");
@@ -180,12 +177,12 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
         ProcessBaseRenderNode(node);
         RS_TRACE_BEGIN("RSUniRender:FlushFrame");
         rsSurface->FlushFrame(surfaceFrame);
+        RSMainThread::Instance()->WaitUtilUniRenderFinished();
         RS_TRACE_END();
 
         node.SetGlobalZOrder(uniZOrder_);
+        processor_->ProcessSurface(node);
     } else {
-        RsRenderServiceUtil::ConsumeAndUpdateBuffer(node, true);
-
         ScreenRotation rotation = screenManager->GetRotation(node.GetScreenId());
         uint32_t boundWidth = screenInfo_.width;
         uint32_t boundHeight = screenInfo_.height;
@@ -196,9 +193,8 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
         canvas_ = std::make_unique<RSPaintFilterCanvas>(skCanvas_.get());
         ProcessBaseRenderNode(node);
     }
-    if (!hasUniRender_) {
-        processor_->PostProcess();
-    }
+
+    processor_->PostProcess();
     RS_LOGD("RSUniRenderVisitor::ProcessDisplayRenderNode end");
 }
 
@@ -246,7 +242,7 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
             canvas_->clipRect(SkRect::MakeXYWH(
                 node.GetRenderProperties().GetBoundsPositionX(), node.GetRenderProperties().GetBoundsPositionY(),
                 node.GetRenderProperties().GetBoundsWidth(), node.GetRenderProperties().GetBoundsHeight()));
-            if (!RsRenderServiceUtil::ConsumeAndUpdateBuffer(node, true)) {
+            if (node.GetBuffer() == nullptr) {
                 RS_LOGI("RSUniRenderVisitor::ProcessSurfaceRenderNode buffer is not available, set black");
                 canvas_->clear(SK_ColorBLACK);
             } else {

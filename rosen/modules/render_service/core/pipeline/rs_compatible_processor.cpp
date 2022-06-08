@@ -78,8 +78,7 @@ void RSCompatibleProcessor::ProcessSurface(RSSurfaceRenderNode& node)
         return;
     }
 
-    if (!RsRenderServiceUtil::ConsumeAndUpdateBuffer(node)) {
-        RS_LOGE("RsDebug RSCompatibleProcessor::ProcessSurface consume buffer fail");
+    if (node.GetBuffer() == nullptr) {
         return;
     }
 
@@ -156,7 +155,5 @@ void RSCompatibleProcessor::RSRenderBufferListener::OnBufferAvailable()
 {
     processor_.DoComposeSurfaces();
 }
-
-
 } // namespace Rosen
 } // namespace OHOS

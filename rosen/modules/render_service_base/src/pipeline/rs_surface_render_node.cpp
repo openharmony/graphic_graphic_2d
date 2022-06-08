@@ -34,12 +34,24 @@ namespace OHOS {
 namespace Rosen {
 static const int rectBounds = 2;
 
-RSSurfaceRenderNode::RSSurfaceRenderNode(NodeId id, std::weak_ptr<RSContext> context) : RSRenderNode(id, context) {}
 RSSurfaceRenderNode::RSSurfaceRenderNode(const RSSurfaceRenderNodeConfig& config, std::weak_ptr<RSContext> context)
-    : RSRenderNode(config.id, context), name_(config.name)
-{}
+    : RSRenderNode(config.id, context),
+      RSSurfaceHandler(config.id),
+      name_(config.name)
+{
+}
+
+RSSurfaceRenderNode::RSSurfaceRenderNode(NodeId id, std::weak_ptr<RSContext> context)
+    : RSSurfaceRenderNode(RSSurfaceRenderNodeConfig{id, "SurfaceNode"}, context)
+{
+}
 
 RSSurfaceRenderNode::~RSSurfaceRenderNode() {}
+
+void RSSurfaceRenderNode::SetConsumer(const sptr<Surface>& consumer)
+{
+    consumer_ = consumer;
+}
 
 void RSSurfaceRenderNode::ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas)
 {
@@ -200,7 +212,9 @@ NodeId RSSurfaceRenderNode::GetParentId() const
 
 void RSSurfaceRenderNode::UpdateSurfaceDefaultSize(float width, float height)
 {
-    consumer_->SetDefaultWidthAndHeight(width, height);
+    if (consumer_ != nullptr) {
+        consumer_->SetDefaultWidthAndHeight(width, height);
+    }  
 }
 
 void RSSurfaceRenderNode::SendPropertyCommand(std::unique_ptr<RSCommand>& command)
@@ -312,38 +326,6 @@ void RSSurfaceRenderNode::SetCallbackForRenderThreadRefresh(std::function<void(v
 bool RSSurfaceRenderNode::NeedSetCallbackForRenderThreadRefresh()
 {
     return (callbackForRenderThreadRefresh_ == nullptr);
-}
-
-void RSSurfaceRenderNode::ConsumeNodeNotOnTree()
-{
-    std::lock_guard<std::mutex> lock(mutex_);
-    if (GetAvailableBufferCount() <= 0) {
-        return;
-    }
-    const auto& surfaceConsumer = GetConsumer();
-    if (surfaceConsumer == nullptr) {
-        RS_LOGE("RSSurfaceRenderNode::ConsumeNodesNotOnTree (node: %llu): surfaceConsumer is null!", GetId());
-        return;
-    }
-    OHOS::sptr<SurfaceBuffer> cbuffer;
-    Rect damage;
-    sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
-    int64_t timestamp = 0;
-    auto ret = surfaceConsumer->AcquireBuffer(cbuffer, acquireFence, timestamp, damage);
-    if (cbuffer == nullptr || ret != SURFACE_ERROR_OK) {
-        RS_LOGW("RSSurfaceRenderNode::ConsumeNodesNotOnTree: AcquireBuffer failed, (node: %llu):!", GetId());
-        return;
-    }
-    ret = surfaceConsumer->ReleaseBuffer(cbuffer, SyncFence::INVALID_FENCE);
-    if (ret != OHOS::SURFACE_ERROR_OK) {
-        RS_LOGW("RSSurfaceRenderNode::ConsumeNodesNotOnTree(node: %llu): ReleaseBuffer failed(ret: %d)",
-            GetId(), ret);
-    }
-    SetBuffer(cbuffer);
-    SetFence(acquireFence);
-    RS_LOGI("RSSurfaceRenderNode::ConsumeNodesNotOnTree(node: %llu): consume buffer successfully (ret: %d)",
-            GetId(), ret);
-    ReduceAvailableBuffer();
 }
 
 } // namespace Rosen
