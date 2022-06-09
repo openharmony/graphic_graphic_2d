@@ -20,6 +20,7 @@
 #include <surface.h>
 
 #include "display_type.h"
+#include "common/rs_vector4.h"
 #include "ipc_callbacks/buffer_available_callback.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_paint_filter_canvas.h"
@@ -93,21 +94,27 @@ public:
         return RSRenderNodeType::SURFACE_NODE;
     }
 
-    void SetMatrix(const SkMatrix& transform, bool sendMsg = true);
-    const SkMatrix& GetMatrix() const;
+    // pass render context (matrix/alpha/clip) from RT to RS
+    void SetContextMatrix(const SkMatrix& transform, bool sendMsg = true);
+    const SkMatrix& GetContextMatrix() const;
 
-    void SetAlpha(float alpha, bool sendMsg = true);
-    float GetAlpha() const;
+    void SetTotalMatrix(const SkMatrix& totalMatrix)
+    {
+        totalMatrix_ = totalMatrix;
+    }
+    const SkMatrix& GetTotalMatrix() const
+    {
+        return totalMatrix_;
+    }
 
-    void SetClipRegion(Vector4f clipRegion, bool sendMsg = true);
+    void SetContextAlpha(float alpha, bool sendMsg = true);
+    float GetContextAlpha() const;
+
+    void SetContextClipRegion(SkRect clipRegion, bool sendMsg = true);
+    const SkRect& GetContextClipRegion() const;
 
     void SetSecurityLayer(bool isSecurityLayer);
     bool GetSecurityLayer() const;
-
-    const Vector4f& GetClipRegion() const
-    {
-        return clipRect_;
-    }
 
     void SetDstRect(const RectI& dstRect)
     {
@@ -119,6 +126,10 @@ public:
         return dstRect_;
     }
 
+    const Vector4f& GetSrcRatio() const;
+
+    void SetSrcRatio(const Vector4f ratio, bool sendMsg = true);
+
     void SetGlobalAlpha(float alpha)
     {
         if (globalAlpha_ == alpha) {
@@ -127,24 +138,20 @@ public:
         globalAlpha_ = alpha;
     }
 
-    float GetGlobalAlhpa() const
+    float GetGlobalAlpha() const
     {
         return globalAlpha_;
     }
 
     void SetConsumer(const sptr<Surface>& consumer);
-    void SetParentId(NodeId parentId, bool sendMsg = true);
-    NodeId GetParentId() const;
 
     void UpdateSurfaceDefaultSize(float width, float height);
-
-    static void SendPropertyCommand(std::unique_ptr<RSCommand>& command);
 
     BlendType GetBlendType();
     void SetBlendType(BlendType blendType);
 
     // Only SurfaceNode in RS calls "RegisterBufferAvailableListener"
-    // to save callback method sent by RT or UI which depands on the value of "isFromRenderThread".
+    // to save callback method sent by RT or UI which depends on the value of "isFromRenderThread".
     void RegisterBufferAvailableListener(
         sptr<RSIBufferAvailableCallback> callback, bool isFromRenderThread);
 
@@ -161,27 +168,30 @@ public:
     // And RenderThread does not call mainFunc_ if nothing in UI thread is changed
     // which would cause callback for "clip" on parent SurfaceNode cannot be triggered
     // for "clip" is executed in RenderThreadVisitor::ProcessSurfaceRenderNode.
-    // To fix this bug, we set callback which would call RSRenderThread::RequestNextVSync() to forcely "refresh"
+    // To fix this bug, we set callback which would call RSRenderThread::RequestNextVSync() to forcedly "refresh"
     // RenderThread when SurfaceNode in RenderService has available buffer and execute RSIBufferAvailableCallback.
     void SetCallbackForRenderThreadRefresh(std::function<void(void)> callback);
     bool NeedSetCallbackForRenderThreadRefresh();
 
 private:
-    RectI CalculateClipRegion(RSPaintFilterCanvas& canvas);
-    friend class RSRenderTransition;
+    void SendCommandFromRT(std::unique_ptr<RSCommand>& command);
 
     std::mutex mutexRT_;
     std::mutex mutexUI_;
     std::mutex mutex_;
-    SkMatrix matrix_;
-    float alpha_ = 1.0f;
+
+    SkMatrix contextMatrix_;
+    SkMatrix totalMatrix_;
+    float contextAlpha_ = 1.0f;
+    SkRect contextClipRect_;
+    Vector4f srcRatio_ = {0.0f, 0.0f, 1.0f, 1.0f};
+
     bool isSecurityLayer_ = false;
-    NodeId parentId_ = 0;
     RectI dstRect_;
     int32_t offsetX_ = 0;
     int32_t offsetY_ = 0;
     float globalAlpha_ = 1.0f;
-    Vector4f clipRect_;
+
     std::string name_;
     bool isProxy_ = false;
     BlendType blendType_ = BlendType::BLEND_SRCOVER;
@@ -190,7 +200,9 @@ private:
     sptr<RSIBufferAvailableCallback> callbackFromRT_;
     sptr<RSIBufferAvailableCallback> callbackFromUI_;
     std::function<void(void)> callbackForRenderThreadRefresh_ = nullptr;
-    RectI clipRegionFromParent_;
+
+    std::vector<NodeId> childSurfaceNodeIds_;
+    friend class RSRenderThreadVisitor;
 };
 } // namespace Rosen
 } // namespace OHOS

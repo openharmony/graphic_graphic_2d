@@ -233,6 +233,7 @@ private:
     friend class RSCanvasNode;
     friend class RSPropertiesUtils;
     friend class RSRenderTransitionEffect;
+    friend class RSHardwareProcessor;
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -35,7 +35,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace Detail {
-// [PLANNING]: Use GPU to do the gamut convertion instead of these following works.
+// [PLANNING]: Use GPU to do the gamut conversion instead of these following works.
 using PixelTransformFunc = std::function<float(float)>;
 
 inline constexpr float PassThrough(float v)
@@ -258,7 +258,7 @@ SimpleColorSpace &GetDCIP3ColorSpace()
     return dciP3;
 }
 
-bool IsSupportedFormatForGamutConvertion(int32_t pixelFormat)
+bool IsSupportedFormatForGamutConversion(int32_t pixelFormat)
 {
     static std::unordered_set<PixelFormat> supportedFormats = {
         PixelFormat::PIXEL_FMT_RGBX_8888,
@@ -307,7 +307,7 @@ float RGBUint8ToFloat(uint8_t val)
 
 uint8_t RGBFloatToUint8(float val)
 {
-    return static_cast<uint8_t>(Saturate(val) * 255 + 0.5f); // 255.0 is the max value, + 0.5f to avoid negetive.
+    return static_cast<uint8_t>(Saturate(val) * 255 + 0.5f); // 255.0 is the max value, + 0.5f to avoid negative.
 }
 
 uint8_t ConvertColorGamut(uint8_t *dst, uint8_t* src, int32_t pixelFormat, ColorGamut srcGamut, ColorGamut dstGamut)
@@ -368,7 +368,7 @@ bool ConvertBufferColorGamut(std::vector<uint8_t>& dstBuf, const sptr<OHOS::Surf
     RS_TRACE_NAME("ConvertBufferColorGamut");
 
     int32_t pixelFormat = srcBuf->GetFormat();
-    if (!IsSupportedFormatForGamutConvertion(pixelFormat)) {
+    if (!IsSupportedFormatForGamutConversion(pixelFormat)) {
         RS_LOGE("ConvertBufferColorGamut: the buffer's format is not supported.");
         return false;
     }
@@ -807,7 +807,7 @@ SkMatrix RsRenderServiceUtil::GetCanvasTransform(const RSSurfaceRenderNode& node
             break;
         }
         default: {
-            transform = geoPtr->GetAbsMatrix();
+            transform = node.GetTotalMatrix();
             switch (surface->GetTransform()) {
                 case TransformType::ROTATE_90: {
                     transform.preTranslate(0, geoAbsRect.height_);
@@ -840,7 +840,7 @@ BufferDrawParam RsRenderServiceUtil::CreateBufferDrawParam(RSSurfaceRenderNode& 
     const RSProperties& property = node.GetRenderProperties();
     SkRect dstRect = SkRect::MakeXYWH(node.GetDstRect().left_, node.GetDstRect().top_,
         node.GetDstRect().width_, node.GetDstRect().height_);
-    auto alpha = node.GetGlobalAlhpa();
+    auto alpha = node.GetGlobalAlpha();
     BufferDrawParam params;
 
     auto buffer = node.GetBuffer();
@@ -919,7 +919,7 @@ void RsRenderServiceUtil::DrawBuffer(RSPaintFilterCanvas& canvas, BufferDrawPara
     SkBitmap bitmap;
     ColorGamut srcGamut = static_cast<ColorGamut>(buffer->GetSurfaceBufferColorGamut());
     ColorGamut dstGamut = bufferDrawParam.targetColorGamut;
-    // [PLANNING]: We will not use this tmp buffer if we use GPU to do the color convertions.
+    // [PLANNING]: We will not use this tmp buffer if we use GPU to do the color conversions.
     std::vector<uint8_t> newTmpBuffer;
     if (buffer->GetFormat() == PIXEL_FMT_YCRCB_420_SP || buffer->GetFormat() == PIXEL_FMT_YCBCR_420_SP) {
         bitmapCreated = CreateYuvToRGBABitMap(buffer, newTmpBuffer, bitmap);

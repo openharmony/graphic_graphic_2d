@@ -15,6 +15,7 @@
 
 #include "command/rs_surface_node_command.h"
 
+#include "common/rs_vector4.h"
 #include "pipeline/rs_surface_render_node.h"
 
 namespace OHOS {
@@ -34,24 +35,31 @@ void SurfaceNodeCommandHelper::SetProxy(RSContext& context, NodeId id)
     }
 }
 
-void SurfaceNodeCommandHelper::SetMatrix(RSContext& context, NodeId id, SkMatrix matrix)
+void SurfaceNodeCommandHelper::SetContextMatrix(RSContext& context, NodeId id, SkMatrix matrix)
 {
     if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(id)) {
-        node->SetMatrix(matrix, false);
+        node->SetContextMatrix(matrix, false);
     }
 }
 
-void SurfaceNodeCommandHelper::SetAlpha(RSContext& context, NodeId id, float alpha)
+void SurfaceNodeCommandHelper::SetSrcRatio(RSContext& context, NodeId id, Vector4f ratio)
 {
     if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(id)) {
-        node->SetAlpha(alpha, false);
+        node->SetSrcRatio(ratio, false);
     }
 }
 
-void SurfaceNodeCommandHelper::SetClipRegion(RSContext& context, NodeId id, Vector4f clipRect)
+void SurfaceNodeCommandHelper::SetContextAlpha(RSContext& context, NodeId id, float alpha)
 {
     if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(id)) {
-        node->SetClipRegion(clipRect, false);
+        node->SetContextAlpha(alpha, false);
+    }
+}
+
+void SurfaceNodeCommandHelper::SetContextClipRegion(RSContext& context, NodeId id, SkRect clipRect)
+{
+    if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(id)) {
+        node->SetContextClipRegion(clipRect, false);
     }
 }
 
@@ -59,26 +67,6 @@ void SurfaceNodeCommandHelper::SetSecurityLayer(RSContext& context, NodeId id, b
 {
     if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(id)) {
         node->SetSecurityLayer(isSecurityLayer);
-    }
-}
-
-void SurfaceNodeCommandHelper::SetParentSurface(RSContext& context, NodeId id, NodeId parentId)
-{
-    auto& nodeMap = context.GetNodeMap();
-    auto node = nodeMap.GetRenderNode<RSSurfaceRenderNode>(id);
-    auto parent = nodeMap.GetRenderNode<RSBaseRenderNode>(parentId);
-    if (node && parent) {
-        node->SetParentId(parentId, false);
-        parent->AddChild(node);
-    }
-}
-
-void SurfaceNodeCommandHelper::RemoveSelf(RSContext& context, NodeId id)
-{
-    auto& nodeMap = context.GetNodeMap();
-    auto node = nodeMap.GetRenderNode<RSBaseRenderNode>(id);
-    if (node) {
-        node->RemoveFromTree();
     }
 }
 

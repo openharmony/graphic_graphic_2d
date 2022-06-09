@@ -337,6 +337,28 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, sk_sp<SkVertices>& val)
     return val != nullptr;
 }
 
+// SkRect
+bool RSMarshallingHelper::Marshalling(Parcel& parcel, const SkRect& rect)
+{
+    SkBinaryWriteBuffer writer;
+    writer.writeRect(rect);
+    size_t length = writer.bytesWritten();
+    sk_sp<SkData> data = SkData::MakeUninitialized(length);
+    writer.writeToMemory(data->writable_data());
+    return Marshalling(parcel, data);
+}
+bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, SkRect& rect)
+{
+    sk_sp<SkData> data;
+    if (!Unmarshalling(parcel, data)) {
+        ROSEN_LOGE("unirender: failed RSMarshallingHelper::Unmarshalling SkRect");
+        return false;
+    }
+    SkReadBuffer reader(data->data(), data->size());
+    reader.readRect(&rect);
+    return true;
+}
+
 // SkRegion
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const SkRegion& region)
 {

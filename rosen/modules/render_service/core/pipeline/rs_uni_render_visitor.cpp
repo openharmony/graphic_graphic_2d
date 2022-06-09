@@ -70,13 +70,13 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
         auto currentGeoPtr = std::static_pointer_cast<RSObjAbsGeometry>(node.GetRenderProperties().GetBoundsGeometry());
         if (currentGeoPtr != nullptr) {
             currentGeoPtr->UpdateByMatrixFromParent(nullptr);
-            currentGeoPtr->UpdateByMatrixFromRenderThread(node.GetMatrix());
+            currentGeoPtr->UpdateByMatrixFromRenderThread(node.GetContextMatrix());
             currentGeoPtr->UpdateByMatrixFromSelf();
         }
         PrepareBaseRenderNode(node);
     } else {
         bool dirtyFlag = dirtyFlag_;
-        dirtyFlag_ = node.Update(dirtyManager_, parent_ ? &(parent_->GetRenderProperties()) : nullptr, dirtyFlag_);
+        dirtyFlag_ = node.Update(dirtyManager_, nullptr, dirtyFlag_);
         PrepareBaseRenderNode(node);
         dirtyFlag_ = dirtyFlag;
     }
@@ -88,7 +88,6 @@ void RSUniRenderVisitor::PrepareRootRenderNode(RSRootRenderNode& node)
     if (!isUniRender_ || !IsChildOfSurfaceNode(node)) {
         return;
     }
-    parent_ = nullptr;
     dirtyFlag_ = false;
     PrepareCanvasRenderNode(node);
 }
@@ -96,7 +95,7 @@ void RSUniRenderVisitor::PrepareRootRenderNode(RSRootRenderNode& node)
 void RSUniRenderVisitor::PrepareCanvasRenderNode(RSCanvasRenderNode &node)
 {
     bool dirtyFlag = dirtyFlag_;
-    dirtyFlag_ = node.Update(dirtyManager_, parent_ ? &(parent_->GetRenderProperties()) : nullptr, dirtyFlag_);
+    dirtyFlag_ = node.Update(dirtyManager_, nullptr, dirtyFlag_);
     PrepareBaseRenderNode(node);
     dirtyFlag_ = dirtyFlag;
 }
@@ -351,7 +350,7 @@ void RSUniRenderVisitor::DrawBufferOnCanvas(RSSurfaceRenderNode& node)
 
     SkPaint paint;
     paint.setAntiAlias(true);
-    paint.setAlphaf(node.GetAlpha() * node.GetRenderProperties().GetAlpha());
+    paint.setAlphaf(node.GetContextAlpha() * node.GetRenderProperties().GetAlpha());
 
     canvas_->save();
     const RSProperties& property = node.GetRenderProperties();

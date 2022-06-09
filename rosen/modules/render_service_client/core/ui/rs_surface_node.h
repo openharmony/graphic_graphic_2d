@@ -49,12 +49,6 @@ public:
     // Do not call this API unless you are sure what you do.
     void CreateNodeInRenderThread(bool isProxy = false);
 
-    void SetBounds(const Vector4f& bounds) override;
-    void SetBounds(float positionX, float positionY, float width, float height) override;
-    void SetBoundsSize(const Vector2f& size) override;
-    void SetBoundsSize(float width, float height) override;
-    void SetBoundsWidth(float width) override;
-    void SetBoundsHeight(float height) override;
     void SetColorSpace(ColorGamut colorSpace);
     void SetSecurityLayer(bool isSecurityLayer);
     bool GetSecurityLayer() const;
@@ -87,7 +81,7 @@ protected:
 
 private:
     bool CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config);
-    void UpdateSurfaceDefaultSize(float width, float height);
+    void OnBoundsSizeChanged() const override;
     std::shared_ptr<RSSurface> surface_;
     std::string name_;
     std::mutex mutex_;

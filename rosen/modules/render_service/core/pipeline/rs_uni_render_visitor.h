@@ -51,7 +51,6 @@ private:
 
     ScreenInfo screenInfo_;
     RSDirtyRegionManager dirtyManager_;
-    RSRenderNode* parent_ = nullptr;
     bool dirtyFlag_ { false };
     std::unique_ptr<RSPaintFilterCanvas> canvas_;
     std::unique_ptr<SkCanvas> skCanvas_;

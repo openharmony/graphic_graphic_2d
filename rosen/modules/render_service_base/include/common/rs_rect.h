@@ -137,6 +137,11 @@ public:
         T height = std::max(GetBottom(), rect.GetBottom()) - top;
         return ((width <= 0) || (height <= 0)) ? RectT<T>() : RectT<T>(left, top, width, height);
     }
+    template<typename P>
+    RectT<P> ConvertTo()
+    {
+        return RectT<P>(static_cast<P>(left_), static_cast<P>(top_), static_cast<P>(width_), static_cast<P>(height_));
+    }
 };
 
 typedef RectT<int> RectI;

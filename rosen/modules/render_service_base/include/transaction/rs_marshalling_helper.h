@@ -33,6 +33,7 @@ class SkImageFilter;
 class SkPaint;
 class SkPath;
 class SkPicture;
+struct SkRect;
 class SkRegion;
 class SkTextBlob;
 class SkVertices;
@@ -111,6 +112,7 @@ public:
     // skia types
     DECLARE_FUNCTION_OVERLOAD(SkPath)
     DECLARE_FUNCTION_OVERLOAD(SkPaint)
+    DECLARE_FUNCTION_OVERLOAD(SkRect)
     DECLARE_FUNCTION_OVERLOAD(SkRegion)
     DECLARE_FUNCTION_OVERLOAD(sk_sp<SkData>)
     DECLARE_FUNCTION_OVERLOAD(sk_sp<SkFlattenable>)

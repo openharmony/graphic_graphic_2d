@@ -54,23 +54,6 @@ NodeId RSRootRenderNode::GetRSSurfaceNodeId()
     return surfaceNodeId_;
 }
 
-void RSRootRenderNode::AddSurfaceRenderNode(NodeId id)
-{
-    childSurfaceNodeId_.push_back(id);
-}
-
-void RSRootRenderNode::ClearSurfaceNodeInRS()
-{
-    for (auto childId : childSurfaceNodeId_) {
-        std::unique_ptr<RSCommand> command = std::make_unique<RSSurfaceNodeRemoveSelf>(childId);
-        auto transactionProxy = RSTransactionProxy::GetInstance();
-        if (transactionProxy != nullptr) {
-            transactionProxy->AddCommandFromRT(command);
-        }
-    }
-    childSurfaceNodeId_.clear();
-}
-
 void RSRootRenderNode::Prepare(const std::shared_ptr<RSNodeVisitor>& visitor)
 {
     if (!visitor) {
