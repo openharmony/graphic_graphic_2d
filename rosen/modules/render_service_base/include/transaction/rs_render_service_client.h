@@ -36,12 +36,15 @@
 #include "screen_manager/screen_types.h"
 #include "screen_manager/rs_virtual_screen_resolution.h"
 #include "vsync_receiver.h"
+#include "ipc_callbacks/rs_iocclusion_change_callback.h"
+#include "rs_occlusion_data.h"
 
 namespace OHOS {
 namespace Rosen {
 // normal callback functor for client users.
 using ScreenChangeCallback = std::function<void(ScreenId, ScreenEvent)>;
 using BufferAvailableCallback = std::function<void()>;
+using OcclusionChangeCallback = std::function<void(std::shared_ptr<RSOcclusionData>)>;
 class SurfaceCaptureCallback {
 public:
     SurfaceCaptureCallback() {}
@@ -124,6 +127,10 @@ public:
     int32_t GetScreenHDRCapability(ScreenId id, RSScreenHDRCapability& screenHdrCapability);
 
     int32_t GetScreenType(ScreenId id, RSScreenType& screenType);
+
+    int32_t RegisterOcclusionChangeCallback(const OcclusionChangeCallback& callback);
+
+    int32_t UnRegisterOcclusionChangeCallback(const OcclusionChangeCallback& callback);
 private:
     void TriggerSurfaceCaptureCallback(NodeId id, Media::PixelMap* pixelmap);
     std::mutex mutex_;
