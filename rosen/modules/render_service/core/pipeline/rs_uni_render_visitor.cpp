@@ -194,6 +194,11 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
     }
 
     processor_->PostProcess();
+
+    // We should release DisplayNode's surface buffer after PostProcess(),
+    // since the buffer's releaseFence was set in PostProcess().
+    auto& surfaceHandler = static_cast<RSSurfaceHandler&>(node);
+    (void)RsRenderServiceUtil::ReleaseBuffer(surfaceHandler);
     RS_LOGD("RSUniRenderVisitor::ProcessDisplayRenderNode end");
 }
 
