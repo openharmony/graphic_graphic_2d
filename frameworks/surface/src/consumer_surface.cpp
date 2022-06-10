@@ -15,11 +15,18 @@
 
 #include "consumer_surface.h"
 
+#include <cinttypes>
+
 #include "buffer_log.h"
 #include "buffer_queue_producer.h"
 #include "sync_fence.h"
 
 namespace OHOS {
+namespace {
+constexpr uint32_t CONSUMER_REF_COUNT_IN_CONSUMER_SURFACE = 1;
+constexpr uint32_t PRODUCER_REF_COUNT_IN_CONSUMER_SURFACE = 2;
+}
+
 ConsumerSurface::ConsumerSurface(const std::string &name, bool isShared)
     : name_(name), isShared_(isShared)
 {
@@ -30,6 +37,11 @@ ConsumerSurface::ConsumerSurface(const std::string &name, bool isShared)
 
 ConsumerSurface::~ConsumerSurface()
 {
+    if (consumer_->GetSptrRefCount() > CONSUMER_REF_COUNT_IN_CONSUMER_SURFACE ||
+        producer_->GetSptrRefCount() > PRODUCER_REF_COUNT_IN_CONSUMER_SURFACE) {
+        BLOGNE("Wrong SptrRefCount! Queue Id:%{public}" PRIu64 " consumer_:%{public}d producer_:%{public}d",
+            producer_->GetUniqueId(), consumer_->GetSptrRefCount(), producer_->GetSptrRefCount());
+    }
     BLOGNI("dtor");
     consumer_ = nullptr;
     producer_ = nullptr;

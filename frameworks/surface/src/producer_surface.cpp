@@ -23,6 +23,10 @@
 #include "sync_fence.h"
 
 namespace OHOS {
+namespace {
+constexpr uint32_t PRODUCER_REF_COUNT_IN_PRODUCER_SURFACE = 1;
+}
+
 ProducerSurface::ProducerSurface(sptr<IBufferProducer>& producer)
 {
     producer_ = producer;
@@ -31,6 +35,9 @@ ProducerSurface::ProducerSurface(sptr<IBufferProducer>& producer)
 
 ProducerSurface::~ProducerSurface()
 {
+    if (producer_->GetSptrRefCount() > PRODUCER_REF_COUNT_IN_PRODUCER_SURFACE) {
+        BLOGNE("Wrong SptrRefCount! producer_:%{public}d", producer_->GetSptrRefCount());
+    }
     BLOGND("dtor, name:%{public}s, Queue Id:%{public}" PRIu64 "", name_.c_str(), queueId_);
     auto ret = producer_->Disconnect();
     if (ret != GSERROR_OK) {
