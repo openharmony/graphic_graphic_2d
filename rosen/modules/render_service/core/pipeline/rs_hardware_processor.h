@@ -54,7 +54,6 @@ private:
     std::shared_ptr<HdiOutput> output_;
     std::vector<LayerInfoPtr> layers_;
     ScreenRotation rotation_ {ScreenRotation::ROTATION_0};
-    std::map<LayerInfoPtr, RSSurfaceHandler*> layerToNodeMap_;
     int32_t offsetX_ = 0;
     int32_t offsetY_ = 0;
 };

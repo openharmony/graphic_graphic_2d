@@ -79,7 +79,8 @@ public:
 
     void SetReleaseFence(sptr<SyncFence> fence)
     {
-        buffer_.releaseFence = std::move(fence);
+        // The fence which get from hdi is preBuffer's releaseFence now.
+        preBuffer_.releaseFence = std::move(fence);
     }
 
     SurfaceBufferEntry GetPreBuffer()
