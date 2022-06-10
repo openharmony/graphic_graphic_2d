@@ -265,8 +265,7 @@ int32_t BufferQueueProducer::IsSupportedAllocRemote(MessageParcel &arguments, Me
 
 int32_t BufferQueueProducer::DisconnectRemote(MessageParcel &arguments, MessageParcel &reply, MessageOption &option)
 {
-    GSError sret = Disconnect();
-    reply.WriteInt32(sret);
+    (void)Disconnect();
     return 0;
 }
 
