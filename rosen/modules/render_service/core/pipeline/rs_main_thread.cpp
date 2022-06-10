@@ -53,6 +53,7 @@ void RSMainThread::Init()
         Animate(timestamp_);
         ConsumeAndUpdateAllNodes();
         Render();
+        ReleaseAllNodesBuffer();
         SendCommands();
         ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
         RS_LOGD("RsDebug mainLoop end");
@@ -122,6 +123,22 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
     if (needRequestNextVsync) {
         RequestNextVSync();
     }
+}
+
+void RSMainThread::ReleaseAllNodesBuffer()
+{
+    const auto& nodeMap = GetContext().GetNodeMap();
+    nodeMap.TraversalNodes([this](const std::shared_ptr<RSBaseRenderNode>& node) mutable {
+        if (node == nullptr) {
+            return;
+        }
+
+        if (node->IsInstanceOf<RSSurfaceRenderNode>()) {
+            RSSurfaceRenderNode& surfaceNode = *(RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node));
+            RSSurfaceHandler& surfaceHandler = static_cast<RSSurfaceHandler&>(surfaceNode);
+            (void)RsRenderServiceUtil::ReleaseBuffer(surfaceHandler);
+        }
+    });
 }
 
 void RSMainThread::WaitUtilUniRenderFinished()

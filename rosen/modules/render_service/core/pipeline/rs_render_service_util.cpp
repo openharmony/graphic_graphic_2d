@@ -608,14 +608,7 @@ bool RsRenderServiceUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfaceHandle
         RS_LOGE("RsDebug surfaceHandler(id: %llu) has no consumer!", surfaceHandler.GetNodeId());
         return false;
     }
-    auto preBuffer = surfaceHandler.GetPreBuffer();
-    if (preBuffer.buffer != nullptr) {
-        auto ret = consumer->ReleaseBuffer(preBuffer.buffer, preBuffer.releaseFence);
-        if (ret != OHOS::SURFACE_ERROR_OK) {
-            RS_LOGE("RsDebug surfaceHandler(id: %llu) ReleaseBuffer failed(ret: %d)!",
-                surfaceHandler.GetNodeId(), ret);
-        }
-    }
+
     DropFrameProcess(surfaceHandler);
     sptr<SurfaceBuffer> buffer;
     sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
@@ -627,9 +620,30 @@ bool RsRenderServiceUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfaceHandle
             surfaceHandler.GetNodeId(), ret);
         return false;
     }
- 
+
     surfaceHandler.SetBuffer(buffer, acquireFence, damage);
     availableBufferCnt = surfaceHandler.ReduceAvailableBuffer();
+    return true;
+}
+
+bool RsRenderServiceUtil::ReleaseBuffer(RSSurfaceHandler& surfaceHandler)
+{
+    auto& consumer = surfaceHandler.GetConsumer();
+    if (consumer == nullptr) {
+        RS_LOGE("RsDebug surfaceHandler(id: %llu) has no consumer!", surfaceHandler.GetNodeId());
+        return false;
+    }
+
+    auto preBuffer = surfaceHandler.GetPreBuffer();
+    if (preBuffer.buffer != nullptr) {
+        auto ret = consumer->ReleaseBuffer(preBuffer.buffer, preBuffer.releaseFence);
+        if (ret != OHOS::SURFACE_ERROR_OK) {
+            RS_LOGE("RsDebug surfaceHandler(id: %llu) ReleaseBuffer failed(ret: %d)!",
+                surfaceHandler.GetNodeId(), ret);
+            return false;
+        }
+    }
+
     return true;
 }
 
