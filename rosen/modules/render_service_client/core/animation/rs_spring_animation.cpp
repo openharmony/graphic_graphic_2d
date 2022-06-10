@@ -41,7 +41,7 @@ namespace Rosen {
     animation->SetSpeed(GetSpeed());                                                                    \
     animation->SetDirection(GetDirection());                                                            \
     animation->SetFillMode(GetFillMode());                                                              \
-    animation->SetSpringParameters(response_, dampingRatio_);                                           \
+    animation->SetSpringParameters(timingCurve_.response_, timingCurve_.dampingRatio_);                 \
     std::unique_ptr<RSCommand> command = std::make_unique<RSRenderCommand>(target->GetId(), animation); \
     auto transactionProxy = RSTransactionProxy::GetInstance();                                          \
     if (transactionProxy != nullptr) {                                                                  \

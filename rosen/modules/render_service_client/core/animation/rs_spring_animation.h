@@ -49,6 +49,10 @@ public:
 
     void SetTimingCurve(const RSAnimationTimingCurve& timingCurve)
     {
+        if (timingCurve.type_ != RSTimingCurveType::SPRING) {
+            ROSEN_LOGE("RSSpringAnimation::SetTimingCurve: invalid timing curve type");
+            return;
+        }
         timingCurve_ = timingCurve;
     }
 

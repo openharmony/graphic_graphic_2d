@@ -80,8 +80,8 @@ std::shared_ptr<RSAnimation> RSImplicitPathAnimationParam::CreateAnimation(
 }
 
 RSImplicitSpringAnimationParam::RSImplicitSpringAnimationParam(
-    const RSAnimationTimingProtocol& timingProtocol, float response, float dampingRatio)
-    : RSImplicitAnimationParam(timingProtocol), response_(response), dampingRatio_(dampingRatio)
+    const RSAnimationTimingProtocol& timingProtocol, const RSAnimationTimingCurve& timingCurve)
+    : RSImplicitAnimationParam(timingProtocol), timingCurve_(timingCurve)
 {
     animationType_ = ImplicitAnimationParamType::SPRING;
 }

@@ -50,7 +50,7 @@ std::vector<std::shared_ptr<RSAnimation>> RSImplicitAnimator::CloseImplicitAnima
             globalImplicitParams_.pop();
             implicitAnimations_.pop();
             keyframeAnimations_.pop();
-            EndImplicitCurveAnimation();
+            EndImplicitAnimation();
             return {};
         } else {
             CreateEmptyAnimation();
@@ -90,7 +90,7 @@ std::vector<std::shared_ptr<RSAnimation>> RSImplicitAnimator::CloseImplicitAnima
     globalImplicitParams_.pop();
     implicitAnimations_.pop();
     keyframeAnimations_.pop();
-    EndImplicitCurveAnimation();
+    EndImplicitAnimation();
     return resultAnimations;
 }
 
@@ -145,11 +145,12 @@ void RSImplicitAnimator::BeginImplicitCurveAnimation()
     PushImplicitParam(curveAnimationParam);
 }
 
-void RSImplicitAnimator::EndImplicitCurveAnimation()
+void RSImplicitAnimator::EndImplicitAnimation()
 {
     if (implicitAnimationParams_.empty() ||
-        implicitAnimationParams_.top()->GetType() != ImplicitAnimationParamType::CURVE) {
-        ROSEN_LOGE("Failed to end curve implicit animation, need to begin curve implicit animation firstly!");
+        (implicitAnimationParams_.top()->GetType() != ImplicitAnimationParamType::CURVE &&
+            implicitAnimationParams_.top()->GetType() != ImplicitAnimationParamType::SPRING)) {
+        ROSEN_LOGE("Failed to end implicit animation, need to begin implicit animation firstly!");
         return;
     }
 
@@ -192,17 +193,6 @@ void RSImplicitAnimator::BeginImplicitSpringAnimation()
     }
     auto springParam = std::make_shared<RSImplicitSpringAnimationParam>(protocol, curve);
     PushImplicitParam(springParam);
-}
-
-void RSImplicitAnimator::EndImplicitSpringAnimation()
-{
-    if (implicitAnimationParams_.empty() ||
-        implicitAnimationParams_.top()->GetType() != ImplicitAnimationParamType::SPRING) {
-        ROSEN_LOGE("Failed to end implicit spring animation, need to begin implicit spring animation firstly!");
-        return;
-    }
-
-    PopImplicitParam();
 }
 
 void RSImplicitAnimator::BeginImplicitTransition(const std::shared_ptr<const RSTransitionEffect>& effect)
@@ -310,7 +300,7 @@ std::shared_ptr<RSAnimation> RSImplicitAnimator::CreateImplicitAnimation(
         }
         case ImplicitAnimationParamType::SPRING: {
             auto springImplicitParam = static_cast<RSImplicitSpringAnimationParam*>(params.get());
-            animation = springImplicitParam->CreateAnimation(property, endValue);
+            animation = springImplicitParam->CreateAnimation(property, startValue, endValue);
             break;
         }
         case ImplicitAnimationParamType::PATH: {

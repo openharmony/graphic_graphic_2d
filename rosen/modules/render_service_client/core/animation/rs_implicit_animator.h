@@ -52,10 +52,9 @@ public:
     std::shared_ptr<RSAnimation> CreateImplicitTransition(RSNode& target, bool isTransitionIn);
 
 private:
+    void EndImplicitAnimation();
     void BeginImplicitCurveAnimation();
-    void EndImplicitCurveAnimation();
     void BeginImplicitSpringAnimation();
-    void EndImplicitSpringAnimation();
 
     void PushImplicitParam(const std::shared_ptr<RSImplicitAnimationParam>& implicitParam);
     void PopImplicitParam();
