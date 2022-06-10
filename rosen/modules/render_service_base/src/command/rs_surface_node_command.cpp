@@ -42,13 +42,6 @@ void SurfaceNodeCommandHelper::SetContextMatrix(RSContext& context, NodeId id, S
     }
 }
 
-void SurfaceNodeCommandHelper::SetSrcRatio(RSContext& context, NodeId id, Vector4f ratio)
-{
-    if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(id)) {
-        node->SetSrcRatio(ratio, false);
-    }
-}
-
 void SurfaceNodeCommandHelper::SetContextAlpha(RSContext& context, NodeId id, float alpha)
 {
     if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(id)) {

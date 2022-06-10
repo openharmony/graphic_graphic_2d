@@ -243,10 +243,10 @@ void RSHardwareProcessor::ProcessSurface(RSSurfaceRenderNode &node)
     }
     ComposeInfo info = {
         .srcRect = {
-            .x = 0,
-            .y = 0,
-            .w = node.GetBuffer()->GetSurfaceBufferWidth(),
-            .h = node.GetBuffer()->GetSurfaceBufferHeight(),
+            .x = node.GetSrcRect().left_,
+            .y = node.GetSrcRect().top_,
+            .w = node.GetSrcRect().width_,
+            .h = node.GetSrcRect().height_,
         },
         .dstRect = {
             .x = node.GetDstRect().left_,
@@ -272,7 +272,6 @@ void RSHardwareProcessor::ProcessSurface(RSSurfaceRenderNode &node)
     if (info.dstRect.w <= 0 || info.dstRect.h <= 0) {
         return;
     }
-    CalculateSrcRect(info, node.GetSrcRatio());
     std::string inf;
     char strBuffer[UINT8_MAX] = { 0 };
     if (sprintf_s(strBuffer, UINT8_MAX, "ProcessSurfaceNode:%s XYWH[%d %d %d %d]", node.GetName().c_str(),
@@ -342,14 +341,6 @@ void RSHardwareProcessor::ProcessSurface(RSDisplayRenderNode& node)
         node.GetBuffer()->GetSurfaceBufferHeight(), node.GetBuffer().GetRefPtr(),
         info.zOrder, info.blendType);
     RsRenderServiceUtil::ComposeSurface(layer, node.GetConsumer(), layers_, info, &node);
-}
-
-void RSHardwareProcessor::CalculateSrcRect(ComposeInfo& info, const Vector4f& ratio)
-{
-    info.srcRect.x = info.srcRect.w * ratio.x_;
-    info.srcRect.y = info.srcRect.h * ratio.y_;
-    info.srcRect.w = info.srcRect.w * ratio.z_;
-    info.srcRect.h = info.srcRect.h * ratio.w_;
 }
 
 bool IfUseGPUClient(const struct PrepareCompleteParam& param)

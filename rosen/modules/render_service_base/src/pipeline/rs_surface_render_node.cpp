@@ -54,6 +54,24 @@ void RSSurfaceRenderNode::SetConsumer(const sptr<Surface>& consumer)
     consumer_ = consumer;
 }
 
+static SkRect getLocalClipBounds(const RSPaintFilterCanvas& canvas)
+{
+    SkIRect ibounds = canvas.getDeviceClipBounds();
+    if (ibounds.isEmpty()) {
+        return SkRect::MakeEmpty();
+    }
+
+    SkMatrix inverse;
+    // if we can't invert the CTM, we can't return local clip bounds
+    if (!(canvas.getTotalMatrix().invert(&inverse))) {
+        return SkRect::MakeEmpty();
+    }
+    SkRect bounds;
+    SkRect r = SkRect::Make(ibounds);
+    inverse.mapRect(&bounds, r);
+    return bounds;
+}
+
 void RSSurfaceRenderNode::ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas)
 {
     canvas.SaveAlpha();
@@ -61,8 +79,8 @@ void RSSurfaceRenderNode::ProcessRenderBeforeChildren(RSPaintFilterCanvas& canva
     canvas.MultiplyAlpha(GetRenderProperties().GetAlpha() * GetContextAlpha());
 
     // apply intermediate properties from RT
-    auto clipRectFromRT = GetContextClipRegion();
     canvas.concat(GetContextMatrix());
+    auto clipRectFromRT = GetContextClipRegion();
     if (!clipRectFromRT.isEmpty()) {
         canvas.clipRect(clipRectFromRT);
     }
@@ -82,6 +100,15 @@ void RSSurfaceRenderNode::ProcessRenderBeforeChildren(RSPaintFilterCanvas& canva
 
     // clip by bounds
     canvas.clipRect(SkRect::MakeWH(properties.GetBoundsWidth(), properties.GetBoundsHeight()));
+
+    auto rect = getLocalClipBounds(canvas);
+    RectI rectI = {
+        std::ceil(std::clamp(rect.left(), 0.0f, properties.GetBoundsWidth())),
+        std::ceil(std::clamp(rect.top(), 0.0f, properties.GetBoundsHeight())),
+        std::floor(std::clamp(rect.width(), 0.0f, properties.GetBoundsWidth() - rect.left())),
+        std::floor(std::clamp(rect.height(), 0.0f, properties.GetBoundsHeight() - rect.top()))
+    };
+    SetSrcRect(rectI);
 
     // extract information from SkCanvas to compositor, we use deviceClipBounds as DstRect, canvas alpha as GlobalAlpha
     auto currentClipRegion = canvas.getDeviceClipBounds();
@@ -130,25 +157,6 @@ void RSSurfaceRenderNode::SetContextMatrix(const SkMatrix& matrix, bool sendMsg)
 const SkMatrix& RSSurfaceRenderNode::GetContextMatrix() const
 {
     return contextMatrix_;
-}
-
-void RSSurfaceRenderNode::SetSrcRatio(const Vector4f ratio, bool sendMsg)
-{
-    if (srcRatio_ == ratio) {
-        return;
-    }
-    srcRatio_ = ratio;
-    if (!sendMsg) {
-        return;
-    }
-    // send a Command
-    std::unique_ptr<RSCommand> command = std::make_unique<RSSurfaceNodeSetSrcRatio>(GetId(), ratio);
-    SendCommandFromRT(command);
-}
-
-const Vector4f& RSSurfaceRenderNode::GetSrcRatio() const
-{
-    return srcRatio_;
 }
 
 void RSSurfaceRenderNode::SetContextAlpha(float alpha, bool sendMsg)

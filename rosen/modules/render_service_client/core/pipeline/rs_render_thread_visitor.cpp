@@ -382,15 +382,6 @@ void RSRenderThreadVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
     parentSurfaceNodeMatrix_ = parentSurfaceNodeMatrix;
 }
 
-const Vector4f CalSrcRectRatio(const SkRect& originRect, const SkRect& resRect)
-{
-    float x = std::clamp((resRect.left() - originRect.left()) / originRect.width(), 0.0f, 1.0f);
-    float y = std::clamp((resRect.top() - originRect.top()) / originRect.height(), 0.0f, 1.0f);
-    float width = std::clamp(resRect.width() / originRect.width(), 0.0f, 1.0f - x);
-    float height = std::clamp(resRect.height() / originRect.height(), 0.0f, 1.0f - y);
-    return Vector4f(x, y, width, height);
-}
-
 void RSRenderThreadVisitor::ClipHoleForSurfaceNode(RSSurfaceRenderNode& node)
 {
 #ifdef ROSEN_OHOS
@@ -401,9 +392,6 @@ void RSRenderThreadVisitor::ClipHoleForSurfaceNode(RSSurfaceRenderNode& node)
     canvas_->save();
     SkRect originRect = SkRect::MakeXYWH(x, y, width, height);
     canvas_->clipRect(originRect);
-    SkRect resRect = getLocalClipBounds(canvas_);
-    auto ratio = CalSrcRectRatio(originRect, resRect);
-    node.SetSrcRatio(ratio);
     if (node.IsNotifyRTBufferAvailable() == true) {
         canvas_->clear(SK_ColorTRANSPARENT);
     } else {
