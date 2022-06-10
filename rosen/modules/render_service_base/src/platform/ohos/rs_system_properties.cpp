@@ -56,5 +56,11 @@ const std::set<std::string>& RSSystemProperties::GetUniRenderEnabledList()
     }
     return uniRenderEnabledList_;
 }
+
+DirtyRegionDebugType RSSystemProperties::GetDirtyRegionDebugType()
+{
+    return static_cast<DirtyRegionDebugType>(
+        std::atoi((system::GetParameter("rosen.dirtyregiondebug.enabled", "0")).c_str()));
+}
 } // namespace Rosen
 } // namespace OHOS

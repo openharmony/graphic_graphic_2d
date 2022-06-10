@@ -20,6 +20,7 @@ namespace Rosen {
 RSDirtyRegionManager::RSDirtyRegionManager()
 {
     dirtyHistory_.resize(HISTORY_QUEUE_MAX_SIZE);
+    debugRegionEnabled_.resize(DebugRegionType::TYPE_MAX);
 }
 
 void RSDirtyRegionManager::MergeDirtyRect(const RectI& rect)
@@ -44,6 +45,9 @@ const RectI& RSDirtyRegionManager::GetDirtyRegion() const
 void RSDirtyRegionManager::Clear()
 {
     dirtyRegion_.Clear();
+    dirtyCanvasNodes_.clear();
+    dirtySurfaceNodes_.clear();
+    UpdateDebugRegionTypeEnable();
 }
 
 bool RSDirtyRegionManager::IsDirty() const
@@ -54,14 +58,67 @@ bool RSDirtyRegionManager::IsDirty() const
 void RSDirtyRegionManager::UpdateDirty()
 {
     PushHistory(dirtyRegion_);
-    int bufferAge = HISTORY_QUEUE_MAX_SIZE;
-    if (bufferAge == 0) {
+    if (bufferAge_ == 0) {
         dirtyRegion_.left_ = 0;
         dirtyRegion_.top_ = 0;
         dirtyRegion_.width_ = surfaceWidth_;
         dirtyRegion_.height_ = surfaceHeight_;
-    } else if (bufferAge > 1) {
-        dirtyRegion_ = MergeHistory(bufferAge, dirtyRegion_);
+    } else if (bufferAge_ > 1) {
+        dirtyRegion_ = MergeHistory(bufferAge_, dirtyRegion_);
+    }
+}
+
+void RSDirtyRegionManager::UpdateDirtyCanvasNodes(NodeId id, const RectI& rect)
+{
+    dirtyCanvasNodes_[id] = rect;
+}
+
+void RSDirtyRegionManager::UpdateDirtySurfaceNodes(NodeId id, const RectI& rect)
+{
+    dirtySurfaceNodes_[id] = rect;
+}
+
+void RSDirtyRegionManager::GetDirtyCanvasNodes(std::map<NodeId, RectI>& target) const
+{
+    target = dirtyCanvasNodes_;
+}
+
+void RSDirtyRegionManager::GetDirtySurfaceNodes(std::map<NodeId, RectI>& target) const
+{
+    target = dirtySurfaceNodes_;
+}
+
+RectI RSDirtyRegionManager::GetAllHistoryMerge()
+{
+    PushHistory(dirtyRegion_);
+    return MergeHistory(bufferAge_, dirtyRegion_);
+}
+
+void RSDirtyRegionManager::UpdateDebugRegionTypeEnable()
+{
+    DirtyRegionDebugType dirtyDebugType = RSSystemProperties::GetDirtyRegionDebugType();
+    debugRegionEnabled_.assign(DebugRegionType::TYPE_MAX, false);
+    switch (dirtyDebugType) {
+        case DirtyRegionDebugType::CURRENT_SUB:
+            debugRegionEnabled_[DebugRegionType::CURRENT_SUB] = true;
+            break;
+        case DirtyRegionDebugType::CURRENT_WHOLE:
+            debugRegionEnabled_[DebugRegionType::CURRENT_WHOLE] = true;
+            break;
+        case DirtyRegionDebugType::MULTI_HISTORY:
+            debugRegionEnabled_[DebugRegionType::MULTI_HISTORY] = true;
+            break;
+        case DirtyRegionDebugType::CURRENT_SUB_AND_WHOLE:
+            debugRegionEnabled_[DebugRegionType::CURRENT_SUB] = true;
+            debugRegionEnabled_[DebugRegionType::CURRENT_WHOLE] = true;
+            break;
+        case DirtyRegionDebugType::CURRENT_WHOLE_AND_MULTI_HISTORY:
+            debugRegionEnabled_[DebugRegionType::CURRENT_WHOLE] = true;
+            debugRegionEnabled_[DebugRegionType::MULTI_HISTORY] = true;
+            break;
+        case DirtyRegionDebugType::DISABLED:
+        default:
+            break;
     }
 }
 

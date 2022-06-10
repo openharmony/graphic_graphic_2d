@@ -48,6 +48,9 @@ public:
     virtual void ProcessRootRenderNode(RSRootRenderNode& node) override;
 
 private:
+    void DrawRectOnCanvas(const RectI& dirtyRect, const SkColor color, const SkPaint::Style fillType, float alpha);
+    void DrawDirtyRegion();
+
     RSDirtyRegionManager dirtyManager_;
     bool dirtyFlag_ = false;
     bool isIdle_ = true;

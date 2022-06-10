@@ -62,6 +62,16 @@ public:
         return animationManager_.HasDisappearingTransition() || RSBaseRenderNode::HasDisappearingTransition(recursive);
     }
 
+    inline RectI GetOldDirty() const
+    {
+        return oldDirty_;
+    }
+
+    inline bool IsDirtyRegionUpdated() const
+    {
+        return isDirtyRegionUpdated_;
+    }
+
 protected:
     explicit RSRenderNode(NodeId id, std::weak_ptr<RSContext> context = {});
     void UpdateDirtyRegion(RSDirtyRegionManager& dirtyManager);
@@ -70,6 +80,7 @@ protected:
 private:
     void FallbackAnimationsToRoot();
     int32_t saveCount_ = 0;
+    bool isDirtyRegionUpdated_ = false;
     RectI oldDirty_;
     RSProperties renderProperties_;
     RSAnimationManager animationManager_;

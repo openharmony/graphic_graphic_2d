@@ -75,6 +75,7 @@ bool RSRenderNode::Update(RSDirtyRegionManager& dirtyManager, const RSProperties
         return false;
     }
     bool dirty = renderProperties_.UpdateGeometry(parent, parentDirty);
+    isDirtyRegionUpdated_ = false;
     UpdateDirtyRegion(dirtyManager);
     renderProperties_.ResetDirty();
     return dirty;
@@ -99,6 +100,7 @@ void RSRenderNode::UpdateDirtyRegion(RSDirtyRegionManager& dirtyManager)
     if (!oldDirty_.IsEmpty()) {
         dirtyManager.MergeDirtyRect(oldDirty_);
     }
+    isDirtyRegionUpdated_ = (oldDirty_ == renderProperties_.GetDirtyRect());
     oldDirty_ = renderProperties_.GetDirtyRect();
     SetClean();
 }

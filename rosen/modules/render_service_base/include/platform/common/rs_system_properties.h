@@ -27,12 +27,22 @@ enum class UniRenderEnabledType {
     UNI_RENDER_PARTIALLY_ENABLED,
 };
 
+enum class DirtyRegionDebugType {
+    DISABLED = 0,
+    CURRENT_SUB,
+    CURRENT_WHOLE,
+    MULTI_HISTORY,
+    CURRENT_SUB_AND_WHOLE,
+    CURRENT_WHOLE_AND_MULTI_HISTORY
+};
+
 class RSSystemProperties final {
 public:
     ~RSSystemProperties() = default;
 
     static UniRenderEnabledType GetUniRenderEnabledType();
     static const std::set<std::string>& GetUniRenderEnabledList();
+    static DirtyRegionDebugType GetDirtyRegionDebugType();
 
 private:
     RSSystemProperties() = default;
