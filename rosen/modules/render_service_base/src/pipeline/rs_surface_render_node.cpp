@@ -81,7 +81,8 @@ void RSSurfaceRenderNode::ProcessRenderBeforeChildren(RSPaintFilterCanvas& canva
     // apply intermediate properties from RT
     canvas.concat(GetContextMatrix());
     auto clipRectFromRT = GetContextClipRegion();
-    if (!clipRectFromRT.isEmpty()) {
+    if (clipRectFromRT.width() > std::numeric_limits<float>::epsilon() &&
+        clipRectFromRT.height() > std::numeric_limits<float>::epsilon()) {
         canvas.clipRect(clipRectFromRT);
     }
 
