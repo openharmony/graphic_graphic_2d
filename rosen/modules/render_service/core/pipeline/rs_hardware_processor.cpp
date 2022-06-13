@@ -163,7 +163,9 @@ void RSHardwareProcessor::CropLayers()
 void RSHardwareProcessor::ScaleDownLayers()
 {
     for (auto layer : layers_) {
-        if (layer->GetBuffer()->GetSurfaceBufferScalingMode() == ScalingMode::SCALING_MODE_SCALE_CROP) {
+        ScalingMode scalingMode = ScalingMode::SCALING_MODE_SCALE_TO_WINDOW;
+        if (layer->GetSurface()->GetScalingMode(layer->GetBuffer()->GetSeqNum(), scalingMode) == GSERROR_OK &&
+            scalingMode == ScalingMode::SCALING_MODE_SCALE_CROP) {
             IRect dstRect = layer->GetLayerSize();
             IRect srcRect = layer->GetCropRect();
 

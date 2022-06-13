@@ -250,38 +250,46 @@ GSError ConsumerSurface::IsSupportedAlloc(const std::vector<VerifyAllocInfo> &in
     return GSERROR_NOT_SUPPORT;
 }
 
-GSError ConsumerSurface::SetMetaData(int32_t sequence, const std::vector<HDRMetaData> &metaData)
+GSError ConsumerSurface::SetScalingMode(uint32_t sequence, ScalingMode scalingMode)
 {
-    if (sequence < 0 || metaData.size() == 0) {
+    if (scalingMode < ScalingMode::SCALING_MODE_FREEZE ||
+        scalingMode > ScalingMode::SCALING_MODE_NO_SCALE_CROP) {
+        return GSERROR_INVALID_ARGUMENTS;
+    }
+    return producer_->SetScalingMode(sequence, scalingMode);
+}
+
+GSError ConsumerSurface::GetScalingMode(uint32_t sequence, ScalingMode &scalingMode)
+{
+    return consumer_->GetScalingMode(sequence, scalingMode);
+}
+
+GSError ConsumerSurface::SetMetaData(uint32_t sequence, const std::vector<HDRMetaData> &metaData)
+{
+    if (metaData.size() == 0) {
         return GSERROR_INVALID_ARGUMENTS;
     }
     return producer_->SetMetaData(sequence, metaData);
 }
 
-GSError ConsumerSurface::SetMetaDataSet(int32_t sequence, HDRMetadataKey key,
+GSError ConsumerSurface::SetMetaDataSet(uint32_t sequence, HDRMetadataKey key,
                                         const std::vector<uint8_t> &metaData)
 {
-    if (sequence < 0 || key < HDRMetadataKey::MATAKEY_RED_PRIMARY_X ||
+    if (key < HDRMetadataKey::MATAKEY_RED_PRIMARY_X ||
         key > HDRMetadataKey::MATAKEY_HDR_VIVID || metaData.size() == 0) {
         return GSERROR_INVALID_ARGUMENTS;
     }
     return producer_->SetMetaDataSet(sequence, key, metaData);
 }
 
-GSError ConsumerSurface::GetMetaData(int32_t sequence, std::vector<HDRMetaData> &metaData) const
+GSError ConsumerSurface::GetMetaData(uint32_t sequence, std::vector<HDRMetaData> &metaData) const
 {
-    if (sequence < 0) {
-        return GSERROR_INVALID_ARGUMENTS;
-    }
     return consumer_->GetMetaData(sequence, metaData);
 }
 
-GSError ConsumerSurface::GetMetaDataSet(int32_t sequence, HDRMetadataKey &key,
+GSError ConsumerSurface::GetMetaDataSet(uint32_t sequence, HDRMetadataKey &key,
                                         std::vector<uint8_t> &metaData) const
 {
-    if (sequence < 0) {
-        return GSERROR_INVALID_ARGUMENTS;
-    }
     return consumer_->GetMetaDataSet(sequence, key, metaData);
 }
 } // namespace OHOS

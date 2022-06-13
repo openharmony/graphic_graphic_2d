@@ -38,12 +38,12 @@ public:
                                 MessageParcel &reply, MessageOption &option) override;
 
     virtual GSError RequestBuffer(const BufferRequestConfig &config, sptr<BufferExtraData> &bedata,
-                                       RequestBufferReturnValue &retval) override;
+                                  RequestBufferReturnValue &retval) override;
 
-    GSError CancelBuffer(int32_t sequence, const sptr<BufferExtraData> &bedata) override;
+    GSError CancelBuffer(uint32_t sequence, const sptr<BufferExtraData> &bedata) override;
 
-    GSError FlushBuffer(int32_t sequence, const sptr<BufferExtraData> &bedata,
-                             const sptr<SyncFence>& fence, BufferFlushConfig &config) override;
+    GSError FlushBuffer(uint32_t sequence, const sptr<BufferExtraData> &bedata,
+                        const sptr<SyncFence>& fence, BufferFlushConfig &config) override;
 
     GSError AttachBuffer(sptr<SurfaceBuffer>& buffer) override;
 
@@ -70,8 +70,9 @@ public:
 
     GSError Disconnect() override;
 
-    GSError SetMetaData(int32_t sequence, const std::vector<HDRMetaData> &metaData) override;
-    GSError SetMetaDataSet(int32_t sequence, HDRMetadataKey key,
+    GSError SetScalingMode(uint32_t sequence, ScalingMode scalingMode) override;
+    GSError SetMetaData(uint32_t sequence, const std::vector<HDRMetaData> &metaData) override;
+    GSError SetMetaDataSet(uint32_t sequence, HDRMetadataKey key,
                            const std::vector<uint8_t> &metaData) override;
 
 private:
@@ -95,6 +96,7 @@ private:
     int32_t IsSupportedAllocRemote(MessageParcel &arguments, MessageParcel &reply, MessageOption &option);
     int32_t GetNameAndUniqueIdRemote(MessageParcel &arguments, MessageParcel &reply, MessageOption &option);
     int32_t DisconnectRemote(MessageParcel &arguments, MessageParcel &reply, MessageOption &option);
+    int32_t SetScalingModeRemote(MessageParcel &arguments, MessageParcel &reply, MessageOption &option);
     int32_t SetMetaDataRemote(MessageParcel &arguments, MessageParcel &reply, MessageOption &option);
     int32_t SetMetaDataSetRemote(MessageParcel &arguments, MessageParcel &reply, MessageOption &option);
 

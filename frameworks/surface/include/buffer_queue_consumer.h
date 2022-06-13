@@ -47,8 +47,9 @@ public:
     GSError SetDefaultUsage(uint32_t usage);
     void Dump(std::string &result) const;
     TransformType GetTransform() const;
-    GSError GetMetaData(int32_t sequence, std::vector<HDRMetaData> &metaData) const;
-    GSError GetMetaDataSet(int32_t sequence, HDRMetadataKey &key, std::vector<uint8_t> &metaData) const;
+    GSError GetScalingMode(uint32_t sequence, ScalingMode &scalingMode) const;
+    GSError GetMetaData(uint32_t sequence, std::vector<HDRMetaData> &metaData) const;
+    GSError GetMetaDataSet(uint32_t sequence, HDRMetadataKey &key, std::vector<uint8_t> &metaData) const;
 
 private:
     sptr<BufferQueue> bufferQueue_ = nullptr;
