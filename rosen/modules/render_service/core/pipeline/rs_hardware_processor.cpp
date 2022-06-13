@@ -269,8 +269,17 @@ void RSHardwareProcessor::ProcessSurface(RSSurfaceRenderNode &node)
         .fence = node.GetAcquireFence(),
         .blendType = node.GetBlendType(),
     };
-    if (info.dstRect.w <= 0 || info.dstRect.h <= 0) {
+    if (info.srcRect.w <= 0 || info.srcRect.h <= 0 || info.dstRect.w <= 0 || info.dstRect.h <= 0) {
         return;
+    }
+    if (node.GetBuffer()->GetSurfaceBufferWidth() != node.GetRenderProperties().GetBoundsWidth() ||
+        node.GetBuffer()->GetSurfaceBufferHeight() != node.GetRenderProperties().GetBoundsHeight()) {
+        float xScale = (node.GetBuffer()->GetSurfaceBufferWidth() / node.GetRenderProperties().GetBoundsWidth());
+        float yScale = (node.GetBuffer()->GetSurfaceBufferHeight() / node.GetRenderProperties().GetBoundsHeight());
+        info.srcRect.x = info.srcRect.x * xScale;
+        info.srcRect.y = info.srcRect.y * yScale;
+        info.srcRect.w = info.srcRect.w * xScale;
+        info.srcRect.h = info.srcRect.h * yScale;
     }
     std::string inf;
     char strBuffer[UINT8_MAX] = { 0 };

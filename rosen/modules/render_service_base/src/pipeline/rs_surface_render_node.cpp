@@ -74,11 +74,11 @@ static SkRect getLocalClipBounds(const RSPaintFilterCanvas& canvas)
 
 void RSSurfaceRenderNode::ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas)
 {
-    canvas.SaveAlpha();
     canvas.save();
-    canvas.MultiplyAlpha(GetRenderProperties().GetAlpha() * GetContextAlpha());
+    canvas.SaveAlpha();
 
-    // apply intermediate properties from RT
+    // apply intermediate properties from RT to canvas
+    canvas.MultiplyAlpha(GetContextAlpha());
     canvas.concat(GetContextMatrix());
     auto clipRectFromRT = GetContextClipRegion();
     if (clipRectFromRT.width() > std::numeric_limits<float>::epsilon() &&
@@ -86,15 +86,16 @@ void RSSurfaceRenderNode::ProcessRenderBeforeChildren(RSPaintFilterCanvas& canva
         canvas.clipRect(clipRectFromRT);
     }
 
-    // apply node properties
+    // apply node properties to canvas
     const RSProperties& properties = GetRenderProperties();
+    canvas.MultiplyAlpha(properties.GetAlpha());
     auto currentGeoPtr = std::static_pointer_cast<RSObjAbsGeometry>(properties.GetBoundsGeometry());
     if (currentGeoPtr != nullptr) {
         currentGeoPtr->UpdateByMatrixFromSelf();
     }
     canvas.concat(currentGeoPtr->GetMatrix());
 
-    // apply transition properties
+    // apply transition properties to canvas
     auto transitionProperties = GetAnimationManager().GetTransitionProperties();
     Vector2f center(properties.GetBoundsWidth() * 0.5f, properties.GetBoundsHeight() * 0.5f);
     RSPropertiesPainter::DrawTransitionProperties(transitionProperties, center, canvas);
@@ -102,19 +103,20 @@ void RSSurfaceRenderNode::ProcessRenderBeforeChildren(RSPaintFilterCanvas& canva
     // clip by bounds
     canvas.clipRect(SkRect::MakeWH(properties.GetBoundsWidth(), properties.GetBoundsHeight()));
 
-    auto rect = getLocalClipBounds(canvas);
-    RectI rectI = {
-        std::ceil(std::clamp(rect.left(), 0.0f, properties.GetBoundsWidth())),
-        std::ceil(std::clamp(rect.top(), 0.0f, properties.GetBoundsHeight())),
-        std::floor(std::clamp(rect.width(), 0.0f, properties.GetBoundsWidth() - rect.left())),
-        std::floor(std::clamp(rect.height(), 0.0f, properties.GetBoundsHeight() - rect.top()))
+    // extract srcDest and dstRect from SkCanvas, localCLipBounds as SrcRect, deviceClipBounds as DstRect
+    auto localClipRect = getLocalClipBounds(canvas);
+    RectI srcRect = {
+        std::clamp<int>(localClipRect.left(), 0, properties.GetBoundsWidth()),
+        std::clamp<int>(localClipRect.top(), 0, properties.GetBoundsHeight()),
+        std::clamp<int>(localClipRect.width(), 0, properties.GetBoundsWidth() - localClipRect.left()),
+        std::clamp<int>(localClipRect.height(), 0, properties.GetBoundsHeight() - localClipRect.top())
     };
-    SetSrcRect(rectI);
+    SetSrcRect(srcRect);
+    auto deviceClipRect = canvas.getDeviceClipBounds();
+    RectI dstRect = { deviceClipRect.left(), deviceClipRect.top(), deviceClipRect.width(), deviceClipRect.height() };
+    SetDstRect(dstRect);
 
-    // extract information from SkCanvas to compositor, we use deviceClipBounds as DstRect, canvas alpha as GlobalAlpha
-    auto currentClipRegion = canvas.getDeviceClipBounds();
-    SetDstRect({ currentClipRegion.left(), currentClipRegion.top(), currentClipRegion.width(),
-        currentClipRegion.height() });
+    // save TotalMatrix and GlobalAlpha for compositor
     SetTotalMatrix(canvas.getTotalMatrix());
     SetGlobalAlpha(canvas.GetAlpha());
 }

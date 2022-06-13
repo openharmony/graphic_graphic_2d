@@ -186,14 +186,14 @@ private:
     std::mutex mutexUI_;
     std::mutex mutex_;
 
-    SkMatrix contextMatrix_;
-    SkMatrix totalMatrix_;
+    SkMatrix contextMatrix_ = SkMatrix::I();
     float contextAlpha_ = 1.0f;
-    SkRect contextClipRect_;
+    SkRect contextClipRect_ = SkRect::MakeEmpty();
 
     bool isSecurityLayer_ = false;
     RectI srcRect_;
     RectI dstRect_;
+    SkMatrix totalMatrix_;
     int32_t offsetX_ = 0;
     int32_t offsetY_ = 0;
     float globalAlpha_ = 1.0f;

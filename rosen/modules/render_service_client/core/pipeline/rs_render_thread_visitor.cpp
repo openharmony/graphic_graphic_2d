@@ -347,7 +347,13 @@ void RSRenderThreadVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
         ProcessBaseRenderNode(node);
         return;
     }
-    node.SetContextClipRegion(getLocalClipBounds(canvas_));
+    auto clipRect = getLocalClipBounds(canvas_);
+    if (clipRect.width() < std::numeric_limits<float>::epsilon() ||
+        clipRect.height() < std::numeric_limits<float>::epsilon()) {
+        // if clipRect is empty, this node will be removed from parent's children list.
+        return;
+    }
+    node.SetContextClipRegion(clipRect);
 
     // clip hole
     ClipHoleForSurfaceNode(node);
