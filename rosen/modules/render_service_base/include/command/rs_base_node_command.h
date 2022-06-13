@@ -24,7 +24,9 @@ namespace Rosen {
 enum RSBaseNodeCommandType : uint16_t {
     BASE_NODE_DESTROY,
     BASE_NODE_ADD_CHILD,
+    BASE_NODE_ADD_CROSS_PARENT_CHILD,
     BASE_NODE_REMOVE_CHILD,
+    BASE_NODE_REMOVE_CROSS_PARENT_CHILD,
     BASE_NODE_REMOVE_FROM_TREE,
     BASE_NODE_CLEAR_CHILDREN,
 };
@@ -34,6 +36,8 @@ public:
     static void Destroy(RSContext& context, NodeId nodeId);
     static void AddChild(RSContext& context, NodeId nodeId, NodeId childNodeId, int32_t index);
     static void RemoveChild(RSContext& context, NodeId nodeId, NodeId childNodeId);
+    static void AddCrossParentChild(RSContext& context, NodeId nodeId, NodeId childNodeId, int32_t index);
+    static void RemoveCrossParentChild(RSContext& context, NodeId nodeId, NodeId childNodeId, NodeId newParentId);
     static void RemoveFromTree(RSContext& context, NodeId nodeId);
     static void ClearChildren(RSContext& context, NodeId nodeId);
 };
@@ -43,6 +47,12 @@ ADD_COMMAND(
     RSBaseNodeAddChild, ARG(BASE_NODE, BASE_NODE_ADD_CHILD, BaseNodeCommandHelper::AddChild, NodeId, NodeId, int32_t))
 ADD_COMMAND(
     RSBaseNodeRemoveChild, ARG(BASE_NODE, BASE_NODE_REMOVE_CHILD, BaseNodeCommandHelper::RemoveChild, NodeId, NodeId))
+ADD_COMMAND(
+    RSBaseNodeAddCrossParentChild, ARG(BASE_NODE, BASE_NODE_ADD_CROSS_PARENT_CHILD,
+    BaseNodeCommandHelper::AddCrossParentChild, NodeId, NodeId, int32_t))
+ADD_COMMAND(
+    RSBaseNodeRemoveCrossParentChild, ARG(BASE_NODE, BASE_NODE_REMOVE_CROSS_PARENT_CHILD,
+    BaseNodeCommandHelper::RemoveCrossParentChild, NodeId, NodeId, NodeId))
 ADD_COMMAND(
     RSBaseNodeRemoveFromTree, ARG(BASE_NODE, BASE_NODE_REMOVE_FROM_TREE, BaseNodeCommandHelper::RemoveFromTree, NodeId))
 ADD_COMMAND(
