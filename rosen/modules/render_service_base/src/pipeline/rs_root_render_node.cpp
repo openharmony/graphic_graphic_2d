@@ -69,21 +69,5 @@ void RSRootRenderNode::Process(const std::shared_ptr<RSNodeVisitor>& visitor)
     }
     visitor->ProcessRootRenderNode(*this);
 }
-
-bool RSRootRenderNode::forceRaster_ = false;
-
-void RSRootRenderNode::MarkForceRaster(bool flag)
-{
-    forceRaster_ = flag;
-}
-
-bool RSRootRenderNode::NeedForceRaster()
-{
-#ifdef ACE_ENABLE_GL
-    return forceRaster_;
-#else
-    return false;
-#endif
-}
 } // namespace Rosen
 } // namespace OHOS
