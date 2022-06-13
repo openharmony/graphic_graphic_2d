@@ -205,10 +205,10 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
             node.NotifyRTBufferAvailable();
 #ifdef RS_ENABLE_EGLIMAGE
             RS_LOGD("RSUniRenderVisitor::ProcessSurfaceRenderNode draw image on canvas");
-            DrawImageOnCanvas(node);
+            DrawImageOnCanvas(node, canvas_);
 #else
             RS_LOGD("RSUniRenderVisitor::ProcessSurfaceRenderNode draw buffer on canvas");
-            DrawBufferOnCanvas(node);
+            DrawBufferOnCanvas(node, canvas_);
 #endif // RS_ENABLE_EGLIMAGE
         }
         RS_TRACE_END();

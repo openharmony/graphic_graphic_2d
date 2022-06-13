@@ -42,11 +42,6 @@ public:
     void ProcessCanvasRenderNode(RSCanvasRenderNode& node) override;
 
 private:
-    void DrawBufferOnCanvas(RSSurfaceRenderNode& node);
-#ifdef RS_ENABLE_EGLIMAGE
-    void DrawImageOnCanvas(RSSurfaceRenderNode& node);
-#endif // RS_ENABLE_EGLIMAGE
-
     ScreenInfo screenInfo_;
     RSDirtyRegionManager dirtyManager_;
     bool dirtyFlag_ { false };

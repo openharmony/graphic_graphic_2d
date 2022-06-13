@@ -29,6 +29,7 @@
 #include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_processor.h"
 #include "pipeline/rs_processor_factory.h"
+#include "pipeline/rs_render_service_util.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_log.h"
 #include "platform/drawing/rs_surface.h"
