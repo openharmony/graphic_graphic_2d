@@ -95,7 +95,34 @@ void RSSurfaceNode::CreateNodeInRenderThread(bool isProxy)
             transactionProxy->AddCommand(command, false);
         }
     }
-    SetRenderServiceNodeType(false);
+    isRenderServiceNode_ = false;
+}
+
+void RSSurfaceNode::AddChild(std::shared_ptr<RSBaseNode> child, int index)
+{
+    if (!isRenderServiceNode_) {
+        ROSEN_LOGE("RSSurfaceNode::AddChild for non RenderServiceNodeType surfaceNode is not allowed");
+        return;
+    }
+    RSBaseNode::AddChild(child, index);
+}
+
+void RSSurfaceNode::RemoveChild(std::shared_ptr<RSBaseNode> child)
+{
+    if (!isRenderServiceNode_) {
+        ROSEN_LOGE("RSSurfaceNode::RemoveChild for non RenderServiceNodeType surfaceNode is not allowed");
+        return;
+    }
+    RSBaseNode::RemoveChild(child);
+}
+
+void RSSurfaceNode::ClearChildren()
+{
+    if (!isRenderServiceNode_) {
+        ROSEN_LOGE("RSSurfaceNode::ClearChildren for non RenderServiceNodeType surfaceNode is not allowed");
+        return;
+    }
+    RSBaseNode::ClearChildren();
 }
 
 void RSSurfaceNode::OnBoundsSizeChanged() const
