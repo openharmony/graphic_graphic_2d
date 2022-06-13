@@ -55,7 +55,6 @@ private:
     bool dirtyFlag_ = false;
     bool isIdle_ = true;
     RSPaintFilterCanvas* canvas_;
-    std::set<NodeId> forceRasterNodes;
 
     void ClipHoleForSurfaceNode(RSSurfaceRenderNode& node);
 

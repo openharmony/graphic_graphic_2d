@@ -223,18 +223,9 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
         return;
     }
 
-    sk_sp<SkSurface> skSurface = nullptr;
-    auto iter = forceRasterNodes.find(node.GetId());
-    if (iter != forceRasterNodes.end()) {
-        forceRasterNodes.erase(iter);
-        SkImageInfo imageInfo = SkImageInfo::Make(node.GetSurfaceWidth(), node.GetSurfaceHeight(),
-            kRGBA_8888_SkColorType, kOpaque_SkAlphaType, SkColorSpace::MakeSRGB());
-        skSurface = SkSurface::MakeRaster(imageInfo);
-        canvas_ = new RSPaintFilterCanvas(skSurface.get());
-    } else {
-        auto skSurface = surfaceFrame->GetSurface();
-        canvas_ = new RSPaintFilterCanvas(skSurface.get());
-    }
+    auto skSurface = surfaceFrame->GetSurface();
+    canvas_ = new RSPaintFilterCanvas(skSurface.get());
+
     canvas_->clipRect(SkRect::MakeWH(node.GetSurfaceWidth(), node.GetSurfaceHeight()));
     canvas_->clear(SK_ColorTRANSPARENT);
     isIdle_ = false;
@@ -263,26 +254,12 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
         DrawDirtyRegion();
     }
 
-    if (skSurface) {
-        canvas_->flush();
-        surfaceFrame->GetCanvas()->clear(SK_ColorTRANSPARENT);
-        skSurface->draw(surfaceFrame->GetCanvas(), 0.f, 0.f, nullptr);
-    }
-    if (RSRootRenderNode::NeedForceRaster()) {
-        RSRootRenderNode::MarkForceRaster(false);
-        forceRasterNodes.insert(node.GetId());
-        if (!skSurface) {
-            RSRenderThread::Instance().RequestNextVSync();
-        }
-    }
-
     RS_TRACE_BEGIN("rsSurface->FlushFrame");
     rsSurface->FlushFrame(surfaceFrame);
     RS_TRACE_END();
 
     delete canvas_;
     canvas_ = nullptr;
-
     isIdle_ = true;
 }
 

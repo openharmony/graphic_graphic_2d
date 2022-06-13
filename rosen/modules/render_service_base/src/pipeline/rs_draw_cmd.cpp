@@ -365,9 +365,6 @@ void SaveLayerOpItem::Draw(RSPaintFilterCanvas& canvas, const SkRect*) const
 {
     canvas.saveLayer(
         { rectPtr_, &paint_, backdrop_.get(), mask_.get(), matrix_.isIdentity() ? nullptr : &matrix_, flags_ });
-    if (paint_.getImageFilter() || paint_.getColorFilter()) {
-        RSRootRenderNode::MarkForceRaster();
-    }
 }
 
 DrawableOpItem::DrawableOpItem(SkDrawable* drawable, const SkMatrix* matrix) : OpItem(sizeof(DrawableOpItem))
