@@ -153,6 +153,8 @@ protected:
 
     virtual void OnRemoveOnCompletion() {}
 
+    void FinishOnCurrentPosition();
+
 private:
     void ProcessFillModeOnStart(float startFraction);
 

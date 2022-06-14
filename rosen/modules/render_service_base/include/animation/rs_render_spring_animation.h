@@ -25,15 +25,14 @@ namespace Rosen {
 namespace {
 constexpr float SECOND_TO_MILLISECOND = 1e3;
 constexpr float MILLISECOND_TO_SECOND = 1e-3;
-}
+} // namespace
 template<typename T>
 class RSRenderSpringAnimation : public RSRenderPropertyAnimation<T>, public RSSpringModel<T> {
 public:
     explicit RSRenderSpringAnimation(AnimationId id, const RSAnimatableProperty& property, const T& originValue,
         const T& startValue, const T& endValue)
-        : RSRenderPropertyAnimation<T>(id, property, originValue),
-          RSSpringModel<T>(),
-          startValue_(startValue), endValue_(endValue)
+        : RSRenderPropertyAnimation<T>(id, property, originValue), RSSpringModel<T>(), startValue_(startValue),
+          endValue_(endValue)
     {
         // spring model is not initialized, so we can't calculate estimated duration
     }
@@ -92,6 +91,42 @@ protected:
         OnAnimateInner(fraction);
     }
 
+    void OnAttach() override
+    {
+        auto target = RSRenderPropertyAnimation<T>::GetTarget();
+        if (target == nullptr) {
+            ROSEN_LOGE("RSRenderSpringAnimation::OnAttach, target is nullptr");
+            return;
+        }
+        auto property = RSRenderPropertyAnimation<T>::GetProperty();
+        auto prevAnimationId = target->GetAnimationManager().QuerySpringAnimation(property);
+        auto prevAnimation = target->GetAnimationManager().GetAnimation(prevAnimationId);
+        if (prevAnimation != nullptr) {
+            // inherit spring position & velocity from previous spring animation
+            auto prevSpringAnimation = std::static_pointer_cast<RSRenderSpringAnimation<T>>(prevAnimation);
+            auto status = prevSpringAnimation->GetSpringStatus();
+            startValue_ = std::get<0>(status);
+            RSSpringModel<T>::initialVelocity_ = std::get<1>(status);
+            RSSpringModel<T>::initialOffset_ = endValue_ - startValue_;
+            RSSpringModel<T>::CalculateSpringParameters();
+            RSRenderAnimation::SetDuration(RSSpringModel<T>::GetEstimatedDuration() * SECOND_TO_MILLISECOND);
+            // remove previous spring animation
+            prevSpringAnimation->FinishOnCurrentPosition();
+        }
+        target->GetAnimationManager().RegisterSpringAnimation(property, RSRenderPropertyAnimation<T>::GetAnimationId());
+    }
+    void OnDetach() override
+    {
+        auto target = RSRenderPropertyAnimation<T>::GetTarget();
+        if (target == nullptr) {
+            ROSEN_LOGE("RSRenderSpringAnimation::OnDetach, target is nullptr");
+            return;
+        }
+        auto property = RSRenderPropertyAnimation<T>::GetProperty();
+        target->GetAnimationManager().UnregisterSpringAnimation(
+            property, RSRenderPropertyAnimation<T>::GetAnimationId());
+    }
+
 private:
 #ifdef ROSEN_OHOS
     bool ParseParam(Parcel& parcel) override
@@ -123,10 +158,21 @@ private:
         if (RSRenderPropertyAnimation<T>::GetProperty() == RSAnimatableProperty::INVALID) {
             return;
         }
-        auto displacement = RSSpringModel<T>::CalculateDisplacement(fraction * RSRenderAnimation::GetDuration() * MILLISECOND_TO_SECOND);
+        prevFraction_ = fraction;
+        auto displacement = RSSpringModel<T>::CalculateDisplacement(
+            fraction * RSRenderAnimation::GetDuration() * MILLISECOND_TO_SECOND);
         RSRenderPropertyAnimation<T>::SetAnimationValue(startValue_ + displacement);
     }
+    std::tuple<T, T> GetSpringStatus()
+    {
+        auto displacement = RSSpringModel<T>::CalculateDisplacement(
+            prevFraction_ * RSRenderAnimation::GetDuration() * MILLISECOND_TO_SECOND);
+        auto velocity = RSSpringModel<T>::GetInstantaneousVelocity(
+            prevFraction_ * RSRenderAnimation::GetDuration() * MILLISECOND_TO_SECOND);
+        return std::make_tuple(startValue_ + displacement, velocity);
+    }
 
+    float prevFraction_ = 0.0f;
     T startValue_ {};
     T endValue_ {};
 };

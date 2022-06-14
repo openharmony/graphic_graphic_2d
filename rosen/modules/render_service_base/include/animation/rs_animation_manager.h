@@ -49,6 +49,21 @@ public:
     std::unique_ptr<RSTransitionProperties> GetTransitionProperties();
     bool HasDisappearingTransition() const;
 
+    void RegisterSpringAnimation(RSAnimatableProperty property, AnimationId animId)
+    {
+        springAnimations_[property] = animId;
+    }
+    void UnregisterSpringAnimation(RSAnimatableProperty property, AnimationId animId)
+    {
+        if (springAnimations_[property] == animId) {
+            springAnimations_.erase(property);
+        }
+    }
+    AnimationId QuerySpringAnimation(RSAnimatableProperty property)
+    {
+        return springAnimations_[property];
+    }
+
 private:
     void OnAnimationRemove(const std::shared_ptr<RSRenderAnimation>& animation);
     void OnAnimationAdd(const std::shared_ptr<RSRenderAnimation>& animation);
@@ -57,6 +72,7 @@ private:
     std::unordered_map<AnimationId, std::shared_ptr<RSRenderAnimation>> animations_;
     std::unordered_map<RSAnimatableProperty, int> animationNum_;
     std::list<std::tuple<AnimationId, TransitionCallback, bool>> transition_;
+    std::unordered_map<RSAnimatableProperty, AnimationId> springAnimations_;
 
     friend class RSRenderNode;
 };
