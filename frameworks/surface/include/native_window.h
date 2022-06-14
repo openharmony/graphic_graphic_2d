@@ -41,6 +41,7 @@ struct NativeWindowBuffer : public NativeWindowMagic {
     NativeWindowBuffer();
     ~NativeWindowBuffer();
     OHOS::sptr<OHOS::SurfaceBuffer> sfbuffer;
+    int64_t uiTimestamp = 0;
 };
 
 

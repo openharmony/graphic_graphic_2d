@@ -65,7 +65,7 @@ public:
     FollowType GetFollowType() const override
     {
         if (IsRenderServiceNode()) {
-            return FollowType::FOLLOW_TO_SELF;
+            return FollowType::NONE;
         } else {
             return FollowType::FOLLOW_TO_PARENT;
         }

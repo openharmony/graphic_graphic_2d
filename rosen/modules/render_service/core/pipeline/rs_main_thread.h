@@ -132,7 +132,8 @@ private:
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
     RSTaskMessage::RSTask mainLoop_;
     std::unique_ptr<RSVsyncClient> vsyncClient_ = nullptr;
-    std::map<NodeId, std::map<uint64_t, std::vector<std::unique_ptr<RSCommand>>> > cacheCommand_;
+    std::unordered_map<NodeId, uint64_t> bufferTimestamps_;
+    std::unordered_map<NodeId, std::map<uint64_t, std::vector<std::unique_ptr<RSCommand>>> > cacheCommand_;
     std::vector<std::unique_ptr<RSCommand>> effectCommand_;
 
     uint64_t timestamp_ = 0;

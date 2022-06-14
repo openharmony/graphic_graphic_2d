@@ -131,7 +131,7 @@ void RSRenderThread::RecvTransactionData(std::unique_ptr<RSTransactionData>& tra
 {
     {
         std::unique_lock<std::mutex> cmdLock(cmdMutex_);
-        uiTimestamp_ = transactionData->GetTimestamp();
+        uiTimestamps_.push(transactionData->GetTimestamp());
         std::string str = "RecvCommands ptr:" + std::to_string(reinterpret_cast<uintptr_t>(transactionData.get()));
         ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, str.c_str());
         cmds_.emplace_back(std::move(transactionData));

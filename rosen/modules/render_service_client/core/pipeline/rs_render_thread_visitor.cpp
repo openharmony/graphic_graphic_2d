@@ -215,7 +215,10 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
     RenderContext* rc = RSRenderThread::Instance().GetRenderContext();
     rsSurface->SetRenderContext(rc);
 #endif
-    uiTimestamp_ = RSRenderThread::Instance().GetUITimestamp();
+    uiTimestamp_ = RSRenderThread::Instance().GetUITimestamps().front();
+    if (RSRenderThread::Instance().GetUITimestamps().size() > 1) {
+        RSRenderThread::Instance().GetUITimestamps().pop();
+    }
     RS_TRACE_BEGIN("rsSurface->RequestFrame");
     auto surfaceFrame = rsSurface->RequestFrame(node.GetSurfaceWidth(), node.GetSurfaceHeight(), uiTimestamp_);
     RS_TRACE_END();
@@ -242,10 +245,10 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
     if (childSurfaceNodeIds_ != node.childSurfaceNodeIds_) {
         auto thisSurfaceNodeId = node.GetRSSurfaceNodeId();
         std::unique_ptr<RSCommand> command = std::make_unique<RSBaseNodeClearChild>(thisSurfaceNodeId);
-        SendCommandFromRT(command, thisSurfaceNodeId);
+        SendCommandFromRT(command, thisSurfaceNodeId, FollowType::NONE);
         for (const auto& childSurfaceNodeId : childSurfaceNodeIds_) {
             command = std::make_unique<RSBaseNodeAddChild>(thisSurfaceNodeId, childSurfaceNodeId, -1);
-            SendCommandFromRT(command, childSurfaceNodeId);
+            SendCommandFromRT(command, childSurfaceNodeId, FollowType::NONE);
         }
         node.childSurfaceNodeIds_ = std::move(childSurfaceNodeIds_);
     }
@@ -358,10 +361,10 @@ void RSRenderThreadVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
     if (childSurfaceNodeIds_ != node.childSurfaceNodeIds_) {
         auto thisSurfaceNodeId = node.GetId();
         std::unique_ptr<RSCommand> command = std::make_unique<RSBaseNodeClearChild>(thisSurfaceNodeId);
-        SendCommandFromRT(command, thisSurfaceNodeId);
+        SendCommandFromRT(command, thisSurfaceNodeId, FollowType::NONE);
         for (const auto& childSurfaceNodeId : childSurfaceNodeIds_) {
             command = std::make_unique<RSBaseNodeAddChild>(thisSurfaceNodeId, childSurfaceNodeId, -1);
-            SendCommandFromRT(command, childSurfaceNodeId);
+            SendCommandFromRT(command, childSurfaceNodeId, FollowType::NONE);
         }
         node.childSurfaceNodeIds_ = std::move(childSurfaceNodeIds_);
     }
@@ -397,11 +400,11 @@ void RSRenderThreadVisitor::ClipHoleForSurfaceNode(RSSurfaceRenderNode& node)
 #endif
 }
 
-void RSRenderThreadVisitor::SendCommandFromRT(std::unique_ptr<RSCommand>& command, NodeId nodeId)
+void RSRenderThreadVisitor::SendCommandFromRT(std::unique_ptr<RSCommand>& command, NodeId nodeId, FollowType followType)
 {
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy != nullptr) {
-        transactionProxy->AddCommandFromRT(command, nodeId);
+        transactionProxy->AddCommandFromRT(command, nodeId, followType);
     }
 }
 } // namespace Rosen

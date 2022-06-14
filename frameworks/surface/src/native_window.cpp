@@ -99,6 +99,7 @@ int32_t NativeWindowRequestBuffer(OHNativeWindow *window,
     }
     OHNativeWindowBuffer *nwBuffer = new OHNativeWindowBuffer();
     nwBuffer->sfbuffer = sfbuffer;
+    nwBuffer->uiTimestamp = window->uiTimestamp;
     *buffer = nwBuffer;
     *fenceFd = relaeaseFence->Dup();
     return OHOS::GSERROR_OK;
@@ -118,13 +119,13 @@ int32_t NativeWindowFlushBuffer(OHNativeWindow *window, OHNativeWindowBuffer *bu
         config.damage.y = region.rects->y;
         config.damage.w = static_cast<int32_t>(region.rects->w);
         config.damage.h = static_cast<int32_t>(region.rects->h);
-        config.timestamp = window->uiTimestamp;
+        config.timestamp = buffer->uiTimestamp;
     } else {
         config.damage.x = 0;
         config.damage.y = 0;
         config.damage.w = window->config.width;
         config.damage.h = window->config.height;
-        config.timestamp = window->uiTimestamp;
+        config.timestamp = buffer->uiTimestamp;
     }
 
     OHOS::sptr<OHOS::SyncFence> acquireFence = new OHOS::SyncFence(fenceFd);

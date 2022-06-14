@@ -35,7 +35,7 @@ public:
 
     void AddCommand(std::unique_ptr<RSCommand>& command, bool isRenderServiceCommand = false,
                     FollowType followType = FollowType::NONE, NodeId nodeId = 0);
-    void AddCommandFromRT(std::unique_ptr<RSCommand>& command, NodeId nodeId);
+    void AddCommandFromRT(std::unique_ptr<RSCommand>& command, NodeId nodeId, FollowType followType = FollowType::FOLLOW_TO_PARENT);
 
     void FlushImplicitTransaction(uint64_t timestamp = 0);
     void FlushImplicitTransactionFromRT(uint64_t timestamp);

@@ -83,7 +83,7 @@ void RSTransactionProxy::AddCommand(std::unique_ptr<RSCommand>& command, bool is
     ROSEN_LOGE("RSTransactionProxy::AddCommand failed, command type and client type not match !");
 }
 
-void RSTransactionProxy::AddCommandFromRT(std::unique_ptr<RSCommand>& command, NodeId nodeId)
+void RSTransactionProxy::AddCommandFromRT(std::unique_ptr<RSCommand>& command, NodeId nodeId, FollowType followType)
 {
     if (renderServiceClient_ == nullptr || command == nullptr) {
         return;
@@ -91,7 +91,7 @@ void RSTransactionProxy::AddCommandFromRT(std::unique_ptr<RSCommand>& command, N
 
     {
         std::unique_lock<std::mutex> cmdLock(mutexForRT_);
-        implicitTransactionDataFromRT_->AddCommand(command, nodeId, FollowType::FOLLOW_TO_PARENT);
+        implicitTransactionDataFromRT_->AddCommand(command, nodeId, followType);
     }
 }
 

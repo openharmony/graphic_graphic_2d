@@ -621,7 +621,7 @@ bool RsRenderServiceUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfaceHandle
         return false;
     }
 
-    surfaceHandler.SetBuffer(buffer, acquireFence, damage);
+    surfaceHandler.SetBuffer(buffer, acquireFence, damage, timestamp);
     availableBufferCnt = surfaceHandler.ReduceAvailableBuffer();
     return true;
 }

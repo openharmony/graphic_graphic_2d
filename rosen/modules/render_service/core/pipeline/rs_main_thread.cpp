@@ -49,9 +49,9 @@ void RSMainThread::Init()
     mainLoop_ = [&]() {
         RS_LOGD("RsDebug mainLoop start");
         ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSMainThread::DoComposition");
+        ConsumeAndUpdateAllNodes();
         ProcessCommand();
         Animate(timestamp_);
-        ConsumeAndUpdateAllNodes();
         Render();
         ReleaseAllNodesBuffer();
         SendCommands();
@@ -87,13 +87,24 @@ void RSMainThread::ProcessCommand()
     RS_TRACE_BEGIN("RSMainThread::ProcessCommand");
     {
         std::lock_guard<std::mutex> lock(transitionDataMutex_);
-        for (auto it = cacheCommand_.begin(); it != cacheCommand_.end(); it++) {
-            for (auto it2 = it->second.begin(); it2 != it->second.end(); it2++) {
-                effectCommand_.insert(effectCommand_.end(),
-                    std::make_move_iterator(it2->second.begin()), std::make_move_iterator(it2->second.end()));
+        if (cacheCommand_.find(0) != cacheCommand_.end()) {
+            effectCommand_.insert(effectCommand_.end(),
+                std::make_move_iterator(cacheCommand_[0][0].begin()), std::make_move_iterator(cacheCommand_[0][0].end()));
+            cacheCommand_[0].clear();
+        }
+        for (auto it = bufferTimestamps_.begin(); it != bufferTimestamps_.end(); it++) {
+            auto surfaceNodeId = it->first;
+            auto nodeCommand = cacheCommand_.find(surfaceNodeId);
+            if (nodeCommand != cacheCommand_.end()) {
+                uint64_t timestamp = it->second;
+                auto effectIter = cacheCommand_[surfaceNodeId].upper_bound(timestamp);
+                for (auto it2 = cacheCommand_[surfaceNodeId].begin(); it2 != effectIter; it2++) {
+                    effectCommand_.insert(effectCommand_.end(),
+                        std::make_move_iterator(it2->second.begin()), std::make_move_iterator(it2->second.end()));
+                }
+                cacheCommand_[surfaceNodeId].erase(cacheCommand_[surfaceNodeId].begin(), effectIter);
             }
         }
-        cacheCommand_.clear();
     }
     for (size_t i = 0; i < effectCommand_.size(); i++) {
         auto rsCommand = std::move(effectCommand_[i]);
@@ -118,7 +129,11 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
         if (node->IsInstanceOf<RSSurfaceRenderNode>()) {
             RSSurfaceRenderNode& surfaceNode = *(RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node));
             RSSurfaceHandler& surfaceHandler = static_cast<RSSurfaceHandler&>(surfaceNode);
-            RsRenderServiceUtil::ConsumeAndUpdateBuffer(surfaceHandler);
+            if (RsRenderServiceUtil::ConsumeAndUpdateBuffer(surfaceHandler)) {
+                this->bufferTimestamps_[surfaceNode.GetId()] = static_cast<uint64_t>(surfaceNode.GetTimestamp());
+            } else {
+                this->bufferTimestamps_.erase(surfaceNode.GetId());
+            }
 
             // still have buffer(s) to consume.
             if (surfaceHandler.GetAvailableBufferCount() > 0) {
@@ -269,6 +284,9 @@ void RSMainThread::RecvRSTransactionData(std::unique_ptr<RSTransactionData>& rsT
                         auto parentNode = node->GetParent().lock();
                         if (parentNode) {
                             nodeId = parentNode->GetId();
+                        } else {
+                            cacheCommand_[0][0].emplace_back(std::move(command));
+                            continue;
                         }
                     }
                     cacheCommand_[nodeId][timestamp].emplace_back(std::move(command));
