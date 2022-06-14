@@ -37,7 +37,7 @@ public:
 
     void SetTimingCurve(const RSAnimationTimingCurve& timingCurve)
     {
-        if (timingCurve.type_ != RSTimingCurveType::INTERPOLATING) {
+        if (timingCurve.type_ != RSAnimationTimingCurve::CurveType::INTERPOLATING) {
             ROSEN_LOGE("RSTransition::SetTimingCurve: invalid timing curve type");
             return;
         }

@@ -24,12 +24,6 @@
 namespace OHOS {
 namespace Rosen {
 class RSInterpolator;
-enum class RSTimingCurveType
-{
-    INTERPOLATING,
-    SPRING,
-};
-
 class RS_EXPORT RSAnimationTimingCurve final {
 public:
     static const RSAnimationTimingCurve DEFAULT;
@@ -61,7 +55,8 @@ public:
     RSAnimationTimingCurve& operator=(const RSAnimationTimingCurve& timingCurve) = default;
     virtual ~RSAnimationTimingCurve() = default;
 
-    RSTimingCurveType type_ { RSTimingCurveType::INTERPOLATING };
+    enum class CurveType { INTERPOLATING, SPRING };
+    CurveType type_ { CurveType::INTERPOLATING };
 private:
     RSAnimationTimingCurve(const std::shared_ptr<RSInterpolator>& interpolator);
     RSAnimationTimingCurve(const std::function<float(float)>& customCurveFunc);

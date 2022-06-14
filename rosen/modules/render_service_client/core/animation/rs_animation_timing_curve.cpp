@@ -58,7 +58,7 @@ RSAnimationTimingCurve::RSAnimationTimingCurve(const std::function<float(float)>
 {}
 
 RSAnimationTimingCurve::RSAnimationTimingCurve(float response, float dampingRatio)
-    : type_(RSTimingCurveType::SPRING), response_(response), dampingRatio_(dampingRatio), interpolator_(nullptr),
+    : type_(CurveType::SPRING), response_(response), dampingRatio_(dampingRatio), interpolator_(nullptr),
       customCurveFunc_(nullptr)
 {}
 

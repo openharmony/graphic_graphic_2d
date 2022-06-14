@@ -28,10 +28,16 @@ void RSImplicitAnimator::OpenImplicitAnimation(const RSAnimationTimingProtocol& 
     globalImplicitParams_.push({ timingProtocol, timingCurve, finishCallback });
     implicitAnimations_.push({});
     keyframeAnimations_.push({});
-    if (timingCurve.type_ == RSTimingCurveType::INTERPOLATING) {
-        BeginImplicitCurveAnimation();
-    } else {
-        BeginImplicitSpringAnimation();
+    switch (timingCurve.type_) {
+        case RSAnimationTimingCurve::CurveType::INTERPOLATING:
+            BeginImplicitCurveAnimation();
+            break;
+        case RSAnimationTimingCurve::CurveType::SPRING:
+            BeginImplicitSpringAnimation();
+            break;
+        default:
+            ROSEN_LOGE("Wrong type of timing curve!");
+            return;
     }
 }
 
@@ -101,6 +107,11 @@ void RSImplicitAnimator::BeginImplicitKeyFrameAnimation(float fraction, const RS
         return;
     }
 
+    if (timingCurve.type_ != RSAnimationTimingCurve::CurveType::INTERPOLATING) {
+        ROSEN_LOGE("Wrong type of timing curve!");
+        return;
+    }
+
     auto paramsTuple = globalImplicitParams_.top();
     auto keyframeAnimationParam = std::make_shared<RSImplicitKeyframeAnimationParam>(
         std::get<RSAnimationTimingProtocol>(paramsTuple), timingCurve, fraction);
@@ -141,6 +152,10 @@ void RSImplicitAnimator::BeginImplicitCurveAnimation()
     }
 
     [[maybe_unused]] auto& [protocol, curve, unused] = globalImplicitParams_.top();
+    if (curve.type_ != RSAnimationTimingCurve::CurveType::INTERPOLATING) {
+        ROSEN_LOGE("Wrong type of timing curve!");
+        return;
+    }
     auto curveAnimationParam = std::make_shared<RSImplicitCurveAnimationParam>(protocol, curve);
     PushImplicitParam(curveAnimationParam);
 }
@@ -164,8 +179,12 @@ void RSImplicitAnimator::BeginImplicitPathAnimation(const std::shared_ptr<RSMoti
         return;
     }
 
-    [[maybe_unused]] auto& [protocal, curve, unused] = globalImplicitParams_.top();
-    auto pathAnimationParam = std::make_shared<RSImplicitPathAnimationParam>(protocal, curve, motionPathOption);
+    [[maybe_unused]] auto& [protocol, curve, unused] = globalImplicitParams_.top();
+    if (curve.type_ != RSAnimationTimingCurve::CurveType::INTERPOLATING) {
+        ROSEN_LOGE("Wrong type of timing curve!");
+        return;
+    }
+    auto pathAnimationParam = std::make_shared<RSImplicitPathAnimationParam>(protocol, curve, motionPathOption);
     PushImplicitParam(pathAnimationParam);
 }
 
@@ -188,7 +207,8 @@ void RSImplicitAnimator::BeginImplicitSpringAnimation()
     }
 
     [[maybe_unused]] auto& [protocol, curve, unused] = globalImplicitParams_.top();
-    if (curve.type_ != RSTimingCurveType::SPRING) {
+    if (curve.type_ != RSAnimationTimingCurve::CurveType::SPRING) {
+        ROSEN_LOGE("Wrong type of timing curve!");
         return;
     }
     auto springParam = std::make_shared<RSImplicitSpringAnimationParam>(protocol, curve);
@@ -203,6 +223,10 @@ void RSImplicitAnimator::BeginImplicitTransition(const std::shared_ptr<const RST
     }
 
     [[maybe_unused]] auto& [protocol, curve, unused] = globalImplicitParams_.top();
+    if (curve.type_ != RSAnimationTimingCurve::CurveType::INTERPOLATING) {
+        ROSEN_LOGE("Wrong type of timing curve!");
+        return;
+    }
     auto transitionParam = std::make_shared<RSImplicitTransitionParam>(protocol, curve, effect);
     PushImplicitParam(transitionParam);
 }
