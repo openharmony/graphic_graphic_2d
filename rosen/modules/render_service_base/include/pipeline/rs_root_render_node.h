@@ -41,13 +41,9 @@ public:
     int32_t GetSurfaceWidth() const;
     int32_t GetSurfaceHeight() const;
 
-    static void MarkForceRaster(bool flag = true);
-    static bool NeedForceRaster();
-
 private:
     std::shared_ptr<RSSurface> rsSurface_ = nullptr;
     NodeId surfaceNodeId_ = 0;
-    static bool forceRaster_;
 
     std::vector<NodeId> childSurfaceNodeIds_;
     friend class RSRenderThreadVisitor;

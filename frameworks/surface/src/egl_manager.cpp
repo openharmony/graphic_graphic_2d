@@ -195,50 +195,50 @@ GSError EglManager::EglFuncInit()
 {
     const char *eglExtensions = eglQueryString(display_, EGL_EXTENSIONS);
     if (eglExtensions == nullptr) {
-        BLOGE("param is nullptr.");
+        BLOGE("param eglExtensions is nullptr.");
         return GSERROR_INTERNEL;
     }
 
     createImage_ = (EglCreateImageFunc)eglGetProcAddress(EGL_CREATE_IMAGE_KHR);
     if (createImage_ == nullptr) {
-        BLOGE("param is nullptr.");
+        BLOGE("param createImage_ is nullptr.");
         return GSERROR_INTERNEL;
     }
 
     destroyImage_ = (EglDestroyImageFunc)eglGetProcAddress(EGL_DESTROY_IMAGE_KHR);
     if (destroyImage_ == nullptr) {
-        BLOGE("param is nullptr.");
+        BLOGE("param destroyImage_ is nullptr.");
         return GSERROR_INTERNEL;
     }
 
     imageTargetTexture2d_ = (EglImageTargetTexture2DFunc)eglGetProcAddress(EGL_IMAGE_TARGET_TEXTURE2DOES);
     if (imageTargetTexture2d_ == nullptr) {
-        BLOGE("param is nullptr.");
+        BLOGE("param imageTargetTexture2d_ is nullptr.");
         return GSERROR_INTERNEL;
     }
     
     if (CheckEglExtension(eglExtensions, EGL_KHR_FENCE_SYNC)) {
         createSync_ = (EglCreateSyncFunc)eglGetProcAddress(EGL_CREATE_SYNC_KHR);
         if (createSync_ == nullptr) {
-            BLOGE("param is nullptr.");
+            BLOGE("param createSync_ is nullptr.");
             return GSERROR_INTERNEL;
         }
         
         destroySync_ = (EglDestroySyncFunc)eglGetProcAddress(EGL_DESTROY_SYNC_KHR);
         if (destroySync_ == nullptr) {
-            BLOGE("param is nullptr.");
+            BLOGE("param destroySync_ is nullptr.");
             return GSERROR_INTERNEL;
         }
 
         clientWaitSync_ = (EglClientWaitSyncFunc)eglGetProcAddress(EGL_CLIENT_WAIT_SYNC_KHR);
         if (clientWaitSync_ == nullptr) {
-            BLOGE("param is nullptr.");
+            BLOGE("param clientWaitSync_ is nullptr.");
             return GSERROR_INTERNEL;
         }
 
         dupNativeFenceFd_ = (EglDupNativeFenceFdFunc)eglGetProcAddress(EGL_DUP_NATIVE_FENCE_FD_ANDROID);
         if (dupNativeFenceFd_ == nullptr) {
-            BLOGE("param is nullptr.");
+            BLOGE("param dupNativeFenceFd_ is nullptr.");
             return GSERROR_INTERNEL;
         }
     }
@@ -246,7 +246,7 @@ GSError EglManager::EglFuncInit()
     if (CheckEglExtension(eglExtensions, EGL_KHR_WAIT_SYNC)) {
         waitSync_ = (EglWaitSyncFunc)eglGetProcAddress(EGL_WAIT_SYNC_KHR);
         if (waitSync_ == nullptr) {
-            BLOGE("param is nullptr.");
+            BLOGE("param waitSync_ is nullptr.");
             return GSERROR_INTERNEL;
         }
     }
@@ -298,7 +298,7 @@ GSError EglManager::EglInit(EGLContext ctx)
 
     const char *glExtensions = (const char *) glGetString(GL_EXTENSIONS);
     if (glExtensions == nullptr) {
-        BLOGE("param is nullptr.");
+        BLOGE("param glExtensions is nullptr.");
         return GSERROR_INTERNEL;
     }
 

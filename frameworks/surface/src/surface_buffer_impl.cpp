@@ -125,7 +125,7 @@ GSError SurfaceBufferImpl::Alloc(const BufferRequestConfig &config)
         surfaceBufferWidth_ = config.width;
         surfaceBufferHeight_ = config.height;
         handle_ = handle;
-        BLOGI("buffer handle %{public}p w: %{public}d h: %{public}d t: %{public}d", handle_,
+        BLOGD("buffer handle %{public}p w: %{public}d h: %{public}d t: %{public}d", handle_,
             handle_->width, handle_->height, config.transform);
         return GSERROR_OK;
     }
@@ -146,7 +146,7 @@ GSError SurfaceBufferImpl::Map()
             BLOGE("handle is nullptr");
             return GSERROR_INVALID_OPERATING;
         } else if (handle_->virAddr != nullptr) {
-            BLOGI("handle_->virAddr has been maped");
+            BLOGD("handle_->virAddr has been maped");
             return GSERROR_OK;
         }
         handle = handle_;

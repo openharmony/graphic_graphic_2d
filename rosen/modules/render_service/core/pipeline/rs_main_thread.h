@@ -123,6 +123,7 @@ private:
     void ProcessCommand();
     void Animate(uint64_t timestamp);
     void ConsumeAndUpdateAllNodes();
+    void ReleaseAllNodesBuffer();
     void Render();
     void SendCommands();
 

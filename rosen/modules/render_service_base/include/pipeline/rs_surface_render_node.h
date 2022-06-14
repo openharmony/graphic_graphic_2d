@@ -126,9 +126,15 @@ public:
         return dstRect_;
     }
 
-    const Vector4f& GetSrcRatio() const;
+    void SetSrcRect(const RectI& rect)
+    {
+        srcRect_ = rect;
+    }
 
-    void SetSrcRatio(const Vector4f ratio, bool sendMsg = true);
+    const RectI& GetSrcRect() const
+    {
+        return srcRect_;
+    }
 
     void SetGlobalAlpha(float alpha)
     {
@@ -180,14 +186,14 @@ private:
     std::mutex mutexUI_;
     std::mutex mutex_;
 
-    SkMatrix contextMatrix_;
-    SkMatrix totalMatrix_;
+    SkMatrix contextMatrix_ = SkMatrix::I();
     float contextAlpha_ = 1.0f;
-    SkRect contextClipRect_;
-    Vector4f srcRatio_ = {0.0f, 0.0f, 1.0f, 1.0f};
+    SkRect contextClipRect_ = SkRect::MakeEmpty();
 
     bool isSecurityLayer_ = false;
+    RectI srcRect_;
     RectI dstRect_;
+    SkMatrix totalMatrix_;
     int32_t offsetX_ = 0;
     int32_t offsetY_ = 0;
     float globalAlpha_ = 1.0f;

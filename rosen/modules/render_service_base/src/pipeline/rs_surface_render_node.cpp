@@ -54,28 +54,48 @@ void RSSurfaceRenderNode::SetConsumer(const sptr<Surface>& consumer)
     consumer_ = consumer;
 }
 
+static SkRect getLocalClipBounds(const RSPaintFilterCanvas& canvas)
+{
+    SkIRect ibounds = canvas.getDeviceClipBounds();
+    if (ibounds.isEmpty()) {
+        return SkRect::MakeEmpty();
+    }
+
+    SkMatrix inverse;
+    // if we can't invert the CTM, we can't return local clip bounds
+    if (!(canvas.getTotalMatrix().invert(&inverse))) {
+        return SkRect::MakeEmpty();
+    }
+    SkRect bounds;
+    SkRect r = SkRect::Make(ibounds);
+    inverse.mapRect(&bounds, r);
+    return bounds;
+}
+
 void RSSurfaceRenderNode::ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas)
 {
-    canvas.SaveAlpha();
     canvas.save();
-    canvas.MultiplyAlpha(GetRenderProperties().GetAlpha() * GetContextAlpha());
+    canvas.SaveAlpha();
 
-    // apply intermediate properties from RT
-    auto clipRectFromRT = GetContextClipRegion();
+    // apply intermediate properties from RT to canvas
+    canvas.MultiplyAlpha(GetContextAlpha());
     canvas.concat(GetContextMatrix());
-    if (!clipRectFromRT.isEmpty()) {
+    auto clipRectFromRT = GetContextClipRegion();
+    if (clipRectFromRT.width() > std::numeric_limits<float>::epsilon() &&
+        clipRectFromRT.height() > std::numeric_limits<float>::epsilon()) {
         canvas.clipRect(clipRectFromRT);
     }
 
-    // apply node properties
+    // apply node properties to canvas
     const RSProperties& properties = GetRenderProperties();
+    canvas.MultiplyAlpha(properties.GetAlpha());
     auto currentGeoPtr = std::static_pointer_cast<RSObjAbsGeometry>(properties.GetBoundsGeometry());
     if (currentGeoPtr != nullptr) {
         currentGeoPtr->UpdateByMatrixFromSelf();
     }
     canvas.concat(currentGeoPtr->GetMatrix());
 
-    // apply transition properties
+    // apply transition properties to canvas
     auto transitionProperties = GetAnimationManager().GetTransitionProperties();
     Vector2f center(properties.GetBoundsWidth() * 0.5f, properties.GetBoundsHeight() * 0.5f);
     RSPropertiesPainter::DrawTransitionProperties(transitionProperties, center, canvas);
@@ -83,10 +103,20 @@ void RSSurfaceRenderNode::ProcessRenderBeforeChildren(RSPaintFilterCanvas& canva
     // clip by bounds
     canvas.clipRect(SkRect::MakeWH(properties.GetBoundsWidth(), properties.GetBoundsHeight()));
 
-    // extract information from SkCanvas to compositor, we use deviceClipBounds as DstRect, canvas alpha as GlobalAlpha
-    auto currentClipRegion = canvas.getDeviceClipBounds();
-    SetDstRect({ currentClipRegion.left(), currentClipRegion.top(), currentClipRegion.width(),
-        currentClipRegion.height() });
+    // extract srcDest and dstRect from SkCanvas, localCLipBounds as SrcRect, deviceClipBounds as DstRect
+    auto localClipRect = getLocalClipBounds(canvas);
+    RectI srcRect = {
+        std::clamp<int>(localClipRect.left(), 0, properties.GetBoundsWidth()),
+        std::clamp<int>(localClipRect.top(), 0, properties.GetBoundsHeight()),
+        std::clamp<int>(localClipRect.width(), 0, properties.GetBoundsWidth() - localClipRect.left()),
+        std::clamp<int>(localClipRect.height(), 0, properties.GetBoundsHeight() - localClipRect.top())
+    };
+    SetSrcRect(srcRect);
+    auto deviceClipRect = canvas.getDeviceClipBounds();
+    RectI dstRect = { deviceClipRect.left(), deviceClipRect.top(), deviceClipRect.width(), deviceClipRect.height() };
+    SetDstRect(dstRect);
+
+    // save TotalMatrix and GlobalAlpha for compositor
     SetTotalMatrix(canvas.getTotalMatrix());
     SetGlobalAlpha(canvas.GetAlpha());
 }
@@ -130,25 +160,6 @@ void RSSurfaceRenderNode::SetContextMatrix(const SkMatrix& matrix, bool sendMsg)
 const SkMatrix& RSSurfaceRenderNode::GetContextMatrix() const
 {
     return contextMatrix_;
-}
-
-void RSSurfaceRenderNode::SetSrcRatio(const Vector4f ratio, bool sendMsg)
-{
-    if (srcRatio_ == ratio) {
-        return;
-    }
-    srcRatio_ = ratio;
-    if (!sendMsg) {
-        return;
-    }
-    // send a Command
-    std::unique_ptr<RSCommand> command = std::make_unique<RSSurfaceNodeSetSrcRatio>(GetId(), ratio);
-    SendCommandFromRT(command, GetId());
-}
-
-const Vector4f& RSSurfaceRenderNode::GetSrcRatio() const
-{
-    return srcRatio_;
 }
 
 void RSSurfaceRenderNode::SetContextAlpha(float alpha, bool sendMsg)

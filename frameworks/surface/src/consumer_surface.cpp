@@ -30,7 +30,7 @@ constexpr uint32_t PRODUCER_REF_COUNT_IN_CONSUMER_SURFACE = 2;
 ConsumerSurface::ConsumerSurface(const std::string &name, bool isShared)
     : name_(name), isShared_(isShared)
 {
-    BLOGNI("ctor");
+    BLOGND("ctor");
     consumer_ = nullptr;
     producer_ = nullptr;
 }
@@ -42,7 +42,7 @@ ConsumerSurface::~ConsumerSurface()
         BLOGNE("Wrong SptrRefCount! Queue Id:%{public}" PRIu64 " consumer_:%{public}d producer_:%{public}d",
             producer_->GetUniqueId(), consumer_->GetSptrRefCount(), producer_->GetSptrRefCount());
     }
-    BLOGNI("dtor");
+    BLOGND("dtor");
     consumer_ = nullptr;
     producer_ = nullptr;
 }

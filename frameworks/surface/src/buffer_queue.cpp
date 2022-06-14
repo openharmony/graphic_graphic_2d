@@ -270,7 +270,7 @@ GSError BufferQueue::ReuseBuffer(const BufferRequestConfig &config, sptr<BufferE
     dbs.insert(dbs.end(), deletingList_.begin(), deletingList_.end());
     deletingList_.clear();
 
-    if (needRealloc) {
+    if (needRealloc || isShared_) {
         BLOGND("RequestBuffer Succ realloc Buffer[%{public}d %{public}d] with new config "\
             "qid: %{public}d id: %{public}" PRIu64 "", config.width, config.height, retval.sequence, uniqueId_);
     } else {

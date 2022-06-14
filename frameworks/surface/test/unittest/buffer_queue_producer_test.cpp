@@ -149,7 +149,7 @@ HWTEST_F(BufferQueueProducerTest, ReqCan003, Function | MediumTest | Level2)
 
     auto ret = bqp->RequestBuffer(requestConfig, bedata, retval1);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
-    ASSERT_NE(retval1.buffer, nullptr);
+    ASSERT_EQ(retval1.buffer, nullptr);
 
     ret = bqp->RequestBuffer(requestConfig, bedata, retval2);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);

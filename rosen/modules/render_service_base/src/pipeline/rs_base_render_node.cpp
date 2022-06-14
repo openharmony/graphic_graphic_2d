@@ -97,6 +97,58 @@ void RSBaseRenderNode::SetIsOnTheTree(bool flag)
     }
 }
 
+void RSBaseRenderNode::AddCrossParentChild(const SharedPtr& child, int32_t index)
+{
+    // AddCrossParentChild only used as: the child is under multiple parents(e.g. a window cross multi-screens),
+    // so this child will not remove from the old parent.
+    if (child == nullptr) {
+        return;
+    }
+
+    // Set parent-child relationship
+    child->SetParent(weak_from_this());
+    if (index < 0 || index >= static_cast<int32_t>(children_.size())) {
+        children_.emplace_back(child);
+    } else {
+        children_.emplace(std::next(children_.begin(), index), child);
+    }
+
+    disappearingChildren_.remove_if([&child](const auto& pair) -> bool { return pair.first == child; });
+    // A child is not on the tree until its parent is on the tree
+    if (isOnTheTree_) {
+        child->SetIsOnTheTree(true);
+    }
+}
+
+void RSBaseRenderNode::RemoveCrossParentChild(const SharedPtr& child, const WeakPtr& newParent)
+{
+    // RemoveCrossParentChild only used as: the child is under multiple parents(e.g. a window cross multi-screens),
+    // set the newParentId to rebuild the parent-child relationship.
+    if (child == nullptr) {
+        return;
+    }
+    // break parent-child relationship
+    auto it = std::find_if(children_.begin(), children_.end(),
+        [&](WeakPtr& ptr) -> bool { return ROSEN_EQ<RSBaseRenderNode>(ptr, child); });
+    if (it == children_.end()) {
+        return;
+    }
+    // avoid duplicate entry in disappearingChildren_ (this should not happen)
+    disappearingChildren_.remove_if([&child](const auto& pair) -> bool { return pair.first == child; });
+    // if child has disappearing transition, add it to disappearingChildren_
+    if (child->HasDisappearingTransition(true)) {
+        ROSEN_LOGD("RSBaseRenderNode::RemoveChild %llu move child(id %llu) into disappearingChildren", GetId(),
+            child->GetId());
+        // keep shared_ptr alive for transition
+        uint32_t origPos = static_cast<uint32_t>(std::distance(children_.begin(), it));
+        disappearingChildren_.emplace_back(child, origPos);
+    } else {
+        child->SetParent(newParent);
+    }
+    children_.erase(it);
+    SetDirty();
+}
+
 void RSBaseRenderNode::RemoveFromTree()
 {
     if (auto parentPtr = parent_.lock()) {

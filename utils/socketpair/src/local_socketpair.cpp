@@ -104,7 +104,7 @@ int32_t LocalSocketPair::SendData(const void *vaddr, size_t size)
         length = send(sendFd_, vaddr, size, MSG_DONTWAIT | MSG_NOSIGNAL);
     } while (errno == EINTR);
     if (length < 0) {
-        HiLog::Error(LABEL, "%{public}s send fail : %{public}d, length = %{public}d", __func__, errno, (int32_t)length);
+        HiLog::Debug(LABEL, "%{public}s send fail : %{public}d, length = %{public}d", __func__, errno, (int32_t)length);
         if (errno == EAGAIN) {
             return ERRNO_EAGAIN;
         } else {

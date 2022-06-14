@@ -224,18 +224,9 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
         return;
     }
 
-    sk_sp<SkSurface> skSurface = nullptr;
-    auto iter = forceRasterNodes.find(node.GetId());
-    if (iter != forceRasterNodes.end()) {
-        forceRasterNodes.erase(iter);
-        SkImageInfo imageInfo = SkImageInfo::Make(node.GetSurfaceWidth(), node.GetSurfaceHeight(),
-            kRGBA_8888_SkColorType, kOpaque_SkAlphaType, SkColorSpace::MakeSRGB());
-        skSurface = SkSurface::MakeRaster(imageInfo);
-        canvas_ = new RSPaintFilterCanvas(skSurface.get());
-    } else {
-        auto skSurface = surfaceFrame->GetSurface();
-        canvas_ = new RSPaintFilterCanvas(skSurface.get());
-    }
+    auto skSurface = surfaceFrame->GetSurface();
+    canvas_ = new RSPaintFilterCanvas(skSurface.get());
+
     canvas_->clipRect(SkRect::MakeWH(node.GetSurfaceWidth(), node.GetSurfaceHeight()));
     canvas_->clear(SK_ColorTRANSPARENT);
     isIdle_ = false;
@@ -269,26 +260,12 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
         DrawDirtyRegion();
     }
 
-    if (skSurface) {
-        canvas_->flush();
-        surfaceFrame->GetCanvas()->clear(SK_ColorTRANSPARENT);
-        skSurface->draw(surfaceFrame->GetCanvas(), 0.f, 0.f, nullptr);
-    }
-    if (RSRootRenderNode::NeedForceRaster()) {
-        RSRootRenderNode::MarkForceRaster(false);
-        forceRasterNodes.insert(node.GetId());
-        if (!skSurface) {
-            RSRenderThread::Instance().RequestNextVSync();
-        }
-    }
-
     RS_TRACE_BEGIN("rsSurface->FlushFrame");
     rsSurface->FlushFrame(surfaceFrame, uiTimestamp_);
     RS_TRACE_END();
 
     delete canvas_;
     canvas_ = nullptr;
-
     isIdle_ = true;
 }
 
@@ -353,7 +330,13 @@ void RSRenderThreadVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
         ProcessBaseRenderNode(node);
         return;
     }
-    node.SetContextClipRegion(getLocalClipBounds(canvas_));
+    auto clipRect = getLocalClipBounds(canvas_);
+    if (clipRect.width() < std::numeric_limits<float>::epsilon() ||
+        clipRect.height() < std::numeric_limits<float>::epsilon()) {
+        // if clipRect is empty, this node will be removed from parent's children list.
+        return;
+    }
+    node.SetContextClipRegion(clipRect);
 
     // clip hole
     ClipHoleForSurfaceNode(node);
@@ -388,15 +371,6 @@ void RSRenderThreadVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
     parentSurfaceNodeMatrix_ = parentSurfaceNodeMatrix;
 }
 
-const Vector4f CalSrcRectRatio(const SkRect& originRect, const SkRect& resRect)
-{
-    float x = std::clamp((resRect.left() - originRect.left()) / originRect.width(), 0.0f, 1.0f);
-    float y = std::clamp((resRect.top() - originRect.top()) / originRect.height(), 0.0f, 1.0f);
-    float width = std::clamp(resRect.width() / originRect.width(), 0.0f, 1.0f - x);
-    float height = std::clamp(resRect.height() / originRect.height(), 0.0f, 1.0f - y);
-    return Vector4f(x, y, width, height);
-}
-
 void RSRenderThreadVisitor::ClipHoleForSurfaceNode(RSSurfaceRenderNode& node)
 {
 #ifdef ROSEN_OHOS
@@ -407,9 +381,6 @@ void RSRenderThreadVisitor::ClipHoleForSurfaceNode(RSSurfaceRenderNode& node)
     canvas_->save();
     SkRect originRect = SkRect::MakeXYWH(x, y, width, height);
     canvas_->clipRect(originRect);
-    SkRect resRect = getLocalClipBounds(canvas_);
-    auto ratio = CalSrcRectRatio(originRect, resRect);
-    node.SetSrcRatio(ratio);
     if (node.IsNotifyRTBufferAvailable() == true) {
         canvas_->clear(SK_ColorTRANSPARENT);
     } else {
