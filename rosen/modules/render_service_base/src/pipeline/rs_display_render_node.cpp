@@ -36,6 +36,14 @@ RSDisplayRenderNode::RSDisplayRenderNode(
 
 RSDisplayRenderNode::~RSDisplayRenderNode() {}
 
+void RSDisplayRenderNode::CollectSurface(
+    const std::shared_ptr<RSBaseRenderNode>& node, std::vector<RSBaseRenderNode::SharedPtr>& vec)
+{
+    for (auto& child : node->GetSortedChildren()) {
+        child->CollectSurface(child, vec);
+    }
+}
+
 void RSDisplayRenderNode::Prepare(const std::shared_ptr<RSNodeVisitor>& visitor)
 {
     if (!visitor) {

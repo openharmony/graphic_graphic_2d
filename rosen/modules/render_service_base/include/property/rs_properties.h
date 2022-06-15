@@ -51,6 +51,7 @@ public:
     Vector2f GetBoundsPosition() const;
     float GetBoundsPositionX() const;
     float GetBoundsPositionY() const;
+    bool GetGeoDirty() const;
 
     void SetFrame(Vector4f frame);
     void SetFrameSize(Vector2f size);
@@ -176,6 +177,8 @@ public:
 
     void SetVisible(bool visible);
     bool GetVisible() const;
+    void SetOcclusionVisible(bool visible);
+    bool GetOcclusionVisible() const;
     bool SetId(NodeId id);
     std::string Dump() const;
 
@@ -207,6 +210,7 @@ private:
     bool clipToFrame_ = false;
     bool isDirty_ = false;
     bool geoDirty_ = false;
+    bool isOcclusionVisible_ = true;
 
     bool hasBounds_ = false;
 

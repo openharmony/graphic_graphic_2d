@@ -88,6 +88,7 @@ void RSRenderServiceConnection::CleanAll(bool toDelete) noexcept
     mainThread_->ScheduleTask([this]() {
         CleanVirtualScreens();
         CleanRenderNodes();
+        mainThread_->CleanOcclusionListener();
     }).wait();
 
     for (auto& conn : vsyncConnections_) {
@@ -476,6 +477,20 @@ int32_t RSRenderServiceConnection::GetScreenType(ScreenId id, RSScreenType& scre
 {
     std::lock_guard<std::mutex> lock(mutex_);
     return screenManager_->GetScreenType(id, screenType);
+}
+
+int32_t RSRenderServiceConnection::RegisterOcclusionChangeCallback(sptr<RSIOcclusionChangeCallback> callback)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    mainThread_->RegisterOcclusionChangeCallback(callback);
+    return StatusCode::SUCCESS;
+}
+
+int32_t RSRenderServiceConnection::UnRegisterOcclusionChangeCallback(sptr<RSIOcclusionChangeCallback> callback)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    mainThread_->UnRegisterOcclusionChangeCallback(callback);
+    return StatusCode::SUCCESS;
 }
 } // namespace Rosen
 } // namespace OHOS

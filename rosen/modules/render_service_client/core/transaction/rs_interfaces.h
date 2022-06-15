@@ -21,6 +21,7 @@
 #include "transaction/rs_render_service_client.h"
 #include "ui/rs_display_node.h"
 #include "ui/rs_surface_node.h"
+#include "ipc_callbacks/rs_iocclusion_change_callback.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -98,6 +99,10 @@ public:
     std::shared_ptr<VSyncReceiver> CreateVSyncReceiver(
         const std::string& name,
         const std::shared_ptr<OHOS::AppExecFwk::EventHandler> &looper = nullptr);
+
+    int32_t RegisterOcclusionChangeCallback(const OcclusionChangeCallback& callback);
+
+    int32_t UnRegisterOcclusionChangeCallback(const OcclusionChangeCallback& callback);
 
 private:
     RSInterfaces();

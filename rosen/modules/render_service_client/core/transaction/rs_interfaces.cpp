@@ -185,5 +185,15 @@ int32_t RSInterfaces::GetScreenType(ScreenId id, RSScreenType& screenType)
 {
     return renderServiceClient_->GetScreenType(id, screenType);
 }
+
+int32_t RSInterfaces::RegisterOcclusionChangeCallback(const OcclusionChangeCallback& callback)
+{
+    return renderServiceClient_->RegisterOcclusionChangeCallback(callback);
+}
+
+int32_t RSInterfaces::UnRegisterOcclusionChangeCallback(const OcclusionChangeCallback& callback)
+{
+    return renderServiceClient_->UnRegisterOcclusionChangeCallback(callback);
+}
 } // namespace Rosen
 } // namespace OHOS

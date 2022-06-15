@@ -178,7 +178,39 @@ void RSMainThread::Render()
         visitor = std::make_shared<RSRenderServiceVisitor>();
     }
     rootNode->Prepare(visitor);
+    if (visitor->surfaceGeoDirty_ && RSSystemProperties::GetOcclusionEnabled()) {
+        CalcOcclusion(rootNode);
+    }
     rootNode->Process(visitor);
+}
+
+void RSMainThread::CalcOcclusion(RSBaseRenderNode::SharedPtr node)
+{
+    RS_TRACE_BEGIN("RSMainThread::CalcOcclusion");
+    std::vector<RSBaseRenderNode::SharedPtr> curAllSurfaces;
+    node->CollectSurface(node, curAllSurfaces);
+    Occlusion::Region curRegion;
+    std::vector<std::pair<uint64_t, bool>> curVisChangeVec;
+    for(auto it = curAllSurfaces.rbegin(); it != curAllSurfaces.rend(); it++) {
+        auto surface = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(*it);
+        if (surface == nullptr || surface->GetDstRect().IsEmpty() ||
+            surface->GetRenderProperties().GetAlpha() < 1.0) {
+            continue;
+        }
+        Occlusion::Rect rect { surface->GetDstRect().left_, surface->GetDstRect().top_,
+                               surface->GetDstRect().GetRight(), surface->GetDstRect().GetBottom() };
+        Occlusion::Region curSurface { rect };
+        Occlusion::Region subResult = curSurface.Sub(curRegion);
+        surface->SetVisibleRegionRecursive(subResult, curVisChangeVec);
+        curRegion = curSurface.Or(curRegion);
+    }
+    
+    if (curVisChangeVec.size() > 0) {
+        for (auto& listener : occlusionListeners_) {
+            listener->OnOcclusionVisibleChanged(std::make_shared<RSOcclusionData>(curVisChangeVec));
+        }
+    }
+    RS_TRACE_END();
 }
 
 void RSMainThread::RequestNextVSync()
@@ -263,6 +295,24 @@ void RSMainThread::RegisterApplicationRenderThread(uint32_t pid, sptr<IApplicati
 void RSMainThread::UnregisterApplicationRenderThread(sptr<IApplicationRenderThread> app)
 {
     std::__libcpp_erase_if_container(applicationRenderThreadMap_, [&app](auto& iter) { return iter.second == app; });
+}
+
+void RSMainThread::RegisterOcclusionChangeCallback(sptr<RSIOcclusionChangeCallback> callback)
+{
+    occlusionListeners_.emplace_back(callback);
+}
+
+void RSMainThread::UnRegisterOcclusionChangeCallback(sptr<RSIOcclusionChangeCallback> callback)
+{
+    auto iter = std::find(occlusionListeners_.begin(), occlusionListeners_.end(), callback);
+    if (iter != occlusionListeners_.end()) {
+        occlusionListeners_.erase(iter);
+    }
+}
+
+void RSMainThread::CleanOcclusionListener()
+{
+    occlusionListeners_.clear();
 }
 
 void RSMainThread::SendCommands()

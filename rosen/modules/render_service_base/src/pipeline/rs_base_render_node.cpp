@@ -294,6 +294,14 @@ void RSBaseRenderNode::SetClean()
     dirtyStatus_ = NodeDirty::CLEAN;
 }
 
+void RSBaseRenderNode::CollectSurface(
+    const std::shared_ptr<RSBaseRenderNode>& node, std::vector<RSBaseRenderNode::SharedPtr>& vec)
+{
+    for (auto& child : node->GetSortedChildren()) {
+        child->CollectSurface(child, vec);
+    }
+}
+
 void RSBaseRenderNode::Prepare(const std::shared_ptr<RSNodeVisitor>& visitor)
 {
     if (!visitor) {

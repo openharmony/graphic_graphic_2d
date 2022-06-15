@@ -33,6 +33,7 @@
 #include "screen_manager/rs_virtual_screen_resolution.h"
 #include "transaction/rs_transaction_data.h"
 #include "ivsync_connection.h"
+#include "ipc_callbacks/rs_iocclusion_change_callback.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -79,6 +80,8 @@ public:
         GET_ROTATION,
         GET_SCREEN_HDR_CAPABILITY,
         GET_SCREEN_TYPE,
+        REGISTER_OCCLUSION_CHANGE_CALLBACK,
+        UNREGISTER_OCCLUSION_CHANGE_CALLBACK,
     };
 
     virtual void CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData) = 0;
@@ -155,6 +158,10 @@ public:
     virtual int32_t GetScreenHDRCapability(ScreenId id, RSScreenHDRCapability& screenHdrCapability) = 0;
 
     virtual int32_t GetScreenType(ScreenId id, RSScreenType& screenType) = 0;
+    
+    virtual int32_t RegisterOcclusionChangeCallback(sptr<RSIOcclusionChangeCallback> callback) = 0;
+
+    virtual int32_t UnRegisterOcclusionChangeCallback(sptr<RSIOcclusionChangeCallback> callback) = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

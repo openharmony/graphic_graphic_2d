@@ -127,6 +127,14 @@ void RSSurfaceRenderNode::ProcessRenderAfterChildren(RSPaintFilterCanvas& canvas
     canvas.restore();
 }
 
+void RSSurfaceRenderNode::CollectSurface(
+    const std::shared_ptr<RSBaseRenderNode>& node, std::vector<RSBaseRenderNode::SharedPtr>& vec)
+{
+    if (IsOnTheTree()) {
+        vec.emplace_back(shared_from_this());
+    }
+}
+
 void RSSurfaceRenderNode::Prepare(const std::shared_ptr<RSNodeVisitor>& visitor)
 {
     if (!visitor) {

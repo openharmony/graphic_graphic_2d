@@ -77,6 +77,8 @@ ohos_shared_library("librender_service_base") {
     "src/ipc_callbacks/buffer_available_callback_stub.cpp",
     "src/ipc_callbacks/rs_application_render_thread_proxy.cpp",
     "src/ipc_callbacks/rs_application_render_thread_stub.cpp",
+    "src/ipc_callbacks/rs_occlusion_change_callback_proxy.cpp",
+    "src/ipc_callbacks/rs_occlusion_change_callback_stub.cpp",
     "src/ipc_callbacks/screen_change_callback_proxy.cpp",
     "src/ipc_callbacks/screen_change_callback_stub.cpp",
     "src/ipc_callbacks/surface_capture_callback_proxy.cpp",
@@ -116,6 +118,7 @@ ohos_shared_library("librender_service_base") {
 
     #transaction
     "src/transaction/rs_marshalling_helper.cpp",
+    "src/transaction/rs_occlusion_data.cpp",
     "src/transaction/rs_transaction_data.cpp",
     "src/transaction/rs_transaction_proxy.cpp",
 

@@ -128,6 +128,11 @@ Vector2f RSProperties::GetBoundsPosition() const
     return { GetBoundsPositionX(), GetBoundsPositionY() };
 }
 
+bool RSProperties::GetGeoDirty() const
+{
+    return geoDirty_;
+}
+
 void RSProperties::SetFrame(Vector4f frame)
 {
     frameGeo_->SetRect(frame.x_, frame.y_, frame.z_, frame.w_);
@@ -846,6 +851,16 @@ void RSProperties::SetVisible(bool visible)
 bool RSProperties::GetVisible() const
 {
     return visible_;
+}
+
+void RSProperties::SetOcclusionVisible(bool visible)
+{
+    isOcclusionVisible_ = visible;
+}
+
+bool RSProperties::GetOcclusionVisible() const
+{
+    return isOcclusionVisible_;
 }
 
 RRect RSProperties::GetRRect() const

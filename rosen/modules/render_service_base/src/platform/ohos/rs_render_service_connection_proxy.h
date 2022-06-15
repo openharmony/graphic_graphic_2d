@@ -99,6 +99,10 @@ public:
     int32_t GetScreenHDRCapability(ScreenId id, RSScreenHDRCapability& screenHdrCapability) override;
 
     int32_t GetScreenType(ScreenId id, RSScreenType& screenType) override;
+
+    int32_t RegisterOcclusionChangeCallback(sptr<RSIOcclusionChangeCallback> callback) override;
+
+    int32_t UnRegisterOcclusionChangeCallback(sptr<RSIOcclusionChangeCallback> callback) override;
 private:
     static inline BrokerDelegator<RSRenderServiceConnectionProxy> delegator_;
 };
