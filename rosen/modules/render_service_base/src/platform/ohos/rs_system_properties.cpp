@@ -62,5 +62,10 @@ DirtyRegionDebugType RSSystemProperties::GetDirtyRegionDebugType()
     return static_cast<DirtyRegionDebugType>(
         std::atoi((system::GetParameter("rosen.dirtyregiondebug.enabled", "0")).c_str()));
 }
+
+bool RSSystemProperties::GetOcclusionEnabled()
+{
+    return std::atoi((system::GetParameter("rosen.occlusion.enabled", "0")).c_str()) != 0;
+}
 } // namespace Rosen
 } // namespace OHOS

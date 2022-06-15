@@ -47,14 +47,12 @@ public:
     virtual void SetSurfaceBufferColorGamut(const ColorGamut& colorGamut) = 0;
     virtual void SetSurfaceBufferTransform(const TransformType& transform) = 0;
 
-    virtual const ScalingMode& GetSurfaceBufferScalingMode() const = 0;
-
     virtual int32_t GetSurfaceBufferWidth() const = 0;
     virtual int32_t GetSurfaceBufferHeight() const = 0;
     virtual void SetSurfaceBufferWidth(int32_t width) = 0;
     virtual void SetSurfaceBufferHeight(int32_t width) = 0;
 
-    virtual int32_t GetSeqNum() const = 0;
+    virtual uint32_t GetSeqNum() const = 0;
 
     // opt EglData
     virtual sptr<EglData> GetEglData() const = 0;

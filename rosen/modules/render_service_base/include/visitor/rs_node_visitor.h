@@ -43,6 +43,8 @@ public:
     virtual void ProcessCanvasRenderNode(RSCanvasRenderNode& node) = 0;
     virtual void ProcessSurfaceRenderNode(RSSurfaceRenderNode& node) = 0;
     virtual void ProcessRootRenderNode(RSRootRenderNode& node) = 0;
+
+    bool surfaceGeoDirty_ = false;
 };
 
 } // namespace Rosen

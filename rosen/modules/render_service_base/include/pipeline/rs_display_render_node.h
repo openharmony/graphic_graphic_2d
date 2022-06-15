@@ -66,7 +66,9 @@ public:
     {
         return offsetY_;
     }
-
+    
+    void CollectSurface(const std::shared_ptr<RSBaseRenderNode>& node,
+                        std::vector<RSBaseRenderNode::SharedPtr>& vec) override;
     void Prepare(const std::shared_ptr<RSNodeVisitor>& visitor) override;
     void Process(const std::shared_ptr<RSNodeVisitor>& visitor) override;
 

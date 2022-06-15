@@ -362,7 +362,7 @@ HWTEST_F(BufferQueueTest, ReqCanFluAcqRel008, Function | MediumTest | Level2)
     GSError ret = bq->AcquireBuffer(buffer, acquireFence, timestamp, damage);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
-    int32_t sequence;
+    uint32_t sequence;
     for (auto it = cache.begin(); it != cache.end(); it++) {
         if (it->second.GetRefPtr() == buffer.GetRefPtr()) {
             sequence = it->first;

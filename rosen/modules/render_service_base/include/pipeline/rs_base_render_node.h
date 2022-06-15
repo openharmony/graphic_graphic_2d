@@ -43,7 +43,8 @@ public:
     void RemoveCrossParentChild(const SharedPtr& child, const WeakPtr& newParent);
     void ClearChildren();
     void RemoveFromTree();
-
+    virtual void CollectSurface(const std::shared_ptr<RSBaseRenderNode>& node,
+                                std::vector<RSBaseRenderNode::SharedPtr>& vec);
     virtual void Prepare(const std::shared_ptr<RSNodeVisitor>& visitor);
     virtual void Process(const std::shared_ptr<RSNodeVisitor>& visitor);
 

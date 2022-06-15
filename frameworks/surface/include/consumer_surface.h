@@ -35,23 +35,23 @@ public:
     bool IsConsumer() const override;
     sptr<IBufferProducer> GetProducer() const override;
     GSError RequestBuffer(sptr<SurfaceBuffer>& buffer,
-        int32_t &fence, BufferRequestConfig &config) override;
+                          int32_t &fence, BufferRequestConfig &config) override;
 
     GSError CancelBuffer(sptr<SurfaceBuffer>& buffer) override;
 
     GSError FlushBuffer(sptr<SurfaceBuffer>& buffer,
-        int32_t fence, BufferFlushConfig &config) override;
+                        int32_t fence, BufferFlushConfig &config) override;
 
     GSError AcquireBuffer(sptr<SurfaceBuffer>& buffer, int32_t &fence,
-        int64_t &timestamp, Rect &damage) override;
+                          int64_t &timestamp, Rect &damage) override;
     GSError ReleaseBuffer(sptr<SurfaceBuffer>& buffer, int32_t fence) override;
 
     GSError RequestBuffer(sptr<SurfaceBuffer>& buffer,
-                                       sptr<SyncFence>& fence, BufferRequestConfig &config) override;
+                          sptr<SyncFence>& fence, BufferRequestConfig &config) override;
     GSError FlushBuffer(sptr<SurfaceBuffer>& buffer,
-                                     const sptr<SyncFence>& fence, BufferFlushConfig &config) override;
+                        const sptr<SyncFence>& fence, BufferFlushConfig &config) override;
     GSError AcquireBuffer(sptr<SurfaceBuffer>& buffer, sptr<SyncFence>& fence,
-                                       int64_t &timestamp, Rect &damage) override;
+                          int64_t &timestamp, Rect &damage) override;
     GSError ReleaseBuffer(sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& fence) override;
 
     GSError AttachBuffer(sptr<SurfaceBuffer>& buffer) override;
@@ -88,10 +88,12 @@ public:
 
     GSError IsSupportedAlloc(const std::vector<VerifyAllocInfo> &infos, std::vector<bool> &supporteds) override;
 
-    GSError SetMetaData(int32_t sequence, const std::vector<HDRMetaData> &metaData) override;
-    GSError SetMetaDataSet(int32_t sequence, HDRMetadataKey key, const std::vector<uint8_t> &metaData) override;
-    GSError GetMetaData(int32_t sequence, std::vector<HDRMetaData> &metaData) const override;
-    GSError GetMetaDataSet(int32_t sequence, HDRMetadataKey &key,
+    GSError SetScalingMode(uint32_t sequence, ScalingMode scalingMode) override;
+    GSError GetScalingMode(uint32_t sequence, ScalingMode &scalingMode) override;
+    GSError SetMetaData(uint32_t sequence, const std::vector<HDRMetaData> &metaData) override;
+    GSError SetMetaDataSet(uint32_t sequence, HDRMetadataKey key, const std::vector<uint8_t> &metaData) override;
+    GSError GetMetaData(uint32_t sequence, std::vector<HDRMetaData> &metaData) const override;
+    GSError GetMetaDataSet(uint32_t sequence, HDRMetadataKey &key,
                            std::vector<uint8_t> &metaData) const override;
 
 private:

@@ -46,6 +46,7 @@ typedef struct {
     sptr<SyncFence> fence;
     int64_t timestamp;
     Rect damage;
+    ScalingMode scalingMode;
     std::vector<HDRMetaData> metaData;
     HDRMetadataKey key;
     std::vector<uint8_t> metaDataSet;
@@ -58,21 +59,21 @@ public:
     GSError Init();
 
     GSError RequestBuffer(const BufferRequestConfig &config, sptr<BufferExtraData> &bedata,
-                               struct IBufferProducer::RequestBufferReturnValue &retval);
+                          struct IBufferProducer::RequestBufferReturnValue &retval);
 
     GSError ReuseBuffer(const BufferRequestConfig &config, sptr<BufferExtraData> &bedata,
-                             struct IBufferProducer::RequestBufferReturnValue &retval);
+                        struct IBufferProducer::RequestBufferReturnValue &retval);
 
-    GSError CancelBuffer(int32_t sequence, const sptr<BufferExtraData> &bedata);
+    GSError CancelBuffer(uint32_t sequence, const sptr<BufferExtraData> &bedata);
 
-    GSError FlushBuffer(int32_t sequence, const sptr<BufferExtraData> &bedata,
-                             const sptr<SyncFence>& fence, const BufferFlushConfig &config);
+    GSError FlushBuffer(uint32_t sequence, const sptr<BufferExtraData> &bedata,
+                        const sptr<SyncFence>& fence, const BufferFlushConfig &config);
 
-    GSError DoFlushBuffer(int32_t sequence, const sptr<BufferExtraData> &bedata,
-                               const sptr<SyncFence>& fence, const BufferFlushConfig &config);
+    GSError DoFlushBuffer(uint32_t sequence, const sptr<BufferExtraData> &bedata,
+                          const sptr<SyncFence>& fence, const BufferFlushConfig &config);
 
     GSError AcquireBuffer(sptr<SurfaceBuffer>& buffer, sptr<SyncFence>& fence,
-                               int64_t &timestamp, Rect &damage);
+                          int64_t &timestamp, Rect &damage);
     GSError ReleaseBuffer(sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& fence);
 
     GSError AttachBuffer(sptr<SurfaceBuffer>& buffer);
@@ -108,17 +109,19 @@ public:
     GSError IsSupportedAlloc(const std::vector<VerifyAllocInfo> &infos,
                              std::vector<bool> &supporteds) const;
 
-    GSError SetMetaData(int32_t sequence, const std::vector<HDRMetaData> &metaData);
-    GSError SetMetaDataSet(int32_t sequence, HDRMetadataKey key,
+    GSError SetScalingMode(uint32_t sequence, ScalingMode scalingMode);
+    GSError GetScalingMode(uint32_t sequence, ScalingMode &scalingMode) const;
+    GSError SetMetaData(uint32_t sequence, const std::vector<HDRMetaData> &metaData);
+    GSError SetMetaDataSet(uint32_t sequence, HDRMetadataKey key,
                            const std::vector<uint8_t> &metaData);
-    GSError GetMetaData(int32_t sequence, std::vector<HDRMetaData> &metaData) const;
-    GSError GetMetaDataSet(int32_t sequence, HDRMetadataKey &key,
+    GSError GetMetaData(uint32_t sequence, std::vector<HDRMetaData> &metaData) const;
+    GSError GetMetaDataSet(uint32_t sequence, HDRMetadataKey &key,
                            std::vector<uint8_t> &metaData) const;
 
 private:
     GSError AllocBuffer(sptr<SurfaceBuffer>& buffer, const BufferRequestConfig &config);
-    void DeleteBufferInCache(int sequence);
-    void DumpToFile(int32_t sequence);
+    void DeleteBufferInCache(uint32_t sequence);
+    void DumpToFile(uint32_t sequence);
 
     uint32_t GetUsedSize();
     void DeleteBuffers(int32_t count);
@@ -139,7 +142,7 @@ private:
     std::list<int32_t> freeList_;
     std::list<int32_t> dirtyList_;
     std::list<int32_t> deletingList_;
-    std::map<int32_t, BufferElement> bufferQueueCache_;
+    std::map<uint32_t, BufferElement> bufferQueueCache_;
     sptr<IBufferConsumerListener> listener_ = nullptr;
     IBufferConsumerListenerClazz *listenerClazz_ = nullptr;
     std::mutex mutex_;

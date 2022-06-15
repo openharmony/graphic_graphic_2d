@@ -43,6 +43,7 @@ public:
     static UniRenderEnabledType GetUniRenderEnabledType();
     static const std::set<std::string>& GetUniRenderEnabledList();
     static DirtyRegionDebugType GetDirtyRegionDebugType();
+    static bool GetOcclusionEnabled();
 
 private:
     RSSystemProperties() = default;
