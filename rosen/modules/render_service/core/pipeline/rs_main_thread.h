@@ -25,7 +25,7 @@
 #include "common/rs_thread_handler.h"
 #include "common/rs_thread_looper.h"
 #include "command/rs_command.h"
-#include "ipc_callbacks/iapplication_render_thread.h"
+#include "ipc_callbacks/iapplication_agent.h"
 #include "pipeline/rs_context.h"
 #include "platform/drawing/rs_vsync_client.h"
 #include "refbase.h"
@@ -104,8 +104,8 @@ public:
     {
         return mainThreadId_;
     }
-    void RegisterApplicationRenderThread(uint32_t pid, sptr<IApplicationRenderThread> app);
-    void UnregisterApplicationRenderThread(sptr<IApplicationRenderThread> app);
+    void RegisterApplicationAgent(uint32_t pid, sptr<IApplicationAgent> app);
+    void UnRegisterApplicationAgent(sptr<IApplicationAgent> app);
 
     void WaitUtilUniRenderFinished();
     void NotifyUniRenderFinish();
@@ -137,7 +137,7 @@ private:
     std::vector<std::unique_ptr<RSCommand>> effectCommand_;
 
     uint64_t timestamp_ = 0;
-    std::unordered_map<uint32_t, sptr<IApplicationRenderThread>> applicationRenderThreadMap_;
+    std::unordered_map<uint32_t, sptr<IApplicationAgent>> applicationAgentMap_;
 
     RSContext context_;
     std::thread::id mainThreadId_;

@@ -69,6 +69,7 @@ private:
     int surfaceHeight_ = 0;
 
     friend class RSRenderThread;
+    friend class RSApplicationAgentImpl;
 };
 } // namespace Rosen
 } // namespace OHOS

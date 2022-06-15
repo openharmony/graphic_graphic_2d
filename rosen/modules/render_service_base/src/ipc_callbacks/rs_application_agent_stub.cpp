@@ -14,18 +14,18 @@
  */
 
 #ifdef ROSEN_OHOS
-#include "rs_application_render_thread_stub.h"
+#include "rs_application_agent_stub.h"
 
 #include "command/rs_command.h"
 #include "transaction/rs_transaction_data.h"
 
 namespace OHOS {
 namespace Rosen {
-int RSApplicationRenderThreadStub::OnRemoteRequest(
+int RSApplicationAgentStub::OnRemoteRequest(
     uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option)
 {
     auto token = data.ReadInterfaceToken();
-    if (token != IApplicationRenderThread::GetDescriptor()) {
+    if (token != IApplicationAgent::GetDescriptor()) {
         return ERR_INVALID_STATE;
     }
 

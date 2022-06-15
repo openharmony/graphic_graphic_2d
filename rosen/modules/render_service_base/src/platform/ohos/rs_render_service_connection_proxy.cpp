@@ -335,7 +335,7 @@ void RSRenderServiceConnectionProxy::SetScreenPowerStatus(ScreenId id, ScreenPow
     }
 }
 
-void RSRenderServiceConnectionProxy::RegisterApplicationRenderThread(uint32_t pid, sptr<IApplicationRenderThread> app)
+void RSRenderServiceConnectionProxy::RegisterApplicationAgent(uint32_t pid, sptr<IApplicationAgent> app)
 {
     if (app == nullptr) {
         ROSEN_LOGE("RSRenderServiceProxy: callback == nullptr\n");
@@ -348,7 +348,7 @@ void RSRenderServiceConnectionProxy::RegisterApplicationRenderThread(uint32_t pi
     option.SetFlags(MessageOption::TF_ASYNC);
     data.WriteUint32(pid);
     data.WriteRemoteObject(app->AsObject());
-    int32_t err = Remote()->SendRequest(RSIRenderServiceConnection::REGISTER_APPLICATION_RENDER_THREAD, data, reply, option);
+    int32_t err = Remote()->SendRequest(RSIRenderServiceConnection::REGISTER_APPLICATION_AGENT, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("RSRenderServiceProxy: Remote()->SendRequest() error.\n");
         return;
