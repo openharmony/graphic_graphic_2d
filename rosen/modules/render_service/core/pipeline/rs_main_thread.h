@@ -84,17 +84,19 @@ public:
         PostTask([t(std::move(scheduledTask))]() { t->Run(); });
         return std::move(taskFuture);
     }
-
 #ifdef RS_ENABLE_GL
     std::shared_ptr<RenderContext> GetRenderContext() const
     {
         return renderContext_;
     }
+#endif // RS_ENABLE_GL
+
+#ifdef RS_ENABLE_EGLIMAGE
     std::shared_ptr<RSEglImageManager> GetRSEglImageManager() const
     {
         return eglImageManager_;
     }
-#endif // RS_ENABLE_GL
+#endif // RS_ENABLE_EGLIMAGE
 
     RSContext& GetContext()
     {
@@ -151,11 +153,14 @@ private:
     mutable std::mutex uniRenderMutex_;
     bool uniRenderFinished_ = false;
     std::condition_variable uniRenderCond_;
-
+    
 #ifdef RS_ENABLE_GL
     std::shared_ptr<RenderContext> renderContext_;
-    std::shared_ptr<RSEglImageManager> eglImageManager_;
 #endif // RS_ENABLE_GL
+
+#ifdef RS_ENABLE_EGLIMAGE
+    std::shared_ptr<RSEglImageManager> eglImageManager_;
+#endif // RS_ENABLE_EGLIMAGE
 };
 } // namespace Rosen
 } // namespace OHOS

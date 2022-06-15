@@ -849,26 +849,20 @@ SkMatrix RsRenderServiceUtil::GetCanvasTransform(const RSSurfaceRenderNode& node
 }
 
 BufferDrawParam RsRenderServiceUtil::CreateBufferDrawParam(RSSurfaceRenderNode& node, SkMatrix canvasMatrix,
-    ScreenRotation rotation)
+    ScreenRotation rotation, SkPaint paint)
 {
     const RSProperties& property = node.GetRenderProperties();
     SkRect dstRect = SkRect::MakeXYWH(node.GetDstRect().left_, node.GetDstRect().top_,
         node.GetDstRect().width_, node.GetDstRect().height_);
-    auto alpha = node.GetGlobalAlpha();
     BufferDrawParam params;
-
     auto buffer = node.GetBuffer();
     sptr<Surface> surface = node.GetConsumer();
     if (!buffer || !surface) {
         return params;
     }
-    SkPaint paint;
-    paint.setAlphaf(alpha);
-
     params.buffer = buffer;
     params.matrix = GetCanvasTransform(node, canvasMatrix, rotation, dstRect);
     params.acquireFence = node.GetAcquireFence();
-
     params.srcRect = SkRect::MakeXYWH(0, 0, buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight());
     const auto surfaceTransform = surface->GetTransform();
     if (surfaceTransform == TransformType::ROTATE_90 || surfaceTransform == TransformType::ROTATE_270) {
@@ -953,7 +947,7 @@ void RsRenderServiceUtil::DrawBuffer(RSPaintFilterCanvas& canvas, BufferDrawPara
     canvas.restore();
 }
 
-#ifdef RS_ENABLE_GL
+#ifdef RS_ENABLE_EGLIMAGE
 void RsRenderServiceUtil::DrawImage(std::shared_ptr<RSEglImageManager> eglImageManager, GrContext* grContext,
     RSPaintFilterCanvas& canvas, BufferDrawParam& bufferDrawParam, CanvasPostProcess process)
 {
@@ -969,16 +963,18 @@ void RsRenderServiceUtil::DrawImage(std::shared_ptr<RSEglImageManager> eglImageM
         RS_LOGE("RsRenderServiceUtil::MapEglImageFromSurfaceBuffer return invalid EGL texture ID");
         return;
     }
+    SkColorType colorType = (buffer->GetFormat() == PIXEL_FMT_BGRA_8888) ?
+            kBGRA_8888_SkColorType : kRGBA_8888_SkColorType;
     GrGLTextureInfo grExternalTextureInfo = {GL_TEXTURE_EXTERNAL_OES, eglTextureId, GL_RGBA8};
     GrBackendTexture backendTexture(bufferDrawParam.srcRect.width(), bufferDrawParam.srcRect.height(),
         GrMipMapped::kNo, grExternalTextureInfo);
     image = SkImage::MakeFromTexture(grContext, backendTexture,
-        kTopLeft_GrSurfaceOrigin, kRGBA_8888_SkColorType, kPremul_SkAlphaType, nullptr);
+        kTopLeft_GrSurfaceOrigin, colorType, kPremul_SkAlphaType, nullptr);
     SetPropertiesForCanvas(canvas, bufferDrawParam, process);
     canvas.drawImageRect(image, bufferDrawParam.srcRect, bufferDrawParam.dstRect, &(bufferDrawParam.paint));
     canvas.restore();
 }
-#endif // RS_ENABLE_GL
+#endif // RS_ENABLE_EGLIMAGE
 
 void RsRenderServiceUtil::InitEnableClient()
 {

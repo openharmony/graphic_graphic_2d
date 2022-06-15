@@ -95,7 +95,9 @@ void RSCompatibleProcessor::ProcessSurface(RSSurfaceRenderNode& node)
 
     SkMatrix matrix;
     matrix.reset();
-    auto params = RsRenderServiceUtil::CreateBufferDrawParam(node);
+    SkPaint paint;
+    paint.setAlphaf(node.GetGlobalAlpha());
+    auto params = RsRenderServiceUtil::CreateBufferDrawParam(node, SkMatrix(), ScreenRotation::ROTATION_0, paint);
     RsRenderServiceUtil::DrawBuffer(*canvas_, params);
 }
 

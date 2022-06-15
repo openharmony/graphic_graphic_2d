@@ -78,7 +78,9 @@ void RSHardwareProcessor::Init(ScreenId id, int32_t offsetX, int32_t offsetY)
     auto mainThread = RSMainThread::Instance();
     if (mainThread != nullptr) {
         renderContext_ = mainThread->GetRenderContext();
+#ifdef RS_ENABLE_EGLIMAGE
         eglImageManager_ =  mainThread->GetRSEglImageManager();
+#endif // RS_ENABLE_EGLIMAGE
     }
 #endif // RS_ENABLE_GL
 }
@@ -466,13 +468,16 @@ void RSHardwareProcessor::Redraw(
             layerInfo->GetCompositionType(), layerInfo->GetLayerSize().x, layerInfo->GetLayerSize().y,
             layerInfo->GetLayerSize().w, layerInfo->GetLayerSize().h);
         int saveCount = canvas->getSaveCount();
-        auto params = RsRenderServiceUtil::CreateBufferDrawParam(node, currScreenInfo_.rotationMatrix, rotation_);
+        SkPaint paint;
+        paint.setAlphaf(node.GetGlobalAlpha());
+        auto params = RsRenderServiceUtil::CreateBufferDrawParam(node, currScreenInfo_.rotationMatrix,
+            rotation_, paint);
         params.targetColorGamut = static_cast<ColorGamut>(currScreenInfo_.colorGamut);
         const auto& clipRect = layerInfo->GetLayerSize();
         params.clipRect = SkRect::MakeXYWH(clipRect.x, clipRect.y, clipRect.w, clipRect.h);
         Vector2f center(node.GetDstRect().left_ + node.GetDstRect().width_ * 0.5f,
             node.GetDstRect().top_ + node.GetDstRect().height_ * 0.5f);
-#ifdef RS_ENABLE_GL
+#ifdef RS_ENABLE_EGLIMAGE
         if (ifUseGPU) {
             RsRenderServiceUtil::DrawImage(eglImageManager_, renderContext_->GetGrContext(), *canvas, params,
                 [this, &node, &center](RSPaintFilterCanvas& canvas, BufferDrawParam& params) -> void {
@@ -498,12 +503,9 @@ void RSHardwareProcessor::Redraw(
             DrawBufferPostProcess(canvas, node, params, center);
         });
         canvas->restoreToCount(saveCount);
-#endif // RS_ENABLE_GL
+#endif // RS_ENABLE_EGLIMAGE
     }
     rsSurface_->FlushFrame(currFrame_);
-#ifdef RS_ENABLE_GL
-    eglImageManager_->ShrinkCachesIfNeeded();
-#endif // RS_ENABLE_GL
 }
 
 void RSHardwareProcessor::OnRotate()

@@ -45,7 +45,7 @@ ohos_shared_library("librender_service") {
     "core/transaction/rs_render_service_stub.cpp",
   ]
 
-  if (rs_enable_gpu) {
+  if (rs_enable_eglimage) {
     sources += [ "core/pipeline/rs_egl_image_manager.cpp" ]
   }
 

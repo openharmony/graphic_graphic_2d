@@ -45,6 +45,9 @@ public:
 
 private:
     void DrawBufferOnCanvas(RSSurfaceRenderNode& node);
+#ifdef RS_ENABLE_EGLIMAGE
+    void DrawImageOnCanvas(RSSurfaceRenderNode& node);
+#endif // RS_ENABLE_EGLIMAGE
     static bool IsChildOfDisplayNode(RSBaseRenderNode& node);
     static bool IsChildOfSurfaceNode(RSBaseRenderNode& node);
     static bool IsChildOfLeashNode(RSBaseRenderNode& node);

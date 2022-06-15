@@ -250,8 +250,13 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
                 RS_LOGI("RSUniRenderVisitor::ProcessSurfaceRenderNode buffer is not available, set black");
                 canvas_->clear(SK_ColorBLACK);
             } else {
+#ifdef RS_ENABLE_EGLIMAGE
+                RS_LOGI("RSUniRenderVisitor::ProcessSurfaceRenderNode draw image on canvas");
+                DrawImageOnCanvas(node);
+#else
                 RS_LOGI("RSUniRenderVisitor::ProcessSurfaceRenderNode draw buffer on canvas");
                 DrawBufferOnCanvas(node);
+#endif // RS_ENABLE_EGLIMAGE
             }
             canvas_->restore();
             RS_TRACE_END();
@@ -333,32 +338,13 @@ void RSUniRenderVisitor::DrawBufferOnCanvas(RSSurfaceRenderNode& node)
     if (!canvas_) {
         RS_LOGE("RSUniRenderVisitor::DrawBufferOnCanvas canvas is nullptr");
     }
-
-    bool bitmapCreated = false;
-    SkBitmap bitmap;
-    std::vector<uint8_t> newTmpBuffer;
     auto buffer = node.GetBuffer();
-    if (buffer->GetFormat() == PIXEL_FMT_YCRCB_420_SP || buffer->GetFormat() == PIXEL_FMT_YCBCR_420_SP) {
-        bitmapCreated = RsRenderServiceUtil::CreateYuvToRGBABitMap(buffer, newTmpBuffer, bitmap);
-    } else {
-        SkColorType colorType = (buffer->GetFormat() == PIXEL_FMT_BGRA_8888) ?
-            kBGRA_8888_SkColorType : kRGBA_8888_SkColorType;
-        SkImageInfo imageInfo = SkImageInfo::Make(buffer->GetWidth(), buffer->GetHeight(),
-            colorType, kPremul_SkAlphaType);
-        auto pixmap = SkPixmap(imageInfo, buffer->GetVirAddr(), buffer->GetStride());
-        bitmapCreated = bitmap.installPixels(pixmap);
-    }
-    if (!bitmapCreated) {
-        RS_LOGE("RSUniRenderVisitor::DrawBufferOnCanvas installPixels failed");
-        return;
-    }
-
     SkPaint paint;
     paint.setAntiAlias(true);
     paint.setAlphaf(node.GetContextAlpha() * node.GetRenderProperties().GetAlpha());
-
     canvas_->save();
     const RSProperties& property = node.GetRenderProperties();
+    auto params = RsRenderServiceUtil::CreateBufferDrawParam(node, SkMatrix(), ScreenRotation::ROTATION_0, paint);
     auto filter = std::static_pointer_cast<RSSkiaFilter>(property.GetBackgroundFilter());
     if (filter != nullptr) {
         auto skRectPtr = std::make_unique<SkRect>();
@@ -367,12 +353,50 @@ void RSUniRenderVisitor::DrawBufferOnCanvas(RSSurfaceRenderNode& node)
             node.GetRenderProperties().GetBoundsWidth(), node.GetRenderProperties().GetBoundsHeight());
         RSPropertiesPainter::DrawFilter(property, *canvas_, filter, skRectPtr);
     }
-    canvas_->drawBitmapRect(bitmap,
-        SkRect::MakeXYWH(0, 0, buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight()),
-        SkRect::MakeXYWH(node.GetRenderProperties().GetBoundsPositionX(),
-            node.GetRenderProperties().GetBoundsPositionY(),
-            node.GetRenderProperties().GetBoundsWidth(), node.GetRenderProperties().GetBoundsHeight()), &paint);
-    canvas_->restore();
+    RsRenderServiceUtil::DrawBuffer(*canvas_, params);
 }
+
+#ifdef RS_ENABLE_EGLIMAGE
+void RSUniRenderVisitor::DrawImageOnCanvas(RSSurfaceRenderNode& node)
+{
+    if (!canvas_) {
+        RS_LOGE("RSUniRenderVisitor::DrawImageOnCanvas canvas is nullptr");
+    }
+    auto buffer = node.GetBuffer();
+    SkPaint paint;
+    paint.setAntiAlias(true);
+    paint.setAlphaf(node.GetContextAlpha() * node.GetRenderProperties().GetAlpha());
+    canvas_->save();
+    const RSProperties& property = node.GetRenderProperties();
+    auto params = RsRenderServiceUtil::CreateBufferDrawParam(node, SkMatrix(), ScreenRotation::ROTATION_0, paint);
+    auto filter = std::static_pointer_cast<RSSkiaFilter>(property.GetBackgroundFilter());
+    if (filter != nullptr) {
+        auto skRectPtr = std::make_unique<SkRect>();
+        skRectPtr->setXYWH(node.GetRenderProperties().GetBoundsPositionX(),
+            node.GetRenderProperties().GetBoundsPositionY(),
+            node.GetRenderProperties().GetBoundsWidth(), node.GetRenderProperties().GetBoundsHeight());
+        RSPropertiesPainter::DrawFilter(property, *canvas_, filter, skRectPtr);
+    }
+    if (buffer->GetFormat() == PIXEL_FMT_YCRCB_420_SP || buffer->GetFormat() == PIXEL_FMT_YCBCR_420_SP) {
+        RsRenderServiceUtil::DrawBuffer(*canvas_, params);
+    } else {
+        auto mainThread = RSMainThread::Instance();
+        std::shared_ptr<RenderContext> renderContext;
+        std::shared_ptr<RSEglImageManager> eglImageManager;
+        if (mainThread != nullptr) {
+            renderContext = mainThread->GetRenderContext();
+            eglImageManager =  mainThread->GetRSEglImageManager();
+        }
+        RsRenderServiceUtil::DrawImage(eglImageManager, renderContext->GetGrContext(), *canvas_, params, nullptr);
+        auto consumerSurface = node.GetConsumer();
+        GSError error = consumerSurface->RegisterDeleteBufferListener([eglImageManager_ = eglImageManager]
+            (int32_t bufferId) {eglImageManager_->UnMapEglImageFromSurfaceBuffer(bufferId);
+        });
+        if (error != GSERROR_OK) {
+            RS_LOGE("RSUniRenderVisitor::DrawImageOnCanvas: fail to register UnMapEglImage callback.");
+        }
+    }
+}
+#endif // RS_ENABLE_EGLIMAGE
 } // namespace Rosen
 } // namespace OHOS
