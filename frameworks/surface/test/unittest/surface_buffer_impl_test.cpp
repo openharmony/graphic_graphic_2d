@@ -36,7 +36,6 @@ public:
         .usage = HBM_USE_CPU_READ | HBM_USE_CPU_WRITE | HBM_USE_MEM_DMA,
         .timeout = 0,
         .colorGamut = ColorGamut::COLOR_GAMUT_DCI_P3,
-        .scalingMode = ScalingMode::SCALING_MODE_SCALE_CROP,
     };
     static inline sptr<SurfaceBuffer> buffer = nullptr;
     static inline int32_t val32 = 0;
@@ -110,7 +109,6 @@ HWTEST_F(SurfaceBufferImplTest, State002, Function | MediumTest | Level2)
     ASSERT_EQ(buffer->GetFormat(), PIXEL_FMT_RGBA_8888);
     ASSERT_EQ(buffer->GetUsage(), HBM_USE_CPU_READ | HBM_USE_CPU_WRITE | HBM_USE_MEM_DMA);
     ASSERT_EQ(buffer->GetSurfaceBufferColorGamut(), ColorGamut::COLOR_GAMUT_DCI_P3);
-    ASSERT_EQ(buffer->GetSurfaceBufferScalingMode(), ScalingMode::SCALING_MODE_SCALE_CROP);
 
     ret = BufferManager::GetInstance()->Free(buffer);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
@@ -138,7 +136,7 @@ HWTEST_F(SurfaceBufferImplTest, Parcel001, Function | MediumTest | Level2)
     WriteSurfaceBufferImpl(parcel, sbi->GetSeqNum(), sbi);
 
     sptr<SurfaceBuffer> buffer = nullptr;
-    int32_t seq;
+    uint32_t seq;
     ReadSurfaceBufferImpl(parcel, seq, buffer);
     ASSERT_NE(buffer, nullptr);
 }

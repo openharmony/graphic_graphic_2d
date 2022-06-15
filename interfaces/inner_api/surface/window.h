@@ -68,9 +68,14 @@ enum NativeWindowOperation {
     GET_COLOR_GAMUT,        // ([out int32_t *colorGamut])
     SET_TRANSFORM,          // ([in] int32_t transform)
     GET_TRANSFORM,          // ([out] int32_t *transform)
-    SET_SCALING_MODE,       // ([in] int32_t scalingMode)
-    GET_SCALING_MODE,       // ([out] int32_t *scalingMode)
 };
+
+typedef enum {
+    OH_SCALING_MODE_FREEZE = 0,
+    OH_SCALING_MODE_SCALE_TO_WINDOW,
+    OH_SCALING_MODE_SCALE_CROP,
+    OH_SCALING_MODE_NO_SCALE_CROP,
+} OHScalingMode;
 
 typedef enum {
     OH_MATAKEY_RED_PRIMARY_X = 0,
@@ -118,9 +123,10 @@ int32_t NativeObjectReference(void *obj);
 int32_t NativeObjectUnreference(void *obj);
 int32_t GetNativeObjectMagic(void *obj);
 
-int32_t NativeWindowSetMetaData(OHNativeWindow *window, int32_t sequence, int32_t size,
+int32_t NativeWindowSetScalingMode(OHNativeWindow *window, uint32_t sequence, OHScalingMode scalingMode);
+int32_t NativeWindowSetMetaData(OHNativeWindow *window, uint32_t sequence, int32_t size,
                                 const OHHDRMetaData *metaData);
-int32_t NativeWindowSetMetaDataSet(OHNativeWindow *window, int32_t sequence, OHHDRMetadataKey key,
+int32_t NativeWindowSetMetaDataSet(OHNativeWindow *window, uint32_t sequence, OHHDRMetadataKey key,
                                    int32_t size, const uint8_t *metaData);
 
 #ifdef __cplusplus

@@ -36,9 +36,9 @@ public:
     GSError RequestBuffer(const BufferRequestConfig &config, sptr<BufferExtraData> &bedata,
                           RequestBufferReturnValue &retval) override;
 
-    GSError CancelBuffer(int32_t sequence, const sptr<BufferExtraData> &bedata) override;
+    GSError CancelBuffer(uint32_t sequence, const sptr<BufferExtraData> &bedata) override;
 
-    GSError FlushBuffer(int32_t sequence, const sptr<BufferExtraData> &bedata,
+    GSError FlushBuffer(uint32_t sequence, const sptr<BufferExtraData> &bedata,
                         const sptr<SyncFence>& fence, BufferFlushConfig &config) override;
 
     uint32_t GetQueueSize() override;
@@ -63,8 +63,9 @@ public:
     GSError CleanCache() override;
     GSError Disconnect() override;
 
-    GSError SetMetaData(int32_t sequence, const std::vector<HDRMetaData> &metaData) override;
-    GSError SetMetaDataSet(int32_t sequence, HDRMetadataKey key,
+    GSError SetScalingMode(uint32_t sequence, ScalingMode scalingMode) override;
+    GSError SetMetaData(uint32_t sequence, const std::vector<HDRMetaData> &metaData) override;
+    GSError SetMetaDataSet(uint32_t sequence, HDRMetadataKey key,
                            const std::vector<uint8_t> &metaData) override;
 
 private:

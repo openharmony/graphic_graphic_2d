@@ -316,30 +316,44 @@ GSError ProducerSurface::IsSupportedAlloc(const std::vector<VerifyAllocInfo> &in
     return producer_->IsSupportedAlloc(infos, supporteds);
 }
 
-GSError ProducerSurface::SetMetaData(int32_t sequence, const std::vector<HDRMetaData> &metaData)
+GSError ProducerSurface::SetScalingMode(uint32_t sequence, ScalingMode scalingMode)
 {
-    if (sequence < 0 || metaData.size() == 0) {
+    if (scalingMode < ScalingMode::SCALING_MODE_FREEZE ||
+        scalingMode > ScalingMode::SCALING_MODE_NO_SCALE_CROP) {
+        return GSERROR_INVALID_ARGUMENTS;
+    }
+    return producer_->SetScalingMode(sequence, scalingMode);
+}
+
+GSError ProducerSurface::GetScalingMode(uint32_t sequence, ScalingMode &scalingMode)
+{
+    return GSERROR_NOT_SUPPORT;
+}
+
+GSError ProducerSurface::SetMetaData(uint32_t sequence, const std::vector<HDRMetaData> &metaData)
+{
+    if (metaData.size() == 0) {
         return GSERROR_INVALID_ARGUMENTS;
     }
     return producer_->SetMetaData(sequence, metaData);
 }
 
-GSError ProducerSurface::SetMetaDataSet(int32_t sequence, HDRMetadataKey key,
+GSError ProducerSurface::SetMetaDataSet(uint32_t sequence, HDRMetadataKey key,
                                         const std::vector<uint8_t> &metaData)
 {
-    if (sequence < 0 || key < HDRMetadataKey::MATAKEY_RED_PRIMARY_X ||
+    if (key < HDRMetadataKey::MATAKEY_RED_PRIMARY_X ||
         key > HDRMetadataKey::MATAKEY_HDR_VIVID || metaData.size() == 0) {
         return GSERROR_INVALID_ARGUMENTS;
     }
     return producer_->SetMetaDataSet(sequence, key, metaData);
 }
 
-GSError ProducerSurface::GetMetaData(int32_t sequence, std::vector<HDRMetaData> &metaData) const
+GSError ProducerSurface::GetMetaData(uint32_t sequence, std::vector<HDRMetaData> &metaData) const
 {
     return GSERROR_NOT_SUPPORT;
 }
 
-GSError ProducerSurface::GetMetaDataSet(int32_t sequence, HDRMetadataKey &key,
+GSError ProducerSurface::GetMetaDataSet(uint32_t sequence, HDRMetadataKey &key,
                                         std::vector<uint8_t> &metaData) const
 {
     return GSERROR_NOT_SUPPORT;

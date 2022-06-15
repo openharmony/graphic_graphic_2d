@@ -47,7 +47,6 @@ OHNativeWindow* CreateNativeWindowFromSurface(void* pSuface)
     nativeWindow->config.timeout = 3000;        // default timout is 3000 ms
     nativeWindow->config.colorGamut = ColorGamut::COLOR_GAMUT_SRGB;
     nativeWindow->config.transform = TransformType::ROTATE_NONE;
-    nativeWindow->config.scalingMode = ScalingMode::SCALING_MODE_SCALE_TO_WINDOW;
 
     NativeObjectReference(nativeWindow);
     return nativeWindow;
@@ -184,11 +183,6 @@ static int32_t InternalHanleNativeWindowOpt(OHNativeWindow *window, int code, va
             window->config.transform = static_cast<TransformType>(transform);
             break;
         }
-        case SET_SCALING_MODE : {
-            int32_t scalingMode = va_arg(args, int32_t);
-            window->config.scalingMode = static_cast<ScalingMode>(scalingMode);
-            break;
-        }
         case GET_USAGE: {
             int32_t *value = va_arg(args, int32_t*);
             int32_t usage = window->config.usage;
@@ -225,11 +219,6 @@ static int32_t InternalHanleNativeWindowOpt(OHNativeWindow *window, int code, va
         case GET_TRANSFORM: {
             int32_t *transform = va_arg(args, int32_t*);
             *transform = static_cast<int32_t>(window->config.transform);
-            break;
-        }
-        case GET_SCALING_MODE: {
-            int32_t *scalingMode = va_arg(args, int32_t*);
-            *scalingMode = static_cast<int32_t>(window->config.scalingMode);
             break;
         }
         default:
@@ -306,10 +295,21 @@ int32_t NativeObjectUnreference(void *obj)
     return OHOS::GSERROR_OK;
 }
 
-int32_t NativeWindowSetMetaData(OHNativeWindow *window, int32_t sequence, int32_t size,
+int32_t NativeWindowSetScalingMode(OHNativeWindow *window, uint32_t sequence, OHScalingMode scalingMode)
+{
+    if (window == nullptr || window->surface == nullptr ||
+        scalingMode < OHScalingMode::OH_SCALING_MODE_FREEZE ||
+        scalingMode > OHScalingMode::OH_SCALING_MODE_NO_SCALE_CROP) {
+        BLOGE("para error, please check input parameter");
+        return OHOS::GSERROR_INVALID_ARGUMENTS;
+    }
+    return window->surface->SetScalingMode(sequence, static_cast<ScalingMode>(scalingMode));
+}
+
+int32_t NativeWindowSetMetaData(OHNativeWindow *window, uint32_t sequence, int32_t size,
                                 const OHHDRMetaData *metaData)
 {
-    if (window == nullptr || window->surface == nullptr || sequence < 0 || size <= 0 || metaData == nullptr) {
+    if (window == nullptr || window->surface == nullptr || size <= 0 || metaData == nullptr) {
         BLOGE("para error, please check input parameter");
         return OHOS::GSERROR_INVALID_ARGUMENTS;
     }
@@ -319,10 +319,10 @@ int32_t NativeWindowSetMetaData(OHNativeWindow *window, int32_t sequence, int32_
     return window->surface->SetMetaData(sequence, data);
 }
 
-int32_t NativeWindowSetMetaDataSet(OHNativeWindow *window, int32_t sequence, OHHDRMetadataKey key,
+int32_t NativeWindowSetMetaDataSet(OHNativeWindow *window, uint32_t sequence, OHHDRMetadataKey key,
                                    int32_t size, const uint8_t *metaData)
 {
-    if (window == nullptr || window->surface == nullptr || sequence < 0 ||
+    if (window == nullptr || window->surface == nullptr ||
         key < OHHDRMetadataKey::OH_MATAKEY_RED_PRIMARY_X || key > OHHDRMetadataKey::OH_MATAKEY_HDR_VIVID ||
         size <= 0 || metaData == nullptr) {
         BLOGE("para error, please check input parameter");
@@ -360,5 +360,6 @@ weak_alias(GetBufferHandleFromNative, OH_NativeWindow_GetBufferHandleFromNative)
 weak_alias(NativeObjectReference, OH_NativeWindow_NativeObjectReference);
 weak_alias(NativeObjectUnreference, OH_NativeWindow_NativeObjectUnreference);
 weak_alias(GetNativeObjectMagic, OH_NativeWindow_GetNativeObjectMagic);
+weak_alias(NativeWindowSetScalingMode, OH_NativeWindow_NativeWindowSetScalingMode);
 weak_alias(NativeWindowSetMetaData, OH_NativeWindow_NativeWindowSetMetaData);
 weak_alias(NativeWindowSetMetaDataSet, OH_NativeWindow_NativeWindowSetMetaDataSet);

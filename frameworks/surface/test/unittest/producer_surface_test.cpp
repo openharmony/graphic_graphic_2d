@@ -435,6 +435,38 @@ HWTEST_F(ProducerSurfaceTest, isSupportedAlloc001, Function | MediumTest | Level
 }
 
 /*
+* Function: SetScalingMode and GetScalingMode
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call SetScalingMode with abnormal parameters and check ret
+*                  2. call SetScalingMode with normal parameters and check ret
+*                  3. call GetScalingMode and check ret
+ */
+HWTEST_F(ProducerSurfaceTest, scalingMode001, Function | MediumTest | Level2)
+{
+    ScalingMode scalingMode = ScalingMode::SCALING_MODE_SCALE_TO_WINDOW;
+    GSError ret = pSurface->SetScalingMode(-1, scalingMode);
+    ASSERT_EQ(ret, OHOS::GSERROR_NO_ENTRY);
+
+    sptr<SurfaceBuffer> buffer;
+    int releaseFence = -1;
+    ret = pSurface->RequestBuffer(buffer, releaseFence, requestConfig);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
+    ASSERT_NE(buffer, nullptr);
+
+    uint32_t sequence = buffer->GetSeqNum();
+    ret = pSurface->SetScalingMode(sequence, scalingMode);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
+
+    ret = pSurface->GetScalingMode(sequence, scalingMode);
+    ASSERT_EQ(ret, OHOS::GSERROR_NOT_SUPPORT);
+
+    ret = pSurface->CancelBuffer(buffer);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
+}
+
+/*
 * Function: SetMetaData and GetMetaData
 * Type: Function
 * Rank: Important(2)
@@ -445,14 +477,9 @@ HWTEST_F(ProducerSurfaceTest, isSupportedAlloc001, Function | MediumTest | Level
  */
 HWTEST_F(ProducerSurfaceTest, metaData001, Function | MediumTest | Level2)
 {
-    int32_t sequence = -1;
+    uint32_t sequence = 0;
     std::vector<HDRMetaData> metaData;
-
     GSError ret = pSurface->SetMetaData(sequence, metaData);
-    ASSERT_EQ(ret, OHOS::GSERROR_INVALID_ARGUMENTS);
-
-    sequence = 0;
-    ret = pSurface->SetMetaData(sequence, metaData);
     ASSERT_EQ(ret, OHOS::GSERROR_INVALID_ARGUMENTS);
 
     HDRMetaData data = {
@@ -460,7 +487,7 @@ HWTEST_F(ProducerSurfaceTest, metaData001, Function | MediumTest | Level2)
         .value = 100,  // for test
     };
     metaData.push_back(data);
-    ret = pSurface->SetMetaData(sequence, metaData);
+    ret = pSurface->SetMetaData(-1, metaData);
     ASSERT_EQ(ret, OHOS::GSERROR_NO_ENTRY);
 
     sptr<SurfaceBuffer> buffer;
@@ -475,6 +502,9 @@ HWTEST_F(ProducerSurfaceTest, metaData001, Function | MediumTest | Level2)
 
     ret = pSurface->GetMetaData(sequence, metaData);
     ASSERT_EQ(ret, OHOS::GSERROR_NOT_SUPPORT);
+
+    ret = pSurface->CancelBuffer(buffer);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
 }
 
 /*
@@ -488,20 +518,16 @@ HWTEST_F(ProducerSurfaceTest, metaData001, Function | MediumTest | Level2)
  */
 HWTEST_F(ProducerSurfaceTest, metaDataSet001, Function | MediumTest | Level2)
 {
-    int32_t sequence = -1;
     HDRMetadataKey key = HDRMetadataKey::MATAKEY_HDR10_PLUS;
     std::vector<uint8_t> metaData;
 
+    uint32_t sequence = 0;
     GSError ret = pSurface->SetMetaDataSet(sequence, key, metaData);
-    ASSERT_EQ(ret, OHOS::GSERROR_INVALID_ARGUMENTS);
-
-    sequence = 0;
-    ret = pSurface->SetMetaDataSet(sequence, key, metaData);
     ASSERT_EQ(ret, OHOS::GSERROR_INVALID_ARGUMENTS);
 
     uint8_t data = 10;  // for test
     metaData.push_back(data);
-    ret = pSurface->SetMetaDataSet(sequence, key, metaData);
+    ret = pSurface->SetMetaDataSet(-1, key, metaData);
     ASSERT_EQ(ret, OHOS::GSERROR_NO_ENTRY);
 
     sptr<SurfaceBuffer> buffer;
@@ -516,5 +542,8 @@ HWTEST_F(ProducerSurfaceTest, metaDataSet001, Function | MediumTest | Level2)
 
     ret = pSurface->GetMetaDataSet(sequence, key, metaData);
     ASSERT_EQ(ret, OHOS::GSERROR_NOT_SUPPORT);
+
+    ret = pSurface->CancelBuffer(buffer);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
 }
 }

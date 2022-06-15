@@ -57,7 +57,6 @@ void ReadRequestConfig(MessageParcel &parcel, BufferRequestConfig &config)
     config.timeout = parcel.ReadInt32();
     config.colorGamut = static_cast<ColorGamut>(parcel.ReadInt32());
     config.transform = static_cast<TransformType>(parcel.ReadInt32());
-    config.scalingMode = static_cast<ScalingMode>(parcel.ReadInt32());
 }
 
 void WriteRequestConfig(MessageParcel &parcel, BufferRequestConfig const & config)
@@ -70,7 +69,6 @@ void WriteRequestConfig(MessageParcel &parcel, BufferRequestConfig const & confi
     parcel.WriteInt32(config.timeout);
     parcel.WriteInt32(static_cast<int32_t>(config.colorGamut));
     parcel.WriteInt32(static_cast<int32_t>(config.transform));
-    parcel.WriteInt32(static_cast<int32_t>(config.scalingMode));
 }
 
 void ReadFlushConfig(MessageParcel &parcel, BufferFlushConfig &config)
@@ -92,9 +90,9 @@ void WriteFlushConfig(MessageParcel &parcel, BufferFlushConfig const & config)
 }
 
 void ReadSurfaceBufferImpl(MessageParcel &parcel,
-                           int32_t &sequence, sptr<SurfaceBuffer>& buffer)
+                           uint32_t &sequence, sptr<SurfaceBuffer>& buffer)
 {
-    sequence = parcel.ReadInt32();
+    sequence = parcel.ReadUint32();
     if (parcel.ReadBool()) {
         buffer = new SurfaceBufferImpl(sequence);
         buffer->ReadFromMessageParcel(parcel);
@@ -102,9 +100,9 @@ void ReadSurfaceBufferImpl(MessageParcel &parcel,
 }
 
 void WriteSurfaceBufferImpl(MessageParcel &parcel,
-    int32_t sequence, const sptr<SurfaceBuffer> &buffer)
+    uint32_t sequence, const sptr<SurfaceBuffer> &buffer)
 {
-    parcel.WriteInt32(sequence);
+    parcel.WriteUint32(sequence);
     parcel.WriteBool(buffer != nullptr);
     if (buffer == nullptr) {
         return;

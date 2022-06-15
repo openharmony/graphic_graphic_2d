@@ -54,7 +54,6 @@ using BufferRequestConfig = struct BufferRequestConfig {
     int32_t timeout;
     ColorGamut colorGamut = ColorGamut::COLOR_GAMUT_SRGB;
     TransformType transform = TransformType::ROTATE_NONE;
-    ScalingMode scalingMode = ScalingMode::SCALING_MODE_SCALE_TO_WINDOW;
     bool operator ==(const struct BufferRequestConfig &config) const
     {
         return width == config.width &&
@@ -64,8 +63,7 @@ using BufferRequestConfig = struct BufferRequestConfig {
                usage == config.usage &&
                timeout == config.timeout &&
                colorGamut == config.colorGamut &&
-               transform == config.transform &&
-               scalingMode == config.scalingMode;
+               transform == config.transform;
     }
     bool operator != (const struct BufferRequestConfig &config) const
     {

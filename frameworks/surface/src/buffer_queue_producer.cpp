@@ -50,6 +50,7 @@ BufferQueueProducer::BufferQueueProducer(sptr<BufferQueue>& bufferQueue)
     memberFuncMap_[BUFFER_PRODUCER_IS_SUPPORTED_ALLOC] = &BufferQueueProducer::IsSupportedAllocRemote;
     memberFuncMap_[BUFFER_PRODUCER_GET_NAMEANDUNIQUEDID] = &BufferQueueProducer::GetNameAndUniqueIdRemote;
     memberFuncMap_[BUFFER_PRODUCER_DISCONNECT] = &BufferQueueProducer::DisconnectRemote;
+    memberFuncMap_[BUFFER_PRODUCER_SET_SCALING_MODE] = &BufferQueueProducer::SetScalingModeRemote;
     memberFuncMap_[BUFFER_PRODUCER_SET_METADATA] = &BufferQueueProducer::SetMetaDataRemote;
     memberFuncMap_[BUFFER_PRODUCER_SET_METADATASET] = &BufferQueueProducer::SetMetaDataSetRemote;
 }
@@ -118,10 +119,10 @@ int32_t BufferQueueProducer::RequestBufferRemote(MessageParcel &arguments, Messa
 
 int32_t BufferQueueProducer::CancelBufferRemote(MessageParcel &arguments, MessageParcel &reply, MessageOption &option)
 {
-    int32_t sequence;
+    uint32_t sequence;
     sptr<BufferExtraData> bedataimpl = new BufferExtraDataImpl;
 
-    sequence = arguments.ReadInt32();
+    sequence = arguments.ReadUint32();
     bedataimpl->ReadFromParcel(arguments);
 
     GSError sret = CancelBuffer(sequence, bedataimpl);
@@ -132,11 +133,11 @@ int32_t BufferQueueProducer::CancelBufferRemote(MessageParcel &arguments, Messag
 int32_t BufferQueueProducer::FlushBufferRemote(MessageParcel &arguments, MessageParcel &reply, MessageOption &option)
 {
     sptr<SyncFence> fence = SyncFence::INVALID_FENCE;
-    int32_t sequence;
+    uint32_t sequence;
     BufferFlushConfig config;
     sptr<BufferExtraData> bedataimpl = new BufferExtraDataImpl;
 
-    sequence = arguments.ReadInt32();
+    sequence = arguments.ReadUint32();
     bedataimpl->ReadFromParcel(arguments);
 
     fence->ReadFromMessageParcel(arguments);
@@ -269,9 +270,18 @@ int32_t BufferQueueProducer::DisconnectRemote(MessageParcel &arguments, MessageP
     return 0;
 }
 
+int32_t BufferQueueProducer::SetScalingModeRemote(MessageParcel &arguments, MessageParcel &reply, MessageOption &option)
+{
+    uint32_t sequence = arguments.ReadUint32();
+    ScalingMode scalingMode = static_cast<ScalingMode>(arguments.ReadInt32());
+    GSError sret = SetScalingMode(sequence, scalingMode);
+    reply.WriteInt32(sret);
+    return 0;
+}
+
 int32_t BufferQueueProducer::SetMetaDataRemote(MessageParcel &arguments, MessageParcel &reply, MessageOption &option)
 {
-    int32_t sequence = arguments.ReadInt32();
+    uint32_t sequence = arguments.ReadUint32();
     std::vector<HDRMetaData> metaData;
     ReadHDRMetaData(arguments, metaData);
     GSError sret = SetMetaData(sequence, metaData);
@@ -281,7 +291,7 @@ int32_t BufferQueueProducer::SetMetaDataRemote(MessageParcel &arguments, Message
 
 int32_t BufferQueueProducer::SetMetaDataSetRemote(MessageParcel &arguments, MessageParcel &reply, MessageOption &option)
 {
-    int32_t sequence = arguments.ReadInt32();
+    uint32_t sequence = arguments.ReadUint32();
     HDRMetadataKey key = static_cast<HDRMetadataKey>(arguments.ReadUint32());
     std::vector<uint8_t> metaData;
     ReadHDRMetaDataSet(arguments, metaData);
@@ -309,7 +319,7 @@ GSError BufferQueueProducer::RequestBuffer(const BufferRequestConfig &config, sp
     return bufferQueue_->RequestBuffer(config, bedata, retval);
 }
 
-GSError BufferQueueProducer::CancelBuffer(int32_t sequence, const sptr<BufferExtraData> &bedata)
+GSError BufferQueueProducer::CancelBuffer(uint32_t sequence, const sptr<BufferExtraData> &bedata)
 {
     if (bufferQueue_ == nullptr) {
         return GSERROR_INVALID_ARGUMENTS;
@@ -317,7 +327,7 @@ GSError BufferQueueProducer::CancelBuffer(int32_t sequence, const sptr<BufferExt
     return bufferQueue_->CancelBuffer(sequence, bedata);
 }
 
-GSError BufferQueueProducer::FlushBuffer(int32_t sequence, const sptr<BufferExtraData> &bedata,
+GSError BufferQueueProducer::FlushBuffer(uint32_t sequence, const sptr<BufferExtraData> &bedata,
                                          const sptr<SyncFence>& fence, BufferFlushConfig &config)
 {
     if (bufferQueue_ == nullptr) {
@@ -467,7 +477,15 @@ GSError BufferQueueProducer::Disconnect()
     return bufferQueue_->CleanCache();
 }
 
-GSError BufferQueueProducer::SetMetaData(int32_t sequence, const std::vector<HDRMetaData> &metaData)
+GSError BufferQueueProducer::SetScalingMode(uint32_t sequence, ScalingMode scalingMode)
+{
+    if (bufferQueue_ == nullptr) {
+        return GSERROR_INVALID_ARGUMENTS;
+    }
+    return bufferQueue_->SetScalingMode(sequence, scalingMode);
+}
+
+GSError BufferQueueProducer::SetMetaData(uint32_t sequence, const std::vector<HDRMetaData> &metaData)
 {
     if (bufferQueue_ == nullptr) {
         return GSERROR_INVALID_ARGUMENTS;
@@ -476,7 +494,7 @@ GSError BufferQueueProducer::SetMetaData(int32_t sequence, const std::vector<HDR
     return bufferQueue_->SetMetaData(sequence, metaData);
 }
 
-GSError BufferQueueProducer::SetMetaDataSet(int32_t sequence, HDRMetadataKey key,
+GSError BufferQueueProducer::SetMetaDataSet(uint32_t sequence, HDRMetadataKey key,
                                             const std::vector<uint8_t> &metaData)
 {
     if (bufferQueue_ == nullptr) {

@@ -22,6 +22,7 @@
 #include <surface_buffer.h>
 #include <idisplay_gralloc.h>
 #include "egl_data.h"
+#include "stdint.h"
 
 namespace OHOS {
 class SurfaceBufferImpl : public SurfaceBuffer {
@@ -58,14 +59,12 @@ public:
     void SetSurfaceBufferColorGamut(const ColorGamut& colorGamut) override;
     void SetSurfaceBufferTransform(const TransformType& transform) override;
 
-    const ScalingMode& GetSurfaceBufferScalingMode() const override;
-
     int32_t GetSurfaceBufferWidth() const override;
     int32_t GetSurfaceBufferHeight() const override;
     void SetSurfaceBufferWidth(int32_t width) override;
     void SetSurfaceBufferHeight(int32_t width) override;
 
-    int32_t GetSeqNum() const override;
+    uint32_t GetSeqNum() const override;
     
     sptr<EglData> GetEglData() const override;
     void SetEglData(const sptr<EglData>& data) override;
@@ -81,12 +80,11 @@ private:
     void FreeBufferHandleLocked();
 
     BufferHandle *handle_ = nullptr;
-    int32_t sequenceNumber_ = -1;
+    uint32_t sequenceNumber_ = UINT32_MAX;
     sptr<BufferExtraData> bedata_ = nullptr;
     sptr<EglData> eglData_ = nullptr;
     ColorGamut surfaceBufferColorGamut_ = ColorGamut::COLOR_GAMUT_SRGB;
     TransformType transform_ = TransformType::ROTATE_NONE;
-    ScalingMode surfaceBufferScalingMode_ = ScalingMode::SCALING_MODE_SCALE_TO_WINDOW;
     int32_t surfaceBufferWidth_ = 0;
     int32_t surfaceBufferHeight_ = 0;
     mutable std::mutex mutex_;
