@@ -145,7 +145,7 @@ void RSUIDirector::SendMessages()
     ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "SendCommands");
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy != nullptr) {
-        transactionProxy->FlushImplicitTransaction();
+        transactionProxy->FlushImplicitTransaction(timeStamp_);
     }
     ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
 }

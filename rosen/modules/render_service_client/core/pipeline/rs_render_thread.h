@@ -69,6 +69,10 @@ public:
     {
         return context_;
     }
+    uint64_t GetPrevTimestamp() const
+    {
+        return prevTimestamp_;
+    }
 
     void OnTransaction(std::shared_ptr<RSTransactionData> transactionData) override;
 

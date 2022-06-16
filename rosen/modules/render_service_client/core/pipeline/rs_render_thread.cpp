@@ -75,10 +75,6 @@ RSRenderThread::RSRenderThread()
         Render();
         RS_ASYNC_TRACE_BEGIN("waiting GPU running", 1111); // 1111 means async trace code for gpu
         SendCommands();
-        auto transactionProxy = RSTransactionProxy::GetInstance();
-        if (transactionProxy != nullptr) {
-            transactionProxy->FlushImplicitTransactionFromRT();
-        }
         ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
         jankDetector_.CalculateSkippedFrame(renderStartTimeStamp, jankDetector_.GetSysTimeNs());
     };
