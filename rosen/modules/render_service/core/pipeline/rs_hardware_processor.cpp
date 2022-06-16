@@ -297,6 +297,11 @@ void RSHardwareProcessor::ProcessSurface(RSSurfaceRenderNode &node)
         info.srcRect.w = info.srcRect.w * xScale;
         info.srcRect.h = info.srcRect.h * yScale;
     }
+    if (node.GetRenderProperties().GetFrameGravity() != Gravity::RESIZE &&
+        (info.srcRect.w != info.dstRect.w || info.srcRect.h != info.dstRect.h)) {
+        RS_LOGD("node(%llu) need client composition to do the gravity effect.", node.GetId());
+        info.needClient = true;
+    }
     std::string inf;
     char strBuffer[UINT8_MAX] = { 0 };
     if (sprintf_s(strBuffer, UINT8_MAX, "ProcessSurfaceNode:%s XYWH[%d %d %d %d]", node.GetName().c_str(),
@@ -408,6 +413,43 @@ static void DrawBufferPostProcess(RSPaintFilterCanvas& canvas, RSSurfaceRenderNo
     RSPropertiesPainter::DrawMask(node.GetRenderProperties(), canvas, RSPropertiesPainter::Rect2SkRect(maskBounds));
 }
 
+SkMatrix RSHardwareProcessor::GetGravityMatrix(
+    RSSurfaceRenderNode& node, const RectF& targetRect)
+{
+    SkMatrix gravityMatrix = SkMatrix::I();
+    const RSProperties& property = node.GetRenderProperties();
+    const auto& buffer = node.GetBuffer();
+    if (buffer == nullptr) {
+        return gravityMatrix;
+    }
+
+    if (!RSPropertiesPainter::GetGravityMatrix(property.GetFrameGravity(), targetRect,
+        buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight(), gravityMatrix)) {
+        RS_LOGD("RSHardwareProcessor::GetGravityMatrix did not obtain gravity matrix.");
+    }
+
+    return gravityMatrix;
+}
+
+// private func, assert layerInfo is not nullptr.
+BufferDrawParam RSHardwareProcessor::GetBufferDrawParam(
+    RSSurfaceRenderNode& node, const LayerInfoPtr& layerInfo)
+{
+    SkPaint paint;
+    paint.setAlphaf(node.GetGlobalAlpha());
+    BufferDrawParam params = RSDividedRenderUtil::CreateBufferDrawParam(
+        node, currScreenInfo_.rotationMatrix, rotation_, paint);
+    params.targetColorGamut = static_cast<ColorGamut>(currScreenInfo_.colorGamut);
+    const auto& clipRect = layerInfo->GetLayerSize();
+    params.clipRect = SkRect::MakeXYWH(clipRect.x, clipRect.y, clipRect.w, clipRect.h);
+    params.matrix = params.matrix.preConcat(
+        GetGravityMatrix(node, RectF(clipRect.x, clipRect.y, clipRect.w, clipRect.h)));
+    if (node.GetRenderProperties().GetFrameGravity() != Gravity::RESIZE) {
+        params.dstRect = params.srcRect;
+    }
+    return params;
+}
+
 void RSHardwareProcessor::Redraw(
     sptr<Surface>& surface, const struct PrepareCompleteParam& param, void* data)
 {
@@ -481,21 +523,17 @@ void RSHardwareProcessor::Redraw(
             layerInfo->GetCompositionType(), layerInfo->GetLayerSize().x, layerInfo->GetLayerSize().y,
             layerInfo->GetLayerSize().w, layerInfo->GetLayerSize().h);
         int saveCount = canvas->getSaveCount();
-        SkPaint paint;
-        paint.setAlphaf(node.GetGlobalAlpha());
-        auto params = RSDividedRenderUtil::CreateBufferDrawParam(node, currScreenInfo_.rotationMatrix,
-            rotation_, paint);
-        params.targetColorGamut = static_cast<ColorGamut>(currScreenInfo_.colorGamut);
-        const auto& clipRect = layerInfo->GetLayerSize();
-        params.clipRect = SkRect::MakeXYWH(clipRect.x, clipRect.y, clipRect.w, clipRect.h);
+        auto params = GetBufferDrawParam(node, layerInfo);
         Vector2f center(node.GetDstRect().left_ + node.GetDstRect().width_ * 0.5f,
             node.GetDstRect().top_ + node.GetDstRect().height_ * 0.5f);
+        auto drawBufferPostProcessFunc = [this, &node, &center](RSPaintFilterCanvas& canvas,
+            BufferDrawParam& params) -> void {
+                DrawBufferPostProcess(canvas, node, params, center);
+        };
 #ifdef RS_ENABLE_EGLIMAGE
         if (ifUseGPU) {
             RSDividedRenderUtil::DrawImage(eglImageManager_, renderContext_->GetGrContext(), *canvas, params,
-                [this, &node, &center](RSPaintFilterCanvas& canvas, BufferDrawParam& params) -> void {
-                    DrawBufferPostProcess(canvas, node, params, center);
-            });
+                drawBufferPostProcessFunc);
             auto consumerSurface = node.GetConsumer();
             GSError error = consumerSurface->RegisterDeleteBufferListener([eglImageManager = eglImageManager_]
                 (int32_t bufferId) {eglImageManager->UnMapEglImageFromSurfaceBuffer(bufferId);
@@ -504,17 +542,11 @@ void RSHardwareProcessor::Redraw(
                 RS_LOGE("RSHardwareProcessor::Redraw: fail to register UnMapEglImage callback.");
             }
         } else {
-            RSDividedRenderUtil::DrawBuffer(*canvas, params, [this, &node, &center](RSPaintFilterCanvas& canvas,
-                BufferDrawParam& params) -> void {
-                    DrawBufferPostProcess(canvas, node, params, center);
-            });
+            RSDividedRenderUtil::DrawBuffer(*canvas, params, drawBufferPostProcessFunc);
         }
         canvas->restoreToCount(saveCount);
 #else
-        RSDividedRenderUtil::DrawBuffer(*canvas, params, [this, &node, &center](RSPaintFilterCanvas& canvas,
-            BufferDrawParam& params) -> void {
-            DrawBufferPostProcess(canvas, node, params, center);
-        });
+        RSDividedRenderUtil::DrawBuffer(*canvas, params, drawBufferPostProcessFunc);
         canvas->restoreToCount(saveCount);
 #endif // RS_ENABLE_EGLIMAGE
     }

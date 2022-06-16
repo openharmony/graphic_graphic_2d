@@ -212,6 +212,7 @@ BufferDrawParam RSDividedRenderUtil::CreateBufferDrawParam(RSSurfaceRenderNode& 
     params.paint = paint;
     params.cornerRadius = property.GetCornerRadius();
     params.isNeedClip = property.GetClipToFrame();
+    params.backgroundColor = SkColor4f::FromBytes_RGBA(property.GetBackgroundColor().AsRgbaInt()).toSkColor();
     return params;
 }
 
@@ -228,6 +229,9 @@ void SetPropertiesForCanvas(RSPaintFilterCanvas& canvas, BufferDrawParam& buffer
         } else {
             canvas.clipRect(bufferDrawParam.clipRect);
         }
+    }
+    if (bufferDrawParam.backgroundColor != SK_ColorTRANSPARENT) {
+        canvas.clear(bufferDrawParam.backgroundColor);
     }
     canvas.setMatrix(bufferDrawParam.matrix);
     if (process) {

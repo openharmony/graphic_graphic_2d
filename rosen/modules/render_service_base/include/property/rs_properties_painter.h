@@ -43,6 +43,7 @@ public:
         const Vector2f& center, RSPaintFilterCanvas& canvas);
     static void DrawMask(const RSProperties& properties, SkCanvas& canvas);
     static void DrawMask(const RSProperties& properties, SkCanvas& canvas, SkRect maskBounds);
+    static bool GetGravityMatrix(Gravity gravity, RectF rect, float w, float h, SkMatrix& mat);
     static SkRRect RRect2SkRRect(const RRect& rr);
     static SkRect Rect2SkRect(const RectF& r);
 };

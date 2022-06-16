@@ -19,6 +19,7 @@
 #include <surface.h>
 #include "display_type.h"
 #include "include/core/SkCanvas.h"
+#include "include/core/SkColor.h"
 #include "include/core/SkMatrix.h"
 #include "include/core/SkRect.h"
 
@@ -43,6 +44,7 @@ struct BufferDrawParam {
     Vector4f cornerRadius;
     bool isNeedClip = true;
     SkPaint paint;
+    SkColor backgroundColor = SK_ColorTRANSPARENT;
     ColorGamut targetColorGamut = ColorGamut::COLOR_GAMUT_SRGB;
 };
 
