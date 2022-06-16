@@ -49,7 +49,7 @@ NodeId RSBaseNode::GenerateId()
 bool RSBaseNode::isUniRenderEnabled_ =
     RSSystemProperties::GetUniRenderEnabledType() != UniRenderEnabledType::UNI_RENDER_DISABLED;
 
-RSBaseNode::RSBaseNode(bool isRenderServiceNode) : id_(GenerateId()), isRenderServiceNode_(isRenderServiceNode) {}
+RSBaseNode::RSBaseNode(bool isRenderServiceNode) : isRenderServiceNode_(isRenderServiceNode), id_(GenerateId()) {}
 
 RSBaseNode::~RSBaseNode()
 {

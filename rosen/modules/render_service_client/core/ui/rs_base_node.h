@@ -33,13 +33,13 @@ public:
 
     virtual ~RSBaseNode();
 
-    void AddChild(SharedPtr child, int index);
-    void RemoveChild(SharedPtr child);
+    virtual void AddChild(SharedPtr child, int index);
+    virtual void RemoveChild(SharedPtr child);
     // Add/RemoveCrossParentChild only used as: the child is under multiple parents(e.g. a window cross multi-screens)
     void AddCrossParentChild(SharedPtr child, int index);
     void RemoveCrossParentChild(SharedPtr child, NodeId newParentId);
     void RemoveFromTree();
-    void ClearChildren();
+    virtual void ClearChildren();
 
     NodeId GetId() const
     {
@@ -68,6 +68,7 @@ public:
     virtual std::string DumpNode(int depth) const;
 protected:
     static bool isUniRenderEnabled_;
+    bool isRenderServiceNode_;
 
     RSBaseNode(bool isRenderServiceNode);
     RSBaseNode(const RSBaseNode&) = delete;
@@ -89,15 +90,9 @@ protected:
         return isUniRenderEnabled_ || isRenderServiceNode_;
     }
 
-    void SetRenderServiceNodeType(bool isRenderServiceNode)
-    {
-        isRenderServiceNode_ = isRenderServiceNode;
-    }
-
 private:
     static NodeId GenerateId();
     NodeId id_;
-    bool isRenderServiceNode_;
 
     NodeId parent_ = 0;
     std::vector<NodeId> children_;
