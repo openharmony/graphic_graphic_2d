@@ -26,7 +26,6 @@
 
 #include "common/rs_thread_handler.h"
 #include "common/rs_thread_looper.h"
-#include "ipc_callbacks/rs_application_render_thread_stub.h"
 #include "jank_detector/rs_jank_detector.h"
 #include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_render_thread_visitor.h"
@@ -37,7 +36,7 @@
 
 namespace OHOS {
 namespace Rosen {
-class RSRenderThread final : public RSApplicationRenderThreadStub {
+class RSRenderThread final {
 public:
     static RSRenderThread& Instance();
 
@@ -73,8 +72,6 @@ public:
     {
         return prevTimestamp_;
     }
-
-    void OnTransaction(std::shared_ptr<RSTransactionData> transactionData) override;
 
 private:
     RSRenderThread();

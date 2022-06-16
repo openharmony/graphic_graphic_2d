@@ -61,7 +61,7 @@ public:
 
     void SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status) override;
 
-    void RegisterApplicationRenderThread(uint32_t pid, sptr<IApplicationRenderThread> app) override;
+    void RegisterApplicationAgent(uint32_t pid, sptr<IApplicationAgent> app) override;
 
     void TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback, float scaleX, float scaleY) override;
 

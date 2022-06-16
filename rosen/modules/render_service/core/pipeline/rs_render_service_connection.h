@@ -86,9 +86,9 @@ private:
 
     void TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback, float scaleX, float scaleY) override;
 
-    void RegisterApplicationRenderThread(uint32_t pid, sptr<IApplicationRenderThread> app) override;
+    void RegisterApplicationAgent(uint32_t pid, sptr<IApplicationAgent> app) override;
 
-    void UnregisterApplicationRenderThread(sptr<IApplicationRenderThread> app);
+    void UnRegisterApplicationAgent(sptr<IApplicationAgent> app);
 
     RSVirtualScreenResolution GetVirtualScreenResolution(ScreenId id) override;
 

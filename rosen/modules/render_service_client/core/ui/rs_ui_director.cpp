@@ -23,6 +23,7 @@
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
 #include "rs_trace.h"
+#include "transaction/rs_application_agent_impl.h"
 #include "transaction/rs_interfaces.h"
 #include "transaction/rs_transaction_proxy.h"
 #include "ui/rs_root_node.h"
@@ -58,6 +59,7 @@ void RSUIDirector::Init()
         RsFrameReport::GetInstance().Init();
         RSRenderThread::Instance().Start();
     }
+    RSApplicationAgentImpl::Instance().RegisterRSApplicationAgent();
 
     GoForeground();
 }

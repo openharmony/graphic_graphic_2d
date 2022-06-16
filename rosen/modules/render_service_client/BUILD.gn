@@ -64,6 +64,7 @@ ohos_source_set("render_service_client_src") {
     "core/pipeline/rs_render_thread_visitor.cpp",
 
     #transaction
+    "core/transaction/rs_application_agent_impl.cpp",
     "core/transaction/rs_interfaces.cpp",
     "core/transaction/rs_render_thread_client.cpp",
     "core/transaction/rs_transaction.cpp",

@@ -204,15 +204,15 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             TakeSurfaceCapture(id, cb, scaleX, scaleY);
             break;
         }
-        case REGISTER_APPLICATION_RENDER_THREAD: {
+        case REGISTER_APPLICATION_AGENT: {
             uint32_t pid = data.ReadUint32();
             auto remoteObject = data.ReadRemoteObject();
             if (remoteObject == nullptr) {
                 ret = ERR_NULL_OBJECT;
                 break;
             }
-            sptr<IApplicationRenderThread> app = iface_cast<IApplicationRenderThread>(remoteObject);
-            RegisterApplicationRenderThread(pid, app);
+            sptr<IApplicationAgent> app = iface_cast<IApplicationAgent>(remoteObject);
+            RegisterApplicationAgent(pid, app);
             break;
         }
         case GET_VIRTUAL_SCREEN_RESOLUTION: {
