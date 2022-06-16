@@ -1,0 +1,5 @@
+[
+    { "name": "OH_NativeVSync_CreateOHNativeVSync" },
+    { "name": "OH_NativeVSync_DestoryOHNativeVSync" },
+    { "name": "OH_NativeVSync_OHNativeVSyncRequetFrame" }
+]
