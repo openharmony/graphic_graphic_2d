@@ -217,6 +217,8 @@ private:
     friend class RSKeyframeAnimation;
     template<typename T>
     friend class RSPropertyAnimation;
+    template<typename T>
+    friend class RSSpringAnimation;
     friend class RSPathAnimation;
     friend class RSTransition;
     friend class RSUIDirector;

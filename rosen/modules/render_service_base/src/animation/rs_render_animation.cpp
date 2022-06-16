@@ -136,6 +136,16 @@ void RSRenderAnimation::Finish()
     ProcessFillModeOnFinish(animationFraction_.GetEndFraction());
 }
 
+void RSRenderAnimation::FinishOnCurrentPosition()
+{
+    if (!IsPaused() && !IsRunning()) {
+        ROSEN_LOGE("Failed to finish animation, animation is not running!");
+        return;
+    }
+
+    state_ = AnimationState::FINISHED;
+}
+
 void RSRenderAnimation::Pause()
 {
     if (!IsRunning()) {

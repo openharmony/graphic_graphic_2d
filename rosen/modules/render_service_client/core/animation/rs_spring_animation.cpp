@@ -13,44 +13,42 @@
  * limitations under the License.
  */
 
-#include "animation/rs_keyframe_animation.h"
+#include "animation/rs_spring_animation.h"
 
-#include "animation/rs_render_keyframe_animation.h"
+#include "animation/rs_animation_common.h"
+#include "animation/rs_render_spring_animation.h"
 #include "command/rs_animation_command.h"
+#include "platform/common/rs_log.h"
 #include "transaction/rs_transaction_proxy.h"
 
 namespace OHOS {
 namespace Rosen {
 template<typename T>
 template<typename P>
-void RSKeyframeAnimation<T>::StartAnimationImpl()
+void RSSpringAnimation<T>::StartAnimationImpl()
 {
     RSPropertyAnimation<T>::OnStart();
     auto target = RSPropertyAnimation<T>::GetTarget().lock();
     if (target == nullptr) {
-        ROSEN_LOGE("Failed to start keyframe animation, target is null!");
+        ROSEN_LOGE("Failed to start spring animation, target is null!");
         return;
     }
-    if (keyframes_.empty()) {
-        ROSEN_LOGE("Failed to start keyframe animation, keyframes is null!");
-        return;
-    }
-    auto animation = std::make_shared<RSRenderKeyframeAnimation<T>>(
-        RSPropertyAnimation<T>::GetId(), RSPropertyAnimation<T>::GetProperty(), RSPropertyAnimation<T>::originValue_);
-    for (const auto& [fraction, value, curve] : keyframes_) {
-        animation->AddKeyframe(fraction, value, curve.GetInterpolator(RSPropertyAnimation<T>::GetDuration()));
-    }
+    auto animation = std::make_shared<RSRenderSpringAnimation<T>>(RSPropertyAnimation<T>::GetId(),
+        RSPropertyAnimation<T>::GetProperty(), RSPropertyAnimation<T>::originValue_,
+        RSPropertyAnimation<T>::startValue_, RSPropertyAnimation<T>::endValue_);
     animation->SetDuration(RSPropertyAnimation<T>::GetDuration());
     animation->SetStartDelay(RSPropertyAnimation<T>::GetStartDelay());
     animation->SetRepeatCount(RSPropertyAnimation<T>::GetRepeatCount());
     animation->SetAutoReverse(RSPropertyAnimation<T>::GetAutoReverse());
     animation->SetSpeed(RSPropertyAnimation<T>::GetSpeed());
-    animation->SetFillMode(RSPropertyAnimation<T>::GetFillMode());
     animation->SetDirection(RSPropertyAnimation<T>::GetDirection());
+    animation->SetFillMode(RSPropertyAnimation<T>::GetFillMode());
+    animation->SetSpringParameters(timingCurve_.response_, timingCurve_.dampingRatio_);
     std::unique_ptr<RSCommand> command = std::make_unique<P>(target->GetId(), animation);
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy != nullptr) {
-        transactionProxy->AddCommand(command, target->IsRenderServiceNode(), target->GetFollowType(), target->GetId());
+        transactionProxy->AddCommand(
+            command, target->IsRenderServiceNode(), target->GetFollowType(), target->GetId());
         if (target->NeedForcedSendToRemote()) {
             std::unique_ptr<RSCommand> commandForRemote = std::make_unique<P>(target->GetId(), animation);
             transactionProxy->AddCommand(commandForRemote, true, target->GetFollowType(), target->GetId());
@@ -59,51 +57,51 @@ void RSKeyframeAnimation<T>::StartAnimationImpl()
 }
 
 template<>
-void RSKeyframeAnimation<float>::OnStart()
+void RSSpringAnimation<float>::OnStart()
 {
-    StartAnimationImpl<RSAnimationCreateKeyframeFloat>();
+    StartAnimationImpl<RSAnimationCreateSpringFloat>();
 }
 
 template<>
-void RSKeyframeAnimation<Color>::OnStart()
+void RSSpringAnimation<Color>::OnStart()
 {
-    StartAnimationImpl<RSAnimationCreateKeyframeColor>();
+    StartAnimationImpl<RSAnimationCreateSpringColor>();
 }
 
 template<>
-void RSKeyframeAnimation<Matrix3f>::OnStart()
+void RSSpringAnimation<Matrix3f>::OnStart()
 {
-    StartAnimationImpl<RSAnimationCreateKeyframeMatrix3f>();
+    StartAnimationImpl<RSAnimationCreateSpringMatrix3f>();
 }
 
 template<>
-void RSKeyframeAnimation<Vector2f>::OnStart()
+void RSSpringAnimation<Vector2f>::OnStart()
 {
-    StartAnimationImpl<RSAnimationCreateKeyframeVec2f>();
+    StartAnimationImpl<RSAnimationCreateSpringVec2f>();
 }
 
 template<>
-void RSKeyframeAnimation<Vector4f>::OnStart()
+void RSSpringAnimation<Vector4f>::OnStart()
 {
-    StartAnimationImpl<RSAnimationCreateKeyframeVec4f>();
+    StartAnimationImpl<RSAnimationCreateSpringVec4f>();
 }
 
 template<>
-void RSKeyframeAnimation<Quaternion>::OnStart()
+void RSSpringAnimation<Quaternion>::OnStart()
 {
-    StartAnimationImpl<RSAnimationCreateKeyframeQuaternion>();
+    StartAnimationImpl<RSAnimationCreateSpringQuaternion>();
 }
 
 template<>
-void RSKeyframeAnimation<std::shared_ptr<RSFilter>>::OnStart()
+void RSSpringAnimation<std::shared_ptr<RSFilter>>::OnStart()
 {
-    StartAnimationImpl<RSAnimationCreateKeyframeFilter>();
+    StartAnimationImpl<RSAnimationCreateSpringFilter>();
 }
 
 template<>
-void RSKeyframeAnimation<Vector4<Color>>::OnStart()
+void RSSpringAnimation<Vector4<Color>>::OnStart()
 {
-    StartAnimationImpl<RSAnimationCreateKeyframeVec4Color>();
+    StartAnimationImpl<RSAnimationCreateSpringVec4Color>();
 }
 } // namespace Rosen
 } // namespace OHOS

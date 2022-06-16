@@ -13,13 +13,12 @@
  * limitations under the License.
  */
 
-#ifndef RENDER_SERVICE_CLIENT_CORE_ANIMATION_RS_CURVE_ANIMATION_H
-#define RENDER_SERVICE_CLIENT_CORE_ANIMATION_RS_CURVE_ANIMATION_H
+#ifndef RENDER_SERVICE_CLIENT_CORE_ANIMATION_RS_SPRING_ANIMATION_H
+#define RENDER_SERVICE_CLIENT_CORE_ANIMATION_RS_SPRING_ANIMATION_H
 
 #include <iostream>
 #include <memory>
 
-#include "animation/rs_animation_timing_curve.h"
 #include "animation/rs_property_animation.h"
 #include "common/rs_color.h"
 #include "common/rs_matrix3.h"
@@ -29,15 +28,15 @@
 namespace OHOS {
 namespace Rosen {
 template<typename T>
-class RS_EXPORT RSCurveAnimation : public RSPropertyAnimation<T> {
+class RS_EXPORT RSSpringAnimation : public RSPropertyAnimation<T> {
 public:
-    RSCurveAnimation(const RSAnimatableProperty& property, const T& byValue) : RSPropertyAnimation<T>(property)
+    RSSpringAnimation(const RSAnimatableProperty& property, const T& byValue) : RSPropertyAnimation<T>(property)
     {
         RSPropertyAnimation<T>::isDelta_ = true;
         RSPropertyAnimation<T>::byValue_ = byValue;
     }
 
-    RSCurveAnimation(const RSAnimatableProperty& property, const T& startValue, const T& endValue)
+    RSSpringAnimation(const RSAnimatableProperty& property, const T& startValue, const T& endValue)
         : RSPropertyAnimation<T>(property)
     {
         RSPropertyAnimation<T>::isDelta_ = false;
@@ -45,12 +44,12 @@ public:
         RSPropertyAnimation<T>::endValue_ = endValue;
     }
 
-    virtual ~RSCurveAnimation() = default;
+    virtual ~RSSpringAnimation() = default;
 
     void SetTimingCurve(const RSAnimationTimingCurve& timingCurve)
     {
-        if (timingCurve.type_ != RSAnimationTimingCurve::CurveType::INTERPOLATING) {
-            ROSEN_LOGE("RSCurveAnimation::SetTimingCurve: invalid timing curve type");
+        if (timingCurve.type_ != RSAnimationTimingCurve::CurveType::SPRING) {
+            ROSEN_LOGE("RSSpringAnimation::SetTimingCurve: invalid timing curve type");
             return;
         }
         timingCurve_ = timingCurve;
@@ -68,9 +67,9 @@ private:
     template<typename P>
     void StartAnimationImpl();
 
-    RSAnimationTimingCurve timingCurve_ { RSAnimationTimingCurve::DEFAULT };
+    RSAnimationTimingCurve timingCurve_ { RSAnimationTimingCurve::SPRING };
 };
 } // namespace Rosen
 } // namespace OHOS
 
-#endif // RENDER_SERVICE_CLIENT_CORE_ANIMATION_RS_CURVE_ANIMATION_H
+#endif // RENDER_SERVICE_CLIENT_CORE_ANIMATION_RS_SPRING_ANIMATION_H

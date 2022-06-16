@@ -23,89 +23,85 @@
 
 namespace OHOS {
 namespace Rosen {
-
-#define START_CURVE_ANIMATION(RSRenderCommand, Type)                                                               \
-    RSPropertyAnimation<Type>::OnStart();                                                                          \
-    auto target = GetTarget().lock();                                                                              \
-    if (target == nullptr) {                                                                                       \
-        ROSEN_LOGE("Failed to start curve animation, target is null!");                                            \
-        return;                                                                                                    \
-    }                                                                                                              \
-    auto interpolator = timingCurve_.GetInterpolator(GetDuration());                                               \
-    auto animation = std::make_shared<RSRenderCurveAnimation<Type>>(GetId(), GetProperty(),                        \
-        RSPropertyAnimation<Type>::originValue_, RSPropertyAnimation<Type>::startValue_,                           \
-        RSPropertyAnimation<Type>::endValue_);                                                                     \
-    animation->SetDuration(GetDuration());                                                                         \
-    animation->SetStartDelay(GetStartDelay());                                                                     \
-    animation->SetRepeatCount(GetRepeatCount());                                                                   \
-    animation->SetAutoReverse(GetAutoReverse());                                                                   \
-    animation->SetSpeed(GetSpeed());                                                                               \
-    animation->SetDirection(GetDirection());                                                                       \
-    animation->SetFillMode(GetFillMode());                                                                         \
-    animation->SetInterpolator(interpolator);                                                                      \
-    std::unique_ptr<RSCommand> command = std::make_unique<RSRenderCommand>(target->GetId(), animation);            \
-    auto transactionProxy = RSTransactionProxy::GetInstance();                                                     \
-    if (transactionProxy != nullptr) {                                                                             \
-        transactionProxy->AddCommand(command, target->IsRenderServiceNode(), target->GetFollowType(), target->GetId());  \
-        if (target->NeedForcedSendToRemote()) {                                                                    \
-            std::unique_ptr<RSCommand> commandForRemote =                                                          \
-                std::make_unique<RSRenderCommand>(target->GetId(), animation);                                     \
-            transactionProxy->AddCommand(commandForRemote, true, target->GetFollowType(), target->GetId());              \
-        }                                                                                                          \
-    }
-
-template<>
-void RSCurveAnimation<int>::OnStart()
+template<typename T>
+template<typename P>
+void RSCurveAnimation<T>::StartAnimationImpl()
 {
-    START_CURVE_ANIMATION(RSAnimationCreateCurveInt, int);
+    RSPropertyAnimation<T>::OnStart();
+    auto target = RSPropertyAnimation<T>::GetTarget().lock();
+    if (target == nullptr) {
+        ROSEN_LOGE("Failed to start curve animation, target is null!");
+        return;
+    }
+    auto interpolator = timingCurve_.GetInterpolator(RSPropertyAnimation<T>::GetDuration());
+    auto animation = std::make_shared<RSRenderCurveAnimation<T>>(RSPropertyAnimation<T>::GetId(),
+        RSPropertyAnimation<T>::GetProperty(), RSPropertyAnimation<T>::originValue_,
+        RSPropertyAnimation<T>::startValue_, RSPropertyAnimation<T>::endValue_);
+    animation->SetDuration(RSPropertyAnimation<T>::GetDuration());
+    animation->SetStartDelay(RSPropertyAnimation<T>::GetStartDelay());
+    animation->SetRepeatCount(RSPropertyAnimation<T>::GetRepeatCount());
+    animation->SetAutoReverse(RSPropertyAnimation<T>::GetAutoReverse());
+    animation->SetSpeed(RSPropertyAnimation<T>::GetSpeed());
+    animation->SetDirection(RSPropertyAnimation<T>::GetDirection());
+    animation->SetFillMode(RSPropertyAnimation<T>::GetFillMode());
+    animation->SetInterpolator(interpolator);
+    std::unique_ptr<RSCommand> command = std::make_unique<P>(target->GetId(), animation);
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        transactionProxy->AddCommand(command, target->IsRenderServiceNode(), target->GetFollowType(), target->GetId());
+        if (target->NeedForcedSendToRemote()) {
+            std::unique_ptr<RSCommand> commandForRemote = std::make_unique<P>(target->GetId(), animation);
+            transactionProxy->AddCommand(commandForRemote, true, target->GetFollowType(), target->GetId());
+        }
+    }
 }
 
 template<>
 void RSCurveAnimation<float>::OnStart()
 {
-    START_CURVE_ANIMATION(RSAnimationCreateCurveFloat, float);
+    StartAnimationImpl<RSAnimationCreateCurveFloat>();
 }
 
 template<>
 void RSCurveAnimation<Color>::OnStart()
 {
-    START_CURVE_ANIMATION(RSAnimationCreateCurveColor, Color);
+    StartAnimationImpl<RSAnimationCreateCurveColor>();
 }
 
 template<>
 void RSCurveAnimation<Matrix3f>::OnStart()
 {
-    START_CURVE_ANIMATION(RSAnimationCreateCurveMatrix3f, Matrix3f);
+    StartAnimationImpl<RSAnimationCreateCurveMatrix3f>();
 }
 
 template<>
 void RSCurveAnimation<Vector2f>::OnStart()
 {
-    START_CURVE_ANIMATION(RSAnimationCreateCurveVec2f, Vector2f);
+    StartAnimationImpl<RSAnimationCreateCurveVec2f>();
 }
 
 template<>
 void RSCurveAnimation<Vector4f>::OnStart()
 {
-    START_CURVE_ANIMATION(RSAnimationCreateCurveVec4f, Vector4f);
+    StartAnimationImpl<RSAnimationCreateCurveVec4f>();
 }
 
 template<>
 void RSCurveAnimation<Quaternion>::OnStart()
 {
-    START_CURVE_ANIMATION(RSAnimationCreateCurveQuaternion, Quaternion);
+    StartAnimationImpl<RSAnimationCreateCurveQuaternion>();
 }
 
 template<>
 void RSCurveAnimation<std::shared_ptr<RSFilter>>::OnStart()
 {
-    START_CURVE_ANIMATION(RSAnimationCreateCurveFilter, std::shared_ptr<RSFilter>);
+    StartAnimationImpl<RSAnimationCreateCurveFilter>();
 }
 
 template<>
 void RSCurveAnimation<Vector4<Color>>::OnStart()
 {
-    START_CURVE_ANIMATION(RSAnimationCreateCurveVec4Color, Vector4<Color>);
+    StartAnimationImpl<RSAnimationCreateCurveVec4Color>();
 }
 } // namespace Rosen
 } // namespace OHOS

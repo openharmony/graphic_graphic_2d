@@ -43,6 +43,10 @@ const std::vector<RSAnimatableProperty> RSPathAnimation::PROP_FOR_PATH_ANIM = {
 
 void RSPathAnimation::SetTimingCurve(const RSAnimationTimingCurve& timingCurve)
 {
+    if (timingCurve.type_ != RSAnimationTimingCurve::CurveType::INTERPOLATING) {
+        ROSEN_LOGE("RSPathAnimation::SetTimingCurve: invalid timing curve type");
+        return;
+    }
     timingCurve_ = timingCurve;
 }
 

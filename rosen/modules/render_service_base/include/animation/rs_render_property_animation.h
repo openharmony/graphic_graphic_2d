@@ -71,11 +71,10 @@ public:
 #endif
 protected:
     RSRenderPropertyAnimation(AnimationId id, const RSAnimatableProperty& property, const T& originValue)
-        : RSRenderAnimation(id), property_(property), originValue_(originValue), lastValue_(originValue)
+        : RSRenderAnimation(id), originValue_(originValue), lastValue_(originValue), property_(property)
     {
         propertyAccessor_ = std::static_pointer_cast<RSPropertyAccessors<T>>(
             RSBasePropertyAccessors::GetAccessor(property));
-        animationLog_ = std::make_shared<RSAnimationLog>();
     }
     RSRenderPropertyAnimation() =default;
 #ifdef ROSEN_OHOS
@@ -195,15 +194,17 @@ protected:
         }
     }
 
-private:
-    RSAnimatableProperty property_ { RSAnimatableProperty::INVALID };
+protected:
     T originValue_;
     T lastValue_;
+
+private:
+    RSAnimatableProperty property_ { RSAnimatableProperty::INVALID };
     bool isAdditive_ { true };
     bool hasUpdateNeedWriteLog_ { false };
     bool needWriteToLog_ { false };
     bool hasWriteInfo_ { false };
-    std::shared_ptr<RSAnimationLog> animationLog_;
+    inline static std::shared_ptr<RSAnimationLog> animationLog_ = std::make_shared<RSAnimationLog>();
     std::shared_ptr<RSPropertyAccessors<T>> propertyAccessor_;
 };
 } // namespace Rosen

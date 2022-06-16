@@ -148,5 +148,26 @@ bool RSAnimationManager::HasDisappearingTransition() const
         return !std::get<bool>(transition);
     });
 }
+
+void RSAnimationManager::RegisterSpringAnimation(RSAnimatableProperty property, AnimationId animId)
+{
+    springAnimations_[property] = animId;
+}
+
+void RSAnimationManager::UnregisterSpringAnimation(RSAnimatableProperty property, AnimationId animId)
+{
+    if (springAnimations_[property] == animId) {
+        springAnimations_.erase(property);
+    }
+}
+
+AnimationId RSAnimationManager::QuerySpringAnimation(RSAnimatableProperty property)
+{
+    auto it = springAnimations_.find(property);
+    if (it == springAnimations_.end()) {
+        return 0;
+    }
+    return it->second;
+}
 } // namespace Rosen
 } // namespace OHOS

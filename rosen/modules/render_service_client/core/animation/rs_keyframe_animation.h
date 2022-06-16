@@ -80,22 +80,13 @@ protected:
     }
 
 private:
+    template<typename P>
+    void StartAnimationImpl();
+
     std::vector<std::tuple<float, T, RSAnimationTimingCurve>> keyframes_;
 
     friend class RSImplicitKeyframeAnimationParam;
 };
-
-
-template class RSKeyframeAnimation<int>;
-template class RSKeyframeAnimation<float>;
-template class RSKeyframeAnimation<Color>;
-template class RSKeyframeAnimation<Matrix3f>;
-template class RSKeyframeAnimation<Vector2f>;
-template class RSKeyframeAnimation<Vector4f>;
-template class RSKeyframeAnimation<Quaternion>;
-template class RSKeyframeAnimation<std::shared_ptr<RSFilter>>;
-template class RSKeyframeAnimation<Vector4<Color>>;
-
 } // namespace Rosen
 } // namespace OHOS
 
