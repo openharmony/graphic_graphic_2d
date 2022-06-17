@@ -19,6 +19,7 @@
 #include "pipeline/rs_render_service_listener.h"
 #include "pipeline/rs_surface_capture_task.h"
 #include "pipeline/rs_surface_render_node.h"
+#include "pipeline/rs_uni_render_judgement.h"
 #include "platform/common/rs_log.h"
 #include "rs_main_thread.h"
 #include "rs_trace.h"
@@ -159,8 +160,8 @@ void RSRenderServiceConnection::RSApplicationRenderThreadDeathRecipient::OnRemot
     }
 
     RS_LOGI("RSApplicationRenderThreadDeathRecipient::OnRemoteDied: Unregister.");
-    auto app = iface_cast<IApplicationRenderThread>(tokenSptr);
-    rsConn->UnregisterApplicationRenderThread(app);
+    auto app = iface_cast<IApplicationAgent>(tokenSptr);
+    rsConn->UnRegisterApplicationAgent(app);
 }
 
 void RSRenderServiceConnection::CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData)
@@ -178,6 +179,26 @@ void RSRenderServiceConnection::ExecuteSynchronousTask(const std::shared_ptr<RSS
     mainThread_->ScheduleTask([task, &context]() {
         task->Process(context);
     }).wait_for(std::chrono::nanoseconds(task->GetTimeout()));
+}
+
+bool RSRenderServiceConnection::InitUniRenderEnabled(const std::string &bundleName)
+{
+    return RSUniRenderJudgement::QueryClientEnabled(bundleName);
+}
+
+bool RSRenderServiceConnection::CreateNode(const RSSurfaceRenderNodeConfig& config)
+{
+    std::shared_ptr<RSSurfaceRenderNode> node =
+        std::make_shared<RSSurfaceRenderNode>(config, mainThread_->GetContext().weak_from_this());
+    if (node == nullptr) {
+        RS_LOGE("RSRenderService::CreateNode fail");
+        return false;
+    }
+    std::function<void()> registerNode = [node, this]() -> void {
+        this->mainThread_->GetContext().GetMutableNodeMap().RegisterRenderNode(node);
+    };
+    mainThread_->PostTask(registerNode);
+    return true;
 }
 
 sptr<Surface> RSRenderServiceConnection::CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config)
@@ -317,20 +338,20 @@ void RSRenderServiceConnection::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCap
     mainThread_->PostTask(captureTask);
 }
 
-void RSRenderServiceConnection::RegisterApplicationRenderThread(uint32_t pid, sptr<IApplicationRenderThread> app)
+void RSRenderServiceConnection::RegisterApplicationAgent(uint32_t pid, sptr<IApplicationAgent> app)
 {
     auto captureTask = [=]() -> void {
-        mainThread_->RegisterApplicationRenderThread(pid, app);
+        mainThread_->RegisterApplicationAgent(pid, app);
     };
     mainThread_->PostTask(captureTask);
 
     app->AsObject()->AddDeathRecipient(ApplicationDeathRecipient_);
 }
 
-void RSRenderServiceConnection::UnregisterApplicationRenderThread(sptr<IApplicationRenderThread> app)
+void RSRenderServiceConnection::UnRegisterApplicationAgent(sptr<IApplicationAgent> app)
 {
     auto captureTask = [=]() -> void {
-        mainThread_->UnregisterApplicationRenderThread(app);
+        mainThread_->UnRegisterApplicationAgent(app);
     };
     mainThread_->PostTask(captureTask);
 }

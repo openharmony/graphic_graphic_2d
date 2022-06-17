@@ -45,9 +45,9 @@ public:
 
 private:
     void DrawBufferOnCanvas(RSSurfaceRenderNode& node);
-    static bool IsChildOfDisplayNode(RSBaseRenderNode& node);
-    static bool IsChildOfSurfaceNode(RSBaseRenderNode& node);
-    static bool IsChildOfLeashNode(RSBaseRenderNode& node);
+#ifdef RS_ENABLE_EGLIMAGE
+    void DrawImageOnCanvas(RSSurfaceRenderNode& node);
+#endif // RS_ENABLE_EGLIMAGE
 
     ScreenInfo screenInfo_;
     RSDirtyRegionManager dirtyManager_;
@@ -57,13 +57,7 @@ private:
 
     int32_t offsetX_ { 0 };
     int32_t offsetY_ { 0 };
-    float globalZOrder_ { 0.0f };
-    float uniZOrder_ { 0.0f };
     std::shared_ptr<RSProcessor> processor_;
-    bool isUniRender_ { false };
-    bool hasUniRender_ { false };
-    bool isUniRenderForAll_ { false };
-    std::set<std::string> uniRenderList_;
 };
 } // namespace Rosen
 } // namespace OHOS

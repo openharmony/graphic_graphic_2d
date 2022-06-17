@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -27,18 +27,18 @@
 namespace OHOS {
 namespace Rosen {
 class RSSyncTask;
-
 class RSTransactionProxy final {
 public:
     static RSTransactionProxy* GetInstance();
     void SetRenderThreadClient(std::unique_ptr<RSIRenderClient>& renderThreadClient);
     void SetRenderServiceClient(const std::shared_ptr<RSIRenderClient>& renderServiceClient);
 
-    void AddCommand(std::unique_ptr<RSCommand>& command, bool isRenderServiceCommand = false);
-    void AddCommandFromRT(std::unique_ptr<RSCommand>& command);
+    void AddCommand(std::unique_ptr<RSCommand>& command, bool isRenderServiceCommand = false,
+                    FollowType followType = FollowType::NONE, NodeId nodeId = 0);
+    void AddCommandFromRT(std::unique_ptr<RSCommand>& command, NodeId nodeId, FollowType followType = FollowType::FOLLOW_TO_PARENT);
 
-    void FlushImplicitTransaction();
-    void FlushImplicitTransactionFromRT();
+    void FlushImplicitTransaction(uint64_t timestamp = 0);
+    void FlushImplicitTransactionFromRT(uint64_t timestamp);
 
     void ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task, bool isRenderServiceTask = false);
 private:
@@ -53,7 +53,7 @@ private:
     RSTransactionProxy& operator=(const RSTransactionProxy&&) = delete;
 
     void AddCommonCommand(std::unique_ptr<RSCommand>& command);
-    void AddRemoteCommand(std::unique_ptr<RSCommand>& command);
+    void AddRemoteCommand(std::unique_ptr<RSCommand>& command, NodeId nodeId, FollowType followType);
 
     // Command Transaction Triggered by UI Thread.
     std::mutex mutex_;

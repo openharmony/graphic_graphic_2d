@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -24,35 +24,42 @@
 namespace OHOS {
 namespace Rosen {
 class RSInterpolator;
-
 class RS_EXPORT RSAnimationTimingCurve final {
 public:
     static const RSAnimationTimingCurve DEFAULT;
-
     static const RSAnimationTimingCurve LINEAR;
-
     static const RSAnimationTimingCurve EASE;
-
     static const RSAnimationTimingCurve EASE_IN;
-
     static const RSAnimationTimingCurve EASE_OUT;
-
     static const RSAnimationTimingCurve EASE_IN_OUT;
+    static const RSAnimationTimingCurve SPRING;
+    static const RSAnimationTimingCurve INTERACTIVE_SPRING;
 
     static RSAnimationTimingCurve CreateCustomCurve(const std::function<float(float)>& customCurveFunc);
-
     static RSAnimationTimingCurve CreateCubicCurve(float ctrlX1, float ctrlY1, float ctrlX2, float ctrlY2);
-
+    // Create interpolating spring, which duration is determined by TimingProtocol. Multiple animations on the same
+    // property will run simultaneously and act additively.
     static RSAnimationTimingCurve CreateSpringCurve(float velocity, float mass, float stiffness, float damping);
+    // Create physical spring, which duration is determined by the spring model. When mixed with other physical spring
+    // animations on the same property, each animation will be replaced by their successor, preserving velocity from one
+    // animation to the next.
+    static RSAnimationTimingCurve CreateSpring(float response, float dampingRatio, float blendDuration = 0.0f);
 
     RSAnimationTimingCurve();
     RSAnimationTimingCurve(const RSAnimationTimingCurve& timingCurve) = default;
     RSAnimationTimingCurve& operator=(const RSAnimationTimingCurve& timingCurve) = default;
     virtual ~RSAnimationTimingCurve() = default;
 
+    enum class CurveType { INTERPOLATING, SPRING };
+    CurveType type_ { CurveType::INTERPOLATING };
 private:
     RSAnimationTimingCurve(const std::shared_ptr<RSInterpolator>& interpolator);
     RSAnimationTimingCurve(const std::function<float(float)>& customCurveFunc);
+    RSAnimationTimingCurve(float response, float dampingRatio, float blendDuration);
+
+    float response_ { 0.0f };
+    float dampingRatio_ { 0.0f };
+    float blendDuration_ { 0.0f };
 
     std::shared_ptr<RSInterpolator> GetInterpolator(int duration) const;
 
@@ -63,6 +70,8 @@ private:
     friend class RSCurveAnimation;
     template<typename T>
     friend class RSKeyframeAnimation;
+    template<typename T>
+    friend class RSSpringAnimation;
     friend class RSPathAnimation;
     friend class RSTransition;
 };

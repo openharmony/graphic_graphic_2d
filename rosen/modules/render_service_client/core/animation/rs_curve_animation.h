@@ -49,6 +49,10 @@ public:
 
     void SetTimingCurve(const RSAnimationTimingCurve& timingCurve)
     {
+        if (timingCurve.type_ != RSAnimationTimingCurve::CurveType::INTERPOLATING) {
+            ROSEN_LOGE("RSCurveAnimation::SetTimingCurve: invalid timing curve type");
+            return;
+        }
         timingCurve_ = timingCurve;
     }
 
@@ -61,19 +65,11 @@ protected:
     void OnStart() override;
 
 private:
+    template<typename P>
+    void StartAnimationImpl();
+
     RSAnimationTimingCurve timingCurve_ { RSAnimationTimingCurve::DEFAULT };
 };
-
-template class RSCurveAnimation<int>;
-template class RSCurveAnimation<float>;
-template class RSCurveAnimation<Color>;
-template class RSCurveAnimation<Matrix3f>;
-template class RSCurveAnimation<Vector2f>;
-template class RSCurveAnimation<Vector4f>;
-template class RSCurveAnimation<Quaternion>;
-template class RSCurveAnimation<std::shared_ptr<RSFilter>>;
-template class RSCurveAnimation<Vector4<Color>>;
-
 } // namespace Rosen
 } // namespace OHOS
 

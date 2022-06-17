@@ -40,10 +40,18 @@ RSSurfaceNode::SharedPtr RSSurfaceNode::Create(const RSSurfaceNodeConfig& surfac
 
     // create node in RS
     RSSurfaceRenderNodeConfig config = { .id = node->GetId(), .name = node->name_ };
-    if (!node->CreateNodeAndSurface(config)) {
-        ROSEN_LOGE("RSSurfaceNode::Create, create node and surface failed");
-        return nullptr;
+    if (isWindow && isUniRenderEnabled_) {
+        if (!node->CreateNode(config)) {
+            ROSEN_LOGE("RSSurfaceNode::Create, create node failed");
+            return nullptr;
+        }
+    } else {
+        if (!node->CreateNodeAndSurface(config)) {
+            ROSEN_LOGE("RSSurfaceNode::Create, create node and surface failed");
+            return nullptr;
+        }
     }
+
     node->SetClipToFrame(true);
     // create node in RT
     if (!isWindow) {
@@ -95,11 +103,41 @@ void RSSurfaceNode::CreateNodeInRenderThread(bool isProxy)
             transactionProxy->AddCommand(command, false);
         }
     }
-    SetRenderServiceNodeType(false);
+    isRenderServiceNode_ = false;
+}
+
+void RSSurfaceNode::AddChild(std::shared_ptr<RSBaseNode> child, int index)
+{
+    if (!isRenderServiceNode_) {
+        ROSEN_LOGE("RSSurfaceNode::AddChild for non RenderServiceNodeType surfaceNode is not allowed");
+        return;
+    }
+    RSBaseNode::AddChild(child, index);
+}
+
+void RSSurfaceNode::RemoveChild(std::shared_ptr<RSBaseNode> child)
+{
+    if (!isRenderServiceNode_) {
+        ROSEN_LOGE("RSSurfaceNode::RemoveChild for non RenderServiceNodeType surfaceNode is not allowed");
+        return;
+    }
+    RSBaseNode::RemoveChild(child);
+}
+
+void RSSurfaceNode::ClearChildren()
+{
+    if (!isRenderServiceNode_) {
+        ROSEN_LOGE("RSSurfaceNode::ClearChildren for non RenderServiceNodeType surfaceNode is not allowed");
+        return;
+    }
+    RSBaseNode::ClearChildren();
 }
 
 void RSSurfaceNode::OnBoundsSizeChanged() const
 {
+    if (surface_ == nullptr) {
+        return;
+    }
     std::unique_ptr<RSCommand> command = std::make_unique<RSSurfaceNodeUpdateSurfaceDefaultSize>(
         GetId(), GetStagingProperties().GetBoundsWidth(), GetStagingProperties().GetBoundsHeight());
     auto transactionProxy = RSTransactionProxy::GetInstance();
@@ -178,6 +216,12 @@ RSSurfaceNode* RSSurfaceNode::Unmarshalling(Parcel& parcel)
     surfaceNode->SetId(id);
 
     return surfaceNode;
+}
+
+bool RSSurfaceNode::CreateNode(const RSSurfaceRenderNodeConfig& config)
+{
+    return std::static_pointer_cast<RSRenderServiceClient>(RSIRenderClient::CreateRenderServiceClient())
+               ->CreateNode(config);
 }
 
 bool RSSurfaceNode::CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config)

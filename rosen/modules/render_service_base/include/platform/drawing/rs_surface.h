@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -32,9 +32,10 @@ public:
 
     virtual bool IsValid() const = 0;
 
-    virtual std::unique_ptr<RSSurfaceFrame> RequestFrame(int32_t width, int32_t height) = 0;
+    virtual std::unique_ptr<RSSurfaceFrame> RequestFrame(int32_t width, int32_t height, uint64_t uiTimestamp = 0) = 0;
 
-    virtual bool FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame) = 0;
+    virtual bool FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uint64_t uiTimestamp = 0) = 0;
+
     virtual RenderContext* GetRenderContext() = 0;
     virtual void SetRenderContext(RenderContext* context) = 0;
     virtual ColorGamut GetColorSpace() const = 0;

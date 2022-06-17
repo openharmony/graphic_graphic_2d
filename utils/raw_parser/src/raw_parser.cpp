@@ -79,10 +79,14 @@ int32_t RawParser::Parse(const std::string &file)
 
 int32_t RawParser::GetNextData(uint32_t *addr)
 {
-    uint32_t count = (lastID + 1) % infos.size();
+    const int32_t count = (lastID + 1) % static_cast<int32_t>(infos.size());
+    if (count < 0) {
+        GSLOG2HI(ERROR) << "current count < 0";
+        return -1;
+    }
     auto type = infos[count].type;
     if (type == RAW_HEADER_TYPE_NONE) {
-        lastID = static_cast<int32_t>(count);
+        lastID = count;
         return GetNowData(addr);
     }
 
@@ -92,7 +96,7 @@ int32_t RawParser::GetNextData(uint32_t *addr)
     if (type == RAW_HEADER_TYPE_COMPRESSED) {
         if (length == 0) {
             GSLOG2HI(INFO) << "length == 0";
-            lastID = static_cast<int32_t>(count);
+            lastID = count;
             return GetNowData(addr);
         }
 
@@ -110,7 +114,7 @@ int32_t RawParser::GetNextData(uint32_t *addr)
         }
     }
 
-    lastID =  static_cast<int32_t>(count);
+    lastID = count;
     if (length > 0 && memcpy_s(lastData.get() + offset, GetSize() - offset,
                                uncompressed.get(), length) != EOK) {
         GSLOG2HI(ERROR) << "memcpy failed";

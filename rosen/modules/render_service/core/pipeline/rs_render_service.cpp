@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -18,6 +18,7 @@
 #include "rs_render_service_connection.h"
 #include "vsync_generator.h"
 #include "pipeline/rs_surface_render_node.h"
+#include "pipeline/rs_uni_render_judgement.h"
 
 #include <unistd.h>
 
@@ -33,6 +34,7 @@ RSRenderService::~RSRenderService() noexcept {}
 
 bool RSRenderService::Init()
 {
+    RSUniRenderJudgement::InitUniRenderConfig();
     screenManager_ = CreateOrGetScreenManager();
     if (screenManager_ == nullptr || !screenManager_->Init()) {
         RS_LOGE("RSRenderService CreateOrGetScreenManager fail.");

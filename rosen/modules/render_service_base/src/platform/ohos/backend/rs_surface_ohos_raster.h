@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -34,8 +34,8 @@ public:
         return producer_ != nullptr;
     }
 
-    std::unique_ptr<RSSurfaceFrame> RequestFrame(int32_t width, int32_t height) override;
-    bool FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame) override;
+    std::unique_ptr<RSSurfaceFrame> RequestFrame(int32_t width, int32_t height, uint64_t uiTimestamp) override;
+    bool FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uint64_t uiTimestamp) override;
 
     void SetSurfaceBufferUsage(int32_t usage) override;
 };

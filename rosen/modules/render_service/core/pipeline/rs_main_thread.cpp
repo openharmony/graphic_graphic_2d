@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -22,7 +22,7 @@
 #include "pipeline/rs_uni_render_visitor.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_log.h"
-#include "platform/common/rs_system_properties.h"
+#include "pipeline/rs_uni_render_judgement.h"
 #include "platform/drawing/rs_vsync_client.h"
 #include "rs_trace.h"
 #include "screen_manager/rs_screen_manager.h"
@@ -49,9 +49,9 @@ void RSMainThread::Init()
     mainLoop_ = [&]() {
         RS_LOGD("RsDebug mainLoop start");
         ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSMainThread::DoComposition");
+        ConsumeAndUpdateAllNodes();
         ProcessCommand();
         Animate(timestamp_);
-        ConsumeAndUpdateAllNodes();
         Render();
         ReleaseAllNodesBuffer();
         SendCommands();
@@ -71,8 +71,11 @@ void RSMainThread::Init()
 #ifdef RS_ENABLE_GL
     renderContext_ = std::make_shared<RenderContext>();
     renderContext_->InitializeEglContext();
-    eglImageManager_ = std::make_shared<RSEglImageManager>(renderContext_->GetEGLDisplay());
 #endif // RS_ENABLE_GL
+
+#ifdef RS_ENABLE_EGLIMAGE
+    eglImageManager_ = std::make_shared<RSEglImageManager>(renderContext_->GetEGLDisplay());
+#endif // RS_ENABLE_EGLIMAGE
 }
 
 void RSMainThread::Start()
@@ -84,24 +87,70 @@ void RSMainThread::Start()
 
 void RSMainThread::ProcessCommand()
 {
+    const auto& nodeMap = context_.GetNodeMap();
+    RS_TRACE_BEGIN("RSMainThread::ProcessCommand");
     {
         std::lock_guard<std::mutex> lock(transitionDataMutex_);
-        std::swap(cacheCommandQueue_, effectCommandQueue_);
-    }
-    while (!effectCommandQueue_.empty())
-    {
-        auto rsTransaction = std::move(effectCommandQueue_.front());
-        effectCommandQueue_.pop();
-        if (rsTransaction) {
-            rsTransaction->Process(context_);
+        if (cacheCommand_.find(0) != cacheCommand_.end()) {
+            effectCommand_.insert(effectCommand_.end(),
+                std::make_move_iterator(cacheCommand_[0][0].begin()), std::make_move_iterator(cacheCommand_[0][0].end()));
+            cacheCommand_[0].clear();
+        }
+        for (auto it = cacheCommand_.begin(); it != cacheCommand_.end();) {
+            auto surfaceNodeId = it->first;
+            if (surfaceNodeId == 0) {
+                it++;
+                continue;
+            }
+            auto node = nodeMap.GetRenderNode<RSSurfaceRenderNode>(surfaceNodeId);
+
+            if (!node) {
+                // If node has been destructed, cacheCommand_[surfaceNodeId] should be deleted,
+                // for all command cached in cacheCommand_[surfaceNodeId] could not be executed.
+                it = cacheCommand_.erase(it);
+            } else {
+                std::map<uint64_t, std::vector<std::unique_ptr<RSCommand>>>::iterator effectIter;
+                std::unordered_map<NodeId, uint64_t>::iterator bufferTimestamp = bufferTimestamps_.find(surfaceNodeId);
+
+                if (!node->IsOnTheTree() || bufferTimestamp == bufferTimestamps_.end()) {
+                    // If node is not on the tree or has no valid buffer,
+                    // for all command cached in cacheCommand_[surfaceNodeId] should be executed immediately
+                    effectIter = cacheCommand_[surfaceNodeId].end();
+                } else {
+                    uint64_t timestamp = bufferTimestamp->second;
+                    effectIter = cacheCommand_[surfaceNodeId].upper_bound(timestamp);
+                }
+
+                for (auto it2 = cacheCommand_[surfaceNodeId].begin(); it2 != effectIter; it2++) {
+                    effectCommand_.insert(effectCommand_.end(),
+                        std::make_move_iterator(it2->second.begin()), std::make_move_iterator(it2->second.end()));
+                }
+                cacheCommand_[surfaceNodeId].erase(cacheCommand_[surfaceNodeId].begin(), effectIter);
+
+                for (auto it2 = cacheCommand_[surfaceNodeId].begin(); it2 != cacheCommand_[surfaceNodeId].end(); it2++) {
+                    RS_LOGD("RSMainThread::ProcessCommand CacheCommand NodeId = %llu, timestamp = %llu, commandSize = %zu",
+                        surfaceNodeId, it2->first, it2->second.size());
+                }
+
+                it++;
+            }
         }
     }
+    for (size_t i = 0; i < effectCommand_.size(); i++) {
+        auto rsCommand = std::move(effectCommand_[i]);
+        if (rsCommand) {
+            rsCommand->Process(context_);
+        }
+    }
+    effectCommand_.clear();
+    RS_TRACE_END();
 }
 
 void RSMainThread::ConsumeAndUpdateAllNodes()
 {
     bool needRequestNextVsync = false;
 
+    bufferTimestamps_.clear();
     const auto& nodeMap = GetContext().GetNodeMap();
     nodeMap.TraversalNodes([this, &needRequestNextVsync](const std::shared_ptr<RSBaseRenderNode>& node) mutable {
         if (node == nullptr) {
@@ -111,7 +160,9 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
         if (node->IsInstanceOf<RSSurfaceRenderNode>()) {
             RSSurfaceRenderNode& surfaceNode = *(RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node));
             RSSurfaceHandler& surfaceHandler = static_cast<RSSurfaceHandler&>(surfaceNode);
-            RsRenderServiceUtil::ConsumeAndUpdateBuffer(surfaceHandler);
+            if (RsRenderServiceUtil::ConsumeAndUpdateBuffer(surfaceHandler)) {
+                this->bufferTimestamps_[surfaceNode.GetId()] = static_cast<uint64_t>(surfaceNode.GetTimestamp());
+            }
 
             // still have buffer(s) to consume.
             if (surfaceHandler.GetAvailableBufferCount() > 0) {
@@ -169,7 +220,7 @@ void RSMainThread::Render()
         RS_LOGE("RSMainThread::Draw GetGlobalRootRenderNode fail");
         return;
     }
-    static bool isUniRender = RSSystemProperties::GetUniRenderEnabledType() != UniRenderEnabledType::UNI_RENDER_DISABLED;
+    static bool isUniRender = RSUniRenderJudgement::GetUniRenderEnabledType() != UniRenderEnabledType::UNI_RENDER_DISABLED;
     std::shared_ptr<RSNodeVisitor> visitor;
     if (isUniRender) {
         RS_LOGI("RSMainThread::Render isUni");
@@ -180,6 +231,9 @@ void RSMainThread::Render()
     rootNode->Prepare(visitor);
     CalcOcclusion(visitor);
     rootNode->Process(visitor);
+#ifdef RS_ENABLE_EGLIMAGE
+    eglImageManager_->ShrinkCachesIfNeeded();
+#endif // RS_ENABLE_EGLIMAGE
 }
 
 void RSMainThread::CalcOcclusion(const std::shared_ptr<RSNodeVisitor>& visitor)
@@ -292,9 +346,37 @@ void RSMainThread::Animate(uint64_t timestamp)
 
 void RSMainThread::RecvRSTransactionData(std::unique_ptr<RSTransactionData>& rsTransactionData)
 {
+    const auto& nodeMap = context_.GetNodeMap();
     {
         std::lock_guard<std::mutex> lock(transitionDataMutex_);
-        cacheCommandQueue_.push(std::move(rsTransactionData));
+        std::unique_ptr<RSTransactionData> transactionData(std::move(rsTransactionData));
+        if (transactionData) {
+            auto nodeIds = transactionData->GetNodeIds();
+            auto followTypes = transactionData->GetFollowTypes();
+            auto& commands = transactionData->GetCommands();
+            auto timestamp = transactionData->GetTimestamp();
+            RS_LOGD("RSMainThread::RecvRSTransactionData timestamp = %llu", timestamp);
+            for (int i = 0; i < transactionData->GetCommandCount(); i++) {
+                auto nodeId = nodeIds[i];
+                auto followtype = followTypes[i];
+                std::unique_ptr<RSCommand> command = std::move(commands[i]);
+                if (nodeId == 0 || followtype == FollowType::NONE) {
+                    cacheCommand_[0][0].emplace_back(std::move(command));
+                } else {
+                    auto node = nodeMap.GetRenderNode<RSBaseRenderNode>(nodeId);
+                    if (node && followtype == FollowType::FOLLOW_TO_PARENT) {
+                        auto parentNode = node->GetParent().lock();
+                        if (parentNode) {
+                            nodeId = parentNode->GetId();
+                        } else {
+                            cacheCommand_[0][0].emplace_back(std::move(command));
+                            continue;
+                        }
+                    }
+                    cacheCommand_[nodeId][timestamp].emplace_back(std::move(command));
+                }
+            }
+        }
     }
     RequestNextVSync();
 }
@@ -306,14 +388,14 @@ void RSMainThread::PostTask(RSTaskMessage::RSTask task)
     }
 }
 
-void RSMainThread::RegisterApplicationRenderThread(uint32_t pid, sptr<IApplicationRenderThread> app)
+void RSMainThread::RegisterApplicationAgent(uint32_t pid, sptr<IApplicationAgent> app)
 {
-    applicationRenderThreadMap_.emplace(pid, app);
+    applicationAgentMap_.emplace(pid, app);
 }
 
-void RSMainThread::UnregisterApplicationRenderThread(sptr<IApplicationRenderThread> app)
+void RSMainThread::UnRegisterApplicationAgent(sptr<IApplicationAgent> app)
 {
-    std::__libcpp_erase_if_container(applicationRenderThreadMap_, [&app](auto& iter) { return iter.second == app; });
+    std::__libcpp_erase_if_container(applicationAgentMap_, [&app](auto& iter) { return iter.second == app; });
 }
 
 void RSMainThread::RegisterOcclusionChangeCallback(sptr<RSIOcclusionChangeCallback> callback)
@@ -347,8 +429,8 @@ void RSMainThread::SendCommands()
     PostTask([this, transactionMapPtr]() {
         for (auto& transactionIter : *transactionMapPtr) {
             auto pid = transactionIter.first;
-            auto appIter = applicationRenderThreadMap_.find(pid);
-            if (appIter == applicationRenderThreadMap_.end()) {
+            auto appIter = applicationAgentMap_.find(pid);
+            if (appIter == applicationAgentMap_.end()) {
                 RS_LOGI("RSMainThread::SendCommand no application found for pid %d", pid);
                 continue;
             }

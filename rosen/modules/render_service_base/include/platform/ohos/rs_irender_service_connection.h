@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -22,7 +22,7 @@
 
 #include "command/rs_command.h"
 #include "ipc_callbacks/buffer_available_callback.h"
-#include "ipc_callbacks/iapplication_render_thread.h"
+#include "ipc_callbacks/iapplication_agent.h"
 #include "ipc_callbacks/screen_change_callback.h"
 #include "ipc_callbacks/surface_capture_callback.h"
 #include "screen_manager/rs_screen_capability.h"
@@ -48,6 +48,8 @@ public:
 
     enum {
         COMMIT_TRANSACTION,
+        GET_UNI_RENDER_TYPE,
+        CREATE_NODE,
         CREATE_NODE_AND_SURFACE,
         GET_DEFAULT_SCREEN_ID,
         GET_ALL_SCREEN_IDS,
@@ -68,7 +70,7 @@ public:
         GET_SCREEN_DATA,
         GET_VIRTUAL_SCREEN_RESOLUTION,
         EXECUTE_SYNCHRONOUS_TASK,
-        REGISTER_APPLICATION_RENDER_THREAD,
+        REGISTER_APPLICATION_AGENT,
         SET_BUFFER_AVAILABLE_LISTENER,
         GET_SCREEN_SUPPORTED_GAMUTS,
         GET_SCREEN_GAMUT,
@@ -88,6 +90,8 @@ public:
 
     virtual void ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task) = 0;
 
+    virtual bool InitUniRenderEnabled(const std::string &bundleName) = 0;
+    virtual bool CreateNode(const RSSurfaceRenderNodeConfig& config) = 0;
     virtual sptr<Surface> CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config) = 0;
 
     virtual sptr<IVSyncConnection> CreateVSyncConnection(const std::string& name) = 0;
@@ -120,7 +124,7 @@ public:
     virtual void TakeSurfaceCapture(
         NodeId id, sptr<RSISurfaceCaptureCallback> callback, float scaleX, float scaleY) = 0;
 
-    virtual void RegisterApplicationRenderThread(uint32_t pid, sptr<IApplicationRenderThread> app) = 0;
+    virtual void RegisterApplicationAgent(uint32_t pid, sptr<IApplicationAgent> app) = 0;
 
     virtual RSVirtualScreenResolution GetVirtualScreenResolution(ScreenId id) = 0;
 

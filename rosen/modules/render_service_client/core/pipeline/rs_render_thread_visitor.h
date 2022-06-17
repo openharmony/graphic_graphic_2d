@@ -55,13 +55,14 @@ private:
     bool dirtyFlag_ = false;
     bool isIdle_ = true;
     RSPaintFilterCanvas* canvas_;
+    uint64_t uiTimestamp_ = 0;
 
     void ClipHoleForSurfaceNode(RSSurfaceRenderNode& node);
 
     std::vector<NodeId> childSurfaceNodeIds_;
     SkMatrix parentSurfaceNodeMatrix_;
 
-    void SendCommandFromRT(std::unique_ptr<RSCommand>& command);
+    void SendCommandFromRT(std::unique_ptr<RSCommand>& command, NodeId nodeId, FollowType followType);
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -33,24 +33,29 @@ public:
     void OpenImplicitAnimation(const RSAnimationTimingProtocol& timingProtocol,
         const RSAnimationTimingCurve& timingCurve, const std::function<void()>& finishCallback);
     std::vector<std::shared_ptr<RSAnimation>> CloseImplicitAnimation();
+
     void BeginImplicitKeyFrameAnimation(float fraction, const RSAnimationTimingCurve& timingCurve);
     void BeginImplicitKeyFrameAnimation(float fraction);
+    void EndImplicitKeyFrameAnimation();
+
     void BeginImplicitTransition(const std::shared_ptr<const RSTransitionEffect>& effect);
+    void EndImplicitTransition();
+
     void BeginImplicitPathAnimation(const std::shared_ptr<RSMotionPathOption>& motionPathOption);
     void EndImplicitPathAnimation();
-    void EndImplicitTransition();
-    void EndImplicitKeyFrameAnimation();
+
     bool NeedImplicitAnimation();
 
     template<typename T>
     std::shared_ptr<RSAnimation> CreateImplicitAnimation(
         RSNode& target, const RSAnimatableProperty& property, const T& startValue, const T& endValue);
-
     std::shared_ptr<RSAnimation> CreateImplicitTransition(RSNode& target, bool isTransitionIn);
 
 private:
+    void EndImplicitAnimation();
     void BeginImplicitCurveAnimation();
-    void EndImplicitCurveAnimation();
+    void BeginImplicitSpringAnimation();
+
     void PushImplicitParam(const std::shared_ptr<RSImplicitAnimationParam>& implicitParam);
     void PopImplicitParam();
     void CreateEmptyAnimation();

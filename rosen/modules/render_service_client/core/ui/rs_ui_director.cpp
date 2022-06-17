@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -23,6 +23,7 @@
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
 #include "rs_trace.h"
+#include "transaction/rs_application_agent_impl.h"
 #include "transaction/rs_interfaces.h"
 #include "transaction/rs_transaction_proxy.h"
 #include "ui/rs_root_node.h"
@@ -47,8 +48,7 @@ void RSUIDirector::Init()
 {
     AnimationCommandHelper::SetFinisCallbackProcessor(AnimationCallbackProcessor);
 
-    isUniRenderEnabled_ =
-        RSSystemProperties::GetUniRenderEnabledType() != UniRenderEnabledType::UNI_RENDER_DISABLED;
+    isUniRenderEnabled_ = RSSystemProperties::GetUniRenderEnabled();
     if (!isUniRenderEnabled_) {
         auto renderThreadClient = RSIRenderClient::CreateRenderThreadClient();
         auto transactionProxy = RSTransactionProxy::GetInstance();
@@ -59,6 +59,7 @@ void RSUIDirector::Init()
         RsFrameReport::GetInstance().Init();
         RSRenderThread::Instance().Start();
     }
+    RSApplicationAgentImpl::Instance().RegisterRSApplicationAgent();
 
     GoForeground();
 }
@@ -145,7 +146,7 @@ void RSUIDirector::SendMessages()
     ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "SendCommands");
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy != nullptr) {
-        transactionProxy->FlushImplicitTransaction();
+        transactionProxy->FlushImplicitTransaction(timeStamp_);
     }
     ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
 }

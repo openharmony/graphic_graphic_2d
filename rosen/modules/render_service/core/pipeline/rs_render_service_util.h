@@ -71,13 +71,13 @@ public:
     static void DrawBuffer(RSPaintFilterCanvas& canvas, BufferDrawParam& bufferDrawParam,
         CanvasPostProcess process = nullptr);
 
-#ifdef RS_ENABLE_GL
+#ifdef RS_ENABLE_EGLIMAGE
     static void DrawImage(std::shared_ptr<RSEglImageManager> eglImageManager, GrContext* grContext,
-        RSPaintFilterCanvas& canvas, BufferDrawParam& bufferDrawParam, CanvasPostProcess process);
-#endif // RS_ENABLE_GL
+        RSPaintFilterCanvas& canvas, BufferDrawParam& bufferDrawParam, CanvasPostProcess process = nullptr);
+#endif // RS_ENABLE_EGLIMAGE
 
     static BufferDrawParam CreateBufferDrawParam(RSSurfaceRenderNode& node, SkMatrix canvasMatrix = SkMatrix(),
-        ScreenRotation rotation = ScreenRotation::ROTATION_0);
+        ScreenRotation rotation = ScreenRotation::ROTATION_0, SkPaint paint = SkPaint());
     static void DealAnimation(RSPaintFilterCanvas& canvas, RSSurfaceRenderNode& node, BufferDrawParam& params,
         const Vector2f& center);
     static void InitEnableClient();

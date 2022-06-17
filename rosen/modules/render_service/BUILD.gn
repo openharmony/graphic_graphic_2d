@@ -1,4 +1,4 @@
-# Copyright (c) 2021 Huawei Device Co., Ltd.
+# Copyright (c) 2021-2022 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -37,6 +37,7 @@ ohos_shared_library("librender_service") {
     "core/pipeline/rs_render_service_visitor.cpp",
     "core/pipeline/rs_software_processor.cpp",
     "core/pipeline/rs_surface_capture_task.cpp",
+    "core/pipeline/rs_uni_render_judgement.cpp",
     "core/pipeline/rs_uni_render_listener.cpp",
     "core/pipeline/rs_uni_render_visitor.cpp",
     "core/screen_manager/rs_screen.cpp",
@@ -45,7 +46,7 @@ ohos_shared_library("librender_service") {
     "core/transaction/rs_render_service_stub.cpp",
   ]
 
-  if (rs_enable_gpu) {
+  if (rs_enable_eglimage) {
     sources += [ "core/pipeline/rs_egl_image_manager.cpp" ]
   }
 

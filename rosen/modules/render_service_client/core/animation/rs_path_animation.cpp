@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -43,6 +43,10 @@ const std::vector<RSAnimatableProperty> RSPathAnimation::PROP_FOR_PATH_ANIM = {
 
 void RSPathAnimation::SetTimingCurve(const RSAnimationTimingCurve& timingCurve)
 {
+    if (timingCurve.type_ != RSAnimationTimingCurve::CurveType::INTERPOLATING) {
+        ROSEN_LOGE("RSPathAnimation::SetTimingCurve: invalid timing curve type");
+        return;
+    }
     timingCurve_ = timingCurve;
 }
 
@@ -143,11 +147,11 @@ void RSPathAnimation::OnStart()
     std::unique_ptr<RSCommand> command = std::make_unique<RSAnimationCreatePath>(target->GetId(), animation);
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy != nullptr) {
-        transactionProxy->AddCommand(command, target->IsRenderServiceNode());
+        transactionProxy->AddCommand(command, target->IsRenderServiceNode(), target->GetFollowType(), target->GetId());
         if (target->NeedForcedSendToRemote()) {
             std::unique_ptr<RSCommand> commandForRemote =
                 std::make_unique<RSAnimationCreatePath>(target->GetId(), animation);
-            transactionProxy->AddCommand(commandForRemote, true);
+            transactionProxy->AddCommand(commandForRemote, true, target->GetFollowType(), target->GetId());
         }
     }
 }

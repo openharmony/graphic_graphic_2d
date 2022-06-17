@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -26,7 +26,6 @@
 
 #include "common/rs_thread_handler.h"
 #include "common/rs_thread_looper.h"
-#include "ipc_callbacks/rs_application_render_thread_stub.h"
 #include "jank_detector/rs_jank_detector.h"
 #include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_render_thread_visitor.h"
@@ -37,7 +36,7 @@
 
 namespace OHOS {
 namespace Rosen {
-class RSRenderThread final : public RSApplicationRenderThreadStub {
+class RSRenderThread final {
 public:
     static RSRenderThread& Instance();
 
@@ -69,8 +68,10 @@ public:
     {
         return context_;
     }
-
-    void OnTransaction(std::shared_ptr<RSTransactionData> transactionData) override;
+    uint64_t GetPrevTimestamp() const
+    {
+        return prevTimestamp_;
+    }
 
 private:
     RSRenderThread();
