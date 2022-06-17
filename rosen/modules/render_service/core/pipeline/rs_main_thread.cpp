@@ -88,8 +88,7 @@ void RSMainThread::ProcessCommand()
         std::lock_guard<std::mutex> lock(transitionDataMutex_);
         std::swap(cacheCommandQueue_, effectCommandQueue_);
     }
-    while (!effectCommandQueue_.empty())
-    {
+    while (!effectCommandQueue_.empty()) {
         auto rsTransaction = std::move(effectCommandQueue_.front());
         effectCommandQueue_.pop();
         if (rsTransaction) {
