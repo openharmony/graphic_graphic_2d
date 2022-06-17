@@ -28,6 +28,8 @@ public:
     virtual ~RSOcclusionChangeCallbackProxy() noexcept = default;
 
     void OnOcclusionVisibleChanged(std::shared_ptr<RSOcclusionData> occlusionData) override;
+private:
+    static inline BrokerDelegator<RSOcclusionChangeCallbackProxy> delegator_;
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -89,7 +89,6 @@ void RSRenderServiceConnection::CleanAll(bool toDelete) noexcept
     mainThread_->ScheduleTask([this]() {
         CleanVirtualScreens();
         CleanRenderNodes();
-        mainThread_->CleanOcclusionListener();
     }).wait();
 
     for (auto& conn : vsyncConnections_) {
@@ -503,6 +502,10 @@ int32_t RSRenderServiceConnection::GetScreenType(ScreenId id, RSScreenType& scre
 int32_t RSRenderServiceConnection::RegisterOcclusionChangeCallback(sptr<RSIOcclusionChangeCallback> callback)
 {
     std::lock_guard<std::mutex> lock(mutex_);
+    if (!callback) {
+        RS_LOGD("RSRenderServiceConnection::RegisterOcclusionChangeCallback: callback is nullptr");
+        return StatusCode::INVALID_ARGUMENTS;
+    }
     mainThread_->RegisterOcclusionChangeCallback(callback);
     return StatusCode::SUCCESS;
 }
@@ -510,6 +513,10 @@ int32_t RSRenderServiceConnection::RegisterOcclusionChangeCallback(sptr<RSIOcclu
 int32_t RSRenderServiceConnection::UnRegisterOcclusionChangeCallback(sptr<RSIOcclusionChangeCallback> callback)
 {
     std::lock_guard<std::mutex> lock(mutex_);
+    if (!callback) {
+        RS_LOGD("RSRenderServiceConnection::UnRegisterOcclusionChangeCallback: callback is nullptr");
+        return StatusCode::INVALID_ARGUMENTS;
+    }
     mainThread_->UnRegisterOcclusionChangeCallback(callback);
     return StatusCode::SUCCESS;
 }

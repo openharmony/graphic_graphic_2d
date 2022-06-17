@@ -853,16 +853,6 @@ bool RSProperties::GetVisible() const
     return visible_;
 }
 
-void RSProperties::SetOcclusionVisible(bool visible)
-{
-    isOcclusionVisible_ = visible;
-}
-
-bool RSProperties::GetOcclusionVisible() const
-{
-    return isOcclusionVisible_;
-}
-
 RRect RSProperties::GetRRect() const
 {
     RectF rect = GetBoundsRect();

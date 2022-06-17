@@ -142,7 +142,7 @@ public:
     void SetGlobalAlpha(float alpha)
     {
         if (globalAlpha_ == alpha) {
-        return;
+            return;
         }
         globalAlpha_ = alpha;
     }
@@ -152,22 +152,30 @@ public:
         return globalAlpha_;
     }
 
+    void SetOcclusionVisible(bool visible)
+    {
+        isOcclusionVisible_ = visible;
+    }
+
+    bool GetOcclusionVisible() const
+    {
+        return isOcclusionVisible_;
+    }
+
     void SetVisibleRegionRecursive(const Occlusion::Region& region,
-                                    std::vector<std::pair<uint64_t, bool>>& visChangeVec)
+                                    std::vector<std::pair<uint64_t, bool>>& visibilityVec)
     {
         visibleRegion_ = region;
         bool vis = region.GetSize() > 0;
-        if (vis != GetMutableRenderProperties().GetOcclusionVisible()) {
-            visChangeVec.emplace_back(GetId(), vis);
-        }
-        GetMutableRenderProperties().SetOcclusionVisible(vis);
+        visibilityVec.emplace_back(GetId(), vis);
+        SetOcclusionVisible(vis);
         for (auto& child : GetSortedChildren()) {
             if (child->GetType() == RSRenderNodeType::SURFACE_NODE) {
                 auto surface = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(child);
                 if (surface == nullptr) {
                     continue;
                 }
-                surface->SetVisibleRegionRecursive(region, visChangeVec);
+                surface->SetVisibleRegionRecursive(region, visibilityVec);
             }
         }
     }
@@ -233,6 +241,7 @@ private:
     friend class RSRenderThreadVisitor;
     RectI clipRegionFromParent_;
     Occlusion::Region visibleRegion_;
+    bool isOcclusionVisible_ = true;
 };
 } // namespace Rosen
 } // namespace OHOS

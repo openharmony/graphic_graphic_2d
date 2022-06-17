@@ -132,7 +132,7 @@ private:
     void ConsumeAndUpdateAllNodes();
     void ReleaseAllNodesBuffer();
     void Render();
-    void CalcOcclusion(RSBaseRenderNode::SharedPtr node);
+    void CalcOcclusion(const std::shared_ptr<RSNodeVisitor>& visitor);
     void SendCommands();
 
     std::mutex transitionDataMutex_;
@@ -155,6 +155,7 @@ private:
     mutable std::mutex uniRenderMutex_;
     bool uniRenderFinished_ = false;
     std::condition_variable uniRenderCond_;
+    std::vector<std::pair<uint64_t, bool>> lastVisibilityVec_;
     
 #ifdef RS_ENABLE_GL
     std::shared_ptr<RenderContext> renderContext_;

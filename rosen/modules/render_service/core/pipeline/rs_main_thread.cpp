@@ -229,22 +229,29 @@ void RSMainThread::Render()
         visitor = std::make_shared<RSRenderServiceVisitor>();
     }
     rootNode->Prepare(visitor);
-    if (visitor->surfaceGeoDirty_ && RSSystemProperties::GetOcclusionEnabled()) {
-        CalcOcclusion(rootNode);
-    }
+    CalcOcclusion(visitor);
     rootNode->Process(visitor);
 #ifdef RS_ENABLE_EGLIMAGE
     eglImageManager_->ShrinkCachesIfNeeded();
 #endif // RS_ENABLE_EGLIMAGE
 }
 
-void RSMainThread::CalcOcclusion(RSBaseRenderNode::SharedPtr node)
+void RSMainThread::CalcOcclusion(const std::shared_ptr<RSNodeVisitor>& visitor)
 {
+    auto rsVisitor = std::static_pointer_cast<RSRenderServiceVisitor>(visitor);
+    if (rsVisitor == nullptr || !rsVisitor->GetWindowDirty() || !RSSystemProperties::GetOcclusionEnabled()) {
+        return;
+    }
+    const std::shared_ptr<RSBaseRenderNode> node = context_.GetGlobalRootRenderNode();
+    if (node == nullptr) {
+        RS_LOGE("RSMainThread::CalcOcclusion GetGlobalRootRenderNode fail");
+        return;
+    }
     RS_TRACE_BEGIN("RSMainThread::CalcOcclusion");
     std::vector<RSBaseRenderNode::SharedPtr> curAllSurfaces;
     node->CollectSurface(node, curAllSurfaces);
     Occlusion::Region curRegion;
-    std::vector<std::pair<uint64_t, bool>> curVisChangeVec;
+    std::vector<std::pair<uint64_t, bool>> curVisibilityVec;
     for(auto it = curAllSurfaces.rbegin(); it != curAllSurfaces.rend(); it++) {
         auto surface = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(*it);
         if (surface == nullptr || surface->GetDstRect().IsEmpty() ||
@@ -255,15 +262,27 @@ void RSMainThread::CalcOcclusion(RSBaseRenderNode::SharedPtr node)
                                surface->GetDstRect().GetRight(), surface->GetDstRect().GetBottom() };
         Occlusion::Region curSurface { rect };
         Occlusion::Region subResult = curSurface.Sub(curRegion);
-        surface->SetVisibleRegionRecursive(subResult, curVisChangeVec);
+        surface->SetVisibleRegionRecursive(subResult, curVisibilityVec);
         curRegion = curSurface.Or(curRegion);
     }
-    
-    if (curVisChangeVec.size() > 0) {
-        for (auto& listener : occlusionListeners_) {
-            listener->OnOcclusionVisibleChanged(std::make_shared<RSOcclusionData>(curVisChangeVec));
+    bool isSame = lastVisibilityVec_.size() == curVisibilityVec.size();
+    if (isSame) {
+        std::sort(curVisibilityVec.begin(), curVisibilityVec.end(), [](const auto& lhs, const auto& rhs) -> bool {
+            return lhs.first < rhs.first;
+        });
+        for (uint32_t i = 0; i < curVisibilityVec.size(); i++) {
+            if (lastVisibilityVec_[i].first != curVisibilityVec[i].first) {
+                isSame = false;
+                break;
+            }
         }
     }
+    if (!isSame) {
+        for (auto& listener : occlusionListeners_) {
+            listener->OnOcclusionVisibleChanged(std::make_shared<RSOcclusionData>(curVisibilityVec));
+        }
+    }
+    lastVisibilityVec_ = curVisibilityVec;
     RS_TRACE_END();
 }
 
