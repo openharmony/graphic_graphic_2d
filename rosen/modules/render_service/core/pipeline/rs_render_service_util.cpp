@@ -22,6 +22,7 @@
 #include "pipeline/rs_main_thread.h"
 #include "common/rs_vector2.h"
 #include "pipeline/rs_paint_filter_canvas.h"
+#include "pipeline/rs_uni_render_judgement.h"
 #include "platform/common/rs_log.h"
 #include "property/rs_properties_painter.h"
 #include "render/rs_blur_filter.h"
@@ -875,7 +876,8 @@ BufferDrawParam RsRenderServiceUtil::CreateBufferDrawParam(RSSurfaceRenderNode& 
     params.clipRect = dstRect;
     params.paint = paint;
     params.cornerRadius = property.GetCornerRadius();
-    params.isNeedClip = property.GetClipToFrame();
+    params.isNeedClip = RSUniRenderJudgement::GetUniRenderEnabledType() == UniRenderEnabledType::UNI_RENDER_DISABLED &&
+        property.GetClipToFrame();
     return params;
 }
 
