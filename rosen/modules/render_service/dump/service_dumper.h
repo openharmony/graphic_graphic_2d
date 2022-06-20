@@ -99,6 +99,7 @@ public:
             std::cout << "fps:               Show the fps info." << std::endl;
             std::cout << "nodeNotOnTree:     Show the surfaces info which are not on the tree." << std::endl;
             std::cout << "allSurfacesMem:    Show the memory size of all surfaces buffer." << std::endl;
+            std::cout << "RSTree:            Show the structure of render_service tree." << std::endl;
             std::cout << "NULL:              Show all of the information above." << std::endl;
             retCode = 1;
         }

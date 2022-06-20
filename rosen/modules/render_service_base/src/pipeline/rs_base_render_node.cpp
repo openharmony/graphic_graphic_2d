@@ -200,34 +200,36 @@ RSBaseRenderNode::WeakPtr RSBaseRenderNode::GetParent() const
     return parent_;
 }
 
-void RSBaseRenderNode::DumpTree(std::string& out) const
+void RSBaseRenderNode::DumpTree(int32_t depth, std::string& out) const
 {
-    out += "id: " + std::to_string(GetId()) + ", type: ";
+    std::string space = "  ";
+    for (int32_t i = 0; i < depth; ++i) {
+        out += space;
+    }
+    out += "| ";
     DumpNodeType(out);
+    out += "[" + std::to_string(GetId()) + "]";
     out += ", hasDisappearingTransition: " + std::to_string(HasDisappearingTransition(false)) +
            ", isOnTheTree: " + std::to_string(isOnTheTree_);
-    out += "\n";
-    auto p = parent_.lock();
-    if (p != nullptr) {
-        out += "parent: " + std::to_string(p->GetId()) + "\n";
-    } else {
-        out += "parent: null\n";
+    if (GetType() == RSRenderNodeType::SURFACE_NODE) {
+        auto surfaceNode = (static_cast<const RSSurfaceRenderNode*>(this));
+        const RSSurfaceHandler& surfaceHandler = static_cast<const RSSurfaceHandler&>(*surfaceNode);
+        out += ", hasConsumer: " + std::to_string(surfaceHandler.HasConsumer()); 
     }
-
-    uint32_t i = 0;
+    out += ", children[";
     for (auto child : children_) {
         auto c = child.lock();
         if (c != nullptr) {
-            out += "child[" + std::to_string(i) + "]: " + std::to_string(c->GetId()) + "\n";
+            out += std::to_string(c->GetId()) + " ";
         } else {
-            out += "child[" + std::to_string(i) + "]: null\n";
+            out += ", null";
         }
-        ++i;
     }
-    i = 0;
+    out += "]\n";
+    int i = 0;
     for (auto& disappearingChild : disappearingChildren_) {
         out +=
-            "disappearing child[" + std::to_string(i) + "]: " + std::to_string(disappearingChild.first->GetId()) +
+            "disappearing children[" + std::to_string(i) + "]: " + std::to_string(disappearingChild.first->GetId()) +
             ", hasDisappearingTransition:" + std::to_string(disappearingChild.first->HasDisappearingTransition(false)) +
             "\n";
         ++i;
@@ -235,12 +237,12 @@ void RSBaseRenderNode::DumpTree(std::string& out) const
 
     for (auto child : children_) {
         if (auto c = child.lock()) {
-            c->DumpTree(out);
+            c->DumpTree(depth + 1, out);
         }
     }
     for (auto& child : disappearingChildren_) {
         if (auto c = child.first) {
-            c->DumpTree(out);
+            c->DumpTree(depth + 1, out);
         }
     }
 }

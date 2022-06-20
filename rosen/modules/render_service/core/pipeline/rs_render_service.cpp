@@ -174,7 +174,7 @@ void RSRenderService::DoDump(std::unordered_set<std::u16string>& argSets, std::s
     std::u16string arg3(u"fps");
     std::u16string arg4(u"nodeNotOnTree");
     std::u16string arg5(u"allSurfacesMem");
-    std::u16string arg6(u"renderServiceTree");
+    std::u16string arg6(u"RSTree");
 
     if (argSets.size() == 0 || argSets.count(arg1) != 0) {
         mainThread_->ScheduleTask([this, &dumpString]() {
@@ -196,7 +196,7 @@ void RSRenderService::DoDump(std::unordered_set<std::u16string>& argSets, std::s
             DumpAllNodesMemSize(dumpString);
         }).wait();
     }
-    if (argSets.size() == 0 || argSets.count(arg6) != 0) {
+    if (argSets.count(arg6) != 0) {
         mainThread_->ScheduleTask([this, &dumpString]() {
             mainThread_->RenderServiceTreeDump(dumpString);
         }).wait();

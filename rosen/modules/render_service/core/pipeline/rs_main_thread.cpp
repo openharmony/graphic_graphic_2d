@@ -450,7 +450,7 @@ void RSMainThread::RenderServiceTreeDump(std::string& dumpString)
         dumpString.append("rootNode is null\n");
         return;
     }
-    rootNode->DumpTree(dumpString);
+    rootNode->DumpTree(0, dumpString);
 }
 } // namespace Rosen
 } // namespace OHOS

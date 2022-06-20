@@ -117,6 +117,11 @@ public:
     void SetGlobalZOrder(float globalZOrder);
     float GetGlobalZOrder() const;
 
+    bool HasConsumer() const
+    {
+        return consumer_ != nullptr;
+    }
+
 protected:
     sptr<Surface> consumer_;
 
