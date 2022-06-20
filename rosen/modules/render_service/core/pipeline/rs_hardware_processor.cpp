@@ -415,7 +415,7 @@ void RSHardwareProcessor::Redraw(
         .width = static_cast<int32_t>(currScreenInfo_.width),
         .height = static_cast<int32_t>(currScreenInfo_.height),
         .strideAlignment = 0x8,
-        .format = PIXEL_FMT_RGBA_8888,      // [PLANNING] different soc need different format
+        .format = PIXEL_FMT_RGBA_8888,
         .usage = HBM_USE_CPU_READ | HBM_USE_CPU_WRITE | HBM_USE_MEM_DMA | HBM_USE_MEM_FB,
         .timeout = 0,
     };
@@ -423,7 +423,7 @@ void RSHardwareProcessor::Redraw(
     RS_TRACE_NAME("Redraw");
     bool ifUseGPU = !isUni && IfUseGPUClient(param);
     RS_LOGE("RSHardwareProcessor::Redraw if use GPU client: %d!", ifUseGPU);
-#ifdef RS_ENABLE_GL
+#if (defined RS_ENABLE_GL) && (defined RS_ENABLE_EGLIMAGE)
     if (ifUseGPU) {
         rsSurface_ = std::make_shared<RSSurfaceOhosGl>(surface);
         rsSurface_->SetSurfaceBufferUsage(HBM_USE_CPU_READ | HBM_USE_MEM_DMA | HBM_USE_MEM_FB);
@@ -434,7 +434,7 @@ void RSHardwareProcessor::Redraw(
 #else
     rsSurface_ = std::make_shared<RSSurfaceOhosRaster>(surface);
     rsSurface_->SetSurfaceBufferUsage(HBM_USE_CPU_READ | HBM_USE_CPU_WRITE | HBM_USE_MEM_DMA | HBM_USE_MEM_FB);
-#endif
+#endif // (defined RS_ENABLE_GL) && (defined RS_ENABLE_EGLIMAGE)
     auto skCanvas = CreateCanvas(rsSurface_, requestConfig);
     if (skCanvas == nullptr) {
         RS_LOGE("RSHardwareProcessor::Redraw: canvas is null.");

@@ -32,9 +32,9 @@
 #include "property/rs_transition_properties.h"
 #include "screen_manager/screen_types.h"
 #include "sync_fence.h"
-#ifdef RS_ENABLE_GL
+#ifdef RS_ENABLE_EGLIMAGE
 #include "rs_egl_image_manager.h"
-#endif // RS_ENABLE_GL
+#endif // RS_ENABLE_EGLIMAGE
 
 namespace OHOS {
 

@@ -27,11 +27,11 @@
 #include "property/rs_properties_painter.h"
 #include "render/rs_blur_filter.h"
 #include "rs_trace.h"
-#ifdef RS_ENABLE_GL
+#ifdef RS_ENABLE_EGLIMAGE
 #include "include/gpu/gl/GrGLTypes.h"
 #include "include/gpu/GrBackendSurface.h"
 
-#endif // RS_ENABLE_GL
+#endif // RS_ENABLE_EGLIMAGE
 
 namespace OHOS {
 namespace Rosen {
