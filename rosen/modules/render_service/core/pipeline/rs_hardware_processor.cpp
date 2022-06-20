@@ -80,7 +80,10 @@ void RSHardwareProcessor::Init(ScreenId id, int32_t offsetX, int32_t offsetY)
     if (mainThread != nullptr) {
         renderContext_ = mainThread->GetRenderContext();
 #ifdef RS_ENABLE_EGLIMAGE
+        output_->SetLayerCompCapacity(LAYER_COMPOSITION_CAPACITY);
         eglImageManager_ =  mainThread->GetRSEglImageManager();
+#else
+        output_->SetLayerCompCapacity(LAYER_COMPOSITION_CAPACITY_INVALID);
 #endif // RS_ENABLE_EGLIMAGE
     }
 #endif // RS_ENABLE_GL

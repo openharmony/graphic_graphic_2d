@@ -21,6 +21,7 @@
 #include <vector>
 #include <unordered_map>
 
+#include "screen_types.h"
 #include "hdi_log.h"
 #include "surface_type.h"
 #include "hdi_layer.h"
@@ -44,10 +45,13 @@ public:
     virtual ~HdiOutput();
 
     static constexpr uint COMPOSITION_RECORDS_NUM = 128;
+
     /* for RS begin */
     void SetLayerInfo(const std::vector<LayerInfoPtr> &layerInfos);
     void SetOutputDamage(uint32_t num, const IRect &outputDamage);
     uint32_t GetScreenId() const;
+    void SetLayerCompCapacity(uint32_t layerCompositionCapacity);
+    uint32_t GetLayerCompCapacity() const;
     /* for RS end */
 
     static std::shared_ptr<HdiOutput> CreateHdiOutput(uint32_t screenId);
@@ -73,6 +77,7 @@ private:
     // surface unique id -- layer ptr
     std::unordered_map<uint64_t, LayerPtr> surfaceIdMap_;
     uint32_t screenId_;
+    uint32_t layerCompCapacity_ = LAYER_COMPOSITION_CAPACITY_INVALID;
     IRect outputDamage_;
     uint32_t outputDamageNum_;
 
