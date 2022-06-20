@@ -49,7 +49,7 @@ public:
     void PostTask(RSTaskMessage::RSTask task);
     void PostPreTask();
     void UpdateWindowStatus(bool active);
-    void UpdateUiDrawFrameMsg(uint64_t startTimeStamp, const std::string& abilityName);
+    void UpdateUiDrawFrameMsg(const std::string& abilityName);
 
     int32_t GetTid();
 

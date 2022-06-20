@@ -17,26 +17,31 @@
 
 #include <unistd.h>
 #include "base/hiviewdfx/hisysevent/interfaces/native/innerkits/hisysevent/include/hisysevent.h"
-#include "platform/common/rs_log.h"
 
 namespace {
-void DrawEventReport(uint64_t totalTime, uint64_t uiDrawTime, uint64_t renderDrawTime, int dropUiFrameNum,
-    const std::string& abilityName)
+struct FrameMsg {
+    uint64_t totalTime = 0;
+    uint64_t uiDrawTime = 0;
+    uint64_t renderDrawTime = 0;
+    int dropUiFrameNum = 0;
+    std::string abilityName;
+};
+
+void DrawEventReport(FrameMsg& frameMsg, std::string stringId)
 {
     int32_t pid = getpid();
     uint32_t uid = getuid();
     std::string domain = "GRAPHIC";
-    std::string stringId = "NO_DRAW";
-    std::string msg = "It took " + std::to_string(totalTime) + "ns to draw, "
-        + "UI took " + std::to_string(uiDrawTime) + "ns to draw, "
-        + "RSRenderThread took " + std::to_string(renderDrawTime) + "ns to draw, "
-        + "RSRenderThread dropped " + std::to_string(dropUiFrameNum) + " UI Frames";
+    std::string msg = "It took " + std::to_string(frameMsg.totalTime) + "ns to draw, "
+        + "UI took " + std::to_string(frameMsg.uiDrawTime) + "ns to draw, "
+        + "RSRenderThread took " + std::to_string(frameMsg.renderDrawTime) + "ns to draw, "
+        + "RSRenderThread dropped " + std::to_string(frameMsg.dropUiFrameNum) + " UI Frames";
 
     OHOS::HiviewDFX::HiSysEvent::Write(domain, stringId,
         OHOS::HiviewDFX::HiSysEvent::EventType::FAULT,
         "PID", pid,
         "UID", uid,
-        "ABILITY_NAME", abilityName,
+        "ABILITY_NAME", frameMsg.abilityName,
         "MSG", msg);
 }
 }
@@ -57,6 +62,12 @@ void RSJankDetector::SetRefreshPeriod(uint64_t refreshPeriod)
 void RSJankDetector::UpdateUiDrawFrameMsg(uint64_t startTimeStamp, uint64_t endTimeStamp,
     const std::string& abilityName)
 {
+    // In some scenes we don't have startTimeStamp(e.g. in OnSurfaceChanged),
+    // so we temporarily don't count this situation.
+    if (startTimeStamp == 0) {
+        return;
+    }
+
     UiDrawFrameMsg uiFrame;
     uiFrame.startTimeStamp = startTimeStamp;
     uiFrame.endTimeStamp = endTimeStamp;
@@ -78,28 +89,33 @@ void RSJankDetector::ProcessUiDrawFrameMsg()
 
 void RSJankDetector::CalculateSkippedFrame(uint64_t renderStartTimeStamp, uint64_t renderEndTimeStamp)
 {
-    uint64_t dropUiFrameNum = 0;
+    FrameMsg frameMsg;
     uint64_t uiStartTimeStamp = 0;
     uint64_t uiEndTimeStamp = 0;
-    std::string abilityName;
     if (!preUiDrawFrames_.empty()) {
         UiDrawFrameMsg uiDrawFrame = preUiDrawFrames_.front();
-        dropUiFrameNum = preUiDrawFrames_.size() - 1;
+        frameMsg.dropUiFrameNum = preUiDrawFrames_.size() - 1;
         uiStartTimeStamp = uiDrawFrame.startTimeStamp;
         uiEndTimeStamp = uiDrawFrame.endTimeStamp;
-        abilityName = uiDrawFrame.abilityName;
+        frameMsg.abilityName = uiDrawFrame.abilityName;
     }
 
-    uint64_t totalTime = renderEndTimeStamp - uiStartTimeStamp;
-    uint64_t uiDrawTime = uiEndTimeStamp - uiStartTimeStamp;
-    uint64_t renderDrawTime = renderEndTimeStamp - renderStartTimeStamp;
+    frameMsg.totalTime = renderEndTimeStamp - uiStartTimeStamp;
+    frameMsg.uiDrawTime = uiEndTimeStamp - uiStartTimeStamp;
+    frameMsg.renderDrawTime = renderEndTimeStamp - renderStartTimeStamp;
+    // In some animation scenes, only RSRenderthread is working.
+    if (preUiDrawFrames_.empty()) {
+        frameMsg.totalTime = frameMsg.renderDrawTime;
+    }
 
     // Currently a frame takes two vsync times
-    uint64_t skippedFrame = totalTime / (refreshPeriod_ * 2);
-    if ((skippedFrame >= JANK_SKIPPED_THRESHOLD) || (dropUiFrameNum >= JANK_SKIPPED_THRESHOLD)) {
-        DrawEventReport(totalTime, uiDrawTime, renderDrawTime, dropUiFrameNum, abilityName);
-        ROSEN_LOGD("%s took %llu, UI took %llu, RSRenderThread took %llu, RSRenderThread dropped %d UI Frames",
-            abilityName.c_str(), totalTime, uiDrawTime, renderDrawTime);
+    uint64_t skippedFrame = frameMsg.totalTime / (refreshPeriod_ * 2);
+    if ((skippedFrame >= JANK_SKIPPED_THRESHOLD) || (frameMsg.dropUiFrameNum >= JANK_SKIPPED_THRESHOLD)) {
+        DrawEventReport(frameMsg, "JANK_FRAME_SKIP");
+    }
+
+    if (frameMsg.totalTime > NO_DRAW_THRESHOLD) {
+        DrawEventReport(frameMsg, "NO_DRAW");
     }
 }
 } // namespace Rosen
