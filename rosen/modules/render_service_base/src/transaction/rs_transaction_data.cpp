@@ -47,7 +47,7 @@ bool RSTransactionData::Marshalling(Parcel& parcel) const
     success = success && parcel.WriteUInt64Vector(nodeIds_);
     success = success && parcel.WriteUint64(timestamp_);
     for (auto& command : commands_) {
-        success &= command->Marshalling(parcel);
+        success = command->Marshalling(parcel);
         if (!success) {
             ROSEN_LOGE("failed RSTransactionData::Marshalling type:%s", command->PrintType().c_str());
             break;

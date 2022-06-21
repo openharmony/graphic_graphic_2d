@@ -97,7 +97,7 @@ void Node::GetXOrRange(std::vector<Range>& res, bool isParentNodePos = false, bo
 {
     bool isPos = isParentNodePos || (positive_count_ > 0);
     bool isNeg = isParentNodeNeg || (negative_count_ > 0);
-    if (IsLeaf() && (isPos ^ isNeg)) {
+    if (((isPos && !isNeg) || (!isPos && isNeg)) && IsLeaf()) {
         PushRange(res);
     } else if (isPos && isNeg) {
         return;
@@ -164,8 +164,8 @@ void Region::getRange(std::vector<Range>& ranges, Node& node, Region::OP op)
 
 void Region::UpdateRects(Rects& r, std::vector<Range>& ranges, std::vector<int>& indexAt, Region& res)
 {
-    int i = 0;
-    int j = 0;
+    uint32_t i = 0;
+    uint32_t j = 0;
     while (i < r.preRects.size() && j < ranges.size()) {
         if (r.preRects[i].left_ == indexAt[ranges[j].start_] && r.preRects[i].right_ == indexAt[ranges[j].end_]) {
             r.curRects.emplace_back(Rect { r.preRects[i].left_, r.preRects[i].top_, r.preRects[i].right_, r.curY });
