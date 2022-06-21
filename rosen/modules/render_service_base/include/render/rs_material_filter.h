@@ -26,18 +26,18 @@ namespace OHOS {
 namespace Rosen {
 class RSMaterialFilter : public RSSkiaFilter {
 public:
-    public static final int STYLE_CARD_THIN_LIGHT = 1;
-    public static final int STYLE_CARD_LIGHT = 2;
-    public static final int STYLE_CARD_THICK_LIGHT = 3;
-    constexpr int RADIUSVP_THIN_LIGHT = 109;
-    constexpr float SATURATION_THIN_LIGHT = 1.2;
-    constexpr SkColor MASKCOLOR_THIN_LIGHT = 0x6BF0F0F0;
-    constexpr int RADIUSVP_LIGHT = 103;
-    constexpr float SATURATION_LIGHT = 2.4;
-    constexpr SkColor MASKCOLOR_LIGHT = 0xB8FAFAFA;
-    constexpr int RADIUSVP_THICK_LIGHT = 109;
-    constexpr float SATURATION_THICK_LIGHT = 2.4;
-    constexpr SkColor MASKCOLOR_THICK_LIGHT = 0xB8FAFAFA;
+    static constexpr int STYLE_CARD_THIN_LIGHT = 1;
+    static constexpr int STYLE_CARD_LIGHT = 2;
+    static constexpr int STYLE_CARD_THICK_LIGHT = 3;
+    static constexpr int RADIUSVP_THIN_LIGHT = 109;
+    static constexpr float SATURATION_THIN_LIGHT = 1.2;
+    static constexpr SkColor MASKCOLOR_THIN_LIGHT = 0x6BF0F0F0;
+    static constexpr int RADIUSVP_LIGHT = 103;
+    static constexpr float SATURATION_LIGHT = 2.4;
+    static constexpr SkColor MASKCOLOR_LIGHT = 0xB8FAFAFA;
+    static constexpr int RADIUSVP_THICK_LIGHT = 109;
+    static constexpr float SATURATION_THICK_LIGHT = 2.4;
+    static constexpr SkColor MASKCOLOR_THICK_LIGHT = 0xB8FAFAFA;
     RSMaterialFilter(int style, float dipScale);
     ~RSMaterialFilter() override;
     
