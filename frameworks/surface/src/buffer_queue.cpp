@@ -815,6 +815,7 @@ GSError BufferQueue::IsSupportedAlloc(const std::vector<VerifyAllocInfo> &infos,
 
 GSError BufferQueue::SetScalingMode(uint32_t sequence, ScalingMode scalingMode)
 {
+    std::lock_guard<std::mutex> lockGuard(mutex_);
     if (bufferQueueCache_.find(sequence) == bufferQueueCache_.end()) {
         BLOGN_FAILURE_ID(sequence, "not find in cache");
         return GSERROR_NO_ENTRY;
@@ -823,8 +824,9 @@ GSError BufferQueue::SetScalingMode(uint32_t sequence, ScalingMode scalingMode)
     return GSERROR_OK;
 }
 
-GSError BufferQueue::GetScalingMode(uint32_t sequence, ScalingMode &scalingMode) const
+GSError BufferQueue::GetScalingMode(uint32_t sequence, ScalingMode &scalingMode)
 {
+    std::lock_guard<std::mutex> lockGuard(mutex_);
     if (bufferQueueCache_.find(sequence) == bufferQueueCache_.end()) {
         BLOGN_FAILURE_ID(sequence, "not find in cache");
         return GSERROR_NO_ENTRY;
@@ -835,6 +837,7 @@ GSError BufferQueue::GetScalingMode(uint32_t sequence, ScalingMode &scalingMode)
 
 GSError BufferQueue::SetMetaData(uint32_t sequence, const std::vector<HDRMetaData> &metaData)
 {
+    std::lock_guard<std::mutex> lockGuard(mutex_);
     if (metaData.size() == 0) {
         BLOGN_INVALID("metaData size is 0");
         return GSERROR_INVALID_ARGUMENTS;
@@ -851,6 +854,7 @@ GSError BufferQueue::SetMetaData(uint32_t sequence, const std::vector<HDRMetaDat
 GSError BufferQueue::SetMetaDataSet(uint32_t sequence, HDRMetadataKey key,
                                     const std::vector<uint8_t> &metaData)
 {
+    std::lock_guard<std::mutex> lockGuard(mutex_);
     if (key < HDRMetadataKey::MATAKEY_RED_PRIMARY_X || key > HDRMetadataKey::MATAKEY_HDR_VIVID) {
         BLOGN_INVALID("key [%{public}d, %{public}d), now is %{public}d",
             HDRMetadataKey::MATAKEY_RED_PRIMARY_X, HDRMetadataKey::MATAKEY_HDR_VIVID, key);
@@ -870,8 +874,9 @@ GSError BufferQueue::SetMetaDataSet(uint32_t sequence, HDRMetadataKey key,
     return GSERROR_OK;
 }
 
-GSError BufferQueue::GetMetaData(uint32_t sequence, std::vector<HDRMetaData> &metaData) const
+GSError BufferQueue::GetMetaData(uint32_t sequence, std::vector<HDRMetaData> &metaData)
 {
+    std::lock_guard<std::mutex> lockGuard(mutex_);
     if (bufferQueueCache_.find(sequence) == bufferQueueCache_.end()) {
         BLOGN_FAILURE_ID(sequence, "not find in cache");
         return GSERROR_NO_ENTRY;
@@ -882,8 +887,9 @@ GSError BufferQueue::GetMetaData(uint32_t sequence, std::vector<HDRMetaData> &me
 }
 
 GSError BufferQueue::GetMetaDataSet(uint32_t sequence, HDRMetadataKey &key,
-                                    std::vector<uint8_t> &metaData) const
+                                    std::vector<uint8_t> &metaData)
 {
+    std::lock_guard<std::mutex> lockGuard(mutex_);
     if (bufferQueueCache_.find(sequence) == bufferQueueCache_.end()) {
         BLOGN_FAILURE_ID(sequence, "not find in cache");
         return GSERROR_NO_ENTRY;
