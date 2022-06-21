@@ -49,7 +49,7 @@ DirtyRegionDebugType RSSystemProperties::GetDirtyRegionDebugType()
 
 bool RSSystemProperties::GetOcclusionEnabled()
 {
-    return std::atoi((system::GetParameter("rosen.occlusion.enabled", "1")).c_str()) != 0;
+    return std::atoi((system::GetParameter("rosen.occlusion.enabled", "0")).c_str()) != 0;
 }
 } // namespace Rosen
 } // namespace OHOS
