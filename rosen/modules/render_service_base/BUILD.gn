@@ -108,6 +108,7 @@ ohos_shared_library("librender_service_base") {
 
     #render
     "src/render/rs_blur_filter.cpp",
+    "src/render/rs_material_filter.cpp",
     "src/render/rs_border.cpp",
     "src/render/rs_filter.cpp",
     "src/render/rs_image.cpp",
