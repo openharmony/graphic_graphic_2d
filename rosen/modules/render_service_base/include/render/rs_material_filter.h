@@ -29,7 +29,15 @@ public:
     public static final int STYLE_CARD_THIN_LIGHT = 1;
     public static final int STYLE_CARD_LIGHT = 2;
     public static final int STYLE_CARD_THICK_LIGHT = 3;
-
+    constexpr int RADIUSVP_THIN_LIGHT = 109;
+    constexpr float SATURATION_THIN_LIGHT= 1.2;
+    constexpr SkColor MASKCOLOR_THIN_LIGHT = 0x6BF0F0F0;
+    constexpr int RADIUSVP_LIGHT = 103;
+    constexpr float SATURATION_LIGHT = 2.4;
+    constexpr SkColor MASKCOLOR_LIGHT = 0xB8FAFAFA;
+    constexpr int RADIUSVP_THICK_LIGHT = 109;
+    constexpr float SATURATION_THICK_LIGHT = 2.4;
+    constexpr SkColor MASKCOLOR_THICK_LIGHT = 0xB8FAFAFA;
     RSMaterialFilter(int style, float dipScale);
     ~RSMaterialFilter() override;
     
@@ -41,10 +49,6 @@ public:
     std::shared_ptr<RSFilter> Sub(const std::shared_ptr<RSFilter>& rhs) override;
     std::shared_ptr<RSFilter> Multiply(float rhs) override;
     std::shared_ptr<RSFilter> Negate() override;
-private:
-    int blurRadiusVp_;
-    float saturation_;
-    SkColor maskColor_;
 };
 } // namespace Rosen
 } // namespace OHOS

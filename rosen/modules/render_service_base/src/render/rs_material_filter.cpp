@@ -75,23 +75,14 @@ sk_sp<SkImageFilter> RSMaterialFilter::createMaterialStyle(int style, float dipS
 {
     switch (style) {
         case STYLE_CARD_THIN_LIGHT:
-            blurRadiusVp_ = 109;
-            saturation_ = 1.22;
-            maskColor_ = 0x6BF0F0F0;
-            return RSMaterialFilter::createMaterialfilter(RSMaterialFilter::vp2sigma(blurRadiusVp_, dipScale), 
-            saturation_, maskColor_);
+            return RSMaterialFilter::createMaterialfilter(RSMaterialFilter::vp2sigma(RADIUSVP_THIN_LIGHT, dipScale),
+                    SATURATION_THIN_LIGHT, MASKCOLOR_THIN_LIGHT);
         case STYLE_CARD_LIGHT:
-            blurRadiusVp_ = 103;
-            saturation_ = 2.4;
-            maskColor_ = 0xB8FAFAFA;
-            return RSMaterialFilter::createMaterialfilter(RSMaterialFilter::vp2sigma(blurRadiusVp_, dipScale), 
-            saturation_, maskColor_);
+            return RSMaterialFilter::createMaterialfilter(RSMaterialFilter::vp2sigma(RADIUSVP_LIGHT, dipScale),
+                    SATURATION_LIGHT, MASKCOLOR_LIGHT);
         case STYLE_CARD_THICK_LIGHT:
-            blurRadiusVp_ = 109;
-            saturation_ = 2.4;
-            maskColor_ = 0xB8FAFAFA;
-            return RSMaterialFilter::createMaterialfilter(RSMaterialFilter::vp2sigma(blurRadiusVp_, dipScale), 
-            saturation_, maskColor_);
+            return RSMaterialFilter::createMaterialfilter(RSMaterialFilter::vp2sigma(RADIUSVP_THICK_LIGHT, dipScale),
+                    SATURATION_THICK_LIGHT, MASKCOLOR_THICK_LIGHT);
         default:
             break;
     }
