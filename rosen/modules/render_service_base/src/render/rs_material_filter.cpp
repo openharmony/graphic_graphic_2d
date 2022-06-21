@@ -29,21 +29,26 @@ constexpr int INDEX_B_offset = 14;
 constexpr float BLUR_SIGMA_SCALE = 0.57735f;
 
 RSMaterialFilter::RSMaterialFilter(int style, float dipScale)
-    : RSSkiaFilter(RSMaterialFilter::createMaterialStyle(style, dipScale))
+    : RSSkiaFilter(RSMaterialFilter::CreateMaterialStyle(style, dipScale))
 {
     type_ = FilterType::MATERIAL;
 }
 
 RSMaterialFilter::~RSMaterialFilter() {}
 
-float RSMaterialFilter::vp2sigma(float radiusVp, float dipScale) const
+float RSMaterialFilter::RadiusVp2Sigma(float radiusVp, float dipScale) const
 {
     float radiusPx = radiusVp * dipScale;
 
     return radiusPx > 0.0f ? BLUR_SIGMA_SCALE * radiusPx + SK_ScalarHalf : 0.0f;
 }
 
-sk_sp<SkColorFilter> RSMaterialFilter::maskColorFilter(SkColor maskColor)
+/*
+* replace drawPaint/drawColor(kSrcOver)
+* formula: kSrcOver r = sa*s + (1-sa)*d
+* s: source d:destination sa: source alpha
+*/
+sk_sp<SkColorFilter> RSMaterialFilter::MaskColorFilter(SkColor maskColor)
 {
     SkColor4f maskColor4f = SkColor4f::FromColor(maskColor);
     SkScalar colorMatrix[20] = { 0 };
@@ -58,31 +63,31 @@ sk_sp<SkColorFilter> RSMaterialFilter::maskColorFilter(SkColor maskColor)
     return SkColorFilters::Matrix(colorMatrix);
 }
 
-sk_sp<SkImageFilter> RSMaterialFilter::createMaterialfilter(float radius, float sat, SkColor maskColor)
+sk_sp<SkImageFilter> RSMaterialFilter::CreateMaterialFilter(float radius, float sat, SkColor maskColor)
 {
     sk_sp<SkImageFilter> blurFilter =
         std::static_pointer_cast<RSBlurFilter>(RSFilter::CreateBlurFilter(radius, radius))->GetBlurFilter(); // blur
     SkColorMatrix cm;
     cm.setSaturation(sat);
     sk_sp<SkColorFilter> satFilter = SkColorFilters::Matrix(cm);                    // saturation
-    sk_sp<SkColorFilter> maskFilter = RSMaterialFilter::maskColorFilter(maskColor); // mask
+    sk_sp<SkColorFilter> maskFilter = RSMaterialFilter::MaskColorFilter(maskColor); // mask
     sk_sp<SkColorFilter> filterCompose = SkColorFilters::Compose(maskFilter, satFilter);
 
     return SkImageFilters::ColorFilter(filterCompose, blurFilter);
 }
 
-sk_sp<SkImageFilter> RSMaterialFilter::createMaterialStyle(int style, float dipScale)
+sk_sp<SkImageFilter> RSMaterialFilter::CreateMaterialStyle(int style, float dipScale)
 {
     switch (style) {
         case STYLE_CARD_THIN_LIGHT:
-            return RSMaterialFilter::createMaterialfilter(RSMaterialFilter::vp2sigma(RADIUSVP_THIN_LIGHT, dipScale),
-                SATURATION_THIN_LIGHT, MASKCOLOR_THIN_LIGHT);
+            return RSMaterialFilter::CreateMaterialFilter(RSMaterialFilter::RadiusVp2Sigma(cardThinLight.RADIUS, dipScale),
+                cardThinLight.SATURATION, cardThinLight.MASKCOLOR);
         case STYLE_CARD_LIGHT:
-            return RSMaterialFilter::createMaterialfilter(RSMaterialFilter::vp2sigma(RADIUSVP_LIGHT, dipScale),
-                SATURATION_LIGHT, MASKCOLOR_LIGHT);
+            return RSMaterialFilter::CreateMaterialFilter(RSMaterialFilter::RadiusVp2Sigma(cardLight.RADIUS, dipScale),
+                cardLight.SATURATION, cardLight.MASKCOLOR);
         case STYLE_CARD_THICK_LIGHT:
-            return RSMaterialFilter::createMaterialfilter(RSMaterialFilter::vp2sigma(RADIUSVP_THICK_LIGHT, dipScale),
-                SATURATION_THICK_LIGHT, MASKCOLOR_THICK_LIGHT);
+            return RSMaterialFilter::CreateMaterialFilter(RSMaterialFilter::RadiusVp2Sigma(cardThickLight.RADIUS, dipScale),
+                cardThickLight.SATURATION, cardThickLight.MASKCOLOR);
         default:
             break;
     }
