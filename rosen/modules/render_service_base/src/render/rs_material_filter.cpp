@@ -80,13 +80,16 @@ sk_sp<SkImageFilter> RSMaterialFilter::CreateMaterialStyle(int style, float dipS
 {
     switch (style) {
         case STYLE_CARD_THIN_LIGHT:
-            return RSMaterialFilter::CreateMaterialFilter(RSMaterialFilter::RadiusVp2Sigma(cardThinLight.RADIUS, dipScale),
+            return RSMaterialFilter::CreateMaterialFilter(
+                RSMaterialFilter::RadiusVp2Sigma(cardThinLight.RADIUS, dipScale),
                 cardThinLight.SATURATION, cardThinLight.MASKCOLOR);
         case STYLE_CARD_LIGHT:
-            return RSMaterialFilter::CreateMaterialFilter(RSMaterialFilter::RadiusVp2Sigma(cardLight.RADIUS, dipScale),
+            return RSMaterialFilter::CreateMaterialFilter(
+                RSMaterialFilter::RadiusVp2Sigma(cardLight.RADIUS, dipScale),
                 cardLight.SATURATION, cardLight.MASKCOLOR);
         case STYLE_CARD_THICK_LIGHT:
-            return RSMaterialFilter::CreateMaterialFilter(RSMaterialFilter::RadiusVp2Sigma(cardThickLight.RADIUS, dipScale),
+            return RSMaterialFilter::CreateMaterialFilter(
+                RSMaterialFilter::RadiusVp2Sigma(cardThickLight.RADIUS, dipScale),
                 cardThickLight.SATURATION, cardThickLight.MASKCOLOR);
         default:
             break;
