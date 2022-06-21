@@ -105,37 +105,30 @@ void RSMainThread::ProcessCommand()
                 continue;
             }
             auto node = nodeMap.GetRenderNode<RSSurfaceRenderNode>(surfaceNodeId);
+            std::map<uint64_t, std::vector<std::unique_ptr<RSCommand>>>::iterator effectIter;
+            std::unordered_map<NodeId, uint64_t>::iterator bufferTimestamp = bufferTimestamps_.find(surfaceNodeId);
 
-            if (!node) {
-                // If node has been destructed, cacheCommand_[surfaceNodeId] should be deleted,
-                // for all command cached in cacheCommand_[surfaceNodeId] could not be executed.
-                it = cacheCommand_.erase(it);
+            if (!node || !node->IsOnTheTree() || bufferTimestamp == bufferTimestamps_.end()) {
+                // If node has been destructed or is not on the tree or has no valid buffer,
+                // for all command cached in cacheCommand_[surfaceNodeId] should be executed immediately
+                effectIter = cacheCommand_[surfaceNodeId].end();
             } else {
-                std::map<uint64_t, std::vector<std::unique_ptr<RSCommand>>>::iterator effectIter;
-                std::unordered_map<NodeId, uint64_t>::iterator bufferTimestamp = bufferTimestamps_.find(surfaceNodeId);
-
-                if (!node->IsOnTheTree() || bufferTimestamp == bufferTimestamps_.end()) {
-                    // If node is not on the tree or has no valid buffer,
-                    // for all command cached in cacheCommand_[surfaceNodeId] should be executed immediately
-                    effectIter = cacheCommand_[surfaceNodeId].end();
-                } else {
-                    uint64_t timestamp = bufferTimestamp->second;
-                    effectIter = cacheCommand_[surfaceNodeId].upper_bound(timestamp);
-                }
-
-                for (auto it2 = cacheCommand_[surfaceNodeId].begin(); it2 != effectIter; it2++) {
-                    effectCommand_.insert(effectCommand_.end(),
-                        std::make_move_iterator(it2->second.begin()), std::make_move_iterator(it2->second.end()));
-                }
-                cacheCommand_[surfaceNodeId].erase(cacheCommand_[surfaceNodeId].begin(), effectIter);
-
-                for (auto it2 = cacheCommand_[surfaceNodeId].begin(); it2 != cacheCommand_[surfaceNodeId].end(); it2++) {
-                    RS_LOGD("RSMainThread::ProcessCommand CacheCommand NodeId = %llu, timestamp = %llu, commandSize = %zu",
-                        surfaceNodeId, it2->first, it2->second.size());
-                }
-
-                it++;
+                uint64_t timestamp = bufferTimestamp->second;
+                effectIter = cacheCommand_[surfaceNodeId].upper_bound(timestamp);
             }
+
+            for (auto it2 = cacheCommand_[surfaceNodeId].begin(); it2 != effectIter; it2++) {
+                effectCommand_.insert(effectCommand_.end(),
+                    std::make_move_iterator(it2->second.begin()), std::make_move_iterator(it2->second.end()));
+            }
+            cacheCommand_[surfaceNodeId].erase(cacheCommand_[surfaceNodeId].begin(), effectIter);
+
+            for (auto it2 = cacheCommand_[surfaceNodeId].begin(); it2 != cacheCommand_[surfaceNodeId].end(); it2++) {
+                RS_LOGD("RSMainThread::ProcessCommand CacheCommand NodeId = %llu, timestamp = %llu, commandSize = %zu",
+                    surfaceNodeId, it2->first, it2->second.size());
+            }
+
+            it++;
         }
     }
     for (size_t i = 0; i < effectCommand_.size(); i++) {
