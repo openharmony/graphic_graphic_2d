@@ -30,7 +30,7 @@ public:
     public static final int STYLE_CARD_LIGHT = 2;
     public static final int STYLE_CARD_THICK_LIGHT = 3;
     constexpr int RADIUSVP_THIN_LIGHT = 109;
-    constexpr float SATURATION_THIN_LIGHT= 1.2;
+    constexpr float SATURATION_THIN_LIGHT = 1.2;
     constexpr SkColor MASKCOLOR_THIN_LIGHT = 0x6BF0F0F0;
     constexpr int RADIUSVP_LIGHT = 103;
     constexpr float SATURATION_LIGHT = 2.4;
