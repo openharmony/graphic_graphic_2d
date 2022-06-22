@@ -107,7 +107,7 @@ HWTEST_F(HdiOutputTest, GetOutputDamageNum001, Function | MediumTest| Level3)
 }
 
 /*
-* Function: GetLayerCompCapacity001
+* Function: GetLayerCompCapacity
 * Type: Function
 * Rank: Important(3)
 * EnvConditions: N/A

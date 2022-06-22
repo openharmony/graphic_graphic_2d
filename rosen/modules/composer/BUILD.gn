@@ -35,7 +35,6 @@ config("composer_public_config") {
     "//foundation/graphic/graphic_2d/rosen/modules/composer/hdi_backend/include",
     "//foundation/graphic/graphic_2d/rosen/modules/composer/vsync/include",
     "//foundation/graphic/graphic_2d/interfaces/inner_api/composer",
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/include/screen_manager",
   ]
 }
 

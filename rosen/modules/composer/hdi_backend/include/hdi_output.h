@@ -21,7 +21,6 @@
 #include <vector>
 #include <unordered_map>
 
-#include "screen_types.h"
 #include "hdi_log.h"
 #include "surface_type.h"
 #include "hdi_layer.h"
@@ -32,6 +31,7 @@ namespace OHOS {
 namespace Rosen {
 
 using LayerPtr = std::shared_ptr<HdiLayer>;
+static constexpr uint32_t LAYER_COMPOSITION_CAPACITY_INVALID = 0;
 
 // dump layer
 struct LayerDumpInfo {
