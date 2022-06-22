@@ -69,7 +69,7 @@ sk_sp<SkImageFilter> RSMaterialFilter::CreateMaterialFilter(float radius, float 
         std::static_pointer_cast<RSBlurFilter>(RSFilter::CreateBlurFilter(radius, radius))->GetBlurFilter(); // blur
     SkColorMatrix cm;
     cm.setSaturation(sat);
-    sk_sp<SkColorFilter> satFilter = SkColorFilters::Matrix(cm);                    // saturation
+    sk_sp<SkColorFilter> satFilter = SkColorFilters::Matrix(cm); // saturation
     sk_sp<SkColorFilter> maskFilter = RSMaterialFilter::MaskColorFilter(maskColor); // mask
     sk_sp<SkColorFilter> filterCompose = SkColorFilters::Compose(maskFilter, satFilter);
 
@@ -81,16 +81,16 @@ sk_sp<SkImageFilter> RSMaterialFilter::CreateMaterialStyle(int style, float dipS
     switch (style) {
         case STYLE_CARD_THIN_LIGHT:
             return RSMaterialFilter::CreateMaterialFilter(
-                RSMaterialFilter::RadiusVp2Sigma(cardThinLight.RADIUS, dipScale),
-                cardThinLight.SATURATION, cardThinLight.MASKCOLOR);
+                RSMaterialFilter::RadiusVp2Sigma(CARDTHINLIGHT.radius, dipScale),
+                CARDTHINLIGHT.saturation, CARDTHINLIGHT.maskColor);
         case STYLE_CARD_LIGHT:
             return RSMaterialFilter::CreateMaterialFilter(
-                RSMaterialFilter::RadiusVp2Sigma(cardLight.RADIUS, dipScale),
-                cardLight.SATURATION, cardLight.MASKCOLOR);
+                RSMaterialFilter::RadiusVp2Sigma(CARDLIGHT.radius, dipScale),
+                CARDLIGHT.saturation, CARDLIGHT.maskColor);
         case STYLE_CARD_THICK_LIGHT:
             return RSMaterialFilter::CreateMaterialFilter(
-                RSMaterialFilter::RadiusVp2Sigma(cardThickLight.RADIUS, dipScale),
-                cardThickLight.SATURATION, cardThickLight.MASKCOLOR);
+                RSMaterialFilter::RadiusVp2Sigma(CARDTHICKLIGHT.radius, dipScale),
+                CARDTHICKLIGHT.saturation, CARDTHICKLIGHT.maskColor);
         default:
             break;
     }
