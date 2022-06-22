@@ -112,6 +112,7 @@ ohos_shared_library("librender_service_base") {
     "src/render/rs_filter.cpp",
     "src/render/rs_image.cpp",
     "src/render/rs_mask.cpp",
+    "src/render/rs_material_filter.cpp",
     "src/render/rs_path.cpp",
     "src/render/rs_shader.cpp",
     "src/render/rs_shadow.cpp",
