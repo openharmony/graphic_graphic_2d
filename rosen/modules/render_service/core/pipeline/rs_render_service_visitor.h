@@ -44,7 +44,6 @@ public:
     virtual void ProcessRootRenderNode(RSRootRenderNode& node) override {}
 
     void UpdateGeometry(RSBaseRenderNode &displayNode);
-
 private:
     std::unique_ptr<SkCanvas> skCanvas_;
     std::shared_ptr<RSPaintFilterCanvas> canvas_;

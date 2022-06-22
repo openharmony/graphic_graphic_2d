@@ -73,7 +73,7 @@ private:
         sptr<SyncFence> releaseFence_ = SyncFence::INVALID_FENCE;
     };
 
-    std::array<int64_t, FRAME_RECORDS_NUM> presentTimeRecords;
+    std::array<int64_t, FRAME_RECORDS_NUM> presentTimeRecords {};
     uint32_t count = 0;
     uint32_t screenId_ = INT_MAX;
     uint32_t layerId_ = INT_MAX;

@@ -733,7 +733,6 @@ bool RSMarshallingHelper::WriteToParcel(Parcel& parcel, const void* data, size_t
         ROSEN_LOGE("RSMarshallingHelper::WriteToParcel memcpy_s failed");
         return false;
     }
-    ROSEN_LOGI("RSMarshallingHelper::WriteToParcel success");
     ReleaseMemory(ptr, &fd, size);
     return true;
 }

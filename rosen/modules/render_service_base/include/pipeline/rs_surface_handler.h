@@ -29,10 +29,19 @@ public:
     virtual ~RSSurfaceHandler() noexcept = default;
 
     struct SurfaceBufferEntry {
+        void Reset()
+        {
+            buffer = nullptr;
+            acquireFence = SyncFence::INVALID_FENCE;
+            releaseFence = SyncFence::INVALID_FENCE;
+            damageRect = Rect {0, 0, 0, 0};
+            timestamp = 0;
+        }
         sptr<SurfaceBuffer> buffer;
         sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
         sptr<SyncFence> releaseFence = SyncFence::INVALID_FENCE;
         Rect damageRect = {0, 0, 0, 0};
+        int64_t timestamp = 0;
     };
 
     void SetConsumer(const sptr<Surface>& consumer);
@@ -54,12 +63,14 @@ public:
     void SetBuffer(
         const sptr<SurfaceBuffer>& buffer,
         const sptr<SyncFence>& acquireFence,
-        const Rect& damage)
+        const Rect& damage,
+        const int64_t timestamp)
     {
         preBuffer_ = buffer_;
         buffer_.buffer = buffer;
         buffer_.acquireFence = acquireFence;
         buffer_.damageRect = damage;
+        buffer_.timestamp = timestamp;
     }
 
     sptr<SurfaceBuffer> GetBuffer()
@@ -83,7 +94,7 @@ public:
         preBuffer_.releaseFence = std::move(fence);
     }
 
-    SurfaceBufferEntry GetPreBuffer()
+    SurfaceBufferEntry& GetPreBuffer()
     {
         return preBuffer_;
     }
@@ -98,8 +109,18 @@ public:
         return bufferAvailableCount_;
     }
 
+    int64_t GetTimestamp() const
+    {
+        return buffer_.timestamp;
+    }
+
     void SetGlobalZOrder(float globalZOrder);
     float GetGlobalZOrder() const;
+
+    bool HasConsumer() const
+    {
+        return consumer_ != nullptr;
+    }
 
 protected:
     sptr<Surface> consumer_;

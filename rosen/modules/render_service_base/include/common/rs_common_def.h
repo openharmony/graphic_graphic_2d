@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -38,6 +38,12 @@ enum class RSUINodeType {
     SURFACE_NODE = 0x01210,
     CANVAS_NODE  = 0x02210,   // formerly RSNode
     ROOT_NODE    = 0x12210,
+};
+
+enum class FollowType : uint8_t {
+    NONE,
+    FOLLOW_TO_PARENT,
+    FOLLOW_TO_SELF,
 };
 
 static const std::map<RSUINodeType, std::string> RSUINodeTypeStrs = {

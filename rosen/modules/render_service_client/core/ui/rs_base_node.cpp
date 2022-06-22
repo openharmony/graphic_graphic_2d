@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -21,7 +21,6 @@
 #include "command/rs_base_node_command.h"
 #include "pipeline/rs_node_map.h"
 #include "platform/common/rs_log.h"
-#include "platform/common/rs_system_properties.h"
 #include "transaction/rs_transaction_proxy.h"
 #include "ui/rs_canvas_node.h"
 #include "ui/rs_display_node.h"
@@ -46,10 +45,22 @@ NodeId RSBaseNode::GenerateId()
     return ((NodeId)pid_ << 32) | currentId_;
 }
 
-bool RSBaseNode::isUniRenderEnabled_ =
-    RSSystemProperties::GetUniRenderEnabledType() != UniRenderEnabledType::UNI_RENDER_DISABLED;
+bool RSBaseNode::isUniRenderEnabled_ = false;
 
-RSBaseNode::RSBaseNode(bool isRenderServiceNode) : id_(GenerateId()), isRenderServiceNode_(isRenderServiceNode) {}
+void RSBaseNode::InitUniRenderEnabled()
+{
+    static bool inited = false;
+    if (!inited) {
+        inited = true;
+        isUniRenderEnabled_ = RSSystemProperties::GetUniRenderEnabled();
+        ROSEN_LOGI("RSBaseNode::InitUniRenderEnabled:%d", isUniRenderEnabled_);
+    }
+}
+
+RSBaseNode::RSBaseNode(bool isRenderServiceNode) : isRenderServiceNode_(isRenderServiceNode), id_(GenerateId())
+{
+    InitUniRenderEnabled();
+}
 
 RSBaseNode::~RSBaseNode()
 {
@@ -83,7 +94,7 @@ void RSBaseNode::AddChild(SharedPtr child, int index)
     std::unique_ptr<RSCommand> command = std::make_unique<RSBaseNodeAddChild>(id_, childId, index);
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy != nullptr) {
-        transactionProxy->AddCommand(command, IsRenderServiceNode());
+        transactionProxy->AddCommand(command, IsRenderServiceNode(), GetFollowType(), id_);
     }
 }
 
@@ -101,7 +112,7 @@ void RSBaseNode::RemoveChild(SharedPtr child)
     std::unique_ptr<RSCommand> command = std::make_unique<RSBaseNodeRemoveChild>(id_, childId);
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy != nullptr) {
-        transactionProxy->AddCommand(command, IsRenderServiceNode());
+        transactionProxy->AddCommand(command, IsRenderServiceNode(), GetFollowType(), id_);
     }
 }
 
@@ -177,7 +188,7 @@ void RSBaseNode::RemoveFromTree()
     std::unique_ptr<RSCommand> command = std::make_unique<RSBaseNodeRemoveFromTree>(id_);
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy != nullptr) {
-        transactionProxy->AddCommand(command, IsRenderServiceNode());
+        transactionProxy->AddCommand(command, IsRenderServiceNode(), GetFollowType(), id_);
     }
 }
 
@@ -193,7 +204,7 @@ void RSBaseNode::ClearChildren()
     std::unique_ptr<RSCommand> command = std::make_unique<RSBaseNodeClearChild>(id_);
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy != nullptr) {
-        transactionProxy->AddCommand(command, IsRenderServiceNode());
+        transactionProxy->AddCommand(command, IsRenderServiceNode(), GetFollowType(), id_);
     }
 }
 

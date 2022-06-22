@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -30,6 +30,7 @@
 #include "refbase.h"
 #include "sync_fence.h"
 #include "common/rs_occlusion_region.h"
+#include "transaction/rs_occlusion_data.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -121,6 +122,9 @@ public:
 
     void SetDstRect(const RectI& dstRect)
     {
+        if (dstRect_ != dstRect) {
+            dstRectChanged_= true;
+        }
         dstRect_ = dstRect;
     }
 
@@ -142,7 +146,7 @@ public:
     void SetGlobalAlpha(float alpha)
     {
         if (globalAlpha_ == alpha) {
-        return;
+            return;
         }
         globalAlpha_ = alpha;
     }
@@ -152,24 +156,43 @@ public:
         return globalAlpha_;
     }
 
-    void SetVisibleRegionRecursive(const Occlusion::Region& region,
-                                    std::vector<std::pair<uint64_t, bool>>& visChangeVec)
+    void SetOcclusionVisible(bool visible)
+    {
+        isOcclusionVisible_ = visible;
+    }
+
+    bool GetOcclusionVisible() const
+    {
+        return isOcclusionVisible_;
+    }
+
+    void SetVisibleRegionRecursive(const Occlusion::Region& region, VisibleData& visibleVec)
     {
         visibleRegion_ = region;
         bool vis = region.GetSize() > 0;
-        if (vis != GetMutableRenderProperties().GetOcclusionVisible()) {
-            visChangeVec.emplace_back(GetId(), vis);
+        if (vis) {
+            visibleVec.emplace_back(GetId());
         }
-        GetMutableRenderProperties().SetOcclusionVisible(vis);
+        SetOcclusionVisible(vis);
         for (auto& child : GetSortedChildren()) {
             if (child->GetType() == RSRenderNodeType::SURFACE_NODE) {
                 auto surface = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(child);
                 if (surface == nullptr) {
                     continue;
                 }
-                surface->SetVisibleRegionRecursive(region, visChangeVec);
+                surface->SetVisibleRegionRecursive(region, visibleVec);
             }
         }
+    }
+
+    bool GetDstRectChanged() const
+    {
+        return dstRectChanged_;
+    }
+
+    void CleanDstRectChanged()
+    {
+        dstRectChanged_ = false;
     }
 
     void SetConsumer(const sptr<Surface>& consumer);
@@ -203,7 +226,7 @@ public:
     bool NeedSetCallbackForRenderThreadRefresh();
 
 private:
-    void SendCommandFromRT(std::unique_ptr<RSCommand>& command);
+    void SendCommandFromRT(std::unique_ptr<RSCommand>& command, NodeId nodeId);
 
     std::mutex mutexRT_;
     std::mutex mutexUI_;
@@ -233,6 +256,8 @@ private:
     friend class RSRenderThreadVisitor;
     RectI clipRegionFromParent_;
     Occlusion::Region visibleRegion_;
+    bool isOcclusionVisible_ = true;
+    bool dstRectChanged_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS

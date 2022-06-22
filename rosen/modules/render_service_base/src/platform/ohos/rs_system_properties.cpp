@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,46 +15,30 @@
 
 #include "platform/common/rs_system_properties.h"
 
-#include <sstream>
-#include <vector>
-
 #include <parameters.h>
 #include "platform/common/rs_log.h"
+#include "transaction/rs_render_service_client.h"
 
 namespace OHOS {
 namespace Rosen {
-template <typename Out>
-void SplitHelper(const std::string &s, char delimiter, Out result)
+// used by clients
+bool RSSystemProperties::GetUniRenderEnabled()
 {
-    std::istringstream iss(s);
-    std::string item;
-    while (std::getline(iss, item, delimiter)) {
-        *result++ = item;
+    return isUniRenderEnabled_;
+}
+
+void RSSystemProperties::InitUniRenderEnabled(const std::string &bundleName)
+{
+    static bool inited = false;
+    if (inited) {
+        return;
     }
-}
 
-std::vector<std::string> GetSplitResult(const std::string &s, char delimiter)
-{
-    std::vector<std::string> elems;
-    SplitHelper(s, delimiter, std::back_inserter(elems));
-    return elems;
-}
-
-UniRenderEnabledType RSSystemProperties::GetUniRenderEnabledType()
-{
-    return static_cast<UniRenderEnabledType>(std::atoi((system::GetParameter("rosen.unirender.enabled", "0")).c_str()));
-}
-
-const std::set<std::string>& RSSystemProperties::GetUniRenderEnabledList()
-{
-    uniRenderEnabledList_.clear();
-    std::string paramUniLayers = system::GetParameter("rosen.unirender.layers", "clock0");
-    auto uniLayers = GetSplitResult(paramUniLayers, ',');
-    for (auto& layer: uniLayers) {
-        RS_LOGI("RSSystemProperties::GetUniRenderEnabledList uniRender for:%s", layer.c_str());
-        uniRenderEnabledList_.insert(layer);
-    }
-    return uniRenderEnabledList_;
+    // init
+    inited = true;
+    isUniRenderEnabled_ = std::static_pointer_cast<RSRenderServiceClient>(RSIRenderClient::CreateRenderServiceClient())
+                ->InitUniRenderEnabled(bundleName);
+    ROSEN_LOGI("Init UniRender Enabled:%d, package name:%s", isUniRenderEnabled_, bundleName.c_str());
 }
 
 DirtyRegionDebugType RSSystemProperties::GetDirtyRegionDebugType()

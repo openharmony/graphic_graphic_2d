@@ -24,6 +24,7 @@
       "features": [
         "graphic_standard_feature_bootanimation_enable",
         "graphic_standard_feature_ace_enable_gpu",
+        "graphic_standard_feature_rs_enable_eglimage",
         "graphic_standard_feature_color_gamut_enable"
       ],
       "rom": "10000KB",
@@ -59,7 +60,9 @@
           "//foundation/graphic/graphic_2d:default",
           "//foundation/graphic/graphic_2d/interfaces/kits/napi:napi_packages",
           "//foundation/graphic/graphic_2d/rosen/samples/composer:hello_composer",
+          "//foundation/graphic/graphic_2d/rosen/samples/hello_vsync:hello_vsync",
           "//foundation/graphic/graphic_2d/rosen/modules/composer:libcomposer",
+          "//foundation/graphic/graphic_2d/rosen/modules/composer/native_vsync:libnative_vsync",
           "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics:2d_graphics",
           "//foundation/graphic/graphic_2d/rosen/samples/2d_graphics:drawing_sample_rs",
           "//foundation/graphic/graphic_2d/rosen/samples/2d_graphics:drawing_engine_sample",

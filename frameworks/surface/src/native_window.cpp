@@ -98,6 +98,7 @@ int32_t NativeWindowRequestBuffer(OHNativeWindow *window,
     }
     OHNativeWindowBuffer *nwBuffer = new OHNativeWindowBuffer();
     nwBuffer->sfbuffer = sfbuffer;
+    nwBuffer->uiTimestamp = window->uiTimestamp;
     *buffer = nwBuffer;
     *fenceFd = relaeaseFence->Dup();
     return OHOS::GSERROR_OK;
@@ -117,13 +118,13 @@ int32_t NativeWindowFlushBuffer(OHNativeWindow *window, OHNativeWindowBuffer *bu
         config.damage.y = region.rects->y;
         config.damage.w = static_cast<int32_t>(region.rects->w);
         config.damage.h = static_cast<int32_t>(region.rects->h);
-        config.timestamp = 0;
+        config.timestamp = buffer->uiTimestamp;
     } else {
         config.damage.x = 0;
         config.damage.y = 0;
         config.damage.w = window->config.width;
         config.damage.h = window->config.height;
-        config.timestamp = 0;
+        config.timestamp = buffer->uiTimestamp;
     }
 
     OHOS::sptr<OHOS::SyncFence> acquireFence = new OHOS::SyncFence(fenceFd);
@@ -181,6 +182,11 @@ static int32_t InternalHanleNativeWindowOpt(OHNativeWindow *window, int code, va
         case SET_TRANSFORM : {
             int32_t transform = va_arg(args, int32_t);
             window->config.transform = static_cast<TransformType>(transform);
+            break;
+        }
+        case SET_UI_TIMESTAMP : {
+            uint64_t uiTimestamp = va_arg(args, uint64_t);
+            window->uiTimestamp = static_cast<int64_t>(uiTimestamp);
             break;
         }
         case GET_USAGE: {

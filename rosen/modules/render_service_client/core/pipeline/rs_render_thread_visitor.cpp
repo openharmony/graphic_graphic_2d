@@ -37,6 +37,9 @@
 #include "transaction/rs_transaction_proxy.h"
 #include "ui/rs_surface_extractor.h"
 #include "ui/rs_surface_node.h"
+#include "overdraw/rs_cpu_overdraw_canvas_listener.h"
+#include "overdraw/rs_gpu_overdraw_canvas_listener.h"
+#include "overdraw/rs_overdraw_controller.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -215,8 +218,9 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
     RenderContext* rc = RSRenderThread::Instance().GetRenderContext();
     rsSurface->SetRenderContext(rc);
 #endif
+    uiTimestamp_ = RSRenderThread::Instance().GetUITimestamp();
     RS_TRACE_BEGIN("rsSurface->RequestFrame");
-    auto surfaceFrame = rsSurface->RequestFrame(node.GetSurfaceWidth(), node.GetSurfaceHeight());
+    auto surfaceFrame = rsSurface->RequestFrame(node.GetSurfaceWidth(), node.GetSurfaceHeight(), uiTimestamp_);
     RS_TRACE_END();
     if (surfaceFrame == nullptr) {
         ROSEN_LOGE("Request Frame Failed");
@@ -225,6 +229,13 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
 
     auto skSurface = surfaceFrame->GetSurface();
     canvas_ = new RSPaintFilterCanvas(skSurface.get());
+
+    auto &overdrawController = RSOverdrawController::GetInstance();
+    std::shared_ptr<RSCanvasListener> overdrawListener = nullptr;
+    overdrawListener = overdrawController.SetHook<RSGPUOverdrawCanvasListener>(canvas_);
+    if (overdrawListener == nullptr) {
+        overdrawListener = overdrawController.SetHook<RSCPUOverdrawCanvasListener>(canvas_);
+    }
 
     canvas_->clipRect(SkRect::MakeWH(node.GetSurfaceWidth(), node.GetSurfaceHeight()));
     canvas_->clear(SK_ColorTRANSPARENT);
@@ -241,12 +252,18 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
     if (childSurfaceNodeIds_ != node.childSurfaceNodeIds_) {
         auto thisSurfaceNodeId = node.GetRSSurfaceNodeId();
         std::unique_ptr<RSCommand> command = std::make_unique<RSBaseNodeClearChild>(thisSurfaceNodeId);
-        SendCommandFromRT(command);
+        SendCommandFromRT(command, thisSurfaceNodeId, FollowType::FOLLOW_TO_SELF);
         for (const auto& childSurfaceNodeId : childSurfaceNodeIds_) {
             command = std::make_unique<RSBaseNodeAddChild>(thisSurfaceNodeId, childSurfaceNodeId, -1);
-            SendCommandFromRT(command);
+            SendCommandFromRT(command, thisSurfaceNodeId, FollowType::FOLLOW_TO_SELF);
         }
         node.childSurfaceNodeIds_ = std::move(childSurfaceNodeIds_);
+    }
+
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        ROSEN_LOGD("RSRenderThreadVisitor FlushImplicitTransactionFromRT uiTimestamp = %llu", uiTimestamp_);
+        transactionProxy->FlushImplicitTransactionFromRT(uiTimestamp_);
     }
 
     if (dirtyManager_.IsDirty() && dirtyManager_.IsDebugEnabled()) {
@@ -254,8 +271,14 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
         DrawDirtyRegion();
     }
 
+    if (overdrawListener != nullptr) {
+        overdrawListener->Draw();
+    }
+
     RS_TRACE_BEGIN("rsSurface->FlushFrame");
-    rsSurface->FlushFrame(surfaceFrame);
+    ROSEN_LOGD("RSRenderThreadVisitor FlushFrame surfaceNodeId = %llu, uiTimestamp = %llu",
+        node.GetRSSurfaceNodeId(), uiTimestamp_);
+    rsSurface->FlushFrame(surfaceFrame, uiTimestamp_);
     RS_TRACE_END();
 
     delete canvas_;
@@ -352,10 +375,10 @@ void RSRenderThreadVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
     if (childSurfaceNodeIds_ != node.childSurfaceNodeIds_) {
         auto thisSurfaceNodeId = node.GetId();
         std::unique_ptr<RSCommand> command = std::make_unique<RSBaseNodeClearChild>(thisSurfaceNodeId);
-        SendCommandFromRT(command);
+        SendCommandFromRT(command, thisSurfaceNodeId, FollowType::FOLLOW_TO_SELF);
         for (const auto& childSurfaceNodeId : childSurfaceNodeIds_) {
             command = std::make_unique<RSBaseNodeAddChild>(thisSurfaceNodeId, childSurfaceNodeId, -1);
-            SendCommandFromRT(command);
+            SendCommandFromRT(command, thisSurfaceNodeId, FollowType::FOLLOW_TO_SELF);
         }
         node.childSurfaceNodeIds_ = std::move(childSurfaceNodeIds_);
     }
@@ -391,11 +414,11 @@ void RSRenderThreadVisitor::ClipHoleForSurfaceNode(RSSurfaceRenderNode& node)
 #endif
 }
 
-void RSRenderThreadVisitor::SendCommandFromRT(std::unique_ptr<RSCommand>& command)
+void RSRenderThreadVisitor::SendCommandFromRT(std::unique_ptr<RSCommand>& command, NodeId nodeId, FollowType followType)
 {
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy != nullptr) {
-        transactionProxy->AddCommandFromRT(command);
+        transactionProxy->AddCommandFromRT(command, nodeId, followType);
     }
 }
 } // namespace Rosen

@@ -1,0 +1,53 @@
+# Copyright (c) 2022 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/ohos.gni")
+
+## Build hello_vsync {{{
+config("hello_vsync_config") {
+  visibility = [ ":*" ]
+
+  cflags = [
+    "-Wall",
+    "-Werror",
+    "-g3",
+  ]
+}
+
+config("hello_vsync_public_config") {
+  include_dirs =
+      [ "//foundation/graphic/graphic_2d/interfaces/inner_api/composer" ]
+}
+
+ohos_executable("hello_vsync") {
+  install_enable = true
+
+  sources = [ "hello_vsync.cpp" ]
+
+  configs = [ ":hello_vsync_config" ]
+
+  public_configs = [ ":hello_vsync_public_config" ]
+
+  deps = [
+    "//foundation/graphic/graphic_2d/frameworks/surface:surface",
+    "//foundation/graphic/graphic_2d/rosen/modules/composer/native_vsync:libnative_vsync",
+  ]
+
+  external_deps = [ "ipc:ipc_core" ]
+
+  part_name = "graphic_standard"
+  subsystem_name = "graphic"
+}
+
+## Build hello_vsync }}}
+

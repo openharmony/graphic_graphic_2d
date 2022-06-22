@@ -21,7 +21,7 @@
 namespace OHOS {
 namespace {
 // The "0xD001400" is the domain ID for graphic module that alloted by the OS.
-constexpr ::OHOS::HiviewDFX::HiLogLabel LABEL = { LOG_CORE, 0xD001400, "Bufferqueue" };
+constexpr ::OHOS::HiviewDFX::HiLogLabel LABEL = { LOG_CORE, 0xD001401, "Bufferqueue" };
 }
 
 #ifdef __aarch64__

@@ -23,6 +23,7 @@
 
 namespace OHOS {
 namespace Rosen {
+using VisibleData = std::vector<uint64_t>;
 #ifdef ROSEN_OHOS
 class RSOcclusionData : public Parcelable {
 #else
@@ -30,14 +31,14 @@ class RSOcclusionData {
 #endif
 public:
     RSOcclusionData() = default;
-    RSOcclusionData(std::vector<std::pair<uint64_t, bool>>& vec)
+    RSOcclusionData(VisibleData& vec)
     {
-        copy(vec.begin(), vec.end(), back_inserter(visibleData_));
+        std::copy(vec.begin(), vec.end(), std::back_inserter(visibleData_));
     }
     RSOcclusionData(RSOcclusionData&& other) : visibleData_(std::move(other.visibleData_)) {}
     ~RSOcclusionData() noexcept;
 
-    const std::vector<std::pair<uint64_t, bool>>& GetVisibleData() const
+    VisibleData& GetVisibleData()
     {
         return visibleData_;
     }
@@ -47,7 +48,7 @@ public:
 #endif
 
 private:
-    std::vector<std::pair<uint64_t, bool>> visibleData_;
+    VisibleData visibleData_;
 };
 } // namespace Rosen
 } // namespace OHOS

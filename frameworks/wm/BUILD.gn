@@ -89,8 +89,6 @@ ohos_shared_library("wms_client") {
       "//foundation/multimedia/media_standard/frameworks/videodisplaymanager/include",
       "//drivers/peripheral/display/interfaces/include",
       "//drivers/peripheral/display/interfaces/hdi_cpp/client",
-      "//drivers/adapter/uhdf2/hdi",
-      "//drivers/adapter/uhdf2/include/hdi",
     ]
   }
 
@@ -193,8 +191,6 @@ ohos_shared_library("libwmclient") {
       "//foundation/multimedia/media_standard/frameworks/videodisplaymanager/include",
       "//drivers/peripheral/display/interfaces/include",
       "//drivers/peripheral/display/interfaces/hdi_cpp/client",
-      "//drivers/adapter/uhdf2/hdi",
-      "//drivers/adapter/uhdf2/include/hdi",
     ]
   }
 

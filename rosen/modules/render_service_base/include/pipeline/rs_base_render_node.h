@@ -80,7 +80,7 @@ public:
         return children_.size();
     }
 
-    void DumpTree(std::string& out) const;
+    void DumpTree(int32_t depth, std::string& ou) const;
 
     virtual bool HasDisappearingTransition(bool recursive = true) const
     {

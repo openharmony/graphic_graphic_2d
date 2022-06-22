@@ -51,7 +51,6 @@ public:
     Vector2f GetBoundsPosition() const;
     float GetBoundsPositionX() const;
     float GetBoundsPositionY() const;
-    bool GetGeoDirty() const;
 
     void SetFrame(Vector4f frame);
     void SetFrameSize(Vector2f size);
@@ -177,8 +176,6 @@ public:
 
     void SetVisible(bool visible);
     bool GetVisible() const;
-    void SetOcclusionVisible(bool visible);
-    bool GetOcclusionVisible() const;
     bool SetId(NodeId id);
     std::string Dump() const;
 
@@ -188,6 +185,9 @@ public:
     const std::shared_ptr<RSObjGeometry>& GetBoundsGeometry() const;
     const std::shared_ptr<RSObjGeometry>& GetFrameGeometry() const;
     bool UpdateGeometry(const RSProperties* parent, bool dirtyFlag);
+
+    bool GetZorderChanged() const;
+    void CleanZorderChanged();
 
 private:
     void SetDirty();
@@ -210,7 +210,7 @@ private:
     bool clipToFrame_ = false;
     bool isDirty_ = false;
     bool geoDirty_ = false;
-    bool isOcclusionVisible_ = true;
+    bool zOrderChanged_ = false;
 
     bool hasBounds_ = false;
 

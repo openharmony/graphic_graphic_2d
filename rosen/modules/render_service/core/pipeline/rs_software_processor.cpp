@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -112,12 +112,15 @@ bool RSSoftwareProcessor::GenerateParamAndDrawBuffer(RSSurfaceRenderNode& node)
     node.SetDstRect({geoPtr->GetAbsRect().left_ - offsetX_, geoPtr->GetAbsRect().top_ - offsetY_,
         geoPtr->GetAbsRect().width_, geoPtr->GetAbsRect().height_});
     BufferDrawParam params;
+    SkPaint paint;
+    paint.setAlphaf(node.GetGlobalAlpha());
     if (GetMirror()) {
         RS_LOGI("RSSoftwareProcessor::ProcessSurface mirrorScreen is not support rotation");
-        params = RsRenderServiceUtil::CreateBufferDrawParam(node);
+        params = RsRenderServiceUtil::CreateBufferDrawParam(node, SkMatrix(), ScreenRotation::ROTATION_0, paint);
     } else {
-        params = RsRenderServiceUtil::CreateBufferDrawParam(node, currScreenInfo_.rotationMatrix, rotation_);
+        params = RsRenderServiceUtil::CreateBufferDrawParam(node, currScreenInfo_.rotationMatrix, rotation_, paint);
     }
+    
     RsRenderServiceUtil::DrawBuffer(*canvas_, params);
     return true;
 }

@@ -25,6 +25,7 @@
 #include "animation/rs_keyframe_animation.h"
 #include "animation/rs_motion_path_option.h"
 #include "animation/rs_path_animation.h"
+#include "animation/rs_spring_animation.h"
 #include "animation/rs_transition.h"
 
 namespace OHOS {
@@ -129,6 +130,26 @@ public:
 private:
     RSAnimationTimingCurve timingCurve_;
     std::shared_ptr<RSMotionPathOption> motionPathOption_;
+};
+
+class RSImplicitSpringAnimationParam : public RSImplicitAnimationParam {
+public:
+    RSImplicitSpringAnimationParam(
+        const RSAnimationTimingProtocol& timingProtocol, const RSAnimationTimingCurve& timingCurve);
+    virtual ~RSImplicitSpringAnimationParam() = default;
+
+    template<typename T>
+    std::shared_ptr<RSAnimation> CreateAnimation(
+        const RSAnimatableProperty& property, const T& startValue, const T& endValue) const
+    {
+        auto springAnimation = std::make_shared<RSSpringAnimation<T>>(property, startValue, endValue);
+        springAnimation->SetTimingCurve(timingCurve_);
+        ApplyTimingProtocol(springAnimation);
+        return springAnimation;
+    }
+
+private:
+    RSAnimationTimingCurve timingCurve_;
 };
 
 class RSImplicitTransitionParam : public RSImplicitAnimationParam {

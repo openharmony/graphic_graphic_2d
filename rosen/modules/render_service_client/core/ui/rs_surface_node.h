@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -49,6 +49,10 @@ public:
     // Do not call this API unless you are sure what you do.
     void CreateNodeInRenderThread(bool isProxy = false);
 
+    void AddChild(std::shared_ptr<RSBaseNode> child, int index) override;
+    void RemoveChild(std::shared_ptr<RSBaseNode> child) override;
+    void ClearChildren() override;
+
     void SetColorSpace(ColorGamut colorSpace);
     void SetSecurityLayer(bool isSecurityLayer);
     bool GetSecurityLayer() const;
@@ -61,6 +65,14 @@ public:
     RSUINodeType GetType() const override
     {
         return RSUINodeType::SURFACE_NODE;
+    }
+    FollowType GetFollowType() const override
+    {
+        if (IsRenderServiceNode()) {
+            return FollowType::NONE;
+        } else {
+            return FollowType::FOLLOW_TO_PARENT;
+        }
     }
     ColorGamut GetColorSpace()
     {
@@ -80,6 +92,7 @@ protected:
     RSSurfaceNode& operator=(const RSSurfaceNode&&) = delete;
 
 private:
+    bool CreateNode(const RSSurfaceRenderNodeConfig& config);
     bool CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config);
     void OnBoundsSizeChanged() const override;
     std::shared_ptr<RSSurface> surface_;

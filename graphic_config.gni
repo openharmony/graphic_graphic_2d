@@ -15,6 +15,7 @@ declare_args() {
   graphic_standard_feature_bootanimation_enable = true
   graphic_standard_feature_ace_enable_gpu = true
   graphic_standard_feature_color_gamut_enable = false
+  graphic_standard_feature_rs_enable_eglimage = false
 }
 
 if (graphic_standard_feature_ace_enable_gpu) {
@@ -36,6 +37,14 @@ if (graphic_standard_feature_ace_enable_gpu) {
   ace_enable_gpu = false
   rs_enable_gpu = false
   libgl = []
+}
+
+if (graphic_standard_feature_rs_enable_eglimage) {
+  gpu_defines += [ "RS_ENABLE_EGLIMAGE" ]
+  rs_enable_eglimage = true
+} else {
+  gpu_defines += [ "RS_DISABLE_EGLIMAGE" ]
+  rs_enable_eglimage = false
 }
 
 if (graphic_standard_feature_color_gamut_enable) {

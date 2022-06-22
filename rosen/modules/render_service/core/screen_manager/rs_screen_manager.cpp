@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -711,6 +711,12 @@ bool RSScreenManager::RequestRotationLocked(ScreenId id, ScreenRotation rotation
     if (iter == screens_.end()) {
         HiLog::Error(LOG_LABEL, "%{public}s: There is no screen for id %{public}" PRIu64 ".\n", __func__, id);
         return false;
+    }
+    // In special scenario (sucn as the foreground app is launcher), the rotation does not trigger UI redraw.
+    // So, we trigger the vSync here, to avoid inconsistent between interfaces and keystrokes.
+    auto mainThread = RSMainThread::Instance();
+    if (mainThread != nullptr) {
+        mainThread->RequestNextVSync();
     }
     return iter->second->SetRotation(rotation);
 }

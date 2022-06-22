@@ -20,16 +20,15 @@
 #include "animation/rs_render_curve_animation.h"
 #include "animation/rs_render_keyframe_animation.h"
 #include "animation/rs_render_path_animation.h"
+#include "animation/rs_render_spring_animation.h"
 #include "animation/rs_render_transition.h"
 #include "command/rs_command_templates.h"
 #include "pipeline/rs_render_node.h"
 
 namespace OHOS {
 namespace Rosen {
-
 enum RSAnimationCommandType : uint16_t {
     // curve animation
-    ANIMATION_CREATE_CURVE_INT,
     ANIMATION_CREATE_CURVE_FLOAT,
     ANIMATION_CREATE_CURVE_COLOR,
     ANIMATION_CREATE_CURVE_MATRIX3F,
@@ -39,7 +38,6 @@ enum RSAnimationCommandType : uint16_t {
     ANIMATION_CREATE_CURVE_FILTER,
     ANIMATION_CREATE_CURVE_VEC4_COLOR,
     // keyframe animation
-    ANIMATION_CREATE_KEYFRAME_INT,
     ANIMATION_CREATE_KEYFRAME_FLOAT,
     ANIMATION_CREATE_KEYFRAME_COLOR,
     ANIMATION_CREATE_KEYFRAME_MATRIX3F,
@@ -52,6 +50,15 @@ enum RSAnimationCommandType : uint16_t {
     ANIMATION_CREATE_PATH,
     // transition animation
     ANIMATION_CREATE_TRANSITION,
+    // spring animation
+    ANIMATION_CREATE_SPRING_FLOAT,
+    ANIMATION_CREATE_SPRING_COLOR,
+    ANIMATION_CREATE_SPRING_MATRIX3F,
+    ANIMATION_CREATE_SPRING_VEC2F,
+    ANIMATION_CREATE_SPRING_VEC4F,
+    ANIMATION_CREATE_SPRING_QUATERNION,
+    ANIMATION_CREATE_SPRING_FILTER,
+    ANIMATION_CREATE_SPRING_VEC4_COLOR,
 
     // operations
     ANIMATION_START,
@@ -148,9 +155,6 @@ ADD_COMMAND(RSAnimationFinishCallback,
 
 // create curve animation
 ADD_COMMAND(
-    RSAnimationCreateCurveInt, ARG(ANIMATION, ANIMATION_CREATE_CURVE_INT, AnimationCommandHelper::CreateAnimation,
-                                   NodeId, std::shared_ptr<RSRenderCurveAnimation<int>>))
-ADD_COMMAND(
     RSAnimationCreateCurveFloat, ARG(ANIMATION, ANIMATION_CREATE_CURVE_FLOAT, AnimationCommandHelper::CreateAnimation,
                                      NodeId, std::shared_ptr<RSRenderCurveAnimation<float>>))
 ADD_COMMAND(
@@ -176,9 +180,6 @@ ADD_COMMAND(RSAnimationCreateCurveVec4Color,
                                      NodeId, std::shared_ptr<RSRenderCurveAnimation<Vector4<Color>>>))
 
 // create keyframe animation
-ADD_COMMAND(
-    RSAnimationCreateKeyframeInt, ARG(ANIMATION, ANIMATION_CREATE_KEYFRAME_INT, AnimationCommandHelper::CreateAnimation,
-                                      NodeId, std::shared_ptr<RSRenderKeyframeAnimation<int>>))
 ADD_COMMAND(RSAnimationCreateKeyframeFloat,
     ARG(ANIMATION, ANIMATION_CREATE_KEYFRAME_FLOAT, AnimationCommandHelper::CreateAnimation, NodeId,
         std::shared_ptr<RSRenderKeyframeAnimation<float>>))
@@ -213,6 +214,31 @@ ADD_COMMAND(
     RSAnimationCreateTransition, ARG(ANIMATION, ANIMATION_CREATE_TRANSITION, AnimationCommandHelper::CreateAnimation,
                                      NodeId, std::shared_ptr<RSRenderTransition>))
 
+// create spring animation
+ADD_COMMAND(RSAnimationCreateSpringFloat,
+    ARG(ANIMATION, ANIMATION_CREATE_SPRING_FLOAT, AnimationCommandHelper::CreateAnimation, NodeId,
+        std::shared_ptr<RSRenderSpringAnimation<float>>))
+ADD_COMMAND(RSAnimationCreateSpringColor,
+    ARG(ANIMATION, ANIMATION_CREATE_SPRING_COLOR, AnimationCommandHelper::CreateAnimation, NodeId,
+        std::shared_ptr<RSRenderSpringAnimation<Color>>))
+ADD_COMMAND(RSAnimationCreateSpringMatrix3f,
+    ARG(ANIMATION, ANIMATION_CREATE_SPRING_MATRIX3F, AnimationCommandHelper::CreateAnimation, NodeId,
+        std::shared_ptr<RSRenderSpringAnimation<Matrix3f>>))
+ADD_COMMAND(RSAnimationCreateSpringVec2f,
+    ARG(ANIMATION, ANIMATION_CREATE_SPRING_VEC2F, AnimationCommandHelper::CreateAnimation, NodeId,
+        std::shared_ptr<RSRenderSpringAnimation<Vector2f>>))
+ADD_COMMAND(RSAnimationCreateSpringVec4f,
+    ARG(ANIMATION, ANIMATION_CREATE_SPRING_VEC4F, AnimationCommandHelper::CreateAnimation, NodeId,
+        std::shared_ptr<RSRenderSpringAnimation<Vector4f>>))
+ADD_COMMAND(RSAnimationCreateSpringQuaternion,
+    ARG(ANIMATION, ANIMATION_CREATE_SPRING_QUATERNION, AnimationCommandHelper::CreateAnimation, NodeId,
+        std::shared_ptr<RSRenderSpringAnimation<Quaternion>>))
+ADD_COMMAND(RSAnimationCreateSpringFilter,
+    ARG(ANIMATION, ANIMATION_CREATE_SPRING_FILTER, AnimationCommandHelper::CreateAnimation, NodeId,
+        std::shared_ptr<RSRenderSpringAnimation<std::shared_ptr<RSFilter>>>))
+ADD_COMMAND(RSAnimationCreateSpringVec4Color,
+    ARG(ANIMATION, ANIMATION_CREATE_SPRING_VEC4_COLOR, AnimationCommandHelper::CreateAnimation, NodeId,
+        std::shared_ptr<RSRenderSpringAnimation<Vector4<Color>>>))
 } // namespace Rosen
 } // namespace OHOS
 

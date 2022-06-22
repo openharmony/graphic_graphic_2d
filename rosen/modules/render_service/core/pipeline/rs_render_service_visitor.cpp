@@ -146,9 +146,6 @@ void RSRenderServiceVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
         RS_LOGI("RSRenderServiceVisitor::PrepareSurfaceRenderNode node : %llu is invisible", node.GetId());
         return;
     }
-    if (node.GetRenderProperties().GetGeoDirty()) {
-        surfaceGeoDirty_ = true;
-    }
     auto currentGeoPtr = std::static_pointer_cast<RSObjAbsGeometry>(node.GetRenderProperties().GetBoundsGeometry());
     if (currentGeoPtr != nullptr) {
         currentGeoPtr->UpdateByMatrixFromRenderThread(node.GetContextMatrix());
@@ -193,8 +190,8 @@ void RSRenderServiceVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
         RS_LOGI("RSRenderServiceVisitor::ProcessSurfaceRenderNode node : %llu is invisible", node.GetId());
         return;
     }
-    if (!node.GetRenderProperties().GetOcclusionVisible()) {
-        RS_LOGD("RSRenderServiceVisitor::ProcessSurfaceRenderNode node Id: %llu, Name: %s is Blocked",
+    if (!node.GetOcclusionVisible()) {
+        RS_LOGD("RSRenderServiceVisitor::ProcessSurfaceRenderNode node Id: %llu, Name: %s is occluded",
                 node.GetId(), node.GetName().c_str());
         return;
     }

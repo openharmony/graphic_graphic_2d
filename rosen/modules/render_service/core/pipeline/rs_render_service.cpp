@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -18,6 +18,7 @@
 #include "rs_render_service_connection.h"
 #include "vsync_generator.h"
 #include "pipeline/rs_surface_render_node.h"
+#include "pipeline/rs_uni_render_judgement.h"
 
 #include <unistd.h>
 
@@ -33,6 +34,7 @@ RSRenderService::~RSRenderService() noexcept {}
 
 bool RSRenderService::Init()
 {
+    RSUniRenderJudgement::InitUniRenderConfig();
     screenManager_ = CreateOrGetScreenManager();
     if (screenManager_ == nullptr || !screenManager_->Init()) {
         RS_LOGE("RSRenderService CreateOrGetScreenManager fail.");
@@ -172,7 +174,7 @@ void RSRenderService::DoDump(std::unordered_set<std::u16string>& argSets, std::s
     std::u16string arg3(u"fps");
     std::u16string arg4(u"nodeNotOnTree");
     std::u16string arg5(u"allSurfacesMem");
-    std::u16string arg6(u"renderServiceTree");
+    std::u16string arg6(u"RSTree");
 
     if (argSets.size() == 0 || argSets.count(arg1) != 0) {
         mainThread_->ScheduleTask([this, &dumpString]() {
@@ -194,7 +196,7 @@ void RSRenderService::DoDump(std::unordered_set<std::u16string>& argSets, std::s
             DumpAllNodesMemSize(dumpString);
         }).wait();
     }
-    if (argSets.size() == 0 || argSets.count(arg6) != 0) {
+    if (argSets.count(arg6) != 0) {
         mainThread_->ScheduleTask([this, &dumpString]() {
             mainThread_->RenderServiceTreeDump(dumpString);
         }).wait();

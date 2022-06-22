@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,6 +14,8 @@
  */
 #include "pipeline/rs_main_thread.h"
 #include <memory>
+#include <string>
+#include <securec.h>
 
 #include "command/rs_message_processor.h"
 #include "pipeline/rs_base_render_node.h"
@@ -22,7 +24,7 @@
 #include "pipeline/rs_uni_render_visitor.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_log.h"
-#include "platform/common/rs_system_properties.h"
+#include "pipeline/rs_uni_render_judgement.h"
 #include "platform/drawing/rs_vsync_client.h"
 #include "rs_trace.h"
 #include "screen_manager/rs_screen_manager.h"
@@ -49,9 +51,9 @@ void RSMainThread::Init()
     mainLoop_ = [&]() {
         RS_LOGD("RsDebug mainLoop start");
         ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSMainThread::DoComposition");
+        ConsumeAndUpdateAllNodes();
         ProcessCommand();
         Animate(timestamp_);
-        ConsumeAndUpdateAllNodes();
         Render();
         ReleaseAllNodesBuffer();
         SendCommands();
@@ -71,8 +73,11 @@ void RSMainThread::Init()
 #ifdef RS_ENABLE_GL
     renderContext_ = std::make_shared<RenderContext>();
     renderContext_->InitializeEglContext();
-    eglImageManager_ = std::make_shared<RSEglImageManager>(renderContext_->GetEGLDisplay());
 #endif // RS_ENABLE_GL
+
+#ifdef RS_ENABLE_EGLIMAGE
+    eglImageManager_ = std::make_shared<RSEglImageManager>(renderContext_->GetEGLDisplay());
+#endif // RS_ENABLE_EGLIMAGE
 }
 
 void RSMainThread::Start()
@@ -84,24 +89,63 @@ void RSMainThread::Start()
 
 void RSMainThread::ProcessCommand()
 {
+    const auto& nodeMap = context_.GetNodeMap();
+    RS_TRACE_BEGIN("RSMainThread::ProcessCommand");
     {
         std::lock_guard<std::mutex> lock(transitionDataMutex_);
-        std::swap(cacheCommandQueue_, effectCommandQueue_);
-    }
-    while (!effectCommandQueue_.empty())
-    {
-        auto rsTransaction = std::move(effectCommandQueue_.front());
-        effectCommandQueue_.pop();
-        if (rsTransaction) {
-            rsTransaction->Process(context_);
+        if (cacheCommand_.find(0) != cacheCommand_.end()) {
+            effectCommand_.insert(effectCommand_.end(),
+                std::make_move_iterator(cacheCommand_[0][0].begin()), std::make_move_iterator(cacheCommand_[0][0].end()));
+            cacheCommand_[0].clear();
+        }
+        for (auto it = cacheCommand_.begin(); it != cacheCommand_.end();) {
+            auto surfaceNodeId = it->first;
+            if (surfaceNodeId == 0) {
+                it++;
+                continue;
+            }
+            auto node = nodeMap.GetRenderNode<RSSurfaceRenderNode>(surfaceNodeId);
+            std::map<uint64_t, std::vector<std::unique_ptr<RSCommand>>>::iterator effectIter;
+            std::unordered_map<NodeId, uint64_t>::iterator bufferTimestamp = bufferTimestamps_.find(surfaceNodeId);
+
+            if (!node || !node->IsOnTheTree() || bufferTimestamp == bufferTimestamps_.end()) {
+                // If node has been destructed or is not on the tree or has no valid buffer,
+                // for all command cached in cacheCommand_[surfaceNodeId] should be executed immediately
+                effectIter = cacheCommand_[surfaceNodeId].end();
+            } else {
+                uint64_t timestamp = bufferTimestamp->second;
+                effectIter = cacheCommand_[surfaceNodeId].upper_bound(timestamp);
+            }
+
+            for (auto it2 = cacheCommand_[surfaceNodeId].begin(); it2 != effectIter; it2++) {
+                effectCommand_.insert(effectCommand_.end(),
+                    std::make_move_iterator(it2->second.begin()), std::make_move_iterator(it2->second.end()));
+            }
+            cacheCommand_[surfaceNodeId].erase(cacheCommand_[surfaceNodeId].begin(), effectIter);
+
+            for (auto it2 = cacheCommand_[surfaceNodeId].begin(); it2 != cacheCommand_[surfaceNodeId].end(); it2++) {
+                RS_LOGD("RSMainThread::ProcessCommand CacheCommand NodeId = %llu, timestamp = %llu, commandSize = %zu",
+                    surfaceNodeId, it2->first, it2->second.size());
+            }
+
+            it++;
         }
     }
+    for (size_t i = 0; i < effectCommand_.size(); i++) {
+        auto rsCommand = std::move(effectCommand_[i]);
+        if (rsCommand) {
+            rsCommand->Process(context_);
+        }
+    }
+    effectCommand_.clear();
+    RS_TRACE_END();
 }
 
 void RSMainThread::ConsumeAndUpdateAllNodes()
 {
     bool needRequestNextVsync = false;
 
+    bufferTimestamps_.clear();
     const auto& nodeMap = GetContext().GetNodeMap();
     nodeMap.TraversalNodes([this, &needRequestNextVsync](const std::shared_ptr<RSBaseRenderNode>& node) mutable {
         if (node == nullptr) {
@@ -111,7 +155,9 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
         if (node->IsInstanceOf<RSSurfaceRenderNode>()) {
             RSSurfaceRenderNode& surfaceNode = *(RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node));
             RSSurfaceHandler& surfaceHandler = static_cast<RSSurfaceHandler&>(surfaceNode);
-            RsRenderServiceUtil::ConsumeAndUpdateBuffer(surfaceHandler);
+            if (RsRenderServiceUtil::ConsumeAndUpdateBuffer(surfaceHandler)) {
+                this->bufferTimestamps_[surfaceNode.GetId()] = static_cast<uint64_t>(surfaceNode.GetTimestamp());
+            }
 
             // still have buffer(s) to consume.
             if (surfaceHandler.GetAvailableBufferCount() > 0) {
@@ -169,7 +215,7 @@ void RSMainThread::Render()
         RS_LOGE("RSMainThread::Draw GetGlobalRootRenderNode fail");
         return;
     }
-    static bool isUniRender = RSSystemProperties::GetUniRenderEnabledType() != UniRenderEnabledType::UNI_RENDER_DISABLED;
+    static bool isUniRender = RSUniRenderJudgement::GetUniRenderEnabledType() != UniRenderEnabledType::UNI_RENDER_DISABLED;
     std::shared_ptr<RSNodeVisitor> visitor;
     if (isUniRender) {
         RS_LOGI("RSMainThread::Render isUni");
@@ -178,20 +224,57 @@ void RSMainThread::Render()
         visitor = std::make_shared<RSRenderServiceVisitor>();
     }
     rootNode->Prepare(visitor);
-    if (visitor->surfaceGeoDirty_ && RSSystemProperties::GetOcclusionEnabled()) {
-        CalcOcclusion(rootNode);
-    }
+    CalcOcclusion();
     rootNode->Process(visitor);
+#ifdef RS_ENABLE_EGLIMAGE
+    eglImageManager_->ShrinkCachesIfNeeded();
+#endif // RS_ENABLE_EGLIMAGE
 }
 
-void RSMainThread::CalcOcclusion(RSBaseRenderNode::SharedPtr node)
+void RSMainThread::CalcOcclusion()
 {
-    RS_TRACE_BEGIN("RSMainThread::CalcOcclusion");
+    if (doAnimate_ || !RSSystemProperties::GetOcclusionEnabled()) {
+        return;
+    }
+    const std::shared_ptr<RSBaseRenderNode> node = context_.GetGlobalRootRenderNode();
+    if (node == nullptr) {
+        RS_LOGE("RSMainThread::CalcOcclusion GetGlobalRootRenderNode fail");
+        return;
+    }
+
     std::vector<RSBaseRenderNode::SharedPtr> curAllSurfaces;
     node->CollectSurface(node, curAllSurfaces);
+    const uint32_t minSurfaceCnt = 2;
+    if (curAllSurfaces.size() < minSurfaceCnt) {
+        return;
+    }
+    // 1. Judge whether it is dirty
+    // Surface cnt changed or surface geoDirty_ == true
+    // ingore background(curAllSurfaces.rend()-1 is [EntryView])
+    bool winDirty = lastSurafceCnt_ != curAllSurfaces.size();
+    lastSurafceCnt_ = curAllSurfaces.size();
+    if (!winDirty) {
+        for (auto it = curAllSurfaces.rbegin(); it != curAllSurfaces.rend() - 1; ++it) {
+            auto surface = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(*it);
+            if (surface == nullptr) {
+                continue;
+            }
+            if (surface->GetRenderProperties().GetZorderChanged() || surface->GetDstRectChanged()) {
+                winDirty = true;
+            }
+            surface->GetMutableRenderProperties().CleanZorderChanged();
+            surface->CleanDstRectChanged();
+        }
+    }
+    if (!winDirty) {
+        return;
+    }
+
+    RS_TRACE_BEGIN("RSMainThread::CalcOcclusion");
+    // 2. Calc occlusion
     Occlusion::Region curRegion;
-    std::vector<std::pair<uint64_t, bool>> curVisChangeVec;
-    for(auto it = curAllSurfaces.rbegin(); it != curAllSurfaces.rend(); it++) {
+    VisibleData curVisVec;
+    for (auto it = curAllSurfaces.rbegin(); it != curAllSurfaces.rend() - 1; ++it) {
         auto surface = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(*it);
         if (surface == nullptr || surface->GetDstRect().IsEmpty() ||
             surface->GetRenderProperties().GetAlpha() < 1.0) {
@@ -200,17 +283,48 @@ void RSMainThread::CalcOcclusion(RSBaseRenderNode::SharedPtr node)
         Occlusion::Rect rect { surface->GetDstRect().left_, surface->GetDstRect().top_,
                                surface->GetDstRect().GetRight(), surface->GetDstRect().GetBottom() };
         Occlusion::Region curSurface { rect };
+        // Current surface subtract current region, if result region is empty that means it's covered
         Occlusion::Region subResult = curSurface.Sub(curRegion);
-        surface->SetVisibleRegionRecursive(subResult, curVisChangeVec);
+        // Set relult to SurfaceRenderNode and its children
+        surface->SetVisibleRegionRecursive(subResult, curVisVec);
+        // Current region need to merge current surface for next calculation
         curRegion = curSurface.Or(curRegion);
     }
-    
-    if (curVisChangeVec.size() > 0) {
-        for (auto& listener : occlusionListeners_) {
-            listener->OnOcclusionVisibleChanged(std::make_shared<RSOcclusionData>(curVisChangeVec));
+
+    // 3. Callback to WMS
+    CallbackToWMS(curVisVec);
+    RS_TRACE_END();
+}
+
+void RSMainThread::CallbackToWMS(VisibleData& curVisVec)
+{
+    // if visible surfaces changed callback to WMS：
+    // 1. curVisVec size changed
+    // 2. curVisVec content changed
+    bool visibleChanged = curVisVec.size() != lastVisVec_.size();
+    std::sort(curVisVec.begin(), curVisVec.end());
+    if (!visibleChanged) {
+        for (uint32_t i = 0; i < curVisVec.size(); i++) {
+            if (curVisVec[i] != lastVisVec_[i]) {
+                visibleChanged = true;
+                break;
+            }
         }
     }
-    RS_TRACE_END();
+    if (visibleChanged) {
+        std::string inf;
+        char strBuffer[UINT8_MAX] = { 0 };
+        if (sprintf_s(strBuffer, UINT8_MAX, "RSMainThread::CallbackToWMS:%d - %d",
+            lastVisVec_.size(), curVisVec.size()) != -1) {
+            inf.append(strBuffer);
+        }
+        RS_TRACE_NAME(inf.c_str());
+        for (auto& listener : occlusionListeners_) {
+            listener->OnOcclusionVisibleChanged(std::make_shared<RSOcclusionData>(curVisVec));
+        }
+    }
+    lastVisVec_.clear();
+    std::copy(curVisVec.begin(), curVisVec.end(), std::back_inserter(lastVisVec_));
 }
 
 void RSMainThread::RequestNextVSync()
@@ -247,11 +361,13 @@ void RSMainThread::Animate(uint64_t timestamp)
     RS_TRACE_FUNC();
 
     if (context_.animatingNodeList_.empty()) {
+        doAnimate_ = false;
         return;
     }
 
     RS_LOGD("RSMainThread::Animate start, processing %d animating nodes", context_.animatingNodeList_.size());
 
+    doAnimate_ = true;
     // iterate and animate all animating nodes, remove if animation finished
     std::__libcpp_erase_if_container(context_.animatingNodeList_, [timestamp](const auto& iter) -> bool {
         auto node = iter.second.lock();
@@ -273,9 +389,37 @@ void RSMainThread::Animate(uint64_t timestamp)
 
 void RSMainThread::RecvRSTransactionData(std::unique_ptr<RSTransactionData>& rsTransactionData)
 {
+    const auto& nodeMap = context_.GetNodeMap();
     {
         std::lock_guard<std::mutex> lock(transitionDataMutex_);
-        cacheCommandQueue_.push(std::move(rsTransactionData));
+        std::unique_ptr<RSTransactionData> transactionData(std::move(rsTransactionData));
+        if (transactionData) {
+            auto nodeIds = transactionData->GetNodeIds();
+            auto followTypes = transactionData->GetFollowTypes();
+            auto& commands = transactionData->GetCommands();
+            auto timestamp = transactionData->GetTimestamp();
+            RS_LOGD("RSMainThread::RecvRSTransactionData timestamp = %llu", timestamp);
+            for (int i = 0; i < transactionData->GetCommandCount(); i++) {
+                auto nodeId = nodeIds[i];
+                auto followtype = followTypes[i];
+                std::unique_ptr<RSCommand> command = std::move(commands[i]);
+                if (nodeId == 0 || followtype == FollowType::NONE) {
+                    cacheCommand_[0][0].emplace_back(std::move(command));
+                } else {
+                    auto node = nodeMap.GetRenderNode<RSBaseRenderNode>(nodeId);
+                    if (node && followtype == FollowType::FOLLOW_TO_PARENT) {
+                        auto parentNode = node->GetParent().lock();
+                        if (parentNode) {
+                            nodeId = parentNode->GetId();
+                        } else {
+                            cacheCommand_[0][0].emplace_back(std::move(command));
+                            continue;
+                        }
+                    }
+                    cacheCommand_[nodeId][timestamp].emplace_back(std::move(command));
+                }
+            }
+        }
     }
     RequestNextVSync();
 }
@@ -287,14 +431,14 @@ void RSMainThread::PostTask(RSTaskMessage::RSTask task)
     }
 }
 
-void RSMainThread::RegisterApplicationRenderThread(uint32_t pid, sptr<IApplicationRenderThread> app)
+void RSMainThread::RegisterApplicationAgent(uint32_t pid, sptr<IApplicationAgent> app)
 {
-    applicationRenderThreadMap_.emplace(pid, app);
+    applicationAgentMap_.emplace(pid, app);
 }
 
-void RSMainThread::UnregisterApplicationRenderThread(sptr<IApplicationRenderThread> app)
+void RSMainThread::UnRegisterApplicationAgent(sptr<IApplicationAgent> app)
 {
-    std::__libcpp_erase_if_container(applicationRenderThreadMap_, [&app](auto& iter) { return iter.second == app; });
+    std::__libcpp_erase_if_container(applicationAgentMap_, [&app](auto& iter) { return iter.second == app; });
 }
 
 void RSMainThread::RegisterOcclusionChangeCallback(sptr<RSIOcclusionChangeCallback> callback)
@@ -328,8 +472,8 @@ void RSMainThread::SendCommands()
     PostTask([this, transactionMapPtr]() {
         for (auto& transactionIter : *transactionMapPtr) {
             auto pid = transactionIter.first;
-            auto appIter = applicationRenderThreadMap_.find(pid);
-            if (appIter == applicationRenderThreadMap_.end()) {
+            auto appIter = applicationAgentMap_.find(pid);
+            if (appIter == applicationAgentMap_.end()) {
                 RS_LOGI("RSMainThread::SendCommand no application found for pid %d", pid);
                 continue;
             }
@@ -349,7 +493,7 @@ void RSMainThread::RenderServiceTreeDump(std::string& dumpString)
         dumpString.append("rootNode is null\n");
         return;
     }
-    rootNode->DumpTree(dumpString);
+    rootNode->DumpTree(0, dumpString);
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -1,4 +1,4 @@
-# Copyright (c) 2021 Huawei Device Co., Ltd.
+# Copyright (c) 2021-2022 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -52,17 +52,23 @@ ohos_source_set("render_service_client_src") {
     "core/animation/rs_implicit_animator_map.cpp",
     "core/animation/rs_keyframe_animation.cpp",
     "core/animation/rs_path_animation.cpp",
+    "core/animation/rs_spring_animation.cpp",
     "core/animation/rs_transition.cpp",
 
     #jank_detector
     "core/jank_detector/rs_jank_detector.cpp",
 
     #pipeline
+    "core/pipeline/overdraw/rs_cpu_overdraw_canvas_listener.cpp",
+    "core/pipeline/overdraw/rs_gpu_overdraw_canvas_listener.cpp",
+    "core/pipeline/overdraw/rs_listened_canvas.cpp",
+    "core/pipeline/overdraw/rs_overdraw_controller.cpp",
     "core/pipeline/rs_node_map.cpp",
     "core/pipeline/rs_render_thread.cpp",
     "core/pipeline/rs_render_thread_visitor.cpp",
 
     #transaction
+    "core/transaction/rs_application_agent_impl.cpp",
     "core/transaction/rs_interfaces.cpp",
     "core/transaction/rs_render_thread_client.cpp",
     "core/transaction/rs_transaction.cpp",
@@ -93,6 +99,11 @@ ohos_source_set("render_service_client_src") {
   ]
 
   deps = []
+
+  deps += [
+    "//base/startup/syspara_lite/interfaces/innerkits/native/syspara:syspara",
+    "//base/startup/syspara_lite/interfaces/innerkits/native/syspara:syspara_watchagent",
+  ]
 
   if (rss_enabled) {
     deps += [

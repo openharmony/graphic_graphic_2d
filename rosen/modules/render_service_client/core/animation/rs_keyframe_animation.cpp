@@ -21,93 +21,89 @@
 
 namespace OHOS {
 namespace Rosen {
-
-#define START_KEYFRAME_ANIMATION(Command, Type)                                                            \
-    RSPropertyAnimation::OnStart();                                                                        \
-    auto target = GetTarget().lock();                                                                      \
-    if (target == nullptr) {                                                                               \
-        ROSEN_LOGE("Failed to start keyframe animation, target is null!");                                 \
-        return;                                                                                            \
-    }                                                                                                      \
-    if (keyframes_.empty()) {                                                                              \
-        ROSEN_LOGE("Failed to start keyframe animation, keyframes is null!");                              \
-        return;                                                                                            \
-    }                                                                                                      \
-    auto animation = std::make_shared<RSRenderKeyframeAnimation<Type>>(                                    \
-        GetId(), GetProperty(), RSPropertyAnimation<Type>::originValue_);                                  \
-    for (const auto& [fraction, value, curve] : keyframes_) {                                              \
-        animation->AddKeyframe(fraction, value, curve.GetInterpolator(GetDuration()));                     \
-    }                                                                                                      \
-    animation->SetDuration(GetDuration());                                                                 \
-    animation->SetStartDelay(GetStartDelay());                                                             \
-    animation->SetRepeatCount(GetRepeatCount());                                                           \
-    animation->SetAutoReverse(GetAutoReverse());                                                           \
-    animation->SetSpeed(GetSpeed());                                                                       \
-    animation->SetFillMode(GetFillMode());                                                                 \
-    animation->SetDirection(GetDirection());                                                               \
-    std::unique_ptr<RSCommand> command = std::make_unique<Command>(target->GetId(), animation);            \
-    auto transactionProxy = RSTransactionProxy::GetInstance();                                             \
-    if (transactionProxy != nullptr) {                                                                     \
-        transactionProxy->AddCommand(command, target->IsRenderServiceNode());                              \
-        if (target->NeedForcedSendToRemote()) {                                                            \
-            std::unique_ptr<RSCommand> commandForRemote =                                                  \
-                std::make_unique<Command>(target->GetId(), animation);                                     \
-            transactionProxy->AddCommand(commandForRemote, true);                                          \
-        }                                                                                                  \
-    }
-
-template<>
-void RSKeyframeAnimation<int>::OnStart()
+template<typename T>
+template<typename P>
+void RSKeyframeAnimation<T>::StartAnimationImpl()
 {
-    START_KEYFRAME_ANIMATION(RSAnimationCreateKeyframeInt, int);
+    RSPropertyAnimation<T>::OnStart();
+    auto target = RSPropertyAnimation<T>::GetTarget().lock();
+    if (target == nullptr) {
+        ROSEN_LOGE("Failed to start keyframe animation, target is null!");
+        return;
+    }
+    if (keyframes_.empty()) {
+        ROSEN_LOGE("Failed to start keyframe animation, keyframes is null!");
+        return;
+    }
+    auto animation = std::make_shared<RSRenderKeyframeAnimation<T>>(
+        RSPropertyAnimation<T>::GetId(), RSPropertyAnimation<T>::GetProperty(), RSPropertyAnimation<T>::originValue_);
+    for (const auto& [fraction, value, curve] : keyframes_) {
+        animation->AddKeyframe(fraction, value, curve.GetInterpolator(RSPropertyAnimation<T>::GetDuration()));
+    }
+    animation->SetDuration(RSPropertyAnimation<T>::GetDuration());
+    animation->SetStartDelay(RSPropertyAnimation<T>::GetStartDelay());
+    animation->SetRepeatCount(RSPropertyAnimation<T>::GetRepeatCount());
+    animation->SetAutoReverse(RSPropertyAnimation<T>::GetAutoReverse());
+    animation->SetSpeed(RSPropertyAnimation<T>::GetSpeed());
+    animation->SetFillMode(RSPropertyAnimation<T>::GetFillMode());
+    animation->SetDirection(RSPropertyAnimation<T>::GetDirection());
+    std::unique_ptr<RSCommand> command = std::make_unique<P>(target->GetId(), animation);
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        transactionProxy->AddCommand(command, target->IsRenderServiceNode(), target->GetFollowType(), target->GetId());
+        if (target->NeedForcedSendToRemote()) {
+            std::unique_ptr<RSCommand> commandForRemote = std::make_unique<P>(target->GetId(), animation);
+            transactionProxy->AddCommand(commandForRemote, true, target->GetFollowType(), target->GetId());
+        }
+    }
 }
 
 template<>
 void RSKeyframeAnimation<float>::OnStart()
 {
-    START_KEYFRAME_ANIMATION(RSAnimationCreateKeyframeFloat, float);
+    StartAnimationImpl<RSAnimationCreateKeyframeFloat>();
 }
 
 template<>
 void RSKeyframeAnimation<Color>::OnStart()
 {
-    START_KEYFRAME_ANIMATION(RSAnimationCreateKeyframeColor, Color);
+    StartAnimationImpl<RSAnimationCreateKeyframeColor>();
 }
 
 template<>
 void RSKeyframeAnimation<Matrix3f>::OnStart()
 {
-    START_KEYFRAME_ANIMATION(RSAnimationCreateKeyframeMatrix3f, Matrix3f);
+    StartAnimationImpl<RSAnimationCreateKeyframeMatrix3f>();
 }
 
 template<>
 void RSKeyframeAnimation<Vector2f>::OnStart()
 {
-    START_KEYFRAME_ANIMATION(RSAnimationCreateKeyframeVec2f, Vector2f);
+    StartAnimationImpl<RSAnimationCreateKeyframeVec2f>();
 }
 
 template<>
 void RSKeyframeAnimation<Vector4f>::OnStart()
 {
-    START_KEYFRAME_ANIMATION(RSAnimationCreateKeyframeVec4f, Vector4f);
+    StartAnimationImpl<RSAnimationCreateKeyframeVec4f>();
 }
 
 template<>
 void RSKeyframeAnimation<Quaternion>::OnStart()
 {
-    START_KEYFRAME_ANIMATION(RSAnimationCreateKeyframeQuaternion, Quaternion);
+    StartAnimationImpl<RSAnimationCreateKeyframeQuaternion>();
 }
 
 template<>
 void RSKeyframeAnimation<std::shared_ptr<RSFilter>>::OnStart()
 {
-    START_KEYFRAME_ANIMATION(RSAnimationCreateKeyframeFilter, std::shared_ptr<RSFilter>);
+    StartAnimationImpl<RSAnimationCreateKeyframeFilter>();
 }
 
 template<>
 void RSKeyframeAnimation<Vector4<Color>>::OnStart()
 {
-    START_KEYFRAME_ANIMATION(RSAnimationCreateKeyframeVec4Color, Vector4<Color>);
+    StartAnimationImpl<RSAnimationCreateKeyframeVec4Color>();
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -60,10 +60,14 @@ protected:
 
 #ifdef RS_ENABLE_GL
     std::shared_ptr<RenderContext> renderContext_;
-    std::shared_ptr<RSEglImageManager> eglImageManager_;
 #endif // RS_ENABLE_GL
+
     std::unique_ptr<RSSurfaceFrame> currFrame_;
     std::shared_ptr<RSSurfaceOhos> rsSurface_;
+
+#ifdef RS_ENABLE_EGLIMAGE
+    std::shared_ptr<RSEglImageManager> eglImageManager_;
+#endif // RS_ENABLE_EGLIMAGE
 private:
     int32_t releaseFence_ = -1;
     bool isMirror_ = false;

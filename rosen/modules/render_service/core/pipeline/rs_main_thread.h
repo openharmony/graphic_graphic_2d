@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -24,7 +24,8 @@
 
 #include "common/rs_thread_handler.h"
 #include "common/rs_thread_looper.h"
-#include "ipc_callbacks/iapplication_render_thread.h"
+#include "command/rs_command.h"
+#include "ipc_callbacks/iapplication_agent.h"
 #include "pipeline/rs_context.h"
 #include "platform/drawing/rs_vsync_client.h"
 #include "refbase.h"
@@ -84,17 +85,19 @@ public:
         PostTask([t(std::move(scheduledTask))]() { t->Run(); });
         return std::move(taskFuture);
     }
-
 #ifdef RS_ENABLE_GL
     std::shared_ptr<RenderContext> GetRenderContext() const
     {
         return renderContext_;
     }
+#endif // RS_ENABLE_GL
+
+#ifdef RS_ENABLE_EGLIMAGE
     std::shared_ptr<RSEglImageManager> GetRSEglImageManager() const
     {
         return eglImageManager_;
     }
-#endif // RS_ENABLE_GL
+#endif // RS_ENABLE_EGLIMAGE
 
     RSContext& GetContext()
     {
@@ -104,8 +107,8 @@ public:
     {
         return mainThreadId_;
     }
-    void RegisterApplicationRenderThread(uint32_t pid, sptr<IApplicationRenderThread> app);
-    void UnregisterApplicationRenderThread(sptr<IApplicationRenderThread> app);
+    void RegisterApplicationAgent(uint32_t pid, sptr<IApplicationAgent> app);
+    void UnRegisterApplicationAgent(sptr<IApplicationAgent> app);
 
     void RegisterOcclusionChangeCallback(sptr<RSIOcclusionChangeCallback> callback);
     void UnRegisterOcclusionChangeCallback(sptr<RSIOcclusionChangeCallback> callback);
@@ -129,7 +132,8 @@ private:
     void ConsumeAndUpdateAllNodes();
     void ReleaseAllNodesBuffer();
     void Render();
-    void CalcOcclusion(RSBaseRenderNode::SharedPtr node);
+    void CalcOcclusion();
+    void CallbackToWMS(VisibleData& curVisVec);
     void SendCommands();
 
     std::mutex transitionDataMutex_;
@@ -137,11 +141,12 @@ private:
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
     RSTaskMessage::RSTask mainLoop_;
     std::unique_ptr<RSVsyncClient> vsyncClient_ = nullptr;
-    std::queue<std::unique_ptr<RSTransactionData>> cacheCommandQueue_;
-    std::queue<std::unique_ptr<RSTransactionData>> effectCommandQueue_;
+    std::unordered_map<NodeId, uint64_t> bufferTimestamps_;
+    std::unordered_map<NodeId, std::map<uint64_t, std::vector<std::unique_ptr<RSCommand>>> > cacheCommand_;
+    std::vector<std::unique_ptr<RSCommand>> effectCommand_;
 
     uint64_t timestamp_ = 0;
-    std::unordered_map<uint32_t, sptr<IApplicationRenderThread>> applicationRenderThreadMap_;
+    std::unordered_map<uint32_t, sptr<IApplicationAgent>> applicationAgentMap_;
 
     RSContext context_;
     std::thread::id mainThreadId_;
@@ -151,11 +156,17 @@ private:
     mutable std::mutex uniRenderMutex_;
     bool uniRenderFinished_ = false;
     std::condition_variable uniRenderCond_;
-
+    VisibleData lastVisVec_;
+    bool doAnimate_ = false;
+    uint32_t lastSurafceCnt_ = 0;
+    
 #ifdef RS_ENABLE_GL
     std::shared_ptr<RenderContext> renderContext_;
-    std::shared_ptr<RSEglImageManager> eglImageManager_;
 #endif // RS_ENABLE_GL
+
+#ifdef RS_ENABLE_EGLIMAGE
+    std::shared_ptr<RSEglImageManager> eglImageManager_;
+#endif // RS_ENABLE_EGLIMAGE
 };
 } // namespace Rosen
 } // namespace OHOS

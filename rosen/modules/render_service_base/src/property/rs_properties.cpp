@@ -128,11 +128,6 @@ Vector2f RSProperties::GetBoundsPosition() const
     return { GetBoundsPositionX(), GetBoundsPositionY() };
 }
 
-bool RSProperties::GetGeoDirty() const
-{
-    return geoDirty_;
-}
-
 void RSProperties::SetFrame(Vector4f frame)
 {
     frameGeo_->SetRect(frame.x_, frame.y_, frame.z_, frame.w_);
@@ -269,12 +264,23 @@ void RSProperties::SetPositionZ(float positionZ)
     boundsGeo_->SetZ(positionZ);
     frameGeo_->SetZ(positionZ);
     geoDirty_ = true;
+    zOrderChanged_ = true;
     SetDirty();
 }
 
 float RSProperties::GetPositionZ() const
 {
     return boundsGeo_->GetZ();
+}
+
+bool RSProperties::GetZorderChanged() const
+{
+    return zOrderChanged_;
+}
+
+void RSProperties::CleanZorderChanged()
+{
+    zOrderChanged_ = false;
 }
 
 void RSProperties::SetPivot(Vector2f pivot)
@@ -851,16 +857,6 @@ void RSProperties::SetVisible(bool visible)
 bool RSProperties::GetVisible() const
 {
     return visible_;
-}
-
-void RSProperties::SetOcclusionVisible(bool visible)
-{
-    isOcclusionVisible_ = visible;
-}
-
-bool RSProperties::GetOcclusionVisible() const
-{
-    return isOcclusionVisible_;
 }
 
 RRect RSProperties::GetRRect() const

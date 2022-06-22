@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -44,10 +44,16 @@ public:
 
     bool Animate(int64_t time);
 
+    // transition related
     void RegisterTransition(AnimationId id, const TransitionCallback& transition, bool isTransitionIn);
     void UnregisterTransition(AnimationId id);
     std::unique_ptr<RSTransitionProperties> GetTransitionProperties();
     bool HasDisappearingTransition() const;
+
+    // spring animation related
+    void RegisterSpringAnimation(RSAnimatableProperty property, AnimationId animId);
+    void UnregisterSpringAnimation(RSAnimatableProperty property, AnimationId animId);
+    AnimationId QuerySpringAnimation(RSAnimatableProperty property);
 
 private:
     void OnAnimationRemove(const std::shared_ptr<RSRenderAnimation>& animation);
@@ -57,6 +63,7 @@ private:
     std::unordered_map<AnimationId, std::shared_ptr<RSRenderAnimation>> animations_;
     std::unordered_map<RSAnimatableProperty, int> animationNum_;
     std::list<std::tuple<AnimationId, TransitionCallback, bool>> transition_;
+    std::unordered_map<RSAnimatableProperty, AnimationId> springAnimations_;
 
     friend class RSRenderNode;
 };

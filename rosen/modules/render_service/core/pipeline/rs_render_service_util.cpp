@@ -22,15 +22,16 @@
 #include "pipeline/rs_main_thread.h"
 #include "common/rs_vector2.h"
 #include "pipeline/rs_paint_filter_canvas.h"
+#include "pipeline/rs_uni_render_judgement.h"
 #include "platform/common/rs_log.h"
 #include "property/rs_properties_painter.h"
 #include "render/rs_blur_filter.h"
 #include "rs_trace.h"
-#ifdef RS_ENABLE_GL
+#ifdef RS_ENABLE_EGLIMAGE
 #include "include/gpu/gl/GrGLTypes.h"
 #include "include/gpu/GrBackendSurface.h"
 
-#endif // RS_ENABLE_GL
+#endif // RS_ENABLE_EGLIMAGE
 
 namespace OHOS {
 namespace Rosen {
@@ -599,8 +600,7 @@ bool RsRenderServiceUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfaceHandle
 {
     auto availableBufferCnt = surfaceHandler.GetAvailableBufferCount();
     if (availableBufferCnt <= 0) {
-        RS_LOGD("RsDebug surfaceHandler(id: %llu) has no new buffer, try use old buffer.",
-            surfaceHandler.GetNodeId());
+        // this node has no new buffer, try use old buffer.
         return true;
     }
     auto& consumer = surfaceHandler.GetConsumer();
@@ -621,7 +621,9 @@ bool RsRenderServiceUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfaceHandle
         return false;
     }
 
-    surfaceHandler.SetBuffer(buffer, acquireFence, damage);
+    surfaceHandler.SetBuffer(buffer, acquireFence, damage, timestamp);
+    RS_LOGD("RsDebug surfaceHandler(id: %llu) AcquireBuffer success, timestamp = %lld.",
+        surfaceHandler.GetNodeId(), timestamp);
     availableBufferCnt = surfaceHandler.ReduceAvailableBuffer();
     return true;
 }
@@ -634,7 +636,7 @@ bool RsRenderServiceUtil::ReleaseBuffer(RSSurfaceHandler& surfaceHandler)
         return false;
     }
 
-    auto preBuffer = surfaceHandler.GetPreBuffer();
+    auto& preBuffer = surfaceHandler.GetPreBuffer();
     if (preBuffer.buffer != nullptr) {
         auto ret = consumer->ReleaseBuffer(preBuffer.buffer, preBuffer.releaseFence);
         if (ret != OHOS::SURFACE_ERROR_OK) {
@@ -642,6 +644,9 @@ bool RsRenderServiceUtil::ReleaseBuffer(RSSurfaceHandler& surfaceHandler)
                 surfaceHandler.GetNodeId(), ret);
             return false;
         }
+        // reset prevBuffer if we release it successfully,
+        // to avoid releasing the same buffer next frame in some suitations.
+        preBuffer.Reset();
     }
 
     return true;
@@ -849,26 +854,20 @@ SkMatrix RsRenderServiceUtil::GetCanvasTransform(const RSSurfaceRenderNode& node
 }
 
 BufferDrawParam RsRenderServiceUtil::CreateBufferDrawParam(RSSurfaceRenderNode& node, SkMatrix canvasMatrix,
-    ScreenRotation rotation)
+    ScreenRotation rotation, SkPaint paint)
 {
     const RSProperties& property = node.GetRenderProperties();
     SkRect dstRect = SkRect::MakeXYWH(node.GetDstRect().left_, node.GetDstRect().top_,
         node.GetDstRect().width_, node.GetDstRect().height_);
-    auto alpha = node.GetGlobalAlpha();
     BufferDrawParam params;
-
     auto buffer = node.GetBuffer();
     sptr<Surface> surface = node.GetConsumer();
     if (!buffer || !surface) {
         return params;
     }
-    SkPaint paint;
-    paint.setAlphaf(alpha);
-
     params.buffer = buffer;
     params.matrix = GetCanvasTransform(node, canvasMatrix, rotation, dstRect);
     params.acquireFence = node.GetAcquireFence();
-
     params.srcRect = SkRect::MakeXYWH(0, 0, buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight());
     const auto surfaceTransform = surface->GetTransform();
     if (surfaceTransform == TransformType::ROTATE_90 || surfaceTransform == TransformType::ROTATE_270) {
@@ -879,7 +878,8 @@ BufferDrawParam RsRenderServiceUtil::CreateBufferDrawParam(RSSurfaceRenderNode& 
     params.clipRect = dstRect;
     params.paint = paint;
     params.cornerRadius = property.GetCornerRadius();
-    params.isNeedClip = property.GetClipToFrame();
+    params.isNeedClip = RSUniRenderJudgement::GetUniRenderEnabledType() == UniRenderEnabledType::UNI_RENDER_DISABLED &&
+        property.GetClipToFrame();
     return params;
 }
 
@@ -953,7 +953,7 @@ void RsRenderServiceUtil::DrawBuffer(RSPaintFilterCanvas& canvas, BufferDrawPara
     canvas.restore();
 }
 
-#ifdef RS_ENABLE_GL
+#ifdef RS_ENABLE_EGLIMAGE
 void RsRenderServiceUtil::DrawImage(std::shared_ptr<RSEglImageManager> eglImageManager, GrContext* grContext,
     RSPaintFilterCanvas& canvas, BufferDrawParam& bufferDrawParam, CanvasPostProcess process)
 {
@@ -969,16 +969,18 @@ void RsRenderServiceUtil::DrawImage(std::shared_ptr<RSEglImageManager> eglImageM
         RS_LOGE("RsRenderServiceUtil::MapEglImageFromSurfaceBuffer return invalid EGL texture ID");
         return;
     }
+    SkColorType colorType = (buffer->GetFormat() == PIXEL_FMT_BGRA_8888) ?
+            kBGRA_8888_SkColorType : kRGBA_8888_SkColorType;
     GrGLTextureInfo grExternalTextureInfo = {GL_TEXTURE_EXTERNAL_OES, eglTextureId, GL_RGBA8};
     GrBackendTexture backendTexture(bufferDrawParam.srcRect.width(), bufferDrawParam.srcRect.height(),
         GrMipMapped::kNo, grExternalTextureInfo);
     image = SkImage::MakeFromTexture(grContext, backendTexture,
-        kTopLeft_GrSurfaceOrigin, kRGBA_8888_SkColorType, kPremul_SkAlphaType, nullptr);
+        kTopLeft_GrSurfaceOrigin, colorType, kPremul_SkAlphaType, nullptr);
     SetPropertiesForCanvas(canvas, bufferDrawParam, process);
     canvas.drawImageRect(image, bufferDrawParam.srcRect, bufferDrawParam.dstRect, &(bufferDrawParam.paint));
     canvas.restore();
 }
-#endif // RS_ENABLE_GL
+#endif // RS_ENABLE_EGLIMAGE
 
 void RsRenderServiceUtil::InitEnableClient()
 {

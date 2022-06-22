@@ -47,6 +47,7 @@ ohos_shared_library("librender_service_base") {
     "src/animation/rs_render_transition.cpp",
     "src/animation/rs_render_transition_effect.cpp",
     "src/animation/rs_spring_interpolator.cpp",
+    "src/animation/rs_spring_model.cpp",
     "src/animation/rs_transition_effect.cpp",
     "src/animation/rs_value_estimator.cpp",
 
@@ -75,8 +76,8 @@ ohos_shared_library("librender_service_base") {
     #ipc_callbacks
     "src/ipc_callbacks/buffer_available_callback_proxy.cpp",
     "src/ipc_callbacks/buffer_available_callback_stub.cpp",
-    "src/ipc_callbacks/rs_application_render_thread_proxy.cpp",
-    "src/ipc_callbacks/rs_application_render_thread_stub.cpp",
+    "src/ipc_callbacks/rs_application_agent_proxy.cpp",
+    "src/ipc_callbacks/rs_application_agent_stub.cpp",
     "src/ipc_callbacks/rs_occlusion_change_callback_proxy.cpp",
     "src/ipc_callbacks/rs_occlusion_change_callback_stub.cpp",
     "src/ipc_callbacks/screen_change_callback_proxy.cpp",

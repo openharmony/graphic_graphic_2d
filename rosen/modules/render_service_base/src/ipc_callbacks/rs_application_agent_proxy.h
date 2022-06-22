@@ -13,32 +13,28 @@
  * limitations under the License.
  */
 
-#ifndef ROSEN_RENDER_SERVICE_BASE_IAPPLICATION_RENDER_THREAD_H
-#define ROSEN_RENDER_SERVICE_BASE_IAPPLICATION_RENDER_THREAD_H
+#ifndef ROSEN_RENDER_SERVICE_BASE_RS_APPLICATION_AGENT_PROXY_H
+#define ROSEN_RENDER_SERVICE_BASE_RS_APPLICATION_AGENT_PROXY_H
 
 #ifdef ROSEN_OHOS
-#include <iremote_broker.h>
+#include <iremote_proxy.h>
 
-#include "common/rs_common_def.h"
+#include "ipc_callbacks/iapplication_agent.h"
 
 namespace OHOS {
 namespace Rosen {
-class RSTransactionData;
-class IApplicationRenderThread : public IRemoteBroker {
+class RSApplicationAgentProxy : public IRemoteProxy<IApplicationAgent> {
 public:
-    DECLARE_INTERFACE_DESCRIPTOR(u"ohos.rosen.RSIApplicationRenderThread");
+    explicit RSApplicationAgentProxy(const sptr<IRemoteObject>& impl);
+    virtual ~RSApplicationAgentProxy() noexcept = default;
 
-    IApplicationRenderThread() = default;
-    virtual ~IApplicationRenderThread() noexcept = default;
+    void OnTransaction(std::shared_ptr<RSTransactionData> transactionData) override;
 
-    enum {
-        COMMIT_TRANSACTION,
-    };
-
-    virtual void OnTransaction(std::shared_ptr<RSTransactionData> transactionData) = 0;
+private:
+    static inline BrokerDelegator<RSApplicationAgentProxy> delegator_;
 };
 } // namespace Rosen
 } // namespace OHOS
 #endif // ROSEN_OHOS
 
-#endif // ROSEN_RENDER_SERVICE_BASE_IAPPLICATION_RENDER_THREAD_H
+#endif // ROSEN_RENDER_SERVICE_BASE_RS_APPLICATION_AGENT_PROXY_H

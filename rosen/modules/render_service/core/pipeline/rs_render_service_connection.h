@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -54,6 +54,8 @@ private:
     void CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData) override;
     void ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task) override;
 
+    bool InitUniRenderEnabled(const std::string &bundleName) override;
+    bool CreateNode(const RSSurfaceRenderNodeConfig& config) override;
     sptr<Surface> CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config) override;
 
     sptr<IVSyncConnection> CreateVSyncConnection(const std::string& name) override;
@@ -84,9 +86,9 @@ private:
 
     void TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback, float scaleX, float scaleY) override;
 
-    void RegisterApplicationRenderThread(uint32_t pid, sptr<IApplicationRenderThread> app) override;
+    void RegisterApplicationAgent(uint32_t pid, sptr<IApplicationAgent> app) override;
 
-    void UnregisterApplicationRenderThread(sptr<IApplicationRenderThread> app);
+    void UnRegisterApplicationAgent(sptr<IApplicationAgent> app);
 
     RSVirtualScreenResolution GetVirtualScreenResolution(ScreenId id) override;
 

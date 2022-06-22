@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -62,7 +62,8 @@ void RSTransactionProxy::SetRenderServiceClient(const std::shared_ptr<RSIRenderC
     }
 }
 
-void RSTransactionProxy::AddCommand(std::unique_ptr<RSCommand>& command, bool isRenderServiceCommand)
+void RSTransactionProxy::AddCommand(std::unique_ptr<RSCommand>& command, bool isRenderServiceCommand,
+                                    FollowType followType, NodeId nodeId)
 {
     if ((renderServiceClient_ == nullptr && renderThreadClient_ == nullptr) || command == nullptr) {
         return;
@@ -71,7 +72,7 @@ void RSTransactionProxy::AddCommand(std::unique_ptr<RSCommand>& command, bool is
     std::unique_lock<std::mutex> cmdLock(mutex_);
 
     if (renderServiceClient_ != nullptr && isRenderServiceCommand) {
-        AddRemoteCommand(command);
+        AddRemoteCommand(command, nodeId, followType);
         return;
     }
 
@@ -82,7 +83,7 @@ void RSTransactionProxy::AddCommand(std::unique_ptr<RSCommand>& command, bool is
     ROSEN_LOGE("RSTransactionProxy::AddCommand failed, command type and client type not match !");
 }
 
-void RSTransactionProxy::AddCommandFromRT(std::unique_ptr<RSCommand>& command)
+void RSTransactionProxy::AddCommandFromRT(std::unique_ptr<RSCommand>& command, NodeId nodeId, FollowType followType)
 {
     if (renderServiceClient_ == nullptr || command == nullptr) {
         return;
@@ -90,7 +91,7 @@ void RSTransactionProxy::AddCommandFromRT(std::unique_ptr<RSCommand>& command)
 
     {
         std::unique_lock<std::mutex> cmdLock(mutexForRT_);
-        implicitTransactionDataFromRT_->AddCommand(command);
+        implicitTransactionDataFromRT_->AddCommand(command, nodeId, followType);
     }
 }
 
@@ -111,23 +112,26 @@ void RSTransactionProxy::ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask
     }
 }
 
-void RSTransactionProxy::FlushImplicitTransaction()
+void RSTransactionProxy::FlushImplicitTransaction(uint64_t timestamp)
 {
     std::unique_lock<std::mutex> cmdLock(mutex_);
     if (renderThreadClient_ != nullptr && !implicitCommonTransactionData_->IsEmpty()) {
+        implicitCommonTransactionData_->timestamp_ = timestamp;
         renderThreadClient_->CommitTransaction(implicitCommonTransactionData_);
         implicitCommonTransactionData_ = std::make_unique<RSTransactionData>();
     }
     if (renderServiceClient_ != nullptr && !implicitRemoteTransactionData_->IsEmpty()) {
+        implicitRemoteTransactionData_->timestamp_ = timestamp;
         renderServiceClient_->CommitTransaction(implicitRemoteTransactionData_);
         implicitRemoteTransactionData_ = std::make_unique<RSTransactionData>();
     }
 }
 
-void RSTransactionProxy::FlushImplicitTransactionFromRT()
+void RSTransactionProxy::FlushImplicitTransactionFromRT(uint64_t timestamp)
 {
     std::unique_lock<std::mutex> cmdLock(mutexForRT_);
     if (renderServiceClient_ != nullptr && !implicitTransactionDataFromRT_->IsEmpty()) {
+        implicitTransactionDataFromRT_->timestamp_ = timestamp;
         renderServiceClient_->CommitTransaction(implicitTransactionDataFromRT_);
         implicitTransactionDataFromRT_ = std::make_unique<RSTransactionData>();
     }
@@ -135,12 +139,12 @@ void RSTransactionProxy::FlushImplicitTransactionFromRT()
 
 void RSTransactionProxy::AddCommonCommand(std::unique_ptr<RSCommand> &command)
 {
-    implicitCommonTransactionData_->AddCommand(command);
+    implicitCommonTransactionData_->AddCommand(command, 0, FollowType::NONE);
 }
 
-void RSTransactionProxy::AddRemoteCommand(std::unique_ptr<RSCommand>& command)
+void RSTransactionProxy::AddRemoteCommand(std::unique_ptr<RSCommand>& command, NodeId nodeId, FollowType followType)
 {
-    implicitRemoteTransactionData_->AddCommand(command);
+    implicitRemoteTransactionData_->AddCommand(command, nodeId, followType);
 }
 
 } // namespace Rosen

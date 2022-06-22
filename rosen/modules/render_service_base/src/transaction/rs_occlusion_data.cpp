@@ -26,21 +26,19 @@ RSOcclusionData::~RSOcclusionData() noexcept
 RSOcclusionData* RSOcclusionData::Unmarshalling(Parcel& parcel)
 {
     auto data = new RSOcclusionData();
-    auto size = parcel.ReadInt32();
+    auto size = parcel.ReadUint32();
     for (int i = 0; i < size; i++) {
-        uint64_t id = static_cast<uint64_t>(parcel.ReadInt32());
-        bool vis = static_cast<bool>(parcel.ReadInt32());
-        data->visibleData_.emplace_back(id, vis);
+        uint64_t id = parcel.ReadUint64();
+        data->visibleData_.emplace_back(id);
     }
     return data;
 }
 
 bool RSOcclusionData::Marshalling(Parcel& parcel) const
 {
-    parcel.WriteInt32(visibleData_.size());
+    parcel.WriteUint32(visibleData_.size());
     for (auto& data : visibleData_) {
-        parcel.WriteInt32(static_cast<int32_t>(data.first));
-        parcel.WriteInt32(static_cast<int32_t>(data.second));
+        parcel.WriteUint64(data);
     }
 
     return true;
