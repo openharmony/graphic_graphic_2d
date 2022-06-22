@@ -69,6 +69,9 @@ void RSRenderThreadVisitor::PrepareRootRenderNode(RSRootRenderNode& node)
 
 void RSRenderThreadVisitor::PrepareCanvasRenderNode(RSCanvasRenderNode& node)
 {
+    if (!node.GetRenderProperties().GetVisible()) {
+        return;
+    }
     bool dirtyFlag = dirtyFlag_;
     auto nodeParent = node.GetParent().lock();
     std::shared_ptr<RSRenderNode> rsParent = nullptr;
@@ -184,31 +187,29 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
         ProcessCanvasRenderNode(node);
         return;
     }
+    auto ptr = RSNodeMap::Instance().GetNode<RSSurfaceNode>(node.GetRSSurfaceNodeId());
+    if (ptr == nullptr) {
+        ROSEN_LOGE("ProcessRoot: No valid RSSurfaceNode id");
+        return;
+    }
     if (!node.GetRenderProperties().GetVisible()) {
-        ROSEN_LOGE("No valid RSRootRenderNode");
+        ROSEN_LOGI("ProcessRoot %s: Invisible", ptr->GetName().c_str());
         return;
     }
     if (node.GetSurfaceWidth() <= 0 || node.GetSurfaceHeight() <= 0) {
-        ROSEN_LOGE("RSRootRenderNode have negative width or height [%d %d]", node.GetSurfaceWidth(),
-            node.GetSurfaceHeight());
-        return;
-    }
-    auto ptr = RSNodeMap::Instance().GetNode<RSSurfaceNode>(node.GetRSSurfaceNodeId());
-    if (ptr == nullptr) {
-        ROSEN_LOGE("No valid RSSurfaceNode");
+        ROSEN_LOGE("ProcessRoot %s: Negative width or height [%d %d]", ptr->GetName().c_str(),
+            node.GetSurfaceWidth(), node.GetSurfaceHeight());
         return;
     }
 
     auto surfaceNodeColorSpace = ptr->GetColorSpace();
-
     std::shared_ptr<RSSurface> rsSurface = RSSurfaceExtractor::ExtractRSSurface(ptr);
     if (rsSurface == nullptr) {
-        ROSEN_LOGE("No RSSurface found");
+        ROSEN_LOGE("ProcessRoot %s: No RSSurface found", ptr->GetName().c_str());
         return;
     }
 
     auto rsSurfaceColorSpace = rsSurface->GetColorSpace();
-
     if (surfaceNodeColorSpace != rsSurfaceColorSpace) {
         ROSEN_LOGD("Set new colorspace %d to rsSurface", surfaceNodeColorSpace);
         rsSurface->SetColorSpace(surfaceNodeColorSpace);
@@ -223,7 +224,7 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
     auto surfaceFrame = rsSurface->RequestFrame(node.GetSurfaceWidth(), node.GetSurfaceHeight(), uiTimestamp_);
     RS_TRACE_END();
     if (surfaceFrame == nullptr) {
-        ROSEN_LOGE("Request Frame Failed");
+        ROSEN_LOGI("ProcessRoot %s: Request Frame Failed", ptr->GetName().c_str());
         return;
     }
 
