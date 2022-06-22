@@ -280,6 +280,8 @@ void RSHardwareProcessor::ProcessSurface(RSSurfaceRenderNode &node)
     if (info.srcRect.w <= 0 || info.srcRect.h <= 0 || info.dstRect.w <= 0 || info.dstRect.h <= 0) {
         return;
     }
+    info.dstRect.x -= offsetX_;
+    info.dstRect.y -= offsetY_;
     if (node.GetBuffer()->GetSurfaceBufferWidth() != node.GetRenderProperties().GetBoundsWidth() ||
         node.GetBuffer()->GetSurfaceBufferHeight() != node.GetRenderProperties().GetBoundsHeight()) {
         float xScale = (node.GetBuffer()->GetSurfaceBufferWidth() / node.GetRenderProperties().GetBoundsWidth());
@@ -360,7 +362,7 @@ void RSHardwareProcessor::ProcessSurface(RSDisplayRenderNode& node)
     RsRenderServiceUtil::ComposeSurface(layer, node.GetConsumer(), layers_, info, &node);
 }
 
-bool IfUseGPUClient(const struct PrepareCompleteParam& param)
+static bool IfUseGPUClient(const struct PrepareCompleteParam& param)
 {
     bool ifDeviceComp = true;
     for (auto it = param.layers.begin(); it != param.layers.end(); ++it) {
@@ -391,7 +393,7 @@ bool IfUseGPUClient(const struct PrepareCompleteParam& param)
     return true;
 }
 
-void DrawBufferPostProcess(RSPaintFilterCanvas& canvas, RSSurfaceRenderNode& node, BufferDrawParam& params,
+static void DrawBufferPostProcess(RSPaintFilterCanvas& canvas, RSSurfaceRenderNode& node, BufferDrawParam& params,
     Vector2f& center)
 {
     RsRenderServiceUtil::DealAnimation(canvas, node, params, center);

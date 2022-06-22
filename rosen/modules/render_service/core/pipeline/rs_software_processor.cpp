@@ -109,8 +109,8 @@ bool RSSoftwareProcessor::GenerateParamAndDrawBuffer(RSSurfaceRenderNode& node)
         RS_LOGE("RsDebug RSSoftwareProcessor::ProcessSurface geoPtr == nullptr");
         return false;
     }
-    node.SetDstRect({geoPtr->GetAbsRect().left_ - offsetX_, geoPtr->GetAbsRect().top_ - offsetY_,
-        geoPtr->GetAbsRect().width_, geoPtr->GetAbsRect().height_});
+    node.SetDstRect({node.GetDstRect().left_ - offsetX_, node.GetDstRect().top_ - offsetY_,
+        node.GetDstRect().width_, node.GetDstRect().height_});
     BufferDrawParam params;
     SkPaint paint;
     paint.setAlphaf(node.GetGlobalAlpha());
