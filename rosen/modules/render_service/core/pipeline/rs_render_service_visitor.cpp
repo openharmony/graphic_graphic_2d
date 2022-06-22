@@ -15,11 +15,6 @@
 
 #include "pipeline/rs_render_service_visitor.h"
 
-#include <surface.h>
-#include <window.h>
-#include <window_manager.h>
-#include <window_option.h>
-
 #include "common/rs_obj_abs_geometry.h"
 #include "display_type.h"
 #include "include/core/SkCanvas.h"
