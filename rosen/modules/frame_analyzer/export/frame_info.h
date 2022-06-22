@@ -19,37 +19,60 @@
 #include <array>
 #include <cstdint>
 
+#include "ring_queue.h"
+
 namespace OHOS {
 namespace Rosen {
-enum class FrameEventType {
-    UploadStart = 0,
-    UploadEnd = 1,
-    AnimateStart = 2,
-    AnimateEnd = 3,
-    LayoutStart = 4,
-    LayoutEnd = 5,
-    DrawStart = 6,
-    DrawEnd = 7,
-    WaitVsyncStart = 8,
-    WaitVsyncEnd = 9,
-    ReleaseStart = 10,
-    ReleaseEnd = 11,
-    FlushStart = 12,
-    FlushEnd = 13,
+enum class FrameEventType : int32_t {
+    HandleInputStart = 0,
+    HandleInputEnd = 1,
+    UploadStart = 2,
+    UploadEnd = 3,
+    AnimateStart = 4,
+    AnimateEnd = 5,
+    LayoutStart = 6,
+    LayoutEnd = 7,
+    DrawStart = 8,
+    DrawEnd = 9,
+    WaitVsyncStart = 10,
+    WaitVsyncEnd = 11,
+    ReleaseStart = 12,
+    ReleaseEnd = 13,
+    FlushStart = 14,
+    FlushEnd = 15,
     Max,
-    LoopStart = UploadStart,
-    LoopEnd = FlushEnd,
+
+    // ui marks range
+    UIMarksStart = HandleInputStart,
+    UIMarksEnd = DrawEnd + 1,
+    UIMarksLen = UIMarksEnd - UIMarksStart,
+
+    // total range
+    LoopStart = HandleInputStart,
+    LoopEnd = Max,
+    LoopLen = LoopEnd - LoopStart,
+};
+
+struct UIMarks {
+    int32_t frameNumber = 0;
+    std::array<int64_t, static_cast<size_t>(FrameEventType::UIMarksLen)> times = {};
 };
 
 struct FrameInfo {
     int32_t frameNumber = 0;
-    std::array<int64_t, static_cast<size_t>(FrameEventType::Max)> times = {};
+    bool skiped = false;
+    std::array<int64_t, static_cast<size_t>(FrameEventType::LoopLen)> times = {};
 };
 
 static constexpr int32_t frameQueueMaxSize = 60;
 static constexpr double frameTotalMs = 160;
 static constexpr const char *switchRenderingText = "debug.graphic.frame";
-static constexpr const char *switchRenderingEnableText = "true";
+static constexpr const char *switchRenderingPaintText = "paint";
+static constexpr const char *switchRenderingSaverText = "saver";
+static constexpr const char *switchRenderingDisableText = "disable";
+static constexpr const char *saveDirectory = "/data/frame_render";
+
+using FrameInfoQueue = RingQueue<struct FrameInfo, frameQueueMaxSize>;
 } // namespace Rosen
 } // namespace OHOS
 

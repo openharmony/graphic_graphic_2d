@@ -18,19 +18,26 @@
 
 #include <memory>
 #include <mutex>
-#include <queue>
 
 #include "frame_info.h"
 
 namespace OHOS {
 namespace Rosen {
+class FrameSaver;
+
 class FrameCollector {
 public:
     static FrameCollector &GetInstance();
 
-    const std::deque<struct FrameInfo> &GetFrameQueue() const
+    const FrameInfoQueue &LockGetFrameQueue()
     {
+        frameQueueMutex_.lock();
         return frameQueue_;
+    }
+
+    void UnlockFrameQueue()
+    {
+        frameQueueMutex_.unlock();
     }
 
     bool IsEnabled() const
@@ -52,11 +59,23 @@ private:
     FrameCollector();
     static void SwitchFunction(const char *key, const char *value, void *context);
 
+    // pending
+    std::mutex pendingMutex_;
     int32_t currentFrameNumber_ = 0;
-    struct FrameInfo currentFrameInfo_ = {};
-    std::deque<struct FrameInfo> frameQueue_;
+    struct UIMarks pendingUIMarks_ = {};
+    struct UIMarks currentUIMarks_ = {};
+    struct FrameInfo *pbefore_ = nullptr;
+    struct FrameInfo *pafter_ = nullptr;
+    bool haveAfterVsync_ = false;
+
+    // frame queue
     std::mutex frameQueueMutex_;
+    FrameInfoQueue frameQueue_;
+
+    // param
     bool enabled_ = false;
+    bool usingSaver_ = false;
+    std::shared_ptr<FrameSaver> saver_ = nullptr;
 };
 } // namespace Rosen
 } // namespace OHOS

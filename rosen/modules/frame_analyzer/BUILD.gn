@@ -32,6 +32,7 @@ ohos_shared_library("libframe_analyzer") {
   sources = [
     "src/frame_collector.cpp",
     "src/frame_painter.cpp",
+    "src/frame_saver.cpp",
   ]
 
   configs = [ ":libframe_analyzer_config" ]

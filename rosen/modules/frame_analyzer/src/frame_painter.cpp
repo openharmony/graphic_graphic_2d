@@ -27,14 +27,14 @@ namespace OHOS {
 namespace Rosen {
 namespace {
 constexpr ::OHOS::HiviewDFX::HiLogLabel LABEL = { LOG_CORE, 0xD001400, "FramePainter" };
-std::map<size_t, SkColor> colorMap = {
-    {static_cast<size_t>(FrameEventType::UploadStart),    0x0000ffff}, // cyan
-    {static_cast<size_t>(FrameEventType::AnimateStart),   0x0000cc00}, // mid green
-    {static_cast<size_t>(FrameEventType::LayoutStart),    0x0000ff00}, // green
-    {static_cast<size_t>(FrameEventType::DrawStart),      0x000000ff}, // blue
-    {static_cast<size_t>(FrameEventType::WaitVsyncStart), 0x00006600}, // old green
-    {static_cast<size_t>(FrameEventType::ReleaseStart),   0x00ffff00}, // yellow
-    {static_cast<size_t>(FrameEventType::FlushStart),     0x00ff0000}, // red
+std::map<FrameEventType, SkColor> colorMap = {
+    {FrameEventType::UploadStart,    0x0000ffff}, // cyan
+    {FrameEventType::AnimateStart,   0x0000cc00}, // mid green
+    {FrameEventType::LayoutStart,    0x0000ff00}, // green
+    {FrameEventType::DrawStart,      0x000000ff}, // blue
+    {FrameEventType::WaitVsyncStart, 0x00006600}, // old green
+    {FrameEventType::ReleaseStart,   0x00ffff00}, // yellow
+    {FrameEventType::FlushStart,     0x00ff0000}, // red
 };
 } // namespace
 
@@ -58,14 +58,15 @@ void FramePainter::Draw(SkCanvas &canvas)
     auto heightPerMs = height / frameTotalMs;
     auto barWidth = width / (frameQueueMaxSize + 2.0);
     auto x = barWidth * (frameQueueMaxSize - 1);
-    for (auto rit = collector_.GetFrameQueue().rbegin(); rit != collector_.GetFrameQueue().rend(); rit++) {
+    auto fq = collector_.LockGetFrameQueue();
+    for (auto rit = fq.rbegin(); rit != fq.rend(); rit++) {
         constexpr auto loopstart = static_cast<size_t>(FrameEventType::LoopStart);
         constexpr auto loopend = static_cast<size_t>(FrameEventType::LoopEnd);
 
         uint8_t alpha = SumHeight(*rit) >= 16.0 ? 0x7f : 0x3f;
         auto y = height;
         for (size_t i = loopstart; i < loopend; i += 2) {
-            if (auto it = colorMap.find(i); it != colorMap.end()) {
+            if (auto it = colorMap.find(static_cast<FrameEventType>(i)); it != colorMap.end()) {
                 constexpr auto alphaOffset = 24;
                 paint.setColor(it->second | (alpha << alphaOffset));
             } else {
@@ -86,6 +87,7 @@ void FramePainter::Draw(SkCanvas &canvas)
         }
         x -= barWidth;
     }
+    collector_.UnlockFrameQueue();
 
     paint.setColor(0xbf00ff00);
     canvas.drawRect(SkRect::MakeXYWH(0, (frameTotalMs - 16 + 0.5) * heightPerMs, width, heightPerMs), paint);
@@ -100,7 +102,7 @@ double FramePainter::SumHeight(const struct FrameInfo &info)
 
     auto sum = 0.0;
     for (size_t i = loopstart; i < loopend; i += 2) {
-        if (colorMap.find(i) == colorMap.end()) {
+        if (colorMap.find(static_cast<FrameEventType>(i)) == colorMap.end()) {
             continue;
         }
 
