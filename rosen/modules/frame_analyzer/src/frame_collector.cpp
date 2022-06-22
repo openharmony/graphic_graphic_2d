@@ -35,34 +35,6 @@ constexpr int32_t uimarksEnd = static_cast<int32_t>(FrameEventType::UIMarksEnd) 
 constexpr int32_t loopEnd = static_cast<int32_t>(FrameEventType::LoopEnd) - 1;
 constexpr int32_t vsyncStart = static_cast<int32_t>(FrameEventType::WaitVsyncStart);
 constexpr int32_t vsyncEnd = static_cast<int32_t>(FrameEventType::WaitVsyncEnd);
-
-std::string GetStringByFrameEventType(FrameEventType type)
-{
-    static std::map<FrameEventType, const char *> frameEventTypeStringMap = {
-        {FrameEventType::HandleInputStart, "Frame.1.HandleInput"},
-        {FrameEventType::HandleInputEnd,   "Frame.1.HandleInput"},
-        {FrameEventType::AnimateStart,     "Frame.2.Animate    "},
-        {FrameEventType::AnimateEnd,       "Frame.2.Animate    "},
-        {FrameEventType::UploadStart,      "Frame.3.Upload     "},
-        {FrameEventType::UploadEnd,        "Frame.3.Upload     "},
-        {FrameEventType::LayoutStart,      "Frame.4.Layout     "},
-        {FrameEventType::LayoutEnd,        "Frame.4.Layout     "},
-        {FrameEventType::DrawStart,        "Frame.5.Draw       "},
-        {FrameEventType::DrawEnd,          "Frame.5.Draw       "},
-        {FrameEventType::WaitVsyncStart,   "Frame.6.WaitVsync  "},
-        {FrameEventType::WaitVsyncEnd,     "Frame.6.WaitVsync  "},
-        {FrameEventType::ReleaseStart,     "Frame.7.Release    "},
-        {FrameEventType::ReleaseEnd,       "Frame.7.Release    "},
-        {FrameEventType::FlushStart,       "Frame.8.Flush      "},
-        {FrameEventType::FlushEnd,         "Frame.8.Flush      "},
-    };
-    return frameEventTypeStringMap[type];
-}
-
-std::string GetStringByFrameEventType(int index)
-{
-    return GetStringByFrameEventType(static_cast<FrameEventType>(index));
-}
 } // namespace
 
 FrameCollector &FrameCollector::GetInstance()
@@ -124,7 +96,7 @@ void FrameCollector::ProcessFrameEvent(int32_t index, int64_t timeNs)
             pbefore_->skiped = true;
             pbefore_->times[vsyncEnd] = pbefore_->times[vsyncStart];
         } else {
-            StartAsyncTrace(HITRACE_TAG_GRAPHIC_AGP, GetStringByFrameEventType(index), pbefore_->frameNumber);
+            StartAsyncTrace(HITRACE_TAG_GRAPHIC_AGP, GetAsyncNameByFrameEventType(index), pbefore_->frameNumber);
         }
         return;
     }
@@ -137,10 +109,10 @@ void FrameCollector::ProcessFrameEvent(int32_t index, int64_t timeNs)
     if (pafter_ != nullptr) {
         pafter_->times[index] = timeNs;
 
-        if (index % 2 == 0) {
-            StartAsyncTrace(HITRACE_TAG_GRAPHIC_AGP, GetStringByFrameEventType(index), pafter_->frameNumber);
+        if (IsStartFrameEventType(index)) {
+            StartAsyncTrace(HITRACE_TAG_GRAPHIC_AGP, GetAsyncNameByFrameEventType(index), pafter_->frameNumber);
         } else {
-            FinishAsyncTrace(HITRACE_TAG_GRAPHIC_AGP, GetStringByFrameEventType(index), pafter_->frameNumber);
+            FinishAsyncTrace(HITRACE_TAG_GRAPHIC_AGP, GetAsyncNameByFrameEventType(index), pafter_->frameNumber);
         }
     }
 
@@ -155,10 +127,10 @@ bool FrameCollector::ProcessUIMarkLocked(int32_t index, int64_t timeNs)
         return false;
     }
 
-    if (index % 2 == 0) {
-        StartAsyncTrace(HITRACE_TAG_GRAPHIC_AGP, GetStringByFrameEventType(index), currentFrameNumber_);
+    if (IsStartFrameEventType(index)) {
+        StartAsyncTrace(HITRACE_TAG_GRAPHIC_AGP, GetAsyncNameByFrameEventType(index), currentFrameNumber_);
     } else {
-        FinishAsyncTrace(HITRACE_TAG_GRAPHIC_AGP, GetStringByFrameEventType(index), currentFrameNumber_);
+        FinishAsyncTrace(HITRACE_TAG_GRAPHIC_AGP, GetAsyncNameByFrameEventType(index), currentFrameNumber_);
     }
 
     if (index < uimarksEnd) {

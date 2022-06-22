@@ -32,15 +32,6 @@ constexpr int32_t Frame60Ms = 1000 / 60;
 constexpr int32_t Frame30Ms = 1000 / 30;
 constexpr auto loopstart = static_cast<size_t>(FrameEventType::LoopStart);
 constexpr auto loopend = static_cast<size_t>(FrameEventType::LoopEnd);
-std::map<FrameEventType, SkColor> colorMap = {
-    {FrameEventType::AnimateStart,   0x0000cc00}, // mid green
-    {FrameEventType::UploadStart,    0x0000ffff}, // cyan
-    {FrameEventType::LayoutStart,    0x0000ff00}, // green
-    {FrameEventType::DrawStart,      0x000000ff}, // blue
-    {FrameEventType::WaitVsyncStart, 0x00006600}, // old green
-    {FrameEventType::ReleaseStart,   0x00ffff00}, // yellow
-    {FrameEventType::FlushStart,     0x00ff0000}, // red
-};
 } // namespace
 
 FramePainter::FramePainter(FrameCollector &collector) : collector_(collector)
@@ -68,7 +59,8 @@ void FramePainter::Draw(SkCanvas &canvas)
         uint8_t alpha = SumHeight(*rit) >= 16.0 ? 0x7f : 0x3f;
         auto y = height;
         for (size_t i = loopstart; i < loopend; i += FrameEventTypeInterval) {
-            if (auto it = colorMap.find(static_cast<FrameEventType>(i)); it != colorMap.end()) {
+            const auto &cm = frameEventColorMap;
+            if (auto it = cm.find(static_cast<FrameEventType>(i)); it != cm.end()) {
                 constexpr auto alphaOffset = 24;
                 paint.setColor(it->second | (alpha << alphaOffset));
             } else {
@@ -110,7 +102,8 @@ double FramePainter::SumHeight(const struct FrameInfo &info)
 
     auto sum = 0.0;
     for (size_t i = loopstart; i < loopend; i += FrameEventTypeInterval) {
-        if (colorMap.find(static_cast<FrameEventType>(i)) == colorMap.end()) {
+        const auto &cm = frameEventColorMap;
+        if (cm.find(static_cast<FrameEventType>(i)) == cm.end()) {
             continue;
         }
 

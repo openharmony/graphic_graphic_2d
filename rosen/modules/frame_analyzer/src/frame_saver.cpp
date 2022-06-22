@@ -66,31 +66,13 @@ FrameSaver::~FrameSaver()
 
 void FrameSaver::SaveFrameEvent(const FrameEventType &type, int64_t timeNs)
 {
-    static std::map<FrameEventType, const char *> frameEventTypeStringMap = {
-        {FrameEventType::HandleInputStart, "HandleInputStart"},
-        {FrameEventType::HandleInputEnd,   "HandleInputEnd  "},
-        {FrameEventType::AnimateStart,     "AnimateStart    "},
-        {FrameEventType::AnimateEnd,       "AnimateEnd      "},
-        {FrameEventType::UploadStart,      "UploadStart     "},
-        {FrameEventType::UploadEnd,        "UploadEnd       "},
-        {FrameEventType::LayoutStart,      "LayoutStart     "},
-        {FrameEventType::LayoutEnd,        "LayoutEnd       "},
-        {FrameEventType::DrawStart,        "DrawStart       "},
-        {FrameEventType::DrawEnd,          "DrawEnd         "},
-        {FrameEventType::WaitVsyncStart,   "WaitVsyncStart  "},
-        {FrameEventType::WaitVsyncEnd,     "WaitVsyncEnd    "},
-        {FrameEventType::ReleaseStart,     "ReleaseStart    "},
-        {FrameEventType::ReleaseEnd,       "ReleaseEnd      "},
-        {FrameEventType::FlushStart,       "FlushStart      "},
-        {FrameEventType::FlushEnd,         "FlushEnd        "},
-    };
-
     if (!ofs_.is_open()) {
-        ::OHOS::HiviewDFX::HiLog::Info(LABEL, "%{public}s %{public}" PRIi64, frameEventTypeStringMap[type], timeNs);
+        ::OHOS::HiviewDFX::HiLog::Info(LABEL, "%{public}s %{public}" PRIi64,
+            GetNameByFrameEventType(type).c_str(), timeNs);
         return;
     }
 
-    ofs_ << frameEventTypeStringMap[type] << " " << timeNs << std::endl;
+    ofs_ << GetNameByFrameEventType(type) << " " << timeNs << std::endl;
 }
 } // namespace Rosen
 } // namespace OHOS
