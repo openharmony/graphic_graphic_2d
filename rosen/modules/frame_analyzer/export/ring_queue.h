@@ -26,6 +26,11 @@ public:
     static constexpr int realcap = cap + 1;
     using Array = std::array<T, realcap>;
 
+    int GetSize() const
+    {
+        return (back_ - front_ + realcap) % realcap;
+    }
+
     T &Push(const T& t)
     {
         if (front_ == (back_ + 1) % realcap) {

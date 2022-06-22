@@ -64,26 +64,7 @@ void FrameCollector::MarkFrameEvent(const FrameEventType &type, int64_t timeNs)
     if (enabled_ == false) {
         return;
     }
-    static std::map<FrameEventType, const char *> frameEventTypeStringMap = {
-        {FrameEventType::HandleInputStart, "HandleInputStart"},
-        {FrameEventType::HandleInputEnd,   "HandleInputEnd  "},
-        {FrameEventType::UploadStart,      "UploadStart     "},
-        {FrameEventType::UploadEnd,        "UploadEnd       "},
-        {FrameEventType::AnimateStart,     "AnimateStart    "},
-        {FrameEventType::AnimateEnd,       "AnimateEnd      "},
-        {FrameEventType::LayoutStart,      "LayoutStart     "},
-        {FrameEventType::LayoutEnd,        "LayoutEnd       "},
-        {FrameEventType::DrawStart,        "DrawStart       "},
-        {FrameEventType::DrawEnd,          "DrawEnd         "},
-        {FrameEventType::WaitVsyncStart,   "WaitVsyncStart  "},
-        {FrameEventType::WaitVsyncEnd,     "WaitVsyncEnd    "},
-        {FrameEventType::ReleaseStart,     "ReleaseStart    "},
-        {FrameEventType::ReleaseEnd,       "ReleaseEnd      "},
-        {FrameEventType::FlushStart,       "FlushStart      "},
-        {FrameEventType::FlushEnd,         "FlushEnd        "},
-    };
 
-// param set debug.graphic.frame paint
     constexpr int32_t uimarksStart = static_cast<int32_t>(FrameEventType::UIMarksStart);
     constexpr int32_t uimarksEnd = static_cast<int32_t>(FrameEventType::UIMarksEnd) - 1;
     constexpr int32_t loopEnd = static_cast<int32_t>(FrameEventType::LoopEnd) - 1;
@@ -93,7 +74,6 @@ void FrameCollector::MarkFrameEvent(const FrameEventType &type, int64_t timeNs)
     std::lock_guard lockFrameQueue(frameQueueMutex_);
     if (index <= uimarksEnd) {
         pendingUIMarks_.times[index] = timeNs;
-        ::OHOS::HiviewDFX::HiLog::Info(LABEL, "pending %{public}s %{public}" PRIi64, frameEventTypeStringMap[type], timeNs);
     } else if (index < vsyncMark) {
         pbefore_ = &frameQueue_.Push({});
         pbefore_->frameNumber = currentUIMarks_.frameNumber;
@@ -101,14 +81,12 @@ void FrameCollector::MarkFrameEvent(const FrameEventType &type, int64_t timeNs)
             pbefore_->times[i] = currentUIMarks_.times[i];
         }
         pbefore_->times[index] = timeNs;
-        ::OHOS::HiviewDFX::HiLog::Info(LABEL, "before  %{public}s %{public}" PRIi64, frameEventTypeStringMap[type], timeNs);
     } else {
         if (haveAfterVsync_ == false) {
             haveAfterVsync_ = true;
             pafter_ = pbefore_;
         }
         pafter_->times[index] = timeNs;
-        ::OHOS::HiviewDFX::HiLog::Info(LABEL, "after   %{public}s %{public}" PRIi64, frameEventTypeStringMap[type], timeNs);
     }
 
     if (index == uimarksEnd) {

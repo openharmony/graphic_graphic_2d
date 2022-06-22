@@ -87,11 +87,11 @@ HWTEST_F(FrameCollectorTest, Enable, Function | SmallTest | Level2)
  * Type: Function
  * EnvConditions: Enable and ClearEvents FrameCollector
  * CaseDescription: 1. check queue size 0
- *                  2. mark other except LoopEnd
+ *                  2. mark UIMarks
  *                  3. check queue size 0
- *                  4. mark Flushed
+ *                  4. mark WaitVsyncStart
  *                  5. check queue size 1
- *                  6. mark Flushed
+ *                  6. mark WaitVsyncStart
  *                  7. check queue size 2
  *                  8. clear events
  *                  9. check queue size 0
@@ -108,10 +108,11 @@ HWTEST_F(FrameCollectorTest, MarkFrameEvent, Function | MediumTest | Level2)
 
     PART("CaseDescription") {
          STEP("1. check queue size 0") {
-             STEP_ASSERT_EQ(collector.GetFrameQueue().size(), 0u);
+             STEP_ASSERT_EQ(collector.LockGetFrameQueue().GetSize(), 0);
+             collector.UnlockFrameQueue();
          }
 
-         STEP("2. mark other except Flushed") {
+         STEP("2. mark UIMarks") {
              collector.MarkFrameEvent(FrameEventType::UploadStart);
              collector.MarkFrameEvent(FrameEventType::UploadEnd);
              collector.MarkFrameEvent(FrameEventType::AnimateStart);
@@ -120,31 +121,29 @@ HWTEST_F(FrameCollectorTest, MarkFrameEvent, Function | MediumTest | Level2)
              collector.MarkFrameEvent(FrameEventType::LayoutEnd);
              collector.MarkFrameEvent(FrameEventType::DrawStart);
              collector.MarkFrameEvent(FrameEventType::DrawEnd);
-             collector.MarkFrameEvent(FrameEventType::WaitVsyncStart);
-             collector.MarkFrameEvent(FrameEventType::WaitVsyncEnd);
-             collector.MarkFrameEvent(FrameEventType::ReleaseStart);
-             collector.MarkFrameEvent(FrameEventType::ReleaseEnd);
-             collector.MarkFrameEvent(FrameEventType::FlushStart);
          }
 
          STEP("3. check queue size 0") {
-             STEP_ASSERT_EQ(collector.GetFrameQueue().size(), 0u);
+             STEP_ASSERT_EQ(collector.LockGetFrameQueue().GetSize(), 0);
+             collector.UnlockFrameQueue();
          }
 
-         STEP("4. mark Flushed") {
-             collector.MarkFrameEvent(FrameEventType::LoopEnd);
+         STEP("4. mark WaitVsyncStart") {
+             collector.MarkFrameEvent(FrameEventType::WaitVsyncStart);
          }
 
          STEP("5. check queue size 1") {
-             STEP_ASSERT_EQ(collector.GetFrameQueue().size(), 1u);
+             STEP_ASSERT_EQ(collector.LockGetFrameQueue().GetSize(), 1);
+             collector.UnlockFrameQueue();
          }
 
-         STEP("6. mark Flushed") {
-             collector.MarkFrameEvent(FrameEventType::LoopEnd);
+         STEP("6. mark WaitVsyncStart") {
+             collector.MarkFrameEvent(FrameEventType::WaitVsyncStart);
          }
 
          STEP("7. check queue size 2") {
-             STEP_ASSERT_EQ(collector.GetFrameQueue().size(), 2u);
+             STEP_ASSERT_EQ(collector.LockGetFrameQueue().GetSize(), 2);
+             collector.UnlockFrameQueue();
          }
 
          STEP("8. clear events") {
@@ -152,7 +151,8 @@ HWTEST_F(FrameCollectorTest, MarkFrameEvent, Function | MediumTest | Level2)
          }
 
          STEP("9. check queue size 0") {
-             STEP_ASSERT_EQ(collector.GetFrameQueue().size(), 0u);
+             STEP_ASSERT_EQ(collector.LockGetFrameQueue().GetSize(), 0);
+             collector.UnlockFrameQueue();
          }
     }
 }
