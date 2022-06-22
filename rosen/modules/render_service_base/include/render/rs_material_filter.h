@@ -42,7 +42,7 @@ private:
     static constexpr int STYLE_CARD_THIN_LIGHT = 1;
     static constexpr int STYLE_CARD_LIGHT = 2;
     static constexpr int STYLE_CARD_THICK_LIGHT = 3;
-    static constexpr MaterialParam CARDTHINLIGHT = {109.0f, 1.2, 0x6BF0F0F0};
+    static constexpr MaterialParam CARDTHINLIGHT = {109.0f, 1.22, 0x6BF0F0F0};
     static constexpr MaterialParam CARDLIGHT = {103.0f, 2.4, 0xB8FAFAFA};
     static constexpr MaterialParam CARDTHICKLIGHT = {109.0f, 2.4, 0xB8FAFAFA};
     sk_sp<SkImageFilter> CreateMaterialStyle(int style, float dipScale);
