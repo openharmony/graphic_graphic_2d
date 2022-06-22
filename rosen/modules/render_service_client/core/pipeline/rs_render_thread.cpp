@@ -19,6 +19,8 @@
 #include <unordered_map>
 #endif
 
+#include <frame_collector.h>
+
 #include "pipeline/rs_frame_report.h"
 #include "pipeline/rs_render_node_map.h"
 #include "pipeline/rs_root_render_node.h"
@@ -136,6 +138,7 @@ void RSRenderThread::RequestNextVSync()
 {
     if (handler_) {
         RS_TRACE_FUNC();
+        FrameCollector::GetInstance().MarkFrameEvent(FrameEventType::WaitVsyncStart);
         VSyncReceiver::FrameCallback fcb = {
             .userData_ = this,
             .callback_ = std::bind(&RSRenderThread::OnVsync, this, std::placeholders::_1),
@@ -186,6 +189,7 @@ void RSRenderThread::RenderLoop()
 void RSRenderThread::OnVsync(uint64_t timestamp)
 {
     ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSRenderThread::OnVsync");
+    FrameCollector::GetInstance().MarkFrameEvent(FrameEventType::WaitVsyncEnd);
     mValue = (mValue + 1) % 2; // 1 and 2 is Calculated parameters
     RS_TRACE_INT("Vsync-client", mValue);
     timestamp_ = timestamp;
