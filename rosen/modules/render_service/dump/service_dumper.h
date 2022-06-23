@@ -33,7 +33,7 @@ template <typename Duration>
 using SysTime = std::chrono::time_point<std::chrono::system_clock, Duration>;
 using SysMicroSeconds = SysTime<std::chrono::microseconds>;
 
-inline uint64_t MicroSecondsSinceEpoch()
+inline int64_t MicroSecondsSinceEpoch()
 {
     SysMicroSeconds tmp = std::chrono::system_clock::now();
     return tmp.time_since_epoch().count();
@@ -113,7 +113,7 @@ private:
     {
         int status = 0;
         auto start = MicroSecondsSinceEpoch() / MICRO_SECS_PER_MILLI;
-        auto end = static_cast<int>(start) + timeOutMs_;
+        auto end = start + static_cast<int64_t>(timeOutMs_);
 
         char buf[PIPE_BUF] = {0};
         while (true) {
