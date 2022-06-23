@@ -239,11 +239,17 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const sk_sp<SkImage>& val)
         parcel.WriteUint32(pixmap.colorType());
         parcel.WriteUint32(pixmap.alphaType());
 
-        auto data = pixmap.colorSpace()->serialize();
-        parcel.WriteUint32(data->size());
-        if (!WriteToParcel(parcel, data->data(), data->size())) {
-            ROSEN_LOGE("RSMarshallingHelper::Marshalling SkImage WriteToParcel colorSpace failed");
-            return false;
+        if (pixmap.colorSpace() == nullptr) {
+            parcel.WriteUint32(0);
+            return true;
+        } else {
+            parcel.WriteUint32(1);
+            auto data = pixmap.colorSpace()->serialize();
+            parcel.WriteUint32(data->size());
+            if (!WriteToParcel(parcel, data->data(), data->size())) {
+                ROSEN_LOGE("RSMarshallingHelper::Marshalling SkImage WriteToParcel colorSpace failed");
+                return false;
+            }
         }
         return true;
     }
@@ -275,16 +281,21 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, sk_sp<SkImage>& val)
 
         SkColorType colorType = static_cast<SkColorType>(parcel.ReadUint32());
         SkAlphaType alphaType = static_cast<SkAlphaType>(parcel.ReadUint32());
+        sk_sp<SkColorSpace> colorSpace;
 
-        size_t size = parcel.ReadUint32();
-        const void* data = RSMarshallingHelper::ReadFromParcel(parcel, size);
-        if (data == nullptr) {
-            ROSEN_LOGE("failed RSMarshallingHelper::Unmarshalling SkData data");
-            return false;
-        }
-        auto colorSpace = SkColorSpace::Deserialize(data, size);
-        if (size >= MIN_DATA_SIZE) {
-            free(const_cast<void*>(data));
+        if (parcel.ReadUint32() == 0) {
+            colorSpace = nullptr;
+        } else {
+            size_t size = parcel.ReadUint32();
+            const void* data = RSMarshallingHelper::ReadFromParcel(parcel, size);
+            if (data == nullptr) {
+                ROSEN_LOGE("failed RSMarshallingHelper::Unmarshalling SkData data");
+                return false;
+            }
+            colorSpace = SkColorSpace::Deserialize(data, size);
+            if (size >= MIN_DATA_SIZE) {
+                free(const_cast<void*>(data));
+            }
         }
 
         SkImageInfo imageInfo = SkImageInfo::Make(width, height, colorType, alphaType, colorSpace);

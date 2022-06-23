@@ -40,6 +40,7 @@ RSTransactionData* RSTransactionData::Unmarshalling(Parcel& parcel)
 bool RSTransactionData::Marshalling(Parcel& parcel) const
 {
     bool success = true;
+    parcel.SetMaxCapacity(409600); // reset upper bound of parcel capacity to 400K(409600)
     success = success && parcel.WriteInt32(static_cast<int32_t>(commands_.size()));
     for (auto followType : followTypes_) {
         success = success && parcel.WriteUint32(static_cast<uint8_t>(followType));
