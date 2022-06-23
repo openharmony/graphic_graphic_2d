@@ -149,15 +149,13 @@ void RSRenderThread::RequestNextVSync()
 {
     if (handler_) {
         RS_TRACE_FUNC();
-        handler_->PostTask([this]() {
-            VSyncReceiver::FrameCallback fcb = {
-                .userData_ = this,
-                .callback_ = std::bind(&RSRenderThread::OnVsync, this, std::placeholders::_1),
-            };
-            if (receiver_ != nullptr) {
-                receiver_->RequestNextVSync(fcb);
-            }
-        });
+        VSyncReceiver::FrameCallback fcb = {
+            .userData_ = this,
+            .callback_ = std::bind(&RSRenderThread::OnVsync, this, std::placeholders::_1),
+        };
+        if (receiver_ != nullptr) {
+            receiver_->RequestNextVSync(fcb);
+        }
     }
 }
 
