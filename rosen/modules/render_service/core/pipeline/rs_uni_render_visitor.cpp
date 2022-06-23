@@ -193,8 +193,6 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
 
     auto transitionProperties = node.GetAnimationManager().GetTransitionProperties();
     RSPropertiesPainter::DrawTransitionProperties(transitionProperties, node.GetRenderProperties(), *canvas_);
-
-    node.SetTotalMatrix(canvas_->getTotalMatrix());
     ProcessBaseRenderNode(node);
 
     if (node.GetConsumer() != nullptr) {

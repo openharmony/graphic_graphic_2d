@@ -43,12 +43,12 @@ private:
         virtual void PrepareSurfaceRenderNode(RSSurfaceRenderNode &node) override {}
         virtual void PrepareCanvasRenderNode(RSCanvasRenderNode &node) override {}
         virtual void PrepareRootRenderNode(RSRootRenderNode& node) override {}
-        virtual void ProcessBaseRenderNode(RSBaseRenderNode &node) override {}
-        virtual void ProcessCanvasRenderNode(RSCanvasRenderNode& node) override {}
-        virtual void ProcessRootRenderNode(RSRootRenderNode& node) override {}
 
-        virtual void ProcessDisplayRenderNode(RSDisplayRenderNode &node) override;
-        virtual void ProcessSurfaceRenderNode(RSSurfaceRenderNode &node) override;
+        void ProcessBaseRenderNode(RSBaseRenderNode &node) override;
+        void ProcessCanvasRenderNode(RSCanvasRenderNode& node) override;
+        void ProcessRootRenderNode(RSRootRenderNode& node) override;
+        void ProcessDisplayRenderNode(RSDisplayRenderNode &node) override;
+        void ProcessSurfaceRenderNode(RSSurfaceRenderNode &node) override;
         void SetCanvas(SkCanvas* canvas);
         void IsDisplayNode(bool isDisplayNode)
         {
@@ -60,17 +60,32 @@ private:
             scaleY_ = scaleY;
         }
 
+        void SetUniRender(bool flag)
+        {
+            isUniRender_ = flag;
+        }
+
+        bool IsUniRender() const
+        {
+            return isUniRender_;
+        }
+
     private:
+        void ProcessSurfaceRenderNodeWithUni(RSSurfaceRenderNode &node);
+        void PorcessSurfaceRenderNodeWithoutUni(RSSurfaceRenderNode &node);
+        void DrawBufferOnCanvas(RSSurfaceRenderNode& node);
         void DrawSurface(RSSurfaceRenderNode &node);
         std::unique_ptr<RSPaintFilterCanvas> canvas_ = nullptr;
         bool isDisplayNode_ = false;
         float scaleX_ = 1.0f;
         float scaleY_ = 1.0f;
+        bool isUniRender_ = false;
     };
 
     std::unique_ptr<SkCanvas> CreateCanvas(const std::unique_ptr<Media::PixelMap>& pixelmap);
 
-    std::unique_ptr<Media::PixelMap> CreatePixelMapBySurfaceNode(std::shared_ptr<RSSurfaceRenderNode> node);
+    std::unique_ptr<Media::PixelMap> CreatePixelMapBySurfaceNode(std::shared_ptr<RSSurfaceRenderNode> node,
+        bool isUniRender = false);
 
     std::unique_ptr<Media::PixelMap> CreatePixelMapByDisplayNode(std::shared_ptr<RSDisplayRenderNode> node);
 

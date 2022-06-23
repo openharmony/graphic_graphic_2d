@@ -42,6 +42,11 @@ const std::set<std::string>& RSUniRenderJudgement::GetUniRenderEnabledList()
     return uniRenderEnabledList_;
 }
 
+bool RSUniRenderJudgement::IsUniRender()
+{
+    return RSUniRenderJudgement::GetUniRenderEnabledType() != UniRenderEnabledType::UNI_RENDER_DISABLED;
+}
+
 bool RSUniRenderJudgement::QueryClientEnabled(const std::string &bundleName)
 {
     switch (uniRenderEnabledType_) {
