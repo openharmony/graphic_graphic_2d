@@ -31,16 +31,34 @@ void VSyncCallBackListener::OnReadable(int32_t fileDescriptor)
     if (fileDescriptor < 0) {
         return;
     }
-    int64_t now;
-    ssize_t retVal = read(fileDescriptor, &now, sizeof(int64_t));
+
+    int64_t now = 0;
+    ssize_t ret = 0;
+    ssize_t dataCount = 0;
+    do {
+        // only take the latest timestamp
+        ret = read(fileDescriptor, &now, sizeof(int64_t));
+        if (ret == 0) {
+            return;
+        }
+        if (ret == -1) {
+            if (errno == EINTR) {
+                ret = 0;
+                continue;
+            }
+        } else {
+            dataCount += ret;
+        }
+    } while (ret != -1);
+
     VSyncCallback cb = nullptr;
     {
         std::lock_guard<std::mutex> locker(mtx_);
         cb = vsyncCallbacks_;
     }
-    VLOGD("retVal:%{public}ld, cb == nullptr:%{public}d", (long)retVal, (cb == nullptr));
-    if (retVal > 0 && cb != nullptr) {
-        ScopedBytrace func("ReceiveVsync");
+    VLOGD("dataCount:%{public}d, cb == nullptr:%{public}d", dataCount, (cb == nullptr));
+    ScopedBytrace func("ReceiveVsync, dataCount:" + std::to_string(dataCount) + "bytes, now:" + std::to_string(now));
+    if (dataCount > 0 && cb != nullptr) {
         cb(now, userData_);
     }
 }
@@ -69,6 +87,11 @@ VsyncError VSyncReceiver::Init()
     VsyncError ret = connection_->GetReceiveFd(fd_);
     if (ret != VSYNC_ERROR_OK) {
         return ret;
+    }
+
+    int32_t retVal = fcntl(fd_, F_SETFL, O_NONBLOCK); // set fd to NonBlock mode
+    if (retVal != 0) {
+        VLOGW("%{public}s fcntl set fd_ NonBlock failed", __func__);
     }
 
     if (looper_ == nullptr) {
