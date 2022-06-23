@@ -24,12 +24,14 @@ class IBufferConsumerListener : public RefBase {
 public:
     virtual ~IBufferConsumerListener() = default;
     virtual void OnBufferAvailable() = 0;
+    virtual void OnTunnelHandleChange() {};
 };
 
 class IBufferConsumerListenerClazz {
 public:
     virtual ~IBufferConsumerListenerClazz() = default;
     virtual void OnBufferAvailable() = 0;
+    virtual void OnTunnelHandleChange() {};
 };
 } // namespace OHOS
 

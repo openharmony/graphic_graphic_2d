@@ -546,4 +546,37 @@ HWTEST_F(ProducerSurfaceTest, metaDataSet001, Function | MediumTest | Level2)
     ret = pSurface->CancelBuffer(buffer);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 }
+
+/*
+* Function: SetTunnelHandle and GetTunnelHandle
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call GetTunnelhandle and check ret
+*                  2. call SetTunnelhandle with abnormal parameters and check ret
+*                  3. call SetTunnelhandle with normal parameters and check ret
+ */
+HWTEST_F(ProducerSurfaceTest, tunnelHandle001, Function | MediumTest | Level2)
+{
+    ExtDataHandle *handle = nullptr;
+    ASSERT_EQ(pSurface->GetTunnelHandle(&handle), OHOS::GSERROR_NOT_SUPPORT);
+
+    GSError ret = pSurface->SetTunnelHandle(handle);
+    ASSERT_EQ(ret, OHOS::GSERROR_INVALID_ARGUMENTS);
+
+    handle = new ExtDataHandle();
+    handle->fd = -1;
+    handle->reserveInts = 0;
+    ret = pSurface->SetTunnelHandle(handle);
+    ASSERT_EQ(ret, OHOS::GSERROR_INVALID_ARGUMENTS);
+
+    handle->reserveInts = 1;
+    handle->reserve[0] = 0;
+    ret = pSurface->SetTunnelHandle(handle);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
+
+    ret = pSurface->SetTunnelHandle(handle);
+    ASSERT_EQ(ret, OHOS::GSERROR_NO_ENTRY);
+    delete handle;
+}
 }

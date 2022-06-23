@@ -358,4 +358,17 @@ GSError ProducerSurface::GetMetaDataSet(uint32_t sequence, HDRMetadataKey &key,
 {
     return GSERROR_NOT_SUPPORT;
 }
+
+GSError ProducerSurface::SetTunnelHandle(const ExtDataHandle *handle)
+{
+    if (handle == nullptr || handle->reserveInts == 0) {
+        return GSERROR_INVALID_ARGUMENTS;
+    }
+    return producer_->SetTunnelHandle(handle);
+}
+
+GSError ProducerSurface::GetTunnelHandle(ExtDataHandle **handle) const
+{
+    return GSERROR_NOT_SUPPORT;
+}
 } // namespace OHOS

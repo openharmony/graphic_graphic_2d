@@ -110,13 +110,15 @@ public:
                              std::vector<bool> &supporteds) const;
 
     GSError SetScalingMode(uint32_t sequence, ScalingMode scalingMode);
-    GSError GetScalingMode(uint32_t sequence, ScalingMode &scalingMode) const;
+    GSError GetScalingMode(uint32_t sequence, ScalingMode &scalingMode);
     GSError SetMetaData(uint32_t sequence, const std::vector<HDRMetaData> &metaData);
     GSError SetMetaDataSet(uint32_t sequence, HDRMetadataKey key,
                            const std::vector<uint8_t> &metaData);
-    GSError GetMetaData(uint32_t sequence, std::vector<HDRMetaData> &metaData) const;
+    GSError GetMetaData(uint32_t sequence, std::vector<HDRMetaData> &metaData);
     GSError GetMetaDataSet(uint32_t sequence, HDRMetadataKey &key,
-                           std::vector<uint8_t> &metaData) const;
+                           std::vector<uint8_t> &metaData);
+    GSError SetTunnelHandle(const ExtDataHandle *handle);
+    GSError GetTunnelHandle(ExtDataHandle **handle) const;
 
 private:
     GSError AllocBuffer(sptr<SurfaceBuffer>& buffer, const BufferRequestConfig &config);
@@ -152,6 +154,7 @@ private:
     OnDeleteBufferFunc onBufferDelete_ = nullptr;
     bool isShared_ = false;
     std::condition_variable waitReqCon_;
+    ExtDataHandle *tunnelHandle_ = nullptr;
 };
 }; // namespace OHOS
 

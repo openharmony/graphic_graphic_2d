@@ -53,6 +53,7 @@ BufferQueueProducer::BufferQueueProducer(sptr<BufferQueue>& bufferQueue)
     memberFuncMap_[BUFFER_PRODUCER_SET_SCALING_MODE] = &BufferQueueProducer::SetScalingModeRemote;
     memberFuncMap_[BUFFER_PRODUCER_SET_METADATA] = &BufferQueueProducer::SetMetaDataRemote;
     memberFuncMap_[BUFFER_PRODUCER_SET_METADATASET] = &BufferQueueProducer::SetMetaDataSetRemote;
+    memberFuncMap_[BUFFER_PRODUCER_SET_TUNNEL_HANDLE] = &BufferQueueProducer::SetTunnelHandleRemote;
 }
 
 BufferQueueProducer::~BufferQueueProducer()
@@ -300,6 +301,16 @@ int32_t BufferQueueProducer::SetMetaDataSetRemote(MessageParcel &arguments, Mess
     return 0;
 }
 
+int32_t BufferQueueProducer::SetTunnelHandleRemote(MessageParcel &arguments, MessageParcel &reply,
+                                                   MessageOption &option)
+{
+    ExtDataHandle *handle = nullptr;
+    ReadExtDataHandle(arguments, &handle);
+    GSError sret = SetTunnelHandle(handle);
+    reply.WriteInt32(sret);
+    return 0;
+}
+
 GSError BufferQueueProducer::RequestBuffer(const BufferRequestConfig &config, sptr<BufferExtraData> &bedata,
                                            RequestBufferReturnValue &retval)
 {
@@ -502,5 +513,13 @@ GSError BufferQueueProducer::SetMetaDataSet(uint32_t sequence, HDRMetadataKey ke
     }
 
     return bufferQueue_->SetMetaDataSet(sequence, key, metaData);
+}
+
+GSError BufferQueueProducer::SetTunnelHandle(const ExtDataHandle *handle)
+{
+    if (bufferQueue_ == nullptr) {
+        return GSERROR_INVALID_ARGUMENTS;
+    }
+    return bufferQueue_->SetTunnelHandle(handle);
 }
 }; // namespace OHOS

@@ -371,4 +371,17 @@ GSError BufferClientProducer::SetMetaDataSet(uint32_t sequence, HDRMetadataKey k
 
     return GSERROR_OK;
 }
+
+GSError BufferClientProducer::SetTunnelHandle(const ExtDataHandle *handle)
+{
+    DEFINE_MESSAGE_VARIABLES(arguments, reply, option, BLOGE);
+    WriteExtDataHandle(arguments, handle);
+    SEND_REQUEST(BUFFER_PRODUCER_SET_TUNNEL_HANDLE, arguments, reply, option);
+    int32_t ret = reply.ReadInt32();
+    if (ret != GSERROR_OK) {
+        BLOGN_FAILURE("Remote return %{public}d", ret);
+        return (GSError)ret;
+    }
+    return GSERROR_OK;
+}
 }; // namespace OHOS

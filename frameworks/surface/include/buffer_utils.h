@@ -23,8 +23,8 @@
 #include "surface_buffer.h"
 
 namespace OHOS {
-void ReadFence(MessageParcel &parcel, int32_t &fence);
-void WriteFence(MessageParcel &parcel, int32_t fence);
+void ReadFileDescriptor(MessageParcel &parcel, int32_t &fd);
+void WriteFileDescriptor(MessageParcel &parcel, int32_t fd);
 
 void ReadRequestConfig(MessageParcel &parcel, BufferRequestConfig &config);
 void WriteRequestConfig(MessageParcel &parcel, const BufferRequestConfig  &config);
@@ -43,6 +43,10 @@ void WriteHDRMetaData(MessageParcel &parcel, const std::vector<HDRMetaData> &met
 
 void ReadHDRMetaDataSet(MessageParcel &parcel, std::vector<uint8_t> &metaData);
 void WriteHDRMetaDataSet(MessageParcel &parcel, const std::vector<uint8_t> &metaData);
+
+void ReadExtDataHandle(MessageParcel &parcel, ExtDataHandle **handle);
+void WriteExtDataHandle(MessageParcel &parcel, const ExtDataHandle *handle);
+GSError FreeExtDataHandle(ExtDataHandle *handle);
 } // namespace OHOS
 
 #endif // FRAMEWORKS_SURFACE_INCLUDE_BUFFER_UTILS_H

@@ -74,6 +74,7 @@ public:
     GSError SetMetaData(uint32_t sequence, const std::vector<HDRMetaData> &metaData) override;
     GSError SetMetaDataSet(uint32_t sequence, HDRMetadataKey key,
                            const std::vector<uint8_t> &metaData) override;
+    GSError SetTunnelHandle(const ExtDataHandle *handle) override;
 
 private:
     GSError CheckConnectLocked();
@@ -99,6 +100,7 @@ private:
     int32_t SetScalingModeRemote(MessageParcel &arguments, MessageParcel &reply, MessageOption &option);
     int32_t SetMetaDataRemote(MessageParcel &arguments, MessageParcel &reply, MessageOption &option);
     int32_t SetMetaDataSetRemote(MessageParcel &arguments, MessageParcel &reply, MessageOption &option);
+    int32_t SetTunnelHandleRemote(MessageParcel &arguments, MessageParcel &reply, MessageOption &option);
 
     using BufferQueueProducerFunc = int32_t (BufferQueueProducer::*)(MessageParcel &arguments,
         MessageParcel &reply, MessageOption &option);

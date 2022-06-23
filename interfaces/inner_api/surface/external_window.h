@@ -226,6 +226,18 @@ int32_t OH_NativeWindow_NativeWindowSetMetaData(OHNativeWindow *window, uint32_t
 int32_t OH_NativeWindow_NativeWindowSetMetaDataSet(OHNativeWindow *window, uint32_t sequence, OHHDRMetadataKey key,
                                                    int32_t size, const uint8_t *metaData);
 
+/**
+ * @brief Sets tunnel handle of a native window.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeWindow
+ * @param window Indicates the pointer to a <b>NativeWindow</b> instance.
+ * @param handle Indicates the pointer to a <b>OHExtDataHandle</b>.
+ * @return Returns an error code defined in <b>GSError</b>.
+ * @since 8
+ * @version 1.0
+ */
+int32_t OH_NativeWindow_NativeWindowSetTunnelHandle(OHNativeWindow *window, const OHExtDataHandle *handle);
+
 #ifdef __cplusplus
 }
 #endif

@@ -100,6 +100,12 @@ typedef struct {
     float value;
 } OHHDRMetaData;
 
+typedef struct {
+    int32_t fd;
+    uint32_t reserveInts;
+    int32_t reserve[0];
+} OHExtDataHandle;
+
 // pSurface type is OHOS::sptr<OHOS::Surface>*
 OHNativeWindow* CreateNativeWindowFromSurface(void* pSurface);
 void DestoryNativeWindow(OHNativeWindow* window);
@@ -129,6 +135,7 @@ int32_t NativeWindowSetMetaData(OHNativeWindow *window, uint32_t sequence, int32
                                 const OHHDRMetaData *metaData);
 int32_t NativeWindowSetMetaDataSet(OHNativeWindow *window, uint32_t sequence, OHHDRMetadataKey key,
                                    int32_t size, const uint8_t *metaData);
+int32_t NativeWindowSetTunnelHandle(OHNativeWindow *window, const OHExtDataHandle *handle);
 
 #ifdef __cplusplus
 }

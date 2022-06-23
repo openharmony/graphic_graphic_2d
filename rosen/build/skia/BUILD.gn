@@ -86,6 +86,7 @@ rosen_skia_common_ccflags = [
   "-Wno-implicit-fallthrough",
   "-Wno-suggest-destructor-override",
   "-Wno-suggest-override",
+  "-Wno-psabi",
 
   # "-fvisibility-inlines-hidden",
   "-Os",

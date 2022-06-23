@@ -292,4 +292,17 @@ GSError ConsumerSurface::GetMetaDataSet(uint32_t sequence, HDRMetadataKey &key,
 {
     return consumer_->GetMetaDataSet(sequence, key, metaData);
 }
+
+GSError ConsumerSurface::SetTunnelHandle(const ExtDataHandle *handle)
+{
+    if (handle == nullptr || handle->reserveInts == 0) {
+        return GSERROR_INVALID_ARGUMENTS;
+    }
+    return producer_->SetTunnelHandle(handle);
+}
+
+GSError ConsumerSurface::GetTunnelHandle(ExtDataHandle **handle) const
+{
+    return consumer_->GetTunnelHandle(handle);
+}
 } // namespace OHOS

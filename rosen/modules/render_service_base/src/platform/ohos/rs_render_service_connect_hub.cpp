@@ -141,6 +141,7 @@ void RSRenderServiceConnectHub::ConnectDied()
     renderService_ = nullptr;
     conn_ = nullptr;
     deathRecipient_ = nullptr;
+    token_ = nullptr;
 }
 
 void RSRenderServiceConnectHub::RenderServiceDeathRecipient::OnRemoteDied(const wptr<IRemoteObject>& remote)

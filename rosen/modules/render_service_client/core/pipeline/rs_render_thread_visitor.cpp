@@ -37,6 +37,9 @@
 #include "transaction/rs_transaction_proxy.h"
 #include "ui/rs_surface_extractor.h"
 #include "ui/rs_surface_node.h"
+#include "overdraw/rs_cpu_overdraw_canvas_listener.h"
+#include "overdraw/rs_gpu_overdraw_canvas_listener.h"
+#include "overdraw/rs_overdraw_controller.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -66,6 +69,9 @@ void RSRenderThreadVisitor::PrepareRootRenderNode(RSRootRenderNode& node)
 
 void RSRenderThreadVisitor::PrepareCanvasRenderNode(RSCanvasRenderNode& node)
 {
+    if (!node.GetRenderProperties().GetVisible()) {
+        return;
+    }
     bool dirtyFlag = dirtyFlag_;
     auto nodeParent = node.GetParent().lock();
     std::shared_ptr<RSRenderNode> rsParent = nullptr;
@@ -181,31 +187,29 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
         ProcessCanvasRenderNode(node);
         return;
     }
+    auto ptr = RSNodeMap::Instance().GetNode<RSSurfaceNode>(node.GetRSSurfaceNodeId());
+    if (ptr == nullptr) {
+        ROSEN_LOGE("ProcessRoot: No valid RSSurfaceNode id");
+        return;
+    }
     if (!node.GetRenderProperties().GetVisible()) {
-        ROSEN_LOGE("No valid RSRootRenderNode");
+        ROSEN_LOGI("ProcessRoot %s: Invisible", ptr->GetName().c_str());
         return;
     }
     if (node.GetSurfaceWidth() <= 0 || node.GetSurfaceHeight() <= 0) {
-        ROSEN_LOGE("RSRootRenderNode have negative width or height [%d %d]", node.GetSurfaceWidth(),
-            node.GetSurfaceHeight());
-        return;
-    }
-    auto ptr = RSNodeMap::Instance().GetNode<RSSurfaceNode>(node.GetRSSurfaceNodeId());
-    if (ptr == nullptr) {
-        ROSEN_LOGE("No valid RSSurfaceNode");
+        ROSEN_LOGE("ProcessRoot %s: Negative width or height [%d %d]", ptr->GetName().c_str(),
+            node.GetSurfaceWidth(), node.GetSurfaceHeight());
         return;
     }
 
     auto surfaceNodeColorSpace = ptr->GetColorSpace();
-
     std::shared_ptr<RSSurface> rsSurface = RSSurfaceExtractor::ExtractRSSurface(ptr);
     if (rsSurface == nullptr) {
-        ROSEN_LOGE("No RSSurface found");
+        ROSEN_LOGE("ProcessRoot %s: No RSSurface found", ptr->GetName().c_str());
         return;
     }
 
     auto rsSurfaceColorSpace = rsSurface->GetColorSpace();
-
     if (surfaceNodeColorSpace != rsSurfaceColorSpace) {
         ROSEN_LOGD("Set new colorspace %d to rsSurface", surfaceNodeColorSpace);
         rsSurface->SetColorSpace(surfaceNodeColorSpace);
@@ -215,17 +219,24 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
     RenderContext* rc = RSRenderThread::Instance().GetRenderContext();
     rsSurface->SetRenderContext(rc);
 #endif
-    uiTimestamp_ = RSRenderThread::Instance().GetPrevTimestamp();
+    uiTimestamp_ = RSRenderThread::Instance().GetUITimestamp();
     RS_TRACE_BEGIN("rsSurface->RequestFrame");
     auto surfaceFrame = rsSurface->RequestFrame(node.GetSurfaceWidth(), node.GetSurfaceHeight(), uiTimestamp_);
     RS_TRACE_END();
     if (surfaceFrame == nullptr) {
-        ROSEN_LOGE("Request Frame Failed");
+        ROSEN_LOGI("ProcessRoot %s: Request Frame Failed", ptr->GetName().c_str());
         return;
     }
 
     auto skSurface = surfaceFrame->GetSurface();
     canvas_ = new RSPaintFilterCanvas(skSurface.get());
+
+    auto &overdrawController = RSOverdrawController::GetInstance();
+    std::shared_ptr<RSCanvasListener> overdrawListener = nullptr;
+    overdrawListener = overdrawController.SetHook<RSGPUOverdrawCanvasListener>(canvas_);
+    if (overdrawListener == nullptr) {
+        overdrawListener = overdrawController.SetHook<RSCPUOverdrawCanvasListener>(canvas_);
+    }
 
     canvas_->clipRect(SkRect::MakeWH(node.GetSurfaceWidth(), node.GetSurfaceHeight()));
     canvas_->clear(SK_ColorTRANSPARENT);
@@ -242,10 +253,10 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
     if (childSurfaceNodeIds_ != node.childSurfaceNodeIds_) {
         auto thisSurfaceNodeId = node.GetRSSurfaceNodeId();
         std::unique_ptr<RSCommand> command = std::make_unique<RSBaseNodeClearChild>(thisSurfaceNodeId);
-        SendCommandFromRT(command, thisSurfaceNodeId, FollowType::NONE);
+        SendCommandFromRT(command, thisSurfaceNodeId, FollowType::FOLLOW_TO_SELF);
         for (const auto& childSurfaceNodeId : childSurfaceNodeIds_) {
             command = std::make_unique<RSBaseNodeAddChild>(thisSurfaceNodeId, childSurfaceNodeId, -1);
-            SendCommandFromRT(command, childSurfaceNodeId, FollowType::NONE);
+            SendCommandFromRT(command, thisSurfaceNodeId, FollowType::FOLLOW_TO_SELF);
         }
         node.childSurfaceNodeIds_ = std::move(childSurfaceNodeIds_);
     }
@@ -259,6 +270,10 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
     if (dirtyManager_.IsDirty() && dirtyManager_.IsDebugEnabled()) {
         ROSEN_LOGD("ProcessRootRenderNode id %d is dirty", node.GetId());
         DrawDirtyRegion();
+    }
+
+    if (overdrawListener != nullptr) {
+        overdrawListener->Draw();
     }
 
     RS_TRACE_BEGIN("rsSurface->FlushFrame");
@@ -361,10 +376,10 @@ void RSRenderThreadVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
     if (childSurfaceNodeIds_ != node.childSurfaceNodeIds_) {
         auto thisSurfaceNodeId = node.GetId();
         std::unique_ptr<RSCommand> command = std::make_unique<RSBaseNodeClearChild>(thisSurfaceNodeId);
-        SendCommandFromRT(command, thisSurfaceNodeId, FollowType::NONE);
+        SendCommandFromRT(command, thisSurfaceNodeId, FollowType::FOLLOW_TO_SELF);
         for (const auto& childSurfaceNodeId : childSurfaceNodeIds_) {
             command = std::make_unique<RSBaseNodeAddChild>(thisSurfaceNodeId, childSurfaceNodeId, -1);
-            SendCommandFromRT(command, childSurfaceNodeId, FollowType::NONE);
+            SendCommandFromRT(command, thisSurfaceNodeId, FollowType::FOLLOW_TO_SELF);
         }
         node.childSurfaceNodeIds_ = std::move(childSurfaceNodeIds_);
     }

@@ -159,4 +159,12 @@ GSError BufferQueueConsumer::GetMetaDataSet(uint32_t sequence, HDRMetadataKey &k
     }
     return bufferQueue_->GetMetaDataSet(sequence, key, metaData);
 }
+
+GSError BufferQueueConsumer::GetTunnelHandle(ExtDataHandle **handle) const
+{
+    if (bufferQueue_ == nullptr) {
+        return GSERROR_INVALID_ARGUMENTS;
+    }
+    return bufferQueue_->GetTunnelHandle(handle);
+}
 } // namespace OHOS

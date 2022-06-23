@@ -106,6 +106,22 @@ HWTEST_F(HdiOutputTest, GetOutputDamageNum001, Function | MediumTest| Level3)
     ASSERT_EQ(HdiOutputTest::hdiOutput_->GetOutputDamageNum(), 1u);
 }
 
+/*
+* Function: GetLayerCompCapacity001
+* Type: Function
+* Rank: Important(3)
+* EnvConditions: N/A
+* CaseDescription: 1. call SetLayerCompCapacity
+*                  2. call GetLayerCompCapacity
+*                  3. check ret
+ */
+HWTEST_F(HdiOutputTest, GetLayerCompCapacity001, Function | MediumTest| Level3)
+{
+    uint32_t layerCompositionCapacity = 8;
+    HdiOutputTest::hdiOutput_->SetLayerCompCapacity(layerCompositionCapacity);
+    ASSERT_EQ(HdiOutputTest::hdiOutput_->GetLayerCompCapacity(), 8u);
+}
+
 /**
  * @tc.name: GetProducerSurface001
  * @tc.desc: Verify the GetProducerSurface of hdioutput

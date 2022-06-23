@@ -22,8 +22,8 @@
 #include "include/core/SkRect.h"
 #include "pipeline/rs_base_render_node.h"
 #include "pipeline/rs_display_render_node.h"
+#include "pipeline/rs_divided_render_util.h"
 #include "pipeline/rs_main_thread.h"
-#include "pipeline/rs_render_service_util.h"
 #include "pipeline/rs_render_service_connection.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_log.h"
@@ -217,7 +217,7 @@ void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::ProcessSurfaceRenderNode(RSS
     // clear SortedChildren, it will be generated again in next frame
     node.ResetSortedChildren();
 
-    auto param = RsRenderServiceUtil::CreateBufferDrawParam(node);
+    auto param = RSDividedRenderUtil::CreateBufferDrawParam(node);
     if (!isDisplayNode_) {
         if (param.clipRect.isEmpty()) {
             return;
@@ -227,7 +227,7 @@ void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::ProcessSurfaceRenderNode(RSS
             (*std::static_pointer_cast<RSSurfaceRenderNode>(existedParent)).GetBuffer() != nullptr) {
             param.matrix = node.GetContextMatrix();
             auto& parent = *std::static_pointer_cast<RSSurfaceRenderNode>(existedParent);
-            auto parentRect = RsRenderServiceUtil::CreateBufferDrawParam(parent).clipRect;
+            auto parentRect = RSDividedRenderUtil::CreateBufferDrawParam(parent).clipRect;
             //Changes the clip area from absolute to relative to the parent window and deal with clip area with scale
             //Based on the origin of the parent window.
             param.clipRect.offsetTo(param.clipRect.left() - parentRect.left(), param.clipRect.top() - parentRect.top());
@@ -240,7 +240,7 @@ void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::ProcessSurfaceRenderNode(RSS
                 node.GetRenderProperties().GetBoundsWidth(), node.GetRenderProperties().GetBoundsHeight());
             param.matrix.preTranslate(-param.matrix.getTranslateX() * scaleX_, -param.matrix.getTranslateY() * scaleY_);
             AdjustSurfaceTransform(param, surfaceTransform);
-            RsRenderServiceUtil::DrawBuffer(*canvas_, param,
+            RSDividedRenderUtil::DrawBuffer(*canvas_, param,
                 [this](SkCanvas& canvas, BufferDrawParam& params) -> void {
                     canvas.scale(scaleX_, scaleY_);
                 });
@@ -250,7 +250,7 @@ void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::ProcessSurfaceRenderNode(RSS
             param.dstRect = SkRect::MakeXYWH(0, 0, node.GetRenderProperties().GetBoundsWidth(),
                 node.GetRenderProperties().GetBoundsHeight());
             AdjustSurfaceTransform(param, surfaceTransform);
-            RsRenderServiceUtil::DrawBuffer(*canvas_, param, [this](SkCanvas& canvas, BufferDrawParam& params) -> void {
+            RSDividedRenderUtil::DrawBuffer(*canvas_, param, [this](SkCanvas& canvas, BufferDrawParam& params) -> void {
                     canvas.scale(scaleX_, scaleY_);
                 });
         }
@@ -263,7 +263,7 @@ void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::ProcessSurfaceRenderNode(RSS
         if (surfaceTransform == TransformType::ROTATE_90 || surfaceTransform == TransformType::ROTATE_270) {
             param.dstRect.setWH(param.dstRect.height(), param.dstRect.width());
         }
-        RsRenderServiceUtil::DrawBuffer(*canvas_, param, [this](SkCanvas& canvas, BufferDrawParam& params) -> void {
+        RSDividedRenderUtil::DrawBuffer(*canvas_, param, [this](SkCanvas& canvas, BufferDrawParam& params) -> void {
             canvas.translate(floor(params.dstRect.left() * scaleX_ - params.dstRect.left()),
                 floor(params.dstRect.top() * scaleY_ - params.dstRect.top()));
             canvas.scale(scaleX_, scaleY_);

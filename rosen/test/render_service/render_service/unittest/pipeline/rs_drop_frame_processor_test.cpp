@@ -16,8 +16,8 @@
 #include "gtest/gtest.h"
 #include "limit_number.h"
 #include "surface.h"
+#include "pipeline/rs_base_render_util.h"
 #include "pipeline/rs_render_service_listener.h"
-#include "pipeline/rs_render_service_util.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -114,7 +114,7 @@ HWTEST_F(RSDropFrameProcessorTest, TestDropFrame001, TestSize.Level1)
     }
     
     // create RSHardwareProcessor
-    RsRenderServiceUtil::DropFrameProcess(*rsNode.get());
+    RSBaseRenderUtil::DropFrameProcess(*rsNode.get());
     ASSERT_EQ(2, rsNode->GetAvailableBufferCount());
 }
 } // namespace OHOS::Rosen

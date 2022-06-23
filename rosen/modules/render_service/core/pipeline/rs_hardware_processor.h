@@ -26,7 +26,6 @@
 
 #include "pipeline/rs_base_render_node.h"
 #include "pipeline/rs_processor.h"
-#include "pipeline/rs_render_service_util.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "screen_manager/rs_screen_manager.h"
 

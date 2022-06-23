@@ -18,14 +18,15 @@
 
 #include <cinttypes>
 #include <securec.h>
-#include "rs_trace.h"
+#include "include/core/SkMatrix.h"
 #include "sync_fence.h"
 
-#include "include/core/SkMatrix.h"
+#include "common/rs_obj_abs_geometry.h"
+#include "pipeline/rs_divided_render_util.h"
 #include "pipeline/rs_main_thread.h"
-#include "pipeline/rs_render_service_util.h"
 #include "platform/common/rs_log.h"
 #include "platform/ohos/backend/rs_surface_ohos_raster.h"
+#include "rs_trace.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -109,19 +110,19 @@ bool RSSoftwareProcessor::GenerateParamAndDrawBuffer(RSSurfaceRenderNode& node)
         RS_LOGE("RsDebug RSSoftwareProcessor::ProcessSurface geoPtr == nullptr");
         return false;
     }
-    node.SetDstRect({geoPtr->GetAbsRect().left_ - offsetX_, geoPtr->GetAbsRect().top_ - offsetY_,
-        geoPtr->GetAbsRect().width_, geoPtr->GetAbsRect().height_});
+    node.SetDstRect({node.GetDstRect().left_ - offsetX_, node.GetDstRect().top_ - offsetY_,
+        node.GetDstRect().width_, node.GetDstRect().height_});
     BufferDrawParam params;
     SkPaint paint;
     paint.setAlphaf(node.GetGlobalAlpha());
     if (GetMirror()) {
         RS_LOGI("RSSoftwareProcessor::ProcessSurface mirrorScreen is not support rotation");
-        params = RsRenderServiceUtil::CreateBufferDrawParam(node, SkMatrix(), ScreenRotation::ROTATION_0, paint);
+        params = RSDividedRenderUtil::CreateBufferDrawParam(node, SkMatrix(), ScreenRotation::ROTATION_0, paint);
     } else {
-        params = RsRenderServiceUtil::CreateBufferDrawParam(node, currScreenInfo_.rotationMatrix, rotation_, paint);
+        params = RSDividedRenderUtil::CreateBufferDrawParam(node, currScreenInfo_.rotationMatrix, rotation_, paint);
     }
     
-    RsRenderServiceUtil::DrawBuffer(*canvas_, params);
+    RSDividedRenderUtil::DrawBuffer(*canvas_, params);
     return true;
 }
 } // namespace Rosen

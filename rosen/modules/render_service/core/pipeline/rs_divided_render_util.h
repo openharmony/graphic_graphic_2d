@@ -18,23 +18,17 @@
 
 #include <surface.h>
 #include "display_type.h"
-#include "hdi_backend.h"
-#include "hdi_layer_info.h"
 #include "include/core/SkCanvas.h"
-#include "include/core/SkImage.h"
 #include "include/core/SkMatrix.h"
 #include "include/core/SkRect.h"
 
-#include "common/rs_obj_abs_geometry.h"
-#include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_surface_render_node.h"
-#include "property/rs_transition_properties.h"
 #include "screen_manager/screen_types.h"
 #include "sync_fence.h"
-#ifdef RS_ENABLE_GL
+#ifdef RS_ENABLE_EGLIMAGE
 #include "rs_egl_image_manager.h"
-#endif // RS_ENABLE_GL
+#endif // RS_ENABLE_EGLIMAGE
 
 namespace OHOS {
 
@@ -52,22 +46,9 @@ struct BufferDrawParam {
     ColorGamut targetColorGamut = ColorGamut::COLOR_GAMUT_SRGB;
 };
 
-struct ComposeInfo {
-    IRect srcRect;
-    IRect dstRect;
-    IRect visibleRect;
-    int32_t zOrder{0};
-    LayerAlpha alpha;
-    sptr<SurfaceBuffer> buffer;
-    sptr<SyncFence> fence = SyncFence::INVALID_FENCE;
-    BlendType blendType;
-};
-
-class RsRenderServiceUtil {
+class RSDividedRenderUtil {
 public:
     using CanvasPostProcess = std::function<void(RSPaintFilterCanvas&, BufferDrawParam&)>;
-    static void ComposeSurface(std::shared_ptr<HdiLayerInfo> layer, sptr<Surface> consumerSurface,
-        std::vector<LayerInfoPtr>& layers, ComposeInfo info, RSBaseRenderNode* node = nullptr);
     static void DrawBuffer(RSPaintFilterCanvas& canvas, BufferDrawParam& bufferDrawParam,
         CanvasPostProcess process = nullptr);
 
@@ -81,21 +62,11 @@ public:
     static void DealAnimation(RSPaintFilterCanvas& canvas, RSSurfaceRenderNode& node, BufferDrawParam& params,
         const Vector2f& center);
     static void InitEnableClient();
-    static bool CreateYuvToRGBABitMap(sptr<OHOS::SurfaceBuffer> buffer, std::vector<uint8_t>& newBuffer,
-        SkBitmap& bitmap);
-
-    static void DropFrameProcess(RSSurfaceHandler& surfaceHandler);
-    static bool ConsumeAndUpdateBuffer(RSSurfaceHandler& surfaceHandler);
-    static bool ReleaseBuffer(RSSurfaceHandler& surfaceHandler);
+    static bool IsNeedClient(RSSurfaceRenderNode* node);
 
 private:
     static SkMatrix GetCanvasTransform(const RSSurfaceRenderNode& node, const SkMatrix& canvasMatrix,
         ScreenRotation rotation, SkRect clipRect);
-    static bool IsNeedClient(RSSurfaceRenderNode* node);
-    static bool CreateBitmap(sptr<OHOS::SurfaceBuffer> buffer, SkBitmap& bitmap);
-
-    static bool CreateNewColorGamutBitmap(sptr<OHOS::SurfaceBuffer> buffer, std::vector<uint8_t>& newGamutBuffer,
-        SkBitmap& bitmap, ColorGamut srcGamut, ColorGamut dstGamut);
     static bool enableClient;
 };
 } // Rosen

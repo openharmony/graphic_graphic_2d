@@ -119,13 +119,17 @@ void RSRenderThread::RecvTransactionData(std::unique_ptr<RSTransactionData>& tra
     {
         std::unique_lock<std::mutex> cmdLock(cmdMutex_);
         std::string str = "RecvCommands ptr:" + std::to_string(reinterpret_cast<uintptr_t>(transactionData.get()));
+        commandTimestamp_ = transactionData->GetTimestamp();
         ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, str.c_str());
         cmds_.emplace_back(std::move(transactionData));
         ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
     }
     // [PLANNING]: process in next vsync (temporarily)
     RSRenderThread::Instance().RequestNextVSync();
-    jankDetector_.UpdateUiDrawFrameMsg(uiStartTimeStamp_, jankDetector_.GetSysTimeNs(), uiDrawAbilityName_);
+    if (activeWindowCnt_.load() > 0) {
+        jankDetector_.UpdateUiDrawFrameMsg(uiStartTimeStamp_, jankDetector_.GetSysTimeNs(), uiDrawAbilityName_);
+    }
+    uiStartTimeStamp_ = 0;
 }
 
 void RSRenderThread::RequestNextVSync()
@@ -201,20 +205,47 @@ void RSRenderThread::UpdateWindowStatus(bool active)
     ROSEN_LOGD("RSRenderThread UpdateWindowStatus %d, cur activeWindowCnt_ %d", active, activeWindowCnt_.load());
 }
 
-void RSRenderThread::UpdateUiDrawFrameMsg(uint64_t startTimeStamp, const std::string& abilityName)
+void RSRenderThread::UpdateUiDrawFrameMsg(const std::string& abilityName)
 {
-    uiStartTimeStamp_ = startTimeStamp;
+    uiStartTimeStamp_ = jankDetector_.GetSysTimeNs();
     uiDrawAbilityName_ = abilityName;
 }
 
 void RSRenderThread::ProcessCommands()
 {
+    // Attention: there are two situations
+    // 1. when commandTimestamp_ != 0, it means that UIDirector has called "RSRenderThread::Instance().RequestNextVSync()",
+    // which equals there are some commands form UIThread need to be executed.
+    // To make commands from UIThread sync with buffer flushed by RenderThread,
+    // we choose commandTimestamp_ as uiTimestamp_ which would be used in RenderThreadVisitor when we call flushFrame.
+    // 2. when cmds_.empty() is true or commandTimestamp_ = 0,
+    // it means that some thread except UIThread like RSRenderThread::Animate
+    // has called "RSRenderThread::Instance().RequestNextVSync()", which equals that some commands form RenderThread need to be executed.
+    // To make commands from RenderThread sync with buffer flushed by RenderThread,
+    // we choose (prevTimestamp_ - 1) as uiTimestamp_ which would be used in RenderThreadVisitor when we call flushFrame.
+
+    // The reason why prevTimestamp_ need to be minues 1 is that timestamp used in UIThread is always less than (for now) timestamp used in RenderThread.
+    // If we do not do this,
+    // when RenderThread::Animate excute flushFrame and use prevTimestamp_ as buffer timestamp which equals T0,
+    // UIDirector send messages in the same vysnc period, and the commandTimestamp_ would also be T0,
+    // RenderService would excute commands from UIDirector and composite buffer which rendering is executed by RSRenderThread::Animate
+    // for they have the same timestamp.
+    // To avoid this situation, we should always use "prevTimestamp_ - 1".
+
     std::unique_lock<std::mutex> cmdLock(cmdMutex_);
     if (cmds_.empty()) {
+        uiTimestamp_ = prevTimestamp_ - 1;
         return;
     }
     if (RsFrameReport::GetInstance().GetEnable()) {
         RsFrameReport::GetInstance().ProcessCommandsStart();
+    }
+
+    if (commandTimestamp_ != 0) {
+        uiTimestamp_ = commandTimestamp_;
+        commandTimestamp_ = 0;
+    } else {
+        uiTimestamp_ = prevTimestamp_ - 1;
     }
 
     ROSEN_LOGD("RSRenderThread ProcessCommands size: %lu\n", cmds_.size());

@@ -529,4 +529,43 @@ HWTEST_F(ConsumerSurfaceTest, metaDataSet001, Function | MediumTest | Level2)
     ret = ps->CancelBuffer(buffer);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 }
+
+/*
+* Function: SetTunnelHandle and GetTunnelHandle
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call SetTunnelHandle with abnormal parameters and check ret
+*                  2. call SetTunnelHandle with normal parameters and check ret
+*                  3. call GetTunnelHandle and check ret
+ */
+HWTEST_F(ConsumerSurfaceTest, TunnelHandle001, Function | MediumTest | Level2)
+{
+    ExtDataHandle *handle = nullptr;
+    GSError ret = cs->SetTunnelHandle(handle);
+    ASSERT_EQ(ret, OHOS::GSERROR_INVALID_ARGUMENTS);
+
+    handle = new ExtDataHandle();
+    handle->fd = -1;
+    handle->reserveInts = 0;
+    ret = cs->SetTunnelHandle(handle);
+    ASSERT_EQ(ret, OHOS::GSERROR_INVALID_ARGUMENTS);
+
+    handle->reserveInts = 1;
+    handle->reserve[0] = 0;
+    ret = cs->SetTunnelHandle(handle);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
+
+    ret = cs->SetTunnelHandle(handle);
+    ASSERT_EQ(ret, OHOS::GSERROR_NO_ENTRY);
+
+    ExtDataHandle *handleGet = nullptr;
+    ret = cs->GetTunnelHandle(&handleGet);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
+    ASSERT_NE(handleGet, nullptr);
+    ASSERT_EQ(handle->fd, handleGet->fd);
+    ASSERT_EQ(handle->reserveInts, handleGet->reserveInts);
+    ASSERT_EQ(handle->reserve[0], handleGet->reserve[0]);
+    delete handle;
+}
 }

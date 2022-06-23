@@ -18,33 +18,34 @@
 #include <fcntl.h>
 #include <unistd.h>
 
+#include "buffer_log.h"
 #include "surface_buffer_impl.h"
 
 namespace OHOS {
-void ReadFence(MessageParcel &parcel, int32_t &fence)
+void ReadFileDescriptor(MessageParcel &parcel, int32_t &fd)
 {
-    fence = parcel.ReadInt32();
-    if (fence < 0) {
+    fd = parcel.ReadInt32();
+    if (fd < 0) {
         return;
     }
 
-    fence = parcel.ReadFileDescriptor();
+    fd = parcel.ReadFileDescriptor();
 }
 
-void WriteFence(MessageParcel &parcel, int32_t fence)
+void WriteFileDescriptor(MessageParcel &parcel, int32_t fd)
 {
-    if (fence >= 0 && fcntl(fence, F_GETFL) == -1 && errno == EBADF) {
-        fence = -1;
+    if (fd >= 0 && fcntl(fd, F_GETFL) == -1 && errno == EBADF) {
+        fd = -1;
     }
 
-    parcel.WriteInt32(fence);
+    parcel.WriteInt32(fd);
 
-    if (fence < 0) {
+    if (fd < 0) {
         return;
     }
 
-    parcel.WriteFileDescriptor(fence);
-    close(fence);
+    parcel.WriteFileDescriptor(fd);
+    close(fd);
 }
 
 void ReadRequestConfig(MessageParcel &parcel, BufferRequestConfig &config)
@@ -173,5 +174,38 @@ void WriteHDRMetaDataSet(MessageParcel &parcel, const std::vector<uint8_t> &meta
     for (const auto &data : metaData) {
         parcel.WriteUint8(data);
     }
+}
+
+void ReadExtDataHandle(MessageParcel &parcel, ExtDataHandle **handle)
+{
+    *handle = new ExtDataHandle();
+    ReadFileDescriptor(parcel, (*handle)->fd);
+    (*handle)->reserveInts = parcel.ReadUint32();
+    for (uint32_t index = 0; index < (*handle)->reserveInts; index++) {
+        (*handle)->reserve[index] = parcel.ReadInt32();
+    }
+}
+
+void WriteExtDataHandle(MessageParcel &parcel, const ExtDataHandle *handle)
+{
+    WriteFileDescriptor(parcel, handle->fd);
+    parcel.WriteUint32(handle->reserveInts);
+    for (uint32_t index = 0; index < handle->reserveInts; index++) {
+        parcel.WriteInt32(handle->reserve[index]);
+    }
+}
+
+GSError FreeExtDataHandle(ExtDataHandle *handle)
+{
+    if (handle == nullptr) {
+        BLOGE("FreeExtDataHandle with nullptr handle");
+        return GSERROR_INVALID_ARGUMENTS;
+    }
+    if (handle->fd >= 0) {
+        close(handle->fd);
+        handle->fd = -1;
+    }
+    delete handle;
+    return GSERROR_OK;
 }
 } // namespace OHOS

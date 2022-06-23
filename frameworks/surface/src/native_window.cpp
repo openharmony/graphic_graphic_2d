@@ -33,7 +33,7 @@ using namespace OHOS;
 OHNativeWindow* CreateNativeWindowFromSurface(void* pSuface)
 {
     if (pSuface == nullptr) {
-        BLOGE("para error, please check input parameter");
+        BLOGE("parameter error, please check input parameter");
         return nullptr;
     }
     OHNativeWindow* nativeWindow = new OHNativeWindow();
@@ -55,7 +55,7 @@ OHNativeWindow* CreateNativeWindowFromSurface(void* pSuface)
 void DestoryNativeWindow(OHNativeWindow *window)
 {
     if (window == nullptr) {
-        BLOGE("para error, please check input parameter");
+        BLOGE("parameter error, please check input parameter");
         return;
     }
     // unreference nativewindow object
@@ -65,7 +65,7 @@ void DestoryNativeWindow(OHNativeWindow *window)
 OHNativeWindowBuffer* CreateNativeWindowBufferFromSurfaceBuffer(void* pSurfaceBuffer)
 {
     if (pSurfaceBuffer == nullptr) {
-        BLOGE("para error, please check input parameter");
+        BLOGE("parameter error, please check input parameter");
         return nullptr;
     }
     OHNativeWindowBuffer *nwBuffer = new OHNativeWindowBuffer();
@@ -76,7 +76,7 @@ OHNativeWindowBuffer* CreateNativeWindowBufferFromSurfaceBuffer(void* pSurfaceBu
 void DestoryNativeWindowBuffer(OHNativeWindowBuffer* buffer)
 {
     if (buffer == nullptr) {
-        BLOGE("para error, please check input parameter");
+        BLOGE("parameter error, please check input parameter");
         return;
     }
     NativeObjectUnreference(buffer);
@@ -86,7 +86,7 @@ int32_t NativeWindowRequestBuffer(OHNativeWindow *window,
     OHNativeWindowBuffer **buffer, int *fenceFd)
 {
     if (window == nullptr || buffer == nullptr || fenceFd == nullptr) {
-        BLOGE("para error, please check input parameter");
+        BLOGE("parameter error, please check input parameter");
         return OHOS::GSERROR_INVALID_ARGUMENTS;
     }
     OHOS::sptr<OHOS::SurfaceBuffer> sfbuffer;
@@ -108,7 +108,7 @@ int32_t NativeWindowFlushBuffer(OHNativeWindow *window, OHNativeWindowBuffer *bu
     int fenceFd, struct Region region)
 {
     if (window == nullptr || buffer == nullptr || window->surface == nullptr) {
-        BLOGE("para error, please check input parameter");
+        BLOGE("parameter error, please check input parameter");
         return OHOS::GSERROR_INVALID_ARGUMENTS;
     }
 
@@ -136,7 +136,7 @@ int32_t NativeWindowFlushBuffer(OHNativeWindow *window, OHNativeWindowBuffer *bu
 int32_t NativeWindowCancelBuffer(OHNativeWindow *window, OHNativeWindowBuffer *buffer)
 {
     if (window == nullptr || buffer == nullptr) {
-        BLOGE("para error, please check input parameter");
+        BLOGE("parameter error, please check input parameter");
         return OHOS::GSERROR_INVALID_ARGUMENTS;
     }
 
@@ -236,7 +236,7 @@ static int32_t InternalHanleNativeWindowOpt(OHNativeWindow *window, int code, va
 int32_t NativeWindowHandleOpt(OHNativeWindow *window, int code, ...)
 {
     if (window == nullptr) {
-        BLOGE("para error, please check input parameter");
+        BLOGE("parameter error, please check input parameter");
         return OHOS::GSERROR_INVALID_ARGUMENTS;
     }
     va_list args;
@@ -249,7 +249,7 @@ int32_t NativeWindowHandleOpt(OHNativeWindow *window, int code, ...)
 BufferHandle *GetBufferHandleFromNative(OHNativeWindowBuffer *buffer)
 {
     if (buffer == nullptr) {
-        BLOGE("para error, please check input parameter");
+        BLOGE("parameter error, please check input parameter");
         return nullptr;
     }
     return buffer->sfbuffer->GetBufferHandle();
@@ -258,7 +258,7 @@ BufferHandle *GetBufferHandleFromNative(OHNativeWindowBuffer *buffer)
 int32_t GetNativeObjectMagic(void *obj)
 {
     if (obj == nullptr) {
-        BLOGE("para error, please check input parameter");
+        BLOGE("parameter error, please check input parameter");
         return OHOS::GSERROR_INVALID_ARGUMENTS;
     }
     NativeWindowMagic* nativeWindowMagic = reinterpret_cast<NativeWindowMagic *>(obj);
@@ -268,7 +268,7 @@ int32_t GetNativeObjectMagic(void *obj)
 int32_t NativeObjectReference(void *obj)
 {
     if (obj == nullptr) {
-        BLOGE("para error, please check input parameter");
+        BLOGE("parameter error, please check input parameter");
         return OHOS::GSERROR_INVALID_ARGUMENTS;
     }
     switch (GetNativeObjectMagic(obj)) {
@@ -286,7 +286,7 @@ int32_t NativeObjectReference(void *obj)
 int32_t NativeObjectUnreference(void *obj)
 {
     if (obj == nullptr) {
-        BLOGE("para error, please check input parameter");
+        BLOGE("parameter error, please check input parameter");
         return OHOS::GSERROR_INVALID_ARGUMENTS;
     }
     switch (GetNativeObjectMagic(obj)) {
@@ -306,7 +306,7 @@ int32_t NativeWindowSetScalingMode(OHNativeWindow *window, uint32_t sequence, OH
     if (window == nullptr || window->surface == nullptr ||
         scalingMode < OHScalingMode::OH_SCALING_MODE_FREEZE ||
         scalingMode > OHScalingMode::OH_SCALING_MODE_NO_SCALE_CROP) {
-        BLOGE("para error, please check input parameter");
+        BLOGE("parameter error, please check input parameter");
         return OHOS::GSERROR_INVALID_ARGUMENTS;
     }
     return window->surface->SetScalingMode(sequence, static_cast<ScalingMode>(scalingMode));
@@ -316,7 +316,7 @@ int32_t NativeWindowSetMetaData(OHNativeWindow *window, uint32_t sequence, int32
                                 const OHHDRMetaData *metaData)
 {
     if (window == nullptr || window->surface == nullptr || size <= 0 || metaData == nullptr) {
-        BLOGE("para error, please check input parameter");
+        BLOGE("parameter error, please check input parameter");
         return OHOS::GSERROR_INVALID_ARGUMENTS;
     }
 
@@ -331,11 +331,20 @@ int32_t NativeWindowSetMetaDataSet(OHNativeWindow *window, uint32_t sequence, OH
     if (window == nullptr || window->surface == nullptr ||
         key < OHHDRMetadataKey::OH_MATAKEY_RED_PRIMARY_X || key > OHHDRMetadataKey::OH_MATAKEY_HDR_VIVID ||
         size <= 0 || metaData == nullptr) {
-        BLOGE("para error, please check input parameter");
+        BLOGE("parameter error, please check input parameter");
         return OHOS::GSERROR_INVALID_ARGUMENTS;
     }
     std::vector<uint8_t> data(metaData, metaData + size);
     return window->surface->SetMetaDataSet(sequence, static_cast<HDRMetadataKey>(key), data);
+}
+
+int32_t NativeWindowSetTunnelHandle(OHNativeWindow *window, const OHExtDataHandle *handle)
+{
+    if (window == nullptr || window->surface == nullptr || handle == nullptr) {
+        BLOGE("parameter error, please check input parameter");
+        return OHOS::GSERROR_INVALID_ARGUMENTS;
+    }
+    return window->surface->SetTunnelHandle(reinterpret_cast<const ExtDataHandle *>(handle));
 }
 
 NativeWindow::NativeWindow() : NativeWindowMagic(NATIVE_OBJECT_MAGIC_WINDOW), surface(nullptr)
@@ -369,3 +378,4 @@ weak_alias(GetNativeObjectMagic, OH_NativeWindow_GetNativeObjectMagic);
 weak_alias(NativeWindowSetScalingMode, OH_NativeWindow_NativeWindowSetScalingMode);
 weak_alias(NativeWindowSetMetaData, OH_NativeWindow_NativeWindowSetMetaData);
 weak_alias(NativeWindowSetMetaDataSet, OH_NativeWindow_NativeWindowSetMetaDataSet);
+weak_alias(NativeWindowSetTunnelHandle, OH_NativeWindow_NativeWindowSetTunnelHandle);

@@ -18,8 +18,9 @@
 #include "sync_fence.h"
 
 #include "common/rs_obj_abs_geometry.h"
+#include "pipeline/rs_base_render_util.h"
+#include "pipeline/rs_divided_render_util.h"
 #include "pipeline/rs_main_thread.h"
-#include "pipeline/rs_render_service_util.h"
 #include "platform/common/rs_log.h"
 #include "platform/ohos/backend/rs_surface_ohos_raster.h"
 
@@ -97,8 +98,8 @@ void RSCompatibleProcessor::ProcessSurface(RSSurfaceRenderNode& node)
     matrix.reset();
     SkPaint paint;
     paint.setAlphaf(node.GetGlobalAlpha());
-    auto params = RsRenderServiceUtil::CreateBufferDrawParam(node, SkMatrix(), ScreenRotation::ROTATION_0, paint);
-    RsRenderServiceUtil::DrawBuffer(*canvas_, params);
+    auto params = RSDividedRenderUtil::CreateBufferDrawParam(node, SkMatrix(), ScreenRotation::ROTATION_0, paint);
+    RSDividedRenderUtil::DrawBuffer(*canvas_, params);
 }
 
 void RSCompatibleProcessor::PostProcess()
@@ -143,7 +144,7 @@ void RSCompatibleProcessor::DoComposeSurfaces()
     };
     std::shared_ptr<HdiLayerInfo> layer = HdiLayerInfo::CreateHdiLayerInfo();
     std::vector<LayerInfoPtr> layers;
-    RsRenderServiceUtil::ComposeSurface(layer, consumerSurface_, layers, info);
+    RSBaseRenderUtil::ComposeSurface(layer, consumerSurface_, layers, info);
     output_->SetLayerInfo(layers);
     std::vector<std::shared_ptr<HdiOutput>> outputs{output_};
     backend_->Repaint(outputs);

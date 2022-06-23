@@ -201,7 +201,6 @@ GSError VsyncClient::RequestFrameCallback(const struct FrameCallback &cb)
     }
 
     ScopedBytrace func(__func__);
-    int64_t delayTime = cb.timestamp_;
     uint32_t vsyncID = lastID_ + vsyncFrequency_ / frequency;
     struct VsyncElement ele = {
         .callback_ = cb.callback_,
@@ -221,7 +220,6 @@ GSError VsyncClient::RequestFrameCallback(const struct FrameCallback &cb)
     }
 
     InitListener();
-    VLOG_SUCCESS("RequestFrameCallback time: " VPUBI64 ", id: %{public}u", delayTime, vsyncID);
     return GSERROR_OK;
 }
 
@@ -285,11 +283,6 @@ void VsyncClient::DispatchMain(int64_t timestamp)
                 }
             }
         }
-    }
-
-    if (vsyncElements.size()) {
-        VLOGI("DispatchFrameCallback id: %{public}u, time: " VPUBI64 ", timestamp: " VPUBI64,
-                id, now, timestamp);
     }
 
     for (const auto &ele : vsyncElements) {

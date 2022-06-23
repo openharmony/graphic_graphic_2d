@@ -19,12 +19,13 @@
 
 #include "command/rs_message_processor.h"
 #include "pipeline/rs_base_render_node.h"
-#include "pipeline/rs_render_service_util.h"
+#include "pipeline/rs_base_render_util.h"
+#include "pipeline/rs_divided_render_util.h"
 #include "pipeline/rs_render_service_visitor.h"
-#include "pipeline/rs_uni_render_visitor.h"
 #include "pipeline/rs_surface_render_node.h"
-#include "platform/common/rs_log.h"
 #include "pipeline/rs_uni_render_judgement.h"
+#include "pipeline/rs_uni_render_visitor.h"
+#include "platform/common/rs_log.h"
 #include "platform/drawing/rs_vsync_client.h"
 #include "rs_trace.h"
 #include "screen_manager/rs_screen_manager.h"
@@ -68,7 +69,7 @@ void RSMainThread::Init()
     rsVSyncDistributor_->AddConnection(conn);
     receiver_ = std::make_shared<VSyncReceiver>(conn);
     receiver_->Init();
-    RsRenderServiceUtil::InitEnableClient();
+    RSDividedRenderUtil::InitEnableClient();
 
 #ifdef RS_ENABLE_GL
     renderContext_ = std::make_shared<RenderContext>();
@@ -105,37 +106,30 @@ void RSMainThread::ProcessCommand()
                 continue;
             }
             auto node = nodeMap.GetRenderNode<RSSurfaceRenderNode>(surfaceNodeId);
+            std::map<uint64_t, std::vector<std::unique_ptr<RSCommand>>>::iterator effectIter;
+            std::unordered_map<NodeId, uint64_t>::iterator bufferTimestamp = bufferTimestamps_.find(surfaceNodeId);
 
-            if (!node) {
-                // If node has been destructed, cacheCommand_[surfaceNodeId] should be deleted,
-                // for all command cached in cacheCommand_[surfaceNodeId] could not be executed.
-                it = cacheCommand_.erase(it);
+            if (!node || !node->IsOnTheTree() || bufferTimestamp == bufferTimestamps_.end()) {
+                // If node has been destructed or is not on the tree or has no valid buffer,
+                // for all command cached in cacheCommand_[surfaceNodeId] should be executed immediately
+                effectIter = cacheCommand_[surfaceNodeId].end();
             } else {
-                std::map<uint64_t, std::vector<std::unique_ptr<RSCommand>>>::iterator effectIter;
-                std::unordered_map<NodeId, uint64_t>::iterator bufferTimestamp = bufferTimestamps_.find(surfaceNodeId);
-
-                if (!node->IsOnTheTree() || bufferTimestamp == bufferTimestamps_.end()) {
-                    // If node is not on the tree or has no valid buffer,
-                    // for all command cached in cacheCommand_[surfaceNodeId] should be executed immediately
-                    effectIter = cacheCommand_[surfaceNodeId].end();
-                } else {
-                    uint64_t timestamp = bufferTimestamp->second;
-                    effectIter = cacheCommand_[surfaceNodeId].upper_bound(timestamp);
-                }
-
-                for (auto it2 = cacheCommand_[surfaceNodeId].begin(); it2 != effectIter; it2++) {
-                    effectCommand_.insert(effectCommand_.end(),
-                        std::make_move_iterator(it2->second.begin()), std::make_move_iterator(it2->second.end()));
-                }
-                cacheCommand_[surfaceNodeId].erase(cacheCommand_[surfaceNodeId].begin(), effectIter);
-
-                for (auto it2 = cacheCommand_[surfaceNodeId].begin(); it2 != cacheCommand_[surfaceNodeId].end(); it2++) {
-                    RS_LOGD("RSMainThread::ProcessCommand CacheCommand NodeId = %llu, timestamp = %llu, commandSize = %zu",
-                        surfaceNodeId, it2->first, it2->second.size());
-                }
-
-                it++;
+                uint64_t timestamp = bufferTimestamp->second;
+                effectIter = cacheCommand_[surfaceNodeId].upper_bound(timestamp);
             }
+
+            for (auto it2 = cacheCommand_[surfaceNodeId].begin(); it2 != effectIter; it2++) {
+                effectCommand_.insert(effectCommand_.end(),
+                    std::make_move_iterator(it2->second.begin()), std::make_move_iterator(it2->second.end()));
+            }
+            cacheCommand_[surfaceNodeId].erase(cacheCommand_[surfaceNodeId].begin(), effectIter);
+
+            for (auto it2 = cacheCommand_[surfaceNodeId].begin(); it2 != cacheCommand_[surfaceNodeId].end(); it2++) {
+                RS_LOGD("RSMainThread::ProcessCommand CacheCommand NodeId = %llu, timestamp = %llu, commandSize = %zu",
+                    surfaceNodeId, it2->first, it2->second.size());
+            }
+
+            it++;
         }
     }
     for (size_t i = 0; i < effectCommand_.size(); i++) {
@@ -162,7 +156,7 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
         if (node->IsInstanceOf<RSSurfaceRenderNode>()) {
             RSSurfaceRenderNode& surfaceNode = *(RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node));
             RSSurfaceHandler& surfaceHandler = static_cast<RSSurfaceHandler&>(surfaceNode);
-            if (RsRenderServiceUtil::ConsumeAndUpdateBuffer(surfaceHandler)) {
+            if (RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler)) {
                 this->bufferTimestamps_[surfaceNode.GetId()] = static_cast<uint64_t>(surfaceNode.GetTimestamp());
             }
 
@@ -189,7 +183,7 @@ void RSMainThread::ReleaseAllNodesBuffer()
         if (node->IsInstanceOf<RSSurfaceRenderNode>()) {
             RSSurfaceRenderNode& surfaceNode = *(RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node));
             RSSurfaceHandler& surfaceHandler = static_cast<RSSurfaceHandler&>(surfaceNode);
-            (void)RsRenderServiceUtil::ReleaseBuffer(surfaceHandler);
+            (void)RSBaseRenderUtil::ReleaseBuffer(surfaceHandler);
         }
     });
 }
@@ -500,7 +494,7 @@ void RSMainThread::RenderServiceTreeDump(std::string& dumpString)
         dumpString.append("rootNode is null\n");
         return;
     }
-    rootNode->DumpTree(dumpString);
+    rootNode->DumpTree(0, dumpString);
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -59,6 +59,10 @@ ohos_source_set("render_service_client_src") {
     "core/jank_detector/rs_jank_detector.cpp",
 
     #pipeline
+    "core/pipeline/overdraw/rs_cpu_overdraw_canvas_listener.cpp",
+    "core/pipeline/overdraw/rs_gpu_overdraw_canvas_listener.cpp",
+    "core/pipeline/overdraw/rs_listened_canvas.cpp",
+    "core/pipeline/overdraw/rs_overdraw_controller.cpp",
     "core/pipeline/rs_node_map.cpp",
     "core/pipeline/rs_render_thread.cpp",
     "core/pipeline/rs_render_thread_visitor.cpp",
@@ -95,6 +99,11 @@ ohos_source_set("render_service_client_src") {
   ]
 
   deps = []
+
+  deps += [
+    "//base/startup/syspara_lite/interfaces/innerkits/native/syspara:syspara",
+    "//base/startup/syspara_lite/interfaces/innerkits/native/syspara:syspara_watchagent",
+  ]
 
   if (rss_enabled) {
     deps += [

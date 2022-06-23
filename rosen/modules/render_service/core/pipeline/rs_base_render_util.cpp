@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -12,25 +12,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "rs_render_service_util.h"
+
+#include "rs_base_render_util.h"
 
 #include <unordered_set>
 
-#include "display_type.h"
-#include "include/core/SkCanvas.h"
-#include "include/core/SkRect.h"
-#include "pipeline/rs_main_thread.h"
+#include "common/rs_matrix3.h"
 #include "common/rs_vector2.h"
-#include "pipeline/rs_paint_filter_canvas.h"
+#include "common/rs_vector3.h"
 #include "platform/common/rs_log.h"
-#include "property/rs_properties_painter.h"
-#include "render/rs_blur_filter.h"
 #include "rs_trace.h"
-#ifdef RS_ENABLE_GL
-#include "include/gpu/gl/GrGLTypes.h"
-#include "include/gpu/GrBackendSurface.h"
-
-#endif // RS_ENABLE_GL
 
 namespace OHOS {
 namespace Rosen {
@@ -142,8 +133,8 @@ Matrix3f GenRGBToXYZMatrix(const std::array<Vector2f, 3>& basePoints, const Vect
     float oneWxWy = (1 - whitePoint.x_) / whitePoint.y_;
 
     float BY =
-            ((oneWxWy - oneRxRy) * (GxGy - RxRy) - (WxWy - RxRy) * (oneGxGy - oneRxRy)) /
-            ((oneBxBy - oneRxRy) * (GxGy - RxRy) - (BxBy - RxRy) * (oneGxGy - oneRxRy));
+        ((oneWxWy - oneRxRy) * (GxGy - RxRy) - (WxWy - RxRy) * (oneGxGy - oneRxRy)) /
+        ((oneBxBy - oneRxRy) * (GxGy - RxRy) - (BxBy - RxRy) * (oneGxGy - oneRxRy));
     float GY = (WxWy - RxRy - BY * (BxBy - RxRy)) / (GxGy - RxRy);
     float RY = 1 - GY - BY;
 
@@ -399,7 +390,7 @@ bool ConvertBufferColorGamut(std::vector<uint8_t>& dstBuf, const sptr<OHOS::Surf
 SkImageInfo GenerateSkImageInfo(const sptr<OHOS::SurfaceBuffer>& buffer)
 {
     SkColorType colorType = (buffer->GetFormat() == PIXEL_FMT_BGRA_8888) ?
-            kBGRA_8888_SkColorType : kRGBA_8888_SkColorType;
+        kBGRA_8888_SkColorType : kRGBA_8888_SkColorType;
     return SkImageInfo::Make(buffer->GetWidth(), buffer->GetHeight(),
         colorType, kPremul_SkAlphaType);
 }
@@ -458,21 +449,21 @@ static int Table_fu2[256] = { -227, -226, -224, -222, -220, -219, -217, -215, -2
 bool ConvertYUV420SPToRGBA(std::vector<uint8_t>& rgbaBuf, const sptr<OHOS::SurfaceBuffer>& srcBuf)
 {
     if (srcBuf == nullptr || rgbaBuf.empty()) {
-        RS_LOGE("RsRenderServiceUtil::ConvertYUV420SPToRGBA invalid params");
+        RS_LOGE("RSBaseRenderUtil::ConvertYUV420SPToRGBA invalid params");
         return false;
     }
     int32_t bufferHeight = srcBuf->GetHeight();
     int32_t bufferStride = srcBuf->GetStride();
     int32_t bufferWidth = srcBuf->GetWidth();
     if (bufferStride < 1 || bufferWidth < 1 || bufferHeight < 1) {
-        RS_LOGE("RsRenderServiceUtil::ConvertYUV420SPToRGBA invalid buffer size");
+        RS_LOGE("RSBaseRenderUtil::ConvertYUV420SPToRGBA invalid buffer size");
         return false;
     }
     uint8_t* rgbaDst = &rgbaBuf[0];
     auto bufferAddr = srcBuf->GetVirAddr();
     uint8_t* src = static_cast<uint8_t*>(bufferAddr);
     if (src == nullptr || rgbaDst == nullptr) {
-        RS_LOGE("RsRenderServiceUtil::ConvertYUV420SPToRGBA null buffer ptr");
+        RS_LOGE("RSBaseRenderUtil::ConvertYUV420SPToRGBA null buffer ptr");
         return false;
     }
     uint8_t* ybase = src;
@@ -529,9 +520,7 @@ bool ConvertYUV420SPToRGBA(std::vector<uint8_t>& rgbaBuf, const sptr<OHOS::Surfa
 }
 } // namespace Detail
 
-bool RsRenderServiceUtil::enableClient = false;
-
-void RsRenderServiceUtil::ComposeSurface(std::shared_ptr<HdiLayerInfo> layer, sptr<Surface> consumerSurface,
+void RSBaseRenderUtil::ComposeSurface(std::shared_ptr<HdiLayerInfo> layer, sptr<Surface> consumerSurface,
     std::vector<LayerInfoPtr>& layers, ComposeInfo info, RSBaseRenderNode* node)
 {
     layer->SetSurface(consumerSurface);
@@ -541,12 +530,8 @@ void RsRenderServiceUtil::ComposeSurface(std::shared_ptr<HdiLayerInfo> layer, sp
     layer->SetLayerSize(info.dstRect);
     layer->SetLayerAdditionalInfo(node);
 
-    if (node->IsInstanceOf<RSSurfaceRenderNode>()) {
-        layer->SetCompositionType(IsNeedClient(static_cast<RSSurfaceRenderNode*>(node)) ?
-            CompositionType::COMPOSITION_CLIENT : CompositionType::COMPOSITION_DEVICE);
-    } else {
-        layer->SetCompositionType(CompositionType::COMPOSITION_DEVICE);
-    }
+    layer->SetCompositionType(info.needClient ? CompositionType::COMPOSITION_CLIENT :
+        CompositionType::COMPOSITION_DEVICE);
 
     layer->SetVisibleRegion(1, info.visibleRect);
     layer->SetDirtyRegion(info.srcRect);
@@ -555,12 +540,12 @@ void RsRenderServiceUtil::ComposeSurface(std::shared_ptr<HdiLayerInfo> layer, sp
     layers.emplace_back(layer);
 }
 
-void RsRenderServiceUtil::DropFrameProcess(RSSurfaceHandler& node)
+void RSBaseRenderUtil::DropFrameProcess(RSSurfaceHandler& node)
 {
     auto availableBufferCnt = node.GetAvailableBufferCount();
     const auto& surfaceConsumer = node.GetConsumer();
     if (surfaceConsumer == nullptr) {
-        RS_LOGE("RsDebug RsRenderServiceUtil::DropFrameProcess (node: %llu): surfaceConsumer is null!",
+        RS_LOGE("RsDebug RSBaseRenderUtil::DropFrameProcess (node: %llu): surfaceConsumer is null!",
             node.GetNodeId());
         return;
     }
@@ -569,7 +554,7 @@ void RsRenderServiceUtil::DropFrameProcess(RSSurfaceHandler& node)
     // maxDirtyListSize > 2 means QueueSize >3 too
     if (maxDirtyListSize > 2 && availableBufferCnt >= maxDirtyListSize) {
         RS_TRACE_NAME("DropFrame");
-        RS_LOGD("RsRenderServiceUtil::DropFrameProcess(node: %llu) queueBlock, start to drop one frame",
+        RS_LOGD("RSBaseRenderUtil::DropFrameProcess(node: %llu) queueBlock, start to drop one frame",
             node.GetNodeId());
         OHOS::sptr<SurfaceBuffer> cbuffer;
         Rect damage;
@@ -577,35 +562,33 @@ void RsRenderServiceUtil::DropFrameProcess(RSSurfaceHandler& node)
         int64_t timestamp = 0;
         auto ret = surfaceConsumer->AcquireBuffer(cbuffer, acquireFence, timestamp, damage);
         if (ret != OHOS::SURFACE_ERROR_OK) {
-            RS_LOGW("RsRenderServiceUtil::DropFrameProcess(node: %llu): AcquireBuffer failed(ret: %d), do nothing ",
+            RS_LOGW("RSBaseRenderUtil::DropFrameProcess(node: %llu): AcquireBuffer failed(ret: %d), do nothing ",
                 node.GetNodeId(), ret);
             return;
         }
 
         ret = surfaceConsumer->ReleaseBuffer(cbuffer, SyncFence::INVALID_FENCE);
         if (ret != OHOS::SURFACE_ERROR_OK) {
-            RS_LOGW("RsRenderServiceUtil::DropFrameProcess(node: %llu): ReleaseBuffer failed(ret: %d), Acquire done ",
+            RS_LOGW("RSBaseRenderUtil::DropFrameProcess(node: %llu): ReleaseBuffer failed(ret: %d), Acquire done ",
                 node.GetNodeId(), ret);
         }
         availableBufferCnt = node.ReduceAvailableBuffer();
-        RS_LOGD("RsDebug RsRenderServiceUtil::DropFrameProcess (node: %llu), drop one frame finished",
+        RS_LOGD("RsDebug RSBaseRenderUtil::DropFrameProcess (node: %llu), drop one frame finished",
             node.GetNodeId());
     }
 
     return;
 }
 
-bool RsRenderServiceUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfaceHandler)
+bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfaceHandler)
 {
     auto availableBufferCnt = surfaceHandler.GetAvailableBufferCount();
     if (availableBufferCnt <= 0) {
-        RS_LOGD("RsDebug surfaceHandler(id: %llu) has no new buffer, try use old buffer.",
-            surfaceHandler.GetNodeId());
+        // this node has no new buffer, try use old buffer.
         return true;
     }
     auto& consumer = surfaceHandler.GetConsumer();
     if (consumer == nullptr) {
-        RS_LOGE("RsDebug surfaceHandler(id: %llu) has no consumer!", surfaceHandler.GetNodeId());
         return false;
     }
 
@@ -628,15 +611,14 @@ bool RsRenderServiceUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfaceHandle
     return true;
 }
 
-bool RsRenderServiceUtil::ReleaseBuffer(RSSurfaceHandler& surfaceHandler)
+bool RSBaseRenderUtil::ReleaseBuffer(RSSurfaceHandler& surfaceHandler)
 {
     auto& consumer = surfaceHandler.GetConsumer();
     if (consumer == nullptr) {
-        RS_LOGE("RsDebug surfaceHandler(id: %llu) has no consumer!", surfaceHandler.GetNodeId());
         return false;
     }
 
-    auto preBuffer = surfaceHandler.GetPreBuffer();
+    auto& preBuffer = surfaceHandler.GetPreBuffer();
     if (preBuffer.buffer != nullptr) {
         auto ret = consumer->ReleaseBuffer(preBuffer.buffer, preBuffer.releaseFence);
         if (ret != OHOS::SURFACE_ERROR_OK) {
@@ -644,73 +626,77 @@ bool RsRenderServiceUtil::ReleaseBuffer(RSSurfaceHandler& surfaceHandler)
                 surfaceHandler.GetNodeId(), ret);
             return false;
         }
+        // reset prevBuffer if we release it successfully,
+        // to avoid releasing the same buffer next frame in some suitations.
+        preBuffer.Reset();
     }
 
     return true;
 }
 
-bool RsRenderServiceUtil::IsNeedClient(RSSurfaceRenderNode* node)
-{
-    if (enableClient) {
-        RS_LOGD("RsDebug RsRenderServiceUtil::IsNeedClient enable composition client");
-        return true;
-    }
-    if (node == nullptr) {
-        RS_LOGE("RsRenderServiceUtil::IsNeedClient node is empty");
-        return false;
-    }
-    auto filter = std::static_pointer_cast<RSBlurFilter>(node->GetRenderProperties().GetBackgroundFilter());
-    if (filter != nullptr && filter->GetBlurRadiusX() > 0 && filter->GetBlurRadiusY() > 0) {
-        RS_LOGD("RsDebug RsRenderServiceUtil::IsNeedClient enable composition client need filter");
-        return true;
-    }
-    auto transitionProperties = node->GetAnimationManager().GetTransitionProperties();
-    if (!transitionProperties) {
-        return false;
-    }
-    SkMatrix matrix = transitionProperties->GetRotate();
-    float value[9];
-    matrix.get9(value);
-    if (SkMatrix::kMSkewX < 0 || SkMatrix::kMSkewX >= 9 || // 9 is the upper bound
-        SkMatrix::kMScaleX < 0 || SkMatrix::kMScaleX >= 9) { // 9 is the upper bound
-        RS_LOGE("RsRenderServiceUtil:: The value of kMSkewX or kMScaleX is illegal");
-        return false;
-    } else {
-        float rAngle = -round(atan2(value[SkMatrix::kMSkewX], value[SkMatrix::kMScaleX]) * (180 / PI));
-        bool isNeedClient = rAngle > 0;
-        if (isNeedClient) {
-            RS_LOGD("RsDebug RsRenderServiceUtil::IsNeedClient enable composition client need animation rotate");
-        }
-        return isNeedClient;
-    }
-}
-
-void RsRenderServiceUtil::DealAnimation(RSPaintFilterCanvas& canvas, RSSurfaceRenderNode& node, BufferDrawParam& params,
-    const Vector2f& center)
-{
-    auto transitionProperties = node.GetAnimationManager().GetTransitionProperties();
-    RSPropertiesPainter::DrawTransitionProperties(transitionProperties, center, canvas);
-    const RSProperties& property = node.GetRenderProperties();
-    auto filter = std::static_pointer_cast<RSSkiaFilter>(property.GetBackgroundFilter());
-    if (filter != nullptr) {
-        auto skRectPtr = std::make_unique<SkRect>();
-        skRectPtr->setXYWH(0, 0, params.srcRect.width(), params.srcRect.height());
-        RSPropertiesPainter::DrawFilter(property, canvas, filter, skRectPtr);
-    }
-}
-
-bool RsRenderServiceUtil::CreateBitmap(sptr<OHOS::SurfaceBuffer> buffer, SkBitmap& bitmap)
+bool RSBaseRenderUtil::IsBufferValid(const sptr<SurfaceBuffer>& buffer)
 {
     if (!buffer) {
-        RS_LOGE("RsRenderServiceUtil::CreateBitmap buffer is nullptr");
+        RS_LOGE("RSBaseRenderUtil: buffer is nullptr");
         return false;
     }
+    auto addr = buffer->GetVirAddr();
+    if (addr == nullptr) {
+        RS_LOGE("RSBaseRenderUtil: buffer has no vir addr");
+        return false;
+    }
+    if (buffer->GetWidth() <= 0 || buffer->GetHeight() <= 0) {
+        RS_LOGE("RSBaseRenderUtil: this buffer has negative width or height [%d %d]",
+            buffer->GetWidth(), buffer->GetHeight());
+        return false;
+    }
+    return true;
+}
+
+bool RSBaseRenderUtil::ConvertBufferToBitmap(sptr<SurfaceBuffer> buffer, std::vector<uint8_t>& newBuffer,
+    ColorGamut dstGamut, SkBitmap& bitmap)
+{
+    if (!IsBufferValid(buffer)) {
+        return false;
+    }
+    bool bitmapCreated = false;
+    ColorGamut srcGamut = static_cast<ColorGamut>(buffer->GetSurfaceBufferColorGamut());
+    // [PLANNING]: We will not use this tmp newBuffer if we use GPU to do the color conversions.
+    // Attention: make sure newBuffer's lifecycle is longer than the moment call drawBitmap
+    if (buffer->GetFormat() == PIXEL_FMT_YCRCB_420_SP || buffer->GetFormat() == PIXEL_FMT_YCBCR_420_SP) {
+        bitmapCreated = CreateYuvToRGBABitMap(buffer, newBuffer, bitmap);
+    } else if (srcGamut != dstGamut) {
+        RS_LOGW("RSBaseRenderUtil::ConvertBufferToBitmap: need to convert color gamut.");
+        bitmapCreated = CreateNewColorGamutBitmap(buffer, newBuffer, bitmap, srcGamut, dstGamut);
+    } else {
+        bitmapCreated = CreateBitmap(buffer, bitmap);
+    }
+    return bitmapCreated;
+}
+
+bool RSBaseRenderUtil::CreateYuvToRGBABitMap(sptr<OHOS::SurfaceBuffer> buffer, std::vector<uint8_t>& newBuffer,
+    SkBitmap& bitmap)
+{
+    newBuffer.resize(buffer->GetWidth() * buffer->GetHeight() * 4, 0); // 4 is color channel
+    if (!Detail::ConvertYUV420SPToRGBA(newBuffer, buffer)) {
+        return false;
+    }
+
+    SkColorType colorType = kRGBA_8888_SkColorType;
+    SkImageInfo imageInfo = SkImageInfo::Make(buffer->GetWidth(), buffer->GetHeight(),
+        colorType, kPremul_SkAlphaType);
+    SkPixmap pixmap(imageInfo, newBuffer.data(), buffer->GetWidth() * 4); // 4 is color channel
+    return bitmap.installPixels(pixmap);
+}
+
+bool RSBaseRenderUtil::CreateBitmap(sptr<OHOS::SurfaceBuffer> buffer, SkBitmap& bitmap)
+{
     SkImageInfo imageInfo = Detail::GenerateSkImageInfo(buffer);
     SkPixmap pixmap(imageInfo, buffer->GetVirAddr(), buffer->GetStride());
     return bitmap.installPixels(pixmap);
 }
 
-bool RsRenderServiceUtil::CreateNewColorGamutBitmap(sptr<OHOS::SurfaceBuffer> buffer,
+bool RSBaseRenderUtil::CreateNewColorGamutBitmap(sptr<OHOS::SurfaceBuffer> buffer,
     std::vector<uint8_t>& newGamutBuffer, SkBitmap& bitmap, ColorGamut srcGamut, ColorGamut dstGamut)
 {
     bool convertRes = Detail::ConvertBufferColorGamut(newGamutBuffer, buffer, srcGamut, dstGamut);
@@ -725,266 +711,29 @@ bool RsRenderServiceUtil::CreateNewColorGamutBitmap(sptr<OHOS::SurfaceBuffer> bu
     }
 }
 
-bool RsRenderServiceUtil::CreateYuvToRGBABitMap(sptr<OHOS::SurfaceBuffer> buffer,
-    std::vector<uint8_t>& newBuffer, SkBitmap& bitmap)
-{
-    newBuffer.resize(buffer->GetWidth() * buffer->GetHeight() * 4, 0); // 4 is color channel
-    if (!Detail::ConvertYUV420SPToRGBA(newBuffer, buffer)) {
-        return false;
-    }
-
-    SkColorType colorType = kRGBA_8888_SkColorType;
-    SkImageInfo imageInfo = SkImageInfo::Make(buffer->GetWidth(), buffer->GetHeight(),
-        colorType, kPremul_SkAlphaType);
-    SkPixmap pixmap(imageInfo, newBuffer.data(), buffer->GetWidth() * 4); // 4 is color channel
-    return bitmap.installPixels(pixmap);
-}
-
-SkMatrix RsRenderServiceUtil::GetCanvasTransform(const RSSurfaceRenderNode& node, const SkMatrix& canvasMatrix,
-    ScreenRotation rotation, SkRect clipRect)
-{
-    SkMatrix transform = canvasMatrix;
-    auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(node.GetRenderProperties().GetBoundsGeometry());
-    if (geoPtr == nullptr) {
-        return transform;
-    }
-    sptr<Surface> surface = node.GetConsumer();
-    if (surface == nullptr) {
-        return transform;
-    }
-
-    const auto geoAbsRect = RectI(clipRect.left(), clipRect.top(), clipRect.width(), clipRect.height());
-    transform.preTranslate(geoAbsRect.left_, geoAbsRect.top_);
-    switch (rotation) {
-        case ScreenRotation::ROTATION_90: {
-            switch (surface->GetTransform()) {
-                case TransformType::ROTATE_90: {
-                    transform.preTranslate(geoAbsRect.height_, 0);
-                    transform.preRotate(-90); // rotate 90 degrees anti-clockwise at last.
-                    break;
-                }
-                case TransformType::ROTATE_180: {
-                    transform.preTranslate(geoAbsRect.height_, -geoAbsRect.width_);
-                    transform.preRotate(180); // rotate 180 degrees anti-clockwise at last.
-                    break;
-                }
-                case TransformType::ROTATE_270: {
-                    transform.preTranslate(0, -geoAbsRect.width_);
-                    transform.preRotate(-270); // rotate 270 degrees anti-clockwise at last.
-                    break;
-                }
-                default:
-                    break;
-            }
-            break;
-        }
-        case ScreenRotation::ROTATION_180: {
-            switch (surface->GetTransform()) {
-                case TransformType::ROTATE_90: {
-                    transform.preTranslate(0, -geoAbsRect.height_);
-                    transform.preRotate(-90); // rotate 90 degrees anti-clockwise at last.
-                    break;
-                }
-                case TransformType::ROTATE_180: {
-                    transform.preTranslate(-geoAbsRect.width_, -geoAbsRect.height_);
-                    transform.preRotate(180); // rotate 180 degrees anti-clockwise at last.
-                    break;
-                }
-                case TransformType::ROTATE_270: {
-                    transform.preTranslate(-geoAbsRect.width_, 0);
-                    transform.preRotate(-270); // rotate 270 degrees anti-clockwise at last.
-                    break;
-                }
-                default:
-                    break;
-            }
-            break;
-        }
-        case ScreenRotation::ROTATION_270: {
-            switch (surface->GetTransform()) {
-                case TransformType::ROTATE_90: {
-                    transform.preTranslate(-geoAbsRect.height_, 0);
-                    transform.preRotate(-90); // rotate 90 degrees anti-clockwise at last.
-                    break;
-                }
-                case TransformType::ROTATE_180: {
-                    transform.preTranslate(-geoAbsRect.height_, geoAbsRect.width_);
-                    transform.preRotate(180); // rotate 180 degrees anti-clockwise at last.
-                    break;
-                }
-                case TransformType::ROTATE_270: {
-                    transform.preTranslate(0, geoAbsRect.width_);
-                    transform.preRotate(-270); // rotate 270 degrees anti-clockwise at last.
-                    break;
-                }
-                default:
-                    break;
-            }
-            break;
-        }
-        default: {
-            transform = node.GetTotalMatrix();
-            switch (surface->GetTransform()) {
-                case TransformType::ROTATE_90: {
-                    transform.preTranslate(0, geoAbsRect.height_);
-                    transform.preRotate(-90); // rotate 90 degrees anti-clockwise at last.
-                    break;
-                }
-                case TransformType::ROTATE_180: {
-                    transform.preTranslate(geoAbsRect.width_, geoAbsRect.height_);
-                    transform.preRotate(180); // rotate 180 degrees anti-clockwise at last.
-                    break;
-                }
-                case TransformType::ROTATE_270: {
-                    transform.preTranslate(geoAbsRect.width_, 0);
-                    transform.preRotate(-270); // rotate 270 degrees anti-clockwise at last.
-                    break;
-                }
-                default:
-                    break;
-            }
-            break;
-        }
-    }
-
-    return transform;
-}
-
-BufferDrawParam RsRenderServiceUtil::CreateBufferDrawParam(RSSurfaceRenderNode& node, SkMatrix canvasMatrix,
-    ScreenRotation rotation, SkPaint paint)
-{
-    const RSProperties& property = node.GetRenderProperties();
-    SkRect dstRect = SkRect::MakeXYWH(node.GetDstRect().left_, node.GetDstRect().top_,
-        node.GetDstRect().width_, node.GetDstRect().height_);
-    BufferDrawParam params;
-    auto buffer = node.GetBuffer();
-    sptr<Surface> surface = node.GetConsumer();
-    if (!buffer || !surface) {
-        return params;
-    }
-    params.buffer = buffer;
-    params.matrix = GetCanvasTransform(node, canvasMatrix, rotation, dstRect);
-    params.acquireFence = node.GetAcquireFence();
-    params.srcRect = SkRect::MakeXYWH(0, 0, buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight());
-    const auto surfaceTransform = surface->GetTransform();
-    if (surfaceTransform == TransformType::ROTATE_90 || surfaceTransform == TransformType::ROTATE_270) {
-        params.dstRect = SkRect::MakeXYWH(0, 0, property.GetBoundsHeight(), property.GetBoundsWidth());
-    } else {
-        params.dstRect = SkRect::MakeXYWH(0, 0, property.GetBoundsWidth(), property.GetBoundsHeight());
-    }
-    params.clipRect = dstRect;
-    params.paint = paint;
-    params.cornerRadius = property.GetCornerRadius();
-    params.isNeedClip = property.GetClipToFrame();
-    return params;
-}
-
-bool IsBufferValid(const sptr<SurfaceBuffer>& buffer)
-{
-    if (!buffer) {
-        RS_LOGE("RS check: buffer is nullptr");
-        return false;
-    }
-    auto addr = buffer->GetVirAddr();
-    if (addr == nullptr) {
-        RS_LOGE("RS check: buffer has no vir addr");
-        return false;
-    }
-    if (buffer->GetWidth() <= 0 || buffer->GetHeight() <= 0) {
-        RS_LOGE("RS check: this buffer has negative width or height [%d %d]",
-            buffer->GetWidth(), buffer->GetHeight());
-        return false;
-    }
-    return true;
-}
-
-void SetPropertiesForCanvas(RSPaintFilterCanvas& canvas, BufferDrawParam& bufferDrawParam,
-    RsRenderServiceUtil::CanvasPostProcess process)
-{
-    canvas.save();
-    if (bufferDrawParam.isNeedClip) {
-        SkRect clipRect = bufferDrawParam.clipRect;
-        if (!bufferDrawParam.cornerRadius.IsZero()) {
-            RectF rect(clipRect.left(), clipRect.top(), clipRect.width(), clipRect.height());
-            RRect rrect = RRect(rect, bufferDrawParam.cornerRadius);
-            canvas.clipRRect(RSPropertiesPainter::RRect2SkRRect(rrect), true);
-        } else {
-            canvas.clipRect(bufferDrawParam.clipRect);
-        }
-    }
-    canvas.setMatrix(bufferDrawParam.matrix);
-    if (process) {
-        process(canvas, bufferDrawParam);
-    }
-}
-
-void RsRenderServiceUtil::DrawBuffer(RSPaintFilterCanvas& canvas, BufferDrawParam& bufferDrawParam,
-    CanvasPostProcess process)
-{
-    sptr<SurfaceBuffer> buffer = bufferDrawParam.buffer;
-    if (!IsBufferValid(buffer)) {
-        return;
-    }
-    bool bitmapCreated = false;
-    SkBitmap bitmap;
-    ColorGamut srcGamut = static_cast<ColorGamut>(buffer->GetSurfaceBufferColorGamut());
-    ColorGamut dstGamut = bufferDrawParam.targetColorGamut;
-    // [PLANNING]: We will not use this tmp buffer if we use GPU to do the color conversions.
-    std::vector<uint8_t> newTmpBuffer;
-    if (buffer->GetFormat() == PIXEL_FMT_YCRCB_420_SP || buffer->GetFormat() == PIXEL_FMT_YCBCR_420_SP) {
-        bitmapCreated = CreateYuvToRGBABitMap(buffer, newTmpBuffer, bitmap);
-    } else if (srcGamut != dstGamut) {
-        RS_LOGW("RsRenderServiceUtil::DrawBuffer: need to convert color gamut.");
-        bitmapCreated = CreateNewColorGamutBitmap(buffer, newTmpBuffer, bitmap, srcGamut, dstGamut);
-    } else {
-        bitmapCreated = CreateBitmap(buffer, bitmap);
-    }
-
-    if (!bitmapCreated) {
-        RS_LOGE("RsRenderServiceUtil::DrawBuffer: create bitmap failed.");
-        return;
-    }
-    SetPropertiesForCanvas(canvas, bufferDrawParam, process);
-    canvas.drawBitmapRect(bitmap, bufferDrawParam.srcRect, bufferDrawParam.dstRect, &(bufferDrawParam.paint));
-    canvas.restore();
-}
-
 #ifdef RS_ENABLE_EGLIMAGE
-void RsRenderServiceUtil::DrawImage(std::shared_ptr<RSEglImageManager> eglImageManager, GrContext* grContext,
-    RSPaintFilterCanvas& canvas, BufferDrawParam& bufferDrawParam, CanvasPostProcess process)
+bool RSBaseRenderUtil::ConvertBufferToEglImage(sptr<SurfaceBuffer> buffer,
+    std::shared_ptr<RSEglImageManager> eglImageManager, GrContext* grContext, sptr<SyncFence> acquireFence,
+    sk_sp<SkImage>& image)
 {
-    RS_TRACE_NAME("GpuClientComposition");
-    RS_LOGI("RsRenderServiceUtil::DrawImage start");
-    sptr<SurfaceBuffer> buffer = bufferDrawParam.buffer;
-    if (!IsBufferValid(buffer)) {
-        return;
+    if (!IsBufferValid(buffer) || eglImageManager == nullptr || grContext == nullptr) {
+        RS_LOGE("RSBaseRenderUtil::ConvertBufferToEglImage invalid param!");
+        return false;
     }
-    sk_sp<SkImage> image;
-    auto eglTextureId = eglImageManager->MapEglImageFromSurfaceBuffer(buffer, bufferDrawParam.acquireFence);
+    auto eglTextureId = eglImageManager->MapEglImageFromSurfaceBuffer(buffer, acquireFence);
     if (eglTextureId == 0) {
-        RS_LOGE("RsRenderServiceUtil::MapEglImageFromSurfaceBuffer return invalid EGL texture ID");
-        return;
+        RS_LOGE("RSBaseRenderUtil::ConvertBufferToEglImage MapEglImageFromSurfaceBuffer return invalid texture ID");
+        return false;
     }
     SkColorType colorType = (buffer->GetFormat() == PIXEL_FMT_BGRA_8888) ?
-            kBGRA_8888_SkColorType : kRGBA_8888_SkColorType;
-    GrGLTextureInfo grExternalTextureInfo = {GL_TEXTURE_EXTERNAL_OES, eglTextureId, GL_RGBA8};
-    GrBackendTexture backendTexture(bufferDrawParam.srcRect.width(), bufferDrawParam.srcRect.height(),
+        kBGRA_8888_SkColorType : kRGBA_8888_SkColorType;
+    GrGLTextureInfo grExternalTextureInfo = { GL_TEXTURE_EXTERNAL_OES, eglTextureId, GL_RGBA8 };
+    GrBackendTexture backendTexture(buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight(),
         GrMipMapped::kNo, grExternalTextureInfo);
     image = SkImage::MakeFromTexture(grContext, backendTexture,
         kTopLeft_GrSurfaceOrigin, colorType, kPremul_SkAlphaType, nullptr);
-    SetPropertiesForCanvas(canvas, bufferDrawParam, process);
-    canvas.drawImageRect(image, bufferDrawParam.srcRect, bufferDrawParam.dstRect, &(bufferDrawParam.paint));
-    canvas.restore();
+    return true;
 }
-#endif // RS_ENABLE_EGLIMAGE
-
-void RsRenderServiceUtil::InitEnableClient()
-{
-    if (access("/etc/enable_client", F_OK) == 0) {
-        enableClient = true;
-    } else {
-        enableClient = false;
-    }
-}
+#endif
 } // namespace Rosen
 } // namespace OHOS

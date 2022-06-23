@@ -581,4 +581,27 @@ HWTEST_F(NativeWindowTest, SetMetaDataSet001, Function | MediumTest | Level2)
     ASSERT_EQ(NativeWindowSetMetaDataSet(nativeWindow, -1, key, size, metaData), OHOS::GSERROR_NO_ENTRY);
     ASSERT_EQ(NativeWindowSetMetaDataSet(nativeWindow, sequence, key, size, metaData), OHOS::GSERROR_OK);
 }
+
+/*
+* Function: NativeWindowSetTunnelHandle
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call NativeWindowSetTunnelHandle with abnormal parameters and check ret
+*                  2. call NativeWindowSetTunnelHandle with normal parameters and check ret
+ */
+HWTEST_F(NativeWindowTest, SetTunnelHandle001, Function | MediumTest | Level2)
+{
+    OHExtDataHandle *handle = new OHExtDataHandle();
+    handle->fd = -1;
+    handle->reserveInts = 0;
+    ASSERT_EQ(NativeWindowSetTunnelHandle(nullptr, nullptr), OHOS::GSERROR_INVALID_ARGUMENTS);
+    ASSERT_EQ(NativeWindowSetTunnelHandle(nativeWindow, nullptr), OHOS::GSERROR_INVALID_ARGUMENTS);
+    ASSERT_EQ(NativeWindowSetTunnelHandle(nativeWindow, handle), OHOS::GSERROR_INVALID_ARGUMENTS);
+    handle->reserveInts = 1;
+    handle->reserve[0] = 1;
+    ASSERT_EQ(NativeWindowSetTunnelHandle(nativeWindow, handle), OHOS::GSERROR_OK);
+    ASSERT_EQ(NativeWindowSetTunnelHandle(nativeWindow, handle), OHOS::GSERROR_NO_ENTRY);
+    delete handle;
+}
 }
