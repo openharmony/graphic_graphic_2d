@@ -83,6 +83,7 @@ public:
     virtual int32_t SetLayerMetaData(uint32_t screenId, uint32_t layerId, const std::vector<HDRMetaData> &metaData) = 0;
     virtual int32_t SetLayerMetaDataSet(uint32_t screenId, uint32_t layerId, HDRMetadataKey key,
                                         const std::vector<uint8_t> &metaData) = 0;
+    virtual int32_t SetLayerTunnelHandle(uint32_t screenId, uint32_t layerId, const ExtDataHandle *handle) = 0;
     /* set & get device layer info end */
 
     virtual int32_t CreateLayer(uint32_t screenId, const LayerInfo &layerInfo, uint32_t &layerId) = 0;
@@ -153,6 +154,7 @@ public:
     int32_t SetLayerMetaData(uint32_t screenId, uint32_t layerId, const std::vector<HDRMetaData> &metaData) override;
     int32_t SetLayerMetaDataSet(uint32_t screenId, uint32_t layerId, HDRMetadataKey key,
                                 const std::vector<uint8_t> &metaData) override;
+    int32_t SetLayerTunnelHandle(uint32_t screenId, uint32_t layerId, const ExtDataHandle *handle) override;
     /* set & get device layer info end */
 
     int32_t CreateLayer(uint32_t screenId, const LayerInfo &layerInfo, uint32_t &layerId) override;

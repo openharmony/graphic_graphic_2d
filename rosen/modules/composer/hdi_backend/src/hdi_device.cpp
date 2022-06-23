@@ -434,6 +434,11 @@ int32_t HdiDevice::SetLayerMetaDataSet(uint32_t screenId, uint32_t layerId, HDRM
 {
     return DISPLAY_SUCCESS;
 }
+
+int32_t HdiDevice::SetLayerTunnelHandle(uint32_t screenId, uint32_t layerId, const ExtDataHandle *handle)
+{
+    return DISPLAY_SUCCESS;
+}
 /* set & get device layer info end */
 
 int32_t HdiDevice::CreateLayer(uint32_t screenId, const LayerInfo &layerInfo, uint32_t &layerId)
