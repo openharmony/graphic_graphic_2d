@@ -130,9 +130,13 @@ void RSSurfaceRenderNode::ProcessRenderAfterChildren(RSPaintFilterCanvas& canvas
 void RSSurfaceRenderNode::CollectSurface(
     const std::shared_ptr<RSBaseRenderNode>& node, std::vector<RSBaseRenderNode::SharedPtr>& vec)
 {
-    const std::string leashWin = "leashWindow";
-    const std::string startWin = "startingWindow";
-    if (GetName().find(startWin) != std::string::npos) {
+    static std::string leashWin = "leashWindow";
+    static std::string startWin = "startingWindow";
+    static std::string subWin = "SUBWINDOW";
+    static std::string freezeWin = "freeze0";
+    if (GetName().find(startWin) != std::string::npos ||
+        GetName().find(subWin) != std::string::npos||
+        GetName().compare(freezeWin) == 0) {
         return;
     }
     if (GetName().find(leashWin) != std::string::npos) {

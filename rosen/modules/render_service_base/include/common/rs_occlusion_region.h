@@ -18,6 +18,7 @@
 #include <algorithm>
 #include <iostream>
 #include <vector>
+#include <string>
 
 namespace OHOS {
 namespace Rosen {
@@ -37,6 +38,15 @@ public:
     bool IsEmpty() const
     {
         return left_ >= right_ || top_ >= bottom_;
+    }
+
+    std::string GetRectInfo()
+    {
+        return std::string("[" +
+            std::to_string(left_) + ", " +
+            std::to_string(top_) + ", " +
+            std::to_string(right_ - left_) + ", " +
+            std::to_string(bottom_ - top_) + "]");
     }
 };
 
@@ -150,6 +160,15 @@ public:
     bool IsEmpty() const
     {
         return rects_.size() == 0;
+    }
+    std::string GetRegionInfo()
+    {
+        std::string info = "{ Region Size " + std::to_string(rects_.size()) + ": ";
+        for (auto&r : rects_) {
+            info.append(r.GetRectInfo());
+        }
+        info.append(" }");
+        return info;
     }
 
     // bound of all region rects

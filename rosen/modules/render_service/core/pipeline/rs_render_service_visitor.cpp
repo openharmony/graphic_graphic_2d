@@ -157,9 +157,7 @@ void RSRenderServiceVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
         RS_LOGI("RSRenderServiceVisitor::ProcessSurfaceRenderNode node : %llu is invisible", node.GetId());
         return;
     }
-    if (!node.GetOcclusionVisible()) {
-        RS_LOGD("RSRenderServiceVisitor::ProcessSurfaceRenderNode node Id: %llu, Name: %s is occluded",
-                node.GetId(), node.GetName().c_str());
+    if (!node.GetOcclusionVisible() && !doAnimate_ && RSSystemProperties::GetOcclusionEnabled()) {
         return;
     }
     node.SetOffset(offsetX_, offsetY_);

@@ -221,7 +221,9 @@ void RSMainThread::Render()
         RS_LOGI("RSMainThread::Render isUni");
         visitor = std::make_shared<RSUniRenderVisitor>();
     } else {
-        visitor = std::make_shared<RSRenderServiceVisitor>();
+        auto rsVisitor = std::make_shared<RSRenderServiceVisitor>();
+        rsVisitor->SetAnimateState(doAnimate_);
+        visitor = rsVisitor;
     }
     rootNode->Prepare(visitor);
     CalcOcclusion();
@@ -233,7 +235,7 @@ void RSMainThread::Render()
 
 void RSMainThread::CalcOcclusion()
 {
-    if (doAnimate_ || !RSSystemProperties::GetOcclusionEnabled()) {
+    if (doAnimate_) {
         return;
     }
     const std::shared_ptr<RSBaseRenderNode> node = context_.GetGlobalRootRenderNode();
@@ -285,6 +287,10 @@ void RSMainThread::CalcOcclusion()
         Occlusion::Region curSurface { rect };
         // Current surface subtract current region, if result region is empty that means it's covered
         Occlusion::Region subResult = curSurface.Sub(curRegion);
+        std::string info = "RSMainThread::CalcOcclusion: id: " + std::to_string(surface->GetId()) + ", ";
+        info.append("name: " + surface->GetName()) + ", ";
+        info.append(subResult.GetRegionInfo());
+        RS_LOGD(info.c_str());
         // Set relult to SurfaceRenderNode and its children
         surface->SetVisibleRegionRecursive(subResult, curVisVec);
         // Current region need to merge current surface for next calculation
