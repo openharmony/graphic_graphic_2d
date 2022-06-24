@@ -686,7 +686,14 @@ GSError BufferQueue::SetQueueSize(uint32_t queueSize)
     }
 
     DeleteBuffers(queueSize_ - queueSize);
-    queueSize_ = queueSize;
+
+    // if increase the queue size, try to wakeup the blocked thread
+    if (queueSize > queueSize_) {
+        queueSize_ = queueSize;
+        waitReqCon_.notify_all();
+    } else {
+        queueSize_ = queueSize;
+    }
 
     BLOGN_SUCCESS("queue size: %{public}d, Queue id: %{public}" PRIu64 "", queueSize_, uniqueId_);
     return GSERROR_OK;
