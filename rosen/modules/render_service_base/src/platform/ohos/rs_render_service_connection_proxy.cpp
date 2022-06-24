@@ -157,7 +157,7 @@ std::vector<ScreenId> RSRenderServiceConnectionProxy::GetAllScreenIds()
     }
 
     uint32_t size = reply.ReadUint32();
-    for (int32_t i = 0; i < size; i++) {
+    for (uint32_t i = 0; i < size; i++) {
         screenIds.emplace_back(reply.ReadUint64());
     }
 
