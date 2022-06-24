@@ -15,31 +15,7 @@
 
 #include "jank_detector/rs_jank_detector.h"
 
-#include <unistd.h>
-#include "base/hiviewdfx/hisysevent/interfaces/native/innerkits/hisysevent/include/hisysevent.h"
 #include "platform/common/rs_log.h"
-
-namespace {
-void DrawEventReport(uint64_t totalTime, uint64_t uiDrawTime, uint64_t renderDrawTime, int dropUiFrameNum,
-    const std::string& abilityName)
-{
-    int32_t pid = getpid();
-    uint32_t uid = getuid();
-    std::string domain = "GRAPHIC";
-    std::string stringId = "NO_DRAW";
-    std::string msg = "It took " + std::to_string(totalTime) + "ns to draw, "
-        + "UI took " + std::to_string(uiDrawTime) + "ns to draw, "
-        + "RSRenderThread took " + std::to_string(renderDrawTime) + "ns to draw, "
-        + "RSRenderThread dropped " + std::to_string(dropUiFrameNum) + " UI Frames";
-
-    OHOS::HiviewDFX::HiSysEvent::Write(domain, stringId,
-        OHOS::HiviewDFX::HiSysEvent::EventType::FAULT,
-        "PID", pid,
-        "UID", uid,
-        "ABILITY_NAME", abilityName,
-        "MSG", msg);
-}
-}
 
 namespace OHOS {
 namespace Rosen {
@@ -97,7 +73,6 @@ void RSJankDetector::CalculateSkippedFrame(uint64_t renderStartTimeStamp, uint64
     // Currently a frame takes two vsync times
     uint64_t skippedFrame = totalTime / (refreshPeriod_ * 2);
     if ((skippedFrame >= JANK_SKIPPED_THRESHOLD) || (dropUiFrameNum >= JANK_SKIPPED_THRESHOLD)) {
-        DrawEventReport(totalTime, uiDrawTime, renderDrawTime, dropUiFrameNum, abilityName);
         ROSEN_LOGD("%s took %llu, UI took %llu, RSRenderThread took %llu, RSRenderThread dropped %d UI Frames",
             abilityName.c_str(), totalTime, uiDrawTime, renderDrawTime);
     }
