@@ -47,8 +47,8 @@ struct Region {
         int32_t y;
         uint32_t w;
         uint32_t h;
-    } *rects;           // if nullptr,  fill the Buffer dirty size by defualt
-    int32_t rectNumber; // if rectNumber is 0, fill the Buffer dirty size by defualt
+    } *rects;           // if nullptr,  fill the Buffer dirty size by default
+    int32_t rectNumber; // if rectNumber is 0, fill the Buffer dirty size by default
 };
 
 enum NativeWindowOperation {

@@ -63,7 +63,7 @@ HWTEST_F(BitmapTest, BitmapBuildTest001, TestSize.Level1)
     // The best way to Build Bitmap.
     std::unique_ptr<Bitmap> bitmap = std::make_unique<Bitmap>();
     ASSERT_TRUE(bitmap != nullptr);
-    BitmapFormat bitmapFormat = { ColorType::COLORTYPE_ALPHA_8, AlphaType::ALPHATYPE_OPAQUYE };
+    BitmapFormat bitmapFormat = { ColorType::COLORTYPE_ALPHA_8, AlphaType::ALPHATYPE_OPAQUE };
     bitmap->Build(100, 200, bitmapFormat);
 }
 
@@ -79,7 +79,7 @@ HWTEST_F(BitmapTest, BitmapBuildTest002, TestSize.Level1)
     // The best way to Build Bitmap.
     std::unique_ptr<Bitmap> bitmap = std::make_unique<Bitmap>();
     ASSERT_TRUE(bitmap != nullptr);
-    BitmapFormat bitmapFormat = { ColorType::COLORTYPE_ALPHA_8, AlphaType::ALPHATYPE_OPAQUYE };
+    BitmapFormat bitmapFormat = { ColorType::COLORTYPE_ALPHA_8, AlphaType::ALPHATYPE_OPAQUE };
     bitmap->Build(150, 99, bitmapFormat);
 }
 
@@ -95,7 +95,7 @@ HWTEST_F(BitmapTest, BitmapBuildTest003, TestSize.Level1)
     // The best way to Build Bitmap.
     std::unique_ptr<Bitmap> bitmap = std::make_unique<Bitmap>();
     ASSERT_TRUE(bitmap != nullptr);
-    BitmapFormat bitmapFormat = { ColorType::COLORTYPE_ALPHA_8, AlphaType::ALPHATYPE_OPAQUYE };
+    BitmapFormat bitmapFormat = { ColorType::COLORTYPE_ALPHA_8, AlphaType::ALPHATYPE_OPAQUE };
     bitmap->Build(111, 450, bitmapFormat);
 }
 
@@ -111,7 +111,7 @@ HWTEST_F(BitmapTest, BitmapGetWidthTest001, TestSize.Level1)
     // The best way to get width.
     std::unique_ptr<Bitmap> bitmap = std::make_unique<Bitmap>();
     ASSERT_TRUE(bitmap != nullptr);
-    BitmapFormat bitmapFormat = { ColorType::COLORTYPE_ALPHA_8, AlphaType::ALPHATYPE_OPAQUYE };
+    BitmapFormat bitmapFormat = { ColorType::COLORTYPE_ALPHA_8, AlphaType::ALPHATYPE_OPAQUE };
     bitmap->Build(111, 450, bitmapFormat);
     ASSERT_EQ(111, bitmap->GetWidth());
 }
@@ -128,7 +128,7 @@ HWTEST_F(BitmapTest, BitmapGetWidthTest002, TestSize.Level1)
     // The best way to get width.
     std::unique_ptr<Bitmap> bitmap = std::make_unique<Bitmap>();
     ASSERT_TRUE(bitmap != nullptr);
-    BitmapFormat bitmapFormat = { ColorType::COLORTYPE_ALPHA_8, AlphaType::ALPHATYPE_OPAQUYE };
+    BitmapFormat bitmapFormat = { ColorType::COLORTYPE_ALPHA_8, AlphaType::ALPHATYPE_OPAQUE };
     bitmap->Build(151, 150, bitmapFormat);
     ASSERT_EQ(151, bitmap->GetWidth());
 }
@@ -145,7 +145,7 @@ HWTEST_F(BitmapTest, BitmapGetHeightTest001, TestSize.Level1)
     // The best way to get height.
     std::unique_ptr<Bitmap> bitmap = std::make_unique<Bitmap>();
     ASSERT_TRUE(bitmap != nullptr);
-    BitmapFormat bitmapFormat = { ColorType::COLORTYPE_ALPHA_8, AlphaType::ALPHATYPE_OPAQUYE };
+    BitmapFormat bitmapFormat = { ColorType::COLORTYPE_ALPHA_8, AlphaType::ALPHATYPE_OPAQUE };
     bitmap->Build(111, 450, bitmapFormat);
     ASSERT_EQ(450, bitmap->GetHeight());
 }
@@ -162,7 +162,7 @@ HWTEST_F(BitmapTest, BitmapGetHeightTest002, TestSize.Level1)
     // The best way to get height.
     std::unique_ptr<Bitmap> bitmap = std::make_unique<Bitmap>();
     ASSERT_TRUE(bitmap != nullptr);
-    BitmapFormat bitmapFormat = { ColorType::COLORTYPE_ALPHA_8, AlphaType::ALPHATYPE_OPAQUYE };
+    BitmapFormat bitmapFormat = { ColorType::COLORTYPE_ALPHA_8, AlphaType::ALPHATYPE_OPAQUE };
     bitmap->Build(151, 150, bitmapFormat);
     ASSERT_EQ(150, bitmap->GetHeight());
 }
@@ -324,7 +324,7 @@ HWTEST_F(BitmapTest, BitmapGetFormatTest001, TestSize.Level1)
 {
     std::unique_ptr<Bitmap> bitmap = std::make_unique<Bitmap>();
     ASSERT_TRUE(bitmap != nullptr);
-    BitmapFormat bitmapFormat = { ColorType::COLORTYPE_ALPHA_8, AlphaType::ALPHATYPE_OPAQUYE };
+    BitmapFormat bitmapFormat = { ColorType::COLORTYPE_ALPHA_8, AlphaType::ALPHATYPE_OPAQUE };
     bitmap->Build(111, 450, bitmapFormat);
     ASSERT_EQ(ColorType::COLORTYPE_UNKNOWN, bitmap->GetFormat().colorType);
     ASSERT_EQ(AlphaType::ALPHATYPE_UNKNOWN, bitmap->GetFormat().alphaType);
@@ -342,7 +342,7 @@ HWTEST_F(BitmapTest, BitmapGetFormatTest002, TestSize.Level1)
 {
     std::unique_ptr<Bitmap> bitmap = std::make_unique<Bitmap>();
     ASSERT_TRUE(bitmap != nullptr);
-    BitmapFormat bitmapFormat = { ColorType::COLORTYPE_ALPHA_8, AlphaType::ALPHATYPE_OPAQUYE };
+    BitmapFormat bitmapFormat = { ColorType::COLORTYPE_ALPHA_8, AlphaType::ALPHATYPE_OPAQUE };
     bitmap->Build(151, 150, bitmapFormat);
     ASSERT_EQ(ColorType::COLORTYPE_UNKNOWN, bitmap->GetFormat().colorType);
     ASSERT_EQ(AlphaType::ALPHATYPE_UNKNOWN, bitmap->GetFormat().alphaType);

@@ -36,7 +36,7 @@ enum ColorType {
 
 enum AlphaType {
     ALPHATYPE_UNKNOWN = 0,
-    ALPHATYPE_OPAQUYE,
+    ALPHATYPE_OPAQUE,
     ALPHATYPE_PREMUL,
     ALPHATYPE_UNPREMUL,
 };

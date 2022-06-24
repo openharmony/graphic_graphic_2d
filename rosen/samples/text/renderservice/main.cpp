@@ -66,7 +66,7 @@ std::u16string TextToUtf16(std::string str)
 void DoDraw(uint8_t *addr, uint32_t width, uint32_t height, size_t index)
 {
     Bitmap bitmapCache;
-    BitmapFormat format {COLORTYPE_RGBA_8888, ALPHATYPE_OPAQUYE};
+    BitmapFormat format {COLORTYPE_RGBA_8888, ALPHATYPE_OPAQUE};
     bitmapCache.Build(width, height, format);
 
     Canvas canvas;

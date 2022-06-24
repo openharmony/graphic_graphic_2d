@@ -73,7 +73,7 @@ HWTEST_F(ColorSpaceTest, CreatedByStaticMethod001, TestSize.Level1)
 HWTEST_F(ColorSpaceTest, CreatedByStaticMethod003, TestSize.Level1)
 {
     Bitmap bmp;
-    BitmapFormat format { COLORTYPE_RGBA_8888, ALPHATYPE_OPAQUYE };
+    BitmapFormat format { COLORTYPE_RGBA_8888, ALPHATYPE_OPAQUE };
     bmp.Build(10, 10, format);
     Image image;
     image.BuildFromBitmap(bmp);
@@ -147,7 +147,7 @@ HWTEST_F(ColorSpaceTest, CreatedByArgs002, TestSize.Level1)
 HWTEST_F(ColorSpaceTest, CreatedByNoArgs003, TestSize.Level1)
 {
     Bitmap bmp;
-    BitmapFormat format { COLORTYPE_RGBA_8888, ALPHATYPE_OPAQUYE };
+    BitmapFormat format { COLORTYPE_RGBA_8888, ALPHATYPE_OPAQUE };
     bmp.Build(10, 10, format);
     Image image;
     image.BuildFromBitmap(bmp);

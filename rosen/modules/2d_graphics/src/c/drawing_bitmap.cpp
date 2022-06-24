@@ -64,7 +64,7 @@ static AlphaType CAlphaFormatCastToAlphaType(OH_Drawing_AlphaFormat cAlphaFormat
             alphaType = ALPHATYPE_UNKNOWN;
             break;
         case ALPHA_FORMAT_OPAQUE:
-            alphaType = ALPHATYPE_OPAQUYE;
+            alphaType = ALPHATYPE_OPAQUE;
             break;
         case ALPHA_FORMAT_PREMUL:
             alphaType = ALPHATYPE_PREMUL;
