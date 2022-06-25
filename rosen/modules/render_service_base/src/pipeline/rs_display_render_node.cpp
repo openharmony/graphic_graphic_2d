@@ -86,7 +86,8 @@ void RSDisplayRenderNode::SetMirrorSource(SharedPtr node)
         return;
     }
     mirrorSource_ = node;
-    RS_LOGD("RSDisplayRenderNode::SetMirrorSource, node id:[%llu], mirror source node id: [%llu]", GetId(), node->GetId());
+    RS_LOGD("RSDisplayRenderNode::SetMirrorSource, node id:[%llu], mirror source node id: [%llu]",
+        GetId(), node->GetId());
 }
 
 void RSDisplayRenderNode::ResetMirrorSource()
@@ -113,7 +114,8 @@ bool RSDisplayRenderNode::GetSecurityDisplay() const
 void RSDisplayRenderNode::SetIsMirrorDisplay(bool isMirror)
 {
     isMirroredDisplay_ = isMirror;
-    RS_LOGD("RSDisplayRenderNode::SetIsMirrorDisplay, node id:[%llu], isMirrorDisplay: [%s]", GetId(), IsMirrorDisplay() ? "true" : "false");
+    RS_LOGD("RSDisplayRenderNode::SetIsMirrorDisplay, node id:[%llu], isMirrorDisplay: [%s]",
+        GetId(), IsMirrorDisplay() ? "true" : "false");
 }
 
 bool RSDisplayRenderNode::CreateSurface(sptr<IBufferConsumerListener> listener)

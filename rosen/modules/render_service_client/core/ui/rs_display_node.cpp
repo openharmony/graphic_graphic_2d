@@ -81,7 +81,8 @@ void RSDisplayNode::SetIsMirrorDisplay(const RSDisplayNodeConfig& displayNodeCon
     if (transactionProxy != nullptr) {
         transactionProxy->AddCommand(command, true);
     }
-    ROSEN_LOGD("RSDisplayNode::SetIsMirrorDisplay, displayNodeId:[%llu] isMirrored:[%s]", GetId(), displayNodeConfig.isMirrored ? "true" : "false");
+    ROSEN_LOGD("RSDisplayNode::SetIsMirrorDisplay, displayNodeId:[%llu] isMirrored:[%s]", GetId(),
+        displayNodeConfig.isMirrored ? "true" : "false");
 }
 
 bool RSDisplayNode::IsMirrorDisplay() const

@@ -48,7 +48,8 @@ ADD_COMMAND(RSDisplayNodeSetDisplayOffset,
 ADD_COMMAND(RSDisplayNodeSetSecurityDisplay,
     ARG(DISPLAY_NODE, DISPLAY_NODE_SET_SECURITY_DISPLAY, DisplayNodeCommandHelper::SetSecurityDisplay, NodeId, bool))
 ADD_COMMAND(RSDisplayNodeSetDisplayMode,
-    ARG(DISPLAY_NODE, DISPLAY_NODE_SET_DISPLAY_MODE, DisplayNodeCommandHelper::SetDisplayMode, NodeId, RSDisplayNodeConfig))
+    ARG(DISPLAY_NODE, DISPLAY_NODE_SET_DISPLAY_MODE, DisplayNodeCommandHelper::SetDisplayMode, NodeId,
+    RSDisplayNodeConfig))
 } // namespace Rosen
 } // namespace OHOS
 

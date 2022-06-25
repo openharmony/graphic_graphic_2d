@@ -70,7 +70,8 @@ void DisplayNodeCommandHelper::SetDisplayMode(RSContext& context, NodeId id, con
             auto& nodeMap = context.GetMutableNodeMap();
             auto mirrorSourceNode = nodeMap.GetRenderNode<RSDisplayRenderNode>(mirrorNodeId);
             if (mirrorSourceNode == nullptr) {
-                ROSEN_LOGD("DisplayNodeCommandHelper::SetDisplayMode, no valid mirror source, displayNodeId:[%llu] mirrorNodeId:[%llu]", id, mirrorNodeId);
+                ROSEN_LOGD("DisplayNodeCommandHelper::SetDisplayMode fail, displayNodeId:[%llu] mirrorNodeId:[%llu]",
+                    id, mirrorNodeId);
                 return;
             }
             displayNode->SetMirrorSource(mirrorSourceNode);

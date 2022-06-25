@@ -18,23 +18,13 @@ module_out_path = "graphic_standard/render_service_client"
 group("systemtest") {
   testonly = true
 
-  deps = [ 
-    ":RSInterfacesSystemTest",
-    ":RSDisplayModeSystemTest",
-  ]
+  deps = [ ":RSInterfacesSystemTest" ]
 }
 
 ## Build RSInterfacesSystemTest
 ohos_systemtest("RSInterfacesSystemTest") {
   module_out_path = module_out_path
   sources = [ "rs_interfaces_system_test.cpp" ]
-  deps = [ ":rs_client_test_common" ]
-}
-
-## Build RSDisplayModeSystemTest
-ohos_systemtest("RSDisplayModeSystemTest") {
-  module_out_path = module_out_path
-  sources = [ "rs_display_mode_system_test.cpp" ]
   deps = [ ":rs_client_test_common" ]
 }
 

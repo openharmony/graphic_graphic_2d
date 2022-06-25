@@ -23,7 +23,7 @@ using namespace testing::ext;
 
 namespace OHOS {
 namespace Rosen {
-class RSDisplayModeSystemTest : public testing::Test {
+class RSDisplayModeTest : public testing::Test {
 public:
     uint64_t screenId1 = 10; // To extinguish between the original screenIds and test screenIds
     uint64_t screenId2 = 11;
@@ -34,17 +34,17 @@ public:
     void TearDown() override;
 };
 
-void RSDisplayModeSystemTest::SetUpTestCase() {}
-void RSDisplayModeSystemTest::TearDownTestCase() {}
-void RSDisplayModeSystemTest::SetUp() {}
-void RSDisplayModeSystemTest::TearDown() {}
+void RSDisplayModeTest::SetUpTestCase() {}
+void RSDisplayModeTest::TearDownTestCase() {}
+void RSDisplayModeTest::SetUp() {}
+void RSDisplayModeTest::TearDown() {}
 
 /**
  * @tc.name: CreateExpand
  * @tc.desc: Create expand display node
  * @tc.type:FUNC
  */
-HWTEST_F(RSDisplayModeSystemTest, CreateExpand, Function | MediumTest  | Level2)
+HWTEST_F(RSDisplayModeTest, CreateExpand, Function | MediumTest  | Level2)
 {
     /**
     * step1. create RSDisplayNode
@@ -73,7 +73,7 @@ HWTEST_F(RSDisplayModeSystemTest, CreateExpand, Function | MediumTest  | Level2)
  * @tc.desc: Create mirror display node
  * @tc.type:FUNC
  */
-HWTEST_F(RSDisplayModeSystemTest, CreateMirror, Function | MediumTest  | Level2)
+HWTEST_F(RSDisplayModeTest, CreateMirror, Function | MediumTest  | Level2)
 {
     /**
     * step1. create RSDisplayNode
@@ -102,13 +102,12 @@ HWTEST_F(RSDisplayModeSystemTest, CreateMirror, Function | MediumTest  | Level2)
     displayNode->RemoveFromTree();
 }
 
-
 /**
  * @tc.name: SetIsMirrorDisplayExpand
  * @tc.desc: Modify display mode type to expand display
  * @tc.type:FUNC
  */
-HWTEST_F(RSDisplayModeSystemTest, SetIsMirrorDisplayExpand, Function | MediumTest  | Level2)
+HWTEST_F(RSDisplayModeTest, SetIsMirrorDisplayExpand, Function | MediumTest  | Level2)
 {
     /**
     * step1. create RSDisplayNode
@@ -149,7 +148,7 @@ HWTEST_F(RSDisplayModeSystemTest, SetIsMirrorDisplayExpand, Function | MediumTes
  * @tc.desc: Modify display mode type to mirror display
  * @tc.type:FUNC
  */
-HWTEST_F(RSDisplayModeSystemTest, SetIsMirrorDisplayMirror, Function | MediumTest  | Level2)
+HWTEST_F(RSDisplayModeTest, SetIsMirrorDisplayMirror, Function | MediumTest  | Level2)
 {
     /**
     * step1. create RSDisplayNode
@@ -184,6 +183,5 @@ HWTEST_F(RSDisplayModeSystemTest, SetIsMirrorDisplayMirror, Function | MediumTes
     displayNodeSrc->RemoveFromTree();
     displayNode->RemoveFromTree();
 }
-
 } // namespace Rosen
 } // namespace OHOS
