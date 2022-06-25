@@ -15,14 +15,14 @@
 
 #include "gtest/gtest.h"
 #include "limit_number.h"
-#include "pipeline/rs_software_processor.h"
+#include "pipeline/rs_virtual_screen_processor.h"
 #include "pipeline/rs_processor_factory.h"
 
 using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
-class RSSoftwareProcessorTest : public testing::Test {
+class RSVirtualScreenProcessorTest : public testing::Test {
 public:
     static void SetUpTestCase();
     static void TearDownTestCase();
@@ -30,10 +30,10 @@ public:
     void TearDown() override;
 };
 
-void RSSoftwareProcessorTest::SetUpTestCase() {}
-void RSSoftwareProcessorTest::TearDownTestCase() {}
-void RSSoftwareProcessorTest::SetUp() {}
-void RSSoftwareProcessorTest::TearDown() {}
+void RSVirtualScreenProcessorTest::SetUpTestCase() {}
+void RSVirtualScreenProcessorTest::TearDownTestCase() {}
+void RSVirtualScreenProcessorTest::SetUp() {}
+void RSVirtualScreenProcessorTest::TearDown() {}
 
 /**
  * @tc.name: CreateAndDestory001
@@ -42,7 +42,7 @@ void RSSoftwareProcessorTest::TearDown() {}
  * @tc.require:
  * @tc.author:
  */
-HWTEST_F(RSSoftwareProcessorTest, CreateAndDestory001, TestSize.Level1)
+HWTEST_F(RSVirtualScreenProcessorTest, CreateAndDestory001, TestSize.Level1)
 {
     // The best way to create RSSoftwareProcessor.
     auto p = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::SOFTWARE_COMPOSITE);
@@ -55,7 +55,7 @@ HWTEST_F(RSSoftwareProcessorTest, CreateAndDestory001, TestSize.Level1)
  * @tc.require:
  * @tc.author:
  */
-HWTEST_F(RSSoftwareProcessorTest, CreateAndDestory002, TestSize.Level1)
+HWTEST_F(RSVirtualScreenProcessorTest, CreateAndDestory002, TestSize.Level1)
 {
     RSProcessorFactory factory;
     auto p = factory.CreateProcessor(RSDisplayRenderNode::CompositeType::SOFTWARE_COMPOSITE);
@@ -69,7 +69,7 @@ HWTEST_F(RSSoftwareProcessorTest, CreateAndDestory002, TestSize.Level1)
  * @tc.require:
  * @tc.author:
  */
-HWTEST_F(RSSoftwareProcessorTest, ProcessSurface001, TestSize.Level1)
+HWTEST_F(RSVirtualScreenProcessorTest, ProcessSurface001, TestSize.Level1)
 {
     RSSurfaceRenderNodeConfig config;
     RSSurfaceRenderNode rsSurfaceRenderNode(config);
@@ -85,7 +85,7 @@ HWTEST_F(RSSoftwareProcessorTest, ProcessSurface001, TestSize.Level1)
  * @tc.require:
  * @tc.author:
  */
-HWTEST_F(RSSoftwareProcessorTest, PostProcess001, TestSize.Level1)
+HWTEST_F(RSVirtualScreenProcessorTest, PostProcess001, TestSize.Level1)
 {
     auto rsSoftwareProcessor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::SOFTWARE_COMPOSITE);
     rsSoftwareProcessor->PostProcess();

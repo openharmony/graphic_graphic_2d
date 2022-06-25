@@ -29,15 +29,11 @@
 #include "pipeline/rs_context.h"
 #include "platform/drawing/rs_vsync_client.h"
 #include "refbase.h"
+#include "rs_render_engine.h"
 #include "vsync_receiver.h"
 #include "vsync_distributor.h"
 #include "vsync_helper.h"
 #include "ipc_callbacks/rs_iocclusion_change_callback.h"
-
-#ifdef RS_ENABLE_GL
-#include "render_context/render_context.h"
-#include "rs_egl_image_manager.h"
-#endif // RS_ENABLE_GL
 
 namespace OHOS {
 namespace Rosen {
@@ -85,19 +81,11 @@ public:
         PostTask([t(std::move(scheduledTask))]() { t->Run(); });
         return std::move(taskFuture);
     }
-#ifdef RS_ENABLE_GL
-    std::shared_ptr<RenderContext> GetRenderContext() const
-    {
-        return renderContext_;
-    }
-#endif // RS_ENABLE_GL
 
-#ifdef RS_ENABLE_EGLIMAGE
-    std::shared_ptr<RSEglImageManager> GetRSEglImageManager() const
+    const std::shared_ptr<RSRenderEngine>& GetRenderEngine() const
     {
-        return eglImageManager_;
+        return renderEngine_;
     }
-#endif // RS_ENABLE_EGLIMAGE
 
     RSContext& GetContext()
     {
@@ -159,14 +147,8 @@ private:
     VisibleData lastVisVec_;
     bool doAnimate_ = false;
     uint32_t lastSurafceCnt_ = 0;
-    
-#ifdef RS_ENABLE_GL
-    std::shared_ptr<RenderContext> renderContext_;
-#endif // RS_ENABLE_GL
 
-#ifdef RS_ENABLE_EGLIMAGE
-    std::shared_ptr<RSEglImageManager> eglImageManager_;
-#endif // RS_ENABLE_EGLIMAGE
+    std::shared_ptr<RSRenderEngine> renderEngine_;
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -26,22 +26,25 @@ namespace OHOS {
 namespace Rosen {
 bool RSDividedRenderUtil::enableClient = false;
 
-bool RSDividedRenderUtil::IsNeedClient(RSSurfaceRenderNode* node)
+bool RSDividedRenderUtil::IsNeedClient(RSSurfaceRenderNode& node, const ComposeInfo& info)
 {
     if (enableClient) {
         RS_LOGD("RsDebug RSDividedRenderUtil::IsNeedClient enable composition client");
         return true;
     }
-    if (node == nullptr) {
-        RS_LOGE("RSDividedRenderUtil::IsNeedClient node is empty");
-        return false;
+
+    const auto& property = node.GetRenderProperties();
+    if (property.GetFrameGravity() != Gravity::RESIZE &&
+        (info.srcRect.w != info.dstRect.w || info.srcRect.h != info.dstRect.h)) {
+        return true;
     }
-    auto filter = std::static_pointer_cast<RSBlurFilter>(node->GetRenderProperties().GetBackgroundFilter());
+
+    auto filter = std::static_pointer_cast<RSBlurFilter>(property.GetBackgroundFilter());
     if (filter != nullptr && filter->GetBlurRadiusX() > 0 && filter->GetBlurRadiusY() > 0) {
         RS_LOGD("RsDebug RSDividedRenderUtil::IsNeedClient enable composition client need filter");
         return true;
     }
-    auto transitionProperties = node->GetAnimationManager().GetTransitionProperties();
+    auto transitionProperties = node.GetAnimationManager().GetTransitionProperties();
     if (!transitionProperties) {
         return false;
     }
@@ -187,8 +190,10 @@ SkMatrix RSDividedRenderUtil::GetCanvasTransform(const RSSurfaceRenderNode& node
 }
 
 BufferDrawParam RSDividedRenderUtil::CreateBufferDrawParam(RSSurfaceRenderNode& node, SkMatrix canvasMatrix,
-    ScreenRotation rotation, SkPaint paint)
+    ScreenRotation rotation)
 {
+    SkPaint paint;
+    paint.setAlphaf(node.GetGlobalAlpha());
     const RSProperties& property = node.GetRenderProperties();
     SkRect dstRect = SkRect::MakeXYWH(node.GetDstRect().left_, node.GetDstRect().top_,
         node.GetDstRect().width_, node.GetDstRect().height_);

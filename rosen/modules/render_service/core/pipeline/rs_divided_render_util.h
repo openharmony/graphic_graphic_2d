@@ -25,6 +25,7 @@
 
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_surface_render_node.h"
+#include "rs_composer_adapter.h"
 #include "screen_manager/screen_types.h"
 #include "sync_fence.h"
 #ifdef RS_ENABLE_EGLIMAGE
@@ -60,11 +61,11 @@ public:
 #endif // RS_ENABLE_EGLIMAGE
 
     static BufferDrawParam CreateBufferDrawParam(RSSurfaceRenderNode& node, SkMatrix canvasMatrix = SkMatrix(),
-        ScreenRotation rotation = ScreenRotation::ROTATION_0, SkPaint paint = SkPaint());
+        ScreenRotation rotation = ScreenRotation::ROTATION_0);
     static void DealAnimation(RSPaintFilterCanvas& canvas, RSSurfaceRenderNode& node, BufferDrawParam& params,
         const Vector2f& center);
     static void InitEnableClient();
-    static bool IsNeedClient(RSSurfaceRenderNode* node);
+    static bool IsNeedClient(RSSurfaceRenderNode& node, const ComposeInfo& info);
 
 private:
     static SkMatrix GetCanvasTransform(const RSSurfaceRenderNode& node, const SkMatrix& canvasMatrix,

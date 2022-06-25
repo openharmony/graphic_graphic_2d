@@ -71,14 +71,7 @@ void RSMainThread::Init()
     receiver_->Init();
     RSDividedRenderUtil::InitEnableClient();
 
-#ifdef RS_ENABLE_GL
-    renderContext_ = std::make_shared<RenderContext>();
-    renderContext_->InitializeEglContext();
-#endif // RS_ENABLE_GL
-
-#ifdef RS_ENABLE_EGLIMAGE
-    eglImageManager_ = std::make_shared<RSEglImageManager>(renderContext_->GetEGLDisplay());
-#endif // RS_ENABLE_EGLIMAGE
+    renderEngine_ = std::make_shared<RSRenderEngine>();
 }
 
 void RSMainThread::Start()
@@ -228,9 +221,8 @@ void RSMainThread::Render()
     rootNode->Prepare(visitor);
     CalcOcclusion();
     rootNode->Process(visitor);
-#ifdef RS_ENABLE_EGLIMAGE
-    eglImageManager_->ShrinkCachesIfNeeded();
-#endif // RS_ENABLE_EGLIMAGE
+
+    renderEngine_->ShrinkEGLImageCachesIfNeeded();
 }
 
 void RSMainThread::CalcOcclusion()

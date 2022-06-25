@@ -13,33 +13,30 @@
  * limitations under the License.
  */
 
-#ifndef RS_SOFTWARE_PROCESSOR_H
-#define RS_SOFTWARE_PROCESSOR_H
+#ifndef RS_CORE_PIPELINE_VIRTUAL_SCREEN_PROCESSOR_H
+#define RS_CORE_PIPELINE_VIRTUAL_SCREEN_PROCESSOR_H
 
-#include "pipeline/rs_processor.h"
-#include "screen_manager/rs_screen_manager.h"
+#include "rs_processor.h"
 
 namespace OHOS {
 namespace Rosen {
-
-class RSSoftwareProcessor : public RSProcessor {
+class RSVirtualScreenProcessor : public RSProcessor {
 public:
-    RSSoftwareProcessor();
-    ~RSSoftwareProcessor() override;
+    RSVirtualScreenProcessor();
+    ~RSVirtualScreenProcessor() noexcept override;
+    bool Init(ScreenId id, int32_t offsetX, int32_t offsetY) override;
+
     void ProcessSurface(RSSurfaceRenderNode& node) override;
-    void ProcessSurface(RSDisplayRenderNode& node) override {}
-    void Init(ScreenId id, int32_t offsetX, int32_t offsetY) override;
+    void ProcessDisplaySurface(RSDisplayRenderNode& node) override;
     void PostProcess() override;
 
 private:
-    bool GenerateParamAndDrawBuffer(RSSurfaceRenderNode& node);
+    void SetBufferTimeStamp();
+
     sptr<Surface> producerSurface_;
+    std::unique_ptr<RSRenderFrame> renderFrame_;
     std::unique_ptr<RSPaintFilterCanvas> canvas_;
-    ScreenInfo currScreenInfo_;
-    ScreenRotation rotation_ {ScreenRotation::ROTATION_0};
-    int32_t offsetX_ = 0;
-    int32_t offsetY_ = 0;
 };
 } // namespace Rosen
 } // namespace OHOS
-#endif // RS_SOFTWARE_PROCESSOR_H
+#endif // RS_CORE_PIPELINE_VIRTUAL_SCREEN_PROCESSOR_H

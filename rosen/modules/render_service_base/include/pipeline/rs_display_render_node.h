@@ -30,7 +30,7 @@ namespace Rosen {
 class RSDisplayRenderNode : public RSBaseRenderNode, public RSSurfaceHandler {
 public:
     enum CompositeType {
-        COMPATIBLE_COMPOSITE = 0,
+        UNI_RENDER_COMPOSITE = 0,
         HARDWARE_COMPOSITE,
         SOFTWARE_COMPOSITE
     };

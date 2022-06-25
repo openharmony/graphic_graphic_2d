@@ -87,7 +87,7 @@ HWTEST_F(RSProcessorFactoryTest, CreateProcessor002, TestSize.Level1)
  */
 HWTEST_F(RSProcessorFactoryTest, CreateProcessor003, TestSize.Level1)
 {
-    auto p = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::COMPATIBLE_COMPOSITE);
+    auto p = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::UNI_RENDER_COMPOSITE);
     EXPECT_TRUE(nullptr != p);
 }
 } // namespace OHOS::Rosen

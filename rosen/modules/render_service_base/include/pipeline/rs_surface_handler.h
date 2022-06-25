@@ -73,12 +73,12 @@ public:
         buffer_.timestamp = timestamp;
     }
 
-    sptr<SurfaceBuffer> GetBuffer()
+    const sptr<SurfaceBuffer>& GetBuffer() const
     {
         return buffer_.buffer;
     }
 
-    sptr<SyncFence> GetAcquireFence() const
+    const sptr<SyncFence>& GetAcquireFence() const
     {
         return buffer_.acquireFence;
     }

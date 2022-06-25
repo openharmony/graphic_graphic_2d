@@ -15,14 +15,14 @@
 
 #include "gtest/gtest.h"
 #include "limit_number.h"
-#include "pipeline/rs_hardware_processor.h"
+#include "pipeline/rs_physical_screen_processor.h"
 #include "pipeline/rs_processor_factory.h"
 
 using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
-class RSHardwareProcessorTest : public testing::Test {
+class RSPhysicalScreenProcessorTest : public testing::Test {
 public:
     static void SetUpTestCase();
     static void TearDownTestCase();
@@ -30,10 +30,10 @@ public:
     void TearDown() override;
 };
 
-void RSHardwareProcessorTest::SetUpTestCase() {}
-void RSHardwareProcessorTest::TearDownTestCase() {}
-void RSHardwareProcessorTest::SetUp() {}
-void RSHardwareProcessorTest::TearDown() {}
+void RSPhysicalScreenProcessorTest::SetUpTestCase() {}
+void RSPhysicalScreenProcessorTest::TearDownTestCase() {}
+void RSPhysicalScreenProcessorTest::SetUp() {}
+void RSPhysicalScreenProcessorTest::TearDown() {}
 
 /**
  * @tc.name: CreateAndDestory001
@@ -42,7 +42,7 @@ void RSHardwareProcessorTest::TearDown() {}
  * @tc.require:
  * @tc.author:
  */
-HWTEST_F(RSHardwareProcessorTest, CreateAndDestory001, TestSize.Level1)
+HWTEST_F(RSPhysicalScreenProcessorTest, CreateAndDestory001, TestSize.Level1)
 {
     // The best way to create RSHardwareProcessor.
     auto p = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::HARDWARE_COMPOSITE);
@@ -56,7 +56,7 @@ HWTEST_F(RSHardwareProcessorTest, CreateAndDestory001, TestSize.Level1)
  * @tc.require:
  * @tc.author:
  */
-HWTEST_F(RSHardwareProcessorTest, CreateAndDestory002, TestSize.Level1)
+HWTEST_F(RSPhysicalScreenProcessorTest, CreateAndDestory002, TestSize.Level1)
 {
     RSProcessorFactory factory;
     auto p = factory.CreateProcessor(RSDisplayRenderNode::CompositeType::HARDWARE_COMPOSITE);
@@ -70,7 +70,7 @@ HWTEST_F(RSHardwareProcessorTest, CreateAndDestory002, TestSize.Level1)
  * @tc.require:
  * @tc.author:
  */
-HWTEST_F(RSHardwareProcessorTest, ProcessSurface001, TestSize.Level1)
+HWTEST_F(RSPhysicalScreenProcessorTest, ProcessSurface001, TestSize.Level1)
 {
     auto rsHardwareProcessor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::
         HARDWARE_COMPOSITE);
@@ -86,7 +86,7 @@ HWTEST_F(RSHardwareProcessorTest, ProcessSurface001, TestSize.Level1)
  * @tc.require:
  * @tc.author:
  */
-HWTEST_F(RSHardwareProcessorTest, ProcessSurface002, TestSize.Level1)
+HWTEST_F(RSPhysicalScreenProcessorTest, ProcessSurface002, TestSize.Level1)
 {
     auto rsHardwareProcessor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::
         HARDWARE_COMPOSITE);
@@ -102,7 +102,7 @@ HWTEST_F(RSHardwareProcessorTest, ProcessSurface002, TestSize.Level1)
  * @tc.require:
  * @tc.author:
  */
-HWTEST_F(RSHardwareProcessorTest, ProcessSurface003, TestSize.Level1)
+HWTEST_F(RSPhysicalScreenProcessorTest, ProcessSurface003, TestSize.Level1)
 {
     auto rsHardwareProcessor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::
         HARDWARE_COMPOSITE);
@@ -118,7 +118,7 @@ HWTEST_F(RSHardwareProcessorTest, ProcessSurface003, TestSize.Level1)
  * @tc.require:
  * @tc.author:
  */
-HWTEST_F(RSHardwareProcessorTest, ProcessSurface004, TestSize.Level1)
+HWTEST_F(RSPhysicalScreenProcessorTest, ProcessSurface004, TestSize.Level1)
 {
     auto rsHardwareProcessor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::
         HARDWARE_COMPOSITE);
@@ -134,7 +134,7 @@ HWTEST_F(RSHardwareProcessorTest, ProcessSurface004, TestSize.Level1)
  * @tc.require:
  * @tc.author:
  */
-HWTEST_F(RSHardwareProcessorTest, ProcessSurface005, TestSize.Level1)
+HWTEST_F(RSPhysicalScreenProcessorTest, ProcessSurface005, TestSize.Level1)
 {
     auto rsHardwareProcessor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::
         HARDWARE_COMPOSITE);
@@ -150,7 +150,7 @@ HWTEST_F(RSHardwareProcessorTest, ProcessSurface005, TestSize.Level1)
  * @tc.require:
  * @tc.author:
  */
-HWTEST_F(RSHardwareProcessorTest, ProcessSurface006, TestSize.Level1)
+HWTEST_F(RSPhysicalScreenProcessorTest, ProcessSurface006, TestSize.Level1)
 {
     auto rsHardwareProcessor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::
         HARDWARE_COMPOSITE);
@@ -166,7 +166,7 @@ HWTEST_F(RSHardwareProcessorTest, ProcessSurface006, TestSize.Level1)
  * @tc.require:
  * @tc.author:
  */
-HWTEST_F(RSHardwareProcessorTest, ProcessSurface007, TestSize.Level1)
+HWTEST_F(RSPhysicalScreenProcessorTest, ProcessSurface007, TestSize.Level1)
 {
     auto rsHardwareProcessor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::
         HARDWARE_COMPOSITE);
@@ -182,7 +182,7 @@ HWTEST_F(RSHardwareProcessorTest, ProcessSurface007, TestSize.Level1)
  * @tc.require:
  * @tc.author:
  */
-HWTEST_F(RSHardwareProcessorTest, ProcessSurface008, TestSize.Level1)
+HWTEST_F(RSPhysicalScreenProcessorTest, ProcessSurface008, TestSize.Level1)
 {
     auto rsHardwareProcessor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::
         HARDWARE_COMPOSITE);
@@ -198,7 +198,7 @@ HWTEST_F(RSHardwareProcessorTest, ProcessSurface008, TestSize.Level1)
  * @tc.require:
  * @tc.author:
  */
-HWTEST_F(RSHardwareProcessorTest, PostProcess001, TestSize.Level1)
+HWTEST_F(RSPhysicalScreenProcessorTest, PostProcess001, TestSize.Level1)
 {
     auto rsHardwareProcessor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::
         HARDWARE_COMPOSITE);
