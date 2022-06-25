@@ -64,7 +64,7 @@ SkRRect RSPropertiesPainter::RRect2SkRRect(const RRect& rr)
     return rrect;
 }
 
-bool GetGravityMatrix(Gravity gravity, RectF rect, float w, float h, SkMatrix& mat)
+bool RSPropertiesPainter::GetGravityMatrix(Gravity gravity, RectF rect, float w, float h, SkMatrix& mat)
 {
     if (w == rect.width_ && h == rect.height_) {
         return false;

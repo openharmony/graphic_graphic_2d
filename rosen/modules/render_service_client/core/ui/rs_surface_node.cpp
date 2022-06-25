@@ -71,6 +71,7 @@ RSSurfaceNode::SharedPtr RSSurfaceNode::Create(const RSSurfaceNodeConfig& surfac
             transactionProxy->AddCommand(command, isWindow);
         }
     }
+    node->SetFrameGravity(Gravity::RESIZE);
     ROSEN_LOGD("RsDebug RSSurfaceNode::Create id:%llu", node->GetId());
     return node;
 }

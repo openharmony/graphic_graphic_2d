@@ -27,6 +27,7 @@
 #include "pipeline/rs_base_render_node.h"
 #include "pipeline/rs_processor.h"
 #include "pipeline/rs_surface_render_node.h"
+#include "rs_divided_render_util.h"
 #include "screen_manager/rs_screen_manager.h"
 
 namespace OHOS {
@@ -43,6 +44,8 @@ public:
     void CropLayers();
 
 private:
+    static SkMatrix GetGravityMatrix(RSSurfaceRenderNode& node, const RectF& targetRect);
+    BufferDrawParam GetBufferDrawParam(RSSurfaceRenderNode& node, const LayerInfoPtr& layerInfo);
     void Redraw(sptr<Surface>& surface, const struct PrepareCompleteParam& param, void* data);
     void OnRotate();
     void ScaleDownLayers();
