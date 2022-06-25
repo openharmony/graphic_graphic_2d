@@ -19,7 +19,6 @@ module_output_path = "graphic_standard/rosen/modules/effect"
 
 ohos_unittest("EffectTest") {
   module_out_path = module_output_path
-  sources = []
 
   deps = [
     "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
@@ -27,17 +26,27 @@ ohos_unittest("EffectTest") {
     "//utils/native/base:utils",
   ]
 
+  sources = []
+
   if (effect_enable_gpu) {
     sources += [ "effect_chain_unittest.cpp" ]
-
-    deps += [
-      "//foundation/graphic/graphic_2d:libgl",
-      "//foundation/graphic/graphic_2d/rosen/modules/effect/effectChain:libeffectchain",
-      "//foundation/graphic/graphic_2d/rosen/modules/effect/egl:libegl_effect",
-    ]
   }
 
-  configs = [ ":effect_test_config" ]
+  deps += [
+    "//foundation/graphic/graphic_2d:libgl",
+    "//foundation/graphic/graphic_2d/rosen/modules/effect/color_picker:color_picker",
+    "//foundation/graphic/graphic_2d/rosen/modules/effect/effectChain:libeffectchain",
+    "//foundation/graphic/graphic_2d/rosen/modules/effect/egl:libegl_effect",
+    "//foundation/graphic/graphic_2d/utils/color_manager:color_manager",
+    "//foundation/multimedia/image_standard/interfaces/innerkits:image",
+    "//foundation/multimedia/image_standard/interfaces/innerkits:image_native",
+    "//third_party/flutter/build/skia:ace_skia_ohos",
+  ]
+
+  configs = [
+    ":effect_test_config",
+    "//foundation/graphic/graphic_2d/utils/color_manager:color_manager_public_config",
+  ]
 }
 
 config("effect_test_config") {
@@ -45,8 +54,12 @@ config("effect_test_config") {
   include_dirs = [
     "//third_party/EGL/api",
     "//third_party/openGLES/api",
+    "//third_party/skia",
+    "//foundation/graphic/graphic_2d/rosen/modules/effect/color_picker/include",
     "//foundation/graphic/graphic_2d/rosen/modules/effect/effectChain/include",
     "//foundation/graphic/graphic_2d/rosen/modules/effect/egl/include",
+    "//foundation/graphic/graphic_2d/utils/color_manager/export",
+    "//foundation/multimedia/image_standard/interfaces/innerkits/include/",
   ]
 }
 
