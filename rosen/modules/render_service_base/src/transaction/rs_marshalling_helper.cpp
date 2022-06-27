@@ -92,8 +92,7 @@ static inline sk_sp<T> sk_reinterpret_cast(sk_sp<P> ptr)
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const sk_sp<SkData>& val)
 {
     if (!val) {
-        ROSEN_LOGE("unirender: RSMarshallingHelper::Marshalling SkData is nullptr");
-        return false;
+        return parcel.WriteInt32(-1);
     }
 
     bool ret = parcel.WriteInt32(val->size());
@@ -110,7 +109,11 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const sk_sp<SkData>& val)
 }
 bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, sk_sp<SkData>& val)
 {
-    size_t size = parcel.ReadInt32();
+    int32_t size = parcel.ReadInt32();
+    if (size == -1) {
+        val = nullptr;
+        return true;
+    }
     if (size == 0) {
         ROSEN_LOGW("unirender: RSMarshallingHelper::Unmarshalling SkData size is 0");
         val = SkData::MakeEmpty();
@@ -131,7 +134,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, sk_sp<SkData>& val)
 sk_sp<SkData> RSMarshallingHelper::SerializeTypeface(SkTypeface* tf, void* ctx)
 {
     if (tf == nullptr) {
-        ROSEN_LOGW("unirender: RSMarshallingHelper::SerializeTypeface SkTypeface is nullptr");
+        ROSEN_LOGD("unirender: RSMarshallingHelper::SerializeTypeface SkTypeface is nullptr");
         return nullptr;
     }
     return tf->serialize();
@@ -147,13 +150,14 @@ sk_sp<SkTypeface> RSMarshallingHelper::DeserializeTypeface(const void* data, siz
 // SkTextBlob
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const sk_sp<SkTextBlob>& val)
 {
+    sk_sp<SkData> data;
     if (!val) {
-        ROSEN_LOGE("unirender: RSMarshallingHelper::Marshalling SkTextBlob is nullptr");
-        return false;
+        ROSEN_LOGD("unirender: RSMarshallingHelper::Marshalling SkTextBlob is nullptr");
+        return Marshalling(parcel, data);
     }
     SkSerialProcs serialProcs;
     serialProcs.fTypefaceProc = &RSMarshallingHelper::SerializeTypeface;
-    sk_sp<SkData> data = val->serialize(serialProcs);
+    data = val->serialize(serialProcs);
     return Marshalling(parcel, data);
 }
 bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, sk_sp<SkTextBlob>& val)
@@ -162,6 +166,10 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, sk_sp<SkTextBlob>& val)
     if (!Unmarshalling(parcel, data)) {
         ROSEN_LOGE("unirender: failed RSMarshallingHelper::Unmarshalling SkTextBlob");
         return false;
+    }
+    if (data == nullptr) {
+        val = nullptr;
+        return true;
     }
     SkDeserialProcs deserialProcs;
     deserialProcs.fTypefaceProc = &RSMarshallingHelper::DeserializeTypeface;
@@ -195,13 +203,12 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, SkPaint& val)
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const sk_sp<SkImage>& val)
 {
     if (!val) {
-        ROSEN_LOGE("RSMarshallingHelper::Marshalling SkImage is nullptr");
-        return false;
+        return parcel.WriteInt32(-1);
     }
-
-    if (val->isLazyGenerated()) {
+    int32_t type = val->isLazyGenerated();
+    parcel.WriteInt32(type);
+    if (type == 1) {
         ROSEN_LOGD("RSMarshallingHelper::Marshalling SkImage isLazyGenerated");
-        parcel.WriteUint32(1);
         SkBinaryWriteBuffer writer;
         writer.writeImage(val.get());
         size_t length = writer.bytesWritten();
@@ -209,7 +216,6 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const sk_sp<SkImage>& val)
         writer.writeToMemory(data->writable_data());
         return Marshalling(parcel, data);
     } else {
-        parcel.WriteUint32(0);
         SkBitmap bitmap;
         if (!as_IB(val.get())->getROPixels(&bitmap)) {
             ROSEN_LOGE("RSMarshallingHelper::Marshalling SkImage getROPixels failed");
@@ -257,8 +263,13 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const sk_sp<SkImage>& val)
 
 bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, sk_sp<SkImage>& val)
 {
+    int32_t type = parcel.ReadInt32();
+    if (type == -1) {
+        val = nullptr;
+        return true;
+    }
     sk_sp<SkData> data;
-    if (parcel.ReadUint32() == 1) {
+    if (type == 1) {
         ROSEN_LOGD("RSMarshallingHelper::Unmarshalling lazy");
         if (!Unmarshalling(parcel, data)) {
             ROSEN_LOGE("failed RSMarshallingHelper::Unmarshalling SkImage");
@@ -309,11 +320,12 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, sk_sp<SkImage>& val)
 // SkPicture
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const sk_sp<SkPicture>& val)
 {
+    sk_sp<SkData> data;
     if (!val) {
-        ROSEN_LOGE("unirender: RSMarshallingHelper::Marshalling SkPicture is nullptr");
-        return false;
+        ROSEN_LOGD("unirender: RSMarshallingHelper::Marshalling SkPicture is nullptr");
+        return Marshalling(parcel, data);
     }
-    sk_sp<SkData> data = val->serialize();
+    data = val->serialize();
     return Marshalling(parcel, data);
 }
 bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, sk_sp<SkPicture>& val)
@@ -323,6 +335,10 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, sk_sp<SkPicture>& val)
         ROSEN_LOGE("unirender: failed RSMarshallingHelper::Unmarshalling SkPicture");
         return false;
     }
+    if (data == nullptr) {
+        val = nullptr;
+        return true;
+    }
     val = SkPicture::MakeFromData(data->data(), data->size());
     return val != nullptr;
 }
@@ -330,11 +346,12 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, sk_sp<SkPicture>& val)
 // SkVertices
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const sk_sp<SkVertices>& val)
 {
+    sk_sp<SkData> data;
     if (!val) {
-        ROSEN_LOGE("unirender: RSMarshallingHelper::Marshalling SkVertices is nullptr");
-        return false;
+        ROSEN_LOGD("unirender: RSMarshallingHelper::Marshalling SkVertices is nullptr");
+        return Marshalling(parcel, data);
     }
-    sk_sp<SkData> data = val->encode();
+    data = val->encode();
     return Marshalling(parcel, data);
 }
 bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, sk_sp<SkVertices>& val)
@@ -343,6 +360,10 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, sk_sp<SkVertices>& val)
     if (!Unmarshalling(parcel, data)) {
         ROSEN_LOGE("unirender: failed RSMarshallingHelper::Unmarshalling SkVertices");
         return false;
+    }
+    if (data == nullptr) {
+        val = nullptr;
+        return true;
     }
     val = SkVertices::Decode(data->data(), data->size());
     return val != nullptr;
@@ -418,21 +439,25 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, SkPath& val)
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const sk_sp<SkFlattenable>& val)
 {
     if (!val) {
-        ROSEN_LOGE("unirender: RSMarshallingHelper::Marshalling SkFlattenable is nullptr");
-        return false;
+        ROSEN_LOGD("unirender: RSMarshallingHelper::Marshalling SkFlattenable is nullptr");
+        return parcel.WriteInt32(-1);
     }
     sk_sp<SkData> data = val->serialize();
-    return parcel.WriteUint32(val->getFlattenableType()) && Marshalling(parcel, data);
+    return parcel.WriteInt32(val->getFlattenableType()) && Marshalling(parcel, data);
 }
 bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, sk_sp<SkFlattenable>& val)
 {
-    auto type = static_cast<SkFlattenable::Type>(parcel.ReadUint32());
+    int32_t type = parcel.ReadInt32();
+    if (type == -1) {
+        val = nullptr;
+        return true;
+    }
     sk_sp<SkData> data;
     if (!Unmarshalling(parcel, data)) {
         ROSEN_LOGE("unirender: failed RSMarshallingHelper::Unmarshalling SkFlattenable");
         return false;
     }
-    val = SkFlattenable::Deserialize(type, data->data(), data->size());
+    val = SkFlattenable::Deserialize(static_cast<SkFlattenable::Type>(type), data->data(), data->size());
     return val != nullptr;
 }
 
@@ -440,8 +465,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, sk_sp<SkFlattenable>& va
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const sk_sp<SkDrawable>& val)
 {
     if (!val) {
-        ROSEN_LOGE("unirender: RSMarshallingHelper::Marshalling SkDrawable is nullptr");
-        return false;
+        ROSEN_LOGD("unirender: RSMarshallingHelper::Marshalling SkDrawable is nullptr");
     }
     return Marshalling(parcel, sk_sp<SkFlattenable>(val));
 }
@@ -460,8 +484,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, sk_sp<SkDrawable>& val)
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const sk_sp<SkImageFilter>& val)
 {
     if (!val) {
-        ROSEN_LOGE("unirender: RSMarshallingHelper::Marshalling SkImageFilter is nullptr");
-        return false;
+        ROSEN_LOGD("unirender: RSMarshallingHelper::Marshalling SkImageFilter is nullptr");
     }
     return Marshalling(parcel, sk_sp<SkFlattenable>(val));
 }
@@ -480,13 +503,17 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, sk_sp<SkImageFilter>& va
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSShader>& val)
 {
     if (!val) {
-        ROSEN_LOGE("unirender: RSMarshallingHelper::Marshalling RSShader is nullptr");
-        return false;
+        ROSEN_LOGD("unirender: RSMarshallingHelper::Marshalling RSShader is nullptr");
+        return parcel.WriteInt32(-1);
     }
-    return Marshalling(parcel, sk_sp<SkFlattenable>(val->GetSkShader()));
+    return parcel.WriteInt32(1) && Marshalling(parcel, sk_sp<SkFlattenable>(val->GetSkShader()));
 }
 bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSShader>& val)
 {
+    if (parcel.ReadInt32() == -1) {
+        val = nullptr;
+        return true;
+    }
     sk_sp<SkFlattenable> flattenablePtr;
     if (!Unmarshalling(parcel, flattenablePtr)) {
         ROSEN_LOGE("unirender: failed RSMarshallingHelper::Unmarshalling RSShader");
@@ -501,13 +528,17 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSShader
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSPath>& val)
 {
     if (!val) {
-        ROSEN_LOGE("unirender: RSMarshallingHelper::Marshalling RSPath is nullptr");
-        return false;
+        ROSEN_LOGD("unirender: RSMarshallingHelper::Marshalling RSPath is nullptr");
+        return parcel.WriteInt32(-1);
     }
-    return Marshalling(parcel, val->GetSkiaPath());
+    return parcel.WriteInt32(1) && Marshalling(parcel, val->GetSkiaPath());
 }
 bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSPath>& val)
 {
+    if (parcel.ReadInt32() == -1) {
+        val = nullptr;
+        return true;
+    }
     SkPath path;
     if (!Unmarshalling(parcel, path)) {
         ROSEN_LOGE("unirender: failed RSMarshallingHelper::Unmarshalling RSPath");
@@ -521,8 +552,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSPath>&
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSMask>& val)
 {
     if (!val) {
-        ROSEN_LOGE("unirender: RSMarshallingHelper::Marshalling RSMask is nullptr");
-        return false;
+        ROSEN_LOGD("unirender: RSMarshallingHelper::Marshalling RSMask is nullptr");
     }
     // marshalling func planning to be implemented
     ROSEN_LOGW("unirender: RSMask Marshalling not define");
@@ -579,13 +609,17 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSFilter
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSImage>& val)
 {
     if (!val) {
-        ROSEN_LOGE("unirender: RSMarshallingHelper::Marshalling RSImage is nullptr");
-        return false;
+        ROSEN_LOGD("unirender: RSMarshallingHelper::Marshalling RSImage is nullptr");
+        return parcel.WriteInt32(-1);
     }
-    return val->Marshalling(parcel);
+    return parcel.WriteInt32(1) && val->Marshalling(parcel);
 }
 bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSImage>& val)
 {
+    if (parcel.ReadInt32() == -1) {
+        val = nullptr;
+        return true;
+    }
     val.reset(RSImage::Unmarshalling(parcel));
     return val != nullptr;
 }
