@@ -142,7 +142,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
         RS_LOGE("RSUniRenderVisitor Request Frame Failed");
         return;
     }
-    canvas_ = std::make_unique<RSPaintFilterCanvas>(surfaceFrame->GetCanvas());
+    canvas_ = std::make_unique<RSPaintFilterCanvas>(surfaceFrame->GetSurface().get());
     canvas_->clear(SK_ColorTRANSPARENT);
 
     ProcessBaseRenderNode(node);
