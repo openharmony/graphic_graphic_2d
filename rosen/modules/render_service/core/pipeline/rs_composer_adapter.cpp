@@ -250,6 +250,13 @@ LayerInfoPtr RSComposerAdapter::CreateLayer(RSSurfaceRenderNode& node)
         return nullptr;
     }
 
+    if (!node.IsNotifyRTBufferAvailable()) {
+        // Only ipc for one time.
+        RS_LOGD("RsDebug RSPhysicalScreenProcessor::ProcessSurface id = %llu "\
+                "Notify RT buffer available", node.GetId());
+        node.NotifyRTBufferAvailable();
+    }
+
     ComposeInfo info = BuildComposeInfo(node);
     std::string traceInfo;
     AppendFormat(traceInfo, "ProcessSurfaceNode:%s XYWH[%d %d %d %d]", node.GetName().c_str(),

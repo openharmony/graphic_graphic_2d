@@ -48,13 +48,6 @@ void RSPhysicalScreenProcessor::PostProcess()
 
 void RSPhysicalScreenProcessor::ProcessSurface(RSSurfaceRenderNode &node)
 {
-    if (!node.IsNotifyRTBufferAvailable()) {
-        // Only ipc for one time.
-        RS_LOGD("RsDebug RSPhysicalScreenProcessor::ProcessSurface id = %llu "\
-                "Notify RT buffer available", node.GetId());
-        node.NotifyRTBufferAvailable();
-    }
-
     auto layer = composerAdapter_->CreateLayer(node);
     if (layer == nullptr) {
         RS_LOGE("RSPhysicalScreenProcessor::ProcessSurface: failed to createLayer for node(id: %llu)",
