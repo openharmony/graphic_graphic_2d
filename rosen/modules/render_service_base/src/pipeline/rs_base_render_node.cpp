@@ -215,6 +215,7 @@ void RSBaseRenderNode::DumpTree(int32_t depth, std::string& out) const
         auto surfaceNode = (static_cast<const RSSurfaceRenderNode*>(this));
         const RSSurfaceHandler& surfaceHandler = static_cast<const RSSurfaceHandler&>(*surfaceNode);
         out += ", hasConsumer: " + std::to_string(surfaceHandler.HasConsumer()); 
+        out += ", Name [" + surfaceNode->GetName() + "]";
     }
     out += ", children[";
     for (auto child : children_) {

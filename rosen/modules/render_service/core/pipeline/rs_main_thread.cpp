@@ -238,17 +238,12 @@ void RSMainThread::CalcOcclusion()
 
     std::vector<RSBaseRenderNode::SharedPtr> curAllSurfaces;
     node->CollectSurface(node, curAllSurfaces);
-    const uint32_t minSurfaceCnt = 2;
-    if (curAllSurfaces.size() < minSurfaceCnt) {
-        return;
-    }
     // 1. Judge whether it is dirty
-    // Surface cnt changed or surface geoDirty_ == true
-    // ingore background(curAllSurfaces.rend()-1 is [EntryView])
+    // Surface cnt changed or surface DstRectChanged or surface ZorderChanged
     bool winDirty = lastSurafceCnt_ != curAllSurfaces.size();
     lastSurafceCnt_ = curAllSurfaces.size();
     if (!winDirty) {
-        for (auto it = curAllSurfaces.rbegin(); it != curAllSurfaces.rend() - 1; ++it) {
+        for (auto it = curAllSurfaces.rbegin(); it != curAllSurfaces.rend(); ++it) {
             auto surface = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(*it);
             if (surface == nullptr) {
                 continue;
@@ -268,7 +263,7 @@ void RSMainThread::CalcOcclusion()
     // 2. Calc occlusion
     Occlusion::Region curRegion;
     VisibleData curVisVec;
-    for (auto it = curAllSurfaces.rbegin(); it != curAllSurfaces.rend() - 1; ++it) {
+    for (auto it = curAllSurfaces.rbegin(); it != curAllSurfaces.rend(); ++it) {
         auto surface = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(*it);
         if (surface == nullptr || surface->GetDstRect().IsEmpty() ||
             surface->GetRenderProperties().GetAlpha() < 1.0) {
