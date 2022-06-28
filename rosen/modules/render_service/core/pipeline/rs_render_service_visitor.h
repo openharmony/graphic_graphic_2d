@@ -28,7 +28,7 @@ namespace Rosen {
 
 class RSRenderServiceVisitor : public RSNodeVisitor {
 public:
-    RSRenderServiceVisitor();
+    RSRenderServiceVisitor(bool parallel = false);
     ~RSRenderServiceVisitor();
 
     virtual void PrepareBaseRenderNode(RSBaseRenderNode &node) override;
@@ -54,6 +54,7 @@ private:
     int32_t offsetX_ = 0;
     int32_t offsetY_ = 0;
     bool isSecurityDisplay_ = false;
+    bool mParallelEnable = false;
     std::shared_ptr<RSProcessor> processor_ = nullptr;
     bool doAnimate_ = false;
 };

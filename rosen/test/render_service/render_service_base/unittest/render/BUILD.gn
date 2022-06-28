@@ -41,6 +41,8 @@ ohos_unittest("RSRenderServiceBaseRenderTest") {
     "//utils/native/base:utils",
   ]
 
+  external_deps = [ "init:libbegetutil" ]
+
   subsystem_name = "graphic"
 }
 

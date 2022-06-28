@@ -124,6 +124,9 @@ private:
     void CallbackToWMS(VisibleData& curVisVec);
     void SendCommands();
 
+    bool DoParallelComposition(std::shared_ptr<RSBaseRenderNode> rootNode);
+    void ResetSortedChildren(std::shared_ptr<RSBaseRenderNode> node);
+
     std::mutex transitionDataMutex_;
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;

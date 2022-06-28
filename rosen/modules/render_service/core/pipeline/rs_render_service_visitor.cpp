@@ -33,7 +33,7 @@
 namespace OHOS {
 namespace Rosen {
 
-RSRenderServiceVisitor::RSRenderServiceVisitor() {}
+RSRenderServiceVisitor::RSRenderServiceVisitor(bool parallel) : mParallelEnable(parallel) {}
 
 RSRenderServiceVisitor::~RSRenderServiceVisitor() {}
 
@@ -49,8 +49,10 @@ void RSRenderServiceVisitor::ProcessBaseRenderNode(RSBaseRenderNode& node)
     for (auto& child : node.GetSortedChildren()) {
         child->Process(shared_from_this());
     }
-    // clear SortedChildren, it will be generated again in next frame
-    node.ResetSortedChildren();
+    if (!mParallelEnable) {
+        // clear SortedChildren, it will be generated again in next frame
+        node.ResetSortedChildren();
+    }
 }
 
 void RSRenderServiceVisitor::PrepareDisplayRenderNode(RSDisplayRenderNode& node)
@@ -115,6 +117,17 @@ void RSRenderServiceVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
             RS_LOGI("RSRenderServiceVisitor::ProcessDisplayRenderNode mirrorSource haven't existed");
             return;
         }
+        if (mParallelEnable) {
+            ScreenRotation rotation = screenManager->GetRotation(node.GetScreenId());
+            uint32_t boundWidth = currScreenInfo.width;
+            uint32_t boundHeight = currScreenInfo.height;
+            if (rotation == ScreenRotation::ROTATION_90 || rotation == ScreenRotation::ROTATION_270) {
+                std::swap(boundWidth, boundHeight);
+            }
+            skCanvas_ = std::make_unique<SkCanvas>(boundWidth, boundHeight);
+            canvas_ = std::make_shared<RSPaintFilterCanvas>(skCanvas_.get());
+            canvas_->clipRect(SkRect::MakeWH(boundWidth, boundHeight));
+        }
         ProcessBaseRenderNode(*existingSource);
     } else {
         processor_->SetMirror(false);
@@ -164,6 +177,9 @@ void RSRenderServiceVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
     if (!node.GetOcclusionVisible() && !doAnimate_ && RSSystemProperties::GetOcclusionEnabled()) {
         return;
     }
+    if (mParallelEnable) {
+        node.ParallelVisitLock();
+    }
     node.SetOffset(offsetX_, offsetY_);
     node.ProcessRenderBeforeChildren(*canvas_);
     ProcessBaseRenderNode(node);
@@ -171,6 +187,9 @@ void RSRenderServiceVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
     globalZOrder_ = globalZOrder_ + 1;
     processor_->ProcessSurface(node);
     node.ProcessRenderAfterChildren(*canvas_);
+    if (mParallelEnable) {
+        node.ParallelVisitUnlock();
+    }
 }
 } // namespace Rosen
 } // namespace OHOS

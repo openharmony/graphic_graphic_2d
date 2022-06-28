@@ -15,7 +15,9 @@
 
 #include <map>
 #include <set>
-
+#include <dlfcn.h>
+#include <parameters.h>
+#include "platform/common/rs_log.h"
 #include "common/rs_occlusion_region.h"
 
 namespace OHOS {
@@ -23,6 +25,9 @@ namespace Rosen {
 namespace Occlusion {
 static Rect _s_empty_rect_ { 0, 0, 0, 0 };
 static Rect _s_invalid_rect_ { 0, 0, -1, -1 };
+bool Region::_s_so_loaded_ = false;
+void (*Region::regionOpFromSO)(Region& r1, Region& r2, Region& res, Region::OP op) = nullptr;
+
 
 std::ostream& operator<<(std::ostream& os, const Rect& r)
 {
@@ -172,7 +177,7 @@ void Region::UpdateRects(Rects& r, std::vector<Range>& ranges, std::vector<int>&
             i++;
             j++;
         } else if (r.preRects[i].right_ < indexAt[ranges[j].end_]) {
-            res.rects_.push_back(r.preRects[i]);
+            res.GetRegionRects().push_back(r.preRects[i]);
             i++;
         } else {
             r.curRects.emplace_back(Rect { indexAt[ranges[j].start_], r.preY, indexAt[ranges[j].end_], r.curY });
@@ -183,17 +188,11 @@ void Region::UpdateRects(Rects& r, std::vector<Range>& ranges, std::vector<int>&
         r.curRects.emplace_back(Rect { indexAt[ranges[j].start_], r.preY, indexAt[ranges[j].end_], r.curY });
     }
     for (; i < r.preRects.size(); i++) {
-        res.rects_.push_back(r.preRects[i]);
+        res.GetRegionRects().push_back(r.preRects[i]);
     }
     r.preRects.clear();
     r.preRects.swap(r.curRects);
     return;
-}
-
-Region::Region(std::vector<Rect>& rs)
-{
-    copy(rs.begin(), rs.end(), back_inserter(rects_));
-    MakeBound();
 }
 
 void Region::MakeBound()
@@ -209,21 +208,41 @@ void Region::MakeBound()
     }
 }
 
+void Region::InitDynamicLibraryFunction()
+{
+    if (RSInnovation::_s_regionOpFromSo != nullptr) {
+        regionOpFromSO = reinterpret_cast<void (*)(Region & r1, Region & r2, Region & res, Region::OP op)>
+            (RSInnovation::_s_regionOpFromSo);
+    }
+    return;
+}
+
 void Region::RegionOp(Region& r1, Region& r2, Region& res, Region::OP op)
+{
+    if (RSInnovation::_s_occlusionCullingFuncLoaded && RSInnovation::_s_occlusionCullingSoEnabled) {
+        RS_LOGD("Occlusion Region Op using Shared Library function.");
+        regionOpFromSO(r1, r2, res, op);
+    } else {
+        RS_LOGD("Occlusion Region Op using local function.");
+        RegionOpLocal(r1, r2, res, op);
+    }
+}
+
+void Region::RegionOpLocal(Region& r1, Region& r2, Region& res, Region::OP op)
 {
     r1.MakeBound();
     r2.MakeBound();
-    res.rects_.clear();
+    res.GetRegionRects().clear();
     std::vector<Event> events;
     std::set<int> xs;
 
-    for (auto& r : r1.rects_) {
+    for (auto& r : r1.GetRegionRects()) {
         events.emplace_back(Event { r.top_, Event::Type::OPEN, r.left_, r.right_ });
         events.emplace_back(Event { r.bottom_, Event::Type::CLOSE, r.left_, r.right_ });
         xs.insert(r.left_);
         xs.insert(r.right_);
     }
-    for (auto& r : r2.rects_) {
+    for (auto& r : r2.GetRegionRects()) {
         events.emplace_back(Event { r.top_, Event::Type::VOID_OPEN, r.left_, r.right_ });
         events.emplace_back(Event { r.bottom_, Event::Type::VOID_CLOSE, r.left_, r.right_ });
         xs.insert(r.left_);
@@ -255,7 +274,7 @@ void Region::RegionOp(Region& r1, Region& r2, Region& res, Region::OP op)
         rootNode.Update(indexOf[e.left_], indexOf[e.right_], e.type_);
         r.preY = r.curY;
     }
-    copy(r.preRects.begin(), r.preRects.end(), back_inserter(res.rects_));
+    copy(r.preRects.begin(), r.preRects.end(), back_inserter(res.GetRegionRects()));
     res.MakeBound();
 }
 
