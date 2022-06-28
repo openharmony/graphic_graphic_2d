@@ -47,7 +47,8 @@ public:
     RSComposerAdapter(const RSComposerAdapter&) = delete;
     void operator=(const RSComposerAdapter&) = delete;
 
-    bool Init(ScreenId screenId, int32_t offsetX, int32_t offsetY, const FallbackCallback& cb);
+    bool Init(ScreenId screenId, int32_t offsetX, int32_t offsetY, float mirrorAdaptiveCoefficient,
+        const FallbackCallback& cb);
 
     LayerInfoPtr CreateLayer(RSSurfaceRenderNode& node);
     LayerInfoPtr CreateLayer(RSDisplayRenderNode& node);
@@ -77,6 +78,7 @@ private:
     int32_t offsetX_ = 0;
     int32_t offsetY_ = 0;
 
+    float mirrorAdaptiveCoefficient_ = 1.0f;
     FallbackCallback fallbackCb_;
 };
 } // namespace Rosen

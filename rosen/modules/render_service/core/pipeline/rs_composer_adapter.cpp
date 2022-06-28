@@ -25,7 +25,8 @@
 
 namespace OHOS {
 namespace Rosen {
-bool RSComposerAdapter::Init(ScreenId screenId,  int32_t offsetX, int32_t offsetY, const FallbackCallback& cb)
+bool RSComposerAdapter::Init(ScreenId screenId,  int32_t offsetX, int32_t offsetY, float mirrorAdaptiveCoefficient,
+    const FallbackCallback& cb)
 {
     hdiBackend_ = HdiBackend::GetInstance();
     if (hdiBackend_ == nullptr) {
@@ -51,6 +52,7 @@ bool RSComposerAdapter::Init(ScreenId screenId,  int32_t offsetX, int32_t offset
 
     offsetX_ = offsetX;
     offsetY_ = offsetY;
+    mirrorAdaptiveCoefficient_ = mirrorAdaptiveCoefficient;
     screenInfo_ = screenManager->QueryScreenInfo(screenId);
     IRect damageRect {0, 0, static_cast<int32_t>(screenInfo_.width), static_cast<int32_t>(screenInfo_.height)};
     output_->SetOutputDamage(1, damageRect);
@@ -139,7 +141,12 @@ ComposeInfo RSComposerAdapter::BuildComposeInfo(RSSurfaceRenderNode& node)
 
     ComposeInfo info {};
     info.srcRect = IRect {srcRect.left_, srcRect.top_, srcRect.width_, srcRect.height_};
-    info.dstRect = IRect {dstRect.left_, dstRect.top_, dstRect.width_, dstRect.height_};
+    info.dstRect = IRect {
+        static_cast<int32_t>(static_cast<float>(dstRect.left_) * mirrorAdaptiveCoefficient_),
+        static_cast<int32_t>(static_cast<float>(dstRect.top_) * mirrorAdaptiveCoefficient_),
+        static_cast<int32_t>(static_cast<float>(dstRect.width_) * mirrorAdaptiveCoefficient_),
+        static_cast<int32_t>(static_cast<float>(dstRect.height_) * mirrorAdaptiveCoefficient_)
+    };
     info.visibleRect = {0, 0, static_cast<int32_t>(screenInfo_.width), static_cast<int32_t>(screenInfo_.height)};
     info.zOrder = static_cast<int32_t>(node.GetGlobalZOrder());
     info.alpha.enGlobalAlpha = true;
@@ -148,8 +155,8 @@ ComposeInfo RSComposerAdapter::BuildComposeInfo(RSSurfaceRenderNode& node)
     info.fence = node.GetAcquireFence();
     info.blendType = node.GetBlendType();
 
-    info.dstRect.x -= offsetX_;
-    info.dstRect.y -= offsetY_;
+    info.dstRect.x -= static_cast<int32_t>(static_cast<float>(offsetX_) * mirrorAdaptiveCoefficient_);
+    info.dstRect.y -= static_cast<int32_t>(static_cast<float>(offsetY_) * mirrorAdaptiveCoefficient_);
 
     const auto& property = node.GetRenderProperties();
     const auto bufferWidth = buffer->GetSurfaceBufferWidth();
@@ -179,7 +186,12 @@ ComposeInfo RSComposerAdapter::BuildComposeInfo(RSDisplayRenderNode& node)
     const auto& buffer = node.GetBuffer(); // we guarantee the buffer is valid.
     ComposeInfo info {};
     info.srcRect = IRect {0, 0, buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight()};
-    info.dstRect = IRect {0, 0, static_cast<int32_t>(screenInfo_.width), static_cast<int32_t>(screenInfo_.height)};
+    info.dstRect = IRect {
+        0,
+        0,
+        static_cast<int32_t>(static_cast<float>(screenInfo_.width) * mirrorAdaptiveCoefficient_),
+        static_cast<int32_t>(static_cast<float>(screenInfo_.height) * mirrorAdaptiveCoefficient_)
+    };
     info.visibleRect = IRect {info.dstRect.x, info.dstRect.y, info.dstRect.w, info.dstRect.h};
     info.zOrder = static_cast<int32_t>(node.GetGlobalZOrder());
     info.alpha.enGlobalAlpha = false;
