@@ -123,9 +123,7 @@ bool RSComposerAdapter::IsOutOfScreenRegion(RSSurfaceRenderNode& node)
     const auto& property = node.GetRenderProperties();
     const float nodeBoundX = property.GetBoundsPositionX();
     const float nodeBoundY = property.GetBoundsPositionY();
-    if (nodeBoundX < 0.0f || nodeBoundY < 0.0f ||
-        nodeBoundX >= static_cast<float>(boundWidth) ||
-        nodeBoundY >= static_cast<float>(boundHeight)) {
+    if (nodeBoundX >= static_cast<float>(boundWidth) || nodeBoundY >= static_cast<float>(boundHeight)) {
         return true;
     }
 

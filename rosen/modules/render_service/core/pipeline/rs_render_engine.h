@@ -40,7 +40,7 @@ namespace Rosen {
 class RSRenderFrame {
 public:
     // we guarantee when constructing this object, all parameters are valid.
-    RSRenderFrame(const std::shared_ptr<RSSurfaceOhos>& target, std::unique_ptr<RSSurfaceFrame> &&frame)
+    RSRenderFrame(const std::shared_ptr<RSSurfaceOhos>& target, std::unique_ptr<RSSurfaceFrame>&& frame)
         : targetSurface_(target), surfaceFrame_(std::move(frame))
     {
     }

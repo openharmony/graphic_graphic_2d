@@ -221,7 +221,7 @@ void RSRenderEngine::DrawSurfaceNode(
             eglImageManager_->UnMapEglImageFromSurfaceBuffer(bufferId);
         };
         if (consumerSurface == nullptr ||
-            (consumerSurface->RegisterDeleteBufferListener(regUnMapEglImageFunc) !=GSERROR_OK)) {
+            (consumerSurface->RegisterDeleteBufferListener(regUnMapEglImageFunc) != GSERROR_OK)) {
             RS_LOGE("RSRenderEngine::DrawSurfaceNode: failed to register UnMapEglImage callback.");
         }
 
