@@ -166,7 +166,8 @@ HWTEST_F(ColorPickerUnittest, GetMainColorTest001, TestSize.Level1)
      */
     ColorManager::Color color;
     errorCode = pColorPicker->GetMainColor(color);
-    HiLog::Info(LABEL_TEST, "get main color t1[rgba]=%{public}f,%{public}f,%{public}f,%{public}f", color.r, color.g, color.b, color.a);
+    HiLog::Info(LABEL_TEST, "get main color t1[rgba]=%{public}f,%{public}f,%{public}f,%{public}f",
+                color.r, color.g, color.b, color.a);
     ASSERT_EQ(errorCode, SUCCESS);
     bool ret = color.ColorEqual(ColorManager::Color(1.f, 0.788235f, 0.050980f, 1.f));
     EXPECT_EQ(true, ret);
@@ -215,7 +216,8 @@ HWTEST_F(ColorPickerUnittest, GetMainColorTest002, TestSize.Level1)
      */
     ColorManager::Color color;
     errorCode = pColorPicker->GetMainColor(color);
-    HiLog::Info(LABEL_TEST, "get main color t2[rgba]=%{public}f,%{public}f,%{public}f,%{public}f", color.r, color.g, color.b, color.a);
+    HiLog::Info(LABEL_TEST, "get main color t2[rgba]=%{public}f,%{public}f,%{public}f,%{public}f",
+                color.r, color.g, color.b, color.a);
     ASSERT_EQ(errorCode, SUCCESS);
     bool ret = color.ColorEqual(ColorManager::Color(1.f, 1.f, 1.f, 1.f));
     EXPECT_EQ(true, ret);
@@ -253,7 +255,8 @@ HWTEST_F(ColorPickerUnittest, GetMainColorTest003, TestSize.Level1)
      */
     ColorManager::Color color;
     errorCode = pColorPicker->GetMainColor(color);
-    HiLog::Info(LABEL_TEST, "get main color t3[rgba]=%{public}f,%{public}f,%{public}f,%{public}f", color.r, color.g, color.b, color.a);
+    HiLog::Info(LABEL_TEST, "get main color t3[rgba]=%{public}f,%{public}f,%{public}f,%{public}f",
+                color.r, color.g, color.b, color.a);
     ASSERT_EQ(errorCode, SUCCESS);
     bool ret = color.ColorEqual(ColorManager::Color(0x00000000U));
     EXPECT_EQ(true, ret);
