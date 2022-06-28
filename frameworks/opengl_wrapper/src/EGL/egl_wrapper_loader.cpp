@@ -18,6 +18,8 @@
 #include <dlfcn.h>
 #include <string>
 
+#include "directory_ex.h"
+
 #include "egl_defs.h"
 #include "../wrapper_log.h"
 
@@ -56,7 +58,12 @@ bool EglWrapperLoader::LoadEgl(const char *libName, EglHookTable *table)
     dlEglHandle_ = dlopen(path.c_str(), RTLD_NOW | RTLD_LOCAL);
     if (dlEglHandle_ == nullptr) {
         path = std::string(SYSTEM_LIB_PATH) + std::string(libName);
-        dlEglHandle_ = dlopen(path.c_str(), RTLD_NOW | RTLD_LOCAL);
+        std::string realPath;
+        if (!PathToRealPath(path, realPath)) {
+            WLOGE("file is not real path, file path: %{private}s", path.c_str());
+            return false;
+        }
+        dlEglHandle_ = dlopen(realPath.c_str(), RTLD_NOW | RTLD_LOCAL);
         if (dlEglHandle_ == nullptr) {
             WLOGE("dlopen failed. error: %{public}s.", dlerror());
             return false;
@@ -97,7 +104,12 @@ void *EglWrapperLoader::LoadGl(const char *libName, char const * const *glName, 
     void *dlHandle = dlopen(path.c_str(), RTLD_NOW | RTLD_LOCAL);
     if (dlHandle == nullptr) {
         path = std::string(SYSTEM_LIB_PATH) + std::string(libName);
-        dlHandle = dlopen(path.c_str(), RTLD_NOW | RTLD_LOCAL);
+        std::string realPath;
+        if (!PathToRealPath(path, realPath)) {
+            WLOGE("file is not real path, file path: %{private}s", path.c_str());
+            return nullptr;
+        }
+        dlHandle = dlopen(realPath.c_str(), RTLD_NOW | RTLD_LOCAL);
         if (dlHandle == nullptr) {
             WLOGE("dlopen failed. error: %{public}s.", dlerror());
             return nullptr;
