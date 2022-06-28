@@ -85,6 +85,8 @@
                 "egl_data.h",
                 "egl_surface.h",
                 "external_window.h",
+                "hardware_buffer.h",
+                "external_buffer.h",
                 "ibuffer_consumer_listener.h",
                 "ibuffer_producer.h",
                 "surface.h",

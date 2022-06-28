@@ -50,6 +50,7 @@ ohos_shared_library("surface") {
     "src/buffer_queue_producer.cpp",
     "src/buffer_utils.cpp",
     "src/consumer_surface.cpp",
+    "src/hardware_buffer.cpp",
     "src/native_window.cpp",
     "src/producer_surface.cpp",
     "src/surface.cpp",
