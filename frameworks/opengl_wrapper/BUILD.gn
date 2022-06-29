@@ -50,7 +50,10 @@ ohos_shared_library("EGL") {
     "//third_party/openGLES:libGLES",
   ]
 
-  external_deps = [ "hilog_native:libhilog" ]
+  external_deps = [
+    "hilog_native:libhilog",
+    "utils_base:utils",
+  ]
 
   output_name = "EGL"
   output_extension = "so"
