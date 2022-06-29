@@ -92,6 +92,28 @@ ohos_executable("render_service_client_gravity_demo") {
   subsystem_name = "graphic"
 }
 
+ohos_executable("render_service_client_scale_demo") {
+  sources = [ "render_service_client_scale_demo.cpp" ]
+
+  include_dirs = [ "//foundation/windowmanager/interfaces/innerkits" ]
+
+  deps = [
+    "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
+    "//foundation/distributedschedule/safwk/interfaces/innerkits/safwk:system_ability_fwk",
+    "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics:2d_graphics",
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:librender_service_base",
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:librender_service_client",
+    "//foundation/windowmanager/wm:libwm",
+    "//foundation/windowmanager/wmserver:libwms",
+    "//third_party/zlib:libz",
+  ]
+
+  public_deps = [ "//third_party/flutter/build/skia:ace_skia_ohos" ]
+
+  part_name = "graphic_standard"
+  subsystem_name = "graphic"
+}
+
 ohos_executable("render_service_client_rs_animation_demo") {
   sources = [ "render_service_client_rs_animation_demo.cpp" ]
 
