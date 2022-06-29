@@ -30,16 +30,20 @@ class Input : public Filter {
 public:
     Input() {};
     virtual ~Input() {};
-    void SetValue(const std::string& key, void *value, int size) override;
-    void DoProcess(ProcessData& data) override;
+    void SetValue(const std::string& key, std::shared_ptr<void> value, int size) override;
     virtual FILTER_TYPE GetFilterType() override;
 
 protected:
+    void DoProcess(ProcessData& data) override;
+    void DecodeFromFile(ProcessData& data);
+    void DecodeFromPixelMap(ProcessData& data);
+    void DecodeFromBuffer(ProcessData& data);
     std::string format_;
     std::string srcImagePath_;
-
-private:
-    std::unique_ptr<OHOS::Media::PixelMap> pixelMap_ = nullptr;
+    std::shared_ptr<OHOS::Media::PixelMap> pixelMap_ = nullptr;
+    std::shared_ptr<uint8_t> buffer_ = nullptr;
+    int bufferWidth_ = 0;
+    int bufferHeight_ = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

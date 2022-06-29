@@ -16,7 +16,6 @@
 #ifndef ALGO_FILTER_H
 #define ALGO_FILTER_H
 
-#include "cJSON.h"
 #include "filter.h"
 #include "mesh.h"
 
@@ -26,9 +25,9 @@ class AlgoFilter : public Filter {
 public:
     static constexpr int DRAW_ELEMENTS_NUMBER = 6;
     AlgoFilter();
-    virtual ~AlgoFilter();
+    virtual ~AlgoFilter() {};
     virtual FILTER_TYPE GetFilterType() override;
-    virtual void SetValue(const std::string& key, void* value, int size) override {};
+    virtual void SetValue(const std::string& key, std::shared_ptr<void> value, int size) override {};
 
 protected:
     void Use();
@@ -39,8 +38,8 @@ protected:
     virtual void Prepare(ProcessData& data);
     virtual void Draw(ProcessData& data);
     virtual void CreateProgram(const std::string& vertexString, const std::string& fragmentString);
-    Program* program_ = nullptr;
-    Mesh* mesh_ = nullptr;
+    std::shared_ptr<Program> program_ = nullptr;
+    std::shared_ptr<Mesh> mesh_ = nullptr;
 };
 } // namespace Rosen
 } // namespace OHOS

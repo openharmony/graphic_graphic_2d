@@ -22,13 +22,13 @@ ContrastFilter::ContrastFilter()
     CreateProgram(GetVertexShader(), GetFragmentShader());
 }
 
-void ContrastFilter::SetValue(const std::string& key, void* value, int size)
+void ContrastFilter::SetValue(const std::string& key, std::shared_ptr<void> value, int size)
 {
     if (key == "contrast" && size > 0) {
-        float* contrast = (float*)value;
-        contrast_ = *(contrast);
+        std::shared_ptr<float> contrast = std::static_pointer_cast<float>(value);
+        contrast_ = *(contrast.get());
     }
-    LOGD("The contrast is %{public}f.", contrast_);
+    LOGD("The contrast is  %{public}f.", contrast_);
 }
 
 void ContrastFilter::LoadFilterParams()
