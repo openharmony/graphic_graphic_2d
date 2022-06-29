@@ -23,11 +23,14 @@ ohos_unittest("2d_graphics_ndk_test") {
     "drawing_brush_test.cpp",
     "drawing_canvas_test.cpp",
     "drawing_color_test.cpp",
+    "drawing_font_collection.cpp",
     "drawing_path_test.cpp",
     "drawing_pen_test.cpp",
+    "drawing_text_typography_test.cpp",
   ]
 
   include_dirs = [
+    "//foundation/graphic/graphic_2d/rosen/modules/2d_engine",
     "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics/include",
     "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics/src",
     "//third_party/googletest/googletest/include",
