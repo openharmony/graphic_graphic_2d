@@ -36,6 +36,11 @@
 
 namespace OHOS {
 namespace Rosen {
+struct DrawSurfaceNodeInfo {
+    bool forceCPU = false;
+    float mirrorAdaptiveCoefficient = 1.0f;
+};
+
 // The RenderFrame can do auto flush
 class RSRenderFrame {
 public:
@@ -105,13 +110,14 @@ public:
         RSPaintFilterCanvas& canvas,
         const std::vector<LayerInfoPtr>& layers,
         const ScreenInfo& screenInfo,
-        bool forceCPU = false);
+        bool forceCPU = false,
+        float mirrorAdaptiveCoefficient = 1.0f);
     void DrawSurfaceNode(
         RSPaintFilterCanvas& canvas,
         RSSurfaceRenderNode& node,
         const ScreenInfo& screenInfo,
         const IRect& clipRect,
-        bool forceCPU = false);
+        DrawSurfaceNodeInfo& infos);
 
 #ifdef RS_ENABLE_GL
     const std::shared_ptr<RenderContext>& GetRenderContext() const

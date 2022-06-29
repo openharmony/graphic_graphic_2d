@@ -115,7 +115,8 @@ void RSRenderEngine::DrawLayers(
     RSPaintFilterCanvas& canvas,
     const std::vector<LayerInfoPtr>& layers,
     const ScreenInfo& screenInfo,
-    bool forceCPU)
+    bool forceCPU,
+    float mirrorAdaptiveCoefficient)
 {
     for (const auto& layer : layers) {
         if (layer == nullptr) {
@@ -134,7 +135,11 @@ void RSRenderEngine::DrawLayers(
         auto saveCount = canvas.getSaveCount();
         if (nodePtr->IsInstanceOf<RSSurfaceRenderNode>()) {
             RSSurfaceRenderNode& node = *(static_cast<RSSurfaceRenderNode*>(nodePtr));
-            DrawSurfaceNode(canvas, node, screenInfo, clipRect, forceCPU);
+            DrawSurfaceNodeInfo infos = {
+                forceCPU,
+                mirrorAdaptiveCoefficient
+            };
+            DrawSurfaceNode(canvas, node, screenInfo, clipRect, infos);
         } else if (nodePtr->IsInstanceOf<RSDisplayRenderNode>()) {
             // In uniRender mode, maybe need to handle displayNode.
             RSDisplayRenderNode& node = *(static_cast<RSDisplayRenderNode*>(nodePtr));
@@ -183,7 +188,7 @@ void RSRenderEngine::DrawSurfaceNode(
     RSSurfaceRenderNode& node,
     const ScreenInfo& screenInfo,
     const IRect& clipRect,
-    bool forceCPU)
+    DrawSurfaceNodeInfo& infos)
 {
     std::string traceInfo;
     AppendFormat(traceInfo, "Node name:%s ClipRect[%d %d %d %d]", node.GetName().c_str(),
@@ -202,6 +207,8 @@ void RSRenderEngine::DrawSurfaceNode(
     if (node.GetRenderProperties().GetFrameGravity() != Gravity::RESIZE) {
         params.dstRect = params.srcRect;
     }
+    params.dstRect.setWH(params.dstRect.width() * infos.mirrorAdaptiveCoefficient,
+        params.dstRect.height() * infos.mirrorAdaptiveCoefficient);
 
     // prepare PostProcessFunc
     Vector2f center(node.GetDstRect().left_ + node.GetDstRect().width_ * 0.5f,
@@ -213,7 +220,7 @@ void RSRenderEngine::DrawSurfaceNode(
 
     // draw buffer.
 #ifdef RS_ENABLE_EGLIMAGE
-    if (forceCPU) {
+    if (infos.forceCPU) {
         RSDividedRenderUtil::DrawBuffer(canvas, params, drawBufferPostProcessFunc);
     } else {
         auto consumerSurface = node.GetConsumer();
