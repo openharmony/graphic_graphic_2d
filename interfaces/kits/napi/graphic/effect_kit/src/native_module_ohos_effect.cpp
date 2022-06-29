@@ -27,6 +27,7 @@ static napi_value Export(napi_env env, napi_value exports)
 {
     EFFECT_LOG_I("ColorPicker Napi CALL");
     ColorPickerNapi::Init(env, exports);
+    FilterNapi::Init(env, exports);
     return exports;
 }
 
