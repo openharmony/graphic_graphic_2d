@@ -27,9 +27,14 @@ bool RSOcclusionConfig::IsLeashWindow(std::string win)
     return win.find(leashWin_) != std::string::npos;
 }
 
-bool RSOcclusionConfig::IsIgnoreWindow(std::string win)
+bool RSOcclusionConfig::IsStartingWindow(std::string win)
 {
-    for (auto str : ignoreWins_) {
+    return win.find(startWin_) != std::string::npos;
+}
+
+bool RSOcclusionConfig::IsAlphaWindow(std::string win)
+{
+    for (auto str : alphaWins_) {
         if (win.find(str) != std::string::npos) {
             return true;
         }

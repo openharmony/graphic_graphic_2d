@@ -25,6 +25,7 @@
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_uni_render_judgement.h"
 #include "pipeline/rs_uni_render_visitor.h"
+#include "pipeline/rs_occlusion_config.h"
 #include "platform/common/rs_log.h"
 #include "platform/drawing/rs_vsync_client.h"
 #include "rs_trace.h"
@@ -259,14 +260,13 @@ void RSMainThread::CalcOcclusion()
         return;
     }
 
-    RS_TRACE_BEGIN("RSMainThread::CalcOcclusion");
+    RS_TRACE_NAME("RSMainThread::CalcOcclusion");
     // 2. Calc occlusion
     Occlusion::Region curRegion;
     VisibleData curVisVec;
     for (auto it = curAllSurfaces.rbegin(); it != curAllSurfaces.rend(); ++it) {
         auto surface = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(*it);
-        if (surface == nullptr || surface->GetDstRect().IsEmpty() ||
-            surface->GetRenderProperties().GetAlpha() < 1.0) {
+        if (surface == nullptr || surface->GetDstRect().IsEmpty()) {
             continue;
         }
         Occlusion::Rect rect { surface->GetDstRect().left_, surface->GetDstRect().top_,
@@ -280,13 +280,14 @@ void RSMainThread::CalcOcclusion()
         RS_LOGD(info.c_str());
         // Set relult to SurfaceRenderNode and its children
         surface->SetVisibleRegionRecursive(subResult, curVisVec);
-        // Current region need to merge current surface for next calculation
-        curRegion = curSurface.Or(curRegion);
+        // Current region need to merge current surface for next calculation(ingnore alpha surface)
+        if (!RSOcclusionConfig::GetInstance().IsAlphaWindow(surface->GetName())) {
+            curRegion = curSurface.Or(curRegion);
+        }
     }
 
     // 3. Callback to WMS
     CallbackToWMS(curVisVec);
-    RS_TRACE_END();
 }
 
 void RSMainThread::CallbackToWMS(VisibleData& curVisVec)
