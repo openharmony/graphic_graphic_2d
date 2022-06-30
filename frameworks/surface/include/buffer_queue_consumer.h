@@ -50,6 +50,9 @@ public:
     GSError GetMetaData(int32_t sequence, std::vector<HDRMetaData> &metaData) const;
     GSError GetMetaDataSet(int32_t sequence, HDRMetadataKey &key, std::vector<uint8_t> &metaData) const;
 
+    bool GetStatus() const;
+    void SetStatus(bool status);
+
 private:
     sptr<BufferQueue> bufferQueue_ = nullptr;
     std::string name_ = "not init";

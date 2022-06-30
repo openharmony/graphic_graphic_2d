@@ -485,4 +485,14 @@ GSError BufferQueueProducer::SetMetaDataSet(int32_t sequence, HDRMetadataKey key
 
     return bufferQueue_->SetMetaDataSet(sequence, key, metaData);
 }
+
+bool BufferQueueProducer::GetStatus() const
+{
+    return bufferQueue_->GetStatus();
+}
+
+void BufferQueueProducer::SetStatus(bool status)
+{
+    bufferQueue_->SetStatus(status);
+}
 }; // namespace OHOS

@@ -189,6 +189,9 @@ GSError BufferQueue::RequestBuffer(const BufferRequestConfig &config, sptr<Buffe
     struct IBufferProducer::RequestBufferReturnValue &retval)
 {
     ScopedBytrace func(__func__);
+    if (!GetStatus()) {
+        BLOGN_FAILURE_RET(GSERROR_NO_CONSUMER);
+    }
     if (listener_ == nullptr && listenerClazz_ == nullptr) {
         BLOGN_FAILURE_RET(GSERROR_NO_CONSUMER);
     }
@@ -211,7 +214,10 @@ GSError BufferQueue::RequestBuffer(const BufferRequestConfig &config, sptr<Buffe
     // check queue size
     if (GetUsedSize() >= GetQueueSize()) {
         waitReqCon_.wait_for(lock, std::chrono::milliseconds(config.timeout),
-            [this]() { return !freeList_.empty() || (GetUsedSize() < GetQueueSize()); });
+            [this]() { return !freeList_.empty() || (GetUsedSize() < GetQueueSize()) || !GetStatus(); });
+        if (!GetStatus()) {
+            BLOGN_FAILURE_RET(GSERROR_NO_CONSUMER);
+        }
         // try dequeue from free list again
         ret = PopFromFreeList(buffer, config);
         if (ret == GSERROR_OK) {
@@ -315,6 +321,9 @@ GSError BufferQueue::FlushBuffer(int32_t sequence, const sptr<BufferExtraData> &
     const sptr<SyncFence>& fence, const BufferFlushConfig &config)
 {
     ScopedBytrace func(__func__);
+    if (!GetStatus()) {
+        BLOGN_FAILURE_RET(GSERROR_NO_CONSUMER);
+    }
     // check param
     auto sret = CheckFlushConfig(config);
     if (sret != GSERROR_OK) {
@@ -781,6 +790,9 @@ uint32_t BufferQueue::GetDefaultUsage()
 GSError BufferQueue::CleanCache()
 {
     std::lock_guard<std::mutex> lockGuard(mutex_);
+    if (!GetStatus()) {
+        BLOGN_FAILURE_RET(GSERROR_NO_CONSUMER);
+    }
     for (auto &[id, _] : bufferQueueCache_) {
         if (onBufferDelete_ != nullptr) {
             onBufferDelete_(id);
@@ -970,5 +982,16 @@ void BufferQueue::Dump(std::string &result)
 
     result.append("      bufferQueueCache:\n");
     DumpCache(result);
+}
+
+bool BufferQueue::GetStatus() const
+{
+    return isValidStatus_;
+}
+
+void BufferQueue::SetStatus(bool status)
+{
+    isValidStatus_ = status;
+    waitReqCon_.notify_all();
 }
 }; // namespace OHOS
