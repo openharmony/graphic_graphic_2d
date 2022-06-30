@@ -217,6 +217,7 @@ void RSBaseRenderNode::DumpTree(int32_t depth, std::string& out) const
         out += ", Name [" + surfaceNode->GetName() + "]";
         auto p = parent_.lock();
         out += ", parent [" + (p != nullptr ? std::to_string(p->GetId()) : "null") + "]";
+        out = out + ", " + surfaceNode->GetVisibleRegion().GetRegionInfo();
     }
     out += ", children[";
     for (auto child : children_) {

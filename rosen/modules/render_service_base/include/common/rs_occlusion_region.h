@@ -40,7 +40,7 @@ public:
         return left_ >= right_ || top_ >= bottom_;
     }
 
-    std::string GetRectInfo()
+    std::string GetRectInfo() const
     {
         return std::string("[" +
             std::to_string(left_) + ", " +
@@ -161,7 +161,7 @@ public:
     {
         return rects_.size() == 0;
     }
-    std::string GetRegionInfo()
+    std::string GetRegionInfo() const
     {
         std::string info = "{ Region Size " + std::to_string(rects_.size()) + ": ";
         for (auto&r : rects_) {

@@ -25,16 +25,17 @@ class RSOcclusionConfig {
 public:
     static RSOcclusionConfig& GetInstance();
     bool IsLeashWindow(std::string win);
-    bool IsIgnoreWindow(std::string win);
+    bool IsStartingWindow(std::string win);
+    bool IsAlphaWindow(std::string win);
 private:
-    std::vector<std::string> ignoreWins_ = {
-        "startingWindow",
+    std::vector<std::string> alphaWins_ = {
         "StatusBar",
         "NavigationBar",
         "DropdownPanel",
         "SUBWINDOW",
         "freeze0"};
     std::string leashWin_ = "leashWindow";
+    std::string startWin_ = "startingWindow";
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -131,7 +131,7 @@ void RSSurfaceRenderNode::ProcessRenderAfterChildren(RSPaintFilterCanvas& canvas
 void RSSurfaceRenderNode::CollectSurface(
     const std::shared_ptr<RSBaseRenderNode>& node, std::vector<RSBaseRenderNode::SharedPtr>& vec)
 {
-    if (RSOcclusionConfig::GetInstance().IsIgnoreWindow(GetName())) {
+    if (RSOcclusionConfig::GetInstance().IsStartingWindow(GetName())) {
         return;
     }
     if (RSOcclusionConfig::GetInstance().IsLeashWindow(GetName())) {
