@@ -37,7 +37,7 @@ public:
 
     void SetSecurityDisplay(bool isSecurityDisplay);
 
-    void SetIsMirrorDisplay(const RSDisplayNodeConfig& displayNodeConfig);
+    void SetDisplayNodeMirrorConfig(const RSDisplayNodeConfig& displayNodeConfig);
 
     bool GetSecurityDisplay() const;
 

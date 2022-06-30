@@ -103,11 +103,11 @@ HWTEST_F(RSDisplayModeTest, CreateMirror, Function | MediumTest  | Level2)
 }
 
 /**
- * @tc.name: SetIsMirrorDisplayExpand
+ * @tc.name: SetDisplayNodeMirrorConfigExpand
  * @tc.desc: Modify display mode type to expand display
  * @tc.type:FUNC
  */
-HWTEST_F(RSDisplayModeTest, SetIsMirrorDisplayExpand, Function | MediumTest  | Level2)
+HWTEST_F(RSDisplayModeTest, SetDisplayNodeMirrorConfigExpand, Function | MediumTest  | Level2)
 {
     /**
     * step1. create RSDisplayNode
@@ -126,7 +126,7 @@ HWTEST_F(RSDisplayModeTest, SetIsMirrorDisplayExpand, Function | MediumTest  | L
     * step2. set display mode
     */
     RSDisplayNodeConfig configNew = {screenId2, false, 0};
-    displayNode->SetIsMirrorDisplay(configNew);
+    displayNode->SetDisplayNodeMirrorConfig(configNew);
     isMirrorDisplay = displayNode->IsMirrorDisplay();
     EXPECT_EQ(isMirrorDisplay, false);
 
@@ -144,11 +144,11 @@ HWTEST_F(RSDisplayModeTest, SetIsMirrorDisplayExpand, Function | MediumTest  | L
 }
 
 /**
- * @tc.name: SetIsMirrorDisplayMirror
+ * @tc.name: SetDisplayNodeMirrorConfigMirror
  * @tc.desc: Modify display mode type to mirror display
  * @tc.type:FUNC
  */
-HWTEST_F(RSDisplayModeTest, SetIsMirrorDisplayMirror, Function | MediumTest  | Level2)
+HWTEST_F(RSDisplayModeTest, SetDisplayNodeMirrorConfigMirror, Function | MediumTest  | Level2)
 {
     /**
     * step1. create RSDisplayNode
@@ -167,7 +167,7 @@ HWTEST_F(RSDisplayModeTest, SetIsMirrorDisplayMirror, Function | MediumTest  | L
     * step2. set display mode
     */
     RSDisplayNodeConfig configNew = {screenId2, true, displayNodeSrc->GetId()};
-    displayNode->SetIsMirrorDisplay(configNew);
+    displayNode->SetDisplayNodeMirrorConfig(configNew);
     isMirrorDisplay = displayNode->IsMirrorDisplay();
     EXPECT_EQ(isMirrorDisplay, true);
 
