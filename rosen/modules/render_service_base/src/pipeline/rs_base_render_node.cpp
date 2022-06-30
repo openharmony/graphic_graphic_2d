@@ -79,7 +79,6 @@ void RSBaseRenderNode::RemoveChild(const SharedPtr& child)
     SetDirty();
 }
 
-
 void RSBaseRenderNode::SetIsOnTheTree(bool flag)
 {
     // We do not need to label a child when the child is removed from a parent that is not on the tree
@@ -214,8 +213,10 @@ void RSBaseRenderNode::DumpTree(int32_t depth, std::string& out) const
     if (GetType() == RSRenderNodeType::SURFACE_NODE) {
         auto surfaceNode = (static_cast<const RSSurfaceRenderNode*>(this));
         const RSSurfaceHandler& surfaceHandler = static_cast<const RSSurfaceHandler&>(*surfaceNode);
-        out += ", hasConsumer: " + std::to_string(surfaceHandler.HasConsumer()); 
+        out += ", hasConsumer: " + std::to_string(surfaceHandler.HasConsumer());
         out += ", Name [" + surfaceNode->GetName() + "]";
+        auto p = parent_.lock();
+        out += ", parent [" + (p != nullptr ? std::to_string(p->GetId()) : "null") + "]";
     }
     out += ", children[";
     for (auto child : children_) {
