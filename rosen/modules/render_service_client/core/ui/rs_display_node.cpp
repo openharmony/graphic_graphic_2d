@@ -73,8 +73,25 @@ bool RSDisplayNode::GetSecurityDisplay() const
     return isSecurityDisplay_;
 }
 
+void RSDisplayNode::SetDisplayNodeMirrorConfig(const RSDisplayNodeConfig& displayNodeConfig)
+{
+    isMirroredDisplay_ = displayNodeConfig.isMirrored;
+    std::unique_ptr<RSCommand> command = std::make_unique<RSDisplayNodeSetDisplayMode>(GetId(), displayNodeConfig);
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        transactionProxy->AddCommand(command, true);
+    }
+    ROSEN_LOGD("RSDisplayNode::SetDisplayNodeMirrorConfig, displayNodeId:[%llu] isMirrored:[%s]", GetId(),
+        displayNodeConfig.isMirrored ? "true" : "false");
+}
+
+bool RSDisplayNode::IsMirrorDisplay() const
+{
+    return isMirroredDisplay_;
+}
+
 RSDisplayNode::RSDisplayNode(const RSDisplayNodeConfig& config)
-    : RSBaseNode(true), screenId_(config.screenId), offsetX_(0), offsetY_(0)
+    : RSBaseNode(true), screenId_(config.screenId), offsetX_(0), offsetY_(0), isMirroredDisplay_(config.isMirrored)
 {
     (void)screenId_;
     (void)offsetX_;

@@ -59,5 +59,26 @@ void DisplayNodeCommandHelper::SetSecurityDisplay(RSContext& context, NodeId id,
     }
 }
 
+void DisplayNodeCommandHelper::SetDisplayMode(RSContext& context, NodeId id, const RSDisplayNodeConfig& config)
+{
+    if (auto node = context.GetNodeMap().GetRenderNode<RSDisplayRenderNode>(id)) {
+        bool isMirror = config.isMirrored;
+        node->SetIsMirrorDisplay(isMirror);
+        if (isMirror) {
+            NodeId mirrorNodeId = config.mirrorNodeId;
+            auto& nodeMap = context.GetNodeMap();
+            auto mirrorSourceNode = nodeMap.GetRenderNode<RSDisplayRenderNode>(mirrorNodeId);
+            if (mirrorSourceNode == nullptr) {
+                ROSEN_LOGD("DisplayNodeCommandHelper::SetDisplayMode fail, displayNodeId:[%llu] mirrorNodeId:[%llu]",
+                    id, mirrorNodeId);
+                return;
+            }
+            node->SetMirrorSource(mirrorSourceNode);
+        } else {
+            node->ResetMirrorSource();
+        }
+    }
+}
+
 } // namespace Rosen
 } // namespace OHOS

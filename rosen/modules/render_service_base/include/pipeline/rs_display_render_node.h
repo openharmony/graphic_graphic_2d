@@ -84,6 +84,8 @@ public:
     void SetForceSoftComposite(bool flag);
     bool IsForceSoftComposite() const;
     void SetMirrorSource(SharedPtr node);
+    void ResetMirrorSource();
+    void SetIsMirrorDisplay(bool isMirror);
     void SetSecurityDisplay(bool isSecurityDisplay);
     bool GetSecurityDisplay() const;
     bool SkipFrame(uint32_t skipFrameInterval);
