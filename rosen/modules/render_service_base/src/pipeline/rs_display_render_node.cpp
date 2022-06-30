@@ -86,14 +86,11 @@ void RSDisplayRenderNode::SetMirrorSource(SharedPtr node)
         return;
     }
     mirrorSource_ = node;
-    RS_LOGD("RSDisplayRenderNode::SetMirrorSource, node id:[%llu], mirror source node id: [%llu]",
-        GetId(), node->GetId());
 }
 
 void RSDisplayRenderNode::ResetMirrorSource()
 {
     mirrorSource_.reset();
-    RS_LOGD("RSDisplayRenderNode::ResetMirrorSource, node id:[%llu]", GetId());
 }
 
 bool RSDisplayRenderNode::IsMirrorDisplay() const
