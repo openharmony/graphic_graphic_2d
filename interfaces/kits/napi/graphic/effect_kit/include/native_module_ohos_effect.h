@@ -18,5 +18,6 @@
 
 #include "napi/native_node_api.h"
 #include "color_picker_napi.h"
+#include "filter_napi.h"
 
 #endif /* NATIVE_MODULE_OHOS_EFFECT_H_ */

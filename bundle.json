@@ -70,6 +70,7 @@
           "//foundation/graphic/graphic_2d/rosen/modules/render_service:render_service",
           "//foundation/graphic/graphic_2d/rosen/modules/effect/effectChain:libeffectchain",
           "//foundation/graphic/graphic_2d/rosen/modules/effect/color_picker:color_picker",
+          "//foundation/graphic/graphic_2d/rosen/modules/effect/skia_effectChain:skeffectchain",
           "//foundation/graphic/graphic_2d/frameworks/opengl_wrapper:EGL",
           "//foundation/graphic/graphic_2d/frameworks/opengl_wrapper:GLESv3",
           "//foundation/graphic/graphic_2d/frameworks/opengl_wrapper:opengl_wrapper_native_test",
