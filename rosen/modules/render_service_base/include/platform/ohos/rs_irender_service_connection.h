@@ -82,6 +82,7 @@ public:
         GET_ROTATION,
         GET_SCREEN_HDR_CAPABILITY,
         GET_SCREEN_TYPE,
+        SET_SCREEN_SKIP_FRAME_INTERVAL,
         REGISTER_OCCLUSION_CHANGE_CALLBACK,
         UNREGISTER_OCCLUSION_CHANGE_CALLBACK,
     };
@@ -162,6 +163,8 @@ public:
     virtual int32_t GetScreenHDRCapability(ScreenId id, RSScreenHDRCapability& screenHdrCapability) = 0;
 
     virtual int32_t GetScreenType(ScreenId id, RSScreenType& screenType) = 0;
+
+    virtual int32_t SetScreenSkipFrameInterval(ScreenId id, uint32_t skipFrameInterval) = 0;
     
     virtual int32_t RegisterOcclusionChangeCallback(sptr<RSIOcclusionChangeCallback> callback) = 0;
 

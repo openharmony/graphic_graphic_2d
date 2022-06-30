@@ -186,6 +186,11 @@ int32_t RSInterfaces::GetScreenType(ScreenId id, RSScreenType& screenType)
     return renderServiceClient_->GetScreenType(id, screenType);
 }
 
+int32_t RSInterfaces::SetScreenSkipFrameInterval(ScreenId id, uint32_t skipFrameInterval)
+{
+    return renderServiceClient_->SetScreenSkipFrameInterval(id, skipFrameInterval);
+}
+
 int32_t RSInterfaces::RegisterOcclusionChangeCallback(const OcclusionChangeCallback& callback)
 {
     return renderServiceClient_->RegisterOcclusionChangeCallback(callback);

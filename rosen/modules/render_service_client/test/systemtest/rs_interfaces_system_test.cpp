@@ -171,6 +171,38 @@ HWTEST_F(RSInterfacesSystemTest, ScreenManager02, Function | MediumTest | Level2
     auto res = ScreenManager::GetInstance().DestroyVirtualScreen(virtualScreenId);
     ASSERT_EQ(DMError::DM_OK, res);
 }
+
+/**
+ * @tc.name: ScreenManager03
+ * @tc.desc: Mirror virtualScreen
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSInterfacesSystemTest, ScreenManager03, Function | MediumTest | Level2)
+{
+    RSInterfacesTestUtils utils;
+    ASSERT_TRUE(utils.CreateSurface());
+    defaultOption_.surface_ = utils.pSurface_;
+    defaultOption_.isForShot_ = false;
+
+    ScreenId virtualScreenId = ScreenManager::GetInstance().CreateVirtualScreen(defaultOption_);
+    sleep(TEST_SLEEP_S);
+
+    std::vector<ScreenId> mirrorIds;
+    mirrorIds.push_back(virtualScreenId);
+    ScreenManager::GetInstance().MakeMirror(defaultScreenId_, mirrorIds);
+
+    uint32_t virtualScreenSkipFrameInterval = 2;
+    auto ids = RSInterfaces::GetInstance().GetAllScreenIds();
+    ScreenId rsId = ids.front();
+
+    int32_t ret = RSInterfaces::GetInstance().SetScreenSkipFrameInterval(rsId, virtualScreenSkipFrameInterval);
+    ASSERT_EQ(ret, StatusCode::SUCCESS);
+    std::cout << "VirtualScreen is created now" << std::endl;
+    sleep(30 * TEST_SLEEP_S);
+
+    auto res = ScreenManager::GetInstance().DestroyVirtualScreen(virtualScreenId);
+    ASSERT_EQ(DMError::DM_OK, res);
+}
 }
 } // namespace Rosen
 } // namespace OHOS

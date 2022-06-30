@@ -54,6 +54,7 @@ struct ScreenInfo {
     ScreenState state = ScreenState::UNKNOWN;
     ScreenRotation rotation = ScreenRotation::ROTATION_0;
     SkMatrix rotationMatrix; // Screen rotation matrix for canvas.
+    uint32_t skipFrameInterval = DEFAULT_SKIP_FRAME_INTERVAL;  // skip frame interval for change screen refresh rate
 };
 
 class RSScreenManager : public RefBase {
@@ -143,6 +144,8 @@ public:
     virtual int32_t GetScreenHDRCapability(ScreenId id, RSScreenHDRCapability& screenHdrCapability) const = 0;
 
     virtual int32_t GetScreenType(ScreenId id, RSScreenType& type) const = 0;
+
+    virtual int32_t SetScreenSkipFrameInterval(ScreenId id, uint32_t skipFrameInterval) = 0;
 };
 
 sptr<RSScreenManager> CreateOrGetScreenManager();
@@ -243,6 +246,8 @@ public:
     int32_t GetScreenHDRCapability(ScreenId id, RSScreenHDRCapability& screenHdrCapability) const override;
 
     int32_t GetScreenType(ScreenId id, RSScreenType& type) const override;
+
+    int32_t SetScreenSkipFrameInterval(ScreenId id, uint32_t skipFrameInterval) override;
 private:
     RSScreenManager();
     ~RSScreenManager() noexcept override;
@@ -279,6 +284,7 @@ private:
     ScreenRotation GetRotationLocked(ScreenId id) const;
     int32_t GetScreenHDRCapabilityLocked(ScreenId id, RSScreenHDRCapability& screenHdrCapability) const;
     int32_t GetScreenTypeLocked(ScreenId id, RSScreenType& type) const;
+    int32_t SetScreenSkipFrameIntervalLocked(ScreenId id, uint32_t skipFrameInterval);
 
     mutable std::mutex mutex_;
     HdiBackend *composer_ = nullptr;

@@ -653,6 +653,7 @@ ScreenInfo RSScreenManager::QueryScreenInfo(ScreenId id) const
     }
     info.rotation = screen->GetRotation();
     info.rotationMatrix = screen->GetRotationMatrix();
+    info.skipFrameInterval = screen->GetScreenSkipFrameInterval();
 
     return info;
 }
@@ -835,6 +836,25 @@ int32_t RSScreenManager::GetScreenTypeLocked(ScreenId id, RSScreenType& type) co
     return StatusCode::SUCCESS;
 }
 
+int32_t RSScreenManager::SetScreenSkipFrameIntervalLocked(ScreenId id, uint32_t skipFrameInterval)
+{
+    if (screens_.count(id) == 0) {
+        HiLog::Error(LOG_LABEL, "%{public}s: There is no screen for id %{public}" PRIu64 ".\n", __func__, id);
+        return StatusCode::SCREEN_NOT_FOUND;
+    }
+    RSScreenModeInfo screenModeInfo;
+    // use the refresh rate of the physical screen as the maximum refresh rate
+    GetScreenActiveModeLocked(defaultScreenId_, screenModeInfo);
+    // guaranteed screen refresh rate at least 1
+    if (skipFrameInterval == 0 || (skipFrameInterval > screenModeInfo.GetScreenRefreshRate())) {
+        return INVALID_ARGUMENTS;
+    }
+    screens_.at(id)->SetScreenSkipFrameInterval(skipFrameInterval);
+    HiLog::Info(LOG_LABEL, "%{public}s: screen(id %{public}" PRIu64 "), skipFrameInterval(%{public}d).",
+                __func__, id, skipFrameInterval);
+    return StatusCode::SUCCESS;
+}
+
 int32_t RSScreenManager::GetScreenSupportedColorGamuts(ScreenId id, std::vector<ScreenColorGamut>& mode) const
 {
     std::lock_guard<std::mutex> lock(mutex_);
@@ -887,6 +907,12 @@ int32_t RSScreenManager::GetScreenType(ScreenId id, RSScreenType& type) const
 {
     std::lock_guard<std::mutex> lock(mutex_);
     return GetScreenTypeLocked(id, type);
+}
+
+int32_t RSScreenManager::SetScreenSkipFrameInterval(ScreenId id, uint32_t skipFrameInterval)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    return SetScreenSkipFrameIntervalLocked(id, skipFrameInterval);
 }
 } // namespace impl
 

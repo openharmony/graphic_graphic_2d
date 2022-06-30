@@ -135,5 +135,18 @@ bool RSDisplayRenderNode::CreateSurface(sptr<IBufferConsumerListener> listener)
     surfaceCreated_ = true;
     return true;
 }
+
+bool RSDisplayRenderNode::SkipFrame(uint32_t skipFrameInterval)
+{
+    frameCount_++;
+    // ensure skipFrameInterval is not 0
+    if (skipFrameInterval == 0) {
+        return false;
+    }
+    if ((frameCount_ - 1) % skipFrameInterval == 0) {
+        return false;
+    }
+    return true;
+}
 } // namespace Rosen
 } // namespace OHOS

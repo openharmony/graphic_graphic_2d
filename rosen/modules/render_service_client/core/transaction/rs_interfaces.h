@@ -96,6 +96,11 @@ public:
 
     int32_t GetScreenType(ScreenId id, RSScreenType& screenType);
 
+    /* skipFrameInterval : decide how many frames apart to refresh a frame,
+       DEFAULT_SKIP_FRAME_INTERVAL means refresh each frame,
+       change screen refresh rate finally */
+    int32_t SetScreenSkipFrameInterval(ScreenId id, uint32_t skipFrameInterval);
+
     std::shared_ptr<VSyncReceiver> CreateVSyncReceiver(
         const std::string& name,
         const std::shared_ptr<OHOS::AppExecFwk::EventHandler> &looper = nullptr);
