@@ -16,28 +16,137 @@
 #ifndef NDK_INCLUDE_HARDWARE_BUFFER_H_
 #define NDK_INCLUDE_HARDWARE_BUFFER_H_
 
-#include "external_buffer.h"
+/**
+ * @addtogroup HardwareBuffer
+ * @{
+ *
+ * @brief Provides the hardware buffer capability.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.HardwareBuffer
+ * @since 8
+ * @version 2.0
+ */
+
+/**
+ * @file external_buffer.h
+ *
+ * @brief Defines the functions for obtaining and using a hardware buffer.
+ *
+ * @since 8
+ * @version 2.0
+ */
+
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-OHHardwareBuffer* HardwareBufferAlloc(const OHHardwareBufferConfig* config);
+struct HardwareBuffer;
+typedef struct HardwareBuffer OHHardwareBuffer;
 
-int32_t HardwareBufferReference(OHHardwareBuffer *buffer);
+/**
+ * @brief <b>HardwareBuffer</b> config. \n
+ * Used to allocating new <b>HardwareBuffer</b> andquery parameters if existing ones.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.HardwareBuffer
+ * @since 8
+ * @version 2.0
+ */
+typedef struct {
+    int32_t width;           ///< Width in pixels
+    int32_t height;          ///< Height in pixels
+    int32_t format;          ///< One of PixelFormat
+    int32_t usage;           ///< Combination of buffer usage
+} OH_HardwareBuffer_Config;
 
-int32_t HardwareBufferUnreference(OHHardwareBuffer *buffer);
+/**
+ * @brief Alloc a <b>HardwareBuffer</b> that matches the passed BufferRequestConfig. \n
+ * A new <b>HardwareBuffer</b> instance is created each time this function is called.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.HardwareBuffer
+ * @param config Indicates the pointer to a <b>BufferRequestConfig</b> instance.
+ * @return Returns the pointer to the <b>HardwareBuffer</b> instance created if the operation is successful, \n
+ * returns <b>NULL</b> otherwise.
+ * @since 8
+ * @version 2.0
+ */
+OHHardwareBuffer* OH_HardwareBuffer_HardwareBufferAlloc(const OH_HardwareBuffer_Config* config);
 
-void GetHardwareBufferConfig(OHHardwareBuffer *buffer, OHHardwareBufferConfig*);
+/**
+ * @brief Adds the reference count of a HardwareBuffer.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.HardwareBuffer
+ * @param buffer Indicates the pointer to a <b>HardwareBuffer</b> instance.
+ * @return Returns an error code defined in <b>GSError</b>.
+ * @since 8
+ * @version 2.0
+ */
+int32_t OH_HardwareBuffer_HardwareBufferReference(OHHardwareBuffer *buffer);
 
-int32_t HardwareBufferMap(OHHardwareBuffer *buffer);
+/**
+ * @brief Decreases the reference count of a HardwareBuffer and, when the reference count reaches 0, \n
+ * destroys this HardwareBuffer.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.HardwareBuffer
+ * @param buffer Indicates the pointer to a <b>HardwareBuffer</b> instance.
+ * @return Returns an error code defined in <b>GSError</b>.
+ * @since 8
+ * @version 2.0
+ */
+int32_t OH_HardwareBuffer_HardwareBufferUnreference(OHHardwareBuffer *buffer);
 
-int32_t HardwareBufferUnmap(OHHardwareBuffer *buffer);
+/**
+ * @brief Return a config of the OHHardwareBuffer in the passed OHHardwareBufferConfig struct.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.HardwareBuffer
+ * @param buffer Indicates the pointer to a <b>HardwareBuffer</b> instance.
+ * @param config Indicates the pointer to the <b>HardwareBufferConfig</b> of the buffer.
+ * @return Returns the pointer to the <b>BufferRequestConfig</b> instance if the operation is successful, \n
+ * returns <b>NULL</b> otherwise.
+ * @since 8
+ * @version 2.0
+ */
+void OH_HardwareBuffer_GetHardwareBufferConfig(OHHardwareBuffer *buffer, OH_HardwareBuffer_Config* config);
 
-uint32_t HardwareBufferGetSeqNum(OHHardwareBuffer *buffer);
+/**
+ * @brief Provide direct cpu access to the OHHardwareBuffer in the process's address space.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.HardwareBuffer
+ * @param buffer Indicates the pointer to a <b>HardwareBuffer</b> instance.
+ * @param virAddr Indicates the address of the <b>HardwareBuffer</b> in virtual memory.
+ * @return Returns an error code defined in <b>GSError</b>.
+ * @since 8
+ * @version 2.0
+ */
+
+int32_t OH_HardwareBuffer_HardwareBufferMap(OHHardwareBuffer *buffer, void **virAddr);
+
+/**
+ * @brief Remove direct cpu access ability of the HardwareBuffer in the process's address space.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.HardwareBuffer
+ * @param buffer Indicates the pointer to a <b>HardwareBuffer</b> instance.
+ * @return Returns an error code defined in <b>GSError</b>.
+ * @since 8
+ * @version 2.0
+ */
+int32_t OH_HardwareBuffer_HardwareBufferUnmap(OHHardwareBuffer *buffer);
+
+/**
+ * @brief Get the systen wide unique sequence number of the HardwareBuffer.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.HardwareBuffer
+ * @param buffer Indicates the pointer to a <b>HardwareBuffer</b> instance.
+ * @return Returns the sequence number, which is unique for each HardwareBuffer.
+ * @since 8
+ * @version 2.0
+ */
+uint32_t OH_HardwareBuffer_HardwareBufferGetSeqNum(OHHardwareBuffer *buffer);
 
 #ifdef __cplusplus
 }
 #endif
 
+/** @} */
 #endif

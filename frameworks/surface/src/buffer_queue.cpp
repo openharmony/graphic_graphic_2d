@@ -125,11 +125,6 @@ GSError BufferQueue::PopFromDirtyList(sptr<SurfaceBuffer> &buffer)
 
 GSError BufferQueue::CheckRequestConfig(const BufferRequestConfig &config)
 {
-    if (config.width <= 0 || config.height <= 0) {
-        BLOGN_INVALID("w or h is greater than 0, now is w %{public}d h %{public}d", config.width, config.height);
-        return GSERROR_INVALID_ARGUMENTS;
-    }
-
     uint32_t align = config.strideAlignment;
     bool isValidStrideAlignment = true;
     isValidStrideAlignment = isValidStrideAlignment && (SURFACE_MIN_STRIDE_ALIGNMENT <= align);
@@ -142,11 +137,6 @@ GSError BufferQueue::CheckRequestConfig(const BufferRequestConfig &config)
 
     if (align & (align - 1)) {
         BLOGN_INVALID("config.strideAlignment is not power of 2 like 4, 8, 16, 32; now is %{public}d", align);
-        return GSERROR_INVALID_ARGUMENTS;
-    }
-
-    if (config.format < 0 || config.format > PIXEL_FMT_BUTT) {
-        BLOGN_INVALID("config.format [0, %{public}d], now is %{public}d", PIXEL_FMT_BUTT, config.format);
         return GSERROR_INVALID_ARGUMENTS;
     }
 

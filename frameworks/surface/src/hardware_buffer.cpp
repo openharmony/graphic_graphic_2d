@@ -21,11 +21,6 @@
 #include "external_window.h"
 #include "surface_buffer_impl.h"
 
-#ifndef weak_alias
-    #define weak_alias(old, new) \
-        extern __typeof(old) new __attribute__((__weak__, __alias__(#old)))
-#endif
-
 using namespace OHOS;
 
 OHHardwareBuffer* HardwareBufferFromSurfaceBuffer(SurfaceBuffer* buffer)
@@ -43,7 +38,7 @@ SurfaceBuffer* OHHardwareBufferToSurfaceBuffer(OHHardwareBuffer *buffer)
     return SurfaceBuffer::HardwareBufferToSurfaceBuffer(buffer);
 }
 
-OHHardwareBuffer* HardwareBufferAlloc(const OHHardwareBufferConfig* config)
+OHHardwareBuffer* OH_HardwareBuffer_HardwareBufferAlloc(const OH_HardwareBuffer_Config* config)
 {
     if (config == nullptr) {
         BLOGE("parameter error, please check input parameter");
@@ -52,9 +47,9 @@ OHHardwareBuffer* HardwareBufferAlloc(const OHHardwareBufferConfig* config)
     BufferRequestConfig bfConfig = {};
     bfConfig.width = config->width;
     bfConfig.height = config->height;
-    bfConfig.strideAlignment = config->strideAlignment;
-    bfConfig.format = config-> format; // PixelFormat
-    bfConfig.usage = config-> usage;
+    bfConfig.strideAlignment = 0x8; // set 0x8 as default value to alloc SurfaceBufferImpl
+    bfConfig.format = config->format; // PixelFormat
+    bfConfig.usage = config->usage;
     bfConfig.timeout = 0;
     bfConfig.colorGamut = ColorGamut::COLOR_GAMUT_SRGB;
     bfConfig.transform = TransformType::ROTATE_NONE;
@@ -64,12 +59,17 @@ OHHardwareBuffer* HardwareBufferAlloc(const OHHardwareBufferConfig* config)
         BLOGE("Surface Buffer Alloc failed, %{public}s", GSErrorStr(ret).c_str());
         return nullptr;
     }
+
     OHHardwareBuffer* buffer = HardwareBufferFromSurfaceBuffer(bufferImpl);
-    HardwareBufferReference(buffer);
+    int32_t err = OH_HardwareBuffer_HardwareBufferReference(buffer);
+    if (err != OHOS::GSERROR_OK) {
+        BLOGE("HardwareBufferReference failed");
+        return nullptr;
+    }
     return buffer;
 }
 
-int32_t HardwareBufferReference(OHHardwareBuffer *buffer)
+int32_t OH_HardwareBuffer_HardwareBufferReference(OHHardwareBuffer *buffer)
 {
     if (buffer == nullptr) {
         BLOGE("parameter error, please check input parameter");
@@ -80,7 +80,7 @@ int32_t HardwareBufferReference(OHHardwareBuffer *buffer)
     return OHOS::GSERROR_OK;
 }
 
-int32_t HardwareBufferUnreference(OHHardwareBuffer *buffer)
+int32_t OH_HardwareBuffer_HardwareBufferUnreference(OHHardwareBuffer *buffer)
 {
     if (buffer == nullptr) {
         BLOGE("parameter error, please check input parameter");
@@ -91,7 +91,7 @@ int32_t HardwareBufferUnreference(OHHardwareBuffer *buffer)
     return OHOS::GSERROR_OK;
 }
 
-void GetHardwareBufferConfig(OHHardwareBuffer *buffer, OHHardwareBufferConfig* config)
+void OH_HardwareBuffer_GetHardwareBufferConfig(OHHardwareBuffer *buffer, OH_HardwareBuffer_Config* config)
 {
     if (buffer == nullptr || config == nullptr) {
         BLOGE("parameter error, please check input parameter");
@@ -101,21 +101,24 @@ void GetHardwareBufferConfig(OHHardwareBuffer *buffer, OHHardwareBufferConfig* c
     config->width = sbuffer->GetWidth();
     config->height = sbuffer->GetHeight();
     config->format = sbuffer->GetFormat();
-    config->strideAlignment = sbuffer->GetStride();
     config->usage = sbuffer->GetUsage();
 }
 
-int32_t HardwareBufferMap(OHHardwareBuffer *buffer)
+int32_t OH_HardwareBuffer_HardwareBufferMap(OHHardwareBuffer *buffer, void **virAddr)
 {
     if (buffer == nullptr) {
         BLOGE("parameter error, please check input parameter");
         return OHOS::GSERROR_INVALID_ARGUMENTS;
     }
     SurfaceBuffer* sbuffer = OHHardwareBufferToSurfaceBuffer(buffer);
-    return sbuffer->Map();
+    int32_t ret = sbuffer->Map();
+    if (ret == OHOS::GSERROR_OK) {
+        *virAddr = sbuffer->GetVirAddr();
+    }
+    return ret;
 }
 
-int32_t HardwareBufferUnmap(OHHardwareBuffer *buffer)
+int32_t OH_HardwareBuffer_HardwareBufferUnmap(OHHardwareBuffer *buffer)
 {
     if (buffer == nullptr) {
         BLOGE("parameter error, please check input parameter");
@@ -125,7 +128,7 @@ int32_t HardwareBufferUnmap(OHHardwareBuffer *buffer)
     return sbuffer->Unmap();
 }
 
-uint32_t HardwareBufferGetSeqNum(OHHardwareBuffer *buffer)
+uint32_t OH_HardwareBuffer_HardwareBufferGetSeqNum(OHHardwareBuffer *buffer)
 {
     if (buffer == nullptr) {
         BLOGE("parameter error, please check input parameter");
@@ -134,11 +137,3 @@ uint32_t HardwareBufferGetSeqNum(OHHardwareBuffer *buffer)
     const SurfaceBuffer* sbuffer = OHHardwareBufferToSurfaceBuffer(buffer);
     return sbuffer->GetSeqNum();
 }
-
-weak_alias(HardwareBufferAlloc, OH_HardwareBuffer_HardwareBufferAlloc);
-weak_alias(HardwareBufferReference, OH_HardwareBuffer_HardwareBufferReference);
-weak_alias(HardwareBufferUnreference, OH_HardwareBuffer_HardwareBufferUnreference);
-weak_alias(GetHardwareBufferConfig, OH_HardwareBuffer_GetHardwareBufferConfig);
-weak_alias(HardwareBufferMap, OH_HardwareBuffer_HardwareBufferMap);
-weak_alias(HardwareBufferUnmap, OH_HardwareBuffer_HardwareBufferUnmap);
-weak_alias(HardwareBufferGetSeqNum, OH_HardwareBuffer_HardwareBufferGetSeqNum);
