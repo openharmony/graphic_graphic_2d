@@ -37,13 +37,13 @@ void CanvasTest::SetUp() {}
 void CanvasTest::TearDown() {}
 
 /**
- * @tc.name: CreateAndDestory001
+ * @tc.name: CreateAndDestroy001
  * @tc.desc:
  * @tc.type: FUNC
  * @tc.require: AR000GGNV3
  * @tc.author:
  */
-HWTEST_F(CanvasTest, CreateAndDestory001, TestSize.Level1)
+HWTEST_F(CanvasTest, CreateAndDestroy001, TestSize.Level1)
 {
     auto canvas = std::make_unique<Canvas>();
     EXPECT_TRUE(nullptr != canvas);

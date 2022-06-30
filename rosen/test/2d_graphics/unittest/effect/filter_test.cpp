@@ -37,13 +37,13 @@ void FilterTest::SetUp() {}
 void FilterTest::TearDown() {}
 
 /*
- * @tc.name: CreateAndDestory001
+ * @tc.name: CreateAndDestroy001
  * @tc.desc:
  * @tc.type: FUNC
  * @tc.require: AR000GGNV3
  * @tc.author:
  */
-HWTEST_F(FilterTest, CreateAndDestory001, TestSize.Level1)
+HWTEST_F(FilterTest, CreateAndDestroy001, TestSize.Level1)
 {
     auto filter = std::make_unique<Filter>();
     EXPECT_TRUE(nullptr != filter);

@@ -37,13 +37,13 @@ void BrushTest::SetUp() {}
 void BrushTest::TearDown() {}
 
 /**
- * @tc.name: CreateAndDestory001
+ * @tc.name: CreateAndDestroy001
  * @tc.desc:
  * @tc.type: FUNC
  * @tc.require: AR000GGNV3
  * @tc.author:
  */
-HWTEST_F(BrushTest, CreateAndDestory001, TestSize.Level1)
+HWTEST_F(BrushTest, CreateAndDestroy001, TestSize.Level1)
 {
     std::unique_ptr<Brush> brush = std::make_unique<Brush>();
     ASSERT_TRUE(nullptr != brush);

@@ -22,21 +22,21 @@
 #include <queue>
 #include <thread>
 
-#include "common/rs_thread_handler.h"
-#include "common/rs_thread_looper.h"
-#include "command/rs_command.h"
-#include "ipc_callbacks/iapplication_agent.h"
-#include "pipeline/rs_context.h"
-#include "platform/drawing/rs_vsync_client.h"
 #include "refbase.h"
 #include "rs_render_engine.h"
-#include "vsync_receiver.h"
 #include "vsync_distributor.h"
 #include "vsync_helper.h"
-#include "ipc_callbacks/rs_iocclusion_change_callback.h"
+#include "vsync_receiver.h"
 
-namespace OHOS {
-namespace Rosen {
+#include "command/rs_command.h"
+#include "common/rs_thread_handler.h"
+#include "common/rs_thread_looper.h"
+#include "ipc_callbacks/iapplication_agent.h"
+#include "ipc_callbacks/rs_iocclusion_change_callback.h"
+#include "pipeline/rs_context.h"
+#include "platform/drawing/rs_vsync_client.h"
+
+namespace OHOS::Rosen {
 class RSTransactionData;
 
 namespace Detail {
@@ -56,7 +56,7 @@ public:
 
 private:
     explicit ScheduledTask(Task&& task) : task_(std::move(task)) {}
-    ~ScheduledTask() {}
+    ~ScheduledTask() override = default;
 
     using Return = std::invoke_result_t<Task>;
     std::packaged_task<Return()> task_;
@@ -106,6 +106,7 @@ public:
     void NotifyUniRenderFinish();
 
     sptr<VSyncDistributor> rsVSyncDistributor_;
+
 private:
     RSMainThread();
     ~RSMainThread() noexcept;
@@ -114,7 +115,7 @@ private:
     RSMainThread& operator=(const RSMainThread&) = delete;
     RSMainThread& operator=(const RSMainThread&&) = delete;
 
-    void OnVsync(uint64_t timestamp, void *data);
+    void OnVsync(uint64_t timestamp, void* data);
     void ProcessCommand();
     void Animate(uint64_t timestamp);
     void ConsumeAndUpdateAllNodes();
@@ -133,8 +134,10 @@ private:
     RSTaskMessage::RSTask mainLoop_;
     std::unique_ptr<RSVsyncClient> vsyncClient_ = nullptr;
     std::unordered_map<NodeId, uint64_t> bufferTimestamps_;
-    std::unordered_map<NodeId, std::map<uint64_t, std::vector<std::unique_ptr<RSCommand>>> > cacheCommand_;
-    std::vector<std::unique_ptr<RSCommand>> effectCommand_;
+
+    std::unordered_map<NodeId, std::map<uint64_t, std::vector<std::unique_ptr<RSCommand>>>> cachedCommands_;
+    std::vector<std::unique_ptr<RSCommand>> effectiveCommands_;
+    std::vector<std::unique_ptr<RSCommand>> pendingEffectiveCommands_;
 
     uint64_t timestamp_ = 0;
     std::unordered_map<uint32_t, sptr<IApplicationAgent>> applicationAgentMap_;
@@ -149,10 +152,9 @@ private:
     std::condition_variable uniRenderCond_;
     VisibleData lastVisVec_;
     bool doAnimate_ = false;
-    uint32_t lastSurafceCnt_ = 0;
+    uint32_t lastSurfaceCnt_ = 0;
 
     std::shared_ptr<RSRenderEngine> renderEngine_;
 };
-} // namespace Rosen
-} // namespace OHOS
+} // namespace OHOS::Rosen
 #endif // RS_MAIN_THREAD

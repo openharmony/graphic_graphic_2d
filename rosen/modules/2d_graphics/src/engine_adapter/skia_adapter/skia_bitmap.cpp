@@ -49,7 +49,7 @@ static inline SkAlphaType ConvertToSkAlphaType(const AlphaType& format)
     switch (format) {
         case ALPHATYPE_UNKNOWN:
             return kUnknown_SkAlphaType;
-        case ALPHATYPE_OPAQUYE:
+        case ALPHATYPE_OPAQUE:
             return kOpaque_SkAlphaType;
         case ALPHATYPE_PREMUL:
             return kPremul_SkAlphaType;

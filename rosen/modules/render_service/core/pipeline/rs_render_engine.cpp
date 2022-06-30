@@ -70,12 +70,12 @@ bool RSRenderEngine::NeedForceCPU(const std::vector<LayerInfoPtr>& layers)
 }
 
 std::unique_ptr<RSRenderFrame> RSRenderEngine::RequestFrame(
-    const sptr<Surface>& targetSurfce,
+    const sptr<Surface>& targetSurface,
     const BufferRequestConfig& config,
     bool forceCPU)
 {
     RS_TRACE_NAME("RSRenderEngine::RequestFrame");
-    if (targetSurfce == nullptr) {
+    if (targetSurface == nullptr) {
         RS_LOGE("RSRenderEngine::RequestFrame: surface is null!");
         return nullptr;
     }
@@ -84,13 +84,13 @@ std::unique_ptr<RSRenderFrame> RSRenderEngine::RequestFrame(
     auto bufferUsage = config.usage;
 #if (defined RS_ENABLE_GL) && (defined RS_ENABLE_EGLIMAGE)
     if (forceCPU) {
-        rsSurface = std::make_shared<RSSurfaceOhosRaster>(targetSurfce);
+        rsSurface = std::make_shared<RSSurfaceOhosRaster>(targetSurface);
         bufferUsage |= HBM_USE_CPU_WRITE;
     } else {
-        rsSurface = std::make_shared<RSSurfaceOhosGl>(targetSurfce);
+        rsSurface = std::make_shared<RSSurfaceOhosGl>(targetSurface);
     }
 #else
-    rsSurface = std::make_shared<RSSurfaceOhosRaster>(targetSurfce);
+    rsSurface = std::make_shared<RSSurfaceOhosRaster>(targetSurface);
     bufferUsage |= HBM_USE_CPU_WRITE;
 #endif // (defined RS_ENABLE_GL) && (defined RS_ENABLE_EGLIMAGE)
     rsSurface->SetSurfaceBufferUsage(bufferUsage);
@@ -115,7 +115,8 @@ void RSRenderEngine::DrawLayers(
     RSPaintFilterCanvas& canvas,
     const std::vector<LayerInfoPtr>& layers,
     const ScreenInfo& screenInfo,
-    bool forceCPU)
+    bool forceCPU,
+    float mirrorAdaptiveCoefficient)
 {
     for (const auto& layer : layers) {
         if (layer == nullptr) {
@@ -134,7 +135,11 @@ void RSRenderEngine::DrawLayers(
         auto saveCount = canvas.getSaveCount();
         if (nodePtr->IsInstanceOf<RSSurfaceRenderNode>()) {
             RSSurfaceRenderNode& node = *(static_cast<RSSurfaceRenderNode*>(nodePtr));
-            DrawSurfaceNode(canvas, node, screenInfo, clipRect, forceCPU);
+            DrawSurfaceNodeInfo infos = {
+                forceCPU,
+                mirrorAdaptiveCoefficient
+            };
+            DrawSurfaceNode(canvas, node, screenInfo, clipRect, infos);
         } else if (nodePtr->IsInstanceOf<RSDisplayRenderNode>()) {
             // In uniRender mode, maybe need to handle displayNode.
             RSDisplayRenderNode& node = *(static_cast<RSDisplayRenderNode*>(nodePtr));
@@ -183,7 +188,7 @@ void RSRenderEngine::DrawSurfaceNode(
     RSSurfaceRenderNode& node,
     const ScreenInfo& screenInfo,
     const IRect& clipRect,
-    bool forceCPU)
+    DrawSurfaceNodeInfo& infos)
 {
     std::string traceInfo;
     AppendFormat(traceInfo, "Node name:%s ClipRect[%d %d %d %d]", node.GetName().c_str(),
@@ -202,6 +207,8 @@ void RSRenderEngine::DrawSurfaceNode(
     if (node.GetRenderProperties().GetFrameGravity() != Gravity::RESIZE) {
         params.dstRect = params.srcRect;
     }
+    params.dstRect.setWH(params.dstRect.width() * infos.mirrorAdaptiveCoefficient,
+        params.dstRect.height() * infos.mirrorAdaptiveCoefficient);
 
     // prepare PostProcessFunc
     Vector2f center(node.GetDstRect().left_ + node.GetDstRect().width_ * 0.5f,
@@ -213,7 +220,7 @@ void RSRenderEngine::DrawSurfaceNode(
 
     // draw buffer.
 #ifdef RS_ENABLE_EGLIMAGE
-    if (forceCPU) {
+    if (infos.forceCPU) {
         RSDividedRenderUtil::DrawBuffer(canvas, params, drawBufferPostProcessFunc);
     } else {
         auto consumerSurface = node.GetConsumer();
@@ -221,7 +228,7 @@ void RSRenderEngine::DrawSurfaceNode(
             eglImageManager_->UnMapEglImageFromSurfaceBuffer(bufferId);
         };
         if (consumerSurface == nullptr ||
-            (consumerSurface->RegisterDeleteBufferListener(regUnMapEglImageFunc) !=GSERROR_OK)) {
+            (consumerSurface->RegisterDeleteBufferListener(regUnMapEglImageFunc) != GSERROR_OK)) {
             RS_LOGE("RSRenderEngine::DrawSurfaceNode: failed to register UnMapEglImage callback.");
         }
 

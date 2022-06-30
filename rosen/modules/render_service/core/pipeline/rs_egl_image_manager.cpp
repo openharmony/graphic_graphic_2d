@@ -90,7 +90,7 @@ public:
     ~NativeWindowBufferObject() noexcept
     {
         if (handle_ != nullptr) {
-            DestoryNativeWindowBuffer(handle_);
+            DestroyNativeWindowBuffer(handle_);
         }
     }
 
@@ -107,12 +107,12 @@ public:
     }
 
     // not explicit so you can use it to do the implicit-cast.
-    // you should not delete or call DestoryNativeWindowBuffer for this pointer.
+    // you should not delete or call DestroyNativeWindowBuffer for this pointer.
     operator NativeWindowBuffer* () const
     {
         return Get();
     }
-    // you should not delete or call DestoryNativeWindowBuffer for this pointer.
+    // you should not delete or call DestroyNativeWindowBuffer for this pointer.
     NativeWindowBuffer* Get() const
     {
         return handle_;
@@ -161,10 +161,10 @@ EGLImageKHR CreateEGLImage(
 } // namespace Detail
 
 ImageCacheSeq::ImageCacheSeq(
-    EGLDisplay eglDisplay, EGLImageKHR eglImage, EGLClientBuffer eglClientbuffer)
+    EGLDisplay eglDisplay, EGLImageKHR eglImage, EGLClientBuffer eglClientBuffer)
     : eglDisplay_(eglDisplay),
       eglImage_(eglImage),
-      eglClientbuffer_(eglClientbuffer)
+      eglClientBuffer_(eglClientBuffer)
 {
 }
 
@@ -182,7 +182,7 @@ ImageCacheSeq::~ImageCacheSeq() noexcept
 
     // auto dec ref.
     Detail::NativeWindowBufferObject nBufferDecRef(
-        Detail::CastFromEGLClientBuffer(eglClientbuffer_));
+        Detail::CastFromEGLClientBuffer(eglClientBuffer_));
 }
 
 bool ImageCacheSeq::BindToTexture()

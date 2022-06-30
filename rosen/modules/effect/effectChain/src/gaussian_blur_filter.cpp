@@ -43,7 +43,7 @@ void GaussianBlurFilter::DoProcess(ProcessData& data)
     upSampleFilter_->Process(data);
 }
 
-void GaussianBlurFilter::SetValue(const std::string& key, void* value, int size)
+void GaussianBlurFilter::SetValue(const std::string& key, std::shared_ptr<void> value, int size)
 {
     horizontalBlurFilter_->SetValue(key, value, size);
     verticalBlurFilter_->SetValue(key, value, size);

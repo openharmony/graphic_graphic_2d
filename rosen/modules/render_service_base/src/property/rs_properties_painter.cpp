@@ -198,7 +198,8 @@ void RSPropertiesPainter::DrawFilter(const RSProperties& properties, SkCanvas& c
     }
     canvas.save();
     canvas.resetMatrix();
-    canvas.drawImage(imageSnapshot.get(), 0, 0, &paint);
+    auto clipBounds = SkRect::Make(canvas.getDeviceClipBounds());
+    canvas.drawImageRect(imageSnapshot.get(), clipBounds, clipBounds, &paint);
     canvas.restore();
 }
 

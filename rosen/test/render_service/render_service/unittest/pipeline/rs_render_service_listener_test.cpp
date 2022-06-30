@@ -37,13 +37,13 @@ void RSRenderServiceListenerTest::SetUp() {}
 void RSRenderServiceListenerTest::TearDown() {}
 
 /**
- * @tc.name: CreateAndDestory001
+ * @tc.name: CreateAndDestroy001
  * @tc.desc:
  * @tc.type:
  * @tc.require:
  * @tc.author:
  */
-HWTEST_F(RSRenderServiceListenerTest, CreateAndDestory001, TestSize.Level1)
+HWTEST_F(RSRenderServiceListenerTest, CreateAndDestroy001, TestSize.Level1)
 {
     // nullptr test
     std::weak_ptr<RSSurfaceRenderNode> wp;

@@ -186,7 +186,7 @@ int32_t OH_NativeWindow_GetNativeObjectMagic(void *obj);
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeWindow
  * @param window Indicates the pointer to a <b>NativeWindow</b> instance.
- * @param sequence Indicates the senquence to a produce buffer.
+ * @param sequence Indicates the sequence to a produce buffer.
  * @param scalingMode Indicates the enum value to <b>OHScalingMode</b>
  * @return Returns an error code defined in <b>GSError</b>.
  * @since 8
@@ -200,7 +200,7 @@ int32_t OH_NativeWindow_NativeWindowSetScalingMode(OHNativeWindow *window, uint3
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeWindow
  * @param window Indicates the pointer to a <b>NativeWindow</b> instance.
- * @param sequence Indicates the senquence to a produce buffer.
+ * @param sequence Indicates the sequence to a produce buffer.
  * @param size Indicates the size of a <b>OHHDRMetaData</b> vector.
  * @param metaDate Indicates the pointer to a <b>OHHDRMetaData</b> vector.
  * @return Returns an error code defined in <b>GSError</b>.
@@ -215,7 +215,7 @@ int32_t OH_NativeWindow_NativeWindowSetMetaData(OHNativeWindow *window, uint32_t
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeWindow
  * @param window Indicates the pointer to a <b>NativeWindow</b> instance.
- * @param sequence Indicates the senquence to a produce buffer.
+ * @param sequence Indicates the sequence to a produce buffer.
  * @param key Indicates the enum value to <b>OHHDRMetadataKey</b>
  * @param size Indicates the size of a uint8_t vector.
  * @param metaDate Indicates the pointer to a uint8_t vector.

@@ -46,7 +46,7 @@ RSUIDirector::~RSUIDirector()
 
 void RSUIDirector::Init()
 {
-    AnimationCommandHelper::SetFinisCallbackProcessor(AnimationCallbackProcessor);
+    AnimationCommandHelper::SetFinishCallbackProcessor(AnimationCallbackProcessor);
 
     isUniRenderEnabled_ = RSSystemProperties::GetUniRenderEnabled();
     if (!isUniRenderEnabled_) {

@@ -29,7 +29,24 @@ ohos_unittest("EffectTest") {
   sources = []
 
   if (effect_enable_gpu) {
-    sources += [ "effect_chain_unittest.cpp" ]
+    sources += [
+      "algo_filter_unittest.cpp",
+      "brightness_filter_unittest.cpp",
+      "contrast_filter_unittest.cpp",
+      "effect_chain_unittest.cpp",
+      "filter_factory_unittest.cpp",
+      "filter_unittest.cpp",
+      "gaussian_blur_filter_unittest.cpp",
+      "horizontal_blur_filter_unittest.cpp",
+      "image_chain_unittest.cpp",
+      "input_unittest.cpp",
+      "mesh_unittest.cpp",
+      "output_unittest.cpp",
+      "program_unittest.cpp",
+      "saturation_filter_unittest.cpp",
+      "scale_filter_unittest.cpp",
+      "vertical_blur_filter_unittest.cpp",
+    ]
   }
 
   deps += [

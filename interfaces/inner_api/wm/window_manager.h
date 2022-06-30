@@ -39,7 +39,7 @@ public:
 
     void GetRequestConfig(BufferRequestConfig &config);
     void SetRequestConfig(BufferRequestConfig &config);
-    void RegistWindowInfoChangeCb(funcWindowInfoChange cb);
+    void RegisterWindowInfoChangeCb(funcWindowInfoChange cb);
 
     int32_t GetWindowID();
     virtual sptr<Surface> GetSurface();
@@ -62,7 +62,7 @@ public:
     void ChangeWindowType(WindowType type);
     void ReSize(int32_t width, int32_t height);
     void Rotate(rotateType type);
-    void RegistOnWindowCreateCb(void(* cb)(uint32_t pid));
+    void RegisterOnWindowCreateCb(void(* cb)(uint32_t pid));
 };
 
 class SubWindow : public WindowBase {

@@ -39,13 +39,13 @@ void RoundRectTest::SetUp() {}
 void RoundRectTest::TearDown() {}
 
 /**
- * @tc.name: RoundRectCreateAndDestory001
+ * @tc.name: RoundRectCreateAndDestroy001
  * @tc.desc:
  * @tc.type: FUNC
  * @tc.require:AR000GGNV3
  * @tc.author:
  */
-HWTEST_F(RoundRectTest, RoundRectCreateAndDestory001, TestSize.Level1)
+HWTEST_F(RoundRectTest, RoundRectCreateAndDestroy001, TestSize.Level1)
 {
     // The best way to create RoundRect.
     std::unique_ptr<RoundRect> roundRect = std::make_unique<RoundRect>();
@@ -53,13 +53,13 @@ HWTEST_F(RoundRectTest, RoundRectCreateAndDestory001, TestSize.Level1)
 }
 
 /**
- * @tc.name: RoundRectCreateAndDestory002
+ * @tc.name: RoundRectCreateAndDestroy002
  * @tc.desc:
  * @tc.type: FUNC
  * @tc.require:AR000GGNV3
  * @tc.author:
  */
-HWTEST_F(RoundRectTest, RoundRectCreateAndDestory002, TestSize.Level1)
+HWTEST_F(RoundRectTest, RoundRectCreateAndDestroy002, TestSize.Level1)
 {
     // The best way to create RoundRect.
     const RoundRect roundRect1;
@@ -68,13 +68,13 @@ HWTEST_F(RoundRectTest, RoundRectCreateAndDestory002, TestSize.Level1)
 }
 
 /**
- * @tc.name: RoundRectCreateAndDestory003
+ * @tc.name: RoundRectCreateAndDestroy003
  * @tc.desc:
  * @tc.type: FUNC
  * @tc.require:AR000GGNV3
  * @tc.author:
  */
-HWTEST_F(RoundRectTest, RoundRectRectCreateAndDestory003, TestSize.Level1)
+HWTEST_F(RoundRectTest, RoundRectRectCreateAndDestroy003, TestSize.Level1)
 {
     // The best way to create RoundRect.
     Rect rect;
@@ -83,13 +83,13 @@ HWTEST_F(RoundRectTest, RoundRectRectCreateAndDestory003, TestSize.Level1)
 }
 
 /**
- * @tc.name: RoundRectCreateAndDestory004
+ * @tc.name: RoundRectCreateAndDestroy004
  * @tc.desc:
  * @tc.type: FUNC
  * @tc.require:AR000GGNV3
  * @tc.author:
  */
-HWTEST_F(RoundRectTest, RoundRectRectCreateAndDestory004, TestSize.Level1)
+HWTEST_F(RoundRectTest, RoundRectRectCreateAndDestroy004, TestSize.Level1)
 {
     // The best way to create RoundRect.
     Rect rect;

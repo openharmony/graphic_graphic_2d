@@ -37,13 +37,13 @@ void PictureTest::SetUp() {}
 void PictureTest::TearDown() {}
 
 /**
- * @tc.name: PictureCreateAndDestory001
+ * @tc.name: PictureCreateAndDestroy001
  * @tc.desc:
  * @tc.type: FUNC
  * @tc.require:AR000GGNV3
  * @tc.author:
  */
-HWTEST_F(PictureTest, PictureCreateAndDestory001, TestSize.Level1)
+HWTEST_F(PictureTest, PictureCreateAndDestroy001, TestSize.Level1)
 {
     // The best way to create Picture.
     std::unique_ptr<Picture> picture = std::make_unique<Picture>();

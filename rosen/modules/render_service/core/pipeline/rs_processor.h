@@ -31,23 +31,22 @@ public:
     RSProcessor(const RSProcessor&) = delete;
     void operator=(const RSProcessor&) = delete;
 
-    virtual bool Init(ScreenId id, int32_t offsetX, int32_t offsetY);
+    virtual bool Init(ScreenId id, int32_t offsetX, int32_t offsetY, ScreenId mirroredId);
     virtual void ProcessSurface(RSSurfaceRenderNode& node) = 0;
     virtual void ProcessDisplaySurface(RSDisplayRenderNode& node) = 0;
     virtual void PostProcess() = 0;
-    void SetMirror(bool isMirror);
 
 protected:
-    bool GetMirror();
+    void CalculateMirrorAdaptiveCoefficient(float curWidth, float curHeight,
+        float mirroredWidth, float mirroredHeight);
 
     ScreenInfo screenInfo_;
     int32_t offsetX_ = 0;
     int32_t offsetY_ = 0;
+    ScreenId mirroredId_ = INVALID_SCREEN_ID;
+    float mirrorAdaptiveCoefficient_ = 1.0f;
     std::shared_ptr<RSRenderEngine> renderEngine_;
     BufferRequestConfig renderFrameConfig_ {};
-
-private:
-    bool isMirror_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS

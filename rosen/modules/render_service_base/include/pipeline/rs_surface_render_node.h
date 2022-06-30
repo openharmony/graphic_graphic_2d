@@ -166,6 +166,11 @@ public:
         return isOcclusionVisible_;
     }
 
+    const Occlusion::Region& GetVisibleRegion() const
+    {
+        return visibleRegion_;
+    }
+
     void SetVisibleRegionRecursive(const Occlusion::Region& region, VisibleData& visibleVec)
     {
         visibleRegion_ = region;

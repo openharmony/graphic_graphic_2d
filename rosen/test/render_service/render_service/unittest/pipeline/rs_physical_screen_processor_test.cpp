@@ -36,13 +36,13 @@ void RSPhysicalScreenProcessorTest::SetUp() {}
 void RSPhysicalScreenProcessorTest::TearDown() {}
 
 /**
- * @tc.name: CreateAndDestory001
+ * @tc.name: CreateAndDestroy001
  * @tc.desc:
  * @tc.type:
  * @tc.require:
  * @tc.author:
  */
-HWTEST_F(RSPhysicalScreenProcessorTest, CreateAndDestory001, TestSize.Level1)
+HWTEST_F(RSPhysicalScreenProcessorTest, CreateAndDestroy001, TestSize.Level1)
 {
     // The best way to create RSHardwareProcessor.
     auto p = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::HARDWARE_COMPOSITE);
@@ -50,13 +50,13 @@ HWTEST_F(RSPhysicalScreenProcessorTest, CreateAndDestory001, TestSize.Level1)
 }
 
 /**
- * @tc.name: CreateAndDestory002
+ * @tc.name: CreateAndDestroy002
  * @tc.desc:
  * @tc.type:
  * @tc.require:
  * @tc.author:
  */
-HWTEST_F(RSPhysicalScreenProcessorTest, CreateAndDestory002, TestSize.Level1)
+HWTEST_F(RSPhysicalScreenProcessorTest, CreateAndDestroy002, TestSize.Level1)
 {
     RSProcessorFactory factory;
     auto p = factory.CreateProcessor(RSDisplayRenderNode::CompositeType::HARDWARE_COMPOSITE);

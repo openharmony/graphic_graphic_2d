@@ -36,26 +36,26 @@ void RSVirtualScreenProcessorTest::SetUp() {}
 void RSVirtualScreenProcessorTest::TearDown() {}
 
 /**
- * @tc.name: CreateAndDestory001
+ * @tc.name: CreateAndDestroy001
  * @tc.desc:
  * @tc.type:
  * @tc.require:
  * @tc.author:
  */
-HWTEST_F(RSVirtualScreenProcessorTest, CreateAndDestory001, TestSize.Level1)
+HWTEST_F(RSVirtualScreenProcessorTest, CreateAndDestroy001, TestSize.Level1)
 {
     // The best way to create RSSoftwareProcessor.
     auto p = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::SOFTWARE_COMPOSITE);
 }
 
 /**
- * @tc.name: CreateAndDestory002
+ * @tc.name: CreateAndDestroy002
  * @tc.desc:
  * @tc.type:
  * @tc.require:
  * @tc.author:
  */
-HWTEST_F(RSVirtualScreenProcessorTest, CreateAndDestory002, TestSize.Level1)
+HWTEST_F(RSVirtualScreenProcessorTest, CreateAndDestroy002, TestSize.Level1)
 {
     RSProcessorFactory factory;
     auto p = factory.CreateProcessor(RSDisplayRenderNode::CompositeType::SOFTWARE_COMPOSITE);

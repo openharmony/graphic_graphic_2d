@@ -474,7 +474,7 @@ HWTEST_F(NativeWindowTest, Unreference001, Function | MediumTest | Level2)
 * CaseDescription: 1. call DestoryNativeWindow by abnormal input
 *                  2. check ret
  */
-HWTEST_F(NativeWindowTest, DestoryNativeWindow001, Function | MediumTest | Level2)
+HWTEST_F(NativeWindowTest, DestroyNativeWindow001, Function | MediumTest | Level2)
 {
     DestoryNativeWindow(nullptr);
 }
@@ -487,36 +487,36 @@ HWTEST_F(NativeWindowTest, DestoryNativeWindow001, Function | MediumTest | Level
 * CaseDescription: 1. call DestoryNativeWindow
 *                  2. check ret
  */
-HWTEST_F(NativeWindowTest, DestoryNativeWindow002, Function | MediumTest | Level2)
+HWTEST_F(NativeWindowTest, DestroyNativeWindow002, Function | MediumTest | Level2)
 {
     DestoryNativeWindow(nativeWindow);
 }
 
 /*
-* Function: DestoryNativeWindowBuffer
+* Function: DestroyNativeWindowBuffer
 * Type: Function
 * Rank: Important(2)
 * EnvConditions: N/A
-* CaseDescription: 1. call DestoryNativeWindowBuffer by abnormal and normal input
+* CaseDescription: 1. call DestroyNativeWindowBuffer by abnormal and normal input
 *                  2. check ret
  */
-HWTEST_F(NativeWindowTest, DestoryNativeWindowBuffer001, Function | MediumTest | Level2)
+HWTEST_F(NativeWindowTest, DestroyNativeWindowBuffer001, Function | MediumTest | Level2)
 {
-    DestoryNativeWindowBuffer(nullptr);
-    DestoryNativeWindowBuffer(nativeWindowBuffer);
+    DestroyNativeWindowBuffer(nullptr);
+    DestroyNativeWindowBuffer(nativeWindowBuffer);
 }
 
 /*
-* Function: DestoryNativeWindowBuffer
+* Function: DestroyNativeWindowBuffer
 * Type: Function
 * Rank: Important(2)
 * EnvConditions: N/A
-* CaseDescription: 1. call DestoryNativeWindowBuffer again
+* CaseDescription: 1. call DestroyNativeWindowBuffer again
 *                  2. check ret
  */
-HWTEST_F(NativeWindowTest, DestoryNativeWindowBuffer002, Function | MediumTest | Level2)
+HWTEST_F(NativeWindowTest, DestroyNativeWindowBuffer002, Function | MediumTest | Level2)
 {
-    DestoryNativeWindowBuffer(nativeWindowBuffer);
+    DestroyNativeWindowBuffer(nativeWindowBuffer);
 }
 
 /*
@@ -551,7 +551,7 @@ HWTEST_F(NativeWindowTest, SetMetaData001, Function | MediumTest | Level2)
 {
     int32_t sequence = 0;
     int32_t size = 1;
-    const OHHDRMetaData metaData[] = {{OH_MATAKEY_RED_PRIMARY_X, 0}};
+    const OHHDRMetaData metaData[] = {{OH_METAKEY_RED_PRIMARY_X, 0}};
     ASSERT_EQ(NativeWindowSetMetaData(nullptr, -1, 0, nullptr), OHOS::GSERROR_INVALID_ARGUMENTS);
     ASSERT_EQ(NativeWindowSetMetaData(nativeWindow, -1, 0, nullptr), OHOS::GSERROR_INVALID_ARGUMENTS);
     ASSERT_EQ(NativeWindowSetMetaData(nativeWindow, sequence, 0, nullptr), OHOS::GSERROR_INVALID_ARGUMENTS);
@@ -572,7 +572,7 @@ HWTEST_F(NativeWindowTest, SetMetaDataSet001, Function | MediumTest | Level2)
 {
     int32_t sequence = 0;
     int32_t size = 1;
-    OHHDRMetadataKey key = OHHDRMetadataKey::OH_MATAKEY_HDR10_PLUS;
+    OHHDRMetadataKey key = OHHDRMetadataKey::OH_METAKEY_HDR10_PLUS;
     const uint8_t metaData[] = {0};
     ASSERT_EQ(NativeWindowSetMetaDataSet(nullptr, -1, key, 0, nullptr), OHOS::GSERROR_INVALID_ARGUMENTS);
     ASSERT_EQ(NativeWindowSetMetaDataSet(nativeWindow, -1, key, 0, nullptr), OHOS::GSERROR_INVALID_ARGUMENTS);

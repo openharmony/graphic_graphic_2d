@@ -130,6 +130,8 @@ public:
 
     int32_t GetScreenType(ScreenId id, RSScreenType& screenType);
 
+    int32_t SetScreenSkipFrameInterval(ScreenId id, uint32_t skipFrameInterval);
+
     int32_t RegisterOcclusionChangeCallback(const OcclusionChangeCallback& callback);
 
     int32_t UnRegisterOcclusionChangeCallback(const OcclusionChangeCallback& callback);

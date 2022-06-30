@@ -607,7 +607,7 @@ bool RSBaseRenderUtil::ReleaseBuffer(RSSurfaceHandler& surfaceHandler)
             return false;
         }
         // reset prevBuffer if we release it successfully,
-        // to avoid releasing the same buffer next frame in some suitations.
+        // to avoid releasing the same buffer next frame in some situations.
         preBuffer.Reset();
     }
 

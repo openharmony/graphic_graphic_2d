@@ -20,15 +20,16 @@
 #include <string>
 #include <memory>
 
-#ifndef weak_alias
-    #define weak_alias(old, new) \
+#ifndef WEAK_ALIAS
+    #define WEAK_ALIAS(old, new) \
         extern __typeof(old) new __attribute__((__weak__, __alias__(#old)))
 #endif
 
+namespace {
 struct NativeVSync {
     std::shared_ptr<OHOS::Rosen::VSyncReceiver> receiver_;
 };
-
+}
 static NativeVSync* OHNativeVSyncToNativeVSync(OHNativeVSync* ohNativeVSync)
 {
     return reinterpret_cast<NativeVSync*>(ohNativeVSync);
@@ -75,6 +76,6 @@ int OHNativeVSyncRequestFrame(OHNativeVSync *ohNativeVSync, OHNativeVSyncFrameCa
     return nativeVSync->receiver_->RequestNextVSync(frameCallback);
 }
 
-weak_alias(CreateOHNativeVSync, OH_NativeVSync_CreateOHNativeVSync);
-weak_alias(DestroyOHNativeVSync, OH_NativeVSync_DestroyOHNativeVSync);
-weak_alias(OHNativeVSyncRequestFrame, OH_NativeVSync_OHNativeVSyncRequestFrame);
+WEAK_ALIAS(CreateOHNativeVSync, OH_NativeVSync_CreateOHNativeVSync);
+WEAK_ALIAS(DestroyOHNativeVSync, OH_NativeVSync_DestroyOHNativeVSync);
+WEAK_ALIAS(OHNativeVSyncRequestFrame, OH_NativeVSync_OHNativeVSyncRequestFrame);

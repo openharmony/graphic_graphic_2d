@@ -86,6 +86,7 @@ public:
     void SetMirrorSource(SharedPtr node);
     void SetSecurityDisplay(bool isSecurityDisplay);
     bool GetSecurityDisplay() const;
+    bool SkipFrame(uint32_t skipFrameInterval);
 
     WeakPtr GetMirrorSource() const
     {
@@ -127,6 +128,7 @@ private:
     std::shared_ptr<RSSurface> surface_;
     bool surfaceCreated_ { false };
     sptr<IBufferConsumerListener> consumerListener_;
+    uint64_t frameCount_ = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

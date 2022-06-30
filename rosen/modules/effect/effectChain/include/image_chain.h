@@ -24,19 +24,19 @@ namespace OHOS {
 namespace Rosen {
 class ImageChain {
 public:
-    ImageChain(std::vector<std::shared_ptr<Input> > inputs);
-    ~ImageChain() {}
-    void Render();
+    ImageChain(std::vector<std::shared_ptr<Input>> inputs);
+    virtual ~ImageChain() {};
+    bool Render();
 
 private:
     void CreatTexture(unsigned int& TextureID);
-    void SeriesRendering(ProcessData& data);
-    void ParallelRendering() {};
+    bool SeriesRendering(ProcessData& data);
+    bool ParallelRendering();
     bool flagSeries_ = false;
     unsigned int frameBufferID_;
     unsigned int srcTextureID_;
     unsigned int dstTextureID_;
-    std::vector<std::shared_ptr<Input> > inputs_;
+    std::vector<std::shared_ptr<Input>> inputs_;
 };
 } // namespace Rosen
 } // namespace OHOS

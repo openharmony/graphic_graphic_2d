@@ -488,6 +488,18 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             reply.WriteUint32(type);
             break;
         }
+        case SET_SCREEN_SKIP_FRAME_INTERVAL: {
+            auto token = data.ReadInterfaceToken();
+            if (token != RSIRenderServiceConnection::GetDescriptor()) {
+                ret = ERR_INVALID_STATE;
+                break;
+            }
+            ScreenId id = data.ReadUint64();
+            uint32_t skipFrameInterval = data.ReadUint32();
+            int32_t result = SetScreenSkipFrameInterval(id, skipFrameInterval);
+            reply.WriteInt32(result);
+            break;
+        }
         case REGISTER_OCCLUSION_CHANGE_CALLBACK: {
             auto token = data.ReadInterfaceToken();
             if (token != RSIRenderServiceConnection::GetDescriptor()) {

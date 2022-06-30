@@ -37,13 +37,13 @@ void PathTest::SetUp() {}
 void PathTest::TearDown() {}
 
 /**
- * @tc.name: CreateAndDestory001
+ * @tc.name: CreateAndDestroy001
  * @tc.desc:
  * @tc.type: FUNC
  * @tc.require: AR000GGNV3
  * @tc.author:
  */
-HWTEST_F(PathTest, CreateAndDestory001, TestSize.Level1)
+HWTEST_F(PathTest, CreateAndDestroy001, TestSize.Level1)
 {
     auto path = std::make_unique<Path>();
     ASSERT_TRUE(path != nullptr);
@@ -314,7 +314,7 @@ HWTEST_F(PathTest, AddRect2002, TestSize.Level1)
     auto path = std::make_unique<Path>();
     ASSERT_TRUE(path != nullptr);
     Rect rect;
-    path->AddRect(rect, PathDirection::CCW_DIRWCTION);
+    path->AddRect(rect, PathDirection::CCW_DIRECTION);
 }
 
 /**
@@ -328,7 +328,7 @@ HWTEST_F(PathTest, AddRect5001, TestSize.Level1)
 {
     auto path = std::make_unique<Path>();
     ASSERT_TRUE(path != nullptr);
-    path->AddRect(1.0f, 4.0f, 3.0f, 2.0f, PathDirection::CCW_DIRWCTION);
+    path->AddRect(1.0f, 4.0f, 3.0f, 2.0f, PathDirection::CCW_DIRECTION);
 }
 
 /**
@@ -357,7 +357,7 @@ HWTEST_F(PathTest, AddOval001, TestSize.Level1)
     auto path = std::make_unique<Path>();
     ASSERT_TRUE(path != nullptr);
     Rect oval;
-    path->AddOval(oval, PathDirection::CCW_DIRWCTION);
+    path->AddOval(oval, PathDirection::CCW_DIRECTION);
 }
 
 /**
@@ -468,7 +468,7 @@ HWTEST_F(PathTest, AddCircle002, TestSize.Level1)
 {
     auto path = std::make_unique<Path>();
     ASSERT_TRUE(path != nullptr);
-    path->AddCircle(1.0f, 0.5f, 0.5f, PathDirection::CCW_DIRWCTION);
+    path->AddCircle(1.0f, 0.5f, 0.5f, PathDirection::CCW_DIRECTION);
 }
 
 /**
@@ -483,7 +483,7 @@ HWTEST_F(PathTest, AddRoundRect001, TestSize.Level1)
     auto path = std::make_unique<Path>();
     ASSERT_TRUE(path != nullptr);
     Rect rect;
-    path->AddRoundRect(rect, 0.5f, 0.5f, PathDirection::CCW_DIRWCTION);
+    path->AddRoundRect(rect, 0.5f, 0.5f, PathDirection::CCW_DIRECTION);
 }
 
 /**

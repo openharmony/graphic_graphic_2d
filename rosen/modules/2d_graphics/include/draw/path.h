@@ -29,7 +29,7 @@ namespace Rosen {
 namespace Drawing {
 enum class PathDirection {
     CW_DIRECTION,
-    CCW_DIRWCTION,
+    CCW_DIRECTION,
 };
 
 enum class PathFillType {

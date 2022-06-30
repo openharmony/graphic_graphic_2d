@@ -22,11 +22,11 @@ ScaleFilter::ScaleFilter()
     CreateProgram(GetVertexShader(), GetFragmentShader());
 }
 
-void ScaleFilter::SetValue(const std::string& key, void* value, int size)
+void ScaleFilter::SetValue(const std::string& key, std::shared_ptr<void> value, int size)
 {
     if (key == "scale" && size > 0) {
-        float* scale = (float*)value;
-        scale_ = *(scale);
+        std::shared_ptr<float> scale = std::static_pointer_cast<float>(value);
+        scale_ = *(scale.get());
     }
     LOGD("The scale is %{public}f.", scale_);
 }
@@ -40,8 +40,7 @@ void ScaleFilter::DoProcess(ProcessData& data)
 {
     data.textureHeight = std::floorf(scale_ * data.textureHeight);
     data.textureWidth = std::floorf(scale_ * data.textureWidth);
-    Prepare(data);
-    Draw(data);
+    std::swap(data.srcTextureID, data.dstTextureID);
 }
 
 std::string ScaleFilter::GetVertexShader()

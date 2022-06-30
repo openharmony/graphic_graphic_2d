@@ -68,7 +68,7 @@ public:
     virtual int32_t SetLayerAlpha(uint32_t screenId, uint32_t layerId, LayerAlpha &alpha) = 0;
     virtual int32_t SetLayerSize(uint32_t screenId, uint32_t layerId, IRect &layerRect) = 0;
     virtual int32_t SetTransformMode(uint32_t screenId, uint32_t layerId, TransformType type) = 0;
-    virtual int32_t SetLayerVisibleRegion(uint32_t screenId, uint32_t layerId, uint32_t num, IRect &visable) = 0;
+    virtual int32_t SetLayerVisibleRegion(uint32_t screenId, uint32_t layerId, uint32_t num, IRect &visible) = 0;
     virtual int32_t SetLayerDirtyRegion(uint32_t screenId, uint32_t layerId, IRect &dirty) = 0;
     virtual int32_t SetLayerBuffer(uint32_t screenId, uint32_t layerId, const BufferHandle *handle,
                            const sptr<SyncFence> &acquireFence) = 0;
@@ -139,7 +139,7 @@ public:
     int32_t SetLayerAlpha(uint32_t screenId, uint32_t layerId, LayerAlpha &alpha) override;
     int32_t SetLayerSize(uint32_t screenId, uint32_t layerId, IRect &layerRect) override;
     int32_t SetTransformMode(uint32_t screenId, uint32_t layerId, TransformType type) override;
-    int32_t SetLayerVisibleRegion(uint32_t screenId, uint32_t layerId, uint32_t num, IRect &visable) override;
+    int32_t SetLayerVisibleRegion(uint32_t screenId, uint32_t layerId, uint32_t num, IRect &visible) override;
     int32_t SetLayerDirtyRegion(uint32_t screenId, uint32_t layerId, IRect &dirty) override;
     int32_t SetLayerBuffer(uint32_t screenId, uint32_t layerId, const BufferHandle *handle,
                            const sptr<SyncFence> &acquireFence) override;

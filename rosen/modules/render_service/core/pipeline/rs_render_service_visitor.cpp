@@ -26,6 +26,7 @@
 #include "pipeline/rs_processor_factory.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_log.h"
+#include "rs_trace.h"
 #include "platform/drawing/rs_surface.h"
 #include "screen_manager/rs_screen_manager.h"
 #include "screen_manager/screen_types.h"
@@ -85,6 +86,11 @@ void RSRenderServiceVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
     offsetX_ = node.GetDisplayOffsetX();
     offsetY_ = node.GetDisplayOffsetY();
     ScreenInfo currScreenInfo = screenManager->QueryScreenInfo(node.GetScreenId());
+    // skip frame according to skipFrameInterval value of SetScreenSkipFrameInterval interface
+    if (node.SkipFrame(currScreenInfo.skipFrameInterval)) {
+        return;
+    }
+    RS_TRACE_NAME("ProcessDisplayRenderNode[" + std::to_string(node.GetScreenId()) + "]");
     ScreenState state = currScreenInfo.state;
     switch (state) {
         case ScreenState::PRODUCER_SURFACE_ENABLE:
@@ -104,13 +110,14 @@ void RSRenderServiceVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
         RS_LOGE("RSRenderServiceVisitor::ProcessDisplayRenderNode: RSProcessor is null!");
         return;
     }
-    if (!processor_->Init(node.GetScreenId(), node.GetDisplayOffsetX(), node.GetDisplayOffsetY())) {
+    auto mirrorNode = node.GetMirrorSource().lock();
+    if (!processor_->Init(node.GetScreenId(), node.GetDisplayOffsetX(), node.GetDisplayOffsetY(),
+        mirrorNode ? mirrorNode->GetScreenId() : INVALID_SCREEN_ID)) {
         RS_LOGE("RSRenderServiceVisitor::ProcessDisplayRenderNode: processor init failed!");
         return;
     }
 
     if (node.IsMirrorDisplay()) {
-        processor_->SetMirror(true);
         auto mirrorSource = node.GetMirrorSource();
         auto existingSource = mirrorSource.lock();
         if (!existingSource) {
@@ -130,7 +137,6 @@ void RSRenderServiceVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
         }
         ProcessBaseRenderNode(*existingSource);
     } else {
-        processor_->SetMirror(false);
         ScreenRotation rotation = screenManager->GetRotation(node.GetScreenId());
         uint32_t boundWidth = currScreenInfo.width;
         uint32_t boundHeight = currScreenInfo.height;

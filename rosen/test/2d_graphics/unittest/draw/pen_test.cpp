@@ -37,13 +37,13 @@ void PenTest::SetUp() {}
 void PenTest::TearDown() {}
 
 /**
- * @tc.name: CreateAndDestory001
+ * @tc.name: CreateAndDestroy001
  * @tc.desc:
  * @tc.type: FUNC
  * @tc.require: AR000GGNV3
  * @tc.author:
  */
-HWTEST_F(PenTest, CreateAndDestory001, TestSize.Level1)
+HWTEST_F(PenTest, CreateAndDestroy001, TestSize.Level1)
 {
     auto pen = std::make_unique<Pen>();
     ASSERT_TRUE(pen != nullptr);

@@ -228,11 +228,11 @@ void RSRenderThread::ProcessCommands()
     // To make commands from RenderThread sync with buffer flushed by RenderThread,
     // we choose (prevTimestamp_ - 1) as uiTimestamp_ which would be used in RenderThreadVisitor when we call flushFrame.
 
-    // The reason why prevTimestamp_ need to be minues 1 is that timestamp used in UIThread is always less than (for now) timestamp used in RenderThread.
+    // The reason why prevTimestamp_ need to be minus 1 is that timestamp used in UIThread is always less than (for now) timestamp used in RenderThread.
     // If we do not do this,
-    // when RenderThread::Animate excute flushFrame and use prevTimestamp_ as buffer timestamp which equals T0,
-    // UIDirector send messages in the same vysnc period, and the commandTimestamp_ would also be T0,
-    // RenderService would excute commands from UIDirector and composite buffer which rendering is executed by RSRenderThread::Animate
+    // when RenderThread::Animate execute flushFrame and use prevTimestamp_ as buffer timestamp which equals T0,
+    // UIDirector send messages in the same vsync period, and the commandTimestamp_ would also be T0,
+    // RenderService would execute commands from UIDirector and composite buffer which rendering is executed by RSRenderThread::Animate
     // for they have the same timestamp.
     // To avoid this situation, we should always use "prevTimestamp_ - 1".
 
