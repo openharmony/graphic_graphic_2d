@@ -47,6 +47,7 @@ RSProperties::~RSProperties() {}
 void RSProperties::SetBounds(Vector4f bounds)
 {
     boundsGeo_->SetRect(bounds.x_, bounds.y_, bounds.z_, bounds.w_);
+    hasBounds_ = true;
     geoDirty_ = true;
     SetDirty();
 }
@@ -54,6 +55,7 @@ void RSProperties::SetBounds(Vector4f bounds)
 void RSProperties::SetBoundsSize(Vector2f size)
 {
     boundsGeo_->SetSize(size.x_, size.y_);
+    hasBounds_ = true;
     geoDirty_ = true;
     SetDirty();
 }
@@ -61,6 +63,7 @@ void RSProperties::SetBoundsSize(Vector2f size)
 void RSProperties::SetBoundsWidth(float width)
 {
     boundsGeo_->SetWidth(width);
+    hasBounds_ = true;
     geoDirty_ = true;
     SetDirty();
 }
@@ -68,6 +71,7 @@ void RSProperties::SetBoundsWidth(float width)
 void RSProperties::SetBoundsHeight(float height)
 {
     boundsGeo_->SetHeight(height);
+    hasBounds_ = true;
     geoDirty_ = true;
     SetDirty();
 }
@@ -237,12 +241,9 @@ bool RSProperties::UpdateGeometry(const RSProperties* parent, bool dirtyFlag)
     if (boundsGeo_ == nullptr) {
         return false;
     }
-    if (boundsGeo_->IsEmpty()) {
+    if (!hasBounds_) {
         boundsGeo_->SetPosition(frameGeo_->GetX(), frameGeo_->GetY());
         boundsGeo_->SetSize(frameGeo_->GetWidth(), frameGeo_->GetHeight());
-        hasBounds_ = false;
-    } else {
-        hasBounds_ = true;
     }
 #ifdef ROSEN_OHOS
     auto boundsGeoPtr = std::static_pointer_cast<RSObjAbsGeometry>(boundsGeo_);
