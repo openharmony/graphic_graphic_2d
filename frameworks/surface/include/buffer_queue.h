@@ -115,6 +115,9 @@ public:
     GSError GetMetaDataSet(int32_t sequence, HDRMetadataKey &key,
                            std::vector<uint8_t> &metaData) const;
 
+    bool GetStatus() const;
+    void SetStatus(bool status);
+
 private:
     GSError AllocBuffer(sptr<SurfaceBuffer>& buffer, const BufferRequestConfig &config);
     void DeleteBufferInCache(int sequence);
@@ -149,6 +152,7 @@ private:
     OnDeleteBufferFunc onBufferDelete_ = nullptr;
     bool isShared_ = false;
     std::condition_variable waitReqCon_;
+    std::atomic_bool isValidStatus_ = true;
 };
 }; // namespace OHOS
 

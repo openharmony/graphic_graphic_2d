@@ -150,4 +150,14 @@ GSError BufferQueueConsumer::GetMetaDataSet(int32_t sequence, HDRMetadataKey &ke
     }
     return bufferQueue_->GetMetaDataSet(sequence, key, metaData);
 }
+
+bool BufferQueueConsumer::GetStatus() const
+{
+    return bufferQueue_->GetStatus();
+}
+
+void BufferQueueConsumer::SetStatus(bool status)
+{
+    bufferQueue_->SetStatus(status);
+}
 } // namespace OHOS
