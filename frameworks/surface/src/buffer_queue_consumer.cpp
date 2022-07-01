@@ -167,4 +167,14 @@ GSError BufferQueueConsumer::GetTunnelHandle(ExtDataHandle **handle) const
     }
     return bufferQueue_->GetTunnelHandle(handle);
 }
+
+bool BufferQueueConsumer::GetStatus() const
+{
+    return bufferQueue_->GetStatus();
+}
+
+void BufferQueueConsumer::SetStatus(bool status)
+{
+    bufferQueue_->SetStatus(status);
+}
 } // namespace OHOS

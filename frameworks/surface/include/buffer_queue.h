@@ -120,6 +120,9 @@ public:
     GSError SetTunnelHandle(const ExtDataHandle *handle);
     GSError GetTunnelHandle(ExtDataHandle **handle) const;
 
+    bool GetStatus() const;
+    void SetStatus(bool status);
+
 private:
     GSError AllocBuffer(sptr<SurfaceBuffer>& buffer, const BufferRequestConfig &config);
     void DeleteBufferInCache(uint32_t sequence);
@@ -155,6 +158,7 @@ private:
     bool isShared_ = false;
     std::condition_variable waitReqCon_;
     ExtDataHandle *tunnelHandle_ = nullptr;
+    std::atomic_bool isValidStatus_ = true;
 };
 }; // namespace OHOS
 

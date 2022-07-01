@@ -522,4 +522,14 @@ GSError BufferQueueProducer::SetTunnelHandle(const ExtDataHandle *handle)
     }
     return bufferQueue_->SetTunnelHandle(handle);
 }
+
+bool BufferQueueProducer::GetStatus() const
+{
+    return bufferQueue_->GetStatus();
+}
+
+void BufferQueueProducer::SetStatus(bool status)
+{
+    bufferQueue_->SetStatus(status);
+}
 }; // namespace OHOS
