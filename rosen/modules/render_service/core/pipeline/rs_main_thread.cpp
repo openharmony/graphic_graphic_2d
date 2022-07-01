@@ -351,7 +351,9 @@ void RSMainThread::SendCommands()
             auto pid = transactionIter.first;
             auto appIter = applicationAgentMap_.find(pid);
             if (appIter == applicationAgentMap_.end()) {
-                RS_LOGI("RSMainThread::SendCommand no application found for pid %d", pid);
+                RS_LOGW(
+                    "RSMainThread::SendCommand no application agent registered as pid %d, this will cause memory leak!",
+                    pid);
                 continue;
             }
             auto& app = appIter->second;

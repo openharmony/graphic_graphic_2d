@@ -52,6 +52,7 @@ bool RSNodeMap::RegisterNode(const RSBaseNode::SharedPtr& nodePtr)
     NodeId id = nodePtr->GetId();
     auto itr = nodeMap_.find(id);
     if (itr != nodeMap_.end()) {
+        ROSEN_LOGW("RSNodeMap::RegisterNode: node id %llu already exists", id);
         return false;
     }
     RSBaseNode::WeakPtr ptr(nodePtr);
@@ -65,6 +66,8 @@ void RSNodeMap::UnregisterNode(NodeId id)
     auto itr = nodeMap_.find(id);
     if (itr != nodeMap_.end()) {
         nodeMap_.erase(itr);
+    } else {
+        ROSEN_LOGW("RSNodeMap::UnregisterNode: node id %llu not found", id);
     }
 }
 

@@ -191,7 +191,7 @@ bool RSSurfaceNode::Marshalling(Parcel& parcel) const
     return parcel.WriteUint64(GetId()) && parcel.WriteString(name_) && parcel.WriteBool(IsRenderServiceNode());
 }
 
-RSSurfaceNode* RSSurfaceNode::Unmarshalling(Parcel& parcel)
+RSSurfaceNode::SharedPtr RSSurfaceNode::Unmarshalling(Parcel& parcel)
 {
     uint64_t id = UINT64_MAX;
     std::string name;
@@ -202,8 +202,9 @@ RSSurfaceNode* RSSurfaceNode::Unmarshalling(Parcel& parcel)
     }
     RSSurfaceNodeConfig config = { name };
 
-    RSSurfaceNode* surfaceNode = new RSSurfaceNode(config, isRenderServiceNode);
+    SharedPtr surfaceNode(new RSSurfaceNode(config, isRenderServiceNode));
     surfaceNode->SetId(id);
+    RSNodeMap::MutableInstance().RegisterNode(surfaceNode);
 
     return surfaceNode;
 }

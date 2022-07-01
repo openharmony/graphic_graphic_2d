@@ -46,7 +46,7 @@ public:
     using SharedPtr = std::shared_ptr<RSNode>;
     static inline constexpr RSUINodeType Type = RSUINodeType::RS_NODE;
 
-    virtual ~RSNode();
+    ~RSNode() override;
     std::string DumpNode(int depth) const override;
 
     static std::vector<std::shared_ptr<RSAnimation>> Animate(const RSAnimationTimingProtocol& timingProtocol,
@@ -186,7 +186,6 @@ protected:
 
     void OnAddChildren() override;
     void OnRemoveChildren() override;
-    void AnimationFinish(long long animationId);
 
     virtual bool NeedForcedSendToRemote() const
     {
@@ -194,16 +193,20 @@ protected:
     }
 
 private:
-    bool HasPropertyAnimation(const RSAnimatableProperty& property);
+    bool HasPropertyAnimation(const RSAnimatableProperty& property) const;
     void FallbackAnimationsToRoot();
     void AddAnimationInner(const std::shared_ptr<RSAnimation>& animation);
     void RemoveAnimationInner(const std::shared_ptr<RSAnimation>& animation);
     void FinishAnimationByProperty(const RSAnimatableProperty& property);
+    void AnimationFinish(AnimationId animationId);
     virtual void OnBoundsSizeChanged() const {};
 
     std::unordered_map<AnimationId, std::shared_ptr<RSAnimation>> animations_;
     std::unordered_map<RSAnimatableProperty, uint32_t> animatingPropertyNum_;
     std::shared_ptr<RSMotionPathOption> motionPathOption_;
+
+    void UpdateImplicitAnimator();
+    pid_t implicitAnimatorTid_ = 0;
     std::shared_ptr<RSImplicitAnimator> implicitAnimator_;
 
     std::shared_ptr<const RSTransitionEffect> transitionEffect_ = nullptr;
