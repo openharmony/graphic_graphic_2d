@@ -66,6 +66,8 @@
           "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/test:render_service_client",
           "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:librender_service_client",
           "//foundation/graphic/graphic_2d/rosen/modules/render_service_client/test:render_service_client_rs_demo",
+          "//foundation/graphic/graphic_2d/rosen/modules/render_service_client/test:render_service_client_gravity_demo",
+          "//foundation/graphic/graphic_2d/rosen/modules/render_service_client/test:render_service_client_scale_demo",
           "//foundation/graphic/graphic_2d/rosen/modules/render_service:librender_service",
           "//foundation/graphic/graphic_2d/rosen/modules/render_service:render_service",
           "//foundation/graphic/graphic_2d/rosen/modules/effect/effectChain:libeffectchain",
