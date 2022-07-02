@@ -26,6 +26,7 @@
 #include "common/rs_vector4.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_root_render_node.h"
+#include "pipeline/rs_occlusion_config.h"
 #include "platform/common/rs_log.h"
 #include "property/rs_properties_painter.h"
 #include "property/rs_transition_properties.h"
@@ -130,20 +131,16 @@ void RSSurfaceRenderNode::ProcessRenderAfterChildren(RSPaintFilterCanvas& canvas
 void RSSurfaceRenderNode::CollectSurface(
     const std::shared_ptr<RSBaseRenderNode>& node, std::vector<RSBaseRenderNode::SharedPtr>& vec)
 {
-    const std::string leashWin = "leashWindow";
-    const std::string startWin = "startingWindow";
-    if (GetName().find(startWin) != std::string::npos) {
+    if (RSOcclusionConfig::GetInstance().IsStartingWindow(GetName())) {
         return;
     }
-    if (GetName().find(leashWin) != std::string::npos) {
+    if (RSOcclusionConfig::GetInstance().IsLeashWindow(GetName())) {
         for (auto& child : node->GetSortedChildren()) {
             child->CollectSurface(child, vec);
         }
         return;
     }
-    if (IsOnTheTree()) {
-        vec.emplace_back(shared_from_this());
-    }
+    vec.emplace_back(shared_from_this());
 }
 
 void RSSurfaceRenderNode::Prepare(const std::shared_ptr<RSNodeVisitor>& visitor)

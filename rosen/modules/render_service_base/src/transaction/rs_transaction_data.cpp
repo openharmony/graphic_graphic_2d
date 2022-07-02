@@ -21,9 +21,6 @@
 
 namespace OHOS {
 namespace Rosen {
-RSTransactionData::~RSTransactionData() noexcept
-{
-}
 
 #ifdef ROSEN_OHOS
 RSTransactionData* RSTransactionData::Unmarshalling(Parcel& parcel)
@@ -41,26 +38,24 @@ bool RSTransactionData::Marshalling(Parcel& parcel) const
 {
     bool success = true;
     parcel.SetMaxCapacity(409600); // reset upper bound of parcel capacity to 400K(409600)
-    success = success && parcel.WriteInt32(static_cast<int32_t>(commands_.size()));
-    for (auto followType : followTypes_) {
-        success = success && parcel.WriteUint32(static_cast<uint8_t>(followType));
-    }
-    success = success && parcel.WriteUInt64Vector(nodeIds_);
-    success = success && parcel.WriteUint64(timestamp_);
-    for (auto& command : commands_) {
-        success = command->Marshalling(parcel);
+    success = success && parcel.WriteInt32(static_cast<int32_t>(payload_.size()));
+    for (auto& [nodeId, followType, command] : payload_) {
+        success = success && parcel.WriteUint64(nodeId);
+        success = success && parcel.WriteUint8(static_cast<uint8_t>(followType));
+        success = success && command->Marshalling(parcel);
         if (!success) {
             ROSEN_LOGE("failed RSTransactionData::Marshalling type:%s", command->PrintType().c_str());
             break;
         }
     }
+    success = success && parcel.WriteUint64(timestamp_);
     return success;
 }
 #endif // ROSEN_OHOS
 
 void RSTransactionData::Process(RSContext& context)
 {
-    for (auto& command : commands_) {
+    for (auto& [nodeId, followType, command] : payload_) {
         if (command != nullptr) {
             command->Process(context);
         }
@@ -69,70 +64,61 @@ void RSTransactionData::Process(RSContext& context)
 
 void RSTransactionData::Clear()
 {
-    commands_.clear();
-    followTypes_.clear();
-    nodeIds_.clear();
+    payload_.clear();
     timestamp_ = 0;
 }
 
 void RSTransactionData::AddCommand(std::unique_ptr<RSCommand>& command, NodeId nodeId, FollowType followType)
 {
-    commands_.emplace_back(std::move(command));
-    followTypes_.push_back(followType);
-    nodeIds_.push_back(nodeId);
+    payload_.emplace_back(nodeId, followType, std::move(command));
 }
 
 void RSTransactionData::AddCommand(std::unique_ptr<RSCommand>&& command, NodeId nodeId, FollowType followType)
 {
-    commands_.emplace_back(std::move(command));
-    followTypes_.push_back(followType);
-    nodeIds_.push_back(nodeId);
+    payload_.emplace_back(nodeId, followType, std::move(command));
 }
 
 #ifdef ROSEN_OHOS
 bool RSTransactionData::UnmarshallingCommand(Parcel& parcel)
 {
-    uint16_t commandType = 0;
-    uint16_t commandSubType = 0;
+    Clear();
+
     int commandSize = 0;
     if (!parcel.ReadInt32(commandSize)) {
         ROSEN_LOGE("RSTransactionData::UnmarshallingCommand cannot read commandSize");
         return false;
     }
     uint8_t followType = 0;
-    bool isNotFinished = true;
-    Clear();
+    NodeId nodeId = 0;
+    uint16_t commandType = 0;
+    uint16_t commandSubType = 0;
 
     for (int i = 0; i < commandSize; i++) {
+        if (!parcel.ReadUint64(nodeId)) {
+            ROSEN_LOGE("RSTransactionData::UnmarshallingCommand cannot read nodeId");
+            return false;
+        }
         if (!parcel.ReadUint8(followType)) {
             ROSEN_LOGE("RSTransactionData::UnmarshallingCommand cannot read followType");
             return false;
         }
-        followTypes_.push_back(static_cast<FollowType>(followType));
-    }
 
-    if (!(parcel.ReadUInt64Vector(&nodeIds_) && parcel.ReadUint64(timestamp_))) {
-        ROSEN_LOGE("RSTransactionData::UnmarshallingCommand cannot read nodeIds or timestamp");
-        return false;
-    }
-    while (isNotFinished) {
         if (!(parcel.ReadUint16(commandType) && parcel.ReadUint16(commandSubType))) {
-            isNotFinished = false;
-            break;
+            return false;
         }
         auto func = RSCommandFactory::Instance().GetUnmarshallingFunc(commandType, commandSubType);
         if (func == nullptr) {
-            break;
+            return false;
         }
         auto command = (*func)(parcel);
         if (command == nullptr) {
             ROSEN_LOGE("failed RSTransactionData::UnmarshallingCommand, type=%d subtype=%d", commandType,
                 commandSubType);
-            break;
+            return false;
         }
-        commands_.emplace_back(std::unique_ptr<RSCommand>(command));
+        payload_.emplace_back(nodeId, static_cast<FollowType>(followType), std::move(command));
     }
-    return !isNotFinished;
+    return parcel.ReadUint64(timestamp_);
 }
 
 #endif // ROSEN_OHOS

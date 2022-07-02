@@ -520,26 +520,6 @@ bool ConvertYUV420SPToRGBA(std::vector<uint8_t>& rgbaBuf, const sptr<OHOS::Surfa
 }
 } // namespace Detail
 
-void RSBaseRenderUtil::ComposeSurface(std::shared_ptr<HdiLayerInfo> layer, sptr<Surface> consumerSurface,
-    std::vector<LayerInfoPtr>& layers, ComposeInfo info, RSBaseRenderNode* node)
-{
-    layer->SetSurface(consumerSurface);
-    layer->SetBuffer(info.buffer, info.fence);
-    layer->SetZorder(info.zOrder);
-    layer->SetAlpha(info.alpha);
-    layer->SetLayerSize(info.dstRect);
-    layer->SetLayerAdditionalInfo(node);
-
-    layer->SetCompositionType(info.needClient ? CompositionType::COMPOSITION_CLIENT :
-        CompositionType::COMPOSITION_DEVICE);
-
-    layer->SetVisibleRegion(1, info.visibleRect);
-    layer->SetDirtyRegion(info.srcRect);
-    layer->SetBlendType(info.blendType);
-    layer->SetCropRect(info.srcRect);
-    layers.emplace_back(layer);
-}
-
 void RSBaseRenderUtil::DropFrameProcess(RSSurfaceHandler& node)
 {
     auto availableBufferCnt = node.GetAvailableBufferCount();
@@ -627,7 +607,7 @@ bool RSBaseRenderUtil::ReleaseBuffer(RSSurfaceHandler& surfaceHandler)
             return false;
         }
         // reset prevBuffer if we release it successfully,
-        // to avoid releasing the same buffer next frame in some suitations.
+        // to avoid releasing the same buffer next frame in some situations.
         preBuffer.Reset();
     }
 

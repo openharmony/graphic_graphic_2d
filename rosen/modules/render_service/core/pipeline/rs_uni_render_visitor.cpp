@@ -93,8 +93,9 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
             node.SetCompositeType(RSDisplayRenderNode::CompositeType::SOFTWARE_COMPOSITE);
             break;
         case ScreenState::HDI_OUTPUT_ENABLE:
-            node.SetCompositeType(node.IsForceSoftComposite() ? RSDisplayRenderNode::CompositeType::COMPATIBLE_COMPOSITE
-                : RSDisplayRenderNode::CompositeType::HARDWARE_COMPOSITE);
+            node.SetCompositeType(node.IsForceSoftComposite() ?
+                RSDisplayRenderNode::CompositeType::SOFTWARE_COMPOSITE :
+                RSDisplayRenderNode::CompositeType::UNI_RENDER_COMPOSITE);
             break;
         default:
             RS_LOGE("RSUniRenderVisitor::ProcessDisplayRenderNode ScreenState unsupported");
@@ -105,7 +106,12 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
         RS_LOGE("RSUniRenderVisitor::ProcessDisplayRenderNode: RSProcessor is null!");
         return;
     }
-    processor_->Init(node.GetScreenId(), node.GetDisplayOffsetX(), node.GetDisplayOffsetY());
+    auto mirrorNode = node.GetMirrorSource().lock();
+    if (!processor_->Init(node.GetScreenId(), node.GetDisplayOffsetX(), node.GetDisplayOffsetY(),
+        mirrorNode ? mirrorNode->GetScreenId() : INVALID_SCREEN_ID)) {
+        RS_LOGE("RSUniRenderVisitor::ProcessDisplayRenderNode: processor init failed!");
+        return;
+    }
     offsetX_ = node.GetDisplayOffsetX();
     offsetY_ = node.GetDisplayOffsetY();
 
@@ -123,7 +129,8 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
         }
 #ifdef RS_ENABLE_GL
         RS_LOGD("RSUniRenderVisitor::ProcessDisplayRenderNode SetRenderContext");
-        node.GetRSSurface()->SetRenderContext(RSMainThread::Instance()->GetRenderContext().get());
+        node.GetRSSurface()->SetRenderContext(
+            RSMainThread::Instance()->GetRenderEngine()->GetRenderContext().get());
 #endif
     }
 
@@ -137,7 +144,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
         RS_LOGE("RSUniRenderVisitor Request Frame Failed");
         return;
     }
-    canvas_ = std::make_unique<RSPaintFilterCanvas>(surfaceFrame->GetCanvas());
+    canvas_ = std::make_unique<RSPaintFilterCanvas>(surfaceFrame->GetSurface().get());
     canvas_->clear(SK_ColorTRANSPARENT);
 
     ProcessBaseRenderNode(node);
@@ -146,7 +153,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
     RSMainThread::Instance()->WaitUtilUniRenderFinished();
     RS_TRACE_END();
 
-    processor_->ProcessSurface(node);
+    processor_->ProcessDisplaySurface(node);
     processor_->PostProcess();
 
     // We should release DisplayNode's surface buffer after PostProcess(),

@@ -33,7 +33,7 @@ public:
     RSScreenCapability() = default;
     RSScreenCapability(std::string name, ScreenInterfaceType type, uint32_t phyWidth,
         uint32_t phyHeight, uint32_t supportLayers, uint32_t virtualDispCount,
-        bool supportWriteback, const std::vector<RSScreenProps>& props);
+        bool supportWriteBack, const std::vector<RSScreenProps>& props);
     ~RSScreenCapability() = default;
     static RSScreenCapability* Unmarshalling(Parcel &parcel);
     bool Marshalling(Parcel &parcel) const override;
@@ -44,7 +44,7 @@ public:
     void SetPhyHeight(uint32_t phyHeight);
     void SetSupportLayers(uint32_t supportLayers);
     void SetVirtualDispCount(uint32_t virtualDispCount);
-    void SetSupportWriteback(bool supportWriteback);
+    void SetSupportWriteBack(bool supportWriteBack);
     void SetProps(const std::vector<RSScreenProps>& props);
 
     const std::string& GetName() const;
@@ -53,7 +53,7 @@ public:
     uint32_t GetPhyHeight() const;
     uint32_t GetSupportLayers() const;
     uint32_t GetVirtualDispCount() const;
-    bool GetSupportWriteback() const;
+    bool GetSupportWriteBack() const;
     const std::vector<RSScreenProps>& GetProps() const;
 
 private:
@@ -65,7 +65,7 @@ private:
     uint32_t phyHeight_ = 0;
     uint32_t supportLayers_ = 0;
     uint32_t virtualDispCount_ = 0;
-    bool supportWriteback_;
+    bool supportWriteBack_;
     std::vector<RSScreenProps> props_;
 };
 } // namespace Rosen

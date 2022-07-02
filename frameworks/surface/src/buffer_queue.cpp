@@ -125,11 +125,6 @@ GSError BufferQueue::PopFromDirtyList(sptr<SurfaceBuffer> &buffer)
 
 GSError BufferQueue::CheckRequestConfig(const BufferRequestConfig &config)
 {
-    if (config.width <= 0 || config.height <= 0) {
-        BLOGN_INVALID("w or h is greater than 0, now is w %{public}d h %{public}d", config.width, config.height);
-        return GSERROR_INVALID_ARGUMENTS;
-    }
-
     uint32_t align = config.strideAlignment;
     bool isValidStrideAlignment = true;
     isValidStrideAlignment = isValidStrideAlignment && (SURFACE_MIN_STRIDE_ALIGNMENT <= align);
@@ -142,11 +137,6 @@ GSError BufferQueue::CheckRequestConfig(const BufferRequestConfig &config)
 
     if (align & (align - 1)) {
         BLOGN_INVALID("config.strideAlignment is not power of 2 like 4, 8, 16, 32; now is %{public}d", align);
-        return GSERROR_INVALID_ARGUMENTS;
-    }
-
-    if (config.format < 0 || config.format > PIXEL_FMT_BUTT) {
-        BLOGN_INVALID("config.format [0, %{public}d], now is %{public}d", PIXEL_FMT_BUTT, config.format);
         return GSERROR_INVALID_ARGUMENTS;
     }
 
@@ -183,6 +173,9 @@ GSError BufferQueue::RequestBuffer(const BufferRequestConfig &config, sptr<Buffe
     struct IBufferProducer::RequestBufferReturnValue &retval)
 {
     ScopedBytrace func(__func__);
+    if (!GetStatus()) {
+        BLOGN_FAILURE_RET(GSERROR_NO_CONSUMER);
+    }
     if (listener_ == nullptr && listenerClazz_ == nullptr) {
         BLOGN_FAILURE_RET(GSERROR_NO_CONSUMER);
     }
@@ -205,7 +198,10 @@ GSError BufferQueue::RequestBuffer(const BufferRequestConfig &config, sptr<Buffe
     // check queue size
     if (GetUsedSize() >= GetQueueSize()) {
         waitReqCon_.wait_for(lock, std::chrono::milliseconds(config.timeout),
-            [this]() { return !freeList_.empty() || (GetUsedSize() < GetQueueSize()); });
+            [this]() { return !freeList_.empty() || (GetUsedSize() < GetQueueSize()) || !GetStatus(); });
+        if (!GetStatus()) {
+            BLOGN_FAILURE_RET(GSERROR_NO_CONSUMER);
+        }
         // try dequeue from free list again
         ret = PopFromFreeList(buffer, config);
         if (ret == GSERROR_OK) {
@@ -309,6 +305,9 @@ GSError BufferQueue::FlushBuffer(uint32_t sequence, const sptr<BufferExtraData> 
     const sptr<SyncFence>& fence, const BufferFlushConfig &config)
 {
     ScopedBytrace func(__func__);
+    if (!GetStatus()) {
+        BLOGN_FAILURE_RET(GSERROR_NO_CONSUMER);
+    }
     // check param
     auto sret = CheckFlushConfig(config);
     if (sret != GSERROR_OK) {
@@ -687,7 +686,14 @@ GSError BufferQueue::SetQueueSize(uint32_t queueSize)
     }
 
     DeleteBuffers(queueSize_ - queueSize);
-    queueSize_ = queueSize;
+
+    // if increase the queue size, try to wakeup the blocked thread
+    if (queueSize > queueSize_) {
+        queueSize_ = queueSize;
+        waitReqCon_.notify_all();
+    } else {
+        queueSize_ = queueSize;
+    }
 
     BLOGN_SUCCESS("queue size: %{public}d, Queue id: %{public}" PRIu64 "", queueSize_, uniqueId_);
     return GSERROR_OK;
@@ -775,6 +781,9 @@ uint32_t BufferQueue::GetDefaultUsage()
 GSError BufferQueue::CleanCache()
 {
     std::lock_guard<std::mutex> lockGuard(mutex_);
+    if (!GetStatus()) {
+        BLOGN_FAILURE_RET(GSERROR_NO_CONSUMER);
+    }
     for (auto &[id, _] : bufferQueueCache_) {
         if (onBufferDelete_ != nullptr) {
             onBufferDelete_(id);
@@ -928,7 +937,7 @@ GSError BufferQueue::SetTunnelHandle(const ExtDataHandle *handle)
         ScopedBytrace bufferIPCSend("OnTunnelHandleChange");
         listener_->OnTunnelHandleChange();
     } else if (listenerClazz_ != nullptr) {
-        ScopedBytrace bufferIPCSend("OnTunnelHandleChande");
+        ScopedBytrace bufferIPCSend("OnTunnelHandleChange");
         listenerClazz_->OnTunnelHandleChange();
     } else {
         return GSERROR_NO_CONSUMER;
@@ -1015,5 +1024,16 @@ void BufferQueue::Dump(std::string &result)
 
     result.append("      bufferQueueCache:\n");
     DumpCache(result);
+}
+
+bool BufferQueue::GetStatus() const
+{
+    return isValidStatus_;
+}
+
+void BufferQueue::SetStatus(bool status)
+{
+    isValidStatus_ = status;
+    waitReqCon_.notify_all();
 }
 }; // namespace OHOS

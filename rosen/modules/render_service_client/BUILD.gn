@@ -103,6 +103,7 @@ ohos_source_set("render_service_client_src") {
   deps += [
     "//base/startup/syspara_lite/interfaces/innerkits/native/syspara:syspara",
     "//base/startup/syspara_lite/interfaces/innerkits/native/syspara:syspara_watchagent",
+    "//foundation/graphic/graphic_2d/rosen/modules/frame_analyzer:libframe_analyzer",
   ]
 
   if (rss_enabled) {

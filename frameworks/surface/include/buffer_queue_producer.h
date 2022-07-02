@@ -76,6 +76,9 @@ public:
                            const std::vector<uint8_t> &metaData) override;
     GSError SetTunnelHandle(const ExtDataHandle *handle) override;
 
+    bool GetStatus() const;
+    void SetStatus(bool status);
+
 private:
     GSError CheckConnectLocked();
 

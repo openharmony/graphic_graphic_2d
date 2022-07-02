@@ -136,7 +136,7 @@ SurfaceError LayerContext::FillHDILayer()
 void LayerContext::DrawBaseLayer(void* image, int width, int height, TestFunc testFunc)
 {
     Bitmap bitmap;
-    BitmapFormat format { COLORTYPE_RGBA_8888, ALPHATYPE_OPAQUYE };
+    BitmapFormat format { COLORTYPE_RGBA_8888, ALPHATYPE_OPAQUE };
     bitmap.Build(width, height, format);
 
     Canvas canvas;

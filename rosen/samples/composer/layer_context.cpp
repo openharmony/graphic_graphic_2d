@@ -67,6 +67,11 @@ void LayerContext::SetTestRotateStatus(bool status)
     testRotate_ = status;
 }
 
+void LayerContext::SetTestYUVStatus(bool status)
+{
+    testYUV_ = status;
+}
+
 OHOS::Rosen::LayerType LayerContext::GetLayerType() const
 {
     return layerType_;
@@ -88,6 +93,10 @@ SurfaceError LayerContext::DrawBufferColor()
         .format = PIXEL_FMT_RGBA_8888,
         .usage = pSurface_->GetDefaultUsage(),
     };
+
+    if (layerType_ >= LayerType::LAYER_EXTRA && testYUV_) {
+        config.format = PIXEL_FMT_YCBCR_420_SP;
+    }
 
     SurfaceError ret = pSurface_->RequestBuffer(buffer, releaseFence, config);
     if (ret != 0) {
@@ -211,7 +220,17 @@ void LayerContext::DrawExtraColor(void *image, uint32_t width, uint32_t height)
         color_ = colors_[colorIndex_];
         colorIndex_++;
     }
+    frameCounter_++;
 
+    YUVPixel pixelValueYUV;
+    if (testYUV_) {
+        LOGI("DrawExtraColor with PIXEL_FMT_YCBCR_420_SP format.");
+        ConvertRBGA2YUV(color_, &pixelValueYUV);
+        DrawYUVColor(image, width, height, pixelValueYUV);
+        return;
+    }
+
+    LOGI("DrawExtraColor with PIXEL_FMT_RGBA_8888 format.");
     uint32_t *pixel = static_cast<uint32_t *>(image);
     for (uint32_t x = 0; x < width; x++) {
         for (uint32_t y = 0;  y < height; y++) {
@@ -222,8 +241,6 @@ void LayerContext::DrawExtraColor(void *image, uint32_t width, uint32_t height)
             }
         }
     }
-
-    frameCounter_++;
 }
 
 void LayerContext::DrawBaseColor(void *image, uint32_t width, uint32_t height)
@@ -244,3 +261,37 @@ void LayerContext::DrawBaseColor(void *image, uint32_t width, uint32_t height)
         }
     }
 }
+
+void LayerContext::ConvertRBGA2YUV(uint32_t pixelValueRBGA, YUVPixel *pixelValueYUV)
+{
+    // Get the components of pixelValueRBGA
+    uint8_t R = pixelValueRBGA >> RBGA_R_MOVEBITS;
+    uint8_t B = pixelValueRBGA >> RBGA_B_MOVEBITS;
+    uint8_t G = pixelValueRBGA >> RBGA_G_MOVEBITS;
+
+    // Convert pixel from RBGA formate to YUV formate with the formula:
+    // fixed formula : Y = 0.299 * R + 0.587 * G + 0.114 * B;
+    pixelValueYUV->y = 0.299 * R + 0.587 * G + 0.114 * B;
+    // fixed formula : U = -0.169 * R - 0.331 * G + 0.500 * B + 128;
+    pixelValueYUV->u = -0.169 * R - 0.331 * G + 0.500 * B + 128;
+    // fixed formula : V = 0.500 * R - 0.419 * G - 0.081 * B + 128;
+    pixelValueYUV->v = 0.500 * R - 0.419 * G - 0.081 * B + 128;
+}
+
+void LayerContext::DrawYUVColor(void *image, uint32_t width, uint32_t height, YUVPixel pixelValueYUV)
+{
+    uint8_t *pixel = static_cast<uint8_t *>(image);
+    width = (width / PIXEL_LINE_ALIGNMENT + 1) * PIXEL_LINE_ALIGNMENT;
+    for (uint32_t index = 0; index < width * height * PIXEL_YCBCR420_BYTE; index++) {
+        if (index < width * height) {
+            *pixel++ = pixelValueYUV.y;
+            continue;
+        }
+        if (index % PIXEL_YCBCR420_UV_NUM == 0) {
+            *pixel++ = pixelValueYUV.u;
+        } else {
+            *pixel++ = pixelValueYUV.v;
+        }
+    }
+}
+

@@ -19,5 +19,6 @@ config("test_header_config") {
 
 group("test_header") {
   public_configs = [ ":test_header_config" ]
-  deps = [ "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog" ]
+  public_deps =
+      [ "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog" ]
 }

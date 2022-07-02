@@ -234,7 +234,7 @@ void TestDrawBitmap(Canvas &canvas, uint32_t width, uint32_t height)
 {
     LOGI("+++++++ TestDrawBitmap");
     Bitmap bmp;
-    BitmapFormat format {COLORTYPE_RGBA_8888, ALPHATYPE_OPAQUYE};
+    BitmapFormat format {COLORTYPE_RGBA_8888, ALPHATYPE_OPAQUE};
     bmp.Build(200, 200, format); // bitmap width and height
     bmp.ClearWithColor(Drawing::Color::COLOR_BLUE);
 
@@ -252,7 +252,7 @@ void TestDrawImage(Canvas& canvas, uint32_t width, uint32_t height)
 {
     LOGI("+++++++ TestDrawImage");
     Bitmap bmp;
-    BitmapFormat format {COLORTYPE_RGBA_8888, ALPHATYPE_OPAQUYE};
+    BitmapFormat format {COLORTYPE_RGBA_8888, ALPHATYPE_OPAQUE};
     bmp.Build(300, 300, format); // bitmap width and height
     bmp.ClearWithColor(Drawing::Color::COLOR_BLUE);
 
@@ -286,7 +286,7 @@ void TestDrawImageRect(Canvas& canvas, uint32_t width, uint32_t height)
 {
     LOGI("+++++++ TestDrawImageRect");
     Bitmap bmp;
-    BitmapFormat format {COLORTYPE_RGBA_8888, ALPHATYPE_OPAQUYE};
+    BitmapFormat format {COLORTYPE_RGBA_8888, ALPHATYPE_OPAQUE};
     bmp.Build(300, 300, format); // bitmap width and height
     bmp.ClearWithColor(Drawing::Color::COLOR_BLUE);
 
@@ -501,7 +501,7 @@ void TestDrawPixelmap(Canvas &canvas, uint32_t width, uint32_t height)
 void DoDraw(uint8_t *addr, uint32_t width, uint32_t height, size_t index)
 {
     Bitmap bitmap;
-    BitmapFormat format {COLORTYPE_RGBA_8888, ALPHATYPE_OPAQUYE};
+    BitmapFormat format {COLORTYPE_RGBA_8888, ALPHATYPE_OPAQUE};
     bitmap.Build(width, height, format);
 
     Canvas canvas;

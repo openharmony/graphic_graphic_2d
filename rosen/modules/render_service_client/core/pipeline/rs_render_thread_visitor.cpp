@@ -21,6 +21,9 @@
 #include <include/core/SkMatrix.h>
 #include <include/core/SkPaint.h>
 
+#include <frame_collector.h>
+#include <frame_painter.h>
+
 #include "include/core/SkRect.h"
 #include "rs_trace.h"
 
@@ -221,10 +224,12 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
 #endif
     uiTimestamp_ = RSRenderThread::Instance().GetUITimestamp();
     RS_TRACE_BEGIN("rsSurface->RequestFrame");
+    FrameCollector::GetInstance().MarkFrameEvent(FrameEventType::ReleaseStart);
     auto surfaceFrame = rsSurface->RequestFrame(node.GetSurfaceWidth(), node.GetSurfaceHeight(), uiTimestamp_);
     RS_TRACE_END();
     if (surfaceFrame == nullptr) {
         ROSEN_LOGI("ProcessRoot %s: Request Frame Failed", ptr->GetName().c_str());
+        FrameCollector::GetInstance().MarkFrameEvent(FrameEventType::ReleaseEnd);
         return;
     }
 
@@ -276,10 +281,16 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
         overdrawListener->Draw();
     }
 
+    FramePainter fpainter(FrameCollector::GetInstance());
+    fpainter.Draw(*canvas_);
+    FrameCollector::GetInstance().MarkFrameEvent(FrameEventType::ReleaseEnd);
+    FrameCollector::GetInstance().MarkFrameEvent(FrameEventType::FlushStart);
+
     RS_TRACE_BEGIN("rsSurface->FlushFrame");
     ROSEN_LOGD("RSRenderThreadVisitor FlushFrame surfaceNodeId = %llu, uiTimestamp = %llu",
         node.GetRSSurfaceNodeId(), uiTimestamp_);
     rsSurface->FlushFrame(surfaceFrame, uiTimestamp_);
+    FrameCollector::GetInstance().MarkFrameEvent(FrameEventType::FlushEnd);
     RS_TRACE_END();
 
     delete canvas_;

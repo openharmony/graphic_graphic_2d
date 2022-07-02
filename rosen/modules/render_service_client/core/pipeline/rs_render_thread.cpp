@@ -19,6 +19,8 @@
 #include <unordered_map>
 #endif
 
+#include <frame_collector.h>
+
 #include "pipeline/rs_frame_report.h"
 #include "pipeline/rs_render_node_map.h"
 #include "pipeline/rs_root_render_node.h"
@@ -136,6 +138,7 @@ void RSRenderThread::RequestNextVSync()
 {
     if (handler_) {
         RS_TRACE_FUNC();
+        FrameCollector::GetInstance().MarkFrameEvent(FrameEventType::WaitVsyncStart);
         VSyncReceiver::FrameCallback fcb = {
             .userData_ = this,
             .callback_ = std::bind(&RSRenderThread::OnVsync, this, std::placeholders::_1),
@@ -186,6 +189,7 @@ void RSRenderThread::RenderLoop()
 void RSRenderThread::OnVsync(uint64_t timestamp)
 {
     ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSRenderThread::OnVsync");
+    FrameCollector::GetInstance().MarkFrameEvent(FrameEventType::WaitVsyncEnd);
     mValue = (mValue + 1) % 2; // 1 and 2 is Calculated parameters
     RS_TRACE_INT("Vsync-client", mValue);
     timestamp_ = timestamp;
@@ -224,11 +228,11 @@ void RSRenderThread::ProcessCommands()
     // To make commands from RenderThread sync with buffer flushed by RenderThread,
     // we choose (prevTimestamp_ - 1) as uiTimestamp_ which would be used in RenderThreadVisitor when we call flushFrame.
 
-    // The reason why prevTimestamp_ need to be minues 1 is that timestamp used in UIThread is always less than (for now) timestamp used in RenderThread.
+    // The reason why prevTimestamp_ need to be minus 1 is that timestamp used in UIThread is always less than (for now) timestamp used in RenderThread.
     // If we do not do this,
-    // when RenderThread::Animate excute flushFrame and use prevTimestamp_ as buffer timestamp which equals T0,
-    // UIDirector send messages in the same vysnc period, and the commandTimestamp_ would also be T0,
-    // RenderService would excute commands from UIDirector and composite buffer which rendering is executed by RSRenderThread::Animate
+    // when RenderThread::Animate execute flushFrame and use prevTimestamp_ as buffer timestamp which equals T0,
+    // UIDirector send messages in the same vsync period, and the commandTimestamp_ would also be T0,
+    // RenderService would execute commands from UIDirector and composite buffer which rendering is executed by RSRenderThread::Animate
     // for they have the same timestamp.
     // To avoid this situation, we should always use "prevTimestamp_ - 1".
 

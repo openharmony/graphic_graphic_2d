@@ -88,6 +88,11 @@ void RSDisplayRenderNode::SetMirrorSource(SharedPtr node)
     mirrorSource_ = node;
 }
 
+void RSDisplayRenderNode::ResetMirrorSource()
+{
+    mirrorSource_.reset();
+}
+
 bool RSDisplayRenderNode::IsMirrorDisplay() const
 {
     return isMirroredDisplay_;
@@ -101,6 +106,13 @@ void RSDisplayRenderNode::SetSecurityDisplay(bool isSecurityDisplay)
 bool RSDisplayRenderNode::GetSecurityDisplay() const
 {
     return isSecurityDisplay_;
+}
+
+void RSDisplayRenderNode::SetIsMirrorDisplay(bool isMirror)
+{
+    isMirroredDisplay_ = isMirror;
+    RS_LOGD("RSDisplayRenderNode::SetIsMirrorDisplay, node id:[%llu], isMirrorDisplay: [%s]",
+        GetId(), IsMirrorDisplay() ? "true" : "false");
 }
 
 bool RSDisplayRenderNode::CreateSurface(sptr<IBufferConsumerListener> listener)
@@ -133,6 +145,19 @@ bool RSDisplayRenderNode::CreateSurface(sptr<IBufferConsumerListener> listener)
 
     RS_LOGI("RSDisplayRenderNode::CreateSurface end");
     surfaceCreated_ = true;
+    return true;
+}
+
+bool RSDisplayRenderNode::SkipFrame(uint32_t skipFrameInterval)
+{
+    frameCount_++;
+    // ensure skipFrameInterval is not 0
+    if (skipFrameInterval == 0) {
+        return false;
+    }
+    if ((frameCount_ - 1) % skipFrameInterval == 0) {
+        return false;
+    }
     return true;
 }
 } // namespace Rosen

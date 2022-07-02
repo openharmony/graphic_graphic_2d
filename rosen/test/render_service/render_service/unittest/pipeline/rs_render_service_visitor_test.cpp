@@ -41,13 +41,13 @@ void RSRenderServiceVisitorTest::SetUp() {}
 void RSRenderServiceVisitorTest::TearDown() {}
 
 /*
- * @tc.name: CreateAndDestory001
+ * @tc.name: CreateAndDestroy001
  * @tc.desc:
  * @tc.type:
  * @tc.require:
  * @tc.author:
  */
-HWTEST_F(RSRenderServiceVisitorTest, CreateAndDestory001, TestSize.Level1)
+HWTEST_F(RSRenderServiceVisitorTest, CreateAndDestroy001, TestSize.Level1)
 {
     RSRenderServiceVisitor rsRenderServiceVisitor;
 }

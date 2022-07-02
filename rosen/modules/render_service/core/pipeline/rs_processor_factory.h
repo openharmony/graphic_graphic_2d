@@ -17,7 +17,6 @@
  #define RS_PROCESSOR_FACTORY_H
 
 #include "pipeline/rs_processor.h"
-#include "pipeline/rs_display_render_node.h"
 
 namespace OHOS {
 namespace Rosen {

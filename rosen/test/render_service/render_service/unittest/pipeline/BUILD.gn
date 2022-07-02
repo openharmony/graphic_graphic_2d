@@ -22,11 +22,11 @@ ohos_unittest("RSRenderServiceCommonPipelineTest") {
 
   sources = [
     "rs_drop_frame_processor_test.cpp",
-    "rs_hardware_processor_test.cpp",
+    "rs_physical_screen_processor_test.cpp",
     "rs_processor_factory_test.cpp",
     "rs_render_service_listener_test.cpp",
     "rs_render_service_visitor_test.cpp",
-    "rs_software_processor_test.cpp",
+    "rs_virtual_screen_processor_test.cpp",
   ]
 
   configs = [
@@ -49,6 +49,8 @@ ohos_unittest("RSRenderServiceCommonPipelineTest") {
     "//third_party/googletest:gtest_main",
     "//utils/native/base:utils",
   ]
+
+  external_deps = [ "init:libbegetutil" ]
 
   subsystem_name = "graphic"
 }

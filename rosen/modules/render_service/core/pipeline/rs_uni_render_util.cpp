@@ -42,8 +42,9 @@ void RSUniRenderUtil::DrawBufferOnCanvas(sptr<SurfaceBuffer> buffer, const Color
 void RSUniRenderUtil::DrawImageOnCanvas(BufferInfo& bufferInfo, RSPaintFilterCanvas& canvas, SkRect srcRect,
     SkRect dstRect)
 {
-    auto renderContext = RSMainThread::Instance()->GetRenderContext();
-    auto eglImageManager =  RSMainThread::Instance()->GetRSEglImageManager();
+    auto renderEngine = RSMainThread::Instance()->GetRenderEngine();
+    auto renderContext = renderEngine->GetRenderContext();
+    auto eglImageManager =  renderEngine->GetRSEglImageManager();
     sk_sp<SkImage> image;
     if (!RSBaseRenderUtil::ConvertBufferToEglImage(bufferInfo.buffer, eglImageManager, renderContext->GetGrContext(),
         bufferInfo.acquireFence, image)) {
@@ -59,8 +60,8 @@ void RSUniRenderUtil::DrawImageOnCanvas(BufferInfo& bufferInfo, RSPaintFilterCan
 
     auto consumerSurface = bufferInfo.consumerSurface;
     if (consumerSurface != nullptr) {
-        GSError error = consumerSurface->RegisterDeleteBufferListener([eglImageManager_ = eglImageManager]
-            (int32_t bufferId) {eglImageManager_->UnMapEglImageFromSurfaceBuffer(bufferId);
+        GSError error = consumerSurface->RegisterDeleteBufferListener([eglImageManager] (int32_t bufferId) {
+            eglImageManager->UnMapEglImageFromSurfaceBuffer(bufferId);
         });
         if (error != GSERROR_OK) {
             RS_LOGE("RSUniRenderVisitor::DrawImageOnCanvas: fail to register UnMapEglImage callback.");

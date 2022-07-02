@@ -166,6 +166,11 @@ public:
         return isOcclusionVisible_;
     }
 
+    const Occlusion::Region& GetVisibleRegion() const
+    {
+        return visibleRegion_;
+    }
+
     void SetVisibleRegionRecursive(const Occlusion::Region& region, VisibleData& visibleVec)
     {
         visibleRegion_ = region;
@@ -225,12 +230,24 @@ public:
     void SetCallbackForRenderThreadRefresh(std::function<void(void)> callback);
     bool NeedSetCallbackForRenderThreadRefresh();
 
+    void ParallelVisitLock()
+    {
+        parallelVisitMutex_.lock();
+    }
+
+    void ParallelVisitUnlock()
+    {
+        parallelVisitMutex_.unlock();
+    }
+
 private:
     void SendCommandFromRT(std::unique_ptr<RSCommand>& command, NodeId nodeId);
 
     std::mutex mutexRT_;
     std::mutex mutexUI_;
     std::mutex mutex_;
+
+    std::mutex parallelVisitMutex_;
 
     SkMatrix contextMatrix_ = SkMatrix::I();
     float contextAlpha_ = 1.0f;

@@ -64,7 +64,7 @@ SkRRect RSPropertiesPainter::RRect2SkRRect(const RRect& rr)
     return rrect;
 }
 
-bool GetGravityMatrix(Gravity gravity, RectF rect, float w, float h, SkMatrix& mat)
+bool RSPropertiesPainter::GetGravityMatrix(Gravity gravity, RectF rect, float w, float h, SkMatrix& mat)
 {
     if (w == rect.width_ && h == rect.height_) {
         return false;
@@ -198,7 +198,8 @@ void RSPropertiesPainter::DrawFilter(const RSProperties& properties, SkCanvas& c
     }
     canvas.save();
     canvas.resetMatrix();
-    canvas.drawImage(imageSnapshot.get(), 0, 0, &paint);
+    auto clipBounds = SkRect::Make(canvas.getDeviceClipBounds());
+    canvas.drawImageRect(imageSnapshot.get(), clipBounds, clipBounds, &paint);
     canvas.restore();
 }
 

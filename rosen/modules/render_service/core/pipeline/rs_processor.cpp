@@ -13,74 +13,60 @@
  * limitations under the License.
  */
 
-#include "pipeline/rs_processor.h"
+#include "rs_processor.h"
 
-#include <ctime>
-#include <sync_fence.h>
-#include "rs_trace.h"
-
-#include "pipeline/rs_main_thread.h"
 #include "platform/common/rs_log.h"
-#include "platform/ohos/backend/rs_surface_frame_ohos_raster.h"
-
-#include <platform/ohos/rs_surface_ohos.h>
+#include "rs_main_thread.h"
 
 namespace OHOS {
 namespace Rosen {
-SkCanvas* RSProcessor::CreateCanvas(
-    const std::shared_ptr<RSSurfaceOhos>& surface,
-    const BufferRequestConfig& requestConfig)
+bool RSProcessor::Init(ScreenId id, int32_t offsetX, int32_t offsetY, ScreenId mirroredId)
 {
-    RS_TRACE_NAME("CreateCanvas");
+    offsetX_ = offsetX;
+    offsetY_ = offsetY;
+    mirroredId_ = mirroredId;
+    auto screenManager = CreateOrGetScreenManager();
+    if (screenManager == nullptr) {
+        RS_LOGE("RSPhysicalScreenProcessor::Init: ScreenManager is nullptr");
+        return false;
+    }
+    screenInfo_ = screenManager->QueryScreenInfo(id);
 
-    if (surface == nullptr) {
-        RS_LOGE("RSProcessor::CreateCanvas: surface is null!");
-        return nullptr;
+    auto mainThread = RSMainThread::Instance();
+    if (mainThread != nullptr) {
+        renderEngine_ = mainThread->GetRenderEngine();
+    }
+    if (renderEngine_ == nullptr) {
+        return false;
     }
 
-#ifdef RS_ENABLE_GL
-    if (renderContext_ != nullptr) {
-        surface->SetRenderContext(renderContext_.get());
+    if (mirroredId_ != INVALID_SCREEN_ID) {
+        auto mirroredScreenInfo = screenManager->QueryScreenInfo(mirroredId_);
+        CalculateMirrorAdaptiveCoefficient(
+            static_cast<float>(screenInfo_.width), static_cast<float>(screenInfo_.height),
+            static_cast<float>(mirroredScreenInfo.width), static_cast<float>(mirroredScreenInfo.height)
+        );
     }
-#endif
 
-    currFrame_ = surface->RequestFrame(requestConfig.width, requestConfig.height);
-    if (currFrame_ == nullptr) {
-        RS_LOGE("RSProcessor::CreateCanvas: requestFrame failed!");
-        return nullptr;
-    }
-    return currFrame_->GetCanvas();
+    // set default render frame config
+    renderFrameConfig_.width = static_cast<int32_t>(screenInfo_.width);
+    renderFrameConfig_.height = static_cast<int32_t>(screenInfo_.height);
+    renderFrameConfig_.strideAlignment = 0x8; // default stride is 8 Bytes.
+    renderFrameConfig_.format = PIXEL_FMT_RGBA_8888;
+    renderFrameConfig_.usage = HBM_USE_CPU_READ | HBM_USE_MEM_DMA | HBM_USE_MEM_FB;
+    renderFrameConfig_.timeout = 0;
+
+    return true;
 }
 
-void RSProcessor::SetBufferTimeStamp()
+void RSProcessor::CalculateMirrorAdaptiveCoefficient(float curWidth, float curHeight,
+    float mirroredWidth, float mirroredHeight)
 {
-    if (!currFrame_) {
-        RS_LOGE("RSProcessor::SetBufferTimeStamp currFrame_ is nullptr");
+    if (std::fabs(mirroredWidth) < 1e-6 || std::fabs(mirroredHeight) < 1e-6) {
+        RS_LOGE("RSSoftwareProcessor::Init mirroredScreen width or height is zero");
         return;
     }
-    auto frameOhosRaster =  static_cast<RSSurfaceFrameOhosRaster *>(currFrame_.get());
-    if (!frameOhosRaster || !(frameOhosRaster->GetBuffer())) {
-        RS_LOGE("RSProcessor::SetBufferTimeStamp buffer is nullptr");
-        return;
-    }
-    struct timespec curTime = {0, 0};
-    clock_gettime(CLOCK_MONOTONIC, &curTime);
-    // 1000000000 is used for transfer second to nsec
-    uint64_t duration = static_cast<uint64_t>(curTime.tv_sec) * 1000000000 + static_cast<uint64_t>(curTime.tv_nsec);
-    GSError ret = frameOhosRaster->GetBuffer()->GetExtraData()->ExtraSet("timeStamp", static_cast<int64_t>(duration));
-    if (ret != GSERROR_OK) {
-        RS_LOGE("RSProcessor::SetBufferTimeStamp buffer ExtraSet failed");
-    }
-}
-
-void RSProcessor::SetMirror(bool isMirror)
-{
-    isMirror_ = isMirror;
-}
-
-bool RSProcessor::GetMirror()
-{
-    return isMirror_;
+    mirrorAdaptiveCoefficient_ = std::min(curWidth / mirroredWidth, curHeight / mirroredHeight);
 }
 } // namespace Rosen
 } // namespace OHOS

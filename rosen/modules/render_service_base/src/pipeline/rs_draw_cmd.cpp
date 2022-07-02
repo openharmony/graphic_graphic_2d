@@ -1237,6 +1237,28 @@ OpItem* VerticesOpItem::Unmarshalling(Parcel& parcel)
     return new VerticesOpItem(vertices.get(), bones, boneCount, mode, paint);
 }
 
+// ShadowRecOpItem
+bool ShadowRecOpItem::Marshalling(Parcel& parcel) const
+{
+    bool success = true;
+    success &= RSMarshallingHelper::Marshalling(parcel, path_);
+    success &= RSMarshallingHelper::Marshalling(parcel, rec_);
+    return success;
+}
+
+OpItem* ShadowRecOpItem::Unmarshalling(Parcel& parcel)
+{
+    SkPath path;
+    SkDrawShadowRec rec;
+    if (!RSMarshallingHelper::Unmarshalling(parcel, path)) {
+        return nullptr;
+    }
+    if (!RSMarshallingHelper::Unmarshalling(parcel, rec)) {
+        return nullptr;
+    }
+    return new ShadowRecOpItem(path, rec);
+}
+
 // MultiplyAlphaOpItem
 bool MultiplyAlphaOpItem::Marshalling(Parcel& parcel) const
 {

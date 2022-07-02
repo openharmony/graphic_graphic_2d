@@ -22,25 +22,21 @@
 #include <queue>
 #include <thread>
 
-#include "common/rs_thread_handler.h"
-#include "common/rs_thread_looper.h"
-#include "command/rs_command.h"
-#include "ipc_callbacks/iapplication_agent.h"
-#include "pipeline/rs_context.h"
-#include "platform/drawing/rs_vsync_client.h"
 #include "refbase.h"
-#include "vsync_receiver.h"
+#include "rs_render_engine.h"
 #include "vsync_distributor.h"
 #include "vsync_helper.h"
+#include "vsync_receiver.h"
+
+#include "command/rs_command.h"
+#include "common/rs_thread_handler.h"
+#include "common/rs_thread_looper.h"
+#include "ipc_callbacks/iapplication_agent.h"
 #include "ipc_callbacks/rs_iocclusion_change_callback.h"
+#include "pipeline/rs_context.h"
+#include "platform/drawing/rs_vsync_client.h"
 
-#ifdef RS_ENABLE_GL
-#include "render_context/render_context.h"
-#include "rs_egl_image_manager.h"
-#endif // RS_ENABLE_GL
-
-namespace OHOS {
-namespace Rosen {
+namespace OHOS::Rosen {
 class RSTransactionData;
 
 namespace Detail {
@@ -60,7 +56,7 @@ public:
 
 private:
     explicit ScheduledTask(Task&& task) : task_(std::move(task)) {}
-    ~ScheduledTask() {}
+    ~ScheduledTask() override = default;
 
     using Return = std::invoke_result_t<Task>;
     std::packaged_task<Return()> task_;
@@ -85,19 +81,11 @@ public:
         PostTask([t(std::move(scheduledTask))]() { t->Run(); });
         return std::move(taskFuture);
     }
-#ifdef RS_ENABLE_GL
-    std::shared_ptr<RenderContext> GetRenderContext() const
-    {
-        return renderContext_;
-    }
-#endif // RS_ENABLE_GL
 
-#ifdef RS_ENABLE_EGLIMAGE
-    std::shared_ptr<RSEglImageManager> GetRSEglImageManager() const
+    const std::shared_ptr<RSRenderEngine>& GetRenderEngine() const
     {
-        return eglImageManager_;
+        return renderEngine_;
     }
-#endif // RS_ENABLE_EGLIMAGE
 
     RSContext& GetContext()
     {
@@ -118,6 +106,7 @@ public:
     void NotifyUniRenderFinish();
 
     sptr<VSyncDistributor> rsVSyncDistributor_;
+
 private:
     RSMainThread();
     ~RSMainThread() noexcept;
@@ -126,7 +115,7 @@ private:
     RSMainThread& operator=(const RSMainThread&) = delete;
     RSMainThread& operator=(const RSMainThread&&) = delete;
 
-    void OnVsync(uint64_t timestamp, void *data);
+    void OnVsync(uint64_t timestamp, void* data);
     void ProcessCommand();
     void Animate(uint64_t timestamp);
     void ConsumeAndUpdateAllNodes();
@@ -136,14 +125,19 @@ private:
     void CallbackToWMS(VisibleData& curVisVec);
     void SendCommands();
 
+    bool DoParallelComposition(std::shared_ptr<RSBaseRenderNode> rootNode);
+    void ResetSortedChildren(std::shared_ptr<RSBaseRenderNode> node);
+
     std::mutex transitionDataMutex_;
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
     RSTaskMessage::RSTask mainLoop_;
     std::unique_ptr<RSVsyncClient> vsyncClient_ = nullptr;
     std::unordered_map<NodeId, uint64_t> bufferTimestamps_;
-    std::unordered_map<NodeId, std::map<uint64_t, std::vector<std::unique_ptr<RSCommand>>> > cacheCommand_;
-    std::vector<std::unique_ptr<RSCommand>> effectCommand_;
+
+    std::unordered_map<NodeId, std::map<uint64_t, std::vector<std::unique_ptr<RSCommand>>>> cachedCommands_;
+    std::vector<std::unique_ptr<RSCommand>> effectiveCommands_;
+    std::vector<std::unique_ptr<RSCommand>> pendingEffectiveCommands_;
 
     uint64_t timestamp_ = 0;
     std::unordered_map<uint32_t, sptr<IApplicationAgent>> applicationAgentMap_;
@@ -158,16 +152,9 @@ private:
     std::condition_variable uniRenderCond_;
     VisibleData lastVisVec_;
     bool doAnimate_ = false;
-    uint32_t lastSurafceCnt_ = 0;
-    
-#ifdef RS_ENABLE_GL
-    std::shared_ptr<RenderContext> renderContext_;
-#endif // RS_ENABLE_GL
+    uint32_t lastSurfaceCnt_ = 0;
 
-#ifdef RS_ENABLE_EGLIMAGE
-    std::shared_ptr<RSEglImageManager> eglImageManager_;
-#endif // RS_ENABLE_EGLIMAGE
+    std::shared_ptr<RSRenderEngine> renderEngine_;
 };
-} // namespace Rosen
-} // namespace OHOS
+} // namespace OHOS::Rosen
 #endif // RS_MAIN_THREAD

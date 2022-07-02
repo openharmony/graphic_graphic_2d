@@ -30,10 +30,22 @@ enum LayerType : uint32_t {
     LAYER_EXTRA
 };
 
+using YUVPixel = struct YUVPixel {
+    uint8_t y;
+    uint8_t u;
+    uint8_t v;
+};
+
 class LayerContext : public IBufferConsumerListenerClazz {
 public:
     LayerContext(IRect dst, IRect src, uint32_t zorder, LayerType layerType);
     virtual ~LayerContext();
+    static constexpr uint32_t PIXEL_LINE_ALIGNMENT = 32;
+    static constexpr uint32_t RBGA_R_MOVEBITS = 24;
+    static constexpr uint32_t RBGA_B_MOVEBITS = 16;
+    static constexpr uint32_t RBGA_G_MOVEBITS = 8;
+    static constexpr uint32_t PIXEL_YCBCR420_UV_NUM = 2;
+    static constexpr float PIXEL_YCBCR420_BYTE = 1.5;
 
     virtual void OnBufferAvailable() override;
     SurfaceError DrawBufferColor();
@@ -41,6 +53,7 @@ public:
     const std::shared_ptr<HdiLayerInfo> GetHdiLayer();
     void SetTestClientStatus(bool status);
     void SetTestRotateStatus(bool status);
+    void SetTestYUVStatus(bool status);
     LayerType GetLayerType() const;
     sptr<SurfaceBuffer> GetPreBuffer() const
     {
@@ -67,10 +80,13 @@ private:
     LayerType layerType_ = LayerType::LAYER_EXTRA;
     bool testClient_ = false;
     bool testRotate_ = false;
+    bool testYUV_ = false;
 
     void DrawColor(void *image, int width, int height);
     void DrawExtraColor(void *image, uint32_t width, uint32_t height);
     void DrawBaseColor(void *image, uint32_t width, uint32_t height);
+    void DrawYUVColor(void *image, uint32_t width, uint32_t height, YUVPixel pixelValueYUV);
+    void ConvertRBGA2YUV(uint32_t pixelValueRBGA, YUVPixel *pixelValueYUV);
     void SetLayerTransformType();
     void SetLayerCompositionType();
 };

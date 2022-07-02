@@ -19,29 +19,6 @@ namespace OHOS {
 namespace Rosen {
 Mesh::Mesh()
 {
-    float vertices[] = {
-     1.0f,  1.0f, 0.0f,    1.0f, 1.0f,  // top right
-     1.0f, -1.0f, 0.0f,    1.0f, 0.0f,  // bottom right
-    -1.0f, -1.0f, 0.0f,    0.0f, 0.0f,  // bottom left
-    -1.0f,  1.0f, 0.0f,    0.0f, 1.0f   // top left 
-    };
-    unsigned int indices[] = {
-        0, 1, 3,  // first triangle
-        1, 2, 3   // second triangle
-    };
-    verticesSize_ = sizeof(vertices);
-    indicesSize_ = sizeof(indices);
-    verticesNumber_ = sizeof(vertices) / sizeof(float);
-    indicesNumber_ = sizeof(indices) / sizeof(unsigned int);
-
-    mVertices_ = new float[verticesNumber_];
-    mIndices_ = new unsigned int[indicesNumber_];
-    for (unsigned int i = 0; i < verticesNumber_; i++) {
-        mVertices_[i] = vertices[i];
-    }
-    for (unsigned int i = 0; i < indicesNumber_; i++) {
-        mIndices_[i] = indices[i];
-    }
     glGenVertexArrays(1, &VAO_);
     glGenBuffers(1, &VBO_);
     glGenBuffers(1, &EBO_);
@@ -49,8 +26,6 @@ Mesh::Mesh()
 
 Mesh::~Mesh()
 {
-    delete[] mVertices_;
-    delete[] mIndices_;
     Delete();
 }
 
@@ -59,10 +34,10 @@ void Mesh::Use()
     glBindVertexArray(VAO_);
 
     glBindBuffer(GL_ARRAY_BUFFER, VBO_);
-    glBufferData(GL_ARRAY_BUFFER, verticesSize_, mVertices_, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(VERTICES), VERTICES, GL_STATIC_DRAW);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO_);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indicesSize_, mIndices_, GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(INDICES), INDICES, GL_STATIC_DRAW);
 
     glVertexAttribPointer(0, DEFAULT_VERTEX_POINT_SIZE, GL_FLOAT, GL_FALSE, DEFAULT_STRIDE * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);

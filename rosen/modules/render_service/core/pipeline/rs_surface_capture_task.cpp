@@ -299,7 +299,7 @@ void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::ProcessCanvasRenderNode(RSCa
     node.ProcessRenderAfterChildren(*canvas_);
 }
 
-void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::PorcessSurfaceRenderNodeWithoutUni(RSSurfaceRenderNode &node)
+void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::ProcessSurfaceRenderNodeWithoutUni(RSSurfaceRenderNode &node)
 {
     if (node.GetSecurityLayer()) {
         RS_LOGD("RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::ProcessSurfaceRenderNode: \
@@ -387,7 +387,7 @@ void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::ProcessSurfaceRenderNode(RSS
     if (IsUniRender()) {
         ProcessSurfaceRenderNodeWithUni(node);
     } else {
-        PorcessSurfaceRenderNodeWithoutUni(node);
+        ProcessSurfaceRenderNodeWithoutUni(node);
     }
 }
 } // namespace Rosen

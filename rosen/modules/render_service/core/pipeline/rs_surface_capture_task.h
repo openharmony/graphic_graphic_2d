@@ -72,7 +72,7 @@ private:
 
     private:
         void ProcessSurfaceRenderNodeWithUni(RSSurfaceRenderNode &node);
-        void PorcessSurfaceRenderNodeWithoutUni(RSSurfaceRenderNode &node);
+        void ProcessSurfaceRenderNodeWithoutUni(RSSurfaceRenderNode &node);
         void DrawBufferOnCanvas(RSSurfaceRenderNode& node);
         void DrawSurface(RSSurfaceRenderNode &node);
         std::unique_ptr<RSPaintFilterCanvas> canvas_ = nullptr;

@@ -77,6 +77,8 @@ public:
     virtual int32_t GetActiveModePosByModeId(int32_t modeId) const = 0;
     virtual const HDRCapability& GetHDRCapability() const = 0;
     virtual const RSScreenType& GetScreenType() const = 0;
+    virtual void SetScreenSkipFrameInterval(uint32_t skipFrameInterval) = 0;
+    virtual uint32_t GetScreenSkipFrameInterval() const = 0;
 };
 
 namespace impl {
@@ -127,6 +129,8 @@ public:
     int32_t GetActiveModePosByModeId(int32_t modeId) const override;
     const HDRCapability& GetHDRCapability() const override;
     const RSScreenType& GetScreenType() const override;
+    void SetScreenSkipFrameInterval(uint32_t skipFrameInterval) override;
+    uint32_t GetScreenSkipFrameInterval() const override;
 
 private:
     // [PLANNING]: fixme -- domain 0 only for debug.
@@ -173,6 +177,7 @@ private:
     int32_t currentVirtualColorGamutIdx_ = 0;
     ScreenGamutMap currentVirtualGamutMap_ = GAMUT_MAP_CONSTANT;
     RSScreenType screenType_ = RSScreenType::UNKNOWN_TYPE_SCREEN;
+    uint32_t skipFrameInterval_ = DEFAULT_SKIP_FRAME_INTERVAL;
 };
 } // namespace impl
 } // namespace Rosen

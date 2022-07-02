@@ -44,13 +44,13 @@ void ImageTest::SetUp() {}
 void ImageTest::TearDown() {}
 
 /**
- * @tc.name: CreateAndDestory001
+ * @tc.name: CreateAndDestroy001
  * @tc.desc:
  * @tc.type: FUNC
  * @tc.require:AR000GGNV3
  * @tc.author:
  */
-HWTEST_F(ImageTest, CreateAndDestory001, TestSize.Level1)
+HWTEST_F(ImageTest, CreateAndDestroy001, TestSize.Level1)
 {
     // The best way to create Image.
     std::unique_ptr<Image> image = std::make_unique<Image>();
@@ -82,7 +82,7 @@ HWTEST_F(ImageTest, BuildFromBitmap001, TestSize.Level1)
 HWTEST_F(ImageTest, ImageGetWidthTest001, TestSize.Level1)
 {
     Bitmap bitmap;
-    BitmapFormat bitmapFormat { COLORTYPE_RGBA_8888, ALPHATYPE_OPAQUYE };
+    BitmapFormat bitmapFormat { COLORTYPE_RGBA_8888, ALPHATYPE_OPAQUE };
     bitmap.Build(10, 10, bitmapFormat);
     Image image;
     image.BuildFromBitmap(bitmap);
@@ -99,7 +99,7 @@ HWTEST_F(ImageTest, ImageGetWidthTest001, TestSize.Level1)
 HWTEST_F(ImageTest, ImageGetWidthTest002, TestSize.Level1)
 {
     Bitmap bitmap;
-    BitmapFormat bitmapFormat { COLORTYPE_RGBA_8888, ALPHATYPE_OPAQUYE };
+    BitmapFormat bitmapFormat { COLORTYPE_RGBA_8888, ALPHATYPE_OPAQUE };
     bitmap.Build(15, 15, bitmapFormat);
     Image image;
     image.BuildFromBitmap(bitmap);
@@ -116,7 +116,7 @@ HWTEST_F(ImageTest, ImageGetWidthTest002, TestSize.Level1)
 HWTEST_F(ImageTest, ImageGetHeightTest001, TestSize.Level1)
 {
     Bitmap bitmap;
-    BitmapFormat bitmapFormat { COLORTYPE_RGBA_8888, ALPHATYPE_OPAQUYE };
+    BitmapFormat bitmapFormat { COLORTYPE_RGBA_8888, ALPHATYPE_OPAQUE };
     bitmap.Build(10, 10, bitmapFormat);
     Image image;
     image.BuildFromBitmap(bitmap);
@@ -133,7 +133,7 @@ HWTEST_F(ImageTest, ImageGetHeightTest001, TestSize.Level1)
 HWTEST_F(ImageTest, ImageGetHeightTest002, TestSize.Level1)
 {
     Bitmap bitmap;
-    BitmapFormat bitmapFormat { COLORTYPE_RGBA_8888, ALPHATYPE_OPAQUYE };
+    BitmapFormat bitmapFormat { COLORTYPE_RGBA_8888, ALPHATYPE_OPAQUE };
     bitmap.Build(15, 15, bitmapFormat);
     Image image;
     image.BuildFromBitmap(bitmap);

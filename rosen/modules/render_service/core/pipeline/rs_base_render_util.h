@@ -21,6 +21,7 @@
 #include "hdi_backend.h"
 #include "hdi_layer_info.h"
 #include "pipeline/rs_base_render_node.h"
+#include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_surface_handler.h"
 
 #ifdef RS_ENABLE_EGLIMAGE
@@ -30,23 +31,9 @@
 
 
 namespace OHOS {
-struct ComposeInfo {
-    IRect srcRect;
-    IRect dstRect;
-    IRect visibleRect;
-    int32_t zOrder { 0 };
-    LayerAlpha alpha;
-    sptr<SurfaceBuffer> buffer;
-    sptr<SyncFence> fence = SyncFence::INVALID_FENCE;
-    BlendType blendType;
-    bool needClient;
-};
-
 namespace Rosen {
 class RSBaseRenderUtil {
 public:
-    static void ComposeSurface(std::shared_ptr<HdiLayerInfo> layer, sptr<Surface> consumerSurface,
-        std::vector<LayerInfoPtr>& layers, ComposeInfo info, RSBaseRenderNode* node = nullptr);
     static void DropFrameProcess(RSSurfaceHandler& surfaceHandler);
     static bool ConsumeAndUpdateBuffer(RSSurfaceHandler& surfaceHandler);
     static bool ReleaseBuffer(RSSurfaceHandler& surfaceHandler);

@@ -33,7 +33,7 @@ void AppendFormat(std::string& out, const char* fmt, Args&& ... args)
     char buf[STRING_BUFFER_SIZE] = {0};
     int len = ::snprintf_s(buf, sizeof(buf), sizeof(buf)-1, fmt, args...);
     if (len <= 0) {
-        HiviewDFX::HiLog::Error(TAG, "failed to excute snprintf.");
+        HiviewDFX::HiLog::Error(TAG, "failed to execute snprintf.");
         return;
     }
     out += buf;

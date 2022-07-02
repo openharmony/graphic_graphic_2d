@@ -37,13 +37,13 @@ void ColorMatrixTest::SetUp() {}
 void ColorMatrixTest::TearDown() {}
 
 /**
- * @tc.name: CreateAndDestory001
+ * @tc.name: CreateAndDestroy001
  * @tc.desc:
  * @tc.type: FUNC
  * @tc.require: AR000GGNV3
  * @tc.author:
  */
-HWTEST_F(ColorMatrixTest, CreateAndDestory001, TestSize.Level1)
+HWTEST_F(ColorMatrixTest, CreateAndDestroy001, TestSize.Level1)
 {
     auto colorMatrix = std::make_unique<ColorMatrix>();
     ASSERT_TRUE(colorMatrix != nullptr);
