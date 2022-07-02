@@ -161,8 +161,8 @@ private:
 
 class ImageWithParmOpItem : public OpItemWithPaint {
 public:
-    ImageWithParmOpItem(const sk_sp<SkImage> img, int fitNum, int repeatNum, float radius, const SkPaint& paint);
-    ImageWithParmOpItem(const sk_sp<SkImage> img, const Rosen::RsImageInfo& rsimageInfo, const SkPaint& paint);
+    ImageWithParmOpItem(const sk_sp<SkImage> img, const RsImageInfo& rsimageInfo, const SkPaint& paint);
+    ImageWithParmOpItem(const std::shared_ptr<RSImage>& rsImage, const SkPaint& paint);
 
     ~ImageWithParmOpItem() override {}
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;

@@ -350,18 +350,6 @@ void PaintOpItem::Draw(RSPaintFilterCanvas& canvas, const SkRect*) const
     canvas.drawPaint(paint_);
 }
 
-ImageWithParmOpItem::ImageWithParmOpItem(
-    const sk_sp<SkImage> img, int fitNum, int repeatNum, float radius, const SkPaint& paint)
-    : OpItemWithPaint(sizeof(ImageWithParmOpItem))
-{
-    rsImage_ = std::make_shared<RSImage>();
-    rsImage_->SetImage(img);
-    rsImage_->SetImageFit(fitNum);
-    rsImage_->SetImageRepeat(repeatNum);
-    rsImage_->SetRadius(radius);
-    paint_ = paint;
-}
-
 ImageWithParmOpItem::ImageWithParmOpItem(const sk_sp<SkImage> img,
     const RsImageInfo& rsimageInfo, const SkPaint& paint)
     : OpItemWithPaint(sizeof(ImageWithParmOpItem))
@@ -372,6 +360,12 @@ ImageWithParmOpItem::ImageWithParmOpItem(const sk_sp<SkImage> img,
     rsImage_->SetImageRepeat(rsimageInfo.repeatNum_);
     rsImage_->SetRadius(rsimageInfo.radius_);
     rsImage_->SetScale(rsimageInfo.scale_);
+    paint_ = paint;
+}
+
+ImageWithParmOpItem::ImageWithParmOpItem(const std::shared_ptr<RSImage>& rsImage, const SkPaint& paint)
+    : OpItemWithPaint(sizeof(ImageWithParmOpItem)), rsImage_(rsImage)
+{
     paint_ = paint;
 }
 
@@ -560,35 +554,23 @@ OpItem* RoundRectOpItem::Unmarshalling(Parcel& parcel)
 bool ImageWithParmOpItem::Marshalling(Parcel& parcel) const
 {
     bool success = true;
-    success &= rsImage_->Marshalling(parcel);
+    success &= RSMarshallingHelper::Marshalling(parcel, rsImage_);
     success &= RSMarshallingHelper::Marshalling(parcel, paint_);
     return success;
 }
 
 OpItem* ImageWithParmOpItem::Unmarshalling(Parcel& parcel)
 {
-    sk_sp<SkImage> img;
-    int fitNum;
-    int repeatNum;
-    float radius;
+    std::shared_ptr<RSImage> rsImage;
     SkPaint paint;
-    if (!RSMarshallingHelper::Unmarshalling(parcel, img)) {
-        return nullptr;
-    }
-    if (!RSMarshallingHelper::Unmarshalling(parcel, fitNum)) {
-        return nullptr;
-    }
-    if (!RSMarshallingHelper::Unmarshalling(parcel, repeatNum)) {
-        return nullptr;
-    }
-    if (!RSMarshallingHelper::Unmarshalling(parcel, radius)) {
+    if (!RSMarshallingHelper::Unmarshalling(parcel, rsImage)) {
         return nullptr;
     }
     if (!RSMarshallingHelper::Unmarshalling(parcel, paint)) {
         return nullptr;
     }
 
-    return new ImageWithParmOpItem(img, fitNum, repeatNum, radius, paint);
+    return new ImageWithParmOpItem(rsImage, paint);
 }
 
 // DRRectOpItem
