@@ -45,6 +45,7 @@
 #include "common/rs_matrix3.h"
 #include "common/rs_vector4.h"
 #include "pipeline/rs_draw_cmd_list.h"
+#include "pixel_map.h"
 #include "platform/common/rs_log.h"
 #include "render/rs_blur_filter.h"
 #include "render/rs_filter.h"
@@ -638,6 +639,7 @@ MARSHALLING_AND_UNMARSHALLING(RSRenderPathAnimation)
 MARSHALLING_AND_UNMARSHALLING(RSRenderTransition)
 MARSHALLING_AND_UNMARSHALLING(RSRenderTransitionEffect)
 MARSHALLING_AND_UNMARSHALLING(DrawCmdList)
+MARSHALLING_AND_UNMARSHALLING(Media::PixelMap)
 #undef MARSHALLING_AND_UNMARSHALLING
 
 #define MARSHALLING_AND_UNMARSHALLING(TEMPLATE)                                                    \

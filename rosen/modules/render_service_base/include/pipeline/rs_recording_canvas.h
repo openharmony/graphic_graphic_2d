@@ -30,6 +30,9 @@
 
 
 namespace OHOS {
+namespace Media {
+class PixelMap;
+}
 namespace Rosen {
 class DrawCmdList;
 class OpItem;
@@ -102,6 +105,13 @@ public:
     void ClipAdaptiveRRect(float radius);
     void DrawImageWithParm(const sk_sp<SkImage>, int, int, float, const SkPaint& paint);
     void DrawImageWithParm(const sk_sp<SkImage>, const Rosen::RsImageInfo& rsImageInfo, const SkPaint& paint);
+    void DrawPixelMap(const std::shared_ptr<Media::PixelMap>& pixelmap, SkScalar x, SkScalar y,
+        const SkPaint* paint = nullptr);
+    void DrawPixelMapRect(const std::shared_ptr<Media::PixelMap>& pixelmap, const SkRect& src, const SkRect& dst,
+        const SkPaint* paint, SrcRectConstraint constraint = kStrict_SrcRectConstraint);
+    void DrawPixelMapRect(const std::shared_ptr<Media::PixelMap>& pixelmap, const SkRect& dst, const SkPaint* paint);
+    void DrawPixelMapWithParm(
+        const std::shared_ptr<Media::PixelMap>& pixelmap, const Rosen::RsImageInfo& rsImageInfo, const SkPaint& paint);
 
     void MultiplyAlpha(float alpha);
     void SaveAlpha();
