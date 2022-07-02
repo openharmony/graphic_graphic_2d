@@ -13,8 +13,8 @@
 
 import("//build/ohos.gni")
 
-## Build hello_hardware_buffer {{{
-config("hello_hardware_buffer_config") {
+## Build hello_native_buffer {{{
+config("hello_native_buffer_config") {
   visibility = [ ":*" ]
 
   cflags = [
@@ -24,21 +24,21 @@ config("hello_hardware_buffer_config") {
   ]
 }
 
-config("hello_hardware_buffer_public_config") {
+config("hello_native_buffer_public_config") {
   include_dirs = [
     "//foundation/graphic/graphic_2d/interfaces/inner_api/surface",
     "//foundation/graphic/graphic_2d/frameworks/surface/include",
   ]
 }
 
-ohos_executable("hello_hardware_buffer") {
+ohos_executable("hello_native_buffer") {
   install_enable = true
 
-  sources = [ "hello_hardware_buffer.cpp" ]
+  sources = [ "hello_native_buffer.cpp" ]
 
-  configs = [ ":hello_hardware_buffer_config" ]
+  configs = [ ":hello_native_buffer_config" ]
 
-  public_configs = [ ":hello_hardware_buffer_public_config" ]
+  public_configs = [ ":hello_native_buffer_public_config" ]
 
   deps = [ "//foundation/graphic/graphic_2d/frameworks/surface:surface" ]
 
@@ -46,5 +46,5 @@ ohos_executable("hello_hardware_buffer") {
   subsystem_name = "graphic"
 }
 
-## Build hello_hardware_buffer }}}
+## Build hello_native_buffer }}}
 

@@ -1,9 +1,0 @@
-[
-    { "name": "OH_HardwareBuffer_HardwareBufferAlloc" },
-    { "name": "OH_HardwareBuffer_HardwareBufferReference" },
-    { "name": "OH_HardwareBuffer_HardwareBufferUnreference" },
-    { "name": "OH_HardwareBuffer_GetHardwareBufferConfig" },
-    { "name": "OH_HardwareBuffer_HardwareBufferMap" },
-    { "name": "OH_HardwareBuffer_HardwareBufferUnmap" },
-    { "name": "OH_HardwareBuffer_HardwareBufferGetSeqNum" }
-]

@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "hardware_buffer.h"
+#include "native_buffer.h"
 
 #include <cinttypes>
 #include <surface_type.h>
@@ -23,22 +23,17 @@
 
 using namespace OHOS;
 
-OHHardwareBuffer* HardwareBufferFromSurfaceBuffer(SurfaceBuffer* buffer)
+static OH_NativeBuffer* OH_NativeBufferFromSurfaceBuffer(SurfaceBuffer* buffer)
 {
-    return buffer->SurfaceBufferToHardwareBuffer();
+    return buffer->SurfaceBufferToNativeBuffer();
 }
 
-const SurfaceBuffer* OHHardwareBufferToSurfaceBuffer(const OHHardwareBuffer *buffer)
+static SurfaceBuffer* OH_NativeBufferToSurfaceBuffer(OH_NativeBuffer *buffer)
 {
-    return SurfaceBuffer::HardwareBufferToSurfaceBuffer(buffer);
+    return SurfaceBuffer::NativeBufferToSurfaceBuffer(buffer);
 }
 
-SurfaceBuffer* OHHardwareBufferToSurfaceBuffer(OHHardwareBuffer *buffer)
-{
-    return SurfaceBuffer::HardwareBufferToSurfaceBuffer(buffer);
-}
-
-OHHardwareBuffer* OH_HardwareBuffer_HardwareBufferAlloc(const OH_HardwareBuffer_Config* config)
+OH_NativeBuffer* OH_NativeBuffer_Alloc(const OH_NativeBuffer_Config* config)
 {
     if (config == nullptr) {
         BLOGE("parameter error, please check input parameter");
@@ -60,16 +55,16 @@ OHHardwareBuffer* OH_HardwareBuffer_HardwareBufferAlloc(const OH_HardwareBuffer_
         return nullptr;
     }
 
-    OHHardwareBuffer* buffer = HardwareBufferFromSurfaceBuffer(bufferImpl);
-    int32_t err = OH_HardwareBuffer_HardwareBufferReference(buffer);
+    OH_NativeBuffer* buffer = OH_NativeBufferFromSurfaceBuffer(bufferImpl);
+    int32_t err = OH_NativeBuffer_Reference(buffer);
     if (err != OHOS::GSERROR_OK) {
-        BLOGE("HardwareBufferReference failed");
+        BLOGE("NativeBufferReference failed");
         return nullptr;
     }
     return buffer;
 }
 
-int32_t OH_HardwareBuffer_HardwareBufferReference(OHHardwareBuffer *buffer)
+int32_t OH_NativeBuffer_Reference(OH_NativeBuffer *buffer)
 {
     if (buffer == nullptr) {
         BLOGE("parameter error, please check input parameter");
@@ -80,7 +75,7 @@ int32_t OH_HardwareBuffer_HardwareBufferReference(OHHardwareBuffer *buffer)
     return OHOS::GSERROR_OK;
 }
 
-int32_t OH_HardwareBuffer_HardwareBufferUnreference(OHHardwareBuffer *buffer)
+int32_t OH_NativeBuffer_Unreference(OH_NativeBuffer *buffer)
 {
     if (buffer == nullptr) {
         BLOGE("parameter error, please check input parameter");
@@ -91,26 +86,26 @@ int32_t OH_HardwareBuffer_HardwareBufferUnreference(OHHardwareBuffer *buffer)
     return OHOS::GSERROR_OK;
 }
 
-void OH_HardwareBuffer_GetHardwareBufferConfig(OHHardwareBuffer *buffer, OH_HardwareBuffer_Config* config)
+void OH_NativeBuffer_GetConfig(OH_NativeBuffer *buffer, OH_NativeBuffer_Config* config)
 {
     if (buffer == nullptr || config == nullptr) {
         BLOGE("parameter error, please check input parameter");
         return;
     }
-    const SurfaceBuffer* sbuffer = OHHardwareBufferToSurfaceBuffer(buffer);
+    const SurfaceBuffer* sbuffer = OH_NativeBufferToSurfaceBuffer(buffer);
     config->width = sbuffer->GetWidth();
     config->height = sbuffer->GetHeight();
     config->format = sbuffer->GetFormat();
     config->usage = sbuffer->GetUsage();
 }
 
-int32_t OH_HardwareBuffer_HardwareBufferMap(OHHardwareBuffer *buffer, void **virAddr)
+int32_t OH_NativeBuffer_Map(OH_NativeBuffer *buffer, void **virAddr)
 {
     if (buffer == nullptr) {
         BLOGE("parameter error, please check input parameter");
         return OHOS::GSERROR_INVALID_ARGUMENTS;
     }
-    SurfaceBuffer* sbuffer = OHHardwareBufferToSurfaceBuffer(buffer);
+    SurfaceBuffer* sbuffer = OH_NativeBufferToSurfaceBuffer(buffer);
     int32_t ret = sbuffer->Map();
     if (ret == OHOS::GSERROR_OK) {
         *virAddr = sbuffer->GetVirAddr();
@@ -118,22 +113,22 @@ int32_t OH_HardwareBuffer_HardwareBufferMap(OHHardwareBuffer *buffer, void **vir
     return ret;
 }
 
-int32_t OH_HardwareBuffer_HardwareBufferUnmap(OHHardwareBuffer *buffer)
+int32_t OH_NativeBuffer_Unmap(OH_NativeBuffer *buffer)
 {
     if (buffer == nullptr) {
         BLOGE("parameter error, please check input parameter");
         return OHOS::GSERROR_INVALID_ARGUMENTS;
     }
-    SurfaceBuffer* sbuffer = OHHardwareBufferToSurfaceBuffer(buffer);
+    SurfaceBuffer* sbuffer = OH_NativeBufferToSurfaceBuffer(buffer);
     return sbuffer->Unmap();
 }
 
-uint32_t OH_HardwareBuffer_HardwareBufferGetSeqNum(OHHardwareBuffer *buffer)
+uint32_t OH_NativeBuffer_GetSeqNum(OH_NativeBuffer *buffer)
 {
     if (buffer == nullptr) {
         BLOGE("parameter error, please check input parameter");
         return OHOS::GSERROR_INVALID_ARGUMENTS;
     }
-    const SurfaceBuffer* sbuffer = OHHardwareBufferToSurfaceBuffer(buffer);
+    const SurfaceBuffer* sbuffer = OH_NativeBufferToSurfaceBuffer(buffer);
     return sbuffer->GetSeqNum();
 }

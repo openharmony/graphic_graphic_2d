@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "hardware_buffer.h"
+#include "native_buffer.h"
 
 #include <cstddef>
 #include <iostream>
@@ -28,16 +28,16 @@ using namespace OHOS;
 
 namespace {
 #define LOGI(fmt, ...) ::OHOS::HiviewDFX::HiLog::Info(            \
-    ::OHOS::HiviewDFX::HiLogLabel {LOG_CORE, 0, "HelloHardwareBuffer"}, \
+    ::OHOS::HiviewDFX::HiLogLabel {LOG_CORE, 0, "HelloNativeBuffer"}, \
     "%{public}s: " fmt, __func__, ##__VA_ARGS__)
 
 #define LOGE(fmt, ...) ::OHOS::HiviewDFX::HiLog::Error(           \
-    ::OHOS::HiviewDFX::HiLogLabel {LOG_CORE, 0, "HelloHardwareBuffer"}, \
+    ::OHOS::HiviewDFX::HiLogLabel {LOG_CORE, 0, "HelloNativeBuffer"}, \
     "%{public}s: " fmt, __func__, ##__VA_ARGS__)
 
 constexpr uint32_t HARDWARE_BUFFER_REFERENCE_TWICE = 2;
 
-OH_HardwareBuffer_Config config {
+OH_NativeBuffer_Config config {
     .width = 0x100,
     .height = 0x100,
     .format = PIXEL_FMT_RGBA_8888,
@@ -45,78 +45,78 @@ OH_HardwareBuffer_Config config {
 };
 }
 
-void CompareOHHardwareBufferConfig(OH_HardwareBuffer_Config &config, OH_HardwareBuffer_Config &checkConfig)
+void CompareOH_NativeBufferConfig(OH_NativeBuffer_Config &config, OH_NativeBuffer_Config &checkConfig)
 {
     if (config.width != checkConfig.width) {
-        LOGE("OHHardwareBufferConfig width different");
+        LOGE("OH_NativeBufferConfig width different");
     }
     if (config.height != checkConfig.height) {
-        LOGE("OHHardwareBufferConfig height different");
+        LOGE("OH_NativeBufferConfig height different");
     }
     if (config.format != checkConfig.format) {
-        LOGE("OHHardwareBufferConfig format different");
+        LOGE("OH_NativeBufferConfig format different");
     }
     if (config.usage != checkConfig.usage) {
-        LOGE("OHHardwareBufferConfig usage different");
+        LOGE("OH_NativeBufferConfig usage different");
     }
 }
 
 int32_t main(int32_t argc, const char *argv[])
 {
     LOGI("sample start");
-    OHHardwareBuffer* buffer = OH_HardwareBuffer_HardwareBufferAlloc(&config);
+    OH_NativeBuffer* buffer = OH_NativeBuffer_Alloc(&config);
     if (buffer == nullptr) {
-        LOGE("HardwareBufferAlloc failed");
+        LOGE("NativeBufferAlloc failed");
     }
 
-    int32_t ret = OH_HardwareBuffer_HardwareBufferReference(buffer);
+    int32_t ret = OH_NativeBuffer_Reference(buffer);
     if (ret != OHOS::GSERROR_OK) {
-        LOGE("HardwareBufferReference failed");
+        LOGE("NativeBufferReference failed");
     }
 
-    OH_HardwareBuffer_Config checkConfig = {};
-    OH_HardwareBuffer_GetHardwareBufferConfig(buffer, &checkConfig);
-    CompareOHHardwareBufferConfig(config, checkConfig);
+    OH_NativeBuffer_Config checkConfig = {};
+    OH_NativeBuffer_GetConfig(buffer, &checkConfig);
+    CompareOH_NativeBufferConfig(config, checkConfig);
 
-    uint32_t hwBufferID = OH_HardwareBuffer_HardwareBufferGetSeqNum(buffer);
-    OHOS::SurfaceBuffer *sfBuffer = SurfaceBuffer::HardwareBufferToSurfaceBuffer(buffer);
+    uint32_t hwBufferID = OH_NativeBuffer_GetSeqNum(buffer);
+    OHOS::SurfaceBuffer *sfBuffer = SurfaceBuffer::NativeBufferToSurfaceBuffer(buffer);
     uint32_t sfBufferID = sfBuffer->GetSeqNum();
     if (hwBufferID != sfBufferID) {
-        LOGE("HardwareBufferGetSeqNum occured error");
+        LOGE("NativeBufferGetSeqNum occured error");
     }
 
     if (sfBuffer->GetSptrRefCount() != HARDWARE_BUFFER_REFERENCE_TWICE) {
-        LOGE("HardwareBufferReference occured error");
+        LOGE("NativeBufferReference occured error");
     }
 
     void *virAddr = nullptr;
-    ret = OH_HardwareBuffer_HardwareBufferMap(buffer, &virAddr);
+    ret = OH_NativeBuffer_Map(buffer, &virAddr);
     if (ret != OHOS::GSERROR_OK) {
-        LOGE("HardwareBufferMap failed");
+        LOGE("NativeBufferMap failed");
     }
 
     void *sfVirAddr = sfBuffer->GetVirAddr();
     if (sfVirAddr != virAddr) {
-        LOGE("HardwareBufferMap occured error");
+        LOGE("NativeBufferMap occured error");
     }
 
-    ret = OH_HardwareBuffer_HardwareBufferUnreference(buffer);
+    ret = OH_NativeBuffer_Unreference(buffer);
     if (ret != OHOS::GSERROR_OK) {
-        LOGE("HardwareBufferUnreference failed");
+        LOGE("NativeBufferUnreference failed");
     }
 
     if (sfBuffer->GetSptrRefCount() != 1) {
-        LOGE("HardwareBufferUnreference occured error");
+        LOGE("NativeBufferUnreference occured error");
     }
 
-    ret = OH_HardwareBuffer_HardwareBufferUnmap(buffer);
+    ret = OH_NativeBuffer_Unmap(buffer);
     if (ret != OHOS::GSERROR_OK) {
-        LOGE("HardwareBufferUnmap failed");
+        LOGE("NativeBufferUnmap failed");
     }
 
-    ret = OH_HardwareBuffer_HardwareBufferUnreference(buffer);
+    ret = OH_NativeBuffer_Unreference(buffer);
     if (ret != OHOS::GSERROR_OK) {
-        LOGE("HardwareBufferUnreference failed");
+        LOGE("NativeBufferUnreference failed");
     }
     LOGI("sample end");
     return 0;

@@ -24,6 +24,7 @@
 #include "buffer_log.h"
 #include "buffer_manager.h"
 #include "buffer_extra_data_impl.h"
+#include "native_buffer.h"
 
 namespace OHOS {
 namespace {
@@ -456,9 +457,9 @@ GSError SurfaceBufferImpl::ReadFromMessageParcel(MessageParcel &parcel)
     return GSERROR_OK;
 }
 
-HardwareBuffer* SurfaceBufferImpl::SurfaceBufferToHardwareBuffer()
+OH_NativeBuffer* SurfaceBufferImpl::SurfaceBufferToNativeBuffer()
 {
-    return reinterpret_cast<HardwareBuffer *>(this);
+    return reinterpret_cast<OH_NativeBuffer *>(this);
 }
 
 uint32_t SurfaceBufferImpl::GetSeqNum() const

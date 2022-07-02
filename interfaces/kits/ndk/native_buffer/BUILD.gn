@@ -14,21 +14,19 @@
 import("//build/ohos.gni")
 import("//build/ohos/ndk/ndk.gni")
 
-ohos_ndk_headers("hardware_buffer_header") {
-  dest_dir = "$ndk_headers_out_dir/hardware_buffer"
+ohos_ndk_headers("native_buffer_header") {
+  dest_dir = "$ndk_headers_out_dir/native_buffer"
   sources = [
-    "//foundation/graphic/graphic_2d/interfaces/inner_api/surface/external_buffer.h",
-    "//foundation/graphic/graphic_2d/interfaces/inner_api/surface/hardware_buffer.h",
+    "//foundation/graphic/graphic_2d/interfaces/inner_api/surface/native_buffer.h",
   ]
 }
 
-ohos_ndk_library("libhardware_buffer_ndk") {
-  output_name = "hardware_buffer"
+ohos_ndk_library("libnative_buffer_ndk") {
+  output_name = "native_buffer"
   output_extension = "so"
-  ndk_description_file = "./libhardware_buffer.ndk.json"
-  system_capability = "SystemCapability.Graphic.Graphic2D.HardwareBuffer"
+  ndk_description_file = "./libnative_buffer.ndk.json"
+  system_capability = "SystemCapability.Graphic.Graphic2D.NativeBuffer"
   system_capability_headers = [
-    "hardware_buffer/external_buffer.h",
-    "hardware_buffer/hardware_buffer.h",
+    "native_buffer/native_buffer.h",
   ]
 }
