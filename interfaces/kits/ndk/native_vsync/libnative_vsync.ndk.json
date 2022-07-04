@@ -1,5 +1,5 @@
 [
-    { "name": "OH_NativeVSync_CreateOHNativeVSync" },
-    { "name": "OH_NativeVSync_DestroyOHNativeVSync" },
-    { "name": "OH_NativeVSync_OHNativeVSyncRequestFrame" }
+    { "name": "OH_NativeVSync_Create" },
+    { "name": "OH_NativeVSync_Destroy" },
+    { "name": "OH_NativeVSync_RequestFrame" }
 ]

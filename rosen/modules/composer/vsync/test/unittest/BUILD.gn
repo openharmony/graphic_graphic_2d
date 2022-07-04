@@ -19,6 +19,7 @@ group("unittest") {
   testonly = true
 
   deps = [
+    ":native_vsync_test",
     ":vsync_connection_test",
     ":vsync_controller_test",
     ":vsync_distributor_test",
@@ -94,6 +95,17 @@ ohos_unittest("vsync_sampler_test") {
 
 ## UnitTest vsync_sampler_test }}}
 
+## UnitTest native {{{
+ohos_unittest("native_vsync_test") {
+  module_out_path = module_out_path
+
+  sources = [ "native_vsync_test.cpp" ]
+
+  deps = [ ":vsync_test_common" ]
+}
+
+## UnitTest vsync_connection_test }}}
+
 ## Build vsync_test_common.a {{{
 config("vsync_test_common_public_config") {
   include_dirs = [
@@ -117,6 +129,7 @@ ohos_static_library("vsync_test_common") {
   public_configs = [ ":vsync_test_common_public_config" ]
 
   public_deps = [
+    "//foundation/graphic/graphic_2d/rosen/modules/composer/native_vsync:libnative_vsync",
     "//foundation/graphic/graphic_2d/rosen/modules/composer/vsync:libvsync",
     "//third_party/googletest:gmock_main",
     "//third_party/googletest:gtest_main",
