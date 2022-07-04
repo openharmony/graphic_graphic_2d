@@ -49,10 +49,6 @@ class RSCommand {
 public:
     virtual ~RSCommand() noexcept = default;
     virtual void Process(RSContext& context) = 0;
-    virtual std::string PrintType() const
-    {
-        return "RSCommand";
-    }
 
     virtual uint16_t GetType() const
     {
@@ -62,6 +58,11 @@ public:
     virtual uint16_t GetSubType() const
     {
         return 0;
+    }
+
+    std::string PrintType() const
+    {
+        return "commandType:[" + std::to_string(GetType()) + ", " + std::to_string(GetSubType()) + "], ";
     }
 };
 

@@ -24,14 +24,14 @@ namespace OHOS {
 namespace Rosen {
 class RSUIDirector;
 
-// avoiding C++ macros spilting parameters
+// avoiding C++ macros spliting parameters
 #ifndef ARG
 #define ARG(...) __VA_ARGS__
 #endif
 
 // Add new RSCommand as alias of template class
 // Explicit instantiating templates will register the unmarshalling function into RSCommandFactory.
-// To avoid redundant registary, make sure templates only instantiated once.
+// To avoid redundant registry, make sure templates only instantiated once.
 #ifdef ROSEN_INSTANTIATE_COMMAND_TEMPLATE
 #define ADD_COMMAND(ALIAS, TYPE)           \
     using ALIAS = RSCommandTemplate<TYPE>; \
@@ -46,13 +46,8 @@ class RSCommandTemplate;
 template<uint16_t commandType, uint16_t commandSubType, auto processFunc>
 class RSCommandTemplate<commandType, commandSubType, processFunc> : public RSCommand {
 public:
-    RSCommandTemplate() {}
-    virtual ~RSCommandTemplate() = default;
-    std::string PrintType() const override
-    {
-        return "commandType:[" + std::to_string(commandType) + ", " + std::to_string
-            (commandSubType) + "], ";
-    }
+    RSCommandTemplate() = default;
+    ~RSCommandTemplate() override = default;
     uint16_t GetType() const override
     {
         return commandType;
@@ -89,12 +84,7 @@ template<uint16_t commandType, uint16_t commandSubType, auto processFunc, typena
 class RSCommandTemplate<commandType, commandSubType, processFunc, T1> : public RSCommand {
 public:
     RSCommandTemplate(const T1& p1) : parameter1_(p1) {}
-    virtual ~RSCommandTemplate() = default;
-    std::string PrintType() const override
-    {
-        return "commandType:[" + std::to_string(commandType) + ", " + std::to_string
-            (commandSubType) + "], ";
-    }
+    ~RSCommandTemplate() override = default;
     uint16_t GetType() const override
     {
         return commandType;
@@ -137,12 +127,7 @@ template<uint16_t commandType, uint16_t commandSubType, auto processFunc, typena
 class RSCommandTemplate<commandType, commandSubType, processFunc, T1, T2> : public RSCommand {
 public:
     RSCommandTemplate(const T1& p1, const T2& p2) : parameter1_(p1), parameter2_(p2) {}
-    virtual ~RSCommandTemplate() = default;
-    std::string PrintType() const override
-    {
-        return "commandType:[" + std::to_string(commandType) + ", " + std::to_string
-            (commandSubType) + "], ";
-    }
+    ~RSCommandTemplate() override = default;
     uint16_t GetType() const override
     {
         return commandType;
@@ -191,12 +176,7 @@ template<uint16_t commandType, uint16_t commandSubType, auto processFunc, typena
 class RSCommandTemplate<commandType, commandSubType, processFunc, T1, T2, T3> : public RSCommand {
 public:
     RSCommandTemplate(const T1& p1, const T2& p2, const T3& p3) : parameter1_(p1), parameter2_(p2), parameter3_(p3) {}
-    virtual ~RSCommandTemplate() = default;
-    std::string PrintType() const override
-    {
-        return "commandType:[" + std::to_string(commandType) + ", " + std::to_string
-            (commandSubType) + "], ";
-    }
+    ~RSCommandTemplate() override = default;
     uint16_t GetType() const override
     {
         return commandType;
@@ -254,12 +234,7 @@ public:
     RSCommandTemplate(const T1& p1, const T2& p2, const T3& p3, const T4& p4)
         : parameter1_(p1), parameter2_(p2), parameter3_(p3), parameter4_(p4)
     {}
-    virtual ~RSCommandTemplate() = default;
-    std::string PrintType() const override
-    {
-        return "commandType:[" + std::to_string(commandType) + ", " + std::to_string
-            (commandSubType) + "], ";
-    }
+    ~RSCommandTemplate() override = default;
     uint16_t GetType() const override
     {
         return commandType;
@@ -315,163 +290,6 @@ private:
     T3 parameter3_;
     T4 parameter4_;
 };
-
-template<uint16_t commandType, uint16_t commandSubType, auto processFunc, typename T1, typename T2, typename T3,
-    typename T4, typename T5>
-class RSCommandTemplate<commandType, commandSubType, processFunc, T1, T2, T3, T4, T5> : public RSCommand {
-public:
-    RSCommandTemplate(const T1& p1, const T2& p2, const T3& p3, const T4& p4, const T5& p5)
-        : parameter1_(p1), parameter2_(p2), parameter3_(p3), parameter4_(p4), parameter5_(p5)
-    {}
-    virtual ~RSCommandTemplate() = default;
-    std::string PrintType() const override
-    {
-        return "commandType:[" + std::to_string(commandType) + ", " + std::to_string
-            (commandSubType) + "], ";
-    }
-    uint16_t GetType() const override
-    {
-        return commandType;
-    }
-    uint16_t GetSubType() const override
-    {
-        return commandSubType;
-    }
-
-#ifdef ROSEN_OHOS
-    bool Marshalling(Parcel& parcel) const override
-    {
-        return RSMarshallingHelper::Marshalling(parcel, commandType) &&
-            RSMarshallingHelper::Marshalling(parcel, commandSubType) &&
-            RSMarshallingHelper::Marshalling(parcel, parameter1_) &&
-            RSMarshallingHelper::Marshalling(parcel, parameter2_) &&
-            RSMarshallingHelper::Marshalling(parcel, parameter3_) &&
-            RSMarshallingHelper::Marshalling(parcel, parameter4_) &&
-            RSMarshallingHelper::Marshalling(parcel, parameter5_);
-    }
-
-    static RSCommand* Unmarshalling(Parcel& parcel)
-    {
-        T1 parameter1;
-        T2 parameter2;
-        T3 parameter3;
-        T4 parameter4;
-        T5 parameter5;
-        if (!RSMarshallingHelper::Unmarshalling(parcel, parameter1)) {
-            return nullptr;
-        }
-        if (!RSMarshallingHelper::Unmarshalling(parcel, parameter2)) {
-            return nullptr;
-        }
-        if (!RSMarshallingHelper::Unmarshalling(parcel, parameter3)) {
-            return nullptr;
-        }
-        if (!RSMarshallingHelper::Unmarshalling(parcel, parameter4)) {
-            return nullptr;
-        }
-        if (!RSMarshallingHelper::Unmarshalling(parcel, parameter5)) {
-            return nullptr;
-        }
-        return new RSCommandTemplate(parameter1, parameter2, parameter3, parameter4, parameter5);
-    }
-
-    static inline RSCommandRegister<commandType, commandSubType, Unmarshalling> registry;
-#endif // ROSEN_OHOS
-
-    void Process(RSContext& context) override
-    {
-        (*processFunc)(context, parameter1_, parameter2_, parameter3_, parameter4_, parameter5_);
-    }
-
-private:
-    T1 parameter1_;
-    T2 parameter2_;
-    T3 parameter3_;
-    T4 parameter4_;
-    T5 parameter5_;
-};
-
-template<uint16_t commandType, uint16_t commandSubType, auto processFunc, typename T1, typename T2, typename T3,
-    typename T4, typename T5, typename T6>
-class RSCommandTemplate<commandType, commandSubType, processFunc, T1, T2, T3, T4, T5, T6> : public RSCommand {
-public:
-    RSCommandTemplate(const T1& p1, const T2& p2, const T3& p3, const T4& p4, const T5& p5, const T6& p6)
-        : parameter1_(p1), parameter2_(p2), parameter3_(p3), parameter4_(p4), parameter5_(p5), parameter6_(p6)
-    {}
-    virtual ~RSCommandTemplate() = default;
-    std::string PrintType() const override
-    {
-        return "commandType:[" + std::to_string(commandType) + ", " + std::to_string
-            (commandSubType) + "], ";
-    }
-    uint16_t GetType() const override
-    {
-        return commandType;
-    }
-    uint16_t GetSubType() const override
-    {
-        return commandSubType;
-    }
-
-#ifdef ROSEN_OHOS
-    bool Marshalling(Parcel& parcel) const override
-    {
-        return RSMarshallingHelper::Marshalling(parcel, commandType) &&
-            RSMarshallingHelper::Marshalling(parcel, commandSubType) &&
-            RSMarshallingHelper::Marshalling(parcel, parameter1_) &&
-            RSMarshallingHelper::Marshalling(parcel, parameter2_) &&
-            RSMarshallingHelper::Marshalling(parcel, parameter3_) &&
-            RSMarshallingHelper::Marshalling(parcel, parameter4_) &&
-            RSMarshallingHelper::Marshalling(parcel, parameter5_) &&
-            RSMarshallingHelper::Marshalling(parcel, parameter6_);
-    }
-
-    static RSCommand* Unmarshalling(Parcel& parcel)
-    {
-        T1 parameter1;
-        T2 parameter2;
-        T3 parameter3;
-        T4 parameter4;
-        T5 parameter5;
-        T6 parameter6;
-        if (!RSMarshallingHelper::Unmarshalling(parcel, parameter1)) {
-            return nullptr;
-        }
-        if (!RSMarshallingHelper::Unmarshalling(parcel, parameter2)) {
-            return nullptr;
-        }
-        if (!RSMarshallingHelper::Unmarshalling(parcel, parameter3)) {
-            return nullptr;
-        }
-        if (!RSMarshallingHelper::Unmarshalling(parcel, parameter4)) {
-            return nullptr;
-        }
-        if (!RSMarshallingHelper::Unmarshalling(parcel, parameter5)) {
-            return nullptr;
-        }
-        if (!RSMarshallingHelper::Unmarshalling(parcel, parameter6)) {
-            return nullptr;
-        }
-        return new RSCommandTemplate(parameter1, parameter2, parameter3, parameter4, parameter5, parameter6);
-    }
-
-    static inline RSCommandRegister<commandType, commandSubType, Unmarshalling> registry;
-#endif // ROSEN_OHOS
-
-    void Process(RSContext& context) override
-    {
-        (*processFunc)(context, parameter1_, parameter2_, parameter3_, parameter4_, parameter5_, parameter6_);
-    }
-
-private:
-    T1 parameter1_;
-    T2 parameter2_;
-    T3 parameter3_;
-    T4 parameter4_;
-    T5 parameter5_;
-    T6 parameter6_;
-};
-
 } // namespace Rosen
 } // namespace OHOS
 
