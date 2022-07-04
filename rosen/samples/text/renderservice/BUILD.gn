@@ -14,7 +14,7 @@
 import("//build/ohos.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
-ohos_executable("rendertest") {
+ohos_executable("drawing_text_sample") {
   install_enable = true
 
   sources = [ "drawing_text_c_sample.cpp" ]
@@ -22,25 +22,14 @@ ohos_executable("rendertest") {
   include_dirs = [
     "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics/include",
     "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics/src",
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base",
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/src",
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/include",
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_client",
-    "//foundation/graphic/graphic_2d/interfaces/inner_api/vsync_module",
-    "//foundation/graphic/graphic_2d/rosen/include/common",
-    "//foundation/windowmanager/interfaces/innerkits/wm",
-    "//foundation/graphic/graphic_2d/rosen/2d_engine/ui",
   ]
 
   configs = [ "//foundation/graphic/graphic_2d/rosen/modules/2d_engine/rosen_text/ui:rosen_text_ui_config" ]
 
   deps = [
-    "//foundation/graphic/graphic_2d:libvsync_client",
     "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics:2d_graphics",
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:librender_service_base",
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:librender_service_client",
-    "//foundation/windowmanager/wm:libwm",
-    "//third_party/zlib:libz",
   ]
 
   external_deps = [
