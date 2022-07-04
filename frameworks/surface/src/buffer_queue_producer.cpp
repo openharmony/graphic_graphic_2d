@@ -133,7 +133,6 @@ int32_t BufferQueueProducer::CancelBufferRemote(MessageParcel &arguments, Messag
 
 int32_t BufferQueueProducer::FlushBufferRemote(MessageParcel &arguments, MessageParcel &reply, MessageOption &option)
 {
-    sptr<SyncFence> fence = SyncFence::INVALID_FENCE;
     uint32_t sequence;
     BufferFlushConfig config;
     sptr<BufferExtraData> bedataimpl = new BufferExtraDataImpl;
@@ -141,7 +140,7 @@ int32_t BufferQueueProducer::FlushBufferRemote(MessageParcel &arguments, Message
     sequence = arguments.ReadUint32();
     bedataimpl->ReadFromParcel(arguments);
 
-    fence->ReadFromMessageParcel(arguments);
+    sptr<SyncFence> fence = SyncFence::ReadFromMessageParcel(arguments);
     ReadFlushConfig(arguments, config);
 
     GSError sret = FlushBuffer(sequence, bedataimpl, fence, config);

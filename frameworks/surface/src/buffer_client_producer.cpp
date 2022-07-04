@@ -77,8 +77,7 @@ GSError BufferClientProducer::RequestBuffer(const BufferRequestConfig &config, s
 
     ReadSurfaceBufferImpl(reply, retval.sequence, retval.buffer);
     bedata->ReadFromParcel(reply);
-    retval.fence = SyncFence::INVALID_FENCE;
-    retval.fence->ReadFromMessageParcel(reply);
+    retval.fence = SyncFence::ReadFromMessageParcel(reply);
     reply.ReadInt32Vector(&retval.deletingBuffers);
     return GSERROR_OK;
 }
