@@ -451,6 +451,11 @@ GSError SurfaceBufferImpl::ReadFromMessageParcel(MessageParcel &parcel)
     return GSERROR_OK;
 }
 
+HardwareBuffer* SurfaceBufferImpl::SurfaceBufferToHardwareBuffer()
+{
+    return reinterpret_cast<HardwareBuffer *>(this);
+}
+
 uint32_t SurfaceBufferImpl::GetSeqNum() const
 {
     return sequenceNumber_;

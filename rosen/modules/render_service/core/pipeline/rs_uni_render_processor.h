@@ -27,7 +27,7 @@ public:
     RSUniRenderProcessor();
     ~RSUniRenderProcessor() override;
 
-    bool Init(ScreenId id, int32_t offsetX, int32_t offsetY) override;
+    bool Init(ScreenId id, int32_t offsetX, int32_t offsetY, ScreenId mirroredId) override;
     void ProcessSurface(RSSurfaceRenderNode& node) override;
     void ProcessDisplaySurface(RSDisplayRenderNode& node) override;
     void PostProcess() override;

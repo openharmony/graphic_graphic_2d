@@ -17,7 +17,7 @@
 
 namespace OHOS {
 namespace Rosen {
-ImageChain::ImageChain(std::vector<std::shared_ptr<Input> > inputs) : inputs_(inputs)
+ImageChain::ImageChain(std::vector<std::shared_ptr<Input>> inputs) : inputs_(inputs)
 {
     CreatTexture(srcTextureID_);
     CreatTexture(dstTextureID_);
@@ -28,21 +28,27 @@ ImageChain::ImageChain(std::vector<std::shared_ptr<Input> > inputs) : inputs_(in
     }
 }
 
-void ImageChain::Render()
+bool ImageChain::Render()
 {
+    ProcessData data {srcTextureID_, dstTextureID_, frameBufferID_, 0, 0};
     if (flagSeries_) {
-        ProcessData data {srcTextureID_, dstTextureID_, frameBufferID_, 0, 0};
-        SeriesRendering(data);
+        return SeriesRendering(data);
     }
 
-    if (!flagSeries_) {
-        ParallelRendering();
+    if (inputs_.size() == 0) {
+        return false;
     }
+    return ParallelRendering();
 }
 
-void ImageChain::SeriesRendering(ProcessData& data)
+bool ImageChain::SeriesRendering(ProcessData& data)
 {
-    inputs_.at(0)->Process(data);
+    return inputs_.at(0)->Process(data);
+}
+
+bool ImageChain::ParallelRendering()
+{
+    return false;
 }
 
 void ImageChain::CreatTexture(unsigned int& textureID)

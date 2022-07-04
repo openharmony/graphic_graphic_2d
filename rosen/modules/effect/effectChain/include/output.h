@@ -23,31 +23,27 @@
 
 namespace OHOS {
 namespace Rosen {
-#pragma pack(2)
-
-struct RGBAColor {
-    unsigned char R;
-    unsigned char G;
-    unsigned char B;
-    unsigned char A;
-};
-
-#pragma pack()
-
 class Output : public AlgoFilter {
 public:
+    static constexpr int COLOR_CHANNEL = 4;
     Output();
-    virtual ~Output();
-    void SetValue(const std::string& key, void *value, int size) override;
-    void DoProcess(ProcessData& data) override;
+    virtual ~Output() {};
+    void SetValue(const std::string& key, std::shared_ptr<void> value, int size) override;
     std::string GetVertexShader() override;
     std::string GetFragmentShader() override;
     virtual FILTER_TYPE GetFilterType() override;
+    std::unique_ptr<OHOS::Media::PixelMap> GetPixelMap();
+    std::shared_ptr<uint8_t> GetColorBuffer();
 
 protected:
+    void DoProcess(ProcessData& data) override;
+    void EncodeToFile(ProcessData& data);
+    void EncodeToPixelMap(ProcessData& data);
+    void WriteToBuffer(ProcessData& data);
     std::string format_;
     std::string dstImagePath_;
-    RGBAColor* colorBuffer = nullptr;
+    std::unique_ptr<OHOS::Media::PixelMap> pixelMap_ = nullptr;
+    std::shared_ptr<uint8_t> colorBuffer_ = nullptr;
 
 private:
     void LoadFilterParams() override {};

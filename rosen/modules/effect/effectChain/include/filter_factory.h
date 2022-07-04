@@ -19,17 +19,16 @@
 #include <memory>
 #include <unordered_set>
 #include <string>
-#include "cJSON.h"
 #include "filter.h"
 
 namespace OHOS {
 namespace Rosen {
 class FilterFactory {
 public:
-    std::shared_ptr<Filter> GetFilter(cJSON* type);
+    std::shared_ptr<Filter> GetFilter(std::string filterType);
 
 private:
-    std::unordered_set<std::string> algoFilterSet_ {
+    std::unordered_set<std::string> filterSet_ {
         "Input",
         "Output",
         "GaussianBlur",

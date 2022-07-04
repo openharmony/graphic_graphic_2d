@@ -30,13 +30,14 @@ RSPhysicalScreenProcessor::~RSPhysicalScreenProcessor() noexcept
 {
 }
 
-bool RSPhysicalScreenProcessor::Init(ScreenId id, int32_t offsetX, int32_t offsetY)
+bool RSPhysicalScreenProcessor::Init(ScreenId id, int32_t offsetX, int32_t offsetY, ScreenId mirroredId)
 {
-    if (!RSProcessor::Init(id, offsetX, offsetY)) {
+    if (!RSProcessor::Init(id, offsetX, offsetY, mirroredId)) {
         return false;
     }
 
-    return composerAdapter_->Init(id, offsetX, offsetY, [this](const auto& surface, const auto& layers) {
+    return composerAdapter_->Init(id, offsetX, offsetY, mirrorAdaptiveCoefficient_,
+        [this](const auto& surface, const auto& layers) {
         Redraw(surface, layers);
     });
 }
@@ -48,13 +49,6 @@ void RSPhysicalScreenProcessor::PostProcess()
 
 void RSPhysicalScreenProcessor::ProcessSurface(RSSurfaceRenderNode &node)
 {
-    if (!node.IsNotifyRTBufferAvailable()) {
-        // Only ipc for one time.
-        RS_LOGD("RsDebug RSPhysicalScreenProcessor::ProcessSurface id = %llu "\
-                "Notify RT buffer available", node.GetId());
-        node.NotifyRTBufferAvailable();
-    }
-
     auto layer = composerAdapter_->CreateLayer(node);
     if (layer == nullptr) {
         RS_LOGE("RSPhysicalScreenProcessor::ProcessSurface: failed to createLayer for node(id: %llu)",
@@ -90,7 +84,7 @@ void RSPhysicalScreenProcessor::Redraw(const sptr<Surface>& surface, const std::
         RS_LOGE("RsDebug RSPhysicalScreenProcessor::Redraw：canvas is nullptr.");
         return;
     }
-    renderEngine_->DrawLayers(*canvas, layers, screenInfo_, forceCPU);
+    renderEngine_->DrawLayers(*canvas, layers, screenInfo_, forceCPU, mirrorAdaptiveCoefficient_);
     renderFrame->Flush();
     RS_LOGD("RsDebug RSPhysicalScreenProcessor::Redraw flush frame buffer end");
 }

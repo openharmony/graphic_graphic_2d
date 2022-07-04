@@ -23,7 +23,6 @@
 #include <fstream>
 #include <sstream>
 #include <GLES3/gl32.h>
-#include "cJSON.h"
 #include "program.h"
 #include "ec_log.h"
 
@@ -44,8 +43,7 @@ public:
     Filter() {};
     virtual ~Filter() {};
     virtual FILTER_TYPE GetFilterType() = 0;
-    virtual void Process(ProcessData& data);
-    virtual void DoProcess(ProcessData& data) = 0;
+    virtual bool Process(ProcessData& data);
     virtual void AddNextFilter(std::shared_ptr<Filter> next);
     virtual void AddPreviousFilter(std::shared_ptr<Filter> previous);
     virtual std::shared_ptr<Filter> GetNextFilter();
@@ -54,9 +52,10 @@ public:
     virtual int GetOutputNumber();
     virtual int GetMaxInputNumber();
     virtual int GetMaxOutputNumber();
-    virtual void SetValue(const std::string& key, void* value, int size) {};
+    virtual void SetValue(const std::string& key, std::shared_ptr<void> value, int size) {};
 
 protected:
+    virtual void DoProcess(ProcessData& data) = 0;
     int nextNum_ = 0;
     int preNum_ = 0;
     int nextPtrMax_ = 1;

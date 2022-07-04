@@ -36,11 +36,16 @@
 
 namespace OHOS {
 namespace Rosen {
+struct DrawSurfaceNodeInfo {
+    bool forceCPU = false;
+    float mirrorAdaptiveCoefficient = 1.0f;
+};
+
 // The RenderFrame can do auto flush
 class RSRenderFrame {
 public:
     // we guarantee when constructing this object, all parameters are valid.
-    RSRenderFrame(const std::shared_ptr<RSSurfaceOhos>& target, std::unique_ptr<RSSurfaceFrame> &&frame)
+    RSRenderFrame(const std::shared_ptr<RSSurfaceOhos>& target, std::unique_ptr<RSSurfaceFrame>&& frame)
         : targetSurface_(target), surfaceFrame_(std::move(frame))
     {
     }
@@ -105,13 +110,14 @@ public:
         RSPaintFilterCanvas& canvas,
         const std::vector<LayerInfoPtr>& layers,
         const ScreenInfo& screenInfo,
-        bool forceCPU = false);
+        bool forceCPU = false,
+        float mirrorAdaptiveCoefficient = 1.0f);
     void DrawSurfaceNode(
         RSPaintFilterCanvas& canvas,
         RSSurfaceRenderNode& node,
         const ScreenInfo& screenInfo,
         const IRect& clipRect,
-        bool forceCPU = false);
+        DrawSurfaceNodeInfo& infos);
 
     void ClipHoleForLayer(
         RSPaintFilterCanvas& canvas,

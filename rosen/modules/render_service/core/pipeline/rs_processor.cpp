@@ -20,11 +20,11 @@
 
 namespace OHOS {
 namespace Rosen {
-bool RSProcessor::Init(ScreenId id, int32_t offsetX, int32_t offsetY)
+bool RSProcessor::Init(ScreenId id, int32_t offsetX, int32_t offsetY, ScreenId mirroredId)
 {
     offsetX_ = offsetX;
     offsetY_ = offsetY;
-
+    mirroredId_ = mirroredId;
     auto screenManager = CreateOrGetScreenManager();
     if (screenManager == nullptr) {
         RS_LOGE("RSPhysicalScreenProcessor::Init: ScreenManager is nullptr");
@@ -40,6 +40,14 @@ bool RSProcessor::Init(ScreenId id, int32_t offsetX, int32_t offsetY)
         return false;
     }
 
+    if (mirroredId_ != INVALID_SCREEN_ID) {
+        auto mirroredScreenInfo = screenManager->QueryScreenInfo(mirroredId_);
+        CalculateMirrorAdaptiveCoefficient(
+            static_cast<float>(screenInfo_.width), static_cast<float>(screenInfo_.height),
+            static_cast<float>(mirroredScreenInfo.width), static_cast<float>(mirroredScreenInfo.height)
+        );
+    }
+
     // set default render frame config
     renderFrameConfig_.width = static_cast<int32_t>(screenInfo_.width);
     renderFrameConfig_.height = static_cast<int32_t>(screenInfo_.height);
@@ -51,14 +59,14 @@ bool RSProcessor::Init(ScreenId id, int32_t offsetX, int32_t offsetY)
     return true;
 }
 
-void RSProcessor::SetMirror(bool isMirror)
+void RSProcessor::CalculateMirrorAdaptiveCoefficient(float curWidth, float curHeight,
+    float mirroredWidth, float mirroredHeight)
 {
-    isMirror_ = isMirror;
-}
-
-bool RSProcessor::GetMirror()
-{
-    return isMirror_;
+    if (std::fabs(mirroredWidth) < 1e-6 || std::fabs(mirroredHeight) < 1e-6) {
+        RS_LOGE("RSSoftwareProcessor::Init mirroredScreen width or height is zero");
+        return;
+    }
+    mirrorAdaptiveCoefficient_ = std::min(curWidth / mirroredWidth, curHeight / mirroredHeight);
 }
 } // namespace Rosen
 } // namespace OHOS
