@@ -204,9 +204,7 @@ void RSRenderEngine::DrawSurfaceNode(
     params.clipRect = SkRect::MakeXYWH(clipRect.x, clipRect.y, clipRect.w, clipRect.h);
     params.matrix = params.matrix.preConcat(GetSurfaceNodeGravityMatrix(node,
         RectF {params.dstRect.x(), params.dstRect.y(), params.dstRect.width(), params.dstRect.height()}));
-    if (node.GetRenderProperties().GetFrameGravity() != Gravity::RESIZE) {
-        params.dstRect = params.srcRect;
-    }
+    params.dstRect = params.srcRect;
     params.dstRect.setWH(params.dstRect.width() * infos.mirrorAdaptiveCoefficient,
         params.dstRect.height() * infos.mirrorAdaptiveCoefficient);
 
