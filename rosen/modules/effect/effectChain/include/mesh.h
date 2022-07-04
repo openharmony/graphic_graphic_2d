@@ -21,6 +21,17 @@
 
 namespace OHOS {
 namespace Rosen {
+const float VERTICES[] = {
+    1.0f, 1.0f, 0.0f, 1.0f, 1.0f,
+    1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
+    -1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
+    -1.0f, 1.0f, 0.0f, 0.0f, 1.0f
+};
+const unsigned int INDICES[] = {
+    0, 1, 3,
+    1, 2, 3
+};
+
 class Mesh {
 public:
     static constexpr int DEFAULT_STRIDE = 5;
@@ -29,20 +40,14 @@ public:
     static constexpr int DEFAULT_TEXTURE_POINT_SIZE = 2;
 
     Mesh();
-    ~Mesh();
+    virtual ~Mesh();
     void Use();
     void Delete();
-    unsigned int VAO_;
+    unsigned int VAO_ = 0;
 
 private:
     unsigned int VBO_ = 0;
     unsigned int EBO_ = 0;
-    unsigned int verticesSize_ = 0;
-    unsigned int indicesSize_ = 0;
-    unsigned int verticesNumber_ = 0;
-    unsigned int indicesNumber_ = 0;
-    float* mVertices_ = nullptr;
-    unsigned int* mIndices_ = nullptr;
 };
 } // namespace Rosen
 } // namespace OHOS

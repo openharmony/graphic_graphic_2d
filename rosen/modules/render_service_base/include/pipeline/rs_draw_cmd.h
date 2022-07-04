@@ -74,6 +74,7 @@ enum RSOpType : uint16_t {
     PICTURE_OPITEM,
     POINTS_OPITEM,
     VERTICES_OPITEM,
+    SHADOW_REC_OPITEM,
     MULTIPLY_ALPHA_OPITEM,
     SAVE_ALPHA_OPITEM,
     RESTORE_ALPHA_OPITEM,
@@ -90,10 +91,7 @@ public:
 
     virtual void Draw(RSPaintFilterCanvas& canvas, const SkRect* rect) const {};
 
-    virtual RSOpType GetType() const
-    {
-        return RSOpType::OPITEM;
-    }
+    virtual RSOpType GetType() const = 0;
 #ifdef ROSEN_OHOS
     bool Marshalling(Parcel& parcel) const override
     {
@@ -786,6 +784,16 @@ public:
     ShadowRecOpItem(const SkPath& path, const SkDrawShadowRec& rec);
     ~ShadowRecOpItem() override {}
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
+
+    RSOpType GetType() const override
+    {
+        return RSOpType::SHADOW_REC_OPITEM;
+    }
+
+#ifdef ROSEN_OHOS
+    bool Marshalling(Parcel& parcel) const override;
+    static OpItem* Unmarshalling(Parcel& parcel);
+#endif
 
 private:
     SkPath path_;

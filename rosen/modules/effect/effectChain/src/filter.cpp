@@ -18,7 +18,7 @@
 
 namespace OHOS {
 namespace Rosen {
-void Filter::Process(ProcessData& data)
+bool Filter::Process(ProcessData& data)
 {
     ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "Filter::DoProcess");
     DoProcess(data);
@@ -26,18 +26,19 @@ void Filter::Process(ProcessData& data)
     if (this->GetFilterType() == FILTER_TYPE::ALGOFILTER) {
         std::swap(data.srcTextureID, data.dstTextureID);
     }
+    if (data.textureWidth == 0 || data.textureHeight == 0) {
+        return false;
+    }
     if (GetNextFilter() != nullptr) {
         GetNextFilter()->Process(data);
     }
+    return true;
 }
 
 void Filter::AddNextFilter(std::shared_ptr<Filter> next)
 {
     if (nextNum_ < nextPtrMax_) {
         next_ = next;
-        if (next != nullptr) {
-            next->AddPreviousFilter(std::shared_ptr<Filter>(this));
-        }
     }
     if (nextNum_ == nextPtrMax_) {
         return;

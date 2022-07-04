@@ -35,8 +35,32 @@ public:
         return pathTestCase;
     }
 
-    static void TestDrawPath(Canvas& canvas, uint32_t width, uint32_t height);
-    static void TestDrawPathPro(Canvas& canvas, uint32_t width, uint32_t height);
+    static void TestDrawStar(Canvas& canvas, uint32_t width, uint32_t height);
+    static void TestMoveTo(Canvas& canvas, uint32_t width, uint32_t height);
+    static void TestLineTo(Canvas& canvas, uint32_t width, uint32_t height);
+    static void TestArcTo(Canvas& canvas, uint32_t width, uint32_t height);
+    static void TestCubicTo(Canvas& canvas, uint32_t width, uint32_t height);
+    static void TestQuadTo(Canvas& canvas, uint32_t width, uint32_t height);
+    static void TestAddRect(Canvas& canvas, uint32_t width, uint32_t height);
+    static void TestAddOval(Canvas& canvas, uint32_t width, uint32_t height);
+    static void TestAddArc(Canvas& canvas, uint32_t width, uint32_t height);
+    static void TestAddPoly(Canvas& canvas, uint32_t width, uint32_t height);
+    static void TestAddCircle(Canvas& canvas, uint32_t width, uint32_t height);
+    static void TestAddRoundRect(Canvas& canvas, uint32_t width, uint32_t height);
+    static void TestAddPath(Canvas& canvas, uint32_t width, uint32_t height);
+    static void TestFillStyle(Canvas& canvas, uint32_t width, uint32_t height);
+    static void TestFillStyle2(Canvas& canvas, uint32_t width, uint32_t height);
+    static void TestFillStyle3(Canvas& canvas, uint32_t width, uint32_t height);
+    static void TestFillStyle4(Canvas& canvas, uint32_t width, uint32_t height);
+    static void TestOffset(Canvas& canvas, uint32_t width, uint32_t height);
+    static void TestTransform(Canvas& canvas, uint32_t width, uint32_t height);
+    static void TestOp(Canvas& canvas, uint32_t width, uint32_t height);
+    static void TestOp2(Canvas& canvas, uint32_t width, uint32_t height);
+    static void TestOp3(Canvas& canvas, uint32_t width, uint32_t height);
+    static void TestOp4(Canvas& canvas, uint32_t width, uint32_t height);
+    static void TestOp5(Canvas& canvas, uint32_t width, uint32_t height);
+    static void TestClose(Canvas& canvas, uint32_t width, uint32_t height);
+
     std::vector<TestFunc> PathTestCase();
 
 private:

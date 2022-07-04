@@ -14,6 +14,7 @@
 group("napi_packages") {
   deps = [
     "graphic/animation/window_animation_manager:windowanimationmanager_napi",
+    "graphic/effect_kit:effectkit",
     "graphic/webgl:libwebglnapi",
   ]
 }

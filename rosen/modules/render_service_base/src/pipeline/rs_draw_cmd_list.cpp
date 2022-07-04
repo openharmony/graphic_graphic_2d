@@ -49,6 +49,7 @@ static std::unordered_map<RSOpType, OpUnmarshallingFunc> opUnmarshallingFuncLUT 
     { BITMAP_NINE_OPITEM,          BitmapNineOpItem::Unmarshalling },
     { ADAPTIVE_RRECT_OPITEM,       AdaptiveRRectOpItem::Unmarshalling },
     { CLIP_ADAPTIVE_RRECT_OPITEM,  ClipAdaptiveRRectOpItem::Unmarshalling },
+    { CLIP_OUTSET_RECT_OPITEM,     ClipOutsetRectOpItem::Unmarshalling },
     { PATH_OPITEM,                 PathOpItem::Unmarshalling },
     { CLIP_PATH_OPITEM,            ClipPathOpItem::Unmarshalling },
     { PAINT_OPITEM,                PaintOpItem::Unmarshalling },
@@ -58,6 +59,7 @@ static std::unordered_map<RSOpType, OpUnmarshallingFunc> opUnmarshallingFuncLUT 
     { PICTURE_OPITEM,              PictureOpItem::Unmarshalling },
     { POINTS_OPITEM,               PointsOpItem::Unmarshalling },
     { VERTICES_OPITEM,             VerticesOpItem::Unmarshalling },
+    { SHADOW_REC_OPITEM,           ShadowRecOpItem::Unmarshalling },
     { MULTIPLY_ALPHA_OPITEM,       MultiplyAlphaOpItem::Unmarshalling },
     { SAVE_ALPHA_OPITEM,           SaveAlphaOpItem::Unmarshalling },
     { RESTORE_ALPHA_OPITEM,        RestoreAlphaOpItem::Unmarshalling },
@@ -144,10 +146,15 @@ bool DrawCmdList::Marshalling(Parcel& parcel) const
     for (const auto& item : ops_) {
         auto type = item->GetType();
         success &= RSMarshallingHelper::Marshalling(parcel, type);
+        auto func = GetOpUnmarshallingFunc(type);
+        if (!func) {
+            ROSEN_LOGW("unirender: opItem Unmarshalling func not define, skip Marshalling, optype = %d", type);
+            continue;
+        }
+
         success &= item->Marshalling(parcel);
         if (!success) {
-            ROSEN_LOGE("unirender: failed opItem Marshalling, optype = %d, UnmarshallingFunc define = %d",
-                       type, GetOpUnmarshallingFunc(type) != nullptr);
+            ROSEN_LOGE("unirender: failed opItem Marshalling, optype = %d", type);
             return success;
         }
     }

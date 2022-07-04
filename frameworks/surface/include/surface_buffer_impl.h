@@ -76,6 +76,8 @@ public:
     GSError WriteToMessageParcel(MessageParcel &parcel) override;
     GSError ReadFromMessageParcel(MessageParcel &parcel) override;
 
+    HardwareBuffer* SurfaceBufferToHardwareBuffer() override;
+
 private:
     void FreeBufferHandleLocked();
 

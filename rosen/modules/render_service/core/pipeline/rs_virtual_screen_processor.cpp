@@ -33,9 +33,9 @@ RSVirtualScreenProcessor::~RSVirtualScreenProcessor() noexcept
 {
 }
 
-bool RSVirtualScreenProcessor::Init(ScreenId id, int32_t offsetX, int32_t offsetY)
+bool RSVirtualScreenProcessor::Init(ScreenId id, int32_t offsetX, int32_t offsetY, ScreenId mirroredId)
 {
-    if (!RSProcessor::Init(id, offsetX, offsetY)) {
+    if (!RSProcessor::Init(id, offsetX, offsetY, mirroredId)) {
         return false;
     }
 
@@ -85,18 +85,24 @@ void RSVirtualScreenProcessor::ProcessSurface(RSSurfaceRenderNode& node)
         node.GetName().c_str());
     RS_TRACE_NAME(traceInfo.c_str());
 
-    if (GetMirror()) {
+    if (mirroredId_ != INVALID_SCREEN_ID) {
         RS_LOGI("RSVirtualScreenProcessor::ProcessSurface mirrorScreen is not support rotation");
         screenInfo_.rotation = ScreenRotation::ROTATION_0;
         screenInfo_.rotationMatrix = SkMatrix::I();
     }
 
     IRect clipRect = {
-        node.GetDstRect().left_ - offsetX_,
-        node.GetDstRect().top_ - offsetY_,
-        node.GetDstRect().width_,
-        node.GetDstRect().height_};
-    renderEngine_->DrawSurfaceNode(*canvas_, node, screenInfo_, clipRect, true);
+        static_cast<int32_t>(static_cast<float>(node.GetDstRect().left_ - offsetX_) * mirrorAdaptiveCoefficient_),
+        static_cast<int32_t>(static_cast<float>(node.GetDstRect().top_ - offsetY_) * mirrorAdaptiveCoefficient_),
+        static_cast<int32_t>(static_cast<float>(node.GetDstRect().width_) * mirrorAdaptiveCoefficient_),
+        static_cast<int32_t>(static_cast<float>(node.GetDstRect().height_) * mirrorAdaptiveCoefficient_)
+    };
+    
+    DrawSurfaceNodeInfo infos = {
+        true,
+        mirrorAdaptiveCoefficient_
+    };
+    renderEngine_->DrawSurfaceNode(*canvas_, node, screenInfo_, clipRect, infos);
 }
 
 void RSVirtualScreenProcessor::ProcessDisplaySurface(RSDisplayRenderNode& node)

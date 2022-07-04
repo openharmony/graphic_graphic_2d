@@ -66,12 +66,12 @@ int32_t HdiBackend::PreProcessLayersComp(const OutputPtr &output,
     uint32_t layerCompCapacity = output->GetLayerCompCapacity();
     uint32_t screenId = output->GetScreenId();
     // If shouldClientCompDirect is true then layer->SetHdiLayerInfo and UpdateLayerCompType is no need to run.
-    bool shouldClientCompDirect = ((layerCompCapacity != LAYER_COMPOSITION_CAPACITY_INVALID) &&
+    bool doClientCompositionDirectly = ((layerCompCapacity != LAYER_COMPOSITION_CAPACITY_INVALID) &&
                                    (layersNum > layerCompCapacity));
 
     for (auto iter = layersMap.begin(); iter != layersMap.end(); ++iter) {
         const LayerPtr &layer = iter->second;
-        if (shouldClientCompDirect) {
+        if (doClientCompositionDirectly) {
             layer->UpdateCompositionType(CompositionType::COMPOSITION_CLIENT);
             continue;
         }
@@ -84,7 +84,8 @@ int32_t HdiBackend::PreProcessLayersComp(const OutputPtr &output,
         return DISPLAY_FAILURE;
     }
 
-    if (shouldClientCompDirect) {
+    if (doClientCompositionDirectly) {
+        ScopedBytrace doClientCompositionDirectlyTag("DoClientCompositionDirectly");
         return DISPLAY_SUCCESS;
     }
 

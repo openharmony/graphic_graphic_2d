@@ -31,8 +31,8 @@ public:
     static constexpr float DEFAULT_OFFSET_THREE = 3.231f;
 
     VerticalBlurFilter();
-    ~VerticalBlurFilter() {}
-    void SetValue(const std::string& key, void *value, int size) override;
+    virtual ~VerticalBlurFilter() {};
+    void SetValue(const std::string& key, std::shared_ptr<void> value, int size) override;
     std::string GetFragmentShader() override;
     std::string GetVertexShader() override;
 

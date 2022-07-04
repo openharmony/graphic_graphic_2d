@@ -22,19 +22,19 @@ HorizontalBlurFilter::HorizontalBlurFilter()
     CreateProgram(GetVertexShader(), GetFragmentShader());
 }
 
-void HorizontalBlurFilter::SetValue(const std::string& key, void* value, int size)
+void HorizontalBlurFilter::SetValue(const std::string& key, std::shared_ptr<void> value, int size)
 {
     if (key == "offset" && size > 0) {
-        float* offset = (float*)value;
+        std::shared_ptr<float> offset = std::static_pointer_cast<float>(value);
         for (int i = 0; i < size; i++) {
-            offset_[i] = *(offset + i);
+            offset_[i] = *(offset.get() + i);
             LOGD("The current offset is %{public}f.", offset_[i]);
         }
     }
     if (key == "weight" && size > 0) {
-        float* weight = (float*)value;
+        std::shared_ptr<float> weight = std::static_pointer_cast<float>(value);
         for (int i = 0; i < size; i++) {
-            weight_[i] = *(weight + i);
+            weight_[i] = *(weight.get() + i);
             LOGD("The current weight is %{public}f.", weight_[i]);
         }
     }

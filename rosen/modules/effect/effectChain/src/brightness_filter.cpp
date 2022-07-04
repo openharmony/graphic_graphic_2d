@@ -22,11 +22,11 @@ BrightnessFilter::BrightnessFilter()
     CreateProgram(GetVertexShader(), GetFragmentShader());
 }
 
-void BrightnessFilter::SetValue(const std::string& key, void* value, int size)
+void BrightnessFilter::SetValue(const std::string& key, std::shared_ptr<void> value, int size)
 {
     if (key == "brightness" && size > 0) {
-        float* brightness = (float*)value;
-        brightness_ = *(brightness);
+        std::shared_ptr<float> brightness = std::static_pointer_cast<float>(value);
+        brightness_ = *(brightness.get());
     }
     LOGD("The brightness is %{public}f.", brightness_);
 }

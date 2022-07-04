@@ -23,8 +23,8 @@
 #include "surface_type.h"
 #include "sync_fence.h"
 
-#ifndef weak_alias
-    #define weak_alias(old, new) \
+#ifndef WEAK_ALIAS
+    #define WEAK_ALIAS(old, new) \
         extern __typeof(old) new __attribute__((__weak__, __alias__(#old)))
 #endif
 
@@ -363,19 +363,19 @@ NativeWindowBuffer::NativeWindowBuffer() : NativeWindowMagic(NATIVE_OBJECT_MAGIC
 {
 }
 
-weak_alias(CreateNativeWindowFromSurface, OH_NativeWindow_CreateNativeWindow);
-weak_alias(DestoryNativeWindow, OH_NativeWindow_DestroyNativeWindow);
-weak_alias(CreateNativeWindowBufferFromSurfaceBuffer, OH_NativeWindow_CreateNativeWindowBufferFromSurfaceBuffer);
-weak_alias(DestoryNativeWindowBuffer, OH_NativeWindow_DestroyNativeWindowBuffer);
-weak_alias(NativeWindowRequestBuffer, OH_NativeWindow_NativeWindowRequestBuffer);
-weak_alias(NativeWindowFlushBuffer, OH_NativeWindow_NativeWindowFlushBuffer);
-weak_alias(NativeWindowCancelBuffer, OH_NativeWindow_NativeWindowAbortBuffer);
-weak_alias(NativeWindowHandleOpt, OH_NativeWindow_NativeWindowHandleOpt);
-weak_alias(GetBufferHandleFromNative, OH_NativeWindow_GetBufferHandleFromNative);
-weak_alias(NativeObjectReference, OH_NativeWindow_NativeObjectReference);
-weak_alias(NativeObjectUnreference, OH_NativeWindow_NativeObjectUnreference);
-weak_alias(GetNativeObjectMagic, OH_NativeWindow_GetNativeObjectMagic);
-weak_alias(NativeWindowSetScalingMode, OH_NativeWindow_NativeWindowSetScalingMode);
-weak_alias(NativeWindowSetMetaData, OH_NativeWindow_NativeWindowSetMetaData);
-weak_alias(NativeWindowSetMetaDataSet, OH_NativeWindow_NativeWindowSetMetaDataSet);
-weak_alias(NativeWindowSetTunnelHandle, OH_NativeWindow_NativeWindowSetTunnelHandle);
+WEAK_ALIAS(CreateNativeWindowFromSurface, OH_NativeWindow_CreateNativeWindow);
+WEAK_ALIAS(DestoryNativeWindow, OH_NativeWindow_DestroyNativeWindow);
+WEAK_ALIAS(CreateNativeWindowBufferFromSurfaceBuffer, OH_NativeWindow_CreateNativeWindowBufferFromSurfaceBuffer);
+WEAK_ALIAS(DestoryNativeWindowBuffer, OH_NativeWindow_DestroyNativeWindowBuffer);
+WEAK_ALIAS(NativeWindowRequestBuffer, OH_NativeWindow_NativeWindowRequestBuffer);
+WEAK_ALIAS(NativeWindowFlushBuffer, OH_NativeWindow_NativeWindowFlushBuffer);
+WEAK_ALIAS(NativeWindowCancelBuffer, OH_NativeWindow_NativeWindowAbortBuffer);
+WEAK_ALIAS(NativeWindowHandleOpt, OH_NativeWindow_NativeWindowHandleOpt);
+WEAK_ALIAS(GetBufferHandleFromNative, OH_NativeWindow_GetBufferHandleFromNative);
+WEAK_ALIAS(NativeObjectReference, OH_NativeWindow_NativeObjectReference);
+WEAK_ALIAS(NativeObjectUnreference, OH_NativeWindow_NativeObjectUnreference);
+WEAK_ALIAS(GetNativeObjectMagic, OH_NativeWindow_GetNativeObjectMagic);
+WEAK_ALIAS(NativeWindowSetScalingMode, OH_NativeWindow_NativeWindowSetScalingMode);
+WEAK_ALIAS(NativeWindowSetMetaData, OH_NativeWindow_NativeWindowSetMetaData);
+WEAK_ALIAS(NativeWindowSetMetaDataSet, OH_NativeWindow_NativeWindowSetMetaDataSet);
+WEAK_ALIAS(NativeWindowSetTunnelHandle, OH_NativeWindow_NativeWindowSetTunnelHandle);
