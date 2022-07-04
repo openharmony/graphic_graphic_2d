@@ -51,7 +51,6 @@ public:
     Vector2f GetBoundsPosition() const;
     float GetBoundsPositionX() const;
     float GetBoundsPositionY() const;
-    bool GetGeoDirty() const;
 
     void SetFrame(Vector4f frame);
     void SetFrameSize(Vector2f size);
@@ -187,6 +186,9 @@ public:
     const std::shared_ptr<RSObjGeometry>& GetFrameGeometry() const;
     bool UpdateGeometry(const RSProperties* parent, bool dirtyFlag);
 
+    bool GetZorderChanged() const;
+    void CleanZorderChanged();
+
 private:
     void SetDirty();
     void ResetDirty();
@@ -208,6 +210,7 @@ private:
     bool clipToFrame_ = false;
     bool isDirty_ = false;
     bool geoDirty_ = false;
+    bool zOrderChanged_ = false;
 
     bool hasBounds_ = false;
 

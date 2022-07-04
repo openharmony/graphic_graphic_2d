@@ -131,7 +131,7 @@ public:
 
     using FinishCallbackProcessor = void (*)(NodeId, AnimationId);
     static void AnimationFinishCallback(RSContext& context, NodeId targetId, AnimationId animId);
-    static void SetFinisCallbackProcessor(FinishCallbackProcessor processor);
+    static void SetFinishCallbackProcessor(FinishCallbackProcessor processor);
 };
 
 // animation operation

@@ -45,3 +45,10 @@ NO_DRAW:
   UID: {type: INT32, desc: pid}
   ABILITY_NAME: {type: STRING, desc: ability name}
   MSG: {type: STRING, desc: message}
+
+JANK_FRAME_SKIP:
+  __BASE: {type: FAULT, level: MINOR, desc: graphic jank frame skip}
+  PID: {type: INT32, desc: pid}
+  UID: {type: INT32, desc: pid}
+  ABILITY_NAME: {type: STRING, desc: ability name}
+  MSG: {type: STRING, desc: message}

@@ -129,9 +129,9 @@ void RsFrameReport::AnimateStart()
 
 void RsFrameReport::RenderStart()
 {
-    renderStartRunc_ = (RenderStartFunc)LoadSymbol("RenderStart");
-    if (renderStartRunc_ != nullptr) {
-        renderStartRunc_();
+    renderStartFunc_ = (RenderStartFunc)LoadSymbol("RenderStart");
+    if (renderStartFunc_ != nullptr) {
+        renderStartFunc_();
     } else {
         ROSEN_LOGE("RsFrameReport:[RenderStart]load RenderStart function failed!");
     }

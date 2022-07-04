@@ -15,17 +15,15 @@
 #ifndef RENDER_SERVICE_CORE_PIPELINE_RS_UNI_RENDER_VISITOR_H
 #define RENDER_SERVICE_CORE_PIPELINE_RS_UNI_RENDER_VISITOR_H
 
-#include <set>
-#include <string>
-
-#include "pipeline/rs_processor.h"
 #include "pipeline/rs_dirty_region_manager.h"
-#include "pipeline/rs_paint_filter_canvas.h"
+#include "pipeline/rs_processor.h"
 #include "screen_manager/rs_screen_manager.h"
 #include "visitor/rs_node_visitor.h"
 
 namespace OHOS {
 namespace Rosen {
+class RSPaintFilterCanvas;
+
 class RSUniRenderVisitor : public RSNodeVisitor {
 public:
     RSUniRenderVisitor();

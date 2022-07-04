@@ -65,17 +65,20 @@ void SkiaShaderEffect::InitWithImage(
     if (m != nullptr && i != nullptr) {
         skiaMatrix = m->ExportSkiaMatrix();
         skiaImage = i->GetImage();
+        if (skiaImage != nullptr) {
 #if defined(USE_CANVASKIT0310_SKIA)
-        SkSamplingOptions samplingOptions;
-        if (sampling.GetUseCubic()) {
-            samplingOptions = SkSamplingOptions({ sampling.GetCubicCoffB(), sampling.GetCubicCoffC() });
-        } else {
-            samplingOptions = SkSamplingOptions(static_cast<SkFilterMode>(sampling.GetFilterMode()),
-                static_cast<SkMipmapMode>(sampling.GetMipmapMode()));
-        }
-        shader_ = skiaImage->makeShader(modeX, modeY, samplingOptions, &skiaMatrix);
+            SkSamplingOptions samplingOptions;
+            if (sampling.GetUseCubic()) {
+                samplingOptions = SkSamplingOptions({ sampling.GetCubicCoffB(), sampling.GetCubicCoffC() });
+            } else {
+                samplingOptions = SkSamplingOptions(static_cast<SkFilterMode>(sampling.GetFilterMode()),
+                    static_cast<SkMipmapMode>(sampling.GetMipmapMode()));
+            }
+            shader_ = skiaImage->makeShader(modeX, modeY, samplingOptions, &skiaMatrix);
 #else
-        shader_ = skiaImage->makeShader(modeX, modeY, &skiaMatrix);
+            shader_ = skiaImage->makeShader(modeX, modeY, &skiaMatrix);
+        }
+
 #endif
     }
 }
@@ -94,11 +97,13 @@ void SkiaShaderEffect::InitWithPicture(
     if (p != nullptr && m != nullptr) {
         skiaPicture = p->GetPicture();
         skiaMatrix = m->ExportSkiaMatrix();
+        if (skiaPicture != nullptr) {
 #if defined(USE_CANVASKIT0310_SKIA)
-        SkFilterMode m = static_cast<SkFilterMode>(mode);
-        shader_ = skiaPicture->makeShader(modeX, modeY, m, &skiaMatrix, &r);
+            SkFilterMode m = static_cast<SkFilterMode>(mode);
+            shader_ = skiaPicture->makeShader(modeX, modeY, m, &skiaMatrix, &r);
 #else
-        shader_ = skiaPicture->makeShader(modeX, modeY, &skiaMatrix, &r);
+            shader_ = skiaPicture->makeShader(modeX, modeY, &skiaMatrix, &r);
+        }
 #endif
     }
 }

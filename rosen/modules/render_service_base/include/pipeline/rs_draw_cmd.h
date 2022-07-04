@@ -29,6 +29,7 @@
 #include "include/core/SkRegion.h"
 #include "include/core/SkTextBlob.h"
 #include "core/SkDrawShadowInfo.h"
+#include "pixel_map.h"
 
 #include "pipeline/rs_draw_cmd_list.h"
 #include "render/rs_image.h"
@@ -60,6 +61,9 @@ enum RSOpType : uint16_t {
     TEXTBLOB_OPITEM,
     BITMAP_OPITEM,
     BITMAP_RECT_OPITEM,
+    PIXELMAP_OPITEM,
+    PIXELMAP_RECT_OPITEM,
+    PIXELMAP_WITH_PARM_OPITEM,
     BITMAP_LATTICE_OPITEM, // marshalling func planning to be implemented
     BITMAP_NINE_OPITEM,
     ADAPTIVE_RRECT_OPITEM,
@@ -74,6 +78,7 @@ enum RSOpType : uint16_t {
     PICTURE_OPITEM,
     POINTS_OPITEM,
     VERTICES_OPITEM,
+    SHADOW_REC_OPITEM,
     MULTIPLY_ALPHA_OPITEM,
     SAVE_ALPHA_OPITEM,
     RESTORE_ALPHA_OPITEM,
@@ -90,10 +95,7 @@ public:
 
     virtual void Draw(RSPaintFilterCanvas& canvas, const SkRect* rect) const {};
 
-    virtual RSOpType GetType() const
-    {
-        return RSOpType::OPITEM;
-    }
+    virtual RSOpType GetType() const = 0;
 #ifdef ROSEN_OHOS
     bool Marshalling(Parcel& parcel) const override
     {
@@ -159,8 +161,8 @@ private:
 
 class ImageWithParmOpItem : public OpItemWithPaint {
 public:
-    ImageWithParmOpItem(const sk_sp<SkImage> img, int fitNum, int repeatNum, float radius, const SkPaint& paint);
-    ImageWithParmOpItem(const sk_sp<SkImage> img, const Rosen::RsImageInfo& rsimageInfo, const SkPaint& paint);
+    ImageWithParmOpItem(const sk_sp<SkImage> img, const RsImageInfo& rsimageInfo, const SkPaint& paint);
+    ImageWithParmOpItem(const std::shared_ptr<RSImage>& rsImage, const SkPaint& paint);
 
     ~ImageWithParmOpItem() override {}
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
@@ -483,6 +485,74 @@ private:
     sk_sp<SkImage> bitmapInfo_;
 };
 
+class PixelMapOpItem : public OpItemWithPaint {
+public:
+    PixelMapOpItem(const std::shared_ptr<Media::PixelMap>& pixelmap, float left, float top, const SkPaint* paint);
+    ~PixelMapOpItem() override {}
+    void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
+
+    RSOpType GetType() const override
+    {
+        return RSOpType::PIXELMAP_OPITEM;
+    }
+
+#ifdef ROSEN_OHOS
+    bool Marshalling(Parcel& parcel) const override;
+    static OpItem* Unmarshalling(Parcel& parcel);
+#endif
+
+private:
+    std::shared_ptr<Media::PixelMap> pixelmap_;
+    float left_;
+    float top_;
+};
+
+class PixelMapRectOpItem : public OpItemWithPaint {
+public:
+    PixelMapRectOpItem(
+        const std::shared_ptr<Media::PixelMap>& pixelmap, const SkRect& src, const SkRect& dst, const SkPaint* paint);
+    ~PixelMapRectOpItem() override {}
+    void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
+
+    RSOpType GetType() const override
+    {
+        return RSOpType::PIXELMAP_RECT_OPITEM;
+    }
+
+#ifdef ROSEN_OHOS
+    bool Marshalling(Parcel& parcel) const override;
+    static OpItem* Unmarshalling(Parcel& parcel);
+#endif
+
+private:
+    std::shared_ptr<Media::PixelMap> pixelmap_;
+    SkRect src_;
+    SkRect dst_;
+};
+
+class PixelMapWithParmOpItem : public OpItemWithPaint {
+public:
+    PixelMapWithParmOpItem(
+        const std::shared_ptr<Media::PixelMap>& pixelmap, const Rosen::RsImageInfo& rsImageInfo, const SkPaint& paint);
+
+    ~PixelMapWithParmOpItem() override {}
+    void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
+
+    RSOpType GetType() const override
+    {
+        return RSOpType::PIXELMAP_WITH_PARM_OPITEM;
+    }
+
+#ifdef ROSEN_OHOS
+    bool Marshalling(Parcel& parcel) const override;
+    static OpItem* Unmarshalling(Parcel& parcel);
+#endif
+
+private:
+    std::shared_ptr<Media::PixelMap> pixelmap_;
+    Rosen::RsImageInfo rsImageInfo_;
+};
+
 class BitmapLatticeOpItem : public OpItemWithPaint {
 public:
     BitmapLatticeOpItem(
@@ -786,6 +856,16 @@ public:
     ShadowRecOpItem(const SkPath& path, const SkDrawShadowRec& rec);
     ~ShadowRecOpItem() override {}
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
+
+    RSOpType GetType() const override
+    {
+        return RSOpType::SHADOW_REC_OPITEM;
+    }
+
+#ifdef ROSEN_OHOS
+    bool Marshalling(Parcel& parcel) const override;
+    static OpItem* Unmarshalling(Parcel& parcel);
+#endif
 
 private:
     SkPath path_;

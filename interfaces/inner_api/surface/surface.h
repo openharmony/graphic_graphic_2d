@@ -97,6 +97,8 @@ public:
     virtual GSError GetMetaData(uint32_t sequence, std::vector<HDRMetaData> &metaData) const = 0;
     virtual GSError GetMetaDataSet(uint32_t sequence, HDRMetadataKey &key,
                                    std::vector<uint8_t> &metaData) const = 0;
+    virtual GSError SetTunnelHandle(const ExtDataHandle *handle) = 0;
+    virtual GSError GetTunnelHandle(ExtDataHandle **handle) const = 0;
 
     virtual void Dump(std::string &result) const = 0;
 protected:

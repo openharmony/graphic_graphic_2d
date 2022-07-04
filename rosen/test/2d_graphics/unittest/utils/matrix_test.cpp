@@ -39,13 +39,13 @@ void MatrixTest::SetUp() {}
 void MatrixTest::TearDown() {}
 
 /**
- * @tc.name: CreateAndDestory001
+ * @tc.name: CreateAndDestroy001
  * @tc.desc:
  * @tc.type: FUNC
  * @tc.require:AR000GGNV3
  * @tc.author:
  */
-HWTEST_F(MatrixTest, CreateAndDestory001, TestSize.Level1)
+HWTEST_F(MatrixTest, CreateAndDestroy001, TestSize.Level1)
 {
     // The best way to create Matrix.
     std::unique_ptr<Matrix> matrix = std::make_unique<Matrix>();
@@ -53,13 +53,13 @@ HWTEST_F(MatrixTest, CreateAndDestory001, TestSize.Level1)
 }
 
 /**
- * @tc.name: CreateAndDestory002
+ * @tc.name: CreateAndDestroy002
  * @tc.desc:
  * @tc.type: FUNC
  * @tc.require:AR000GGNV3
  * @tc.author:
  */
-HWTEST_F(MatrixTest, CreateAndDestory002, TestSize.Level1)
+HWTEST_F(MatrixTest, CreateAndDestroy002, TestSize.Level1)
 {
     // The best way to create Matrix.
     Matrix matrix;

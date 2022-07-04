@@ -66,7 +66,7 @@ public:
 
     static RSRenderSpringAnimation* Unmarshalling(Parcel& parcel)
     {
-        RSRenderSpringAnimation* renderSpringAnimation = new RSRenderSpringAnimation<T>();
+        auto* renderSpringAnimation = new RSRenderSpringAnimation<T>();
         if (!renderSpringAnimation->ParseParam(parcel)) {
             ROSEN_LOGE("RSRenderSpringAnimation::Unmarshalling, failed");
             delete renderSpringAnimation;

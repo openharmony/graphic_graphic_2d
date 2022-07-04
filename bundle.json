@@ -50,17 +50,12 @@
       },
       "build": {
         "sub_component": [
-          "//third_party/wayland-ivi-extension:ivi-controller",
-          "//third_party/wayland-ivi-extension:ivi-input-controller",
-          "//third_party/wayland-ivi-extension:libscreen-info-module",
-          "//third_party/wayland-ivi-extension:layer-add-surfaces",
-          "//third_party/wayland-ivi-extension:LayerManagerControl",
-          "//third_party/wayland-ivi-extension:simple-weston-client",
-          "//third_party/weston:default",
+          "//third_party/libpng:libpng",
           "//foundation/graphic/graphic_2d:default",
           "//foundation/graphic/graphic_2d/interfaces/kits/napi:napi_packages",
           "//foundation/graphic/graphic_2d/rosen/samples/composer:hello_composer",
           "//foundation/graphic/graphic_2d/rosen/samples/hello_vsync:hello_vsync",
+          "//foundation/graphic/graphic_2d/rosen/samples/hello_hardware_buffer:hello_hardware_buffer",
           "//foundation/graphic/graphic_2d/rosen/modules/composer:libcomposer",
           "//foundation/graphic/graphic_2d/rosen/modules/composer/native_vsync:libnative_vsync",
           "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics:2d_graphics",
@@ -71,10 +66,13 @@
           "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/test:render_service_client",
           "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:librender_service_client",
           "//foundation/graphic/graphic_2d/rosen/modules/render_service_client/test:render_service_client_rs_demo",
+          "//foundation/graphic/graphic_2d/rosen/modules/render_service_client/test:render_service_client_gravity_demo",
+          "//foundation/graphic/graphic_2d/rosen/modules/render_service_client/test:render_service_client_scale_demo",
           "//foundation/graphic/graphic_2d/rosen/modules/render_service:librender_service",
           "//foundation/graphic/graphic_2d/rosen/modules/render_service:render_service",
-          "//foundation/graphic/graphic_2d/rosen/modules/render_service:render_service_dump",
           "//foundation/graphic/graphic_2d/rosen/modules/effect/effectChain:libeffectchain",
+          "//foundation/graphic/graphic_2d/rosen/modules/effect/color_picker:color_picker",
+          "//foundation/graphic/graphic_2d/rosen/modules/effect/skia_effectChain:skeffectchain",
           "//foundation/graphic/graphic_2d/frameworks/opengl_wrapper:EGL",
           "//foundation/graphic/graphic_2d/frameworks/opengl_wrapper:GLESv3",
           "//foundation/graphic/graphic_2d/frameworks/opengl_wrapper:opengl_wrapper_native_test",
@@ -90,6 +88,7 @@
                 "egl_data.h",
                 "egl_surface.h",
                 "external_window.h",
+                "hardware_buffer.h",
                 "ibuffer_consumer_listener.h",
                 "ibuffer_producer.h",
                 "surface.h",
@@ -141,39 +140,6 @@
                 "graphic_common_c.h"
               ],
               "header_base": "//foundation/graphic/graphic_2d/interfaces/inner_api/common"
-            }
-          },
-          {
-            "type": "so",
-            "name": "//foundation/graphic/graphic_2d/frameworks/wm:libwmclient",
-            "header": {
-              "header_files": [
-                "iscreen_shot_callback.h",
-                "iwindow_shot_callback.h",
-                "subwindow.h",
-                "subwindow_option.h",
-                "virtual_display_option.h",
-                "window.h",
-                "window_manager.h",
-                "window_manager_type.h",
-                "window_option.h",
-                "wm_common.h"
-              ],
-              "header_base": "//foundation/graphic/graphic_2d/interfaces/inner_api/wmclient"
-            }
-          },
-          {
-            "type": "so",
-            "name": "//foundation/graphic/graphic_2d/frameworks/wmservice:libwmservice",
-            "header": {
-              "header_files": [
-                "iwindow_change_listener_clazz.h",
-                "iwindow_manager_display_listener_clazz.h",
-                "iwindow_manager_service.h",
-                "window_manager_service_client.h",
-                "window_manager_service_type.h"
-              ],
-              "header_base": "//foundation/graphic/graphic_2d/interfaces/inner_api/wmservice"
             }
           },
           {

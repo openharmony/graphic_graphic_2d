@@ -22,11 +22,11 @@ SaturationFilter::SaturationFilter()
     CreateProgram(GetVertexShader(), GetFragmentShader());
 }
 
-void SaturationFilter::SetValue(const std::string& key, void* value, int size)
+void SaturationFilter::SetValue(const std::string& key, std::shared_ptr<void> value, int size)
 {
     if (key == "saturation" && size > 0) {
-        float* saturation = (float*)value;
-        saturation_ = *(saturation);
+        std::shared_ptr<float> saturation = std::static_pointer_cast<float>(value);
+        saturation_ = *(saturation.get());
     }
     LOGD("The saturation is %{public}f.", saturation_);
 }

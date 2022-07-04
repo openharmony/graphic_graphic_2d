@@ -52,7 +52,9 @@ struct ScreenInfo {
     uint32_t height = 0;
     ScreenColorGamut colorGamut = ScreenColorGamut::COLOR_GAMUT_SRGB;
     ScreenState state = ScreenState::UNKNOWN;
+    ScreenRotation rotation = ScreenRotation::ROTATION_0;
     SkMatrix rotationMatrix; // Screen rotation matrix for canvas.
+    uint32_t skipFrameInterval = DEFAULT_SKIP_FRAME_INTERVAL;  // skip frame interval for change screen refresh rate
 };
 
 class RSScreenManager : public RefBase {
@@ -142,6 +144,8 @@ public:
     virtual int32_t GetScreenHDRCapability(ScreenId id, RSScreenHDRCapability& screenHdrCapability) const = 0;
 
     virtual int32_t GetScreenType(ScreenId id, RSScreenType& type) const = 0;
+
+    virtual int32_t SetScreenSkipFrameInterval(ScreenId id, uint32_t skipFrameInterval) = 0;
 };
 
 sptr<RSScreenManager> CreateOrGetScreenManager();
@@ -242,6 +246,8 @@ public:
     int32_t GetScreenHDRCapability(ScreenId id, RSScreenHDRCapability& screenHdrCapability) const override;
 
     int32_t GetScreenType(ScreenId id, RSScreenType& type) const override;
+
+    int32_t SetScreenSkipFrameInterval(ScreenId id, uint32_t skipFrameInterval) override;
 private:
     RSScreenManager();
     ~RSScreenManager() noexcept override;
@@ -260,12 +266,14 @@ private:
     void GetScreenActiveModeLocked(ScreenId id, RSScreenModeInfo& screenModeInfo) const;
     std::vector<RSScreenModeInfo> GetScreenSupportedModesLocked(ScreenId id) const;
     RSScreenCapability GetScreenCapabilityLocked(ScreenId id) const;
-    ScreenPowerStatus GetScreenPowerStatuslocked(ScreenId id) const;
-    int32_t GetScreenBacklightlocked(ScreenId id) const;
+    ScreenPowerStatus GetScreenPowerStatusLocked(ScreenId id) const;
+    int32_t GetScreenBacklightLocked(ScreenId id) const;
 
     void RemoveVirtualScreenLocked(ScreenId id);
     ScreenId GenerateVirtualScreenIdLocked();
     void ReuseVirtualScreenIdLocked(ScreenId id);
+    void MirrorChangeDefaultScreenResolution(ScreenId id, uint32_t width, uint32_t height);
+    ScreenId GetMirrorScreenId(ScreenId id);
 
     int32_t GetScreenSupportedColorGamutsLocked(ScreenId id, std::vector<ScreenColorGamut>& mode) const;
     int32_t GetScreenColorGamutLocked(ScreenId id, ScreenColorGamut& mode) const;
@@ -276,6 +284,7 @@ private:
     ScreenRotation GetRotationLocked(ScreenId id) const;
     int32_t GetScreenHDRCapabilityLocked(ScreenId id, RSScreenHDRCapability& screenHdrCapability) const;
     int32_t GetScreenTypeLocked(ScreenId id, RSScreenType& type) const;
+    int32_t SetScreenSkipFrameIntervalLocked(ScreenId id, uint32_t skipFrameInterval);
 
     mutable std::mutex mutex_;
     HdiBackend *composer_ = nullptr;

@@ -35,13 +35,13 @@ void RSProcessorFactoryTest::SetUp() {}
 void RSProcessorFactoryTest::TearDown() {}
 
 /**
- * @tc.name: CreateAndDestory001
+ * @tc.name: CreateAndDestroy001
  * @tc.desc:
  * @tc.type:
  * @tc.require:
  * @tc.author:
  */
-HWTEST_F(RSProcessorFactoryTest, CreateAndDestory001, TestSize.Level1)
+HWTEST_F(RSProcessorFactoryTest, CreateAndDestroy001, TestSize.Level1)
 {
     // The using of RSProcessorFactory constructor is not suggested, but allowed.
     // The using of RSProcessorFactory destructor is not suggested, but allowed.
@@ -87,7 +87,7 @@ HWTEST_F(RSProcessorFactoryTest, CreateProcessor002, TestSize.Level1)
  */
 HWTEST_F(RSProcessorFactoryTest, CreateProcessor003, TestSize.Level1)
 {
-    auto p = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::COMPATIBLE_COMPOSITE);
+    auto p = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::UNI_RENDER_COMPOSITE);
     EXPECT_TRUE(nullptr != p);
 }
 } // namespace OHOS::Rosen

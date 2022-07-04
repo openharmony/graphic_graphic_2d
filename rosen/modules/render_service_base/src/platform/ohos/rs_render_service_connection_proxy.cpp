@@ -195,7 +195,7 @@ std::vector<ScreenId> RSRenderServiceConnectionProxy::GetAllScreenIds()
     }
 
     uint32_t size = reply.ReadUint32();
-    for (int32_t i = 0; i < size; i++) {
+    for (uint32_t i = 0; i < size; i++) {
         screenIds.emplace_back(reply.ReadUint64());
     }
 
@@ -812,6 +812,26 @@ int32_t RSRenderServiceConnectionProxy::GetScreenType(ScreenId id, RSScreenType&
     if (result == SUCCESS) {
         screenType = static_cast<RSScreenType>(reply.ReadUint32());
     }
+    return result;
+}
+
+int32_t RSRenderServiceConnectionProxy::SetScreenSkipFrameInterval(ScreenId id, uint32_t skipFrameInterval)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return RS_CONNECTION_ERROR;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    data.WriteUint64(id);
+    data.WriteUint32(skipFrameInterval);
+    int32_t err = Remote()->SendRequest(RSIRenderServiceConnection::SET_SCREEN_SKIP_FRAME_INTERVAL,
+                                        data, reply, option);
+    if (err != NO_ERROR) {
+        return RS_CONNECTION_ERROR;
+    }
+    int32_t result = reply.ReadInt32();
     return result;
 }
 

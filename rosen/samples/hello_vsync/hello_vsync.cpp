@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "external_vsync.h"
+#include "native_vsync.h"
 
 #include <iostream>
 #include <thread>
@@ -26,10 +26,10 @@ static void OnVSync(long long timestamp, void* data)
     std::cout << "OnVSync: " << timestamp << std::endl;
 }
 
-void ThreadMain(OHNativeVSync* nativeVSync)
+void ThreadMain(OH_NativeVSync* nativeVSync)
 {
-    OHNativeVSyncFrameCallback callback = OnVSync;
-    OH_NativeVSync_OHNativeVSyncRequestFrame(nativeVSync, callback, nullptr);
+    OH_NativeVSync_FrameCallback callback = OnVSync;
+    OH_NativeVSync_RequestFrame(nativeVSync, callback, nullptr);
     while (!flag) {
         std::cout << "wait for vsync!\n";
         sleep(1);
@@ -39,9 +39,9 @@ void ThreadMain(OHNativeVSync* nativeVSync)
 int32_t main(int32_t argc, const char *argv[])
 {
     char name[] = "hello_vsync";
-    OHNativeVSync* nativeVSync = OH_NativeVSync_CreateOHNativeVSync(name, strlen(name));
+    OH_NativeVSync* nativeVSync = OH_NativeVSync_Create(name, strlen(name));
     std::thread th(ThreadMain, nativeVSync);
     th.join();
-    OH_NativeVSync_DestroyOHNativeVSync(nativeVSync);
+    OH_NativeVSync_Destroy(nativeVSync);
     return 0;
 }

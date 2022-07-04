@@ -353,10 +353,10 @@ int32_t HdiDevice::SetTransformMode(uint32_t screenId, uint32_t layerId, Transfo
 }
 
 int32_t HdiDevice::SetLayerVisibleRegion(uint32_t screenId, uint32_t layerId,
-                                         uint32_t num, IRect &visable)
+                                         uint32_t num, IRect &visible)
 {
     CHECK_FUNC(layerFuncs_, layerFuncs_->SetLayerVisibleRegion);
-    return layerFuncs_->SetLayerVisibleRegion(screenId, layerId, num, &visable);
+    return layerFuncs_->SetLayerVisibleRegion(screenId, layerId, num, &visible);
 }
 
 int32_t HdiDevice::SetLayerDirtyRegion(uint32_t screenId, uint32_t layerId, IRect &dirty)
@@ -431,6 +431,11 @@ int32_t HdiDevice::SetLayerMetaData(uint32_t screenId, uint32_t layerId, const s
 
 int32_t HdiDevice::SetLayerMetaDataSet(uint32_t screenId, uint32_t layerId, HDRMetadataKey key,
                                        const std::vector<uint8_t> &metaData)
+{
+    return DISPLAY_SUCCESS;
+}
+
+int32_t HdiDevice::SetLayerTunnelHandle(uint32_t screenId, uint32_t layerId, const ExtDataHandle *handle)
 {
     return DISPLAY_SUCCESS;
 }

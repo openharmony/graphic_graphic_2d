@@ -37,7 +37,11 @@ public:
 
     void SetSecurityDisplay(bool isSecurityDisplay);
 
+    void SetDisplayNodeMirrorConfig(const RSDisplayNodeConfig& displayNodeConfig);
+
     bool GetSecurityDisplay() const;
+
+    bool IsMirrorDisplay() const;
 
     RSUINodeType GetType() const override
     {
@@ -56,6 +60,7 @@ private:
     int32_t offsetX_;
     int32_t offsetY_;
     bool isSecurityDisplay_ = false;
+    bool isMirroredDisplay_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS

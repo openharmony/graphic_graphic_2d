@@ -76,6 +76,11 @@ public:
     GSError WriteToMessageParcel(MessageParcel &parcel) override;
     GSError ReadFromMessageParcel(MessageParcel &parcel) override;
 
+    HardwareBuffer* SurfaceBufferToHardwareBuffer() override;
+
+    static GSError CheckBufferConfig(int32_t width, int32_t height,
+                                     int32_t format, int32_t usage);
+
 private:
     void FreeBufferHandleLocked();
 

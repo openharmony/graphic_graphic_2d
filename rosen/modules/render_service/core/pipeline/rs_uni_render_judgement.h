@@ -37,6 +37,7 @@ public:
     static const std::set<std::string>& GetUniRenderEnabledList();
     static bool QueryClientEnabled(const std::string &bundleName);
     static void InitUniRenderConfig();
+    static bool IsUniRender();
 
 private:
     RSUniRenderJudgement() = default;

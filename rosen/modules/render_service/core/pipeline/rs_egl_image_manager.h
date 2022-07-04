@@ -42,7 +42,7 @@ public:
     ImageCacheSeq(
         EGLDisplay eglDisplay,
         EGLImageKHR eglImage,
-        EGLClientBuffer eglClientbuffer);
+        EGLClientBuffer eglClientBuffer);
     ~ImageCacheSeq() noexcept;
 
     GLuint TextureId() const
@@ -56,7 +56,7 @@ private:
 
     EGLDisplay eglDisplay_ = EGL_NO_DISPLAY;
     EGLImageKHR eglImage_ = EGL_NO_IMAGE_KHR;
-    EGLClientBuffer eglClientbuffer_ = nullptr;
+    EGLClientBuffer eglClientBuffer_ = nullptr;
     GLuint textureId_ = 0;
 };
 

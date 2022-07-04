@@ -174,6 +174,7 @@ bool RSImage::Marshalling(Parcel& parcel) const
     success &= RSMarshallingHelper::Marshalling(parcel, imageFit);
     success &= RSMarshallingHelper::Marshalling(parcel, imageRepeat);
     success &= RSMarshallingHelper::Marshalling(parcel, cornerRadius_);
+    success &= RSMarshallingHelper::Marshalling(parcel, scale_);
     return success;
 }
 RSImage* RSImage::Unmarshalling(Parcel& parcel)
@@ -182,6 +183,7 @@ RSImage* RSImage::Unmarshalling(Parcel& parcel)
     int fitNum;
     int repeatNum;
     float radius;
+    double scale;
     if (!RSMarshallingHelper::Unmarshalling(parcel, img)) {
         return nullptr;
     }
@@ -194,12 +196,16 @@ RSImage* RSImage::Unmarshalling(Parcel& parcel)
     if (!RSMarshallingHelper::Unmarshalling(parcel, radius)) {
         return nullptr;
     }
+    if (!RSMarshallingHelper::Unmarshalling(parcel, scale)) {
+        return nullptr;
+    }
 
     RSImage* rsImage = new RSImage();
     rsImage->SetImage(img);
     rsImage->SetImageFit(fitNum);
     rsImage->SetImageRepeat(repeatNum);
     rsImage->SetRadius(radius);
+    rsImage->SetScale(scale);
 
     return rsImage;
 }

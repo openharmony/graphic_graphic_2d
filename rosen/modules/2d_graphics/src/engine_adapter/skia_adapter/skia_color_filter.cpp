@@ -56,7 +56,7 @@ void SkiaColorFilter::InitWithCompose(const ColorFilter& f1, const ColorFilter& 
 void SkiaColorFilter::Compose(const ColorFilter& f)
 {
     auto skColorFilterImpl = f.GetImpl<SkiaColorFilter>();
-    if (skColorFilterImpl != nullptr) {
+    if (filter_ != nullptr && skColorFilterImpl != nullptr) {
         filter_ = filter_->makeComposed(skColorFilterImpl->GetColorFilter());
     }
 }

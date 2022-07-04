@@ -503,6 +503,15 @@ int32_t RSRenderServiceClient::GetScreenType(ScreenId id, RSScreenType& screenTy
     return renderService->GetScreenType(id, screenType);
 }
 
+int32_t RSRenderServiceClient::SetScreenSkipFrameInterval(ScreenId id, uint32_t skipFrameInterval)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        return RENDER_SERVICE_NULL;
+    }
+    return renderService->SetScreenSkipFrameInterval(id, skipFrameInterval);
+}
+
 class CustomOcclusionChangeCallback : public RSOcclusionChangeCallbackStub
 {
 public:

@@ -144,6 +144,16 @@ public:
     {
         return additionalInfo_;
     }
+
+    void SetTunnelHandleChange(bool change)
+    {
+        tunnelHandleChange_ = change;
+    }
+
+    void SetTunnelHandle(const ExtDataHandle *handle)
+    {
+        tunnelHandle_ = const_cast<ExtDataHandle *>(handle);
+    }
     /* rs create and set/get layer info end */
 
     /* hdiLayer get layer info begin */
@@ -217,6 +227,16 @@ public:
         return preMulti_;
     }
 
+    bool GetTunnelHandleChange() const
+    {
+        return tunnelHandleChange_;
+    }
+
+    ExtDataHandle *GetTunnelHandle() const
+    {
+        return tunnelHandle_;
+    }
+
     void Dump(std::string &result) const
     {
         result += " zOrder = " + std::to_string(zOrder_) +
@@ -261,6 +281,8 @@ private:
     TransformType transformType_ = TransformType::ROTATE_BUTT;
     CompositionType compositionType_;
     BlendType blendType_;
+    ExtDataHandle *tunnelHandle_ = nullptr;
+    bool tunnelHandleChange_ = false;
 
     void *additionalInfo_ = nullptr;
     sptr<Surface> cSurface_ = nullptr;

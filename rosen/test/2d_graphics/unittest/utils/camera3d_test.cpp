@@ -39,13 +39,13 @@ void Camera3DTest::SetUp() {}
 void Camera3DTest::TearDown() {}
 
 /**
- * @tc.name: Camera3DCreateAndDestory001
+ * @tc.name: Camera3DCreateAndDestroy001
  * @tc.desc:
  * @tc.type: FUNC
  * @tc.require:AR000GGNV3
  * @tc.author:
  */
-HWTEST_F(Camera3DTest, Camera3DCreateAndDestory001, TestSize.Level1)
+HWTEST_F(Camera3DTest, Camera3DCreateAndDestroy001, TestSize.Level1)
 {
     // The best way to create Camera3D.
     std::unique_ptr<Camera3D> camera3d = std::make_unique<Camera3D>();
@@ -53,13 +53,13 @@ HWTEST_F(Camera3DTest, Camera3DCreateAndDestory001, TestSize.Level1)
 }
 
 /**
- * @tc.name: Camera3DCreateAndDestory002
+ * @tc.name: Camera3DCreateAndDestroy002
  * @tc.desc:
  * @tc.type: FUNC
  * @tc.require:AR000GGNV3
  * @tc.author:
  */
-HWTEST_F(Camera3DTest, Camera3DCreateAndDestory002, TestSize.Level1)
+HWTEST_F(Camera3DTest, Camera3DCreateAndDestroy002, TestSize.Level1)
 {
     // The best way to create Camera3D.
     Camera3D camera3d;

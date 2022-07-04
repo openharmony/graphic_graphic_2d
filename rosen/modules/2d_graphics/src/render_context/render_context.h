@@ -65,6 +65,11 @@ public:
         return eglSurface_;
     }
 
+    EGLContext GetEGLContext() const
+    {
+        return eglContext_;
+    }
+
     EGLDisplay GetEGLDisplay() const
     {
         return eglDisplay_;

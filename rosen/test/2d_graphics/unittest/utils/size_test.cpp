@@ -39,13 +39,13 @@ void SizeTest::SetUp() {}
 void SizeTest::TearDown() {}
 
 /**
- * @tc.name: SizeCreateAndDestory001
+ * @tc.name: SizeCreateAndDestroy001
  * @tc.desc:
  * @tc.type: FUNC
  * @tc.require:AR000GGNV3
  * @tc.author:
  */
-HWTEST_F(SizeTest, SizeCreateAndDestory001, TestSize.Level1)
+HWTEST_F(SizeTest, SizeCreateAndDestroy001, TestSize.Level1)
 {
     // The best way to create SizeF.
     std::unique_ptr<SizeF> sizeF = std::make_unique<SizeF>();
@@ -55,13 +55,13 @@ HWTEST_F(SizeTest, SizeCreateAndDestory001, TestSize.Level1)
 }
 
 /**
- * @tc.name: SizeCreateAndDestory002
+ * @tc.name: SizeCreateAndDestroy002
  * @tc.desc:
  * @tc.type: FUNC
  * @tc.require:AR000GGNV3
  * @tc.author:
  */
-HWTEST_F(SizeTest, SizeCreateAndDestory002, TestSize.Level1)
+HWTEST_F(SizeTest, SizeCreateAndDestroy002, TestSize.Level1)
 {
     // The best way to create SizeF.
     const SizeF sizef1;

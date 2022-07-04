@@ -100,6 +100,8 @@ public:
     GSError GetMetaData(uint32_t sequence, std::vector<HDRMetaData> &metaData) const override;
     GSError GetMetaDataSet(uint32_t sequence, HDRMetadataKey &key,
                            std::vector<uint8_t> &metaData) const override;
+    GSError SetTunnelHandle(const ExtDataHandle *handle) override;
+    GSError GetTunnelHandle(ExtDataHandle **handle) const override;
 
 private:
     bool IsRemote();

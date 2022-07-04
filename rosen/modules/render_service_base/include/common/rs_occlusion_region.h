@@ -18,6 +18,9 @@
 #include <algorithm>
 #include <iostream>
 #include <vector>
+#include <string>
+
+#include "platform/common/rs_innovation.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -37,6 +40,15 @@ public:
     bool IsEmpty() const
     {
         return left_ >= right_ || top_ >= bottom_;
+    }
+
+    std::string GetRectInfo() const
+    {
+        return std::string("[" +
+            std::to_string(left_) + ", " +
+            std::to_string(top_) + ", " +
+            std::to_string(right_ - left_) + ", " +
+            std::to_string(bottom_ - top_) + "]");
     }
 };
 
@@ -124,18 +136,31 @@ public:
 
 class Region {
 public:
-    enum OP { AND = 1, OR, XOR, SUB };
+    enum OP {
+        // bit index 0: lhs
+        // bit index 1: lhs & rhs
+        // bit index 2: rhs
+        AND = 2, // 010
+        OR  = 7, // 111
+        XOR = 5, // 101
+        SUB = 1  // 001
+    };
 
     Region() = default;
-    Region(Rect& r)
+    explicit Region(Rect& r)
     {
         rects_.push_back(r);
-        bound_ = r;
+        bound_ = Rect { r };
     }
-    Region(std::vector<Rect>& rs);
+    
     Region(const Region& reg) : rects_(reg.rects_), bound_(reg.bound_) {}
+    ~Region() {}
 
     std::vector<Rect> GetRegionRects() const
+    {
+        return rects_;
+    }
+    std::vector<Rect>& GetRegionRects()
     {
         return rects_;
     }
@@ -147,9 +172,43 @@ public:
     {
         return bound_;
     }
+    Rect& GetBoundRef()
+    {
+        return bound_;
+    }
     bool IsEmpty() const
     {
         return rects_.size() == 0;
+    }
+    std::string GetRegionInfo() const
+    {
+        std::string info = "{ Region Size " + std::to_string(rects_.size()) + ": ";
+        for (auto&r : rects_) {
+            info.append(r.GetRectInfo());
+        }
+        info.append(" }");
+        return info;
+    }
+
+    inline std::vector<Rect>::const_iterator CBegin() const
+    {
+        return rects_.cbegin();
+    }
+    inline std::vector<Rect>::const_iterator CEnd() const
+    {
+        return rects_.cend();
+    }
+    inline std::vector<Rect>::iterator Begin()
+    {
+        return rects_.begin();
+    }
+    inline std::vector<Rect>::const_iterator End()
+    {
+        return rects_.end();
+    }
+    inline size_t Size() const
+    {
+        return rects_.size();
     }
 
     // bound of all region rects
@@ -158,6 +217,7 @@ public:
         (rect in rects_ do not intersect with each other)
     */
     void RegionOp(Region& r1, Region& r2, Region& res, Region::OP op);
+    void RegionOpLocal(Region& r1, Region& r2, Region& res, Region::OP op);
 
     Region& OperationSelf(Region& r, Region::OP op);
     // replace region with and result
@@ -177,6 +237,10 @@ public:
     Region Xor(Region& r);
     // return region belongs to Region(lhs) but not Region(rhs)
     Region Sub(Region& r);
+    
+public:
+    static void (*regionOpFromSO)(Region& r1, Region& r2, Region& res, Region::OP op);
+    static void InitDynamicLibraryFunction();
 
 private:
     class Rects {
@@ -194,6 +258,7 @@ private:
 private:
     std::vector<Rect> rects_;
     Rect bound_;
+    static bool _s_so_loaded_;
 };
 std::ostream& operator<<(std::ostream& os, const Region& r);
 } // namespace Occlusion

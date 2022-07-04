@@ -643,6 +643,16 @@ const RSScreenType& RSScreen::GetScreenType() const
 {
     return screenType_;
 }
+
+void RSScreen::SetScreenSkipFrameInterval(uint32_t skipFrameInterval)
+{
+    skipFrameInterval_ = skipFrameInterval;
+}
+
+uint32_t RSScreen::GetScreenSkipFrameInterval() const
+{
+    return skipFrameInterval_;
+}
 } // namespace impl
 } // namespace Rosen
 } // namespace OHOS

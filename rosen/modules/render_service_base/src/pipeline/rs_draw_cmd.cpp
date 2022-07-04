@@ -17,6 +17,7 @@
 
 #include "platform/common/rs_log.h"
 #include "pipeline/rs_paint_filter_canvas.h"
+#include "pipeline/rs_pixel_map_util.h"
 #include "pipeline/rs_root_render_node.h"
 #include "securec.h"
 namespace OHOS {
@@ -201,6 +202,50 @@ void BitmapRectOpItem::Draw(RSPaintFilterCanvas& canvas, const SkRect*) const
     canvas.drawImageRect(bitmapInfo_, rectSrc_, rectDst_, &paint_);
 }
 
+PixelMapOpItem::PixelMapOpItem(
+    const std::shared_ptr<Media::PixelMap>& pixelmap, float left, float top, const SkPaint* paint)
+    : OpItemWithPaint(sizeof(PixelMapOpItem)), pixelmap_(pixelmap), left_(left), top_(top)
+{
+    if (paint) {
+        paint_ = *paint;
+    }
+}
+
+void PixelMapOpItem::Draw(RSPaintFilterCanvas& canvas, const SkRect*) const
+{
+    sk_sp<SkImage> skImage = RSPixelMapUtil::PixelMapToSkImage(pixelmap_);
+    canvas.drawImage(skImage, left_, top_, &paint_);
+}
+
+PixelMapRectOpItem::PixelMapRectOpItem(
+    const std::shared_ptr<Media::PixelMap>& pixelmap, const SkRect& src, const SkRect& dst, const SkPaint* paint)
+    : OpItemWithPaint(sizeof(PixelMapRectOpItem)), pixelmap_(pixelmap), src_(src), dst_(dst)
+{
+    if (paint) {
+        paint_ = *paint;
+    }
+}
+
+void PixelMapRectOpItem::Draw(RSPaintFilterCanvas& canvas, const SkRect*) const
+{
+    sk_sp<SkImage> skImage = RSPixelMapUtil::PixelMapToSkImage(pixelmap_);
+    canvas.drawImageRect(skImage, src_, dst_, &paint_);
+}
+
+PixelMapWithParmOpItem::PixelMapWithParmOpItem(const std::shared_ptr<Media::PixelMap>& pixelmap,
+    const RsImageInfo& rsImageInfo, const SkPaint& paint)
+    : OpItemWithPaint(sizeof(PixelMapWithParmOpItem)), pixelmap_(pixelmap), rsImageInfo_(rsImageInfo)
+{
+    paint_ = paint;
+}
+
+void PixelMapWithParmOpItem::Draw(RSPaintFilterCanvas& canvas, const SkRect* rect) const
+{
+    sk_sp<SkImage> skImage = RSPixelMapUtil::PixelMapToSkImage(pixelmap_);
+    auto op = std::make_unique<ImageWithParmOpItem>(skImage, rsImageInfo_, paint_);
+    op->Draw(canvas, rect);
+}
+
 BitmapLatticeOpItem::BitmapLatticeOpItem(
     const sk_sp<SkImage> bitmapInfo, const SkCanvas::Lattice& lattice, const SkRect& rect, const SkPaint* paint)
     : OpItemWithPaint(sizeof(BitmapLatticeOpItem))
@@ -305,18 +350,6 @@ void PaintOpItem::Draw(RSPaintFilterCanvas& canvas, const SkRect*) const
     canvas.drawPaint(paint_);
 }
 
-ImageWithParmOpItem::ImageWithParmOpItem(
-    const sk_sp<SkImage> img, int fitNum, int repeatNum, float radius, const SkPaint& paint)
-    : OpItemWithPaint(sizeof(ImageWithParmOpItem))
-{
-    rsImage_ = std::make_shared<RSImage>();
-    rsImage_->SetImage(img);
-    rsImage_->SetImageFit(fitNum);
-    rsImage_->SetImageRepeat(repeatNum);
-    rsImage_->SetRadius(radius);
-    paint_ = paint;
-}
-
 ImageWithParmOpItem::ImageWithParmOpItem(const sk_sp<SkImage> img,
     const RsImageInfo& rsimageInfo, const SkPaint& paint)
     : OpItemWithPaint(sizeof(ImageWithParmOpItem))
@@ -327,6 +360,12 @@ ImageWithParmOpItem::ImageWithParmOpItem(const sk_sp<SkImage> img,
     rsImage_->SetImageRepeat(rsimageInfo.repeatNum_);
     rsImage_->SetRadius(rsimageInfo.radius_);
     rsImage_->SetScale(rsimageInfo.scale_);
+    paint_ = paint;
+}
+
+ImageWithParmOpItem::ImageWithParmOpItem(const std::shared_ptr<RSImage>& rsImage, const SkPaint& paint)
+    : OpItemWithPaint(sizeof(ImageWithParmOpItem)), rsImage_(rsImage)
+{
     paint_ = paint;
 }
 
@@ -515,35 +554,23 @@ OpItem* RoundRectOpItem::Unmarshalling(Parcel& parcel)
 bool ImageWithParmOpItem::Marshalling(Parcel& parcel) const
 {
     bool success = true;
-    success &= rsImage_->Marshalling(parcel);
+    success &= RSMarshallingHelper::Marshalling(parcel, rsImage_);
     success &= RSMarshallingHelper::Marshalling(parcel, paint_);
     return success;
 }
 
 OpItem* ImageWithParmOpItem::Unmarshalling(Parcel& parcel)
 {
-    sk_sp<SkImage> img;
-    int fitNum;
-    int repeatNum;
-    float radius;
+    std::shared_ptr<RSImage> rsImage;
     SkPaint paint;
-    if (!RSMarshallingHelper::Unmarshalling(parcel, img)) {
-        return nullptr;
-    }
-    if (!RSMarshallingHelper::Unmarshalling(parcel, fitNum)) {
-        return nullptr;
-    }
-    if (!RSMarshallingHelper::Unmarshalling(parcel, repeatNum)) {
-        return nullptr;
-    }
-    if (!RSMarshallingHelper::Unmarshalling(parcel, radius)) {
+    if (!RSMarshallingHelper::Unmarshalling(parcel, rsImage)) {
         return nullptr;
     }
     if (!RSMarshallingHelper::Unmarshalling(parcel, paint)) {
         return nullptr;
     }
 
-    return new ImageWithParmOpItem(img, fitNum, repeatNum, radius, paint);
+    return new ImageWithParmOpItem(rsImage, paint);
 }
 
 // DRRectOpItem
@@ -887,6 +914,100 @@ OpItem* BitmapRectOpItem::Unmarshalling(Parcel& parcel)
     }
 
     return new BitmapRectOpItem(bitmapInfo, &rectSrc, rectDst, &paint);
+}
+
+// PixelMapOpItem
+bool PixelMapOpItem::Marshalling(Parcel& parcel) const
+{
+    bool success = true;
+    success &= RSMarshallingHelper::Marshalling(parcel, pixelmap_);
+    success &= RSMarshallingHelper::Marshalling(parcel, left_);
+    success &= RSMarshallingHelper::Marshalling(parcel, top_);
+    success &= RSMarshallingHelper::Marshalling(parcel, paint_);
+    return success;
+}
+
+OpItem* PixelMapOpItem::Unmarshalling(Parcel& parcel)
+{
+    std::shared_ptr<Media::PixelMap> pixelmap;
+    float left;
+    float top;
+    SkPaint paint;
+    if (!RSMarshallingHelper::Unmarshalling(parcel, pixelmap)) {
+        return nullptr;
+    }
+    if (!RSMarshallingHelper::Unmarshalling(parcel, left)) {
+        return nullptr;
+    }
+    if (!RSMarshallingHelper::Unmarshalling(parcel, top)) {
+        return nullptr;
+    }
+    if (!RSMarshallingHelper::Unmarshalling(parcel, paint)) {
+        return nullptr;
+    }
+
+    return new PixelMapOpItem(pixelmap, left, top, &paint);
+}
+
+// PixelMapRectOpItem
+bool PixelMapRectOpItem::Marshalling(Parcel& parcel) const
+{
+    bool success = true;
+    success &= RSMarshallingHelper::Marshalling(parcel, pixelmap_);
+    success &= RSMarshallingHelper::Marshalling(parcel, src_);
+    success &= RSMarshallingHelper::Marshalling(parcel, dst_);
+    success &= RSMarshallingHelper::Marshalling(parcel, paint_);
+    return success;
+}
+
+OpItem* PixelMapRectOpItem::Unmarshalling(Parcel& parcel)
+{
+    std::shared_ptr<Media::PixelMap> pixelmap;
+    SkRect rectSrc;
+    SkRect rectDst;
+    SkPaint paint;
+    if (!RSMarshallingHelper::Unmarshalling(parcel, pixelmap)) {
+        return nullptr;
+    }
+    if (!RSMarshallingHelper::Unmarshalling(parcel, rectSrc)) {
+        return nullptr;
+    }
+    if (!RSMarshallingHelper::Unmarshalling(parcel, rectDst)) {
+        return nullptr;
+    }
+    if (!RSMarshallingHelper::Unmarshalling(parcel, paint)) {
+        return nullptr;
+    }
+
+    return new PixelMapRectOpItem(pixelmap, rectSrc, rectDst, &paint);
+}
+
+// PixelMapWithParmOpItem
+bool PixelMapWithParmOpItem::Marshalling(Parcel& parcel) const
+{
+    bool success = true;
+    success &= RSMarshallingHelper::Marshalling(parcel, pixelmap_);
+    success &= RSMarshallingHelper::Marshalling(parcel, rsImageInfo_);
+    success &= RSMarshallingHelper::Marshalling(parcel, paint_);
+    return success;
+}
+
+OpItem* PixelMapWithParmOpItem::Unmarshalling(Parcel& parcel)
+{
+    std::shared_ptr<Media::PixelMap> pixelmap;
+    RsImageInfo rsImageInfo(0, 0, 0, 0);
+    SkPaint paint;
+    if (!RSMarshallingHelper::Unmarshalling(parcel, pixelmap)) {
+        return nullptr;
+    }
+    if (!RSMarshallingHelper::Unmarshalling(parcel, rsImageInfo)) {
+        return nullptr;
+    }
+    if (!RSMarshallingHelper::Unmarshalling(parcel, paint)) {
+        return nullptr;
+    }
+
+    return new PixelMapWithParmOpItem(pixelmap, rsImageInfo, paint);
 }
 
 // BitmapNineOpItem
@@ -1235,6 +1356,28 @@ OpItem* VerticesOpItem::Unmarshalling(Parcel& parcel)
     }
 
     return new VerticesOpItem(vertices.get(), bones, boneCount, mode, paint);
+}
+
+// ShadowRecOpItem
+bool ShadowRecOpItem::Marshalling(Parcel& parcel) const
+{
+    bool success = true;
+    success &= RSMarshallingHelper::Marshalling(parcel, path_);
+    success &= RSMarshallingHelper::Marshalling(parcel, rec_);
+    return success;
+}
+
+OpItem* ShadowRecOpItem::Unmarshalling(Parcel& parcel)
+{
+    SkPath path;
+    SkDrawShadowRec rec;
+    if (!RSMarshallingHelper::Unmarshalling(parcel, path)) {
+        return nullptr;
+    }
+    if (!RSMarshallingHelper::Unmarshalling(parcel, rec)) {
+        return nullptr;
+    }
+    return new ShadowRecOpItem(path, rec);
 }
 
 // MultiplyAlphaOpItem

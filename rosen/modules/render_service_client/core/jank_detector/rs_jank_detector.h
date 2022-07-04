@@ -33,8 +33,8 @@ public:
 
 private:
     struct UiDrawFrameMsg {
-        uint64_t startTimeStamp;
-        uint64_t endTimeStamp;
+        uint64_t startTimeStamp = 0;
+        uint64_t endTimeStamp = 0;
         std::string abilityName;
     };
 

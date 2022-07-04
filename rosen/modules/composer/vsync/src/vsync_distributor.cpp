@@ -30,12 +30,13 @@ constexpr int32_t ERRNO_EAGAIN = -1;
 constexpr int32_t ERRNO_OTHER = -2;
 constexpr int32_t THREAD_PRIORTY = -6;
 constexpr int32_t SCHED_PRIORITY = 2;
+constexpr uint32_t SOCKET_CHANNEL_SIZE = 1024;
 }
 VSyncConnection::VSyncConnection(const sptr<VSyncDistributor>& distributor, std::string name)
     : rate_(-1), info_(name), distributor_(distributor)
 {
     socketPair_ = new LocalSocketPair();
-    socketPair_->CreateChannel(sizeof(int64_t), sizeof(int64_t));
+    socketPair_->CreateChannel(SOCKET_CHANNEL_SIZE, SOCKET_CHANNEL_SIZE);
 }
 
 VSyncConnection::~VSyncConnection()

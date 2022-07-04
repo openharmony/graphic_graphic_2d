@@ -499,6 +499,13 @@ int32_t RSRenderServiceConnection::GetScreenType(ScreenId id, RSScreenType& scre
     return screenManager_->GetScreenType(id, screenType);
 }
 
+int32_t RSRenderServiceConnection::SetScreenSkipFrameInterval(ScreenId id, uint32_t skipFrameInterval)
+{
+    return mainThread_->ScheduleTask([=]() {
+        return screenManager_->SetScreenSkipFrameInterval(id, skipFrameInterval);
+    }).get();
+}
+
 int32_t RSRenderServiceConnection::RegisterOcclusionChangeCallback(sptr<RSIOcclusionChangeCallback> callback)
 {
     std::lock_guard<std::mutex> lock(mutex_);

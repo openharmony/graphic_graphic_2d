@@ -903,5 +903,52 @@ HWTEST_F(RSInterfacesTest, GetAllScreenIds, Function | SmallTest | Level2)
     ids = rsInterfaces->GetAllScreenIds();
     EXPECT_EQ(size + 1, ids.size());
 }
+
+/*
+* Function: SetScreenSkipFrameInterval
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call SetScreenSkipFrameInterval with invalid parameters and check ret
+*/
+HWTEST_F(RSInterfacesTest, SetScreenSkipFrameInterval001, Function | SmallTest | Level2)
+{
+    ScreenId screenId = INVALID_SCREEN_ID;
+    uint32_t skipFrameInterval = 1;
+    int32_t ret = rsInterfaces->SetScreenSkipFrameInterval(screenId, skipFrameInterval);
+    EXPECT_EQ(ret, StatusCode::SCREEN_NOT_FOUND);
+}
+
+/*
+* Function: SetScreenSkipFrameInterval
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call SetScreenSkipFrameInterval with invalid parameters and check ret
+*/
+HWTEST_F(RSInterfacesTest, SetScreenSkipFrameInterval002, Function | SmallTest | Level2)
+{
+    ScreenId screenId = rsInterfaces->GetDefaultScreenId();
+    EXPECT_NE(screenId, INVALID_SCREEN_ID);
+    uint32_t skipFrameInterval = 0;
+    int32_t ret = rsInterfaces->SetScreenSkipFrameInterval(screenId, skipFrameInterval);
+    EXPECT_EQ(ret, StatusCode::INVALID_ARGUMENTS);
+}
+
+/*
+* Function: SetScreenSkipFrameInterval
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call SetScreenSkipFrameInterval with valid parameters and check ret
+*/
+HWTEST_F(RSInterfacesTest, SetScreenSkipFrameInterval003, Function | SmallTest | Level2)
+{
+    ScreenId screenId = rsInterfaces->GetDefaultScreenId();
+    EXPECT_NE(screenId, INVALID_SCREEN_ID);
+    uint32_t skipFrameInterval = 1;
+    int32_t ret = rsInterfaces->SetScreenSkipFrameInterval(screenId, skipFrameInterval);
+    ASSERT_EQ(ret, StatusCode::SUCCESS);
+}
 } // namespace Rosen
 } // namespace OHOS

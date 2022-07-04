@@ -51,7 +51,7 @@ private:
     EXPORT FrameGetEnableFunc frameGetEnableFunc_ = nullptr;
     EXPORT ProcessCommandsStartFunc processCommandsStartFun_ = nullptr;
     EXPORT AnimateStartFunc animateStartFunc_ = nullptr;
-    EXPORT RenderStartFunc renderStartRunc_ = nullptr;
+    EXPORT RenderStartFunc renderStartFunc_ = nullptr;
     EXPORT SendCommandsStartFunc sendCommandsStartFunc_ = nullptr;
 };
 } // namespace Rosen

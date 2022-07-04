@@ -26,10 +26,12 @@ class RS_EXPORT RSFilter : public std::enable_shared_from_this<RSFilter> {
 public:
     virtual ~RSFilter();
     static std::shared_ptr<RSFilter> CreateBlurFilter(float blurRadiusX, float blurRadiusY);
+    static std::shared_ptr<RSFilter> CreateMaterialFilter(int style, float dipScale);
 
     enum FilterType {
         NONE = 0,
         BLUR,
+        MATERIAL,
     };
     FilterType GetFilterType() const
     {

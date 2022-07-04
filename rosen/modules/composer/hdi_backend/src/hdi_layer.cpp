@@ -149,6 +149,11 @@ void HdiLayer::SetHdiLayerInfo()
 
     ret = device->SetLayerPreMulti(screenId_, layerId_, layerInfo_->IsPreMulti());
     CheckRet(ret, "SetLayerPreMulti");
+
+    if (layerInfo_->GetTunnelHandleChange()) {
+        ret = device->SetLayerTunnelHandle(screenId_, layerId_, layerInfo_->GetTunnelHandle());
+        CheckRet(ret, "SetLayerTunnelHandle");
+    }
 }
 
 int32_t HdiLayer::SetLayerColorTransform(const float *matrix) const

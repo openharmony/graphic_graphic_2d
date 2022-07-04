@@ -55,8 +55,6 @@ ohos_executable("bootanimation") {
     "//foundation/distributedschedule/samgr/interfaces/innerkits/samgr_proxy:samgr_proxy",
     "//foundation/graphic/graphic_2d:libsurface",
     "//foundation/graphic/graphic_2d:libvsync_client",
-    "//foundation/graphic/graphic_2d:libwmclient",
-    "//foundation/graphic/graphic_2d:libwmservice",
     "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics:2d_graphics",
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/src/platform:platform",
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:librender_service_client",

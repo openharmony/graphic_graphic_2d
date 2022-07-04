@@ -28,7 +28,7 @@ namespace Rosen {
 
 class RSRenderServiceVisitor : public RSNodeVisitor {
 public:
-    RSRenderServiceVisitor();
+    RSRenderServiceVisitor(bool parallel = false);
     ~RSRenderServiceVisitor();
 
     virtual void PrepareBaseRenderNode(RSBaseRenderNode &node) override;
@@ -42,12 +42,10 @@ public:
     virtual void ProcessSurfaceRenderNode(RSSurfaceRenderNode &node) override;
     virtual void ProcessCanvasRenderNode(RSCanvasRenderNode& node) override {}
     virtual void ProcessRootRenderNode(RSRootRenderNode& node) override {}
-
-    void UpdateGeometry(RSBaseRenderNode &displayNode);
     
-    bool GetWindowDirty() const
+    void SetAnimateState(bool doAnimate)
     {
-        return windowDirty_;
+        doAnimate_ = doAnimate;
     }
 private:
     std::unique_ptr<SkCanvas> skCanvas_;
@@ -56,8 +54,9 @@ private:
     int32_t offsetX_ = 0;
     int32_t offsetY_ = 0;
     bool isSecurityDisplay_ = false;
-    bool windowDirty_ = false;
+    bool mParallelEnable = false;
     std::shared_ptr<RSProcessor> processor_ = nullptr;
+    bool doAnimate_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -40,6 +40,9 @@ class SkVertices;
 class SkTypeface;
 
 namespace OHOS {
+namespace Media {
+class PixelMap;
+}
 namespace Rosen {
 class DrawCmdList;
 class RSFilter;
@@ -129,6 +132,7 @@ public:
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSMask>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSImage>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<DrawCmdList>)
+    DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<Media::PixelMap>)
     // animation
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSRenderPathAnimation>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSRenderTransition>)

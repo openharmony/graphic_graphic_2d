@@ -37,12 +37,14 @@ ConsumerSurface::ConsumerSurface(const std::string &name, bool isShared)
 
 ConsumerSurface::~ConsumerSurface()
 {
+    BLOGND("dtor");
     if (consumer_->GetSptrRefCount() > CONSUMER_REF_COUNT_IN_CONSUMER_SURFACE ||
         producer_->GetSptrRefCount() > PRODUCER_REF_COUNT_IN_CONSUMER_SURFACE) {
         BLOGNE("Wrong SptrRefCount! Queue Id:%{public}" PRIu64 " consumer_:%{public}d producer_:%{public}d",
             producer_->GetUniqueId(), consumer_->GetSptrRefCount(), producer_->GetSptrRefCount());
     }
-    BLOGND("dtor");
+    producer_->CleanCache();
+    producer_->SetStatus(false);
     consumer_ = nullptr;
     producer_ = nullptr;
 }
@@ -291,5 +293,18 @@ GSError ConsumerSurface::GetMetaDataSet(uint32_t sequence, HDRMetadataKey &key,
                                         std::vector<uint8_t> &metaData) const
 {
     return consumer_->GetMetaDataSet(sequence, key, metaData);
+}
+
+GSError ConsumerSurface::SetTunnelHandle(const ExtDataHandle *handle)
+{
+    if (handle == nullptr || handle->reserveInts == 0) {
+        return GSERROR_INVALID_ARGUMENTS;
+    }
+    return producer_->SetTunnelHandle(handle);
+}
+
+GSError ConsumerSurface::GetTunnelHandle(ExtDataHandle **handle) const
+{
+    return consumer_->GetTunnelHandle(handle);
 }
 } // namespace OHOS

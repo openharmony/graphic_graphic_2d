@@ -27,7 +27,6 @@ using namespace OHOS::HiviewDFX;
 
 namespace {
 constexpr HiLogLabel LABEL = { LOG_CORE, 0xD001400, "LocalSocketPair" };
-constexpr int32_t DEFAULT_CHANNEL_SIZE = 2 * 1024;
 constexpr int32_t SOCKET_PAIR_SIZE = 2;
 constexpr int32_t INVALID_FD = -1;
 constexpr int32_t ERRNO_EAGAIN = -1;
@@ -62,28 +61,22 @@ int32_t LocalSocketPair::CreateChannel(size_t sendSize, size_t receiveSize)
     }
 
     // set socket attr
-    setsockopt(socketPair[0], SOL_SOCKET, SO_SNDBUF, &sendSize, sizeof(sendSize));
-    setsockopt(socketPair[1], SOL_SOCKET, SO_RCVBUF, &receiveSize, sizeof(receiveSize));
-    int32_t bufferSize = DEFAULT_CHANNEL_SIZE;
-    int32_t ret = setsockopt(socketPair[0], SOL_SOCKET, SO_RCVBUF, &bufferSize, sizeof(bufferSize));
-    if (ret != 0) {
-        HiLog::Error(LABEL, "%{public}s setsockopt socketpair 0 failed", __func__);
-        return -1;
-    }
-    ret = setsockopt(socketPair[1], SOL_SOCKET, SO_SNDBUF, &bufferSize, sizeof(bufferSize));
-    if (ret != 0) {
-        HiLog::Error(LABEL, "%{public}s setsockopt socketpair 1 failed", __func__);
-        return -1;
-    }
-    ret = fcntl(socketPair[0], F_SETFL, O_NONBLOCK);
-    if (ret != 0) {
-        HiLog::Error(LABEL, "%{public}s fcntl socketpair 0 failed", __func__);
-        return -1;
-    }
-    ret = fcntl(socketPair[1], F_SETFL, O_NONBLOCK);
-    if (ret != 0) {
-        HiLog::Error(LABEL, "%{public}s fcntl socketpair 1 failed", __func__);
-        return -1;
+    for (int i = 0; i < SOCKET_PAIR_SIZE; ++i) {
+        int32_t ret = setsockopt(socketPair[i], SOL_SOCKET, SO_SNDBUF, &sendSize, sizeof(sendSize));
+        if (ret != 0) {
+            HiLog::Error(LABEL, "%{public}s setsockopt socketpair %{public}d sendbuffer size failed", __func__, i);
+            return -1;
+        }
+        ret = setsockopt(socketPair[i], SOL_SOCKET, SO_RCVBUF, &receiveSize, sizeof(receiveSize));
+        if (ret != 0) {
+            HiLog::Error(LABEL, "%{public}s setsockopt socketpair %{public}d receivebuffer size failed", __func__, i);
+            return -1;
+        }
+        ret = fcntl(socketPair[i], F_SETFL, O_NONBLOCK);
+        if (ret != 0) {
+            HiLog::Error(LABEL, "%{public}s fcntl socketpair %{public}d nonblock failed", __func__, i);
+            return -1;
+        }
     }
     sendFd_ = socketPair[0];
     receiveFd_ = socketPair[1];

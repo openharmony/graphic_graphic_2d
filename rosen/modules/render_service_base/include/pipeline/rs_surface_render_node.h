@@ -30,6 +30,7 @@
 #include "refbase.h"
 #include "sync_fence.h"
 #include "common/rs_occlusion_region.h"
+#include "transaction/rs_occlusion_data.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -121,6 +122,9 @@ public:
 
     void SetDstRect(const RectI& dstRect)
     {
+        if (dstRect_ != dstRect) {
+            dstRectChanged_= true;
+        }
         dstRect_ = dstRect;
     }
 
@@ -162,12 +166,18 @@ public:
         return isOcclusionVisible_;
     }
 
-    void SetVisibleRegionRecursive(const Occlusion::Region& region,
-                                    std::vector<std::pair<uint64_t, bool>>& visibilityVec)
+    const Occlusion::Region& GetVisibleRegion() const
+    {
+        return visibleRegion_;
+    }
+
+    void SetVisibleRegionRecursive(const Occlusion::Region& region, VisibleData& visibleVec)
     {
         visibleRegion_ = region;
         bool vis = region.GetSize() > 0;
-        visibilityVec.emplace_back(GetId(), vis);
+        if (vis) {
+            visibleVec.emplace_back(GetId());
+        }
         SetOcclusionVisible(vis);
         for (auto& child : GetSortedChildren()) {
             if (child->GetType() == RSRenderNodeType::SURFACE_NODE) {
@@ -175,9 +185,19 @@ public:
                 if (surface == nullptr) {
                     continue;
                 }
-                surface->SetVisibleRegionRecursive(region, visibilityVec);
+                surface->SetVisibleRegionRecursive(region, visibleVec);
             }
         }
+    }
+
+    bool GetDstRectChanged() const
+    {
+        return dstRectChanged_;
+    }
+
+    void CleanDstRectChanged()
+    {
+        dstRectChanged_ = false;
     }
 
     void SetConsumer(const sptr<Surface>& consumer);
@@ -210,12 +230,24 @@ public:
     void SetCallbackForRenderThreadRefresh(std::function<void(void)> callback);
     bool NeedSetCallbackForRenderThreadRefresh();
 
+    void ParallelVisitLock()
+    {
+        parallelVisitMutex_.lock();
+    }
+
+    void ParallelVisitUnlock()
+    {
+        parallelVisitMutex_.unlock();
+    }
+
 private:
     void SendCommandFromRT(std::unique_ptr<RSCommand>& command, NodeId nodeId);
 
     std::mutex mutexRT_;
     std::mutex mutexUI_;
     std::mutex mutex_;
+
+    std::mutex parallelVisitMutex_;
 
     SkMatrix contextMatrix_ = SkMatrix::I();
     float contextAlpha_ = 1.0f;
@@ -242,6 +274,7 @@ private:
     RectI clipRegionFromParent_;
     Occlusion::Region visibleRegion_;
     bool isOcclusionVisible_ = true;
+    bool dstRectChanged_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS

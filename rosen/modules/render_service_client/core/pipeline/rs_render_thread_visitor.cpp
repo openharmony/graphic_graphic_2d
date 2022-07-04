@@ -21,6 +21,9 @@
 #include <include/core/SkMatrix.h>
 #include <include/core/SkPaint.h>
 
+#include <frame_collector.h>
+#include <frame_painter.h>
+
 #include "include/core/SkRect.h"
 #include "rs_trace.h"
 
@@ -69,6 +72,9 @@ void RSRenderThreadVisitor::PrepareRootRenderNode(RSRootRenderNode& node)
 
 void RSRenderThreadVisitor::PrepareCanvasRenderNode(RSCanvasRenderNode& node)
 {
+    if (!node.GetRenderProperties().GetVisible()) {
+        return;
+    }
     bool dirtyFlag = dirtyFlag_;
     auto nodeParent = node.GetParent().lock();
     std::shared_ptr<RSRenderNode> rsParent = nullptr;
@@ -184,31 +190,29 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
         ProcessCanvasRenderNode(node);
         return;
     }
+    auto ptr = RSNodeMap::Instance().GetNode<RSSurfaceNode>(node.GetRSSurfaceNodeId());
+    if (ptr == nullptr) {
+        ROSEN_LOGE("ProcessRoot: No valid RSSurfaceNode id");
+        return;
+    }
     if (!node.GetRenderProperties().GetVisible()) {
-        ROSEN_LOGE("No valid RSRootRenderNode");
+        ROSEN_LOGI("ProcessRoot %s: Invisible", ptr->GetName().c_str());
         return;
     }
     if (node.GetSurfaceWidth() <= 0 || node.GetSurfaceHeight() <= 0) {
-        ROSEN_LOGE("RSRootRenderNode have negative width or height [%d %d]", node.GetSurfaceWidth(),
-            node.GetSurfaceHeight());
-        return;
-    }
-    auto ptr = RSNodeMap::Instance().GetNode<RSSurfaceNode>(node.GetRSSurfaceNodeId());
-    if (ptr == nullptr) {
-        ROSEN_LOGE("No valid RSSurfaceNode");
+        ROSEN_LOGE("ProcessRoot %s: Negative width or height [%d %d]", ptr->GetName().c_str(),
+            node.GetSurfaceWidth(), node.GetSurfaceHeight());
         return;
     }
 
     auto surfaceNodeColorSpace = ptr->GetColorSpace();
-
     std::shared_ptr<RSSurface> rsSurface = RSSurfaceExtractor::ExtractRSSurface(ptr);
     if (rsSurface == nullptr) {
-        ROSEN_LOGE("No RSSurface found");
+        ROSEN_LOGE("ProcessRoot %s: No RSSurface found", ptr->GetName().c_str());
         return;
     }
 
     auto rsSurfaceColorSpace = rsSurface->GetColorSpace();
-
     if (surfaceNodeColorSpace != rsSurfaceColorSpace) {
         ROSEN_LOGD("Set new colorspace %d to rsSurface", surfaceNodeColorSpace);
         rsSurface->SetColorSpace(surfaceNodeColorSpace);
@@ -218,12 +222,14 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
     RenderContext* rc = RSRenderThread::Instance().GetRenderContext();
     rsSurface->SetRenderContext(rc);
 #endif
-    uiTimestamp_ = RSRenderThread::Instance().GetPrevTimestamp();
+    uiTimestamp_ = RSRenderThread::Instance().GetUITimestamp();
     RS_TRACE_BEGIN("rsSurface->RequestFrame");
+    FrameCollector::GetInstance().MarkFrameEvent(FrameEventType::ReleaseStart);
     auto surfaceFrame = rsSurface->RequestFrame(node.GetSurfaceWidth(), node.GetSurfaceHeight(), uiTimestamp_);
     RS_TRACE_END();
     if (surfaceFrame == nullptr) {
-        ROSEN_LOGE("Request Frame Failed");
+        ROSEN_LOGI("ProcessRoot %s: Request Frame Failed", ptr->GetName().c_str());
+        FrameCollector::GetInstance().MarkFrameEvent(FrameEventType::ReleaseEnd);
         return;
     }
 
@@ -252,10 +258,10 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
     if (childSurfaceNodeIds_ != node.childSurfaceNodeIds_) {
         auto thisSurfaceNodeId = node.GetRSSurfaceNodeId();
         std::unique_ptr<RSCommand> command = std::make_unique<RSBaseNodeClearChild>(thisSurfaceNodeId);
-        SendCommandFromRT(command, thisSurfaceNodeId, FollowType::NONE);
+        SendCommandFromRT(command, thisSurfaceNodeId, FollowType::FOLLOW_TO_SELF);
         for (const auto& childSurfaceNodeId : childSurfaceNodeIds_) {
             command = std::make_unique<RSBaseNodeAddChild>(thisSurfaceNodeId, childSurfaceNodeId, -1);
-            SendCommandFromRT(command, childSurfaceNodeId, FollowType::NONE);
+            SendCommandFromRT(command, thisSurfaceNodeId, FollowType::FOLLOW_TO_SELF);
         }
         node.childSurfaceNodeIds_ = std::move(childSurfaceNodeIds_);
     }
@@ -275,10 +281,16 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
         overdrawListener->Draw();
     }
 
+    FramePainter fpainter(FrameCollector::GetInstance());
+    fpainter.Draw(*canvas_);
+    FrameCollector::GetInstance().MarkFrameEvent(FrameEventType::ReleaseEnd);
+    FrameCollector::GetInstance().MarkFrameEvent(FrameEventType::FlushStart);
+
     RS_TRACE_BEGIN("rsSurface->FlushFrame");
     ROSEN_LOGD("RSRenderThreadVisitor FlushFrame surfaceNodeId = %llu, uiTimestamp = %llu",
         node.GetRSSurfaceNodeId(), uiTimestamp_);
     rsSurface->FlushFrame(surfaceFrame, uiTimestamp_);
+    FrameCollector::GetInstance().MarkFrameEvent(FrameEventType::FlushEnd);
     RS_TRACE_END();
 
     delete canvas_;
@@ -375,10 +387,10 @@ void RSRenderThreadVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
     if (childSurfaceNodeIds_ != node.childSurfaceNodeIds_) {
         auto thisSurfaceNodeId = node.GetId();
         std::unique_ptr<RSCommand> command = std::make_unique<RSBaseNodeClearChild>(thisSurfaceNodeId);
-        SendCommandFromRT(command, thisSurfaceNodeId, FollowType::NONE);
+        SendCommandFromRT(command, thisSurfaceNodeId, FollowType::FOLLOW_TO_SELF);
         for (const auto& childSurfaceNodeId : childSurfaceNodeIds_) {
             command = std::make_unique<RSBaseNodeAddChild>(thisSurfaceNodeId, childSurfaceNodeId, -1);
-            SendCommandFromRT(command, childSurfaceNodeId, FollowType::NONE);
+            SendCommandFromRT(command, thisSurfaceNodeId, FollowType::FOLLOW_TO_SELF);
         }
         node.childSurfaceNodeIds_ = std::move(childSurfaceNodeIds_);
     }

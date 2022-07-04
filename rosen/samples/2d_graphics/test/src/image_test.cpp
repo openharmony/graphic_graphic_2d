@@ -22,7 +22,7 @@ void ImageTest::TestDrawImage(Canvas& canvas, uint32_t width, uint32_t height)
 {
     LOGI("+++++++ TestDrawImage");
     Bitmap bmp;
-    BitmapFormat format { COLORTYPE_RGBA_8888, ALPHATYPE_OPAQUYE };
+    BitmapFormat format { COLORTYPE_RGBA_8888, ALPHATYPE_OPAQUE };
     bmp.Build(300, 300, format); // bitmap width and height
     bmp.ClearWithColor(Drawing::Color::COLOR_BLUE);
 
@@ -56,7 +56,7 @@ void ImageTest::TestDrawImageRect(Canvas& canvas, uint32_t width, uint32_t heigh
 {
     LOGI("+++++++ TestDrawImageRect");
     Bitmap bmp;
-    BitmapFormat format { COLORTYPE_RGBA_8888, ALPHATYPE_OPAQUYE };
+    BitmapFormat format { COLORTYPE_RGBA_8888, ALPHATYPE_OPAQUE };
     bmp.Build(300, 300, format); // bitmap width and height
     bmp.ClearWithColor(Drawing::Color::COLOR_BLUE);
 

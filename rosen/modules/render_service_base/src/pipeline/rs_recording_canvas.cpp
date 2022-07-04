@@ -132,17 +132,37 @@ void RSRecordingCanvas::onDrawPaint(const SkPaint& paint)
     AddOp(std::move(op));
 }
 
-void RSRecordingCanvas::DrawImageWithParm(const sk_sp<SkImage>img, int fitNum, int repeatNum, float radius,
-    const SkPaint& paint)
-{
-    std::unique_ptr<OpItem> op = std::make_unique<ImageWithParmOpItem>(img, fitNum, repeatNum, radius, paint);
-    AddOp(std::move(op));
-}
-
 void RSRecordingCanvas::DrawImageWithParm(const sk_sp<SkImage>img, const Rosen::RsImageInfo& rsimageInfo,
     const SkPaint& paint)
 {
     std::unique_ptr<OpItem> op = std::make_unique<ImageWithParmOpItem>(img, rsimageInfo, paint);
+    AddOp(std::move(op));
+}
+
+void RSRecordingCanvas::DrawPixelMap(
+    const std::shared_ptr<Media::PixelMap>& pixelmap, SkScalar x, SkScalar y, const SkPaint* paint)
+{
+    std::unique_ptr<OpItem> op = std::make_unique<PixelMapOpItem>(pixelmap, x, y, paint);
+    AddOp(std::move(op));
+}
+
+void RSRecordingCanvas::DrawPixelMapRect(const std::shared_ptr<Media::PixelMap>& pixelmap, const SkRect& src,
+    const SkRect& dst, const SkPaint* paint, SrcRectConstraint constraint)
+{
+    std::unique_ptr<OpItem> op = std::make_unique<PixelMapRectOpItem>(pixelmap, src, dst, paint);
+    AddOp(std::move(op));
+}
+
+void RSRecordingCanvas::DrawPixelMapRect(
+    const std::shared_ptr<Media::PixelMap>& pixelmap, const SkRect& dst, const SkPaint* paint)
+{
+    DrawPixelMapRect(pixelmap, SkRect::MakeIWH(pixelmap->GetWidth(), pixelmap->GetHeight()), dst, paint);
+}
+
+void RSRecordingCanvas::DrawPixelMapWithParm(
+    const std::shared_ptr<Media::PixelMap>& pixelmap, const Rosen::RsImageInfo& rsImageInfo, const SkPaint& paint)
+{
+    std::unique_ptr<OpItem> op = std::make_unique<PixelMapWithParmOpItem>(pixelmap, rsImageInfo, paint);
     AddOp(std::move(op));
 }
 

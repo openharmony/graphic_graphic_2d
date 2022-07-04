@@ -25,7 +25,7 @@ void BitmapTest::TestDrawBitmap(Canvas& canvas, uint32_t width, uint32_t height)
 {
     LOGI("+++++++ TestDrawBitmap");
     Bitmap bmp;
-    BitmapFormat format { COLORTYPE_RGBA_8888, ALPHATYPE_OPAQUYE };
+    BitmapFormat format { COLORTYPE_RGBA_8888, ALPHATYPE_OPAQUE };
     bmp.Build(200, 200, format); // bitmap width and height
     bmp.ClearWithColor(Drawing::Color::COLOR_BLUE);
 

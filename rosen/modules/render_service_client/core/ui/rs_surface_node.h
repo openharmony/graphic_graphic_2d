@@ -101,6 +101,7 @@ private:
     BufferAvailableCallback callback_;
     ColorGamut colorSpace_ = ColorGamut::COLOR_GAMUT_SRGB;
     bool isSecurityLayer_ = false;
+    bool isChildOperationDisallowed_ { false };
 
     friend class RSUIDirector;
     friend class RSAnimation;

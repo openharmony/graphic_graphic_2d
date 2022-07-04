@@ -14,58 +14,61 @@
  */
 
 #include <vsync_receiver.h>
-#include "external_vsync.h"
 #include "transaction/rs_interfaces.h"
+#include "vsync_log.h"
+#include "native_vsync.h"
 
-#include <string>
-#include <memory>
+using namespace OHOS;
 
-#ifndef weak_alias
-    #define weak_alias(old, new) \
-        extern __typeof(old) new __attribute__((__weak__, __alias__(#old)))
-#endif
-
+namespace {
 struct NativeVSync {
     std::shared_ptr<OHOS::Rosen::VSyncReceiver> receiver_;
 };
-
-static NativeVSync* OHNativeVSyncToNativeVSync(OHNativeVSync* ohNativeVSync)
+}
+static NativeVSync* OH_NativeVSync_OHNativeVSyncToNativeVSync(OH_NativeVSync* ohNativeVSync)
 {
     return reinterpret_cast<NativeVSync*>(ohNativeVSync);
 }
 
-static OHNativeVSync* NativeVSyncToOHNativeVSync(NativeVSync* nativeVSync)
+static OH_NativeVSync* OH_NativeVSync_NativeVSyncToOHNativeVSync(NativeVSync* nativeVSync)
 {
-    return reinterpret_cast<OHNativeVSync*>(nativeVSync);
+    return reinterpret_cast<OH_NativeVSync*>(nativeVSync);
 }
 
-OHNativeVSync* CreateOHNativeVSync(const char* name, unsigned int length)
+OH_NativeVSync* OH_NativeVSync_Create(const char* name, unsigned int length)
 {
     if (name == nullptr) {
+        VLOGE("name is nullptr, please check");
         return nullptr;
     }
     std::string vsyncName(name, length);
     NativeVSync* nativeVSync = new NativeVSync;
     auto& rsClient = OHOS::Rosen::RSInterfaces::GetInstance();
     std::shared_ptr<OHOS::Rosen::VSyncReceiver> receiver = rsClient.CreateVSyncReceiver(vsyncName);
-    receiver->Init();
+    int ret = receiver->Init();
+    if (ret != 0) {
+        VLOGE("VSyncReceiver Init failed, ret:%{public}d", ret);
+        return nullptr;
+    }
     nativeVSync->receiver_ = receiver;
-    return NativeVSyncToOHNativeVSync(nativeVSync);
+    return OH_NativeVSync_NativeVSyncToOHNativeVSync(nativeVSync);
 }
 
-void DestroyOHNativeVSync(OHNativeVSync *nativeVSync)
+void OH_NativeVSync_Destroy(OH_NativeVSync *nativeVSync)
 {
     if (nativeVSync == nullptr) {
+        VLOGE("parameter is nullptr, please check");
         return;
     }
 
-    delete OHNativeVSyncToNativeVSync(nativeVSync);
+    delete OH_NativeVSync_OHNativeVSyncToNativeVSync(nativeVSync);
 }
 
-int OHNativeVSyncRequestFrame(OHNativeVSync *ohNativeVSync, OHNativeVSyncFrameCallback callback, void* data)
+int OH_NativeVSync_RequestFrame(OH_NativeVSync *ohNativeVSync, OH_NativeVSync_FrameCallback callback, void* data)
 {
-    NativeVSync* nativeVSync = OHNativeVSyncToNativeVSync(ohNativeVSync);
-    if (nativeVSync == nullptr || nativeVSync->receiver_ == nullptr) {
+    NativeVSync* nativeVSync = OH_NativeVSync_OHNativeVSyncToNativeVSync(ohNativeVSync);
+    if (nativeVSync == nullptr || nativeVSync->receiver_ == nullptr || callback == nullptr) {
+        VLOGE("parameter is nullptr, please check");
         return -1;
     }
     OHOS::Rosen::VSyncReceiver::FrameCallback frameCallback = {
@@ -74,7 +77,3 @@ int OHNativeVSyncRequestFrame(OHNativeVSync *ohNativeVSync, OHNativeVSyncFrameCa
     };
     return nativeVSync->receiver_->RequestNextVSync(frameCallback);
 }
-
-weak_alias(CreateOHNativeVSync, OH_NativeVSync_CreateOHNativeVSync);
-weak_alias(DestroyOHNativeVSync, OH_NativeVSync_DestroyOHNativeVSync);
-weak_alias(OHNativeVSyncRequestFrame, OH_NativeVSync_OHNativeVSyncRequestFrame);

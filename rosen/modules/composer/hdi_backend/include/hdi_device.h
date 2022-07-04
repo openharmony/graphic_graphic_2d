@@ -68,7 +68,7 @@ public:
     virtual int32_t SetLayerAlpha(uint32_t screenId, uint32_t layerId, LayerAlpha &alpha) = 0;
     virtual int32_t SetLayerSize(uint32_t screenId, uint32_t layerId, IRect &layerRect) = 0;
     virtual int32_t SetTransformMode(uint32_t screenId, uint32_t layerId, TransformType type) = 0;
-    virtual int32_t SetLayerVisibleRegion(uint32_t screenId, uint32_t layerId, uint32_t num, IRect &visable) = 0;
+    virtual int32_t SetLayerVisibleRegion(uint32_t screenId, uint32_t layerId, uint32_t num, IRect &visible) = 0;
     virtual int32_t SetLayerDirtyRegion(uint32_t screenId, uint32_t layerId, IRect &dirty) = 0;
     virtual int32_t SetLayerBuffer(uint32_t screenId, uint32_t layerId, const BufferHandle *handle,
                            const sptr<SyncFence> &acquireFence) = 0;
@@ -83,6 +83,7 @@ public:
     virtual int32_t SetLayerMetaData(uint32_t screenId, uint32_t layerId, const std::vector<HDRMetaData> &metaData) = 0;
     virtual int32_t SetLayerMetaDataSet(uint32_t screenId, uint32_t layerId, HDRMetadataKey key,
                                         const std::vector<uint8_t> &metaData) = 0;
+    virtual int32_t SetLayerTunnelHandle(uint32_t screenId, uint32_t layerId, const ExtDataHandle *handle) = 0;
     /* set & get device layer info end */
 
     virtual int32_t CreateLayer(uint32_t screenId, const LayerInfo &layerInfo, uint32_t &layerId) = 0;
@@ -138,7 +139,7 @@ public:
     int32_t SetLayerAlpha(uint32_t screenId, uint32_t layerId, LayerAlpha &alpha) override;
     int32_t SetLayerSize(uint32_t screenId, uint32_t layerId, IRect &layerRect) override;
     int32_t SetTransformMode(uint32_t screenId, uint32_t layerId, TransformType type) override;
-    int32_t SetLayerVisibleRegion(uint32_t screenId, uint32_t layerId, uint32_t num, IRect &visable) override;
+    int32_t SetLayerVisibleRegion(uint32_t screenId, uint32_t layerId, uint32_t num, IRect &visible) override;
     int32_t SetLayerDirtyRegion(uint32_t screenId, uint32_t layerId, IRect &dirty) override;
     int32_t SetLayerBuffer(uint32_t screenId, uint32_t layerId, const BufferHandle *handle,
                            const sptr<SyncFence> &acquireFence) override;
@@ -153,6 +154,7 @@ public:
     int32_t SetLayerMetaData(uint32_t screenId, uint32_t layerId, const std::vector<HDRMetaData> &metaData) override;
     int32_t SetLayerMetaDataSet(uint32_t screenId, uint32_t layerId, HDRMetadataKey key,
                                 const std::vector<uint8_t> &metaData) override;
+    int32_t SetLayerTunnelHandle(uint32_t screenId, uint32_t layerId, const ExtDataHandle *handle) override;
     /* set & get device layer info end */
 
     int32_t CreateLayer(uint32_t screenId, const LayerInfo &layerInfo, uint32_t &layerId) override;

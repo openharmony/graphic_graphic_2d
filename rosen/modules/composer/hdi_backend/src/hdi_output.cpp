@@ -148,6 +148,16 @@ uint32_t HdiOutput::GetScreenId() const
     return screenId_;
 }
 
+void HdiOutput::SetLayerCompCapacity(uint32_t layerCompositionCapacity)
+{
+    layerCompCapacity_ = layerCompositionCapacity;
+}
+
+uint32_t HdiOutput::GetLayerCompCapacity() const
+{
+    return layerCompCapacity_;
+}
+
 sptr<Surface> HdiOutput::GetFrameBufferSurface()
 {
     if (!CheckFbSurface()) {

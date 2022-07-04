@@ -94,7 +94,9 @@ ohos_shared_library("librender_service_base") {
     "src/pipeline/rs_draw_cmd.cpp",
     "src/pipeline/rs_draw_cmd_list.cpp",
     "src/pipeline/rs_frame_report.cpp",
+    "src/pipeline/rs_occlusion_config.cpp",
     "src/pipeline/rs_paint_filter_canvas.cpp",
+    "src/pipeline/rs_pixel_map_util.cpp",
     "src/pipeline/rs_recording_canvas.cpp",
     "src/pipeline/rs_render_node.cpp",
     "src/pipeline/rs_render_node_map.cpp",
@@ -112,6 +114,7 @@ ohos_shared_library("librender_service_base") {
     "src/render/rs_filter.cpp",
     "src/render/rs_image.cpp",
     "src/render/rs_mask.cpp",
+    "src/render/rs_material_filter.cpp",
     "src/render/rs_path.cpp",
     "src/render/rs_shader.cpp",
     "src/render/rs_shadow.cpp",
@@ -138,6 +141,8 @@ ohos_shared_library("librender_service_base") {
   ]
 
   deps = [ "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/src/platform:platform" ]
+
+  external_deps = [ "init:libbegetutil" ]
 
   public_deps = [
     "src/platform:platform",

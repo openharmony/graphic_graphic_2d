@@ -29,7 +29,7 @@ void AnimationCommandHelper::AnimationFinishCallback(RSContext& context, NodeId 
     }
 }
 
-void AnimationCommandHelper::SetFinisCallbackProcessor(FinishCallbackProcessor processor)
+void AnimationCommandHelper::SetFinishCallbackProcessor(FinishCallbackProcessor processor)
 {
     finishCallbackProcessor = processor;
 }

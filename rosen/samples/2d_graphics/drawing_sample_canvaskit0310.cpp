@@ -157,7 +157,7 @@ void HelloDrawing::TestDrawImage(Canvas& canvas, uint32_t width, uint32_t height
 {
     LOGI("+++++++ TestDrawImage");
     Bitmap bmp;
-    BitmapFormat format {COLORTYPE_RGBA_8888, ALPHATYPE_OPAQUYE};
+    BitmapFormat format {COLORTYPE_RGBA_8888, ALPHATYPE_OPAQUE};
     bmp.Build(300, 300, format); // bitmap width and height
     bmp.ClearWithColor(Drawing::Color::COLOR_BLUE);
 
@@ -188,7 +188,7 @@ void HelloDrawing::DoDrawData(void *image, uint32_t width, uint32_t height)
 {
 
     Bitmap bitmap;
-    BitmapFormat format {COLORTYPE_RGBA_8888, ALPHATYPE_OPAQUYE};
+    BitmapFormat format {COLORTYPE_RGBA_8888, ALPHATYPE_OPAQUE};
     bitmap.Build(width, height, format);
 
     Canvas canvas;
@@ -208,7 +208,7 @@ void HelloDrawing::DoDrawData(void *image, uint32_t width, uint32_t height)
 void HelloDrawing::DoDrawBaseData(void *image, uint32_t width, uint32_t height, uint32_t index)
 {
     Bitmap bitmap;
-    BitmapFormat format {COLORTYPE_RGBA_8888, ALPHATYPE_OPAQUYE};
+    BitmapFormat format {COLORTYPE_RGBA_8888, ALPHATYPE_OPAQUE};
     bitmap.Build(width, height, format);
 
     Canvas canvas;

@@ -19,10 +19,10 @@ namespace OHOS {
 namespace Rosen {
 RSScreenCapability::RSScreenCapability(std::string name, ScreenInterfaceType type, uint32_t phyWidth,
     uint32_t phyHeight, uint32_t supportLayers, uint32_t virtualDispCount,
-    bool supportWriteback, const std::vector<RSScreenProps>& props)
+    bool supportWriteBack, const std::vector<RSScreenProps>& props)
     : name_(name), type_(type), phyWidth_(phyWidth),
     phyHeight_(phyHeight), supportLayers_(supportLayers),
-    virtualDispCount_(virtualDispCount), supportWriteback_(supportWriteback), props_(props)
+    virtualDispCount_(virtualDispCount), supportWriteBack_(supportWriteBack), props_(props)
 {
 }
 
@@ -56,9 +56,9 @@ void RSScreenCapability::SetVirtualDispCount(uint32_t virtualDispCount)
     virtualDispCount_ = virtualDispCount;
 }
 
-void RSScreenCapability::SetSupportWriteback(bool supportWriteback)
+void RSScreenCapability::SetSupportWriteBack(bool supportWriteBack)
 {
-    supportWriteback_ = supportWriteback;
+    supportWriteBack_ = supportWriteBack;
 }
 
 void RSScreenCapability::SetProps(const std::vector<RSScreenProps>& props)
@@ -96,9 +96,9 @@ uint32_t RSScreenCapability::GetVirtualDispCount() const
     return virtualDispCount_;
 }
 
-bool RSScreenCapability::GetSupportWriteback() const
+bool RSScreenCapability::GetSupportWriteBack() const
 {
-    return supportWriteback_;
+    return supportWriteBack_;
 }
 
 const std::vector<RSScreenProps>& RSScreenCapability::GetProps() const
@@ -149,7 +149,7 @@ bool RSScreenCapability::Marshalling(Parcel &parcel) const
     if (!parcel.WriteUint32(virtualDispCount_)) {
         return false;
     }
-    if (!parcel.WriteBool(supportWriteback_)) {
+    if (!parcel.WriteBool(supportWriteBack_)) {
         return false;
     }
     if (!parcel.WriteUint32(static_cast<uint32_t>(props_.size()))) {
@@ -169,7 +169,7 @@ RSScreenCapability* RSScreenCapability::Unmarshalling(Parcel &parcel)
     uint32_t phyHeight;
     uint32_t supportLayers;
     uint32_t virtualDispCount;
-    bool supportWriteback = false;
+    bool supportWriteBack = false;
     uint32_t propCount;
     std::vector<RSScreenProps> props;
     if (!parcel.ReadString(name)) {
@@ -190,7 +190,7 @@ RSScreenCapability* RSScreenCapability::Unmarshalling(Parcel &parcel)
     if (!parcel.ReadUint32(virtualDispCount)) {
         return nullptr;
     }
-    if (!parcel.ReadBool(supportWriteback)) {
+    if (!parcel.ReadBool(supportWriteBack)) {
         return nullptr;
     }
     if (!parcel.ReadUint32(propCount)) {
@@ -200,7 +200,7 @@ RSScreenCapability* RSScreenCapability::Unmarshalling(Parcel &parcel)
         return nullptr;
     }
     RSScreenCapability* screenCapability = new RSScreenCapability(name, static_cast<ScreenInterfaceType>(type),
-        phyWidth, phyHeight, supportLayers, virtualDispCount, supportWriteback, props);
+        phyWidth, phyHeight, supportLayers, virtualDispCount, supportWriteBack, props);
     return screenCapability;
 }
 }

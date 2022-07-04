@@ -13,11 +13,11 @@
  * limitations under the License.
  */
 
-#include "pipeline/rs_processor_factory.h"
+#include "rs_processor_factory.h"
 
-#include "pipeline/rs_compatible_processor.h"
-#include "pipeline/rs_hardware_processor.h"
-#include "pipeline/rs_software_processor.h"
+#include "rs_physical_screen_processor.h"
+#include "rs_uni_render_processor.h"
+#include "rs_virtual_screen_processor.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -26,11 +26,11 @@ std::shared_ptr<RSProcessor> RSProcessorFactory::CreateProcessor(RSDisplayRender
 {
     switch(type) {
         case RSDisplayRenderNode::CompositeType::SOFTWARE_COMPOSITE:
-            return std::make_shared<RSSoftwareProcessor>();
+            return std::make_shared<RSVirtualScreenProcessor>();
         case RSDisplayRenderNode::CompositeType::HARDWARE_COMPOSITE:
-            return std::make_shared<RSHardwareProcessor>();
-        case RSDisplayRenderNode::CompositeType::COMPATIBLE_COMPOSITE:
-            return std::make_shared<RSCompatibleProcessor>();
+            return std::make_shared<RSPhysicalScreenProcessor>();
+        case RSDisplayRenderNode::CompositeType::UNI_RENDER_COMPOSITE:
+            return std::make_shared<RSUniRenderProcessor>();
         default:
             return nullptr;
     }

@@ -38,13 +38,14 @@ public:
 private:
     void AnalyseFilters(cJSON* filters);
     void ParseParams(std::shared_ptr<Filter> filter, cJSON* params);
+    void ParseArray(std::shared_ptr<Filter> filter, cJSON* childParam);
     void ConnectPipeline(cJSON* connections);
     std::unordered_map<std::string, std::string> nameType_;
     std::unordered_map<std::string, std::shared_ptr<Filter>> nameFilter_;
     std::vector<std::shared_ptr<Input>> inputs_;
-    cJSON* filters_ = nullptr;
-    cJSON* connections_ = nullptr;
-    std::shared_ptr<FilterFactory> algoFilterFactory = std::make_shared<FilterFactory>();
+    std::shared_ptr<cJSON> filters_ = nullptr;
+    std::shared_ptr<cJSON> connections_ = nullptr;
+    std::shared_ptr<FilterFactory> filterFactory = std::make_shared<FilterFactory>();
 };
 } // namespace Rosen
 } // namespace OHOS

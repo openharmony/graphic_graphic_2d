@@ -26,6 +26,7 @@ enum RSDisplayNodeCommandType : uint16_t {
     DISPLAY_NODE_SET_SCREEN_ID,
     DISPLAY_NODE_SET_DISPLAY_OFFSET,
     DISPLAY_NODE_SET_SECURITY_DISPLAY,
+    DISPLAY_NODE_SET_DISPLAY_MODE,
 };
 
 class DisplayNodeCommandHelper {
@@ -34,6 +35,7 @@ public:
     static void SetScreenId(RSContext&, NodeId, uint64_t);
     static void SetDisplayOffset(RSContext&, NodeId, int32_t, int32_t);
     static void SetSecurityDisplay(RSContext&, NodeId, bool);
+    static void SetDisplayMode(RSContext&, NodeId, const RSDisplayNodeConfig&);
 };
 
 ADD_COMMAND(RSDisplayNodeCreate,
@@ -45,6 +47,9 @@ ADD_COMMAND(RSDisplayNodeSetDisplayOffset,
     int32_t, int32_t))
 ADD_COMMAND(RSDisplayNodeSetSecurityDisplay,
     ARG(DISPLAY_NODE, DISPLAY_NODE_SET_SECURITY_DISPLAY, DisplayNodeCommandHelper::SetSecurityDisplay, NodeId, bool))
+ADD_COMMAND(RSDisplayNodeSetDisplayMode,
+    ARG(DISPLAY_NODE, DISPLAY_NODE_SET_DISPLAY_MODE, DisplayNodeCommandHelper::SetDisplayMode, NodeId,
+    RSDisplayNodeConfig))
 } // namespace Rosen
 } // namespace OHOS
 
