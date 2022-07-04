@@ -34,6 +34,7 @@ using namespace std;
 constexpr static int32_t WIDTH = 720;
 constexpr static int32_t HEIGHT = 1280;
 
+namespace {
 void DoDraw(uint8_t *addr, uint32_t width, uint32_t height, size_t index)
 {
     OH_Drawing_Bitmap* cBitmap = OH_Drawing_BitmapCreate();
@@ -137,6 +138,7 @@ std::shared_ptr<RSSurfaceNode> CreateSurface()
 {
     RSSurfaceNodeConfig config;
     return RSSurfaceNode::Create(config);
+}
 }
 
 int main()
