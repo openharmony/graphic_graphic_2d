@@ -13,27 +13,23 @@
  * limitations under the License.
  */
 
-#ifndef WINDOW_ANIMATION_RS_WINDOW_ANIMATION_FINISHED_CALLBACK_H
-#define WINDOW_ANIMATION_RS_WINDOW_ANIMATION_FINISHED_CALLBACK_H
+#include "rs_window_animation_callback.h"
 
-#include <functional>
-
-#include "rs_window_animation_finished_callback_stub.h"
+#include <rs_window_animation_log.h>
 
 namespace OHOS {
 namespace Rosen {
-class RSWindowAnimationFinishedCallback : public RSWindowAnimationFinishedCallbackStub {
-public:
-    explicit RSWindowAnimationFinishedCallback(const std::function<void(void)>& callback);
-    virtual ~RSWindowAnimationFinishedCallback();
+RSWindowAnimationCallback::RSWindowAnimationCallback(
+    const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback)
+    : RSWindowAnimationFinishedCallback(std::function<void()>()),
+    finishedCallback_(finishedCallback)
+{}
 
-    void OnAnimationFinished() override;
-
-private:
-    std::function<void(void)> callback_;
-    bool isFinishedCalled_ { false };
-};
+void RSWindowAnimationCallback::OnAnimationFinished()
+{
+    if (finishedCallback_ != nullptr) {
+        finishedCallback_ = nullptr;
+    }
+}
 } // namespace Rosen
 } // namespace OHOS
-
-#endif // WINDOW_ANIMATION_RS_WINDOW_ANIMATION_FINISHED_CALLBACK_H

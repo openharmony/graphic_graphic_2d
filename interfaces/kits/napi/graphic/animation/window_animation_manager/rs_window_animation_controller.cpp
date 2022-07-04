@@ -46,7 +46,7 @@ void RSWindowAnimationController::OnStartApp(StartingAppType type,
 {
     WALOGD("Window animation controller on start app.");
     wptr<RSWindowAnimationController> controllerWptr = this;
-    std::unique_ptr<AsyncTask::CompleteCallback> complete = std::make_unique<AsyncTask::CompleteCallback> (
+    auto complete = std::make_unique<AsyncTask::CompleteCallback> (
         [controllerWptr, type, startingWindowTarget, finishedCallback](NativeEngine&, AsyncTask&, int32_t) {
             auto controllerSptr = controllerWptr.promote();
             if (controllerSptr == nullptr) {
@@ -69,7 +69,7 @@ void RSWindowAnimationController::OnAppTransition(const sptr<RSWindowAnimationTa
 {
     WALOGD("Window animation controller on app transition.");
     wptr<RSWindowAnimationController> controllerWptr = this;
-    std::unique_ptr<AsyncTask::CompleteCallback> complete = std::make_unique<AsyncTask::CompleteCallback> (
+    auto complete = std::make_unique<AsyncTask::CompleteCallback> (
         [controllerWptr, fromWindowTarget, toWindowTarget, finishedCallback](NativeEngine&, AsyncTask&, int32_t) {
             auto controllerSptr = controllerWptr.promote();
             if (controllerSptr == nullptr) {
@@ -91,7 +91,7 @@ void RSWindowAnimationController::OnMinimizeWindow(const sptr<RSWindowAnimationT
 {
     WALOGD("Window animation controller on minimize window.");
     wptr<RSWindowAnimationController> controllerWptr = this;
-    std::unique_ptr<AsyncTask::CompleteCallback> complete = std::make_unique<AsyncTask::CompleteCallback> (
+    auto complete = std::make_unique<AsyncTask::CompleteCallback> (
         [controllerWptr, minimizingWindowTarget, finishedCallback](NativeEngine&, AsyncTask&, int32_t) {
             auto controllerSptr = controllerWptr.promote();
             if (controllerSptr == nullptr) {
@@ -108,12 +108,24 @@ void RSWindowAnimationController::OnMinimizeWindow(const sptr<RSWindowAnimationT
     AsyncTask::Schedule(engine_, std::make_unique<AsyncTask>(callback, std::move(execute), std::move(complete)));
 }
 
+void RSWindowAnimationController::OnMinimizeAllWindow(
+    std::vector<sptr<RSWindowAnimationTarget>> minimizingWindowsTarget,
+    const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback)
+{
+    WALOGD("Window animation controller on minimize all windows.");
+    for (auto target : minimizingWindowsTarget) {
+        sptr<RSIWindowAnimationFinishedCallback> animationCallback =
+            new(std::nothrow) RSWindowAnimationCallback(finishedCallback);
+        OnMinimizeWindow(target, animationCallback);
+    }
+}
+
 void RSWindowAnimationController::OnCloseWindow(const sptr<RSWindowAnimationTarget>& closingWindowTarget,
     const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback)
 {
     WALOGD("Window animation controller on close window.");
     wptr<RSWindowAnimationController> controllerWptr = this;
-    std::unique_ptr<AsyncTask::CompleteCallback> complete = std::make_unique<AsyncTask::CompleteCallback> (
+    auto complete = std::make_unique<AsyncTask::CompleteCallback> (
         [controllerWptr, closingWindowTarget, finishedCallback](NativeEngine&, AsyncTask&, int32_t) {
             auto controllerSptr = controllerWptr.promote();
             if (controllerSptr == nullptr) {
@@ -134,7 +146,7 @@ void RSWindowAnimationController::OnScreenUnlock(const sptr<RSIWindowAnimationFi
 {
     WALOGD("Window animation controller on screen unlock.");
     wptr<RSWindowAnimationController> controllerWptr = this;
-    std::unique_ptr<AsyncTask::CompleteCallback> complete = std::make_unique<AsyncTask::CompleteCallback> (
+    auto complete = std::make_unique<AsyncTask::CompleteCallback> (
         [controllerWptr, finishedCallback](NativeEngine&, AsyncTask&, int32_t) {
             auto controllerSptr = controllerWptr.promote();
             if (controllerSptr == nullptr) {

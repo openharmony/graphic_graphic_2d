@@ -156,6 +156,47 @@ void RSWindowAnimationProxy::OnMinimizeWindow(const sptr<RSWindowAnimationTarget
     }
 }
 
+void RSWindowAnimationProxy::OnMinimizeAllWindow(std::vector<sptr<RSWindowAnimationTarget>> minimizingWindowsTarget,
+    const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option(MessageOption::TF_ASYNC);
+
+    WALOGD("Window animation proxy on minimize all windows!");
+    if (!WriteInterfaceToken(data)) {
+        return;
+    }
+
+    if (!data.WriteUint32(minimizingWindowsTarget.size())) {
+        WALOGE("Failed to write animation target size!");
+        return;
+    }
+
+    for (auto& target : minimizingWindowsTarget) {
+        if (!data.WriteParcelable(target.GetRefPtr())) {
+            WALOGE("Failed to write from animation target!");
+            return;
+        }
+    }
+
+    if (!data.WriteRemoteObject(finishedCallback->AsObject())) {
+        WALOGE("Failed to write finished callback!");
+        return;
+    }
+
+    auto remote = Remote();
+    if (remote == nullptr) {
+        WALOGE("remote is null!");
+        return;
+    }
+
+    auto ret = remote->SendRequest(RSIWindowAnimationController::ON_MINIMIZE_ALLWINDOW, data, reply, option);
+    if (ret != NO_ERROR) {
+        WALOGE("Failed to send minimize all windows request, error code:%d", ret);
+    }
+}
+
 void RSWindowAnimationProxy::OnCloseWindow(const sptr<RSWindowAnimationTarget>& closingWindowTarget,
     const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback)
 {

@@ -13,27 +13,25 @@
  * limitations under the License.
  */
 
-#ifndef WINDOW_ANIMATION_RS_WINDOW_ANIMATION_FINISHED_CALLBACK_H
-#define WINDOW_ANIMATION_RS_WINDOW_ANIMATION_FINISHED_CALLBACK_H
+#ifndef INTERFACES_KITS_NAPI_GRAPHIC_ANIMATION_RS_WINDOW_ANIMATION_CALLBACK_H
+#define INTERFACES_KITS_NAPI_GRAPHIC_ANIMATION_RS_WINDOW_ANIMATION_CALLBACK_H
 
 #include <functional>
-
-#include "rs_window_animation_finished_callback_stub.h"
+#include <rs_window_animation_finished_callback.h>
 
 namespace OHOS {
 namespace Rosen {
-class RSWindowAnimationFinishedCallback : public RSWindowAnimationFinishedCallbackStub {
+class RSWindowAnimationCallback : public RSWindowAnimationFinishedCallback {
 public:
-    explicit RSWindowAnimationFinishedCallback(const std::function<void(void)>& callback);
-    virtual ~RSWindowAnimationFinishedCallback();
+    explicit RSWindowAnimationCallback(const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback);
+    virtual ~RSWindowAnimationCallback() = default;
 
     void OnAnimationFinished() override;
 
 private:
-    std::function<void(void)> callback_;
-    bool isFinishedCalled_ { false };
+    sptr<RSIWindowAnimationFinishedCallback> finishedCallback_;
 };
 } // namespace Rosen
 } // namespace OHOS
 
-#endif // WINDOW_ANIMATION_RS_WINDOW_ANIMATION_FINISHED_CALLBACK_H
+#endif // INTERFACES_KITS_NAPI_GRAPHIC_ANIMATION_RS_WINDOW_ANIMATION_CALLBACK_H

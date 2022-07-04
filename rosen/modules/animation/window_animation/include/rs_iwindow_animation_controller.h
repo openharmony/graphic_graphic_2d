@@ -37,6 +37,7 @@ public:
         ON_START_APP,
         ON_APP_TRANSITION,
         ON_MINIMIZE_WINDOW,
+        ON_MINIMIZE_ALLWINDOW,
         ON_CLOSE_WINDOW,
         ON_SCREEN_UNLOCK,
     };
@@ -48,6 +49,9 @@ public:
         const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback) = 0;
 
     virtual void OnMinimizeWindow(const sptr<RSWindowAnimationTarget>& minimizingWindow,
+        const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback) = 0;
+
+    virtual void OnMinimizeAllWindow(std::vector<sptr<RSWindowAnimationTarget>> minimizingWindows,
         const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback) = 0;
 
     virtual void OnCloseWindow(const sptr<RSWindowAnimationTarget>& closingWindow,
