@@ -41,7 +41,7 @@ enum NativeObjectType {
     NATIVE_OBJECT_WINDOW_BUFFER,
 };
 
-struct Region {
+typedef struct Region {
     struct Rect {
         int32_t x;
         int32_t y;
@@ -49,7 +49,7 @@ struct Region {
         uint32_t h;
     } *rects;           // if nullptr,  fill the Buffer dirty size by default
     int32_t rectNumber; // if rectNumber is 0, fill the Buffer dirty size by default
-};
+}Region;
 
 enum NativeWindowOperation {
     SET_BUFFER_GEOMETRY,    // ([in] int32_t height, [in] int32_t width)
