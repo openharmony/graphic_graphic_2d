@@ -35,7 +35,7 @@ namespace Rosen {
 
 RSNode::RSNode(bool isRenderServiceNode) : RSBaseNode(isRenderServiceNode), stagingProperties_(false)
 {
-    implicitAnimator_ = RSImplicitAnimatorMap::Instance().GetAnimator(gettid());
+    UpdateImplicitAnimator();
 }
 
 RSNode::~RSNode()
@@ -205,7 +205,7 @@ const std::shared_ptr<RSMotionPathOption> RSNode::GetMotionPathOption() const
     return motionPathOption_;
 }
 
-bool RSNode::HasPropertyAnimation(const RSAnimatableProperty& property)
+bool RSNode::HasPropertyAnimation(const RSAnimatableProperty& property) const
 {
     // check if any animation matches the property bitmask
     auto pred = [property](const auto& it) -> bool {
@@ -243,6 +243,7 @@ bool IsValid(const Vector4f& value)
         if (ROSEN_EQ(value, currentValue)) {                                                                \
             return;                                                                                         \
         }                                                                                                   \
+        UpdateImplicitAnimator();                                                                           \
         if (implicitAnimator_ && implicitAnimator_->NeedImplicitAnimation() && IsValid(currentValue)) {     \
             implicitAnimator_->CreateImplicitAnimation(*this, property, currentValue, value);               \
         } else if (HasPropertyAnimation(property)) {                                                        \
@@ -250,11 +251,11 @@ bool IsValid(const Vector4f& value)
                 std::make_unique<RSNodeSet##propertyName##Delta>(GetId(), (value)-currentValue);            \
             auto transactionProxy = RSTransactionProxy::GetInstance();                                      \
             if (transactionProxy != nullptr) {                                                              \
-                transactionProxy->AddCommand(command, IsRenderServiceNode(), GetFollowType(), GetId());           \
+                transactionProxy->AddCommand(command, IsRenderServiceNode(), GetFollowType(), GetId());     \
                 if (NeedForcedSendToRemote()) {                                                             \
                     std::unique_ptr<RSCommand> commandForRemote =                                           \
                         std::make_unique<RSNodeSet##propertyName##Delta>(GetId(), (value)-currentValue);    \
-                    transactionProxy->AddCommand(commandForRemote, true, GetFollowType(), GetId());               \
+                    transactionProxy->AddCommand(commandForRemote, true, GetFollowType(), GetId());         \
                 }                                                                                           \
             }                                                                                               \
             stagingProperties_.Set##propertyName(value);                                                    \
@@ -262,11 +263,11 @@ bool IsValid(const Vector4f& value)
             std::unique_ptr<RSCommand> command = std::make_unique<RSNodeSet##propertyName>(GetId(), value); \
             auto transactionProxy = RSTransactionProxy::GetInstance();                                      \
             if (transactionProxy != nullptr) {                                                              \
-                transactionProxy->AddCommand(command, IsRenderServiceNode(), GetFollowType(), GetId());           \
+                transactionProxy->AddCommand(command, IsRenderServiceNode(), GetFollowType(), GetId());     \
                 if (NeedForcedSendToRemote()) {                                                             \
                     std::unique_ptr<RSCommand> commandForRemote =                                           \
                         std::make_unique<RSNodeSet##propertyName>(GetId(), value);                          \
-                    transactionProxy->AddCommand(commandForRemote, true, GetFollowType(), GetId());               \
+                    transactionProxy->AddCommand(commandForRemote, true, GetFollowType(), GetId());         \
                 }                                                                                           \
             }                                                                                               \
             stagingProperties_.Set##propertyName(value);                                                    \
@@ -282,11 +283,11 @@ bool IsValid(const Vector4f& value)
         std::unique_ptr<RSCommand> command = std::make_unique<RSNodeSet##propertyName>(GetId(), value); \
         auto transactionProxy = RSTransactionProxy::GetInstance();                                      \
         if (transactionProxy != nullptr) {                                                              \
-            transactionProxy->AddCommand(command, IsRenderServiceNode(), GetFollowType(), GetId());           \
+            transactionProxy->AddCommand(command, IsRenderServiceNode(), GetFollowType(), GetId());     \
             if (NeedForcedSendToRemote()) {                                                             \
                 std::unique_ptr<RSCommand> commandForRemote =                                           \
                     std::make_unique<RSNodeSet##propertyName>(GetId(), value);                          \
-                transactionProxy->AddCommand(commandForRemote, true, GetFollowType(), GetId());               \
+                transactionProxy->AddCommand(commandForRemote, true, GetFollowType(), GetId());         \
             }                                                                                           \
         }                                                                                               \
         stagingProperties_.Set##propertyName(value);                                                    \
@@ -295,6 +296,7 @@ bool IsValid(const Vector4f& value)
 #define CREATE_PATH_ANIMATION(propertyName, value, property)                                            \
     do {                                                                                                \
         auto currentValue = stagingProperties_.Get##propertyName();                                     \
+        UpdateImplicitAnimator();                                                                       \
         if (implicitAnimator_ && implicitAnimator_->NeedImplicitAnimation() && IsValid(currentValue)) { \
             implicitAnimator_->BeginImplicitPathAnimation(motionPathOption_);                           \
             implicitAnimator_->CreateImplicitAnimation(*this, property, currentValue, value);           \
@@ -715,9 +717,9 @@ void RSNode::SetShadowRadius(float radius)
     SET_ANIMATABLE_PROPERTY(ShadowRadius, radius, RSAnimatableProperty::SHADOW_RADIUS);
 }
 
-void RSNode::SetShadowPath(std::shared_ptr<RSPath> shadowpath)
+void RSNode::SetShadowPath(std::shared_ptr<RSPath> shadowPath)
 {
-    SET_NONANIMATABLE_PROPERTY(ShadowPath, shadowpath);
+    SET_NONANIMATABLE_PROPERTY(ShadowPath, shadowPath);
 }
 
 void RSNode::SetFrameGravity(Gravity gravity)
@@ -751,7 +753,7 @@ void RSNode::SetVisible(bool visible)
 void RSNode::NotifyTransition(const std::shared_ptr<const RSTransitionEffect>& effect, bool isTransitionIn)
 {
     // temporary fix for multithread issue in implicit animator
-    implicitAnimator_ = RSImplicitAnimatorMap::Instance().GetAnimator(gettid());
+    UpdateImplicitAnimator();
     if (implicitAnimator_ == nullptr) {
         ROSEN_LOGE("Failed to notify transition, implicit animator is null!");
         return;
@@ -780,7 +782,7 @@ void RSNode::OnRemoveChildren()
     }
 }
 
-void RSNode::AnimationFinish(long long animationId)
+void RSNode::AnimationFinish(AnimationId animationId)
 {
     auto animationItr = animations_.find(animationId);
     if (animationItr == animations_.end()) {
@@ -817,6 +819,16 @@ std::string RSNode::DumpNode(int depth) const
 void RSNode::SetMask(std::shared_ptr<RSMask> mask)
 {
     SET_NONANIMATABLE_PROPERTY(Mask, mask);
+}
+
+void RSNode::UpdateImplicitAnimator()
+{
+    auto tid = gettid();
+    if (tid == implicitAnimatorTid_) {
+        return;
+    }
+    implicitAnimatorTid_ = tid;
+    implicitAnimator_ = RSImplicitAnimatorMap::Instance().GetAnimator(tid);
 }
 } // namespace Rosen
 } // namespace OHOS

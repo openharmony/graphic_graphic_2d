@@ -40,6 +40,7 @@
 #include "animation/rs_render_curve_animation.h"
 #include "animation/rs_render_keyframe_animation.h"
 #include "animation/rs_render_path_animation.h"
+#include "animation/rs_render_spring_animation.h"
 #include "animation/rs_render_transition.h"
 #include "common/rs_color.h"
 #include "common/rs_matrix3.h"
@@ -656,6 +657,7 @@ MARSHALLING_AND_UNMARSHALLING(Media::PixelMap)
 
 MARSHALLING_AND_UNMARSHALLING(RSRenderCurveAnimation)
 MARSHALLING_AND_UNMARSHALLING(RSRenderKeyframeAnimation)
+MARSHALLING_AND_UNMARSHALLING(RSRenderSpringAnimation)
 #undef MARSHALLING_AND_UNMARSHALLING
 
 #define EXPLICIT_INSTANTIATION(TEMPLATE, TYPE)                                                                  \
@@ -663,7 +665,6 @@ MARSHALLING_AND_UNMARSHALLING(RSRenderKeyframeAnimation)
     template bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<TEMPLATE<TYPE>>& val);
 
 #define BATCH_EXPLICIT_INSTANTIATION(TEMPLATE)                  \
-    EXPLICIT_INSTANTIATION(TEMPLATE, int)                       \
     EXPLICIT_INSTANTIATION(TEMPLATE, float)                     \
     EXPLICIT_INSTANTIATION(TEMPLATE, Color)                     \
     EXPLICIT_INSTANTIATION(TEMPLATE, Matrix3f)                  \
@@ -672,11 +673,10 @@ MARSHALLING_AND_UNMARSHALLING(RSRenderKeyframeAnimation)
     EXPLICIT_INSTANTIATION(TEMPLATE, Quaternion)                \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSFilter>) \
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector4<Color>)
-// [PLANNING]:complete the marshing and unmarshalling
-// EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSFilter>)
 
 BATCH_EXPLICIT_INSTANTIATION(RSRenderCurveAnimation)
 BATCH_EXPLICIT_INSTANTIATION(RSRenderKeyframeAnimation)
+BATCH_EXPLICIT_INSTANTIATION(RSRenderSpringAnimation)
 
 #undef EXPLICIT_INSTANTIATION
 #undef BATCH_EXPLICIT_INSTANTIATION

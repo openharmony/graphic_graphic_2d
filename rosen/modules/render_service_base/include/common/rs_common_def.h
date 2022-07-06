@@ -33,11 +33,11 @@ using NodeId = uint64_t;
 // types for UINode
 enum class RSUINodeType {
     BASE_NODE    = 0x00010,
-    DISPLAY_NODE = 0x00110,
-    RS_NODE      = 0x00210,   // formerly RSPropertyNode
-    SURFACE_NODE = 0x01210,
-    CANVAS_NODE  = 0x02210,   // formerly RSNode
-    ROOT_NODE    = 0x12210,
+    RS_NODE      = 0x00110,   // formerly RSPropertyNode
+    DISPLAY_NODE = 0x01110,
+    SURFACE_NODE = 0x02110,
+    CANVAS_NODE  = 0x04110,   // formerly RSNode
+    ROOT_NODE    = 0x14110,
 };
 
 enum class FollowType : uint8_t {
@@ -58,11 +58,11 @@ static const std::map<RSUINodeType, std::string> RSUINodeTypeStrs = {
 // types for RenderNode
 enum class RSRenderNodeType {
     BASE_NODE    = 0x00011,
-    DISPLAY_NODE = 0x00111,
-    RS_NODE      = 0x00211,   // formerly RSPropertyRenderNode
-    SURFACE_NODE = 0x01211,
-    CANVAS_NODE  = 0x02211,   // formerly RSRenderNode
-    ROOT_NODE    = 0x12211,
+    RS_NODE      = 0x00111,   // formerly RSPropertyRenderNode
+    DISPLAY_NODE = 0x01111,
+    SURFACE_NODE = 0x02111,
+    CANVAS_NODE  = 0x04111,   // formerly RSRenderNode
+    ROOT_NODE    = 0x14111,
 };
 
 struct RSSurfaceRenderNodeConfig {

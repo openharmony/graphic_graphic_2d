@@ -44,12 +44,12 @@ RSUIDirector::~RSUIDirector()
     Destroy();
 }
 
-void RSUIDirector::Init()
+void RSUIDirector::Init(bool shouldCreateRenderThread)
 {
     AnimationCommandHelper::SetFinishCallbackProcessor(AnimationCallbackProcessor);
 
     isUniRenderEnabled_ = RSSystemProperties::GetUniRenderEnabled();
-    if (!isUniRenderEnabled_) {
+    if (!isUniRenderEnabled_ && shouldCreateRenderThread) {
         auto renderThreadClient = RSIRenderClient::CreateRenderThreadClient();
         auto transactionProxy = RSTransactionProxy::GetInstance();
         if (transactionProxy != nullptr) {
@@ -187,6 +187,8 @@ void RSUIDirector::AnimationCallbackProcessor(NodeId nodeId, AnimationId animId)
 {
     if (auto nodePtr = RSNodeMap::Instance().GetNode<RSNode>(nodeId)) {
         nodePtr->AnimationFinish(animId);
+    } else {
+        ROSEN_LOGE("RSUIDirector::AnimationCallbackProcessor, node %llu not found", nodeId);
     }
 }
 } // namespace Rosen

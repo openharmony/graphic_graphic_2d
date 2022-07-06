@@ -16,9 +16,9 @@
 #include "ui/rs_display_node.h"
 
 #include "command/rs_display_node_command.h"
+#include "pipeline/rs_node_map.h"
 #include "platform/common/rs_log.h"
 #include "transaction/rs_transaction_proxy.h"
-#include "pipeline/rs_node_map.h"
 namespace OHOS {
 namespace Rosen {
 
@@ -91,14 +91,14 @@ bool RSDisplayNode::IsMirrorDisplay() const
 }
 
 RSDisplayNode::RSDisplayNode(const RSDisplayNodeConfig& config)
-    : RSBaseNode(true), screenId_(config.screenId), offsetX_(0), offsetY_(0), isMirroredDisplay_(config.isMirrored)
+    : RSNode(true), screenId_(config.screenId), offsetX_(0), offsetY_(0), isMirroredDisplay_(config.isMirrored)
 {
     (void)screenId_;
     (void)offsetX_;
     (void)offsetY_;
 }
 
-RSDisplayNode::~RSDisplayNode() {}
+RSDisplayNode::~RSDisplayNode() = default;
 
 } // namespace Rosen
 } // namespace OHOS

@@ -93,7 +93,16 @@ public:
     explicit RSGetPropertyTask(NodeId targetId, unsigned long long timeoutNS = 1e6)
         : RSSyncTask(timeoutNS), targetId_(targetId)
     {}
-    virtual ~RSGetPropertyTask() = default;
+    ~RSGetPropertyTask() override = default;
+
+    uint16_t GetType() const override
+    {
+        return commandType;
+    }
+    uint16_t GetSubType() const override
+    {
+        return commandSubType;
+    }
 
 #ifdef ROSEN_OHOS
     bool Marshalling(Parcel& parcel) const override
@@ -178,14 +187,14 @@ private:
     T value_ = {};
 };
 
-// avoiding C++ macros spilting parameters
+// avoiding C++ macros spliting parameters
 #ifndef ARG
 #define ARG(...) __VA_ARGS__
 #endif
 
 // Add new RSTask as alias of template class
 // Explicit instantiating templates will register the unmarshalling function into RSTaskFactory.
-// To avoid redundant registary, make sure templates only instantiated once.
+// To avoid redundant registry, make sure templates only instantiated once.
 #ifdef ROSEN_INSTANTIATE_COMMAND_TEMPLATE
 #define ADD_SHOWING_COMMAND(ALIAS, TYPE)   \
     using ALIAS = RSGetPropertyTask<TYPE>; \

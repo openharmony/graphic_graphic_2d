@@ -286,7 +286,7 @@ void RSMainThread::CalcOcclusion()
         RS_LOGD(info.c_str());
         // Set result to SurfaceRenderNode and its children
         surface->SetVisibleRegionRecursive(subResult, curVisVec);
-        // Current region need to merge current surface for next calculation(ingnore alpha surface)
+        // Current region need to merge current surface for next calculation(ignore alpha surface)
         if (!RSOcclusionConfig::GetInstance().IsAlphaWindow(surface->GetName())) {
             curRegion = curSurface.Or(curRegion);
         }
@@ -467,7 +467,9 @@ void RSMainThread::SendCommands()
             auto pid = transactionIter.first;
             auto appIter = applicationAgentMap_.find(pid);
             if (appIter == applicationAgentMap_.end()) {
-                RS_LOGI("RSMainThread::SendCommand no application found for pid %d", pid);
+                RS_LOGW(
+                    "RSMainThread::SendCommand no application agent registered as pid %d, this will cause memory leak!",
+                    pid);
                 continue;
             }
             auto& app = appIter->second;
@@ -491,18 +493,17 @@ void RSMainThread::RenderServiceTreeDump(std::string& dumpString)
 
 bool RSMainThread::DoParallelComposition(std::shared_ptr<RSBaseRenderNode> rootNode)
 {
-    typedef void* (*CreateParallelSyncSignalFunc)(uint32_t);
-    typedef void (*SignalCountDownFunc)(void*);
-    typedef void (*SignalAwaitFunc)(void*);
-    typedef void (*AssignTaskFunc)(std::function<void()>);
-    typedef void (*RemoveStoppedThreadsFunc)();
+    using CreateParallelSyncSignalFunc = void* (*)(uint32_t);
+    using SignalCountDownFunc = void (*)(void*);
+    using SignalAwaitFunc = void (*)(void*);
+    using AssignTaskFunc = void (*)(std::function<void()>);
+    using RemoveStoppedThreadsFunc = void (*)();
 
-    CreateParallelSyncSignalFunc CreateParallelSyncSignal =
-        (CreateParallelSyncSignalFunc)RSInnovation::_s_createParallelSyncSignal;
-    SignalCountDownFunc SignalCountDown = (SignalCountDownFunc)RSInnovation::_s_signalCountDown;
-    SignalAwaitFunc SignalAwait = (SignalAwaitFunc)RSInnovation::_s_signalAwait;
-    AssignTaskFunc AssignTask = (AssignTaskFunc)RSInnovation::_s_assignTask;
-    RemoveStoppedThreadsFunc RemoveStoppedThreads = (RemoveStoppedThreadsFunc)RSInnovation::_s_removeStoppedThreads;
+    auto CreateParallelSyncSignal = (CreateParallelSyncSignalFunc)RSInnovation::_s_createParallelSyncSignal;
+    auto SignalCountDown = (SignalCountDownFunc)RSInnovation::_s_signalCountDown;
+    auto SignalAwait = (SignalAwaitFunc)RSInnovation::_s_signalAwait;
+    auto AssignTask = (AssignTaskFunc)RSInnovation::_s_assignTask;
+    auto RemoveStoppedThreads = (RemoveStoppedThreadsFunc)RSInnovation::_s_removeStoppedThreads;
 
     void* syncSignal = (*CreateParallelSyncSignal)(rootNode->GetChildrenCount());
     if (!syncSignal) {
