@@ -42,7 +42,7 @@ ohos_executable("hello_native_buffer") {
 
   deps = [ "//foundation/graphic/graphic_2d/frameworks/surface:surface" ]
 
-  part_name = "graphic_graphic_2d"
+  part_name = "graphic_standard"
   subsystem_name = "graphic"
 }
 

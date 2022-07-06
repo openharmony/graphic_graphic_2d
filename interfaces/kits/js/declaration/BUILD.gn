@@ -16,7 +16,7 @@ import("//build/ohos/ace/ace.gni")
 js_declaration("window") {
   sources = [ "./api" ]
 
-  part_name = "graphic_graphic_2d"
+  part_name = "graphic_standard"
 }
 
 ohos_copy("window_declaration") {

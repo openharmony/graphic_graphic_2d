@@ -90,7 +90,7 @@ ohos_shared_library("surface") {
 
   symlink_target_name = [ "libnative_window.so" ]
 
-  part_name = "graphic_graphic_2d"
+  part_name = "graphic_standard"
   subsystem_name = "graphic"
 }
 

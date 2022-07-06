@@ -139,7 +139,7 @@ ohos_shared_library("librender_service_client") {
 
   public_configs = [ ":render_service_client_config" ]
 
-  part_name = "graphic_graphic_2d"
+  part_name = "graphic_standard"
   subsystem_name = "graphic"
 }
 
