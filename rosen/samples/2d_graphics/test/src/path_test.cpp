@@ -22,7 +22,7 @@ constexpr static float MARGINE_SCALE_SIZE = 10.0f;
 void PathTest::TestDrawStar(Canvas& canvas, uint32_t width, uint32_t height)
 {
     LOGI("+++++++ TestDrawStar");
-    const uint32_t margin = static_cast<int>(width / MARGINE_SCALE_SIZE);
+    const uint32_t margin = static_cast<uint32_t>(width / MARGINE_SCALE_SIZE);
     Rect rect(margin, margin, width - margin, height - margin);
     int len = rect.GetWidth() - rect.GetWidth() / 5.0f; // set len size
     // half of width
@@ -103,7 +103,7 @@ std::vector<PathTest::TestFunc> PathTest::PathTestCase()
 void PathTest::TestMoveTo(Canvas& canvas, uint32_t width, uint32_t height)
 {
     LOGI("+++++++ TestMoveTo");
-    const uint32_t margin = static_cast<int>(width / MARGINE_SCALE_SIZE);
+    const uint32_t margin = static_cast<uint32_t>(width / MARGINE_SCALE_SIZE);
     Rect rect(margin, margin, width - margin, height - margin);
     Path path;
     path.AddRect(rect);
@@ -127,7 +127,7 @@ void PathTest::TestMoveTo(Canvas& canvas, uint32_t width, uint32_t height)
 void PathTest::TestLineTo(Canvas& canvas, uint32_t width, uint32_t height)
 {
     LOGI("+++++++ TestLineTo");
-    const uint32_t margin = static_cast<int>(width / MARGINE_SCALE_SIZE);
+    const uint32_t margin = static_cast<uint32_t>(width / MARGINE_SCALE_SIZE);
     Rect rect(margin, margin, width - margin, height - margin);
     std::vector<Point> linePoints;
     // a quarter of width
@@ -159,7 +159,7 @@ void PathTest::TestLineTo(Canvas& canvas, uint32_t width, uint32_t height)
 void PathTest::TestArcTo(Canvas& canvas, uint32_t width, uint32_t height)
 {
     LOGI("+++++++ TestArcTo");
-    const uint32_t margin = static_cast<int>(width / MARGINE_SCALE_SIZE);
+    const uint32_t margin = static_cast<uint32_t>(width / MARGINE_SCALE_SIZE);
     Rect rect(margin, margin, width - margin, height - margin);
     Path path;
 
@@ -180,7 +180,7 @@ void PathTest::TestArcTo(Canvas& canvas, uint32_t width, uint32_t height)
 void PathTest::TestCubicTo(Canvas& canvas, uint32_t width, uint32_t height)
 {
     LOGI("+++++++ TestCubicTo");
-    const uint32_t margin = static_cast<int>(width / MARGINE_SCALE_SIZE);
+    const uint32_t margin = static_cast<uint32_t>(width / MARGINE_SCALE_SIZE);
     Rect rect(margin, margin, width - margin, height - margin);
     Path path;
     path.MoveTo(rect.GetLeft(), rect.GetTop());
@@ -204,7 +204,7 @@ void PathTest::TestCubicTo(Canvas& canvas, uint32_t width, uint32_t height)
 void PathTest::TestQuadTo(Canvas& canvas, uint32_t width, uint32_t height)
 {
     LOGI("+++++++ TestQuadTo");
-    const uint32_t margin = static_cast<int>(width / MARGINE_SCALE_SIZE);
+    const uint32_t margin = static_cast<uint32_t>(width / MARGINE_SCALE_SIZE);
     Rect rect(margin, margin, width - margin, height - margin);
     Path path;
     path.MoveTo(rect.GetLeft(), rect.GetTop());
@@ -229,7 +229,7 @@ void PathTest::TestQuadTo(Canvas& canvas, uint32_t width, uint32_t height)
 void PathTest::TestAddRect(Canvas& canvas, uint32_t width, uint32_t height)
 {
     LOGI("+++++++ TestAddRect");
-    const uint32_t margin = static_cast<int>(width / MARGINE_SCALE_SIZE);
+    const uint32_t margin = static_cast<uint32_t>(width / MARGINE_SCALE_SIZE);
     Rect rect(margin, margin, width - margin, height - margin);
     Path path;
     path.AddRect(rect);
@@ -258,7 +258,7 @@ void PathTest::TestAddRect(Canvas& canvas, uint32_t width, uint32_t height)
 void PathTest::TestAddOval(Canvas& canvas, uint32_t width, uint32_t height)
 {
     LOGI("+++++++ TestAddOval");
-    const uint32_t margin = static_cast<int>(width / MARGINE_SCALE_SIZE);
+    const uint32_t margin = static_cast<uint32_t>(width / MARGINE_SCALE_SIZE);
     Rect rect(margin, margin, width - margin, height - margin);
     Path path;
     path.AddOval(rect);
@@ -286,7 +286,7 @@ void PathTest::TestAddOval(Canvas& canvas, uint32_t width, uint32_t height)
 void PathTest::TestAddArc(Canvas& canvas, uint32_t width, uint32_t height)
 {
     LOGI("+++++++ TestAddArc");
-    const uint32_t margin = static_cast<int>(width / MARGINE_SCALE_SIZE);
+    const uint32_t margin = static_cast<uint32_t>(width / MARGINE_SCALE_SIZE);
     Rect rect(margin, margin, width - margin, height - margin);
     Path path;
     // start angle is -180, sweep angle is 180
@@ -310,7 +310,7 @@ void PathTest::TestAddArc(Canvas& canvas, uint32_t width, uint32_t height)
 void PathTest::TestAddPoly(Canvas& canvas, uint32_t width, uint32_t height)
 {
     LOGI("+++++++ TestAddPoly");
-    const uint32_t margin = static_cast<int>(width / MARGINE_SCALE_SIZE);
+    const uint32_t margin = static_cast<uint32_t>(width / MARGINE_SCALE_SIZE);
     Rect rect(margin, margin, width - margin, height - margin);
     Path path;
     // half of width
@@ -328,7 +328,7 @@ void PathTest::TestAddPoly(Canvas& canvas, uint32_t width, uint32_t height)
 void PathTest::TestAddCircle(Canvas& canvas, uint32_t width, uint32_t height)
 {
     LOGI("+++++++ TestAddCircle");
-    const uint32_t margin = static_cast<int>(width / MARGINE_SCALE_SIZE);
+    const uint32_t margin = static_cast<uint32_t>(width / MARGINE_SCALE_SIZE);
     Rect rect(margin, margin, width - margin, height - margin);
     // start radius is 10, radius length is increased by 20 at a time, not more than half the width
     for (size_t i = 10; i < rect.GetWidth() / 2.0f; i += 20) {
@@ -346,7 +346,7 @@ void PathTest::TestAddCircle(Canvas& canvas, uint32_t width, uint32_t height)
 void PathTest::TestAddRoundRect(Canvas& canvas, uint32_t width, uint32_t height)
 {
     LOGI("+++++++ TestAddRoundRect");
-    const uint32_t margin = static_cast<int>(width / MARGINE_SCALE_SIZE);
+    const uint32_t margin = static_cast<uint32_t>(width / MARGINE_SCALE_SIZE);
     Rect rect(margin, margin, width - margin, height - margin);
     Path path;
     // the corner radius is 30.0
@@ -373,7 +373,7 @@ void PathTest::TestAddRoundRect(Canvas& canvas, uint32_t width, uint32_t height)
 void PathTest::TestAddPath(Canvas& canvas, uint32_t width, uint32_t height)
 {
     LOGI("+++++++ TestAddPath");
-    const uint32_t margin = static_cast<int>(width / MARGINE_SCALE_SIZE);
+    const uint32_t margin = static_cast<uint32_t>(width / MARGINE_SCALE_SIZE);
     Rect rect(margin, margin, width - margin, height - margin);
     Path path;
     path.AddRect(rect);
@@ -398,7 +398,7 @@ void PathTest::TestAddPath(Canvas& canvas, uint32_t width, uint32_t height)
 void PathTest::TestFillStyle(Canvas& canvas, uint32_t width, uint32_t height)
 {
     LOGI("+++++++ TestFillStyle_EVENTODD");
-    const uint32_t margin = static_cast<int>(width / MARGINE_SCALE_SIZE);
+    const uint32_t margin = static_cast<uint32_t>(width / MARGINE_SCALE_SIZE);
     Rect rect(margin, margin, width - margin, height - margin);
     // a quarter of height
     Rect rect1(rect.GetLeft(), rect.GetTop(), rect.GetRight(), rect.GetBottom() - rect.GetHeight() / 4.0f);
@@ -421,7 +421,7 @@ void PathTest::TestFillStyle(Canvas& canvas, uint32_t width, uint32_t height)
 void PathTest::TestFillStyle2(Canvas& canvas, uint32_t width, uint32_t height)
 {
     LOGI("+++++++ TestFillStyle_INVERSE_EVENTODD");
-    const uint32_t margin = static_cast<int>(width / MARGINE_SCALE_SIZE);
+    const uint32_t margin = static_cast<uint32_t>(width / MARGINE_SCALE_SIZE);
     Rect rect(margin, margin, width - margin, height - margin);
     // a quarter of height
     Rect rect1(rect.GetLeft(), rect.GetTop(), rect.GetRight(), rect.GetBottom() - rect.GetHeight() / 4.0f);
@@ -444,7 +444,7 @@ void PathTest::TestFillStyle2(Canvas& canvas, uint32_t width, uint32_t height)
 void PathTest::TestFillStyle3(Canvas& canvas, uint32_t width, uint32_t height)
 {
     LOGI("+++++++ TestFillStyle_WINDING");
-    const uint32_t margin = static_cast<int>(width / MARGINE_SCALE_SIZE);
+    const uint32_t margin = static_cast<uint32_t>(width / MARGINE_SCALE_SIZE);
     Rect rect(margin, margin, width - margin, height - margin);
     // a quarter of height
     Rect rect1(rect.GetLeft(), rect.GetTop(), rect.GetRight(), rect.GetBottom() - rect.GetHeight() / 4.0f);
@@ -467,7 +467,7 @@ void PathTest::TestFillStyle3(Canvas& canvas, uint32_t width, uint32_t height)
 void PathTest::TestFillStyle4(Canvas& canvas, uint32_t width, uint32_t height)
 {
     LOGI("+++++++ TestFillStyle_INVERSE_WINDING");
-    const uint32_t margin = static_cast<int>(width / MARGINE_SCALE_SIZE);
+    const uint32_t margin = static_cast<uint32_t>(width / MARGINE_SCALE_SIZE);
     Rect rect(margin, margin, width - margin, height - margin);
     // a quarter of height
     Rect rect1(rect.GetLeft(), rect.GetTop(), rect.GetRight(), rect.GetBottom() - rect.GetHeight() / 4.0f);
@@ -490,7 +490,7 @@ void PathTest::TestFillStyle4(Canvas& canvas, uint32_t width, uint32_t height)
 void PathTest::TestOffset(Canvas& canvas, uint32_t width, uint32_t height)
 {
     LOGI("+++++++ TestOffset");
-    const uint32_t margin = static_cast<int>(width / MARGINE_SCALE_SIZE);
+    const uint32_t margin = static_cast<uint32_t>(width / MARGINE_SCALE_SIZE);
     Rect rect(margin, margin, width - margin, height - margin);
     // a quarter of width and height
     Rect rect2(rect.GetLeft() + rect.GetWidth() / 4.0f, rect.GetTop(), rect.GetRight() - rect.GetWidth() / 4.0f,
@@ -511,7 +511,7 @@ void PathTest::TestOffset(Canvas& canvas, uint32_t width, uint32_t height)
 void PathTest::TestTransform(Canvas& canvas, uint32_t width, uint32_t height)
 {
     LOGI("+++++++ TestTransform");
-    const uint32_t margin = static_cast<int>(width / MARGINE_SCALE_SIZE);
+    const uint32_t margin = static_cast<uint32_t>(width / MARGINE_SCALE_SIZE);
     Rect rect(margin, margin, width - margin, height - margin);
     Path path;
     // half of height
@@ -536,7 +536,7 @@ void PathTest::TestTransform(Canvas& canvas, uint32_t width, uint32_t height)
 void PathTest::TestOp(Canvas& canvas, uint32_t width, uint32_t height)
 {
     LOGI("+++++++ TestOp_DIFFERENCE");
-    const uint32_t margin = static_cast<int>(width / MARGINE_SCALE_SIZE);
+    const uint32_t margin = static_cast<uint32_t>(width / MARGINE_SCALE_SIZE);
     Rect rect(margin, margin, width - margin, height - margin);
     // a third of height
     const uint32_t radius = rect.GetHeight() / 3.0f;
@@ -564,7 +564,7 @@ void PathTest::TestOp(Canvas& canvas, uint32_t width, uint32_t height)
 void PathTest::TestOp2(Canvas& canvas, uint32_t width, uint32_t height)
 {
     LOGI("+++++++ TestOp_INTERSECT");
-    const uint32_t margin = static_cast<int>(width / MARGINE_SCALE_SIZE);
+    const uint32_t margin = static_cast<uint32_t>(width / MARGINE_SCALE_SIZE);
     Rect rect(margin, margin, width - margin, height - margin);
     // a third of height
     const uint32_t radius = rect.GetHeight() / 3.0f;
@@ -592,7 +592,7 @@ void PathTest::TestOp2(Canvas& canvas, uint32_t width, uint32_t height)
 void PathTest::TestOp3(Canvas& canvas, uint32_t width, uint32_t height)
 {
     LOGI("+++++++ TestOp_REVERSE_DIFFERENCE");
-    const uint32_t margin = static_cast<int>(width / MARGINE_SCALE_SIZE);
+    const uint32_t margin = static_cast<uint32_t>(width / MARGINE_SCALE_SIZE);
     Rect rect(margin, margin, width - margin, height - margin);
     // a third of height
     const uint32_t radius = rect.GetHeight() / 3.0f;
@@ -620,7 +620,7 @@ void PathTest::TestOp3(Canvas& canvas, uint32_t width, uint32_t height)
 void PathTest::TestOp4(Canvas& canvas, uint32_t width, uint32_t height)
 {
     LOGI("+++++++ TestOp_UNION");
-    const uint32_t margin = static_cast<int>(width / MARGINE_SCALE_SIZE);
+    const uint32_t margin = static_cast<uint32_t>(width / MARGINE_SCALE_SIZE);
     Rect rect(margin, margin, width - margin, height - margin);
     // a third of height
     const uint32_t radius = rect.GetHeight() / 3.0f;
@@ -648,7 +648,7 @@ void PathTest::TestOp4(Canvas& canvas, uint32_t width, uint32_t height)
 void PathTest::TestOp5(Canvas& canvas, uint32_t width, uint32_t height)
 {
     LOGI("+++++++ TestOp_XOR");
-    const uint32_t margin = static_cast<int>(width / MARGINE_SCALE_SIZE);
+    const uint32_t margin = static_cast<uint32_t>(width / MARGINE_SCALE_SIZE);
     Rect rect(margin, margin, width - margin, height - margin);
     // a third of height
     const uint32_t radius = rect.GetHeight() / 3.0f;
@@ -676,7 +676,7 @@ void PathTest::TestOp5(Canvas& canvas, uint32_t width, uint32_t height)
 void PathTest::TestClose(Canvas& canvas, uint32_t width, uint32_t height)
 {
     LOGI("+++++++ TestClose");
-    const uint32_t margin = static_cast<int>(width / MARGINE_SCALE_SIZE);
+    const uint32_t margin = static_cast<uint32_t>(width / MARGINE_SCALE_SIZE);
     Rect rect(margin, margin, width - margin, height - margin);
     Path path1;
     // half of width
