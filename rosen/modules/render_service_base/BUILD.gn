@@ -150,7 +150,7 @@ ohos_shared_library("librender_service_base") {
     "//foundation/multimedia/image_standard/interfaces/innerkits:image_native",
   ]
 
-  part_name = "graphic_standard"
+  part_name = "graphic_graphic_2d"
   subsystem_name = "graphic"
 
   if (rosen_is_win) {

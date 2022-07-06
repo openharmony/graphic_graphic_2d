@@ -58,7 +58,7 @@ ohos_shared_library("EGL") {
   output_name = "EGL"
   output_extension = "so"
 
-  part_name = "graphic_standard"
+  part_name = "graphic_graphic_2d"
   subsystem_name = "graphic"
 }
 
@@ -98,7 +98,7 @@ ohos_shared_library("GLESv1") {
   output_name = "GLESv1"
   output_extension = "so"
 
-  part_name = "graphic_standard"
+  part_name = "graphic_graphic_2d"
   subsystem_name = "graphic"
 }
 
@@ -138,7 +138,7 @@ ohos_shared_library("GLESv2") {
   output_name = "GLESv2"
   output_extension = "so"
 
-  part_name = "graphic_standard"
+  part_name = "graphic_graphic_2d"
   subsystem_name = "graphic"
 }
 
@@ -178,7 +178,7 @@ ohos_shared_library("GLESv3") {
   output_name = "GLESv3"
   output_extension = "so"
 
-  part_name = "graphic_standard"
+  part_name = "graphic_graphic_2d"
   subsystem_name = "graphic"
 }
 
@@ -208,7 +208,7 @@ ohos_executable("opengl_wrapper_native_test") {
     "multimedia_image_standard:image_native",
   ]
 
-  part_name = "graphic_standard"
+  part_name = "graphic_graphic_2d"
   subsystem_name = "graphic"
 }
 ## Build opengl_wrapper_native_test }}}

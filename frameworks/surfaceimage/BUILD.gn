@@ -51,7 +51,7 @@ ohos_shared_library("libsurfaceimage") {
     "utils_base:utils",
   ]
 
-  part_name = "graphic_standard"
+  part_name = "graphic_graphic_2d"
   subsystem_name = "graphic"
 }
 ## Build libsurfaceimage.so }}}

@@ -13,7 +13,7 @@
 
 import("//build/test.gni")
 
-module_out_path = "graphic_standard/opengl_wrapper"
+module_out_path = "graphic_graphic_2d/opengl_wrapper"
 
 group("unittest") {
   testonly = true
@@ -64,5 +64,5 @@ ohos_static_library("opengl_wrapper_test_common") {
     "//utils/native/base:utils",
   ]
   subsystem_name = "graphic"
-  part_name = "graphic_standard"
+  part_name = "graphic_graphic_2d"
 }

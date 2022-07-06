@@ -94,6 +94,6 @@ ohos_shared_library("libeffectchain") {
     install_enable = false
   }
 
-  part_name = "graphic_standard"
+  part_name = "graphic_graphic_2d"
   subsystem_name = "graphic"
 }

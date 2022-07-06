@@ -13,7 +13,7 @@
 
 import("//build/test.gni")
 
-module_out_path = "graphic_standard/utils/sync_fence"
+module_out_path = "graphic_graphic_2d/utils/sync_fence"
 
 group("unittest") {
   testonly = true
@@ -52,6 +52,6 @@ ohos_static_library("sync_fence_common") {
   public_deps =
       [ "//foundation/graphic/graphic_2d/utils/sync_fence:sync_fence" ]
   subsystem_name = "graphic"
-  part_name = "graphic_standard"
+  part_name = "graphic_graphic_2d"
 }
 ## Build sync_fence_common.a }}}

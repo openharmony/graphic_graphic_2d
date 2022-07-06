@@ -25,6 +25,6 @@ ohos_shared_library("rosen_text") {
 
   public_deps = [ "ui:rosen_text_ui" ]
 
-  part_name = "graphic_standard"
+  part_name = "graphic_graphic_2d"
   subsystem_name = "graphic"
 }

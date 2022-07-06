@@ -36,6 +36,6 @@ ohos_static_library("option_parser") {
   public_configs = [ ":option_parser_public_config" ]
 
   subsystem_name = "graphic"
-  part_name = "graphic_standard"
+  part_name = "graphic_graphic_2d"
 }
 ## Build option_parser.a }}}

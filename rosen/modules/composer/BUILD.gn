@@ -79,7 +79,7 @@ ohos_shared_library("libcomposer") {
     "//utils/native/base:utils",
   ]
 
-  part_name = "graphic_standard"
+  part_name = "graphic_graphic_2d"
   subsystem_name = "graphic"
 }
 

@@ -38,5 +38,5 @@ ohos_executable("drawing_text_sample") {
   ]
 
   subsystem_name = "graphic"
-  part_name = "graphic_standard"
+  part_name = "graphic_graphic_2d"
 }

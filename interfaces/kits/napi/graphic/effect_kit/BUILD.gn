@@ -76,7 +76,7 @@ ohos_shared_library("effectkit") {
   cflags_cc = [ "-std=c++17" ]
 
   relative_install_dir = "module"
-  part_name = "graphic_standard"
+  part_name = "graphic_graphic_2d"
   subsystem_name = "graphic"
 }
 ## Build effect_kit.so

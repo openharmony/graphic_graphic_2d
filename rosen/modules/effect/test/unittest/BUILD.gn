@@ -15,7 +15,7 @@ import("//build/test.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
 import("//foundation/graphic/graphic_2d/rosen/modules/effect/effect_config.gni")
 
-module_output_path = "graphic_standard/rosen/modules/effect"
+module_output_path = "graphic_graphic_2d/rosen/modules/effect"
 
 ohos_unittest("EffectTest") {
   module_out_path = module_output_path

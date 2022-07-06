@@ -45,6 +45,6 @@ ohos_shared_library("windowanimationmanager_napi") {
   ]
 
   relative_install_dir = "module/animation"
-  part_name = "graphic_standard"
+  part_name = "graphic_graphic_2d"
   subsystem_name = "graphic"
 }

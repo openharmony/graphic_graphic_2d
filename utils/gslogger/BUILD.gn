@@ -38,7 +38,7 @@ ohos_static_library("libgslogger") {
   public_deps =
       [ "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog" ]
 
-  part_name = "graphic_standard"
+  part_name = "graphic_graphic_2d"
   subsystem_name = "graphic"
 }
 ## Build libgslogger.a }}}

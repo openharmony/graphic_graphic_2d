@@ -71,7 +71,7 @@ ohos_executable("drawing_sample") {
     "multimedia_image_standard:image_native",
   ]
 
-  part_name = "graphic_standard"
+  part_name = "graphic_graphic_2d"
   subsystem_name = "graphic"
 }
 ## Build drawing_sample }}}

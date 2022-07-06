@@ -58,7 +58,7 @@ ohos_static_library("gl_utils") {
     "//foundation/graphic/graphic_2d:libgl",
   ]
 
-  part_name = "graphic_standard"
+  part_name = "graphic_graphic_2d"
   subsystem_name = "graphic"
 }
 ## Build gl_utils.a }}}

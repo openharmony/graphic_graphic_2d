@@ -40,7 +40,7 @@ ohos_shared_library("libfence") {
     "utils_base:utils",
   ]
 
-  part_name = "graphic_standard"
+  part_name = "graphic_graphic_2d"
   subsystem_name = "graphic"
 }
 

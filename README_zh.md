@@ -1,4 +1,4 @@
-# graphic_standard
+# graphic_graphic_2d
 
 -   [简介](#简介)
 -   [目录](#目录)
@@ -56,7 +56,7 @@ foundation/graphic/graphic_2d/
 
 
 ## 相关仓
-- [**graphic_standard**](https://gitee.com/openharmony/graphic_standard)
+- [**graphic_graphic_2d**](https://gitee.com/openharmony/graphic_graphic_2d)
 - [ace_ace_engine](https://gitee.com/openharmony/ace_ace_engine)
 - [aafwk_standard](https://gitee.com/openharmony/aafwk_standard)
 - [multimedia_media_standard](https://gitee.com/openharmony/multimedia_media_standard)

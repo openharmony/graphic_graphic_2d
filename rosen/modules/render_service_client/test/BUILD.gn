@@ -44,7 +44,7 @@ ohos_executable("render_service_client_rs_demo") {
 
   public_deps = [ "//third_party/flutter/build/skia:ace_skia_ohos" ]
 
-  part_name = "graphic_standard"
+  part_name = "graphic_graphic_2d"
   subsystem_name = "graphic"
 }
 
@@ -66,7 +66,7 @@ ohos_executable("render_service_client_app_demo") {
 
   public_deps = [ "//third_party/flutter/build/skia:ace_skia_ohos" ]
 
-  part_name = "graphic_standard"
+  part_name = "graphic_graphic_2d"
   subsystem_name = "graphic"
 }
 
@@ -88,7 +88,7 @@ ohos_executable("render_service_client_gravity_demo") {
 
   public_deps = [ "//third_party/flutter/build/skia:ace_skia_ohos" ]
 
-  part_name = "graphic_standard"
+  part_name = "graphic_graphic_2d"
   subsystem_name = "graphic"
 }
 
@@ -110,7 +110,7 @@ ohos_executable("render_service_client_scale_demo") {
 
   public_deps = [ "//third_party/flutter/build/skia:ace_skia_ohos" ]
 
-  part_name = "graphic_standard"
+  part_name = "graphic_graphic_2d"
   subsystem_name = "graphic"
 }
 
@@ -132,7 +132,7 @@ ohos_executable("render_service_client_rs_animation_demo") {
 
   public_deps = [ "//third_party/flutter/build/skia:ace_skia_ohos" ]
 
-  part_name = "graphic_standard"
+  part_name = "graphic_graphic_2d"
   subsystem_name = "graphic"
 }
 
@@ -151,7 +151,7 @@ ohos_executable("surface_capture_demo") {
 
   public_deps = [ "//third_party/flutter/build/skia:ace_skia_ohos" ]
 
-  part_name = "graphic_standard"
+  part_name = "graphic_graphic_2d"
   subsystem_name = "graphic"
 }
 
@@ -164,7 +164,7 @@ ohos_executable("security_layer_demo") {
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:librender_service_client",
   ]
 
-  part_name = "graphic_standard"
+  part_name = "graphic_graphic_2d"
   subsystem_name = "graphic"
 }
 
@@ -188,7 +188,7 @@ ohos_executable("mirror_display_demo") {
 
   public_deps = [ "//third_party/flutter/build/skia:ace_skia_ohos" ]
 
-  part_name = "graphic_standard"
+  part_name = "graphic_graphic_2d"
   subsystem_name = "graphic"
 }
 
@@ -210,6 +210,6 @@ ohos_executable("render_service_client_surface_node_demo") {
 
   external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
 
-  part_name = "graphic_standard"
+  part_name = "graphic_graphic_2d"
   subsystem_name = "graphic"
 }

@@ -13,7 +13,7 @@
 
 import("//build/test.gni")
 
-module_out_path = "graphic_standard/surface"
+module_out_path = "graphic_graphic_2d/surface"
 
 group("systemtest") {
   testonly = true

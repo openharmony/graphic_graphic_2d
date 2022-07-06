@@ -31,7 +31,7 @@ ohos_unittest("overdraw_test") {
     "//third_party/googletest:gmock",
   ]
 
-  part_name = "graphic_standard"
+  part_name = "graphic_graphic_2d"
   subsystem_name = "graphic"
 }
 

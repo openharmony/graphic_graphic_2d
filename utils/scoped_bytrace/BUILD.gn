@@ -40,6 +40,6 @@ ohos_static_library("scoped_bytrace") {
   external_deps = [ "hitrace_native:hitrace_meter" ]
 
   subsystem_name = "graphic"
-  part_name = "graphic_standard"
+  part_name = "graphic_graphic_2d"
 }
 ## Build scoped_bytrace.a }}}

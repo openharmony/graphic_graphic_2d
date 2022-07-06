@@ -50,7 +50,7 @@ ohos_shared_library("color_manager") {
   ]
 
   subsystem_name = "graphic"
-  part_name = "graphic_standard"
+  part_name = "graphic_graphic_2d"
 }
 
 group("test") {

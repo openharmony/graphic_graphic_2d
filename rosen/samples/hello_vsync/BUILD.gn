@@ -45,7 +45,7 @@ ohos_executable("hello_vsync") {
 
   external_deps = [ "ipc:ipc_core" ]
 
-  part_name = "graphic_standard"
+  part_name = "graphic_graphic_2d"
   subsystem_name = "graphic"
 }
 
