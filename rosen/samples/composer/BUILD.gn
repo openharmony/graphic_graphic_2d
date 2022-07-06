@@ -59,7 +59,7 @@ ohos_executable("hello_composer") {
 
   external_deps = [ "ipc:ipc_core" ]
 
-  part_name = "graphic_graphic_2d"
+  part_name = "graphic_standard"
   subsystem_name = "graphic"
 }
 

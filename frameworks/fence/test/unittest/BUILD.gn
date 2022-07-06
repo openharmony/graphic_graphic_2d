@@ -13,7 +13,7 @@
 
 import("//build/test.gni")
 
-module_out_path = "graphic_graphic_2d/fence"
+module_out_path = "graphic_standard/fence"
 
 group("unittest") {
   testonly = true
@@ -57,6 +57,6 @@ ohos_static_library("fence_test_common") {
     "//foundation/graphic/graphic_2d/utils:libgraphic_utils",
   ]
   subsystem_name = "graphic"
-  part_name = "graphic_graphic_2d"
+  part_name = "graphic_standard"
 }
 ## Build fence_test_common.a }}}

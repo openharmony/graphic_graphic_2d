@@ -13,7 +13,7 @@
 
 import("//build/test.gni")
 
-module_output_path = "graphic_graphic_2d/rosen/modules/2d_graphics/effect"
+module_output_path = "graphic_standard/rosen/modules/2d_graphics/effect"
 
 ohos_unittest("2d_graphics_effect_test") {
   module_out_path = module_output_path
@@ -40,7 +40,7 @@ ohos_unittest("2d_graphics_effect_test") {
     "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics:2d_graphics",
   ]
 
-  part_name = "graphic_graphic_2d"
+  part_name = "graphic_standard"
   subsystem_name = "graphic"
 }
 

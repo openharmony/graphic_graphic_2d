@@ -17,7 +17,7 @@ import(
 
 #import("//foundation/graphic/graphic_2d/rosen/modules/render_service_base/config.gni")
 
-module_output_path = "graphic_graphic_2d/rosen/modules/render_service_client"
+module_output_path = "graphic_standard/rosen/modules/render_service_client"
 
 ohos_unittest("RSAnimationTest") {
   module_out_path = module_output_path
