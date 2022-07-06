@@ -232,9 +232,11 @@ void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::ProcessSurfaceRenderNodeWith
         canvas_->clipRect(contextClipRect);
     }
 
-    canvas_->concat(geoPtr->GetMatrix());
-    canvas_->clipRect(SkRect::MakeWH(node.GetRenderProperties().GetBoundsWidth(),
-        node.GetRenderProperties().GetBoundsHeight()));
+    auto matrix = geoPtr->GetMatrix();
+    matrix.setTranslate(std::ceil(matrix.getTranslateX()), std::ceil(matrix.getTranslateY()));
+    canvas_->concat(matrix);
+    canvas_->clipRect(SkRect::MakeWH(std::floor(node.GetRenderProperties().GetBoundsWidth()),
+        std::floor(node.GetRenderProperties().GetBoundsHeight())));
     ProcessBaseRenderNode(node);
 
     if (node.GetConsumer() != nullptr) {
@@ -336,19 +338,22 @@ void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::ProcessSurfaceRenderNodeWith
         auto existedParent = node.GetParent().lock();
         if (existedParent && existedParent->IsInstanceOf<RSSurfaceRenderNode>() &&
             (*std::static_pointer_cast<RSSurfaceRenderNode>(existedParent)).GetBuffer() != nullptr) {
-            param.matrix = node.GetContextMatrix();
             auto& parent = *std::static_pointer_cast<RSSurfaceRenderNode>(existedParent);
             auto parentRect = RSDividedRenderUtil::CreateBufferDrawParam(parent).clipRect;
-            //Changes the clip area from absolute to relative to the parent window and deal with clip area with scale
-            //Based on the origin of the parent window.
+            // Changes the clip area from absolute to relative to the parent window and deal with clip area with scale
+            // based on the origin of the parent window.
             param.clipRect.offsetTo(param.clipRect.left() - parentRect.left(), param.clipRect.top() - parentRect.top());
             SkMatrix scaleMatrix = SkMatrix::I();
             scaleMatrix.preScale(scaleX_, scaleY_, 0, 0);
             param.clipRect = scaleMatrix.mapRect(param.clipRect);
+            param.clipRect.setXYWH(std::floor(param.clipRect.left()), std::floor(param.clipRect.top()),
+                param.clipRect.width() + 1, param.clipRect.height() + 1);
 
-            param.dstRect = SkRect::MakeXYWH(
-                node.GetRenderProperties().GetBoundsPositionX(), node.GetRenderProperties().GetBoundsPositionY(),
-                node.GetRenderProperties().GetBoundsWidth(), node.GetRenderProperties().GetBoundsHeight());
+            auto x = param.clipRect.left() / scaleX_;
+            auto y = param.clipRect.top() / scaleY_;
+            auto width = param.clipRect.width() / scaleX_;
+            auto height = param.clipRect.height() / scaleY_;
+            param.dstRect = SkRect::MakeXYWH(x, y, width, height);
             param.matrix.preTranslate(-param.matrix.getTranslateX() * scaleX_, -param.matrix.getTranslateY() * scaleY_);
             AdjustSurfaceTransform(param, surfaceTransform);
             RSDividedRenderUtil::DrawBuffer(*canvas_, param,

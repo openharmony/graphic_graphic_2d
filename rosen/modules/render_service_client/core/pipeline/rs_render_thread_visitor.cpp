@@ -411,6 +411,8 @@ void RSRenderThreadVisitor::ClipHoleForSurfaceNode(RSSurfaceRenderNode& node)
     SkRect originRect = SkRect::MakeXYWH(x, y, width, height);
     canvas_->clipRect(originRect);
     if (node.IsNotifyRTBufferAvailable() == true) {
+        ROSEN_LOGI("RSRenderThreadVisitor::ClipHoleForSurfaceNode node : %llu, clip [%f, %f, %f, %f]", node.GetId(),
+            x, y, width, height);
         canvas_->clear(SK_ColorTRANSPARENT);
     } else {
         ROSEN_LOGI("RSRenderThreadVisitor::ClipHoleForSurfaceNode node : %llu, not clip [%f, %f, %f, %f]", node.GetId(),
