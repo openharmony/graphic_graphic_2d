@@ -122,10 +122,10 @@ void RSRenderEngine::DrawLayers(
         if (layer == nullptr) {
             continue;
         }
-        if (layer->GetCompositionType() == CompositionType::COMPOSITION_DEVICE) {
+        if (layer->GetCompositionType() == CompositionType::COMPOSITION_DEVICE ||
+            layer->GetCompositionType() == CompositionType::COMPOSITION_DEVICE_CLEAR) {
             continue;
         }
-
         auto nodePtr = static_cast<RSBaseRenderNode*>(layer->GetLayerAdditionalInfo());
         if (nodePtr == nullptr) {
             RS_LOGE("RSRenderEngine::DrawLayers: node is nullptr!");
@@ -135,6 +135,11 @@ void RSRenderEngine::DrawLayers(
         auto saveCount = canvas.getSaveCount();
         if (nodePtr->IsInstanceOf<RSSurfaceRenderNode>()) {
             RSSurfaceRenderNode& node = *(static_cast<RSSurfaceRenderNode*>(nodePtr));
+            if (layer->GetCompositionType() == CompositionType::COMPOSITION_CLIENT_CLEAR) {
+                ClipHoleForLayer(canvas, node, screenInfo, clipRect, forceCPU);
+                canvas.restoreToCount(saveCount);
+                continue;
+            }
             DrawSurfaceNodeInfo infos = {
                 forceCPU,
                 mirrorAdaptiveCoefficient
@@ -181,6 +186,32 @@ SkMatrix RSRenderEngine::GetSurfaceNodeGravityMatrix(
     }
 
     return gravityMatrix;
+}
+
+void RSRenderEngine::ClipHoleForLayer(
+    RSPaintFilterCanvas& canvas,
+    RSSurfaceRenderNode& node,
+    const ScreenInfo& screenInfo,
+    const IRect& clipRect,
+    bool forceCPU)
+{
+    std::string traceInfo;
+    AppendFormat(traceInfo, "Node name:%s ClipHole[%d %d %d %d]", node.GetName().c_str(),
+        clipRect.x, clipRect.y, clipRect.w, clipRect.h);
+    RS_TRACE_NAME(traceInfo.c_str());
+    RS_LOGD("RsDebug RSRenderEngine::Redraw layer composition Type:COMPOSITION_CLIENT_CLEAR, %s.",
+        traceInfo.c_str());
+    BufferDrawParam params = RSDividedRenderUtil::CreateBufferDrawParam(
+        node, screenInfo.rotationMatrix, screenInfo.rotation);
+    params.targetColorGamut = static_cast<ColorGamut>(screenInfo.colorGamut);
+    params.clipRect = SkRect::MakeXYWH(clipRect.x, clipRect.y, clipRect.w, clipRect.h);
+    params.matrix = params.matrix.preConcat(GetSurfaceNodeGravityMatrix(node,
+        RectF {params.dstRect.x(), params.dstRect.y(), params.dstRect.width(), params.dstRect.height()}));
+    if (node.GetRenderProperties().GetFrameGravity() != Gravity::RESIZE) {
+        params.dstRect = params.srcRect;
+    }
+    RSDividedRenderUtil::ClipHole(canvas, params);
+    return;
 }
 
 void RSRenderEngine::DrawSurfaceNode(

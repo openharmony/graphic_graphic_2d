@@ -221,10 +221,8 @@ BufferDrawParam RSDividedRenderUtil::CreateBufferDrawParam(RSSurfaceRenderNode& 
     return params;
 }
 
-void SetPropertiesForCanvas(RSPaintFilterCanvas& canvas, BufferDrawParam& bufferDrawParam,
-    RSDividedRenderUtil::CanvasPostProcess process)
+void SetPropertiesForCanvas(RSPaintFilterCanvas& canvas, BufferDrawParam& bufferDrawParam)
 {
-    canvas.save();
     if (bufferDrawParam.isNeedClip) {
         SkRect clipRect = bufferDrawParam.clipRect;
         if (!bufferDrawParam.cornerRadius.IsZero()) {
@@ -239,9 +237,15 @@ void SetPropertiesForCanvas(RSPaintFilterCanvas& canvas, BufferDrawParam& buffer
         canvas.clear(bufferDrawParam.backgroundColor);
     }
     canvas.setMatrix(bufferDrawParam.matrix);
-    if (process) {
-        process(canvas, bufferDrawParam);
-    }
+}
+
+void RSDividedRenderUtil::ClipHole(RSPaintFilterCanvas& canvas, BufferDrawParam& bufferDrawParam)
+{
+    canvas.save();
+    SetPropertiesForCanvas(canvas, bufferDrawParam);
+    canvas.clipRect(bufferDrawParam.dstRect);
+    canvas.clear(SK_ColorTRANSPARENT);
+    canvas.restore();
 }
 
 void RSDividedRenderUtil::DrawBuffer(RSPaintFilterCanvas& canvas, BufferDrawParam& bufferDrawParam,
@@ -254,7 +258,11 @@ void RSDividedRenderUtil::DrawBuffer(RSPaintFilterCanvas& canvas, BufferDrawPara
         RS_LOGE("RSDividedRenderUtil::DrawBuffer: create bitmap failed.");
         return;
     }
-    SetPropertiesForCanvas(canvas, bufferDrawParam, process);
+    canvas.save();
+    SetPropertiesForCanvas(canvas, bufferDrawParam);
+    if (process) {
+        process(canvas, bufferDrawParam);
+    }
     canvas.drawBitmapRect(bitmap, bufferDrawParam.srcRect, bufferDrawParam.dstRect, &(bufferDrawParam.paint));
     canvas.restore();
 }
@@ -271,8 +279,11 @@ void RSDividedRenderUtil::DrawImage(std::shared_ptr<RSEglImageManager> eglImageM
         RS_LOGE("RSDividedRenderUtil::DrawImage ConvertBufferToEglImage failed");
         return;
     }
-
-    SetPropertiesForCanvas(canvas, bufferDrawParam, process);
+    canvas.save();
+    SetPropertiesForCanvas(canvas, bufferDrawParam);
+    if (process) {
+        process(canvas, bufferDrawParam);
+    }
     canvas.drawImageRect(image, bufferDrawParam.srcRect, bufferDrawParam.dstRect, &(bufferDrawParam.paint));
     canvas.restore();
 }
