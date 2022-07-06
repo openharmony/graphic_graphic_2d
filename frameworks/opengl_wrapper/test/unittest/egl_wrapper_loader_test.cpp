@@ -116,7 +116,7 @@ HWTEST_F(EglWrapperLoaderTest, Unload003, Level2)
 HWTEST_F(EglWrapperLoaderTest, LoadEgl001, Level1)
 {
     EglWrapperDispatchTable dispatchTable;
-    std::string eglPath = std::string("libmali.so.0");
+    std::string eglPath = std::string("libEGL_impl.so");
     auto result = EglWrapperLoader::GetInstance().LoadEgl(eglPath.c_str(), &dispatchTable.egl);
 
     ASSERT_TRUE(result);
@@ -157,7 +157,7 @@ HWTEST_F(EglWrapperLoaderTest, LoadEgl003, Level2)
 HWTEST_F(EglWrapperLoaderTest, LoadGl001, Level1)
 {
     EglWrapperDispatchTable dispatchTable;
-    std::string glPath = std::string("libmali.so.0");
+    std::string glPath = std::string("libGLESv3_impl.so");
     auto result = EglWrapperLoader::GetInstance().LoadGl(glPath.c_str(),
         gGlApiNames1, (FunctionPointerType *)&dispatchTable.gl.table1);
 

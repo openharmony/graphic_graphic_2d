@@ -33,10 +33,10 @@ namespace {
     constexpr const char *VENDOR_LIB_PATH = "/vendor/lib/chipsetsdk/";
     constexpr const char *SYSTEM_LIB_PATH = "/system/lib/";
 #endif
-constexpr const char *LIB_EGL_NAME = "libmali.so.0";
-constexpr const char *LIB_GLESV1_NAME = "libmali.so.0";
-constexpr const char *LIB_GLESV2_NAME = "libmali.so.0";
-constexpr const char *LIB_GLESV3_NAME = "libmali.so.0";
+constexpr const char *LIB_EGL_NAME = "libEGL_impl.so";
+constexpr const char *LIB_GLESV1_NAME = "libGLESv1_impl.so";
+constexpr const char *LIB_GLESV2_NAME = "libGLESv2_impl.so";
+constexpr const char *LIB_GLESV3_NAME = "libGLESv3_impl.so";
 }
 
 EglWrapperLoader& EglWrapperLoader::GetInstance()
