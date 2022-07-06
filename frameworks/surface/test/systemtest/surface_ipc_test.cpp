@@ -183,4 +183,20 @@ HWTEST_F(SurfaceIPCTest, Connect001, Function | MediumTest | Level2)
     ASSERT_EQ(sRet, OHOS::GSERROR_INVALID_OPERATING);  // RequestBuffer cannot be called in two processes
     ASSERT_EQ(buffer, nullptr);
 }
+
+/*
+* Function: disconnect
+* Type: Function
+* Rank: Important(1)
+* EnvConditions: N/A
+* CaseDescription: 1. call Disconnect in other process, check sRet
+ */
+HWTEST_F(SurfaceIPCTest, Disconnect001, Function | MediumTest | Level1)
+{
+    cSurface->RegisterConsumerListener(this);
+    auto producer = cSurface->GetProducer();
+    auto pSurface = Surface::CreateSurfaceAsProducer(producer);
+    auto sRet = pSurface->Disconnect();
+    ASSERT_EQ(sRet, OHOS::GSERROR_INVALID_OPERATING);  // Disconnect cannot be called in two processes
+}
 }

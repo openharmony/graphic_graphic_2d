@@ -373,23 +373,51 @@ HWTEST_F(ProducerSurfaceTest, UniqueId001, Function | MediumTest | Level2)
 * Type: Function
 * Rank: Important(2)
 * EnvConditions: N/A
-* CaseDescription: 1. call GetTransform and check ret
-*                  2. call SetTransform and check ret
-*                  3. call SetTransform with other parameters and check ret
+* CaseDescription: 1. call GetTransform with default and check ret
  */
 HWTEST_F(ProducerSurfaceTest, transform001, Function | MediumTest | Level2)
 {
     ASSERT_EQ(pSurface->GetTransform(), TransformType::ROTATE_BUTT);
     GSError ret = pSurface->SetTransform(TransformType::ROTATE_NONE);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
+}
 
-    ret = pSurface->SetTransform(TransformType::ROTATE_90);
+/*
+* Function: SetTransform and GetTransform
+* Type: Function
+* Rank: Important(1)
+* EnvConditions: N/A
+* CaseDescription: 1. call SetTransform with other parameters and check ret
+ */
+HWTEST_F(ProducerSurfaceTest, transform002, Function | MediumTest | Level1)
+{
+    GSError ret = pSurface->SetTransform(TransformType::ROTATE_90);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
+}
 
-    ret = pSurface->SetTransform(TransformType::ROTATE_180);
+/*
+* Function: SetTransform and GetTransform
+* Type: Function
+* Rank: Important(1)
+* EnvConditions: N/A
+* CaseDescription: 1. call SetTransform with other parameters and check ret
+ */
+HWTEST_F(ProducerSurfaceTest, transform003, Function | MediumTest | Level1)
+{
+    GSError ret = pSurface->SetTransform(TransformType::ROTATE_180);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
+}
 
-    ret = pSurface->SetTransform(TransformType::ROTATE_270);
+/*
+* Function: SetTransform and GetTransform
+* Type: Function
+* Rank: Important(1)
+* EnvConditions: N/A
+* CaseDescription: 1. call SetTransform with other parameters and check ret
+ */
+HWTEST_F(ProducerSurfaceTest, transform004, Function | MediumTest | Level1)
+{
+    GSError ret = pSurface->SetTransform(TransformType::ROTATE_270);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 }
 
@@ -399,9 +427,23 @@ HWTEST_F(ProducerSurfaceTest, transform001, Function | MediumTest | Level2)
 * Rank: Important(2)
 * EnvConditions: N/A
 * CaseDescription: 1. call IsSupportedAlloc with abnormal parameters and check ret
-*                  2. call IsSupportedAlloc with normal parameters and check ret
  */
 HWTEST_F(ProducerSurfaceTest, isSupportedAlloc001, Function | MediumTest | Level2)
+{
+    std::vector<VerifyAllocInfo> infos;
+    std::vector<bool> supporteds;
+    GSError ret = pSurface->IsSupportedAlloc(infos, supporteds);
+    ASSERT_EQ(ret, OHOS::GSERROR_INVALID_ARGUMENTS);
+}
+
+/*
+* Function: IsSupportedAlloc
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call IsSupportedAlloc with abnormal parameters and check ret
+ */
+HWTEST_F(ProducerSurfaceTest, isSupportedAlloc002, Function | MediumTest | Level2)
 {
     std::vector<VerifyAllocInfo> infos;
     std::vector<bool> supporteds;
@@ -422,12 +464,36 @@ HWTEST_F(ProducerSurfaceTest, isSupportedAlloc001, Function | MediumTest | Level
 
     ret = pSurface->IsSupportedAlloc(infos, supporteds);
     ASSERT_EQ(ret, OHOS::GSERROR_INVALID_ARGUMENTS);
+}
+
+/*
+* Function: IsSupportedAlloc
+* Type: Function
+* Rank: Important(1)
+* EnvConditions: N/A
+* CaseDescription: 1. call IsSupportedAlloc with normal parameters and check ret
+ */
+HWTEST_F(ProducerSurfaceTest, isSupportedAlloc003, Function | MediumTest | Level1)
+{
+    std::vector<VerifyAllocInfo> infos;
+    std::vector<bool> supporteds;
+    VerifyAllocInfo info = {
+        .width = 0x100,
+        .height = 0x100,
+        .usage = HBM_USE_CPU_READ | HBM_USE_CPU_WRITE | HBM_USE_MEM_DMA,
+        .format = PIXEL_FMT_RGBA_8888,
+    };
+    infos.push_back(info);
+    info.format = PIXEL_FMT_YCRCB_420_SP;
+    infos.push_back(info);
+    info.format = PIXEL_FMT_YUV_422_I;
+    infos.push_back(info);
 
     supporteds.push_back(false);
     supporteds.push_back(false);
     supporteds.push_back(false);
 
-    ret = pSurface->IsSupportedAlloc(infos, supporteds);
+    GSError ret = pSurface->IsSupportedAlloc(infos, supporteds);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);  // mock data result
     ASSERT_EQ(supporteds[0], true);  // mock data result
     ASSERT_EQ(supporteds[1], true);  // mock data result
@@ -440,18 +506,28 @@ HWTEST_F(ProducerSurfaceTest, isSupportedAlloc001, Function | MediumTest | Level
 * Rank: Important(2)
 * EnvConditions: N/A
 * CaseDescription: 1. call SetScalingMode with abnormal parameters and check ret
-*                  2. call SetScalingMode with normal parameters and check ret
-*                  3. call GetScalingMode and check ret
  */
 HWTEST_F(ProducerSurfaceTest, scalingMode001, Function | MediumTest | Level2)
 {
     ScalingMode scalingMode = ScalingMode::SCALING_MODE_SCALE_TO_WINDOW;
     GSError ret = pSurface->SetScalingMode(-1, scalingMode);
     ASSERT_EQ(ret, OHOS::GSERROR_NO_ENTRY);
+}
 
+/*
+* Function: SetScalingMode and GetScalingMode
+* Type: Function
+* Rank: Important(1)
+* EnvConditions: N/A
+* CaseDescription: 1. call SetScalingMode with normal parameters and check ret
+*                  2. call GetScalingMode and check ret
+ */
+HWTEST_F(ProducerSurfaceTest, scalingMode002, Function | MediumTest | Level1)
+{
+    ScalingMode scalingMode = ScalingMode::SCALING_MODE_SCALE_TO_WINDOW;
     sptr<SurfaceBuffer> buffer;
     int releaseFence = -1;
-    ret = pSurface->RequestBuffer(buffer, releaseFence, requestConfig);
+    GSError ret = pSurface->RequestBuffer(buffer, releaseFence, requestConfig);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
     ASSERT_NE(buffer, nullptr);
 
@@ -472,8 +548,6 @@ HWTEST_F(ProducerSurfaceTest, scalingMode001, Function | MediumTest | Level2)
 * Rank: Important(2)
 * EnvConditions: N/A
 * CaseDescription: 1. call SetMetaData with abnormal parameters and check ret
-*                  2. call SetMetaData with normal parameters and check ret
-*                  3. call GetMetaData and check ret
  */
 HWTEST_F(ProducerSurfaceTest, metaData001, Function | MediumTest | Level2)
 {
@@ -481,18 +555,47 @@ HWTEST_F(ProducerSurfaceTest, metaData001, Function | MediumTest | Level2)
     std::vector<HDRMetaData> metaData;
     GSError ret = pSurface->SetMetaData(sequence, metaData);
     ASSERT_EQ(ret, OHOS::GSERROR_INVALID_ARGUMENTS);
+}
 
+/*
+* Function: SetMetaData and GetMetaData
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call SetMetaData with abnormal parameters and check ret
+ */
+HWTEST_F(ProducerSurfaceTest, metaData002, Function | MediumTest | Level2)
+{
+    std::vector<HDRMetaData> metaData;
     HDRMetaData data = {
         .key = HDRMetadataKey::MATAKEY_RED_PRIMARY_X,
         .value = 100,  // for test
     };
     metaData.push_back(data);
-    ret = pSurface->SetMetaData(-1, metaData);
+    GSError ret = pSurface->SetMetaData(-1, metaData);
     ASSERT_EQ(ret, OHOS::GSERROR_NO_ENTRY);
+}
 
+/*
+* Function: SetMetaData and GetMetaData
+* Type: Function
+* Rank: Important(1)
+* EnvConditions: N/A
+* CaseDescription: 1. call SetMetaData with normal parameters and check ret
+*                  2. call GetMetaData and check ret
+ */
+HWTEST_F(ProducerSurfaceTest, metaData003, Function | MediumTest | Level1)
+{
+    uint32_t sequence = 0;
+    std::vector<HDRMetaData> metaData;
+    HDRMetaData data = {
+        .key = HDRMetadataKey::MATAKEY_RED_PRIMARY_X,
+        .value = 100,  // for test
+    };
+    metaData.push_back(data);
     sptr<SurfaceBuffer> buffer;
     int releaseFence = -1;
-    ret = pSurface->RequestBuffer(buffer, releaseFence, requestConfig);
+    GSError ret = pSurface->RequestBuffer(buffer, releaseFence, requestConfig);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
     ASSERT_NE(buffer, nullptr);
 
@@ -508,13 +611,11 @@ HWTEST_F(ProducerSurfaceTest, metaData001, Function | MediumTest | Level2)
 }
 
 /*
-* Function: SetMetaDataSet and GetMetaData
+* Function: SetMetaDataSet and GetMetaDataSet
 * Type: Function
 * Rank: Important(2)
 * EnvConditions: N/A
 * CaseDescription: 1. call SetMetaDataSet with abnormal parameters and check ret
-*                  2. call SetMetaDataSet with normal parameters and check ret
-*                  3. call GetMetaDataSet and check ret
  */
 HWTEST_F(ProducerSurfaceTest, metaDataSet001, Function | MediumTest | Level2)
 {
@@ -524,15 +625,45 @@ HWTEST_F(ProducerSurfaceTest, metaDataSet001, Function | MediumTest | Level2)
     uint32_t sequence = 0;
     GSError ret = pSurface->SetMetaDataSet(sequence, key, metaData);
     ASSERT_EQ(ret, OHOS::GSERROR_INVALID_ARGUMENTS);
+}
+
+/*
+* Function: SetMetaDataSet and GetMetaDataSet
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call SetMetaDataSet with abnormal parameters and check ret
+ */
+HWTEST_F(ProducerSurfaceTest, metaDataSet002, Function | MediumTest | Level2)
+{
+    HDRMetadataKey key = HDRMetadataKey::MATAKEY_HDR10_PLUS;
+    std::vector<uint8_t> metaData;
 
     uint8_t data = 10;  // for test
     metaData.push_back(data);
-    ret = pSurface->SetMetaDataSet(-1, key, metaData);
+    GSError ret = pSurface->SetMetaDataSet(-1, key, metaData);
     ASSERT_EQ(ret, OHOS::GSERROR_NO_ENTRY);
+}
+
+/*
+* Function: SetMetaDataSet and GetMetaDataSet
+* Type: Function
+* Rank: Important(1)
+* EnvConditions: N/A
+* CaseDescription: 1. call SetMetaDataSet with normal parameters and check ret
+*                  2. call GetMetaDataSet and check ret
+ */
+HWTEST_F(ProducerSurfaceTest, metaDataSet003, Function | MediumTest | Level1)
+{
+    HDRMetadataKey key = HDRMetadataKey::MATAKEY_HDR10_PLUS;
+    std::vector<uint8_t> metaData;
+    uint32_t sequence = 0;
+    uint8_t data = 10;  // for test
+    metaData.push_back(data);
 
     sptr<SurfaceBuffer> buffer;
     int releaseFence = -1;
-    ret = pSurface->RequestBuffer(buffer, releaseFence, requestConfig);
+    GSError ret = pSurface->RequestBuffer(buffer, releaseFence, requestConfig);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
     ASSERT_NE(buffer, nullptr);
 
@@ -553,30 +684,78 @@ HWTEST_F(ProducerSurfaceTest, metaDataSet001, Function | MediumTest | Level2)
 * Rank: Important(2)
 * EnvConditions: N/A
 * CaseDescription: 1. call GetTunnelhandle and check ret
-*                  2. call SetTunnelhandle with abnormal parameters and check ret
-*                  3. call SetTunnelhandle with normal parameters and check ret
  */
 HWTEST_F(ProducerSurfaceTest, tunnelHandle001, Function | MediumTest | Level2)
 {
     ExtDataHandle *handle = nullptr;
     ASSERT_EQ(pSurface->GetTunnelHandle(&handle), OHOS::GSERROR_NOT_SUPPORT);
+}
 
+/*
+* Function: SetTunnelHandle and GetTunnelHandle
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call SetTunnelhandle with abnormal parameters and check ret
+ */
+HWTEST_F(ProducerSurfaceTest, tunnelHandle002, Function | MediumTest | Level2)
+{
+    ExtDataHandle *handle = nullptr;
     GSError ret = pSurface->SetTunnelHandle(handle);
     ASSERT_EQ(ret, OHOS::GSERROR_INVALID_ARGUMENTS);
+}
 
+/*
+* Function: SetTunnelHandle and GetTunnelHandle
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call SetTunnelhandle with abnormal parameters and check ret
+ */
+HWTEST_F(ProducerSurfaceTest, tunnelHandle003, Function | MediumTest | Level2)
+{
+    ExtDataHandle *handle = nullptr;
     handle = new ExtDataHandle();
     handle->fd = -1;
     handle->reserveInts = 0;
-    ret = pSurface->SetTunnelHandle(handle);
+    GSError ret = pSurface->SetTunnelHandle(handle);
     ASSERT_EQ(ret, OHOS::GSERROR_INVALID_ARGUMENTS);
+    delete handle;
+}
 
+
+/*
+* Function: SetTunnelHandle and GetTunnelHandle
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call SetTunnelhandle with normal parameters and check ret
+ */
+HWTEST_F(ProducerSurfaceTest, tunnelHandle004, Function | MediumTest | Level2)
+{
+    ExtDataHandle *handle = nullptr;
+    handle = new ExtDataHandle();
+    handle->fd = -1;
     handle->reserveInts = 1;
     handle->reserve[0] = 0;
-    ret = pSurface->SetTunnelHandle(handle);
+    GSError ret = pSurface->SetTunnelHandle(handle);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
     ret = pSurface->SetTunnelHandle(handle);
     ASSERT_EQ(ret, OHOS::GSERROR_NO_ENTRY);
     delete handle;
+}
+
+/*
+* Function: disconnect
+* Type: Function
+* Rank: Important(1)
+* EnvConditions: N/A
+* CaseDescription: 1. call Disconnect and check ret
+ */
+HWTEST_F(ProducerSurfaceTest, disconnect001, Function | MediumTest | Level1)
+{
+    GSError ret = pSurface->Disconnect();
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
 }
 }

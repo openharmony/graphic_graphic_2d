@@ -316,6 +316,11 @@ GSError ProducerSurface::IsSupportedAlloc(const std::vector<VerifyAllocInfo> &in
     return producer_->IsSupportedAlloc(infos, supporteds);
 }
 
+GSError ProducerSurface::Disconnect()
+{
+    return producer_->Disconnect();
+}
+
 GSError ProducerSurface::SetScalingMode(uint32_t sequence, ScalingMode scalingMode)
 {
     if (scalingMode < ScalingMode::SCALING_MODE_FREEZE ||

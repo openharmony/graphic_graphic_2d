@@ -252,6 +252,11 @@ GSError ConsumerSurface::IsSupportedAlloc(const std::vector<VerifyAllocInfo> &in
     return GSERROR_NOT_SUPPORT;
 }
 
+GSError ConsumerSurface::Disconnect()
+{
+    return producer_->Disconnect();
+}
+
 GSError ConsumerSurface::SetScalingMode(uint32_t sequence, ScalingMode scalingMode)
 {
     if (scalingMode < ScalingMode::SCALING_MODE_FREEZE ||

@@ -54,6 +54,7 @@
           "//foundation/graphic/graphic_2d:default",
           "//foundation/graphic/graphic_2d/interfaces/kits/napi:napi_packages",
           "//foundation/graphic/graphic_2d/rosen/samples/composer:hello_composer",
+          "//foundation/graphic/graphic_2d/rosen/samples/hello_native_window:hello_native_window",
           "//foundation/graphic/graphic_2d/rosen/samples/hello_vsync:hello_vsync",
           "//foundation/graphic/graphic_2d/rosen/samples/hello_native_buffer:hello_native_buffer",
           "//foundation/graphic/graphic_2d/rosen/modules/composer:libcomposer",
