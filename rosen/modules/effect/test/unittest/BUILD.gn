@@ -26,7 +26,7 @@ ohos_unittest("EffectTest") {
     "//utils/native/base:utils",
   ]
 
-  sources = []
+  sources = [ "color_picker_unittest.cpp" ]
 
   if (effect_enable_gpu) {
     sources += [
@@ -50,6 +50,7 @@ ohos_unittest("EffectTest") {
   }
 
   deps += [
+    "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
     "//foundation/graphic/graphic_2d:libgl",
     "//foundation/graphic/graphic_2d/rosen/modules/effect/color_picker:color_picker",
     "//foundation/graphic/graphic_2d/rosen/modules/effect/effectChain:libeffectchain",
@@ -76,6 +77,7 @@ config("effect_test_config") {
     "//foundation/graphic/graphic_2d/rosen/modules/effect/effectChain/include",
     "//foundation/graphic/graphic_2d/rosen/modules/effect/egl/include",
     "//foundation/graphic/graphic_2d/utils/color_manager/export",
+    "//base/hiviewdfx/hilog/interfaces/native/innerkits/include",
     "//foundation/multimedia/image_standard/interfaces/innerkits/include/",
   ]
 }
