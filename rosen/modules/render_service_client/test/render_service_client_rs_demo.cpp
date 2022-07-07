@@ -41,6 +41,10 @@ using namespace OHOS::Rosen;
 using namespace std;
 
 namespace OHOS::Rosen {
+namespace {
+constexpr int SURFACE_NODE_SIZE = 100;
+constexpr int SLEEP_TIME = 8;
+}
 #ifdef ACE_ENABLE_GPU
     RenderContext* rc_ = nullptr;
 #endif
@@ -288,18 +292,9 @@ public:
         return c;
     }
 
-    void Testhello() const
-    {
-        std::cout << "Render service Client rs Demo.cpp Start\n";
-        std::cout << "If you want to get more information, \n";
-        std::cout << "please type 'hilog | grep Rs' in another hdc shell window\n";
-        std::cout << "-------------------------------------------------------\n";
-    }
-
     void TestInit()
     {
         isInit_ = true;
-        std::cout << "-------------------------------------------------------\n";
         std::cout << "Render service Client rs Demo.cpp testInit Start\n";
 
 #ifdef ACE_ENABLE_GPU
@@ -310,11 +305,6 @@ public:
         isGPU_ = false;
 #endif
 
-#ifdef ACE_ENABLE_GL
-        std::cout << "ACE_ENABLE_GL is enabled\n";
-#else
-        std::cout << "ACE_ENABLE_GL is disabled\n";
-#endif
         DisplayId id = DmsMock::GetInstance().GetDefaultDisplayId();
         std::cout << "RS default screen id is " << id << ".\n";
         auto activeModeInfo = DmsMock::GetInstance().GetDisplayActiveMode(id);
@@ -344,22 +334,23 @@ public:
         pipelineTestUtils::ToDrawSurface()
             .SetSurfaceNode(surfaceNode1)
             .SetShapeColor(0xff00ffff)
-            .SetSurfaceNodeSize(SkRect::MakeXYWH(screenWidth_ * 0.4f, screenheight_ * 0.4f, 500, 300))
+            .SetSurfaceNodeSize(SkRect::MakeXYWH(SURFACE_NODE_SIZE, 0, screenWidth_ * 0.4f, screenheight_ * 0.3f))
             .SetBufferSizeAuto()
             .SetDraw([&](SkCanvas &canvas, SkPaint &paint) -> void {
                 canvas.drawRect(
-                    SkRect::MakeXYWH(0, 0, 500, 300),
+                    SkRect::MakeXYWH(0, 0, screenWidth_ * 0.4f, screenheight_ * 0.3f),
                     paint);
             })
             .Run();
         pipelineTestUtils::ToDrawSurface()
             .SetSurfaceNode(surfaceNode2)
             .SetShapeColor(0xffff0000)
-            .SetSurfaceNodeSize(SkRect::MakeXYWH(screenWidth_ * 0.6f, screenheight_ * 0.6f, 500, 300))
+            .SetSurfaceNodeSize(SkRect::MakeXYWH(SURFACE_NODE_SIZE, screenheight_ * 0.8f, screenWidth_ * 0.4f,
+                screenheight_ * 0.2f))
             .SetBufferSizeAuto()
             .SetDraw([&](SkCanvas &canvas, SkPaint &paint) -> void {
                 canvas.drawRect(
-                    SkRect::MakeXYWH(0, 0, 400, 100),
+                    SkRect::MakeXYWH(0, 0, screenWidth_ * 0.4f, screenheight_ * 0.2f),
                     paint);
             })
             .Run();
@@ -373,43 +364,11 @@ public:
         if (transactionProxy != nullptr) {
             transactionProxy->FlushImplicitTransaction();
         }
-        float alpha = 0;
-        for (int index = 0; index <= 10; index += 2) { // 10 is boundary, 2 is step
-            printf("printf alpha=%f \n", alpha);
-            surfaceNode2->SetAlpha(alpha);
-            if (transactionProxy != nullptr) {
-                transactionProxy->FlushImplicitTransaction();
-            }
-            usleep(300000);
-            alpha += 0.2f;
-        }
-        float scale = 0;
-        for (int index = 0; index < 20; index += 2) { // 20 is boundary, 2 is step
-            printf("scale=%f\n", scale);
-            surfaceNode2->SetScaleX(scale);
-            if (transactionProxy != nullptr) {
-                transactionProxy->FlushImplicitTransaction();
-            }
-            usleep(300000);
-            scale += 0.2f;
-        }
-        surfaceNode2->SetScaleX(1.f);
-        std::cout << "Compatible rotation test start\n";
-        float rotate = 0;
-        for (int index = 0; index <= 360; index += 15) { // 360 is boundary, 15 is step
-            rotate = static_cast<float>(index);
-            printf("roate=%f\n", rotate);
-            surfaceNode2->SetRotation(rotate);
-            if (transactionProxy != nullptr) {
-                transactionProxy->FlushImplicitTransaction();
-            }
-            usleep(300000);
-        }
+        sleep(SLEEP_TIME);
         displayNode->RemoveFromTree();
         if (transactionProxy != nullptr) {
             transactionProxy->FlushImplicitTransaction();
         }
-        std::cout << "Compatible rotation test end\n";
         std::cout << "Render service Client rs Demo.cpp testCaseDefault end\n";
         std::cout << "-------------------------------------------------------\n";
     }
@@ -441,7 +400,6 @@ private:
 
 int main()
 {
-    RSDemoTestCase::GetInstance().Testhello();
     RSDemoTestCase::GetInstance().TestInit();
     RSDemoTestCase::GetInstance().TestCaseDefault();
     return 0;
