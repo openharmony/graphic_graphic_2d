@@ -1310,7 +1310,7 @@ OpItem* PointsOpItem::Unmarshalling(Parcel& parcel)
     if (!RSMarshallingHelper::Unmarshalling(parcel, count)) {
         return nullptr;
     }
-    if (!RSMarshallingHelper::MarshallingArray(parcel, processedPoints, count)) {
+    if (!RSMarshallingHelper::UnmarshallingArray(parcel, processedPoints, count)) {
         return nullptr;
     }
     if (!RSMarshallingHelper::Unmarshalling(parcel, paint)) {
