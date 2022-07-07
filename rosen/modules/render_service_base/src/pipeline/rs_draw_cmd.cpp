@@ -1293,7 +1293,7 @@ bool PointsOpItem::Marshalling(Parcel& parcel) const
     bool success = true;
     success &= RSMarshallingHelper::Marshalling(parcel, mode_);
     success &= RSMarshallingHelper::Marshalling(parcel, count_);
-    success &= RSMarshallingHelper::Marshalling(parcel, processedPoints_, count_);
+    success &= RSMarshallingHelper::MarshallingArray(parcel, processedPoints_, count_);
     success &= RSMarshallingHelper::Marshalling(parcel, paint_);
     return success;
 }
@@ -1310,7 +1310,7 @@ OpItem* PointsOpItem::Unmarshalling(Parcel& parcel)
     if (!RSMarshallingHelper::Unmarshalling(parcel, count)) {
         return nullptr;
     }
-    if (!RSMarshallingHelper::Unmarshalling(parcel, processedPoints, count)) {
+    if (!RSMarshallingHelper::MarshallingArray(parcel, processedPoints, count)) {
         return nullptr;
     }
     if (!RSMarshallingHelper::Unmarshalling(parcel, paint)) {
@@ -1326,7 +1326,7 @@ bool VerticesOpItem::Marshalling(Parcel& parcel) const
     bool success = true;
     success &= RSMarshallingHelper::Marshalling(parcel, vertices_);
     success &= RSMarshallingHelper::Marshalling(parcel, boneCount_);
-    success &= RSMarshallingHelper::Marshalling(parcel, bones_, boneCount_);
+    success &= RSMarshallingHelper::MarshallingArray(parcel, bones_, boneCount_);
     success &= RSMarshallingHelper::Marshalling(parcel, mode_);
     success &= RSMarshallingHelper::Marshalling(parcel, paint_);
     return success;
@@ -1345,7 +1345,7 @@ OpItem* VerticesOpItem::Unmarshalling(Parcel& parcel)
     if (!RSMarshallingHelper::Unmarshalling(parcel, boneCount)) {
         return nullptr;
     }
-    if (!RSMarshallingHelper::Unmarshalling(parcel, bones, boneCount)) {
+    if (!RSMarshallingHelper::UnmarshallingArray(parcel, bones, boneCount)) {
         return nullptr;
     }
     if (!RSMarshallingHelper::Unmarshalling(parcel, mode)) {

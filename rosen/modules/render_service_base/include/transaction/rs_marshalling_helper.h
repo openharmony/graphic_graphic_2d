@@ -81,13 +81,19 @@ public:
     }
 
     template<typename T>
-    static bool Marshalling(Parcel& parcel, const T* val, int count)
+    static bool MarshallingArray(Parcel& parcel, const T* val, int count)
     {
+        if (count <= 0) {
+            return true;
+        }
         return parcel.WriteUnpadBuffer(val, count * sizeof(T));
     }
     template<typename T>
-    static bool Unmarshalling(Parcel& parcel, T*& val, int count)
+    static bool UnmarshallingArray(Parcel& parcel, T*& val, int count)
     {
+        if (count <= 0) {
+            return true;
+        }
         if (const uint8_t* buff = parcel.ReadUnpadBuffer(count * sizeof(T))) {
             val = reinterpret_cast<const T*>(buff);
             return true;
