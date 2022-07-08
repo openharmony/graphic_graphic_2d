@@ -109,7 +109,7 @@ void RSJankDetector::CalculateSkippedFrame(uint64_t renderStartTimeStamp, uint64
     }
 
     // Currently a frame takes two vsync times
-    uint64_t skippedFrame = frameMsg.totalTime / (refreshPeriod_ * 2);
+    int skippedFrame = static_cast<int>(frameMsg.totalTime / (refreshPeriod_ * 2));
     if ((skippedFrame >= JANK_SKIPPED_THRESHOLD) || (frameMsg.dropUiFrameNum >= JANK_SKIPPED_THRESHOLD)) {
         DrawEventReport(frameMsg, "JANK_FRAME_SKIP");
     }
