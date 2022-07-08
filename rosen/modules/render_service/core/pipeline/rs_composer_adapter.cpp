@@ -93,7 +93,7 @@ void RSComposerAdapter::CommitLayers(const std::vector<LayerInfoPtr>& layers)
 
         auto nodePtr = static_cast<RSBaseRenderNode*>(layer->GetLayerAdditionalInfo());
         if (nodePtr == nullptr) {
-            RS_LOGW("RSHardwareProcessor::PostProcess: layer's node is nullptr.");
+            RS_LOGW("RSComposerAdapter::PostProcess: layer's node is nullptr.");
             continue;
         }
 
@@ -303,7 +303,7 @@ LayerInfoPtr RSComposerAdapter::CreateLayer(RSDisplayRenderNode& node)
     }
 
     ComposeInfo info = BuildComposeInfo(node);
-    RS_LOGI("RSHardwareProcessor::ProcessSurface displayNode id:%llu dst [%d %d %d %d]"\
+    RS_LOGI("RSComposerAdapter::ProcessSurface displayNode id:%llu dst [%d %d %d %d]"\
         "SrcRect [%d %d] rawbuffer [%d %d] surfaceBuffer [%d %d] buffaddr:%p, globalZOrder:%d, blendType = %d",
         node.GetId(),
         info.dstRect.x, info.dstRect.y, info.dstRect.w, info.dstRect.h, info.srcRect.w, info.srcRect.h,

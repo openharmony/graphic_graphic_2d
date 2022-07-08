@@ -52,6 +52,8 @@ private:
     bool dirtyFlag_ { false };
     std::unique_ptr<RSPaintFilterCanvas> canvas_;
     std::unique_ptr<SkCanvas> skCanvas_;
+    SkRect clipRect_;
+    Gravity frameGravity_;
 
     int32_t offsetX_ { 0 };
     int32_t offsetY_ { 0 };
