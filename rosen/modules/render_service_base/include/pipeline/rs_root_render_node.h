@@ -20,6 +20,7 @@
 namespace OHOS {
 namespace Rosen {
 class RSSurface;
+class RSDirtyRegionManager;
 class RSRootRenderNode : public RSCanvasRenderNode {
 public:
     static inline constexpr RSRenderNodeType Type = RSRenderNodeType::ROOT_NODE;
@@ -36,12 +37,14 @@ public:
         return RSRenderNodeType::ROOT_NODE;
     }
 
+    std::shared_ptr<RSDirtyRegionManager> GetDirtyManager() const;
     std::shared_ptr<RSSurface> GetSurface();
     NodeId GetRSSurfaceNodeId();
     int32_t GetSurfaceWidth() const;
     int32_t GetSurfaceHeight() const;
 
 private:
+    std::shared_ptr<RSDirtyRegionManager> dirtyManager_ = nullptr;
     std::shared_ptr<RSSurface> rsSurface_ = nullptr;
     NodeId surfaceNodeId_ = 0;
 

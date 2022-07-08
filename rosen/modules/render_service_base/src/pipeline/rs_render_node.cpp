@@ -71,12 +71,14 @@ bool RSRenderNode::Animate(int64_t timestamp)
 
 bool RSRenderNode::Update(RSDirtyRegionManager& dirtyManager, const RSProperties* parent, bool parentDirty)
 {
-    if (!renderProperties_.GetVisible()) {
+    // if switch to invisible and sign as dirty
+    // update dirty rect to refresh corresponding region
+    if (!renderProperties_.GetVisible() && !renderProperties_.IsDirty()) {
         return false;
     }
     bool dirty = renderProperties_.UpdateGeometry(parent, parentDirty);
     isDirtyRegionUpdated_ = false;
-    UpdateDirtyRegion(dirtyManager);
+    UpdateDirtyRegion(dirtyManager, parentDirty);
     renderProperties_.ResetDirty();
     return dirty;
 }
@@ -91,17 +93,24 @@ const RSProperties& RSRenderNode::GetRenderProperties() const
     return renderProperties_;
 }
 
-void RSRenderNode::UpdateDirtyRegion(RSDirtyRegionManager& dirtyManager)
+void RSRenderNode::UpdateDirtyRegion(RSDirtyRegionManager& dirtyManager, bool parentDirty)
 {
-    if (!IsDirty()) {
+    if (!IsDirty() && !parentDirty) {
         return;
     }
-    dirtyManager.MergeDirtyRect(renderProperties_.GetDirtyRect());
-    if (!oldDirty_.IsEmpty()) {
-        dirtyManager.MergeDirtyRect(oldDirty_);
+    auto dirtyRect = renderProperties_.GetDirtyRect();
+    // filter invalid dirtyrect
+    if (dirtyRect.width_ <= 0 || dirtyRect.height_ <= 0) {
+        ROSEN_LOGD("RSRenderNode::UpdateDirtyRegion invalid dirtyRect = [%d, %d, %d, %d]",
+            dirtyRect.left_, dirtyRect.top_, dirtyRect.width_, dirtyRect.height_);
+    } else {
+        dirtyManager.MergeDirtyRect(renderProperties_.GetDirtyRect());
+        if (!oldDirty_.IsEmpty()) {
+            dirtyManager.MergeDirtyRect(oldDirty_);
+        }
+        isDirtyRegionUpdated_ = (oldDirty_ == renderProperties_.GetDirtyRect());
+        oldDirty_ = renderProperties_.GetDirtyRect();
     }
-    isDirtyRegionUpdated_ = (oldDirty_ == renderProperties_.GetDirtyRect());
-    oldDirty_ = renderProperties_.GetDirtyRect();
     SetClean();
 }
 

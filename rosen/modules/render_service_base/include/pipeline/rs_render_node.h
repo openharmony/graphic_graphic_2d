@@ -74,7 +74,7 @@ public:
 
 protected:
     explicit RSRenderNode(NodeId id, std::weak_ptr<RSContext> context = {});
-    void UpdateDirtyRegion(RSDirtyRegionManager& dirtyManager);
+    void UpdateDirtyRegion(RSDirtyRegionManager& dirtyManager, bool parentDirty);
     bool IsDirty() const override;
 
 private:

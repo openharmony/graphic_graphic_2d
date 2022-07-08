@@ -25,6 +25,9 @@ RSDirtyRegionManager::RSDirtyRegionManager()
 
 void RSDirtyRegionManager::MergeDirtyRect(const RectI& rect)
 {
+    if ((rect.width_ <= 0) || (rect.height_ <= 0)) {
+        return;
+    }
     if ((dirtyRegion_.width_ <= 0) || (dirtyRegion_.height_ <= 0)) {
         dirtyRegion_ = rect;
     } else {
@@ -88,6 +91,15 @@ void RSDirtyRegionManager::GetDirtySurfaceNodes(std::map<NodeId, RectI>& target)
     target = dirtySurfaceNodes_;
 }
 
+bool RSDirtyRegionManager::SetBufferAge(const int age)
+{
+    if (age <= 0 || age > HISTORY_QUEUE_MAX_SIZE) {
+        return false;
+    }
+    bufferAge_ = age;
+    return true;
+}
+
 RectI RSDirtyRegionManager::GetAllHistoryMerge()
 {
     PushHistory(dirtyRegion_);
@@ -132,7 +144,11 @@ RectI RSDirtyRegionManager::MergeHistory(int age, RectI rect) const
         rect.height_ = surfaceHeight_;
     } else {
         for (int i = size - 1; i > size - age; --i) {
-            rect = rect.JoinRect(GetHistory(i));
+            auto subRect = GetHistory(i);
+            // only join valid his buffer
+            if (subRect.width_ > 0 || subRect.height_ > 0) {
+                rect = rect.JoinRect(subRect);
+            }
         }
     }
     return rect;

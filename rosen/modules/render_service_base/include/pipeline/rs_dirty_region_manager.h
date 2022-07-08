@@ -44,6 +44,7 @@ public:
     void UpdateDirtySurfaceNodes(NodeId id, const RectI& rect);
     void GetDirtyCanvasNodes(std::map<NodeId, RectI>& target) const;
     void GetDirtySurfaceNodes(std::map<NodeId, RectI>& target) const;
+    bool SetBufferAge(const int age);
     RectI GetAllHistoryMerge();
 
     void UpdateDebugRegionTypeEnable();

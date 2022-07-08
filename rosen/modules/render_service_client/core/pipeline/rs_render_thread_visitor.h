@@ -51,7 +51,7 @@ private:
     void DrawRectOnCanvas(const RectI& dirtyRect, const SkColor color, const SkPaint::Style fillType, float alpha);
     void DrawDirtyRegion();
 
-    RSDirtyRegionManager dirtyManager_;
+    std::shared_ptr<RSDirtyRegionManager> curDirtyManager_;
     bool dirtyFlag_ = false;
     bool isIdle_ = true;
     RSPaintFilterCanvas* canvas_;
