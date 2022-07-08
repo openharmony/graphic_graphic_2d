@@ -707,6 +707,6 @@ HWTEST_F(ConsumerSurfaceTest, TunnelHandle003, Function | MediumTest | Level1)
 HWTEST_F(ConsumerSurfaceTest, disconnect001, Function | MediumTest | Level1)
 {
     GSError ret = cs->Disconnect();
-    ASSERT_EQ(ret, OHOS::GSERROR_OK);
+    ASSERT_EQ(ret, OHOS::GSERROR_NOT_SUPPORT);
 }
 }
