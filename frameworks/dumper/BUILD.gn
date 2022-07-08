@@ -51,7 +51,7 @@ ohos_shared_library("libgraphic_dumper_client") {
     "utils_base:utils",
   ]
 
-  part_name = "graphic_graphic_2d"
+  part_name = "graphic_standard"
   subsystem_name = "graphic"
 }
 
@@ -105,7 +105,7 @@ ohos_executable("graphic_dumper_server") {
     "utils_base:utils",
   ]
 
-  part_name = "graphic_graphic_2d"
+  part_name = "graphic_standard"
   subsystem_name = "graphic"
 }
 
@@ -160,7 +160,7 @@ ohos_executable("gdumper") {
     "utils_base:utils",
   ]
 
-  part_name = "graphic_graphic_2d"
+  part_name = "graphic_standard"
   subsystem_name = "graphic"
 }
 
@@ -170,7 +170,7 @@ ohos_executable("gdumper") {
 ohos_prebuilt_etc("gdumper.ini") {
   source = "gdumper.ini"
   relative_install_dir = "."
-  part_name = "graphic_graphic_2d"
+  part_name = "graphic_standard"
   subsystem_name = "graphic"
 }
 ## Install gdumper.ini to /system/etc/./gdumper.ini }}}

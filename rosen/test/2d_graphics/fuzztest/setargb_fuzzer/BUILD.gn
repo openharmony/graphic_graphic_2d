@@ -42,6 +42,6 @@ ohos_fuzztest("SetArgbFuzzTest") {
     "utils_base:utils",
   ]
 
-  part_name = "graphic_graphic_2d"
+  part_name = "graphic_standard"
   subsystem_name = "graphic"
 }

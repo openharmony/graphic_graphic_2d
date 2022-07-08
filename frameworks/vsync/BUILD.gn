@@ -64,7 +64,7 @@ ohos_shared_library("libvsync_client") {
     "//utils/native/base:utils",
   ]
 
-  part_name = "graphic_graphic_2d"
+  part_name = "graphic_standard"
   subsystem_name = "graphic"
 }
 
@@ -122,7 +122,7 @@ ohos_shared_library("libvsync_module") {
     "//utils/native/base:utils",
   ]
 
-  part_name = "graphic_graphic_2d"
+  part_name = "graphic_standard"
   subsystem_name = "graphic"
 }
 
@@ -139,7 +139,7 @@ ohos_executable("vsync_server") {
     "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
   ]
 
-  part_name = "graphic_graphic_2d"
+  part_name = "graphic_standard"
   subsystem_name = "graphic"
 }
 
@@ -153,6 +153,6 @@ ohos_executable("vsync_test") {
 
   deps = [ ":libvsync_client" ]
 
-  part_name = "graphic_graphic_2d"
+  part_name = "graphic_standard"
   subsystem_name = "graphic"
 }

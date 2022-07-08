@@ -62,7 +62,7 @@ ohos_shared_library("skia_ohos") {
     "$ace_flutter_engine_root/skia:skia_deps_include_config",
   ]
 
-  part_name = "graphic_graphic_2d"
+  part_name = "graphic_standard"
   subsystem_name = "graphic"
 }
 

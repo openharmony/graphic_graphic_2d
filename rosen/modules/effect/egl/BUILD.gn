@@ -58,6 +58,6 @@ ohos_shared_library("libegl_effect") {
     install_enable = false
   }
 
-  part_name = "graphic_graphic_2d"
+  part_name = "graphic_standard"
   subsystem_name = "graphic"
 }

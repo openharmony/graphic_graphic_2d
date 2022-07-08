@@ -24,14 +24,14 @@ group("default") {
     "frameworks/vsync:vsync_server",
   ]
 
-  if (graphic_graphic_2d_feature_bootanimation_enable) {
+  if (graphic_standard_feature_bootanimation_enable) {
     public_deps += [ "frameworks/bootanimation:bootanimation" ]
     public_deps += [ "frameworks/bootanimation:bootanimation_pics" ]
     public_deps += [ "frameworks/bootanimation:bootanimation_sounds" ]
   }
 }
 
-group("graphic_graphic_2d_test") {
+group("graphic_standard_test") {
   testonly = true
 
   public_deps = [
@@ -53,7 +53,7 @@ group("graphic_graphic_2d_test") {
 ohos_prebuilt_etc("graphic.rc") {
   source = "graphic.cfg"
   relative_install_dir = "init"
-  part_name = "graphic_graphic_2d"
+  part_name = "graphic_standard"
   subsystem_name = "graphic"
 }
 

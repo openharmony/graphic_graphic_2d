@@ -14,7 +14,7 @@
 import("//build/test.gni")
 
 ohos_unittest("frame_analyzer_test") {
-  module_out_path = "graphic_graphic_2d/rosen/modules/frame_analyzer"
+  module_out_path = "graphic_standard/rosen/modules/frame_analyzer"
 
   sources = [ "frame_collector_test.cpp" ]
 
@@ -23,7 +23,7 @@ ohos_unittest("frame_analyzer_test") {
     "//foundation/graphic/graphic_2d/utils/test_header:test_header",
   ]
 
-  part_name = "graphic_graphic_2d"
+  part_name = "graphic_standard"
   subsystem_name = "graphic"
 }
 

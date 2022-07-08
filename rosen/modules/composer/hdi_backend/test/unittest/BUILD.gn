@@ -13,7 +13,7 @@
 
 import("//build/test.gni")
 
-module_out_path = "graphic_graphic_2d/composer"
+module_out_path = "graphic_standard/composer"
 
 group("unittest") {
   testonly = true

@@ -49,7 +49,7 @@ ohos_executable("hello_rosen") {
     "//utils/native/base:utils",
   ]
 
-  part_name = "graphic_graphic_2d"
+  part_name = "graphic_standard"
   subsystem_name = "graphic"
 }
 ## Build so }}}

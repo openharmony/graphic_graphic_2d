@@ -67,7 +67,7 @@ ohos_shared_library("libvsync") {
     "//utils/native/base:utils",
   ]
 
-  part_name = "graphic_graphic_2d"
+  part_name = "graphic_standard"
   subsystem_name = "graphic"
 }
 

@@ -14,7 +14,7 @@
 import("//build/test.gni")
 
 module_out_path =
-    "graphic_graphic_2d/rosen/modules/render_service/core/screen_manager"
+    "graphic_standard/rosen/modules/render_service/core/screen_manager"
 
 group("unittest") {
   testonly = true

@@ -34,7 +34,7 @@ template("wmlayout_scss") {
       "--cmd",
       "./" +
           rebase_path(get_label_info(label, "root_out_dir"), root_build_dir) +
-          "/graphic/graphic_graphic_2d/wmlayout_scss_parser",
+          "/graphic/graphic_standard/wmlayout_scss_parser",
       "--input",
       rebase_path(scss_name, root_build_dir),
       "--output",

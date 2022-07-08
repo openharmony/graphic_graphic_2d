@@ -45,6 +45,6 @@ ohos_static_library("raw_maker") {
   ]
 
   subsystem_name = "graphic"
-  part_name = "graphic_graphic_2d"
+  part_name = "graphic_standard"
 }
 ## Build raw_maker.a }}}

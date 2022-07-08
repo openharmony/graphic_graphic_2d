@@ -1,6 +1,6 @@
 {
-    "name": "@ohos/graphic_graphic_2d",
-    "description": "graphic_graphic_2d",
+    "name": "@ohos/graphic_standard",
+    "description": "graphic_standard",
     "version": "3.1",
     "license": "Apache License 2.0",
     "publishAs": "code-segment",
@@ -10,7 +10,7 @@
     "dirs": {},
     "scripts": {},
     "component": {
-      "name": "graphic_graphic_2d",
+      "name": "graphic_standard",
       "subsystem": "graphic",
       "syscap": [
         "SystemCapability.Graphic.Graphic2D.EGL",
@@ -22,10 +22,10 @@
       ],
       "adapted_system_type": [ "standard" ],
       "features": [
-        "graphic_graphic_2d_feature_bootanimation_enable",
-        "graphic_graphic_2d_feature_ace_enable_gpu",
-        "graphic_graphic_2d_feature_rs_enable_eglimage",
-        "graphic_graphic_2d_feature_color_gamut_enable"
+        "graphic_standard_feature_bootanimation_enable",
+        "graphic_standard_feature_ace_enable_gpu",
+        "graphic_standard_feature_rs_enable_eglimage",
+        "graphic_standard_feature_color_gamut_enable"
       ],
       "rom": "10000KB",
       "ram": "10000KB",
@@ -160,7 +160,7 @@
           }
         ],
         "test": [
-          "//foundation/graphic/graphic_2d:graphic_graphic_2d_test",
+          "//foundation/graphic/graphic_2d:graphic_standard_test",
           "//foundation/graphic/graphic_2d/rosen/test/render_service:unittest",
           "//foundation/graphic/graphic_2d/rosen/test/2d_graphics:test"
         ]
