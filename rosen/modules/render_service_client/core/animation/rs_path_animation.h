@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -26,55 +26,260 @@
 
 namespace OHOS {
 namespace Rosen {
-class RS_EXPORT RSPathAnimation : public RSPropertyAnimation<Vector2f> {
+template<typename T>
+class RS_EXPORT RSPathAnimation : public RSPropertyAnimation<T> {
 public:
-    RSPathAnimation(const RSAnimatableProperty& property, const std::shared_ptr<RSPath>& animationPath);
-    RSPathAnimation(const RSAnimatableProperty& property, const std::string& path, const Vector2f& startValue,
-        const Vector2f& endValue);
+    RSPathAnimation(RSAnimatableProperty<T>& property, const std::shared_ptr<RSPath>& animationPath)
+        : RSPropertyAnimation<T>(property), animationPath_(animationPath)
+    {}
+
+    RSPathAnimation(RSAnimatableProperty<T>& property, const std::string& path, const T& startValue,
+        const T& endValue) : RSPathAnimation(property, PreProcessPath(path, startValue, endValue))
+    {
+        RSPropertyAnimation<T>::startValue_ = startValue;
+        RSPropertyAnimation<T>::endValue_ = endValue;
+        InitNeedPath(RSPropertyAnimation<T>::startValue_, RSPropertyAnimation<T>::endValue_);
+    }
 
     virtual ~RSPathAnimation() = default;
 
-    void SetTimingCurve(const RSAnimationTimingCurve& timingCurve);
+    void SetTimingCurve(const RSAnimationTimingCurve& timingCurve)
+    {
+        timingCurve_ = timingCurve;
+    }
 
-    const RSAnimationTimingCurve& GetTimingCurve() const;
+    const RSAnimationTimingCurve& GetTimingCurve() const
+    {
+        return timingCurve_;
+    }
 
-    void SetRotationMode(const RotationMode& rotationMode);
+    void SetRotationMode(const RotationMode& rotationMode)
+    {
+        if (RSAnimation::IsStarted()) {
+            ROSEN_LOGE("Failed to enable rotate, path animation has started!");
+            return;
+        }
 
-    RotationMode GetRotationMode() const;
+        rotationMode_ = rotationMode;
+    }
 
-    void SetBeginFraction(float fraction);
+    RotationMode GetRotationMode() const
+    {
+        return rotationMode_;
+    }
 
-    float GetBeginFraction() const;
+    void SetBeginFraction(float fraction)
+    {
+        if (RSAnimation::IsStarted()) {
+            ROSEN_LOGE("Failed to set begin fraction, path animation has started!");
+            return;
+        }
 
-    void SetEndFraction(float fraction);
+        if (fraction < FRACTION_MIN || fraction > FRACTION_MAX || fraction > endFraction_) {
+            ROSEN_LOGE("Failed to set begin fraction, invalid value:%f", fraction);
+            return;
+        }
 
-    float GetEndFraction() const;
+        beginFraction_ = fraction;
+    }
 
-    static bool IsAnimatablePathProperty(const RSAnimatableProperty& property);
+    float GetBeginFraction() const
+    {
+        return beginFraction_;
+    }
+
+    void SetEndFraction(float fraction)
+    {
+        if (RSAnimation::IsStarted()) {
+            ROSEN_LOGE("Failed to set end fraction, path animation has started!");
+            return;
+        }
+
+        if (fraction < FRACTION_MIN || fraction > FRACTION_MAX || fraction < beginFraction_) {
+            ROSEN_LOGE("Failed to set end fraction, invalid value:%f", fraction);
+            return;
+        }
+
+        endFraction_ = fraction;
+    }
+
+    float GetEndFraction() const
+    {
+        return endFraction_;
+    }
+
+    void SetPathNeedAddOrigin(bool needAddOrigin)
+    {
+        if (RSAnimation::IsStarted()) {
+            ROSEN_LOGE("Failed to set need Add Origin, path animation has started!");
+            return;
+        }
+
+        needAddOrigin_ = needAddOrigin;
+    }
+
+    bool GetPathNeedAddOrigin() const
+    {
+        return needAddOrigin_;
+    }
 
 protected:
-    void OnStart() override;
+    void OnStart() override
+    {}
 
-    void InitInterpolationValue() override;
+    void InitInterpolationValue() override
+    {
+        if (!animationPath_) {
+            ROSEN_LOGE("Failed to update interpolation value, path is null!");
+            return;
+        }
 
-    void OnUpdateStagingValue(bool isFirstStart) override;
+#ifdef ROSEN_OHOS
+        if (isNeedPath_) {
+            animationPath_->GetPosTan(0.0f * beginFraction_, RSPropertyAnimation<T>::startValue_, startTangent_);
+            animationPath_->GetPosTan(animationPath_->GetDistance() * endFraction_, RSPropertyAnimation<T>::endValue_, endTangent_);
+            if (needAddOrigin_) {
+                UpdateValueAddOrigin(RSPropertyAnimation<T>::startValue_);
+                UpdateValueAddOrigin(RSPropertyAnimation<T>::endValue_);
+            }
+        }
+        RSPropertyAnimation<T>::byValue_ = RSPropertyAnimation<T>::endValue_ - RSPropertyAnimation<T>::startValue_;
+#endif
+    }
+
+    void OnUpdateStagingValue(bool isFirstStart) override
+    {
+        auto target = RSAnimation::GetTarget().lock();
+        if (target == nullptr) {
+            ROSEN_LOGE("Failed to update staging value, target is null!");
+            return;
+        }
+
+        RSPropertyAnimation<T>::OnUpdateStagingValue(isFirstStart);
+
+        float startTangent = 0.0f;
+        float endTangent = 0.0f;
+        switch (rotationMode_) {
+            case RotationMode::ROTATE_NONE:
+                return;
+            case RotationMode::ROTATE_AUTO:
+                startTangent = startTangent_;
+                endTangent = endTangent_;
+                break;
+            case RotationMode::ROTATE_AUTO_REVERSE:
+                startTangent = startTangent_ + 180.0f;
+                endTangent = endTangent_ + 180.0f;
+                break;
+            default:
+                ROSEN_LOGE("Unknow rotation mode!");
+                return;
+        }
+        if (!RSAnimation::GetDirection()) {
+            std::swap(startTangent, endTangent);
+        }
+
+        float targetRotation = 0.0f;
+        float byRotation = endTangent - startTangent;
+        if (isFirstStart) {
+            if (RSAnimation::GetAutoReverse() && RSAnimation::GetRepeatCount() % 2 == 0) {
+                targetRotation = startTangent;
+            } else {
+                targetRotation = endTangent;
+            }
+        } else {
+            float currentRotation = target->GetStagingProperties().GetRotation();
+            if (RSAnimation::GetAutoReverse() && RSAnimation::GetRepeatCount() % 2 == 0) {
+                targetRotation = RSAnimation::IsReversed() ? currentRotation + byRotation
+                    : currentRotation - byRotation;
+            } else {
+                targetRotation = RSAnimation::IsReversed() ? currentRotation - byRotation
+                    : currentRotation + byRotation;
+            }
+        }
+
+        // target->stagingProperties_.SetRotation(targetRotation);
+    }
+
+    void OnCallFinishCallback() override
+    {
+        RSPropertyAnimation<T>::property_.runningPathNum_ -= 1;
+    }
 
 private:
-    void ReplaceSubString(std::string& sourceStr, const std::string& subStr, const std::string& newStr) const;
+    void ReplaceSubString(std::string& sourceStr, const std::string& subStr, const std::string& newStr) const
+    {
+        std::string::size_type position = 0;
+        while ((position = sourceStr.find(subStr)) != std::string::npos) {
+            sourceStr.replace(position, subStr.length(), newStr);
+        }
 
-    const std::shared_ptr<RSPath> PreProcessPath(
-        const std::string& path, const Vector2f& startValue, const Vector2f& endValue) const;
+        ROSEN_LOGD("SVG path:%s", sourceStr.c_str());
+    }
 
-    const static std::vector<RSAnimatableProperty> PROP_FOR_PATH_ANIM;
+    const std::shared_ptr<RSPath> ProcessPath(const std::string& path, const float startX, const float startY,
+        const float endX, const float endY) const
+    {
+        std::string animationPath = path;
+        ReplaceSubString(animationPath, "start.x", std::to_string(startX));
+        ReplaceSubString(animationPath, "start.y", std::to_string(startY));
+        ReplaceSubString(animationPath, "end.x", std::to_string(endX));
+        ReplaceSubString(animationPath, "end.y", std::to_string(endY));
+#ifdef ROSEN_OHOS
+        return RSPath::CreateRSPath(animationPath);
+#else
+        return nullptr;
+#endif
+    }
+
+    const std::shared_ptr<RSPath> PreProcessPath(const std::string& path, const T& startValue,
+        const T& endValue) const
+    {
+        return {};
+    }
+
+    void InitNeedPath(const T& startValue, const T& endValue)
+    {
+        RSPropertyAnimation<T>::SetAdditive(false);
+    }
+
+    void UpdateValueAddOrigin(T& value) {}
+
+    template<typename P>
+    void StartAnimationImpl();
 
     float beginFraction_ { FRACTION_MIN };
     float endFraction_ { FRACTION_MAX };
     float startTangent_ { 0.0f };
     float endTangent_ { 0.0f };
+    bool isNeedPath_ { true };
+    bool needAddOrigin_ { true };
     RotationMode rotationMode_ { RotationMode::ROTATE_NONE };
     RSAnimationTimingCurve timingCurve_ { RSAnimationTimingCurve::DEFAULT };
     std::shared_ptr<RSPath> animationPath_;
 };
+
+template<>
+void RSPathAnimation<Vector2f>::OnStart();
+
+template<>
+void RSPathAnimation<Vector4f>::OnStart();
+
+template<>
+const std::shared_ptr<RSPath> RSPathAnimation<Vector2f>::PreProcessPath(
+    const std::string& path, const Vector2f& startValue, const Vector2f& endValue) const;
+
+template<>
+const std::shared_ptr<RSPath> RSPathAnimation<Vector4f>::PreProcessPath(
+    const std::string& path, const Vector4f& startValue, const Vector4f& endValue) const;
+
+template<>
+void RSPathAnimation<Vector4f>::InitNeedPath(const Vector4f& startValue, const Vector4f& endValue);
+
+template<>
+void RSPathAnimation<Vector2f>::UpdateValueAddOrigin(Vector2f& value);
+
+template<>
+void RSPathAnimation<Vector4f>::UpdateValueAddOrigin(Vector4f& value);
 } // namespace Rosen
 } // namespace OHOS
 

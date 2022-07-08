@@ -20,8 +20,8 @@
 #include <memory>
 #include <unordered_map>
 
-#include "animation/rs_animatable_property.h"
 #include "common/rs_common_def.h"
+#include "modifier/rs_modifier_type.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -51,9 +51,9 @@ public:
     bool HasDisappearingTransition() const;
 
     // spring animation related
-    void RegisterSpringAnimation(RSAnimatableProperty property, AnimationId animId);
-    void UnregisterSpringAnimation(RSAnimatableProperty property, AnimationId animId);
-    AnimationId QuerySpringAnimation(RSAnimatableProperty property);
+    void RegisterSpringAnimation(PropertyId propertyId, AnimationId animId);
+    void UnregisterSpringAnimation(PropertyId propertyId, AnimationId animId);
+    AnimationId QuerySpringAnimation(PropertyId propertyId);
 
 private:
     void OnAnimationRemove(const std::shared_ptr<RSRenderAnimation>& animation);
@@ -61,9 +61,9 @@ private:
     void OnAnimationFinished(const std::shared_ptr<RSRenderAnimation>& animation);
 
     std::unordered_map<AnimationId, std::shared_ptr<RSRenderAnimation>> animations_;
-    std::unordered_map<RSAnimatableProperty, int> animationNum_;
+    std::unordered_map<PropertyId, int> animationNum_;
     std::list<std::tuple<AnimationId, TransitionCallback, bool>> transition_;
-    std::unordered_map<RSAnimatableProperty, AnimationId> springAnimations_;
+    std::unordered_map<PropertyId, AnimationId> springAnimations_;
 
     friend class RSRenderNode;
 };

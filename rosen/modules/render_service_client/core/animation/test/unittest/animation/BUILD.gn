@@ -40,7 +40,6 @@ ohos_unittest("RSAnimationTest") {
     "$rosen_root/modules/render_service_base/src/animation/rs_animation_fraction.cpp",
     "$rosen_root/modules/render_service_base/src/animation/rs_animation_manager.cpp",
     "$rosen_root/modules/render_service_base/src/animation/rs_interpolator.cpp",
-    "$rosen_root/modules/render_service_base/src/animation/rs_property_accessors.cpp",
     "$rosen_root/modules/render_service_base/src/animation/rs_render_animation.cpp",
     "$rosen_root/modules/render_service_base/src/animation/rs_render_path_animation.cpp",
     "$rosen_root/modules/render_service_base/src/animation/rs_render_transition.cpp",

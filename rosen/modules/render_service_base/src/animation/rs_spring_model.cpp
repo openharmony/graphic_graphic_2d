@@ -22,6 +22,7 @@
 #include "common/rs_matrix3.h"
 #include "common/rs_vector2.h"
 #include "common/rs_vector4.h"
+#include "modifier/rs_animatable_arithmetic.h"
 #include "platform/common/rs_log.h"
 #include "render/rs_filter.h"
 
@@ -190,5 +191,6 @@ template class RSSpringModel<Vector4f>;
 template class RSSpringModel<Quaternion>;
 template class RSSpringModel<std::shared_ptr<RSFilter>>;
 template class RSSpringModel<Vector4<Color>>;
+template class RSSpringModel<std::shared_ptr<RSAnimatableBase>>;
 } // namespace Rosen
 } // namespace OHOS

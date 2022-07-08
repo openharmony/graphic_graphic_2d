@@ -65,10 +65,21 @@ public:
         return rotationMode_;
     }
 
+    void SetPathNeedAddOrigin(bool pathNeedOrigin)
+    {
+        pathNeedOrigin_ = pathNeedOrigin;
+    }
+
+    bool GetPathNeedAddOrigin()
+    {
+        return pathNeedOrigin_;
+    }
+
 private:
     std::string path_;
     float beginFraction_ { FRACTION_MIN };
     float endFraction_ { FRACTION_MAX };
+    bool pathNeedOrigin_ { true };
     RotationMode rotationMode_ { RotationMode::ROTATE_NONE };
 };
 } // namespace Rosen

@@ -45,6 +45,8 @@ public:
 
     void SetTimeStamp(uint64_t timeStamp, const std::string& abilityName);
 
+    bool RunningCustomAnimation(uint64_t timeStamp);
+
 private:
     void AttachSurface();
     static void RecvMessages();

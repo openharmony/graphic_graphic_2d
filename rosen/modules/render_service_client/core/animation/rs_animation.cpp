@@ -17,6 +17,7 @@
 
 #include "animation/rs_animation_callback.h"
 #include "animation/rs_animation_common.h"
+#include "animation/rs_render_animation.h"
 #include "command/rs_animation_command.h"
 #include "platform/common/rs_log.h"
 #include "transaction/rs_transaction_proxy.h"
@@ -60,6 +61,7 @@ void RSAnimation::CallFinishCallback()
 {
     finishCallback_.reset();
     state_ = AnimationState::FINISHED;
+    OnCallFinishCallback();
 }
 
 AnimationId RSAnimation::GetId() const
@@ -315,14 +317,25 @@ void RSAnimation::OnSetFraction(float fraction)
     }
 }
 
-RSAnimatableProperty RSAnimation::GetProperty() const
+PropertyId RSAnimation::GetPropertyId() const
 {
-    return RSAnimatableProperty::INVALID;
+    return 0;
 }
 
 void RSAnimation::UpdateStagingValue(bool isFirstStart)
 {
     OnUpdateStagingValue(isFirstStart);
+}
+
+void RSAnimation::UpdateParamToRenderAnimation(const std::shared_ptr<RSRenderAnimation>& animation)
+{
+    animation->SetDuration(GetDuration());
+    animation->SetStartDelay(GetStartDelay());
+    animation->SetRepeatCount(GetRepeatCount());
+    animation->SetAutoReverse(GetAutoReverse());
+    animation->SetSpeed(GetSpeed());
+    animation->SetDirection(GetDirection());
+    animation->SetFillMode(GetFillMode());
 }
 } // namespace Rosen
 } // namespace OHOS

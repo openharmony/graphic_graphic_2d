@@ -26,8 +26,8 @@ namespace Rosen {
 template<typename T>
 class RSRenderKeyframeAnimation : public RSRenderPropertyAnimation<T> {
 public:
-    RSRenderKeyframeAnimation(AnimationId id, const RSAnimatableProperty& property, const T& originValue)
-        : RSRenderPropertyAnimation<T>(id, property, originValue)
+    RSRenderKeyframeAnimation(AnimationId id, const PropertyId& propertyId, const T& originValue)
+        : RSRenderPropertyAnimation<T>(id, propertyId, originValue)
     {}
     ~RSRenderKeyframeAnimation() {}
 

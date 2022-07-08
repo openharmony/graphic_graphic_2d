@@ -56,8 +56,9 @@ HWTEST_F(RSAnimationTest, AnimationParameterTest001, TestSize.Level1)
      * @tc.steps: step1. init animation and test data
      */
     int testDurationData[] = {500, 1000, 1500, 2000, 2500};
+    RSAnimatableProperty<float> property(0.0f);
     std::unique_ptr<RSCurveAnimation<float>> animation =
-        std::make_unique<RSCurveAnimation<float>>(RSAnimatableProperty::BOUNDS_HEIGHT, 100, 200);
+        std::make_unique<RSCurveAnimation<float>>(property, 100, 200);
     animation->SetTimingCurve(RSAnimationTimingCurve::DEFAULT);
     /**
      * @tc.steps: step2. set animation duration and test
@@ -82,8 +83,9 @@ HWTEST_F(RSAnimationTest, AnimationParameterTest002, TestSize.Level1)
      * @tc.steps: step1. init animation and test data
      */
     int testStartDelayData[] = {500, 1000, 1500, 2000, 2500};
+    RSAnimatableProperty<float> property(0.0f);
     std::unique_ptr<RSCurveAnimation<float>> animation =
-        std::make_unique<RSCurveAnimation<float>>(RSAnimatableProperty::BOUNDS_HEIGHT, 200);
+        std::make_unique<RSCurveAnimation<float>>(property, 200);
     animation->SetTimingCurve(RSAnimationTimingCurve::LINEAR);
     /**
      * @tc.steps: step2. set animation startdelay and test
@@ -108,8 +110,9 @@ HWTEST_F(RSAnimationTest, AnimationParameterTest003, TestSize.Level1)
      * @tc.steps: step1. init animation and test data
      */
     int testSpeedData[] = {1, 2, 3, 4, 5};
+    RSAnimatableProperty<float> property(0.0f);
     std::unique_ptr<RSCurveAnimation<float>> animation =
-        std::make_unique<RSCurveAnimation<float>>(RSAnimatableProperty::BOUNDS_HEIGHT, 100, 200);
+        std::make_unique<RSCurveAnimation<float>>(property, 100, 200);
     animation->SetTimingCurve(RSAnimationTimingCurve::EASE);
     /**
      * @tc.steps: step2. set animation speed and test
@@ -134,8 +137,9 @@ HWTEST_F(RSAnimationTest, AnimationParameterTest004, TestSize.Level1)
      * @tc.steps: step1. init animation and test data
      */
     int testRepeatCountData[] = {1, 2, 3, 4, 5};
+    RSAnimatableProperty<float> property(0.0f);
     std::unique_ptr<RSCurveAnimation<float>> animation =
-        std::make_unique<RSCurveAnimation<float>>(RSAnimatableProperty::BOUNDS_HEIGHT, 100, 200);
+        std::make_unique<RSCurveAnimation<float>>(property, 100, 200);
     animation->SetTimingCurve(RSAnimationTimingCurve::EASE_IN);
     /**
      * @tc.steps: step2. set animation repeatCount and test
@@ -159,8 +163,9 @@ HWTEST_F(RSAnimationTest, AnimationParameterTest005, TestSize.Level1)
     /**
      * @tc.steps: step1. init animation and test data
      */
+    RSAnimatableProperty<float> property(0.0f);
     std::unique_ptr<RSCurveAnimation<float>> animation =
-        std::make_unique<RSCurveAnimation<float>>(RSAnimatableProperty::BOUNDS_HEIGHT, 100, 200);
+        std::make_unique<RSCurveAnimation<float>>(property, 100, 200);
     animation->SetTimingCurve(RSAnimationTimingCurve::EASE_OUT);
     /**
      * @tc.steps: step2. set animation autoReverse and test
@@ -185,8 +190,9 @@ HWTEST_F(RSAnimationTest, AnimationParameterTest006, TestSize.Level1)
      * @tc.steps: step1. init animation and test data
      */
     FillMode testFillModeData[] = {FillMode::FORWARDS, FillMode::BACKWARDS, FillMode::BOTH, FillMode::NONE};
+    RSAnimatableProperty<float> property(0.0f);
     std::unique_ptr<RSCurveAnimation<float>> animation =
-        std::make_unique<RSCurveAnimation<float>>(RSAnimatableProperty::BOUNDS_HEIGHT, 100, 200);
+        std::make_unique<RSCurveAnimation<float>>(property, 100, 200);
     animation->SetTimingCurve(RSAnimationTimingCurve::EASE_IN_OUT);
     /**
      * @tc.steps: step2. set animation fillMode and test
@@ -210,8 +216,9 @@ HWTEST_F(RSAnimationTest, AnimationParameterTest007, TestSize.Level1)
     /**
      * @tc.steps: step1. init animation and test data
      */
+    RSAnimatableProperty<float> property(0.0f);
     std::unique_ptr<RSCurveAnimation<float>> animation =
-        std::make_unique<RSCurveAnimation<float>>(RSAnimatableProperty::BOUNDS_HEIGHT, 100, 200);
+        std::make_unique<RSCurveAnimation<float>>(property, 100, 200);
     RSAnimationTimingCurve curve = RSAnimationTimingCurve::CreateCustomCurve([](float input) { return input; });
     animation->SetTimingCurve(curve);
     /**
@@ -238,8 +245,9 @@ HWTEST_F(RSAnimationTest, AnimationStatusTest001, TestSize.Level1)
      */
     RSCanvasNode::SharedPtr node = RSCanvasNode::Create();
     node->SetBoundsWidth(200);
+    RSAnimatableProperty<float> property(200.0f);
     std::unique_ptr<RSCurveAnimation<float>> animation =
-        std::make_unique<RSCurveAnimation<float>>(RSAnimatableProperty::BOUNDS_WIDTH, 200, 500);
+        std::make_unique<RSCurveAnimation<float>>(property, 200, 500);
     animation->SetDuration(1000);
     RSAnimationTimingCurve curve = RSAnimationTimingCurve::CreateCubicCurve(0.42f, 0.0f, 0.58f, 1.0f);
     animation->SetTimingCurve(curve);
@@ -281,12 +289,14 @@ HWTEST_F(RSAnimationTest, AnimationGroupTest001, TestSize.Level1)
      */
     RSCanvasNode::SharedPtr node = RSCanvasNode::Create();
     node->SetBoundsWidth(200);
+    RSAnimatableProperty<float> property1(0.0f);
     std::shared_ptr<RSCurveAnimation<float>> animation1 =
-        std::make_shared<RSCurveAnimation<float>>(RSAnimatableProperty::BOUNDS_WIDTH, 200, 500);
+        std::make_shared<RSCurveAnimation<float>>(property1, 200, 500);
     animation1->SetDuration(1000);
     animation1->SetTimingCurve(RSAnimationTimingCurve::EASE_IN_OUT);
+    RSAnimatableProperty<float> property2(0.0f);
     std::shared_ptr<RSCurveAnimation<float>> animation2 =
-        std::make_shared<RSCurveAnimation<float>>(RSAnimatableProperty::BOUNDS_WIDTH, 200, 500);
+        std::make_shared<RSCurveAnimation<float>>(property2, 200, 500);
     animation2->SetDuration(1000);
     animation2->SetTimingCurve(RSAnimationTimingCurve::EASE_IN_OUT);
     std::unique_ptr<RSAnimationGroup> animationGroup = std::make_unique<RSAnimationGroup>();
@@ -356,8 +366,10 @@ HWTEST_F(RSAnimationTest, PathAnimationTest001, TestSize.Level1)
      */
     string path = "L150 0 L50 50";
     std::shared_ptr<RSPath> rsPath= RSPath::CreateRSPath(path);
-    std::unique_ptr<RSPathAnimation> animation =
-        std::make_unique<RSPathAnimation>(RSAnimatableProperty::BOUNDS_POSITION, rsPath);
+    Vector2f value(0.f, 0.f);
+    RSAnimatableProperty<Vector2f> property(value);
+    std::unique_ptr<RSPathAnimation<Vector2f>> animation =
+        std::make_unique<RSPathAnimation<Vector2f>>(property, rsPath);
     animation->SetTimingCurve(RSAnimationTimingCurve::LINEAR);
     RSAnimationTimingCurve timingCurve = animation->GetTimingCurve();
     /**
@@ -379,7 +391,7 @@ HWTEST_F(RSAnimationTest, PathAnimationTest001, TestSize.Level1)
         animation->SetEndFraction(data);
         EXPECT_EQ(data, animation->GetEndFraction());
     }
-    EXPECT_TRUE(animation->IsAnimatablePathProperty(RSAnimatableProperty::BOUNDS_POSITION));
+    EXPECT_TRUE(animation->IsAnimatablePathProperty(RSModifierType::BOUNDS_POSITION));
 }
 
 /**
@@ -398,8 +410,10 @@ HWTEST_F(RSAnimationTest, PathAnimationTest002, TestSize.Level1)
     string path = "L150 0 L50 50";
     Vector2f startValue = Vector2f(0, 0);
     Vector2f endValue = Vector2f(100, 100);
-    std::unique_ptr<RSPathAnimation> animation =
-        std::make_unique<RSPathAnimation>(RSAnimatableProperty::BOUNDS_WIDTH, path, startValue, endValue);
+    Vector2f value(0.f, 0.f);
+    RSAnimatableProperty<Vector2f> property(value);
+    std::unique_ptr<RSPathAnimation<Vector2f>> animation =
+        std::make_unique<RSPathAnimation<Vector2f>>(property, path, startValue, endValue);
     animation->SetTimingCurve(RSAnimationTimingCurve::LINEAR);
     RSAnimationTimingCurve timingCurve = animation->GetTimingCurve();
     /**
@@ -421,7 +435,7 @@ HWTEST_F(RSAnimationTest, PathAnimationTest002, TestSize.Level1)
         animation->SetEndFraction(data);
         EXPECT_EQ(data, animation->GetEndFraction());
     }
-    EXPECT_FALSE(animation->IsAnimatablePathProperty(RSAnimatableProperty::BOUNDS_WIDTH));
+    EXPECT_FALSE(animation->IsAnimatablePathProperty(RSModifierType::BOUNDS_WIDTH));
 }
 
 /**
@@ -509,8 +523,9 @@ HWTEST_F(RSAnimationTest, ImplicitAnimationParamTest001, TestSize.Level1)
     RSAnimationTimingProtocol protocol;
     std::unique_ptr<RSImplicitAnimationParam> animationParam =
         std::make_unique<RSImplicitAnimationParam>(protocol);
+    RSAnimatableProperty<float> property(0.0f);
     std::shared_ptr<RSAnimation> animation =
-        animationParam->CreateAnimation(RSAnimatableProperty::BOUNDS_WIDTH, 0, 100);
+        animationParam->CreateAnimation(property, 0, 100);
     /**
      * @tc.steps: step2. start  implicit animation test
      */
@@ -536,8 +551,9 @@ HWTEST_F(RSAnimationTest, ImplicitCurveAnimationParamTest001, TestSize.Level1)
     RSAnimationTimingCurve curve = RSAnimationTimingCurve::EASE_IN_OUT;
     std::unique_ptr<RSImplicitCurveAnimationParam> animationParam =
         std::make_unique<RSImplicitCurveAnimationParam>(protocol, curve);
+    RSAnimatableProperty<float> property(0.0f);
     std::shared_ptr<RSAnimation> animation =
-        animationParam->CreateAnimation(RSAnimatableProperty::BOUNDS_WIDTH, 0, 100);
+        animationParam->CreateAnimation(property, 0, 100);
     /**
      * @tc.steps: step2. start implicit animation test
      */
@@ -564,8 +580,9 @@ HWTEST_F(RSAnimationTest, ImplicitKeyframeAnimationParamTest001, TestSize.Level1
     float fraction = 0.1f;
     std::unique_ptr<RSImplicitKeyframeAnimationParam> animationParam =
         std::make_unique<RSImplicitKeyframeAnimationParam>(protocol, curve, fraction);
+    RSAnimatableProperty<float> property(0.0f);
     std::shared_ptr<RSAnimation> animation =
-        animationParam->CreateAnimation(RSAnimatableProperty::BOUNDS_WIDTH, 0, 100);
+        animationParam->CreateAnimation(property, 0, 100);
     animationParam->AddKeyframe(animation, 100, 200);
     /**
      * @tc.steps: step2. start implicit animation test
@@ -596,8 +613,10 @@ HWTEST_F(RSAnimationTest, ImplicitPathAnimationParamTest001, TestSize.Level1)
         std::make_unique<RSImplicitPathAnimationParam>(protocol, curve, option);
     Vector2f startValue = Vector2f(0, 0);
     Vector2f endValue = Vector2f(100, 100);
+    Vector2f value(0.f, 0.f);
+    RSAnimatableProperty<Vector2f> property(value);
     std::shared_ptr<RSAnimation> animation =
-        animationParam->CreateAnimation(RSAnimatableProperty::BOUNDS_POSITION, startValue, endValue);
+        animationParam->CreateAnimation(property, startValue, endValue);
     /**
      * @tc.steps: step2. start implicit animation test
      */
@@ -658,8 +677,9 @@ HWTEST_F(RSAnimationTest, ImplicitAnimatorTest001, TestSize.Level1)
      * @tc.steps: step2. start implicit animator test
      */
     EXPECT_TRUE(RSImplicitAnimator::Instance().NeedImplicitAnimation());
+    RSAnimatableProperty<float> property(0.0f);
     std::shared_ptr<RSAnimation> animation =
-        RSImplicitAnimator::Instance().CreateImplicitAnimation(*node, RSAnimatableProperty::BOUNDS_WIDTH, 100, 200);
+        RSImplicitAnimator::Instance().CreateImplicitAnimation(*node, property, 100, 200);
     EXPECT_FALSE(animation != nullptr);
     std::shared_ptr<RSAnimation> transition =
         RSImplicitAnimator::Instance().CreateImplicitTransition(*node);
@@ -682,8 +702,9 @@ HWTEST_F(RSAnimationTest, KeyframeAnimationTest001, TestSize.Level1)
     /**
      * @tc.steps: step1. init keyframe animation
      */
+    RSAnimatableProperty<float> property(0.0f);
     std::unique_ptr<RSKeyframeAnimation<float>> animation =
-        std::make_unique<RSKeyframeAnimation<float>>(RSAnimatableProperty::BOUNDS_WIDTH);
+        std::make_unique<RSKeyframeAnimation<float>>(property);
     animation->AddKeyFrame(0.1f, 100, RSAnimationTimingCurve::EASE_IN_OUT);
     animation->AddKeyFrame(0.5f, 200, RSAnimationTimingCurve::EASE_IN_OUT);
     animation->AddKeyFrame(1.0f, 300, RSAnimationTimingCurve::EASE_IN_OUT);
@@ -706,8 +727,9 @@ HWTEST_F(RSAnimationTest, KeyframeAnimationTest002, TestSize.Level1)
     /**
      * @tc.steps: step1. init keyframe animation
      */
+    RSAnimatableProperty<float> property(0.0f);
     std::unique_ptr<RSKeyframeAnimation<float>> animation =
-        std::make_unique<RSKeyframeAnimation<float>>(RSAnimatableProperty::BOUNDS_WIDTH);
+        std::make_unique<RSKeyframeAnimation<float>>(property);
     std::vector<std::tuple<float, float, RSAnimationTimingCurve>> keyframes;
     keyframes.push_back(std::make_tuple(0.1f, 100, RSAnimationTimingCurve::LINEAR));
     keyframes.push_back(std::make_tuple(0.5f, 500, RSAnimationTimingCurve::LINEAR));
@@ -732,8 +754,9 @@ HWTEST_F(RSAnimationTest, PropertyAnimationTest001, TestSize.Level1)
     /**
      * @tc.steps: step1. init property animation
      */
+    RSAnimatableProperty<float> property(0.0f);
     std::unique_ptr<RSPropertyAnimation<float>> animation =
-        std::make_unique<RSCurveAnimation<float>>(RSAnimatableProperty::BOUNDS_WIDTH, 100);
+        std::make_unique<RSCurveAnimation<float>>(property, 100);
     /**
      * @tc.steps: step2. start animation test
      */

@@ -35,19 +35,13 @@ void RSKeyframeAnimation<T>::StartAnimationImpl()
         ROSEN_LOGE("Failed to start keyframe animation, keyframes is null!");
         return;
     }
-    auto animation = std::make_shared<RSRenderKeyframeAnimation<T>>(
-        RSPropertyAnimation<T>::GetId(), RSPropertyAnimation<T>::GetProperty(), RSPropertyAnimation<T>::originValue_);
+    auto animation = std::make_shared<RSRenderKeyframeAnimation<T>>(RSPropertyAnimation<T>::GetId(),
+        RSPropertyAnimation<T>::GetPropertyId(), RSPropertyAnimation<T>::originValue_);
     for (const auto& [fraction, value, curve] : keyframes_) {
         animation->AddKeyframe(fraction, value, curve.GetInterpolator(RSPropertyAnimation<T>::GetDuration()));
     }
-    animation->SetDuration(RSPropertyAnimation<T>::GetDuration());
-    animation->SetStartDelay(RSPropertyAnimation<T>::GetStartDelay());
-    animation->SetRepeatCount(RSPropertyAnimation<T>::GetRepeatCount());
-    animation->SetAutoReverse(RSPropertyAnimation<T>::GetAutoReverse());
-    animation->SetSpeed(RSPropertyAnimation<T>::GetSpeed());
-    animation->SetFillMode(RSPropertyAnimation<T>::GetFillMode());
     animation->SetAdditive(RSPropertyAnimation<T>::GetAdditive());
-    animation->SetDirection(RSPropertyAnimation<T>::GetDirection());
+    RSAnimation::UpdateParamToRenderAnimation(animation);
     std::unique_ptr<RSCommand> command = std::make_unique<P>(target->GetId(), animation);
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy != nullptr) {
@@ -105,6 +99,22 @@ template<>
 void RSKeyframeAnimation<Vector4<Color>>::OnStart()
 {
     StartAnimationImpl<RSAnimationCreateKeyframeVec4Color>();
+}
+
+template<>
+void RSKeyframeAnimation<std::shared_ptr<RSAnimatableBase>>::OnStart()
+{
+    RSPropertyAnimation::OnStart();
+    if (keyframes_.empty()) {
+        ROSEN_LOGE("Failed to start keyframe animation, keyframes is null!");
+        return;
+    }
+    auto animation = std::make_shared<RSRenderKeyframeAnimation<std::shared_ptr<RSAnimatableBase>>>(
+        GetId(), GetPropertyId(), originValue_);
+    for (const auto& [fraction, value, curve] : keyframes_) {
+        animation->AddKeyframe(fraction, value, curve.GetInterpolator(GetDuration()));
+    }
+    StartCustomPropertyAnimation(animation);
 }
 } // namespace Rosen
 } // namespace OHOS

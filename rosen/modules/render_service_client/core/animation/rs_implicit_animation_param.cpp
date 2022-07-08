@@ -61,24 +61,6 @@ RSImplicitPathAnimationParam::RSImplicitPathAnimationParam(const RSAnimationTimi
     animationType_ = ImplicitAnimationParamType::PATH;
 }
 
-std::shared_ptr<RSAnimation> RSImplicitPathAnimationParam::CreateAnimation(
-    const RSAnimatableProperty& property, const Vector2f& startValue, const Vector2f& endValue) const
-{
-    if (motionPathOption_ == nullptr) {
-        ROSEN_LOGE("Failed to create path animation, motion path option is null!");
-        return nullptr;
-    }
-
-    auto pathAnimation =
-        std::make_shared<RSPathAnimation>(property, motionPathOption_->GetPath(), startValue, endValue);
-    pathAnimation->SetBeginFraction(motionPathOption_->GetBeginFraction());
-    pathAnimation->SetEndFraction(motionPathOption_->GetEndFraction());
-    pathAnimation->SetRotationMode(motionPathOption_->GetRotationMode());
-    pathAnimation->SetTimingCurve(timingCurve_);
-    ApplyTimingProtocol(pathAnimation);
-    return pathAnimation;
-}
-
 RSImplicitSpringAnimationParam::RSImplicitSpringAnimationParam(
     const RSAnimationTimingProtocol& timingProtocol, const RSAnimationTimingCurve& timingCurve)
     : RSImplicitAnimationParam(timingProtocol), timingCurve_(timingCurve)

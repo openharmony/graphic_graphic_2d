@@ -47,7 +47,8 @@ enum RSAnimationCommandType : uint16_t {
     ANIMATION_CREATE_KEYFRAME_FILTER,
     ANIMATION_CREATE_KEYFRAME_VEC4_COLOR,
     // path animation
-    ANIMATION_CREATE_PATH,
+    ANIMATION_CREATE_PATH_VEC2F,
+    ANIMATION_CREATE_PATH_VEC4F,
     // transition animation
     ANIMATION_CREATE_TRANSITION,
     // spring animation
@@ -123,6 +124,10 @@ public:
             return;
         }
         node->GetAnimationManager().AddAnimation(animation);
+        auto modifier = node->GetModifier(animation->GetPropertyId());
+        if (modifier != nullptr) {
+            animation->AttachRenderProperty(modifier->GetProperty());
+        }
         animation->Attach(node.get());
         animation->Start();
         // register node on animation add
@@ -206,8 +211,10 @@ ADD_COMMAND(RSAnimationCreateKeyframeVec4Color,
         std::shared_ptr<RSRenderKeyframeAnimation<Vector4<Color>>>))
 
 // create path animation
-ADD_COMMAND(RSAnimationCreatePath, ARG(ANIMATION, ANIMATION_CREATE_PATH, AnimationCommandHelper::CreateAnimation,
-                                       NodeId, std::shared_ptr<RSRenderPathAnimation>))
+ADD_COMMAND(RSAnimationCreatePathVec2f, ARG(ANIMATION, ANIMATION_CREATE_PATH_VEC2F,
+            AnimationCommandHelper::CreateAnimation, NodeId, std::shared_ptr<RSRenderPathAnimation<Vector2f>>))
+ADD_COMMAND(RSAnimationCreatePathVec4f, ARG(ANIMATION, ANIMATION_CREATE_PATH_VEC4F,
+            AnimationCommandHelper::CreateAnimation, NodeId, std::shared_ptr<RSRenderPathAnimation<Vector4f>>))
 
 // create transition animation
 ADD_COMMAND(

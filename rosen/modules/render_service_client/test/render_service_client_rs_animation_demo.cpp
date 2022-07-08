@@ -132,14 +132,6 @@ int main()
     sleep(5);
 
     std::cout << "adding animation" << std::endl;
-    auto animation1 =
-        std::make_shared<RSCurveAnimation<float>>(RSAnimatableProperty::ALPHA, 1, 0.5);
-    animation1->SetDuration(100);
-    animation1->SetTimingCurve(RSAnimationTimingCurve::EASE_IN_OUT);
-    animation1->SetFinishCallback([]() {
-        std::cout << "animation1 finish" << std::endl;
-    });
-    surfaceNode->AddAnimation(animation1);
 
     RSTransaction::FlushImplicitTransaction();
     sleep(5);

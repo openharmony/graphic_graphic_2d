@@ -31,13 +31,13 @@ namespace Rosen {
 template<typename T>
 class RS_EXPORT RSCurveAnimation : public RSPropertyAnimation<T> {
 public:
-    RSCurveAnimation(const RSAnimatableProperty& property, const T& byValue) : RSPropertyAnimation<T>(property)
+    RSCurveAnimation(RSAnimatableProperty<T>& property, const T& byValue) : RSPropertyAnimation<T>(property)
     {
         RSPropertyAnimation<T>::isDelta_ = true;
         RSPropertyAnimation<T>::byValue_ = byValue;
     }
 
-    RSCurveAnimation(const RSAnimatableProperty& property, const T& startValue, const T& endValue)
+    RSCurveAnimation(RSAnimatableProperty<T>& property, const T& startValue, const T& endValue)
         : RSPropertyAnimation<T>(property)
     {
         RSPropertyAnimation<T>::isDelta_ = false;

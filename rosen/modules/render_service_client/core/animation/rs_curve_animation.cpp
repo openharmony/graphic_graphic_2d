@@ -35,17 +35,11 @@ void RSCurveAnimation<T>::StartAnimationImpl()
     }
     auto interpolator = timingCurve_.GetInterpolator(RSPropertyAnimation<T>::GetDuration());
     auto animation = std::make_shared<RSRenderCurveAnimation<T>>(RSPropertyAnimation<T>::GetId(),
-        RSPropertyAnimation<T>::GetProperty(), RSPropertyAnimation<T>::originValue_,
+        RSPropertyAnimation<T>::GetPropertyId(), RSPropertyAnimation<T>::originValue_,
         RSPropertyAnimation<T>::startValue_, RSPropertyAnimation<T>::endValue_);
-    animation->SetDuration(RSPropertyAnimation<T>::GetDuration());
-    animation->SetStartDelay(RSPropertyAnimation<T>::GetStartDelay());
-    animation->SetRepeatCount(RSPropertyAnimation<T>::GetRepeatCount());
-    animation->SetAutoReverse(RSPropertyAnimation<T>::GetAutoReverse());
-    animation->SetSpeed(RSPropertyAnimation<T>::GetSpeed());
-    animation->SetDirection(RSPropertyAnimation<T>::GetDirection());
-    animation->SetFillMode(RSPropertyAnimation<T>::GetFillMode());
-    animation->SetAdditive(RSPropertyAnimation<T>::GetAdditive());
     animation->SetInterpolator(interpolator);
+    animation->SetAdditive(RSPropertyAnimation<T>::GetAdditive());
+    RSAnimation::UpdateParamToRenderAnimation(animation);
     std::unique_ptr<RSCommand> command = std::make_unique<P>(target->GetId(), animation);
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy != nullptr) {
@@ -99,6 +93,17 @@ template<>
 void RSCurveAnimation<Vector4<Color>>::OnStart()
 {
     StartAnimationImpl<RSAnimationCreateCurveVec4Color>();
+}
+
+template<>
+void RSCurveAnimation<std::shared_ptr<RSAnimatableBase>>::OnStart()
+{
+    RSPropertyAnimation::OnStart();
+    auto interpolator = timingCurve_.GetInterpolator(GetDuration());
+    auto animation = std::make_shared<RSRenderCurveAnimation<std::shared_ptr<RSAnimatableBase>>>(GetId(),
+        GetPropertyId(), originValue_, startValue_, endValue_);
+    animation->SetInterpolator(interpolator);
+    StartCustomPropertyAnimation(animation);
 }
 } // namespace Rosen
 } // namespace OHOS

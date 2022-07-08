@@ -37,14 +37,8 @@ void RSTransition::OnStart()
         return;
     }
     auto interpolator = timingCurve_.GetInterpolator(GetDuration());
-    transition->SetDuration(GetDuration());
-    transition->SetStartDelay(GetStartDelay());
-    transition->SetRepeatCount(GetRepeatCount());
-    transition->SetAutoReverse(GetAutoReverse());
-    transition->SetSpeed(GetSpeed());
-    transition->SetDirection(GetDirection());
-    transition->SetFillMode(GetFillMode());
     transition->SetInterpolator(interpolator);
+    UpdateParamToRenderAnimation(transition);
     std::unique_ptr<RSCommand> command =
         std::make_unique<RSAnimationCreateTransition>(target->GetId(), transition);
     auto transactionProxy = RSTransactionProxy::GetInstance();

@@ -32,6 +32,9 @@ namespace OHOS {
 namespace Rosen {
 enum class ImplicitAnimationParamType { NONE, CURVE, KEYFRAME, PATH, SPRING, TRANSITION };
 
+template<typename T>
+class RSAnimatableProperty;
+
 class RSImplicitAnimationParam {
 public:
     explicit RSImplicitAnimationParam(const RSAnimationTimingProtocol& timingProtocol);
@@ -40,7 +43,7 @@ public:
 
     template<typename T>
     std::shared_ptr<RSAnimation> CreateAnimation(
-        const RSAnimatableProperty& property, const T& startValue, const T& endValue) const
+        RSAnimatableProperty<T>& property, const T& startValue, const T& endValue) const
     {
         return nullptr;
     }
@@ -62,7 +65,7 @@ public:
 
     template<typename T>
     std::shared_ptr<RSAnimation> CreateAnimation(
-        const RSAnimatableProperty& property, const T& startValue, const T& endValue) const
+        RSAnimatableProperty<T>& property, const T& startValue, const T& endValue) const
     {
         auto curveAnimation = std::make_shared<RSCurveAnimation<T>>(property, endValue - startValue);
         curveAnimation->SetTimingCurve(timingCurve_);
@@ -83,7 +86,7 @@ public:
 
     template<typename T>
     std::shared_ptr<RSAnimation> CreateAnimation(
-        const RSAnimatableProperty& property, const T& startValue, const T& endValue) const
+        RSAnimatableProperty<T>& property, const T& startValue, const T& endValue) const
     {
         auto keyFrameAnimation = std::make_shared<RSKeyframeAnimation<T>>(property);
         keyFrameAnimation->AddKeyFrame(fraction_, endValue, timingCurve_);
@@ -119,13 +122,23 @@ public:
 
     template<typename T>
     std::shared_ptr<RSAnimation> CreateAnimation(
-        const RSAnimatableProperty& property, const T& startValue, const T& endValue) const
+        RSAnimatableProperty<T>& property, const T& startValue, const T& endValue) const
     {
-        return nullptr;
-    }
+        if (motionPathOption_ == nullptr) {
+            ROSEN_LOGE("Failed to create path animation, motion path option is null!");
+            return nullptr;
+        }
 
-    std::shared_ptr<RSAnimation> CreateAnimation(
-        const RSAnimatableProperty& property, const Vector2f& startValue, const Vector2f& endValue) const;
+        auto pathAnimation =
+            std::make_shared<RSPathAnimation<T>>(property, motionPathOption_->GetPath(), startValue, endValue);
+        pathAnimation->SetBeginFraction(motionPathOption_->GetBeginFraction());
+        pathAnimation->SetEndFraction(motionPathOption_->GetEndFraction());
+        pathAnimation->SetRotationMode(motionPathOption_->GetRotationMode());
+        pathAnimation->SetPathNeedAddOrigin(motionPathOption_->GetPathNeedAddOrigin());
+        pathAnimation->SetTimingCurve(timingCurve_);
+        ApplyTimingProtocol(pathAnimation);
+        return pathAnimation;
+    }
 
 private:
     RSAnimationTimingCurve timingCurve_;
@@ -140,7 +153,7 @@ public:
 
     template<typename T>
     std::shared_ptr<RSAnimation> CreateAnimation(
-        const RSAnimatableProperty& property, const T& startValue, const T& endValue) const
+        RSAnimatableProperty<T>& property, const T& startValue, const T& endValue) const
     {
         auto springAnimation = std::make_shared<RSSpringAnimation<T>>(property, startValue, endValue);
         springAnimation->SetTimingCurve(timingCurve_);

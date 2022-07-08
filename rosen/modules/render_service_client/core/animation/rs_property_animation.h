@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -19,8 +19,11 @@
 #include <memory>
 
 #include "animation/rs_animation.h"
-#include "animation/rs_property_accessors.h"
+#include "animation/rs_render_animation.h"
+#include "animation/rs_ui_animation_manager.h"
+#include "animation/rs_animation_manager_map.h"
 #include "common/rs_macros.h"
+#include "modifier/rs_property.h"
 #include "ui/rs_node.h"
 
 namespace OHOS {
@@ -32,10 +35,8 @@ public:
     virtual ~RSPropertyAnimation() = default;
 
 protected:
-    RSPropertyAnimation(const RSAnimatableProperty& property) : property_(property)
+    RSPropertyAnimation(RSAnimatableProperty<T>& property) : property_(property)
     {
-        propertyAccess_ = std::static_pointer_cast<RSPropertyAccessors<T>>(
-            RSBasePropertyAccessors::GetAccessor(property));
         InitAdditiveMode();
     }
 
@@ -56,27 +57,17 @@ protected:
 
     void SetPropertyValue(const T& value)
     {
-        auto target = GetTarget().lock();
-        if (target == nullptr || propertyAccess_->setter_ == nullptr) {
-            return;
-        }
-
-        (target->stagingProperties_.*propertyAccess_->setter_)(value);
+        property_.stagingValue_ = value;
     }
 
     auto GetPropertyValue() const
     {
-        auto target = GetTarget().lock();
-        if (target == nullptr || propertyAccess_->getter_ == nullptr) {
-            return startValue_;
-        }
-
-        return (target->stagingProperties_.*propertyAccess_->getter_)();
+        return property_.stagingValue_;
     }
 
-    RSAnimatableProperty GetProperty() const override
+    PropertyId GetPropertyId() const override
     {
-        return property_;
+        return property_.id_;
     }
 
     void OnStart() override
@@ -133,6 +124,42 @@ protected:
         SetPropertyValue(targetValue);
     }
 
+    void StartCustomPropertyAnimation(const std::shared_ptr<RSRenderAnimation>& animation)
+    {
+        auto target = GetTarget().lock();
+        if (target == nullptr) {
+            ROSEN_LOGE("Failed to start custom animation, target is null!");
+            return;
+        }
+
+        auto animationManager = RSAnimationManagerMap::Instance().GetAnimationManager(gettid());
+        if (animationManager == nullptr) {
+            ROSEN_LOGE("Failed to start custom animation, UI animation manager is null!");
+            return;
+        }
+
+        auto renderProperty = animationManager->GetRenderProperty(property_.id_);
+        if (renderProperty == nullptr) {
+            renderProperty = std::make_shared<RSAnimatableRenderProperty<std::shared_ptr<RSAnimatableBase>>>(
+                originValue_, property_.id_);
+        }
+        auto modifier = std::static_pointer_cast<RSAnimatableModifier<std::shared_ptr<RSAnimatableBase>>>(
+            target->GetModifier(property_.id_));
+        if (modifier != nullptr) {
+            auto uiProperty = std::static_pointer_cast<RSAnimatableProperty<std::shared_ptr<RSAnimatableBase>>>(
+                modifier->GetProperty());
+            animationManager->AddAnimatableProp(property_.id_, uiProperty, renderProperty);
+            if (uiProperty != nullptr) {
+                uiProperty->AttachModifier(modifier);
+            }
+        }
+        UpdateParamToRenderAnimation(animation);
+        animation->AttachRenderProperty(renderProperty);
+        animation->Start();
+        animationManager->AddAnimation(animation, shared_from_this());
+    }
+
+    RSAnimatableProperty<T>& property_;
     T byValue_ {};
     T startValue_ {};
     T endValue_ {};
@@ -144,17 +171,14 @@ protected:
 private:
     void InitAdditiveMode()
     {
-        switch (GetProperty()) {
-            case RSAnimatableProperty::ROTATION_3D:
+        switch (property_.type_) {
+            case RSModifierType::QUATERNION:
                 SetAdditive(false);
                 break;
             default:
                 break;
         }
     }
-
-    RSAnimatableProperty property_ { RSAnimatableProperty::INVALID };
-    std::shared_ptr<RSPropertyAccessors<T>> propertyAccess_;
 };
 } // namespace Rosen
 } // namespace OHOS

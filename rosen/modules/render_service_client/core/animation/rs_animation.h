@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -20,14 +20,15 @@
 #include <unistd.h>
 
 #include "animation/rs_animation_common.h"
-#include "animation/rs_animatable_property.h"
 #include "animation/rs_animation_timing_protocol.h"
 #include "common/rs_common_def.h"
+#include "modifier/rs_modifier_type.h"
 
 namespace OHOS {
 namespace Rosen {
 class RSNode;
 class AnimationFinishCallback;
+class RSRenderAnimation;
 
 class RS_EXPORT RSAnimation : public RSAnimationTimingProtocol, public std::enable_shared_from_this<RSAnimation> {
 public:
@@ -76,11 +77,13 @@ protected:
     virtual void OnFinish();
     virtual void OnSetFraction(float fraction);
     virtual void OnUpdateStagingValue(bool isFirstStart) {};
-    virtual RSAnimatableProperty GetProperty() const;
+    virtual PropertyId GetPropertyId() const;
 
     void StartInner(const std::shared_ptr<RSNode>& target);
     bool IsReversed() const;
     void CallFinishCallback();
+    void UpdateParamToRenderAnimation(const std::shared_ptr<RSRenderAnimation>& animation);
+    virtual void OnCallFinishCallback() {}
 
 private:
     static AnimationId GenerateId();
@@ -98,6 +101,7 @@ private:
     friend class RSAnimationGroup;
     friend class RSNode;
     friend class RSImplicitAnimator;
+    friend class RSUIAnimationManager;
 };
 } // namespace Rosen
 } // namespace OHOS

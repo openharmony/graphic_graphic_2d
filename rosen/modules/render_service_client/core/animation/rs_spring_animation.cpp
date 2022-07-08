@@ -34,17 +34,11 @@ void RSSpringAnimation<T>::StartAnimationImpl()
         return;
     }
     auto animation = std::make_shared<RSRenderSpringAnimation<T>>(RSPropertyAnimation<T>::GetId(),
-        RSPropertyAnimation<T>::GetProperty(), RSPropertyAnimation<T>::originValue_,
+        RSPropertyAnimation<T>::GetPropertyId(), RSPropertyAnimation<T>::originValue_,
         RSPropertyAnimation<T>::startValue_, RSPropertyAnimation<T>::endValue_);
-    animation->SetDuration(RSPropertyAnimation<T>::GetDuration());
-    animation->SetStartDelay(RSPropertyAnimation<T>::GetStartDelay());
-    animation->SetRepeatCount(RSPropertyAnimation<T>::GetRepeatCount());
-    animation->SetAutoReverse(RSPropertyAnimation<T>::GetAutoReverse());
-    animation->SetSpeed(RSPropertyAnimation<T>::GetSpeed());
-    animation->SetDirection(RSPropertyAnimation<T>::GetDirection());
-    animation->SetFillMode(RSPropertyAnimation<T>::GetFillMode());
-    animation->SetAdditive(RSPropertyAnimation<T>::GetAdditive());
+    RSAnimation::UpdateParamToRenderAnimation(animation);
     animation->SetSpringParameters(timingCurve_.response_, timingCurve_.dampingRatio_);
+    animation->SetAdditive(RSPropertyAnimation<T>::GetAdditive());
     std::unique_ptr<RSCommand> command = std::make_unique<P>(target->GetId(), animation);
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy != nullptr) {
@@ -103,6 +97,16 @@ template<>
 void RSSpringAnimation<Vector4<Color>>::OnStart()
 {
     StartAnimationImpl<RSAnimationCreateSpringVec4Color>();
+}
+
+template<>
+void RSSpringAnimation<std::shared_ptr<RSAnimatableBase>>::OnStart()
+{
+    RSPropertyAnimation::OnStart();
+    auto animation = std::make_shared<RSRenderSpringAnimation<std::shared_ptr<RSAnimatableBase>>>(GetId(),
+        GetPropertyId(), originValue_, startValue_, endValue_);
+    animation->SetSpringParameters(timingCurve_.response_, timingCurve_.dampingRatio_);
+    StartCustomPropertyAnimation(animation);
 }
 } // namespace Rosen
 } // namespace OHOS

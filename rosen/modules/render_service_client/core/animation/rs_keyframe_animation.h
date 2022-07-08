@@ -34,7 +34,7 @@ static constexpr int INTERPOLATOR_INDEX = 2;
 template<typename T>
 class RS_EXPORT RSKeyframeAnimation : public RSPropertyAnimation<T> {
 public:
-    RSKeyframeAnimation(const RSAnimatableProperty& property) : RSPropertyAnimation<T>(property) {}
+    RSKeyframeAnimation(RSAnimatableProperty<T>& property) : RSPropertyAnimation<T>(property) {}
     virtual ~RSKeyframeAnimation() = default;
 
     void AddKeyFrame(float fraction, const T& value, const RSAnimationTimingCurve& timingCurve)

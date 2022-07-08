@@ -26,9 +26,9 @@ namespace Rosen {
 template<typename T>
 class RSRenderCurveAnimation : public RSRenderPropertyAnimation<T> {
 public:
-    RSRenderCurveAnimation(AnimationId id, const RSAnimatableProperty& property, const T& originValue,
-        const T& startValue, const T& endValue)
-        : RSRenderPropertyAnimation<T>(id, property, originValue), startValue_(startValue), endValue_(endValue)
+    RSRenderCurveAnimation(AnimationId id, const PropertyId& propertyId,
+        const T& originValue, const T& startValue, const T& endValue)
+        : RSRenderPropertyAnimation<T>(id, propertyId, originValue), startValue_(startValue), endValue_(endValue)
     {}
 
     virtual ~RSRenderCurveAnimation() = default;
@@ -104,7 +104,7 @@ private:
     RSRenderCurveAnimation() = default;
     void OnAnimateInner(float fraction, const std::shared_ptr<RSInterpolator>& interpolator)
     {
-        if (RSRenderPropertyAnimation<T>::GetProperty() == RSAnimatableProperty::INVALID) {
+        if (RSRenderPropertyAnimation<T>::GetPropertyId() == 0) {
             return;
         }
         auto interpolationValue =

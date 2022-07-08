@@ -93,9 +93,9 @@ bool RSRenderAnimation::IsFinished() const
     return state_ == AnimationState::FINISHED;
 }
 
-RSAnimatableProperty RSRenderAnimation::GetProperty() const
+PropertyId RSRenderAnimation::GetPropertyId() const
 {
-    return RSAnimatableProperty::INVALID;
+    return 0;
 }
 
 void RSRenderAnimation::Attach(RSRenderNode* renderNode)

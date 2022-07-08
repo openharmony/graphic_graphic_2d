@@ -90,5 +90,12 @@ float RSValueEstimator::EstimateFraction(const std::shared_ptr<RSInterpolator>& 
 {
     return 0.0f;
 }
+
+float RSValueEstimator::EstimateFraction(const std::shared_ptr<RSInterpolator>& interpolator,
+    const std::shared_ptr<RSAnimatableBase>& value, const std::shared_ptr<RSAnimatableBase>& startValue,
+    const std::shared_ptr<RSAnimatableBase>& endValue)
+{
+    return 0.0f;
+}
 } // namespace Rosen
 } // namespace OHOS

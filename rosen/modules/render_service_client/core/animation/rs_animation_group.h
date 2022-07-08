@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -20,9 +20,9 @@
 #include <list>
 #include <memory>
 
-#include "animation/rs_animatable_property.h"
 #include "animation/rs_animation.h"
 #include "common/rs_common_def.h"
+#include "modifier/rs_modifier_type.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -43,7 +43,7 @@ protected:
     void OnFinish() override;
     void OnReverse() override;
     void OnSetFraction(float fraction) override;
-    RSAnimatableProperty GetProperty() const override;
+    PropertyId GetPropertyId() const override;
 
     std::list<std::shared_ptr<RSAnimation>> animations_;
 };

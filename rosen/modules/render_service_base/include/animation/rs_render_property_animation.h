@@ -17,9 +17,9 @@
 #define RENDER_SERVICE_CLIENT_CORE_ANIMATION_RS_RENDER_PROPERTY_ANIMATION_H
 
 #include "animation/rs_animation_log.h"
-#include "animation/rs_property_accessors.h"
 #include "animation/rs_render_animation.h"
 #include "common/rs_common_def.h"
+#include "modifier/rs_render_modifier.h"
 #include "pipeline/rs_canvas_render_node.h"
 #include "platform/common/rs_log.h"
 #include "transaction/rs_marshalling_helper.h"
@@ -31,9 +31,9 @@ class RSRenderPropertyAnimation : public RSRenderAnimation {
 public:
     virtual ~RSRenderPropertyAnimation() = default;
 
-    RSAnimatableProperty GetProperty() const override
+    PropertyId GetPropertyId() const override
     {
-        return property_;
+        return propertyId_;
     }
 
     void SetAdditive(bool isAdditive)
@@ -50,6 +50,14 @@ public:
     {
         return isAdditive_;
     }
+
+    void AttachRenderProperty(const std::shared_ptr<RSRenderProperty>& property) override
+    {
+        auto animatableProperty = std::static_pointer_cast<RSAnimatableRenderProperty<T>>(property);
+        if (animatableProperty != nullptr) {
+            property_ = animatableProperty;
+        }
+    }
 #ifdef ROSEN_OHOS
     bool Marshalling(Parcel& parcel) const override
     {
@@ -57,8 +65,8 @@ public:
             ROSEN_LOGE("RSRenderPropertyAnimation::Marshalling, RenderAnimation failed");
             return false;
         }
-        if (!parcel.WriteInt32(static_cast<std::underlying_type<RSAnimatableProperty>::type>(property_))) {
-            ROSEN_LOGE("RSRenderPropertyAnimation::Marshalling, write type failed");
+        if (!parcel.WriteUint64(propertyId_)) {
+            ROSEN_LOGE("RSRenderPropertyAnimation::Marshalling, write PropertyId failed");
             return false;
         }
         if (!(RSMarshallingHelper::Marshalling(parcel, originValue_) &&
@@ -70,12 +78,10 @@ public:
     }
 #endif
 protected:
-    RSRenderPropertyAnimation(AnimationId id, const RSAnimatableProperty& property, const T& originValue)
-        : RSRenderAnimation(id), originValue_(originValue), lastValue_(originValue), property_(property)
-    {
-        propertyAccessor_ = std::static_pointer_cast<RSPropertyAccessors<T>>(
-            RSBasePropertyAccessors::GetAccessor(property));
-    }
+    RSRenderPropertyAnimation(AnimationId id, const PropertyId& propertyId,
+        const T& originValue) : RSRenderAnimation(id), propertyId_(propertyId),
+        originValue_(originValue), lastValue_(originValue)
+    {}
     RSRenderPropertyAnimation() =default;
 #ifdef ROSEN_OHOS
     bool ParseParam(Parcel& parcel) override
@@ -85,39 +91,29 @@ protected:
             return false;
         }
 
-        int32_t property = 0;
-        if (!(parcel.ReadInt32(property) && RSMarshallingHelper::Unmarshalling(parcel, originValue_) &&
+        if (!(parcel.ReadUint64(propertyId_) && RSMarshallingHelper::Unmarshalling(parcel, originValue_) &&
                 RSMarshallingHelper::Unmarshalling(parcel, isAdditive_))) {
             ROSEN_LOGE("RSRenderPropertyAnimation::ParseParam, Unmarshalling failed");
             return false;
         }
         lastValue_ = originValue_;
-        property_ = static_cast<RSAnimatableProperty>(property);
-        propertyAccessor_ = std::static_pointer_cast<RSPropertyAccessors<T>>(
-            RSBasePropertyAccessors::GetAccessor(property_));
 
         return true;
     }
 #endif
     void SetPropertyValue(const T& value)
     {
-        auto target = GetTarget();
-        if (target == nullptr || propertyAccessor_->getter_ == nullptr) {
-            ROSEN_LOGE("Failed to set property value, target is null!");
-            return;
+        if (property_ != nullptr) {
+            property_->Set(value);
         }
-        (target->GetMutableRenderProperties().*propertyAccessor_->setter_)(value);
     }
 
     auto GetPropertyValue() const
     {
-        auto target = GetTarget();
-        if (target == nullptr || propertyAccessor_->getter_ == nullptr) {
-            ROSEN_LOGE("Failed to get property value, target is null!");
-            return lastValue_;
+        if (property_ != nullptr) {
+            return property_->Get();
         }
-
-        return (target->GetRenderProperties().*propertyAccessor_->getter_)();
+        return lastValue_;
     }
 
     auto GetOriginValue() const
@@ -132,6 +128,11 @@ protected:
 
     void SetAnimationValue(const T& value)
     {
+        SetPropertyValue(GetAnimationValue(value));
+    }
+
+    T GetAnimationValue(const T& value)
+    {
         T animationValue;
         if (GetAdditive()) {
             animationValue = GetPropertyValue() + value - lastValue_;
@@ -140,7 +141,7 @@ protected:
         }
 
         lastValue_ = value;
-        SetPropertyValue(animationValue);
+        return animationValue;
     }
 
     void OnRemoveOnCompletion() override
@@ -164,7 +165,7 @@ protected:
 
         UpdateNeedWriteLog(node->GetId());
         if (needWriteToLog_) {
-            animationLog_->WriteAnimationValueToLog(value, property_, node->GetId());
+            animationLog_->WriteAnimationValueToLog(value, propertyId_, node->GetId());
         }
     }
 
@@ -182,7 +183,7 @@ protected:
 
         UpdateNeedWriteLog(node->GetId());
         if (needWriteToLog_) {
-            animationLog_->WriteAnimationInfoToLog(property_, GetAnimationId(), startValue, endValue);
+            animationLog_->WriteAnimationInfoToLog(propertyId_, GetAnimationId(), startValue, endValue);
         }
     }
 
@@ -190,22 +191,22 @@ protected:
     {
         if (!hasUpdateNeedWriteLog_) {
             hasUpdateNeedWriteLog_ = true;
-            needWriteToLog_ = animationLog_->IsNeedWriteLog(property_, id);
+            needWriteToLog_ = animationLog_->IsNeedWriteLog(propertyId_, id);
         }
     }
 
 protected:
+    PropertyId propertyId_;
     T originValue_;
     T lastValue_;
 
 private:
-    RSAnimatableProperty property_ { RSAnimatableProperty::INVALID };
     bool isAdditive_ { true };
     bool hasUpdateNeedWriteLog_ { false };
     bool needWriteToLog_ { false };
     bool hasWriteInfo_ { false };
     inline static std::shared_ptr<RSAnimationLog> animationLog_ = std::make_shared<RSAnimationLog>();
-    std::shared_ptr<RSPropertyAccessors<T>> propertyAccessor_;
+    std::shared_ptr<RSAnimatableRenderProperty<T>> property_;
 };
 } // namespace Rosen
 } // namespace OHOS

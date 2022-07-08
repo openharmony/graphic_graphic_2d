@@ -29,9 +29,9 @@ constexpr float MILLISECOND_TO_SECOND = 1e-3;
 template<typename T>
 class RSRenderSpringAnimation : public RSRenderPropertyAnimation<T>, public RSSpringModel<T> {
 public:
-    explicit RSRenderSpringAnimation(AnimationId id, const RSAnimatableProperty& property, const T& originValue,
+    explicit RSRenderSpringAnimation(AnimationId id, const PropertyId& propertyId, const T& originValue,
         const T& startValue, const T& endValue)
-        : RSRenderPropertyAnimation<T>(id, property, originValue), RSSpringModel<T>(), startValue_(startValue),
+        : RSRenderPropertyAnimation<T>(id, propertyId, originValue), RSSpringModel<T>(), startValue_(startValue),
           endValue_(endValue)
     {
         // spring model is not initialized, so we can't calculate estimated duration
@@ -94,10 +94,11 @@ protected:
             ROSEN_LOGE("RSRenderSpringAnimation::OnAttach, target is nullptr");
             return;
         }
-        auto property = RSRenderPropertyAnimation<T>::GetProperty();
+        auto propertyId = RSRenderPropertyAnimation<T>::GetPropertyId();
         // check if any other spring animation running on this property
-        auto prevAnimationId = target->GetAnimationManager().QuerySpringAnimation(property);
-        target->GetAnimationManager().RegisterSpringAnimation(property, RSRenderPropertyAnimation<T>::GetAnimationId());
+        auto prevAnimationId = target->GetAnimationManager().QuerySpringAnimation(propertyId);
+        target->GetAnimationManager().RegisterSpringAnimation(propertyId,
+            RSRenderPropertyAnimation<T>::GetAnimationId());
         auto prevAnimation = target->GetAnimationManager().GetAnimation(prevAnimationId);
         if (prevAnimation == nullptr) {
             UpdateSpringParameters();
@@ -127,9 +128,9 @@ protected:
             ROSEN_LOGE("RSRenderSpringAnimation::OnDetach, target is nullptr");
             return;
         }
-        auto property = RSRenderPropertyAnimation<T>::GetProperty();
+        auto propertyId = RSRenderPropertyAnimation<T>::GetPropertyId();
         auto id = RSRenderPropertyAnimation<T>::GetAnimationId();
-        target->GetAnimationManager().UnregisterSpringAnimation(property, id);
+        target->GetAnimationManager().UnregisterSpringAnimation(propertyId, id);
     }
 
 private:
@@ -162,7 +163,7 @@ private:
     }
     void OnAnimateInner(float fraction)
     {
-        if (RSRenderPropertyAnimation<T>::GetProperty() == RSAnimatableProperty::INVALID) {
+        if (RSRenderPropertyAnimation<T>::GetPropertyId() == 0) {
             return;
         }
         // always record fraction from previous iterator, will be used to calculate velocity

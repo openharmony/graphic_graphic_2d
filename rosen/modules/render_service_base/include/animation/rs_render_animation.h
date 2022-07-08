@@ -20,9 +20,9 @@
 #include <parcel.h>
 #include <refbase.h>
 #endif
-#include "animation/rs_animatable_property.h"
 #include "animation/rs_animation_common.h"
 #include "animation/rs_animation_fraction.h"
+#include "modifier/rs_render_property.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -133,7 +133,9 @@ public:
     void Detach();
     RSRenderNode* GetTarget() const;
 
-    virtual RSAnimatableProperty GetProperty() const;
+    virtual PropertyId GetPropertyId() const;
+
+    virtual void AttachRenderProperty(const std::shared_ptr<RSRenderProperty>& property) {};
 
 protected:
     explicit RSRenderAnimation(AnimationId id);

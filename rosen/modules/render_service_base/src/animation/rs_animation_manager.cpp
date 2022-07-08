@@ -85,12 +85,12 @@ const std::shared_ptr<RSRenderAnimation> RSAnimationManager::GetAnimation(Animat
 
 void RSAnimationManager::OnAnimationRemove(const std::shared_ptr<RSRenderAnimation>& animation)
 {
-    animationNum_[animation->GetProperty()]--;
+    animationNum_[animation->GetPropertyId()]--;
 }
 
 void RSAnimationManager::OnAnimationAdd(const std::shared_ptr<RSRenderAnimation>& animation)
 {
-    animationNum_[animation->GetProperty()]++;
+    animationNum_[animation->GetPropertyId()]++;
 }
 
 namespace {
@@ -149,21 +149,21 @@ bool RSAnimationManager::HasDisappearingTransition() const
     });
 }
 
-void RSAnimationManager::RegisterSpringAnimation(RSAnimatableProperty property, AnimationId animId)
+void RSAnimationManager::RegisterSpringAnimation(PropertyId propertyId, AnimationId animId)
 {
-    springAnimations_[property] = animId;
+    springAnimations_[propertyId] = animId;
 }
 
-void RSAnimationManager::UnregisterSpringAnimation(RSAnimatableProperty property, AnimationId animId)
+void RSAnimationManager::UnregisterSpringAnimation(PropertyId propertyId, AnimationId animId)
 {
-    if (springAnimations_[property] == animId) {
-        springAnimations_.erase(property);
+    if (springAnimations_[propertyId] == animId) {
+        springAnimations_.erase(propertyId);
     }
 }
 
-AnimationId RSAnimationManager::QuerySpringAnimation(RSAnimatableProperty property)
+AnimationId RSAnimationManager::QuerySpringAnimation(PropertyId propertyId)
 {
-    auto it = springAnimations_.find(property);
+    auto it = springAnimations_.find(propertyId);
     if (it == springAnimations_.end()) {
         return 0;
     }

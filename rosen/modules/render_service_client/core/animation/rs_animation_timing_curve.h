@@ -72,6 +72,7 @@ private:
     friend class RSKeyframeAnimation;
     template<typename T>
     friend class RSSpringAnimation;
+    template<typename T>
     friend class RSPathAnimation;
     friend class RSTransition;
 };

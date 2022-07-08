@@ -20,9 +20,9 @@
 #include <set>
 #include <unordered_map>
 
-#include "animation/rs_animatable_property.h"
-#include "platform/common/rs_log.h"
 #include "common/rs_common_def.h"
+#include "modifier/rs_modifier_type.h"
+#include "platform/common/rs_log.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -35,13 +35,13 @@ public:
 
     void ClearNodeAndPropertyInfo();
 
-    bool IsNeedWriteLog(const RSAnimatableProperty& property, const NodeId& id);
+    bool IsNeedWriteLog(const PropertyId& propertyId, const NodeId& id);
 
     template<typename T>
-    void WriteAnimationValueToLog(const T& value, const RSAnimatableProperty& property, const NodeId& id);
+    void WriteAnimationValueToLog(const T& value, const PropertyId& propertyId, const NodeId& id);
 
     template<typename T>
-    void WriteAnimationInfoToLog(const RSAnimatableProperty& property, const AnimationId& id,
+    void WriteAnimationInfoToLog(const PropertyId& propertyId, const AnimationId& id,
         const T& startValue, const T& endValue);
 
 private:
@@ -59,7 +59,7 @@ private:
     bool needWriteAllProperty_ {false};
     std::ofstream logFile_;
     std::set<NodeId> nodeIdSet_;
-    std::set<RSAnimatableProperty> propertySet_;
+    std::set<PropertyId> propertySet_;
 };
 } // namespace Rosen
 } // namespace OHOS
