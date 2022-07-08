@@ -98,6 +98,8 @@ public:
         return RSRenderNodeType::SURFACE_NODE;
     }
 
+    void SetContextBounds(const Vector4f bounds);
+
     // pass render context (matrix/alpha/clip) from RT to RS
     void SetContextMatrix(const SkMatrix& transform, bool sendMsg = true);
     const SkMatrix& GetContextMatrix() const;

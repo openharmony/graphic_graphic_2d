@@ -162,6 +162,12 @@ void RSSurfaceRenderNode::Process(const std::shared_ptr<RSNodeVisitor>& visitor)
     visitor->ProcessSurfaceRenderNode(*this);
 }
 
+void RSSurfaceRenderNode::SetContextBounds(const Vector4f bounds)
+{
+    std::unique_ptr<RSCommand> command = std::make_unique<RSSurfaceNodeSetBounds>(GetId(), bounds);
+    SendCommandFromRT(command, GetId());
+}
+
 void RSSurfaceRenderNode::SetContextMatrix(const SkMatrix& matrix, bool sendMsg)
 {
     if (contextMatrix_ == matrix) {

@@ -86,5 +86,12 @@ void SurfaceNodeCommandHelper::SetCallbackForRenderThreadRefresh(RSContext& cont
     }
 }
 
+void SurfaceNodeCommandHelper::SetContextBounds(RSContext& context, NodeId id, Vector4f bounds)
+{
+    if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(id)) {
+        node->GetMutableRenderProperties().SetBounds(bounds);
+    }
+}
+
 } // namespace Rosen
 } // namespace OHOS

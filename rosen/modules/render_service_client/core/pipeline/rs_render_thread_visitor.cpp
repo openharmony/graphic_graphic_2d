@@ -353,6 +353,9 @@ void RSRenderThreadVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
     }
     node.SetContextMatrix(contextMatrix);
     node.SetContextAlpha(canvas_->GetAlpha());
+    // PLANNING: This is a temporary modification. Animation for surfaveView should not be trigged in RenderService.
+    // We plan to refactor code here.
+    node.SetContextBounds(node.GetRenderProperties().GetBounds());
     // for proxied nodes (i.e. remote window components), we only set matrix & alpha, do not change its hierarchy and
     // clip status.
     if (node.IsProxy()) {

@@ -35,6 +35,7 @@ enum RSSurfaceNodeCommandType : uint16_t {
     SURFACE_NODE_UPDATE_SURFACE_SIZE,
     SURFACE_NODE_CONNECT_TO_NODE_IN_RENDER_SERVICE,
     SURFACE_NODE_SET_CALLBACK_FOR_RENDER_THREAD,
+    SURFACE_NODE_SET_CONTEXT_BOUNDS,
 };
 
 class SurfaceNodeCommandHelper {
@@ -48,6 +49,7 @@ public:
     static void UpdateSurfaceDefaultSize(RSContext& context, NodeId nodeId, float width, float height);
     static void ConnectToNodeInRenderService(RSContext& context, NodeId id);
     static void SetCallbackForRenderThreadRefresh(RSContext& context, NodeId id, std::function<void(void)> callback);
+    static void SetContextBounds(RSContext& context, NodeId id, Vector4f bounds);
 };
 
 ADD_COMMAND(RSSurfaceNodeCreate, ARG(SURFACE_NODE, SURFACE_NODE_CREATE, SurfaceNodeCommandHelper::Create, NodeId))
@@ -69,7 +71,8 @@ ADD_COMMAND(RSSurfaceNodeConnectToNodeInRenderService,
 ADD_COMMAND(RSSurfaceNodeSetCallbackForRenderThreadRefresh,
     ARG(SURFACE_NODE, SURFACE_NODE_SET_CALLBACK_FOR_RENDER_THREAD,
     SurfaceNodeCommandHelper::SetCallbackForRenderThreadRefresh, NodeId, std::function<void(void)>))
-
+ADD_COMMAND(RSSurfaceNodeSetBounds,
+    ARG(SURFACE_NODE, SURFACE_NODE_SET_CONTEXT_BOUNDS, SurfaceNodeCommandHelper::SetContextBounds, NodeId, Vector4f))
 } // namespace Rosen
 } // namespace OHOS
 #endif // ROSEN_RENDER_SERVICE_BASE_COMMAND_RS_SURFACE_NODE_COMMAND_H
