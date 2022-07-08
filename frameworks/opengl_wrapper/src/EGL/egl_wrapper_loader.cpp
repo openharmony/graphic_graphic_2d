@@ -116,13 +116,24 @@ void *EglWrapperLoader::LoadGl(const char *libName, char const * const *glName, 
         }
     }
 
+    GetProcAddressType getProcAddr =
+        (GetProcAddressType)dlsym(dlEglHandle_, "eglGetProcAddress");
+    if (getProcAddr == nullptr) {
+        WLOGE("can't find eglGetProcAddress() in EGL driver library.");
+        return nullptr;
+    }
+
     FunctionPointerType *current = entry;
     char const * const *api = glName;
     while (*api) {
         char const *name = *api;
         FunctionPointerType func = (FunctionPointerType)dlsym(dlHandle, name);
         if (func == nullptr) {
-            WLOGD("couldn't find the entry-point: %{public}s.", name);
+            WLOGD("try to getProcAddr %{public}s.", name);
+            func = getProcAddr(name);
+            if (func == nullptr) {
+                WLOGD("couldn't find the entry-point: %{public}s.", name);
+            }
         }
         *current++ = func;
         api++;

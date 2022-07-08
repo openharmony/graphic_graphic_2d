@@ -28,6 +28,7 @@ ohos_unittest("opengl_wrapper_unit_test") {
     "egl_wrapper_context_test.cpp",
     "egl_wrapper_display_test.cpp",
     "egl_wrapper_entry_test.cpp",
+    "egl_wrapper_layer_test.cpp",
     "egl_wrapper_loader_test.cpp",
     "thread_private_data_ctl_test.cpp",
   ]

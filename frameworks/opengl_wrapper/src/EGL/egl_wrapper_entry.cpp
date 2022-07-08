@@ -251,6 +251,7 @@ static EGLDisplay EglGetPlatformDisplayInternal(EGLenum platform,
 
 EGLDisplay EglGetDisplayImpl(EGLNativeDisplayType type)
 {
+    WLOGD("");
     return EglGetPlatformDisplayInternal(EGL_PLATFORM_OHOS_KHR, type, nullptr);
 }
 
@@ -281,6 +282,14 @@ __eglMustCastToProperFunctionPointerType EglGetProcAddressImpl(const char *procn
 
     EglWrapperLoader& loader(EglWrapperLoader::GetInstance());
     void *func = loader.GetProcAddrFromDriver(procname);
+
+    if (!func) {
+        EglWrapperDispatchTablePtr table = &gWrapperHook;
+        if (table->isLoad && table->egl.eglGetProcAddress) {
+            func = (void *)table->egl.eglGetProcAddress(procname);
+        }
+    }
+
     if (func) {
         return __eglMustCastToProperFunctionPointerType(func);
     }

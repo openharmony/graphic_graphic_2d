@@ -36,6 +36,7 @@ ohos_shared_library("EGL") {
     "src/EGL/egl_wrapper_context.cpp",
     "src/EGL/egl_wrapper_display.cpp",
     "src/EGL/egl_wrapper_entry.cpp",
+    "src/EGL/egl_wrapper_layer.cpp",
     "src/EGL/egl_wrapper_loader.cpp",
     "src/EGL/egl_wrapper_object.cpp",
     "src/EGL/egl_wrapper_surface.cpp",
@@ -211,4 +212,55 @@ ohos_executable("opengl_wrapper_native_test") {
   part_name = "graphic_standard"
   subsystem_name = "graphic"
 }
+
 ## Build opengl_wrapper_native_test }}}
+
+## Build libdebug_layer_test.so {{{
+config("debug_layer_test_config") {
+  visibility = [ ":*" ]
+
+  defines = [ "EGL_WRAPPER_DEBUG_ENABLE" ]
+
+  cflags = [
+    "-Wall",
+    "-Werror",
+    "-g3",
+  ]
+}
+
+config("debug_layer_test_public_config") {
+  include_dirs = [ "include" ]
+}
+
+ohos_shared_library("debug_layer_test1") {
+  sources = [ "test/debug_layer_test1.cpp" ]
+  configs = [ ":debug_layer_test_config" ]
+
+  public_configs = [ ":debug_layer_test_public_config" ]
+
+  public_deps = [ "//third_party/EGL:libEGL" ]
+
+  external_deps = [ "hilog_native:libhilog" ]
+
+  symlink_target_name = [ "libdebug_layer_test1.so" ]
+
+  part_name = "graphic_standard"
+  subsystem_name = "graphic"
+}
+
+ohos_shared_library("debug_layer_test2") {
+  sources = [ "test/debug_layer_test2.cpp" ]
+  configs = [ ":debug_layer_test_config" ]
+
+  public_configs = [ ":debug_layer_test_public_config" ]
+
+  public_deps = [ "//third_party/EGL:libEGL" ]
+
+  external_deps = [ "hilog_native:libhilog" ]
+
+  symlink_target_name = [ "libdebug_layer_test2.so" ]
+
+  part_name = "graphic_standard"
+  subsystem_name = "graphic"
+}
+## Build libdebug_layer_test.so }}}

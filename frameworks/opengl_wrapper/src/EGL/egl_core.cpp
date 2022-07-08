@@ -18,6 +18,7 @@
 
 #include "egl_defs.h"
 #include "egl_pre_initializer.h"
+#include "egl_wrapper_layer.h"
 #include "egl_wrapper_loader.h"
 #include "../wrapper_log.h"
 
@@ -95,10 +96,14 @@ bool EglCoreInit()
 
     WrapperHookTableInit();
     EglWrapperLoader& loader(EglWrapperLoader::GetInstance());
-
     if (!loader.Load(&gWrapperHook)) {
         WLOGE("EglWrapperLoader Load Failed.");
         return false;
+    }
+
+    EglWrapperLayer& layer(EglWrapperLayer::GetInstance());
+    if (!layer.Init(&gWrapperHook)) {
+        WLOGE("EglWrapperLayer Init Failed.");
     }
 
     return true;
