@@ -41,7 +41,7 @@ protected:
 
     void SetAdditive(bool isAdditive)
     {
-        isAdditive_ = true;
+        isAdditive_ = isAdditive;
     }
 
     bool GetAdditive() const

@@ -43,6 +43,7 @@ void RSSpringAnimation<T>::StartAnimationImpl()
     animation->SetSpeed(RSPropertyAnimation<T>::GetSpeed());
     animation->SetDirection(RSPropertyAnimation<T>::GetDirection());
     animation->SetFillMode(RSPropertyAnimation<T>::GetFillMode());
+    animation->SetAdditive(RSPropertyAnimation<T>::GetAdditive());
     animation->SetSpringParameters(timingCurve_.response_, timingCurve_.dampingRatio_);
     std::unique_ptr<RSCommand> command = std::make_unique<P>(target->GetId(), animation);
     auto transactionProxy = RSTransactionProxy::GetInstance();

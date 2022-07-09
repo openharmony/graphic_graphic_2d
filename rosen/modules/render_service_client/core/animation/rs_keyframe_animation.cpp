@@ -46,6 +46,7 @@ void RSKeyframeAnimation<T>::StartAnimationImpl()
     animation->SetAutoReverse(RSPropertyAnimation<T>::GetAutoReverse());
     animation->SetSpeed(RSPropertyAnimation<T>::GetSpeed());
     animation->SetFillMode(RSPropertyAnimation<T>::GetFillMode());
+    animation->SetAdditive(RSPropertyAnimation<T>::GetAdditive());
     animation->SetDirection(RSPropertyAnimation<T>::GetDirection());
     std::unique_ptr<RSCommand> command = std::make_unique<P>(target->GetId(), animation);
     auto transactionProxy = RSTransactionProxy::GetInstance();
