@@ -24,7 +24,7 @@
 
 #include <display_type.h>
 #include <display_manager.h>
-#include <foundation/windowmanager/interfaces/innerkits/wm/window_manager.h>
+#include <foundation/window/window_manager/interfaces/innerkits/wm/window_manager.h>
 #include <ipc_skeleton.h>
 #include <iremote_broker.h>
 #include <iservice_registry.h>
