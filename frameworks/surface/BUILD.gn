@@ -74,7 +74,6 @@ ohos_shared_library("surface") {
   ]
 
   public_deps = [
-    "//drivers/peripheral/display/hal:hdi_display_gralloc",
     "//drivers/peripheral/display/hdi_service/gralloc/client:hdi_gralloc_client",
     "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
     "//foundation/graphic/graphic_2d/utils/buffer_handle:buffer_handle",
