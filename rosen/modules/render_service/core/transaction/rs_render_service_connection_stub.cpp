@@ -432,6 +432,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             std::string name = data.ReadString();
             sptr<IVSyncConnection> conn = CreateVSyncConnection(name);
             reply.WriteRemoteObject(conn->AsObject());
+            break;
         }
         case REQUEST_ROTATION: {
             auto token = data.ReadInterfaceToken();
