@@ -25,15 +25,12 @@ ImageChain* Builder::CreateFromConfig(std::string path)
     if (strlen(path.c_str()) > PATH_MAX || realpath(path.c_str(), newpath) == NULL) {
         return nullptr;
     }
+    
     std::ifstream configFile;
-    // open files
-    configFile.open(path.c_str());
+    configFile.open(newpath);
     std::stringstream JFilterParamsStream;
-    // read file's buffer contents into streams
     JFilterParamsStream << configFile.rdbuf();
-    // close file handlers
     configFile.close();
-    // convert stream into string
     std::string JFilterParamsString = JFilterParamsStream.str();
     auto overallData = std::shared_ptr<cJSON>(cJSON_Parse(JFilterParamsString.c_str()));
     if (overallData != nullptr) {
