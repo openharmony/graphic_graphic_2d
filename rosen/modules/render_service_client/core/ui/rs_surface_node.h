@@ -53,6 +53,12 @@ public:
     void RemoveChild(std::shared_ptr<RSBaseNode> child) override;
     void ClearChildren() override;
 
+    void SetBounds(const Vector4f& bounds) override;
+    void SetBounds(float positionX, float positionY, float width, float height) override;
+    void SetBoundsSize(const Vector2f& size) override;
+    void SetBoundsSize(float width, float height) override;
+    void SetBoundsWidth(float width) override;
+    void SetBoundsHeight(float height) override;
     void SetColorSpace(ColorGamut colorSpace);
     void SetSecurityLayer(bool isSecurityLayer);
     bool GetSecurityLayer() const;
@@ -95,7 +101,7 @@ protected:
 private:
     bool CreateNode(const RSSurfaceRenderNodeConfig& config);
     bool CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config);
-    void OnBoundsSizeChanged() const override;
+    void UpdateSurfaceDefaultSize(float width, float height);
     std::shared_ptr<RSSurface> surface_;
     std::string name_;
     std::mutex mutex_;
