@@ -15,11 +15,17 @@
 
 #include "pipeline/rs_node_map.h"
 
+#include <atomic>
+
 #include "ui/rs_base_node.h"
 #include "ui/rs_canvas_node.h"
 
 namespace OHOS {
 namespace Rosen {
+namespace {
+static std::atomic_bool g_instance_valid = false;
+}
+
 RSNodeMap::RSNodeMap()
 {
     // create animation fallback node
@@ -27,12 +33,15 @@ RSNodeMap::RSNodeMap()
     fallback_node->SetId(0);
     animationFallbackNode_.reset(fallback_node);
     nodeMap_.emplace(0, animationFallbackNode_);
+    g_instance_valid.store(true);
 }
 
 RSNodeMap::~RSNodeMap()  noexcept
 {
-    nodeMap_.clear();
     animationFallbackNode_ = nullptr;
+    std::unique_lock<std::mutex> lock(mutex_);
+    nodeMap_.clear();
+    g_instance_valid.store(false);
 }
 
 RSNodeMap& RSNodeMap::MutableInstance()
@@ -62,6 +71,9 @@ bool RSNodeMap::RegisterNode(const RSBaseNode::SharedPtr& nodePtr)
 
 void RSNodeMap::UnregisterNode(NodeId id)
 {
+    if (!g_instance_valid.load()) {
+        return;
+    }
     std::unique_lock<std::mutex> lock(mutex_);
     auto itr = nodeMap_.find(id);
     if (itr != nodeMap_.end()) {
@@ -74,6 +86,9 @@ void RSNodeMap::UnregisterNode(NodeId id)
 template<>
 const std::shared_ptr<RSBaseNode> RSNodeMap::GetNode<RSBaseNode>(NodeId id) const
 {
+    if (!g_instance_valid.load()) {
+        return nullptr;
+    }
     std::unique_lock<std::mutex> lock(mutex_);
     auto itr = nodeMap_.find(id);
     if (itr == nodeMap_.end()) {
