@@ -25,10 +25,10 @@ RSDirtyRegionManager::RSDirtyRegionManager()
 
 void RSDirtyRegionManager::MergeDirtyRect(const RectI& rect)
 {
-    if ((rect.width_ <= 0) || (rect.height_ <= 0)) {
+    if (rect.IsEmpty()) {
         return;
     }
-    if ((dirtyRegion_.width_ <= 0) || (dirtyRegion_.height_ <= 0)) {
+    if (dirtyRegion_.IsEmpty()) {
         dirtyRegion_ = rect;
     } else {
         dirtyRegion_ = dirtyRegion_.JoinRect(rect);
@@ -43,6 +43,22 @@ void RSDirtyRegionManager::IntersectDirtyRect(const RectI& rect)
 const RectI& RSDirtyRegionManager::GetDirtyRegion() const
 {
     return dirtyRegion_;
+}
+
+RectI RSDirtyRegionManager::GetDirtyRegionFlipWithinSurface() const
+{
+    RectI glRect = dirtyRegion_;
+    // left-top to left-bottom corner(in current surface)
+    glRect.top_ = surfaceHeight_ - dirtyRegion_.top_ - dirtyRegion_.height_;
+    return dirtyRegion_;
+}
+
+const RectI& RSDirtyRegionManager::GetLatestDirtyRegion() const
+{
+    if (historyHead_ < 0) {
+        return dirtyRegion_;
+    }
+    return dirtyHistory_[historyHead_];
 }
 
 void RSDirtyRegionManager::Clear()
@@ -61,14 +77,7 @@ bool RSDirtyRegionManager::IsDirty() const
 void RSDirtyRegionManager::UpdateDirty()
 {
     PushHistory(dirtyRegion_);
-    if (bufferAge_ == 0) {
-        dirtyRegion_.left_ = 0;
-        dirtyRegion_.top_ = 0;
-        dirtyRegion_.width_ = surfaceWidth_;
-        dirtyRegion_.height_ = surfaceHeight_;
-    } else if (bufferAge_ > 1) {
-        dirtyRegion_ = MergeHistory(bufferAge_, dirtyRegion_);
-    }
+    dirtyRegion_ = MergeHistory(bufferAge_, dirtyRegion_);
 }
 
 void RSDirtyRegionManager::UpdateDirtyCanvasNodes(NodeId id, const RectI& rect)
@@ -94,16 +103,21 @@ void RSDirtyRegionManager::GetDirtySurfaceNodes(std::map<NodeId, RectI>& target)
 bool RSDirtyRegionManager::SetBufferAge(const int age)
 {
     if (age < 0) {
+        bufferAge_ = 0; // reset invalid age
         return false;
     }
     bufferAge_ = static_cast<unsigned int>(age);
     return true;
 }
 
-RectI RSDirtyRegionManager::GetAllHistoryMerge()
+bool RSDirtyRegionManager::SetSurfaceSize(const int width, const int height)
 {
-    PushHistory(dirtyRegion_);
-    return MergeHistory(bufferAge_, dirtyRegion_);
+    if (width < 0 || height < 0) {
+        return false;
+    }
+    surfaceWidth_ = width;
+    surfaceHeight_ = height;
+    return true;
 }
 
 void RSDirtyRegionManager::UpdateDebugRegionTypeEnable()
@@ -136,19 +150,21 @@ void RSDirtyRegionManager::UpdateDebugRegionTypeEnable()
 
 RectI RSDirtyRegionManager::MergeHistory(unsigned int age, RectI rect) const
 {
-    if (age > historySize_) {
-        rect.left_ = 0;
-        rect.top_ = 0;
-        rect.width_ = surfaceWidth_;
-        rect.height_ = surfaceHeight_;
-    } else {
-        for (unsigned int i = historySize_ - 1; i > historySize_ - age; --i) {
-            auto subRect = GetHistory(i);
-            // only join valid his buffer
-            if (subRect.width_ > 0 || subRect.height_ > 0) {
-                rect = rect.JoinRect(subRect);
-            }
+    if (age == 0 || age > historySize_) {
+        return RectI(0, 0, surfaceWidth_, surfaceHeight_);
+    }
+    // GetHistory(historySize_) = dirtyHistory_[historyHead_]
+    // therefore, this loop merges rect with (age-1) frames' dirtyRect
+    for (unsigned int i = historySize_ - 1; i > historySize_ - age; --i) {
+        auto subRect = GetHistory(i);
+        if (subRect.IsEmpty()) {
+            continue;
         }
+        if (rect.IsEmpty()) {
+            rect = subRect;
+        }
+        // only join valid his dirty region
+        rect = rect.JoinRect(subRect);
     }
     return rect;
 }

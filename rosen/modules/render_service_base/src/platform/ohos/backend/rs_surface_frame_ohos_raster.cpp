@@ -37,6 +37,13 @@ void RSSurfaceFrameOhosRaster::SetDamageRegion(int32_t left, int32_t top, int32_
     flushConfig_.damage.h = height;
 }
 
+int32_t RSSurfaceFrameOhosRaster::GetBufferAge() const
+{
+    // currently could not get real buffer age, so return invalid age
+    // should be supported by surface
+    return -1;
+}
+
 SkCanvas* RSSurfaceFrameOhosRaster::GetCanvas()
 {
     if (buffer_ == nullptr || buffer_->GetWidth() <= 0 || buffer_->GetHeight() <= 0) {

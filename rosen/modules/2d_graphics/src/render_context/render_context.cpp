@@ -33,6 +33,13 @@ constexpr char CHARACTER_WHITESPACE = ' ';
 constexpr const char* CHARACTER_STRING_WHITESPACE = " ";
 constexpr const char* EGL_GET_PLATFORM_DISPLAY_EXT = "eglGetPlatformDisplayEXT";
 
+// use functor to call gel*KHR API
+static PFNEGLSETDAMAGEREGIONKHRPROC GetEGLSetDamageRegionKHRFunc()
+{
+    static auto func = reinterpret_cast<PFNEGLSETDAMAGEREGIONKHRPROC>(eglGetProcAddress("eglSetDamageRegionKHR"));
+    return func;
+}
+
 static bool CheckEglExtension(const char* extensions, const char* extension)
 {
     size_t extlen = strlen(extension);
@@ -287,14 +294,24 @@ void RenderContext::RenderFrame()
     }
 }
 
+EGLint RenderContext::QueryEglBufferAge()
+{
+    if ((eglDisplay_ == nullptr) || (eglSurface_ == nullptr)) {
+        LOGE("eglDisplay or eglSurface is nullptr");
+        return EGL_UNKNOWN;
+    }
+    EGLint bufferAge = EGL_UNKNOWN;
+    EGLBoolean ret = eglQuerySurface(eglDisplay_, eglSurface_, EGL_BUFFER_AGE_KHR, &bufferAge);
+    if (ret == EGL_FALSE) {
+        LOGE("eglQuerySurface is failed");
+        return EGL_UNKNOWN;
+    }
+    return bufferAge;
+}
+
 void RenderContext::DamageFrame(int32_t left, int32_t top, int32_t width, int32_t height)
 {
-#if EGL_EGLEXT_PROTOTYPES
-    RenderContext* rc = RenderContextFactory::GetInstance().CreateEngine();
-    EGLDisplay eglDisplay = rc->GetEGLDisplay();
-    EGLSurface eglSurface = rc->GetEGLSurface();
-
-    if ((eglDisplay == nullptr) || (eglSurface == nullptr)) {
+    if ((eglDisplay_ == nullptr) || (eglSurface_ == nullptr)) {
         LOGE("eglDisplay or eglSurface is nullptr");
         return;
     }
@@ -305,10 +322,10 @@ void RenderContext::DamageFrame(int32_t left, int32_t top, int32_t width, int32_
     rect[2] = width;
     rect[3] = height;
 
-    if (!eglSetDamageRegionKHR(eglDisplay, eglSurface, rect, 0)) {
+    EGLBoolean ret = GetEGLSetDamageRegionKHRFunc()(eglDisplay_, eglSurface_, rect, 1);
+    if (ret == EGL_FALSE) {
         LOGE("eglSetDamageRegionKHR is failed");
     }
-#endif
 }
 } // namespace Rosen
 } // namespace OHOS

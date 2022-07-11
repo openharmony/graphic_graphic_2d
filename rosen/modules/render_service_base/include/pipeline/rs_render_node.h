@@ -87,6 +87,7 @@ protected:
 private:
     void FallbackAnimationsToRoot();
     bool isDirtyRegionUpdated_ = false;
+    bool isLastVisible_ = false;
     RectI oldDirty_;
     RSProperties renderProperties_;
     RSAnimationManager animationManager_;
