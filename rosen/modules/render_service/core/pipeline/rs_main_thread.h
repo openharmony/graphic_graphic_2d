@@ -35,6 +35,7 @@
 #include "ipc_callbacks/rs_iocclusion_change_callback.h"
 #include "pipeline/rs_context.h"
 #include "platform/drawing/rs_vsync_client.h"
+#include "platform/common/rs_event_manager.h"
 
 namespace OHOS::Rosen {
 class RSTransactionData;
@@ -124,6 +125,9 @@ private:
     void CalcOcclusion();
     void CallbackToWMS(VisibleData& curVisVec);
     void SendCommands();
+    void InitRSEventDetector();
+    void SetRSEventDetectorLoopStartTag();
+    void SetRSEventDetectorLoopFinishTag();
 
     bool DoParallelComposition(std::shared_ptr<RSBaseRenderNode> rootNode);
     void ResetSortedChildren(std::shared_ptr<RSBaseRenderNode> node);
@@ -155,6 +159,7 @@ private:
     uint32_t lastSurfaceCnt_ = 0;
 
     std::shared_ptr<RSRenderEngine> renderEngine_;
+    std::shared_ptr<RSBaseEventDetector> rsCompositionTimeoutDetector_;
 };
 } // namespace OHOS::Rosen
 #endif // RS_MAIN_THREAD

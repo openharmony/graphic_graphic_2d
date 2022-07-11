@@ -18,16 +18,26 @@
 
 #include <map>
 #include <memory>
-#include <rs_log.h>
+#include "rs_log.h"
+#include "base/hiviewdfx/hisysevent/interfaces/native/innerkits/hisysevent/include/hisysevent.h"
+
 namespace OHOS {
 namespace Rosen {
-class BaseEventDetector {
+
+struct RSSysEventMsg final {
+	std::string stringId;
+	std::string msg;
+	OHOS::HiviewDFX::HiSysEvent::EventType eventType;
+};
+
+class RSBaseEventDetector {
 public:
-	static std::shared_ptr<BaseEventDetector> CreateRSTimeOutDetector(int timeOutThreadMs, std::string detectorStringId);
-	virtual ~BaseEventDetector()
+    using EventReportCallback = std::function<void(const RSSysEventMsg&)>;
+	static std::shared_ptr<RSBaseEventDetector> CreateRSTimeOutDetector(int timeOutThresholdMs, std::string detectorStringId);
+	virtual ~RSBaseEventDetector()
     {
 		ClearParamList();
-        RS_LOGD("BaseEventDetector::~BaseEventDetector finish");
+        RS_LOGD("RSBaseEventDetector::~RSBaseEventDetector finish");
 	}
 
 	std::string GetStringId()
@@ -39,14 +49,19 @@ public:
     {
 		return paramList_;
 	}
+	
+	void AddEventReportCallback(const EventReportCallback& callback)
+	{
+		eventCallback_ = callback;
+	}
 
 	virtual void SetParam(const std::string& key, const std::string& value) = 0;
 	virtual void SetLoopStartTag() = 0;
 	virtual void SetLoopFinishTag() = 0;
 
 protected:
-	BaseEventDetector() = default;
-    BaseEventDetector(std::string stringId)
+	RSBaseEventDetector() = default;
+    RSBaseEventDetector(std::string stringId)
     {
 		stringId_ = stringId;
 	}
@@ -56,24 +71,25 @@ protected:
         paramList_.clear();
 		std::map<std::string, std::string> tempParamList;
 		paramList_.swap(tempParamList);
-        RS_LOGD("BaseEventDetector::ClearParamList finish");
+        RS_LOGD("RSBaseEventDetector::ClearParamList finish");
     }
 
 	std::map<std::string, std::string> paramList_; // key: paramName 
 	std::string stringId_;
+	EventReportCallback eventCallback_;
 };
 
 
-class RSTimeOutDetector : public BaseEventDetector {
+class RSTimeOutDetector : public RSBaseEventDetector {
 public:
-	RSTimeOutDetector(int timeOutThreadNs, std::string detectorStringId);
+	RSTimeOutDetector(int timeOutThresholdMs, std::string detectorStringId);
 	~RSTimeOutDetector() = default;
 	void SetParam(const std::string& key, const std::string& value) override;
 	void SetLoopStartTag() override;
 	void SetLoopFinishTag() override;
 private:
-	void EventReport();
-	int timeOutThreadMs_ = INT_MAX; // default: No Detector 
+	void EventReport(uint64_t costTimeMs);
+	int timeOutThredsholdMs_ = INT_MAX; // default: No Detector 
 	uint64_t startTimeStampMs_ = 0;
 };
 

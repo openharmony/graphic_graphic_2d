@@ -54,6 +54,7 @@ void RSMainThread::Init()
 {
     mainLoop_ = [&]() {
         RS_LOGD("RsDebug mainLoop start");
+        SetRSEventDetectorLoopStartTag();
         ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSMainThread::DoComposition");
         ConsumeAndUpdateAllNodes();
         ProcessCommand();
@@ -62,21 +63,44 @@ void RSMainThread::Init()
         ReleaseAllNodesBuffer();
         SendCommands();
         ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
+        SetRSEventDetectorLoopFinishTag();
+        RSEventManager::Instance().UpdateParam();
         RS_LOGD("RsDebug mainLoop end");
     };
 
     runner_ = AppExecFwk::EventRunner::Create(false);
     handler_ = std::make_shared<AppExecFwk::EventHandler>(runner_);
-
+    InitRSEventDetector();
     sptr<VSyncConnection> conn = new VSyncConnection(rsVSyncDistributor_, "rs");
     rsVSyncDistributor_->AddConnection(conn);
     receiver_ = std::make_shared<VSyncReceiver>(conn);
     receiver_->Init();
     RSDividedRenderUtil::InitEnableClient();
-
     renderEngine_ = std::make_shared<RSRenderEngine>();
     RSInnovation::OpenInnovationSo();
     Occlusion::Region::InitDynamicLibraryFunction();
+
+}
+
+void RSMainThread::InitRSEventDetector()
+{
+    // default Threshold value of Timeout Event: 2000ms 
+    rsCompositionTimeoutDetector_ = RSBaseEventDetector::CreateRSTimeOutDetector(2000, "RS_COMPOSITION_TIMEOUT");
+    RSEventManager::Instance().AddEvent(rsCompositionTimeoutDetector_, 60000); // report Internal 1min:60s
+}
+
+void RSMainThread::SetRSEventDetectorLoopStartTag()
+{
+    if (rsCompositionTimeoutDetector_ != nullptr) {
+        rsCompositionTimeoutDetector_->SetLoopStartTag();
+    }
+}
+
+void RSMainThread::SetRSEventDetectorLoopFinishTag()
+{
+    if (rsCompositionTimeoutDetector_ != nullptr) {
+        rsCompositionTimeoutDetector_->SetLoopFinishTag();
+    }
 }
 
 void RSMainThread::Start()

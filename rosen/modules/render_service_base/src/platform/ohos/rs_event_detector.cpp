@@ -17,17 +17,17 @@
 
 namespace OHOS {
 namespace Rosen {
-std::shared_ptr<BaseEventDetector> BaseEventDetector::CreateRSTimeOutDetector(int timeOutThreadMs, std::string detectorStringId)
+std::shared_ptr<RSBaseEventDetector> RSBaseEventDetector::CreateRSTimeOutDetector(int timeOutThresholdMs, std::string detectorStringId)
 {
-	std::shared_ptr<RSTimeOutDetector> eventPtr(new RSTimeOutDetector(timeOutThreadMs, detectorStringId));
+	std::shared_ptr<RSTimeOutDetector> eventPtr(new RSTimeOutDetector(timeOutThresholdMs, detectorStringId));
 	return  eventPtr;
 }
 
-RSTimeOutDetector::RSTimeOutDetector(int timeOutThreadMs, std::string detectorStringId) :BaseEventDetector(detectorStringId)
+RSTimeOutDetector::RSTimeOutDetector(int timeOutThresholdMs, std::string detectorStringId) :RSBaseEventDetector(detectorStringId)
 {
-    RS_LOGD("RSTimeOutDetector ::RSTimeOutDetector timeOutThreadMs is %d ", timeOutThreadMs);
-	timeOutThreadMs_ = timeOutThreadMs;
-	paramList_["timeOutThreadMs"] = std::to_string(timeOutThreadMs_);
+    RS_LOGD("RSTimeOutDetector ::RSTimeOutDetector timeOutThresholdMs is %d ", timeOutThresholdMs);
+	timeOutThredsholdMs_ = timeOutThresholdMs;
+	paramList_["timeOutThredsholdMs"] = std::to_string(timeOutThredsholdMs_);
 }
 
 
@@ -42,32 +42,35 @@ void RSTimeOutDetector::SetParam(const std::string& key, const std::string& valu
 		RS_LOGD("RSTimeOutDetector :: SetParam Invaild Value ");
 		return;
 	}
-	timeOutThreadMs_ = valueInt;
+	timeOutThredsholdMs_ = valueInt;
 }
 
 
 void RSTimeOutDetector::SetLoopStartTag()
 {
-	startTimeStampMs_ = SysEventManager::Instance().GetSysTimeMs();
+	startTimeStampMs_ = RSEventManager::Instance().GetSysTimeMs();
 }
 
 void RSTimeOutDetector::SetLoopFinishTag()
 {
-	uint64_t finishTimeStampMs = SysEventManager::Instance().GetSysTimeMs();
-	if (finishTimeStampMs > startTimeStampMs_ && finishTimeStampMs - startTimeStampMs_ > timeOutThreadMs_) {
-		EventReport();
+	uint64_t finishTimeStampMs = RSEventManager::Instance().GetSysTimeMs();
+	if (finishTimeStampMs > startTimeStampMs_ && finishTimeStampMs - startTimeStampMs_ > timeOutThredsholdMs_) {
+		EventReport(finishTimeStampMs - startTimeStampMs_);
 	}
 }
 
-void RSTimeOutDetector::EventReport()
+void RSTimeOutDetector::EventReport(uint64_t costTimeMs)
 {
-	std::string msg = "hhhhhhh";
+	std::string msg = "RS TimeOut: one loop cost " + std::to_string(costTimeMs) + "ms";
 	RSSysEventMsg eventMsg = {
 		stringId_,
 		msg,
-		1
+		OHOS::HiviewDFX::HiSysEvent::EventType::STATISTIC
 	};
-	SysEventManager::Instance().EventReport(eventMsg);
+	
+	if (eventCallback_ != nullptr) {
+		eventCallback_(eventMsg);
+	}
 }
 
 }
