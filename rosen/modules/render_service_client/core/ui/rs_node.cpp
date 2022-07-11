@@ -301,7 +301,7 @@ bool IsValid(const Vector4f& value)
 #define SET_ANIMATABLE_PROPERTY(propertyName, value, property)                                              \
     do {                                                                                                    \
         auto currentValue = stagingProperties_.Get##propertyName();                                         \
-        if (ROSEN_EQ(value, currentValue)) {                                                                \
+        if (ROSEN_EQ(value, currentValue) || !IsValid(value)) {                                             \
             return;                                                                                         \
         }                                                                                                   \
         UpdateImplicitAnimator();                                                                           \
@@ -338,7 +338,7 @@ bool IsValid(const Vector4f& value)
 #define SET_NONANIMATABLE_PROPERTY(propertyName, value)                                                 \
     do {                                                                                                \
         auto currentValue = stagingProperties_.Get##propertyName();                                     \
-        if (ROSEN_EQ(value, currentValue)) {                                                            \
+        if (ROSEN_EQ(value, currentValue) || !IsValid(value)) {                                         \
             return;                                                                                     \
         }                                                                                               \
         std::unique_ptr<RSCommand> command = std::make_unique<RSNodeSet##propertyName>(GetId(), value); \
@@ -366,6 +366,9 @@ bool IsValid(const Vector4f& value)
 #define CREATE_PATH_ANIMATION(propertyName, value, property)                                            \
     do {                                                                                                \
         auto currentValue = stagingProperties_.Get##propertyName();                                     \
+        if (!IsValid(value)) {                                                                          \
+            return;                                                                                     \
+        }                                                                                               \
         UpdateImplicitAnimator();                                                                       \
         if (implicitAnimator_ && implicitAnimator_->NeedImplicitAnimation() && IsValid(currentValue)) { \
             implicitAnimator_->BeginImplicitPathAnimation(motionPathOption_);                           \

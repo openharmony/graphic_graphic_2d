@@ -97,13 +97,16 @@ void RSSurfaceNode::CreateNodeInRenderThread(bool isProxy)
         transactionProxy->AddCommand(command, false);
     }
 
-    if (!isProxy) {
-        command = std::make_unique<RSSurfaceNodeSetCallbackForRenderThreadRefresh>(GetId(), [] {
-            RSRenderThread::Instance().RequestNextVSync();
-        });
-        if (transactionProxy != nullptr) {
-            transactionProxy->AddCommand(command, false);
-        }
+    // for proxied nodes, we don't need commands sent to RT and refresh callbacks
+    if (isProxy) {
+        isRenderServiceNode_ = true;
+        return;
+    }
+
+    command = std::make_unique<RSSurfaceNodeSetCallbackForRenderThreadRefresh>(
+        GetId(), [] { RSRenderThread::Instance().RequestNextVSync(); });
+    if (transactionProxy != nullptr) {
+        transactionProxy->AddCommand(command, false);
     }
     isRenderServiceNode_ = false;
 }
