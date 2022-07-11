@@ -57,8 +57,9 @@ public:
         return FollowType::NONE;
     }
 
+    bool IsInstanceOf(RSUINodeType type) const;
     template<typename T>
-    bool IsInstanceOf();
+    bool IsInstanceOf() const;
 
     // type-safe reinterpret_cast
     template<typename T>
