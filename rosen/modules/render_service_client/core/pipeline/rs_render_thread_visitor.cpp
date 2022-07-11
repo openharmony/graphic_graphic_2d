@@ -327,12 +327,14 @@ void RSRenderThreadVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
     }
     node.SetContextMatrix(contextMatrix);
     node.SetContextAlpha(canvas_->GetAlpha());
-    // for proxied nodes (i.e. remote window components), we only set matrix & alpha, do not change its hierarchy and
-    // clip status.
+
+    // for proxied nodes (i.e. remote window components), we only extract matrix & alpha, do not change their hierarchy
+    // or clip or other properties.
     if (node.IsProxy()) {
         ProcessBaseRenderNode(node);
         return;
     }
+
     auto clipRect = getLocalClipBounds(canvas_);
     if (clipRect.width() < std::numeric_limits<float>::epsilon() ||
         clipRect.height() < std::numeric_limits<float>::epsilon()) {
