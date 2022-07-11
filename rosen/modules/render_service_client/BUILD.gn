@@ -121,6 +121,7 @@ ohos_source_set("render_service_client_src") {
   external_deps = [
     "hisysevent_native:libhisysevent",
     "hitrace_native:hitrace_meter",
+    "init:libbeget_proxy",
     "init:libbegetutil",
   ]
   public_deps =
