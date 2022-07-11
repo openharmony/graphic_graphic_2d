@@ -43,7 +43,7 @@ RSSurfaceOhosGl::~RSSurfaceOhosGl()
     mEglSurface = EGL_NO_SURFACE;
 }
 
-std::unique_ptr<RSSurfaceFrame> RSSurfaceOhosGl::RequestFrame(int32_t width, int32_t height)
+std::unique_ptr<RSSurfaceFrame> RSSurfaceOhosGl::RequestFrame(int32_t width, int32_t height, uint64_t uiTimestamp)
 {
     RenderContext* context = GetRenderContext();
     if (context == nullptr) {
@@ -68,6 +68,7 @@ std::unique_ptr<RSSurfaceFrame> RSSurfaceOhosGl::RequestFrame(int32_t width, int
     NativeWindowHandleOpt(mWindow, SET_BUFFER_GEOMETRY, width, height);
     NativeWindowHandleOpt(mWindow, GET_BUFFER_GEOMETRY, &mHeight, &mWidth);
     NativeWindowHandleOpt(mWindow, SET_COLOR_GAMUT, colorSpace_);
+    NativeWindowHandleOpt(mWindow, SET_UI_TIMESTAMP, uiTimestamp);
 
     context->MakeCurrent(mEglSurface);
 
@@ -81,7 +82,7 @@ std::unique_ptr<RSSurfaceFrame> RSSurfaceOhosGl::RequestFrame(int32_t width, int
     return ret;
 }
 
-bool RSSurfaceOhosGl::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame)
+bool RSSurfaceOhosGl::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uint64_t uiTimestamp)
 {
     RenderContext* context = GetRenderContext();
     if (context == nullptr) {

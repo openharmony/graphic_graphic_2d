@@ -35,7 +35,8 @@ class RSTransactionData {
 #endif
 public:
     RSTransactionData() = default;
-    RSTransactionData(RSTransactionData&& other) : commands_(std::move(other.commands_)) {}
+    RSTransactionData(RSTransactionData&& other) : commands_(std::move(other.commands_)),
+        followTypes_(std::move(other.followTypes_)), nodeIds_(std::move(other.nodeIds_)), timestamp_(std::move(other.timestamp_)) {}
     ~RSTransactionData() noexcept;
 
 #ifdef ROSEN_OHOS
@@ -57,15 +58,37 @@ public:
 
     void Clear();
 
+    uint64_t GetTimestamp() const
+    {
+        return timestamp_;
+    }
+
+    std::vector<std::unique_ptr<RSCommand>>& GetCommands()
+    {
+        return commands_;
+    }
+
+    const std::vector<FollowType>& GetFollowTypes() const
+    {
+        return followTypes_;
+    }
+
+    const std::vector<NodeId>& GetNodeIds() const
+    {
+        return nodeIds_;
+    }
+
 private:
-    void AddCommand(std::unique_ptr<RSCommand>& command);
-    void AddCommand(std::unique_ptr<RSCommand>&& command);
+    void AddCommand(std::unique_ptr<RSCommand>& command, NodeId nodeId, FollowType followType);
+    void AddCommand(std::unique_ptr<RSCommand>&& command, NodeId nodeId, FollowType followType);
 
 #ifdef ROSEN_OHOS
     bool UnmarshallingCommand(Parcel& parcel);
 #endif
-
     std::vector<std::unique_ptr<RSCommand>> commands_;
+    std::vector<FollowType> followTypes_;
+    std::vector<NodeId> nodeIds_;
+    uint64_t timestamp_ = 0;
 
     friend class RSTransactionProxy;
     friend class RSMessageProcessor;

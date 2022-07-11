@@ -180,7 +180,7 @@ public:
     bool NeedSetCallbackForRenderThreadRefresh();
 
 private:
-    void SendCommandFromRT(std::unique_ptr<RSCommand>& command);
+    void SendCommandFromRT(std::unique_ptr<RSCommand>& command, NodeId nodeId);
 
     std::mutex mutexRT_;
     std::mutex mutexUI_;

@@ -40,6 +40,12 @@ enum class RSUINodeType {
     ROOT_NODE    = 0x12210,
 };
 
+enum class FollowType : uint8_t {
+    NONE,
+    FOLLOW_TO_PARENT,
+    FOLLOW_TO_SELF,
+};
+
 static const std::map<RSUINodeType, std::string> RSUINodeTypeStrs = {
     {RSUINodeType::BASE_NODE,    "BaseNode"},
     {RSUINodeType::DISPLAY_NODE, "DisplayNode"},
