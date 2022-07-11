@@ -240,7 +240,7 @@ std::optional<DisplayModeInfo> RSScreen::GetActiveMode() const
     }
 
     auto iter = std::find_if(supportedModes_.cbegin(), supportedModes_.cend(),
-        [modeId](const auto &mode) { return mode.id == modeId; });
+        [modeId](const auto &mode) { return static_cast<uint32_t>(mode.id) == modeId; });
     if (iter == supportedModes_.cend()) {
         return {};
     }

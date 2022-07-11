@@ -221,7 +221,7 @@ BufferDrawParam RSDividedRenderUtil::CreateBufferDrawParam(RSSurfaceRenderNode& 
     return params;
 }
 
-void SetPropertiesForCanvas(RSPaintFilterCanvas& canvas, BufferDrawParam& bufferDrawParam)
+void SetPropertiesForCanvas(RSPaintFilterCanvas& canvas, const BufferDrawParam& bufferDrawParam)
 {
     if (bufferDrawParam.isNeedClip) {
         SkRect clipRect = bufferDrawParam.clipRect;
@@ -239,7 +239,7 @@ void SetPropertiesForCanvas(RSPaintFilterCanvas& canvas, BufferDrawParam& buffer
     canvas.setMatrix(bufferDrawParam.matrix);
 }
 
-void RSDividedRenderUtil::ClipHole(RSPaintFilterCanvas& canvas, BufferDrawParam& bufferDrawParam)
+void RSDividedRenderUtil::ClipHole(RSPaintFilterCanvas& canvas, const BufferDrawParam& bufferDrawParam)
 {
     canvas.save();
     SetPropertiesForCanvas(canvas, bufferDrawParam);

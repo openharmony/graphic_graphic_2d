@@ -55,7 +55,7 @@ public:
     static void DrawBuffer(RSPaintFilterCanvas& canvas, BufferDrawParam& bufferDrawParam,
         CanvasPostProcess process = nullptr);
     // YUV Layer clip hole
-    static void ClipHole(RSPaintFilterCanvas& canvas, BufferDrawParam& bufferDrawParam);
+    static void ClipHole(RSPaintFilterCanvas& canvas, const BufferDrawParam& bufferDrawParam);
 
 #ifdef RS_ENABLE_EGLIMAGE
     static void DrawImage(std::shared_ptr<RSEglImageManager> eglImageManager, GrContext* grContext,

@@ -51,7 +51,7 @@ namespace OHOS {
     {
         char cstr[strlen];
         cstr[strlen-1] = STR_END_CHAR;
-        for (int i = 0; i < strlen-1; i++) {
+        for (int i = 0; i < strlen - 1; i++) {
             cstr[i] = GetData<char>();
         }
         std::string str(cstr);

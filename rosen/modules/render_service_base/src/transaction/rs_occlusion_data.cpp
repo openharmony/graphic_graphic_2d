@@ -27,7 +27,7 @@ RSOcclusionData* RSOcclusionData::Unmarshalling(Parcel& parcel)
 {
     auto data = new RSOcclusionData();
     auto size = parcel.ReadUint32();
-    for (int i = 0; i < size; i++) {
+    for (uint32_t i = 0; i < size; i++) {
         uint64_t id = parcel.ReadUint64();
         data->visibleData_.emplace_back(id);
     }
