@@ -178,6 +178,10 @@ void RSWindowAnimationController::HandleOnStartApp(StartingAppType type,
         RSWindowAnimationUtils::CreateJsWindowAnimationFinishedCallback(engine_, finishedCallback),
     };
 
+    if (startingWindowTarget && startingWindowTarget->surfaceNode_) {
+        startingWindowTarget->surfaceNode_->SetBoundsSize(-1, -1);
+    }
+
     switch (type) {
         case StartingAppType::FROM_LAUNCHER:
             CallJsFunction("onStartAppFromLauncher", argv, ARGC_TWO);
