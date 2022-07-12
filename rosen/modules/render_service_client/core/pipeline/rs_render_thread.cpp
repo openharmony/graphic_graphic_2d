@@ -28,8 +28,9 @@
 #include "res_type.h"
 #endif
 #include "rs_trace.h"
-#include "ui/rs_ui_director.h"
+
 #include "transaction/rs_render_service_client.h"
+#include "ui/rs_ui_director.h"
 #ifdef ROSEN_OHOS
 #include <sys/prctl.h>
 #include <unistd.h>
