@@ -44,7 +44,7 @@ public:
     HdiOutput(uint32_t screenId);
     virtual ~HdiOutput();
 
-    static constexpr uint COMPOSITION_RECORDS_NUM = 128;
+    static constexpr uint32_t COMPOSITION_RECORDS_NUM = 128;
 
     /* for RS begin */
     void SetLayerInfo(const std::vector<LayerInfoPtr> &layerInfos);
