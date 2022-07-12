@@ -247,12 +247,12 @@ static unsigned char test_jpg_buffer[] = {
 };
 static unsigned int test_jpg_len = 2431;
 
-unsigned char* getTestPngBuffer(unsigned int& bufSize) {
+uint8_t* getTestPngBuffer(size_t& bufSize) {
     bufSize = test_png_len;
     return test_png_buffer;
 }
 
-unsigned char* getTestJpgBuffer(unsigned int& bufSize) {
+uint8_t* getTestJpgBuffer(size_t& bufSize) {
     bufSize = test_jpg_len;
     return test_jpg_buffer;
 }
