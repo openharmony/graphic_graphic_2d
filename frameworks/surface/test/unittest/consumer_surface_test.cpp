@@ -676,8 +676,7 @@ HWTEST_F(ConsumerSurfaceTest, TunnelHandle002, Function | MediumTest | Level2)
  */
 HWTEST_F(ConsumerSurfaceTest, TunnelHandle003, Function | MediumTest | Level1)
 {
-    ExtDataHandle *handle = nullptr;
-    handle = new ExtDataHandle();
+    ExtDataHandle *handle = new ExtDataHandle();
     handle->fd = -1;
     handle->reserveInts = 1;
     handle->reserve[0] = 0;
@@ -687,13 +686,12 @@ HWTEST_F(ConsumerSurfaceTest, TunnelHandle003, Function | MediumTest | Level1)
     ret = cs->SetTunnelHandle(handle);
     ASSERT_EQ(ret, OHOS::GSERROR_NO_ENTRY);
 
-    ExtDataHandle *handleGet = nullptr;
-    ret = cs->GetTunnelHandle(&handleGet);
-    ASSERT_EQ(ret, OHOS::GSERROR_OK);
+    sptr<SurfaceTunnelHandle> handleGet = nullptr;
+    handleGet = cs->GetTunnelHandle();
     ASSERT_NE(handleGet, nullptr);
-    ASSERT_EQ(handle->fd, handleGet->fd);
-    ASSERT_EQ(handle->reserveInts, handleGet->reserveInts);
-    ASSERT_EQ(handle->reserve[0], handleGet->reserve[0]);
+    ASSERT_EQ(handle->fd, handleGet->GetHandle()->fd);
+    ASSERT_EQ(handle->reserveInts, handleGet->GetHandle()->reserveInts);
+    ASSERT_EQ(handle->reserve[0], handleGet->GetHandle()->reserve[0]);
     delete handle;
 }
 

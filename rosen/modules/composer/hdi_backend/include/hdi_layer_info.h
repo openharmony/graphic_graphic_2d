@@ -150,9 +150,9 @@ public:
         tunnelHandleChange_ = change;
     }
 
-    void SetTunnelHandle(const ExtDataHandle *handle)
+    void SetTunnelHandle(const sptr<SurfaceTunnelHandle> &handle)
     {
-        tunnelHandle_ = const_cast<ExtDataHandle *>(handle);
+        tunnelHandle_ = handle;
     }
     /* rs create and set/get layer info end */
 
@@ -232,7 +232,7 @@ public:
         return tunnelHandleChange_;
     }
 
-    ExtDataHandle *GetTunnelHandle() const
+    sptr<SurfaceTunnelHandle> GetTunnelHandle() const
     {
         return tunnelHandle_;
     }
@@ -281,7 +281,7 @@ private:
     TransformType transformType_ = TransformType::ROTATE_BUTT;
     CompositionType compositionType_;
     BlendType blendType_;
-    ExtDataHandle *tunnelHandle_ = nullptr;
+    sptr<SurfaceTunnelHandle> tunnelHandle_ = nullptr;
     bool tunnelHandleChange_ = false;
 
     void *additionalInfo_ = nullptr;

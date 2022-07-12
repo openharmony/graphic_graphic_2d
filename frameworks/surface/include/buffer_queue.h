@@ -25,6 +25,7 @@
 #include <ibuffer_producer.h>
 #include <surface_type.h>
 #include <buffer_manager.h>
+#include <surface_tunnel_handle.h>
 
 #include "surface_buffer.h"
 
@@ -117,8 +118,8 @@ public:
     GSError GetMetaData(uint32_t sequence, std::vector<HDRMetaData> &metaData);
     GSError GetMetaDataSet(uint32_t sequence, HDRMetadataKey &key,
                            std::vector<uint8_t> &metaData);
-    GSError SetTunnelHandle(const ExtDataHandle *handle);
-    GSError GetTunnelHandle(ExtDataHandle **handle) const;
+    GSError SetTunnelHandle(const sptr<SurfaceTunnelHandle> &handle);
+    sptr<SurfaceTunnelHandle> GetTunnelHandle();
 
     bool GetStatus() const;
     void SetStatus(bool status);
@@ -157,7 +158,7 @@ private:
     OnDeleteBufferFunc onBufferDelete_ = nullptr;
     bool isShared_ = false;
     std::condition_variable waitReqCon_;
-    ExtDataHandle *tunnelHandle_ = nullptr;
+    sptr<SurfaceTunnelHandle> tunnelHandle_ = nullptr;
     std::atomic_bool isValidStatus_ = true;
 };
 }; // namespace OHOS

@@ -22,6 +22,7 @@
 #include "ibuffer_producer.h"
 #include "surface_buffer.h"
 #include "surface_type.h"
+#include "surface_tunnel_handle.h"
 
 namespace OHOS {
 class Surface : public RefBase {
@@ -98,7 +99,7 @@ public:
     virtual GSError GetMetaDataSet(uint32_t sequence, HDRMetadataKey &key,
                                    std::vector<uint8_t> &metaData) const = 0;
     virtual GSError SetTunnelHandle(const ExtDataHandle *handle) = 0;
-    virtual GSError GetTunnelHandle(ExtDataHandle **handle) const = 0;
+    virtual sptr<SurfaceTunnelHandle> GetTunnelHandle() const = 0;
 
     virtual void Dump(std::string &result) const = 0;
 protected:
