@@ -23,8 +23,8 @@
 
 namespace OHOS {
 namespace {
-constexpr uint32_t CONSUMER_REF_COUNT_IN_CONSUMER_SURFACE = 1;
-constexpr uint32_t PRODUCER_REF_COUNT_IN_CONSUMER_SURFACE = 2;
+constexpr int32_t CONSUMER_REF_COUNT_IN_CONSUMER_SURFACE = 1;
+constexpr int32_t PRODUCER_REF_COUNT_IN_CONSUMER_SURFACE = 2;
 }
 
 ConsumerSurface::ConsumerSurface(const std::string &name, bool isShared)

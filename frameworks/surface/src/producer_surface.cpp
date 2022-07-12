@@ -24,7 +24,7 @@
 
 namespace OHOS {
 namespace {
-constexpr uint32_t PRODUCER_REF_COUNT_IN_PRODUCER_SURFACE = 1;
+constexpr int32_t PRODUCER_REF_COUNT_IN_PRODUCER_SURFACE = 1;
 }
 
 ProducerSurface::ProducerSurface(sptr<IBufferProducer>& producer)
