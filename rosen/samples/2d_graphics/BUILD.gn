@@ -112,7 +112,7 @@ ohos_executable("drawing_sample_rs") {
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_client",
     "//foundation/graphic/graphic_2d/interfaces/inner_api/vsync_module",
     "//foundation/graphic/graphic_2d/rosen/include/common",
-    "//foundation/windowmanager/interfaces/innerkits/wm",
+    "//foundation/window/window_manager/interfaces/innerkits/wm",
   ]
 
   deps = [
@@ -120,7 +120,7 @@ ohos_executable("drawing_sample_rs") {
     "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics:2d_graphics",
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:librender_service_base",
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:librender_service_client",
-    "//foundation/windowmanager/wm:libwm",
+    "//foundation/window/window_manager/wm:libwm",
     "//third_party/zlib:libz",
   ]
 

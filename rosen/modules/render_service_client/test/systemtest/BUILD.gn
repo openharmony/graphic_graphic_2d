@@ -35,11 +35,11 @@ config("rs_client_test_common_public_config") {
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_client/core",
 
     # windowmanager
-    "//foundation/windowmanager/dm/include",
-    "//foundation/windowmanager/dmserver/include",
-    "//foundation/windowmanager/interfaces/innerkits/dm",
-    "//foundation/windowmanager/interfaces/innerkits/wm",
-    "//foundation/windowmanager/utils/include",
+    "//foundation/window/window_manager/dm/include",
+    "//foundation/window/window_manager/dmserver/include",
+    "//foundation/window/window_manager/interfaces/innerkits/dm",
+    "//foundation/window/window_manager/interfaces/innerkits/wm",
+    "//foundation/window/window_manager/utils/include",
   ]
 
   cflags = [
@@ -65,11 +65,11 @@ ohos_static_library("rs_client_test_common") {
     "//foundation/graphic/graphic_2d:libsurface",
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:librender_service_base",
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:librender_service_client",
-    "//foundation/windowmanager/dm:libdm",
-    "//foundation/windowmanager/dmserver:libdms",
-    "//foundation/windowmanager/utils:libwmutil",
-    "//foundation/windowmanager/wm:libwm",
-    "//foundation/windowmanager/wmserver:libwms",
+    "//foundation/window/window_manager/dm:libdm",
+    "//foundation/window/window_manager/dmserver:libdms",
+    "//foundation/window/window_manager/utils:libwmutil",
+    "//foundation/window/window_manager/wm:libwm",
+    "//foundation/window/window_manager/wmserver:libwms",
     "//third_party/googletest:gtest_main",
     "//utils/native/base:utils",
   ]

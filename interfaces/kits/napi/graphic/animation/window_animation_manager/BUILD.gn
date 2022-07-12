@@ -15,10 +15,10 @@ import("//build/ohos.gni")
 
 ohos_shared_library("windowanimationmanager_napi") {
   include_dirs = [
-    "//foundation/windowmanager/wm/include",
-    "//foundation/windowmanager/wmserver/include",
-    "//foundation/windowmanager/interfaces/innerkits/wm",
-    "//foundation/windowmanager/interfaces/innerkits/dm",
+    "//foundation/window/window_manager/wm/include",
+    "//foundation/window/window_manager/wmserver/include",
+    "//foundation/window/window_manager/interfaces/innerkits/wm",
+    "//foundation/window/window_manager/interfaces/innerkits/dm",
   ]
 
   sources = [
@@ -33,7 +33,7 @@ ohos_shared_library("windowanimationmanager_napi") {
 
   deps = [
     "//foundation/graphic/graphic_2d/rosen/modules/animation/window_animation:window_animation",
-    "//foundation/windowmanager/utils:libwmutil",
+    "//foundation/window/window_manager/utils:libwmutil",
   ]
 
   external_deps = [

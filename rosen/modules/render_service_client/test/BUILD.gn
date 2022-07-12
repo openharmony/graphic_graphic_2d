@@ -51,7 +51,7 @@ ohos_executable("render_service_client_rs_demo") {
 ohos_executable("render_service_client_app_demo") {
   sources = [ "render_service_client_app_demo.cpp" ]
 
-  include_dirs = [ "//foundation/windowmanager/interfaces/innerkits" ]
+  include_dirs = [ "//foundation/window/window_manager/interfaces/innerkits" ]
 
   deps = [
     "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
@@ -59,8 +59,8 @@ ohos_executable("render_service_client_app_demo") {
     "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics:2d_graphics",
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:librender_service_base",
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:librender_service_client",
-    "//foundation/windowmanager/wm:libwm",
-    "//foundation/windowmanager/wmserver:libwms",
+    "//foundation/window/window_manager/wm:libwm",
+    "//foundation/window/window_manager/wmserver:libwms",
     "//third_party/zlib:libz",
   ]
 
@@ -73,7 +73,7 @@ ohos_executable("render_service_client_app_demo") {
 ohos_executable("render_service_client_gravity_demo") {
   sources = [ "render_service_client_gravity_demo.cpp" ]
 
-  include_dirs = [ "//foundation/windowmanager/interfaces/innerkits" ]
+  include_dirs = [ "//foundation/window/window_manager/interfaces/innerkits" ]
 
   deps = [
     "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
@@ -81,8 +81,8 @@ ohos_executable("render_service_client_gravity_demo") {
     "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics:2d_graphics",
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:librender_service_base",
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:librender_service_client",
-    "//foundation/windowmanager/wm:libwm",
-    "//foundation/windowmanager/wmserver:libwms",
+    "//foundation/window/window_manager/wm:libwm",
+    "//foundation/window/window_manager/wmserver:libwms",
     "//third_party/zlib:libz",
   ]
 
@@ -95,7 +95,7 @@ ohos_executable("render_service_client_gravity_demo") {
 ohos_executable("render_service_client_scale_demo") {
   sources = [ "render_service_client_scale_demo.cpp" ]
 
-  include_dirs = [ "//foundation/windowmanager/interfaces/innerkits" ]
+  include_dirs = [ "//foundation/window/window_manager/interfaces/innerkits" ]
 
   deps = [
     "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
@@ -103,8 +103,8 @@ ohos_executable("render_service_client_scale_demo") {
     "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics:2d_graphics",
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:librender_service_base",
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:librender_service_client",
-    "//foundation/windowmanager/wm:libwm",
-    "//foundation/windowmanager/wmserver:libwms",
+    "//foundation/window/window_manager/wm:libwm",
+    "//foundation/window/window_manager/wmserver:libwms",
     "//third_party/zlib:libz",
   ]
 
@@ -117,7 +117,7 @@ ohos_executable("render_service_client_scale_demo") {
 ohos_executable("render_service_client_rs_animation_demo") {
   sources = [ "render_service_client_rs_animation_demo.cpp" ]
 
-  include_dirs = [ "//foundation/windowmanager/interfaces/innerkits" ]
+  include_dirs = [ "//foundation/window/window_manager/interfaces/innerkits" ]
 
   deps = [
     "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
@@ -125,8 +125,8 @@ ohos_executable("render_service_client_rs_animation_demo") {
     "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics:2d_graphics",
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:librender_service_base",
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:librender_service_client",
-    "//foundation/windowmanager/wm:libwm",
-    "//foundation/windowmanager/wmserver:libwms",
+    "//foundation/window/window_manager/wm:libwm",
+    "//foundation/window/window_manager/wmserver:libwms",
     "//third_party/zlib:libz",
   ]
 
@@ -195,14 +195,14 @@ ohos_executable("mirror_display_demo") {
 ohos_executable("render_service_client_surface_node_demo") {
   sources = [ "render_service_client_surface_node_demo.cpp" ]
 
-  include_dirs = [ "//foundation/windowmanager/interfaces/innerkits" ]
+  include_dirs = [ "//foundation/window/window_manager/interfaces/innerkits" ]
 
   deps = [
     "//foundation/distributedschedule/safwk/interfaces/innerkits/safwk:system_ability_fwk",
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:librender_service_base",
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:librender_service_client",
-    "//foundation/windowmanager/wm:libwm",
-    "//foundation/windowmanager/wmserver:libwms",
+    "//foundation/window/window_manager/wm:libwm",
+    "//foundation/window/window_manager/wmserver:libwms",
     "//third_party/zlib:libz",
   ]
 
