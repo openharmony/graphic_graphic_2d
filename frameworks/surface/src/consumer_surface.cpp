@@ -43,7 +43,7 @@ ConsumerSurface::~ConsumerSurface()
         BLOGNE("Wrong SptrRefCount! Queue Id:%{public}" PRIu64 " consumer_:%{public}d producer_:%{public}d",
             producer_->GetUniqueId(), consumer_->GetSptrRefCount(), producer_->GetSptrRefCount());
     }
-    producer_->CleanCache();
+    CleanCache();
     producer_->SetStatus(false);
     consumer_ = nullptr;
     producer_ = nullptr;
@@ -223,7 +223,10 @@ GSError ConsumerSurface::UnregisterConsumerListener()
 
 GSError ConsumerSurface::CleanCache()
 {
-    return producer_->CleanCache();
+    if (consumer_ == nullptr) {
+        return GSERROR_INVALID_ARGUMENTS;
+    }
+    return consumer_->CleanCache();
 }
 
 uint64_t ConsumerSurface::GetUniqueId() const

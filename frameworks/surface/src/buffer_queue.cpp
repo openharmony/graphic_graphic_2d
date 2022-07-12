@@ -781,9 +781,6 @@ uint32_t BufferQueue::GetDefaultUsage()
 GSError BufferQueue::CleanCache()
 {
     std::lock_guard<std::mutex> lockGuard(mutex_);
-    if (!GetStatus()) {
-        BLOGN_FAILURE_RET(GSERROR_NO_CONSUMER);
-    }
     for (auto &[id, _] : bufferQueueCache_) {
         if (onBufferDelete_ != nullptr) {
             onBufferDelete_(id);
