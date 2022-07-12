@@ -1,3 +1,18 @@
+/*
+ * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 #include "test_picture_files.h"
 
 namespace OHOS {
@@ -247,12 +262,14 @@ static unsigned char test_jpg_buffer[] = {
 };
 static unsigned int test_jpg_len = 2431;
 
-uint8_t* getTestPngBuffer(size_t& bufSize) {
+uint8_t* getTestPngBuffer(size_t& bufSize)
+{
     bufSize = test_png_len;
     return test_png_buffer;
 }
 
-uint8_t* getTestJpgBuffer(size_t& bufSize) {
+uint8_t* getTestJpgBuffer(size_t& bufSize)
+{
     bufSize = test_jpg_len;
     return test_jpg_buffer;
 }

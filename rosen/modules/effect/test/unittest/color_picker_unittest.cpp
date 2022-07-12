@@ -33,7 +33,6 @@ static constexpr OHOS::HiviewDFX::HiLogLabel LABEL_TEST = {
 
 namespace OHOS {
 namespace Rosen {
-
 /**
  * @tc.name: CreateColorPickerFromPixelmapTest001
  * @tc.desc: Ensure the ability of creating color picker from pixelmap.
@@ -202,7 +201,7 @@ HWTEST_F(ColorPickerUnittest, GetMainColorTest002, TestSize.Level1)
     uint32_t errorCode = 0;
     SourceOptions opts;
     opts.formatHint = "image/png";
-    std::unique_ptr<ImageSource> imageSource = 
+    std::unique_ptr<ImageSource> imageSource =
         ImageSource::CreateImageSource(buffer, bufferSize, opts, errorCode);
     ASSERT_EQ(errorCode, SUCCESS);
     ASSERT_NE(imageSource.get(), nullptr);
