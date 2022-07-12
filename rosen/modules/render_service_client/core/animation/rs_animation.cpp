@@ -322,10 +322,7 @@ RSAnimatableProperty RSAnimation::GetProperty() const
 
 void RSAnimation::UpdateStagingValue(bool isFirstStart)
 {
-    auto fillMode = GetFillMode();
-    if (fillMode == FillMode::FORWARDS || fillMode == FillMode::BOTH) {
-        OnUpdateStagingValue(isFirstStart);
-    }
+    OnUpdateStagingValue(isFirstStart);
 }
 } // namespace Rosen
 } // namespace OHOS
