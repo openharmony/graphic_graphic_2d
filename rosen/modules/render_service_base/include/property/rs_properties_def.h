@@ -40,7 +40,7 @@ enum class Gravity {
     RESIZE_ASPECT,
     RESIZE_ASPECT_FILL,
 
-    DEFAULT = RESIZE
+    DEFAULT = TOP_LEFT
 };
 
 class Decoration final {
