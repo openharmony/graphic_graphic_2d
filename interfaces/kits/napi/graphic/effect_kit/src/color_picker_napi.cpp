@@ -20,6 +20,7 @@
 #include "color.h"
 #include "pixel_map_napi.h"
 #include "hilog/log.h"
+#include "rs_trace.h"
 #include "effect_utils.h"
 #include "color_picker_napi.h"
 
@@ -214,10 +215,12 @@ static void CreateColorPickerFromPixelmapExecute(napi_env env, void* data)
     uint32_t errorCode = ERR_EFFECT_INVALID_VALUE;
     context->rColorPicker = ColorPicker::CreateColorPicker(context->rPixelMap, errorCode);
 
+    EFFECT_LOG_I("color.picker=%p, %u", context->rColorPicker.get(), errorCode);
     context->status = ERROR;
     if (IMG_NOT_NULL(context->rColorPicker) && errorCode == SUCCESS) {
         context->status = SUCCESS;
     }
+    EFFECT_LOG_I("create ColorPicker Execute.end");
 }
 
 void ColorPickerNapi::CreateColorPickerFromPixelmapComplete(napi_env env, napi_status status, void* data)
@@ -226,6 +229,7 @@ void ColorPickerNapi::CreateColorPickerFromPixelmapComplete(napi_env env, napi_s
     napi_value result = nullptr;
 
     EFFECT_LOG_I("Create ColorPicker Complete");
+    ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "CreateColorPickerFromPixelmapComplete");
     auto context = static_cast<ColorPickerAsyncContext*>(data);
     status = napi_get_reference_value(env, sConstructor_, &constructor);
     if (IMG_IS_OK(status)) {
@@ -240,6 +244,7 @@ void ColorPickerNapi::CreateColorPickerFromPixelmapComplete(napi_env env, napi_s
     }
 
     CommonCallbackRoutine(env, context, result);
+    ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
 }
 
 static void CreateColorPickerErrorComplete(napi_env env, napi_status status, void* data)
@@ -262,6 +267,7 @@ napi_value ColorPickerNapi::CreateColorPicker(napi_env env, napi_callback_info i
     size_t argCount = NUM_4;
     ImageType imgType = ImageType::TYPE_UNKOWN;
     EFFECT_LOG_I("[ColorPickerNapi]Create ColorPicker IN");
+    ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "ColorPickerNapi::CreateColorPicker");
     IMG_JS_ARGS(env, info, status, argCount, argValue, thisVar);
     IMG_NAPI_CHECK_RET_D(IMG_IS_OK(status), nullptr, EFFECT_LOG_E("fail to napi_get_cb_info"));
     std::unique_ptr<ColorPickerAsyncContext> asyncContext = std::make_unique<ColorPickerAsyncContext>();
@@ -298,6 +304,7 @@ napi_value ColorPickerNapi::CreateColorPicker(napi_env env, napi_callback_info i
         EFFECT_LOG_E("Create error");
     }
     IMG_NAPI_CHECK_RET_D(IMG_IS_OK(status), nullptr, EFFECT_LOG_E("fail to create async work"));
+    ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
     return result;
 }
 
@@ -346,6 +353,7 @@ static void GetMainColorExecute(napi_env env, void* data)
 static void GetMainColorComplete(napi_env env, napi_status status, void* data)
 {
     EFFECT_LOG_I("[ColorPicker]Get color Complete");
+    ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "GetMainColorComplete");
     napi_value result = nullptr;
     napi_get_undefined(env, &result);
     auto context = static_cast<ColorPickerAsyncContext*>(data);
@@ -359,6 +367,7 @@ static void GetMainColorComplete(napi_env env, napi_status status, void* data)
                  context->color.g,
                  context->color.b);
     CommonCallbackRoutine(env, context, result);
+    ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
 }
 
 napi_value ColorPickerNapi::GetMainColor(napi_env env, napi_callback_info info)
@@ -370,6 +379,7 @@ napi_value ColorPickerNapi::GetMainColor(napi_env env, napi_callback_info info)
     napi_value argValue[NUM_1] = {0};
     size_t argCount = 1;
     EFFECT_LOG_I("Get MainColor");
+    ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "ColorPickerNapi::GetMainColor");
     IMG_JS_ARGS(env, info, status, argCount, argValue, thisVar);
     IMG_NAPI_CHECK_RET_D(IMG_IS_OK(status),
                          nullptr,
@@ -400,6 +410,7 @@ napi_value ColorPickerNapi::GetMainColor(napi_env env, napi_callback_info info)
     IMG_NAPI_CHECK_RET_D(IMG_IS_OK(status),
                          nullptr,
                          EFFECT_LOG_E("fail to create async work"));
+    ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
     return result;
 }
 
@@ -442,6 +453,7 @@ napi_value ColorPickerNapi::GetMainColorSync(napi_env env, napi_callback_info in
     napi_value argValue[NUM_1] = {0};
     size_t argCount = 1;
     EFFECT_LOG_I("Get MainColor sync");
+    ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "ColorPickerNapi::GetMainColorSync");
     IMG_JS_ARGS(env, info, status, argCount, argValue, thisVar);
     IMG_NAPI_CHECK_RET_D(IMG_IS_OK(status),
                          nullptr,
@@ -468,6 +480,7 @@ napi_value ColorPickerNapi::GetMainColorSync(napi_env env, napi_callback_info in
     } else {
         napi_get_undefined(env, &result);
     }
+    ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
     return result;
 }
 

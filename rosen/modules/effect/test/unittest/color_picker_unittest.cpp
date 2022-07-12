@@ -20,6 +20,7 @@
 #include "pixel_map.h"
 #include "effect_errors.h"
 #include "hilog/log.h"
+#include "test_picture_files.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -32,6 +33,7 @@ static constexpr OHOS::HiviewDFX::HiLogLabel LABEL_TEST = {
 
 namespace OHOS {
 namespace Rosen {
+
 /**
  * @tc.name: CreateColorPickerFromPixelmapTest001
  * @tc.desc: Ensure the ability of creating color picker from pixelmap.
@@ -70,6 +72,10 @@ HWTEST_F(ColorPickerUnittest, CreateColorPickerFromPixelmapTest001, TestSize.Lev
 HWTEST_F(ColorPickerUnittest, CreateColorPickerFromPixelmapTest002, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "ColorPickerUnittest CreateColorPickerFromPixelmapTest002 start";
+    size_t bufferSize = 0;
+    uint8_t *buffer = getTestPngBuffer(bufferSize);
+    ASSERT_NE(buffer, nullptr);
+    
     /**
      * @tc.steps: step1. Create a ImageSource
      */
@@ -77,7 +83,7 @@ HWTEST_F(ColorPickerUnittest, CreateColorPickerFromPixelmapTest002, TestSize.Lev
     SourceOptions opts;
     opts.formatHint = "image/png";
     std::unique_ptr<ImageSource> imageSource =
-        ImageSource::CreateImageSource("/data/local/tmp/image/test.png", opts, errorCode);
+        ImageSource::CreateImageSource(buffer, bufferSize, opts, errorCode);
     ASSERT_EQ(errorCode, SUCCESS);
 
     /**
@@ -131,6 +137,9 @@ HWTEST_F(ColorPickerUnittest, CreateColorPickerFromPixelmapTest003, TestSize.Lev
 HWTEST_F(ColorPickerUnittest, GetMainColorTest001, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "ColorPickerUnittest GetMainColorTest001 start";
+    size_t bufferSize = 0;
+    uint8_t *buffer = getTestJpgBuffer(bufferSize);
+    ASSERT_NE(buffer, nullptr);
 
     /**
      * @tc.steps: step1. create image source by correct jpeg file path and jpeg format hit.
@@ -140,7 +149,7 @@ HWTEST_F(ColorPickerUnittest, GetMainColorTest001, TestSize.Level1)
     SourceOptions opts;
     opts.formatHint = "image/jpeg";
     std::unique_ptr<ImageSource> imageSource =
-        ImageSource::CreateImageSource("/data/local/tmp/image/test.jpg", opts, errorCode);
+        ImageSource::CreateImageSource(buffer, bufferSize, opts, errorCode);
     ASSERT_EQ(errorCode, SUCCESS);
     ASSERT_NE(imageSource.get(), nullptr);
 
@@ -183,6 +192,9 @@ HWTEST_F(ColorPickerUnittest, GetMainColorTest001, TestSize.Level1)
 HWTEST_F(ColorPickerUnittest, GetMainColorTest002, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "ColorPickerUnittest GetMainColorTest002 start";
+    size_t bufferSize = 0;
+    uint8_t *buffer = getTestPngBuffer(bufferSize);
+    ASSERT_NE(buffer, nullptr);
 
     /**
      * @tc.steps: step1. Create a ImageSource
@@ -190,9 +202,10 @@ HWTEST_F(ColorPickerUnittest, GetMainColorTest002, TestSize.Level1)
     uint32_t errorCode = 0;
     SourceOptions opts;
     opts.formatHint = "image/png";
-    std::unique_ptr<ImageSource> imageSource =
-        ImageSource::CreateImageSource("/data/local/tmp/image/test.png", opts, errorCode);
+    std::unique_ptr<ImageSource> imageSource = 
+        ImageSource::CreateImageSource(buffer, bufferSize, opts, errorCode);
     ASSERT_EQ(errorCode, SUCCESS);
+    ASSERT_NE(imageSource.get(), nullptr);
 
     /**
      * @tc.steps: step2. decode image source to pixel map by default decode options
