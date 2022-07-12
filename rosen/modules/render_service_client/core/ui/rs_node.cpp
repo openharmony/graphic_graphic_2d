@@ -127,14 +127,13 @@ void RSNode::FallbackAnimationsToRoot()
 
 void RSNode::AddAnimationInner(const std::shared_ptr<RSAnimation>& animation)
 {
-    animations_[animation->GetId()] = animation;
+    animations_.emplace(animation->GetId(), animation);
     animatingPropertyNum_[animation->GetProperty()]++;
 }
 
 void RSNode::RemoveAnimationInner(const std::shared_ptr<RSAnimation>& animation)
 {
-    auto animationItr = animations_.find(animation->GetId());
-    animations_.erase(animationItr);
+    animations_.erase(animation->GetId());
     animatingPropertyNum_[animation->GetProperty()]--;
     if (animatingPropertyNum_[animation->GetProperty()] == 0) {
         SetPropertyOnAllAnimationFinish(animation->GetProperty());
