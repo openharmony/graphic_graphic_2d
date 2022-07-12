@@ -113,7 +113,7 @@ void RSSurfaceNode::CreateNodeInRenderThread(bool isProxy)
 
 void RSSurfaceNode::AddChild(std::shared_ptr<RSBaseNode> child, int index)
 {
-    if (isChildOperationDisallowed_ && !isRenderServiceNode_) {
+    if (isChildOperationDisallowed_) {
         ROSEN_LOGE("RSSurfaceNode::AddChild for non RenderServiceNodeType surfaceNode is not allowed");
         return;
     }
@@ -122,7 +122,7 @@ void RSSurfaceNode::AddChild(std::shared_ptr<RSBaseNode> child, int index)
 
 void RSSurfaceNode::RemoveChild(std::shared_ptr<RSBaseNode> child)
 {
-    if (isChildOperationDisallowed_ && !isRenderServiceNode_) {
+    if (isChildOperationDisallowed_) {
         ROSEN_LOGE("RSSurfaceNode::RemoveChild for non RenderServiceNodeType surfaceNode is not allowed");
         return;
     }
@@ -131,7 +131,7 @@ void RSSurfaceNode::RemoveChild(std::shared_ptr<RSBaseNode> child)
 
 void RSSurfaceNode::ClearChildren()
 {
-    if (isChildOperationDisallowed_ && !isRenderServiceNode_) {
+    if (isChildOperationDisallowed_) {
         ROSEN_LOGE("RSSurfaceNode::ClearChildren for non RenderServiceNodeType surfaceNode is not allowed");
         return;
     }
