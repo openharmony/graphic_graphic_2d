@@ -69,12 +69,12 @@ public:
 
     const RSProperties& GetStagingProperties() const;
 
-    void SetBounds(const Vector4f& bounds);
-    void SetBounds(float positionX, float positionY, float width, float height);
-    void SetBoundsSize(const Vector2f& size);
-    void SetBoundsSize(float width, float height);
-    void SetBoundsWidth(float width);
-    void SetBoundsHeight(float height);
+    virtual void SetBounds(const Vector4f& bounds);
+    virtual void SetBounds(float positionX, float positionY, float width, float height);
+    virtual void SetBoundsSize(const Vector2f& size);
+    virtual void SetBoundsSize(float width, float height);
+    virtual void SetBoundsWidth(float width);
+    virtual void SetBoundsHeight(float height);
     void SetBoundsPosition(const Vector2f& boundsPosition);
     void SetBoundsPosition(float positionX, float positionY);
     void SetBoundsPositionX(float positionX);
@@ -199,7 +199,6 @@ private:
     void RemoveAnimationInner(const std::shared_ptr<RSAnimation>& animation);
     void FinishAnimationByProperty(const RSAnimatableProperty& property);
     void AnimationFinish(AnimationId animationId);
-    virtual void OnBoundsSizeChanged() const {};
 
     std::unordered_map<AnimationId, std::shared_ptr<RSAnimation>> animations_;
     std::unordered_map<RSAnimatableProperty, uint32_t> animatingPropertyNum_;
