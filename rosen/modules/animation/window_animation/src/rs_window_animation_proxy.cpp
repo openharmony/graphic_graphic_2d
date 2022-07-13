@@ -159,6 +159,14 @@ void RSWindowAnimationProxy::OnMinimizeWindow(const sptr<RSWindowAnimationTarget
 void RSWindowAnimationProxy::OnMinimizeAllWindow(std::vector<sptr<RSWindowAnimationTarget>> minimizingWindowsTarget,
     const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback)
 {
+    if (minimizingWindowsTarget.empty()) {
+        if (finishedCallback != nullptr) {
+            finishedCallback->OnAnimationFinished();
+        }
+        WALOGE("The minimizing Windows vector is empty!");
+        return;
+    }
+
     MessageParcel data;
     MessageParcel reply;
     MessageOption option(MessageOption::TF_ASYNC);
