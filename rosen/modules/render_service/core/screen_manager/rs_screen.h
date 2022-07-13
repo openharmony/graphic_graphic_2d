@@ -23,7 +23,6 @@
 #include <display_type.h>
 #include <hdi_output.h>
 #include <hdi_screen.h>
-#include <hilog/log.h>
 #include <screen_manager/screen_types.h>
 
 namespace OHOS {
@@ -133,9 +132,6 @@ public:
     uint32_t GetScreenSkipFrameInterval() const override;
 
 private:
-    // [PLANNING]: fixme -- domain 0 only for debug.
-    static constexpr HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, 0, "RSScreen" };
-
     // create hdiScreen and get some information from drivers.
     void PhysicalScreenInit() noexcept;
 

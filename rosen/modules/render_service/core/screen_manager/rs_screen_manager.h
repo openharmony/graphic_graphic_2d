@@ -23,7 +23,6 @@
 #include <unordered_map>
 
 #include <hdi_backend.h>
-#include <hilog/log.h>
 #include <ipc_callbacks/screen_change_callback.h>
 #include <refbase.h>
 #include <screen_manager/rs_screen_props.h>
@@ -251,9 +250,6 @@ public:
 private:
     RSScreenManager();
     ~RSScreenManager() noexcept override;
-
-    // [PLANNING]: fixme -- domain 0 only for debug.
-    static constexpr HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, 0, "RSScreenManager" };
 
     static void OnHotPlug(std::shared_ptr<HdiOutput> &output, bool connected, void *data);
     void OnHotPlugEvent(std::shared_ptr<HdiOutput> &output, bool connected);
