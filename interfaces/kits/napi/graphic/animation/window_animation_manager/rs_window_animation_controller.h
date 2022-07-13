@@ -24,6 +24,7 @@
 #include <rs_window_animation_finished_callback.h>
 #include <rs_window_animation_stub.h>
 #include <rs_window_animation_target.h>
+#include "rs_window_animation_callback.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -35,19 +36,22 @@ public:
     void SetJsController(NativeValue* jsController);
 
     void OnStartApp(StartingAppType type, const sptr<RSWindowAnimationTarget>& startingWindowTarget,
-        const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback);
+        const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback) override;
 
     void OnAppTransition(const sptr<RSWindowAnimationTarget>& fromWindowTarget,
         const sptr<RSWindowAnimationTarget>& toWindowTarget,
-        const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback);
+        const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback) override;
 
     void OnMinimizeWindow(const sptr<RSWindowAnimationTarget>& minimizingWindowTarget,
-        const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback);
+        const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback) override;
+
+    void OnMinimizeAllWindow(std::vector<sptr<RSWindowAnimationTarget>> minimizingWindowsTarget,
+        const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback) override;
 
     void OnCloseWindow(const sptr<RSWindowAnimationTarget>& closingWindowTarget,
-        const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback);
+        const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback) override;
 
-    void OnScreenUnlock(const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback);
+    void OnScreenUnlock(const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback) override;
 
 private:
     void HandleOnStartApp(StartingAppType type, const sptr<RSWindowAnimationTarget>& startingWindowTarget,

@@ -29,20 +29,23 @@ public:
     explicit RSWindowAnimationProxy(const sptr<IRemoteObject>& impl);
     virtual ~RSWindowAnimationProxy() = default;
 
-    virtual void OnStartApp(StartingAppType type, const sptr<RSWindowAnimationTarget>& startingWindowTarget,
-        const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback);
+    void OnStartApp(StartingAppType type, const sptr<RSWindowAnimationTarget>& startingWindowTarget,
+        const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback) override;
 
-    virtual void OnAppTransition(const sptr<RSWindowAnimationTarget>& fromWindowTarget,
+    void OnAppTransition(const sptr<RSWindowAnimationTarget>& fromWindowTarget,
         const sptr<RSWindowAnimationTarget>& toWindowTarget,
-        const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback);
+        const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback) override;
 
-    virtual void OnMinimizeWindow(const sptr<RSWindowAnimationTarget>& minimizingWindowTarget,
-        const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback);
+    void OnMinimizeWindow(const sptr<RSWindowAnimationTarget>& minimizingWindowTarget,
+        const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback) override;
 
-    virtual void OnCloseWindow(const sptr<RSWindowAnimationTarget>& closingWindowTarget,
-        const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback);
+    void OnMinimizeAllWindow(std::vector<sptr<RSWindowAnimationTarget>> minimizingWindowsTarget,
+        const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback) override;
 
-    virtual void OnScreenUnlock(const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback);
+    void OnCloseWindow(const sptr<RSWindowAnimationTarget>& closingWindowTarget,
+        const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback) override;
+
+    void OnScreenUnlock(const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback) override;
 
 private:
     bool WriteInterfaceToken(MessageParcel& data);

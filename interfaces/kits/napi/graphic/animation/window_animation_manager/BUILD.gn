@@ -22,6 +22,7 @@ ohos_shared_library("windowanimationmanager_napi") {
   ]
 
   sources = [
+    "rs_window_animation_callback.cpp",
     "rs_window_animation_controller.cpp",
     "rs_window_animation_manager.cpp",
     "rs_window_animation_module.cpp",

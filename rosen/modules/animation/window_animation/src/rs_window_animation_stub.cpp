@@ -25,6 +25,7 @@ const std::map<uint32_t, WindowAnimationStubFunc> RSWindowAnimationStub::stubFun
     std::make_pair(RSIWindowAnimationController::ON_START_APP, &RSWindowAnimationStub::StartApp),
     std::make_pair(RSIWindowAnimationController::ON_APP_TRANSITION, &RSWindowAnimationStub::AppTransition),
     std::make_pair(RSIWindowAnimationController::ON_MINIMIZE_WINDOW, &RSWindowAnimationStub::MinimizeWindow),
+    std::make_pair(RSIWindowAnimationController::ON_MINIMIZE_ALLWINDOW, &RSWindowAnimationStub::MinimizeAllWindow),
     std::make_pair(RSIWindowAnimationController::ON_CLOSE_WINDOW, &RSWindowAnimationStub::CloseWindow),
     std::make_pair(RSIWindowAnimationController::ON_SCREEN_UNLOCK, &RSWindowAnimationStub::ScreenUnlock),
 };
@@ -114,6 +115,32 @@ int RSWindowAnimationStub::MinimizeWindow(MessageParcel& data, MessageParcel& re
     }
 
     OnMinimizeWindow(minimizingWindow, finishedCallback);
+    return ERR_NONE;
+}
+
+int RSWindowAnimationStub::MinimizeAllWindow(MessageParcel& data, MessageParcel& reply)
+{
+    WALOGD("Window animation minimize all window!");
+    size_t dataCount = data.ReadUint32();
+    std::vector<sptr<RSWindowAnimationTarget>> minimizingWindows;
+    for (size_t i = 0; i < dataCount; i++) {
+        sptr<RSWindowAnimationTarget> minimizingWindow(data.ReadParcelable<RSWindowAnimationTarget>());
+        if (minimizingWindow == nullptr) {
+            WALOGE("Failed to read minimizing window!");
+            return ERR_INVALID_DATA;
+        }
+        minimizingWindows.push_back(minimizingWindow);
+    }
+
+    sptr<IRemoteObject> finishcallbackObject = data.ReadRemoteObject();
+    sptr<RSIWindowAnimationFinishedCallback> finishedCallback =
+        iface_cast<RSIWindowAnimationFinishedCallback>(finishcallbackObject);
+    if (finishedCallback == nullptr) {
+        WALOGE("Failed to read animation finished callback!");
+        return ERR_INVALID_DATA;
+    }
+
+    OnMinimizeAllWindow(minimizingWindows, finishedCallback);
     return ERR_NONE;
 }
 
