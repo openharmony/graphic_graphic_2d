@@ -26,7 +26,10 @@ ohos_unittest("EffectTest") {
     "//utils/native/base:utils",
   ]
 
-  sources = [ "color_picker_unittest.cpp" ]
+  sources = [
+    "color_picker_unittest.cpp",
+    "test_picture_files.cpp",
+  ]
 
   if (effect_enable_gpu) {
     sources += [

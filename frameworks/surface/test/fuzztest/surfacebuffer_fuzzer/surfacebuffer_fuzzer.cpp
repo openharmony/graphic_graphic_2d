@@ -72,7 +72,7 @@ namespace OHOS {
         pos = 0;
 
         // get data
-        int seqNum = GetData<int>();
+        uint32_t seqNum = GetData<uint32_t>();
         ColorGamut colorGamut = GetData<ColorGamut>();
         TransformType transform = GetData<TransformType>();
         int32_t width = GetData<int32_t>();

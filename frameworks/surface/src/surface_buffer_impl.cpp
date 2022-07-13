@@ -74,25 +74,25 @@ SurfaceBufferImpl::SurfaceBufferImpl()
         static std::mutex mutex;
         mutex.lock();
 
-        static int sequence_number_ = 0;
+        static uint32_t sequence_number_ = 0;
         sequenceNumber_ = sequence_number_++;
 
         mutex.unlock();
     }
     bedata_ = new BufferExtraDataImpl;
-    BLOGD("ctor +[%{public}d]", sequenceNumber_);
+    BLOGD("ctor +[%{public}u]", sequenceNumber_);
 }
 
-SurfaceBufferImpl::SurfaceBufferImpl(int seqNum)
+SurfaceBufferImpl::SurfaceBufferImpl(uint32_t seqNum)
 {
     sequenceNumber_ = seqNum;
     bedata_ = new BufferExtraDataImpl;
-    BLOGD("ctor =[%{public}d]", sequenceNumber_);
+    BLOGD("ctor =[%{public}u]", sequenceNumber_);
 }
 
 SurfaceBufferImpl::~SurfaceBufferImpl()
 {
-    BLOGD("dtor ~[%{public}d] handle_ %{public}p", sequenceNumber_, handle_);
+    BLOGD("dtor ~[%{public}u] handle_ %{public}p", sequenceNumber_, handle_);
     FreeBufferHandleLocked();
 }
 

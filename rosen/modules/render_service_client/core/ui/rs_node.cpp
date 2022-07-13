@@ -341,7 +341,6 @@ void RSNode::SetBounds(const Vector4f& bounds)
     }
 
     SET_ANIMATABLE_PROPERTY(Bounds, bounds, RSAnimatableProperty::BOUNDS);
-    OnBoundsSizeChanged();
 }
 
 void RSNode::SetBounds(float positionX, float positionY, float width, float height)
@@ -352,7 +351,6 @@ void RSNode::SetBounds(float positionX, float positionY, float width, float heig
 void RSNode::SetBoundsSize(const Vector2f& size)
 {
     SET_ANIMATABLE_PROPERTY(BoundsSize, size, RSAnimatableProperty::BOUNDS_SIZE);
-    OnBoundsSizeChanged();
 }
 
 void RSNode::SetBoundsSize(float width, float height)
@@ -363,13 +361,11 @@ void RSNode::SetBoundsSize(float width, float height)
 void RSNode::SetBoundsWidth(float width)
 {
     SET_ANIMATABLE_PROPERTY(BoundsWidth, width, RSAnimatableProperty::BOUNDS_WIDTH);
-    OnBoundsSizeChanged();
 }
 
 void RSNode::SetBoundsHeight(float height)
 {
     SET_ANIMATABLE_PROPERTY(BoundsHeight, height, RSAnimatableProperty::BOUNDS_HEIGHT);
-    OnBoundsSizeChanged();
 }
 
 void RSNode::SetBoundsPosition(const Vector2f& boundsPosition)

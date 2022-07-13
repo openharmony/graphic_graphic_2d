@@ -236,7 +236,7 @@ void HdiOutput::DumpFps(std::string &result, const std::string &arg) const
     if (arg == "composer") {
         result += "The fps of scrren [Id:" + std::to_string(screenId_) + "] is:\n";
         const int32_t offset = compTimeRcdIndex_;
-        for (int i = 0; i < COMPOSITION_RECORDS_NUM; i++) {
+        for (uint32_t i = 0; i < COMPOSITION_RECORDS_NUM; i++) {
             uint32_t order = (offset + i) % COMPOSITION_RECORDS_NUM;
             result += std::to_string(compositionTimeRecords_[order]) + "\n";
         }

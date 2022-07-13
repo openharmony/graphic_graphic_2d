@@ -31,7 +31,7 @@ public:
     static IDisplayGrallocSptr GetDisplayGralloc();
 
     SurfaceBufferImpl();
-    SurfaceBufferImpl(int seqNum);
+    SurfaceBufferImpl(uint32_t seqNum);
     virtual ~SurfaceBufferImpl();
 
     static SurfaceBufferImpl *FromBase(const sptr<SurfaceBuffer>& buffer);
