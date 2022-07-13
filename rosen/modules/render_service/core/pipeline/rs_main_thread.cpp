@@ -82,16 +82,25 @@ void RSMainThread::Init()
 
 }
 
+void RSMainThread::RsEventParamDump(std::string& dumpString)
+{
+    dumpString.append("\n");
+    dumpString.append("-- EventParamListDump: \n");
+    RSEventManager::Instance().DumpAllEventParam(dumpString);
+}
+
 void RSMainThread::InitRSEventDetector()
 {
     // default Threshold value of Timeout Event: 2000ms 
     rsCompositionTimeoutDetector_ = RSBaseEventDetector::CreateRSTimeOutDetector(2000, "RS_COMPOSITION_TIMEOUT");
     RSEventManager::Instance().AddEvent(rsCompositionTimeoutDetector_, 60000); // report Internal 1min:60s
+    RS_LOGD("InitRSEventDetector  finish");
 }
 
 void RSMainThread::SetRSEventDetectorLoopStartTag()
 {
     if (rsCompositionTimeoutDetector_ != nullptr) {
+        RS_LOGD("SetRSEventDetectorLoopStartTag  SetLoopStartTag");
         rsCompositionTimeoutDetector_->SetLoopStartTag();
     }
 }
@@ -99,6 +108,7 @@ void RSMainThread::SetRSEventDetectorLoopStartTag()
 void RSMainThread::SetRSEventDetectorLoopFinishTag()
 {
     if (rsCompositionTimeoutDetector_ != nullptr) {
+         RS_LOGD("SetRSEventDetectorLoopStartTag  SetRSEventDetectorLoopFinishTag");
         rsCompositionTimeoutDetector_->SetLoopFinishTag();
     }
 }
