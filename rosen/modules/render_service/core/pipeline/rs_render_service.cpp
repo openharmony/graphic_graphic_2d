@@ -175,6 +175,7 @@ void RSRenderService::DoDump(std::unordered_set<std::u16string>& argSets, std::s
     std::u16string arg4(u"nodeNotOnTree");
     std::u16string arg5(u"allSurfacesMem");
     std::u16string arg6(u"RSTree");
+    std::u16string arg7(u"EventParamList");
 
     if (argSets.size() == 0 || argSets.count(arg1) != 0) {
         mainThread_->ScheduleTask([this, &dumpString]() {
@@ -199,6 +200,11 @@ void RSRenderService::DoDump(std::unordered_set<std::u16string>& argSets, std::s
     if (argSets.count(arg6) != 0) {
         mainThread_->ScheduleTask([this, &dumpString]() {
             mainThread_->RenderServiceTreeDump(dumpString);
+        }).wait();
+    }
+    if (argSets.count(arg7) != 0) {
+        mainThread_->ScheduleTask([this, &dumpString]() {
+            mainThread_->RsEventParamDump(dumpString);
         }).wait();
     }
     auto iter = argSets.find(arg3);

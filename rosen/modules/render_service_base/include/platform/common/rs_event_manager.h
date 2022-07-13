@@ -16,46 +16,44 @@
 #ifndef RENDER_SERVICE_BASE_COMMON_RS_EVENT_MANAGER_H
 #define RENDER_SERVICE_BASE_COMMON_RS_EVENT_MANAGER_H
 
-#include<chrono>
-#include<mutex>
+#include <chrono>
 #include "rs_event_detector.h"
 
 namespace OHOS {
 namespace Rosen {
-
-
 struct RSEventState final {
-	int eventIntervalMs = 60000; // unit:ms 60000 the mini time interval between two event 
-	uint64_t prevEventTimeStampMs = 0;
+    int eventIntervalMs = 60000; // unit:ms 60000 the mini time interval between two event
+    uint64_t prevEventTimeStampMs = 0;
 };
 
-class RSEventManager final
-{
+class RSEventManager final {
 public:
-	static RSEventManager& Instance();
-	void UpdateParam(); // Update Param: timeout\Event Frequency...
-	uint64_t GetSysTimeMs();
-	void AddEvent(const std::shared_ptr<RSBaseEventDetector>& detectorPtr, int eventIntervalMs = 60000); // 60000ms: 1min
-	void RemoveEvent(std::string stringId);
+    static RSEventManager& Instance();
+    void UpdateParam(); // Update Param: timeout\Event Frequency...
+    uint64_t GetSysTimeMs();
+    void AddEvent(const std::shared_ptr<RSBaseEventDetector>& detectorPtr,
+    int eventIntervalMs = 60000); // 60000ms: 1min
+    void RemoveEvent(std::string stringId);
+    void DumpAllEventParam(std::string& dumpString);
 private:
-	RSEventManager() = default;
-	~RSEventManager();
-	RSEventManager(const RSEventManager&) = delete;
-	RSEventManager(const RSEventManager&&) = delete;
-	RSEventManager& operator=(const RSEventManager&) = delete;
-	RSEventManager& operator=(const RSEventManager&&) = delete;
-	void UpdateDetectorParam(std::shared_ptr<RSBaseEventDetector> detectorPtr);
-	void UpdateEventIntervalMs(std::shared_ptr<RSBaseEventDetector> detectorPtr);
-	void EventReport(const RSSysEventMsg& eventMsg);
-	void Clear();
-
-	std::map<std::string, std::weak_ptr<RSBaseEventDetector>> eventDetectorList_;
-	std::map<std::string, RSEventState> eventStateList_;
-	std::mutex listMutex_;
-	int updateCount_ = 0;
-	int updateThreshold_ = 200; // every 200 times, update param
+    RSEventManager() = default;
+    ~RSEventManager();
+    RSEventManager(const RSEventManager&) = delete;
+    RSEventManager(const RSEventManager&&) = delete;
+    RSEventManager& operator=(const RSEventManager&) = delete;
+    RSEventManager& operator=(const RSEventManager&&) = delete;
+    void UpdateDetectorParam(std::shared_ptr<RSBaseEventDetector> detectorPtr);
+    void UpdateEventIntervalMs(std::shared_ptr<RSBaseEventDetector> detectorPtr);
+    void EventReport(const RSSysEventMsg& eventMsg);
+    void Clear();
+    void DumpDetectorParam(std::shared_ptr<RSBaseEventDetector> detectorPtr, std::string& dumpString);
+    void DumpEventIntervalMs(std::shared_ptr<RSBaseEventDetector> detectorPtr, std::string& dumpString);
+    std::map<std::string, std::weak_ptr<RSBaseEventDetector>> eventDetectorList_;
+    std::map<std::string, RSEventState> eventStateList_;
+    std::mutex listMutex_;
+    int updateCount_ = 0;
+    int updateThreshold_ = 200; // every 200 times, update param
 };
-
 }
 }
 #endif // RENDER_SERVICE_BASE_COMMON_RS_EVENT_MANAGER_H

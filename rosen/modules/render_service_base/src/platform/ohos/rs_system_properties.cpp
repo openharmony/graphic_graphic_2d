@@ -56,6 +56,5 @@ std::string RSSystemProperties::GetRSEventProperty(const std::string &paraName)
 {
     return system::GetParameter(paraName, "0");
 }
-
 } // namespace Rosen
 } // namespace OHOS

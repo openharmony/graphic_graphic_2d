@@ -54,5 +54,5 @@ JANK_FRAME_SKIP:
   MSG: {type: STRING, desc: message}
 
 RS_COMPOSITION_TIMEOUT:
-  __BASE: {type: FAULT, level: MINOR, desc: rs composition timeout}
+  __BASE: {type: STATISTIC, level: MINOR, desc: rs composition timeout}
   MSG: {type: STRING, desc: message}

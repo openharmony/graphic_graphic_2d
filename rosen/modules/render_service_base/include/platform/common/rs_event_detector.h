@@ -23,7 +23,6 @@
 
 namespace OHOS {
 namespace Rosen {
-
 struct RSSysEventMsg final {
 	std::string stringId;
 	std::string msg;
@@ -33,68 +32,67 @@ struct RSSysEventMsg final {
 class RSBaseEventDetector {
 public:
     using EventReportCallback = std::function<void(const RSSysEventMsg&)>;
-	static std::shared_ptr<RSBaseEventDetector> CreateRSTimeOutDetector(int timeOutThresholdMs, std::string detectorStringId);
-	virtual ~RSBaseEventDetector()
+    static std::shared_ptr<RSBaseEventDetector> CreateRSTimeOutDetector(int timeOutThresholdMs, std::string detectorStringId);
+    virtual ~RSBaseEventDetector()
     {
-		ClearParamList();
+    	ClearParamList();
         RS_LOGD("RSBaseEventDetector::~RSBaseEventDetector finish");
-	}
+    }
 
-	std::string GetStringId()
+    std::string GetStringId()
     {
-		return stringId_;
-	}
+    	return stringId_;
+    }
 
     std::map<std::string, std::string> GetParamList()
     {
-		return paramList_;
-	}
+    	return paramList_;
+    }
 	
-	void AddEventReportCallback(const EventReportCallback& callback)
-	{
-		eventCallback_ = callback;
-	}
+    void AddEventReportCallback(const EventReportCallback& callback)
+    {
+    	eventCallback_ = callback;
+    }
 
-	virtual void SetParam(const std::string& key, const std::string& value) = 0;
-	virtual void SetLoopStartTag() = 0;
-	virtual void SetLoopFinishTag() = 0;
+    virtual void SetParam(const std::string& key, const std::string& value) = 0;
+    virtual void SetLoopStartTag() = 0;
+    virtual void SetLoopFinishTag() = 0;
 
 protected:
-	RSBaseEventDetector() = default;
+    RSBaseEventDetector() = default;
     RSBaseEventDetector(std::string stringId)
     {
-		stringId_ = stringId;
-	}
-
+    	stringId_ = stringId;
+    }
+    
     void ClearParamList()
     {
         paramList_.clear();
-		std::map<std::string, std::string> tempParamList;
-		paramList_.swap(tempParamList);
+    	std::map<std::string, std::string> tempParamList;
+    	paramList_.swap(tempParamList);
         RS_LOGD("RSBaseEventDetector::ClearParamList finish");
     }
 
-	std::map<std::string, std::string> paramList_; // key: paramName 
-	std::string stringId_;
-	EventReportCallback eventCallback_;
+    std::map<std::string, std::string> paramList_; // key: paramName 
+    std::string stringId_;
+    EventReportCallback eventCallback_;
 };
 
 
 class RSTimeOutDetector : public RSBaseEventDetector {
 public:
-	RSTimeOutDetector(int timeOutThresholdMs, std::string detectorStringId);
-	~RSTimeOutDetector() = default;
-	void SetParam(const std::string& key, const std::string& value) override;
-	void SetLoopStartTag() override;
-	void SetLoopFinishTag() override;
+    RSTimeOutDetector(int timeOutThresholdMs, std::string detectorStringId);
+    ~RSTimeOutDetector() = default;
+    void SetParam(const std::string& key, const std::string& value) override;
+    void SetLoopStartTag() override;
+    void SetLoopFinishTag() override;
 private:
-	void EventReport(uint64_t costTimeMs);
-	int timeOutThredsholdMs_ = INT_MAX; // default: No Detector 
-	uint64_t startTimeStampMs_ = 0;
+    void EventReport(uint64_t costTimeMs);
+    int timeOutThredsholdMs_ = INT_MAX; // default: No Detector 
+    uint64_t startTimeStampMs_ = 0;
 };
 
 }
 }
-
 
 #endif // RENDER_SERVICE_BASE_COMMON_RS_DETECTOR_H
