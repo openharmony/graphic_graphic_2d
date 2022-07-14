@@ -195,12 +195,13 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
     }
 
     canvas_->concat(geoPtr->GetMatrix());
-    clipRect_ = SkRect::MakeWH(property.GetBoundsWidth(), property.GetBoundsHeight());
+    SkRect boundsRect = SkRect::MakeWH(property.GetBoundsWidth(), property.GetBoundsHeight());
+    clipRect_ = boundsRect;
     frameGravity_ = property.GetFrameGravity();
     canvas_->clipRect(clipRect_);
 
-    auto backgroundColor = SkColor4f::FromBytes_RGBA(property.GetBackgroundColor().AsRgbaInt()).toSkColor();
-    if (backgroundColor != SK_ColorTRANSPARENT) {
+    auto backgroundColor = static_cast<SkColor>(property.GetBackgroundColor().AsArgbInt());
+    if (SkColorGetA(backgroundColor) != SK_AlphaTRANSPARENT) {
         canvas_->clear(backgroundColor);
     }
 
@@ -219,7 +220,7 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
             const float frameHeight = buffer->GetSurfaceBufferHeight();
             SkMatrix gravityMatrix;
             (void)RSPropertiesPainter::GetGravityMatrix(frameGravity_,
-                RectF {0.0f, 0.0f, clipRect_.width(), clipRect_.height()},
+                RectF {0.0f, 0.0f, boundsRect.width(), boundsRect.height()},
                 frameWidth, frameHeight, gravityMatrix);
             canvas_->concat(gravityMatrix);
 

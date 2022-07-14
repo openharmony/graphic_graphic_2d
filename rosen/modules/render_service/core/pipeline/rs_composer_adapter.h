@@ -56,18 +56,19 @@ public:
 
 private:
     // check if the node is out of the screen region.
-    bool IsOutOfScreenRegion(RSSurfaceRenderNode& node);
-    ComposeInfo BuildComposeInfo(RSSurfaceRenderNode& node);
-    ComposeInfo BuildComposeInfo(RSDisplayRenderNode& node);
+    bool IsOutOfScreenRegion(RSSurfaceRenderNode& node) const;
+    ComposeInfo BuildComposeInfo(RSSurfaceRenderNode& node) const;
+    ComposeInfo BuildComposeInfo(RSDisplayRenderNode& node) const;
     void SetComposeInfoToLayer(
         const LayerInfoPtr& layer,
         const ComposeInfo& info,
         const sptr<Surface>& surface,
-        RSBaseRenderNode* node);
+        RSBaseRenderNode* node) const;
+    void DealWithNodeGravity(RSSurfaceRenderNode& node, ComposeInfo& info) const;
 
-    void LayerRotate(const LayerInfoPtr& layer);
-    void LayerCrop(const LayerInfoPtr& layer);
-    void LayerScaleDown(const LayerInfoPtr& layer);
+    void LayerRotate(const LayerInfoPtr& layer) const;
+    void LayerCrop(const LayerInfoPtr& layer) const;
+    void LayerScaleDown(const LayerInfoPtr& layer) const;
 
     void OnPrepareComplete(sptr<Surface>& surface, const PrepareCompleteParam& param, void* data);
     HdiBackend *hdiBackend_ = nullptr;
