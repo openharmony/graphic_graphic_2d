@@ -136,6 +136,9 @@ void RSNode::RemoveAnimationInner(const std::shared_ptr<RSAnimation>& animation)
     auto animationItr = animations_.find(animation->GetId());
     animations_.erase(animationItr);
     animatingPropertyNum_[animation->GetProperty()]--;
+    if (animatingPropertyNum_[animation->GetProperty()] == 0) {
+        SetPropertyOnAllAnimationFinish(animation->GetProperty());
+    }
 }
 
 void RSNode::FinishAnimationByProperty(const RSAnimatableProperty& property)
@@ -291,6 +294,15 @@ bool IsValid(const Vector4f& value)
             }                                                                                           \
         }                                                                                               \
         stagingProperties_.Set##propertyName(value);                                                    \
+    } while (0)
+
+#define SET_NONANIMATABLE_PROPERTY_ON_REMOVE(propertyName)                                              \
+    do {                                                                                                \
+        auto value = stagingProperties_.Get##propertyName();                                            \
+        command = std::make_unique<RSNodeSet##propertyName>(GetId(), value);                            \
+        if (NeedForcedSendToRemote()) {                                                                 \
+            commandForRemote = std::make_unique<RSNodeSet##propertyName>(GetId(), value);               \
+        }                                                                                               \
     } while (0)
 
 #define CREATE_PATH_ANIMATION(propertyName, value, property)                                            \
@@ -794,6 +806,214 @@ void RSNode::AnimationFinish(AnimationId animationId)
 
     animation->CallFinishCallback();
     RemoveAnimationInner(animation);
+}
+
+// This function will be optimized after the Modifier is committed
+void RSNode::SetPropertyOnAllAnimationFinish(const RSAnimatableProperty& property)
+{
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy == nullptr) {
+        return;
+    }
+    std::unique_ptr<RSCommand> command;
+    std::unique_ptr<RSCommand> commandForRemote;
+
+    switch (property) {
+        case RSAnimatableProperty::BOUNDS: {
+            SET_NONANIMATABLE_PROPERTY_ON_REMOVE(Bounds);
+            break;
+        }
+        case RSAnimatableProperty::BOUNDS_SIZE: {
+            SET_NONANIMATABLE_PROPERTY_ON_REMOVE(BoundsSize);
+            break;
+        }
+        case RSAnimatableProperty::BOUNDS_WIDTH: {
+            SET_NONANIMATABLE_PROPERTY_ON_REMOVE(BoundsWidth);
+            break;
+        }
+        case RSAnimatableProperty::BOUNDS_HEIGHT: {
+            SET_NONANIMATABLE_PROPERTY_ON_REMOVE(BoundsHeight);
+            break;
+        }
+        case RSAnimatableProperty::BOUNDS_POSITION: {
+            SET_NONANIMATABLE_PROPERTY_ON_REMOVE(BoundsPosition);
+            break;
+        }
+        case RSAnimatableProperty::BOUNDS_POSITION_X: {
+            SET_NONANIMATABLE_PROPERTY_ON_REMOVE(BoundsPositionX);
+            break;
+        }
+        case RSAnimatableProperty::BOUNDS_POSITION_Y: {
+            SET_NONANIMATABLE_PROPERTY_ON_REMOVE(BoundsPositionY);
+            break;
+        }
+        case RSAnimatableProperty::FRAME: {
+            SET_NONANIMATABLE_PROPERTY_ON_REMOVE(Frame);
+            break;
+        }
+        case RSAnimatableProperty::FRAME_SIZE: {
+            SET_NONANIMATABLE_PROPERTY_ON_REMOVE(FrameSize);
+            break;
+        }
+        case RSAnimatableProperty::FRAME_WIDTH: {
+            SET_NONANIMATABLE_PROPERTY_ON_REMOVE(FrameWidth);
+            break;
+        }
+        case RSAnimatableProperty::FRAME_HEIGHT: {
+            SET_NONANIMATABLE_PROPERTY_ON_REMOVE(FrameHeight);
+            break;
+        }
+        case RSAnimatableProperty::FRAME_POSITION: {
+            SET_NONANIMATABLE_PROPERTY_ON_REMOVE(FramePosition);
+            break;
+        }
+        case RSAnimatableProperty::FRAME_POSITION_X: {
+            SET_NONANIMATABLE_PROPERTY_ON_REMOVE(FramePositionX);
+            break;
+        }
+        case RSAnimatableProperty::FRAME_POSITION_Y: {
+            SET_NONANIMATABLE_PROPERTY_ON_REMOVE(FramePositionY);
+            break;
+        }
+        case RSAnimatableProperty::POSITION_Z: {
+            SET_NONANIMATABLE_PROPERTY_ON_REMOVE(PositionZ);
+            break;
+        }
+        case RSAnimatableProperty::PIVOT: {
+            SET_NONANIMATABLE_PROPERTY_ON_REMOVE(Pivot);
+            break;
+        }
+        case RSAnimatableProperty::PIVOT_X: {
+            SET_NONANIMATABLE_PROPERTY_ON_REMOVE(PivotX);
+            break;
+        }
+        case RSAnimatableProperty::PIVOT_Y: {
+            SET_NONANIMATABLE_PROPERTY_ON_REMOVE(PivotY);
+            break;
+        }
+        case RSAnimatableProperty::CORNER_RADIUS: {
+            SET_NONANIMATABLE_PROPERTY_ON_REMOVE(CornerRadius);
+            break;
+        }
+        case RSAnimatableProperty::ROTATION: {
+            SET_NONANIMATABLE_PROPERTY_ON_REMOVE(Rotation);
+            break;
+        }
+        case RSAnimatableProperty::ROTATION_X: {
+            SET_NONANIMATABLE_PROPERTY_ON_REMOVE(RotationX);
+            break;
+        }
+        case RSAnimatableProperty::ROTATION_Y: {
+            SET_NONANIMATABLE_PROPERTY_ON_REMOVE(RotationY);
+            break;
+        }
+        case RSAnimatableProperty::SCALE: {
+            SET_NONANIMATABLE_PROPERTY_ON_REMOVE(Scale);
+            break;
+        }
+        case RSAnimatableProperty::SCALE_X: {
+            SET_NONANIMATABLE_PROPERTY_ON_REMOVE(ScaleX);
+            break;
+        }
+        case RSAnimatableProperty::SCALE_Y: {
+            SET_NONANIMATABLE_PROPERTY_ON_REMOVE(ScaleY);
+            break;
+        }
+        case RSAnimatableProperty::TRANSLATE: {
+            SET_NONANIMATABLE_PROPERTY_ON_REMOVE(Translate);
+            break;
+        }
+        case RSAnimatableProperty::TRANSLATE_X: {
+            SET_NONANIMATABLE_PROPERTY_ON_REMOVE(TranslateX);
+            break;
+        }
+        case RSAnimatableProperty::TRANSLATE_Y: {
+            SET_NONANIMATABLE_PROPERTY_ON_REMOVE(TranslateY);
+            break;
+        }
+        case RSAnimatableProperty::TRANSLATE_Z: {
+            SET_NONANIMATABLE_PROPERTY_ON_REMOVE(TranslateZ);
+            break;
+        }
+        case RSAnimatableProperty::ALPHA: {
+            SET_NONANIMATABLE_PROPERTY_ON_REMOVE(Alpha);
+            break;
+        }
+        case RSAnimatableProperty::FOREGROUND_COLOR: {
+            SET_NONANIMATABLE_PROPERTY_ON_REMOVE(ForegroundColor);
+            break;
+        }
+        case RSAnimatableProperty::BACKGROUND_COLOR: {
+            SET_NONANIMATABLE_PROPERTY_ON_REMOVE(BackgroundColor);
+            break;
+        }
+        case RSAnimatableProperty::BGIMAGE_WIDTH: {
+            SET_NONANIMATABLE_PROPERTY_ON_REMOVE(BgImageWidth);
+            break;
+        }
+        case RSAnimatableProperty::BGIMAGE_HEIGHT: {
+            SET_NONANIMATABLE_PROPERTY_ON_REMOVE(BgImageHeight);
+            break;
+        }
+        case RSAnimatableProperty::BGIMAGE_POSITION_X: {
+            SET_NONANIMATABLE_PROPERTY_ON_REMOVE(BgImagePositionX);
+            break;
+        }
+        case RSAnimatableProperty::BGIMAGE_POSITION_Y: {
+            SET_NONANIMATABLE_PROPERTY_ON_REMOVE(BgImagePositionY);
+            break;
+        }
+        case RSAnimatableProperty::BORDER_COLOR: {
+            SET_NONANIMATABLE_PROPERTY_ON_REMOVE(BorderColor);
+            break;
+        }
+        case RSAnimatableProperty::BORDER_WIDTH: {
+            SET_NONANIMATABLE_PROPERTY_ON_REMOVE(BorderWidth);
+            break;
+        }
+        case RSAnimatableProperty::SUB_LAYER_TRANSFORM: {
+            SET_NONANIMATABLE_PROPERTY_ON_REMOVE(SublayerTransform);
+            break;
+        }
+        case RSAnimatableProperty::BACKGROUND_FILTER: {
+            SET_NONANIMATABLE_PROPERTY_ON_REMOVE(BackgroundFilter);
+            break;
+        }
+        case RSAnimatableProperty::FILTER: {
+            SET_NONANIMATABLE_PROPERTY_ON_REMOVE(Filter);
+            break;
+        }
+        case RSAnimatableProperty::SHADOW_COLOR: {
+            SET_NONANIMATABLE_PROPERTY_ON_REMOVE(ShadowColor);
+            break;
+        }
+        case RSAnimatableProperty::SHADOW_OFFSET_X: {
+            SET_NONANIMATABLE_PROPERTY_ON_REMOVE(ShadowOffsetX);
+            break;
+        }
+        case RSAnimatableProperty::SHADOW_OFFSET_Y: {
+            SET_NONANIMATABLE_PROPERTY_ON_REMOVE(ShadowOffsetY);
+            break;
+        }
+        case RSAnimatableProperty::SHADOW_ALPHA: {
+            SET_NONANIMATABLE_PROPERTY_ON_REMOVE(ShadowAlpha);
+            break;
+        }
+        case RSAnimatableProperty::SHADOW_ELEVATION: {
+            SET_NONANIMATABLE_PROPERTY_ON_REMOVE(ShadowElevation);
+            break;
+        }
+        case RSAnimatableProperty::SHADOW_RADIUS: {
+            SET_NONANIMATABLE_PROPERTY_ON_REMOVE(ShadowRadius);
+            break;
+        }
+        default:
+            return;
+    }
+    transactionProxy->Begin();
+    transactionProxy->AddCommand(command, IsRenderServiceNode(), GetFollowType(), GetId());
+    transactionProxy->AddCommand(commandForRemote, true, GetFollowType(), GetId());
+    transactionProxy->Commit();
 }
 
 void RSNode::SetPaintOrder(bool drawContentLast)

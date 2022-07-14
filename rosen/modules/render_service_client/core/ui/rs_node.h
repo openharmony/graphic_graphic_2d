@@ -199,6 +199,7 @@ private:
     void RemoveAnimationInner(const std::shared_ptr<RSAnimation>& animation);
     void FinishAnimationByProperty(const RSAnimatableProperty& property);
     void AnimationFinish(AnimationId animationId);
+    void SetPropertyOnAllAnimationFinish(const RSAnimatableProperty& property);
 
     std::unordered_map<AnimationId, std::shared_ptr<RSAnimation>> animations_;
     std::unordered_map<RSAnimatableProperty, uint32_t> animatingPropertyNum_;
