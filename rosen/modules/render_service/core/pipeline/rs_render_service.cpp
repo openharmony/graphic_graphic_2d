@@ -20,6 +20,7 @@
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_uni_render_judgement.h"
 
+#include <string>
 #include <unistd.h>
 
 #include <iservice_registry.h>
@@ -193,6 +194,22 @@ void RSRenderService::DumpHelpInfo(std::string& dumpString) const
         .append("|dump all info\n");
 }
 
+void RSRenderService::FPSDUMPProcess(std::unordered_set<std::u16string>& argSets,
+    std::string& dumpString, const std::u16string& arg) const
+{
+    auto iter = argSets.find(arg);
+    if (iter != argSets.end()) {
+        std::string layerArg;
+        argSets.erase(iter);
+        if (!argSets.empty()) {
+            layerArg = std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> {}.to_bytes(*argSets.begin());
+        }
+        mainThread_->ScheduleTask([this, &dumpString, &layerArg]() {
+            return screenManager_->FpsDump(dumpString, layerArg);
+        }).wait();
+    }
+}
+
 void RSRenderService::DoDump(std::unordered_set<std::u16string>& argSets, std::string& dumpString) const
 {
     std::u16string arg1(u"screen");
@@ -234,23 +251,12 @@ void RSRenderService::DoDump(std::unordered_set<std::u16string>& argSets, std::s
             mainThread_->RsEventParamDump(dumpString);
         }).wait();
     }
-    auto iter = argSets.find(arg3);
-    if (iter != argSets.end()) {
-        std::string layerArg;
-        argSets.erase(iter);
-        if (!argSets.empty()) {
-            layerArg = std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> {}.to_bytes(*argSets.begin());
-        }
-        mainThread_->ScheduleTask([this, &dumpString, &layerArg]() {
-            return screenManager_->FpsDump(dumpString, layerArg);
-        }).wait();
-    }
+    FPSDUMPProcess(argSets, dumpString, arg3);
     if (argSets.size() == 0 || argSets.count(arg8) != 0 || dumpString.empty()) {
         mainThread_->ScheduleTask([this, &dumpString]() {
             DumpHelpInfo(dumpString);
         }).wait();
     }
-
 }
 } // namespace Rosen
 } // namespace OHOS
