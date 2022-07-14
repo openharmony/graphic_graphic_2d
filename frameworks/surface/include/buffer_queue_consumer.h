@@ -54,6 +54,7 @@ public:
 
     bool GetStatus() const;
     void SetStatus(bool status);
+    GSError CleanCache();
 
 private:
     sptr<BufferQueue> bufferQueue_ = nullptr;
