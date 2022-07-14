@@ -15,6 +15,8 @@
 
 #include "surfacebuffer_fuzzer.h"
 
+#include <securec.h>
+
 #include "surface_buffer.h"
 #include "surface_buffer_impl.h"
 #include "buffer_extra_data.h"
@@ -26,7 +28,6 @@ namespace OHOS {
         size_t size_ = 0;
         size_t pos;
         constexpr size_t STR_LEN = 10;
-        constexpr char STR_END_CHAR = '\0';
     }
 
     /*
@@ -41,7 +42,10 @@ namespace OHOS {
         if (data_ == nullptr || objectSize > size_ - pos) {
             return object;
         }
-        std::memcpy(&object, data_ + pos, objectSize);
+        errno_t ret = memcpy_s(&object, objectSize, data_ + pos, objectSize);
+        if (ret != EOK) {
+            return {};
+        }
         pos += objectSize;
         return object;
     }
@@ -52,8 +56,8 @@ namespace OHOS {
     std::string GetStringFromData(int strlen)
     {
         char cstr[strlen];
-        cstr[strlen-1] = STR_END_CHAR;
-        for (int i = 0; i < strlen-1; i++) {
+        cstr[strlen - 1] = '\0';
+        for (int i = 0; i < strlen - 1; i++) {
             cstr[i] = GetData<char>();
         }
         std::string str(cstr);

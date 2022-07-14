@@ -15,6 +15,8 @@
 
 #include "vsyncreceiver_fuzzer.h"
 
+#include <securec.h>
+
 #include "vsync_receiver.h"
 #include "vsync_distributor.h"
 #include "vsync_controller.h"
@@ -23,7 +25,6 @@
 namespace OHOS {
     namespace {
         constexpr size_t STR_LEN = 10;
-        constexpr char STR_END_CHAR = '\0';
         const uint8_t* data_ = nullptr;
         size_t size_ = 0;
         size_t pos;
@@ -43,7 +44,10 @@ namespace OHOS {
         if (data_ == nullptr || objectSize > size_ - pos) {
             return object;
         }
-        std::memcpy(&object, data_ + pos, objectSize);
+        errno_t ret = memcpy_s(&object, objectSize, data_ + pos, objectSize);
+        if (ret != EOK) {
+            return {};
+        }
         pos += objectSize;
         return object;
     }
@@ -54,7 +58,7 @@ namespace OHOS {
     std::string GetStringFromData(int strlen)
     {
         char cstr[strlen];
-        cstr[strlen - 1] = STR_END_CHAR;
+        cstr[strlen - 1] = '\0';
         for (int i = 0; i < strlen - 1; i++) {
             cstr[i] = GetData<char>();
         }
