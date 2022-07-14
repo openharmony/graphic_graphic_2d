@@ -39,6 +39,14 @@ public:
     SurfaceError DrawBuffer(TestFunc testFunc);
     SurfaceError FillHDILayer();
     const std::shared_ptr<HdiLayerInfo> GetHdiLayer();
+    sptr<SurfaceBuffer> GetPreBuffer() const
+    {
+        return prevBuffer_;
+    }
+    sptr<SyncFence> GetPreFence() const
+    {
+        return prevFence_;
+    }
 
 private:
     IRect dst_;

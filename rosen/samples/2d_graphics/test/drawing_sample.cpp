@@ -168,6 +168,11 @@ void DrawingSample::Draw()
                 curOutput_->SetOutputDamage(1, damageRect);
                 backend_->Repaint(outputs);
                 sleep(2); // wait 2s
+                auto preBuffer = drawLayer->GetPreBuffer();
+                int32_t releaseFence = -1;
+                sptr<SyncFence> tempFence = new SyncFence(releaseFence);
+                drawLayer->GetHdiLayer()->GetSurface()->ReleaseBuffer(preBuffer, tempFence);
+                tempFence->Wait(100); // 100 ms
             }
             std::cout << "Drawing module " << iter->first << " end.\n";
         }
