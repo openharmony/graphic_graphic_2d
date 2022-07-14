@@ -32,26 +32,27 @@ struct RSSysEventMsg final {
 class RSBaseEventDetector {
 public:
     using EventReportCallback = std::function<void(const RSSysEventMsg&)>;
-    static std::shared_ptr<RSBaseEventDetector> CreateRSTimeOutDetector(int timeOutThresholdMs, std::string detectorStringId);
+    static std::shared_ptr<RSBaseEventDetector> CreateRSTimeOutDetector(int timeOutThresholdMs,
+    std::string detectorStringId);
     virtual ~RSBaseEventDetector()
     {
-    	ClearParamList();
+        ClearParamList();
         RS_LOGD("RSBaseEventDetector::~RSBaseEventDetector finish");
     }
 
     std::string GetStringId()
     {
-    	return stringId_;
+        return stringId_;
     }
 
     std::map<std::string, std::string> GetParamList()
     {
-    	return paramList_;
+        return paramList_;
     }
 	
     void AddEventReportCallback(const EventReportCallback& callback)
     {
-    	eventCallback_ = callback;
+        eventCallback_ = callback;
     }
 
     virtual void SetParam(const std::string& key, const std::string& value) = 0;
@@ -62,18 +63,18 @@ protected:
     RSBaseEventDetector() = default;
     RSBaseEventDetector(std::string stringId)
     {
-    	stringId_ = stringId;
+        stringId_ = stringId;
     }
     
     void ClearParamList()
     {
         paramList_.clear();
-    	std::map<std::string, std::string> tempParamList;
-    	paramList_.swap(tempParamList);
+        std::map<std::string, std::string> tempParamList;
+        paramList_.swap(tempParamList);
         RS_LOGD("RSBaseEventDetector::ClearParamList finish");
     }
 
-    std::map<std::string, std::string> paramList_; // key: paramName 
+    std::map<std::string, std::string> paramList_; // key: paramName
     std::string stringId_;
     EventReportCallback eventCallback_;
 };
@@ -88,10 +89,9 @@ public:
     void SetLoopFinishTag() override;
 private:
     void EventReport(uint64_t costTimeMs);
-    int timeOutThredsholdMs_ = INT_MAX; // default: No Detector 
+    int timeOutThredsholdMs_ = INT_MAX; // default: No Detector
     uint64_t startTimeStampMs_ = 0;
 };
-
 }
 }
 

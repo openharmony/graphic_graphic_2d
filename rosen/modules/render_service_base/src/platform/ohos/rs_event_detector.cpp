@@ -72,7 +72,6 @@ void RSTimeOutDetector::EventReport(uint64_t costTimeMs)
         msg,
         OHOS::HiviewDFX::HiSysEvent::EventType::STATISTIC
     };
-	
     if (eventCallback_ != nullptr) {
         eventCallback_(eventMsg);
     }
