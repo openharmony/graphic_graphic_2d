@@ -24,9 +24,9 @@
 namespace OHOS {
 namespace Rosen {
 struct RSSysEventMsg final {
-	std::string stringId;
-	std::string msg;
-	OHOS::HiviewDFX::HiSysEvent::EventType eventType;
+    std::string stringId;
+    std::string msg;
+    OHOS::HiviewDFX::HiSysEvent::EventType eventType;
 };
 
 class RSBaseEventDetector {

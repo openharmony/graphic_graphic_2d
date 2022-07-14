@@ -167,42 +167,69 @@ void RSRenderService::DumpAllNodesMemSize(std::string& dumpString) const
     });
 }
 
+void RSRenderService::DumpHelpInfo(std::string& dumpString) const
+{
+    dumpString.append("------Graphic2D--RenderSerice ------\n")
+        .append("Usage:\n")
+        .append(" h                             ")
+        .append("|help text for the tool\n")
+        .append("screen                         ")
+        .append("|dump all screen infomation in the system\n")
+        .append("surface                        ")
+        .append("|dump all surface information\n")
+        .append("composer fps                   ")
+        .append("|dump the fps info of composer\n")
+        .append("[surface name] fps             ")
+        .append("|dump the fps info of surface\n")
+        .append("nodeNotOnTree                  ")
+        .append("|dump nodeNotOnTree info\n")
+        .append("allSurfacesMem                 ")
+        .append("|dump surface mem info\n")
+        .append("RSTree                         ")
+        .append("|dump RSTree info\n")
+        .append("EventParamList                 ")
+        .append("|dump EventParamList info\n")
+        .append("allInfo                        ")
+        .append("|dump all info\n");
+}
+
 void RSRenderService::DoDump(std::unordered_set<std::u16string>& argSets, std::string& dumpString) const
 {
-    std::u16string arg1(u"display");
+    std::u16string arg1(u"screen");
     std::u16string arg2(u"surface");
     std::u16string arg3(u"fps");
     std::u16string arg4(u"nodeNotOnTree");
     std::u16string arg5(u"allSurfacesMem");
     std::u16string arg6(u"RSTree");
     std::u16string arg7(u"EventParamList");
-
-    if (argSets.size() == 0 || argSets.count(arg1) != 0) {
+    std::u16string arg8(u"h");
+    std::u16string arg9(u"allInfo");
+    if (argSets.count(arg9) || argSets.count(arg1) != 0) {
         mainThread_->ScheduleTask([this, &dumpString]() {
             screenManager_->DisplayDump(dumpString);
         }).wait();
     }
-    if (argSets.size() == 0 || argSets.count(arg2) != 0) {
+    if (argSets.count(arg9) || argSets.count(arg2) != 0) {
         mainThread_->ScheduleTask([this, &dumpString]() {
             return screenManager_->SurfaceDump(dumpString);
         }).wait();
     }
-    if (argSets.size() == 0 || argSets.count(arg4) != 0) {
+    if (argSets.count(arg9) || argSets.count(arg4) != 0) {
         mainThread_->ScheduleTask([this, &dumpString]() {
             DumpNodesNotOnTheTree(dumpString);
         }).wait();
     }
-    if (argSets.size() == 0 || argSets.count(arg5) != 0) {
+    if (argSets.count(arg9) || argSets.count(arg5) != 0) {
         mainThread_->ScheduleTask([this, &dumpString]() {
             DumpAllNodesMemSize(dumpString);
         }).wait();
     }
-    if (argSets.count(arg6) != 0) {
+    if (argSets.count(arg9) || argSets.count(arg6) != 0) {
         mainThread_->ScheduleTask([this, &dumpString]() {
             mainThread_->RenderServiceTreeDump(dumpString);
         }).wait();
     }
-    if (argSets.count(arg7) != 0) {
+    if (argSets.count(arg9) ||argSets.count(arg7) != 0) {
         mainThread_->ScheduleTask([this, &dumpString]() {
             mainThread_->RsEventParamDump(dumpString);
         }).wait();
@@ -218,6 +245,12 @@ void RSRenderService::DoDump(std::unordered_set<std::u16string>& argSets, std::s
             return screenManager_->FpsDump(dumpString, layerArg);
         }).wait();
     }
+    if (argSets.size() == 0 || argSets.count(arg8) != 0 || dumpString.empty()) {
+        mainThread_->ScheduleTask([this, &dumpString]() {
+            DumpHelpInfo(dumpString);
+        }).wait();
+    }
+
 }
 } // namespace Rosen
 } // namespace OHOS

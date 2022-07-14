@@ -79,7 +79,6 @@ void RSMainThread::Init()
     renderEngine_ = std::make_shared<RSRenderEngine>();
     RSInnovation::OpenInnovationSo();
     Occlusion::Region::InitDynamicLibraryFunction();
-
 }
 
 void RSMainThread::RsEventParamDump(std::string& dumpString)
@@ -91,7 +90,7 @@ void RSMainThread::RsEventParamDump(std::string& dumpString)
 
 void RSMainThread::InitRSEventDetector()
 {
-    // default Threshold value of Timeout Event: 2000ms 
+    // default Threshold value of Timeout Event: 2000ms
     rsCompositionTimeoutDetector_ = RSBaseEventDetector::CreateRSTimeOutDetector(2000, "RS_COMPOSITION_TIMEOUT");
     RSEventManager::Instance().AddEvent(rsCompositionTimeoutDetector_, 60000); // report Internal 1min:60s：60000ms
     RS_LOGD("InitRSEventDetector  finish");
@@ -108,7 +107,7 @@ void RSMainThread::SetRSEventDetectorLoopStartTag()
 void RSMainThread::SetRSEventDetectorLoopFinishTag()
 {
     if (rsCompositionTimeoutDetector_ != nullptr) {
-         RS_LOGD("SetRSEventDetectorLoopStartTag  SetRSEventDetectorLoopFinishTag");
+        RS_LOGD("SetRSEventDetectorLoopStartTag  SetRSEventDetectorLoopFinishTag");
         rsCompositionTimeoutDetector_->SetLoopFinishTag();
     }
 }

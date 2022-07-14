@@ -114,7 +114,7 @@ void RSEventManager::UpdateEventIntervalMs(std::shared_ptr<RSBaseEventDetector> 
         ".eventIntervalMs";
     RS_LOGD("RSEventManager::UpdateEventIntervalMs paraName: %s", paraName.c_str());
     int valueInt = atoi(RSSystemProperties::GetRSEventProperty(paraName).c_str());
-    if (valueInt <= 0 || valueInt > 1000000) { //1000000 ms ->1000s
+    if (valueInt <= 0 || valueInt > 1000000) { // 1000000 ms ->1000s
         RS_LOGD("RSEventManager::UpdateEventIntervalMs detector:%s Invaild Value:%d",
             detectorPtr->GetStringId().c_str(), valueInt);
         return;
@@ -206,7 +206,7 @@ void RSEventManager::EventReport(const RSSysEventMsg& eventMsg)
                 "MSG", eventMsg.msg);
             state.prevEventTimeStampMs = currentTimeMs;
             RS_LOGD("RSEventManager::EventReport %s success ", eventMsg.stringId.c_str());
-    }  
+    }
 }
 }
 }
