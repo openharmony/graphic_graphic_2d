@@ -42,6 +42,8 @@ private:
 
     int MinimizeWindow(MessageParcel& data, MessageParcel& reply);
 
+    int MinimizeAllWindow(MessageParcel& data, MessageParcel& reply);
+
     int CloseWindow(MessageParcel& data, MessageParcel& reply);
 
     int ScreenUnlock(MessageParcel& data, MessageParcel& reply);
