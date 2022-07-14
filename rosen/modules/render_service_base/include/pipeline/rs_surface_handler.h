@@ -63,12 +63,14 @@ public:
     void SetBuffer(
         const sptr<SurfaceBuffer>& buffer,
         const sptr<SyncFence>& acquireFence,
-        const Rect& damage)
+        const Rect& damage,
+        const int64_t timestamp)
     {
         preBuffer_ = buffer_;
         buffer_.buffer = buffer;
         buffer_.acquireFence = acquireFence;
         buffer_.damageRect = damage;
+        buffer_.timestamp = timestamp;
     }
 
     sptr<SurfaceBuffer> GetBuffer()
@@ -105,6 +107,11 @@ public:
     int32_t GetAvailableBufferCount() const
     {
         return bufferAvailableCount_;
+    }
+
+    int64_t GetTimestamp() const
+    {
+        return buffer_.timestamp;
     }
 
     void SetGlobalZOrder(float globalZOrder);

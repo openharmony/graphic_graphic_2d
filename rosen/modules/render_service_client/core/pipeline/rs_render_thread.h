@@ -69,6 +69,10 @@ public:
     {
         return context_;
     }
+    uint64_t GetUITimestamp() const
+    {
+        return uiTimestamp_;
+    }
 
     void OnTransaction(std::shared_ptr<RSTransactionData> transactionData) override;
 
@@ -109,6 +113,9 @@ private:
     uint64_t refreshPeriod_ = 16666667;
     int32_t tid_ = -1;
     uint64_t mValue = 0;
+
+    uint64_t uiTimestamp_;
+    uint64_t commandTimestamp_ = 0;
 
     // for jank frame detector
     uint64_t uiStartTimeStamp_ = 0;

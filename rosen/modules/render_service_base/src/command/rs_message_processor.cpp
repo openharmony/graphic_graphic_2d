@@ -31,12 +31,12 @@ RSMessageProcessor::~RSMessageProcessor() {}
 
 void RSMessageProcessor::AddUIMessage(uint32_t pid, std::unique_ptr<RSCommand>& command)
 {
-    transactionMap_[pid].AddCommand(std::move(command));
+    transactionMap_[pid].AddCommand(std::move(command), 0, FollowType::NONE);
 }
 
 void RSMessageProcessor::AddUIMessage(uint32_t pid, std::unique_ptr<RSCommand>&& command)
 {
-    transactionMap_[pid].AddCommand(std::move(command));
+    transactionMap_[pid].AddCommand(std::move(command), 0, FollowType::NONE);
 }
 
 bool RSMessageProcessor::HasTransaction() const

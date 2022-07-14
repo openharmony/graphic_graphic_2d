@@ -70,6 +70,7 @@ enum NativeWindowOperation {
     GET_TRANSFORM,          // ([out] int32_t *transform)
     SET_SCALING_MODE,       // ([in] int32_t scalingMode)
     GET_SCALING_MODE,       // ([out] int32_t *scalingMode)
+    SET_UI_TIMESTAMP,       // ([in] uint64_t uiTimestamp)
 };
 
 typedef enum {

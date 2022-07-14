@@ -31,7 +31,7 @@ void RSSurfaceOhosRaster::SetSurfaceBufferUsage(int32_t usage)
     bufferUsage_ = usage;
 }
 
-std::unique_ptr<RSSurfaceFrame> RSSurfaceOhosRaster::RequestFrame(int32_t width, int32_t height)
+std::unique_ptr<RSSurfaceFrame> RSSurfaceOhosRaster::RequestFrame(int32_t width, int32_t height, uint64_t uiTimestamp)
 {
     if (producer_ == nullptr) {
         ROSEN_LOGE("RSSurfaceOhosRaster::RequestFrame, producer is nullptr");
@@ -62,7 +62,7 @@ std::unique_ptr<RSSurfaceFrame> RSSurfaceOhosRaster::RequestFrame(int32_t width,
     return ret;
 }
 
-bool RSSurfaceOhosRaster::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame)
+bool RSSurfaceOhosRaster::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uint64_t uiTimestamp)
 {
     // RSSurfaceOhosRaster is the class for platform OHOS, the input pointer should be the pointer to the class
     // RSSurfaceFrameOhos.
@@ -72,6 +72,7 @@ bool RSSurfaceOhosRaster::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame)
         return false;
     }
     RSSurfaceFrameOhosRaster* oriFramePtr = static_cast<RSSurfaceFrameOhosRaster*>(frame.get());
+    oriFramePtr->flushConfig_.timestamp = static_cast<int64_t>(uiTimestamp);
     SurfaceError err = producer_->FlushBuffer(oriFramePtr->buffer_, -1, oriFramePtr->flushConfig_);
     if (err != SURFACE_ERROR_OK) {
         ROSEN_LOGE("RSSurfaceOhosRaster::Flushframe Failed, error is : %s", SurfaceErrorStr(err).c_str());
@@ -80,6 +81,5 @@ bool RSSurfaceOhosRaster::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame)
     ROSEN_LOGE("RsDebug RSSurfaceOhosRaster::FlushFrame fence:%d", oriFramePtr->releaseFence_);
     return true;
 }
-
 } // namespace Rosen
 } // namespace OHOS

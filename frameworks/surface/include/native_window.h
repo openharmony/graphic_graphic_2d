@@ -34,12 +34,14 @@ struct NativeWindow : public NativeWindowMagic {
     ~NativeWindow();
     OHOS::BufferRequestConfig config = {0};
     OHOS::sptr<OHOS::Surface> surface;
+    int64_t uiTimestamp = 0;
 };
 
 struct NativeWindowBuffer : public NativeWindowMagic {
     NativeWindowBuffer();
     ~NativeWindowBuffer();
     OHOS::sptr<OHOS::SurfaceBuffer> sfbuffer;
+    int64_t uiTimestamp = 0;
 };
 
 

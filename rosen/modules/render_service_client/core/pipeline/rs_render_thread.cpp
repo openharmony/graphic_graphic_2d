@@ -75,10 +75,6 @@ RSRenderThread::RSRenderThread()
         Render();
         RS_ASYNC_TRACE_BEGIN("waiting GPU running", 1111); // 1111 means async trace code for gpu
         SendCommands();
-        auto transactionProxy = RSTransactionProxy::GetInstance();
-        if (transactionProxy != nullptr) {
-            transactionProxy->FlushImplicitTransactionFromRT();
-        }
         ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
         jankDetector_.CalculateSkippedFrame(renderStartTimeStamp, jankDetector_.GetSysTimeNs());
     };
@@ -136,6 +132,7 @@ void RSRenderThread::RecvTransactionData(std::unique_ptr<RSTransactionData>& tra
     {
         std::unique_lock<std::mutex> cmdLock(cmdMutex_);
         std::string str = "RecvCommands ptr:" + std::to_string(reinterpret_cast<uintptr_t>(transactionData.get()));
+        commandTimestamp_ = transactionData->GetTimestamp();
         ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, str.c_str());
         cmds_.emplace_back(std::move(transactionData));
         ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
@@ -228,10 +225,18 @@ void RSRenderThread::ProcessCommands()
 {
     std::unique_lock<std::mutex> cmdLock(cmdMutex_);
     if (cmds_.empty()) {
+        uiTimestamp_ = prevTimestamp_ - 1;
         return;
     }
     if (RsFrameReport::GetInstance().GetEnable()) {
         RsFrameReport::GetInstance().ProcessCommandsStart();
+    }
+
+    if (commandTimestamp_ != 0) {
+        uiTimestamp_ = commandTimestamp_;
+        commandTimestamp_ = 0;
+    } else {
+        uiTimestamp_ = prevTimestamp_ - 1;
     }
 
     ROSEN_LOGD("RSRenderThread ProcessCommands size: %lu\n", cmds_.size());
