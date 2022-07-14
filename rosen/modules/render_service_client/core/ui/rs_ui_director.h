@@ -37,6 +37,7 @@ public:
     void Init(bool shouldCreateRenderThread = true);
     void Destroy();
     void SetRSSurfaceNode(std::shared_ptr<RSSurfaceNode> surfaceNode);
+    std::shared_ptr<RSSurfaceNode>& GetMutableRSSurfaceNode();
 
     void SetRoot(NodeId root);
     void SetUITaskRunner(const TaskRunner& uiTaskRunner);

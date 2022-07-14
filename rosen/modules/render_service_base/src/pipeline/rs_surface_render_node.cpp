@@ -143,7 +143,9 @@ void RSSurfaceRenderNode::CollectSurface(
         }
         return;
     }
-    vec.emplace_back(shared_from_this());
+    if (GetBuffer() != nullptr && GetRenderProperties().GetVisible()) {
+        vec.emplace_back(shared_from_this());
+    }
 }
 
 void RSSurfaceRenderNode::Prepare(const std::shared_ptr<RSNodeVisitor>& visitor)

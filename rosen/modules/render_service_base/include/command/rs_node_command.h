@@ -83,6 +83,7 @@ enum RSNodeCommandType : uint16_t {
     SET_SHADOW_RADIUS,
     SET_SHADOW_PATH,
     SET_MASK,
+    SET_SURFACE_BG_COLOR,
 
     SET_BOUNDS_DELTA,
     SET_BOUNDS_SIZE_DELTA,

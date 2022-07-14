@@ -287,7 +287,9 @@ void RSMainThread::CalcOcclusion()
         // Set result to SurfaceRenderNode and its children
         surface->SetVisibleRegionRecursive(subResult, curVisVec);
         // Current region need to merge current surface for next calculation(ignore alpha surface)
-        if (!RSOcclusionConfig::GetInstance().IsAlphaWindow(surface->GetName())) {
+        auto bg = surface->GetRenderProperties().GetSurfaceBgColor();
+        const int opacity = 255;
+        if (bg.GetAlpha() == opacity && surface->GetRenderProperties().GetAlpha() == 1.0) {
             curRegion = curSurface.Or(curRegion);
         }
     }

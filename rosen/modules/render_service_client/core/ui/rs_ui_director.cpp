@@ -109,6 +109,11 @@ void RSUIDirector::SetRSSurfaceNode(std::shared_ptr<RSSurfaceNode> surfaceNode)
     AttachSurface();
 }
 
+std::shared_ptr<RSSurfaceNode>& RSUIDirector::GetMutableRSSurfaceNode()
+{
+    return surfaceNode_;
+}
+
 void RSUIDirector::SetRoot(NodeId root)
 {
     if (root_ == root) {

@@ -523,6 +523,16 @@ Color RSProperties::GetBackgroundColor() const
     return decoration_ ? decoration_->backgroundColor_ : RgbPalette::Transparent();
 }
 
+void RSProperties::SetSurfaceBgColor(Color color)
+{
+    surfaceBgColor_ = color;
+}
+
+Color RSProperties::GetSurfaceBgColor() const
+{
+    return surfaceBgColor_;
+}
+
 void RSProperties::SetBackgroundShader(std::shared_ptr<RSShader> shader)
 {
     if (!decoration_) {

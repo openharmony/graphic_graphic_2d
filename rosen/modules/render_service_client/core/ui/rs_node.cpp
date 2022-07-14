@@ -581,6 +581,12 @@ void RSNode::SetBackgroundColor(uint32_t colorValue)
     SET_ANIMATABLE_PROPERTY(BackgroundColor, color, RSAnimatableProperty::BACKGROUND_COLOR);
 }
 
+void RSNode::SetSurfaceBgColor(uint32_t colorValue)
+{
+    auto color = Color::FromArgbInt(colorValue);
+    SET_NONANIMATABLE_PROPERTY(SurfaceBgColor, color);
+}
+
 void RSNode::SetBackgroundShader(std::shared_ptr<RSShader> shader)
 {
     SET_NONANIMATABLE_PROPERTY(BackgroundShader, shader);
