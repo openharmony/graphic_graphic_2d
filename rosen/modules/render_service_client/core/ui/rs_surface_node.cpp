@@ -135,46 +135,10 @@ void RSSurfaceNode::ClearChildren()
     RSBaseNode::ClearChildren();
 }
 
-void RSSurfaceNode::SetBounds(const Vector4f& bounds)
+void RSSurfaceNode::OnBoundsSizeChanged() const
 {
-    RSNode::SetBounds(bounds);
-    UpdateSurfaceDefaultSize(bounds.z_, bounds.w_);
-}
-
-void RSSurfaceNode::SetBounds(float positionX, float positionY, float width, float height)
-{
-    RSNode::SetBounds(positionX, positionY, width, height);
-    UpdateSurfaceDefaultSize(width, height);
-}
-
-void RSSurfaceNode::SetBoundsSize(const Vector2f& size)
-{
-    RSNode::SetBoundsSize(size);
-    UpdateSurfaceDefaultSize(size.x_, size.y_);
-}
-
-void RSSurfaceNode::SetBoundsSize(float width, float height)
-{
-    RSNode::SetBoundsSize(width, height);
-    UpdateSurfaceDefaultSize(width, height);
-}
-
-void RSSurfaceNode::SetBoundsWidth(float width)
-{
-    RSNode::SetBoundsWidth(width);
-    UpdateSurfaceDefaultSize(width, GetStagingProperties().GetBoundsHeight());
-}
-
-void RSSurfaceNode::SetBoundsHeight(float height)
-{
-    RSNode::SetBoundsHeight(height);
-    UpdateSurfaceDefaultSize(GetStagingProperties().GetBoundsWidth(), height);
-}
-
-void RSSurfaceNode::UpdateSurfaceDefaultSize(float width, float height)
-{
-    std::unique_ptr<RSCommand> command =
-        std::make_unique<RSSurfaceNodeUpdateSurfaceDefaultSize>(GetId(), width, height);
+    std::unique_ptr<RSCommand> command = std::make_unique<RSSurfaceNodeUpdateSurfaceDefaultSize>(
+        GetId(), GetStagingProperties().GetBoundsWidth(), GetStagingProperties().GetBoundsHeight());
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy != nullptr) {
         transactionProxy->AddCommand(command, true);
