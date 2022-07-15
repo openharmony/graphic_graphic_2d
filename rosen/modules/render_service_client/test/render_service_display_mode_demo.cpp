@@ -44,6 +44,7 @@ namespace OHOS::Rosen {
 #ifdef ACE_ENABLE_GPU
     RenderContext* rc_ = nullptr;
 #endif
+constexpr int SURFACE_NODE_SIZE = 100;
 
 namespace pipelineTestUtils {
     constexpr bool wrongExit = false;
@@ -159,11 +160,12 @@ namespace pipelineTestUtils {
         std::shared_ptr<RSSurfaceNode> surfaceNode_ = nullptr;
     }; // class ToDrawSurface
 
-    static std::shared_ptr<RSDisplayNode> CreateDisplayNode(int surfaceNodeX, int surfaceNodeY,
+    static std::shared_ptr<RSSurfaceNode> CreateSurface(int surfaceNodeX, int surfaceNodeY,
         int surfaceNodeWidth, int surfaceNodeHeight, uint32_t shapeColor)
     {
-        RSSurfaceNodeConfig surfaceConfig;
-        auto surfaceNode = RSSurfaceNode::Create(surfaceConfig);
+        RSSurfaceNodeConfig config;
+        auto surfaceNode = RSSurfaceNode::Create(config);
+
         ToDrawSurface()
             .SetSurfaceNode(surfaceNode)
             .SetShapeColor(shapeColor)
@@ -171,10 +173,16 @@ namespace pipelineTestUtils {
             .SetBufferSizeAuto()
             .SetDraw([&](SkCanvas &canvas, SkPaint &paint) -> void {
                 canvas.drawRect(
-                    SkRect::MakeXYWH(surfaceNodeX, surfaceNodeY, surfaceNodeWidth, surfaceNodeHeight),
+                    SkRect::MakeXYWH(0, 0, surfaceNodeWidth, surfaceNodeHeight),
                     paint);
             })
             .Run();
+        
+        return surfaceNode;
+    }
+
+    static std::shared_ptr<RSDisplayNode> CreateDisplayNode(std::shared_ptr<RSSurfaceNode> surfaceNode)
+    {        
         RSDisplayNodeConfig displayConfig;
         RSDisplayNode::SharedPtr displayNode = RSDisplayNode::Create(displayConfig);
         displayNode->AddChild(surfaceNode, -1);
@@ -228,17 +236,34 @@ public:
         return;
     }
 
+    void InitTestCase()
+    {
+        ScreenId id = RSInterfaces::GetInstance().GetDefaultScreenId();
+        auto activeModeInfo = RSInterfaces::GetInstance().GetScreenActiveMode(id);
+        
+        screenWidth_ = activeModeInfo.GetScreenWidth();
+        screenHeight_ = activeModeInfo.GetScreenHeight();
+        std::cout << "Display " << id << " active mode info:\n";
+        std::cout << "Width: " << screenWidth_ << ", Height: " << screenHeight_;
+
+        RenderContextInit();
+    }
+
     void TestCaseDefault()
     {
-        auto sourceDisplayNode = pipelineTestUtils::CreateDisplayNode(0, 0, 500, 300, 0x0000ffff);
-        auto targetDisplayNode = pipelineTestUtils::CreateDisplayNode(0, 800, 500, 300, 0xffff0000);
+        auto sourceSurcaseNode = pipelineTestUtils::CreateSurface(SURFACE_NODE_SIZE, screenHeight_ * 0.2f, 
+            screenWidth_ * 0.4f, screenHeight_ * 0.3f, 0xff0000ff);
+        auto sourceDisplayNode = pipelineTestUtils::CreateDisplayNode(sourceSurcaseNode);
+        auto targetSurfaceNode = pipelineTestUtils::CreateSurface(SURFACE_NODE_SIZE, screenHeight_ * 0.6f, 
+            screenWidth_ * 0.6f, screenHeight_ * 0.3f, 0x0000ffff);
+        auto targetDisplayNode = pipelineTestUtils::CreateDisplayNode(targetSurfaceNode);
 
         auto transactionProxy = RSTransactionProxy::GetInstance();
         if (transactionProxy != nullptr) {
             transactionProxy->FlushImplicitTransaction();
         }
 
-        GetOrSetDisplayMode(sourceDisplayNode, targetDisplayNode);
+        GetOrSetDisplayMode(targetDisplayNode, sourceDisplayNode);
 
         sourceDisplayNode->RemoveFromTree();
         targetDisplayNode->RemoveFromTree();
@@ -264,11 +289,14 @@ private:
         cout << "Init RenderContext start.\n";
 #endif
     }
+    int screenWidth_ = 0;
+    int screenHeight_ = 0;
 }; // class RSDisplayModeTestCase
 } // namespace OHOS::Rosen
 
 int main()
 {
+    RSDisplayModeTestCase::GetInstance().InitTestCase();
     RSDisplayModeTestCase::GetInstance().TestCaseDefault();
     return 0;
 }
