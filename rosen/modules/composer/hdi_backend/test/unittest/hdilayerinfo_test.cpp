@@ -368,6 +368,100 @@ HWTEST_F(HdiLayerInfoTest, TunnelHandle002, Function | MediumTest | Level1)
               tunnelHandle->GetHandle()->reserve[0]);
     delete handleSet;
 }
+
+/*
+* Function: SetColorTransform and GetColorTransform
+* Type: Function
+* Rank: Important(1)
+* EnvConditions: N/A
+* CaseDescription: 1. call GetColorTransform with default
+ */
+HWTEST_F(HdiLayerInfoTest, ColorTransform001, Function | MediumTest | Level1)
+{
+    float* transform = HdiLayerInfoTest::hdiLayerInfo_->GetColorTransform();
+    ASSERT_EQ(transform, nullptr);
+}
+
+/*
+* Function: SetColorTransform and GetColorTransform
+* Type: Function
+* Rank: Important(1)
+* EnvConditions: N/A
+* CaseDescription: 1. call SetColorTransform
+*                  2. call GetColorTransform and check ret
+ */
+HWTEST_F(HdiLayerInfoTest, ColorTransform002, Function | MediumTest | Level1)
+{
+    float matrix[9] = {1, 0, 0, 0, 1, 0, 0, 0, 1};
+    HdiLayerInfoTest::hdiLayerInfo_->SetColorTransform(matrix);
+    float* transform = HdiLayerInfoTest::hdiLayerInfo_->GetColorTransform();
+    ASSERT_NE(transform, nullptr);
+}
+
+/*
+* Function: SetColorDataSpace and GetColorDataSpace
+* Type: Function
+* Rank: Important(1)
+* EnvConditions: N/A
+* CaseDescription: 1. call GetColorDataSpace with default
+ */
+HWTEST_F(HdiLayerInfoTest, ColorDataSpace001, Function | MediumTest | Level1)
+{
+    ColorDataSpace colorSpace = HdiLayerInfoTest::hdiLayerInfo_->GetColorDataSpace();
+    ASSERT_EQ(colorSpace, ColorDataSpace::COLOR_DATA_SPACE_UNKNOWN);
+}
+
+/*
+* Function: SetColorDataSpace and GetColorDataSpace
+* Type: Function
+* Rank: Important(1)
+* EnvConditions: N/A
+* CaseDescription: 1. call SetColorDataSpace
+*                  2. call GetColorDataSpace and check ret
+ */
+HWTEST_F(HdiLayerInfoTest, ColorDataSpace002, Function | MediumTest | Level1)
+{
+    ColorDataSpace colorSpaceSet = ColorDataSpace::GAMUT_DISPLAY_P3;
+    HdiLayerInfoTest::hdiLayerInfo_->SetColorDataSpace(colorSpaceSet);
+    ColorDataSpace colorSpaceGet = HdiLayerInfoTest::hdiLayerInfo_->GetColorDataSpace();
+    ASSERT_EQ(colorSpaceSet, colorSpaceGet);
+}
+
+/*
+* Function: SetMetaData and GetMetaData
+* Type: Function
+* Rank: Important(1)
+* EnvConditions: N/A
+* CaseDescription: 1. call SetMetaData
+*                  2. call GetMetaData and check ret
+ */
+HWTEST_F(HdiLayerInfoTest, MetaData001, Function | MediumTest | Level1)
+{
+    std::vector<HDRMetaData> metaData = {{MATAKEY_RED_PRIMARY_X, 1}};
+    HdiLayerInfoTest::hdiLayerInfo_->SetMetaData(metaData);
+    std::vector<HDRMetaData> metaDataGet = HdiLayerInfoTest::hdiLayerInfo_->GetMetaData();
+    ASSERT_EQ(metaData[0].key, metaDataGet[0].key);
+    ASSERT_EQ(metaData[0].value, metaDataGet[0].value);
+}
+
+/*
+* Function: SetMetaDataSet and GetMetaDataSet
+* Type: Function
+* Rank: Important(1)
+* EnvConditions: N/A
+* CaseDescription: 1. call SetMetaDataSet
+*                  2. call GetMetaDataSet and check ret
+ */
+HWTEST_F(HdiLayerInfoTest, MetaDataSet001, Function | MediumTest | Level1)
+{
+    HDRMetaDataSet metaDataSet = {HDRMetadataKey::MATAKEY_RED_PRIMARY_X, {1, 2, 3}};
+    HdiLayerInfoTest::hdiLayerInfo_->SetMetaDataSet(metaDataSet);
+    HDRMetaDataSet metaDataSetGet = HdiLayerInfoTest::hdiLayerInfo_->GetMetaDataSet();
+    ASSERT_EQ(metaDataSet.key, metaDataSetGet.key);
+    ASSERT_EQ(metaDataSet.metaData[0], metaDataSetGet.metaData[0]);
+    ASSERT_EQ(metaDataSet.metaData[1], metaDataSetGet.metaData[1]);
+    ASSERT_EQ(metaDataSet.metaData[2], metaDataSetGet.metaData[2]);
+}
 } // namespace
 } // namespace Rosen
 } // namespace OHOS

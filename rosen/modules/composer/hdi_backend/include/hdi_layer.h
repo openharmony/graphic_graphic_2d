@@ -55,11 +55,6 @@ public:
     void RecordPresentTime(int64_t timestamp);
     void Dump(std::string &result);
 
-    int32_t SetLayerColorTransform(const float *matrix) const;
-    int32_t SetLayerColorDataSpace(ColorDataSpace colorSpace) const;
-    int32_t GetLayerColorDataSpace(ColorDataSpace &colorSpace) const;
-    int32_t SetLayerMetaData(const std::vector<HDRMetaData> &metaData) const;
-    int32_t SetLayerMetaDataSet(HDRMetadataKey key, const std::vector<uint8_t> &metaData) const;
     sptr<SyncFence> GetReleaseFence() const;
 private:
     // layer buffer & fence

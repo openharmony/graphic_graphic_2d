@@ -253,66 +253,68 @@ int32_t HdiDevice::GetScreenReleaseFence(uint32_t screenId, std::vector<uint32_t
 
 int32_t HdiDevice::GetScreenSupportedColorGamuts(uint32_t screenId, std::vector<ColorGamut> &gamuts)
 {
-    gamuts.clear();
-    gamuts.push_back(ColorGamut::COLOR_GAMUT_SRGB);
-    return DISPLAY_SUCCESS;
+    CHECK_FUNC(deviceFuncs_, deviceFuncs_->GetDisplaySupportedColorGamuts);
+    uint32_t num = 0;
+    int32_t ret = deviceFuncs_->GetDisplaySupportedColorGamuts(screenId, &num, nullptr);
+    if (ret != DISPLAY_SUCCESS) {
+        return ret;
+    }
+    if (num > 0) {
+        gamuts.resize(num);
+        return deviceFuncs_->GetDisplaySupportedColorGamuts(screenId, &num, gamuts.data());
+    }
+    return ret;
 }
 
 int32_t HdiDevice::SetScreenColorGamut(uint32_t screenId, ColorGamut gamut)
 {
-    return DISPLAY_SUCCESS;
+    CHECK_FUNC(deviceFuncs_, deviceFuncs_->SetDisplayColorGamut);
+    return deviceFuncs_->SetDisplayColorGamut(screenId, gamut);
 }
 
 int32_t HdiDevice::GetScreenColorGamut(uint32_t screenId, ColorGamut &gamut)
 {
-    gamut = ColorGamut::COLOR_GAMUT_SRGB;
-    return DISPLAY_SUCCESS;
+    CHECK_FUNC(deviceFuncs_, deviceFuncs_->GetDisplayColorGamut);
+    return deviceFuncs_->GetDisplayColorGamut(screenId, &gamut);
 }
 
 int32_t HdiDevice::SetScreenGamutMap(uint32_t screenId, GamutMap gamutMap)
 {
-    return DISPLAY_SUCCESS;
+    CHECK_FUNC(deviceFuncs_, deviceFuncs_->SetDisplayGamutMap);
+    return deviceFuncs_->SetDisplayGamutMap(screenId, gamutMap);
 }
 
 int32_t HdiDevice::GetScreenGamutMap(uint32_t screenId, GamutMap &gamutMap)
 {
-    gamutMap = GamutMap::GAMUT_MAP_CONSTANT;
-    return DISPLAY_SUCCESS;
+    CHECK_FUNC(deviceFuncs_, deviceFuncs_->GetDisplayGamutMap);
+    return deviceFuncs_->GetDisplayGamutMap(screenId, &gamutMap);
 }
 
 int32_t HdiDevice::SetScreenColorTransform(uint32_t screenId, const float *matrix)
 {
-    return DISPLAY_SUCCESS;
+    CHECK_FUNC(deviceFuncs_, deviceFuncs_->SetDisplayColorTransform);
+    return deviceFuncs_->SetDisplayColorTransform(screenId, matrix);
 }
 
 int32_t HdiDevice::GetHDRCapabilityInfos(uint32_t screenId, HDRCapability &info)
 {
-    info.formatCount = 0;
-    info.formats = nullptr;
-    info.maxLum = 1000;  // mock data, 1000 is maxLum
-    info.maxAverageLum = 600;  // mock data, 600 is maxAverageLum
-    info.minLum = 200;  // mock data, 200 is minLum
-    return DISPLAY_SUCCESS;
+    CHECK_FUNC(deviceFuncs_, deviceFuncs_->GetHDRCapabilityInfos);
+    return deviceFuncs_->GetHDRCapabilityInfos(screenId, &info);
 }
 
 int32_t HdiDevice::GetSupportedMetaDataKey(uint32_t screenId, std::vector<HDRMetadataKey> &keys)
 {
-    keys.clear();
-    keys.push_back(HDRMetadataKey::MATAKEY_RED_PRIMARY_X);
-    keys.push_back(HDRMetadataKey::MATAKEY_RED_PRIMARY_Y);
-    keys.push_back(HDRMetadataKey::MATAKEY_GREEN_PRIMARY_X);
-    keys.push_back(HDRMetadataKey::MATAKEY_GREEN_PRIMARY_Y);
-    keys.push_back(HDRMetadataKey::MATAKEY_BLUE_PRIMARY_X);
-    keys.push_back(HDRMetadataKey::MATAKEY_BLUE_PRIMARY_Y);
-    keys.push_back(HDRMetadataKey::MATAKEY_WHITE_PRIMARY_X);
-    keys.push_back(HDRMetadataKey::MATAKEY_WHITE_PRIMARY_Y);
-    keys.push_back(HDRMetadataKey::MATAKEY_MAX_LUMINANCE);
-    keys.push_back(HDRMetadataKey::MATAKEY_MIN_LUMINANCE);
-    keys.push_back(HDRMetadataKey::MATAKEY_MAX_CONTENT_LIGHT_LEVEL);
-    keys.push_back(HDRMetadataKey::MATAKEY_MAX_FRAME_AVERAGE_LIGHT_LEVEL);
-    keys.push_back(HDRMetadataKey::MATAKEY_HDR10_PLUS);
-    keys.push_back(HDRMetadataKey::MATAKEY_HDR_VIVID);
-    return DISPLAY_SUCCESS;
+    CHECK_FUNC(deviceFuncs_, deviceFuncs_->GetSupportedMetadataKey);
+    uint32_t num = 0;
+    int32_t ret = deviceFuncs_->GetSupportedMetadataKey(screenId, &num, nullptr);
+    if (ret != DISPLAY_SUCCESS) {
+        return ret;
+    }
+    if (num > 0) {
+        keys.resize(num);
+        return deviceFuncs_->GetSupportedMetadataKey(screenId, &num, keys.data());
+    }
+    return ret;
 }
 
 int32_t HdiDevice::Commit(uint32_t screenId, sptr<SyncFence> &fence)
@@ -410,29 +412,33 @@ int32_t HdiDevice::SetLayerPreMulti(uint32_t screenId, uint32_t layerId, bool is
 
 int32_t HdiDevice::SetLayerColorTransform(uint32_t screenId, uint32_t layerId, const float *matrix)
 {
-    return DISPLAY_SUCCESS;
+    CHECK_FUNC(layerFuncs_, layerFuncs_->SetLayerColorTransform);
+    return layerFuncs_->SetLayerColorTransform(screenId, layerId, matrix);
 }
 
 int32_t HdiDevice::SetLayerColorDataSpace(uint32_t screenId, uint32_t layerId, ColorDataSpace colorSpace)
 {
-    return DISPLAY_SUCCESS;
+    CHECK_FUNC(layerFuncs_, layerFuncs_->SetLayerColorDataSpace);
+    return layerFuncs_->SetLayerColorDataSpace(screenId, layerId, colorSpace);
 }
 
 int32_t HdiDevice::GetLayerColorDataSpace(uint32_t screenId, uint32_t layerId, ColorDataSpace &colorSpace)
 {
-    colorSpace = ColorDataSpace::BT709_SRGB_FULL;
-    return DISPLAY_SUCCESS;
+    CHECK_FUNC(layerFuncs_, layerFuncs_->GetLayerColorDataSpace);
+    return layerFuncs_->GetLayerColorDataSpace(screenId, layerId, &colorSpace);
 }
 
 int32_t HdiDevice::SetLayerMetaData(uint32_t screenId, uint32_t layerId, const std::vector<HDRMetaData> &metaData)
 {
-    return DISPLAY_SUCCESS;
+    CHECK_FUNC(layerFuncs_, layerFuncs_->SetLayerMetaData);
+    return layerFuncs_->SetLayerMetaData(screenId, layerId, metaData.size(), metaData.data());
 }
 
 int32_t HdiDevice::SetLayerMetaDataSet(uint32_t screenId, uint32_t layerId, HDRMetadataKey key,
                                        const std::vector<uint8_t> &metaData)
 {
-    return DISPLAY_SUCCESS;
+    CHECK_FUNC(layerFuncs_, layerFuncs_->SetLayerMetaDataSet);
+    return layerFuncs_->SetLayerMetaDataSet(screenId, layerId, key, metaData.size(), metaData.data());
 }
 
 int32_t HdiDevice::SetLayerTunnelHandle(uint32_t screenId, uint32_t layerId, const ExtDataHandle *handle)

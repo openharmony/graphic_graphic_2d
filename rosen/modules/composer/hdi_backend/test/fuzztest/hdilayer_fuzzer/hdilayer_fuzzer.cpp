@@ -111,19 +111,6 @@ namespace OHOS {
         uint32_t screenId = GetData<uint32_t>();
         bool inUsing = GetData<bool>();
         int64_t timestamp = GetData<int64_t>();
-        float matrix = GetData<float>();
-        ColorDataSpace colorSpace = GetData<ColorDataSpace>();
-        std::vector<HDRMetaData> hdrMetaData;
-        for (int i = 0; i < 10; i++) { // add 10 elements to the vector
-            HDRMetaData ele = GetData<HDRMetaData>();
-            hdrMetaData.push_back(ele);
-        }
-        HDRMetadataKey key = GetData<HDRMetadataKey>();
-        std::vector<uint8_t> metaData;
-        for (int i = 0; i < 10; i++) { // add 10 elements to the vector
-            uint8_t ele = GetData<uint8_t>();
-            metaData.push_back(ele);
-        }
 
         // test
         std::shared_ptr<HdiLayerInfo> layerInfo = GetLayerInfoFromData();
@@ -132,10 +119,6 @@ namespace OHOS {
         hdiLayer->SetLayerStatus(inUsing);
         hdiLayer->UpdateLayerInfo(layerInfo);
         hdiLayer->RecordPresentTime(timestamp);
-        hdiLayer->SetLayerColorTransform(&matrix);
-        hdiLayer->SetLayerColorDataSpace(colorSpace);
-        hdiLayer->SetLayerMetaData(hdrMetaData);
-        hdiLayer->SetLayerMetaDataSet(key, metaData);
         sptr<SyncFence> fence = SyncFence::INVALID_FENCE;
         hdiLayer->MergeWithFramebufferFence(fence);
         hdiLayer->MergeWithLayerFence(fence);

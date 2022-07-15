@@ -58,68 +58,6 @@ HWTEST_F(HdiLayerTest, GetLayerStatus001, Function | MediumTest| Level0)
     HdiLayerTest::hdiLayer_->SetLayerStatus(isUsing);
     ASSERT_EQ(HdiLayerTest::hdiLayer_->GetLayerStatus(), false);
 }
-
-/*
-* Function: SetLayerColorDataSpace001
-* Type: Function
-* Rank: Important(2)
-* EnvConditions: N/A
-* CaseDescription: 1. call SetLayerColorDataSpace
-*                  2. check ret
- */
-HWTEST_F(HdiLayerTest, SetLayerColorDataSpace001, Function | MediumTest | Level2)
-{
-    ColorDataSpace colorSpace = ColorDataSpace::BT709_SRGB_FULL;
-    ASSERT_EQ(HdiLayerTest::hdiLayer_->SetLayerColorDataSpace(colorSpace), 0);
-}
-
-/*
-* Function: GetLayerColorDataSpace001
-* Type: Function
-* Rank: Important(2)
-* EnvConditions: N/A
-* CaseDescription: 1. call GetLayerColorDataSpace
-*                  2. check ret
- */
-HWTEST_F(HdiLayerTest, GetLayerColorDataSpace001, Function | MediumTest | Level2)
-{
-    ColorDataSpace colorSpace = ColorDataSpace::COLOR_DATA_SPACE_UNKNOWN;
-    ASSERT_EQ(HdiLayerTest::hdiLayer_->GetLayerColorDataSpace(colorSpace), 0);
-}
-
-/*
-* Function: SetLayerMetaData001
-* Type: Function
-* Rank: Important(2)
-* EnvConditions: N/A
-* CaseDescription: 1. call SetLayerMetaData
-*                  2. check ret
- */
-HWTEST_F(HdiLayerTest, SetLayerMetaData001, Function | MediumTest | Level2)
-{
-    HDRMetaData metaData = {
-        .key = HDRMetadataKey::MATAKEY_RED_PRIMARY_X,
-        .value = 0,
-    };
-    const std::vector<HDRMetaData> metaDatas = { metaData };
-    ASSERT_EQ(HdiLayerTest::hdiLayer_->SetLayerMetaData(metaDatas), 0);
-}
-
-/*
-* Function: SetLayerMetaDataSet001
-* Type: Function
-* Rank: Important(2)
-* EnvConditions: N/A
-* CaseDescription: 1. call SetLayerMetaDataSet
-*                  2. check ret
- */
-HWTEST_F(HdiLayerTest, SetLayerMetaDataSet001, Function | MediumTest | Level2)
-{
-    HDRMetadataKey  key = HDRMetadataKey::MATAKEY_RED_PRIMARY_X;
-
-    const std::vector<uint8_t> metaDatas = { 0 };
-    ASSERT_EQ(HdiLayerTest::hdiLayer_->SetLayerMetaDataSet(key, metaDatas), 0);
-}
 } // namespace
 } // namespace Rosen
 } // namespace OHOS
