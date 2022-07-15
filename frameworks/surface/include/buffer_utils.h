@@ -19,6 +19,7 @@
 #include <errno.h>
 #include <message_parcel.h>
 #include <surface_type.h>
+#include <surface_tunnel_handle.h>
 
 #include "surface_buffer.h"
 
@@ -44,9 +45,8 @@ void WriteHDRMetaData(MessageParcel &parcel, const std::vector<HDRMetaData> &met
 void ReadHDRMetaDataSet(MessageParcel &parcel, std::vector<uint8_t> &metaData);
 void WriteHDRMetaDataSet(MessageParcel &parcel, const std::vector<uint8_t> &metaData);
 
-void ReadExtDataHandle(MessageParcel &parcel, ExtDataHandle **handle);
+void ReadExtDataHandle(MessageParcel &parcel, sptr<SurfaceTunnelHandle> &handle);
 void WriteExtDataHandle(MessageParcel &parcel, const ExtDataHandle *handle);
-GSError FreeExtDataHandle(ExtDataHandle *handle);
 } // namespace OHOS
 
 #endif // FRAMEWORKS_SURFACE_INCLUDE_BUFFER_UTILS_H

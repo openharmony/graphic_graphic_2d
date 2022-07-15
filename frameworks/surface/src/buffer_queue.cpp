@@ -907,29 +907,24 @@ GSError BufferQueue::GetMetaDataSet(uint32_t sequence, HDRMetadataKey &key,
     return GSERROR_OK;
 }
 
-GSError BufferQueue::SetTunnelHandle(const ExtDataHandle *handle)
+GSError BufferQueue::SetTunnelHandle(const sptr<SurfaceTunnelHandle> &handle)
 {
-    if (handle == nullptr) {
-        BLOGN_INVALID("handle is nullptr");
-        return GSERROR_INVALID_ARGUMENTS;
-    }
+    std::lock_guard<std::mutex> lockGuard(mutex_);
     bool tunnelHandleChange = false;
     if (tunnelHandle_ == nullptr) {
+        if (handle == nullptr) {
+            BLOGN_INVALID("tunnel handle is nullptr");
+            return GSERROR_INVALID_ARGUMENTS;
+        }
         tunnelHandleChange = true;
     } else {
-        tunnelHandleChange = tunnelHandle_->fd != handle->fd ||
-                             tunnelHandle_->reserveInts != handle->reserveInts;
-        for (uint32_t index = 0; index < handle->reserveInts; index++) {
-            tunnelHandleChange = tunnelHandleChange || tunnelHandle_->reserve[index] != handle->reserve[index];
-        }
+        tunnelHandleChange = tunnelHandle_->Different(handle);
     }
     if (!tunnelHandleChange) {
         BLOGNW("same tunnel handle, please check");
         return GSERROR_NO_ENTRY;
     }
-    ExtDataHandle *prevHandle = tunnelHandle_;
-    tunnelHandle_ = const_cast<ExtDataHandle *>(handle);
-    FreeExtDataHandle(prevHandle);
+    tunnelHandle_ = handle;
     if (listener_ != nullptr) {
         ScopedBytrace bufferIPCSend("OnTunnelHandleChange");
         listener_->OnTunnelHandleChange();
@@ -942,10 +937,10 @@ GSError BufferQueue::SetTunnelHandle(const ExtDataHandle *handle)
     return GSERROR_OK;
 }
 
-GSError BufferQueue::GetTunnelHandle(ExtDataHandle **handle) const
+sptr<SurfaceTunnelHandle> BufferQueue::GetTunnelHandle()
 {
-    *handle = tunnelHandle_;
-    return GSERROR_OK;
+    std::lock_guard<std::mutex> lockGuard(mutex_);
+    return tunnelHandle_;
 }
 
 void BufferQueue::DumpCache(std::string &result)

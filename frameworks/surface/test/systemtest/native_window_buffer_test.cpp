@@ -95,6 +95,18 @@ pid_t NativeWindowBufferTest::ChildProcessMain()
     nativeWindowBuffer->sfbuffer->GetExtraData()->ExtraSet("345", (int64_t)0x345);
     nativeWindowBuffer->sfbuffer->GetExtraData()->ExtraSet("567", "567");
 
+    OHExtDataHandle *handle = new OHExtDataHandle();
+    handle->fd = -1;
+    handle->reserveInts = 1;
+    handle->reserve[0] = 1;
+    ret = NativeWindowSetTunnelHandle(nativeWindow, handle);
+        if (ret != OHOS::GSERROR_OK) {
+        data = ret;
+        write(pipeFd[1], &data, sizeof(data));
+        exit(0);
+        return -1;
+    }
+
     struct Region *region = new Region();
     struct Region::Rect *rect = new Region::Rect();
     rect->w = 0x100;
@@ -160,6 +172,13 @@ HWTEST_F(NativeWindowBufferTest, Surface001, Function | MediumTest | Level2)
         EXPECT_EQ(int32, 0x123);
         EXPECT_EQ(int64, 0x345);
         EXPECT_EQ(str, "567");
+
+        sptr<SurfaceTunnelHandle> handleGet = nullptr;
+        handleGet = cSurface->GetTunnelHandle();
+        ASSERT_NE(handleGet, nullptr);
+        ASSERT_EQ(handleGet->GetHandle()->fd, -1);
+        ASSERT_EQ(handleGet->GetHandle()->reserveInts, 1);
+        ASSERT_EQ(handleGet->GetHandle()->reserve[0], 1);
     }
 
     ret = cSurface->ReleaseBuffer(buffer, -1);

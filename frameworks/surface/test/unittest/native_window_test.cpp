@@ -796,6 +796,8 @@ HWTEST_F(NativeWindowTest, SetTunnelHandle004, Function | MediumTest | Level1)
     handle->fd = -1;
     handle->reserveInts = 1;
     handle->reserve[0] = 1;
+    nativeWindow = CreateNativeWindowFromSurface(&pSurface);
+    ASSERT_NE(nativeWindow, nullptr);
     ASSERT_EQ(NativeWindowSetTunnelHandle(nativeWindow, handle), OHOS::GSERROR_OK);
     ASSERT_EQ(NativeWindowSetTunnelHandle(nativeWindow, handle), OHOS::GSERROR_NO_ENTRY);
     delete handle;

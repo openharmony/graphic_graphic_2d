@@ -176,36 +176,31 @@ void WriteHDRMetaDataSet(MessageParcel &parcel, const std::vector<uint8_t> &meta
     }
 }
 
-void ReadExtDataHandle(MessageParcel &parcel, ExtDataHandle **handle)
+void ReadExtDataHandle(MessageParcel &parcel, sptr<SurfaceTunnelHandle> &handle)
 {
-    *handle = new ExtDataHandle();
-    ReadFileDescriptor(parcel, (*handle)->fd);
-    (*handle)->reserveInts = parcel.ReadUint32();
-    for (uint32_t index = 0; index < (*handle)->reserveInts; index++) {
-        (*handle)->reserve[index] = parcel.ReadInt32();
+    uint32_t reserveInts = parcel.ReadUint32();
+    ExtDataHandle *tunnelHandle = AllocExtDataHandle(reserveInts);
+    if (tunnelHandle == nullptr) {
+        BLOGE("AllocExtDataHandle failed");
+        return;
     }
+    ReadFileDescriptor(parcel, tunnelHandle->fd);
+    for (uint32_t index = 0; index < reserveInts; index++) {
+        tunnelHandle->reserve[index] = parcel.ReadInt32();
+    }
+    if (handle->SetHandle(tunnelHandle) != GSERROR_OK) {
+        BLOGE("SetHandle failed");
+        return;
+    }
+    FreeExtDataHandle(tunnelHandle);
 }
 
 void WriteExtDataHandle(MessageParcel &parcel, const ExtDataHandle *handle)
 {
-    WriteFileDescriptor(parcel, handle->fd);
     parcel.WriteUint32(handle->reserveInts);
+    WriteFileDescriptor(parcel, handle->fd);
     for (uint32_t index = 0; index < handle->reserveInts; index++) {
         parcel.WriteInt32(handle->reserve[index]);
     }
-}
-
-GSError FreeExtDataHandle(ExtDataHandle *handle)
-{
-    if (handle == nullptr) {
-        BLOGE("FreeExtDataHandle with nullptr handle");
-        return GSERROR_INVALID_ARGUMENTS;
-    }
-    if (handle->fd >= 0) {
-        close(handle->fd);
-        handle->fd = -1;
-    }
-    delete handle;
-    return GSERROR_OK;
 }
 } // namespace OHOS

@@ -311,8 +311,8 @@ GSError ConsumerSurface::SetTunnelHandle(const ExtDataHandle *handle)
     return producer_->SetTunnelHandle(handle);
 }
 
-GSError ConsumerSurface::GetTunnelHandle(ExtDataHandle **handle) const
+sptr<SurfaceTunnelHandle> ConsumerSurface::GetTunnelHandle() const
 {
-    return consumer_->GetTunnelHandle(handle);
+    return consumer_->GetTunnelHandle();
 }
 } // namespace OHOS

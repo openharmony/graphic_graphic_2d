@@ -16,7 +16,7 @@
 #include "hdilayer_fuzzer.h"
 
 #include <securec.h>
-
+#include <surface_tunnel_handle.h>
 #include "hdi_layer.h"
 using namespace OHOS::Rosen;
 
@@ -78,7 +78,6 @@ namespace OHOS {
         IRect layerRect = GetData<IRect>();
         void* info = static_cast<void*>(GetStringFromData(STR_LEN).data());
         bool change = GetData<bool>();
-        ExtDataHandle handle = GetData<ExtDataHandle>();
 
         // test
         std::shared_ptr<HdiLayerInfo> layerInfo = HdiLayerInfo::CreateHdiLayerInfo();
@@ -94,8 +93,6 @@ namespace OHOS {
         layerInfo->SetLayerSize(layerRect);
         layerInfo->SetLayerAdditionalInfo(info);
         layerInfo->SetTunnelHandleChange(change);
-        layerInfo->SetTunnelHandle(&handle);
-
         return layerInfo;
     }
 

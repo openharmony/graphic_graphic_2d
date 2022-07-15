@@ -158,12 +158,12 @@ GSError BufferQueueConsumer::GetMetaDataSet(uint32_t sequence, HDRMetadataKey &k
     return bufferQueue_->GetMetaDataSet(sequence, key, metaData);
 }
 
-GSError BufferQueueConsumer::GetTunnelHandle(ExtDataHandle **handle) const
+sptr<SurfaceTunnelHandle> BufferQueueConsumer::GetTunnelHandle() const
 {
     if (bufferQueue_ == nullptr) {
-        return GSERROR_INVALID_ARGUMENTS;
+        return nullptr;
     }
-    return bufferQueue_->GetTunnelHandle(handle);
+    return bufferQueue_->GetTunnelHandle();
 }
 
 bool BufferQueueConsumer::GetStatus() const

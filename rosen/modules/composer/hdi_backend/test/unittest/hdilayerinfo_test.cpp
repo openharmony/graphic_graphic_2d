@@ -14,6 +14,7 @@
  */
 
 #include "hdi_layer_info.h"
+#include "surface_tunnel_handle.h"
 #include "sync_fence.h"
 
 #include <gtest/gtest.h>
@@ -309,13 +310,13 @@ HWTEST_F(HdiLayerInfoTest, IsPreMulti001, Function | MediumTest| Level3)
 /*
 * Function: SetTunnelHandleChange and GetTunnelHandleChange
 * Type: Function
-* Rank: Important(2)
+* Rank: Important(1)
 * EnvConditions: N/A
 * CaseDescription: 1. call GetTunnelHandleChange with default
 *                  2. call SetTunnelHandleChange
 *                  3. call GetTunnelHandleChange and check ret
  */
-HWTEST_F(HdiLayerInfoTest, TunnelHandleChange001, Function | MediumTest | Level2)
+HWTEST_F(HdiLayerInfoTest, TunnelHandleChange001, Function | MediumTest | Level1)
 {
     bool change = HdiLayerInfoTest::hdiLayerInfo_->GetTunnelHandleChange();
     ASSERT_EQ(change, false);
@@ -327,27 +328,45 @@ HWTEST_F(HdiLayerInfoTest, TunnelHandleChange001, Function | MediumTest | Level2
 /*
 * Function: SetTunnelHandle and GetTunnelHandle
 * Type: Function
-* Rank: Important(2)
+* Rank: Important(1)
 * EnvConditions: N/A
 * CaseDescription: 1. call GetTunnelHandle with default
-*                  2. call SetTunnelHandle
-*                  3. call GetTunnelHandle and check ret
  */
-HWTEST_F(HdiLayerInfoTest, TunnelHandle001, Function | MediumTest | Level2)
+HWTEST_F(HdiLayerInfoTest, TunnelHandle001, Function | MediumTest | Level1)
 {
-    ExtDataHandle *handle = new ExtDataHandle();
-    handle = HdiLayerInfoTest::hdiLayerInfo_->GetTunnelHandle();
+    sptr<SurfaceTunnelHandle> handle = HdiLayerInfoTest::hdiLayerInfo_->GetTunnelHandle();
     ASSERT_EQ(handle, nullptr);
-    delete handle;
-    ExtDataHandle *tunnelHandle = new ExtDataHandle();
-    tunnelHandle->fd = -1;
-    tunnelHandle->reserveInts = 1;
-    tunnelHandle->reserve[0] = 1;
+}
+
+/*
+* Function: SetTunnelHandle and GetTunnelHandle
+* Type: Function
+* Rank: Important(1)
+* EnvConditions: N/A
+* CaseDescription: 1. call SetTunnelHandle
+*                  2. call GetTunnelHandle and check ret
+ */
+HWTEST_F(HdiLayerInfoTest, TunnelHandle002, Function | MediumTest | Level1)
+{
+    sptr<SurfaceTunnelHandle> handle = HdiLayerInfoTest::hdiLayerInfo_->GetTunnelHandle();
+    ASSERT_EQ(handle, nullptr);
+
+    sptr<SurfaceTunnelHandle> tunnelHandle = new SurfaceTunnelHandle;
+
+    ExtDataHandle *handleSet = new ExtDataHandle();
+    handleSet->fd = -1;
+    handleSet->reserveInts = 1;
+    handleSet->reserve[0] = 0;
+    ASSERT_EQ(tunnelHandle->SetHandle(handleSet), OHOS::GSERROR_OK);
+    ASSERT_NE(tunnelHandle, nullptr);
     HdiLayerInfoTest::hdiLayerInfo_->SetTunnelHandle(tunnelHandle);
-    ASSERT_EQ(HdiLayerInfoTest::hdiLayerInfo_->GetTunnelHandle()->fd, tunnelHandle->fd);
-    ASSERT_EQ(HdiLayerInfoTest::hdiLayerInfo_->GetTunnelHandle()->reserveInts, tunnelHandle->reserveInts);
-    ASSERT_EQ(HdiLayerInfoTest::hdiLayerInfo_->GetTunnelHandle()->reserve[0], tunnelHandle->reserve[0]);
-    delete tunnelHandle;
+    ASSERT_EQ(HdiLayerInfoTest::hdiLayerInfo_->GetTunnelHandle()->GetHandle()->fd,
+              tunnelHandle->GetHandle()->fd);
+    ASSERT_EQ(HdiLayerInfoTest::hdiLayerInfo_->GetTunnelHandle()->GetHandle()->reserveInts,
+              tunnelHandle->GetHandle()->reserveInts);
+    ASSERT_EQ(HdiLayerInfoTest::hdiLayerInfo_->GetTunnelHandle()->GetHandle()->reserve[0],
+              tunnelHandle->GetHandle()->reserve[0]);
+    delete handleSet;
 }
 } // namespace
 } // namespace Rosen

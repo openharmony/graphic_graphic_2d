@@ -375,7 +375,12 @@ GSError BufferClientProducer::SetMetaDataSet(uint32_t sequence, HDRMetadataKey k
 GSError BufferClientProducer::SetTunnelHandle(const ExtDataHandle *handle)
 {
     DEFINE_MESSAGE_VARIABLES(arguments, reply, option, BLOGE);
-    WriteExtDataHandle(arguments, handle);
+    if (handle == nullptr) {
+        arguments.WriteBool(false);
+    } else {
+        arguments.WriteBool(true);
+        WriteExtDataHandle(arguments, handle);
+    }
     SEND_REQUEST(BUFFER_PRODUCER_SET_TUNNEL_HANDLE, arguments, reply, option);
     int32_t ret = reply.ReadInt32();
     if (ret != GSERROR_OK) {

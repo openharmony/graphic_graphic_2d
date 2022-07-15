@@ -124,8 +124,6 @@ namespace OHOS {
             uint8_t data = GetData<uint8_t>();
             metaDataSet.push_back(data);
         }
-        ExtDataHandle handle = GetData<ExtDataHandle>();
-
         // test
         sptr<BufferQueue> bufferqueue = new BufferQueue(name, isShared);
         sptr<BufferExtraData> bedata = GetBufferExtraDataFromData();
@@ -145,8 +143,6 @@ namespace OHOS {
         bufferqueue->SetTransform(transform);
         bufferqueue->SetMetaData(sequence, metaData);
         bufferqueue->SetMetaDataSet(sequence, key, metaDataSet);
-        bufferqueue->SetTunnelHandle(&handle);
-
         return true;
     }
 }

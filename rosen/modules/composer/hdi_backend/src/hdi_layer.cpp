@@ -151,7 +151,12 @@ void HdiLayer::SetHdiLayerInfo()
     CheckRet(ret, "SetLayerPreMulti");
 
     if (layerInfo_->GetTunnelHandleChange()) {
-        ret = device->SetLayerTunnelHandle(screenId_, layerId_, layerInfo_->GetTunnelHandle());
+        if (layerInfo_->GetTunnelHandle() == nullptr) {
+            ret = device->SetLayerTunnelHandle(screenId_, layerId_, nullptr);
+        } else {
+            ret = device->SetLayerTunnelHandle(screenId_, layerId_,
+                                               layerInfo_->GetTunnelHandle()->GetHandle());
+        }
         CheckRet(ret, "SetLayerTunnelHandle");
     }
 }

@@ -96,7 +96,7 @@ public:
     GSError GetMetaDataSet(uint32_t sequence, HDRMetadataKey &key,
                            std::vector<uint8_t> &metaData) const override;
     GSError SetTunnelHandle(const ExtDataHandle *handle) override;
-    GSError GetTunnelHandle(ExtDataHandle **handle) const override;
+    sptr<SurfaceTunnelHandle> GetTunnelHandle() const override;
 
 private:
     std::map<std::string, std::string> userData_;

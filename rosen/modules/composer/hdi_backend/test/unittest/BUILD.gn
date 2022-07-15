@@ -121,6 +121,7 @@ ohos_static_library("hdibackend_test_common") {
   public_configs = [ ":hdibackend_test_common_public_config" ]
 
   public_deps = [
+    "//foundation/graphic/graphic_2d:libsurface",
     "//foundation/graphic/graphic_2d/rosen/modules/composer:libcomposer",
     "//third_party/googletest:gmock_main",
     "//third_party/googletest:gtest_main",

@@ -55,6 +55,7 @@ ohos_shared_library("surface") {
     "src/producer_surface.cpp",
     "src/surface.cpp",
     "src/surface_buffer_impl.cpp",
+    "src/surface_tunnel_handle.cpp",
     "src/surface_utils.cpp",
   ]
 

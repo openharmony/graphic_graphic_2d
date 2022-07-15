@@ -687,8 +687,7 @@ HWTEST_F(ProducerSurfaceTest, metaDataSet003, Function | MediumTest | Level1)
  */
 HWTEST_F(ProducerSurfaceTest, tunnelHandle001, Function | MediumTest | Level2)
 {
-    ExtDataHandle *handle = nullptr;
-    ASSERT_EQ(pSurface->GetTunnelHandle(&handle), OHOS::GSERROR_NOT_SUPPORT);
+    ASSERT_EQ(pSurface->GetTunnelHandle(), nullptr);
 }
 
 /*

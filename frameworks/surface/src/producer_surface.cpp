@@ -372,8 +372,9 @@ GSError ProducerSurface::SetTunnelHandle(const ExtDataHandle *handle)
     return producer_->SetTunnelHandle(handle);
 }
 
-GSError ProducerSurface::GetTunnelHandle(ExtDataHandle **handle) const
+sptr<SurfaceTunnelHandle> ProducerSurface::GetTunnelHandle() const
 {
-    return GSERROR_NOT_SUPPORT;
+    // not support
+    return nullptr;
 }
 } // namespace OHOS
