@@ -22,7 +22,7 @@ config("bootanimation_config") {
     "include",
     "//foundation/graphic/graphic_2d/utils/log",
     "//third_party/cJSON",
-    "//foundation/multimedia/media_standard/interfaces/inner_api/native",
+    "//foundation/multimedia/player_framework/interfaces/inner_api/native",
   ]
 
   cflags = [
@@ -58,7 +58,7 @@ ohos_executable("bootanimation") {
     "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics:2d_graphics",
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/src/platform:platform",
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:librender_service_client",
-    "//foundation/multimedia/media_standard/interfaces/inner_api/native:media_client",
+    "//foundation/multimedia/player_framework/interfaces/inner_api/native:media_client",
     "//foundation/window/window_manager/dm:libdm",
     "//foundation/window/window_manager/dmserver:libdms",
     "//foundation/window/window_manager/wm:libwm",

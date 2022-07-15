@@ -82,11 +82,11 @@ ohos_shared_library("wms_client") {
   ]
 
   if (target_cpu == "arm") {
-    deps += [ "//foundation/multimedia/media_standard/frameworks/videodisplaymanager:videodisplaymanager" ]
+    deps += [ "//foundation/multimedia/player_framework/frameworks/videodisplaymanager:videodisplaymanager" ]
     defines = [ "TARGET_CPU_ARM" ]
   } else {
     include_dirs = [
-      "//foundation/multimedia/media_standard/frameworks/videodisplaymanager/include",
+      "//foundation/multimedia/player_framework/frameworks/videodisplaymanager/include",
       "//drivers/peripheral/display/interfaces/include",
       "//drivers/peripheral/display/interfaces/hdi_cpp/client",
     ]
@@ -184,11 +184,11 @@ ohos_shared_library("libwmclient") {
   ]
 
   if (target_cpu == "arm") {
-    deps += [ "//foundation/multimedia/media_standard/frameworks/videodisplaymanager:videodisplaymanager" ]
+    deps += [ "//foundation/multimedia/player_framework/frameworks/videodisplaymanager:videodisplaymanager" ]
     defines = [ "TARGET_CPU_ARM" ]
   } else {
     include_dirs = [
-      "//foundation/multimedia/media_standard/frameworks/videodisplaymanager/include",
+      "//foundation/multimedia/player_framework/frameworks/videodisplaymanager/include",
       "//drivers/peripheral/display/interfaces/include",
       "//drivers/peripheral/display/interfaces/hdi_cpp/client",
     ]
