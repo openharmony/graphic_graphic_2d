@@ -199,6 +199,7 @@ private:
     void AddAnimationInner(const std::shared_ptr<RSAnimation>& animation);
     void RemoveAnimationInner(const std::shared_ptr<RSAnimation>& animation);
     void FinishAnimationByProperty(const RSAnimatableProperty& property);
+    void SetPropertyOnAllAnimationFinish(const RSAnimatableProperty& property);
     virtual void OnBoundsSizeChanged() const {};
 
     std::unordered_map<AnimationId, std::shared_ptr<RSAnimation>> animations_;
