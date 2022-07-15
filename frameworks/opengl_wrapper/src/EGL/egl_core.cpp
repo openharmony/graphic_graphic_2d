@@ -19,7 +19,6 @@
 #include "egl_defs.h"
 #include "egl_pre_initializer.h"
 #include "egl_wrapper_loader.h"
-#include "../thread_private_data_ctl.h"
 #include "../wrapper_log.h"
 
 namespace OHOS {

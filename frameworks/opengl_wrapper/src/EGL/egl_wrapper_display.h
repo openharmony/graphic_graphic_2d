@@ -15,7 +15,6 @@
 #ifndef FRAMEWORKS_OPENGL_WRAPPER_EGL_WRAPPER_DISPLAY_H
 #define FRAMEWORKS_OPENGL_WRAPPER_EGL_WRAPPER_DISPLAY_H
 
-#include <condition_variable>
 #include <mutex>
 #include <unordered_set>
 #include <EGL/egl.h>

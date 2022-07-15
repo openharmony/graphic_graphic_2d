@@ -14,7 +14,6 @@
  */
 #include "egl_wrapper_context.h"
 
-#include "egl_wrapper_display.h"
 #include "../wrapper_log.h"
 namespace OHOS {
 EglWrapperContext::EglWrapperContext(EglWrapperDisplay *disp, EGLContext context)

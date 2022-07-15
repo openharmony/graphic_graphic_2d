@@ -14,7 +14,6 @@
  */
 #include "egl_core.h"
 #include "egl_defs.h"
-#include "../thread_private_data_ctl.h"
 #include "../wrapper_log.h"
 
 #undef CALL_HOOK_API

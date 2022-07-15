@@ -14,7 +14,6 @@
  */
 #include "egl_wrapper_surface.h"
 
-#include "egl_wrapper_display.h"
 #include "../wrapper_log.h"
 
 namespace OHOS {
