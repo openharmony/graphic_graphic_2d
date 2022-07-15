@@ -255,7 +255,7 @@ public:
             screenWidth_ * 0.4f, screenHeight_ * 0.3f, 0xff0000ff);
         auto sourceDisplayNode = pipelineTestUtils::CreateDisplayNode(sourceSurcaseNode);
         auto targetSurfaceNode = pipelineTestUtils::CreateSurface(SURFACE_NODE_SIZE, screenHeight_ * 0.6f, 
-            screenWidth_ * 0.6f, screenHeight_ * 0.3f, 0x0000ffff);
+            screenWidth_ * 0.6f, screenHeight_ * 0.3f, 0xffff0000);
         auto targetDisplayNode = pipelineTestUtils::CreateDisplayNode(targetSurfaceNode);
 
         auto transactionProxy = RSTransactionProxy::GetInstance();
