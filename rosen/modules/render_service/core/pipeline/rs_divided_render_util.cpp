@@ -34,7 +34,10 @@ bool RSDividedRenderUtil::IsNeedClient(RSSurfaceRenderNode& node, const ComposeI
     }
 
     const auto& property = node.GetRenderProperties();
-    if (property.GetFrameGravity() != Gravity::RESIZE &&
+    auto backgroundColor = static_cast<SkColor>(property.GetBackgroundColor().AsArgbInt());
+    // If node's gravity is not RESIZE and backgroundColor is not transparent,
+    // we check the src and dst size to decide whether to use client composition or not.
+    if (property.GetFrameGravity() != Gravity::RESIZE && SkColorGetA(backgroundColor) != SK_AlphaTRANSPARENT &&
         (info.srcRect.w != info.dstRect.w || info.srcRect.h != info.dstRect.h)) {
         return true;
     }
@@ -217,7 +220,7 @@ BufferDrawParam RSDividedRenderUtil::CreateBufferDrawParam(RSSurfaceRenderNode& 
     params.paint = paint;
     params.cornerRadius = property.GetCornerRadius();
     params.isNeedClip = property.GetClipToFrame();
-    params.backgroundColor = SkColor4f::FromBytes_RGBA(property.GetBackgroundColor().AsRgbaInt()).toSkColor();
+    params.backgroundColor = static_cast<SkColor>(property.GetBackgroundColor().AsArgbInt());
     return params;
 }
 
@@ -233,7 +236,7 @@ void SetPropertiesForCanvas(RSPaintFilterCanvas& canvas, const BufferDrawParam& 
             canvas.clipRect(bufferDrawParam.clipRect);
         }
     }
-    if (bufferDrawParam.backgroundColor != SK_ColorTRANSPARENT) {
+    if (SkColorGetA(bufferDrawParam.backgroundColor) != SK_AlphaTRANSPARENT) {
         canvas.clear(bufferDrawParam.backgroundColor);
     }
     canvas.setMatrix(bufferDrawParam.matrix);

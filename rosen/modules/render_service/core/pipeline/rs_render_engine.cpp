@@ -134,7 +134,7 @@ void RSRenderEngine::DrawLayers(
             RS_LOGE("RSRenderEngine::DrawLayers: node is nullptr!");
             continue;
         }
-        const auto& clipRect = layer->GetLayerSize();
+        const auto& clipRect = layer->GetVisibleRegion();
         auto saveCount = canvas.getSaveCount();
         if (nodePtr->IsInstanceOf<RSSurfaceRenderNode>()) {
             RSSurfaceRenderNode& node = *(static_cast<RSSurfaceRenderNode*>(nodePtr));
