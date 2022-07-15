@@ -235,7 +235,8 @@ void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::ProcessSurfaceRenderNodeWith
     }
 
     auto matrix = geoPtr->GetMatrix();
-    matrix.setTranslate(std::ceil(matrix.getTranslateX()), std::ceil(matrix.getTranslateY()));
+    matrix.setTranslateX(std::ceil(matrix.getTranslateX()));
+    matrix.setTranslateY(std::ceil(matrix.getTranslateY()));
     canvas_->concat(matrix);
     canvas_->clipRect(SkRect::MakeWH(std::floor(node.GetRenderProperties().GetBoundsWidth()),
         std::floor(node.GetRenderProperties().GetBoundsHeight())));
