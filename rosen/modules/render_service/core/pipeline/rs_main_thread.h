@@ -127,6 +127,7 @@ private:
     void CallbackToWMS(VisibleData& curVisVec);
     void SendCommands();
     void InitRSEventDetector();
+    void RemoveRSEventDetector();
     void SetRSEventDetectorLoopStartTag();
     void SetRSEventDetectorLoopFinishTag();
 
@@ -161,6 +162,7 @@ private:
 
     std::shared_ptr<RSRenderEngine> renderEngine_;
     std::shared_ptr<RSBaseEventDetector> rsCompositionTimeoutDetector_;
+    RSEventManager rsEventManager_;
 };
 } // namespace OHOS::Rosen
 #endif // RS_MAIN_THREAD

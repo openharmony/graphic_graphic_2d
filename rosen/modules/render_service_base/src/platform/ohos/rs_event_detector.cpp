@@ -17,6 +17,12 @@
 
 namespace OHOS {
 namespace Rosen {
+uint64_t RSEventTimer::GetSysTimeMs()
+{
+    auto now = std::chrono::steady_clock::now().time_since_epoch();
+    return std::chrono::duration_cast<std::chrono::milliseconds>(now).count();
+}
+
 std::shared_ptr<RSBaseEventDetector> RSBaseEventDetector::CreateRSTimeOutDetector(int timeOutThresholdMs,
     std::string detectorStringId)
 {
@@ -52,12 +58,12 @@ void RSTimeOutDetector::SetParam(const std::string& key, const std::string& valu
 
 void RSTimeOutDetector::SetLoopStartTag()
 {
-    startTimeStampMs_ = RSEventManager::Instance().GetSysTimeMs();
+    startTimeStampMs_ = RSEventTimer::GetSysTimeMs();
 }
 
 void RSTimeOutDetector::SetLoopFinishTag()
 {
-    uint64_t finishTimeStampMs = RSEventManager::Instance().GetSysTimeMs();
+    uint64_t finishTimeStampMs = RSEventTimer::GetSysTimeMs();
     RS_LOGD("RSTimeOutDetector :: One loop cost Time: %llu ", finishTimeStampMs - startTimeStampMs_);
     if (finishTimeStampMs > startTimeStampMs_ && finishTimeStampMs - startTimeStampMs_ > timeOutThredsholdMs_) {
         EventReport(finishTimeStampMs - startTimeStampMs_);

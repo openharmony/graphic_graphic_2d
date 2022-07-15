@@ -18,6 +18,7 @@
 
 #include <map>
 #include <memory>
+#include <atomic>
 #include "rs_log.h"
 #include "base/hiviewdfx/hisysevent/interfaces/native/innerkits/hisysevent/include/hisysevent.h"
 
@@ -27,6 +28,14 @@ struct RSSysEventMsg final {
     std::string stringId;
     std::string msg;
     OHOS::HiviewDFX::HiSysEvent::EventType eventType;
+};
+
+class RSEventTimer final {
+public:
+    ~RSEventTimer() = default;
+    static uint64_t GetSysTimeMs();
+private:
+    RSEventTimer() = default;
 };
 
 class RSBaseEventDetector {
@@ -90,7 +99,7 @@ public:
 private:
     void EventReport(uint64_t costTimeMs);
     int timeOutThredsholdMs_ = INT_MAX; // default: No Detector
-    uint64_t startTimeStampMs_ = 0;
+    std::atomic_uint64_t startTimeStampMs_ = 0;
 };
 }
 }
