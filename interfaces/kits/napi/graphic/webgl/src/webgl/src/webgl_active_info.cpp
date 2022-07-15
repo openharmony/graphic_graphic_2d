@@ -13,9 +13,21 @@
  * limitations under the License.
  */
 
-#include "../include/webgl/webgl_active_info.h"
-#include "../../common/napi/n_class.h"
-#include "../../common/napi/n_func_arg.h"
+#include "../include/webgl/webgl_active_info.h"  // for WebGLActiveInfo, Web...
+
+#include "__config"                              // for std
+#include "iosfwd"                                // for string
+#include "js_native_api_types.h"                 // for napi_property_descri...
+#include "memory"                                // for make_unique, unique_ptr
+#include "new"                                   // for operator delete
+#include "string"                                // for basic_string
+#include "tuple"                                 // for tuple, tie
+#include "type_traits"                           // for move
+#include "vector"                                // for vector
+
+#include "../../common/napi/n_class.h"           // for NClass
+#include "../../common/napi/n_func_arg.h"        // for NFuncArg, NARG_CNT
+#include "common/napi/n_val.h"                   // for NVal
 
 namespace OHOS {
 namespace Rosen {
