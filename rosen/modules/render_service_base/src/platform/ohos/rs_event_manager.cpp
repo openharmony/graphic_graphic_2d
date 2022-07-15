@@ -18,12 +18,6 @@
 
 namespace OHOS {
 namespace Rosen {
-RSEventManager& RSEventManager::Instance()
-{
-    static RSEventManager eventManager;
-    return eventManager;
-}
-
 RSEventManager::~RSEventManager()
 {
     Clear();
@@ -77,7 +71,7 @@ void RSEventManager::DumpAllEventParam(std::string& dumpString)
         auto detectorPtr = item.second.lock();
         if (detectorPtr == nullptr) {
             RS_LOGD("RSEventManager::DumpAllEventParam %s failed: nullptr", detectorPtr->GetStringId().c_str());
-            return;
+            continue;
         }
         DumpDetectorParam(detectorPtr, dumpString);
         DumpEventIntervalMs(detectorPtr, dumpString);
@@ -126,19 +120,17 @@ void RSEventManager::UpdateEventIntervalMs(std::shared_ptr<RSBaseEventDetector> 
 
 void RSEventManager::UpdateParam()
 {
-    RS_LOGD("RSEventManager::UpdateParam updateCount_:%d updateThreshold_:%d ", updateCount_, updateThreshold_);
     updateCount_++;
     if (updateCount_ % updateThreshold_ != 0) {
         return;
     }
     updateCount_ = 0;
-    RS_LOGD("RSEventManager::UpdateParam  update");
     std::unique_lock<std::mutex> listLock(listMutex_);
     for (auto& item : eventDetectorList_) {
         auto detectorPtr = item.second.lock();
         if (detectorPtr == nullptr) {
             RS_LOGD("RSEventManager::UpdateParam %s failed: nullptr", detectorPtr->GetStringId().c_str());
-            return;
+            continue;
         }
         UpdateDetectorParam(detectorPtr);
         UpdateEventIntervalMs(detectorPtr);
@@ -147,7 +139,7 @@ void RSEventManager::UpdateParam()
 
 void RSEventManager::AddEvent(const std::shared_ptr<RSBaseEventDetector>& detectorPtr, int eventIntervalMs)
 {
-    if (detectorPtr == nullptr) {
+    if (detectorPtr == nullptr || eventIntervalMs <= 0) {
         RS_LOGD("RSEventManager::AddEvent detectorPtr nullptr");
         return;
     }
@@ -183,12 +175,6 @@ void RSEventManager::RemoveEvent(std::string stringId)
     RS_LOGD("RSEventManager::RemoveEvent %s success ", stringId.c_str());
 }
 
-uint64_t RSEventManager::GetSysTimeMs()
-{
-    auto now = std::chrono::steady_clock::now().time_since_epoch();
-    return std::chrono::duration_cast<std::chrono::milliseconds>(now).count();
-}
-
 void RSEventManager::EventReport(const RSSysEventMsg& eventMsg)
 {
     std::unique_lock<std::mutex> listLock(listMutex_);
@@ -197,7 +183,7 @@ void RSEventManager::EventReport(const RSSysEventMsg& eventMsg)
         return;
     }
     RSEventState& state = eventStateList_[eventMsg.stringId];
-    uint64_t currentTimeMs = GetSysTimeMs();
+    uint64_t currentTimeMs = RSEventTimer::GetSysTimeMs();
     if (currentTimeMs > state.prevEventTimeStampMs&&
     	currentTimeMs - state.prevEventTimeStampMs > static_cast<uint64_t>(state.eventIntervalMs)) {
             std::string domain = "GRAPHIC";

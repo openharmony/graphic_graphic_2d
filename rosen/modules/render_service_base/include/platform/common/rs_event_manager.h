@@ -22,13 +22,18 @@
 namespace OHOS {
 namespace Rosen {
 struct RSEventState final {
-    int eventIntervalMs = 60000; // unit:ms 60000 the mini time interval between two event
-    uint64_t prevEventTimeStampMs = 0;
+    int eventIntervalMs = 60000; // the mini interval between two same event is 60000 ms
+    uint64_t prevEventTimeStampMs = 0; 
 };
 
 class RSEventManager final {
 public:
-    static RSEventManager& Instance();
+    RSEventManager() = default;
+    ~RSEventManager();
+    RSEventManager(const RSEventManager&) = delete;
+    RSEventManager(const RSEventManager&&) = delete;
+    RSEventManager& operator=(const RSEventManager&) = delete;
+    RSEventManager& operator=(const RSEventManager&&) = delete;
     void UpdateParam(); // Update Param: timeout\Event Frequency...
     uint64_t GetSysTimeMs();
     void AddEvent(const std::shared_ptr<RSBaseEventDetector>& detectorPtr,
@@ -36,12 +41,6 @@ public:
     void RemoveEvent(std::string stringId);
     void DumpAllEventParam(std::string& dumpString);
 private:
-    RSEventManager() = default;
-    ~RSEventManager();
-    RSEventManager(const RSEventManager&) = delete;
-    RSEventManager(const RSEventManager&&) = delete;
-    RSEventManager& operator=(const RSEventManager&) = delete;
-    RSEventManager& operator=(const RSEventManager&&) = delete;
     void UpdateDetectorParam(std::shared_ptr<RSBaseEventDetector> detectorPtr);
     void UpdateEventIntervalMs(std::shared_ptr<RSBaseEventDetector> detectorPtr);
     void EventReport(const RSSysEventMsg& eventMsg);
