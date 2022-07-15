@@ -135,7 +135,7 @@ public:
 
     virtual PropertyId GetPropertyId() const;
 
-    virtual void AttachRenderProperty(const std::shared_ptr<RSRenderProperty>& property) {};
+    virtual void AttachRenderProperty(const std::shared_ptr<RSRenderPropertyBase>& property) {};
 
 protected:
     explicit RSRenderAnimation(AnimationId id);

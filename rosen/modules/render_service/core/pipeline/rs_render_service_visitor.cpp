@@ -58,6 +58,7 @@ void RSRenderServiceVisitor::ProcessBaseRenderNode(RSBaseRenderNode& node)
 
 void RSRenderServiceVisitor::PrepareDisplayRenderNode(RSDisplayRenderNode& node)
 {
+    node.ApplyModifiers();
     if (node.IsMirrorDisplay()) {
         auto mirrorSource = node.GetMirrorSource();
         auto existingSource = mirrorSource.lock();
@@ -158,6 +159,7 @@ void RSRenderServiceVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
             security DisplayNode.", node.GetId());
         return;
     }
+    node.ApplyModifiers();
     if (!node.GetRenderProperties().GetVisible()) {
         RS_LOGI("RSRenderServiceVisitor::PrepareSurfaceRenderNode node : %llu is invisible", node.GetId());
         return;

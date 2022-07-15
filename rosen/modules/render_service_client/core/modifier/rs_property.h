@@ -47,7 +47,7 @@ class RS_EXPORT RSProperty {
     //     std::is_base_of_v<RSAnimatableArithmetic<T>, T>);
 public:
     RSProperty();
-    RSProperty(const T& value);
+    explicit RSProperty(const T& value);
     virtual ~RSProperty() = default;
 
     RSProperty& operator=(const T& value)

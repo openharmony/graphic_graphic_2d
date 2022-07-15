@@ -36,8 +36,8 @@ public:
     SkCanvas* BeginRecording(int width, int height);
     bool IsRecording() const;
     void FinishRecording();
-    int GetPaintWidth() const;
-    int GetPaintHeight() const;
+    float GetPaintWidth() const;
+    float GetPaintHeight() const;
 
     RSUINodeType GetType() const override
     {

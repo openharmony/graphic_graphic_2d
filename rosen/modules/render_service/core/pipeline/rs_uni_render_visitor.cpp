@@ -44,11 +44,13 @@ void RSUniRenderVisitor::PrepareBaseRenderNode(RSBaseRenderNode& node)
 
 void RSUniRenderVisitor::PrepareDisplayRenderNode(RSDisplayRenderNode& node)
 {
+    node.ApplyModifiers();
     PrepareBaseRenderNode(node);
 }
 
 void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
 {
+    node.ApplyModifiers();
     bool dirtyFlag = dirtyFlag_;
     dirtyFlag_ = node.Update(dirtyManager_, nullptr, dirtyFlag_);
     PrepareBaseRenderNode(node);
@@ -63,6 +65,7 @@ void RSUniRenderVisitor::PrepareRootRenderNode(RSRootRenderNode& node)
 
 void RSUniRenderVisitor::PrepareCanvasRenderNode(RSCanvasRenderNode &node)
 {
+    node.ApplyModifiers();
     bool dirtyFlag = dirtyFlag_;
     dirtyFlag_ = node.Update(dirtyManager_, nullptr, dirtyFlag_);
     PrepareBaseRenderNode(node);

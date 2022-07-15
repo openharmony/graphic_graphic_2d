@@ -62,12 +62,12 @@ void RSUIAnimationManager::RemoveUIAnimation(const AnimationId id)
 
 void RSUIAnimationManager::AddAnimatableProp(const PropertyId id,
     const std::shared_ptr<RSAnimatableProperty<std::shared_ptr<RSAnimatableBase>>>& uiProperty,
-    const std::shared_ptr<RSAnimatableRenderProperty<std::shared_ptr<RSAnimatableBase>>>& renderProperty)
+    const std::shared_ptr<RSRenderProperty<std::shared_ptr<RSAnimatableBase>>>& renderProperty)
 {
     propertys_.emplace(id, std::make_pair(uiProperty, renderProperty));
 }
 
-const std::shared_ptr<RSAnimatableRenderProperty<std::shared_ptr<RSAnimatableBase>>> RSUIAnimationManager::GetRenderProperty(
+const std::shared_ptr<RSRenderProperty<std::shared_ptr<RSAnimatableBase>>> RSUIAnimationManager::GetRenderProperty(
     const PropertyId id)
 {
     auto iter = propertys_.find(id);

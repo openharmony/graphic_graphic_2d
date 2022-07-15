@@ -34,7 +34,6 @@ public:
     void Draw();
 
 private:
-
     std::vector<std::shared_ptr<RSModifier>> modifiers_;
 };
 } // namespace Rosen

@@ -44,19 +44,5 @@ void RSNodeCommandHelper::RemoveModifier(RSContext& context, NodeId nodeId, Prop
         node->RemoveModifier(propertyId);
     }
 }
-
-void RSNodeCommandHelper::UpdateModifier(
-    RSContext& context, NodeId nodeId, std::shared_ptr<RSRenderProperty> prop, bool isDelta)
-{
-    auto& nodeMap = context.GetNodeMap();
-    auto node = nodeMap.GetRenderNode<RSRenderNode>(nodeId);
-    if (!node) {
-        return;
-    }
-    auto modifier = node->GetModifier(prop->GetId());
-    if (modifier) {
-        modifier->Update(prop, isDelta);
-    }
-}
 } // namespace Rosen
 } // namespace OHOS

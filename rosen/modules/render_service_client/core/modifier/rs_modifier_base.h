@@ -35,23 +35,18 @@ public:
     RSModifier() = default;
     virtual ~RSModifier() = default;
 
-    virtual void Draw(RSDrawingContext& context) = 0;
-
-    virtual std::shared_ptr<RSRenderModifier> CreateRenderModifier() = 0;
-
     virtual PropertyId GetPropertyId() = 0;
 
-    virtual RSModifierType GetModifierType() = 0;
-private:
+    virtual RSModifierType GetModifierType() const = 0;
+protected:
     virtual void MarkAddToNode(const NodeId& id) = 0;
-
     virtual void MarkRemoveFromNode() = 0;
 
     virtual void SetMotionPathOption(const std::shared_ptr<RSMotionPathOption>& motionPathOption) = 0;
-
     virtual void SetIsAdditive(bool isAdditive) = 0;
 
     virtual void UpdateToRender() = 0;
+    virtual std::shared_ptr<RSRenderModifier> CreateRenderModifier() const = 0;
 
     virtual void SetPropertyOnAllAnimationFinish() = 0;
 
@@ -64,7 +59,7 @@ private:
 template<typename T>
 class RS_EXPORT RSAnimatableModifier : public RSModifier {
 public:
-    RSAnimatableModifier(const std::shared_ptr<RSProperty<T>> property)
+    explicit RSAnimatableModifier(const std::shared_ptr<RSProperty<T>> property)
         : property_(property ? property : std::make_shared<RSProperty<T>>())
     {}
 
@@ -80,7 +75,7 @@ public:
         return property_;
     }
 
-    RSModifierType GetModifierType() override
+    RSModifierType GetModifierType() const override
     {
         return RSModifierType::INVALID;
     }
@@ -127,6 +122,7 @@ protected:
     std::shared_ptr<RSProperty<T>> property_;
     bool isAdditive_ { false };
 
+    friend class RSModifierExtractor;
     friend class RSNode;
 };
 } // namespace Rosen

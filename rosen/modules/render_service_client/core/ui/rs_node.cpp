@@ -34,6 +34,15 @@
 
 namespace OHOS {
 namespace Rosen {
+namespace {
+bool IsPathAnimatableModifier(const RSModifierType& type)
+{
+    if (type == RSModifierType::BOUNDS || type == RSModifierType::FRAME || type == RSModifierType::TRANSLATE) {
+        return true;
+    }
+    return false;
+}
+}
 
 RSNode::RSNode(bool isRenderServiceNode)
     : RSBaseNode(isRenderServiceNode), stagingPropertiesExtrator_(GetId())
@@ -224,23 +233,6 @@ bool RSNode::HasPropertyAnimation(const PropertyId& id)
     return std::any_of(animatingPropertyNum_.begin(), animatingPropertyNum_.end(), pred);
 }
 
-const std::vector<RSModifierType> RSNode::pathAnimationModifiers_ = {
-    RSModifierType::BOUNDS,
-    RSModifierType::BOUNDS_POSITION,
-    RSModifierType::FRAME,
-    RSModifierType::FRAME_POSITION,
-    RSModifierType::TRANSLATE
-};
-
-bool RSNode::IsPathAnimatableModifier(const RSModifierType& type)
-{
-    if (find(pathAnimationModifiers_.begin(), pathAnimationModifiers_.end(), type) == pathAnimationModifiers_.end()) {
-        return false;
-    }
-
-    return true;
-}
-
 #define SET_ANIMATABLE_MODIFIER(propertyName, T, value, propertyType, defaultValue)                       \
     do {                                                                                                  \
         auto iter = propertyModifiers_.find(RSModifierType::propertyType);                                \
@@ -249,7 +241,7 @@ bool RSNode::IsPathAnimatableModifier(const RSModifierType& type)
             break;                                                                                        \
         }                                                                                                 \
         auto property = std::make_shared<RSAnimatableProperty<T>>(defaultValue);                          \
-        auto modifier = std::make_shared<RS##propertyName##Modifier>(property);                           \
+        std::shared_ptr<RSModifier> modifier = std::make_shared<RS##propertyName##Modifier>(property);    \
         modifiers_.emplace(modifier->GetPropertyId(), modifier);                                          \
         propertyModifiers_.emplace(RSModifierType::propertyType, modifier);                               \
         modifier->MarkAddToNode(GetId());                                                                 \
@@ -278,7 +270,7 @@ bool RSNode::IsPathAnimatableModifier(const RSModifierType& type)
             break;                                                                                        \
         }                                                                                                 \
         auto property = std::make_shared<RSProperty<T>>(value);                                           \
-        auto modifier = std::make_shared<RS##propertyName##Modifier>(property);                           \
+        std::shared_ptr<RSModifier> modifier = std::make_shared<RS##propertyName##Modifier>(property);    \
         modifiers_.emplace(modifier->GetPropertyId(), modifier);                                          \
         propertyModifiers_.emplace(RSModifierType::propertyType, modifier);                               \
         modifier->MarkAddToNode(GetId());                                                                 \
@@ -317,6 +309,7 @@ void RSNode::SetBoundsWidth(float width)
 {
     auto iter = propertyModifiers_.find(RSModifierType::BOUNDS);
     if (iter == propertyModifiers_.end()) {
+        SetBounds(0.f, 0.f, width, 0.f);
         return;
     }
     auto modifier = std::static_pointer_cast<RSAnimatableModifier<Vector4f>>(iter->second);
@@ -333,6 +326,7 @@ void RSNode::SetBoundsHeight(float height)
 {
     auto iter = propertyModifiers_.find(RSModifierType::BOUNDS);
     if (iter == propertyModifiers_.end()) {
+        SetBounds(0.f, 0.f, 0.f, height);
         return;
     }
     auto modifier = std::static_pointer_cast<RSAnimatableModifier<Vector4f>>(iter->second);
@@ -360,6 +354,7 @@ void RSNode::SetFramePositionX(float positionX)
 {
     auto iter = propertyModifiers_.find(RSModifierType::FRAME);
     if (iter == propertyModifiers_.end()) {
+        SetFrame(positionX, 0.f, 0.f, 0.f);
         return;
     }
     auto modifier = std::static_pointer_cast<RSAnimatableModifier<Vector4f>>(iter->second);
@@ -375,6 +370,7 @@ void RSNode::SetFramePositionY(float positionY)
 {
     auto iter = propertyModifiers_.find(RSModifierType::FRAME);
     if (iter == propertyModifiers_.end()) {
+        SetFrame(0.f, positionY, 0.f, 0.f);
         return;
     }
     auto modifier = std::static_pointer_cast<RSAnimatableModifier<Vector4f>>(iter->second);
@@ -406,6 +402,7 @@ void RSNode::SetPivotX(float pivotX)
 {
     auto iter = propertyModifiers_.find(RSModifierType::PIVOT);
     if (iter == propertyModifiers_.end()) {
+        SetPivot(pivotX, 0.5f);
         return;
     }
     auto modifier = std::static_pointer_cast<RSAnimatableModifier<Vector2f>>(iter->second);
@@ -421,6 +418,7 @@ void RSNode::SetPivotY(float pivotY)
 {
     auto iter = propertyModifiers_.find(RSModifierType::PIVOT);
     if (iter == propertyModifiers_.end()) {
+        SetPivot(0.5f, pivotY);
         return;
     }
     auto modifier = std::static_pointer_cast<RSAnimatableModifier<Vector2f>>(iter->second);
@@ -484,6 +482,7 @@ void RSNode::SetTranslateX(float translate)
 {
     auto iter = propertyModifiers_.find(RSModifierType::TRANSLATE);
     if (iter == propertyModifiers_.end()) {
+        SetTranslate({ translate, 0.f });
         return;
     }
     auto modifier = std::static_pointer_cast<RSAnimatableModifier<Vector2f>>(iter->second);
@@ -499,6 +498,7 @@ void RSNode::SetTranslateY(float translate)
 {
     auto iter = propertyModifiers_.find(RSModifierType::TRANSLATE);
     if (iter == propertyModifiers_.end()) {
+        SetTranslate({ 0.f, translate });
         return;
     }
     auto modifier = std::static_pointer_cast<RSAnimatableModifier<Vector2f>>(iter->second);
@@ -534,6 +534,7 @@ void RSNode::SetScaleX(float scaleX)
 {
     auto iter = propertyModifiers_.find(RSModifierType::SCALE);
     if (iter == propertyModifiers_.end()) {
+        SetScale(scaleX, 1.f);
         return;
     }
     auto modifier = std::static_pointer_cast<RSAnimatableModifier<Vector2f>>(iter->second);
@@ -549,6 +550,7 @@ void RSNode::SetScaleY(float scaleY)
 {
     auto iter = propertyModifiers_.find(RSModifierType::SCALE);
     if (iter == propertyModifiers_.end()) {
+        SetScale(1.f, scaleY);
         return;
     }
     auto modifier = std::static_pointer_cast<RSAnimatableModifier<Vector2f>>(iter->second);
@@ -576,7 +578,7 @@ void RSNode::SetBackgroundColor(uint32_t colorValue)
 void RSNode::SetSurfaceBgColor(uint32_t colorValue)
 {
     auto color = Color::FromArgbInt(colorValue);
-    SET_NONANIMATABLE_PROPERTY(SurfaceBgColor, color);
+    SET_ANIMATABLE_MODIFIER(SurfaceBgColor, Color, color, SURFACE_BG_COLOR, RgbPalette::Transparent());
 }
 
 void RSNode::SetBackgroundShader(const std::shared_ptr<RSShader>& shader)
@@ -813,214 +815,6 @@ void RSNode::AnimationFinish(AnimationId animationId)
 
     animation->CallFinishCallback();
     RemoveAnimationInner(animation);
-}
-
-// This function will be optimized after the Modifier is committed
-void RSNode::SetPropertyOnAllAnimationFinish(const RSAnimatableProperty& property)
-{
-    auto transactionProxy = RSTransactionProxy::GetInstance();
-    if (transactionProxy == nullptr) {
-        return;
-    }
-    std::unique_ptr<RSCommand> command;
-    std::unique_ptr<RSCommand> commandForRemote;
-
-    switch (property) {
-        case RSAnimatableProperty::BOUNDS: {
-            SET_NONANIMATABLE_PROPERTY_ON_REMOVE(Bounds);
-            break;
-        }
-        case RSAnimatableProperty::BOUNDS_SIZE: {
-            SET_NONANIMATABLE_PROPERTY_ON_REMOVE(BoundsSize);
-            break;
-        }
-        case RSAnimatableProperty::BOUNDS_WIDTH: {
-            SET_NONANIMATABLE_PROPERTY_ON_REMOVE(BoundsWidth);
-            break;
-        }
-        case RSAnimatableProperty::BOUNDS_HEIGHT: {
-            SET_NONANIMATABLE_PROPERTY_ON_REMOVE(BoundsHeight);
-            break;
-        }
-        case RSAnimatableProperty::BOUNDS_POSITION: {
-            SET_NONANIMATABLE_PROPERTY_ON_REMOVE(BoundsPosition);
-            break;
-        }
-        case RSAnimatableProperty::BOUNDS_POSITION_X: {
-            SET_NONANIMATABLE_PROPERTY_ON_REMOVE(BoundsPositionX);
-            break;
-        }
-        case RSAnimatableProperty::BOUNDS_POSITION_Y: {
-            SET_NONANIMATABLE_PROPERTY_ON_REMOVE(BoundsPositionY);
-            break;
-        }
-        case RSAnimatableProperty::FRAME: {
-            SET_NONANIMATABLE_PROPERTY_ON_REMOVE(Frame);
-            break;
-        }
-        case RSAnimatableProperty::FRAME_SIZE: {
-            SET_NONANIMATABLE_PROPERTY_ON_REMOVE(FrameSize);
-            break;
-        }
-        case RSAnimatableProperty::FRAME_WIDTH: {
-            SET_NONANIMATABLE_PROPERTY_ON_REMOVE(FrameWidth);
-            break;
-        }
-        case RSAnimatableProperty::FRAME_HEIGHT: {
-            SET_NONANIMATABLE_PROPERTY_ON_REMOVE(FrameHeight);
-            break;
-        }
-        case RSAnimatableProperty::FRAME_POSITION: {
-            SET_NONANIMATABLE_PROPERTY_ON_REMOVE(FramePosition);
-            break;
-        }
-        case RSAnimatableProperty::FRAME_POSITION_X: {
-            SET_NONANIMATABLE_PROPERTY_ON_REMOVE(FramePositionX);
-            break;
-        }
-        case RSAnimatableProperty::FRAME_POSITION_Y: {
-            SET_NONANIMATABLE_PROPERTY_ON_REMOVE(FramePositionY);
-            break;
-        }
-        case RSAnimatableProperty::POSITION_Z: {
-            SET_NONANIMATABLE_PROPERTY_ON_REMOVE(PositionZ);
-            break;
-        }
-        case RSAnimatableProperty::PIVOT: {
-            SET_NONANIMATABLE_PROPERTY_ON_REMOVE(Pivot);
-            break;
-        }
-        case RSAnimatableProperty::PIVOT_X: {
-            SET_NONANIMATABLE_PROPERTY_ON_REMOVE(PivotX);
-            break;
-        }
-        case RSAnimatableProperty::PIVOT_Y: {
-            SET_NONANIMATABLE_PROPERTY_ON_REMOVE(PivotY);
-            break;
-        }
-        case RSAnimatableProperty::CORNER_RADIUS: {
-            SET_NONANIMATABLE_PROPERTY_ON_REMOVE(CornerRadius);
-            break;
-        }
-        case RSAnimatableProperty::ROTATION: {
-            SET_NONANIMATABLE_PROPERTY_ON_REMOVE(Rotation);
-            break;
-        }
-        case RSAnimatableProperty::ROTATION_X: {
-            SET_NONANIMATABLE_PROPERTY_ON_REMOVE(RotationX);
-            break;
-        }
-        case RSAnimatableProperty::ROTATION_Y: {
-            SET_NONANIMATABLE_PROPERTY_ON_REMOVE(RotationY);
-            break;
-        }
-        case RSAnimatableProperty::SCALE: {
-            SET_NONANIMATABLE_PROPERTY_ON_REMOVE(Scale);
-            break;
-        }
-        case RSAnimatableProperty::SCALE_X: {
-            SET_NONANIMATABLE_PROPERTY_ON_REMOVE(ScaleX);
-            break;
-        }
-        case RSAnimatableProperty::SCALE_Y: {
-            SET_NONANIMATABLE_PROPERTY_ON_REMOVE(ScaleY);
-            break;
-        }
-        case RSAnimatableProperty::TRANSLATE: {
-            SET_NONANIMATABLE_PROPERTY_ON_REMOVE(Translate);
-            break;
-        }
-        case RSAnimatableProperty::TRANSLATE_X: {
-            SET_NONANIMATABLE_PROPERTY_ON_REMOVE(TranslateX);
-            break;
-        }
-        case RSAnimatableProperty::TRANSLATE_Y: {
-            SET_NONANIMATABLE_PROPERTY_ON_REMOVE(TranslateY);
-            break;
-        }
-        case RSAnimatableProperty::TRANSLATE_Z: {
-            SET_NONANIMATABLE_PROPERTY_ON_REMOVE(TranslateZ);
-            break;
-        }
-        case RSAnimatableProperty::ALPHA: {
-            SET_NONANIMATABLE_PROPERTY_ON_REMOVE(Alpha);
-            break;
-        }
-        case RSAnimatableProperty::FOREGROUND_COLOR: {
-            SET_NONANIMATABLE_PROPERTY_ON_REMOVE(ForegroundColor);
-            break;
-        }
-        case RSAnimatableProperty::BACKGROUND_COLOR: {
-            SET_NONANIMATABLE_PROPERTY_ON_REMOVE(BackgroundColor);
-            break;
-        }
-        case RSAnimatableProperty::BGIMAGE_WIDTH: {
-            SET_NONANIMATABLE_PROPERTY_ON_REMOVE(BgImageWidth);
-            break;
-        }
-        case RSAnimatableProperty::BGIMAGE_HEIGHT: {
-            SET_NONANIMATABLE_PROPERTY_ON_REMOVE(BgImageHeight);
-            break;
-        }
-        case RSAnimatableProperty::BGIMAGE_POSITION_X: {
-            SET_NONANIMATABLE_PROPERTY_ON_REMOVE(BgImagePositionX);
-            break;
-        }
-        case RSAnimatableProperty::BGIMAGE_POSITION_Y: {
-            SET_NONANIMATABLE_PROPERTY_ON_REMOVE(BgImagePositionY);
-            break;
-        }
-        case RSAnimatableProperty::BORDER_COLOR: {
-            SET_NONANIMATABLE_PROPERTY_ON_REMOVE(BorderColor);
-            break;
-        }
-        case RSAnimatableProperty::BORDER_WIDTH: {
-            SET_NONANIMATABLE_PROPERTY_ON_REMOVE(BorderWidth);
-            break;
-        }
-        case RSAnimatableProperty::SUB_LAYER_TRANSFORM: {
-            SET_NONANIMATABLE_PROPERTY_ON_REMOVE(SublayerTransform);
-            break;
-        }
-        case RSAnimatableProperty::BACKGROUND_FILTER: {
-            SET_NONANIMATABLE_PROPERTY_ON_REMOVE(BackgroundFilter);
-            break;
-        }
-        case RSAnimatableProperty::FILTER: {
-            SET_NONANIMATABLE_PROPERTY_ON_REMOVE(Filter);
-            break;
-        }
-        case RSAnimatableProperty::SHADOW_COLOR: {
-            SET_NONANIMATABLE_PROPERTY_ON_REMOVE(ShadowColor);
-            break;
-        }
-        case RSAnimatableProperty::SHADOW_OFFSET_X: {
-            SET_NONANIMATABLE_PROPERTY_ON_REMOVE(ShadowOffsetX);
-            break;
-        }
-        case RSAnimatableProperty::SHADOW_OFFSET_Y: {
-            SET_NONANIMATABLE_PROPERTY_ON_REMOVE(ShadowOffsetY);
-            break;
-        }
-        case RSAnimatableProperty::SHADOW_ALPHA: {
-            SET_NONANIMATABLE_PROPERTY_ON_REMOVE(ShadowAlpha);
-            break;
-        }
-        case RSAnimatableProperty::SHADOW_ELEVATION: {
-            SET_NONANIMATABLE_PROPERTY_ON_REMOVE(ShadowElevation);
-            break;
-        }
-        case RSAnimatableProperty::SHADOW_RADIUS: {
-            SET_NONANIMATABLE_PROPERTY_ON_REMOVE(ShadowRadius);
-            break;
-        }
-        default:
-            return;
-    }
-    transactionProxy->Begin();
-    transactionProxy->AddCommand(command, IsRenderServiceNode(), GetFollowType(), GetId());
-    transactionProxy->AddCommand(commandForRemote, true, GetFollowType(), GetId());
-    transactionProxy->Commit();
 }
 
 void RSNode::SetPaintOrder(bool drawContentLast)

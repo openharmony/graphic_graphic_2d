@@ -680,12 +680,12 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSRender
 }
 
 template<typename T>
-bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSAnimatableRenderProperty<T>>& val)
+bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSRenderProperty<T>>& val)
 {
     return parcel.WriteUint64(val->GetId()) && Marshalling(parcel, val->Get());
 }
 template<typename T>
-bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSAnimatableRenderProperty<T>>& val)
+bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSRenderProperty<T>>& val)
 {
     PropertyId id = 0;
     if (!parcel.ReadUint64(id)) {
@@ -695,7 +695,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSAnimat
     if (!Unmarshalling(parcel, value)) {
         return false;
     }
-    val.reset(new RSAnimatableRenderProperty<T>(value, id));
+    val.reset(new RSRenderProperty<T>(value, id));
     return val != nullptr;
 }
 
@@ -723,7 +723,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSAnimat
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<DrawCmdList>)        \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSAnimatableBase>)
 
-BATCH_EXPLICIT_INSTANTIATION(RSAnimatableRenderProperty)
+BATCH_EXPLICIT_INSTANTIATION(RSRenderProperty)
 
 #undef EXPLICIT_INSTANTIATION
 #undef BATCH_EXPLICIT_INSTANTIATION
@@ -732,18 +732,16 @@ BATCH_EXPLICIT_INSTANTIATION(RSAnimatableRenderProperty)
     template bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<TEMPLATE<TYPE>>& val); \
     template bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<TEMPLATE<TYPE>>& val);
 
-#define BATCH_EXPLICIT_INSTANTIATION(TEMPLATE)                  \
-    EXPLICIT_INSTANTIATION(TEMPLATE, float)                     \
-    EXPLICIT_INSTANTIATION(TEMPLATE, Color)                     \
-    EXPLICIT_INSTANTIATION(TEMPLATE, Matrix3f)                  \
-    EXPLICIT_INSTANTIATION(TEMPLATE, Vector2f)                  \
-    EXPLICIT_INSTANTIATION(TEMPLATE, Vector4f)                  \
-    EXPLICIT_INSTANTIATION(TEMPLATE, Quaternion)                \
-    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSFilter>) \
-    EXPLICIT_INSTANTIATION(TEMPLATE, Vector4<Color>)            \
+#define BATCH_EXPLICIT_INSTANTIATION(TEMPLATE)                          \
+    EXPLICIT_INSTANTIATION(TEMPLATE, float)                             \
+    EXPLICIT_INSTANTIATION(TEMPLATE, Color)                             \
+    EXPLICIT_INSTANTIATION(TEMPLATE, Matrix3f)                          \
+    EXPLICIT_INSTANTIATION(TEMPLATE, Vector2f)                          \
+    EXPLICIT_INSTANTIATION(TEMPLATE, Vector4f)                          \
+    EXPLICIT_INSTANTIATION(TEMPLATE, Quaternion)                        \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSFilter>)         \
+    EXPLICIT_INSTANTIATION(TEMPLATE, Vector4<Color>)                    \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSAnimatableBase>)
-// [PLANNING]:complete the marshing and unmarshalling
-// EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSFilter>)
 
 BATCH_EXPLICIT_INSTANTIATION(RSRenderCurveAnimation)
 BATCH_EXPLICIT_INSTANTIATION(RSRenderKeyframeAnimation)

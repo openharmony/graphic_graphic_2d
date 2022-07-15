@@ -26,6 +26,7 @@ class RSNode;
 class RS_EXPORT RSModifierExtractor {
 public:
     RSModifierExtractor(NodeId id);
+    virtual ~RSModifierExtractor() = default;
 
     Vector4f GetBounds() const;
     Vector4f GetFrame() const;
@@ -46,6 +47,7 @@ public:
 
     Color GetForegroundColor() const;
     Color GetBackgroundColor() const;
+    Color GetSurfaceBgColor() const;
     std::shared_ptr<RSShader> GetBackgroundShader() const;
     std::shared_ptr<RSImage> GetBgImage() const;
     float GetBgImageWidth() const;

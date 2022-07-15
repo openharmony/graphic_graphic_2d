@@ -31,7 +31,7 @@ using ModifierUnmarshallingFunc = RSRenderModifier* (*)(Parcel& parcel);
 
 #define DECLARE_ANIMATABLE_MODIFIER(MODIFIER_NAME, TYPE, MODIFIER_TYPE)            \
     { RSModifierType::MODIFIER_TYPE, [](Parcel& parcel) -> RSRenderModifier* {     \
-            std::shared_ptr<RSAnimatableRenderProperty<TYPE>> prop;                \
+            std::shared_ptr<RSRenderProperty<TYPE>> prop;                          \
             if (!RSMarshallingHelper::Unmarshalling(parcel, prop)) {               \
                 return nullptr;                                                    \
             }                                                                      \
@@ -54,7 +54,7 @@ using ModifierUnmarshallingFunc = RSRenderModifier* (*)(Parcel& parcel);
 static std::unordered_map<RSModifierType, ModifierUnmarshallingFunc> funcLUT = {
 #include "modifier/rs_modifiers_def.in"
     { RSModifierType::EXTENDED, [](Parcel& parcel) -> RSRenderModifier* {
-            std::shared_ptr<RSAnimatableRenderProperty<std::shared_ptr<DrawCmdList>>> prop;
+            std::shared_ptr<RSRenderProperty<std::shared_ptr<DrawCmdList>>> prop;
             if (!RSMarshallingHelper::Unmarshalling(parcel, prop)) {
                 return nullptr;
             }
@@ -67,7 +67,7 @@ static std::unordered_map<RSModifierType, ModifierUnmarshallingFunc> funcLUT = {
 #undef DECLARE_NOANIMATABLE_MODIFIER
 }
 
-void RSDrawCmdListRenderModifier::Draw(RSModifyContext& context)
+void RSDrawCmdListRenderModifier::Apply(RSModifyContext& context)
 {
     if (context.canvas_) {
         auto cmds = property_->Get();
@@ -75,9 +75,9 @@ void RSDrawCmdListRenderModifier::Draw(RSModifyContext& context)
     }
 }
 
-void RSDrawCmdListRenderModifier::Update(const std::shared_ptr<RSRenderProperty>& newProp, bool isDelta)
+void RSDrawCmdListRenderModifier::Update(const std::shared_ptr<RSRenderPropertyBase>& newProp, bool isDelta)
 {
-    if (auto newProperty = std::static_pointer_cast<RSAnimatableRenderProperty<DrawCmdListPtr>>(newProp)) {
+    if (auto newProperty = std::static_pointer_cast<RSRenderProperty<DrawCmdListPtr>>(newProp)) {
         property_->Set(newProperty->Get());
     }
 }
@@ -104,7 +104,7 @@ RSRenderModifier* RSRenderModifier::Unmarshalling(Parcel& parcel, RSModifierType
         return parcel.WriteInt16(static_cast<int16_t>(RSModifierType::MODIFIER_TYPE)) &&                            \
             RSMarshallingHelper::Marshalling(parcel, property_) && parcel.WriteBool(isAdditive_);                   \
     }                                                                                                               \
-    void RS##MODIFIER_NAME##RenderModifier::Draw(RSModifyContext& context)                                          \
+    void RS##MODIFIER_NAME##RenderModifier::Apply(RSModifyContext& context)                                         \
     {                                                                                                               \
         TYPE setValue;                                                                                              \
         if (isFirstSet_) {                                                                                          \
@@ -118,9 +118,9 @@ RSRenderModifier* RSRenderModifier::Unmarshalling(Parcel& parcel, RSModifierType
         context.property_.Set##MODIFIER_NAME(setValue);                                                             \
     }                                                                                                               \
     void RS##MODIFIER_NAME##RenderModifier::Update(                                                                 \
-        const std::shared_ptr<RSRenderProperty>& newProp, bool isDelta)                                             \
+        const std::shared_ptr<RSRenderPropertyBase>& newProp, bool isDelta)                                         \
     {                                                                                                               \
-        if (auto newProperty = std::static_pointer_cast<RSAnimatableRenderProperty<TYPE>>(newProp)) {               \
+        if (auto newProperty = std::static_pointer_cast<RSRenderProperty<TYPE>>(newProp)) {                         \
             if (isDelta) {                                                                                          \
                 property_->Set(property_->Get() + newProperty->Get());                                              \
             } else {                                                                                                \
@@ -135,15 +135,15 @@ RSRenderModifier* RSRenderModifier::Unmarshalling(Parcel& parcel, RSModifierType
         return parcel.WriteInt16(static_cast<short>(RSModifierType::MODIFIER_TYPE)) &&                              \
             RSMarshallingHelper::Marshalling(parcel, property_) && parcel.WriteBool(isAdditive_);                   \
     }                                                                                                               \
-    void RS##MODIFIER_NAME##RenderModifier::Draw(RSModifyContext& context)                                          \
+    void RS##MODIFIER_NAME##RenderModifier::Apply(RSModifyContext& context)                                         \
     {                                                                                                               \
         context.property_.Set##MODIFIER_NAME(property_->Get());                                                     \
     }                                                                                                               \
                                                                                                                     \
     void RS##MODIFIER_NAME##RenderModifier::Update(                                                                 \
-        const std::shared_ptr<RSRenderProperty>& newProp, bool isDelta)                                             \
+        const std::shared_ptr<RSRenderPropertyBase>& newProp, bool isDelta)                                         \
     {                                                                                                               \
-        if (auto newProperty = std::static_pointer_cast<RSAnimatableRenderProperty<TYPE>>(newProp)) {               \
+        if (auto newProperty = std::static_pointer_cast<RSRenderProperty<TYPE>>(newProp)) {                         \
             property_->Set(newProperty->Get());                                                                     \
         }                                                                                                           \
     }

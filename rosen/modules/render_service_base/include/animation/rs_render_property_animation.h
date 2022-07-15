@@ -51,9 +51,9 @@ public:
         return isAdditive_;
     }
 
-    void AttachRenderProperty(const std::shared_ptr<RSRenderProperty>& property) override
+    void AttachRenderProperty(const std::shared_ptr<RSRenderPropertyBase>& property) override
     {
-        auto animatableProperty = std::static_pointer_cast<RSAnimatableRenderProperty<T>>(property);
+        auto animatableProperty = std::static_pointer_cast<RSRenderProperty<T>>(property);
         if (animatableProperty != nullptr) {
             property_ = animatableProperty;
         }
@@ -206,7 +206,7 @@ private:
     bool needWriteToLog_ { false };
     bool hasWriteInfo_ { false };
     inline static std::shared_ptr<RSAnimationLog> animationLog_ = std::make_shared<RSAnimationLog>();
-    std::shared_ptr<RSAnimatableRenderProperty<T>> property_;
+    std::shared_ptr<RSRenderProperty<T>> property_;
 };
 } // namespace Rosen
 } // namespace OHOS

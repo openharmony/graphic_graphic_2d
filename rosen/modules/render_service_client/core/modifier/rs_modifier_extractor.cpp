@@ -37,9 +37,14 @@ RSModifierExtractor::RSModifierExtractor(NodeId id) : id_(id) {}
             return std::static_pointer_cast<RSAnimatableModifier<T>>(iter->second)->GetProperty()->Get();           \
         }                                                                                                           \
         T value = defaultValue;                                                                                     \
-        for (auto& [id, modifier] : node->modifiers_) {                                                             \
+        for (auto& [_, modifier] : node->modifiers_) {                                                              \
             if (modifier->GetModifierType() == RSModifierType::propertyType) {                                      \
-                value operator std::static_pointer_cast<RSAnimatableModifier<T>>(modifier)->GetProperty()->Get();   \
+                auto modifierPtr = std::static_pointer_cast<RSAnimatableModifier<T>>(modifier);                     \
+                if (modifierPtr->isAdditive_) {                                                                     \
+                    value operator modifierPtr->GetProperty()->Get();                                               \
+                } else {                                                                                            \
+                    value = modifierPtr->GetProperty()->Get();                                                      \
+                }                                                                                                   \
             }                                                                                                       \
         }                                                                                                           \
         return value;                                                                                               \
@@ -118,6 +123,11 @@ Color RSModifierExtractor::GetForegroundColor() const
 Color RSModifierExtractor::GetBackgroundColor() const
 {
     GET_PROPERTY_FROM_MODIFIERS(Color, BACKGROUND_COLOR, RgbPalette::Transparent(), =);
+}
+
+Color RSModifierExtractor::GetSurfaceBgColor() const
+{
+    GET_PROPERTY_FROM_MODIFIERS(Color, SURFACE_BG_COLOR, RgbPalette::Transparent(), =);
 }
 
 std::shared_ptr<RSShader> RSModifierExtractor::GetBackgroundShader() const

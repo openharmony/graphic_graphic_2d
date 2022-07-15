@@ -49,12 +49,12 @@ public:
     RSRenderModifier() = default;
     virtual ~RSRenderModifier() = default;
 
-    virtual void Draw(RSModifyContext& context) = 0;
+    virtual void Apply(RSModifyContext& context) = 0;
 
     virtual PropertyId GetPropertyId() = 0;
-    virtual std::shared_ptr<RSRenderProperty> GetProperty() = 0;
+    virtual std::shared_ptr<RSRenderPropertyBase> GetProperty() = 0;
     virtual RSModifierType GetType() = 0;
-    virtual void Update(const std::shared_ptr<RSRenderProperty>& newProp, bool isDelta) = 0;
+    virtual void Update(const std::shared_ptr<RSRenderPropertyBase>& newProp, bool isDelta) = 0;
 
     virtual bool Marshalling(Parcel& parcel) = 0;
     static RSRenderModifier* Unmarshalling(Parcel& parcel, RSModifierType type);
@@ -63,12 +63,12 @@ public:
 
 class RSDrawCmdListRenderModifier : public RSRenderModifier {
 public:
-    RSDrawCmdListRenderModifier(const std::shared_ptr<RSAnimatableRenderProperty<DrawCmdListPtr>> property)
-        : property_(property ? property : std::make_shared<RSAnimatableRenderProperty<DrawCmdListPtr>>())
+    RSDrawCmdListRenderModifier(const std::shared_ptr<RSRenderProperty<DrawCmdListPtr>> property)
+        : property_(property ? property : std::make_shared<RSRenderProperty<DrawCmdListPtr>>())
     {}
     virtual ~RSDrawCmdListRenderModifier() = default;
-    void Draw(RSModifyContext& context) override;
-    void Update(const std::shared_ptr<RSRenderProperty>& newProp, bool isDelta) override;
+    void Apply(RSModifyContext& context) override;
+    void Update(const std::shared_ptr<RSRenderPropertyBase>& newProp, bool isDelta) override;
     bool Marshalling(Parcel& parcel) override;
 
     virtual PropertyId GetPropertyId() override
@@ -76,7 +76,7 @@ public:
         return property_->GetId();
     }
 
-    std::shared_ptr<RSRenderProperty> GetProperty() override
+    std::shared_ptr<RSRenderPropertyBase> GetProperty() override
     {
         return property_;
     }
@@ -88,7 +88,7 @@ public:
     }
 protected:
     RSModifierType drawStyle_ = RSModifierType::EXTENDED;
-    std::shared_ptr<RSAnimatableRenderProperty<DrawCmdListPtr>> property_;
+    std::shared_ptr<RSRenderProperty<DrawCmdListPtr>> property_;
 
     friend class RSCanvasRenderNode;
     friend class RSExtendedModifierHelper;
@@ -97,8 +97,8 @@ protected:
 template<typename T>
 class RSAnimatableRenderModifier : public RSRenderModifier {
 public:
-    RSAnimatableRenderModifier(const std::shared_ptr<RSAnimatableRenderProperty<T>> property)
-        : property_(property ? property : std::make_shared<RSAnimatableRenderProperty<T>>())
+    RSAnimatableRenderModifier(const std::shared_ptr<RSRenderProperty<T>> property)
+        : property_(property ? property : std::make_shared<RSRenderProperty<T>>())
     {}
 
     virtual ~RSAnimatableRenderModifier() = default;
@@ -108,7 +108,7 @@ public:
         return property_->GetId();
     }
 
-    std::shared_ptr<RSRenderProperty> GetProperty() override
+    std::shared_ptr<RSRenderPropertyBase> GetProperty() override
     {
         return property_;
     }
@@ -119,7 +119,7 @@ public:
     }
 
 protected:
-    std::shared_ptr<RSAnimatableRenderProperty<T>> property_;
+    std::shared_ptr<RSRenderProperty<T>> property_;
     bool isAdditive_ { false };
     bool isFirstSet_ { true };
     T lastValue_;
@@ -132,12 +132,12 @@ protected:
 #define DECLARE_ANIMATABLE_MODIFIER(MODIFIER_NAME, TYPE, MODIFIER_TYPE)                                         \
     class RS##MODIFIER_NAME##RenderModifier : public RSAnimatableRenderModifier<TYPE> {                         \
     public:                                                                                                     \
-        RS##MODIFIER_NAME##RenderModifier(const std::shared_ptr<RSAnimatableRenderProperty<TYPE>> property)     \
+        RS##MODIFIER_NAME##RenderModifier(const std::shared_ptr<RSRenderProperty<TYPE>> property)               \
             : RSAnimatableRenderModifier<TYPE>(property)                                                        \
         {}                                                                                                      \
         virtual ~RS##MODIFIER_NAME##RenderModifier() = default;                                                 \
-        void Draw(RSModifyContext& context) override;                                                           \
-        void Update(const std::shared_ptr<RSRenderProperty>& newProp, bool isDelta) override;                   \
+        void Apply(RSModifyContext& context) override;                                                          \
+        void Update(const std::shared_ptr<RSRenderPropertyBase>& newProp, bool isDelta) override;               \
         bool Marshalling(Parcel& parcel) override;                                                              \
         RSModifierType GetType() override { return RSModifierType::MODIFIER_TYPE; }                             \
     };

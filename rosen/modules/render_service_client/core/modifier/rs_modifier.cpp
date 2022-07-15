@@ -20,19 +20,18 @@
 
 namespace OHOS {
 namespace Rosen {
-// implementation of RenderModifiers
 #define DECLARE_ANIMATABLE_MODIFIER(MODIFIER_NAME, TYPE, MODIFIER_TYPE)                                               \
     RS##MODIFIER_NAME##Modifier::RS##MODIFIER_NAME##Modifier(const std::shared_ptr<RSProperty<TYPE>> property)        \
         : RSAnimatableModifier<TYPE>(property, RSModifierType::MODIFIER_TYPE)                                         \
     {}                                                                                                                \
-    RSModifierType RS##MODIFIER_NAME##Modifier::GetModifierType()                                                     \
+    RSModifierType RS##MODIFIER_NAME##Modifier::GetModifierType() const                                               \
     {                                                                                                                 \
         return RSModifierType::MODIFIER_TYPE;                                                                         \
     }                                                                                                                 \
-    std::shared_ptr<RSRenderModifier> RS##MODIFIER_NAME##Modifier::CreateRenderModifier()                             \
+    std::shared_ptr<RSRenderModifier> RS##MODIFIER_NAME##Modifier::CreateRenderModifier() const                       \
     {                                                                                                                 \
         auto renderProperty =                                                                                         \
-            std::make_shared<RSAnimatableRenderProperty<TYPE>>(property_->Get(), property_->GetId());                 \
+            std::make_shared<RSRenderProperty<TYPE>>(property_->Get(), property_->GetId());                 \
         auto renderModifier =  std::make_shared<RS##MODIFIER_NAME##RenderModifier>(renderProperty);                   \
         renderModifier->SetIsAdditive(isAdditive_);                                                                   \
         return renderModifier;                                                                                        \

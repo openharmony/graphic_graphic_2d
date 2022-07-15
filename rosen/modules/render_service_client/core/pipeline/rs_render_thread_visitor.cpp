@@ -74,6 +74,7 @@ void RSRenderThreadVisitor::PrepareRootRenderNode(RSRootRenderNode& node)
 
 void RSRenderThreadVisitor::PrepareCanvasRenderNode(RSCanvasRenderNode& node)
 {
+    node.ApplyModifiers();
     if (!node.GetRenderProperties().GetVisible()) {
         return;
     }
@@ -93,6 +94,7 @@ void RSRenderThreadVisitor::PrepareCanvasRenderNode(RSCanvasRenderNode& node)
 
 void RSRenderThreadVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
 {
+    node.ApplyModifiers();
     bool dirtyFlag = dirtyFlag_;
     auto nodeParent = node.GetParent().lock();
     std::shared_ptr<RSRenderNode> rsParent = nullptr;

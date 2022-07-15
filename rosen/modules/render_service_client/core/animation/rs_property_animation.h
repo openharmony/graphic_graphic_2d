@@ -140,7 +140,7 @@ protected:
 
         auto renderProperty = animationManager->GetRenderProperty(property_.id_);
         if (renderProperty == nullptr) {
-            renderProperty = std::make_shared<RSAnimatableRenderProperty<std::shared_ptr<RSAnimatableBase>>>(
+            renderProperty = std::make_shared<RSRenderProperty<std::shared_ptr<RSAnimatableBase>>>(
                 originValue_, property_.id_);
         }
         auto modifier = std::static_pointer_cast<RSAnimatableModifier<std::shared_ptr<RSAnimatableBase>>>(

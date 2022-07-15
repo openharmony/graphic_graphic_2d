@@ -40,8 +40,8 @@ public:
     const std::shared_ptr<RSRenderAnimation> GetAnimation(AnimationId id) const;
     void AddAnimatableProp(const PropertyId id,
         const std::shared_ptr<RSAnimatableProperty<std::shared_ptr<RSAnimatableBase>>>& uiProperty,
-        const std::shared_ptr<RSAnimatableRenderProperty<std::shared_ptr<RSAnimatableBase>>>& renderProperty);
-    const std::shared_ptr<RSAnimatableRenderProperty<std::shared_ptr<RSAnimatableBase>>> GetRenderProperty(
+        const std::shared_ptr<RSRenderProperty<std::shared_ptr<RSAnimatableBase>>>& renderProperty);
+    const std::shared_ptr<RSRenderProperty<std::shared_ptr<RSAnimatableBase>>> GetRenderProperty(
         const PropertyId id);
     void RemoveProperty(const PropertyId id);
 
@@ -60,7 +60,7 @@ private:
     std::unordered_map<AnimationId, std::shared_ptr<RSAnimation>> uiAnimations_;
     std::unordered_map<PropertyId, int> animationNum_;
     std::unordered_map<PropertyId, std::pair<std::shared_ptr<RSAnimatableProperty<std::shared_ptr<RSAnimatableBase>>>,
-        std::shared_ptr<RSAnimatableRenderProperty<std::shared_ptr<RSAnimatableBase>>>>> propertys_;
+        std::shared_ptr<RSRenderProperty<std::shared_ptr<RSAnimatableBase>>>>> propertys_;
 
 };
 } // namespace Rosen

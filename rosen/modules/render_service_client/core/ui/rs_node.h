@@ -197,7 +197,6 @@ private:
     void AddAnimationInner(const std::shared_ptr<RSAnimation>& animation);
     void RemoveAnimationInner(const std::shared_ptr<RSAnimation>& animation);
     void FinishAnimationByProperty(const PropertyId& id);
-    static bool IsPathAnimatableModifier(const RSModifierType& type);
     const std::shared_ptr<RSModifier> GetModifier(const PropertyId& propertyId);
     virtual void OnBoundsSizeChanged() const {};
     void UpdateModifierMotionPathOption();

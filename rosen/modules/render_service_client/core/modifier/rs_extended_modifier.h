@@ -29,25 +29,23 @@ public:
     static RSDrawingContext CreateDrawingContext(NodeId nodeId);
     static std::shared_ptr<RSRenderModifier> CreateRenderModifier(
         RSDrawingContext& ctx, PropertyId id, RSModifierType type);
-    static std::shared_ptr<RSAnimatableRenderProperty<std::shared_ptr<DrawCmdList>>> CreateDrawCmdListRenderProp(
-        RSDrawingContext& ctx, PropertyId id);
+    static std::shared_ptr<DrawCmdList> FinishDrawing(RSDrawingContext& ctx);
 };
 
 template<typename T>
 class RS_EXPORT RSExtendedModifier : public RSAnimatableModifier<T> {
 public:
-    RSExtendedModifier(const std::shared_ptr<RSProperty<T>> property)
+    explicit RSExtendedModifier(const std::shared_ptr<RSProperty<T>> property)
         : RSAnimatableModifier<T>(property, RSModifierType::EXTENDED)
     {
         RSAnimatableModifier<T>::property_->SetIsCustom(true);
     }
-    RSModifierType GetModifierType() override
+    RSModifierType GetModifierType()  const override
     {
         return RSModifierType::EXTENDED;
     }
     virtual ~RSExtendedModifier() = default;
-    void Draw(RSDrawingContext& context) override {}
-    std::shared_ptr<RSRenderModifier> CreateRenderModifier() override;
+    virtual void Draw(RSDrawingContext& context) const = 0;
 
 protected:
     RSExtendedModifier(const std::shared_ptr<RSProperty<T>> property, const RSModifierType type)
@@ -55,16 +53,17 @@ protected:
     {
         RSAnimatableModifier<T>::property_->SetIsCustom(true);
     }
+    std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
     void UpdateToRender() override;
 };
 
 template<typename T>
 class RS_EXPORT RSContentStyleModifier : public RSExtendedModifier<T> {
 public:
-    RSContentStyleModifier(const std::shared_ptr<RSProperty<T>> property)
+    explicit RSContentStyleModifier(const std::shared_ptr<RSProperty<T>> property)
         : RSExtendedModifier<T>(property, RSModifierType::CONTENT_STYLE)
     {}
-    RSModifierType GetModifierType() override
+    RSModifierType GetModifierType()  const override
     {
         return RSModifierType::CONTENT_STYLE;
     }
@@ -73,10 +72,10 @@ public:
 template<typename T>
 class RS_EXPORT RSOverlayStyleModifier : public RSExtendedModifier<T> {
 public:
-    RSOverlayStyleModifier(const std::shared_ptr<RSProperty<T>> property)
+    explicit RSOverlayStyleModifier(const std::shared_ptr<RSProperty<T>> property)
         : RSExtendedModifier<T>(property, RSModifierType::OVERLAY_STYLE)
     {}
-    RSModifierType GetModifierType() override
+    RSModifierType GetModifierType()  const override
     {
         return RSModifierType::OVERLAY_STYLE;
     }

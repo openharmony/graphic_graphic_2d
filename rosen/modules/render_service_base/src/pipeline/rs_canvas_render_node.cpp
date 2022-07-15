@@ -16,7 +16,6 @@
 #include "pipeline/rs_canvas_render_node.h"
 
 #include <algorithm>
-#include <memory>
 #include "modifier/rs_modifier_type.h"
 
 #ifdef ROSEN_OHOS
@@ -48,7 +47,6 @@ void RSCanvasRenderNode::Prepare(const std::shared_ptr<RSNodeVisitor>& visitor)
     if (!visitor) {
         return;
     }
-    ApplyModifiers();
     visitor->PrepareCanvasRenderNode(*this);
 }
 
@@ -123,7 +121,7 @@ void RSCanvasRenderNode::ApplyDrawCmdModifier(RSModifyContext& context, RSModifi
             continue;
         }
         if (modifier->drawStyle_ == type) {
-            modifier->Draw(context);
+            modifier->Apply(context);
         }
     }
 }

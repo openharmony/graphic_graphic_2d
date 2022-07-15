@@ -144,7 +144,7 @@ private:
     const std::weak_ptr<RSContext> context_;
     NodeDirty dirtyStatus_ = NodeDirty::DIRTY;
 
-    friend class RSRenderProperty;
+    friend class RSRenderPropertyBase;
 };
 } // namespace Rosen
 } // namespace OHOS

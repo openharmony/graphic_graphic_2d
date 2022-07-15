@@ -40,23 +40,23 @@ RSDrawingContext RSExtendedModifierHelper::CreateDrawingContext(NodeId nodeId)
 std::shared_ptr<RSRenderModifier> RSExtendedModifierHelper::CreateRenderModifier(
     RSDrawingContext& ctx, PropertyId id, RSModifierType type)
 {
-    auto renderProperty = RSExtendedModifierHelper::CreateDrawCmdListRenderProp(ctx, id);
+    auto renderProperty = std::make_shared<RSRenderProperty<DrawCmdListPtr>>(
+        RSExtendedModifierHelper::FinishDrawing(ctx), id);
     auto renderModifier =  std::make_shared<RSDrawCmdListRenderModifier>(renderProperty);
     renderModifier->drawStyle_ = type;
     return renderModifier;
 }
 
-std::shared_ptr<RSAnimatableRenderProperty<DrawCmdListPtr>> RSExtendedModifierHelper::CreateDrawCmdListRenderProp(
-    RSDrawingContext& ctx, PropertyId id)
+std::shared_ptr<DrawCmdList> RSExtendedModifierHelper::FinishDrawing(RSDrawingContext& ctx)
 {
     auto recording = static_cast<RSRecordingCanvas*>(ctx.canvas)->GetDrawCmdList();
     delete ctx.canvas;
     ctx.canvas = nullptr;
-    return std::make_shared<RSAnimatableRenderProperty<DrawCmdListPtr>>(recording, id);
+    return recording;
 }
 
 template<typename T>
-std::shared_ptr<RSRenderModifier> RSExtendedModifier<T>::CreateRenderModifier()
+std::shared_ptr<RSRenderModifier> RSExtendedModifier<T>::CreateRenderModifier() const
 {
     if (!this->property_->hasAddToNode_) {
         return nullptr;
@@ -71,16 +71,16 @@ void RSExtendedModifier<T>::UpdateToRender()
 {
     RSDrawingContext ctx = RSExtendedModifierHelper::CreateDrawingContext(this->property_->nodeId_);
     Draw(ctx);
-    auto renderProperty = RSExtendedModifierHelper::CreateDrawCmdListRenderProp(ctx, this->property_->GetId());
+    auto drawCmdList = RSExtendedModifierHelper::FinishDrawing(ctx);
     std::unique_ptr<RSCommand> command = std::make_unique<RSUpdatePropertyDrawCmdList>(
-            this->property_->nodeId_, renderProperty, false);
+            this->property_->nodeId_, drawCmdList, this->property_->id_, false);
     auto transactionProxy = RSTransactionProxy::GetInstance();
     auto node = RSNodeMap::Instance().GetNode<RSNode>(this->property_->nodeId_);
     if (transactionProxy && node) {
         transactionProxy->AddCommand(command, node->IsRenderServiceNode());
         if (node->NeedForcedSendToRemote()) {
             std::unique_ptr<RSCommand> commandForRemote = std::make_unique<RSUpdatePropertyDrawCmdList>(
-                this->property_->nodeId_, renderProperty, false);
+                this->property_->nodeId_, drawCmdList, this->property_->id_, false);
             transactionProxy->AddCommand(commandForRemote, true);
         }
     }

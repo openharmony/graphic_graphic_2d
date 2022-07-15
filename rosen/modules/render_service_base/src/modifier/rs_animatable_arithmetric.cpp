@@ -17,7 +17,7 @@
 
 namespace OHOS {
 namespace Rosen {
-std::shared_ptr<RSAnimatableBase> RSAnimatableFloat::Add(const std::shared_ptr<RSAnimatableBase>& value)
+std::shared_ptr<RSAnimatableBase> RSAnimatableFloat::Add(const std::shared_ptr<RSAnimatableBase>& value) const
 {
     auto newValue = std::static_pointer_cast<RSAnimatableFloat>(value);
     if (newValue != nullptr) {
@@ -26,7 +26,7 @@ std::shared_ptr<RSAnimatableBase> RSAnimatableFloat::Add(const std::shared_ptr<R
     return std::make_shared<RSAnimatableFloat>(this->value_);
 }
 
-std::shared_ptr<RSAnimatableBase> RSAnimatableFloat::Minus(const std::shared_ptr<RSAnimatableBase>& value)
+std::shared_ptr<RSAnimatableBase> RSAnimatableFloat::Minus(const std::shared_ptr<RSAnimatableBase>& value) const
 {
     auto newValue = std::static_pointer_cast<RSAnimatableFloat>(value);
     if (newValue != nullptr) {
@@ -35,12 +35,12 @@ std::shared_ptr<RSAnimatableBase> RSAnimatableFloat::Minus(const std::shared_ptr
     return std::make_shared<RSAnimatableFloat>(this->value_);
 }
 
-std::shared_ptr<RSAnimatableBase> RSAnimatableFloat::Multiply(const float scale)
+std::shared_ptr<RSAnimatableBase> RSAnimatableFloat::Multiply(const float scale) const
 {
     return std::make_shared<RSAnimatableFloat>(this->value_ * scale);
 }
 
-bool RSAnimatableFloat::IsEqual(const std::shared_ptr<RSAnimatableBase>& value)
+bool RSAnimatableFloat::IsEqual(const std::shared_ptr<RSAnimatableBase>& value) const
 {
     auto newValue = std::static_pointer_cast<RSAnimatableFloat>(value);
     if (newValue != nullptr) {
@@ -49,12 +49,12 @@ bool RSAnimatableFloat::IsEqual(const std::shared_ptr<RSAnimatableBase>& value)
     return false;
 }
 
-float RSAnimatableFloat::GetValue()
+float RSAnimatableFloat::GetValue() const
 {
     return value_;
 }
 
-std::shared_ptr<RSAnimatableBase> RSAnimatableInt::Add(const std::shared_ptr<RSAnimatableBase>& value)
+std::shared_ptr<RSAnimatableBase> RSAnimatableInt::Add(const std::shared_ptr<RSAnimatableBase>& value) const
 {
     auto newValue = std::static_pointer_cast<RSAnimatableInt>(value);
     if (newValue != nullptr) {
@@ -63,7 +63,7 @@ std::shared_ptr<RSAnimatableBase> RSAnimatableInt::Add(const std::shared_ptr<RSA
     return std::make_shared<RSAnimatableInt>(this->value_);
 }
 
-std::shared_ptr<RSAnimatableBase> RSAnimatableInt::Minus(const std::shared_ptr<RSAnimatableBase>& value)
+std::shared_ptr<RSAnimatableBase> RSAnimatableInt::Minus(const std::shared_ptr<RSAnimatableBase>& value) const
 {
     auto newValue = std::static_pointer_cast<RSAnimatableInt>(value);
     if (newValue != nullptr) {
@@ -72,12 +72,12 @@ std::shared_ptr<RSAnimatableBase> RSAnimatableInt::Minus(const std::shared_ptr<R
     return std::make_shared<RSAnimatableInt>(this->value_);
 }
 
-std::shared_ptr<RSAnimatableBase> RSAnimatableInt::Multiply(const float scale)
+std::shared_ptr<RSAnimatableBase> RSAnimatableInt::Multiply(const float scale) const
 {
     return std::make_shared<RSAnimatableInt>(this->value_ * scale);
 }
 
-bool RSAnimatableInt::IsEqual(const std::shared_ptr<RSAnimatableBase>& value)
+bool RSAnimatableInt::IsEqual(const std::shared_ptr<RSAnimatableBase>& value) const
 {
     auto newValue = std::static_pointer_cast<RSAnimatableInt>(value);
     if (newValue != nullptr) {
@@ -86,12 +86,12 @@ bool RSAnimatableInt::IsEqual(const std::shared_ptr<RSAnimatableBase>& value)
     return false;
 }
 
-int RSAnimatableInt::GetValue()
+int RSAnimatableInt::GetValue() const
 {
     return value_;
 }
 
-std::shared_ptr<RSAnimatableBase> RSAnimatableColor::Add(const std::shared_ptr<RSAnimatableBase>& value)
+std::shared_ptr<RSAnimatableBase> RSAnimatableColor::Add(const std::shared_ptr<RSAnimatableBase>& value) const
 {
     auto newValue = std::static_pointer_cast<RSAnimatableColor>(value);
     if (newValue != nullptr) {
@@ -100,7 +100,7 @@ std::shared_ptr<RSAnimatableBase> RSAnimatableColor::Add(const std::shared_ptr<R
     return std::make_shared<RSAnimatableColor>(this->value_);
 }
 
-std::shared_ptr<RSAnimatableBase> RSAnimatableColor::Minus(const std::shared_ptr<RSAnimatableBase>& value)
+std::shared_ptr<RSAnimatableBase> RSAnimatableColor::Minus(const std::shared_ptr<RSAnimatableBase>& value) const
 {
     auto newValue = std::static_pointer_cast<RSAnimatableColor>(value);
     if (newValue != nullptr) {
@@ -109,12 +109,12 @@ std::shared_ptr<RSAnimatableBase> RSAnimatableColor::Minus(const std::shared_ptr
     return std::make_shared<RSAnimatableColor>(this->value_);
 }
 
-std::shared_ptr<RSAnimatableBase> RSAnimatableColor::Multiply(const float scale)
+std::shared_ptr<RSAnimatableBase> RSAnimatableColor::Multiply(const float scale) const
 {
     return std::make_shared<RSAnimatableColor>(this->value_ * scale);
 }
 
-bool RSAnimatableColor::IsEqual(const std::shared_ptr<RSAnimatableBase>& value)
+bool RSAnimatableColor::IsEqual(const std::shared_ptr<RSAnimatableBase>& value) const
 {
     auto newValue = std::static_pointer_cast<RSAnimatableColor>(value);
     if (newValue != nullptr) {
@@ -123,12 +123,12 @@ bool RSAnimatableColor::IsEqual(const std::shared_ptr<RSAnimatableBase>& value)
     return false;
 }
 
-Color RSAnimatableColor::GetValue()
+Color RSAnimatableColor::GetValue() const
 {
     return value_;
 }
 
-std::shared_ptr<RSAnimatableBase> RSAnimatableMatrix3f::Add(const std::shared_ptr<RSAnimatableBase>& value)
+std::shared_ptr<RSAnimatableBase> RSAnimatableMatrix3f::Add(const std::shared_ptr<RSAnimatableBase>& value) const
 {
     auto newValue = std::static_pointer_cast<RSAnimatableMatrix3f>(value);
     if (newValue != nullptr) {
@@ -137,7 +137,7 @@ std::shared_ptr<RSAnimatableBase> RSAnimatableMatrix3f::Add(const std::shared_pt
     return std::make_shared<RSAnimatableMatrix3f>(this->value_);
 }
 
-std::shared_ptr<RSAnimatableBase> RSAnimatableMatrix3f::Minus(const std::shared_ptr<RSAnimatableBase>& value)
+std::shared_ptr<RSAnimatableBase> RSAnimatableMatrix3f::Minus(const std::shared_ptr<RSAnimatableBase>& value) const
 {
     auto newValue = std::static_pointer_cast<RSAnimatableMatrix3f>(value);
     if (newValue != nullptr) {
@@ -146,12 +146,12 @@ std::shared_ptr<RSAnimatableBase> RSAnimatableMatrix3f::Minus(const std::shared_
     return std::make_shared<RSAnimatableMatrix3f>(this->value_);
 }
 
-std::shared_ptr<RSAnimatableBase> RSAnimatableMatrix3f::Multiply(const float scale)
+std::shared_ptr<RSAnimatableBase> RSAnimatableMatrix3f::Multiply(const float scale) const
 {
     return std::make_shared<RSAnimatableMatrix3f>(this->value_ * scale);
 }
 
-bool RSAnimatableMatrix3f::IsEqual(const std::shared_ptr<RSAnimatableBase>& value)
+bool RSAnimatableMatrix3f::IsEqual(const std::shared_ptr<RSAnimatableBase>& value) const
 {
     auto newValue = std::static_pointer_cast<RSAnimatableMatrix3f>(value);
     if (newValue != nullptr) {
@@ -160,12 +160,12 @@ bool RSAnimatableMatrix3f::IsEqual(const std::shared_ptr<RSAnimatableBase>& valu
     return false;
 }
 
-Matrix3f RSAnimatableMatrix3f::GetValue()
+Matrix3f RSAnimatableMatrix3f::GetValue() const
 {
     return value_;
 }
 
-std::shared_ptr<RSAnimatableBase> RSAnimatableQuaternion::Add(const std::shared_ptr<RSAnimatableBase>& value)
+std::shared_ptr<RSAnimatableBase> RSAnimatableQuaternion::Add(const std::shared_ptr<RSAnimatableBase>& value) const
 {
     auto newValue = std::static_pointer_cast<RSAnimatableQuaternion>(value);
     if (newValue != nullptr) {
@@ -174,7 +174,7 @@ std::shared_ptr<RSAnimatableBase> RSAnimatableQuaternion::Add(const std::shared_
     return std::make_shared<RSAnimatableQuaternion>(this->value_);
 }
 
-std::shared_ptr<RSAnimatableBase> RSAnimatableQuaternion::Minus(const std::shared_ptr<RSAnimatableBase>& value)
+std::shared_ptr<RSAnimatableBase> RSAnimatableQuaternion::Minus(const std::shared_ptr<RSAnimatableBase>& value) const
 {
     auto newValue = std::static_pointer_cast<RSAnimatableQuaternion>(value);
     if (newValue != nullptr) {
@@ -183,12 +183,12 @@ std::shared_ptr<RSAnimatableBase> RSAnimatableQuaternion::Minus(const std::share
     return std::make_shared<RSAnimatableQuaternion>(this->value_);
 }
 
-std::shared_ptr<RSAnimatableBase> RSAnimatableQuaternion::Multiply(const float scale)
+std::shared_ptr<RSAnimatableBase> RSAnimatableQuaternion::Multiply(const float scale) const
 {
     return std::make_shared<RSAnimatableQuaternion>(this->value_ * scale);
 }
 
-bool RSAnimatableQuaternion::IsEqual(const std::shared_ptr<RSAnimatableBase>& value)
+bool RSAnimatableQuaternion::IsEqual(const std::shared_ptr<RSAnimatableBase>& value) const
 {
     auto newValue = std::static_pointer_cast<RSAnimatableQuaternion>(value);
     if (newValue != nullptr) {
@@ -197,12 +197,12 @@ bool RSAnimatableQuaternion::IsEqual(const std::shared_ptr<RSAnimatableBase>& va
     return false;
 }
 
-Quaternion RSAnimatableQuaternion::GetValue()
+Quaternion RSAnimatableQuaternion::GetValue() const
 {
     return value_;
 }
 
-std::shared_ptr<RSAnimatableBase> RSAnimatableFilter::Add(const std::shared_ptr<RSAnimatableBase>& value)
+std::shared_ptr<RSAnimatableBase> RSAnimatableFilter::Add(const std::shared_ptr<RSAnimatableBase>& value) const
 {
     auto newValue = std::static_pointer_cast<RSAnimatableFilter>(value);
     if (newValue != nullptr) {
@@ -211,7 +211,7 @@ std::shared_ptr<RSAnimatableBase> RSAnimatableFilter::Add(const std::shared_ptr<
     return std::make_shared<RSAnimatableFilter>(this->value_);
 }
 
-std::shared_ptr<RSAnimatableBase> RSAnimatableFilter::Minus(const std::shared_ptr<RSAnimatableBase>& value)
+std::shared_ptr<RSAnimatableBase> RSAnimatableFilter::Minus(const std::shared_ptr<RSAnimatableBase>& value) const
 {
     auto newValue = std::static_pointer_cast<RSAnimatableFilter>(value);
     if (newValue != nullptr) {
@@ -220,12 +220,12 @@ std::shared_ptr<RSAnimatableBase> RSAnimatableFilter::Minus(const std::shared_pt
     return std::make_shared<RSAnimatableFilter>(this->value_);
 }
 
-std::shared_ptr<RSAnimatableBase> RSAnimatableFilter::Multiply(const float scale)
+std::shared_ptr<RSAnimatableBase> RSAnimatableFilter::Multiply(const float scale) const
 {
     return std::make_shared<RSAnimatableFilter>(this->value_ * scale);
 }
 
-bool RSAnimatableFilter::IsEqual(const std::shared_ptr<RSAnimatableBase>& value)
+bool RSAnimatableFilter::IsEqual(const std::shared_ptr<RSAnimatableBase>& value) const
 {
     auto newValue = std::static_pointer_cast<RSAnimatableFilter>(value);
     if (newValue != nullptr) {
@@ -234,12 +234,12 @@ bool RSAnimatableFilter::IsEqual(const std::shared_ptr<RSAnimatableBase>& value)
     return false;
 }
 
-std::shared_ptr<RSFilter> RSAnimatableFilter::GetValue()
+std::shared_ptr<RSFilter> RSAnimatableFilter::GetValue() const
 {
     return value_;
 }
 
-std::shared_ptr<RSAnimatableBase> RSAnimatableVector2f::Add(const std::shared_ptr<RSAnimatableBase>& value)
+std::shared_ptr<RSAnimatableBase> RSAnimatableVector2f::Add(const std::shared_ptr<RSAnimatableBase>& value) const
 {
     auto newValue = std::static_pointer_cast<RSAnimatableVector2f>(value);
     if (newValue != nullptr) {
@@ -248,7 +248,7 @@ std::shared_ptr<RSAnimatableBase> RSAnimatableVector2f::Add(const std::shared_pt
     return std::make_shared<RSAnimatableVector2f>(this->value_);
 }
 
-std::shared_ptr<RSAnimatableBase> RSAnimatableVector2f::Minus(const std::shared_ptr<RSAnimatableBase>& value)
+std::shared_ptr<RSAnimatableBase> RSAnimatableVector2f::Minus(const std::shared_ptr<RSAnimatableBase>& value) const
 {
     auto newValue = std::static_pointer_cast<RSAnimatableVector2f>(value);
     if (newValue != nullptr) {
@@ -257,12 +257,12 @@ std::shared_ptr<RSAnimatableBase> RSAnimatableVector2f::Minus(const std::shared_
     return std::make_shared<RSAnimatableVector2f>(this->value_);
 }
 
-std::shared_ptr<RSAnimatableBase> RSAnimatableVector2f::Multiply(const float scale)
+std::shared_ptr<RSAnimatableBase> RSAnimatableVector2f::Multiply(const float scale) const
 {
     return std::make_shared<RSAnimatableVector2f>(this->value_ * scale);
 }
 
-bool RSAnimatableVector2f::IsEqual(const std::shared_ptr<RSAnimatableBase>& value)
+bool RSAnimatableVector2f::IsEqual(const std::shared_ptr<RSAnimatableBase>& value) const
 {
     auto newValue = std::static_pointer_cast<RSAnimatableVector2f>(value);
     if (newValue != nullptr) {
@@ -271,12 +271,12 @@ bool RSAnimatableVector2f::IsEqual(const std::shared_ptr<RSAnimatableBase>& valu
     return false;
 }
 
-Vector2f RSAnimatableVector2f::GetValue()
+Vector2f RSAnimatableVector2f::GetValue() const
 {
     return value_;
 }
 
-std::shared_ptr<RSAnimatableBase> RSAnimatableVector4f::Add(const std::shared_ptr<RSAnimatableBase>& value)
+std::shared_ptr<RSAnimatableBase> RSAnimatableVector4f::Add(const std::shared_ptr<RSAnimatableBase>& value) const
 {
     auto newValue = std::static_pointer_cast<RSAnimatableVector4f>(value);
     if (newValue != nullptr) {
@@ -285,7 +285,7 @@ std::shared_ptr<RSAnimatableBase> RSAnimatableVector4f::Add(const std::shared_pt
     return std::make_shared<RSAnimatableVector4f>(this->value_);
 }
 
-std::shared_ptr<RSAnimatableBase> RSAnimatableVector4f::Minus(const std::shared_ptr<RSAnimatableBase>& value)
+std::shared_ptr<RSAnimatableBase> RSAnimatableVector4f::Minus(const std::shared_ptr<RSAnimatableBase>& value) const
 {
     auto newValue = std::static_pointer_cast<RSAnimatableVector4f>(value);
     if (newValue != nullptr) {
@@ -294,12 +294,12 @@ std::shared_ptr<RSAnimatableBase> RSAnimatableVector4f::Minus(const std::shared_
     return std::make_shared<RSAnimatableVector4f>(this->value_);
 }
 
-std::shared_ptr<RSAnimatableBase> RSAnimatableVector4f::Multiply(const float scale)
+std::shared_ptr<RSAnimatableBase> RSAnimatableVector4f::Multiply(const float scale) const
 {
     return std::make_shared<RSAnimatableVector4f>(this->value_ * scale);
 }
 
-bool RSAnimatableVector4f::IsEqual(const std::shared_ptr<RSAnimatableBase>& value)
+bool RSAnimatableVector4f::IsEqual(const std::shared_ptr<RSAnimatableBase>& value) const
 {
     auto newValue = std::static_pointer_cast<RSAnimatableVector4f>(value);
     if (newValue != nullptr) {
@@ -308,12 +308,12 @@ bool RSAnimatableVector4f::IsEqual(const std::shared_ptr<RSAnimatableBase>& valu
     return false;
 }
 
-Vector4f RSAnimatableVector4f::GetValue()
+Vector4f RSAnimatableVector4f::GetValue() const
 {
     return value_;
 }
 
-std::shared_ptr<RSAnimatableBase> RSAnimatableVector4Color::Add(const std::shared_ptr<RSAnimatableBase>& value)
+std::shared_ptr<RSAnimatableBase> RSAnimatableVector4Color::Add(const std::shared_ptr<RSAnimatableBase>& value) const
 {
     auto newValue = std::static_pointer_cast<RSAnimatableVector4Color>(value);
     if (newValue != nullptr) {
@@ -322,7 +322,7 @@ std::shared_ptr<RSAnimatableBase> RSAnimatableVector4Color::Add(const std::share
     return std::make_shared<RSAnimatableVector4Color>(this->value_);
 }
 
-std::shared_ptr<RSAnimatableBase> RSAnimatableVector4Color::Minus(const std::shared_ptr<RSAnimatableBase>& value)
+std::shared_ptr<RSAnimatableBase> RSAnimatableVector4Color::Minus(const std::shared_ptr<RSAnimatableBase>& value) const
 {
     auto newValue = std::static_pointer_cast<RSAnimatableVector4Color>(value);
     if (newValue != nullptr) {
@@ -331,12 +331,12 @@ std::shared_ptr<RSAnimatableBase> RSAnimatableVector4Color::Minus(const std::sha
     return std::make_shared<RSAnimatableVector4Color>(this->value_);
 }
 
-std::shared_ptr<RSAnimatableBase> RSAnimatableVector4Color::Multiply(const float scale)
+std::shared_ptr<RSAnimatableBase> RSAnimatableVector4Color::Multiply(const float scale) const
 {
     return std::make_shared<RSAnimatableVector4Color>(this->value_ * scale);
 }
 
-bool RSAnimatableVector4Color::IsEqual(const std::shared_ptr<RSAnimatableBase>& value)
+bool RSAnimatableVector4Color::IsEqual(const std::shared_ptr<RSAnimatableBase>& value) const
 {
     auto newValue = std::static_pointer_cast<RSAnimatableVector4Color>(value);
     if (newValue != nullptr) {
@@ -345,7 +345,7 @@ bool RSAnimatableVector4Color::IsEqual(const std::shared_ptr<RSAnimatableBase>& 
     return false;
 }
 
-Vector4<Color> RSAnimatableVector4Color::GetValue()
+Vector4<Color> RSAnimatableVector4Color::GetValue() const
 {
     return value_;
 }

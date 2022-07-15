@@ -62,7 +62,7 @@ class RSRenderTransition;
 class RSRenderTransitionEffect;
 class RSRenderModifier;
 template<typename T>
-class RSAnimatableRenderProperty;
+class RSRenderProperty;
 
 class RSMarshallingHelper {
 public:
@@ -164,7 +164,7 @@ public:
     DECLARE_TEMPLATE_OVERLOAD(RSRenderSpringAnimation)
     DECLARE_TEMPLATE_OVERLOAD(RSRenderPathAnimation)
 
-    DECLARE_TEMPLATE_OVERLOAD(RSAnimatableRenderProperty)
+    DECLARE_TEMPLATE_OVERLOAD(RSRenderProperty)
 #undef DECLARE_TEMPLATE_OVERLOAD
 
     // reloaded marshalling & unmarshalling function for std::vector

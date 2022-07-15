@@ -78,14 +78,16 @@ void RSCanvasNode::FinishRecording()
 #endif
 }
 
-int RSCanvasNode::GetPaintWidth() const
+float RSCanvasNode::GetPaintWidth() const
 {
-    return GetStagingProperties().GetFrame().z_;
+    auto frame = GetStagingProperties().GetFrame();
+    return frame.z_ <= 0.f ? GetStagingProperties().GetBounds().z_ : frame.z_;
 }
 
-int RSCanvasNode::GetPaintHeight() const
+float RSCanvasNode::GetPaintHeight() const
 {
-    return GetStagingProperties().GetFrame().w_;
+    auto frame = GetStagingProperties().GetFrame();
+    return frame.w_ <= 0.f ? GetStagingProperties().GetBounds().w_ : frame.w_;
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -16,16 +16,15 @@
 #ifndef RENDER_SERVICE_CLIENT_CORE_ANIMATION_RS_RENDER_PROP_H
 #define RENDER_SERVICE_CLIENT_CORE_ANIMATION_RS_RENDER_PROP_H
 
-#include <type_traits>
 #include "modifier/rs_animatable_arithmetic.h"
 #include "common/rs_common_def.h"
 #include "pipeline/rs_base_render_node.h"
 
 namespace OHOS {
 namespace Rosen {
-class RSRenderProperty {
+class RSRenderPropertyBase {
 public:
-    RSRenderProperty(const PropertyId& id) : id_(id) {}
+    RSRenderPropertyBase(const PropertyId& id) : id_(id) {}
 
     PropertyId GetId() const
     {
@@ -49,13 +48,11 @@ protected:
 };
 
 template<typename T>
-class RSAnimatableRenderProperty : public RSRenderProperty {
-    // static_assert(std::is_integral_v<T> || std::is_floating_point_v<T> ||
-    //     std::is_base_of_v<RSAnimatableArithmetic<T>, T>);
+class RSRenderProperty : public RSRenderPropertyBase {
 public:
-    RSAnimatableRenderProperty() : RSRenderProperty(0) {}
-    RSAnimatableRenderProperty(const T& value, const PropertyId& id) : RSRenderProperty(id), stagingValue_(value) {}
-    virtual ~RSAnimatableRenderProperty() = default;
+    RSRenderProperty() : RSRenderPropertyBase(0) {}
+    RSRenderProperty(const T& value, const PropertyId& id) : RSRenderPropertyBase(id), stagingValue_(value) {}
+    virtual ~RSRenderProperty() = default;
 
     void Set(const T& value)
     {

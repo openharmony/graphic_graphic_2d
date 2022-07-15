@@ -177,7 +177,7 @@ void RSRenderNode::ApplyModifiers()
     RSModifyContext context = { GetMutableRenderProperties() };
     for (auto& [id, modify] : modifiers_) {
         if (modify) {
-            modify->Draw(context);
+            modify->Apply(context);
         }
     }
 }
