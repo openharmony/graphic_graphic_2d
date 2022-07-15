@@ -68,7 +68,6 @@ public:
     const std::shared_ptr<RSMotionPathOption> GetMotionPathOption() const;
 
     const RSProperties& GetStagingProperties() const;
-    void CopyPropertiesFrom(const RSNode& other);
 
     void SetBounds(const Vector4f& bounds);
     void SetBounds(float positionX, float positionY, float width, float height);

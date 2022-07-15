@@ -246,7 +246,7 @@ void RSWindowAnimationController::CallJsFunction(const std::string& methodName, 
 {
     WALOGD("Call js function:%{public}s.", methodName.c_str());
     if (jsController_ == nullptr) {
-        WALOGE("JsConterller is null!");
+        WALOGE("JsController is null!");
         return;
     }
 

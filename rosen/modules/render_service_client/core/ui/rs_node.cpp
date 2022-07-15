@@ -154,64 +154,6 @@ const RSProperties& RSNode::GetStagingProperties() const
     return stagingProperties_;
 }
 
-void RSNode::CopyPropertiesFrom(const RSNode& other)
-{
-    auto& properties = other.GetStagingProperties();
-
-    SetBounds(properties.GetBounds());
-    SetFrame(properties.GetFrame());
-
-    SetPositionZ(properties.GetPositionZ());
-
-    SetPivot(properties.GetPivot());
-
-    SetCornerRadius(properties.GetCornerRadius());
-
-    SetRotation(properties.GetQuaternion());
-    SetRotation(properties.GetRotation());
-    SetRotationX(properties.GetRotationX());
-    SetRotationY(properties.GetRotationY());
-    SetTranslate(properties.GetTranslate());
-    SetScale(properties.GetScale());
-
-    SetAlpha(properties.GetAlpha());
-
-    SetForegroundColor(properties.GetForegroundColor().AsArgbInt());
-    SetBackgroundColor(properties.GetBackgroundColor().AsArgbInt());
-    SetBackgroundShader(properties.GetBackgroundShader());
-    SetBgImage(properties.GetBgImage());
-    SetBgImageSize(properties.GetBgImageHeight(), properties.GetBgImageWidth());
-    SetBgImagePosition(properties.GetBgImagePositionX(), properties.GetBgImagePositionY());
-
-    SetBorderColor(properties.GetBorderColor());
-    SetBorderStyle(properties.GetBorderStyle());
-    SetBorderWidth(properties.GetBorderWidth());
-
-    SetSublayerTransform(properties.GetSublayerTransform());
-
-    SetBackgroundFilter(properties.GetBackgroundFilter());
-    SetFilter(properties.GetFilter());
-    SetCompositingFilter(nullptr);
-
-    SetShadowColor(properties.GetShadowColor().AsArgbInt());
-    SetShadowOffset(properties.GetShadowOffsetX(), properties.GetShadowOffsetY());
-    SetShadowAlpha(properties.GetShadowAlpha());
-    SetShadowElevation(properties.GetShadowElevation());
-    SetShadowRadius(properties.GetShadowRadius());
-    SetShadowPath(properties.GetShadowPath());
-
-    SetFrameGravity(properties.GetFrameGravity());
-    SetClipBounds(properties.GetClipBounds());
-    SetClipToBounds(properties.GetClipToBounds());
-    SetClipToFrame(properties.GetClipToFrame());
-
-    SetVisible(properties.GetVisible());
-    SetPaintOrder(other.drawContentLast_);
-    SetMask(properties.GetMask());
-
-    SetTransitionEffect(other.transitionEffect_);
-}
-
 void RSNode::AddAnimation(const std::shared_ptr<RSAnimation>& animation)
 {
     if (animation == nullptr) {
