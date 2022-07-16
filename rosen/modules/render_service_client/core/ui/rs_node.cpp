@@ -149,10 +149,7 @@ void RSNode::RemoveAnimationInner(const std::shared_ptr<RSAnimation>& animation)
     animations_.erase(animation->GetId());
     animatingPropertyNum_[animation->GetPropertyId()]--;
     if (animatingPropertyNum_[animation->GetPropertyId()] == 0) {
-        auto modifier = GetModifier(animation->GetPropertyId());
-        if (modifier != nullptr) {
-            modifier->SetPropertyOnAllAnimationFinish();
-        }
+        animation->SetPropertyOnAllAnimationFinish();
     }
 }
 

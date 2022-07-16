@@ -39,6 +39,7 @@ void RSPathAnimation<T>::StartAnimationImpl()
         ROSEN_LOGE("Failed to start curve animation, target is null!");
         return;
     }
+    InitRotationId(target);
     auto interpolator = timingCurve_.GetInterpolator(RSPropertyAnimation<T>::GetDuration());
     auto animation = std::make_shared<RSRenderPathAnimation<T>>(RSPropertyAnimation<T>::GetId(),
         RSPropertyAnimation<T>::GetPropertyId(), RSPropertyAnimation<T>::originValue_,
@@ -52,6 +53,7 @@ void RSPathAnimation<T>::StartAnimationImpl()
     animation->SetIsNeedPath(isNeedPath_);
     animation->SetPathNeedAddOrigin(GetPathNeedAddOrigin());
     animation->SetAdditive(RSPropertyAnimation<T>::GetAdditive());
+    animation->SetRotationId(rotationId_);
     if (isNeedPath_) {
         RSPropertyAnimation<T>::property_.runningPathNum_ += 1;
     }

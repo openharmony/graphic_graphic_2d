@@ -114,6 +114,11 @@ public:
         needAddOrigin_ = needAddOrigin;
     }
 
+    void SetRotationId(const PropertyId id)
+    {
+        rotationId_ = id;
+    }
+
 #ifdef ROSEN_OHOS
     bool Marshalling(Parcel& parcel) const override
     {
@@ -196,18 +201,12 @@ private:
 #endif
     void SetPathValue(const T& value, float tangent)
     {
-        auto target = RSRenderAnimation::GetTarget();
-        if (target == nullptr) {
-            ROSEN_LOGE("Failed to set path value, target is null!");
-            return;
-        }
-
         switch (GetRotationMode()) {
             case RotationMode::ROTATE_AUTO:
-                target->GetMutableRenderProperties().SetRotation(tangent);
+                SetRotation(tangent);
                 break;
             case RotationMode::ROTATE_AUTO_REVERSE:
-                target->GetMutableRenderProperties().SetRotation(tangent + 180.0f);
+                SetRotation(tangent + 180.0f);
                 break;
             case RotationMode::ROTATE_NONE:
                 break;
@@ -217,6 +216,23 @@ private:
         }
 
         RSRenderPropertyAnimation<T>::SetPropertyValue(value);
+    }
+
+    void SetRotation(const float tangent)
+    {
+        auto target = RSRenderAnimation::GetTarget();
+        if (target == nullptr) {
+            ROSEN_LOGE("Failed to set rotation value, target is null!");
+            return;
+        }
+
+        auto modifier = target->GetModifier(rotationId_);
+        if (modifier != nullptr) {
+            auto property = std::static_pointer_cast<RSRenderProperty<float>>(modifier->GetProperty());
+            if (property != nullptr) {
+                property->Set(tangent);
+            }
+        }
     }
 
     void GetPosTanValue(float fraction, Vector2f& position, float& tangent)
@@ -235,6 +251,7 @@ private:
     T endValue_ {};
     bool isNeedPath_ { true };
     bool needAddOrigin_ { false };
+    PropertyId rotationId_;
     RotationMode rotationMode_ { RotationMode::ROTATE_NONE };
     std::shared_ptr<RSInterpolator> interpolator_ { RSInterpolator::DEFAULT };
     std::shared_ptr<RSPath> animationPath_;

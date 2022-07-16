@@ -197,13 +197,60 @@ protected:
             }
         }
 
-        // target->stagingProperties_.SetRotation(targetRotation);
+        SetRotation(target, targetRotation);
+    }
+
+    void InitRotationId(const std::shared_ptr<RSNode>& node)
+    {
+        if (GetRotationPropertyId(node) == 0) {
+            node->SetRotation(0.f);
+        }
+        rotationId_ = GetRotationPropertyId(node);
+    }
+
+    PropertyId GetRotationPropertyId(const std::shared_ptr<RSNode>& node)
+    {
+        auto iter = node->propertyModifiers_.find(RSModifierType::ROTATION);
+        if (iter != node->propertyModifiers_.end()) {
+            return iter->second->GetPropertyId();
+        }
+
+        for (const auto& [id, modifier] : node->modifiers_) {
+            if (modifier->GetModifierType() == RSModifierType::ROTATION) {
+                return modifier->GetPropertyId();
+            }
+        }
+        return 0;
+    }
+
+    void SetRotation(const std::shared_ptr<RSNode>& node, const float rotation)
+    {
+        auto iter = node->modifiers_.find(rotationId_);
+        if (iter != node->modifiers_.end()) {
+            auto modifier = std::static_pointer_cast<RSAnimatableModifier<float>>(iter->second);
+            if (modifier != nullptr) {
+                modifier->GetProperty()->stagingValue_ = rotation;
+            }
+            return;
+        }
+
+        for (const auto& [type, modifier] : node->propertyModifiers_) {
+            if (modifier->GetPropertyId() == rotationId_) {
+                auto animatableModifier = std::static_pointer_cast<RSAnimatableModifier<float>>(modifier);
+                if (animatableModifier != nullptr) {
+                    animatableModifier->GetProperty()->stagingValue_ = rotation;
+                }
+            }
+            return;
+        }
     }
 
     void OnCallFinishCallback() override
     {
         RSPropertyAnimation<T>::property_.runningPathNum_ -= 1;
     }
+
+    void SetPropertyOnAllAnimationFinish() override {}
 
 private:
     void ReplaceSubString(std::string& sourceStr, const std::string& subStr, const std::string& newStr) const
@@ -253,6 +300,7 @@ private:
     float endTangent_ { 0.0f };
     bool isNeedPath_ { true };
     bool needAddOrigin_ { true };
+    PropertyId rotationId_;
     RotationMode rotationMode_ { RotationMode::ROTATE_NONE };
     RSAnimationTimingCurve timingCurve_ { RSAnimationTimingCurve::DEFAULT };
     std::shared_ptr<RSPath> animationPath_;

@@ -84,6 +84,7 @@ protected:
     void CallFinishCallback();
     void UpdateParamToRenderAnimation(const std::shared_ptr<RSRenderAnimation>& animation);
     virtual void OnCallFinishCallback() {}
+    virtual void SetPropertyOnAllAnimationFinish() {}
 
 private:
     static AnimationId GenerateId();

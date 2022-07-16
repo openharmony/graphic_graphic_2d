@@ -159,6 +159,11 @@ protected:
         animationManager->AddAnimation(animation, shared_from_this());
     }
 
+    void SetPropertyOnAllAnimationFinish() override
+    {
+        property_.UpdateToRender(property_.Get(), false, true);
+    }
+
     RSAnimatableProperty<T>& property_;
     T byValue_ {};
     T startValue_ {};

@@ -211,7 +211,6 @@ private:
     pid_t implicitAnimatorTid_ = 0;
     std::shared_ptr<RSImplicitAnimator> implicitAnimator_;
     std::shared_ptr<const RSTransitionEffect> transitionEffect_ = nullptr;
-    const static std::vector<RSModifierType> pathAnimationModifiers_;
     std::shared_ptr<RSUIAnimationManager> animationManager_;
 
     RSModifierExtractor stagingPropertiesExtrator_;
