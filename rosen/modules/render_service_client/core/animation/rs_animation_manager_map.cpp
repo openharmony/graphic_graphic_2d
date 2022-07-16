@@ -28,12 +28,10 @@ RSAnimationManagerMap& RSAnimationManagerMap::Instance()
 const std::shared_ptr<RSUIAnimationManager>& RSAnimationManagerMap::GetAnimationManager(const int32_t id)
 {
     std::unique_lock<std::mutex> lock(mutex_);
-    auto iter = managerMap_.find(id);
-    if (iter != managerMap_.end()) {
-        return iter->second;
+    auto& manager = managerMap_[id];
+    if (manager == nullptr) {
+        manager = std::make_shared<RSUIAnimationManager>();
     }
-    auto manager = std::make_shared<RSUIAnimationManager>();
-    managerMap_.emplace(id, manager);
     return manager;
 }
 } // namespace Rosen
