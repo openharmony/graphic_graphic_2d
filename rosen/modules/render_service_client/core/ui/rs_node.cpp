@@ -35,7 +35,7 @@ namespace Rosen {
 
 RSNode::RSNode(bool isRenderServiceNode) : RSBaseNode(isRenderServiceNode), stagingProperties_(false)
 {
-    implicitAnimator_ = RSImplicitAnimatorMap::Instance().GetAnimator(gettid());
+    UpdateImplicitAnimator();
 }
 
 RSNode::~RSNode()
@@ -72,7 +72,7 @@ void RSNode::AddKeyFrame(
     auto implicitAnimator = RSImplicitAnimatorMap::Instance().GetAnimator(gettid());
     if (implicitAnimator == nullptr) {
         ROSEN_LOGE("Failed to add keyframe, implicit animator is null!");
-        return ;
+        return;
     }
 
     implicitAnimator->BeginImplicitKeyFrameAnimation(fraction, timingCurve);
@@ -85,7 +85,7 @@ void RSNode::AddKeyFrame(float fraction, const PropertyCallback& propertyCallbac
     auto implicitAnimator = RSImplicitAnimatorMap::Instance().GetAnimator(gettid());
     if (implicitAnimator == nullptr) {
         ROSEN_LOGE("Failed to add keyframe, implicit animator is null!");
-        return ;
+        return;
     }
 
     implicitAnimator->BeginImplicitKeyFrameAnimation(fraction);
@@ -127,14 +127,13 @@ void RSNode::FallbackAnimationsToRoot()
 
 void RSNode::AddAnimationInner(const std::shared_ptr<RSAnimation>& animation)
 {
-    animations_[animation->GetId()] = animation;
+    animations_.emplace(animation->GetId(), animation);
     animatingPropertyNum_[animation->GetProperty()]++;
 }
 
 void RSNode::RemoveAnimationInner(const std::shared_ptr<RSAnimation>& animation)
 {
-    auto animationItr = animations_.find(animation->GetId());
-    animations_.erase(animationItr);
+    animations_.erase(animation->GetId());
     animatingPropertyNum_[animation->GetProperty()]--;
 }
 
@@ -150,6 +149,64 @@ void RSNode::FinishAnimationByProperty(const RSAnimatableProperty& property)
 const RSProperties& RSNode::GetStagingProperties() const
 {
     return stagingProperties_;
+}
+
+void RSNode::CopyPropertiesFrom(const RSNode& other)
+{
+    auto& properties = other.GetStagingProperties();
+
+    SetBounds(properties.GetBounds());
+    SetFrame(properties.GetFrame());
+
+    SetPositionZ(properties.GetPositionZ());
+
+    SetPivot(properties.GetPivot());
+
+    SetCornerRadius(properties.GetCornerRadius());
+
+    SetRotation(properties.GetQuaternion());
+    SetRotation(properties.GetRotation());
+    SetRotationX(properties.GetRotationX());
+    SetRotationY(properties.GetRotationY());
+    SetTranslate(properties.GetTranslate());
+    SetScale(properties.GetScale());
+
+    SetAlpha(properties.GetAlpha());
+
+    SetForegroundColor(properties.GetForegroundColor().AsArgbInt());
+    SetBackgroundColor(properties.GetBackgroundColor().AsArgbInt());
+    SetBackgroundShader(properties.GetBackgroundShader());
+    SetBgImage(properties.GetBgImage());
+    SetBgImageSize(properties.GetBgImageHeight(), properties.GetBgImageWidth());
+    SetBgImagePosition(properties.GetBgImagePositionX(), properties.GetBgImagePositionY());
+
+    SetBorderColor(properties.GetBorderColor());
+    SetBorderStyle(properties.GetBorderStyle());
+    SetBorderWidth(properties.GetBorderWidth());
+
+    SetSublayerTransform(properties.GetSublayerTransform());
+
+    SetBackgroundFilter(properties.GetBackgroundFilter());
+    SetFilter(properties.GetFilter());
+    SetCompositingFilter(nullptr);
+
+    SetShadowColor(properties.GetShadowColor().AsArgbInt());
+    SetShadowOffset(properties.GetShadowOffsetX(), properties.GetShadowOffsetY());
+    SetShadowAlpha(properties.GetShadowAlpha());
+    SetShadowElevation(properties.GetShadowElevation());
+    SetShadowRadius(properties.GetShadowRadius());
+    SetShadowPath(properties.GetShadowPath());
+
+    SetFrameGravity(properties.GetFrameGravity());
+    SetClipBounds(properties.GetClipBounds());
+    SetClipToBounds(properties.GetClipToBounds());
+    SetClipToFrame(properties.GetClipToFrame());
+
+    SetVisible(properties.GetVisible());
+    SetPaintOrder(other.drawContentLast_);
+    SetMask(properties.GetMask());
+
+    SetTransitionEffect(other.transitionEffect_);
 }
 
 void RSNode::AddAnimation(const std::shared_ptr<RSAnimation>& animation)
@@ -205,7 +262,7 @@ const std::shared_ptr<RSMotionPathOption> RSNode::GetMotionPathOption() const
     return motionPathOption_;
 }
 
-bool RSNode::HasPropertyAnimation(const RSAnimatableProperty& property)
+bool RSNode::HasPropertyAnimation(const RSAnimatableProperty& property) const
 {
     // check if any animation matches the property bitmask
     auto pred = [property](const auto& it) -> bool {
@@ -240,9 +297,10 @@ bool IsValid(const Vector4f& value)
 #define SET_ANIMATABLE_PROPERTY(propertyName, value, property)                                              \
     do {                                                                                                    \
         auto currentValue = stagingProperties_.Get##propertyName();                                         \
-        if (ROSEN_EQ(value, currentValue)) {                                                                \
+        if (ROSEN_EQ(value, currentValue) || !IsValid(value)) {                                             \
             return;                                                                                         \
         }                                                                                                   \
+        UpdateImplicitAnimator();                                                                           \
         if (implicitAnimator_ && implicitAnimator_->NeedImplicitAnimation() && IsValid(currentValue)) {     \
             implicitAnimator_->CreateImplicitAnimation(*this, property, currentValue, value);               \
         } else if (HasPropertyAnimation(property)) {                                                        \
@@ -276,7 +334,7 @@ bool IsValid(const Vector4f& value)
 #define SET_NONANIMATABLE_PROPERTY(propertyName, value)                                                 \
     do {                                                                                                \
         auto currentValue = stagingProperties_.Get##propertyName();                                     \
-        if (ROSEN_EQ(value, currentValue)) {                                                            \
+        if (ROSEN_EQ(value, currentValue) || !IsValid(value)) {                                         \
             return;                                                                                     \
         }                                                                                               \
         std::unique_ptr<RSCommand> command = std::make_unique<RSNodeSet##propertyName>(GetId(), value); \
@@ -295,6 +353,10 @@ bool IsValid(const Vector4f& value)
 #define CREATE_PATH_ANIMATION(propertyName, value, property)                                            \
     do {                                                                                                \
         auto currentValue = stagingProperties_.Get##propertyName();                                     \
+        if (!IsValid(value)) {                                                                          \
+            return;                                                                                     \
+        }                                                                                               \
+        UpdateImplicitAnimator();                                                                       \
         if (implicitAnimator_ && implicitAnimator_->NeedImplicitAnimation() && IsValid(currentValue)) { \
             implicitAnimator_->BeginImplicitPathAnimation(motionPathOption_);                           \
             implicitAnimator_->CreateImplicitAnimation(*this, property, currentValue, value);           \
@@ -579,13 +641,13 @@ void RSNode::SetBackgroundColor(uint32_t colorValue)
     SET_ANIMATABLE_PROPERTY(BackgroundColor, color, RSAnimatableProperty::BACKGROUND_COLOR);
 }
 
-void RSNode::SetBackgroundShader(std::shared_ptr<RSShader> shader)
+void RSNode::SetBackgroundShader(const std::shared_ptr<RSShader>& shader)
 {
     SET_NONANIMATABLE_PROPERTY(BackgroundShader, shader);
 }
 
 // background
-void RSNode::SetBgImage(std::shared_ptr<RSImage> image)
+void RSNode::SetBgImage(const std::shared_ptr<RSImage>& image)
 {
     SET_NONANIMATABLE_PROPERTY(BgImage, image);
 }
@@ -629,22 +691,21 @@ void RSNode::SetBorderColor(uint32_t colorValue)
     SET_ANIMATABLE_PROPERTY(BorderColor, color, RSAnimatableProperty::BORDER_COLOR);
 }
 
+void RSNode::SetBorderColor(uint32_t left, uint32_t top, uint32_t right, uint32_t bottom)
+{
+    Vector4<Color> color(
+        Color::FromArgbInt(left), Color::FromArgbInt(top), Color::FromArgbInt(right), Color::FromArgbInt(bottom));
+    SET_ANIMATABLE_PROPERTY(BorderColor, color, RSAnimatableProperty::BORDER_COLOR);
+}
+
+void RSNode::SetBorderColor(const Vector4<Color>& color)
+{
+    SET_ANIMATABLE_PROPERTY(BorderColor, color, RSAnimatableProperty::BORDER_COLOR);
+}
+
 void RSNode::SetBorderWidth(float width)
 {
     SET_ANIMATABLE_PROPERTY(BorderWidth, Vector4f(width), RSAnimatableProperty::BORDER_WIDTH);
-}
-
-void RSNode::SetBorderStyle(uint32_t styleValue)
-{
-    Vector4<BorderStyle> style(static_cast<BorderStyle>(styleValue));
-    SET_NONANIMATABLE_PROPERTY(BorderStyle, style);
-}
-
-void RSNode::SetBorderColor(uint32_t left, uint32_t top, uint32_t right, uint32_t bottom)
-{
-    Vector4<Color> color(Color::FromArgbInt(left), Color::FromArgbInt(top),
-                         Color::FromArgbInt(right), Color::FromArgbInt(bottom));
-    SET_ANIMATABLE_PROPERTY(BorderColor, color, RSAnimatableProperty::BORDER_COLOR);
 }
 
 void RSNode::SetBorderWidth(float left, float top, float right, float bottom)
@@ -653,10 +714,26 @@ void RSNode::SetBorderWidth(float left, float top, float right, float bottom)
     SET_ANIMATABLE_PROPERTY(BorderWidth, width, RSAnimatableProperty::BORDER_WIDTH);
 }
 
+void RSNode::SetBorderWidth(const Vector4f& width)
+{
+    SET_ANIMATABLE_PROPERTY(BorderWidth, width, RSAnimatableProperty::BORDER_WIDTH);
+}
+
+void RSNode::SetBorderStyle(uint32_t styleValue)
+{
+    Vector4<BorderStyle> style(static_cast<BorderStyle>(styleValue));
+    SET_NONANIMATABLE_PROPERTY(BorderStyle, style);
+}
+
 void RSNode::SetBorderStyle(uint32_t left, uint32_t top, uint32_t right, uint32_t bottom)
 {
     Vector4<BorderStyle> style(static_cast<BorderStyle>(left), static_cast<BorderStyle>(top),
-                               static_cast<BorderStyle>(right), static_cast<BorderStyle>(bottom));
+        static_cast<BorderStyle>(right), static_cast<BorderStyle>(bottom));
+    SET_NONANIMATABLE_PROPERTY(BorderStyle, style);
+}
+
+void RSNode::SetBorderStyle(const Vector4<BorderStyle>& style)
+{
     SET_NONANIMATABLE_PROPERTY(BorderStyle, style);
 }
 
@@ -666,17 +743,17 @@ void RSNode::SetSublayerTransform(Matrix3f sublayerTransform)
     SET_ANIMATABLE_PROPERTY(SublayerTransform, sublayerTransform, RSAnimatableProperty::SUB_LAYER_TRANSFORM);
 }
 
-void RSNode::SetBackgroundFilter(std::shared_ptr<RSFilter> backgroundFilter)
+void RSNode::SetBackgroundFilter(const std::shared_ptr<RSFilter>& backgroundFilter)
 {
     SET_ANIMATABLE_PROPERTY(BackgroundFilter, backgroundFilter, RSAnimatableProperty::BACKGROUND_FILTER);
 }
 
-void RSNode::SetFilter(std::shared_ptr<RSFilter> filter)
+void RSNode::SetFilter(const std::shared_ptr<RSFilter>& filter)
 {
     SET_ANIMATABLE_PROPERTY(Filter, filter, RSAnimatableProperty::FILTER);
 }
 
-void RSNode::SetCompositingFilter(std::shared_ptr<RSFilter> compositingFilter) {}
+void RSNode::SetCompositingFilter(const std::shared_ptr<RSFilter>& compositingFilter) {}
 
 void RSNode::SetShadowColor(uint32_t colorValue)
 {
@@ -715,9 +792,9 @@ void RSNode::SetShadowRadius(float radius)
     SET_ANIMATABLE_PROPERTY(ShadowRadius, radius, RSAnimatableProperty::SHADOW_RADIUS);
 }
 
-void RSNode::SetShadowPath(std::shared_ptr<RSPath> shadowpath)
+void RSNode::SetShadowPath(const std::shared_ptr<RSPath>& shadowPath)
 {
-    SET_NONANIMATABLE_PROPERTY(ShadowPath, shadowpath);
+    SET_NONANIMATABLE_PROPERTY(ShadowPath, shadowPath);
 }
 
 void RSNode::SetFrameGravity(Gravity gravity)
@@ -725,7 +802,7 @@ void RSNode::SetFrameGravity(Gravity gravity)
     SET_NONANIMATABLE_PROPERTY(FrameGravity, gravity);
 }
 
-void RSNode::SetClipBounds(std::shared_ptr<RSPath> path)
+void RSNode::SetClipBounds(const std::shared_ptr<RSPath>& path)
 {
     SET_NONANIMATABLE_PROPERTY(ClipBounds, path);
 }
@@ -751,7 +828,7 @@ void RSNode::SetVisible(bool visible)
 void RSNode::NotifyTransition(const std::shared_ptr<const RSTransitionEffect>& effect, bool isTransitionIn)
 {
     // temporary fix for multithread issue in implicit animator
-    implicitAnimator_ = RSImplicitAnimatorMap::Instance().GetAnimator(gettid());
+    UpdateImplicitAnimator();
     if (implicitAnimator_ == nullptr) {
         ROSEN_LOGE("Failed to notify transition, implicit animator is null!");
         return;
@@ -780,7 +857,7 @@ void RSNode::OnRemoveChildren()
     }
 }
 
-void RSNode::AnimationFinish(long long animationId)
+void RSNode::AnimationFinish(AnimationId animationId)
 {
     auto animationItr = animations_.find(animationId);
     if (animationItr == animations_.end()) {
@@ -814,9 +891,19 @@ std::string RSNode::DumpNode(int depth) const
     return ss.str();
 }
 
-void RSNode::SetMask(std::shared_ptr<RSMask> mask)
+void RSNode::SetMask(const std::shared_ptr<RSMask>& mask)
 {
     SET_NONANIMATABLE_PROPERTY(Mask, mask);
+}
+
+void RSNode::UpdateImplicitAnimator()
+{
+    auto tid = gettid();
+    if (tid == implicitAnimatorTid_) {
+        return;
+    }
+    implicitAnimatorTid_ = tid;
+    implicitAnimator_ = RSImplicitAnimatorMap::Instance().GetAnimator(tid);
 }
 } // namespace Rosen
 } // namespace OHOS

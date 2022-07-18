@@ -15,19 +15,20 @@
 #ifndef RENDER_SERVICE_CLIENT_CORE_PIPELINE_RS_DISPLAY_RENDER_NODE_H
 #define RENDER_SERVICE_CLIENT_CORE_PIPELINE_RS_DISPLAY_RENDER_NODE_H
 
+#include <ibuffer_consumer_listener.h>
 #include <memory>
 #include <surface.h>
-#include <ibuffer_consumer_listener.h>
 
-#include "platform/drawing/rs_surface.h"
-#include "pipeline/rs_base_render_node.h"
-#include "pipeline/rs_surface_handler.h"
-#include "render_context/render_context.h"
 #include "sync_fence.h"
+
+#include "pipeline/rs_render_node.h"
+#include "pipeline/rs_surface_handler.h"
+#include "platform/drawing/rs_surface.h"
+#include "render_context/render_context.h"
 
 namespace OHOS {
 namespace Rosen {
-class RSDisplayRenderNode : public RSBaseRenderNode, public RSSurfaceHandler {
+class RSDisplayRenderNode : public RSRenderNode, public RSSurfaceHandler {
 public:
     enum CompositeType {
         COMPATIBLE_COMPOSITE = 0,
@@ -39,7 +40,7 @@ public:
     static inline constexpr RSRenderNodeType Type = RSRenderNodeType::DISPLAY_NODE;
 
     explicit RSDisplayRenderNode(NodeId id, const RSDisplayNodeConfig& config, std::weak_ptr<RSContext> context = {});
-    virtual ~RSDisplayRenderNode();
+    ~RSDisplayRenderNode() override;
 
     void SetScreenId(uint64_t screenId)
     {

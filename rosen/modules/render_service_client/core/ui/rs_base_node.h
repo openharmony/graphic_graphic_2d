@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -33,13 +33,13 @@ public:
 
     virtual ~RSBaseNode();
 
-    void AddChild(SharedPtr child, int index);
-    void RemoveChild(SharedPtr child);
+    virtual void AddChild(SharedPtr child, int index);
+    virtual void RemoveChild(SharedPtr child);
     // Add/RemoveCrossParentChild only used as: the child is under multiple parents(e.g. a window cross multi-screens)
     void AddCrossParentChild(SharedPtr child, int index);
     void RemoveCrossParentChild(SharedPtr child, NodeId newParentId);
     void RemoveFromTree();
-    void ClearChildren();
+    virtual void ClearChildren();
 
     NodeId GetId() const
     {
@@ -56,8 +56,9 @@ public:
         return FollowType::NONE;
     }
 
+    bool IsInstanceOf(RSUINodeType type) const;
     template<typename T>
-    bool IsInstanceOf();
+    bool IsInstanceOf() const;
 
     // type-safe reinterpret_cast
     template<typename T>
@@ -73,6 +74,7 @@ public:
     virtual std::string DumpNode(int depth) const;
 protected:
     static bool isUniRenderEnabled_;
+    bool isRenderServiceNode_;
 
     RSBaseNode(bool isRenderServiceNode);
     RSBaseNode(const RSBaseNode&) = delete;
@@ -94,15 +96,9 @@ protected:
         return isUniRenderEnabled_ || isRenderServiceNode_;
     }
 
-    void SetRenderServiceNodeType(bool isRenderServiceNode)
-    {
-        isRenderServiceNode_ = isRenderServiceNode;
-    }
-
 private:
     static NodeId GenerateId();
     NodeId id_;
-    bool isRenderServiceNode_;
 
     NodeId parent_ = 0;
     std::vector<NodeId> children_;

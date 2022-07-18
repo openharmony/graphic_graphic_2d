@@ -14,7 +14,7 @@
  */
 
 #ifdef ROSEN_OHOS
-#include "rs_application_render_thread_proxy.h"
+#include "rs_application_agent_proxy.h"
 
 #include <message_option.h>
 #include <message_parcel.h>
@@ -24,18 +24,18 @@
 
 namespace OHOS {
 namespace Rosen {
-RSApplicationRenderThreadProxy::RSApplicationRenderThreadProxy(const sptr<IRemoteObject>& impl)
-    : IRemoteProxy<IApplicationRenderThread>(impl)
+RSApplicationAgentProxy::RSApplicationAgentProxy(const sptr<IRemoteObject>& impl)
+    : IRemoteProxy<IApplicationAgent>(impl)
 {
 }
 
-void RSApplicationRenderThreadProxy::OnTransaction(std::shared_ptr<RSTransactionData> transactionData)
+void RSApplicationAgentProxy::OnTransaction(std::shared_ptr<RSTransactionData> transactionData)
 {
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
 
-    if (!data.WriteInterfaceToken(IApplicationRenderThread::GetDescriptor())) {
+    if (!data.WriteInterfaceToken(IApplicationAgent::GetDescriptor())) {
         return;
     }
 
@@ -44,7 +44,7 @@ void RSApplicationRenderThreadProxy::OnTransaction(std::shared_ptr<RSTransaction
     }
 
     option.SetFlags(MessageOption::TF_ASYNC);
-    int32_t err = Remote()->SendRequest(IApplicationRenderThread::COMMIT_TRANSACTION, data, reply, option);
+    int32_t err = Remote()->SendRequest(IApplicationAgent::COMMIT_TRANSACTION, data, reply, option);
     if (err != NO_ERROR) {
         // [PLANNING]: Error log
     }

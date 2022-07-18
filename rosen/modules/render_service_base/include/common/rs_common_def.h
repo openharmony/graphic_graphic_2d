@@ -31,13 +31,13 @@ using NodeId = uint64_t;
 
 // types in the same layer should be 0/1/2/4/8
 // types for UINode
-enum class RSUINodeType {
-    BASE_NODE    = 0x00010,
-    DISPLAY_NODE = 0x00110,
-    RS_NODE      = 0x00210,   // formerly RSPropertyNode
-    SURFACE_NODE = 0x01210,
-    CANVAS_NODE  = 0x02210,   // formerly RSNode
-    ROOT_NODE    = 0x12210,
+enum class RSUINodeType : uint32_t {
+    BASE_NODE    = 0x00010u,
+    RS_NODE      = 0x00110u,   // formerly RSPropertyNode
+    DISPLAY_NODE = 0x01110u,
+    SURFACE_NODE = 0x02110u,
+    CANVAS_NODE  = 0x04110u,   // formerly RSNode
+    ROOT_NODE    = 0x14110u,
 };
 
 enum class FollowType : uint8_t {
@@ -56,13 +56,13 @@ static const std::map<RSUINodeType, std::string> RSUINodeTypeStrs = {
 };
 
 // types for RenderNode
-enum class RSRenderNodeType {
-    BASE_NODE    = 0x00011,
-    DISPLAY_NODE = 0x00111,
-    RS_NODE      = 0x00211,   // formerly RSPropertyRenderNode
-    SURFACE_NODE = 0x01211,
-    CANVAS_NODE  = 0x02211,   // formerly RSRenderNode
-    ROOT_NODE    = 0x12211,
+enum class RSRenderNodeType : uint32_t {
+    BASE_NODE    = 0x00011u,
+    RS_NODE      = 0x00111u,   // formerly RSPropertyRenderNode
+    DISPLAY_NODE = 0x01111u,
+    SURFACE_NODE = 0x02111u,
+    CANVAS_NODE  = 0x04111u,   // formerly RSRenderNode
+    ROOT_NODE    = 0x14111u,
 };
 
 struct RSSurfaceRenderNodeConfig {

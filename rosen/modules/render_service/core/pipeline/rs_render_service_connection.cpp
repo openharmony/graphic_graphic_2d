@@ -159,8 +159,8 @@ void RSRenderServiceConnection::RSApplicationRenderThreadDeathRecipient::OnRemot
     }
 
     RS_LOGI("RSApplicationRenderThreadDeathRecipient::OnRemoteDied: Unregister.");
-    auto app = iface_cast<IApplicationRenderThread>(tokenSptr);
-    rsConn->UnregisterApplicationRenderThread(app);
+    auto app = iface_cast<IApplicationAgent>(tokenSptr);
+    rsConn->UnRegisterApplicationAgent(app);
 }
 
 void RSRenderServiceConnection::CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData)
@@ -317,20 +317,20 @@ void RSRenderServiceConnection::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCap
     mainThread_->PostTask(captureTask);
 }
 
-void RSRenderServiceConnection::RegisterApplicationRenderThread(uint32_t pid, sptr<IApplicationRenderThread> app)
+void RSRenderServiceConnection::RegisterApplicationAgent(uint32_t pid, sptr<IApplicationAgent> app)
 {
     auto captureTask = [=]() -> void {
-        mainThread_->RegisterApplicationRenderThread(pid, app);
+        mainThread_->RegisterApplicationAgent(pid, app);
     };
     mainThread_->PostTask(captureTask);
 
     app->AsObject()->AddDeathRecipient(ApplicationDeathRecipient_);
 }
 
-void RSRenderServiceConnection::UnregisterApplicationRenderThread(sptr<IApplicationRenderThread> app)
+void RSRenderServiceConnection::UnRegisterApplicationAgent(sptr<IApplicationAgent> app)
 {
     auto captureTask = [=]() -> void {
-        mainThread_->UnregisterApplicationRenderThread(app);
+        mainThread_->UnRegisterApplicationAgent(app);
     };
     mainThread_->PostTask(captureTask);
 }

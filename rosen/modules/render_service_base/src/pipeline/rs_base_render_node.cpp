@@ -29,7 +29,8 @@ namespace OHOS {
 namespace Rosen {
 void RSBaseRenderNode::AddChild(const SharedPtr& child, int index)
 {
-    if (child == nullptr) {
+    // sanity check, avoid loop
+    if (child == nullptr || child->GetId() == GetId()) {
         return;
     }
     // if child already has a parent, remove it from its previous parent

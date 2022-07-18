@@ -23,6 +23,7 @@
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
 #include "rs_trace.h"
+#include "transaction/rs_application_agent_impl.h"
 #include "transaction/rs_interfaces.h"
 #include "transaction/rs_transaction_proxy.h"
 #include "ui/rs_root_node.h"
@@ -43,13 +44,13 @@ RSUIDirector::~RSUIDirector()
     Destroy();
 }
 
-void RSUIDirector::Init()
+void RSUIDirector::Init(bool shouldCreateRenderThread)
 {
     AnimationCommandHelper::SetFinisCallbackProcessor(AnimationCallbackProcessor);
 
     isUniRenderEnabled_ =
         RSSystemProperties::GetUniRenderEnabledType() != UniRenderEnabledType::UNI_RENDER_DISABLED;
-    if (!isUniRenderEnabled_) {
+    if (!isUniRenderEnabled_ && shouldCreateRenderThread) {
         auto renderThreadClient = RSIRenderClient::CreateRenderThreadClient();
         auto transactionProxy = RSTransactionProxy::GetInstance();
         if (transactionProxy != nullptr) {
@@ -59,6 +60,7 @@ void RSUIDirector::Init()
         RsFrameReport::GetInstance().Init();
         RSRenderThread::Instance().Start();
     }
+    RSApplicationAgentImpl::Instance().RegisterRSApplicationAgent();
 
     GoForeground();
 }
@@ -186,6 +188,8 @@ void RSUIDirector::AnimationCallbackProcessor(NodeId nodeId, AnimationId animId)
 {
     if (auto nodePtr = RSNodeMap::Instance().GetNode<RSNode>(nodeId)) {
         nodePtr->AnimationFinish(animId);
+    } else {
+        ROSEN_LOGE("RSUIDirector::AnimationCallbackProcessor, node %llu not found", nodeId);
     }
 }
 } // namespace Rosen

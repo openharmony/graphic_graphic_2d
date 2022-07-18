@@ -28,13 +28,12 @@
 #include "res_type.h"
 #endif
 #include "rs_trace.h"
-#include "ui/rs_ui_director.h"
+
 #include "transaction/rs_render_service_client.h"
+#include "ui/rs_ui_director.h"
 #ifdef ROSEN_OHOS
 #include <sys/prctl.h>
 #include <unistd.h>
-
-#include "platform/ohos/rs_render_service_connect_hub.h"
 #endif
 
 static void SystemCallSetThreadName(const std::string& name)
@@ -98,17 +97,6 @@ void RSRenderThread::Start()
     if (thread_ == nullptr) {
         thread_ = std::make_unique<std::thread>(&RSRenderThread::RenderLoop, this);
     }
-
-#ifdef ROSEN_OHOS
-    RSRenderServiceConnectHub::SetOnConnectCallback(
-        [weakThis = wptr<RSRenderThread>(this)](sptr<RSIRenderServiceConnection>& conn) {
-            sptr<IApplicationRenderThread> renderThreadSptr = weakThis.promote();
-            if (renderThreadSptr == nullptr) {
-                return;
-            }
-            conn->RegisterApplicationRenderThread(getpid(), renderThreadSptr);
-        });
-#endif
 }
 
 void RSRenderThread::Stop()
@@ -309,13 +297,6 @@ void RSRenderThread::SendCommands()
     }
 
     RSUIDirector::RecvMessages();
-    ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
-}
-
-void RSRenderThread::OnTransaction(std::shared_ptr<RSTransactionData> transactionData)
-{
-    ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSRenderThread::OnTransaction");
-    RSUIDirector::RecvMessages(transactionData);
     ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
 }
 
