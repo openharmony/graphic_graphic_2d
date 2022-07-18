@@ -855,6 +855,7 @@ GSError BufferQueue::SetMetaData(uint32_t sequence, const std::vector<HDRMetaDat
     }
     bufferQueueCache_[sequence].metaData.clear();
     bufferQueueCache_[sequence].metaData = metaData;
+    bufferQueueCache_[sequence].hdrMetaDataType = HDRMetaDataType::HDR_META_DATA;
     return GSERROR_OK;
 }
 
@@ -878,6 +879,18 @@ GSError BufferQueue::SetMetaDataSet(uint32_t sequence, HDRMetadataKey key,
     bufferQueueCache_[sequence].metaDataSet.clear();
     bufferQueueCache_[sequence].key = key;
     bufferQueueCache_[sequence].metaDataSet = metaData;
+    bufferQueueCache_[sequence].hdrMetaDataType = HDRMetaDataType::HDR_META_DATA_SET;
+    return GSERROR_OK;
+}
+
+GSError BufferQueue::QueryMetaDataType(uint32_t sequence, HDRMetaDataType &type)
+{
+    std::lock_guard<std::mutex> lockGuard(mutex_);
+    if (bufferQueueCache_.find(sequence) == bufferQueueCache_.end()) {
+        BLOGN_FAILURE_ID(sequence, "not find in cache");
+        return GSERROR_NO_ENTRY;
+    }
+    type = bufferQueueCache_.at(sequence).hdrMetaDataType;
     return GSERROR_OK;
 }
 

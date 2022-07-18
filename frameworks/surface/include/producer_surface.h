@@ -97,6 +97,7 @@ public:
     GSError GetScalingMode(uint32_t sequence, ScalingMode &scalingMode) override;
     GSError SetMetaData(uint32_t sequence, const std::vector<HDRMetaData> &metaData) override;
     GSError SetMetaDataSet(uint32_t sequence, HDRMetadataKey key, const std::vector<uint8_t> &metaData) override;
+    GSError QueryMetaDataType(uint32_t sequence, HDRMetaDataType &type) const override;
     GSError GetMetaData(uint32_t sequence, std::vector<HDRMetaData> &metaData) const override;
     GSError GetMetaDataSet(uint32_t sequence, HDRMetadataKey &key,
                            std::vector<uint8_t> &metaData) const override;

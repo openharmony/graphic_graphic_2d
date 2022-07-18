@@ -141,6 +141,14 @@ GSError BufferQueueConsumer::GetScalingMode(uint32_t sequence, ScalingMode &scal
     return bufferQueue_->GetScalingMode(sequence, scalingMode);
 }
 
+GSError BufferQueueConsumer::QueryMetaDataType(uint32_t sequence, HDRMetaDataType &type) const
+{
+    if (bufferQueue_ == nullptr) {
+        return GSERROR_INVALID_ARGUMENTS;
+    }
+    return bufferQueue_->QueryMetaDataType(sequence, type);
+}
+
 GSError BufferQueueConsumer::GetMetaData(uint32_t sequence, std::vector<HDRMetaData> &metaData) const
 {
     if (bufferQueue_ == nullptr) {
