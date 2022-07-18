@@ -18,6 +18,7 @@
 
 #include <memory>
 #include <mutex>
+#include <stack>
 
 #include "command/rs_command.h"
 #include "common/rs_singleton.h"
@@ -41,6 +42,10 @@ public:
     void FlushImplicitTransactionFromRT(uint64_t timestamp);
 
     void ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task, bool isRenderServiceTask = false);
+
+    void Begin();
+    void Commit(uint64_t timestamp = 0);
+
 private:
     RSTransactionProxy();
     virtual ~RSTransactionProxy();
@@ -59,6 +64,9 @@ private:
     std::mutex mutex_;
     std::unique_ptr<RSTransactionData> implicitCommonTransactionData_{std::make_unique<RSTransactionData>()};
     std::unique_ptr<RSTransactionData> implicitRemoteTransactionData_{std::make_unique<RSTransactionData>()};
+
+    std::stack<std::unique_ptr<RSTransactionData>> implicitCommonTransactionDataStack_;
+    std::stack<std::unique_ptr<RSTransactionData>> implicitRemoteTransactionDataStack_;
 
     // Command Transaction Triggered by Render Thread which is definitely send to Render Service.
     std::mutex mutexForRT_;
