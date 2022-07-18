@@ -63,9 +63,9 @@ public:
     }
 
 private:
-    RectI MergeHistory(int age, RectI rect) const;
+    RectI MergeHistory(unsigned int age, RectI rect) const;
     void PushHistory(RectI rect);
-    RectI GetHistory(unsigned i) const;
+    RectI GetHistory(unsigned int i) const;
 
     RectI dirtyRegion_;
     std::map<NodeId, RectI> dirtyCanvasNodes_;
@@ -73,10 +73,10 @@ private:
     std::vector<bool> debugRegionEnabled_;
     std::vector<RectI> dirtyHistory_;
     int historyHead_ = -1;
-    unsigned historySize_ = 0;
+    unsigned int historySize_ = 0;
     const unsigned HISTORY_QUEUE_MAX_SIZE = 4;
     // may add new set function for bufferAge
-    int bufferAge_ = HISTORY_QUEUE_MAX_SIZE;
+    unsigned int bufferAge_ = HISTORY_QUEUE_MAX_SIZE;
 
     int surfaceWidth_ = 0;
     int surfaceHeight_ = 0;
