@@ -16,7 +16,7 @@
 
 #include "wrapper_log.h"
 namespace OHOS {
-constexpr uint32_t PTHREAD_KEY_T_NOT_INITIALIZED = -1;
+constexpr int32_t PTHREAD_KEY_T_NOT_INITIALIZED = -1;
 pthread_key_t ThreadPrivateDataCtl::key_ = PTHREAD_KEY_T_NOT_INITIALIZED;
 pthread_once_t ThreadPrivateDataCtl::onceCtl_ = PTHREAD_ONCE_INIT;
 
