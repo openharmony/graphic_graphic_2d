@@ -22,7 +22,7 @@
 #define CHECK_FUNC(device, deviceFunc)                                 \
     do {                                                               \
         if (device == nullptr || deviceFunc == nullptr) {              \
-            HLOGE("can not find hdi func: %{public}s", __FUNCTION__);  \
+            HLOGD("can not find hdi func: %{public}s", __FUNCTION__);  \
             return DISPLAY_NULL_PTR;                                   \
         }                                                              \
     } while(0)
