@@ -23,7 +23,7 @@
  * @brief Provides the native vsync capability.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeVsync
- * @since 8
+ * @since 9
  * @version 1.0
  */
 
@@ -32,7 +32,7 @@
  *
  * @brief Defines the functions for obtaining and using a native vsync.
  *
- * @since 8
+ * @since 9
  * @version 1.0
  */
 
@@ -52,7 +52,7 @@ typedef void (*OH_NativeVSync_FrameCallback)(long long timestamp, void *data);
  * @param name Indicates the vsync connection name.
  * @param length Indicates the name's length.
  * @return Returns the pointer to the <b>NativeVsync</b> instance created.
- * @since 8
+ * @since 9
  * @version 1.0
  */
 OH_NativeVSync* OH_NativeVSync_Create(const char* name, unsigned int length);
@@ -63,7 +63,7 @@ OH_NativeVSync* OH_NativeVSync_Create(const char* name, unsigned int length);
  * @syscap SystemCapability.Graphic.Graphic2D.NativeVsync
  * @param window Indicates the pointer to a <b>NativeVsync</b> instance.
  * @return Returns int32_t, return value == 0, success, value < 0, failed.
- * @since 8
+ * @since 9
  * @version 1.0
  */
 void OH_NativeVSync_Destroy(OH_NativeVSync* nativeVsync);
@@ -76,7 +76,7 @@ void OH_NativeVSync_Destroy(OH_NativeVSync* nativeVsync);
  * @param callback Indicates the OH_NativeVSync_FrameCallback which will be called when next vsync coming.
  * @param data Indicates data whick will be used in callback.
  * @return Returns int32_t, return value == 0, success, value < 0, failed.
- * @since 8
+ * @since 9
  * @version 1.0
  */
 int OH_NativeVSync_RequestFrame(OH_NativeVSync* nativeVsync, OH_NativeVSync_FrameCallback callback, void* data);
