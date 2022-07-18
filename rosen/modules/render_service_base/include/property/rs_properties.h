@@ -132,8 +132,6 @@ public:
     float GetBgImageHeight() const;
     float GetBgImagePositionX() const;
     float GetBgImagePositionY() const;
-    void SetSurfaceBgColor(Color color);
-    Color GetSurfaceBgColor() const;
 
     // border properties
     void SetBorderColor(Vector4<Color> color);
@@ -220,8 +218,6 @@ private:
     Gravity frameGravity_ = Gravity::DEFAULT;
 
     float alpha_ = 1.f;
-
-    Color surfaceBgColor_ = RgbPalette::Transparent();
 
     std::unique_ptr<Matrix3f> sublayerTransform_ = nullptr;
     std::unique_ptr<Decoration> decoration_ = nullptr;

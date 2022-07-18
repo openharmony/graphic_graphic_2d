@@ -112,10 +112,14 @@ void RSUIDirector::SetRSSurfaceNode(std::shared_ptr<RSSurfaceNode> surfaceNode)
     AttachSurface();
 }
 
-std::shared_ptr<RSSurfaceNode>& RSUIDirector::GetMutableRSSurfaceNode()
+void RSUIDirector::SetAbilityBGAlpha(uint8_t alpha)
 {
     auto node = surfaceNode_.lock();
-    return node;
+    if (!node) {
+        ROSEN_LOGI("RSUIDirector::SetAbilityBGAlpha, surfaceNode_ is nullptr");
+        return;
+    }
+    node->SetAbilityBGAlpha(alpha);
 }
 
 void RSUIDirector::SetRoot(NodeId root)

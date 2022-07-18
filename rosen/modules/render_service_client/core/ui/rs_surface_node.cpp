@@ -170,6 +170,16 @@ void RSSurfaceNode::SetColorSpace(ColorGamut colorSpace)
     colorSpace_ = colorSpace;
 }
 
+void RSSurfaceNode::SetAbilityBGAlpha(uint8_t alpha)
+{
+    std::unique_ptr<RSCommand> command =
+        std::make_unique<RSSurfaceNodeSetAbilityBGAlpha>(GetId(), alpha);
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        transactionProxy->AddCommand(command, true);
+    }
+}
+
 bool RSSurfaceNode::SetBufferAvailableCallback(BufferAvailableCallback callback)
 {
     {

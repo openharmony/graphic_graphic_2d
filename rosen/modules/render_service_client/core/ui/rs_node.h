@@ -114,7 +114,6 @@ public:
     void SetForegroundColor(uint32_t colorValue);
     void SetBackgroundColor(uint32_t colorValue);
     void SetBackgroundShader(const std::shared_ptr<RSShader>& shader);
-    void SetSurfaceBgColor(uint32_t colorValue);
 
     void SetBgImage(const std::shared_ptr<RSImage>& image);
     void SetBgImageSize(float width, float height);

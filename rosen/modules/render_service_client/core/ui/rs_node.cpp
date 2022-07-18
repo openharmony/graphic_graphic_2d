@@ -572,12 +572,6 @@ void RSNode::SetBackgroundColor(uint32_t colorValue)
     SET_ANIMATABLE_MODIFIER(BackgroundColor, Color, color, BACKGROUND_COLOR, RgbPalette::Transparent());
 }
 
-void RSNode::SetSurfaceBgColor(uint32_t colorValue)
-{
-    auto color = Color::FromArgbInt(colorValue);
-    SET_ANIMATABLE_MODIFIER(SurfaceBgColor, Color, color, SURFACE_BG_COLOR, RgbPalette::Transparent());
-}
-
 void RSNode::SetBackgroundShader(const std::shared_ptr<RSShader>& shader)
 {
     SET_NONANIMATABLE_MODIFIER(BackgroundShader, std::shared_ptr<RSShader>, shader, BACKGROUND_SHADER, nullptr);

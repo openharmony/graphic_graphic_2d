@@ -93,5 +93,11 @@ void SurfaceNodeCommandHelper::SetContextBounds(RSContext& context, NodeId id, V
     }
 }
 
+void SurfaceNodeCommandHelper::SetAbilityBGAlpha(RSContext& context, NodeId id, uint8_t alpha)
+{
+    if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(id)) {
+        node->SetAbilityBGAlpha(alpha);
+    }
+}
 } // namespace Rosen
 } // namespace OHOS

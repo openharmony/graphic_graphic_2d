@@ -56,6 +56,7 @@ public:
     void SetColorSpace(ColorGamut colorSpace);
     void SetSecurityLayer(bool isSecurityLayer);
     bool GetSecurityLayer() const;
+    void SetAbilityBGAlpha(uint8_t alpha);
 
     bool SetBufferAvailableCallback(BufferAvailableCallback callback);
 
