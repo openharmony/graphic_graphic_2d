@@ -334,6 +334,30 @@ void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::ProcessSurfaceRenderNodeWith
     node.ResetSortedChildren();
 
     auto param = RSDividedRenderUtil::CreateBufferDrawParam(node);
+#ifdef RS_ENABLE_EGLIMAGE
+    auto renderEngine = RSMainThread::Instance()->GetRenderEngine();
+    if (renderEngine == nullptr) {
+        RS_LOGE("renderEngineis nullptr");
+        return;
+    }
+    auto renderContext = renderEngine->GetRenderContext();
+    if (renderContext == nullptr) {
+        RS_LOGE("renderContext is nullptr");
+        return;
+    }
+    renderContext->SetUpGrContext();
+    auto eglImageManager =  renderEngine->GetRSEglImageManager();
+    auto consumerSurface = node.GetConsumer();
+    if (consumerSurface != nullptr) {
+        GSError error = consumerSurface->RegisterDeleteBufferListener([eglImageManager] (int32_t bufferId) {
+            eglImageManager->UnMapEglImageFromSurfaceBuffer(bufferId);
+        });
+        if (error != GSERROR_OK) {
+            RS_LOGE("RSUniRenderVisitor::DrawImageOnCanvas: fail to register UnMapEglImage callback.");
+            return;
+        }
+    }
+#endif // RS_ENABLE_EGLIMAGE
     if (!isDisplayNode_) {
         if (param.clipRect.isEmpty()) {
             return;
@@ -356,19 +380,34 @@ void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::ProcessSurfaceRenderNodeWith
                 node.GetRenderProperties().GetBoundsWidth(), node.GetRenderProperties().GetBoundsHeight());
             param.matrix.preTranslate(-param.matrix.getTranslateX() * scaleX_, -param.matrix.getTranslateY() * scaleY_);
             AdjustSurfaceTransform(param, surfaceTransform);
+#ifdef RS_ENABLE_EGLIMAGE
+            RSDividedRenderUtil::DrawImage(eglImageManager, renderContext->GetGrContext(), *canvas_, param,
+                [this](SkCanvas& canvas, BufferDrawParam& params) -> void {
+                    canvas.scale(scaleX_, scaleY_);
+                });
+#else
             RSDividedRenderUtil::DrawBuffer(*canvas_, param,
                 [this](SkCanvas& canvas, BufferDrawParam& params) -> void {
                     canvas.scale(scaleX_, scaleY_);
                 });
+#endif // RS_ENABLE_EGLIMAGE
         } else {
             param.matrix = SkMatrix::I();
             param.clipRect.offsetTo(0, 0);
             param.dstRect = SkRect::MakeXYWH(0, 0, node.GetRenderProperties().GetBoundsWidth(),
                 node.GetRenderProperties().GetBoundsHeight());
             AdjustSurfaceTransform(param, surfaceTransform);
-            RSDividedRenderUtil::DrawBuffer(*canvas_, param, [this](SkCanvas& canvas, BufferDrawParam& params) -> void {
+#ifdef RS_ENABLE_EGLIMAGE
+            RSDividedRenderUtil::DrawImage(eglImageManager, renderContext->GetGrContext(), *canvas_, param,
+                [this](SkCanvas& canvas, BufferDrawParam& params) -> void {
                     canvas.scale(scaleX_, scaleY_);
                 });
+#else
+            RSDividedRenderUtil::DrawBuffer(*canvas_, param,
+                [this](SkCanvas& canvas, BufferDrawParam& params) -> void {
+                    canvas.scale(scaleX_, scaleY_);
+                });
+#endif // RS_ENABLE_EGLIMAGE
         }
     } else {
         param.clipRect = SkRect::MakeXYWH(floor(param.clipRect.left() * scaleX_),
@@ -379,11 +418,21 @@ void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::ProcessSurfaceRenderNodeWith
         if (surfaceTransform == TransformType::ROTATE_90 || surfaceTransform == TransformType::ROTATE_270) {
             param.dstRect.setWH(param.dstRect.height(), param.dstRect.width());
         }
-        RSDividedRenderUtil::DrawBuffer(*canvas_, param, [this](SkCanvas& canvas, BufferDrawParam& params) -> void {
-            canvas.translate(floor(params.dstRect.left() * scaleX_ - params.dstRect.left()),
-                floor(params.dstRect.top() * scaleY_ - params.dstRect.top()));
-            canvas.scale(scaleX_, scaleY_);
-        });
+#ifdef RS_ENABLE_EGLIMAGE
+        RSDividedRenderUtil::DrawImage(eglImageManager, renderContext->GetGrContext(), *canvas_, param,
+            [this](SkCanvas& canvas, BufferDrawParam& params) -> void {
+                canvas.translate(floor(params.dstRect.left() * scaleX_ - params.dstRect.left()),
+                    floor(params.dstRect.top() * scaleY_ - params.dstRect.top()));
+                canvas.scale(scaleX_, scaleY_);
+            });
+#else
+        RSDividedRenderUtil::DrawBuffer(*canvas_, param,
+            [this](SkCanvas& canvas, BufferDrawParam& params) -> void {
+                canvas.translate(floor(params.dstRect.left() * scaleX_ - params.dstRect.left()),
+                    floor(params.dstRect.top() * scaleY_ - params.dstRect.top()));
+                canvas.scale(scaleX_, scaleY_);
+            });
+#endif // RS_ENABLE_EGLIMAGE
     }
 }
 
