@@ -326,14 +326,14 @@ void RSMainThread::PostTask(RSTaskMessage::RSTask task)
     }
 }
 
-void RSMainThread::RegisterApplicationRenderThread(uint32_t pid, sptr<IApplicationRenderThread> app)
+void RSMainThread::RegisterApplicationAgent(uint32_t pid, sptr<IApplicationAgent> app)
 {
-    applicationRenderThreadMap_.emplace(pid, app);
+    applicationAgentMap_.emplace(pid, app);
 }
 
-void RSMainThread::UnregisterApplicationRenderThread(sptr<IApplicationRenderThread> app)
+void RSMainThread::UnRegisterApplicationAgent(sptr<IApplicationAgent> app)
 {
-    std::__libcpp_erase_if_container(applicationRenderThreadMap_, [&app](auto& iter) { return iter.second == app; });
+    std::__libcpp_erase_if_container(applicationAgentMap_, [&app](auto& iter) { return iter.second == app; });
 }
 
 void RSMainThread::SendCommands()
@@ -349,9 +349,11 @@ void RSMainThread::SendCommands()
     PostTask([this, transactionMapPtr]() {
         for (auto& transactionIter : *transactionMapPtr) {
             auto pid = transactionIter.first;
-            auto appIter = applicationRenderThreadMap_.find(pid);
-            if (appIter == applicationRenderThreadMap_.end()) {
-                RS_LOGI("RSMainThread::SendCommand no application found for pid %d", pid);
+            auto appIter = applicationAgentMap_.find(pid);
+            if (appIter == applicationAgentMap_.end()) {
+                RS_LOGW(
+                    "RSMainThread::SendCommand no application agent registered as pid %d, this will cause memory leak!",
+                    pid);
                 continue;
             }
             auto& app = appIter->second;

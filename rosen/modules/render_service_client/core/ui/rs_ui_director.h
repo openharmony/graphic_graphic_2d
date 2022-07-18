@@ -34,7 +34,7 @@ public:
     ~RSUIDirector();
     void GoBackground();
     void GoForeground();
-    void Init();
+    void Init(bool shouldCreateRenderThread = true);
     void Destroy();
     void SetRSSurfaceNode(std::shared_ptr<RSSurfaceNode> surfaceNode);
 
@@ -69,6 +69,7 @@ private:
     int surfaceHeight_ = 0;
 
     friend class RSRenderThread;
+    friend class RSApplicationAgentImpl;
 };
 } // namespace Rosen
 } // namespace OHOS

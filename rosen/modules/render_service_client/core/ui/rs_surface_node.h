@@ -36,7 +36,7 @@ struct RSSurfaceNodeConfig {
     std::string SurfaceNodeName = "SurfaceNode";
 };
 
-class RS_EXPORT RSSurfaceNode : public RSNode, public Parcelable {
+class RS_EXPORT RSSurfaceNode : public RSNode {
 public:
     using WeakPtr = std::weak_ptr<RSSurfaceNode>;
     using SharedPtr = std::shared_ptr<RSSurfaceNode>;
@@ -49,14 +49,19 @@ public:
     // Do not call this API unless you are sure what you do.
     void CreateNodeInRenderThread(bool isProxy = false);
 
+    void AddChild(std::shared_ptr<RSBaseNode> child, int index) override;
+    void RemoveChild(std::shared_ptr<RSBaseNode> child) override;
+    void ClearChildren() override;
+
     void SetColorSpace(ColorGamut colorSpace);
     void SetSecurityLayer(bool isSecurityLayer);
     bool GetSecurityLayer() const;
 
     bool SetBufferAvailableCallback(BufferAvailableCallback callback);
 
-    bool Marshalling(Parcel& parcel) const override;
-    static RSSurfaceNode* Unmarshalling(Parcel& parcel);
+    bool Marshalling(Parcel& parcel) const;
+    static SharedPtr Unmarshalling(Parcel& parcel);
+
     sptr<OHOS::Surface> GetSurface() const;
     RSUINodeType GetType() const override
     {
@@ -96,6 +101,7 @@ private:
     BufferAvailableCallback callback_;
     ColorGamut colorSpace_ = ColorGamut::COLOR_GAMUT_SRGB;
     bool isSecurityLayer_ = false;
+    bool isChildOperationDisallowed_ { false };
 
     friend class RSUIDirector;
     friend class RSAnimation;

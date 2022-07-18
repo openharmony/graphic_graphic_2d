@@ -22,19 +22,12 @@
 
 namespace OHOS {
 namespace Rosen {
-RSDisplayRenderNode::RSDisplayRenderNode(
-    NodeId id,
-    const RSDisplayNodeConfig& config,
-    std::weak_ptr<RSContext> context)
-    : RSBaseRenderNode(id, context),
-      RSSurfaceHandler(id),
-      screenId_(config.screenId),
-      offsetX_(0), offsetY_(0),
+RSDisplayRenderNode::RSDisplayRenderNode(NodeId id, const RSDisplayNodeConfig& config, std::weak_ptr<RSContext> context)
+    : RSRenderNode(id, context), RSSurfaceHandler(id), screenId_(config.screenId), offsetX_(0), offsetY_(0),
       isMirroredDisplay_(config.isMirrored)
-{
-}
+{}
 
-RSDisplayRenderNode::~RSDisplayRenderNode() {}
+RSDisplayRenderNode::~RSDisplayRenderNode() = default;
 
 void RSDisplayRenderNode::Prepare(const std::shared_ptr<RSNodeVisitor>& visitor)
 {
