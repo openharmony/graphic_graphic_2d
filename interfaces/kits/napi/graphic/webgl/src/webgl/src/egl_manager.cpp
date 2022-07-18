@@ -13,9 +13,15 @@
  * limitations under the License.
  */
 
-#include "../include/util/egl_manager.h"
-#include "../../common/napi/n_class.h"
-#include "../include/util/log.h"
+#include "../include/util/egl_manager.h"  // for EglManager
+
+#include <cstddef>                       // for NULL
+
+#include "EGL/egl.h"                      // for eglCreatePbufferSurface
+#include "EGL/eglplatform.h"              // for EGLint, NativeWindow
+#include "__config"                       // for std
+
+#include "../include/util/log.h"          // for LOGE, LOGI
 
 #ifdef __cplusplus
 extern "C" {

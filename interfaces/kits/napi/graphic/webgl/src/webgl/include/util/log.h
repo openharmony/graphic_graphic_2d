@@ -16,6 +16,8 @@
 #ifndef ROSENRENDER_ROSEN_WEBGL_LOG
 #define ROSENRENDER_ROSEN_WEBGL_LOG
 
+#include <string>
+
 #include "hilog/log.h"
 
 template<typename ...Args>

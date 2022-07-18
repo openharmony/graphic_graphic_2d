@@ -13,9 +13,21 @@
  * limitations under the License.
  */
 
-#include "../include/webgl/webgl_shader_precision_format.h"
-#include "../../common/napi/n_class.h"
-#include "../../common/napi/n_func_arg.h"
+#include "../include/webgl/webgl_shader_precision_format.h"  // for WebGLShaderPrecisionFormat
+
+#include "__config"                                          // for std
+#include "iosfwd"                                            // for string
+#include "js_native_api_types.h"                             // for napi_pro...
+#include "memory"                                            // for make_unique
+#include "new"                                               // for operator...
+#include "string"                                            // for basic_st...
+#include "tuple"                                             // for tuple, tie
+#include "type_traits"                                       // for move
+#include "vector"                                            // for vector
+
+#include "../../common/napi/n_class.h"                       // for NClass
+#include "../../common/napi/n_func_arg.h"                    // for NFuncArg
+#include "common/napi/n_val.h"                               // for NVal
 
 namespace OHOS {
 namespace Rosen {
