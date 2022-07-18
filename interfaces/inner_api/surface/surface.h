@@ -95,6 +95,7 @@ public:
     virtual GSError SetMetaData(uint32_t sequence, const std::vector<HDRMetaData> &metaData) = 0;
     virtual GSError SetMetaDataSet(uint32_t sequence, HDRMetadataKey key,
                                    const std::vector<uint8_t> &metaData) = 0;
+    virtual GSError QueryMetaDataType(uint32_t sequence, HDRMetaDataType &type) const = 0;
     virtual GSError GetMetaData(uint32_t sequence, std::vector<HDRMetaData> &metaData) const = 0;
     virtual GSError GetMetaDataSet(uint32_t sequence, HDRMetadataKey &key,
                                    std::vector<uint8_t> &metaData) const = 0;

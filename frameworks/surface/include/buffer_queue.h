@@ -38,7 +38,7 @@ enum BufferState {
     BUFFER_STATE_ATTACHED,
 };
 
-typedef struct {
+using BufferElement = struct BufferElement {
     sptr<SurfaceBuffer> buffer;
     BufferState state;
     bool isDeleting;
@@ -48,10 +48,11 @@ typedef struct {
     int64_t timestamp;
     Rect damage;
     ScalingMode scalingMode;
+    HDRMetaDataType hdrMetaDataType = HDRMetaDataType::HDR_NOT_USED;
     std::vector<HDRMetaData> metaData;
     HDRMetadataKey key;
     std::vector<uint8_t> metaDataSet;
-} BufferElement;
+};
 
 class BufferQueue : public RefBase {
 public:
@@ -115,6 +116,7 @@ public:
     GSError SetMetaData(uint32_t sequence, const std::vector<HDRMetaData> &metaData);
     GSError SetMetaDataSet(uint32_t sequence, HDRMetadataKey key,
                            const std::vector<uint8_t> &metaData);
+    GSError QueryMetaDataType(uint32_t sequence, HDRMetaDataType &type);
     GSError GetMetaData(uint32_t sequence, std::vector<HDRMetaData> &metaData);
     GSError GetMetaDataSet(uint32_t sequence, HDRMetadataKey &key,
                            std::vector<uint8_t> &metaData);

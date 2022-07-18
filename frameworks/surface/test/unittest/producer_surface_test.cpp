@@ -679,6 +679,21 @@ HWTEST_F(ProducerSurfaceTest, metaDataSet003, Function | MediumTest | Level1)
 }
 
 /*
+* Function: QueryMetaDataType
+* Type: Function
+* Rank: Important(1)
+* EnvConditions: N/A
+* CaseDescription: 1. call QueryMetaDataType and check ret
+ */
+HWTEST_F(ProducerSurfaceTest, QueryMetaDataType001, Function | MediumTest | Level1)
+{
+    uint32_t sequence = 0;
+    HDRMetaDataType type = HDRMetaDataType::HDR_NOT_USED;
+    GSError ret = pSurface->QueryMetaDataType(sequence, type);
+    ASSERT_EQ(ret, OHOS::GSERROR_NOT_SUPPORT);
+}
+
+/*
 * Function: SetTunnelHandle and GetTunnelHandle
 * Type: Function
 * Rank: Important(2)
