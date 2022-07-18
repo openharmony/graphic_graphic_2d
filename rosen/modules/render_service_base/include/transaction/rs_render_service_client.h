@@ -114,6 +114,8 @@ public:
 
     int32_t GetScreenSupportedColorGamuts(ScreenId id, std::vector<ScreenColorGamut>& mode);
 
+    int32_t GetScreenSupportedMetaDataKeys(ScreenId id, std::vector<ScreenHDRMetadataKey>& keys);
+
     int32_t GetScreenColorGamut(ScreenId id, ScreenColorGamut& mode);
 
     int32_t SetScreenColorGamut(ScreenId id, int32_t modeIdx);

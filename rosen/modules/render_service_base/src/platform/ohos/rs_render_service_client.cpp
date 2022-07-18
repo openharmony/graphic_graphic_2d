@@ -427,6 +427,16 @@ int32_t RSRenderServiceClient::GetScreenSupportedColorGamuts(ScreenId id, std::v
     return renderService->GetScreenSupportedColorGamuts(id, mode);
 }
 
+int32_t RSRenderServiceClient::GetScreenSupportedMetaDataKeys(ScreenId id, std::vector<ScreenHDRMetadataKey>& keys)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        ROSEN_LOGE("RSRenderServiceClient::RequestRotation renderService == nullptr!");
+        return RENDER_SERVICE_NULL;
+    }
+    return renderService->GetScreenSupportedMetaDataKeys(id, keys);
+}
+
 int32_t RSRenderServiceClient::GetScreenColorGamut(ScreenId id, ScreenColorGamut& mode)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();

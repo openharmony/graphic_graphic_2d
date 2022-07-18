@@ -139,6 +139,11 @@ int32_t RSInterfaces::GetScreenSupportedColorGamuts(ScreenId id, std::vector<Scr
     return renderServiceClient_->GetScreenSupportedColorGamuts(id, mode);
 }
 
+int32_t RSInterfaces::GetScreenSupportedMetaDataKeys(ScreenId id, std::vector<ScreenHDRMetadataKey>& keys)
+{
+    return renderServiceClient_->GetScreenSupportedMetaDataKeys(id, keys);
+}
+
 int32_t RSInterfaces::GetScreenColorGamut(ScreenId id, ScreenColorGamut& mode)
 {
     return renderServiceClient_->GetScreenColorGamut(id, mode);

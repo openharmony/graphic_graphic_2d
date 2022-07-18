@@ -523,6 +523,25 @@ int32_t RSScreen::GetScreenSupportedColorGamuts(std::vector<ScreenColorGamut> &m
     return StatusCode::HDI_ERROR;
 }
 
+int32_t RSScreen::GetScreenSupportedMetaDataKeys(std::vector<ScreenHDRMetadataKey> &keys) const
+{
+    if (IsVirtual()) {
+        RS_LOGW("RSScreen %s: virtual screen not support GetScreenSupportedMetaDataKeys.", __func__);
+        return INVALID_BACKLIGHT_VALUE;
+    }
+    std::vector<HDRMetadataKey> hdrKeys;
+    int32_t result = hdiScreen_->GetSupportedMetaDataKey(hdrKeys);
+    if (result == DispErrCode::DISPLAY_SUCCESS) {
+        keys.clear();
+        for (auto m : hdrKeys) {
+            keys.push_back(static_cast<ScreenHDRMetadataKey>(m));
+        }
+        return StatusCode::SUCCESS;
+    }
+    RS_LOGW("GetScreenSupportedMetaDataKeys Failed!");
+    return StatusCode::HDI_ERROR;
+}
+
 int32_t RSScreen::GetScreenColorGamut(ScreenColorGamut &mode) const
 {
     if (IsVirtual()) {

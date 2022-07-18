@@ -745,6 +745,16 @@ int32_t RSScreenManager::GetScreenSupportedColorGamutsLocked(ScreenId id, std::v
     return screens_.at(id)->GetScreenSupportedColorGamuts(mode);
 }
 
+int32_t RSScreenManager::GetScreenSupportedMetaDataKeysLocked(
+    ScreenId id, std::vector<ScreenHDRMetadataKey>& keys) const
+{
+    if (screens_.count(id) == 0) {
+        RS_LOGW("RSScreenManager %s: There is no screen for id %llu.", __func__, id);
+        return StatusCode::SCREEN_NOT_FOUND;
+    }
+    return screens_.at(id)->GetScreenSupportedMetaDataKeys(keys);
+}
+
 int32_t RSScreenManager::GetScreenColorGamutLocked(ScreenId id, ScreenColorGamut& mode) const
 {
     if (screens_.count(id) == 0) {
@@ -861,6 +871,12 @@ int32_t RSScreenManager::GetScreenSupportedColorGamuts(ScreenId id, std::vector<
 {
     std::lock_guard<std::mutex> lock(mutex_);
     return GetScreenSupportedColorGamutsLocked(id, mode);
+}
+
+int32_t RSScreenManager::GetScreenSupportedMetaDataKeys(ScreenId id, std::vector<ScreenHDRMetadataKey>& keys) const
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    return GetScreenSupportedMetaDataKeysLocked(id, keys);
 }
 
 int32_t RSScreenManager::GetScreenColorGamut(ScreenId id, ScreenColorGamut &mode) const
