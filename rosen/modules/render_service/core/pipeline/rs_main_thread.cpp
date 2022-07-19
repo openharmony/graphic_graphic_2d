@@ -238,10 +238,19 @@ void RSMainThread::CalcOcclusion()
         return;
     }
     const std::shared_ptr<RSBaseRenderNode> node = context_.GetGlobalRootRenderNode();
-    if (node == nullptr) {
-        RS_LOGE("RSMainThread::CalcOcclusion GetGlobalRootRenderNode fail");
-        return;
-    }
+    // if (node == nullptr) {
+    //     RS_LOGE("RSMainThread::CalcOcclusion GetGlobalRootRenderNode fail");
+    //     return;
+    // }
+    // auto& connsumer = node.GetConsumer();
+    // if (connsumer == nullptr) {
+    //     RS_LOGE("RSMainThread::CalcOcclusion GetGlobalRootRenderNode fail");
+    //     return;
+    // }
+    // if (connsumer.GetTunnelHandle() == nullptr) {
+    //     RS_LOGE("RSMainThread::CalcOcclusion GetGlobalRootRenderNode fail");
+    //     return;
+    // }
     RSInnovation::UpdateOcclusionCullingSoEnabled();
     std::vector<RSBaseRenderNode::SharedPtr> curAllSurfaces;
     node->CollectSurface(node, curAllSurfaces);

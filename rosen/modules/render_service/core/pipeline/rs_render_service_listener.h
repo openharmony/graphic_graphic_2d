@@ -28,6 +28,7 @@ public:
     RSRenderServiceListener(std::weak_ptr<RSSurfaceRenderNode> surfaceRenderNode);
     ~RSRenderServiceListener() override;
     void OnBufferAvailable() override;
+    void OnTunnelHandleChange() override;
 private :
     std::weak_ptr<RSSurfaceRenderNode> surfaceRenderNode_;
 };

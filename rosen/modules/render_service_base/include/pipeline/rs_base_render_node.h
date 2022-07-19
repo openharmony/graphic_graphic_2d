@@ -80,6 +80,16 @@ public:
         return children_.size();
     }
 
+    void SetTunnelHandleChange(bool change)
+    {
+        isTunnelHandleChange_ = change;
+    }
+
+    bool GetTunnelHandleChange() const
+    {
+      return isTunnelHandleChange_;
+    }
+
     void DumpTree(int32_t depth, std::string& ou) const;
 
     virtual bool HasDisappearingTransition(bool recursive = true) const
@@ -143,6 +153,7 @@ private:
 
     const std::weak_ptr<RSContext> context_;
     NodeDirty dirtyStatus_ = NodeDirty::DIRTY;
+    std::atomic<bool> isTunnelHandleChange_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS

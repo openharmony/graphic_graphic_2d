@@ -45,5 +45,21 @@ void RSRenderServiceListener::OnBufferAvailable()
     }
     RSMainThread::Instance()->RequestNextVSync();
 }
+
+void RSRenderServiceListener::OnTunnelHandleChange()
+{
+    auto node = surfaceRenderNode_.lock();
+    if (node == nullptr) {
+        RS_LOGE("RSRenderServiceListener::OnTunnelHandleChange node is nullptr");
+        return;
+    }
+    node->SetTunnelHandleChange(true);
+    if (!node->IsNotifyUIBufferAvailable()) {
+        // Only ipc for one time.
+        RS_LOGD("RsDebug RSRenderServiceListener::OnTunnelHandleChange id = %llu "\
+                "Notify UI buffer available", node->GetId());
+        node->NotifyUIBufferAvailable();
+    }
+}
 } // namespace Rosen
 } // namespace OHOS

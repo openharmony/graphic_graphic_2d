@@ -138,7 +138,8 @@ void RSRenderEngine::DrawLayers(
         auto saveCount = canvas.getSaveCount();
         if (nodePtr->IsInstanceOf<RSSurfaceRenderNode>()) {
             RSSurfaceRenderNode& node = *(static_cast<RSSurfaceRenderNode*>(nodePtr));
-            if (layer->GetCompositionType() == CompositionType::COMPOSITION_CLIENT_CLEAR) {
+            if (layer->GetCompositionType() == CompositionType::COMPOSITION_CLIENT_CLEAR ||
+            layer->GetCompositionType() == CompositionType::COMPOSITION_TUNNEL) {
                 ClipHoleForLayer(canvas, node, screenInfo, clipRect, forceCPU);
                 canvas.restoreToCount(saveCount);
                 continue;
