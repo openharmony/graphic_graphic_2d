@@ -25,13 +25,12 @@ namespace Rosen {
 class RSWindowAnimationFinishedCallback : public RSWindowAnimationFinishedCallbackStub {
 public:
     explicit RSWindowAnimationFinishedCallback(const std::function<void(void)>& callback);
-    virtual ~RSWindowAnimationFinishedCallback();
+    virtual ~RSWindowAnimationFinishedCallback() = default;
 
     void OnAnimationFinished() override;
 
 private:
     std::function<void(void)> callback_;
-    bool isFinishedCalled_ { false };
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -116,6 +116,11 @@ void RSWindowAnimationController::OnMinimizeAllWindow(
     const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback)
 {
     WALOGD("Window animation controller on minimize all windows.");
+    if (minimizingWindowsTarget.empty()) {
+        finishedCallback->OnAnimationFinished();
+        WALOGE("The minimizing Windows vector is empty!");
+        return;
+    }
     for (auto target : minimizingWindowsTarget) {
         sptr<RSIWindowAnimationFinishedCallback> animationCallback =
             new(std::nothrow) RSWindowAnimationCallback(finishedCallback);
