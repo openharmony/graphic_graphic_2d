@@ -113,7 +113,7 @@ void RSComposerAdapter::CommitLayers(const std::vector<LayerInfoPtr>& layers)
 }
 
 // private func
-bool RSComposerAdapter::IsOutOfScreenRegion(RSSurfaceRenderNode& node) const
+bool RSComposerAdapter::IsOutOfScreenRegion(const ComposeInfo& info) const
 {
     uint32_t boundWidth = screenInfo_.width;
     uint32_t boundHeight = screenInfo_.height;
@@ -122,10 +122,8 @@ bool RSComposerAdapter::IsOutOfScreenRegion(RSSurfaceRenderNode& node) const
         std::swap(boundWidth, boundHeight);
     }
 
-    const auto& property = node.GetRenderProperties();
-    const float nodeBoundX = property.GetBoundsPositionX();
-    const float nodeBoundY = property.GetBoundsPositionY();
-    if (nodeBoundX >= static_cast<float>(boundWidth) || nodeBoundY >= static_cast<float>(boundHeight)) {
+    const auto& dstRect = info.dstRect;
+    if (dstRect.x >= boundWidth || dstRect.y >= boundHeight) {
         return true;
     }
 
@@ -311,12 +309,6 @@ LayerInfoPtr RSComposerAdapter::CreateLayer(RSSurfaceRenderNode& node)
     RS_LOGD("RsDebug RSComposerAdapter::CreateLayer start(node(%llu) name:[%s] dst:[%d %d %d %d]).",
         node.GetId(), node.GetName().c_str(), dstRect.left_, dstRect.top_, dstRect.width_, dstRect.height_);
 
-    if (IsOutOfScreenRegion(node)) {
-        RS_LOGE("RsDebug RSComposerAdapter::CreateLayer: node(%llu) out of screen region, no need to composite.",
-            node.GetId());
-        return nullptr;
-    }
-
     auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(node.GetRenderProperties().GetBoundsGeometry());
     if (geoPtr == nullptr) {
         RS_LOGE("RsDebug RSComposerAdapter::CreateLayer: node(%llu)'s geoPtr is nullptr!", node.GetId());
@@ -331,6 +323,11 @@ LayerInfoPtr RSComposerAdapter::CreateLayer(RSSurfaceRenderNode& node)
     }
 
     ComposeInfo info = BuildComposeInfo(node);
+    if (IsOutOfScreenRegion(info)) {
+        RS_LOGD("RsDebug RSComposerAdapter::CreateLayer: node(%llu) out of screen region, no need to composite.",
+            node.GetId());
+        return nullptr;
+    }
     std::string traceInfo;
     AppendFormat(traceInfo, "ProcessSurfaceNode:%s XYWH[%d %d %d %d]", node.GetName().c_str(),
         info.dstRect.x, info.dstRect.y, info.dstRect.w, info.dstRect.h);
