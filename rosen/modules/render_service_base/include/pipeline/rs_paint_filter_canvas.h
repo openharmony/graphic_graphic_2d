@@ -34,9 +34,15 @@ public:
     ~RSPaintFilterCanvas() override {};
 
     void MultiplyAlpha(float alpha);
-    void SaveAlpha();
-    void RestoreAlpha();
     float GetAlpha() { return alpha_; }
+
+    int SaveAlpha();
+    void RestoreAlpha();
+    void RestoreAlphaToCount(int count);
+
+    std::pair<int, int> SaveCanvasAndAlpha();
+    void RestoreCanvasAndAlpha(std::pair<int, int>& count);
+
     SkSurface* GetSurface() const;
 
 protected:

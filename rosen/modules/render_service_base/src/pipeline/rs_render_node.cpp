@@ -122,9 +122,7 @@ bool RSRenderNode::IsDirty() const
 void RSRenderNode::ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas)
 {
 #ifdef ROSEN_OHOS
-    saveCount_ = canvas.getSaveCount();
-    canvas.save();
-    canvas.SaveAlpha();
+    renderNodeSaveCount_ = canvas.SaveCanvasAndAlpha();
     canvas.MultiplyAlpha(GetRenderProperties().GetAlpha());
     auto boundsGeo = std::static_pointer_cast<RSObjAbsGeometry>(GetRenderProperties().GetBoundsGeometry());
     if (boundsGeo && !boundsGeo->IsEmpty()) {
@@ -140,8 +138,7 @@ void RSRenderNode::ProcessRenderAfterChildren(RSPaintFilterCanvas& canvas)
 {
 #ifdef ROSEN_OHOS
     GetMutableRenderProperties().ResetBounds();
-    canvas.RestoreAlpha();
-    canvas.restoreToCount(saveCount_);
+    canvas.RestoreCanvasAndAlpha(renderNodeSaveCount_);
 #endif
 }
 

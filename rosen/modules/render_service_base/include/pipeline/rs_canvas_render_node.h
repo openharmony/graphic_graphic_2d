@@ -56,6 +56,7 @@ private:
     std::shared_ptr<DrawCmdList> drawCmdList_ { nullptr };
     std::unordered_set<PropertyId> drawCmdModifiers_;
     bool drawContentLast_ = false;
+    std::pair<int, int> canvasNodeSaveCount_ = { 0, 0 };
 
     friend class RSRenderTransition;
 };

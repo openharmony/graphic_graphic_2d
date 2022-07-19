@@ -58,9 +58,10 @@ void RSPaintFilterCanvas::MultiplyAlpha(float alpha)
     alpha_ = alpha_ * std::clamp(alpha, 0.f, 1.f);
 }
 
-void RSPaintFilterCanvas::SaveAlpha()
+int RSPaintFilterCanvas::SaveAlpha()
 {
     alphaStack_.push(alpha_);
+    return alphaStack_.size() - 1;
 }
 
 void RSPaintFilterCanvas::RestoreAlpha()
@@ -72,5 +73,23 @@ void RSPaintFilterCanvas::RestoreAlpha()
     alphaStack_.pop();
 }
 
+void RSPaintFilterCanvas::RestoreAlphaToCount(int count)
+{
+    while (alphaStack_.size() > count) {
+        alpha_ = alphaStack_.top();
+        alphaStack_.pop();
+    }
+}
+
+std::pair<int, int> RSPaintFilterCanvas::SaveCanvasAndAlpha()
+{
+    return { save(), SaveAlpha() };
+}
+
+void RSPaintFilterCanvas::RestoreCanvasAndAlpha(std::pair<int, int>& count)
+{
+    restoreToCount(count.first);
+    RestoreAlphaToCount(count.second);
+}
 } // namespace Rosen
 } // namespace OHOS

@@ -82,10 +82,10 @@ protected:
     explicit RSRenderNode(NodeId id, std::weak_ptr<RSContext> context = {});
     void UpdateDirtyRegion(RSDirtyRegionManager& dirtyManager, bool parentDirty);
     bool IsDirty() const override;
+    std::pair<int, int> renderNodeSaveCount_ = { 0, 0 };
 
 private:
     void FallbackAnimationsToRoot();
-    int32_t saveCount_ = 0;
     bool isDirtyRegionUpdated_ = false;
     RectI oldDirty_;
     RSProperties renderProperties_;
