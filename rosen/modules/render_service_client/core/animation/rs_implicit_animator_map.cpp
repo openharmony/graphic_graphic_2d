@@ -28,12 +28,10 @@ RSImplicitAnimatorMap& RSImplicitAnimatorMap::Instance()
 const std::shared_ptr<RSImplicitAnimator>& RSImplicitAnimatorMap::GetAnimator(const int32_t id)
 {
     std::unique_lock<std::mutex> lock(mutex_);
-    auto iter = animatorMap_.find(id);
-    if (iter != animatorMap_.end()) {
-        return iter->second;
+    auto& animator = animatorMap_[id];
+    if (animator == nullptr) {
+        animator = std::make_shared<RSImplicitAnimator>();
     }
-    auto animator = std::make_shared<RSImplicitAnimator>();
-    animatorMap_.emplace(id, animator);
     return animator;
 }
 } // namespace Rosen
