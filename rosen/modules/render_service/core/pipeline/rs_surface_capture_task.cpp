@@ -223,7 +223,7 @@ void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::ProcessSurfaceRenderNodeWith
     }
     RS_TRACE_BEGIN("RSSurfaceCaptureVisitor::Process:" + node.GetName());
     canvas_->save();
-    if (node.GetBuffer()) {
+    if (!node.GetConsumer()) {
         canvas_->scale(scaleX_, scaleY_);
     }
     canvas_->SaveAlpha();
