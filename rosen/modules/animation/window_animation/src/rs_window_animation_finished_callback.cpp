@@ -24,11 +24,6 @@ RSWindowAnimationFinishedCallback::RSWindowAnimationFinishedCallback(const std::
 {
 }
 
-RSWindowAnimationFinishedCallback::~RSWindowAnimationFinishedCallback()
-{
-    OnAnimationFinished();
-}
-
 void RSWindowAnimationFinishedCallback::OnAnimationFinished()
 {
     WALOGD("On animation finished!");
@@ -36,10 +31,6 @@ void RSWindowAnimationFinishedCallback::OnAnimationFinished()
         WALOGE("Callback is null!");
         return;
     }
-    if (isFinishedCalled_) {
-        return;
-    }
-    isFinishedCalled_ = true;
     callback_();
 }
 } // namespace Rosen

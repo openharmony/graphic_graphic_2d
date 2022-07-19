@@ -27,7 +27,13 @@ RSWindowAnimationCallback::RSWindowAnimationCallback(
 
 void RSWindowAnimationCallback::OnAnimationFinished()
 {
-    if (finishedCallback_ != nullptr) {
+    if (finishedCallback_ == nullptr) {
+        return;
+    }
+
+    if (finishedCallback_.GetRefPtr()->GetSptrRefCount() == 1) {
+        finishedCallback_->OnAnimationFinished();
+    } else {
         finishedCallback_ = nullptr;
     }
 }
