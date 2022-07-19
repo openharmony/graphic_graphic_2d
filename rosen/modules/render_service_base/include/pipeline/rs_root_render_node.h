@@ -42,11 +42,16 @@ public:
     NodeId GetRSSurfaceNodeId();
     int32_t GetSurfaceWidth() const;
     int32_t GetSurfaceHeight() const;
+    void SetEnableRender(bool enableRender)
+    {
+        enableRender_ = enableRender;
+    }
 
 private:
     std::shared_ptr<RSDirtyRegionManager> dirtyManager_ = nullptr;
     std::shared_ptr<RSSurface> rsSurface_ = nullptr;
     NodeId surfaceNodeId_ = 0;
+    bool enableRender_ = true;
 
     std::vector<NodeId> childSurfaceNodeIds_;
     friend class RSRenderThreadVisitor;

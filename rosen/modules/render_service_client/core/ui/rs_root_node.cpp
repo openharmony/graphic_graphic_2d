@@ -59,5 +59,16 @@ void RSRootNode::AttachRSSurfaceNode(std::shared_ptr<RSSurfaceNode> surfaceNode)
     }
 }
 
+void RSRootNode::SetEnableRender(bool flag) const
+{
+    if (!isUniRenderEnabled_) {
+        std::unique_ptr<RSCommand> command = std::make_unique<RSRootNodeSetEnableRender>(GetId(), flag);
+        auto transactionProxy = RSTransactionProxy::GetInstance();
+        if (transactionProxy != nullptr) {
+            transactionProxy->AddCommand(command, IsRenderServiceNode());
+        }
+    }
+}
+
 } // namespace Rosen
 } // namespace OHOS

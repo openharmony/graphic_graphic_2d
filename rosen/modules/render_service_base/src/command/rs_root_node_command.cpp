@@ -36,6 +36,13 @@ void RootNodeCommandHelper::AttachRSSurfaceNode(RSContext& context, NodeId id, N
     }
 }
 
+void RootNodeCommandHelper::SetEnableRender(RSContext& context, NodeId id, bool flag)
+{
+    if (auto node = context.GetNodeMap().GetRenderNode<RSRootRenderNode>(id)) {
+        node->SetEnableRender(flag);
+    }
+}
+
 void RootNodeCommandHelper::AttachToUniSurfaceNode(RSContext& context, NodeId id, NodeId surfaceNodeId)
 {
     auto& nodeMap = context.GetNodeMap();

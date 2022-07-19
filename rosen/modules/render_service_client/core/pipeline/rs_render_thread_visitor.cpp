@@ -204,7 +204,7 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
         ROSEN_LOGE("ProcessRoot: No valid RSSurfaceNode id");
         return;
     }
-    if (!node.GetRenderProperties().GetVisible()) {
+    if (!node.enableRender_) {
         ROSEN_LOGI("ProcessRoot %s: Invisible", ptr->GetName().c_str());
         return;
     }
