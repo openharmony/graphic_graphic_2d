@@ -111,7 +111,8 @@ void RSUIDirector::SetRSSurfaceNode(std::shared_ptr<RSSurfaceNode> surfaceNode)
 
 std::shared_ptr<RSSurfaceNode>& RSUIDirector::GetMutableRSSurfaceNode()
 {
-    return surfaceNode_;
+    auto node = surfaceNode_.lock();
+    return node;
 }
 
 void RSUIDirector::SetRoot(NodeId root)
@@ -127,9 +128,10 @@ void RSUIDirector::SetRoot(NodeId root)
 void RSUIDirector::AttachSurface()
 {
     auto node = RSNodeMap::Instance().GetNode<RSRootNode>(root_);
-    if (node != nullptr && surfaceNode_ != nullptr) {
-        node->AttachRSSurfaceNode(surfaceNode_);
-        ROSEN_LOGD("RSUIDirector::AttachSurface [%llu]", surfaceNode_->GetId());
+    auto surfaceNode = surfaceNode_.lock();
+    if (node != nullptr && surfaceNode != nullptr) {
+        node->AttachRSSurfaceNode(surfaceNode);
+        ROSEN_LOGD("RSUIDirector::AttachSurface [%llu]", surfaceNode->GetId());
     } else {
         ROSEN_LOGD("RSUIDirector::AttachSurface not ready");
     }

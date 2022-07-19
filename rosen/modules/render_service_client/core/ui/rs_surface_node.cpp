@@ -264,7 +264,8 @@ RSSurfaceNode::RSSurfaceNode(const RSSurfaceNodeConfig& config, bool isRenderSer
     : RSNode(isRenderServiceNode), name_(config.SurfaceNodeName)
 {}
 
-RSSurfaceNode::~RSSurfaceNode() {
+RSSurfaceNode::~RSSurfaceNode()
+{
     if (!IsRenderServiceNode()) {
         auto transactionProxy = RSTransactionProxy::GetInstance();
         if (transactionProxy != nullptr) {
