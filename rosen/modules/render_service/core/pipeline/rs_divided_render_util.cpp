@@ -193,7 +193,7 @@ SkMatrix RSDividedRenderUtil::GetCanvasTransform(const RSSurfaceRenderNode& node
 }
 
 BufferDrawParam RSDividedRenderUtil::CreateBufferDrawParam(RSSurfaceRenderNode& node, SkMatrix canvasMatrix,
-    ScreenRotation rotation)
+    ScreenRotation rotation, bool isClipHole)
 {
     SkPaint paint;
     paint.setAlphaf(node.GetGlobalAlpha());
@@ -203,13 +203,14 @@ BufferDrawParam RSDividedRenderUtil::CreateBufferDrawParam(RSSurfaceRenderNode& 
     BufferDrawParam params;
     auto buffer = node.GetBuffer();
     sptr<Surface> surface = node.GetConsumer();
-    if (!buffer || !surface) {
+    if (!surface) {
         return params;
     }
-    params.buffer = buffer;
+    if (!isClipHole && !buffer) {
+        return params;
+    }
     params.matrix = GetCanvasTransform(node, canvasMatrix, rotation, dstRect);
     params.acquireFence = node.GetAcquireFence();
-    params.srcRect = SkRect::MakeXYWH(0, 0, buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight());
     const auto surfaceTransform = surface->GetTransform();
     if (surfaceTransform == TransformType::ROTATE_90 || surfaceTransform == TransformType::ROTATE_270) {
         params.dstRect = SkRect::MakeXYWH(0, 0, property.GetBoundsHeight(), property.GetBoundsWidth());
@@ -221,6 +222,10 @@ BufferDrawParam RSDividedRenderUtil::CreateBufferDrawParam(RSSurfaceRenderNode& 
     params.cornerRadius = property.GetCornerRadius();
     params.isNeedClip = property.GetClipToFrame();
     params.backgroundColor = static_cast<SkColor>(property.GetBackgroundColor().AsArgbInt());
+    if (!isClipHole) {
+        params.buffer = buffer;
+        params.srcRect = SkRect::MakeXYWH(0, 0, buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight());
+    }
     return params;
 }
 
