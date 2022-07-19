@@ -292,7 +292,7 @@ void RSComposerAdapter::SetComposeInfoToLayer(
     layer->SetDirtyRegion(info.srcRect);
     layer->SetBlendType(info.blendType);
     layer->SetCropRect(info.srcRect);
-    if(node -> GetTunnelHandleChange()) {
+    if (node -> GetTunnelHandleChange()) {
         layer->SetTunnelHandleChange(true);
         node ->SetTunnelHandleChange(false);
     }
@@ -307,7 +307,8 @@ bool RSComposerAdapter::CheckNodeBeforeCreateLayer(RSSurfaceRenderNode& node, bo
 
     auto& buffer = node.GetBuffer();
     if (isTunnelCheck == false && buffer == nullptr) {
-        RS_LOGE("RsDebug RSComposerAdapter::CheckNodeBeforeCreateLayer: node(%llu) has no available buffer.", node.GetId());
+        RS_LOGE("RsDebug RSComposerAdapter::CheckNodeBeforeCreateLayer:node(%llu) has no available buffer.",
+            node.GetId());
         return false;
     }
 
@@ -356,7 +357,7 @@ LayerInfoPtr RSComposerAdapter::CreateBufferLayer(RSSurfaceRenderNode& node)
         info.dstRect.x, info.dstRect.y, info.dstRect.w, info.dstRect.h, info.srcRect.w, info.srcRect.h,
         info.buffer->GetWidth(), info.buffer->GetHeight(),
         info.buffer->GetSurfaceBufferWidth(), info.buffer->GetSurfaceBufferHeight(),
-        info.buffer.GetRefPtr(), node.GetGlobalZOrder(), info.zOrder, info.blendType);  
+        info.buffer.GetRefPtr(), node.GetGlobalZOrder(), info.zOrder, info.blendType);
     LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
     SetComposeInfoToLayer(layer, info, node.GetConsumer(), &node);
     LayerRotate(layer);
@@ -379,7 +380,7 @@ LayerInfoPtr RSComposerAdapter::CreateTunnelLayer(RSSurfaceRenderNode& node)
     std::string traceInfo;
     AppendFormat(traceInfo, "ProcessSurfaceNode:%s XYWH[%d %d %d %d]", node.GetName().c_str(),
         info.dstRect.x, info.dstRect.y, info.dstRect.w, info.dstRect.h);
-    RS_TRACE_NAME(traceInfo.c_str());    
+    RS_TRACE_NAME(traceInfo.c_str());
     LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
     SetComposeInfoToLayer(layer, info, node.GetConsumer(), &node);
     LayerRotate(layer);
@@ -390,8 +391,6 @@ LayerInfoPtr RSComposerAdapter::CreateTunnelLayer(RSSurfaceRenderNode& node)
         node.GetGlobalZOrder(), info.zOrder, info.blendType);
     return layer;
 }
-
-
 
 LayerInfoPtr RSComposerAdapter::CreateLayer(RSSurfaceRenderNode& node)
 {
