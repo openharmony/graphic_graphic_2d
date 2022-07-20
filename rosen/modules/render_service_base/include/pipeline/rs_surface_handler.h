@@ -114,6 +114,13 @@ public:
         return buffer_.timestamp;
     }
 
+    void CleanCache()
+    {
+        buffer_.Reset();
+        preBuffer_.Reset();
+        bufferAvailableCount_ = 0;
+    }
+
     void SetGlobalZOrder(float globalZOrder);
     float GetGlobalZOrder() const;
 

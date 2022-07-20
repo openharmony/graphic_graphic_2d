@@ -92,6 +92,15 @@ void RSUIDirector::GoBackground()
         if (auto node = RSNodeMap::Instance().GetNode<RSRootNode>(root_)) {
             node->SetEnableRender(false);
         }
+
+        // clean bufferQueue cache
+        auto surfaceNode = surfaceNode_.lock();
+        if (surfaceNode != nullptr) {
+            sptr<OHOS::Surface> pSurface = surfaceNode->GetSurface();
+            if (pSurface != nullptr) {
+                pSurface->CleanCache();
+            }
+        }
     }
 }
 

@@ -45,5 +45,19 @@ void RSRenderServiceListener::OnBufferAvailable()
     }
     RSMainThread::Instance()->RequestNextVSync();
 }
+
+void RSRenderServiceListener::OnCleanCache()
+{
+    std::weak_ptr<RSSurfaceRenderNode> surfaceNode = surfaceRenderNode_;
+    RSMainThread::Instance()->PostTask([surfaceNode]() {
+        auto node = surfaceNode.lock();
+        if (node == nullptr) {
+            RS_LOGE("RSRenderServiceListener::OnBufferAvailable node is nullptr");
+            return;
+        }
+        RS_LOGI("RsDebug RSRenderServiceListener::OnCleanCache node id:%llu", node->GetId());
+        node->CleanCache();
+    });
+}
 } // namespace Rosen
 } // namespace OHOS
