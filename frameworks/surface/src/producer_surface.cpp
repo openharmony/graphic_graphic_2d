@@ -140,7 +140,7 @@ GSError ProducerSurface::FlushBuffer(sptr<SurfaceBuffer>& buffer,
     BufferExtraDataImpl bedataimpl;
     bufferImpl->GetExtraData(bedataimpl);
     auto rst = GetProducer()->FlushBuffer(bufferImpl->GetSeqNum(), bedataimpl, fence, config);
-    ::close(rst);
+    ::close(fence);
     return rst;
 }
 
