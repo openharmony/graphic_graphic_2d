@@ -203,14 +203,14 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
     frameGravity_ = property.GetFrameGravity();
     canvas_->clipRect(clipRect_);
 
-    auto backgroundColor = static_cast<SkColor>(property.GetBackgroundColor().AsArgbInt());
-    if (SkColorGetA(backgroundColor) != SK_AlphaTRANSPARENT) {
-        canvas_->clear(backgroundColor);
-    }
-
     auto transitionProperties = node.GetAnimationManager().GetTransitionProperties();
     RSPropertiesPainter::DrawTransitionProperties(transitionProperties, property, *canvas_);
     ProcessBaseRenderNode(node);
+
+    auto backgroundColor = static_cast<SkColor>(property.GetBackgroundColor().AsArgbInt());
+    if (SkColorGetA(backgroundColor) != SK_AlphaTRANSPARENT) {
+        canvas_->drawColor(backgroundColor);
+    }
 
     if (node.GetConsumer() != nullptr) {
         RS_TRACE_BEGIN("UniRender::Process:" + node.GetName());
