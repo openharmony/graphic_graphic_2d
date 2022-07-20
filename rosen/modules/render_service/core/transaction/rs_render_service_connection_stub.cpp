@@ -18,6 +18,7 @@
 
 #include "command/rs_command_factory.h"
 #include "platform/common/rs_log.h"
+#include "transaction/rs_ashmem_helper.h"
 #include "rs_trace.h"
 
 namespace OHOS {
@@ -29,10 +30,22 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
     switch (code) {
         case COMMIT_TRANSACTION: {
             RS_ASYNC_TRACE_END("RSProxySendRequest", data.GetDataSize());
-            auto token = data.ReadInterfaceToken();
 
-            RS_TRACE_BEGIN("UnMarsh RSTransactionData: data size:" + std::to_string(data.GetDataSize()));
-            auto transactionData = data.ReadParcelable<RSTransactionData>();
+            std::shared_ptr<MessageParcel> holder;
+            MessageParcel* parsed = nullptr;
+            if (data.ReadInt32() == 1) {
+                holder = RSAshmemHelper::ParseFromAshmemParcel(&data);
+                parsed = holder.get();
+            } else { // use origin parcel
+                parsed = &data;
+            }
+            if (parsed == nullptr) {
+                RS_LOGE("parsed parcel is nullptr");
+                break;
+            }
+
+            RS_TRACE_BEGIN("UnMarsh RSTransactionData: data size:" + std::to_string(parsed->GetDataSize()));
+            auto transactionData = parsed->ReadParcelable<RSTransactionData>();
             RS_TRACE_END();
 
             std::unique_ptr<RSTransactionData> transData(transactionData);

@@ -18,6 +18,7 @@
 #include <message_option.h>
 #include <message_parcel.h>
 #include "platform/common/rs_log.h"
+#include "transaction/rs_ashmem_helper.h"
 #include "rs_trace.h"
 
 namespace OHOS {
@@ -29,26 +30,36 @@ RSRenderServiceConnectionProxy::RSRenderServiceConnectionProxy(const sptr<IRemot
 
 void RSRenderServiceConnectionProxy::CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData)
 {
-    MessageParcel data;
+    static constexpr size_t PARCEL_MAX_CPACITY = 1000 * 1024; // set upper bound of data parcel capacity to 1000K
+    static constexpr size_t ASHMEM_SIZE_THRESHOLD = 400 * 1024;
+
+    std::shared_ptr<MessageParcel> data = std::make_shared<MessageParcel>();
     MessageParcel reply;
     MessageOption option;
-
-    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
-        return;
-    }
+    data->SetMaxCapacity(PARCEL_MAX_CPACITY);
+    data->WriteInt32(0); // indicate data parcel
 
     RS_TRACE_BEGIN("Marsh RSTransactionData: cmd count:" + std::to_string(transactionData->GetCommandCount()));
-    bool success = data.WriteParcelable(transactionData.get());
+    bool success = data->WriteParcelable(transactionData.get());
     RS_TRACE_END();
     if (!success) {
         ROSEN_LOGE("RSRenderServiceConnectionProxy::CommitTransaction data.WriteParcelable failed!");
         return;
     }
 
+    std::shared_ptr<MessageParcel> ashmemParcel = nullptr;
+    if (data->GetDataSize() > ASHMEM_SIZE_THRESHOLD) {
+        ashmemParcel = RSAshmemHelper::CreateAshmemParcel(data);
+    }
+    if (ashmemParcel == nullptr) {
+        ashmemParcel = data;
+    }
+
     option.SetFlags(MessageOption::TF_ASYNC);
-    RS_ASYNC_TRACE_BEGIN("RSProxySendRequest", data.GetDataSize());
-    int32_t err = Remote()->SendRequest(RSIRenderServiceConnection::COMMIT_TRANSACTION, data, reply, option);
+    RS_ASYNC_TRACE_BEGIN("RSProxySendRequest", ashmemParcel->GetDataSize());
+    int32_t err = Remote()->SendRequest(RSIRenderServiceConnection::COMMIT_TRANSACTION, *ashmemParcel, reply, option);
     if (err != NO_ERROR) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::CommitTransaction SendRequest failed, err = %d", err);
         return;
     }
 }

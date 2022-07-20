@@ -187,8 +187,6 @@ public:
 private:
     static sk_sp<SkData> SerializeTypeface(SkTypeface* tf, void* ctx);
     static sk_sp<SkTypeface> DeserializeTypeface(const void* data, size_t length, void* ctx);
-    static void ReleaseMemory(void* data, int* fd, size_t size);
-    inline static std::atomic<uint32_t> shmemCount = 0;
     static constexpr size_t MAX_DATA_SIZE = 128 * 1024 * 1024; // 128M
     static constexpr size_t MIN_DATA_SIZE = 8 * 1024;         // 8k
 };

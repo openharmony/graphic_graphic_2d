@@ -53,6 +53,7 @@
 #include "render/rs_filter.h"
 #include "render/rs_path.h"
 #include "render/rs_shader.h"
+#include "transaction/rs_ashmem_helper.h"
 
 #ifdef ROSEN_OHOS
 namespace OHOS {
@@ -785,18 +786,6 @@ template bool RSMarshallingHelper::Marshalling(
 template bool RSMarshallingHelper::Unmarshalling(
     Parcel& parcel, std::vector<std::shared_ptr<RSRenderTransitionEffect>>& val);
 
-void RSMarshallingHelper::ReleaseMemory(void* data, int* fd, size_t size)
-{
-    if (data != nullptr) {
-        ::munmap(data, size);
-        data = nullptr;
-    }
-    if (fd != nullptr && (*fd) > 0) {
-        ::close(*fd);
-        *fd = -1;
-    }
-}
-
 bool RSMarshallingHelper::WriteToParcel(Parcel& parcel, const void* data, size_t size)
 {
     if (data == nullptr) {
@@ -815,41 +804,21 @@ bool RSMarshallingHelper::WriteToParcel(Parcel& parcel, const void* data, size_t
         return parcel.WriteUnpadBuffer(data, size);
     }
 
-    static pid_t pid_ = getpid();
-    uint64_t id = ((uint64_t)pid_ << 32) | shmemCount++;
-    std::string name = "Parcel RS" + std::to_string(id);
-    int fd = AshmemCreate(name.c_str(), size);
-    ROSEN_LOGD("RSMarshallingHelper::WriteToParcel fd:%d", fd);
-    if (fd < 0) {
+    // write to ashmem
+    auto ashmemAllocator = AshmemAllocator::CreateAshmemAllocator(size, PROT_READ | PROT_WRITE);
+    if (!ashmemAllocator) {
+        ROSEN_LOGE("RSMarshallingHelper::WriteToParcel CreateAshmemAllocator fail");
         return false;
     }
-
-    int result = AshmemSetProt(fd, PROT_READ | PROT_WRITE);
-    if (result < 0) {
-        ::close(fd);
-        ROSEN_LOGE("RSMarshallingHelper::WriteToParcel result:%d", result);
-        return false;
-    }
-    void* ptr = ::mmap(nullptr, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
-    if (ptr == MAP_FAILED) {
-        ::close(fd);
-        ROSEN_LOGE("RSMarshallingHelper::WriteToParcel MAP_FAILED");
-        return false;
-    }
-
+    int fd = ashmemAllocator->GetFd();
     if (!(static_cast<MessageParcel*>(&parcel)->WriteFileDescriptor(fd))) {
-        ::munmap(ptr, size);
-        ::close(fd);
         ROSEN_LOGE("RSMarshallingHelper::WriteToParcel WriteFileDescriptor error");
         return false;
     }
-    if (memcpy_s(ptr, size, data, size) != EOK) {
-        ::munmap(ptr, size);
-        ::close(fd);
+    if (!ashmemAllocator->WriteToAshmem(data, size)) {
         ROSEN_LOGE("RSMarshallingHelper::WriteToParcel memcpy_s failed");
         return false;
     }
-    ReleaseMemory(ptr, &fd, size);
     return true;
 }
 
@@ -864,40 +833,14 @@ const void* RSMarshallingHelper::ReadFromParcel(Parcel& parcel, size_t size)
     if (static_cast<unsigned int>(bufferSize) <= MIN_DATA_SIZE) {
         return parcel.ReadUnpadBuffer(size);
     }
-
+    // read from ashmem
     int fd = static_cast<MessageParcel*>(&parcel)->ReadFileDescriptor();
-    if (fd < 0) {
-        ROSEN_LOGE("RSMarshallingHelper::ReadFromParcel fd < 0");
+    auto ashmemAllocator = AshmemAllocator::CreateAshmemAllocatorWithFd(fd, size, PROT_READ);
+    if (!ashmemAllocator) {
+        ROSEN_LOGE("RSMarshallingHelper::ReadFromParcel CreateAshmemAllocator fail");
         return nullptr;
     }
-    int ashmemSize = AshmemGetSize(fd);
-    if (ashmemSize < 0 || size_t(ashmemSize) < size) {
-        // do not close fd here. fd will be closed in FileDescriptor, ::close(fd)
-        ROSEN_LOGE("RSMarshallingHelper::ReadFromParcel ashmemSize < size");
-        return nullptr;
-    }
-
-    void* ptr = ::mmap(nullptr, size, PROT_READ, MAP_SHARED, fd, 0);
-    if (ptr == MAP_FAILED) {
-        // do not close fd here. fd will be closed in FileDescriptor, ::close(fd)
-        ROSEN_LOGE("RSMarshallingHelper::ReadFromParcel MAP_FAILED");
-        return nullptr;
-    }
-    uint8_t* base = static_cast<uint8_t*>(malloc(size));
-    if (base == nullptr) {
-        ::munmap(ptr, size);
-        ROSEN_LOGE("RSMarshallingHelper::ReadFromParcel malloc(size) failed");
-        return nullptr;
-    }
-    if (memcpy_s(base, size, ptr, size) != 0) {
-        ::munmap(ptr, size);
-        free(base);
-        base = nullptr;
-        ROSEN_LOGE("RSMarshallingHelper::ReadFromParcel memcpy_s failed");
-        return nullptr;
-    }
-    ReleaseMemory(ptr, &fd, size);
-    return base;
+    return ashmemAllocator->CopyFromAshmem(size);
 }
 } // namespace Rosen
 } // namespace OHOS
