@@ -16,6 +16,8 @@
 #ifndef HDI_BACKEND_HDI_LAYER_H
 #define HDI_BACKEND_HDI_LAYER_H
 
+#include <array>
+#include <stdint.h>
 #include <surface.h>
 #include <surface_buffer.h>
 
@@ -51,7 +53,7 @@ public:
     void UpdateLayerInfo(const LayerInfoPtr &layerInfo);
     void SetHdiLayerInfo();
     uint32_t GetLayerId() const;
-    void RecordPresentTime(const sptr<SyncFence> &fbFence);
+    void RecordPresentTime(int64_t timestamp);
     void Dump(std::string &result);
 
     int32_t SetLayerColorTransform(const float *matrix) const;
@@ -71,12 +73,7 @@ private:
         sptr<SyncFence> releaseFence_ = SyncFence::INVALID_FENCE;
     };
 
-    struct PresentTimeRecord {
-        int64_t presentTime = 0;
-        sptr<SyncFence> presentFence = SyncFence::INVALID_FENCE;
-    };
-
-    PresentTimeRecord presentTimeRecords[FRAME_RECORDS_NUM] = {};
+    std::array<int64_t, FRAME_RECORDS_NUM> presentTimeRecords;
     uint32_t count = 0;
     uint32_t screenId_ = INT_MAX;
     uint32_t layerId_ = INT_MAX;
