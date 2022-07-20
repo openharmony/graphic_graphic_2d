@@ -17,7 +17,6 @@
 
 #include "buffer_log.h"
 #include "buffer_manager.h"
-#include <unistd.h>
 
 namespace OHOS {
 ProducerSurface::ProducerSurface(sptr<IBufferProducer>& producer)
