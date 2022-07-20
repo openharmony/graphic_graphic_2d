@@ -183,7 +183,7 @@ public:
     std::string GetRegionInfo() const
     {
         std::string info = "{ Region Size " + std::to_string(rects_.size()) + ": ";
-        for (auto&r : rects_) {
+        for (auto& r : rects_) {
             info.append(r.GetRectInfo());
         }
         info.append(" }");
