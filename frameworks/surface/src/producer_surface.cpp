@@ -17,6 +17,7 @@
 
 #include "buffer_log.h"
 #include "buffer_manager.h"
+#include <unistd.h>
 
 namespace OHOS {
 ProducerSurface::ProducerSurface(sptr<IBufferProducer>& producer)
@@ -138,7 +139,9 @@ GSError ProducerSurface::FlushBuffer(sptr<SurfaceBuffer>& buffer,
     }
     BufferExtraDataImpl bedataimpl;
     bufferImpl->GetExtraData(bedataimpl);
-    return GetProducer()->FlushBuffer(bufferImpl->GetSeqNum(), bedataimpl, fence, config);
+    auto rst = GetProducer()->FlushBuffer(bufferImpl->GetSeqNum(), bedataimpl, fence, config);
+    close(fence);
+    return rst;
 }
 
 GSError ProducerSurface::AcquireBuffer(sptr<SurfaceBuffer>& buffer, int32_t &fence,

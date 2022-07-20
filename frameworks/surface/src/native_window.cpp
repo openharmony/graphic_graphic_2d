@@ -81,6 +81,7 @@ int32_t NativeWindowRequestBuffer(struct NativeWindow *window,
 {
     if (window == nullptr || buffer == nullptr || fenceFd == nullptr) {
         BLOGD("NativeWindowRequestBuffer window or buffer or fenceid is nullptr");
+        *buffer = nullptr;
         return OHOS::GSERROR_INVALID_ARGUMENTS;
     }
     BLOGD("NativeWindowRequestBuffer width is %{public}d, height is %{public}d",
@@ -97,6 +98,7 @@ int32_t NativeWindowRequestBuffer(struct NativeWindow *window,
     OHOS::sptr<OHOS::SurfaceBuffer> sfbuffer;
     if (window->surface->RequestBuffer(sfbuffer, *fenceFd, config) != OHOS::GSError::GSERROR_OK ||
         sfbuffer == nullptr) {
+        *buffer = nullptr;
         return OHOS::GSERROR_NO_BUFFER;
     }
     NativeWindowBuffer *nwBuffer = new NativeWindowBuffer();
@@ -130,7 +132,7 @@ int32_t NativeWindowFlushBuffer(struct NativeWindow *window, struct NativeWindow
 
     BLOGD("NativeWindowFlushBuffer damage w is %{public}d, h is %{public}d, acquire fence: %{public}d",
         config.damage.w, config.damage.h, fenceFd);
-    window->surface->FlushBuffer(buffer->sfbuffer, -1, config);
+    window->surface->FlushBuffer(buffer->sfbuffer, fenceFd, config);
 
     return OHOS::GSERROR_OK;
 }
