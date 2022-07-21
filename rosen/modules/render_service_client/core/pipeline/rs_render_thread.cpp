@@ -30,8 +30,9 @@
 #include "res_type.h"
 #endif
 #include "rs_trace.h"
-#include "ui/rs_ui_director.h"
+
 #include "transaction/rs_render_service_client.h"
+#include "ui/rs_ui_director.h"
 #ifdef ROSEN_OHOS
 #include <sys/prctl.h>
 #include <unistd.h>
@@ -218,23 +219,22 @@ void RSRenderThread::UpdateUiDrawFrameMsg(const std::string& abilityName)
 void RSRenderThread::ProcessCommands()
 {
     // Attention: there are two situations
-    // 1. when commandTimestamp_ != 0, it means that UIDirector has called "RSRenderThread::Instance().RequestNextVSync()",
-    // which equals there are some commands form UIThread need to be executed.
-    // To make commands from UIThread sync with buffer flushed by RenderThread,
-    // we choose commandTimestamp_ as uiTimestamp_ which would be used in RenderThreadVisitor when we call flushFrame.
+    // 1. when commandTimestamp_ != 0, it means that UIDirector has called
+    // "RSRenderThread::Instance().RequestNextVSync()", which equals there are some commands form UIThread need to be
+    // executed. To make commands from UIThread sync with buffer flushed by RenderThread, we choose commandTimestamp_ as
+    // uiTimestamp_ which would be used in RenderThreadVisitor when we call flushFrame.
     // 2. when cmds_.empty() is true or commandTimestamp_ = 0,
     // it means that some thread except UIThread like RSRenderThread::Animate
-    // has called "RSRenderThread::Instance().RequestNextVSync()", which equals that some commands form RenderThread need to be executed.
-    // To make commands from RenderThread sync with buffer flushed by RenderThread,
-    // we choose (prevTimestamp_ - 1) as uiTimestamp_ which would be used in RenderThreadVisitor when we call flushFrame.
+    // has called "RSRenderThread::Instance().RequestNextVSync()", which equals that some commands form RenderThread
+    // need to be executed. To make commands from RenderThread sync with buffer flushed by RenderThread, we choose
+    // (prevTimestamp_ - 1) as uiTimestamp_ which would be used in RenderThreadVisitor when we call flushFrame.
 
-    // The reason why prevTimestamp_ need to be minus 1 is that timestamp used in UIThread is always less than (for now) timestamp used in RenderThread.
-    // If we do not do this,
-    // when RenderThread::Animate execute flushFrame and use prevTimestamp_ as buffer timestamp which equals T0,
-    // UIDirector send messages in the same vsync period, and the commandTimestamp_ would also be T0,
-    // RenderService would execute commands from UIDirector and composite buffer which rendering is executed by RSRenderThread::Animate
-    // for they have the same timestamp.
-    // To avoid this situation, we should always use "prevTimestamp_ - 1".
+    // The reason why prevTimestamp_ need to be minus 1 is that timestamp used in UIThread is always less than (for now)
+    // timestamp used in RenderThread. If we do not do this, when RenderThread::Animate execute flushFrame and use
+    // prevTimestamp_ as buffer timestamp which equals T0, UIDirector send messages in the same vsync period, and the
+    // commandTimestamp_ would also be T0, RenderService would execute commands from UIDirector and composite buffer
+    // which rendering is executed by RSRenderThread::Animate for they have the same timestamp. To avoid this situation,
+    // we should always use "prevTimestamp_ - 1".
 
     std::unique_lock<std::mutex> cmdLock(cmdMutex_);
     if (cmds_.empty()) {

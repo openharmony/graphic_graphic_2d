@@ -183,6 +183,10 @@ void RSWindowAnimationController::HandleOnStartApp(StartingAppType type,
         RSWindowAnimationUtils::CreateJsWindowAnimationFinishedCallback(engine_, finishedCallback),
     };
 
+    if (startingWindowTarget && startingWindowTarget->surfaceNode_) {
+        startingWindowTarget->surfaceNode_->SetBoundsSize(-1, -1);
+    }
+
     switch (type) {
         case StartingAppType::FROM_LAUNCHER:
             CallJsFunction("onStartAppFromLauncher", argv, ARGC_TWO);
@@ -247,7 +251,7 @@ void RSWindowAnimationController::CallJsFunction(const std::string& methodName, 
 {
     WALOGD("Call js function:%{public}s.", methodName.c_str());
     if (jsController_ == nullptr) {
-        WALOGE("JsConterller is null!");
+        WALOGE("JsController is null!");
         return;
     }
 

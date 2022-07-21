@@ -25,8 +25,8 @@
 #include "common/rs_vector4.h"
 #include "pipeline/rs_recording_canvas.h"
 #include "property/rs_properties.h"
-#include "render/rs_path.h"
 #include "render/rs_mask.h"
+#include "render/rs_path.h"
 #include "ui/rs_base_node.h"
 
 class SkCanvas;
@@ -123,9 +123,9 @@ public:
 
     void SetForegroundColor(uint32_t colorValue);
     void SetBackgroundColor(uint32_t colorValue);
-    void SetBackgroundShader(std::shared_ptr<RSShader> shader);
+    void SetBackgroundShader(const std::shared_ptr<RSShader>& shader);
 
-    void SetBgImage(std::shared_ptr<RSImage> image);
+    void SetBgImage(const std::shared_ptr<RSImage>& image);
     void SetBgImageSize(float width, float height);
     void SetBgImageWidth(float width);
     void SetBgImageHeight(float height);
@@ -134,17 +134,20 @@ public:
     void SetBgImagePositionY(float positionY);
 
     void SetBorderColor(uint32_t colorValue);
-    void SetBorderWidth(float width);
-    void SetBorderStyle(uint32_t styleValue);
     void SetBorderColor(uint32_t left, uint32_t top, uint32_t right, uint32_t bottom);
+    void SetBorderColor(const Vector4<Color>& color);
+    void SetBorderWidth(float width);
     void SetBorderWidth(float left, float top, float right, float bottom);
+    void SetBorderWidth(const Vector4f& width);
+    void SetBorderStyle(uint32_t styleValue);
     void SetBorderStyle(uint32_t left, uint32_t top, uint32_t right, uint32_t bottom);
+    void SetBorderStyle(const Vector4<BorderStyle>& style);
 
     void SetSublayerTransform(Matrix3f sublayerTransform);
 
-    void SetBackgroundFilter(std::shared_ptr<RSFilter> backgroundFilter);
-    void SetFilter(std::shared_ptr<RSFilter> filter);
-    void SetCompositingFilter(std::shared_ptr<RSFilter> compositingFilter);
+    void SetBackgroundFilter(const std::shared_ptr<RSFilter>& backgroundFilter);
+    void SetFilter(const std::shared_ptr<RSFilter>& filter);
+    void SetCompositingFilter(const std::shared_ptr<RSFilter>& compositingFilter);
 
     void SetShadowColor(uint32_t colorValue);
     void SetShadowOffset(float offsetX, float offsetY);
@@ -153,17 +156,17 @@ public:
     void SetShadowAlpha(float alpha);
     void SetShadowElevation(float elevation);
     void SetShadowRadius(float radius);
-    void SetShadowPath(std::shared_ptr<RSPath> shadowpath);
+    void SetShadowPath(const std::shared_ptr<RSPath>& shadowPath);
 
     void SetFrameGravity(Gravity gravity);
 
-    void SetClipBounds(std::shared_ptr<RSPath> clipToBounds);
+    void SetClipBounds(const std::shared_ptr<RSPath>& clipToBounds);
     void SetClipToBounds(bool clipToBounds);
     void SetClipToFrame(bool clipToFrame);
 
     void SetVisible(bool visible);
     void SetPaintOrder(bool drawContentLast);
-    void SetMask(std::shared_ptr<RSMask> mask);
+    void SetMask(const std::shared_ptr<RSMask>& mask);
 
     void SetTransitionEffect(const std::shared_ptr<const RSTransitionEffect>& effect)
     {
