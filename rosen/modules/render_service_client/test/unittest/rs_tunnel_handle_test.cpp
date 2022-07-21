@@ -54,7 +54,6 @@ void RSTunnelHandleTest::TearDownTestCase()
 void RSTunnelHandleTest::SetUp() {}
 void RSTunnelHandleTest::TearDown() {}
 
-
 /*
 * Function: GetDefaultTunnelHandleChange
 * Type: Function
@@ -81,10 +80,7 @@ HWTEST_F(RSTunnelHandleTest, SetTunnelHandleChange, Function | SmallTest | Level
 {
     // call SetTunnelHandleChange
     node1->SetTunnelHandleChange(true);
-
     // check TunnelHandleChange
     EXPECT_EQ(node1->GetTunnelHandleChange(), true);
 }
-
-
 } // namespace OHOS::Rosen
