@@ -40,6 +40,8 @@ ohos_source_set("rosen_ohos_sources") {
   sources = [
     "backend/rs_surface_frame_ohos_raster.cpp",
     "backend/rs_surface_ohos_raster.cpp",
+    "rs_event_detector.cpp",
+    "rs_event_manager.cpp",
     "rs_log.cpp",
     "rs_render_service_client.cpp",
     "rs_render_service_connect_hub.cpp",
@@ -87,6 +89,7 @@ ohos_source_set("rosen_ohos_sources") {
   }
 
   external_deps = [
+    "hisysevent_native:libhisysevent",
     "hitrace_native:hitrace_meter",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",

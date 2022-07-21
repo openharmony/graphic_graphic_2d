@@ -52,3 +52,7 @@ JANK_FRAME_SKIP:
   UID: {type: INT32, desc: pid}
   ABILITY_NAME: {type: STRING, desc: ability name}
   MSG: {type: STRING, desc: message}
+
+RS_COMPOSITION_TIMEOUT:
+  __BASE: {type: STATISTIC, level: MINOR, desc: rs composition timeout}
+  MSG: {type: STRING, desc: message}

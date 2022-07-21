@@ -35,6 +35,7 @@
 #include "ipc_callbacks/rs_iocclusion_change_callback.h"
 #include "pipeline/rs_context.h"
 #include "platform/drawing/rs_vsync_client.h"
+#include "platform/common/rs_event_manager.h"
 
 namespace OHOS::Rosen {
 class RSTransactionData;
@@ -73,6 +74,7 @@ public:
     void RequestNextVSync();
     void PostTask(RSTaskMessage::RSTask task);
     void RenderServiceTreeDump(std::string& dumpString);
+    void RsEventParamDump(std::string& dumpString);
 
     template<typename Task, typename Return = std::invoke_result_t<Task>>
     std::future<Return> ScheduleTask(Task&& task)
@@ -124,6 +126,10 @@ private:
     void CalcOcclusion();
     void CallbackToWMS(VisibleData& curVisVec);
     void SendCommands();
+    void InitRSEventDetector();
+    void RemoveRSEventDetector();
+    void SetRSEventDetectorLoopStartTag();
+    void SetRSEventDetectorLoopFinishTag();
 
     bool DoParallelComposition(std::shared_ptr<RSBaseRenderNode> rootNode);
     void ResetSortedChildren(std::shared_ptr<RSBaseRenderNode> node);
@@ -155,6 +161,8 @@ private:
     uint32_t lastSurfaceCnt_ = 0;
 
     std::shared_ptr<RSRenderEngine> renderEngine_;
+    std::shared_ptr<RSBaseEventDetector> rsCompositionTimeoutDetector_;
+    RSEventManager rsEventManager_;
 };
 } // namespace OHOS::Rosen
 #endif // RS_MAIN_THREAD

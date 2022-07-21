@@ -52,6 +52,11 @@ bool RSSystemProperties::GetOcclusionEnabled()
     return std::atoi((system::GetParameter("rosen.occlusion.enabled", "1")).c_str()) != 0;
 }
 
+std::string RSSystemProperties::GetRSEventProperty(const std::string &paraName)
+{
+    return system::GetParameter(paraName, "0");
+}
+
 bool RSSystemProperties::GetDirectClientCompEnableStatus()
 {
     // If the value of rosen.directClientComposition.enabled is not 0 then enable the direct CLIENT composition.

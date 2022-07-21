@@ -47,6 +47,7 @@ RSMainThread::RSMainThread() : mainThreadId_(std::this_thread::get_id()) {}
 
 RSMainThread::~RSMainThread() noexcept
 {
+    RemoveRSEventDetector();
     RSInnovation::CloseInnovationSo();
 }
 
@@ -54,6 +55,7 @@ void RSMainThread::Init()
 {
     mainLoop_ = [&]() {
         RS_LOGD("RsDebug mainLoop start");
+        SetRSEventDetectorLoopStartTag();
         ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSMainThread::DoComposition");
         ConsumeAndUpdateAllNodes();
         ProcessCommand();
@@ -62,21 +64,58 @@ void RSMainThread::Init()
         ReleaseAllNodesBuffer();
         SendCommands();
         ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
+        SetRSEventDetectorLoopFinishTag();
+        rsEventManager_.UpdateParam();
         RS_LOGD("RsDebug mainLoop end");
     };
 
     runner_ = AppExecFwk::EventRunner::Create(false);
     handler_ = std::make_shared<AppExecFwk::EventHandler>(runner_);
-
+    InitRSEventDetector();
     sptr<VSyncConnection> conn = new VSyncConnection(rsVSyncDistributor_, "rs");
     rsVSyncDistributor_->AddConnection(conn);
     receiver_ = std::make_shared<VSyncReceiver>(conn);
     receiver_->Init();
     RSDividedRenderUtil::InitEnableClient();
-
     renderEngine_ = std::make_shared<RSRenderEngine>();
     RSInnovation::OpenInnovationSo();
     Occlusion::Region::InitDynamicLibraryFunction();
+}
+
+void RSMainThread::RsEventParamDump(std::string& dumpString)
+{
+    rsEventManager_.DumpAllEventParam(dumpString);
+}
+
+void RSMainThread::RemoveRSEventDetector()
+{
+    if (rsCompositionTimeoutDetector_ != nullptr) {
+        rsEventManager_.RemoveEvent(rsCompositionTimeoutDetector_->GetStringId());
+    }
+}
+
+void RSMainThread::InitRSEventDetector()
+{
+    // default Threshold value of Timeout Event: 2000ms
+    rsCompositionTimeoutDetector_ = RSBaseEventDetector::CreateRSTimeOutDetector(2000, "RS_COMPOSITION_TIMEOUT");
+    if (rsCompositionTimeoutDetector_ != nullptr) {
+        rsEventManager_.AddEvent(rsCompositionTimeoutDetector_, 60000); // report Internal 1min:60s：60000ms
+        RS_LOGD("InitRSEventDetector  finish");
+    }
+}
+
+void RSMainThread::SetRSEventDetectorLoopStartTag()
+{
+    if (rsCompositionTimeoutDetector_ != nullptr) {
+        rsCompositionTimeoutDetector_->SetLoopStartTag();
+    }
+}
+
+void RSMainThread::SetRSEventDetectorLoopFinishTag()
+{
+    if (rsCompositionTimeoutDetector_ != nullptr) {
+        rsCompositionTimeoutDetector_->SetLoopFinishTag();
+    }
 }
 
 void RSMainThread::Start()
@@ -484,8 +523,6 @@ void RSMainThread::SendCommands()
 
 void RSMainThread::RenderServiceTreeDump(std::string& dumpString)
 {
-    dumpString.append("\n");
-    dumpString.append("-- RenderServiceTreeDump: \n");
     const std::shared_ptr<RSBaseRenderNode> rootNode = context_.GetGlobalRootRenderNode();
     if (rootNode == nullptr) {
         dumpString.append("rootNode is null\n");
