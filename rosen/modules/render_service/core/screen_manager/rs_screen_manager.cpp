@@ -271,7 +271,6 @@ void RSScreenManager::MirrorChangeDefaultScreenResolution(ScreenId id, uint32_t 
         return;
     }
     ScreenId mainId = GetDefaultScreenId();
-    
     if (mirroredId == mainId) {
         bool resolutionSetSuccess = false;
         std::vector<DisplayModeInfo> mainMode = screens_.at(mainId)->GetSupportedModes();
