@@ -1801,7 +1801,7 @@ HWTEST_F(RSCanvasNodeTest, SetandGetShadowAlpha001, TestSize.Level1)
     RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
     canvasNode->SetShadowAlpha(floatData[1]);
     EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetShadowAlpha(),
-        std::clamp(floatData[1], 0.0f, 1.0f), 0.02f));
+        floatData[1], 0.02f));
 }
 
 /**
@@ -1814,7 +1814,7 @@ HWTEST_F(RSCanvasNodeTest, SetandGetShadowAlpha002, TestSize.Level1)
     RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
     canvasNode->SetShadowAlpha(floatData[2]);
     EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetShadowAlpha(),
-        std::clamp(floatData[2], 0.0f, 1.0f), 0.02f));
+        floatData[2], 0.02f));
 }
 
 /**
@@ -1827,7 +1827,7 @@ HWTEST_F(RSCanvasNodeTest, SetandGetShadowAlpha003, TestSize.Level1)
     RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
     canvasNode->SetShadowAlpha(floatData[3]);
     EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetShadowAlpha(),
-        std::clamp(floatData[3], 0.0f, 1.0f), 0.02f));
+        floatData[3], 0.02f));
 }
 
 /**
@@ -1840,7 +1840,7 @@ HWTEST_F(RSCanvasNodeTest, SetandGetShadowAlpha004, TestSize.Level1)
     RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
     canvasNode->SetShadowAlpha(floatData[4]);
     EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetShadowAlpha(),
-        std::clamp(floatData[4], 0.0f, 1.0f), 0.02f));
+        floatData[4], 0.02f));
 }
 
 /**
@@ -1853,7 +1853,7 @@ HWTEST_F(RSCanvasNodeTest, SetandGetShadowAlpha005, TestSize.Level1)
     RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
     canvasNode->SetShadowAlpha(floatData[0]);
     EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetShadowAlpha(),
-        std::clamp(floatData[0], 0.0f, 1.0f), 0.02f));
+        floatData[0], 0.02f));
 }
 
 /**

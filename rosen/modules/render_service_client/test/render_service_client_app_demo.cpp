@@ -58,6 +58,14 @@ int main()
     
     window->Show();
     auto rect = window->GetRect();
+    while (rect.width_ == 0 && rect.height_ == 0) {
+        std::cout << "rs app demo create window failed: " << rect.width_ << " " << rect.height_ << std::endl;
+        window->Hide();
+        window->Destroy();
+        window = Window::Create("app_demo", option);
+        window->Show();
+        rect = window->GetRect();
+    }
     std::cout << "rs app demo create window " << rect.width_ << " " << rect.height_ << std::endl;
     auto surfaceNode = window->GetSurfaceNode();
 
@@ -125,8 +133,7 @@ int main()
     rsUiDirector->SendMessages();
     sleep(1);
 
-    const RSProperties& prop = rootNode->GetStagingProperties();
-    std::string dumpInfo = prop.Dump();
+    std::string dumpInfo = rootNode->GetStagingProperties().Dump();
     std::cout << "dumpInfo: " << dumpInfo.c_str() << std::endl;
     sleep(1);
 
