@@ -87,6 +87,13 @@ using BufferFlushConfig = struct BufferFlushConfig {
     Rect damage;
     int64_t timestamp;
 };
+
+using SceneType = enum {
+    SURFACE_SCENE_TYPE_EGL = 0,
+    SURFACE_SCENE_TYPE_MEDIA,
+    SURFACE_SCENE_TYPE_CAMERA,
+    SURFACE_SCENE_TYPE_CPU,
+};
 } // namespace OHOS
 
 #endif // INTERFACES_INNERKITS_SURFACE_SURFACE_TYPE_H
