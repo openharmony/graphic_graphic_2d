@@ -19,10 +19,12 @@
 
 namespace OHOS {
 namespace Rosen {
-RSAnimationManagerMap& RSAnimationManagerMap::Instance()
+std::shared_ptr<RSAnimationManagerMap> RSAnimationManagerMap::instance_ =
+    std::shared_ptr<RSAnimationManagerMap>(new RSAnimationManagerMap());
+
+std::shared_ptr<RSAnimationManagerMap>& RSAnimationManagerMap::Instance()
 {
-    static RSAnimationManagerMap managerMap;
-    return managerMap;
+    return instance_;
 }
 
 const std::shared_ptr<RSUIAnimationManager>& RSAnimationManagerMap::GetAnimationManager(const int32_t id)

@@ -24,13 +24,13 @@ class RSUIAnimationManager;
 
 class RSAnimationManagerMap final {
 public:
-    static RSAnimationManagerMap& Instance();
+    ~RSAnimationManagerMap() = default;
+    static std::shared_ptr<RSAnimationManagerMap>& Instance();
 
     const std::shared_ptr<RSUIAnimationManager>& GetAnimationManager(const int32_t id);
 
 private:
     RSAnimationManagerMap() = default;
-    ~RSAnimationManagerMap() = default;
     RSAnimationManagerMap(const RSAnimationManagerMap&) = delete;
     RSAnimationManagerMap(const RSAnimationManagerMap&&) = delete;
     RSAnimationManagerMap& operator=(const RSAnimationManagerMap&) = delete;
@@ -38,6 +38,7 @@ private:
 
     std::mutex mutex_;
     std::unordered_map<int32_t, std::shared_ptr<RSUIAnimationManager>> managerMap_;
+    static std::shared_ptr<RSAnimationManagerMap> instance_;
 };
 } // namespace Rosen
 } // namespace OHOS

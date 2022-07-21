@@ -132,7 +132,7 @@ protected:
             return;
         }
 
-        auto animationManager = RSAnimationManagerMap::Instance().GetAnimationManager(gettid());
+        auto animationManager = RSAnimationManagerMap::Instance()->GetAnimationManager(gettid());
         if (animationManager == nullptr) {
             ROSEN_LOGE("Failed to start custom animation, UI animation manager is null!");
             return;

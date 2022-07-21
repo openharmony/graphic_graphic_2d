@@ -162,7 +162,7 @@ void RSUIDirector::SetTimeStamp(uint64_t timeStamp, const std::string& abilityNa
 bool RSUIDirector::RunningCustomAnimation(uint64_t timeStamp)
 {
     bool hasRunningAnimation = false;
-    auto animationManager = RSAnimationManagerMap::Instance().GetAnimationManager(gettid());
+    auto animationManager = RSAnimationManagerMap::Instance()->GetAnimationManager(gettid());
     if (animationManager != nullptr) {
         hasRunningAnimation = animationManager->Animate(timeStamp);
         animationManager->Draw();
