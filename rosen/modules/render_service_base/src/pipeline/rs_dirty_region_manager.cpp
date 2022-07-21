@@ -93,10 +93,10 @@ void RSDirtyRegionManager::GetDirtySurfaceNodes(std::map<NodeId, RectI>& target)
 
 bool RSDirtyRegionManager::SetBufferAge(const int age)
 {
-    if (age <= 0 || age > HISTORY_QUEUE_MAX_SIZE) {
+    if (age < 0) {
         return false;
     }
-    bufferAge_ = age;
+    bufferAge_ = static_cast<unsigned int>(age);
     return true;
 }
 
@@ -134,16 +134,15 @@ void RSDirtyRegionManager::UpdateDebugRegionTypeEnable()
     }
 }
 
-RectI RSDirtyRegionManager::MergeHistory(int age, RectI rect) const
+RectI RSDirtyRegionManager::MergeHistory(unsigned int age, RectI rect) const
 {
-    int size = static_cast<int>(historySize_);
-    if (age > size) {
+    if (age > historySize_) {
         rect.left_ = 0;
         rect.top_ = 0;
         rect.width_ = surfaceWidth_;
         rect.height_ = surfaceHeight_;
     } else {
-        for (int i = size - 1; i > size - age; --i) {
+        for (unsigned int i = historySize_ - 1; i > historySize_ - age; --i) {
             auto subRect = GetHistory(i);
             // only join valid his buffer
             if (subRect.width_ > 0 || subRect.height_ > 0) {
@@ -164,7 +163,7 @@ void RSDirtyRegionManager::PushHistory(RectI rect)
     historyHead_ = next;
 }
 
-RectI RSDirtyRegionManager::GetHistory(unsigned i) const
+RectI RSDirtyRegionManager::GetHistory(unsigned int i) const
 {
     if (i >= HISTORY_QUEUE_MAX_SIZE) {
         i %= HISTORY_QUEUE_MAX_SIZE;
