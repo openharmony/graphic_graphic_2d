@@ -19,15 +19,15 @@ group("systemtest") {
   testonly = true
 
   deps = [
-    ":hdibackend_test",
-    ":hdilayer_test",
-    ":hdioutput_test",
-    ":hdiscreen_test",
+    ":hdibackend_sys_test",
+    ":hdilayer_sys_test",
+    ":hdioutput_sys_test",
+    ":hdiscreen_sys_test",
   ]
 }
 
-## SystemTest hdibackend_test {{{
-ohos_systemtest("hdibackend_test") {
+## SystemTest hdibackend_sys_test {{{
+ohos_systemtest("hdibackend_sys_test") {
   module_out_path = module_out_path
 
   sources = [ "hdibackend_test.cpp" ]
@@ -50,10 +50,10 @@ ohos_systemtest("hdibackend_test") {
   ]
 }
 
-## SystemTest hdibackend_test }}}
+## SystemTest hdibackend_sys_test }}}
 
-## SystemTest hdilayer_test {{{
-ohos_systemtest("hdilayer_test") {
+## SystemTest hdilayer_sys_test {{{
+ohos_systemtest("hdilayer_sys_test") {
   module_out_path = module_out_path
 
   sources = [ "hdilayer_test.cpp" ]
@@ -76,10 +76,10 @@ ohos_systemtest("hdilayer_test") {
   ]
 }
 
-## SystemTest hdilayer_test }}}
+## SystemTest hdilayer_sys_test }}}
 
-## SystemTest hdioutput_test {{{
-ohos_systemtest("hdioutput_test") {
+## SystemTest hdioutput_sys_test {{{
+ohos_systemtest("hdioutput_sys_test") {
   module_out_path = module_out_path
 
   sources = [ "hdioutput_test.cpp" ]
@@ -102,10 +102,10 @@ ohos_systemtest("hdioutput_test") {
   ]
 }
 
-## SystemTest hdioutput_test }}}
+## SystemTest hdioutput_sys_test }}}
 
-## SystemTest hdiscreen_test {{{
-ohos_systemtest("hdiscreen_test") {
+## SystemTest hdiscreen_sys_test {{{
+ohos_systemtest("hdiscreen_sys_test") {
   module_out_path = module_out_path
 
   sources = [
@@ -131,4 +131,4 @@ ohos_systemtest("hdiscreen_test") {
     "//third_party/googletest:gtest_main",
   ]
 }
-## SystemTest hdiscreen_test }}}
+## SystemTest hdiscreen_sys_test }}}
