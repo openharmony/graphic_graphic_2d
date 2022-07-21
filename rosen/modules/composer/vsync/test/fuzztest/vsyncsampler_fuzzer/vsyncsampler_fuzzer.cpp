@@ -15,6 +15,8 @@
 
 #include "vsyncsampler_fuzzer.h"
 
+#include <securec.h>
+
 #include "vsync_sampler.h"
 
 namespace OHOS {
@@ -36,7 +38,10 @@ namespace OHOS {
         if (data_ == nullptr || objectSize > size_ - pos) {
             return object;
         }
-        std::memcpy(&object, data_ + pos, objectSize);
+        errno_t ret = memcpy_s(&object, objectSize, data_ + pos, objectSize);
+        if (ret != EOK) {
+            return {};
+        }
         pos += objectSize;
         return object;
     }
