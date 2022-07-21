@@ -63,6 +63,9 @@ BufferQueue::~BufferQueue()
     std::lock_guard<std::mutex> lockGuard(mutex_);
     for (auto it = bufferQueueCache_.begin(); it != bufferQueueCache_.end(); it++) {
         FreeBuffer(it->second.buffer);
+        if (it->second.fence > 0) {
+            close(it->second.fence);
+        }
     }
 }
 
