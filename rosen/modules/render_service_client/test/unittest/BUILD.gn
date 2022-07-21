@@ -22,6 +22,7 @@ group("unittest") {
     ":RSDisplayModeTest",
     ":RSDropframeTest",
     ":RSInterfacesTest",
+    ":RSTunnelHandleTest",
   ]
 }
 
@@ -46,6 +47,13 @@ ohos_unittest("RSDropframeTest") {
 ohos_unittest("RSDisplayModeTest") {
   module_out_path = module_out_path
   sources = [ "rs_display_mode_test.cpp" ]
+  deps = [ ":rs_client_test_common" ]
+}
+
+## Build TunnelHandleTest
+ohos_unittest("RSTunnelHandleTest") {
+  module_out_path = module_out_path
+  sources = [ "rs_tunnel_handle_test.cpp" ]
   deps = [ ":rs_client_test_common" ]
 }
 
