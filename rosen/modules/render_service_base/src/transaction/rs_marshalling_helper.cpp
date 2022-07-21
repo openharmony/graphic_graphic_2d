@@ -128,7 +128,11 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, sk_sp<SkData>& val)
         return false;
     }
 
-    val = size < MIN_DATA_SIZE ? SkData::MakeWithoutCopy(data, size) : SkData::MakeFromMalloc(data, size);
+    if (static_cast<uint32_t>(size) < MIN_DATA_SIZE) {
+        val = SkData::MakeWithoutCopy(data, size);
+    } else {
+        val = SkData::MakeFromMalloc(data, size);
+    }
     return val != nullptr;
 }
 
