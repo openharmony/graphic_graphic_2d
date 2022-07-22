@@ -34,7 +34,8 @@ public:
     template<typename T = RSBaseRenderNode>
     const std::shared_ptr<T> GetRenderNode(NodeId id) const
     {
-        return RSBaseRenderNode::ReinterpretCast<T>(GetRenderNode<RSBaseRenderNode>(id));
+        auto renderNode = GetRenderNode<RSBaseRenderNode>(id);
+        return RSBaseRenderNode::ReinterpretCast<T>(renderNode);
     }
     template<>
     const std::shared_ptr<RSBaseRenderNode> GetRenderNode(NodeId id) const;

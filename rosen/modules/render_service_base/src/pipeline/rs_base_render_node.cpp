@@ -27,7 +27,7 @@
 
 namespace OHOS {
 namespace Rosen {
-void RSBaseRenderNode::AddChild(const SharedPtr& child, int index)
+void RSBaseRenderNode::AddChild(SharedPtr child, int index)
 {
     // sanity check, avoid loop
     if (child == nullptr || child->GetId() == GetId()) {
@@ -53,7 +53,7 @@ void RSBaseRenderNode::AddChild(const SharedPtr& child, int index)
     }
 }
 
-void RSBaseRenderNode::RemoveChild(const SharedPtr& child)
+void RSBaseRenderNode::RemoveChild(SharedPtr child)
 {
     if (child == nullptr) {
         return;
@@ -152,7 +152,8 @@ void RSBaseRenderNode::RemoveCrossParentChild(const SharedPtr& child, const Weak
 void RSBaseRenderNode::RemoveFromTree()
 {
     if (auto parentPtr = parent_.lock()) {
-        parentPtr->RemoveChild(shared_from_this());
+        auto child = shared_from_this();
+        parentPtr->RemoveChild(child);
     }
 }
 
