@@ -158,12 +158,12 @@ bool RSDisplayRenderNode::SkipFrame(uint32_t skipFrameInterval)
 
 ScreenRotation RSDisplayRenderNode::GetRotation() const
 {
-    //auto boundsGeoPtr = std::static_pointer_cast<RSObjAbsGeometry>(GetRenderProperties().GetBoundsGeometry());
-    //if (boundsGeoPtr == nullptr) {
-    //    return ScreenRotation::ROTATION_0;
-    //}
-    //return static_cast<ScreenRotation>(static_cast<uint32_t>(std::roundf(boundsGeoPtr->GetRotation() / -90.0)));
-    return ScreenRotation::ROTATION_0;
+    auto boundsGeoPtr = std::static_pointer_cast<RSObjAbsGeometry>(GetRenderProperties().GetBoundsGeometry());
+    if (boundsGeoPtr == nullptr) {
+        return ScreenRotation::ROTATION_0;
+    }
+    // -90.0f: convert rotation degree to 4 enum values
+    return static_cast<ScreenRotation>(static_cast<int32_t>(std::roundf(boundsGeoPtr->GetRotation() / -90.0f)) % 4);
 }
 } // namespace Rosen
 } // namespace OHOS

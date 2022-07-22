@@ -93,8 +93,8 @@ bool RSObjAbsGeometry::IsNeedClientCompose() const
     if (!trans_) {
         return false;
     }
-    // return true if rotation degree is times of 90
-    return ROSEN_EQ(trans_->rotation_ % 90, 0.f);
+    // return false if rotation degree is times of 90
+    return !ROSEN_EQ(std::remainder(trans_->rotation_, 90.f), 0.f);
 }
 
 void RSObjAbsGeometry::UpdateAbsMatrix2D()

@@ -24,22 +24,23 @@
 
 namespace OHOS {
 namespace Rosen {
-bool RSUniRenderMirrorProcessor::Init(ScreenId id, int32_t offsetX, int32_t offsetY, ScreenId mirroredId)
+bool RSUniRenderMirrorProcessor::Init(RSDisplayRenderNode& node, int32_t offsetX, int32_t offsetY, ScreenId mirroredId)
 {
-    if (!RSProcessor::Init(id, offsetX, offsetY, mirroredId)) {
+    if (!RSProcessor::Init(node, offsetX, offsetY, mirroredId)) {
         return false;
     }
 
     renderFrameConfig_.usage = HBM_USE_CPU_READ | HBM_USE_MEM_DMA;
 
     auto screenManager = CreateOrGetScreenManager();
-    sptr<Surface> producerSurface = screenManager->GetProducerSurface(id);
+    sptr<Surface> producerSurface = screenManager->GetProducerSurface(node.GetScreenId());
     if (producerSurface == nullptr) {
-        RS_LOGE("RSUniRenderMirrorProcessor::Init for Screen(id %" PRIu64 "): ProducerSurface is null!", id);
+        RS_LOGE("RSUniRenderMirrorProcessor::Init for Screen(id %" PRIu64 "): ProducerSurface is null!",
+            node.GetScreenId());
         return false;
     }
 
-    // this is a work-around for the lack of colorgamut convertion and yuv support in GPU.
+    // this is a work-around for the lack of color gamut conversion and yuv support in GPU.
     // currently we must forceCPU to do the composition for virtual screen.
     bool forceCPU = true;
     renderFrame_ = renderEngine_->RequestFrame(producerSurface, renderFrameConfig_, forceCPU);

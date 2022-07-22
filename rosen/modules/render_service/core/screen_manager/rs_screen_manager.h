@@ -51,7 +51,6 @@ struct ScreenInfo {
     uint32_t height = 0;
     ScreenColorGamut colorGamut = ScreenColorGamut::COLOR_GAMUT_SRGB;
     ScreenState state = ScreenState::UNKNOWN;
-    // TODO: FILL THESE VALUES
     ScreenRotation rotation = ScreenRotation::ROTATION_0;
     SkMatrix rotationMatrix; // Screen rotation matrix for canvas.
 

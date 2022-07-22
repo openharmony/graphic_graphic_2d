@@ -25,8 +25,8 @@
 
 namespace OHOS {
 namespace Rosen {
-bool RSComposerAdapter::Init(RSDisplayRenderNode& node,  int32_t offsetX, int32_t offsetY, float mirrorAdaptiveCoefficient,
-    const FallbackCallback& cb)
+bool RSComposerAdapter::Init(RSDisplayRenderNode& node, int32_t offsetX, int32_t offsetY,
+    float mirrorAdaptiveCoefficient, const FallbackCallback& cb)
 {
     hdiBackend_ = HdiBackend::GetInstance();
     if (hdiBackend_ == nullptr) {
