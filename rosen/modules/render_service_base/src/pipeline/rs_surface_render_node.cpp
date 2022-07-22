@@ -142,6 +142,11 @@ void RSSurfaceRenderNode::CollectSurface(
         }
         return;
     }
+    auto& consumer = GetConsumer();
+    if (consumer != nullptr && consumer->GetTunnelHandle() != nullptr) {
+        return;
+    }
+    
     if (GetBuffer() != nullptr && GetRenderProperties().GetVisible()) {
         vec.emplace_back(shared_from_this());
     }

@@ -63,7 +63,7 @@ public:
 #endif // RS_ENABLE_EGLIMAGE
 
     static BufferDrawParam CreateBufferDrawParam(RSSurfaceRenderNode& node, SkMatrix canvasMatrix = SkMatrix(),
-        ScreenRotation rotation = ScreenRotation::ROTATION_0);
+        ScreenRotation rotation = ScreenRotation::ROTATION_0, bool isClipHole = false);
     static void DealAnimation(RSPaintFilterCanvas& canvas, RSSurfaceRenderNode& node, BufferDrawParam& params,
         const Vector2f& center);
     static void InitEnableClient();

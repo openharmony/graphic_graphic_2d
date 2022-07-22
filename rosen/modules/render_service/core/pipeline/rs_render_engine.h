@@ -123,8 +123,7 @@ public:
         RSPaintFilterCanvas& canvas,
         RSSurfaceRenderNode& node,
         const ScreenInfo& screenInfo,
-        const IRect& clipRect,
-        bool forceCPU = false);
+        const IRect& clipRect);
 
 #ifdef RS_ENABLE_GL
     const std::shared_ptr<RenderContext>& GetRenderContext() const

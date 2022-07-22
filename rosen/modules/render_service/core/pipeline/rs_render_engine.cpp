@@ -138,8 +138,9 @@ void RSRenderEngine::DrawLayers(
         auto saveCount = canvas.getSaveCount();
         if (nodePtr->IsInstanceOf<RSSurfaceRenderNode>()) {
             RSSurfaceRenderNode& node = *(static_cast<RSSurfaceRenderNode*>(nodePtr));
-            if (layer->GetCompositionType() == CompositionType::COMPOSITION_CLIENT_CLEAR) {
-                ClipHoleForLayer(canvas, node, screenInfo, clipRect, forceCPU);
+            if (layer->GetCompositionType() == CompositionType::COMPOSITION_CLIENT_CLEAR ||
+            layer->GetCompositionType() == CompositionType::COMPOSITION_TUNNEL) {
+                ClipHoleForLayer(canvas, node, screenInfo, clipRect);
                 canvas.restoreToCount(saveCount);
                 continue;
             }
@@ -195,24 +196,18 @@ void RSRenderEngine::ClipHoleForLayer(
     RSPaintFilterCanvas& canvas,
     RSSurfaceRenderNode& node,
     const ScreenInfo& screenInfo,
-    const IRect& clipRect,
-    bool forceCPU)
+    const IRect& clipRect)
 {
     std::string traceInfo;
     AppendFormat(traceInfo, "Node name:%s ClipHole[%d %d %d %d]", node.GetName().c_str(),
         clipRect.x, clipRect.y, clipRect.w, clipRect.h);
     RS_TRACE_NAME(traceInfo.c_str());
-    RS_LOGD("RsDebug RSRenderEngine::Redraw layer composition Type:COMPOSITION_CLIENT_CLEAR, %s.",
+    RS_LOGD("RsDebug RSRenderEngine::Redraw layer composition ClipHoleForLayer, %s.",
         traceInfo.c_str());
     BufferDrawParam params = RSDividedRenderUtil::CreateBufferDrawParam(
-        node, screenInfo.rotationMatrix, screenInfo.rotation);
+        node, screenInfo.rotationMatrix, screenInfo.rotation, true);
     params.targetColorGamut = static_cast<ColorGamut>(screenInfo.colorGamut);
     params.clipRect = SkRect::MakeXYWH(clipRect.x, clipRect.y, clipRect.w, clipRect.h);
-    params.matrix = params.matrix.preConcat(GetSurfaceNodeGravityMatrix(node,
-        RectF {params.dstRect.x(), params.dstRect.y(), params.dstRect.width(), params.dstRect.height()}));
-    if (node.GetRenderProperties().GetFrameGravity() != Gravity::RESIZE) {
-        params.dstRect = params.srcRect;
-    }
     RSDividedRenderUtil::ClipHole(canvas, params);
     return;
 }

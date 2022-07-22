@@ -91,6 +91,16 @@ public:
             return parent ? parent->HasDisappearingTransition(true) : false;
         }
     }
+    
+    void SetTunnelHandleChange(bool change)
+    {
+        isTunnelHandleChange_ = change;
+    }
+
+    bool GetTunnelHandleChange() const
+    {
+        return isTunnelHandleChange_;
+    }
 
     virtual RSRenderNodeType GetType() const
     {
@@ -143,8 +153,8 @@ private:
 
     const std::weak_ptr<RSContext> context_;
     NodeDirty dirtyStatus_ = NodeDirty::DIRTY;
-
     friend class RSRenderPropertyBase;
+    std::atomic<bool> isTunnelHandleChange_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS
