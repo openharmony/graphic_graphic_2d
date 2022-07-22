@@ -122,8 +122,13 @@ void RSRenderServiceVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
     }
 
     ScreenRotation rotation = node.GetRotation();
-    uint32_t boundWidth = currScreenInfo.width;
-    uint32_t boundHeight = currScreenInfo.height;
+    uint32_t logicalScreenWidth = node.GetRenderProperties().GetFrameWidth();
+    uint32_t logicalScreenHeight = node.GetRenderProperties().GetFrameHeight();
+
+    if (logicalScreenWidth <= 0 || logicalScreenHeight <= 0) {
+        logicalScreenWidth = currScreenInfo.width;
+        logicalScreenHeight = currScreenInfo.height;
+    }
 
     if (node.IsMirrorDisplay()) {
         auto mirrorSource = node.GetMirrorSource();
@@ -134,11 +139,11 @@ void RSRenderServiceVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
         }
         if (mParallelEnable) {
             if (rotation == ScreenRotation::ROTATION_90 || rotation == ScreenRotation::ROTATION_270) {
-                std::swap(boundWidth, boundHeight);
+                std::swap(logicalScreenWidth, logicalScreenHeight);
             }
-            skCanvas_ = std::make_unique<SkCanvas>(boundWidth, boundHeight);
+            skCanvas_ = std::make_unique<SkCanvas>(logicalScreenWidth, logicalScreenHeight);
             canvas_ = std::make_shared<RSPaintFilterCanvas>(skCanvas_.get());
-            canvas_->clipRect(SkRect::MakeWH(boundWidth, boundHeight));
+            canvas_->clipRect(SkRect::MakeWH(logicalScreenWidth, logicalScreenHeight));
         }
         ProcessBaseRenderNode(*existingSource);
     } else {
@@ -147,15 +152,14 @@ void RSRenderServiceVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
             RSDividedRenderUtil::SetNeedClient(true);
         // } else {
         //     if (rotation == ScreenRotation::ROTATION_90 || rotation == ScreenRotation::ROTATION_270) {
-        //         std::swap(boundWidth, boundHeight);
+        //         std::swap(logicalScreenWidth, logicalScreenHeight);
         //     }
         //     RSDividedRenderUtil::SetNeedClient(false);
         // }
-        boundsGeoPtr->SetSize(boundWidth, boundHeight);
         processor_->SetBoundsGeometry(boundsGeoPtr);
-        skCanvas_ = std::make_unique<SkCanvas>(boundWidth, boundHeight);
+        skCanvas_ = std::make_unique<SkCanvas>(logicalScreenWidth, logicalScreenHeight);
         canvas_ = std::make_shared<RSPaintFilterCanvas>(skCanvas_.get());
-        canvas_->clipRect(SkRect::MakeWH(boundWidth, boundHeight));
+        canvas_->clipRect(SkRect::MakeWH(logicalScreenWidth, logicalScreenHeight));
         ProcessBaseRenderNode(node);
     }
     processor_->PostProcess();
