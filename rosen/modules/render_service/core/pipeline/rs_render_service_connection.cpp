@@ -89,6 +89,7 @@ void RSRenderServiceConnection::CleanAll(bool toDelete) noexcept
     mainThread_->ScheduleTask([this]() {
         CleanVirtualScreens();
         CleanRenderNodes();
+        mainThread_->ClearTransactionDataPidInfo(remotePid_);
     }).wait();
 
     for (auto& conn : vsyncConnections_) {

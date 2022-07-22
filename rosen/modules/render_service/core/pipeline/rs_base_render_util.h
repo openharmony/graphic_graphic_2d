@@ -32,6 +32,8 @@
 
 namespace OHOS {
 namespace Rosen {
+class RSTransactionData;
+
 class RSBaseRenderUtil {
 public:
     static void DropFrameProcess(RSSurfaceHandler& surfaceHandler);
@@ -43,6 +45,8 @@ public:
     static bool ConvertBufferToEglImage(sptr<SurfaceBuffer> buffer, std::shared_ptr<RSEglImageManager> eglImageManager,
         GrContext* grContext, sptr<SyncFence> acquireFence, sk_sp<SkImage>& image);
 #endif
+
+    static std::unique_ptr<RSTransactionData> ParseTransactionData(MessageParcel& parcel);
 
 private:
     static bool IsBufferValid(const sptr<SurfaceBuffer>& buffer);

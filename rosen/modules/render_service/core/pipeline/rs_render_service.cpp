@@ -89,7 +89,7 @@ sptr<RSIRenderServiceConnection> RSRenderService::CreateConnection(const sptr<RS
     }
     connections_[tokenObj] = newConn;
     lock.unlock();
-
+    mainThread_->AddTransactionDataPidInfo(remotePid);
     return newConn;
 }
 
