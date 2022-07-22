@@ -81,6 +81,22 @@ static const void *GetNextLayerProcAddr(void *funcTable, const char *name)
     return reinterpret_cast<void *>(val);
 }
 
+static void SplitEnvString(const char *strLayers, std::vector<std::string> *layers)
+{
+    WLOGD("");
+    std::string env(strLayers);
+    strLayers = env.c_str();
+    for (const char *p = env.c_str(); *p != 0; p++) {
+        if (*p == *DEBUG_LAYERS_DELIMITER) {
+            layers->emplace_back(strLayers, p - strLayers);
+            strLayers = p + 1;
+        }
+    }
+    if (strLayers != env.c_str() || env.size() > 0) {
+        layers->push_back(std::string(strLayers));
+    }
+}
+
 static std::vector<std::string> GetDebugLayers(void)
 {
     WLOGD("");
@@ -88,19 +104,7 @@ static std::vector<std::string> GetDebugLayers(void)
 
     const char *strLayers = getenv("OPENGL_WRAPPER_DEBUG_LAYERS");
     if (strLayers) {
-        std::string env(strLayers);
-        strLayers = env.c_str();
-        if (!env.empty()) {
-            for (const char *p = env.c_str(); *p != 0; p++) {
-                if (*p == *DEBUG_LAYERS_DELIMITER) {
-                    layers.emplace_back(strLayers, p - strLayers);
-                    strLayers = p + 1;
-                }
-            }
-            if (strLayers != env.c_str() || env.size() > 0) {
-                layers.push_back(std::string(strLayers));
-            }
-        }
+        SplitEnvString(strLayers, &layers);
     } else {
         WLOGD("OPENGL_WRAPPER_DEBUG_LAYERS is not set.");
     }
