@@ -83,6 +83,7 @@ public:
 
     // Call carefully. This interface will empty all caches of the current process
     virtual GSError CleanCache() = 0;
+    virtual GSError GoBackground() = 0;
 
     virtual GSError SetTransform(TransformType transform) = 0;
     virtual TransformType GetTransform() const = 0;
