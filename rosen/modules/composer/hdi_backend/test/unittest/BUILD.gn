@@ -19,17 +19,17 @@ group("unittest") {
   testonly = true
 
   deps = [
-    ":hdibackend_test",
-    ":hdiframebuffersurface_test",
-    ":hdilayer_test",
-    ":hdilayerinfo_test",
-    ":hdioutput_test",
-    ":hdiscreen_test",
+    ":hdibackend_unit_test",
+    ":hdiframebuffersurface_unit_test",
+    ":hdilayer_unit_test",
+    ":hdilayerinfo_unit_test",
+    ":hdioutput_unit_test",
+    ":hdiscreen_unit_test",
   ]
 }
 
-## UnitTest hdibackend_test {{{
-ohos_unittest("hdibackend_test") {
+## UnitTest hdibackend_unit_test {{{
+ohos_unittest("hdibackend_unit_test") {
   module_out_path = module_out_path
 
   sources = [ "hdibackend_test.cpp" ]
@@ -37,10 +37,10 @@ ohos_unittest("hdibackend_test") {
   deps = [ ":hdibackend_test_common" ]
 }
 
-## UnitTest hdibackend_test }}}
+## UnitTest hdibackend_unit_test }}}
 
-## UnitTest hdiframebuffersurface_test {{{
-ohos_unittest("hdiframebuffersurface_test") {
+## UnitTest hdiframebuffersurface_unit_test {{{
+ohos_unittest("hdiframebuffersurface_unit_test") {
   module_out_path = module_out_path
 
   sources = [ "hdiframebuffersurface_test.cpp" ]
@@ -48,10 +48,10 @@ ohos_unittest("hdiframebuffersurface_test") {
   deps = [ ":hdibackend_test_common" ]
 }
 
-## UnitTest hdiframebuffersurface_test }}}
+## UnitTest hdiframebuffersurface_unit_test }}}
 
-## UnitTest hdilayer_test {{{
-ohos_unittest("hdilayer_test") {
+## UnitTest hdilayer_unit_test {{{
+ohos_unittest("hdilayer_unit_test") {
   module_out_path = module_out_path
 
   sources = [ "hdilayer_test.cpp" ]
@@ -59,10 +59,10 @@ ohos_unittest("hdilayer_test") {
   deps = [ ":hdibackend_test_common" ]
 }
 
-## UnitTest hdilayer_test }}}
+## UnitTest hdilayer_unit_test }}}
 
-## UnitTest hdilayerinfo_test {{{
-ohos_unittest("hdilayerinfo_test") {
+## UnitTest hdilayerinfo_unit_test {{{
+ohos_unittest("hdilayerinfo_unit_test") {
   module_out_path = module_out_path
 
   sources = [ "hdilayerinfo_test.cpp" ]
@@ -70,10 +70,10 @@ ohos_unittest("hdilayerinfo_test") {
   deps = [ ":hdibackend_test_common" ]
 }
 
-## UnitTest hdilayerinfo_test }}}
+## UnitTest hdilayerinfo_unit_test }}}
 
-## UnitTest hdioutput_test {{{
-ohos_unittest("hdioutput_test") {
+## UnitTest hdioutput_unit_test {{{
+ohos_unittest("hdioutput_unit_test") {
   module_out_path = module_out_path
 
   sources = [ "hdioutput_test.cpp" ]
@@ -81,10 +81,10 @@ ohos_unittest("hdioutput_test") {
   deps = [ ":hdibackend_test_common" ]
 }
 
-## UnitTest hdioutput_test }}}
+## UnitTest hdioutput_unit_test }}}
 
-## UnitTest hdiscreen_test {{{
-ohos_unittest("hdiscreen_test") {
+## UnitTest hdiscreen_unit_test {{{
+ohos_unittest("hdiscreen_unit_test") {
   module_out_path = module_out_path
 
   sources = [
@@ -95,7 +95,7 @@ ohos_unittest("hdiscreen_test") {
   deps = [ ":hdibackend_test_common" ]
 }
 
-## UnitTest hdiscreen_test }}}
+## UnitTest hdiscreen_unit_test }}}
 
 ## Build hdibackend_test_common.a {{{
 config("hdibackend_test_common_public_config") {
