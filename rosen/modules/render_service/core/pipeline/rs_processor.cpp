@@ -20,7 +20,7 @@
 
 namespace OHOS {
 namespace Rosen {
-bool RSProcessor::Init(ScreenId id, int32_t offsetX, int32_t offsetY, ScreenId mirroredId)
+bool RSProcessor::Init(RSDisplayRenderNode& node, int32_t offsetX, int32_t offsetY, ScreenId mirroredId)
 {
     offsetX_ = offsetX;
     offsetY_ = offsetY;
@@ -30,7 +30,9 @@ bool RSProcessor::Init(ScreenId id, int32_t offsetX, int32_t offsetY, ScreenId m
         RS_LOGE("RSPhysicalScreenProcessor::Init: ScreenManager is nullptr");
         return false;
     }
-    screenInfo_ = screenManager->QueryScreenInfo(id);
+    screenInfo_ = screenManager->QueryScreenInfo(node.GetScreenId());
+    screenInfo_.rotation = node.GetRotation();
+    // screenInfo_.rotationMatrix = ???
 
     auto mainThread = RSMainThread::Instance();
     if (mainThread != nullptr) {

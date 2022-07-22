@@ -28,6 +28,7 @@
 
 namespace OHOS {
 namespace Rosen {
+enum class ScreenRotation : uint32_t;
 class RSDisplayRenderNode : public RSRenderNode, public RSSurfaceHandler {
 public:
     enum CompositeType {
@@ -129,6 +130,8 @@ public:
     {
         snapshot_ = surface->makeImageSnapshot();
     }
+
+    ScreenRotation GetRotation() const;
 
 private:
     CompositeType compositeType_ { HARDWARE_COMPOSITE };

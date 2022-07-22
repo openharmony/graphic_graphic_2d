@@ -33,18 +33,19 @@ RSVirtualScreenProcessor::~RSVirtualScreenProcessor() noexcept
 {
 }
 
-bool RSVirtualScreenProcessor::Init(ScreenId id, int32_t offsetX, int32_t offsetY, ScreenId mirroredId)
+bool RSVirtualScreenProcessor::Init(RSDisplayRenderNode& node, int32_t offsetX, int32_t offsetY, ScreenId mirroredId)
 {
-    if (!RSProcessor::Init(id, offsetX, offsetY, mirroredId)) {
+    if (!RSProcessor::Init(node, offsetX, offsetY, mirroredId)) {
         return false;
     }
 
     renderFrameConfig_.usage = HBM_USE_CPU_READ | HBM_USE_MEM_DMA;
 
     auto screenManager = CreateOrGetScreenManager();
-    producerSurface_ = screenManager->GetProducerSurface(id);
+    producerSurface_ = screenManager->GetProducerSurface(node.GetScreenId());
     if (producerSurface_ == nullptr) {
-        RS_LOGE("RSVirtualScreenProcessor::Init for Screen(id %" PRIu64 "): ProducerSurface is null!", id);
+        RS_LOGE(
+            "RSVirtualScreenProcessor::Init for Screen(id %" PRIu64 "): ProducerSurface is null!", node.GetScreenId());
         return false;
     }
 

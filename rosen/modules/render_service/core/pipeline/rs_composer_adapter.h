@@ -47,7 +47,7 @@ public:
     RSComposerAdapter(const RSComposerAdapter&) = delete;
     void operator=(const RSComposerAdapter&) = delete;
 
-    bool Init(ScreenId screenId, int32_t offsetX, int32_t offsetY, float mirrorAdaptiveCoefficient,
+    bool Init(RSDisplayRenderNode& node, int32_t offsetX, int32_t offsetY, float mirrorAdaptiveCoefficient,
         const FallbackCallback& cb);
 
     LayerInfoPtr CreateLayer(RSSurfaceRenderNode& node);

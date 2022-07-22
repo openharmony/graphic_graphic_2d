@@ -31,13 +31,13 @@ RSUniRenderProcessor::~RSUniRenderProcessor() noexcept
 {
 }
 
-bool RSUniRenderProcessor::Init(ScreenId id, int32_t offsetX, int32_t offsetY, ScreenId mirroredId)
+bool RSUniRenderProcessor::Init(RSDisplayRenderNode& node, int32_t offsetX, int32_t offsetY, ScreenId mirroredId)
 {
-    if (!RSProcessor::Init(id, offsetX, offsetY, mirroredId)) {
+    if (!RSProcessor::Init(node, offsetX, offsetY, mirroredId)) {
         return false;
     }
 
-    return composerAdapter_->Init(id, offsetX, offsetY, mirrorAdaptiveCoefficient_,
+    return composerAdapter_->Init(node, offsetX, offsetY, mirrorAdaptiveCoefficient_,
         [this](const auto& surface, const auto& layers) {
         Redraw(surface, layers);
     });

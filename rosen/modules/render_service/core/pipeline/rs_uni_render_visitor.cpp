@@ -217,7 +217,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
         return;
     }
     auto mirrorNode = node.GetMirrorSource().lock();
-    if (!processor_->Init(node.GetScreenId(), node.GetDisplayOffsetX(), node.GetDisplayOffsetY(),
+    if (!processor_->Init(node, node.GetDisplayOffsetX(), node.GetDisplayOffsetY(),
         mirrorNode ? mirrorNode->GetScreenId() : INVALID_SCREEN_ID)) {
         RS_LOGE("RSUniRenderVisitor::ProcessDisplayRenderNode: processor init failed!");
         return;

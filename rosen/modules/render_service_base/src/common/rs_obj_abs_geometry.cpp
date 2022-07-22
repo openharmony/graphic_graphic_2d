@@ -24,7 +24,6 @@ constexpr unsigned LEFT_TOP_POINT = 0;
 constexpr unsigned RIGHT_TOP_POINT = 1;
 constexpr unsigned RIGHT_BOTTOM_POINT = 2;
 constexpr unsigned LEFT_BOTTOM_POINT = 3;
-constexpr unsigned ROTATION_90 = 90;
 RSObjAbsGeometry::RSObjAbsGeometry() : RSObjGeometry()
 {
     vertices_[LEFT_TOP_POINT].set(0, 0);
@@ -94,7 +93,8 @@ bool RSObjAbsGeometry::IsNeedClientCompose() const
     if (!trans_) {
         return false;
     }
-    return static_cast<int>(trans_->rotation_) % ROTATION_90;
+    // return true if rotation degree is times of 90
+    return ROSEN_EQ(trans_->rotation_ % 90, 0.f);
 }
 
 void RSObjAbsGeometry::UpdateAbsMatrix2D()

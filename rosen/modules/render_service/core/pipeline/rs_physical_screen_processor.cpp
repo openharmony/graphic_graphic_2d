@@ -31,16 +31,14 @@ RSPhysicalScreenProcessor::~RSPhysicalScreenProcessor() noexcept
 {
 }
 
-bool RSPhysicalScreenProcessor::Init(ScreenId id, int32_t offsetX, int32_t offsetY, ScreenId mirroredId)
+bool RSPhysicalScreenProcessor::Init(RSDisplayRenderNode& node, int32_t offsetX, int32_t offsetY, ScreenId mirroredId)
 {
-    if (!RSProcessor::Init(id, offsetX, offsetY, mirroredId)) {
+    if (!RSProcessor::Init(node, offsetX, offsetY, mirroredId)) {
         return false;
     }
 
-    return composerAdapter_->Init(id, offsetX, offsetY, mirrorAdaptiveCoefficient_,
-        [this](const auto& surface, const auto& layers) {
-        Redraw(surface, layers);
-    });
+    return composerAdapter_->Init(node, offsetX, offsetY, mirrorAdaptiveCoefficient_,
+        [this](const auto& surface, const auto& layers) { Redraw(surface, layers); });
 }
 
 void RSPhysicalScreenProcessor::PostProcess()
@@ -90,6 +88,8 @@ void RSPhysicalScreenProcessor::Redraw(const sptr<Surface>& surface, const std::
     if (boundsGeoPtr) {
         boundsGeoPtr->UpdateByMatrixFromSelf();
         canvas->concat(boundsGeoPtr->GetMatrix());
+        // disable screen rotation, use gpu instead
+        screenInfo_.rotation = ScreenRotation::ROTATION_0;
     }
     renderEngine_->DrawLayers(*canvas, layers, screenInfo_, forceCPU, mirrorAdaptiveCoefficient_);
     renderFrame->Flush();

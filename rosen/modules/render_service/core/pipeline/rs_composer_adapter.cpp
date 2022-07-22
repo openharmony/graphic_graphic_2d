@@ -25,7 +25,7 @@
 
 namespace OHOS {
 namespace Rosen {
-bool RSComposerAdapter::Init(ScreenId screenId,  int32_t offsetX, int32_t offsetY, float mirrorAdaptiveCoefficient,
+bool RSComposerAdapter::Init(RSDisplayRenderNode& node,  int32_t offsetX, int32_t offsetY, float mirrorAdaptiveCoefficient,
     const FallbackCallback& cb)
 {
     hdiBackend_ = HdiBackend::GetInstance();
@@ -38,7 +38,7 @@ bool RSComposerAdapter::Init(ScreenId screenId,  int32_t offsetX, int32_t offset
         RS_LOGE("RSComposerAdapter::Init: ScreenManager is nullptr");
         return false;
     }
-    output_ = screenManager->GetOutput(screenId);
+    output_ = screenManager->GetOutput(node.GetScreenId());
     if (output_ == nullptr) {
         RS_LOGE("RSComposerAdapter::Init: output_ is nullptr");
         return false;
@@ -53,7 +53,9 @@ bool RSComposerAdapter::Init(ScreenId screenId,  int32_t offsetX, int32_t offset
     offsetX_ = offsetX;
     offsetY_ = offsetY;
     mirrorAdaptiveCoefficient_ = mirrorAdaptiveCoefficient;
-    screenInfo_ = screenManager->QueryScreenInfo(screenId);
+    screenInfo_ = screenManager->QueryScreenInfo(node.GetScreenId());
+    screenInfo_.rotation = node.GetRotation();
+
     IRect damageRect {0, 0, static_cast<int32_t>(screenInfo_.width), static_cast<int32_t>(screenInfo_.height)};
     output_->SetOutputDamage(1, damageRect);
     bool directClientCompEnableStatus = RSSystemProperties::GetDirectClientCompEnableStatus();

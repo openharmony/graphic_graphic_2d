@@ -115,11 +115,15 @@ void RSRenderServiceVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
         return;
     }
     auto mirrorNode = node.GetMirrorSource().lock();
-    if (!processor_->Init(node.GetScreenId(), node.GetDisplayOffsetX(), node.GetDisplayOffsetY(),
+    if (!processor_->Init(node, node.GetDisplayOffsetX(), node.GetDisplayOffsetY(),
         mirrorNode ? mirrorNode->GetScreenId() : INVALID_SCREEN_ID)) {
         RS_LOGE("RSRenderServiceVisitor::ProcessDisplayRenderNode: processor init failed!");
         return;
     }
+
+    ScreenRotation rotation = node.GetRotation();
+    uint32_t boundWidth = currScreenInfo.width;
+    uint32_t boundHeight = currScreenInfo.height;
 
     if (node.IsMirrorDisplay()) {
         auto mirrorSource = node.GetMirrorSource();
@@ -129,9 +133,6 @@ void RSRenderServiceVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
             return;
         }
         if (mParallelEnable) {
-            ScreenRotation rotation = ScreenRotation::ROTATION_0;
-            uint32_t boundWidth = currScreenInfo.width;
-            uint32_t boundHeight = currScreenInfo.height;
             if (rotation == ScreenRotation::ROTATION_90 || rotation == ScreenRotation::ROTATION_270) {
                 std::swap(boundWidth, boundHeight);
             }
@@ -141,23 +142,20 @@ void RSRenderServiceVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
         }
         ProcessBaseRenderNode(*existingSource);
     } else {
-        ScreenRotation rotation = ScreenRotation::ROTATION_0;
-        uint32_t boundWidth = currScreenInfo.width;
-        uint32_t boundHeight = currScreenInfo.height;
-        if (rotation == ScreenRotation::ROTATION_90 || rotation == ScreenRotation::ROTATION_270) {
-            std::swap(boundWidth, boundHeight);
-        }
+        auto boundsGeoPtr = std::static_pointer_cast<RSObjAbsGeometry>(node.GetRenderProperties().GetBoundsGeometry());
+        // if (boundsGeoPtr && boundsGeoPtr->IsNeedClientCompose()) {
+            RSDividedRenderUtil::SetNeedClient(true);
+        // } else {
+        //     if (rotation == ScreenRotation::ROTATION_90 || rotation == ScreenRotation::ROTATION_270) {
+        //         std::swap(boundWidth, boundHeight);
+        //     }
+        //     RSDividedRenderUtil::SetNeedClient(false);
+        // }
+        boundsGeoPtr->SetSize(boundWidth, boundHeight);
+        processor_->SetBoundsGeometry(boundsGeoPtr);
         skCanvas_ = std::make_unique<SkCanvas>(boundWidth, boundHeight);
         canvas_ = std::make_shared<RSPaintFilterCanvas>(skCanvas_.get());
         canvas_->clipRect(SkRect::MakeWH(boundWidth, boundHeight));
-        auto boundsGeoPtr = std::static_pointer_cast<RSObjAbsGeometry>(node.GetRenderProperties().GetBoundsGeometry());
-        if (boundsGeoPtr && boundsGeoPtr->IsNeedClientCompose()) {
-            RSDividedRenderUtil::SetNeedClient(true);
-            boundsGeoPtr->SetSize(boundWidth, boundHeight);
-            processor_->SetBoundsGeometry(boundsGeoPtr);
-        } else {
-            RSDividedRenderUtil::SetNeedClient(false);
-        }
         ProcessBaseRenderNode(node);
     }
     processor_->PostProcess();
