@@ -96,7 +96,9 @@ void RSUIDirector::Destroy()
 {
     if (root_ != 0) {
         if (!isUniRenderEnabled_) {
-            RSRenderThread::Instance().Detach(root_);
+            if (auto node = RSNodeMap::Instance().GetNode<RSRootNode>(root_)) {
+                node->RemoveFromTree();
+            }
         }
         root_ = 0;
     }
