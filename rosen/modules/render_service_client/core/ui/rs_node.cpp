@@ -50,6 +50,12 @@ RSNode::RSNode(bool isRenderServiceNode)
     UpdateImplicitAnimator();
 }
 
+RSNode::RSNode(bool isRenderServiceNode, NodeId id)
+    : RSBaseNode(isRenderServiceNode, id), stagingPropertiesExtrator_(id)
+{
+    UpdateImplicitAnimator();
+}
+
 RSNode::~RSNode()
 {
     FallbackAnimationsToRoot();

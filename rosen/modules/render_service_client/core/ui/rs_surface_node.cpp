@@ -228,8 +228,7 @@ std::shared_ptr<RSSurfaceNode> RSSurfaceNode::Unmarshalling(Parcel& parcel)
         return prevNode->ReinterpretCastTo<RSSurfaceNode>();
     }
 
-    SharedPtr surfaceNode(new RSSurfaceNode(config, isRenderServiceNode));
-    surfaceNode->SetId(id);
+    SharedPtr surfaceNode(new RSSurfaceNode(config, isRenderServiceNode, id));
     RSNodeMap::MutableInstance().RegisterNode(surfaceNode);
 
     return surfaceNode;
@@ -273,6 +272,10 @@ bool RSSurfaceNode::NeedForcedSendToRemote() const
 
 RSSurfaceNode::RSSurfaceNode(const RSSurfaceNodeConfig& config, bool isRenderServiceNode)
     : RSNode(isRenderServiceNode), name_(config.SurfaceNodeName)
+{}
+
+RSSurfaceNode::RSSurfaceNode(const RSSurfaceNodeConfig& config, bool isRenderServiceNode, NodeId id)
+    : RSNode(isRenderServiceNode, id), name_(config.SurfaceNodeName)
 {}
 
 RSSurfaceNode::~RSSurfaceNode()

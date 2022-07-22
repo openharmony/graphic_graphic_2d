@@ -173,7 +173,8 @@ public:
     void RemoveModifier(const std::shared_ptr<RSModifier>& modifier);
 
 protected:
-    RSNode(bool isRenderServiceNode);
+    explicit RSNode(bool isRenderServiceNode);
+    RSNode(bool isRenderServiceNode, NodeId id);
     RSNode(const RSNode&) = delete;
     RSNode(const RSNode&&) = delete;
     RSNode& operator=(const RSNode&) = delete;

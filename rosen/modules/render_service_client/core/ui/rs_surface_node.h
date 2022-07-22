@@ -86,7 +86,8 @@ public:
 
 protected:
     bool NeedForcedSendToRemote() const override;
-    explicit RSSurfaceNode(const RSSurfaceNodeConfig& config, bool isRenderServiceNode);
+    RSSurfaceNode(const RSSurfaceNodeConfig& config, bool isRenderServiceNode);
+    RSSurfaceNode(const RSSurfaceNodeConfig& config, bool isRenderServiceNode, NodeId id);
     RSSurfaceNode(const RSSurfaceNode&) = delete;
     RSSurfaceNode(const RSSurfaceNode&&) = delete;
     RSSurfaceNode& operator=(const RSSurfaceNode&) = delete;

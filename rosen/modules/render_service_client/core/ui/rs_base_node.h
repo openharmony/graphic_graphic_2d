@@ -77,7 +77,8 @@ protected:
     static bool isUniRenderEnabled_;
     bool isRenderServiceNode_;
 
-    RSBaseNode(bool isRenderServiceNode);
+    explicit RSBaseNode(bool isRenderServiceNode);
+    RSBaseNode(bool isRenderServiceNode, NodeId id);
     RSBaseNode(const RSBaseNode&) = delete;
     RSBaseNode(const RSBaseNode&&) = delete;
     RSBaseNode& operator=(const RSBaseNode&) = delete;
