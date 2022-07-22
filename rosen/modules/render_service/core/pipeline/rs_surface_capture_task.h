@@ -74,6 +74,9 @@ private:
         void ProcessSurfaceRenderNodeWithUni(RSSurfaceRenderNode &node);
         void ProcessSurfaceRenderNodeWithoutUni(RSSurfaceRenderNode &node);
         void DrawBufferOnCanvas(RSSurfaceRenderNode& node);
+#ifdef RS_ENABLE_EGLIMAGE
+        void DrawImageOnCanvas(RSSurfaceRenderNode& node);
+#endif // RS_ENABLE_EGLIMAGE
         void DrawSurface(RSSurfaceRenderNode &node);
         std::unique_ptr<RSPaintFilterCanvas> canvas_ = nullptr;
         bool isDisplayNode_ = false;

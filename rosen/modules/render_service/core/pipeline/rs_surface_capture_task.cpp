@@ -210,18 +210,16 @@ void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::ProcessSurfaceRenderNodeWith
         RS_LOGD("ProcessSurfaceRenderNode node: %llu invisible", node.GetId());
         return;
     }
-
     if (!canvas_) {
         RS_LOGE("ProcessSurfaceRenderNode, canvas is nullptr");
         return;
     }
     auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(node.GetRenderProperties().GetBoundsGeometry());
     if (!geoPtr) {
-        RS_LOGI("ProcessSurfaceRenderNode node:%llu, get geoPtr failed",
-            node.GetId());
+        RS_LOGI("ProcessSurfaceRenderNode node:%llu, get geoPtr failed", node.GetId());
         return;
     }
-    RS_TRACE_BEGIN("RSSurfaceCaptureVisitor::Process:" + node.GetName());
+    RS_TRACE_NAME("RSSurfaceCaptureVisitor::Process:" + node.GetName());
     canvas_->save();
     if (!node.GetConsumer()) {
         canvas_->scale(scaleX_, scaleY_);
@@ -233,7 +231,6 @@ void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::ProcessSurfaceRenderNodeWith
     if (!contextClipRect.isEmpty()) {
         canvas_->clipRect(contextClipRect);
     }
-
     auto matrix = geoPtr->GetMatrix();
     matrix.setTranslateX(std::ceil(matrix.getTranslateX()));
     matrix.setTranslateY(std::ceil(matrix.getTranslateY()));
@@ -241,36 +238,53 @@ void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::ProcessSurfaceRenderNodeWith
     canvas_->clipRect(SkRect::MakeWH(std::floor(node.GetRenderProperties().GetBoundsWidth()),
         std::floor(node.GetRenderProperties().GetBoundsHeight())));
     ProcessBaseRenderNode(node);
-
     if (node.GetConsumer() != nullptr) {
-        RS_TRACE_BEGIN("UniRender::Process:" + node.GetName());
+        RS_TRACE_NAME("UniRender::Process:" + node.GetName());
         if (node.GetBuffer() == nullptr) {
-            RS_LOGD("RSUniRenderVisitor::ProcessSurfaceRenderNode:%llu buffer is not available", node.GetId());
+            RS_LOGD("RSSurfaceCaptureVisitor::ProcessSurfaceRenderNode:%llu buffer is not available", node.GetId());
         } else {
             node.NotifyRTBufferAvailable();
-            RS_LOGD("RSUniRenderVisitor::ProcessSurfaceRenderNode draw buffer on canvas");
+#ifdef RS_ENABLE_EGLIMAGE
+            DrawImageOnCanvas(node);
+#else
             DrawBufferOnCanvas(node);
+#endif
         }
-        RS_TRACE_END();
     }
     canvas_->RestoreAlpha();
     canvas_->restore();
-    RS_TRACE_END();
 }
 
 void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::DrawBufferOnCanvas(RSSurfaceRenderNode& node)
 {
+    RS_LOGD("RSSurfaceCaptureVisitor::ProcessSurfaceRenderNode draw buffer on canvas");
     if (!canvas_) {
-        RS_LOGE("RSUniRenderVisitor::DrawBufferOnCanvas canvas is nullptr");
+        RS_LOGE("RSSurfaceCaptureVisitor::DrawBufferOnCanvas canvas is nullptr");
         return;
     }
-
     auto buffer = node.GetBuffer();
     auto srcRect = SkRect::MakeWH(buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight());
     auto dstRect = SkRect::MakeWH(node.GetRenderProperties().GetBoundsWidth(),
         node.GetRenderProperties().GetBoundsHeight());
     RSUniRenderUtil::DrawBufferOnCanvas(buffer, ColorGamut::COLOR_GAMUT_SRGB, *canvas_, srcRect, dstRect);
 }
+
+#ifdef RS_ENABLE_EGLIMAGE
+void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::DrawImageOnCanvas(RSSurfaceRenderNode& node)
+{
+    RS_LOGD("RSSurfaceCaptureVisitor::ProcessSurfaceRenderNode draw image on canvas");
+    if (!canvas_) {
+        RS_LOGE("RSSurfaceCaptureVisitor::DrawImageOnCanvas canvas is nullptr");
+        return;
+    }
+    auto buffer = node.GetBuffer();
+    auto srcRect = SkRect::MakeWH(buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight());
+    auto dstRect = SkRect::MakeWH(node.GetRenderProperties().GetBoundsWidth(),
+        node.GetRenderProperties().GetBoundsHeight());
+    BufferInfo bufferInfo = { buffer, node.GetAcquireFence(), node.GetConsumer() };
+    RSUniRenderUtil::DrawImageOnCanvas(bufferInfo, *canvas_, srcRect, dstRect);
+}
+#endif // RS_ENABLE_EGLIMAGE
 
 void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
 {
