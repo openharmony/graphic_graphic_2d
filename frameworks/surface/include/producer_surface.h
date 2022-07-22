@@ -114,6 +114,7 @@ private:
     sptr<IBufferProducer> producer_ = nullptr;
     std::string name_ = "not init";
     uint64_t queueId_ = 0;
+    bool isDisconnected = true;
 };
 } // namespace OHOS
 

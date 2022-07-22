@@ -309,12 +309,7 @@ GSError BufferClientProducer::IsSupportedAlloc(const std::vector<VerifyAllocInfo
 
 GSError BufferClientProducer::Disconnect()
 {
-    MessageOption option(MessageOption::TF_ASYNC);  // disconnect sync to async
-    MessageParcel arguments;
-    MessageParcel reply;
-    if (!arguments.WriteInterfaceToken(GetDescriptor())) {
-        BLOGN_FAILURE("write interface token failed");
-    }
+    DEFINE_MESSAGE_VARIABLES(arguments, reply, option, BLOGE);
 
     SEND_REQUEST(BUFFER_PRODUCER_DISCONNECT, arguments, reply, option);
     int32_t ret = reply.ReadInt32();

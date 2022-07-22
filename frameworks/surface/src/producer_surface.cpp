@@ -39,7 +39,7 @@ ProducerSurface::~ProducerSurface()
         BLOGNE("Wrong SptrRefCount! producer_:%{public}d", producer_->GetSptrRefCount());
     }
     BLOGND("dtor, name:%{public}s, Queue Id:%{public}" PRIu64 "", name_.c_str(), queueId_);
-    auto ret = producer_->Disconnect();
+    auto ret = Disconnect();
     if (ret != GSERROR_OK) {
         BLOGNE("Disconnect failed, %{public}s", GSErrorStr(ret).c_str());
     }
@@ -81,6 +81,9 @@ GSError ProducerSurface::RequestBuffer(sptr<SurfaceBuffer>& buffer,
     }
 
     std::lock_guard<std::mutex> lockGuard(mutex_);
+    if (isDisconnected) {
+        isDisconnected = false;
+    }
     // add cache
     if (retval.buffer != nullptr) {
         bufferProducerCache_[retval.sequence] = retval.buffer;
@@ -318,7 +321,20 @@ GSError ProducerSurface::IsSupportedAlloc(const std::vector<VerifyAllocInfo> &in
 
 GSError ProducerSurface::Disconnect()
 {
-    return producer_->Disconnect();
+    {
+        std::lock_guard<std::mutex> lockGuard(mutex_);
+        if (isDisconnected) {
+            return GSERROR_INVALID_OPERATING;
+        }
+    }
+    GSError ret = producer_->Disconnect();
+    {
+        std::lock_guard<std::mutex> lockGuard(mutex_);
+        if (ret == GSERROR_OK) {
+            isDisconnected = true;
+        }
+    }
+    return ret;
 }
 
 GSError ProducerSurface::SetScalingMode(uint32_t sequence, ScalingMode scalingMode)
