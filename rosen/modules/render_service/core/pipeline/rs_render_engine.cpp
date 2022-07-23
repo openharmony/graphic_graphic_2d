@@ -52,11 +52,14 @@ bool RSRenderEngine::NeedForceCPU(const std::vector<LayerInfoPtr>& layers)
         if (buffer == nullptr) {
             continue;
         }
+
+#ifndef RS_ENABLE_EGLIMAGE
         const auto bufferFormat = buffer->GetFormat();
         if (bufferFormat == PIXEL_FMT_YCRCB_420_SP || bufferFormat == PIXEL_FMT_YCBCR_420_SP) {
             forceCPU = true;
             break;
         }
+#endif
 
         ColorGamut srcGamut = static_cast<ColorGamut>(buffer->GetSurfaceBufferColorGamut());
         ColorGamut dstGamut = ColorGamut::COLOR_GAMUT_SRGB;
