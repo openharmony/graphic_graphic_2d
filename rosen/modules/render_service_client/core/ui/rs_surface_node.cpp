@@ -68,8 +68,8 @@ RSSurfaceNode::SharedPtr RSSurfaceNode::Create(const RSSurfaceNodeConfig& surfac
         command = std::make_unique<RSSurfaceNodeSetCallbackForRenderThreadRefresh>(
             node->GetId(), [] { RSRenderThread::Instance().RequestNextVSync(); });
         transactionProxy->AddCommand(command, isWindow);
+        node->SetFrameGravity(Gravity::RESIZE);
     }
-    node->SetFrameGravity(Gravity::RESIZE);
     ROSEN_LOGD("RsDebug RSSurfaceNode::Create id:%llu", node->GetId());
     return node;
 }

@@ -328,8 +328,11 @@ void RSMainThread::CalcOcclusion()
         // Set result to SurfaceRenderNode and its children
         surface->SetVisibleRegionRecursive(subResult, curVisVec);
         // Current region need to merge current surface for next calculation(ignore alpha surface)
+        bool diff = surface->GetDstRect().width_ != surface->GetBuffer()->GetWidth() ||
+                    surface->GetDstRect().height_ != surface->GetBuffer()->GetHeight();
         const uint8_t opacity = 255;
-        if (surface->GetAbilityBgAlpha() == opacity && surface->GetRenderProperties().GetAlpha() == 1.0) {
+        if (surface->GetAbilityBgAlpha() == opacity &&
+            ROSEN_EQ(surface->GetRenderProperties().GetAlpha(), 1.0f) && !diff) {
             curRegion = curSurface.Or(curRegion);
         }
     }
