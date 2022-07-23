@@ -33,7 +33,6 @@
 #endif // RS_ENABLE_EGLIMAGE
 
 namespace OHOS {
-
 namespace Rosen {
 struct BufferDrawParam {
     sptr<OHOS::SurfaceBuffer> buffer;

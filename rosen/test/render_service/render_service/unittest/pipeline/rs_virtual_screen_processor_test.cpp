@@ -87,7 +87,8 @@ HWTEST_F(RSVirtualScreenProcessorTest, ProcessSurface001, TestSize.Level1)
  */
 HWTEST_F(RSVirtualScreenProcessorTest, PostProcess001, TestSize.Level1)
 {
-    auto rsSoftwareProcessor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::SOFTWARE_COMPOSITE);
+    auto rsSoftwareProcessor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::
+        SOFTWARE_COMPOSITE);
     rsSoftwareProcessor->PostProcess();
 }
 } // namespace OHOS::Rosen
