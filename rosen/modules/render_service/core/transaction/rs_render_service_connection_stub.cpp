@@ -385,6 +385,26 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             reply.WriteUInt32Vector(modeSend);
             break;
         }
+        case GET_SCREEN_SUPPORTED_METADATAKEYS: {
+            auto token = data.ReadInterfaceToken();
+            if (token != RSIRenderServiceConnection::GetDescriptor()) {
+                ret = ERR_INVALID_STATE;
+                break;
+            }
+            ScreenId id = data.ReadUint64();
+            std::vector<uint32_t> keySend;
+            std::vector<ScreenHDRMetadataKey> keys;
+            int32_t result = GetScreenSupportedMetaDataKeys(id, keys);
+            reply.WriteInt32(result);
+            if (result != StatusCode::SUCCESS) {
+                break;
+            }
+            for (auto i : keys) {
+                keySend.push_back(i);
+            }
+            reply.WriteUInt32Vector(keySend);
+            break;
+        }
         case GET_SCREEN_GAMUT: {
             auto token = data.ReadInterfaceToken();
             if (token != RSIRenderServiceConnection::GetDescriptor()) {

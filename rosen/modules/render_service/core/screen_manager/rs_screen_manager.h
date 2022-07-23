@@ -138,6 +138,8 @@ public:
 
     virtual int32_t GetScreenSupportedColorGamuts(ScreenId id, std::vector<ScreenColorGamut>& mode) const = 0;
 
+    virtual int32_t GetScreenSupportedMetaDataKeys(ScreenId id, std::vector<ScreenHDRMetadataKey>& keys) const = 0;
+
     virtual int32_t GetScreenColorGamut(ScreenId id, ScreenColorGamut& mode) const = 0;
 
     virtual int32_t SetScreenColorGamut(ScreenId id, int32_t modeIdx) = 0;
@@ -240,6 +242,8 @@ public:
 
     int32_t GetScreenSupportedColorGamuts(ScreenId id, std::vector<ScreenColorGamut>& mode) const override;
 
+    int32_t GetScreenSupportedMetaDataKeys(ScreenId id, std::vector<ScreenHDRMetadataKey>& keys) const override;
+
     int32_t GetScreenColorGamut(ScreenId id, ScreenColorGamut& mode) const override;
 
     int32_t SetScreenColorGamut(ScreenId id, int32_t modeIdx) override;
@@ -282,6 +286,7 @@ private:
     ScreenId GetMirrorScreenId(ScreenId id);
 
     int32_t GetScreenSupportedColorGamutsLocked(ScreenId id, std::vector<ScreenColorGamut>& mode) const;
+    int32_t GetScreenSupportedMetaDataKeysLocked(ScreenId id, std::vector<ScreenHDRMetadataKey>& keys) const;
     int32_t GetScreenColorGamutLocked(ScreenId id, ScreenColorGamut& mode) const;
     int32_t SetScreenColorGamutLocked(ScreenId id, int32_t modeIdx);
     int32_t SetScreenGamutMapLocked(ScreenId id, ScreenGamutMap mode);

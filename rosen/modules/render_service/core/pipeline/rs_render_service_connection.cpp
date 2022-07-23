@@ -439,6 +439,13 @@ int32_t RSRenderServiceConnection::GetScreenSupportedColorGamuts(ScreenId id, st
     }).get();
 }
 
+int32_t RSRenderServiceConnection::GetScreenSupportedMetaDataKeys(ScreenId id, std::vector<ScreenHDRMetadataKey>& keys)
+{
+    return mainThread_->ScheduleTask([=, &keys]() {
+        return screenManager_->GetScreenSupportedMetaDataKeys(id, keys);
+    }).get();
+}
+
 int32_t RSRenderServiceConnection::GetScreenColorGamut(ScreenId id, ScreenColorGamut& mode)
 {
     return mainThread_->ScheduleTask([=, &mode]() {

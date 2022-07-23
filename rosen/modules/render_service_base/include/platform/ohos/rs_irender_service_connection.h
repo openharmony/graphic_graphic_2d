@@ -73,6 +73,7 @@ public:
         REGISTER_APPLICATION_AGENT,
         SET_BUFFER_AVAILABLE_LISTENER,
         GET_SCREEN_SUPPORTED_GAMUTS,
+        GET_SCREEN_SUPPORTED_METADATAKEYS,
         GET_SCREEN_GAMUT,
         SET_SCREEN_GAMUT,
         SET_SCREEN_GAMUT_MAP,
@@ -147,6 +148,8 @@ public:
         NodeId id, sptr<RSIBufferAvailableCallback> callback, bool isFromRenderThread) = 0;
 
     virtual int32_t GetScreenSupportedColorGamuts(ScreenId id, std::vector<ScreenColorGamut>& mode) = 0;
+
+    virtual int32_t GetScreenSupportedMetaDataKeys(ScreenId id, std::vector<ScreenHDRMetadataKey>& keys) = 0;
 
     virtual int32_t GetScreenColorGamut(ScreenId id, ScreenColorGamut& mode) = 0;
 

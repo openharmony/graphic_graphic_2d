@@ -645,6 +645,38 @@ HWTEST_F(RSInterfacesTest, GetScreenSupportedColorGamuts002, Function | SmallTes
 }
 
 /*
+* Function: GetScreenSupportedMetaDataKeys
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call GetScreenSupportedMetaDataKeys
+*                  2. check ret
+*/
+HWTEST_F(RSInterfacesTest, GetScreenSupportedMetaDataKeys001, Function | SmallTest | Level2)
+{
+    auto screenId = rsInterfaces->GetDefaultScreenId();
+    EXPECT_NE(screenId, INVALID_SCREEN_ID);
+    std::vector<ScreenHDRMetadataKey> keys;
+    int ret = rsInterfaces->GetScreenSupportedMetaDataKeys(screenId, keys);
+    EXPECT_EQ(ret, StatusCode::SUCCESS);
+}
+
+/*
+* Function: GetScreenSupportedMetaDataKeys
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call GetScreenSupportedMetaDataKeys with INVALID_SCREEN_ID
+*                  2. check ret
+*/
+HWTEST_F(RSInterfacesTest, GetScreenSupportedMetaDataKeys002, Function | SmallTest | Level2)
+{
+    std::vector<ScreenHDRMetadataKey> keys;
+    int ret = rsInterfaces->GetScreenSupportedMetaDataKeys(INVALID_SCREEN_ID, keys);
+    EXPECT_EQ(ret, StatusCode::SCREEN_NOT_FOUND);
+}
+
+/*
 * Function: GetScreenColorGamut
 * Type: Function
 * Rank: Important(2)

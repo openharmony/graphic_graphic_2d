@@ -66,6 +66,7 @@ public:
     virtual void SetScreenBacklight(uint32_t level) = 0;
     virtual int32_t GetScreenBacklight() const = 0;
     virtual int32_t GetScreenSupportedColorGamuts(std::vector<ScreenColorGamut> &mode) const = 0;
+    virtual int32_t GetScreenSupportedMetaDataKeys(std::vector<ScreenHDRMetadataKey> &keys) const = 0;
     virtual int32_t GetScreenColorGamut(ScreenColorGamut &mode) const = 0;
     virtual int32_t SetScreenColorGamut(int32_t modeIdx) = 0;
     virtual int32_t SetScreenGamutMap(ScreenGamutMap mode) = 0;
@@ -118,6 +119,7 @@ public:
     void SetScreenBacklight(uint32_t level) override;
     int32_t GetScreenBacklight() const override;
     int32_t GetScreenSupportedColorGamuts(std::vector<ScreenColorGamut> &mode) const override;
+    int32_t GetScreenSupportedMetaDataKeys(std::vector<ScreenHDRMetadataKey> &keys) const override;
     int32_t GetScreenColorGamut(ScreenColorGamut &mode) const override;
     int32_t SetScreenColorGamut(int32_t modeIdx) override;
     int32_t SetScreenGamutMap(ScreenGamutMap mode) override;

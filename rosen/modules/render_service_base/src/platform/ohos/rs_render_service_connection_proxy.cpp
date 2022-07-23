@@ -660,6 +660,34 @@ int32_t RSRenderServiceConnectionProxy::GetScreenSupportedColorGamuts(ScreenId i
     return result;
 }
 
+int32_t RSRenderServiceConnectionProxy::GetScreenSupportedMetaDataKeys(
+    ScreenId id, std::vector<ScreenHDRMetadataKey>& keys)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return RS_CONNECTION_ERROR;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    data.WriteUint64(id);
+    int32_t err = Remote()->SendRequest(
+        RSIRenderServiceConnection::GET_SCREEN_SUPPORTED_METADATAKEYS, data, reply, option);
+    if (err != NO_ERROR) {
+        return RS_CONNECTION_ERROR;
+    }
+    int32_t result = reply.ReadInt32();
+    if (result == SUCCESS) {
+        keys.clear();
+        std::vector<uint32_t> keyRecv;
+        reply.ReadUInt32Vector(&keyRecv);
+        for (auto i : keyRecv) {
+            keys.push_back(static_cast<ScreenHDRMetadataKey>(i));
+        }
+    }
+    return result;
+}
+
 int32_t RSRenderServiceConnectionProxy::GetScreenColorGamut(ScreenId id, ScreenColorGamut& mode)
 {
     MessageParcel data;
