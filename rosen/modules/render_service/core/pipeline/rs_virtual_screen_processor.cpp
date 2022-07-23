@@ -44,7 +44,7 @@ bool RSVirtualScreenProcessor::Init(ScreenId id, int32_t offsetX, int32_t offset
     auto screenManager = CreateOrGetScreenManager();
     producerSurface_ = screenManager->GetProducerSurface(id);
     if (producerSurface_ == nullptr) {
-        RS_LOGE("RSVirtualScreenProcessor::Init for Screen(id %llu): ProducerSurface is null!", id);
+        RS_LOGE("RSVirtualScreenProcessor::Init for Screen(id %" PRIu64 "): ProducerSurface is null!", id);
         return false;
     }
 

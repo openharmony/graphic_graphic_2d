@@ -16,8 +16,6 @@
 #ifndef EFFECT_TYPE_H
 #define EFFECT_TYPE_H
 
-#include <inttypes.h>
-
 namespace OHOS {
 namespace Rosen {
 #ifdef _WIN32

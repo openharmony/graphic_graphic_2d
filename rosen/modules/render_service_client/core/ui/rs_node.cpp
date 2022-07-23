@@ -800,13 +800,13 @@ void RSNode::AnimationFinish(AnimationId animationId)
 {
     auto animationItr = animations_.find(animationId);
     if (animationItr == animations_.end()) {
-        ROSEN_LOGE("Failed to find animation[%llu]!", animationId);
+        ROSEN_LOGE("Failed to find animation[%" PRIu64 "]!", animationId);
         return;
     }
 
     auto animation = animationItr->second;
     if (animation == nullptr) {
-        ROSEN_LOGE("Failed to finish animation[%llu], animation is null!", animationId);
+        ROSEN_LOGE("Failed to finish animation[%" PRIu64 "], animation is null!", animationId);
         return;
     }
 

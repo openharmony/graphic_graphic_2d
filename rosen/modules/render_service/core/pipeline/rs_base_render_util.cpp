@@ -525,7 +525,7 @@ void RSBaseRenderUtil::DropFrameProcess(RSSurfaceHandler& node)
     auto availableBufferCnt = node.GetAvailableBufferCount();
     const auto& surfaceConsumer = node.GetConsumer();
     if (surfaceConsumer == nullptr) {
-        RS_LOGI("RsDebug RSBaseRenderUtil::DropFrameProcess (node: %llu): surfaceConsumer is null!",
+        RS_LOGE("RsDebug RSBaseRenderUtil::DropFrameProcess (node: %" PRIu64 "): surfaceConsumer is null!",
             node.GetNodeId());
         return;
     }
@@ -540,18 +540,19 @@ void RSBaseRenderUtil::DropFrameProcess(RSSurfaceHandler& node)
         int64_t timestamp = 0;
         auto ret = surfaceConsumer->AcquireBuffer(cbuffer, acquireFence, timestamp, damage);
         if (ret != OHOS::SURFACE_ERROR_OK) {
-            RS_LOGW("RSBaseRenderUtil::DropFrameProcess(node: %llu): AcquireBuffer failed(ret: %d), do nothing ",
+            RS_LOGW("RSBaseRenderUtil::DropFrameProcess(node: %" PRIu64 "): AcquireBuffer failed(ret: %d), do nothing ",
                 node.GetNodeId(), ret);
             return;
         }
 
         ret = surfaceConsumer->ReleaseBuffer(cbuffer, SyncFence::INVALID_FENCE);
         if (ret != OHOS::SURFACE_ERROR_OK) {
-            RS_LOGW("RSBaseRenderUtil::DropFrameProcess(node: %llu): ReleaseBuffer failed(ret: %d), Acquire done ",
+            RS_LOGW("RSBaseRenderUtil::DropFrameProcess(node: %" PRIu64
+                    "): ReleaseBuffer failed(ret: %d), Acquire done ",
                 node.GetNodeId(), ret);
         }
         availableBufferCnt = node.ReduceAvailableBuffer();
-        RS_LOGD("RsDebug RSBaseRenderUtil::DropFrameProcess (node: %llu), drop one frame", node.GetNodeId());
+        RS_LOGD("RsDebug RSBaseRenderUtil::DropFrameProcess (node: %" PRIu64 "), drop one frame", node.GetNodeId());
     }
 
     return;
@@ -576,13 +577,13 @@ bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfaceHandler)
     Rect damage;
     auto ret = consumer->AcquireBuffer(buffer, acquireFence, timestamp, damage);
     if (buffer == nullptr || ret != SURFACE_ERROR_OK) {
-        RS_LOGE("RsDebug surfaceHandler(id: %llu) AcquireBuffer failed(ret: %d)!",
+        RS_LOGE("RsDebug surfaceHandler(id: %" PRIu64 ") AcquireBuffer failed(ret: %d)!",
             surfaceHandler.GetNodeId(), ret);
         return false;
     }
 
     surfaceHandler.SetBuffer(buffer, acquireFence, damage, timestamp);
-    RS_LOGD("RsDebug surfaceHandler(id: %llu) AcquireBuffer success, timestamp = %lld.",
+    RS_LOGD("RsDebug surfaceHandler(id: %" PRIu64 ") AcquireBuffer success, timestamp = %" PRId64 ".",
         surfaceHandler.GetNodeId(), timestamp);
     availableBufferCnt = surfaceHandler.ReduceAvailableBuffer();
     return true;
@@ -599,7 +600,7 @@ bool RSBaseRenderUtil::ReleaseBuffer(RSSurfaceHandler& surfaceHandler)
     if (preBuffer.buffer != nullptr) {
         auto ret = consumer->ReleaseBuffer(preBuffer.buffer, preBuffer.releaseFence);
         if (ret != OHOS::SURFACE_ERROR_OK) {
-            RS_LOGE("RsDebug surfaceHandler(id: %llu) ReleaseBuffer failed(ret: %d)!",
+            RS_LOGE("RsDebug surfaceHandler(id: %" PRIu64 ") ReleaseBuffer failed(ret: %d)!",
                 surfaceHandler.GetNodeId(), ret);
             return false;
         }

@@ -35,8 +35,8 @@ RSTimeOutDetector::RSTimeOutDetector(int timeOutThresholdMs,
     std::string detectorStringId) :RSBaseEventDetector(detectorStringId)
 {
     RS_LOGD("RSTimeOutDetector ::RSTimeOutDetector timeOutThresholdMs is %d ", timeOutThresholdMs);
-    timeOutThredsholdMs_ = timeOutThresholdMs;
-    paramList_["timeOutThredsholdMs"] = std::to_string(timeOutThredsholdMs_);
+    timeOutThresholdMs_ = timeOutThresholdMs;
+    paramList_["timeOutThresholdMs"] = std::to_string(timeOutThresholdMs_);
 }
 
 
@@ -51,7 +51,7 @@ void RSTimeOutDetector::SetParam(const std::string& key, const std::string& valu
         RS_LOGD("RSTimeOutDetector :: SetParam Invaild Value ");
         return;
     }
-    timeOutThredsholdMs_ = valueInt;
+    timeOutThresholdMs_ = valueInt;
     paramList_[key] = value;
 }
 
@@ -64,8 +64,8 @@ void RSTimeOutDetector::SetLoopStartTag()
 void RSTimeOutDetector::SetLoopFinishTag()
 {
     uint64_t finishTimeStampMs = RSEventTimer::GetSysTimeMs();
-    RS_LOGD("RSTimeOutDetector :: One loop cost Time: %llu ", finishTimeStampMs - startTimeStampMs_);
-    if (finishTimeStampMs > startTimeStampMs_ && finishTimeStampMs - startTimeStampMs_ > timeOutThredsholdMs_) {
+    RS_LOGD("RSTimeOutDetector :: One loop cost Time: %" PRIu64 " ", finishTimeStampMs - startTimeStampMs_);
+    if (finishTimeStampMs > startTimeStampMs_ && finishTimeStampMs - startTimeStampMs_ > timeOutThresholdMs_) {
         EventReport(finishTimeStampMs - startTimeStampMs_);
     }
 }

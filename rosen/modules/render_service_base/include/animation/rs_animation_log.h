@@ -49,7 +49,7 @@ private:
 
     void DealConfigInputInfo(const std::string& info);
 
-    int64_t GetNowTime();
+    uint64_t GetNowTime();
 
     void WriteString(const std::string& log);
 

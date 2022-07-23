@@ -16,6 +16,8 @@
 #ifndef RENDER_SERVICE_BASE_CORE_COMMON_RS_LOG_H
 #define RENDER_SERVICE_BASE_CORE_COMMON_RS_LOG_H
 
+// NOT redundant, we need PRIu64/PRId64 for logging
+#include <cinttypes>
 #include <string>
 
 namespace OHOS {

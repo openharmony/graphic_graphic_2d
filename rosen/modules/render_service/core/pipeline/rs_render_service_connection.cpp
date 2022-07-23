@@ -215,7 +215,7 @@ sptr<Surface> RSRenderServiceConnection::CreateNodeAndSurface(const RSSurfaceRen
         return nullptr;
     }
     const std::string& surfaceName = surface->GetName();
-    RS_LOGE("RsDebug RSRenderService::CreateNodeAndSurface node id:%llu name:%s surface id:%llu name:%s",
+    RS_LOGE("RsDebug RSRenderService::CreateNodeAndSurface node id:%" PRIu64 " name:%s surface id:%" PRIu64 " name:%s",
         node->GetId(), node->GetName().c_str(), surface->GetUniqueId(), surfaceName.c_str());
     node->SetConsumer(surface);
     std::function<void()> registerNode = [node, this]() -> void {
@@ -328,7 +328,7 @@ void RSRenderServiceConnection::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCap
     float scaleX, float scaleY)
 {
     std::function<void()> captureTask = [scaleY, scaleX, callback, id]() -> void {
-        RS_LOGD("RSRenderService::TakeSurfaceCapture callback->OnSurfaceCapture nodeId:[%llu]", id);
+        RS_LOGD("RSRenderService::TakeSurfaceCapture callback->OnSurfaceCapture nodeId:[%" PRIu64 "]", id);
         ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSRenderService::TakeSurfaceCapture");
         RSSurfaceCaptureTask task(id, scaleX, scaleY);
         std::unique_ptr<Media::PixelMap> pixelmap = task.Run();

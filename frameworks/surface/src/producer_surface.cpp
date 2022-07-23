@@ -38,7 +38,7 @@ ProducerSurface::~ProducerSurface()
     if (producer_->GetSptrRefCount() > PRODUCER_REF_COUNT_IN_PRODUCER_SURFACE) {
         BLOGNE("Wrong SptrRefCount! producer_:%{public}d", producer_->GetSptrRefCount());
     }
-    BLOGND("dtor, name:%{public}s, Queue Id:%{public}" PRIu64 "", name_.c_str(), queueId_);
+    BLOGND("dtor, name:%{public}s, Queue Id:%{public}" PRIu64, name_.c_str(), queueId_);
     auto ret = Disconnect();
     if (ret != GSERROR_OK) {
         BLOGNE("Disconnect failed, %{public}s", GSErrorStr(ret).c_str());
@@ -55,7 +55,7 @@ GSError ProducerSurface::Init()
         BLOGNE("GetNameAndUniqueId failed, %{public}s", GSErrorStr(ret).c_str());
     }
     inited_.store(true);
-    BLOGND("ctor, name:%{public}s, Queue Id:%{public}" PRIu64 "", name_.c_str(), queueId_);
+    BLOGND("ctor, name:%{public}s, Queue Id:%{public}" PRIu64, name_.c_str(), queueId_);
     return GSERROR_OK;
 }
 
@@ -288,7 +288,7 @@ bool ProducerSurface::IsRemote()
 
 GSError ProducerSurface::CleanCache()
 {
-    BLOGND("Queue Id:%{public}" PRIu64 "", queueId_);
+    BLOGND("Queue Id:%{public}" PRIu64, queueId_);
     if (IsRemote()) {
         std::lock_guard<std::mutex> lockGuard(mutex_);
         bufferProducerCache_.clear();

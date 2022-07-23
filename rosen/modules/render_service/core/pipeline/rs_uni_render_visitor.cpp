@@ -93,7 +93,7 @@ void RSUniRenderVisitor::ProcessBaseRenderNode(RSBaseRenderNode& node)
 
 void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
 {
-    RS_LOGD("RSUniRenderVisitor::ProcessDisplayRenderNode node: %llu, child size:%u", node.GetId(),
+    RS_LOGD("RSUniRenderVisitor::ProcessDisplayRenderNode node: %" PRIu64 ", child size:%u", node.GetId(),
         node.GetChildrenCount());
     sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
     if (!screenManager) {
@@ -192,14 +192,14 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
 
 void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
 {
-    RS_LOGD("RSUniRenderVisitor::ProcessSurfaceRenderNode node: %llu, child size:%u %s", node.GetId(),
+    RS_LOGD("RSUniRenderVisitor::ProcessSurfaceRenderNode node: %" PRIu64 ", child size:%u %s", node.GetId(),
         node.GetChildrenCount(), node.GetName().c_str());
     if (skipSecSurface_ && node.GetSecurityLayer()) {
         return;
     }
     const auto& property = node.GetRenderProperties();
     if (!property.GetVisible()) {
-        RS_LOGD("RSUniRenderVisitor::ProcessSurfaceRenderNode node: %llu invisible", node.GetId());
+        RS_LOGD("RSUniRenderVisitor::ProcessSurfaceRenderNode node: %" PRIu64 " invisible", node.GetId());
         return;
     }
 
@@ -209,7 +209,7 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
     }
     auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(property.GetBoundsGeometry());
     if (!geoPtr) {
-        RS_LOGE("RSUniRenderVisitor::ProcessSurfaceRenderNode node:%llu, get geoPtr failed", node.GetId());
+        RS_LOGE("RSUniRenderVisitor::ProcessSurfaceRenderNode node:%" PRIu64 ", get geoPtr failed", node.GetId());
         return;
     }
     RS_TRACE_BEGIN("RSUniRender::Process:" + node.GetName());
@@ -242,7 +242,7 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
     if (node.GetConsumer() != nullptr) {
         RS_TRACE_BEGIN("UniRender::Process:" + node.GetName());
         if (node.GetBuffer() == nullptr) {
-            RS_LOGD("RSUniRenderVisitor::ProcessSurfaceRenderNode:%llu buffer is not available", node.GetId());
+            RS_LOGD("RSUniRenderVisitor::ProcessSurfaceRenderNode:%" PRIu64 " buffer is not available", node.GetId());
         } else {
             node.NotifyRTBufferAvailable();
             const auto& buffer = node.GetBuffer();
@@ -271,7 +271,7 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
 
 void RSUniRenderVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
 {
-    RS_LOGD("RSUniRenderVisitor::ProcessRootRenderNode node: %llu, child size:%u", node.GetId(),
+    RS_LOGD("RSUniRenderVisitor::ProcessRootRenderNode node: %" PRIu64 ", child size:%u", node.GetId(),
         node.GetChildrenCount());
     const auto& property = node.GetRenderProperties();
     if (!property.GetVisible()) {

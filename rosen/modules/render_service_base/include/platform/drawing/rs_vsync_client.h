@@ -16,7 +16,6 @@
 #define RENDER_SERVICE_BASE_CORE_PIPELINE_RS_VSYNC_CLIENT_H
 
 #include <functional>
-#include <inttypes.h>
 #include <memory>
 
 namespace OHOS {

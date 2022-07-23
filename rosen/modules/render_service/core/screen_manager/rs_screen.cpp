@@ -68,27 +68,27 @@ void RSScreen::PhysicalScreenInit() noexcept
 {
     hdiScreen_ = HdiScreen::CreateHdiScreen(ScreenPhysicalId(id_));
     if (hdiScreen_ == nullptr) {
-        RS_LOGE("RSScreen %s: RSScreen(id %llu) failed to CreateHdiScreens.",
+        RS_LOGE("RSScreen %s: RSScreen(id %" PRIu64 ") failed to CreateHdiScreens.",
             __func__, id_);
         return;
     }
 
     hdiScreen_->Init();
     if (hdiScreen_->GetScreenSupportedModes(supportedModes_) < 0) {
-        RS_LOGE("RSScreen %s: RSScreen(id %llu) failed to GetScreenSupportedModes.",
+        RS_LOGE("RSScreen %s: RSScreen(id %" PRIu64 ") failed to GetScreenSupportedModes.",
             __func__, id_);
     }
     if (hdiScreen_->GetScreenCapability(capability_) < 0) {
-        RS_LOGE("RSScreen %s: RSScreen(id %llu) failed to GetScreenCapability.",
+        RS_LOGE("RSScreen %s: RSScreen(id %" PRIu64 ") failed to GetScreenCapability.",
             __func__, id_);
     }
     if (hdiScreen_->GetHDRCapabilityInfos(hdrCapability_) < 0) {
-        RS_LOGE("RSScreen %s: RSScreen(id %llu) failed to GetHDRCapabilityInfos.",
+        RS_LOGE("RSScreen %s: RSScreen(id %" PRIu64 ") failed to GetHDRCapabilityInfos.",
             __func__, id_);
     }
     auto status = DispPowerStatus::POWER_STATUS_ON;
     if (hdiScreen_->SetScreenPowerStatus(status) < 0) {
-        RS_LOGE("RSScreen %s: RSScreen(id %llu) failed to SetScreenPowerStatus.",
+        RS_LOGE("RSScreen %s: RSScreen(id %" PRIu64 ") failed to SetScreenPowerStatus.",
             __func__, id_);
     }
     auto activeMode = GetActiveMode();
@@ -229,13 +229,13 @@ std::optional<DisplayModeInfo> RSScreen::GetActiveMode() const
     uint32_t modeId = 0;
 
     if (hdiScreen_ == nullptr) {
-        RS_LOGE("RSScreen %s: RSScreen(id %llu) hdiScreen is null.",
+        RS_LOGE("RSScreen %s: RSScreen(id %" PRIu64 ") hdiScreen is null.",
             __func__, id_);
         return {};
     }
 
     if (hdiScreen_->GetScreenMode(modeId) < 0) {
-        RS_LOGE("RSScreen %s: RSScreen(id %llu) GetScreenMode failed.",
+        RS_LOGE("RSScreen %s: RSScreen(id %" PRIu64 ") GetScreenMode failed.",
             __func__, id_);
         return {};
     }

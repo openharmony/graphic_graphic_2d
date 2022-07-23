@@ -60,7 +60,7 @@ private:
     std::unordered_map<AnimationId, std::shared_ptr<RSAnimation>> uiAnimations_;
     std::unordered_map<PropertyId, int> animationNum_;
     std::unordered_map<PropertyId, std::pair<std::shared_ptr<RSAnimatableProperty<std::shared_ptr<RSAnimatableBase>>>,
-        std::shared_ptr<RSRenderProperty<std::shared_ptr<RSAnimatableBase>>>>> propertys_;
+        std::shared_ptr<RSRenderProperty<std::shared_ptr<RSAnimatableBase>>>>> properties_;
 
 };
 } // namespace Rosen

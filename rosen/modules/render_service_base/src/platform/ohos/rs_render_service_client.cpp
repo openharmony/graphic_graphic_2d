@@ -100,7 +100,7 @@ std::shared_ptr<VSyncReceiver> RSRenderServiceClient::CreateVSyncReceiver(
 
 void RSRenderServiceClient::TriggerSurfaceCaptureCallback(NodeId id, Media::PixelMap* pixelmap)
 {
-    ROSEN_LOGI("RSRenderServiceClient::Into TriggerSurfaceCaptureCallback nodeId:[%llu]", id);
+    ROSEN_LOGI("RSRenderServiceClient::Into TriggerSurfaceCaptureCallback nodeId:[%" PRIu64 "]", id);
     std::shared_ptr<Media::PixelMap> surfaceCapture(pixelmap);
     std::shared_ptr<SurfaceCaptureCallback> callback = nullptr;
     {
@@ -405,15 +405,17 @@ bool RSRenderServiceClient::UnregisterBufferAvailableListener(NodeId id)
     if (iter != bufferAvailableCbRTMap_.end()) {
         bufferAvailableCbRTMap_.erase(iter);
     } else {
-        ROSEN_LOGI("RSRenderServiceClient::UnregisterBufferAvailableListener "\
-            "Node %llu has not regiatered RT callback", id);
+        ROSEN_LOGI("RSRenderServiceClient::UnregisterBufferAvailableListener "
+                   "Node %" PRIu64 " has not registered RT callback",
+            id);
     }
     iter = bufferAvailableCbUIMap_.find(id);
     if (iter != bufferAvailableCbUIMap_.end()) {
         bufferAvailableCbUIMap_.erase(iter);
     } else {
-        ROSEN_LOGI("RSRenderServiceClient::UnregisterBufferAvailableListener "\
-            "Node %llu has not regiatered UI callback", id);
+        ROSEN_LOGI("RSRenderServiceClient::UnregisterBufferAvailableListener "
+                   "Node %" PRIu64 " has not registered UI callback",
+            id);
     }
     return true;
 }

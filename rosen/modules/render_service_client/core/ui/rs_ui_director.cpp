@@ -149,7 +149,7 @@ void RSUIDirector::AttachSurface()
     auto surfaceNode = surfaceNode_.lock();
     if (node != nullptr && surfaceNode != nullptr) {
         node->AttachRSSurfaceNode(surfaceNode);
-        ROSEN_LOGD("RSUIDirector::AttachSurface [%llu]", surfaceNode->GetId());
+        ROSEN_LOGD("RSUIDirector::AttachSurface [%" PRIu64 "]", surfaceNode->GetId());
     } else {
         ROSEN_LOGD("RSUIDirector::AttachSurface not ready");
     }
@@ -224,7 +224,7 @@ void RSUIDirector::AnimationCallbackProcessor(NodeId nodeId, AnimationId animId)
     if (auto nodePtr = RSNodeMap::Instance().GetNode<RSNode>(nodeId)) {
         nodePtr->AnimationFinish(animId);
     } else {
-        ROSEN_LOGE("RSUIDirector::AnimationCallbackProcessor, node %llu not found", nodeId);
+        ROSEN_LOGE("RSUIDirector::AnimationCallbackProcessor, node %" PRIu64 " not found", nodeId);
     }
 }
 } // namespace Rosen

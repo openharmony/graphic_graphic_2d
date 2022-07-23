@@ -70,14 +70,15 @@ RSSurfaceNode::SharedPtr RSSurfaceNode::Create(const RSSurfaceNodeConfig& surfac
         transactionProxy->AddCommand(command, isWindow);
         node->SetFrameGravity(Gravity::RESIZE);
     }
-    ROSEN_LOGD("RsDebug RSSurfaceNode::Create id:%llu", node->GetId());
+    node->SetFrameGravity(Gravity::RESIZE);
+    ROSEN_LOGD("RsDebug RSSurfaceNode::Create id:%" PRIu64, node->GetId());
     return node;
 }
 
 void RSSurfaceNode::CreateNodeInRenderThread(bool isProxy)
 {
     if (!IsRenderServiceNode()) {
-        ROSEN_LOGI("RsDebug RSSurfaceNode::CreateNodeInRenderThread id:%llu already has RT Node", GetId());
+        ROSEN_LOGI("RsDebug RSSurfaceNode::CreateNodeInRenderThread id:%" PRIu64 " already has RT Node", GetId());
         return;
     }
 
@@ -156,7 +157,7 @@ void RSSurfaceNode::SetSecurityLayer(bool isSecurityLayer)
     if (transactionProxy != nullptr) {
         transactionProxy->AddCommand(command, true);
     }
-    ROSEN_LOGD("RSSurfaceNode::SetSecurityLayer, surfaceNodeId:[%llu] isSecurityLayer:%s", GetId(),
+    ROSEN_LOGD("RSSurfaceNode::SetSecurityLayer, surfaceNodeId:[%" PRIu64 "] isSecurityLayer:%s", GetId(),
         isSecurityLayer ? "true" : "false");
 }
 

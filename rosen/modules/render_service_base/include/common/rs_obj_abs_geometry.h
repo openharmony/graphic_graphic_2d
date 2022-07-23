@@ -15,9 +15,10 @@
 #ifndef RENDER_SERVICE_CLIENT_CORE_COMMON_RS_OBJ_ABS_GEOMETRY_H
 #define RENDER_SERVICE_CLIENT_CORE_COMMON_RS_OBJ_ABS_GEOMETRY_H
 
+#include <memory>
+
 #include "include/core/SkMatrix.h"
 #include "include/core/SkPoint.h"
-#include <memory>
 
 #include "common/rs_matrix3.h"
 #include "common/rs_obj_geometry.h"

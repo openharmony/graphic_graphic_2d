@@ -104,8 +104,8 @@ bool RSDisplayRenderNode::GetSecurityDisplay() const
 void RSDisplayRenderNode::SetIsMirrorDisplay(bool isMirror)
 {
     isMirroredDisplay_ = isMirror;
-    RS_LOGD("RSDisplayRenderNode::SetIsMirrorDisplay, node id:[%llu], isMirrorDisplay: [%s]",
-        GetId(), IsMirrorDisplay() ? "true" : "false");
+    RS_LOGD("RSDisplayRenderNode::SetIsMirrorDisplay, node id:[%" PRIu64 "], isMirrorDisplay: [%s]", GetId(),
+        IsMirrorDisplay() ? "true" : "false");
 }
 
 bool RSDisplayRenderNode::CreateSurface(sptr<IBufferConsumerListener> listener)

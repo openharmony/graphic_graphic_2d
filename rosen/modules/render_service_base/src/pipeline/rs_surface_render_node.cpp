@@ -280,7 +280,7 @@ void RSSurfaceRenderNode::RegisterBufferAvailableListener(
 
 void RSSurfaceRenderNode::ConnectToNodeInRenderService()
 {
-    ROSEN_LOGI("RSSurfaceRenderNode::ConnectToNodeInRenderService nodeId = %llu", GetId());
+    ROSEN_LOGI("RSSurfaceRenderNode::ConnectToNodeInRenderService nodeId = %" PRIu64, GetId());
     auto renderServiceClient =
         std::static_pointer_cast<RSRenderServiceClient>(RSIRenderClient::CreateRenderServiceClient());
     if (renderServiceClient != nullptr) {
@@ -306,14 +306,14 @@ void RSSurfaceRenderNode::NotifyRTBufferAvailable()
     isNotifyRTBufferAvailable_ = true;
 
     if (callbackForRenderThreadRefresh_) {
-        ROSEN_LOGI("RSSurfaceRenderNode::NotifyRTBufferAvailable nodeId = %llu RenderThread", GetId());
+        ROSEN_LOGI("RSSurfaceRenderNode::NotifyRTBufferAvailable nodeId = %" PRIu64 " RenderThread", GetId());
         callbackForRenderThreadRefresh_();
     }
 
     {
         std::lock_guard<std::mutex> lock(mutexRT_);
         if (callbackFromRT_) {
-            ROSEN_LOGI("RSSurfaceRenderNode::NotifyRTBufferAvailable nodeId = %llu RenderService", GetId());
+            ROSEN_LOGI("RSSurfaceRenderNode::NotifyRTBufferAvailable nodeId = %" PRIu64 " RenderService", GetId());
             callbackFromRT_->OnBufferAvailable();
         }
         if (!callbackForRenderThreadRefresh_ && !callbackFromRT_) {
@@ -331,7 +331,7 @@ void RSSurfaceRenderNode::NotifyUIBufferAvailable()
     {
         std::lock_guard<std::mutex> lock(mutexUI_);
         if (callbackFromUI_) {
-            ROSEN_LOGI("RSSurfaceRenderNode::NotifyUIBufferAvailable nodeId = %llu", GetId());
+            ROSEN_LOGI("RSSurfaceRenderNode::NotifyUIBufferAvailable nodeId = %" PRIu64, GetId());
             callbackFromUI_->OnBufferAvailable();
         } else {
             isNotifyUIBufferAvailable_ = false;

@@ -65,7 +65,7 @@ BufferQueue::BufferQueue(const std::string &name, bool isShared)
 
 BufferQueue::~BufferQueue()
 {
-    BLOGNI("dtor, Queue id: %{public}" PRIu64 "", uniqueId_);
+    BLOGNI("dtor, Queue id: %{public}" PRIu64, uniqueId_);
     CleanCache();
 }
 
@@ -207,7 +207,7 @@ GSError BufferQueue::RequestBuffer(const BufferRequestConfig &config, sptr<Buffe
         if (ret == GSERROR_OK) {
             return ReuseBuffer(config, bedata, retval);
         } else if (GetUsedSize() >= GetQueueSize()) {
-            BLOGNW("all buffer are using, Queue id: %{public}" PRIu64 "", uniqueId_);
+            BLOGNW("all buffer are using, Queue id: %{public}" PRIu64, uniqueId_);
             return GSERROR_NO_BUFFER;
         }
     }
@@ -217,10 +217,10 @@ GSError BufferQueue::RequestBuffer(const BufferRequestConfig &config, sptr<Buffe
         retval.sequence = buffer->GetSeqNum();
         bedata = buffer->GetExtraData();
         retval.fence = SyncFence::INVALID_FENCE;
-        BLOGND("Success alloc Buffer[%{public}d %{public}d] id: %{public}d id: %{public}" PRIu64 "", config.width,
+        BLOGND("Success alloc Buffer[%{public}d %{public}d] id: %{public}d id: %{public}" PRIu64, config.width,
             config.height, retval.sequence, uniqueId_);
     } else {
-        BLOGNE("Fail to alloc or map Buffer[%{public}d %{public}d] ret: %{public}d, id: %{public}" PRIu64 "",
+        BLOGNE("Fail to alloc or map Buffer[%{public}d %{public}d] ret: %{public}d, id: %{public}" PRIu64,
             config.width, config.height, ret, uniqueId_);
     }
 
@@ -262,7 +262,7 @@ GSError BufferQueue::ReuseBuffer(const BufferRequestConfig &config, sptr<BufferE
 
     if (needRealloc || isShared_) {
         BLOGND("RequestBuffer Succ realloc Buffer[%{public}d %{public}d] with new config "\
-            "qid: %{public}d id: %{public}" PRIu64 "", config.width, config.height, retval.sequence, uniqueId_);
+            "qid: %{public}d id: %{public}" PRIu64, config.width, config.height, retval.sequence, uniqueId_);
     } else {
         BLOGND("RequestBuffer Succ Buffer[%{public}d %{public}d] in seq id: %{public}d "\
             "qid: %{public}" PRIu64 " releaseFence: %{public}d",
@@ -296,7 +296,7 @@ GSError BufferQueue::CancelBuffer(uint32_t sequence, const sptr<BufferExtraData>
     bufferQueueCache_[sequence].buffer->SetExtraData(bedata);
 
     waitReqCon_.notify_all();
-    BLOGND("Success Buffer id: %{public}d Queue id: %{public}" PRIu64 "", sequence, uniqueId_);
+    BLOGND("Success Buffer id: %{public}d Queue id: %{public}" PRIu64, sequence, uniqueId_);
 
     return GSERROR_OK;
 }
@@ -467,7 +467,7 @@ GSError BufferQueue::ReleaseBuffer(sptr<SurfaceBuffer> &buffer, const sptr<SyncF
     {
         std::lock_guard<std::mutex> lockGuard(mutex_);
         if (bufferQueueCache_.find(sequence) == bufferQueueCache_.end()) {
-            BLOGN_FAILURE_ID(sequence, "not find in cache, Queue id: %{public}" PRIu64 "", uniqueId_);
+            BLOGN_FAILURE_ID(sequence, "not find in cache, Queue id: %{public}" PRIu64, uniqueId_);
             return GSERROR_NO_ENTRY;
         }
 
@@ -703,7 +703,7 @@ GSError BufferQueue::SetQueueSize(uint32_t queueSize)
         queueSize_ = queueSize;
     }
 
-    BLOGN_SUCCESS("queue size: %{public}d, Queue id: %{public}" PRIu64 "", queueSize_, uniqueId_);
+    BLOGN_SUCCESS("queue size: %{public}d, Queue id: %{public}" PRIu64, queueSize_, uniqueId_);
     return GSERROR_OK;
 }
 

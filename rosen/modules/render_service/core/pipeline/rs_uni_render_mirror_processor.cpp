@@ -35,7 +35,7 @@ bool RSUniRenderMirrorProcessor::Init(ScreenId id, int32_t offsetX, int32_t offs
     auto screenManager = CreateOrGetScreenManager();
     sptr<Surface> producerSurface = screenManager->GetProducerSurface(id);
     if (producerSurface == nullptr) {
-        RS_LOGE("RSUniRenderMirrorProcessor::Init for Screen(id %llu): ProducerSurface is null!", id);
+        RS_LOGE("RSUniRenderMirrorProcessor::Init for Screen(id %" PRIu64 "): ProducerSurface is null!", id);
         return false;
     }
 

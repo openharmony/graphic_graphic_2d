@@ -277,7 +277,7 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
 
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy != nullptr) {
-        ROSEN_LOGD("RSRenderThreadVisitor FlushImplicitTransactionFromRT uiTimestamp = %llu", uiTimestamp_);
+        ROSEN_LOGD("RSRenderThreadVisitor FlushImplicitTransactionFromRT uiTimestamp = %" PRIu64, uiTimestamp_);
         transactionProxy->FlushImplicitTransactionFromRT(uiTimestamp_);
     }
 
@@ -296,7 +296,7 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
     FrameCollector::GetInstance().MarkFrameEvent(FrameEventType::FlushStart);
 
     RS_TRACE_BEGIN("rsSurface->FlushFrame");
-    ROSEN_LOGD("RSRenderThreadVisitor FlushFrame surfaceNodeId = %llu, uiTimestamp = %llu",
+    ROSEN_LOGD("RSRenderThreadVisitor FlushFrame surfaceNodeId = %" PRIu64 ", uiTimestamp = %" PRIu64,
         node.GetRSSurfaceNodeId(), uiTimestamp_);
     rsSurface->FlushFrame(surfaceFrame, uiTimestamp_);
     FrameCollector::GetInstance().MarkFrameEvent(FrameEventType::FlushEnd);
@@ -346,7 +346,7 @@ void RSRenderThreadVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
         return;
     }
     if (!node.GetRenderProperties().GetVisible()) {
-        ROSEN_LOGI("RSRenderThreadVisitor::ProcessSurfaceRenderNode node : %llu is invisible", node.GetId());
+        ROSEN_LOGI("RSRenderThreadVisitor::ProcessSurfaceRenderNode node : %" PRIu64 " is invisible", node.GetId());
         return;
     }
     // RSSurfaceRenderNode in RSRenderThreadVisitor do not have information of property.
@@ -426,12 +426,12 @@ void RSRenderThreadVisitor::ClipHoleForSurfaceNode(RSSurfaceRenderNode& node)
     SkRect originRect = SkRect::MakeXYWH(x, y, width, height);
     canvas_->clipRect(originRect);
     if (node.IsNotifyRTBufferAvailable() == true) {
-        ROSEN_LOGI("RSRenderThreadVisitor::ClipHoleForSurfaceNode node : %llu, clip [%f, %f, %f, %f]", node.GetId(),
-            x, y, width, height);
+        ROSEN_LOGI("RSRenderThreadVisitor::ClipHoleForSurfaceNode node : %" PRIu64 ", clip [%f, %f, %f, %f]",
+            node.GetId(), x, y, width, height);
         canvas_->clear(SK_ColorTRANSPARENT);
     } else {
-        ROSEN_LOGI("RSRenderThreadVisitor::ClipHoleForSurfaceNode node : %llu, not clip [%f, %f, %f, %f]", node.GetId(),
-            x, y, width, height);
+        ROSEN_LOGI("RSRenderThreadVisitor::ClipHoleForSurfaceNode node : %" PRIu64 ", not clip [%f, %f, %f, %f]",
+            node.GetId(), x, y, width, height);
         auto backgroundColor = node.GetRenderProperties().GetBackgroundColor();
         if (backgroundColor != RgbPalette::Transparent()) {
             canvas_->clear(backgroundColor.AsArgbInt());

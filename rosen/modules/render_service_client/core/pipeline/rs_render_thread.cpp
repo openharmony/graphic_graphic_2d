@@ -71,7 +71,7 @@ RSRenderThread::RSRenderThread()
             jankDetector_.ProcessUiDrawFrameMsg();
         }
 
-        ROSEN_LOGD("RSRenderThread DrawFrame(%llu) in %s", prevTimestamp_, renderContext_ ? "GPU" : "CPU");
+        ROSEN_LOGD("RSRenderThread DrawFrame(%" PRIu64 ") in %s", prevTimestamp_, renderContext_ ? "GPU" : "CPU");
         Animate(prevTimestamp_);
         Render();
         RS_ASYNC_TRACE_BEGIN("waiting GPU running", 1111); // 1111 means async trace code for gpu
@@ -291,7 +291,7 @@ void RSRenderThread::Animate(uint64_t timestamp)
         }
         bool animationFinished = !node->Animate(timestamp);
         if (animationFinished) {
-            ROSEN_LOGD("RSRenderThread::Animate removing finished animating node %llu", node->GetId());
+            ROSEN_LOGD("RSRenderThread::Animate removing finished animating node %" PRIu64, node->GetId());
         }
         return animationFinished;
     });

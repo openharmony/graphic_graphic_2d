@@ -49,12 +49,15 @@ void RootNodeCommandHelper::AttachToUniSurfaceNode(RSContext& context, NodeId id
     auto parent = nodeMap.GetRenderNode<RSSurfaceRenderNode>(surfaceNodeId);
     auto node = nodeMap.GetRenderNode<RSRootRenderNode>(id);
     if (!parent || !node) {
-        RS_LOGE("unirender: RootNodeCommandHelper::AttachToUniSurfaceNode surfaceNodeId:%llu id:%llu, parent " \
-            "valid:%d, node valid:%d", surfaceNodeId, id, parent != nullptr, node != nullptr);
+        RS_LOGE("unirender: RootNodeCommandHelper::AttachToUniSurfaceNode surfaceNodeId:%" PRIu64 " id:%" PRIu64
+                ", parent "
+                "valid:%d, node valid:%d",
+            surfaceNodeId, id, parent != nullptr, node != nullptr);
         return;
     }
     parent->AddChild(node);
-    RS_LOGI("unirender: RootNodeCommandHelper::AttachToUniSurfaceNode NotifyUIBufferAvailable parent:%llu node:%llu",
+    RS_LOGI("unirender: RootNodeCommandHelper::AttachToUniSurfaceNode NotifyUIBufferAvailable parent:%" PRIu64
+            " node:%" PRIu64,
         surfaceNodeId, id);
     parent->NotifyUIBufferAvailable();
 }

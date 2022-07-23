@@ -16,9 +16,10 @@
  #ifndef RS_CORE_PIPELINE_PROCESSOR_H
  #define RS_CORE_PIPELINE_PROCESSOR_H
 
+#include "rs_render_engine.h"
+
 #include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
-#include "rs_render_engine.h"
 #include "screen_manager/rs_screen_manager.h"
 
 namespace OHOS {

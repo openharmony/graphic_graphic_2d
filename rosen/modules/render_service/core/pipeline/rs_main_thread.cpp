@@ -155,7 +155,8 @@ void RSMainThread::ProcessCommand()
             commandMap.erase(commandMap.begin(), effectIter);
 
             for (auto it = commandMap.begin(); it != commandMap.end(); it++) {
-                RS_LOGD("RSMainThread::ProcessCommand CacheCommand NodeId = %llu, timestamp = %llu, commandSize = %zu",
+                RS_LOGD("RSMainThread::ProcessCommand CacheCommand NodeId = %" PRIu64 ", timestamp = %" PRIu64
+                        ", commandSize = %zu",
                     surfaceNodeId, it->first, it->second.size());
             }
         }
@@ -406,7 +407,7 @@ void RSMainThread::Animate(uint64_t timestamp)
         }
         bool animationFinished = !node->Animate(timestamp);
         if (animationFinished) {
-            RS_LOGD("RSMainThread::Animate removing finished animating node %llu", node->GetId());
+            RS_LOGD("RSMainThread::Animate removing finished animating node %" PRIu64, node->GetId());
         }
         return animationFinished;
     });
@@ -426,7 +427,7 @@ void RSMainThread::RecvRSTransactionData(std::unique_ptr<RSTransactionData>& rsT
             return;
         }
         auto timestamp = transactionData->GetTimestamp();
-        RS_LOGD("RSMainThread::RecvRSTransactionData timestamp = %llu", timestamp);
+        RS_LOGD("RSMainThread::RecvRSTransactionData timestamp = %" PRIu64, timestamp);
         for (auto& [nodeId, followType, command] : transactionData->GetPayload()) {
             if (nodeId == 0 || followType == FollowType::NONE) {
                 pendingEffectiveCommands_.emplace_back(std::move(command));

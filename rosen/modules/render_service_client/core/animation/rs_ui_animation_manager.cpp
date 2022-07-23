@@ -64,14 +64,14 @@ void RSUIAnimationManager::AddAnimatableProp(const PropertyId id,
     const std::shared_ptr<RSAnimatableProperty<std::shared_ptr<RSAnimatableBase>>>& uiProperty,
     const std::shared_ptr<RSRenderProperty<std::shared_ptr<RSAnimatableBase>>>& renderProperty)
 {
-    propertys_.emplace(id, std::make_pair(uiProperty, renderProperty));
+    properties_.emplace(id, std::make_pair(uiProperty, renderProperty));
 }
 
 const std::shared_ptr<RSRenderProperty<std::shared_ptr<RSAnimatableBase>>> RSUIAnimationManager::GetRenderProperty(
     const PropertyId id)
 {
-    auto iter = propertys_.find(id);
-    if (iter != propertys_.end()) {
+    auto iter = properties_.find(id);
+    if (iter != properties_.end()) {
         return iter->second.second;
     }
     return {};
@@ -79,11 +79,7 @@ const std::shared_ptr<RSRenderProperty<std::shared_ptr<RSAnimatableBase>>> RSUIA
 
 void RSUIAnimationManager::RemoveProperty(const PropertyId id)
 {
-    auto iter = propertys_.find(id);
-    if (iter == propertys_.end()) {
-        return;
-    }
-    propertys_.erase(iter);
+    properties_.erase(id);
 }
 
 bool RSUIAnimationManager::Animate(int64_t time)
@@ -110,8 +106,8 @@ bool RSUIAnimationManager::Animate(int64_t time)
 bool RSUIAnimationManager::UpdateAnimateValue(const std::shared_ptr<RSRenderAnimation>& animation, int64_t time)
 {
     bool isFinished = animation->Animate(time);
-    auto uiProperty = propertys_[animation->GetPropertyId()].first;
-    auto renderProperty = propertys_[animation->GetPropertyId()].second;
+    auto uiProperty = properties_[animation->GetPropertyId()].first;
+    auto renderProperty = properties_[animation->GetPropertyId()].second;
     if (uiProperty != nullptr && renderProperty != nullptr) {
         uiProperty->SetAnimatingValue(renderProperty->Get());
         uiProperty->MarkModifierDirty(modifierManager_);
@@ -128,7 +124,7 @@ const std::shared_ptr<RSRenderAnimation> RSUIAnimationManager::GetAnimation(Anim
 {
     auto animationItr = animations_.find(id);
     if (animationItr == animations_.end()) {
-        ROSEN_LOGE("RSUIAnimationManager::GetAnimation, animtor[%lld] is not found", id);
+        ROSEN_LOGE("RSUIAnimationManager::GetAnimation, animation [%" PRIu64 "] not found", id);
         return nullptr;
     }
     return animationItr->second;

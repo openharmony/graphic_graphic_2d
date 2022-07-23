@@ -98,7 +98,7 @@ public:
     void SetLoopFinishTag() override;
 private:
     void EventReport(uint64_t costTimeMs);
-    int timeOutThredsholdMs_ = INT_MAX; // default: No Detector
+    int timeOutThresholdMs_ = INT_MAX; // default: No Detector
     std::atomic_uint64_t startTimeStampMs_ = 0;
 };
 }

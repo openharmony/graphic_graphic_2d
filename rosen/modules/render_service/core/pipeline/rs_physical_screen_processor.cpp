@@ -15,9 +15,10 @@
 
 #include "rs_physical_screen_processor.h"
 
-#include "platform/common/rs_log.h"
 #include "rs_trace.h"
 #include "string_utils.h"
+
+#include "platform/common/rs_log.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -51,8 +52,8 @@ void RSPhysicalScreenProcessor::ProcessSurface(RSSurfaceRenderNode &node)
 {
     auto layer = composerAdapter_->CreateLayer(node);
     if (layer == nullptr) {
-        RS_LOGD("RSPhysicalScreenProcessor::ProcessSurface: failed to createLayer for node(id: %llu)",
-            node.GetId());
+        RS_LOGD(
+            "RSPhysicalScreenProcessor::ProcessSurface: failed to createLayer for node(id: %" PRIu64 ")", node.GetId());
         return;
     }
 

@@ -54,11 +54,11 @@ std::unique_ptr<Media::PixelMap> RSSurfaceCaptureTask::Run()
     std::shared_ptr<RSSurfaceCaptureVisitor> visitor = std::make_shared<RSSurfaceCaptureVisitor>();
     visitor->SetUniRender(RSUniRenderJudgement::IsUniRender());
     if (auto surfaceNode = node->ReinterpretCastTo<RSSurfaceRenderNode>()) {
-        RS_LOGI("RSSurfaceCaptureTask::Run: Into SURFACE_NODE SurfaceRenderNodeId:[%llu]", node->GetId());
+        RS_LOGI("RSSurfaceCaptureTask::Run: Into SURFACE_NODE SurfaceRenderNodeId:[%" PRIu64 "]", node->GetId());
         pixelmap = CreatePixelMapBySurfaceNode(surfaceNode, visitor->IsUniRender());
         visitor->IsDisplayNode(false);
     } else if (auto displayNode = node->ReinterpretCastTo<RSDisplayRenderNode>()) {
-        RS_LOGI("RSSurfaceCaptureTask::Run: Into DISPLAY_NODE DisplayRenderNodeId:[%llu]", node->GetId());
+        RS_LOGI("RSSurfaceCaptureTask::Run: Into DISPLAY_NODE DisplayRenderNodeId:[%" PRIu64 "]", node->GetId());
         pixelmap = CreatePixelMapByDisplayNode(displayNode);
         visitor->IsDisplayNode(true);
     } else {
@@ -207,7 +207,7 @@ static void AdjustSurfaceTransform(BufferDrawParam &param, TransformType surface
 void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::ProcessSurfaceRenderNodeWithUni(RSSurfaceRenderNode &node)
 {
     if (!node.GetRenderProperties().GetVisible()) {
-        RS_LOGD("ProcessSurfaceRenderNode node: %llu invisible", node.GetId());
+        RS_LOGD("ProcessSurfaceRenderNode node: %" PRIu64 " invisible", node.GetId());
         return;
     }
     if (!canvas_) {
@@ -216,7 +216,7 @@ void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::ProcessSurfaceRenderNodeWith
     }
     auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(node.GetRenderProperties().GetBoundsGeometry());
     if (!geoPtr) {
-        RS_LOGI("ProcessSurfaceRenderNode node:%llu, get geoPtr failed", node.GetId());
+        RS_LOGI("ProcessSurfaceRenderNode node:%" PRIu64 ", get geoPtr failed", node.GetId());
         return;
     }
     RS_TRACE_NAME("RSSurfaceCaptureVisitor::Process:" + node.GetName());
@@ -241,7 +241,8 @@ void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::ProcessSurfaceRenderNodeWith
     if (node.GetConsumer() != nullptr) {
         RS_TRACE_NAME("UniRender::Process:" + node.GetName());
         if (node.GetBuffer() == nullptr) {
-            RS_LOGD("RSSurfaceCaptureVisitor::ProcessSurfaceRenderNode:%llu buffer is not available", node.GetId());
+            RS_LOGD(
+                "RSSurfaceCaptureVisitor::ProcessSurfaceRenderNode:%" PRIu64 " buffer is not available", node.GetId());
         } else {
             node.NotifyRTBufferAvailable();
 #ifdef RS_ENABLE_EGLIMAGE
@@ -322,7 +323,8 @@ void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::ProcessSurfaceRenderNodeWith
 {
     if (node.GetSecurityLayer()) {
         RS_LOGD("RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::ProcessSurfaceRenderNode: \
-            process RSSurfaceRenderNode(id:[%llu]) paused, because surfaceNode is the security layer.", node.GetId());
+            process RSSurfaceRenderNode(id:[%" PRIu64 "]) paused, because surfaceNode is the security layer.",
+            node.GetId());
         return;
     }
     if (node.GetBuffer() == nullptr) {

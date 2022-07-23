@@ -68,8 +68,8 @@ void RSBaseRenderNode::RemoveChild(SharedPtr child)
     disappearingChildren_.remove_if([&child](const auto& pair) -> bool { return pair.first == child; });
     // if child has disappearing transition, add it to disappearingChildren_
     if (child->HasDisappearingTransition(true)) {
-        ROSEN_LOGD("RSBaseRenderNode::RemoveChild %llu move child(id %llu) into disappearingChildren", GetId(),
-            child->GetId());
+        ROSEN_LOGD("RSBaseRenderNode::RemoveChild %" PRIu64 " move child(id %" PRIu64 ") into disappearingChildren",
+            GetId(), child->GetId());
         // keep shared_ptr alive for transition
         uint32_t origPos = static_cast<uint32_t>(std::distance(children_.begin(), it));
         disappearingChildren_.emplace_back(child, origPos);
@@ -137,8 +137,8 @@ void RSBaseRenderNode::RemoveCrossParentChild(const SharedPtr& child, const Weak
     disappearingChildren_.remove_if([&child](const auto& pair) -> bool { return pair.first == child; });
     // if child has disappearing transition, add it to disappearingChildren_
     if (child->HasDisappearingTransition(true)) {
-        ROSEN_LOGD("RSBaseRenderNode::RemoveChild %llu move child(id %llu) into disappearingChildren", GetId(),
-            child->GetId());
+        ROSEN_LOGD("RSBaseRenderNode::RemoveChild %" PRIu64 " move child(id %" PRIu64 ") into disappearingChildren",
+            GetId(), child->GetId());
         // keep shared_ptr alive for transition
         uint32_t origPos = static_cast<uint32_t>(std::distance(children_.begin(), it));
         disappearingChildren_.emplace_back(child, origPos);
@@ -359,7 +359,7 @@ void RSBaseRenderNode::GenerateSortedChildren()
         auto& origPos = pair.second;
         // if neither parent node or child node has transition, we can safely remove it
         if (!parentHasDisappearingTransition && !disappearingChild->HasDisappearingTransition(false)) {
-            ROSEN_LOGD("RSBaseRenderNode::GenerateSortedChildren removing finished transition child(id %llu)",
+            ROSEN_LOGD("RSBaseRenderNode::GenerateSortedChildren removing finished transition child(id %" PRIu64 ")",
                 disappearingChild->GetId());
             if (ROSEN_EQ<RSBaseRenderNode>(disappearingChild->GetParent(), weak_from_this())) {
                 disappearingChild->ResetParent();

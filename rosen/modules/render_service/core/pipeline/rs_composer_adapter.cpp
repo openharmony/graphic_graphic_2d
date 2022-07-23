@@ -319,7 +319,7 @@ bool RSComposerAdapter::CheckStatusBeforeCreateLayer(RSSurfaceRenderNode& node, 
 
     auto& buffer = node.GetBuffer();
     if (isTunnelCheck == false && buffer == nullptr) {
-        RS_LOGD("RsDebug RSComposerAdapter::CheckStatusBeforeCreateLayer:node(%llu) has no available buffer.",
+        RS_LOGD("RsDebug RSComposerAdapter::CheckStatusBeforeCreateLayer:node(%" PRIu64 ") has no available buffer.",
             node.GetId());
         return false;
     }
@@ -333,15 +333,15 @@ bool RSComposerAdapter::CheckStatusBeforeCreateLayer(RSSurfaceRenderNode& node, 
 
     auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(node.GetRenderProperties().GetBoundsGeometry());
     if (geoPtr == nullptr) {
-        RS_LOGW("RsDebug RSComposerAdapter::CheckStatusBeforeCreateLayer: node(%llu)'s geoPtr is nullptr!",
+        RS_LOGW("RsDebug RSComposerAdapter::CheckStatusBeforeCreateLayer: node(%" PRIu64 ")'s geoPtr is nullptr!",
             node.GetId());
         return false;
     }
 
     if (!node.IsNotifyRTBufferAvailable()) {
         // Only ipc for one time.
-        RS_LOGD("RsDebug RSPhysicalScreenProcessor::ProcessSurface id = %llu "\
-                "Notify RT buffer available", node.GetId());
+        RS_LOGD("RsDebug RSPhysicalScreenProcessor::ProcessSurface id = %" PRIu64 " Notify RT buffer available",
+            node.GetId());
         node.NotifyRTBufferAvailable();
     }
     return true;
@@ -354,7 +354,8 @@ LayerInfoPtr RSComposerAdapter::CreateBufferLayer(RSSurfaceRenderNode& node)
     }
     ComposeInfo info = BuildComposeInfo(node);
     if (IsOutOfScreenRegion(info)) {
-        RS_LOGD("RsDebug RSComposerAdapter::CreateBufferLayer: node(%llu) out of screen region, no need to composite.",
+        RS_LOGD("RsDebug RSComposerAdapter::CreateBufferLayer: node(%" PRIu64
+                ") out of screen region, no need to composite.",
             node.GetId());
         return nullptr;
     }
@@ -362,13 +363,13 @@ LayerInfoPtr RSComposerAdapter::CreateBufferLayer(RSSurfaceRenderNode& node)
     AppendFormat(traceInfo, "ProcessSurfaceNode:%s XYWH[%d %d %d %d]", node.GetName().c_str(),
         info.dstRect.x, info.dstRect.y, info.dstRect.w, info.dstRect.h);
     RS_TRACE_NAME(traceInfo.c_str());
-    RS_LOGD("RsDebug RSComposerAdapter::CreateBufferLayer surfaceNode id:%llu name:[%s] dst [%d %d %d %d]"\
+    RS_LOGD(
+        "RsDebug RSComposerAdapter::CreateBufferLayer surfaceNode id:%" PRIu64 " name:[%s] dst [%d %d %d %d]"
         "SrcRect [%d %d] rawbuffer [%d %d] surfaceBuffer [%d %d] buffaddr:%p, z:%f, globalZOrder:%d, blendType = %d",
-        node.GetId(), node.GetName().c_str(),
-        info.dstRect.x, info.dstRect.y, info.dstRect.w, info.dstRect.h, info.srcRect.w, info.srcRect.h,
-        info.buffer->GetWidth(), info.buffer->GetHeight(),
-        info.buffer->GetSurfaceBufferWidth(), info.buffer->GetSurfaceBufferHeight(),
-        info.buffer.GetRefPtr(), node.GetGlobalZOrder(), info.zOrder, info.blendType);
+        node.GetId(), node.GetName().c_str(), info.dstRect.x, info.dstRect.y, info.dstRect.w, info.dstRect.h,
+        info.srcRect.w, info.srcRect.h, info.buffer->GetWidth(), info.buffer->GetHeight(),
+        info.buffer->GetSurfaceBufferWidth(), info.buffer->GetSurfaceBufferHeight(), info.buffer.GetRefPtr(),
+        node.GetGlobalZOrder(), info.zOrder, info.blendType);
     LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
     SetComposeInfoToLayer(layer, info, node.GetConsumer(), &node);
     LayerRotate(layer);
@@ -384,7 +385,8 @@ LayerInfoPtr RSComposerAdapter::CreateTunnelLayer(RSSurfaceRenderNode& node)
     }
     ComposeInfo info = BuildComposeInfo(node, true);
     if (IsOutOfScreenRegion(info)) {
-        RS_LOGD("RsDebug RSComposerAdapter::CreateTunnelLayer: node(%llu) out of screen region, no need to composite.",
+        RS_LOGD("RsDebug RSComposerAdapter::CreateTunnelLayer: node(%" PRIu64
+                ") out of screen region, no need to composite.",
             node.GetId());
         return nullptr;
     }
@@ -395,11 +397,10 @@ LayerInfoPtr RSComposerAdapter::CreateTunnelLayer(RSSurfaceRenderNode& node)
     LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
     SetComposeInfoToLayer(layer, info, node.GetConsumer(), &node);
     LayerRotate(layer);
-    RS_LOGD("RsDebug RSComposerAdapter::CreateTunnelLayer surfaceNode id:%llu name:[%s] dst [%d %d %d %d]"\
-        "SrcRect [%d %d], z:%f, globalZOrder:%d, blendType = %d",
-        node.GetId(), node.GetName().c_str(),
-        info.dstRect.x, info.dstRect.y, info.dstRect.w, info.dstRect.h, info.srcRect.w, info.srcRect.h,
-        node.GetGlobalZOrder(), info.zOrder, info.blendType);
+    RS_LOGD("RsDebug RSComposerAdapter::CreateTunnelLayer surfaceNode id:%" PRIu64 " name:[%s] dst [%d %d %d %d]"
+            "SrcRect [%d %d], z:%f, globalZOrder:%d, blendType = %d",
+        node.GetId(), node.GetName().c_str(), info.dstRect.x, info.dstRect.y, info.dstRect.w, info.dstRect.h,
+        info.srcRect.w, info.srcRect.h, node.GetGlobalZOrder(), info.zOrder, info.blendType);
     return layer;
 }
 
@@ -425,7 +426,7 @@ LayerInfoPtr RSComposerAdapter::CreateLayer(RSDisplayRenderNode& node)
         return nullptr;
     }
 
-    RS_LOGD("RSComposerAdapter::CreateLayer displayNode id:%llu available buffer:%d", node.GetId(),
+    RS_LOGD("RSComposerAdapter::CreateLayer displayNode id:%" PRIu64 " available buffer:%d", node.GetId(),
         node.GetAvailableBufferCount());
     if (!RSBaseRenderUtil::ConsumeAndUpdateBuffer(node)) {
         RS_LOGE("RSComposerAdapter::CreateLayer consume buffer failed.");
@@ -433,13 +434,11 @@ LayerInfoPtr RSComposerAdapter::CreateLayer(RSDisplayRenderNode& node)
     }
 
     ComposeInfo info = BuildComposeInfo(node);
-    RS_LOGI("RSComposerAdapter::ProcessSurface displayNode id:%llu dst [%d %d %d %d]"\
-        "SrcRect [%d %d] rawbuffer [%d %d] surfaceBuffer [%d %d] buffaddr:%p, globalZOrder:%d, blendType = %d",
-        node.GetId(),
-        info.dstRect.x, info.dstRect.y, info.dstRect.w, info.dstRect.h, info.srcRect.w, info.srcRect.h,
-        info.buffer->GetWidth(), info.buffer->GetHeight(),
-        info.buffer->GetSurfaceBufferWidth(), info.buffer->GetSurfaceBufferHeight(),
-        info.buffer.GetRefPtr(), info.zOrder, info.blendType);
+    RS_LOGI("RSComposerAdapter::ProcessSurface displayNode id:%" PRIu64 " dst [%d %d %d %d]"
+            "SrcRect [%d %d] rawbuffer [%d %d] surfaceBuffer [%d %d] buffaddr:%p, globalZOrder:%d, blendType = %d",
+        node.GetId(), info.dstRect.x, info.dstRect.y, info.dstRect.w, info.dstRect.h, info.srcRect.w, info.srcRect.h,
+        info.buffer->GetWidth(), info.buffer->GetHeight(), info.buffer->GetSurfaceBufferWidth(),
+        info.buffer->GetSurfaceBufferHeight(), info.buffer.GetRefPtr(), info.zOrder, info.blendType);
     LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
     SetComposeInfoToLayer(layer, info, node.GetConsumer(), &node);
     LayerRotate(layer);
