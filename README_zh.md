@@ -65,5 +65,5 @@ foundation/graphic/graphic_2d/
 - [ace_ace_engine](https://gitee.com/openharmony/ace_ace_engine)
 - [aafwk_standard](https://gitee.com/openharmony/aafwk_standard)
 - [multimedia_player_framework](https://gitee.com/openharmony/multimedia_player_framework)
-- [multimedia_camera_standard](https://gitee.com/openharmony/multimedia_camera_standard)
+- [multimedia_camera_framework](https://gitee.com/openharmony/multimedia_camera_framework)
 - [Windowmanager](https://gitee.com/openharmony/windowmanager)
