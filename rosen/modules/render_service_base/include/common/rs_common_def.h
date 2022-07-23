@@ -119,31 +119,6 @@ inline bool ROSEN_EQ(const std::weak_ptr<T>& x, const std::weak_ptr<T>& y)
     return !(x.owner_before(y) || y.owner_before(x));
 }
 
-class MemAllocater final {
-    struct BlockHead {
-        int size;
-        char ptr[0];
-    };
-    using Cache = std::vector<char*>;
-
-public:
-    static MemAllocater& GetInstance();
-    ~MemAllocater();
-
-    void* Alloc(size_t size);
-    void Free(void* ptr);
-
-private:
-    MemAllocater() = default;
-    MemAllocater(const MemAllocater&) = delete;
-    MemAllocater& operator=(const MemAllocater&) = delete;
-
-    std::mutex mutex_;
-    std::map<size_t, Cache> memCaches_;
-    std::vector<char*> blocks_;
-    static constexpr unsigned sizeStep_ = 64;
-};
-
 class MemObject {
 public:
     explicit MemObject(size_t size) : size_(size) {}
