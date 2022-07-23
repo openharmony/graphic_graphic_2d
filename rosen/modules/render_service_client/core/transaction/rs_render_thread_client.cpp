@@ -14,6 +14,7 @@
  */
 
 #include "rs_render_thread_client.h"
+#include <memory>
 
 #include "pipeline/rs_render_thread.h"
 #include "ui/rs_ui_director.h"
@@ -35,16 +36,16 @@ void RSRenderThreadClient::ExecuteSynchronousTask(const std::shared_ptr<RSSyncTa
 {
     std::mutex mutex;
     std::unique_lock<std::mutex> lock(mutex);
-    std::condition_variable cv;
+    auto cv = std::make_shared<std::condition_variable>();
     auto& renderThread = RSRenderThread::Instance();
-    renderThread.PostTask([task, &cv, &renderThread]() {
+    renderThread.PostTask([task, cv, &renderThread]() {
         if (task == nullptr) {
             return;
         }
         task->Process(renderThread.GetContext());
-        cv.notify_all();
+        cv->notify_all();
     });
-    cv.wait_for(lock, std::chrono::nanoseconds(task->GetTimeout()));
+    cv->wait_for(lock, std::chrono::nanoseconds(task->GetTimeout()));
 }
 
 } // namespace Rosen
