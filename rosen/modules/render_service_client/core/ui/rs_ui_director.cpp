@@ -95,7 +95,7 @@ void RSUIDirector::GoBackground()
         if (surfaceNode != nullptr) {
             sptr<OHOS::Surface> pSurface = surfaceNode->GetSurface();
             if (pSurface != nullptr) {
-                pSurface->CleanCache();
+                pSurface->GoBackground();
             }
         }
     }
