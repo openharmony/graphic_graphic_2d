@@ -71,6 +71,7 @@ private:
     void LayerRotate(const LayerInfoPtr& layer) const;
     void LayerCrop(const LayerInfoPtr& layer) const;
     void LayerScaleDown(const LayerInfoPtr& layer) const;
+    void LayerPresentTimestamp(const LayerInfoPtr& layer, const sptr<Surface>& surface) const;
 
     void OnPrepareComplete(sptr<Surface>& surface, const PrepareCompleteParam& param, void* data);
     void GetComposerInfoSrcRect(ComposeInfo &info, const RSSurfaceRenderNode& node) const;

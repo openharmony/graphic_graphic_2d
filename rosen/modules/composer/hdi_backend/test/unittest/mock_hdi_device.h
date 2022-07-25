@@ -76,6 +76,9 @@ public:
     MOCK_METHOD3(SetLayerMetaData, int32_t(uint32_t, uint32_t, const std::vector<HDRMetaData>&));
     MOCK_METHOD4(SetLayerMetaDataSet, int32_t(uint32_t, uint32_t, HDRMetadataKey, const std::vector<uint8_t>&));
     MOCK_METHOD3(SetLayerTunnelHandle, int32_t(uint32_t, uint32_t, const ExtDataHandle *));
+    MOCK_METHOD3(GetSupportedPresentTimestampType, int32_t(uint32_t, uint32_t, PresentTimestampType&));
+    MOCK_METHOD3(GetPresentTimestamp, int32_t(uint32_t, uint32_t, PresentTimestamp&));
+
     /* set & get device layer info end */
 
     MOCK_METHOD3(CreateLayer, int32_t(uint32_t, const LayerInfo&, uint32_t&));

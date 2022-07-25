@@ -462,6 +462,85 @@ HWTEST_F(HdiLayerInfoTest, MetaDataSet001, Function | MediumTest | Level1)
     ASSERT_EQ(metaDataSet.metaData[1], metaDataSetGet.metaData[1]);
     ASSERT_EQ(metaDataSet.metaData[2], metaDataSetGet.metaData[2]);
 }
+
+/*
+* Function: SetIsSupportedPresentTimestamp and IsSupportedPresentTimestamp
+* Type: Function
+* Rank: Important(1)
+* EnvConditions: N/A
+* CaseDescription: 1. call IsSupportedPresentTimestamp with default
+ */
+HWTEST_F(HdiLayerInfoTest, IsSupportedPresentTimestamp001, Function | MediumTest | Level1)
+{
+    bool isSupported = HdiLayerInfoTest::hdiLayerInfo_->IsSupportedPresentTimestamp();
+    ASSERT_EQ(isSupported, false);
+}
+
+/*
+* Function: SetIsSupportedPresentTimestamp and IsSupportedPresentTimestamp
+* Type: Function
+* Rank: Important(1)
+* EnvConditions: N/A
+* CaseDescription: 1. call SetIsSupportedPresentTimestamp
+*                  2. call IsSupportedPresentTimestamp and check ret
+ */
+HWTEST_F(HdiLayerInfoTest, IsSupportedPresentTimestamp002, Function | MediumTest | Level1)
+{
+    HdiLayerInfoTest::hdiLayerInfo_->SetIsSupportedPresentTimestamp(true);
+    bool isSupported = HdiLayerInfoTest::hdiLayerInfo_->IsSupportedPresentTimestamp();
+    ASSERT_EQ(isSupported, true);
+    HdiLayerInfoTest::hdiLayerInfo_->SetIsSupportedPresentTimestamp(false);
+    isSupported = HdiLayerInfoTest::hdiLayerInfo_->IsSupportedPresentTimestamp();
+    ASSERT_EQ(isSupported, false);
+}
+
+/*
+* Function: SetPresentTimestamp and GetPresentTimestamp
+* Type: Function
+* Rank: Important(1)
+* EnvConditions: N/A
+* CaseDescription: 1. call GetPresentTimestamp with default
+ */
+HWTEST_F(HdiLayerInfoTest, PresentTimestamp001, Function | MediumTest | Level1)
+{
+    PresentTimestamp timestamp = HdiLayerInfoTest::hdiLayerInfo_->GetPresentTimestamp();
+    ASSERT_EQ(timestamp.type, HARDWARE_DISPLAY_PTS_UNSUPPORTED);
+    ASSERT_EQ(timestamp.time, 0);
+}
+
+/*
+* Function: SetPresentTimestamp and GetPresentTimestamp
+* Type: Function
+* Rank: Important(1)
+* EnvConditions: N/A
+* CaseDescription: 1. call SetPresentTimestamp
+*                  2. call GetPresentTimestamp and check ret
+ */
+HWTEST_F(HdiLayerInfoTest, PresentTimestamp002, Function | MediumTest | Level1)
+{
+    PresentTimestamp timestampSet = {HARDWARE_DISPLAY_PTS_DELAY, 1};  // mock data for test
+    HdiLayerInfoTest::hdiLayerInfo_->SetPresentTimestamp(timestampSet);
+    PresentTimestamp timestampGet = HdiLayerInfoTest::hdiLayerInfo_->GetPresentTimestamp();
+    ASSERT_EQ(timestampSet.type, timestampGet.type);
+    ASSERT_EQ(timestampSet.time, timestampGet.time);
+}
+
+/*
+* Function: SetPresentTimestamp and GetPresentTimestamp
+* Type: Function
+* Rank: Important(1)
+* EnvConditions: N/A
+* CaseDescription: 1. call SetPresentTimestamp
+*                  2. call GetPresentTimestamp and check ret
+ */
+HWTEST_F(HdiLayerInfoTest, PresentTimestamp003, Function | MediumTest | Level1)
+{
+    PresentTimestamp timestampSet = {HARDWARE_DISPLAY_PTS_TIMESTAMP, 10};  // mock data for test
+    HdiLayerInfoTest::hdiLayerInfo_->SetPresentTimestamp(timestampSet);
+    PresentTimestamp timestampGet = HdiLayerInfoTest::hdiLayerInfo_->GetPresentTimestamp();
+    ASSERT_EQ(timestampSet.type, timestampGet.type);
+    ASSERT_EQ(timestampSet.time, timestampGet.time);
+}
 } // namespace
 } // namespace Rosen
 } // namespace OHOS

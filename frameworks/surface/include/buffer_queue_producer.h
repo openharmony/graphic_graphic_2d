@@ -76,6 +76,7 @@ public:
     GSError SetMetaDataSet(uint32_t sequence, HDRMetadataKey key,
                            const std::vector<uint8_t> &metaData) override;
     GSError SetTunnelHandle(const ExtDataHandle *handle) override;
+    GSError GetPresentTimestamp(uint32_t sequence, PresentTimestampType type, int64_t &time) override;
 
     bool GetStatus() const;
     void SetStatus(bool status);
@@ -107,6 +108,7 @@ private:
     int32_t SetMetaDataSetRemote(MessageParcel &arguments, MessageParcel &reply, MessageOption &option);
     int32_t SetTunnelHandleRemote(MessageParcel &arguments, MessageParcel &reply, MessageOption &option);
     int32_t GoBackgroundRemote(MessageParcel &arguments, MessageParcel &reply, MessageOption &option);
+    int32_t GetPresentTimestampRemote(MessageParcel &arguments, MessageParcel &reply, MessageOption &option);
 
     using BufferQueueProducerFunc = int32_t (BufferQueueProducer::*)(MessageParcel &arguments,
         MessageParcel &reply, MessageOption &option);

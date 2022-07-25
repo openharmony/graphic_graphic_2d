@@ -174,6 +174,17 @@ public:
     {
         tunnelHandle_ = handle;
     }
+
+    bool IsSupportedPresentTimestamp() const
+    {
+        return IsSupportedPresentTimestamp_;
+    }
+
+    const PresentTimestamp& GetPresentTimestamp()
+    {
+        return presentTimestamp_;
+    }
+
     /* rs create and set/get layer info end */
 
     /* hdiLayer get layer info begin */
@@ -277,6 +288,16 @@ public:
         return tunnelHandle_;
     }
 
+    void SetIsSupportedPresentTimestamp(bool isSupported)
+    {
+        IsSupportedPresentTimestamp_ = isSupported;
+    }
+
+    void SetPresentTimestamp(const PresentTimestamp &timestamp)
+    {
+        presentTimestamp_ = timestamp;
+    }
+
     void Dump(std::string &result) const
     {
         result += " zOrder = " + std::to_string(zOrder_) +
@@ -327,6 +348,8 @@ private:
     HDRMetaDataSet metaDataSet_;
     sptr<SurfaceTunnelHandle> tunnelHandle_ = nullptr;
     bool tunnelHandleChange_ = false;
+    bool IsSupportedPresentTimestamp_ = false;
+    PresentTimestamp presentTimestamp_ = {HARDWARE_DISPLAY_PTS_UNSUPPORTED, 0};
 
     void *additionalInfo_ = nullptr;
     sptr<Surface> cSurface_ = nullptr;

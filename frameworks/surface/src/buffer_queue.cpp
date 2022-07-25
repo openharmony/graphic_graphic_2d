@@ -984,6 +984,45 @@ sptr<SurfaceTunnelHandle> BufferQueue::GetTunnelHandle()
     return tunnelHandle_;
 }
 
+GSError BufferQueue::SetPresentTimestamp(uint32_t sequence, const PresentTimestamp &timestamp)
+{
+    std::lock_guard<std::mutex> lockGuard(mutex_);
+    if (bufferQueueCache_.find(sequence) == bufferQueueCache_.end()) {
+        BLOGN_FAILURE_ID(sequence, "not find in cache");
+        return GSERROR_NO_ENTRY;
+    }
+    bufferQueueCache_[sequence].presentTimestamp = timestamp;
+    return GSERROR_OK;
+}
+
+GSError BufferQueue::GetPresentTimestamp(uint32_t sequence, PresentTimestampType type, int64_t &time)
+{
+    std::lock_guard<std::mutex> lockGuard(mutex_);
+    if (bufferQueueCache_.find(sequence) == bufferQueueCache_.end()) {
+        BLOGN_FAILURE_ID(sequence, "not find in cache");
+        return GSERROR_NO_ENTRY;
+    }
+    if (type != bufferQueueCache_.at(sequence).presentTimestamp.type) {
+        BLOGN_FAILURE_ID(sequence, "PresentTimestampType [%{public}d] is not supported, the supported type "\
+        "is [%{public}d]", type, bufferQueueCache_.at(sequence).presentTimestamp.type);
+        return GSERROR_NO_ENTRY;
+    }
+    switch (type) {
+        case PresentTimestampType::HARDWARE_DISPLAY_PTS_DELAY: {
+            time = bufferQueueCache_.at(sequence).presentTimestamp.time;
+            return GSERROR_OK;
+        }
+        case PresentTimestampType::HARDWARE_DISPLAY_PTS_TIMESTAMP: {
+            time = bufferQueueCache_.at(sequence).presentTimestamp.time - bufferQueueCache_.at(sequence).timestamp;
+            return GSERROR_OK;
+        }
+        default: {
+            BLOGN_FAILURE_ID(sequence, "unsupported type!");
+            return GSERROR_TYPE_ERROR;
+        }
+    }
+}
+
 void BufferQueue::DumpCache(std::string &result)
 {
     for (auto it = bufferQueueCache_.begin(); it != bufferQueueCache_.end(); it++) {

@@ -77,6 +77,8 @@ int32_t HdiLayer::CreateLayer(const LayerInfoPtr &layerInfo)
 
     HLOGD("Create hwc layer succeed, layerId is %{public}u", layerId_);
 
+    CheckRet(device->GetSupportedPresentTimestampType(screenId_, layerId_, supportedPresentTimestamptype_),
+             "GetSupportedPresentTimestamp");
     return ret;
 }
 
@@ -99,6 +101,24 @@ void HdiLayer::CloseLayer()
     }
 
     HLOGD("Close hwc layer succeed, layerId is %{public}u", layerId_);
+}
+
+void HdiLayer::SetLayerPresentTimestamp()
+{
+    HdiDevice *device = HdiDevice::GetInstance();
+    if (device == nullptr || layerInfo_ == nullptr) {
+        return;
+    }
+    if (supportedPresentTimestamptype_ == PresentTimestampType::HARDWARE_DISPLAY_PTS_UNSUPPORTED) {
+        return;
+    }
+    layerInfo_->SetIsSupportedPresentTimestamp(true);
+    PresentTimestamp timestamp = {HARDWARE_DISPLAY_PTS_UNSUPPORTED, 0};
+    int32_t ret = device->GetPresentTimestamp(screenId_, layerId_, timestamp);
+    CheckRet(ret, "GetPresentTimestamp");
+    if (ret == DISPLAY_SUCCESS) {
+        layerInfo_->SetPresentTimestamp(timestamp);
+    }
 }
 
 void HdiLayer::SetHdiLayerInfo()
@@ -172,6 +192,8 @@ void HdiLayer::SetHdiLayerInfo()
         }
         CheckRet(ret, "SetLayerTunnelHandle");
     }
+
+    SetLayerPresentTimestamp();
 }
 
 uint32_t HdiLayer::GetLayerId() const

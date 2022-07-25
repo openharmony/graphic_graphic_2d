@@ -74,6 +74,7 @@ public:
     virtual GSError SetMetaDataSet(uint32_t sequence, HDRMetadataKey key,
                                    const std::vector<uint8_t> &metaData) = 0;
     virtual GSError SetTunnelHandle(const ExtDataHandle *handle) = 0;
+    virtual GSError GetPresentTimestamp(uint32_t sequence, PresentTimestampType type, int64_t &time) = 0;
 
     DECLARE_INTERFACE_DESCRIPTOR(u"surf.IBufferProducer");
 
@@ -102,6 +103,7 @@ protected:
         BUFFER_PRODUCER_SET_METADATASET = 20,
         BUFFER_PRODUCER_SET_TUNNEL_HANDLE = 21,
         BUFFER_PRODUCER_GO_BACKGROUND = 22,
+        BUFFER_PRODUCER_GET_PRESENT_TIMESTAMP = 23,
     };
 };
 } // namespace OHOS

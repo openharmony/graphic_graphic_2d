@@ -445,6 +445,19 @@ int32_t HdiDevice::SetLayerTunnelHandle(uint32_t screenId, uint32_t layerId, con
 {
     return DISPLAY_SUCCESS;
 }
+
+int32_t HdiDevice::GetSupportedPresentTimestampType(uint32_t screenId, uint32_t layerId, PresentTimestampType &type)
+{
+    CHECK_FUNC(layerFuncs_, layerFuncs_->GetSupportedPresentTimestamp);
+    return layerFuncs_->GetSupportedPresentTimestamp(screenId, layerId, &type);
+}
+
+int32_t HdiDevice::GetPresentTimestamp(uint32_t screenId, uint32_t layerId, PresentTimestamp &timestamp)
+{
+    CHECK_FUNC(layerFuncs_, layerFuncs_->GetHwPresentTimestamp);
+    return layerFuncs_->GetHwPresentTimestamp(screenId, layerId, &timestamp);
+}
+
 /* set & get device layer info end */
 
 int32_t HdiDevice::CreateLayer(uint32_t screenId, const LayerInfo &layerInfo, uint32_t &layerId)

@@ -76,10 +76,12 @@ private:
     sptr<LayerBufferInfo> currSbuffer_ = nullptr;
     sptr<LayerBufferInfo> prevSbuffer_ = nullptr;
     LayerInfoPtr layerInfo_ = nullptr;
+    PresentTimestampType supportedPresentTimestamptype_ = PresentTimestampType::HARDWARE_DISPLAY_PTS_UNSUPPORTED;
 
     void CloseLayer();
     int32_t CreateLayer(const LayerInfoPtr &layerInfo);
     sptr<SyncFence> Merge(const sptr<SyncFence> &fence1, const sptr<SyncFence> &fence2);
+    void SetLayerPresentTimestamp();
 
     inline void CheckRet(int32_t ret, const char* func);
 };

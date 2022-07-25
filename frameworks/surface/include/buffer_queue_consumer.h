@@ -52,6 +52,7 @@ public:
     GSError GetMetaData(uint32_t sequence, std::vector<HDRMetaData> &metaData) const;
     GSError GetMetaDataSet(uint32_t sequence, HDRMetadataKey &key, std::vector<uint8_t> &metaData) const;
     sptr<SurfaceTunnelHandle> GetTunnelHandle() const;
+    GSError SetPresentTimestamp(uint32_t sequence, const PresentTimestamp &timestamp);
 
     bool GetStatus() const;
     void SetStatus(bool status);

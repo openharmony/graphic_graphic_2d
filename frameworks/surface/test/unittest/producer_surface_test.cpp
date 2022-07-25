@@ -772,4 +772,77 @@ HWTEST_F(ProducerSurfaceTest, disconnect001, Function | MediumTest | Level1)
     GSError ret = pSurface->Disconnect();
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 }
+
+/*
+* Function: SetPresentTimestamp and GetPresentTimestamp
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call SetPresentTimestamp and check ret
+ */
+HWTEST_F(ProducerSurfaceTest, presentTimestamp001, Function | MediumTest | Level2)
+{
+    uint32_t sequence = 0;
+    PresentTimestamp timestamp = {HARDWARE_DISPLAY_PTS_UNSUPPORTED, 0};
+
+    GSError ret = pSurface->SetPresentTimestamp(sequence, timestamp);
+    ASSERT_EQ(ret, OHOS::GSERROR_NOT_SUPPORT);
+}
+
+/*
+* Function: SetPresentTimestamp and GetPresentTimestamp
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call GetPresentTimestamp with normal parameters and check ret
+ */
+HWTEST_F(ProducerSurfaceTest, presentTimestamp002, Function | MediumTest | Level2)
+{
+    uint32_t sequence = 0;
+    PresentTimestampType type = PresentTimestampType::HARDWARE_DISPLAY_PTS_UNSUPPORTED;
+    int64_t time = 0;
+
+    GSError ret = pSurface->GetPresentTimestamp(sequence, type, time);
+    ASSERT_EQ(ret, OHOS::GSERROR_INVALID_ARGUMENTS);
+}
+
+/*
+* Function: SetPresentTimestamp and GetPresentTimestamp
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call SetPresentTimestamp with normal parameters and check ret
+ */
+HWTEST_F(ProducerSurfaceTest, presentTimestamp003, Function | MediumTest | Level2)
+{
+    PresentTimestampType type = PresentTimestampType::HARDWARE_DISPLAY_PTS_DELAY;
+    int64_t time = 0;
+    GSError ret = pSurface->GetPresentTimestamp(-1, type, time);
+    ASSERT_EQ(ret, OHOS::GSERROR_NO_ENTRY);
+}
+
+/*
+* Function: SetPresentTimestamp and GetPresentTimestamp
+* Type: Function
+* Rank: Important(1)
+* EnvConditions: N/A
+* CaseDescription: 1. call SetPresentTimestamp and check ret
+ */
+HWTEST_F(ProducerSurfaceTest, presentTimestamp004, Function | MediumTest | Level1)
+{
+    sptr<SurfaceBuffer> buffer;
+    int releaseFence = -1;
+    GSError ret = pSurface->RequestBuffer(buffer, releaseFence, requestConfig);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
+    ASSERT_NE(buffer, nullptr);
+
+    uint32_t sequence = buffer->GetSeqNum();
+    PresentTimestampType type = PresentTimestampType::HARDWARE_DISPLAY_PTS_DELAY;
+    int64_t time = 0;
+    ret = pSurface->GetPresentTimestamp(sequence, type, time);
+    ASSERT_EQ(ret, OHOS::GSERROR_NO_ENTRY);
+
+    ret = pSurface->CancelBuffer(buffer);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
+}
 }

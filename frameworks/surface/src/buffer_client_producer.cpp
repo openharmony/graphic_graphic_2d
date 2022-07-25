@@ -398,4 +398,19 @@ GSError BufferClientProducer::SetTunnelHandle(const ExtDataHandle *handle)
     }
     return GSERROR_OK;
 }
+
+GSError BufferClientProducer::GetPresentTimestamp(uint32_t sequence, PresentTimestampType type, int64_t &time)
+{
+    DEFINE_MESSAGE_VARIABLES(arguments, reply, option, BLOGE);
+    arguments.WriteUint32(sequence);
+    arguments.WriteUint32(static_cast<uint32_t>(type));
+    SEND_REQUEST(BUFFER_PRODUCER_GET_PRESENT_TIMESTAMP, arguments, reply, option);
+    int32_t ret = reply.ReadInt32();
+    if (ret != GSERROR_OK) {
+        BLOGN_FAILURE("Remote return %{public}d", ret);
+        return static_cast<GSError>(ret);
+    }
+    time = reply.ReadInt64();
+    return static_cast<GSError>(ret);
+}
 }; // namespace OHOS

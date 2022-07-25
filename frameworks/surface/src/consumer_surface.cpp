@@ -322,4 +322,18 @@ sptr<SurfaceTunnelHandle> ConsumerSurface::GetTunnelHandle() const
 {
     return consumer_->GetTunnelHandle();
 }
+
+GSError ConsumerSurface::SetPresentTimestamp(uint32_t sequence, const PresentTimestamp &timestamp)
+{
+    if (timestamp.type == PresentTimestampType::HARDWARE_DISPLAY_PTS_UNSUPPORTED) {
+        return GSERROR_INVALID_ARGUMENTS;
+    }
+    return consumer_->SetPresentTimestamp(sequence, timestamp);
+}
+
+GSError ConsumerSurface::GetPresentTimestamp(uint32_t sequence, PresentTimestampType type,
+                                             int64_t &time) const
+{
+    return GSERROR_NOT_SUPPORT;
+}
 } // namespace OHOS

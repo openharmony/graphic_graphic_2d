@@ -84,6 +84,9 @@ public:
     virtual int32_t SetLayerMetaDataSet(uint32_t screenId, uint32_t layerId, HDRMetadataKey key,
                                         const std::vector<uint8_t> &metaData) = 0;
     virtual int32_t SetLayerTunnelHandle(uint32_t screenId, uint32_t layerId, const ExtDataHandle *handle) = 0;
+    virtual int32_t GetSupportedPresentTimestampType(uint32_t screenId, uint32_t layerId,
+                                                     PresentTimestampType &type) = 0;
+    virtual int32_t GetPresentTimestamp(uint32_t screenId, uint32_t layerId, PresentTimestamp &timestamp) = 0;
     /* set & get device layer info end */
 
     virtual int32_t CreateLayer(uint32_t screenId, const LayerInfo &layerInfo, uint32_t &layerId) = 0;
@@ -155,6 +158,8 @@ public:
     int32_t SetLayerMetaDataSet(uint32_t screenId, uint32_t layerId, HDRMetadataKey key,
                                 const std::vector<uint8_t> &metaData) override;
     int32_t SetLayerTunnelHandle(uint32_t screenId, uint32_t layerId, const ExtDataHandle *handle) override;
+    int32_t GetSupportedPresentTimestampType(uint32_t screenId, uint32_t layerId, PresentTimestampType &type) override;
+    int32_t GetPresentTimestamp(uint32_t screenId, uint32_t layerId, PresentTimestamp &timestamp) override;
     /* set & get device layer info end */
 
     int32_t CreateLayer(uint32_t screenId, const LayerInfo &layerInfo, uint32_t &layerId) override;

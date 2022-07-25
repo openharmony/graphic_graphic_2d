@@ -104,6 +104,8 @@ public:
                            std::vector<uint8_t> &metaData) const override;
     GSError SetTunnelHandle(const ExtDataHandle *handle) override;
     sptr<SurfaceTunnelHandle> GetTunnelHandle() const override;
+    GSError SetPresentTimestamp(uint32_t sequence, const PresentTimestamp &timestamp) override;
+    GSError GetPresentTimestamp(uint32_t sequence, PresentTimestampType type, int64_t &time) const override;
 
 private:
     bool IsRemote();

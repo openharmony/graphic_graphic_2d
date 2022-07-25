@@ -102,6 +102,9 @@ public:
                                    std::vector<uint8_t> &metaData) const = 0;
     virtual GSError SetTunnelHandle(const ExtDataHandle *handle) = 0;
     virtual sptr<SurfaceTunnelHandle> GetTunnelHandle() const = 0;
+    virtual GSError SetPresentTimestamp(uint32_t sequence, const PresentTimestamp &timestamp) = 0;
+    virtual GSError GetPresentTimestamp(uint32_t sequence, PresentTimestampType type,
+                                        int64_t &time) const = 0;
 
     virtual void Dump(std::string &result) const = 0;
 protected:

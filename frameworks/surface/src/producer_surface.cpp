@@ -412,4 +412,19 @@ sptr<SurfaceTunnelHandle> ProducerSurface::GetTunnelHandle() const
     // not support
     return nullptr;
 }
+
+GSError ProducerSurface::SetPresentTimestamp(uint32_t sequence, const PresentTimestamp &timestamp)
+{
+    return GSERROR_NOT_SUPPORT;
+}
+
+GSError ProducerSurface::GetPresentTimestamp(uint32_t sequence, PresentTimestampType type,
+                                             int64_t &time) const
+{
+    if (type <= PresentTimestampType::HARDWARE_DISPLAY_PTS_UNSUPPORTED ||
+        type > PresentTimestampType::HARDWARE_DISPLAY_PTS_TIMESTAMP) {
+        return GSERROR_INVALID_ARGUMENTS;
+    }
+    return producer_->GetPresentTimestamp(sequence, type, time);
+}
 } // namespace OHOS

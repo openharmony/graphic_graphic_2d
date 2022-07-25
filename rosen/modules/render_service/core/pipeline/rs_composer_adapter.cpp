@@ -86,6 +86,15 @@ void RSComposerAdapter::CommitLayers(const std::vector<LayerInfoPtr>& layers)
     std::vector<std::shared_ptr<HdiOutput>> outputs {output_};
     hdiBackend_->Repaint(outputs);
 
+    // get present timestamp from and set present timestamp to surface
+    for (const auto& layer : layers) {
+        if (layer == nullptr || layer->GetSurface() == nullptr) {
+            RS_LOGW("RSComposerAdapter::CommitLayers: layer or layer's cSurface is nullptr");
+            continue;
+        }
+        LayerPresentTimestamp(layer, layer->GetSurface());
+    }
+
     // set all layers' releaseFence.
     const auto layersReleaseFence = hdiBackend_->GetLayersReleaseFence(output_);
     for (const auto& [layer, fence] : layersReleaseFence) {
@@ -665,6 +674,21 @@ void RSComposerAdapter::LayerScaleDown(const LayerInfoPtr& layer) const
         RS_LOGD("RsDebug RSComposerAdapter::LayerScaleDown layer has been scaledown dst[%d %d %d %d]"\
             "src[%d %d %d %d]", dstRect.x, dstRect.y, dstRect.w, dstRect.h,
             srcRect.x, srcRect.y, srcRect.w, srcRect.h);
+    }
+}
+
+// private func, guarantee the layer and surface are valid
+void RSComposerAdapter::LayerPresentTimestamp(const LayerInfoPtr& layer, const sptr<Surface>& surface) const
+{
+    if (!layer->IsSupportedPresentTimestamp()) {
+        return;
+    }
+    const auto& buffer = layer->GetBuffer();
+    if (buffer == nullptr) {
+        return;
+    }
+    if (surface->SetPresentTimestamp(buffer->GetSeqNum(), layer->GetPresentTimestamp()) != GSERROR_OK) {
+        RS_LOGD("RsDebug RSComposerAdapter::LayerPresentTimestamp: SetPresentTimestamp failed");
     }
 }
 
