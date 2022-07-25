@@ -58,6 +58,11 @@ private:
     int32_t offsetX_ { 0 };
     int32_t offsetY_ { 0 };
     std::shared_ptr<RSProcessor> processor_;
+
+    ScreenId currentVisitDisplay_;
+    std::map<ScreenId, bool> displayHasSecSurface_;
+    std::set<ScreenId> mirroredDisplays_;
+    bool skipSecSurface_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS

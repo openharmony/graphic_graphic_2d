@@ -32,6 +32,7 @@ class RSDisplayRenderNode : public RSRenderNode, public RSSurfaceHandler {
 public:
     enum CompositeType {
         UNI_RENDER_COMPOSITE = 0,
+        UNI_RENDER_MIRROR_COMPOSITE,
         HARDWARE_COMPOSITE,
         SOFTWARE_COMPOSITE
     };
@@ -118,6 +119,16 @@ public:
         return surfaceCreated_;
     }
 
+    sk_sp<SkImage> Snapshot()
+    {
+        return snapshot_;
+    }
+
+    void MakeSnapshot(SkSurface* surface)
+    {
+        snapshot_ = surface->makeImageSnapshot();
+    }
+
 private:
     CompositeType compositeType_ { HARDWARE_COMPOSITE };
     uint64_t screenId_;
@@ -127,6 +138,8 @@ private:
     bool isMirroredDisplay_ = false;
     bool isSecurityDisplay_ = false;
     WeakPtr mirrorSource_;
+
+    sk_sp<SkImage> snapshot_;
 
     std::shared_ptr<RSSurface> surface_;
     bool surfaceCreated_ { false };

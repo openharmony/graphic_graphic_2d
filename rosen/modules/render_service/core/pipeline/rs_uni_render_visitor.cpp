@@ -25,6 +25,7 @@
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_uni_render_listener.h"
 #include "pipeline/rs_uni_render_util.h"
+#include "pipeline/rs_uni_render_mirror_processor.h"
 #include "platform/common/rs_log.h"
 #include "property/rs_properties_painter.h"
 #include "property/rs_transition_properties.h"
@@ -44,12 +45,21 @@ void RSUniRenderVisitor::PrepareBaseRenderNode(RSBaseRenderNode& node)
 
 void RSUniRenderVisitor::PrepareDisplayRenderNode(RSDisplayRenderNode& node)
 {
+    currentVisitDisplay_ = node.GetScreenId();
+    displayHasSecSurface_.emplace(currentVisitDisplay_, false);
     node.ApplyModifiers();
     PrepareBaseRenderNode(node);
+    auto mirrorNode = node.GetMirrorSource().lock();
+    if (mirrorNode) {
+        mirroredDisplays_.insert(mirrorNode->GetScreenId());
+    }
 }
 
 void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
 {
+    if (node.GetSecurityLayer()) {
+        displayHasSecSurface_[currentVisitDisplay_] = true;
+    }
     node.ApplyModifiers();
     bool dirtyFlag = dirtyFlag_;
     dirtyFlag_ = node.Update(dirtyManager_, nullptr, dirtyFlag_);
@@ -93,7 +103,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
     screenInfo_ = screenManager->QueryScreenInfo(node.GetScreenId());
     switch (screenInfo_.state) {
         case ScreenState::PRODUCER_SURFACE_ENABLE:
-            node.SetCompositeType(RSDisplayRenderNode::CompositeType::SOFTWARE_COMPOSITE);
+            node.SetCompositeType(RSDisplayRenderNode::CompositeType::UNI_RENDER_MIRROR_COMPOSITE);
             break;
         case ScreenState::HDI_OUTPUT_ENABLE:
             node.SetCompositeType(node.IsForceSoftComposite() ?
@@ -137,28 +147,40 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
 #endif
     }
 
-    auto rsSurface = node.GetRSSurface();
-    if (rsSurface == nullptr) {
-        RS_LOGE("RSUniRenderVisitor::ProcessDisplayRenderNode No RSSurface found");
-        return;
-    }
-    auto surfaceFrame = rsSurface->RequestFrame(screenInfo_.GetRotatedWidth(), screenInfo_.GetRotatedHeight());
-    if (surfaceFrame == nullptr) {
-        RS_LOGE("RSUniRenderVisitor Request Frame Failed");
-        return;
-    }
-    canvas_ = std::make_unique<RSPaintFilterCanvas>(surfaceFrame->GetSurface().get());
-    canvas_->clear(SK_ColorTRANSPARENT);
+    if (mirrorNode) {
+        auto processor = std::static_pointer_cast<RSUniRenderMirrorProcessor>(processor_);
+        if (displayHasSecSurface_[mirrorNode->GetScreenId()] && processor) {
+            canvas_ = processor->GetCanvas();
+            skipSecSurface_ = true;
+            ProcessBaseRenderNode(*mirrorNode);
+            skipSecSurface_ = false;
+        } else {
+            processor_->ProcessDisplaySurface(*mirrorNode);
+        }
+    } else {
+        auto rsSurface = node.GetRSSurface();
+        if (rsSurface == nullptr) {
+            RS_LOGE("RSUniRenderVisitor::ProcessDisplayRenderNode No RSSurface found");
+            return;
+        }
+        auto surfaceFrame = rsSurface->RequestFrame(screenInfo_.GetRotatedWidth(), screenInfo_.GetRotatedHeight());
+        if (surfaceFrame == nullptr) {
+            RS_LOGE("RSUniRenderVisitor Request Frame Failed");
+            return;
+        }
+        canvas_ = std::make_unique<RSPaintFilterCanvas>(surfaceFrame->GetSurface().get());
+        canvas_->clear(SK_ColorTRANSPARENT);
 
-    ProcessBaseRenderNode(node);
-    RS_TRACE_BEGIN("RSUniRender:FlushFrame");
-    rsSurface->FlushFrame(surfaceFrame);
-    RS_TRACE_END();
-    RS_TRACE_BEGIN("RSUniRender:WaitUtilUniRenderFinished");
-    RSMainThread::Instance()->WaitUtilUniRenderFinished();
-    RS_TRACE_END();
+        ProcessBaseRenderNode(node);
+        RS_TRACE_BEGIN("RSUniRender:FlushFrame");
+        rsSurface->FlushFrame(surfaceFrame);
+        RS_TRACE_END();
+        RS_TRACE_BEGIN("RSUniRender:WaitUtilUniRenderFinished");
+        RSMainThread::Instance()->WaitUtilUniRenderFinished();
+        RS_TRACE_END();
 
-    processor_->ProcessDisplaySurface(node);
+        processor_->ProcessDisplaySurface(node);
+    }
     processor_->PostProcess();
 
     // We should release DisplayNode's surface buffer after PostProcess(),
@@ -172,6 +194,9 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
 {
     RS_LOGD("RSUniRenderVisitor::ProcessSurfaceRenderNode node: %llu, child size:%u %s", node.GetId(),
         node.GetChildrenCount(), node.GetName().c_str());
+    if (skipSecSurface_ && node.GetSecurityLayer()) {
+        return;
+    }
     const auto& property = node.GetRenderProperties();
     if (!property.GetVisible()) {
         RS_LOGD("RSUniRenderVisitor::ProcessSurfaceRenderNode node: %llu invisible", node.GetId());
