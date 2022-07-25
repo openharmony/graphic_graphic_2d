@@ -17,9 +17,36 @@
 
 namespace OHOS {
 namespace Rosen {
+namespace {
+class MemAllocater final {
+    struct BlockHead {
+        int size;
+        char ptr[0];
+    };
+    using Cache = std::vector<char*>;
+
+public:
+    static MemAllocater& GetInstance();
+    MemAllocater() = default;
+    ~MemAllocater();
+
+    void* Alloc(size_t size);
+    void Free(void* ptr);
+
+private:
+    MemAllocater(const MemAllocater&) = delete;
+    MemAllocater& operator=(const MemAllocater&) = delete;
+
+    std::mutex mutex_;
+    std::map<size_t, Cache> memCaches_;
+    std::vector<char*> blocks_;
+    static constexpr unsigned sizeStep_ = 64;
+};
+static MemAllocater allocater;
+}
+
 MemAllocater& MemAllocater::GetInstance()
 {
-    static MemAllocater allocater;
     return allocater;
 }
 
