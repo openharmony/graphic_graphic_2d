@@ -65,21 +65,21 @@ static GLuint gPos;
 static GLuint gColor;
 static GLuint gOffsetUniform;
 
+static const char *gFragShaderText =
+    "precision mediump float;\n"
+    "varying vec4 v_color;\n"
+    "void main() {\n"
+    "  gl_FragColor = v_color + 0.1;\n"
+    "}\n";
+
 static const char *gVertShaderText =
     "uniform float offset;\n"
     "attribute vec4 pos;\n"
     "attribute vec4 color;\n"
     "varying vec4 v_color;\n"
     "void main() {\n"
-    "  gl_Position = pos + vec4(offset, offset, 0.0, 0.0);\n"
+    "  gl_Position = pos + vec4(offset, offset, 0.1, 0.1);\n"
     "  v_color = color;\n"
-    "}\n";
-
-static const char *gFragShaderText =
-    "precision mediump float;\n"
-    "varying vec4 v_color;\n"
-    "void main() {\n"
-    "  gl_FragColor = v_color;\n"
     "}\n";
 
 static GLuint CreateShader(const char *source, GLenum shaderType)
