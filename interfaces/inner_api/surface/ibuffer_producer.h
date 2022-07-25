@@ -58,6 +58,7 @@ public:
     virtual uint32_t GetDefaultUsage() = 0;
 
     virtual GSError CleanCache() = 0;
+    virtual GSError GoBackground() = 0;
 
     virtual GSError RegisterReleaseListener(OnReleaseFunc func) = 0;
 
@@ -100,6 +101,7 @@ protected:
         BUFFER_PRODUCER_SET_METADATA = 19,
         BUFFER_PRODUCER_SET_METADATASET = 20,
         BUFFER_PRODUCER_SET_TUNNEL_HANDLE = 21,
+        BUFFER_PRODUCER_GO_BACKGROUND = 22,
     };
 };
 } // namespace OHOS

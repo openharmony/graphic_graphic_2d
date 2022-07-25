@@ -269,6 +269,20 @@ GSError BufferClientProducer::CleanCache()
     return GSERROR_OK;
 }
 
+GSError BufferClientProducer::GoBackground()
+{
+    DEFINE_MESSAGE_VARIABLES(arguments, reply, option, BLOGE);
+
+    SEND_REQUEST(BUFFER_PRODUCER_GO_BACKGROUND, arguments, reply, option);
+    int32_t ret = reply.ReadInt32();
+    if (ret != GSERROR_OK) {
+        BLOGN_FAILURE("Remote return %{public}d", ret);
+        return (GSError)ret;
+    }
+
+    return GSERROR_OK;
+}
+
 GSError BufferClientProducer::SetTransform(TransformType transform)
 {
     DEFINE_MESSAGE_VARIABLES(arguments, reply, option, BLOGE);

@@ -61,6 +61,7 @@ public:
     uint32_t GetDefaultUsage() override;
 
     GSError CleanCache() override;
+    GSError GoBackground() override;
 
     GSError RegisterReleaseListener(OnReleaseFunc func) override;
 
@@ -105,6 +106,7 @@ private:
     int32_t SetMetaDataRemote(MessageParcel &arguments, MessageParcel &reply, MessageOption &option);
     int32_t SetMetaDataSetRemote(MessageParcel &arguments, MessageParcel &reply, MessageOption &option);
     int32_t SetTunnelHandleRemote(MessageParcel &arguments, MessageParcel &reply, MessageOption &option);
+    int32_t GoBackgroundRemote(MessageParcel &arguments, MessageParcel &reply, MessageOption &option);
 
     using BufferQueueProducerFunc = int32_t (BufferQueueProducer::*)(MessageParcel &arguments,
         MessageParcel &reply, MessageOption &option);
