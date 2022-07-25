@@ -14,10 +14,7 @@
  */
 #include "pipeline/rs_main_thread.h"
 
-#include <memory>
 #include <securec.h>
-#include <string>
-
 #include "rs_trace.h"
 
 #include "command/rs_message_processor.h"
@@ -321,10 +318,6 @@ void RSMainThread::CalcOcclusion()
         Occlusion::Region curSurface { rect };
         // Current surface subtract current region, if result region is empty that means it's covered
         Occlusion::Region subResult = curSurface.Sub(curRegion);
-        std::string info = "RSMainThread::CalcOcclusion: id: " + std::to_string(surface->GetId()) + ", ";
-        info.append("name: " + surface->GetName()) + ", ";
-        info.append(subResult.GetRegionInfo());
-        RS_LOGD(info.c_str());
         // Set result to SurfaceRenderNode and its children
         surface->SetVisibleRegionRecursive(subResult, curVisVec);
         // Current region need to merge current surface for next calculation(ignore alpha surface)
@@ -357,13 +350,6 @@ void RSMainThread::CallbackToWMS(VisibleData& curVisVec)
         }
     }
     if (visibleChanged) {
-        std::string inf;
-        char strBuffer[UINT8_MAX] = { 0 };
-        if (sprintf_s(strBuffer, UINT8_MAX, "RSMainThread::CallbackToWMS:%d - %d", lastVisVec_.size(),
-            curVisVec.size()) != -1) {
-            inf.append(strBuffer);
-        }
-        RS_TRACE_NAME(inf.c_str());
         for (auto& listener : occlusionListeners_) {
             listener->OnOcclusionVisibleChanged(std::make_shared<RSOcclusionData>(curVisVec));
         }

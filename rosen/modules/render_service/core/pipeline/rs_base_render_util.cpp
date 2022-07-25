@@ -525,7 +525,7 @@ void RSBaseRenderUtil::DropFrameProcess(RSSurfaceHandler& node)
     auto availableBufferCnt = node.GetAvailableBufferCount();
     const auto& surfaceConsumer = node.GetConsumer();
     if (surfaceConsumer == nullptr) {
-        RS_LOGE("RsDebug RSBaseRenderUtil::DropFrameProcess (node: %llu): surfaceConsumer is null!",
+        RS_LOGI("RsDebug RSBaseRenderUtil::DropFrameProcess (node: %llu): surfaceConsumer is null!",
             node.GetNodeId());
         return;
     }
@@ -534,8 +534,6 @@ void RSBaseRenderUtil::DropFrameProcess(RSSurfaceHandler& node)
     // maxDirtyListSize > 2 means QueueSize >3 too
     if (maxDirtyListSize > 2 && availableBufferCnt >= maxDirtyListSize) {
         RS_TRACE_NAME("DropFrame");
-        RS_LOGD("RSBaseRenderUtil::DropFrameProcess(node: %llu) queueBlock, start to drop one frame",
-            node.GetNodeId());
         OHOS::sptr<SurfaceBuffer> cbuffer;
         Rect damage;
         sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
@@ -553,8 +551,7 @@ void RSBaseRenderUtil::DropFrameProcess(RSSurfaceHandler& node)
                 node.GetNodeId(), ret);
         }
         availableBufferCnt = node.ReduceAvailableBuffer();
-        RS_LOGD("RsDebug RSBaseRenderUtil::DropFrameProcess (node: %llu), drop one frame finished",
-            node.GetNodeId());
+        RS_LOGD("RsDebug RSBaseRenderUtil::DropFrameProcess (node: %llu), drop one frame", node.GetNodeId());
     }
 
     return;

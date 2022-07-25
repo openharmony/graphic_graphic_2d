@@ -153,6 +153,8 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
     ProcessBaseRenderNode(node);
     RS_TRACE_BEGIN("RSUniRender:FlushFrame");
     rsSurface->FlushFrame(surfaceFrame);
+    RS_TRACE_END();
+    RS_TRACE_BEGIN("RSUniRender:WaitUtilUniRenderFinished");
     RSMainThread::Instance()->WaitUtilUniRenderFinished();
     RS_TRACE_END();
 

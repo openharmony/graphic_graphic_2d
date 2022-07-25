@@ -35,7 +35,7 @@ void RSRenderServiceListener::OnBufferAvailable()
         RS_LOGE("RSRenderServiceListener::OnBufferAvailable node is nullptr");
         return;
     }
-    RS_LOGI("RsDebug RSRenderServiceListener::OnBufferAvailable node id:%llu", node->GetId());
+    RS_LOGD("RsDebug RSRenderServiceListener::OnBufferAvailable node id:%llu", node->GetId());
     node->IncreaseAvailableBuffer();
     if (!node->IsNotifyUIBufferAvailable()) {
         // Only ipc for one time.

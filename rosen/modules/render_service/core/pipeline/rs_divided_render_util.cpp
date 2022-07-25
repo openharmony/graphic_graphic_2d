@@ -280,7 +280,6 @@ void RSDividedRenderUtil::DrawImage(std::shared_ptr<RSEglImageManager> eglImageM
     RSPaintFilterCanvas& canvas, BufferDrawParam& bufferDrawParam, CanvasPostProcess process)
 {
     RS_TRACE_NAME("GpuClientComposition");
-    RS_LOGI("RSDividedRenderUtil::DrawImage start");
     sk_sp<SkImage> image;
     if (!RSBaseRenderUtil::ConvertBufferToEglImage(bufferDrawParam.buffer, eglImageManager, grContext,
         bufferDrawParam.acquireFence, image)) {

@@ -322,11 +322,9 @@ bool RSComposerAdapter::CheckStatusBeforeCreateLayer(RSSurfaceRenderNode& node, 
         return false;
     }
 
-    RS_LOGD("RsDebug RSComposerAdapter::CheckStatusBeforeCreateLayer start(node(%llu) name:[%s] dst:[%d %d %d %d]).",
-        node.GetId(), node.GetName().c_str(), dstRect.left_, dstRect.top_, dstRect.width_, dstRect.height_);
     auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(node.GetRenderProperties().GetBoundsGeometry());
     if (geoPtr == nullptr) {
-        RS_LOGE("RsDebug RSComposerAdapter::CheckStatusBeforeCreateLayer: node(%llu)'s geoPtr is nullptr!",
+        RS_LOGW("RsDebug RSComposerAdapter::CheckStatusBeforeCreateLayer: node(%llu)'s geoPtr is nullptr!",
             node.GetId());
         return false;
     }
