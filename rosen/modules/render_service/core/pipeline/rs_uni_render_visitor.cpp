@@ -310,11 +310,6 @@ void RSUniRenderVisitor::DrawImageOnCanvas(RSSurfaceRenderNode& node)
     }
 
     auto buffer = node.GetBuffer();
-    if (buffer->GetFormat() == PIXEL_FMT_YCRCB_420_SP || buffer->GetFormat() == PIXEL_FMT_YCBCR_420_SP) {
-        DrawBufferOnCanvas(node);
-        return;
-    }
-
     auto srcRect = SkRect::MakeWH(buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight());
     auto dstRect = srcRect;
     BufferInfo bufferInfo = { buffer, node.GetAcquireFence(), node.GetConsumer() };
