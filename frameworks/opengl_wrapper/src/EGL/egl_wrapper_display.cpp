@@ -397,7 +397,6 @@ void EglWrapperDisplay::RemoveObject(EglWrapperObject *obj)
 
 void EglWrapperDisplay::ClearObjects()
 {
-    std::lock_guard<std::mutex> lock(lockMutex_);
     for (auto obj : objects_) {
         obj->Destroy();
     }
