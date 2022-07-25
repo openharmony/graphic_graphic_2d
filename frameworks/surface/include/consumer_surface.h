@@ -82,6 +82,7 @@ public:
     void Dump(std::string &result) const override;
 
     GSError CleanCache() override;
+    GSError GoBackground() override;
 
     GSError SetTransform(TransformType transform) override;
     TransformType GetTransform() const override;

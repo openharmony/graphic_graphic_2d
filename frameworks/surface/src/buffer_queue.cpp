@@ -403,6 +403,10 @@ GSError BufferQueue::DoFlushBuffer(int32_t sequence, const sptr<BufferExtraData>
     ScopedBytrace func(__func__);
     ScopedBytrace bufferName(name_ + ":" + std::to_string(sequence));
     std::lock_guard<std::mutex> lockGuard(mutex_);
+    if (bufferQueueCache_.find(sequence) == bufferQueueCache_.end()) {
+        BLOGN_FAILURE_ID(sequence, "not found in cache");
+        return GSERROR_NO_ENTRY;
+    }
     if (bufferQueueCache_[sequence].isDeleting) {
         DeleteBufferInCache(sequence);
         BLOGN_SUCCESS_ID(sequence, "delete");
@@ -502,6 +506,10 @@ GSError BufferQueue::ReleaseBuffer(sptr<SurfaceBuffer> &buffer, const sptr<SyncF
     }
 
     std::lock_guard<std::mutex> lockGuard(mutex_);
+    if (bufferQueueCache_.find(sequence) == bufferQueueCache_.end()) {
+        BLOGN_FAILURE_ID(sequence, "not find in cache, Queue id: %{public}" PRIu64 "", uniqueId_);
+        return GSERROR_NO_ENTRY;
+    }
     bufferQueueCache_[sequence].state = BUFFER_STATE_RELEASED;
     bufferQueueCache_[sequence].fence = fence;
 
@@ -787,12 +795,8 @@ uint32_t BufferQueue::GetDefaultUsage()
     return defaultUsage;
 }
 
-GSError BufferQueue::CleanCache()
+void BufferQueue::ClearLocked()
 {
-    std::lock_guard<std::mutex> lockGuard(mutex_);
-    if (!GetStatus()) {
-        BLOGN_FAILURE_RET(GSERROR_NO_CONSUMER);
-    }
     for (auto &[id, _] : bufferQueueCache_) {
         if (onBufferDelete_ != nullptr) {
             onBufferDelete_(id);
@@ -802,6 +806,27 @@ GSError BufferQueue::CleanCache()
     freeList_.clear();
     dirtyList_.clear();
     deletingList_.clear();
+}
+
+GSError BufferQueue::GoBackground()
+{
+    std::lock_guard<std::mutex> lockGuard(mutex_);
+    if (listener_ != nullptr) {
+        ScopedBytrace bufferIPCSend("OnCleanCache");
+        listener_->OnCleanCache();
+    } else if (listenerClazz_ != nullptr) {
+        ScopedBytrace bufferIPCSend("OnCleanCache");
+        listenerClazz_->OnCleanCache();
+    }
+    ClearLocked();
+    waitReqCon_.notify_all();
+    return GSERROR_OK;
+}
+
+GSError BufferQueue::CleanCache()
+{
+    std::lock_guard<std::mutex> lockGuard(mutex_);
+    ClearLocked();
     waitReqCon_.notify_all();
     return GSERROR_OK;
 }
