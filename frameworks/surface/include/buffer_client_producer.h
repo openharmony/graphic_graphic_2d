@@ -62,6 +62,7 @@ public:
     // Call carefully. This interface will empty all caches of the current process
     GSError CleanCache() override;
     GSError Disconnect() override;
+    GSError GoBackground() override;
 
     GSError SetMetaData(int32_t sequence, const std::vector<HDRMetaData> &metaData) override;
     GSError SetMetaDataSet(int32_t sequence, HDRMetadataKey key,

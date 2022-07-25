@@ -52,6 +52,7 @@ BufferQueueProducer::BufferQueueProducer(sptr<BufferQueue>& bufferQueue)
     memberFuncMap_[BUFFER_PRODUCER_DISCONNECT] = &BufferQueueProducer::DisconnectRemote;
     memberFuncMap_[BUFFER_PRODUCER_SET_METADATA] = &BufferQueueProducer::SetMetaDataRemote;
     memberFuncMap_[BUFFER_PRODUCER_SET_METADATASET] = &BufferQueueProducer::SetMetaDataSetRemote;
+    memberFuncMap_[BUFFER_PRODUCER_GO_BACKGROUND] = &BufferQueueProducer::GoBackgroundRemote;
 }
 
 BufferQueueProducer::~BufferQueueProducer()
@@ -229,6 +230,12 @@ int32_t BufferQueueProducer::GetUniqueIdRemote(MessageParcel &arguments, Message
 int32_t BufferQueueProducer::CleanCacheRemote(MessageParcel &arguments, MessageParcel &reply, MessageOption &option)
 {
     reply.WriteInt32(CleanCache());
+    return 0;
+}
+
+int32_t BufferQueueProducer::GoBackgroundRemote(MessageParcel &arguments, MessageParcel &reply, MessageOption &option)
+{
+    reply.WriteInt32(GoBackground());
     return 0;
 }
 
@@ -413,6 +420,23 @@ GSError BufferQueueProducer::CleanCache()
     }
 
     return bufferQueue_->CleanCache();
+}
+
+GSError BufferQueueProducer::GoBackground()
+{
+    if (bufferQueue_ == nullptr) {
+        return GSERROR_INVALID_ARGUMENTS;
+    }
+
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        auto ret = CheckConnectLocked();
+        if (ret != GSERROR_OK) {
+            return ret;
+        }
+    }
+
+    return bufferQueue_->GoBackground();
 }
 
 GSError BufferQueueProducer::RegisterReleaseListener(OnReleaseFunc func)

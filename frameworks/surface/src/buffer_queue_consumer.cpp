@@ -160,4 +160,12 @@ void BufferQueueConsumer::SetStatus(bool status)
 {
     bufferQueue_->SetStatus(status);
 }
+
+GSError BufferQueueConsumer::OnConsumerDied()
+{
+    if (bufferQueue_ == nullptr) {
+        return GSERROR_INVALID_ARGUMENTS;
+    }
+    return bufferQueue_->CleanCache();
+}
 } // namespace OHOS

@@ -87,6 +87,7 @@ public:
 
     // Call carefully. This interface will empty all caches of the current process
     GSError CleanCache() override;
+    GSError GoBackground() override;
 
     GSError SetTransform(TransformType transform) override;
     TransformType GetTransform() const override;
