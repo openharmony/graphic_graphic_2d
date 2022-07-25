@@ -151,7 +151,11 @@ void RSRenderThread::RequestNextVSync()
         };
         if (receiver_ != nullptr) {
             receiver_->RequestNextVSync(fcb);
+        } else {
+            hasSkipVsync_ = true;
         }
+    } else {
+        hasSkipVsync_ = true;
     }
 }
 
@@ -187,6 +191,11 @@ void RSRenderThread::RenderLoop()
         return;
     }
     receiver_->Init();
+    if (hasSkipVsync_) {
+        hasSkipVsync_ = false;
+        RSRenderThread::Instance().RequestNextVSync();
+    }
+
     if (runner_) {
         runner_->Run();
     }

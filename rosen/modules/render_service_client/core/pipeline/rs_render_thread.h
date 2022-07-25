@@ -91,6 +91,7 @@ private:
     void SendCommands();
 
     std::atomic_bool running_ = false;
+    std::atomic_bool hasSkipVsync_ = false;
     std::atomic_int activeWindowCnt_ = 0;
     std::unique_ptr<std::thread> thread_ = nullptr;
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
