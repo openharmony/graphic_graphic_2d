@@ -53,9 +53,9 @@ ohos_shared_library("skeffectchain") {
 
   external_deps = [
     "hitrace_native:hitrace_meter",
+    "init:libbegetutil",
     "ipc:ipc_core",
     "samgr_standard:samgr_proxy",
-    "startup_l2:syspara",
   ]
 
   sources = [

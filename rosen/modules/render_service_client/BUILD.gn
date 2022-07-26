@@ -110,11 +110,7 @@ ohos_source_set("render_service_client_src") {
 
   deps = []
 
-  deps += [
-    "//base/startup/syspara_lite/interfaces/innerkits/native/syspara:syspara",
-    "//base/startup/syspara_lite/interfaces/innerkits/native/syspara:syspara_watchagent",
-    "//foundation/graphic/graphic_2d/rosen/modules/frame_analyzer:libframe_analyzer",
-  ]
+  deps += [ "//foundation/graphic/graphic_2d/rosen/modules/frame_analyzer:libframe_analyzer" ]
 
   if (rss_enabled) {
     deps += [
@@ -134,7 +130,8 @@ ohos_source_set("render_service_client_src") {
   external_deps = [
     "hisysevent_native:libhisysevent",
     "hitrace_native:hitrace_meter",
-    "startup_l2:syspara",
+    "init:libbeget_proxy",
+    "init:libbegetutil",
   ]
   public_deps =
       [ "$rosen_root/modules/render_service_base:librender_service_base" ]

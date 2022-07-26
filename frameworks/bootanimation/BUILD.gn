@@ -72,7 +72,7 @@ ohos_executable("bootanimation") {
   ]
 
   if (is_standard_system) {
-    external_deps += [ "startup_l2:syspara" ]
+    external_deps += [ "init:libbegetutil" ]
   } else {
     external_deps += [ "startup:syspara" ]
   }
