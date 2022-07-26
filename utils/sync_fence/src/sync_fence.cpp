@@ -248,16 +248,17 @@ bool SyncFence::IsValid() const
     return fenceFd_ != -1;
 }
 
-void SyncFence::ReadFromMessageParcel(MessageParcel &parcel)
+sptr<SyncFence> SyncFence::ReadFromMessageParcel(MessageParcel &parcel)
 {
     int32_t fence = parcel.ReadInt32();
     if (fence < 0) {
         HiLog::Warn(LABEL, "ReadFromMessageParcel fence is invalid : %{public}d", fence);
-        return;
+        return INVALID_FENCE;
     }
 
     fence = parcel.ReadFileDescriptor();
-    fenceFd_ = UniqueFd(fence);
+
+    return sptr<SyncFence>(new SyncFence(fence));
 }
 
 void SyncFence::WriteToMessageParcel(MessageParcel &parcel)
