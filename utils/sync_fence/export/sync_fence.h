@@ -90,7 +90,7 @@ public:
     int32_t Get() const;
 
     void WriteToMessageParcel(MessageParcel &parcel);
-    void ReadFromMessageParcel(MessageParcel &parcel);
+    static sptr<SyncFence> ReadFromMessageParcel(MessageParcel &parcel);
 
 private:
     std::vector<SyncPointInfo> GetFenceInfo();
