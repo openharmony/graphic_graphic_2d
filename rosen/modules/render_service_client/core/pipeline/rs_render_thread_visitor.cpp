@@ -243,6 +243,14 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
     }
 
     auto skSurface = surfaceFrame->GetSurface();
+    if (skSurface == nullptr) {
+        ROSEN_LOGE("skSurface null.");
+        return;
+    }
+    if (skSurface->getCanvas() == nullptr) {
+        ROSEN_LOGE("skSurface.getCanvas is null.");
+        return;
+    }
     canvas_ = new RSPaintFilterCanvas(skSurface.get());
 
     auto &overdrawController = RSOverdrawController::GetInstance();
