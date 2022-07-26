@@ -42,6 +42,14 @@ void RSAnimationManager::AddAnimation(const std::shared_ptr<RSRenderAnimation>& 
     OnAnimationAdd(animation);
 }
 
+void RSAnimationManager::ClearAnimation()
+{
+    animations_.clear();
+    animationNum_.clear();
+    transition_.clear();
+    springAnimations_.clear();
+}
+
 void RSAnimationManager::RemoveAnimation(AnimationId keyId)
 {
     auto animationItr = animations_.find(keyId);

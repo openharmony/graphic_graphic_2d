@@ -51,6 +51,9 @@ void RSRenderNodeMap::FilterNodeByPid(pid_t pid)
         if (static_cast<pid_t>(pair.first >> 32) != pid) {
             return false;
         }
+        if (auto renderNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(pair.second)) {
+            renderNode->GetAnimationManager().ClearAnimation();
+        }
         pair.second->RemoveFromTree();
         return true;
     });

@@ -60,6 +60,7 @@ void RSRenderNode::FallbackAnimationsToRoot()
     }
     for (const auto& [animationId, animation] : animationManager_.animations_) {
         animation->Detach();
+        animation->SetRepeatCount(1);
         target->animationManager_.AddAnimation(animation);
     }
 }
