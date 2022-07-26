@@ -69,12 +69,12 @@ std::unique_ptr<Media::PixelMap> RSSurfaceCaptureTask::Run()
         RS_LOGE("RSSurfaceCaptureTask::Run: pixelmap == nullptr!");
         return nullptr;
     }
-    std::unique_ptr<SkCanvas> canvas = CreateCanvas(pixelmap);
-    if (canvas == nullptr) {
-        RS_LOGE("RSSurfaceCaptureTask::Run: canvas is nullptr!");
+    auto skSurface = CreateSurface(pixelmap);
+    if (skSurface == nullptr) {
+        RS_LOGE("RSSurfaceCaptureTask::Run: surface is nullptr!");
         return nullptr;
     }
-    visitor->SetCanvas(canvas.get());
+    visitor->SetSurface(skSurface.get());
     visitor->SetScale(scaleX_, scaleY_);
     node->Process(visitor);
     return pixelmap;
@@ -132,29 +132,29 @@ std::unique_ptr<Media::PixelMap> RSSurfaceCaptureTask::CreatePixelMapByDisplayNo
     return Media::PixelMap::Create(opts);
 }
 
-std::unique_ptr<SkCanvas> RSSurfaceCaptureTask::CreateCanvas(const std::unique_ptr<Media::PixelMap>& pixelmap)
+sk_sp<SkSurface> RSSurfaceCaptureTask::CreateSurface(const std::unique_ptr<Media::PixelMap>& pixelmap)
 {
     if (pixelmap == nullptr) {
-        RS_LOGE("RSSurfaceCaptureTask::CreateCanvas: pixelmap == nullptr");
+        RS_LOGE("RSSurfaceCaptureTask::CreateSurface: pixelmap == nullptr");
         return nullptr;
     }
     auto address = const_cast<uint32_t*>(pixelmap->GetPixel32(0, 0));
     if (address == nullptr) {
-        RS_LOGE("RSSurfaceCaptureTask::CreateCanvas: address == nullptr");
+        RS_LOGE("RSSurfaceCaptureTask::CreateSurface: address == nullptr");
         return nullptr;
     }
     SkImageInfo info = SkImageInfo::Make(pixelmap->GetWidth(), pixelmap->GetHeight(),
             kRGBA_8888_SkColorType, kPremul_SkAlphaType);
-    return SkCanvas::MakeRasterDirect(info, address, pixelmap->GetRowBytes());
+    return SkSurface::MakeRasterDirect(info, address, pixelmap->GetRowBytes());
 }
 
-void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::SetCanvas(SkCanvas* canvas)
+void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::SetSurface(SkSurface* surface)
 {
-    if (canvas == nullptr) {
-        RS_LOGE("RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::SetCanvas: address == nullptr");
+    if (surface == nullptr) {
+        RS_LOGE("RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::SetSurface: surface == nullptr");
         return;
     }
-    canvas_ = std::make_unique<RSPaintFilterCanvas>(canvas);
+    canvas_ = std::make_unique<RSPaintFilterCanvas>(surface);
 }
 
 void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::ProcessBaseRenderNode(RSBaseRenderNode &node)

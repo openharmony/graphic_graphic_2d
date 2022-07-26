@@ -177,26 +177,28 @@ void RSPropertiesPainter::DrawFilter(const RSProperties& properties, SkCanvas& c
     std::shared_ptr<RSSkiaFilter>& filter, const std::unique_ptr<SkRect>& rect,
     SkSurface* skSurface)
 {
-    SkPaint paint;
-    paint.setAntiAlias(true);
-    paint.setBlendMode(SkBlendMode::kSrcOver);
-    if (skSurface == nullptr) {
-        ROSEN_LOGE("skSurface null");
-        return ;
-    }
-    filter->ApplyTo(paint);
-    // canvas draw by snapshot instead of SaveLayer, since the blur layer moves while using savelayer
-    auto imageSnapshot = skSurface->makeImageSnapshot();
-    if (imageSnapshot == nullptr) {
-        ROSEN_LOGE("image null");
-        return ;
-    }
     if (rect != nullptr) {
         canvas.clipRect((*rect), true);
     } else if (properties.GetClipBounds() != nullptr) {
         canvas.clipPath(properties.GetClipBounds()->GetSkiaPath(), true);
     } else {
         canvas.clipRRect(RRect2SkRRect(properties.GetRRect()), true);
+    }
+    SkPaint paint;
+    paint.setAntiAlias(true);
+    paint.setBlendMode(SkBlendMode::kSrcOver);
+    filter->ApplyTo(paint);
+    if (skSurface == nullptr) {
+        ROSEN_LOGD("RSPropertiesPainter::DrawFilter skSurface null");
+        SkCanvas::SaveLayerRec slr(nullptr, &paint, SkCanvas::kInitWithPrevious_SaveLayerFlag);
+        canvas.saveLayer(slr);
+        return;
+    }
+    // canvas draw by snapshot instead of SaveLayer, since the blur layer moves while using savelayer
+    auto imageSnapshot = skSurface->makeImageSnapshot();
+    if (imageSnapshot == nullptr) {
+        ROSEN_LOGE("RSPropertiesPainter::DrawFilter image null");
+        return;
     }
     canvas.save();
     canvas.resetMatrix();

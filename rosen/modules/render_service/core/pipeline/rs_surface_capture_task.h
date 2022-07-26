@@ -18,6 +18,7 @@
 
 #include "common/rs_common_def.h"
 #include "include/core/SkCanvas.h"
+#include "include/core/SkSurface.h"
 #include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pixel_map.h"
@@ -49,7 +50,7 @@ private:
         void ProcessRootRenderNode(RSRootRenderNode& node) override;
         void ProcessDisplayRenderNode(RSDisplayRenderNode &node) override;
         void ProcessSurfaceRenderNode(RSSurfaceRenderNode &node) override;
-        void SetCanvas(SkCanvas* canvas);
+        void SetSurface(SkSurface* surface);
         void IsDisplayNode(bool isDisplayNode)
         {
             isDisplayNode_ = isDisplayNode;
@@ -85,7 +86,7 @@ private:
         bool isUniRender_ = false;
     };
 
-    std::unique_ptr<SkCanvas> CreateCanvas(const std::unique_ptr<Media::PixelMap>& pixelmap);
+    sk_sp<SkSurface> CreateSurface(const std::unique_ptr<Media::PixelMap>& pixelmap);
 
     std::unique_ptr<Media::PixelMap> CreatePixelMapBySurfaceNode(std::shared_ptr<RSSurfaceRenderNode> node,
         bool isUniRender = false);
