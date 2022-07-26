@@ -143,8 +143,8 @@ protected:
             renderProperty = std::make_shared<RSRenderProperty<std::shared_ptr<RSAnimatableBase>>>(
                 originValue_, property_.id_);
         }
-        auto modifier = std::static_pointer_cast<RSAnimatableModifier<std::shared_ptr<RSAnimatableBase>>>(
-            target->GetModifier(property_.id_));
+        auto modifier = std::static_pointer_cast<RSModifier<RSAnimatableProperty<
+            std::shared_ptr<RSAnimatableBase>>>>(target->GetModifier(property_.id_));
         if (modifier != nullptr) {
             auto uiProperty = std::static_pointer_cast<RSAnimatableProperty<std::shared_ptr<RSAnimatableBase>>>(
                 modifier->GetProperty());

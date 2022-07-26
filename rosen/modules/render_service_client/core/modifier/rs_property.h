@@ -39,7 +39,7 @@
 
 namespace OHOS {
 namespace Rosen {
-class RSModifier;
+class RSModifierBase;
 
 template<typename T>
 class RS_EXPORT RSProperty {
@@ -57,11 +57,8 @@ public:
     }
 
     virtual void Set(const T& value);
-    T Get() const
+    virtual T Get() const
     {
-        if (isCustom_) {
-            return animatingValue_;
-        }
         return stagingValue_;
     }
 
@@ -72,7 +69,56 @@ public:
 
 protected:
     void UpdateToRender(const T& value, bool isDelta, bool forceUpdate = false) const;
-    void AttachModifier(const std::shared_ptr<RSModifier>& modifier)
+
+    T stagingValue_;
+    NodeId nodeId_;
+    PropertyId id_;
+    bool hasAddToNode_ { false };
+    RSModifierType type_ = RSModifierType::INVALID;
+    std::shared_ptr<RSMotionPathOption> motionPathOption_;
+
+    template<typename T1>
+    friend class RSPathAnimation;
+    friend class RSImplicitAnimator;
+    template<typename T2>
+    friend class RSModifier;
+};
+
+template<typename T>
+class RS_EXPORT RSAnimatableProperty : public RSProperty<T> {
+    // static_assert(std::is_integral_v<T> || std::is_floating_point_v<T> ||
+    //     std::is_base_of_v<RSAnimatableArithmetic<T>, T>);
+public:
+    RSAnimatableProperty() {}
+    RSAnimatableProperty(const T& value) : RSProperty<T>(value)
+    {
+        showingValue_ = value;
+    }
+
+    virtual ~RSAnimatableProperty() = default;
+
+    void Set(const T& value) override;
+
+    T Get() const override
+    {
+        if (isCustom_) {
+            return showingValue_;
+        }
+        return RSProperty<T>::stagingValue_;
+    }
+
+protected:
+    void SetIsCustom(bool isCustom)
+    {
+        isCustom_ = isCustom;
+    }
+
+    void SetShowingValue(const T& value)
+    {
+        showingValue_ = value;
+    }
+
+    void AttachModifier(const std::shared_ptr<RSModifierBase>& modifier)
     {
         modifier_ = modifier;
     }
@@ -85,49 +131,20 @@ protected:
         }
     }
 
-    void SetAnimatingValue(const T& value)
-    {
-        animatingValue_ = value;
-    }
-
-    void SetIsCustom(bool isCustom)
-    {
-        isCustom_ = isCustom;
-    }
-
-    T animatingValue_;
-    T stagingValue_;
-    NodeId nodeId_;
-    PropertyId id_;
-    bool hasAddToNode_ { false };
-    bool isCustom_ { false };
+    T showingValue_;
     int runningPathNum_;
-    std::shared_ptr<RSMotionPathOption> motionPathOption_;
-    std::weak_ptr<RSModifier> modifier_;
-    RSModifierType type_ = RSModifierType::INVALID;
+    bool isCustom_ { false };
+    std::weak_ptr<RSModifierBase> modifier_;
 
     template<typename T1>
     friend class RSPropertyAnimation;
     template<typename T1>
     friend class RSPathAnimation;
-    friend class RSImplicitAnimator;
-    template<typename T2>
-    friend class RSAnimatableModifier;
-    template<typename T2>
-    friend class RSExtendedModifier;
     friend class RSUIAnimationManager;
-};
-
-template<typename T>
-class RS_EXPORT RSAnimatableProperty : public RSProperty<T> {
-    // static_assert(std::is_integral_v<T> || std::is_floating_point_v<T> ||
-    //     std::is_base_of_v<RSAnimatableArithmetic<T>, T>);
-public:
-    RSAnimatableProperty() {}
-    RSAnimatableProperty(const T& value) : RSProperty<T>(value) {}
-    virtual ~RSAnimatableProperty() = default;
-
-    void Set(const T& value) override;
+    template<typename T1>
+    friend class RSExtendedModifier;
+    template<typename T1>
+    friend class RSModifier;
 };
 } // namespace Rosen
 } // namespace OHOS

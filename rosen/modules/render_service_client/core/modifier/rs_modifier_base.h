@@ -30,17 +30,18 @@ struct RSDrawingContext {
 };
 class RSRenderModifier;
 
-class RS_EXPORT RSModifier {
+class RS_EXPORT RSModifierBase {
 public:
-    RSModifier() = default;
-    virtual ~RSModifier() = default;
+    RSModifierBase() = default;
+    virtual ~RSModifierBase() = default;
 
     virtual PropertyId GetPropertyId() = 0;
 
-    virtual RSModifierType GetModifierType() const = 0;
 protected:
-    virtual void MarkAddToNode(const NodeId& id) = 0;
-    virtual void MarkRemoveFromNode() = 0;
+    virtual RSModifierType GetModifierType() const = 0;
+
+    virtual void AttachToNode(const NodeId& id) = 0;
+    virtual void DetachFromNode() = 0;
 
     virtual void SetMotionPathOption(const std::shared_ptr<RSMotionPathOption>& motionPathOption) = 0;
     virtual void SetIsAdditive(bool isAdditive) = 0;
@@ -52,25 +53,35 @@ protected:
     template<typename T>
     friend class RSProperty;
     friend class RSModifierManager;
+    template<typename T>
+    friend class RSPathAnimation;
+    friend class RSModifierExtractor;
 };
 
 template<typename T>
-class RS_EXPORT RSAnimatableModifier : public RSModifier {
+class RS_EXPORT RSModifier : public RSModifierBase {
 public:
-    explicit RSAnimatableModifier(const std::shared_ptr<RSProperty<T>> property)
-        : property_(property ? property : std::make_shared<RSProperty<T>>())
+    explicit RSModifier(const std::shared_ptr<T>& property)
+        : property_(property ? property : std::make_shared<T>())
     {}
 
-    virtual ~RSAnimatableModifier() = default;
+    virtual ~RSModifier() = default;
 
     PropertyId GetPropertyId() override
     {
         return property_->id_;
     }
 
-    std::shared_ptr<RSProperty<T>> GetProperty()
+    std::shared_ptr<T> GetProperty()
     {
         return property_;
+    }
+
+protected:
+    RSModifier(const std::shared_ptr<T>& property, const RSModifierType type)
+        : property_(property ? property : std::make_shared<T>())
+    {
+        property_->type_ = type;
     }
 
     RSModifierType GetModifierType() const override
@@ -78,24 +89,13 @@ public:
         return RSModifierType::INVALID;
     }
 
-protected:
-    RSAnimatableModifier(const std::shared_ptr<RSProperty<T>> property, const RSModifierType type)
-        : property_(property ? property : std::make_shared<RSProperty<T>>())
-    {
-        property_->type_ = type;
-    }
-
-    void Update(const T& value) {
-        property_->Set(value);
-    }
-
-    void MarkAddToNode(const NodeId& id) override
+    void AttachToNode(const NodeId& id) override
     {
         property_->hasAddToNode_ = true;
         property_->nodeId_ = id;
     }
 
-    void MarkRemoveFromNode() override
+    void DetachFromNode() override
     {
         property_->hasAddToNode_ = false;
     }
@@ -112,7 +112,7 @@ protected:
 
     void UpdateToRender() override {}
 
-    std::shared_ptr<RSProperty<T>> property_;
+    std::shared_ptr<T> property_;
     bool isAdditive_ { false };
 
     friend class RSModifierExtractor;

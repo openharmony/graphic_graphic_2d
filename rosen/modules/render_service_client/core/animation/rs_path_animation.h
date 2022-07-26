@@ -227,7 +227,7 @@ protected:
     {
         auto iter = node->modifiers_.find(rotationId_);
         if (iter != node->modifiers_.end()) {
-            auto modifier = std::static_pointer_cast<RSAnimatableModifier<float>>(iter->second);
+            auto modifier = std::static_pointer_cast<RSModifier<RSProperty<float>>>(iter->second);
             if (modifier != nullptr) {
                 modifier->GetProperty()->stagingValue_ = rotation;
             }
@@ -236,7 +236,7 @@ protected:
 
         for (const auto& [type, modifier] : node->propertyModifiers_) {
             if (modifier->GetPropertyId() == rotationId_) {
-                auto animatableModifier = std::static_pointer_cast<RSAnimatableModifier<float>>(modifier);
+                auto animatableModifier = std::static_pointer_cast<RSModifier<RSProperty<float>>>(modifier);
                 if (animatableModifier != nullptr) {
                     animatableModifier->GetProperty()->stagingValue_ = rotation;
                 }

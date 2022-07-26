@@ -63,7 +63,7 @@ public:
 
 class RSDrawCmdListRenderModifier : public RSRenderModifier {
 public:
-    RSDrawCmdListRenderModifier(const std::shared_ptr<RSRenderProperty<DrawCmdListPtr>> property)
+    RSDrawCmdListRenderModifier(const std::shared_ptr<RSRenderProperty<DrawCmdListPtr>>& property)
         : property_(property ? property : std::make_shared<RSRenderProperty<DrawCmdListPtr>>())
     {}
     virtual ~RSDrawCmdListRenderModifier() = default;
@@ -97,8 +97,8 @@ protected:
 template<typename T>
 class RSAnimatableRenderModifier : public RSRenderModifier {
 public:
-    RSAnimatableRenderModifier(const std::shared_ptr<RSRenderProperty<T>> property)
-        : property_(property ? property : std::make_shared<RSRenderProperty<T>>())
+    RSAnimatableRenderModifier(const std::shared_ptr<T>& property)
+        : property_(property ? property : std::make_shared<T>())
     {}
 
     virtual ~RSAnimatableRenderModifier() = default;
@@ -119,10 +119,10 @@ public:
     }
 
 protected:
-    std::shared_ptr<RSRenderProperty<T>> property_;
+    std::shared_ptr<T> property_;
     bool isAdditive_ { false };
     bool isFirstSet_ { true };
-    T lastValue_;
+    std::shared_ptr<T> lastValue_ = std::make_shared<T>();
 
     template<typename T1>
     friend class RSRenderPropertyAnimation;
@@ -130,10 +130,10 @@ protected:
 
 // declare RenderModifiers like RSBoundsRenderModifier
 #define DECLARE_ANIMATABLE_MODIFIER(MODIFIER_NAME, TYPE, MODIFIER_TYPE)                                         \
-    class RS##MODIFIER_NAME##RenderModifier : public RSAnimatableRenderModifier<TYPE> {                         \
+    class RS##MODIFIER_NAME##RenderModifier : public RSAnimatableRenderModifier<RSRenderProperty<TYPE>> {       \
     public:                                                                                                     \
-        RS##MODIFIER_NAME##RenderModifier(const std::shared_ptr<RSRenderProperty<TYPE>> property)               \
-            : RSAnimatableRenderModifier<TYPE>(property)                                                        \
+        RS##MODIFIER_NAME##RenderModifier(const std::shared_ptr<RSRenderProperty<TYPE>>& property)              \
+            : RSAnimatableRenderModifier<RSRenderProperty<TYPE>>(property)                                      \
         {}                                                                                                      \
         virtual ~RS##MODIFIER_NAME##RenderModifier() = default;                                                 \
         void Apply(RSModifyContext& context) override;                                                          \

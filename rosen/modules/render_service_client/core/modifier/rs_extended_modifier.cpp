@@ -87,6 +87,14 @@ void RSExtendedModifier<T>::UpdateToRender()
     }
 }
 
-template class RS_EXPORT RSExtendedModifier<std::shared_ptr<RSAnimatableBase>>;
+template class RS_EXPORT RSExtendedModifier<RSAnimatableProperty<float>>;
+template class RS_EXPORT RSExtendedModifier<RSAnimatableProperty<Color>>;
+template class RS_EXPORT RSExtendedModifier<RSAnimatableProperty<Matrix3f>>;
+template class RS_EXPORT RSExtendedModifier<RSAnimatableProperty<Quaternion>>;
+template class RS_EXPORT RSExtendedModifier<RSAnimatableProperty<std::shared_ptr<RSFilter>>>;
+template class RS_EXPORT RSExtendedModifier<RSAnimatableProperty<Vector2f>>;
+template class RS_EXPORT RSExtendedModifier<RSAnimatableProperty<Vector4<Color>>>;
+template class RS_EXPORT RSExtendedModifier<RSAnimatableProperty<Vector4f>>;
+template class RS_EXPORT RSExtendedModifier<RSAnimatableProperty<std::shared_ptr<RSAnimatableBase>>>;
 } // namespace Rosen
 } // namespace OHOS

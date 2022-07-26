@@ -74,10 +74,9 @@ HWTEST_F(RSModifierTest, Property002, TestSize.Level1)
  */
 HWTEST_F(RSModifierTest, Modifier001, TestSize.Level1)
 {
-    auto prop = std::make_shared<RSProperty<float>>(floatData[0]);
+    auto prop = std::make_shared<RSAnimatableProperty<float>>(floatData[0]);
     auto modifier = std::make_shared<RSAlphaModifier>(prop);
     ASSERT_TRUE(modifier != nullptr);
-    ASSERT_TRUE(modifier->GetModifierType() != RSModifierType::INVALID);
     ASSERT_EQ(modifier->GetPropertyId(), prop->GetId());
 }
 
@@ -89,7 +88,7 @@ HWTEST_F(RSModifierTest, Modifier001, TestSize.Level1)
  */
 HWTEST_F(RSModifierTest, Modifier002, TestSize.Level1)
 {
-    auto prop = std::make_shared<RSProperty<float>>(floatData[0]);
+    auto prop = std::make_shared<RSAnimatableProperty<float>>(floatData[0]);
     auto modifier = std::make_shared<RSAlphaModifier>(prop);
     ASSERT_TRUE(modifier != nullptr);
     ASSERT_EQ(modifier->GetProperty()->Get(), floatData[0]);
@@ -104,7 +103,7 @@ HWTEST_F(RSModifierTest, Modifier002, TestSize.Level1)
  */
 HWTEST_F(RSModifierTest, AddModifier001, TestSize.Level1)
 {
-    auto prop = std::make_shared<RSProperty<float>>(floatData[0]);
+    auto prop = std::make_shared<RSAnimatableProperty<float>>(floatData[0]);
     auto modifier = std::make_shared<RSAlphaModifier>(prop);
     auto node = RSCanvasNode::Create();
 
@@ -121,7 +120,7 @@ HWTEST_F(RSModifierTest, AddModifier001, TestSize.Level1)
  */
 HWTEST_F(RSModifierTest, AddModifier002, TestSize.Level1)
 {
-    auto prop = std::make_shared<RSProperty<float>>(floatData[0]);
+    auto prop = std::make_shared<RSAnimatableProperty<float>>(floatData[0]);
     auto modifier = std::make_shared<RSAlphaModifier>(prop);
 
     auto node = RSCanvasNode::Create();
@@ -145,7 +144,7 @@ HWTEST_F(RSModifierTest, AddModifier002, TestSize.Level1)
 HWTEST_F(RSModifierTest, BoundsModifier001, TestSize.Level1)
 {
     auto value = Vector4f(100.f);
-    auto prop = std::make_shared<RSProperty<Vector4f>>(value);
+    auto prop = std::make_shared<RSAnimatableProperty<Vector4f>>(value);
     auto modifier = std::make_shared<RSBoundsModifier>(prop);
 
     auto node = RSCanvasNode::Create();
@@ -166,7 +165,7 @@ HWTEST_F(RSModifierTest, BoundsModifier001, TestSize.Level1)
 HWTEST_F(RSModifierTest, BoundsModifier002, TestSize.Level1)
 {
     auto value = Vector4f();
-    auto prop = std::make_shared<RSProperty<Vector4f>>(value);
+    auto prop = std::make_shared<RSAnimatableProperty<Vector4f>>(value);
     auto modifier = std::make_shared<RSBoundsModifier>(prop);
 
     auto node = RSCanvasNode::Create();
@@ -187,7 +186,7 @@ HWTEST_F(RSModifierTest, BoundsModifier002, TestSize.Level1)
 HWTEST_F(RSModifierTest, FrameModifier001, TestSize.Level1)
 {
     auto value = Vector4f(100.f);
-    auto prop = std::make_shared<RSProperty<Vector4f>>(value);
+    auto prop = std::make_shared<RSAnimatableProperty<Vector4f>>(value);
     auto modifier = std::make_shared<RSFrameModifier>(prop);
 
     auto node = RSCanvasNode::Create();
@@ -208,7 +207,7 @@ HWTEST_F(RSModifierTest, FrameModifier001, TestSize.Level1)
 HWTEST_F(RSModifierTest, FrameModifier002, TestSize.Level1)
 {
     auto value = Vector4f();
-    auto prop = std::make_shared<RSProperty<Vector4f>>(value);
+    auto prop = std::make_shared<RSAnimatableProperty<Vector4f>>(value);
     auto modifier = std::make_shared<RSFrameModifier>(prop);
 
     auto node = RSCanvasNode::Create();
@@ -229,7 +228,7 @@ HWTEST_F(RSModifierTest, FrameModifier002, TestSize.Level1)
 HWTEST_F(RSModifierTest, PositionZModifier001, TestSize.Level1)
 {
     auto value = 2.f;
-    auto prop = std::make_shared<RSProperty<float>>(value);
+    auto prop = std::make_shared<RSAnimatableProperty<float>>(value);
     auto modifier = std::make_shared<RSPositionZModifier>(prop);
 
     auto node = RSCanvasNode::Create();
@@ -250,7 +249,7 @@ HWTEST_F(RSModifierTest, PositionZModifier001, TestSize.Level1)
 HWTEST_F(RSModifierTest, PositionZModifier002, TestSize.Level1)
 {
     auto value = 0.f;
-    auto prop = std::make_shared<RSProperty<float>>(value);
+    auto prop = std::make_shared<RSAnimatableProperty<float>>(value);
     auto modifier = std::make_shared<RSPositionZModifier>(prop);
 
     auto node = RSCanvasNode::Create();
@@ -271,7 +270,7 @@ HWTEST_F(RSModifierTest, PositionZModifier002, TestSize.Level1)
 HWTEST_F(RSModifierTest, PivotModifier001, TestSize.Level1)
 {
     auto value = Vector2f(1.f, 1.f);
-    auto prop = std::make_shared<RSProperty<Vector2f>>(value);
+    auto prop = std::make_shared<RSAnimatableProperty<Vector2f>>(value);
     auto modifier = std::make_shared<RSPivotModifier>(prop);
 
     auto node = RSCanvasNode::Create();
@@ -292,7 +291,7 @@ HWTEST_F(RSModifierTest, PivotModifier001, TestSize.Level1)
 HWTEST_F(RSModifierTest, PivotModifier002, TestSize.Level1)
 {
     auto value = Vector2f();
-    auto prop = std::make_shared<RSProperty<Vector2f>>(value);
+    auto prop = std::make_shared<RSAnimatableProperty<Vector2f>>(value);
     auto modifier = std::make_shared<RSPivotModifier>(prop);
 
     auto node = RSCanvasNode::Create();
@@ -313,7 +312,7 @@ HWTEST_F(RSModifierTest, PivotModifier002, TestSize.Level1)
 HWTEST_F(RSModifierTest, QuaternionModifier001, TestSize.Level1)
 {
     auto value = Quaternion(0.382683, 0, 0, 0.92388);
-    auto prop = std::make_shared<RSProperty<Quaternion>>(value);
+    auto prop = std::make_shared<RSAnimatableProperty<Quaternion>>(value);
     auto modifier = std::make_shared<RSQuaternionModifier>(prop);
 
     auto node = RSCanvasNode::Create();
@@ -334,7 +333,7 @@ HWTEST_F(RSModifierTest, QuaternionModifier001, TestSize.Level1)
 HWTEST_F(RSModifierTest, QuaternionModifier002, TestSize.Level1)
 {
     auto value = Quaternion();
-    auto prop = std::make_shared<RSProperty<Quaternion>>(value);
+    auto prop = std::make_shared<RSAnimatableProperty<Quaternion>>(value);
     auto modifier = std::make_shared<RSQuaternionModifier>(prop);
 
     auto node = RSCanvasNode::Create();
@@ -355,7 +354,7 @@ HWTEST_F(RSModifierTest, QuaternionModifier002, TestSize.Level1)
 HWTEST_F(RSModifierTest, RotationModifier001, TestSize.Level1)
 {
     auto value = 90.f;
-    auto prop = std::make_shared<RSProperty<float>>(value);
+    auto prop = std::make_shared<RSAnimatableProperty<float>>(value);
     auto modifier = std::make_shared<RSRotationModifier>(prop);
 
     auto node = RSCanvasNode::Create();
@@ -376,7 +375,7 @@ HWTEST_F(RSModifierTest, RotationModifier001, TestSize.Level1)
 HWTEST_F(RSModifierTest, RotationModifier002, TestSize.Level1)
 {
     auto value = 0.f;
-    auto prop = std::make_shared<RSProperty<float>>(value);
+    auto prop = std::make_shared<RSAnimatableProperty<float>>(value);
     auto modifier = std::make_shared<RSRotationModifier>(prop);
 
     auto node = RSCanvasNode::Create();
@@ -397,7 +396,7 @@ HWTEST_F(RSModifierTest, RotationModifier002, TestSize.Level1)
 HWTEST_F(RSModifierTest, RotationXModifier001, TestSize.Level1)
 {
     auto value = 90.f;
-    auto prop = std::make_shared<RSProperty<float>>(value);
+    auto prop = std::make_shared<RSAnimatableProperty<float>>(value);
     auto modifier = std::make_shared<RSRotationXModifier>(prop);
 
     auto node = RSCanvasNode::Create();
@@ -418,7 +417,7 @@ HWTEST_F(RSModifierTest, RotationXModifier001, TestSize.Level1)
 HWTEST_F(RSModifierTest, RotationXModifier002, TestSize.Level1)
 {
     auto value = 0.f;
-    auto prop = std::make_shared<RSProperty<float>>(value);
+    auto prop = std::make_shared<RSAnimatableProperty<float>>(value);
     auto modifier = std::make_shared<RSRotationXModifier>(prop);
 
     auto node = RSCanvasNode::Create();
@@ -439,7 +438,7 @@ HWTEST_F(RSModifierTest, RotationXModifier002, TestSize.Level1)
 HWTEST_F(RSModifierTest, RotationYModifier001, TestSize.Level1)
 {
     auto value = 90.f;
-    auto prop = std::make_shared<RSProperty<float>>(value);
+    auto prop = std::make_shared<RSAnimatableProperty<float>>(value);
     auto modifier = std::make_shared<RSRotationYModifier>(prop);
 
     auto node = RSCanvasNode::Create();
@@ -460,7 +459,7 @@ HWTEST_F(RSModifierTest, RotationYModifier001, TestSize.Level1)
 HWTEST_F(RSModifierTest, RotationYModifier002, TestSize.Level1)
 {
     auto value = 0.f;
-    auto prop = std::make_shared<RSProperty<float>>(value);
+    auto prop = std::make_shared<RSAnimatableProperty<float>>(value);
     auto modifier = std::make_shared<RSRotationYModifier>(prop);
 
     auto node = RSCanvasNode::Create();
@@ -481,7 +480,7 @@ HWTEST_F(RSModifierTest, RotationYModifier002, TestSize.Level1)
 HWTEST_F(RSModifierTest, ScaleModifier001, TestSize.Level1)
 {
     auto value = Vector2f(2.f, 2.f);
-    auto prop = std::make_shared<RSProperty<Vector2f>>(value);
+    auto prop = std::make_shared<RSAnimatableProperty<Vector2f>>(value);
     auto modifier = std::make_shared<RSScaleModifier>(prop);
 
     auto node = RSCanvasNode::Create();
@@ -502,7 +501,7 @@ HWTEST_F(RSModifierTest, ScaleModifier001, TestSize.Level1)
 HWTEST_F(RSModifierTest, ScaleModifier002, TestSize.Level1)
 {
     auto value = Vector2f();
-    auto prop = std::make_shared<RSProperty<Vector2f>>(value);
+    auto prop = std::make_shared<RSAnimatableProperty<Vector2f>>(value);
     auto modifier = std::make_shared<RSScaleModifier>(prop);
 
     auto node = RSCanvasNode::Create();
@@ -523,7 +522,7 @@ HWTEST_F(RSModifierTest, ScaleModifier002, TestSize.Level1)
 HWTEST_F(RSModifierTest, TranslateModifier001, TestSize.Level1)
 {
     auto value = Vector2f(200.f, 300.f);
-    auto prop = std::make_shared<RSProperty<Vector2f>>(value);
+    auto prop = std::make_shared<RSAnimatableProperty<Vector2f>>(value);
     auto modifier = std::make_shared<RSTranslateModifier>(prop);
 
     auto node = RSCanvasNode::Create();
@@ -544,7 +543,7 @@ HWTEST_F(RSModifierTest, TranslateModifier001, TestSize.Level1)
 HWTEST_F(RSModifierTest, TranslateModifier002, TestSize.Level1)
 {
     auto value = Vector2f();
-    auto prop = std::make_shared<RSProperty<Vector2f>>(value);
+    auto prop = std::make_shared<RSAnimatableProperty<Vector2f>>(value);
     auto modifier = std::make_shared<RSTranslateModifier>(prop);
 
     auto node = RSCanvasNode::Create();
@@ -565,7 +564,7 @@ HWTEST_F(RSModifierTest, TranslateModifier002, TestSize.Level1)
 HWTEST_F(RSModifierTest, TranslateZModifier001, TestSize.Level1)
 {
     auto value = 20.f;
-    auto prop = std::make_shared<RSProperty<float>>(value);
+    auto prop = std::make_shared<RSAnimatableProperty<float>>(value);
     auto modifier = std::make_shared<RSTranslateZModifier>(prop);
 
     auto node = RSCanvasNode::Create();
@@ -586,7 +585,7 @@ HWTEST_F(RSModifierTest, TranslateZModifier001, TestSize.Level1)
 HWTEST_F(RSModifierTest, TranslateZModifier002, TestSize.Level1)
 {
     auto value = 0.f;
-    auto prop = std::make_shared<RSProperty<float>>(value);
+    auto prop = std::make_shared<RSAnimatableProperty<float>>(value);
     auto modifier = std::make_shared<RSTranslateZModifier>(prop);
 
     auto node = RSCanvasNode::Create();
@@ -607,7 +606,7 @@ HWTEST_F(RSModifierTest, TranslateZModifier002, TestSize.Level1)
 HWTEST_F(RSModifierTest, CornerRadiusModifier001, TestSize.Level1)
 {
     auto value = Vector4f(20.f);
-    auto prop = std::make_shared<RSProperty<Vector4f>>(value);
+    auto prop = std::make_shared<RSAnimatableProperty<Vector4f>>(value);
     auto modifier = std::make_shared<RSCornerRadiusModifier>(prop);
 
     auto node = RSCanvasNode::Create();
@@ -628,7 +627,7 @@ HWTEST_F(RSModifierTest, CornerRadiusModifier001, TestSize.Level1)
 HWTEST_F(RSModifierTest, CornerRadiusModifier002, TestSize.Level1)
 {
     auto value = Vector4f();
-    auto prop = std::make_shared<RSProperty<Vector4f>>(value);
+    auto prop = std::make_shared<RSAnimatableProperty<Vector4f>>(value);
     auto modifier = std::make_shared<RSCornerRadiusModifier>(prop);
 
     auto node = RSCanvasNode::Create();
@@ -649,7 +648,7 @@ HWTEST_F(RSModifierTest, CornerRadiusModifier002, TestSize.Level1)
 HWTEST_F(RSModifierTest, AlphaModifier001, TestSize.Level1)
 {
     auto value = 0.5f;
-    auto prop = std::make_shared<RSProperty<float>>(value);
+    auto prop = std::make_shared<RSAnimatableProperty<float>>(value);
     auto modifier = std::make_shared<RSAlphaModifier>(prop);
 
     auto node = RSCanvasNode::Create();
@@ -670,7 +669,7 @@ HWTEST_F(RSModifierTest, AlphaModifier001, TestSize.Level1)
 HWTEST_F(RSModifierTest, AlphaModifier002, TestSize.Level1)
 {
     auto value = 0.f;
-    auto prop = std::make_shared<RSProperty<float>>(value);
+    auto prop = std::make_shared<RSAnimatableProperty<float>>(value);
     auto modifier = std::make_shared<RSAlphaModifier>(prop);
 
     auto node = RSCanvasNode::Create();
@@ -691,7 +690,7 @@ HWTEST_F(RSModifierTest, AlphaModifier002, TestSize.Level1)
 HWTEST_F(RSModifierTest, ForegroundColorModifier001, TestSize.Level1)
 {
     auto value = RgbPalette::Black();
-    auto prop = std::make_shared<RSProperty<Color>>(value);
+    auto prop = std::make_shared<RSAnimatableProperty<Color>>(value);
     auto modifier = std::make_shared<RSForegroundColorModifier>(prop);
 
     auto node = RSCanvasNode::Create();
@@ -712,7 +711,7 @@ HWTEST_F(RSModifierTest, ForegroundColorModifier001, TestSize.Level1)
 HWTEST_F(RSModifierTest, ForegroundColorModifier002, TestSize.Level1)
 {
     auto value = RgbPalette::Transparent();
-    auto prop = std::make_shared<RSProperty<Color>>(value);
+    auto prop = std::make_shared<RSAnimatableProperty<Color>>(value);
     auto modifier = std::make_shared<RSForegroundColorModifier>(prop);
 
     auto node = RSCanvasNode::Create();
@@ -733,7 +732,7 @@ HWTEST_F(RSModifierTest, ForegroundColorModifier002, TestSize.Level1)
 HWTEST_F(RSModifierTest, BackgroundColorModifier001, TestSize.Level1)
 {
     auto value = RgbPalette::Black();
-    auto prop = std::make_shared<RSProperty<Color>>(value);
+    auto prop = std::make_shared<RSAnimatableProperty<Color>>(value);
     auto modifier = std::make_shared<RSBackgroundColorModifier>(prop);
 
     auto node = RSCanvasNode::Create();
@@ -754,7 +753,7 @@ HWTEST_F(RSModifierTest, BackgroundColorModifier001, TestSize.Level1)
 HWTEST_F(RSModifierTest, BackgroundColorModifier002, TestSize.Level1)
 {
     auto value = RgbPalette::Transparent();
-    auto prop = std::make_shared<RSProperty<Color>>(value);
+    auto prop = std::make_shared<RSAnimatableProperty<Color>>(value);
     auto modifier = std::make_shared<RSBackgroundColorModifier>(prop);
 
     auto node = RSCanvasNode::Create();
@@ -859,7 +858,7 @@ HWTEST_F(RSModifierTest, BgImageModifier002, TestSize.Level1)
 HWTEST_F(RSModifierTest, BgImageWidthModifier001, TestSize.Level1)
 {
     auto value = 200.f;
-    auto prop = std::make_shared<RSProperty<float>>(value);
+    auto prop = std::make_shared<RSAnimatableProperty<float>>(value);
     auto modifier = std::make_shared<RSBgImageWidthModifier>(prop);
 
     auto node = RSCanvasNode::Create();
@@ -880,7 +879,7 @@ HWTEST_F(RSModifierTest, BgImageWidthModifier001, TestSize.Level1)
 HWTEST_F(RSModifierTest, BgImageWidthModifier002, TestSize.Level1)
 {
     auto value = 0.f;
-    auto prop = std::make_shared<RSProperty<float>>(value);
+    auto prop = std::make_shared<RSAnimatableProperty<float>>(value);
     auto modifier = std::make_shared<RSBgImageWidthModifier>(prop);
 
     auto node = RSCanvasNode::Create();
@@ -901,7 +900,7 @@ HWTEST_F(RSModifierTest, BgImageWidthModifier002, TestSize.Level1)
 HWTEST_F(RSModifierTest, BgImageHeightModifier001, TestSize.Level1)
 {
     auto value = 200.f;
-    auto prop = std::make_shared<RSProperty<float>>(value);
+    auto prop = std::make_shared<RSAnimatableProperty<float>>(value);
     auto modifier = std::make_shared<RSBgImageHeightModifier>(prop);
 
     auto node = RSCanvasNode::Create();
@@ -922,7 +921,7 @@ HWTEST_F(RSModifierTest, BgImageHeightModifier001, TestSize.Level1)
 HWTEST_F(RSModifierTest, BgImageHeightModifier002, TestSize.Level1)
 {
     auto value = 0.f;
-    auto prop = std::make_shared<RSProperty<float>>(value);
+    auto prop = std::make_shared<RSAnimatableProperty<float>>(value);
     auto modifier = std::make_shared<RSBgImageHeightModifier>(prop);
 
     auto node = RSCanvasNode::Create();
@@ -943,7 +942,7 @@ HWTEST_F(RSModifierTest, BgImageHeightModifier002, TestSize.Level1)
 HWTEST_F(RSModifierTest, BgImagePositionXModifier001, TestSize.Level1)
 {
     auto value = 200.f;
-    auto prop = std::make_shared<RSProperty<float>>(value);
+    auto prop = std::make_shared<RSAnimatableProperty<float>>(value);
     auto modifier = std::make_shared<RSBgImagePositionXModifier>(prop);
 
     auto node = RSCanvasNode::Create();
@@ -964,7 +963,7 @@ HWTEST_F(RSModifierTest, BgImagePositionXModifier001, TestSize.Level1)
 HWTEST_F(RSModifierTest, BgImagePositionXModifier002, TestSize.Level1)
 {
     auto value = 0.f;
-    auto prop = std::make_shared<RSProperty<float>>(value);
+    auto prop = std::make_shared<RSAnimatableProperty<float>>(value);
     auto modifier = std::make_shared<RSBgImagePositionXModifier>(prop);
 
     auto node = RSCanvasNode::Create();
@@ -985,7 +984,7 @@ HWTEST_F(RSModifierTest, BgImagePositionXModifier002, TestSize.Level1)
 HWTEST_F(RSModifierTest, BgImagePositionYModifier001, TestSize.Level1)
 {
     auto value = 200.f;
-    auto prop = std::make_shared<RSProperty<float>>(value);
+    auto prop = std::make_shared<RSAnimatableProperty<float>>(value);
     auto modifier = std::make_shared<RSBgImagePositionYModifier>(prop);
 
     auto node = RSCanvasNode::Create();
@@ -1006,7 +1005,7 @@ HWTEST_F(RSModifierTest, BgImagePositionYModifier001, TestSize.Level1)
 HWTEST_F(RSModifierTest, BgImagePositionYModifier002, TestSize.Level1)
 {
     auto value = 0.f;
-    auto prop = std::make_shared<RSProperty<float>>(value);
+    auto prop = std::make_shared<RSAnimatableProperty<float>>(value);
     auto modifier = std::make_shared<RSBgImagePositionYModifier>(prop);
 
     auto node = RSCanvasNode::Create();
@@ -1027,7 +1026,7 @@ HWTEST_F(RSModifierTest, BgImagePositionYModifier002, TestSize.Level1)
 HWTEST_F(RSModifierTest, BorderColorModifier001, TestSize.Level1)
 {
     auto value = Vector4<Color>(RgbPalette::Black());
-    auto prop = std::make_shared<RSProperty<Vector4<Color>>>(value);
+    auto prop = std::make_shared<RSAnimatableProperty<Vector4<Color>>>(value);
     auto modifier = std::make_shared<RSBorderColorModifier>(prop);
 
     auto node = RSCanvasNode::Create();
@@ -1048,7 +1047,7 @@ HWTEST_F(RSModifierTest, BorderColorModifier001, TestSize.Level1)
 HWTEST_F(RSModifierTest, BorderColorModifier002, TestSize.Level1)
 {
     auto value = Vector4<Color>(RgbPalette::Transparent());
-    auto prop = std::make_shared<RSProperty<Vector4<Color>>>(value);
+    auto prop = std::make_shared<RSAnimatableProperty<Vector4<Color>>>(value);
     auto modifier = std::make_shared<RSBorderColorModifier>(prop);
 
     auto node = RSCanvasNode::Create();
@@ -1069,7 +1068,7 @@ HWTEST_F(RSModifierTest, BorderColorModifier002, TestSize.Level1)
 HWTEST_F(RSModifierTest, BorderWidthModifier001, TestSize.Level1)
 {
     auto value = Vector4f(100.f, 100.f, 200.f, 300.f);
-    auto prop = std::make_shared<RSProperty<Vector4f>>(value);
+    auto prop = std::make_shared<RSAnimatableProperty<Vector4f>>(value);
     auto modifier = std::make_shared<RSBorderWidthModifier>(prop);
 
     auto node = RSCanvasNode::Create();
@@ -1090,7 +1089,7 @@ HWTEST_F(RSModifierTest, BorderWidthModifier001, TestSize.Level1)
 HWTEST_F(RSModifierTest, BorderWidthModifier002, TestSize.Level1)
 {
     auto value = Vector4f();
-    auto prop = std::make_shared<RSProperty<Vector4f>>(value);
+    auto prop = std::make_shared<RSAnimatableProperty<Vector4f>>(value);
     auto modifier = std::make_shared<RSBorderWidthModifier>(prop);
 
     auto node = RSCanvasNode::Create();
@@ -1153,7 +1152,7 @@ HWTEST_F(RSModifierTest, BorderStyleModifier002, TestSize.Level1)
 HWTEST_F(RSModifierTest, FilterModifier001, TestSize.Level1)
 {
     auto value = RSFilter::CreateBlurFilter(10.f, 10.f);
-    auto prop = std::make_shared<RSProperty<std::shared_ptr<RSFilter>>>(value);
+    auto prop = std::make_shared<RSAnimatableProperty<std::shared_ptr<RSFilter>>>(value);
     auto modifier = std::make_shared<RSFilterModifier>(prop);
 
     auto node = RSCanvasNode::Create();
@@ -1174,7 +1173,7 @@ HWTEST_F(RSModifierTest, FilterModifier001, TestSize.Level1)
 HWTEST_F(RSModifierTest, FilterModifier002, TestSize.Level1)
 {
     std::shared_ptr<RSFilter> value = nullptr;
-    auto prop = std::make_shared<RSProperty<std::shared_ptr<RSFilter>>>(value);
+    auto prop = std::make_shared<RSAnimatableProperty<std::shared_ptr<RSFilter>>>(value);
     auto modifier = std::make_shared<RSFilterModifier>(prop);
 
     auto node = RSCanvasNode::Create();
@@ -1195,7 +1194,7 @@ HWTEST_F(RSModifierTest, FilterModifier002, TestSize.Level1)
 HWTEST_F(RSModifierTest, BackgroundFilterModifier001, TestSize.Level1)
 {
     auto value = RSFilter::CreateBlurFilter(10.f, 10.f);
-    auto prop = std::make_shared<RSProperty<std::shared_ptr<RSFilter>>>(value);
+    auto prop = std::make_shared<RSAnimatableProperty<std::shared_ptr<RSFilter>>>(value);
     auto modifier = std::make_shared<RSBackgroundFilterModifier>(prop);
 
     auto node = RSCanvasNode::Create();
@@ -1216,7 +1215,7 @@ HWTEST_F(RSModifierTest, BackgroundFilterModifier001, TestSize.Level1)
 HWTEST_F(RSModifierTest, BackgroundFilterModifier002, TestSize.Level1)
 {
     std::shared_ptr<RSFilter> value = nullptr;
-    auto prop = std::make_shared<RSProperty<std::shared_ptr<RSFilter>>>(value);
+    auto prop = std::make_shared<RSAnimatableProperty<std::shared_ptr<RSFilter>>>(value);
     auto modifier = std::make_shared<RSBackgroundFilterModifier>(prop);
 
     auto node = RSCanvasNode::Create();
@@ -1447,7 +1446,7 @@ HWTEST_F(RSModifierTest, VisibleModifier002, TestSize.Level1)
 HWTEST_F(RSModifierTest, ShadowColorModifier001, TestSize.Level1)
 {
     auto value = RgbPalette::Black();
-    auto prop = std::make_shared<RSProperty<Color>>(value);
+    auto prop = std::make_shared<RSAnimatableProperty<Color>>(value);
     auto modifier = std::make_shared<RSShadowColorModifier>(prop);
 
     auto node = RSCanvasNode::Create();
@@ -1468,7 +1467,7 @@ HWTEST_F(RSModifierTest, ShadowColorModifier001, TestSize.Level1)
 HWTEST_F(RSModifierTest, ShadowColorModifier002, TestSize.Level1)
 {
     auto value = Color::FromArgbInt(DEFAULT_SPOT_COLOR);
-    auto prop = std::make_shared<RSProperty<Color>>(value);
+    auto prop = std::make_shared<RSAnimatableProperty<Color>>(value);
     auto modifier = std::make_shared<RSShadowColorModifier>(prop);
 
     auto node = RSCanvasNode::Create();
@@ -1489,7 +1488,7 @@ HWTEST_F(RSModifierTest, ShadowColorModifier002, TestSize.Level1)
 HWTEST_F(RSModifierTest, ShadowOffsetXModifier001, TestSize.Level1)
 {
     auto value = 5.f;
-    auto prop = std::make_shared<RSProperty<float>>(value);
+    auto prop = std::make_shared<RSAnimatableProperty<float>>(value);
     auto modifier = std::make_shared<RSShadowOffsetXModifier>(prop);
 
     auto node = RSCanvasNode::Create();
@@ -1510,7 +1509,7 @@ HWTEST_F(RSModifierTest, ShadowOffsetXModifier001, TestSize.Level1)
 HWTEST_F(RSModifierTest, ShadowOffsetXModifier002, TestSize.Level1)
 {
     auto value = 0.f;
-    auto prop = std::make_shared<RSProperty<float>>(value);
+    auto prop = std::make_shared<RSAnimatableProperty<float>>(value);
     auto modifier = std::make_shared<RSShadowOffsetXModifier>(prop);
 
     auto node = RSCanvasNode::Create();
@@ -1531,7 +1530,7 @@ HWTEST_F(RSModifierTest, ShadowOffsetXModifier002, TestSize.Level1)
 HWTEST_F(RSModifierTest, ShadowOffsetYModifier001, TestSize.Level1)
 {
     auto value = 5.f;
-    auto prop = std::make_shared<RSProperty<float>>(value);
+    auto prop = std::make_shared<RSAnimatableProperty<float>>(value);
     auto modifier = std::make_shared<RSShadowOffsetYModifier>(prop);
 
     auto node = RSCanvasNode::Create();
@@ -1553,7 +1552,7 @@ HWTEST_F(RSModifierTest, ShadowOffsetYModifier001, TestSize.Level1)
 HWTEST_F(RSModifierTest, ShadowOffsetYModifier002, TestSize.Level1)
 {
     auto value = 0.f;
-    auto prop = std::make_shared<RSProperty<float>>(value);
+    auto prop = std::make_shared<RSAnimatableProperty<float>>(value);
     auto modifier = std::make_shared<RSShadowOffsetYModifier>(prop);
 
     auto node = RSCanvasNode::Create();
@@ -1574,7 +1573,7 @@ HWTEST_F(RSModifierTest, ShadowOffsetYModifier002, TestSize.Level1)
 HWTEST_F(RSModifierTest, ShadowAlphaModifier001, TestSize.Level1)
 {
     auto value = 0.8f;
-    auto prop = std::make_shared<RSProperty<float>>(value);
+    auto prop = std::make_shared<RSAnimatableProperty<float>>(value);
     auto modifier = std::make_shared<RSShadowAlphaModifier>(prop);
 
     auto node = RSCanvasNode::Create();
@@ -1595,7 +1594,7 @@ HWTEST_F(RSModifierTest, ShadowAlphaModifier001, TestSize.Level1)
 HWTEST_F(RSModifierTest, ShadowAlphaModifier002, TestSize.Level1)
 {
     auto value = 0.f;
-    auto prop = std::make_shared<RSProperty<float>>(value);
+    auto prop = std::make_shared<RSAnimatableProperty<float>>(value);
     auto modifier = std::make_shared<RSShadowAlphaModifier>(prop);
 
     auto node = RSCanvasNode::Create();
@@ -1616,7 +1615,7 @@ HWTEST_F(RSModifierTest, ShadowAlphaModifier002, TestSize.Level1)
 HWTEST_F(RSModifierTest, ShadowElevationModifier001, TestSize.Level1)
 {
     auto value = 5.f;
-    auto prop = std::make_shared<RSProperty<float>>(value);
+    auto prop = std::make_shared<RSAnimatableProperty<float>>(value);
     auto modifier = std::make_shared<RSShadowElevationModifier>(prop);
 
     auto node = RSCanvasNode::Create();
@@ -1637,7 +1636,7 @@ HWTEST_F(RSModifierTest, ShadowElevationModifier001, TestSize.Level1)
 HWTEST_F(RSModifierTest, ShadowElevationModifier002, TestSize.Level1)
 {
     auto value = 0.f;
-    auto prop = std::make_shared<RSProperty<float>>(value);
+    auto prop = std::make_shared<RSAnimatableProperty<float>>(value);
     auto modifier = std::make_shared<RSShadowElevationModifier>(prop);
 
     auto node = RSCanvasNode::Create();
@@ -1658,7 +1657,7 @@ HWTEST_F(RSModifierTest, ShadowElevationModifier002, TestSize.Level1)
 HWTEST_F(RSModifierTest, ShadowRadiusModifier001, TestSize.Level1)
 {
     auto value = 10.f;
-    auto prop = std::make_shared<RSProperty<float>>(value);
+    auto prop = std::make_shared<RSAnimatableProperty<float>>(value);
     auto modifier = std::make_shared<RSShadowRadiusModifier>(prop);
 
     auto node = RSCanvasNode::Create();
@@ -1679,7 +1678,7 @@ HWTEST_F(RSModifierTest, ShadowRadiusModifier001, TestSize.Level1)
 HWTEST_F(RSModifierTest, ShadowRadiusModifier002, TestSize.Level1)
 {
     auto value = 0.f;
-    auto prop = std::make_shared<RSProperty<float>>(value);
+    auto prop = std::make_shared<RSAnimatableProperty<float>>(value);
     auto modifier = std::make_shared<RSShadowRadiusModifier>(prop);
 
     auto node = RSCanvasNode::Create();

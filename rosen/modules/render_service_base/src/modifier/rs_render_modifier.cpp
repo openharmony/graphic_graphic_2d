@@ -111,10 +111,10 @@ RSRenderModifier* RSRenderModifier::Unmarshalling(Parcel& parcel, RSModifierType
             setValue = context.property_.Get##MODIFIER_NAME() + property_->Get();                                   \
             isFirstSet_ = false;                                                                                    \
         } else {                                                                                                    \
-            setValue = context.property_.Get##MODIFIER_NAME() + property_->Get() - lastValue_;                      \
+            setValue = context.property_.Get##MODIFIER_NAME() + property_->Get() - lastValue_->Get();               \
         }                                                                                                           \
         setValue = isAdditive_ ? setValue : property_->Get();                                                       \
-        lastValue_ = property_->Get();                                                                              \
+        lastValue_->Set(property_->Get());                                                                          \
         context.property_.Set##MODIFIER_NAME(setValue);                                                             \
     }                                                                                                               \
     void RS##MODIFIER_NAME##RenderModifier::Update(                                                                 \

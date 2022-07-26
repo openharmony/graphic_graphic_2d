@@ -33,12 +33,12 @@ public:
 };
 
 template<typename T>
-class RS_EXPORT RSExtendedModifier : public RSAnimatableModifier<T> {
+class RS_EXPORT RSExtendedModifier : public RSModifier<T> {
 public:
-    explicit RSExtendedModifier(const std::shared_ptr<RSProperty<T>> property)
-        : RSAnimatableModifier<T>(property, RSModifierType::EXTENDED)
+    explicit RSExtendedModifier(const std::shared_ptr<T> property)
+        : RSModifier<T>(property, RSModifierType::EXTENDED)
     {
-        RSAnimatableModifier<T>::property_->SetIsCustom(true);
+        RSModifier<T>::property_->SetIsCustom(true);
     }
     RSModifierType GetModifierType()  const override
     {
@@ -48,10 +48,10 @@ public:
     virtual void Draw(RSDrawingContext& context) const = 0;
 
 protected:
-    RSExtendedModifier(const std::shared_ptr<RSProperty<T>> property, const RSModifierType type)
-        : RSAnimatableModifier<T>(property, type)
+    RSExtendedModifier(const std::shared_ptr<T> property, const RSModifierType type)
+        : RSModifier<T>(property, type)
     {
-        RSAnimatableModifier<T>::property_->SetIsCustom(true);
+        RSModifier<T>::property_->SetIsCustom(true);
     }
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
     void UpdateToRender() override;
@@ -60,7 +60,7 @@ protected:
 template<typename T>
 class RS_EXPORT RSContentStyleModifier : public RSExtendedModifier<T> {
 public:
-    explicit RSContentStyleModifier(const std::shared_ptr<RSProperty<T>> property)
+    explicit RSContentStyleModifier(const std::shared_ptr<T> property)
         : RSExtendedModifier<T>(property, RSModifierType::CONTENT_STYLE)
     {}
     RSModifierType GetModifierType()  const override
@@ -72,7 +72,7 @@ public:
 template<typename T>
 class RS_EXPORT RSOverlayStyleModifier : public RSExtendedModifier<T> {
 public:
-    explicit RSOverlayStyleModifier(const std::shared_ptr<RSProperty<T>> property)
+    explicit RSOverlayStyleModifier(const std::shared_ptr<T> property)
         : RSExtendedModifier<T>(property, RSModifierType::OVERLAY_STYLE)
     {}
     RSModifierType GetModifierType()  const override

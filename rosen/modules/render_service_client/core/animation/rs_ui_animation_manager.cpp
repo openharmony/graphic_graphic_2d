@@ -113,7 +113,7 @@ bool RSUIAnimationManager::UpdateAnimateValue(const std::shared_ptr<RSRenderAnim
     auto uiProperty = propertys_[animation->GetPropertyId()].first;
     auto renderProperty = propertys_[animation->GetPropertyId()].second;
     if (uiProperty != nullptr && renderProperty != nullptr) {
-        uiProperty->SetAnimatingValue(renderProperty->Get());
+        uiProperty->SetShowingValue(renderProperty->Get());
         uiProperty->MarkModifierDirty(modifierManager_);
     }
     return isFinished;

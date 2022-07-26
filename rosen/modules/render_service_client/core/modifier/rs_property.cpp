@@ -66,7 +66,7 @@ template<typename T>
 RSProperty<T>::RSProperty() : id_(GenerateId()) {}
 
 template<typename T>
-RSProperty<T>::RSProperty(const T& value) : animatingValue_(value), stagingValue_(value), id_(GenerateId()) {}
+RSProperty<T>::RSProperty(const T& value) : stagingValue_(value), id_(GenerateId()) {}
 
 template<typename T>
 void RSProperty<T>::Set(const T& value)
