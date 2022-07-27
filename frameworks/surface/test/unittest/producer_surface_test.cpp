@@ -710,42 +710,9 @@ HWTEST_F(ProducerSurfaceTest, tunnelHandle001, Function | MediumTest | Level2)
 * Type: Function
 * Rank: Important(2)
 * EnvConditions: N/A
-* CaseDescription: 1. call SetTunnelhandle with abnormal parameters and check ret
- */
-HWTEST_F(ProducerSurfaceTest, tunnelHandle002, Function | MediumTest | Level2)
-{
-    ExtDataHandle *handle = nullptr;
-    GSError ret = pSurface->SetTunnelHandle(handle);
-    ASSERT_EQ(ret, OHOS::GSERROR_INVALID_ARGUMENTS);
-}
-
-/*
-* Function: SetTunnelHandle and GetTunnelHandle
-* Type: Function
-* Rank: Important(2)
-* EnvConditions: N/A
-* CaseDescription: 1. call SetTunnelhandle with abnormal parameters and check ret
- */
-HWTEST_F(ProducerSurfaceTest, tunnelHandle003, Function | MediumTest | Level2)
-{
-    ExtDataHandle *handle = nullptr;
-    handle = new ExtDataHandle();
-    handle->fd = -1;
-    handle->reserveInts = 0;
-    GSError ret = pSurface->SetTunnelHandle(handle);
-    ASSERT_EQ(ret, OHOS::GSERROR_INVALID_ARGUMENTS);
-    delete handle;
-}
-
-
-/*
-* Function: SetTunnelHandle and GetTunnelHandle
-* Type: Function
-* Rank: Important(2)
-* EnvConditions: N/A
 * CaseDescription: 1. call SetTunnelhandle with normal parameters and check ret
  */
-HWTEST_F(ProducerSurfaceTest, tunnelHandle004, Function | MediumTest | Level2)
+HWTEST_F(ProducerSurfaceTest, tunnelHandle002, Function | MediumTest | Level2)
 {
     ExtDataHandle *handle = nullptr;
     handle = new ExtDataHandle();

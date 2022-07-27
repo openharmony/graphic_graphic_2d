@@ -443,7 +443,8 @@ int32_t HdiDevice::SetLayerMetaDataSet(uint32_t screenId, uint32_t layerId, HDRM
 
 int32_t HdiDevice::SetLayerTunnelHandle(uint32_t screenId, uint32_t layerId, const ExtDataHandle *handle)
 {
-    return DISPLAY_SUCCESS;
+    CHECK_FUNC(layerFuncs_, layerFuncs_->SetLayerTunnelHandle);
+    return layerFuncs_->SetLayerTunnelHandle(screenId, layerId, const_cast<ExtDataHandle *>(handle));
 }
 
 int32_t HdiDevice::GetSupportedPresentTimestampType(uint32_t screenId, uint32_t layerId, PresentTimestampType &type)

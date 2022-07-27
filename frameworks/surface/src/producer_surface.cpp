@@ -401,9 +401,6 @@ GSError ProducerSurface::GetMetaDataSet(uint32_t sequence, HDRMetadataKey &key,
 
 GSError ProducerSurface::SetTunnelHandle(const ExtDataHandle *handle)
 {
-    if (handle == nullptr || handle->reserveInts == 0) {
-        return GSERROR_INVALID_ARGUMENTS;
-    }
     return producer_->SetTunnelHandle(handle);
 }
 

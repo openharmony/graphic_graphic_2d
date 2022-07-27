@@ -81,6 +81,7 @@ private:
     void CloseLayer();
     int32_t CreateLayer(const LayerInfoPtr &layerInfo);
     sptr<SyncFence> Merge(const sptr<SyncFence> &fence1, const sptr<SyncFence> &fence2);
+    void SetLayerTunnelHandle();
     void SetLayerPresentTimestamp();
 
     inline void CheckRet(int32_t ret, const char* func);
