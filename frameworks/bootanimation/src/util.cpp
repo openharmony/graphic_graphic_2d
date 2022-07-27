@@ -38,10 +38,10 @@ void PostTask(std::function<void()> func, uint32_t delayTime)
     }
 }
 
-bool ReadJsonConfig(const std::string& filebuffer, BootAniConfig& aniconfig)
+bool ReadJsonConfig(const char* filebuffer, int totalsize, BootAniConfig& aniconfig)
 {
     std::string JParamsString;
-    JParamsString.assign(filebuffer.c_str(), filebuffer.length());
+    JParamsString.assign(filebuffer, totalsize);
     cJSON* overallData = cJSON_Parse(JParamsString.c_str());
     if (overallData == nullptr) {
         LOGE("The config json file fails to compile.");
@@ -108,7 +108,7 @@ bool ReadCurrentFile(const unzFile zipfile, const std::string& filename, ImageSt
     if (totalLen > 0) {
         LOGD("filename:%{public}s fileSize:%{public}d totalLen:%{public}d", filename.c_str(), ifileSize, totalLen);
         if (strstr(filename.c_str(), BOOT_PIC_CONFIGFILE.c_str()) != nullptr) {
-            ReadJsonConfig(std::string(imagestrct->memPtr.memBuffer), aniconfig);
+            ReadJsonConfig(imagestrct->memPtr.memBuffer, totalLen, aniconfig);
         } else {
             GenImageData(filename, imagestrct, totalLen, outBgImgVec);
         }
@@ -141,7 +141,7 @@ bool ReadZipFile(const std::string& srcFilePath, ImageStructVec& outBgImgVec, Bo
     LOGD("Readzip zip file num: %{public}ld", globalInfo.number_entry);
     for (unsigned long i = 0; i < globalInfo.number_entry; ++i) {
         unz_file_info fileInfo;
-        char filename[MAX_FILE_NAME];
+        char filename[MAX_FILE_NAME] = {0};
         if (unzGetCurrentFileInfo(zipfile, &fileInfo, filename, MAX_FILE_NAME, nullptr, 0, nullptr, 0) != UNZ_OK) {
             unzClose(zipfile);
             return false;

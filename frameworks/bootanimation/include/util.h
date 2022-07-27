@@ -96,7 +96,7 @@ bool ReadCurrentFile(const unzFile zipfile, const std::string& filename, ImageSt
     BootAniConfig& aniconfig, unsigned long fileSize);
 bool GenImageData(const std::string& filename, std::shared_ptr<ImageStruct> imagetruct, int32_t bufferlen,
     ImageStructVec& outBgImgVec);
-bool ReadJsonConfig(const std::string& filebuffer, BootAniConfig& aniconfig);
+bool ReadJsonConfig(const char* filebuffer, int totalsize, BootAniConfig& aniconfig);
 void SortZipFile(ImageStructVec& outBgImgVec);
 } // namespace OHOS
 
