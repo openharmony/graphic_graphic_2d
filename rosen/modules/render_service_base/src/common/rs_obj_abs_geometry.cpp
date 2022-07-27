@@ -78,7 +78,7 @@ void RSObjAbsGeometry::UpdateByMatrixFromRenderThread(const SkMatrix& skMatrix)
 void RSObjAbsGeometry::UpdateByMatrixFromSelf()
 {
     matrix_.reset();
-    if (!trans_ || (ROSEN_EQ(z_ + trans_->translateZ_, 0.f) && ROSEN_EQ(trans_->rotationX_, 0.f) &&
+    if (!trans_ || (ROSEN_EQ(trans_->translateZ_, 0.f) && ROSEN_EQ(trans_->rotationX_, 0.f) &&
         ROSEN_EQ(trans_->rotationY_, 0.f) && trans_->quaternion_.IsIdentity())) {
         UpdateAbsMatrix2D();
     } else {
