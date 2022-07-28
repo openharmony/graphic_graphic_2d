@@ -78,6 +78,7 @@ public:
     virtual const RSScreenType& GetScreenType() const = 0;
     virtual void SetScreenSkipFrameInterval(uint32_t skipFrameInterval) = 0;
     virtual uint32_t GetScreenSkipFrameInterval() const = 0;
+    virtual void SetScreenVsyncEnabled(bool enabled) const = 0;
 };
 
 namespace impl {
@@ -130,6 +131,7 @@ public:
     const RSScreenType& GetScreenType() const override;
     void SetScreenSkipFrameInterval(uint32_t skipFrameInterval) override;
     uint32_t GetScreenSkipFrameInterval() const override;
+    void SetScreenVsyncEnabled(bool enabled) const override;
 
 private:
     // create hdiScreen and get some information from drivers.
