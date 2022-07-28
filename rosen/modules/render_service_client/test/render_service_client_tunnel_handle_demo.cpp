@@ -29,7 +29,7 @@ namespace Test {
 sptr<OHOS::Surface> GetWindowSurface(uint32_t w, uint32_t h)
 {
     sptr<WindowOption> option = new WindowOption();
-    option->SetWindowRect({ 0, 0, w, h});
+    option->SetWindowRect({ 0, 0, w, h });
     option->SetWindowType(Rosen::WindowType::WINDOW_TYPE_APP_LAUNCHING);
     option->SetWindowMode(Rosen::WindowMode::WINDOW_MODE_FLOATING);
     sptr<OHOS::Rosen::Window> previewWindow = Rosen::Window::Create("xcomponent_window", option);
