@@ -71,14 +71,14 @@ bool RSRenderNode::Animate(int64_t timestamp)
 
 bool RSRenderNode::Update(RSDirtyRegionManager& dirtyManager, const RSProperties* parent, bool parentDirty)
 {
-    // if switch to invisible and sign as dirty
-    // update dirty rect to refresh corresponding region
-    if (!renderProperties_.GetVisible() && !renderProperties_.IsDirty()) {
+    // no need to update invisible nodes
+    if (!renderProperties_.GetVisible() && !isLastVisible_) {
         return false;
     }
     bool dirty = renderProperties_.UpdateGeometry(parent, parentDirty);
     isDirtyRegionUpdated_ = false;
     UpdateDirtyRegion(dirtyManager, parentDirty);
+    isLastVisible_ = renderProperties_.GetVisible();
     renderProperties_.ResetDirty();
     return dirty;
 }
@@ -98,18 +98,27 @@ void RSRenderNode::UpdateDirtyRegion(RSDirtyRegionManager& dirtyManager, bool pa
     if (!IsDirty() && !parentDirty) {
         return;
     }
-    auto dirtyRect = renderProperties_.GetDirtyRect();
-    // filter invalid dirtyrect
-    if (dirtyRect.width_ <= 0 || dirtyRect.height_ <= 0) {
-        ROSEN_LOGD("RSRenderNode::UpdateDirtyRegion invalid dirtyRect = [%d, %d, %d, %d]",
-            dirtyRect.left_, dirtyRect.top_, dirtyRect.width_, dirtyRect.height_);
-    } else {
-        dirtyManager.MergeDirtyRect(renderProperties_.GetDirtyRect());
+    // if switch to invisible, let dirty rect as old dirty(erase)
+    if (!renderProperties_.GetVisible() && isLastVisible_) {
         if (!oldDirty_.IsEmpty()) {
             dirtyManager.MergeDirtyRect(oldDirty_);
         }
-        isDirtyRegionUpdated_ = (oldDirty_ == renderProperties_.GetDirtyRect());
-        oldDirty_ = renderProperties_.GetDirtyRect();
+        isDirtyRegionUpdated_ = false;
+        oldDirty_ = RectI(); // set old dirty as empty rect
+    } else {
+        auto dirtyRect = renderProperties_.GetDirtyRect();
+        // filter invalid dirtyrect
+        if (dirtyRect.IsEmpty()) {
+            ROSEN_LOGD("RSRenderNode::UpdateDirtyRegion invalid dirtyRect = [%d, %d, %d, %d]",
+                dirtyRect.left_, dirtyRect.top_, dirtyRect.width_, dirtyRect.height_);
+        } else {
+            dirtyManager.MergeDirtyRect(dirtyRect);
+            if (!oldDirty_.IsEmpty()) {
+                dirtyManager.MergeDirtyRect(oldDirty_);
+            }
+            isDirtyRegionUpdated_ = (oldDirty_ == dirtyRect);
+            oldDirty_ = dirtyRect;
+        }
     }
     SetClean();
 }

@@ -40,7 +40,10 @@ if (graphic_standard_feature_ace_enable_gpu) {
 }
 
 if (graphic_standard_feature_rs_enable_eglimage) {
-  gpu_defines += [ "RS_ENABLE_EGLIMAGE" ]
+  gpu_defines += [
+    "RS_ENABLE_EGLIMAGE",
+    "RS_ENABLE_EGLQUERYSURFACE",
+  ]
   rs_enable_eglimage = true
 } else {
   gpu_defines += [ "RS_DISABLE_EGLIMAGE" ]
