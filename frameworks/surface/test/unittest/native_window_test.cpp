@@ -771,15 +771,14 @@ HWTEST_F(NativeWindowTest, SetTunnelHandle002, Function | MediumTest | Level2)
 * Type: Function
 * Rank: Important(2)
 * EnvConditions: N/A
-* CaseDescription: 1. call NativeWindowSetTunnelHandle with abnormal parameters and check ret
-*                  2. call NativeWindowSetTunnelHandle with normal parameters and check ret
+* CaseDescription: 1. call NativeWindowSetTunnelHandle with normal parameters and check ret
  */
 HWTEST_F(NativeWindowTest, SetTunnelHandle003, Function | MediumTest | Level2)
 {
     OHExtDataHandle *handle = new OHExtDataHandle();
     handle->fd = -1;
     handle->reserveInts = 0;
-    ASSERT_EQ(NativeWindowSetTunnelHandle(nativeWindow, handle), OHOS::GSERROR_INVALID_ARGUMENTS);
+    ASSERT_EQ(NativeWindowSetTunnelHandle(nativeWindow, handle), OHOS::GSERROR_OK);
     delete handle;
 }
 
