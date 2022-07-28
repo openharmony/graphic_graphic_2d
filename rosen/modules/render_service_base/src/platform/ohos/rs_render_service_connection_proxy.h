@@ -111,6 +111,9 @@ public:
     int32_t UnRegisterOcclusionChangeCallback(sptr<RSIOcclusionChangeCallback> callback) override;
 private:
     static inline BrokerDelegator<RSRenderServiceConnectionProxy> delegator_;
+
+    pid_t pid_ = getpid();
+    uint32_t transactionDataIndex_ = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

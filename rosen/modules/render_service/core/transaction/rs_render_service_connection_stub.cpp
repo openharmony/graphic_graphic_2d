@@ -15,14 +15,76 @@
 
 #include "rs_render_service_connection_stub.h"
 #include "ivsync_connection.h"
+#include "securec.h"
+#include "sys_binder.h"
 
 #include "command/rs_command_factory.h"
+#include "pipeline/rs_base_render_util.h"
+#include "pipeline/rs_uni_render_judgement.h"
+#include "pipeline/rs_unmarshal_thread.h"
 #include "platform/common/rs_log.h"
 #include "transaction/rs_ashmem_helper.h"
 #include "rs_trace.h"
 
 namespace OHOS {
 namespace Rosen {
+namespace {
+constexpr size_t MAX_DATA_SIZE_FOR_UNMARSHALLING_IN_PLACE = 1024 * 30; // 30kB
+
+void CopyFileDescriptor(MessageParcel& old, MessageParcel& copied)
+{
+    binder_size_t* object = reinterpret_cast<binder_size_t*>(old.GetObjectOffsets());
+    binder_size_t* copiedObject = reinterpret_cast<binder_size_t*>(copied.GetObjectOffsets());
+
+    size_t objectNum = old.GetOffsetsSize();
+
+    uintptr_t data = old.GetData();
+    uintptr_t copiedData = copied.GetData();
+
+    for (size_t i = 0; i < objectNum; i++) {
+        const flat_binder_object* flat = reinterpret_cast<flat_binder_object*>(data + object[i]);
+        flat_binder_object* copiedFlat = reinterpret_cast<flat_binder_object*>(copiedData + copiedObject[i]);
+
+        if (flat->hdr.type == BINDER_TYPE_FD && flat->handle > 0) {
+            copiedFlat->handle = dup(flat->handle);
+        }
+    }
+}
+
+std::shared_ptr<MessageParcel> CopyParcelIfNeed(MessageParcel& old)
+{
+    auto dataSize = old.GetDataSize();
+    if (dataSize <= MAX_DATA_SIZE_FOR_UNMARSHALLING_IN_PLACE) {
+        return nullptr;
+    }
+    RS_TRACE_NAME("CopyParcelForUnmarsh: size:" + std::to_string(dataSize));
+    void* base = malloc(dataSize);
+    if (memcpy_s(base, dataSize, reinterpret_cast<void*>(old.GetData()), dataSize) != 0) {
+        RS_LOGE("RSRenderServiceConnectionStub::CopyParcelIfNeed copy parcel data failed");
+        free(base);
+        return nullptr;
+    }
+
+    auto parcelCopied = std::make_shared<MessageParcel>();
+    if (!parcelCopied->ParseFrom(reinterpret_cast<uintptr_t>(base), dataSize)) {
+        RS_LOGE("RSRenderServiceConnectionStub::CopyParcelIfNeed ParseFrom failed");
+        free(base);
+        return nullptr;
+    }
+
+    auto objectNum = old.GetOffsetsSize();
+    if (objectNum != 0) {
+        parcelCopied->InjectOffsets(old.GetObjectOffsets(), objectNum);
+        CopyFileDescriptor(old, *parcelCopied);
+    }
+    if (parcelCopied->ReadInt32() != 0) {
+        RS_LOGE("RSRenderServiceConnectionStub::CopyParcelIfNeed parcel data not match");
+        return nullptr;
+    }
+    return parcelCopied;
+}
+}
+
 int RSRenderServiceConnectionStub::OnRemoteRequest(
     uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option)
 {
@@ -30,26 +92,30 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
     switch (code) {
         case COMMIT_TRANSACTION: {
             RS_ASYNC_TRACE_END("RSProxySendRequest", data.GetDataSize());
-
-            std::shared_ptr<MessageParcel> holder;
-            MessageParcel* parsed = nullptr;
-            if (data.ReadInt32() == 1) {
-                holder = RSAshmemHelper::ParseFromAshmemParcel(&data);
-                parsed = holder.get();
-            } else { // use origin parcel
-                parsed = &data;
+            static bool isUniRender = RSUniRenderJudgement::IsUniRender();
+            std::shared_ptr<MessageParcel> parsedParcel;
+            if (data.ReadInt32() == 0) { // copy original parcel if needed
+                if (isUniRender) {
+                    parsedParcel = CopyParcelIfNeed(data);
+                }
+                if (parsedParcel == nullptr) {
+                    auto transactionData = RSBaseRenderUtil::ParseTransactionData(data);
+                    CommitTransaction(transactionData);
+                    break;
+                }
+            } else {
+                parsedParcel = RSAshmemHelper::ParseFromAshmemParcel(&data);
             }
-            if (parsed == nullptr) {
-                RS_LOGE("parsed parcel is nullptr");
-                break;
+            if (parsedParcel == nullptr) {
+                RS_LOGE("RSRenderServiceConnectionStub::COMMIT_TRANSACTION failed");
+                return ERR_INVALID_DATA;
             }
-
-            RS_TRACE_BEGIN("UnMarsh RSTransactionData: data size:" + std::to_string(parsed->GetDataSize()));
-            auto transactionData = parsed->ReadParcelable<RSTransactionData>();
-            RS_TRACE_END();
-
-            std::unique_ptr<RSTransactionData> transData(transactionData);
-            CommitTransaction(transData);
+            if (isUniRender) {
+                RSUnmarshalThread::Instance().RecvParcel(parsedParcel);
+            } else {
+                auto transactionData = RSBaseRenderUtil::ParseTransactionData(data);
+                CommitTransaction(transactionData);
+            }
             break;
         }
         case GET_UNI_RENDER_TYPE: {

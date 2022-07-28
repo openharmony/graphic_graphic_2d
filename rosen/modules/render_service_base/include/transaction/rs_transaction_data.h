@@ -36,7 +36,8 @@ class RSTransactionData {
 public:
     RSTransactionData() = default;
     RSTransactionData(RSTransactionData&& other)
-        : payload_(std::move(other.payload_)), timestamp_(std::move(other.timestamp_))
+        : payload_(std::move(other.payload_)), timestamp_(std::move(other.timestamp_)),
+          pid_(other.pid_), index_(other.index_)
     {}
     ~RSTransactionData() noexcept = default;
 
@@ -64,6 +65,26 @@ public:
         return timestamp_;
     }
 
+    void SetSendingPid(pid_t pid)
+    {
+        pid_ = pid;
+    }
+
+    pid_t GetSendingPid() const
+    {
+        return pid_;
+    }
+
+    void SetIndex(uint64_t index)
+    {
+        index_ = index;
+    }
+
+    uint64_t GetIndex() const
+    {
+        return index_;
+    }
+
     std::vector<std::tuple<NodeId, FollowType, std::unique_ptr<RSCommand>>>& GetPayload()
     {
         return payload_;
@@ -78,11 +99,13 @@ private:
 #endif
     std::vector<std::tuple<NodeId, FollowType, std::unique_ptr<RSCommand>>> payload_;
     uint64_t timestamp_ = 0;
+    pid_t pid_ = 0;
+    uint64_t index_ = 0;
 
     friend class RSTransactionProxy;
     friend class RSMessageProcessor;
 };
-
+using TransactionDataMap = std::unordered_map<pid_t, std::vector<std::unique_ptr<RSTransactionData>>>;
 } // namespace Rosen
 } // namespace OHOS
 

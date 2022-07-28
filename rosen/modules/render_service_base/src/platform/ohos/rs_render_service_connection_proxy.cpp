@@ -33,13 +33,21 @@ void RSRenderServiceConnectionProxy::CommitTransaction(std::unique_ptr<RSTransac
     static constexpr size_t PARCEL_MAX_CPACITY = 1000 * 1024; // set upper bound of data parcel capacity to 1000K
     static constexpr size_t ASHMEM_SIZE_THRESHOLD = 400 * 1024;
 
+    if (!transactionData) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::CommitTransaction transactionData nullptr!");
+        return;
+    }
+
     std::shared_ptr<MessageParcel> data = std::make_shared<MessageParcel>();
     MessageParcel reply;
     MessageOption option;
     data->SetMaxCapacity(PARCEL_MAX_CPACITY);
     data->WriteInt32(0); // indicate data parcel
 
-    RS_TRACE_BEGIN("Marsh RSTransactionData: cmd count:" + std::to_string(transactionData->GetCommandCount()));
+    transactionData->SetSendingPid(pid_);
+    transactionData->SetIndex(++transactionDataIndex_);
+    RS_TRACE_BEGIN("Marsh RSTransactionData: cmd count:" + std::to_string(transactionData->GetCommandCount()) +
+        " transactionFlag:[" + std::to_string(pid_) + ", " + std::to_string(transactionData->GetIndex()) + "]");
     bool success = data->WriteParcelable(transactionData.get());
     RS_TRACE_END();
     if (!success) {

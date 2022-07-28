@@ -22,6 +22,7 @@
 #include "common/rs_vector3.h"
 #include "platform/common/rs_log.h"
 #include "rs_trace.h"
+#include "transaction/rs_transaction_data.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -713,5 +714,13 @@ bool RSBaseRenderUtil::ConvertBufferToEglImage(sptr<SurfaceBuffer> buffer,
     return true;
 }
 #endif
+
+std::unique_ptr<RSTransactionData> RSBaseRenderUtil::ParseTransactionData(MessageParcel& parcel)
+{
+    RS_TRACE_NAME("UnMarsh RSTransactionData: data size:" + std::to_string(parcel.GetDataSize()));
+    auto transactionData = parcel.ReadParcelable<RSTransactionData>();
+    std::unique_ptr<RSTransactionData> transData(transactionData);
+    return transData;
+}
 } // namespace Rosen
 } // namespace OHOS

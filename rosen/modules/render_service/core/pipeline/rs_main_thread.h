@@ -34,12 +34,12 @@
 #include "ipc_callbacks/iapplication_agent.h"
 #include "ipc_callbacks/rs_iocclusion_change_callback.h"
 #include "pipeline/rs_context.h"
+#include "pipeline/rs_uni_render_judgement.h"
 #include "platform/drawing/rs_vsync_client.h"
 #include "platform/common/rs_event_manager.h"
+#include "transaction/rs_transaction_data.h"
 
 namespace OHOS::Rosen {
-class RSTransactionData;
-
 namespace Detail {
 template<typename Task>
 class ScheduledTask : public RefBase {
@@ -107,9 +107,15 @@ public:
     void WaitUtilUniRenderFinished();
     void NotifyUniRenderFinish();
 
+    void ClearTransactionDataPidInfo(pid_t remotePid);
+    void AddTransactionDataPidInfo(pid_t remotePid);
+
     sptr<VSyncDistributor> rsVSyncDistributor_;
 
 private:
+    using TransactionDataIndexMap = std::unordered_map<pid_t,
+        std::pair<uint64_t, std::vector<std::unique_ptr<RSTransactionData>>>>;
+
     RSMainThread();
     ~RSMainThread() noexcept;
     RSMainThread(const RSMainThread&) = delete;
@@ -134,16 +140,25 @@ private:
     bool DoParallelComposition(std::shared_ptr<RSBaseRenderNode> rootNode);
     void ResetSortedChildren(std::shared_ptr<RSBaseRenderNode> node);
 
-    std::mutex transitionDataMutex_;
+    void ClassifyRSTransactionData(std::unique_ptr<RSTransactionData>& rsTransactionData);
+    void ProcessCommandForDividedRender();
+    void ProcessCommandForUniRender();
+    void WaitUntilUnmarshallingTaskFinished();
+    void MergeToEffectiveTransactionDataMap(TransactionDataMap& cachedTransactionDataMap);
+
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
     RSTaskMessage::RSTask mainLoop_;
     std::unique_ptr<RSVsyncClient> vsyncClient_ = nullptr;
     std::unordered_map<NodeId, uint64_t> bufferTimestamps_;
 
+    std::mutex transitionDataMutex_;
     std::unordered_map<NodeId, std::map<uint64_t, std::vector<std::unique_ptr<RSCommand>>>> cachedCommands_;
     std::vector<std::unique_ptr<RSCommand>> effectiveCommands_;
     std::vector<std::unique_ptr<RSCommand>> pendingEffectiveCommands_;
+
+    TransactionDataMap cachedTransactionDataMap_;
+    TransactionDataIndexMap effectiveTransactionDataIndexMap_;
 
     uint64_t timestamp_ = 0;
     std::unordered_map<uint32_t, sptr<IApplicationAgent>> applicationAgentMap_;
@@ -152,6 +167,12 @@ private:
     std::thread::id mainThreadId_;
     std::shared_ptr<VSyncReceiver> receiver_ = nullptr;
     std::vector<sptr<RSIOcclusionChangeCallback>> occlusionListeners_;
+
+    bool isUniRender_ = RSUniRenderJudgement::IsUniRender();
+    RSTaskMessage::RSTask unmarshalBarrierTask_;
+    std::condition_variable unmarshalTaskCond_;
+    std::mutex unmarshalMutex_;
+    int32_t unmarshalFinishedCount_ = 0;
 
     mutable std::mutex uniRenderMutex_;
     bool uniRenderFinished_ = false;
