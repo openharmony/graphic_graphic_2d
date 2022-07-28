@@ -49,38 +49,44 @@
         ]
       },
       "build": {
-        "sub_component": [
-          "//third_party/libpng:libpng",
-          "//foundation/graphic/graphic_2d:default",
-          "//foundation/graphic/graphic_2d/interfaces/kits/napi:napi_packages",
-          "//foundation/graphic/graphic_2d/rosen/samples/composer:hello_composer",
-          "//foundation/graphic/graphic_2d/rosen/samples/hello_native_window:hello_native_window",
-          "//foundation/graphic/graphic_2d/rosen/samples/hello_vsync:hello_vsync",
-          "//foundation/graphic/graphic_2d/rosen/samples/hello_native_buffer:hello_native_buffer",
-          "//foundation/graphic/graphic_2d/rosen/modules/composer:libcomposer",
-          "//foundation/graphic/graphic_2d/rosen/modules/composer/native_vsync:libnative_vsync",
-          "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics:2d_graphics",
-          "//foundation/graphic/graphic_2d/rosen/samples/2d_graphics:drawing_sample_rs",
-          "//foundation/graphic/graphic_2d/rosen/samples/2d_graphics:drawing_engine_sample",
-          "//foundation/graphic/graphic_2d/rosen/samples/2d_graphics/test:drawing_sample",
-          "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:librender_service_base",
-          "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/test:render_service_client",
-          "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:librender_service_client",
-          "//foundation/graphic/graphic_2d/rosen/modules/render_service_client/test:render_service_client_rs_demo",
-          "//foundation/graphic/graphic_2d/rosen/modules/render_service_client/test:render_service_client_gravity_demo",
-          "//foundation/graphic/graphic_2d/rosen/modules/render_service_client/test:render_service_client_scale_demo",
-          "//foundation/graphic/graphic_2d/rosen/modules/render_service:librender_service",
-          "//foundation/graphic/graphic_2d/rosen/modules/render_service:render_service",
-          "//foundation/graphic/graphic_2d/rosen/modules/effect/effectChain:libeffectchain",
-          "//foundation/graphic/graphic_2d/rosen/modules/effect/color_picker:color_picker",
-          "//foundation/graphic/graphic_2d/rosen/modules/effect/skia_effectChain:skeffectchain",
-          "//foundation/graphic/graphic_2d/frameworks/opengl_wrapper:EGL",
-          "//foundation/graphic/graphic_2d/frameworks/opengl_wrapper:GLESv3",
-          "//foundation/graphic/graphic_2d/frameworks/opengl_wrapper:debug_layer_test1",
-          "//foundation/graphic/graphic_2d/frameworks/opengl_wrapper:debug_layer_test2",
-          "//foundation/graphic/graphic_2d/frameworks/opengl_wrapper:opengl_wrapper_native_test",
-          "//foundation/graphic/graphic_2d/rosen/modules/effect/egl:libegl_effect"
-        ],
+        "group_type": {
+          "base_group": [
+            "//third_party/libpng:libpng",
+            "//foundation/graphic/graphic_2d:default",
+            "//foundation/graphic/graphic_2d/interfaces/kits/napi:napi_packages",
+            "//foundation/graphic/graphic_2d/rosen/samples/composer:hello_composer",
+            "//foundation/graphic/graphic_2d/rosen/samples/hello_native_window:hello_native_window",
+            "//foundation/graphic/graphic_2d/rosen/samples/hello_vsync:hello_vsync",
+            "//foundation/graphic/graphic_2d/rosen/samples/hello_native_buffer:hello_native_buffer",
+            "//foundation/graphic/graphic_2d/rosen/modules/composer:libcomposer",
+            "//foundation/graphic/graphic_2d/rosen/modules/composer/native_vsync:libnative_vsync",
+            "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics:2d_graphics",
+            "//foundation/graphic/graphic_2d/rosen/samples/2d_graphics:drawing_sample_rs",
+            "//foundation/graphic/graphic_2d/rosen/samples/2d_graphics:drawing_engine_sample",
+            "//foundation/graphic/graphic_2d/rosen/samples/2d_graphics/test:drawing_sample",
+            "//foundation/graphic/graphic_2d/rosen/modules/effect/effectChain:libeffectchain",
+            "//foundation/graphic/graphic_2d/rosen/modules/effect/color_picker:color_picker",
+            "//foundation/graphic/graphic_2d/rosen/modules/effect/skia_effectChain:skeffectchain",
+            "//foundation/graphic/graphic_2d/frameworks/opengl_wrapper:EGL",
+            "//foundation/graphic/graphic_2d/frameworks/opengl_wrapper:GLESv3",
+            "//foundation/graphic/graphic_2d/frameworks/opengl_wrapper:debug_layer_test1",
+            "//foundation/graphic/graphic_2d/frameworks/opengl_wrapper:debug_layer_test2",
+            "//foundation/graphic/graphic_2d/frameworks/opengl_wrapper:opengl_wrapper_native_test",
+            "//foundation/graphic/graphic_2d/rosen/modules/effect/egl:libegl_effect"
+          ],
+          "fwk_group": [
+            "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:librender_service_base",
+            "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:librender_service_client"
+          ],
+          "service_group": [
+            "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/test:render_service_client",
+            "//foundation/graphic/graphic_2d/rosen/modules/render_service_client/test:render_service_client_rs_demo",
+            "//foundation/graphic/graphic_2d/rosen/modules/render_service_client/test:render_service_client_gravity_demo",
+            "//foundation/graphic/graphic_2d/rosen/modules/render_service_client/test:render_service_client_scale_demo",
+            "//foundation/graphic/graphic_2d/rosen/modules/render_service:librender_service",
+            "//foundation/graphic/graphic_2d/rosen/modules/render_service:render_service"
+          ]
+      },
         "inner_kits": [
           {
             "type": "so",
