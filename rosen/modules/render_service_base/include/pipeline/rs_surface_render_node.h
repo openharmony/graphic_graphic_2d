@@ -35,6 +35,7 @@
 namespace OHOS {
 namespace Rosen {
 class RSCommand;
+class RSDirtyRegionManager;
 class RSSurfaceRenderNode : public RSRenderNode, public RSSurfaceHandler {
 public:
     using WeakPtr = std::weak_ptr<RSSurfaceRenderNode>;
@@ -89,7 +90,8 @@ public:
     }
 
     void CollectSurface(const std::shared_ptr<RSBaseRenderNode>& node,
-                        std::vector<RSBaseRenderNode::SharedPtr>& vec) override;
+                        std::vector<RSBaseRenderNode::SharedPtr>& vec,
+                        bool isUniRender) override;
     void Prepare(const std::shared_ptr<RSNodeVisitor>& visitor) override;
     void Process(const std::shared_ptr<RSNodeVisitor>& visitor) override;
 
@@ -121,6 +123,17 @@ public:
 
     void SetSecurityLayer(bool isSecurityLayer);
     bool GetSecurityLayer() const;
+    std::shared_ptr<RSDirtyRegionManager> GetDirtyManager() const;
+
+    void SetSrcRect(const RectI& rect)
+    {
+        srcRect_ = rect;
+    }
+
+    const RectI& GetSrcRect() const
+    {
+        return srcRect_;
+    }
 
     void SetDstRect(const RectI& dstRect)
     {
@@ -133,16 +146,6 @@ public:
     const RectI& GetDstRect() const
     {
         return dstRect_;
-    }
-
-    void SetSrcRect(const RectI& rect)
-    {
-        srcRect_ = rect;
-    }
-
-    const RectI& GetSrcRect() const
-    {
-        return srcRect_;
     }
 
     void SetGlobalAlpha(float alpha)
@@ -278,7 +281,6 @@ private:
 
     bool isSecurityLayer_ = false;
     RectI srcRect_;
-    RectI dstRect_;
     SkMatrix totalMatrix_;
     int32_t offsetX_ = 0;
     int32_t offsetY_ = 0;
@@ -297,6 +299,8 @@ private:
     RectI clipRegionFromParent_;
     Occlusion::Region visibleRegion_;
     bool isOcclusionVisible_ = true;
+    std::shared_ptr<RSDirtyRegionManager> dirtyManager_ = nullptr;
+    RectI dstRect_;
     bool dstRectChanged_ = false;
     uint8_t abilityBgAlpha_ = 0;
     bool abilityBgAlphaChanged_ = false;

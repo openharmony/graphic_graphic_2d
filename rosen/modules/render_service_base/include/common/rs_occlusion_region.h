@@ -160,6 +160,7 @@ public:
     {
         return rects_;
     }
+
     std::vector<Rect>& GetRegionRects()
     {
         return rects_;

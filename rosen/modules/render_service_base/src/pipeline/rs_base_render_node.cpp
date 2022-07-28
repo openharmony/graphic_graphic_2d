@@ -303,10 +303,10 @@ void RSBaseRenderNode::SetClean()
 }
 
 void RSBaseRenderNode::CollectSurface(
-    const std::shared_ptr<RSBaseRenderNode>& node, std::vector<RSBaseRenderNode::SharedPtr>& vec)
+    const std::shared_ptr<RSBaseRenderNode>& node, std::vector<RSBaseRenderNode::SharedPtr>& vec, bool isUniRender)
 {
     for (auto& child : node->GetSortedChildren()) {
-        child->CollectSurface(child, vec);
+        child->CollectSurface(child, vec, isUniRender);
     }
 }
 

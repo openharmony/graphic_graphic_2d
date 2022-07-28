@@ -39,7 +39,8 @@ namespace Rosen {
 RSSurfaceRenderNode::RSSurfaceRenderNode(const RSSurfaceRenderNodeConfig& config, std::weak_ptr<RSContext> context)
     : RSRenderNode(config.id, context),
       RSSurfaceHandler(config.id),
-      name_(config.name)
+      name_(config.name),
+      dirtyManager_(std::make_shared<RSDirtyRegionManager>())
 {
 }
 
@@ -131,24 +132,28 @@ void RSSurfaceRenderNode::ProcessRenderAfterChildren(RSPaintFilterCanvas& canvas
 }
 
 void RSSurfaceRenderNode::CollectSurface(
-    const std::shared_ptr<RSBaseRenderNode>& node, std::vector<RSBaseRenderNode::SharedPtr>& vec)
+    const std::shared_ptr<RSBaseRenderNode>& node, std::vector<RSBaseRenderNode::SharedPtr>& vec, bool isUniRender)
 {
     if (RSOcclusionConfig::GetInstance().IsStartingWindow(GetName())) {
         return;
     }
     if (RSOcclusionConfig::GetInstance().IsLeashWindow(GetName())) {
         for (auto& child : node->GetSortedChildren()) {
-            child->CollectSurface(child, vec);
+            child->CollectSurface(child, vec, isUniRender);
         }
         return;
     }
+
     auto& consumer = GetConsumer();
     if (consumer != nullptr && consumer->GetTunnelHandle() != nullptr) {
         return;
     }
-    
-    if (GetBuffer() != nullptr && GetRenderProperties().GetVisible()) {
+    if (isUniRender) {
         vec.emplace_back(shared_from_this());
+    } else {
+        if (GetBuffer() != nullptr && GetRenderProperties().GetVisible()) {
+            vec.emplace_back(shared_from_this());
+        }
     }
 }
 
@@ -172,6 +177,11 @@ void RSSurfaceRenderNode::SetContextBounds(const Vector4f bounds)
 {
     std::unique_ptr<RSCommand> command = std::make_unique<RSSurfaceNodeSetBounds>(GetId(), bounds);
     SendCommandFromRT(command, GetId());
+}
+
+std::shared_ptr<RSDirtyRegionManager> RSSurfaceRenderNode::GetDirtyManager() const
+{
+    return dirtyManager_;
 }
 
 void RSSurfaceRenderNode::SetContextMatrix(const SkMatrix& matrix, bool sendMsg)

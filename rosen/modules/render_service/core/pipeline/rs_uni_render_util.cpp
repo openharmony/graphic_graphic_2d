@@ -69,5 +69,55 @@ void RSUniRenderUtil::DrawImageOnCanvas(BufferInfo& bufferInfo, RSPaintFilterCan
     }
 }
 #endif
+
+void RSUniRenderUtil::UpdateRenderNodeDstRect(RSRenderNode& node)
+{
+    auto parentNode = node.GetParent().lock();
+    std::shared_ptr<RSRenderNode> rsParent = nullptr;
+    if (!parentNode) {
+        RS_LOGE("RSUniRenderUtil::UpdateDstRect: fail to get parent dstRect.");
+        return;
+    }
+    rsParent = parentNode->ReinterpretCastTo<RSRenderNode>();
+    auto& property = node.GetMutableRenderProperties();
+    property.UpdateGeometry(rsParent ? &(rsParent->GetRenderProperties()) : nullptr, true);
+    auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(property.GetBoundsGeometry());
+    if (geoPtr && node.IsInstanceOf<RSSurfaceRenderNode>()) {
+        std::shared_ptr<RSBaseRenderNode> nodePtr = node.shared_from_this();
+        auto surfaceNode = nodePtr->ReinterpretCastTo<RSSurfaceRenderNode>();
+        surfaceNode->SetDstRect(geoPtr->GetAbsRect());
+        auto dstRect = surfaceNode->GetDstRect();
+        RS_LOGD("RSUniRenderUtil::UpdateDstRect: nodeName: %s, dstRect[%d, %d, %d, %d].",
+            surfaceNode->GetName().c_str(),
+            dstRect.GetLeft(), dstRect.GetTop(), dstRect.GetWidth(), dstRect.GetHeight());
+    }
+}
+
+Occlusion::Region RSUniRenderUtil::MergeVisibleDirtyRegion(std::shared_ptr<RSDisplayRenderNode>& node,
+    int32_t bufferAge)
+{
+    std::vector<RSBaseRenderNode::SharedPtr> curAllSurfaces;
+    Occlusion::Region curRegion;
+    node->CollectSurface(node, curAllSurfaces, true);
+    for (auto it = curAllSurfaces.rbegin(); it != curAllSurfaces.rend(); ++it) {
+        auto sufaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(*it);
+        if (sufaceNode == nullptr) {
+            continue;
+        }
+        auto surfaceDirtyManager = sufaceNode->GetDirtyManager();
+        if (!surfaceDirtyManager->SetBufferAge(bufferAge)) {
+            ROSEN_LOGE("RSUniRenderUtil::MergeVisibleDirtyRegion with invalid buffer age %d", bufferAge);
+        }
+        surfaceDirtyManager->UpdateDirty();
+        auto surfaceDirtyRect = surfaceDirtyManager->GetDirtyRegion();
+        Occlusion::Rect dirtyRect { surfaceDirtyRect.left_, surfaceDirtyRect.top_,
+            surfaceDirtyRect.GetRight(), surfaceDirtyRect.GetBottom() };
+        auto visibleRegion = sufaceNode->GetVisibleRegion();
+        Occlusion::Region surfaceDirtyRegion { dirtyRect };
+        Occlusion::Region uniRegion = surfaceDirtyRegion.And(visibleRegion);
+        curRegion = curRegion.Or(uniRegion);
+    }
+    return curRegion;
+}
 } // namespace Rosen
 } // namespace OHOS

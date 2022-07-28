@@ -44,7 +44,8 @@ public:
     void ClearChildren();
     void RemoveFromTree();
     virtual void CollectSurface(const std::shared_ptr<RSBaseRenderNode>& node,
-                                std::vector<RSBaseRenderNode::SharedPtr>& vec);
+                                std::vector<RSBaseRenderNode::SharedPtr>& vec,
+                                bool isUniRender);
     virtual void Prepare(const std::shared_ptr<RSNodeVisitor>& visitor);
     virtual void Process(const std::shared_ptr<RSNodeVisitor>& visitor);
 

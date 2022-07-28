@@ -89,9 +89,25 @@ public:
     {
         return left_ + width_;
     }
+    T GetLeft() const
+    {
+        return left_;
+    }
     T GetBottom() const
     {
         return top_ + height_;
+    }
+    T GetTop() const
+    {
+        return top_;
+    }
+    T GetWidth() const
+    {
+        return width_;
+    }
+    T GetHeight() const
+    {
+        return height_;
     }
     void SetRight(T right)
     {

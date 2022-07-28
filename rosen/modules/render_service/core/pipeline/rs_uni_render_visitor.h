@@ -47,11 +47,16 @@ private:
     void DrawImageOnCanvas(RSSurfaceRenderNode& node);
 #endif // RS_ENABLE_EGLIMAGE
 
+    void DrawRectOnCanvas(const RectI& dirtyRect, const SkColor color,
+        const SkPaint::Style fillType, float alpha);
+    void DrawDirtyRegion();
+
     ScreenInfo screenInfo_;
-    RSDirtyRegionManager dirtyManager_;
+    std::shared_ptr<RSDirtyRegionManager> curSurfaceDirtyManager_;
     bool dirtyFlag_ { false };
     std::unique_ptr<RSPaintFilterCanvas> canvas_;
     std::unique_ptr<SkCanvas> skCanvas_;
+    std::map<NodeId, std::shared_ptr<RSSurfaceRenderNode>> dirtySurfaceNodeMap_;
     SkRect clipRect_;
     Gravity frameGravity_;
 

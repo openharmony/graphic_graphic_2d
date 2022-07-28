@@ -378,7 +378,7 @@ void RSMainThread::Render()
 
 void RSMainThread::CalcOcclusion()
 {
-    if (doAnimate_) {
+    if (doAnimate_ && !isUniRender_) {
         return;
     }
     const std::shared_ptr<RSBaseRenderNode> node = context_.GetGlobalRootRenderNode();
@@ -388,7 +388,7 @@ void RSMainThread::CalcOcclusion()
     }
     RSInnovation::UpdateOcclusionCullingSoEnabled();
     std::vector<RSBaseRenderNode::SharedPtr> curAllSurfaces;
-    node->CollectSurface(node, curAllSurfaces);
+    node->CollectSurface(node, curAllSurfaces, isUniRender_);
     // 1. Judge whether it is dirty
     // Surface cnt changed or surface DstRectChanged or surface ZorderChanged
     bool winDirty = lastSurfaceCnt_ != curAllSurfaces.size();
@@ -429,12 +429,19 @@ void RSMainThread::CalcOcclusion()
         // Set result to SurfaceRenderNode and its children
         surface->SetVisibleRegionRecursive(subResult, curVisVec);
         // Current region need to merge current surface for next calculation(ignore alpha surface)
-        bool diff = surface->GetDstRect().width_ != surface->GetBuffer()->GetWidth() ||
-                    surface->GetDstRect().height_ != surface->GetBuffer()->GetHeight();
         const uint8_t opacity = 255;
-        if (surface->GetAbilityBgAlpha() == opacity &&
-            ROSEN_EQ(surface->GetRenderProperties().GetAlpha(), 1.0f) && !diff) {
-            curRegion = curSurface.Or(curRegion);
+        if (isUniRender_) {
+            if (surface->GetAbilityBgAlpha() == opacity &&
+                ROSEN_EQ(surface->GetRenderProperties().GetAlpha(), 1.0f)) {
+                curRegion = curSurface.Or(curRegion);
+            }
+        } else {
+            bool diff = surface->GetDstRect().width_ != surface->GetBuffer()->GetWidth() ||
+                        surface->GetDstRect().height_ != surface->GetBuffer()->GetHeight();
+            if (surface->GetAbilityBgAlpha() == opacity &&
+                ROSEN_EQ(surface->GetRenderProperties().GetAlpha(), 1.0f) && !diff) {
+                curRegion = curSurface.Or(curRegion);
+            }
         }
     }
 
