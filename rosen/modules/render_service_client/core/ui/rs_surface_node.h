@@ -84,6 +84,8 @@ public:
         return name_;
     }
 
+    void ResetContextAlpha() const;
+
 protected:
     bool NeedForcedSendToRemote() const override;
     RSSurfaceNode(const RSSurfaceNodeConfig& config, bool isRenderServiceNode);
