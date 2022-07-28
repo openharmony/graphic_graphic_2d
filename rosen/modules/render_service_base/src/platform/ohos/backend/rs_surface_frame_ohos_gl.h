@@ -35,6 +35,7 @@ public:
     SkCanvas* GetCanvas() override;
     sk_sp<SkSurface> GetSurface() override;
     void SetDamageRegion(int32_t left, int32_t top, int32_t width, int32_t height) override;
+    int32_t GetBufferAge() const override;
     int32_t GetReleaseFence() const;
     void SetReleaseFence(const int32_t& fence);
 

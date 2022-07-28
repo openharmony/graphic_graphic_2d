@@ -37,7 +37,12 @@ public:
     void MergeDirtyRect(const RectI& rect);
     void IntersectDirtyRect(const RectI& rect);
     void Clear();
+    // return merged historical region
     const RectI& GetDirtyRegion() const;
+    // return merged historical region upsize down in surface
+    RectI GetDirtyRegionFlipWithinSurface() const;
+    // return current frame's region
+    const RectI& GetLatestDirtyRegion() const;
     bool IsDirty() const;
     void UpdateDirty();
     void UpdateDirtyCanvasNodes(NodeId id, const RectI& rect);
@@ -45,7 +50,7 @@ public:
     void GetDirtyCanvasNodes(std::map<NodeId, RectI>& target) const;
     void GetDirtySurfaceNodes(std::map<NodeId, RectI>& target) const;
     bool SetBufferAge(const int age);
-    RectI GetAllHistoryMerge();
+    bool SetSurfaceSize(const int width, const int height);
 
     void UpdateDebugRegionTypeEnable();
     

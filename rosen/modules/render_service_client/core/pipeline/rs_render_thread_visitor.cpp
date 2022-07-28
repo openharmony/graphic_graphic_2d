@@ -140,8 +140,8 @@ void RSRenderThreadVisitor::DrawDirtyRegion()
     const float subFactor = 2.0;
 
     if (curDirtyManager_->IsDebugRegionTypeEnable(DebugRegionType::MULTI_HISTORY)) {
-        dirtyRect = curDirtyManager_->GetAllHistoryMerge();
-        if (dirtyRect.width_ <= 0 || dirtyRect.height_ <= 0) {
+        dirtyRect = curDirtyManager_->GetDirtyRegion();
+        if (dirtyRect.IsEmpty()) {
             ROSEN_LOGD("DrawDirtyRegion his dirty rect is invalid. dirtyRect = [%d, %d, %d, %d]",
                 dirtyRect.left_, dirtyRect.top_, dirtyRect.width_, dirtyRect.height_);
         } else {
@@ -153,15 +153,15 @@ void RSRenderThreadVisitor::DrawDirtyRegion()
     }
 
     if (curDirtyManager_->IsDebugRegionTypeEnable(DebugRegionType::CURRENT_WHOLE)) {
-        dirtyRect = curDirtyManager_->GetDirtyRegion();
-        if (dirtyRect.width_ <= 0 || dirtyRect.height_ <= 0) {
-            ROSEN_LOGD("DrawDirtyRegion dirty rect is invalid. dirtyRect = [%d, %d, %d, %d]",
+        dirtyRect = curDirtyManager_->GetLatestDirtyRegion();
+        if (dirtyRect.IsEmpty()) {
+            ROSEN_LOGD("DrawDirtyRegion current frame's dirty rect is invalid. dirtyRect = [%d, %d, %d, %d]",
                 dirtyRect.left_, dirtyRect.top_, dirtyRect.width_, dirtyRect.height_);
         } else {
             ROSEN_LOGD("DrawDirtyRegion cur dirty rect");
             // yellow
-            DrawRectOnCanvas(curDirtyManager_->GetDirtyRegion(), 0xFFFFFF00, SkPaint::kFill_Style, fillAlpha);
-            DrawRectOnCanvas(curDirtyManager_->GetDirtyRegion(), 0xFFFFFF00, SkPaint::kStroke_Style, edgeAlpha);
+            DrawRectOnCanvas(dirtyRect, 0xFFFFFF00, SkPaint::kFill_Style, fillAlpha);
+            DrawRectOnCanvas(dirtyRect, 0xFFFFFF00, SkPaint::kStroke_Style, edgeAlpha);
         }
     }
 
@@ -198,7 +198,6 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
         ProcessCanvasRenderNode(node);
         return;
     }
-    curDirtyManager_ = node.GetDirtyManager();
     auto ptr = RSNodeMap::Instance().GetNode<RSSurfaceNode>(node.GetRSSurfaceNodeId());
     if (ptr == nullptr) {
         ROSEN_LOGE("ProcessRoot: No valid RSSurfaceNode id");
@@ -213,6 +212,10 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
             node.GetSurfaceWidth(), node.GetSurfaceHeight());
         return;
     }
+
+    curDirtyManager_ = node.GetDirtyManager();
+    // node's surface size already check, so here we do not need to check return
+    (void)curDirtyManager_->SetSurfaceSize(node.GetSurfaceWidth(), node.GetSurfaceHeight());
 
     auto surfaceNodeColorSpace = ptr->GetColorSpace();
     std::shared_ptr<RSSurface> rsSurface = RSSurfaceExtractor::ExtractRSSurface(ptr);
@@ -259,6 +262,26 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
     if (overdrawListener == nullptr) {
         overdrawListener = overdrawController.SetHook<RSCPUOverdrawCanvasListener>(canvas_);
     }
+
+#ifdef RS_ENABLE_EGLQUERYSURFACE
+    // get and update valid buffer age(>0) to merge history
+    int32_t bufferAge = surfaceFrame->GetBufferAge();
+    if (!curDirtyManager_->SetBufferAge(bufferAge)) {
+        ROSEN_LOGW("ProcessRootRenderNode SetBufferAge with invalid buffer age %d", bufferAge);
+    }
+    curDirtyManager_->UpdateDirty();
+    // only set damage region if dirty region and buffer age is valid(>0)
+    if (curDirtyManager_->IsDirty() && bufferAge >= 0 && curDirtyManager_->GetPartialRenderEnabled()) {
+        // get dirty rect coordinated from upper left to lower left corner in current surface
+        RectI dirtyRect = curDirtyManager_->GetDirtyRegionFlipWithinSurface();
+        ROSEN_LOGD("GetPartialRenderEnabled buffer age %d, dirtyRect = [%d, %d, %d, %d]", bufferAge,
+            dirtyRect.left_, dirtyRect.top_, dirtyRect.width_, dirtyRect.height_);
+        // set dirty rect as eglSurfaceFrame's damage region
+        surfaceFrame->SetDamageRegion(dirtyRect.left_, dirtyRect.top_, dirtyRect.width_, dirtyRect.height_);
+    }
+#else
+    curDirtyManager_->UpdateDirty();
+#endif
 
     canvas_->clipRect(SkRect::MakeWH(node.GetSurfaceWidth(), node.GetSurfaceHeight()));
     canvas_->clear(SK_ColorTRANSPARENT);
