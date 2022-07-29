@@ -271,7 +271,7 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
     }
     curDirtyManager_->UpdateDirty();
     // only set damage region if dirty region and buffer age is valid(>0)
-    if (curDirtyManager_->IsDirty() && bufferAge >= 0 && curDirtyManager_->GetPartialRenderEnabled()) {
+    if (curDirtyManager_->IsDirty() && bufferAge >= 0 && RSSystemProperties::GetPartialRenderEnabled()) {
         // get dirty rect coordinated from upper left to lower left corner in current surface
         RectI dirtyRect = curDirtyManager_->GetDirtyRegionFlipWithinSurface();
         ROSEN_LOGD("GetPartialRenderEnabled buffer age %d, dirtyRect = [%d, %d, %d, %d]", bufferAge,
