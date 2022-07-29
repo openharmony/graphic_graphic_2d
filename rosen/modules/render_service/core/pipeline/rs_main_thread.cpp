@@ -255,11 +255,13 @@ void RSMainThread::CalcOcclusion()
             if (surface == nullptr) {
                 continue;
             }
-            if (surface->GetRenderProperties().GetZorderChanged() || surface->GetDstRectChanged()) {
+            if (surface->GetRenderProperties().GetZorderChanged() || surface->GetDstRectChanged() ||
+                surface->GetAbilityBgAlphaChanged()) {
                 winDirty = true;
             }
             surface->GetMutableRenderProperties().CleanZorderChanged();
             surface->CleanDstRectChanged();
+            surface->CleanAbilityBgAlphaChanged();
         }
     }
     if (!winDirty) {
@@ -287,7 +289,8 @@ void RSMainThread::CalcOcclusion()
         // Set result to SurfaceRenderNode and its children
         surface->SetVisibleRegionRecursive(subResult, curVisVec);
         // Current region need to merge current surface for next calculation(ignore alpha surface)
-        if (!RSOcclusionConfig::GetInstance().IsAlphaWindow(surface->GetName())) {
+        const uint8_t opacity = 255;
+        if (surface->GetAbilityBgAlpha() == opacity && ROSEN_EQ(surface->GetRenderProperties().GetAlpha(), 1.0f)) {
             curRegion = curSurface.Or(curRegion);
         }
     }
