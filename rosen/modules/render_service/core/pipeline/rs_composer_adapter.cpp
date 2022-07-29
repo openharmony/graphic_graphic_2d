@@ -182,11 +182,11 @@ void RSComposerAdapter::DealWithNodeGravity(RSSurfaceRenderNode& node, ComposeIn
     // to deal with the situation that frameSize > boundsSize.
     newDstRect.intersect(SkIRect::MakeXYWH(info.dstRect.x, info.dstRect.y, info.dstRect.w, info.dstRect.h));
     auto localRect = canvas->getLocalClipBounds();
-    IRect newSrcRect = {
-        std::clamp<int>(localRect.left(), 0, frameWidth),
-        std::clamp<int>(localRect.top(), 0, frameHeight),
-        std::clamp<int>(localRect.width(), 0, frameWidth - localRect.left()),
-        std::clamp<int>(localRect.height(), 0, frameHeight - localRect.top())};
+    int left = std::clamp<int>(localRect.left(), 0, frameWidth);
+    int top = std::clamp<int>(localRect.top(), 0, frameHeight);
+    int width = std::clamp<int>(localRect.width(), 0, frameWidth - left);
+    int height = std::clamp<int>(localRect.height(), 0, frameHeight - top);
+    IRect newSrcRect = {left, top, width, height};
 
     // log and apply new dstRect and srcRect
     RS_LOGD("RsDebug DealWithNodeGravity: name[%s], gravity[%d], oldDstRect[%d %d %d %d], newDstRect[%d %d %d %d],"\
