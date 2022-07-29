@@ -295,6 +295,8 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest016, TestSize.Level
     uint32_t width = 20;
     uint32_t height = 40;
     OH_Drawing_BitmapBuild(cBitmap, width, height, &cFormat);
+    EXPECT_EQ(width, OH_Drawing_BitmapGetWidth(cBitmap));
+    EXPECT_EQ(height, OH_Drawing_BitmapGetHeight(cBitmap));
 
     OH_Drawing_Canvas* cCanvas = OH_Drawing_CanvasCreate();
     OH_Drawing_CanvasBind(cCanvas, cBitmap);
