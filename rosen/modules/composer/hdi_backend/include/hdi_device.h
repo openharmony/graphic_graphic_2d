@@ -178,6 +178,25 @@ private:
     void Destroy();
 };
 
+template <typename DevicePtr, typename DeviceFuncPtr>
+class CheckFunc {
+public:
+    CheckFunc(const DevicePtr device, const DeviceFuncPtr deviceFunc, const std::string& funcName)
+    {
+        if (device == nullptr || deviceFunc == nullptr) {
+            HLOGD("can not find hdi func: %{public}s", funcName.c_str());
+            hasFunc = false;
+        }
+    }
+    ~CheckFunc() noexcept = default;
+    bool operator()() const
+    {
+        return hasFunc;
+    }
+private:
+    bool hasFunc = true;
+};
+
 } // namespace Rosen
 } // namespace OHOS
 
