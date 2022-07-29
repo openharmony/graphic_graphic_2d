@@ -38,7 +38,7 @@ void RSBufferAvailableCallbackProxy::OnBufferAvailable()
         return;
     }
 
-    option.SetFlags(MessageOption::TF_ASYNC);
+    option.SetFlags(MessageOption::TF_SYNC);
     int32_t err = Remote()->SendRequest(RSIBufferAvailableCallback::ON_BUFFER_AVAILABLE, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("RSBufferAvailableCallbackProxy::OnBufferAvailable error = %d", err);
