@@ -776,6 +776,11 @@ std::shared_ptr<RSPath> RSProperties::GetShadowPath() const
     return shadow_ ? shadow_->GetPath() : nullptr;
 }
 
+bool RSProperties::IsShadowValid() const
+{
+    return shadow_ && shadow_->IsValid();
+}
+
 void RSProperties::SetFrameGravity(Gravity gravity)
 {
     if (frameGravity_ != gravity) {

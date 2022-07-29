@@ -42,9 +42,17 @@ bool RSDividedRenderUtil::IsNeedClient(RSSurfaceRenderNode& node, const ComposeI
         return true;
     }
 
-    auto filter = std::static_pointer_cast<RSBlurFilter>(property.GetBackgroundFilter());
-    if (filter != nullptr && filter->GetBlurRadiusX() > 0 && filter->GetBlurRadiusY() > 0) {
+    if (property.GetBackgroundFilter() || property.GetFilter()) {
         RS_LOGD("RsDebug RSDividedRenderUtil::IsNeedClient enable composition client need filter");
+        return true;
+    }
+    
+    if (!property.GetCornerRadius().IsZero()) {
+        RS_LOGD("RsDebug RSDividedRenderUtil::IsNeedClient enable composition client need round corner");
+        return true;
+    }
+    if (property.IsShadowValid()) {
+        RS_LOGD("RsDebug RSDividedRenderUtil::IsNeedClient enable composition client need shadow");
         return true;
     }
     auto transitionProperties = node.GetAnimationManager().GetTransitionProperties();
@@ -78,7 +86,7 @@ void RSDividedRenderUtil::DealAnimation(RSPaintFilterCanvas& canvas, RSSurfaceRe
     if (filter != nullptr) {
         auto skRectPtr = std::make_unique<SkRect>();
         skRectPtr->setXYWH(0, 0, params.srcRect.width(), params.srcRect.height());
-        RSPropertiesPainter::DrawFilter(property, canvas, filter, skRectPtr);
+        RSPropertiesPainter::DrawFilter(property, canvas, filter, skRectPtr, canvas.GetSurface());
     }
 }
 
@@ -219,7 +227,10 @@ BufferDrawParam RSDividedRenderUtil::CreateBufferDrawParam(RSSurfaceRenderNode& 
     }
     params.clipRect = dstRect;
     params.paint = paint;
+    params.property = &(node.GetRenderProperties());
     params.cornerRadius = property.GetCornerRadius();
+    params.fullRect = SkRect::MakeXYWH(node.GetTotalMatrix().getTranslateX(), node.GetTotalMatrix().getTranslateY(),
+        property.GetBoundsWidth(), property.GetBoundsHeight());
     params.isNeedClip = property.GetClipToFrame();
     params.backgroundColor = static_cast<SkColor>(property.GetBackgroundColor().AsArgbInt());
     if (!isClipHole) {
@@ -232,9 +243,9 @@ BufferDrawParam RSDividedRenderUtil::CreateBufferDrawParam(RSSurfaceRenderNode& 
 void SetPropertiesForCanvas(RSPaintFilterCanvas& canvas, const BufferDrawParam& bufferDrawParam)
 {
     if (bufferDrawParam.isNeedClip) {
-        SkRect clipRect = bufferDrawParam.clipRect;
         if (!bufferDrawParam.cornerRadius.IsZero()) {
-            RectF rect(clipRect.left(), clipRect.top(), clipRect.width(), clipRect.height());
+            auto fullRect = bufferDrawParam.fullRect;
+            RectF rect(fullRect.left(), fullRect.top(), fullRect.width(), fullRect.height());
             RRect rrect = RRect(rect, bufferDrawParam.cornerRadius);
             canvas.clipRRect(RSPropertiesPainter::RRect2SkRRect(rrect), true);
         } else {
@@ -245,6 +256,14 @@ void SetPropertiesForCanvas(RSPaintFilterCanvas& canvas, const BufferDrawParam& 
         canvas.clear(bufferDrawParam.backgroundColor);
     }
     canvas.setMatrix(bufferDrawParam.matrix);
+}
+
+void DrawShadowForCanvas(RSPaintFilterCanvas& canvas, const BufferDrawParam& bufferDrawParam)
+{
+    SkRect clipRect = bufferDrawParam.fullRect;
+    RectF rectShadow(clipRect.left(), clipRect.top(), clipRect.width(), clipRect.height());
+    RRect rrectShadow = RRect(rectShadow, bufferDrawParam.cornerRadius);
+    RSPropertiesPainter::DrawShadow(*(bufferDrawParam.property), canvas, &rrectShadow);
 }
 
 void RSDividedRenderUtil::ClipHole(RSPaintFilterCanvas& canvas, const BufferDrawParam& bufferDrawParam)
@@ -267,11 +286,18 @@ void RSDividedRenderUtil::DrawBuffer(RSPaintFilterCanvas& canvas, BufferDrawPara
         return;
     }
     canvas.save();
+    DrawShadowForCanvas(canvas, bufferDrawParam); // Has a judgment in drawshadow，only when ets sets shadow, draw shadow
     SetPropertiesForCanvas(canvas, bufferDrawParam);
     if (process) {
         process(canvas, bufferDrawParam);
     }
     canvas.drawBitmapRect(bitmap, bufferDrawParam.srcRect, bufferDrawParam.dstRect, &(bufferDrawParam.paint));
+    auto filter = std::static_pointer_cast<RSSkiaFilter>(bufferDrawParam.property->GetFilter());
+    if (filter != nullptr) {
+        auto skRectPtr = std::make_unique<SkRect>();
+        skRectPtr->setXYWH(0, 0, bufferDrawParam.srcRect.width(), bufferDrawParam.srcRect.height());
+        RSPropertiesPainter::DrawFilter(*(bufferDrawParam.property), canvas, filter, skRectPtr, canvas.GetSurface());
+    }
     canvas.restore();
 }
 
@@ -287,11 +313,18 @@ void RSDividedRenderUtil::DrawImage(std::shared_ptr<RSEglImageManager> eglImageM
         return;
     }
     canvas.save();
+    DrawShadowForCanvas(canvas, bufferDrawParam); // Has a judgment in drawshadow，only when ets sets shadow, draw shadow
     SetPropertiesForCanvas(canvas, bufferDrawParam);
     if (process) {
         process(canvas, bufferDrawParam);
     }
     canvas.drawImageRect(image, bufferDrawParam.srcRect, bufferDrawParam.dstRect, &(bufferDrawParam.paint));
+    auto filter = std::static_pointer_cast<RSSkiaFilter>(bufferDrawParam.property->GetFilter());
+    if (filter != nullptr) {
+        auto skRectPtr = std::make_unique<SkRect>();
+        skRectPtr->setXYWH(0, 0, bufferDrawParam.srcRect.width(), bufferDrawParam.srcRect.height());
+        RSPropertiesPainter::DrawFilter(*(bufferDrawParam.property), canvas, filter, skRectPtr, canvas.GetSurface());
+    }
     canvas.restore();
 }
 #endif // RS_ENABLE_EGLIMAGE

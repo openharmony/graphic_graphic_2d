@@ -79,7 +79,7 @@ public:
 
     std::unique_ptr<RSPaintFilterCanvas> GetCanvas()
     {
-        return std::make_unique<RSPaintFilterCanvas>(surfaceFrame_->GetCanvas());
+        return std::make_unique<RSPaintFilterCanvas>(surfaceFrame_->GetSurface().get());
     }
 
 private:

@@ -134,7 +134,7 @@ void RSPropertiesPainter::Clip(SkCanvas& canvas, RectF rect)
     canvas.clipRect(Rect2SkRect(rect), true);
 }
 
-void RSPropertiesPainter::DrawShadow(const RSProperties& properties, RSPaintFilterCanvas& canvas)
+void RSPropertiesPainter::DrawShadow(const RSProperties& properties, RSPaintFilterCanvas& canvas, const RRect* rrect)
 {
     if (properties.shadow_ && properties.shadow_->IsValid()) {
         SkAutoCanvasRestore acr(&canvas, true);
@@ -146,8 +146,13 @@ void RSPropertiesPainter::DrawShadow(const RSProperties& properties, RSPaintFilt
             skPath = properties.GetClipBounds()->GetSkiaPath();
             canvas.clipPath(skPath, SkClipOp::kDifference, true);
         } else {
-            skPath.addRRect(RRect2SkRRect(properties.GetRRect()));
-            canvas.clipRRect(RRect2SkRRect(properties.GetRRect()), SkClipOp::kDifference, true);
+            if (rrect != nullptr) {
+                skPath.addRRect(RRect2SkRRect(*rrect));
+                canvas.clipRRect(RRect2SkRRect(*rrect), SkClipOp::kDifference, true);
+            } else {
+                skPath.addRRect(RRect2SkRRect(properties.GetRRect()));
+                canvas.clipRRect(RRect2SkRRect(properties.GetRRect()), SkClipOp::kDifference, true);
+            }
         }
         skPath.offset(properties.GetShadowOffsetX(), properties.GetShadowOffsetY());
         Color spotColor = properties.GetShadowColor();

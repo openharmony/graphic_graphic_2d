@@ -163,6 +163,7 @@ public:
     float GetShadowElevation() const;
     float GetShadowRadius() const;
     std::shared_ptr<RSPath> GetShadowPath() const;
+    bool IsShadowValid() const;
 
     void SetFrameGravity(Gravity gravity);
     Gravity GetFrameGravity() const;

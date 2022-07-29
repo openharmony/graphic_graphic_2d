@@ -18,9 +18,9 @@
 #include "include/effects/SkBlurImageFilter.h"
 namespace OHOS {
 namespace Rosen {
-RSBlurFilter::RSBlurFilter(float blurRadiusX, float blurRadiusY)
-    : RSSkiaFilter(SkBlurImageFilter::Make(blurRadiusX, blurRadiusY, nullptr)), blurRadiusX_(blurRadiusX),
-      blurRadiusY_(blurRadiusY)
+RSBlurFilter::RSBlurFilter(float blurRadiusX, float blurRadiusY): RSSkiaFilter(SkBlurImageFilter::Make(blurRadiusX,
+    blurRadiusY, nullptr, nullptr, SkBlurImageFilter::kClamp_TileMode)), blurRadiusX_(blurRadiusX),
+    blurRadiusY_(blurRadiusY)
 {
     type_ = FilterType::BLUR;
 }

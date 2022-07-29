@@ -41,11 +41,13 @@ struct BufferDrawParam {
     SkRect srcRect;
     SkRect dstRect;
     SkRect clipRect;
+    SkRect fullRect;
     Vector4f cornerRadius;
     bool isNeedClip = true;
     SkPaint paint;
     SkColor backgroundColor = SK_ColorTRANSPARENT;
     ColorGamut targetColorGamut = ColorGamut::COLOR_GAMUT_SRGB;
+    const RSProperties* property;
 };
 
 class RSDividedRenderUtil {
