@@ -81,7 +81,6 @@ int32_t NativeWindowRequestBuffer(struct NativeWindow *window,
 {
     if (window == nullptr || buffer == nullptr || fenceFd == nullptr) {
         BLOGD("NativeWindowRequestBuffer window or buffer or fenceid is nullptr");
-        *buffer = nullptr;
         return OHOS::GSERROR_INVALID_ARGUMENTS;
     }
     BLOGD("NativeWindowRequestBuffer width is %{public}d, height is %{public}d",
