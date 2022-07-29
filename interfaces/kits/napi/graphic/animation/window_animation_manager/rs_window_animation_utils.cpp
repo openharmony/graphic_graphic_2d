@@ -48,6 +48,10 @@ NativeValue* RSWindowAnimationUtils::CreateJsWindowAnimationTarget(NativeEngine&
     };
     target.GetRefPtr()->IncStrongRef(target.GetRefPtr());
     object->SetNativePointer(&(target->surfaceNode_), finalizeCallback, target.GetRefPtr());
+    if (target->surfaceNode_) {
+        // planning: remove CreateNodeInRenderThread in RosenRenderRemoteWindow::ExtractRSNode
+        target->surfaceNode_->CreateNodeInRenderThread(true);
+    }
 
     object->SetProperty("bundleName", CreateJsValue(engine, target->bundleName_));
     object->SetProperty("abilityName", CreateJsValue(engine, target->abilityName_));

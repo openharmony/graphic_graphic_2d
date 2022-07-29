@@ -180,6 +180,7 @@ void RSWindowAnimationController::HandleOnStartApp(StartingAppType type,
 
     if (startingWindowTarget && startingWindowTarget->surfaceNode_) {
         startingWindowTarget->surfaceNode_->SetBoundsSize(-1, -1);
+        startingWindowTarget->surfaceNode_->ResetContextAlpha();
     }
 
     switch (type) {

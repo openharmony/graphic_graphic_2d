@@ -245,6 +245,20 @@ bool RSSurfaceNode::NeedForcedSendToRemote() const
     }
 }
 
+void RSSurfaceNode::ResetContextAlpha() const
+{
+    // temporarily fix: manually set contextAlpha in RT and RS to 0.0f, to avoid residual alpha/context matrix from
+    // previous animation. this value will be overwritten in RenderThreadVisitor::ProcessSurfaceRenderNode.
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy == nullptr) {
+        return;
+    }
+    std::unique_ptr<RSCommand> commandRT = std::make_unique<RSSurfaceNodeSetContextAlpha>(GetId(), 0.0f);
+    transactionProxy->AddCommand(commandRT, false);
+    std::unique_ptr<RSCommand> commandRS = std::make_unique<RSSurfaceNodeSetContextAlpha>(GetId(), 0.0f);
+    transactionProxy->AddCommand(commandRS, true);
+}
+
 RSSurfaceNode::RSSurfaceNode(const RSSurfaceNodeConfig& config, bool isRenderServiceNode)
     : RSNode(isRenderServiceNode), name_(config.SurfaceNodeName)
 {}
