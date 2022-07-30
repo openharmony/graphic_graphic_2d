@@ -1027,9 +1027,11 @@ void BufferQueue::DumpCache(std::string &result)
 {
     for (auto it = bufferQueueCache_.begin(); it != bufferQueueCache_.end(); it++) {
         BufferElement element = it->second;
-        result += "        sequence = " + std::to_string(it->first) +
-            ", state = " + BufferStateStrs.at(element.state) +
-            ", timestamp = " + std::to_string(element.timestamp);
+        if (BufferStateStrs.find(element.state) != BufferStateStrs.end()) {
+            result += "        sequence = " + std::to_string(it->first) +
+                ", state = " + BufferStateStrs.at(element.state) +
+                ", timestamp = " + std::to_string(element.timestamp);
+        }
         result += ", damageRect = [" + std::to_string(element.damage.x) + ", " +
             std::to_string(element.damage.y) + ", " +
             std::to_string(element.damage.w) + ", " +
@@ -1040,9 +1042,13 @@ void BufferQueue::DumpCache(std::string &result)
             std::to_string(element.config.format) +", " +
             std::to_string(element.config.usage) + ", " +
             std::to_string(element.config.timeout) + "],";
-        result += " bufferWith = " + std::to_string(element.buffer->GetWidth()) +
-                  ", bufferHeight = " + std::to_string(element.buffer->GetHeight());
-        double bufferMemSize = static_cast<double>(element.buffer->GetSize()) / BUFFER_MEMSIZE_RATE;
+
+        double bufferMemSize = 0;
+        if (element.buffer != nullptr) {
+            result += " bufferWith = " + std::to_string(element.buffer->GetWidth()) +
+                    ", bufferHeight = " + std::to_string(element.buffer->GetHeight());
+            bufferMemSize = static_cast<double>(element.buffer->GetSize()) / BUFFER_MEMSIZE_RATE;
+        }
         std::ostringstream ss;
         ss.precision(BUFFER_MEMSIZE_FORMAT);
         ss.setf(std::ios::fixed);
@@ -1064,7 +1070,9 @@ void BufferQueue::Dump(std::string &result)
 
     for (auto it = bufferQueueCache_.begin(); it != bufferQueueCache_.end(); it++) {
         BufferElement element = it->second;
-        totalBufferListSize += element.buffer->GetSize();
+        if (element.buffer != nullptr) {
+            totalBufferListSize += element.buffer->GetSize();
+        }
     }
     memSizeInKB = static_cast<double>(totalBufferListSize) / BUFFER_MEMSIZE_RATE;
 

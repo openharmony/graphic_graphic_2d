@@ -39,7 +39,10 @@ static const std::map<CompositionType, std::string> CompositionTypeStrs = {
     {COMPOSITION_DEVICE,             "1 <device composistion>"},
     {COMPOSITION_CURSOR,             "2 <cursor composistion>"},
     {COMPOSITION_VIDEO,              "3 <video composistion>"},
-    {COMPOSITION_BUTT,               "4 <uninitialized>"},
+    {COMPOSITION_DEVICE_CLEAR,       "4 <device clear composistion>"},
+    {COMPOSITION_CLIENT_CLEAR,       "5 <client clear composistion>"},
+    {COMPOSITION_TUNNEL,             "6 <tunnel composistion>"},
+    {COMPOSITION_BUTT,               "7 <uninitialized>"},
 };
 
 static const std::map<BlendType, std::string> BlendTypeStrs = {
@@ -300,17 +303,20 @@ public:
 
     void Dump(std::string &result) const
     {
-        result += " zOrder = " + std::to_string(zOrder_) +
-            ", visibleNum = " + std::to_string(visibleNum_) +
-            ", transformType = " + TransformTypeStrs.at(transformType_) +
-            ", compositionType = " + CompositionTypeStrs.at(compositionType_) +
-            ", blendType = " + BlendTypeStrs.at(blendType_) +
-            ", layerAlpha = [enGlobalAlpha(" + std::to_string(layerAlpha_.enGlobalAlpha) + "), enPixelAlpha(" +
-            std::to_string(layerAlpha_.enPixelAlpha) + "), alpha0(" +
-            std::to_string(layerAlpha_.alpha0) + "), alpha1(" +
-            std::to_string(layerAlpha_.alpha1) + "), gAlpha(" +
-            std::to_string(layerAlpha_.gAlpha) + ")].\n";
-
+        if (TransformTypeStrs.find(transformType_) != TransformTypeStrs.end() &&
+            CompositionTypeStrs.find(compositionType_) != CompositionTypeStrs.end() &&
+            BlendTypeStrs.find(blendType_) != BlendTypeStrs.end()) {
+            result += " zOrder = " + std::to_string(zOrder_) +
+                ", visibleNum = " + std::to_string(visibleNum_) +
+                ", transformType = " + TransformTypeStrs.at(transformType_) +
+                ", compositionType = " + CompositionTypeStrs.at(compositionType_) +
+                ", blendType = " + BlendTypeStrs.at(blendType_) +
+                ", layerAlpha = [enGlobalAlpha(" + std::to_string(layerAlpha_.enGlobalAlpha) + "), enPixelAlpha(" +
+                std::to_string(layerAlpha_.enPixelAlpha) + "), alpha0(" +
+                std::to_string(layerAlpha_.alpha0) + "), alpha1(" +
+                std::to_string(layerAlpha_.alpha1) + "), gAlpha(" +
+                std::to_string(layerAlpha_.gAlpha) + ")].\n";
+        }
         result += " layerRect = [" + std::to_string(layerRect_.x) + ", " +
             std::to_string(layerRect_.y) + ", " +
             std::to_string(layerRect_.w) + ", " +
@@ -327,7 +333,9 @@ public:
             std::to_string(cropRect_.y) + ", " +
             std::to_string(cropRect_.w) + ", " +
             std::to_string(cropRect_.h) + "].\n";
-        cSurface_->Dump(result);
+        if (cSurface_ != nullptr) {
+            cSurface_->Dump(result);
+        }
     }
     /* hdiLayer get layer info end */
 
