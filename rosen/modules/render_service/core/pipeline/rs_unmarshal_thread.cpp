@@ -51,6 +51,10 @@ void RSUnmarshalThread::RecvParcel(std::shared_ptr<MessageParcel>& parcel)
         if (!transData) {
             return;
         }
+        if (!transData->GetUniRender()) {
+            RSMainThread::Instance()->RecvRSTransactionData(transData);
+            return;
+        }
         std::lock_guard<std::mutex> lock(transactionDataMutex_);
         cachedTransactionDataMap_[transData->GetSendingPid()].emplace_back(std::move(transData));
     };

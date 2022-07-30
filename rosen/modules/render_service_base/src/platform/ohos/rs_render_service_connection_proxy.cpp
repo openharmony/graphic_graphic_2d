@@ -18,6 +18,7 @@
 #include <message_option.h>
 #include <message_parcel.h>
 #include "platform/common/rs_log.h"
+#include "platform/common/rs_system_properties.h"
 #include "transaction/rs_ashmem_helper.h"
 #include "rs_trace.h"
 
@@ -46,6 +47,7 @@ void RSRenderServiceConnectionProxy::CommitTransaction(std::unique_ptr<RSTransac
 
     transactionData->SetSendingPid(pid_);
     transactionData->SetIndex(++transactionDataIndex_);
+    transactionData->SetUniRender(RSSystemProperties::GetUniRenderEnabled());
     RS_TRACE_BEGIN("Marsh RSTransactionData: cmd count:" + std::to_string(transactionData->GetCommandCount()) +
         " transactionFlag:[" + std::to_string(pid_) + ", " + std::to_string(transactionData->GetIndex()) + "]");
     bool success = data->WriteParcelable(transactionData.get());

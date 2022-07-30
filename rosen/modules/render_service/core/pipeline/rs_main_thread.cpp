@@ -156,7 +156,10 @@ void RSMainThread::Start()
 
 void RSMainThread::ProcessCommand()
 {
-    isUniRender_ ? ProcessCommandForUniRender() : ProcessCommandForDividedRender();
+    ProcessCommandForDividedRender();
+    if (isUniRender_) {
+        ProcessCommandForUniRender();
+    }
 }
 
 void RSMainThread::ProcessCommandForUniRender()
@@ -540,7 +543,7 @@ void RSMainThread::RecvRSTransactionData(std::unique_ptr<RSTransactionData>& rsT
     if (!rsTransactionData) {
         return;
     }
-    if (isUniRender_) {
+    if (rsTransactionData->GetUniRender()) {
         std::lock_guard<std::mutex> lock(transitionDataMutex_);
         cachedTransactionDataMap_[rsTransactionData->GetSendingPid()].emplace_back(std::move(rsTransactionData));
     } else {

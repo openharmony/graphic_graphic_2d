@@ -85,6 +85,16 @@ public:
         return index_;
     }
 
+    void SetUniRender(bool flag)
+    {
+        isUniRender_ = flag;
+    }
+
+    bool GetUniRender() const
+    {
+        return isUniRender_;
+    }
+
     std::vector<std::tuple<NodeId, FollowType, std::unique_ptr<RSCommand>>>& GetPayload()
     {
         return payload_;
@@ -101,6 +111,7 @@ private:
     uint64_t timestamp_ = 0;
     pid_t pid_ = 0;
     uint64_t index_ = 0;
+    bool isUniRender_ = false;
 
     friend class RSTransactionProxy;
     friend class RSMessageProcessor;
