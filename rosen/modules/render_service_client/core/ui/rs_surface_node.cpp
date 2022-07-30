@@ -295,6 +295,11 @@ RSSurfaceNode::RSSurfaceNode(const RSSurfaceNodeConfig& config, bool isRenderSer
 
 RSSurfaceNode::~RSSurfaceNode()
 {
+    auto renderServiceClient =
+        std::static_pointer_cast<RSRenderServiceClient>(RSIRenderClient::CreateRenderServiceClient());
+    if (renderServiceClient != nullptr) {
+        renderServiceClient->UnregisterBufferAvailableListener(GetId());
+    }
     if (!IsRenderServiceNode()) {
         auto transactionProxy = RSTransactionProxy::GetInstance();
         if (transactionProxy != nullptr) {

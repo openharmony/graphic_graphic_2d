@@ -634,7 +634,7 @@ void RSRenderServiceConnectionProxy::RegisterBufferAvailableListener(
         return;
     }
 
-    option.SetFlags(MessageOption::TF_ASYNC);
+    option.SetFlags(MessageOption::TF_SYNC);
     data.WriteUint64(id);
     data.WriteRemoteObject(callback->AsObject());
     data.WriteBool(isFromRenderThread);
