@@ -15,17 +15,15 @@
 
 #include "frame_saver.h"
 
-#include <cinttypes>
-#include <filesystem>
 #include <map>
 #include <sstream>
+#include <string>
+#include <sys/stat.h>
 #include <unistd.h>
 
 #include <hilog/log.h>
 
 #include "frame_info.h"
-
-namespace fs = std::filesystem;
 
 namespace OHOS {
 namespace Rosen {
@@ -35,21 +33,20 @@ constexpr ::OHOS::HiviewDFX::HiLogLabel LABEL = { LOG_CORE, 0xD001400, "FrameSav
 
 FrameSaver::FrameSaver()
 {
-    std::error_code ec;
-    bool isExist = fs::exists(saveDirectory, ec);
-    if (ec) {
+    struct stat saveDirectoryStat = {};
+    if (stat(saveDirectory, &saveDirectoryStat) && errno != ENOENT) {
         ::OHOS::HiviewDFX::HiLog::Warn(LABEL,
             "get stat '%{public}s' failed: %{public}s",
-            saveDirectory, ec.message().c_str());
+            saveDirectory, strerror(errno));
         return;
     }
 
-    if (!isExist) {
-        fs::create_directory(saveDirectory, ec);
-        if (ec) {
+    if (errno == ENOENT) {
+        constexpr int directoryPermission = 0777; // drwxrwxrwx
+        if (mkdir(saveDirectory, directoryPermission)) {
             ::OHOS::HiviewDFX::HiLog::Warn(LABEL,
                 "create directory '%{public}s' failed: %{public}s",
-                saveDirectory, ec.message().c_str());
+                saveDirectory, strerror(errno));
             return;
         }
     }
@@ -67,8 +64,8 @@ FrameSaver::~FrameSaver()
 void FrameSaver::SaveFrameEvent(const FrameEventType &type, int64_t timeNs)
 {
     if (!ofs_.is_open()) {
-        ::OHOS::HiviewDFX::HiLog::Info(LABEL, "%{public}s %{public}" PRIi64,
-            GetNameByFrameEventType(type).c_str(), timeNs);
+        ::OHOS::HiviewDFX::HiLog::Info(LABEL, "%{public}s %{public}s",
+            GetNameByFrameEventType(type).c_str(), std::to_string(timeNs).c_str());
         return;
     }
 

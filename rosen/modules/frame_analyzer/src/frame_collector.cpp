@@ -15,10 +15,10 @@
 
 #include "frame_collector.h"
 
-#include <cinttypes>
 #include <chrono>
 #include <mutex>
 #include <map>
+#include <string>
 
 #include <hilog/log.h>
 #include <hitrace_meter.h>
@@ -71,8 +71,8 @@ void FrameCollector::MarkFrameEvent(const FrameEventType &type, int64_t timeNs)
         return;
     }
 
-    ::OHOS::HiviewDFX::HiLog::Debug(LABEL,
-        "FrameCollector::MarkFrameEvent index(%{public}d) occur at %{public}" PRIi64, index, timeNs);
+    ::OHOS::HiviewDFX::HiLog::Debug(LABEL, "FrameCollector::MarkFrameEvent "
+        "index(%{public}d) occur at %{public}s", index, std::to_string(timeNs).c_str());
     ProcessFrameEvent(index, timeNs);
 }
 
