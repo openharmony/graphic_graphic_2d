@@ -16,6 +16,7 @@
 #include "pipeline/rs_draw_cmd.h"
 
 #include "platform/common/rs_log.h"
+#include "platform/common/rs_system_properties.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_pixel_map_util.h"
 #include "pipeline/rs_root_render_node.h"
@@ -24,6 +25,14 @@ namespace OHOS {
 namespace Rosen {
 namespace {
 constexpr int32_t CORNER_SIZE = 4;
+void SimplifyPaint(int32_t color, SkPaint* paint)
+{
+    paint->setColor(color);
+    paint->setShader(nullptr);
+    paint->setColorFilter(nullptr);
+    paint->setStrokeWidth(2.04); // 2.04 is empirical value
+    paint->setStrokeJoin(SkPaint::kRound_Join);
+}
 }
 RectOpItem::RectOpItem(SkRect rect, const SkPaint& paint) : OpItemWithPaint(sizeof(RectOpItem)), rect_(rect)
 {
@@ -164,7 +173,23 @@ TextBlobOpItem::TextBlobOpItem(const sk_sp<SkTextBlob> textBlob, float x, float 
 
 void TextBlobOpItem::Draw(RSPaintFilterCanvas& canvas, const SkRect*) const
 {
-    canvas.drawTextBlob(textBlob_, x_, y_, paint_);
+    if (canvas.isHighContrastEnabled() || RSSystemProperties::GetHighContrastStatus()) {
+        int32_t color = paint_.getColor();
+        int32_t channelSum = SkColorGetR(color) + SkColorGetG(color) + SkColorGetB(color);
+        bool flag = channelSum < 384; // 384 is empirical value
+
+        SkPaint outlinePaint(paint_);
+        SimplifyPaint(flag ? SK_ColorWHITE : SK_ColorBLACK, &outlinePaint);
+        outlinePaint.setStyle(SkPaint::kStrokeAndFill_Style);
+        canvas.drawTextBlob(textBlob_, x_, y_, outlinePaint);
+
+        SkPaint innerPaint(paint_);
+        SimplifyPaint(SK_ColorBLACK, &innerPaint);
+        innerPaint.setStyle(SkPaint::kFill_Style);
+        canvas.drawTextBlob(textBlob_, x_, y_, innerPaint);
+    } else {
+        canvas.drawTextBlob(textBlob_, x_, y_, paint_);
+    }
 }
 
 BitmapOpItem::BitmapOpItem(const sk_sp<SkImage> bitmapInfo, float left, float top, const SkPaint* paint)

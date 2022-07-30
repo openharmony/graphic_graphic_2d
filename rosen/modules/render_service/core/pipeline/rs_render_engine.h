@@ -41,6 +41,14 @@ struct DrawSurfaceNodeInfo {
     float mirrorAdaptiveCoefficient = 1.0f;
 };
 
+enum class ColorFilterMode {
+    INVERT_MODE = 0,
+    PROTANOMALY_MODE,
+    DEUTERANOMALY_MODE,
+    TRITANOMALY_MODE,
+    COLOR_FILTER_END,
+};
+
 // The RenderFrame can do auto flush
 class RSRenderFrame {
 public:
@@ -140,6 +148,10 @@ public:
 #endif // RS_ENABLE_EGLIMAGE
 
     void ShrinkEGLImageCachesIfNeeded();
+    void SetColorCorrectionMode(ColorFilterMode mode)
+    {
+        correctionMode_ = mode;
+    }
 private:
     SkMatrix GetSurfaceNodeGravityMatrix(RSSurfaceRenderNode& node, const RectF& targetRect);
     // This func can only by called in DrawLayers().
@@ -148,7 +160,8 @@ private:
         RSDisplayRenderNode& node,
         const ScreenInfo& screenInfo,
         bool forceCPU = false);
-        
+    void SetColorCorrectionModeToPaint(SkPaint &paint);
+
 #ifdef RS_ENABLE_GL
     std::shared_ptr<RenderContext> renderContext_;
 #endif // RS_ENABLE_GL
@@ -156,6 +169,8 @@ private:
 #ifdef RS_ENABLE_EGLIMAGE
     std::shared_ptr<RSEglImageManager> eglImageManager_;
 #endif // RS_ENABLE_EGLIMAGE
+
+    ColorFilterMode correctionMode_ = ColorFilterMode::COLOR_FILTER_END;
 };
 } // namespace Rosen
 } // namespace OHOS

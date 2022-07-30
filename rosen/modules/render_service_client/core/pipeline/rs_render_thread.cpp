@@ -37,6 +37,7 @@
 #include <sys/prctl.h>
 #include <unistd.h>
 #endif
+#include "accessibility_config.h"
 
 static void SystemCallSetThreadName(const std::string& name)
 {
@@ -47,8 +48,22 @@ static void SystemCallSetThreadName(const std::string& name)
 #endif
 }
 
+using namespace OHOS::AccessibilityConfig;
 namespace OHOS {
 namespace Rosen {
+class HighContrastObserver : public AccessibilityConfigObserver {
+public:
+    HighContrastObserver() = default;
+    virtual void OnConfigChanged(const CONFIG_ID id, const ConfigValue &value) override
+    {
+        ROSEN_LOGD("OnConfigChanged");
+        auto& renderThread = RSRenderThread::Instance();
+        if (id == CONFIG_ID::CONFIG_HIGH_CONTRAST_TEXT) {
+            renderThread.SetHighContrast(value.highContrastText);
+        }
+    }
+};
+
 RSRenderThread& RSRenderThread::Instance()
 {
     static RSRenderThread renderThread;
@@ -79,6 +94,11 @@ RSRenderThread::RSRenderThread()
         ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
         jankDetector_.CalculateSkippedFrame(renderStartTimeStamp, jankDetector_.GetSysTimeNs());
     };
+
+    highContrastObserver_ = std::make_shared<HighContrastObserver>();
+    auto &config = OHOS::Singleton<OHOS::AccessibilityConfig::AccessibilityConfig>::GetInstance();
+    config.InitializeContext();
+    config.SubscribeConfigObserver(CONFIG_ID::CONFIG_HIGH_CONTRAST_TEXT, highContrastObserver_);
 }
 
 RSRenderThread::~RSRenderThread()

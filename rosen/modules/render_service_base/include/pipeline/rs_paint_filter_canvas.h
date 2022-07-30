@@ -45,6 +45,15 @@ public:
 
     SkSurface* GetSurface() const;
 
+    void SetHighContrast(bool enabled)
+    {
+        isHighContrastEnabled_  = enabled;
+    }
+    bool isHighContrastEnabled() const
+    {
+        return isHighContrastEnabled_;
+    }
+
 protected:
     bool onFilter(SkPaint& paint) const override;
     void onDrawPicture(const SkPicture* picture, const SkMatrix* matrix, const SkPaint* paint) override;
@@ -53,6 +62,7 @@ private:
     std::stack<float> alphaStack_;
     float alpha_ = 1.0f;
     SkSurface* skSurface_ = nullptr;
+    std::atomic_bool isHighContrastEnabled_;
 };
 
 } // namespace Rosen

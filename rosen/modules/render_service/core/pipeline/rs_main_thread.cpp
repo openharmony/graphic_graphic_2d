@@ -31,7 +31,9 @@
 #include "platform/drawing/rs_vsync_client.h"
 #include "screen_manager/rs_screen_manager.h"
 #include "transaction/rs_transaction_proxy.h"
+#include "accessibility_config.h"
 
+using namespace OHOS::AccessibilityConfig;
 namespace OHOS {
 namespace Rosen {
 namespace {
@@ -51,6 +53,35 @@ void InsertToEnd(std::vector<std::unique_ptr<RSTransactionData>>& source,
     source.clear();
 }
 }
+
+class ColorCorrectionObserver : public AccessibilityConfigObserver {
+public:
+    ColorCorrectionObserver() = default;
+    virtual void OnConfigChanged(const CONFIG_ID id, const ConfigValue &value) override
+    {
+        RS_LOGD("ColorCorrectionObserver OnConfigChanged");
+        ColorFilterMode mode = ColorFilterMode::COLOR_FILTER_END;
+        if (id == CONFIG_ID::CONFIG_DALTONIZATION_COLOR_FILTER) {
+            switch (value.daltonizationColorFilter) {
+                case Protanomaly:
+                    mode = ColorFilterMode::PROTANOMALY_MODE;
+                    break;
+                case Deuteranomaly:
+                    mode = ColorFilterMode::DEUTERANOMALY_MODE;
+                    break;
+                case Tritanomaly:
+                    mode = ColorFilterMode::TRITANOMALY_MODE;
+                    break;
+                case Normal:
+                    mode = ColorFilterMode::COLOR_FILTER_END;
+                    break;
+            }
+        } else {
+            mode = value.invertColor ? ColorFilterMode::INVERT_MODE : ColorFilterMode::COLOR_FILTER_END;
+        }
+        RSMainThread::Instance()->GetRenderEngine()->SetColorCorrectionMode(mode);
+    }
+};
 
 RSMainThread* RSMainThread::Instance()
 {
@@ -109,6 +140,12 @@ void RSMainThread::Init()
     renderEngine_ = std::make_shared<RSRenderEngine>();
     RSInnovation::OpenInnovationSo();
     Occlusion::Region::InitDynamicLibraryFunction();
+
+    correctionObserver_ = std::make_shared<ColorCorrectionObserver>();
+    auto &config = OHOS::Singleton<OHOS::AccessibilityConfig::AccessibilityConfig>::GetInstance();
+    config.InitializeContext();
+    config.SubscribeConfigObserver(CONFIG_ID::CONFIG_DALTONIZATION_COLOR_FILTER, correctionObserver_);
+    config.SubscribeConfigObserver(CONFIG_ID::CONFIG_INVERT_COLOR, correctionObserver_);
 }
 
 void RSMainThread::RsEventParamDump(std::string& dumpString)
