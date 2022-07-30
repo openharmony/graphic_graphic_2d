@@ -45,13 +45,15 @@ ohos_shared_library("libframe_analyzer") {
 
     deps = [
       "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
-      "//base/startup/syspara_lite/interfaces/innerkits/native/syspara:syspara",
-      "//base/startup/syspara_lite/interfaces/innerkits/native/syspara:syspara_watchagent",
       "//third_party/flutter/build/skia:ace_skia_ohos",
       "//utils/native/base:utils",
     ]
 
-    external_deps = [ "hitrace_native:hitrace_meter" ]
+    external_deps = [
+      "hitrace_native:hitrace_meter",
+      "init:libbeget_proxy",
+      "init:libbegetutil",
+    ]
   } else {
     sources = [
       "src/mingw/frame_collector.cpp",
