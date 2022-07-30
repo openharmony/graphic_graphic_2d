@@ -149,6 +149,7 @@ ohos_shared_library("librender_service_base") {
 
   external_deps = [
     "hitrace_native:hitrace_meter",
+    "init:libbeget_proxy",
     "init:libbegetutil",
   ]
 

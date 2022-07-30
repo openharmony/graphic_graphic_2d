@@ -21,6 +21,7 @@
 
 #include <frame_collector.h>
 
+#include "animation/rs_animation_fraction.h"
 #include "pipeline/rs_frame_report.h"
 #include "pipeline/rs_render_node_map.h"
 #include "pipeline/rs_root_render_node.h"
@@ -52,6 +53,7 @@ namespace Rosen {
 RSRenderThread& RSRenderThread::Instance()
 {
     static RSRenderThread renderThread;
+    RSAnimationFraction::Init();
     return renderThread;
 }
 
