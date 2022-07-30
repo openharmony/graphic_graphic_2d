@@ -17,6 +17,7 @@
         "SystemCapability.Graphic.Graphic2D.GLES3",
         "SystemCapability.Graphic.Graphic2D.NativeWindow",
         "SystemCapability.Graphic.Graphic2D.NativeDrawing",
+        "SystemCapability.Graphic.Graphic2D.Vulkan",
         "SystemCapability.Graphic.Graphic2D.WebGL",
         "SystemCapability.Graphic.Graphic2D.WebGL2"
       ],
