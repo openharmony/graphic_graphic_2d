@@ -78,11 +78,11 @@ void RSExtendedModifier<T>::UpdateToRender()
     auto transactionProxy = RSTransactionProxy::GetInstance();
     auto node = RSNodeMap::Instance().GetNode<RSNode>(this->property_->nodeId_);
     if (transactionProxy && node) {
-        transactionProxy->AddCommand(command, node->IsRenderServiceNode());
+        transactionProxy->AddCommand(command, node->IsRenderServiceNode(), node->GetFollowType(), node->GetId());
         if (node->NeedForcedSendToRemote()) {
             std::unique_ptr<RSCommand> commandForRemote = std::make_unique<RSUpdatePropertyDrawCmdList>(
                 this->property_->nodeId_, drawCmdList, this->property_->id_, false);
-            transactionProxy->AddCommand(commandForRemote, true);
+            transactionProxy->AddCommand(commandForRemote, true, node->GetFollowType(), node->GetId());
         }
     }
 }

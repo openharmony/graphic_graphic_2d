@@ -240,12 +240,12 @@ bool RSNode::HasPropertyAnimation(const PropertyId& id)
     do {                                                                                                  \
         auto iter = propertyModifiers_.find(RSModifierType::propertyType);                                \
         if (iter != propertyModifiers_.end()) {                                                           \
-            std::static_pointer_cast<RSModifier<RSProperty<T>>>(iter->second)->                 \
+            std::static_pointer_cast<RSModifier<RSProperty<T>>>(iter->second)->                           \
                 GetProperty()->Set(value);                                                                \
             break;                                                                                        \
         }                                                                                                 \
         auto property = std::make_shared<RSAnimatableProperty<T>>(defaultValue);                          \
-        std::shared_ptr<RSModifierBase> modifier = std::make_shared<RS##propertyName##Modifier>(property);    \
+        std::shared_ptr<RSModifierBase> modifier = std::make_shared<RS##propertyName##Modifier>(property); \
         modifiers_.emplace(modifier->GetPropertyId(), modifier);                                          \
         propertyModifiers_.emplace(RSModifierType::propertyType, modifier);                               \
         modifier->AttachToNode(GetId());                                                                  \
@@ -256,11 +256,11 @@ bool RSNode::HasPropertyAnimation(const PropertyId& id)
             GetId(), modifier->CreateRenderModifier());                                                   \
         auto transactionProxy = RSTransactionProxy::GetInstance();                                        \
         if (transactionProxy != nullptr) {                                                                \
-            transactionProxy->AddCommand(cmd, IsRenderServiceNode());                                     \
+            transactionProxy->AddCommand(cmd, IsRenderServiceNode(), GetFollowType(), GetId());           \
             if (NeedForcedSendToRemote()) {                                                               \
                 std::unique_ptr<RSCommand> cmdForRemote =                                                 \
                     std::make_unique<RSAddModifier>(GetId(), modifier->CreateRenderModifier());           \
-                transactionProxy->AddCommand(cmdForRemote, true);                                         \
+                transactionProxy->AddCommand(cmdForRemote, true, GetFollowType(), GetId());               \
             }                                                                                             \
         }                                                                                                 \
         property->Set(value);                                                                             \
@@ -270,12 +270,12 @@ bool RSNode::HasPropertyAnimation(const PropertyId& id)
     do {                                                                                                  \
         auto iter = propertyModifiers_.find(RSModifierType::propertyType);                                \
         if (iter != propertyModifiers_.end()) {                                                           \
-            std::static_pointer_cast<RSModifier<RSProperty<T>>>(iter->second)->    \
+            std::static_pointer_cast<RSModifier<RSProperty<T>>>(iter->second)->                           \
                 GetProperty()->Set(value);                                                                \
             break;                                                                                        \
         }                                                                                                 \
-        auto property = std::make_shared<RSProperty<T>>(value);                              \
-        std::shared_ptr<RSModifierBase> modifier = std::make_shared<RS##propertyName##Modifier>(property);    \
+        auto property = std::make_shared<RSProperty<T>>(value);                                           \
+        std::shared_ptr<RSModifierBase> modifier = std::make_shared<RS##propertyName##Modifier>(property); \
         modifiers_.emplace(modifier->GetPropertyId(), modifier);                                          \
         propertyModifiers_.emplace(RSModifierType::propertyType, modifier);                               \
         modifier->AttachToNode(GetId());                                                                  \
@@ -283,11 +283,11 @@ bool RSNode::HasPropertyAnimation(const PropertyId& id)
             GetId(), modifier->CreateRenderModifier());                                                   \
         auto transactionProxy = RSTransactionProxy::GetInstance();                                        \
         if (transactionProxy != nullptr) {                                                                \
-            transactionProxy->AddCommand(cmd, IsRenderServiceNode());                                     \
+            transactionProxy->AddCommand(cmd, IsRenderServiceNode(), GetFollowType(), GetId());           \
             if (NeedForcedSendToRemote()) {                                                               \
                 std::unique_ptr<RSCommand> cmdForRemote =                                                 \
                     std::make_unique<RSAddModifier>(GetId(), modifier->CreateRenderModifier());           \
-                transactionProxy->AddCommand(cmdForRemote, true);                                         \
+                transactionProxy->AddCommand(cmdForRemote, true, GetFollowType(), GetId());               \
             }                                                                                             \
         }                                                                                                 \
     } while (0)
@@ -828,7 +828,12 @@ void RSNode::ClearModifiers()
         std::unique_ptr<RSCommand> command = std::make_unique<RSRemoveModifier>(GetId(), modifier->GetPropertyId());
         auto transactionProxy = RSTransactionProxy::GetInstance();
         if (transactionProxy != nullptr) {
-            transactionProxy->AddCommand(command, IsRenderServiceNode());
+            transactionProxy->AddCommand(command, IsRenderServiceNode(), GetFollowType(), GetId());
+            if (NeedForcedSendToRemote()) {
+                std::unique_ptr<RSCommand> cmdForRemote =
+                    std::make_unique<RSRemoveModifier>(GetId(), modifier->GetPropertyId());
+                transactionProxy->AddCommand(cmdForRemote, true, GetFollowType(), GetId());
+            }
         }
     }
     modifiers_.clear();
@@ -847,7 +852,11 @@ void RSNode::ClearAllModifiers()
     std::unique_ptr<RSCommand> command = std::make_unique<RSClearModifiers>(GetId());
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy != nullptr) {
-        transactionProxy->AddCommand(command, IsRenderServiceNode());
+        transactionProxy->AddCommand(command, IsRenderServiceNode(), GetFollowType(), GetId());
+        if (NeedForcedSendToRemote()) {
+            std::unique_ptr<RSCommand> cmdForRemote = std::make_unique<RSClearModifiers>(GetId());
+            transactionProxy->AddCommand(cmdForRemote, true, GetFollowType(), GetId());
+        }
     }
 }
 
@@ -868,7 +877,12 @@ void RSNode::AddModifier(const std::shared_ptr<RSModifierBase>& modifier)
     std::unique_ptr<RSCommand> command = std::make_unique<RSAddModifier>(GetId(), modifier->CreateRenderModifier());
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy != nullptr) {
-        transactionProxy->AddCommand(command, IsRenderServiceNode());
+        transactionProxy->AddCommand(command, IsRenderServiceNode(), GetFollowType(), GetId());
+        if (NeedForcedSendToRemote()) {
+            std::unique_ptr<RSCommand> cmdForRemote =
+                std::make_unique<RSAddModifier>(GetId(), modifier->CreateRenderModifier());
+            transactionProxy->AddCommand(cmdForRemote, true, GetFollowType(), GetId());
+        }
     }
 }
 
@@ -891,7 +905,12 @@ void RSNode::RemoveModifier(const std::shared_ptr<RSModifierBase>& modifier)
     std::unique_ptr<RSCommand> command = std::make_unique<RSRemoveModifier>(GetId(), modifier->GetPropertyId());
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy != nullptr) {
-        transactionProxy->AddCommand(command, IsRenderServiceNode());
+        transactionProxy->AddCommand(command, IsRenderServiceNode(), GetFollowType(), GetId());
+        if (NeedForcedSendToRemote()) {
+            std::unique_ptr<RSCommand> cmdForRemote =
+                std::make_unique<RSRemoveModifier>(GetId(), modifier->GetPropertyId());
+            transactionProxy->AddCommand(cmdForRemote, true, GetFollowType(), GetId());
+        }
     }
 }
 

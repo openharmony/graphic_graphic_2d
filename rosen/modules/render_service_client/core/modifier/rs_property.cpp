@@ -124,7 +124,7 @@ void RSAnimatableProperty<T>::Set(const T& value)
     this->UpdateToRender(sendValue, hasPropertyAnimation);
 }
 
-#define UPDATE_TO_RENDER(Command, value, isDelta, forceUpdate)                                             \
+#define UPDATE_TO_RENDER(Command, value, isDelta, forceUpdate)                                                   \
     do {                                                                                                         \
         std::unique_ptr<RSCommand> command = std::make_unique<Command>(nodeId_, value, id_, isDelta);            \
         auto transactionProxy = RSTransactionProxy::GetInstance();                                               \
@@ -133,11 +133,11 @@ void RSAnimatableProperty<T>::Set(const T& value)
             if (forceUpdate) {                                                                                   \
                 transactionProxy->Begin();                                                                       \
             }                                                                                                    \
-            transactionProxy->AddCommand(command, node->IsRenderServiceNode());                                  \
+            transactionProxy->AddCommand(command, node->IsRenderServiceNode(), node->GetFollowType(), node->GetId()); \
             if (node->NeedForcedSendToRemote()) {                                                                \
                 std::unique_ptr<RSCommand> commandForRemote =                                                    \
                     std::make_unique<Command>(nodeId_, value, id_, isDelta);                                     \
-                transactionProxy->AddCommand(commandForRemote, true);                                            \
+                transactionProxy->AddCommand(commandForRemote, true, node->GetFollowType(), node->GetId());      \
             }                                                                                                    \
             if (forceUpdate) {                                                                                   \
                 transactionProxy->Commit();                                                                      \
