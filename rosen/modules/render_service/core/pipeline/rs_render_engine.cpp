@@ -18,12 +18,60 @@
 #include "platform/common/rs_log.h"
 #include "platform/ohos/backend/rs_surface_ohos_gl.h"
 #include "platform/ohos/backend/rs_surface_ohos_raster.h"
+#include "platform/common/rs_system_properties.h"
 #include "rs_divided_render_util.h"
 #include "rs_trace.h"
 #include "string_utils.h"
 
 namespace OHOS {
 namespace Rosen {
+namespace {
+constexpr uint32_t MATRIX_SIZE = 20;
+sk_sp<SkColorFilter> InvertColorMat()
+{
+    SkScalar colorMatrix[MATRIX_SIZE] = {
+        0.402,  -1.174, -0.228, 1.0, 0.0,
+        -5.598, -0.174, -0.228, 1.0, 0.0,
+        -0.599, -1.175, 0.772,  1.0, 0.0,
+        0.0,    0.0,    0.0,    1.0, 0.0
+    };
+    return SkColorFilters::Matrix(colorMatrix);
+}
+
+sk_sp<SkColorFilter> ProtanomalyMat()
+{
+    SkScalar colorMatrix[MATRIX_SIZE] = {
+        0.829,  0.1,    0.016,   0.0, 0.0,
+        1.161,  0.32,   -0.111,  0.0, 0.0,
+        0.224,  -0.131, 0.979,   0.0, 0.0,
+        0.0,    0.0,    0.0,     1.0, 0.0
+    };
+    return SkColorFilters::Matrix(colorMatrix);
+}
+
+sk_sp<SkColorFilter> DeuteranomalyMat()
+{
+    SkScalar colorMatrix[MATRIX_SIZE] = {
+        0.583,  -0.072, 0.054,   0.0, 0.0,
+        -0.692, 0.881,  0.089,   0.0, 0.0,
+        -0.118, -0.02,  1.015,   0.0, 0.0,
+        0.0,    0.0,    0.0,     1.0, 0.0
+    };
+    return SkColorFilters::Matrix(colorMatrix);
+}
+
+sk_sp<SkColorFilter> TritanomalyMat()
+{
+    SkScalar colorMatrix[MATRIX_SIZE] = {
+        0.989,  0.074,  -0.39,   0.0, 0.0,
+        -0.004, 1.026,  -0.141,  0.0, 0.0,
+        -0.093, 0.608,  -2.23,   0.0, 0.0,
+        0.0,    0.0,    0.0,     1.0, 0.0
+    };
+    return SkColorFilters::Matrix(colorMatrix);
+}
+}
+
 RSRenderEngine::RSRenderEngine()
 {
 #ifdef RS_ENABLE_GL
@@ -212,6 +260,34 @@ void RSRenderEngine::ClipHoleForLayer(
     return;
 }
 
+void RSRenderEngine::SetColorCorrectionModeToPaint(SkPaint &paint)
+{
+    ColorFilterMode mode = static_cast<ColorFilterMode>(RSSystemProperties::GetCorrectionMode());
+    if (mode <= ColorFilterMode::COLOR_FILTER_END && mode >= ColorFilterMode::INVERT_MODE) {
+        correctionMode_ = mode;
+    }
+
+    switch (correctionMode_) {
+        case ColorFilterMode::INVERT_MODE:
+            paint.setColorFilter(InvertColorMat());
+            break;
+        case ColorFilterMode::PROTANOMALY_MODE:
+            paint.setColorFilter(ProtanomalyMat());
+            break;
+        case ColorFilterMode::DEUTERANOMALY_MODE:
+            paint.setColorFilter(DeuteranomalyMat());
+            break;
+        case ColorFilterMode::TRITANOMALY_MODE:
+            paint.setColorFilter(TritanomalyMat());
+            break;
+        case ColorFilterMode::COLOR_FILTER_END:
+            paint.setColorFilter(nullptr);
+            break;
+        default:
+            paint.setColorFilter(nullptr);
+    }
+}
+
 void RSRenderEngine::DrawSurfaceNode(
     RSPaintFilterCanvas& canvas,
     RSSurfaceRenderNode& node,
@@ -229,6 +305,8 @@ void RSRenderEngine::DrawSurfaceNode(
     // prepare BufferDrawParam
     BufferDrawParam params = RSDividedRenderUtil::CreateBufferDrawParam(
         node, screenInfo.rotationMatrix, screenInfo.rotation);
+    SetColorCorrectionModeToPaint(params.paint);
+
     params.targetColorGamut = static_cast<ColorGamut>(screenInfo.colorGamut);
     params.clipRect = SkRect::MakeXYWH(clipRect.x, clipRect.y, clipRect.w, clipRect.h);
     params.matrix = params.matrix.preConcat(GetSurfaceNodeGravityMatrix(node,

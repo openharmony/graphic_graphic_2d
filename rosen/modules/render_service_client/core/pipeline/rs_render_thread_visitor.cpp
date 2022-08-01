@@ -256,6 +256,8 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
     }
     canvas_ = new RSPaintFilterCanvas(skSurface.get());
 
+    canvas_->SetHighContrast(RSRenderThread::Instance().isHighContrastEnabled());
+
     auto &overdrawController = RSOverdrawController::GetInstance();
     std::shared_ptr<RSCanvasListener> overdrawListener = nullptr;
     overdrawListener = overdrawController.SetHook<RSGPUOverdrawCanvasListener>(canvas_);

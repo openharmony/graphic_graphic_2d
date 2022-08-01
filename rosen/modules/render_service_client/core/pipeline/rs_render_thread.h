@@ -36,6 +36,7 @@
 
 namespace OHOS {
 namespace Rosen {
+class HighContrastObserver;
 class RSRenderThread final {
 public:
     static RSRenderThread& Instance();
@@ -71,6 +72,14 @@ public:
     uint64_t GetUITimestamp() const
     {
         return uiTimestamp_;
+    }
+    void SetHighContrast(bool enabled)
+    {
+        isHighContrastEnabled_  = enabled;
+    }
+    bool isHighContrastEnabled() const
+    {
+        return isHighContrastEnabled_;
     }
 
 private:
@@ -123,6 +132,8 @@ private:
     RSContext context_;
 
     RenderContext* renderContext_ = nullptr;
+    std::shared_ptr<HighContrastObserver> highContrastObserver_;
+    std::atomic_bool isHighContrastEnabled_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS

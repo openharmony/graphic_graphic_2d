@@ -39,6 +39,7 @@ ohos_unittest("RSRenderServiceCommonPipelineTest") {
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/src",
     "//foundation/graphic/graphic_2d/rosen/include",
     "//foundation/graphic/graphic_2d/rosen/test/include",
+    "//foundation/barrierfree/accessibility/interfaces/innerkits/acfwk/include",
   ]
 
   deps = [

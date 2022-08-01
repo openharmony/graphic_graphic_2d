@@ -43,6 +43,8 @@ public:
     static bool GetOcclusionEnabled();
     static std::string GetRSEventProperty(const std::string &paraName);
     static bool GetDirectClientCompEnableStatus();
+    static bool GetHighContrastStatus();
+    static int32_t GetCorrectionMode();
 
 private:
     RSSystemProperties() = default;
