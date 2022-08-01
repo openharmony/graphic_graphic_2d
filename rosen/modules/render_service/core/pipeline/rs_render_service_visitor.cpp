@@ -149,14 +149,8 @@ void RSRenderServiceVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
         ProcessBaseRenderNode(*existingSource);
     } else {
         auto boundsGeoPtr = std::static_pointer_cast<RSObjAbsGeometry>(node.GetRenderProperties().GetBoundsGeometry());
-        if (boundsGeoPtr && boundsGeoPtr->IsNeedClientCompose()) {
-            RSDividedRenderUtil::SetNeedClient(true);
-            processor_->SetBoundsGeometry(boundsGeoPtr);
-        } else {
-            RSDividedRenderUtil::SetNeedClient(false);
-            processor_->SetBoundsGeometry(nullptr);
-        }
-
+        RSDividedRenderUtil::SetNeedClient(boundsGeoPtr && boundsGeoPtr->IsNeedClientCompose());
+        processor_->SetBoundsGeometry(boundsGeoPtr);    // Hardware compose may reject, so processor need set geometry.
         skCanvas_ = std::make_unique<SkCanvas>(logicalScreenWidth, logicalScreenHeight);
         canvas_ = std::make_shared<RSPaintFilterCanvas>(skCanvas_.get());
         canvas_->clipRect(SkRect::MakeWH(logicalScreenWidth, logicalScreenHeight));
