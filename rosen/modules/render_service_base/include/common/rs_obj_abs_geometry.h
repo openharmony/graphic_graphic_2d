@@ -35,8 +35,6 @@ public:
     void UpdateMatrix(const std::shared_ptr<RSObjAbsGeometry>& parent, float offsetX, float offsetY);
 
     // Using by RenderService
-    void UpdateByMatrixFromParent(const std::shared_ptr<RSObjAbsGeometry>& parent);
-    void UpdateByMatrixFromRenderThread(const SkMatrix& skMatrix);
     void UpdateByMatrixFromSelf();
 
     const RectI& GetAbsRect() const
