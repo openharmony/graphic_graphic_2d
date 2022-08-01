@@ -28,6 +28,8 @@ class SurfaceIPCTest : public testing::Test, public IBufferConsumerListenerClazz
 public:
     static void SetUpTestCase();
     virtual void OnBufferAvailable() override;
+    OHOS::GSError SetData(sptr<SurfaceBuffer> &buffer, sptr<Surface> &pSurface);
+    bool GetData(sptr<SurfaceBuffer> &buffer);
     pid_t ChildProcessMain();
 
     static inline sptr<Surface> cSurface = nullptr;
@@ -56,6 +58,46 @@ void SurfaceIPCTest::SetUpTestCase()
 
 void SurfaceIPCTest::OnBufferAvailable()
 {
+}
+
+OHOS::GSError SurfaceIPCTest::SetData(sptr<SurfaceBuffer> &buffer, sptr<Surface> &pSurface)
+{
+    buffer->GetExtraData()->ExtraSet("123", 0x123);
+    buffer->GetExtraData()->ExtraSet("345", (int64_t)0x345);
+    buffer->GetExtraData()->ExtraSet("567", "567");
+
+    ExtDataHandle *handle = new ExtDataHandle();
+    handle->fd = -1;
+    handle->reserveInts = 1;
+    handle->reserve[0] = 1;
+    OHOS::GSError ret = pSurface->SetTunnelHandle(handle);
+    delete handle;
+    handle = nullptr;
+    return ret;
+}
+
+bool SurfaceIPCTest::GetData(sptr<SurfaceBuffer> &buffer)
+{
+    int32_t int32;
+    int64_t int64;
+    std::string str;
+    buffer->GetExtraData()->ExtraGet("123", int32);
+    buffer->GetExtraData()->ExtraGet("345", int64);
+    buffer->GetExtraData()->ExtraGet("567", str);
+    if ((int32 != 0x123) || (int64 != 0x345) || (str != "567")) {
+        return false;
+    }
+
+    sptr<SurfaceTunnelHandle> handleGet = nullptr;
+    handleGet = cSurface->GetTunnelHandle();
+    if ((handleGet == nullptr) || (handleGet->GetHandle()->fd != -1) ||
+        (handleGet->GetHandle()->reserveInts != 1) || (handleGet->GetHandle()->reserve[0] != 1)) {
+            return false;
+    }
+
+    PresentTimestamp timestamp = {HARDWARE_DISPLAY_PTS_DELAY, 1};  // mock data for test
+    auto sRet = cSurface->SetPresentTimestamp(buffer->GetSeqNum(), timestamp);
+    return (sRet == OHOS::GSERROR_OK);
 }
 
 pid_t SurfaceIPCTest::ChildProcessMain()
@@ -90,16 +132,7 @@ pid_t SurfaceIPCTest::ChildProcessMain()
         write(pipeFd[1], &data, sizeof(data));
         exit(0);
     }
-
-    buffer->GetExtraData()->ExtraSet("123", 0x123);
-    buffer->GetExtraData()->ExtraSet("345", (int64_t)0x345);
-    buffer->GetExtraData()->ExtraSet("567", "567");
-
-    ExtDataHandle *handle = new ExtDataHandle();
-    handle->fd = -1;
-    handle->reserveInts = 1;
-    handle->reserve[0] = 1;
-    sRet = pSurface->SetTunnelHandle(handle);
+    sRet = SetData(buffer, pSurface);
     if (sRet != OHOS::GSERROR_OK) {
         data = sRet;
         write(pipeFd[1], &data, sizeof(data));
@@ -158,28 +191,7 @@ HWTEST_F(SurfaceIPCTest, BufferIPC001, Function | MediumTest | Level2)
     auto sRet = cSurface->AcquireBuffer(buffer, fence, timestamp, damage);
     EXPECT_EQ(sRet, OHOS::GSERROR_OK);
     EXPECT_NE(buffer, nullptr);
-    if (buffer != nullptr) {
-        int32_t int32;
-        int64_t int64;
-        std::string str;
-        buffer->GetExtraData()->ExtraGet("123", int32);
-        buffer->GetExtraData()->ExtraGet("345", int64);
-        buffer->GetExtraData()->ExtraGet("567", str);
-
-        EXPECT_EQ(int32, 0x123);
-        EXPECT_EQ(int64, 0x345);
-        EXPECT_EQ(str, "567");
-        sptr<SurfaceTunnelHandle> handleGet = nullptr;
-        handleGet = cSurface->GetTunnelHandle();
-        ASSERT_NE(handleGet, nullptr);
-        ASSERT_EQ(handleGet->GetHandle()->fd, -1);
-        ASSERT_EQ(handleGet->GetHandle()->reserveInts, 1);
-        ASSERT_EQ(handleGet->GetHandle()->reserve[0], 1);
-
-        PresentTimestamp timestamp = {HARDWARE_DISPLAY_PTS_DELAY, 1};  // mock data for test
-        sRet = cSurface->SetPresentTimestamp(buffer->GetSeqNum(), timestamp);
-        EXPECT_EQ(sRet, OHOS::GSERROR_OK);
-    }
+    EXPECT_EQ(GetData(buffer), true);
 
     sRet = cSurface->ReleaseBuffer(buffer, -1);
     EXPECT_EQ(sRet, OHOS::GSERROR_OK);

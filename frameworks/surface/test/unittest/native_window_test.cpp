@@ -497,13 +497,12 @@ HWTEST_F(NativeWindowTest, DestroyNativeWindow002, Function | MediumTest | Level
 * Type: Function
 * Rank: Important(2)
 * EnvConditions: N/A
-* CaseDescription: 1. call DestroyNativeWindowBuffer by abnormal and normal input
+* CaseDescription: 1. call DestroyNativeWindowBuffer by abnormal input
 *                  2. check ret
  */
 HWTEST_F(NativeWindowTest, DestroyNativeWindowBuffer001, Function | MediumTest | Level2)
 {
     DestroyNativeWindowBuffer(nullptr);
-    DestroyNativeWindowBuffer(nativeWindowBuffer);
 }
 
 /*
