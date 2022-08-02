@@ -81,5 +81,13 @@ bool RSSurfaceOhosRaster::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uin
     ROSEN_LOGE("RsDebug RSSurfaceOhosRaster::FlushFrame fence:%d", oriFramePtr->releaseFence_);
     return true;
 }
+
+void RSSurfaceOhosRaster::ClearBuffer()
+{
+    if (producer_ != nullptr) {
+        ROSEN_LOGI("RSSurfaceOhosRaster: Clear surface buffer!");
+        producer_->GoBackground();
+    }
+}
 } // namespace Rosen
 } // namespace OHOS
