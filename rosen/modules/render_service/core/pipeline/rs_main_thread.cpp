@@ -17,6 +17,7 @@
 #include <securec.h>
 #include "rs_trace.h"
 
+#include "animation/rs_animation_fraction.h"
 #include "command/rs_message_processor.h"
 #include "pipeline/rs_base_render_node.h"
 #include "pipeline/rs_base_render_util.h"
@@ -86,6 +87,7 @@ public:
 RSMainThread* RSMainThread::Instance()
 {
     static RSMainThread instance;
+    RSAnimationFraction::Init();
     return &instance;
 }
 

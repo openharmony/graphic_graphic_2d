@@ -15,7 +15,11 @@
 
 #include "animation/rs_animation_fraction.h"
 
+#include <cstdlib>
+#include <parameters.h>
 #include <string>
+
+#include "parameter.h"
 
 #include "common/rs_common_def.h"
 #include "platform/common/rs_log.h"
@@ -26,10 +30,48 @@ namespace {
 static constexpr int INFINITE = -1;
 static constexpr int64_t MS_TO_NS = 1000000;
 static constexpr int REVERSE_COUNT = 2;
+static constexpr int MAX_SPEED = 1000000;
+constexpr const char* ANIMATION_SCALE_NAME = "persist.sys.graphic.animationscale";
 } // namespace
+
+bool RSAnimationFraction::isInited_ = false;
+float RSAnimationFraction::animationScale_ = 1.0f;
+std::mutex RSAnimationFraction::mutex_;
+
 RSAnimationFraction::RSAnimationFraction()
 {
     currentIsReverseCycle_ = !isForward_;
+}
+
+void RSAnimationFraction::Init()
+{
+    if (!isInited_) {
+        float animationScale = std::atof((system::GetParameter(ANIMATION_SCALE_NAME, "1.0")).c_str());
+        SetAnimationScale(animationScale);
+        WatchParameter(ANIMATION_SCALE_NAME, OnAnimationScaleChangedCallback, nullptr);
+        isInited_ = true;
+    }
+}
+
+float RSAnimationFraction::GetAnimationScale()
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    return animationScale_;
+}
+
+void RSAnimationFraction::SetAnimationScale(float animationScale)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    animationScale_ = animationScale < 0.0 ? 0.0 : animationScale;
+}
+
+void RSAnimationFraction::OnAnimationScaleChangedCallback(const char *key, const char *value, void *context)
+{
+    if (strcmp(key, ANIMATION_SCALE_NAME) != 0) {
+        return;
+    }
+    float animationScale = std::atof(value);
+    SetAnimationScale(animationScale);
 }
 
 void RSAnimationFraction::SetDirectionAfterStart(const ForwardDirection& direction)
@@ -54,10 +96,19 @@ float RSAnimationFraction::GetAnimationFraction(int64_t time, bool& isInstartDel
         return GetEndFraction();
     }
     // 1. Calculates the total running fraction of animation
+    float animationScale = GetAnimationScale();
     if (direction_ == ForwardDirection::NORMAL) {
-        runningTime_ += static_cast<int64_t>(deltaTime * speed_);
+        if (animationScale == 0.0) {
+            runningTime_ += static_cast<int64_t>(deltaTime * MAX_SPEED);
+        } else {
+            runningTime_ += static_cast<int64_t>(deltaTime * speed_ / animationScale);
+        }
     } else {
-        runningTime_ -= static_cast<int64_t>(deltaTime * speed_);
+        if (animationScale == 0.0) {
+            runningTime_ -= static_cast<int64_t>(deltaTime * MAX_SPEED);
+        } else {
+            runningTime_ -= static_cast<int64_t>(deltaTime * speed_ / animationScale);
+        }
     }
     if (runningTime_ < startDelayNs) {
         isFinished = IsFinished();

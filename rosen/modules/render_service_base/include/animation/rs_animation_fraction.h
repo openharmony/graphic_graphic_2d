@@ -30,6 +30,11 @@ public:
     RSAnimationFraction();
     ~RSAnimationFraction() = default;
 
+    static void Init();
+    static float GetAnimationScale();
+    static void SetAnimationScale(float animationScale);
+    static void OnAnimationScaleChangedCallback(const char *key, const char *value, void *context);
+
     float GetAnimationFraction(int64_t time, bool& isInStartDelay, bool& isFinished);
     void UpdateRemainTimeFraction(float fraction, int remainTime = 0);
     float GetStartFraction() const;
@@ -40,6 +45,11 @@ public:
 private:
     bool IsFinished() const;
     void UpdateReverseState(bool finish);
+
+    static float animationScale_;
+    static bool isInited_;
+    static std::mutex mutex_;
+
     ForwardDirection direction_ { ForwardDirection::NORMAL };
     int64_t playTime_ { 0 };
     float curTimeFraction_ { 0.0f };
