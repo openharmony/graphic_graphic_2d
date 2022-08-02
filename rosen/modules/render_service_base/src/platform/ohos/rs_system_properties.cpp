@@ -83,5 +83,10 @@ int32_t RSSystemProperties::GetCorrectionMode()
     // Direct CLIENT composition will be processed only when the num of layer is larger than 11
     return std::atoi((system::GetParameter("rosen.CorrectionMode", "5")).c_str());
 }
+
+bool RSSystemProperties::GetUniPartialRenderEnabled()
+{
+    return std::atoi((system::GetParameter("rosen.uni.partialrender.enabled", "0")).c_str());
+}
 } // namespace Rosen
 } // namespace OHOS

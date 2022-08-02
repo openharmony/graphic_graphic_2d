@@ -85,6 +85,17 @@ public:
         return std::make_unique<RSPaintFilterCanvas>(surfaceFrame_->GetSurface().get());
     }
 
+    int32_t GetBufferAge()
+    {
+        return surfaceFrame_ != nullptr ? surfaceFrame_->GetBufferAge() : 0;
+    }
+
+    void SetDamageRegion(const std::vector<RectI> &rects)
+    {
+        if (surfaceFrame_ != nullptr) {
+            surfaceFrame_->SetDamageRegion(rects);
+        }
+    }
 private:
     std::shared_ptr<RSSurfaceOhos> targetSurface_;
     std::unique_ptr<RSSurfaceFrame> surfaceFrame_;

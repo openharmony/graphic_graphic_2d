@@ -33,6 +33,11 @@ void RSSurfaceFrameOhosGl::SetDamageRegion(int32_t left, int32_t top, int32_t wi
     renderContext_->DamageFrame(left, top, width, height);
 }
 
+void RSSurfaceFrameOhosGl::SetDamageRegion(const std::vector<RectI> &rects)
+{
+    renderContext_->DamageFrame(rects);
+}
+
 int32_t RSSurfaceFrameOhosGl::GetBufferAge() const
 {
     return static_cast<int32_t>(renderContext_->QueryEglBufferAge());

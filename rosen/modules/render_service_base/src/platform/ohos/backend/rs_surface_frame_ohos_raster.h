@@ -38,6 +38,7 @@ public:
         return buffer_;
     }
     void SetDamageRegion(int32_t left, int32_t top, int32_t width, int32_t height) override;
+    void SetDamageRegion(const std::vector<RectI> &rects) override;
     int32_t GetBufferAge() const override;
     int32_t GetReleaseFence() const;
     void SetReleaseFence(const int32_t& fence);

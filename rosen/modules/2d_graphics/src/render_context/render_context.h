@@ -16,6 +16,7 @@
 #ifndef RENDER_CONTEXT_H
 #define RENDER_CONTEXT_H
 
+#include "common/rs_rect.h"
 #include "EGL/egl.h"
 #include "EGL/eglext.h"
 #include "GLES3/gl32.h"
@@ -60,6 +61,7 @@ public:
     void RenderFrame();
     EGLint QueryEglBufferAge();
     void DamageFrame(int32_t left, int32_t top, int32_t width, int32_t height);
+    void DamageFrame(const std::vector<RectI> &rects);
 
     EGLSurface GetEGLSurface() const
     {

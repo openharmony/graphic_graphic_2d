@@ -37,6 +37,12 @@ void RSSurfaceFrameOhosRaster::SetDamageRegion(int32_t left, int32_t top, int32_
     flushConfig_.damage.h = height;
 }
 
+void RSSurfaceFrameOhosRaster::SetDamageRegion(const std::vector<RectI> &rects)
+{
+    // currently not support SetDamageRegion
+    ROSEN_LOGE("currently not support SetDamageRegion %d", rects.size());
+}
+
 int32_t RSSurfaceFrameOhosRaster::GetBufferAge() const
 {
     // currently could not get real buffer age, so return invalid age

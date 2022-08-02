@@ -18,6 +18,7 @@
 
 #include <memory>
 
+#include "common/rs_rect.h"
 #include "include/core/SkCanvas.h"
 #include "include/core/SkSurface.h"
 
@@ -30,6 +31,7 @@ public:
     virtual ~RSSurfaceFrame() = default;
 
     virtual void SetDamageRegion(int32_t left, int32_t top, int32_t width, int32_t height) {};
+    virtual void SetDamageRegion(const std::vector<RectI> &rects) {};
     virtual int32_t GetBufferAge() const = 0;
     virtual SkCanvas* GetCanvas() = 0;
     virtual sk_sp<SkSurface> GetSurface() = 0;

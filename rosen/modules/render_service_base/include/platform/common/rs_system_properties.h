@@ -51,6 +51,7 @@ public:
     static bool GetDirectClientCompEnableStatus();
     static bool GetHighContrastStatus();
     static int32_t GetCorrectionMode();
+    static bool GetUniPartialRenderEnabled();
 
 private:
     RSSystemProperties() = default;

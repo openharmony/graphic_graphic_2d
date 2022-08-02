@@ -75,6 +75,11 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
         curSurfaceDirtyManager_->Clear();
         dirtyFlag_ = false;
     }
+
+    if (node.GetDstRectChanged()) {
+        dirtyFlag_ = true;
+    }
+
     PrepareBaseRenderNode(node);
     if (node.GetDirtyManager() && node.GetDirtyManager()->IsDirty()) {
         std::shared_ptr<RSBaseRenderNode> nodePtr = node.shared_from_this();
@@ -151,7 +156,7 @@ void RSUniRenderVisitor::DrawDirtyRegion()
     }
 
     if (curSurfaceDirtyManager_->IsDebugRegionTypeEnable(DebugRegionType::CURRENT_WHOLE)) {
-        dirtyRect = curSurfaceDirtyManager_->GetDirtyRegion();
+        dirtyRect = curSurfaceDirtyManager_->GetLatestDirtyRegion();
         if (dirtyRect.width_ <= 0 || dirtyRect.height_ <= 0) {
             ROSEN_LOGD("DrawDirtyRegion dirty rect is invalid. dirtyRect = [%d, %d, %d, %d]",
                 dirtyRect.left_, dirtyRect.top_, dirtyRect.width_, dirtyRect.height_);
@@ -264,8 +269,17 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
             return;
         }
 
-        // planning: get displayNode buffer age in order to merge visible dirty region for displayNode.
+#ifdef RS_ENABLE_EGLQUERYSURFACE
+        // Get displayNode buffer age in order to merge visible dirty region for displayNode.
         // And then set egl damage region to improve uni_render efficiency.
+        if (RSSystemProperties::GetUniPartialRenderEnabled()) {
+            uint32_t bufferAge = renderFrame->GetBufferAge();
+            RS_LOGD("RSUniRenderVisitor buffer age is %d", bufferAge);
+            auto dirtyRegion = RSUniRenderUtil::MergeVisibleDirtyRegion(displayNodePtr, bufferAge);
+            std::vector<RectI> rects = GetDirtyRects(dirtyRegion);
+            renderFrame->SetDamageRegion(rects);
+        }
+#endif
         canvas_ = renderFrame->GetCanvas();
         canvas_->clear(SK_ColorTRANSPARENT);
 
@@ -297,6 +311,21 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
     (void)RSBaseRenderUtil::ReleaseBuffer(surfaceHandler);
     RS_LOGD("RSUniRenderVisitor::ProcessDisplayRenderNode end");
 }
+
+#ifdef RS_ENABLE_EGLQUERYSURFACE
+std::vector<RectI> RSUniRenderVisitor::GetDirtyRects(const Occlusion::Region &region)
+{
+    std::vector<Occlusion::Rect> rects = region.GetRegionRects();
+    std::vector<RectI> retRects;
+    for (Occlusion::Rect rect : rects) {
+        // origin transformation
+        retRects.emplace_back(RectI(rect.left_, screenInfo_.GetRotatedHeight() - rect.bottom_,
+            rect.right_ - rect.left_, rect.bottom_ - rect.top_));
+    }
+    RS_LOGD("GetDirtyRects size %d", region.GetSize());
+    return retRects;
+}
+#endif
 
 void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
 {

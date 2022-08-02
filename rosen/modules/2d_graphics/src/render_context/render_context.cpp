@@ -33,7 +33,7 @@ constexpr char CHARACTER_WHITESPACE = ' ';
 constexpr const char* CHARACTER_STRING_WHITESPACE = " ";
 constexpr const char* EGL_GET_PLATFORM_DISPLAY_EXT = "eglGetPlatformDisplayEXT";
 
-// use functor to call get*KHR API
+// use functor to call gel*KHR API
 static PFNEGLSETDAMAGEREGIONKHRPROC GetEGLSetDamageRegionKHRFunc()
 {
     static auto func = reinterpret_cast<PFNEGLSETDAMAGEREGIONKHRPROC>(eglGetProcAddress("eglSetDamageRegionKHR"));
@@ -329,6 +329,34 @@ void RenderContext::DamageFrame(int32_t left, int32_t top, int32_t width, int32_
     rect[3] = height;
 
     EGLBoolean ret = GetEGLSetDamageRegionKHRFunc()(eglDisplay_, eglSurface_, rect, 1);
+    if (ret == EGL_FALSE) {
+        LOGE("eglSetDamageRegionKHR is failed");
+    }
+}
+
+void RenderContext::DamageFrame(const std::vector<RectI> &rects)
+{
+    if ((eglDisplay_ == nullptr) || (eglSurface_ == nullptr)) {
+        LOGE("eglDisplay or eglSurface is nullptr");
+        return;
+    }
+
+    int size = rects.size();
+    if (size == 0) {
+        LOGE("invalid rects size");
+        return;
+    }
+
+    EGLint eglRect[size * 4]; // 4 is size of RectI.
+    int index = 0;
+    for (RectI rect : rects) {
+        eglRect[index * 4] = rect.left_; // 4 is size of RectI.
+        eglRect[index * 4 + 1] = rect.top_; // 4 is size of RectI.
+        eglRect[index * 4 + 2] = rect.width_; // 4 is size of RectI, 2 is the index of the width_ subscript.
+        eglRect[index * 4 + 3] = rect.height_; // 4 is size of RectI, 3 is the index of the height_ subscript.
+    }
+
+    EGLBoolean ret = GetEGLSetDamageRegionKHRFunc()(eglDisplay_, eglSurface_, eglRect, size);
     if (ret == EGL_FALSE) {
         LOGE("eglSetDamageRegionKHR is failed");
     }
