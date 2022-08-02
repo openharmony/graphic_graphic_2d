@@ -113,6 +113,10 @@ void RSJankDetector::CalculateSkippedFrame(uint64_t renderStartTimeStamp, uint64
     if ((skippedFrame >= JANK_SKIPPED_THRESHOLD) || (frameMsg.dropUiFrameNum >= JANK_SKIPPED_THRESHOLD)) {
         DrawEventReport(frameMsg, "JANK_FRAME_SKIP");
     }
+
+    if (frameMsg.renderDrawTime >= NO_DRAW_THRESHOLD) {
+        DrawEventReport(frameMsg, "NO_DRAW");
+    }
 }
 } // namespace Rosen
 } // namespace OHOS

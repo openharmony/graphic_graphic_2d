@@ -39,6 +39,7 @@ private:
     };
 
     const int JANK_SKIPPED_THRESHOLD = 5;
+    const uint64_t NO_DRAW_THRESHOLD = 5000000000; // 5s
     uint64_t refreshPeriod_ = 16666667;
     std::mutex frameMutex_;
     std::vector<UiDrawFrameMsg> uiDrawFrames_;
