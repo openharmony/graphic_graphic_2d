@@ -189,7 +189,7 @@ int32_t OH_NativeWindow_GetNativeObjectMagic(void *obj);
  * @param sequence Indicates the sequence to a produce buffer.
  * @param scalingMode Indicates the enum value to <b>OHScalingMode</b>
  * @return Returns an error code defined in <b>GSError</b>.
- * @since 8
+ * @since 9
  * @version 1.0
  */
 int32_t OH_NativeWindow_NativeWindowSetScalingMode(OHNativeWindow *window, uint32_t sequence,
@@ -204,7 +204,7 @@ int32_t OH_NativeWindow_NativeWindowSetScalingMode(OHNativeWindow *window, uint3
  * @param size Indicates the size of a <b>OHHDRMetaData</b> vector.
  * @param metaDate Indicates the pointer to a <b>OHHDRMetaData</b> vector.
  * @return Returns an error code defined in <b>GSError</b>.
- * @since 8
+ * @since 9
  * @version 1.0
  */
 int32_t OH_NativeWindow_NativeWindowSetMetaData(OHNativeWindow *window, uint32_t sequence, int32_t size,
@@ -220,7 +220,7 @@ int32_t OH_NativeWindow_NativeWindowSetMetaData(OHNativeWindow *window, uint32_t
  * @param size Indicates the size of a uint8_t vector.
  * @param metaDate Indicates the pointer to a uint8_t vector.
  * @return Returns an error code defined in <b>GSError</b>.
- * @since 8
+ * @since 9
  * @version 1.0
  */
 int32_t OH_NativeWindow_NativeWindowSetMetaDataSet(OHNativeWindow *window, uint32_t sequence, OHHDRMetadataKey key,
@@ -233,7 +233,7 @@ int32_t OH_NativeWindow_NativeWindowSetMetaDataSet(OHNativeWindow *window, uint3
  * @param window Indicates the pointer to a <b>NativeWindow</b> instance.
  * @param handle Indicates the pointer to a <b>OHExtDataHandle</b>.
  * @return Returns an error code defined in <b>GSError</b>.
- * @since 8
+ * @since 9
  * @version 1.0
  */
 int32_t OH_NativeWindow_NativeWindowSetTunnelHandle(OHNativeWindow *window, const OHExtDataHandle *handle);
