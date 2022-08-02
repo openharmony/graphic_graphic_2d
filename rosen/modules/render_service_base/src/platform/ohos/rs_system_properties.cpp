@@ -47,9 +47,10 @@ DirtyRegionDebugType RSSystemProperties::GetDirtyRegionDebugType()
         std::atoi((system::GetParameter("rosen.dirtyregiondebug.enabled", "0")).c_str()));
 }
 
-bool RSSystemProperties::GetPartialRenderEnabled()
+PartialRenderType RSSystemProperties::GetPartialRenderEnabled()
 {
-    return std::atoi((system::GetParameter("rosen.partialrender.enabled", "0")).c_str()) != 0;
+    return static_cast<PartialRenderType>(
+        std::atoi((system::GetParameter("rosen.partialrender.enabled", "0")).c_str()));
 }
 
 bool RSSystemProperties::GetOcclusionEnabled()

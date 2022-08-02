@@ -42,6 +42,11 @@ public:
 
     RSProperties& GetMutableRenderProperties();
     const RSProperties& GetRenderProperties() const;
+    void UpdateRenderStatus(RectI& dirtyRegion, bool isPartialRenderEnabled);
+    inline bool IsRenderUpdateIgnored() const
+    {
+        return isRenderUpdateIgnored_;
+    }
 
     // used for animation test
     RSAnimationManager& GetAnimationManager()
@@ -80,10 +85,12 @@ public:
 
 protected:
     explicit RSRenderNode(NodeId id, std::weak_ptr<RSContext> context = {});
-    void UpdateDirtyRegion(RSDirtyRegionManager& dirtyManager, bool parentDirty);
+    void UpdateDirtyRegion(RSDirtyRegionManager& dirtyManager, bool geoDirty);
     bool IsDirty() const override;
     std::pair<int, int> renderNodeSaveCount_ = { 0, 0 };
     std::unordered_map<RSModifierType, std::list<std::shared_ptr<RSRenderModifier>>> drawCmdModifiers_;
+    // if true, it means currently it's in partial render mode and this node is intersect with dirtyRegion
+    bool isRenderUpdateIgnored_ = false;
 
 private:
     void FallbackAnimationsToRoot();

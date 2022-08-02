@@ -52,6 +52,9 @@ private:
     void DrawDirtyRegion();
 
     std::shared_ptr<RSDirtyRegionManager> curDirtyManager_;
+    bool isPartialRenderEnabled_ = false;
+    bool isOpDroped_ = false;
+    RectI currentDirtyRegion_ = RectI();
     bool dirtyFlag_ = false;
     bool isIdle_ = true;
     RSPaintFilterCanvas* canvas_;

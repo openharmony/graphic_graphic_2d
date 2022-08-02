@@ -77,7 +77,7 @@ bool RSRenderNode::Update(RSDirtyRegionManager& dirtyManager, const RSProperties
     }
     bool dirty = renderProperties_.UpdateGeometry(parent, parentDirty);
     isDirtyRegionUpdated_ = false;
-    UpdateDirtyRegion(dirtyManager, parentDirty);
+    UpdateDirtyRegion(dirtyManager, dirty);
     isLastVisible_ = renderProperties_.GetVisible();
     renderProperties_.ResetDirty();
     return dirty;
@@ -93,31 +93,28 @@ const RSProperties& RSRenderNode::GetRenderProperties() const
     return renderProperties_;
 }
 
-void RSRenderNode::UpdateDirtyRegion(RSDirtyRegionManager& dirtyManager, bool parentDirty)
+void RSRenderNode::UpdateDirtyRegion(RSDirtyRegionManager& dirtyManager, bool geoDirty)
 {
-    if (!IsDirty() && !parentDirty) {
+    if (!IsDirty() && !geoDirty) {
         return;
     }
-    // if switch to invisible, let dirty rect as old dirty(erase)
+    if (!oldDirty_.IsEmpty()) {
+        dirtyManager.MergeDirtyRect(oldDirty_);
+    }
+    // merge old dirty if switch to invisible
     if (!renderProperties_.GetVisible() && isLastVisible_) {
-        if (!oldDirty_.IsEmpty()) {
-            dirtyManager.MergeDirtyRect(oldDirty_);
-        }
-        isDirtyRegionUpdated_ = false;
-        oldDirty_ = RectI(); // set old dirty as empty rect
+        ROSEN_LOGD("RSRenderNode:: id %" PRIu64 " UpdateDirtyRegion visible->invisible", GetId());
     } else {
         auto dirtyRect = renderProperties_.GetDirtyRect();
         // filter invalid dirtyrect
-        if (dirtyRect.IsEmpty()) {
-            ROSEN_LOGD("RSRenderNode::UpdateDirtyRegion invalid dirtyRect = [%d, %d, %d, %d]",
-                dirtyRect.left_, dirtyRect.top_, dirtyRect.width_, dirtyRect.height_);
-        } else {
+        if (!dirtyRect.IsEmpty()) {
             dirtyManager.MergeDirtyRect(dirtyRect);
-            if (!oldDirty_.IsEmpty()) {
-                dirtyManager.MergeDirtyRect(oldDirty_);
-            }
-            isDirtyRegionUpdated_ = (oldDirty_ == dirtyRect);
+            isDirtyRegionUpdated_ = true;
             oldDirty_ = dirtyRect;
+        } else {
+            // keep old dirty and print debug log in case
+            ROSEN_LOGD("RSRenderNode:: id %" PRIu64 " UpdateDirtyRegion invalid dirtyRect = [%d, %d, %d, %d]",
+                GetId(), dirtyRect.left_, dirtyRect.top_, dirtyRect.width_, dirtyRect.height_);
         }
     }
     SetClean();
@@ -126,6 +123,19 @@ void RSRenderNode::UpdateDirtyRegion(RSDirtyRegionManager& dirtyManager, bool pa
 bool RSRenderNode::IsDirty() const
 {
     return RSBaseRenderNode::IsDirty() || renderProperties_.IsDirty();
+}
+
+void RSRenderNode::UpdateRenderStatus(RectI& dirtyRegion, bool isPartialRenderEnabled)
+{
+    // should judge if there's any child out of parent
+    if (!isPartialRenderEnabled) {
+        isRenderUpdateIgnored_ = false;
+    } else if (dirtyRegion.IsEmpty() || oldDirty_.IsEmpty()) {
+        isRenderUpdateIgnored_ = true;
+    } else {
+        RectI intersectRect = dirtyRegion.IntersectRect(oldDirty_);
+        isRenderUpdateIgnored_ = intersectRect.IsEmpty();
+    }
 }
 
 void RSRenderNode::ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas)

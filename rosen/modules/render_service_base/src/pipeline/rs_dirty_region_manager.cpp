@@ -40,6 +40,11 @@ void RSDirtyRegionManager::IntersectDirtyRect(const RectI& rect)
     dirtyRegion_ = dirtyRegion_.IntersectRect(rect);
 }
 
+void RSDirtyRegionManager::IntersectDirtyRectWithSurfaceRect()
+{
+    dirtyRegion_ = dirtyRegion_.IntersectRect(surfaceRect_);
+}
+
 const RectI& RSDirtyRegionManager::GetDirtyRegion() const
 {
     return dirtyRegion_;
@@ -49,8 +54,8 @@ RectI RSDirtyRegionManager::GetDirtyRegionFlipWithinSurface() const
 {
     RectI glRect = dirtyRegion_;
     // left-top to left-bottom corner(in current surface)
-    glRect.top_ = surfaceHeight_ - dirtyRegion_.top_ - dirtyRegion_.height_;
-    return dirtyRegion_;
+    glRect.top_ = surfaceRect_.height_ - dirtyRegion_.top_ - dirtyRegion_.height_;
+    return glRect;
 }
 
 const RectI& RSDirtyRegionManager::GetLatestDirtyRegion() const
@@ -115,8 +120,7 @@ bool RSDirtyRegionManager::SetSurfaceSize(const int width, const int height)
     if (width < 0 || height < 0) {
         return false;
     }
-    surfaceWidth_ = width;
-    surfaceHeight_ = height;
+    surfaceRect_ = RectI(0, 0, width, height);
     return true;
 }
 
@@ -151,7 +155,7 @@ void RSDirtyRegionManager::UpdateDebugRegionTypeEnable()
 RectI RSDirtyRegionManager::MergeHistory(unsigned int age, RectI rect) const
 {
     if (age == 0 || age > historySize_) {
-        return RectI(0, 0, surfaceWidth_, surfaceHeight_);
+        return surfaceRect_;
     }
     // GetHistory(historySize_) = dirtyHistory_[historyHead_]
     // therefore, this loop merges rect with (age-1) frames' dirtyRect
@@ -162,6 +166,7 @@ RectI RSDirtyRegionManager::MergeHistory(unsigned int age, RectI rect) const
         }
         if (rect.IsEmpty()) {
             rect = subRect;
+            continue;
         }
         // only join valid his dirty region
         rect = rect.JoinRect(subRect);
