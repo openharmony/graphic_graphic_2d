@@ -63,7 +63,6 @@ enum RSOpType : uint16_t {
     BITMAP_RECT_OPITEM,
     PIXELMAP_OPITEM,
     PIXELMAP_RECT_OPITEM,
-    PIXELMAP_WITH_PARM_OPITEM,
     BITMAP_LATTICE_OPITEM, // marshalling func planning to be implemented
     BITMAP_NINE_OPITEM,
     ADAPTIVE_RRECT_OPITEM,
@@ -162,6 +161,8 @@ private:
 class ImageWithParmOpItem : public OpItemWithPaint {
 public:
     ImageWithParmOpItem(const sk_sp<SkImage> img, const RsImageInfo& rsimageInfo, const SkPaint& paint);
+    ImageWithParmOpItem(
+        const std::shared_ptr<Media::PixelMap>& pixelmap, const RsImageInfo& rsimageInfo, const SkPaint& paint);
     ImageWithParmOpItem(const std::shared_ptr<RSImage>& rsImage, const SkPaint& paint);
 
     ~ImageWithParmOpItem() override {}
@@ -528,29 +529,6 @@ private:
     std::shared_ptr<Media::PixelMap> pixelmap_;
     SkRect src_;
     SkRect dst_;
-};
-
-class PixelMapWithParmOpItem : public OpItemWithPaint {
-public:
-    PixelMapWithParmOpItem(
-        const std::shared_ptr<Media::PixelMap>& pixelmap, const Rosen::RsImageInfo& rsImageInfo, const SkPaint& paint);
-
-    ~PixelMapWithParmOpItem() override {}
-    void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
-
-    RSOpType GetType() const override
-    {
-        return RSOpType::PIXELMAP_WITH_PARM_OPITEM;
-    }
-
-#ifdef ROSEN_OHOS
-    bool Marshalling(Parcel& parcel) const override;
-    static OpItem* Unmarshalling(Parcel& parcel);
-#endif
-
-private:
-    std::shared_ptr<Media::PixelMap> pixelmap_;
-    Rosen::RsImageInfo rsImageInfo_;
 };
 
 class BitmapLatticeOpItem : public OpItemWithPaint {

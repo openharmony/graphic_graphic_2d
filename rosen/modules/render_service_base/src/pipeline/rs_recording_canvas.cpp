@@ -162,7 +162,7 @@ void RSRecordingCanvas::DrawPixelMapRect(
 void RSRecordingCanvas::DrawPixelMapWithParm(
     const std::shared_ptr<Media::PixelMap>& pixelmap, const Rosen::RsImageInfo& rsImageInfo, const SkPaint& paint)
 {
-    std::unique_ptr<OpItem> op = std::make_unique<PixelMapWithParmOpItem>(pixelmap, rsImageInfo, paint);
+    std::unique_ptr<OpItem> op = std::make_unique<ImageWithParmOpItem>(pixelmap, rsImageInfo, paint);
     AddOp(std::move(op));
 }
 
