@@ -162,8 +162,14 @@ void RenderContext::InitializeEglContext()
 
 void RenderContext::MakeCurrent(EGLSurface surface) const
 {
-    if (!eglMakeCurrent(eglDisplay_, surface, surface, eglContext_)) {
-        LOGE("Failed to make current on surface %{public}p, error is %{public}x", surface, eglGetError());
+    if (surface == EGL_NO_SURFACE) {
+        if (!eglMakeCurrent(eglDisplay_, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT)) {
+            LOGE("Failed to make current on surface %{public}p, error is %{public}x", surface, eglGetError());
+        }
+    } else {
+        if (!eglMakeCurrent(eglDisplay_, surface, surface, eglContext_)) {
+            LOGE("Failed to make current on surface %{public}p, error is %{public}x", surface, eglGetError());
+        }
     }
 }
 

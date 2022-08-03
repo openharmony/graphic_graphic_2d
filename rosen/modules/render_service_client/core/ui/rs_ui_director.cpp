@@ -94,13 +94,13 @@ void RSUIDirector::GoBackground()
         }
 
         // clean bufferQueue cache
-        auto surfaceNode = surfaceNode_.lock();
-        if (surfaceNode != nullptr) {
-            sptr<OHOS::Surface> pSurface = surfaceNode->GetSurface();
-            if (pSurface != nullptr) {
-                pSurface->GoBackground();
+        RSRenderThread::Instance().PostTask([this]() {
+            auto surfaceNode = surfaceNode_.lock();
+            if (surfaceNode != nullptr) {
+                std::shared_ptr<RSSurface> rsSurface = RSSurfaceExtractor::ExtractRSSurface(surfaceNode);
+                rsSurface->ClearBuffer();
             }
-        }
+        });
     }
 }
 

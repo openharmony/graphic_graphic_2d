@@ -38,6 +38,7 @@ public:
     bool FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uint64_t uiTimestamp) override;
 
     void SetSurfaceBufferUsage(int32_t usage) override;
+    void ClearBuffer() override;
 };
 } // namespace Rosen
 } // namespace OHOS
