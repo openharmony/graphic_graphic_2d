@@ -173,6 +173,17 @@ public:
         return visibleRegion_;
     }
 
+    void SetAbilityBGAlpha(uint8_t alpha)
+    {
+        abilityBgAlpha_ = alpha;
+        abilityBgAlphaChanged_ = true;
+    }
+
+    uint8_t GetAbilityBgAlpha() const
+    {
+        return abilityBgAlpha_;
+    }
+
     void SetVisibleRegionRecursive(const Occlusion::Region& region, VisibleData& visibleVec)
     {
         visibleRegion_ = region;
@@ -200,6 +211,16 @@ public:
     void CleanDstRectChanged()
     {
         dstRectChanged_ = false;
+    }
+
+    bool GetAbilityBgAlphaChanged() const
+    {
+        return abilityBgAlphaChanged_;
+    }
+
+    void CleanAbilityBgAlphaChanged()
+    {
+        abilityBgAlphaChanged_ = false;
     }
 
     void SetConsumer(const sptr<Surface>& consumer);
@@ -277,6 +298,8 @@ private:
     Occlusion::Region visibleRegion_;
     bool isOcclusionVisible_ = true;
     bool dstRectChanged_ = false;
+    uint8_t abilityBgAlpha_ = 0;
+    bool abilityBgAlphaChanged_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS
