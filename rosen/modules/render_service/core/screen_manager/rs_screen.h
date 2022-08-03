@@ -72,7 +72,7 @@ public:
     virtual int32_t SetScreenGamutMap(ScreenGamutMap mode) = 0;
     virtual int32_t GetScreenGamutMap(ScreenGamutMap &mode) const = 0;
     virtual int32_t GetActiveModePosByModeId(int32_t modeId) const = 0;
-    virtual const HDRCapability& GetHDRCapability() const = 0;
+    virtual const HDRCapability& GetHDRCapability() = 0;
     virtual const RSScreenType& GetScreenType() const = 0;
     virtual void SetScreenSkipFrameInterval(uint32_t skipFrameInterval) = 0;
     virtual uint32_t GetScreenSkipFrameInterval() const = 0;
@@ -122,7 +122,7 @@ public:
     int32_t SetScreenGamutMap(ScreenGamutMap mode) override;
     int32_t GetScreenGamutMap(ScreenGamutMap &mode) const override;
     int32_t GetActiveModePosByModeId(int32_t modeId) const override;
-    const HDRCapability& GetHDRCapability() const override;
+    const HDRCapability& GetHDRCapability() override;
     const RSScreenType& GetScreenType() const override;
     void SetScreenSkipFrameInterval(uint32_t skipFrameInterval) override;
     uint32_t GetScreenSkipFrameInterval() const override;

@@ -659,6 +659,7 @@ HWTEST_F(RSInterfacesTest, GetScreenSupportedMetaDataKeys001, Function | SmallTe
     std::vector<ScreenHDRMetadataKey> keys;
     int ret = rsInterfaces->GetScreenSupportedMetaDataKeys(screenId, keys);
     EXPECT_EQ(ret, StatusCode::SUCCESS);
+    EXPECT_EQ(keys[0], ScreenHDRMetadataKey::MATAKEY_RED_PRIMARY_X);
 }
 
 /*

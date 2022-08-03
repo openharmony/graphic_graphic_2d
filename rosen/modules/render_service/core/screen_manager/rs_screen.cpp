@@ -492,17 +492,22 @@ int32_t RSScreen::GetScreenSupportedMetaDataKeys(std::vector<ScreenHDRMetadataKe
         RS_LOGW("RSScreen %s: virtual screen not support GetScreenSupportedMetaDataKeys.", __func__);
         return INVALID_BACKLIGHT_VALUE;
     }
-    std::vector<HDRMetadataKey> hdrKeys;
-    int32_t result = hdiScreen_->GetSupportedMetaDataKey(hdrKeys);
-    if (result == DispErrCode::DISPLAY_SUCCESS) {
-        keys.clear();
-        for (auto m : hdrKeys) {
-            keys.push_back(static_cast<ScreenHDRMetadataKey>(m));
-        }
-        return StatusCode::SUCCESS;
-    }
-    RS_LOGW("GetScreenSupportedMetaDataKeys Failed!");
-    return StatusCode::HDI_ERROR;
+
+    keys.push_back(ScreenHDRMetadataKey::MATAKEY_RED_PRIMARY_X);
+    keys.push_back(ScreenHDRMetadataKey::MATAKEY_RED_PRIMARY_Y);
+    keys.push_back(ScreenHDRMetadataKey::MATAKEY_GREEN_PRIMARY_X);
+    keys.push_back(ScreenHDRMetadataKey::MATAKEY_GREEN_PRIMARY_Y);
+    keys.push_back(ScreenHDRMetadataKey::MATAKEY_BLUE_PRIMARY_X);
+    keys.push_back(ScreenHDRMetadataKey::MATAKEY_BLUE_PRIMARY_Y);
+    keys.push_back(ScreenHDRMetadataKey::MATAKEY_WHITE_PRIMARY_X);
+    keys.push_back(ScreenHDRMetadataKey::MATAKEY_WHITE_PRIMARY_Y);
+    keys.push_back(ScreenHDRMetadataKey::MATAKEY_MAX_LUMINANCE);
+    keys.push_back(ScreenHDRMetadataKey::MATAKEY_MIN_LUMINANCE);
+    keys.push_back(ScreenHDRMetadataKey::MATAKEY_MAX_CONTENT_LIGHT_LEVEL);
+    keys.push_back(ScreenHDRMetadataKey::MATAKEY_MAX_FRAME_AVERAGE_LIGHT_LEVEL);
+    keys.push_back(ScreenHDRMetadataKey::MATAKEY_HDR10_PLUS);
+    keys.push_back(ScreenHDRMetadataKey::MATAKEY_HDR_VIVID);
+    return StatusCode::SUCCESS;
 }
 
 int32_t RSScreen::GetScreenColorGamut(ScreenColorGamut &mode) const
@@ -571,8 +576,9 @@ int32_t RSScreen::GetScreenGamutMap(ScreenGamutMap &mode) const
     return StatusCode::HDI_ERROR;
 }
 
-const HDRCapability& RSScreen::GetHDRCapability() const
+const HDRCapability& RSScreen::GetHDRCapability()
 {
+    hdrCapability_.maxLum = 1000;
     return hdrCapability_;
 }
 
