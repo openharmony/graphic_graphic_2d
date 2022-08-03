@@ -51,6 +51,7 @@
 #include "platform/common/rs_log.h"
 #include "render/rs_blur_filter.h"
 #include "render/rs_filter.h"
+#include "render/rs_material_filter.h"
 #include "render/rs_path.h"
 #include "render/rs_shader.h"
 #include "transaction/rs_ashmem_helper.h"
@@ -585,6 +586,11 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSFi
             success = success && parcel.WriteFloat(blur->GetBlurRadiusX()) && parcel.WriteFloat(blur->GetBlurRadiusY());
             break;
         }
+        case RSFilter::MATERIAL: {
+            auto material = std::static_pointer_cast<RSMaterialFilter>(val);
+            success = success && parcel.WriteInt32(material->GetStyle()) && parcel.WriteFloat(material->GetDipScale());
+            break;
+        }
         default:
             break;
     }
@@ -601,6 +607,15 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSFilter
             success = success && parcel.ReadFloat(blurRadiusX) && parcel.ReadFloat(blurRadiusY);
             if (success) {
                 val = RSFilter::CreateBlurFilter(blurRadiusX, blurRadiusY);
+            }
+            break;
+        }
+        case RSFilter::MATERIAL: {
+            int style;
+            float dipScale;
+            success = success && parcel.ReadInt32(style) && parcel.ReadFloat(dipScale);
+            if (success) {
+                val = RSFilter::CreateMaterialFilter(style, dipScale);
             }
             break;
         }

@@ -34,11 +34,15 @@ class RSMaterialFilter : public RSSkiaFilter {
 public:
     RSMaterialFilter(int style, float dipScale);
     ~RSMaterialFilter() override;
+    int GetStyle() const;
+    float GetDipScale() const;
     std::shared_ptr<RSFilter> Add(const std::shared_ptr<RSFilter>& rhs) override;
     std::shared_ptr<RSFilter> Sub(const std::shared_ptr<RSFilter>& rhs) override;
     std::shared_ptr<RSFilter> Multiply(float rhs) override;
     std::shared_ptr<RSFilter> Negate() override;
 private:
+    int style_;
+    float dipScale_;
     static constexpr int STYLE_CARD_THIN_LIGHT = 1;
     static constexpr int STYLE_CARD_LIGHT = 2;
     static constexpr int STYLE_CARD_THICK_LIGHT = 3;

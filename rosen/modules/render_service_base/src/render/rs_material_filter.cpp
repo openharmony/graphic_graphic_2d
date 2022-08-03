@@ -28,12 +28,22 @@ constexpr int INDEX_B_offset = 14;
 constexpr float BLUR_SIGMA_SCALE = 0.57735f;
 
 RSMaterialFilter::RSMaterialFilter(int style, float dipScale)
-    : RSSkiaFilter(RSMaterialFilter::CreateMaterialStyle(style, dipScale))
+    : RSSkiaFilter(RSMaterialFilter::CreateMaterialStyle(style, dipScale)), style_(style), dipScale_(dipScale)
 {
     type_ = FilterType::MATERIAL;
 }
 
 RSMaterialFilter::~RSMaterialFilter() {}
+
+int RSMaterialFilter::GetStyle() const
+{
+    return style_;
+}
+
+float RSMaterialFilter::GetDipScale() const
+{
+    return dipScale_;
+}
 
 float RSMaterialFilter::RadiusVp2Sigma(float radiusVp, float dipScale) const
 {
