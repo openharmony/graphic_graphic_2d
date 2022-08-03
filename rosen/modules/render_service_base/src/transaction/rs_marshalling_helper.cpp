@@ -828,7 +828,7 @@ bool RSMarshallingHelper::WriteToParcel(Parcel& parcel, const void* data, size_t
         ROSEN_LOGE("RSMarshallingHelper::WriteToParcel data is nullptr");
         return false;
     }
-    if (data == nullptr || size > MAX_DATA_SIZE) {
+    if (size > MAX_DATA_SIZE) {
         ROSEN_LOGE("RSMarshallingHelper::WriteToParcel data exceed MAX_DATA_SIZE");
         return false;
     }
