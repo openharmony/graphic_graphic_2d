@@ -28,6 +28,8 @@ const std::map<uint32_t, WindowAnimationStubFunc> RSWindowAnimationStub::stubFun
     std::make_pair(RSIWindowAnimationController::ON_MINIMIZE_ALLWINDOW, &RSWindowAnimationStub::MinimizeAllWindow),
     std::make_pair(RSIWindowAnimationController::ON_CLOSE_WINDOW, &RSWindowAnimationStub::CloseWindow),
     std::make_pair(RSIWindowAnimationController::ON_SCREEN_UNLOCK, &RSWindowAnimationStub::ScreenUnlock),
+    std::make_pair(RSIWindowAnimationController::ON_WINDOW_ANIMATION_TARGETS_UPDATE,
+        &RSWindowAnimationStub::WindowAnimationTargetsUpdate)
 };
 
 int RSWindowAnimationStub::OnRemoteRequest(uint32_t code, MessageParcel& data,
@@ -177,6 +179,30 @@ int RSWindowAnimationStub::ScreenUnlock(MessageParcel& data, MessageParcel& repl
     }
 
     OnScreenUnlock(finishedCallback);
+    return ERR_NONE;
+}
+
+int RSWindowAnimationStub::WindowAnimationTargetsUpdate(MessageParcel& data, MessageParcel& reply)
+{
+    WALOGD("Window animation targets update!");
+    sptr<RSWindowAnimationTarget> fullScreenWindowTarget(data.ReadParcelable<RSWindowAnimationTarget>());
+    if (fullScreenWindowTarget == nullptr) {
+        WALOGE("Failed to read full screen window animation target!");
+        return ERR_INVALID_DATA;
+    }
+
+    size_t floatWindowSize = data.ReadUint32();
+    std::vector<sptr<RSWindowAnimationTarget>> floatingWindowTargets;
+    for (size_t i = 0; i < floatWindowSize; i++) {
+        sptr<RSWindowAnimationTarget> floatingWindowTarget(data.ReadParcelable<RSWindowAnimationTarget>());
+        if (floatingWindowTarget == nullptr) {
+            WALOGE("Failed to read floating window animation window!");
+            return ERR_INVALID_DATA;
+        }
+        floatingWindowTargets.push_back(floatingWindowTarget);
+    }
+
+    OnWindowAnimationTargetsUpdate(fullScreenWindowTarget, floatingWindowTargets);
     return ERR_NONE;
 }
 } // namespace Rosen

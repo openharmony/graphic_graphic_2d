@@ -53,6 +53,9 @@ public:
 
     void OnScreenUnlock(const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback) override;
 
+    void OnWindowAnimationTargetsUpdate(const sptr<RSWindowAnimationTarget>& fullScreenWindowTarget,
+        const std::vector<sptr<RSWindowAnimationTarget>>& floatingWindowTargets) override;
+
 private:
     void HandleOnStartApp(StartingAppType type, const sptr<RSWindowAnimationTarget>& startingWindowTarget,
         const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback);
@@ -68,6 +71,9 @@ private:
         const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback);
 
     void HandleOnScreenUnlock(const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback);
+
+    void HandleOnWindowAnimationTargetsUpdate(const sptr<RSWindowAnimationTarget>& fullScreenWindowTarget,
+        const std::vector<sptr<RSWindowAnimationTarget>>& floatingWindowTargets);
 
     void CallJsFunction(const std::string& methodName, NativeValue* const* argv, size_t argc);
 

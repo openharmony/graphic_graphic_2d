@@ -28,6 +28,9 @@ namespace OHOS {
 namespace Rosen {
 using namespace AbilityRuntime;
 constexpr size_t ARGC_ONE = 1;
+constexpr size_t ARGC_TWO = 2;
+constexpr int32_t ERR_NOT_OK = -1;
+constexpr int32_t ERR_OK = 0;
 
 NativeValue* RSWindowAnimationManager::Init(NativeEngine* engine, NativeValue* exportObj)
 {
@@ -47,6 +50,8 @@ NativeValue* RSWindowAnimationManager::Init(NativeEngine* engine, NativeValue* e
     object->SetNativePointer(windowAnimationManager.release(), RSWindowAnimationManager::Finalizer, nullptr);
 
     BindNativeFunction(*engine, *object, "setController", RSWindowAnimationManager::SetController);
+    BindNativeFunction(*engine, *object, "minimizeWindowWithAnimation",
+        RSWindowAnimationManager::MinimizeWindowWithAnimation);
     return nullptr;
 }
 
@@ -62,6 +67,13 @@ NativeValue* RSWindowAnimationManager::SetController(NativeEngine* engine, Nativ
     return (me != nullptr) ? me->OnSetController(*engine, *info) : nullptr;
 }
 
+NativeValue* RSWindowAnimationManager::MinimizeWindowWithAnimation(NativeEngine* engine, NativeCallbackInfo* info)
+{
+    WALOGD("MinimizeWindowWithAnimation");
+    auto me = CheckParamsAndGetThis<RSWindowAnimationManager>(engine, info);
+    return (me != nullptr) ? me->OnMinimizeWindowWithAnimation(*engine, *info) : nullptr;
+}
+
 NativeValue* RSWindowAnimationManager::OnSetController(NativeEngine& engine, NativeCallbackInfo& info)
 {
     WALOGD("OnSetController");
@@ -75,6 +87,55 @@ NativeValue* RSWindowAnimationManager::OnSetController(NativeEngine& engine, Nat
     controller->SetJsController(info.argv[0]);
     SingletonContainer::Get<WindowAdapter>().SetWindowAnimationController(controller);
     return nullptr;
+}
+
+NativeValue* RSWindowAnimationManager::OnMinimizeWindowWithAnimation(NativeEngine& engine, NativeCallbackInfo& info)
+{
+    int32_t errCode = ERR_OK;
+    if (info.argc < ARGC_ONE || info.argc > ARGC_TWO) {
+        WALOGE("No enough params!");
+        errCode = ERR_NOT_OK;
+    }
+
+    auto targetObj = ConvertNativeValueTo<NativeObject>(info.argv[0]);
+    if (targetObj == nullptr) {
+        WALOGE("Window animation target object is null!");
+        errCode = ERR_NOT_OK;
+    }
+
+    auto target = static_cast<RSWindowAnimationTarget*>(targetObj->GetNativePointer());
+    if (target == nullptr) {
+        WALOGE("Window animation target is null!");
+        errCode = ERR_NOT_OK;
+    }
+
+    AsyncTask::CompleteCallback complete =
+        [target, errCode](NativeEngine& engine, AsyncTask& task, int32_t status) {
+            if (errCode != ERR_OK) {
+                task.Reject(engine, CreateJsError(engine, errCode, "Invalid params."));
+                return;
+            }
+
+            std::vector<uint32_t> windowIds = {target->windowId_};
+            sptr<RSIWindowAnimationFinishedCallback> finishedCallback;
+            SingletonContainer::Get<WindowAdapter>().MinimizeWindowsByLauncher(windowIds, false, finishedCallback);
+            if (finishedCallback == nullptr) {
+                WALOGE("Window animation finished callback is null!");
+                task.Reject(engine, CreateJsError(engine, errCode, "Animation finished callback is null!"));
+                return;
+            }
+
+            WALOGD("Resolve minimize window with animation!");
+            task.Resolve(engine,
+                RSWindowAnimationUtils::CreateJsWindowAnimationFinishedCallback(engine, finishedCallback));
+        };
+
+    NativeValue* lastParam = (info.argc <= 1) ? nullptr :
+        (info.argv[1]->TypeOf() == NATIVE_FUNCTION ? info.argv[1] : nullptr);
+    NativeValue* result = nullptr;
+    AsyncTask::Schedule("RSWindowAnimationManager::OnMinimizeWindowWithAnimation",
+        engine, CreateAsyncTaskWithLastParam(engine, lastParam, nullptr, std::move(complete), &result));
+    return result;
 }
 } // namespace Rosen
 } // namespace OHOS

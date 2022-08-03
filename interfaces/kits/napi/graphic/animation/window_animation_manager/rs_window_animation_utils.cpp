@@ -56,8 +56,27 @@ NativeValue* RSWindowAnimationUtils::CreateJsWindowAnimationTarget(NativeEngine&
     object->SetProperty("bundleName", CreateJsValue(engine, target->bundleName_));
     object->SetProperty("abilityName", CreateJsValue(engine, target->abilityName_));
     object->SetProperty("windowBounds", CreateJsRRect(engine, target->windowBounds_));
+    object->SetProperty("missionId", CreateJsValue(engine, target->missionId_));
 
     return objValue;
+}
+
+NativeValue* RSWindowAnimationUtils::CreateJsWindowAnimationTargetArray(NativeEngine& engine,
+    const std::vector<sptr<RSWindowAnimationTarget>>& targets)
+{
+    WALOGD("Create!");
+    if (targets.empty()) {
+        WALOGE("Target is empty!");
+        return engine.CreateUndefined();
+    }
+
+    NativeValue* arrayValue = engine.CreateArray(targets.size());
+    NativeArray* array = ConvertNativeValueTo<NativeArray>(arrayValue);
+    uint32_t index = 0;
+    for (const auto& item : targets) {
+        array->SetElement(index++, CreateJsWindowAnimationTarget(engine, item));
+    }
+    return arrayValue;
 }
 
 NativeValue* RSWindowAnimationUtils::CreateJsWindowAnimationFinishedCallback(

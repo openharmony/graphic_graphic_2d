@@ -47,6 +47,9 @@ public:
 
     void OnScreenUnlock(const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback) override;
 
+    void OnWindowAnimationTargetsUpdate(const sptr<RSWindowAnimationTarget>& fullScreenWindowTarget,
+        const std::vector<sptr<RSWindowAnimationTarget>>& floatingWindowTargets) override;
+
 private:
     bool WriteInterfaceToken(MessageParcel& data);
     bool WriteTargetAndCallback(MessageParcel& data, const sptr<RSWindowAnimationTarget>& windowTarget,

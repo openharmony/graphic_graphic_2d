@@ -173,6 +173,30 @@ void RSWindowAnimationController::OnScreenUnlock(const sptr<RSIWindowAnimationFi
         std::make_unique<AsyncTask>(callback, std::move(execute), std::move(complete)));
 }
 
+void RSWindowAnimationController::OnWindowAnimationTargetsUpdate(
+    const sptr<RSWindowAnimationTarget>& fullScreenWindowTarget,
+    const std::vector<sptr<RSWindowAnimationTarget>>& floatingWindowTargets)
+{
+    WALOGD("Window animation controller on window animation targets update.");
+    wptr<RSWindowAnimationController> controllerWptr = this;
+    auto complete = std::make_unique<AsyncTask::CompleteCallback> (
+        [controllerWptr, fullScreenWindowTarget, floatingWindowTargets](NativeEngine&, AsyncTask&, int32_t) {
+            auto controllerSptr = controllerWptr.promote();
+            if (controllerSptr == nullptr) {
+                WALOGE("Controller is null!");
+                return;
+            }
+
+            controllerSptr->HandleOnWindowAnimationTargetsUpdate(fullScreenWindowTarget, floatingWindowTargets);
+        }
+    );
+
+    NativeReference* callback = nullptr;
+    std::unique_ptr<AsyncTask::ExecuteCallback> execute = nullptr;
+    AsyncTask::Schedule("RSWindowAnimationController::OnWindowAnimationTargetsUpdate", engine_,
+        std::make_unique<AsyncTask>(callback, std::move(execute), std::move(complete)));
+}
+
 void RSWindowAnimationController::HandleOnStartApp(StartingAppType type,
     const sptr<RSWindowAnimationTarget>& startingWindowTarget,
     const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback)
@@ -247,6 +271,19 @@ void RSWindowAnimationController::HandleOnScreenUnlock(const sptr<RSIWindowAnima
         RSWindowAnimationUtils::CreateJsWindowAnimationFinishedCallback(engine_, finishedCallback),
     };
     CallJsFunction("onScreenUnlock", argv, ARGC_ONE);
+}
+
+
+void RSWindowAnimationController::HandleOnWindowAnimationTargetsUpdate(
+    const sptr<RSWindowAnimationTarget>& fullScreenWindowTarget,
+    const std::vector<sptr<RSWindowAnimationTarget>>& floatingWindowTargets)
+{
+    WALOGD("Handle on window animation targets update.");
+    NativeValue* argv[] = {
+        RSWindowAnimationUtils::CreateJsWindowAnimationTarget(engine_, fullScreenWindowTarget),
+        RSWindowAnimationUtils::CreateJsWindowAnimationTargetArray(engine_, floatingWindowTargets),
+    };
+    CallJsFunction("onWindowAnimationTargetsUpdate", argv, ARGC_TWO);
 }
 
 void RSWindowAnimationController::CallJsFunction(const std::string& methodName, NativeValue* const* argv, size_t argc)

@@ -30,6 +30,9 @@ public:
     static NativeValue* CreateJsWindowAnimationTarget(NativeEngine& engine,
         const sptr<RSWindowAnimationTarget>& target);
 
+    static NativeValue* CreateJsWindowAnimationTargetArray(NativeEngine& engine,
+        const std::vector<sptr<RSWindowAnimationTarget>>& targets);
+
     static NativeValue* CreateJsWindowAnimationFinishedCallback(
         NativeEngine& engine, const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback);
 

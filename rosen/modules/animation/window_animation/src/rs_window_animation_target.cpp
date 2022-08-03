@@ -43,6 +43,7 @@ bool RSWindowAnimationTarget::Marshalling(Parcel& parcel) const
     surfaceNode_->Marshalling(parcel);
     parcel.WriteUint32(windowId_);
     parcel.WriteUint64(displayId_);
+    parcel.WriteInt32(missionId_);
     return true;
 }
 
@@ -58,6 +59,7 @@ bool RSWindowAnimationTarget::ReadFromParcel(Parcel& parcel)
     surfaceNode_ = RSSurfaceNode::Unmarshalling(parcel);
     windowId_ = parcel.ReadUint32();
     displayId_ = parcel.ReadUint64();
+    missionId_ = parcel.ReadInt32();
     return true;
 }
 } // namespace Rosen

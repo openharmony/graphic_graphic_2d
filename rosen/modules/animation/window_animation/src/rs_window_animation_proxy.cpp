@@ -177,13 +177,13 @@ void RSWindowAnimationProxy::OnMinimizeAllWindow(std::vector<sptr<RSWindowAnimat
     }
 
     if (!data.WriteUint32(minimizingWindowsTarget.size())) {
-        WALOGE("Failed to write animation target size!");
+        WALOGE("Failed to write minimizing animation target size!");
         return;
     }
 
     for (auto& target : minimizingWindowsTarget) {
         if (!data.WriteParcelable(target.GetRefPtr())) {
-            WALOGE("Failed to write from animation target!");
+            WALOGE("Failed to write minimizing animation target!");
             return;
         }
     }
@@ -259,6 +259,49 @@ void RSWindowAnimationProxy::OnScreenUnlock(const sptr<RSIWindowAnimationFinishe
     auto ret = remote->SendRequest(RSIWindowAnimationController::ON_SCREEN_UNLOCK, data, reply, option);
     if (ret != NO_ERROR) {
         WALOGE("Failed to send screen unlock request, error code:%d", ret);
+    }
+}
+
+void RSWindowAnimationProxy::OnWindowAnimationTargetsUpdate(
+    const sptr<RSWindowAnimationTarget>& fullScreenWindowTarget,
+    const std::vector<sptr<RSWindowAnimationTarget>>& floatingWindowTargets)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option(MessageOption::TF_ASYNC);
+
+    WALOGD("Window animation proxy on window animation targets update!");
+    if (!WriteInterfaceToken(data)) {
+        return;
+    }
+
+    if (!data.WriteParcelable(fullScreenWindowTarget.GetRefPtr())) {
+        WALOGE("Failed to write full screen animation target!");
+        return;
+    }
+
+    if (!data.WriteUint32(floatingWindowTargets.size())) {
+        WALOGE("Failed to write floating animation target size!");
+        return;
+    }
+
+    for (auto& target : floatingWindowTargets) {
+        if (!data.WriteParcelable(target.GetRefPtr())) {
+            WALOGE("Failed to write floating animation target!");
+            return;
+        }
+    }
+
+    auto remote = Remote();
+    if (remote == nullptr) {
+        WALOGE("remote is null!");
+        return;
+    }
+
+    auto ret = remote->SendRequest(RSIWindowAnimationController::ON_WINDOW_ANIMATION_TARGETS_UPDATE,
+        data, reply, option);
+    if (ret != NO_ERROR) {
+        WALOGE("Failed to send window animation targets update request, error code:%d", ret);
     }
 }
 } // namespace Rosen
