@@ -66,12 +66,11 @@ OHOS::GSError SurfaceIPCTest::SetData(sptr<SurfaceBuffer> &buffer, sptr<Surface>
     buffer->GetExtraData()->ExtraSet("345", (int64_t)0x345);
     buffer->GetExtraData()->ExtraSet("567", "567");
 
-    ExtDataHandle *handle = new ExtDataHandle();
-    handle->fd = -1;
-    handle->reserveInts = 1;
+    uint32_t reserveInts = 1;
+    ExtDataHandle *handle = AllocExtDataHandle(reserveInts);
     handle->reserve[0] = 1;
     OHOS::GSError ret = pSurface->SetTunnelHandle(handle);
-    delete handle;
+    FreeExtDataHandle(handle);
     handle = nullptr;
     return ret;
 }
