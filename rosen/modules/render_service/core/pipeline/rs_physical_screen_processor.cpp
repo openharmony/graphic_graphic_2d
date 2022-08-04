@@ -65,6 +65,7 @@ void RSPhysicalScreenProcessor::ProcessDisplaySurface(RSDisplayRenderNode& node)
 
 void RSPhysicalScreenProcessor::Redraw(const sptr<Surface>& surface, const std::vector<LayerInfoPtr>& layers)
 {
+    RS_TRACE_NAME("Redraw");
     if (surface == nullptr) {
         RS_LOGE("RSPhysicalScreenProcessor::Redraw: surface is null.");
         return;
@@ -83,15 +84,8 @@ void RSPhysicalScreenProcessor::Redraw(const sptr<Surface>& surface, const std::
         RS_LOGE("RsDebug RSPhysicalScreenProcessor::Redraw：canvas is nullptr.");
         return;
     }
-    canvas->clipRect(SkRect::MakeXYWH(0, 0, renderFrameConfig_.width, renderFrameConfig_.height));
-    auto boundsGeoPtr = GetBoundsGeometry();
-    if (boundsGeoPtr) {
-        boundsGeoPtr->UpdateByMatrixFromSelf();
-        canvas->concat(boundsGeoPtr->GetMatrix());
-        // disable screen rotation, use gpu instead
-        screenInfo_.rotation = ScreenRotation::ROTATION_0;
-    }
-    renderEngine_->DrawLayers(*canvas, layers, screenInfo_, forceCPU, mirrorAdaptiveCoefficient_);
+    canvas->concat(screenTransformMatrix_);
+    renderEngine_->DrawLayers(*canvas, layers, forceCPU, mirrorAdaptiveCoefficient_);
     renderFrame->Flush();
     RS_LOGD("RsDebug RSPhysicalScreenProcessor::Redraw flush frame buffer end");
 }

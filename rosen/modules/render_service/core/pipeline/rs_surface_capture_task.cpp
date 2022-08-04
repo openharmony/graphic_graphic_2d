@@ -148,6 +148,11 @@ sk_sp<SkSurface> RSSurfaceCaptureTask::CreateSurface(const std::unique_ptr<Media
     return SkSurface::MakeRasterDirect(info, address, pixelmap->GetRowBytes());
 }
 
+RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::RSSurfaceCaptureVisitor()
+{
+    renderEngine_ = RSMainThread::Instance()->GetRenderEngine();
+}
+
 void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::SetSurface(SkSurface* surface)
 {
     if (surface == nullptr) {
@@ -175,55 +180,19 @@ void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::ProcessDisplayRenderNode(RSD
     }
     // clear SortedChildren, it will be generated again in next frame
     node.ResetSortedChildren();
-}
 
-static void AdjustSurfaceTransform(BufferDrawParam &param, TransformType surfaceTransform)
-{
-    switch (surfaceTransform) {
-        case TransformType::ROTATE_90: {
-            param.matrix.preTranslate(0, param.clipRect.height());
-            param.matrix.preRotate(-90); // rotate 90 degrees anti-clockwise at last.
-            param.dstRect.setWH(param.dstRect.height(), param.dstRect.width());
-            break;
-        }
-        case TransformType::ROTATE_180: {
-            param.matrix.preTranslate(param.clipRect.width(), param.clipRect.height());
-            param.matrix.preRotate(-180); // rotate 180 degrees anti-clockwise at last.
-            param.dstRect.setWH(param.dstRect.height(), param.dstRect.width());
-            break;
-        }
-        case TransformType::ROTATE_270: {
-            param.matrix.preTranslate(param.clipRect.width(), 0);
-            param.matrix.preRotate(-270); // rotate 270 degrees anti-clockwise at last.
-            param.dstRect.setWH(param.dstRect.height(), param.dstRect.width());
-            break;
-        }
-        default: {
-            break;
-        }
+    auto boundsGeoPtr = std::static_pointer_cast<RSObjAbsGeometry>(node.GetRenderProperties().GetBoundsGeometry());
+    if (boundsGeoPtr != nullptr && canvas_ != nullptr) {
+        boundsGeoPtr->UpdateByMatrixFromSelf();
+        canvas_->concat(boundsGeoPtr->GetMatrix());
     }
 }
 
 void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::ProcessSurfaceRenderNodeWithUni(RSSurfaceRenderNode &node)
 {
-    if (!node.GetRenderProperties().GetVisible()) {
-        RS_LOGD("ProcessSurfaceRenderNode node: %" PRIu64 " invisible", node.GetId());
-        return;
-    }
-    if (!canvas_) {
-        RS_LOGE("ProcessSurfaceRenderNode, canvas is nullptr");
-        return;
-    }
     auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(node.GetRenderProperties().GetBoundsGeometry());
-    if (!geoPtr) {
-        RS_LOGI("ProcessSurfaceRenderNode node:%" PRIu64 ", get geoPtr failed", node.GetId());
-        return;
-    }
-    RS_TRACE_NAME("RSSurfaceCaptureVisitor::Process:" + node.GetName());
     canvas_->save();
-    if (!node.GetConsumer()) {
-        canvas_->scale(scaleX_, scaleY_);
-    }
+    canvas_->scale(scaleX_, scaleY_);
     canvas_->SaveAlpha();
     canvas_->MultiplyAlpha(node.GetRenderProperties().GetAlpha() * node.GetContextAlpha());
     canvas_->concat(node.GetContextMatrix());
@@ -245,47 +214,13 @@ void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::ProcessSurfaceRenderNodeWith
                 "RSSurfaceCaptureVisitor::ProcessSurfaceRenderNode:%" PRIu64 " buffer is not available", node.GetId());
         } else {
             node.NotifyRTBufferAvailable();
-#ifdef RS_ENABLE_EGLIMAGE
-            DrawImageOnCanvas(node);
-#else
-            DrawBufferOnCanvas(node);
-#endif
+            auto params = RSBaseRenderUtil::CreateBufferDrawParam(node, true); // in node's local coordinate.
+            renderEngine_->DrawSurfaceNodeWithParams(*canvas_, node, params);
         }
     }
     canvas_->RestoreAlpha();
     canvas_->restore();
 }
-
-void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::DrawBufferOnCanvas(RSSurfaceRenderNode& node)
-{
-    RS_LOGD("RSSurfaceCaptureVisitor::ProcessSurfaceRenderNode draw buffer on canvas");
-    if (!canvas_) {
-        RS_LOGE("RSSurfaceCaptureVisitor::DrawBufferOnCanvas canvas is nullptr");
-        return;
-    }
-    auto buffer = node.GetBuffer();
-    auto srcRect = SkRect::MakeWH(buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight());
-    auto dstRect = SkRect::MakeWH(node.GetRenderProperties().GetBoundsWidth(),
-        node.GetRenderProperties().GetBoundsHeight());
-    RSUniRenderUtil::DrawBufferOnCanvas(buffer, ColorGamut::COLOR_GAMUT_SRGB, *canvas_, srcRect, dstRect);
-}
-
-#ifdef RS_ENABLE_EGLIMAGE
-void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::DrawImageOnCanvas(RSSurfaceRenderNode& node)
-{
-    RS_LOGD("RSSurfaceCaptureVisitor::ProcessSurfaceRenderNode draw image on canvas");
-    if (!canvas_) {
-        RS_LOGE("RSSurfaceCaptureVisitor::DrawImageOnCanvas canvas is nullptr");
-        return;
-    }
-    auto buffer = node.GetBuffer();
-    auto srcRect = SkRect::MakeWH(buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight());
-    auto dstRect = SkRect::MakeWH(node.GetRenderProperties().GetBoundsWidth(),
-        node.GetRenderProperties().GetBoundsHeight());
-    BufferInfo bufferInfo = { buffer, node.GetAcquireFence(), node.GetConsumer() };
-    RSUniRenderUtil::DrawImageOnCanvas(bufferInfo, *canvas_, srcRect, dstRect);
-}
-#endif // RS_ENABLE_EGLIMAGE
 
 void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
 {
@@ -319,14 +254,8 @@ void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::ProcessCanvasRenderNode(RSCa
     node.ProcessRenderAfterChildren(*canvas_);
 }
 
-void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::ProcessSurfaceRenderNodeWithoutUni(RSSurfaceRenderNode &node)
+void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::ProcessSurfaceRenderNodeWithoutUni(RSSurfaceRenderNode& node)
 {
-    if (node.GetSecurityLayer()) {
-        RS_LOGD("RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::ProcessSurfaceRenderNode: \
-            process RSSurfaceRenderNode(id:[%" PRIu64 "]) paused, because surfaceNode is the security layer.",
-            node.GetId());
-        return;
-    }
     if (node.GetBuffer() == nullptr) {
         RS_LOGD("RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::ProcessSurfaceRenderNode: node Buffer is nullptr!");
         for (auto child : node.GetSortedChildren()) {
@@ -341,7 +270,6 @@ void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::ProcessSurfaceRenderNodeWith
     if (surface == nullptr) {
         return;
     }
-    const auto surfaceTransform = surface->GetTransform();
 
     for (auto child : node.GetSortedChildren()) {
         child->Process(shared_from_this());
@@ -349,111 +277,53 @@ void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::ProcessSurfaceRenderNodeWith
     // clear SortedChildren, it will be generated again in next frame
     node.ResetSortedChildren();
 
-    auto param = RSDividedRenderUtil::CreateBufferDrawParam(node);
-#ifdef RS_ENABLE_EGLIMAGE
-    auto renderEngine = RSMainThread::Instance()->GetRenderEngine();
-    if (renderEngine == nullptr) {
-        RS_LOGE("renderEngineis nullptr");
-        return;
-    }
-    auto renderContext = renderEngine->GetRenderContext();
-    if (renderContext == nullptr) {
-        RS_LOGE("renderContext is nullptr");
-        return;
-    }
-    renderContext->SetUpGrContext();
-    auto eglImageManager =  renderEngine->GetRSEglImageManager();
-    auto consumerSurface = node.GetConsumer();
-    if (consumerSurface != nullptr) {
-        GSError error = consumerSurface->RegisterDeleteBufferListener([eglImageManager] (int32_t bufferId) {
-            eglImageManager->UnMapEglImageFromSurfaceBuffer(bufferId);
-        });
-        if (error != GSERROR_OK) {
-            RS_LOGE("RSUniRenderVisitor::DrawImageOnCanvas: fail to register UnMapEglImage callback.");
-            return;
-        }
-    }
-#endif // RS_ENABLE_EGLIMAGE
+    canvas_->save();
     if (!isDisplayNode_) {
-        if (param.clipRect.isEmpty()) {
-            return;
-        }
-        auto existedParent = node.GetParent().lock();
-        if (existedParent && existedParent->IsInstanceOf<RSSurfaceRenderNode>() &&
-            (*std::static_pointer_cast<RSSurfaceRenderNode>(existedParent)).GetBuffer() != nullptr) {
-            param.matrix = node.GetContextMatrix();
-            auto& parent = *std::static_pointer_cast<RSSurfaceRenderNode>(existedParent);
-            auto parentRect = RSDividedRenderUtil::CreateBufferDrawParam(parent).clipRect;
-            // Changes the clip area from absolute to relative to the parent window and deal with clip area with scale
-            // based on the origin of the parent window.
-            param.clipRect.offsetTo(param.clipRect.left() - parentRect.left(), param.clipRect.top() - parentRect.top());
-            SkMatrix scaleMatrix = SkMatrix::I();
-            scaleMatrix.preScale(scaleX_, scaleY_, 0, 0);
-            param.clipRect = scaleMatrix.mapRect(param.clipRect);
-
-            param.dstRect = SkRect::MakeXYWH(
-                node.GetRenderProperties().GetBoundsPositionX(), node.GetRenderProperties().GetBoundsPositionY(),
-                node.GetRenderProperties().GetBoundsWidth(), node.GetRenderProperties().GetBoundsHeight());
-            param.matrix.preTranslate(-param.matrix.getTranslateX() * scaleX_, -param.matrix.getTranslateY() * scaleY_);
-            AdjustSurfaceTransform(param, surfaceTransform);
-#ifdef RS_ENABLE_EGLIMAGE
-            RSDividedRenderUtil::DrawImage(eglImageManager, renderContext->GetGrContext(), *canvas_, param,
-                [this](SkCanvas& canvas, BufferDrawParam& params) -> void {
-                    canvas.scale(scaleX_, scaleY_);
-                });
-#else
-            RSDividedRenderUtil::DrawBuffer(*canvas_, param,
-                [this](SkCanvas& canvas, BufferDrawParam& params) -> void {
-                    canvas.scale(scaleX_, scaleY_);
-                });
-#endif // RS_ENABLE_EGLIMAGE
-        } else {
-            param.matrix = SkMatrix::I();
-            param.clipRect.offsetTo(0, 0);
-            param.dstRect = SkRect::MakeXYWH(0, 0, node.GetRenderProperties().GetBoundsWidth(),
-                node.GetRenderProperties().GetBoundsHeight());
-            AdjustSurfaceTransform(param, surfaceTransform);
-#ifdef RS_ENABLE_EGLIMAGE
-            RSDividedRenderUtil::DrawImage(eglImageManager, renderContext->GetGrContext(), *canvas_, param,
-                [this](SkCanvas& canvas, BufferDrawParam& params) -> void {
-                    canvas.scale(scaleX_, scaleY_);
-                });
-#else
-            RSDividedRenderUtil::DrawBuffer(*canvas_, param,
-                [this](SkCanvas& canvas, BufferDrawParam& params) -> void {
-                    canvas.scale(scaleX_, scaleY_);
-                });
-#endif // RS_ENABLE_EGLIMAGE
-        }
+        auto processFunc = [this](SkCanvas& canvas, BufferDrawParam& params) {
+            canvas.scale(scaleX_, scaleY_);
+        };
+        auto params = RSBaseRenderUtil::CreateBufferDrawParam(node, true); // in node's local coordinate.
+        renderEngine_->DrawSurfaceNodeWithParams(*canvas_, node, params, processFunc);
     } else {
-        param.clipRect = SkRect::MakeXYWH(floor(param.clipRect.left() * scaleX_),
-            floor(param.clipRect.top() * scaleY_), ceil(param.clipRect.width() * scaleX_),
-            ceil(param.clipRect.height() * scaleY_));
-        param.dstRect = SkRect::MakeXYWH(0, 0, node.GetRenderProperties().GetBoundsWidth() * scaleX_,
-            node.GetRenderProperties().GetBoundsHeight() * scaleY_);
-        if (surfaceTransform == TransformType::ROTATE_90 || surfaceTransform == TransformType::ROTATE_270) {
-            param.dstRect.setWH(param.dstRect.height(), param.dstRect.width());
-        }
-#ifdef RS_ENABLE_EGLIMAGE
-        RSDividedRenderUtil::DrawImage(eglImageManager, renderContext->GetGrContext(), *canvas_, param,
-            [this](SkCanvas& canvas, BufferDrawParam& params) -> void {
-                canvas.translate(floor(params.dstRect.left() * scaleX_ - params.dstRect.left()),
-                    floor(params.dstRect.top() * scaleY_ - params.dstRect.top()));
-                canvas.scale(scaleX_, scaleY_);
-            });
-#else
-        RSDividedRenderUtil::DrawBuffer(*canvas_, param,
-            [this](SkCanvas& canvas, BufferDrawParam& params) -> void {
-                canvas.translate(floor(params.dstRect.left() * scaleX_ - params.dstRect.left()),
-                    floor(params.dstRect.top() * scaleY_ - params.dstRect.top()));
-                canvas.scale(scaleX_, scaleY_);
-            });
-#endif // RS_ENABLE_EGLIMAGE
+        auto processFunc = [this](SkCanvas& canvas, BufferDrawParam& params) {
+            canvas.translate(
+                floor(params.dstRect.left() * scaleX_ - params.dstRect.left()),
+                floor(params.dstRect.top() * scaleY_ - params.dstRect.top()));
+            canvas.scale(scaleX_, scaleY_);
+        };
+        auto params = RSBaseRenderUtil::CreateBufferDrawParam(node, false); // in display's coordinate.
+        renderEngine_->DrawSurfaceNodeWithParams(*canvas_, node, params, processFunc);
     }
+    canvas_->restore();
 }
 
 void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode &node)
 {
+    RS_TRACE_NAME("RSSurfaceCaptureVisitor::Process:" + node.GetName());
+
+    if (canvas_ == nullptr) {
+        RS_LOGE("ProcessSurfaceRenderNode, canvas is nullptr");
+        return;
+    }
+
+    if (!node.GetRenderProperties().GetVisible()) {
+        RS_LOGD("ProcessSurfaceRenderNode node: %" PRIu64 " invisible", node.GetId());
+        return;
+    }
+
+    auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(node.GetRenderProperties().GetBoundsGeometry());
+    if (geoPtr == nullptr) {
+        RS_LOGI("ProcessSurfaceRenderNode node:%" PRIu64 ", get geoPtr failed", node.GetId());
+        return;
+    }
+
+    if (node.GetSecurityLayer()) {
+        RS_LOGD("RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::ProcessSurfaceRenderNode: \
+            process RSSurfaceRenderNode(id:[%" PRIu64 "]) paused, because surfaceNode is the security layer.",
+            node.GetId());
+        return;
+    }
+
     if (IsUniRender()) {
         ProcessSurfaceRenderNodeWithUni(node);
     } else {

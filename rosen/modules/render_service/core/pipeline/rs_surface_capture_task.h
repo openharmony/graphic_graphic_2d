@@ -22,6 +22,7 @@
 #include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pixel_map.h"
+#include "rs_render_engine.h"
 #include "visitor/rs_node_visitor.h"
 
 namespace OHOS {
@@ -37,19 +38,19 @@ public:
 private:
     class RSSurfaceCaptureVisitor : public RSNodeVisitor {
     public:
-        RSSurfaceCaptureVisitor() {}
-        ~RSSurfaceCaptureVisitor() override {}
-        virtual void PrepareBaseRenderNode(RSBaseRenderNode &node) override {}
-        virtual void PrepareDisplayRenderNode(RSDisplayRenderNode &node) override {}
-        virtual void PrepareSurfaceRenderNode(RSSurfaceRenderNode &node) override {}
-        virtual void PrepareCanvasRenderNode(RSCanvasRenderNode &node) override {}
+        RSSurfaceCaptureVisitor();
+        ~RSSurfaceCaptureVisitor() noexcept override = default;
+        virtual void PrepareBaseRenderNode(RSBaseRenderNode& node) override {}
+        virtual void PrepareDisplayRenderNode(RSDisplayRenderNode& node) override {}
+        virtual void PrepareSurfaceRenderNode(RSSurfaceRenderNode& node) override {}
+        virtual void PrepareCanvasRenderNode(RSCanvasRenderNode& node) override {}
         virtual void PrepareRootRenderNode(RSRootRenderNode& node) override {}
 
-        void ProcessBaseRenderNode(RSBaseRenderNode &node) override;
+        void ProcessBaseRenderNode(RSBaseRenderNode& node) override;
         void ProcessCanvasRenderNode(RSCanvasRenderNode& node) override;
         void ProcessRootRenderNode(RSRootRenderNode& node) override;
-        void ProcessDisplayRenderNode(RSDisplayRenderNode &node) override;
-        void ProcessSurfaceRenderNode(RSSurfaceRenderNode &node) override;
+        void ProcessDisplayRenderNode(RSDisplayRenderNode& node) override;
+        void ProcessSurfaceRenderNode(RSSurfaceRenderNode& node) override;
         void SetSurface(SkSurface* surface);
         void IsDisplayNode(bool isDisplayNode)
         {
@@ -72,18 +73,15 @@ private:
         }
 
     private:
-        void ProcessSurfaceRenderNodeWithUni(RSSurfaceRenderNode &node);
-        void ProcessSurfaceRenderNodeWithoutUni(RSSurfaceRenderNode &node);
-        void DrawBufferOnCanvas(RSSurfaceRenderNode& node);
-#ifdef RS_ENABLE_EGLIMAGE
-        void DrawImageOnCanvas(RSSurfaceRenderNode& node);
-#endif // RS_ENABLE_EGLIMAGE
-        void DrawSurface(RSSurfaceRenderNode &node);
+        void ProcessSurfaceRenderNodeWithUni(RSSurfaceRenderNode& node);
+        void ProcessSurfaceRenderNodeWithoutUni(RSSurfaceRenderNode& node);
         std::unique_ptr<RSPaintFilterCanvas> canvas_ = nullptr;
         bool isDisplayNode_ = false;
         float scaleX_ = 1.0f;
         float scaleY_ = 1.0f;
         bool isUniRender_ = false;
+
+        std::shared_ptr<RSRenderEngine> renderEngine_;
     };
 
     sk_sp<SkSurface> CreateSurface(const std::unique_ptr<Media::PixelMap>& pixelmap);

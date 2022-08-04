@@ -26,19 +26,8 @@
 
 namespace OHOS {
 namespace Rosen {
-struct BufferInfo {
-    sptr<SurfaceBuffer> buffer;
-    sptr<SyncFence> acquireFence;
-    sptr<Surface> consumerSurface;
-};
-
 class RSUniRenderUtil {
 public:
-    static void DrawBufferOnCanvas(sptr<SurfaceBuffer> buffer, const ColorGamut& dstGamut, RSPaintFilterCanvas& canvas,
-        SkRect srcRect, SkRect dstRect);
-#ifdef RS_ENABLE_EGLIMAGE
-    static void DrawImageOnCanvas(BufferInfo& bufferInfo, RSPaintFilterCanvas& canvas, SkRect srcRect, SkRect dstRect);
-#endif
     static void UpdateRenderNodeDstRect(RSRenderNode& node);
     static Occlusion::Region MergeVisibleDirtyRegion(std::shared_ptr<RSDisplayRenderNode>& node, int32_t bufferAge);
 };

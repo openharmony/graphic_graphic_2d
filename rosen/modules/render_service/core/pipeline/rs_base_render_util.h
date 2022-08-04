@@ -17,45 +17,69 @@
 #define RENDER_SERVICE_CORE_PIPELINE_RS_BASE_RENDER_UTIL_H
 
 #include "include/core/SkBitmap.h"
+#include "include/core/SkCanvas.h"
+#include "include/core/SkColor.h"
+#include "include/core/SkMatrix.h"
+#include "include/core/SkRect.h"
 
-#include "hdi_backend.h"
-#include "hdi_layer_info.h"
-#include "pipeline/rs_base_render_node.h"
+#include "screen_manager/rs_screen_manager.h"
 #include "pipeline/rs_paint_filter_canvas.h"
-#include "pipeline/rs_surface_handler.h"
-
-#ifdef RS_ENABLE_EGLIMAGE
-#include "include/gpu/GrContext.h"
-#include "rs_egl_image_manager.h"
-#endif // RS_ENABLE_EGLIMAGE
-
+#include "pipeline/rs_surface_render_node.h"
+#include "sync_fence.h"
 
 namespace OHOS {
 namespace Rosen {
 class RSTransactionData;
 
+struct BufferDrawParam {
+    sptr<OHOS::SurfaceBuffer> buffer;
+    sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
+
+    SkMatrix matrix; // for moving canvas to layer(surface)'s leftTop point.
+    SkRect srcRect; // surface's bufferSize
+    SkRect dstRect; // surface's boundsSize
+
+    Vector4f cornerRadius;
+    RRect clipRRect;
+    SkRect clipRect;
+
+    bool isNeedClip = true;
+    SkPaint paint;
+    SkColor backgroundColor = SK_ColorTRANSPARENT;
+    ColorGamut targetColorGamut = ColorGamut::COLOR_GAMUT_SRGB;
+
+    bool useCPU = false;
+};
+
 class RSBaseRenderUtil {
 public:
+    static bool IsBufferValid(const sptr<SurfaceBuffer>& buffer);
+    static BufferRequestConfig GetFrameBufferRequestConfig(const ScreenInfo& screenInfo, bool isPhysical = true);
+    static BufferDrawParam CreateBufferDrawParam(
+        RSSurfaceRenderNode& node, bool inLocalCoordinate = false, bool isClipHole = false);
+
+    static SkMatrix GetSurfaceTransformMatrix(const RSSurfaceRenderNode& node, const RectF& bounds);
+    static SkMatrix GetNodeGravityMatrix(
+        const RSSurfaceRenderNode& node, const sptr<SurfaceBuffer>& buffer, const RectF& bounds);
+
     static void DropFrameProcess(RSSurfaceHandler& surfaceHandler);
     static bool ConsumeAndUpdateBuffer(RSSurfaceHandler& surfaceHandler);
     static bool ReleaseBuffer(RSSurfaceHandler& surfaceHandler);
-    static bool ConvertBufferToBitmap(sptr<SurfaceBuffer> buffer, std::vector<uint8_t>& newBuffer, ColorGamut dstGamut,
-        SkBitmap& bitmap);
-#ifdef RS_ENABLE_EGLIMAGE
-    static bool ConvertBufferToEglImage(sptr<SurfaceBuffer> buffer, std::shared_ptr<RSEglImageManager> eglImageManager,
-        GrContext* grContext, sptr<SyncFence> acquireFence, sk_sp<SkImage>& image);
-#endif
 
     static std::unique_ptr<RSTransactionData> ParseTransactionData(MessageParcel& parcel);
 
+    static bool ConvertBufferToBitmap(sptr<SurfaceBuffer> buffer, std::vector<uint8_t>& newBuffer, ColorGamut dstGamut,
+        SkBitmap& bitmap);
+
 private:
-    static bool IsBufferValid(const sptr<SurfaceBuffer>& buffer);
+    static void DealWithSurfaceRotationAndGravity(
+        RSSurfaceRenderNode& node, RectF& bounds, BufferDrawParam &params);
     static bool CreateYuvToRGBABitMap(sptr<OHOS::SurfaceBuffer> buffer, std::vector<uint8_t>& newBuffer,
         SkBitmap& bitmap);
     static bool CreateNewColorGamutBitmap(sptr<OHOS::SurfaceBuffer> buffer, std::vector<uint8_t>& newGamutBuffer,
         SkBitmap& bitmap, ColorGamut srcGamut, ColorGamut dstGamut);
     static bool CreateBitmap(sptr<OHOS::SurfaceBuffer> buffer, SkBitmap& bitmap);
 };
-}
-}
+} // namespace Rosen
+} // namespace OHOS
 #endif // RENDER_SERVICE_CORE_PIPELINE_RS_BASE_RENDER_UTIL_H

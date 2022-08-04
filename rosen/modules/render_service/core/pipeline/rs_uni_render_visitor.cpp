@@ -34,7 +34,11 @@
 namespace OHOS {
 namespace Rosen {
 RSUniRenderVisitor::RSUniRenderVisitor()
-    : curSurfaceDirtyManager_(std::make_shared<RSDirtyRegionManager>()) {}
+    : curSurfaceDirtyManager_(std::make_shared<RSDirtyRegionManager>())
+{
+    auto mainThread = RSMainThread::Instance();
+    renderEngine_ = mainThread->GetRenderEngine();
+}
 RSUniRenderVisitor::~RSUniRenderVisitor() {}
 
 void RSUniRenderVisitor::PrepareBaseRenderNode(RSBaseRenderNode& node)
@@ -234,11 +238,6 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
             RS_LOGE("RSUniRenderVisitor::ProcessDisplayRenderNode CreateSurface failed");
             return;
         }
-#ifdef RS_ENABLE_GL
-        RS_LOGD("RSUniRenderVisitor::ProcessDisplayRenderNode SetRenderContext");
-        node.GetRSSurface()->SetRenderContext(
-            RSMainThread::Instance()->GetRenderEngine()->GetRenderContext().get());
-#endif
     }
 
     if (mirrorNode) {
@@ -257,15 +256,17 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
             RS_LOGE("RSUniRenderVisitor::ProcessDisplayRenderNode No RSSurface found");
             return;
         }
-        auto surfaceFrame = rsSurface->RequestFrame(screenInfo_.GetRotatedWidth(), screenInfo_.GetRotatedHeight());
-        if (surfaceFrame == nullptr) {
+
+        auto renderFrame = renderEngine_->RequestFrame(std::static_pointer_cast<RSSurfaceOhos>(rsSurface),
+            RSBaseRenderUtil::GetFrameBufferRequestConfig(screenInfo_, false));
+        if (renderFrame == nullptr) {
             RS_LOGE("RSUniRenderVisitor Request Frame Failed");
             return;
         }
 
         // planning: get displayNode buffer age in order to merge visible dirty region for displayNode.
         // And then set egl damage region to improve uni_render efficiency.
-        canvas_ = std::make_unique<RSPaintFilterCanvas>(surfaceFrame->GetSurface().get());
+        canvas_ = renderFrame->GetCanvas();
         canvas_->clear(SK_ColorTRANSPARENT);
 
         ProcessBaseRenderNode(node);
@@ -281,7 +282,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
         }
 
         RS_TRACE_BEGIN("RSUniRender:FlushFrame");
-        rsSurface->FlushFrame(surfaceFrame);
+        renderFrame->Flush();
         RS_TRACE_END();
         RS_TRACE_BEGIN("RSUniRender:WaitUtilUniRenderFinished");
         RSMainThread::Instance()->WaitUtilUniRenderFinished();
@@ -354,22 +355,8 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
             RS_LOGD("RSUniRenderVisitor::ProcessSurfaceRenderNode:%" PRIu64 " buffer is not available", node.GetId());
         } else {
             node.NotifyRTBufferAvailable();
-            const auto& buffer = node.GetBuffer();
-            const float frameWidth = buffer->GetSurfaceBufferWidth();
-            const float frameHeight = buffer->GetSurfaceBufferHeight();
-            SkMatrix gravityMatrix;
-            (void)RSPropertiesPainter::GetGravityMatrix(frameGravity_,
-                RectF {0.0f, 0.0f, boundsRect.width(), boundsRect.height()},
-                frameWidth, frameHeight, gravityMatrix);
-            canvas_->concat(gravityMatrix);
-
-#ifdef RS_ENABLE_EGLIMAGE
-            RS_LOGD("RSUniRenderVisitor::ProcessSurfaceRenderNode draw image on canvas");
-            DrawImageOnCanvas(node);
-#else
-            RS_LOGD("RSUniRenderVisitor::ProcessSurfaceRenderNode draw buffer on canvas");
-            DrawBufferOnCanvas(node);
-#endif // RS_ENABLE_EGLIMAGE
+            auto params = RSBaseRenderUtil::CreateBufferDrawParam(node, true); // in node's local coordinate.
+            renderEngine_->DrawSurfaceNodeWithParams(*canvas_, node, params);
         }
         RS_TRACE_END();
     }
@@ -420,35 +407,5 @@ void RSUniRenderVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
     ProcessBaseRenderNode(node);
     node.ProcessRenderAfterChildren(*canvas_);
 }
-
-void RSUniRenderVisitor::DrawBufferOnCanvas(RSSurfaceRenderNode& node)
-{
-    if (!canvas_) {
-        RS_LOGE("RSUniRenderVisitor::DrawBufferOnCanvas canvas is nullptr");
-        return;
-    }
-
-    auto buffer = node.GetBuffer();
-    auto srcRect = SkRect::MakeWH(buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight());
-    auto dstRect = srcRect;
-    RSUniRenderUtil::DrawBufferOnCanvas(buffer, static_cast<ColorGamut>(screenInfo_.colorGamut), *canvas_,
-        srcRect, dstRect);
-}
-
-#ifdef RS_ENABLE_EGLIMAGE
-void RSUniRenderVisitor::DrawImageOnCanvas(RSSurfaceRenderNode& node)
-{
-    if (!canvas_) {
-        RS_LOGE("RSUniRenderVisitor::DrawImageOnCanvas canvas is nullptr");
-        return;
-    }
-
-    auto buffer = node.GetBuffer();
-    auto srcRect = SkRect::MakeWH(buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight());
-    auto dstRect = srcRect;
-    BufferInfo bufferInfo = { buffer, node.GetAcquireFence(), node.GetConsumer() };
-    RSUniRenderUtil::DrawImageOnCanvas(bufferInfo, *canvas_, srcRect, dstRect);
-}
-#endif // RS_ENABLE_EGLIMAGE
 } // namespace Rosen
 } // namespace OHOS

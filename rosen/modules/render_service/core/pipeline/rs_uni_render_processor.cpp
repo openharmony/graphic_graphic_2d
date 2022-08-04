@@ -98,7 +98,7 @@ void RSUniRenderProcessor::Redraw(const sptr<Surface>& surface, const std::vecto
         RS_LOGE("RsDebug RSUniRenderProcessor::Redraw：canvas is nullptr.");
         return;
     }
-    renderEngine_->DrawLayers(*canvas, layers, screenInfo_, forceCPU);
+    renderEngine_->DrawLayers(*canvas, layers, forceCPU);
     renderFrame->Flush();
     RS_LOGD("RsDebug RSUniRenderProcessor::Redraw flush frame buffer end");
 }

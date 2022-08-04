@@ -19,7 +19,6 @@
 #include <memory>
 #include <optional>
 
-#include <include/core/SkMatrix.h>
 #include <display_type.h>
 #include <hdi_output.h>
 #include <hdi_screen.h>

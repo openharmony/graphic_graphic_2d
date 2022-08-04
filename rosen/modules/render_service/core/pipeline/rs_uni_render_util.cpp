@@ -21,55 +21,6 @@
 
 namespace OHOS {
 namespace Rosen {
-void RSUniRenderUtil::DrawBufferOnCanvas(sptr<SurfaceBuffer> buffer, const ColorGamut& dstGamut,
-    RSPaintFilterCanvas& canvas, SkRect srcRect, SkRect dstRect)
-{
-    SkBitmap bitmap;
-    std::vector<uint8_t> newBuffer;
-    if (!RSBaseRenderUtil::ConvertBufferToBitmap(buffer, newBuffer, dstGamut, bitmap)) {
-        RS_LOGE("RSUniRenderUtil::DrawBufferOnCanvas ConvertBufferToBitmap failed");
-        return;
-    }
-
-    SkPaint paint;
-    paint.setAntiAlias(true);
-    canvas.save();
-    canvas.drawBitmapRect(bitmap, srcRect, dstRect, &paint);
-    canvas.restore();
-}
-
-#ifdef RS_ENABLE_EGLIMAGE
-void RSUniRenderUtil::DrawImageOnCanvas(BufferInfo& bufferInfo, RSPaintFilterCanvas& canvas, SkRect srcRect,
-    SkRect dstRect)
-{
-    auto renderEngine = RSMainThread::Instance()->GetRenderEngine();
-    auto renderContext = renderEngine->GetRenderContext();
-    auto eglImageManager =  renderEngine->GetRSEglImageManager();
-    sk_sp<SkImage> image;
-    if (!RSBaseRenderUtil::ConvertBufferToEglImage(bufferInfo.buffer, eglImageManager, renderContext->GetGrContext(),
-        bufferInfo.acquireFence, image)) {
-        RS_LOGE("RSUniRenderUtil::DrawImageOnCanvas ConvertBufferToEglImage failed");
-        return;
-    }
-
-    SkPaint paint;
-    paint.setAntiAlias(true);
-    canvas.save();
-    canvas.drawImageRect(image, srcRect, dstRect, &paint);
-    canvas.restore();
-
-    auto consumerSurface = bufferInfo.consumerSurface;
-    if (consumerSurface != nullptr) {
-        GSError error = consumerSurface->RegisterDeleteBufferListener([eglImageManager] (int32_t bufferId) {
-            eglImageManager->UnMapEglImageFromSurfaceBuffer(bufferId);
-        });
-        if (error != GSERROR_OK) {
-            RS_LOGE("RSUniRenderVisitor::DrawImageOnCanvas: fail to register UnMapEglImage callback.");
-        }
-    }
-}
-#endif
-
 void RSUniRenderUtil::UpdateRenderNodeDstRect(RSRenderNode& node)
 {
     auto parentNode = node.GetParent().lock();

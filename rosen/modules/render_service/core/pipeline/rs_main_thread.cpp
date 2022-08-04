@@ -80,7 +80,7 @@ public:
         } else {
             mode = value.invertColor ? ColorFilterMode::INVERT_MODE : ColorFilterMode::COLOR_FILTER_END;
         }
-        RSMainThread::Instance()->GetRenderEngine()->SetColorCorrectionMode(mode);
+        RSMainThread::Instance()->GetRenderEngine()->SetColorFilterMode(mode);
     }
 };
 
@@ -138,7 +138,6 @@ void RSMainThread::Init()
     rsVSyncDistributor_->AddConnection(conn);
     receiver_ = std::make_shared<VSyncReceiver>(conn);
     receiver_->Init();
-    RSDividedRenderUtil::InitEnableClient();
     renderEngine_ = std::make_shared<RSRenderEngine>();
     RSInnovation::OpenInnovationSo();
     Occlusion::Region::InitDynamicLibraryFunction();
@@ -404,7 +403,7 @@ void RSMainThread::Render()
             doParallelComposition = DoParallelComposition(rootNode);
         }
         if (doParallelComposition) {
-            renderEngine_->ShrinkEGLImageCachesIfNeeded();
+            renderEngine_->ShrinkCachesIfNeeded();
             return;
         }
         auto rsVisitor = std::make_shared<RSRenderServiceVisitor>();
@@ -415,7 +414,7 @@ void RSMainThread::Render()
     CalcOcclusion();
     rootNode->Process(visitor);
 
-    renderEngine_->ShrinkEGLImageCachesIfNeeded();
+    renderEngine_->ShrinkCachesIfNeeded();
 }
 
 void RSMainThread::CalcOcclusion()

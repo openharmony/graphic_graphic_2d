@@ -15,11 +15,10 @@
 #include "rs_divided_render_util.h"
 
 #include "common/rs_obj_abs_geometry.h"
-#include "pipeline/rs_base_render_util.h"
 #include "platform/common/rs_log.h"
 #include "property/rs_properties_painter.h"
 #include "property/rs_transition_properties.h"
-#include "render/rs_blur_filter.h"
+#include "render/rs_skia_filter.h"
 #include "rs_trace.h"
 
 namespace OHOS {
@@ -33,6 +32,11 @@ void RSDividedRenderUtil::SetNeedClient(bool flag)
 
 bool RSDividedRenderUtil::IsNeedClient(RSSurfaceRenderNode& node, const ComposeInfo& info)
 {
+    if (IsForceClient()) {
+        RS_LOGD("RsDebug RSDividedRenderUtil::IsNeedClient: client composition is force enabled.");
+        return true;
+    }
+
     if (enableClient) {
         RS_LOGD("RsDebug RSDividedRenderUtil::IsNeedClient enable composition client");
         return true;
@@ -95,252 +99,9 @@ void RSDividedRenderUtil::DealAnimation(RSPaintFilterCanvas& canvas, RSSurfaceRe
     }
 }
 
-SkMatrix RSDividedRenderUtil::GetCanvasTransform(const RSSurfaceRenderNode& node, const SkMatrix& canvasMatrix,
-    ScreenRotation rotation, SkRect clipRect)
+bool RSDividedRenderUtil::IsForceClient()
 {
-    SkMatrix transform = canvasMatrix;
-    auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(node.GetRenderProperties().GetBoundsGeometry());
-    if (geoPtr == nullptr) {
-        return transform;
-    }
-    sptr<Surface> surface = node.GetConsumer();
-    if (surface == nullptr) {
-        return transform;
-    }
-
-    const auto geoAbsRect = RectI(clipRect.left(), clipRect.top(), clipRect.width(), clipRect.height());
-    transform.preTranslate(geoAbsRect.left_, geoAbsRect.top_);
-    switch (rotation) {
-        case ScreenRotation::ROTATION_90: {
-            switch (surface->GetTransform()) {
-                case TransformType::ROTATE_90: {
-                    transform.preTranslate(geoAbsRect.height_, 0);
-                    transform.preRotate(-90); // rotate 90 degrees anti-clockwise at last.
-                    break;
-                }
-                case TransformType::ROTATE_180: {
-                    transform.preTranslate(geoAbsRect.height_, -geoAbsRect.width_);
-                    transform.preRotate(180); // rotate 180 degrees anti-clockwise at last.
-                    break;
-                }
-                case TransformType::ROTATE_270: {
-                    transform.preTranslate(0, -geoAbsRect.width_);
-                    transform.preRotate(-270); // rotate 270 degrees anti-clockwise at last.
-                    break;
-                }
-                default:
-                    break;
-            }
-            break;
-        }
-        case ScreenRotation::ROTATION_180: {
-            switch (surface->GetTransform()) {
-                case TransformType::ROTATE_90: {
-                    transform.preTranslate(0, -geoAbsRect.height_);
-                    transform.preRotate(-90); // rotate 90 degrees anti-clockwise at last.
-                    break;
-                }
-                case TransformType::ROTATE_180: {
-                    transform.preTranslate(-geoAbsRect.width_, -geoAbsRect.height_);
-                    transform.preRotate(180); // rotate 180 degrees anti-clockwise at last.
-                    break;
-                }
-                case TransformType::ROTATE_270: {
-                    transform.preTranslate(-geoAbsRect.width_, 0);
-                    transform.preRotate(-270); // rotate 270 degrees anti-clockwise at last.
-                    break;
-                }
-                default:
-                    break;
-            }
-            break;
-        }
-        case ScreenRotation::ROTATION_270: {
-            switch (surface->GetTransform()) {
-                case TransformType::ROTATE_90: {
-                    transform.preTranslate(-geoAbsRect.height_, 0);
-                    transform.preRotate(-90); // rotate 90 degrees anti-clockwise at last.
-                    break;
-                }
-                case TransformType::ROTATE_180: {
-                    transform.preTranslate(-geoAbsRect.height_, geoAbsRect.width_);
-                    transform.preRotate(180); // rotate 180 degrees anti-clockwise at last.
-                    break;
-                }
-                case TransformType::ROTATE_270: {
-                    transform.preTranslate(0, geoAbsRect.width_);
-                    transform.preRotate(-270); // rotate 270 degrees anti-clockwise at last.
-                    break;
-                }
-                default:
-                    break;
-            }
-            break;
-        }
-        default: {
-            transform = node.GetTotalMatrix();
-            switch (surface->GetTransform()) {
-                case TransformType::ROTATE_90: {
-                    transform.preTranslate(0, geoAbsRect.height_);
-                    transform.preRotate(-90); // rotate 90 degrees anti-clockwise at last.
-                    break;
-                }
-                case TransformType::ROTATE_180: {
-                    transform.preTranslate(geoAbsRect.width_, geoAbsRect.height_);
-                    transform.preRotate(180); // rotate 180 degrees anti-clockwise at last.
-                    break;
-                }
-                case TransformType::ROTATE_270: {
-                    transform.preTranslate(geoAbsRect.width_, 0);
-                    transform.preRotate(-270); // rotate 270 degrees anti-clockwise at last.
-                    break;
-                }
-                default:
-                    break;
-            }
-            break;
-        }
-    }
-
-    return transform;
-}
-
-BufferDrawParam RSDividedRenderUtil::CreateBufferDrawParam(RSSurfaceRenderNode& node, SkMatrix canvasMatrix,
-    ScreenRotation rotation, bool isClipHole)
-{
-    SkPaint paint;
-    paint.setAlphaf(node.GetGlobalAlpha());
-    const RSProperties& property = node.GetRenderProperties();
-    SkRect dstRect = SkRect::MakeXYWH(node.GetDstRect().left_, node.GetDstRect().top_,
-        node.GetDstRect().width_, node.GetDstRect().height_);
-    BufferDrawParam params;
-    auto buffer = node.GetBuffer();
-    sptr<Surface> surface = node.GetConsumer();
-    if (!surface) {
-        return params;
-    }
-    if (!isClipHole && !buffer) {
-        return params;
-    }
-    params.matrix = GetCanvasTransform(node, canvasMatrix, rotation, dstRect);
-    params.acquireFence = node.GetAcquireFence();
-    const auto surfaceTransform = surface->GetTransform();
-    if (surfaceTransform == TransformType::ROTATE_90 || surfaceTransform == TransformType::ROTATE_270) {
-        params.dstRect = SkRect::MakeXYWH(0, 0, property.GetBoundsHeight(), property.GetBoundsWidth());
-    } else {
-        params.dstRect = SkRect::MakeXYWH(0, 0, property.GetBoundsWidth(), property.GetBoundsHeight());
-    }
-    params.clipRect = dstRect;
-    params.paint = paint;
-    params.property = &(node.GetRenderProperties());
-    params.cornerRadius = property.GetCornerRadius();
-    params.fullRect = SkRect::MakeXYWH(node.GetTotalMatrix().getTranslateX(), node.GetTotalMatrix().getTranslateY(),
-        property.GetBoundsWidth(), property.GetBoundsHeight());
-    params.isNeedClip = property.GetClipToFrame();
-    params.backgroundColor = static_cast<SkColor>(property.GetBackgroundColor().AsArgbInt());
-    if (!isClipHole) {
-        params.buffer = buffer;
-        params.srcRect = SkRect::MakeXYWH(0, 0, buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight());
-    }
-    return params;
-}
-
-void SetPropertiesForCanvas(RSPaintFilterCanvas& canvas, const BufferDrawParam& bufferDrawParam)
-{
-    if (bufferDrawParam.isNeedClip) {
-        if (!bufferDrawParam.cornerRadius.IsZero()) {
-            auto fullRect = bufferDrawParam.fullRect;
-            RectF rect(fullRect.left(), fullRect.top(), fullRect.width(), fullRect.height());
-            RRect rrect = RRect(rect, bufferDrawParam.cornerRadius);
-            canvas.clipRRect(RSPropertiesPainter::RRect2SkRRect(rrect), true);
-        } else {
-            canvas.clipRect(bufferDrawParam.clipRect);
-        }
-    }
-    if (SkColorGetA(bufferDrawParam.backgroundColor) != SK_AlphaTRANSPARENT) {
-        canvas.clear(bufferDrawParam.backgroundColor);
-    }
-    canvas.concat(bufferDrawParam.matrix);
-}
-
-void DrawShadowForCanvas(RSPaintFilterCanvas& canvas, const BufferDrawParam& bufferDrawParam)
-{
-    SkRect clipRect = bufferDrawParam.fullRect;
-    RectF rectShadow(clipRect.left(), clipRect.top(), clipRect.width(), clipRect.height());
-    RRect rrectShadow = RRect(rectShadow, bufferDrawParam.cornerRadius);
-    RSPropertiesPainter::DrawShadow(*(bufferDrawParam.property), canvas, &rrectShadow);
-}
-
-void RSDividedRenderUtil::ClipHole(RSPaintFilterCanvas& canvas, const BufferDrawParam& bufferDrawParam)
-{
-    canvas.save();
-    SetPropertiesForCanvas(canvas, bufferDrawParam);
-    canvas.clipRect(bufferDrawParam.dstRect);
-    canvas.clear(SK_ColorTRANSPARENT);
-    canvas.restore();
-}
-
-void RSDividedRenderUtil::DrawBuffer(RSPaintFilterCanvas& canvas, BufferDrawParam& bufferDrawParam,
-    CanvasPostProcess process)
-{
-    SkBitmap bitmap;
-    std::vector<uint8_t> newBuffer;
-    if (!RSBaseRenderUtil::ConvertBufferToBitmap(bufferDrawParam.buffer, newBuffer, bufferDrawParam.targetColorGamut,
-        bitmap)) {
-        RS_LOGE("RSDividedRenderUtil::DrawBuffer: create bitmap failed.");
-        return;
-    }
-    canvas.save();
-    DrawShadowForCanvas(canvas, bufferDrawParam); // Has a judgment in drawshadow，only when ets sets shadow, draw shadow
-    SetPropertiesForCanvas(canvas, bufferDrawParam);
-    if (process) {
-        process(canvas, bufferDrawParam);
-    }
-    canvas.drawBitmapRect(bitmap, bufferDrawParam.srcRect, bufferDrawParam.dstRect, &(bufferDrawParam.paint));
-    auto filter = std::static_pointer_cast<RSSkiaFilter>(bufferDrawParam.property->GetFilter());
-    if (filter != nullptr) {
-        auto skRectPtr = std::make_unique<SkRect>();
-        skRectPtr->setXYWH(0, 0, bufferDrawParam.srcRect.width(), bufferDrawParam.srcRect.height());
-        RSPropertiesPainter::DrawFilter(*(bufferDrawParam.property), canvas, filter, skRectPtr, canvas.GetSurface());
-    }
-    canvas.restore();
-}
-
-#ifdef RS_ENABLE_EGLIMAGE
-void RSDividedRenderUtil::DrawImage(std::shared_ptr<RSEglImageManager> eglImageManager, GrContext* grContext,
-    RSPaintFilterCanvas& canvas, BufferDrawParam& bufferDrawParam, CanvasPostProcess process)
-{
-    RS_TRACE_NAME("GpuClientComposition");
-    sk_sp<SkImage> image;
-    if (!RSBaseRenderUtil::ConvertBufferToEglImage(bufferDrawParam.buffer, eglImageManager, grContext,
-        bufferDrawParam.acquireFence, image)) {
-        RS_LOGE("RSDividedRenderUtil::DrawImage ConvertBufferToEglImage failed");
-        return;
-    }
-    canvas.save();
-    DrawShadowForCanvas(canvas, bufferDrawParam); // Has a judgment in drawshadow，only when ets sets shadow, draw shadow
-    SetPropertiesForCanvas(canvas, bufferDrawParam);
-    if (process) {
-        process(canvas, bufferDrawParam);
-    }
-    canvas.drawImageRect(image, bufferDrawParam.srcRect, bufferDrawParam.dstRect, &(bufferDrawParam.paint));
-    auto filter = std::static_pointer_cast<RSSkiaFilter>(bufferDrawParam.property->GetFilter());
-    if (filter != nullptr) {
-        auto skRectPtr = std::make_unique<SkRect>();
-        skRectPtr->setXYWH(0, 0, bufferDrawParam.srcRect.width(), bufferDrawParam.srcRect.height());
-        RSPropertiesPainter::DrawFilter(*(bufferDrawParam.property), canvas, filter, skRectPtr, canvas.GetSurface());
-    }
-    canvas.restore();
-}
-#endif // RS_ENABLE_EGLIMAGE
-
-void RSDividedRenderUtil::InitEnableClient()
-{
-    if (access("/etc/enable_client", F_OK) == 0) {
-        enableClient = true;
-    } else {
-        enableClient = false;
-    }
+    return (std::atoi((system::GetParameter("rosen.client_composition.enabled", "0")).c_str()) != 0);
 }
 } // namespace Rosen
 } // namespace OHOS
