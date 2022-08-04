@@ -48,7 +48,7 @@ ohos_shared_library("libgraphic_dumper_client") {
     "c_utils:utils",
     "hilog_native:libhilog",
     "ipc:ipc_core",
-    "samgr_standard:samgr_proxy",
+    "samgr:samgr_proxy",
   ]
 
   part_name = "graphic_standard"
@@ -102,7 +102,7 @@ ohos_executable("graphic_dumper_server") {
     "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
-    "samgr_standard:samgr_proxy",
+    "samgr:samgr_proxy",
   ]
 
   part_name = "graphic_standard"
@@ -157,7 +157,7 @@ ohos_executable("gdumper") {
     "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
-    "samgr_standard:samgr_proxy",
+    "samgr:samgr_proxy",
   ]
 
   part_name = "graphic_standard"

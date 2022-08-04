@@ -41,7 +41,7 @@ ohos_shared_library("windowanimationmanager_napi") {
     "ability_runtime:runtime",
     "ipc:ipc_core",
     "napi:ace_napi",
-    "samgr_standard:samgr_proxy",
+    "samgr:samgr_proxy",
     "window_manager:libwm",
   ]
 
