@@ -56,7 +56,7 @@ public:
     static bool IsBufferValid(const sptr<SurfaceBuffer>& buffer);
     static BufferRequestConfig GetFrameBufferRequestConfig(const ScreenInfo& screenInfo, bool isPhysical = true);
     static BufferDrawParam CreateBufferDrawParam(
-        RSSurfaceRenderNode& node, bool inLocalCoordinate = false, bool isClipHole = false);
+        const RSSurfaceRenderNode& node, bool inLocalCoordinate = false, bool isClipHole = false);
 
     static SkMatrix GetSurfaceTransformMatrix(const RSSurfaceRenderNode& node, const RectF& bounds);
     static SkMatrix GetNodeGravityMatrix(
@@ -72,8 +72,14 @@ public:
         SkBitmap& bitmap);
 
 private:
+    static void CalculateSurfaceNodeClipRects(
+        const RSSurfaceRenderNode& node,
+        const RectF& absBounds,
+        const RectF& localBounds,
+        bool inLocalCoordinate,
+        BufferDrawParam& params);
     static void DealWithSurfaceRotationAndGravity(
-        RSSurfaceRenderNode& node, RectF& bounds, BufferDrawParam &params);
+        const RSSurfaceRenderNode& node, RectF& bounds, BufferDrawParam& params);
     static bool CreateYuvToRGBABitMap(sptr<OHOS::SurfaceBuffer> buffer, std::vector<uint8_t>& newBuffer,
         SkBitmap& bitmap);
     static bool CreateNewColorGamutBitmap(sptr<OHOS::SurfaceBuffer> buffer, std::vector<uint8_t>& newGamutBuffer,

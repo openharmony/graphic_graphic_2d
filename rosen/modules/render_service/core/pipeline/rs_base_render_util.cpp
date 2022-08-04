@@ -708,7 +708,7 @@ SkMatrix RSBaseRenderUtil::GetNodeGravityMatrix(
 }
 
 void RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(
-    RSSurfaceRenderNode& node, RectF& localBounds, BufferDrawParam &params)
+    const RSSurfaceRenderNode& node, RectF& localBounds, BufferDrawParam& params)
 {
     // the surface can rotate itself.
     params.matrix.preConcat(RSBaseRenderUtil::GetSurfaceTransformMatrix(node, localBounds));
@@ -726,8 +726,31 @@ void RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(
     params.dstRect = params.srcRect;
 }
 
+void RSBaseRenderUtil::CalculateSurfaceNodeClipRects(
+    const RSSurfaceRenderNode& node,
+    const RectF& absBounds,
+    const RectF& localBounds,
+    bool inLocalCoordinate,
+    BufferDrawParam& params)
+{
+    const RSProperties& property = node.GetRenderProperties();
+    params.cornerRadius = property.GetCornerRadius();
+    params.isNeedClip = property.GetClipToFrame();
+    if (inLocalCoordinate) {
+        // in canvas's local coordinate system.
+        params.clipRect = SkRect::MakeWH(localBounds.GetWidth(), localBounds.GetHeight());
+        params.clipRRect = RRect(localBounds, params.cornerRadius);
+    } else {
+        // in logical screen's coordinate system.
+        const auto& clipRect = node.GetDstRect();
+        params.clipRect = SkRect::MakeXYWH(
+            clipRect.GetLeft(), clipRect.GetTop(), clipRect.GetWidth(), clipRect.GetHeight());
+        params.clipRRect = RRect(absBounds, params.cornerRadius);
+    }
+}
+
 BufferDrawParam RSBaseRenderUtil::CreateBufferDrawParam(
-    RSSurfaceRenderNode& node, bool inLocalCoordinate, bool isClipHole)
+    const RSSurfaceRenderNode& node, bool inLocalCoordinate, bool isClipHole)
 {
     BufferDrawParam params;
 #ifdef RS_ENABLE_EGLIMAGE
@@ -742,24 +765,15 @@ BufferDrawParam RSBaseRenderUtil::CreateBufferDrawParam(
     params.backgroundColor = static_cast<SkColor>(property.GetBackgroundColor().AsArgbInt());
 
     const RectF absBounds = {
-        property.GetBoundsPositionX(), property.GetBoundsPositionY(),
+        node.GetTotalMatrix().getTranslateX(), node.GetTotalMatrix().getTranslateY(),
         property.GetBoundsWidth(), property.GetBoundsHeight()};
     RectF localBounds = {0.0f, 0.0f, absBounds.GetWidth(), absBounds.GetHeight()};
 
-    // make clipRect and clipRRect(if has cornerRadius) for canvas,
-    // all these rects and bounds are in the logical screen's coordinate system.
-    params.isNeedClip = property.GetClipToFrame();
-    const auto& clipRect = node.GetDstRect();
-    params.clipRect = SkRect::MakeXYWH(
-        clipRect.GetLeft(), clipRect.GetTop(), clipRect.GetWidth(), clipRect.GetHeight());
-    const auto& cornerRadius = property.GetCornerRadius();
-    if (!cornerRadius.IsZero()) {
-        params.cornerRadius = cornerRadius;
-        params.clipRRect = RRect(absBounds, cornerRadius);
-    }
+    // calculate clipRect and clipRRect(if has cornerRadius) for canvas.
+    CalculateSurfaceNodeClipRects(node, absBounds, localBounds, inLocalCoordinate, params);
 
+    // init translate matrix.
     if (inLocalCoordinate) {
-        params.clipRect = SkRect::MakeWH(localBounds.GetWidth(), localBounds.GetHeight());
         params.matrix = SkMatrix::I();
     } else {
         // inLocalCoordinate is false: we should use node's totalMatrix to
