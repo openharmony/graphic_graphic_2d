@@ -33,7 +33,13 @@ config("libsurfaceimage_public_config") {
 }
 
 ohos_shared_library("libsurfaceimage") {
-  sources = [ "src/surface_image.cpp" ]
+  sources = []
+  if (surface_enable_gpu) {
+    sources += [
+      "src/native_image.cpp",
+      "src/surface_image.cpp",
+    ]
+  }
 
   configs = [ ":surfaceimage_config" ]
 

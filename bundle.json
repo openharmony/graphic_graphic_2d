@@ -72,6 +72,7 @@
             "//foundation/graphic/graphic_2d/frameworks/opengl_wrapper:debug_layer_test1",
             "//foundation/graphic/graphic_2d/frameworks/opengl_wrapper:debug_layer_test2",
             "//foundation/graphic/graphic_2d/frameworks/opengl_wrapper:opengl_wrapper_native_test",
+            "//foundation/graphic/graphic_2d/frameworks/surfaceimage:libsurfaceimage",
             "//foundation/graphic/graphic_2d/rosen/modules/effect/egl:libegl_effect"
           ],
           "fwk_group": [
@@ -101,6 +102,7 @@
                 "egl_surface.h",
                 "external_window.h",
                 "native_buffer.h",
+                "native_image.h",
                 "ibuffer_consumer_listener.h",
                 "ibuffer_producer.h",
                 "surface.h",

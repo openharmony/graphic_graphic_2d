@@ -33,6 +33,7 @@
       "build": {
         "sub_component": [
           "//foundation/graphic/graphic_2d/frameworks/surface:surface",
+          "//foundation/graphic/graphic_2d/frameworks/surfaceimage:libsurfaceimage",
           "//foundation/graphic/graphic_2d/utils/buffer_handle:buffer_handle"
         ],
         "inner_kits": [

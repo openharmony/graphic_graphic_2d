@@ -12,6 +12,7 @@
 # limitations under the License.
 
 import("//build/test.gni")
+import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
 module_out_path = "graphic_standard/surface"
 
@@ -28,6 +29,7 @@ group("unittest") {
     ":buffer_shared_test",
     ":consumer_surface_test",
     ":native_buffer_test",
+    ":native_image_test",
     ":native_window_test",
     ":producer_surface_test",
     ":surface_buffer_impl_test",
@@ -178,6 +180,20 @@ ohos_unittest("native_buffer_test") {
 
 ## UnitTest native_buffer_test }}}
 
+## UnitTest native_image_test {{{
+ohos_unittest("native_image_test") {
+  module_out_path = module_out_path
+
+  sources = []
+  if (surface_enable_gpu) {
+    sources += [ "native_image_test.cpp" ]
+  }
+
+  deps = [ ":surface_test_common" ]
+}
+
+## UnitTest native_image_test }}}
+
 ## Build surface_test_common.a {{{
 config("surface_test_common_public_config") {
   include_dirs = [
@@ -204,6 +220,7 @@ ohos_static_library("surface_test_common") {
     "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
     "//foundation/distributedschedule/samgr/interfaces/innerkits/samgr_proxy:samgr_proxy",
     "//foundation/graphic/graphic_2d:libsurface",
+    "//foundation/graphic/graphic_2d:libsurfaceimage",
     "//foundation/graphic/graphic_2d/utils:buffer_handle",
     "//foundation/graphic/graphic_2d/utils:libgraphic_utils",
     "//third_party/googletest:gtest_main",
