@@ -493,6 +493,7 @@ int32_t RSScreen::GetScreenSupportedMetaDataKeys(std::vector<ScreenHDRMetadataKe
         return INVALID_BACKLIGHT_VALUE;
     }
 
+    // ScreenHDRMetadataKey now is mock data.
     keys.push_back(ScreenHDRMetadataKey::MATAKEY_RED_PRIMARY_X);
     keys.push_back(ScreenHDRMetadataKey::MATAKEY_RED_PRIMARY_Y);
     keys.push_back(ScreenHDRMetadataKey::MATAKEY_GREEN_PRIMARY_X);
@@ -578,7 +579,7 @@ int32_t RSScreen::GetScreenGamutMap(ScreenGamutMap &mode) const
 
 const HDRCapability& RSScreen::GetHDRCapability()
 {
-    hdrCapability_.maxLum = 1000;
+    hdrCapability_.maxLum = 1000; // maxLum now is mock data
     return hdrCapability_;
 }
 
