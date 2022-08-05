@@ -65,7 +65,8 @@ void RSTimeOutDetector::SetLoopFinishTag()
 {
     uint64_t finishTimeStampMs = RSEventTimer::GetSysTimeMs();
     RS_LOGD("RSTimeOutDetector :: One loop cost Time: %" PRIu64 " ", finishTimeStampMs - startTimeStampMs_);
-    if (finishTimeStampMs > startTimeStampMs_ && finishTimeStampMs - startTimeStampMs_ > timeOutThresholdMs_) {
+    if (finishTimeStampMs > startTimeStampMs_ &&
+        finishTimeStampMs - startTimeStampMs_ > static_cast<uint64_t>(timeOutThresholdMs_)) {
         EventReport(finishTimeStampMs - startTimeStampMs_);
     }
 }

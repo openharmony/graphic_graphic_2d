@@ -143,7 +143,7 @@ bool RSComposerAdapter::IsOutOfScreenRegion(const ComposeInfo& info) const
     return false;
 }
 
-void RSComposerAdapter::DealWithNodeGravity(RSSurfaceRenderNode& node, ComposeInfo& info) const
+void RSComposerAdapter::DealWithNodeGravity(const RSSurfaceRenderNode& node, ComposeInfo& info) const
 {
     const auto& property = node.GetRenderProperties();
     const float frameWidth = info.buffer->GetSurfaceBufferWidth();

@@ -66,7 +66,7 @@ private:
         const ComposeInfo& info,
         const sptr<Surface>& surface,
         RSBaseRenderNode* node) const;
-    void DealWithNodeGravity(RSSurfaceRenderNode& node, ComposeInfo& info) const;
+    void DealWithNodeGravity(const RSSurfaceRenderNode& node, ComposeInfo& info) const;
 
     void LayerRotate(const LayerInfoPtr& layer) const;
     void LayerCrop(const LayerInfoPtr& layer) const;

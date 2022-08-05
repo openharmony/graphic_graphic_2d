@@ -194,10 +194,11 @@ void RSAshmemHelper::InjectFileDescriptor(std::shared_ptr<MessageParcel>& dataPa
     for (size_t i = 0; i < objectNum; i++) {
         flat_binder_object* flat = reinterpret_cast<flat_binder_object*>(data + object[i]);
         if (flat->hdr.type == BINDER_TYPE_FD) {
-            flat->handle = ashmemParcel->ReadFileDescriptor();
-            if (flat->handle < 0) {
-                ROSEN_LOGE("RSAshmemHelper::InjectFileDescriptor failed, fd:%d", flat->handle);
+            int32_t val = ashmemParcel->ReadFileDescriptor();
+            if (val < 0) {
+                ROSEN_LOGW("RSAshmemHelper::InjectFileDescriptor failed, fd:%d", val);
             }
+            flat->handle = static_cast<uint32_t>(val);
         }
     }
 }
