@@ -16,6 +16,7 @@
 #ifndef RENDER_SERVICE_CORE_PIPELINE_RS_BASE_RENDER_UTIL_H
 #define RENDER_SERVICE_CORE_PIPELINE_RS_BASE_RENDER_UTIL_H
 
+#include <vector>
 #include "include/core/SkBitmap.h"
 #include "include/core/SkCanvas.h"
 #include "include/core/SkColor.h"
@@ -49,6 +50,8 @@ struct BufferDrawParam {
     ColorGamut targetColorGamut = ColorGamut::COLOR_GAMUT_SRGB;
 
     bool useCPU = false;
+    std::vector<HDRMetaData> metaDatas = {}; // static meta datas for HDR10
+    HDRMetaDataSet metaDataSet; // dynamic meta datas for HDR10+, HDR VIVID
 };
 
 class RSBaseRenderUtil {
@@ -68,8 +71,8 @@ public:
 
     static std::unique_ptr<RSTransactionData> ParseTransactionData(MessageParcel& parcel);
 
-    static bool ConvertBufferToBitmap(sptr<SurfaceBuffer> buffer, std::vector<uint8_t>& newBuffer, ColorGamut dstGamut,
-        SkBitmap& bitmap);
+    static bool ConvertBufferToBitmap(sptr<SurfaceBuffer> buffer, ColorGamut dstGamut, SkBitmap& bitmap,
+        const std::vector<HDRMetaData>& metaDatas = {});
 
 private:
     static void CalculateSurfaceNodeClipRects(
@@ -82,8 +85,8 @@ private:
         const RSSurfaceRenderNode& node, RectF& bounds, BufferDrawParam& params);
     static bool CreateYuvToRGBABitMap(sptr<OHOS::SurfaceBuffer> buffer, std::vector<uint8_t>& newBuffer,
         SkBitmap& bitmap);
-    static bool CreateNewColorGamutBitmap(sptr<OHOS::SurfaceBuffer> buffer, std::vector<uint8_t>& newGamutBuffer,
-        SkBitmap& bitmap, ColorGamut srcGamut, ColorGamut dstGamut);
+    static bool CreateNewColorGamutBitmap(sptr<OHOS::SurfaceBuffer> buffer, SkBitmap& bitmap,
+        ColorGamut srcGamut, ColorGamut dstGamut, const std::vector<HDRMetaData>& metaDatas = {});
     static bool CreateBitmap(sptr<OHOS::SurfaceBuffer> buffer, SkBitmap& bitmap);
 };
 } // namespace Rosen
