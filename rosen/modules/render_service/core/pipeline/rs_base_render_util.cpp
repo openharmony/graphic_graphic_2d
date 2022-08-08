@@ -448,7 +448,8 @@ Offset RGBUintToFloat(uint8_t* dst, uint8_t* src, int32_t pixelFormat, Vector3f 
         dst[3] = RGBFloatToUint8(RGBUint10ToFloat(src16[3]));
         const uint8_t outPixelBits = 4;
         const uint8_t inPixelBits = 8;
-        return std::make_pair(inPixelBits, outPixelBits); // 8 bytes per pixel and HDR pictures are always redrawn as sRGB
+        // 8 bytes per pixel and HDR pictures are always redrawn as sRGB
+        return std::make_pair(inPixelBits, outPixelBits);
     }
     if (pixelFormat == STUB_PIXEL_FMT_RGBA_1010102) {
         auto src32 = reinterpret_cast<const uint32_t*>(src);
