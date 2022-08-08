@@ -143,6 +143,12 @@ public:
     {
         colorFilterMode_ = mode;
     }
+#ifdef RS_ENABLE_GL
+    const std::shared_ptr<RenderContext>& GetRenderContext() const
+    {
+        return renderContext_;
+    }
+#endif // RS_ENABLE_GL
 private:
     void DrawBuffer(RSPaintFilterCanvas& canvas, BufferDrawParam& drawParams);
     void DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam& drawParams);
