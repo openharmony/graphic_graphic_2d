@@ -942,10 +942,8 @@ BufferDrawParam RSBaseRenderUtil::CreateBufferDrawParam(
     } else {
         // inLocalCoordinate is false: we should use node's totalMatrix to
         // translate the canvas to the node's left-top point first.
-        auto matrix = node.GetTotalMatrix();
-        matrix.setTranslateX(std::ceil(matrix.getTranslateX()));
-        matrix.setTranslateY(std::ceil(matrix.getTranslateY()));
-        params.matrix = std::move(matrix);
+        const auto& matrix = node.GetTotalMatrix();
+        params.matrix.setTranslate(std::ceil(matrix.getTranslateX()), std::ceil(matrix.getTranslateY()));
     }
 
     // deal with node's rotation.
