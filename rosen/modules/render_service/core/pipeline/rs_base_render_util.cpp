@@ -15,7 +15,6 @@
 
 #include "rs_base_render_util.h"
 
-#include <bits/stdint-uintn.h>
 #include <unordered_set>
 
 #include "common/rs_matrix3.h"
