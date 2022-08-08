@@ -146,9 +146,9 @@ void HdiBackend::Repaint(std::vector<OutputPtr> &outputs)
         }
 
         OnPrepareComplete(needFlush, output, newLayerInfos);
-
+        sptr<SurfaceBuffer> frameBuffer = nullptr;
         if (needFlush) {
-            if (FlushScreen(output, compClientLayers) != DISPLAY_SUCCESS) {
+            if (FlushScreen(output, compClientLayers, frameBuffer) != DISPLAY_SUCCESS) {
                 // return
             }
         }
@@ -173,6 +173,8 @@ void HdiBackend::Repaint(std::vector<OutputPtr> &outputs)
         if (ret) {
             sampler_->BeginSample();
         }
+
+        ReleaseFramebuffer(output, fbFence, frameBuffer);
         lastPresentFence_ = fbFence;
         HLOGD("%{public}s: end", __func__);
     }
@@ -230,7 +232,8 @@ void HdiBackend::ReorderLayerInfo(std::vector<LayerInfoPtr> &newLayerInfos)
     std::sort(newLayerInfos.begin(), newLayerInfos.end(), Cmp);
 }
 
-int32_t HdiBackend::FlushScreen(const OutputPtr &output, std::vector<LayerPtr> &compClientLayers)
+int32_t HdiBackend::FlushScreen(
+    const OutputPtr &output, std::vector<LayerPtr> &compClientLayers, sptr<SurfaceBuffer> &buffer)
 {
     auto fbEntry = output->GetFramebuffer();
     if (fbEntry == nullptr) {
@@ -238,18 +241,26 @@ int32_t HdiBackend::FlushScreen(const OutputPtr &output, std::vector<LayerPtr> &
         return -1;
     }
 
-    if (lastFrameBuffers_.find(output->GetScreenId()) != lastFrameBuffers_.end()) {
-        // wrong check
-        (void)output->ReleaseFramebuffer(lastFrameBuffers_[output->GetScreenId()], lastPresentFence_);
-    }
-    lastFrameBuffers_[output->GetScreenId()] = fbEntry->buffer;
-
     const auto& fbAcquireFence = fbEntry->acquireFence;
     for (auto &layer : compClientLayers) {
         layer->MergeWithFramebufferFence(fbAcquireFence);
     }
 
+    buffer = fbEntry->buffer;
     return SetScreenClientInfo(*fbEntry, output);
+}
+
+void HdiBackend::ReleaseFramebuffer(
+    const OutputPtr &output, sptr<SyncFence> &presentFence, const sptr<SurfaceBuffer> &buffer)
+{
+    if (buffer == nullptr) {
+        return;
+    }
+    if (lastFrameBuffers_.find(output->GetScreenId()) != lastFrameBuffers_.end()) {
+        // wrong check
+        (void)output->ReleaseFramebuffer(lastFrameBuffers_[output->GetScreenId()], presentFence);
+    }
+    lastFrameBuffers_[output->GetScreenId()] = buffer;
 }
 
 int32_t HdiBackend::SetScreenClientInfo(const FrameBufferEntry &fbEntry, const OutputPtr &output)

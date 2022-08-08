@@ -123,12 +123,6 @@ int32_t HdiFramebufferSurface::ReleaseFramebuffer(
         return 0;
     }
 
-    // [PLANNING]: we should not wait fence at here, this is just a work-around.
-    // mali driver maybe not use this fence.
-    if (releaseFence != nullptr) {
-        releaseFence->Wait(3000); // timeout: 3000ms
-    }
-
     SurfaceError ret = consumerSurface_->ReleaseBuffer(buffer, releaseFence);
     if (ret != SURFACE_ERROR_OK) {
         HLOGE("ReleaseBuffer failed ret is %{public}d", ret);
