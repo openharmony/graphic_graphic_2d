@@ -83,7 +83,7 @@ ohos_shared_library("librender_service") {
     "hitrace_native:hitrace_meter",
     "init:libbegetutil",
     "ipc:ipc_core",
-    "samgr_standard:samgr_proxy",
+    "samgr:samgr_proxy",
   ]
 
   part_name = "graphic_standard"

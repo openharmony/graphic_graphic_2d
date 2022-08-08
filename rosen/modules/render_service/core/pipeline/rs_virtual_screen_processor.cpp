@@ -50,7 +50,10 @@ bool RSVirtualScreenProcessor::Init(RSDisplayRenderNode& node, int32_t offsetX, 
         return false;
     }
 
-    renderFrame_ = renderEngine_->RequestFrame(producerSurface_, renderFrameConfig_);
+    // this is a work-around for the lack of color gamut conversion and yuv support in GPU.
+    // currently we must forceCPU to do the composition for virtual screen.
+    bool forceCPU = true;
+    renderFrame_ = renderEngine_->RequestFrame(producerSurface_, renderFrameConfig_, forceCPU);
     if (renderFrame_ == nullptr) {
         return false;
     }
@@ -85,7 +88,10 @@ void RSVirtualScreenProcessor::ProcessSurface(RSSurfaceRenderNode& node)
     RS_TRACE_NAME(traceInfo);
 
     // prepare BufferDrawParam
-    auto params = RSBaseRenderUtil::CreateBufferDrawParam(node, false); // in display's coordinate.
+    // in display's coordinate.
+    // clipHole: false.
+    // forceCPU: true.
+    auto params = RSBaseRenderUtil::CreateBufferDrawParam(node, false, false, true);
     const float adaptiveDstWidth = params.dstRect.width() * mirrorAdaptiveCoefficient_;
     const float adaptiveDstHeight = params.dstRect.height() * mirrorAdaptiveCoefficient_;
     params.dstRect.setWH(adaptiveDstWidth, adaptiveDstHeight);

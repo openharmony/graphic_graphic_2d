@@ -18,6 +18,7 @@
 
 #include "common/rs_common_def.h"
 #include "include/core/SkCanvas.h"
+#include "include/core/SkMatrix.h"
 #include "include/core/SkSurface.h"
 #include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
@@ -38,7 +39,7 @@ public:
 private:
     class RSSurfaceCaptureVisitor : public RSNodeVisitor {
     public:
-        RSSurfaceCaptureVisitor();
+        RSSurfaceCaptureVisitor(float scaleX, float scaleY);
         ~RSSurfaceCaptureVisitor() noexcept override = default;
         virtual void PrepareBaseRenderNode(RSBaseRenderNode& node) override {}
         virtual void PrepareDisplayRenderNode(RSDisplayRenderNode& node) override {}
@@ -56,11 +57,6 @@ private:
         {
             isDisplayNode_ = isDisplayNode;
         }
-        void SetScale(float scaleX, float scaleY)
-        {
-            scaleX_ = scaleX;
-            scaleY_ = scaleY;
-        }
 
         void SetUniRender(bool flag)
         {
@@ -74,7 +70,11 @@ private:
 
     private:
         void ProcessSurfaceRenderNodeWithUni(RSSurfaceRenderNode& node);
+        void CaptureSingleSurfaceNodeWithUni(RSSurfaceRenderNode& node);
+        void CaptureSurfaceInDisplayWithUni(RSSurfaceRenderNode& node);
         void ProcessSurfaceRenderNodeWithoutUni(RSSurfaceRenderNode& node);
+        void CaptureSingleSurfaceNodeWithoutUni(RSSurfaceRenderNode& node);
+        void CaptureSurfaceInDisplayWithoutUni(RSSurfaceRenderNode& node);
         std::unique_ptr<RSPaintFilterCanvas> canvas_ = nullptr;
         bool isDisplayNode_ = false;
         float scaleX_ = 1.0f;

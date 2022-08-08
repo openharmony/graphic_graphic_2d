@@ -96,7 +96,7 @@ ohos_shared_library("wms_client") {
     "hitrace_native:hitrace_meter",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
-    "samgr_standard:samgr_proxy",
+    "samgr:samgr_proxy",
   ]
 
   public_deps = [ "//foundation/graphic/graphic_2d:libsurface" ]
@@ -198,7 +198,7 @@ ohos_shared_library("libwmclient") {
     "hitrace_native:hitrace_meter",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
-    "samgr_standard:samgr_proxy",
+    "samgr:samgr_proxy",
   ]
 
   public_deps = [

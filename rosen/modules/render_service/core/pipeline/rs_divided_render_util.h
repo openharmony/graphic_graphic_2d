@@ -23,8 +23,6 @@ namespace OHOS {
 namespace Rosen {
 class RSDividedRenderUtil {
 public:
-    static void DealAnimation(RSPaintFilterCanvas& canvas, RSSurfaceRenderNode& node, BufferDrawParam& params,
-        const Vector2f& center);
     static void InitEnableClient();
     static bool IsNeedClient(RSSurfaceRenderNode& node, const ComposeInfo& info);
     static void SetNeedClient(bool flag);

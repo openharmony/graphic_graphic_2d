@@ -18,6 +18,7 @@
 
 #include <atomic>
 #include <mutex>
+#include <array>
 #include <consumer_surface.h>
 
 #include <EGL/egl.h>
@@ -43,6 +44,8 @@ struct ImageCacheSeq {
     EGLImageKHR eglImage_;
     EGLSyncKHR eglSync_;
 };
+
+static constexpr int64_t TRANSFORM_MATRIX_ELE_COUNT = 16;
 
 class SurfaceImage : public ConsumerSurface {
 public:
@@ -72,19 +75,24 @@ public:
         return updateSurfaceImage_;
     }
 
-    SurfaceError AttachContext();
+    SurfaceError AttachContext(uint32_t textureId);
     SurfaceError DetachContext();
+
+    SurfaceError GetTransformMatrix(float matrix[16]);
 
 protected:
     SurfaceError AcquireBuffer(sptr<SurfaceBuffer>& buffer, int32_t &fence,
                                int64_t &timestamp, Rect &damage) override;
     SurfaceError ReleaseBuffer(sptr<SurfaceBuffer>& buffer, int32_t fence) override;
 
+    void ComputeTransformMatrix();
+
 private:
     SurfaceError ValidateEglState();
     EGLImageKHR CreateEGLImage(EGLDisplay disp, const sptr<SurfaceBuffer>& buffer);
     SurfaceError WaitReleaseEGLSync(EGLDisplay disp);
     SurfaceError WaitOnFence();
+    std::array<float, 16> MatrixProduct(const std::array<float, 16>& lMat, const std::array<float, 16>& rMat);
 
     uint32_t textureId_;
     uint32_t textureTarget_;
@@ -101,6 +109,9 @@ private:
     sptr<SurfaceBuffer> currentSurfaceBuffer_;
     int32_t currentSurfaceBufferFence_;
     int64_t currentTimeStamp_;
+    Rect currentCrop_;
+    TransformType currentTransformType_;
+    std::array<float, TRANSFORM_MATRIX_ELE_COUNT> currentTransformMatrix_ {};
 };
 
 class SurfaceImageListener : public IBufferConsumerListener {

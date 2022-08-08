@@ -85,20 +85,6 @@ bool RSDividedRenderUtil::IsNeedClient(RSSurfaceRenderNode& node, const ComposeI
     }
 }
 
-void RSDividedRenderUtil::DealAnimation(RSPaintFilterCanvas& canvas, RSSurfaceRenderNode& node, BufferDrawParam& params,
-    const Vector2f& center)
-{
-    auto transitionProperties = node.GetAnimationManager().GetTransitionProperties();
-    RSPropertiesPainter::DrawTransitionProperties(transitionProperties, center, canvas);
-    const RSProperties& property = node.GetRenderProperties();
-    auto filter = std::static_pointer_cast<RSSkiaFilter>(property.GetBackgroundFilter());
-    if (filter != nullptr) {
-        auto skRectPtr = std::make_unique<SkRect>();
-        skRectPtr->setXYWH(0, 0, params.srcRect.width(), params.srcRect.height());
-        RSPropertiesPainter::DrawFilter(property, canvas, filter, skRectPtr, canvas.GetSurface());
-    }
-}
-
 bool RSDividedRenderUtil::IsForceClient()
 {
     return (std::atoi((system::GetParameter("rosen.client_composition.enabled", "0")).c_str()) != 0);
