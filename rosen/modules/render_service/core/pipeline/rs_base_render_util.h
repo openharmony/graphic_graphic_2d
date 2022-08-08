@@ -56,11 +56,15 @@ public:
     static bool IsBufferValid(const sptr<SurfaceBuffer>& buffer);
     static BufferRequestConfig GetFrameBufferRequestConfig(const ScreenInfo& screenInfo, bool isPhysical = true);
     static BufferDrawParam CreateBufferDrawParam(
-        const RSSurfaceRenderNode& node, bool inLocalCoordinate = false, bool isClipHole = false);
+        const RSSurfaceRenderNode& node,
+        bool inLocalCoordinate = false,
+        bool isClipHole = false,
+        bool forceCPU = false);
 
     static SkMatrix GetSurfaceTransformMatrix(const RSSurfaceRenderNode& node, const RectF& bounds);
     static SkMatrix GetNodeGravityMatrix(
         const RSSurfaceRenderNode& node, const sptr<SurfaceBuffer>& buffer, const RectF& bounds);
+    static void SetPropertiesForCanvas(RSPaintFilterCanvas& canvas, const BufferDrawParam& params);
 
     static void DropFrameProcess(RSSurfaceHandler& surfaceHandler);
     static bool ConsumeAndUpdateBuffer(RSSurfaceHandler& surfaceHandler);

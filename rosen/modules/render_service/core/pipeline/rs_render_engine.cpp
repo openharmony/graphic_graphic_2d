@@ -19,6 +19,7 @@
 #include "platform/ohos/backend/rs_surface_ohos_gl.h"
 #include "platform/ohos/backend/rs_surface_ohos_raster.h"
 #include "platform/common/rs_system_properties.h"
+#include "property/rs_transition_properties.h"
 #include "render/rs_skia_filter.h"
 #include "rs_divided_render_util.h"
 #include "rs_trace.h"
@@ -74,33 +75,6 @@ static const sk_sp<SkColorFilter>& TritanomalyMat()
     };
     static auto tritanomalyMat = SkColorFilters::Matrix(colorMatrix);
     return tritanomalyMat;
-}
-
-void SetPropertiesForCanvas(RSPaintFilterCanvas& canvas, const BufferDrawParam& bufferDrawParam)
-{
-    if (bufferDrawParam.isNeedClip) {
-        if (!bufferDrawParam.cornerRadius.IsZero()) {
-            canvas.clipRRect(RSPropertiesPainter::RRect2SkRRect(bufferDrawParam.clipRRect), true);
-        } else {
-            canvas.clipRect(bufferDrawParam.clipRect);
-        }
-    }
-    if (SkColorGetA(bufferDrawParam.backgroundColor) != SK_AlphaTRANSPARENT) {
-        canvas.clear(bufferDrawParam.backgroundColor);
-    }
-    canvas.concat(bufferDrawParam.matrix);
-}
-
-void DrawBufferPostProcess(
-    RSPaintFilterCanvas& canvas,
-    RSSurfaceRenderNode& node,
-    BufferDrawParam& params,
-    Vector2f& center)
-{
-    RSDividedRenderUtil::DealAnimation(canvas, node, params, center);
-    RectF maskBounds(0, 0, params.dstRect.width(), params.dstRect.height());
-    RSPropertiesPainter::DrawMask(
-        node.GetRenderProperties(), canvas, RSPropertiesPainter::Rect2SkRect(maskBounds));
 }
 } // namespace Detail
 
@@ -302,7 +276,7 @@ void RSRenderEngine::ClipHoleForLayer(
     RS_TRACE_NAME(traceInfo);
 
     canvas.save();
-    Detail::SetPropertiesForCanvas(canvas, params);
+    RSBaseRenderUtil::SetPropertiesForCanvas(canvas, params);
     canvas.clipRect(params.clipRect);
     canvas.clear(SK_ColorTRANSPARENT);
     canvas.restore();
@@ -337,50 +311,99 @@ void RSRenderEngine::SetColorFilterModeToPaint(SkPaint& paint)
     }
 }
 
-void RSRenderEngine::DrawBuffer(RSPaintFilterCanvas& canvas, BufferDrawParam& drawParams,
-    CanvasPostProcess process)
+void RSRenderEngine::DrawBuffer(RSPaintFilterCanvas& canvas, BufferDrawParam& params)
 {
     SkBitmap bitmap;
     std::vector<uint8_t> newBuffer;
-    if (!RSBaseRenderUtil::ConvertBufferToBitmap(drawParams.buffer, newBuffer, drawParams.targetColorGamut,
+    if (!RSBaseRenderUtil::ConvertBufferToBitmap(params.buffer, newBuffer, params.targetColorGamut,
         bitmap)) {
         RS_LOGE("RSDividedRenderUtil::DrawBuffer: create bitmap failed.");
         return;
     }
-    Detail::SetPropertiesForCanvas(canvas, drawParams);
-    if (process) {
-        process(canvas, drawParams);
-    }
-    canvas.drawBitmapRect(bitmap, drawParams.srcRect, drawParams.dstRect, &(drawParams.paint));
+    canvas.drawBitmapRect(bitmap, params.srcRect, params.dstRect, &(params.paint));
 }
 
-void RSRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam& drawParams,
-    const sk_sp<SkImage>& image, CanvasPostProcess process)
+void RSRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam& params)
 {
     RS_TRACE_NAME("RSRenderEngine::DrawImage(GPU)");
+    auto image = CreateEglImageFromBuffer(params.buffer, params.acquireFence);
     if (image == nullptr) {
         RS_LOGE("RSDividedRenderUtil::DrawImage: image is nullptr!");
         return;
     }
 
-    Detail::SetPropertiesForCanvas(canvas, drawParams);
-    if (process) {
-        process(canvas, drawParams);
-    }
-    canvas.drawImageRect(image, drawParams.srcRect, drawParams.dstRect, &(drawParams.paint));
+    canvas.drawImageRect(image, params.srcRect, params.dstRect, &(params.paint));
 }
 
 void RSRenderEngine::DrawWithParams(RSPaintFilterCanvas& canvas, BufferDrawParam& params,
-    CanvasPostProcess process)
+    PreProcessFunc preProcess, PostProcessFunc postProcess)
 {
     SetColorFilterModeToPaint(params.paint);
 
+    canvas.save();
+
+    RSBaseRenderUtil::SetPropertiesForCanvas(canvas, params);
+
+    if (preProcess != nullptr) {
+        preProcess(canvas, params);
+    }
+
     if (params.useCPU) {
-        RSRenderEngine::DrawBuffer(canvas, params, process);
+        RSRenderEngine::DrawBuffer(canvas, params);
     } else {
-        const auto& buffer = params.buffer;
-        const auto& acquireFence = params.acquireFence;
-        RSRenderEngine::DrawImage(canvas, params, CreateEglImageFromBuffer(buffer, acquireFence), process);
+        RSRenderEngine::DrawImage(canvas, params);
+    }
+
+    if (postProcess != nullptr) {
+        postProcess(canvas, params);
+    }
+
+    canvas.restore();
+}
+
+void RSRenderEngine::RSSurfaceNodeCommonPreProcess(
+    RSSurfaceRenderNode& node,
+    RSPaintFilterCanvas& canvas,
+    BufferDrawParam& params)
+{
+    const auto& property = node.GetRenderProperties();
+
+    // deal with animation.
+    Vector2f center(node.GetDstRect().left_ + node.GetDstRect().width_ * 0.5f,
+        node.GetDstRect().top_ + node.GetDstRect().height_ * 0.5f);
+    auto transitionProperties = node.GetAnimationManager().GetTransitionProperties();
+    RSPropertiesPainter::DrawTransitionProperties(transitionProperties, center, canvas);
+
+    // draw mask.
+    RectF maskBounds(0, 0, params.dstRect.width(), params.dstRect.height());
+    RSPropertiesPainter::DrawMask(
+        node.GetRenderProperties(), canvas, RSPropertiesPainter::Rect2SkRect(maskBounds));
+
+    // draw shadow.
+    RSPropertiesPainter::DrawShadow(property, canvas, &params.clipRRect);
+
+    // draw background filter (should execute this filter before drawing buffer/image).
+    auto filter = std::static_pointer_cast<RSSkiaFilter>(property.GetBackgroundFilter());
+    if (filter != nullptr) {
+        auto skRectPtr = std::make_unique<SkRect>();
+        skRectPtr->setXYWH(0, 0, params.srcRect.width(), params.srcRect.height());
+        RSPropertiesPainter::DrawFilter(property, canvas, filter, skRectPtr, canvas.GetSurface());
+    }
+}
+
+void RSRenderEngine::RSSurfaceNodeCommonPostProcess(
+    RSSurfaceRenderNode& node,
+    RSPaintFilterCanvas& canvas,
+    BufferDrawParam& params)
+{
+    const auto& property = node.GetRenderProperties();
+
+    // draw preprocess filter (should execute this filter after drawing buffer/image).
+    auto filter = std::static_pointer_cast<RSSkiaFilter>(property.GetFilter());
+    if (filter != nullptr) {
+        auto skRectPtr = std::make_unique<SkRect>();
+        skRectPtr->setXYWH(0, 0, params.srcRect.width(), params.srcRect.height());
+        RSPropertiesPainter::DrawFilter(property, canvas, filter, skRectPtr, canvas.GetSurface());
     }
 }
 
@@ -388,7 +411,8 @@ void RSRenderEngine::DrawSurfaceNodeWithParams(
     RSPaintFilterCanvas& canvas,
     RSSurfaceRenderNode& node,
     BufferDrawParam& params,
-    CanvasPostProcess process)
+    PreProcessFunc preProcess,
+    PostProcessFunc postProcess)
 {
     if (!params.useCPU) {
 #ifdef RS_ENABLE_EGLIMAGE
@@ -403,19 +427,27 @@ void RSRenderEngine::DrawSurfaceNodeWithParams(
 #endif // #ifdef RS_ENABLE_EGLIMAGE
     }
 
-    canvas.save();
-    const auto& property = node.GetRenderProperties();
-    RSPropertiesPainter::DrawShadow(property, canvas, &params.clipRRect);
+    auto nodePreProcessFunc = [&preProcess, &node](RSPaintFilterCanvas& canvas, BufferDrawParam& params) {
+        // call the preprocess func passed in first.
+        if (preProcess != nullptr) {
+            preProcess(canvas, params);
+        }
 
-    DrawWithParams(canvas, params, process);
+        // call RSSurfaceNode's common preprocess func.
+        RSRenderEngine::RSSurfaceNodeCommonPreProcess(node, canvas, params);
+    };
 
-    auto filter = std::static_pointer_cast<RSSkiaFilter>(property.GetFilter());
-    if (filter != nullptr) {
-        auto skRectPtr = std::make_unique<SkRect>();
-        skRectPtr->setXYWH(0, 0, params.srcRect.width(), params.srcRect.height());
-        RSPropertiesPainter::DrawFilter(property, canvas, filter, skRectPtr, canvas.GetSurface());
-    }
-    canvas.restore();
+    auto nodePostProcessFunc = [&postProcess, &node](RSPaintFilterCanvas& canvas, BufferDrawParam& params) {
+        // call the postProcess func passed in first.
+        if (postProcess != nullptr) {
+            postProcess(canvas, params);
+        }
+
+        // call RSSurfaceNode's common postProcess func.
+        RSRenderEngine::RSSurfaceNodeCommonPostProcess(node, canvas, params);
+    };
+
+    DrawWithParams(canvas, params, nodePreProcessFunc, nodePostProcessFunc);
 }
 
 void RSRenderEngine::DrawSurfaceNode(
@@ -431,15 +463,7 @@ void RSRenderEngine::DrawSurfaceNode(
     params.dstRect.setWH(adaptiveDstWidth, adaptiveDstHeight);
     params.useCPU = forceCPU;
 
-    // prepare PostProcessFunc
-    Vector2f center(node.GetDstRect().left_ + node.GetDstRect().width_ * 0.5f,
-        node.GetDstRect().top_ + node.GetDstRect().height_ * 0.5f);
-    auto drawBufferPostProcessFunc = [this, &node, &center](RSPaintFilterCanvas& canvas,
-        BufferDrawParam& params) -> void {
-        Detail::DrawBufferPostProcess(canvas, node, params, center);
-    };
-
-    DrawSurfaceNodeWithParams(canvas, node, params, drawBufferPostProcessFunc);
+    DrawSurfaceNodeWithParams(canvas, node, params);
 }
 
 void RSRenderEngine::ShrinkCachesIfNeeded()

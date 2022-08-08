@@ -90,7 +90,10 @@ private:
     std::unique_ptr<RSSurfaceFrame> surfaceFrame_;
 };
 
-using CanvasPostProcess = std::function<void(RSPaintFilterCanvas&, BufferDrawParam&)>;
+// function that will be called before drawing Buffer / Image.
+using PreProcessFunc = std::function<void(RSPaintFilterCanvas&, BufferDrawParam&)>;
+// function that will be called after drawing Buffer / Image.
+using PostProcessFunc = std::function<void(RSPaintFilterCanvas&, BufferDrawParam&)>;
 
 // This render engine aims to do the client composition for all surfaces that hardware can't handle.
 class RSRenderEngine {
@@ -119,17 +122,15 @@ public:
         const BufferRequestConfig& config,
         bool forceCPU = false);
 
-    static void DrawBuffer(RSPaintFilterCanvas& canvas, BufferDrawParam& drawParams,
-        CanvasPostProcess process = nullptr);
-    static void DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam& drawParams, const sk_sp<SkImage>& image,
-        CanvasPostProcess process = nullptr);
-    void DrawWithParams(RSPaintFilterCanvas& canvas, BufferDrawParam& params, CanvasPostProcess = nullptr);
+    void DrawWithParams(RSPaintFilterCanvas& canvas, BufferDrawParam& params,
+        PreProcessFunc preProcess = nullptr, PostProcessFunc postProcess = nullptr);
 
     void DrawSurfaceNodeWithParams(
         RSPaintFilterCanvas& canvas,
         RSSurfaceRenderNode& node,
-        BufferDrawParam& drawParams,
-        CanvasPostProcess process = nullptr);
+        BufferDrawParam& params,
+        PreProcessFunc preProcess = nullptr,
+        PostProcessFunc postProcess = nullptr);
 
     void DrawLayers(
         RSPaintFilterCanvas& canvas,
@@ -143,6 +144,18 @@ public:
         colorFilterMode_ = mode;
     }
 private:
+    void DrawBuffer(RSPaintFilterCanvas& canvas, BufferDrawParam& drawParams);
+    void DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam& drawParams);
+
+    static void RSSurfaceNodeCommonPreProcess(
+        RSSurfaceRenderNode& node,
+        RSPaintFilterCanvas& canvas,
+        BufferDrawParam& drawParams);
+    static void RSSurfaceNodeCommonPostProcess(
+        RSSurfaceRenderNode& node,
+        RSPaintFilterCanvas& canvas,
+        BufferDrawParam& drawParams);
+
     // This func can only by called in DrawLayers().
     void ClipHoleForLayer(
         RSPaintFilterCanvas& canvas,

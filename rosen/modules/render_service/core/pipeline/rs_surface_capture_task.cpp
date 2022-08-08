@@ -51,7 +51,7 @@ std::unique_ptr<Media::PixelMap> RSSurfaceCaptureTask::Run()
         return nullptr;
     }
     std::unique_ptr<Media::PixelMap> pixelmap;
-    std::shared_ptr<RSSurfaceCaptureVisitor> visitor = std::make_shared<RSSurfaceCaptureVisitor>();
+    std::shared_ptr<RSSurfaceCaptureVisitor> visitor = std::make_shared<RSSurfaceCaptureVisitor>(scaleX_, scaleY_);
     visitor->SetUniRender(RSUniRenderJudgement::IsUniRender());
     if (auto surfaceNode = node->ReinterpretCastTo<RSSurfaceRenderNode>()) {
         RS_LOGI("RSSurfaceCaptureTask::Run: Into SURFACE_NODE SurfaceRenderNodeId:[%" PRIu64 "]", node->GetId());
@@ -75,7 +75,6 @@ std::unique_ptr<Media::PixelMap> RSSurfaceCaptureTask::Run()
         return nullptr;
     }
     visitor->SetSurface(skSurface.get());
-    visitor->SetScale(scaleX_, scaleY_);
     node->Process(visitor);
     return pixelmap;
 }
@@ -148,7 +147,8 @@ sk_sp<SkSurface> RSSurfaceCaptureTask::CreateSurface(const std::unique_ptr<Media
     return SkSurface::MakeRasterDirect(info, address, pixelmap->GetRowBytes());
 }
 
-RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::RSSurfaceCaptureVisitor()
+RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::RSSurfaceCaptureVisitor(float scaleX, float scaleY)
+    : scaleX_(scaleX), scaleY_(scaleY)
 {
     renderEngine_ = RSMainThread::Instance()->GetRenderEngine();
 }
@@ -160,6 +160,7 @@ void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::SetSurface(SkSurface* surfac
         return;
     }
     canvas_ = std::make_unique<RSPaintFilterCanvas>(surface);
+    canvas_->scale(scaleX_, scaleY_);
 }
 
 void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::ProcessBaseRenderNode(RSBaseRenderNode &node)
@@ -175,48 +176,70 @@ void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::ProcessDisplayRenderNode(RSD
 {
     RS_LOGD("RsDebug RSSurfaceCaptureVisitor::ProcessDisplayRenderNode child size:[%d] total size:[%d]",
         node.GetChildrenCount(), node.GetSortedChildren().size());
-    for (auto& child : node.GetSortedChildren()) {
-        child->Process(shared_from_this());
-    }
-    // clear SortedChildren, it will be generated again in next frame
-    node.ResetSortedChildren();
 
-    auto boundsGeoPtr = std::static_pointer_cast<RSObjAbsGeometry>(node.GetRenderProperties().GetBoundsGeometry());
-    if (boundsGeoPtr != nullptr && canvas_ != nullptr) {
-        boundsGeoPtr->UpdateByMatrixFromSelf();
-        canvas_->concat(boundsGeoPtr->GetMatrix());
+    ProcessBaseRenderNode(node);
+}
+
+void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::CaptureSingleSurfaceNodeWithUni(RSSurfaceRenderNode& node)
+{
+    auto params = RSBaseRenderUtil::CreateBufferDrawParam(node, true); // in node's local coordinate.
+
+    const auto saveCnt = canvas_->save();
+    if (node.GetConsumer() == nullptr) {
+        canvas_->concat(params.matrix);
+    }
+    ProcessBaseRenderNode(node);
+    canvas_->restoreToCount(saveCnt);
+
+    if (node.GetBuffer() != nullptr) {
+        renderEngine_->DrawSurfaceNodeWithParams(*canvas_, node, params);
+    }
+}
+
+void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::CaptureSurfaceInDisplayWithUni(RSSurfaceRenderNode& node)
+{
+    canvas_->concat(node.GetContextMatrix());
+    auto contextClipRect = node.GetContextClipRegion();
+    if (!contextClipRect.isEmpty()) {
+        canvas_->clipRect(contextClipRect);
+    }
+
+    SkMatrix translateMatrix;
+    auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(node.GetRenderProperties().GetBoundsGeometry());
+    translateMatrix.setTranslate(
+        std::ceil(geoPtr->GetMatrix().getTranslateX()),
+        std::ceil(geoPtr->GetMatrix().getTranslateY()));
+    canvas_->concat(translateMatrix);
+
+    auto params = RSBaseRenderUtil::CreateBufferDrawParam(node, true); // use node's local coordinate.
+
+    const auto saveCnt = canvas_->save();
+    if (node.GetConsumer() == nullptr) {
+        canvas_->concat(params.matrix);
+    }
+    ProcessBaseRenderNode(node);
+    canvas_->restoreToCount(saveCnt);
+
+    if (node.GetBuffer() != nullptr) {
+        renderEngine_->DrawSurfaceNodeWithParams(*canvas_, node, params);
     }
 }
 
 void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::ProcessSurfaceRenderNodeWithUni(RSSurfaceRenderNode &node)
 {
     auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(node.GetRenderProperties().GetBoundsGeometry());
+    if (geoPtr == nullptr) {
+        RS_LOGI("ProcessSurfaceRenderNode node:%" PRIu64 ", get geoPtr failed", node.GetId());
+        return;
+    }
+
     canvas_->save();
-    canvas_->scale(scaleX_, scaleY_);
     canvas_->SaveAlpha();
     canvas_->MultiplyAlpha(node.GetRenderProperties().GetAlpha() * node.GetContextAlpha());
-    canvas_->concat(node.GetContextMatrix());
-    auto contextClipRect = node.GetContextClipRegion();
-    if (!contextClipRect.isEmpty()) {
-        canvas_->clipRect(contextClipRect);
-    }
-    auto matrix = geoPtr->GetMatrix();
-    matrix.setTranslateX(std::ceil(matrix.getTranslateX()));
-    matrix.setTranslateY(std::ceil(matrix.getTranslateY()));
-    canvas_->concat(matrix);
-    canvas_->clipRect(SkRect::MakeWH(std::floor(node.GetRenderProperties().GetBoundsWidth()),
-        std::floor(node.GetRenderProperties().GetBoundsHeight())));
-    ProcessBaseRenderNode(node);
-    if (node.GetConsumer() != nullptr) {
-        RS_TRACE_NAME("UniRender::Process:" + node.GetName());
-        if (node.GetBuffer() == nullptr) {
-            RS_LOGD(
-                "RSSurfaceCaptureVisitor::ProcessSurfaceRenderNode:%" PRIu64 " buffer is not available", node.GetId());
-        } else {
-            node.NotifyRTBufferAvailable();
-            auto params = RSBaseRenderUtil::CreateBufferDrawParam(node, true); // in node's local coordinate.
-            renderEngine_->DrawSurfaceNodeWithParams(*canvas_, node, params);
-        }
+    if (isDisplayNode_) {
+        CaptureSurfaceInDisplayWithUni(node);
+    } else {
+        CaptureSingleSurfaceNodeWithUni(node);
     }
     canvas_->RestoreAlpha();
     canvas_->restore();
@@ -254,47 +277,48 @@ void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::ProcessCanvasRenderNode(RSCa
     node.ProcessRenderAfterChildren(*canvas_);
 }
 
+void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::CaptureSingleSurfaceNodeWithoutUni(RSSurfaceRenderNode& node)
+{
+    SkMatrix translateMatrix;
+    auto parentPtr = node.GetParent().lock();
+    if (parentPtr != nullptr && parentPtr->IsInstanceOf<RSSurfaceRenderNode>()) {
+        // calculate the offset from this node's parent, and perform translate.
+        auto parentNode = std::static_pointer_cast<RSSurfaceRenderNode>(parentPtr);
+        const float parentNodeTranslateX = parentNode->GetTotalMatrix().getTranslateX();
+        const float parentNodeTranslateY = parentNode->GetTotalMatrix().getTranslateY();
+        const float thisNodetranslateX = node.GetTotalMatrix().getTranslateX();
+        const float thisNodetranslateY = node.GetTotalMatrix().getTranslateY();
+        translateMatrix.preTranslate(
+            thisNodetranslateX - parentNodeTranslateX, thisNodetranslateY - parentNodeTranslateY);
+    }
+
+    canvas_->concat(translateMatrix);
+    const auto saveCnt = canvas_->save();
+    ProcessBaseRenderNode(node);
+    canvas_->restoreToCount(saveCnt);
+
+    if (node.GetBuffer() != nullptr) {
+        auto params = RSBaseRenderUtil::CreateBufferDrawParam(node, true); // in node's local coordinate.
+        renderEngine_->DrawSurfaceNodeWithParams(*canvas_, node, params);
+    }
+}
+
+void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::CaptureSurfaceInDisplayWithoutUni(RSSurfaceRenderNode& node)
+{
+    ProcessBaseRenderNode(node);
+    if (node.GetBuffer() != nullptr) {
+        auto params = RSBaseRenderUtil::CreateBufferDrawParam(node, false); // in display's coordinate.
+        renderEngine_->DrawSurfaceNodeWithParams(*canvas_, node, params);
+    }
+}
+
 void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::ProcessSurfaceRenderNodeWithoutUni(RSSurfaceRenderNode& node)
 {
-    if (node.GetBuffer() == nullptr) {
-        RS_LOGD("RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::ProcessSurfaceRenderNode: node Buffer is nullptr!");
-        for (auto child : node.GetSortedChildren()) {
-            child->Process(shared_from_this());
-        }
-        if (node.GetSortedChildren().size() > 0) {
-            node.ResetSortedChildren();
-        }
-        return;
-    }
-    sptr<Surface> surface = node.GetConsumer();
-    if (surface == nullptr) {
-        return;
-    }
-
-    for (auto child : node.GetSortedChildren()) {
-        child->Process(shared_from_this());
-    }
-    // clear SortedChildren, it will be generated again in next frame
-    node.ResetSortedChildren();
-
-    canvas_->save();
-    if (!isDisplayNode_) {
-        auto processFunc = [this](SkCanvas& canvas, BufferDrawParam& params) {
-            canvas.scale(scaleX_, scaleY_);
-        };
-        auto params = RSBaseRenderUtil::CreateBufferDrawParam(node, true); // in node's local coordinate.
-        renderEngine_->DrawSurfaceNodeWithParams(*canvas_, node, params, processFunc);
+    if (isDisplayNode_) {
+        CaptureSurfaceInDisplayWithoutUni(node);
     } else {
-        auto processFunc = [this](SkCanvas& canvas, BufferDrawParam& params) {
-            canvas.translate(
-                floor(params.dstRect.left() * scaleX_ - params.dstRect.left()),
-                floor(params.dstRect.top() * scaleY_ - params.dstRect.top()));
-            canvas.scale(scaleX_, scaleY_);
-        };
-        auto params = RSBaseRenderUtil::CreateBufferDrawParam(node, false); // in display's coordinate.
-        renderEngine_->DrawSurfaceNodeWithParams(*canvas_, node, params, processFunc);
+        CaptureSingleSurfaceNodeWithoutUni(node);
     }
-    canvas_->restore();
 }
 
 void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode &node)
@@ -308,12 +332,6 @@ void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::ProcessSurfaceRenderNode(RSS
 
     if (!node.GetRenderProperties().GetVisible()) {
         RS_LOGD("ProcessSurfaceRenderNode node: %" PRIu64 " invisible", node.GetId());
-        return;
-    }
-
-    auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(node.GetRenderProperties().GetBoundsGeometry());
-    if (geoPtr == nullptr) {
-        RS_LOGI("ProcessSurfaceRenderNode node:%" PRIu64 ", get geoPtr failed", node.GetId());
         return;
     }
 

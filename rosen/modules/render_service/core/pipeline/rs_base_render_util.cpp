@@ -750,11 +750,11 @@ void RSBaseRenderUtil::CalculateSurfaceNodeClipRects(
 }
 
 BufferDrawParam RSBaseRenderUtil::CreateBufferDrawParam(
-    const RSSurfaceRenderNode& node, bool inLocalCoordinate, bool isClipHole)
+    const RSSurfaceRenderNode& node, bool inLocalCoordinate, bool isClipHole, bool forceCPU)
 {
     BufferDrawParam params;
 #ifdef RS_ENABLE_EGLIMAGE
-    params.useCPU = false;
+    params.useCPU = forceCPU;
 #else // RS_ENABLE_EGLIMAGE
     params.useCPU = true;
 #endif // RS_ENABLE_EGLIMAGE
@@ -793,8 +793,8 @@ BufferDrawParam RSBaseRenderUtil::CreateBufferDrawParam(
             geoPtr->GetPivotY() * localBounds.GetHeight());
     }
 
-    // we can only use bound's size now (the canvas can move to
-    // the node's left-top point correctly).
+    // we can use only the bound's size (ignore its offset) now,
+    // (the canvas was moved to the node's left-top point correctly).
     params.dstRect = SkRect::MakeWH(localBounds.GetWidth(), localBounds.GetHeight());
 
     const sptr<Surface>& surface = node.GetConsumer();
@@ -809,6 +809,21 @@ BufferDrawParam RSBaseRenderUtil::CreateBufferDrawParam(
 
     DealWithSurfaceRotationAndGravity(node, localBounds, params);
     return params;
+}
+
+void RSBaseRenderUtil::SetPropertiesForCanvas(RSPaintFilterCanvas& canvas, const BufferDrawParam& params)
+{
+    if (params.isNeedClip) {
+        if (!params.cornerRadius.IsZero()) {
+            canvas.clipRRect(RSPropertiesPainter::RRect2SkRRect(params.clipRRect), true);
+        } else {
+            canvas.clipRect(params.clipRect);
+        }
+    }
+    if (SkColorGetA(params.backgroundColor) != SK_AlphaTRANSPARENT) {
+        canvas.clear(params.backgroundColor);
+    }
+    canvas.concat(params.matrix);
 }
 
 bool RSBaseRenderUtil::ConvertBufferToBitmap(sptr<SurfaceBuffer> buffer, std::vector<uint8_t>& newBuffer,
