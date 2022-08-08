@@ -62,7 +62,7 @@ private:
     std::stack<float> alphaStack_;
     float alpha_ = 1.0f;
     SkSurface* skSurface_ = nullptr;
-    std::atomic_bool isHighContrastEnabled_;
+    std::atomic_bool isHighContrastEnabled_ { false };
 };
 
 } // namespace Rosen
