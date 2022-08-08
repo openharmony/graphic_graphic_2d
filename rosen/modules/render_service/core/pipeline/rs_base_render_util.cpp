@@ -15,6 +15,7 @@
 
 #include "rs_base_render_util.h"
 
+#include <bits/stdint-uintn.h>
 #include <unordered_set>
 
 #include "common/rs_matrix3.h"
@@ -446,7 +447,9 @@ Offset RGBUintToFloat(uint8_t* dst, uint8_t* src, int32_t pixelFormat, Vector3f 
         colorDst = {dst + 0, dst + 1, dst + 2};
         // Alpha: linear transfer src[3] to dst[3]
         dst[3] = RGBFloatToUint8(RGBUint10ToFloat(src16[3]));
-        return std::make_pair(8, 4); // 8 bytes per pixel and HDR pictures are always redrawn as sRGB
+        const uint8_t outPixelBits = 4;
+        const uint8_t inPixelBits = 8;
+        return std::make_pair(inPixelBits, outPixelBits); // 8 bytes per pixel and HDR pictures are always redrawn as sRGB
     }
     if (pixelFormat == STUB_PIXEL_FMT_RGBA_1010102) {
         auto src32 = reinterpret_cast<const uint32_t*>(src);
@@ -458,7 +461,8 @@ Offset RGBUintToFloat(uint8_t* dst, uint8_t* src, int32_t pixelFormat, Vector3f 
         // Alpha: copy src[3] to dst[3]
         const uint8_t rbgBitsNum = 30;
         const uint8_t alphaBitMask = 0x3;
-        dst[3] = static_cast<uint8_t>(((*src32) >> rbgBitsNum) & alphaBitMask);
+        const uint8_t alphaPos = 3;
+        dst[alphaPos] = static_cast<uint8_t>(((*src32) >> rbgBitsNum) & alphaBitMask);
         return std::make_pair(4, 4); // 4 bytes per pixel and HDR pictures are always redrawn as sRGB
     }
     switch (static_cast<PixelFormat>(pixelFormat)) {
@@ -971,8 +975,8 @@ BufferDrawParam RSBaseRenderUtil::CreateBufferDrawParam(
     return params;
 }
 
-bool RSBaseRenderUtil::ConvertBufferToBitmap(sptr<SurfaceBuffer> buffer, std::vector<uint8_t>& newBuffer,
-    ColorGamut dstGamut, SkBitmap& bitmap)
+bool RSBaseRenderUtil::ConvertBufferToBitmap(sptr<SurfaceBuffer> buffer, ColorGamut dstGamut, SkBitmap& bitmap,
+    const std::vector<HDRMetaData>& metaDatas)
 {
     if (!IsBufferValid(buffer)) {
         return false;
