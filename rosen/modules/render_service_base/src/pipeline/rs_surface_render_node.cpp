@@ -94,7 +94,8 @@ void RSSurfaceRenderNode::ProcessRenderBeforeChildren(RSPaintFilterCanvas& canva
     if (currentGeoPtr != nullptr) {
         currentGeoPtr->UpdateByMatrixFromSelf();
         auto matrix = currentGeoPtr->GetMatrix();
-        matrix.setTranslate(std::ceil(matrix.getTranslateX()), std::ceil(matrix.getTranslateY()));
+        matrix.setTranslateX(std::ceil(matrix.getTranslateX()));
+        matrix.setTranslateY(std::ceil(matrix.getTranslateY()));
         canvas.concat(matrix);
     }
 
