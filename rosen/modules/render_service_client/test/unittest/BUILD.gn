@@ -21,7 +21,6 @@ group("unittest") {
   deps = [
     ":RSDisplayModeTest",
     ":RSDropframeTest",
-    ":RSInterfacesTest",
     ":RSTunnelHandleTest",
   ]
 }
