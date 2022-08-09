@@ -317,7 +317,7 @@ void RSNode::SetBoundsWidth(float width)
         SetBounds(0.f, 0.f, width, 0.f);
         return;
     }
-    auto modifier = std::static_pointer_cast<RSModifier<RSProperty<Vector4f>>>(iter->second);
+    auto modifier = std::static_pointer_cast<RSModifier<RSAnimatableProperty<Vector4f>>>(iter->second);
     if (!modifier) {
         return;
     }
@@ -334,7 +334,7 @@ void RSNode::SetBoundsHeight(float height)
         SetBounds(0.f, 0.f, 0.f, height);
         return;
     }
-    auto modifier = std::static_pointer_cast<RSModifier<RSProperty<Vector4f>>>(iter->second);
+    auto modifier = std::static_pointer_cast<RSModifier<RSAnimatableProperty<Vector4f>>>(iter->second);
     if (!modifier) {
         return;
     }
@@ -362,7 +362,7 @@ void RSNode::SetFramePositionX(float positionX)
         SetFrame(positionX, 0.f, 0.f, 0.f);
         return;
     }
-    auto modifier = std::static_pointer_cast<RSModifier<RSProperty<Vector4f>>>(iter->second);
+    auto modifier = std::static_pointer_cast<RSModifier<RSAnimatableProperty<Vector4f>>>(iter->second);
     if (!modifier) {
         return;
     }
@@ -378,7 +378,7 @@ void RSNode::SetFramePositionY(float positionY)
         SetFrame(0.f, positionY, 0.f, 0.f);
         return;
     }
-    auto modifier = std::static_pointer_cast<RSModifier<RSProperty<Vector4f>>>(iter->second);
+    auto modifier = std::static_pointer_cast<RSModifier<RSAnimatableProperty<Vector4f>>>(iter->second);
     if (!modifier) {
         return;
     }
@@ -410,7 +410,7 @@ void RSNode::SetPivotX(float pivotX)
         SetPivot(pivotX, 0.5f);
         return;
     }
-    auto modifier = std::static_pointer_cast<RSModifier<RSProperty<Vector2f>>>(iter->second);
+    auto modifier = std::static_pointer_cast<RSModifier<RSAnimatableProperty<Vector2f>>>(iter->second);
     if (!modifier) {
         return;
     }
@@ -426,7 +426,7 @@ void RSNode::SetPivotY(float pivotY)
         SetPivot(0.5f, pivotY);
         return;
     }
-    auto modifier = std::static_pointer_cast<RSModifier<RSProperty<Vector2f>>>(iter->second);
+    auto modifier = std::static_pointer_cast<RSModifier<RSAnimatableProperty<Vector2f>>>(iter->second);
     if (!modifier) {
         return;
     }
@@ -490,7 +490,7 @@ void RSNode::SetTranslateX(float translate)
         SetTranslate({ translate, 0.f });
         return;
     }
-    auto modifier = std::static_pointer_cast<RSModifier<RSProperty<Vector2f>>>(iter->second);
+    auto modifier = std::static_pointer_cast<RSModifier<RSAnimatableProperty<Vector2f>>>(iter->second);
     if (!modifier) {
         return;
     }
@@ -506,7 +506,7 @@ void RSNode::SetTranslateY(float translate)
         SetTranslate({ 0.f, translate });
         return;
     }
-    auto modifier = std::static_pointer_cast<RSModifier<RSProperty<Vector2f>>>(iter->second);
+    auto modifier = std::static_pointer_cast<RSModifier<RSAnimatableProperty<Vector2f>>>(iter->second);
     if (!modifier) {
         return;
     }
@@ -542,7 +542,7 @@ void RSNode::SetScaleX(float scaleX)
         SetScale(scaleX, 1.f);
         return;
     }
-    auto modifier = std::static_pointer_cast<RSModifier<RSProperty<Vector2f>>>(iter->second);
+    auto modifier = std::static_pointer_cast<RSModifier<RSAnimatableProperty<Vector2f>>>(iter->second);
     if (!modifier) {
         return;
     }
@@ -558,7 +558,7 @@ void RSNode::SetScaleY(float scaleY)
         SetScale(1.f, scaleY);
         return;
     }
-    auto modifier = std::static_pointer_cast<RSModifier<RSProperty<Vector2f>>>(iter->second);
+    auto modifier = std::static_pointer_cast<RSModifier<RSAnimatableProperty<Vector2f>>>(iter->second);
     if (!modifier) {
         return;
     }
