@@ -40,9 +40,14 @@ void RSDirtyRegionManager::IntersectDirtyRect(const RectI& rect)
     dirtyRegion_ = dirtyRegion_.IntersectRect(rect);
 }
 
-void RSDirtyRegionManager::IntersectDirtyRectWithSurfaceRect()
+void RSDirtyRegionManager::ClipDirtyRectWithinSurface()
 {
-    dirtyRegion_ = dirtyRegion_.IntersectRect(surfaceRect_);
+    int left = std::max(std::max(dirtyRegion_.left_, 0), surfaceRect_.left_);
+    int top = std::max(std::max(dirtyRegion_.top_, 0), surfaceRect_.top_);
+    int width = std::min(dirtyRegion_.GetRight(), surfaceRect_.GetRight()) - left;
+    int height = std::min(dirtyRegion_.GetBottom(), surfaceRect_.GetBottom()) - top;
+    // If new region is invalid, dirtyRegion would be reset as [0, 0, 0, 0]
+    dirtyRegion_ = ((width <= 0) || (height <= 0)) ? RectI() : RectI(left, top, width, height);
 }
 
 const RectI& RSDirtyRegionManager::GetDirtyRegion() const
@@ -115,13 +120,18 @@ bool RSDirtyRegionManager::SetBufferAge(const int age)
     return true;
 }
 
-bool RSDirtyRegionManager::SetSurfaceSize(const int width, const int height)
+bool RSDirtyRegionManager::SetSurfaceSize(const int32_t width, const int32_t height)
 {
     if (width < 0 || height < 0) {
         return false;
     }
     surfaceRect_ = RectI(0, 0, width, height);
     return true;
+}
+
+void RSDirtyRegionManager::ResetDirtyAsSurfaceSize()
+{
+    dirtyRegion_ = surfaceRect_;
 }
 
 void RSDirtyRegionManager::UpdateDebugRegionTypeEnable()
@@ -157,7 +167,7 @@ RectI RSDirtyRegionManager::MergeHistory(unsigned int age, RectI rect) const
     if (age == 0 || age > historySize_) {
         return surfaceRect_;
     }
-    // GetHistory(historySize_) = dirtyHistory_[historyHead_]
+    // GetHistory(historySize_) is equal to dirtyHistory_[historyHead_] (latest his rect)
     // therefore, this loop merges rect with (age-1) frames' dirtyRect
     for (unsigned int i = historySize_ - 1; i > historySize_ - age; --i) {
         auto subRect = GetHistory(i);
@@ -176,6 +186,9 @@ RectI RSDirtyRegionManager::MergeHistory(unsigned int age, RectI rect) const
 
 void RSDirtyRegionManager::PushHistory(RectI rect)
 {
+    if (rect.IsEmpty()) {
+        return;
+    }
     int next = (historyHead_ + 1) % HISTORY_QUEUE_MAX_SIZE;
     dirtyHistory_[next] = rect;
     if (historySize_ < HISTORY_QUEUE_MAX_SIZE) {

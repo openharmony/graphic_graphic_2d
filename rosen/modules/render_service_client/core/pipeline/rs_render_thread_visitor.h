@@ -47,17 +47,24 @@ public:
     virtual void ProcessSurfaceRenderNode(RSSurfaceRenderNode& node) override;
     virtual void ProcessRootRenderNode(RSRootRenderNode& node) override;
 
+    // Partial render status and renderForce flag should be updated by rt thread
+    void SetPartialRenderStatus(PartialRenderType status, bool isRenderForced);
 private:
     void DrawRectOnCanvas(const RectI& dirtyRect, const SkColor color, const SkPaint::Style fillType, float alpha);
     void DrawDirtyRegion();
+    // Update damageRegion based on buffer age, and then set it through egl api
+    void UpdateDirtyAndSetEGLDamageRegion(std::unique_ptr<RSSurfaceFrame>& surfaceFrame);
 
     std::shared_ptr<RSDirtyRegionManager> curDirtyManager_;
-    bool isPartialRenderEnabled_ = false;
+    bool isRenderForced_ = false;
+    bool isEglSetDamageRegion_ = false;
     bool isOpDroped_ = false;
-    RectI currentDirtyRegion_ = RectI();
+    PartialRenderType partialRenderStatus_ = PartialRenderType::DISABLED;
+    RectI curDirtyRegion_ = RectI();
     bool dirtyFlag_ = false;
     bool isIdle_ = true;
     RSPaintFilterCanvas* canvas_;
+    uint32_t queueSize_ = 0;
     uint64_t uiTimestamp_ = 0;
 
     void ClipHoleForSurfaceNode(RSSurfaceRenderNode& node);

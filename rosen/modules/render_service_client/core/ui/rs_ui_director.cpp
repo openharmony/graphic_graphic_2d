@@ -136,6 +136,11 @@ void RSUIDirector::SetAbilityBGAlpha(uint8_t alpha)
     node->SetAbilityBGAlpha(alpha);
 }
 
+void RSUIDirector::SetRTRenderForced(bool isRenderForced)
+{
+    RSRenderThread::Instance().SetRTRenderForced(isRenderForced);
+}
+
 void RSUIDirector::SetRoot(NodeId root)
 {
     if (root_ == root) {
