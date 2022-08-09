@@ -36,6 +36,7 @@ public:
     ~RSDirtyRegionManager() = default;
     void MergeDirtyRect(const RectI& rect);
     void IntersectDirtyRect(const RectI& rect);
+    void IntersectDirtyRectWithSurfaceRect();
     void Clear();
     // return merged historical region
     const RectI& GetDirtyRegion() const;
@@ -72,6 +73,7 @@ private:
     void PushHistory(RectI rect);
     RectI GetHistory(unsigned int i) const;
 
+    RectI surfaceRect_;
     RectI dirtyRegion_;
     std::map<NodeId, RectI> dirtyCanvasNodes_;
     std::map<NodeId, RectI> dirtySurfaceNodes_;
@@ -82,9 +84,6 @@ private:
     const unsigned HISTORY_QUEUE_MAX_SIZE = 4;
     // may add new set function for bufferAge
     unsigned int bufferAge_ = HISTORY_QUEUE_MAX_SIZE;
-
-    int surfaceWidth_ = 0;
-    int surfaceHeight_ = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

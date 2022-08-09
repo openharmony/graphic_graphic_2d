@@ -53,6 +53,8 @@ RSRenderThreadVisitor::~RSRenderThreadVisitor() {}
 
 void RSRenderThreadVisitor::PrepareBaseRenderNode(RSBaseRenderNode& node)
 {
+    isPartialRenderEnabled_ = (RSSystemProperties::GetPartialRenderEnabled() != PartialRenderType::DISABLED);
+    isOpDroped_ = (RSSystemProperties::GetPartialRenderEnabled() == PartialRenderType::SET_DAMAGE_AND_DROP_OP);
     for (auto& child : node.GetSortedChildren()) {
         child->Prepare(shared_from_this());
     }
@@ -169,14 +171,14 @@ void RSRenderThreadVisitor::DrawDirtyRegion()
         std::map<NodeId, RectI> dirtySubRects_;
         curDirtyManager_->GetDirtyCanvasNodes(dirtySubRects_);
         for (const auto& [nid, subRect] : dirtySubRects_) {
-            ROSEN_LOGD("DrawDirtyRegion canvasNode id %d is dirty", nid);
+            ROSEN_LOGD("DrawDirtyRegion canvasNode id %" PRIu64 " is dirty", nid);
             // red
             DrawRectOnCanvas(subRect, 0xFFFF0000, SkPaint::kStroke_Style, edgeAlpha / subFactor);
         }
 
         curDirtyManager_->GetDirtySurfaceNodes(dirtySubRects_);
         for (const auto& [nid, subRect] : dirtySubRects_) {
-            ROSEN_LOGD("DrawDirtyRegion surfaceNode id %d is dirty", nid);
+            ROSEN_LOGD("DrawDirtyRegion surfaceNode id %" PRIu64 " is dirty", nid);
             // light purple
             DrawRectOnCanvas(subRect, 0xFFD899D8, SkPaint::kStroke_Style, edgeAlpha);
         }
@@ -216,6 +218,12 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
     curDirtyManager_ = node.GetDirtyManager();
     // node's surface size already check, so here we do not need to check return
     (void)curDirtyManager_->SetSurfaceSize(node.GetSurfaceWidth(), node.GetSurfaceHeight());
+    // keep intersect part
+    curDirtyManager_->IntersectDirtyRectWithSurfaceRect();
+    if (isOpDroped_ && !curDirtyManager_->IsDirty()) {
+        ROSEN_LOGD("ProcessRoot %s: current frame's dirty region is empty", ptr->GetName().c_str());
+        return;
+    }
 
     auto surfaceNodeColorSpace = ptr->GetColorSpace();
     std::shared_ptr<RSSurface> rsSurface = RSSurfaceExtractor::ExtractRSSurface(ptr);
@@ -266,24 +274,29 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
     }
 
 #ifdef RS_ENABLE_EGLQUERYSURFACE
-    // get and update valid buffer age(>0) to merge history
-    int32_t bufferAge = surfaceFrame->GetBufferAge();
-    if (!curDirtyManager_->SetBufferAge(bufferAge)) {
-        ROSEN_LOGW("ProcessRootRenderNode SetBufferAge with invalid buffer age %d", bufferAge);
-    }
-    curDirtyManager_->UpdateDirty();
-    // only set damage region if dirty region and buffer age is valid(>0)
-    if (curDirtyManager_->IsDirty() && bufferAge >= 0 && RSSystemProperties::GetPartialRenderEnabled()) {
-        // get dirty rect coordinated from upper left to lower left corner in current surface
-        RectI dirtyRect = curDirtyManager_->GetDirtyRegionFlipWithinSurface();
-        ROSEN_LOGD("GetPartialRenderEnabled buffer age %d, dirtyRect = [%d, %d, %d, %d]", bufferAge,
-            dirtyRect.left_, dirtyRect.top_, dirtyRect.width_, dirtyRect.height_);
-        // set dirty rect as eglSurfaceFrame's damage region
-        surfaceFrame->SetDamageRegion(dirtyRect.left_, dirtyRect.top_, dirtyRect.width_, dirtyRect.height_);
+    if (isPartialRenderEnabled_) {
+        // get and update valid buffer age(>0) to merge history
+        int32_t bufferAge = surfaceFrame->GetBufferAge();
+        if (!curDirtyManager_->SetBufferAge(bufferAge)) {
+            ROSEN_LOGW("ProcessRootRenderNode SetBufferAge with invalid buffer age %d", bufferAge);
+        }
+        curDirtyManager_->UpdateDirty();
+        // only set damage region if dirty region and buffer age is valid(>0)
+        if (bufferAge >= 0) {
+            // get dirty rect coordinated from upper left to lower left corner in current surface
+            RectI dirtyRect = curDirtyManager_->GetDirtyRegionFlipWithinSurface();
+            ROSEN_LOGD("GetPartialRenderEnabled buffer age %d, dirtyRectFlip = [%d, %d, %d, %d]", bufferAge,
+                dirtyRect.left_, dirtyRect.top_, dirtyRect.width_, dirtyRect.height_);
+            // set dirty rect as eglSurfaceFrame's damage region
+            surfaceFrame->SetDamageRegion(dirtyRect.left_, dirtyRect.top_, dirtyRect.width_, dirtyRect.height_);
+        }
+    } else {
+        curDirtyManager_->UpdateDirty();
     }
 #else
     curDirtyManager_->UpdateDirty();
 #endif
+    currentDirtyRegion_ = curDirtyManager_->GetDirtyRegion();
 
     canvas_->clipRect(SkRect::MakeWH(node.GetSurfaceWidth(), node.GetSurfaceHeight()));
     canvas_->clear(SK_ColorTRANSPARENT);
@@ -295,6 +308,7 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
     // reset matrix
     parentSurfaceNodeMatrix_ = SkMatrix::I();
 
+    RS_TRACE_BEGIN("ProcessRenderNodes");
     ProcessCanvasRenderNode(node);
 
     if (childSurfaceNodeIds_ != node.childSurfaceNodeIds_) {
@@ -307,6 +321,7 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
         }
         node.childSurfaceNodeIds_ = std::move(childSurfaceNodeIds_);
     }
+    RS_TRACE_END();
 
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy != nullptr) {
@@ -349,6 +364,7 @@ void RSRenderThreadVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
         ROSEN_LOGE("RSRenderThreadVisitor::ProcessCanvasRenderNode, canvas is nullptr");
         return;
     }
+    node.UpdateRenderStatus(currentDirtyRegion_, isOpDroped_);
     node.ProcessRenderBeforeChildren(*canvas_);
     ProcessBaseRenderNode(node);
     node.ProcessRenderAfterChildren(*canvas_);

@@ -31,6 +31,12 @@ enum class DirtyRegionDebugType {
     CURRENT_WHOLE_AND_MULTI_HISTORY
 };
 
+enum class PartialRenderType {
+    DISABLED = 0,
+    SET_DAMAGE,
+    SET_DAMAGE_AND_DROP_OP
+};
+
 class RSSystemProperties final {
 public:
     ~RSSystemProperties() = default;
@@ -39,7 +45,7 @@ public:
     static bool GetUniRenderEnabled();
     static void InitUniRenderEnabled(const std::string &bundleName);
     static DirtyRegionDebugType GetDirtyRegionDebugType();
-    static bool GetPartialRenderEnabled();
+    static PartialRenderType GetPartialRenderEnabled();
     static bool GetOcclusionEnabled();
     static std::string GetRSEventProperty(const std::string &paraName);
     static bool GetDirectClientCompEnableStatus();
