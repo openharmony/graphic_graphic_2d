@@ -293,6 +293,39 @@ void RSComposerAdapter::SetComposeInfoToLayer(
     if (layer == nullptr) {
         return;
     }
+    HDRMetaDataType type;
+    if (surface->QueryMetaDataType(info.buffer->GetSeqNum(), type) != GSERROR_OK) {
+        RS_LOGE("RSComposerAdapter::SetComposeInfoToLayer: QueryMetaDataType failed");
+        return;
+    }
+    switch (type) {
+        case HDRMetaDataType::HDR_META_DATA: {
+            std::vector<HDRMetaData> metaData;
+            if (surface->GetMetaData(info.buffer->GetSeqNum(), metaData) != GSERROR_OK) {
+                RS_LOGE("RSComposerAdapter::SetComposeInfoToLayer: GetMetaData failed");
+                return;
+            }
+            layer->SetMetaData(metaData);
+            break;
+        }
+        case HDRMetaDataType::HDR_META_DATA_SET: {
+            HDRMetadataKey key;
+            std::vector<uint8_t> metaData;
+            if (surface->GetMetaDataSet(info.buffer->GetSeqNum(), key, metaData) != GSERROR_OK) {
+                RS_LOGE("RSComposerAdapter::SetComposeInfoToLayer: GetMetaDataSet failed");
+                return;
+            }
+            HDRMetaDataSet metaDataSet;
+            metaDataSet.key = key;
+            metaDataSet.metaData = metaData;
+            layer->SetMetaDataSet(metaDataSet);
+            break;
+        }
+        case HDRMetaDataType::HDR_NOT_USED: {
+            RS_LOGD("RSComposerAdapter::SetComposeInfoToLayer: HDR is not used");
+            break;
+        }
+    }
     layer->SetSurface(surface);
     layer->SetBuffer(info.buffer, info.fence);
     layer->SetZorder(info.zOrder);
