@@ -276,7 +276,6 @@ void RSRenderEngine::ClipHoleForLayer(
     RS_TRACE_NAME(traceInfo);
 
     canvas.save();
-    RSBaseRenderUtil::SetPropertiesForCanvas(canvas, params);
     canvas.clipRect(params.clipRect);
     canvas.clear(SK_ColorTRANSPARENT);
     canvas.restore();
@@ -368,10 +367,8 @@ void RSRenderEngine::RSSurfaceNodeCommonPreProcess(
     const auto& property = node.GetRenderProperties();
 
     // deal with animation.
-    Vector2f center(node.GetDstRect().left_ + node.GetDstRect().width_ * 0.5f,
-        node.GetDstRect().top_ + node.GetDstRect().height_ * 0.5f);
-    auto transitionProperties = node.GetAnimationManager().GetTransitionProperties();
-    RSPropertiesPainter::DrawTransitionProperties(transitionProperties, center, canvas);
+    const auto& transitionProperties = node.GetAnimationManager().GetTransitionProperties();
+    RSPropertiesPainter::DrawTransitionProperties(transitionProperties, property, canvas);
 
     // draw mask.
     RectF maskBounds(0, 0, params.dstRect.width(), params.dstRect.height());

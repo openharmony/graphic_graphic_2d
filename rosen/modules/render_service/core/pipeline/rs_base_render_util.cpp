@@ -920,6 +920,7 @@ BufferDrawParam RSBaseRenderUtil::CreateBufferDrawParam(
 #ifdef RS_ENABLE_EGLIMAGE
     params.useCPU = forceCPU;
 #else // RS_ENABLE_EGLIMAGE
+    (void)(forceCPU); // unused param.
     params.useCPU = true;
 #endif // RS_ENABLE_EGLIMAGE
     params.paint.setAlphaf(node.GetGlobalAlpha());
@@ -936,24 +937,23 @@ BufferDrawParam RSBaseRenderUtil::CreateBufferDrawParam(
     // calculate clipRect and clipRRect(if has cornerRadius) for canvas.
     CalculateSurfaceNodeClipRects(node, absBounds, localBounds, inLocalCoordinate, params);
 
-    // init translate matrix.
+    // inLocalCoordinate: reset the translate to (0, 0).
+    // else: use node's total matrix.
     if (inLocalCoordinate) {
-        params.matrix = SkMatrix::I();
+        auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(property.GetBoundsGeometry());
+        if (geoPtr != nullptr) {
+            params.matrix = geoPtr->GetMatrix();
+        }
+        params.matrix.setTranslateX(0.0f);
+        params.matrix.setTranslateY(0.0f);
     } else {
-        // inLocalCoordinate is false: we should use node's totalMatrix to
-        // translate the canvas to the node's left-top point first.
-        const auto& matrix = node.GetTotalMatrix();
-        params.matrix.setTranslate(std::ceil(matrix.getTranslateX()), std::ceil(matrix.getTranslateY()));
+        params.matrix = node.GetTotalMatrix();
     }
 
-    // deal with node's rotation.
-    auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(property.GetBoundsGeometry());
-    if (geoPtr != nullptr) {
-        params.matrix.preRotate(
-            geoPtr->GetRotation(),
-            geoPtr->GetPivotX() * localBounds.GetWidth(),
-            geoPtr->GetPivotY() * localBounds.GetHeight());
-    }
+    // reset the matrix's scale to deal with the gravity effects.
+    const float invScaleX = (ROSEN_EQ(property.GetScaleX(), 0.0f) ? 1.0f : 1.0f / property.GetScaleX());
+    const float invScaleY = (ROSEN_EQ(property.GetScaleY(), 0.0f) ? 1.0f : 1.0f / property.GetScaleY());
+    params.matrix.preScale(invScaleX, invScaleY);
 
     // we can use only the bound's size (ignore its offset) now,
     // (the canvas was moved to the node's left-top point correctly).
