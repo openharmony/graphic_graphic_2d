@@ -375,9 +375,6 @@ void RSRenderEngine::RSSurfaceNodeCommonPreProcess(
     RSPropertiesPainter::DrawMask(
         node.GetRenderProperties(), canvas, RSPropertiesPainter::Rect2SkRect(maskBounds));
 
-    // draw shadow.
-    RSPropertiesPainter::DrawShadow(property, canvas, &params.clipRRect);
-
     // draw background filter (should execute this filter before drawing buffer/image).
     auto filter = std::static_pointer_cast<RSSkiaFilter>(property.GetBackgroundFilter());
     if (filter != nullptr) {
@@ -442,6 +439,10 @@ void RSRenderEngine::DrawSurfaceNodeWithParams(
         // call RSSurfaceNode's common postProcess func.
         RSRenderEngine::RSSurfaceNodeCommonPostProcess(node, canvas, params);
     };
+
+    // draw shadow(should before canvas.clipRect in DrawWithParams()).
+    const auto& property = node.GetRenderProperties();
+    RSPropertiesPainter::DrawShadow(property, canvas, &params.clipRRect);
 
     DrawWithParams(canvas, params, nodePreProcessFunc, nodePostProcessFunc);
 }
