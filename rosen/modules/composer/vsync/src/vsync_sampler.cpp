@@ -16,6 +16,7 @@
 #include "vsync_sampler.h"
 #include <cmath>
 #include "vsync_generator.h"
+#include "vsync_log.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -88,6 +89,20 @@ bool VSyncSampler::GetHardwareVSyncStatus() const
     return hardwareVSyncStatus_;
 }
 
+void VSyncSampler::RegSetScreenVsyncEnabledCallback(VSyncSampler::SetScreenVsyncEnabledCallback cb)
+{
+    setScreenVsyncEnabledCallback_ = cb;
+}
+
+void VSyncSampler::SetScreenVsyncEnabledInRSMainThread(bool enabled)
+{
+    if (setScreenVsyncEnabledCallback_ == nullptr) {
+        VLOGE("SetScreenVsyncEnabled:%{public}d failed, setScreenVsyncEnabledCallback_ is null", enabled);
+        return;
+    }
+    setScreenVsyncEnabledCallback_(enabled);
+}
+
 bool VSyncSampler::AddSample(int64_t timeStamp)
 {
     std::lock_guard<std::mutex> lock(mutex_);
@@ -113,8 +128,15 @@ bool VSyncSampler::AddSample(int64_t timeStamp)
     }
 
     // 1/2 just a empirical value
-    bool ret = modeUpdated_ & (error_ < g_errorThreshold / 2);
-    return !ret;
+    bool shouldDisableScreenVsync = modeUpdated_ & (error_ < g_errorThreshold / 2);
+
+    if (shouldDisableScreenVsync) {
+        // disabled screen vsync in rsMainThread
+        VLOGD("Disable Screen Vsync");
+        SetScreenVsyncEnabledInRSMainThread(false);
+    }
+
+    return !shouldDisableScreenVsync;
 }
 
 

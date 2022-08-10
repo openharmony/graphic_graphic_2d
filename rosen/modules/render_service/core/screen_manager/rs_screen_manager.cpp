@@ -18,6 +18,7 @@
 #include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_main_thread.h"
 #include "platform/common/rs_log.h"
+#include "vsync_sampler.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -145,6 +146,26 @@ void RSScreenManager::ProcessScreenConnectedLocked(std::shared_ptr<HdiOutput> &o
     }
 
     screens_[id] = std::make_unique<RSScreen>(id, isVirtual, output, nullptr);
+
+    auto vsyncSampler = CreateVSyncSampler();
+    if (vsyncSampler != nullptr) {
+        vsyncSampler->RegSetScreenVsyncEnabledCallback([this, id](bool enabled) {
+            auto mainThread = RSMainThread::Instance();
+            if (mainThread == nullptr) {
+                RS_LOGE("SetScreenVsyncEnabled:%{public}d failed, get RSMainThread failed", enabled);
+                return;
+            }
+            mainThread->PostTask([this, id, enabled]() {
+                if (screens_[id] == nullptr) {
+                    RS_LOGE("SetScreenVsyncEnabled:%{public}d failed, screen %{public}ld not found", enabled, id);
+                    return;
+                }
+                screens_[id]->SetScreenVsyncEnabled(enabled);
+            });
+        });
+    } else {
+        RS_LOGE("RegSetScreenVsyncEnabledCallback failed, vsyncSampler is null");
+    }
 
     if (screens_[id]->GetCapability().type == InterfaceType::DISP_INTF_MIPI) {
         if (!mipiCheckInFirstHotPlugEvent_) {

@@ -171,6 +171,8 @@ void HdiBackend::Repaint(std::vector<OutputPtr> &outputs)
             }
         }
         if (ret) {
+            HLOGD("Enable Screen Vsync");
+            device_->SetScreenVsyncEnabled(screenId, true);
             sampler_->BeginSample();
         }
 

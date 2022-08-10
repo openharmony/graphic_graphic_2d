@@ -597,6 +597,16 @@ uint32_t RSScreen::GetScreenSkipFrameInterval() const
 {
     return skipFrameInterval_;
 }
+
+void RSScreen::SetScreenVsyncEnabled(bool enabled) const
+{
+    if (IsVirtual()) {
+        return;
+    }
+    if (hdiScreen_ != nullptr) {
+        hdiScreen_->SetScreenVsyncEnabled(enabled);
+    }
+}
 } // namespace impl
 } // namespace Rosen
 } // namespace OHOS

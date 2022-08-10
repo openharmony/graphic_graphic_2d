@@ -173,9 +173,8 @@ void VSyncDistributor::ThreadMain()
                 }
                 continue;
             } else if ((timestamp > 0) && (waitForVSync == false)) {
-                // if there is a vsync signal but no vaild connections, we should disable vsync,
-                // but the system was unstable, so we didn't choose to disable it
-                // DisableVSync()
+                // if there is a vsync signal but no vaild connections, we should disable vsync
+                DisableVSync();
                 continue;
             }
         }
@@ -234,16 +233,16 @@ void VSyncDistributor::CollectConnections(bool &waitForVSync, int64_t timestamp,
                 connections_[i]->rate_ = -1;
                 conns.push_back(connections_[i]);
             }
-        } else if (rate > 0 && (vsyncCount % rate == 0)) {
+        } else if (rate > 0) {
             if (connections_[i]->rate_ == 0) {  // for SetHighPriorityVSyncRate with RequestNextVSync
                 waitForVSync = true;
-                if (timestamp > 0) {
+                if (timestamp > 0 && (vsyncCount % rate == 0)) {
                     connections_[i]->rate_ = -1;
                     conns.push_back(connections_[i]);
                 }
             } else if (connections_[i]->rate_ > 0) {  // for SetVSyncRate
                 waitForVSync = true;
-                if (timestamp > 0) {
+                if (timestamp > 0 && (vsyncCount % rate == 0)) {
                     conns.push_back(connections_[i]);
                 }
             }
