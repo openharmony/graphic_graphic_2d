@@ -17,7 +17,7 @@
 #define NDK_INCLUDE_NATIVE_WINDOW_H_
 
 #include <stdint.h>
-#include <buffer_handle.h>
+#include "buffer_handle.h"
 
 #ifdef __cplusplus
 extern "C" {
