@@ -44,6 +44,10 @@ void RSCurveAnimation<T>::StartAnimationImpl()
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy != nullptr) {
         transactionProxy->AddCommand(command, target->IsRenderServiceNode(), target->GetFollowType(), target->GetId());
+        if (target->NeedSendExtraCommand()) {
+            std::unique_ptr<RSCommand> extraCommand = std::make_unique<P>(target->GetId(), animation);
+            transactionProxy->AddCommand(extraCommand, !target->IsRenderServiceNode(), target->GetFollowType(), target->GetId());
+        }
     }
 }
 

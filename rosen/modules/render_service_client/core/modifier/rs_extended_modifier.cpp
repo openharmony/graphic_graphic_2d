@@ -84,6 +84,12 @@ void RSExtendedModifier<T>::UpdateToRender()
                 this->property_->nodeId_, drawCmdList, this->property_->id_, false);
             transactionProxy->AddCommand(commandForRemote, true, node->GetFollowType(), node->GetId());
         }
+        if (node->NeedSendExtraCommand()) {
+            std::unique_ptr<RSCommand> extraCommand = std::make_unique<RSUpdatePropertyDrawCmdList>(
+                    this->property_->nodeId_, drawCmdList, this->property_->id_, false);
+            transactionProxy->AddCommand(extraCommand, !node->IsRenderServiceNode(), node->GetFollowType(),
+                node->GetId());
+        }
     }
 }
 

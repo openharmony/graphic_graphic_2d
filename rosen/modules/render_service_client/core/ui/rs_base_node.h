@@ -98,6 +98,11 @@ protected:
         return isUniRenderEnabled_ || isRenderServiceNode_;
     }
 
+    bool NeedSendExtraCommand() const
+    {
+        return isUniRenderEnabled_ && !isRenderServiceNode_;
+    }
+
 private:
     static NodeId GenerateId();
     static void InitUniRenderEnabled();

@@ -139,6 +139,12 @@ void RSAnimatableProperty<T>::Set(const T& value)
                     std::make_unique<Command>(nodeId_, value, id_, isDelta);                                     \
                 transactionProxy->AddCommand(commandForRemote, true, node->GetFollowType(), node->GetId());      \
             }                                                                                                    \
+            if (node->NeedSendExtraCommand()) {                                                                  \
+                std::unique_ptr<RSCommand> extraCommand =                                                        \
+                    std::make_unique<Command>(nodeId_, value, id_, isDelta);                                     \
+                transactionProxy->AddCommand(extraCommand, !node->IsRenderServiceNode(),                         \
+                    node->GetFollowType(), node->GetId());                                                       \
+            }                                                                                                    \
             if (forceUpdate) {                                                                                   \
                 transactionProxy->Commit();                                                                      \
             }                                                                                                    \
