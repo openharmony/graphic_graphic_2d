@@ -57,7 +57,7 @@ public:
     HighContrastObserver() = default;
     virtual void OnConfigChanged(const CONFIG_ID id, const ConfigValue &value) override
     {
-        ROSEN_LOGD("OnConfigChanged");
+        ROSEN_LOGD("HighContrastObserver OnConfigChanged");
         auto& renderThread = RSRenderThread::Instance();
         if (id == CONFIG_ID::CONFIG_HIGH_CONTRAST_TEXT) {
             renderThread.SetHighContrast(value.highContrastText);

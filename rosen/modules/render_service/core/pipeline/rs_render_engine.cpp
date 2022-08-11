@@ -32,7 +32,7 @@ static const sk_sp<SkColorFilter>& InvertColorMat()
 {
     static const SkScalar colorMatrix[MATRIX_SIZE] = {
         0.402,  -1.174, -0.228, 1.0, 0.0,
-        -5.598, -0.174, -0.228, 1.0, 0.0,
+        -0.598, -0.174, -0.228, 1.0, 0.0,
         -0.599, -1.175, 0.772,  1.0, 0.0,
         0.0,    0.0,    0.0,    1.0, 0.0
     };
@@ -314,6 +314,11 @@ void RSRenderEngine::SetColorFilterModeToPaint(SkPaint& paint)
     ColorFilterMode mode = static_cast<ColorFilterMode>(RSSystemProperties::GetCorrectionMode());
     if (mode <= ColorFilterMode::COLOR_FILTER_END && mode >= ColorFilterMode::INVERT_MODE) {
         colorFilterMode_ = mode;
+    }
+
+    // for test automation
+    if (colorFilterMode_ != ColorFilterMode::COLOR_FILTER_END) {
+        RS_LOGD("RsDebug RSRenderEngine::SetColorFilterModeToPaint mode:%d", static_cast<int32_t>(colorFilterMode_));
     }
 
     switch (colorFilterMode_) {

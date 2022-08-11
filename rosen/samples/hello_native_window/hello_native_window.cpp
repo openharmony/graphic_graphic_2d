@@ -96,12 +96,14 @@ int32_t main(int32_t argc, const char *argv[])
     rect->w = 0x100;
     rect->h = 0x100;
     region->rects = rect;
+    region->rectNumber = 1;
 
     ret = OH_NativeWindow_NativeWindowFlushBuffer(nativeWindow, nativeWindowBuffer, fenceFd, *region);
     if (ret != OHOS::GSERROR_OK) {
         std::cout << "OH_NativeWindow_NativeWindowFlushBuffer failed" << std::endl;
     }
     delete region;
+    delete rect;
 
     int32_t sequence = 0;
     OHScalingMode scalingMode = OHScalingMode::OH_SCALING_MODE_SCALE_TO_WINDOW;
@@ -133,7 +135,6 @@ int32_t main(int32_t argc, const char *argv[])
         std::cout << "OH_NativeWindow_NativeWindowSetTunnelHandle failed" << std::endl;
     }
     delete handle;
-    delete listener;
     std::cout << "sample end" << std::endl;
     return 0;
 }

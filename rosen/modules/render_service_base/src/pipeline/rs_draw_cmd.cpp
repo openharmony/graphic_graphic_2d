@@ -30,7 +30,7 @@ void SimplifyPaint(int32_t color, SkPaint* paint)
     paint->setColor(color);
     paint->setShader(nullptr);
     paint->setColorFilter(nullptr);
-    paint->setStrokeWidth(2.04); // 2.04 is empirical value
+    paint->setStrokeWidth(1.04); // 1.04 is empirical value
     paint->setStrokeJoin(SkPaint::kRound_Join);
 }
 }
@@ -173,7 +173,8 @@ TextBlobOpItem::TextBlobOpItem(const sk_sp<SkTextBlob> textBlob, float x, float 
 
 void TextBlobOpItem::Draw(RSPaintFilterCanvas& canvas, const SkRect*) const
 {
-    if (canvas.isHighContrastEnabled() || RSSystemProperties::GetHighContrastStatus()) {
+    bool highContrastEnabled = canvas.isHighContrastEnabled() || RSSystemProperties::GetHighContrastStatus();
+    if (highContrastEnabled) {
         int32_t color = paint_.getColor();
         int32_t channelSum = SkColorGetR(color) + SkColorGetG(color) + SkColorGetB(color);
         bool flag = channelSum < 384; // 384 is empirical value
