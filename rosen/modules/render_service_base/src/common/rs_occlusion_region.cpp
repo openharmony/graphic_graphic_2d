@@ -220,10 +220,8 @@ void Region::InitDynamicLibraryFunction()
 void Region::RegionOp(Region& r1, Region& r2, Region& res, Region::OP op)
 {
     if (RSInnovation::_s_occlusionCullingFuncLoaded && RSInnovation::_s_occlusionCullingSoEnabled) {
-        RS_LOGD("Occlusion Region Op using Shared Library function.");
         regionOpFromSO(r1, r2, res, op);
     } else {
-        RS_LOGD("Occlusion Region Op using local function.");
         RegionOpLocal(r1, r2, res, op);
     }
 }
