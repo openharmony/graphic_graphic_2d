@@ -136,7 +136,7 @@ void RSMainThread::Init()
     InitRSEventDetector();
     sptr<VSyncConnection> conn = new VSyncConnection(rsVSyncDistributor_, "rs");
     rsVSyncDistributor_->AddConnection(conn);
-    receiver_ = std::make_shared<VSyncReceiver>(conn);
+    receiver_ = std::make_shared<VSyncReceiver>(conn, handler_);
     receiver_->Init();
     renderEngine_ = std::make_shared<RSRenderEngine>();
     RSInnovation::OpenInnovationSo();
@@ -534,9 +534,8 @@ void RSMainThread::OnVsync(uint64_t timestamp, void* data)
         MergeToEffectiveTransactionDataMap(cachedTransactionDataMap_);
         RSUnmarshalThread::Instance().PostTask(unmarshalBarrierTask_);
     }
+    mainLoop_();
     if (handler_) {
-        handler_->PostTask(mainLoop_, AppExecFwk::EventQueue::Priority::IDLE);
-
         auto screenManager_ = CreateOrGetScreenManager();
         if (screenManager_ != nullptr) {
             PostTask([=]() { screenManager_->ProcessScreenHotPlugEvents(); });
