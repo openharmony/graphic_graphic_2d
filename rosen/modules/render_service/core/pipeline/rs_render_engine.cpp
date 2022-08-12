@@ -44,10 +44,10 @@ static const sk_sp<SkColorFilter>& InvertColorMat()
 static const sk_sp<SkColorFilter>& ProtanomalyMat()
 {
     static const SkScalar colorMatrix[MATRIX_SIZE] = {
-        0.829,  0.1,    0.016,   0.0, 0.0,
-        1.161,  0.32,   -0.111,  0.0, 0.0,
-        0.224,  -0.131, 0.979,   0.0, 0.0,
-        0.0,    0.0,    0.0,     1.0, 0.0
+        0.622,  0.377,  0.0, 0.0, 0.0,
+        0.264,  0.736,  0.0, 0.0, 0.0,
+        0.217,  -0.217, 1.0, 0.0, 0.0,
+        0.0,    0.0,    0.0, 1.0, 0.0
     };
     static auto protanomalyMat = SkColorFilters::Matrix(colorMatrix);
     return protanomalyMat;
@@ -56,10 +56,10 @@ static const sk_sp<SkColorFilter>& ProtanomalyMat()
 static const sk_sp<SkColorFilter>& DeuteranomalyMat()
 {
     static const SkScalar colorMatrix[MATRIX_SIZE] = {
-        0.583,  -0.072, 0.054,   0.0, 0.0,
-        -0.692, 0.881,  0.089,   0.0, 0.0,
-        -0.118, -0.02,  1.015,   0.0, 0.0,
-        0.0,    0.0,    0.0,     1.0, 0.0
+        0.288,  0.712, 0.0, 0.0, 0.0,
+        0.053,  0.947, 0.0, 0.0, 0.0,
+        -0.258, 0.258, 1.0, 0.0, 0.0,
+        0.0,    0.0,   0.0, 1.0, 0.0
     };
     static auto deuteranomalyMat = SkColorFilters::Matrix(colorMatrix);
     return deuteranomalyMat;
@@ -68,10 +68,10 @@ static const sk_sp<SkColorFilter>& DeuteranomalyMat()
 static const sk_sp<SkColorFilter>& TritanomalyMat()
 {
     static const SkScalar colorMatrix[MATRIX_SIZE] = {
-        0.989,  0.074,  -0.39,   0.0, 0.0,
-        -0.004, 1.026,  -0.141,  0.0, 0.0,
-        -0.093, 0.608,  -2.23,   0.0, 0.0,
-        0.0,    0.0,    0.0,     1.0, 0.0
+        1.0, -0.806, 0.806, 0.0, 0.0,
+        0.0, 0.379,  0.621, 0.0, 0.0,
+        0.0, 0.105,  0.895, 0.0, 0.0,
+        0.0, 0.0,    0.0,   1.0, 0.0
     };
     static auto tritanomalyMat = SkColorFilters::Matrix(colorMatrix);
     return tritanomalyMat;
