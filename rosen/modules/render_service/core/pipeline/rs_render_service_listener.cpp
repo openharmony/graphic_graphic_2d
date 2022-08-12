@@ -43,6 +43,7 @@ void RSRenderServiceListener::OnBufferAvailable()
             node->GetId());
         node->NotifyUIBufferAvailable();
     }
+    node->SetBufferAvailableForRS(true);
     RSMainThread::Instance()->RequestNextVSync();
 }
 
@@ -74,6 +75,7 @@ void RSRenderServiceListener::OnCleanCache()
         }
         RS_LOGI("RsDebug RSRenderServiceListener::OnCleanCache node id:%" PRIu64, node->GetId());
         node->CleanCache();
+        node->SetBufferAvailableForRS(false);
     });
 }
 } // namespace Rosen

@@ -387,9 +387,32 @@ void RSMainThread::NotifyUniRenderFinish()
     }
 }
 
-bool RSMainThread::IfUseUniVisitor()
+bool RSMainThread::IfUseUniVisitor() const
 {
-    return true;
+    return !waitBufferAvailable_ && RSUniRenderJudgement::QueryIfUseUniVisitor();
+}
+
+void RSMainThread::CheckBufferAvailableIfNeed()
+{
+    if (!waitBufferAvailable_) {
+        return;
+    }
+    const auto& nodeMap = GetContext().GetNodeMap();
+    bool allBufferAvailable = true;
+    for (auto& [id, node] : nodeMap.renderNodeMap_) {
+        if (node == nullptr || !node->IsInstanceOf<RSSurfaceRenderNode>()) {
+            continue;
+        }
+        auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node);
+        if (!surfaceNode->IsUniRender() || !node->IsOnTheTree()) {
+            continue;
+        }
+        if (!surfaceNode->IsBufferAvailable()) {
+            allBufferAvailable = false;
+            break;
+        }
+    }
+    waitBufferAvailable_ = !allBufferAvailable;
 }
 
 void RSMainThread::Render()
@@ -399,8 +422,14 @@ void RSMainThread::Render()
         RS_LOGE("RSMainThread::Render GetGlobalRootRenderNode fail");
         return;
     }
+
+    if (isUniRender_) {
+        RSUniRenderJudgement::CalculateRenderType(rootNode);
+        CheckBufferAvailableIfNeed();
+    }
+
     std::shared_ptr<RSNodeVisitor> visitor;
-    if (RSUniRenderJudgement::QueryIfUseUniVisitor()) {
+    if (IfUseUniVisitor()) {
         RS_LOGE("cqx RSMainThread::Render use RSUniRenderVisitor");
         visitor = std::make_shared<RSUniRenderVisitor>();
     } else {
@@ -416,9 +445,6 @@ void RSMainThread::Render()
         auto rsVisitor = std::make_shared<RSRenderServiceVisitor>();
         rsVisitor->SetAnimateState(doAnimate_);
         visitor = rsVisitor;
-    }
-    if (isUniRender_) {
-        RSUniRenderJudgement::CalculateRenderType(rootNode);
     }
 
     rootNode->Prepare(visitor);
@@ -648,13 +674,14 @@ void RSMainThread::UnRegisterApplicationAgent(sptr<IApplicationAgent> app)
 
 void RSMainThread::NotifyRenderStateChanged(bool useUniVisitor)
 {
-    PostTask([useUniVisitor = useUniVisitor, this]() {
+//    PostTask([useUniVisitor = useUniVisitor, this]() {
+        waitBufferAvailable_ = !useUniVisitor;
         for (auto& elem : applicationAgentMap_) {
             if (elem.second != nullptr) {
                 elem.second->OnRenderStateChanged(!useUniVisitor);
             }
         }
-    });
+//    });
 }
 
 void RSMainThread::RegisterOcclusionChangeCallback(sptr<RSIOcclusionChangeCallback> callback)

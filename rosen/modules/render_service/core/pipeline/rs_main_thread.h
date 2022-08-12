@@ -108,7 +108,8 @@ public:
 
     void WaitUtilUniRenderFinished();
     void NotifyUniRenderFinish();
-    bool IfUseUniVisitor();
+    bool IfUseUniVisitor() const;
+    void CheckBufferAvailableIfNeed();
     void ClearTransactionDataPidInfo(pid_t remotePid);
     void AddTransactionDataPidInfo(pid_t remotePid);
 
@@ -170,6 +171,7 @@ private:
     std::shared_ptr<VSyncReceiver> receiver_ = nullptr;
     std::vector<sptr<RSIOcclusionChangeCallback>> occlusionListeners_;
 
+    bool waitBufferAvailable_ = false;
     bool isUniRender_ = RSUniRenderJudgement::IsUniRender();
     RSTaskMessage::RSTask unmarshalBarrierTask_;
     std::condition_variable unmarshalTaskCond_;

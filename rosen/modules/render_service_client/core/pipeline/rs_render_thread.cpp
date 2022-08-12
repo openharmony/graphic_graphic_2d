@@ -23,6 +23,7 @@
 
 #include "animation/rs_animation_fraction.h"
 #include "pipeline/rs_frame_report.h"
+#include "pipeline/rs_node_map.h"
 #include "pipeline/rs_render_node_map.h"
 #include "pipeline/rs_root_render_node.h"
 #include "platform/common/rs_log.h"
@@ -34,6 +35,8 @@
 #include "rs_trace.h"
 
 #include "transaction/rs_render_service_client.h"
+#include "ui/rs_surface_extractor.h"
+#include "ui/rs_surface_node.h"
 #include "ui/rs_ui_director.h"
 #ifdef ROSEN_OHOS
 #include <sys/prctl.h>
@@ -263,8 +266,31 @@ void RSRenderThread::UpdateRenderState(bool needRender)
     if (handler_) {
         handler_->PostTask([needRender = needRender, this]() {
             needRender_ = needRender;
+            RequestNextVSync();
+            if (!needRender_) {
+                ClearBufferCache();
+            }
         }, AppExecFwk::EventQueue::Priority::IMMEDIATE);
-        RequestNextVSync();
+    }
+}
+
+void RSRenderThread::ClearBufferCache()
+{
+    const auto& rootNode = context_.GetGlobalRootRenderNode();
+    if (rootNode == nullptr) {
+        ROSEN_LOGE("RSRenderThread::ClearBufferCache, rootNode is nullptr");
+        return;
+    }
+    for (auto& child : rootNode->GetSortedChildren()) {
+        if (!child || !child->IsInstanceOf<RSRootRenderNode>()) {
+            continue;
+        }
+        auto childNode = child->ReinterpretCastTo<RSRootRenderNode>();
+        auto surfaceNode = RSNodeMap::Instance().GetNode<RSSurfaceNode>(childNode->GetRSSurfaceNodeId());
+        auto rsSurface = RSSurfaceExtractor::ExtractRSSurface(surfaceNode);
+        if (rsSurface != nullptr) {
+            rsSurface->ClearBuffer();
+        }
     }
 }
 
