@@ -21,7 +21,6 @@ group("unittest") {
   deps = [
     ":RSDisplayModeTest",
     ":RSDropframeTest",
-    ":RSInterfacesTest",
     ":RSTunnelHandleTest",
   ]
 }
@@ -36,10 +35,7 @@ ohos_unittest("RSInterfacesTest") {
 ## Build RSDropframeTest
 ohos_unittest("RSDropframeTest") {
   module_out_path = module_out_path
-  sources = [
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/src/pipeline/rs_base_render_node.cpp",
-    "rs_dropframe_test.cpp",
-  ]
+  sources = [ "rs_dropframe_test.cpp" ]
   deps = [ ":rs_client_test_common" ]
 }
 
