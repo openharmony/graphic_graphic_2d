@@ -57,8 +57,23 @@ void RSAnimationManager::RemoveAnimation(AnimationId keyId)
         ROSEN_LOGE("RSAnimationManager::RemoveAnimation, The Animation does not exist when is deleted");
         return;
     }
+    animationItr->second->Detach();
     OnAnimationRemove(animationItr->second);
     animations_.erase(animationItr);
+}
+
+void RSAnimationManager::FilterAnimationByPid(pid_t pid)
+{
+    ROSEN_LOGI("RSAnimationManager::FilterAnimationByPid removing all animations belong to pid %d", pid);
+    // remove all animations belong to given pid (by matching higher 32 bits of animation id)
+    std::__libcpp_erase_if_container(animations_, [pid, this](const auto& pair) -> bool {
+        if (static_cast<pid_t>(pair.first >> 32) != pid) {
+            return false;
+        }
+        pair.second->Detach();
+        OnAnimationRemove(pair.second);
+        return true;
+    });
 }
 
 bool RSAnimationManager::Animate(int64_t time)
