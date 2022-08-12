@@ -257,6 +257,9 @@ public:
     void NotifyUIBufferAvailable();
     bool IsNotifyUIBufferAvailable() const;
 
+    void SetBufferAvailableForRS(bool isAvailable);
+    bool IsBufferAvailable() const;
+
     // UI Thread would not be notified when SurfaceNode created by Video/Camera in RenderService has available buffer.
     // And RenderThread does not call mainFunc_ if nothing in UI thread is changed
     // which would cause callback for "clip" on parent SurfaceNode cannot be triggered
@@ -302,6 +305,7 @@ private:
     BlendType blendType_ = BlendType::BLEND_SRCOVER;
     std::atomic<bool> isNotifyRTBufferAvailable_ = false;
     std::atomic<bool> isNotifyUIBufferAvailable_ = false;
+    std::atomic_bool isBufferAvailable_ = false;
     sptr<RSIBufferAvailableCallback> callbackFromRT_;
     sptr<RSIBufferAvailableCallback> callbackFromUI_;
     std::function<void(void)> callbackForRenderThreadRefresh_ = nullptr;

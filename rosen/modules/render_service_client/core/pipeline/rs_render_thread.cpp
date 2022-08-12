@@ -87,14 +87,14 @@ RSRenderThread::RSRenderThread()
             ProcessCommands();
             jankDetector_.ProcessUiDrawFrameMsg();
 
-            if (!needRender_) {
-                return;
-            }
             ROSEN_LOGD("RSRenderThread DrawFrame(%" PRIu64 ") in %s", prevTimestamp_, renderContext_ ? "GPU" : "CPU");
             Animate(prevTimestamp_);
             Render();
             RS_ASYNC_TRACE_BEGIN("waiting GPU running", 1111); // 1111 means async trace code for gpu
             SendCommands();
+        }
+        if (!needRender_) {
+            return;
         }
         jankDetector_.CalculateSkippedFrame(renderStartTimeStamp, jankDetector_.GetSysTimeNs());
     };
@@ -258,6 +258,16 @@ void RSRenderThread::UpdateUiDrawFrameMsg(const std::string& abilityName)
     uiDrawAbilityName_ = abilityName;
 }
 
+void RSRenderThread::UpdateRenderState(bool needRender)
+{
+    if (handler_) {
+        handler_->PostTask([needRender = needRender, this]() {
+            needRender_ = needRender;
+        }, AppExecFwk::EventQueue::Priority::IMMEDIATE);
+        RequestNextVSync();
+    }
+}
+
 void RSRenderThread::ProcessCommands()
 {
     // Attention: there are two situations
@@ -311,7 +321,7 @@ void RSRenderThread::Animate(uint64_t timestamp)
 {
     RS_TRACE_FUNC();
 
-    if (RsFrameReport::GetInstance().GetEnable()) {
+    if (RsFrameReport::GetInstance().GetEnable() && needRender_) {
         RsFrameReport::GetInstance().AnimateStart();
     }
 
@@ -338,16 +348,21 @@ void RSRenderThread::Animate(uint64_t timestamp)
 
 void RSRenderThread::Render()
 {
+    if (!needRender_) {
+        return;
+    }
     ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSRenderThread::Render");
     if (RsFrameReport::GetInstance().GetEnable()) {
         RsFrameReport::GetInstance().RenderStart();
     }
     std::unique_lock<std::mutex> lock(mutex_);
     const auto& rootNode = context_.GetGlobalRootRenderNode();
+
     if (rootNode == nullptr) {
-        ROSEN_LOGE("RSRenderThread::Render, rootNode is nullptr");
+        ROSEN_LOGE("cqx RSRenderThread::Render, rootNode is nullptr");
         return;
     }
+    ROSEN_LOGE("cqx111 RSRenderThread::Render, rootNode child size:%zu", rootNode->GetChildrenCount());
     if (visitor_ == nullptr) {
         visitor_ = std::make_shared<RSRenderThreadVisitor>();
     }
@@ -359,11 +374,11 @@ void RSRenderThread::Render()
 void RSRenderThread::SendCommands()
 {
     ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSRenderThread::SendCommands");
-    if (RsFrameReport::GetInstance().GetEnable()) {
+    if (RsFrameReport::GetInstance().GetEnable() && needRender_) {
         RsFrameReport::GetInstance().SendCommandsStart();
     }
 
-    RSUIDirector::RecvMessages();
+    RSUIDirector::RecvMessages(needRender_);
     ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
 }
 

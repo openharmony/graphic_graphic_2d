@@ -50,6 +50,7 @@ RSSurfaceNode::SharedPtr RSSurfaceNode::Create(const RSSurfaceNodeConfig& surfac
             return nullptr;
         }
     } else {
+        config.isUni = false;
         if (!node->CreateNodeAndSurface(config)) {
             ROSEN_LOGE("RSSurfaceNode::Create, create node and surface failed");
             return nullptr;

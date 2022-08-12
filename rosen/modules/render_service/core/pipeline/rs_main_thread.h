@@ -108,7 +108,7 @@ public:
 
     void WaitUtilUniRenderFinished();
     void NotifyUniRenderFinish();
-
+    bool IfUseUniVisitor();
     void ClearTransactionDataPidInfo(pid_t remotePid);
     void AddTransactionDataPidInfo(pid_t remotePid);
 

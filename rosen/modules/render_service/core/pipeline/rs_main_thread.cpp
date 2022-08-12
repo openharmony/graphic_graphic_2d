@@ -387,6 +387,11 @@ void RSMainThread::NotifyUniRenderFinish()
     }
 }
 
+bool RSMainThread::IfUseUniVisitor()
+{
+    return true;
+}
+
 void RSMainThread::Render()
 {
     const std::shared_ptr<RSBaseRenderNode> rootNode = context_.GetGlobalRootRenderNode();

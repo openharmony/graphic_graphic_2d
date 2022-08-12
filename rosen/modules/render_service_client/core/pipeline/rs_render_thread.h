@@ -81,10 +81,7 @@ public:
     {
         return isHighContrastEnabled_;
     }
-    void UpdateRenderState(bool needRender)
-    {
-        needRender_.store(needRender);
-    }
+    void UpdateRenderState(bool needRender);
 
 private:
     RSRenderThread();
