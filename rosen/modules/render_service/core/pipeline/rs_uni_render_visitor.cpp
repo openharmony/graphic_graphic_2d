@@ -208,6 +208,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
 {
     RS_LOGD("RSUniRenderVisitor::ProcessDisplayRenderNode node: %" PRIu64 ", child size:%u", node.GetId(),
         node.GetChildrenCount());
+    isSecurityDisplay_ = node.GetSecurityDisplay();
     sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
     if (!screenManager) {
         RS_LOGE("RSUniRenderVisitor::ProcessDisplayRenderNode ScreenManager is nullptr");
@@ -256,11 +257,10 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
 
     if (mirrorNode) {
         auto processor = std::static_pointer_cast<RSUniRenderMirrorProcessor>(processor_);
-        if (displayHasSecSurface_[mirrorNode->GetScreenId()] && processor) {
+        if (displayHasSecSurface_[mirrorNode->GetScreenId()] && mirrorNode->GetSecurityDisplay() != isSecurityDisplay_
+            && processor) {
             canvas_ = processor->GetCanvas();
-            skipSecSurface_ = true;
             ProcessBaseRenderNode(*mirrorNode);
-            skipSecSurface_ = false;
         } else {
             processor_->ProcessDisplaySurface(*mirrorNode);
         }
@@ -350,7 +350,7 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
 {
     RS_LOGD("RSUniRenderVisitor::ProcessSurfaceRenderNode node: %" PRIu64 ", child size:%u %s", node.GetId(),
         node.GetChildrenCount(), node.GetName().c_str());
-    if (skipSecSurface_ && node.GetSecurityLayer()) {
+    if (isSecurityDisplay_ && node.GetSecurityLayer()) {
         return;
     }
     const auto& property = node.GetRenderProperties();
