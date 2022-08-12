@@ -173,13 +173,33 @@ void RSRenderNode::AddModifier(const std::shared_ptr<RSRenderModifier>& modifier
     if (!modifier) {
         return;
     }
-    if (modifier->GetType() < RSModifierType::CUSTOM) {
+    if (modifier->GetType() == RSModifierType::BOUNDS || modifier->GetType() == RSModifierType::FRAME) {
+        AddGeometryModifier(modifier);
+    } else if (modifier->GetType() < RSModifierType::CUSTOM) {
         modifiers_.insert({ modifier->GetPropertyId(), modifier });
     } else {
         drawCmdModifiers_[modifier->GetType()].emplace_back(modifier);
     }
     modifier->GetProperty()->Attach(shared_from_this());
     SetDirty();
+}
+
+void RSRenderNode::AddGeometryModifier(const std::shared_ptr<RSRenderModifier>& modifier)
+{
+    // bounds and frame modifiers must be unique
+    if (modifier->GetType() == RSModifierType::BOUNDS) {
+        if (boundsModifier_ == nullptr) {
+            boundsModifier_ = modifier;
+        }
+        modifiers_.insert({ modifier->GetPropertyId(), boundsModifier_ });
+    }
+
+    if (modifier->GetType() == RSModifierType::FRAME) {
+        if (frameModifier_ == nullptr) {
+            frameModifier_ = modifier;
+        }
+        modifiers_.insert({ modifier->GetPropertyId(), frameModifier_ });
+    }
 }
 
 void RSRenderNode::RemoveModifier(const PropertyId& id)
