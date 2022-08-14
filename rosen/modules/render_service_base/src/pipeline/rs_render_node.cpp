@@ -168,7 +168,7 @@ void RSRenderNode::ClearModifiers()
     SetDirty();
 }
 
-void RSRenderNode::AddModifier(const std::shared_ptr<RSRenderModifier>& modifier)
+void RSRenderNode::AddModifier(const std::shared_ptr<RSRenderModifier> modifier)
 {
     if (!modifier) {
         return;
@@ -211,7 +211,9 @@ void RSRenderNode::RemoveModifier(const PropertyId& id)
         return;
     }
     for (auto& [type, modifiers] : drawCmdModifiers_) {
-        modifiers.remove_if([id](const auto& modifier) -> bool { return modifier->GetPropertyId() == id; });
+        modifiers.remove_if([id](const auto& modifier) -> bool {
+            return modifier ? modifier->GetPropertyId() == id : true;
+        });
     }
 }
 
