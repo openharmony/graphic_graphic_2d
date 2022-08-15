@@ -81,6 +81,9 @@ private:
         float scaleY_ = 1.0f;
         bool isUniRender_ = false;
 
+        SkRect boundsRect_;
+        Gravity frameGravity_ = Gravity::DEFAULT;
+
         std::shared_ptr<RSRenderEngine> renderEngine_;
     };
 

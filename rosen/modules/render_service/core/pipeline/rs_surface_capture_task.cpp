@@ -33,6 +33,7 @@
 #include "pipeline/rs_uni_render_util.h"
 #include "platform/common/rs_log.h"
 #include "platform/drawing/rs_surface.h"
+#include "property/rs_transition_properties.h"
 #include "render/rs_skia_filter.h"
 #include "screen_manager/rs_screen_manager.h"
 #include "screen_manager/rs_screen_mode_info.h"
@@ -251,8 +252,9 @@ void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::CaptureSurfaceInDisplayWithU
         canvas_->clipRect(contextClipRect);
     }
 
+    const auto& property = node.GetRenderProperties();
     SkMatrix translateMatrix;
-    auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(node.GetRenderProperties().GetBoundsGeometry());
+    auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(property.GetBoundsGeometry());
     translateMatrix.setTranslate(
         std::ceil(geoPtr->GetMatrix().getTranslateX()),
         std::ceil(geoPtr->GetMatrix().getTranslateY()));
@@ -261,8 +263,15 @@ void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::CaptureSurfaceInDisplayWithU
     auto params = RSBaseRenderUtil::CreateBufferDrawParam(node, true); // use node's local coordinate.
 
     const auto saveCnt = canvas_->save();
-    if (node.GetConsumer() == nullptr) {
-        canvas_->concat(params.matrix);
+    canvas_->concat(params.matrix);
+    auto transitionProperties = node.GetAnimationManager().GetTransitionProperties();
+    RSPropertiesPainter::DrawTransitionProperties(transitionProperties, property, *canvas_);
+    boundsRect_ = SkRect::MakeWH(property.GetBoundsWidth(), property.GetBoundsHeight());
+    frameGravity_ = property.GetFrameGravity();
+    canvas_->clipRect(boundsRect_);
+    auto backgroundColor = static_cast<SkColor>(property.GetBackgroundColor().AsArgbInt());
+    if (SkColorGetA(backgroundColor) != SK_AlphaTRANSPARENT) {
+        canvas_->drawColor(backgroundColor);
     }
     ProcessBaseRenderNode(node);
     canvas_->restoreToCount(saveCnt);
@@ -305,6 +314,14 @@ void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::ProcessRootRenderNode(RSRoot
     }
 
     canvas_->save();
+    const auto& property = node.GetRenderProperties();
+    const float frameWidth = property.GetFrameWidth();
+    const float frameHeight = property.GetFrameHeight();
+    SkMatrix gravityMatrix;
+    (void)RSPropertiesPainter::GetGravityMatrix(frameGravity_,
+        RectF {0.0f, 0.0f, boundsRect_.width(), boundsRect_.height()},
+        frameWidth, frameHeight, gravityMatrix);
+    canvas_->concat(gravityMatrix);
     ProcessCanvasRenderNode(node);
     canvas_->restore();
 }

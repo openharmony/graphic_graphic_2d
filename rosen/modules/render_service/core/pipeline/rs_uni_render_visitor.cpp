@@ -371,7 +371,7 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
         RS_LOGE("RSUniRenderVisitor::ProcessSurfaceRenderNode node:%" PRIu64 ", get geoPtr failed", node.GetId());
         return;
     }
-    RS_TRACE_BEGIN("RSUniRender::Process:" + node.GetName());
+    RS_TRACE_NAME("RSUniRender::Process:" + node.GetName());
     canvas_->save();
     canvas_->SaveAlpha();
 
@@ -383,34 +383,35 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
         canvas_->clipRect(contextClipRect);
     }
 
-    canvas_->concat(geoPtr->GetMatrix());
-    SkRect boundsRect = SkRect::MakeWH(property.GetBoundsWidth(), property.GetBoundsHeight());
-    clipRect_ = boundsRect;
-    frameGravity_ = property.GetFrameGravity();
-    canvas_->clipRect(clipRect_);
+    SkMatrix translateMatrix;
+    translateMatrix.setTranslate(
+        std::ceil(geoPtr->GetMatrix().getTranslateX()),
+        std::ceil(geoPtr->GetMatrix().getTranslateY()));
+    canvas_->concat(translateMatrix);
 
+    auto params = RSBaseRenderUtil::CreateBufferDrawParam(node, true); // use node's local coordinate.
+
+    const auto saveCnt = canvas_->save();
+    canvas_->concat(params.matrix);
     auto transitionProperties = node.GetAnimationManager().GetTransitionProperties();
     RSPropertiesPainter::DrawTransitionProperties(transitionProperties, property, *canvas_);
+    boundsRect_ = SkRect::MakeWH(property.GetBoundsWidth(), property.GetBoundsHeight());
+    frameGravity_ = property.GetFrameGravity();
+    canvas_->clipRect(boundsRect_);
     auto backgroundColor = static_cast<SkColor>(property.GetBackgroundColor().AsArgbInt());
     if (SkColorGetA(backgroundColor) != SK_AlphaTRANSPARENT) {
         canvas_->drawColor(backgroundColor);
     }
     ProcessBaseRenderNode(node);
+    canvas_->restoreToCount(saveCnt);
 
-    if (node.GetConsumer() != nullptr) {
-        RS_TRACE_BEGIN("UniRender::Process:" + node.GetName());
-        if (node.GetBuffer() == nullptr) {
-            RS_LOGD("RSUniRenderVisitor::ProcessSurfaceRenderNode:%" PRIu64 " buffer is not available", node.GetId());
-        } else {
-            node.NotifyRTBufferAvailable();
-            auto params = RSBaseRenderUtil::CreateBufferDrawParam(node, true); // in node's local coordinate.
-            renderEngine_->DrawSurfaceNodeWithParams(*canvas_, node, params);
-        }
-        RS_TRACE_END();
+    if (node.GetBuffer() != nullptr) {
+        node.NotifyRTBufferAvailable();
+        renderEngine_->DrawSurfaceNodeWithParams(*canvas_, node, params);
     }
+
     canvas_->RestoreAlpha();
     canvas_->restore();
-    RS_TRACE_END();
 }
 
 void RSUniRenderVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
@@ -428,15 +429,14 @@ void RSUniRenderVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
         return;
     }
 
+    canvas_->save();
     const float frameWidth = property.GetFrameWidth();
     const float frameHeight = property.GetFrameHeight();
     SkMatrix gravityMatrix;
     (void)RSPropertiesPainter::GetGravityMatrix(frameGravity_,
-        RectF {0.0f, 0.0f, clipRect_.width(), clipRect_.height()},
+        RectF {0.0f, 0.0f, boundsRect_.width(), boundsRect_.height()},
         frameWidth, frameHeight, gravityMatrix);
     canvas_->concat(gravityMatrix);
-
-    canvas_->save();
     ProcessCanvasRenderNode(node);
     canvas_->restore();
 }

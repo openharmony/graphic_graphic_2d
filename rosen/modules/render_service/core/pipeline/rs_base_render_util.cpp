@@ -983,7 +983,7 @@ void RSBaseRenderUtil::SetPropertiesForCanvas(RSPaintFilterCanvas& canvas, const
         }
     }
     if (SkColorGetA(params.backgroundColor) != SK_AlphaTRANSPARENT) {
-        canvas.clear(params.backgroundColor);
+        canvas.drawColor(params.backgroundColor);
     }
     canvas.concat(params.matrix);
 }
