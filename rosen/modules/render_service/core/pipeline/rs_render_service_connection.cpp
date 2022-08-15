@@ -182,6 +182,21 @@ void RSRenderServiceConnection::ExecuteSynchronousTask(const std::shared_ptr<RSS
     }).wait_for(std::chrono::nanoseconds(task->GetTimeout()));
 }
 
+int32_t RSRenderServiceConnection::SetRenderModeChangeCallback(sptr<RSIRenderModeChangeCallback> callback)
+{
+    if (!callback) {
+        RS_LOGD("RSRenderServiceConnection::SetRenderModeChangeCallback: callback is nullptr");
+        return INVALID_ARGUMENTS;
+    }
+    mainThread_->SetRenderModeChangeCallback(callback);
+    return SUCCESS;
+}
+
+void RSRenderServiceConnection::UpdateRenderMode(bool isUniRender)
+{
+    mainThread_->SetUniVisitor(isUniRender);
+}
+
 bool RSRenderServiceConnection::InitUniRenderEnabled(const std::string &bundleName)
 {
     return RSUniRenderJudgement::QueryClientEnabled(bundleName);

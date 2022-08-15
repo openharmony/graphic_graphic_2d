@@ -22,6 +22,7 @@
 #include "ipc_callbacks/surface_capture_callback_stub.h"
 #include "ipc_callbacks/buffer_available_callback_stub.h"
 #include "ipc_callbacks/rs_occlusion_change_callback_stub.h"
+#include "ipc_callbacks/rs_render_mode_change_callback_stub.h"
 #include "platform/common/rs_log.h"
 #include "rs_render_service_connect_hub.h"
 #include "rs_surface_ohos.h"
@@ -47,6 +48,41 @@ void RSRenderServiceClient::ExecuteSynchronousTask(const std::shared_ptr<RSSyncT
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService != nullptr) {
         renderService->ExecuteSynchronousTask(task);
+    }
+}
+
+class CustomRenderModeChangeCallback : public RSRenderModeChangeCallbackStub {
+public:
+    explicit CustomRenderModeChangeCallback(const RenderModeChangeCallback& callback) : cb_(callback) {}
+    ~CustomRenderModeChangeCallback() override {};
+
+    void OnRenderModeChanged(bool isUniRender) override
+    {
+        if (cb_ != nullptr) {
+            cb_(isUniRender);
+        }
+    }
+
+private:
+    RenderModeChangeCallback cb_;
+};
+
+int32_t RSRenderServiceClient::SetRenderModeChangeCallback(const RenderModeChangeCallback& callback)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        return RENDER_SERVICE_NULL;
+    }
+
+    renderModeChangeCb_ = new CustomRenderModeChangeCallback(callback);
+    return renderService->SetRenderModeChangeCallback(renderModeChangeCb_);
+}
+
+void RSRenderServiceClient::UpdateRenderMode(bool isUniRender)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService != nullptr) {
+        renderService->UpdateRenderMode(isUniRender);
     }
 }
 

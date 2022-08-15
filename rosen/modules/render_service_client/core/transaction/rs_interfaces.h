@@ -89,7 +89,7 @@ public:
     int32_t SetScreenGamutMap(ScreenId id, ScreenGamutMap mode);
 
     int32_t GetScreenGamutMap(ScreenId id, ScreenGamutMap& mode);
-    
+
     int32_t GetScreenHDRCapability(ScreenId id, RSScreenHDRCapability& screenHdrCapability);
 
     int32_t GetScreenType(ScreenId id, RSScreenType& screenType);
@@ -106,6 +106,10 @@ public:
     int32_t RegisterOcclusionChangeCallback(const OcclusionChangeCallback& callback);
 
     int32_t UnRegisterOcclusionChangeCallback(const OcclusionChangeCallback& callback);
+
+    int32_t SetRenderModeChangeCallback(const RenderModeChangeCallback& callback);
+
+    void UpdateRenderMode(bool isUniRender);
 
 private:
     RSInterfaces();

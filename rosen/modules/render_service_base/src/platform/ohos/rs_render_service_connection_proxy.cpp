@@ -99,6 +99,51 @@ void RSRenderServiceConnectionProxy::ExecuteSynchronousTask(const std::shared_pt
     }
 }
 
+int32_t RSRenderServiceConnectionProxy::SetRenderModeChangeCallback(sptr<RSIRenderModeChangeCallback> callback)
+{
+    if (callback == nullptr) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::SetRenderModeChangeCallback: callback is nullptr.");
+        return INVALID_ARGUMENTS;
+    }
+
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return WRITE_PARCEL_ERR;
+    }
+
+    option.SetFlags(MessageOption::TF_ASYNC);
+    data.WriteRemoteObject(callback->AsObject());
+    int32_t err =
+        Remote()->SendRequest(RSIRenderServiceConnection::SET_RENDER_MODE_CHANGE_CALLBACK, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::SetRenderModeChangeCallback: Send Request err.");
+        return RS_CONNECTION_ERROR;
+    }
+    int32_t result = reply.ReadInt32();
+    return result;
+}
+
+void RSRenderServiceConnectionProxy::UpdateRenderMode(bool isUniRender)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    if (!data.WriteBool(isUniRender)) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::UpdateRenderMode WriteBool failed!");
+        return;
+    }
+    option.SetFlags(MessageOption::TF_ASYNC);
+    int32_t err = Remote()->SendRequest(RSIRenderServiceConnection::UPDATE_RENDER_MODE, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::UpdateRenderMode SendRequest failed, err = %d", err);
+        return;
+    }
+}
+
 bool RSRenderServiceConnectionProxy::InitUniRenderEnabled(const std::string &bundleName)
 {
     MessageParcel data;

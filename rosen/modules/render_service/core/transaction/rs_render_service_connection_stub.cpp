@@ -118,6 +118,28 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             }
             break;
         }
+        case SET_RENDER_MODE_CHANGE_CALLBACK: {
+            auto token = data.ReadInterfaceToken();
+            if (token != RSIRenderServiceConnection::GetDescriptor()) {
+                ret = ERR_INVALID_STATE;
+                break;
+            }
+
+            auto remoteObject = data.ReadRemoteObject();
+            if (remoteObject == nullptr) {
+                ret = ERR_NULL_OBJECT;
+                break;
+            }
+            sptr<RSIRenderModeChangeCallback> cb = iface_cast<RSIRenderModeChangeCallback>(remoteObject);
+            int32_t status = SetRenderModeChangeCallback(cb);
+            reply.WriteInt32(status);
+            break;
+        }
+        case UPDATE_RENDER_MODE: {
+            bool isUniRender = data.ReadBool();
+            UpdateRenderMode(isUniRender);
+            break;
+        }
         case GET_UNI_RENDER_TYPE: {
             auto packageName = data.ReadString();
             reply.WriteBool(InitUniRenderEnabled(packageName));

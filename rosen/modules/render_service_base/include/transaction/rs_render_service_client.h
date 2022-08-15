@@ -37,6 +37,7 @@
 #include "screen_manager/rs_virtual_screen_resolution.h"
 #include "vsync_receiver.h"
 #include "ipc_callbacks/rs_iocclusion_change_callback.h"
+#include "ipc_callbacks/rs_irender_mode_change_callback.h"
 #include "rs_occlusion_data.h"
 
 namespace OHOS {
@@ -45,6 +46,7 @@ namespace Rosen {
 using ScreenChangeCallback = std::function<void(ScreenId, ScreenEvent)>;
 using BufferAvailableCallback = std::function<void()>;
 using OcclusionChangeCallback = std::function<void(std::shared_ptr<RSOcclusionData>)>;
+using RenderModeChangeCallback = std::function<void(bool)>;
 class SurfaceCaptureCallback {
 public:
     SurfaceCaptureCallback() {}
@@ -63,6 +65,8 @@ public:
     void CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData) override;
     void ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task) override;
 
+    int32_t SetRenderModeChangeCallback(const RenderModeChangeCallback& callback);
+    void UpdateRenderMode(bool isUniRender);
     bool InitUniRenderEnabled(const std::string &bundleName);
     bool CreateNode(const RSSurfaceRenderNodeConfig& config);
     std::shared_ptr<RSSurface> CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config);
@@ -81,7 +85,7 @@ public:
         ScreenId mirrorId, int32_t flags);
 
     int32_t SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface);
-    
+
     void RemoveVirtualScreen(ScreenId id);
 
     int32_t SetScreenChangeCallback(const ScreenChangeCallback& callback);
@@ -138,6 +142,7 @@ private:
     std::mutex mutex_;
     std::map<NodeId, sptr<RSIBufferAvailableCallback>> bufferAvailableCbRTMap_;
     std::map<NodeId, sptr<RSIBufferAvailableCallback>> bufferAvailableCbUIMap_;
+    sptr<RSIRenderModeChangeCallback> renderModeChangeCb_;
     sptr<RSIScreenChangeCallback> screenChangeCb_;
     sptr<RSISurfaceCaptureCallback> surfaceCaptureCbDirector_;
     std::map<NodeId, std::shared_ptr<SurfaceCaptureCallback>> surfaceCaptureCbMap_;
