@@ -51,9 +51,3 @@ if (graphic_standard_feature_rs_enable_eglimage) {
   gpu_defines += [ "RS_DISABLE_EGLIMAGE" ]
   rs_enable_eglimage = false
 }
-
-if (graphic_standard_feature_color_gamut_enable) {
-  color_gamut_enable = true
-} else {
-  color_gamut_enable = false
-}
