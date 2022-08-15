@@ -54,12 +54,12 @@ void RSRenderNode::FallbackAnimationsToRoot()
         ROSEN_LOGE("Failed to move animation to root, root render node is null!");
         return;
     }
+    context->RegisterAnimatingRenderNode(target);
 
-    if (context != nullptr) {
-        context->RegisterAnimatingRenderNode(target);
-    }
     for (const auto& [animationId, animation] : animationManager_.animations_) {
         animation->Detach();
+        // avoid infinite loop for fallback animation
+        animation->SetRepeatCount(1);
         target->animationManager_.AddAnimation(animation);
     }
 }

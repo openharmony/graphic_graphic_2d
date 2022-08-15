@@ -51,9 +51,19 @@ void RSRenderNodeMap::FilterNodeByPid(pid_t pid)
         if (static_cast<pid_t>(pair.first >> 32) != pid) {
             return false;
         }
+        if (auto renderNode = RSBaseRenderNode::ReinterpretCast<RSRenderNode>(pair.second)) {
+            // clear all animations before removing, to avoid animation fallback
+            renderNode->GetAnimationManager().ClearAnimation();
+        }
         pair.second->RemoveFromTree();
         return true;
     });
+
+    auto fallbackNode = RSBaseRenderNode::ReinterpretCast<RSRenderNode>(renderNodeMap_.at(0));
+    if (fallbackNode) {
+        // remove all fallback animations belong to given pid
+        fallbackNode->GetAnimationManager().FilterAnimationByPid(pid);
+    }
 }
 
 void RSRenderNodeMap::TraversalNodes(std::function<void (const std::shared_ptr<RSBaseRenderNode>&)> func) const

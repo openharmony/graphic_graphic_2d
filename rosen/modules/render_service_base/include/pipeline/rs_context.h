@@ -41,12 +41,12 @@ public:
         return globalRootRenderNode_;
     }
 
-    void RegisterAnimatingRenderNode(const std::shared_ptr<RSBaseRenderNode>& nodePtr);
+    void RegisterAnimatingRenderNode(const std::shared_ptr<RSRenderNode>& nodePtr);
 
 private:
     RSRenderNodeMap nodeMap;
     std::shared_ptr<RSBaseRenderNode> globalRootRenderNode_ = std::make_shared<RSBaseRenderNode>(0, true);
-    std::unordered_map<NodeId, std::weak_ptr<RSBaseRenderNode>> animatingNodeList_;
+    std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>> animatingNodeList_;
 
     RSContext(const RSContext&) = delete;
     RSContext(const RSContext&&) = delete;
