@@ -151,9 +151,10 @@ private:
     void ProcessCommandForUniRender();
     void WaitUntilUnmarshallingTaskFinished();
     void MergeToEffectiveTransactionDataMap(TransactionDataMap& cachedTransactionDataMap);
-
     void CheckBufferAvailableIfNeed();
 
+    void CalcDirtyRegion(std::shared_ptr<RSSurfaceRenderNode> surface, Occlusion::Region curSurface);
+    const std::shared_ptr<RSDisplayRenderNode> GetDisplayNode(const std::shared_ptr<RSSurfaceRenderNode> node) const;
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
     RSTaskMessage::RSTask mainLoop_;

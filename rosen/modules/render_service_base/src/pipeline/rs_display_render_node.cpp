@@ -179,5 +179,12 @@ void RSDisplayRenderNode::UpdateDisplayDirtyManager(uint32_t bufferage)
     lastFrameSurfacePos_.clear();
     lastFrameSurfacePos_.swap(currentFrameSurfacePos_);
 }
+
+void RSDisplayRenderNode::ResetDirtyRegion()
+{
+    damageRegion_.Reset();
+    displayOpaqueRegion_.Reset();
+    displayTransparentDirtyRegion_.Reset();
+}
 } // namespace Rosen
 } // namespace OHOS
