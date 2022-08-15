@@ -311,7 +311,7 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
     RS_TRACE_BEGIN("ProcessRenderNodes");
     ProcessCanvasRenderNode(node);
 
-    if (childSurfaceNodeIds_ != node.childSurfaceNodeIds_) {
+    if (childSurfaceNodeIds_ != node.childSurfaceNodeIds_ || RSRenderThread::Instance().GetForceUpdateSurfaceNode()) {
         auto thisSurfaceNodeId = node.GetRSSurfaceNodeId();
         std::unique_ptr<RSCommand> command = std::make_unique<RSBaseNodeClearChildExceptRoot>(thisSurfaceNodeId);
         SendCommandFromRT(command, thisSurfaceNodeId, FollowType::FOLLOW_TO_SELF);
@@ -448,7 +448,7 @@ void RSRenderThreadVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
     ProcessBaseRenderNode(node);
 
     // 4. if children changed, sync children to RenderService
-    if (childSurfaceNodeIds_ != node.childSurfaceNodeIds_) {
+    if (childSurfaceNodeIds_ != node.childSurfaceNodeIds_ || RSRenderThread::Instance().GetForceUpdateSurfaceNode()) {
         auto thisSurfaceNodeId = node.GetId();
         std::unique_ptr<RSCommand> command = std::make_unique<RSBaseNodeClearChildExceptRoot>(thisSurfaceNodeId);
         SendCommandFromRT(command, thisSurfaceNodeId, FollowType::FOLLOW_TO_SELF);

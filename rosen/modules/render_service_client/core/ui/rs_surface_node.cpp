@@ -132,6 +132,17 @@ void RSSurfaceNode::ClearChildren()
     RSBaseNode::ClearChildren();
 }
 
+FollowType RSSurfaceNode::GetFollowType() const
+{
+    if (!isUniRenderEnabled_ && !isRenderServiceNode_) {
+        return FollowType::FOLLOW_TO_PARENT;
+    }
+    if (isUniRenderEnabled_ && !isRenderServiceNode_ && !RSSystemProperties::GetRenderMode()) {
+        return FollowType::FOLLOW_TO_PARENT;
+    }
+    return FollowType::NONE;
+}
+
 void RSSurfaceNode::OnBoundsSizeChanged() const
 {
     auto bounds = GetStagingProperties().GetBounds();

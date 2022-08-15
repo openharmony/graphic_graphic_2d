@@ -358,12 +358,6 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
 
     canvas_->MultiplyAlpha(property.GetAlpha() * node.GetContextAlpha());
 
-    canvas_->concat(node.GetContextMatrix());
-    auto contextClipRect = node.GetContextClipRegion();
-    if (!contextClipRect.isEmpty()) {
-        canvas_->clipRect(contextClipRect);
-    }
-
     canvas_->concat(geoPtr->GetMatrix());
     SkRect boundsRect = SkRect::MakeWH(property.GetBoundsWidth(), property.GetBoundsHeight());
     clipRect_ = boundsRect;

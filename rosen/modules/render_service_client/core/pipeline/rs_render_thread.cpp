@@ -272,6 +272,8 @@ void RSRenderThread::UpdateRenderMode(bool needRender)
             if (!needRender_) {
                 UpdateSurfaceNodeParentInRS();
                 ClearBufferCache();
+            } else {
+                forceUpdateSurfaceNode_ = true;
             }
         }, AppExecFwk::EventQueue::Priority::IMMEDIATE);
     }
@@ -421,6 +423,7 @@ void RSRenderThread::Render()
     }
     rootNode->Prepare(visitor_);
     rootNode->Process(visitor_);
+    forceUpdateSurfaceNode_ = false;
     ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
 }
 
