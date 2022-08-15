@@ -194,7 +194,7 @@ int32_t RSRenderServiceConnection::SetRenderModeChangeCallback(sptr<RSIRenderMod
 
 void RSRenderServiceConnection::UpdateRenderMode(bool isUniRender)
 {
-    mainThread_->SetUniVisitor(isUniRender);
+    mainThread_->NotifyRenderModeChanged(isUniRender);
 }
 
 bool RSRenderServiceConnection::InitUniRenderEnabled(const std::string &bundleName)
@@ -204,7 +204,7 @@ bool RSRenderServiceConnection::InitUniRenderEnabled(const std::string &bundleNa
 
 bool RSRenderServiceConnection::QueryIfRTNeedRender()
 {
-    return !RSUniRenderJudgement::QueryIfUseUniVisitor();
+    return !mainThread_->QueryIfUseUniVisitor();
 }
 
 bool RSRenderServiceConnection::CreateNode(const RSSurfaceRenderNodeConfig& config)

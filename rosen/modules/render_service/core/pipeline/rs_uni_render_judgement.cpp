@@ -53,12 +53,6 @@ bool RSUniRenderJudgement::IsUniRender()
     return RSUniRenderJudgement::GetUniRenderEnabledType() != UniRenderEnabledType::UNI_RENDER_DISABLED;
 }
 
-bool RSUniRenderJudgement::QueryIfUseUniVisitor()
-{
-    RS_LOGI("RSUniRenderJudgement::QueryIfUseUniVisitor useUniVisitor_:%d", useUniVisitor_.load());
-    return useUniVisitor_;
-}
-
 void RSUniRenderJudgement::CalculateRenderType(std::shared_ptr<RSBaseRenderNode> rootNode)
 {
     uint32_t windowCount = 0;
@@ -97,7 +91,7 @@ void RSUniRenderJudgement::InitUniRenderConfig()
 {
     InitUniRenderWithConfigFile();
     RS_LOGI("Init RenderService UniRender Type:%d", uniRenderEnabledType_);
-    useUniVisitor_ = uniRenderEnabledType_ != UniRenderEnabledType::UNI_RENDER_DISABLED;
+//    useUniVisitor_ = uniRenderEnabledType_ != UniRenderEnabledType::UNI_RENDER_DISABLED;
 }
 
 void RSUniRenderJudgement::InitUniRenderWithConfigFile()

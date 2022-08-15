@@ -40,7 +40,6 @@ public:
     static bool QueryClientEnabled(const std::string &bundleName);
     static void InitUniRenderConfig();
     static bool IsUniRender();
-    static bool QueryIfUseUniVisitor();
     static void CalculateRenderType(std::shared_ptr<RSBaseRenderNode> rootNode);
 
 private:

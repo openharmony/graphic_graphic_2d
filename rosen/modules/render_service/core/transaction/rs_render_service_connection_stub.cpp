@@ -20,6 +20,7 @@
 
 #include "command/rs_command_factory.h"
 #include "pipeline/rs_base_render_util.h"
+#include "pipeline/rs_main_thread.h"
 #include "pipeline/rs_uni_render_judgement.h"
 #include "pipeline/rs_unmarshal_thread.h"
 #include "platform/common/rs_log.h"
@@ -110,7 +111,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 RS_LOGE("RSRenderServiceConnectionStub::COMMIT_TRANSACTION failed");
                 return ERR_INVALID_DATA;
             }
-            if (RSUniRenderJudgement::QueryIfUseUniVisitor()) {
+            if (RSMainThread::Instance()->QueryIfUseUniVisitor()) {
                 RSUnmarshalThread::Instance().RecvParcel(parsedParcel);
             } else {
                 auto transactionData = RSBaseRenderUtil::ParseTransactionData(data);

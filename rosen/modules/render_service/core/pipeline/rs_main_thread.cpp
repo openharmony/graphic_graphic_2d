@@ -389,7 +389,7 @@ void RSMainThread::NotifyUniRenderFinish()
 
 bool RSMainThread::IfUseUniVisitor() const
 {
-    return !waitBufferAvailable_ && RSUniRenderJudgement::QueryIfUseUniVisitor();
+    return !waitBufferAvailable_ && useUniVisitor_;
 }
 
 void RSMainThread::CheckBufferAvailableIfNeed()
@@ -413,6 +413,9 @@ void RSMainThread::CheckBufferAvailableIfNeed()
         }
     }
     waitBufferAvailable_ = !allBufferAvailable;
+    if (!waitBufferAvailable_ && renderModeChangeCallback_) {
+        renderModeChangeCallback_->OnRenderModeChanged(false);
+    }
 }
 
 void RSMainThread::Render()
@@ -424,7 +427,7 @@ void RSMainThread::Render()
     }
 
     if (isUniRender_) {
-        RSUniRenderJudgement::CalculateRenderType(rootNode);
+//        RSUniRenderJudgement::CalculateRenderType(rootNode);
         CheckBufferAvailableIfNeed();
     }
 
@@ -674,14 +677,28 @@ void RSMainThread::UnRegisterApplicationAgent(sptr<IApplicationAgent> app)
 
 void RSMainThread::NotifyRenderModeChanged(bool useUniVisitor)
 {
-//    PostTask([useUniVisitor = useUniVisitor, this]() {
+    if (useUniVisitor == useUniVisitor_) {
+        RS_LOGI("RSMainThread::NotifyRenderModeChanged useUniVisitor_:%d, not changed", useUniVisitor_.load());
+        return;
+    }
+    PostTask([useUniVisitor = useUniVisitor, this]() {
+        useUniVisitor_ = useUniVisitor;
         waitBufferAvailable_ = !useUniVisitor;
         for (auto& elem : applicationAgentMap_) {
             if (elem.second != nullptr) {
                 elem.second->OnRenderModeChanged(!useUniVisitor);
             }
         }
-//    });
+        if (useUniVisitor_ && renderModeChangeCallback_) {
+            renderModeChangeCallback_->OnRenderModeChanged(true);
+        }
+    });
+}
+
+bool RSMainThread::QueryIfUseUniVisitor() const
+{
+    RS_LOGI("RSMainThread::QueryIfUseUniVisitor useUniVisitor_:%d", useUniVisitor_.load());
+    return useUniVisitor_;
 }
 
 void RSMainThread::RegisterOcclusionChangeCallback(sptr<RSIOcclusionChangeCallback> callback)
@@ -705,11 +722,6 @@ void RSMainThread::CleanOcclusionListener()
 void RSMainThread::SetRenderModeChangeCallback(sptr<RSIRenderModeChangeCallback> callback)
 {
     renderModeChangeCallback_ = callback;
-}
-
-void RSMainThread::SetUniVisitor(bool isUniRender)
-{
-    useUniVisitor_ = isUniRender;
 }
 
 void RSMainThread::SendCommands()
