@@ -38,6 +38,20 @@ NativeValue* CreateJsColorSpaceObject(NativeEngine& engine, std::shared_ptr<Colo
     return objValue;
 }
 
+std::shared_ptr<ColorSpace> GetColorSpaceByJSObject(NativeObject* object)
+{
+    if (object == nullptr) {
+        CMLOGE("[NAPI]GetColorSpaceByJSObject::jsObject is nullptr");
+        return nullptr;
+    }
+    auto jsColorSpace = reinterpret_cast<JsColorSpace*>(object->GetNativePointer());
+    if (jsColorSpace == nullptr) {
+        CMLOGE("[NAPI]GetColorSpaceByJSObject::jsColorSpace is nullptr");
+        return nullptr;
+    }
+    return jsColorSpace->GetColorSpaceToken();
+}
+
 void JsColorSpace::Finalizer(NativeEngine* engine, void* data, void* hint)
 {
     auto jsColorSpace = std::unique_ptr<JsColorSpace>(static_cast<JsColorSpace*>(data));

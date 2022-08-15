@@ -26,6 +26,7 @@
 namespace OHOS {
 namespace ColorManager {
 NativeValue* CreateJsColorSpaceObject(NativeEngine& engine, std::shared_ptr<ColorSpace>& colorSpace);
+std::shared_ptr<ColorSpace> GetColorSpaceByJSObject(NativeObject* object);
 void BindFunctions(NativeEngine& engine, NativeObject* object);
 class JsColorSpace final {
 public:
@@ -35,6 +36,10 @@ public:
     static NativeValue* GetColorSpaceName(NativeEngine* engine, NativeCallbackInfo* info);
     static NativeValue* GetWhitePoint(NativeEngine* engine, NativeCallbackInfo* info);
     static NativeValue* GetGamma(NativeEngine* engine, NativeCallbackInfo* info);
+    inline const std::shared_ptr<ColorSpace>& GetColorSpaceToken() const
+    {
+        return colorSpaceToken_;
+    }
 
 private:
     NativeValue* OnGetColorSpaceName(NativeEngine& engine, NativeCallbackInfo& info);
