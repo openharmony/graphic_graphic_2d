@@ -98,6 +98,7 @@ public:
     uint32_t GetDefaultUsage();
 
     GSError CleanCache();
+    GSError GoBackground();
 
     uint64_t GetUniqueId() const;
 
@@ -137,6 +138,7 @@ private:
     GSError CheckRequestConfig(const BufferRequestConfig &config);
     GSError CheckFlushConfig(const BufferFlushConfig &config);
     void DumpCache(std::string &result);
+    void ClearLocked();
 
     int32_t defaultWidth = 0;
     int32_t defaultHeight = 0;
