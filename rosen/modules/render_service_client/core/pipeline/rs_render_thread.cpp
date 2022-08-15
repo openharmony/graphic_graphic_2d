@@ -414,10 +414,9 @@ void RSRenderThread::Render()
     const auto& rootNode = context_.GetGlobalRootRenderNode();
 
     if (rootNode == nullptr) {
-        ROSEN_LOGE("cqx RSRenderThread::Render, rootNode is nullptr");
+        ROSEN_LOGE("RSRenderThread::Render, rootNode is nullptr");
         return;
     }
-    ROSEN_LOGE("cqx111 RSRenderThread::Render, rootNode child size:%zu", rootNode->GetChildrenCount());
     if (visitor_ == nullptr) {
         visitor_ = std::make_shared<RSRenderThreadVisitor>();
     }

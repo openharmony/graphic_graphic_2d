@@ -102,9 +102,13 @@ RSMainThread::~RSMainThread() noexcept
 void RSMainThread::Init()
 {
     mainLoop_ = [&]() {
-        RS_LOGD("RsDebug mainLoop start");
+        if (isUniRender_) {
+            CheckBufferAvailableIfNeed();
+        }
+        RS_LOGD("RsDebug mainLoop start isUni:%d", IfUseUniVisitor());
         SetRSEventDetectorLoopStartTag();
-        ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSMainThread::DoComposition");
+        ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSMainThread::DoComposition isUni:" +
+            std::to_string(IfUseUniVisitor()));
         ConsumeAndUpdateAllNodes();
         WaitUntilUnmarshallingTaskFinished();
         ProcessCommand();
@@ -426,17 +430,10 @@ void RSMainThread::Render()
         return;
     }
 
-    if (isUniRender_) {
-//        RSUniRenderJudgement::CalculateRenderType(rootNode);
-        CheckBufferAvailableIfNeed();
-    }
-
     std::shared_ptr<RSNodeVisitor> visitor;
     if (IfUseUniVisitor()) {
-        RS_LOGE("cqx RSMainThread::Render use RSUniRenderVisitor");
         visitor = std::make_shared<RSUniRenderVisitor>();
     } else {
-        RS_LOGE("cqx RSMainThread::Render use RSRenderServiceVisitor");
         bool doParallelComposition = false;
         if (RSInnovation::GetParallelCompositionEnabled()) {
             doParallelComposition = DoParallelComposition(rootNode);
@@ -459,7 +456,7 @@ void RSMainThread::Render()
 
 void RSMainThread::CalcOcclusion()
 {
-    if (doAnimate_ && !isUniRender_) {
+    if (doAnimate_ && !useUniVisitor_) {
         return;
     }
     const std::shared_ptr<RSBaseRenderNode> node = context_.GetGlobalRootRenderNode();
@@ -677,6 +674,9 @@ void RSMainThread::UnRegisterApplicationAgent(sptr<IApplicationAgent> app)
 
 void RSMainThread::NotifyRenderModeChanged(bool useUniVisitor)
 {
+    if (!isUniRender_) {
+        return;
+    }
     if (useUniVisitor == useUniVisitor_) {
         RS_LOGI("RSMainThread::NotifyRenderModeChanged useUniVisitor_:%d, not changed", useUniVisitor_.load());
         return;

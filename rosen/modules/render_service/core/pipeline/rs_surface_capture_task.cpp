@@ -52,7 +52,7 @@ std::unique_ptr<Media::PixelMap> RSSurfaceCaptureTask::Run()
     }
     std::unique_ptr<Media::PixelMap> pixelmap;
     std::shared_ptr<RSSurfaceCaptureVisitor> visitor = std::make_shared<RSSurfaceCaptureVisitor>(scaleX_, scaleY_);
-    visitor->SetUniRender(RSUniRenderJudgement::IsUniRender());
+    visitor->SetUniRender(RSMainThread::Instance()->QueryIfUseUniVisitor());
     if (auto surfaceNode = node->ReinterpretCastTo<RSSurfaceRenderNode>()) {
         RS_LOGI("RSSurfaceCaptureTask::Run: Into SURFACE_NODE SurfaceRenderNodeId:[%" PRIu64 "]", node->GetId());
         pixelmap = CreatePixelMapBySurfaceNode(surfaceNode, visitor->IsUniRender());
@@ -247,6 +247,9 @@ void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::ProcessSurfaceRenderNodeWith
 
 void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
 {
+    if (!RSMainThread::Instance()->QueryIfUseUniVisitor()) {
+        return;
+    }
     if (!node.GetRenderProperties().GetVisible()) {
         RS_LOGD("ProcessRootRenderNode, no need process");
         return;
