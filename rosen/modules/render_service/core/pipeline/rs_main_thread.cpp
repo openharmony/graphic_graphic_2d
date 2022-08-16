@@ -652,6 +652,16 @@ void RSMainThread::CleanOcclusionListener()
     occlusionListeners_.clear();
 }
 
+void RSMainThread::SetRenderModeChangeCallback(sptr<RSIRenderModeChangeCallback> callback)
+{
+    renderModeChangeCallback_ = callback;
+}
+
+void RSMainThread::SetUniVisitor(bool isUniRender)
+{
+    useUniVisitor_ = isUniRender;
+}
+
 void RSMainThread::SendCommands()
 {
     RS_TRACE_FUNC();

@@ -30,6 +30,8 @@ public:
 
     void ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task) override;
 
+    int32_t SetRenderModeChangeCallback(sptr<RSIRenderModeChangeCallback> callback) override;
+    void UpdateRenderMode(bool isUniRender) override;
     bool InitUniRenderEnabled(const std::string &bundleName) override;
     bool CreateNode(const RSSurfaceRenderNodeConfig& config) override;
     sptr<Surface> CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config) override;
@@ -95,7 +97,7 @@ public:
     int32_t SetScreenGamutMap(ScreenId id, ScreenGamutMap mode) override;
 
     int32_t GetScreenGamutMap(ScreenId id, ScreenGamutMap& mode) override;
-    
+
     int32_t GetScreenHDRCapability(ScreenId id, RSScreenHDRCapability& screenHdrCapability) override;
 
     int32_t GetScreenType(ScreenId id, RSScreenType& screenType) override;
