@@ -62,6 +62,7 @@ public:
     // Call carefully. This interface will empty all caches of the current process
     GSError CleanCache() override;
     GSError Disconnect() override;
+    GSError GoBackground() override;
 
     GSError SetScalingMode(uint32_t sequence, ScalingMode scalingMode) override;
     GSError SetMetaData(uint32_t sequence, const std::vector<HDRMetaData> &metaData) override;
