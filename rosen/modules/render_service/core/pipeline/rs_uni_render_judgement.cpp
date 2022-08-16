@@ -64,6 +64,18 @@ void RSUniRenderJudgement::InitUniRenderConfig()
     RS_LOGI("Init RenderService UniRender Type:%d", uniRenderEnabledType_);
 }
 
+std::ifstream& RSUniRenderJudgement::SafeGetLine(std::ifstream &configFile, std::string &line)
+{
+    std::string myline;
+    std::getline(configFile, myline);
+    if (myline.size() && myline[myline.size() - 1] == '\r') {
+        line = myline.substr(0, myline.size() - 1);
+    } else {
+        line = myline;
+    }
+    return configFile;
+}
+
 void RSUniRenderJudgement::InitUniRenderWithConfigFile()
 {
     // open config file
@@ -71,7 +83,7 @@ void RSUniRenderJudgement::InitUniRenderWithConfigFile()
     std::ifstream configFile = std::ifstream(configFilePath.c_str());
     std::string line;
     // first line, init uniRenderEnabledType_
-    if (!configFile.is_open() || !std::getline(configFile, line) || line == "") {
+    if (!configFile.is_open() || !SafeGetLine(configFile, line) || line == "") {
         uniRenderEnabledType_ = UniRenderEnabledType::UNI_RENDER_DISABLED;
         configFile.close();
         return;
@@ -84,7 +96,7 @@ void RSUniRenderJudgement::InitUniRenderWithConfigFile()
     }
     uniRenderEnabledType_ = iter->second;
     if (uniRenderEnabledType_ == UniRenderEnabledType::UNI_RENDER_PARTIALLY_ENABLED) {
-        while (std::getline(configFile, line)) {
+        while (SafeGetLine(configFile, line)) {
             if (line == "" || StartsWith(line, "//")) {
                 continue;
             }

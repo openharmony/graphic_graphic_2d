@@ -41,6 +41,8 @@ public:
 
 private:
     RSUniRenderJudgement() = default;
+    // dealing with Windows type end of line "\r\n"
+    static std::ifstream& SafeGetLine(std::ifstream &configFile, std::string &line);
 
     static void InitUniRenderWithConfigFile();
 
