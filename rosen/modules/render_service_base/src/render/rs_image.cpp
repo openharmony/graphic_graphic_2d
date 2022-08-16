@@ -26,6 +26,18 @@ namespace Rosen {
 namespace {
 constexpr int32_t CORNER_SIZE = 4;
 }
+
+bool RSImage::IsEqual(const RSImage& other) const
+{
+    bool radiusEq = true;
+    for (auto i = 0; i < CORNER_SIZE; i++) {
+        radiusEq &= (radius_[i] == other.radius_[i]);
+    }
+    return (image_ == other.image_) && (pixelmap_ == other.pixelmap_) &&
+           (imageFit_ == other.imageFit_) && (imageRepeat_ == other.imageRepeat_) &&
+           (scale_ == other.scale_) && radiusEq;
+}
+
 void RSImage::CanvasDrawImage(SkCanvas& canvas, const SkRect& rect, const SkPaint& paint, bool isBackground)
 {
     canvas.save();

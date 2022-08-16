@@ -71,7 +71,7 @@ RSProperty<T>::RSProperty(const T& value) : stagingValue_(value), id_(GenerateId
 template<typename T>
 void RSProperty<T>::Set(const T& value)
 {
-    if (value == stagingValue_ || !IsValid(value)) {
+    if (ROSEN_EQ(value, stagingValue_) || !IsValid(value)) {
         return;
     }
 
@@ -87,7 +87,7 @@ void RSProperty<T>::Set(const T& value)
 template<typename T>
 void RSAnimatableProperty<T>::Set(const T& value)
 {
-    if (value == this->stagingValue_ || !IsValid(value)) {
+    if (ROSEN_EQ(value, this->stagingValue_) || !IsValid(value)) {
         return;
     }
 

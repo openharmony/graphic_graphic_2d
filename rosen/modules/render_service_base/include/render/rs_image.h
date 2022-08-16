@@ -61,6 +61,7 @@ public:
     RSImage() = default;
     ~RSImage() = default;
 
+    bool IsEqual(const RSImage& other) const;
     void CanvasDrawImage(SkCanvas& canvas, const SkRect& rect, const SkPaint& paint, bool isBackground = false);
     void SetImage(const sk_sp<SkImage> image);
     void SetPixelMap(const std::shared_ptr<Media::PixelMap>& pixelmap);
@@ -89,6 +90,15 @@ private:
     RectF frameRect_;
     double scale_ = 1.0;
 };
+
+template<>
+inline bool ROSEN_EQ(const std::shared_ptr<RSImage>& x, const std::shared_ptr<RSImage>& y)
+{
+    if (x == y) {
+        return true;
+    }
+    return (x && y) ? x->IsEqual(*y) : false;
+}
 } // namespace Rosen
 } // namespace OHOS
 #endif // RENDER_SERVICE_CLIENT_CORE_RENDER_RS_IMAGE_H
