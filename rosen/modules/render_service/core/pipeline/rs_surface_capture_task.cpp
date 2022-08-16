@@ -230,7 +230,8 @@ void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::ProcessDisplayRenderNode(RSD
 
 void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::CaptureSingleSurfaceNodeWithUni(RSSurfaceRenderNode& node)
 {
-    auto params = RSBaseRenderUtil::CreateBufferDrawParam(node, true); // in node's local coordinate.
+    // in node's local coordinate.
+    auto params = RSBaseRenderUtil::CreateBufferDrawParam(node, true, false, false, false);
 
     const auto saveCnt = canvas_->save();
     if (node.GetConsumer() == nullptr) {
@@ -259,8 +260,8 @@ void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::CaptureSurfaceInDisplayWithU
         std::ceil(geoPtr->GetMatrix().getTranslateX()),
         std::ceil(geoPtr->GetMatrix().getTranslateY()));
     canvas_->concat(translateMatrix);
-
-    auto params = RSBaseRenderUtil::CreateBufferDrawParam(node, true); // use node's local coordinate.
+    // use node's local coordinate.
+    auto params = RSBaseRenderUtil::CreateBufferDrawParam(node, true, false, false, false); 
 
     const auto saveCnt = canvas_->save();
     canvas_->concat(params.matrix);
@@ -362,7 +363,8 @@ void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::CaptureSingleSurfaceNodeWith
     canvas_->restoreToCount(saveCnt);
 
     if (node.GetBuffer() != nullptr) {
-        auto params = RSBaseRenderUtil::CreateBufferDrawParam(node, true); // in node's local coordinate.
+        // in node's local coordinate.
+        auto params = RSBaseRenderUtil::CreateBufferDrawParam(node, true, false, false, false);
         renderEngine_->DrawSurfaceNodeWithParams(*canvas_, node, params);
     }
 }
@@ -371,7 +373,8 @@ void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::CaptureSurfaceInDisplayWitho
 {
     ProcessBaseRenderNode(node);
     if (node.GetBuffer() != nullptr) {
-        auto params = RSBaseRenderUtil::CreateBufferDrawParam(node, false); // in display's coordinate.
+        // in display's coordinate.
+        auto params = RSBaseRenderUtil::CreateBufferDrawParam(node, false, false, false, false);
         renderEngine_->DrawSurfaceNodeWithParams(*canvas_, node, params);
     }
 }

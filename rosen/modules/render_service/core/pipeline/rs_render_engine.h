@@ -36,14 +36,6 @@
 
 namespace OHOS {
 namespace Rosen {
-enum class ColorFilterMode {
-    INVERT_MODE = 0,
-    PROTANOMALY_MODE,
-    DEUTERANOMALY_MODE,
-    TRITANOMALY_MODE,
-    COLOR_FILTER_END,
-};
-
 // The RenderFrame can do auto flush
 class RSRenderFrame {
 public:

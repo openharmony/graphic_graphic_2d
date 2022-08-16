@@ -36,6 +36,7 @@ const int dstLength = 3;
 using Array3ptr = std::array<uint8_t*, dstLength>;
 const uint32_t STUB_PIXEL_FMT_RGBA_16161616 = 0X7fff0001;
 const uint32_t STUB_PIXEL_FMT_RGBA_1010102 = 0X7fff0002;
+constexpr uint32_t MATRIX_SIZE = 20; // colorMatrix size
 
 inline constexpr float PassThrough(float v)
 {
@@ -197,6 +198,53 @@ Matrix3f GenRGBToXYZMatrix(const std::array<Vector2f, 3>& basePoints, const Vect
         GYGy * G.x_, GY, GYGy * (1 - G.x_ - G.y_),
         BYBy * B.x_, BY, BYBy * (1 - B.x_ - B.y_)
     };
+}
+static const sk_sp<SkColorFilter>& InvertColorMat()
+{
+    static const SkScalar colorMatrix[MATRIX_SIZE] = {
+        0.402,  -1.174, -0.228, 1.0, 0.0,
+        -0.598, -0.174, -0.228, 1.0, 0.0,
+        -0.599, -1.175, 0.772,  1.0, 0.0,
+        0.0,    0.0,    0.0,    1.0, 0.0
+    };
+    static auto invertColorMat = SkColorFilters::Matrix(colorMatrix);
+    return invertColorMat;
+}
+
+static const sk_sp<SkColorFilter>& ProtanomalyMat()
+{
+    static const SkScalar colorMatrix[MATRIX_SIZE] = {
+        0.622,  0.377,  0.0, 0.0, 0.0,
+        0.264,  0.736,  0.0, 0.0, 0.0,
+        0.217,  -0.217, 1.0, 0.0, 0.0,
+        0.0,    0.0,    0.0, 1.0, 0.0
+    };
+    static auto protanomalyMat = SkColorFilters::Matrix(colorMatrix);
+    return protanomalyMat;
+}
+
+static const sk_sp<SkColorFilter>& DeuteranomalyMat()
+{
+    static const SkScalar colorMatrix[MATRIX_SIZE] = {
+        0.288,  0.712, 0.0, 0.0, 0.0,
+        0.053,  0.947, 0.0, 0.0, 0.0,
+        -0.258, 0.258, 1.0, 0.0, 0.0,
+        0.0,    0.0,   0.0, 1.0, 0.0
+    };
+    static auto deuteranomalyMat = SkColorFilters::Matrix(colorMatrix);
+    return deuteranomalyMat;
+}
+
+static const sk_sp<SkColorFilter>& TritanomalyMat()
+{
+    static const SkScalar colorMatrix[MATRIX_SIZE] = {
+        1.0, -0.806, 0.806, 0.0, 0.0,
+        0.0, 0.379,  0.621, 0.0, 0.0,
+        0.0, 0.105,  0.895, 0.0, 0.0,
+        0.0, 0.0,    0.0,   1.0, 0.0
+    };
+    static auto tritanomalyMat = SkColorFilters::Matrix(colorMatrix);
+    return tritanomalyMat;
 }
 
 class SimpleColorSpace {
@@ -793,6 +841,29 @@ bool RSBaseRenderUtil::ReleaseBuffer(RSSurfaceHandler& surfaceHandler)
     return true;
 }
 
+void RSBaseRenderUtil::SetColorFilterModeToPaint(ColorFilterMode colorFilterMode, SkPaint& paint)
+{
+    switch (colorFilterMode) {
+        case ColorFilterMode::INVERT_MODE:
+            paint.setColorFilter(Detail::InvertColorMat());
+            break;
+        case ColorFilterMode::PROTANOMALY_MODE:
+            paint.setColorFilter(Detail::ProtanomalyMat());
+            break;
+        case ColorFilterMode::DEUTERANOMALY_MODE:
+            paint.setColorFilter(Detail::DeuteranomalyMat());
+            break;
+        case ColorFilterMode::TRITANOMALY_MODE:
+            paint.setColorFilter(Detail::TritanomalyMat());
+            break;
+        case ColorFilterMode::COLOR_FILTER_END:
+            paint.setColorFilter(nullptr);
+            break;
+        default:
+            paint.setColorFilter(nullptr);
+    }
+}
+
 bool RSBaseRenderUtil::IsBufferValid(const sptr<SurfaceBuffer>& buffer)
 {
     if (!buffer) {
@@ -914,7 +985,7 @@ void RSBaseRenderUtil::CalculateSurfaceNodeClipRects(
 }
 
 BufferDrawParam RSBaseRenderUtil::CreateBufferDrawParam(
-    const RSSurfaceRenderNode& node, bool inLocalCoordinate, bool isClipHole, bool forceCPU)
+    const RSSurfaceRenderNode& node, bool inLocalCoordinate, bool isClipHole, bool forceCPU, bool setColorFilter)
 {
     BufferDrawParam params;
 #ifdef RS_ENABLE_EGLIMAGE
@@ -925,6 +996,7 @@ BufferDrawParam RSBaseRenderUtil::CreateBufferDrawParam(
 #endif // RS_ENABLE_EGLIMAGE
     params.paint.setAlphaf(node.GetGlobalAlpha());
     params.paint.setAntiAlias(true);
+    params.setColorFilter = setColorFilter;
 
     const RSProperties& property = node.GetRenderProperties();
     params.backgroundColor = static_cast<SkColor>(property.GetBackgroundColor().AsArgbInt());

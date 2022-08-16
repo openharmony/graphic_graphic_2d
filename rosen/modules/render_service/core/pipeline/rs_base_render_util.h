@@ -22,6 +22,7 @@
 #include "include/core/SkColor.h"
 #include "include/core/SkMatrix.h"
 #include "include/core/SkRect.h"
+#include "include/core/SkColorFilter.h"
 
 #include "screen_manager/rs_screen_manager.h"
 #include "pipeline/rs_paint_filter_canvas.h"
@@ -31,7 +32,6 @@
 namespace OHOS {
 namespace Rosen {
 class RSTransactionData;
-
 struct BufferDrawParam {
     sptr<OHOS::SurfaceBuffer> buffer;
     sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
@@ -50,8 +50,17 @@ struct BufferDrawParam {
     ColorGamut targetColorGamut = ColorGamut::COLOR_GAMUT_SRGB;
 
     bool useCPU = false;
+    bool setColorFilter = true;
     std::vector<HDRMetaData> metaDatas = {}; // static meta datas for HDR10
     HDRMetaDataSet metaDataSet; // dynamic meta datas for HDR10+, HDR VIVID
+};
+
+enum class ColorFilterMode {
+    INVERT_MODE = 0,
+    PROTANOMALY_MODE,
+    DEUTERANOMALY_MODE,
+    TRITANOMALY_MODE,
+    COLOR_FILTER_END,
 };
 
 class RSBaseRenderUtil {
@@ -62,7 +71,8 @@ public:
         const RSSurfaceRenderNode& node,
         bool inLocalCoordinate = false,
         bool isClipHole = false,
-        bool forceCPU = false);
+        bool forceCPU = false,
+        bool setColorFilter = true);
 
     static SkMatrix GetSurfaceTransformMatrix(const RSSurfaceRenderNode& node, const RectF& bounds);
     static SkMatrix GetNodeGravityMatrix(
@@ -77,6 +87,13 @@ public:
 
     static bool ConvertBufferToBitmap(sptr<SurfaceBuffer> buffer, ColorGamut dstGamut, SkBitmap& bitmap,
         const std::vector<HDRMetaData>& metaDatas = {});
+    /**
+     * @brief Set the Color Filter Mode To Paint object
+     *
+     * @param colorFilterMode SkBlendMode applied to SKPaint
+     * @param paint color matrix applied to SKPaint
+     */
+    static void SetColorFilterModeToPaint(ColorFilterMode colorFilterMode, SkPaint& paint);
 
 private:
     static void CalculateSurfaceNodeClipRects(

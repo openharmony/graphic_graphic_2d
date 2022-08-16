@@ -389,7 +389,8 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
         std::ceil(geoPtr->GetMatrix().getTranslateY()));
     canvas_->concat(translateMatrix);
 
-    auto params = RSBaseRenderUtil::CreateBufferDrawParam(node, true); // use node's local coordinate.
+    // use node's local coordinate.
+    auto params = RSBaseRenderUtil::CreateBufferDrawParam(node, true, false, false, false);
 
     const auto saveCnt = canvas_->save();
     canvas_->concat(params.matrix);
@@ -429,7 +430,14 @@ void RSUniRenderVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
         return;
     }
 
-    canvas_->save();
+    ColorFilterMode mode = static_cast<ColorFilterMode>(RSSystemProperties::GetCorrectionMode());
+    if (mode < ColorFilterMode::COLOR_FILTER_END && mode >= ColorFilterMode::INVERT_MODE) {
+        SkPaint paint;
+        RSBaseRenderUtil::SetColorFilterModeToPaint(mode, paint);
+        canvas_->saveLayer(nullptr, &paint);
+    } else {
+        canvas_->save();
+    }
     const float frameWidth = property.GetFrameWidth();
     const float frameHeight = property.GetFrameHeight();
     SkMatrix gravityMatrix;
