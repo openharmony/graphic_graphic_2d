@@ -60,7 +60,7 @@ static void Init(std::shared_ptr<RSUIDirector> rsUiDirector, int width, int heig
 int main()
 {
     std::cout << "rs uni render demo start!" << std::endl;
-    RSSystemProperties::InitUniRenderEnabled("");
+    RSSystemProperties::GetUniRenderEnabled();
     sptr<WindowOption> option = new WindowOption();
     option->SetWindowType(WindowType::WINDOW_TYPE_FLOAT);
     option->SetWindowMode(WindowMode::WINDOW_MODE_FLOATING);

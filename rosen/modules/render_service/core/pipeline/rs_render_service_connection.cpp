@@ -197,9 +197,9 @@ void RSRenderServiceConnection::UpdateRenderMode(bool isUniRender)
     mainThread_->NotifyRenderModeChanged(isUniRender);
 }
 
-bool RSRenderServiceConnection::InitUniRenderEnabled(const std::string &bundleName)
+bool RSRenderServiceConnection::GetUniRenderEnabled()
 {
-    return RSUniRenderJudgement::QueryClientEnabled(bundleName);
+    return RSUniRenderJudgement::IsUniRender();
 }
 
 bool RSRenderServiceConnection::QueryIfRTNeedRender()

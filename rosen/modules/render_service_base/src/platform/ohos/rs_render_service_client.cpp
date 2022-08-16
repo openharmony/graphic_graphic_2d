@@ -87,13 +87,13 @@ void RSRenderServiceClient::UpdateRenderMode(bool isUniRender)
     }
 }
 
-bool RSRenderServiceClient::InitUniRenderEnabled(const std::string &bundleName)
+bool RSRenderServiceClient::GetUniRenderEnabled()
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
         return false;
     }
-    return renderService->InitUniRenderEnabled(bundleName);
+    return renderService->GetUniRenderEnabled();
 }
 
 bool RSRenderServiceClient::QueryIfRTNeedRender()

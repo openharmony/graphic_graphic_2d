@@ -96,7 +96,7 @@ public:
 
     virtual int32_t SetRenderModeChangeCallback(sptr<RSIRenderModeChangeCallback> callback) = 0;
     virtual void UpdateRenderMode(bool isUniRender) = 0;
-    virtual bool InitUniRenderEnabled(const std::string &bundleName) = 0;
+    virtual bool GetUniRenderEnabled() = 0;
     virtual bool QueryIfRTNeedRender() = 0;
     virtual bool CreateNode(const RSSurfaceRenderNodeConfig& config) = 0;
     virtual sptr<Surface> CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config) = 0;

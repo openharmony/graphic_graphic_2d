@@ -26,7 +26,7 @@ class RSBaseRenderNode;
 enum class UniRenderEnabledType {
     UNI_RENDER_DISABLED = 0,
     UNI_RENDER_ENABLED_FOR_ALL,
-    UNI_RENDER_PARTIALLY_ENABLED,
+    UNI_RENDER_DYNAMIC_SWITCH,
 };
 
 // Judge the unified rendering strategy of RenderService.
@@ -36,20 +36,18 @@ public:
 
     // used by render server
     static UniRenderEnabledType GetUniRenderEnabledType();
-    static const std::set<std::string>& GetUniRenderEnabledList();
-    static bool QueryClientEnabled(const std::string &bundleName);
     static void InitUniRenderConfig();
     static bool IsUniRender();
-    static void CalculateRenderType(std::shared_ptr<RSBaseRenderNode> rootNode);
 
 private:
     RSUniRenderJudgement() = default;
 
     static void InitUniRenderWithConfigFile();
-
-    static inline UniRenderEnabledType uniRenderEnabledType_ = UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL;
-    static inline std::set<std::string> uniRenderBlockList_ {};
-    static inline std::atomic_bool useUniVisitor_ = true;
+#ifdef RS_ENABLE_UNI_RENDER
+        static inline UniRenderEnabledType uniRenderEnabledType_ = UniRenderEnabledType::UNI_RENDER_DYNAMIC_SWITCH;
+#else
+        static inline UniRenderEnabledType uniRenderEnabledType_ = UniRenderEnabledType::UNI_RENDER_DISABLED;
+#endif
 };
 } // namespace Rosen
 } // namespace OHOS

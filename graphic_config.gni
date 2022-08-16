@@ -16,6 +16,7 @@ declare_args() {
   graphic_standard_feature_ace_enable_gpu = true
   graphic_standard_feature_color_gamut_enable = false
   graphic_standard_feature_rs_enable_eglimage = false
+  graphic_standard_feature_rs_enable_uni_render = false
 }
 
 if (graphic_standard_feature_ace_enable_gpu) {
@@ -56,4 +57,8 @@ if (graphic_standard_feature_color_gamut_enable) {
   color_gamut_enable = true
 } else {
   color_gamut_enable = false
+}
+
+if (graphic_standard_feature_rs_enable_uni_render) {
+  gpu_defines += [ "RS_ENABLE_UNI_RENDER" ]
 }

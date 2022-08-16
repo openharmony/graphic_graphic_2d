@@ -52,7 +52,6 @@ void RSBaseNode::InitUniRenderEnabled()
     static bool inited = false;
     if (!inited) {
         inited = true;
-        RSSystemProperties::InitUniRenderEnabled("");
         isUniRenderEnabled_ = RSSystemProperties::GetUniRenderEnabled();
         ROSEN_LOGI("RSBaseNode::InitUniRenderEnabled:%d", isUniRenderEnabled_);
     }

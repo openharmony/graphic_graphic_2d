@@ -142,8 +142,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case GET_UNI_RENDER_TYPE: {
-            auto packageName = data.ReadString();
-            reply.WriteBool(InitUniRenderEnabled(packageName));
+            reply.WriteBool(GetUniRenderEnabled());
             break;
         }
         case QUERY_RT_NEED_RENDER: {

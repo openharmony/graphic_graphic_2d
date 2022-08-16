@@ -43,7 +43,6 @@ public:
 
     // used by clients
     static bool GetUniRenderEnabled();
-    static void InitUniRenderEnabled(const std::string &bundleName);
     static DirtyRegionDebugType GetDirtyRegionDebugType();
     static PartialRenderType GetPartialRenderEnabled();
     static bool GetOcclusionEnabled();

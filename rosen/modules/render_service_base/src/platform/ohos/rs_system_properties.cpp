@@ -24,21 +24,16 @@ namespace Rosen {
 // used by clients
 bool RSSystemProperties::GetUniRenderEnabled()
 {
-    return isUniRenderEnabled_;
-}
-
-void RSSystemProperties::InitUniRenderEnabled(const std::string &bundleName)
-{
     static bool inited = false;
     if (inited) {
-        return;
+        return isUniRenderEnabled_;
     }
-
-    // init
     inited = true;
+
     isUniRenderEnabled_ = std::static_pointer_cast<RSRenderServiceClient>(RSIRenderClient::CreateRenderServiceClient())
-                ->InitUniRenderEnabled(bundleName);
-    ROSEN_LOGI("Init UniRender Enabled:%d, package name:%s", isUniRenderEnabled_, bundleName.c_str());
+        ->GetUniRenderEnabled();
+    ROSEN_LOGI("GetUniRenderEnabled:%d", isUniRenderEnabled_);
+    return isUniRenderEnabled_;
 }
 
 bool RSSystemProperties::GetRenderMode()

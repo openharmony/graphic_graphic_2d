@@ -144,15 +144,12 @@ void RSRenderServiceConnectionProxy::UpdateRenderMode(bool isUniRender)
     }
 }
 
-bool RSRenderServiceConnectionProxy::InitUniRenderEnabled(const std::string &bundleName)
+bool RSRenderServiceConnectionProxy::GetUniRenderEnabled()
 {
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
 
-    if (!data.WriteString(bundleName)) {
-        return false;
-    }
     option.SetFlags(MessageOption::TF_SYNC);
     int32_t err = Remote()->SendRequest(RSIRenderServiceConnection::GET_UNI_RENDER_TYPE, data, reply, option);
     if (err != NO_ERROR) {

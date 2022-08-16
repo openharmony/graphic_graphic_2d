@@ -674,7 +674,7 @@ void RSMainThread::UnRegisterApplicationAgent(sptr<IApplicationAgent> app)
 
 void RSMainThread::NotifyRenderModeChanged(bool useUniVisitor)
 {
-    if (!isUniRender_) {
+    if (RSUniRenderJudgement::GetUniRenderEnabledType() != UniRenderEnabledType::UNI_RENDER_DYNAMIC_SWITCH) {
         return;
     }
     if (useUniVisitor == useUniVisitor_) {
