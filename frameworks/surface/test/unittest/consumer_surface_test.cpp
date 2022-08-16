@@ -742,7 +742,7 @@ HWTEST_F(ConsumerSurfaceTest, TunnelHandle002, Function | MediumTest | Level2)
  */
 HWTEST_F(ConsumerSurfaceTest, TunnelHandle003, Function | MediumTest | Level1)
 {
-    ExtDataHandle *handle = new ExtDataHandle();
+    ExtDataHandle *handle = static_cast<ExtDataHandle *>(malloc(sizeof(ExtDataHandle) + sizeof(int32_t) * 1));
     handle->fd = -1;
     handle->reserveInts = 1;
     handle->reserve[0] = 0;
@@ -758,7 +758,7 @@ HWTEST_F(ConsumerSurfaceTest, TunnelHandle003, Function | MediumTest | Level1)
     ASSERT_EQ(handle->fd, handleGet->GetHandle()->fd);
     ASSERT_EQ(handle->reserveInts, handleGet->GetHandle()->reserveInts);
     ASSERT_EQ(handle->reserve[0], handleGet->GetHandle()->reserve[0]);
-    delete handle;
+    free(handle);
 }
 
 /*

@@ -353,7 +353,7 @@ HWTEST_F(HdiLayerInfoTest, TunnelHandle002, Function | MediumTest | Level1)
 
     sptr<SurfaceTunnelHandle> tunnelHandle = new SurfaceTunnelHandle;
 
-    ExtDataHandle *handleSet = new ExtDataHandle();
+    ExtDataHandle *handleSet = static_cast<ExtDataHandle *>(malloc(sizeof(ExtDataHandle) + sizeof(int32_t) * 1));
     handleSet->fd = -1;
     handleSet->reserveInts = 1;
     handleSet->reserve[0] = 0;
@@ -366,7 +366,7 @@ HWTEST_F(HdiLayerInfoTest, TunnelHandle002, Function | MediumTest | Level1)
               tunnelHandle->GetHandle()->reserveInts);
     ASSERT_EQ(HdiLayerInfoTest::hdiLayerInfo_->GetTunnelHandle()->GetHandle()->reserve[0],
               tunnelHandle->GetHandle()->reserve[0]);
-    delete handleSet;
+    free(handleSet);
 }
 
 /*
