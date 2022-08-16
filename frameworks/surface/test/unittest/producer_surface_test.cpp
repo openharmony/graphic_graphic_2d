@@ -715,7 +715,7 @@ HWTEST_F(ProducerSurfaceTest, tunnelHandle001, Function | MediumTest | Level2)
 HWTEST_F(ProducerSurfaceTest, tunnelHandle002, Function | MediumTest | Level2)
 {
     ExtDataHandle *handle = nullptr;
-    handle = new ExtDataHandle();
+    handle = static_cast<ExtDataHandle *>(malloc(sizeof(ExtDataHandle) + sizeof(int32_t) * 1));
     handle->fd = -1;
     handle->reserveInts = 1;
     handle->reserve[0] = 0;
@@ -724,7 +724,7 @@ HWTEST_F(ProducerSurfaceTest, tunnelHandle002, Function | MediumTest | Level2)
 
     ret = pSurface->SetTunnelHandle(handle);
     ASSERT_EQ(ret, OHOS::GSERROR_NO_ENTRY);
-    delete handle;
+    free(handle);
 }
 
 /*
