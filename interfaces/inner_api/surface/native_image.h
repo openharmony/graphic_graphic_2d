@@ -37,7 +37,6 @@
  */
 
 #include <stdint.h>
-#include "native_window.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -45,6 +44,7 @@ extern "C" {
 
 struct OH_NativeImage;
 typedef struct OH_NativeImage OH_NativeImage;
+typedef struct NativeWindow OHNativeWindow;
 
 /**
  * @brief Create a <b>OH_NativeImage</b> related to an OPENGL ES texture and target. \n

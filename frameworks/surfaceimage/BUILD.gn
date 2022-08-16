@@ -14,8 +14,8 @@
 import("//build/ohos.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
-## Build libsurfaceimage.so {{{
-config("surfaceimage_config") {
+## Build libnative_image.so {{{
+config("native_image_config") {
   visibility = [ ":*" ]
 
   cflags = [
@@ -25,14 +25,14 @@ config("surfaceimage_config") {
   ]
 }
 
-config("libsurfaceimage_public_config") {
+config("libnative_image_public_config") {
   include_dirs = [
     "//foundation/graphic/graphic_2d/frameworks/surface/include",
     "include",
   ]
 }
 
-ohos_shared_library("libsurfaceimage") {
+ohos_shared_library("libnative_image") {
   sources = []
   if (surface_enable_gpu) {
     sources += [
@@ -41,9 +41,9 @@ ohos_shared_library("libsurfaceimage") {
     ]
   }
 
-  configs = [ ":surfaceimage_config" ]
+  configs = [ ":native_image_config" ]
 
-  public_configs = [ ":libsurfaceimage_public_config" ]
+  public_configs = [ ":libnative_image_public_config" ]
 
   deps = [ "//foundation/graphic/graphic_2d/frameworks/surface:surface" ]
 
@@ -51,6 +51,8 @@ ohos_shared_library("libsurfaceimage") {
     "//foundation/graphic/graphic_2d:libgl",
     "//foundation/graphic/graphic_2d/utils:sync_fence",
   ]
+
+  output_extension = "so"
 
   external_deps = [
     "c_utils:utils",
@@ -60,4 +62,4 @@ ohos_shared_library("libsurfaceimage") {
   part_name = "graphic_standard"
   subsystem_name = "graphic"
 }
-## Build libsurfaceimage.so }}}
+## Build libnative_image.so }}}

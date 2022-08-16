@@ -94,8 +94,6 @@ public:
 
     static inline OH_NativeImage* image = nullptr;
     static inline OHNativeWindow* nativeWindow = nullptr;
-    static inline BufferRequestConfig requestConfig = {};
-    static inline BufferFlushConfig flushConfig = {};
     static inline GLuint textureId = 0;
     static inline GLuint textureId2 = 0;
     static inline EGLDisplay eglDisplay_ = EGL_NO_DISPLAY;
@@ -336,26 +334,26 @@ HWTEST_F(NativeImageTest, OHNativeImageUpdateSurfaceImage003, Function | MediumT
     int code = SET_USAGE;
     int32_t usage = HBM_USE_CPU_READ | HBM_USE_CPU_WRITE | HBM_USE_MEM_DMA;
     int32_t ret = NativeWindowHandleOpt(nativeWindow, code, usage);
-    if (ret != OHOS::GSERROR_OK) {
+    if (ret != GSERROR_OK) {
         std::cout << "NativeWindowHandleOpt SET_USAGE faile" << std::endl;
     }
     code = SET_BUFFER_GEOMETRY;
     int32_t width = 0x100;
     int32_t height = 0x100;
     ret = NativeWindowHandleOpt(nativeWindow, code, width, height);
-    if (ret != OHOS::GSERROR_OK) {
+    if (ret != GSERROR_OK) {
         std::cout << "NativeWindowHandleOpt SET_BUFFER_GEOMETRY failed" << std::endl;
     }
     code = SET_STRIDE;
     int32_t stride = 0x8;
     ret = NativeWindowHandleOpt(nativeWindow, code, stride);
-    if (ret != OHOS::GSERROR_OK) {
+    if (ret != GSERROR_OK) {
         std::cout << "NativeWindowHandleOpt SET_STRIDE failed" << std::endl;
     }
     code = SET_FORMAT;
     int32_t format = PIXEL_FMT_RGBA_8888;
     ret = NativeWindowHandleOpt(nativeWindow, code, format);
-    if (ret != OHOS::GSERROR_OK) {
+    if (ret != GSERROR_OK) {
         std::cout << "NativeWindowHandleOpt SET_FORMAT failed" << std::endl;
     }
 
