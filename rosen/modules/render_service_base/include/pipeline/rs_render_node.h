@@ -78,7 +78,7 @@ public:
         return isDirtyRegionUpdated_;
     }
     void ClearModifiers();
-    virtual void AddModifier(const std::shared_ptr<RSRenderModifier>& modifier);
+    virtual void AddModifier(const std::shared_ptr<RSRenderModifier> modifier);
     void RemoveModifier(const PropertyId& id);
     void ApplyModifiers();
     std::shared_ptr<RSRenderModifier> GetModifier(const PropertyId& id);
