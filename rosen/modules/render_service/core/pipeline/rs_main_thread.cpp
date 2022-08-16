@@ -477,8 +477,8 @@ void RSMainThread::CalcOcclusion()
                 curRegion = curSurface.Or(curRegion);
             }
         } else {
-            bool diff = surface->GetDstRect().width_ != surface->GetBuffer()->GetWidth() ||
-                        surface->GetDstRect().height_ != surface->GetBuffer()->GetHeight();
+            bool diff = surface->GetDstRect().width_ > surface->GetBuffer()->GetWidth() ||
+                        surface->GetDstRect().height_ > surface->GetBuffer()->GetHeight();
             if (surface->GetAbilityBgAlpha() == opacity &&
                 ROSEN_EQ(surface->GetRenderProperties().GetAlpha(), 1.0f) && !diff) {
                 curRegion = curSurface.Or(curRegion);
