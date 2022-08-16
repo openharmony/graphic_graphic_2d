@@ -37,12 +37,12 @@ void RSRootRenderNode::AttachRSSurfaceNode(NodeId surfaceNodeId)
 
 int32_t RSRootRenderNode::GetSurfaceWidth() const
 {
-    return GetRenderProperties().GetFrameWidth();
+    return GetRenderProperties().GetFrameWidth() * GetRenderProperties().GetScaleX();
 }
 
 int32_t RSRootRenderNode::GetSurfaceHeight() const
 {
-    return GetRenderProperties().GetFrameHeight();
+    return GetRenderProperties().GetFrameHeight() * GetRenderProperties().GetScaleY();
 }
 
 std::shared_ptr<RSSurface> RSRootRenderNode::GetSurface()
