@@ -95,11 +95,11 @@ void RSCanvasRenderNode::ProcessRenderAfterChildren(RSPaintFilterCanvas& canvas)
     RSModifyContext context = { GetMutableRenderProperties(), &canvas };
     ApplyDrawCmdModifier(context, RSModifierType::FOREGROUND_STYLE);
 
+    canvas.RestoreCanvasAndAlpha(canvasNodeSaveCount_);
     auto filter = std::static_pointer_cast<RSSkiaFilter>(GetRenderProperties().GetFilter());
     if (filter != nullptr) {
         RSPropertiesPainter::DrawFilter(GetRenderProperties(), canvas, filter, nullptr, canvas.GetSurface());
     }
-    canvas.RestoreCanvasAndAlpha(canvasNodeSaveCount_);
     RSPropertiesPainter::DrawBorder(GetRenderProperties(), canvas);
 
     ApplyDrawCmdModifier(context, RSModifierType::OVERLAY_STYLE);
