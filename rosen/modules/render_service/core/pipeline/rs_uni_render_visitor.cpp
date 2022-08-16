@@ -30,6 +30,7 @@
 #include "property/rs_properties_painter.h"
 #include "property/rs_transition_properties.h"
 #include "rs_trace.h"
+#include "render/rs_skia_filter.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -378,6 +379,14 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
     canvas_->MultiplyAlpha(property.GetAlpha() * node.GetContextAlpha());
 
     canvas_->concat(node.GetContextMatrix());
+    canvas_->save();
+    canvas_->concat(geoPtr->GetMatrix());
+    const RectF absBounds = {
+        node.GetTotalMatrix().getTranslateX(), node.GetTotalMatrix().getTranslateY(),
+        property.GetBoundsWidth(), property.GetBoundsHeight()};
+    RRect absClipRRect = RRect(absBounds, property.GetCornerRadius());
+    RSPropertiesPainter::DrawShadow(property, *canvas_, &absClipRRect);
+    canvas_->restore();
     auto contextClipRect = node.GetContextClipRegion();
     if (!contextClipRect.isEmpty()) {
         canvas_->clipRect(contextClipRect);
@@ -398,10 +407,20 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
     RSPropertiesPainter::DrawTransitionProperties(transitionProperties, property, *canvas_);
     boundsRect_ = SkRect::MakeWH(property.GetBoundsWidth(), property.GetBoundsHeight());
     frameGravity_ = property.GetFrameGravity();
-    canvas_->clipRect(boundsRect_);
+    if (!property.GetCornerRadius().IsZero()) {
+        canvas_->clipRRect(RSPropertiesPainter::RRect2SkRRect(absClipRRect), true);
+    } else {
+        canvas_->clipRect(boundsRect_);
+    }
     auto backgroundColor = static_cast<SkColor>(property.GetBackgroundColor().AsArgbInt());
     if (SkColorGetA(backgroundColor) != SK_AlphaTRANSPARENT) {
         canvas_->drawColor(backgroundColor);
+    }
+    auto filter = std::static_pointer_cast<RSSkiaFilter>(property.GetBackgroundFilter());
+    if (filter != nullptr) {
+        auto skRectPtr = std::make_unique<SkRect>();
+        skRectPtr->setXYWH(0, 0, property.GetBoundsWidth(), property.GetBoundsHeight());
+        RSPropertiesPainter::DrawFilter(property, *canvas_, filter, skRectPtr, canvas_->GetSurface());
     }
     ProcessBaseRenderNode(node);
     canvas_->restoreToCount(saveCnt);
@@ -409,6 +428,14 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
     if (node.GetBuffer() != nullptr) {
         node.NotifyRTBufferAvailable();
         renderEngine_->DrawSurfaceNodeWithParams(*canvas_, node, params);
+    }
+    
+    filter = std::static_pointer_cast<RSSkiaFilter>(property.GetFilter());
+    if (filter != nullptr) {
+        canvas_->clipRRect(RSPropertiesPainter::RRect2SkRRect(absClipRRect), true);
+        auto skRectPtr = std::make_unique<SkRect>();
+        skRectPtr->setXYWH(0, 0, property.GetBoundsWidth(), property.GetBoundsHeight());
+        RSPropertiesPainter::DrawFilter(property, *canvas_, filter, skRectPtr, canvas_->GetSurface());
     }
 
     canvas_->RestoreAlpha();
