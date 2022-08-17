@@ -505,20 +505,20 @@ static int GetSurfaceNodeRotation(RSBaseRenderNode& node)
 
 static inline int RotateEnumToInt(ScreenRotation rotation)
 {
-    static const std::map<ScreenRotation, int> enumToIntMap = {
+    static const std::map<ScreenRotation, int> screenRotationEnumToIntMap = {
         {ScreenRotation::ROTATION_0, 0}, {ScreenRotation::ROTATION_90, 90},
         {ScreenRotation::ROTATION_180, 180}, {ScreenRotation::ROTATION_270, 270}};
-    auto iter = enumToIntMap.find(rotation);
-    return iter != enumToIntMap.end() ? iter->second : 0;
+    auto iter = screenRotationEnumToIntMap.find(rotation);
+    return iter != screenRotationEnumToIntMap.end() ? iter->second : 0;
 }
 
 static inline int RotateEnumToInt(TransformType rotation)
 {
-    static const std::map<TransformType, int> enumToIntMap = {
+    static const std::map<TransformType, int> transformTypeEnumToIntMap = {
         {TransformType::ROTATE_NONE, 0}, {TransformType::ROTATE_90, 90},
         {TransformType::ROTATE_180, 180}, {TransformType::ROTATE_270, 270}};
-    auto iter = enumToIntMap.find(rotation);
-    return iter != enumToIntMap.end() ? iter->second : 0;
+    auto iter = transformTypeEnumToIntMap.find(rotation);
+    return iter != transformTypeEnumToIntMap.end() ? iter->second : 0;
 }
 
 static inline TransformType RotateEnumToInt(int angle)
