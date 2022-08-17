@@ -662,7 +662,7 @@ ScreenInfo RSScreenManager::QueryScreenInfo(ScreenId id) const
     }
 
     const auto &screen = screens_.at(id);
-
+    info.id = id;
     info.width = screen->Width();
     info.height = screen->Height();
     (void)screen->GetScreenColorGamut(info.colorGamut);

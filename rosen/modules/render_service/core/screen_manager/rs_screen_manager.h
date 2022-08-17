@@ -47,6 +47,7 @@ enum class ScreenState : uint8_t {
 };
 
 struct ScreenInfo {
+    ScreenId id = INVALID_SCREEN_ID;
     uint32_t width = 0;
     uint32_t height = 0;
     ScreenColorGamut colorGamut = ScreenColorGamut::COLOR_GAMUT_SRGB;

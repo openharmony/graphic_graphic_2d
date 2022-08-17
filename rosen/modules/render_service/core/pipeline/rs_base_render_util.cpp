@@ -1022,11 +1022,6 @@ BufferDrawParam RSBaseRenderUtil::CreateBufferDrawParam(
         params.matrix = node.GetTotalMatrix();
     }
 
-    // reset the matrix's scale to deal with the gravity effects.
-    const float invScaleX = (ROSEN_EQ(property.GetScaleX(), 0.0f) ? 1.0f : 1.0f / property.GetScaleX());
-    const float invScaleY = (ROSEN_EQ(property.GetScaleY(), 0.0f) ? 1.0f : 1.0f / property.GetScaleY());
-    params.matrix.preScale(invScaleX, invScaleY);
-
     // we can use only the bound's size (ignore its offset) now,
     // (the canvas was moved to the node's left-top point correctly).
     params.dstRect = SkRect::MakeWH(localBounds.GetWidth(), localBounds.GetHeight());

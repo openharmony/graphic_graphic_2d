@@ -272,8 +272,9 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
             return;
         }
 
+        // we should request a framebuffer whose size is equals to the physical screen size.
         auto renderFrame = renderEngine_->RequestFrame(std::static_pointer_cast<RSSurfaceOhos>(rsSurface),
-            RSBaseRenderUtil::GetFrameBufferRequestConfig(screenInfo_, false));
+            RSBaseRenderUtil::GetFrameBufferRequestConfig(screenInfo_, true));
         if (renderFrame == nullptr) {
             RS_LOGE("RSUniRenderVisitor Request Frame Failed");
             return;
@@ -294,7 +295,16 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
         }
 #endif
         canvas_ = renderFrame->GetCanvas();
+        if (canvas_ == nullptr) {
+            RS_LOGE("RSUniRenderVisitor::ProcessDisplayRenderNode: failed to create canvas");
+            return;
+        }
         canvas_->clear(SK_ColorTRANSPARENT);
+        auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(node.GetRenderProperties().GetBoundsGeometry());
+        if (geoPtr != nullptr) {
+            geoPtr->UpdateByMatrixFromSelf();
+            canvas_->concat(geoPtr->GetMatrix());
+        }
 
         ProcessBaseRenderNode(node);
 

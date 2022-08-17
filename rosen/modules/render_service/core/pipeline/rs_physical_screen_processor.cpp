@@ -37,7 +37,7 @@ bool RSPhysicalScreenProcessor::Init(RSDisplayRenderNode& node, int32_t offsetX,
         return false;
     }
 
-    return composerAdapter_->Init(node, offsetX, offsetY, mirrorAdaptiveCoefficient_,
+    return composerAdapter_->Init(screenInfo_, offsetX, offsetY, mirrorAdaptiveCoefficient_,
         [this](const auto& surface, const auto& layers) { Redraw(surface, layers); });
 }
 

@@ -421,6 +421,7 @@ void RSRenderEngine::DrawDisplayNode(
     bool forceCPU)
 {
     // [PLANNING]: In uniRender mode, maybe need to handle displayNode.
+    // it is unexpected in now suitation.
 }
 } // namespace Rosen
 } // namespace OHOS

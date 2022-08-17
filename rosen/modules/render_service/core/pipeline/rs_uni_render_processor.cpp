@@ -37,7 +37,11 @@ bool RSUniRenderProcessor::Init(RSDisplayRenderNode& node, int32_t offsetX, int3
         return false;
     }
 
-    return composerAdapter_->Init(node, offsetX, offsetY, mirrorAdaptiveCoefficient_,
+    // In uni render mode, we can handle screen rotation in the rendering process,
+    // so we do not need to handle rotation in composer adapter any more,
+    // just pass the buffer to composer straightly.
+    screenInfo_.rotation = ScreenRotation::ROTATION_0;
+    return composerAdapter_->Init(screenInfo_, offsetX, offsetY, mirrorAdaptiveCoefficient_,
         [this](const auto& surface, const auto& layers) {
         Redraw(surface, layers);
     });
