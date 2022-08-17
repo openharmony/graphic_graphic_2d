@@ -112,16 +112,12 @@ void RSAnimatableProperty<T>::Set(const T& value)
         return;
     }
     bool hasPropertyAnimation = !this->runningPathNum_ && node->HasPropertyAnimation(this->id_);
-    T sendValue = value;
     if (hasPropertyAnimation) {
-        if (this->motionPathOption_ != nullptr) {
-            node->FinishAnimationByProperty(this->id_);
-        } else {
-            sendValue = value - this->stagingValue_;
-        }
+        this->UpdateToRender(value - this->stagingValue_, true);
+    } else {
+        this->UpdateToRender(value, false);
     }
     this->stagingValue_ = value;
-    this->UpdateToRender(sendValue, hasPropertyAnimation);
 }
 
 #define UPDATE_TO_RENDER(Command, value, isDelta, forceUpdate)                                                   \
