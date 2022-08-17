@@ -62,7 +62,7 @@ void RSRenderThreadVisitor::PrepareRootRenderNode(RSRootRenderNode& node)
 {
     auto ptr = RSNodeMap::Instance().GetNode<RSSurfaceNode>(node.GetRSSurfaceNodeId());
     if (ptr == nullptr) {
-        ROSEN_LOGE("ProcessRoot: No valid RSSurfaceNode id");
+        ROSEN_LOGE("PrepareRoot: No valid RSSurfaceNode id");
         return;
     }
     if (node.GetSurfaceWidth() <= 0 || node.GetSurfaceHeight() <= 0) {
