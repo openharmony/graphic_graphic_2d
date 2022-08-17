@@ -327,7 +327,9 @@ void RSRenderThread::Animate(uint64_t timestamp)
         return animationFinished;
     });
 
-    RSRenderThread::Instance().RequestNextVSync();
+    if (!context_.animatingNodeList_.empty()) {
+        RSRenderThread::Instance().RequestNextVSync();
+    }
 }
 
 void RSRenderThread::Render()
