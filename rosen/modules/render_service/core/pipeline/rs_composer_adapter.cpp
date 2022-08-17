@@ -498,34 +498,34 @@ static int GetSurfaceNodeRotation(RSBaseRenderNode& node)
     // transfer the result to anti-clockwise degrees
     // only rotation with 90°, 180°, 270° are composed through hardware,
     // in which situation the transformation of the layer needs to be set.
-    const std::map<int, int> supportedDegrees = {{90, 270}, {180, 180}, {-90, 90}};
+    static const std::map<int, int> supportedDegrees = {{90, 270}, {180, 180}, {-90, 90}};
     auto iter = supportedDegrees.find(rAngle);
     return iter != supportedDegrees.end() ? iter->second : 0;
 }
 
 static inline int RotateEnumToInt(ScreenRotation rotation)
 {
-    const std::map<ScreenRotation, int> enumToIntMap = { {ScreenRotation::ROTATION_0, 0},
-        {ScreenRotation::ROTATION_90, 90}, {ScreenRotation::ROTATION_180, 180},
-        {ScreenRotation::ROTATION_270, 270}};
+    static const std::map<ScreenRotation, int> enumToIntMap = {
+        {ScreenRotation::ROTATION_0, 0}, {ScreenRotation::ROTATION_90, 90},
+        {ScreenRotation::ROTATION_180, 180}, {ScreenRotation::ROTATION_270, 270}};
     auto iter = enumToIntMap.find(rotation);
     return iter != enumToIntMap.end() ? iter->second : 0;
 }
 
 static inline int RotateEnumToInt(TransformType rotation)
 {
-    const std::map<TransformType, int> enumToIntMap = { {TransformType::ROTATE_NONE, 0},
-        {TransformType::ROTATE_90, 90}, {TransformType::ROTATE_180, 180},
-        {TransformType::ROTATE_270, 270}};
+    static const std::map<TransformType, int> enumToIntMap = {
+        {TransformType::ROTATE_NONE, 0}, {TransformType::ROTATE_90, 90},
+        {TransformType::ROTATE_180, 180}, {TransformType::ROTATE_270, 270}};
     auto iter = enumToIntMap.find(rotation);
     return iter != enumToIntMap.end() ? iter->second : 0;
 }
 
 static inline TransformType RotateEnumToInt(int angle)
 {
-    const std::map<int, TransformType> intToEnumMap = {{0, TransformType::ROTATE_NONE},
-        {90, TransformType::ROTATE_270}, {180, TransformType::ROTATE_180},
-        {270, TransformType::ROTATE_90}};
+    static const std::map<int, TransformType> intToEnumMap = {
+        {0, TransformType::ROTATE_NONE}, {90, TransformType::ROTATE_270},
+        {180, TransformType::ROTATE_180}, {270, TransformType::ROTATE_90}};
     auto iter = intToEnumMap.find(angle);
     return iter != intToEnumMap.end() ? iter->second : TransformType::ROTATE_NONE;
 }
@@ -536,9 +536,8 @@ static void SetLayerTransform(const LayerInfoPtr& layer, RSBaseRenderNode& node,
     // screenRotation: anti-clockwise, surfaceNodeRotation: anti-clockwise, surfaceTransform: anti-clockwise
     // layerTransform: clockwise
     int surfaceNodeRotation = GetSurfaceNodeRotation(node);
-    int degree360 = 360;
     int totalRotation = (RotateEnumToInt(screenRotation) + surfaceNodeRotation +
-        RotateEnumToInt(surface->GetTransform())) % degree360;
+        RotateEnumToInt(surface->GetTransform())) % 360;
     TransformType rotateEnum = RotateEnumToInt(totalRotation);
     layer->SetTransform(rotateEnum);
 }
