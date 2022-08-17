@@ -19,16 +19,17 @@
 #include <type_traits>
 #include <unistd.h>
 
+#include "modifier/rs_animatable_arithmetic.h"
+#include "modifier/rs_modifier_manager.h"
+#include "modifier/rs_modifier_type.h"
+#include "modifier/rs_render_property.h"
+
 #include "animation/rs_motion_path_option.h"
 #include "common/rs_color.h"
 #include "common/rs_common_def.h"
 #include "common/rs_macros.h"
 #include "common/rs_vector2.h"
 #include "common/rs_vector4.h"
-#include "modifier/rs_animatable_arithmetic.h"
-#include "modifier/rs_modifier_manager.h"
-#include "modifier/rs_modifier_type.h"
-#include "modifier/rs_render_property.h"
 #include "property/rs_properties_def.h"
 #include "render/rs_border.h"
 #include "render/rs_filter.h"
@@ -75,12 +76,12 @@ protected:
         UpdateToRender(stagingValue_, false, true);
     }
 
-    T stagingValue_;
-    NodeId nodeId_;
+    T stagingValue_ {};
+    NodeId nodeId_ { 0 };
     PropertyId id_;
     bool hasAddToNode_ { false };
-    RSModifierType type_ = RSModifierType::INVALID;
-    std::shared_ptr<RSMotionPathOption> motionPathOption_;
+    RSModifierType type_ { RSModifierType::INVALID };
+    std::shared_ptr<RSMotionPathOption> motionPathOption_ {};
 
     template<typename T1>
     friend class RSPathAnimation;
@@ -136,10 +137,10 @@ protected:
         }
     }
 
-    T showingValue_;
-    int runningPathNum_;
+    T showingValue_ {};
+    int runningPathNum_ { 0 };
     bool isCustom_ { false };
-    std::weak_ptr<RSModifierBase> modifier_;
+    std::weak_ptr<RSModifierBase> modifier_ {};
 
     template<typename T1>
     friend class RSPropertyAnimation;
