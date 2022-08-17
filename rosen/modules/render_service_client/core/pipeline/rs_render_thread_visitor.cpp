@@ -62,19 +62,24 @@ void RSRenderThreadVisitor::PrepareBaseRenderNode(RSBaseRenderNode& node)
 
 void RSRenderThreadVisitor::PrepareRootRenderNode(RSRootRenderNode& node)
 {
-    auto ptr = RSNodeMap::Instance().GetNode<RSSurfaceNode>(node.GetRSSurfaceNodeId());
-    if (ptr == nullptr) {
-        ROSEN_LOGE("PrepareRoot: No valid RSSurfaceNode id");
-        return;
-    }
-    if (node.GetSurfaceWidth() <= 0 || node.GetSurfaceHeight() <= 0) {
-        ROSEN_LOGE("PrepareRoot %s: Negative width or height [%d %d]", ptr->GetName().c_str(),
-            node.GetSurfaceWidth(), node.GetSurfaceHeight());
-        return;
-    }
     if (isIdle_) {
         curDirtyManager_ = node.GetDirtyManager();
         curDirtyManager_->Clear();
+        node.ApplyModifiers();
+        auto ptr = RSNodeMap::Instance().GetNode<RSSurfaceNode>(node.GetRSSurfaceNodeId());
+        if (ptr == nullptr) {
+            ROSEN_LOGE("ProcessRoot: No valid RSSurfaceNode id");
+            return;
+        }
+        if (!node.enableRender_) {
+            ROSEN_LOGI("ProcessRoot %s: Invisible", ptr->GetName().c_str());
+            return;
+        }
+        if (node.GetSurfaceWidth() <= 0 || node.GetSurfaceHeight() <= 0) {
+            ROSEN_LOGE("ProcessRoot %s: Negative width or height [%d %d]", ptr->GetName().c_str(),
+                node.GetSurfaceWidth(), node.GetSurfaceHeight());
+            return;
+        }
         dirtyFlag_ = false;
         isIdle_ = false;
         PrepareCanvasRenderNode(node);
