@@ -20,6 +20,7 @@
 
 #include "command/rs_command_factory.h"
 #include "pipeline/rs_base_render_util.h"
+#include "pipeline/rs_main_thread.h"
 #include "pipeline/rs_uni_render_judgement.h"
 #include "pipeline/rs_unmarshal_thread.h"
 #include "platform/common/rs_log.h"
@@ -110,7 +111,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 RS_LOGE("RSRenderServiceConnectionStub::COMMIT_TRANSACTION failed");
                 return ERR_INVALID_DATA;
             }
-            if (isUniRender) {
+            if (RSMainThread::Instance()->QueryIfUseUniVisitor()) {
                 RSUnmarshalThread::Instance().RecvParcel(parsedParcel);
             } else {
                 auto transactionData = RSBaseRenderUtil::ParseTransactionData(data);
@@ -141,8 +142,11 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case GET_UNI_RENDER_TYPE: {
-            auto packageName = data.ReadString();
-            reply.WriteBool(InitUniRenderEnabled(packageName));
+            reply.WriteBool(GetUniRenderEnabled());
+            break;
+        }
+        case QUERY_RT_NEED_RENDER: {
+            reply.WriteBool(QueryIfRTNeedRender());
             break;
         }
         case CREATE_NODE: {
@@ -155,7 +159,8 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
         case CREATE_NODE_AND_SURFACE: {
             auto nodeId = data.ReadUint64();
             auto surfaceName = data.ReadString();
-            RSSurfaceRenderNodeConfig config = {.id = nodeId, .name = surfaceName};
+            bool isWindow = data.ReadBool();
+            RSSurfaceRenderNodeConfig config = {.id = nodeId, .name = surfaceName, .isWindow = isWindow};
             sptr<Surface> surface = CreateNodeAndSurface(config);
             auto producer = surface->GetProducer();
             reply.WriteRemoteObject(producer->AsObject());

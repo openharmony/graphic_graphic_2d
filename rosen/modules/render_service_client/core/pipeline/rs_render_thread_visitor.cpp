@@ -311,9 +311,9 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
     RS_TRACE_BEGIN("ProcessRenderNodes");
     ProcessCanvasRenderNode(node);
 
-    if (childSurfaceNodeIds_ != node.childSurfaceNodeIds_) {
+    if (childSurfaceNodeIds_ != node.childSurfaceNodeIds_ || RSRenderThread::Instance().GetForceUpdateSurfaceNode()) {
         auto thisSurfaceNodeId = node.GetRSSurfaceNodeId();
-        std::unique_ptr<RSCommand> command = std::make_unique<RSBaseNodeClearChild>(thisSurfaceNodeId);
+        std::unique_ptr<RSCommand> command = std::make_unique<RSBaseNodeClearChildExceptRoot>(thisSurfaceNodeId);
         SendCommandFromRT(command, thisSurfaceNodeId, FollowType::FOLLOW_TO_SELF);
         for (const auto& childSurfaceNodeId : childSurfaceNodeIds_) {
             command = std::make_unique<RSBaseNodeAddChild>(thisSurfaceNodeId, childSurfaceNodeId, -1);
@@ -448,9 +448,9 @@ void RSRenderThreadVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
     ProcessBaseRenderNode(node);
 
     // 4. if children changed, sync children to RenderService
-    if (childSurfaceNodeIds_ != node.childSurfaceNodeIds_) {
+    if (childSurfaceNodeIds_ != node.childSurfaceNodeIds_ || RSRenderThread::Instance().GetForceUpdateSurfaceNode()) {
         auto thisSurfaceNodeId = node.GetId();
-        std::unique_ptr<RSCommand> command = std::make_unique<RSBaseNodeClearChild>(thisSurfaceNodeId);
+        std::unique_ptr<RSCommand> command = std::make_unique<RSBaseNodeClearChildExceptRoot>(thisSurfaceNodeId);
         SendCommandFromRT(command, thisSurfaceNodeId, FollowType::FOLLOW_TO_SELF);
         for (const auto& childSurfaceNodeId : childSurfaceNodeIds_) {
             command = std::make_unique<RSBaseNodeAddChild>(thisSurfaceNodeId, childSurfaceNodeId, -1);
@@ -474,7 +474,7 @@ void RSRenderThreadVisitor::ClipHoleForSurfaceNode(RSSurfaceRenderNode& node)
     canvas_->save();
     SkRect originRect = SkRect::MakeXYWH(x, y, width, height);
     canvas_->clipRect(originRect);
-    if (node.IsNotifyRTBufferAvailable() == true) {
+    if (node.IsNotifyRTBufferAvailable()) {
         ROSEN_LOGI("RSRenderThreadVisitor::ClipHoleForSurfaceNode node : %" PRIu64 ", clip [%f, %f, %f, %f]",
             node.GetId(), x, y, width, height);
         canvas_->clear(SK_ColorTRANSPARENT);

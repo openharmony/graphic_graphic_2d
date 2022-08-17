@@ -19,7 +19,7 @@
 #include <message_option.h>
 #include <message_parcel.h>
 
-#include "command/rs_command.h"
+#include "platform/common/rs_log.h"
 #include "transaction/rs_transaction_data.h"
 
 namespace OHOS {
@@ -47,6 +47,27 @@ void RSApplicationAgentProxy::OnTransaction(std::shared_ptr<RSTransactionData> t
     int32_t err = Remote()->SendRequest(IApplicationAgent::COMMIT_TRANSACTION, data, reply, option);
     if (err != NO_ERROR) {
         // [PLANNING]: Error log
+    }
+}
+
+void RSApplicationAgentProxy::OnRenderModeChanged(bool renderThreadNeedRender)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    if (!data.WriteInterfaceToken(IApplicationAgent::GetDescriptor())) {
+        return;
+    }
+
+    if (!data.WriteBool(renderThreadNeedRender)) {
+        return;
+    }
+
+    option.SetFlags(MessageOption::TF_ASYNC);
+    int32_t err = Remote()->SendRequest(IApplicationAgent::NOTIFY_RENDER_MODE_CHANGED, data, reply, option);
+    if (err != NO_ERROR) {
+        RS_LOGE("RSApplicationAgentProxy::OnRenderModeChanged SendRequest failed! err:%d", err);
     }
 }
 } // namespace Rosen

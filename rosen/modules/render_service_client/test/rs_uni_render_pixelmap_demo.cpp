@@ -94,7 +94,7 @@ int main()
     option->SetWindowMode(WindowMode::WINDOW_MODE_FLOATING);
     option->SetWindowRect({ 20, 40, 680, 1500 });
     string demoName = "pixelmap_demo";
-    RSSystemProperties::InitUniRenderEnabled(demoName);
+    RSSystemProperties::GetUniRenderEnabled();
     auto window = Window::Create(demoName, option);
 
     window->Show();

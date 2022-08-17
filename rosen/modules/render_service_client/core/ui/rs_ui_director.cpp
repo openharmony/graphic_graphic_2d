@@ -24,7 +24,6 @@
 #include "pipeline/rs_node_map.h"
 #include "pipeline/rs_render_thread.h"
 #include "platform/common/rs_log.h"
-#include "platform/common/rs_system_properties.h"
 #include "rs_trace.h"
 #include "transaction/rs_application_agent_impl.h"
 #include "transaction/rs_interfaces.h"
@@ -51,8 +50,7 @@ void RSUIDirector::Init(bool shouldCreateRenderThread)
 {
     AnimationCommandHelper::SetFinishCallbackProcessor(AnimationCallbackProcessor);
 
-    isUniRenderEnabled_ = RSSystemProperties::GetUniRenderEnabled();
-    if (!isUniRenderEnabled_ && shouldCreateRenderThread) {
+    if (shouldCreateRenderThread) {
         auto renderThreadClient = RSIRenderClient::CreateRenderThreadClient();
         auto transactionProxy = RSTransactionProxy::GetInstance();
         if (transactionProxy != nullptr) {
@@ -71,9 +69,7 @@ void RSUIDirector::GoForeground()
 {
     ROSEN_LOGI("RSUIDirector::GoForeground");
     if (!isActive_) {
-        if (!isUniRenderEnabled_) {
-            RSRenderThread::Instance().UpdateWindowStatus(true);
-        }
+        RSRenderThread::Instance().UpdateWindowStatus(true);
         isActive_ = true;
         if (auto node = RSNodeMap::Instance().GetNode<RSRootNode>(root_)) {
             node->SetEnableRender(true);
@@ -85,9 +81,7 @@ void RSUIDirector::GoBackground()
 {
     ROSEN_LOGI("RSUIDirector::GoBackground");
     if (isActive_) {
-        if (!isUniRenderEnabled_) {
-            RSRenderThread::Instance().UpdateWindowStatus(false);
-        }
+        RSRenderThread::Instance().UpdateWindowStatus(false);
         isActive_ = false;
         if (auto node = RSNodeMap::Instance().GetNode<RSRootNode>(root_)) {
             node->SetEnableRender(false);
@@ -98,10 +92,8 @@ void RSUIDirector::GoBackground()
 void RSUIDirector::Destroy()
 {
     if (root_ != 0) {
-        if (!isUniRenderEnabled_) {
-            if (auto node = RSNodeMap::Instance().GetNode<RSRootNode>(root_)) {
-                node->RemoveFromTree();
-            }
+        if (auto node = RSNodeMap::Instance().GetNode<RSRootNode>(root_)) {
+            node->RemoveFromTree();
         }
         root_ = 0;
     }
@@ -178,7 +170,7 @@ void RSUIDirector::SendMessages()
     ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
 }
 
-void RSUIDirector::RecvMessages()
+void RSUIDirector::RecvMessages(bool needProcess)
 {
     if (getpid() == -1) {
         return;
@@ -188,7 +180,9 @@ void RSUIDirector::RecvMessages()
         return;
     }
     auto transactionDataPtr = std::make_shared<RSTransactionData>(RSMessageProcessor::Instance().GetTransaction(pid));
-    RecvMessages(transactionDataPtr);
+    if (needProcess) {
+        RecvMessages(transactionDataPtr);
+    }
 }
 
 void RSUIDirector::RecvMessages(std::shared_ptr<RSTransactionData> cmds)

@@ -21,12 +21,11 @@
 
 namespace OHOS {
 namespace Rosen {
+namespace {
 const std::string CONFIG_PATH = "/etc/";
 const std::string UNIRENDER_CONFIG_FILE_NAME = "unirender.config";
-
-bool StartsWith(const std::string &str, const std::string &prefix)
-{
-    return str.size() >= prefix.size() && str.substr(0, prefix.size()) == prefix;
+const std::string UNI_RENDER_DISABLED_TAG = "DISABLED";
+const std::string UNI_RENDER_ENABLED_FOR_ALL_TAG = "ENABLED_FOR_ALL";
 }
 
 // used by render server
@@ -35,27 +34,9 @@ UniRenderEnabledType RSUniRenderJudgement::GetUniRenderEnabledType()
     return uniRenderEnabledType_;
 }
 
-const std::set<std::string>& RSUniRenderJudgement::GetUniRenderEnabledList()
-{
-    return uniRenderBlockList_;
-}
-
 bool RSUniRenderJudgement::IsUniRender()
 {
     return RSUniRenderJudgement::GetUniRenderEnabledType() != UniRenderEnabledType::UNI_RENDER_DISABLED;
-}
-
-bool RSUniRenderJudgement::QueryClientEnabled(const std::string &bundleName)
-{
-    switch (uniRenderEnabledType_) {
-        case UniRenderEnabledType::UNI_RENDER_PARTIALLY_ENABLED:
-            return uniRenderBlockList_.find(bundleName) == uniRenderBlockList_.end();
-        case UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL:
-            return true;
-        case UniRenderEnabledType::UNI_RENDER_DISABLED:
-        default:
-            return false;
-    }
 }
 
 void RSUniRenderJudgement::InitUniRenderConfig()
@@ -83,28 +64,16 @@ void RSUniRenderJudgement::InitUniRenderWithConfigFile()
     std::ifstream configFile = std::ifstream(configFilePath.c_str());
     std::string line;
     // first line, init uniRenderEnabledType_
-    if (!configFile.is_open() || !SafeGetLine(configFile, line) || line == "") {
+    if (!configFile.is_open() || !SafeGetLine(configFile, line) || line.empty()) {
+#ifdef RS_ENABLE_UNI_RENDER
+        uniRenderEnabledType_ = UniRenderEnabledType::UNI_RENDER_DYNAMIC_SWITCH;
+#else
         uniRenderEnabledType_ = UniRenderEnabledType::UNI_RENDER_DISABLED;
-        configFile.close();
-        return;
-    }
-    auto iter = uniRenderConfigMap_.find(line);
-    if (iter == uniRenderConfigMap_.end()) {
+#endif
+    } else if (line == UNI_RENDER_DISABLED_TAG) {
         uniRenderEnabledType_ = UniRenderEnabledType::UNI_RENDER_DISABLED;
-        configFile.close();
-        return;
-    }
-    uniRenderEnabledType_ = iter->second;
-    if (uniRenderEnabledType_ == UniRenderEnabledType::UNI_RENDER_PARTIALLY_ENABLED) {
-        while (SafeGetLine(configFile, line)) {
-            if (line == "" || StartsWith(line, "//")) {
-                continue;
-            }
-            uniRenderBlockList_.insert(line);
-        }
-        if (uniRenderBlockList_.empty()) {
-            uniRenderEnabledType_ = UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL;
-        }
+    } else if (line == UNI_RENDER_ENABLED_FOR_ALL_TAG) {
+        uniRenderEnabledType_ = UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL;
     }
     configFile.close();
 }

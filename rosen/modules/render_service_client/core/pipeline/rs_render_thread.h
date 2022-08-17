@@ -81,6 +81,11 @@ public:
     {
         return isHighContrastEnabled_;
     }
+    void UpdateRenderMode(bool needRender);
+    bool GetForceUpdateSurfaceNode() const
+    {
+        return forceUpdateSurfaceNode_;
+    }
 
 private:
     RSRenderThread();
@@ -99,8 +104,12 @@ private:
     void Render();
     void SendCommands();
 
+    void UpdateSurfaceNodeParentInRS();
+    void ClearBufferCache();
     std::atomic_bool running_ = false;
     std::atomic_bool hasSkipVsync_ = false;
+    bool needRender_ = true;
+    bool forceUpdateSurfaceNode_ = false;
     std::atomic_int activeWindowCnt_ = 0;
     std::unique_ptr<std::thread> thread_ = nullptr;
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;

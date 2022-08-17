@@ -15,6 +15,7 @@
 
 #include "rs_application_agent_impl.h"
 
+#include "pipeline/rs_render_thread.h"
 #ifdef ROSEN_OHOS
 #include "platform/ohos/rs_render_service_connect_hub.h"
 #endif
@@ -31,6 +32,11 @@ RSApplicationAgentImpl& RSApplicationAgentImpl::Instance()
 
 void RSApplicationAgentImpl::RegisterRSApplicationAgent()
 {
+    static bool isRegistered = false;
+    if (isRegistered) {
+        return;
+    }
+    isRegistered = true;
 #ifdef ROSEN_OHOS
     RSRenderServiceConnectHub::SetOnConnectCallback(
         [weakThis = wptr<RSApplicationAgentImpl>(this)](sptr<RSIRenderServiceConnection>& conn) {
@@ -48,6 +54,12 @@ void RSApplicationAgentImpl::OnTransaction(std::shared_ptr<RSTransactionData> tr
 {
     RS_TRACE_NAME("RSApplicationAgentImpl::OnTransaction");
     RSUIDirector::RecvMessages(transactionData);
+}
+
+void RSApplicationAgentImpl::OnRenderModeChanged(bool renderThreadNeedRender)
+{
+    RSSystemProperties::SetRenderMode(!renderThreadNeedRender);
+    RSRenderThread::Instance().UpdateRenderMode(renderThreadNeedRender);
 }
 #endif
 }

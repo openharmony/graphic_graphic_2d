@@ -34,6 +34,7 @@ namespace Rosen {
 using BufferAvailableCallback = std::function<void()>;
 struct RSSurfaceNodeConfig {
     std::string SurfaceNodeName = "SurfaceNode";
+    bool isWindow = false;
 };
 
 class RS_EXPORT RSSurfaceNode : public RSNode {
@@ -68,14 +69,8 @@ public:
     {
         return RSUINodeType::SURFACE_NODE;
     }
-    FollowType GetFollowType() const override
-    {
-        if (IsRenderServiceNode()) {
-            return FollowType::NONE;
-        } else {
-            return FollowType::FOLLOW_TO_PARENT;
-        }
-    }
+    FollowType GetFollowType() const override;
+
     ColorGamut GetColorSpace()
     {
         return colorSpace_;

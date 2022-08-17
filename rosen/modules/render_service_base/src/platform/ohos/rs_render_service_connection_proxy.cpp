@@ -47,9 +47,10 @@ void RSRenderServiceConnectionProxy::CommitTransaction(std::unique_ptr<RSTransac
 
     transactionData->SetSendingPid(pid_);
     transactionData->SetIndex(++transactionDataIndex_);
-    transactionData->SetUniRender(RSSystemProperties::GetUniRenderEnabled());
+    transactionData->SetUniRender(RSSystemProperties::GetRenderMode());
     RS_TRACE_BEGIN("Marsh RSTransactionData: cmd count:" + std::to_string(transactionData->GetCommandCount()) +
-        " transactionFlag:[" + std::to_string(pid_) + ", " + std::to_string(transactionData->GetIndex()) + "]");
+        " transactionFlag:[" + std::to_string(pid_) + ", " + std::to_string(transactionData->GetIndex()) + "],isUni:" +
+        std::to_string(RSSystemProperties::GetRenderMode()));
     bool success = data->WriteParcelable(transactionData.get());
     RS_TRACE_END();
     if (!success) {
@@ -144,19 +145,29 @@ void RSRenderServiceConnectionProxy::UpdateRenderMode(bool isUniRender)
     }
 }
 
-bool RSRenderServiceConnectionProxy::InitUniRenderEnabled(const std::string &bundleName)
+bool RSRenderServiceConnectionProxy::GetUniRenderEnabled()
 {
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
 
-    if (!data.WriteString(bundleName)) {
-        return false;
-    }
     option.SetFlags(MessageOption::TF_SYNC);
     int32_t err = Remote()->SendRequest(RSIRenderServiceConnection::GET_UNI_RENDER_TYPE, data, reply, option);
     if (err != NO_ERROR) {
         return false;
+    }
+    return reply.ReadBool();
+}
+
+bool RSRenderServiceConnectionProxy::QueryIfRTNeedRender()
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    int32_t err = Remote()->SendRequest(RSIRenderServiceConnection::QUERY_RT_NEED_RENDER, data, reply, option);
+    if (err != NO_ERROR) {
+        return true;
     }
     return reply.ReadBool();
 }
@@ -192,6 +203,9 @@ sptr<Surface> RSRenderServiceConnectionProxy::CreateNodeAndSurface(const RSSurfa
         return nullptr;
     }
     if (!data.WriteString(config.name)) {
+        return nullptr;
+    }
+    if (!data.WriteBool(config.isWindow)) {
         return nullptr;
     }
     option.SetFlags(MessageOption::TF_SYNC);

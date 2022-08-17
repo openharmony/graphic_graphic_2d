@@ -16,6 +16,7 @@
 #include "command/rs_base_node_command.h"
 
 #include "pipeline/rs_base_render_node.h"
+#include "pipeline/rs_root_render_node.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -93,5 +94,19 @@ void BaseNodeCommandHelper::ClearChildren(RSContext& context, NodeId nodeId)
     }
 }
 
+void BaseNodeCommandHelper::ClearChildrenExceptRoot(RSContext& context, NodeId nodeId)
+{
+    auto& nodeMap = context.GetNodeMap();
+    auto node = nodeMap.GetRenderNode<RSBaseRenderNode>(nodeId);
+    if (!node) {
+        return;
+    }
+    for (auto& child : node->GetSortedChildren()) {
+        if (child->IsInstanceOf<RSRootRenderNode>()) {
+            continue;
+        }
+        child->RemoveFromTree();
+    }
+}
 } // namespace Rosen
 } // namespace OHOS

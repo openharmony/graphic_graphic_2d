@@ -40,6 +40,7 @@ RSSurfaceRenderNode::RSSurfaceRenderNode(const RSSurfaceRenderNodeConfig& config
     : RSRenderNode(config.id, context),
       RSSurfaceHandler(config.id),
       name_(config.name),
+      isWindow_(config.isWindow),
       dirtyManager_(std::make_shared<RSDirtyRegionManager>())
 {
 }
@@ -347,6 +348,16 @@ void RSSurfaceRenderNode::NotifyUIBufferAvailable()
             isNotifyUIBufferAvailable_ = false;
         }
     }
+}
+
+void RSSurfaceRenderNode::SetBufferAvailableForRS(bool isAvailable)
+{
+    isBufferAvailable_.store(isAvailable);
+}
+
+bool RSSurfaceRenderNode::IsBufferAvailable() const
+{
+    return isBufferAvailable_;
 }
 
 bool RSSurfaceRenderNode::IsNotifyRTBufferAvailable() const

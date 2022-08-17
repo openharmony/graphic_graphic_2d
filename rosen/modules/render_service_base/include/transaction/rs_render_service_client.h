@@ -67,7 +67,8 @@ public:
 
     int32_t SetRenderModeChangeCallback(const RenderModeChangeCallback& callback);
     void UpdateRenderMode(bool isUniRender);
-    bool InitUniRenderEnabled(const std::string &bundleName);
+    bool GetUniRenderEnabled();
+    bool QueryIfRTNeedRender();
     bool CreateNode(const RSSurfaceRenderNodeConfig& config);
     std::shared_ptr<RSSurface> CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config);
 

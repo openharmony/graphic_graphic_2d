@@ -29,6 +29,7 @@ enum RSBaseNodeCommandType : uint16_t {
     BASE_NODE_REMOVE_CROSS_PARENT_CHILD,
     BASE_NODE_REMOVE_FROM_TREE,
     BASE_NODE_CLEAR_CHILDREN,
+    BASE_NODE_CLEAR_CHILDREN_EXCEPT_ROOT,
 };
 
 class BaseNodeCommandHelper {
@@ -40,6 +41,7 @@ public:
     static void RemoveCrossParentChild(RSContext& context, NodeId nodeId, NodeId childNodeId, NodeId newParentId);
     static void RemoveFromTree(RSContext& context, NodeId nodeId);
     static void ClearChildren(RSContext& context, NodeId nodeId);
+    static void ClearChildrenExceptRoot(RSContext& context, NodeId nodeId);
 };
 
 ADD_COMMAND(RSBaseNodeDestroy, ARG(BASE_NODE, BASE_NODE_DESTROY, BaseNodeCommandHelper::Destroy, NodeId))
@@ -57,7 +59,8 @@ ADD_COMMAND(
     RSBaseNodeRemoveFromTree, ARG(BASE_NODE, BASE_NODE_REMOVE_FROM_TREE, BaseNodeCommandHelper::RemoveFromTree, NodeId))
 ADD_COMMAND(
     RSBaseNodeClearChild, ARG(BASE_NODE, BASE_NODE_CLEAR_CHILDREN, BaseNodeCommandHelper::ClearChildren, NodeId))
-
+ADD_COMMAND(RSBaseNodeClearChildExceptRoot,
+    ARG(BASE_NODE, BASE_NODE_CLEAR_CHILDREN_EXCEPT_ROOT, BaseNodeCommandHelper::ClearChildrenExceptRoot, NodeId))
 } // namespace Rosen
 } // namespace OHOS
 

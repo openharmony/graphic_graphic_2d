@@ -24,21 +24,26 @@ namespace Rosen {
 // used by clients
 bool RSSystemProperties::GetUniRenderEnabled()
 {
+    static bool inited = false;
+    if (inited) {
+        return isUniRenderEnabled_;
+    }
+    inited = true;
+
+    isUniRenderEnabled_ = std::static_pointer_cast<RSRenderServiceClient>(RSIRenderClient::CreateRenderServiceClient())
+        ->GetUniRenderEnabled();
+    ROSEN_LOGI("GetUniRenderEnabled:%d", isUniRenderEnabled_);
     return isUniRenderEnabled_;
 }
 
-void RSSystemProperties::InitUniRenderEnabled(const std::string &bundleName)
+bool RSSystemProperties::GetRenderMode()
 {
-    static bool inited = false;
-    if (inited) {
-        return;
-    }
+    return isUniRenderMode_;
+}
 
-    // init
-    inited = true;
-    isUniRenderEnabled_ = std::static_pointer_cast<RSRenderServiceClient>(RSIRenderClient::CreateRenderServiceClient())
-                ->InitUniRenderEnabled(bundleName);
-    ROSEN_LOGI("Init UniRender Enabled:%d, package name:%s", isUniRenderEnabled_, bundleName.c_str());
+void RSSystemProperties::SetRenderMode(bool isUni)
+{
+    isUniRenderMode_ = isUni;
 }
 
 DirtyRegionDebugType RSSystemProperties::GetDirtyRegionDebugType()

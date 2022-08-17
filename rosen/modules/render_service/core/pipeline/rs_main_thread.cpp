@@ -102,9 +102,13 @@ RSMainThread::~RSMainThread() noexcept
 void RSMainThread::Init()
 {
     mainLoop_ = [&]() {
-        RS_LOGD("RsDebug mainLoop start");
+        if (isUniRender_) {
+            CheckBufferAvailableIfNeed();
+        }
+        RS_LOGD("RsDebug mainLoop start isUni:%d", IfUseUniVisitor());
         SetRSEventDetectorLoopStartTag();
-        ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSMainThread::DoComposition");
+        ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSMainThread::DoComposition isUni:" +
+            std::to_string(IfUseUniVisitor()));
         ConsumeAndUpdateAllNodes();
         WaitUntilUnmarshallingTaskFinished();
         ProcessCommand();
@@ -214,7 +218,7 @@ void RSMainThread::ProcessCommandForUniRender()
 
         for (auto& rsTransactionElem: effectiveTransactionDataIndexMap_) {
             auto pid = rsTransactionElem.first;
-            auto& lastIndex = rsTransactionElem.second.first;
+//            auto& lastIndex = rsTransactionElem.second.first;
             auto& transactionVec = rsTransactionElem.second.second;
             auto iter = transactionVec.begin();
             for (; iter != transactionVec.end(); ++iter) {
@@ -222,21 +226,21 @@ void RSMainThread::ProcessCommandForUniRender()
                     continue;
                 }
                 auto curIndex = (*iter)->GetIndex();
-                if (curIndex == lastIndex + 1) {
-                    ++lastIndex;
+//                if (curIndex == lastIndex + 1) {
+//                    ++lastIndex;
                     transactionFlags += ", [" + std::to_string(pid) + ", " + std::to_string(curIndex) + "]";
-                } else {
-                    RS_LOGE("RSMainThread::ProcessCommandForUniRender wait curIndex:%llu, lastIndex:%llu, pid:%d",
-                        curIndex, lastIndex, pid);
-                    break;
-                }
+//                } else {
+//                    RS_LOGE("RSMainThread::ProcessCommandForUniRender wait curIndex:%llu, lastIndex:%llu, pid:%d",
+//                        curIndex, lastIndex, pid);
+//                    break;
+//                }
             }
             transactionDataEffective[pid].insert(transactionDataEffective[pid].end(),
                 std::make_move_iterator(transactionVec.begin()), std::make_move_iterator(iter));
             transactionVec.erase(transactionVec.begin(), iter);
         }
     }
-    RS_TRACE_NAME("RSMainThread::ProcessCommand" + transactionFlags);
+    RS_TRACE_NAME("RSMainThread::ProcessCommandUni" + transactionFlags);
     for (auto& rsTransactionElem: transactionDataEffective) {
         for (auto& rsTransaction: rsTransactionElem.second) {
             if (rsTransaction) {
@@ -387,15 +391,47 @@ void RSMainThread::NotifyUniRenderFinish()
     }
 }
 
+bool RSMainThread::IfUseUniVisitor() const
+{
+    return !waitBufferAvailable_ && useUniVisitor_;
+}
+
+void RSMainThread::CheckBufferAvailableIfNeed()
+{
+    if (!waitBufferAvailable_) {
+        return;
+    }
+    const auto& nodeMap = GetContext().GetNodeMap();
+    bool allBufferAvailable = true;
+    for (auto& [id, node] : nodeMap.renderNodeMap_) {
+        if (node == nullptr || !node->IsInstanceOf<RSSurfaceRenderNode>()) {
+            continue;
+        }
+        auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node);
+        if (!surfaceNode->IsWindow() || !node->IsOnTheTree()) {
+            continue;
+        }
+        if (!surfaceNode->IsBufferAvailable()) {
+            allBufferAvailable = false;
+            break;
+        }
+    }
+    waitBufferAvailable_ = !allBufferAvailable;
+    if (!waitBufferAvailable_ && renderModeChangeCallback_) {
+        renderModeChangeCallback_->OnRenderModeChanged(false);
+    }
+}
+
 void RSMainThread::Render()
 {
     const std::shared_ptr<RSBaseRenderNode> rootNode = context_.GetGlobalRootRenderNode();
     if (rootNode == nullptr) {
-        RS_LOGE("RSMainThread::Draw GetGlobalRootRenderNode fail");
+        RS_LOGE("RSMainThread::Render GetGlobalRootRenderNode fail");
         return;
     }
+
     std::shared_ptr<RSNodeVisitor> visitor;
-    if (isUniRender_) {
+    if (IfUseUniVisitor()) {
         visitor = std::make_shared<RSUniRenderVisitor>();
     } else {
         bool doParallelComposition = false;
@@ -410,6 +446,7 @@ void RSMainThread::Render()
         rsVisitor->SetAnimateState(doAnimate_);
         visitor = rsVisitor;
     }
+
     rootNode->Prepare(visitor);
     CalcOcclusion();
     rootNode->Process(visitor);
@@ -419,7 +456,7 @@ void RSMainThread::Render()
 
 void RSMainThread::CalcOcclusion()
 {
-    if (doAnimate_ && !isUniRender_) {
+    if (doAnimate_ && !useUniVisitor_) {
         return;
     }
     const std::shared_ptr<RSBaseRenderNode> node = context_.GetGlobalRootRenderNode();
@@ -634,6 +671,35 @@ void RSMainThread::UnRegisterApplicationAgent(sptr<IApplicationAgent> app)
     std::__libcpp_erase_if_container(applicationAgentMap_, [&app](auto& iter) { return iter.second == app; });
 }
 
+void RSMainThread::NotifyRenderModeChanged(bool useUniVisitor)
+{
+    if (RSUniRenderJudgement::GetUniRenderEnabledType() != UniRenderEnabledType::UNI_RENDER_DYNAMIC_SWITCH) {
+        return;
+    }
+    if (useUniVisitor == useUniVisitor_) {
+        RS_LOGI("RSMainThread::NotifyRenderModeChanged useUniVisitor_:%d, not changed", useUniVisitor_.load());
+        return;
+    }
+    PostTask([useUniVisitor = useUniVisitor, this]() {
+        useUniVisitor_ = useUniVisitor;
+        waitBufferAvailable_ = !useUniVisitor;
+        for (auto& elem : applicationAgentMap_) {
+            if (elem.second != nullptr) {
+                elem.second->OnRenderModeChanged(!useUniVisitor);
+            }
+        }
+        if (useUniVisitor_ && renderModeChangeCallback_) {
+            renderModeChangeCallback_->OnRenderModeChanged(true);
+        }
+    });
+}
+
+bool RSMainThread::QueryIfUseUniVisitor() const
+{
+    RS_LOGI("RSMainThread::QueryIfUseUniVisitor useUniVisitor_:%d", useUniVisitor_.load());
+    return useUniVisitor_;
+}
+
 void RSMainThread::RegisterOcclusionChangeCallback(sptr<RSIOcclusionChangeCallback> callback)
 {
     occlusionListeners_.emplace_back(callback);
@@ -655,11 +721,6 @@ void RSMainThread::CleanOcclusionListener()
 void RSMainThread::SetRenderModeChangeCallback(sptr<RSIRenderModeChangeCallback> callback)
 {
     renderModeChangeCallback_ = callback;
-}
-
-void RSMainThread::SetUniVisitor(bool isUniRender)
-{
-    useUniVisitor_ = isUniRender;
 }
 
 void RSMainThread::SendCommands()

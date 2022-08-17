@@ -43,7 +43,6 @@ public:
 
     // used by clients
     static bool GetUniRenderEnabled();
-    static void InitUniRenderEnabled(const std::string &bundleName);
     static DirtyRegionDebugType GetDirtyRegionDebugType();
     static PartialRenderType GetPartialRenderEnabled();
     static bool GetOcclusionEnabled();
@@ -52,11 +51,14 @@ public:
     static bool GetHighContrastStatus();
     static int32_t GetCorrectionMode();
     static bool GetUniPartialRenderEnabled();
+    static bool GetRenderMode();
+    static void SetRenderMode(bool isUni);
 
 private:
     RSSystemProperties() = default;
 
     static inline bool isUniRenderEnabled_ = false;
+    static inline bool isUniRenderMode_ = false;
 };
 
 } // namespace Rosen

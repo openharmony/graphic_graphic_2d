@@ -36,6 +36,10 @@ int RSApplicationAgentStub::OnRemoteRequest(
             OnTransaction(transactionData);
             break;
         }
+        case NOTIFY_RENDER_MODE_CHANGED: {
+            OnRenderModeChanged(data.ReadBool());
+            break;
+        }
         default: {
             ret = ERR_UNKNOWN_TRANSACTION;
             break;

@@ -76,7 +76,7 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
     node.ApplyModifiers();
     RSUniRenderUtil::UpdateRenderNodeDstRect(node);
     // prepare the surfaceRenderNode whose child is rootRenderNode 
-    if (node.GetConsumer() == nullptr) {
+    if (node.IsWindow()) {
         curSurfaceDirtyManager_ = node.GetDirtyManager();
         curSurfaceDirtyManager_->Clear();
         dirtyFlag_ = false;
@@ -400,7 +400,6 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
 
     // use node's local coordinate.
     auto params = RSBaseRenderUtil::CreateBufferDrawParam(node, true, false, false, false);
-
     const auto saveCnt = canvas_->save();
     canvas_->concat(params.matrix);
     auto transitionProperties = node.GetAnimationManager().GetTransitionProperties();

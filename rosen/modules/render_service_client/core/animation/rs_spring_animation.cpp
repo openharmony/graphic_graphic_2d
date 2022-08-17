@@ -48,6 +48,10 @@ void RSSpringAnimation<T>::StartAnimationImpl()
             std::unique_ptr<RSCommand> commandForRemote = std::make_unique<P>(target->GetId(), animation);
             transactionProxy->AddCommand(commandForRemote, true, target->GetFollowType(), target->GetId());
         }
+        if (target->NeedSendExtraCommand()) {
+            std::unique_ptr<RSCommand> extraCommand = std::make_unique<P>(target->GetId(), animation);
+            transactionProxy->AddCommand(extraCommand, !target->IsRenderServiceNode(), target->GetFollowType(), target->GetId());
+        }
     }
 }
 

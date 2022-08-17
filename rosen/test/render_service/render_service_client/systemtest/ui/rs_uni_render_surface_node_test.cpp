@@ -52,7 +52,7 @@ HWTEST_F(RSUniRenderSurfaceNodeTest, TestSurfaceNodeSurface001, Function | Mediu
 */
 HWTEST_F(RSUniRenderSurfaceNodeTest, TestSurfaceNodeSurface002, Function | MediumTest | Level1)
 {
-    RSSystemProperties::InitUniRenderEnabled("");
+    RSSystemProperties::GetUniRenderEnabled();
     RSSurfaceNodeConfig config;
     auto surfaceNode = RSSurfaceNode::Create(config);
     ASSERT_TRUE(surfaceNode != nullptr);
