@@ -17,6 +17,12 @@
 #ifndef BLEND_MODE_H
 #define BLEND_MODE_H
 
+#ifdef WINDOWS_PLATFORM
+#ifdef DIFFERENCE
+#undef DIFFERENCE
+#endif
+#endif
+
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {

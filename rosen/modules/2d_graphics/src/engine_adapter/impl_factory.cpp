@@ -27,6 +27,11 @@ std::unique_ptr<CoreCanvasImpl> ImplFactory::CreateCoreCanvasImpl()
     return EngineImplFactory::CreateCoreCanvas();
 }
 
+std::unique_ptr<CoreCanvasImpl> ImplFactory::CreateCoreCanvasImpl(void* rawCanvas)
+{
+    return EngineImplFactory::CreateCoreCanvas(rawCanvas);
+}
+
 std::unique_ptr<BitmapImpl> ImplFactory::CreateBitmapImpl()
 {
     return EngineImplFactory::CreateBitmap();
@@ -35,6 +40,11 @@ std::unique_ptr<BitmapImpl> ImplFactory::CreateBitmapImpl()
 std::unique_ptr<ImageImpl> ImplFactory::CreateImageImpl()
 {
     return EngineImplFactory::CreateImage();
+}
+
+std::unique_ptr<ImageImpl> ImplFactory::CreateImageImpl(void* rawImg)
+{
+    return EngineImplFactory::CreateImage(rawImg);
 }
 
 std::unique_ptr<PictureImpl> ImplFactory::CreatePictureImpl()

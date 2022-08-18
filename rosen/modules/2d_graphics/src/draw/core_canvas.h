@@ -30,6 +30,7 @@ enum class SrcRectConstraint {
 class CoreCanvas {
 public:
     CoreCanvas();
+    explicit CoreCanvas(void* rawCanvas);
     virtual ~CoreCanvas() {}
     void Bind(const Bitmap& bitmap);
 

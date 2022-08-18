@@ -36,8 +36,10 @@ namespace Drawing {
 class SkiaImplFactory {
 public:
     static std::unique_ptr<CoreCanvasImpl> CreateCoreCanvas();
+    static std::unique_ptr<CoreCanvasImpl> CreateCoreCanvas(void* rawCanvas);
     static std::unique_ptr<BitmapImpl> CreateBitmap();
     static std::unique_ptr<ImageImpl> CreateImage();
+    static std::unique_ptr<ImageImpl> CreateImage(void* rawImg);
     static std::unique_ptr<PictureImpl> CreatePicture();
     static std::unique_ptr<PathImpl> CreatePath();
     static std::unique_ptr<ColorFilterImpl> CreateColorFilter();

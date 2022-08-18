@@ -22,6 +22,8 @@ namespace Rosen {
 namespace Drawing {
 Image::Image() noexcept : imageImplPtr(ImplFactory::CreateImageImpl()), width_(0), height_(0) {}
 
+Image::Image(void* rawImg) noexcept : imageImplPtr(ImplFactory::CreateImageImpl(rawImg)), width_(0), height_(0) {}
+
 Image* Image::BuildFromBitmap(const Bitmap& bitmap)
 {
     return static_cast<Image*>(imageImplPtr->BuildFromBitmap(bitmap));

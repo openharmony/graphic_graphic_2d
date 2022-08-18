@@ -27,6 +27,8 @@ namespace Rosen {
 namespace Drawing {
 SkiaImage::SkiaImage() noexcept : skiaImage_(nullptr) {}
 
+SkiaImage::SkiaImage(sk_sp<SkImage> skImg) noexcept : skiaImage_(skImg) {}
+
 void* SkiaImage::BuildFromBitmap(const Bitmap& bitmap)
 {
     auto skBitmapImpl = bitmap.GetImpl<SkiaBitmap>();

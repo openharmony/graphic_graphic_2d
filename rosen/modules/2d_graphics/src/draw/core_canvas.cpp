@@ -22,6 +22,8 @@ namespace Rosen {
 namespace Drawing {
 CoreCanvas::CoreCanvas() : impl_(ImplFactory::CreateCoreCanvasImpl()) {}
 
+CoreCanvas::CoreCanvas(void* rawCanvas) : impl_(ImplFactory::CreateCoreCanvasImpl(rawCanvas)) {}
+
 void CoreCanvas::Bind(const Bitmap& bitmap)
 {
     impl_->Bind(bitmap);

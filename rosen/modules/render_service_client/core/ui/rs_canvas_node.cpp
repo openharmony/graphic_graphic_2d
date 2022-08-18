@@ -102,13 +102,13 @@ void RSCanvasNode::FinishRecording()
 
 void RSCanvasNode::DrawOnNode(RSModifierType type, DrawFunc func)
 {
-    RSRecordingCanvas recordingCanvas(GetPaintWidth(), GetPaintHeight());
-    func(&recordingCanvas);
+    auto recordingCanvas = std::make_shared<RSRecordingCanvas>(GetPaintWidth(), GetPaintHeight());
+    func(recordingCanvas);
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy == nullptr) {
         return;
     }
-    auto recording = recordingCanvas.GetDrawCmdList();
+    auto recording = recordingCanvas->GetDrawCmdList();
     std::unique_ptr<RSCommand> command =
         std::make_unique<RSCanvasNodeUpdateRecording>(GetId(), recording, type);
     transactionProxy->AddCommand(command, IsRenderServiceNode());

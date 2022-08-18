@@ -41,6 +41,7 @@ class SkiaCanvas : public CoreCanvasImpl {
 public:
     static inline constexpr AdapterType TYPE = AdapterType::SKIA_ADAPTER;
     SkiaCanvas();
+    explicit SkiaCanvas(const std::shared_ptr<SkCanvas>& skCanvas) : skiaCanvas_(skCanvas) {}
     ~SkiaCanvas() override {};
     AdapterType GetType() const override
     {

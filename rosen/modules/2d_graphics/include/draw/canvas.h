@@ -28,6 +28,9 @@ namespace Drawing {
 class Canvas : public CoreCanvas {
 public:
     Canvas() {}
+
+    // constructor adopt a raw canvas ptr, using for ArkUI, should remove after rosen modifier provide drawing Canvas.
+    explicit Canvas(void* rawCanvas) : CoreCanvas(rawCanvas) {}
     virtual ~Canvas() {};
 };
 } // namespace Drawing

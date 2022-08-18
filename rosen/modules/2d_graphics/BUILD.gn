@@ -17,96 +17,140 @@ import("//foundation/graphic/graphic_2d/graphic_config.gni")
 import(
     "//foundation/graphic/graphic_2d/rosen/modules/2d_engine/rosen_text/config.gni")
 
+template("graphics2d_source_set") {
+  forward_variables_from(invoker, "*")
+
+  ohos_source_set(target_name) {
+    defines += invoker.defines
+    cflags_cc += invoker.cflags_cc
+    sources = [
+      "src/c/drawing_bitmap.cpp",
+      "src/c/drawing_brush.cpp",
+      "src/c/drawing_canvas.cpp",
+      "src/c/drawing_color.cpp",
+      "src/c/drawing_font_collection.cpp",
+      "src/c/drawing_path.cpp",
+      "src/c/drawing_pen.cpp",
+      "src/c/drawing_text_typography.cpp",
+      "src/draw/brush.cpp",
+      "src/draw/color.cpp",
+      "src/draw/core_canvas.cpp",
+      "src/draw/path.cpp",
+      "src/draw/pen.cpp",
+      "src/effect/color_filter.cpp",
+      "src/effect/color_space.cpp",
+      "src/effect/filter.cpp",
+      "src/effect/image_filter.cpp",
+      "src/effect/mask_filter.cpp",
+      "src/effect/path_effect.cpp",
+      "src/effect/shader_effect.cpp",
+      "src/engine_adapter/impl_factory.cpp",
+      "src/engine_adapter/skia_adapter/skia_bitmap.cpp",
+      "src/engine_adapter/skia_adapter/skia_camera.cpp",
+      "src/engine_adapter/skia_adapter/skia_canvas.cpp",
+      "src/engine_adapter/skia_adapter/skia_color_filter.cpp",
+      "src/engine_adapter/skia_adapter/skia_color_space.cpp",
+      "src/engine_adapter/skia_adapter/skia_image.cpp",
+      "src/engine_adapter/skia_adapter/skia_image_filter.cpp",
+      "src/engine_adapter/skia_adapter/skia_impl_factory.cpp",
+      "src/engine_adapter/skia_adapter/skia_mask_filter.cpp",
+      "src/engine_adapter/skia_adapter/skia_matrix.cpp",
+      "src/engine_adapter/skia_adapter/skia_paint.cpp",
+      "src/engine_adapter/skia_adapter/skia_path.cpp",
+      "src/engine_adapter/skia_adapter/skia_path_effect.cpp",
+      "src/engine_adapter/skia_adapter/skia_picture.cpp",
+      "src/engine_adapter/skia_adapter/skia_shader_effect.cpp",
+      "src/image/bitmap.cpp",
+      "src/image/image.cpp",
+      "src/image/picture.cpp",
+      "src/text/text.cpp",
+      "src/utils/camera3d.cpp",
+      "src/utils/matrix.cpp",
+    ]
+
+    sources += [
+      "$rosen_text_root/properties/font_collection_txt.cpp",
+      "$rosen_text_root/properties/placeholder_run.cpp",
+      "$rosen_text_root/properties/rosen_converter_txt.cpp",
+      "$rosen_text_root/properties/text_style.cpp",
+      "$rosen_text_root/properties/typography_create_txt.cpp",
+      "$rosen_text_root/properties/typography_style.cpp",
+      "$rosen_text_root/properties/typography_txt.cpp",
+      "$rosen_text_root/ui/font_collection.cpp",
+      "$rosen_text_root/ui/typography.cpp",
+      "$rosen_text_root/ui/typography_create.cpp",
+    ]
+
+    include_dirs = [
+      "include",
+      "src",
+      "src/engine_adapter",
+      "$rosen_2d_engine_root",
+      "$flutter_root/engine/flutter/third_party/txt/src",
+      "//foundation/arkui/ace_engine/frameworks",
+      "$flutter_root/engine",
+      "//third_party/bounds_checking_function/include",
+    ]
+
+    defines += [ "USE_ACE_SKIA" ]
+
+    deps = [ "$ace_flutter_engine_root:flutter_engine_fml_$platform" ]
+
+    if (platform == "ohos") {
+      external_deps = [
+        "c_utils:utils",
+        "hilog_native:libhilog",
+        "multimedia_image_standard:image_native",
+      ]
+      deps += [
+        "//foundation/graphic/graphic_2d/rosen/build/flutter/icu:rosen_libicu_$platform",
+        "//foundation/graphic/graphic_2d/rosen/build/flutter/libtxt:thirdparty_lib_txt_rosen_$platform",
+        "//third_party/bounds_checking_function:libsec_static",
+      ]
+      defines += [ "SUPPORT_OHOS_PIXMAP" ]
+    } else {
+      cflags = [ "-Wno-c++17-extensions" ]
+      deps += [
+        "$ace_flutter_engine_root/icu:ace_libicu_$platform",
+        "$ace_flutter_engine_root/libtxt:thirdparty_lib_txt_$platform",
+        "$ace_flutter_engine_root/skia:ace_skia_$platform",
+        "//base/hiviewdfx/hilog/frameworks/libhilog:libhilog_source_$platform",
+      ]
+    }
+
+    part_name = "graphic_standard"
+    subsystem_name = "graphic"
+  }
+}
+
+foreach(item, ace_platforms) {
+  graphics2d_source_set("2d_graphics_source_" + item.name) {
+    platform = item.name
+    defines = []
+
+    if (defined(item.config)) {
+      config = item.config
+    } else {
+      config = {
+      }
+    }
+
+    if (defined(config.defines)) {
+      defines += config.defines
+    }
+
+    if (defined(config.cflags_cc)) {
+      cflags_cc = config.cflags_cc
+    } else {
+      cflags_cc = []
+    }
+  }
+}
+
 ## Build 2d_graphics.so
 ohos_shared_library("2d_graphics") {
   symlink_target_name = [ "libnative_drawing.so" ]
-
-  sources = [
-    "src/c/drawing_bitmap.cpp",
-    "src/c/drawing_brush.cpp",
-    "src/c/drawing_canvas.cpp",
-    "src/c/drawing_color.cpp",
-    "src/c/drawing_font_collection.cpp",
-    "src/c/drawing_path.cpp",
-    "src/c/drawing_pen.cpp",
-    "src/c/drawing_text_typography.cpp",
-    "src/draw/brush.cpp",
-    "src/draw/color.cpp",
-    "src/draw/core_canvas.cpp",
-    "src/draw/path.cpp",
-    "src/draw/pen.cpp",
-    "src/effect/color_filter.cpp",
-    "src/effect/color_space.cpp",
-    "src/effect/filter.cpp",
-    "src/effect/image_filter.cpp",
-    "src/effect/mask_filter.cpp",
-    "src/effect/path_effect.cpp",
-    "src/effect/shader_effect.cpp",
-    "src/engine_adapter/impl_factory.cpp",
-    "src/engine_adapter/skia_adapter/skia_bitmap.cpp",
-    "src/engine_adapter/skia_adapter/skia_camera.cpp",
-    "src/engine_adapter/skia_adapter/skia_canvas.cpp",
-    "src/engine_adapter/skia_adapter/skia_color_filter.cpp",
-    "src/engine_adapter/skia_adapter/skia_color_space.cpp",
-    "src/engine_adapter/skia_adapter/skia_image.cpp",
-    "src/engine_adapter/skia_adapter/skia_image_filter.cpp",
-    "src/engine_adapter/skia_adapter/skia_impl_factory.cpp",
-    "src/engine_adapter/skia_adapter/skia_mask_filter.cpp",
-    "src/engine_adapter/skia_adapter/skia_matrix.cpp",
-    "src/engine_adapter/skia_adapter/skia_paint.cpp",
-    "src/engine_adapter/skia_adapter/skia_path.cpp",
-    "src/engine_adapter/skia_adapter/skia_path_effect.cpp",
-    "src/engine_adapter/skia_adapter/skia_picture.cpp",
-    "src/engine_adapter/skia_adapter/skia_shader_effect.cpp",
-    "src/image/bitmap.cpp",
-    "src/image/image.cpp",
-    "src/image/picture.cpp",
-    "src/text/text.cpp",
-    "src/utils/camera3d.cpp",
-    "src/utils/matrix.cpp",
-  ]
-
-  sources += [
-    "$rosen_text_root/properties/font_collection_txt.cpp",
-    "$rosen_text_root/properties/placeholder_run.cpp",
-    "$rosen_text_root/properties/rosen_converter_txt.cpp",
-    "$rosen_text_root/properties/text_style.cpp",
-    "$rosen_text_root/properties/typography_create_txt.cpp",
-    "$rosen_text_root/properties/typography_style.cpp",
-    "$rosen_text_root/properties/typography_txt.cpp",
-    "$rosen_text_root/ui/font_collection.cpp",
-    "$rosen_text_root/ui/typography.cpp",
-    "$rosen_text_root/ui/typography_create.cpp",
-  ]
-
-  include_dirs = [
-    "include",
-    "src",
-    "src/engine_adapter",
-    "//foundation/graphic/graphic_2d/interfaces/inner_api/surface",
-    "$rosen_2d_engine_root",
-    "$flutter_root/engine/flutter/third_party/txt/src",
-    "//foundation/arkui/ace_engine/frameworks",
-    "$flutter_root/engine",
-    "//third_party/bounds_checking_function/include",
-  ]
-
-  defines = [ "USE_ACE_SKIA" ]
-
-  deps = [
-    "$ace_flutter_engine_root:flutter_engine_fml_$current_os",
-    "//foundation/graphic/graphic_2d:libsurface",
-    "//foundation/graphic/graphic_2d/rosen/build/flutter/icu:rosen_libicu_$current_os",
-    "//foundation/graphic/graphic_2d/rosen/build/flutter/libtxt:thirdparty_lib_txt_rosen_$current_os",
-    "//third_party/bounds_checking_function:libsec_static",
-  ]
-
-  external_deps = [
-    "c_utils:utils",
-    "hilog_native:libhilog",
-    "multimedia_image_standard:image_native",
-  ]
-
+  deps = [ ":2d_graphics_source_ohos" ]
   part_name = "graphic_standard"
   subsystem_name = "graphic"
 }

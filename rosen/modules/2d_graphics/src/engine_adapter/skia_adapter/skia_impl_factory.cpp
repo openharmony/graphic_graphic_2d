@@ -37,6 +37,12 @@ std::unique_ptr<CoreCanvasImpl> SkiaImplFactory::CreateCoreCanvas()
     return std::make_unique<SkiaCanvas>();
 }
 
+std::unique_ptr<CoreCanvasImpl> SkiaImplFactory::CreateCoreCanvas(void* rawCanvas)
+{
+    auto skCanvasPtr = reinterpret_cast<std::shared_ptr<SkCanvas>*>(rawCanvas);
+    return std::make_unique<SkiaCanvas>(*skCanvasPtr);
+}
+
 std::unique_ptr<BitmapImpl> SkiaImplFactory::CreateBitmap()
 {
     return std::make_unique<SkiaBitmap>();
@@ -45,6 +51,12 @@ std::unique_ptr<BitmapImpl> SkiaImplFactory::CreateBitmap()
 std::unique_ptr<ImageImpl> SkiaImplFactory::CreateImage()
 {
     return std::make_unique<SkiaImage>();
+}
+
+std::unique_ptr<ImageImpl> SkiaImplFactory::CreateImage(void* rawImg)
+{
+    auto skImg = reinterpret_cast<sk_sp<SkImage>*>(rawImg);
+    return std::make_unique<SkiaImage>(*skImg);
 }
 
 std::unique_ptr<PictureImpl> SkiaImplFactory::CreatePicture()

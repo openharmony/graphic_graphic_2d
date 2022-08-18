@@ -35,7 +35,7 @@ class SkCanvas;
 
 namespace OHOS {
 namespace Rosen {
-using DrawFunc = std::function<void(SkCanvas*)>;
+using DrawFunc = std::function<void(std::shared_ptr<SkCanvas>)>;
 using PropertyCallback = std::function<void()>;
 class RSAnimation;
 class RSCommand;

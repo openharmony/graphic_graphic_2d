@@ -23,6 +23,7 @@
 
 namespace OHOS {
 namespace Rosen {
+#ifndef LOGD
 #define LOGD(fmt, ...)               \
     ::OHOS::HiviewDFX::HiLog::Debug( \
         ::OHOS::HiviewDFX::HiLogLabel { LOG_CORE, 0, "Drawing" }, "%{public}s: " fmt, __func__, ##__VA_ARGS__)
@@ -35,6 +36,7 @@ namespace Rosen {
 #define LOGE(fmt, ...)               \
     ::OHOS::HiviewDFX::HiLog::Error( \
         ::OHOS::HiviewDFX::HiLogLabel { LOG_CORE, 0, "Drawing" }, "%{public}s: " fmt, __func__, ##__VA_ARGS__)
+#endif
 } // namespace Rosen
 } // namespace OHOS
 #endif

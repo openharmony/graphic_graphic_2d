@@ -15,7 +15,9 @@
 
 #include "skia_canvas.h"
 
+#ifdef SUPPORT_OHOS_PIXMAP
 #include "pixel_map.h"
+#endif
 #include "skia_path.h"
 
 #include "image/bitmap.h"
@@ -194,6 +196,7 @@ void SkiaCanvas::DrawBitmap(const Bitmap& bitmap, const scalar px, const scalar 
     }
 }
 
+#ifdef SUPPORT_OHOS_PIXMAP
 static sk_sp<SkColorSpace> ColorSpaceToSkColorSpace(Media::PixelMap& pixmap)
 {
     return SkColorSpace::MakeSRGB();
@@ -247,9 +250,11 @@ static SkImageInfo MakeSkImageInfoFromPixelMap(Media::PixelMap& pixelMap)
     LOGI("SkColorType %{pubilic}d, SkAlphaType %{public}d", ct, at);
     return SkImageInfo::Make(pixelMap.GetWidth(), pixelMap.GetHeight(), ct, at, cs);
 }
+#endif
 
 void SkiaCanvas::DrawBitmap(Media::PixelMap& pixelMap, const scalar px, const scalar py)
 {
+#ifdef SUPPORT_OHOS_PIXMAP
     if (pixelMap.GetPixels() == nullptr) {
         LOGE("PutPixelMap failed, pixelMap data invalid");
         return;
@@ -277,6 +282,9 @@ void SkiaCanvas::DrawBitmap(Media::PixelMap& pixelMap, const scalar px, const sc
 #endif
         }
     }
+#else
+    LOGE("Not support drawing Media::PixelMap");
+#endif
 }
 
 void SkiaCanvas::DrawImage(const Image& image, const scalar px, const scalar py, const SamplingOptions& sampling)

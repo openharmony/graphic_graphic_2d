@@ -36,8 +36,10 @@ namespace Drawing {
 class ImplFactory {
 public:
     static std::unique_ptr<CoreCanvasImpl> CreateCoreCanvasImpl();
+    static std::unique_ptr<CoreCanvasImpl> CreateCoreCanvasImpl(void* rawCanvas);
     static std::unique_ptr<BitmapImpl> CreateBitmapImpl();
     static std::unique_ptr<ImageImpl> CreateImageImpl();
+    static std::unique_ptr<ImageImpl> CreateImageImpl(void* rawImage);
     static std::unique_ptr<PathImpl> CreatePathImpl();
     static std::unique_ptr<ColorFilterImpl> CreateColorFilterImpl();
     static std::unique_ptr<MaskFilterImpl> CreateMaskFilterImpl();
