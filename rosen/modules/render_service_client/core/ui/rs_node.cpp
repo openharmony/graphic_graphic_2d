@@ -766,9 +766,6 @@ void RSNode::SetClipToFrame(bool clipToFrame)
 void RSNode::SetVisible(bool visible)
 {
     SET_NONANIMATABLE_MODIFIER(Visible, bool, visible, VISIBLE, true);
-    if (transitionEffect_ != nullptr) {
-        NotifyTransition(transitionEffect_, visible);
-    }
 }
 
 void RSNode::SetMask(const std::shared_ptr<RSMask>& mask)
