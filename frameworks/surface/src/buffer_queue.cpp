@@ -66,7 +66,11 @@ BufferQueue::BufferQueue(const std::string &name, bool isShared)
 BufferQueue::~BufferQueue()
 {
     BLOGNI("dtor, Queue id: %{public}" PRIu64, uniqueId_);
-    CleanCache();
+    for (auto &[id, _] : bufferQueueCache_) {
+        if (onBufferDelete_ != nullptr) {
+            onBufferDelete_(id);
+        }
+    }
 }
 
 GSError BufferQueue::Init()
@@ -803,11 +807,11 @@ GSError BufferQueue::GoBackground()
 {
     std::lock_guard<std::mutex> lockGuard(mutex_);
     if (listener_ != nullptr) {
-        ScopedBytrace bufferIPCSend("OnCleanCache");
-        listener_->OnCleanCache();
+        ScopedBytrace bufferIPCSend("OnGoBackground");
+        listener_->OnGoBackground();
     } else if (listenerClazz_ != nullptr) {
-        ScopedBytrace bufferIPCSend("OnCleanCache");
-        listenerClazz_->OnCleanCache();
+        ScopedBytrace bufferIPCSend("OnGoBackground");
+        listenerClazz_->OnGoBackground();
     }
     ClearLocked();
     waitReqCon_.notify_all();
@@ -817,6 +821,13 @@ GSError BufferQueue::GoBackground()
 GSError BufferQueue::CleanCache()
 {
     std::lock_guard<std::mutex> lockGuard(mutex_);
+    if (listener_ != nullptr) {
+        ScopedBytrace bufferIPCSend("OnCleanCache");
+        listener_->OnCleanCache();
+    } else if (listenerClazz_ != nullptr) {
+        ScopedBytrace bufferIPCSend("OnCleanCache");
+        listenerClazz_->OnCleanCache();
+    }
     ClearLocked();
     waitReqCon_.notify_all();
     return GSERROR_OK;
