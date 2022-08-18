@@ -440,7 +440,9 @@ void RSMainThread::Render()
     RS_LOGD("RSMainThread::Render isUni:%d", IfUseUniVisitor());
     std::shared_ptr<RSNodeVisitor> visitor;
     if (IfUseUniVisitor()) {
-        visitor = std::make_shared<RSUniRenderVisitor>();
+        auto uniVisitor = std::make_shared<RSUniRenderVisitor>();
+        uniVisitor->SetAnimateState(doAnimate_);
+        visitor = uniVisitor;
     } else {
         bool doParallelComposition = false;
         if (RSInnovation::GetParallelCompositionEnabled()) {
@@ -464,7 +466,7 @@ void RSMainThread::Render()
 
 void RSMainThread::CalcOcclusion()
 {
-    if (doAnimate_ && !useUniVisitor_) {
+    if (doAnimate_) {
         return;
     }
     const std::shared_ptr<RSBaseRenderNode> node = context_.GetGlobalRootRenderNode();

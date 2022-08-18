@@ -43,6 +43,11 @@ public:
     void ProcessRootRenderNode(RSRootRenderNode& node) override;
     void ProcessCanvasRenderNode(RSCanvasRenderNode& node) override;
 
+    void SetAnimateState(bool doAnimate)
+    {
+        doAnimate_ = doAnimate;
+    }
+
 private:
     void DrawRectOnCanvas(const RectI& dirtyRect, const SkColor color,
         const SkPaint::Style fillType, float alpha);
@@ -73,9 +78,10 @@ private:
     bool isSecurityDisplay_ = false;
 
     std::shared_ptr<RSRenderEngine> renderEngine_;
-    
+
     std::shared_ptr<RSDirtyRegionManager> curDisplayDirtyManager_;
     std::shared_ptr<RSDisplayRenderNode> curDisplayNode_;
+    bool doAnimate_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS
