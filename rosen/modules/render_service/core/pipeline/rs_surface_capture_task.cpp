@@ -78,32 +78,28 @@ std::unique_ptr<Media::PixelMap> RSSurfaceCaptureTask::Run()
     visitor->SetSurface(skSurface.get());
     node->Process(visitor);
 #if (defined RS_ENABLE_GL) && (defined RS_ENABLE_EGLIMAGE)
-    if (pixelmap->GetPixelFormat() == Media::PixelFormat::NV21 ||
-        pixelmap->GetPixelFormat() == Media::PixelFormat::NV12) {
-        sk_sp<SkImage> img(skSurface.get()->makeImageSnapshot());
-        if (!img) {
-            RS_LOGE("RSSurfaceCaptureTask::Run: img is nullptr");
-            return nullptr;
-        }
-
-        auto data = (uint8_t *)malloc(pixelmap->GetRowBytes() * pixelmap->GetHeight());
-        if (data == nullptr) {
-            RS_LOGE("RSSurfaceCaptureTask::Run: data is nullptr");
-            return nullptr;
-        }
-        SkImageInfo info = SkImageInfo::Make(pixelmap->GetWidth(), pixelmap->GetHeight(),
-                kRGBA_8888_SkColorType, kPremul_SkAlphaType);
-        if (!img->readPixels(info, data, pixelmap->GetRowBytes(), 0, 0)) {
-            RS_LOGE("RSSurfaceCaptureTask::Run: readPixels failed");
-            free(data);
-            data = nullptr;
-            return nullptr;
-        }
-        pixelmap->SetPixelsAddr(data, nullptr, pixelmap->GetRowBytes() * pixelmap->GetHeight(),
-            Media::AllocatorType::HEAP_ALLOC, nullptr);
-    } else {
-        return pixelmap;
+    sk_sp<SkImage> img(skSurface.get()->makeImageSnapshot());
+    if (!img) {
+        RS_LOGE("RSSurfaceCaptureTask::Run: img is nullptr");
+        return nullptr;
     }
+
+    auto data = (uint8_t *)malloc(pixelmap->GetRowBytes() * pixelmap->GetHeight());
+    if (data == nullptr) {
+        RS_LOGE("RSSurfaceCaptureTask::Run: data is nullptr");
+        return nullptr;
+    }
+    SkImageInfo info = SkImageInfo::Make(pixelmap->GetWidth(), pixelmap->GetHeight(),
+            kRGBA_8888_SkColorType, kPremul_SkAlphaType);
+    if (!img->readPixels(info, data, pixelmap->GetRowBytes(), 0, 0)) {
+        RS_LOGE("RSSurfaceCaptureTask::Run: readPixels failed");
+        free(data);
+        data = nullptr;
+        return nullptr;
+    }
+    pixelmap->SetPixelsAddr(data, nullptr, pixelmap->GetRowBytes() * pixelmap->GetHeight(),
+        Media::AllocatorType::HEAP_ALLOC, nullptr);
+    return pixelmap;
 #endif
     return pixelmap;
 }
@@ -174,23 +170,18 @@ sk_sp<SkSurface> RSSurfaceCaptureTask::CreateSurface(const std::unique_ptr<Media
     SkImageInfo info = SkImageInfo::Make(pixelmap->GetWidth(), pixelmap->GetHeight(),
             kRGBA_8888_SkColorType, kPremul_SkAlphaType);
 #if (defined RS_ENABLE_GL) && (defined RS_ENABLE_EGLIMAGE)
-    if (pixelmap->GetPixelFormat() == Media::PixelFormat::NV21 ||
-        pixelmap->GetPixelFormat() == Media::PixelFormat::NV12) {
-        auto renderEngine = RSMainThread::Instance()->GetRenderEngine();
-        if (renderEngine == nullptr) {
-            RS_LOGE("RSSurfaceCaptureTask::CreateSurface: renderEngine is nullptr");
-            return nullptr;
-        }
-        auto renderContext = renderEngine->GetRenderContext();
-        if (renderContext == nullptr) {
-            RS_LOGE("RSSurfaceCaptureTask::CreateSurface: renderContext is nullptr");
-            return nullptr;
-        }
-        renderContext->SetUpGrContext();
-        return SkSurface::MakeRenderTarget(renderContext->GetGrContext(), SkBudgeted::kNo, info);
-    } else {
-        return SkSurface::MakeRasterDirect(info, address, pixelmap->GetRowBytes());
+    auto renderEngine = RSMainThread::Instance()->GetRenderEngine();
+    if (renderEngine == nullptr) {
+        RS_LOGE("RSSurfaceCaptureTask::CreateSurface: renderEngine is nullptr");
+        return nullptr;
     }
+    auto renderContext = renderEngine->GetRenderContext();
+    if (renderContext == nullptr) {
+        RS_LOGE("RSSurfaceCaptureTask::CreateSurface: renderContext is nullptr");
+        return nullptr;
+    }
+    renderContext->SetUpGrContext();
+    return SkSurface::MakeRenderTarget(renderContext->GetGrContext(), SkBudgeted::kNo, info);
 #endif
     return SkSurface::MakeRasterDirect(info, address, pixelmap->GetRowBytes());
 }
