@@ -112,7 +112,8 @@ NativeValue* RSWindowAnimationUtils::CreateJsWindowAnimationFinishedCallback(
         nativeFinishedCallback->OnAnimationFinished();
         return engine->CreateUndefined();
     };
-    BindNativeFunction(engine, *object, "onAnimationFinish", jsFinishedCallback);
+    const char *moduleName = "RSWindowAnimationUtils";
+    BindNativeFunction(engine, *object, "onAnimationFinish", moduleName, jsFinishedCallback);
     return objValue;
 }
 

@@ -132,9 +132,10 @@ NativeValue* JsColorSpace::OnGetGamma(NativeEngine& engine, NativeCallbackInfo& 
 
 void BindFunctions(NativeEngine& engine, NativeObject* object)
 {
-    BindNativeFunction(engine, *object, "getColorSpaceName", JsColorSpace::GetColorSpaceName);
-    BindNativeFunction(engine, *object, "getWhitePoint", JsColorSpace::GetWhitePoint);
-    BindNativeFunction(engine, *object, "getGamma", JsColorSpace::GetGamma);
+    const char *moduleName = "JsColorSpace";
+    BindNativeFunction(engine, *object, "getColorSpaceName", moduleName, JsColorSpace::GetColorSpaceName);
+    BindNativeFunction(engine, *object, "getWhitePoint", moduleName, JsColorSpace::GetWhitePoint);
+    BindNativeFunction(engine, *object, "getGamma", moduleName, JsColorSpace::GetGamma);
 }
 } // namespace ColorManager
 } // namespace OHOS

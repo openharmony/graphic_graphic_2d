@@ -135,7 +135,8 @@ NativeValue* JsColorSpaceManagerInit(NativeEngine* engine, NativeValue* exportOb
     std::unique_ptr<JsColorSpaceManager> jsColorSpaceManager = std::make_unique<JsColorSpaceManager>();
     object->SetNativePointer(jsColorSpaceManager.release(), JsColorSpaceManager::Finalizer, nullptr);
     object->SetProperty("ColorSpace", ColorSpaceTypeInit(engine));
-    BindNativeFunction(*engine, *object, "create", JsColorSpaceManager::CreateColorSpace);
+    const char *moduleName = "JsColorSpaceManager";
+    BindNativeFunction(*engine, *object, "create", moduleName, JsColorSpaceManager::CreateColorSpace);
     return engine->CreateUndefined();
 }
 }  // namespace ColorManager

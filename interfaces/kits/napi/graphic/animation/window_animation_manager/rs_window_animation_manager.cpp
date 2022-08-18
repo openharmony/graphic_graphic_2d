@@ -49,8 +49,9 @@ NativeValue* RSWindowAnimationManager::Init(NativeEngine* engine, NativeValue* e
     auto windowAnimationManager = std::make_unique<RSWindowAnimationManager>();
     object->SetNativePointer(windowAnimationManager.release(), RSWindowAnimationManager::Finalizer, nullptr);
 
-    BindNativeFunction(*engine, *object, "setController", RSWindowAnimationManager::SetController);
-    BindNativeFunction(*engine, *object, "minimizeWindowWithAnimation",
+    const char *moduleName = "RSWindowAnimationManager";
+    BindNativeFunction(*engine, *object, "setController", moduleName, RSWindowAnimationManager::SetController);
+    BindNativeFunction(*engine, *object, "minimizeWindowWithAnimation", moduleName,
         RSWindowAnimationManager::MinimizeWindowWithAnimation);
     return nullptr;
 }
