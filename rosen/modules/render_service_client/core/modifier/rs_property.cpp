@@ -71,7 +71,7 @@ RSProperty<T>::RSProperty(const T& value) : stagingValue_(value), id_(GenerateId
 template<typename T>
 void RSProperty<T>::Set(const T& value)
 {
-    if (ROSEN_EQ(value, stagingValue_) || !IsValid(value)) {
+    if (value == stagingValue_ || !IsValid(value)) {
         return;
     }
 
@@ -87,7 +87,7 @@ void RSProperty<T>::Set(const T& value)
 template<typename T>
 void RSAnimatableProperty<T>::Set(const T& value)
 {
-    if (ROSEN_EQ(value, this->stagingValue_) || !IsValid(value)) {
+    if (value == this->stagingValue_ || !IsValid(value)) {
         return;
     }
 
@@ -148,6 +148,14 @@ void RSAnimatableProperty<T>::Set(const T& value)
 template<>
 void RSProperty<bool>::UpdateToRender(const bool& value, bool isDelta, bool forceUpdate) const
 {
+    if (type_== RSModifierType::VISIBLE) {
+        auto node = RSNodeMap::Instance().GetNode<RSNode>(nodeId_);
+        if (node != nullptr) {
+             if (node->transitionEffect_ != nullptr) {
+                 node->NotifyTransition(transitionEffect_, visible);
+            }
+        }
+    }
     UPDATE_TO_RENDER(RSUpdatePropertyBool, value, isDelta, forceUpdate);
 }
 template<>
