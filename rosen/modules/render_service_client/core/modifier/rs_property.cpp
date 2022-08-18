@@ -148,14 +148,6 @@ void RSAnimatableProperty<T>::Set(const T& value)
 template<>
 void RSProperty<bool>::UpdateToRender(const bool& value, bool isDelta, bool forceUpdate) const
 {
-    if (type_ == RSModifierType::VISIBLE) {
-        auto node = RSNodeMap::Instance().GetNode<RSNode>(nodeId_);
-        if (node != nullptr) {
-            if (node->transitionEffect_ != nullptr) {
-                node->NotifyTransition(node->transitionEffect_, value);
-            }
-        }
-    }
     UPDATE_TO_RENDER(RSUpdatePropertyBool, value, isDelta, forceUpdate);
 }
 template<>
