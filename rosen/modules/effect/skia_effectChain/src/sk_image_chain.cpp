@@ -13,54 +13,100 @@
  * limitations under the License.
  */
 
+#include "egl_manager.h"
+#include "include/gpu/GrContext.h"
+#include "include/gpu/gl/GrGLInterface.h"
+#include "rs_trace.h"
 #include "sk_image_chain.h"
 
 namespace OHOS {
 namespace Rosen {
-SKImageChain::SKImageChain(SkCanvas* canvas, sk_sp<SkImage> image)
-{
-    if (canvas != nullptr && image != nullptr) {
-        canvas_ = canvas;
-        image_ =  image;
-    }
-}
-SKImageChain::SKImageChain(std::shared_ptr<Media::PixelMap> srcPixelMap) :srcPixelMap_(srcPixelMap)
-{
-    initWithoutCanvas_ = true;
-    InitWithoutCanvas();
-}
+SKImageChain::SKImageChain(SkCanvas* canvas, sk_sp<SkImage> image) : canvas_(canvas), image_(image)
+{}
 
-SKImageChain::~SKImageChain()
-{
-    if (initWithoutCanvas_) {
-        delete canvas_;
-        delete dstPixmap_;
-    }
-}
+SKImageChain::SKImageChain(std::shared_ptr<Media::PixelMap> srcPixelMap) : srcPixelMap_(srcPixelMap)
+{}
 
 void SKImageChain::InitWithoutCanvas()
 {
-    if (srcPixelMap_ != nullptr) {
-        auto rowBytes = srcPixelMap_->GetRowBytes();
-        auto width = srcPixelMap_->GetWidth();
-        auto height = srcPixelMap_->GetHeight();
-        SkImageInfo imageInfo = SkImageInfo::Make(width, height,
-        PixelFormatConvert(srcPixelMap_->GetPixelFormat()), static_cast<SkAlphaType>(srcPixelMap_->GetAlphaType()));
-        SkPixmap srcPixmap(imageInfo, srcPixelMap_->GetPixels(), rowBytes);
-        SkBitmap srcBitmap;
-        srcBitmap.installPixels(srcPixmap);
-        image_ = SkImage::MakeFromBitmap(srcBitmap);
-        Media::InitializationOptions opts;
-        opts.size.width = width;
-        opts.size.height = height;
-        opts.editable = true;
-        auto dstPixelMap = Media::PixelMap::Create(opts);
-        if (dstPixelMap != nullptr) {
-            dstPixmap_ = new SkPixmap(imageInfo, dstPixelMap->GetPixels(), rowBytes);
-            SkBitmap dstBitmap;
-            dstBitmap.installPixels(*dstPixmap_);
-            canvas_ = new SkCanvas(dstBitmap);
-            dstPixelMap_ = std::shared_ptr<Media::PixelMap>(dstPixelMap.release());
+    if (srcPixelMap_ == nullptr) {
+        LOGE("The srcPixelMap_ is nullptr.");
+        return;
+    }
+    imageInfo_ = SkImageInfo::Make(srcPixelMap_->GetWidth(), srcPixelMap_->GetHeight(),
+    PixelFormatConvert(srcPixelMap_->GetPixelFormat()), static_cast<SkAlphaType>(srcPixelMap_->GetAlphaType()));
+    SkPixmap srcPixmap(imageInfo_, srcPixelMap_->GetPixels(), srcPixelMap_->GetRowBytes());
+    SkBitmap srcBitmap;
+    srcBitmap.installPixels(srcPixmap);
+    image_ = SkImage::MakeFromBitmap(srcBitmap);
+    Media::InitializationOptions opts;
+    opts.size.width = srcPixelMap_->GetWidth();
+    opts.size.height = srcPixelMap_->GetHeight();
+    opts.editable = true;
+    auto dstPixelMap = Media::PixelMap::Create(opts);
+    if (dstPixelMap != nullptr) {
+        dstPixmap_ = std::make_shared<SkPixmap>(imageInfo_, dstPixelMap->GetPixels(), dstPixelMap->GetRowBytes());
+        dstPixelMap_ = std::shared_ptr<Media::PixelMap>(dstPixelMap.release());
+    }
+}
+
+bool SKImageChain::CreateCPUCanvas()
+{
+    if (dstPixmap_ == nullptr) {
+        LOGE("The dstPixmap_ is nullptr.");
+        return false;
+    }
+    cpuSurface_ = SkSurface::MakeRasterDirect(imageInfo_, const_cast<void*>(dstPixmap_->addr()),
+    dstPixelMap_->GetRowBytes());
+    if (!cpuSurface_) {
+        LOGE("Failed to create surface for CPU.");
+        return false;
+    }
+    canvas_ = cpuSurface_->getCanvas();
+    return true;
+}
+
+bool SKImageChain::CreateGPUCanvas()
+{
+#ifdef ACE_ENABLE_GL
+    EglManager::GetInstance().Init();
+    sk_sp<const GrGLInterface> glInterface(GrGLCreateNativeInterface());
+    sk_sp<GrContext> grContext(GrContext::MakeGL(std::move(glInterface)));
+    gpuSurface_ = SkSurface::MakeRenderTarget(grContext.get(), SkBudgeted::kNo, imageInfo_);
+    if (!gpuSurface_) {
+        LOGE("Failed to create surface for GPU.");
+        return false;
+    }
+    canvas_ = gpuSurface_->getCanvas();
+    return true;
+#else
+    LOGI("GPU rendering is not supported.");
+    return false;
+#endif
+}
+
+void SKImageChain::ForceCPU(bool forceCPU)
+{
+    if (forceCPU_ == forceCPU) {
+        LOGI("Same result without change.");
+        return;
+    }
+    forceCPU_ = forceCPU;
+    if (canvas_ == nullptr) {
+        LOGI("The canvas_ is nullptr.");
+        return;
+    }
+    if (forceCPU) {
+        if (cpuSurface_ != nullptr) {
+            canvas_ = cpuSurface_->getCanvas(); 
+        } else {
+            canvas_ = nullptr; 
+        }
+    } else {
+        if (gpuSurface_ != nullptr) {
+            canvas_ = gpuSurface_->getCanvas(); 
+        } else {
+            canvas_ = nullptr; 
         }
     }
 }
@@ -97,14 +143,30 @@ std::shared_ptr<Media::PixelMap> SKImageChain::GetPixelMap()
 void SKImageChain::Draw()
 {
     if (canvas_ == nullptr) {
+        InitWithoutCanvas();
+        if (forceCPU_) {
+            if (!CreateCPUCanvas()) {
+                LOGE("Failed to create canvas for CPU.");
+                return;
+            }
+        } else {
+            if (!CreateGPUCanvas()) {
+                LOGE("Failed to create canvas for GPU.");
+                return;
+            }
+        }
+    }
+    if (image_ == nullptr) {
+        LOGE("The image_ is nullptr, nothing to draw.");
         return;
     }
+    ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "SKImageChain::Draw");
     SkPaint paint;
     paint.setAntiAlias(true);
     paint.setBlendMode(SkBlendMode::kSrc);
     paint.setImageFilter(filters_);
     if (rect_ != nullptr) {
-        canvas_->clipRect((*rect_), true);
+        canvas_->clipRect(*rect_, true);
     } else if (path_ != nullptr) {
         canvas_->clipPath(*path_, true);
     } else if (rRect_ != nullptr) {
@@ -113,7 +175,13 @@ void SKImageChain::Draw()
     canvas_->save();
     canvas_->resetMatrix();
     canvas_->drawImage(image_.get(), 0, 0, &paint);
+    if (!forceCPU_ && dstPixmap_ != nullptr) {
+        if (!canvas_->readPixels(*dstPixmap_.get(), 0, 0)) {
+            LOGE("Failed to readPixels to target Pixmap.");
+        }
+    }
     canvas_->restore();
+    ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
 }
 
 SkColorType SKImageChain::PixelFormatConvert(const Media::PixelFormat& pixelFormat)

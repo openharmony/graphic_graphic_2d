@@ -39,7 +39,7 @@ private:
     static napi_value Brightness(napi_env env, napi_callback_info info);
     static napi_value Grayscale(napi_env env, napi_callback_info info);
     void AddNextFilter(sk_sp<SkImageFilter> filter);
-    void Render();
+    void Render(bool forceCPU);
     std::vector<sk_sp<SkImageFilter> > skFilters_;
     std::shared_ptr<Media::PixelMap> srcPixelMap_ = nullptr;
     std::shared_ptr<Media::PixelMap> dstPixelMap_ = nullptr;
