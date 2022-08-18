@@ -148,6 +148,11 @@ void RSSurfaceRenderNode::CollectSurface(
     if (consumer != nullptr && consumer->GetTunnelHandle() != nullptr) {
         return;
     }
+    std::vector<RSBaseRenderNode::SharedPtr>::iterator num =
+        find(vec.begin(), vec.end(), shared_from_this());
+    if (num != vec.end()) {
+        return;
+    }
     if (isUniRender) {
         vec.emplace_back(shared_from_this());
     } else {

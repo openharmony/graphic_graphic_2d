@@ -127,15 +127,18 @@ void RSComposerAdapter::CommitLayers(const std::vector<LayerInfoPtr>& layers)
 // private func
 bool RSComposerAdapter::IsOutOfScreenRegion(const ComposeInfo& info) const
 {
-    uint32_t boundWidth = screenInfo_.width;
-    uint32_t boundHeight = screenInfo_.height;
+    int32_t boundWidth = static_cast<int32_t>(screenInfo_.width);
+    int32_t boundHeight = static_cast<int32_t>(screenInfo_.height);
     ScreenRotation rotation = screenInfo_.rotation;
     if (rotation == ScreenRotation::ROTATION_90 || rotation == ScreenRotation::ROTATION_270) {
         std::swap(boundWidth, boundHeight);
     }
 
     const auto& dstRect = info.dstRect;
-    if (dstRect.x >= boundWidth || dstRect.y >= boundHeight) {
+    if (dstRect.x + dstRect.w <= 0 ||
+        dstRect.x >= boundWidth ||
+        dstRect.y + dstRect.h <= 0 ||
+        dstRect.y >= boundHeight) {
         return true;
     }
 
