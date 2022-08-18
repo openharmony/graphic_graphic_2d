@@ -349,16 +349,6 @@ void RSSurfaceRenderNode::NotifyUIBufferAvailable()
     }
 }
 
-void RSSurfaceRenderNode::SetBufferAvailableForRS(bool isAvailable)
-{
-    isBufferAvailable_.store(isAvailable);
-}
-
-bool RSSurfaceRenderNode::IsBufferAvailable() const
-{
-    return isBufferAvailable_;
-}
-
 bool RSSurfaceRenderNode::IsNotifyRTBufferAvailable() const
 {
     return isNotifyRTBufferAvailable_;

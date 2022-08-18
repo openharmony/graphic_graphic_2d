@@ -16,7 +16,7 @@
 #ifndef RENDER_SERVICE_BASE_COMMON_RS_COMMON_DEF_H
 #define RENDER_SERVICE_BASE_COMMON_RS_COMMON_DEF_H
 
-#include <set>
+#include <atomic>
 #include <string>
 
 namespace OHOS {
@@ -58,7 +58,7 @@ private:
     RSSystemProperties() = default;
 
     static inline bool isUniRenderEnabled_ = false;
-    static inline bool isUniRenderMode_ = false;
+    static inline std::atomic_bool isUniRenderMode_ = false;
 };
 
 } // namespace Rosen

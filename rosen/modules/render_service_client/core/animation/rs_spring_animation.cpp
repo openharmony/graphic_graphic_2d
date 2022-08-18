@@ -50,7 +50,8 @@ void RSSpringAnimation<T>::StartAnimationImpl()
         }
         if (target->NeedSendExtraCommand()) {
             std::unique_ptr<RSCommand> extraCommand = std::make_unique<P>(target->GetId(), animation);
-            transactionProxy->AddCommand(extraCommand, !target->IsRenderServiceNode(), target->GetFollowType(), target->GetId());
+            transactionProxy->AddCommand(extraCommand, !target->IsRenderServiceNode(), target->GetFollowType(),
+                target->GetId());
         }
     }
 }

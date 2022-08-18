@@ -84,23 +84,28 @@ RSRenderThread::RSRenderThread()
     ROSEN_LOGD("Create RenderContext, its pointer is %p", renderContext_);
 #endif
     mainFunc_ = [&]() {
-        uint64_t renderStartTimeStamp = jankDetector_.GetSysTimeNs();
-        {
-            RS_TRACE_NAME("RSRenderThread DrawFrame: " + std::to_string(timestamp_));
-            prevTimestamp_ = timestamp_;
-            ProcessCommands();
-            jankDetector_.ProcessUiDrawFrameMsg();
+        uint64_t renderStartTimeStamp;
+        if (needRender_) {
+            renderStartTimeStamp = jankDetector_.GetSysTimeNs();
+        }
 
-            ROSEN_LOGD("RSRenderThread DrawFrame(%" PRIu64 ") in %s", prevTimestamp_, renderContext_ ? "GPU" : "CPU");
-            Animate(prevTimestamp_);
-            Render();
-            RS_ASYNC_TRACE_BEGIN("waiting GPU running", 1111); // 1111 means async trace code for gpu
-            SendCommands();
+        RS_TRACE_BEGIN("RSRenderThread DrawFrame: " + std::to_string(timestamp_));
+        prevTimestamp_ = timestamp_;
+        ProcessCommands();
+        if (needRender_) {
+            jankDetector_.ProcessUiDrawFrameMsg();
         }
-        if (!needRender_) {
-            return;
+
+        ROSEN_LOGD("RSRenderThread DrawFrame(%" PRIu64 ") in %s", prevTimestamp_, renderContext_ ? "GPU" : "CPU");
+        Animate(prevTimestamp_);
+        Render();
+        RS_ASYNC_TRACE_BEGIN("waiting GPU running", 1111); // 1111 means async trace code for gpu
+        SendCommands();
+        RS_TRACE_END();
+
+        if (needRender_) {
+            jankDetector_.CalculateSkippedFrame(renderStartTimeStamp, jankDetector_.GetSysTimeNs());
         }
-        jankDetector_.CalculateSkippedFrame(renderStartTimeStamp, jankDetector_.GetSysTimeNs());
     };
 
     highContrastObserver_ = std::make_shared<HighContrastObserver>();
@@ -267,9 +272,12 @@ void RSRenderThread::UpdateRenderMode(bool needRender)
 {
     if (handler_) {
         handler_->PostTask([needRender = needRender, this]() {
+            if (needRender_ == needRender) {
+                return;
+            }
             needRender_ = needRender;
             RequestNextVSync();
-            if (!needRender_) {
+            if (!needRender_) { // change to uni render, should move surfaceView's position
                 UpdateSurfaceNodeParentInRS();
                 ClearBufferCache();
             } else {
@@ -298,8 +306,8 @@ void RSRenderThread::UpdateSurfaceNodeParentInRS()
         for (auto& [surfaceNodeId, parentId] : surfaceNodeMap) {
             std::unique_ptr<RSCommand> command = std::make_unique<RSSurfaceNodeUpdateParent>(surfaceNodeId, parentId);
             transactionProxy->AddCommandFromRT(command, surfaceNodeId, FollowType::FOLLOW_TO_SELF);
-            transactionProxy->FlushImplicitTransactionFromRT(uiTimestamp_);
         }
+        transactionProxy->FlushImplicitTransactionFromRT(uiTimestamp_);
     }
 }
 
@@ -348,7 +356,7 @@ void RSRenderThread::ProcessCommands()
         uiTimestamp_ = prevTimestamp_ - 1;
         return;
     }
-    if (RsFrameReport::GetInstance().GetEnable()) {
+    if (RsFrameReport::GetInstance().GetEnable() && needRender_) {
         RsFrameReport::GetInstance().ProcessCommandsStart();
     }
 

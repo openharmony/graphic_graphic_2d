@@ -102,13 +102,9 @@ RSMainThread::~RSMainThread() noexcept
 void RSMainThread::Init()
 {
     mainLoop_ = [&]() {
-        if (isUniRender_) {
-            CheckBufferAvailableIfNeed();
-        }
-        RS_LOGD("RsDebug mainLoop start isUni:%d", IfUseUniVisitor());
+        RS_LOGD("RsDebug mainLoop start");
         SetRSEventDetectorLoopStartTag();
-        ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSMainThread::DoComposition isUni:" +
-            std::to_string(IfUseUniVisitor()));
+        ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSMainThread::DoComposition");
         ConsumeAndUpdateAllNodes();
         WaitUntilUnmarshallingTaskFinished();
         ProcessCommand();
@@ -401,7 +397,7 @@ void RSMainThread::NotifyUniRenderFinish()
 
 bool RSMainThread::IfUseUniVisitor() const
 {
-    return !waitBufferAvailable_ && useUniVisitor_;
+    return useUniVisitor_ || (!useUniVisitor_ && waitBufferAvailable_);
 }
 
 void RSMainThread::CheckBufferAvailableIfNeed()
@@ -419,7 +415,7 @@ void RSMainThread::CheckBufferAvailableIfNeed()
         if (!surfaceNode->IsAppWindow() || !node->IsOnTheTree()) {
             continue;
         }
-        if (!surfaceNode->IsBufferAvailable()) {
+        if (surfaceNode->GetBuffer() == nullptr) {
             allBufferAvailable = false;
             break;
         }
@@ -437,7 +433,10 @@ void RSMainThread::Render()
         RS_LOGE("RSMainThread::Render GetGlobalRootRenderNode fail");
         return;
     }
-
+    if (isUniRender_) {
+        CheckBufferAvailableIfNeed();
+    }
+    RS_LOGD("RSMainThread::Render isUni:%d", IfUseUniVisitor());
     std::shared_ptr<RSNodeVisitor> visitor;
     if (IfUseUniVisitor()) {
         visitor = std::make_shared<RSUniRenderVisitor>();

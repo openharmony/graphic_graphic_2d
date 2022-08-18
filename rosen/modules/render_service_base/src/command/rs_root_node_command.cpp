@@ -56,7 +56,7 @@ void RootNodeCommandHelper::AttachToUniSurfaceNode(RSContext& context, NodeId id
         return;
     }
     parent->AddChild(node);
-    parent->SetNodeType(true);
+    parent->MarkAppWindow();
     RS_LOGI("unirender: RootNodeCommandHelper::AttachToUniSurfaceNode NotifyUIBufferAvailable parent:%" PRIu64
             " node:%" PRIu64,
         surfaceNodeId, id);

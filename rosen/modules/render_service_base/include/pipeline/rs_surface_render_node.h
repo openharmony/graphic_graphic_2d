@@ -54,9 +54,9 @@ public:
         return isAppWindow_;
     }
 
-    void SetNodeType(bool isAppWindow)
+    void MarkAppWindow()
     {
-        isAppWindow_ = isAppWindow;
+        isAppWindow_ = true;
     }
 
     std::string GetName() const
@@ -256,9 +256,6 @@ public:
 
     void NotifyUIBufferAvailable();
     bool IsNotifyUIBufferAvailable() const;
-
-    void SetBufferAvailableForRS(bool isAvailable);
-    bool IsBufferAvailable() const;
 
     // UI Thread would not be notified when SurfaceNode created by Video/Camera in RenderService has available buffer.
     // And RenderThread does not call mainFunc_ if nothing in UI thread is changed

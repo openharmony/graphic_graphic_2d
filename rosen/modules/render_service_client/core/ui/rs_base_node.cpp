@@ -104,10 +104,12 @@ void RSBaseNode::AddChild(SharedPtr child, int index)
         return;
     }
     std::unique_ptr<RSCommand> command = std::make_unique<RSBaseNodeAddChild>(id_, childId, index);
-    bool disallowSendToRemote = isUniRenderEnabled_ && !isRenderServiceNode_ &&
-        !RSSystemProperties::IsUniRenderMode() && child->IsInstanceOf(RSUINodeType::SURFACE_NODE);
+    bool disallowSendToRemote = isUniRenderEnabled_ && !RSSystemProperties::IsUniRenderMode() && // dynamic-Non Uni
+        !isRenderServiceNode_ && !IsInstanceOf(RSUINodeType::SURFACE_NODE) && // canvas/root node
+        child->IsInstanceOf(RSUINodeType::SURFACE_NODE);
     if (disallowSendToRemote) {
         transactionProxy->AddCommand(command, false, GetFollowType(), id_);
+        return;
     }
     transactionProxy->AddCommand(command, IsRenderServiceNode(), GetFollowType(), id_);
     if (NeedSendExtraCommand()) {

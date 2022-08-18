@@ -141,7 +141,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             UpdateRenderMode(isUniRender);
             break;
         }
-        case GET_UNI_RENDER_TYPE: {
+        case GET_UNI_RENDER_ENABLED: {
             reply.WriteBool(GetUniRenderEnabled());
             break;
         }

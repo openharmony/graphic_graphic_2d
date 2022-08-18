@@ -112,7 +112,6 @@ public:
     void NotifyUniRenderFinish();
     void SetRenderModeChangeCallback(sptr<RSIRenderModeChangeCallback> callback);
     bool IfUseUniVisitor() const;
-    void CheckBufferAvailableIfNeed();
 
     void ClearTransactionDataPidInfo(pid_t remotePid);
     void AddTransactionDataPidInfo(pid_t remotePid);
@@ -153,6 +152,8 @@ private:
     void WaitUntilUnmarshallingTaskFinished();
     void MergeToEffectiveTransactionDataMap(TransactionDataMap& cachedTransactionDataMap);
 
+    void CheckBufferAvailableIfNeed();
+
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
     RSTaskMessage::RSTask mainLoop_;
@@ -175,7 +176,7 @@ private:
     std::shared_ptr<VSyncReceiver> receiver_ = nullptr;
     std::vector<sptr<RSIOcclusionChangeCallback>> occlusionListeners_;
 
-    bool waitBufferAvailable_ = false;
+    bool waitBufferAvailable_ = false; // only used in main thread
     bool isUniRender_ = RSUniRenderJudgement::IsUniRender();
     sptr<RSIRenderModeChangeCallback> renderModeChangeCallback_;
     std::atomic_bool useUniVisitor_ = isUniRender_;

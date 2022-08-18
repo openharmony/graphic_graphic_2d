@@ -111,7 +111,7 @@ void RSCanvasNode::DrawOnNode(RSModifierType type, DrawFunc func)
     auto recording = recordingCanvas.GetDrawCmdList();
     std::unique_ptr<RSCommand> command =
         std::make_unique<RSCanvasNodeUpdateRecording>(GetId(), recording, type);
-        transactionProxy->AddCommand(command, IsRenderServiceNode());
+    transactionProxy->AddCommand(command, IsRenderServiceNode());
     if (NeedSendExtraCommand()) {
         std::unique_ptr<RSCommand> extraCommand =
             std::make_unique<RSCanvasNodeUpdateRecording>(GetId(), recording, type);

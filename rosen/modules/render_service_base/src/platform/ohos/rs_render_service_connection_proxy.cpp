@@ -47,7 +47,10 @@ void RSRenderServiceConnectionProxy::CommitTransaction(std::unique_ptr<RSTransac
 
     bool isUniMode = RSSystemProperties::IsUniRenderMode();
     transactionData->SetSendingPid(pid_);
-    transactionData->SetIndex(isUniMode ? ++transactionDataIndex_ : transactionDataIndex_);
+    if (isUniMode) {
+        ++transactionDataIndex_;
+    }
+    transactionData->SetIndex(transactionDataIndex_);
     transactionData->SetUniRender(isUniMode);
     RS_TRACE_BEGIN("Marsh RSTransactionData: cmd count:" + std::to_string(transactionData->GetCommandCount()) +
         " transactionFlag:[" + std::to_string(pid_) + ", " + std::to_string(transactionData->GetIndex()) + "],isUni:" +
@@ -153,7 +156,7 @@ bool RSRenderServiceConnectionProxy::GetUniRenderEnabled()
     MessageOption option;
 
     option.SetFlags(MessageOption::TF_SYNC);
-    int32_t err = Remote()->SendRequest(RSIRenderServiceConnection::GET_UNI_RENDER_TYPE, data, reply, option);
+    int32_t err = Remote()->SendRequest(RSIRenderServiceConnection::GET_UNI_RENDER_ENABLED, data, reply, option);
     if (err != NO_ERROR) {
         return false;
     }
