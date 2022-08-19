@@ -87,7 +87,7 @@ void RSRenderThreadVisitor::PrepareRootRenderNode(RSRootRenderNode& node)
         // After the node calls applymodifiers, the modifiers assign the renderProperties to the node
         // Otherwise node.GetSurfaceHeight always less than 0, causing black screen
         node.ApplyModifiers();
-        if(!IsValidRootRenderNode()){
+        if(!IsValidRootRenderNode(node)){
             return;
         }
         dirtyFlag_ = false;
@@ -229,7 +229,7 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
     if(!IsValidRootRenderNode(node)){
         return;
     }
-    
+
     curDirtyManager_ = node.GetDirtyManager();
     // node's surface size already check, so here we do not need to check return
     (void)curDirtyManager_->SetSurfaceSize(node.GetSurfaceWidth(), node.GetSurfaceHeight());
