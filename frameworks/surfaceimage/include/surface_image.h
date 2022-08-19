@@ -104,13 +104,13 @@ private:
 
     EGLDisplay eglDisplay_;
     EGLContext eglContext_;
-    std::map<int32_t, ImageCacheSeq> imageCacheSeqs_;
-    int32_t currentSurfaceImage_;
+    std::map<uint32_t, ImageCacheSeq> imageCacheSeqs_;
+    uint32_t currentSurfaceImage_;
     sptr<SurfaceBuffer> currentSurfaceBuffer_;
     int32_t currentSurfaceBufferFence_;
     int64_t currentTimeStamp_;
-    Rect currentCrop_;
-    TransformType currentTransformType_;
+    Rect currentCrop_ = {};
+    TransformType currentTransformType_ = TransformType::ROTATE_NONE;
     std::array<float, TRANSFORM_MATRIX_ELE_COUNT> currentTransformMatrix_ {};
 };
 

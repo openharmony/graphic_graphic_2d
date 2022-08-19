@@ -75,6 +75,6 @@ group("libgraphic_dumper_client") {
   public_deps = [ "frameworks/dumper:libgraphic_dumper_client" ]
 }
 
-group("libsurfaceimage") {
-  public_deps = [ "frameworks/surfaceimage:libsurfaceimage" ]
+group("libnative_image") {
+  public_deps = [ "frameworks/surfaceimage:libnative_image" ]
 }

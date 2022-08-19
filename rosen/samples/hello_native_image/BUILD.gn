@@ -52,7 +52,7 @@ ohos_executable("hello_native_image") {
 
   deps = [
     "//foundation/graphic/graphic_2d/frameworks/surface:surface",
-    "//foundation/graphic/graphic_2d/frameworks/surfaceimage:libsurfaceimage",
+    "//foundation/graphic/graphic_2d/frameworks/surfaceimage:libnative_image",
   ]
 
   part_name = "graphic_standard"

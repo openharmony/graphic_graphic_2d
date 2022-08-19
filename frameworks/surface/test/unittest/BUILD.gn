@@ -218,8 +218,8 @@ ohos_static_library("surface_test_common") {
 
   public_deps = [
     "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
+    "//foundation/graphic/graphic_2d:libnative_image",
     "//foundation/graphic/graphic_2d:libsurface",
-    "//foundation/graphic/graphic_2d:libsurfaceimage",
     "//foundation/graphic/graphic_2d/utils:buffer_handle",
     "//foundation/graphic/graphic_2d/utils:libgraphic_utils",
     "//foundation/systemabilitymgr/samgr/interfaces/innerkits/samgr_proxy:samgr_proxy",

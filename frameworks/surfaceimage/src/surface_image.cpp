@@ -47,7 +47,7 @@ SurfaceImage::SurfaceImage(uint32_t textureId, uint32_t textureTarget)
       updateSurfaceImage_(false),
       eglDisplay_(EGL_NO_DISPLAY),
       eglContext_(EGL_NO_CONTEXT),
-      currentSurfaceImage_(-1), // -1 invalid
+      currentSurfaceImage_(0),
       currentSurfaceBuffer_(nullptr),
       currentSurfaceBufferFence_(-1), // -1 invalid
       currentTimeStamp_(0)
@@ -160,7 +160,7 @@ SurfaceError SurfaceImage::UpdateSurfaceImage()
         return ret;
     }
 
-    int32_t seqNum = buffer->GetSeqNum();
+    uint32_t seqNum = buffer->GetSeqNum();
     SLOGI("seqNum %{public}d", seqNum);
     EGLImageKHR img = imageCacheSeqs_[seqNum].eglImage_;
     glBindTexture(textureTarget_, textureId_);
@@ -180,7 +180,7 @@ SurfaceError SurfaceImage::UpdateSurfaceImage()
         return ret;
     }
     
-    if (currentSurfaceImage_ != -1 && seqNum != currentSurfaceImage_) {
+    if (seqNum != currentSurfaceImage_) {
         ret = ReleaseBuffer(currentSurfaceBuffer_, -1);
         if (ret != SURFACE_ERROR_OK) {
             SLOGE("release currentSurfaceBuffer_ failed %{public}d", ret);
@@ -290,7 +290,7 @@ SurfaceError SurfaceImage::AcquireBuffer(sptr<SurfaceBuffer>& buffer, int32_t &f
         return ret;
     }
     // get seq num
-    int32_t seqNum = buffer->GetSeqNum();
+    uint32_t seqNum = buffer->GetSeqNum();
 
     if (buffer != nullptr) {
         if (imageCacheSeqs_[seqNum].eglImage_ != EGL_NO_IMAGE_KHR) {
@@ -317,7 +317,7 @@ SurfaceError SurfaceImage::ReleaseBuffer(sptr<SurfaceBuffer>& buffer, int32_t fe
         SLOGE("ReleaseBuffer error");
         return error;
     }
-    int32_t seqNum = buffer->GetSeqNum();
+    uint32_t seqNum = buffer->GetSeqNum();
 
     imageCacheSeqs_[seqNum].eglSync_ = EGL_NO_SYNC_KHR;
     return SURFACE_ERROR_OK;

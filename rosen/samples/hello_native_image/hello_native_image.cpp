@@ -153,33 +153,33 @@ void AddBuffer(OHNativeWindow* nativeWindow)
     int code = SET_USAGE;
     int32_t usage = HBM_USE_CPU_READ | HBM_USE_CPU_WRITE | HBM_USE_MEM_DMA;
     int32_t ret = NativeWindowHandleOpt(nativeWindow, code, usage);
-    if (ret != OHOS::GSERROR_OK) {
+    if (ret != GSERROR_OK) {
         std::cout << "NativeWindowHandleOpt SET_USAGE faile" << std::endl;
     }
     code = SET_BUFFER_GEOMETRY;
     int32_t width = 0x100;
     int32_t height = 0x100;
     ret = NativeWindowHandleOpt(nativeWindow, code, width, height);
-    if (ret != OHOS::GSERROR_OK) {
+    if (ret != GSERROR_OK) {
         std::cout << "NativeWindowHandleOpt SET_BUFFER_GEOMETRY failed" << std::endl;
     }
     code = SET_STRIDE;
     int32_t stride = 0x8;
     ret = NativeWindowHandleOpt(nativeWindow, code, stride);
-    if (ret != OHOS::GSERROR_OK) {
+    if (ret != GSERROR_OK) {
         std::cout << "NativeWindowHandleOpt SET_STRIDE failed" << std::endl;
     }
     code = SET_FORMAT;
     int32_t format = PIXEL_FMT_RGBA_8888;
     ret = NativeWindowHandleOpt(nativeWindow, code, format);
-    if (ret != OHOS::GSERROR_OK) {
+    if (ret != GSERROR_OK) {
         std::cout << "NativeWindowHandleOpt SET_FORMAT failed" << std::endl;
     }
 
     NativeWindowBuffer* nativeWindowBuffer = nullptr;
     int fenceFd = -1;
     ret = OH_NativeWindow_NativeWindowRequestBuffer(nativeWindow, &nativeWindowBuffer, &fenceFd);
-    if (ret != OHOS::GSERROR_OK) {
+    if (ret != GSERROR_OK) {
         std::cout << "NativeWindowHandleOpt SET_FORMAT failed" << std::endl;
     }
 
@@ -191,7 +191,7 @@ void AddBuffer(OHNativeWindow* nativeWindow)
     rect->h = 0x100;
     region->rects = rect;
     ret = OH_NativeWindow_NativeWindowFlushBuffer(nativeWindow, nativeWindowBuffer, fenceFd, *region);
-    if (ret != OHOS::GSERROR_OK) {
+    if (ret != GSERROR_OK) {
         std::cout << "NativeWindowHandleOpt SET_FORMAT failed" << std::endl;
     }
     delete region;
