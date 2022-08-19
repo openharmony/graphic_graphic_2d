@@ -416,25 +416,14 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
 
     canvas_->MultiplyAlpha(property.GetAlpha());
 
-    canvas_->save();
     canvas_->concat(geoPtr->GetMatrix());
     const RectF absBounds = {
         node.GetTotalMatrix().getTranslateX(), node.GetTotalMatrix().getTranslateY(),
         property.GetBoundsWidth(), property.GetBoundsHeight()};
     RRect absClipRRect = RRect(absBounds, property.GetCornerRadius());
     RSPropertiesPainter::DrawShadow(property, *canvas_, &absClipRRect);
-    canvas_->restore();
 
-    SkMatrix translateMatrix;
-    translateMatrix.setTranslate(
-        std::ceil(geoPtr->GetMatrix().getTranslateX()),
-        std::ceil(geoPtr->GetMatrix().getTranslateY()));
-    canvas_->concat(translateMatrix);
-
-    // use node's local coordinate.
-    auto params = RSBaseRenderUtil::CreateBufferDrawParam(node, true, false, false, false);
     const auto saveCnt = canvas_->save();
-    canvas_->concat(params.matrix);
     auto transitionProperties = node.GetAnimationManager().GetTransitionProperties();
     RSPropertiesPainter::DrawTransitionProperties(transitionProperties, property, *canvas_);
     boundsRect_ = SkRect::MakeWH(property.GetBoundsWidth(), property.GetBoundsHeight());
@@ -454,11 +443,16 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
         skRectPtr->setXYWH(0, 0, property.GetBoundsWidth(), property.GetBoundsHeight());
         RSPropertiesPainter::DrawFilter(property, *canvas_, filter, skRectPtr, canvas_->GetSurface());
     }
+
+    node.SetTotalMatrix(canvas_->getTotalMatrix());
+
     ProcessBaseRenderNode(node);
     canvas_->restoreToCount(saveCnt);
 
     if (!node.IsAppWindow() && node.GetBuffer() != nullptr) {
         node.NotifyRTBufferAvailable();
+        // use node's local coordinate.
+        auto params = RSBaseRenderUtil::CreateBufferDrawParam(node, true, false, false, false);
         renderEngine_->DrawSurfaceNodeWithParams(*canvas_, node, params);
     }
     

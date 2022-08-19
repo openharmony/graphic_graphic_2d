@@ -1013,12 +1013,7 @@ BufferDrawParam RSBaseRenderUtil::CreateBufferDrawParam(
     // inLocalCoordinate: reset the translate to (0, 0).
     // else: use node's total matrix.
     if (inLocalCoordinate) {
-        auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(property.GetBoundsGeometry());
-        if (geoPtr != nullptr) {
-            params.matrix = geoPtr->GetMatrix();
-        }
-        params.matrix.setTranslateX(0.0f);
-        params.matrix.setTranslateY(0.0f);
+        params.matrix = SkMatrix::I();
     } else {
         params.matrix = node.GetTotalMatrix();
     }

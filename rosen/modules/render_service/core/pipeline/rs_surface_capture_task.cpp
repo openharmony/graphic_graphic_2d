@@ -221,19 +221,33 @@ void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::ProcessDisplayRenderNode(RSD
 
 void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::CaptureSingleSurfaceNodeWithUni(RSSurfaceRenderNode& node)
 {
-    // in node's local coordinate.
-    auto params = RSBaseRenderUtil::CreateBufferDrawParam(node, true, false, false, false);
+    SkMatrix translateMatrix;
+    const float thisNodetranslateX = node.GetTotalMatrix().getTranslateX();
+    const float thisNodetranslateY = node.GetTotalMatrix().getTranslateY();
+    if (!node.IsAppWindow()) {
+        translateMatrix.preTranslate(
+            thisNodetranslateX - parentNodeTranslateX_, thisNodetranslateY - parentNodeTranslateY_);
+    } else {
+        parentNodeTranslateX_ = thisNodetranslateX;
+        parentNodeTranslateY_ = thisNodetranslateY;
+    }
+
+    if (!node.IsAppWindow() && node.GetBuffer() != nullptr) {
+        canvas_->save();
+        canvas_->translate(-canvas_->getTotalMatrix().getTranslateX() / canvas_->getTotalMatrix().getScaleX(),
+            -canvas_->getTotalMatrix().getTranslateY() / canvas_->getTotalMatrix().getScaleY());
+        canvas_->concat(translateMatrix);
+
+        // in node's local coordinate.
+        auto params = RSBaseRenderUtil::CreateBufferDrawParam(node, true, false, false, false);
+        renderEngine_->DrawSurfaceNodeWithParams(*canvas_, node, params);
+
+        canvas_->restore();
+    }
 
     const auto saveCnt = canvas_->save();
-    if (node.IsAppWindow()) {
-        canvas_->concat(params.matrix);
-    }
     ProcessBaseRenderNode(node);
     canvas_->restoreToCount(saveCnt);
-
-    if (node.GetBuffer() != nullptr) {
-        renderEngine_->DrawSurfaceNodeWithParams(*canvas_, node, params);
-    }
 }
 
 void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::CaptureSurfaceInDisplayWithUni(RSSurfaceRenderNode& node)
@@ -245,17 +259,12 @@ void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::CaptureSurfaceInDisplayWithU
     }
 
     const auto& property = node.GetRenderProperties();
-    SkMatrix translateMatrix;
     auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(property.GetBoundsGeometry());
-    translateMatrix.setTranslate(
-        std::ceil(geoPtr->GetMatrix().getTranslateX()),
-        std::ceil(geoPtr->GetMatrix().getTranslateY()));
-    canvas_->concat(translateMatrix);
-    // use node's local coordinate.
-    auto params = RSBaseRenderUtil::CreateBufferDrawParam(node, true, false, false, false); 
+    if (geoPtr) {
+        canvas_->concat(geoPtr->GetMatrix());
+    }
 
     const auto saveCnt = canvas_->save();
-    canvas_->concat(params.matrix);
     auto transitionProperties = node.GetAnimationManager().GetTransitionProperties();
     RSPropertiesPainter::DrawTransitionProperties(transitionProperties, property, *canvas_);
     boundsRect_ = SkRect::MakeWH(property.GetBoundsWidth(), property.GetBoundsHeight());
@@ -268,7 +277,9 @@ void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::CaptureSurfaceInDisplayWithU
     ProcessBaseRenderNode(node);
     canvas_->restoreToCount(saveCnt);
 
-    if (node.GetBuffer() != nullptr) {
+    if (!node.IsAppWindow() && node.GetBuffer() != nullptr) {
+        // use node's local coordinate.
+        auto params = RSBaseRenderUtil::CreateBufferDrawParam(node, true, false, false, false); 
         renderEngine_->DrawSurfaceNodeWithParams(*canvas_, node, params);
     }
 }
