@@ -301,6 +301,29 @@ public:
         presentTimestamp_ = timestamp;
     }
 
+    void CopyLayerInfo(const std::shared_ptr<HdiLayerInfo> &layerInfo)
+    {
+        zOrder_ = layerInfo->GetZorder();
+        visibleNum_ = layerInfo->GetVisibleNum();
+        layerRect_ = layerInfo->GetLayerSize();
+        visibleRegion_ = layerInfo->GetVisibleRegion();
+        dirtyRegion_ = layerInfo->GetDirtyRegion();
+        cropRect_ = layerInfo->GetCropRect();
+        layerAlpha_ = layerInfo->GetAlpha();
+        transformType_ = layerInfo->GetTransformType();
+        compositionType_ = layerInfo->GetCompositionType();
+        blendType_ = layerInfo->GetBlendType();
+        colorTransformMatrix_ = layerInfo->GetColorTransform();
+        colorSpace_ = layerInfo->GetColorDataSpace();
+        metaData_ = layerInfo->GetMetaData();
+        metaDataSet_ = layerInfo->GetMetaDataSet();
+        tunnelHandle_ = layerInfo->GetTunnelHandle();
+        tunnelHandleChange_ = layerInfo->GetTunnelHandleChange();
+        sbuffer_ = layerInfo->GetBuffer();
+        acquireFence_ = layerInfo->GetAcquireFence();
+        preMulti_ = layerInfo->IsPreMulti();
+    }
+
     void Dump(std::string &result) const
     {
         if (TransformTypeStrs.find(transformType_) != TransformTypeStrs.end() &&

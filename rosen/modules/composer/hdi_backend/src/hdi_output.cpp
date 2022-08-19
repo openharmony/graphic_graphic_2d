@@ -143,6 +143,14 @@ const std::unordered_map<uint32_t, std::shared_ptr<HdiLayer>>& HdiOutput::GetLay
     return layerIdMap_;
 }
 
+void HdiOutput::UpdatePrevLayerInfo()
+{
+    for (auto iter = layerIdMap_.begin(); iter != layerIdMap_.end(); iter++) {
+        LayerPtr layer = iter->second;
+        layer->SavePrevLayerInfo();
+    }
+}
+
 uint32_t HdiOutput::GetScreenId() const
 {
     return screenId_;

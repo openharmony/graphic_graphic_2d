@@ -23,7 +23,7 @@
 
 #include "surface_type.h"
 #include "display_type.h"
-
+#include "hdi_device.h"
 #include "hdi_layer_info.h"
 
 namespace OHOS {
@@ -56,6 +56,7 @@ public:
     void Dump(std::string &result);
 
     sptr<SyncFence> GetReleaseFence() const;
+    void SavePrevLayerInfo();
 private:
     // layer buffer & fence
     class LayerBufferInfo : public RefBase {
@@ -76,14 +77,34 @@ private:
     sptr<LayerBufferInfo> currSbuffer_ = nullptr;
     sptr<LayerBufferInfo> prevSbuffer_ = nullptr;
     LayerInfoPtr layerInfo_ = nullptr;
+    LayerInfoPtr prevLayerInfo_ = nullptr;
     PresentTimestampType supportedPresentTimestamptype_ = PresentTimestampType::HARDWARE_DISPLAY_PTS_UNSUPPORTED;
+    HdiDevice *device_ = nullptr;
 
-    void CloseLayer();
     int32_t CreateLayer(const LayerInfoPtr &layerInfo);
+    void CloseLayer();
+    void SetLayerAlpha();
+    void SetLayerSize();
+    void SetTransformMode();
+    void SetLayerVisibleRegion();
+    void SetLayerDirtyRegion();
+    void SetLayerBuffer();
+    void SetLayerCompositionType();
+    void SetLayerBlendType();
+    void SetLayerCrop();
+    void SetLayerZorder();
+    void SetLayerPreMulti();
+    void SetLayerColorTransform();
+    void SetLayerColorDataSpace();
+    void SetLayerMetaData();
+    void SetLayerMetaDataSet();
     sptr<SyncFence> Merge(const sptr<SyncFence> &fence1, const sptr<SyncFence> &fence2);
     void SetLayerTunnelHandle();
     void SetLayerPresentTimestamp();
-
+    RosenError InitDevice();
+    bool IsSameRect(const IRect& rect1, const IRect& rect2);
+    bool IsSameLayerMetaData();
+    bool IsSameLayerMetaDataSet();
     inline void CheckRet(int32_t ret, const char* func);
 };
 } // namespace Rosen

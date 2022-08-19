@@ -21,7 +21,6 @@
 #include <vector>
 #include <unordered_map>
 
-#include "hdi_log.h"
 #include "surface_type.h"
 #include "hdi_layer.h"
 #include "hdi_framebuffer_surface.h"
@@ -69,6 +68,7 @@ public:
     void RecordCompositionTime(int64_t timeStamp);
     void SetDirectClientCompEnableStatus(bool enableStatus);
     bool GetDirectClientCompEnableStatus() const;
+    void UpdatePrevLayerInfo();
 
 private:
     std::array<int64_t, COMPOSITION_RECORDS_NUM> compositionTimeRecords_ = {};
