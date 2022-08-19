@@ -292,6 +292,23 @@ void RSComposerAdapter::SetComposeInfoToLayer(
     if (layer == nullptr) {
         return;
     }
+    layer->SetSurface(surface);
+    layer->SetBuffer(info.buffer, info.fence);
+    layer->SetZorder(info.zOrder);
+    layer->SetAlpha(info.alpha);
+    layer->SetLayerSize(info.dstRect);
+    layer->SetLayerAdditionalInfo(node);
+    layer->SetCompositionType(info.needClient ?
+        CompositionType::COMPOSITION_CLIENT : CompositionType::COMPOSITION_DEVICE);
+    layer->SetVisibleRegion(1, info.visibleRect);
+    layer->SetDirtyRegion(info.srcRect);
+    layer->SetBlendType(info.blendType);
+    layer->SetCropRect(info.srcRect);
+    if (node -> GetTunnelHandleChange()) {
+        layer->SetTunnelHandleChange(true);
+        layer->SetTunnelHandle(surface->GetTunnelHandle());
+        node ->SetTunnelHandleChange(false);
+    }
     HDRMetaDataType type;
     if (surface->QueryMetaDataType(info.buffer->GetSeqNum(), type) != GSERROR_OK) {
         RS_LOGE("RSComposerAdapter::SetComposeInfoToLayer: QueryMetaDataType failed");
@@ -324,23 +341,6 @@ void RSComposerAdapter::SetComposeInfoToLayer(
             RS_LOGD("RSComposerAdapter::SetComposeInfoToLayer: HDR is not used");
             break;
         }
-    }
-    layer->SetSurface(surface);
-    layer->SetBuffer(info.buffer, info.fence);
-    layer->SetZorder(info.zOrder);
-    layer->SetAlpha(info.alpha);
-    layer->SetLayerSize(info.dstRect);
-    layer->SetLayerAdditionalInfo(node);
-    layer->SetCompositionType(info.needClient ?
-        CompositionType::COMPOSITION_CLIENT : CompositionType::COMPOSITION_DEVICE);
-    layer->SetVisibleRegion(1, info.visibleRect);
-    layer->SetDirtyRegion(info.srcRect);
-    layer->SetBlendType(info.blendType);
-    layer->SetCropRect(info.srcRect);
-    if (node -> GetTunnelHandleChange()) {
-        layer->SetTunnelHandleChange(true);
-        layer->SetTunnelHandle(surface->GetTunnelHandle());
-        node ->SetTunnelHandleChange(false);
     }
 }
 
