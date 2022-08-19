@@ -282,7 +282,7 @@ int32_t HdiBackend::SetScreenClientInfo(const FrameBufferEntry &fbEntry, const O
     ret = device_->SetScreenClientDamage(output->GetScreenId(), output->GetOutputDamageNum(),
                                          output->GetOutputDamage());
     if (ret != DISPLAY_SUCCESS) {
-        HLOGE("SetScreenClientDamage failed, ret is %{public}d", ret);
+        HLOGD("SetScreenClientDamage failed, ret is %{public}d", ret);
         return ret;
     }
 

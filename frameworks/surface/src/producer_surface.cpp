@@ -80,7 +80,7 @@ GSError ProducerSurface::RequestBuffer(sptr<SurfaceBuffer>& buffer,
             std::lock_guard<std::mutex> lockGuard(mutex_);
             bufferProducerCache_.clear();
         }
-        BLOGN_FAILURE("Producer report %{public}s", GSErrorStr(ret).c_str());
+        BLOGND("Producer report %{public}s", GSErrorStr(ret).c_str());
         return ret;
     }
 
