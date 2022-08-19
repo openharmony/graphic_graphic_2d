@@ -300,7 +300,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
             rects.push_back(rect);
             std::vector<RectI> displayDamageRects = GetDirtyRects(node.GetDamageRegion());
             rects.insert(rects.end(), displayDamageRects.begin(), displayDamageRects.end());
-            std::vector<RectI> surfaceDamageRects = GetSurfaceSTransparentDirtyRects(displayNodePtr);
+            std::vector<RectI> surfaceDamageRects = GetSurfaceTransparentDirtyRects(displayNodePtr);
             rects.insert(rects.end(), surfaceDamageRects.begin(), surfaceDamageRects.end());
             renderFrame->SetDamageRegion(rects);
         }
