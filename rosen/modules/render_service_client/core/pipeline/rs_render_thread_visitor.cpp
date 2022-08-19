@@ -51,6 +51,25 @@ RSRenderThreadVisitor::RSRenderThreadVisitor()
 
 RSRenderThreadVisitor::~RSRenderThreadVisitor() {}
 
+bool RSRenderThreadVisitor::IsValidRootRenderNode(RSRootRenderNode& node)
+{
+    auto ptr = RSNodeMap::Instance().GetNode<RSSurfaceNode>(node.GetRSSurfaceNodeId());
+    if (ptr == nullptr) {
+        ROSEN_LOGE("ccc No valid RSSurfaceNode id");
+        return false;
+    }
+    if (!node.enableRender_) {
+        ROSEN_LOGI("ccc RootNode %s: Invisible", ptr->GetName().c_str());
+        return false;
+    }
+    if (node.GetSurfaceWidth() <= 0 || node.GetSurfaceHeight() <= 0) {
+        ROSEN_LOGE("ccc Root %s: Negative width or height [%d %d]", ptr->GetName().c_str(),
+            node.GetSurfaceWidth(), node.GetSurfaceHeight());
+        return false;
+    }
+    return true;
+}
+
 void RSRenderThreadVisitor::PrepareBaseRenderNode(RSBaseRenderNode& node)
 {
     isPartialRenderEnabled_ = (RSSystemProperties::GetPartialRenderEnabled() != PartialRenderType::DISABLED);
@@ -68,18 +87,7 @@ void RSRenderThreadVisitor::PrepareRootRenderNode(RSRootRenderNode& node)
         // After the node calls applymodifiers, the modifiers assign the renderProperties to the node
         // Otherwise node.GetSurfaceHeight always less than 0, causing black screen
         node.ApplyModifiers();
-        auto ptr = RSNodeMap::Instance().GetNode<RSSurfaceNode>(node.GetRSSurfaceNodeId());
-        if (ptr == nullptr) {
-            ROSEN_LOGE("PrepareRoot: No valid RSSurfaceNode id");
-            return;
-        }
-        if (!node.enableRender_) {
-            ROSEN_LOGI("PrepareRoot %s: Invisible", ptr->GetName().c_str());
-            return;
-        }
-        if (node.GetSurfaceWidth() <= 0 || node.GetSurfaceHeight() <= 0) {
-            ROSEN_LOGE("PrepareRoot %s: Negative width or height [%d %d]", ptr->GetName().c_str(),
-                node.GetSurfaceWidth(), node.GetSurfaceHeight());
+        if(!IsValidRootRenderNode()){
             return;
         }
         dirtyFlag_ = false;
@@ -218,15 +226,10 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
         return;
     }
     auto ptr = RSNodeMap::Instance().GetNode<RSSurfaceNode>(node.GetRSSurfaceNodeId());
-    if (ptr == nullptr) {
-        ROSEN_LOGE("ProcessRoot: No valid RSSurfaceNode id");
+    if(!IsValidRootRenderNode(node)){
         return;
     }
-    if (!node.enableRender_) {
-        ROSEN_LOGI("ProcessRoot %s: Invisible", ptr->GetName().c_str());
-        return;
-    }
-
+    
     curDirtyManager_ = node.GetDirtyManager();
     // node's surface size already check, so here we do not need to check return
     (void)curDirtyManager_->SetSurfaceSize(node.GetSurfaceWidth(), node.GetSurfaceHeight());
