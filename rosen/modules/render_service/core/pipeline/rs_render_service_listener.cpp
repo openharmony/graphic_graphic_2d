@@ -62,5 +62,31 @@ void RSRenderServiceListener::OnTunnelHandleChange()
     }
     RSMainThread::Instance()->RequestNextVSync();
 }
+
+void RSRenderServiceListener::OnCleanCache()
+{
+    auto node = surfaceRenderNode_.lock();
+    if (node == nullptr) {
+        RS_LOGE("RSRenderServiceListener::OnBufferAvailable node is nullptr");
+        return;
+    }
+    RS_LOGI("RsDebug RSRenderServiceListener::OnCleanCache node id:%" PRIu64, node->GetId());
+    node->ResetBufferAvailableCount();
+}
+
+void RSRenderServiceListener::OnGoBackground()
+{
+    OnCleanCache();
+    std::weak_ptr<RSSurfaceRenderNode> surfaceNode = surfaceRenderNode_;
+    RSMainThread::Instance()->PostTask([surfaceNode]() {
+        auto node = surfaceNode.lock();
+        if (node == nullptr) {
+            RS_LOGE("RSRenderServiceListener::OnBufferAvailable node is nullptr");
+            return;
+        }
+        RS_LOGI("RsDebug RSRenderServiceListener::OnGoBackground node id:%" PRIu64, node->GetId());
+        node->CleanCache();
+    });
+}
 } // namespace Rosen
 } // namespace OHOS
