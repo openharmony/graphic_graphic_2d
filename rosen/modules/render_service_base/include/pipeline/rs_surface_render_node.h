@@ -236,6 +236,11 @@ public:
         abilityBgAlphaChanged_ = false;
     }
 
+    void SetGloblDirtyRegion(const RectI& rect)
+    {
+        globalDirtyRegion_ = rect;
+    }
+
     void SetConsumer(const sptr<Surface>& consumer);
 
     void UpdateSurfaceDefaultSize(float width, float height);
@@ -276,6 +281,18 @@ public:
         parallelVisitMutex_.unlock();
     }
 
+    bool IsIntersectWithDirty(const RectI& r) const
+    {
+        if (dirtyManager_ == nullptr) {
+            return false;
+        }
+        auto localRect = r.IntersectRect(dirtyManager_->GetDirtyRegion());
+        auto globalRect = r.IntersectRect(globalDirtyRegion_);
+        if (!localRect.IsEmpty() || !globalRect.IsEmpty()) {
+            return true;
+        }
+        return false;
+    }
 private:
     void SendCommandFromRT(std::unique_ptr<RSCommand>& command, NodeId nodeId);
 
@@ -316,6 +333,7 @@ private:
     bool dstRectChanged_ = false;
     uint8_t abilityBgAlpha_ = 0;
     bool abilityBgAlphaChanged_ = false;
+    RectI globalDirtyRegion_;
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -262,6 +262,11 @@ bool RSProperties::UpdateGeometry(const RSProperties* parent, bool dirtyFlag)
 
 void RSProperties::SetPositionZ(float positionZ)
 {
+    if (boundsGeo_->GetZ() < positionZ) {
+        zOrderPromoted = true;
+    } else {
+        zOrderPromoted = false;
+    }
     boundsGeo_->SetZ(positionZ);
     frameGeo_->SetZ(positionZ);
     geoDirty_ = true;
@@ -279,9 +284,19 @@ bool RSProperties::GetZorderChanged() const
     return zOrderChanged_;
 }
 
+bool RSProperties::IsZOrderPromoted() const
+{
+    return zOrderPromoted;
+}
+
 void RSProperties::CleanZorderChanged()
 {
     zOrderChanged_ = false;
+}
+
+void RSProperties::CleanZOrderPromoted()
+{
+    zOrderPromoted = false;
 }
 
 void RSProperties::SetPivot(Vector2f pivot)

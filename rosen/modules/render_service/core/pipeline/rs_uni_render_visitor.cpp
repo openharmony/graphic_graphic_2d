@@ -81,9 +81,6 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
         curSurfaceDirtyManager_->Clear();
         dirtyFlag_ = false;
         curDisplayNode_->UpdateSurfaceNodePos(node.GetId(), node.GetDstRect());
-        if (node.GetDstRectChanged()) {
-            curDisplayDirtyManager_->MergeDirtyRect(curDisplayNode_->GetLastFrameSurfacePos(node.GetId()));
-        }
     } else {
         if (node.GetBuffer() != nullptr) {
             auto& surfaceHandler = static_cast<RSSurfaceHandler&>(node);
@@ -286,18 +283,23 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
             RS_LOGE("RSUniRenderVisitor Request Frame Failed");
             return;
         }
-
 #ifdef RS_ENABLE_EGLQUERYSURFACE
         // Get displayNode buffer age in order to merge visible dirty region for displayNode.
         // And then set egl damage region to improve uni_render efficiency.
         if (RSSystemProperties::GetUniPartialRenderEnabled()) {
+            CalcDirtyDisplayRegion(displayNodePtr);
             uint32_t bufferAge = renderFrame->GetBufferAge();
             RS_LOGD("RSUniRenderVisitor buffer age is %d", bufferAge);
             auto dirtyRegion = RSUniRenderUtil::MergeVisibleDirtyRegion(displayNodePtr, bufferAge);
             std::vector<RectI> rects = GetDirtyRects(dirtyRegion);
             node.UpdateDisplayDirtyManager(bufferAge);
             RectI rect = CoordinateTransform(node.GetDirtyManager()->GetDirtyRegion());
-            rects.push_back(rect);
+            if (!rect.IsEmpty()) {
+                rects.push_back(rect);
+            }
+            for (auto r : rects) {
+                RS_LOGD("SetDamageRegion %s", r.ToString().c_str());
+            }
             renderFrame->SetDamageRegion(rects);
         }
 #endif
@@ -342,6 +344,73 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
     RS_LOGD("RSUniRenderVisitor::ProcessDisplayRenderNode end");
 }
 
+void RSUniRenderVisitor::CalcDirtyDisplayRegion(std::shared_ptr<RSDisplayRenderNode>& node) const
+{
+    RS_TRACE_FUNC();
+    std::vector<RSBaseRenderNode::SharedPtr> curAllSurfaces;
+    node->CollectSurface(node, curAllSurfaces, true);
+    auto displayDirtyManager = node->GetDirtyManager();
+    for (auto it = curAllSurfaces.rbegin(); it != curAllSurfaces.rend(); ++it) {
+        auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(*it);
+        if (surfaceNode == nullptr) {
+            continue;
+        }
+        auto surfaceDirtyManager = surfaceNode->GetDirtyManager();
+        RectI surfaceDirtyRect = surfaceDirtyManager->GetDirtyRegion();
+        auto visibleRegion = surfaceNode->GetVisibleRegion();
+        surfaceDirtyRect = surfaceDirtyRect.IntersectRect(RectI {visibleRegion.GetBound().top_,
+            visibleRegion.GetBound().left_,
+            visibleRegion.GetBound().right_ - visibleRegion.GetBound().left_,
+            visibleRegion.GetBound().bottom_ - visibleRegion.GetBound().top_});
+        const uint8_t opacity = 255;
+        if (surfaceNode->GetAbilityBgAlpha() != opacity ||
+            !ROSEN_EQ(surfaceNode->GetRenderProperties().GetAlpha(), 1.0f)) {
+            // Handles the case of transparent surface, merge transparent dirty rect
+            RectI transparentDirtyRect = surfaceNode->GetDstRect().IntersectRect(surfaceDirtyRect);
+            RS_LOGD("CalcDirtyDisplayRegion merge transparent dirty rect %s rect %s", surfaceNode->GetName().c_str(),
+                transparentDirtyRect.ToString().c_str());
+            displayDirtyManager->MergeDirtyRect(transparentDirtyRect);
+        }
+
+        if (surfaceNode->GetRenderProperties().IsZOrderPromoted()) {
+            // Zorder promoted case, merge surface dest Rect
+            RS_LOGD("CalcDirtyDisplayRegion merge ZOrderPromoted %s rect %s", surfaceNode->GetName().c_str(),
+                surfaceNode->GetDstRect().ToString().c_str());
+            displayDirtyManager->MergeDirtyRect(surfaceNode->GetDstRect());
+        }
+        surfaceNode->GetMutableRenderProperties().CleanZOrderPromoted();
+
+        RectI lastFrameSurfacePos = node->GetLastFrameSurfacePos(surfaceNode->GetId());
+        RectI currentFrameSurfacePos = node->GetCurrentFrameSurfacePos(surfaceNode->GetId());
+        if (lastFrameSurfacePos != currentFrameSurfacePos) {
+            RS_LOGD("CalcDirtyDisplayRegion merge surface pos changed %s lastFrameRect %s currentFrameRect %s",
+                surfaceNode->GetName().c_str(), lastFrameSurfacePos.ToString().c_str(),
+                currentFrameSurfacePos.ToString().c_str());
+            if (!lastFrameSurfacePos.IsEmpty()) {
+                displayDirtyManager->MergeDirtyRect(lastFrameSurfacePos);
+            }
+            if (!currentFrameSurfacePos.IsEmpty()) {
+                displayDirtyManager->MergeDirtyRect(currentFrameSurfacePos);
+            }
+        }
+    }
+    std::vector<RectI> surfaceChangedRects = node->GetSurfaceChangedRects();
+    for (auto surfaceChangedRect : surfaceChangedRects) {
+        RS_LOGD("CalcDirtyDisplayRegion merge Surface closed %s", surfaceChangedRect.ToString().c_str());
+        if (!surfaceChangedRect.IsEmpty()) {
+            displayDirtyManager->MergeDirtyRect(surfaceChangedRect);
+        }
+    }
+    for (auto it = curAllSurfaces.rbegin(); it != curAllSurfaces.rend(); ++it) {
+        auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(*it);
+        if (surfaceNode == nullptr) {
+            continue;
+        }
+        // set display dirty region to surfaceNode
+        surfaceNode->SetGloblDirtyRegion(node->GetDirtyManager()->GetDirtyRegion());
+    }
+}
+
 #ifdef RS_ENABLE_EGLQUERYSURFACE
 std::vector<RectI> RSUniRenderVisitor::GetDirtyRects(const Occlusion::Region &region)
 {
@@ -352,7 +421,7 @@ std::vector<RectI> RSUniRenderVisitor::GetDirtyRects(const Occlusion::Region &re
         retRects.emplace_back(RectI(rect.left_, screenInfo_.GetRotatedHeight() - rect.bottom_,
             rect.right_ - rect.left_, rect.bottom_ - rect.top_));
     }
-    RS_LOGD("GetDirtyRects size %d", region.GetSize());
+    RS_LOGD("GetDirtyRects size %d %s", region.GetSize(), region.GetRegionInfo().c_str());
     return retRects;
 }
 

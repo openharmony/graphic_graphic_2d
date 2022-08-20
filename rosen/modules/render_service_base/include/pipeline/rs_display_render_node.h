@@ -142,9 +142,31 @@ public:
     {
         currentFrameSurfacePos_[id] = rect;
     }
+
     RectI GetLastFrameSurfacePos(NodeId id)
     {
         return lastFrameSurfacePos_[id];
+    }
+
+    RectI GetCurrentFrameSurfacePos(NodeId id)
+    {
+        return currentFrameSurfacePos_[id];
+    }
+
+    const std::vector<RectI> GetSurfaceChangedRects() const
+    {
+        std::vector<RectI> rects;
+        for (auto iter = lastFrameSurfacePos_.begin(); iter != lastFrameSurfacePos_.end(); iter++) {
+            if (currentFrameSurfacePos_.find(iter->first) == currentFrameSurfacePos_.end()) {
+                rects.emplace_back(iter->second);
+            }
+        }
+        for (auto iter = currentFrameSurfacePos_.begin(); iter != currentFrameSurfacePos_.end(); iter++) {
+            if (lastFrameSurfacePos_.find(iter->first) == lastFrameSurfacePos_.end()) {
+                rects.emplace_back(iter->second);
+            }
+        }
+        return rects;
     }
 
 private:

@@ -191,7 +191,8 @@ public:
 
     bool GetZorderChanged() const;
     void CleanZorderChanged();
-
+    bool IsZOrderPromoted() const;
+    void CleanZOrderPromoted();
 private:
     void Reset();
     void SetDirty();
@@ -215,6 +216,7 @@ private:
     bool isDirty_ = false;
     bool geoDirty_ = false;
     bool zOrderChanged_ = false;
+    bool zOrderPromoted = false;
 
     bool hasBounds_ = false;
 
