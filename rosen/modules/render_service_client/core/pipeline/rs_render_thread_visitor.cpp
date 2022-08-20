@@ -58,7 +58,7 @@ bool RSRenderThreadVisitor::IsValidRootRenderNode(RSRootRenderNode& node)
         ROSEN_LOGE("No valid RSSurfaceNode id");
         return false;
     }
-    if (!node.enableRender_) {
+    if (!node.GetRenderProperties().GetVisible()) {
         ROSEN_LOGI("RootNode %s: Invisible", ptr->GetName().c_str());
         return false;
     }
