@@ -139,6 +139,16 @@ void RSMainThread::Init()
     receiver_ = std::make_shared<VSyncReceiver>(conn, handler_);
     receiver_->Init();
     renderEngine_ = std::make_shared<RSRenderEngine>();
+#ifdef RS_ENABLE_GL
+    if (renderEngine_) {
+        int cacheLimitsTimes = 2; // double skia Resource Cache Limits
+        auto grContext = renderEngine_->GetRenderContext()->GetGrContext();
+        int maxResources = 0;
+        size_t maxResourcesSize = 0;
+        grContext->getResourceCacheLimits(&maxResources, &maxResourcesSize);
+        grContext->setResourceCacheLimits(cacheLimitsTimes * maxResources, cacheLimitsTimes * maxResourcesSize);
+    }
+#endif
     RSInnovation::OpenInnovationSo();
     Occlusion::Region::InitDynamicLibraryFunction();
 

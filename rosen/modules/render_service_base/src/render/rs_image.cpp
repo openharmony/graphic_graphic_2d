@@ -20,11 +20,20 @@
 #include "pipeline/rs_pixel_map_util.h"
 #include "pixel_map.h"
 #include "property/rs_properties_painter.h"
+#include "render/rs_image_cache.h"
 
 namespace OHOS {
 namespace Rosen {
 namespace {
 constexpr int32_t CORNER_SIZE = 4;
+}
+
+RSImage::~RSImage()
+{
+    image_ = nullptr;
+    if (uniqueId_ > 0) {
+        RSImageCache::Instance().ReleaseSkiaImageCache(uniqueId_);
+    }
 }
 
 bool RSImage::IsEqual(const RSImage& other) const
@@ -196,6 +205,9 @@ bool RSImage::Marshalling(Parcel& parcel) const
     bool success = true;
     int imageFit = static_cast<int>(imageFit_);
     int imageRepeat = static_cast<int>(imageRepeat_);
+    static uint64_t pid = static_cast<uint64_t>(getpid()) << 32; // 32 for 64-bit unsignd number shift
+    uint64_t uniqueId = pid | image_->uniqueID();
+    success &= RSMarshallingHelper::Marshalling(parcel, uniqueId);
     success &= RSMarshallingHelper::Marshalling(parcel, image_);
     success &= RSMarshallingHelper::Marshalling(parcel, pixelmap_);
     success &= RSMarshallingHelper::Marshalling(parcel, imageFit);
@@ -212,7 +224,20 @@ RSImage* RSImage::Unmarshalling(Parcel& parcel)
     int repeatNum;
     SkVector radius[CORNER_SIZE];
     double scale;
-    if (!RSMarshallingHelper::Unmarshalling(parcel, img)) {
+    uint64_t uniqueId;
+    if (!RSMarshallingHelper::Unmarshalling(parcel, uniqueId)) {
+        return nullptr;
+    }
+    img = RSImageCache::Instance().GetSkiaImageCache(uniqueId);
+    if (img != nullptr) {
+        // match a cached skimage
+        if (!RSMarshallingHelper::SkipSkImage(parcel)) {
+            return nullptr;
+        }
+    } else if (RSMarshallingHelper::Unmarshalling(parcel, img)) {
+        // unmarshalling the skimage and cache it
+        RSImageCache::Instance().CacheSkiaImage(uniqueId, img);
+    } else {
         return nullptr;
     }
     if (!RSMarshallingHelper::Unmarshalling(parcel, pixelmap)) {
@@ -240,6 +265,7 @@ RSImage* RSImage::Unmarshalling(Parcel& parcel)
     rsImage->SetImageRepeat(repeatNum);
     rsImage->SetRadius(radius);
     rsImage->SetScale(scale);
+    rsImage->uniqueId_ = uniqueId;
 
     return rsImage;
 }

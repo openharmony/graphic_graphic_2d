@@ -68,6 +68,7 @@ class RSMarshallingHelper {
 public:
     static bool WriteToParcel(Parcel &parcel, const void* data, size_t size);
     static const void* ReadFromParcel(Parcel& parcel, size_t size);
+    static bool SkipFromParcel(Parcel& parcel, size_t size);
 
     // default marshalling and unmarshalling method for POD types
     // [PLANNING]: implement marshalling & unmarshalling methods for other types (e.g. RSImage, drawCMDList)
@@ -137,6 +138,8 @@ public:
     DECLARE_FUNCTION_OVERLOAD(sk_sp<SkImageFilter>)
     DECLARE_FUNCTION_OVERLOAD(sk_sp<SkImage>)
     DECLARE_FUNCTION_OVERLOAD(sk_sp<SkVertices>)
+    static bool SkipSkData(Parcel& parcel);
+    static bool SkipSkImage(Parcel& parcel);
     // RS types
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSShader>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSPath>)

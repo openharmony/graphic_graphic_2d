@@ -138,6 +138,14 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, sk_sp<SkData>& val)
     }
     return val != nullptr;
 }
+bool RSMarshallingHelper::SkipSkData(Parcel& parcel)
+{
+    int32_t size = parcel.ReadInt32();
+    if (size <= 0) {
+        return true;
+    }
+    return SkipFromParcel(parcel, size);
+}
 
 // SkTypeface serial proc
 sk_sp<SkData> RSMarshallingHelper::SerializeTypeface(SkTypeface* tf, void* ctx)
@@ -322,6 +330,33 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, sk_sp<SkImage>& val)
             SkData::MakeFromMalloc(addr, pixmapSize);
         val = SkImage::MakeRasterData(imageInfo, skData, rb);
         return val != nullptr;
+    }
+}
+
+bool RSMarshallingHelper::SkipSkImage(Parcel& parcel)
+{
+    int32_t type = parcel.ReadInt32();
+    if (type == -1) {
+        return true;
+    }
+    sk_sp<SkData> data;
+    if (type == 1) {
+        ROSEN_LOGD("RSMarshallingHelper::SkipSkImage lazy");
+        return SkipSkData(parcel);
+    } else {
+        size_t pixmapSize = parcel.ReadUint32();
+        if (!SkipFromParcel(parcel, pixmapSize)) {
+            ROSEN_LOGE("failed RSMarshallingHelper::SkipSkImage SkData addr");
+            return false;
+        }
+
+        parcel.ReadUint32();
+        parcel.ReadInt32();
+        parcel.ReadInt32();
+        parcel.ReadUint32();
+        parcel.ReadUint32();
+        size_t size = parcel.ReadUint32();
+        return size == 0 ? true : SkipFromParcel(parcel, size);
     }
 }
 
@@ -877,6 +912,24 @@ const void* RSMarshallingHelper::ReadFromParcel(Parcel& parcel, size_t size)
         return nullptr;
     }
     return ashmemAllocator->CopyFromAshmem(size);
+}
+
+bool RSMarshallingHelper::SkipFromParcel(Parcel& parcel, size_t size)
+{
+    int32_t bufferSize = parcel.ReadInt32();
+    if (static_cast<unsigned int>(bufferSize) != size) {
+        ROSEN_LOGE("RSMarshallingHelper::SkipFromParcel size mismatch");
+        return false;
+    }
+
+    if (static_cast<unsigned int>(bufferSize) <= MIN_DATA_SIZE) {
+        parcel.SkipBytes(size);
+        return true;
+    }
+    // read from ashmem
+    int fd = static_cast<MessageParcel*>(&parcel)->ReadFileDescriptor();
+    auto ashmemAllocator = AshmemAllocator::CreateAshmemAllocatorWithFd(fd, size, PROT_READ);
+    return ashmemAllocator != nullptr;
 }
 } // namespace Rosen
 } // namespace OHOS

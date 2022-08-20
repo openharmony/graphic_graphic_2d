@@ -16,6 +16,7 @@
 #ifndef RENDER_SERVICE_CLIENT_CORE_RENDER_RS_IMAGE_H
 #define RENDER_SERVICE_CLIENT_CORE_RENDER_RS_IMAGE_H
 
+#include <cstdint>
 #include "common/rs_macros.h"
 #include "common/rs_rect.h"
 #include "include/core/SkCanvas.h"
@@ -59,7 +60,7 @@ enum class ImageFit {
 class RSImage {
 public:
     RSImage() = default;
-    ~RSImage() = default;
+    ~RSImage();
 
     bool IsEqual(const RSImage& other) const;
     void CanvasDrawImage(SkCanvas& canvas, const SkRect& rect, const SkPaint& paint, bool isBackground = false);
@@ -89,6 +90,7 @@ private:
     RectF dstRect_;
     RectF frameRect_;
     double scale_ = 1.0;
+    uint64_t uniqueId_;
 };
 
 template<>
