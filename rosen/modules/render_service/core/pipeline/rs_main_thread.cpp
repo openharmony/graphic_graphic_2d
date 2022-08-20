@@ -523,7 +523,6 @@ void RSMainThread::CalcOcclusion()
                 ROSEN_EQ(surface->GetRenderProperties().GetAlpha(), 1.0f)) {
                 curRegion = curSurface.Or(curRegion);
             }
-            CalcDirtyRegion(surface, curSurface);
         } else {
             bool diff = surface->GetDstRect().width_ > surface->GetBuffer()->GetWidth() ||
                         surface->GetDstRect().height_ > surface->GetBuffer()->GetHeight();
@@ -536,66 +535,6 @@ void RSMainThread::CalcOcclusion()
 
     // 3. Callback to WMS
     CallbackToWMS(curVisVec);
-}
-
-const std::shared_ptr<RSDisplayRenderNode> RSMainThread::GetDisplayNode(
-    const std::shared_ptr<RSSurfaceRenderNode> node) const
-{
-    auto parent = node->GetParent().lock();
-    while (parent != nullptr) {
-        if (parent->GetType() == RSRenderNodeType::DISPLAY_NODE) {
-            return RSDisplayRenderNode::ReinterpretCast<RSDisplayRenderNode>(parent);
-        }
-        parent = parent->GetParent().lock();
-    }
-    return nullptr;
-}
-
-void RSMainThread::CalcDirtyRegion(const std::shared_ptr<RSSurfaceRenderNode> surface, Occlusion::Region curSurface)
-{
-    RS_TRACE_FUNC();
-    auto manager = surface->GetDirtyManager();
-    if (manager == nullptr) {
-        RS_LOGW("dirtyManager is nullptr %s", surface->GetName().c_str());
-        return;
-    }
-    auto displayNode = GetDisplayNode(surface);
-    if (displayNode == nullptr) {
-        RS_LOGW("Get display node failed %s", surface->GetName().c_str());
-        return;
-    }
-
-    Occlusion::Region transparentRegion;
-    Occlusion::Region opaqueRegion;
-    const uint8_t opacity = 255;
-    if (surface->GetAbilityBgAlpha() == opacity &&
-        ROSEN_EQ(surface->GetRenderProperties().GetAlpha(), 1.0f)) {
-        opaqueRegion = curSurface;
-    } else {
-        transparentRegion = curSurface;
-    }
-
-    Occlusion::Region& displayOpaqueRegion = displayNode->GetDisplayOpaqueRegion();
-    Occlusion::Region& displayTransparentDirtyRegion = displayNode->GetDisplayTransparentDirtyRegion();
-    Occlusion::Rect dirtyRect { manager->GetDirtyRegion().left_, manager->GetDirtyRegion().top_,
-        manager->GetDirtyRegion().GetRight(), manager->GetDirtyRegion().GetBottom() };
-    Occlusion::Region dirtyRegion { dirtyRect };
-    Occlusion::Region visibleRegion = curSurface.Sub(displayOpaqueRegion);
-    auto clipTransparentDirtyRegion = displayTransparentDirtyRegion.And(curSurface);
-    dirtyRegion = dirtyRegion.Or(clipTransparentDirtyRegion);
-    Occlusion::Region visibleDirtyRegion = visibleRegion.And(dirtyRegion);
-    Occlusion::Region transparentDirtyRegion = transparentRegion.And(visibleDirtyRegion);
-    displayNode->MergeDamageRegion(visibleDirtyRegion);
-    displayTransparentDirtyRegion = displayTransparentDirtyRegion.Or(transparentDirtyRegion);
-    displayTransparentDirtyRegion = displayTransparentDirtyRegion.Sub(opaqueRegion);
-    displayOpaqueRegion = displayOpaqueRegion.Or(opaqueRegion);
-    surface->SetVisibleDirtyRegion(visibleDirtyRegion);
-    RS_LOGD("%s DamageRegion %s visibleDirtyRegion %s displayOpaqueRegion %s displayTransparentDirtyRegion %s",
-        surface->GetName().c_str(),
-        displayNode->GetDamageRegion().GetRegionInfo().c_str(),
-        visibleDirtyRegion.GetRegionInfo().c_str(),
-        displayNode->GetDisplayOpaqueRegion().GetRegionInfo().c_str(),
-        displayNode->GetDisplayTransparentDirtyRegion().GetRegionInfo().c_str());
 }
 
 void RSMainThread::CallbackToWMS(VisibleData& curVisVec)

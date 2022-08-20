@@ -212,11 +212,6 @@ public:
         return rects_.size();
     }
 
-    inline void Reset()
-    {
-        rects_.clear();
-        bound_ = { 0, 0, 0, 0 };
-    }
     // bound of all region rects
     void MakeBound();
     /* core Region logic operation function, the return region's rects is guaranteed no-intersection

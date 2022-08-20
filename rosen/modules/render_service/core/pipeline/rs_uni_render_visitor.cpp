@@ -54,7 +54,7 @@ void RSUniRenderVisitor::PrepareDisplayRenderNode(RSDisplayRenderNode& node)
     currentVisitDisplay_ = node.GetScreenId();
     displayHasSecSurface_.emplace(currentVisitDisplay_, false);
     dirtySurfaceNodeMap_.clear();
-    node.ResetDirtyRegion();
+
     curDisplayDirtyManager_ = node.GetDirtyManager();
     curDisplayDirtyManager_->Clear();
     curDisplayNode_ = node.shared_from_this()->ReinterpretCastTo<RSDisplayRenderNode>();
@@ -298,10 +298,6 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
             node.UpdateDisplayDirtyManager(bufferAge);
             RectI rect = CoordinateTransform(node.GetDirtyManager()->GetDirtyRegion());
             rects.push_back(rect);
-            std::vector<RectI> displayDamageRects = GetDirtyRects(node.GetDamageRegion());
-            rects.insert(rects.end(), displayDamageRects.begin(), displayDamageRects.end());
-            std::vector<RectI> surfaceDamageRects = GetSurfaceTransparentDirtyRects(displayNodePtr);
-            rects.insert(rects.end(), surfaceDamageRects.begin(), surfaceDamageRects.end());
             renderFrame->SetDamageRegion(rects);
         }
 #endif
@@ -347,7 +343,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
 }
 
 #ifdef RS_ENABLE_EGLQUERYSURFACE
-const std::vector<RectI> RSUniRenderVisitor::GetDirtyRects(const Occlusion::Region &region) const
+std::vector<RectI> RSUniRenderVisitor::GetDirtyRects(const Occlusion::Region &region)
 {
     std::vector<Occlusion::Rect> rects = region.GetRegionRects();
     std::vector<RectI> retRects;
@@ -358,23 +354,6 @@ const std::vector<RectI> RSUniRenderVisitor::GetDirtyRects(const Occlusion::Regi
     }
     RS_LOGD("GetDirtyRects size %d", region.GetSize());
     return retRects;
-}
-
-const std::vector<RectI> RSUniRenderVisitor::GetSurfaceTransparentDirtyRects(
-    std::shared_ptr<RSDisplayRenderNode>& node) const
-{
-    std::vector<RSBaseRenderNode::SharedPtr> curAllSurfaces;
-    node->CollectSurface(node, curAllSurfaces, true);
-    std::vector<RectI> allRects;
-    for (auto it = curAllSurfaces.rbegin(); it != curAllSurfaces.rend(); ++it) {
-        auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(*it);
-        if (surfaceNode == nullptr) {
-            continue;
-        }
-        auto rects = GetDirtyRects(surfaceNode->GetVisibleDirtyRegion());
-        allRects.insert(allRects.end(), rects.begin(), rects.end());
-    }
-    return allRects;
 }
 
 RectI RSUniRenderVisitor::CoordinateTransform(const RectI& rect)

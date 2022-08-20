@@ -216,16 +216,6 @@ public:
         }
     }
 
-    void SetVisibleDirtyRegion(const Occlusion::Region& region)
-    {
-        visibleDirtyRegion_ = region;
-    }
-
-    Occlusion::Region& GetVisibleDirtyRegion()
-    {
-        return visibleDirtyRegion_;
-    }
-
     bool GetDstRectChanged() const
     {
         return dstRectChanged_;
@@ -326,7 +316,6 @@ private:
     bool dstRectChanged_ = false;
     uint8_t abilityBgAlpha_ = 0;
     bool abilityBgAlphaChanged_ = false;
-    Occlusion::Region visibleDirtyRegion_;
 };
 } // namespace Rosen
 } // namespace OHOS

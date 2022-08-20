@@ -52,9 +52,8 @@ private:
     void DrawRectOnCanvas(const RectI& dirtyRect, const SkColor color,
         const SkPaint::Style fillType, float alpha);
     void DrawDirtyRegion();
-    const std::vector<RectI> GetDirtyRects(const Occlusion::Region &region) const;
+    std::vector<RectI> GetDirtyRects(const Occlusion::Region &region);
     RectI CoordinateTransform(const RectI& rect);
-    const std::vector<RectI> GetSurfaceTransparentDirtyRects(std::shared_ptr<RSDisplayRenderNode>& node) const;
     inline bool GetSurfaceViewDirtyEnabled()
     {
         return std::atoi((system::GetParameter("rosen.uni.surfaceviewdirty.enabled", "0")).c_str()) != 0;
