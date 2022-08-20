@@ -72,7 +72,7 @@ std::unique_ptr<RSSurfaceFrame> RSSurfaceOhosGl::RequestFrame(int32_t width, int
 
     context->MakeCurrent(mEglSurface);
 
-    ROSEN_LOGI("RSSurfaceOhosGl:RequestFrame, eglsurface is %p, width is %d, height is %d",
+    ROSEN_LOGD("RSSurfaceOhosGl:RequestFrame, eglsurface is %p, width is %d, height is %d",
         mEglSurface, mWidth, mHeight);
 
     frame->SetRenderContext(context);
@@ -100,7 +100,7 @@ bool RSSurfaceOhosGl::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uint64_
 void RSSurfaceOhosGl::ClearBuffer()
 {
     if (context_ != nullptr && mEglSurface != EGL_NO_SURFACE && producer_ != nullptr) {
-        ROSEN_LOGI("RSSurfaceOhosGl: Clear surface buffer!");
+        ROSEN_LOGD("RSSurfaceOhosGl: Clear surface buffer!");
         DestoryNativeWindow(mWindow);
         context_->MakeCurrent(EGL_NO_SURFACE);
         context_->DestroyEGLSurface(mEglSurface);

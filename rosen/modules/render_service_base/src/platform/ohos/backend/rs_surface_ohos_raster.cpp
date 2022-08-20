@@ -78,14 +78,14 @@ bool RSSurfaceOhosRaster::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uin
         ROSEN_LOGE("RSSurfaceOhosRaster::Flushframe Failed, error is : %s", SurfaceErrorStr(err).c_str());
         return false;
     }
-    ROSEN_LOGE("RsDebug RSSurfaceOhosRaster::FlushFrame fence:%d", oriFramePtr->releaseFence_);
+    ROSEN_LOGD("RsDebug RSSurfaceOhosRaster::FlushFrame fence:%d", oriFramePtr->releaseFence_);
     return true;
 }
 
 void RSSurfaceOhosRaster::ClearBuffer()
 {
     if (producer_ != nullptr) {
-        ROSEN_LOGI("RSSurfaceOhosRaster: Clear surface buffer!");
+        ROSEN_LOGD("RSSurfaceOhosRaster: Clear surface buffer!");
         producer_->GoBackground();
     }
 }
