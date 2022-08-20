@@ -70,7 +70,7 @@ void RSUIDirector::Init(bool shouldCreateRenderThread)
 
 void RSUIDirector::GoForeground()
 {
-    ROSEN_LOGI("RSUIDirector::GoForeground");
+    ROSEN_LOGD("RSUIDirector::GoForeground");
     if (!isActive_) {
         RSRenderThread::Instance().UpdateWindowStatus(true);
         isActive_ = true;
@@ -82,7 +82,7 @@ void RSUIDirector::GoForeground()
 
 void RSUIDirector::GoBackground()
 {
-    ROSEN_LOGI("RSUIDirector::GoBackground");
+    ROSEN_LOGD("RSUIDirector::GoBackground");
     if (isActive_) {
         RSRenderThread::Instance().UpdateWindowStatus(false);
         isActive_ = false;

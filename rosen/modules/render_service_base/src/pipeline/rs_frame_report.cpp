@@ -51,7 +51,7 @@ void RsFrameReport::Init()
         ROSEN_LOGE("RsFrameReport:[Init] dlopen libframe_ui_intf.so failed!");
         return;
     }
-    ROSEN_LOGI("RsFrameReport:[Init] dlopen libframe_ui_intf.so success!");
+    ROSEN_LOGD("RsFrameReport:[Init] dlopen libframe_ui_intf.so success!");
 }
 
 bool RsFrameReport::LoadLibrary()
@@ -75,7 +75,7 @@ void RsFrameReport::CloseLibrary()
     }
     frameSchedHandle_ = nullptr;
     frameSchedSoLoaded_ = false;
-    ROSEN_LOGI("RsFrameReport:[CloseLibrary]libframe_ui_intf.so close success!\n");
+    ROSEN_LOGD("RsFrameReport:[CloseLibrary]libframe_ui_intf.so close success!\n");
 }
 
 void *RsFrameReport::LoadSymbol(const char *symName)
