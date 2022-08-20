@@ -410,7 +410,9 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
         RS_LOGE("RSUniRenderVisitor::ProcessSurfaceRenderNode node:%" PRIu64 ", get geoPtr failed", node.GetId());
         return;
     }
-    RS_TRACE_NAME("RSUniRender::Process:" + node.GetName());
+    auto& dstRect = node.GetDstRect();
+    RS_TRACE_NAME("RSUniRender::Process:" + node.GetName() + "_" + std::to_string(dstRect.left_) + " " +
+        std::to_string(dstRect.top_) + " " + std::to_string(dstRect.width_) + " " + std::to_string(dstRect.height_));
     canvas_->save();
     canvas_->SaveAlpha();
 
