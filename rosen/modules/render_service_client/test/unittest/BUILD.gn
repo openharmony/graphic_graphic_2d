@@ -21,7 +21,7 @@ group("unittest") {
   deps = [
     ":RSDisplayModeTest",
     ":RSDropframeTest",
-    ":RSEVENTTest",
+    ":RSEventTest",
     ":RSTunnelHandleTest",
   ]
 }
@@ -55,7 +55,7 @@ ohos_unittest("RSTunnelHandleTest") {
 }
 
 ## Build RSEventTest
-ohos_unittest("RSEVENTTest") {
+ohos_unittest("RSEventTest") {
   module_out_path = module_out_path
   sources = [ "rs_event_test.cpp" ]
   deps = [ ":rs_client_test_common" ]
