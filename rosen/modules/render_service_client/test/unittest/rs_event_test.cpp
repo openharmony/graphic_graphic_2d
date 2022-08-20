@@ -62,7 +62,7 @@ HWTEST_F(RSEventTest, CreateAndDestroy002, Function | SmallTest | Level2)
 {
     // The best way to create RSDetector.
     auto d = RSBaseEventDetector::CreateRSTimeOutDetector(2000, "RS_EVENT_TEST");
-    // Verify string id 
+    // Verify string id
     EXPECT_EQ(d->GetStringId(), "RS_EVENT_TEST");
 }
 } // namespace OHOS::Rosen
