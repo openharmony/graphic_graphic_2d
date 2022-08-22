@@ -24,6 +24,7 @@ ohos_unittest("RSRenderServiceCommonPipelineTest") {
     "rs_drop_frame_processor_test.cpp",
     "rs_physical_screen_processor_test.cpp",
     "rs_processor_factory_test.cpp",
+    "rs_render_engine_test.cpp",
     "rs_render_service_listener_test.cpp",
     "rs_render_service_visitor_test.cpp",
     "rs_virtual_screen_processor_test.cpp",

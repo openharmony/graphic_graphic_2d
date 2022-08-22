@@ -143,6 +143,10 @@ public:
 
     void ShrinkCachesIfNeeded();
     void SetColorFilterMode(ColorFilterMode mode);
+    ColorFilterMode GetColorFilterMode() const
+    {
+        return colorFilterMode_;
+    }
 #ifdef RS_ENABLE_GL
     const std::shared_ptr<RenderContext>& GetRenderContext() const
     {
