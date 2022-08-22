@@ -331,6 +331,7 @@ HWTEST_F(HdiLayerInfoTest, TunnelHandleChange001, Function | MediumTest | Level1
 * Rank: Important(1)
 * EnvConditions: N/A
 * CaseDescription: 1. call GetTunnelHandle with default
+* @tc.require: issueI5GMZN issueI5IWHW
  */
 HWTEST_F(HdiLayerInfoTest, TunnelHandle001, Function | MediumTest | Level1)
 {
@@ -345,6 +346,7 @@ HWTEST_F(HdiLayerInfoTest, TunnelHandle001, Function | MediumTest | Level1)
 * EnvConditions: N/A
 * CaseDescription: 1. call SetTunnelHandle
 *                  2. call GetTunnelHandle and check ret
+* @tc.require: issueI5GMZN issueI5IWHW
  */
 HWTEST_F(HdiLayerInfoTest, TunnelHandle002, Function | MediumTest | Level1)
 {
@@ -375,6 +377,7 @@ HWTEST_F(HdiLayerInfoTest, TunnelHandle002, Function | MediumTest | Level1)
 * Rank: Important(1)
 * EnvConditions: N/A
 * CaseDescription: 1. call GetColorTransform with default
+* @tc.require: issueI5H317
  */
 HWTEST_F(HdiLayerInfoTest, ColorTransform001, Function | MediumTest | Level1)
 {
@@ -389,6 +392,7 @@ HWTEST_F(HdiLayerInfoTest, ColorTransform001, Function | MediumTest | Level1)
 * EnvConditions: N/A
 * CaseDescription: 1. call SetColorTransform
 *                  2. call GetColorTransform and check ret
+* @tc.require: issueI5H317
  */
 HWTEST_F(HdiLayerInfoTest, ColorTransform002, Function | MediumTest | Level1)
 {
@@ -404,6 +408,7 @@ HWTEST_F(HdiLayerInfoTest, ColorTransform002, Function | MediumTest | Level1)
 * Rank: Important(1)
 * EnvConditions: N/A
 * CaseDescription: 1. call GetColorDataSpace with default
+* @tc.require: issueI5H317
  */
 HWTEST_F(HdiLayerInfoTest, ColorDataSpace001, Function | MediumTest | Level1)
 {
@@ -418,6 +423,7 @@ HWTEST_F(HdiLayerInfoTest, ColorDataSpace001, Function | MediumTest | Level1)
 * EnvConditions: N/A
 * CaseDescription: 1. call SetColorDataSpace
 *                  2. call GetColorDataSpace and check ret
+* @tc.require: issueI5H317
  */
 HWTEST_F(HdiLayerInfoTest, ColorDataSpace002, Function | MediumTest | Level1)
 {
@@ -434,6 +440,7 @@ HWTEST_F(HdiLayerInfoTest, ColorDataSpace002, Function | MediumTest | Level1)
 * EnvConditions: N/A
 * CaseDescription: 1. call SetMetaData
 *                  2. call GetMetaData and check ret
+* @tc.require: issueI5H317
  */
 HWTEST_F(HdiLayerInfoTest, MetaData001, Function | MediumTest | Level1)
 {
@@ -451,6 +458,7 @@ HWTEST_F(HdiLayerInfoTest, MetaData001, Function | MediumTest | Level1)
 * EnvConditions: N/A
 * CaseDescription: 1. call SetMetaDataSet
 *                  2. call GetMetaDataSet and check ret
+* @tc.require: issueI5H317
  */
 HWTEST_F(HdiLayerInfoTest, MetaDataSet001, Function | MediumTest | Level1)
 {
@@ -469,6 +477,7 @@ HWTEST_F(HdiLayerInfoTest, MetaDataSet001, Function | MediumTest | Level1)
 * Rank: Important(1)
 * EnvConditions: N/A
 * CaseDescription: 1. call IsSupportedPresentTimestamp with default
+* @tc.require: issueI5I57K
  */
 HWTEST_F(HdiLayerInfoTest, IsSupportedPresentTimestamp001, Function | MediumTest | Level1)
 {
@@ -483,6 +492,7 @@ HWTEST_F(HdiLayerInfoTest, IsSupportedPresentTimestamp001, Function | MediumTest
 * EnvConditions: N/A
 * CaseDescription: 1. call SetIsSupportedPresentTimestamp
 *                  2. call IsSupportedPresentTimestamp and check ret
+* @tc.require: issueI5I57K
  */
 HWTEST_F(HdiLayerInfoTest, IsSupportedPresentTimestamp002, Function | MediumTest | Level1)
 {
@@ -500,6 +510,7 @@ HWTEST_F(HdiLayerInfoTest, IsSupportedPresentTimestamp002, Function | MediumTest
 * Rank: Important(1)
 * EnvConditions: N/A
 * CaseDescription: 1. call GetPresentTimestamp with default
+* @tc.require: issueI5I57K
  */
 HWTEST_F(HdiLayerInfoTest, PresentTimestamp001, Function | MediumTest | Level1)
 {
@@ -515,6 +526,7 @@ HWTEST_F(HdiLayerInfoTest, PresentTimestamp001, Function | MediumTest | Level1)
 * EnvConditions: N/A
 * CaseDescription: 1. call SetPresentTimestamp
 *                  2. call GetPresentTimestamp and check ret
+* @tc.require: issueI5I57K
  */
 HWTEST_F(HdiLayerInfoTest, PresentTimestamp002, Function | MediumTest | Level1)
 {
@@ -532,6 +544,7 @@ HWTEST_F(HdiLayerInfoTest, PresentTimestamp002, Function | MediumTest | Level1)
 * EnvConditions: N/A
 * CaseDescription: 1. call SetPresentTimestamp
 *                  2. call GetPresentTimestamp and check ret
+* @tc.require: issueI5I57K
  */
 HWTEST_F(HdiLayerInfoTest, PresentTimestamp003, Function | MediumTest | Level1)
 {

@@ -699,6 +699,7 @@ HWTEST_F(ProducerSurfaceTest, QueryMetaDataType001, Function | MediumTest | Leve
 * Rank: Important(2)
 * EnvConditions: N/A
 * CaseDescription: 1. call GetTunnelhandle and check ret
+* @tc.require: issueI5GMZN issueI5IWHW
  */
 HWTEST_F(ProducerSurfaceTest, tunnelHandle001, Function | MediumTest | Level2)
 {
@@ -746,6 +747,7 @@ HWTEST_F(ProducerSurfaceTest, disconnect001, Function | MediumTest | Level1)
 * Rank: Important(2)
 * EnvConditions: N/A
 * CaseDescription: 1. call SetPresentTimestamp and check ret
+* @tc.require: issueI5I57K
  */
 HWTEST_F(ProducerSurfaceTest, presentTimestamp001, Function | MediumTest | Level2)
 {
@@ -762,6 +764,7 @@ HWTEST_F(ProducerSurfaceTest, presentTimestamp001, Function | MediumTest | Level
 * Rank: Important(2)
 * EnvConditions: N/A
 * CaseDescription: 1. call GetPresentTimestamp with normal parameters and check ret
+* @tc.require: issueI5I57K
  */
 HWTEST_F(ProducerSurfaceTest, presentTimestamp002, Function | MediumTest | Level2)
 {
@@ -779,6 +782,7 @@ HWTEST_F(ProducerSurfaceTest, presentTimestamp002, Function | MediumTest | Level
 * Rank: Important(2)
 * EnvConditions: N/A
 * CaseDescription: 1. call SetPresentTimestamp with normal parameters and check ret
+* @tc.require: issueI5I57K
  */
 HWTEST_F(ProducerSurfaceTest, presentTimestamp003, Function | MediumTest | Level2)
 {
@@ -794,6 +798,7 @@ HWTEST_F(ProducerSurfaceTest, presentTimestamp003, Function | MediumTest | Level
 * Rank: Important(1)
 * EnvConditions: N/A
 * CaseDescription: 1. call SetPresentTimestamp and check ret
+* @tc.require: issueI5I57K
  */
 HWTEST_F(ProducerSurfaceTest, presentTimestamp004, Function | MediumTest | Level1)
 {
