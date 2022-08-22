@@ -102,6 +102,7 @@ public:
 
     GSError CleanCache();
     GSError GoBackground();
+    GSError OnConsumerDied();
 
     uint64_t GetUniqueId() const;
 
