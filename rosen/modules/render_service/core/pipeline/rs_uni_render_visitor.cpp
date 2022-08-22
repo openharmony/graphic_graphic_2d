@@ -389,9 +389,6 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
         RS_LOGE("RSUniRenderVisitor::ProcessSurfaceRenderNode node:%" PRIu64 ", get geoPtr failed", node.GetId());
         return;
     }
-    auto& dstRect = node.GetDstRect();
-    RS_TRACE_NAME("RSUniRender::Process:" + node.GetName() + "_" + std::to_string(dstRect.left_) + " " +
-        std::to_string(dstRect.top_) + " " + std::to_string(dstRect.width_) + " " + std::to_string(dstRect.height_));
     canvas_->save();
     canvas_->SaveAlpha();
 
@@ -413,6 +410,13 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
     canvas_->save();
     auto transitionProperties = node.GetAnimationManager().GetTransitionProperties();
     RSPropertiesPainter::DrawTransitionProperties(transitionProperties, property, *canvas_);
+
+    const RectI dstRect = {
+        canvas_->getTotalMatrix().getTranslateX(), canvas_->getTotalMatrix().getTranslateY(),
+        property.GetBoundsWidth() * canvas_->getTotalMatrix().getScaleX(),
+        property.GetBoundsHeight() * canvas_->getTotalMatrix().getScaleY()};
+    RS_TRACE_NAME("RSUniRender::Process:[" + node.GetName() + "]_" + dstRect.ToString());
+
     boundsRect_ = SkRect::MakeWH(property.GetBoundsWidth(), property.GetBoundsHeight());
     frameGravity_ = property.GetFrameGravity();
     if (!property.GetCornerRadius().IsZero()) {

@@ -158,6 +158,11 @@ public:
     {
         return RectT<P>(static_cast<P>(left_), static_cast<P>(top_), static_cast<P>(width_), static_cast<P>(height_));
     }
+    std::string ToString() const
+    {
+        return std::string("(") + std::to_string(left_) + ", " + std::to_string(top_) + ", " +
+            std::to_string(width_) + ", " + std::to_string(height_) + ")";
+    }
 };
 
 typedef RectT<int> RectI;
