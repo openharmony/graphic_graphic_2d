@@ -199,6 +199,11 @@ void RSRenderEngine::DrawLayers(
                 canvas.restoreToCount(saveCount);
                 continue;
             }
+            RS_LOGD("RSRenderEngine::DrawLayers Name:%s dstRect[%d %d %d %d] SrcRect[%d %d %d %d]",
+                layer->GetLayerSize().x, layer->GetLayerSize().y,
+                layer->GetLayerSize().w, layer->GetLayerSize().h,
+                layer->GetDirtyRegion().x, layer->GetDirtyRegion().y,
+                layer->GetDirtyRegion().w, layer->GetDirtyRegion().h);
             DrawSurfaceNode(canvas, node, mirrorAdaptiveCoefficient, forceCPU);
         } else if (nodePtr->IsInstanceOf<RSDisplayRenderNode>()) {
             // In uniRender mode, maybe need to handle displayNode.
