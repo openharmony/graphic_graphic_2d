@@ -405,7 +405,7 @@ bool RSRenderServiceClient::UnregisterBufferAvailableListener(NodeId id)
     if (iter != bufferAvailableCbRTMap_.end()) {
         bufferAvailableCbRTMap_.erase(iter);
     } else {
-        ROSEN_LOGI("RSRenderServiceClient::UnregisterBufferAvailableListener "
+        ROSEN_LOGD("RSRenderServiceClient::UnregisterBufferAvailableListener "
                    "Node %" PRIu64 " has not registered RT callback",
             id);
     }
@@ -413,7 +413,7 @@ bool RSRenderServiceClient::UnregisterBufferAvailableListener(NodeId id)
     if (iter != bufferAvailableCbUIMap_.end()) {
         bufferAvailableCbUIMap_.erase(iter);
     } else {
-        ROSEN_LOGI("RSRenderServiceClient::UnregisterBufferAvailableListener "
+        ROSEN_LOGD("RSRenderServiceClient::UnregisterBufferAvailableListener "
                    "Node %" PRIu64 " has not registered UI callback",
             id);
     }
