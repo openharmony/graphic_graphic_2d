@@ -13,9 +13,7 @@
  * limitations under the License.
  */
 
-#include "rs_overdraw_controller.h"
-
-#include <cstring>
+#include "overdraw/rs_overdraw_controller.h"
 
 #include <hilog/log.h>
 #include <parameter.h>

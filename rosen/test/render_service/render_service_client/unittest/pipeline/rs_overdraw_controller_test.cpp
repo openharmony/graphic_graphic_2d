@@ -17,8 +17,8 @@
 #include <gtest/gtest.h>
 #include <test_header.h>
 
-#include "pipeline/overdraw/rs_canvas_listener.h"
-#include "pipeline/overdraw/rs_overdraw_controller.h"
+#include "overdraw/rs_canvas_listener.h"
+#include "overdraw/rs_overdraw_controller.h"
 
 using namespace testing;
 using namespace testing::ext;

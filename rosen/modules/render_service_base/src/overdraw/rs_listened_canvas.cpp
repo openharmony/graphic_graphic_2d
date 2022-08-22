@@ -13,9 +13,8 @@
  * limitations under the License.
  */
 
-#include "rs_listened_canvas.h"
-
-#include "rs_canvas_listener.h"
+#include "overdraw/rs_listened_canvas.h"
+#include "overdraw/rs_canvas_listener.h"
 
 namespace OHOS {
 namespace Rosen {

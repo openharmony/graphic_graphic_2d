@@ -139,6 +139,12 @@ ohos_shared_library("librender_service_base") {
     "src/screen_manager/rs_screen_mode_info.cpp",
     "src/screen_manager/rs_screen_props.cpp",
     "src/screen_manager/rs_virtual_screen_resolution.cpp",
+
+    #overdraw
+    "src/overdraw/rs_cpu_overdraw_canvas_listener.cpp",
+    "src/overdraw/rs_gpu_overdraw_canvas_listener.cpp",
+    "src/overdraw/rs_listened_canvas.cpp",
+    "src/overdraw/rs_overdraw_controller.cpp",
   ]
 
   include_dirs = [

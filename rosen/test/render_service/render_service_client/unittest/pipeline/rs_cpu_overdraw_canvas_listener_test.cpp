@@ -19,8 +19,8 @@
 #include <include/core/SkRRect.h>
 #include <test_header.h>
 
-#include "pipeline/overdraw/rs_cpu_overdraw_canvas_listener.h"
-#include "pipeline/overdraw/rs_listened_canvas.h"
+#include "overdraw/rs_cpu_overdraw_canvas_listener.h"
+#include "overdraw/rs_listened_canvas.h"
 
 using namespace testing;
 using namespace testing::ext;

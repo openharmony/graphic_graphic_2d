@@ -25,7 +25,7 @@ ohos_unittest("overdraw_test") {
   ]
 
   deps = [
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:librender_service_client",
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:librender_service_base",
     "//foundation/graphic/graphic_2d/utils/test_header:test_header",
     "//third_party/flutter/build/skia:ace_skia_ohos",
     "//third_party/googletest:gmock",
