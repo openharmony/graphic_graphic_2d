@@ -199,4 +199,12 @@ GSError BufferQueueConsumer::OnConsumerDied()
     }
     return bufferQueue_->CleanCache();
 }
+
+GSError BufferQueueConsumer::GoBackground()
+{
+    if (bufferQueue_ == nullptr) {
+        return GSERROR_INVALID_ARGUMENTS;
+    }
+    return bufferQueue_->GoBackground();
+}
 } // namespace OHOS
