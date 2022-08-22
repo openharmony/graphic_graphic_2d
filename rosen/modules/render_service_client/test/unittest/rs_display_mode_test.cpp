@@ -43,6 +43,7 @@ void RSDisplayModeTest::TearDown() {}
  * @tc.name: CreateExpand
  * @tc.desc: Create expand display node
  * @tc.type:FUNC
+ * @tc.require: issueI5CAAF
  */
 HWTEST_F(RSDisplayModeTest, CreateExpand, Function | MediumTest  | Level2)
 {
@@ -72,6 +73,7 @@ HWTEST_F(RSDisplayModeTest, CreateExpand, Function | MediumTest  | Level2)
  * @tc.name: CreateMirror
  * @tc.desc: Create mirror display node
  * @tc.type:FUNC
+ * @tc.require: issueI5CAAF
  */
 HWTEST_F(RSDisplayModeTest, CreateMirror, Function | MediumTest  | Level2)
 {
@@ -106,6 +108,7 @@ HWTEST_F(RSDisplayModeTest, CreateMirror, Function | MediumTest  | Level2)
  * @tc.name: SetDisplayNodeMirrorConfigExpand
  * @tc.desc: Modify display mode type to expand display
  * @tc.type:FUNC
+ * @tc.require: issueI5CAAF
  */
 HWTEST_F(RSDisplayModeTest, SetDisplayNodeMirrorConfigExpand, Function | MediumTest  | Level2)
 {
@@ -147,6 +150,7 @@ HWTEST_F(RSDisplayModeTest, SetDisplayNodeMirrorConfigExpand, Function | MediumT
  * @tc.name: SetDisplayNodeMirrorConfigMirror
  * @tc.desc: Modify display mode type to mirror display
  * @tc.type:FUNC
+ * @tc.require: issueI5CAAF
  */
 HWTEST_F(RSDisplayModeTest, SetDisplayNodeMirrorConfigMirror, Function | MediumTest  | Level2)
 {
