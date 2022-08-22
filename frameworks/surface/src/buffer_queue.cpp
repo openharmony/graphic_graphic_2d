@@ -833,6 +833,14 @@ GSError BufferQueue::CleanCache()
     return GSERROR_OK;
 }
 
+GSError BufferQueue::OnConsumerDied()
+{
+    std::lock_guard<std::mutex> lockGuard(mutex_);
+    ClearLocked();
+    waitReqCon_.notify_all();
+    return GSERROR_OK;
+}
+
 uint64_t BufferQueue::GetUniqueId() const
 {
     return uniqueId_;
