@@ -39,6 +39,7 @@ public:
 protected:
     void AttachRSSurfaceNode(std::shared_ptr<RSSurfaceNode> surfaceNode) const;
     void SetEnableRender(bool flag) const;
+    void OnBoundsSizeChanged() const override;
 
     RSRootNode(bool isRenderServiceNode);
     RSRootNode(const RSRootNode&) = delete;
