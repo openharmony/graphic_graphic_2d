@@ -107,7 +107,7 @@ int32_t SyncFence::Wait(uint32_t timeout)
 {
     int retCode = -1;
     if (fenceFd_ < 0) {
-        HiLog::Error(LABEL, "The fence id is invalid.");
+        HiLog::Debug(LABEL, "The fence id is invalid.");
         return retCode;
     }
 
