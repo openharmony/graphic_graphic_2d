@@ -60,7 +60,12 @@ ohos_source_set("rosen_ohos_sources") {
       "backend/rs_surface_ohos_gl.cpp",
     ]
 
-    sources += [ "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics/src/render_context/render_context.cpp" ]
+    sources += [
+      "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics/src/render_context/cache_data.cpp",
+      "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics/src/render_context/memory_handler.cpp",
+      "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics/src/render_context/render_context.cpp",
+      "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics/src/render_context/shader_cache.cpp",
+    ]
   }
 
   include_dirs = [
@@ -84,7 +89,12 @@ ohos_source_set("rosen_ohos_sources") {
   ]
 
   if (ace_enable_gpu) {
-    public_deps += [ "//foundation/graphic/graphic_2d:libgl" ]
+    include_dirs += [ "//third_party/openssl/include" ]
+
+    public_deps += [
+      "//foundation/graphic/graphic_2d:libgl",
+      "//third_party/openssl:crypto_source",
+    ]
   }
 
   external_deps = [

@@ -92,7 +92,8 @@ RenderContext::RenderContext()
       eglDisplay_(EGL_NO_DISPLAY),
       eglContext_(EGL_NO_CONTEXT),
       eglSurface_(EGL_NO_SURFACE),
-      config_(nullptr)
+      config_(nullptr),
+      mHandler_(nullptr)
 {}
 
 RenderContext::~RenderContext()
@@ -110,6 +111,7 @@ RenderContext::~RenderContext()
     eglSurface_ = EGL_NO_SURFACE;
     grContext_ = nullptr;
     skSurface_ = nullptr;
+    mHandler_ = nullptr;
 }
 
 void RenderContext::InitializeEglContext()
@@ -233,6 +235,13 @@ bool RenderContext::SetUpGrContext()
     options.fGpuPathRenderers &= ~GpuPathRenderers::kCoverageCounting;
     options.fPreferExternalImagesOverES3 = true;
     options.fDisableDistanceFieldPaths = true;
+
+    mHandler_ = new MemoryHandler();
+    if (mHandler_ != nullptr) {
+        auto glesVersion = reinterpret_cast<const char*>(glGetString(GL_VERSION));
+        auto size = glesVersion ? strlen(glesVersion) : -1;
+        mHandler_->configureContext(&options, glesVersion, size, cacheDir_);
+    }
 
     sk_sp<GrContext> grContext(GrContext::MakeGL(std::move(glInterface), options));
     if (grContext == nullptr) {

@@ -27,6 +27,7 @@
 #include "include/gpu/GrBackendSurface.h"
 #include "include/gpu/GrContext.h"
 #include "include/gpu/gl/GrGLInterface.h"
+#include "memory_handler.h"
 #include "surface_type.h"
 
 #define GLES_VERSION 2
@@ -83,6 +84,16 @@ public:
         return eglContext_ != EGL_NO_DISPLAY;
     }
 
+    MemoryHandler& mHandler()
+    {
+        return *mHandler_;
+    }
+
+    void SetCacheDir(const std::string& filePath)
+    {
+        cacheDir_ = filePath;
+    }
+
 private:
     sk_sp<GrContext> grContext_;
     sk_sp<SkSurface> skSurface_;
@@ -94,6 +105,9 @@ private:
     EGLSurface eglSurface_ = EGL_NO_SURFACE;
     EGLConfig config_;
     ColorGamut colorSpace_ = ColorGamut::COLOR_GAMUT_SRGB;
+
+    std::string cacheDir_;
+    MemoryHandler* mHandler_;
 };
 
 class RenderContextFactory {

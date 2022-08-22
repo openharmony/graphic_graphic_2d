@@ -202,6 +202,9 @@ void RSRenderThread::RenderLoop()
 #endif
 #ifdef ACE_ENABLE_GL
     renderContext_->InitializeEglContext(); // init egl context on RT
+    if (!cacheDir_.empty()) {
+        renderContext_->SetCacheDir(cacheDir_);
+    }
 #endif
     std::string name = "RSRenderThread_" + std::to_string(::getpid());
     runner_ = AppExecFwk::EventRunner::Create(false);

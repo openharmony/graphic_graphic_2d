@@ -44,6 +44,7 @@ public:
     void SendMessages(); // post messages to render thread
 
     void SetTimeStamp(uint64_t timeStamp, const std::string& abilityName);
+    void SetCacheDir(const std::string& cacheFilePath);
 
     bool RunningCustomAnimation(uint64_t timeStamp);
 
@@ -70,6 +71,7 @@ private:
     std::weak_ptr<RSSurfaceNode> surfaceNode_;
     int surfaceWidth_ = 0;
     int surfaceHeight_ = 0;
+    std::string cacheDir_;
 
     friend class RSRenderThread;
     friend class RSApplicationAgentImpl;
