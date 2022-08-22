@@ -118,6 +118,10 @@ public:
     {
         buffer_.Reset();
         preBuffer_.Reset();
+    }
+
+    void ResetBufferAvailableCount()
+    {
         bufferAvailableCount_ = 0;
     }
 
