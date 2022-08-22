@@ -81,6 +81,10 @@ public:
     {
         return isHighContrastEnabled_;
     }
+    void SetCacheDir(const std::string& filePath)
+    {
+        cacheDir_ = filePath;
+    }
 
 private:
     RSRenderThread();
@@ -134,6 +138,8 @@ private:
     RenderContext* renderContext_ = nullptr;
     std::shared_ptr<HighContrastObserver> highContrastObserver_;
     std::atomic_bool isHighContrastEnabled_ = false;
+
+    std::string cacheDir_;
 };
 } // namespace Rosen
 } // namespace OHOS
