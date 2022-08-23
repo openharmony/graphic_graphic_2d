@@ -260,7 +260,11 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
     uiTimestamp_ = RSRenderThread::Instance().GetUITimestamp();
     RS_TRACE_BEGIN("rsSurface->RequestFrame");
     FrameCollector::GetInstance().MarkFrameEvent(FrameEventType::ReleaseStart);
-    auto surfaceFrame = rsSurface->RequestFrame(node.GetSurfaceWidth(), node.GetSurfaceHeight(), uiTimestamp_);
+
+    const auto& property = node.GetRenderProperties();
+    const float surfaceWidth = node.GetSurfaceWidth() * property.GetScaleX();
+    const float surfaceHeight = node.GetSurfaceHeight() * property.GetScaleY();
+    auto surfaceFrame = rsSurface->RequestFrame(surfaceWidth, surfaceHeight, uiTimestamp_);
     RS_TRACE_END();
     if (surfaceFrame == nullptr) {
         ROSEN_LOGI("ProcessRoot %s: Request Frame Failed", ptr->GetName().c_str());
@@ -313,7 +317,7 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
 #endif
     currentDirtyRegion_ = curDirtyManager_->GetDirtyRegion();
 
-    canvas_->clipRect(SkRect::MakeWH(node.GetSurfaceWidth(), node.GetSurfaceHeight()));
+    canvas_->clipRect(SkRect::MakeWH(surfaceWidth, surfaceHeight));
     canvas_->clear(SK_ColorTRANSPARENT);
     isIdle_ = false;
 
@@ -321,7 +325,13 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
     childSurfaceNodeIds_.clear();
 
     // reset matrix
-    parentSurfaceNodeMatrix_ = SkMatrix::I();
+    const float rootWidth = property.GetFrameWidth() * property.GetScaleX();
+    const float rootHeight = property.GetFrameHeight() * property.GetScaleY();
+    SkMatrix gravityMatrix;
+    (void)RSPropertiesPainter::GetGravityMatrix(
+        Gravity::RESIZE, RectF { 0.0f, 0.0f, surfaceWidth, surfaceHeight }, rootWidth, rootHeight, gravityMatrix);
+    canvas_->concat(gravityMatrix);
+    parentSurfaceNodeMatrix_ = gravityMatrix;
 
     RS_TRACE_BEGIN("ProcessRenderNodes");
     ProcessCanvasRenderNode(node);

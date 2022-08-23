@@ -43,7 +43,7 @@ public:
     const std::shared_ptr<RSRenderAnimation> GetAnimation(AnimationId id) const;
     void ClearAnimation();
     void FilterAnimationByPid(pid_t pid);
-    
+
     bool Animate(int64_t time);
 
     // transition related
