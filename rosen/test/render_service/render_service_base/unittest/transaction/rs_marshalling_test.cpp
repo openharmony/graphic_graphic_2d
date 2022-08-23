@@ -71,8 +71,8 @@ static void TestNullptrObjectSerialization(T& testObj)
 static void TestSkDataSerialization(size_t size)
 {
     /**
-    * @tc.steps: step1. create SkData with size
-    */
+     * @tc.steps: step1. create SkData with size
+     */
     sk_sp<SkData> skData;
     if (size == 0) {
         skData = SkData::MakeEmpty();
@@ -82,14 +82,14 @@ static void TestSkDataSerialization(size_t size)
     }
 
     /**
-    * @tc.steps: step2. serialize SkData
-    */
+     * @tc.steps: step2. serialize SkData
+     */
     MessageParcel parcel;
     ASSERT_TRUE(RSMarshallingHelper::Marshalling(parcel, skData));
 
     /**
-    * @tc.steps: step3. deserialize SkData
-    */
+     * @tc.steps: step3. deserialize SkData
+     */
     sk_sp<SkData> skDataUnmarshal;
     ASSERT_TRUE(RSMarshallingHelper::Unmarshalling(parcel, skDataUnmarshal));
     ASSERT_TRUE(skDataUnmarshal != nullptr);
@@ -152,6 +152,7 @@ static SkPath CreateSkPath()
  * @tc.name: NullptrObjectSerialization001
  * @tc.desc: test results of serialization and deserialization of nullptr object
  * @tc.type:FUNC
+ * @tc.require: issueI54AGD
  */
 HWTEST_F(RSMarshallingTest, NullptrObjectSerialization001, Function | MediumTest | Level2)
 {
@@ -199,45 +200,49 @@ HWTEST_F(RSMarshallingTest, NullptrObjectSerialization001, Function | MediumTest
 }
 
 /**
-* @tc.name: SkDataSerialization001
-* @tc.desc: test results of serialization and deserialization of empty SkData
-* @tc.type:FUNC
-*/
+ * @tc.name: SkDataSerialization001
+ * @tc.desc: test results of serialization and deserialization of empty SkData
+ * @tc.type:FUNC
+ * @tc.require: issueI54AGD
+ */
 HWTEST_F(RSMarshallingTest, SkDataSerialization001, Function | MediumTest | Level2)
 {
     TestSkDataSerialization(0);
 }
 
 /**
-* @tc.name: SkDataSerialization002
-* @tc.desc: test results of serialization and deserialization of SkData with small size
-* @tc.type:FUNC
-*/
+ * @tc.name: SkDataSerialization002
+ * @tc.desc: test results of serialization and deserialization of SkData with small size
+ * @tc.type:FUNC
+ * @tc.require: issueI54AGD
+ */
 HWTEST_F(RSMarshallingTest, SkDataSerialization002, Function | MediumTest | Level2)
 {
     TestSkDataSerialization(1024 * 2); // 2kb
 }
 
 /**
-* @tc.name: SkDataSerialization003
-* @tc.desc: test results of serialization and deserialization of SkData using Ashmem
-* @tc.type:FUNC
-*/
+ * @tc.name: SkDataSerialization003
+ * @tc.desc: test results of serialization and deserialization of SkData using Ashmem
+ * @tc.type:FUNC
+ * @tc.require: issueI54AGD
+ */
 HWTEST_F(RSMarshallingTest, SkDataSerialization003, Function | MediumTest | Level2)
 {
     TestSkDataSerialization(1024 * 9); // 9kb
 }
 
 /**
-* @tc.name: SkTextBlobSerialization001
-* @tc.desc: test results of serialization and deserialization of SkTextBlob
-* @tc.type:FUNC
-*/
+ * @tc.name: SkTextBlobSerialization001
+ * @tc.desc: test results of serialization and deserialization of SkTextBlob
+ * @tc.type:FUNC
+ * @tc.require: issueI54AGD
+ */
 HWTEST_F(RSMarshallingTest, SkTextBlobSerialization001, Function | MediumTest | Level2)
 {
     /**
-    * @tc.steps: step1. create SkTextBlob with SkTypeface
-    */
+     * @tc.steps: step1. create SkTextBlob with SkTypeface
+     */
     sk_sp<SkTypeface> tf = SkTypeface::MakeFromName(nullptr, SkFontStyle::BoldItalic());
     SkFont font;
     font.setSize(16);
@@ -245,14 +250,14 @@ HWTEST_F(RSMarshallingTest, SkTextBlobSerialization001, Function | MediumTest | 
     sk_sp<SkTextBlob> textBlob = SkTextBlob::MakeFromString("TextBlob", font);
 
     /**
-    * @tc.steps: step2. serialize SkTextBlob
-    */
+     * @tc.steps: step2. serialize SkTextBlob
+     */
     MessageParcel parcel;
     ASSERT_TRUE(RSMarshallingHelper::Marshalling(parcel, textBlob));
 
     /**
-    * @tc.steps: step3. deserialize SkTextBlob
-    */
+     * @tc.steps: step3. deserialize SkTextBlob
+     */
     sk_sp<SkTextBlob> textBlobUnmarshal;
     ASSERT_TRUE(RSMarshallingHelper::Unmarshalling(parcel, textBlobUnmarshal));
     ASSERT_TRUE(textBlobUnmarshal != nullptr);
@@ -260,29 +265,30 @@ HWTEST_F(RSMarshallingTest, SkTextBlobSerialization001, Function | MediumTest | 
 }
 
 /**
-* @tc.name: SkPaintSerialization001
-* @tc.desc: test results of serialization and deserialization of SkPaint
-* @tc.type:FUNC
-*/
+ * @tc.name: SkPaintSerialization001
+ * @tc.desc: test results of serialization and deserialization of SkPaint
+ * @tc.type:FUNC
+ * @tc.require: issueI54AGD
+ */
 HWTEST_F(RSMarshallingTest, SkPaintSerialization001, Function | MediumTest | Level2)
 {
     /**
-    * @tc.steps: step1. create SkPaint with params
-    */
+     * @tc.steps: step1. create SkPaint with params
+     */
     SkPaint paint;
     paint.setColor(0x00AABBCC);
     paint.setBlendMode(SkBlendMode::kModulate);
     paint.setStrokeWidth(10);
 
     /**
-    * @tc.steps: step2. serialize SkPaint
-    */
+     * @tc.steps: step2. serialize SkPaint
+     */
     MessageParcel parcel;
     ASSERT_TRUE(RSMarshallingHelper::Marshalling(parcel, paint));
 
     /**
-    * @tc.steps: step3. deserialize SkPaint
-    */
+     * @tc.steps: step3. deserialize SkPaint
+     */
     SkPaint paintUnmarshal;
     ASSERT_TRUE(RSMarshallingHelper::Unmarshalling(parcel, paintUnmarshal));
     ASSERT_EQ(paintUnmarshal.getColor(), paint.getColor());
@@ -291,106 +297,110 @@ HWTEST_F(RSMarshallingTest, SkPaintSerialization001, Function | MediumTest | Lev
 }
 
 /**
-* @tc.name: SkImageSerialization001
-* @tc.desc: test results of serialization and deserialization of SkImage
-* @tc.type:FUNC
-*/
+ * @tc.name: SkImageSerialization001
+ * @tc.desc: test results of serialization and deserialization of SkImage
+ * @tc.type:FUNC
+ * @tc.require: issueI54AGD
+ */
 HWTEST_F(RSMarshallingTest, SkImageSerialization001, Function | MediumTest | Level2)
 {
     /**
-    * @tc.steps: step1. create SkImage
-    */
+     * @tc.steps: step1. create SkImage
+     */
     auto skImage = CreateSkImage();
 
     /**
-    * @tc.steps: step2. serialize SkImage
-    */
+     * @tc.steps: step2. serialize SkImage
+     */
     MessageParcel parcel;
     ASSERT_TRUE(RSMarshallingHelper::Marshalling(parcel, skImage));
 
     /**
-    * @tc.steps: step3. deserialize SkImage
-    */
+     * @tc.steps: step3. deserialize SkImage
+     */
     sk_sp<SkImage> skImageUnmarshal;
     ASSERT_TRUE(RSMarshallingHelper::Unmarshalling(parcel, skImageUnmarshal));
     ASSERT_TRUE(skImageUnmarshal != nullptr);
 }
 
 /**
-* @tc.name: RSImageSerialization001
-* @tc.desc: test results of serialization and deserialization of RSImage
-* @tc.type:FUNC
-*/
+ * @tc.name: RSImageSerialization001
+ * @tc.desc: test results of serialization and deserialization of RSImage
+ * @tc.type:FUNC
+ * @tc.require: issueI54AGD
+ */
 HWTEST_F(RSMarshallingTest, RSImageSerialization001, Function | MediumTest | Level2)
 {
     /**
-    * @tc.steps: step1. create RSImage
-    */
+     * @tc.steps: step1. create RSImage
+     */
     auto skImage = CreateSkImage();
 
     auto rsImage = std::make_shared<RSImage>();
     rsImage->SetImage(skImage);
     /**
-    * @tc.steps: step2. serialize RSImage
-    */
+     * @tc.steps: step2. serialize RSImage
+     */
     MessageParcel parcel;
     ASSERT_TRUE(RSMarshallingHelper::Marshalling(parcel, rsImage));
 
     /**
-    * @tc.steps: step3. deserialize RSImage
-    */
+     * @tc.steps: step3. deserialize RSImage
+     */
     std::shared_ptr<RSImage> rsImageUnmarshal;
     ASSERT_TRUE(RSMarshallingHelper::Unmarshalling(parcel, rsImageUnmarshal));
     ASSERT_TRUE(rsImageUnmarshal != nullptr);
 }
 
 /**
-* @tc.name: SkPictureSerialization001
-* @tc.desc: test results of serialization and deserialization of SkPicture
-* @tc.type:FUNC
-*/
+ * @tc.name: SkPictureSerialization001
+ * @tc.desc: test results of serialization and deserialization of SkPicture
+ * @tc.type:FUNC
+ * @tc.require: issueI54AGD
+ */
 HWTEST_F(RSMarshallingTest, SkPictureSerialization001, Function | MediumTest | Level2)
 {
     /**
-    * @tc.steps: step1. create SkPicture
-    */
+     * @tc.steps: step1. create SkPicture
+     */
     auto skPicture = CreateSkPicture();
 
     /**
-    * @tc.steps: step2. serialize SkPicture
-    */
+     * @tc.steps: step2. serialize SkPicture
+     */
     MessageParcel parcel;
     ASSERT_TRUE(RSMarshallingHelper::Marshalling(parcel, skPicture));
 
     /**
-    * @tc.steps: step3. deserialize SkPicture
-    */
+     * @tc.steps: step3. deserialize SkPicture
+     */
     sk_sp<SkPicture> skPictureUnmarshal;
     ASSERT_TRUE(RSMarshallingHelper::Unmarshalling(parcel, skPictureUnmarshal));
     ASSERT_TRUE(skPictureUnmarshal != nullptr);
 }
 
 /**
-* @tc.name: SkVerticesSerialization001
-* @tc.desc: test results of serialization and deserialization of SkVertices
-* @tc.type:FUNC
-*/
+ * @tc.name: SkVerticesSerialization001
+ * @tc.desc: test results of serialization and deserialization of SkVertices
+ * @tc.type:FUNC
+ * @tc.require: issueI54AGD
+ */
 HWTEST_F(RSMarshallingTest, SkVerticesSerialization001, Function | MediumTest | Level2)
 {
     /**
-    * @tc.steps: step1. create SkVertices
-    */
+     * @tc.steps: step1. create SkVertices
+     */
     sk_sp<SkVertices> vertices = CreateSkVertices();
 
     /**
-    * @tc.steps: step2. serialize SkVertices
-    */
+     * @tc.steps: step2. serialize SkVertices
+     */
     MessageParcel parcel;
     ASSERT_TRUE(RSMarshallingHelper::Marshalling(parcel, vertices));
 
     /**
-    * @tc.steps: step3. deserialize SkVertices
-    */
+     * @tc.steps: step3. deserialize SkVertices
+     */
     sk_sp<SkVertices> verticesUnmarshal;
     ASSERT_TRUE(RSMarshallingHelper::Unmarshalling(parcel, verticesUnmarshal));
     ASSERT_TRUE(verticesUnmarshal != nullptr);
@@ -400,81 +410,84 @@ HWTEST_F(RSMarshallingTest, SkVerticesSerialization001, Function | MediumTest | 
 }
 
 /**
-* @tc.name: SkRegionSerialization001
-* @tc.desc: test results of serialization and deserialization of SkRegion
-* @tc.type:FUNC
-*/
+ * @tc.name: SkRegionSerialization001
+ * @tc.desc: test results of serialization and deserialization of SkRegion
+ * @tc.type:FUNC
+ * @tc.require: issueI54AGD
+ */
 HWTEST_F(RSMarshallingTest, SkRegionSerialization001, Function | MediumTest | Level2)
 {
     /**
-    * @tc.steps: step1. create SkRegion
-    */
+     * @tc.steps: step1. create SkRegion
+     */
     SkRegion region;
     region.op(SkIRect::MakeXYWH(0, 0, 10, 10), SkRegion::kUnion_Op);
     region.op(SkIRect::MakeLTRB(5, 10, 20, 20), SkRegion::kUnion_Op);
 
     /**
-    * @tc.steps: step2. serialize SkVertices
-    */
+     * @tc.steps: step2. serialize SkVertices
+     */
     MessageParcel parcel;
     ASSERT_TRUE(RSMarshallingHelper::Marshalling(parcel, region));
 
     /**
-    * @tc.steps: step3. deserialize SkVertices
-    */
+     * @tc.steps: step3. deserialize SkVertices
+     */
     SkRegion regionUnmarshal;
     ASSERT_TRUE(RSMarshallingHelper::Unmarshalling(parcel, regionUnmarshal));
     ASSERT_TRUE(regionUnmarshal == region);
 }
 
 /**
-* @tc.name: SkPathSerialization001
-* @tc.desc: test results of serialization and deserialization of SkPath
-* @tc.type:FUNC
-*/
+ * @tc.name: SkPathSerialization001
+ * @tc.desc: test results of serialization and deserialization of SkPath
+ * @tc.type:FUNC
+ * @tc.require: issueI54AGD
+ */
 HWTEST_F(RSMarshallingTest, SkPathSerialization001, Function | MediumTest | Level2)
 {
     /**
-    * @tc.steps: step1. create SkPath
-    */
+     * @tc.steps: step1. create SkPath
+     */
     SkPath path = CreateSkPath();
 
     /**
-    * @tc.steps: step2. serialize SkPath
-    */
+     * @tc.steps: step2. serialize SkPath
+     */
     MessageParcel parcel;
     ASSERT_TRUE(RSMarshallingHelper::Marshalling(parcel, path));
 
     /**
-    * @tc.steps: step3. deserialize SkPath
-    */
+     * @tc.steps: step3. deserialize SkPath
+     */
     SkPath pathUnmarshal;
     ASSERT_TRUE(RSMarshallingHelper::Unmarshalling(parcel, pathUnmarshal));
     ASSERT_TRUE(pathUnmarshal == path);
 }
 
 /**
-* @tc.name: RSPathSerialization001
-* @tc.desc: test results of serialization and deserialization of RSPath
-* @tc.type:FUNC
-*/
+ * @tc.name: RSPathSerialization001
+ * @tc.desc: test results of serialization and deserialization of RSPath
+ * @tc.type:FUNC
+ * @tc.require: issueI54AGD
+ */
 HWTEST_F(RSMarshallingTest, RSPathSerialization001, Function | MediumTest | Level2)
 {
     /**
-    * @tc.steps: step1. create RSPath
-    */
+     * @tc.steps: step1. create RSPath
+     */
     SkPath path = CreateSkPath();
     auto rsPath = RSPath::CreateRSPath(path);
 
     /**
-    * @tc.steps: step2. serialize RSPath
-    */
+     * @tc.steps: step2. serialize RSPath
+     */
     MessageParcel parcel;
     ASSERT_TRUE(RSMarshallingHelper::Marshalling(parcel, rsPath));
 
     /**
-    * @tc.steps: step3. deserialize RSPath
-    */
+     * @tc.steps: step3. deserialize RSPath
+     */
     std::shared_ptr<RSPath> rsPathUnmarshal;
     ASSERT_TRUE(RSMarshallingHelper::Unmarshalling(parcel, rsPathUnmarshal));
     ASSERT_TRUE(rsPathUnmarshal != nullptr);
@@ -482,26 +495,27 @@ HWTEST_F(RSMarshallingTest, RSPathSerialization001, Function | MediumTest | Leve
 }
 
 /**
-* @tc.name: SkImageFilterSerialization001
-* @tc.desc: test results of serialization and deserialization of SkImageFilter
-* @tc.type:FUNC
-*/
+ * @tc.name: SkImageFilterSerialization001
+ * @tc.desc: test results of serialization and deserialization of SkImageFilter
+ * @tc.type:FUNC
+ * @tc.require: issueI54AGD
+ */
 HWTEST_F(RSMarshallingTest, SkImageFilterSerialization001, Function | MediumTest | Level2)
 {
     /**
-    * @tc.steps: step1. create SkImageFilter
-    */
+     * @tc.steps: step1. create SkImageFilter
+     */
     sk_sp<SkImage> image = CreateSkImage();
     sk_sp<SkImageFilter> filter(SkImageFilters::Image(image));
     /**
-    * @tc.steps: step2. serialize SkImageFilter
-    */
+     * @tc.steps: step2. serialize SkImageFilter
+     */
     MessageParcel parcel;
     ASSERT_TRUE(RSMarshallingHelper::Marshalling(parcel, filter));
 
     /**
-    * @tc.steps: step3. deserialize SkImageFilter
-    */
+     * @tc.steps: step3. deserialize SkImageFilter
+     */
     sk_sp<SkImageFilter> filterUnmarshal;
     ASSERT_TRUE(RSMarshallingHelper::Unmarshalling(parcel, filterUnmarshal));
     ASSERT_TRUE(filterUnmarshal != nullptr);
@@ -509,15 +523,16 @@ HWTEST_F(RSMarshallingTest, SkImageFilterSerialization001, Function | MediumTest
 }
 
 /**
-* @tc.name: SkShaderSerialization001
-* @tc.desc: test results of serialization and deserialization of SkShader
-* @tc.type:FUNC
-*/
+ * @tc.name: SkShaderSerialization001
+ * @tc.desc: test results of serialization and deserialization of SkShader
+ * @tc.type:FUNC
+ * @tc.require: issueI54AGD
+ */
 HWTEST_F(RSMarshallingTest, SkShaderSerialization001, Function | MediumTest | Level2)
 {
     /**
-    * @tc.steps: step1. create SkShader
-    */
+     * @tc.steps: step1. create SkShader
+     */
     SkBitmap bitmap;
     bitmap.allocN32Pixels(200, 200);
     bitmap.eraseColor(0xffff0000);
@@ -526,29 +541,30 @@ HWTEST_F(RSMarshallingTest, SkShaderSerialization001, Function | MediumTest | Le
     auto shader = bitmap.makeShader(SkTileMode::kRepeat, SkTileMode::kRepeat);
 
     /**
-    * @tc.steps: step2. serialize SkShader
-    */
+     * @tc.steps: step2. serialize SkShader
+     */
     MessageParcel parcel;
     ASSERT_TRUE(RSMarshallingHelper::Marshalling(parcel, shader));
 
     /**
-    * @tc.steps: step3. deserialize SkShader
-    */
+     * @tc.steps: step3. deserialize SkShader
+     */
     sk_sp<SkShader> shaderUnmarshal;
     ASSERT_TRUE(RSMarshallingHelper::Unmarshalling(parcel, shaderUnmarshal));
     ASSERT_TRUE(shaderUnmarshal != nullptr);
 }
 
 /**
-* @tc.name: DrawCmdListSerialization001
-* @tc.desc: test results of serialization and deserialization of DrawCmdList
-* @tc.type:FUNC
-*/
+ * @tc.name: DrawCmdListSerialization001
+ * @tc.desc: test results of serialization and deserialization of DrawCmdList
+ * @tc.type:FUNC
+ * @tc.require: issueI54AGD
+ */
 HWTEST_F(RSMarshallingTest, DrawCmdListSerialization001, Function | MediumTest | Level2)
 {
     /**
-    * @tc.steps: step1. create DrawCmdList
-    */
+     * @tc.steps: step1. create DrawCmdList
+     */
     std::shared_ptr<DrawCmdList> drawCmdList = std::make_shared<DrawCmdList>(100, 200);
 
     SkFont font;
@@ -564,14 +580,14 @@ HWTEST_F(RSMarshallingTest, DrawCmdListSerialization001, Function | MediumTest |
     drawCmdList->AddOp(std::move(op2));
 
     /**
-    * @tc.steps: step2. serialize DrawCmdList
-    */
+     * @tc.steps: step2. serialize DrawCmdList
+     */
     MessageParcel parcel;
     ASSERT_TRUE(RSMarshallingHelper::Marshalling(parcel, drawCmdList));
 
     /**
-    * @tc.steps: step3. deserialize DrawCmdList
-    */
+     * @tc.steps: step3. deserialize DrawCmdList
+     */
     std::shared_ptr<DrawCmdList> drawCmdListUnmarshal;
     ASSERT_TRUE(RSMarshallingHelper::Unmarshalling(parcel, drawCmdListUnmarshal));
     ASSERT_TRUE(drawCmdListUnmarshal != nullptr);
