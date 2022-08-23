@@ -33,10 +33,11 @@ void RSUniRenderSurfaceNodeTest::TearDownTestCase() {}
 
 namespace {
 /**
-* @tc.name: TestSurfaceNodeSurface001
-* @tc.desc: Verify the non nullptr surface of (window) surface node for non-uni application in uni render case
-* @tc.type: FUNC
-*/
+ * @tc.name: TestSurfaceNodeSurface001
+ * @tc.desc: Verify the non nullptr surface of (window) surface node for non-uni application in uni render case
+ * @tc.type: FUNC
+ * @tc.require: issueI54AGD
+ */
 HWTEST_F(RSUniRenderSurfaceNodeTest, TestSurfaceNodeSurface001, Function | MediumTest | Level1)
 {
     RSSurfaceNodeConfig config;
@@ -46,10 +47,11 @@ HWTEST_F(RSUniRenderSurfaceNodeTest, TestSurfaceNodeSurface001, Function | Mediu
 }
 
 /**
-* @tc.name: TestSurfaceNodeSurface002
-* @tc.desc: Verify the nullptr surface of (window) surface node for uni application in uni render case
-* @tc.type: FUNC
-*/
+ * @tc.name: TestSurfaceNodeSurface002
+ * @tc.desc: Verify the nullptr surface of (window) surface node for uni application in uni render case
+ * @tc.type: FUNC
+ * @tc.require: issueI54AGD
+ */
 HWTEST_F(RSUniRenderSurfaceNodeTest, TestSurfaceNodeSurface002, Function | MediumTest | Level1)
 {
     RSSystemProperties::InitUniRenderEnabled("");
@@ -60,10 +62,11 @@ HWTEST_F(RSUniRenderSurfaceNodeTest, TestSurfaceNodeSurface002, Function | Mediu
 }
 
 /**
-* @tc.name: TestSurfaceNodeSurface003
-* @tc.desc: Verify the non nullptr surface of (surfaceView) surface node in uni render case
-* @tc.type: FUNC
-*/
+ * @tc.name: TestSurfaceNodeSurface003
+ * @tc.desc: Verify the non nullptr surface of (surfaceView) surface node in uni render case
+ * @tc.type: FUNC
+ * @tc.require: issueI54AGD
+ */
 HWTEST_F(RSUniRenderSurfaceNodeTest, TestSurfaceNodeSurface003, Function | MediumTest | Level1)
 {
     RSSurfaceNodeConfig config;
