@@ -407,7 +407,7 @@ LayerInfoPtr RSComposerAdapter::CreateBufferLayer(RSSurfaceRenderNode& node)
         node.GetGlobalZOrder(), info.zOrder, info.blendType);
     LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
     SetComposeInfoToLayer(layer, info, node.GetConsumer(), &node);
-    LayerRotate(layer);
+    LayerRotate(layer, node);
     LayerCrop(layer);
     LayerScaleDown(layer);
     return layer;
@@ -431,7 +431,7 @@ LayerInfoPtr RSComposerAdapter::CreateTunnelLayer(RSSurfaceRenderNode& node)
     RS_TRACE_NAME(traceInfo.c_str());
     LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
     SetComposeInfoToLayer(layer, info, node.GetConsumer(), &node);
-    LayerRotate(layer);
+    LayerRotate(layer, node);
     RS_LOGD("RsDebug RSComposerAdapter::CreateTunnelLayer surfaceNode id:%" PRIu64 " name:[%s] dst [%d %d %d %d]"
             "SrcRect [%d %d], z:%f, globalZOrder:%d, blendType = %d",
         node.GetId(), node.GetName().c_str(), info.dstRect.x, info.dstRect.y, info.dstRect.w, info.dstRect.h,
@@ -476,122 +476,77 @@ LayerInfoPtr RSComposerAdapter::CreateLayer(RSDisplayRenderNode& node)
         info.buffer->GetSurfaceBufferHeight(), info.buffer.GetRefPtr(), info.zOrder, info.blendType);
     LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
     SetComposeInfoToLayer(layer, info, node.GetConsumer(), &node);
-    LayerRotate(layer);
+    LayerRotate(layer, node);
     // do not crop or scale down for displayNode's layer.
     return layer;
 }
 
-// private func, guarantee the layer and the surface are valid
-// screenRotation: anti-clockwise, surfaceTransform: anti-clockwise, layerTransform: clockwise
-static void RotateLayerWhenScreenRotation90(const LayerInfoPtr& layer, const sptr<Surface>& surface)
+static int GetSurfaceNodeRotation(RSBaseRenderNode& node)
 {
-    // screenRotation is already 90 degrees anti-clockwise.
-    switch (surface->GetTransform()) {
-        case TransformType::ROTATE_90: {
-            layer->SetTransform(TransformType::ROTATE_180);
-            break;
-        }
-        case TransformType::ROTATE_180: {
-            layer->SetTransform(TransformType::ROTATE_90);
-            break;
-        }
-        case TransformType::ROTATE_270: {
-            layer->SetTransform(TransformType::ROTATE_NONE);
-            break;
-        }
-        default: {
-            layer->SetTransform(TransformType::ROTATE_270);
-            break;
-        }
+    // only surface render node has the ability to rotate
+    // the rotation of display render node is calculated as screen rotation
+    if (node.GetType() != RSRenderNodeType::SURFACE_NODE) {
+        return 0;
     }
+
+    auto& surfaceNode = static_cast<RSSurfaceRenderNode&>(node);
+    auto matrix = surfaceNode.GetTotalMatrix();
+    float value[9];
+    matrix.get9(value);
+
+    int rAngle = static_cast<int>(-round(atan2(value[SkMatrix::kMSkewX], value[SkMatrix::kMScaleX]) * (180 / PI)));
+    // transfer the result to anti-clockwise degrees
+    // only rotation with 90°, 180°, 270° are composed through hardware,
+    // in which situation the transformation of the layer needs to be set.
+    static const std::map<int, int> supportedDegrees = {{90, 270}, {180, 180}, {-90, 90}};
+    auto iter = supportedDegrees.find(rAngle);
+    return iter != supportedDegrees.end() ? iter->second : 0;
 }
 
-// private func, guarantee the layer and the surface are valid
-// screenRotation: anti-clockwise, surfaceTransform: anti-clockwise, layerTransform: clockwise
-static void RotateLayerWhenScreenRotation180(const LayerInfoPtr& layer, const sptr<Surface>& surface)
+static inline int RotateEnumToInt(ScreenRotation rotation)
 {
-    // screenRotation is already 180 degrees anti-clockwise.
-    switch (surface->GetTransform()) {
-        case TransformType::ROTATE_90: {
-            layer->SetTransform(TransformType::ROTATE_90);
-            break;
-        }
-        case TransformType::ROTATE_180: {
-            layer->SetTransform(TransformType::ROTATE_NONE);
-            break;
-        }
-        case TransformType::ROTATE_270: {
-            layer->SetTransform(TransformType::ROTATE_270);
-            break;
-        }
-        default: {
-            layer->SetTransform(TransformType::ROTATE_180);
-            break;
-        }
-    }
+    static const std::map<ScreenRotation, int> screenRotationEnumToIntMap = {
+        {ScreenRotation::ROTATION_0, 0}, {ScreenRotation::ROTATION_90, 90},
+        {ScreenRotation::ROTATION_180, 180}, {ScreenRotation::ROTATION_270, 270}};
+    auto iter = screenRotationEnumToIntMap.find(rotation);
+    return iter != screenRotationEnumToIntMap.end() ? iter->second : 0;
 }
 
-// private func, guarantee the layer and the surface are valid
-// screenRotation: anti-clockwise, surfaceTransform: anti-clockwise, layerTransform: clockwise
-static void RotateLayerWhenScreenRotation270(const LayerInfoPtr& layer, const sptr<Surface>& surface)
+static inline int RotateEnumToInt(TransformType rotation)
 {
-    // screenRotation is already 270 degrees anti-clockwise.
-    switch (surface->GetTransform()) {
-        case TransformType::ROTATE_90: {
-            layer->SetTransform(TransformType::ROTATE_NONE);
-            break;
-        }
-        case TransformType::ROTATE_180: {
-            layer->SetTransform(TransformType::ROTATE_270);
-            break;
-        }
-        case TransformType::ROTATE_270: {
-            layer->SetTransform(TransformType::ROTATE_180);
-            break;
-        }
-        default: {
-            layer->SetTransform(TransformType::ROTATE_90);
-            break;
-        }
-    }
+    static const std::map<TransformType, int> transformTypeEnumToIntMap = {
+        {TransformType::ROTATE_NONE, 0}, {TransformType::ROTATE_90, 90},
+        {TransformType::ROTATE_180, 180}, {TransformType::ROTATE_270, 270}};
+    auto iter = transformTypeEnumToIntMap.find(rotation);
+    return iter != transformTypeEnumToIntMap.end() ? iter->second : 0;
 }
 
-// private func, guarantee the layer and the surface are valid
-// screenRotation: anti-clockwise, surfaceTransform: anti-clockwise, layerTransform: clockwise
-static void RotateLayerWhenScreenRotationNone(const LayerInfoPtr& layer, const sptr<Surface>& surface)
+static inline TransformType RotateEnumToInt(int angle)
 {
-    // screenRotation is 0.
-    switch (surface->GetTransform()) {
-        case TransformType::ROTATE_90: {
-            layer->SetTransform(TransformType::ROTATE_270);
-            break;
-        }
-        case TransformType::ROTATE_180: {
-            layer->SetTransform(TransformType::ROTATE_180);
-            break;
-        }
-        case TransformType::ROTATE_270: {
-            layer->SetTransform(TransformType::ROTATE_90);
-            break;
-        }
-        default: {
-            layer->SetTransform(TransformType::ROTATE_NONE);
-            break;
-        }
-    }
+    static const std::map<int, TransformType> intToEnumMap = {
+        {0, TransformType::ROTATE_NONE}, {90, TransformType::ROTATE_270},
+        {180, TransformType::ROTATE_180}, {270, TransformType::ROTATE_90}};
+    auto iter = intToEnumMap.find(angle);
+    return iter != intToEnumMap.end() ? iter->second : TransformType::ROTATE_NONE;
 }
 
-// private func, guarantee the layer is valid
-void RSComposerAdapter::LayerRotate(const LayerInfoPtr& layer) const
+static void SetLayerTransform(const LayerInfoPtr& layer, RSBaseRenderNode& node,
+    const sptr<Surface>& surface, ScreenRotation screenRotation)
 {
-    auto surface = layer->GetSurface();
-    if (surface == nullptr) {
-        return;
-    }
+    // screenRotation: anti-clockwise, surfaceNodeRotation: anti-clockwise, surfaceTransform: anti-clockwise
+    // layerTransform: clockwise
+    int surfaceNodeRotation = GetSurfaceNodeRotation(node);
+    int totalRotation = (RotateEnumToInt(screenRotation) + surfaceNodeRotation +
+        RotateEnumToInt(surface->GetTransform())) % 360;
+    TransformType rotateEnum = RotateEnumToInt(totalRotation);
+    layer->SetTransform(rotateEnum);
+}
 
-    const auto screenWidth = static_cast<int32_t>(screenInfo_.width);
-    const auto screenHeight = static_cast<int32_t>(screenInfo_.height);
-    const auto screenRotation = screenInfo_.rotation;
+static void SetLayerSize(const LayerInfoPtr& layer, const ScreenInfo& screenInfo)
+{
+    const auto screenWidth = static_cast<int32_t>(screenInfo.width);
+    const auto screenHeight = static_cast<int32_t>(screenInfo.height);
+    const auto screenRotation = screenInfo.rotation;
     const auto rect = layer->GetLayerSize();
     // screenRotation: anti-clockwise, surfaceTransform: anti-clockwise, layerTransform: clockwise
     switch (screenRotation) {
@@ -601,7 +556,6 @@ void RSComposerAdapter::LayerRotate(const LayerInfoPtr& layer) const
             layer->SetLayerSize(IRect {rect.y, screenHeight - rect.x - rect.w, rect.h, rect.w});
             RS_LOGD("RsDebug ScreenRotation 90, After Rotate layer size [%d %d %d %d]",
                 layer->GetLayerSize().x, layer->GetLayerSize().y, layer->GetLayerSize().w, layer->GetLayerSize().h);
-            RotateLayerWhenScreenRotation90(layer, surface);
             break;
         }
         case ScreenRotation::ROTATION_180: {
@@ -611,7 +565,6 @@ void RSComposerAdapter::LayerRotate(const LayerInfoPtr& layer) const
                 IRect {screenWidth - rect.x - rect.w, screenHeight - rect.y - rect.h, rect.w, rect.h});
             RS_LOGD("RsDebug ScreenRotation 180, After Rotate layer size [%d %d %d %d]",
                 layer->GetLayerSize().x, layer->GetLayerSize().y, layer->GetLayerSize().w, layer->GetLayerSize().h);
-            RotateLayerWhenScreenRotation180(layer, surface);
             break;
         }
         case ScreenRotation::ROTATION_270: {
@@ -620,14 +573,23 @@ void RSComposerAdapter::LayerRotate(const LayerInfoPtr& layer) const
             layer->SetLayerSize(IRect {screenWidth - rect.y - rect.h, rect.x, rect.h, rect.w});
             RS_LOGD("RsDebug ScreenRotation 270, After Rotate layer size [%d %d %d %d]",
                 layer->GetLayerSize().x, layer->GetLayerSize().y, layer->GetLayerSize().w, layer->GetLayerSize().h);
-            RotateLayerWhenScreenRotation270(layer, surface);
             break;
         }
         default:  {
-            RotateLayerWhenScreenRotationNone(layer, surface);
             break;
         }
     }
+}
+
+// private func, guarantee the layer is valid
+void RSComposerAdapter::LayerRotate(const LayerInfoPtr& layer, RSBaseRenderNode& node) const
+{
+    auto surface = layer->GetSurface();
+    if (surface == nullptr) {
+        return;
+    }
+    SetLayerSize(layer, screenInfo_);
+    SetLayerTransform(layer, node, surface, screenInfo_.rotation);
 }
 
 // private func, guarantee the layer is valid

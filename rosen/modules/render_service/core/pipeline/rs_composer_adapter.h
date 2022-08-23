@@ -68,7 +68,7 @@ private:
         RSBaseRenderNode* node) const;
     void DealWithNodeGravity(const RSSurfaceRenderNode& node, ComposeInfo& info) const;
 
-    void LayerRotate(const LayerInfoPtr& layer) const;
+    void LayerRotate(const LayerInfoPtr& layer, RSBaseRenderNode& node) const;
     void LayerCrop(const LayerInfoPtr& layer) const;
     void LayerScaleDown(const LayerInfoPtr& layer) const;
     void LayerPresentTimestamp(const LayerInfoPtr& layer, const sptr<Surface>& surface) const;
