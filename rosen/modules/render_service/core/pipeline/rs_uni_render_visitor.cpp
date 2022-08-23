@@ -549,6 +549,7 @@ void RSUniRenderVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
 
     ColorFilterMode mode = static_cast<ColorFilterMode>(RSSystemProperties::GetCorrectionMode());
     if (RSBaseRenderUtil::IsColorFilterModeValid(mode)) {
+        RS_LOGD("RsDebug RSRenderEngine::SetColorFilterModeToPaint mode:%d", static_cast<int32_t>(mode));
         SkPaint paint;
         RSBaseRenderUtil::SetColorFilterModeToPaint(mode, paint);
         canvas_->saveLayer(nullptr, &paint);
