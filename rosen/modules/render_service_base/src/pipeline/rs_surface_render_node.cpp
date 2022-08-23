@@ -341,7 +341,7 @@ void RSSurfaceRenderNode::NotifyUIBufferAvailable()
     {
         std::lock_guard<std::mutex> lock(mutexUI_);
         if (callbackFromUI_) {
-            ROSEN_LOGI("RSSurfaceRenderNode::NotifyUIBufferAvailable nodeId = %" PRIu64, GetId());
+            ROSEN_LOGD("RSSurfaceRenderNode::NotifyUIBufferAvailable nodeId = %" PRIu64, GetId());
             callbackFromUI_->OnBufferAvailable();
         } else {
             isNotifyUIBufferAvailable_ = false;
