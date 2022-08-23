@@ -13,10 +13,43 @@
 
 import("//build/ohos.gni")
 
+config("color_space_object_config") {
+  visibility = [ ":*" ]
+
+  include_dirs = [
+    "//foundation/graphic/graphic_2d/interfaces/kits/napi/graphic/color_manager/color_space_object_convertor",
+    "//foundation/graphic/graphic_2d/utils/color_manager/export",
+  ]
+}
+
+ohos_shared_library("color_space_object_convertor") {
+  sources = [
+    "color_space_object_convertor/color_space_object_convertor.cpp",
+    "color_space_object_convertor/js_color_space.cpp",
+    "color_space_object_convertor/js_color_space_utils.cpp",
+  ]
+
+  configs = [ ":color_space_object_config" ]
+
+  deps = [ "//foundation/graphic/graphic_2d/utils:libgraphic_utils" ]
+
+  external_deps = [
+    "ability_runtime:runtime",
+    "hiviewdfx_hilog_native:libhilog",
+    "napi:ace_napi",
+  ]
+
+  cflags_cc = [ "-std=c++17" ]
+
+  part_name = "graphic_standard"
+  subsystem_name = "graphic"
+}
+
 config("color_manager_napi_config") {
   visibility = [ ":*" ]
 
   include_dirs = [
+    "//foundation/graphic/graphic_2d/interfaces/kits/napi/graphic/color_manager/color_space_object_convertor",
     "//foundation/graphic/graphic_2d/interfaces/kits/napi/graphic/color_manager/colorspacemanager_napi",
     "//foundation/graphic/graphic_2d/utils/color_manager/export",
   ]
@@ -25,14 +58,15 @@ config("color_manager_napi_config") {
 ohos_shared_library("colorspacemanager_napi") {
   sources = [
     "colorspacemanager_napi/color_space_manager_module.cpp",
-    "colorspacemanager_napi/js_color_space.cpp",
     "colorspacemanager_napi/js_color_space_manager.cpp",
-    "colorspacemanager_napi/js_color_space_manager_utils.cpp",
   ]
 
   configs = [ ":color_manager_napi_config" ]
 
-  deps = [ "//foundation/graphic/graphic_2d/utils:libgraphic_utils" ]
+  deps = [
+    "//foundation/graphic/graphic_2d/interfaces/kits/napi/graphic/color_manager:color_space_object_convertor",
+    "//foundation/graphic/graphic_2d/utils/color_manager:color_manager",
+  ]
 
   external_deps = [
     "ability_runtime:runtime",

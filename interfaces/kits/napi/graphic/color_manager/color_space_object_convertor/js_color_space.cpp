@@ -17,40 +17,11 @@
 #include <array>
 
 #include "color_space.h"
-#include "js_color_space_manager_utils.h"
+#include "js_color_space_utils.h"
 
 namespace OHOS {
 namespace ColorManager {
 using namespace AbilityRuntime;
-
-NativeValue* CreateJsColorSpaceObject(NativeEngine& engine, std::shared_ptr<ColorSpace>& colorSpace)
-{
-    NativeValue* objValue = engine.CreateObject();
-    NativeObject* object = ConvertNativeValueTo<NativeObject>(objValue);
-
-    std::unique_ptr<JsColorSpace> jsColorSpace = std::make_unique<JsColorSpace>(colorSpace);
-    object->SetNativePointer(jsColorSpace.release(), JsColorSpace::Finalizer, nullptr);
-
-    BindFunctions(engine, object);
-
-    std::shared_ptr<NativeReference> jsColorSpaceRef;
-    jsColorSpaceRef.reset(engine.CreateReference(objValue, 1));
-    return objValue;
-}
-
-std::shared_ptr<ColorSpace> GetColorSpaceByJSObject(NativeObject* object)
-{
-    if (object == nullptr) {
-        CMLOGE("[NAPI]GetColorSpaceByJSObject::jsObject is nullptr");
-        return nullptr;
-    }
-    auto jsColorSpace = reinterpret_cast<JsColorSpace*>(object->GetNativePointer());
-    if (jsColorSpace == nullptr) {
-        CMLOGE("[NAPI]GetColorSpaceByJSObject::jsColorSpace is nullptr");
-        return nullptr;
-    }
-    return jsColorSpace->GetColorSpaceToken();
-}
 
 void JsColorSpace::Finalizer(NativeEngine* engine, void* data, void* hint)
 {

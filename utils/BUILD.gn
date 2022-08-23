@@ -20,7 +20,10 @@ group("color_manager_unit_test") {
 }
 
 group("color_manager") {
-  public_deps = [ "color_manager:color_manager" ]
+  public_deps = [
+    "color_manager:color_manager",
+    "//foundation/graphic/graphic_2d/interfaces/kits/napi/graphic/color_manager:color_space_object_convertor",
+  ]
 }
 
 group("buffer_handle") {

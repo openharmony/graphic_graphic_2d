@@ -25,8 +25,6 @@
 
 namespace OHOS {
 namespace ColorManager {
-NativeValue* CreateJsColorSpaceObject(NativeEngine& engine, std::shared_ptr<ColorSpace>& colorSpace);
-std::shared_ptr<ColorSpace> GetColorSpaceByJSObject(NativeObject* object);
 void BindFunctions(NativeEngine& engine, NativeObject* object);
 class JsColorSpace final {
 public:

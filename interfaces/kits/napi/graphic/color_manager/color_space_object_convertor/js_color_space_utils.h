@@ -29,7 +29,7 @@ namespace ColorManager {
 #define TITLE __func__
 #endif
 
-constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = {LOG_CORE, 0xD001400, "JsColorSpaceManager"};
+constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = {LOG_CORE, 0xD001400, "JsColorSpace"};
 #define CMLOGE(fmt, args...) \
     (void)OHOS::HiviewDFX::HiLog::Error(LOG_LABEL, "%{public}s: " fmt, TITLE, ##args)
 #define CMLOGI(fmt, args...) \

@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "js_color_space_manager_utils.h"
+#include "js_color_space_utils.h"
 
 #include "js_runtime_utils.h"
 
