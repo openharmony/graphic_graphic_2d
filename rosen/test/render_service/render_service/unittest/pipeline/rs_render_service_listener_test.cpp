@@ -40,7 +40,7 @@ void RSRenderServiceListenerTest::TearDown() {}
  * @tc.name: CreateAndDestroy001
  * @tc.desc:
  * @tc.type:
- * @tc.require:
+ * @tc.require:issueI590LM
  * @tc.author:
  */
 HWTEST_F(RSRenderServiceListenerTest, CreateAndDestroy001, TestSize.Level1)
@@ -54,7 +54,7 @@ HWTEST_F(RSRenderServiceListenerTest, CreateAndDestroy001, TestSize.Level1)
  * @tc.name: OnBufferAvailable009
  * @tc.desc:
  * @tc.type:
- * @tc.require:
+ * @tc.require:issueI590LM
  * @tc.author:
  */
 HWTEST_F(RSRenderServiceListenerTest, OnBufferAvailable009, TestSize.Level1)
