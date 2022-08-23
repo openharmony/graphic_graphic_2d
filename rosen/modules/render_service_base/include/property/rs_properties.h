@@ -223,7 +223,7 @@ private:
     Gravity frameGravity_ = Gravity::DEFAULT;
 
     float alpha_ = 1.f;
-    bool alphaOffscreen_ = false;
+    bool alphaOffscreen_ = true;
 
     std::unique_ptr<Matrix3f> sublayerTransform_ = nullptr;
     std::unique_ptr<Decoration> decoration_ = nullptr;

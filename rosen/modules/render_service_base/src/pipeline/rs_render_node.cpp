@@ -148,10 +148,11 @@ void RSRenderNode::ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas)
     }
     auto alpha = renderProperties_.GetAlpha();
     if (alpha < 1.f) {
-        if ((GetChildrenCount() == 0 && drawCmdModifiers_.empty()) || !GetRenderProperties().GetAlphaOffscreen()) {
+        if ((GetChildrenCount() == 0) || !GetRenderProperties().GetAlphaOffscreen()) {
             canvas.MultiplyAlpha(alpha);
         } else {
-            canvas.saveLayerAlpha(nullptr, std::clamp(alpha, 0.f, 1.f) * UINT8_MAX);
+            auto rect = RSPropertiesPainter::Rect2SkRect(GetRenderProperties().GetBoundsRect());
+            canvas.saveLayerAlpha(&rect, std::clamp(alpha, 0.f, 1.f) * UINT8_MAX);
         }
     }
     auto transitionProperties = GetAnimationManager().GetTransitionProperties();
