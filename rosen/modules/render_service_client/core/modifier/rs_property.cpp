@@ -15,18 +15,14 @@
 
 #include "modifier/rs_property.h"
 
-#include "animation/rs_implicit_animator.h"
-#include "animation/rs_implicit_animator_map.h"
 #include "command/rs_node_command.h"
-#include "pipeline/rs_node_map.h"
-#include "transaction/rs_transaction_proxy.h"
 
 namespace OHOS {
 namespace Rosen {
 namespace {
 constexpr int PID_SHIFT = 32;
 
-PropertyId GenerateId()
+PropertyId GeneratePropertyId()
 {
     static pid_t pid_ = getpid();
     static std::atomic<uint32_t> currentId_ = 1;
@@ -39,85 +35,56 @@ PropertyId GenerateId()
 
     return ((PropertyId)pid_ << PID_SHIFT) | currentId_;
 }
-
-template<typename T>
-bool IsValid(const T& value)
-{
-    return true;
-}
-template<>
-bool IsValid(const float& value)
-{
-    return !isinf(value);
-}
-template<>
-bool IsValid(const Vector2f& value)
-{
-    return !value.IsInfinite();
-}
-template<>
-bool IsValid(const Vector4f& value)
-{
-    return !value.IsInfinite();
-}
 } // namespace
 
-template<typename T>
-RSProperty<T>::RSProperty() : id_(GenerateId()) {}
+RSPropertyBase::RSPropertyBase() : id_(GeneratePropertyId())
+{}
 
-template<typename T>
-RSProperty<T>::RSProperty(const T& value) : stagingValue_(value), id_(GenerateId()) {}
-
-template<typename T>
-void RSProperty<T>::Set(const T& value)
+std::shared_ptr<RSPropertyBase> operator+(const std::shared_ptr<RSPropertyBase>& a,
+    const std::shared_ptr<RSPropertyBase>& b)
 {
-    if (ROSEN_EQ(value, stagingValue_) || !IsValid(value)) {
-        return;
+    if (a == nullptr) {
+        return {};
     }
 
-    if (!hasAddToNode_) {
-        stagingValue_ = value;
-        return;
-    }
-
-    stagingValue_ = value;
-    UpdateToRender(stagingValue_, false);
+    return a->Add(b);
 }
 
-template<typename T>
-void RSAnimatableProperty<T>::Set(const T& value)
+std::shared_ptr<RSPropertyBase> operator-(const std::shared_ptr<RSPropertyBase>& a,
+    const std::shared_ptr<RSPropertyBase>& b)
 {
-    if (ROSEN_EQ(value, this->stagingValue_) || !IsValid(value)) {
-        return;
+    if (a == nullptr) {
+        return {};
     }
 
-    if (!this->hasAddToNode_) {
-        this->stagingValue_ = value;
-        return;
+    return a->Minus(b);
+}
+
+std::shared_ptr<RSPropertyBase> operator*(const std::shared_ptr<RSPropertyBase>& value, const float scale)
+{
+    if (value == nullptr) {
+        return {};
     }
 
-    auto node = RSNodeMap::Instance().GetNode<RSNode>(this->nodeId_);
-    if (node == nullptr) {
-        return;
+    return value->Multiply(scale);
+}
+
+bool operator==(const std::shared_ptr<RSPropertyBase>& a, const std::shared_ptr<RSPropertyBase>& b)
+{
+    if (a == nullptr) {
+        return {};
     }
-    auto implicitAnimator = RSImplicitAnimatorMap::Instance().GetAnimator(gettid());
-    if (implicitAnimator && implicitAnimator->NeedImplicitAnimation()) {
-        if (this->motionPathOption_ != nullptr) {
-            implicitAnimator->BeginImplicitPathAnimation(this->motionPathOption_);
-            implicitAnimator->CreateImplicitAnimation(node, *this, this->stagingValue_, value);
-            implicitAnimator->EndImplicitPathAnimation();
-        } else {
-            implicitAnimator->CreateImplicitAnimation(node, *this, this->stagingValue_, value);
-        }
-        return;
+
+    return a->IsEqual(b);
+}
+
+bool operator!=(const std::shared_ptr<RSPropertyBase>& a, const std::shared_ptr<RSPropertyBase>& b)
+{
+    if (a == nullptr) {
+        return {};
     }
-    bool hasPropertyAnimation = !this->runningPathNum_ && node->HasPropertyAnimation(this->id_);
-    if (hasPropertyAnimation) {
-        this->UpdateToRender(value - this->stagingValue_, true);
-    } else {
-        this->UpdateToRender(value, false);
-    }
-    this->stagingValue_ = value;
+
+    return !a->IsEqual(b);
 }
 
 #define UPDATE_TO_RENDER(Command, value, isDelta, forceUpdate)                                                   \
@@ -218,12 +185,14 @@ void RSProperty<Vector2f>::UpdateToRender(const Vector2f& value, bool isDelta, b
     UPDATE_TO_RENDER(RSUpdatePropertyVector2f, value, isDelta, forceUpdate);
 }
 template<>
-void RSProperty<Vector4<uint32_t>>::UpdateToRender(const Vector4<uint32_t>& value, bool isDelta, bool forceUpdate) const
+void RSProperty<Vector4<uint32_t>>::UpdateToRender(const Vector4<uint32_t>& value,
+    bool isDelta, bool forceUpdate) const
 {
     UPDATE_TO_RENDER(RSUpdatePropertyBorderStyle, value, isDelta, forceUpdate);
 }
 template<>
-void RSProperty<Vector4<Color>>::UpdateToRender(const Vector4<Color>& value, bool isDelta, bool forceUpdate) const
+void RSProperty<Vector4<Color>>::UpdateToRender(const Vector4<Color>& value,
+    bool isDelta, bool forceUpdate) const
 {
     UPDATE_TO_RENDER(RSUpdatePropertyVector4Color, value, isDelta, forceUpdate);
 }
@@ -232,37 +201,62 @@ void RSProperty<Vector4f>::UpdateToRender(const Vector4f& value, bool isDelta, b
 {
     UPDATE_TO_RENDER(RSUpdatePropertyVector4f, value, isDelta, forceUpdate);
 }
+
 template<>
-void RSProperty<std::shared_ptr<RSAnimatableBase>>::UpdateToRender(
-    const std::shared_ptr<RSAnimatableBase>& value, bool isDelta, bool forceUpdate) const
-{}
+bool RSProperty<float>::IsValid(const float& value)
+{
+    return !isinf(value);
+}
+template<>
+bool RSProperty<Vector2f>::IsValid(const Vector2f& value)
+{
+    return !value.IsInfinite();
+}
+template<>
+bool RSProperty<Vector4f>::IsValid(const Vector4f& value)
+{
+    return !value.IsInfinite();
+}
 
-template class RS_EXPORT RSProperty<bool>;
-template class RS_EXPORT RSProperty<float>;
-template class RS_EXPORT RSProperty<int>;
-template class RS_EXPORT RSProperty<Color>;
-template class RS_EXPORT RSProperty<Gravity>;
-template class RS_EXPORT RSProperty<Matrix3f>;
-template class RS_EXPORT RSProperty<Quaternion>;
-template class RS_EXPORT RSProperty<std::shared_ptr<RSFilter>>;
-template class RS_EXPORT RSProperty<std::shared_ptr<RSImage>>;
-template class RS_EXPORT RSProperty<std::shared_ptr<RSMask>>;
-template class RS_EXPORT RSProperty<std::shared_ptr<RSPath>>;
-template class RS_EXPORT RSProperty<std::shared_ptr<RSShader>>;
-template class RS_EXPORT RSProperty<Vector2f>;
-template class RS_EXPORT RSProperty<Vector4<uint32_t>>;
-template class RS_EXPORT RSProperty<Vector4<Color>>;
-template class RS_EXPORT RSProperty<Vector4f>;
-template class RS_EXPORT RSProperty<std::shared_ptr<RSAnimatableBase>>;
-
-template class RS_EXPORT RSAnimatableProperty<float>;
-template class RS_EXPORT RSAnimatableProperty<Color>;
-template class RS_EXPORT RSAnimatableProperty<Matrix3f>;
-template class RS_EXPORT RSAnimatableProperty<Quaternion>;
-template class RS_EXPORT RSAnimatableProperty<std::shared_ptr<RSFilter>>;
-template class RS_EXPORT RSAnimatableProperty<Vector2f>;
-template class RS_EXPORT RSAnimatableProperty<Vector4<Color>>;
-template class RS_EXPORT RSAnimatableProperty<Vector4f>;
-template class RS_EXPORT RSAnimatableProperty<std::shared_ptr<RSAnimatableBase>>;
+template<>
+RSRenderPropertyType RSAnimatableProperty<float>::GetPropertyType() const
+{
+    return RSRenderPropertyType::PROPERTY_FLOAT;
+}
+template<>
+RSRenderPropertyType RSAnimatableProperty<Color>::GetPropertyType() const
+{
+    return RSRenderPropertyType::PROPERTY_COLOR;
+}
+template<>
+RSRenderPropertyType RSAnimatableProperty<Matrix3f>::GetPropertyType() const
+{
+    return RSRenderPropertyType::PROPERTY_MATRIX3F;
+}
+template<>
+RSRenderPropertyType RSAnimatableProperty<Vector2f>::GetPropertyType() const
+{
+    return RSRenderPropertyType::PROPERTY_VECTOR2F;
+}
+template<>
+RSRenderPropertyType RSAnimatableProperty<Vector4f>::GetPropertyType() const
+{
+    return RSRenderPropertyType::PROPERTY_VECTOR4F;
+}
+template<>
+RSRenderPropertyType RSAnimatableProperty<Quaternion>::GetPropertyType() const
+{
+    return RSRenderPropertyType::PROPERTY_QUATERNION;
+}
+template<>
+RSRenderPropertyType RSAnimatableProperty<std::shared_ptr<RSFilter>>::GetPropertyType() const
+{
+    return RSRenderPropertyType::PROPERTY_FILTER;
+}
+template<>
+RSRenderPropertyType RSAnimatableProperty<Vector4<Color>>::GetPropertyType() const
+{
+    return RSRenderPropertyType::PROPERTY_VECTOR4_COLOR;
+}
 } // namespace Rosen
 } // namespace OHOS

@@ -54,6 +54,7 @@ ohos_source_set("render_service_client_src") {
     "core/animation/rs_implicit_animator_map.cpp",
     "core/animation/rs_keyframe_animation.cpp",
     "core/animation/rs_path_animation.cpp",
+    "core/animation/rs_property_animation.cpp",
     "core/animation/rs_spring_animation.cpp",
     "core/animation/rs_transition.cpp",
     "core/animation/rs_ui_animation_manager.cpp",

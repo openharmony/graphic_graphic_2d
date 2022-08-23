@@ -25,6 +25,7 @@
 #include "common/rs_matrix3.h"
 #include "common/rs_vector4.h"
 #include "render/rs_filter.h"
+#include "modifier/rs_render_property.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -450,6 +451,19 @@ void RSAnimationLog::WriteAnimationInfoToLog(const PropertyId& propertyId,
         endData[DATA_INDEX_TWO].GetBlue(), endData[DATA_INDEX_TWO].GetAlpha(),
         endData[DATA_INDEX_THREE].GetRed(), endData[DATA_INDEX_THREE].GetGreen(),
         endData[DATA_INDEX_THREE].GetBlue(), endData[DATA_INDEX_THREE].GetAlpha());
+}
+
+template<>
+void RSAnimationLog::WriteAnimationValueToLog(const std::shared_ptr<RSRenderPropertyBase>& value,
+    const PropertyId& propertyId, const NodeId& id)
+{
+}
+
+template<>
+void RSAnimationLog::WriteAnimationInfoToLog(const PropertyId& propertyId,
+    const AnimationId& id, const std::shared_ptr<RSRenderPropertyBase>& startValue,
+    const std::shared_ptr<RSRenderPropertyBase>& endValue)
+{
 }
 } // namespace Rosen
 } // namespace OHOS

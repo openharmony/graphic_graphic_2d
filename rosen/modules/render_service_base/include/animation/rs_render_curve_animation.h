@@ -18,102 +18,41 @@
 
 #include "animation/rs_interpolator.h"
 #include "animation/rs_render_property_animation.h"
-#include "animation/rs_value_estimator.h"
-#include "platform/common/rs_log.h"
 
 namespace OHOS {
 namespace Rosen {
-template<typename T>
-class RSRenderCurveAnimation : public RSRenderPropertyAnimation<T> {
+class RSRenderCurveAnimation : public RSRenderPropertyAnimation {
 public:
     RSRenderCurveAnimation(AnimationId id, const PropertyId& propertyId,
-        const T& originValue, const T& startValue, const T& endValue)
-        : RSRenderPropertyAnimation<T>(id, propertyId, originValue), startValue_(startValue), endValue_(endValue)
-    {}
+        const std::shared_ptr<RSRenderPropertyBase>& originValue,
+        const std::shared_ptr<RSRenderPropertyBase>& startValue,
+        const std::shared_ptr<RSRenderPropertyBase>& endValue);
 
     virtual ~RSRenderCurveAnimation() = default;
 
-    void SetInterpolator(const std::shared_ptr<RSInterpolator>& interpolator)
-    {
-        interpolator_ = interpolator;
-    }
+    void SetInterpolator(const std::shared_ptr<RSInterpolator>& interpolator);
 
-    const std::shared_ptr<RSInterpolator>& GetInterpolator() const
-    {
-        return interpolator_;
-    }
+    const std::shared_ptr<RSInterpolator>& GetInterpolator() const;
 
 #ifdef ROSEN_OHOS
-    bool Marshalling(Parcel& parcel) const override
-    {
-        if (!RSRenderPropertyAnimation<T>::Marshalling(parcel)) {
-            ROSEN_LOGE("RSRenderCurveAnimation::Marshalling, RenderPropertyAnimation failed");
-            return false;
-        }
-        if (!(RSMarshallingHelper::Marshalling(parcel, startValue_) &&
-                RSMarshallingHelper::Marshalling(parcel, endValue_) && interpolator_->Marshalling(parcel))) {
-            ROSEN_LOGE("RSRenderCurveAnimation::Marshalling, MarshallingHelper failed");
-            return false;
-        }
-        return true;
-    }
+    bool Marshalling(Parcel& parcel) const override;
 
-    static RSRenderCurveAnimation* Unmarshalling(Parcel& parcel)
-    {
-        RSRenderCurveAnimation* renderCurveAnimation = new RSRenderCurveAnimation<T>();
-        if (!renderCurveAnimation->ParseParam(parcel)) {
-            ROSEN_LOGE("RSRenderCurveAnimation::Unmarshalling, failed");
-            delete renderCurveAnimation;
-            return nullptr;
-        }
-        return renderCurveAnimation;
-    }
+    static RSRenderCurveAnimation* Unmarshalling(Parcel& parcel);
 #endif
 protected:
-    void OnSetFraction(float fraction) override
-    {
-        OnAnimateInner(fraction, linearInterpolator_);
-        RSRenderAnimation::SetFractionInner(RSValueEstimator::EstimateFraction(
-            interpolator_, RSRenderPropertyAnimation<T>::GetLastValue(), startValue_, endValue_));
-    }
+    void OnSetFraction(float fraction) override;
 
-    void OnAnimate(float fraction) override
-    {
-        OnAnimateInner(fraction, interpolator_);
-    }
+    void OnAnimate(float fraction) override;
 
 private:
 #ifdef ROSEN_OHOS
-    bool ParseParam(Parcel& parcel) override
-    {
-        if (!RSRenderPropertyAnimation<T>::ParseParam(parcel)) {
-            ROSEN_LOGE("RSRenderCurveAnimation::ParseParam, ParseParam Fail");
-            return false;
-        }
-
-        if (!(RSMarshallingHelper::Unmarshalling(parcel, startValue_) &&
-                RSMarshallingHelper::Unmarshalling(parcel, endValue_))) {
-            ROSEN_LOGE("RSRenderCurveAnimation::ParseParam, Unmarshalling Fail");
-            return false;
-        }
-        std::shared_ptr<RSInterpolator> interpolator(RSInterpolator::Unmarshalling(parcel));
-        SetInterpolator(interpolator);
-        return true;
-    }
+    bool ParseParam(Parcel& parcel) override;
 #endif
     RSRenderCurveAnimation() = default;
-    void OnAnimateInner(float fraction, const std::shared_ptr<RSInterpolator>& interpolator)
-    {
-        if (RSRenderPropertyAnimation<T>::GetPropertyId() == 0) {
-            return;
-        }
-        auto interpolationValue =
-            RSValueEstimator::Estimate(interpolator_->Interpolate(fraction), startValue_, endValue_);
-        RSRenderPropertyAnimation<T>::SetAnimationValue(interpolationValue);
-    }
+    void OnAnimateInner(float fraction, const std::shared_ptr<RSInterpolator>& interpolator);
 
-    T startValue_ {};
-    T endValue_ {};
+    std::shared_ptr<RSRenderPropertyBase> startValue_ {};
+    std::shared_ptr<RSRenderPropertyBase> endValue_ {};
     std::shared_ptr<RSInterpolator> interpolator_ { RSInterpolator::DEFAULT };
     inline static std::shared_ptr<RSInterpolator> linearInterpolator_ { std::make_shared<LinearInterpolator>() };
 };

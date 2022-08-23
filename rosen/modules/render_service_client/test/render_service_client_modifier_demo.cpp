@@ -36,6 +36,7 @@
 #include "ui/rs_surface_extractor.h"
 #include "ui/rs_ui_director.h"
 #include "animation/rs_ui_animation_manager.h"
+#include "modifier/rs_property_modifier.h"
 
 using namespace OHOS;
 using namespace OHOS::Rosen;
@@ -64,44 +65,37 @@ void Init(std::shared_ptr<RSUIDirector> rsUiDirector, int width, int height)
 
 class MyData : public RSAnimatableArithmetic<MyData> {
 public:
+    MyData() : data(0.f) {}
     MyData(const float num) : data(num) {}
     virtual ~MyData() = default;
-    virtual std::shared_ptr<RSAnimatableBase> Add(const std::shared_ptr<RSAnimatableBase>& value) const override
+
+    MyData Add(const MyData& value) const override
     {
-        auto custom = std::static_pointer_cast<MyData>(value);
-        if (custom != nullptr) {
-            return std::make_shared<MyData>(this->data + custom->data);
-        }
-        return std::make_shared<MyData>(this->data);
+        float res = data + value.data;
+        return MyData(res);
     }
-    virtual std::shared_ptr<RSAnimatableBase> Minus(const std::shared_ptr<RSAnimatableBase>& value) const override
+    MyData Minus(const MyData& value) const override
     {
-        auto custom = std::static_pointer_cast<MyData>(value);
-        if (custom != nullptr) {
-            return std::make_shared<MyData>(this->data - custom->data);
-        }
-        return std::make_shared<MyData>(this->data);
+        float res = data - value.data;
+        return MyData(res);
     }
-    virtual std::shared_ptr<RSAnimatableBase> Multiply(const float scale) const override
+    MyData Multiply(const float scale) const override
     {
-        return std::make_shared<MyData>(this->data * scale);
+        float res = data * scale;
+        return MyData(res);
     }
-    virtual bool IsEqual(const std::shared_ptr<RSAnimatableBase>& value) const override
+    bool IsEqual(const MyData& value) const override
     {
-        auto custom = std::static_pointer_cast<MyData>(value);
-        if (custom != nullptr) {
-            return this->data == custom->data;
-        }
-        return false;
+        return data == value.data;
     }
 
     float data;
 };
 
-class MyModifier : public RSOverlayStyleModifier<std::shared_ptr<RSAnimatableBase>> {
+class MyModifier : public RSOverlayStyleModifier<RSAnimatableProperty<MyData>> {
 public:
-    MyModifier(const std::shared_ptr<RSProperty<std::shared_ptr<RSAnimatableBase>>> property)
-        : RSOverlayStyleModifier<std::shared_ptr<RSAnimatableBase>>(property) {}
+    MyModifier(const std::shared_ptr<RSAnimatableProperty<MyData>> property)
+        : RSOverlayStyleModifier<RSAnimatableProperty<MyData>>(property) {}
     virtual ~MyModifier() = default;
     void Draw(RSDrawingContext& context) const override
     {
@@ -112,10 +106,8 @@ public:
         bitmap.erase(0xffff3f7f, SkIRect::MakeXYWH(50, 50, 50, 50));
         SkPaint p;
         p.setShader(bitmap.makeShader(SkTileMode::kRepeat, SkTileMode::kRepeat));
-        auto custom = std::static_pointer_cast<MyData>(property_->Get());
-        if (custom != nullptr) {
-            p.setAlphaf(custom->data);
-        }
+        p.setAlphaf(property_->Get().data);
+        std::cout<<"MyModifier Draw property get  "<<property_->Get().data<<std::endl;
         context.canvas->drawRect(SkRect::MakeWH(context.width, context.height), p);
     }
 };
@@ -176,8 +168,8 @@ int main()
     std::cout << "rs app demo stage " << cnt++ << std::endl;
 
     // add custom drawing modifier
-    auto mydata = std::make_shared<MyData>(1.0f);
-    auto myproperty = std::make_shared<RSAnimatableProperty<std::shared_ptr<RSAnimatableBase>>>(mydata);
+    auto mydata = MyData(1.0f);
+    auto myproperty = std::make_shared<RSAnimatableProperty<MyData>>(mydata);
     auto mymodifier = std::make_shared<MyModifier>(myproperty);
     nodes[0]->AddModifier(mymodifier);
 
@@ -191,7 +183,7 @@ int main()
     RSNode::OpenImplicitAnimation(protocol, RSAnimationTimingCurve::LINEAR, []() {
         std::cout<<"animation finished"<<endl;
     });
-    auto mydata2 = std::make_shared<MyData>(0.1f);
+    auto mydata2 = MyData(0.1f);
     myproperty->Set(mydata2);
     RSNode::CloseImplicitAnimation();
     rsUiDirector->SendMessages();

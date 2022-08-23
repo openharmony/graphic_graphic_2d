@@ -19,13 +19,14 @@
 #include <unordered_map>
 
 #include "common/rs_common_def.h"
+#include "common/rs_macros.h"
 #include "ui/rs_base_node.h"
 
 namespace OHOS {
 namespace Rosen {
 class RSNode;
 
-class RSNodeMap final {
+class RS_EXPORT RSNodeMap final {
 public:
     static const RSNodeMap& Instance();
     static RSNodeMap& MutableInstance();

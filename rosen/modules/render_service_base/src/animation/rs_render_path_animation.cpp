@@ -18,11 +18,170 @@
 #include "animation/rs_value_estimator.h"
 #include "pipeline/rs_canvas_render_node.h"
 #include "platform/common/rs_log.h"
+#include "render/rs_path.h"
 
 namespace OHOS {
 namespace Rosen {
-template<>
-void RSRenderPathAnimation<Vector2f>::OnAnimate(float fraction)
+RSRenderPathAnimation::RSRenderPathAnimation(AnimationId id, const PropertyId& propertyId,
+    const std::shared_ptr<RSRenderPropertyBase>& originPosition,
+    const std::shared_ptr<RSRenderPropertyBase>& startPosition,
+    const std::shared_ptr<RSRenderPropertyBase>& endPosition, float originRotation,
+    const std::shared_ptr<RSPath>& animationPath) : RSRenderPropertyAnimation(id, propertyId, originPosition),
+    originRotation_(originRotation), startValue_(startPosition), endValue_(endPosition),
+    animationPath_(animationPath)
+{}
+
+void RSRenderPathAnimation::SetInterpolator(const std::shared_ptr<RSInterpolator>& interpolator)
+{
+    interpolator_ = interpolator;
+}
+
+const std::shared_ptr<RSInterpolator>& RSRenderPathAnimation::GetInterpolator() const
+{
+    return interpolator_;
+}
+
+void RSRenderPathAnimation::SetRotationMode(const RotationMode& rotationMode)
+{
+    if (IsStarted()) {
+        ROSEN_LOGE("Failed to enable rotate, path animation has started!");
+        return;
+    }
+
+    rotationMode_ = rotationMode;
+}
+
+RotationMode RSRenderPathAnimation::GetRotationMode() const
+{
+    return rotationMode_;
+}
+
+void RSRenderPathAnimation::SetBeginFraction(float fraction)
+{
+    if (IsStarted()) {
+        ROSEN_LOGE("Failed to set begin fraction, path animation has started!");
+        return;
+    }
+
+    if (fraction < FRACTION_MIN || fraction > FRACTION_MAX || fraction > endFraction_) {
+        ROSEN_LOGE("Failed to set begin fraction, invalid value:%f", fraction);
+        return;
+    }
+
+    beginFraction_ = fraction;
+}
+
+float RSRenderPathAnimation::GetBeginFraction() const
+{
+    return beginFraction_;
+}
+
+void RSRenderPathAnimation::SetEndFraction(float fraction)
+{
+    if (IsStarted()) {
+        ROSEN_LOGE("Failed to set end fraction, path animation has started!");
+        return;
+    }
+
+    if (fraction < FRACTION_MIN || fraction > FRACTION_MAX || fraction < beginFraction_) {
+        ROSEN_LOGE("Failed to set end fraction, invalid value:%f", fraction);
+        return;
+    }
+
+    endFraction_ = fraction;
+}
+
+float RSRenderPathAnimation::GetEndFraction() const
+{
+    return endFraction_;
+}
+
+void RSRenderPathAnimation::SetIsNeedPath(const bool isNeedPath)
+{
+    isNeedPath_ = isNeedPath;
+}
+
+void RSRenderPathAnimation::SetPathNeedAddOrigin(bool needAddOrigin)
+{
+    if (IsStarted()) {
+        ROSEN_LOGE("Failed to set need Add Origin, path animation has started!");
+        return;
+    }
+
+    needAddOrigin_ = needAddOrigin;
+}
+
+void RSRenderPathAnimation::SetRotationId(const PropertyId id)
+{
+    rotationId_ = id;
+}
+
+#ifdef ROSEN_OHOS
+bool RSRenderPathAnimation::Marshalling(Parcel& parcel) const
+{
+    if (!RSRenderPropertyAnimation::Marshalling(parcel)) {
+        ROSEN_LOGE("RSRenderPathAnimation::Marshalling, RenderPropertyAnimation failed");
+        return false;
+    }
+    if (!(parcel.WriteFloat(originRotation_) && parcel.WriteFloat(beginFraction_) &&
+            parcel.WriteFloat(endFraction_) && RSMarshallingHelper::Marshalling(parcel, *animationPath_) &&
+            parcel.WriteInt32(static_cast<std::underlying_type<RotationMode>::type>(rotationMode_)) &&
+            parcel.WriteBool(isNeedPath_) && interpolator_->Marshalling(parcel) &&
+            RSRenderPropertyBase::Marshalling(parcel, startValue_) &&
+            RSRenderPropertyBase::Marshalling(parcel, endValue_))) {
+        ROSEN_LOGE("RSRenderPathAnimation::Marshalling, write failed");
+        return false;
+    }
+    return true;
+}
+
+RSRenderPathAnimation* RSRenderPathAnimation::Unmarshalling(Parcel& parcel)
+{
+    RSRenderPathAnimation* renderPathAnimation = new RSRenderPathAnimation();
+
+    if (!renderPathAnimation->ParseParam(parcel)) {
+        ROSEN_LOGE("RSRenderPathAnimation::Unmarshalling, Parse RenderProperty Fail");
+        delete renderPathAnimation;
+        return nullptr;
+    }
+    return renderPathAnimation;
+}
+
+bool RSRenderPathAnimation::ParseParam(Parcel& parcel)
+{
+    if (!RSRenderPropertyAnimation::ParseParam(parcel)) {
+        ROSEN_LOGE("RSRenderPathAnimation::ParseParam, Parse RenderProperty Fail");
+        return false;
+    }
+
+    int32_t rotationMode;
+    std::shared_ptr<RSPath> path;
+    bool isNeedPath = true;
+    if (!(parcel.ReadFloat(originRotation_) && parcel.ReadFloat(beginFraction_) &&
+            parcel.ReadFloat(endFraction_) && RSMarshallingHelper::Unmarshalling(parcel, path) &&
+            parcel.ReadInt32(rotationMode) && parcel.ReadBool(isNeedPath))) {
+        ROSEN_LOGE("RSRenderPathAnimation::ParseParam, Parse PathAnimation Failed");
+        return false;
+    }
+
+    if (!(RSRenderPropertyBase::Unmarshalling(parcel, startValue_) &&
+            RSRenderPropertyBase::Unmarshalling(parcel, endValue_))) {
+        return false;
+    }
+
+    std::shared_ptr<RSInterpolator> interpolator(RSInterpolator::Unmarshalling(parcel));
+    if (interpolator == nullptr) {
+        ROSEN_LOGE("RSRenderPathAnimation::ParseParam, Unmarshalling interpolator failed");
+        return false;
+    }
+    SetInterpolator(interpolator);
+    SetRotationMode(static_cast<RotationMode>(rotationMode));
+    SetIsNeedPath(isNeedPath);
+    return true;
+}
+#endif
+
+void RSRenderPathAnimation::OnAnimate(float fraction)
 {
     if (animationPath_ == nullptr) {
         ROSEN_LOGE("Failed to animate motion path, path is null!");
@@ -33,41 +192,106 @@ void RSRenderPathAnimation<Vector2f>::OnAnimate(float fraction)
     Vector2f position;
     float tangent = 0;
     GetPosTanValue(fraction, position, tangent);
-    if (needAddOrigin_) {
-        SetPathValue(position + RSRenderPropertyAnimation<Vector2f>::GetOriginValue(), tangent);
-    } else {
-        SetPathValue(position, tangent);
-    }
-#endif
-}
-
-template<>
-void RSRenderPathAnimation<Vector4f>::OnAnimate(float fraction)
-{
-    if (animationPath_ == nullptr) {
-        ROSEN_LOGE("Failed to animate motion path, path is null!");
+    auto valueVector2f = std::static_pointer_cast<RSRenderAnimatableProperty<Vector2f>>(GetOriginValue());
+    if (GetOriginValue()->GetPropertyType() == RSRenderPropertyType::PROPERTY_VECTOR2F && valueVector2f != nullptr) {
+        SetPathValue(UpdateVector2fPathValue(valueVector2f->Get(), position), tangent);
         return;
     }
 
-#ifdef ROSEN_OHOS
     auto interpolationValue =
         RSValueEstimator::Estimate(interpolator_->Interpolate(fraction), startValue_, endValue_);
-    Vector4f animationValue = RSRenderPropertyAnimation<Vector4f>::GetAnimationValue(interpolationValue);
-    Vector2f position;
-    float tangent = 0;
-    if (isNeedPath_) {
-        GetPosTanValue(fraction, position, tangent);
-        animationValue[0] = position[0];
-        animationValue[1] = position[1];
-        if (needAddOrigin_) {
-            animationValue[0] = position[0] + RSRenderPropertyAnimation<Vector4f>::GetOriginValue()[0];
-            animationValue[1] = position[1] + RSRenderPropertyAnimation<Vector4f>::GetOriginValue()[1];
-        }
-        SetPathValue(animationValue, tangent);
-    } else {
-        SetPropertyValue(animationValue);
+    auto animationValue = GetAnimationValue(interpolationValue);
+    auto valueVector4f = std::static_pointer_cast<RSRenderAnimatableProperty<Vector4f>>(animationValue);
+    if (isNeedPath_ && valueVector4f != nullptr &&
+            valueVector4f->GetPropertyType() == RSRenderPropertyType::PROPERTY_VECTOR4F) {
+        SetPathValue(UpdateVector4fPathValue(valueVector4f->Get(), position), tangent);
+        return;
     }
+    SetPropertyValue(animationValue);
 #endif
+}
+
+void RSRenderPathAnimation::OnRemoveOnCompletion()
+{
+    auto target = GetTarget();
+    if (target == nullptr) {
+        ROSEN_LOGE("Failed to remove on completion, target is null!");
+        return;
+    }
+
+    target->GetMutableRenderProperties().SetRotation(originRotation_);
+    RSRenderPropertyAnimation::OnRemoveOnCompletion();
+}
+
+void RSRenderPathAnimation::SetPathValue(const std::shared_ptr<RSRenderPropertyBase>& value, float tangent)
+{
+    switch (GetRotationMode()) {
+        case RotationMode::ROTATE_AUTO:
+            SetRotation(tangent);
+            break;
+        case RotationMode::ROTATE_AUTO_REVERSE:
+            SetRotation(tangent + 180.0f);
+            break;
+        case RotationMode::ROTATE_NONE:
+            break;
+        default:
+            ROSEN_LOGE("Unknow rotate mode!");
+            break;
+    }
+
+    SetPropertyValue(value);
+}
+
+void RSRenderPathAnimation::SetRotation(const float tangent)
+{
+    auto target = GetTarget();
+    if (target == nullptr) {
+        ROSEN_LOGE("Failed to set rotation value, target is null!");
+        return;
+    }
+
+    auto modifier = target->GetModifier(rotationId_);
+    if (modifier != nullptr) {
+        auto property = std::static_pointer_cast<RSRenderProperty<float>>(modifier->GetProperty());
+        if (property != nullptr) {
+            property->Set(tangent);
+        }
+    }
+}
+
+void RSRenderPathAnimation::GetPosTanValue(float fraction, Vector2f& position, float& tangent)
+{
+    float distance = animationPath_->GetDistance();
+    float progress = GetBeginFraction() * (FRACTION_MAX - fraction) + GetEndFraction() * fraction;
+    animationPath_->GetPosTan(distance * progress, position, tangent);
+}
+
+std::shared_ptr<RSRenderPropertyBase> RSRenderPathAnimation::UpdateVector2fPathValue(const Vector2f& value,
+    const Vector2f& position)
+{
+    Vector2f pathValue = position;
+    if (needAddOrigin_) {
+        pathValue += value;
+    }
+
+    return std::make_shared<RSRenderAnimatableProperty<Vector2f>>(pathValue);
+}
+
+std::shared_ptr<RSRenderPropertyBase> RSRenderPathAnimation::UpdateVector4fPathValue(const Vector4f& value,
+    const Vector2f& position)
+{
+    Vector4f pathValue = value;
+    pathValue[0] = position[0];
+    pathValue[1] = position[1];
+    if (needAddOrigin_) {
+        auto animatableProperty = std::static_pointer_cast<RSRenderAnimatableProperty<Vector4f>>(GetOriginValue());
+        if (animatableProperty) {
+            pathValue[0] += animatableProperty->Get()[0];
+            pathValue[1] += animatableProperty->Get()[1];
+        }
+    }
+    return std::make_shared<RSRenderAnimatableProperty<Vector4f>>(pathValue, GetPropertyId(),
+        RSRenderPropertyType::PROPERTY_VECTOR4F);
 }
 } // namespace Rosen
 } // namespace OHOS

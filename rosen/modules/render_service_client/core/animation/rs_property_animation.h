@@ -19,171 +19,59 @@
 #include <memory>
 
 #include "animation/rs_animation.h"
-#include "animation/rs_animation_manager_map.h"
-#include "animation/rs_render_animation.h"
-#include "animation/rs_ui_animation_manager.h"
 #include "common/rs_macros.h"
-#include "modifier/rs_property.h"
-#include "ui/rs_node.h"
 
 namespace OHOS {
 namespace Rosen {
-template<typename T>
+class RSPropertyBase;
+class RSRenderAnimation;
+
 class RS_EXPORT RSPropertyAnimation : public RSAnimation {
 public:
     RSPropertyAnimation() = delete;
     virtual ~RSPropertyAnimation() = default;
 
+    void SetIsCustom(const bool isCustom);
+
 protected:
-    RSPropertyAnimation(RSAnimatableProperty<T>& property) : property_(property)
-    {
-        InitAdditiveMode();
-    }
+    RSPropertyAnimation(std::shared_ptr<RSPropertyBase> property);
 
-    void SetAdditive(bool isAdditive)
-    {
-        isAdditive_ = isAdditive;
-    }
+    void SetAdditive(bool isAdditive);
 
-    bool GetAdditive() const
-    {
-        return isAdditive_;
-    }
+    bool GetAdditive() const;
 
-    auto GetOriginValue() const
-    {
-        return originValue_;
-    }
+    const std::shared_ptr<RSPropertyBase> GetOriginValue() const;
 
-    void SetPropertyValue(const T& value)
-    {
-        property_.stagingValue_ = value;
-    }
+    void SetPropertyValue(const std::shared_ptr<RSPropertyBase>& value);
 
-    auto GetPropertyValue() const
-    {
-        return property_.stagingValue_;
-    }
+    const std::shared_ptr<RSPropertyBase> GetPropertyValue() const;
 
-    PropertyId GetPropertyId() const override
-    {
-        return property_.id_;
-    }
+    PropertyId GetPropertyId() const override;
 
-    void OnStart() override
-    {
-        if (!hasOriginValue_) {
-            originValue_ = GetPropertyValue();
-            hasOriginValue_ = true;
-        }
-        InitInterpolationValue();
-    }
+    void OnStart() override;
 
-    void SetOriginValue(const T& originValue)
-    {
-        if (!hasOriginValue_) {
-            originValue_ = originValue;
-            hasOriginValue_ = true;
-        }
-    }
+    void SetOriginValue(const std::shared_ptr<RSPropertyBase>& originValue);
 
-    virtual void InitInterpolationValue()
-    {
-        if (isDelta_) {
-            startValue_ = originValue_;
-            endValue_ = originValue_ + byValue_;
-        } else {
-            byValue_ = endValue_ - startValue_;
-        }
-    }
+    virtual void InitInterpolationValue();
 
-    void OnUpdateStagingValue(bool isFirstStart) override
-    {
-        auto startValue = startValue_;
-        auto endValue = endValue_;
-        if (!GetDirection()) {
-            std::swap(startValue, endValue);
-        }
-        auto byValue = endValue - startValue;
-        auto targetValue = endValue;
-        if (isFirstStart) {
-            if (GetAutoReverse() && GetRepeatCount() % 2 == 0) {
-                targetValue = startValue;
-            } else {
-                targetValue = endValue;
-            }
-        } else {
-            auto currentValue = GetPropertyValue();
-            if (GetAutoReverse() && GetRepeatCount() % 2 == 0) {
-                targetValue = IsReversed() ? currentValue + byValue : currentValue - byValue;
-            } else {
-                targetValue = IsReversed() ? currentValue - byValue : currentValue + byValue;
-            }
-        }
+    void OnUpdateStagingValue(bool isFirstStart) override;
 
-        SetPropertyValue(targetValue);
-    }
+    void StartCustomPropertyAnimation(const std::shared_ptr<RSRenderAnimation>& animation);
 
-    void StartCustomPropertyAnimation(const std::shared_ptr<RSRenderAnimation>& animation)
-    {
-        auto target = GetTarget().lock();
-        if (target == nullptr) {
-            ROSEN_LOGE("Failed to start custom animation, target is null!");
-            return;
-        }
+    void SetPropertyOnAllAnimationFinish() override;
 
-        auto animationManager = RSAnimationManagerMap::Instance()->GetAnimationManager(gettid());
-        if (animationManager == nullptr) {
-            ROSEN_LOGE("Failed to start custom animation, UI animation manager is null!");
-            return;
-        }
-
-        auto renderProperty = animationManager->GetRenderProperty(property_.id_);
-        if (renderProperty == nullptr) {
-            renderProperty = std::make_shared<RSRenderProperty<std::shared_ptr<RSAnimatableBase>>>(
-                originValue_, property_.id_);
-        }
-        auto modifier = std::static_pointer_cast<RSModifier<RSAnimatableProperty<
-            std::shared_ptr<RSAnimatableBase>>>>(target->GetModifier(property_.id_));
-        if (modifier != nullptr) {
-            auto uiProperty = std::static_pointer_cast<RSAnimatableProperty<std::shared_ptr<RSAnimatableBase>>>(
-                modifier->GetProperty());
-            animationManager->AddAnimatableProp(property_.id_, uiProperty, renderProperty);
-            if (uiProperty != nullptr) {
-                uiProperty->AttachModifier(modifier);
-            }
-        }
-        UpdateParamToRenderAnimation(animation);
-        animation->AttachRenderProperty(renderProperty);
-        animation->Start();
-        animationManager->AddAnimation(animation, shared_from_this());
-    }
-
-    void SetPropertyOnAllAnimationFinish() override
-    {
-        property_.UpdateOnAllAnimationFinish();
-    }
-
-    RSAnimatableProperty<T>& property_;
-    T byValue_ {};
-    T startValue_ {};
-    T endValue_ {};
-    T originValue_ {};
+    std::shared_ptr<RSPropertyBase> property_;
+    std::shared_ptr<RSPropertyBase> byValue_ {};
+    std::shared_ptr<RSPropertyBase> startValue_ {};
+    std::shared_ptr<RSPropertyBase> endValue_ {};
+    std::shared_ptr<RSPropertyBase> originValue_ {};
     bool isAdditive_ { true };
+    bool isCustom_ { false };
     bool isDelta_ { false };
     bool hasOriginValue_ { false };
 
 private:
-    void InitAdditiveMode()
-    {
-        switch (property_.type_) {
-            case RSModifierType::QUATERNION:
-                SetAdditive(false);
-                break;
-            default:
-                break;
-        }
-    }
+    void InitAdditiveMode();
 };
 } // namespace Rosen
 } // namespace OHOS

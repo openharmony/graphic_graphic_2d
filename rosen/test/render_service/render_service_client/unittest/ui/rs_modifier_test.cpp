@@ -18,6 +18,8 @@
 #include "core/transaction/rs_interfaces.h"
 #include "ui/rs_canvas_node.h"
 #include "ui/rs_ui_director.h"
+#include "modifier/rs_property.h"
+#include "modifier/rs_property_modifier.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -91,10 +93,10 @@ HWTEST_F(RSModifierTest, Modifier002, TestSize.Level1)
     auto prop = std::make_shared<RSAnimatableProperty<float>>(floatData[0]);
     auto modifier = std::make_shared<RSAlphaModifier>(prop);
     ASSERT_TRUE(modifier != nullptr);
-    ASSERT_EQ(modifier->GetProperty()->Get(), floatData[0]);
+    ASSERT_EQ(std::static_pointer_cast<RSAnimatableProperty<float>>(modifier->GetProperty())->Get(), floatData[0]);
 
     prop->Set(floatData[1]);
-    ASSERT_EQ(modifier->GetProperty()->Get(), floatData[1]);
+    ASSERT_EQ(std::static_pointer_cast<RSAnimatableProperty<float>>(modifier->GetProperty())->Get(), floatData[1]);
 }
 /**
  * @tc.name: AddModifier001

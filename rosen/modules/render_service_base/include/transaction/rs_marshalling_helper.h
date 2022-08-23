@@ -50,19 +50,17 @@ class RSImage;
 class RSMask;
 class RSPath;
 class RSShader;
-template<typename T>
 class RSRenderCurveAnimation;
-template<typename T>
 class RSRenderKeyframeAnimation;
-template<typename T>
 class RSRenderSpringAnimation;
-template<typename T>
 class RSRenderPathAnimation;
 class RSRenderTransition;
 class RSRenderTransitionEffect;
 class RSRenderModifier;
 template<typename T>
 class RSRenderProperty;
+template<typename T>
+class RSRenderAnimatableProperty;
 
 class RSMarshallingHelper {
 public:
@@ -155,19 +153,25 @@ public:
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSRenderModifier>)
 #undef DECLARE_FUNCTION_OVERLOAD
 
-    // reloaded marshalling & unmarshalling function for animation template
+    // reloaded marshalling & unmarshalling function for animation
+#define DECLARE_ANIMATION_OVERLOAD(TEMPLATE)                                       \
+    static bool Marshalling(Parcel& parcel, const std::shared_ptr<TEMPLATE>& val); \
+    static bool Unmarshalling(Parcel& parcel, std::shared_ptr<TEMPLATE>& val);
+
+    DECLARE_ANIMATION_OVERLOAD(RSRenderCurveAnimation)
+    DECLARE_ANIMATION_OVERLOAD(RSRenderKeyframeAnimation)
+    DECLARE_ANIMATION_OVERLOAD(RSRenderSpringAnimation)
+    DECLARE_ANIMATION_OVERLOAD(RSRenderPathAnimation)
+#undef DECLARE_ANIMATION_OVERLOAD
+
 #define DECLARE_TEMPLATE_OVERLOAD(TEMPLATE)                                           \
     template<typename T>                                                              \
     static bool Marshalling(Parcel& parcel, const std::shared_ptr<TEMPLATE<T>>& val); \
     template<typename T>                                                              \
     static bool Unmarshalling(Parcel& parcel, std::shared_ptr<TEMPLATE<T>>& val);
 
-    DECLARE_TEMPLATE_OVERLOAD(RSRenderCurveAnimation)
-    DECLARE_TEMPLATE_OVERLOAD(RSRenderKeyframeAnimation)
-    DECLARE_TEMPLATE_OVERLOAD(RSRenderSpringAnimation)
-    DECLARE_TEMPLATE_OVERLOAD(RSRenderPathAnimation)
-
     DECLARE_TEMPLATE_OVERLOAD(RSRenderProperty)
+    DECLARE_TEMPLATE_OVERLOAD(RSRenderAnimatableProperty)
 #undef DECLARE_TEMPLATE_OVERLOAD
 
     // reloaded marshalling & unmarshalling function for std::vector

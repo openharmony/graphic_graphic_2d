@@ -17,109 +17,105 @@
 
 #include "animation/rs_render_keyframe_animation.h"
 #include "command/rs_animation_command.h"
+#include "modifier/rs_property.h"
 #include "transaction/rs_transaction_proxy.h"
+#include "ui/rs_node.h"
 
 namespace OHOS {
 namespace Rosen {
-template<typename T>
-template<typename P>
-void RSKeyframeAnimation<T>::StartAnimationImpl()
+RSKeyframeAnimation::RSKeyframeAnimation(std::shared_ptr<RSPropertyBase> property) : RSPropertyAnimation(property)
+{}
+
+void RSKeyframeAnimation::AddKeyFrame(float fraction, const std::shared_ptr<RSPropertyBase>& value,
+    const RSAnimationTimingCurve& timingCurve)
 {
-    RSPropertyAnimation<T>::OnStart();
-    auto target = RSPropertyAnimation<T>::GetTarget().lock();
+    if (fraction < FRACTION_MIN || fraction > FRACTION_MAX) {
+        return;
+    }
+
+    if (IsStarted()) {
+        return;
+    }
+
+    keyframes_.push_back({ fraction, value, timingCurve });
+}
+
+void RSKeyframeAnimation::AddKeyFrames(
+    const std::vector<std::tuple<float, std::shared_ptr<RSPropertyBase>, RSAnimationTimingCurve>>& keyframes)
+{
+    if (IsStarted()) {
+        return;
+    }
+
+    keyframes_ = keyframes;
+}
+
+void RSKeyframeAnimation::InitInterpolationValue()
+{
+    if (keyframes_.empty()) {
+        return;
+    }
+
+    auto beginKeyframe = keyframes_.front();
+    if (std::abs(std::get<FRACTION_INDEX>(beginKeyframe) - FRACTION_MIN) > EPSILON) {
+        keyframes_.insert(keyframes_.begin(), { FRACTION_MIN, GetOriginValue(), RSAnimationTimingCurve::LINEAR });
+    }
+
+    startValue_ = std::get<VALUE_INDEX>(keyframes_.front());
+    endValue_ = std::get<VALUE_INDEX>(keyframes_.back());
+    RSPropertyAnimation::InitInterpolationValue();
+}
+
+void RSKeyframeAnimation::StartRenderAnimation(const std::shared_ptr<RSRenderKeyframeAnimation>& animation)
+{
+    auto target = GetTarget().lock();
     if (target == nullptr) {
         ROSEN_LOGE("Failed to start keyframe animation, target is null!");
         return;
     }
-    if (keyframes_.empty()) {
-        ROSEN_LOGE("Failed to start keyframe animation, keyframes is null!");
-        return;
-    }
-    auto animation = std::make_shared<RSRenderKeyframeAnimation<T>>(RSPropertyAnimation<T>::GetId(),
-        RSPropertyAnimation<T>::GetPropertyId(), RSPropertyAnimation<T>::originValue_);
-    for (const auto& [fraction, value, curve] : keyframes_) {
-        animation->AddKeyframe(fraction, value, curve.GetInterpolator(RSPropertyAnimation<T>::GetDuration()));
-    }
-    animation->SetAdditive(RSPropertyAnimation<T>::GetAdditive());
-    RSAnimation::UpdateParamToRenderAnimation(animation);
-    std::unique_ptr<RSCommand> command = std::make_unique<P>(target->GetId(), animation);
+
+    std::unique_ptr<RSCommand> command = std::make_unique<RSAnimationCreateKeyframe>(target->GetId(), animation);
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy != nullptr) {
         transactionProxy->AddCommand(command, target->IsRenderServiceNode(), target->GetFollowType(), target->GetId());
         if (target->NeedForcedSendToRemote()) {
-            std::unique_ptr<RSCommand> commandForRemote = std::make_unique<P>(target->GetId(), animation);
+            std::unique_ptr<RSCommand> commandForRemote =
+                std::make_unique<RSAnimationCreateKeyframe>(target->GetId(), animation);
             transactionProxy->AddCommand(commandForRemote, true, target->GetFollowType(), target->GetId());
         }
         if (target->NeedSendExtraCommand()) {
-            std::unique_ptr<RSCommand> extraCommand = std::make_unique<P>(target->GetId(), animation);
+            std::unique_ptr<RSCommand> extraCommand =
+                std::make_unique<RSAnimationCreateKeyframe>(target->GetId(), animation);
             transactionProxy->AddCommand(extraCommand, !target->IsRenderServiceNode(), target->GetFollowType(),
                 target->GetId());
         }
     }
 }
 
-template<>
-void RSKeyframeAnimation<float>::OnStart()
+void RSKeyframeAnimation::StartUIAnimation(const std::shared_ptr<RSRenderKeyframeAnimation>& animation)
 {
-    StartAnimationImpl<RSAnimationCreateKeyframeFloat>();
+    StartCustomPropertyAnimation(animation);
 }
 
-template<>
-void RSKeyframeAnimation<Color>::OnStart()
-{
-    StartAnimationImpl<RSAnimationCreateKeyframeColor>();
-}
-
-template<>
-void RSKeyframeAnimation<Matrix3f>::OnStart()
-{
-    StartAnimationImpl<RSAnimationCreateKeyframeMatrix3f>();
-}
-
-template<>
-void RSKeyframeAnimation<Vector2f>::OnStart()
-{
-    StartAnimationImpl<RSAnimationCreateKeyframeVec2f>();
-}
-
-template<>
-void RSKeyframeAnimation<Vector4f>::OnStart()
-{
-    StartAnimationImpl<RSAnimationCreateKeyframeVec4f>();
-}
-
-template<>
-void RSKeyframeAnimation<Quaternion>::OnStart()
-{
-    StartAnimationImpl<RSAnimationCreateKeyframeQuaternion>();
-}
-
-template<>
-void RSKeyframeAnimation<std::shared_ptr<RSFilter>>::OnStart()
-{
-    StartAnimationImpl<RSAnimationCreateKeyframeFilter>();
-}
-
-template<>
-void RSKeyframeAnimation<Vector4<Color>>::OnStart()
-{
-    StartAnimationImpl<RSAnimationCreateKeyframeVec4Color>();
-}
-
-template<>
-void RSKeyframeAnimation<std::shared_ptr<RSAnimatableBase>>::OnStart()
+void RSKeyframeAnimation::OnStart()
 {
     RSPropertyAnimation::OnStart();
     if (keyframes_.empty()) {
         ROSEN_LOGE("Failed to start keyframe animation, keyframes is null!");
         return;
     }
-    auto animation = std::make_shared<RSRenderKeyframeAnimation<std::shared_ptr<RSAnimatableBase>>>(
-        GetId(), GetPropertyId(), originValue_);
+    auto animation = std::make_shared<RSRenderKeyframeAnimation>(GetId(), GetPropertyId(),
+        originValue_->CreateRenderProperty());
     for (const auto& [fraction, value, curve] : keyframes_) {
-        animation->AddKeyframe(fraction, value, curve.GetInterpolator(GetDuration()));
+        animation->AddKeyframe(fraction, value->CreateRenderProperty(), curve.GetInterpolator(GetDuration()));
     }
-    StartCustomPropertyAnimation(animation);
+    animation->SetAdditive(GetAdditive());
+    UpdateParamToRenderAnimation(animation);
+    if (isCustom_) {
+        StartUIAnimation(animation);
+    } else {
+        StartRenderAnimation(animation);
+    }
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -20,15 +20,16 @@
 #include <memory>
 #include <unordered_map>
 
-#include "animation/rs_animation.h"
-#include "animation/rs_render_animation.h"
 #include "common/rs_common_def.h"
-#include "modifier/rs_property.h"
-#include "modifier/rs_render_property.h"
 
 namespace OHOS {
 namespace Rosen {
 class RSModifierManager;
+class RSAnimation;
+class RSRenderAnimation;
+class RSPropertyBase;
+class RSRenderPropertyBase;
+
 class RS_EXPORT RSUIAnimationManager {
 public:
     RSUIAnimationManager();
@@ -39,9 +40,9 @@ public:
     void RemoveAnimation(const AnimationId keyId);
     const std::shared_ptr<RSRenderAnimation> GetAnimation(AnimationId id) const;
     void AddAnimatableProp(const PropertyId id,
-        const std::shared_ptr<RSAnimatableProperty<std::shared_ptr<RSAnimatableBase>>>& uiProperty,
-        const std::shared_ptr<RSRenderProperty<std::shared_ptr<RSAnimatableBase>>>& renderProperty);
-    const std::shared_ptr<RSRenderProperty<std::shared_ptr<RSAnimatableBase>>> GetRenderProperty(
+        const std::shared_ptr<RSPropertyBase>& uiProperty,
+        const std::shared_ptr<RSRenderPropertyBase>& renderProperty);
+    const std::shared_ptr<RSRenderPropertyBase> GetRenderProperty(
         const PropertyId id);
     void RemoveProperty(const PropertyId id);
 
@@ -59,8 +60,8 @@ private:
     std::unordered_map<AnimationId, std::shared_ptr<RSRenderAnimation>> animations_;
     std::unordered_map<AnimationId, std::shared_ptr<RSAnimation>> uiAnimations_;
     std::unordered_map<PropertyId, int> animationNum_;
-    std::unordered_map<PropertyId, std::pair<std::shared_ptr<RSAnimatableProperty<std::shared_ptr<RSAnimatableBase>>>,
-        std::shared_ptr<RSRenderProperty<std::shared_ptr<RSAnimatableBase>>>>> properties_;
+    std::unordered_map<PropertyId, std::pair<std::shared_ptr<RSPropertyBase>,
+        std::shared_ptr<RSRenderPropertyBase>>> properties_;
 
 };
 } // namespace Rosen

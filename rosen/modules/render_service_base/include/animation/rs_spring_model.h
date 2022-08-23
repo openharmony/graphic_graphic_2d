@@ -32,6 +32,10 @@ public:
     float GetEstimatedDuration();
 
 protected:
+    RSSpringModel() = default;
+    void EstimateDuration();
+    void CalculateSpringParameters();
+
     // physical parameters of spring-damper model
     float response_ { 0.0f };
     float dampingRatio_ { 0.0f };
@@ -40,12 +44,7 @@ protected:
 
     // estimated duration until the spring is at rest
     float minimumAmplitude_ { 0.001f };
-    void EstimateDuration();
     float estimatedDuration_ { -1.0f };
-
-    // for RSRenderAnimation
-    RSSpringModel() = default;
-    void CalculateSpringParameters();
 
 private:
     // calculated intermediate coefficient

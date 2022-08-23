@@ -21,52 +21,29 @@
 
 #include "animation/rs_animation_timing_curve.h"
 #include "animation/rs_property_animation.h"
-#include "common/rs_color.h"
-#include "common/rs_matrix3.h"
-#include "common/rs_vector4.h"
-#include "render/rs_filter.h"
 
 namespace OHOS {
 namespace Rosen {
-template<typename T>
-class RS_EXPORT RSCurveAnimation : public RSPropertyAnimation<T> {
+class RSRenderCurveAnimation;
+
+class RS_EXPORT RSCurveAnimation : public RSPropertyAnimation {
 public:
-    RSCurveAnimation(RSAnimatableProperty<T>& property, const T& byValue) : RSPropertyAnimation<T>(property)
-    {
-        RSPropertyAnimation<T>::isDelta_ = true;
-        RSPropertyAnimation<T>::byValue_ = byValue;
-    }
-
-    RSCurveAnimation(RSAnimatableProperty<T>& property, const T& startValue, const T& endValue)
-        : RSPropertyAnimation<T>(property)
-    {
-        RSPropertyAnimation<T>::isDelta_ = false;
-        RSPropertyAnimation<T>::startValue_ = startValue;
-        RSPropertyAnimation<T>::endValue_ = endValue;
-    }
-
+    RSCurveAnimation(std::shared_ptr<RSPropertyBase> property, const std::shared_ptr<RSPropertyBase>& byValue);
+    RSCurveAnimation(std::shared_ptr<RSPropertyBase> property, const std::shared_ptr<RSPropertyBase>& startValue,
+        const std::shared_ptr<RSPropertyBase>& endValue);
     virtual ~RSCurveAnimation() = default;
 
-    void SetTimingCurve(const RSAnimationTimingCurve& timingCurve)
-    {
-        if (timingCurve.type_ != RSAnimationTimingCurve::CurveType::INTERPOLATING) {
-            ROSEN_LOGE("RSCurveAnimation::SetTimingCurve: invalid timing curve type");
-            return;
-        }
-        timingCurve_ = timingCurve;
-    }
+    void SetTimingCurve(const RSAnimationTimingCurve& timingCurve);
 
-    const RSAnimationTimingCurve& GetTimingCurve() const
-    {
-        return timingCurve_;
-    }
+    const RSAnimationTimingCurve& GetTimingCurve() const;
 
 protected:
     void OnStart() override;
 
 private:
-    template<typename P>
-    void StartAnimationImpl();
+    void StartRenderAnimation(const std::shared_ptr<RSRenderCurveAnimation>& animation);
+
+    void StartUIAnimation(const std::shared_ptr<RSRenderCurveAnimation>& animation);
 
     RSAnimationTimingCurve timingCurve_ { RSAnimationTimingCurve::DEFAULT };
 };

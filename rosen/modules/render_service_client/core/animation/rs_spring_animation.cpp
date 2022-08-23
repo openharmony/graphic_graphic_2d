@@ -18,99 +18,86 @@
 #include "animation/rs_animation_common.h"
 #include "animation/rs_render_spring_animation.h"
 #include "command/rs_animation_command.h"
+#include "modifier/rs_property.h"
 #include "platform/common/rs_log.h"
 #include "transaction/rs_transaction_proxy.h"
+#include "ui/rs_node.h"
 
 namespace OHOS {
 namespace Rosen {
-template<typename T>
-template<typename P>
-void RSSpringAnimation<T>::StartAnimationImpl()
+RSSpringAnimation::RSSpringAnimation(std::shared_ptr<RSPropertyBase> property,
+    const std::shared_ptr<RSPropertyBase>& byValue) : RSPropertyAnimation(property)
 {
-    RSPropertyAnimation<T>::OnStart();
-    auto target = RSPropertyAnimation<T>::GetTarget().lock();
+    isDelta_ = true;
+    byValue_ = byValue;
+}
+
+RSSpringAnimation::RSSpringAnimation(std::shared_ptr<RSPropertyBase> property,
+    const std::shared_ptr<RSPropertyBase>& startValue, const std::shared_ptr<RSPropertyBase>& endValue)
+    : RSPropertyAnimation(property)
+{
+    isDelta_ = false;
+    startValue_ = startValue;
+    endValue_ = endValue;
+}
+
+void RSSpringAnimation::SetTimingCurve(const RSAnimationTimingCurve& timingCurve)
+{
+    if (timingCurve.type_ != RSAnimationTimingCurve::CurveType::SPRING) {
+        ROSEN_LOGE("RSSpringAnimation::SetTimingCurve: invalid timing curve type");
+        return;
+    }
+    timingCurve_ = timingCurve;
+}
+
+const RSAnimationTimingCurve& RSSpringAnimation::GetTimingCurve() const
+{
+    return timingCurve_;
+}
+
+void RSSpringAnimation::OnStart()
+{
+    auto animation = std::make_shared<RSRenderSpringAnimation>(GetId(), GetPropertyId(),
+        originValue_->CreateRenderProperty(), startValue_->CreateRenderProperty(), endValue_->CreateRenderProperty());
+    UpdateParamToRenderAnimation(animation);
+    animation->SetSpringParameters(timingCurve_.response_, timingCurve_.dampingRatio_);
+    animation->SetAdditive(GetAdditive());
+    if (isCustom_) {
+        StartUIAnimation(animation);
+    } else {
+        StartRenderAnimation(animation);
+    }
+}
+
+void RSSpringAnimation::StartRenderAnimation(const std::shared_ptr<RSRenderSpringAnimation>& animation)
+{
+    auto target = GetTarget().lock();
     if (target == nullptr) {
         ROSEN_LOGE("Failed to start spring animation, target is null!");
         return;
     }
-    auto animation = std::make_shared<RSRenderSpringAnimation<T>>(RSPropertyAnimation<T>::GetId(),
-        RSPropertyAnimation<T>::GetPropertyId(), RSPropertyAnimation<T>::originValue_,
-        RSPropertyAnimation<T>::startValue_, RSPropertyAnimation<T>::endValue_);
-    RSAnimation::UpdateParamToRenderAnimation(animation);
-    animation->SetSpringParameters(timingCurve_.response_, timingCurve_.dampingRatio_);
-    animation->SetAdditive(RSPropertyAnimation<T>::GetAdditive());
-    std::unique_ptr<RSCommand> command = std::make_unique<P>(target->GetId(), animation);
+
+    std::unique_ptr<RSCommand> command = std::make_unique<RSAnimationCreateSpring>(target->GetId(), animation);
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy != nullptr) {
         transactionProxy->AddCommand(
             command, target->IsRenderServiceNode(), target->GetFollowType(), target->GetId());
         if (target->NeedForcedSendToRemote()) {
-            std::unique_ptr<RSCommand> commandForRemote = std::make_unique<P>(target->GetId(), animation);
+            std::unique_ptr<RSCommand> commandForRemote =
+                std::make_unique<RSAnimationCreateSpring>(target->GetId(), animation);
             transactionProxy->AddCommand(commandForRemote, true, target->GetFollowType(), target->GetId());
         }
         if (target->NeedSendExtraCommand()) {
-            std::unique_ptr<RSCommand> extraCommand = std::make_unique<P>(target->GetId(), animation);
+            std::unique_ptr<RSCommand> extraCommand =
+                std::make_unique<RSAnimationCreateSpring>(target->GetId(), animation);
             transactionProxy->AddCommand(extraCommand, !target->IsRenderServiceNode(), target->GetFollowType(),
                 target->GetId());
         }
     }
 }
 
-template<>
-void RSSpringAnimation<float>::OnStart()
+void RSSpringAnimation::StartUIAnimation(const std::shared_ptr<RSRenderSpringAnimation>& animation)
 {
-    StartAnimationImpl<RSAnimationCreateSpringFloat>();
-}
-
-template<>
-void RSSpringAnimation<Color>::OnStart()
-{
-    StartAnimationImpl<RSAnimationCreateSpringColor>();
-}
-
-template<>
-void RSSpringAnimation<Matrix3f>::OnStart()
-{
-    StartAnimationImpl<RSAnimationCreateSpringMatrix3f>();
-}
-
-template<>
-void RSSpringAnimation<Vector2f>::OnStart()
-{
-    StartAnimationImpl<RSAnimationCreateSpringVec2f>();
-}
-
-template<>
-void RSSpringAnimation<Vector4f>::OnStart()
-{
-    StartAnimationImpl<RSAnimationCreateSpringVec4f>();
-}
-
-template<>
-void RSSpringAnimation<Quaternion>::OnStart()
-{
-    StartAnimationImpl<RSAnimationCreateSpringQuaternion>();
-}
-
-template<>
-void RSSpringAnimation<std::shared_ptr<RSFilter>>::OnStart()
-{
-    StartAnimationImpl<RSAnimationCreateSpringFilter>();
-}
-
-template<>
-void RSSpringAnimation<Vector4<Color>>::OnStart()
-{
-    StartAnimationImpl<RSAnimationCreateSpringVec4Color>();
-}
-
-template<>
-void RSSpringAnimation<std::shared_ptr<RSAnimatableBase>>::OnStart()
-{
-    RSPropertyAnimation::OnStart();
-    auto animation = std::make_shared<RSRenderSpringAnimation<std::shared_ptr<RSAnimatableBase>>>(GetId(),
-        GetPropertyId(), originValue_, startValue_, endValue_);
-    animation->SetSpringParameters(timingCurve_.response_, timingCurve_.dampingRatio_);
     StartCustomPropertyAnimation(animation);
 }
 } // namespace Rosen

@@ -17,16 +17,54 @@
 
 #include "common/rs_common_def.h"
 #include "platform/common/rs_log.h"
+#include "modifier/rs_render_property.h"
 
 namespace OHOS {
 namespace Rosen {
-Quaternion RSValueEstimator::Estimate(float fraction, const Quaternion& startValue, const Quaternion& endValue)
+std::shared_ptr<RSRenderPropertyBase> RSValueEstimator::Estimate(float fraction,
+    const std::shared_ptr<RSRenderPropertyBase>& startValue, const std::shared_ptr<RSRenderPropertyBase>& endValue)
+{
+    if (endValue == nullptr) {
+        return startValue->GetValue();
+    }
+
+    if (startValue == nullptr) {
+        return endValue->GetValue() * fraction;
+    }
+
+    if (startValue->GetPropertyType() == RSRenderPropertyType::PROPERTY_QUATERNION) {
+        auto quaternionStart = std::static_pointer_cast<RSRenderProperty<Quaternion>>(startValue);
+        auto quaternionEnd = std::static_pointer_cast<RSRenderProperty<Quaternion>>(startValue);
+        if (quaternionStart && quaternionEnd) {
+            auto quaternionValue = EstimateQuaternion(fraction, quaternionStart->Get(), quaternionEnd->Get());
+            return std::make_shared<RSRenderAnimatableProperty<Quaternion>>(quaternionValue);
+        }
+
+        return nullptr;
+    }
+
+    if (startValue->GetPropertyType() == RSRenderPropertyType::PROPERTY_FILTER) {
+        auto filterStart = std::static_pointer_cast<RSRenderProperty<std::shared_ptr<RSFilter>>>(startValue);
+        auto filterEnd = std::static_pointer_cast<RSRenderProperty<std::shared_ptr<RSFilter>>>(endValue);
+        if (filterStart && filterEnd) {
+            auto filterValue = EstimateFilter(fraction, filterStart->Get(), filterEnd->Get());
+            return std::make_shared<RSRenderAnimatableProperty<std::shared_ptr<RSFilter>>>(filterValue);
+        }
+
+        return nullptr;
+    }
+
+    return startValue->GetValue() * (1.0f - fraction) + endValue->GetValue() * fraction;
+}
+
+Quaternion RSValueEstimator::EstimateQuaternion(float fraction,
+    const Quaternion& startValue, const Quaternion& endValue)
 {
     auto value = startValue;
     return value.Slerp(endValue, fraction);
 }
 
-std::shared_ptr<RSFilter> RSValueEstimator::Estimate(
+std::shared_ptr<RSFilter> RSValueEstimator::EstimateFilter(
     float fraction, const std::shared_ptr<RSFilter>& startValue, const std::shared_ptr<RSFilter>& endValue)
 {
     if ((startValue == nullptr || !startValue->IsValid()) && (endValue == nullptr || !endValue->IsValid())) {
@@ -48,54 +86,43 @@ std::shared_ptr<RSFilter> RSValueEstimator::Estimate(
     }
 }
 
-float RSValueEstimator::EstimateFraction(const std::shared_ptr<RSInterpolator>& interpolator, const Vector2f& value,
-    const Vector2f& startValue, const Vector2f& endValue)
+float RSValueEstimator::EstimateFraction(
+    const std::shared_ptr<RSInterpolator>& interpolator, const std::shared_ptr<RSRenderPropertyBase>& value,
+    const std::shared_ptr<RSRenderPropertyBase>& startValue, const std::shared_ptr<RSRenderPropertyBase>& endValue)
 {
+    auto valueFloat = std::static_pointer_cast<RSRenderProperty<float>>(value);
+    auto startFloat = std::static_pointer_cast<RSRenderProperty<float>>(startValue);
+    auto endFloat = std::static_pointer_cast<RSRenderProperty<float>>(endValue);
+    if (valueFloat != nullptr && startValue != nullptr && endValue != nullptr) {
+        return EstimateFloatFraction(interpolator, valueFloat->Get(), startFloat->Get(), endFloat->Get());
+    }
+
     return 0.0f;
 }
 
-float RSValueEstimator::EstimateFraction(const std::shared_ptr<RSInterpolator>& interpolator, const Vector4f& value,
-    const Vector4f& startValue, const Vector4f& endValue)
+float RSValueEstimator::EstimateFloatFraction(
+    const std::shared_ptr<RSInterpolator>& interpolator, const float value,
+    const float startValue, const float endValue)
 {
-    return 0.0f;
-}
+    float start = FRACTION_MIN;
+    float end = FRACTION_MAX;
+    auto byValue = endValue - startValue;
+    while (end > start + EPSILON) {
+        float mid = (start + end) / 2.0f;
+        float fraction = interpolator->Interpolate(mid);
+        auto interpolationValue = startValue * (1.0f - fraction) + endValue * fraction;
+        if (value < interpolationValue) {
+            (byValue > 0) ? (end = mid) : (start = mid);
+        } else {
+            (byValue > 0) ? (start = mid) : (end = mid);
+        }
 
-float RSValueEstimator::EstimateFraction(const std::shared_ptr<RSInterpolator>& interpolator, const Quaternion& value,
-    const Quaternion& startValue, const Quaternion& endValue)
-{
-    return 0.0f;
-}
+        if (std::abs(value - interpolationValue) <= EPSILON) {
+            return mid;
+        }
+    }
 
-float RSValueEstimator::EstimateFraction(const std::shared_ptr<RSInterpolator>& interpolator, const RSColor& value,
-    const RSColor& startValue, const RSColor& endValue)
-{
-    return 0.0f;
-}
-
-float RSValueEstimator::EstimateFraction(const std::shared_ptr<RSInterpolator>& interpolator, const Matrix3f& value,
-    const Matrix3f& startValue, const Matrix3f& endValue)
-{
-    return 0.0f;
-}
-
-float RSValueEstimator::EstimateFraction(const std::shared_ptr<RSInterpolator>& interpolator,
-    const std::shared_ptr<RSFilter>& value, const std::shared_ptr<RSFilter>& startValue,
-    const std::shared_ptr<RSFilter>& endValue)
-{
-    return 0.0f;
-}
-
-float RSValueEstimator::EstimateFraction(const std::shared_ptr<RSInterpolator>& interpolator,
-    const Vector4<Color>& value, const Vector4<Color>& startValue, const Vector4<Color>& endValue)
-{
-    return 0.0f;
-}
-
-float RSValueEstimator::EstimateFraction(const std::shared_ptr<RSInterpolator>& interpolator,
-    const std::shared_ptr<RSAnimatableBase>& value, const std::shared_ptr<RSAnimatableBase>& startValue,
-    const std::shared_ptr<RSAnimatableBase>& endValue)
-{
-    return 0.0f;
+    return FRACTION_MIN;
 }
 } // namespace Rosen
 } // namespace OHOS

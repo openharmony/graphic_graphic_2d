@@ -18,11 +18,13 @@
 #include <mutex>
 #include <unordered_map>
 
+#include "common/rs_macros.h"
+
 namespace OHOS {
 namespace Rosen {
 class RSImplicitAnimator;
 
-class RSImplicitAnimatorMap final {
+class RS_EXPORT RSImplicitAnimatorMap final {
 public:
     static RSImplicitAnimatorMap& Instance();
 

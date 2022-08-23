@@ -27,10 +27,13 @@
 #include "command/rs_node_command.h"
 #include "common/rs_color.h"
 #include "common/rs_obj_geometry.h"
+#include "modifier/rs_modifier.h"
 #include "pipeline/rs_node_map.h"
 #include "platform/common/rs_log.h"
 #include "render/rs_path.h"
 #include "transaction/rs_transaction_proxy.h"
+#include "animation/rs_ui_animation_manager.h"
+#include "modifier/rs_property_modifier.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -240,12 +243,11 @@ bool RSNode::HasPropertyAnimation(const PropertyId& id)
     do {                                                                                                  \
         auto iter = propertyModifiers_.find(RSModifierType::propertyType);                                \
         if (iter != propertyModifiers_.end()) {                                                           \
-            std::static_pointer_cast<RSModifier<RSProperty<T>>>(iter->second)->                           \
-                GetProperty()->Set(value);                                                                \
+            std::static_pointer_cast<RSAnimatableProperty<T>>(iter->second->GetProperty())->Set(value);   \
             break;                                                                                        \
         }                                                                                                 \
         auto property = std::make_shared<RSAnimatableProperty<T>>(defaultValue);                          \
-        std::shared_ptr<RSModifierBase> modifier = std::make_shared<RS##propertyName##Modifier>(property); \
+        std::shared_ptr<RSModifierBase> modifier = std::make_shared<RS##propertyName##Modifier>(property);\
         modifiers_.emplace(modifier->GetPropertyId(), modifier);                                          \
         propertyModifiers_.emplace(RSModifierType::propertyType, modifier);                               \
         modifier->AttachToNode(GetId());                                                                  \
@@ -275,12 +277,11 @@ bool RSNode::HasPropertyAnimation(const PropertyId& id)
     do {                                                                                                  \
         auto iter = propertyModifiers_.find(RSModifierType::propertyType);                                \
         if (iter != propertyModifiers_.end()) {                                                           \
-            std::static_pointer_cast<RSModifier<RSProperty<T>>>(iter->second)->                           \
-                GetProperty()->Set(value);                                                                \
+            std::static_pointer_cast<RSProperty<T>>(iter->second->GetProperty())->Set(value);             \
             break;                                                                                        \
         }                                                                                                 \
         auto property = std::make_shared<RSProperty<T>>(value);                                           \
-        std::shared_ptr<RSModifierBase> modifier = std::make_shared<RS##propertyName##Modifier>(property); \
+        std::shared_ptr<RSModifierBase> modifier = std::make_shared<RS##propertyName##Modifier>(property);\
         modifiers_.emplace(modifier->GetPropertyId(), modifier);                                          \
         propertyModifiers_.emplace(RSModifierType::propertyType, modifier);                               \
         modifier->AttachToNode(GetId());                                                                  \
@@ -332,13 +333,14 @@ void RSNode::SetBoundsWidth(float width)
         SetBounds(0.f, 0.f, width, 0.f);
         return;
     }
-    auto modifier = std::static_pointer_cast<RSModifier<RSAnimatableProperty<Vector4f>>>(iter->second);
-    if (!modifier) {
+
+    auto property = std::static_pointer_cast<RSAnimatableProperty<Vector4f>>(iter->second->GetProperty());
+    if (property != nullptr) {
         return;
     }
-    auto bounds = modifier->property_->Get();
+    auto bounds = property->Get();
     bounds.z_ = width;
-    modifier->GetProperty()->Set(bounds);
+    property->Set(bounds);
     OnBoundsSizeChanged();
 }
 
@@ -349,13 +351,14 @@ void RSNode::SetBoundsHeight(float height)
         SetBounds(0.f, 0.f, 0.f, height);
         return;
     }
-    auto modifier = std::static_pointer_cast<RSModifier<RSAnimatableProperty<Vector4f>>>(iter->second);
-    if (!modifier) {
+
+    auto property = std::static_pointer_cast<RSAnimatableProperty<Vector4f>>(iter->second->GetProperty());
+    if (property != nullptr) {
         return;
     }
-    auto bounds = modifier->property_->Get();
+    auto bounds = property->Get();
     bounds.w_ = height;
-    modifier->GetProperty()->Set(bounds);
+    property->Set(bounds);
     OnBoundsSizeChanged();
 }
 
@@ -377,13 +380,14 @@ void RSNode::SetFramePositionX(float positionX)
         SetFrame(positionX, 0.f, 0.f, 0.f);
         return;
     }
-    auto modifier = std::static_pointer_cast<RSModifier<RSAnimatableProperty<Vector4f>>>(iter->second);
-    if (!modifier) {
+
+    auto property = std::static_pointer_cast<RSAnimatableProperty<Vector4f>>(iter->second->GetProperty());
+    if (property != nullptr) {
         return;
     }
-    auto frame = modifier->property_->Get();
+    auto frame = property->Get();
     frame.x_ = positionX;
-    modifier->GetProperty()->Set(frame);
+    property->Set(frame);
 }
 
 void RSNode::SetFramePositionY(float positionY)
@@ -393,13 +397,13 @@ void RSNode::SetFramePositionY(float positionY)
         SetFrame(0.f, positionY, 0.f, 0.f);
         return;
     }
-    auto modifier = std::static_pointer_cast<RSModifier<RSAnimatableProperty<Vector4f>>>(iter->second);
-    if (!modifier) {
+    auto property = std::static_pointer_cast<RSAnimatableProperty<Vector4f>>(iter->second->GetProperty());
+    if (property != nullptr) {
         return;
     }
-    auto frame = modifier->property_->Get();
+    auto frame = property->Get();
     frame.y_ = positionY;
-    modifier->GetProperty()->Set(frame);
+    property->Set(frame);
 }
 
 void RSNode::SetPositionZ(float positionZ)
@@ -425,13 +429,14 @@ void RSNode::SetPivotX(float pivotX)
         SetPivot(pivotX, 0.5f);
         return;
     }
-    auto modifier = std::static_pointer_cast<RSModifier<RSAnimatableProperty<Vector2f>>>(iter->second);
-    if (!modifier) {
+
+    auto property = std::static_pointer_cast<RSAnimatableProperty<Vector2f>>(iter->second->GetProperty());
+    if (property != nullptr) {
         return;
     }
-    auto pivot = modifier->property_->Get();
+    auto pivot = property->Get();
     pivot.x_ = pivotX;
-    modifier->GetProperty()->Set(pivot);
+    property->Set(pivot);
 }
 
 void RSNode::SetPivotY(float pivotY)
@@ -441,13 +446,14 @@ void RSNode::SetPivotY(float pivotY)
         SetPivot(0.5f, pivotY);
         return;
     }
-    auto modifier = std::static_pointer_cast<RSModifier<RSAnimatableProperty<Vector2f>>>(iter->second);
-    if (!modifier) {
+
+    auto property = std::static_pointer_cast<RSAnimatableProperty<Vector2f>>(iter->second->GetProperty());
+    if (property != nullptr) {
         return;
     }
-    auto pivot = modifier->property_->Get();
+    auto pivot = property->Get();
     pivot.y_ = pivotY;
-    modifier->GetProperty()->Set(pivot);
+    property->Set(pivot);
 }
 
 void RSNode::SetCornerRadius(float cornerRadius)
@@ -505,13 +511,14 @@ void RSNode::SetTranslateX(float translate)
         SetTranslate({ translate, 0.f });
         return;
     }
-    auto modifier = std::static_pointer_cast<RSModifier<RSAnimatableProperty<Vector2f>>>(iter->second);
-    if (!modifier) {
+
+    auto property = std::static_pointer_cast<RSAnimatableProperty<Vector2f>>(iter->second->GetProperty());
+    if (property != nullptr) {
         return;
     }
-    auto trans = modifier->property_->Get();
+    auto trans = property->Get();
     trans.x_ = translate;
-    modifier->GetProperty()->Set(trans);
+    property->Set(trans);
 }
 
 void RSNode::SetTranslateY(float translate)
@@ -521,13 +528,14 @@ void RSNode::SetTranslateY(float translate)
         SetTranslate({ 0.f, translate });
         return;
     }
-    auto modifier = std::static_pointer_cast<RSModifier<RSAnimatableProperty<Vector2f>>>(iter->second);
-    if (!modifier) {
+
+    auto property = std::static_pointer_cast<RSAnimatableProperty<Vector2f>>(iter->second->GetProperty());
+    if (property != nullptr) {
         return;
     }
-    auto trans = modifier->property_->Get();
+    auto trans = property->Get();
     trans.y_ = translate;
-    modifier->GetProperty()->Set(trans);
+    property->Set(trans);
 }
 
 void RSNode::SetTranslateZ(float translate)
@@ -557,13 +565,14 @@ void RSNode::SetScaleX(float scaleX)
         SetScale(scaleX, 1.f);
         return;
     }
-    auto modifier = std::static_pointer_cast<RSModifier<RSAnimatableProperty<Vector2f>>>(iter->second);
-    if (!modifier) {
+
+    auto property = std::static_pointer_cast<RSAnimatableProperty<Vector2f>>(iter->second->GetProperty());
+    if (property != nullptr) {
         return;
     }
-    auto scale = modifier->property_->Get();
+    auto scale = property->Get();
     scale.x_ = scaleX;
-    modifier->GetProperty()->Set(scale);
+    property->Set(scale);
 }
 
 void RSNode::SetScaleY(float scaleY)
@@ -573,13 +582,14 @@ void RSNode::SetScaleY(float scaleY)
         SetScale(1.f, scaleY);
         return;
     }
-    auto modifier = std::static_pointer_cast<RSModifier<RSAnimatableProperty<Vector2f>>>(iter->second);
-    if (!modifier) {
+
+    auto property = std::static_pointer_cast<RSAnimatableProperty<Vector2f>>(iter->second->GetProperty());
+    if (property != nullptr) {
         return;
     }
-    auto scale = modifier->property_->Get();
+    auto scale = property->Get();
     scale.y_ = scaleY;
-    modifier->GetProperty()->Set(scale);
+    property->Set(scale);
 }
 
 // foreground

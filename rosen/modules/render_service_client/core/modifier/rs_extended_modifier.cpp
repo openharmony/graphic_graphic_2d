@@ -17,13 +17,10 @@
 
 #include <memory>
 
-#include "command/rs_node_command.h"
 #include "modifier/rs_render_modifier.h"
 #include "modifier/rs_modifier_type.h"
-#include "pipeline/rs_draw_cmd_list.h"
 #include "pipeline/rs_node_map.h"
 #include "pipeline/rs_recording_canvas.h"
-#include "transaction/rs_transaction_proxy.h"
 #include "ui/rs_canvas_node.h"
 
 namespace OHOS {
@@ -55,52 +52,5 @@ std::shared_ptr<DrawCmdList> RSExtendedModifierHelper::FinishDrawing(RSDrawingCo
     ctx.canvas = nullptr;
     return recording;
 }
-
-template<typename T>
-std::shared_ptr<RSRenderModifier> RSExtendedModifier<T>::CreateRenderModifier() const
-{
-    if (!this->property_->hasAddToNode_) {
-        return nullptr;
-    }
-    RSDrawingContext ctx = RSExtendedModifierHelper::CreateDrawingContext(this->property_->nodeId_);
-    Draw(ctx);
-    return RSExtendedModifierHelper::CreateRenderModifier(ctx, this->property_->GetId(), GetModifierType());
-}
-
-template<typename T>
-void RSExtendedModifier<T>::UpdateToRender()
-{
-    RSDrawingContext ctx = RSExtendedModifierHelper::CreateDrawingContext(this->property_->nodeId_);
-    Draw(ctx);
-    auto drawCmdList = RSExtendedModifierHelper::FinishDrawing(ctx);
-    std::unique_ptr<RSCommand> command = std::make_unique<RSUpdatePropertyDrawCmdList>(
-            this->property_->nodeId_, drawCmdList, this->property_->id_, false);
-    auto transactionProxy = RSTransactionProxy::GetInstance();
-    auto node = RSNodeMap::Instance().GetNode<RSNode>(this->property_->nodeId_);
-    if (transactionProxy && node) {
-        transactionProxy->AddCommand(command, node->IsRenderServiceNode(), node->GetFollowType(), node->GetId());
-        if (node->NeedForcedSendToRemote()) {
-            std::unique_ptr<RSCommand> commandForRemote = std::make_unique<RSUpdatePropertyDrawCmdList>(
-                this->property_->nodeId_, drawCmdList, this->property_->id_, false);
-            transactionProxy->AddCommand(commandForRemote, true, node->GetFollowType(), node->GetId());
-        }
-        if (node->NeedSendExtraCommand()) {
-            std::unique_ptr<RSCommand> extraCommand = std::make_unique<RSUpdatePropertyDrawCmdList>(
-                    this->property_->nodeId_, drawCmdList, this->property_->id_, false);
-            transactionProxy->AddCommand(extraCommand, !node->IsRenderServiceNode(), node->GetFollowType(),
-                node->GetId());
-        }
-    }
-}
-
-template class RS_EXPORT RSExtendedModifier<RSAnimatableProperty<float>>;
-template class RS_EXPORT RSExtendedModifier<RSAnimatableProperty<Color>>;
-template class RS_EXPORT RSExtendedModifier<RSAnimatableProperty<Matrix3f>>;
-template class RS_EXPORT RSExtendedModifier<RSAnimatableProperty<Quaternion>>;
-template class RS_EXPORT RSExtendedModifier<RSAnimatableProperty<std::shared_ptr<RSFilter>>>;
-template class RS_EXPORT RSExtendedModifier<RSAnimatableProperty<Vector2f>>;
-template class RS_EXPORT RSExtendedModifier<RSAnimatableProperty<Vector4<Color>>>;
-template class RS_EXPORT RSExtendedModifier<RSAnimatableProperty<Vector4f>>;
-template class RS_EXPORT RSExtendedModifier<RSAnimatableProperty<std::shared_ptr<RSAnimatableBase>>>;
 } // namespace Rosen
 } // namespace OHOS

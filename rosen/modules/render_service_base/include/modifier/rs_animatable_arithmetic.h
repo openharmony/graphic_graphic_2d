@@ -27,162 +27,49 @@
 
 namespace OHOS {
 namespace Rosen {
-class RSAnimatableBase {
-public:
-    RSAnimatableBase() = default;
-    virtual ~RSAnimatableBase() = default;
-
-    virtual std::shared_ptr<RSAnimatableBase> Add(const std::shared_ptr<RSAnimatableBase>& value) const = 0;
-    virtual std::shared_ptr<RSAnimatableBase> Minus(const std::shared_ptr<RSAnimatableBase>& value) const = 0;
-    virtual std::shared_ptr<RSAnimatableBase> Multiply(const float scale) const = 0;
-    virtual bool IsEqual(const std::shared_ptr<RSAnimatableBase>& value) const = 0;
-};
-
 template<typename T>
-class RS_EXPORT RSAnimatableArithmetic : public RSAnimatableBase {
+class RS_EXPORT RSAnimatableArithmetic {
 public:
     RSAnimatableArithmetic() = default;
-    virtual ~RSAnimatableArithmetic() override = default;
-};
+    virtual ~RSAnimatableArithmetic() = default;
 
-inline std::shared_ptr<RSAnimatableBase> operator+(const std::shared_ptr<RSAnimatableBase>& a,
-    const std::shared_ptr<RSAnimatableBase>& b)
-{
-    return a->Add(b);
-}
-inline std::shared_ptr<RSAnimatableBase> operator-(const std::shared_ptr<RSAnimatableBase>& a,
-    const std::shared_ptr<RSAnimatableBase>& b)
-{
-    return a->Minus(b);
-}
-inline std::shared_ptr<RSAnimatableBase> operator*(const std::shared_ptr<RSAnimatableBase>& value, const float scale)
-{
-    return value->Multiply(scale);
-}
-inline bool operator==(const std::shared_ptr<RSAnimatableBase>& a, const std::shared_ptr<RSAnimatableBase>& b)
-{
-    return a->IsEqual(b);
-}
-inline bool operator!=(const std::shared_ptr<RSAnimatableBase>& a, const std::shared_ptr<RSAnimatableBase>& b)
-{
-    return !a->IsEqual(b);
-}
+    virtual T Add(const T& value) const = 0;
+    virtual T Minus(const T& value) const = 0;
+    virtual T Multiply(const float scale) const = 0;
+    virtual bool IsEqual(const T& value) const = 0;
 
-class RSAnimatableFloat : public RSAnimatableArithmetic<RSAnimatableFloat> {
-public:
-    RSAnimatableFloat(const float value) : value_(value) {}
-    ~RSAnimatableFloat() override = default;
-    std::shared_ptr<RSAnimatableBase> Add(const std::shared_ptr<RSAnimatableBase>& value) const override;
-    std::shared_ptr<RSAnimatableBase> Minus(const std::shared_ptr<RSAnimatableBase>& value) const override;
-    std::shared_ptr<RSAnimatableBase> Multiply(const float scale) const override;
-    bool IsEqual(const std::shared_ptr<RSAnimatableBase>& value) const override;
-    float GetValue() const;
-private:
-    float value_;
-};
-
-class RSAnimatableInt : public RSAnimatableArithmetic<RSAnimatableInt> {
-public:
-    RSAnimatableInt(const int value) : value_(value) {}
-    ~RSAnimatableInt() override = default;
-    std::shared_ptr<RSAnimatableBase> Add(const std::shared_ptr<RSAnimatableBase>& value) const override;
-    std::shared_ptr<RSAnimatableBase> Minus(const std::shared_ptr<RSAnimatableBase>& value) const override;
-    std::shared_ptr<RSAnimatableBase> Multiply(const float scale) const override;
-    bool IsEqual(const std::shared_ptr<RSAnimatableBase>& value) const override;
-    int GetValue() const;
-private:
-    int value_;
-};
-
-class RSAnimatableColor : public RSAnimatableArithmetic<RSAnimatableColor> {
-public:
-    RSAnimatableColor(const Color value) : value_(value) {}
-    ~RSAnimatableColor() override = default;
-    std::shared_ptr<RSAnimatableBase> Add(const std::shared_ptr<RSAnimatableBase>& value) const override;
-    std::shared_ptr<RSAnimatableBase> Minus(const std::shared_ptr<RSAnimatableBase>& value) const override;
-    std::shared_ptr<RSAnimatableBase> Multiply(const float scale) const override;
-    bool IsEqual(const std::shared_ptr<RSAnimatableBase>& value) const override;
-    Color GetValue() const;
-private:
-    Color value_;
-};
-
-class RSAnimatableMatrix3f : public RSAnimatableArithmetic<RSAnimatableMatrix3f> {
-public:
-    RSAnimatableMatrix3f(const Matrix3f value) : value_(value) {}
-    ~RSAnimatableMatrix3f() override = default;
-    std::shared_ptr<RSAnimatableBase> Add(const std::shared_ptr<RSAnimatableBase>& value) const override;
-    std::shared_ptr<RSAnimatableBase> Minus(const std::shared_ptr<RSAnimatableBase>& value) const override;
-    std::shared_ptr<RSAnimatableBase> Multiply(const float scale) const override;
-    bool IsEqual(const std::shared_ptr<RSAnimatableBase>& value) const override;
-    Matrix3f GetValue() const;
-private:
-    Matrix3f value_;
-};
-
-class RSAnimatableQuaternion : public RSAnimatableArithmetic<RSAnimatableQuaternion> {
-public:
-    RSAnimatableQuaternion(const Quaternion value) : value_(value) {}
-    ~RSAnimatableQuaternion() override = default;
-    std::shared_ptr<RSAnimatableBase> Add(const std::shared_ptr<RSAnimatableBase>& value) const override;
-    std::shared_ptr<RSAnimatableBase> Minus(const std::shared_ptr<RSAnimatableBase>& value) const override;
-    std::shared_ptr<RSAnimatableBase> Multiply(const float scale) const override;
-    bool IsEqual(const std::shared_ptr<RSAnimatableBase>& value) const override;
-    Quaternion GetValue() const;
-private:
-    Quaternion value_;
-};
-
-class RSAnimatableFilter : public RSAnimatableArithmetic<RSAnimatableFilter> {
-public:
-    RSAnimatableFilter(const std::shared_ptr<RSFilter> value) : value_(value) {}
-    ~RSAnimatableFilter() override = default;
-    std::shared_ptr<RSAnimatableBase> Add(const std::shared_ptr<RSAnimatableBase>& value) const override;
-    std::shared_ptr<RSAnimatableBase> Minus(const std::shared_ptr<RSAnimatableBase>& value) const override;
-    std::shared_ptr<RSAnimatableBase> Multiply(const float scale) const override;
-    bool IsEqual(const std::shared_ptr<RSAnimatableBase>& value) const override;
-    std::shared_ptr<RSFilter> GetValue() const;
-private:
-    std::shared_ptr<RSFilter> value_;
-};
-
-class RSAnimatableVector2f : public RSAnimatableArithmetic<RSAnimatableVector2f> {
-public:
-    RSAnimatableVector2f(const Vector2f value) : value_(value) {}
-    ~RSAnimatableVector2f() override = default;
-    std::shared_ptr<RSAnimatableBase> Add(const std::shared_ptr<RSAnimatableBase>& value) const override;
-    std::shared_ptr<RSAnimatableBase> Minus(const std::shared_ptr<RSAnimatableBase>& value) const override;
-    std::shared_ptr<RSAnimatableBase> Multiply(const float scale) const override;
-    bool IsEqual(const std::shared_ptr<RSAnimatableBase>& value) const override;
-    Vector2f GetValue() const;
-private:
-    Vector2f value_;
-};
-
-class RSAnimatableVector4f : public RSAnimatableArithmetic<RSAnimatableVector4f> {
-public:
-    RSAnimatableVector4f(const Vector4f value) : value_(value) {}
-    ~RSAnimatableVector4f() override = default;
-    std::shared_ptr<RSAnimatableBase> Add(const std::shared_ptr<RSAnimatableBase>& value) const override;
-    std::shared_ptr<RSAnimatableBase> Minus(const std::shared_ptr<RSAnimatableBase>& value) const override;
-    std::shared_ptr<RSAnimatableBase> Multiply(const float scale) const override;
-    bool IsEqual(const std::shared_ptr<RSAnimatableBase>& value) const override;
-    Vector4f GetValue() const;
-private:
-    Vector4f value_;
-};
-
-class RSAnimatableVector4Color : public RSAnimatableArithmetic<RSAnimatableVector4Color> {
-public:
-    RSAnimatableVector4Color(const Vector4<Color> value) : value_(value) {}
-    ~RSAnimatableVector4Color() override = default;
-    std::shared_ptr<RSAnimatableBase> Add(const std::shared_ptr<RSAnimatableBase>& value) const override;
-    std::shared_ptr<RSAnimatableBase> Minus(const std::shared_ptr<RSAnimatableBase>& value) const override;
-    std::shared_ptr<RSAnimatableBase> Multiply(const float scale) const override;
-    bool IsEqual(const std::shared_ptr<RSAnimatableBase>& value) const override;
-    Vector4<Color> GetValue() const;
-private:
-    Vector4<Color> value_;
+    T operator+(const T& value) const
+    {
+        return Add(value);
+    }
+    T operator+=(const T& value) const
+    {
+        return Add(value);
+    }
+    T operator-(const T& value) const
+    {
+        return Minus(value);
+    }
+    T operator-=(const T& value) const
+    {
+        return Minus(value);
+    }
+    T operator*(const float scale) const
+    {
+        return Multiply(scale);
+    }
+    T operator*=(const float scale) const
+    {
+        return Multiply(scale);
+    }
+    bool operator==(const T& value) const
+    {
+        return IsEqual(value);
+    }
+    bool operator!=(const T& value) const
+    {
+        return !IsEqual(value);
+    }
 };
 
 } // namespace Rosen

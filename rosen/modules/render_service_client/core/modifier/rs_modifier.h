@@ -37,6 +37,11 @@ public:
 
     virtual PropertyId GetPropertyId() = 0;
 
+    virtual std::shared_ptr<RSPropertyBase> GetProperty()
+    {
+        return nullptr;
+    }
+
 protected:
     virtual RSModifierType GetModifierType() const = 0;
 
@@ -53,7 +58,6 @@ protected:
     template<typename T>
     friend class RSProperty;
     friend class RSModifierManager;
-    template<typename T>
     friend class RSPathAnimation;
     friend class RSModifierExtractor;
 };
@@ -72,7 +76,7 @@ public:
         return property_->id_;
     }
 
-    std::shared_ptr<T> GetProperty()
+    std::shared_ptr<RSPropertyBase> GetProperty() override
     {
         return property_;
     }

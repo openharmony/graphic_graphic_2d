@@ -23,8 +23,8 @@
 #include "animation/rs_transition_effect.h"
 #include "common/rs_vector2.h"
 #include "common/rs_vector4.h"
-#include "modifier/rs_property_modifier.h"
 #include "modifier/rs_modifier_extractor.h"
+#include "modifier/rs_modifier_type.h"
 #include "pipeline/rs_recording_canvas.h"
 #include "property/rs_properties.h"
 #include "render/rs_mask.h"
@@ -42,6 +42,7 @@ class RSCommand;
 class RSImplicitAnimParam;
 class RSImplicitAnimator;
 class RSUIAnimationManager;
+class RSModifierBase;
 
 class RS_EXPORT RSNode : public RSBaseNode {
 public:
@@ -220,19 +221,14 @@ private:
     RSModifierExtractor stagingPropertiesExtrator_;
 
     friend class RSAnimation;
-    template<typename T>
     friend class RSCurveAnimation;
-    template<typename T>
     friend class RSKeyframeAnimation;
-    template<typename T>
     friend class RSPropertyAnimation;
-    template<typename T>
     friend class RSSpringAnimation;
     template<typename T>
     friend class RSProperty;
     template<typename T>
     friend class RSAnimatableProperty;
-    template<typename T>
     friend class RSPathAnimation;
     template<typename T>
     friend class RSExtendedModifier;

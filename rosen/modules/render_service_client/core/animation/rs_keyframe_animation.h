@@ -21,9 +21,6 @@
 #include "animation/rs_animation_common.h"
 #include "animation/rs_animation_timing_curve.h"
 #include "animation/rs_property_animation.h"
-#include "common/rs_color.h"
-#include "common/rs_matrix3.h"
-#include "common/rs_vector4.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -31,59 +28,30 @@ static constexpr int FRACTION_INDEX = 0;
 static constexpr int VALUE_INDEX = 1;
 static constexpr int INTERPOLATOR_INDEX = 2;
 
-template<typename T>
-class RS_EXPORT RSKeyframeAnimation : public RSPropertyAnimation<T> {
+class RSRenderKeyframeAnimation;
+
+class RS_EXPORT RSKeyframeAnimation : public RSPropertyAnimation {
 public:
-    RSKeyframeAnimation(RSAnimatableProperty<T>& property) : RSPropertyAnimation<T>(property) {}
+    RSKeyframeAnimation(std::shared_ptr<RSPropertyBase> property);
     virtual ~RSKeyframeAnimation() = default;
 
-    void AddKeyFrame(float fraction, const T& value, const RSAnimationTimingCurve& timingCurve)
-    {
-        if (fraction < FRACTION_MIN || fraction > FRACTION_MAX) {
-            return;
-        }
+    void AddKeyFrame(float fraction, const std::shared_ptr<RSPropertyBase>& value,
+        const RSAnimationTimingCurve& timingCurve);
 
-        if (RSAnimation::IsStarted()) {
-            return;
-        }
-
-        keyframes_.push_back({ fraction, value, timingCurve });
-    }
-
-    void AddKeyFrames(const std::vector<std::tuple<float, T, RSAnimationTimingCurve>>& keyframes)
-    {
-        if (RSAnimation::IsStarted()) {
-            return;
-        }
-
-        keyframes_ = keyframes;
-    }
+    void AddKeyFrames(const
+        std::vector<std::tuple<float, std::shared_ptr<RSPropertyBase>, RSAnimationTimingCurve>>& keyframes);
 
 protected:
     void OnStart() override;
 
-    void InitInterpolationValue() override
-    {
-        if (keyframes_.empty()) {
-            return;
-        }
-
-        auto beginKeyframe = keyframes_.front();
-        if (std::abs(std::get<FRACTION_INDEX>(beginKeyframe) - FRACTION_MIN) > EPSILON) {
-            keyframes_.insert(keyframes_.begin(),
-                { FRACTION_MIN, RSPropertyAnimation<T>::GetOriginValue(), RSAnimationTimingCurve::LINEAR });
-        }
-
-        RSPropertyAnimation<T>::startValue_ = std::get<VALUE_INDEX>(keyframes_.front());
-        RSPropertyAnimation<T>::endValue_ = std::get<VALUE_INDEX>(keyframes_.back());
-        RSPropertyAnimation<T>::InitInterpolationValue();
-    }
+    void InitInterpolationValue() override;
 
 private:
-    template<typename P>
-    void StartAnimationImpl();
+    void StartRenderAnimation(const std::shared_ptr<RSRenderKeyframeAnimation>& animation);
 
-    std::vector<std::tuple<float, T, RSAnimationTimingCurve>> keyframes_;
+    void StartUIAnimation(const std::shared_ptr<RSRenderKeyframeAnimation>& animation);
+
+    std::vector<std::tuple<float, std::shared_ptr<RSPropertyBase>, RSAnimationTimingCurve>> keyframes_;
 
     friend class RSImplicitKeyframeAnimationParam;
 };

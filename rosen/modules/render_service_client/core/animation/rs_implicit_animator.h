@@ -18,17 +18,21 @@
 
 #include <stack>
 
-#include "animation/rs_animation.h"
 #include "animation/rs_animation_timing_curve.h"
-#include "animation/rs_implicit_animation_param.h"
-#include "platform/common/rs_log.h"
+#include "animation/rs_animation_timing_protocol.h"
+
+#include "common/rs_macros.h"
 
 namespace OHOS {
 namespace Rosen {
-template <typename T>
-class RSAnimatableProperty;
+class RSAnimation;
+class RSPropertyBase;
+class RSImplicitAnimationParam;
+class RSTransitionEffect;
+class RSMotionPathOption;
+class RSNode;
 
-class RSImplicitAnimator {
+class RS_EXPORT RSImplicitAnimator {
 public:
     RSImplicitAnimator() = default;
     virtual ~RSImplicitAnimator() = default;
@@ -49,9 +53,9 @@ public:
 
     bool NeedImplicitAnimation();
 
-    template<typename T>
     std::shared_ptr<RSAnimation> CreateImplicitAnimation(const std::shared_ptr<RSNode>& target,
-        RSAnimatableProperty<T>& property, const T startValue, const T endValue);
+        std::shared_ptr<RSPropertyBase> property, const std::shared_ptr<RSPropertyBase>& startValue,
+        const std::shared_ptr<RSPropertyBase>& endValue);
 
     std::shared_ptr<RSAnimation> CreateImplicitTransition(RSNode& target, bool isTransitionIn);
 
@@ -64,11 +68,7 @@ private:
     void PopImplicitParam();
     void CreateEmptyAnimation();
 
-    template<typename T>
-    void SetPropertyValue(RSAnimatableProperty<T>& property, const T& value)
-    {
-        property.stagingValue_ = value;
-    }
+    void SetPropertyValue(std::shared_ptr<RSPropertyBase> property, const std::shared_ptr<RSPropertyBase>& value);
 
     std::stack<std::tuple<RSAnimationTimingProtocol, RSAnimationTimingCurve, std::function<void()>>>
         globalImplicitParams_;

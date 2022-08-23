@@ -104,9 +104,7 @@ private:
 
     friend class RSUIDirector;
     friend class RSAnimation;
-    template<typename T>
     friend class RSPathAnimation;
-    template<typename T>
     friend class RSPropertyAnimation;
     friend class RSSurfaceExtractor;
 };

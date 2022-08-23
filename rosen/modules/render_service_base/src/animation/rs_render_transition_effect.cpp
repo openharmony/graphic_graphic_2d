@@ -132,7 +132,7 @@ void RSTransitionFade::OnTransition(const std::unique_ptr<RSTransitionProperties
 #ifdef ROSEN_OHOS
     float startValue(1.0f);
     float endValue(alpha_);
-    auto value = RSValueEstimator::Estimate(fraction, startValue, endValue);
+    auto value = startValue * (1.0f - fraction) + endValue * fraction;
 
     transitionProperties->DoAlphaTransition(value);
 #endif
@@ -144,7 +144,7 @@ void RSTransitionScale::OnTransition(
 #ifdef ROSEN_OHOS
     Vector3f startValue(1.0f, 1.0f, 1.0f);
     Vector3f endValue(scaleX_, scaleY_, scaleZ_);
-    auto value = RSValueEstimator::Estimate(fraction, startValue, endValue);
+    auto value = startValue * (1.0f - fraction) + endValue * fraction;
 
     transitionProperties->DoScaleTransition(value);
 #endif
@@ -156,7 +156,7 @@ void RSTransitionTranslate::OnTransition(
 #ifdef ROSEN_OHOS
     Vector3f startValue(0.0f, 0.0f, 0.0f);
     Vector3f endValue(translateX_, translateY_, translateZ_);
-    auto value = RSValueEstimator::Estimate(fraction, startValue, endValue);
+    auto value = startValue * (1.0f - fraction) + endValue * fraction;
     transitionProperties->DoTranslateTransition(value);
 #endif
 }

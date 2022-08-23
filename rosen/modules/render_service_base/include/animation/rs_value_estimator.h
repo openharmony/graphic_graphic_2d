@@ -24,74 +24,31 @@
 #include "common/rs_matrix3.h"
 #include "common/rs_vector2.h"
 #include "common/rs_vector4.h"
-#include "modifier/rs_animatable_arithmetic.h"
 #include "render/rs_filter.h"
 
 namespace OHOS {
 namespace Rosen {
+class RSRenderPropertyBase;
+
 class RSValueEstimator {
 public:
-    template<typename T>
-    static T Estimate(float fraction, const T& startValue, const T& endValue)
-    {
-        return startValue * (1.0f - fraction) + endValue * fraction;
-    }
+    static std::shared_ptr<RSRenderPropertyBase> Estimate(float fraction,
+        const std::shared_ptr<RSRenderPropertyBase>& startValue,
+        const std::shared_ptr<RSRenderPropertyBase>& endValue);
 
-    static Quaternion Estimate(float fraction, const Quaternion& startValue, const Quaternion& endValue);
+    static Quaternion EstimateQuaternion(float fraction, const Quaternion& startValue, const Quaternion& endValue);
 
-    static std::shared_ptr<RSFilter> Estimate(
+    static std::shared_ptr<RSFilter> EstimateFilter(
         float fraction, const std::shared_ptr<RSFilter>& startValue, const std::shared_ptr<RSFilter>& endValue);
 
-    template<typename T>
     static float EstimateFraction(
-        const std::shared_ptr<RSInterpolator>& interpolator, const T& value, const T& startValue, const T& endValue)
-    {
-        float start = FRACTION_MIN;
-        float end = FRACTION_MAX;
-        auto byValue = endValue - startValue;
-        while (end > start + EPSILON) {
-            float mid = (start + end) / 2.0f;
-            float fraction = interpolator->Interpolate(mid);
-            auto interpolationValue = Estimate(fraction, startValue, endValue);
-            if (value < interpolationValue) {
-                (byValue > 0) ? (end = mid) : (start = mid);
-            } else {
-                (byValue > 0) ? (start = mid) : (end = mid);
-            }
+        const std::shared_ptr<RSInterpolator>& interpolator, const std::shared_ptr<RSRenderPropertyBase>& value,
+        const std::shared_ptr<RSRenderPropertyBase>& startValue,
+        const std::shared_ptr<RSRenderPropertyBase>& endValue);
 
-            if (std::abs(value - interpolationValue) <= EPSILON) {
-                return mid;
-            }
-        }
-
-        return FRACTION_MIN;
-    }
-
-    static float EstimateFraction(const std::shared_ptr<RSInterpolator>& interpolator, const Vector2f& value,
-        const Vector2f& startValue, const Vector2f& endValue);
-
-    static float EstimateFraction(const std::shared_ptr<RSInterpolator>& interpolator, const Vector4f& value,
-        const Vector4f& startValue, const Vector4f& endValue);
-
-    static float EstimateFraction(const std::shared_ptr<RSInterpolator>& interpolator, const Quaternion& value,
-        const Quaternion& startValue, const Quaternion& endValue);
-
-    static float EstimateFraction(const std::shared_ptr<RSInterpolator>& interpolator, const RSColor& value,
-        const RSColor& startValue, const RSColor& endValue);
-
-    static float EstimateFraction(const std::shared_ptr<RSInterpolator>& interpolator, const Matrix3f& value,
-        const Matrix3f& startValue, const Matrix3f& endValue);
-
-    static float EstimateFraction(const std::shared_ptr<RSInterpolator>& interpolator,
-        const std::shared_ptr<RSFilter>& value, const std::shared_ptr<RSFilter>& startValue,
-        const std::shared_ptr<RSFilter>& endValue);
-
-    static float EstimateFraction(const std::shared_ptr<RSInterpolator>& interpolator, const Vector4<Color>& value,
-        const Vector4<Color>& startValue, const Vector4<Color>& endValue);
-
-    static float EstimateFraction(const std::shared_ptr<RSInterpolator>& interpolator,
-        const std::shared_ptr<RSAnimatableBase>& value, const std::shared_ptr<RSAnimatableBase>& startValue,
-        const std::shared_ptr<RSAnimatableBase>& endValue);
+    static float EstimateFloatFraction(
+        const std::shared_ptr<RSInterpolator>& interpolator, const float value,
+        const float startValue, const float endValue);
 };
 } // namespace Rosen
 } // namespace OHOS

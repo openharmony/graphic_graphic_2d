@@ -15,7 +15,11 @@
 
 #include "animation/rs_ui_animation_manager.h"
 
+#include "animation/rs_animation.h"
+#include "animation/rs_render_animation.h"
 #include "modifier/rs_modifier_manager.h"
+#include "modifier/rs_property.h"
+#include "modifier/rs_render_property.h"
 #include "platform/common/rs_log.h"
 
 namespace OHOS {
@@ -61,13 +65,13 @@ void RSUIAnimationManager::RemoveUIAnimation(const AnimationId id)
 }
 
 void RSUIAnimationManager::AddAnimatableProp(const PropertyId id,
-    const std::shared_ptr<RSAnimatableProperty<std::shared_ptr<RSAnimatableBase>>>& uiProperty,
-    const std::shared_ptr<RSRenderProperty<std::shared_ptr<RSAnimatableBase>>>& renderProperty)
+    const std::shared_ptr<RSPropertyBase>& uiProperty,
+    const std::shared_ptr<RSRenderPropertyBase>& renderProperty)
 {
     properties_.emplace(id, std::make_pair(uiProperty, renderProperty));
 }
 
-const std::shared_ptr<RSRenderProperty<std::shared_ptr<RSAnimatableBase>>> RSUIAnimationManager::GetRenderProperty(
+const std::shared_ptr<RSRenderPropertyBase> RSUIAnimationManager::GetRenderProperty(
     const PropertyId id)
 {
     auto iter = properties_.find(id);
@@ -109,7 +113,7 @@ bool RSUIAnimationManager::UpdateAnimateValue(const std::shared_ptr<RSRenderAnim
     auto uiProperty = properties_[animation->GetPropertyId()].first;
     auto renderProperty = properties_[animation->GetPropertyId()].second;
     if (uiProperty != nullptr && renderProperty != nullptr) {
-        uiProperty->SetShowingValue(renderProperty->Get());
+        uiProperty->UpdateShowingValue(renderProperty);
         uiProperty->MarkModifierDirty(modifierManager_);
     }
     return isFinished;

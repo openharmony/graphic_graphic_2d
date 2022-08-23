@@ -16,15 +16,18 @@
 #ifndef RENDER_SERVICE_CLIENT_CORE_ANIMATION_RS_EXTENDED_MODIFIER_H
 #define RENDER_SERVICE_CLIENT_CORE_ANIMATION_RS_EXTENDED_MODIFIER_H
 
+#include "command/rs_node_command.h"
 #include "common/rs_common_def.h"
 #include "common/rs_macros.h"
 #include "modifier/rs_modifier.h"
+#include "pipeline/rs_draw_cmd_list.h"
+#include "transaction/rs_transaction_proxy.h"
 
 class SkCanvas;
 
 namespace OHOS {
 namespace Rosen {
-class RSExtendedModifierHelper {
+class RS_EXPORT RSExtendedModifierHelper {
 public:
     static RSDrawingContext CreateDrawingContext(NodeId nodeId);
     static std::shared_ptr<RSRenderModifier> CreateRenderModifier(
@@ -53,8 +56,40 @@ protected:
     {
         RSModifier<T>::property_->SetIsCustom(true);
     }
-    std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
-    void UpdateToRender() override;
+    std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override
+    {
+        if (!this->property_->hasAddToNode_) {
+            return nullptr;
+        }
+        RSDrawingContext ctx = RSExtendedModifierHelper::CreateDrawingContext(this->property_->nodeId_);
+        Draw(ctx);
+        return RSExtendedModifierHelper::CreateRenderModifier(ctx, this->property_->GetId(), GetModifierType());
+    }
+
+    void UpdateToRender() override
+    {
+        RSDrawingContext ctx = RSExtendedModifierHelper::CreateDrawingContext(this->property_->nodeId_);
+        Draw(ctx);
+        auto drawCmdList = RSExtendedModifierHelper::FinishDrawing(ctx);
+        std::unique_ptr<RSCommand> command = std::make_unique<RSUpdatePropertyDrawCmdList>(
+                this->property_->nodeId_, drawCmdList, this->property_->id_, false);
+        auto transactionProxy = RSTransactionProxy::GetInstance();
+        auto node = RSNodeMap::Instance().GetNode<RSNode>(this->property_->nodeId_);
+        if (transactionProxy && node) {
+            transactionProxy->AddCommand(command, node->IsRenderServiceNode());
+            if (node->NeedForcedSendToRemote()) {
+                std::unique_ptr<RSCommand> commandForRemote = std::make_unique<RSUpdatePropertyDrawCmdList>(
+                    this->property_->nodeId_, drawCmdList, this->property_->id_, false);
+                transactionProxy->AddCommand(commandForRemote, true, node->GetFollowType(), node->GetId());
+            }
+            if (node->NeedSendExtraCommand()) {
+                std::unique_ptr<RSCommand> extraCommand = std::make_unique<RSUpdatePropertyDrawCmdList>(
+                        this->property_->nodeId_, drawCmdList, this->property_->id_, false);
+                transactionProxy->AddCommand(extraCommand, !node->IsRenderServiceNode(), node->GetFollowType(),
+                    node->GetId());
+            }
+        }
+    }
 };
 
 template<typename T>
