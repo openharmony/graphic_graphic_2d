@@ -347,6 +347,7 @@ GSError BufferQueue::FlushBuffer(uint32_t sequence, const sptr<BufferExtraData> 
     }
     CountTrace(HITRACE_TAG_GRAPHIC_AGP, name_, static_cast<int32_t>(dirtyList_.size()));
     if (sret == GSERROR_OK) {
+        std::lock_guard<std::mutex> lockGuard(listenerMutex_);
         if (listener_ != nullptr) {
             ScopedBytrace bufferIPCSend("OnBufferAvailable");
             listener_->OnBufferAvailable();
@@ -731,6 +732,7 @@ GSError BufferQueue::RegisterConsumerListener(IBufferConsumerListenerClazz *list
 
 GSError BufferQueue::UnregisterConsumerListener()
 {
+    std::lock_guard<std::mutex> lockGuard(listenerMutex_);
     listener_ = nullptr;
     listenerClazz_ = nullptr;
     return GSERROR_OK;
