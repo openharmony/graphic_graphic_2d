@@ -45,6 +45,7 @@ void RSAshmemTest::TearDown() {}
  * @tc.name: CreateAshmemAllocator001
  * @tc.desc: test results of create AshmemAllocator
  * @tc.type:FUNC
+ * @tc.require: issueI5HRIF
  */
 HWTEST_F(RSAshmemTest, CreateAshmemAllocator001, Function | MediumTest | Level2)
 {
@@ -63,6 +64,7 @@ HWTEST_F(RSAshmemTest, CreateAshmemAllocator001, Function | MediumTest | Level2)
  * @tc.name: CreateAshmemAllocator002
  * @tc.desc: test results of create AshmemAllocator
  * @tc.type:FUNC
+ * @tc.require: issueI5HRIF
  */
 HWTEST_F(RSAshmemTest, CreateAshmemAllocator002, Function | MediumTest | Level2)
 {
@@ -83,6 +85,7 @@ HWTEST_F(RSAshmemTest, CreateAshmemAllocator002, Function | MediumTest | Level2)
  * @tc.name: AshmemAllocatorDealloc001
  * @tc.desc: test results of Dealloc AshmemAllocator
  * @tc.type:FUNC
+ * @tc.require: issueI5HRIF
  */
 HWTEST_F(RSAshmemTest, AshmemAllocatorDealloc001, Function | MediumTest | Level2)
 {
@@ -105,6 +108,7 @@ HWTEST_F(RSAshmemTest, AshmemAllocatorDealloc001, Function | MediumTest | Level2
  * @tc.name: AshmemAllocatorWriteAndCopy001
  * @tc.desc: test results of AshmemAllocator write and copy
  * @tc.type:FUNC
+ * @tc.require: issueI5HRIF
  */
 HWTEST_F(RSAshmemTest, AshmemAllocatorWriteAndCopy001, Function | MediumTest | Level2)
 {
@@ -154,6 +158,7 @@ static sk_sp<SkImage> CreateSkImage(int width, int height)
  * @tc.name: SkImageAshmem001
  * @tc.desc: test results of ashmem serialization of SkImage
  * @tc.type:FUNC
+ * @tc.require: issueI5HRIF
  */
 HWTEST_F(RSAshmemTest, SkImageAshmem001, Function | MediumTest | Level2)
 {
@@ -201,6 +206,7 @@ static std::shared_ptr<Media::PixelMap> CreatePixelMap(int width, int height)
  * @tc.name: PixelMapAshmem001
  * @tc.desc: test results of ashmem serialization of PixelMap
  * @tc.type:FUNC
+ * @tc.require: issueI5HRIF
  */
 HWTEST_F(RSAshmemTest, PixelMapAshmem001, Function | MediumTest | Level2)
 {
