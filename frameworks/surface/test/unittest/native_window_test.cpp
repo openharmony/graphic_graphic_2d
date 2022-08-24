@@ -787,6 +787,7 @@ HWTEST_F(NativeWindowTest, SetTunnelHandle003, Function | MediumTest | Level2)
 * Rank: Important(1)
 * EnvConditions: N/A
 * CaseDescription: 1. call NativeWindowSetTunnelHandle with normal parameters and check ret
+* @tc.require: issueI5GMZN issueI5IWHW
  */
 HWTEST_F(NativeWindowTest, SetTunnelHandle004, Function | MediumTest | Level1)
 {

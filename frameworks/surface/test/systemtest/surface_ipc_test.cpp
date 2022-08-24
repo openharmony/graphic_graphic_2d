@@ -165,6 +165,7 @@ pid_t SurfaceIPCTest::ChildProcessMain()
 * EnvConditions: N/A
 * CaseDescription: 1. produce surface, fill buffer
 *                  2. consume surface and check buffer
+* @tc.require: issueI5I57K issueI5GMZN issueI5IWHW
  */
 HWTEST_F(SurfaceIPCTest, BufferIPC001, Function | MediumTest | Level2)
 {

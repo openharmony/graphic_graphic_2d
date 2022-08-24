@@ -186,6 +186,7 @@ pid_t NativeWindowBufferTest::ChildProcessMain()
 * EnvConditions: N/A
 * CaseDescription: 1. produce surface by nativewindow interface, fill buffer
 *                  2. consume surface and check buffer
+* @tc.require: issueI5GMZN issueI5IWHW
  */
 HWTEST_F(NativeWindowBufferTest, Surface001, Function | MediumTest | Level2)
 {
