@@ -32,7 +32,7 @@ int main(int argc, const char *argv[])
     setpriority(PRIO_PROCESS, 0, -8);
 
     struct sched_param param = {0};
-    param.sched_priority = 2;
+    param.sched_priority = 1;
     if (sched_setscheduler(0, SCHED_FIFO, &param) != 0) {
         RS_LOGE("RSRenderService Couldn't set SCHED_FIFO.");
     } else {
