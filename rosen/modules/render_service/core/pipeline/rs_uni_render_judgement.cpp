@@ -61,7 +61,7 @@ bool RSUniRenderJudgement::QueryClientEnabled(const std::string &bundleName)
 void RSUniRenderJudgement::InitUniRenderConfig()
 {
     InitUniRenderWithConfigFile();
-    RS_LOGI("Init RenderService UniRender Type:%d", uniRenderEnabledType_);
+    RS_LOGD("Init RenderService UniRender Type:%d", uniRenderEnabledType_);
 }
 
 void RSUniRenderJudgement::InitUniRenderWithConfigFile()
