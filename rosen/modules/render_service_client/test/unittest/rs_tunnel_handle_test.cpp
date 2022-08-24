@@ -54,28 +54,24 @@ void RSTunnelHandleTest::TearDownTestCase()
 void RSTunnelHandleTest::SetUp() {}
 void RSTunnelHandleTest::TearDown() {}
 
-/*
-* Function: GetDefaultTunnelHandleChange
-* Type: Function
-* Rank: Important
-* EnvConditions: N/A
-* CaseDescription: 1. Get TunnelHandleChange
-*                  2. check TunnelHandleChange false
-*/
+/**
+ * @tc.name: GetDefaultTunnelHandleChange
+ * @tc.desc: Verify the main function of RSTunnelHandle
+ * @tc.type: FUNC
+ * @tc.require: issueI5HSJS
+ */
 HWTEST_F(RSTunnelHandleTest, GetDefaultTunnelHandleChange, Function | SmallTest | Level2)
 {
     // check TunnelHandleChange
     EXPECT_EQ(node1->GetTunnelHandleChange(), false);
 }
 
-/*
-* Function: GetTunnelHandleChange
-* Type: Function
-* Rank: Important
-* EnvConditions: N/A
-* CaseDescription: 1. Set TunnelHandleChange
-*                  2. check TunnelHandleChange
-*/
+/**
+ * @tc.name: SetTunnelHandleChange
+ * @tc.desc: Verify the main function of RSTunnelHandle
+ * @tc.type: FUNC
+ * @tc.require: issueI5HSJS
+ */
 HWTEST_F(RSTunnelHandleTest, SetTunnelHandleChange, Function | SmallTest | Level2)
 {
     // call SetTunnelHandleChange
