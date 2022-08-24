@@ -1122,8 +1122,8 @@ void RSBaseRenderUtil::SetPropertiesForCanvas(RSPaintFilterCanvas& canvas, const
     canvas.concat(params.matrix);
 }
 
-bool RSBaseRenderUtil::ConvertBufferToBitmap(sptr<SurfaceBuffer> buffer, ColorGamut dstGamut, SkBitmap& bitmap,
-    const std::vector<HDRMetaData>& metaDatas)
+bool RSBaseRenderUtil::ConvertBufferToBitmap(sptr<SurfaceBuffer> buffer, std::vector<uint8_t>& newBuffer,
+    ColorGamut dstGamut, SkBitmap& bitmap, const std::vector<HDRMetaData>& metaDatas)
 {
     if (!IsBufferValid(buffer)) {
         return false;
@@ -1133,13 +1133,12 @@ bool RSBaseRenderUtil::ConvertBufferToBitmap(sptr<SurfaceBuffer> buffer, ColorGa
     // [PLANNING]: We will not use this tmp newBuffer if we use GPU to do the color conversions.
     // Attention: make sure newBuffer's lifecycle is longer than the moment call drawBitmap
     if (buffer->GetFormat() == PIXEL_FMT_YCRCB_420_SP || buffer->GetFormat() == PIXEL_FMT_YCBCR_420_SP) {
-        std::vector<uint8_t> newBuffer;
         bitmapCreated = CreateYuvToRGBABitMap(buffer, newBuffer, bitmap);
     } else if (buffer->GetFormat() == Detail::STUB_PIXEL_FMT_RGBA_16161616) {
-        bitmapCreated = CreateNewColorGamutBitmap(buffer, bitmap, srcGamut, dstGamut, metaDatas);
+        bitmapCreated = CreateNewColorGamutBitmap(buffer, newBuffer, bitmap, srcGamut, dstGamut, metaDatas);
     } else if (srcGamut != dstGamut) {
         RS_LOGD("RSBaseRenderUtil::ConvertBufferToBitmap: need to convert color gamut.");
-        bitmapCreated = CreateNewColorGamutBitmap(buffer, bitmap, srcGamut, dstGamut);
+        bitmapCreated = CreateNewColorGamutBitmap(buffer, newBuffer, bitmap, srcGamut, dstGamut);
     } else {
         bitmapCreated = CreateBitmap(buffer, bitmap);
     }
@@ -1168,15 +1167,14 @@ bool RSBaseRenderUtil::CreateBitmap(sptr<OHOS::SurfaceBuffer> buffer, SkBitmap& 
     return bitmap.installPixels(pixmap);
 }
 
-bool RSBaseRenderUtil::CreateNewColorGamutBitmap(sptr<OHOS::SurfaceBuffer> buffer, SkBitmap& bitmap,
-    ColorGamut srcGamut, ColorGamut dstGamut, const std::vector<HDRMetaData>& metaDatas)
+bool RSBaseRenderUtil::CreateNewColorGamutBitmap(sptr<OHOS::SurfaceBuffer> buffer, std::vector<uint8_t>& newBuffer,
+    SkBitmap& bitmap, ColorGamut srcGamut, ColorGamut dstGamut, const std::vector<HDRMetaData>& metaDatas)
 {
-    std::vector<uint8_t> newGamutBuffer;
-    bool convertRes = Detail::ConvertBufferColorGamut(newGamutBuffer, buffer, srcGamut, dstGamut, metaDatas);
+    bool convertRes = Detail::ConvertBufferColorGamut(newBuffer, buffer, srcGamut, dstGamut, metaDatas);
     if (convertRes) {
         RS_LOGW("CreateNewColorGamutBitmap: convert color gamut succeed, use new buffer to create bitmap.");
         SkImageInfo imageInfo = Detail::GenerateSkImageInfo(buffer);
-        SkPixmap pixmap(imageInfo, newGamutBuffer.data(), buffer->GetStride());
+        SkPixmap pixmap(imageInfo, newBuffer.data(), buffer->GetStride());
         return bitmap.installPixels(pixmap);
     } else {
         RS_LOGW("CreateNewColorGamutBitmap: convert color gamut failed, use old buffer to create bitmap.");
