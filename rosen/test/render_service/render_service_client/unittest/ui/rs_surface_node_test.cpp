@@ -19,10 +19,16 @@
 
 using namespace testing;
 using namespace testing::ext;
-
+static constexpr uint32_t FIRST_COLOR_VALUE = 0x034123;
+static constexpr uint32_t SECOND_COLOR_VALUE = 0x45ba87;
+static constexpr uint32_t THIRD_COLOR_VALUE = 0x32aadd;
 namespace OHOS::Rosen {
 class RSSurfaceNodeTest : public testing::Test {
 public:
+    constexpr static float floatData[] = {
+        0.0f, 485.44f, -34.4f,
+        std::numeric_limits<float>::max(), std::numeric_limits<float>::min(),
+        };
     static void SetUpTestCase();
     static void TearDownTestCase();
     void SetUp() override;
@@ -482,5 +488,493 @@ HWTEST_F(RSSurfaceNodeTest, GetType001, TestSize.Level1)
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
     ASSERT_TRUE(surfaceNode != nullptr);
     ASSERT_TRUE(surfaceNode->GetType() == RSUINodeType::SURFACE_NODE);
+}
+
+/**
+ * @tc.name: SetCornerRadius001
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require: issueI5J8R1
+ */
+HWTEST_F(RSSurfaceNodeTest, SetCornerRadius001, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    surfaceNode->SetCornerRadius(floatData[0]);
+    ASSERT_TRUE(surfaceNode != nullptr);
+    auto result = surfaceNode->GetStagingProperties().GetCornerRadius()[0];
+    EXPECT_TRUE(ROSEN_EQ(floatData[0], result));
+}
+
+/**
+ * @tc.name: SetCornerRadius002
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require: issueI5J8R1
+ */
+HWTEST_F(RSSurfaceNodeTest, SetCornerRadius002, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    surfaceNode->SetCornerRadius(floatData[1]);
+    ASSERT_TRUE(surfaceNode != nullptr);
+    auto result = surfaceNode->GetStagingProperties().GetCornerRadius()[1];
+    EXPECT_TRUE(ROSEN_EQ(floatData[1], result));
+}
+
+/**
+ * @tc.name: SetCornerRadius003
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require: issueI5J8R1
+ */
+HWTEST_F(RSSurfaceNodeTest, SetCornerRadius003, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    surfaceNode->SetCornerRadius(floatData[2]);
+    ASSERT_TRUE(surfaceNode != nullptr);
+    auto result = surfaceNode->GetStagingProperties().GetCornerRadius()[2];
+    EXPECT_TRUE(ROSEN_EQ(floatData[2], result));
+}
+
+/**
+ * @tc.name: SetBackgroundFilter001
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require: issueI5J8R1
+ */
+HWTEST_F(RSSurfaceNodeTest, SetBackgroundFilter001, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    std::shared_ptr<RSFilter> backgroundFilter = RSFilter::CreateBlurFilter(floatData[0],
+    floatData[1]);
+    surfaceNode->SetBackgroundFilter(backgroundFilter);
+    EXPECT_TRUE(surfaceNode->GetStagingProperties().GetBackgroundFilter() == backgroundFilter);
+}
+
+/**
+ * @tc.name: SetBackgroundFilter002
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require: issueI5J8R1
+ */
+HWTEST_F(RSSurfaceNodeTest, SetBackgroundFilter002, TestSize.Level2)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    std::shared_ptr<RSFilter> backgroundFilter = RSFilter::CreateBlurFilter(floatData[1],
+    floatData[2]);
+    surfaceNode->SetBackgroundFilter(backgroundFilter);
+    EXPECT_TRUE(surfaceNode->GetStagingProperties().GetBackgroundFilter() == backgroundFilter);
+}
+
+/**
+ * @tc.name: SetBackgroundFilter003
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require: issueI5J8R1
+ */
+HWTEST_F(RSSurfaceNodeTest, SetBackgroundFilter003, TestSize.Level3)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    std::shared_ptr<RSFilter> backgroundFilter = RSFilter::CreateBlurFilter(floatData[2],
+    floatData[3]);
+    surfaceNode->SetBackgroundFilter(backgroundFilter);
+    EXPECT_TRUE(surfaceNode->GetStagingProperties().GetBackgroundFilter() == backgroundFilter);
+}
+
+/**
+ * @tc.name: SetFilter001
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require: issueI5J8R1
+ */
+HWTEST_F(RSSurfaceNodeTest, SetFilter001, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    std::shared_ptr<RSFilter> filter = RSFilter::CreateBlurFilter(floatData[0],
+    floatData[1]);
+    surfaceNode->SetFilter(filter);
+    EXPECT_TRUE(surfaceNode->GetStagingProperties().GetFilter() == filter);
+}
+
+/**
+ * @tc.name: SetFilter002
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require: issueI5J8R1
+ */
+HWTEST_F(RSSurfaceNodeTest, SetFilter002, TestSize.Level2)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    std::shared_ptr<RSFilter> filter = RSFilter::CreateBlurFilter(floatData[1],
+    floatData[2]);
+    surfaceNode->SetFilter(filter);
+    EXPECT_TRUE(surfaceNode->GetStagingProperties().GetFilter() == filter);
+}
+
+/**
+ * @tc.name: SetFilter003
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require: issueI5J8R1
+ */
+HWTEST_F(RSSurfaceNodeTest, SetFilter003, TestSize.Level3)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    std::shared_ptr<RSFilter> filter = RSFilter::CreateBlurFilter(floatData[2],
+    floatData[3]);
+    surfaceNode->SetFilter(filter);
+    EXPECT_TRUE(surfaceNode->GetStagingProperties().GetFilter() == filter);
+}
+
+/**
+ * @tc.name: SetCompositingFilter001
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require: issueI5J8R1
+ */
+HWTEST_F(RSSurfaceNodeTest, SetCompositingFilter001, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    ASSERT_TRUE(surfaceNode != nullptr);
+    auto compositingFilter = RSFilter::CreateBlurFilter(floatData[0],
+    floatData[1]);
+    surfaceNode->SetCompositingFilter(compositingFilter);
+}
+
+/**
+ * @tc.name: SetCompositingFilter002
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require: issueI5J8R1
+ */
+HWTEST_F(RSSurfaceNodeTest, SetCompositingFilter002, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    ASSERT_TRUE(surfaceNode != nullptr);
+    auto compositingFilter = RSFilter::CreateBlurFilter(floatData[1],
+    floatData[2]);
+    surfaceNode->SetCompositingFilter(compositingFilter);
+}
+
+/**
+ * @tc.name: SetCompositingFilter003
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require: issueI5J8R1
+ */
+HWTEST_F(RSSurfaceNodeTest, SetCompositingFilter003, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    ASSERT_TRUE(surfaceNode != nullptr);
+    auto compositingFilter = RSFilter::CreateBlurFilter(floatData[2],
+    floatData[3]);
+    surfaceNode->SetCompositingFilter(compositingFilter);
+}
+
+/**
+ * @tc.name: SetShadowOffset001
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require: issueI5J8R1
+ */
+HWTEST_F(RSSurfaceNodeTest, SetShadowOffset001, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    surfaceNode->SetShadowOffset(floatData[2], floatData[3]);
+    EXPECT_TRUE(ROSEN_EQ(surfaceNode->GetStagingProperties().GetShadowOffsetX(), floatData[2]));
+    EXPECT_TRUE(ROSEN_EQ(surfaceNode->GetStagingProperties().GetShadowOffsetY(), floatData[3]));
+}
+
+/**
+ * @tc.name: SetShadowOffset002
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require: issueI5J8R1
+ */
+HWTEST_F(RSSurfaceNodeTest, SetShadowOffset002, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    surfaceNode->SetShadowOffset(floatData[2], floatData[0]);
+    EXPECT_TRUE(ROSEN_EQ(surfaceNode->GetStagingProperties().GetShadowOffsetX(), floatData[2]));
+    EXPECT_TRUE(ROSEN_EQ(surfaceNode->GetStagingProperties().GetShadowOffsetY(), floatData[0]));
+}
+
+/**
+ * @tc.name: SetShadowOffset003
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require: issueI5J8R1
+ */
+HWTEST_F(RSSurfaceNodeTest, SetShadowOffset003, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    surfaceNode->SetShadowOffset(floatData[1], floatData[3]);
+    EXPECT_TRUE(ROSEN_EQ(surfaceNode->GetStagingProperties().GetShadowOffsetX(), floatData[1]));
+    EXPECT_TRUE(ROSEN_EQ(surfaceNode->GetStagingProperties().GetShadowOffsetY(), floatData[3]));
+}
+/**
+ * @tc.name: SetShadowOffsetX001
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require: issueI5J8R1
+ */
+HWTEST_F(RSSurfaceNodeTest, SetShadowOffsetX001, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    surfaceNode->SetShadowOffsetX(floatData[1]);
+    EXPECT_TRUE(ROSEN_EQ(surfaceNode->GetStagingProperties().GetShadowOffsetX(), floatData[1]));
+}
+
+/**
+ * @tc.name: SetShadowOffsetX002
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require: issueI5J8R1
+ */
+HWTEST_F(RSSurfaceNodeTest, SetShadowOffsetX002, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    surfaceNode->SetShadowOffsetX(floatData[2]);
+    EXPECT_TRUE(ROSEN_EQ(surfaceNode->GetStagingProperties().GetShadowOffsetX(), floatData[2]));
+}
+
+/**
+ * @tc.name: SetShadowOffsetX003
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require: issueI5J8R1
+ */
+HWTEST_F(RSSurfaceNodeTest, SetShadowOffsetX003, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    surfaceNode->SetShadowOffsetX(floatData[3]);
+    EXPECT_TRUE(ROSEN_EQ(surfaceNode->GetStagingProperties().GetShadowOffsetX(), floatData[3]));
+}
+
+/**
+ * @tc.name: SetShadowOffsetY001
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require: issueI5J8R1
+ */
+HWTEST_F(RSSurfaceNodeTest, SetShadowOffsetY001, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    surfaceNode->SetShadowOffsetY(floatData[1]);
+    EXPECT_TRUE(ROSEN_EQ(surfaceNode->GetStagingProperties().GetShadowOffsetY(), floatData[1]));
+}
+
+/**
+ * @tc.name: SetShadowOffsetY002
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require: issueI5J8R1
+ */
+HWTEST_F(RSSurfaceNodeTest, SetShadowOffsetY002, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    surfaceNode->SetShadowOffsetY(floatData[2]);
+    EXPECT_TRUE(ROSEN_EQ(surfaceNode->GetStagingProperties().GetShadowOffsetY(), floatData[2]));
+}
+
+/**
+ * @tc.name: SetShadowOffsetY003
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require: issueI5J8R1
+ */
+HWTEST_F(RSSurfaceNodeTest, SetShadowOffsetY003, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    surfaceNode->SetShadowOffsetY(floatData[3]);
+    EXPECT_TRUE(ROSEN_EQ(surfaceNode->GetStagingProperties().GetShadowOffsetY(), floatData[3]));
+}
+
+/**
+ * @tc.name: SetShadowAlpha001
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require: issueI5J8R1
+ */
+HWTEST_F(RSSurfaceNodeTest, SetShadowAlpha001, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    surfaceNode->SetShadowAlpha(floatData[1]);
+    EXPECT_TRUE(ROSEN_EQ(surfaceNode->GetStagingProperties().GetShadowAlpha(), floatData[1]));
+}
+
+/**
+ * @tc.name: SetShadowAlpha002
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require: issueI5J8R1
+ */
+HWTEST_F(RSSurfaceNodeTest, SetShadowAlpha002, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    surfaceNode->SetShadowAlpha(floatData[2]);
+    EXPECT_TRUE(ROSEN_EQ(surfaceNode->GetStagingProperties().GetShadowAlpha(), floatData[2]));
+}
+
+/**
+ * @tc.name: SetShadowAlpha003
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require: issueI5J8R1
+ */
+HWTEST_F(RSSurfaceNodeTest, SetShadowAlpha003, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    surfaceNode->SetShadowAlpha(floatData[3]);
+    EXPECT_TRUE(ROSEN_EQ(surfaceNode->GetStagingProperties().GetShadowAlpha(), floatData[3]));
+}
+
+/**
+ * @tc.name: SetShadowElevation001
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require: issueI5J8R1
+ */
+HWTEST_F(RSSurfaceNodeTest, SetShadowElevation001, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    surfaceNode->SetShadowElevation(floatData[1]);
+    EXPECT_TRUE(ROSEN_EQ(surfaceNode->GetStagingProperties().GetShadowElevation(), floatData[1]));
+}
+
+/**
+ * @tc.name: SetShadowElevation002
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require: issueI5J8R1
+ */
+HWTEST_F(RSSurfaceNodeTest, SetShadowElevation002, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    surfaceNode->SetShadowElevation(floatData[2]);
+    EXPECT_TRUE(ROSEN_EQ(surfaceNode->GetStagingProperties().GetShadowElevation(), floatData[2]));
+}
+
+/**
+ * @tc.name: SetShadowElevation003
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require: issueI5J8R1
+ */
+HWTEST_F(RSSurfaceNodeTest, SetShadowElevation003, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    surfaceNode->SetShadowElevation(floatData[3]);
+    EXPECT_TRUE(ROSEN_EQ(surfaceNode->GetStagingProperties().GetShadowElevation(), floatData[3]));
+}
+
+/**
+ * @tc.name: SetShadowRadius001
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require: issueI5J8R1
+ */
+HWTEST_F(RSSurfaceNodeTest, SetShadowRadius001, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    surfaceNode->SetShadowRadius(floatData[1]);
+    EXPECT_TRUE(ROSEN_EQ(surfaceNode->GetStagingProperties().GetShadowRadius(), floatData[1]));
+}
+
+/**
+ * @tc.name: SetShadowRadius002
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require: issueI5J8R1
+ */
+HWTEST_F(RSSurfaceNodeTest, SetShadowRadius002, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    surfaceNode->SetShadowRadius(floatData[2]);
+    EXPECT_TRUE(ROSEN_EQ(surfaceNode->GetStagingProperties().GetShadowRadius(), floatData[2]));
+}
+
+/**
+ * @tc.name: SetShadowRadius003
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require: issueI5J8R1
+ */
+HWTEST_F(RSSurfaceNodeTest, SetShadowRadius003, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    surfaceNode->SetShadowRadius(floatData[3]);
+    EXPECT_TRUE(ROSEN_EQ(surfaceNode->GetStagingProperties().GetShadowRadius(), floatData[3]));
+}
+
+/**
+ * @tc.name: SetShadowColor001
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require: issueI5J8R1
+ */
+HWTEST_F(RSSurfaceNodeTest, SetShadowColor001, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    surfaceNode->SetShadowColor(FIRST_COLOR_VALUE);
+    EXPECT_TRUE(surfaceNode->GetStagingProperties().GetShadowColor() == Color::FromArgbInt(FIRST_COLOR_VALUE));
+}
+
+/**
+ * @tc.name: SetShadowColor002
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require: issueI5J8R1
+ */
+HWTEST_F(RSSurfaceNodeTest, SetShadowColor002, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    surfaceNode->SetShadowColor(SECOND_COLOR_VALUE);
+    EXPECT_TRUE(surfaceNode->GetStagingProperties().GetShadowColor() == Color::FromArgbInt(SECOND_COLOR_VALUE));
+}
+
+/**
+ * @tc.name: SetShadowColor003
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require: issueI5J8R1
+ */
+HWTEST_F(RSSurfaceNodeTest, SetShadowColor003, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    surfaceNode->SetShadowColor(THIRD_COLOR_VALUE);
+    EXPECT_TRUE(surfaceNode->GetStagingProperties().GetShadowColor() == Color::FromArgbInt(THIRD_COLOR_VALUE));
 }
 } // namespace OHOS::Rosen
