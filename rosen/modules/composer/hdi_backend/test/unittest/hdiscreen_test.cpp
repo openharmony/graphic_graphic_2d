@@ -99,7 +99,7 @@ HWTEST_F(HdiScreenTest, GetScreenCapability001, Function | MediumTest| Level3)
  * @tc.name: GetScreenSupportedModes001
  * @tc.desc: Verify the GetScreenSupportedModes of hdiscreen
  * @tc.type:FUNC
- * @tc.require:AR000GGP0P
+ * @tc.require:issueI5NU2U
  * @tc.author:
  */
 HWTEST_F(HdiScreenTest, GetScreenSupportedModes001, Function | MediumTest| Level3)
@@ -118,7 +118,7 @@ HWTEST_F(HdiScreenTest, GetScreenSupportedModes001, Function | MediumTest| Level
  * @tc.name: GetScreenMode001
  * @tc.desc: Verify the GetScreenMode of hdiscreen
  * @tc.type:FUNC
- * @tc.require:AR000GGP0P
+ * @tc.require:issueI5NU2U
  * @tc.author:
  */
 HWTEST_F(HdiScreenTest, GetScreenMode001, Function | MediumTest| Level3)
@@ -131,7 +131,7 @@ HWTEST_F(HdiScreenTest, GetScreenMode001, Function | MediumTest| Level3)
  * @tc.name: SetScreenMode001
  * @tc.desc: Verify the SetScreenMode of hdiscreen
  * @tc.type:FUNC
- * @tc.require:AR000GGP0P
+ * @tc.require:issueI5NU2U
  * @tc.author:
  */
 HWTEST_F(HdiScreenTest, SetScreenMode001, Function | MediumTest| Level3)
