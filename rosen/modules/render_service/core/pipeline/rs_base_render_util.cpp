@@ -255,8 +255,8 @@ static const sk_sp<SkColorFilter>& InvertProtanomalyMat()
     static const SkScalar colorMatrix[MATRIX_SIZE] = {
         0.025,  -0.796, -0.228, 1.0, 0.0,
         -0.334, -0.438, -0.228, 1.0, 0.0,
-        -0.382, -1.392, 0.772,  0.0, 1.0,
-        0.0,    0.0,    0.0,    1.0, 1.0
+        -0.382, -1.392, 0.772,  1.0, 0.0,
+        0.0,    0.0,    0.0,    1.0, 0.0
     };
     static auto invertProtanomalyMat = SkColorFilters::Matrix(colorMatrix);
     return invertProtanomalyMat;
