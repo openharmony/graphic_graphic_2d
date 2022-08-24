@@ -99,8 +99,8 @@ public:
 
     static std::unique_ptr<RSTransactionData> ParseTransactionData(MessageParcel& parcel);
 
-    static bool ConvertBufferToBitmap(sptr<SurfaceBuffer> buffer, ColorGamut dstGamut, SkBitmap& bitmap,
-        const std::vector<HDRMetaData>& metaDatas = {});
+    static bool ConvertBufferToBitmap(sptr<SurfaceBuffer> buffer, std::vector<uint8_t>& newBuffer,
+        ColorGamut dstGamut, SkBitmap& bitmap, const std::vector<HDRMetaData>& metaDatas = {});
     /**
      * @brief Set the Color Filter Mode To Paint object
      *
@@ -124,8 +124,8 @@ private:
         const RSSurfaceRenderNode& node, RectF& bounds, BufferDrawParam& params);
     static bool CreateYuvToRGBABitMap(sptr<OHOS::SurfaceBuffer> buffer, std::vector<uint8_t>& newBuffer,
         SkBitmap& bitmap);
-    static bool CreateNewColorGamutBitmap(sptr<OHOS::SurfaceBuffer> buffer, SkBitmap& bitmap,
-        ColorGamut srcGamut, ColorGamut dstGamut, const std::vector<HDRMetaData>& metaDatas = {});
+    static bool CreateNewColorGamutBitmap(sptr<OHOS::SurfaceBuffer> buffer, std::vector<uint8_t>& newBuffer,
+        SkBitmap& bitmap, ColorGamut srcGamut, ColorGamut dstGamut, const std::vector<HDRMetaData>& metaDatas = {});
     static bool CreateBitmap(sptr<OHOS::SurfaceBuffer> buffer, SkBitmap& bitmap);
     static bool WriteToPng(const std::string &filename, const WriteToPngParam &param);
 private:
