@@ -32,7 +32,10 @@ namespace rosen {
 FontCollectionTxt::FontCollectionTxt()
 {
     SkGraphics::Init();
+#ifdef OHOS_PLATFORM
+    // don't need initialize icu for arkui cross-platform
     fml::icu::InitializeICU("/system/usr/ohos_icu/icudt67l.dat"); // position of icu
+#endif
     txtCollection = std::make_shared<txt::FontCollection>();
     txtCollection->SetupDefaultFontManager();
 
@@ -54,7 +57,9 @@ std::shared_ptr<txt::FontCollection> FontCollectionTxt::GetFontCollection() cons
 
 void FontCollectionTxt::LoadSystemFont()
 {
+#ifndef USE_CANVASKIT0310_SKIA
     txtCollection->LoadSystemFont();
+#endif
     // 0x4e2d is unicode for '中'.
     std::string locale = "en";
     txtCollection->MatchFallbackFont(0x4e2d, locale);

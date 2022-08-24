@@ -67,7 +67,12 @@ bool TextShadow::hasShadow() const
 
 TextStyle::TextStyle()
 {
+#ifdef USE_CANVASKIT0310_SKIA
+    // use new flutter libtxt interface
+    fontFamilies_ = txt::GetDefaultFontFamilies();
+#else
     fontFamilies_ = std::vector<std::string>(1, txt::GetDefaultFontFamily());
+#endif
 }
 
 bool TextStyle::equals(const TextStyle& rhs) const

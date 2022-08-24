@@ -127,7 +127,12 @@ TypographyProperties::PositionAndAffinity TypographyTxt::GetGlyphPositionAtCoord
 TypographyProperties::PositionAndAffinity TypographyTxt::GetGlyphPositionAtCoordinateWithCluster(double dx, double dy)
 {
     txt::Paragraph::PositionWithAffinity posAndAffinity =
+#ifdef USE_CANVASKIT0310_SKIA
+        // new flutter libtxt not have GetGlyphPositionAtCoordinateWithCluster
+        paragraphTxt_->GetGlyphPositionAtCoordinate(dx, dy);
+#else
         paragraphTxt_->GetGlyphPositionAtCoordinateWithCluster(dx, dy);
+#endif
     return TxtConvertPosAndAffinity(posAndAffinity);
 }
 

@@ -34,7 +34,10 @@ txt::FontStyle RosenConvertTxtFontStyle(FontStyle& fontStyle);
 txt::TextBaseline RosenConvertTxtTextBaseline(TextBaseline& textBaseline);
 txt::TextAlign RosenConvertTxtTextAlign(TextAlign& textAlign);
 minikin::BreakStrategy RosenConverMinkinBreakStrateg(BreakStrategy& breakStrategy);
+#ifndef USE_CANVASKIT0310_SKIA
+// new flutter libtxt not have WordBreakType
 minikin::WordBreakType RosenConverMinkinWordBreakType(WordBreakType& wordBreakType);
+#endif
 txt::TextDirection RosenConvertTxtTextDirection(TextDirection& textDirection);
 txt::TextDecoration RosenConvertTxtTextDecoration(TextDecoration& textDecoration);
 txt::TextDecorationStyle RosenConvertTxtTextDecorationStyle(TextDecorationStyle& textDecorationStyle);

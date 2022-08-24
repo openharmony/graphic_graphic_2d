@@ -158,6 +158,7 @@ minikin::BreakStrategy RosenConverMinkinBreakStrateg(BreakStrategy breakStrategy
     return minkinBreakStrategy;
 }
 
+#ifndef USE_CANVASKIT0310_SKIA
 minikin::WordBreakType RosenConverMinkinWordBreakType(WordBreakType wordBreakType)
 {
     minikin::WordBreakType minkinWordBreakType;
@@ -177,6 +178,7 @@ minikin::WordBreakType RosenConverMinkinWordBreakType(WordBreakType wordBreakTyp
     }
     return minkinWordBreakType;
 }
+#endif
 
 txt::TextDirection RosenConvertTxtTextDirection(TextDirection textDirection)
 {
@@ -291,7 +293,12 @@ void RosenConvertTxtStyle(const TextStyle& textStyle, txt::TextStyle& txtStyle)
             txt::TextShadow txtShadow;
             txtShadow.color = shadow.color_.CastToColorQuad();
             txtShadow.offset  = SkPoint::Make(shadow.offset_.GetX(), shadow.offset_.GetY());
+#ifdef USE_CANVASKIT0310_SKIA
+            // new flutter libtxt not have blur_radius, use blur_sigma
+            txtShadow.blur_sigma = shadow.blurRadius_;
+#else
             txtShadow.blur_radius = shadow.blurRadius_;
+#endif
             txtStyle.text_shadows.emplace_back(txtShadow);
         }
     }
@@ -329,7 +336,9 @@ void RosenConvertTypographyStyle(const TypographyStyle& typographyStyle, txt::Pa
     txtParagraphStyle.ellipsis = typographyStyle.ellipsis_;
     txtParagraphStyle.locale = typographyStyle.locale_;
     txtParagraphStyle.break_strategy = RosenConverMinkinBreakStrateg(typographyStyle.breakStrategy_);
+#ifndef USE_CANVASKIT0310_SKIA
     txtParagraphStyle.word_break_type = RosenConverMinkinWordBreakType(typographyStyle.wordBreakType_);
+#endif
 }
 
 TextDirection TxtConvertRosenTextDirection(txt::TextDirection& txtTextBox)

@@ -335,6 +335,7 @@ void SkiaCanvas::DrawImageRect(
     auto paints = skiaPaint_.GetSortedPaints();
     if (paints.empty()) {
 #if defined(USE_CANVASKIT0310_SKIA)
+        SkSamplingOptions samplingOptions;
         skiaCanvas_->drawImageRect(
             img, srcRect, dstRect, samplingOptions, nullptr, static_cast<SkCanvas::SrcRectConstraint>(constraint));
 #else
@@ -377,6 +378,7 @@ void SkiaCanvas::DrawImageRect(const Image& image, const Rect& dst, const Sampli
     auto paints = skiaPaint_.GetSortedPaints();
     if (paints.empty()) {
 #if defined(USE_CANVASKIT0310_SKIA)
+        SkSamplingOptions samplingOptions;
         skiaCanvas_->drawImageRect(img, dstRect, samplingOptions, nullptr);
 #else
         skiaCanvas_->drawImageRect(img, dstRect, nullptr);

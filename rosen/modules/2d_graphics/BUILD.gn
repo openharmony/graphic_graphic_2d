@@ -86,15 +86,11 @@ template("graphics2d_source_set") {
       "src",
       "src/engine_adapter",
       "$rosen_2d_engine_root",
-      "$flutter_root/engine/flutter/third_party/txt/src",
       "//foundation/arkui/ace_engine/frameworks",
-      "$flutter_root/engine",
       "//third_party/bounds_checking_function/include",
     ]
 
     defines += [ "USE_ACE_SKIA" ]
-
-    deps = [ "$ace_flutter_engine_root:flutter_engine_fml_$platform" ]
 
     if (platform == "ohos") {
       external_deps = [
@@ -102,20 +98,47 @@ template("graphics2d_source_set") {
         "hilog_native:libhilog",
         "multimedia_image_standard:image_native",
       ]
-      deps += [
+      deps = [
+        "$ace_flutter_engine_root:flutter_engine_fml_$platform",
         "//foundation/graphic/graphic_2d/rosen/build/flutter/icu:rosen_libicu_$platform",
         "//foundation/graphic/graphic_2d/rosen/build/flutter/libtxt:thirdparty_lib_txt_rosen_$platform",
         "//third_party/bounds_checking_function:libsec_static",
       ]
+      include_dirs += [
+        "$flutter_root/engine",
+        "$flutter_root/engine/flutter/third_party/txt/src",
+      ]
       defines += [ "SUPPORT_OHOS_PIXMAP" ]
     } else {
       cflags = [ "-Wno-c++17-extensions" ]
-      deps += [
-        "$ace_flutter_engine_root/icu:ace_libicu_$platform",
-        "$ace_flutter_engine_root/libtxt:thirdparty_lib_txt_$platform",
-        "$ace_flutter_engine_root/skia:ace_skia_$platform",
-        "//base/hiviewdfx/hilog/frameworks/libhilog:libhilog_source_$platform",
-      ]
+
+      if (enable_ng_build) {
+        deps = [
+          "$ace_flutter_engine_root_new/icu:ace_libicu_dev_$platform",
+          "$ace_flutter_engine_root_new/libtxt:thirdparty_lib_txt_dev_$platform",
+          "$ace_flutter_engine_root_new/skia:ace_skia_dev_$platform",
+        ]
+        include_dirs += [
+          "$flutter_root_new/engine",
+          "$flutter_root_new/engine/flutter/third_party/txt/src",
+        ]
+        defines += [ "USE_CANVASKIT0310_SKIA" ]
+      } else {
+        deps = [
+          "$ace_flutter_engine_root:flutter_engine_fml_$platform",
+          "$ace_flutter_engine_root/icu:ace_libicu_$platform",
+          "$ace_flutter_engine_root/libtxt:thirdparty_lib_txt_$platform",
+          "$ace_flutter_engine_root/skia:ace_skia_$platform",
+        ]
+        include_dirs += [
+          "$flutter_root/engine",
+          "$flutter_root/engine/flutter/third_party/txt/src",
+        ]
+      }
+
+      if (!is_cross_platform_build) {
+        deps += [ "//base/hiviewdfx/hilog/frameworks/libhilog:libhilog_source_$platform" ]
+      }
     }
 
     part_name = "graphic_standard"
@@ -147,12 +170,14 @@ foreach(item, ace_platforms) {
   }
 }
 
-## Build 2d_graphics.so
-ohos_shared_library("2d_graphics") {
-  symlink_target_name = [ "libnative_drawing.so" ]
-  deps = [ ":2d_graphics_source_ohos" ]
-  part_name = "graphic_standard"
-  subsystem_name = "graphic"
+if (!is_cross_platform_build) {
+  ## Build 2d_graphics.so
+  ohos_shared_library("2d_graphics") {
+    symlink_target_name = [ "libnative_drawing.so" ]
+    deps = [ ":2d_graphics_source_ohos" ]
+    part_name = "graphic_standard"
+    subsystem_name = "graphic"
+  }
 }
 
 ## Build 2d_graphics.so
@@ -202,10 +227,12 @@ ohos_shared_library("2d_graphics_canvaskit0310") {
     "src/engine_adapter",
   ]
 
-  deps = [
-    "//foundation/graphic/graphic_2d:libsurface",
-    # "//third_party/skia_canvaskit0310:skia",
-  ]
+  if (!is_cross_platform_build) {
+    deps = [
+      "//foundation/graphic/graphic_2d:libsurface",
+      # "//third_party/skia_canvaskit0310:skia",
+    ]
+  }
 
   external_deps = [
     "c_utils:utils",

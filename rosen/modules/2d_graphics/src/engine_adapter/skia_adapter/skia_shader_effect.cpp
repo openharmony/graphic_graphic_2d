@@ -77,9 +77,9 @@ void SkiaShaderEffect::InitWithImage(
             shader_ = skiaImage->makeShader(modeX, modeY, samplingOptions, &skiaMatrix);
 #else
             shader_ = skiaImage->makeShader(modeX, modeY, &skiaMatrix);
+#endif
         }
 
-#endif
     }
 }
 
@@ -103,8 +103,9 @@ void SkiaShaderEffect::InitWithPicture(
             shader_ = skiaPicture->makeShader(modeX, modeY, m, &skiaMatrix, &r);
 #else
             shader_ = skiaPicture->makeShader(modeX, modeY, &skiaMatrix, &r);
-        }
 #endif
+        }
+
     }
 }
 
