@@ -94,5 +94,16 @@ bool RSSystemProperties::GetUniPartialRenderEnabled()
 {
     return std::atoi((system::GetParameter("rosen.uni.partialrender.enabled", "0")).c_str());
 }
+
+DumpSurfaceType RSSystemProperties::GetDumpSurfaceType()
+{
+    return static_cast<DumpSurfaceType>(
+        std::atoi((system::GetParameter("rosen.dumpsurfacetype.enabled", "0")).c_str()));
+}
+
+uint64_t RSSystemProperties::GetDumpSurfaceId()
+{
+    return std::atoi((system::GetParameter("rosen.dumpsurfaceid", "0")).c_str());
+}
 } // namespace Rosen
 } // namespace OHOS

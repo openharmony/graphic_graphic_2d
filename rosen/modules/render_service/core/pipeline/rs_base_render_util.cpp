@@ -15,6 +15,7 @@
 
 #include "rs_base_render_util.h"
 
+#include <sys/time.h>
 #include <unordered_set>
 
 #include "common/rs_matrix3.h"
@@ -22,6 +23,7 @@
 #include "common/rs_vector2.h"
 #include "common/rs_vector3.h"
 #include "platform/common/rs_log.h"
+#include "png.h"
 #include "rs_trace.h"
 #include "transaction/rs_transaction_data.h"
 
@@ -37,6 +39,7 @@ using Array3ptr = std::array<uint8_t*, dstLength>;
 const uint32_t STUB_PIXEL_FMT_RGBA_16161616 = 0X7fff0001;
 const uint32_t STUB_PIXEL_FMT_RGBA_1010102 = 0X7fff0002;
 constexpr uint32_t MATRIX_SIZE = 20; // colorMatrix size
+constexpr int BITMAP_DEPTH = 8;
 
 inline constexpr float PassThrough(float v)
 {
@@ -1187,6 +1190,108 @@ std::unique_ptr<RSTransactionData> RSBaseRenderUtil::ParseTransactionData(Messag
     auto transactionData = parcel.ReadParcelable<RSTransactionData>();
     std::unique_ptr<RSTransactionData> transData(transactionData);
     return transData;
+}
+
+bool RSBaseRenderUtil::WriteSurfaceRenderNodeToPng(const RSSurfaceRenderNode& node)
+{
+    auto type = RSSystemProperties::GetDumpSurfaceType();
+    if (type == DumpSurfaceType::DISABLED || type == DumpSurfaceType::PIXELMAP) {
+        return false;
+    }
+    uint64_t id = RSSystemProperties::GetDumpSurfaceId();
+    if (type == DumpSurfaceType::SINGLESURFACE && !ROSEN_EQ(node.GetId(), id)) {
+        return false;
+    }
+    sptr<SurfaceBuffer> buffer = node.GetBuffer();
+    if (buffer == nullptr) {
+        return false;
+    }
+    BufferHandle *bufferHandle =  buffer->GetBufferHandle();
+    if (bufferHandle == nullptr) {
+        return false;
+    }
+
+    struct timeval now;
+    gettimeofday(&now, nullptr);
+    constexpr int secToUsec = 1000 * 1000;
+    int64_t nowVal =  static_cast<int64_t>(now.tv_sec) * secToUsec + static_cast<int64_t>(now.tv_usec);
+    std::string filename = "/data/SurfaceRenderNode_" +
+        node.GetName() + "_"  +
+        std::to_string(node.GetId()) + "_" +
+        std::to_string(nowVal) + ".png";
+
+    WriteToPngParam param;
+    param.width = static_cast<uint32_t>(bufferHandle->width);
+    param.height = static_cast<uint32_t>(bufferHandle->height);
+    param.data = (uint8_t*)(buffer->GetVirAddr());
+    param.stride = static_cast<uint32_t>(bufferHandle->stride);
+    param.bitDepth = Detail::BITMAP_DEPTH;
+
+    return WriteToPng(filename, param);
+}
+
+bool RSBaseRenderUtil::WritePixelMapToPng(Media::PixelMap& pixelMap)
+{
+    auto type = RSSystemProperties::GetDumpSurfaceType();
+    if (type != DumpSurfaceType::PIXELMAP) {
+        return false;
+    }
+    struct timeval now;
+    gettimeofday(&now, nullptr);
+    constexpr int secToUsec = 1000 * 1000;
+    int64_t nowVal =  static_cast<int64_t>(now.tv_sec) * secToUsec + static_cast<int64_t>(now.tv_usec);
+    std::string filename = "/data/PixelMap_" + std::to_string(nowVal) + ".png";
+
+    WriteToPngParam param;
+    param.width = static_cast<uint32_t>(pixelMap.GetWidth());
+    param.height = static_cast<uint32_t>(pixelMap.GetHeight());
+    param.data = pixelMap.GetPixels();
+    param.stride = static_cast<uint32_t>(pixelMap.GetRowBytes());
+    param.bitDepth = Detail::BITMAP_DEPTH;
+
+    return WriteToPng(filename, param);
+}
+
+bool RSBaseRenderUtil::WriteToPng(const std::string &filename, const WriteToPngParam &param)
+{
+    RS_LOGI("RSBaseRenderUtil::WriteToPng filename = %s", filename.c_str());
+    png_structp pngStruct = png_create_write_struct(PNG_LIBPNG_VER_STRING, nullptr, nullptr, nullptr);
+    if (pngStruct == nullptr) {
+        return false;
+    }
+    png_infop pngInfo = png_create_info_struct(pngStruct);
+    if (pngInfo == nullptr) {
+        png_destroy_write_struct(&pngStruct, nullptr);
+        return false;
+    }
+
+    FILE *fp = fopen(filename.c_str(), "wb");
+    if (fp == nullptr) {
+        png_destroy_write_struct(&pngStruct, &pngInfo);
+        return false;
+    }
+    png_init_io(pngStruct, fp);
+
+    // set png header
+    png_set_IHDR(pngStruct, pngInfo,
+        param.width, param.height,
+        param.bitDepth,
+        PNG_COLOR_TYPE_RGBA,
+        PNG_INTERLACE_NONE,
+        PNG_COMPRESSION_TYPE_BASE,
+        PNG_FILTER_TYPE_BASE);
+    png_set_packing(pngStruct); // set packing info
+    png_write_info(pngStruct, pngInfo); // write to header
+
+    for (uint32_t i = 0; i < param.height; i++) {
+        png_write_row(pngStruct, param.data + (i * param.stride));
+    }
+    png_write_end(pngStruct, pngInfo);
+
+    // free
+    png_destroy_write_struct(&pngStruct, &pngInfo);
+    int ret = fclose(fp);
+    return ret == 0;
 }
 } // namespace Rosen
 } // namespace OHOS

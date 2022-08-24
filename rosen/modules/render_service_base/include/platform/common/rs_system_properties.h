@@ -37,6 +37,13 @@ enum class PartialRenderType {
     SET_DAMAGE_AND_DROP_OP
 };
 
+enum class DumpSurfaceType {
+    DISABLED = 0,
+    SINGLESURFACE,
+    ALLSURFACES,
+    PIXELMAP,
+};
+
 class RSSystemProperties final {
 public:
     ~RSSystemProperties() = default;
@@ -53,6 +60,8 @@ public:
     static bool GetUniPartialRenderEnabled();
     static bool IsUniRenderMode();
     static void SetRenderMode(bool isUni);
+    static DumpSurfaceType GetDumpSurfaceType();
+    static uint64_t GetDumpSurfaceId();
 
 private:
     RSSystemProperties() = default;

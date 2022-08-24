@@ -202,6 +202,7 @@ void RSRenderServiceVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
     node.SetGlobalZOrder(globalZOrder_);
     globalZOrder_ = globalZOrder_ + 1;
     processor_->ProcessSurface(node);
+    RSBaseRenderUtil::WriteSurfaceRenderNodeToPng(node);
     node.ProcessRenderAfterChildren(*canvas_);
     if (mParallelEnable) {
         node.ParallelVisitUnlock();

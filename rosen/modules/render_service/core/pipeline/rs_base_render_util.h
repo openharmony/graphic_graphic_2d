@@ -27,6 +27,7 @@
 #include "screen_manager/rs_screen_manager.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_surface_render_node.h"
+#include "pixel_map.h"
 #include "sync_fence.h"
 
 namespace OHOS {
@@ -53,6 +54,14 @@ struct BufferDrawParam {
     bool setColorFilter = true;
     std::vector<HDRMetaData> metaDatas = {}; // static meta datas for HDR10
     HDRMetaDataSet metaDataSet; // dynamic meta datas for HDR10+, HDR VIVID
+};
+
+using WriteToPngParam = struct {
+    uint32_t width;
+    uint32_t height;
+    uint32_t stride;
+    uint32_t bitDepth;
+    const uint8_t *data;
 };
 
 enum class ColorFilterMode {
@@ -101,6 +110,9 @@ public:
     static void SetColorFilterModeToPaint(ColorFilterMode colorFilterMode, SkPaint& paint);
     static bool IsColorFilterModeValid(ColorFilterMode mode);
 
+    static bool WriteSurfaceRenderNodeToPng(const RSSurfaceRenderNode& node);
+
+    static bool WritePixelMapToPng(Media::PixelMap& pixelMap);
 private:
     static void CalculateSurfaceNodeClipRects(
         const RSSurfaceRenderNode& node,
@@ -115,6 +127,8 @@ private:
     static bool CreateNewColorGamutBitmap(sptr<OHOS::SurfaceBuffer> buffer, SkBitmap& bitmap,
         ColorGamut srcGamut, ColorGamut dstGamut, const std::vector<HDRMetaData>& metaDatas = {});
     static bool CreateBitmap(sptr<OHOS::SurfaceBuffer> buffer, SkBitmap& bitmap);
+    static bool WriteToPng(const std::string &filename, const WriteToPngParam &param);
+private:
 };
 } // namespace Rosen
 } // namespace OHOS

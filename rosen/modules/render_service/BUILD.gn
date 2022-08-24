@@ -78,7 +78,10 @@ ohos_shared_library("librender_service") {
     "//foundation/systemabilitymgr/safwk/interfaces/innerkits/safwk:system_ability_fwk",
   ]
 
-  public_deps = [ "//third_party/flutter/build/skia:ace_skia_ohos" ]
+  public_deps = [
+    "//third_party/flutter/build/skia:ace_skia_ohos",
+    "//third_party/libpng:libpng",
+  ]
 
   external_deps = [
     "c_utils:utils",
