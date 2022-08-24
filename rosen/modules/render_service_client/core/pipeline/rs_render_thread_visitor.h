@@ -63,6 +63,7 @@ private:
     SkMatrix parentSurfaceNodeMatrix_;
 
     void SendCommandFromRT(std::unique_ptr<RSCommand>& command, NodeId nodeId, FollowType followType);
+    bool IsValidRootRenderNode(RSRootRenderNode& node);
 };
 } // namespace Rosen
 } // namespace OHOS
