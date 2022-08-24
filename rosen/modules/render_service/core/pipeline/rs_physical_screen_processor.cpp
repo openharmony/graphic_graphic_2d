@@ -27,9 +27,9 @@ namespace {
     constexpr uint32_t PERF_LEVEL_0 = 0;
     constexpr uint32_t PERF_LEVEL_1 = 1;
     constexpr uint32_t PERF_LEVEL_2 = 2;
-    constexpr int32_t PERF_LEVEL_1_REQUESTED_CODE = 10012;
-    constexpr int32_t PERF_LEVEL_2_REQUESTED_CODE = 10013;
-    constexpr int32_t PERF_LEVEL_3_REQUESTED_CODE = 10014;
+    constexpr int32_t PERF_LEVEL_1_REQUESTED_CODE = 10013;
+    constexpr int32_t PERF_LEVEL_2_REQUESTED_CODE = 10014;
+    constexpr int32_t PERF_LEVEL_3_REQUESTED_CODE = 10015;
     constexpr int64_t PERF_TIME_OUT = 1000;
     constexpr uint32_t PERF_LEVEL_INTERVAL = 10;
 }
