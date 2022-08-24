@@ -483,7 +483,8 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
     canvas_->MultiplyAlpha(property.GetAlpha());
 
     auto parentPtr = node.GetParent().lock();
-    if (parentPtr && parentPtr->IsInstanceOf<RSCanvasRenderNode>()) {
+    bool isSelfDrawingSurface = parentPtr && parentPtr->IsInstanceOf<RSCanvasRenderNode>();
+    if (isSelfDrawingSurface) {
         canvas_->save();
     }
 
@@ -495,7 +496,10 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
     RRect absClipRRect = RRect(absBounds, property.GetCornerRadius());
     RSPropertiesPainter::DrawShadow(property, *canvas_, &absClipRRect);
 
-    canvas_->save();
+    if (isSelfDrawingSurface) {
+        canvas_->save();
+    }
+
     auto transitionProperties = node.GetAnimationManager().GetTransitionProperties();
     RSPropertiesPainter::DrawTransitionProperties(transitionProperties, property, *canvas_);
 
@@ -522,7 +526,10 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
         skRectPtr->setXYWH(0, 0, property.GetBoundsWidth(), property.GetBoundsHeight());
         RSPropertiesPainter::DrawFilter(property, *canvas_, filter, skRectPtr, canvas_->GetSurface());
     }
-    canvas_->restore();
+
+    if (isSelfDrawingSurface) {
+        canvas_->restore();
+    }
 
     node.SetTotalMatrix(canvas_->getTotalMatrix());
 
@@ -541,7 +548,7 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
         RSPropertiesPainter::DrawFilter(property, *canvas_, filter, skRectPtr, canvas_->GetSurface());
     }
 
-    if (parentPtr && parentPtr->IsInstanceOf<RSCanvasRenderNode>()) {
+    if (isSelfDrawingSurface) {
         canvas_->restore();
     }
 

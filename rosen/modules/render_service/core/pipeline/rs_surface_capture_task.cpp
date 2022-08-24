@@ -269,7 +269,8 @@ void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::CaptureSurfaceInDisplayWithU
     }
 
     auto parentPtr = node.GetParent().lock();
-    if (parentPtr && parentPtr->IsInstanceOf<RSCanvasRenderNode>()) {
+    bool isSelfDrawingSurface = parentPtr && parentPtr->IsInstanceOf<RSCanvasRenderNode>();
+    if (isSelfDrawingSurface) {
         canvas_->save();
     }
 
@@ -279,7 +280,10 @@ void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::CaptureSurfaceInDisplayWithU
         canvas_->concat(geoPtr->GetMatrix());
     }
 
-    canvas_->save();
+    if (isSelfDrawingSurface) {
+        canvas_->save();
+    }
+
     auto transitionProperties = node.GetAnimationManager().GetTransitionProperties();
     RSPropertiesPainter::DrawTransitionProperties(transitionProperties, property, *canvas_);
     boundsRect_ = SkRect::MakeWH(property.GetBoundsWidth(), property.GetBoundsHeight());
@@ -289,7 +293,10 @@ void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::CaptureSurfaceInDisplayWithU
     if (SkColorGetA(backgroundColor) != SK_AlphaTRANSPARENT) {
         canvas_->drawColor(backgroundColor);
     }
-    canvas_->restore();
+
+    if (isSelfDrawingSurface) {
+        canvas_->restore();
+    }
 
     if (!node.IsAppWindow() && node.GetBuffer() != nullptr) {
         // use node's local coordinate.
@@ -297,7 +304,7 @@ void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::CaptureSurfaceInDisplayWithU
         renderEngine_->DrawSurfaceNodeWithParams(*canvas_, node, params);
     }
 
-    if (parentPtr && parentPtr->IsInstanceOf<RSCanvasRenderNode>()) {
+    if (isSelfDrawingSurface) {
         canvas_->restore();
     }
 
