@@ -438,12 +438,12 @@ void RSUniRenderVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
     } else {
         canvas_->save();
     }
-    const float frameWidth = property.GetFrameWidth();
-    const float frameHeight = property.GetFrameHeight();
+    const float rootWidth = node.GetSurfaceWidth();
+    const float rootHeight = node.GetSurfaceHeight();
     SkMatrix gravityMatrix;
     (void)RSPropertiesPainter::GetGravityMatrix(frameGravity_,
         RectF {0.0f, 0.0f, boundsRect_.width(), boundsRect_.height()},
-        frameWidth, frameHeight, gravityMatrix);
+        rootWidth, rootHeight, gravityMatrix);
     canvas_->concat(gravityMatrix);
     ProcessCanvasRenderNode(node);
     canvas_->restore();
