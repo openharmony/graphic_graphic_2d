@@ -26,15 +26,15 @@
 using namespace rosen;
 
 template<typename T1, typename T2>
-inline T1* ConvertToOriginalText(T2* ndkptr)
+inline T1* ConvertToOriginalText(T2* ptr)
 {
-    return reinterpret_cast<T1*>(ndkptr);
+    return reinterpret_cast<T1*>(ptr);
 }
 
 template<typename T1, typename T2>
-inline T1* ConvertToNDKText(T2* ndkptr)
+inline T1* ConvertToNDKText(T2* ptr)
 {
-    return reinterpret_cast<T1*>(ndkptr);
+    return reinterpret_cast<T1*>(ptr);
 }
 
 OH_Drawing_TypographyStyle* OH_Drawing_CreateTypographyStyle(void)
