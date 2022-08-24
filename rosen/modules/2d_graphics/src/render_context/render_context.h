@@ -16,6 +16,7 @@
 #ifndef RENDER_CONTEXT_H
 #define RENDER_CONTEXT_H
 
+#include <memory>
 #include "common/rs_rect.h"
 #include "EGL/egl.h"
 #include "EGL/eglext.h"
@@ -84,11 +85,6 @@ public:
         return eglContext_ != EGL_NO_DISPLAY;
     }
 
-    MemoryHandler& mHandler()
-    {
-        return *mHandler_;
-    }
-
     void SetCacheDir(const std::string& filePath)
     {
         cacheDir_ = filePath;
@@ -107,7 +103,7 @@ private:
     ColorGamut colorSpace_ = ColorGamut::COLOR_GAMUT_SRGB;
 
     std::string cacheDir_;
-    MemoryHandler* mHandler_;
+    std::shared_ptr<MemoryHandler> mHandler_;
 };
 
 class RenderContextFactory {

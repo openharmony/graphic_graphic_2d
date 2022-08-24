@@ -34,13 +34,12 @@ ShaderCache& ShaderCache::Instance()
 void ShaderCache::InitShaderCache(const char* identity, const ssize_t size)
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    initialized_ = true;
 
-    if (cacheDir_.length() <= 0) {
+    if (filePath_.length() <= 0) {
         LOGE("abandon, illegal cacheDir length");
         return;
     }
-    cacheData_.reset(new CacheData(glslKeySize, glslValueSize, glslTotalSize, cacheDir_));
+    cacheData_.reset(new CacheData(glslKeySize, glslValueSize, glslTotalSize, filePath_));
     cacheData_->ReadFromFile();
     if (identity == nullptr || size <= 0) {
         LOGE("abandon, illegal cacheDir length");
@@ -57,15 +56,19 @@ void ShaderCache::InitShaderCache(const char* identity, const ssize_t size)
     auto loaded = cacheData_->Get(&key, sizeof(key), shaArray.data(), shaArray.size());
     if (!(loaded && std::equal(shaArray.begin(), shaArray.end(), idHash_.begin()))) {
         cacheData_->Clear();
-        LOGE("bad hash value, cache data eliminated");
-        return;
+        LOGI("abandon, bad hash value, cleared for future regeneration");
     }
+    initialized_ = true;
 }
 
-void ShaderCache::SetCacheDir(const std::string& filename)
+void ShaderCache::SetFilePath(const std::string& filename)
 {
+    if (filename.size() <= 0) {
+        LOGE("abandon, empty filename");
+        return;
+    }
     std::lock_guard<std::mutex> lock(mutex_);
-    cacheDir_ = filename + "/shader_cache";
+    filePath_ = filename + "/shader_cache";
 }
 
 sk_sp<SkData> ShaderCache::load(const SkData& key)
@@ -110,11 +113,11 @@ void ShaderCache::WriteToDisk()
 {
     if (!(initialized_ && cacheData_ && savePending_)) {
         LOGE("abandon: failed to check prerequisites");
-        return ;
+        return;
     }
     if (!idHash_.size()) {
         LOGE("abandon: illegal hash size");
-        return ;
+        return;
     }
     auto key = ID_KEY;
     cacheData_->Rewrite(&key, sizeof(key), idHash_.data(), idHash_.size());
