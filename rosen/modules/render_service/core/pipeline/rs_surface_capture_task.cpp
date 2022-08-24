@@ -347,6 +347,8 @@ void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::ProcessSurfaceRenderNodeWith
             SkMatrix scaleMatrix = SkMatrix::I();
             scaleMatrix.preScale(scaleX_, scaleY_, 0, 0);
             param.clipRect = scaleMatrix.mapRect(param.clipRect);
+            param.clipRect = SkRect::MakeXYWH(node.GetRenderProperties().GetBoundsPositionX(), node.GetRenderProperties().GetBoundsPositionY(),
+                node.GetRenderProperties().GetBoundsWidth(), node.GetRenderProperties().GetBoundsHeight());
 
             param.dstRect = SkRect::MakeXYWH(
                 node.GetRenderProperties().GetBoundsPositionX(), node.GetRenderProperties().GetBoundsPositionY(),
@@ -362,6 +364,7 @@ void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::ProcessSurfaceRenderNodeWith
             param.clipRect.offsetTo(0, 0);
             param.dstRect = SkRect::MakeXYWH(0, 0, node.GetRenderProperties().GetBoundsWidth(),
                 node.GetRenderProperties().GetBoundsHeight());
+            param.clipRect = SkRect::MakeWH(node.GetRenderProperties().GetBoundsWidth(), node.GetRenderProperties().GetBoundsHeight())
             AdjustSurfaceTransform(param, surfaceTransform);
             RSDividedRenderUtil::DrawBuffer(*canvas_, param, [this](SkCanvas& canvas, BufferDrawParam& params) -> void {
                     canvas.scale(scaleX_, scaleY_);
