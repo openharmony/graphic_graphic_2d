@@ -89,6 +89,14 @@ void RSUIDirector::GoBackground()
         if (auto node = RSNodeMap::Instance().GetNode<RSRootNode>(root_)) {
             node->SetEnableRender(false);
         }
+#ifdef ACE_ENABLE_GL
+        RSRenderThread::Instance().PostTask([this]() {
+            auto renderContext = RSRenderThread::Instance().GetRenderContext();
+            if (renderContext != nullptr) {
+                renderContext->ClearRedundantResources();
+            }
+        });
+#endif
     }
 }
 

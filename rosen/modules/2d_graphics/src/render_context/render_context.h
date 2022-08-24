@@ -63,6 +63,7 @@ public:
     EGLint QueryEglBufferAge();
     void DamageFrame(int32_t left, int32_t top, int32_t width, int32_t height);
     void DamageFrame(const std::vector<RectI> &rects);
+    void ClearRedundantResources();
 
     EGLSurface GetEGLSurface() const
     {

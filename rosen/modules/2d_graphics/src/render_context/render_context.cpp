@@ -19,6 +19,7 @@
 #include <string>
 
 #include "EGL/egl.h"
+#include "rs_trace.h"
 #include "window.h"
 
 #include "utils/log.h"
@@ -368,6 +369,17 @@ void RenderContext::DamageFrame(const std::vector<RectI> &rects)
     EGLBoolean ret = GetEGLSetDamageRegionKHRFunc()(eglDisplay_, eglSurface_, eglRect, size);
     if (ret == EGL_FALSE) {
         LOGE("eglSetDamageRegionKHR is failed");
+    }
+}
+
+void RenderContext::ClearRedundantResources()
+{
+    RS_TRACE_FUNC();
+    if (grContext_ != nullptr) {
+        LOGD("grContext clear redundant resources");
+        grContext_->flush();
+        // GPU resources that haven't been used in the past 10 seconds
+        grContext_->purgeResourcesNotUsedInMs(std::chrono::seconds(10));
     }
 }
 } // namespace Rosen
