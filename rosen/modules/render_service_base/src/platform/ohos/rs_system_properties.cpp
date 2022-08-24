@@ -59,6 +59,12 @@ PartialRenderType RSSystemProperties::GetPartialRenderEnabled()
         std::atoi((system::GetParameter("rosen.partialrender.enabled", "0")).c_str()));
 }
 
+PartialRenderType RSSystemProperties::GetUniPartialRenderEnabled()
+{
+    return static_cast<PartialRenderType>(
+        std::atoi((system::GetParameter("rosen.uni.partialrender.enabled", "0")).c_str()));
+}
+
 bool RSSystemProperties::GetOcclusionEnabled()
 {
     return std::atoi((system::GetParameter("rosen.occlusion.enabled", "1")).c_str()) != 0;
@@ -88,11 +94,6 @@ uint32_t RSSystemProperties::GetCorrectionMode()
     // If the value of rosen.directClientComposition.enabled is not 0 then enable the direct CLIENT composition.
     // Direct CLIENT composition will be processed only when the num of layer is larger than 11
     return std::atoi((system::GetParameter("rosen.CorrectionMode", "999")).c_str());
-}
-
-bool RSSystemProperties::GetUniPartialRenderEnabled()
-{
-    return std::atoi((system::GetParameter("rosen.uni.partialrender.enabled", "0")).c_str());
 }
 
 DumpSurfaceType RSSystemProperties::GetDumpSurfaceType()

@@ -55,13 +55,10 @@ private:
     std::vector<RectI> GetDirtyRects(const Occlusion::Region &region);
     RectI CoordinateTransform(const RectI& rect);
     void CalcDirtyDisplayRegion(std::shared_ptr<RSDisplayRenderNode>& node) const;
-    inline bool GetSurfaceViewDirtyEnabled()
-    {
-        return std::atoi((system::GetParameter("rosen.uni.surfaceviewdirty.enabled", "0")).c_str()) != 0;
-    }
 
     ScreenInfo screenInfo_;
     std::shared_ptr<RSDirtyRegionManager> curSurfaceDirtyManager_;
+    std::shared_ptr<RSSurfaceRenderNode> curSurfaceNode_;
     bool dirtyFlag_ { false };
     std::unique_ptr<RSPaintFilterCanvas> canvas_;
     std::map<NodeId, std::shared_ptr<RSSurfaceRenderNode>> dirtySurfaceNodeMap_;
@@ -82,6 +79,8 @@ private:
     std::shared_ptr<RSDirtyRegionManager> curDisplayDirtyManager_;
     std::shared_ptr<RSDisplayRenderNode> curDisplayNode_;
     bool doAnimate_ = false;
+    bool isPartialRenderEnabled_ = false;
+    bool isOpDroped_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS

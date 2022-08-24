@@ -357,7 +357,7 @@ void RenderContext::DamageFrame(const std::vector<RectI> &rects)
 
     EGLint eglRect[size * 4]; // 4 is size of RectI.
     int index = 0;
-    for (RectI rect : rects) {
+    for (const RectI& rect : rects) {
         eglRect[index * 4] = rect.left_; // 4 is size of RectI.
         eglRect[index * 4 + 1] = rect.top_; // 4 is size of RectI.
         eglRect[index * 4 + 2] = rect.width_; // 4 is size of RectI, 2 is the index of the width_ subscript.

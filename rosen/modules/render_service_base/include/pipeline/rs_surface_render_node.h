@@ -288,10 +288,7 @@ public:
         }
         auto localRect = r.IntersectRect(dirtyManager_->GetDirtyRegion());
         auto globalRect = r.IntersectRect(globalDirtyRegion_);
-        if (!localRect.IsEmpty() || !globalRect.IsEmpty()) {
-            return true;
-        }
-        return false;
+        return !(localRect.IsEmpty() && globalRect.IsEmpty());
     }
 private:
     void SendCommandFromRT(std::unique_ptr<RSCommand>& command, NodeId nodeId);

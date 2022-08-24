@@ -52,12 +52,12 @@ public:
     static bool GetUniRenderEnabled();
     static DirtyRegionDebugType GetDirtyRegionDebugType();
     static PartialRenderType GetPartialRenderEnabled();
+    static PartialRenderType GetUniPartialRenderEnabled();
     static bool GetOcclusionEnabled();
     static std::string GetRSEventProperty(const std::string &paraName);
     static bool GetDirectClientCompEnableStatus();
     static bool GetHighContrastStatus();
     static uint32_t GetCorrectionMode();
-    static bool GetUniPartialRenderEnabled();
     static bool IsUniRenderMode();
     static void SetRenderMode(bool isUni);
     static DumpSurfaceType GetDumpSurfaceType();
