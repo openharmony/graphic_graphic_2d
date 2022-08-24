@@ -191,6 +191,9 @@ void RSSpringModel<std::shared_ptr<RSRenderPropertyBase>>::CalculateSpringParame
     if (minimumAmplitude_ <= 0) {
         minimumAmplitude_ = SPRING_MIN_AMPLITUDE;
     }
+    if (initialOffset_ == nullptr) {
+        return;
+    }
 
     // calculate internal parameters
     double naturalAngularVelocity = 2 * M_PI / response_;

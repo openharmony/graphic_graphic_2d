@@ -57,6 +57,7 @@ const RSAnimationTimingCurve& RSSpringAnimation::GetTimingCurve() const
 
 void RSSpringAnimation::OnStart()
 {
+    RSPropertyAnimation::OnStart();
     auto animation = std::make_shared<RSRenderSpringAnimation>(GetId(), GetPropertyId(),
         originValue_->CreateRenderProperty(), startValue_->CreateRenderProperty(), endValue_->CreateRenderProperty());
     UpdateParamToRenderAnimation(animation);

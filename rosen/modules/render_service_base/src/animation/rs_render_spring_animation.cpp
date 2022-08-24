@@ -36,6 +36,9 @@ void RSRenderSpringAnimation::SetSpringParameters(float response, float dampingR
     response_ = response;
     dampingRatio_ = dampingRatio;
     initialVelocity_ = initialVelocity;
+    if (initialVelocity_ == nullptr) {
+        initialVelocity_ = startValue_->GetValue() * 0.f;
+    }
 }
 
 #ifdef ROSEN_OHOS
