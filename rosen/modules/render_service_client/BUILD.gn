@@ -85,6 +85,7 @@ ohos_source_set("render_service_client_src") {
     "core/ui/rs_canvas_node.cpp",
     "core/ui/rs_display_node.cpp",
     "core/ui/rs_node.cpp",
+    "core/ui/rs_pixel_map_util.cpp",
     "core/ui/rs_root_node.cpp",
     "core/ui/rs_surface_extractor.cpp",
     "core/ui/rs_surface_node.cpp",

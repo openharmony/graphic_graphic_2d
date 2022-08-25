@@ -13,24 +13,26 @@
  * limitations under the License.
  */
 
-#ifndef RS_PIXEL_MAP_UTIL_H
-#define RS_PIXEL_MAP_UTIL_H
+#ifndef RENDER_SERVICE_CLIENT_CORE_UI_RS_PIXEL_MAP_UTIL_H
+#define RENDER_SERVICE_CLIENT_CORE_UI_RS_PIXEL_MAP_UTIL_H
 
-#include "include/core/SkImage.h"
-#include "pixel_map.h"
+#include <memory>
+
+#include "common/rs_common_def.h"
+
+class GrContext;
 
 namespace OHOS {
+namespace Media {
+class PixelMap;
+}
 namespace Rosen {
-class RSPixelMapUtil {
+class RS_EXPORT RSPixelMapUtil {
 public:
-    static sk_sp<SkImage> PixelMapToSkImage(const std::shared_ptr<Media::PixelMap>& pixmap);
-
-    static SkImageInfo MakeSkImageInfoFromPixelMap(const std::shared_ptr<Media::PixelMap>& pixmap);
-    static sk_sp<SkColorSpace> ColorSpaceToSkColorSpace(const std::shared_ptr<Media::PixelMap>& pixmap);
-    static SkColorType PixelFormatToSkColorType(const std::shared_ptr<Media::PixelMap>& pixmap);
-    static SkAlphaType AlphaTypeToSkAlphaType(const std::shared_ptr<Media::PixelMap>& pixmap);
+    static bool UploadToGpuIfNeeded(std::shared_ptr<Media::PixelMap> pixelmap, GrContext* context, bool buildMips,
+        bool limitToMaxTextureSize = false);
 };
 } // namespace Rosen
 } // namespace OHOS
 
-#endif // RS_PIXEL_MAP_UTIL_H
+#endif // RENDER_SERVICE_CLIENT_CORE_UI_RS_PIXEL_MAP_UTIL_H

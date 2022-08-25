@@ -15,12 +15,13 @@
 
 #include "pipeline/rs_draw_cmd.h"
 
+#include "pixel_map_rosen_utils.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
 #include "pipeline/rs_paint_filter_canvas.h"
-#include "pipeline/rs_pixel_map_util.h"
 #include "pipeline/rs_root_render_node.h"
 #include "securec.h"
+
 namespace OHOS {
 namespace Rosen {
 namespace {
@@ -243,7 +244,7 @@ PixelMapOpItem::PixelMapOpItem(
 
 void PixelMapOpItem::Draw(RSPaintFilterCanvas& canvas, const SkRect*) const
 {
-    sk_sp<SkImage> skImage = RSPixelMapUtil::PixelMapToSkImage(pixelmap_);
+    sk_sp<SkImage> skImage = Media::PixelMapRosenUtils::ExtractSkImage(pixelmap_);
     canvas.drawImage(skImage, left_, top_, &paint_);
 }
 
@@ -258,7 +259,7 @@ PixelMapRectOpItem::PixelMapRectOpItem(
 
 void PixelMapRectOpItem::Draw(RSPaintFilterCanvas& canvas, const SkRect*) const
 {
-    sk_sp<SkImage> skImage = RSPixelMapUtil::PixelMapToSkImage(pixelmap_);
+    sk_sp<SkImage> skImage = Media::PixelMapRosenUtils::ExtractSkImage(pixelmap_);
     canvas.drawImageRect(skImage, src_, dst_, &paint_);
 }
 
