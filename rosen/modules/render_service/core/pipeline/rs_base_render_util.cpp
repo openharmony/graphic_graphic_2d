@@ -720,7 +720,7 @@ bool ConvertYUV420SPToRGBA(std::vector<uint8_t>& rgbaBuf, const sptr<OHOS::Surfa
 
             for (int k = 0; k < 3; k++) { // 3 is index
                 idx = (i * bufferWidth + j) * 4 + k; // 4 is color channel
-                if (rgb[k] >=0 && rgb[k] <= 255) { // 255 is upper threshold
+                if (rgb[k] >= 0 && rgb[k] <= 255) { // 255 is upper threshold
                     rgbaDst[idx] = static_cast<uint8_t>(rgb[k]);
                 } else {
                     rgbaDst[idx] = (rgb[k] < 0) ? 0 : 255; // 255 is upper threshold
