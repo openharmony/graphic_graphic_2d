@@ -84,6 +84,12 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
         curSurfaceDirtyManager_ = node.GetDirtyManager();
         curSurfaceDirtyManager_->Clear();
         dirtyFlag_ = false;
+        if (auto parentNode = node.GetParent().lock()) {
+            dirtyFlag_ = node.Update(*curSurfaceDirtyManager_,
+                &(parentNode->ReinterpretCastTo<RSRenderNode>()->GetRenderProperties()), dirtyFlag_);
+        } else {
+            dirtyFlag_ = node.Update(*curSurfaceDirtyManager_, nullptr, dirtyFlag_);
+        }
         curDisplayNode_->UpdateSurfaceNodePos(node.GetId(), node.GetDstRect());
     } else {
         if (node.GetBuffer() != nullptr) {
