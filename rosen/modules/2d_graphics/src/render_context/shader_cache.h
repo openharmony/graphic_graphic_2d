@@ -36,7 +36,7 @@ public:
         InitShaderCache(nullptr, 0);
     }
 
-    virtual void SetCacheDir(const std::string& filename);
+    virtual void SetFilePath(const std::string& filename);
 
     sk_sp<SkData> load(const SkData &key) override;
     void store(const SkData &key, const SkData &data) override;
@@ -45,28 +45,28 @@ private:
     ShaderCache() = default;
     ShaderCache(const ShaderCache &) = delete;
     void operator=(const ShaderCache &) = delete;
-    
+
     CacheData *GetCacheData()
     {
         return cacheData_.get();
     }
-    
+
     void WriteToDisk();
-    
+
     bool initialized_ = false;
     std::unique_ptr<CacheData> cacheData_;
-    std::string cacheDir_;
+    std::string filePath_;
     std::vector<uint8_t> idHash_;
     mutable std::mutex mutex_;
 
     bool savePending_ = false;
     unsigned int saveDelaySeconds_ = 3;
-    
+
     size_t bufferSize_ = 16 * 1024;
     bool cacheDirty_ = false;
-    
+
     static constexpr uint8_t ID_KEY = 0;
-    
+
     static const size_t glslKeySize = 1024;
     static const size_t glslValueSize = glslKeySize * 512;
     static const size_t glslTotalSize = glslValueSize * 4;
