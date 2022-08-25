@@ -236,7 +236,7 @@ bool RenderContext::SetUpGrContext()
     options.fPreferExternalImagesOverES3 = true;
     options.fDisableDistanceFieldPaths = true;
 
-    mHandler_ = new MemoryHandler();
+    mHandler_ = std::make_shared<MemoryHandler>();
     if (mHandler_ != nullptr) {
         auto glesVersion = reinterpret_cast<const char*>(glGetString(GL_VERSION));
         auto size = glesVersion ? strlen(glesVersion) : -1;

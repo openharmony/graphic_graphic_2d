@@ -35,6 +35,7 @@ void CacheData::ReadFromFile()
 {
     if (cacheDir_.length() <= 0) {
         LOGE("abandon, because of empty filename.");
+        return;
     }
 
     int fd = open(cacheDir_.c_str(), O_RDONLY, 0);
@@ -42,29 +43,34 @@ void CacheData::ReadFromFile()
         if (errno != ENOENT) {
             LOGE("abandon, because fail to open file");
         }
-        return ;
+        return;
     }
     struct stat statBuf;
     if (fstat(fd, &statBuf) == ERR_NUMBER) {
         LOGE("abandon, because fail to get the file status");
         close(fd);
-        return ;
+        return;
     }
-    size_t fileSize = statBuf.st_size;
-    if (fileSize > maxTotalSize_ * CLEAN_TO) {
-        LOGE("abandon, because cache file is too large");
+    if (statBuf.st_size < 0) {
+        LOGE("abandon, negative file size");
         close(fd);
-        return ;
+        return;
     }
-    void* buffer = mmap(nullptr, fileSize, PROT_READ, MAP_PRIVATE, fd, 0);
+
+    size_t fileSize = static_cast<size_t>(statBuf.st_size);
+    if (fileSize == 0 || fileSize > maxTotalSize_ * MAX_MULTIPLE_SIZE) {
+        LOGE("abandon, illegal file size");
+        close(fd);
+        return;
+    }
+    void *buffer = mmap(nullptr, fileSize, PROT_READ, MAP_PRIVATE, fd, 0);
     if (buffer == MAP_FAILED) {
         LOGE("abandon, because of mmap failure");
         close(fd);
-        return ;
+        return;
     }
-    uint8_t* shaderBuffer = reinterpret_cast<uint8_t*>(buffer);
-    int err = DeSerialize(shaderBuffer, fileSize);
-    if (err < 0) {
+    uint8_t *shaderBuffer = reinterpret_cast<uint8_t*>(buffer);
+    if (DeSerialize(shaderBuffer, fileSize) < 0) {
         LOGE("abandon, because fail to read file contents");
     }
     munmap(buffer, fileSize);
@@ -77,8 +83,6 @@ void CacheData::WriteToFile()
         LOGE("abandon, because of empty filename.");
         return;
     }
-    
-    size_t cacheSize = SerializedSize();
     int fd = open(cacheDir_.c_str(), O_CREAT | O_EXCL | O_RDWR, S_IRUSR | S_IWUSR);
     if (fd == ERR_NUMBER) {
         if (errno == EEXIST) {
@@ -93,22 +97,26 @@ void CacheData::WriteToFile()
             return;
         }
     }
-    uint8_t* buffer = new uint8_t[cacheSize];
+
+    size_t cacheSize = SerializedSize();
+    if (cacheSize <= 0) {
+        LOGE("abandon, illegal serialized size");
+        return;
+    }
+    uint8_t *buffer = new uint8_t[cacheSize];
     if (!buffer) {
         LOGE("abandon, because fail to allocate buffer for cache content");
         close(fd);
         unlink(cacheDir_.c_str());
         return;
     }
-    int err = Serialize(buffer, cacheSize);
-    if (err < 0) {
+    if (Serialize(buffer, cacheSize) < 0) {
         LOGE("abandon, because fail to serialize the CacheData");
         delete[] buffer;
         close(fd);
         unlink(cacheDir_.c_str());
         return;
     }
-
     if (write(fd, buffer, cacheSize) == ERR_NUMBER) {
         LOGE("abandon, because fail to write to disk");
         delete[] buffer;
@@ -132,7 +140,7 @@ void CacheData::Rewrite(const void *key, const size_t keySize, const void *value
 
     std::shared_ptr<DataPointer> fakeDataPointer(std::make_shared<DataPointer>(key, keySize, false));
     ShaderPointer fakeShaderPointer(fakeDataPointer, nullptr);
-    
+
     auto index = std::lower_bound(shaderPointers_.begin(), shaderPointers_.end(), fakeShaderPointer);
     if (index == shaderPointers_.end() || fakeShaderPointer < *index) {
         std::shared_ptr<DataPointer> keyPointer(std::make_shared<DataPointer>(key, keySize, true));
@@ -155,23 +163,24 @@ size_t CacheData::Get(const void *key, const size_t keySize, void *value, const 
 {
     if (maxKeySize_ < keySize) {
         LOGE("abandon, because the key is too large");
-        return -EINVAL;
+        return 0;
     }
     std::shared_ptr<DataPointer> fakeDataPointer(std::make_shared<DataPointer>(key, keySize, false));
     ShaderPointer fakeShaderPointer(fakeDataPointer, nullptr);
     auto index = std::lower_bound(shaderPointers_.begin(), shaderPointers_.end(), fakeShaderPointer);
     if (index == shaderPointers_.end() || fakeShaderPointer < *index) {
         LOGE("abandon, because no key is found");
-        return -EINVAL;
+        return 0;
     }
     std::shared_ptr <DataPointer> valuePointer(index->GetValuePointer());
     size_t valuePointerSize = valuePointer->GetSize();
     if (valuePointerSize > valueSize) {
         LOGE("abandon, because of insufficient buffer space");
-        return -EINVAL;
+        return 0;
     }
-    if (!memcpy_s(value, valueSize, valuePointer->GetData(), valuePointerSize)) {
+    if (memcpy_s(value, valueSize, valuePointer->GetData(), valuePointerSize)) {
         LOGE("abandon, failed to copy content");
+        return 0;
     }
     return valuePointerSize;
 }
@@ -195,7 +204,7 @@ int CacheData::Serialize(uint8_t *buffer, const size_t size)
     }
     Header *header = reinterpret_cast<Header *>(buffer);
     header->numShaders_ = shaderPointers_.size();
-    off_t byteOffset = Align4(sizeof(Header));
+    size_t byteOffset = Align4(sizeof(Header));
 
     uint8_t *byteBuffer = reinterpret_cast<uint8_t *>(buffer);
     for (const ShaderPointer &p: shaderPointers_) {
@@ -209,15 +218,17 @@ int CacheData::Serialize(uint8_t *buffer, const size_t size)
             LOGE("abandon because of insufficient buffer space.");
             return -EINVAL;
         }
-        
+
         ShaderData *shaderBuffer = reinterpret_cast<ShaderData *>(&byteBuffer[byteOffset]);
         shaderBuffer->keySize_ = keySize;
         shaderBuffer->valueSize_ = valueSize;
-        if (!memcpy_s(shaderBuffer->data_, keySize, keyPointer->GetData(), keySize)) {
+        if (memcpy_s(shaderBuffer->data_, keySize, keyPointer->GetData(), keySize)) {
             LOGE("abandon, failed to copy key");
+            return -EINVAL;
         }
-        if (!memcpy_s(shaderBuffer->data_ + keySize, valueSize, valuePointer->GetData(), valueSize)) {
+        if (memcpy_s(shaderBuffer->data_ + keySize, valueSize, valuePointer->GetData(), valueSize)) {
             LOGE("abandon, failed to copy value");
+            return -EINVAL;
         }
         if (alignedSize > pairSize) {
             memset_s(shaderBuffer->data_ + keySize + valueSize, alignedSize - pairSize, 0, alignedSize - pairSize);
@@ -233,11 +244,11 @@ int CacheData::DeSerialize(uint8_t const *buffer, const size_t size)
     if (size < sizeof(Header)) {
         LOGE("abandon, not enough room for cache header");
     }
-    
+
     const Header *header = reinterpret_cast<const Header *>(buffer);
     size_t numShaders = header->numShaders_;
-    off_t byteOffset = Align4(sizeof(Header));
-    
+    size_t byteOffset = Align4(sizeof(Header));
+
     const uint8_t *byteBuffer = reinterpret_cast<const uint8_t *>(buffer);
     for (size_t i = 0; i < numShaders; i++) {
         if (byteOffset + sizeof(ShaderData) > size) {
@@ -267,7 +278,7 @@ void CacheData::CheckClean(const size_t newSize)
 {
     if (maxTotalSize_ < newSize) {
         if (!cleanThreshold_) {
-            RandClean(maxTotalSize_ / CLEAN_TO);
+            RandClean(maxTotalSize_ / CLEAN_LIMIT);
         } else {
             LOGE("abandon, totalSize too large");
             return;
@@ -283,18 +294,29 @@ void CacheData::RandClean(const size_t cleanThreshold)
     }
     if (cleanThreshold_ == 0) {
         long int now = std::chrono::steady_clock::now().time_since_epoch().count();
+        if (now < 0) {
+            LOGE("abandon, illegal negative now value");
+            return;
+        }
+        unsigned long currentTime = static_cast<unsigned long>(now);
         for (int indexRand = 0; indexRand < RAND_LENGTH; ++indexRand) {
-            cleanInit_[indexRand] = (now >> (indexRand * RAND_SHIFT)) & 0xFFFF;
-            cleanInit_[indexRand] = (now >> (indexRand * RAND_SHIFT)) & 0xFFFF;
-            cleanInit_[indexRand] = (now >> (indexRand * RAND_SHIFT)) & 0xFFFF;
+            cleanInit_[indexRand] = (currentTime >> (indexRand * RAND_SHIFT)) & 0xFFFF;
+            cleanInit_[indexRand] = (currentTime >> (indexRand * RAND_SHIFT)) & 0xFFFF;
+            cleanInit_[indexRand] = (currentTime >> (indexRand * RAND_SHIFT)) & 0xFFFF;
         }
     }
     cleanThreshold_ = cleanThreshold;
 
     while (totalSize_ > cleanThreshold_) {
         long int randIndex = nrand48(cleanInit_);
-        int removeIndex = randIndex % (shaderPointers_.size());
+        if (randIndex < 0) {
+            LOGE("abandon, illegal negative randIndex value");
+            break;
+        }
+        size_t sizeRandIndex = static_cast<size_t>(randIndex);
+        int removeIndex = sizeRandIndex % (shaderPointers_.size());
         if (!Clean(removeIndex)) {
+            LOGE("abandon, cleaned nothing");
             break;
         }
     }
@@ -321,8 +343,9 @@ CacheData::DataPointer::DataPointer(const void *data, size_t size, bool ifOccupy
     }
 
     if (data != nullptr && ifOccupy) {
-        if (!memcpy_s(const_cast<void *>(pointer_), size, data, size)) {
+        if (memcpy_s(const_cast<void *>(pointer_), size, data, size)) {
             LOGE("abandon: failed to copy data");
+            return;
         }
     }
 }

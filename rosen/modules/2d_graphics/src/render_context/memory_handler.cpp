@@ -24,7 +24,7 @@ void MemoryHandler::configureContext(GrContextOptions* context, const char* iden
 {
     context->fAllowPathMaskCaching = true;
     auto &cache = ShaderCache::Instance();
-    cache.SetCacheDir(cacheFilePath);
+    cache.SetFilePath(cacheFilePath);
     cache.InitShaderCache(identity, size);
     context->fPersistentCache = &cache;
 }
