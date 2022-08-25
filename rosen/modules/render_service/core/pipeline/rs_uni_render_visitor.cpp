@@ -325,7 +325,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
 
         ProcessBaseRenderNode(node);
 
-        // the following code makes DirtyRegion visible, enable this method by turning on the dirtyregiondebug property 
+        // the following code makes DirtyRegion visible, enable this method by turning on the dirtyregiondebug property
         for (auto [id, surfaceNode] : dirtySurfaceNodeMap_) {
             if (surfaceNode->GetDirtyManager()) {
                 curSurfaceDirtyManager_ = surfaceNode->GetDirtyManager();
