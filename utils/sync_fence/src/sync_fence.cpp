@@ -291,7 +291,7 @@ sptr<SyncFence> SyncFence::ReadFromMessageParcel(MessageParcel &parcel)
 {
     int32_t fence = parcel.ReadInt32();
     if (fence < 0) {
-        HiLog::Warn(LABEL, "ReadFromMessageParcel fence is invalid : %{public}d", fence);
+        HiLog::Debug(LABEL, "ReadFromMessageParcel fence is invalid : %{public}d", fence);
         return INVALID_FENCE;
     }
 
@@ -310,7 +310,7 @@ void SyncFence::WriteToMessageParcel(MessageParcel &parcel)
     parcel.WriteInt32(fence);
 
     if (fence < 0) {
-        HiLog::Warn(LABEL, "WriteToMessageParcel fence is invalid : %{public}d", fence);
+        HiLog::Debug(LABEL, "WriteToMessageParcel fence is invalid : %{public}d", fence);
         return;
     }
 
