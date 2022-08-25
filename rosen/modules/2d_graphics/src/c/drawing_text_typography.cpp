@@ -25,39 +25,16 @@
 
 using namespace rosen;
 
-static FontCollection* ConvertToOriginalText(OH_Drawing_FontCollection* fontCollection)
+template<typename T1, typename T2>
+inline T1* ConvertToOriginalText(T2* ptr)
 {
-    return reinterpret_cast<FontCollection*>(fontCollection);
+    return reinterpret_cast<T1*>(ptr);
 }
 
-static TypographyStyle* ConvertToOriginalText(OH_Drawing_TypographyStyle* style)
+template<typename T1, typename T2>
+inline T1* ConvertToNDKText(T2* ptr)
 {
-    return reinterpret_cast<TypographyStyle*>(style);
-}
-
-static TypographyCreate* ConvertToOriginalText(OH_Drawing_TypographyCreate* handler)
-{
-    return reinterpret_cast<TypographyCreate*>(handler);
-}
-
-static OH_Drawing_TypographyCreate* ConvertToNDKText(TypographyCreate* handler)
-{
-    return reinterpret_cast<OH_Drawing_TypographyCreate*>(handler);
-}
-
-static TextStyle* ConvertToOriginalText(OH_Drawing_TextStyle* style)
-{
-    return reinterpret_cast<TextStyle*>(style);
-}
-
-static Typography* ConvertToOriginalText(OH_Drawing_Typography* typography)
-{
-    return reinterpret_cast<Typography*>(typography);
-}
-
-static OH_Drawing_Typography* ConvertToNDKText(Typography* typography)
-{
-    return reinterpret_cast<OH_Drawing_Typography*>(typography);
+    return reinterpret_cast<T1*>(ptr);
 }
 
 OH_Drawing_TypographyStyle* OH_Drawing_CreateTypographyStyle(void)
@@ -67,7 +44,7 @@ OH_Drawing_TypographyStyle* OH_Drawing_CreateTypographyStyle(void)
 
 void OH_Drawing_DestroyTypographyStyle(OH_Drawing_TypographyStyle* style)
 {
-    delete ConvertToOriginalText(style);
+    delete ConvertToOriginalText<TypographyStyle>(style);
 }
 
 void OH_Drawing_SetTypographyTextDirection(OH_Drawing_TypographyStyle* style, int direction)
@@ -87,7 +64,7 @@ void OH_Drawing_SetTypographyTextDirection(OH_Drawing_TypographyStyle* style, in
             break;
         }
     }
-    ConvertToOriginalText(style)->textDirection_ = textDirection;
+    ConvertToOriginalText<TypographyStyle>(style)->textDirection_ = textDirection;
 }
 
 void OH_Drawing_SetTypographyTextAlign(OH_Drawing_TypographyStyle* style, int align)
@@ -122,12 +99,12 @@ void OH_Drawing_SetTypographyTextAlign(OH_Drawing_TypographyStyle* style, int al
             textAlign = TextAlign::LEFT;
         }
     }
-    ConvertToOriginalText(style)->textAlign_ = textAlign;
+    ConvertToOriginalText<TypographyStyle>(style)->textAlign_ = textAlign;
 }
 
 void OH_Drawing_SetTypographyTextMaxLines(OH_Drawing_TypographyStyle* style, int lineNumber)
 {
-    ConvertToOriginalText(style)->maxLines_ = static_cast<size_t>(lineNumber);
+    ConvertToOriginalText<TypographyStyle>(style)->maxLines_ = static_cast<size_t>(lineNumber);
 }
 
 OH_Drawing_TextStyle* OH_Drawing_CreateTextStyle(void)
@@ -137,17 +114,17 @@ OH_Drawing_TextStyle* OH_Drawing_CreateTextStyle(void)
 
 void OH_Drawing_DestroyTextStyle(OH_Drawing_TextStyle* style)
 {
-    delete ConvertToOriginalText(style);
+    delete ConvertToOriginalText<TextStyle>(style);
 }
 
 void OH_Drawing_SetTextStyleColor(OH_Drawing_TextStyle* style, uint32_t color)
 {
-    ConvertToOriginalText(style)->color_.SetColorQuad(color);
+    ConvertToOriginalText<TextStyle>(style)->color_.SetColorQuad(color);
 }
 
 void OH_Drawing_SetTextStyleFontSize(OH_Drawing_TextStyle* style, double fontSize)
 {
-    ConvertToOriginalText(style)->fontSize_ = fontSize;
+    ConvertToOriginalText<TextStyle>(style)->fontSize_ = fontSize;
 }
 
 void OH_Drawing_SetTextStyleFontWeight(OH_Drawing_TextStyle* style, int fontWeight)
@@ -194,7 +171,7 @@ void OH_Drawing_SetTextStyleFontWeight(OH_Drawing_TextStyle* style, int fontWeig
             rosenFontWeight = FontWeight::W400;
         }
     }
-    ConvertToOriginalText(style)->fontWeight_ = rosenFontWeight;
+    ConvertToOriginalText<TextStyle>(style)->fontWeight_ = rosenFontWeight;
 }
 
 void OH_Drawing_SetTextStyleBaseLine(OH_Drawing_TextStyle* style, int baseline)
@@ -213,7 +190,7 @@ void OH_Drawing_SetTextStyleBaseLine(OH_Drawing_TextStyle* style, int baseline)
             rosenBaseLine = TextBaseline::ALPHABETIC;
         }
     }
-    ConvertToOriginalText(style)->textBaseline_ = rosenBaseLine;
+    ConvertToOriginalText<TextStyle>(style)->textBaseline_ = rosenBaseLine;
 }
 
 void OH_Drawing_SetTextStyleDecoration(OH_Drawing_TextStyle* style, int decoration)
@@ -240,17 +217,17 @@ void OH_Drawing_SetTextStyleDecoration(OH_Drawing_TextStyle* style, int decorati
             rosenDecoration = TextDecoration::NONE;
         }
     }
-    ConvertToOriginalText(style)->decoration_ = rosenDecoration;
+    ConvertToOriginalText<TextStyle>(style)->decoration_ = rosenDecoration;
 }
 
 void OH_Drawing_SetTextStyleDecorationColor(OH_Drawing_TextStyle* style, uint32_t color)
 {
-    ConvertToOriginalText(style)->decorationColor_.SetColorQuad(color);
+    ConvertToOriginalText<TextStyle>(style)->decorationColor_.SetColorQuad(color);
 }
 
 void OH_Drawing_SetTextStyleFontHeight(OH_Drawing_TextStyle* style, double fontHeight)
 {
-    ConvertToOriginalText(style)->height_ = fontHeight;
+    ConvertToOriginalText<TextStyle>(style)->height_ = fontHeight;
 }
 
 void OH_Drawing_SetTextStyleFontFamilies(OH_Drawing_TextStyle* style,
@@ -260,7 +237,7 @@ void OH_Drawing_SetTextStyleFontFamilies(OH_Drawing_TextStyle* style,
     for (int i = 0; i < fontFamiliesNumber; i++) {
         rosenFontFamilies.emplace_back(fontFamilies[i]);
     }
-    ConvertToOriginalText(style)->fontFamilies_ = rosenFontFamilies;
+    ConvertToOriginalText<TextStyle>(style)->fontFamilies_ = rosenFontFamilies;
 }
 
 void OH_Drawing_SetTextStyleFontStyle(OH_Drawing_TextStyle* style, int fontStyle)
@@ -279,66 +256,101 @@ void OH_Drawing_SetTextStyleFontStyle(OH_Drawing_TextStyle* style, int fontStyle
             rosenFontStyle = FontStyle::NORMAL;
         }
     }
-    ConvertToOriginalText(style)->fontStyle_ = rosenFontStyle;
+    ConvertToOriginalText<TextStyle>(style)->fontStyle_ = rosenFontStyle;
 }
 
 void OH_Drawing_SetTextStyleLocale(OH_Drawing_TextStyle* style, const char* locale)
 {
-    ConvertToOriginalText(style)->locale_ = locale;
+    ConvertToOriginalText<TextStyle>(style)->locale_ = locale;
 }
 
 OH_Drawing_TypographyCreate* OH_Drawing_CreateTypographyHandler(OH_Drawing_TypographyStyle* style,
     OH_Drawing_FontCollection* fontCollection)
 {
-    const TypographyStyle* typoStyle = ConvertToOriginalText(style);
+    const TypographyStyle* typoStyle = ConvertToOriginalText<TypographyStyle>(style);
     std::unique_ptr<TypographyCreate> handler = TypographyCreate::CreateRosenBuilder(*typoStyle,
-        std::shared_ptr<FontCollection>(ConvertToOriginalText(fontCollection)));
-    return ConvertToNDKText(handler.release());
+        std::shared_ptr<FontCollection>(ConvertToOriginalText<FontCollection>(fontCollection)));
+    return ConvertToNDKText<OH_Drawing_TypographyCreate>(handler.release());
 }
 
 void OH_Drawing_DestroyTypographyHandler(OH_Drawing_TypographyCreate* handler)
 {
-    delete ConvertToOriginalText(handler);
+    delete ConvertToOriginalText<TypographyCreate>(handler);
 }
 
 void OH_Drawing_TypographyHandlerPushTextStyle(OH_Drawing_TypographyCreate* handler, OH_Drawing_TextStyle* style)
 {
-    const TextStyle* rosenTextStyle = ConvertToOriginalText(style);
-    ConvertToOriginalText(handler)->PushStyle(*rosenTextStyle);
+    const TextStyle* rosenTextStyle = ConvertToOriginalText<TextStyle>(style);
+    ConvertToOriginalText<TypographyCreate>(handler)->PushStyle(*rosenTextStyle);
 }
 
 void OH_Drawing_TypographyHandlerAddText(OH_Drawing_TypographyCreate* handler, const char* text)
 {
     const std::u16string wideText =
         std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> {}.from_bytes(text);
-    ConvertToOriginalText(handler)->AddText(wideText);
+    ConvertToOriginalText<TypographyCreate>(handler)->AddText(wideText);
 }
 
 void OH_Drawing_TypographyHandlerPopTextStyle(OH_Drawing_TypographyCreate* handler)
 {
-    ConvertToOriginalText(handler)->Pop();
+    ConvertToOriginalText<TypographyCreate>(handler)->Pop();
 }
 
 OH_Drawing_Typography* OH_Drawing_CreateTypography(OH_Drawing_TypographyCreate* handler)
 {
-    TypographyCreate* rosenHandler = ConvertToOriginalText(handler);
+    TypographyCreate* rosenHandler = ConvertToOriginalText<TypographyCreate>(handler);
     std::unique_ptr<Typography> typography = rosenHandler->Build();
-    return ConvertToNDKText(typography.release());
+    return ConvertToNDKText<OH_Drawing_Typography>(typography.release());
 }
 
 void OH_Drawing_DestroyTypography(OH_Drawing_Typography* typography)
 {
-    delete ConvertToOriginalText(typography);
+    delete ConvertToOriginalText<Typography>(typography);
 }
 
 void OH_Drawing_TypographyLayout(OH_Drawing_Typography* typography, double maxWidth)
 {
-    ConvertToOriginalText(typography)->Layout(maxWidth);
+    ConvertToOriginalText<Typography>(typography)->Layout(maxWidth);
 }
 
 void OH_Drawing_TypographyPaint(OH_Drawing_Typography* typography, OH_Drawing_Canvas* canvas,
     double potisionX, double potisionY)
 {
-    ConvertToOriginalText(typography)->Paint(reinterpret_cast<OHOS::Rosen::Drawing::Canvas*>(canvas),
+    ConvertToOriginalText<Typography>(typography)->Paint(reinterpret_cast<OHOS::Rosen::Drawing::Canvas*>(canvas),
         potisionX, potisionY);
+}
+
+double OH_Drawing_TypographyGetMaxWidth(OH_Drawing_Typography* typography)
+{
+    return ConvertToOriginalText<Typography>(typography)->GetMaxWidth();
+}
+
+double OH_Drawing_TypographyGetHeight(OH_Drawing_Typography* typography)
+{
+    return ConvertToOriginalText<Typography>(typography)->GetHeight();
+}
+
+double OH_Drawing_TypographyGetLongestLine(OH_Drawing_Typography* typography)
+{
+    return ConvertToOriginalText<Typography>(typography)->GetLongestLine();
+}
+
+double OH_Drawing_TypographyGetMinIntrinsicWidth(OH_Drawing_Typography* typography)
+{
+    return ConvertToOriginalText<Typography>(typography)->GetMinIntrinsicWidth();
+}
+
+double OH_Drawing_TypographyGetMaxIntrinsicWidth(OH_Drawing_Typography* typography)
+{
+    return ConvertToOriginalText<Typography>(typography)->GetMaxIntrinsicWidth();
+}
+
+double OH_Drawing_TypographyGetAlphabeticBaseline(OH_Drawing_Typography* typography)
+{
+    return ConvertToOriginalText<Typography>(typography)->GetAlphabeticBaseline();
+}
+
+double OH_Drawing_TypographyGetIdeographicBaseline(OH_Drawing_Typography* typography)
+{
+    return ConvertToOriginalText<Typography>(typography)->GetIdeographicBaseline();
 }
