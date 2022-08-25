@@ -32,11 +32,11 @@ public:
         const size_t maxTotalSize, const std::string& fileName);
 
     void Rewrite(const void *key, const size_t keySize, const void *value, const size_t valueSize);
-    
+
     size_t Get(const void *key, const size_t keySize, void *value, const size_t valueSize);
-    
+
     size_t SerializedSize() const;
-    
+
     int Serialize(uint8_t *buffer, const size_t size);
 
     void WriteToFile();
@@ -53,8 +53,8 @@ public:
 private:
     CacheData(const CacheData&);
     void operator=(const CacheData&);
-    
-    unsigned short cleanInit_[3];
+
+    unsigned short cleanInit_[3] = {0};
     size_t cleanThreshold_ = 0;
     void CheckClean(const size_t newSize);
     void RandClean(const size_t cleanThreshold);
@@ -142,7 +142,8 @@ private:
     std::vector<ShaderPointer> shaderPointers_;
     size_t numShaders_ = 0;
 
-    const size_t CLEAN_TO = 2;
+    const size_t MAX_MULTIPLE_SIZE = 2;
+    const size_t CLEAN_LIMIT = 2;
     static const size_t ALIGN_FOUR = 3;
     static const int ERR_NUMBER = -1;
     const int RAND_SHIFT = 16;
