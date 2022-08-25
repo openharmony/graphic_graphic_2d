@@ -137,8 +137,6 @@ private:
 
 template<typename T>
 class RS_EXPORT RSProperty : public RSPropertyBase {
-    // static_assert(std::is_integral_v<T> || std::is_floating_point_v<T> ||
-    //     std::is_base_of_v<RSAnimatableArithmetic<T>, T>);
 public:
     RSProperty() : RSPropertyBase() {}
     explicit RSProperty(const T& value) : RSPropertyBase()

@@ -90,7 +90,7 @@ std::unique_ptr<Media::PixelMap> RSSurfaceCaptureTask::Run()
         return nullptr;
     }
     SkImageInfo info = SkImageInfo::Make(pixelmap->GetWidth(), pixelmap->GetHeight(),
-            kRGBA_8888_SkColorType, kPremul_SkAlphaType);
+        kRGBA_8888_SkColorType, kPremul_SkAlphaType);
     if (!img->readPixels(info, data, pixelmap->GetRowBytes(), 0, 0)) {
         RS_LOGE("RSSurfaceCaptureTask::Run: readPixels failed");
         free(data);
@@ -168,7 +168,7 @@ sk_sp<SkSurface> RSSurfaceCaptureTask::CreateSurface(const std::unique_ptr<Media
         return nullptr;
     }
     SkImageInfo info = SkImageInfo::Make(pixelmap->GetWidth(), pixelmap->GetHeight(),
-            kRGBA_8888_SkColorType, kPremul_SkAlphaType);
+        kRGBA_8888_SkColorType, kPremul_SkAlphaType);
 #if (defined RS_ENABLE_GL) && (defined RS_ENABLE_EGLIMAGE)
     auto renderEngine = RSMainThread::Instance()->GetRenderEngine();
     if (renderEngine == nullptr) {
@@ -300,7 +300,7 @@ void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::CaptureSurfaceInDisplayWithU
 
     if (!node.IsAppWindow() && node.GetBuffer() != nullptr) {
         // use node's local coordinate.
-        auto params = RSBaseRenderUtil::CreateBufferDrawParam(node, true, false, false, false); 
+        auto params = RSBaseRenderUtil::CreateBufferDrawParam(node, true, false, false, false);
         renderEngine_->DrawSurfaceNodeWithParams(*canvas_, node, params);
     }
 
