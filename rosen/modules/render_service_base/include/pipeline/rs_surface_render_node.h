@@ -46,8 +46,8 @@ public:
     explicit RSSurfaceRenderNode(const RSSurfaceRenderNodeConfig& config, std::weak_ptr<RSContext> context = {});
     virtual ~RSSurfaceRenderNode();
 
-    void ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas) override;
-    void ProcessRenderAfterChildren(RSPaintFilterCanvas& canvas) override;
+    void PrepareRenderBeforeChildren(RSPaintFilterCanvas& canvas);
+    void PrepareRenderAfterChildren(RSPaintFilterCanvas& canvas);
 
     std::string GetName() const
     {
