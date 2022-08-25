@@ -61,40 +61,14 @@ void RSRenderServiceVisitor::ProcessBaseRenderNode(RSBaseRenderNode& node)
 void RSRenderServiceVisitor::PrepareDisplayRenderNode(RSDisplayRenderNode& node)
 {
     node.ApplyModifiers();
-    if (node.IsMirrorDisplay()) {
-        auto mirrorSource = node.GetMirrorSource();
-        auto existingSource = mirrorSource.lock();
-        if (!existingSource) {
-            RS_LOGI("RSRenderServiceVisitor::PrepareDisplayRenderNode mirrorSource haven't existed");
-            return;
-        }
-        PrepareBaseRenderNode(*existingSource);
-    } else {
-        PrepareBaseRenderNode(node);
-    }
-}
-
-void RSRenderServiceVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
-{
-    isSecurityDisplay_ = node.GetSecurityDisplay();
-    RS_LOGD("RsDebug RSRenderServiceVisitor::ProcessDisplayRenderNode: nodeid:[%" PRIu64 "] screenid:[%" PRIu64 "] \
-        isSecurityDisplay:[%s] child size:[%d] total size:[%d]",
-        node.GetId(), node.GetScreenId(), isSecurityDisplay_ ? "true" : "false", node.GetChildrenCount(),
-        node.GetSortedChildren().size());
-    globalZOrder_ = 0.0f;
     sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
     if (!screenManager) {
-        RS_LOGE("RSRenderServiceVisitor::ProcessDisplayRenderNode ScreenManager is nullptr");
+        RS_LOGE("RSRenderServiceVisitor::PrepareDisplayRenderNode ScreenManager is nullptr");
         return;
     }
     offsetX_ = node.GetDisplayOffsetX();
     offsetY_ = node.GetDisplayOffsetY();
     ScreenInfo currScreenInfo = screenManager->QueryScreenInfo(node.GetScreenId());
-    // skip frame according to skipFrameInterval value of SetScreenSkipFrameInterval interface
-    if (node.SkipFrame(currScreenInfo.skipFrameInterval)) {
-        return;
-    }
-    RS_TRACE_NAME("ProcessDisplayRenderNode[" + std::to_string(node.GetScreenId()) + "]");
     ScreenState state = currScreenInfo.state;
     switch (state) {
         case ScreenState::PRODUCER_SURFACE_ENABLE:
@@ -106,19 +80,8 @@ void RSRenderServiceVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
                 RSDisplayRenderNode::CompositeType::HARDWARE_COMPOSITE);
             break;
         default:
-            RS_LOGE("RSRenderServiceVisitor::ProcessDisplayRenderNode State is unusual");
+            RS_LOGE("RSRenderServiceVisitor::PrepareDisplayRenderNode State is unusual");
             return;
-    }
-    processor_ = RSProcessorFactory::CreateProcessor(node.GetCompositeType());
-    if (processor_ == nullptr) {
-        RS_LOGE("RSRenderServiceVisitor::ProcessDisplayRenderNode: RSProcessor is null!");
-        return;
-    }
-    auto mirrorNode = node.GetMirrorSource().lock();
-    if (!processor_->Init(node, node.GetDisplayOffsetX(), node.GetDisplayOffsetY(),
-        mirrorNode ? mirrorNode->GetScreenId() : INVALID_SCREEN_ID)) {
-        RS_LOGE("RSRenderServiceVisitor::ProcessDisplayRenderNode: processor init failed!");
-        return;
     }
 
     ScreenRotation rotation = node.GetRotation();
@@ -138,7 +101,7 @@ void RSRenderServiceVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
         auto mirrorSource = node.GetMirrorSource();
         auto existingSource = mirrorSource.lock();
         if (!existingSource) {
-            RS_LOGI("RSRenderServiceVisitor::ProcessDisplayRenderNode mirrorSource haven't existed");
+            RS_LOGI("RSRenderServiceVisitor::PrepareDisplayRenderNode mirrorSource haven't existed");
             return;
         }
         if (mParallelEnable) {
@@ -146,13 +109,57 @@ void RSRenderServiceVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
             canvas_ = std::make_shared<RSPaintFilterCanvas>(skCanvas_.get());
             canvas_->clipRect(SkRect::MakeWH(logicalScreenWidth, logicalScreenHeight));
         }
-        ProcessBaseRenderNode(*existingSource);
+        PrepareBaseRenderNode(*existingSource);
     } else {
         auto boundsGeoPtr = std::static_pointer_cast<RSObjAbsGeometry>(node.GetRenderProperties().GetBoundsGeometry());
         RSDividedRenderUtil::SetNeedClient(boundsGeoPtr && boundsGeoPtr->IsNeedClientCompose());
         skCanvas_ = std::make_unique<SkCanvas>(logicalScreenWidth, logicalScreenHeight);
         canvas_ = std::make_shared<RSPaintFilterCanvas>(skCanvas_.get());
         canvas_->clipRect(SkRect::MakeWH(logicalScreenWidth, logicalScreenHeight));
+        PrepareBaseRenderNode(node);
+    }
+}
+
+void RSRenderServiceVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
+{
+    isSecurityDisplay_ = node.GetSecurityDisplay();
+    RS_LOGD("RsDebug RSRenderServiceVisitor::ProcessDisplayRenderNode: nodeid:[%" PRIu64 "] screenid:[%" PRIu64 "] \
+        isSecurityDisplay:[%s] child size:[%d] total size:[%d]",
+        node.GetId(), node.GetScreenId(), isSecurityDisplay_ ? "true" : "false", node.GetChildrenCount(),
+        node.GetSortedChildren().size());
+    globalZOrder_ = 0.0f;
+    sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
+    if (!screenManager) {
+        RS_LOGE("RSRenderServiceVisitor::ProcessDisplayRenderNode ScreenManager is nullptr");
+        return;
+    }
+    ScreenInfo currScreenInfo = screenManager->QueryScreenInfo(node.GetScreenId());
+    RS_TRACE_NAME("ProcessDisplayRenderNode[" + std::to_string(node.GetScreenId()) + "]");
+    // skip frame according to skipFrameInterval value of SetScreenSkipFrameInterval interface
+    if (node.SkipFrame(currScreenInfo.skipFrameInterval)) {
+        return;
+    }
+    processor_ = RSProcessorFactory::CreateProcessor(node.GetCompositeType());
+    if (processor_ == nullptr) {
+        RS_LOGE("RSRenderServiceVisitor::ProcessDisplayRenderNode: RSProcessor is null!");
+        return;
+    }
+    auto mirrorNode = node.GetMirrorSource().lock();
+    if (!processor_->Init(node, node.GetDisplayOffsetX(), node.GetDisplayOffsetY(),
+        mirrorNode ? mirrorNode->GetScreenId() : INVALID_SCREEN_ID)) {
+        RS_LOGE("RSRenderServiceVisitor::ProcessDisplayRenderNode: processor init failed!");
+        return;
+    }
+
+    if (node.IsMirrorDisplay()) {
+        auto mirrorSource = node.GetMirrorSource();
+        auto existingSource = mirrorSource.lock();
+        if (!existingSource) {
+            RS_LOGI("RSRenderServiceVisitor::ProcessDisplayRenderNode mirrorSource haven't existed");
+            return;
+        }
+        ProcessBaseRenderNode(*existingSource);
+    } else {
         ProcessBaseRenderNode(node);
     }
     processor_->PostProcess();
@@ -171,7 +178,10 @@ void RSRenderServiceVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
         RS_LOGD("RSRenderServiceVisitor::PrepareSurfaceRenderNode node : %" PRIu64 " is invisible", node.GetId());
         return;
     }
+    node.SetOffset(offsetX_, offsetY_);
+    node.PrepareRenderBeforeChildren(*canvas_);
     PrepareBaseRenderNode(node);
+    node.PrepareRenderAfterChildren(*canvas_);
 }
 
 void RSRenderServiceVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
@@ -196,14 +206,11 @@ void RSRenderServiceVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
     if (mParallelEnable) {
         node.ParallelVisitLock();
     }
-    node.SetOffset(offsetX_, offsetY_);
-    node.ProcessRenderBeforeChildren(*canvas_);
     ProcessBaseRenderNode(node);
     node.SetGlobalZOrder(globalZOrder_);
     globalZOrder_ = globalZOrder_ + 1;
     processor_->ProcessSurface(node);
     RSBaseRenderUtil::WriteSurfaceRenderNodeToPng(node);
-    node.ProcessRenderAfterChildren(*canvas_);
     if (mParallelEnable) {
         node.ParallelVisitUnlock();
     }
