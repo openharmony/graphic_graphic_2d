@@ -80,6 +80,7 @@ private:
     LayerInfoPtr prevLayerInfo_ = nullptr;
     PresentTimestampType supportedPresentTimestamptype_ = PresentTimestampType::HARDWARE_DISPLAY_PTS_UNSUPPORTED;
     HdiDevice *device_ = nullptr;
+    bool doLayerInfoCompare_ = false;
 
     int32_t CreateLayer(const LayerInfoPtr &layerInfo);
     void CloseLayer();

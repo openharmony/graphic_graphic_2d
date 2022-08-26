@@ -114,7 +114,7 @@ void HdiLayer::CloseLayer()
 
 void HdiLayer::SetLayerAlpha()
 {
-    if (prevLayerInfo_ != nullptr) {
+    if (doLayerInfoCompare_) {
         LayerAlpha& layerAlpha1 = layerInfo_->GetAlpha();
         LayerAlpha& layerAlpha2 = prevLayerInfo_->GetAlpha();
         bool isSame = layerAlpha1.enGlobalAlpha == layerAlpha2.enGlobalAlpha &&
@@ -137,8 +137,7 @@ bool HdiLayer::IsSameRect(const IRect& rect1, const IRect& rect2)
 
 void HdiLayer::SetLayerSize()
 {
-    if (prevLayerInfo_ != nullptr &&
-        IsSameRect(layerInfo_->GetLayerSize(), prevLayerInfo_->GetLayerSize())) {
+    if (doLayerInfoCompare_ && IsSameRect(layerInfo_->GetLayerSize(), prevLayerInfo_->GetLayerSize())) {
         return;
     }
 
@@ -148,7 +147,7 @@ void HdiLayer::SetLayerSize()
 
 void HdiLayer::SetTransformMode()
 {
-    if (layerInfo_->GetTransformType() == TransformType::ROTATE_BUTT || (prevLayerInfo_ != nullptr &&
+    if (layerInfo_->GetTransformType() == TransformType::ROTATE_BUTT || (doLayerInfoCompare_ &&
         layerInfo_->GetTransformType() == prevLayerInfo_->GetTransformType())) {
         return;
     }
@@ -159,7 +158,7 @@ void HdiLayer::SetTransformMode()
 
 void HdiLayer::SetLayerVisibleRegion()
 {
-    if (prevLayerInfo_ != nullptr && IsSameRect(layerInfo_->GetVisibleRegion(), prevLayerInfo_->GetVisibleRegion()) &&
+    if (doLayerInfoCompare_ && IsSameRect(layerInfo_->GetVisibleRegion(), prevLayerInfo_->GetVisibleRegion()) &&
         layerInfo_->GetVisibleNum() == prevLayerInfo_->GetVisibleNum()) {
         return;
     }
@@ -171,7 +170,7 @@ void HdiLayer::SetLayerVisibleRegion()
 
 void HdiLayer::SetLayerDirtyRegion()
 {
-    if (prevLayerInfo_ != nullptr && IsSameRect(layerInfo_->GetDirtyRegion(), prevLayerInfo_->GetDirtyRegion())) {
+    if (doLayerInfoCompare_ && IsSameRect(layerInfo_->GetDirtyRegion(), prevLayerInfo_->GetDirtyRegion())) {
         return;
     }
 
@@ -181,7 +180,7 @@ void HdiLayer::SetLayerDirtyRegion()
 
 void HdiLayer::SetLayerBuffer()
 {
-    if (layerInfo_->GetBuffer() == nullptr || (prevLayerInfo_ != nullptr &&
+    if (layerInfo_->GetBuffer() == nullptr || (doLayerInfoCompare_ &&
         layerInfo_->GetBuffer() == prevLayerInfo_->GetBuffer() &&
         layerInfo_->GetAcquireFence() == prevLayerInfo_->GetAcquireFence())) {
         return;
@@ -194,7 +193,7 @@ void HdiLayer::SetLayerBuffer()
 
 void HdiLayer::SetLayerCompositionType()
 {
-    if (prevLayerInfo_ != nullptr && layerInfo_->GetCompositionType() == prevLayerInfo_->GetCompositionType()) {
+    if (doLayerInfoCompare_ && layerInfo_->GetCompositionType() == prevLayerInfo_->GetCompositionType()) {
         return;
     }
 
@@ -204,7 +203,7 @@ void HdiLayer::SetLayerCompositionType()
 
 void HdiLayer::SetLayerBlendType()
 {
-    if (prevLayerInfo_ != nullptr && layerInfo_->GetBlendType() == prevLayerInfo_->GetBlendType()) {
+    if (doLayerInfoCompare_ && layerInfo_->GetBlendType() == prevLayerInfo_->GetBlendType()) {
         return;
     }
 
@@ -214,7 +213,7 @@ void HdiLayer::SetLayerBlendType()
 
 void HdiLayer::SetLayerCrop()
 {
-    if (prevLayerInfo_ != nullptr && IsSameRect(layerInfo_->GetCropRect(), prevLayerInfo_->GetCropRect())) {
+    if (doLayerInfoCompare_ && IsSameRect(layerInfo_->GetCropRect(), prevLayerInfo_->GetCropRect())) {
         return;
     }
 
@@ -224,7 +223,7 @@ void HdiLayer::SetLayerCrop()
 
 void HdiLayer::SetLayerZorder()
 {
-    if (prevLayerInfo_ != nullptr && layerInfo_->GetZorder() == prevLayerInfo_->GetZorder()) {
+    if (doLayerInfoCompare_ && layerInfo_->GetZorder() == prevLayerInfo_->GetZorder()) {
         return;
     }
 
@@ -234,7 +233,7 @@ void HdiLayer::SetLayerZorder()
 
 void HdiLayer::SetLayerPreMulti()
 {
-    if (prevLayerInfo_ != nullptr && layerInfo_->IsPreMulti() == prevLayerInfo_->IsPreMulti()) {
+    if (doLayerInfoCompare_ && layerInfo_->IsPreMulti() == prevLayerInfo_->IsPreMulti()) {
         return;
     }
 
@@ -244,7 +243,7 @@ void HdiLayer::SetLayerPreMulti()
 
 void HdiLayer::SetLayerColorTransform()
 {
-    if (prevLayerInfo_ != nullptr && layerInfo_->GetColorTransform() == prevLayerInfo_->GetColorTransform()) {
+    if (doLayerInfoCompare_ && layerInfo_->GetColorTransform() == prevLayerInfo_->GetColorTransform()) {
         return;
     }
 
@@ -254,7 +253,7 @@ void HdiLayer::SetLayerColorTransform()
 
 void HdiLayer::SetLayerColorDataSpace()
 {
-    if (prevLayerInfo_ != nullptr && layerInfo_->GetColorDataSpace() == prevLayerInfo_->GetColorDataSpace()) {
+    if (doLayerInfoCompare_ && layerInfo_->GetColorDataSpace() == prevLayerInfo_->GetColorDataSpace()) {
         return;
     }
 
@@ -282,7 +281,7 @@ bool HdiLayer::IsSameLayerMetaData()
 
 void HdiLayer::SetLayerMetaData()
 {
-    if (prevLayerInfo_ != nullptr) {
+    if (doLayerInfoCompare_) {
         bool isSame = IsSameLayerMetaData();
         if (isSame) {
             return;
@@ -301,7 +300,7 @@ bool HdiLayer::IsSameLayerMetaDataSet()
     HDRMetaDataSet &prevMetaDataSet = prevLayerInfo_->GetMetaDataSet();
     if (metaDataSet.key == prevMetaDataSet.key &&
         metaDataSet.metaData.size() == prevMetaDataSet.metaData.size()) {
-        bool isSame = true;
+        isSame = true;
         size_t metaDeataSetSize = metaDataSet.metaData.size();
         for (size_t i = 0; i < metaDeataSetSize; i++) {
             if (metaDataSet.metaData[i] != prevMetaDataSet.metaData[i]) {
@@ -315,7 +314,7 @@ bool HdiLayer::IsSameLayerMetaDataSet()
 
 void HdiLayer::SetLayerMetaDataSet()
 {
-    if (prevLayerInfo_ != nullptr) {
+    if (doLayerInfoCompare_) {
         bool isSame = IsSameLayerMetaDataSet();
         if (isSame) {
             return;
@@ -365,6 +364,11 @@ void HdiLayer::SetHdiLayerInfo()
     if (ret != ROSEN_ERROR_OK || layerInfo_ == nullptr) {
         return;
     }
+
+    // All layer properities need to set to hwc when the layer is created firstly or the previous layer's composition
+    // type is COMPOSITION_DEVICE for COMPOSITION_DEVICE can not reuse COMPOSITION_CLIENT layers info.
+    doLayerInfoCompare_ = prevLayerInfo_ != nullptr &&
+                          prevLayerInfo_->GetCompositionType() == CompositionType::COMPOSITION_DEVICE;
 
     SetLayerAlpha();
     SetLayerSize();
