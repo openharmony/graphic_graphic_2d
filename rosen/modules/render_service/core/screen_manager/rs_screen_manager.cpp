@@ -478,6 +478,11 @@ int32_t RSScreenManager::SetVirtualScreenSurface(ScreenId id, sptr<Surface> surf
     }
     screens_.at(id)->SetProducerSurface(surface);
     RS_LOGD("RSScreenManager %s: set virtual screen surface success!", __func__);
+    // if SetVirtualScreenSurface success, better to request the next vsync, avoiding prolong black screen
+    auto mainThread = RSMainThread::Instance();
+    if (mainThread != nullptr) {
+        mainThread->RequestNextVSync();
+    }
     return SUCCESS;
 }
 
