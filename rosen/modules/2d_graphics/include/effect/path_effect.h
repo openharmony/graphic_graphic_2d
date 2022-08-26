@@ -17,7 +17,7 @@
 #define PATH_EFFECT_H
 
 #include "draw/path.h"
-#include "engine_adapter/impl_interface/path_effect_impl.h"
+#include "drawing/engine_adapter/impl_interface/path_effect_impl.h"
 #include "utils/scalar.h"
 
 namespace OHOS {

@@ -17,7 +17,7 @@
 
 #include "draw/brush.h"
 #include "effect/color_space.h"
-#include "engine_adapter/impl_factory.h"
+#include "drawing/engine_adapter/impl_factory.h"
 #include "image/bitmap.h"
 #include "image/image.h"
 #include "image/picture.h"

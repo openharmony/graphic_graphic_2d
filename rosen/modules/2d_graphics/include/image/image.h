@@ -16,7 +16,7 @@
 #ifndef IMAGE_H
 #define IMAGE_H
 
-#include "engine_adapter/impl_interface/image_impl.h"
+#include "drawing/engine_adapter/impl_interface/image_impl.h"
 
 namespace OHOS {
 namespace Rosen {

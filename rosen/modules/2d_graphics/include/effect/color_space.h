@@ -18,7 +18,7 @@
 
 #include <string>
 
-#include "engine_adapter/impl_interface/color_space_impl.h"
+#include "drawing/engine_adapter/impl_interface/color_space_impl.h"
 
 namespace OHOS {
 namespace Rosen {
