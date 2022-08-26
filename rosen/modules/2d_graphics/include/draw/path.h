@@ -19,7 +19,7 @@
 #include <memory>
 #include <vector>
 
-#include "engine_adapter/impl_interface/path_impl.h"
+#include "drawing/engine_adapter/impl_interface/path_impl.h"
 #include "utils/matrix.h"
 #include "utils/point.h"
 #include "utils/rect.h"

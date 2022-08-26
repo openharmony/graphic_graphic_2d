@@ -20,7 +20,7 @@
 
 #include "draw/blend_mode.h"
 #include "draw/color.h"
-#include "engine_adapter/impl_interface/color_filter_impl.h"
+#include "drawing/engine_adapter/impl_interface/color_filter_impl.h"
 
 namespace OHOS {
 namespace Rosen {

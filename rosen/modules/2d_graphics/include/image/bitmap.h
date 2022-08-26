@@ -16,7 +16,7 @@
 #ifndef BITMAP_H
 #define BITMAP_H
 
-#include "engine_adapter/impl_interface/bitmap_impl.h"
+#include "drawing/engine_adapter/impl_interface/bitmap_impl.h"
 
 namespace OHOS {
 namespace Rosen {

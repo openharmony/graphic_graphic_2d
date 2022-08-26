@@ -16,7 +16,7 @@
 #ifndef CAMERA3D_H
 #define CAMERA3D_H
 
-#include "engine_adapter/impl_interface/camera_impl.h"
+#include "drawing/engine_adapter/impl_interface/camera_impl.h"
 #include "utils/matrix.h"
 #include "utils/scalar.h"
 

@@ -18,7 +18,7 @@
 
 #include <memory>
 
-#include "engine_adapter/impl_interface/core_canvas_impl.h"
+#include "drawing/engine_adapter/impl_interface/core_canvas_impl.h"
 
 namespace OHOS {
 namespace Rosen {

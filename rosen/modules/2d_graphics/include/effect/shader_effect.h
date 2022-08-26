@@ -16,7 +16,7 @@
 #ifndef SHADER_EFFECT_H
 #define SHADER_EFFECT_H
 
-#include "engine_adapter/impl_interface/shader_effect_impl.h"
+#include "drawing/engine_adapter/impl_interface/shader_effect_impl.h"
 
 namespace OHOS {
 namespace Rosen {

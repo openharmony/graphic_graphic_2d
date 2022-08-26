@@ -19,8 +19,7 @@
 #include <iostream>
 #include <string>
 
-#include "draw/core_canvas.h"
-#include "image/bitmap.h"
+#include "drawing/draw/core_canvas.h"
 
 namespace OHOS {
 namespace Rosen {

@@ -18,7 +18,7 @@
 
 #include <memory>
 
-#include "engine_adapter/impl_interface/mask_filter_impl.h"
+#include "drawing/engine_adapter/impl_interface/mask_filter_impl.h"
 #include "utils/scalar.h"
 
 namespace OHOS {

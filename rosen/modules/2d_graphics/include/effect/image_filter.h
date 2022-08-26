@@ -17,7 +17,7 @@
 #define IMAGE_FILTER_H
 
 #include "effect/color_filter.h"
-#include "engine_adapter/impl_interface/image_filter_impl.h"
+#include "drawing/engine_adapter/impl_interface/image_filter_impl.h"
 #include "utils/scalar.h"
 
 namespace OHOS {
