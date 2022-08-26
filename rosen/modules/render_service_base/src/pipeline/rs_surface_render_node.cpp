@@ -24,12 +24,11 @@
 #include "common/rs_rect.h"
 #include "common/rs_vector2.h"
 #include "common/rs_vector4.h"
+#include "pipeline/rs_occlusion_config.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_root_render_node.h"
-#include "pipeline/rs_occlusion_config.h"
 #include "platform/common/rs_log.h"
 #include "property/rs_properties_painter.h"
-#include "property/rs_transition_properties.h"
 #include "transaction/rs_render_service_client.h"
 #include "visitor/rs_node_visitor.h"
 
@@ -98,11 +97,6 @@ void RSSurfaceRenderNode::PrepareRenderBeforeChildren(RSPaintFilterCanvas& canva
         matrix.setTranslateY(std::ceil(matrix.getTranslateY()));
         canvas.concat(matrix);
     }
-
-    // apply transition properties to canvas
-    auto transitionProperties = GetAnimationManager().GetTransitionProperties();
-    Vector2f center(properties.GetBoundsWidth() * 0.5f, properties.GetBoundsHeight() * 0.5f);
-    RSPropertiesPainter::DrawTransitionProperties(transitionProperties, center, canvas);
 
     // clip by bounds
     canvas.clipRect(

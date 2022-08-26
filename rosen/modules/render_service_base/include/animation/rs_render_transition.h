@@ -44,8 +44,6 @@ protected:
     void OnAttach() override;
     void OnDetach() override;
 
-    float currentFraction_ { 0.0f };
-
     std::vector<std::shared_ptr<RSRenderTransitionEffect>> effects_;
     std::shared_ptr<RSInterpolator> interpolator_ { RSInterpolator::DEFAULT };
 

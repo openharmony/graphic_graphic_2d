@@ -25,7 +25,6 @@
 #ifdef ROSEN_OHOS
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "property/rs_properties_painter.h"
-#include "property/rs_transition_properties.h"
 #endif
 
 namespace OHOS {
@@ -164,8 +163,6 @@ void RSRenderNode::ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas)
             canvas.saveLayerAlpha(&rect, std::clamp(alpha, 0.f, 1.f) * UINT8_MAX);
         }
     }
-    auto transitionProperties = GetAnimationManager().GetTransitionProperties();
-    RSPropertiesPainter::DrawTransitionProperties(transitionProperties, GetRenderProperties(), canvas);
     RSPropertiesPainter::DrawMask(GetRenderProperties(), canvas);
 #endif
 }
@@ -185,7 +182,7 @@ void RSRenderNode::ClearModifiers()
     SetDirty();
 }
 
-void RSRenderNode::AddModifier(const std::shared_ptr<RSRenderModifier> modifier)
+void RSRenderNode::AddModifier(const std::shared_ptr<RSRenderModifier>& modifier)
 {
     if (!modifier) {
         return;
@@ -193,7 +190,7 @@ void RSRenderNode::AddModifier(const std::shared_ptr<RSRenderModifier> modifier)
     if (modifier->GetType() == RSModifierType::BOUNDS || modifier->GetType() == RSModifierType::FRAME) {
         AddGeometryModifier(modifier);
     } else if (modifier->GetType() < RSModifierType::CUSTOM) {
-        modifiers_.insert({ modifier->GetPropertyId(), modifier });
+        modifiers_.emplace(modifier->GetPropertyId(), modifier);
     } else {
         drawCmdModifiers_[modifier->GetType()].emplace_back(modifier);
     }
@@ -208,22 +205,21 @@ void RSRenderNode::AddGeometryModifier(const std::shared_ptr<RSRenderModifier>& 
         if (boundsModifier_ == nullptr) {
             boundsModifier_ = modifier;
         }
-        modifiers_.insert({ modifier->GetPropertyId(), boundsModifier_ });
+        modifiers_.emplace(modifier->GetPropertyId(), boundsModifier_);
     }
 
     if (modifier->GetType() == RSModifierType::FRAME) {
         if (frameModifier_ == nullptr) {
             frameModifier_ = modifier;
         }
-        modifiers_.insert({ modifier->GetPropertyId(), frameModifier_ });
+        modifiers_.emplace(modifier->GetPropertyId(), frameModifier_);
     }
 }
 
 void RSRenderNode::RemoveModifier(const PropertyId& id)
 {
-    auto iter = modifiers_.find(id);
-    if (iter != modifiers_.end()) {
-        modifiers_.erase(iter);
+    bool success = modifiers_.erase(id);
+    if (success) {
         SetDirty();
         return;
     }
@@ -234,6 +230,22 @@ void RSRenderNode::RemoveModifier(const PropertyId& id)
         if (type == RSModifierType::OVERLAY_STYLE) {
             UpdateOverlayerBounds();
         }
+    }
+}
+
+void RSRenderNode::RemoveModifier(const std::shared_ptr<RSRenderModifier>& modifier)
+{
+    auto erasedElements = std::__libcpp_erase_if_container(modifiers_, [&modifier](const auto& iter) {
+        return iter.second == modifier;
+    });
+    if (erasedElements > 0) {
+        SetDirty();
+        return;
+    }
+    for (auto& [type, modifiers] : drawCmdModifiers_) {
+        modifiers.remove_if([&modifier](const auto& item) -> bool {
+            return item == modifier;
+        });
     }
 }
 

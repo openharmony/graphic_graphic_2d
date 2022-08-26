@@ -17,8 +17,8 @@
 
 #include "animation/rs_animation_common.h"
 #include "animation/rs_value_estimator.h"
+#include "modifier/rs_render_modifier.h"
 #include "platform/common/rs_log.h"
-#include "property/rs_transition_properties.h"
 #include "transaction/rs_marshalling_helper.h"
 
 namespace OHOS {
@@ -127,50 +127,83 @@ RSRenderTransitionEffect* RSTransitionRotate::Unmarshalling(Parcel& parcel)
 }
 #endif
 
-void RSTransitionFade::OnTransition(const std::unique_ptr<RSTransitionProperties>& transitionProperties, float fraction)
+const std::shared_ptr<RSRenderModifier>& RSTransitionFade::GetModifier()
 {
-#ifdef ROSEN_OHOS
+    if (modifier_ == nullptr || property_ == nullptr) {
+        property_ = std::make_shared<RSRenderAnimatableProperty<float>>();
+        modifier_ = std::make_shared<RSAlphaRenderModifier>(property_);
+    }
+    return modifier_;
+}
+
+void RSTransitionFade::UpdateFraction(float fraction) const
+{
+    if (property_ == nullptr) {
+        return;
+    }
     float startValue(1.0f);
     float endValue(alpha_);
     auto value = startValue * (1.0f - fraction) + endValue * fraction;
-
-    transitionProperties->DoAlphaTransition(value);
-#endif
+    property_->Set(value);
 }
 
-void RSTransitionScale::OnTransition(
-    const std::unique_ptr<RSTransitionProperties>& transitionProperties, float fraction)
+const std::shared_ptr<RSRenderModifier>& RSTransitionScale::GetModifier()
 {
-#ifdef ROSEN_OHOS
-    Vector3f startValue(1.0f, 1.0f, 1.0f);
-    Vector3f endValue(scaleX_, scaleY_, scaleZ_);
+    if (modifier_ == nullptr || property_ == nullptr) {
+        property_ = std::make_shared<RSRenderAnimatableProperty<Vector2f>>();
+        modifier_ = std::make_shared<RSScaleRenderModifier>(property_);
+    }
+    return modifier_;
+}
+
+void RSTransitionScale::UpdateFraction(float fraction) const
+{
+    if (property_ == nullptr) {
+        return;
+    }
+    Vector2f startValue(1.0f, 1.0f);
+    Vector2f endValue(scaleX_, scaleY_);
     auto value = startValue * (1.0f - fraction) + endValue * fraction;
-
-    transitionProperties->DoScaleTransition(value);
-#endif
+    property_->Set(value);
 }
 
-void RSTransitionTranslate::OnTransition(
-    const std::unique_ptr<RSTransitionProperties>& transitionProperties, float fraction)
+const std::shared_ptr<RSRenderModifier>& RSTransitionTranslate::GetModifier()
 {
-#ifdef ROSEN_OHOS
-    Vector3f startValue(0.0f, 0.0f, 0.0f);
-    Vector3f endValue(translateX_, translateY_, translateZ_);
+    if (modifier_ == nullptr || property_ == nullptr) {
+        property_ = std::make_shared<RSRenderAnimatableProperty<Vector2f>>();
+        modifier_ = std::make_shared<RSTranslateRenderModifier>(property_);
+    }
+    return modifier_;
+}
+
+void RSTransitionTranslate::UpdateFraction(float fraction) const
+{
+    if (property_ == nullptr) {
+        return;
+    }
+    Vector2f startValue(0.0f, 0.0f);
+    Vector2f endValue(translateX_, translateY_);
     auto value = startValue * (1.0f - fraction) + endValue * fraction;
-    transitionProperties->DoTranslateTransition(value);
-#endif
+    property_->Set(value);
 }
 
-void RSTransitionRotate::OnTransition(
-    const std::unique_ptr<RSTransitionProperties>& transitionProperties, float fraction)
+const std::shared_ptr<RSRenderModifier>& RSTransitionRotate::GetModifier()
 {
-#ifdef ROSEN_OHOS
+    if (modifier_ == nullptr || property_ == nullptr) {
+        property_ = std::make_shared<RSRenderAnimatableProperty<Quaternion>>();
+        modifier_ = std::make_shared<RSQuaternionRenderModifier>(property_);
+    }
+    return modifier_;
+}
+
+void RSTransitionRotate::UpdateFraction(float fraction) const
+{
+    if (property_ == nullptr) {
+        return;
+    }
     auto angle = angle_ * fraction;
-    auto rotateMatrix = SkMatrix44::I();
-    rotateMatrix.setRotateDegreesAbout(dx_, dy_, dz_, angle);
-
-    transitionProperties->DoRotateTransition(rotateMatrix);
-#endif
+    Quaternion value(dx_, dy_, dz_, angle);
+    property_->Set(value);
 }
 } // namespace Rosen
 } // namespace OHOS

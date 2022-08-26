@@ -15,16 +15,16 @@
 
 #include "rs_render_engine.h"
 
-#include "pipeline/rs_uni_render_judgement.h"
-#include "platform/common/rs_log.h"
-#include "platform/ohos/backend/rs_surface_ohos_gl.h"
-#include "platform/ohos/backend/rs_surface_ohos_raster.h"
-#include "platform/common/rs_system_properties.h"
-#include "property/rs_transition_properties.h"
-#include "render/rs_skia_filter.h"
 #include "rs_divided_render_util.h"
 #include "rs_trace.h"
 #include "string_utils.h"
+
+#include "pipeline/rs_uni_render_judgement.h"
+#include "platform/common/rs_log.h"
+#include "platform/common/rs_system_properties.h"
+#include "platform/ohos/backend/rs_surface_ohos_gl.h"
+#include "platform/ohos/backend/rs_surface_ohos_raster.h"
+#include "render/rs_skia_filter.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -363,10 +363,6 @@ void RSRenderEngine::RSSurfaceNodeCommonPreProcess(
     BufferDrawParam& params)
 {
     const auto& property = node.GetRenderProperties();
-
-    // deal with animation.
-    const auto& transitionProperties = node.GetAnimationManager().GetTransitionProperties();
-    RSPropertiesPainter::DrawTransitionProperties(transitionProperties, property, canvas);
 
     // draw mask.
     RectF maskBounds(0, 0, params.dstRect.width(), params.dstRect.height());

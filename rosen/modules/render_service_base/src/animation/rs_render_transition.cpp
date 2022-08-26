@@ -85,9 +85,12 @@ bool RSRenderTransition::ParseParam(Parcel& parcel)
 #endif
 void RSRenderTransition::OnAnimate(float fraction)
 {
-    currentFraction_ = interpolator_->Interpolate(fraction);
+    float valueFraction = interpolator_->Interpolate(fraction);
     if (isTransitionIn_) {
-        currentFraction_ = 1 - currentFraction_;
+        valueFraction = 1 - valueFraction;
+    }
+    for (auto& effect : effects_) {
+        effect->UpdateFraction(valueFraction);
     }
     auto target = GetTarget();
     if (target == nullptr) {
@@ -104,18 +107,15 @@ void RSRenderTransition::OnAttach()
         ROSEN_LOGE("RSRenderTransition::OnAttach, target is nullptr");
         return;
     }
-    if (effects_.empty()) {
-        ROSEN_LOGE("RSRenderTransition::OnAttach, effects is empty");
-        return;
+    // create "transition" modifier and add it to target
+    for (auto& effect : effects_) {
+        target->AddModifier(effect->GetModifier());
+        effect->UpdateFraction(isTransitionIn_ ? 1.0f : 0.0f);
     }
-    target->GetAnimationManager().RegisterTransition(
-        GetAnimationId(),
-        [this](const std::unique_ptr<RSTransitionProperties>& transitionProperties) -> void {
-            for (auto& effect : effects_) {
-                effect->OnTransition(transitionProperties, currentFraction_);
-            }
-        },
-        isTransitionIn_);
+    // update number of disappearing transition animation
+    if (!isTransitionIn_) {
+        target->disappearingTransitionCount_++;
+    }
 }
 
 void RSRenderTransition::OnDetach()
@@ -125,7 +125,14 @@ void RSRenderTransition::OnDetach()
         ROSEN_LOGE("RSRenderTransition::OnDetach, target is nullptr");
         return;
     }
-    target->GetAnimationManager().UnregisterTransition(GetAnimationId());
+    // remove "transition" modifier from target
+    for (auto& effect : effects_) {
+        target->RemoveModifier(effect->GetModifier());
+    }
+    // update number of disappearing transition animation
+    if (!isTransitionIn_) {
+        target->disappearingTransitionCount_--;
+    }
 }
 } // namespace Rosen
 } // namespace OHOS

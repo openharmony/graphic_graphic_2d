@@ -64,7 +64,7 @@ public:
 
     bool HasDisappearingTransition(bool recursive) const override
     {
-        return animationManager_.HasDisappearingTransition() || RSBaseRenderNode::HasDisappearingTransition(recursive);
+        return (disappearingTransitionCount_ > 0) || RSBaseRenderNode::HasDisappearingTransition(recursive);
     }
 
     inline RectI GetOldDirty() const
@@ -77,7 +77,8 @@ public:
     }
 
     void ClearModifiers();
-    virtual void AddModifier(const std::shared_ptr<RSRenderModifier> modifier);
+    virtual void AddModifier(const std::shared_ptr<RSRenderModifier>& modifier);
+    void RemoveModifier(const std::shared_ptr<RSRenderModifier>& modifier);
     void RemoveModifier(const PropertyId& id);
     void ApplyModifiers();
     std::shared_ptr<RSRenderModifier> GetModifier(const PropertyId& id);
@@ -97,6 +98,7 @@ private:
     void UpdateOverlayerBounds();
     bool isDirtyRegionUpdated_ = false;
     bool isLastVisible_ = false;
+    uint32_t disappearingTransitionCount_ = 0;
     RectI oldDirty_;
     RSProperties renderProperties_;
     RSAnimationManager animationManager_;

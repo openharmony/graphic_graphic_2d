@@ -15,30 +15,30 @@
 
 #include "property/rs_properties_painter.h"
 
-#include "common/rs_obj_abs_geometry.h"
 #include "include/core/SkCanvas.h"
 #include "include/core/SkColorFilter.h"
 #include "include/core/SkMaskFilter.h"
 #include "include/core/SkPaint.h"
 #include "include/core/SkPoint3.h"
 #include "include/core/SkRRect.h"
+#include "include/core/SkSurface.h"
 #include "include/effects/Sk1DPathEffect.h"
 #include "include/effects/SkDashPathEffect.h"
 #include "include/effects/SkLumaColorFilter.h"
 #include "include/utils/SkShadowUtils.h"
+
+#include "common/rs_obj_abs_geometry.h"
 #include "common/rs_vector2.h"
 #include "pipeline/rs_draw_cmd_list.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_root_render_node.h"
 #include "platform/common/rs_log.h"
-#include "property/rs_transition_properties.h"
 #include "render/rs_blur_filter.h"
 #include "render/rs_image.h"
+#include "render/rs_mask.h"
 #include "render/rs_path.h"
 #include "render/rs_shader.h"
-#include "render/rs_mask.h"
 #include "render/rs_skia_filter.h"
-#include "include/core/SkSurface.h"
 #include "render_context/render_context.h"
 
 namespace OHOS {
@@ -56,10 +56,14 @@ SkRRect RSPropertiesPainter::RRect2SkRRect(const RRect& rr)
 {
     SkRect rect = SkRect::MakeXYWH(rr.rect_.left_, rr.rect_.top_, rr.rect_.width_, rr.rect_.height_);
     SkRRect rrect = SkRRect::MakeEmpty();
-    SkVector vec[4];
-    for (int i = 0; i < 4; i++) {
+
+    // set radius for all 4 corner of RRect
+    constexpr uint32_t NUM_OF_CORNERS_IN_RECT = 4;
+    SkVector vec[NUM_OF_CORNERS_IN_RECT];
+    for (uint32_t i = 0; i < NUM_OF_CORNERS_IN_RECT; i++) {
         vec[i].set(rr.radius_[i].x_, rr.radius_[i].y_);
     }
+
     rrect.setRectRadii(rect, vec);
     return rrect;
 }
@@ -306,33 +310,6 @@ void RSPropertiesPainter::DrawForegroundColor(const RSProperties& properties, Sk
     paint.setColor(bgColor.AsArgbInt());
     paint.setAntiAlias(true);
     canvas.drawRRect(RRect2SkRRect(properties.GetRRect()), paint);
-}
-
-void RSPropertiesPainter::DrawTransitionProperties(const std::unique_ptr<RSTransitionProperties>& transitionProperties,
-    const RSProperties& properties, RSPaintFilterCanvas& canvas)
-{
-    DrawTransitionProperties(transitionProperties, properties.GetBoundsSize() * 0.5f, canvas);
-}
-
-void RSPropertiesPainter::DrawTransitionProperties(const std::unique_ptr<RSTransitionProperties>& transitionProperties,
-    const Vector2f& center, RSPaintFilterCanvas& canvas)
-{
-    if (transitionProperties == nullptr) {
-        return;
-    }
-    // alpha
-    canvas.MultiplyAlpha(transitionProperties->GetAlpha());
-
-    // translate, currently translateZ is not used
-    auto translate = transitionProperties->GetTranslate();
-    canvas.translate(translate.x_, translate.y_);
-
-    // scale and rotate about the center of node, currently scaleZ is not used
-    auto scale = transitionProperties->GetScale();
-    canvas.translate(center.x_, center.y_);
-    canvas.scale(scale.x_, scale.y_);
-    canvas.concat(transitionProperties->GetRotate());
-    canvas.translate(-center.x_, -center.y_);
 }
 
 void RSPropertiesPainter::DrawMask(const RSProperties& properties, SkCanvas& canvas, SkRect maskBounds)

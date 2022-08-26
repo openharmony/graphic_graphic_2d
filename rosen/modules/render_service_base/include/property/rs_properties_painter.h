@@ -23,7 +23,6 @@ namespace OHOS {
 namespace Rosen {
 class RSSkiaFilter;
 class RSPaintFilterCanvas;
-class RSTransitionProperties;
 
 class RSPropertiesPainter {
 public:
@@ -36,10 +35,6 @@ public:
         std::shared_ptr<RSSkiaFilter>& filter, const std::unique_ptr<SkRect>& rect = nullptr,
         SkSurface* sKSurface = nullptr);
     static void DrawForegroundColor(const RSProperties& properties, SkCanvas& canvas);
-    static void DrawTransitionProperties(const std::unique_ptr<RSTransitionProperties>& transitionProperties,
-        const RSProperties& properties, RSPaintFilterCanvas& canvas);
-    static void DrawTransitionProperties(const std::unique_ptr<RSTransitionProperties>& transitionProperties,
-        const Vector2f& center, RSPaintFilterCanvas& canvas);
     static void DrawMask(const RSProperties& properties, SkCanvas& canvas);
     static void DrawMask(const RSProperties& properties, SkCanvas& canvas, SkRect maskBounds);
     static bool GetGravityMatrix(Gravity gravity, RectF rect, float w, float h, SkMatrix& mat);
