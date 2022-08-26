@@ -21,17 +21,18 @@
 
 namespace OHOS {
 namespace Rosen {
-void RSUniRenderUtil::UpdateRenderNodeDstRect(RSRenderNode& node)
+bool RSUniRenderUtil::UpdateRenderNodeDstRect(RSRenderNode& node)
 {
     auto parentNode = node.GetParent().lock();
     std::shared_ptr<RSRenderNode> rsParent = nullptr;
     if (!parentNode) {
         RS_LOGE("RSUniRenderUtil::UpdateDstRect: fail to get parent dstRect.");
-        return;
+        return false;
     }
     rsParent = parentNode->ReinterpretCastTo<RSRenderNode>();
     auto& property = node.GetMutableRenderProperties();
-    property.UpdateGeometry(rsParent ? &(rsParent->GetRenderProperties()) : nullptr, true);
+    auto transitionProperties = node.GetAnimationManager().GetTransitionProperties();
+    property.UpdateGeometry(rsParent ? &(rsParent->GetRenderProperties()) : nullptr, true, transitionProperties);
     auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(property.GetBoundsGeometry());
     if (geoPtr && node.IsInstanceOf<RSSurfaceRenderNode>()) {
         std::shared_ptr<RSBaseRenderNode> nodePtr = node.shared_from_this();
@@ -42,6 +43,7 @@ void RSUniRenderUtil::UpdateRenderNodeDstRect(RSRenderNode& node)
             surfaceNode->GetName().c_str(),
             dstRect.GetLeft(), dstRect.GetTop(), dstRect.GetWidth(), dstRect.GetHeight());
     }
+    return transitionProperties != nullptr;
 }
 
 Occlusion::Region RSUniRenderUtil::MergeVisibleDirtyRegion(std::shared_ptr<RSDisplayRenderNode>& node,

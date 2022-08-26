@@ -78,20 +78,25 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
         displayHasSecSurface_[currentVisitDisplay_] = true;
     }
     node.ApplyModifiers();
-    RSUniRenderUtil::UpdateRenderNodeDstRect(node);
+    bool dirtyFlag = dirtyFlag_;
     // prepare the surfaceRenderNode whose child is rootRenderNode 
     if (node.IsAppWindow()) {
         curSurfaceDirtyManager_ = node.GetDirtyManager();
         curSurfaceDirtyManager_->Clear();
-        dirtyFlag_ = false;
+        auto transitionProperties = node.GetAnimationManager().GetTransitionProperties();
         if (auto parentNode = node.GetParent().lock()) {
             dirtyFlag_ = node.Update(*curSurfaceDirtyManager_,
-                &(parentNode->ReinterpretCastTo<RSRenderNode>()->GetRenderProperties()), dirtyFlag_);
+                &(parentNode->ReinterpretCastTo<RSRenderNode>()->GetRenderProperties()),
+                dirtyFlag_, transitionProperties);
         } else {
-            dirtyFlag_ = node.Update(*curSurfaceDirtyManager_, nullptr, dirtyFlag_);
+            dirtyFlag_ = node.Update(*curSurfaceDirtyManager_, nullptr, dirtyFlag_, transitionProperties);
         }
+        auto& property = node.GetMutableRenderProperties();
+        auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(property.GetBoundsGeometry());
+        node.SetDstRect(geoPtr->GetAbsRect());
         curDisplayNode_->UpdateSurfaceNodePos(node.GetId(), node.GetDstRect());
     } else {
+        dirtyFlag_ |= RSUniRenderUtil::UpdateRenderNodeDstRect(node);
         if (node.GetBuffer() != nullptr) {
             auto& surfaceHandler = static_cast<RSSurfaceHandler&>(node);
             if (surfaceHandler.IsCurrentFrameBufferConsumed()) {
@@ -100,11 +105,8 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
         }
     }
 
-    if (node.GetDstRectChanged()) {
-        dirtyFlag_ = true;
-    }
-
     PrepareBaseRenderNode(node);
+    dirtyFlag_ = dirtyFlag;
     if (node.GetDirtyManager() && node.GetDirtyManager()->IsDirty()) {
         std::shared_ptr<RSBaseRenderNode> nodePtr = node.shared_from_this();
         auto surfaceNodePtr = nodePtr->ReinterpretCastTo<RSSurfaceRenderNode>();
@@ -285,13 +287,6 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
             RS_LOGE("RSUniRenderVisitor::ProcessDisplayRenderNode No RSSurface found");
             return;
         }
-#ifdef RS_ENABLE_EGLQUERYSURFACE
-        if (isOpDroped_ && dirtySurfaceNodeMap_.empty() && !curDisplayDirtyManager_->IsDirty()) {
-            RS_LOGD("RSUniRenderVisitor::ProcessDisplayRenderNode No dirty RSSurface, drop frame");
-            return;
-        }
-#endif
-
         // we should request a framebuffer whose size is equals to the physical screen size.
         auto renderFrame = renderEngine_->RequestFrame(std::static_pointer_cast<RSSurfaceOhos>(rsSurface),
             RSBaseRenderUtil::GetFrameBufferRequestConfig(screenInfo_, true));
@@ -305,13 +300,12 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
         if (isPartialRenderEnabled_) {
             CalcDirtyDisplayRegion(displayNodePtr);
             uint32_t bufferAge = renderFrame->GetBufferAge();
-            RS_LOGD("RSUniRenderVisitor buffer age is %d", bufferAge);
             auto dirtyRegion = RSUniRenderUtil::MergeVisibleDirtyRegion(displayNodePtr, bufferAge);
             std::vector<RectI> rects = GetDirtyRects(dirtyRegion);
             node.UpdateDisplayDirtyManager(bufferAge);
             RectI rect = CoordinateTransform(node.GetDirtyManager()->GetDirtyRegion());
             if (!rect.IsEmpty()) {
-                rects.push_back(rect);
+                rects.emplace_back(rect);
             }
             for (auto& r : rects) {
                 RS_LOGD("SetDamageRegion %s", r.ToString().c_str());

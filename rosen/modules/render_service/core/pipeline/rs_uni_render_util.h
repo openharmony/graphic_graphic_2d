@@ -28,7 +28,7 @@ namespace OHOS {
 namespace Rosen {
 class RSUniRenderUtil {
 public:
-    static void UpdateRenderNodeDstRect(RSRenderNode& node);
+    static bool UpdateRenderNodeDstRect(RSRenderNode& node);
     static Occlusion::Region MergeVisibleDirtyRegion(std::shared_ptr<RSDisplayRenderNode>& node, int32_t bufferAge);
 };
 }
