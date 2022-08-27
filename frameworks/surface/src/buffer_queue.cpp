@@ -180,8 +180,11 @@ GSError BufferQueue::RequestBuffer(const BufferRequestConfig &config, sptr<Buffe
     if (!GetStatus()) {
         BLOGN_FAILURE_RET(GSERROR_NO_CONSUMER);
     }
-    if (listener_ == nullptr && listenerClazz_ == nullptr) {
-        BLOGN_FAILURE_RET(GSERROR_NO_CONSUMER);
+    {
+        std::lock_guard<std::mutex> lockGuard(listenerMutex_);
+        if (listener_ == nullptr && listenerClazz_ == nullptr) {
+            BLOGN_FAILURE_RET(GSERROR_NO_CONSUMER);
+        }
     }
 
     // check param
@@ -335,9 +338,12 @@ GSError BufferQueue::FlushBuffer(uint32_t sequence, const sptr<BufferExtraData> 
         }
     }
 
-    if (listener_ == nullptr && listenerClazz_ == nullptr) {
-        CancelBuffer(sequence, bedata);
-        return GSERROR_NO_CONSUMER;
+    {
+        std::lock_guard<std::mutex> lockGuard(listenerMutex_);
+        if (listener_ == nullptr && listenerClazz_ == nullptr) {
+            CancelBuffer(sequence, bedata);
+            return GSERROR_NO_CONSUMER;
+        }
     }
 
     ScopedBytrace bufferIPCSend("BufferIPCSend");
@@ -720,12 +726,14 @@ GSError BufferQueue::GetName(std::string &name)
 
 GSError BufferQueue::RegisterConsumerListener(sptr<IBufferConsumerListener> &listener)
 {
+    std::lock_guard<std::mutex> lockGuard(listenerMutex_);
     listener_ = listener;
     return GSERROR_OK;
 }
 
 GSError BufferQueue::RegisterConsumerListener(IBufferConsumerListenerClazz *listener)
 {
+    std::lock_guard<std::mutex> lockGuard(listenerMutex_);
     listenerClazz_ = listener;
     return GSERROR_OK;
 }
@@ -807,14 +815,17 @@ void BufferQueue::ClearLocked()
 
 GSError BufferQueue::GoBackground()
 {
-    std::lock_guard<std::mutex> lockGuard(mutex_);
-    if (listener_ != nullptr) {
-        ScopedBytrace bufferIPCSend("OnGoBackground");
-        listener_->OnGoBackground();
-    } else if (listenerClazz_ != nullptr) {
-        ScopedBytrace bufferIPCSend("OnGoBackground");
-        listenerClazz_->OnGoBackground();
+    {
+        std::lock_guard<std::mutex> lockGuard(listenerMutex_);
+        if (listener_ != nullptr) {
+            ScopedBytrace bufferIPCSend("OnGoBackground");
+            listener_->OnGoBackground();
+        } else if (listenerClazz_ != nullptr) {
+            ScopedBytrace bufferIPCSend("OnGoBackground");
+            listenerClazz_->OnGoBackground();
+        }
     }
+    std::lock_guard<std::mutex> lockGuard(mutex_);
     ClearLocked();
     waitReqCon_.notify_all();
     return GSERROR_OK;
@@ -822,14 +833,17 @@ GSError BufferQueue::GoBackground()
 
 GSError BufferQueue::CleanCache()
 {
-    std::lock_guard<std::mutex> lockGuard(mutex_);
-    if (listener_ != nullptr) {
-        ScopedBytrace bufferIPCSend("OnCleanCache");
-        listener_->OnCleanCache();
-    } else if (listenerClazz_ != nullptr) {
-        ScopedBytrace bufferIPCSend("OnCleanCache");
-        listenerClazz_->OnCleanCache();
+    {
+        std::lock_guard<std::mutex> lockGuard(listenerMutex_);
+        if (listener_ != nullptr) {
+            ScopedBytrace bufferIPCSend("OnCleanCache");
+            listener_->OnCleanCache();
+        } else if (listenerClazz_ != nullptr) {
+            ScopedBytrace bufferIPCSend("OnCleanCache");
+            listenerClazz_->OnCleanCache();
+        }
     }
+    std::lock_guard<std::mutex> lockGuard(mutex_);
     ClearLocked();
     waitReqCon_.notify_all();
     return GSERROR_OK;
@@ -987,14 +1001,17 @@ GSError BufferQueue::SetTunnelHandle(const sptr<SurfaceTunnelHandle> &handle)
         return GSERROR_NO_ENTRY;
     }
     tunnelHandle_ = handle;
-    if (listener_ != nullptr) {
-        ScopedBytrace bufferIPCSend("OnTunnelHandleChange");
-        listener_->OnTunnelHandleChange();
-    } else if (listenerClazz_ != nullptr) {
-        ScopedBytrace bufferIPCSend("OnTunnelHandleChange");
-        listenerClazz_->OnTunnelHandleChange();
-    } else {
-        return GSERROR_NO_CONSUMER;
+    {
+        std::lock_guard<std::mutex> lockGuard(listenerMutex_);
+        if (listener_ != nullptr) {
+            ScopedBytrace bufferIPCSend("OnTunnelHandleChange");
+            listener_->OnTunnelHandleChange();
+        } else if (listenerClazz_ != nullptr) {
+            ScopedBytrace bufferIPCSend("OnTunnelHandleChange");
+            listenerClazz_->OnTunnelHandleChange();
+        } else {
+            return GSERROR_NO_CONSUMER;
+        }
     }
     return GSERROR_OK;
 }
