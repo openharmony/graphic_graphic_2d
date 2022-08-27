@@ -15,6 +15,7 @@
 
 #include "rs_render_service.h"
 #include "rs_main_thread.h"
+#include "rs_qos_thread.h"
 #include "rs_render_service_connection.h"
 #include "vsync_generator.h"
 #include "pipeline/rs_surface_render_node.h"
@@ -57,6 +58,9 @@ bool RSRenderService::Init()
     mainThread_->rsVSyncDistributor_ = rsVSyncDistributor_;
     mainThread_->Init();
  
+    RSQosThread::GetInstance()->appVSyncDistributor_ = appVSyncDistributor_;
+    RSQosThread::GetInstance()->ThreadStart();
+
     auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     if (samgr == nullptr) {
         RS_LOGE("RSRenderService GetSystemAbilityManager fail.");

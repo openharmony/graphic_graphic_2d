@@ -197,13 +197,31 @@ public:
         return abilityBgAlpha_;
     }
 
-    void SetVisibleRegionRecursive(const Occlusion::Region& region, VisibleData& visibleVec)
+    void setQosCal(bool qosPidCal)
+    {
+        qosPidCal_ = qosPidCal;
+    }
+
+    void SetVisibleRegionRecursive(const Occlusion::Region& region,
+                                   VisibleData& visibleVec,
+                                   std::map<uint32_t, bool>& pidVisMap)
     {
         visibleRegion_ = region;
         bool vis = region.GetSize() > 0;
         if (vis) {
             visibleVec.emplace_back(GetId());
         }
+
+        // collect visible changed pid
+        if (qosPidCal_) {
+            uint32_t tmpPid = (GetId() >> 32) & 0xFFFFFFFF;
+            if (pidVisMap.find(tmpPid) != pidVisMap.end()) {
+                pidVisMap[tmpPid] |= vis;
+            } else {
+                pidVisMap[tmpPid] = vis;
+            }
+        }
+
         SetOcclusionVisible(vis);
         for (auto& child : GetSortedChildren()) {
             if (child->GetType() == RSRenderNodeType::SURFACE_NODE) {
@@ -211,7 +229,7 @@ public:
                 if (surface == nullptr) {
                     continue;
                 }
-                surface->SetVisibleRegionRecursive(region, visibleVec);
+                surface->SetVisibleRegionRecursive(region, visibleVec, pidVisMap);
             }
         }
     }
@@ -333,6 +351,7 @@ private:
     int32_t offsetX_ = 0;
     int32_t offsetY_ = 0;
     float globalAlpha_ = 1.0f;
+    bool qosPidCal_ = false;
 
     std::string name_;
     bool isAppWindow_ = false;

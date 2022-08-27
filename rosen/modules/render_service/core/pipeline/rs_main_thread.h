@@ -136,6 +136,8 @@ private:
     void ReleaseAllNodesBuffer();
     void Render();
     void CalcOcclusion();
+    bool CheckQosVisChanged(std::map<uint32_t, bool>& pidVisMap);
+    void CallbackToQOS(std::map<uint32_t, bool>& pidVisMap);
     void CallbackToWMS(VisibleData& curVisVec);
     void SendCommands();
     void InitRSEventDetector();
@@ -191,7 +193,9 @@ private:
     mutable std::mutex uniRenderMutex_;
     bool uniRenderFinished_ = false;
     std::condition_variable uniRenderCond_;
+    std::map<uint32_t, bool> lastPidVisMap_;
     VisibleData lastVisVec_;
+    bool qosPidCal_ = false;
     bool doAnimate_ = false;
     uint32_t lastSurfaceCnt_ = 0;
 

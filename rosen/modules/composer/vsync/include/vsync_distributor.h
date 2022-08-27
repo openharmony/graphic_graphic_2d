@@ -77,6 +77,8 @@ public:
     VsyncError SetVSyncRate(int32_t rate, const sptr<VSyncConnection>& connection);
     VsyncError SetHighPriorityVSyncRate(int32_t highPriorityRate, const sptr<VSyncConnection>& connection);
     VsyncError GetVSyncConnectionInfos(std::vector<ConnectionInfo>& infos);
+    VsyncError GetQosVSyncRateInfos(std::vector<std::pair<uint32_t, int32_t>>& vsyncRateInfos);
+    VsyncError SetQosVSyncRate(uint32_t pid, int32_t rate);
 
 private:
 
@@ -91,6 +93,7 @@ private:
     void OnVSyncEvent(int64_t now);
     void CollectConnections(bool &waitForVSync, int64_t timestamp,
                             std::vector<sptr<VSyncConnection>> &conns, int64_t vsyncCount);
+    VsyncError QosGetPidByName(const std::string& name, uint32_t& pid);
 
     std::thread threadLoop_;
     sptr<VSyncController> controller_;

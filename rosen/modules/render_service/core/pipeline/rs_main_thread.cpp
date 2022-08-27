@@ -34,6 +34,7 @@
 #include "screen_manager/rs_screen_manager.h"
 #include "transaction/rs_transaction_proxy.h"
 #include "accessibility_config.h"
+#include "rs_qos_thread.h"
 
 using namespace OHOS::AccessibilityConfig;
 namespace OHOS {
@@ -578,6 +579,7 @@ void RSMainThread::CalcOcclusion()
     // 2. Calc occlusion
     Occlusion::Region curRegion;
     VisibleData curVisVec;
+    std::map<uint32_t, bool> pidVisMap;
     for (auto it = curAllSurfaces.rbegin(); it != curAllSurfaces.rend(); ++it) {
         auto surface = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(*it);
         if (surface == nullptr || surface->GetDstRect().IsEmpty()) {
@@ -589,7 +591,8 @@ void RSMainThread::CalcOcclusion()
         // Current surface subtract current region, if result region is empty that means it's covered
         Occlusion::Region subResult = curSurface.Sub(curRegion);
         // Set result to SurfaceRenderNode and its children
-        surface->SetVisibleRegionRecursive(subResult, curVisVec);
+        surface->setQosCal(qosPidCal_);
+        surface->SetVisibleRegionRecursive(subResult, curVisVec, pidVisMap);
         // Current region need to merge current surface for next calculation(ignore alpha surface)
         const uint8_t opacity = 255;
         if (isUniRender_) {
@@ -607,8 +610,46 @@ void RSMainThread::CalcOcclusion()
         }
     }
 
-    // 3. Callback to WMS
+    // 3. Callback to QOS
+    CallbackToQOS(pidVisMap);
+
+    // 4. Callback to WMS
     CallbackToWMS(curVisVec);
+}
+
+bool RSMainThread::CheckQosVisChanged(std::map<uint32_t, bool>& pidVisMap)
+{
+    bool isVisibleChanged  = pidVisMap.size() != lastPidVisMap_.size();
+    if (!isVisibleChanged) {
+        auto iterCur = pidVisMap.begin();
+        auto iterLast = lastPidVisMap_.begin();
+        for (; iterCur != pidVisMap.end(); iterCur++, iterLast++) {
+            if (iterCur->first != iterLast->first ||
+                iterCur->second != iterLast->second) {
+                isVisibleChanged = true;
+                break;
+            }
+        }
+    }
+
+    lastPidVisMap_.clear();
+    lastPidVisMap_.insert(pidVisMap.begin(), pidVisMap.end());
+    return isVisibleChanged;
+}
+
+void RSMainThread::CallbackToQOS(std::map<uint32_t, bool>& pidVisMap)
+{
+    if (!RSInnovation::UpdateQosVsyncEnabled()) {
+        qosPidCal_ = false;
+        RSQosThread::GetInstance()->ResetQosPid(pidVisMap);
+        return;
+    }
+    qosPidCal_ = true;
+    if (!CheckQosVisChanged(pidVisMap)) {
+        return;
+    }
+
+    RSQosThread::GetInstance()->OnRSVisibilityChangeCB(pidVisMap);
 }
 
 void RSMainThread::CallbackToWMS(VisibleData& curVisVec)
