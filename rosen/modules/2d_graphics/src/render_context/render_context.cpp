@@ -150,7 +150,7 @@ void RenderContext::InitializeEglContext()
 
     eglMakeCurrent(eglDisplay_, EGL_NO_SURFACE, EGL_NO_SURFACE, eglContext_);
 
-    LOGW("Create EGL context successfully, version %{public}d.%{public}d", major, minor);
+    LOGD("Create EGL context successfully, version %{public}d.%{public}d", major, minor);
 }
 
 void RenderContext::MakeCurrent(EGLSurface surface) const
@@ -165,7 +165,7 @@ void RenderContext::SwapBuffers(EGLSurface surface) const
     if (!eglSwapBuffers(eglDisplay_, surface)) {
         LOGE("Failed to SwapBuffers on surface %{public}p, error is %{public}x", surface, eglGetError());
     } else {
-        LOGW("SwapBuffers successfully, surface is %{public}p", surface);
+        LOGD("SwapBuffers successfully, surface is %{public}p", surface);
     }
 }
 
@@ -192,7 +192,7 @@ EGLSurface RenderContext::CreateEGLSurface(EGLNativeWindowType eglNativeWindow)
         return EGL_NO_SURFACE;
     }
 
-    LOGW("CreateEGLSurface: %{public}p", surface);
+    LOGD("CreateEGLSurface: %{public}p", surface);
 
     eglSurface_ = surface;
     return surface;
@@ -206,7 +206,7 @@ void RenderContext::SetColorSpace(ColorGamut colorSpace)
 bool RenderContext::SetUpGrContext()
 {
     if (grContext_ != nullptr) {
-        LOGW("grContext has already created!!");
+        LOGD("grContext has already created!!");
         return true;
     }
 
@@ -272,7 +272,7 @@ sk_sp<SkSurface> RenderContext::AcquireSurface(int width, int height)
         return nullptr;
     }
 
-    LOGE("CreateCanvas successfully!!! (%{public}p)", skSurface_->getCanvas());
+    LOGD("CreateCanvas successfully!!! (%{public}p)", skSurface_->getCanvas());
     return skSurface_;
 }
 
@@ -280,7 +280,7 @@ void RenderContext::RenderFrame()
 {
     // flush commands
     if (skSurface_->getCanvas() != nullptr) {
-        LOGW("RenderFrame: Canvas is %{public}p", skSurface_->getCanvas());
+        LOGD("RenderFrame: Canvas is %{public}p", skSurface_->getCanvas());
         skSurface_->getCanvas()->flush();
     } else {
         LOGW("canvas is nullptr!!!");

@@ -46,7 +46,7 @@ void GLESRenderBackend::InitDrawContext()
 bool GLESRenderBackend::SetUpGrContext()
 {
     if (grContext_ != nullptr) {
-        LOGW("grContext has already created!!");
+        LOGD("grContext has already created!!");
         return true;
     }
 
@@ -124,7 +124,7 @@ void GLESRenderBackend::RenderFrame()
 {
     // flush commands
     if (skSurface_->getCanvas() != nullptr) {
-        LOGW("RenderFrame: Canvas is %{public}p", skSurface_->getCanvas());
+        LOGD("RenderFrame: Canvas is %{public}p", skSurface_->getCanvas());
         skSurface_->getCanvas()->flush();
     } else {
         LOGW("canvas is nullptr!!!");
