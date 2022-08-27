@@ -49,7 +49,8 @@ NativeValue* RSWindowAnimationUtils::CreateJsWindowAnimationTarget(NativeEngine&
     target.GetRefPtr()->IncStrongRef(target.GetRefPtr());
     object->SetNativePointer(&(target->surfaceNode_), finalizeCallback, target.GetRefPtr());
     if (target->surfaceNode_) {
-        target->surfaceNode_->CreateNodeInRenderThread(true);
+        // create proxy in Render Thread, this proxy node will extract context variables and send to Render Service
+        target->surfaceNode_->CreateProxyInRenderThread();
     }
 
     object->SetProperty("bundleName", CreateJsValue(engine, target->bundleName_));
