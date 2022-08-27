@@ -13,12 +13,15 @@
  * limitations under the License.
  */
 
+#include "common/rs_occlusion_region.h"
+
 #include <map>
 #include <set>
 #include <dlfcn.h>
 #include <parameters.h>
+
 #include "platform/common/rs_log.h"
-#include "common/rs_occlusion_region.h"
+#include "platform/common/rs_innovation.h"
 
 namespace OHOS {
 namespace Rosen {

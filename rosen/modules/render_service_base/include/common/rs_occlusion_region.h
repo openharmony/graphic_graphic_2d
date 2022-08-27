@@ -20,8 +20,6 @@
 #include <vector>
 #include <string>
 
-#include "platform/common/rs_innovation.h"
-
 namespace OHOS {
 namespace Rosen {
 namespace Occlusion {

@@ -16,6 +16,7 @@
 #define RENDER_SERVICE_CORE_PIPELINE_RS_UNI_RENDER_VISITOR_H
 
 #include <set>
+#include <parameters.h>
 
 #include "pipeline/rs_dirty_region_manager.h"
 #include "pipeline/rs_processor.h"
