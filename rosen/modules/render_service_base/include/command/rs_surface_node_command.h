@@ -27,7 +27,7 @@ namespace Rosen {
 
 enum RSSurfaceNodeCommandType : uint16_t {
     SURFACE_NODE_CREATE,
-    SURFACE_NODE_SET_PROXY,
+    SURFACE_NODE_CREATE_PROXY,
     SURFACE_NODE_SET_CONTEXT_MATRIX,
     SURFACE_NODE_SET_CONTEXT_ALPHA,
     SURFACE_NODE_SET_CONTEXT_CLIP_REGION,
@@ -42,7 +42,7 @@ enum RSSurfaceNodeCommandType : uint16_t {
 class SurfaceNodeCommandHelper {
 public:
     static void Create(RSContext& context, NodeId nodeId);
-    static void SetProxy(RSContext& context, NodeId nodeId);
+    static void CreateProxy(RSContext& context, NodeId nodeId);
     static void SetContextMatrix(RSContext& context, NodeId nodeId, SkMatrix matrix);
     static void SetContextAlpha(RSContext& context, NodeId nodeId, float alpha);
     static void SetContextClipRegion(RSContext& context, NodeId nodeId, SkRect clipRect);
@@ -55,8 +55,8 @@ public:
 };
 
 ADD_COMMAND(RSSurfaceNodeCreate, ARG(SURFACE_NODE, SURFACE_NODE_CREATE, SurfaceNodeCommandHelper::Create, NodeId))
-ADD_COMMAND(
-    RSSurfaceNodeSetProxy, ARG(SURFACE_NODE, SURFACE_NODE_SET_PROXY, SurfaceNodeCommandHelper::SetProxy, NodeId))
+ADD_COMMAND(RSSurfaceNodeCreateProxy,
+    ARG(SURFACE_NODE, SURFACE_NODE_CREATE_PROXY, SurfaceNodeCommandHelper::CreateProxy, NodeId))
 ADD_COMMAND(RSSurfaceNodeSetContextMatrix,
     ARG(SURFACE_NODE, SURFACE_NODE_SET_CONTEXT_MATRIX, SurfaceNodeCommandHelper::SetContextMatrix, NodeId, SkMatrix))
 ADD_COMMAND(RSSurfaceNodeSetContextAlpha,
