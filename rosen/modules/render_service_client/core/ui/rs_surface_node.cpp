@@ -190,6 +190,16 @@ void RSSurfaceNode::SetAbilityBGAlpha(uint8_t alpha)
     }
 }
 
+void RSSurfaceNode::SetIsNotifyUIBufferAvailable(bool available)
+{
+    std::unique_ptr<RSCommand> command =
+        std::make_unique<RSSurfaceNodeSetIsNotifyUIBUfferAvailable>(GetId(), available);
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        transactionProxy->AddCommand(command, true);
+    }
+}
+
 bool RSSurfaceNode::SetBufferAvailableCallback(BufferAvailableCallback callback)
 {
     {
