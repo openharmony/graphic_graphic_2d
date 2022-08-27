@@ -1206,7 +1206,10 @@ OpItem* ConcatOpItem::Unmarshalling(Parcel& parcel)
 bool SaveLayerOpItem::Marshalling(Parcel& parcel) const
 {
     bool success = true;
-    success &= RSMarshallingHelper::Marshalling(parcel, rect_);
+    success &= parcel.WriteBool(rectPtr_ != nullptr);
+    if (rectPtr_) {
+        success &= RSMarshallingHelper::Marshalling(parcel, rect_);
+    }
     success &= RSMarshallingHelper::Marshalling(parcel, backdrop_);
     success &= RSMarshallingHelper::Marshalling(parcel, mask_);
     success &= RSMarshallingHelper::Marshalling(parcel, matrix_);
@@ -1217,14 +1220,22 @@ bool SaveLayerOpItem::Marshalling(Parcel& parcel) const
 
 OpItem* SaveLayerOpItem::Unmarshalling(Parcel& parcel)
 {
+    bool isRectExist;
     SkRect rect;
+    SkRect* rectPtr = nullptr;
     sk_sp<SkImageFilter> backdrop;
     sk_sp<SkImage> mask;
     SkMatrix matrix;
     SkCanvas::SaveLayerFlags flags;
     SkPaint paint;
-    if (!RSMarshallingHelper::Unmarshalling(parcel, rect)) {
+    if (!parcel.ReadBool(isRectExist)) {
         return nullptr;
+    }
+    if (isRectExist) {
+        if (!RSMarshallingHelper::Unmarshalling(parcel, rect)) {
+            return nullptr;
+        }
+        rectPtr = &rect;
     }
     if (!RSMarshallingHelper::Unmarshalling(parcel, backdrop)) {
         return nullptr;
@@ -1241,7 +1252,7 @@ OpItem* SaveLayerOpItem::Unmarshalling(Parcel& parcel)
     if (!RSMarshallingHelper::Unmarshalling(parcel, paint)) {
         return nullptr;
     }
-    SkCanvas::SaveLayerRec rec = { &rect, &paint, backdrop.get(), mask.get(), &matrix, flags };
+    SkCanvas::SaveLayerRec rec = { rectPtr, &paint, backdrop.get(), mask.get(), &matrix, flags };
 
     return new SaveLayerOpItem(rec);
 }
