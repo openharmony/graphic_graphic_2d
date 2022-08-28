@@ -106,5 +106,12 @@ void SurfaceNodeCommandHelper::SetAbilityBGAlpha(RSContext& context, NodeId id, 
         node->SetAbilityBGAlpha(alpha);
     }
 }
+
+void SurfaceNodeCommandHelper::SetIsNotifyUIBufferAvailable(RSContext& context, NodeId id, bool available)
+{
+    if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(id)) {
+        node->SetIsNotifyUIBufferAvailable(available);
+    }
+}
 } // namespace Rosen
 } // namespace OHOS

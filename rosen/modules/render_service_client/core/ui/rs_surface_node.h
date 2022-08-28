@@ -63,6 +63,7 @@ public:
     void SetSecurityLayer(bool isSecurityLayer);
     bool GetSecurityLayer() const;
     void SetAbilityBGAlpha(uint8_t alpha);
+    void SetIsNotifyUIBufferAvailable(bool available);
 
     bool SetBufferAvailableCallback(BufferAvailableCallback callback);
 

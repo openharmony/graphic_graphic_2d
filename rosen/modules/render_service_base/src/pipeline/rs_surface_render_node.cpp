@@ -157,6 +157,39 @@ void RSSurfaceRenderNode::CollectSurface(
     }
 }
 
+void RSSurfaceRenderNode::ClearChildrenCache(const std::shared_ptr<RSBaseRenderNode>& node)
+{
+    for (auto& child : node->GetSortedChildren()) {
+        auto surfaceNode = child->ReinterpretCastTo<RSSurfaceRenderNode>();
+        if (surfaceNode == nullptr) {
+            continue;
+        }
+        auto& consumer = surfaceNode->GetConsumer();
+        if (consumer != nullptr) {
+            consumer->GoBackground();
+        }
+    }
+}
+
+void RSSurfaceRenderNode::ResetParent()
+{
+    RSBaseRenderNode::ResetParent();
+
+    if (RSOcclusionConfig::GetInstance().IsLeashWindow(GetName())) {
+        ClearChildrenCache(shared_from_this());
+    } else {
+        auto& consumer = GetConsumer();
+        if (consumer != nullptr) {
+            consumer->GoBackground();
+        }
+    }
+}
+
+void RSSurfaceRenderNode::SetIsNotifyUIBufferAvailable(bool available)
+{
+    isNotifyUIBufferAvailable_.store(available);
+}
+
 void RSSurfaceRenderNode::Prepare(const std::shared_ptr<RSNodeVisitor>& visitor)
 {
     if (!visitor) {
