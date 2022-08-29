@@ -178,6 +178,11 @@ void WaitRenderServiceInit()
 {
     while (true) {
         sptr<ISystemAbilityManager> samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+        if (samgr == nullptr) {
+            LOGI("samgr is null");
+            sleep(1);
+            continue;
+        }
         sptr<IRemoteObject> remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
         if (remoteObject != nullptr) {
             LOGI("renderService is inited");
