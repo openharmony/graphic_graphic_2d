@@ -184,6 +184,7 @@ void RSBaseRenderNode::RemoveFromTreeWithoutTransition()
         auto child = shared_from_this();
         parentPtr->RemoveChild(child);
         parentPtr->disappearingChildren_.remove_if([&child](const auto& pair) -> bool { return pair.first == child; });
+        parentPtr->sortedChildren_.clear();
         child->ResetParent();
     }
 }

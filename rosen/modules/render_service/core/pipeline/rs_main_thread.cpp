@@ -492,7 +492,7 @@ void RSMainThread::CheckUpdateSurfaceNodeIfNeed()
         node->ResetSortedChildren();
     }
     waitingUpdateSurfaceNode_ = !allSurfaceNodeUpdated;
-    if (!waitingBufferAvailable_) {
+    if (!waitingUpdateSurfaceNode_) {
         for (auto& elem : applicationAgentMap_) {
             if (elem.second != nullptr) {
                 elem.second->NotifyClearBufferCache();
