@@ -31,6 +31,7 @@ config("vsync_public_config") {
     "//foundation/graphic/graphic_2d/interfaces/inner_api/composer",
     "//foundation/graphic/graphic_2d/rosen/include/common",
     "//foundation/graphic/graphic_2d/rosen/modules/composer/vsync/include",
+    "//foundation/graphic/graphic_2d/utils/sandbox",
   ]
 }
 

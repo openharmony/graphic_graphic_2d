@@ -30,6 +30,7 @@
 #include "hitrace_meter.h"
 #include "surface_buffer_impl.h"
 #include "sync_fence.h"
+#include "sandbox_utils.h"
 
 namespace OHOS {
 namespace {
@@ -48,7 +49,7 @@ static const std::map<BufferState, std::string> BufferStateStrs = {
 static uint64_t GetUniqueIdImpl()
 {
     static std::atomic<uint32_t> counter { 0 };
-    static uint64_t id = static_cast<uint64_t>(::getpid()) << UNIQUE_ID_OFFSET;
+    static uint64_t id = static_cast<uint64_t>(GetRealPid()) << UNIQUE_ID_OFFSET;
     return id | counter++;
 }
 
@@ -402,7 +403,7 @@ void BufferQueue::DumpToFile(uint32_t sequence)
     int64_t nowVal = (int64_t)now.tv_sec * secToUsec + (int64_t)now.tv_usec;
 
     std::stringstream ss;
-    ss << "/data/bq_" << getpid() << "_" << name_ << "_" << nowVal << ".raw";
+    ss << "/data/bq_" << GetRealPid() << "_" << name_ << "_" << nowVal << ".raw";
 
     sptr<SurfaceBuffer>& buffer = bufferQueueCache_[sequence].buffer;
     std::ofstream rawDataFile(ss.str(), std::ofstream::binary);

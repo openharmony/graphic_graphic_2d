@@ -24,6 +24,7 @@
 #include <hilog/log.h>
 
 #include "frame_info.h"
+#include "sandbox_utils.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -52,7 +53,7 @@ FrameSaver::FrameSaver()
     }
 
     std::stringstream ss;
-    ss << saveDirectory << "/" << getpid() << ".log";
+    ss << saveDirectory << "/" << GetRealPid() << ".log";
     ofs_.open(ss.str(), ofs_.out | ofs_.app);
 }
 

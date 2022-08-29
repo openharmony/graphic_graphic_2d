@@ -44,6 +44,7 @@
 #include <unistd.h>
 #endif
 #include "accessibility_config.h"
+#include "sandbox_utils.h"
 
 static void SystemCallSetThreadName(const std::string& name)
 {
@@ -204,7 +205,7 @@ void RSRenderThread::RenderLoop()
 #ifdef OHOS_RSS_CLIENT
     std::unordered_map<std::string, std::string> payload;
     payload["uid"] = std::to_string(getuid());
-    payload["pid"] = std::to_string(getpid());
+    payload["pid"] = std::to_string(GetRealPid());
     ResourceSchedule::ResSchedClient::GetInstance().ReportData(
         ResourceSchedule::ResType::RES_TYPE_REPORT_RENDER_THREAD, gettid(), payload);
 #endif
@@ -222,7 +223,7 @@ void RSRenderThread::RenderLoop()
             ->QueryIfRTNeedRender();
         RSSystemProperties::SetRenderMode(!needRender_);
     }
-    std::string name = "RSRenderThread_" + std::to_string(::getpid());
+    std::string name = "RSRenderThread_" + std::to_string(GetRealPid());
     runner_ = AppExecFwk::EventRunner::Create(false);
     handler_ = std::make_shared<AppExecFwk::EventHandler>(runner_);
     auto rsClient = std::static_pointer_cast<RSRenderServiceClient>(RSIRenderClient::CreateRenderServiceClient());

@@ -31,6 +31,7 @@ config("surface_public_config") {
   include_dirs = [
     "//foundation/graphic/graphic_2d/interfaces/inner_api/surface",
     "//foundation/graphic/graphic_2d/interfaces/inner_api/common",
+    "//foundation/graphic/graphic_2d/utils/sandbox",
   ]
 
   if (ace_enable_gpu) {
@@ -77,6 +78,7 @@ ohos_shared_library("surface") {
     "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
     "//foundation/graphic/graphic_2d/utils/buffer_handle:buffer_handle",
     "//foundation/graphic/graphic_2d/utils/gslogger:libgslogger",
+    "//foundation/graphic/graphic_2d/utils/sandbox:sandbox_utils",
     "//foundation/graphic/graphic_2d/utils/scoped_bytrace:scoped_bytrace",
     "//foundation/graphic/graphic_2d/utils/sync_fence:sync_fence",
     "//third_party/EGL:libEGL",

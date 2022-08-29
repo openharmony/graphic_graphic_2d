@@ -22,6 +22,7 @@
 #include <map>
 #include <string>
 #include <ostream>
+#include <unistd.h>
 
 namespace OHOS {
 #endif

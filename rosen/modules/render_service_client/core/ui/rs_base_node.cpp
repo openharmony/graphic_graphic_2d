@@ -26,13 +26,14 @@
 #include "ui/rs_display_node.h"
 #include "ui/rs_root_node.h"
 #include "ui/rs_surface_node.h"
+#include "sandbox_utils.h"
 
 namespace OHOS {
 namespace Rosen {
 
 NodeId RSBaseNode::GenerateId()
 {
-    static pid_t pid_ = getpid();
+    static pid_t pid_ = GetRealPid();
     static std::atomic<uint32_t> currentId_ = 0;
 
     ++currentId_;

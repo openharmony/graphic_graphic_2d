@@ -16,6 +16,7 @@
 #include "modifier/rs_property.h"
 
 #include "command/rs_node_command.h"
+#include "sandbox_utils.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -24,7 +25,7 @@ constexpr int PID_SHIFT = 32;
 
 PropertyId GeneratePropertyId()
 {
-    static pid_t pid_ = getpid();
+    static pid_t pid_ = GetRealPid();
     static std::atomic<uint32_t> currentId_ = 1;
 
     ++currentId_;

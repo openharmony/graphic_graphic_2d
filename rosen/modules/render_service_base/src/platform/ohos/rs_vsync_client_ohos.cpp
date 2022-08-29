@@ -17,6 +17,7 @@
 #include <string>
 #include "platform/common/rs_log.h"
 #include "transaction/rs_render_service_client.h"
+#include "sandbox_utils.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -30,7 +31,7 @@ RSVsyncClientOhos::RSVsyncClientOhos()
 {
     static int sequence = 0;
     std::string name = "RSVsyncClientOhos";
-    name += "_" + std::to_string(::getpid()) + "_" + std::to_string(sequence);
+    name += "_" + std::to_string(GetRealPid()) + "_" + std::to_string(sequence);
     auto rsClient = std::static_pointer_cast<RSRenderServiceClient>(RSIRenderClient::CreateRenderServiceClient());
     while (receiver_ == nullptr) {
         receiver_ = rsClient->CreateVSyncReceiver(name, handler_);

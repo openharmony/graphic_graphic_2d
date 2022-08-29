@@ -18,6 +18,7 @@
 
 #include <iremote_proxy.h>
 #include <platform/ohos/rs_irender_service_connection.h>
+#include "sandbox_utils.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -113,7 +114,7 @@ public:
 private:
     static inline BrokerDelegator<RSRenderServiceConnectionProxy> delegator_;
 
-    pid_t pid_ = getpid();
+    pid_t pid_ = GetRealPid();
     uint32_t transactionDataIndex_ = 0;
 };
 } // namespace Rosen

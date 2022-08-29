@@ -263,7 +263,7 @@ private:
         }
 
         std::string timeStamp = detail::FormattedTimeStamp();
-        std::string dumpFileName = "/data/dumpImg-" + std::to_string(getpid()) + "-" + timeStamp + ".png";
+        std::string dumpFileName = "/data/dumpImg-" + std::to_string(GetRealPid()) + "-" + timeStamp + ".png";
 
         bool ret = WriteToPng(dumpFileName, param);
         if (ret) {
