@@ -77,6 +77,7 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
     if (node.GetSecurityLayer()) {
         displayHasSecSurface_[currentVisitDisplay_] = true;
     }
+    node.CleanDstRectChanged();
     node.ApplyModifiers();
     bool dirtyFlag = dirtyFlag_;
     // prepare the surfaceRenderNode whose child is rootRenderNode 
@@ -105,6 +106,9 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
         }
     }
 
+    if (node.GetDstRectChanged()) {
+        dirtyFlag_ = true;
+    }
     PrepareBaseRenderNode(node);
     dirtyFlag_ = dirtyFlag;
     if (node.GetDirtyManager() && node.GetDirtyManager()->IsDirty()) {
