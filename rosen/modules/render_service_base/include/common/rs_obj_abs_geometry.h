@@ -33,6 +33,8 @@ public:
     ~RSObjAbsGeometry() override;
     void UpdateMatrix(const Matrix3f& matrix);
     void UpdateMatrix(const std::shared_ptr<RSObjAbsGeometry>& parent, float offsetX, float offsetY);
+    void UpdateMatrix(const std::shared_ptr<RSObjAbsGeometry>& parent,
+        Vector2f& offset, Vector3f& scale, Vector3f& tran);
 
     // Using by RenderService
     void UpdateByMatrixFromSelf();

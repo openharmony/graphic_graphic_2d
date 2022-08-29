@@ -21,6 +21,7 @@
 #include "common/rs_matrix3.h"
 #include "common/rs_vector4.h"
 #include "property/rs_properties_def.h"
+#include "property/rs_transition_properties.h"
 #include "render/rs_border.h"
 #include "render/rs_filter.h"
 #include "render/rs_image.h"
@@ -187,7 +188,8 @@ public:
 
     const std::shared_ptr<RSObjGeometry>& GetBoundsGeometry() const;
     const std::shared_ptr<RSObjGeometry>& GetFrameGeometry() const;
-    bool UpdateGeometry(const RSProperties* parent, bool dirtyFlag);
+    bool UpdateGeometry(const RSProperties* parent, bool dirtyFlag,
+        const std::unique_ptr<RSTransitionProperties>& transition = nullptr);
 
     bool GetZorderChanged() const;
     void CleanZorderChanged();

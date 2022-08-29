@@ -69,13 +69,14 @@ bool RSRenderNode::Animate(int64_t timestamp)
     return animationManager_.Animate(timestamp);
 }
 
-bool RSRenderNode::Update(RSDirtyRegionManager& dirtyManager, const RSProperties* parent, bool parentDirty)
+bool RSRenderNode::Update(RSDirtyRegionManager& dirtyManager, const RSProperties* parent, bool parentDirty,
+    const std::unique_ptr<RSTransitionProperties>& transition)
 {
     // no need to update invisible nodes
     if (!renderProperties_.GetVisible() && !isLastVisible_) {
         return false;
     }
-    bool dirty = renderProperties_.UpdateGeometry(parent, parentDirty);
+    bool dirty = renderProperties_.UpdateGeometry(parent, parentDirty, transition);
     isDirtyRegionUpdated_ = false;
     UpdateDirtyRegion(dirtyManager, dirty);
     isLastVisible_ = renderProperties_.GetVisible();
