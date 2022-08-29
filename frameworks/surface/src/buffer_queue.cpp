@@ -16,7 +16,6 @@
 #include "buffer_queue.h"
 #include <algorithm>
 #include <fstream>
-#include <iostream>
 #include <sstream>
 #include <sys/time.h>
 #include <cinttypes>
@@ -234,6 +233,22 @@ GSError BufferQueue::RequestBuffer(const BufferRequestConfig &config, sptr<Buffe
     return ret;
 }
 
+GSError BufferQueue::SetProducerCacheCleanFlag(bool flag)
+{
+    producerCacheClean_ = flag;
+    return GSERROR_OK;
+}
+
+bool BufferQueue::CheckProducerCacheList()
+{
+    for (auto &[id, _] : bufferQueueCache_) {
+        if (std::find(producerCacheList_.begin(), producerCacheList_.end(), id) == producerCacheList_.end()) {
+            return false;
+        }
+    }
+    return true;
+}
+
 GSError BufferQueue::ReuseBuffer(const BufferRequestConfig &config, sptr<BufferExtraData> &bedata,
     struct IBufferProducer::RequestBufferReturnValue &retval)
 {
@@ -267,9 +282,16 @@ GSError BufferQueue::ReuseBuffer(const BufferRequestConfig &config, sptr<BufferE
     dbs.insert(dbs.end(), deletingList_.begin(), deletingList_.end());
     deletingList_.clear();
 
-    if (needRealloc || isShared_) {
+    if (needRealloc || isShared_ || producerCacheClean_) {
         BLOGND("RequestBuffer Succ realloc Buffer[%{public}d %{public}d] with new config "\
             "qid: %{public}d id: %{public}" PRIu64, config.width, config.height, retval.sequence, uniqueId_);
+        if (producerCacheClean_) {
+            producerCacheList_.push_back(retval.sequence);
+            if (CheckProducerCacheList()) {
+                producerCacheList_.clear();
+                SetProducerCacheCleanFlag(false);
+            }
+        }
     } else {
         BLOGND("RequestBuffer Succ Buffer[%{public}d %{public}d] in seq id: %{public}d "\
             "qid: %{public}" PRIu64 " releaseFence: %{public}d",
@@ -828,6 +850,7 @@ GSError BufferQueue::GoBackground()
     std::lock_guard<std::mutex> lockGuard(mutex_);
     ClearLocked();
     waitReqCon_.notify_all();
+    SetProducerCacheCleanFlag(false);
     return GSERROR_OK;
 }
 

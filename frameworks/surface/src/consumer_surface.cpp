@@ -228,7 +228,7 @@ GSError ConsumerSurface::CleanCache()
 
 GSError ConsumerSurface::GoBackground()
 {
-    return GSERROR_NOT_SUPPORT;
+    return consumer_->GoBackground();
 }
 
 uint64_t ConsumerSurface::GetUniqueId() const
