@@ -526,10 +526,8 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
     } else {
         canvas_->clipRect(boundsRect_);
     }
-    auto backgroundColor = static_cast<SkColor>(property.GetBackgroundColor().AsArgbInt());
-    if (SkColorGetA(backgroundColor) != SK_AlphaTRANSPARENT) {
-        canvas_->drawColor(backgroundColor);
-    }
+
+    RSPropertiesPainter::DrawBackground(property, *canvas_);
     auto filter = std::static_pointer_cast<RSSkiaFilter>(property.GetBackgroundFilter());
     if (filter != nullptr) {
         auto skRectPtr = std::make_unique<SkRect>();

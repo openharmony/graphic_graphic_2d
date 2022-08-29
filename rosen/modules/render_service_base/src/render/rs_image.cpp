@@ -206,7 +206,7 @@ bool RSImage::Marshalling(Parcel& parcel) const
     int imageFit = static_cast<int>(imageFit_);
     int imageRepeat = static_cast<int>(imageRepeat_);
     static uint64_t pid = static_cast<uint64_t>(getpid()) << 32; // 32 for 64-bit unsignd number shift
-    uint64_t uniqueId = pid | image_->uniqueID();
+    uint64_t uniqueId = image_ ? (pid | image_->uniqueID()) : 0;
     success &= RSMarshallingHelper::Marshalling(parcel, uniqueId);
     success &= RSMarshallingHelper::Marshalling(parcel, image_);
     success &= RSMarshallingHelper::Marshalling(parcel, pixelmap_);

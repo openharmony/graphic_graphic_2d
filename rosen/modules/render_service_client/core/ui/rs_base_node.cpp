@@ -45,8 +45,6 @@ NodeId RSBaseNode::GenerateId()
     return ((NodeId)pid_ << 32) | currentId_;
 }
 
-bool RSBaseNode::isUniRenderEnabled_ = false;
-
 void RSBaseNode::InitUniRenderEnabled()
 {
     static bool inited = false;

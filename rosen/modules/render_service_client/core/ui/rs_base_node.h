@@ -75,7 +75,7 @@ public:
     }
     virtual std::string DumpNode(int depth) const;
 protected:
-    static bool isUniRenderEnabled_;
+    static inline bool isUniRenderEnabled_ = false;
     bool isRenderServiceNode_;
 
     explicit RSBaseNode(bool isRenderServiceNode);
