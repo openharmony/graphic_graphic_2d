@@ -24,7 +24,7 @@
 namespace OHOS {
 namespace Rosen {
 class RSRenderNode;
-
+class RSSurfaceRenderNode;
 class RSRenderNodeMap final {
 public:
     bool RegisterRenderNode(const std::shared_ptr<RSBaseRenderNode>& nodePtr);
@@ -44,6 +44,7 @@ public:
 
     void FilterNodeByPid(pid_t pid);
     void TraversalNodes(std::function<void (const std::shared_ptr<RSBaseRenderNode>&)> func) const;
+    void TraverseSurfaceNodes(std::function<void (const std::shared_ptr<RSSurfaceRenderNode>&)> func) const;
 private:
     explicit RSRenderNodeMap();
     ~RSRenderNodeMap() = default;
@@ -54,6 +55,7 @@ private:
 
 private:
     std::unordered_map<NodeId, std::shared_ptr<RSBaseRenderNode>> renderNodeMap_;
+    std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>> surfaceNodeMap_;
 
     friend class RSContext;
     friend class RSMainThread;

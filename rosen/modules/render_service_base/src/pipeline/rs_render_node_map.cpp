@@ -35,12 +35,16 @@ bool RSRenderNodeMap::RegisterRenderNode(const std::shared_ptr<RSBaseRenderNode>
         return false;
     }
     renderNodeMap_.emplace(id, nodePtr);
+    if (nodePtr->GetType() == RSRenderNodeType::SURFACE_NODE) {
+        surfaceNodeMap_.emplace(id, nodePtr->ReinterpretCastTo<RSSurfaceRenderNode>());
+    }
     return true;
 }
 
 void RSRenderNodeMap::UnregisterRenderNode(NodeId id)
 {
     renderNodeMap_.erase(id);
+    surfaceNodeMap_.erase(id);
 }
 
 void RSRenderNodeMap::FilterNodeByPid(pid_t pid)
@@ -59,6 +63,10 @@ void RSRenderNodeMap::FilterNodeByPid(pid_t pid)
         return true;
     });
 
+    std::__libcpp_erase_if_container(surfaceNodeMap_, [pid](const auto& pair) -> bool {
+        return static_cast<pid_t>(pair.first >> 32) == pid;
+    });
+
     auto fallbackNode = RSBaseRenderNode::ReinterpretCast<RSRenderNode>(renderNodeMap_.at(0));
     if (fallbackNode) {
         // remove all fallback animations belong to given pid
@@ -69,6 +77,13 @@ void RSRenderNodeMap::FilterNodeByPid(pid_t pid)
 void RSRenderNodeMap::TraversalNodes(std::function<void (const std::shared_ptr<RSBaseRenderNode>&)> func) const
 {
     for (const auto& [_, node] : renderNodeMap_) {
+        func(node);
+    }
+}
+
+void RSRenderNodeMap::TraverseSurfaceNodes(std::function<void (const std::shared_ptr<RSSurfaceRenderNode>&)> func) const
+{
+    for (const auto& [_, node] : surfaceNodeMap_) {
         func(node);
     }
 }

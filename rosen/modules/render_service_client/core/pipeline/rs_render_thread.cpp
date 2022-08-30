@@ -27,6 +27,7 @@
 #include "pipeline/rs_node_map.h"
 #include "pipeline/rs_render_node_map.h"
 #include "pipeline/rs_root_render_node.h"
+#include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
 #ifdef OHOS_RSS_CLIENT
@@ -301,8 +302,8 @@ void RSRenderThread::UpdateSurfaceNodeParentInRS()
 {
     auto& nodeMap = context_.GetMutableNodeMap();
     std::unordered_map<NodeId, NodeId> surfaceNodeMap; // [surfaceNodeId, parentId]
-    nodeMap.TraversalNodes([&surfaceNodeMap](const std::shared_ptr<RSBaseRenderNode>& node) mutable {
-        if (!node || !node->IsInstanceOf<RSSurfaceRenderNode>()) {
+    nodeMap.TraverseSurfaceNodes([&surfaceNodeMap](const std::shared_ptr<RSSurfaceRenderNode>& node) mutable {
+        if (!node) {
             return;
         }
         auto parent = node->GetParent().lock();

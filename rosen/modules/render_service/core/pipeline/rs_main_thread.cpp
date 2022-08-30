@@ -329,41 +329,39 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
     bool needRequestNextVsync = false;
     bufferTimestamps_.clear();
     const auto& nodeMap = GetContext().GetNodeMap();
-    nodeMap.TraversalNodes([this, &needRequestNextVsync](const std::shared_ptr<RSBaseRenderNode>& node) mutable {
-        if (node == nullptr) {
+    nodeMap.TraverseSurfaceNodes(
+        [this, &needRequestNextVsync](const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) mutable {
+        if (surfaceNode == nullptr) {
             return;
         }
 
-        if (node->IsInstanceOf<RSSurfaceRenderNode>()) {
-            RSSurfaceRenderNode& surfaceNode = *(RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node));
-            auto& surfaceHandler = static_cast<RSSurfaceHandler&>(surfaceNode);
-            surfaceHandler.ResetCurrentFrameBufferConsumed();
-            if (RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler)) {
-                this->bufferTimestamps_[surfaceNode.GetId()] = static_cast<uint64_t>(surfaceNode.GetTimestamp());
-            }
+        auto& surfaceHandler = static_cast<RSSurfaceHandler&>(*surfaceNode);
+        surfaceHandler.ResetCurrentFrameBufferConsumed();
+        if (RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler)) {
+            this->bufferTimestamps_[surfaceNode->GetId()] = static_cast<uint64_t>(surfaceNode->GetTimestamp());
+        }
 
-            // still have buffer(s) to consume.
-            if (surfaceHandler.GetAvailableBufferCount() > 0) {
-                needRequestNextVsync = true;
-            }
+        // still have buffer(s) to consume.
+        if (surfaceHandler.GetAvailableBufferCount() > 0) {
+            needRequestNextVsync = true;
+        }
 
-            // check first frame callback in uniRender case
-            if (!IfUseUniVisitor() || !surfaceNode.IsAppWindow()) {
-                return;
-            }
-            for (auto& child : surfaceNode.GetSortedChildren()) {
-                if (child != nullptr && child->IsInstanceOf<RSRootRenderNode>()) {
-                    auto rootNode = child->ReinterpretCastTo<RSRootRenderNode>();
-                    rootNode->ApplyModifiers();
-                    const auto& property = rootNode->GetRenderProperties();
-                    if (property.GetFrameWidth() > 0 && property.GetFrameWidth() > 0 &&
-                        rootNode->GetEnableRender()) {
-                        surfaceNode.NotifyUIBufferAvailable();
-                    }
+        // check first frame callback in uniRender case
+        if (!IfUseUniVisitor() || !surfaceNode->IsAppWindow()) {
+            return;
+        }
+        for (auto& child : surfaceNode->GetSortedChildren()) {
+            if (child != nullptr && child->IsInstanceOf<RSRootRenderNode>()) {
+                auto rootNode = child->ReinterpretCastTo<RSRootRenderNode>();
+                rootNode->ApplyModifiers();
+                const auto& property = rootNode->GetRenderProperties();
+                if (property.GetFrameWidth() > 0 && property.GetFrameHeight() > 0 &&
+                    rootNode->GetEnableRender()) {
+                    surfaceNode->NotifyUIBufferAvailable();
                 }
             }
-            surfaceNode.ResetSortedChildren();
         }
+        surfaceNode->ResetSortedChildren();
     });
 
     if (needRequestNextVsync) {
@@ -375,16 +373,11 @@ void RSMainThread::ReleaseAllNodesBuffer()
 {
     RS_TRACE_NAME("RSMainThread::ReleaseAllNodesBuffer");
     const auto& nodeMap = GetContext().GetNodeMap();
-    nodeMap.TraversalNodes([this](const std::shared_ptr<RSBaseRenderNode>& node) mutable {
-        if (node == nullptr) {
+    nodeMap.TraverseSurfaceNodes([](const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) mutable {
+        if (surfaceNode == nullptr) {
             return;
         }
-
-        if (node->IsInstanceOf<RSSurfaceRenderNode>()) {
-            RSSurfaceRenderNode& surfaceNode = *(RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node));
-            auto& surfaceHandler = static_cast<RSSurfaceHandler&>(surfaceNode);
-            (void)RSBaseRenderUtil::ReleaseBuffer(surfaceHandler);
-        }
+        RSBaseRenderUtil::ReleaseBuffer(static_cast<RSSurfaceHandler&>(*surfaceNode));
     });
 }
 
@@ -446,12 +439,8 @@ void RSMainThread::CheckBufferAvailableIfNeed()
     }
     const auto& nodeMap = GetContext().GetNodeMap();
     bool allBufferAvailable = true;
-    for (auto& [id, node] : nodeMap.renderNodeMap_) {
-        if (node == nullptr || !node->IsInstanceOf<RSSurfaceRenderNode>() || !node->IsOnTheTree()) {
-            continue;
-        }
-        auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node);
-        if (!surfaceNode->IsAppWindow()) {
+    for (auto& [id, surfaceNode] : nodeMap.surfaceNodeMap_) {
+        if (surfaceNode == nullptr || !surfaceNode->IsOnTheTree() || !surfaceNode->IsAppWindow()) {
             continue;
         }
         if (surfaceNode->GetBuffer() == nullptr) {
@@ -472,24 +461,20 @@ void RSMainThread::CheckUpdateSurfaceNodeIfNeed()
     }
     const auto& nodeMap = GetContext().GetNodeMap();
     bool allSurfaceNodeUpdated = true;
-    for (auto& [id, node] : nodeMap.renderNodeMap_) {
+    for (auto& [id, surfaceNode] : nodeMap.surfaceNodeMap_) {
         if (!allSurfaceNodeUpdated) {
             break;
         }
-        if (node == nullptr || !node->IsInstanceOf<RSSurfaceRenderNode>() || !node->IsOnTheTree()) {
+        if (surfaceNode == nullptr || !surfaceNode->IsOnTheTree() || !surfaceNode->IsAppWindow()) {
             continue;
         }
-        auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node);
-        if (!surfaceNode->IsAppWindow()) {
-            continue;
-        }
-        for (auto& child : node->GetSortedChildren()) {
+        for (auto& child : surfaceNode->GetSortedChildren()) {
             if (child != nullptr && child->IsInstanceOf<RSSurfaceRenderNode>() && child->IsOnTheTree()) {
                 allSurfaceNodeUpdated = false;
                 break;
             }
         }
-        node->ResetSortedChildren();
+        surfaceNode->ResetSortedChildren();
     }
     waitingUpdateSurfaceNode_ = !allSurfaceNodeUpdated;
     if (!waitingUpdateSurfaceNode_) {

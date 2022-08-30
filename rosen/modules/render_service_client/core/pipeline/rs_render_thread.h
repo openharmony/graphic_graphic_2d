@@ -141,7 +141,6 @@ private:
 
     uint64_t timestamp_ = 0;
     uint64_t prevTimestamp_ = 0;
-    uint64_t refreshPeriod_ = 16666667;
     int32_t tid_ = -1;
     uint64_t mValue = 0;
 
