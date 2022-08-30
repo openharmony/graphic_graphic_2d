@@ -29,7 +29,16 @@ namespace Rosen {
 class RSUniRenderUtil {
 public:
     static bool UpdateRenderNodeDstRect(RSRenderNode& node);
-    static Occlusion::Region MergeVisibleDirtyRegion(std::shared_ptr<RSDisplayRenderNode>& node, int32_t bufferAge);
+
+    // merge history dirty region of current display node and its child surfacenode(app windows)
+    // for mirror display, call this function twice will introduce additional dirtyhistory in dirtymanager
+    static void MergeDirtyHistory(std::shared_ptr<RSDisplayRenderNode>& node, int32_t bufferAge);
+
+    /* we want to set visible dirty region of each surfacenode into DamageRegionKHR interface, hence
+     * occlusion is calculated.
+     * make sure this function is called after merge dirty history
+     */
+    static Occlusion::Region MergeVisibleDirtyRegion(std::shared_ptr<RSDisplayRenderNode>& node);
 };
 }
 }

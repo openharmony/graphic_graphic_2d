@@ -54,8 +54,14 @@ private:
         const SkPaint::Style fillType, float alpha);
     void DrawDirtyRegion();
     std::vector<RectI> GetDirtyRects(const Occlusion::Region &region);
-    RectI CoordinateTransform(const RectI& rect);
+    /* calculate display/global (between windows) level dirty region, current include:
+     * 1. window move/add/remove 2. transparent dirty region
+     * when process canvas culling, canvas intersect with surface's visibledirty region or
+     * global dirty region will be skipped
+     */
     void CalcDirtyDisplayRegion(std::shared_ptr<RSDisplayRenderNode>& node) const;
+    // set global dirty region to each surface node
+    void SetSurfaceGlobalDirtyRegion(std::shared_ptr<RSDisplayRenderNode>& node);
 
     ScreenInfo screenInfo_;
     std::shared_ptr<RSDirtyRegionManager> curSurfaceDirtyManager_;

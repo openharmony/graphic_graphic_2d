@@ -46,15 +46,14 @@ bool RSUniRenderUtil::UpdateRenderNodeDstRect(RSRenderNode& node)
     return transitionProperties != nullptr;
 }
 
-Occlusion::Region RSUniRenderUtil::MergeVisibleDirtyRegion(std::shared_ptr<RSDisplayRenderNode>& node,
-    int32_t bufferAge)
+void RSUniRenderUtil::MergeDirtyHistory(std::shared_ptr<RSDisplayRenderNode>& node, int32_t bufferAge)
 {
+    // update all child surfacenode history
     std::vector<RSBaseRenderNode::SharedPtr> curAllSurfaces;
-    Occlusion::Region curRegion;
     node->CollectSurface(node, curAllSurfaces, true);
     for (auto it = curAllSurfaces.rbegin(); it != curAllSurfaces.rend(); ++it) {
         auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(*it);
-        if (surfaceNode == nullptr) {
+        if (surfaceNode == nullptr || !surfaceNode->IsAppWindow()) {
             continue;
         }
         auto surfaceDirtyManager = surfaceNode->GetDirtyManager();
@@ -62,16 +61,32 @@ Occlusion::Region RSUniRenderUtil::MergeVisibleDirtyRegion(std::shared_ptr<RSDis
             ROSEN_LOGE("RSUniRenderUtil::MergeVisibleDirtyRegion with invalid buffer age %d", bufferAge);
         }
         surfaceDirtyManager->UpdateDirty();
+    }
+    // update display dirtymanager
+    node->UpdateDisplayDirtyManager(bufferAge);
+}
+
+Occlusion::Region RSUniRenderUtil::MergeVisibleDirtyRegion(std::shared_ptr<RSDisplayRenderNode>& node)
+{
+    std::vector<RSBaseRenderNode::SharedPtr> curAllSurfaces;
+    Occlusion::Region allSurfaceVisibleDirtyRegion;
+    node->CollectSurface(node, curAllSurfaces, true);
+    for (auto it = curAllSurfaces.rbegin(); it != curAllSurfaces.rend(); ++it) {
+        auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(*it);
+        if (surfaceNode == nullptr || !surfaceNode->IsAppWindow()) {
+            continue;
+        }
+        auto surfaceDirtyManager = surfaceNode->GetDirtyManager();
         auto surfaceDirtyRect = surfaceDirtyManager->GetDirtyRegion();
         Occlusion::Rect dirtyRect { surfaceDirtyRect.left_, surfaceDirtyRect.top_,
             surfaceDirtyRect.GetRight(), surfaceDirtyRect.GetBottom() };
         auto visibleRegion = surfaceNode->GetVisibleRegion();
         Occlusion::Region surfaceDirtyRegion { dirtyRect };
-        Occlusion::Region uniRegion = surfaceDirtyRegion.And(visibleRegion);
-        surfaceNode->SetVisibleDirtyRegion(uniRegion);
-        curRegion = curRegion.Or(uniRegion);
+        Occlusion::Region surfaceVisibleDirtyRegion = surfaceDirtyRegion.And(visibleRegion);
+        surfaceNode->SetVisibleDirtyRegion(surfaceVisibleDirtyRegion);
+        allSurfaceVisibleDirtyRegion = allSurfaceVisibleDirtyRegion.Or(surfaceVisibleDirtyRegion);
     }
-    return curRegion;
+    return allSurfaceVisibleDirtyRegion;
 }
 } // namespace Rosen
 } // namespace OHOS
