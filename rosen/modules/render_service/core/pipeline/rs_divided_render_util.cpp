@@ -64,6 +64,11 @@ bool RSDividedRenderUtil::IsNeedClient(RSSurfaceRenderNode& node, const ComposeI
         RS_LOGD("RsDebug RSDividedRenderUtil::IsNeedClient enable composition client need shadow");
         return true;
     }
+    if (property.GetRotation() != 0 || property.GetRotationX() != 0 || property.GetRotationY() != 0 ||
+        property.GetQuaternion() != Quaternion()) {
+        RS_LOGD("RsDebug RSDividedRenderUtil::IsNeedClient enable composition client need rotation");
+        return true;
+    }
     return false;
 }
 

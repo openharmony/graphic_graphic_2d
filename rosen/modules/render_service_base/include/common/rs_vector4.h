@@ -343,13 +343,7 @@ template<typename T>
 Vector4<T> Vector4<T>::operator*(const Vector4<T>& other) const
 {
     Vector4<T> rMult;
-    T* rData = rMult.data_;
-    const T* oData = other.data_;
-    rData[0] = data_[0] * oData[0];
-    rData[1] = data_[1] * oData[1];
-    rData[2] = data_[2] * oData[2];
-    rData[3] = data_[3] * oData[3];
-    return rMult;
+    return rMult *= other;
 }
 
 template<typename T>

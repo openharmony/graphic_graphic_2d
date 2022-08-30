@@ -40,13 +40,11 @@ RSSurfaceRenderNode::RSSurfaceRenderNode(const RSSurfaceRenderNodeConfig& config
       name_(config.name),
       nodeType_(config.nodeType),
       dirtyManager_(std::make_shared<RSDirtyRegionManager>())
-{
-}
+{}
 
 RSSurfaceRenderNode::RSSurfaceRenderNode(NodeId id, std::weak_ptr<RSContext> context)
     : RSSurfaceRenderNode(RSSurfaceRenderNodeConfig{id, "SurfaceNode"}, context)
-{
-}
+{}
 
 RSSurfaceRenderNode::~RSSurfaceRenderNode() {}
 
@@ -294,7 +292,7 @@ void RSSurfaceRenderNode::UpdateSurfaceDefaultSize(float width, float height)
 {
     if (consumer_ != nullptr) {
         consumer_->SetDefaultWidthAndHeight(width, height);
-    }  
+    }
 }
 
 BlendType RSSurfaceRenderNode::GetBlendType()
@@ -405,6 +403,5 @@ bool RSSurfaceRenderNode::NeedSetCallbackForRenderThreadRefresh()
 {
     return (callbackForRenderThreadRefresh_ == nullptr);
 }
-
 } // namespace Rosen
 } // namespace OHOS

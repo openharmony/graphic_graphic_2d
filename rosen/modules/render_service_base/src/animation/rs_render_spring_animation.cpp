@@ -165,7 +165,7 @@ void RSRenderSpringAnimation::OnAnimateInner(float fraction)
     if (GetPropertyId() == 0) {
         return;
     }
-    // always record fraction from previous iterator, will be used to calculate velocity
+    // always record fraction from previous iteration, will be used to calculate velocity
     prevFraction_ = fraction;
     auto displacement = CalculateDisplacement(
         fraction * GetDuration() * MILLISECOND_TO_SECOND);
@@ -175,6 +175,9 @@ void RSRenderSpringAnimation::OnAnimateInner(float fraction)
 std::tuple<std::shared_ptr<RSRenderPropertyBase>,
         std::shared_ptr<RSRenderPropertyBase>> RSRenderSpringAnimation::GetSpringStatus()
 {
+    if (ROSEN_EQ(prevFraction_, 0.0f)) {
+        return { startValue_, initialVelocity_ };
+    }
     auto displacement = CalculateDisplacement(
         prevFraction_ * GetDuration() * MILLISECOND_TO_SECOND);
     auto velocity = GetInstantaneousVelocity(

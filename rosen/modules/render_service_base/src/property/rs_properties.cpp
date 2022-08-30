@@ -930,22 +930,29 @@ bool RSProperties::NeedClip() const
 
 void RSProperties::Reset()
 {
+    alphaOffscreen_ = false;
     isDirty_ = true;
-    boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
-    frameGeo_ = std::make_shared<RSObjGeometry>();
+    hasBounds_ = false;
+    isDirty_ = true;
     visible_ = true;
     clipToBounds_ = false;
     clipToFrame_ = false;
-    clipPath_ = nullptr;
+
     frameGravity_ = Gravity::DEFAULT;
     alpha_ = 1.f;
-    decoration_ = nullptr;
-    cornerRadius_ = nullptr;
-    shadow_ = nullptr;
-    border_ = nullptr;
+
+    boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
+    frameGeo_ = std::make_shared<RSObjGeometry>();
+
     backgroundFilter_ = nullptr;
+    border_ = nullptr;
+    clipPath_ = nullptr;
+    cornerRadius_ = nullptr;
+    decoration_ = nullptr;
     filter_ = nullptr;
     mask_ = nullptr;
+    shadow_ = nullptr;
+    sublayerTransform_ = nullptr;
 }
 
 void RSProperties::SetDirty()

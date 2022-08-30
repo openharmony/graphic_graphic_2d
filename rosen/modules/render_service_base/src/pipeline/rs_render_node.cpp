@@ -179,6 +179,7 @@ void RSRenderNode::ClearModifiers()
 {
     modifiers_.clear();
     drawCmdModifiers_.clear();
+    transitionModifiers_.clear();
     SetDirty();
 }
 
@@ -233,20 +234,20 @@ void RSRenderNode::RemoveModifier(const PropertyId& id)
     }
 }
 
-void RSRenderNode::RemoveModifier(const std::shared_ptr<RSRenderModifier>& modifier)
+void RSRenderNode::AddTransitionModifier(const std::shared_ptr<RSRenderModifier>& modifier)
 {
-    auto erasedElements = std::__libcpp_erase_if_container(modifiers_, [&modifier](const auto& iter) {
-        return iter.second == modifier;
-    });
-    if (erasedElements > 0) {
-        SetDirty();
+    if (!modifier) {
         return;
     }
-    for (auto& [type, modifiers] : drawCmdModifiers_) {
-        modifiers.remove_if([&modifier](const auto& item) -> bool {
-            return item == modifier;
-        });
-    }
+    transitionModifiers_.emplace(modifier);
+    modifier->GetProperty()->Attach(shared_from_this());
+    SetDirty();
+}
+
+void RSRenderNode::RemoveTransitionModifier(const std::shared_ptr<RSRenderModifier>& modifier)
+{
+    transitionModifiers_.erase(modifier);
+    SetDirty();
 }
 
 void RSRenderNode::ApplyModifiers()
@@ -254,10 +255,17 @@ void RSRenderNode::ApplyModifiers()
     if (!RSBaseRenderNode::IsDirty()) {
         return;
     }
-    RSModifyContext context = { GetMutableRenderProperties() };
-    for (auto& [id, modify] : modifiers_) {
-        if (modify) {
-            modify->Apply(context);
+    RSModifierContext context = { GetMutableRenderProperties() };
+    context.property_.Reset();
+    for (auto& [id, modifier] : modifiers_) {
+        if (modifier) {
+            modifier->Apply(context);
+        }
+    }
+
+    for (auto& modifier : transitionModifiers_) {
+        if (modifier) {
+            modifier->Apply(context);
         }
     }
     UpdateOverlayerBounds();
@@ -265,7 +273,7 @@ void RSRenderNode::ApplyModifiers()
 
 void RSRenderNode::UpdateOverlayerBounds()
 {
-    RSModifyContext context = { GetMutableRenderProperties() };
+    RSModifierContext context = { GetMutableRenderProperties() };
     auto iterator = drawCmdModifiers_.find(RSModifierType::OVERLAY_STYLE);
     if (iterator != drawCmdModifiers_.end()) {
         RectI joinRect = RectI();

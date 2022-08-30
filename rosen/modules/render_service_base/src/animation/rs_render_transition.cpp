@@ -92,12 +92,6 @@ void RSRenderTransition::OnAnimate(float fraction)
     for (auto& effect : effects_) {
         effect->UpdateFraction(valueFraction);
     }
-    auto target = GetTarget();
-    if (target == nullptr) {
-        ROSEN_LOGE("RSRenderTransition::OnAnimate, target is nullptr");
-        return;
-    }
-    target->SetDirty();
 }
 
 void RSRenderTransition::OnAttach()
@@ -109,8 +103,7 @@ void RSRenderTransition::OnAttach()
     }
     // create "transition" modifier and add it to target
     for (auto& effect : effects_) {
-        target->AddModifier(effect->GetModifier());
-        effect->UpdateFraction(isTransitionIn_ ? 1.0f : 0.0f);
+        target->AddTransitionModifier(effect->GetModifier());
     }
     // update number of disappearing transition animation
     if (!isTransitionIn_) {
@@ -127,7 +120,7 @@ void RSRenderTransition::OnDetach()
     }
     // remove "transition" modifier from target
     for (auto& effect : effects_) {
-        target->RemoveModifier(effect->GetModifier());
+        target->RemoveTransitionModifier(effect->GetModifier());
     }
     // update number of disappearing transition animation
     if (!isTransitionIn_) {

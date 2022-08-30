@@ -40,11 +40,7 @@ RSModifierExtractor::RSModifierExtractor(NodeId id) : id_(id) {}
         for (auto& [_, modifier] : node->modifiers_) {                                                              \
             if (modifier->GetModifierType() == RSModifierType::propertyType) {                                      \
                 auto modifierPtr = std::static_pointer_cast<RSModifier<RSProperty<T>>>(modifier);                   \
-                if (modifierPtr->isAdditive_) {                                                                     \
-                    value operator std::static_pointer_cast<RSProperty<T>>(modifierPtr->GetProperty())->Get();      \
-                } else {                                                                                            \
-                    value = std::static_pointer_cast<RSProperty<T>>(modifierPtr->GetProperty())->Get();             \
-                }                                                                                                   \
+                value operator std::static_pointer_cast<RSProperty<T>>(modifierPtr->GetProperty())->Get();          \
             }                                                                                                       \
         }                                                                                                           \
         return value;                                                                                               \
@@ -112,7 +108,7 @@ float RSModifierExtractor::GetAlpha() const
 
 bool RSModifierExtractor::GetAlphaOffscreen() const
 {
-    GET_PROPERTY_FROM_MODIFIERS(bool, ALPHA_OFFSCREEN, true, =);
+    GET_PROPERTY_FROM_MODIFIERS(bool, ALPHA_OFFSCREEN, false, =);
 }
 
 Vector4f RSModifierExtractor::GetCornerRadius() const

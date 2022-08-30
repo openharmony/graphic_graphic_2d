@@ -217,8 +217,8 @@ void RSUniRenderVisitor::DrawDirtyRegion()
     if (curSurfaceDirtyManager_->IsDebugRegionTypeEnable(DebugRegionType::CURRENT_WHOLE)) {
         dirtyRect = curSurfaceDirtyManager_->GetLatestDirtyRegion();
         if (dirtyRect.width_ <= 0 || dirtyRect.height_ <= 0) {
-            ROSEN_LOGD("DrawDirtyRegion dirty rect is invalid. dirtyRect = [%d, %d, %d, %d]",
-                dirtyRect.left_, dirtyRect.top_, dirtyRect.width_, dirtyRect.height_);
+            ROSEN_LOGD("DrawDirtyRegion dirty rect is invalid. dirtyRect = [%d, %d, %d, %d]", dirtyRect.left_,
+                dirtyRect.top_, dirtyRect.width_, dirtyRect.height_);
         } else {
             ROSEN_LOGD("DrawDirtyRegion cur dirty rect");
             // yellow

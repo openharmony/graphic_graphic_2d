@@ -33,33 +33,42 @@ std::shared_ptr<RSTransitionEffect> RSTransitionEffect::Create()
 
 std::shared_ptr<RSTransitionEffect> RSTransitionEffect::Opacity(float opacity)
 {
-    auto opacityEffect = std::make_shared<RSTransitionFade>(opacity);
-    transitionInEffects_.push_back(opacityEffect);
-    transitionOutEffects_.push_back(opacityEffect);
+    if (opacity != 1.0f) {
+        auto opacityEffect = std::make_shared<RSTransitionFade>(opacity);
+        transitionInEffects_.push_back(opacityEffect);
+        transitionOutEffects_.push_back(opacityEffect);
+    }
     return shared_from_this();
 }
 
 std::shared_ptr<RSTransitionEffect> RSTransitionEffect::Scale(const Vector3f& scale)
 {
-    auto scaleEffect = std::make_shared<RSTransitionScale>(scale.x_, scale.y_, scale.z_);
-    transitionInEffects_.push_back(scaleEffect);
-    transitionOutEffects_.push_back(scaleEffect);
+    if (scale.x_ != 1.0f || scale.y_ != 1.0f || scale.z_ != 1.0f) {
+        auto scaleEffect = std::make_shared<RSTransitionScale>(scale.x_, scale.y_, scale.z_);
+        transitionInEffects_.push_back(scaleEffect);
+        transitionOutEffects_.push_back(scaleEffect);
+    }
     return shared_from_this();
 }
 
 std::shared_ptr<RSTransitionEffect> RSTransitionEffect::Translate(const Vector3f& translate)
 {
-    auto translateEffect = std::make_shared<RSTransitionTranslate>(translate.x_, translate.y_, translate.z_);
-    transitionInEffects_.push_back(translateEffect);
-    transitionOutEffects_.push_back(translateEffect);
+    if (translate.x_ != 0.0f || translate.y_ != 0.0f || translate.z_ != 0.0f) {
+        auto translateEffect = std::make_shared<RSTransitionTranslate>(translate.x_, translate.y_, translate.z_);
+        transitionInEffects_.push_back(translateEffect);
+        transitionOutEffects_.push_back(translateEffect);
+    }
     return shared_from_this();
 }
 
 std::shared_ptr<RSTransitionEffect> RSTransitionEffect::Rotate(const Vector4f& axisAngle)
 {
-    auto rotateEffect = std::make_shared<RSTransitionRotate>(axisAngle.x_, axisAngle.y_, axisAngle.z_, axisAngle.w_);
-    transitionInEffects_.push_back(rotateEffect);
-    transitionOutEffects_.push_back(rotateEffect);
+    if (axisAngle.w_ != 0.0f) {
+        auto rotateEffect =
+            std::make_shared<RSTransitionRotate>(axisAngle.x_, axisAngle.y_, axisAngle.z_, axisAngle.w_);
+        transitionInEffects_.push_back(rotateEffect);
+        transitionOutEffects_.push_back(rotateEffect);
+    }
     return shared_from_this();
 }
 

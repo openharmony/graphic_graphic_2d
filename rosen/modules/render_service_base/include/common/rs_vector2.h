@@ -45,6 +45,7 @@ public:
     Vector2 operator+(const Vector2<T>& other) const;
     Vector2 operator/(T scale) const;
     Vector2 operator*(T scale) const;
+    Vector2 operator*(const Vector2<T>& other);
     Vector2& operator*=(const Vector2<T>& other);
     Vector2& operator+=(const Vector2<T>& other);
     Vector2& operator=(const Vector2& other);
@@ -136,11 +137,7 @@ template<typename T>
 Vector2<T> Vector2<T>::operator+(const Vector2<T>& other) const
 {
     Vector2<T> rAdd(*this);
-    T* rData = rAdd.data_;
-    const T* oData = other.data_;
-    rData[0] += oData[0];
-    rData[1] += oData[1];
-    return rAdd;
+    return rAdd += other;
 }
 
 template<typename T>
@@ -162,6 +159,13 @@ Vector2<T> Vector2<T>::operator*(T scale) const
     rData[0] *= scale;
     rData[1] *= scale;
     return rMult;
+}
+
+template<typename T>
+Vector2<T> Vector2<T>::operator*(const Vector2<T>& other)
+{
+    Vector2<T> rMult(*this);
+    return rMult *= other;
 }
 
 template<typename T>

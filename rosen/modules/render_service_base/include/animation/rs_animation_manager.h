@@ -56,7 +56,6 @@ private:
 
     std::unordered_map<AnimationId, std::shared_ptr<RSRenderAnimation>> animations_;
     std::unordered_map<PropertyId, int> animationNum_;
-    uint32_t transitionNum_ = 0;
     std::unordered_map<PropertyId, AnimationId> springAnimations_;
 
     friend class RSRenderNode;

@@ -49,7 +49,6 @@ protected:
     virtual void DetachFromNode() = 0;
 
     virtual void SetMotionPathOption(const std::shared_ptr<RSMotionPathOption>& motionPathOption) = 0;
-    virtual void SetIsAdditive(bool isAdditive) = 0;
 
     virtual void UpdateToRender() = 0;
     virtual std::shared_ptr<RSRenderModifier> CreateRenderModifier() const = 0;
@@ -109,15 +108,9 @@ protected:
         property_->motionPathOption_ = motionPathOption;
     }
 
-    void SetIsAdditive(bool isAdditive) override
-    {
-        isAdditive_ = isAdditive;
-    }
-
     void UpdateToRender() override {}
 
     std::shared_ptr<T> property_;
-    bool isAdditive_ { false };
 
     friend class RSModifierExtractor;
     friend class RSNode;

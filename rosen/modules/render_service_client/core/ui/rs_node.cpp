@@ -232,11 +232,8 @@ const std::shared_ptr<RSMotionPathOption> RSNode::GetMotionPathOption() const
 
 bool RSNode::HasPropertyAnimation(const PropertyId& id)
 {
-    // check if any animation matches the property bitmask
-    auto pred = [id](const auto& it) -> bool {
-        return it.second > 0 && (static_cast<unsigned long long>(it.first) & static_cast<unsigned long long>(id));
-    };
-    return std::any_of(animatingPropertyNum_.begin(), animatingPropertyNum_.end(), pred);
+    auto it = animatingPropertyNum_.find(id);
+    return it != animatingPropertyNum_.end() && it->second > 0;
 }
 
 #define SET_ANIMATABLE_MODIFIER(propertyName, T, value, propertyType, defaultValue)                       \
@@ -895,10 +892,6 @@ void RSNode::AddModifier(const std::shared_ptr<RSModifierBase>& modifier)
 {
     if (!modifier || modifiers_.count(modifier->GetPropertyId())) {
         return;
-    }
-    auto iter = propertyModifiers_.find(modifier->GetModifierType());
-    if (iter != propertyModifiers_.end()) {
-        modifier->SetIsAdditive(true);
     }
     if (motionPathOption_ != nullptr && IsPathAnimatableModifier(modifier->GetModifierType())) {
         modifier->SetMotionPathOption(motionPathOption_);

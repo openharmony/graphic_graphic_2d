@@ -16,6 +16,7 @@
 #define RENDER_SERVICE_CLIENT_CORE_PIPELINE_RS_RENDER_NODE_H
 
 #include <memory>
+#include <unordered_set>
 
 #include "animation/rs_animation_manager.h"
 #include "modifier/rs_render_modifier.h"
@@ -77,9 +78,12 @@ public:
     }
 
     void ClearModifiers();
-    virtual void AddModifier(const std::shared_ptr<RSRenderModifier>& modifier);
-    void RemoveModifier(const std::shared_ptr<RSRenderModifier>& modifier);
+    void AddModifier(const std::shared_ptr<RSRenderModifier>& modifier);
     void RemoveModifier(const PropertyId& id);
+
+    void AddTransitionModifier(const std::shared_ptr<RSRenderModifier>& modifier);
+    void RemoveTransitionModifier(const std::shared_ptr<RSRenderModifier>& modifier);
+
     void ApplyModifiers();
     std::shared_ptr<RSRenderModifier> GetModifier(const PropertyId& id);
 
@@ -102,7 +106,8 @@ private:
     RectI oldDirty_;
     RSProperties renderProperties_;
     RSAnimationManager animationManager_;
-    std::map<PropertyId, std::shared_ptr<RSRenderModifier>> modifiers_;
+    std::unordered_map<PropertyId, std::shared_ptr<RSRenderModifier>> modifiers_;
+    std::unordered_set<std::shared_ptr<RSRenderModifier>> transitionModifiers_;
     // bounds and frame modifiers must be unique
     std::shared_ptr<RSRenderModifier> boundsModifier_;
     std::shared_ptr<RSRenderModifier> frameModifier_;
