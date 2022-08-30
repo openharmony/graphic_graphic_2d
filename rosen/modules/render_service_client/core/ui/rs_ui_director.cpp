@@ -31,6 +31,7 @@
 #include "ui/rs_root_node.h"
 #include "ui/rs_surface_extractor.h"
 #include "ui/rs_surface_node.h"
+#include "sandbox_utils.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -196,10 +197,10 @@ void RSUIDirector::SendMessages()
 
 void RSUIDirector::RecvMessages(bool needProcess)
 {
-    if (getpid() == -1) {
+    if (GetRealPid() == -1) {
         return;
     }
-    static const uint32_t pid = static_cast<uint32_t>(getpid());
+    static const uint32_t pid = static_cast<uint32_t>(GetRealPid());
     if (!RSMessageProcessor::Instance().HasTransaction(pid)) {
         return;
     }

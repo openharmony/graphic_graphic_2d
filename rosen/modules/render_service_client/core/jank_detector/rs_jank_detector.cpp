@@ -17,6 +17,7 @@
 
 #include <unistd.h>
 #include "base/hiviewdfx/hisysevent/interfaces/native/innerkits/hisysevent/include/hisysevent.h"
+#include "sandbox_utils.h"
 
 namespace {
 struct FrameMsg {
@@ -29,7 +30,7 @@ struct FrameMsg {
 
 void DrawEventReport(FrameMsg& frameMsg, std::string stringId)
 {
-    int32_t pid = getpid();
+    int32_t pid = OHOS::GetRealPid();
     uint32_t uid = getuid();
     std::string domain = "GRAPHIC";
     std::string msg = "It took " + std::to_string(frameMsg.totalTime) + "ns to draw, "

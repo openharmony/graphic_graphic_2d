@@ -32,6 +32,7 @@ config("libvsync_client_config") {
 config("libvsync_client_public_config") {
   include_dirs = [
     "//foundation/graphic/graphic_2d/interfaces/inner_api/vsync",
+    "//foundation/graphic/graphic_2d/utils/sandbox",
     "//commonlibrary/c_utils/base/include",
   ]
 }

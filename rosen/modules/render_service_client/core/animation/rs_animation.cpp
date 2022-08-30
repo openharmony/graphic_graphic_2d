@@ -22,13 +22,14 @@
 #include "platform/common/rs_log.h"
 #include "transaction/rs_transaction_proxy.h"
 #include "ui/rs_node.h"
+#include "sandbox_utils.h"
 
 namespace OHOS {
 namespace Rosen {
 
 AnimationId RSAnimation::GenerateId()
 {
-    static pid_t pid_ = getpid();
+    static pid_t pid_ = GetRealPid();
     static std::atomic<uint32_t> currentId_ = 0;
 
     ++currentId_;

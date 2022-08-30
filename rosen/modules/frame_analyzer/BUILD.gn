@@ -43,8 +43,11 @@ ohos_shared_library("libframe_analyzer") {
       "src/frame_saver.cpp",
     ]
 
+    include_dirs = [ "//foundation/graphic/graphic_2d/utils/sandbox" ]
+
     deps = [
       "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
+      "//foundation/graphic/graphic_2d/utils/sandbox:sandbox_utils",
       "//third_party/flutter/build/skia:ace_skia_ohos",
     ]
 

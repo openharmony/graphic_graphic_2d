@@ -21,6 +21,7 @@
 #endif
 #include "rs_trace.h"
 #include "ui/rs_ui_director.h"
+#include "sandbox_utils.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -44,7 +45,7 @@ void RSApplicationAgentImpl::RegisterRSApplicationAgent()
             if (appSptr == nullptr) {
                 return;
             }
-            conn->RegisterApplicationAgent(getpid(), appSptr);
+            conn->RegisterApplicationAgent(GetRealPid(), appSptr);
         });
 #endif
 }

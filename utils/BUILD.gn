@@ -82,6 +82,10 @@ group("sync_fence") {
   public_deps = [ "sync_fence:sync_fence" ]
 }
 
+group("sandbox_utils") {
+  public_deps = [ "sandbox:sandbox_utils" ]
+}
+
 ## Build libgraphic_utils.so {{{
 config("libgraphic_utils_public_config") {
   include_dirs =
@@ -102,6 +106,7 @@ ohos_shared_library("libgraphic_utils") {
     "promise:promise",
     "raw_maker:raw_maker",
     "raw_parser:raw_parser",
+    "sandbox:sandbox_utils",
     "scoped_bytrace:scoped_bytrace",
     "semaphore:semaphore",
     "test_header:test_header",

@@ -19,6 +19,7 @@
 #include "surface_image.h"
 
 #include "securec.h"
+#include "sandbox_utils.h"
 
 #include <atomic>
 #include <sync_fence.h>
@@ -41,7 +42,7 @@ static int GetProcessUniqueId()
 }
 
 SurfaceImage::SurfaceImage(uint32_t textureId, uint32_t textureTarget)
-    : ConsumerSurface("SurfaceImage-" + std::to_string(getpid()) + "-" + std::to_string(GetProcessUniqueId())),
+    : ConsumerSurface("SurfaceImage-" + std::to_string(GetRealPid()) + "-" + std::to_string(GetProcessUniqueId())),
       textureId_(textureId),
       textureTarget_(textureTarget),
       updateSurfaceImage_(false),
@@ -61,7 +62,7 @@ SurfaceImage::~SurfaceImage()
 
 void SurfaceImage::InitSurfaceImage()
 {
-    std::string name = "SurfaceImage-" + std::to_string(getpid()) + "-" + std::to_string(GetProcessUniqueId());
+    std::string name = "SurfaceImage-" + std::to_string(GetRealPid()) + "-" + std::to_string(GetProcessUniqueId());
     auto ret = ConsumerSurface::Init();
     SLOGI("surfaceimage init");
     if (ret != SURFACE_ERROR_OK) {

@@ -24,13 +24,14 @@
 #include "rs_trace.h"
 #include "securec.h"
 #include "sys_binder.h"
+#include "sandbox_utils.h"
 
 #ifdef ROSEN_OHOS
 namespace OHOS {
 namespace Rosen {
 std::unique_ptr<AshmemAllocator> AshmemAllocator::CreateAshmemAllocator(size_t size, int mapType)
 {
-    static pid_t pid_ = getpid();
+    static pid_t pid_ = GetRealPid();
     static std::atomic<uint32_t> shmemCount = 0;
     uint64_t id = ((uint64_t)pid_ << 32) | shmemCount++;
     std::string name = "RSAshmem" + std::to_string(id);

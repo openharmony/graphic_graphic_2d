@@ -28,6 +28,7 @@ config("native_image_config") {
 config("libnative_image_public_config") {
   include_dirs = [
     "//foundation/graphic/graphic_2d/frameworks/surface/include",
+    "//foundation/graphic/graphic_2d/utils/sandbox",
     "include",
   ]
 }

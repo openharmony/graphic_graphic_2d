@@ -21,6 +21,7 @@
 
 #include "property/rs_properties_painter.h"
 #include "render/rs_image_cache.h"
+#include "sandbox_utils.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -205,7 +206,7 @@ bool RSImage::Marshalling(Parcel& parcel) const
     bool success = true;
     int imageFit = static_cast<int>(imageFit_);
     int imageRepeat = static_cast<int>(imageRepeat_);
-    static uint64_t pid = static_cast<uint64_t>(getpid()) << 32; // 32 for 64-bit unsignd number shift
+    static uint64_t pid = static_cast<uint64_t>(GetRealPid()) << 32; // 32 for 64-bit unsignd number shift
     uint64_t uniqueId = image_ ? (pid | image_->uniqueID()) : 0;
     success &= RSMarshallingHelper::Marshalling(parcel, uniqueId);
     success &= RSMarshallingHelper::Marshalling(parcel, image_);
