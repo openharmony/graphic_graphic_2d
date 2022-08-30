@@ -63,6 +63,9 @@ private:
     // set global dirty region to each surface node
     void SetSurfaceGlobalDirtyRegion(std::shared_ptr<RSDisplayRenderNode>& node);
 
+    void InitCacheSurface(RSSurfaceRenderNode& node, int width, int height);
+    void DrawCacheSurface(RSSurfaceRenderNode& node);
+
     ScreenInfo screenInfo_;
     std::shared_ptr<RSDirtyRegionManager> curSurfaceDirtyManager_;
     std::shared_ptr<RSSurfaceRenderNode> curSurfaceNode_;

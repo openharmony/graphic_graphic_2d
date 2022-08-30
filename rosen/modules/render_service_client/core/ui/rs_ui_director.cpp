@@ -158,6 +158,14 @@ void RSUIDirector::AttachSurface()
     }
 }
 
+void RSUIDirector::SetAppFreeze(bool isAppFreeze)
+{
+    auto surfaceNode = surfaceNode_.lock();
+    if (surfaceNode != nullptr) {
+        surfaceNode->SetAppFreeze(isAppFreeze);
+    }
+}
+
 void RSUIDirector::SetTimeStamp(uint64_t timeStamp, const std::string& abilityName)
 {
     timeStamp_ = timeStamp;

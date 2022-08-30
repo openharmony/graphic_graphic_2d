@@ -334,6 +334,32 @@ public:
         bool localIntersect = visibleDirtyRegion_.IsIntersectWith(dirtyRect);
         return localIntersect;
     }
+
+    void SetCacheSurface(sk_sp<SkSurface> cacheSurface)
+    {
+        cacheSurface_ = std::move(cacheSurface);
+    }
+
+    sk_sp<SkSurface> GetCacheSurface() const
+    {
+        return cacheSurface_;
+    }
+
+    void ClearCacheSurface()
+    {
+        cacheSurface_ = nullptr;
+    }
+
+    void SetAppFreeze(bool isAppFreeze)
+    {
+        isAppFreeze_ = isAppFreeze;
+    }
+
+    bool IsAppFreeze() const
+    {
+        return isAppFreeze_;
+    }
+
 private:
     void SendCommandFromRT(std::unique_ptr<RSCommand>& command, NodeId nodeId);
     void ClearChildrenCache(const std::shared_ptr<RSBaseRenderNode>& node);
@@ -378,6 +404,9 @@ private:
     uint8_t abilityBgAlpha_ = 0;
     bool abilityBgAlphaChanged_ = false;
     RectI globalDirtyRegion_;
+
+    std::atomic<bool> isAppFreeze_ = false;
+    sk_sp<SkSurface> cacheSurface_ = nullptr;
 };
 } // namespace Rosen
 } // namespace OHOS
