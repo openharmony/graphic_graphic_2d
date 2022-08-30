@@ -43,6 +43,15 @@ static EGLDisplay EglGetDisplay(EGLNativeDisplayType type)
     }
     return EGL_NO_DISPLAY;
 }
+static bool EglSwapBuffers(EGLDisplay dpy, EGLSurface surface)
+{
+    WLOGE("-%{public}s-", MY_LOG_TAG);
+    PFNEGLSWAPBUFFERSPROC next = (PFNEGLSWAPBUFFERSPROC)GetNextLayerProc("eglSwapBuffers");
+    if (next) {
+        return next(dpy, surface);
+    }
+    return EGL_NO_DISPLAY;
+}
 
 __eglMustCastToProperFunctionPointerType DebugLayerInitialize(const void *funcTbl, GetNextLayerAddr getAddr)
 {
@@ -60,6 +69,10 @@ __eglMustCastToProperFunctionPointerType DebugLayerGetProcAddr(const char *name,
     if (func == "eglGetDisplay") {
         WLOGD("-%{public}s-", MY_LOG_TAG);
         return (__eglMustCastToProperFunctionPointerType)EglGetDisplay;
+    }
+    if (func == "eglSwapBuffers") {
+        WLOGD("-%{public}s-", MY_LOG_TAG);
+        return (__eglMustCastToProperFunctionPointerType)EglSwapBuffers;
     }
 
     return next;
