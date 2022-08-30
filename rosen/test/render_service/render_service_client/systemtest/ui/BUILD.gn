@@ -35,10 +35,12 @@ ohos_systemtest("RSRenderServiceClientUISystemTest") {
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:librender_service_base",
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:librender_service_client",
     "//third_party/googletest:gtest_main",
-    "//utils/native/base:utils",
   ]
 
-  external_deps = [ "init:libbegetutil" ]
+  external_deps = [
+    "c_utils:utils",
+    "init:libbegetutil",
+  ]
 
   subsystem_name = "graphic"
 }

@@ -42,10 +42,12 @@ ohos_unittest("RSRenderServiceBaseTransactionTest") {
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:librender_service_base",
     "//third_party/flutter/build/skia:ace_skia_ohos",
     "//third_party/googletest:gtest_main",
-    "//utils/native/base:utils",
   ]
 
-  external_deps = [ "init:libbegetutil" ]
+  external_deps = [
+    "c_utils:utils",
+    "init:libbegetutil",
+  ]
 
   subsystem_name = "graphic"
 }
