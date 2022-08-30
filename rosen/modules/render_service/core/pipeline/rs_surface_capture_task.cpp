@@ -356,16 +356,25 @@ void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::CaptureSingleSurfaceNodeWith
         translateMatrix.preTranslate(
             thisNodetranslateX - parentNodeTranslateX, thisNodetranslateY - parentNodeTranslateY);
     }
-
-    canvas_->concat(translateMatrix);
-    const auto saveCnt = canvas_->save();
-    ProcessBaseRenderNode(node);
-    canvas_->restoreToCount(saveCnt);
-
-    if (node.GetBuffer() != nullptr) {
-        // in node's local coordinate.
-        auto params = RSBaseRenderUtil::CreateBufferDrawParam(node, true, false, false, false);
-        renderEngine_->DrawSurfaceNodeWithParams(*canvas_, node, params);
+    if (node.GetChildrenCount() > 0) {
+        canvas_->concat(translateMatrix);
+        const auto saveCnt = canvas_->save();
+        ProcessBaseRenderNode(node);
+        canvas_->restoreToCount(saveCnt);
+        if (node.GetBuffer() != nullptr) {
+            // in node's local coordinate.
+            auto params = RSBaseRenderUtil::CreateBufferDrawParam(node, true, false, false, false);
+            renderEngine_->DrawSurfaceNodeWithParams(*canvas_, node, params);
+        }
+    } else {
+        canvas_->save();
+        canvas_->concat(translateMatrix);
+        if (node.GetBuffer() != nullptr) {
+            // in node's local coordinate.
+            auto params = RSBaseRenderUtil::CreateBufferDrawParam(node, true, false, false, false);
+            renderEngine_->DrawSurfaceNodeWithParams(*canvas_, node, params);
+        }
+        canvas_->restore();
     }
 }
 
