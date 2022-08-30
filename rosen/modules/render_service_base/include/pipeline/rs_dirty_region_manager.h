@@ -36,7 +36,8 @@ public:
     ~RSDirtyRegionManager() = default;
     void MergeDirtyRect(const RectI& rect);
     void IntersectDirtyRect(const RectI& rect);
-    void IntersectDirtyRectWithSurfaceRect();
+    // Clip dirtyRegion intersected with surfaceRect
+    void ClipDirtyRectWithinSurface();
     void Clear();
     // return merged historical region
     const RectI& GetDirtyRegion() const;
@@ -51,7 +52,8 @@ public:
     void GetDirtyCanvasNodes(std::map<NodeId, RectI>& target) const;
     void GetDirtySurfaceNodes(std::map<NodeId, RectI>& target) const;
     bool SetBufferAge(const int age);
-    bool SetSurfaceSize(const int width, const int height);
+    bool SetSurfaceSize(const int32_t width, const int32_t height);
+    void ResetDirtyAsSurfaceSize();
 
     void UpdateDebugRegionTypeEnable();
     
@@ -71,6 +73,7 @@ public:
 private:
     RectI MergeHistory(unsigned int age, RectI rect) const;
     void PushHistory(RectI rect);
+    // get his rect according to index offset
     RectI GetHistory(unsigned int i) const;
 
     RectI surfaceRect_;

@@ -47,6 +47,7 @@ int32_t RSSurfaceFrameOhosRaster::GetBufferAge() const
 {
     // currently could not get real buffer age, so return invalid age
     // should be supported by surface
+    ROSEN_LOGD("RSSurfaceFrameOhosRaster::GetBufferAge return -1");
     return -1;
 }
 

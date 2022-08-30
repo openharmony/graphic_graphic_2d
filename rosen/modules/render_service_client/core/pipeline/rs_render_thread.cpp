@@ -442,6 +442,8 @@ void RSRenderThread::Render()
     if (visitor_ == nullptr) {
         visitor_ = std::make_shared<RSRenderThreadVisitor>();
     }
+    // get latest partial render status from system properties and set it to RTvisitor_
+    visitor_->SetPartialRenderStatus(RSSystemProperties::GetPartialRenderEnabled(), isRTRenderForced_);
     rootNode->Prepare(visitor_);
     rootNode->Process(visitor_);
     forceUpdateSurfaceNode_ = false;

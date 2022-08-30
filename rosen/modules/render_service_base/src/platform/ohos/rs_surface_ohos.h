@@ -38,6 +38,7 @@ public:
     virtual void SetRenderContext(RenderContext* context) override;
     virtual void SetColorSpace(ColorGamut colorSpace) override;
     virtual ColorGamut GetColorSpace() const override;
+    virtual uint32_t GetQueueSize() const override;
 
     virtual void SetSurfaceBufferUsage(int32_t usage) = 0;
 protected:

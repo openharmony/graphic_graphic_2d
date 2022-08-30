@@ -287,6 +287,7 @@ public:
 
     void NotifyRTBufferAvailable();
     bool IsNotifyRTBufferAvailable() const;
+    bool IsNotifyRTBufferAvailablePre() const;
 
     void NotifyUIBufferAvailable();
     bool IsNotifyUIBufferAvailable() const;
@@ -386,6 +387,7 @@ private:
     bool isAppWindow_ = false;
     bool isProxy_ = false;
     BlendType blendType_ = BlendType::BLEND_SRCOVER;
+    bool isNotifyRTBufferAvailablePre_ = false;
     std::atomic<bool> isNotifyRTBufferAvailable_ = false;
     std::atomic<bool> isNotifyUIBufferAvailable_ = false;
     std::atomic_bool isBufferAvailable_ = false;

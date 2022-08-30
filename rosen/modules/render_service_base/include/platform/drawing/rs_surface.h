@@ -40,6 +40,7 @@ public:
     virtual void SetRenderContext(RenderContext* context) = 0;
     virtual ColorGamut GetColorSpace() const = 0;
     virtual void SetColorSpace(ColorGamut colorSpace) = 0;
+    virtual uint32_t GetQueueSize() const = 0;
     virtual void ClearBuffer() = 0;
 protected:
 private:

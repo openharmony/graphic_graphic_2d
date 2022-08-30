@@ -71,11 +71,12 @@ void RSCanvasRenderNode::ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas
 {
 #ifdef ROSEN_OHOS
     RSRenderNode::ProcessRenderBeforeChildren(canvas);
-
-    RSPropertiesPainter::DrawBackground(GetRenderProperties(), canvas);
-    auto filter = std::static_pointer_cast<RSSkiaFilter>(GetRenderProperties().GetBackgroundFilter());
-    if (filter != nullptr) {
-        RSPropertiesPainter::DrawFilter(GetRenderProperties(), canvas, filter, nullptr, canvas.GetSurface());
+    if (!isRenderUpdateIgnored_) {
+        RSPropertiesPainter::DrawBackground(GetRenderProperties(), canvas);
+        auto filter = std::static_pointer_cast<RSSkiaFilter>(GetRenderProperties().GetBackgroundFilter());
+        if (filter != nullptr) {
+            RSPropertiesPainter::DrawFilter(GetRenderProperties(), canvas, filter, nullptr, canvas.GetSurface());
+        }
     }
 
     canvasNodeSaveCount_ = canvas.SaveCanvasAndAlpha();
@@ -96,15 +97,19 @@ void RSCanvasRenderNode::ProcessRenderAfterChildren(RSPaintFilterCanvas& canvas)
     ApplyDrawCmdModifier(context, RSModifierType::FOREGROUND_STYLE);
 
     canvas.RestoreCanvasAndAlpha(canvasNodeSaveCount_);
-    auto filter = std::static_pointer_cast<RSSkiaFilter>(GetRenderProperties().GetFilter());
-    if (filter != nullptr) {
-        RSPropertiesPainter::DrawFilter(GetRenderProperties(), canvas, filter, nullptr, canvas.GetSurface());
+    if (!isRenderUpdateIgnored_) {
+        auto filter = std::static_pointer_cast<RSSkiaFilter>(GetRenderProperties().GetFilter());
+        if (filter != nullptr) {
+            RSPropertiesPainter::DrawFilter(GetRenderProperties(), canvas, filter, nullptr, canvas.GetSurface());
+        }
+        RSPropertiesPainter::DrawBorder(GetRenderProperties(), canvas);
     }
-    RSPropertiesPainter::DrawBorder(GetRenderProperties(), canvas);
 
     ApplyDrawCmdModifier(context, RSModifierType::OVERLAY_STYLE);
 
-    RSPropertiesPainter::DrawForegroundColor(GetRenderProperties(), canvas);
+    if (!isRenderUpdateIgnored_) {
+        RSPropertiesPainter::DrawForegroundColor(GetRenderProperties(), canvas);
+    }
     RSRenderNode::ProcessRenderAfterChildren(canvas);
 #endif
 }

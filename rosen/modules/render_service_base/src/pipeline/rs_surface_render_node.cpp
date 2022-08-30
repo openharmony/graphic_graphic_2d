@@ -348,6 +348,7 @@ void RSSurfaceRenderNode::NotifyRTBufferAvailable()
     // In RS, "isNotifyRTBufferAvailable_ = true" means buffer is ready and need to trigger ipc callback.
     // In RT, "isNotifyRTBufferAvailable_ = true" means RT know that RS have had available buffer
     // and ready to trigger "callbackForRenderThreadRefresh_" to "clip" on parent surface.
+    isNotifyRTBufferAvailablePre_ = isNotifyRTBufferAvailable_;
     if (isNotifyRTBufferAvailable_) {
         return;
     }
@@ -390,6 +391,11 @@ void RSSurfaceRenderNode::NotifyUIBufferAvailable()
 bool RSSurfaceRenderNode::IsNotifyRTBufferAvailable() const
 {
     return isNotifyRTBufferAvailable_;
+}
+
+bool RSSurfaceRenderNode::IsNotifyRTBufferAvailablePre() const
+{
+    return isNotifyRTBufferAvailablePre_;
 }
 
 bool RSSurfaceRenderNode::IsNotifyUIBufferAvailable() const

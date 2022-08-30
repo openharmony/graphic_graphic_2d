@@ -36,5 +36,10 @@ ColorGamut RSSurfaceOhos::GetColorSpace() const
 {
     return colorSpace_;
 }
+
+uint32_t RSSurfaceOhos::GetQueueSize() const
+{
+    return producer_->GetQueueSize();
+}
 } // namespace Rosen
 } // namespace OHOS
