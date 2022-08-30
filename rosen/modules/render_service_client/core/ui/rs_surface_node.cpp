@@ -44,6 +44,9 @@ RSSurfaceNode::SharedPtr RSSurfaceNode::Create(const RSSurfaceNodeConfig& surfac
 
     // create node in RS
     RSSurfaceRenderNodeConfig config = { .id = node->GetId(), .name = node->name_ };
+    if (!isWindow) {
+        config.nodeType = RSSurfaceNodeType::SELF_DRAWING_NODE;
+    }
 
     if (!node->CreateNodeAndSurface(config)) {
         ROSEN_LOGE("RSSurfaceNode::Create, create node and surface failed");

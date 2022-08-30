@@ -56,7 +56,7 @@ void RootNodeCommandHelper::AttachToUniSurfaceNode(RSContext& context, NodeId id
         return;
     }
     parent->AddChild(node);
-    parent->MarkAppWindow();
+    parent->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
 }
 
 void RootNodeCommandHelper::UpdateSurfaceSize(RSContext &context, NodeId id, int32_t width, int32_t height)

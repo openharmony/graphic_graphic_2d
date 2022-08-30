@@ -40,6 +40,7 @@ RSSurfaceRenderNode::RSSurfaceRenderNode(const RSSurfaceRenderNodeConfig& config
     : RSRenderNode(config.id, context),
       RSSurfaceHandler(config.id),
       name_(config.name),
+      nodeType_(config.nodeType),
       dirtyManager_(std::make_shared<RSDirtyRegionManager>())
 {
 }
