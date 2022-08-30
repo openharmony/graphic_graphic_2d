@@ -235,7 +235,7 @@ public:
         }
     }
 
-    const Occlusion::Region& GetVisibleDirtyRegion()
+    const Occlusion::Region& GetVisibleDirtyRegion() const
     {
         return visibleDirtyRegion_;
     }

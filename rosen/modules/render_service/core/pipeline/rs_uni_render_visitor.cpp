@@ -302,12 +302,15 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
         // Get displayNode buffer age in order to merge visible dirty region for displayNode.
         // And then set egl damage region to improve uni_render efficiency.
         if (isPartialRenderEnabled_) {
+            curDisplayDirtyManager_->SetSurfaceSize(screenInfo_.width, screenInfo_.height);
             CalcDirtyDisplayRegion(displayNodePtr);
             uint32_t bufferAge = renderFrame->GetBufferAge();
-            auto dirtyRegion = RSUniRenderUtil::MergeVisibleDirtyRegion(displayNodePtr, bufferAge);
+            RS_LOGD("RSUniRenderVisitor buffer age is %d", bufferAge);
+            RSUniRenderUtil::MergeDirtyHistory(displayNodePtr, bufferAge);
+            auto dirtyRegion = RSUniRenderUtil::MergeVisibleDirtyRegion(displayNodePtr);
+            SetSurfaceGlobalDirtyRegion(displayNodePtr);
             std::vector<RectI> rects = GetDirtyRects(dirtyRegion);
-            node.UpdateDisplayDirtyManager(bufferAge);
-            RectI rect = CoordinateTransform(node.GetDirtyManager()->GetDirtyRegion());
+            RectI rect = node.GetDirtyManager()->GetDirtyRegionFlipWithinSurface();
             if (!rect.IsEmpty()) {
                 rects.emplace_back(rect);
             }
@@ -368,7 +371,7 @@ void RSUniRenderVisitor::CalcDirtyDisplayRegion(std::shared_ptr<RSDisplayRenderN
     auto displayDirtyManager = node->GetDirtyManager();
     for (auto it = curAllSurfaces.rbegin(); it != curAllSurfaces.rend(); ++it) {
         auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(*it);
-        if (surfaceNode == nullptr) {
+        if (surfaceNode == nullptr || !surfaceNode->IsAppWindow()) {
             continue;
         }
         auto surfaceDirtyManager = surfaceNode->GetDirtyManager();
@@ -417,9 +420,16 @@ void RSUniRenderVisitor::CalcDirtyDisplayRegion(std::shared_ptr<RSDisplayRenderN
             displayDirtyManager->MergeDirtyRect(surfaceChangedRect);
         }
     }
+}
+
+void RSUniRenderVisitor::SetSurfaceGlobalDirtyRegion(std::shared_ptr<RSDisplayRenderNode>& node)
+{
+    RS_TRACE_FUNC();
+    std::vector<RSBaseRenderNode::SharedPtr> curAllSurfaces;
+    node->CollectSurface(node, curAllSurfaces, true);
     for (auto it = curAllSurfaces.rbegin(); it != curAllSurfaces.rend(); ++it) {
         auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(*it);
-        if (surfaceNode == nullptr) {
+        if (surfaceNode == nullptr || !surfaceNode->IsAppWindow()) {
             continue;
         }
         // set display dirty region to surfaceNode
@@ -439,13 +449,6 @@ std::vector<RectI> RSUniRenderVisitor::GetDirtyRects(const Occlusion::Region &re
     }
     RS_LOGD("GetDirtyRects size %d %s", region.GetSize(), region.GetRegionInfo().c_str());
     return retRects;
-}
-
-RectI RSUniRenderVisitor::CoordinateTransform(const RectI& rect)
-{
-    RectI resRect = rect;
-    resRect.top_ = screenInfo_.GetRotatedHeight() - rect.top_ - rect.height_;
-    return resRect;
 }
 #endif
 
