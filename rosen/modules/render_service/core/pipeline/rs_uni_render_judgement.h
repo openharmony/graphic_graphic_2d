@@ -42,11 +42,7 @@ private:
     static std::ifstream& SafeGetLine(std::ifstream &configFile, std::string &line);
 
     static void InitUniRenderWithConfigFile();
-#ifdef RS_ENABLE_UNI_RENDER
-        static inline UniRenderEnabledType uniRenderEnabledType_ = UniRenderEnabledType::UNI_RENDER_DYNAMIC_SWITCH;
-#else
-        static inline UniRenderEnabledType uniRenderEnabledType_ = UniRenderEnabledType::UNI_RENDER_DISABLED;
-#endif
+    static inline UniRenderEnabledType uniRenderEnabledType_ = UniRenderEnabledType::UNI_RENDER_DISABLED;
 };
 } // namespace Rosen
 } // namespace OHOS

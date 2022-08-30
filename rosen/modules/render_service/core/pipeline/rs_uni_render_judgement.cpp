@@ -26,6 +26,7 @@ const std::string CONFIG_PATH = "/etc/";
 const std::string UNIRENDER_CONFIG_FILE_NAME = "unirender.config";
 const std::string UNI_RENDER_DISABLED_TAG = "DISABLED";
 const std::string UNI_RENDER_ENABLED_FOR_ALL_TAG = "ENABLED_FOR_ALL";
+const std::string UNI_RENDER_DYNAMIC_SWITCH_TAG = "DYNAMIC_SWITCH";
 }
 
 // used by render server
@@ -64,16 +65,14 @@ void RSUniRenderJudgement::InitUniRenderWithConfigFile()
     std::ifstream configFile = std::ifstream(configFilePath.c_str());
     std::string line;
     // first line, init uniRenderEnabledType_
-    if (!configFile.is_open() || !SafeGetLine(configFile, line) || line.empty()) {
-#ifdef RS_ENABLE_UNI_RENDER
-        uniRenderEnabledType_ = UniRenderEnabledType::UNI_RENDER_DYNAMIC_SWITCH;
-#else
+    if (!configFile.is_open() || !SafeGetLine(configFile, line) || line.empty()) { // default case
         uniRenderEnabledType_ = UniRenderEnabledType::UNI_RENDER_DISABLED;
-#endif
     } else if (line == UNI_RENDER_DISABLED_TAG) {
         uniRenderEnabledType_ = UniRenderEnabledType::UNI_RENDER_DISABLED;
     } else if (line == UNI_RENDER_ENABLED_FOR_ALL_TAG) {
         uniRenderEnabledType_ = UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL;
+    } else if (line == UNI_RENDER_DYNAMIC_SWITCH_TAG) {
+        uniRenderEnabledType_ = UniRenderEnabledType::UNI_RENDER_DYNAMIC_SWITCH;
     }
     configFile.close();
 }
