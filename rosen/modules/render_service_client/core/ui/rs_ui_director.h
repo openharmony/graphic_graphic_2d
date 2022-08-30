@@ -48,6 +48,8 @@ public:
 
     bool RunningCustomAnimation(uint64_t timeStamp);
 
+    void SetAppFreeze(bool isAppFreeze);
+
 private:
     void AttachSurface();
     static void RecvMessages(bool needProcess = true);

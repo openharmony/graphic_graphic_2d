@@ -124,5 +124,12 @@ void SurfaceNodeCommandHelper::SetIsNotifyUIBufferAvailable(RSContext& context, 
         node->SetIsNotifyUIBufferAvailable(available);
     }
 }
+
+void SurfaceNodeCommandHelper::SetAppFreeze(RSContext& context, NodeId nodeId, bool isAppFreeze)
+{
+    if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId)) {
+        node->SetAppFreeze(isAppFreeze);
+    }
+}
 } // namespace Rosen
 } // namespace OHOS

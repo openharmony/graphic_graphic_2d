@@ -449,6 +449,27 @@ RectI RSUniRenderVisitor::CoordinateTransform(const RectI& rect)
 }
 #endif
 
+void RSUniRenderVisitor::InitCacheSurface(RSSurfaceRenderNode& node, int width, int height)
+{
+#if (defined RS_ENABLE_GL) && (defined RS_ENABLE_EGLIMAGE)
+    SkImageInfo info = SkImageInfo::MakeN32Premul(width, height);
+    node.SetCacheSurface(SkSurface::MakeRenderTarget(canvas_->getGrContext(), SkBudgeted::kYes, info));
+#else
+    node.SetCacheSurface(SkSurface::MakeRasterN32Premul(width, height));
+#endif
+}
+
+void RSUniRenderVisitor::DrawCacheSurface(RSSurfaceRenderNode& node)
+{
+    canvas_->save();
+    canvas_->scale(
+        node.GetRenderProperties().GetBoundsWidth() / node.GetCacheSurface()->width(),
+        node.GetRenderProperties().GetBoundsHeight() / node.GetCacheSurface()->height());
+    SkPaint paint;
+    node.GetCacheSurface()->draw(canvas_.get(), 0.0, 0.0, &paint);
+    canvas_->restore();
+}
+
 void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
 {
     RS_LOGD("RSUniRenderVisitor::ProcessSurfaceRenderNode node: %" PRIu64 ", child size:%u %s", node.GetId(),
@@ -559,7 +580,28 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
         canvas_->restore();
     }
 
-    ProcessBaseRenderNode(node);
+    if (node.IsAppWindow()) {
+        if (!node.IsAppFreeze()) {
+            ProcessBaseRenderNode(node);
+            node.ClearCacheSurface();
+        } else {
+            if (node.GetCacheSurface()) {
+                DrawCacheSurface(node);
+            } else {
+                InitCacheSurface(node, property.GetBoundsWidth(), property.GetBoundsHeight());
+                auto cacheCanvas = std::make_unique<RSPaintFilterCanvas>(node.GetCacheSurface().get());
+                if (node.GetCacheSurface()) {
+                    swap(cacheCanvas, canvas_);
+                    ProcessBaseRenderNode(node);
+                    swap(cacheCanvas, canvas_);
+
+                    DrawCacheSurface(node);
+                }
+            }
+        }
+    } else {
+        ProcessBaseRenderNode(node);
+    }
 
     canvas_->RestoreAlpha();
     canvas_->restore();

@@ -56,6 +56,8 @@ private:
     std::vector<RectI> GetDirtyRects(const Occlusion::Region &region);
     RectI CoordinateTransform(const RectI& rect);
     void CalcDirtyDisplayRegion(std::shared_ptr<RSDisplayRenderNode>& node) const;
+    void InitCacheSurface(RSSurfaceRenderNode& node, int width, int height);
+    void DrawCacheSurface(RSSurfaceRenderNode& node);
 
     ScreenInfo screenInfo_;
     std::shared_ptr<RSDirtyRegionManager> curSurfaceDirtyManager_;

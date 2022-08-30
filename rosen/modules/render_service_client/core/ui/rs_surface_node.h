@@ -87,6 +87,8 @@ public:
 
     void ResetContextAlpha() const;
 
+    void SetAppFreeze(bool isAppFreeze);
+
 protected:
     bool NeedForcedSendToRemote() const override;
     RSSurfaceNode(const RSSurfaceNodeConfig& config, bool isRenderServiceNode);
