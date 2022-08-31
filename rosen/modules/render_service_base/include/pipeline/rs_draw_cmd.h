@@ -615,9 +615,9 @@ private:
     SkPaint paint_;
 };
 
-class ClipAdaptiveRRectOpItem : public OpItemWithPaint {
+class ClipAdaptiveRRectOpItem : public OpItem {
 public:
-    ClipAdaptiveRRectOpItem(float radius);
+    ClipAdaptiveRRectOpItem(const SkVector radius[]);
     ~ClipAdaptiveRRectOpItem() override {}
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
@@ -632,7 +632,7 @@ public:
 #endif
 
 private:
-    float radius_;
+    SkVector radius_[4];
 };
 
 class ClipOutsetRectOpItem : public OpItem {

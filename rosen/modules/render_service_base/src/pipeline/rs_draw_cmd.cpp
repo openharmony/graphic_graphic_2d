@@ -22,6 +22,9 @@
 #include "securec.h"
 namespace OHOS {
 namespace Rosen {
+namespace {
+constexpr int32_t CORNER_SIZE = 4;
+}
 RectOpItem::RectOpItem(SkRect rect, const SkPaint& paint) : OpItemWithPaint(sizeof(RectOpItem)), rect_(rect)
 {
     paint_ = paint;
@@ -296,9 +299,14 @@ void AdaptiveRRectOpItem::Draw(RSPaintFilterCanvas& canvas, const SkRect* rect) 
     canvas.drawRRect(rrect, paint_);
 }
 
-ClipAdaptiveRRectOpItem::ClipAdaptiveRRectOpItem(float radius)
-    : OpItemWithPaint(sizeof(ClipAdaptiveRRectOpItem)), radius_(radius)
-{}
+ClipAdaptiveRRectOpItem::ClipAdaptiveRRectOpItem(const SkVector radius[])
+    : OpItem(sizeof(ClipAdaptiveRRectOpItem))
+{
+    errno_t ret = memcpy_s(radius_, CORNER_SIZE * sizeof(SkVector), radius, CORNER_SIZE * sizeof(SkVector));
+    if (ret != EOK) {
+        ROSEN_LOGE("ClipAdaptiveRRectOpItem: memcpy failed!");
+    }
+}
 
 void ClipAdaptiveRRectOpItem::Draw(RSPaintFilterCanvas& canvas, const SkRect* rect) const
 {
@@ -306,7 +314,8 @@ void ClipAdaptiveRRectOpItem::Draw(RSPaintFilterCanvas& canvas, const SkRect* re
         ROSEN_LOGE("ClipAdaptiveRRectOpItem::Draw skrect is null");
         return;
     }
-    SkRRect rrect = SkRRect::MakeRectXY(*rect, radius_, radius_);
+    SkRRect rrect = SkRRect::MakeEmpty();
+    rrect.setRectRadii(*rect, radius_);
     canvas.clipRRect(rrect, true);
 }
 
@@ -372,7 +381,7 @@ ImageWithParmOpItem::ImageWithParmOpItem(const std::shared_ptr<RSImage>& rsImage
 void ImageWithParmOpItem::Draw(RSPaintFilterCanvas& canvas, const SkRect* rect) const
 {
     if (!rect) {
-        ROSEN_LOGE("agp_ace: no rect");
+        ROSEN_LOGE("ImageWithParmOpItem: no rect");
         return;
     }
     rsImage_->CanvasDrawImage(canvas, *rect, paint_);
@@ -1076,9 +1085,11 @@ bool ClipAdaptiveRRectOpItem::Marshalling(Parcel& parcel) const
 
 OpItem* ClipAdaptiveRRectOpItem::Unmarshalling(Parcel& parcel)
 {
-    float radius;
-    if (!RSMarshallingHelper::Unmarshalling(parcel, radius)) {
-        return nullptr;
+    SkVector radius[CORNER_SIZE];
+    for (auto i = 0; i < CORNER_SIZE; i++) {
+        if (!RSMarshallingHelper::Unmarshalling(parcel, radius[i])) {
+            return nullptr;
+        }
     }
     return new ClipAdaptiveRRectOpItem(radius);
 }
