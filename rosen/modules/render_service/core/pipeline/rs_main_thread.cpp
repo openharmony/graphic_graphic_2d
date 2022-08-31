@@ -516,7 +516,7 @@ void RSMainThread::Render()
     std::shared_ptr<RSNodeVisitor> visitor;
     if (IfUseUniVisitor()) {
         auto uniVisitor = std::make_shared<RSUniRenderVisitor>();
-        uniVisitor->SetAnimateState(doAnimate_);
+        uniVisitor->SetAnimateState(doWindowAnimate_);
         visitor = uniVisitor;
     } else {
         bool doParallelComposition = false;
@@ -528,7 +528,7 @@ void RSMainThread::Render()
             return;
         }
         auto rsVisitor = std::make_shared<RSRenderServiceVisitor>();
-        rsVisitor->SetAnimateState(doAnimate_);
+        rsVisitor->SetAnimateState(doWindowAnimate_);
         visitor = rsVisitor;
     }
 
@@ -541,7 +541,7 @@ void RSMainThread::Render()
 
 void RSMainThread::CalcOcclusion()
 {
-    if (doAnimate_ && !useUniVisitor_) {
+    if (doWindowAnimate_ && !useUniVisitor_) {
         return;
     }
     const std::shared_ptr<RSBaseRenderNode> node = context_.GetGlobalRootRenderNode();
@@ -711,13 +711,13 @@ void RSMainThread::Animate(uint64_t timestamp)
     RS_TRACE_FUNC();
 
     if (context_.animatingNodeList_.empty()) {
-        doAnimate_ = false;
+        doWindowAnimate_ = false;
         return;
     }
 
     RS_LOGD("RSMainThread::Animate start, processing %d animating nodes", context_.animatingNodeList_.size());
 
-    doAnimate_ = true;
+    doWindowAnimate_ = HasWindowAnimation();
     // iterate and animate all animating nodes, remove if animation finished
     std::__libcpp_erase_if_container(context_.animatingNodeList_, [timestamp](const auto& iter) -> bool {
         auto node = iter.second.lock();
@@ -735,6 +735,17 @@ void RSMainThread::Animate(uint64_t timestamp)
     RS_LOGD("RSMainThread::Animate end, %d animating nodes remains", context_.animatingNodeList_.size());
 
     RequestNextVSync();
+}
+
+bool RSMainThread::HasWindowAnimation() const
+{
+    for (auto [nodeId, nodePtr] : context_.animatingNodeList_) {
+        auto node = nodePtr.lock();
+        if (node != nullptr && node->IsInstanceOf<RSSurfaceRenderNode>()) {
+            return true;
+        }
+    }
+    return false;
 }
 
 void RSMainThread::RecvRSTransactionData(std::unique_ptr<RSTransactionData>& rsTransactionData)
@@ -914,7 +925,7 @@ bool RSMainThread::DoParallelComposition(std::shared_ptr<RSBaseRenderNode> rootN
     rootNode->Prepare(visitor);
     CalcOcclusion();
     auto children = rootNode->GetSortedChildren();
-    bool animate_ = doAnimate_;
+    bool animate_ = doWindowAnimate_;
     for (auto it = children.rbegin(); it != children.rend(); it++) {
         auto child = *it;
         auto task = [&syncSignal, SignalCountDown, child, animate_]() {

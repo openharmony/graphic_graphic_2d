@@ -157,6 +157,8 @@ private:
     void CheckBufferAvailableIfNeed();
     void CheckUpdateSurfaceNodeIfNeed();
 
+    bool HasWindowAnimation() const;
+
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
     RSTaskMessage::RSTask mainLoop_;
@@ -196,7 +198,7 @@ private:
     std::map<uint32_t, bool> lastPidVisMap_;
     VisibleData lastVisVec_;
     bool qosPidCal_ = false;
-    bool doAnimate_ = false;
+    bool doWindowAnimate_ = false;
     uint32_t lastSurfaceCnt_ = 0;
 
     std::shared_ptr<RSRenderEngine> renderEngine_;
