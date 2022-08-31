@@ -381,9 +381,11 @@ void RSRenderThread::ProcessCommands()
     std::swap(cmds, cmds_);
     cmdLock.unlock();
 
+    context_.currentTimestamp_ = prevTimestamp_;
     for (auto& cmdData : cmds) {
         std::string str = "ProcessCommands ptr:" + std::to_string(reinterpret_cast<uintptr_t>(cmdData.get()));
         ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, str.c_str());
+        context_.transactionTimestamp_ = cmdData->GetTimestamp();
         cmdData->Process(context_);
         ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
     }

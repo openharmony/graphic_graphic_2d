@@ -315,6 +315,7 @@ void RSMainThread::ProcessCommandForDividedRender()
             }
         }
     }
+    context_.currentTimestamp_ = timestamp_;
     for (auto& command : effectiveCommands_) {
         if (command) {
             command->Process(context_);
