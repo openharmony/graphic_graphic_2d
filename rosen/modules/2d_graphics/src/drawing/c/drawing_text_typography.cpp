@@ -20,6 +20,7 @@
 #include "rosen_text/ui/typography_create.h"
 
 #include <codecvt>
+#include <locale>
 #include <vector>
 #include <string>
 
