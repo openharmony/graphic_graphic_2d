@@ -23,6 +23,9 @@
 #include "vsync_sampler.h"
 #include "vsync_generator.h"
 #include "vsync_distributor.h"
+#include "accesstoken_kit.h"
+#include "nativetoken_kit.h"
+#include "token_setproc.h"
 
 #include <iostream>
 
@@ -154,6 +157,25 @@ HWTEST_F(VSyncTest, RequestNextVSync001, Function | MediumTest | Level2)
 {
     auto pid = ChildProcessMain();
     ASSERT_GE(pid, 0);
+
+    uint64_t tokenId;
+    const char *perms[2];
+    perms[0] = "ohos.permission.DISTRIBUTED_DATASYNC";
+    perms[1] = "ohos.permission.CAMERA";
+    NativeTokenInfoParams infoInstance = {
+        .dcapsNum = 0,
+        .permsNum = 2,
+        .aclsNum = 0,
+        .dcaps = NULL,
+        .perms = perms,
+        .acls = NULL,
+        .processName = "dcamera_client_demo",
+        .aplStr = "system_basic",
+    };
+    tokenId = GetAccessTokenId(&infoInstance);
+    SetSelfTokenID(tokenId);
+    int32_t ret = Security::AccessToken::AccessTokenKit::ReloadNativeTokenInfo();
+    ASSERT_EQ(ret, Security::AccessToken::RET_SUCCESS);
 
     sptr<VSyncConnection> connServer = new VSyncConnection(appDistributor, "app");
     appDistributor->AddConnection(connServer);

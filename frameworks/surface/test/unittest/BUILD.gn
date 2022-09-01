@@ -199,6 +199,9 @@ config("surface_test_common_public_config") {
   include_dirs = [
     "//foundation/graphic/graphic_2d/frameworks/surface/include",
     "//drivers/peripheral/display/interfaces/include",
+    "//base/security/access_token/interfaces/innerkits/nativetoken/include",
+    "//base/security/access_token/interfaces/innerkits/accesstoken/include",
+    "//base/security/access_token/interfaces/innerkits/token_setproc/include",
   ]
 
   cflags = [
@@ -218,6 +221,9 @@ ohos_static_library("surface_test_common") {
 
   public_deps = [
     "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
+    "//base/security/access_token/interfaces/innerkits/accesstoken:libaccesstoken_sdk",
+    "//base/security/access_token/interfaces/innerkits/nativetoken:libnativetoken",
+    "//base/security/access_token/interfaces/innerkits/token_setproc:libtoken_setproc",
     "//foundation/graphic/graphic_2d:libnative_image",
     "//foundation/graphic/graphic_2d:libsurface",
     "//foundation/graphic/graphic_2d/utils:buffer_handle",
