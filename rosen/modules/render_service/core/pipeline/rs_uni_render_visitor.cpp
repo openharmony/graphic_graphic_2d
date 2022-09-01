@@ -386,19 +386,16 @@ void RSUniRenderVisitor::CalcDirtyDisplayRegion(std::shared_ptr<RSDisplayRenderN
         }
         auto surfaceDirtyManager = surfaceNode->GetDirtyManager();
         RectI surfaceDirtyRect = surfaceDirtyManager->GetDirtyRegion();
-        auto visibleRegion = surfaceNode->GetVisibleRegion();
-        surfaceDirtyRect = surfaceDirtyRect.IntersectRect(RectI {visibleRegion.GetBound().top_,
-            visibleRegion.GetBound().left_,
-            visibleRegion.GetBound().right_ - visibleRegion.GetBound().left_,
-            visibleRegion.GetBound().bottom_ - visibleRegion.GetBound().top_});
         const uint8_t opacity = 255;
         if (surfaceNode->GetAbilityBgAlpha() != opacity ||
             !ROSEN_EQ(surfaceNode->GetRenderProperties().GetAlpha(), 1.0f)) {
             // Handles the case of transparent surface, merge transparent dirty rect
             RectI transparentDirtyRect = surfaceNode->GetDstRect().IntersectRect(surfaceDirtyRect);
-            RS_LOGD("CalcDirtyDisplayRegion merge transparent dirty rect %s rect %s", surfaceNode->GetName().c_str(),
-                transparentDirtyRect.ToString().c_str());
-            displayDirtyManager->MergeDirtyRect(transparentDirtyRect);
+            if (!transparentDirtyRect.IsEmpty()) {
+                RS_LOGD("CalcDirtyDisplayRegion merge transparent dirty rect %s rect %s",
+                    surfaceNode->GetName().c_str(), transparentDirtyRect.ToString().c_str());
+                displayDirtyManager->MergeDirtyRect(transparentDirtyRect);
+            }
         }
 
         if (surfaceNode->GetRenderProperties().IsZOrderPromoted()) {
