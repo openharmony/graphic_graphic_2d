@@ -443,6 +443,17 @@ void RSUniRenderVisitor::SetSurfaceGlobalDirtyRegion(std::shared_ptr<RSDisplayRe
         // set display dirty region to surfaceNode
         surfaceNode->SetGloblDirtyRegion(node->GetDirtyManager()->GetDirtyRegion());
     }
+    Occlusion::Region curVisibleDirtyRegion;
+    for (auto it = curAllSurfaces.begin(); it != curAllSurfaces.end(); ++it) {
+        auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(*it);
+        if (surfaceNode == nullptr || !surfaceNode->IsAppWindow()) {
+            continue;
+        }
+        // set display dirty region to surfaceNode
+        surfaceNode->SetDirtyRegionBelowCurrentLayer(curVisibleDirtyRegion);
+        auto visibleDirtyRegion = surfaceNode->GetVisibleDirtyRegion();
+        curVisibleDirtyRegion = curVisibleDirtyRegion.Or(visibleDirtyRegion);
+    }
 }
 
 #ifdef RS_ENABLE_EGLQUERYSURFACE
