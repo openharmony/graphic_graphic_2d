@@ -31,7 +31,7 @@
 
 namespace OHOS {
 namespace Rosen {
-
+static const std::string STARTING_WINDOW_NAME = "startingWindow";
 RSSurfaceNode::SharedPtr RSSurfaceNode::Create(const RSSurfaceNodeConfig& surfaceNodeConfig, bool isWindow)
 {
     auto transactionProxy = RSTransactionProxy::GetInstance();
@@ -46,6 +46,10 @@ RSSurfaceNode::SharedPtr RSSurfaceNode::Create(const RSSurfaceNodeConfig& surfac
     RSSurfaceRenderNodeConfig config = { .id = node->GetId(), .name = node->name_ };
     if (!isWindow) {
         config.nodeType = RSSurfaceNodeType::SELF_DRAWING_NODE;
+    }
+
+    if (config.name.find(STARTING_WINDOW_NAME) != std::string::npos) {
+        config.nodeType = RSSurfaceNodeType::STARTING_WINDOW_NODE;
     }
 
     if (!node->CreateNodeAndSurface(config)) {

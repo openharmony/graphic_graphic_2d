@@ -136,6 +136,9 @@ void RSSurfaceRenderNode::CollectSurface(
     const std::shared_ptr<RSBaseRenderNode>& node, std::vector<RSBaseRenderNode::SharedPtr>& vec, bool isUniRender)
 {
     if (RSOcclusionConfig::GetInstance().IsStartingWindow(GetName())) {
+        if (isUniRender) {
+            vec.emplace_back(shared_from_this());
+        }
         return;
     }
     if (RSOcclusionConfig::GetInstance().IsLeashWindow(GetName())) {

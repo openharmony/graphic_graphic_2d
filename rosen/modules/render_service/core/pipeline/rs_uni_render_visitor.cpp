@@ -16,6 +16,7 @@
 #include "pipeline/rs_uni_render_visitor.h"
 
 #include "include/core/SkRegion.h"
+#include "common/rs_common_def.h"
 #include "common/rs_obj_abs_geometry.h"
 #include "pipeline/rs_base_render_util.h"
 #include "pipeline/rs_display_render_node.h"
@@ -85,7 +86,7 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
     node.ApplyModifiers();
     bool dirtyFlag = dirtyFlag_;
     // prepare the surfaceRenderNode whose child is rootRenderNode 
-    if (node.IsAppWindow()) {
+    if (node.IsAppWindow() || node.GetSurfaceNodeType() == RSSurfaceNodeType::STARTING_WINDOW_NODE) {
         curSurfaceDirtyManager_ = node.GetDirtyManager();
         curSurfaceDirtyManager_->Clear();
         auto transitionProperties = node.GetAnimationManager().GetTransitionProperties();
@@ -381,7 +382,7 @@ void RSUniRenderVisitor::CalcDirtyDisplayRegion(std::shared_ptr<RSDisplayRenderN
     auto displayDirtyManager = node->GetDirtyManager();
     for (auto it = node->GetCurAllSurfaces().rbegin(); it != node->GetCurAllSurfaces().rend(); ++it) {
         auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(*it);
-        if (surfaceNode == nullptr || !surfaceNode->IsAppWindow()) {
+        if (surfaceNode == nullptr) {
             continue;
         }
         auto surfaceDirtyManager = surfaceNode->GetDirtyManager();
