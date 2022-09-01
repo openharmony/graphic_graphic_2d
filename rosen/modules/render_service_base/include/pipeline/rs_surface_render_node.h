@@ -250,20 +250,6 @@ public:
         visibleDirtyRegion_ = region;
     }
 
-    const Occlusion::Region& GetDirtyRegionBelowCurrentLayer() const
-    {
-        return dirtyRegionBelowCurrentLayer_;
-    }
-
-    void SetDirtyRegionBelowCurrentLayer(Occlusion::Region& region)
-    {
-        Occlusion::Rect dstrect { dstRect_.left_, dstRect_.top_,
-            dstRect_.GetRight(), dstRect_.GetBottom() };
-        Occlusion::Region dstregion {dstrect};
-        dirtyRegionBelowCurrentLayer_ = dstregion.And(region);
-        dirtyRegionBelowCurrentLayerIsEmpty_ = dirtyRegionBelowCurrentLayer_.IsEmpty();
-    }
-
     bool GetDstRectChanged() const
     {
         return dstRectChanged_;
@@ -286,9 +272,7 @@ public:
 
     void SetGloblDirtyRegion(const RectI& rect)
     {
-        auto globaldirtyInSurfaceRange = GetDstRect().IntersectRect(rect);
-        globalDirtyRegionIsEmpty_ = globaldirtyInSurfaceRange.IsEmpty();
-        globalDirtyRegion_ = globaldirtyInSurfaceRange;
+        globalDirtyRegion_ = rect;
     }
 
     void SetConsumer(const sptr<Surface>& consumer);
@@ -338,35 +322,23 @@ public:
         if (dirtyManager_ == nullptr) {
             return true;
         }
-        Occlusion::Rect nodeRect { r.left_, r.top_, r.GetRight(), r.GetBottom() };
+        Occlusion::Rect dirtyRect { r.left_, r.top_, r.GetRight(), r.GetBottom() };
 
         // if current node is in occluded region of the surface, it could be skipped in process step
-        bool isVisible = visibleRegion_.IsIntersectWith(nodeRect);
+        bool isVisible = visibleRegion_.IsIntersectWith(dirtyRect);
         if (!isVisible) {
             return false;
         }
 
-        // if current node rect r is in global dirtyregion, it CANNOT be skipped
-        if (!globalDirtyRegionIsEmpty_) {
-            auto globalRect = r.IntersectRect(globalDirtyRegion_);
-            if (!globalRect.IsEmpty()) {
-                return true;
-            }
+        // if current node is in global dirtyregion, it CANNOT be skipped
+        auto globalRect = r.IntersectRect(globalDirtyRegion_);
+        if (!globalRect.IsEmpty()) {
+            return true;
         }
         
         // if current node is in visible dirtyRegion, it CANNOT be skipped
-        bool localIntersect = visibleDirtyRegion_.IsIntersectWith(nodeRect);
-        if (localIntersect) {
-            return true;
-        }
-
-        // if current node is transparent
-        const uint8_t opacity = 255;
-        if (!(GetAbilityBgAlpha() == opacity &&
-                ROSEN_EQ(GetRenderProperties().GetAlpha(), 1.0f))) {
-            return dirtyRegionBelowCurrentLayer_.IsIntersectWith(nodeRect);
-        }
-        return false;
+        bool localIntersect = visibleDirtyRegion_.IsIntersectWith(dirtyRect);
+        return localIntersect;
     }
 
     void SetCacheSurface(sk_sp<SkSurface> cacheSurface)
@@ -442,10 +414,6 @@ private:
 
     std::atomic<bool> isAppFreeze_ = false;
     sk_sp<SkSurface> cacheSurface_ = nullptr;
-    bool globalDirtyRegionIsEmpty_ = false;
-    // if a there a dirty layer under transparent clean layer, transparent layer should refreshed
-    Occlusion::Region dirtyRegionBelowCurrentLayer_;
-    bool dirtyRegionBelowCurrentLayerIsEmpty_;
 };
 } // namespace Rosen
 } // namespace OHOS
