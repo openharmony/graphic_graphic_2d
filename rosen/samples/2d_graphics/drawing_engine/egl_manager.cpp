@@ -141,7 +141,7 @@ void EGLManager::Init()
         return;
     }
 
-    LOGW("Create EGL context successfully, version %{public}d.%{public}d", major, minor);
+    LOGD("Create EGL context successfully, version %{public}d.%{public}d", major, minor);
 }
 
 bool EGLManager::IsEglContextReady()
@@ -166,7 +166,7 @@ EGLSurface EGLManager::CreateSurface(EGLNativeWindowType eglNativeWindow)
         return EGL_NO_SURFACE;
     }
 
-    LOGW("CreateEGLSurface: %{public}p", surface);
+    LOGD("CreateEGLSurface: %{public}p", surface);
 
     eglSurface_ = surface;
     return surface;
@@ -195,7 +195,7 @@ void EGLManager::SwapBuffers()
     if (!eglSwapBuffers(eglDisplay_, eglSurface_)) {
         LOGE("Failed to SwapBuffers on surface %{public}p, error=%{public}x", eglSurface_, eglGetError());
     } else {
-        LOGW("SwapBuffers successfully, surface is %{public}p", eglSurface_);
+        LOGD("SwapBuffers successfully, surface is %{public}p", eglSurface_);
     }
 }
 
