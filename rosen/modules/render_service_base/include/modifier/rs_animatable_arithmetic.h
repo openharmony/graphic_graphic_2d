@@ -28,7 +28,26 @@
 namespace OHOS {
 namespace Rosen {
 template<typename T>
-class RS_EXPORT RSAnimatableArithmetic {
+class RS_EXPORT RSArithmetic {
+public:
+    RSArithmetic() = default;
+    virtual ~RSArithmetic() = default;
+
+    virtual bool IsEqual(const T& value) const = 0;
+
+    bool operator==(const T& value) const
+    {
+        return IsEqual(value);
+    }
+
+    bool operator!=(const T& value) const
+    {
+        return !IsEqual(value);
+    }
+};
+
+template<typename T>
+class RS_EXPORT RSAnimatableArithmetic : public RSArithmetic<T> {
 public:
     RSAnimatableArithmetic() = default;
     virtual ~RSAnimatableArithmetic() = default;
@@ -36,7 +55,6 @@ public:
     virtual T Add(const T& value) const = 0;
     virtual T Minus(const T& value) const = 0;
     virtual T Multiply(const float scale) const = 0;
-    virtual bool IsEqual(const T& value) const = 0;
 
     T operator+(const T& value) const
     {
@@ -62,16 +80,7 @@ public:
     {
         return Multiply(scale);
     }
-    bool operator==(const T& value) const
-    {
-        return IsEqual(value);
-    }
-    bool operator!=(const T& value) const
-    {
-        return !IsEqual(value);
-    }
 };
-
 } // namespace Rosen
 } // namespace OHOS
 

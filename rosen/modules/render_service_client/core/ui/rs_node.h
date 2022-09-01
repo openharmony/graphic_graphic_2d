@@ -205,6 +205,7 @@ private:
     const std::shared_ptr<RSModifierBase> GetModifier(const PropertyId& propertyId);
     virtual void OnBoundsSizeChanged() const {};
     void UpdateModifierMotionPathOption();
+    void UpdateExtendedModifier(const PropertyId& id);
 
     std::unordered_map<AnimationId, std::shared_ptr<RSAnimation>> animations_;
     std::unordered_map<PropertyId, uint32_t> animatingPropertyNum_;

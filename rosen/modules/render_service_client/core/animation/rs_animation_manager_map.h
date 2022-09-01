@@ -18,11 +18,13 @@
 #include <mutex>
 #include <unordered_map>
 
+#include "common/rs_macros.h"
+
 namespace OHOS {
 namespace Rosen {
 class RSUIAnimationManager;
 
-class RSAnimationManagerMap final {
+class RS_EXPORT RSAnimationManagerMap final {
 public:
     ~RSAnimationManagerMap() = default;
     static std::shared_ptr<RSAnimationManagerMap>& Instance();

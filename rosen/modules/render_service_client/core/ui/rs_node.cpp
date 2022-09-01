@@ -979,6 +979,14 @@ void RSNode::UpdateModifierMotionPathOption()
     }
 }
 
+void RSNode::UpdateExtendedModifier(const PropertyId& id)
+{
+    auto modifier = GetModifier(id);
+    if (modifier != nullptr) {
+        modifier->UpdateToRender();
+    }
+}
+
 std::string RSNode::DumpNode(int depth) const
 {
     std::stringstream ss;
