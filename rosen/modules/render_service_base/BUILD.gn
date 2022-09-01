@@ -52,6 +52,7 @@ ohos_shared_library("librender_service_base") {
     "src/animation/rs_render_transition_effect.cpp",
     "src/animation/rs_spring_interpolator.cpp",
     "src/animation/rs_spring_model.cpp",
+    "src/animation/rs_steps_interpolator.cpp",
     "src/animation/rs_transition_effect.cpp",
     "src/animation/rs_value_estimator.cpp",
 
