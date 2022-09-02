@@ -19,9 +19,11 @@
 #include <type_traits>
 #include <unistd.h>
 
+#include "animation/rs_animation_manager_map.h"
 #include "animation/rs_implicit_animator.h"
 #include "animation/rs_implicit_animator_map.h"
 #include "animation/rs_motion_path_option.h"
+#include "animation/rs_ui_animation_manager.h"
 #include "common/rs_color.h"
 #include "common/rs_common_def.h"
 #include "common/rs_macros.h"
@@ -166,7 +168,20 @@ public:
 
 protected:
     void UpdateToRender(const T& value, bool isDelta, bool forceUpdate = false) const
-    {}
+    {
+        UpdateExtendedProperty(value, isDelta);
+    }
+
+    virtual void UpdateExtendedProperty(const T& value, bool isDelta) const
+    {
+        auto node = RSNodeMap::Instance().GetNode<RSNode>(nodeId_);
+        if (node == nullptr) {
+            return;
+        }
+        node->UpdateExtendedModifier(id_);
+    }
+
+    virtual void SetIsCustom(bool isCustom) {}
 
     std::shared_ptr<RSPropertyBase> GetValue() override
     {
@@ -193,6 +208,8 @@ protected:
 
     friend class RSPathAnimation;
     friend class RSImplicitAnimator;
+    template<typename T1>
+    friend class RSExtendedModifier;
     template<typename T2>
     friend class RSModifier;
 };
@@ -264,7 +281,7 @@ public:
     }
 
 protected:
-    void SetIsCustom(bool isCustom)
+    void SetIsCustom(bool isCustom) override
     {
         isCustom_ = isCustom;
     }
@@ -290,6 +307,23 @@ protected:
     void UpdateOnAllAnimationFinish() override
     {
         RSProperty<T>::UpdateToRender(RSProperty<T>::stagingValue_, false, true);
+    }
+
+    void UpdateExtendedProperty(const T& value, bool isDelta) const override
+    {
+        auto animationManager = RSAnimationManagerMap::Instance()->GetAnimationManager(gettid());
+        if (animationManager == nullptr) {
+            return;
+        }
+        auto renderProperty = std::static_pointer_cast<RSRenderAnimatableProperty<T>>(
+            animationManager->GetRenderProperty(RSProperty<T>::GetId()));
+        if (renderProperty != nullptr) {
+            if (isDelta) {
+                renderProperty->Set(renderProperty->Get() + value);
+            } else {
+                renderProperty->Set(value);
+            }
+        }
     }
 
     void AddPathAnimation() override
