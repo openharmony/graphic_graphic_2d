@@ -188,7 +188,9 @@ void RSSurfaceRenderNode::ResetParent()
         ClearChildrenCache(shared_from_this());
     } else {
         auto& consumer = GetConsumer();
-        if (consumer != nullptr) {
+        if (consumer != nullptr &&
+            std::strcmp(GetName().c_str(), "RosenRenderTexture") != 0 &&
+            std::strcmp(GetName().c_str(), "RosenRenderWeb") != 0) {
             consumer->GoBackground();
         }
     }
