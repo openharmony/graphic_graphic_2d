@@ -40,7 +40,7 @@ ohos_source_set("webgl_src") {
     "//foundation/arkui/napi:ace_napi",
     "//foundation/graphic/graphic_2d:libsurface",
     "//third_party/bounds_checking_function:libsec_static",
-    "//third_party/libuv:uv_static",
+    "//third_party/libuv:uv",
   ]
 
   if (ace_enable_gpu) {
