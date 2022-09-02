@@ -54,11 +54,6 @@ public:
     // After calling it, this surfaceNode is disallowed to add/remove child.
     void CreateNodeInRenderThread();
 
-    // This API is only for RemoteWindow create RSRenderSurfaceNode in RenderThread.
-    // Do not call this API unless you are sure what you do.
-    // After calling it, this surfaceNode is disallowed to add/remove child.
-    void CreateProxyInRenderThread();
-
     void AddChild(std::shared_ptr<RSBaseNode> child, int index) override;
     void RemoveChild(std::shared_ptr<RSBaseNode> child) override;
     void ClearChildren() override;

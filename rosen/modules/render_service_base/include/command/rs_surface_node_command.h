@@ -27,7 +27,6 @@ namespace Rosen {
 
 enum RSSurfaceNodeCommandType : uint16_t {
     SURFACE_NODE_CREATE,
-    SURFACE_NODE_CREATE_PROXY,
     SURFACE_NODE_SET_CONTEXT_MATRIX,
     SURFACE_NODE_SET_CONTEXT_ALPHA,
     SURFACE_NODE_SET_CONTEXT_CLIP_REGION,
@@ -45,7 +44,6 @@ enum RSSurfaceNodeCommandType : uint16_t {
 class SurfaceNodeCommandHelper {
 public:
     static void Create(RSContext& context, NodeId nodeId);
-    static void CreateProxy(RSContext& context, NodeId nodeId);
     static void SetContextMatrix(RSContext& context, NodeId nodeId, SkMatrix matrix);
     static void SetContextAlpha(RSContext& context, NodeId nodeId, float alpha);
     static void SetContextClipRegion(RSContext& context, NodeId nodeId, SkRect clipRect);
@@ -61,8 +59,6 @@ public:
 };
 
 ADD_COMMAND(RSSurfaceNodeCreate, ARG(SURFACE_NODE, SURFACE_NODE_CREATE, SurfaceNodeCommandHelper::Create, NodeId))
-ADD_COMMAND(RSSurfaceNodeCreateProxy,
-    ARG(SURFACE_NODE, SURFACE_NODE_CREATE_PROXY, SurfaceNodeCommandHelper::CreateProxy, NodeId))
 ADD_COMMAND(RSSurfaceNodeSetContextMatrix,
     ARG(SURFACE_NODE, SURFACE_NODE_SET_CONTEXT_MATRIX, SurfaceNodeCommandHelper::SetContextMatrix, NodeId, SkMatrix))
 ADD_COMMAND(RSSurfaceNodeSetContextAlpha,
@@ -86,7 +82,7 @@ ADD_COMMAND(RSSurfaceNodeSetAbilityBGAlpha,
 ADD_COMMAND(RSSurfaceNodeUpdateParentWithoutTransition,
     ARG(SURFACE_NODE, SURFACE_NODE_UPDATE_PARENT_WITHOUT_TRANSITION,
         SurfaceNodeCommandHelper::UpdateParentWithoutTransition, NodeId, NodeId))
-ADD_COMMAND(RSSurfaceNodeSetIsNotifyUIBUfferAvailable,
+ADD_COMMAND(RSSurfaceNodeSetIsNotifyUIBufferAvailable,
     ARG(SURFACE_NODE, SURFACE_NODE_SET_IS_NOTIFY_BUFFER_AVAILABLE,
     SurfaceNodeCommandHelper::SetIsNotifyUIBufferAvailable, NodeId, bool))
 ADD_COMMAND(RSSurfaceNodeSetAppFreeze,

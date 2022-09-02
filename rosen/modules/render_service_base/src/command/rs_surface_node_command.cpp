@@ -28,20 +28,6 @@ void SurfaceNodeCommandHelper::Create(RSContext& context, NodeId id)
     nodeMap.RegisterRenderNode(node);
 }
 
-void SurfaceNodeCommandHelper::CreateProxy(RSContext& context, NodeId id)
-{
-    auto node = std::make_shared<RSSurfaceRenderNode>(id, context.weak_from_this());
-    auto& nodeMap = context.GetMutableNodeMap();
-    if (!nodeMap.RegisterRenderNode(node)) {
-        // node already exists in node map, do nothing
-        return;
-    }
-    // this is proxy node, so set proxy flag
-    node->SetProxy();
-    // this code ensures that next call to SetContextAlpha always send command to RenderService
-    node->SetContextAlpha(-1.0f, false);
-}
-
 void SurfaceNodeCommandHelper::SetContextMatrix(RSContext& context, NodeId id, SkMatrix matrix)
 {
     if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(id)) {

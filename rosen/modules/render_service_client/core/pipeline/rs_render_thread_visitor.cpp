@@ -480,13 +480,6 @@ void RSRenderThreadVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
     node.SetContextMatrix(contextMatrix);
     node.SetContextAlpha(canvas_->GetAlpha());
 
-    // for proxied nodes (i.e. remote window components), we only extract matrix & alpha, do not change their hierarchy
-    // or clip or other properties.
-    if (node.IsProxy()) {
-        node.ResetSortedChildren();
-        return;
-    }
-
     // PLANNING: This is a temporary modification. Animation for surfaceView should not be triggered in RenderService.
     // We plan to refactor code here.
     node.SetContextBounds(node.GetRenderProperties().GetBounds());

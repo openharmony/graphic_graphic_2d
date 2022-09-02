@@ -102,25 +102,6 @@ void RSSurfaceNode::CreateNodeInRenderThread()
     isRenderServiceNode_ = false;
 }
 
-void RSSurfaceNode::CreateProxyInRenderThread()
-{
-    if (!IsRenderServiceNode()) {
-        ROSEN_LOGI("RsDebug RSSurfaceNode::CreateNodeInRenderThread id:%" PRIu64 " already has RT Node", GetId());
-        return;
-    }
-
-    auto transactionProxy = RSTransactionProxy::GetInstance();
-    if (transactionProxy == nullptr) {
-        return;
-    }
-
-    isChildOperationDisallowed_ = true;
-    isRenderServiceNode_ = true;
-
-    std::unique_ptr<RSCommand> command = std::make_unique<RSSurfaceNodeCreateProxy>(GetId());
-    transactionProxy->AddCommand(command, false);
-}
-
 void RSSurfaceNode::AddChild(std::shared_ptr<RSBaseNode> child, int index)
 {
     if (isChildOperationDisallowed_) {
@@ -206,7 +187,7 @@ void RSSurfaceNode::SetAbilityBGAlpha(uint8_t alpha)
 void RSSurfaceNode::SetIsNotifyUIBufferAvailable(bool available)
 {
     std::unique_ptr<RSCommand> command =
-        std::make_unique<RSSurfaceNodeSetIsNotifyUIBUfferAvailable>(GetId(), available);
+        std::make_unique<RSSurfaceNodeSetIsNotifyUIBufferAvailable>(GetId(), available);
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy != nullptr) {
         transactionProxy->AddCommand(command, true);

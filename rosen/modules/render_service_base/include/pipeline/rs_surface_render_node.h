@@ -100,15 +100,6 @@ public:
         offsetY_ = offsetY;
     }
 
-    void SetProxy()
-    {
-        isProxy_ = true;
-    }
-    bool IsProxy() const
-    {
-        return isProxy_;
-    }
-
     void CollectSurface(const std::shared_ptr<RSBaseRenderNode>& node,
                         std::vector<RSBaseRenderNode::SharedPtr>& vec,
                         bool isUniRender) override;
@@ -416,7 +407,6 @@ private:
 
     std::string name_;
     RSSurfaceNodeType nodeType_ = RSSurfaceNodeType::DEFAULT;
-    bool isProxy_ = false;
     BlendType blendType_ = BlendType::BLEND_SRCOVER;
     bool isNotifyRTBufferAvailablePre_ = false;
     std::atomic<bool> isNotifyRTBufferAvailable_ = false;
