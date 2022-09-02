@@ -32,6 +32,172 @@ namespace OHOS {
 #define SURFACE_DEFAULT_STRIDE_ALIGNMENT 4
 #define SURFACE_MAX_SIZE 58982400 // 8K * 8K
 
+/*
+ * @brief Defines the buffer usage.
+ */
+enum {
+    GRAPHIC_USAGE_CPU_READ = (1 << 0),        /**< CPU read buffer */
+    GRAPHIC_USAGE_CPU_WRITE = (1 << 1),       /**< CPU write memory */
+    GRAPHIC_USAGE_MEM_MMZ = (1 << 2),         /**< Media memory zone (MMZ) */
+    GRAPHIC_USAGE_MEM_DMA = (1 << 3),         /**< Direct memory access (DMA) buffer */
+    GRAPHIC_USAGE_MEM_SHARE = (1 << 4),       /**< Shared memory buffer*/
+    GRAPHIC_USAGE_MEM_MMZ_CACHE = (1 << 5),   /**< MMZ with cache*/
+    GRAPHIC_USAGE_MEM_FB = (1 << 6),          /**< Framebuffer */
+    GRAPHIC_USAGE_ASSIGN_SIZE = (1 << 7),     /**< Memory assigned */
+} GraphicBufferUsageType;
+
+/*
+ * @brief Enumerates the composition type of a special layer.
+ */
+typedef enum {
+    GRAPHIC_COMPOSITION_CLIENT,       /**< Client composition type. The composer should be the CPU or GPU. */
+    GRAPHIC_COMPOSITION_DEVICE,       /**< Device composition type. The composer should be the hardware. */
+    GRAPHIC_COMPOSITION_CURSOR,       /**< Cursor composition type, used for cursor. */
+    GRAPHIC_COMPOSITION_VIDEO,        /**< Video composition type, used for video. */
+    GRAPHIC_COMPOSITION_DEVICE_CLEAR, /**< Device clear composition type, the device will clear the target region. */
+    GRAPHIC_COMPOSITION_CLIENT_CLEAR, /**< Client clear composition type, the service will clear the target region. */
+    GRAPHIC_COMPOSITION_TUNNEL,       /**< Tunnel composition type, used for tunnel. */
+    GRAPHIC_COMPOSITION_BUTT
+} GraphicCompositionType;
+
+/*
+ * @brief Defines alpha information about a layer.
+ */
+typedef struct {
+    bool enGlobalAlpha;   /**< Global alpha enable bit */
+    bool enPixelAlpha;    /**< Pixel alpha enable bit */
+    uint8_t alpha0;       /**< Alpha0 value, ranging from 0 to 255 */
+    uint8_t alpha1;       /**< Alpha1 value, ranging from 0 to 255 */
+    uint8_t gAlpha;       /**< Global alpha value, ranging from 0 to 255 */
+} GraphicLayerAlpha;
+
+/*
+ * @brief Enumerates layer blending types.
+ * The system combines layers based on a specified blending type during hardware acceleration.
+ */
+typedef enum {
+    GRAPHIC_BLEND_NONE = 0,         /**< No blending */
+    GRAPHIC_BLEND_CLEAR,            /**< CLEAR blending */
+    GRAPHIC_BLEND_SRC,              /**< SRC blending */
+    GRAPHIC_BLEND_SRCOVER,          /**< SRC_OVER blending */
+    GRAPHIC_BLEND_DSTOVER,          /**< DST_OVER blending */
+    GRAPHIC_BLEND_SRCIN,            /**< SRC_IN blending */
+    GRAPHIC_BLEND_DSTIN,            /**< DST_IN blending */
+    GRAPHIC_BLEND_SRCOUT,           /**< SRC_OUT blending */
+    GRAPHIC_BLEND_DSTOUT,           /**< DST_OUT blending */
+    GRAPHIC_BLEND_SRCATOP,          /**< SRC_ATOP blending */
+    GRAPHIC_BLEND_DSTATOP,          /**< DST_ATOP blending */
+    GRAPHIC_BLEND_ADD,              /**< ADD blending */
+    GRAPHIC_BLEND_XOR,              /**< XOR blending */
+    GRAPHIC_BLEND_DST,              /**< DST blending */
+    GRAPHIC_BLEND_AKS,              /**< AKS blending */
+    GRAPHIC_BLEND_AKD,              /**< AKD blending */
+    GRAPHIC_BLEND_BUTT              /**< Null operation */
+} GraphicBlendType;
+
+/*
+ * @brief Enumerates image pixel formats.
+ */
+typedef enum {
+    GRAPHIC_PIXEL_FMT_CLUT8 = 0,                 /**< CLUT8 format */
+    GRAPHIC_PIXEL_FMT_CLUT1,                     /**< CLUT1 format */
+    GRAPHIC_PIXEL_FMT_CLUT4,                     /**< CLUT4 format */
+    GRAPHIC_PIXEL_FMT_RGB_565,                   /**< RGB565 format */
+    GRAPHIC_PIXEL_FMT_RGBA_5658,                 /**< RGBA5658 format */
+    GRAPHIC_PIXEL_FMT_RGBX_4444,                 /**< RGBX4444 format */
+    GRAPHIC_PIXEL_FMT_RGBA_4444,                 /**< RGBA4444 format */
+    GRAPHIC_PIXEL_FMT_RGB_444,                   /**< RGB444 format */
+    GRAPHIC_PIXEL_FMT_RGBX_5551,                 /**< RGBX5551 format */
+    GRAPHIC_PIXEL_FMT_RGBA_5551,                 /**< RGBA5551 format */
+    GRAPHIC_PIXEL_FMT_RGB_555,                   /**< RGB555 format */
+    GRAPHIC_PIXEL_FMT_RGBX_8888,                 /**< RGBX8888 format */
+    GRAPHIC_PIXEL_FMT_RGBA_8888,                 /**< RGBA8888 format */
+    GRAPHIC_PIXEL_FMT_RGB_888,                   /**< RGB888 format */
+    GRAPHIC_PIXEL_FMT_BGR_565,                   /**< BGR565 format */
+    GRAPHIC_PIXEL_FMT_BGRX_4444,                 /**< BGRX4444 format */
+    GRAPHIC_PIXEL_FMT_BGRA_4444,                 /**< BGRA4444 format */
+    GRAPHIC_PIXEL_FMT_BGRX_5551,                 /**< BGRX5551 format */
+    GRAPHIC_PIXEL_FMT_BGRA_5551,                 /**< BGRA5551 format */
+    GRAPHIC_PIXEL_FMT_BGRX_8888,                 /**< BGRX8888 format */
+    GRAPHIC_PIXEL_FMT_BGRA_8888,                 /**< BGRA8888 format */
+    GRAPHIC_PIXEL_FMT_YUV_422_I,                 /**< YUV422 interleaved format */
+    GRAPHIC_PIXEL_FMT_YCBCR_422_SP,              /**< YCBCR422 semi-planar format */
+    GRAPHIC_PIXEL_FMT_YCRCB_422_SP,              /**< YCRCB422 semi-planar format */
+    GRAPHIC_PIXEL_FMT_YCBCR_420_SP,              /**< YCBCR420 semi-planar format */
+    GRAPHIC_PIXEL_FMT_YCRCB_420_SP,              /**< YCRCB420 semi-planar format */
+    GRAPHIC_PIXEL_FMT_YCBCR_422_P,               /**< YCBCR422 planar format */
+    GRAPHIC_PIXEL_FMT_YCRCB_422_P,               /**< YCRCB422 planar format */
+    GRAPHIC_PIXEL_FMT_YCBCR_420_P,               /**< YCBCR420 planar format */
+    GRAPHIC_PIXEL_FMT_YCRCB_420_P,               /**< YCRCB420 planar format */
+    GRAPHIC_PIXEL_FMT_YUYV_422_PKG,              /**< YUYV422 packed format */
+    GRAPHIC_PIXEL_FMT_UYVY_422_PKG,              /**< UYVY422 packed format */
+    GRAPHIC_PIXEL_FMT_YVYU_422_PKG,              /**< YVYU422 packed format */
+    GRAPHIC_PIXEL_FMT_VYUY_422_PKG,              /**< VYUY422 packed format */
+    GRAPHIC_PIXEL_FMT_VENDER_MASK = 0X7FFF0000,  /**< vendor mask format */
+    GRAPHIC_PIXEL_FMT_BUTT = 0X7FFFFFFF          /**< Invalid pixel format */
+} GraphicPixelFormat;
+
+/*
+ * @brief Enumerates hdi layer types.
+ */
+typedef enum {
+    GRAPHIC_LAYER_TYPE_GRAPHIC,         /**< Graphic layer */
+    GRAPHIC_LAYER_TYPE_OVERLAY,         /**< Overlay layer */
+    GRAPHIC_LAYER_TYPE_SDIEBAND,        /**< Sideband layer */
+    GRAPHIC_LAYER_TYPE_CURSOR,          /**< Cursor Layer */
+    GRAPHIC_LAYER_TYPE_BUTT             /**< Empty layer */
+} GraphicLayerType;
+
+/*
+ * @brief Defines hdi layer information.
+ * <b>HdiLayerInfo</b> must be passed to the function, which creates a layer based on the hdi layer info.
+ */
+typedef struct {
+    int32_t width;                /**< Layer width */
+    int32_t height;               /**< Layer height */
+    GraphicLayerType type;        /**< Layer type, which can be a graphic layer, overlay layer, or sideband layer */
+    int32_t bpp;                  /**< Number of bits occupied by each pixel */
+    GraphicPixelFormat pixFormat; /**< Pixel format of the layer */
+} GraphicLayerInfo;
+
+/*
+ * @brief Defines information about the memory to allocate.
+ */
+typedef struct {
+    uint32_t width;                 /**< Width of the requested memory */
+    uint32_t height;                /**< Height of the requested memory */
+    uint64_t usage;                 /**< Usage of the requested memory */
+    GraphicPixelFormat format;      /**< Format of the requested memory */
+    uint32_t expectedSize;          /**< Size assigned by memory requester */
+} BufferAllocInfo;
+
+/*
+ * @brief Defines information for verifying the memory to allocate.
+ */
+typedef struct {
+    uint32_t width;               /**< Width of the memory to allocate */
+    uint32_t height;              /**< Height of the memory to allocate */
+    uint64_t usage;               /**< Usage of the memory */
+    GraphicPixelFormat format;    /**< Format of the memory to allocate */
+} BufferVerifyAllocInfo;
+
+/*
+ * @brief Enumerates the present timestamp types.
+ */
+typedef enum {
+    GRAPHIC_DISPLAY_PTS_UNSUPPORTED = 0,        /**< Unsupported */
+    GRAPHIC_DISPLAY_PTS_DELAY = 1 << 0,         /**< Delay */
+    GRAPHIC_DISPLAY_PTS_TIMESTAMP = 1 << 1,     /**< Timestamp */
+} GraphicPresentTimestampType;
+
+/*
+ * @brief Defines the present timestamp.
+ */
+typedef struct {
+    GraphicPresentTimestampType type;     /**< Present timestamp type */
+    int64_t time;                         /**< Present timestamp value */
+} GraphicPresentTimestamp;
+
 using Rect = struct Rect {
     int32_t x;
     int32_t y;
