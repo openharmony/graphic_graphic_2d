@@ -22,9 +22,8 @@
 
 namespace OHOS {
 namespace Rosen {
-
 RSStepsInterpolator::RSStepsInterpolator(int32_t steps, StepsCurvePosition position)
-    : steps_(steps <= 0 ? 1 : steps), position_(position){}
+    :steps_(steps <= 0 ? 1 : steps), position_(position){}
 
 #ifdef ROSEN_OHOS
 bool RSStepsInterpolator::Marshalling(Parcel& parcel) const

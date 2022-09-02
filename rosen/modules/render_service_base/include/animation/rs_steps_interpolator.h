@@ -20,7 +20,6 @@
 
 namespace OHOS {
 namespace Rosen {
-
 enum class StepsCurvePosition {
     START,
     END,
