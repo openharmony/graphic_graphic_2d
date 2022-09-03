@@ -140,23 +140,47 @@ void CacheData::Rewrite(const void *key, const size_t keySize, const void *value
 
     std::shared_ptr<DataPointer> fakeDataPointer(std::make_shared<DataPointer>(key, keySize, false));
     ShaderPointer fakeShaderPointer(fakeDataPointer, nullptr);
-
-    auto index = std::lower_bound(shaderPointers_.begin(), shaderPointers_.end(), fakeShaderPointer);
-    if (index == shaderPointers_.end() || fakeShaderPointer < *index) {
-        std::shared_ptr<DataPointer> keyPointer(std::make_shared<DataPointer>(key, keySize, true));
-        std::shared_ptr<DataPointer> valuePointer(std::make_shared<DataPointer>(value, valueSize, true));
-        size_t newTotalSize = totalSize_ + keySize + valueSize;
-        CheckClean(newTotalSize);
-        shaderPointers_.insert(index, ShaderPointer(keyPointer, valuePointer));
-        totalSize_ = newTotalSize;
-    } else {
-        std::shared_ptr<DataPointer> valuePointer(std::make_shared<DataPointer>(value, valueSize, true));
-        std::shared_ptr<DataPointer> oldValuePointer(index->GetValuePointer());
-        size_t newTotalSize = totalSize_ + valueSize - oldValuePointer->GetSize();
-        CheckClean(newTotalSize);
-        index->SetValue(valuePointer);
-        totalSize_ = newTotalSize;
+    bool isShaderFound = false;
+    size_t newTotalSize = 0;
+    while (!isShaderFound) {
+        auto index = std::lower_bound(shaderPointers_.begin(), shaderPointers_.end(), fakeShaderPointer);
+        if (index == shaderPointers_.end() || fakeShaderPointer < *index) {
+            std::shared_ptr<DataPointer> keyPointer(std::make_shared<DataPointer>(key, keySize, true));
+            std::shared_ptr<DataPointer> valuePointer(std::make_shared<DataPointer>(value, valueSize, true));
+            newTotalSize = totalSize_ + keySize + valueSize;
+            if (IfSizeValidate(newTotalSize, keySize + valueSize)) {
+                shaderPointers_.insert(index, ShaderPointer(keyPointer, valuePointer));
+                totalSize_ = newTotalSize;
+                break;
+            }
+            if (IfSkipClean(keySize + valueSize)) {
+                break;
+            }
+            if (IfCleanFinished()) {
+                continue;
+            }
+            break;
+        } else {
+            std::shared_ptr<DataPointer> valuePointer(std::make_shared<DataPointer>(value, valueSize, true));
+            std::shared_ptr<DataPointer> oldValuePointer(index->GetValuePointer());
+            newTotalSize = totalSize_ + valueSize - oldValuePointer->GetSize();
+            size_t addedSize = (valueSize > oldValuePointer->GetSize()) ? valueSize - oldValuePointer->GetSize() : 0;
+            if (IfSizeValidate(newTotalSize, addedSize)) {
+                index->SetValue(valuePointer);
+                totalSize_ = newTotalSize;
+                break;
+            }
+            if (IfSkipClean(addedSize)) {
+                break;
+            }
+            if (IfCleanFinished()) {
+                continue;
+            }
+            break;
+        }
+        isShaderFound = true;
     }
+    cleanThreshold_ = 0;
 }
 
 size_t CacheData::Get(const void *key, const size_t keySize, void *value, const size_t valueSize)
@@ -263,7 +287,7 @@ int CacheData::DeSerialize(uint8_t const *buffer, const size_t size)
         size_t alignedSize = Align4(pairSize);
         if (byteOffset + alignedSize > size) {
             shaderPointers_.clear();
-            LOGE("not enough room for cache headers");
+            LOGE("abandon, not enough room for cache headers");
             return -EINVAL;
         }
 
@@ -274,15 +298,34 @@ int CacheData::DeSerialize(uint8_t const *buffer, const size_t size)
     return 0;
 }
 
-void CacheData::CheckClean(const size_t newSize)
+bool CacheData::IfSizeValidate(const size_t newSize, const size_t addedSize)
 {
-    if (maxTotalSize_ < newSize) {
-        if (!cleanThreshold_) {
-            RandClean(maxTotalSize_ / CLEAN_LIMIT);
-        } else {
-            LOGE("abandon, totalSize too large");
-            return;
-        }
+    // check if size is ok and we don't neet to clean the shaders
+    if (newSize <= maxTotalSize_ || addedSize == 0) {
+        return true;
+    }
+    return false;
+}
+
+bool CacheData::IfSkipClean(const size_t addedSize)
+{
+    // check if the new shader is still too large after cleaning
+    size_t maxPermittedSize = maxTotalSize_ - maxTotalSize_ / CLEAN_LEVEL;
+    if (addedSize > maxPermittedSize) {
+        LOGW("new shader is too large, abandon insert");
+        return true;
+    }
+    return false;
+}
+
+bool CacheData::IfCleanFinished()
+{
+    if (!cleanThreshold_) {
+        RandClean(maxTotalSize_ / CLEAN_LEVEL);
+        return true;
+    } else {
+        LOGE("abandon, failed to clean the shaders");
+        return false;
     }
 }
 
@@ -293,7 +336,7 @@ void CacheData::RandClean(const size_t cleanThreshold)
         return;
     }
     if (cleanThreshold_ == 0) {
-        long int now = std::chrono::steady_clock::now().time_since_epoch().count();
+        auto now = std::chrono::steady_clock::now().time_since_epoch().count();
         if (now < 0) {
             LOGE("abandon, illegal negative now value");
             return;
@@ -324,6 +367,10 @@ void CacheData::RandClean(const size_t cleanThreshold)
 
 size_t CacheData::Clean(const int removeIndex)
 {
+    if (removeIndex >= shaderPointers_.size() || removeIndex < 0) {
+        LOGE("illegal shader index, abandon cleaning");
+        return 0;
+    }
     const ShaderPointer &shader(shaderPointers_[removeIndex]);
     size_t reducedSize = shader.GetKeyPointer()->GetSize() + shader.GetValuePointer()->GetSize();
     totalSize_ -= reducedSize;

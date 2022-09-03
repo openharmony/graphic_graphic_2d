@@ -56,7 +56,10 @@ private:
 
     unsigned short cleanInit_[3] = {0};
     size_t cleanThreshold_ = 0;
-    void CheckClean(const size_t newSize);
+
+    bool IfSizeValidate(const size_t newSize, const size_t addedSize);
+    bool IfSkipClean(const size_t addedSize);
+    bool IfCleanFinished();
     void RandClean(const size_t cleanThreshold);
     size_t Clean(const int removeIndex);
 
@@ -143,7 +146,7 @@ private:
     size_t numShaders_ = 0;
 
     const size_t MAX_MULTIPLE_SIZE = 2;
-    const size_t CLEAN_LIMIT = 2;
+    const size_t CLEAN_LEVEL = 2;
     static const size_t ALIGN_FOUR = 3;
     static const int ERR_NUMBER = -1;
     const int RAND_SHIFT = 16;
