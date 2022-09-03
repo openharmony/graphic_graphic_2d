@@ -63,12 +63,33 @@ RectI RSDirtyRegionManager::GetDirtyRegionFlipWithinSurface() const
     return glRect;
 }
 
+const RectI& RSDirtyRegionManager::GetRectFlipWithinSurface(RectI& rect) const
+{
+    RectI glRect = rect;
+    // left-top to left-bottom corner(in current surface)
+    glRect.top_ = surfaceRect_.height_ - rect.top_ - rect.height_;
+    return glRect;
+}
+
 const RectI& RSDirtyRegionManager::GetLatestDirtyRegion() const
 {
     if (historyHead_ < 0) {
         return dirtyRegion_;
     }
     return dirtyHistory_[historyHead_];
+}
+
+const RectI& RSDirtyRegionManager::GetPixelAlignedRect(RectI& rect, uint32_t alignedBits)
+{
+    RectI newRect = rect;
+    if (alignedBits > 1) {
+        int32_t left = (rect.left_ / alignedBits) * alignedBits;
+        int32_t top = (rect.top_ / alignedBits) * alignedBits;
+        int32_t width = ((rect.GetRight() + alignedBits - 1) / alignedBits) * alignedBits - left;
+        int32_t height = ((rect.GetBottom() + alignedBits - 1) / alignedBits) * alignedBits - top;
+        RectI newRect = RectI(left, top, width, height);
+    }
+    return newRect;
 }
 
 void RSDirtyRegionManager::Clear()
@@ -186,9 +207,6 @@ RectI RSDirtyRegionManager::MergeHistory(unsigned int age, RectI rect) const
 
 void RSDirtyRegionManager::PushHistory(RectI rect)
 {
-    if (rect.IsEmpty()) {
-        return;
-    }
     int next = (historyHead_ + 1) % HISTORY_QUEUE_MAX_SIZE;
     dirtyHistory_[next] = rect;
     if (historySize_ < HISTORY_QUEUE_MAX_SIZE) {

@@ -32,6 +32,7 @@ enum DebugRegionType {
 
 class RSDirtyRegionManager final {
 public:
+    static constexpr uint32_t ALIGNED_BITS = 32;
     RSDirtyRegionManager();
     ~RSDirtyRegionManager() = default;
     void MergeDirtyRect(const RectI& rect);
@@ -45,6 +46,10 @@ public:
     RectI GetDirtyRegionFlipWithinSurface() const;
     // return current frame's region
     const RectI& GetLatestDirtyRegion() const;
+    // return merged historical region upsize down in surface
+    const RectI& GetRectFlipWithinSurface(RectI& rect) const;
+    // Get aligned rect as times of alignedBits
+    static const RectI& GetPixelAlignedRect(RectI& rect, uint32_t alignedBits = ALIGNED_BITS);
     bool IsDirty() const;
     void UpdateDirty();
     void UpdateDirtyCanvasNodes(NodeId id, const RectI& rect);

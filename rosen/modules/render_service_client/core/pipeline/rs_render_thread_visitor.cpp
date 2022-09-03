@@ -241,22 +241,29 @@ void RSRenderThreadVisitor::UpdateDirtyAndSetEGLDamageRegion(std::unique_ptr<RSS
             curDirtyManager_->ResetDirtyAsSurfaceSize();
         }
         curDirtyManager_->UpdateDirty();
+        curDirtyRegion_ = curDirtyManager_->GetDirtyRegion();
         // only set damage region if dirty region and buffer age is valid(>0)
         if (bufferAge >= 0) {
             // get dirty rect coordinated from upper left to lower left corner in current surface
-            RectI dirtyRect = curDirtyManager_->GetDirtyRegionFlipWithinSurface();
-            ROSEN_LOGD("GetPartialRenderEnabled buffer age %d, dirtyRectFlip = [%d, %d, %d, %d]", bufferAge,
-                dirtyRect.left_, dirtyRect.top_, dirtyRect.width_, dirtyRect.height_);
+            RectI dirtyRectFlip = curDirtyManager_->GetRectFlipWithinSurface(curDirtyRegion_);
+            // Get aligned rect following current egl rules
+            RectI dirtyRect = curDirtyManager_->GetPixelAlignedRect(dirtyRectFlip);
+            ROSEN_LOGD("GetPartialRenderEnabled buffer age %d, dirtyRectFlip = [%d, %d, %d, %d], ",
+                "dirtyRectAlign = [%d, %d, %d, %d]", bufferAge, dirtyRectFlip.left_, dirtyRectFlip.top_,
+                dirtyRectFlip.width_, dirtyRectFlip.height_, dirtyRect.left_, dirtyRect.top_,
+                dirtyRect.width_, dirtyRect.height_);
             // set dirty rect as eglSurfaceFrame's damage region
             surfaceFrame->SetDamageRegion(dirtyRect.left_, dirtyRect.top_, dirtyRect.width_, dirtyRect.height_);
+            curDirtyRegion_ = curDirtyManager_->GetRectFlipWithinSurface(dirtyRect);
         }
     } else {
         curDirtyManager_->UpdateDirty();
+        curDirtyRegion_ = curDirtyManager_->GetDirtyRegion();
     }
 #else
     curDirtyManager_->UpdateDirty();
-#endif
     curDirtyRegion_ = curDirtyManager_->GetDirtyRegion();
+#endif
     ROSEN_LOGD("UpdateDirtyAndSetEGLDamageRegion dirtyRect = [%d, %d, %d, %d]",
         curDirtyRegion_.left_, curDirtyRegion_.top_, curDirtyRegion_.width_, curDirtyRegion_.height_);
     RS_TRACE_END();
