@@ -56,7 +56,7 @@ DirtyRegionDebugType RSSystemProperties::GetDirtyRegionDebugType()
 PartialRenderType RSSystemProperties::GetPartialRenderEnabled()
 {
     return static_cast<PartialRenderType>(
-        std::atoi((system::GetParameter("rosen.partialrender.enabled", "0")).c_str()));
+        std::atoi((system::GetParameter("rosen.partialrender.enabled", "1")).c_str()));
 }
 
 PartialRenderType RSSystemProperties::GetUniPartialRenderEnabled()

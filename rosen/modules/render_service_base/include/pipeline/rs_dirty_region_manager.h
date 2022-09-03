@@ -47,9 +47,9 @@ public:
     // return current frame's region
     const RectI& GetLatestDirtyRegion() const;
     // return merged historical region upsize down in surface
-    const RectI& GetRectFlipWithinSurface(RectI& rect) const;
+    RectI GetRectFlipWithinSurface(const RectI& rect) const;
     // Get aligned rect as times of alignedBits
-    static const RectI& GetPixelAlignedRect(RectI& rect, uint32_t alignedBits = ALIGNED_BITS);
+    static RectI GetPixelAlignedRect(const RectI& rect, uint32_t alignedBits = ALIGNED_BITS);
     bool IsDirty() const;
     void UpdateDirty();
     void UpdateDirtyCanvasNodes(NodeId id, const RectI& rect);

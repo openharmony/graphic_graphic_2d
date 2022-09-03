@@ -63,7 +63,7 @@ RectI RSDirtyRegionManager::GetDirtyRegionFlipWithinSurface() const
     return glRect;
 }
 
-const RectI& RSDirtyRegionManager::GetRectFlipWithinSurface(RectI& rect) const
+RectI RSDirtyRegionManager::GetRectFlipWithinSurface(const RectI& rect) const
 {
     RectI glRect = rect;
     // left-top to left-bottom corner(in current surface)
@@ -79,7 +79,7 @@ const RectI& RSDirtyRegionManager::GetLatestDirtyRegion() const
     return dirtyHistory_[historyHead_];
 }
 
-const RectI& RSDirtyRegionManager::GetPixelAlignedRect(RectI& rect, uint32_t alignedBits)
+RectI RSDirtyRegionManager::GetPixelAlignedRect(const RectI& rect, uint32_t alignedBits)
 {
     RectI newRect = rect;
     if (alignedBits > 1) {
@@ -87,7 +87,7 @@ const RectI& RSDirtyRegionManager::GetPixelAlignedRect(RectI& rect, uint32_t ali
         int32_t top = (rect.top_ / alignedBits) * alignedBits;
         int32_t width = ((rect.GetRight() + alignedBits - 1) / alignedBits) * alignedBits - left;
         int32_t height = ((rect.GetBottom() + alignedBits - 1) / alignedBits) * alignedBits - top;
-        RectI newRect = RectI(left, top, width, height);
+        newRect = RectI(left, top, width, height);
     }
     return newRect;
 }
