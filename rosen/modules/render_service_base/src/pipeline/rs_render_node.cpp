@@ -132,13 +132,14 @@ bool RSRenderNode::IsDirty() const
 
 void RSRenderNode::UpdateRenderStatus(RectI& dirtyRegion, bool isPartialRenderEnabled)
 {
+    auto dirtyRect = renderProperties_.GetDirtyRect();
     // should judge if there's any child out of parent
     if (!isPartialRenderEnabled) {
         isRenderUpdateIgnored_ = false;
-    } else if (dirtyRegion.IsEmpty() || oldDirty_.IsEmpty()) {
+    } else if (dirtyRegion.IsEmpty() || dirtyRect.IsEmpty()) {
         isRenderUpdateIgnored_ = true;
     } else {
-        RectI intersectRect = dirtyRegion.IntersectRect(oldDirty_);
+        RectI intersectRect = dirtyRegion.IntersectRect(dirtyRect);
         isRenderUpdateIgnored_ = intersectRect.IsEmpty();
     }
 }
