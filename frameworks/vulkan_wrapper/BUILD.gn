@@ -52,7 +52,7 @@ ohos_shared_library("vulkan") {
 
   public_deps = [
     "//foundation/graphic/graphic_2d/frameworks/surface:surface",
-    "//third_party/vulkan:vulkan_headers",
+    "//third_party/vulkan-headers:vulkan_headers",
   ]
 
   external_deps = [
@@ -82,7 +82,7 @@ ohos_executable("vulkan_wrapper_native_test") {
     "VK_NO_PROTOTYPES",
   ]
 
-  deps = [ "//third_party/vulkan:vulkan_headers" ]
+  deps = [ "//third_party/vulkan-headers:vulkan_headers" ]
 
   external_deps = [ "hilog_native:libhilog" ]
 

@@ -57,10 +57,6 @@ ohos_static_library("vulkan_wrapper_test_common") {
     "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
     "//foundation/graphic/graphic_2d:libsurface",
     "//foundation/graphic/graphic_2d/frameworks/surface:surface",
-
-    # "//third_party/vulkan:vulkan_headers",
-    # [todo] should use //third_party/vulkan
-    "//foundation/graphic/graphic_2d/frameworks/vulkan_wrapper/external/vulkan:vulkan_headers",
     "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics:2d_graphics",
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:librender_service_base",
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:librender_service_client",
@@ -69,6 +65,7 @@ ohos_static_library("vulkan_wrapper_test_common") {
     "//foundation/window/window_manager/wm:libwm",
     "//foundation/window/window_manager/wmserver:libwms",
     "//third_party/googletest:gtest_main",
+    "//third_party/vulkan-headers:vulkan_headers",
     "//third_party/zlib:libz",
   ]
   subsystem_name = "graphic"
