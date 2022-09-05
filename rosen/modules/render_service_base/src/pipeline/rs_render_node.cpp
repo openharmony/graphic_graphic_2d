@@ -20,6 +20,7 @@
 #include "animation/rs_render_animation.h"
 #include "common/rs_obj_abs_geometry.h"
 #include "pipeline/rs_context.h"
+#include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_log.h"
 #ifdef ROSEN_OHOS
 #include "pipeline/rs_paint_filter_canvas.h"
@@ -76,7 +77,10 @@ bool RSRenderNode::Update(RSDirtyRegionManager& dirtyManager, const RSProperties
     if (!renderProperties_.GetVisible() && !isLastVisible_) {
         return false;
     }
-    bool dirty = renderProperties_.UpdateGeometry(parent, parentDirty, transition);
+    // [planning] surfaceNode use frame instead
+    Vector2f offset = (parent == nullptr || IsInstanceOf<RSSurfaceRenderNode>()) ?
+        Vector2f { 0.f, 0.f } : Vector2f { parent->GetFrameOffsetX(), parent->GetFrameOffsetY() };
+    bool dirty = renderProperties_.UpdateGeometry(parent, parentDirty, offset, transition);
     isDirtyRegionUpdated_ = false;
     UpdateDirtyRegion(dirtyManager, dirty);
     isLastVisible_ = renderProperties_.GetVisible();

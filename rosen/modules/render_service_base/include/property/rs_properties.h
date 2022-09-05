@@ -191,7 +191,7 @@ public:
 
     const std::shared_ptr<RSObjGeometry>& GetBoundsGeometry() const;
     const std::shared_ptr<RSObjGeometry>& GetFrameGeometry() const;
-    bool UpdateGeometry(const RSProperties* parent, bool dirtyFlag,
+    bool UpdateGeometry(const RSProperties* parent, bool dirtyFlag, Vector2f& offset,
         const std::unique_ptr<RSTransitionProperties>& transition = nullptr);
 
     bool GetZorderChanged() const;

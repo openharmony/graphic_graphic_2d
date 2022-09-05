@@ -230,6 +230,7 @@ void RSSurfaceRenderNode::SetContextMatrix(const SkMatrix& matrix, bool sendMsg)
         return;
     }
     contextMatrix_ = matrix;
+    SetDirty();
     if (!sendMsg) {
         return;
     }
@@ -249,6 +250,7 @@ void RSSurfaceRenderNode::SetContextAlpha(float alpha, bool sendMsg)
         return;
     }
     contextAlpha_ = alpha;
+    SetDirty();
     if (!sendMsg) {
         return;
     }
@@ -268,6 +270,7 @@ void RSSurfaceRenderNode::SetContextClipRegion(SkRect clipRegion, bool sendMsg)
         return;
     }
     contextClipRect_ = clipRegion;
+    SetDirty();
     if (!sendMsg) {
         return;
     }

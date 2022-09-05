@@ -21,27 +21,34 @@
 
 namespace OHOS {
 namespace Rosen {
-bool RSUniRenderUtil::UpdateRenderNodeDstRect(RSRenderNode& node)
+bool RSUniRenderUtil::UpdateRenderNodeDstRect(RSRenderNode& node, const SkMatrix& matrix)
 {
+    // [planning] use RSRenderNode::Update instead
     auto parentNode = node.GetParent().lock();
-    std::shared_ptr<RSRenderNode> rsParent = nullptr;
     if (!parentNode) {
         RS_LOGE("RSUniRenderUtil::UpdateDstRect: fail to get parent dstRect.");
         return false;
     }
-    rsParent = parentNode->ReinterpretCastTo<RSRenderNode>();
+    auto rsParent = parentNode->ReinterpretCastTo<RSRenderNode>();
+    auto pareneProp = rsParent ? &(rsParent->GetRenderProperties()) : nullptr;
     auto& property = node.GetMutableRenderProperties();
     auto transitionProperties = node.GetAnimationManager().GetTransitionProperties();
-    property.UpdateGeometry(rsParent ? &(rsParent->GetRenderProperties()) : nullptr, true, transitionProperties);
+    auto surfaceNode = node.ReinterpretCastTo<RSSurfaceRenderNode>();
+    auto isSurfaceView = surfaceNode && surfaceNode->GetSurfaceNodeType() == RSSurfaceNodeType::SELF_DRAWING_NODE;
+    Vector2f offset(0.f, 0.f);
+    if (isSurfaceView) {
+        offset = { pareneProp->GetFrameOffsetX(), pareneProp->GetFrameOffsetY() };
+    }
+    property.UpdateGeometry(
+        pareneProp, true, offset, transitionProperties);
     auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(property.GetBoundsGeometry());
     if (geoPtr && node.IsInstanceOf<RSSurfaceRenderNode>()) {
-        std::shared_ptr<RSBaseRenderNode> nodePtr = node.shared_from_this();
-        auto surfaceNode = nodePtr->ReinterpretCastTo<RSSurfaceRenderNode>();
+        if (!isSurfaceView) {
+            geoPtr->ConcatMatrix(matrix);
+        }
         surfaceNode->SetDstRect(geoPtr->GetAbsRect());
-        auto dstRect = surfaceNode->GetDstRect();
-        RS_LOGD("RSUniRenderUtil::UpdateDstRect: nodeName: %s, dstRect[%d, %d, %d, %d].",
-            surfaceNode->GetName().c_str(),
-            dstRect.GetLeft(), dstRect.GetTop(), dstRect.GetWidth(), dstRect.GetHeight());
+        RS_LOGD("RSUniRenderUtil::UpdateDstRect: nodeName: %s, dstRect[%s].",
+            surfaceNode->GetName().c_str(), surfaceNode->GetDstRect().ToString().c_str());
     }
     return transitionProperties != nullptr;
 }

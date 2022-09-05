@@ -94,8 +94,6 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
     auto parentSurfaceNodeMatrix = parentSurfaceNodeMatrix_;
     auto& property = node.GetMutableRenderProperties();
     auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(property.GetBoundsGeometry());
-    geoPtr->ConcatMatrix(node.GetContextMatrix());
-    parentSurfaceNodeMatrix_ = geoPtr->GetAbsMatrix();
 
     // prepare the surfaceRenderNode whose child is rootRenderNode 
     if (node.IsAppWindow() || node.GetSurfaceNodeType() == RSSurfaceNodeType::STARTING_WINDOW_NODE) {
@@ -109,10 +107,11 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
         } else {
             dirtyFlag_ = node.Update(*curSurfaceDirtyManager_, nullptr, dirtyFlag_, transitionProperties);
         }
+        geoPtr->ConcatMatrix(node.GetContextMatrix());
         node.SetDstRect(geoPtr->GetAbsRect());
         curDisplayNode_->UpdateSurfaceNodePos(node.GetId(), node.GetDstRect());
     } else {
-        dirtyFlag_ |= RSUniRenderUtil::UpdateRenderNodeDstRect(node);
+        dirtyFlag_ |= RSUniRenderUtil::UpdateRenderNodeDstRect(node, node.GetContextMatrix());
         if (node.GetBuffer() != nullptr) {
             auto& surfaceHandler = static_cast<RSSurfaceHandler&>(node);
             if (surfaceHandler.IsCurrentFrameBufferConsumed()) {
@@ -120,6 +119,7 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
             }
         }
     }
+    parentSurfaceNodeMatrix_ = geoPtr->GetAbsMatrix();
 
     if (node.GetDstRectChanged()) {
         dirtyFlag_ = true;
@@ -155,7 +155,7 @@ void RSUniRenderVisitor::PrepareProxyRenderNode(RSProxyRenderNode& node)
 
 void RSUniRenderVisitor::PrepareRootRenderNode(RSRootRenderNode& node)
 {
-    RSUniRenderUtil::UpdateRenderNodeDstRect(node);
+    RSUniRenderUtil::UpdateRenderNodeDstRect(node, SkMatrix::I());
     PrepareCanvasRenderNode(node);
 }
 
