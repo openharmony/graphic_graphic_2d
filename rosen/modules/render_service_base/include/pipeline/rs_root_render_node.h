@@ -45,7 +45,10 @@ public:
     void UpdateSurfaceSize(int32_t width, int32_t height);
     void SetEnableRender(bool enableRender)
     {
-        enableRender_ = enableRender;
+        if (enableRender_ != enableRender) {
+            enableRender_ = enableRender;
+            SetDirty();
+        }
     }
 
     bool GetEnableRender() const
