@@ -112,6 +112,7 @@ void RSMainThread::Init()
         WaitUntilUnmarshallingTaskFinished();
         ProcessCommand();
         Animate(timestamp_);
+        CheckDelayedSwitchTask();
         Render();
         ReleaseAllNodesBuffer();
         SendCommands();
@@ -740,6 +741,30 @@ bool RSMainThread::HasWindowAnimation() const
     return false;
 }
 
+void RSMainThread::CheckDelayedSwitchTask()
+{
+    if (switchDelayed_ && !doWindowAnimate_ && useUniVisitor_ != delayedTargetUniVisitor_ &&
+        !waitingBufferAvailable_ && !waitingUpdateSurfaceNode_) {
+        switchDelayed_ = false;
+        UpdateRenderMode(delayedTargetUniVisitor_.load());
+    }
+}
+
+void RSMainThread::UpdateRenderMode(bool useUniVisitor)
+{
+    if (waitingBufferAvailable_ || waitingUpdateSurfaceNode_) {
+        RS_LOGE("RSMainThread::NotifyRenderModeChanged last update mode not finished, switch again");
+    }
+    useUniVisitor_.store(useUniVisitor);
+    waitingBufferAvailable_ = !useUniVisitor_;
+    waitingUpdateSurfaceNode_ = useUniVisitor_;
+    for (auto& elem : applicationAgentMap_) {
+        if (elem.second != nullptr) {
+            elem.second->OnRenderModeChanged(!useUniVisitor_);
+        }
+    }
+}
+
 void RSMainThread::RecvRSTransactionData(std::unique_ptr<RSTransactionData>& rsTransactionData)
 {
     if (!rsTransactionData) {
@@ -812,19 +837,14 @@ void RSMainThread::NotifyRenderModeChanged(bool useUniVisitor)
         RS_LOGI("RSMainThread::NotifyRenderModeChanged useUniVisitor_:%d, not changed", useUniVisitor_.load());
         return;
     }
-    PostTask([useUniVisitor = useUniVisitor, this]() {
-        if (waitingBufferAvailable_ || waitingUpdateSurfaceNode_) {
-            RS_LOGE("RSMainThread::NotifyRenderModeChanged last update mode not finished, switch again");
-        }
-        useUniVisitor_ = useUniVisitor;
-        waitingBufferAvailable_ = !useUniVisitor;
-        waitingUpdateSurfaceNode_ = useUniVisitor;
-        for (auto& elem : applicationAgentMap_) {
-            if (elem.second != nullptr) {
-                elem.second->OnRenderModeChanged(!useUniVisitor);
-            }
-        }
-    });
+    if (doWindowAnimate_) {
+        switchDelayed_ = true;
+        delayedTargetUniVisitor_ = useUniVisitor;
+    } else {
+        PostTask([useUniVisitor = useUniVisitor, this]() {
+            UpdateRenderMode(useUniVisitor);
+        });
+    }
 }
 
 bool RSMainThread::QueryIfUseUniVisitor() const

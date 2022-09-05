@@ -965,16 +965,6 @@ const std::shared_ptr<RSModifierBase> RSNode::GetModifier(const PropertyId& prop
     return {};
 }
 
-void RSNode::SetChildIds(const std::vector<NodeId>& childIds)
-{
-    childNodeIds_ = childIds;
-}
-
-const std::vector<NodeId>& RSNode::GetChildIds() const
-{
-    return childNodeIds_;
-}
-
 void RSNode::UpdateModifierMotionPathOption()
 {
     for (auto& [type, modifier] : propertyModifiers_) {

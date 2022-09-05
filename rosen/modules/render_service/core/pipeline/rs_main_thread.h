@@ -158,6 +158,8 @@ private:
     void CheckUpdateSurfaceNodeIfNeed();
 
     bool HasWindowAnimation() const;
+    void CheckDelayedSwitchTask();
+    void UpdateRenderMode(bool useUniVisitor);
 
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
@@ -187,6 +189,8 @@ private:
     bool isUniRender_ = RSUniRenderJudgement::IsUniRender();
     sptr<RSIRenderModeChangeCallback> renderModeChangeCallback_;
     std::atomic_bool useUniVisitor_ = isUniRender_;
+    std::atomic_bool delayedTargetUniVisitor_ = isUniRender_;
+    std::atomic_bool switchDelayed_ = false;
     RSTaskMessage::RSTask unmarshalBarrierTask_;
     std::condition_variable unmarshalTaskCond_;
     std::mutex unmarshalMutex_;
@@ -198,7 +202,7 @@ private:
     std::map<uint32_t, bool> lastPidVisMap_;
     VisibleData lastVisVec_;
     bool qosPidCal_ = false;
-    bool doWindowAnimate_ = false;
+    std::atomic_bool doWindowAnimate_ = false;
     uint32_t lastSurfaceCnt_ = 0;
 
     std::shared_ptr<RSRenderEngine> renderEngine_;

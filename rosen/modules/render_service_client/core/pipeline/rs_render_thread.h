@@ -88,6 +88,11 @@ public:
         return forceUpdateSurfaceNode_;
     }
 
+    void SetForceUpdateSurfaceNode(bool forceUpdate)
+    {
+        forceUpdateSurfaceNode_ = forceUpdate;
+    }
+
     void SetCacheDir(const std::string& filePath)
     {
         cacheDir_ = filePath;

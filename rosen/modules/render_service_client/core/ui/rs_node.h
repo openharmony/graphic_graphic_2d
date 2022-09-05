@@ -176,9 +176,6 @@ public:
     void AddModifier(const std::shared_ptr<RSModifierBase>& modifier);
     void RemoveModifier(const std::shared_ptr<RSModifierBase>& modifier);
 
-    void SetChildIds(const std::vector<NodeId>& childIds);
-    const std::vector<NodeId>& GetChildIds() const;
-
 protected:
     explicit RSNode(bool isRenderServiceNode);
     explicit RSNode(bool isRenderServiceNode, NodeId id);

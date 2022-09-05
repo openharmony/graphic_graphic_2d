@@ -391,6 +391,7 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
         }
         node.childSurfaceNodeIds_ = std::move(childSurfaceNodeIds_);
     }
+    RSRenderThread::Instance().SetForceUpdateSurfaceNode(false);
     RS_TRACE_END();
 
     auto transactionProxy = RSTransactionProxy::GetInstance();
