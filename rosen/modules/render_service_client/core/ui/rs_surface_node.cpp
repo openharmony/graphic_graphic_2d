@@ -19,15 +19,16 @@
 #include <algorithm>
 #include <string>
 
-#include "command/rs_surface_node_command.h"
 #include "command/rs_base_node_command.h"
+#include "command/rs_surface_node_command.h"
 #include "pipeline/rs_node_map.h"
 #include "pipeline/rs_render_thread.h"
 #include "platform/common/rs_log.h"
 #include "platform/drawing/rs_surface_converter.h"
+#include "render_context/render_context.h"
 #include "transaction/rs_render_service_client.h"
 #include "transaction/rs_transaction_proxy.h"
-#include "render_context/render_context.h"
+#include "ui/rs_proxy_node.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -220,23 +221,22 @@ bool RSSurfaceNode::SetBufferAvailableCallback(BufferAvailableCallback callback)
     }
     auto renderServiceClient =
         std::static_pointer_cast<RSRenderServiceClient>(RSIRenderClient::CreateRenderServiceClient());
-    if (renderServiceClient != nullptr) {
-        return renderServiceClient->RegisterBufferAvailableListener(GetId(), [weakThis = weak_from_this()]() {
-            auto rsSurfaceNode = RSBaseNode::ReinterpretCast<RSSurfaceNode>(weakThis.lock());
-            if (rsSurfaceNode) {
-                BufferAvailableCallback actualCallback;
-                {
-                    std::lock_guard<std::mutex> lock(rsSurfaceNode->mutex_);
-                    actualCallback = rsSurfaceNode->callback_;
-                }
-                actualCallback();
-            } else {
-                ROSEN_LOGE("RSSurfaceNode::SetBufferAvailableCallback this == null");
-            }
-        });
-    } else {
+    if (renderServiceClient == nullptr) {
         return false;
     }
+    return renderServiceClient->RegisterBufferAvailableListener(GetId(), [weakThis = weak_from_this()]() {
+        auto rsSurfaceNode = RSBaseNode::ReinterpretCast<RSSurfaceNode>(weakThis.lock());
+        if (rsSurfaceNode == nullptr) {
+            ROSEN_LOGE("RSSurfaceNode::SetBufferAvailableCallback this == null");
+            return;
+        }
+        BufferAvailableCallback actualCallback;
+        {
+            std::lock_guard<std::mutex> lock(rsSurfaceNode->mutex_);
+            actualCallback = rsSurfaceNode->callback_;
+        }
+        actualCallback();
+    });
 }
 
 bool RSSurfaceNode::Marshalling(Parcel& parcel) const
@@ -263,7 +263,24 @@ std::shared_ptr<RSSurfaceNode> RSSurfaceNode::Unmarshalling(Parcel& parcel)
     SharedPtr surfaceNode(new RSSurfaceNode(config, isRenderServiceNode, id));
     RSNodeMap::MutableInstance().RegisterNode(surfaceNode);
 
+    // for nodes constructed by unmarshalling, we should not destroy the corresponding render node on destruction
+    surfaceNode->skipDestroyCommandInDestructor_ = true;
+
     return surfaceNode;
+}
+
+RSNode::SharedPtr RSSurfaceNode::UnmarshallingAsProxyNode(Parcel& parcel)
+{
+    uint64_t id = UINT64_MAX;
+    std::string name;
+    bool isRenderServiceNode = false;
+    if (!(parcel.ReadUint64(id) && parcel.ReadString(name) && parcel.ReadBool(isRenderServiceNode))) {
+        ROSEN_LOGE("RSSurfaceNode::Unmarshalling, read param failed");
+        return nullptr;
+    }
+
+    // Create RSProxyNode by unmarshalling RSSurfaceNode, return existing node if it exists in RSNodeMap.
+    return RSProxyNode::Create(id, name);
 }
 
 bool RSSurfaceNode::CreateNode(const RSSurfaceRenderNodeConfig& config)
@@ -310,8 +327,7 @@ void RSSurfaceNode::ResetContextAlpha() const
     if (transactionProxy == nullptr) {
         return;
     }
-    std::unique_ptr<RSCommand> commandRT = std::make_unique<RSSurfaceNodeSetContextAlpha>(GetId(), 0.0f);
-    transactionProxy->AddCommand(commandRT, false);
+
     std::unique_ptr<RSCommand> commandRS = std::make_unique<RSSurfaceNodeSetContextAlpha>(GetId(), 0.0f);
     transactionProxy->AddCommand(commandRS, true);
 }
@@ -336,17 +352,23 @@ RSSurfaceNode::RSSurfaceNode(const RSSurfaceNodeConfig& config, bool isRenderSer
 
 RSSurfaceNode::~RSSurfaceNode()
 {
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (skipDestroyCommandInDestructor_) {
+        // for ability view and remote window, we should destroy the corresponding render node in RenderThread
+        if (transactionProxy != nullptr) {
+            std::unique_ptr<RSCommand> command = std::make_unique<RSBaseNodeDestroy>(GetId());
+            transactionProxy->AddCommand(command, false, FollowType::FOLLOW_TO_PARENT, GetId());
+        }
+        return;
+    }
     auto renderServiceClient =
         std::static_pointer_cast<RSRenderServiceClient>(RSIRenderClient::CreateRenderServiceClient());
     if (renderServiceClient != nullptr) {
         renderServiceClient->UnregisterBufferAvailableListener(GetId());
     }
-    if (!IsRenderServiceNode()) {
-        auto transactionProxy = RSTransactionProxy::GetInstance();
-        if (transactionProxy != nullptr) {
-            std::unique_ptr<RSCommand> command = std::make_unique<RSBaseNodeDestroy>(GetId());
-            transactionProxy->AddCommand(command, true, FollowType::FOLLOW_TO_PARENT, GetId());
-        }
+    if (!IsRenderServiceNode() && transactionProxy != nullptr) {
+        std::unique_ptr<RSCommand> command = std::make_unique<RSBaseNodeDestroy>(GetId());
+        transactionProxy->AddCommand(command, true, FollowType::FOLLOW_TO_PARENT, GetId());
     }
 }
 

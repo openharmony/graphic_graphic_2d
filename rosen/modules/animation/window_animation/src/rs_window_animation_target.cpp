@@ -17,6 +17,8 @@
 
 #include "rs_window_animation_log.h"
 
+#include "ui/rs_surface_node.h"
+
 namespace OHOS {
 namespace Rosen {
 RSWindowAnimationTarget* RSWindowAnimationTarget::Unmarshalling(Parcel& parcel)
@@ -40,7 +42,12 @@ bool RSWindowAnimationTarget::Marshalling(Parcel& parcel) const
     parcel.WriteFloat(windowBounds_.rect_.width_);
     parcel.WriteFloat(windowBounds_.rect_.height_);
     parcel.WriteFloat(windowBounds_.radius_[0].x_);
-    surfaceNode_->Marshalling(parcel);
+    // marshalling as RSSurfaceNode
+    if (auto surfaceNode = surfaceNode_->ReinterpretCastTo<RSSurfaceNode>()) {
+        surfaceNode->Marshalling(parcel);
+    } else {
+        return false;
+    }
     parcel.WriteUint32(windowId_);
     parcel.WriteUint64(displayId_);
     parcel.WriteInt32(missionId_);
@@ -56,7 +63,8 @@ bool RSWindowAnimationTarget::ReadFromParcel(Parcel& parcel)
     windowBounds_.rect_.width_ = parcel.ReadFloat();
     windowBounds_.rect_.height_ = parcel.ReadFloat();
     windowBounds_.radius_[0].x_ = parcel.ReadFloat();
-    surfaceNode_ = RSSurfaceNode::Unmarshalling(parcel);
+    // unmarshalling as RSProxyNode
+    surfaceNode_ = RSSurfaceNode::UnmarshallingAsProxyNode(parcel);
     windowId_ = parcel.ReadUint32();
     displayId_ = parcel.ReadUint64();
     missionId_ = parcel.ReadInt32();

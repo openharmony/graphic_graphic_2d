@@ -15,7 +15,6 @@
 
 #include "pipeline/rs_root_render_node.h"
 
-#include "command/rs_surface_node_command.h"
 #include "platform/drawing/rs_surface.h"
 #include "transaction/rs_transaction_proxy.h"
 #include "visitor/rs_node_visitor.h"

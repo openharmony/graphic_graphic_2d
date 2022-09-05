@@ -41,10 +41,14 @@ public:
     using WeakPtr = std::weak_ptr<RSSurfaceRenderNode>;
     using SharedPtr = std::shared_ptr<RSSurfaceRenderNode>;
     static inline constexpr RSRenderNodeType Type = RSRenderNodeType::SURFACE_NODE;
+    RSRenderNodeType GetType() const override
+    {
+        return Type;
+    }
 
     explicit RSSurfaceRenderNode(NodeId id, std::weak_ptr<RSContext> context = {});
     explicit RSSurfaceRenderNode(const RSSurfaceRenderNodeConfig& config, std::weak_ptr<RSContext> context = {});
-    virtual ~RSSurfaceRenderNode();
+    ~RSSurfaceRenderNode() override;
 
     void PrepareRenderBeforeChildren(RSPaintFilterCanvas& canvas);
     void PrepareRenderAfterChildren(RSPaintFilterCanvas& canvas);
@@ -111,16 +115,7 @@ public:
     void Prepare(const std::shared_ptr<RSNodeVisitor>& visitor) override;
     void Process(const std::shared_ptr<RSNodeVisitor>& visitor) override;
 
-    RSRenderNodeType GetType() const override
-    {
-        return RSRenderNodeType::SURFACE_NODE;
-    }
-
     void SetContextBounds(const Vector4f bounds);
-
-    // pass render context (matrix/alpha/clip) from RT to RS
-    void SetContextMatrix(const SkMatrix& transform, bool sendMsg = true);
-    const SkMatrix& GetContextMatrix() const;
 
     void SetTotalMatrix(const SkMatrix& totalMatrix)
     {
@@ -130,6 +125,10 @@ public:
     {
         return totalMatrix_;
     }
+
+    // pass render context (matrix/alpha/clip) from RT to RS
+    void SetContextMatrix(const SkMatrix& transform, bool sendMsg = true);
+    const SkMatrix& GetContextMatrix() const;
 
     void SetContextAlpha(float alpha, bool sendMsg = true);
     float GetContextAlpha() const;
@@ -395,7 +394,6 @@ public:
     }
 
 private:
-    void SendCommandFromRT(std::unique_ptr<RSCommand>& command, NodeId nodeId);
     void ClearChildrenCache(const std::shared_ptr<RSBaseRenderNode>& node);
 
     std::mutex mutexRT_;

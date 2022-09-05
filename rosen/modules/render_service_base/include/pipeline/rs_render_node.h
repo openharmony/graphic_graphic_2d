@@ -34,6 +34,10 @@ public:
     using WeakPtr = std::weak_ptr<RSRenderNode>;
     using SharedPtr = std::shared_ptr<RSRenderNode>;
     static inline constexpr RSRenderNodeType Type = RSRenderNodeType::RS_NODE;
+    RSRenderNodeType GetType() const override
+    {
+        return Type;
+    }
 
     ~RSRenderNode() override;
 
@@ -59,11 +63,6 @@ public:
     virtual void ProcessRenderContents(RSPaintFilterCanvas& canvas) {}
     virtual void ProcessRenderAfterChildren(RSPaintFilterCanvas& canvas);
 
-    RSRenderNodeType GetType() const override
-    {
-        return RSRenderNodeType::RS_NODE;
-    }
-
     bool HasDisappearingTransition(bool recursive) const override
     {
         return animationManager_.HasDisappearingTransition() || RSBaseRenderNode::HasDisappearingTransition(recursive);
@@ -73,11 +72,11 @@ public:
     {
         return oldDirty_;
     }
-
     inline bool IsDirtyRegionUpdated() const
     {
         return isDirtyRegionUpdated_;
     }
+
     void ClearModifiers();
     virtual void AddModifier(const std::shared_ptr<RSRenderModifier> modifier);
     void RemoveModifier(const PropertyId& id);

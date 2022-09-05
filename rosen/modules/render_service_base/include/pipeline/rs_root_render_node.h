@@ -24,6 +24,11 @@ class RSDirtyRegionManager;
 class RSRootRenderNode : public RSCanvasRenderNode {
 public:
     static inline constexpr RSRenderNodeType Type = RSRenderNodeType::ROOT_NODE;
+    RSRenderNodeType GetType() const override
+    {
+        return Type;
+    }
+
     explicit RSRootRenderNode(NodeId id, std::weak_ptr<RSContext> context = {});
     ~RSRootRenderNode() override;
 
@@ -31,11 +36,6 @@ public:
     virtual void Process(const std::shared_ptr<RSNodeVisitor>& visitor) override;
 
     void AttachRSSurfaceNode(NodeId SurfaceNodeId);
-
-    RSRenderNodeType GetType() const override
-    {
-        return RSRenderNodeType::ROOT_NODE;
-    }
 
     std::shared_ptr<RSDirtyRegionManager> GetDirtyManager() const;
     std::shared_ptr<RSSurface> GetSurface();

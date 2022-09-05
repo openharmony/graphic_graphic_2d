@@ -49,6 +49,10 @@ public:
     using WeakPtr = std::weak_ptr<RSNode>;
     using SharedPtr = std::shared_ptr<RSNode>;
     static inline constexpr RSUINodeType Type = RSUINodeType::RS_NODE;
+    RSUINodeType GetType() const override
+    {
+        return Type;
+    }
 
     ~RSNode() override;
     std::string DumpNode(int depth) const override;
@@ -167,11 +171,6 @@ public:
         transitionEffect_ = effect;
     }
 
-    RSUINodeType GetType() const override
-    {
-        return RSUINodeType::RS_NODE;
-    }
-
     void ClearModifiers();
     void ClearAllModifiers();
     void AddModifier(const std::shared_ptr<RSModifierBase>& modifier);
@@ -182,7 +181,7 @@ public:
 
 protected:
     explicit RSNode(bool isRenderServiceNode);
-    RSNode(bool isRenderServiceNode, NodeId id);
+    explicit RSNode(bool isRenderServiceNode, NodeId id);
     RSNode(const RSNode&) = delete;
     RSNode(const RSNode&&) = delete;
     RSNode& operator=(const RSNode&) = delete;
@@ -222,7 +221,7 @@ private:
     std::shared_ptr<const RSTransitionEffect> transitionEffect_ = nullptr;
     std::shared_ptr<RSUIAnimationManager> animationManager_;
 
-    RSModifierExtractor stagingPropertiesExtrator_;
+    RSModifierExtractor stagingPropertiesExtractor_;
     std::vector<NodeId> childNodeIds_;
 
     friend class RSAnimation;

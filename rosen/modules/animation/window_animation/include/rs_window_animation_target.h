@@ -22,7 +22,7 @@
 #include <common/rs_rect.h>
 #include <iremote_broker.h>
 #include <parcel.h>
-#include <ui/rs_surface_node.h>
+#include <ui/rs_node.h>
 
 namespace OHOS {
 namespace Rosen {
@@ -36,7 +36,7 @@ struct RSWindowAnimationTarget : Parcelable {
     std::string bundleName_;
     std::string abilityName_;
     RRect windowBounds_;
-    std::shared_ptr<RSSurfaceNode> surfaceNode_;
+    std::shared_ptr<RSNode> surfaceNode_;
     uint32_t windowId_;
     uint64_t displayId_;
     int32_t missionId_;

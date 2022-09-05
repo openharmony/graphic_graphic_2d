@@ -26,6 +26,10 @@ public:
     using WeakPtr = std::weak_ptr<RSDisplayNode>;
     using SharedPtr = std::shared_ptr<RSDisplayNode>;
     static inline constexpr RSUINodeType Type = RSUINodeType::DISPLAY_NODE;
+    RSUINodeType GetType() const override
+    {
+        return Type;
+    }
 
     ~RSDisplayNode() override;
 
@@ -42,11 +46,6 @@ public:
     bool GetSecurityDisplay() const;
 
     bool IsMirrorDisplay() const;
-
-    RSUINodeType GetType() const override
-    {
-        return RSUINodeType::DISPLAY_NODE;
-    }
 
 protected:
     explicit RSDisplayNode(const RSDisplayNodeConfig& config);

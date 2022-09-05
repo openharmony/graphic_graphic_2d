@@ -16,22 +16,25 @@
 #include "pipeline/rs_render_thread_visitor.h"
 
 #include <cmath>
+#include <frame_collector.h>
+#include <frame_painter.h>
 #include <include/core/SkColor.h>
 #include <include/core/SkFont.h>
 #include <include/core/SkMatrix.h>
 #include <include/core/SkPaint.h>
+#include <include/core/SkRect.h>
 
-#include <frame_collector.h>
-#include <frame_painter.h>
-
-#include "include/core/SkRect.h"
 #include "rs_trace.h"
 
 #include "command/rs_base_node_command.h"
 #include "common/rs_vector4.h"
+#include "overdraw/rs_cpu_overdraw_canvas_listener.h"
+#include "overdraw/rs_gpu_overdraw_canvas_listener.h"
+#include "overdraw/rs_overdraw_controller.h"
 #include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_dirty_region_manager.h"
 #include "pipeline/rs_node_map.h"
+#include "pipeline/rs_proxy_render_node.h"
 #include "pipeline/rs_render_thread.h"
 #include "pipeline/rs_root_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
@@ -40,16 +43,13 @@
 #include "transaction/rs_transaction_proxy.h"
 #include "ui/rs_surface_extractor.h"
 #include "ui/rs_surface_node.h"
-#include "overdraw/rs_cpu_overdraw_canvas_listener.h"
-#include "overdraw/rs_gpu_overdraw_canvas_listener.h"
-#include "overdraw/rs_overdraw_controller.h"
 
 namespace OHOS {
 namespace Rosen {
 RSRenderThreadVisitor::RSRenderThreadVisitor()
     : curDirtyManager_(std::make_shared<RSDirtyRegionManager>()), canvas_(nullptr) {}
 
-RSRenderThreadVisitor::~RSRenderThreadVisitor() {}
+RSRenderThreadVisitor::~RSRenderThreadVisitor() = default;
 
 bool RSRenderThreadVisitor::IsValidRootRenderNode(RSRootRenderNode& node)
 {
@@ -74,10 +74,10 @@ void RSRenderThreadVisitor::SetPartialRenderStatus(PartialRenderType status, boo
 {
     isRenderForced_ = isRenderForced;
     isEglSetDamageRegion_ = !isRenderForced_ && (status != PartialRenderType::DISABLED);
-    isOpDroped_ = !isRenderForced_ && (status == PartialRenderType::SET_DAMAGE_AND_DROP_OP);
+    isOpDropped_ = !isRenderForced_ && (status == PartialRenderType::SET_DAMAGE_AND_DROP_OP);
     if (partialRenderStatus_ == status) {
-        ROSEN_LOGD("SetPartialRenderStatus: %d->%d, isRenderForced_=%d, isEglSetDamageRegion_=%d, isOpDroped_=%d",
-            partialRenderStatus_, status, isRenderForced_, isEglSetDamageRegion_, isOpDroped_);
+        ROSEN_LOGD("SetPartialRenderStatus: %d->%d, isRenderForced_=%d, isEglSetDamageRegion_=%d, isOpDropped_=%d",
+            partialRenderStatus_, status, isRenderForced_, isEglSetDamageRegion_, isOpDropped_);
     }
     partialRenderStatus_ = status;
 }
@@ -151,6 +151,11 @@ void RSRenderThreadVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
     }
     PrepareBaseRenderNode(node);
     dirtyFlag_ = dirtyFlag;
+}
+
+void RSRenderThreadVisitor::PrepareProxyRenderNode(RSProxyRenderNode& node)
+{
+    node.ApplyModifiers();
 }
 
 void RSRenderThreadVisitor::DrawRectOnCanvas(const RectI& dirtyRect, const SkColor color,
@@ -426,7 +431,7 @@ void RSRenderThreadVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
         ROSEN_LOGE("RSRenderThreadVisitor::ProcessCanvasRenderNode, canvas is nullptr");
         return;
     }
-    node.UpdateRenderStatus(curDirtyRegion_, isOpDroped_);
+    node.UpdateRenderStatus(curDirtyRegion_, isOpDropped_);
     node.ProcessRenderBeforeChildren(*canvas_);
     ProcessBaseRenderNode(node);
     node.ProcessRenderAfterChildren(*canvas_);
@@ -458,6 +463,7 @@ void RSRenderThreadVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
     }
     if (!node.GetRenderProperties().GetVisible()) {
         ROSEN_LOGI("RSRenderThreadVisitor::ProcessSurfaceRenderNode node : %" PRIu64 " is invisible", node.GetId());
+        node.SetContextAlpha(0.0f);
         return;
     }
     // RSSurfaceRenderNode in RSRenderThreadVisitor do not have information of property.
@@ -477,7 +483,7 @@ void RSRenderThreadVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
     // for proxied nodes (i.e. remote window components), we only extract matrix & alpha, do not change their hierarchy
     // or clip or other properties.
     if (node.IsProxy()) {
-        ProcessBaseRenderNode(node);
+        node.ResetSortedChildren();
         return;
     }
 
@@ -524,6 +530,32 @@ void RSRenderThreadVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
     // 5. restore environments variables before continue traversal siblings
     childSurfaceNodeIds_ = std::move(siblingSurfaceNodeIds);
     parentSurfaceNodeMatrix_ = parentSurfaceNodeMatrix;
+}
+
+void RSRenderThreadVisitor::ProcessProxyRenderNode(RSProxyRenderNode& node)
+{
+    if (!canvas_) {
+        ROSEN_LOGE("RSRenderThreadVisitor::ProcessProxyRenderNode, canvas is nullptr");
+        return;
+    }
+    // RSProxyRenderNode in RSRenderThreadVisitor do not have information of property.
+    // We only get parent's matrix and send it to RenderService
+#ifdef ROSEN_OHOS
+    SkMatrix invertMatrix;
+    SkMatrix contextMatrix = canvas_->getTotalMatrix();
+
+    if (parentSurfaceNodeMatrix_.invert(&invertMatrix)) {
+        contextMatrix.preConcat(invertMatrix);
+    } else {
+        ROSEN_LOGE("RSRenderThreadVisitor::ProcessProxyRenderNode, invertMatrix failed");
+    }
+    node.SetContextMatrix(contextMatrix);
+    node.SetContextAlpha(canvas_->GetAlpha());
+
+    // for proxied nodes (i.e. remote window components), we only extract matrix & alpha, do not change their hierarchy
+    // or clip or other properties.
+    node.ResetSortedChildren();
+#endif
 }
 
 void RSRenderThreadVisitor::ClipHoleForSurfaceNode(RSSurfaceRenderNode& node)

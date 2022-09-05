@@ -24,7 +24,7 @@ namespace Rosen {
 void BaseNodeCommandHelper::Destroy(RSContext& context, NodeId nodeId)
 {
     auto& nodeMap = context.GetMutableNodeMap();
-    auto node = nodeMap.GetRenderNode<RSBaseRenderNode>(nodeId);
+    auto node = nodeMap.GetRenderNode(nodeId);
     if (node == nullptr) {
         return;
     }
@@ -36,8 +36,8 @@ void BaseNodeCommandHelper::Destroy(RSContext& context, NodeId nodeId)
 void BaseNodeCommandHelper::AddChild(RSContext& context, NodeId nodeId, NodeId childNodeId, int32_t index)
 {
     auto& nodeMap = context.GetNodeMap();
-    auto node = nodeMap.GetRenderNode<RSBaseRenderNode>(nodeId);
-    auto child = nodeMap.GetRenderNode<RSBaseRenderNode>(childNodeId);
+    auto node = nodeMap.GetRenderNode(nodeId);
+    auto child = nodeMap.GetRenderNode(childNodeId);
     if (node && child) {
         node->AddChild(child, index);
     }
@@ -46,8 +46,8 @@ void BaseNodeCommandHelper::AddChild(RSContext& context, NodeId nodeId, NodeId c
 void BaseNodeCommandHelper::MoveChild(RSContext& context, NodeId nodeId, NodeId childNodeId, int32_t index)
 {
     auto& nodeMap = context.GetNodeMap();
-    auto node = nodeMap.GetRenderNode<RSBaseRenderNode>(nodeId);
-    auto child = nodeMap.GetRenderNode<RSBaseRenderNode>(childNodeId);
+    auto node = nodeMap.GetRenderNode(nodeId);
+    auto child = nodeMap.GetRenderNode(childNodeId);
     if (node && child) {
         node->MoveChild(child, index);
     }
@@ -56,8 +56,8 @@ void BaseNodeCommandHelper::MoveChild(RSContext& context, NodeId nodeId, NodeId 
 void BaseNodeCommandHelper::RemoveChild(RSContext& context, NodeId nodeId, NodeId childNodeId)
 {
     auto& nodeMap = context.GetNodeMap();
-    auto node = nodeMap.GetRenderNode<RSBaseRenderNode>(nodeId);
-    auto child = nodeMap.GetRenderNode<RSBaseRenderNode>(childNodeId);
+    auto node = nodeMap.GetRenderNode(nodeId);
+    auto child = nodeMap.GetRenderNode(childNodeId);
     if (node && child) {
         node->RemoveChild(child);
     }
@@ -66,8 +66,8 @@ void BaseNodeCommandHelper::RemoveChild(RSContext& context, NodeId nodeId, NodeI
 void BaseNodeCommandHelper::AddCrossParentChild(RSContext& context, NodeId id, NodeId childId, int32_t index)
 {
     auto& nodeMap = context.GetNodeMap();
-    auto node = nodeMap.GetRenderNode<RSBaseRenderNode>(id);
-    auto child = nodeMap.GetRenderNode<RSBaseRenderNode>(childId);
+    auto node = nodeMap.GetRenderNode(id);
+    auto child = nodeMap.GetRenderNode(childId);
     if (node && child) {
         node->AddCrossParentChild(child, index);
     }
@@ -77,9 +77,9 @@ void BaseNodeCommandHelper::RemoveCrossParentChild(RSContext& context, NodeId no
     NodeId newParentId)
 {
     auto& nodeMap = context.GetNodeMap();
-    auto node = nodeMap.GetRenderNode<RSBaseRenderNode>(nodeId);
-    auto child = nodeMap.GetRenderNode<RSBaseRenderNode>(childNodeId);
-    auto newParent = nodeMap.GetRenderNode<RSBaseRenderNode>(newParentId);
+    auto node = nodeMap.GetRenderNode(nodeId);
+    auto child = nodeMap.GetRenderNode(childNodeId);
+    auto newParent = nodeMap.GetRenderNode(newParentId);
     if (node && child && newParent) {
         node->RemoveCrossParentChild(child, newParent);
     }
@@ -88,7 +88,7 @@ void BaseNodeCommandHelper::RemoveCrossParentChild(RSContext& context, NodeId no
 void BaseNodeCommandHelper::RemoveFromTree(RSContext& context, NodeId nodeId)
 {
     auto& nodeMap = context.GetNodeMap();
-    auto node = nodeMap.GetRenderNode<RSBaseRenderNode>(nodeId);
+    auto node = nodeMap.GetRenderNode(nodeId);
     if (node == nullptr) {
         return;
     }
@@ -98,7 +98,7 @@ void BaseNodeCommandHelper::RemoveFromTree(RSContext& context, NodeId nodeId)
 void BaseNodeCommandHelper::ClearChildren(RSContext& context, NodeId nodeId)
 {
     auto& nodeMap = context.GetNodeMap();
-    auto node = nodeMap.GetRenderNode<RSBaseRenderNode>(nodeId);
+    auto node = nodeMap.GetRenderNode(nodeId);
     if (node) {
         node->ClearChildren();
     }
@@ -107,7 +107,7 @@ void BaseNodeCommandHelper::ClearChildren(RSContext& context, NodeId nodeId)
 void BaseNodeCommandHelper::ClearSurfaceNodeChildren(RSContext& context, NodeId nodeId)
 {
     auto& nodeMap = context.GetNodeMap();
-    auto node = nodeMap.GetRenderNode<RSBaseRenderNode>(nodeId);
+    auto node = nodeMap.GetRenderNode(nodeId);
     if (!node) {
         return;
     }

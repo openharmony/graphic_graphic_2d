@@ -17,9 +17,9 @@
 
 #include <cmath>
 #include <limits>
-#include <map>
 #include <memory>
 #include <mutex>
+#include <unordered_map>
 #include <vector>
 
 #include "common/rs_macros.h"
@@ -37,8 +37,9 @@ enum class RSUINodeType : uint32_t {
     RS_NODE      = 0x00110u,   // formerly RSPropertyNode
     DISPLAY_NODE = 0x01110u,
     SURFACE_NODE = 0x02110u,
-    CANVAS_NODE  = 0x04110u,   // formerly RSNode
-    ROOT_NODE    = 0x14110u,
+    PROXY_NODE   = 0x04110u,
+    CANVAS_NODE  = 0x08110u,   // formerly RSNode
+    ROOT_NODE    = 0x18110u,
 };
 
 enum class FollowType : uint8_t {
@@ -48,11 +49,12 @@ enum class FollowType : uint8_t {
     FOLLOW_VISITOR,
 };
 
-static const std::map<RSUINodeType, std::string> RSUINodeTypeStrs = {
+static inline const std::unordered_map<RSUINodeType, std::string> RSUINodeTypeStrs = {
     {RSUINodeType::BASE_NODE,    "BaseNode"},
     {RSUINodeType::DISPLAY_NODE, "DisplayNode"},
     {RSUINodeType::RS_NODE,      "RsNode"},
     {RSUINodeType::SURFACE_NODE, "SurfaceNode"},
+    {RSUINodeType::PROXY_NODE,   "ProxyNode"},
     {RSUINodeType::CANVAS_NODE,  "CanvasNode"},
     {RSUINodeType::ROOT_NODE,    "RootNode"},
 };
@@ -63,8 +65,9 @@ enum class RSRenderNodeType : uint32_t {
     RS_NODE      = 0x00111u,   // formerly RSPropertyRenderNode
     DISPLAY_NODE = 0x01111u,
     SURFACE_NODE = 0x02111u,
-    CANVAS_NODE  = 0x04111u,   // formerly RSRenderNode
-    ROOT_NODE    = 0x14111u,
+    PROXY_NODE   = 0x04111u,
+    CANVAS_NODE  = 0x08111u,   // formerly RSRenderNode
+    ROOT_NODE    = 0x18111u,
 };
 
 // types for RSSurfaceRenderNode
@@ -88,9 +91,9 @@ struct RSDisplayNodeConfig {
 };
 
 #if defined(M_PI)
-const float PI = M_PI;
+constexpr float PI = M_PI;
 #else
-const float PI = std::atanf(1.0) * 4;
+constexpr float PI = std::atanf(1.0) * 4;
 #endif
 
 template<typename T>
@@ -132,7 +135,7 @@ inline bool ROSEN_EQ(const std::weak_ptr<T>& x, const std::weak_ptr<T>& y)
 class MemObject {
 public:
     explicit MemObject(size_t size) : size_(size) {}
-    virtual ~MemObject() {}
+    virtual ~MemObject() = default;
 
     void* operator new(size_t size);
     void operator delete(void* ptr);

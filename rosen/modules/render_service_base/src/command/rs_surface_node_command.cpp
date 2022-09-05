@@ -110,8 +110,8 @@ void SurfaceNodeCommandHelper::SetAbilityBGAlpha(RSContext& context, NodeId id, 
 void SurfaceNodeCommandHelper::UpdateParentWithoutTransition(RSContext& context, NodeId nodeId, NodeId parentId)
 {
     auto& nodeMap = context.GetNodeMap();
-    auto node = nodeMap.GetRenderNode<RSBaseRenderNode>(nodeId);
-    auto parent = nodeMap.GetRenderNode<RSBaseRenderNode>(parentId);
+    auto node = nodeMap.GetRenderNode(nodeId);
+    auto parent = nodeMap.GetRenderNode(parentId);
     if (node && parent) {
         node->RemoveFromTreeWithoutTransition();
         parent->AddChild(node);

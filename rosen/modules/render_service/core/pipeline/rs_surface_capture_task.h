@@ -41,17 +41,20 @@ private:
     public:
         RSSurfaceCaptureVisitor(float scaleX, float scaleY);
         ~RSSurfaceCaptureVisitor() noexcept override = default;
-        virtual void PrepareBaseRenderNode(RSBaseRenderNode& node) override {}
-        virtual void PrepareDisplayRenderNode(RSDisplayRenderNode& node) override {}
-        virtual void PrepareSurfaceRenderNode(RSSurfaceRenderNode& node) override {}
-        virtual void PrepareCanvasRenderNode(RSCanvasRenderNode& node) override {}
-        virtual void PrepareRootRenderNode(RSRootRenderNode& node) override {}
+        void PrepareBaseRenderNode(RSBaseRenderNode& node) override {}
+        void PrepareCanvasRenderNode(RSCanvasRenderNode& node) override {}
+        void PrepareDisplayRenderNode(RSDisplayRenderNode& node) override {}
+        void PrepareProxyRenderNode(RSProxyRenderNode& node) override {}
+        void PrepareRootRenderNode(RSRootRenderNode& node) override {}
+        void PrepareSurfaceRenderNode(RSSurfaceRenderNode& node) override {}
 
         void ProcessBaseRenderNode(RSBaseRenderNode& node) override;
         void ProcessCanvasRenderNode(RSCanvasRenderNode& node) override;
-        void ProcessRootRenderNode(RSRootRenderNode& node) override;
         void ProcessDisplayRenderNode(RSDisplayRenderNode& node) override;
+        void ProcessProxyRenderNode(RSProxyRenderNode& node) override {}
+        void ProcessRootRenderNode(RSRootRenderNode& node) override;
         void ProcessSurfaceRenderNode(RSSurfaceRenderNode& node) override;
+
         void SetSurface(SkSurface* surface);
         void IsDisplayNode(bool isDisplayNode)
         {

@@ -15,16 +15,16 @@
 #ifndef RENDER_SERVICE_CLIENT_CORE_UI_RS_SURFACE_NODE_H
 #define RENDER_SERVICE_CLIENT_CORE_UI_RS_SURFACE_NODE_H
 
-#include <string>
-
 #include <parcel.h>
 #include <refbase.h>
-#include "surface.h"
+#include <string>
 
-#include <transaction/rs_transaction_proxy.h>
-#include "platform/drawing/rs_surface.h"
-#include "ui/rs_node.h"
+#include "surface.h"
 #include "surface_type.h"
+
+#include "platform/drawing/rs_surface.h"
+#include "transaction/rs_transaction_proxy.h"
+#include "ui/rs_node.h"
 
 class SkCanvas;
 
@@ -41,8 +41,12 @@ public:
     using WeakPtr = std::weak_ptr<RSSurfaceNode>;
     using SharedPtr = std::shared_ptr<RSSurfaceNode>;
     static inline constexpr RSUINodeType Type = RSUINodeType::SURFACE_NODE;
+    RSUINodeType GetType() const override
+    {
+        return Type;
+    }
 
-    virtual ~RSSurfaceNode();
+    ~RSSurfaceNode() override;
 
     static SharedPtr Create(const RSSurfaceNodeConfig& surfaceNodeConfig, bool isWindow = true);
     // This API is only for abilityView create RSRenderSurfaceNode in RenderThread.
@@ -68,12 +72,11 @@ public:
     bool SetBufferAvailableCallback(BufferAvailableCallback callback);
 
     bool Marshalling(Parcel& parcel) const;
-    static std::shared_ptr<RSSurfaceNode> Unmarshalling(Parcel& parcel);
+    static SharedPtr Unmarshalling(Parcel& parcel);
+    // Create RSProxyNode by unmarshalling RSSurfaceNode, return existing node if it exists in RSNodeMap.
+    static RSNode::SharedPtr UnmarshallingAsProxyNode(Parcel& parcel);
+
     sptr<OHOS::Surface> GetSurface() const;
-    RSUINodeType GetType() const override
-    {
-        return RSUINodeType::SURFACE_NODE;
-    }
     FollowType GetFollowType() const override;
 
     ColorGamut GetColorSpace()

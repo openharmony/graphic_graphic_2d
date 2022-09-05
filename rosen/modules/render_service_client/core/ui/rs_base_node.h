@@ -31,26 +31,26 @@ public:
     using WeakPtr = std::weak_ptr<RSBaseNode>;
     using SharedPtr = std::shared_ptr<RSBaseNode>;
     static inline constexpr RSUINodeType Type = RSUINodeType::BASE_NODE;
+    virtual RSUINodeType GetType() const
+    {
+        return Type;
+    }
 
     virtual ~RSBaseNode();
 
     virtual void AddChild(SharedPtr child, int index = -1);
     void MoveChild(SharedPtr child, int index);
     virtual void RemoveChild(SharedPtr child);
+    void RemoveFromTree();
+    virtual void ClearChildren();
+
     // Add/RemoveCrossParentChild only used as: the child is under multiple parents(e.g. a window cross multi-screens)
     void AddCrossParentChild(SharedPtr child, int index);
     void RemoveCrossParentChild(SharedPtr child, NodeId newParentId);
-    void RemoveFromTree();
-    virtual void ClearChildren();
 
     NodeId GetId() const
     {
         return id_;
-    }
-
-    virtual RSUINodeType GetType() const
-    {
-        return RSUINodeType::BASE_NODE;
     }
 
     virtual FollowType GetFollowType() const
@@ -74,16 +74,24 @@ public:
         return (IsInstanceOf<T>()) ? std::static_pointer_cast<T>(shared_from_this()) : nullptr;
     }
     virtual std::string DumpNode(int depth) const;
+
 protected:
     static inline bool isUniRenderEnabled_ = false;
     bool isRenderServiceNode_;
+    bool skipDestroyCommandInDestructor_ = false;
 
     explicit RSBaseNode(bool isRenderServiceNode);
-    RSBaseNode(bool isRenderServiceNode, NodeId id);
+    explicit RSBaseNode(bool isRenderServiceNode, NodeId id);
     RSBaseNode(const RSBaseNode&) = delete;
     RSBaseNode(const RSBaseNode&&) = delete;
     RSBaseNode& operator=(const RSBaseNode&) = delete;
     RSBaseNode& operator=(const RSBaseNode&&) = delete;
+
+    // this id is ONLY used in hierarchy operation commands, this may differ from id_ when the node is a proxy node.
+    virtual NodeId GetHierarchyCommandNodeId() const
+    {
+        return id_;
+    }
 
     virtual void OnAddChildren() {}
     virtual void OnRemoveChildren() {}
@@ -108,7 +116,6 @@ private:
     static NodeId GenerateId();
     static void InitUniRenderEnabled();
     NodeId id_;
-
     NodeId parent_ = 0;
     std::vector<NodeId> children_;
     void SetParent(NodeId parent);

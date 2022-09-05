@@ -25,12 +25,11 @@
 #include "command/rs_canvas_node_command.h"
 #include "command/rs_display_node_command.h"
 #include "command/rs_node_command.h"
+#include "command/rs_proxy_node_command.h"
 #include "command/rs_root_node_command.h"
 #include "command/rs_surface_node_command.h"
 // animation
 #include "command/rs_animation_command.h"
-// read showing property commands
-#include "command/rs_node_showing_command.h"
 #undef ROSEN_INSTANTIATE_COMMAND_TEMPLATE
 
 namespace OHOS {

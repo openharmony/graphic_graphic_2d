@@ -15,7 +15,6 @@
 #ifndef RENDER_SERVICE_CLIENT_CORE_UI_RS_ROOT_NODE_H
 #define RENDER_SERVICE_CLIENT_CORE_UI_RS_ROOT_NODE_H
 
-#include "platform/drawing/rs_surface.h"
 #include "ui/rs_canvas_node.h"
 
 namespace OHOS {
@@ -26,22 +25,21 @@ public:
     using WeakPtr = std::weak_ptr<RSRootNode>;
     using SharedPtr = std::shared_ptr<RSRootNode>;
     static inline constexpr RSUINodeType Type = RSUINodeType::ROOT_NODE;
-
-    virtual ~RSRootNode() {}
-
-    static std::shared_ptr<RSNode> Create(bool isRenderServiceNode = false);
-
     RSUINodeType GetType() const override
     {
-        return RSUINodeType::ROOT_NODE;
+        return Type;
     }
+
+    ~RSRootNode() override = default;
+
+    static std::shared_ptr<RSNode> Create(bool isRenderServiceNode = false);
 
 protected:
     void AttachRSSurfaceNode(std::shared_ptr<RSSurfaceNode> surfaceNode) const;
     void SetEnableRender(bool flag) const;
     void OnBoundsSizeChanged() const override;
 
-    RSRootNode(bool isRenderServiceNode);
+    explicit RSRootNode(bool isRenderServiceNode);
     RSRootNode(const RSRootNode&) = delete;
     RSRootNode(const RSRootNode&&) = delete;
     RSRootNode& operator=(const RSRootNode&) = delete;

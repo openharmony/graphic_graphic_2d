@@ -38,7 +38,7 @@ private:
     MemAllocater& operator=(const MemAllocater&) = delete;
 
     std::mutex mutex_;
-    std::map<size_t, Cache> memCaches_;
+    std::unordered_map<size_t, Cache> memCaches_;
     std::vector<char*> blocks_;
     static constexpr unsigned sizeStep_ = 64;
 };

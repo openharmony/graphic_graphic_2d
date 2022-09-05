@@ -24,6 +24,7 @@ namespace Rosen {
 class RSBaseRenderNode;
 class RSCanvasRenderNode;
 class RSDisplayRenderNode;
+class RSProxyRenderNode;
 class RSRootRenderNode;
 class RSSurfaceRenderNode;
 
@@ -33,16 +34,18 @@ public:
     virtual ~RSNodeVisitor() {}
 
     virtual void PrepareBaseRenderNode(RSBaseRenderNode& node) = 0;
-    virtual void PrepareDisplayRenderNode(RSDisplayRenderNode& node) = 0;
     virtual void PrepareCanvasRenderNode(RSCanvasRenderNode& node) = 0;
-    virtual void PrepareSurfaceRenderNode(RSSurfaceRenderNode& node) = 0;
+    virtual void PrepareDisplayRenderNode(RSDisplayRenderNode& node) = 0;
+    virtual void PrepareProxyRenderNode(RSProxyRenderNode& node) = 0;
     virtual void PrepareRootRenderNode(RSRootRenderNode& node) = 0;
+    virtual void PrepareSurfaceRenderNode(RSSurfaceRenderNode& node) = 0;
 
     virtual void ProcessBaseRenderNode(RSBaseRenderNode& node) = 0;
-    virtual void ProcessDisplayRenderNode(RSDisplayRenderNode& node) = 0;
     virtual void ProcessCanvasRenderNode(RSCanvasRenderNode& node) = 0;
-    virtual void ProcessSurfaceRenderNode(RSSurfaceRenderNode& node) = 0;
+    virtual void ProcessDisplayRenderNode(RSDisplayRenderNode& node) = 0;
+    virtual void ProcessProxyRenderNode(RSProxyRenderNode& node) = 0;
     virtual void ProcessRootRenderNode(RSRootRenderNode& node) = 0;
+    virtual void ProcessSurfaceRenderNode(RSSurfaceRenderNode& node) = 0;
 };
 
 } // namespace Rosen

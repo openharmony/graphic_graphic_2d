@@ -31,7 +31,6 @@
 #include "property/rs_properties_painter.h"
 #include "property/rs_transition_properties.h"
 #include "transaction/rs_render_service_client.h"
-#include "transaction/rs_transaction_proxy.h"
 #include "visitor/rs_node_visitor.h"
 
 namespace OHOS {
@@ -152,8 +151,7 @@ void RSSurfaceRenderNode::CollectSurface(
     if (consumer != nullptr && consumer->GetTunnelHandle() != nullptr) {
         return;
     }
-    std::vector<RSBaseRenderNode::SharedPtr>::iterator num =
-        find(vec.begin(), vec.end(), shared_from_this());
+    auto num = find(vec.begin(), vec.end(), shared_from_this());
     if (num != vec.end()) {
         return;
     }
@@ -298,14 +296,6 @@ void RSSurfaceRenderNode::UpdateSurfaceDefaultSize(float width, float height)
     if (consumer_ != nullptr) {
         consumer_->SetDefaultWidthAndHeight(width, height);
     }  
-}
-
-void RSSurfaceRenderNode::SendCommandFromRT(std::unique_ptr<RSCommand>& command, NodeId nodeId)
-{
-    auto transactionProxy = RSTransactionProxy::GetInstance();
-    if (transactionProxy != nullptr) {
-        transactionProxy->AddCommandFromRT(command, nodeId);
-    }
 }
 
 BlendType RSSurfaceRenderNode::GetBlendType()

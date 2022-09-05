@@ -28,8 +28,12 @@ public:
     using WeakPtr = std::weak_ptr<RSCanvasNode>;
     using SharedPtr = std::shared_ptr<RSCanvasNode>;
     static inline constexpr RSUINodeType Type = RSUINodeType::CANVAS_NODE;
+    RSUINodeType GetType() const override
+    {
+        return Type;
+    }
 
-    virtual ~RSCanvasNode();
+    ~RSCanvasNode() override;
 
     static SharedPtr Create(bool isRenderServiceNode = false);
 
@@ -39,11 +43,6 @@ public:
     float GetPaintWidth() const;
     float GetPaintHeight() const;
     void DrawOnNode(RSModifierType type, DrawFunc func) override;
-
-    RSUINodeType GetType() const override
-    {
-        return RSUINodeType::CANVAS_NODE;
-    }
 
 protected:
     RSCanvasNode(bool isRenderServiceNode);

@@ -33,11 +33,12 @@ enum RSCommandType : uint16_t {
     RS_NODE,     // formerly RSPropertyNode
     CANVAS_NODE, // formerly RSNode
     SURFACE_NODE,
+    PROXY_NODE,
     ROOT_NODE,
     DISPLAY_NODE,
     // animation commands
     ANIMATION,
-    // read showing properties
+    // read showing properties (deprecated, will be removed later)
     RS_NODE_SYNCHRONOUS_READ_PROPERTY,
 };
 

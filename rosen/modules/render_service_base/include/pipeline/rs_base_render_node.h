@@ -24,12 +24,17 @@ namespace OHOS {
 namespace Rosen {
 class RSContext;
 class RSNodeVisitor;
+class RSCommand;
 
 class RSBaseRenderNode : public std::enable_shared_from_this<RSBaseRenderNode> {
 public:
     using WeakPtr = std::weak_ptr<RSBaseRenderNode>;
     using SharedPtr = std::shared_ptr<RSBaseRenderNode>;
     static inline constexpr RSRenderNodeType Type = RSRenderNodeType::BASE_NODE;
+    virtual RSRenderNodeType GetType() const
+    {
+        return Type;
+    }
 
     explicit RSBaseRenderNode(NodeId id, std::weak_ptr<RSContext> context = {}) : id_(id), context_(context) {};
     explicit RSBaseRenderNode(NodeId id, bool isOnTheTree = false, std::weak_ptr<RSContext> context = {}) : id_(id),
@@ -39,12 +44,14 @@ public:
     void AddChild(SharedPtr child, int index = -1);
     void MoveChild(SharedPtr child, int index);
     void RemoveChild(SharedPtr child);
-    // Add/RemoveCrossParentChild only used as: the child is under multiple parents(e.g. a window cross multi-screens)
-    void AddCrossParentChild(const SharedPtr& child, int32_t index = -1);
-    void RemoveCrossParentChild(const SharedPtr& child, const WeakPtr& newParent);
     void ClearChildren();
     void RemoveFromTree();
     void RemoveFromTreeWithoutTransition();
+
+    // Add/RemoveCrossParentChild only used as: the child is under multiple parents(e.g. a window cross multi-screens)
+    void AddCrossParentChild(const SharedPtr& child, int32_t index = -1);
+    void RemoveCrossParentChild(const SharedPtr& child, const WeakPtr& newParent);
+
     virtual void CollectSurface(const std::shared_ptr<RSBaseRenderNode>& node,
                                 std::vector<RSBaseRenderNode::SharedPtr>& vec,
                                 bool isUniRender);
@@ -105,15 +112,13 @@ public:
         return isTunnelHandleChange_;
     }
 
-    virtual RSRenderNodeType GetType() const
-    {
-        return RSRenderNodeType::BASE_NODE;
-    }
-
-    template<typename T>
-    bool IsInstanceOf();
-
     // type-safe reinterpret_cast
+    template<typename T>
+    bool IsInstanceOf()
+    {
+        constexpr uint32_t targetType = static_cast<uint32_t>(T::Type);
+        return (static_cast<uint32_t>(GetType()) & targetType) == targetType;
+    }
     template<typename T>
     static std::shared_ptr<T> ReinterpretCast(std::shared_ptr<RSBaseRenderNode> node)
     {
@@ -141,6 +146,7 @@ protected:
         return context_;
     }
 
+    static void SendCommandFromRT(std::unique_ptr<RSCommand>& command, NodeId nodeId);
 private:
     NodeId id_;
 

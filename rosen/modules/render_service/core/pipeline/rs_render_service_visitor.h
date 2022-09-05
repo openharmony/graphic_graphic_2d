@@ -31,17 +31,19 @@ public:
     RSRenderServiceVisitor(bool parallel = false);
     ~RSRenderServiceVisitor();
 
-    virtual void PrepareBaseRenderNode(RSBaseRenderNode &node) override;
-    virtual void PrepareDisplayRenderNode(RSDisplayRenderNode &node) override;
-    virtual void PrepareSurfaceRenderNode(RSSurfaceRenderNode &node) override;
-    virtual void PrepareCanvasRenderNode(RSCanvasRenderNode &node) override {}
-    virtual void PrepareRootRenderNode(RSRootRenderNode& node) override {}
+    void PrepareBaseRenderNode(RSBaseRenderNode &node) override;
+    void PrepareCanvasRenderNode(RSCanvasRenderNode &node) override {}
+    void PrepareDisplayRenderNode(RSDisplayRenderNode &node) override;
+    void PrepareProxyRenderNode(RSProxyRenderNode& node) override {}
+    void PrepareRootRenderNode(RSRootRenderNode& node) override {}
+    void PrepareSurfaceRenderNode(RSSurfaceRenderNode &node) override;
 
-    virtual void ProcessBaseRenderNode(RSBaseRenderNode &node) override;
-    virtual void ProcessDisplayRenderNode(RSDisplayRenderNode &node) override;
-    virtual void ProcessSurfaceRenderNode(RSSurfaceRenderNode &node) override;
-    virtual void ProcessCanvasRenderNode(RSCanvasRenderNode& node) override {}
-    virtual void ProcessRootRenderNode(RSRootRenderNode& node) override {}
+    void ProcessBaseRenderNode(RSBaseRenderNode &node) override;
+    void ProcessCanvasRenderNode(RSCanvasRenderNode& node) override {}
+    void ProcessDisplayRenderNode(RSDisplayRenderNode &node) override;
+    void ProcessProxyRenderNode(RSProxyRenderNode& node) override {}
+    void ProcessRootRenderNode(RSRootRenderNode& node) override {}
+    void ProcessSurfaceRenderNode(RSSurfaceRenderNode &node) override;
 
     void SetAnimateState(bool doAnimate)
     {
