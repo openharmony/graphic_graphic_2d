@@ -23,6 +23,7 @@ group("unittest") {
     ":RSDropframeTest",
     ":RSEventTest",
     ":RSInterfacesTest",
+    ":RSRegionTest",
     ":RSTunnelHandleTest",
   ]
 }
@@ -59,6 +60,13 @@ ohos_unittest("RSTunnelHandleTest") {
 ohos_unittest("RSEventTest") {
   module_out_path = module_out_path
   sources = [ "rs_event_test.cpp" ]
+  deps = [ ":rs_client_test_common" ]
+}
+
+## Build RSRegionTest
+ohos_unittest("RSRegionTest") {
+  module_out_path = module_out_path
+  sources = [ "rs_region_test.cpp" ]
   deps = [ ":rs_client_test_common" ]
 }
 
