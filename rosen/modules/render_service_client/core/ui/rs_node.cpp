@@ -332,7 +332,7 @@ void RSNode::SetBoundsWidth(float width)
     }
 
     auto property = std::static_pointer_cast<RSAnimatableProperty<Vector4f>>(iter->second->GetProperty());
-    if (property != nullptr) {
+    if (property == nullptr) {
         return;
     }
     auto bounds = property->Get();
@@ -350,7 +350,7 @@ void RSNode::SetBoundsHeight(float height)
     }
 
     auto property = std::static_pointer_cast<RSAnimatableProperty<Vector4f>>(iter->second->GetProperty());
-    if (property != nullptr) {
+    if (property == nullptr) {
         return;
     }
     auto bounds = property->Get();
@@ -379,7 +379,7 @@ void RSNode::SetFramePositionX(float positionX)
     }
 
     auto property = std::static_pointer_cast<RSAnimatableProperty<Vector4f>>(iter->second->GetProperty());
-    if (property != nullptr) {
+    if (property == nullptr) {
         return;
     }
     auto frame = property->Get();
@@ -395,7 +395,7 @@ void RSNode::SetFramePositionY(float positionY)
         return;
     }
     auto property = std::static_pointer_cast<RSAnimatableProperty<Vector4f>>(iter->second->GetProperty());
-    if (property != nullptr) {
+    if (property == nullptr) {
         return;
     }
     auto frame = property->Get();
@@ -428,7 +428,7 @@ void RSNode::SetPivotX(float pivotX)
     }
 
     auto property = std::static_pointer_cast<RSAnimatableProperty<Vector2f>>(iter->second->GetProperty());
-    if (property != nullptr) {
+    if (property == nullptr) {
         return;
     }
     auto pivot = property->Get();
@@ -445,7 +445,7 @@ void RSNode::SetPivotY(float pivotY)
     }
 
     auto property = std::static_pointer_cast<RSAnimatableProperty<Vector2f>>(iter->second->GetProperty());
-    if (property != nullptr) {
+    if (property == nullptr) {
         return;
     }
     auto pivot = property->Get();
@@ -510,7 +510,7 @@ void RSNode::SetTranslateX(float translate)
     }
 
     auto property = std::static_pointer_cast<RSAnimatableProperty<Vector2f>>(iter->second->GetProperty());
-    if (property != nullptr) {
+    if (property == nullptr) {
         return;
     }
     auto trans = property->Get();
@@ -527,7 +527,7 @@ void RSNode::SetTranslateY(float translate)
     }
 
     auto property = std::static_pointer_cast<RSAnimatableProperty<Vector2f>>(iter->second->GetProperty());
-    if (property != nullptr) {
+    if (property == nullptr) {
         return;
     }
     auto trans = property->Get();
@@ -564,7 +564,7 @@ void RSNode::SetScaleX(float scaleX)
     }
 
     auto property = std::static_pointer_cast<RSAnimatableProperty<Vector2f>>(iter->second->GetProperty());
-    if (property != nullptr) {
+    if (property == nullptr) {
         return;
     }
     auto scale = property->Get();
@@ -581,7 +581,7 @@ void RSNode::SetScaleY(float scaleY)
     }
 
     auto property = std::static_pointer_cast<RSAnimatableProperty<Vector2f>>(iter->second->GetProperty());
-    if (property != nullptr) {
+    if (property == nullptr) {
         return;
     }
     auto scale = property->Get();
