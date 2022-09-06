@@ -115,12 +115,12 @@ public:
         return RSModifierType::OVERLAY_STYLE;
     }
 
-    void SetOverlayerBounds(std::shared_ptr<RectI> rect)
+    void SetOverlayBounds(std::shared_ptr<RectI> rect)
     {
         overlayRect_ = rect;
     }
 
-    std::shared_ptr<RectI> GetOverlayerBounds() const
+    std::shared_ptr<RectI> GetOverlayBounds() const
     {
         return overlayRect_;
     }
@@ -130,7 +130,7 @@ public:
         auto renderModifier = RSExtendedModifier<T>::CreateRenderModifier();
         auto drawCmdModifier = std::static_pointer_cast<RSDrawCmdListRenderModifier>(renderModifier);
         if (drawCmdModifier != nullptr && drawCmdModifier->GetType() == RSModifierType::OVERLAY_STYLE) {
-            drawCmdModifier->SetOverlayerBounds(overlayRect_);
+            drawCmdModifier->SetOverlayBounds(overlayRect_);
         }
         return renderModifier;
     }

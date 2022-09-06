@@ -39,7 +39,7 @@ namespace Rosen {
 class RSProperties;
 class RSPaintFilterCanvas;
 
-struct RSModifyContext {
+struct RSModifierContext {
     RSProperties& property_;
     RSPaintFilterCanvas* canvas_ = nullptr;
 };
@@ -49,16 +49,15 @@ public:
     RSRenderModifier() = default;
     virtual ~RSRenderModifier() = default;
 
-    virtual void Apply(RSModifyContext& context) = 0;
+    virtual void Apply(RSModifierContext& context) = 0;
 
     virtual PropertyId GetPropertyId() = 0;
     virtual std::shared_ptr<RSRenderPropertyBase> GetProperty() = 0;
     virtual RSModifierType GetType() = 0;
-    virtual void Update(const std::shared_ptr<RSRenderPropertyBase>& newProp, bool isDelta) = 0;
+    virtual void Update(const std::shared_ptr<RSRenderPropertyBase>& prop, bool isDelta) = 0;
 
     virtual bool Marshalling(Parcel& parcel) = 0;
     static RSRenderModifier* Unmarshalling(Parcel& parcel);
-    virtual void SetIsAdditive(bool isAdditive) = 0;
 };
 
 class RSDrawCmdListRenderModifier : public RSRenderModifier {
@@ -67,8 +66,8 @@ public:
         : property_(property ? property : std::make_shared<RSRenderProperty<DrawCmdListPtr>>())
     {}
     virtual ~RSDrawCmdListRenderModifier() = default;
-    void Apply(RSModifyContext& context) override;
-    void Update(const std::shared_ptr<RSRenderPropertyBase>& newProp, bool isDelta) override;
+    void Apply(RSModifierContext& context) override;
+    void Update(const std::shared_ptr<RSRenderPropertyBase>& prop, bool isDelta) override;
     bool Marshalling(Parcel& parcel) override;
 
     virtual PropertyId GetPropertyId() override
@@ -81,7 +80,6 @@ public:
         return property_;
     }
 
-    void SetIsAdditive(bool isAdditive) override {}
     RSModifierType GetType() override
     {
         return drawStyle_;
@@ -91,12 +89,12 @@ public:
         drawStyle_ = type;
     }
 
-    void SetOverlayerBounds(std::shared_ptr<RectI> rect)
+    void SetOverlayBounds(std::shared_ptr<RectI> rect)
     {
         overlayRect_ = rect;
     }
 
-    std::shared_ptr<RectI> GetOverlayerBounds() const
+    std::shared_ptr<RectI> GetOverlayBounds() const
     {
         return overlayRect_;
     }
@@ -126,36 +124,31 @@ public:
         return property_;
     }
 
-    virtual void SetIsAdditive(bool isAdditive) override
-    {
-        isAdditive_ = isAdditive;
-    }
-
 protected:
     std::shared_ptr<T> property_;
-    bool isAdditive_ { false };
-    bool isFirstSet_ { true };
-    std::shared_ptr<T> lastValue_ = std::make_shared<T>();
 
     friend class RSRenderPropertyAnimation;
 };
 
 // declare RenderModifiers like RSBoundsRenderModifier
-#define DECLARE_ANIMATABLE_MODIFIER(MODIFIER_NAME, TYPE, MODIFIER_TYPE, RENDER_PROPERTY)                        \
-    class RS##MODIFIER_NAME##RenderModifier : public RSAnimatableRenderModifier<RENDER_PROPERTY<TYPE>> {        \
-    public:                                                                                                     \
-        RS##MODIFIER_NAME##RenderModifier(const std::shared_ptr<RENDER_PROPERTY<TYPE>>& property)               \
-            : RSAnimatableRenderModifier<RENDER_PROPERTY<TYPE>>(property)                                       \
-        {}                                                                                                      \
-        virtual ~RS##MODIFIER_NAME##RenderModifier() = default;                                                 \
-        void Apply(RSModifyContext& context) override;                                                          \
-        void Update(const std::shared_ptr<RSRenderPropertyBase>& newProp, bool isDelta) override;               \
-        bool Marshalling(Parcel& parcel) override;                                                              \
-        RSModifierType GetType() override { return RSModifierType::MODIFIER_TYPE; }                             \
+#define DECLARE_ANIMATABLE_MODIFIER(MODIFIER_NAME, TYPE, MODIFIER_TYPE, RENDER_PROPERTY, DELTA_OP)       \
+    class RS##MODIFIER_NAME##RenderModifier : public RSAnimatableRenderModifier<RENDER_PROPERTY<TYPE>> { \
+    public:                                                                                              \
+        RS##MODIFIER_NAME##RenderModifier(const std::shared_ptr<RENDER_PROPERTY<TYPE>>& property)        \
+            : RSAnimatableRenderModifier<RENDER_PROPERTY<TYPE>>(property)                                \
+        {}                                                                                               \
+        virtual ~RS##MODIFIER_NAME##RenderModifier() = default;                                          \
+        void Apply(RSModifierContext& context) override;                                                   \
+        void Update(const std::shared_ptr<RSRenderPropertyBase>& prop, bool isDelta) override;           \
+        bool Marshalling(Parcel& parcel) override;                                                       \
+        RSModifierType GetType() override                                                                \
+        {                                                                                                \
+            return RSModifierType::MODIFIER_TYPE;                                                        \
+        }                                                                                                \
     };
 
-#define DECLARE_NOANIMATABLE_MODIFIER(MODIFIER_NAME, TYPE, MODIFIER_TYPE, RENDER_PROPERTY)                      \
-    DECLARE_ANIMATABLE_MODIFIER(MODIFIER_NAME, TYPE, MODIFIER_TYPE, RENDER_PROPERTY)
+#define DECLARE_NOANIMATABLE_MODIFIER(MODIFIER_NAME, TYPE, MODIFIER_TYPE, RENDER_PROPERTY) \
+    DECLARE_ANIMATABLE_MODIFIER(MODIFIER_NAME, TYPE, MODIFIER_TYPE, RENDER_PROPERTY, Add)
 
 #include "modifier/rs_modifiers_def.in"
 

@@ -35,7 +35,7 @@ public:
     static SharedPtr Create(NodeId targetNodeId, std::string name = "ProxyNode");
     ~RSProxyNode() override;
 
-    void ResetContextAlpha() const;
+    void ResetContextVariableCache() const;
 
     const std::string& GetName() const
     {

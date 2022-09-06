@@ -16,6 +16,7 @@
 #define RENDER_SERVICE_CLIENT_CORE_PIPELINE_RS_RENDER_NODE_H
 
 #include <memory>
+#include <unordered_set>
 
 #include "animation/rs_animation_manager.h"
 #include "modifier/rs_render_modifier.h"
@@ -42,8 +43,7 @@ public:
     ~RSRenderNode() override;
 
     bool Animate(int64_t timestamp) override;
-    bool Update(RSDirtyRegionManager& dirtyManager, const RSProperties* parent, bool parentDirty,
-        const std::unique_ptr<RSTransitionProperties>& transition = nullptr);
+    bool Update(RSDirtyRegionManager& dirtyManager, const RSProperties* parent, bool parentDirty);
 
     RSProperties& GetMutableRenderProperties();
     const RSProperties& GetRenderProperties() const;
@@ -65,7 +65,7 @@ public:
 
     bool HasDisappearingTransition(bool recursive) const override
     {
-        return animationManager_.HasDisappearingTransition() || RSBaseRenderNode::HasDisappearingTransition(recursive);
+        return (disappearingTransitionCount_ > 0) || RSBaseRenderNode::HasDisappearingTransition(recursive);
     }
 
     inline RectI GetOldDirty() const
@@ -76,10 +76,9 @@ public:
     {
         return isDirtyRegionUpdated_;
     }
-
-    void ClearModifiers();
-    virtual void AddModifier(const std::shared_ptr<RSRenderModifier> modifier);
+    void AddModifier(const std::shared_ptr<RSRenderModifier>& modifier);
     void RemoveModifier(const PropertyId& id);
+
     void ApplyModifiers();
     std::shared_ptr<RSRenderModifier> GetModifier(const PropertyId& id);
 
@@ -89,15 +88,16 @@ protected:
     bool IsDirty() const override;
     void AddGeometryModifier(const std::shared_ptr<RSRenderModifier>& modifier);
     std::pair<int, int> renderNodeSaveCount_ = { 0, 0 };
-    std::unordered_map<RSModifierType, std::list<std::shared_ptr<RSRenderModifier>>> drawCmdModifiers_;
+    std::map<RSModifierType, std::list<std::shared_ptr<RSRenderModifier>>> drawCmdModifiers_;
     // if true, it means currently it's in partial render mode and this node is intersect with dirtyRegion
     bool isRenderUpdateIgnored_ = false;
 
 private:
     void FallbackAnimationsToRoot();
-    void UpdateOverlayerBounds();
+    void UpdateOverlayBounds();
     bool isDirtyRegionUpdated_ = false;
     bool isLastVisible_ = false;
+    uint32_t disappearingTransitionCount_ = 0;
     RectI oldDirty_;
     RSProperties renderProperties_;
     RSAnimationManager animationManager_;

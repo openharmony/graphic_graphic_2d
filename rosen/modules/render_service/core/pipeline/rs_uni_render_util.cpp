@@ -21,26 +21,24 @@
 
 namespace OHOS {
 namespace Rosen {
-bool RSUniRenderUtil::UpdateRenderNodeDstRect(RSRenderNode& node, const SkMatrix& matrix)
+void RSUniRenderUtil::UpdateRenderNodeDstRect(RSRenderNode& node, const SkMatrix& matrix)
 {
     // [planning] use RSRenderNode::Update instead
     auto parentNode = node.GetParent().lock();
     if (!parentNode) {
         RS_LOGE("RSUniRenderUtil::UpdateDstRect: fail to get parent dstRect.");
-        return false;
+        return;
     }
     auto rsParent = parentNode->ReinterpretCastTo<RSRenderNode>();
-    auto pareneProp = rsParent ? &(rsParent->GetRenderProperties()) : nullptr;
+    auto parentProp = rsParent ? &(rsParent->GetRenderProperties()) : nullptr;
     auto& property = node.GetMutableRenderProperties();
-    auto transitionProperties = node.GetAnimationManager().GetTransitionProperties();
     auto surfaceNode = node.ReinterpretCastTo<RSSurfaceRenderNode>();
     auto isSurfaceView = surfaceNode && surfaceNode->GetSurfaceNodeType() == RSSurfaceNodeType::SELF_DRAWING_NODE;
     Vector2f offset(0.f, 0.f);
     if (isSurfaceView) {
-        offset = { pareneProp->GetFrameOffsetX(), pareneProp->GetFrameOffsetY() };
+        offset = { parentProp->GetFrameOffsetX(), parentProp->GetFrameOffsetY() };
     }
-    property.UpdateGeometry(
-        pareneProp, true, offset, transitionProperties);
+    property.UpdateGeometry(parentProp, true, offset);
     auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(property.GetBoundsGeometry());
     if (geoPtr && node.IsInstanceOf<RSSurfaceRenderNode>()) {
         if (!isSurfaceView) {
@@ -50,7 +48,6 @@ bool RSUniRenderUtil::UpdateRenderNodeDstRect(RSRenderNode& node, const SkMatrix
         RS_LOGD("RSUniRenderUtil::UpdateDstRect: nodeName: %s, dstRect[%s].",
             surfaceNode->GetName().c_str(), surfaceNode->GetDstRect().ToString().c_str());
     }
-    return transitionProperties != nullptr;
 }
 
 void RSUniRenderUtil::MergeDirtyHistory(std::shared_ptr<RSDisplayRenderNode>& node, int32_t bufferAge)

@@ -53,7 +53,7 @@ NativeValue* RSWindowAnimationUtils::CreateJsWindowAnimationTarget(NativeEngine&
     object->SetNativePointer(&(target->surfaceNode_), finalizeCallback, target.GetRefPtr());
     if (auto proxyNode = RSBaseNode::ReinterpretCast<RSProxyNode>(target->surfaceNode_)) {
         // force proxy node to flush correct context alpha on next visit
-        proxyNode->ResetContextAlpha();
+        proxyNode->ResetContextVariableCache();
     }
 
     object->SetProperty("bundleName", CreateJsValue(engine, target->bundleName_));

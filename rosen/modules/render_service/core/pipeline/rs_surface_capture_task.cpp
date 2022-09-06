@@ -16,12 +16,13 @@
 #include "pipeline/rs_surface_capture_task.h"
 
 #include <memory>
-#include "rs_trace.h"
 
-#include "common/rs_obj_abs_geometry.h"
 #include "include/core/SkCanvas.h"
 #include "include/core/SkMatrix.h"
 #include "include/core/SkRect.h"
+#include "rs_trace.h"
+
+#include "common/rs_obj_abs_geometry.h"
 #include "pipeline/rs_base_render_node.h"
 #include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_divided_render_util.h"
@@ -33,7 +34,6 @@
 #include "pipeline/rs_uni_render_util.h"
 #include "platform/common/rs_log.h"
 #include "platform/drawing/rs_surface.h"
-#include "property/rs_transition_properties.h"
 #include "render/rs_skia_filter.h"
 #include "screen_manager/rs_screen_manager.h"
 #include "screen_manager/rs_screen_mode_info.h"
@@ -284,8 +284,6 @@ void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::CaptureSurfaceInDisplayWithU
         canvas_->save();
     }
 
-    auto transitionProperties = node.GetAnimationManager().GetTransitionProperties();
-    RSPropertiesPainter::DrawTransitionProperties(transitionProperties, property, *canvas_);
     boundsRect_ = SkRect::MakeWH(property.GetBoundsWidth(), property.GetBoundsHeight());
     frameGravity_ = property.GetFrameGravity();
     canvas_->clipRect(boundsRect_);

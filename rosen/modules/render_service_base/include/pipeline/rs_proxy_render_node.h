@@ -46,7 +46,7 @@ public:
     void SetContextAlpha(float alpha);
     void SetContextClipRegion(SkRect clipRegion);
 
-    void ResetContextAlpha();
+    void ResetContextVariableCache();
 
 private:
     std::weak_ptr<RSSurfaceRenderNode> target_;

@@ -19,9 +19,7 @@
 #include "common/rs_obj_abs_geometry.h"
 #include "platform/common/rs_log.h"
 #include "property/rs_properties_painter.h"
-#include "property/rs_transition_properties.h"
 #include "render/rs_skia_filter.h"
-#include "rs_trace.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -66,25 +64,12 @@ bool RSDividedRenderUtil::IsNeedClient(RSSurfaceRenderNode& node, const ComposeI
         RS_LOGD("RsDebug RSDividedRenderUtil::IsNeedClient enable composition client need shadow");
         return true;
     }
-    auto transitionProperties = node.GetAnimationManager().GetTransitionProperties();
-    if (!transitionProperties) {
-        return false;
+    if (property.GetRotation() != 0 || property.GetRotationX() != 0 || property.GetRotationY() != 0 ||
+        property.GetQuaternion() != Quaternion()) {
+        RS_LOGD("RsDebug RSDividedRenderUtil::IsNeedClient enable composition client need rotation");
+        return true;
     }
-    SkMatrix matrix = transitionProperties->GetRotate();
-    float value[9];
-    matrix.get9(value);
-    if (SkMatrix::kMSkewX < 0 || SkMatrix::kMSkewX >= 9 || // 9 is the upper bound
-        SkMatrix::kMScaleX < 0 || SkMatrix::kMScaleX >= 9) { // 9 is the upper bound
-        RS_LOGE("RSDividedRenderUtil:: The value of kMSkewX or kMScaleX is illegal");
-        return false;
-    } else {
-        float rAngle = -round(atan2(value[SkMatrix::kMSkewX], value[SkMatrix::kMScaleX]) * (180 / PI));
-        bool isNeedClient = rAngle > 0;
-        if (isNeedClient) {
-            RS_LOGD("RsDebug RSDividedRenderUtil::IsNeedClient enable composition client need animation rotate");
-        }
-        return isNeedClient;
-    }
+    return false;
 }
 
 bool RSDividedRenderUtil::IsForceClient()

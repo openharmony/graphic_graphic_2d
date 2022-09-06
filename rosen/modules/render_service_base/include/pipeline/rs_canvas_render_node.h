@@ -25,7 +25,7 @@ namespace OHOS {
 namespace Rosen {
 class DrawCmdList;
 class RSPaintFilterCanvas;
-struct RSModifyContext;
+struct RSModifierContext;
 
 class RSCanvasRenderNode : public RSRenderNode {
 public:
@@ -50,7 +50,7 @@ public:
         return RSRenderNodeType::CANVAS_NODE;
     }
 private:
-    void ApplyDrawCmdModifier(RSModifyContext& context, RSModifierType type);
+    void ApplyDrawCmdModifier(RSModifierContext& context, RSModifierType type);
 
     std::pair<int, int> canvasNodeSaveCount_ = { 0, 0 };
 

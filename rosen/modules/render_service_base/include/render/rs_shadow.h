@@ -28,10 +28,10 @@ const float DEFAULT_LIGHT_POSITION_Y = 0.0f;
 const float DEFAULT_LIGHT_HEIGHT = 600.0f;
 const float DEFAULT_LIGHT_RADIUS = 800.0f;
 const float DEFAULT_SHADOW_OFFSET_X = 0.f;
-const float DEFAULT_SHADOW_OFFSET_Y = -3.f;
-const float DEFAULT_SHADOW_RADIUS = 3.f;
+const float DEFAULT_SHADOW_OFFSET_Y = 0.f;
+const float DEFAULT_SHADOW_RADIUS = 0.f;
 const uint32_t DEFAULT_AMBIENT_COLOR = 0x0A000000;
-const uint32_t DEFAULT_SPOT_COLOR = 0x31808080;
+const uint32_t DEFAULT_SPOT_COLOR = 0x00000000;
 
 class RSShadow {
 public:

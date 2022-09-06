@@ -20,7 +20,7 @@
 
 namespace OHOS {
 namespace Rosen {
-#define DECLARE_ANIMATABLE_MODIFIER(MODIFIER_NAME, TYPE, MODIFIER_TYPE, RENDER_PROPERTY)                              \
+#define DECLARE_ANIMATABLE_MODIFIER(MODIFIER_NAME, TYPE, MODIFIER_TYPE, RENDER_PROPERTY, DELTA_OP)                    \
     RS##MODIFIER_NAME##Modifier::RS##MODIFIER_NAME##Modifier(                                                         \
         const std::shared_ptr<RSAnimatableProperty<TYPE>>& property)                                                  \
         : RSModifier<RSAnimatableProperty<TYPE>>(property, RSModifierType::MODIFIER_TYPE)                             \
@@ -34,7 +34,6 @@ namespace Rosen {
         auto renderProperty =                                                                                         \
             std::make_shared<RENDER_PROPERTY<TYPE>>(property_->Get(), property_->GetId());                            \
         auto renderModifier =  std::make_shared<RS##MODIFIER_NAME##RenderModifier>(renderProperty);                   \
-        renderModifier->SetIsAdditive(isAdditive_);                                                                   \
         return renderModifier;                                                                                        \
     }
 

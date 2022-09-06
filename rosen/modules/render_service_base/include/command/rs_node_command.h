@@ -24,7 +24,6 @@ namespace OHOS {
 namespace Rosen {
 
 enum RSNodeCommandType : uint16_t {
-    CLEAR_MODIFIER,
     ADD_MODIFIER,
     REMOVE_MODIFIER,
 
@@ -49,7 +48,6 @@ enum RSNodeCommandType : uint16_t {
 
 class RSNodeCommandHelper {
 public:
-    static void ClearModifiers(RSContext& context, NodeId nodeId);
     static void AddModifier(RSContext& context, NodeId nodeId, const std::shared_ptr<RSRenderModifier>& modifier);
     static void RemoveModifier(RSContext& context, NodeId nodeId, PropertyId propertyId);
 
@@ -69,7 +67,6 @@ public:
     }
 };
 
-ADD_COMMAND(RSClearModifiers, ARG(RS_NODE, CLEAR_MODIFIER, RSNodeCommandHelper::ClearModifiers, NodeId))
 ADD_COMMAND(RSAddModifier,
     ARG(RS_NODE, ADD_MODIFIER, RSNodeCommandHelper::AddModifier, NodeId, std::shared_ptr<RSRenderModifier>))
 ADD_COMMAND(RSRemoveModifier,

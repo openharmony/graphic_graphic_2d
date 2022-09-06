@@ -171,8 +171,6 @@ public:
         transitionEffect_ = effect;
     }
 
-    void ClearModifiers();
-    void ClearAllModifiers();
     void AddModifier(const std::shared_ptr<RSModifierBase>& modifier);
     void RemoveModifier(const std::shared_ptr<RSModifierBase>& modifier);
 
@@ -194,6 +192,8 @@ protected:
         return false;
     }
 
+    std::vector<PropertyId> GetModifierIds() const;
+
 private:
     void AnimationFinish(AnimationId animationId);
     bool HasPropertyAnimation(const PropertyId& id);
@@ -206,6 +206,9 @@ private:
     void UpdateModifierMotionPathOption();
     void UpdateExtendedModifier(const PropertyId& id);
 
+    // Planning: refactor RSUIAnimationManager and remove this method
+    void ClearAllModifiers();
+
     std::unordered_map<AnimationId, std::shared_ptr<RSAnimation>> animations_;
     std::unordered_map<PropertyId, uint32_t> animatingPropertyNum_;
     std::unordered_map<PropertyId, std::shared_ptr<RSModifierBase>> modifiers_;
@@ -215,11 +218,10 @@ private:
     void UpdateImplicitAnimator();
     pid_t implicitAnimatorTid_ = 0;
     std::shared_ptr<RSImplicitAnimator> implicitAnimator_;
-    std::shared_ptr<const RSTransitionEffect> transitionEffect_ = nullptr;
+    std::shared_ptr<const RSTransitionEffect> transitionEffect_;
     std::shared_ptr<RSUIAnimationManager> animationManager_;
 
     RSModifierExtractor stagingPropertiesExtractor_;
-    std::vector<NodeId> childNodeIds_;
 
     friend class RSAnimation;
     friend class RSCurveAnimation;

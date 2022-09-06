@@ -25,7 +25,6 @@
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_render_node.h"
 #include "platform/common/rs_log.h"
-#include "property/rs_transition_properties.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -46,7 +45,6 @@ void RSAnimationManager::ClearAnimation()
 {
     animations_.clear();
     animationNum_.clear();
-    transition_.clear();
     springAnimations_.clear();
 }
 
@@ -133,43 +131,6 @@ void RSAnimationManager::OnAnimationFinished(const std::shared_ptr<RSRenderAnima
     RSMessageProcessor::Instance().AddUIMessage(ExtractPid(animationId), command);
     OnAnimationRemove(animation);
     animation->Detach();
-}
-
-void RSAnimationManager::RegisterTransition(AnimationId id, const TransitionCallback& transition, bool isTransitionIn)
-{
-    transition_.emplace_back(id, transition, isTransitionIn);
-}
-
-void RSAnimationManager::UnregisterTransition(AnimationId id)
-{
-    if (transition_.empty()) {
-        ROSEN_LOGE("RSAnimationManager::ClearTransition, transition_ is empty");
-        return;
-    }
-    transition_.remove_if([id](auto& transition) -> bool { return id == std::get<NodeId>(transition); });
-}
-
-std::unique_ptr<RSTransitionProperties> RSAnimationManager::GetTransitionProperties()
-{
-    if (transition_.empty()) {
-        return nullptr;
-    }
-    auto transitionProperties = std::make_unique<RSTransitionProperties>();
-    for (auto& transition : transition_) {
-        auto& callback = std::get<TransitionCallback>(transition);
-        if (callback != nullptr) {
-            callback(transitionProperties);
-        }
-    }
-    return transitionProperties;
-}
-
-bool RSAnimationManager::HasDisappearingTransition() const
-{
-    return !transition_.empty() && std::any_of(transition_.begin(), transition_.end(), [](auto& transition) -> bool {
-        // return true if it has disappearing animation
-        return !std::get<bool>(transition);
-    });
 }
 
 void RSAnimationManager::RegisterSpringAnimation(PropertyId propertyId, AnimationId animId)

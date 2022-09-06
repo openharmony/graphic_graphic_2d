@@ -30,6 +30,7 @@
 #include "include/core/SkTextBlob.h"
 #include "include/core/SkTypeface.h"
 #include "include/core/SkVertices.h"
+#include "pixel_map.h"
 #include "securec.h"
 #include "src/core/SkAutoMalloc.h"
 #include "src/core/SkPaintPriv.h"
@@ -46,17 +47,16 @@
 #include "common/rs_common_def.h"
 #include "common/rs_matrix3.h"
 #include "common/rs_vector4.h"
+#include "modifier/rs_render_modifier.h"
 #include "pipeline/rs_draw_cmd_list.h"
-#include "pixel_map.h"
 #include "platform/common/rs_log.h"
 #include "render/rs_blur_filter.h"
 #include "render/rs_filter.h"
+#include "render/rs_image.h"
 #include "render/rs_material_filter.h"
 #include "render/rs_path.h"
 #include "render/rs_shader.h"
-#include "render/rs_image.h"
 #include "transaction/rs_ashmem_helper.h"
-#include "modifier/rs_render_modifier.h"
 
 #ifdef ROSEN_OHOS
 namespace OHOS {
@@ -328,8 +328,8 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, sk_sp<SkImage>& val)
         }
 
         SkImageInfo imageInfo = SkImageInfo::Make(width, height, colorType, alphaType, colorSpace);
-        auto skData = pixmapSize < MIN_DATA_SIZE ? SkData::MakeWithCopy(addr, pixmapSize) :
-            SkData::MakeFromMalloc(addr, pixmapSize);
+        auto skData = pixmapSize < MIN_DATA_SIZE ? SkData::MakeWithCopy(addr, pixmapSize)
+                                                 : SkData::MakeFromMalloc(addr, pixmapSize);
         val = SkImage::MakeRasterData(imageInfo, skData, rb);
         return val != nullptr;
     }
@@ -727,15 +727,15 @@ MARSHALLING_AND_UNMARSHALLING(RSRenderTransitionEffect)
 MARSHALLING_AND_UNMARSHALLING(DrawCmdList)
 #undef MARSHALLING_AND_UNMARSHALLING
 
-#define MARSHALLING_AND_UNMARSHALLING(TEMPLATE)                                                    \
-    bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<TEMPLATE>& val)    \
-    {                                                                                              \
-        return parcel.WriteParcelable(val.get());                                                  \
-    }                                                                                              \
-    bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<TEMPLATE>& val)        \
-    {                                                                                              \
-        val.reset(parcel.ReadParcelable<TEMPLATE>());                                              \
-        return val != nullptr;                                                                     \
+#define MARSHALLING_AND_UNMARSHALLING(TEMPLATE)                                                 \
+    bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<TEMPLATE>& val) \
+    {                                                                                           \
+        return parcel.WriteParcelable(val.get());                                               \
+    }                                                                                           \
+    bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<TEMPLATE>& val)     \
+    {                                                                                           \
+        val.reset(parcel.ReadParcelable<TEMPLATE>());                                           \
+        return val != nullptr;                                                                  \
     }
 
 MARSHALLING_AND_UNMARSHALLING(RSRenderCurveAnimation)
@@ -783,23 +783,23 @@ MARSHALLING_AND_UNMARSHALLING(RSRenderAnimatableProperty)
     template bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<TEMPLATE<TYPE>>& val); \
     template bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<TEMPLATE<TYPE>>& val);
 
-#define BATCH_EXPLICIT_INSTANTIATION(TEMPLATE)                            \
-    EXPLICIT_INSTANTIATION(TEMPLATE, bool)                                \
-    EXPLICIT_INSTANTIATION(TEMPLATE, float)                               \
-    EXPLICIT_INSTANTIATION(TEMPLATE, int)                                 \
-    EXPLICIT_INSTANTIATION(TEMPLATE, Color)                               \
-    EXPLICIT_INSTANTIATION(TEMPLATE, Gravity)                             \
-    EXPLICIT_INSTANTIATION(TEMPLATE, Matrix3f)                            \
-    EXPLICIT_INSTANTIATION(TEMPLATE, Quaternion)                          \
-    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSFilter>)           \
-    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSImage>)            \
-    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSMask>)             \
-    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSPath>)             \
-    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSShader>)           \
-    EXPLICIT_INSTANTIATION(TEMPLATE, Vector2f)                            \
-    EXPLICIT_INSTANTIATION(TEMPLATE, Vector4<uint32_t>)                   \
-    EXPLICIT_INSTANTIATION(TEMPLATE, Vector4<Color>)                      \
-    EXPLICIT_INSTANTIATION(TEMPLATE, Vector4f)                            \
+#define BATCH_EXPLICIT_INSTANTIATION(TEMPLATE)                  \
+    EXPLICIT_INSTANTIATION(TEMPLATE, bool)                      \
+    EXPLICIT_INSTANTIATION(TEMPLATE, float)                     \
+    EXPLICIT_INSTANTIATION(TEMPLATE, int)                       \
+    EXPLICIT_INSTANTIATION(TEMPLATE, Color)                     \
+    EXPLICIT_INSTANTIATION(TEMPLATE, Gravity)                   \
+    EXPLICIT_INSTANTIATION(TEMPLATE, Matrix3f)                  \
+    EXPLICIT_INSTANTIATION(TEMPLATE, Quaternion)                \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSFilter>) \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSImage>)  \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSMask>)   \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSPath>)   \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSShader>) \
+    EXPLICIT_INSTANTIATION(TEMPLATE, Vector2f)                  \
+    EXPLICIT_INSTANTIATION(TEMPLATE, Vector4<uint32_t>)         \
+    EXPLICIT_INSTANTIATION(TEMPLATE, Vector4<Color>)            \
+    EXPLICIT_INSTANTIATION(TEMPLATE, Vector4f)                  \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<DrawCmdList>)
 
 BATCH_EXPLICIT_INSTANTIATION(RSRenderProperty)
@@ -811,55 +811,21 @@ BATCH_EXPLICIT_INSTANTIATION(RSRenderProperty)
     template bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<TEMPLATE<TYPE>>& val); \
     template bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<TEMPLATE<TYPE>>& val);
 
-#define BATCH_EXPLICIT_INSTANTIATION(TEMPLATE)                            \
-    EXPLICIT_INSTANTIATION(TEMPLATE, float)                               \
-    EXPLICIT_INSTANTIATION(TEMPLATE, int)                                 \
-    EXPLICIT_INSTANTIATION(TEMPLATE, Color)                               \
-    EXPLICIT_INSTANTIATION(TEMPLATE, Matrix3f)                            \
-    EXPLICIT_INSTANTIATION(TEMPLATE, Quaternion)                          \
-    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSFilter>)           \
-    EXPLICIT_INSTANTIATION(TEMPLATE, Vector2f)                            \
-    EXPLICIT_INSTANTIATION(TEMPLATE, Vector4<Color>)                      \
+#define BATCH_EXPLICIT_INSTANTIATION(TEMPLATE)                  \
+    EXPLICIT_INSTANTIATION(TEMPLATE, float)                     \
+    EXPLICIT_INSTANTIATION(TEMPLATE, int)                       \
+    EXPLICIT_INSTANTIATION(TEMPLATE, Color)                     \
+    EXPLICIT_INSTANTIATION(TEMPLATE, Matrix3f)                  \
+    EXPLICIT_INSTANTIATION(TEMPLATE, Quaternion)                \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSFilter>) \
+    EXPLICIT_INSTANTIATION(TEMPLATE, Vector2f)                  \
+    EXPLICIT_INSTANTIATION(TEMPLATE, Vector4<Color>)            \
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector4f)
 
 BATCH_EXPLICIT_INSTANTIATION(RSRenderAnimatableProperty)
 
 #undef EXPLICIT_INSTANTIATION
 #undef BATCH_EXPLICIT_INSTANTIATION
-
-template<typename T>
-bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::vector<T>& val)
-{
-    bool success = parcel.WriteUint32(val.size());
-    for (const auto& item : val) {
-        success = success && Marshalling(parcel, item);
-    }
-    return success;
-}
-
-template<typename T>
-bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::vector<T>& val)
-{
-    uint32_t size = 0;
-    if (!Unmarshalling(parcel, size)) {
-        return false;
-    }
-    val.reserve(size);
-    for (uint32_t i = 0; i < size; ++i) {
-        T item;
-        if (!Unmarshalling(parcel, item)) {
-            return false;
-        }
-        val.push_back(std::move(item));
-    }
-    return true;
-}
-
-// explicit instantiation
-template bool RSMarshallingHelper::Marshalling(
-    Parcel& parcel, const std::vector<std::shared_ptr<RSRenderTransitionEffect>>& val);
-template bool RSMarshallingHelper::Unmarshalling(
-    Parcel& parcel, std::vector<std::shared_ptr<RSRenderTransitionEffect>>& val);
 
 bool RSMarshallingHelper::WriteToParcel(Parcel& parcel, const void* data, size_t size)
 {
@@ -872,7 +838,7 @@ bool RSMarshallingHelper::WriteToParcel(Parcel& parcel, const void* data, size_t
         return false;
     }
 
-    if (!parcel.WriteInt32(size)) {
+    if (!parcel.WriteUint32(size)) {
         return false;
     }
     if (size <= MIN_DATA_SIZE) {
@@ -899,7 +865,7 @@ bool RSMarshallingHelper::WriteToParcel(Parcel& parcel, const void* data, size_t
 
 const void* RSMarshallingHelper::ReadFromParcel(Parcel& parcel, size_t size)
 {
-    int32_t bufferSize = parcel.ReadInt32();
+    uint32_t bufferSize = parcel.ReadUint32();
     if (static_cast<unsigned int>(bufferSize) != size) {
         ROSEN_LOGE("RSMarshallingHelper::ReadFromParcel size mismatch");
         return nullptr;

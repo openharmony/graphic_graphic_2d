@@ -111,7 +111,6 @@ HWTEST_F(RSModifierTest, AddModifier001, TestSize.Level1)
 
     node->AddModifier(modifier);
     node->AddModifier(modifier);
-    node->ClearAllModifiers();
     ASSERT_TRUE(node != nullptr);
 }
 

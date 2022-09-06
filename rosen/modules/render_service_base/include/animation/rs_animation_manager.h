@@ -30,11 +30,9 @@ class RSPaintFilterCanvas;
 class RSProperties;
 class RSRenderAnimation;
 class RSRenderNode;
-class RSTransitionProperties;
 
 class RSAnimationManager {
 public:
-    using TransitionCallback = std::function<void(const std::unique_ptr<RSTransitionProperties>& transitionProperties)>;
     RSAnimationManager() = default;
     ~RSAnimationManager() = default;
 
@@ -45,12 +43,6 @@ public:
     void FilterAnimationByPid(pid_t pid);
 
     bool Animate(int64_t time);
-
-    // transition related
-    void RegisterTransition(AnimationId id, const TransitionCallback& transition, bool isTransitionIn);
-    void UnregisterTransition(AnimationId id);
-    std::unique_ptr<RSTransitionProperties> GetTransitionProperties();
-    bool HasDisappearingTransition() const;
 
     // spring animation related
     void RegisterSpringAnimation(PropertyId propertyId, AnimationId animId);
@@ -64,7 +56,6 @@ private:
 
     std::unordered_map<AnimationId, std::shared_ptr<RSRenderAnimation>> animations_;
     std::unordered_map<PropertyId, int> animationNum_;
-    std::list<std::tuple<AnimationId, TransitionCallback, bool>> transition_;
     std::unordered_map<PropertyId, AnimationId> springAnimations_;
 
     friend class RSRenderNode;

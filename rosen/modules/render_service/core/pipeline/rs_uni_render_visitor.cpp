@@ -33,7 +33,6 @@
 #include "pipeline/rs_uni_render_util.h"
 #include "platform/common/rs_log.h"
 #include "property/rs_properties_painter.h"
-#include "property/rs_transition_properties.h"
 #include "render/rs_skia_filter.h"
 
 namespace OHOS {
@@ -99,19 +98,17 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
     if (node.IsAppWindow() || node.GetSurfaceNodeType() == RSSurfaceNodeType::STARTING_WINDOW_NODE) {
         curSurfaceDirtyManager_ = node.GetDirtyManager();
         curSurfaceDirtyManager_->Clear();
-        auto transitionProperties = node.GetAnimationManager().GetTransitionProperties();
         if (auto parentNode = node.GetParent().lock()) {
             dirtyFlag_ = node.Update(*curSurfaceDirtyManager_,
-                &(parentNode->ReinterpretCastTo<RSRenderNode>()->GetRenderProperties()),
-                dirtyFlag_, transitionProperties);
+                &(parentNode->ReinterpretCastTo<RSRenderNode>()->GetRenderProperties()), dirtyFlag_);
         } else {
-            dirtyFlag_ = node.Update(*curSurfaceDirtyManager_, nullptr, dirtyFlag_, transitionProperties);
+            dirtyFlag_ = node.Update(*curSurfaceDirtyManager_, nullptr, dirtyFlag_);
         }
         geoPtr->ConcatMatrix(node.GetContextMatrix());
         node.SetDstRect(geoPtr->GetAbsRect());
         curDisplayNode_->UpdateSurfaceNodePos(node.GetId(), node.GetDstRect());
     } else {
-        dirtyFlag_ |= RSUniRenderUtil::UpdateRenderNodeDstRect(node, node.GetContextMatrix());
+        RSUniRenderUtil::UpdateRenderNodeDstRect(node, node.GetContextMatrix());
         if (node.GetBuffer() != nullptr) {
             auto& surfaceHandler = static_cast<RSSurfaceHandler&>(node);
             if (surfaceHandler.IsCurrentFrameBufferConsumed()) {
@@ -121,9 +118,6 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
     }
     parentSurfaceNodeMatrix_ = geoPtr->GetAbsMatrix();
 
-    if (node.GetDstRectChanged()) {
-        dirtyFlag_ = true;
-    }
     PrepareBaseRenderNode(node);
     // restore flags
     parentSurfaceNodeMatrix_ = parentSurfaceNodeMatrix;
@@ -223,8 +217,8 @@ void RSUniRenderVisitor::DrawDirtyRegion()
     if (curSurfaceDirtyManager_->IsDebugRegionTypeEnable(DebugRegionType::CURRENT_WHOLE)) {
         dirtyRect = curSurfaceDirtyManager_->GetLatestDirtyRegion();
         if (dirtyRect.width_ <= 0 || dirtyRect.height_ <= 0) {
-            ROSEN_LOGD("DrawDirtyRegion dirty rect is invalid. dirtyRect = [%d, %d, %d, %d]",
-                dirtyRect.left_, dirtyRect.top_, dirtyRect.width_, dirtyRect.height_);
+            ROSEN_LOGD("DrawDirtyRegion dirty rect is invalid. dirtyRect = [%d, %d, %d, %d]", dirtyRect.left_,
+                dirtyRect.top_, dirtyRect.width_, dirtyRect.height_);
         } else {
             ROSEN_LOGD("DrawDirtyRegion cur dirty rect");
             // yellow
@@ -341,7 +335,6 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
             curDisplayDirtyManager_->SetSurfaceSize(screenInfo_.width, screenInfo_.height);
             CalcDirtyDisplayRegion(displayNodePtr);
             uint32_t bufferAge = renderFrame->GetBufferAge();
-            RS_LOGD("RSUniRenderVisitor buffer age is %d", bufferAge);
             RSUniRenderUtil::MergeDirtyHistory(displayNodePtr, bufferAge);
             auto dirtyRegion = RSUniRenderUtil::MergeVisibleDirtyRegion(displayNodePtr);
             SetSurfaceGlobalDirtyRegion(displayNodePtr);
@@ -578,9 +571,6 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
     if (isSelfDrawingSurface) {
         canvas_->save();
     }
-
-    auto transitionProperties = node.GetAnimationManager().GetTransitionProperties();
-    RSPropertiesPainter::DrawTransitionProperties(transitionProperties, property, *canvas_);
 
     const RectI dstRect = {
         canvas_->getTotalMatrix().getTranslateX(), canvas_->getTotalMatrix().getTranslateY(),

@@ -93,10 +93,11 @@ void RSProxyRenderNode::SetContextClipRegion(SkRect clipRegion)
     SendCommandFromRT(command, GetId());
 }
 
-void RSProxyRenderNode::ResetContextAlpha()
+void RSProxyRenderNode::ResetContextVariableCache()
 {
-    // reset context alpha, makes sure next call to SetContextAlpha will set the correct value
+    // reset context variable cache, make sure next visit will flush correct context variables.
     contextAlpha_ = -1.0f;
+    contextMatrix_ = SkMatrix::InvalidMatrix();
 }
 } // namespace Rosen
 } // namespace OHOS

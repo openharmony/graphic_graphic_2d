@@ -29,10 +29,22 @@ void ProxyNodeCommandHelper::Create(RSContext& context, NodeId id, NodeId target
     context.GetMutableNodeMap().RegisterRenderNode(node);
 }
 
-void ProxyNodeCommandHelper::ResetContextAlpha(RSContext& context, NodeId id)
+void ProxyNodeCommandHelper::ResetContextVariableCache(RSContext& context, NodeId id)
 {
     if (auto node = context.GetNodeMap().GetRenderNode<RSProxyRenderNode>(id)) {
-        node->ResetContextAlpha();
+        node->ResetContextVariableCache();
+    }
+}
+
+void ProxyNodeCommandHelper::RemoveModifiers(RSContext& context, NodeId nodeId, std::vector<PropertyId> propertyIds)
+{
+    auto& nodeMap = context.GetNodeMap();
+    auto node = nodeMap.GetRenderNode<RSRenderNode>(nodeId);
+    if (node == nullptr) {
+        return;
+    }
+    for (auto propertyId : propertyIds) {
+        node->RemoveModifier(propertyId);
     }
 }
 } // namespace Rosen

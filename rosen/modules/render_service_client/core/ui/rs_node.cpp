@@ -232,11 +232,8 @@ const std::shared_ptr<RSMotionPathOption> RSNode::GetMotionPathOption() const
 
 bool RSNode::HasPropertyAnimation(const PropertyId& id)
 {
-    // check if any animation matches the property bitmask
-    auto pred = [id](const auto& it) -> bool {
-        return it.second > 0 && (static_cast<unsigned long long>(it.first) & static_cast<unsigned long long>(id));
-    };
-    return std::any_of(animatingPropertyNum_.begin(), animatingPropertyNum_.end(), pred);
+    auto it = animatingPropertyNum_.find(id);
+    return it != animatingPropertyNum_.end() && it->second > 0;
 }
 
 #define SET_ANIMATABLE_MODIFIER(propertyName, T, value, propertyType, defaultValue)                       \
@@ -750,7 +747,7 @@ void RSNode::SetShadowElevation(float elevation)
 
 void RSNode::SetShadowRadius(float radius)
 {
-    SET_ANIMATABLE_MODIFIER(ShadowRadius, float, radius, SHADOW_RADIUS, 0.f);
+    SET_ANIMATABLE_MODIFIER(ShadowRadius, float, radius, SHADOW_RADIUS, DEFAULT_SHADOW_RADIUS);
 }
 
 void RSNode::SetShadowPath(const std::shared_ptr<RSPath>& shadowPath)
@@ -843,29 +840,6 @@ void RSNode::SetPaintOrder(bool drawContentLast)
     drawContentLast_ = drawContentLast;
 }
 
-void RSNode::ClearModifiers()
-{
-    for (auto& [id, modifier] : modifiers_) {
-        modifier->DetachFromNode();
-        std::unique_ptr<RSCommand> command = std::make_unique<RSRemoveModifier>(GetId(), modifier->GetPropertyId());
-        auto transactionProxy = RSTransactionProxy::GetInstance();
-        if (transactionProxy != nullptr) {
-            transactionProxy->AddCommand(command, IsRenderServiceNode(), GetFollowType(), GetId());
-            if (NeedForcedSendToRemote()) {
-                std::unique_ptr<RSCommand> cmdForRemote =
-                    std::make_unique<RSRemoveModifier>(GetId(), modifier->GetPropertyId());
-                transactionProxy->AddCommand(cmdForRemote, true, GetFollowType(), GetId());
-            }
-            if (NeedSendExtraCommand()) {
-                std::unique_ptr<RSCommand> extraCommand =
-                    std::make_unique<RSRemoveModifier>(GetId(), modifier->GetPropertyId());
-                transactionProxy->AddCommand(extraCommand, !IsRenderServiceNode(), GetFollowType(), GetId());
-            }
-        }
-    }
-    modifiers_.clear();
-}
-
 void RSNode::ClearAllModifiers()
 {
     if (animationManager_ == nullptr) {
@@ -875,30 +849,12 @@ void RSNode::ClearAllModifiers()
         modifier->DetachFromNode();
         animationManager_->RemoveProperty(id);
     }
-    modifiers_.clear();
-    std::unique_ptr<RSCommand> command = std::make_unique<RSClearModifiers>(GetId());
-    auto transactionProxy = RSTransactionProxy::GetInstance();
-    if (transactionProxy != nullptr) {
-        transactionProxy->AddCommand(command, IsRenderServiceNode(), GetFollowType(), GetId());
-        if (NeedForcedSendToRemote()) {
-            std::unique_ptr<RSCommand> cmdForRemote = std::make_unique<RSClearModifiers>(GetId());
-            transactionProxy->AddCommand(cmdForRemote, true, GetFollowType(), GetId());
-        }
-        if (NeedSendExtraCommand()) {
-            std::unique_ptr<RSCommand> extraCommand = std::make_unique<RSClearModifiers>(GetId());
-            transactionProxy->AddCommand(extraCommand, !IsRenderServiceNode(), GetFollowType(), GetId());
-        }
-    }
 }
 
 void RSNode::AddModifier(const std::shared_ptr<RSModifierBase>& modifier)
 {
     if (!modifier || modifiers_.count(modifier->GetPropertyId())) {
         return;
-    }
-    auto iter = propertyModifiers_.find(modifier->GetModifierType());
-    if (iter != propertyModifiers_.end()) {
-        modifier->SetIsAdditive(true);
     }
     if (motionPathOption_ != nullptr && IsPathAnimatableModifier(modifier->GetModifierType())) {
         modifier->SetMotionPathOption(motionPathOption_);
@@ -1006,6 +962,15 @@ void RSNode::UpdateImplicitAnimator()
     }
     implicitAnimatorTid_ = tid;
     implicitAnimator_ = RSImplicitAnimatorMap::Instance().GetAnimator(tid);
+}
+
+std::vector<PropertyId> RSNode::GetModifierIds() const
+{
+    std::vector<PropertyId> ids;
+    for (const auto& [id, _] : modifiers_) {
+        ids.push_back(id);
+    }
+    return ids;
 }
 } // namespace Rosen
 } // namespace OHOS

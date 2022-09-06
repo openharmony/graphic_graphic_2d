@@ -17,15 +17,6 @@
 
 namespace OHOS {
 namespace Rosen {
-void RSNodeCommandHelper::ClearModifiers(RSContext& context, NodeId nodeId)
-{
-    auto& nodeMap = context.GetNodeMap();
-    auto node = nodeMap.GetRenderNode<RSRenderNode>(nodeId);
-    if (node) {
-        node->ClearModifiers();
-    }
-}
-
 void RSNodeCommandHelper::AddModifier(RSContext& context, NodeId nodeId,
     const std::shared_ptr<RSRenderModifier>& modifier)
 {

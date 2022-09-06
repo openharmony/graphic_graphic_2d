@@ -60,31 +60,6 @@ void RSObjAbsGeometry::UpdateMatrix(const std::shared_ptr<RSObjAbsGeometry>& par
     SetAbsRect();
 }
 
-void RSObjAbsGeometry::UpdateMatrix(const std::shared_ptr<RSObjAbsGeometry>& parent,
-    Vector2f& offset, Vector3f& scale, Vector3f& tran)
-{
-    if (parent == nullptr) {
-        absMatrix_.reset();
-    } else {
-        absMatrix_ = parent->absMatrix_;
-        absMatrix_.preTranslate(offset.x_, offset.y_);
-    }
-    matrix_.reset();
-    if (!trans_ || (ROSEN_EQ(trans_->translateZ_, 0.f) && ROSEN_EQ(trans_->rotationX_, 0.f) &&
-        ROSEN_EQ(trans_->rotationY_, 0.f) && trans_->quaternion_.IsIdentity())) {
-        UpdateAbsMatrix2D();
-    } else {
-        UpdateAbsMatrix3D();
-    }
-    absMatrix_.preConcat(matrix_);
-    auto tranMatrix = SkMatrix::MakeTrans(tran.x_, tran.y_);
-    tranMatrix.preTranslate(width_ / 2, height_ / 2); // 2 means half
-    tranMatrix.preScale(scale.x_, scale.y_);
-    tranMatrix.preTranslate(-width_ / 2, -height_ / 2); // 2 means half
-    absMatrix_.preConcat(tranMatrix);
-    SetAbsRect();
-}
-
 void RSObjAbsGeometry::UpdateByMatrixFromSelf()
 {
     absMatrix_.reset();

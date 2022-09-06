@@ -67,6 +67,10 @@ RSProxyNode::~RSProxyNode()
         transactionProxy->AddCommand(extraCommand, false);
     }
 
+    auto ids = GetModifierIds();
+    command = std::make_unique<RSProxyNodeRemoveModifiers>(GetId(), ids);
+    transactionProxy->AddCommand(command, true, GetFollowType(), GetId());
+
     ROSEN_LOGD("RSProxyNode::~RSProxyNode, id:%" PRIu64, GetId());
 }
 
@@ -79,19 +83,18 @@ RSProxyNode::RSProxyNode(NodeId targetNodeId, std::string name) : RSNode(true), 
     skipDestroyCommandInDestructor_ = true;
 }
 
-void RSProxyNode::ResetContextAlpha() const
+void RSProxyNode::ResetContextVariableCache() const
 {
-    // temporarily fix: manually set contextAlpha in RT and RS to 0.0f, to avoid residual alpha/context matrix from
-    // previous animation. this value will be overwritten in RenderThreadVisitor::ProcessProxyRenderNode.
+    // reset context variable cache in RSProxyRenderNode, make sure next visit will flush correct context variables.
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy == nullptr) {
         return;
     }
-    // reset 'self' context alpha, not the target node.
-    std::unique_ptr<RSCommand> commandRT = std::make_unique<RSProxyNodeResetContextAlpha>(proxyNodeId_);
+    // send command to proxy node, not the target node
+    std::unique_ptr<RSCommand> commandRT = std::make_unique<RSProxyNodeResetContextVariableCache>(proxyNodeId_);
     transactionProxy->AddCommand(commandRT, isUniRenderEnabled_);
     if (isRenderServiceNode_) {
-        std::unique_ptr<RSCommand> commandRS = std::make_unique<RSProxyNodeResetContextAlpha>(proxyNodeId_);
+        std::unique_ptr<RSCommand> commandRS = std::make_unique<RSProxyNodeResetContextVariableCache>(proxyNodeId_);
         transactionProxy->AddCommand(commandRS, false);
     }
 }

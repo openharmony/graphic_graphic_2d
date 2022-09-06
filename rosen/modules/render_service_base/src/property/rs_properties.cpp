@@ -236,8 +236,7 @@ const std::shared_ptr<RSObjGeometry>& RSProperties::GetFrameGeometry() const
     return frameGeo_;
 }
 
-bool RSProperties::UpdateGeometry(const RSProperties* parent, bool dirtyFlag, Vector2f& offset,
-    const std::unique_ptr<RSTransitionProperties>& transition)
+bool RSProperties::UpdateGeometry(const RSProperties* parent, bool dirtyFlag, Vector2f& offset)
 {
     if (boundsGeo_ == nullptr) {
         return false;
@@ -250,11 +249,8 @@ bool RSProperties::UpdateGeometry(const RSProperties* parent, bool dirtyFlag, Ve
     auto boundsGeoPtr = std::static_pointer_cast<RSObjAbsGeometry>(boundsGeo_);
 
     if (dirtyFlag || geoDirty_) {
-        auto parentGeo = parent == nullptr ?
-            nullptr : std::static_pointer_cast<RSObjAbsGeometry>(parent->boundsGeo_);
-        Vector3f scale = transition == nullptr ? Vector3f { 1.f, 1.f, 1.f } : transition->GetScale();
-        Vector3f tran = transition == nullptr ? Vector3f { 0.f, 0.f, 0.f } : transition->GetTranslate();
-        boundsGeoPtr->UpdateMatrix(parentGeo, offset, scale, tran);
+        auto parentGeo = parent == nullptr ? nullptr : std::static_pointer_cast<RSObjAbsGeometry>(parent->boundsGeo_);
+        boundsGeoPtr->UpdateMatrix(parentGeo, offset.x_, offset.y_);
     }
 #endif
     return dirtyFlag || geoDirty_;
@@ -793,7 +789,7 @@ float RSProperties::GetShadowElevation() const
 
 float RSProperties::GetShadowRadius() const
 {
-    return shadow_ ? shadow_->GetRadius() : 0.f;
+    return shadow_ ? shadow_->GetRadius() : DEFAULT_SHADOW_RADIUS;
 }
 
 std::shared_ptr<RSPath> RSProperties::GetShadowPath() const
@@ -819,12 +815,12 @@ Gravity RSProperties::GetFrameGravity() const
     return frameGravity_;
 }
 
-void RSProperties::SetOverlayerBounds(std::shared_ptr<RectI> rect)
+void RSProperties::SetOverlayBounds(std::shared_ptr<RectI> rect)
 {
     overlayRect_ = rect;
 }
 
-std::shared_ptr<RectI> RSProperties::GetOverlayerBounds() const
+std::shared_ptr<RectI> RSProperties::GetOverlayBounds() const
 {
     return overlayRect_;
 }
@@ -934,22 +930,29 @@ bool RSProperties::NeedClip() const
 
 void RSProperties::Reset()
 {
+    alphaOffscreen_ = false;
     isDirty_ = true;
-    boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
-    frameGeo_ = std::make_shared<RSObjGeometry>();
+    hasBounds_ = false;
+    isDirty_ = true;
     visible_ = true;
     clipToBounds_ = false;
     clipToFrame_ = false;
-    clipPath_ = nullptr;
+
     frameGravity_ = Gravity::DEFAULT;
     alpha_ = 1.f;
-    decoration_ = nullptr;
-    cornerRadius_ = nullptr;
-    shadow_ = nullptr;
-    border_ = nullptr;
+
+    boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
+    frameGeo_ = std::make_shared<RSObjGeometry>();
+
     backgroundFilter_ = nullptr;
+    border_ = nullptr;
+    clipPath_ = nullptr;
+    cornerRadius_ = nullptr;
+    decoration_ = nullptr;
     filter_ = nullptr;
     mask_ = nullptr;
+    shadow_ = nullptr;
+    sublayerTransform_ = nullptr;
 }
 
 void RSProperties::SetDirty()

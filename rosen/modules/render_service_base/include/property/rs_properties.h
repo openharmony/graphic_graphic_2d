@@ -21,14 +21,13 @@
 #include "common/rs_matrix3.h"
 #include "common/rs_vector4.h"
 #include "property/rs_properties_def.h"
-#include "property/rs_transition_properties.h"
 #include "render/rs_border.h"
 #include "render/rs_filter.h"
 #include "render/rs_image.h"
+#include "render/rs_mask.h"
 #include "render/rs_path.h"
 #include "render/rs_shader.h"
 #include "render/rs_shadow.h"
-#include "render/rs_mask.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -171,8 +170,8 @@ public:
     void SetFrameGravity(Gravity gravity);
     Gravity GetFrameGravity() const;
 
-    void SetOverlayerBounds(std::shared_ptr<RectI> rect);
-    std::shared_ptr<RectI> GetOverlayerBounds() const;
+    void SetOverlayBounds(std::shared_ptr<RectI> rect);
+    std::shared_ptr<RectI> GetOverlayBounds() const;
 
     void SetClipBounds(std::shared_ptr<RSPath> path);
     std::shared_ptr<RSPath> GetClipBounds() const;
@@ -191,8 +190,7 @@ public:
 
     const std::shared_ptr<RSObjGeometry>& GetBoundsGeometry() const;
     const std::shared_ptr<RSObjGeometry>& GetFrameGeometry() const;
-    bool UpdateGeometry(const RSProperties* parent, bool dirtyFlag, Vector2f& offset,
-        const std::unique_ptr<RSTransitionProperties>& transition = nullptr);
+    bool UpdateGeometry(const RSProperties* parent, bool dirtyFlag, Vector2f& offset);
 
     bool GetZorderChanged() const;
     void CleanZorderChanged();
@@ -232,26 +230,26 @@ private:
     float alpha_ = 1.f;
     bool alphaOffscreen_ = true;
 
-    std::unique_ptr<Matrix3f> sublayerTransform_ = nullptr;
-    std::unique_ptr<Decoration> decoration_ = nullptr;
-    std::unique_ptr<Vector4f> cornerRadius_ = nullptr;
-    std::unique_ptr<RSShadow> shadow_ = nullptr;
-
     std::shared_ptr<RSObjGeometry> boundsGeo_;
     std::shared_ptr<RSObjGeometry> frameGeo_;
-    std::shared_ptr<RSBorder> border_ = nullptr;
-    std::shared_ptr<RSFilter> backgroundFilter_ = nullptr;
-    std::shared_ptr<RSFilter> filter_ = nullptr;
-    std::shared_ptr<RSPath> clipPath_ = nullptr;
-    std::shared_ptr<RSMask> mask_ = nullptr;
 
-    friend class RSPropertiesPainter;
-    friend class RSRenderNode;
-    friend class RSCanvasRenderNode;
+    std::shared_ptr<RSFilter> backgroundFilter_ = nullptr;
+    std::shared_ptr<RSBorder> border_ = nullptr;
+    std::shared_ptr<RSPath> clipPath_ = nullptr;
+    std::unique_ptr<Vector4f> cornerRadius_ = nullptr;
+    std::unique_ptr<Decoration> decoration_ = nullptr;
+    std::shared_ptr<RSFilter> filter_ = nullptr;
+    std::shared_ptr<RSMask> mask_ = nullptr;
+    std::unique_ptr<RSShadow> shadow_ = nullptr;
+    std::unique_ptr<Matrix3f> sublayerTransform_ = nullptr;
+
     friend class RSCanvasNode;
-    friend class RSPropertiesUtils;
-    friend class RSRenderTransitionEffect;
+    friend class RSCanvasRenderNode;
     friend class RSHardwareProcessor;
+    friend class RSPropertiesPainter;
+    friend class RSPropertiesUtils;
+    friend class RSRenderNode;
+    friend class RSRenderTransitionEffect;
 };
 } // namespace Rosen
 } // namespace OHOS

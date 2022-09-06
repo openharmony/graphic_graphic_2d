@@ -16,6 +16,7 @@
 #include "animation/rs_transition_effect.h"
 
 #include "animation/rs_render_transition_effect.h"
+#include "platform/common/rs_log.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -33,6 +34,10 @@ std::shared_ptr<RSTransitionEffect> RSTransitionEffect::Create()
 
 std::shared_ptr<RSTransitionEffect> RSTransitionEffect::Opacity(float opacity)
 {
+    if (opacity == 1.0f) {
+        ROSEN_LOGI("RSTransitionEffect::Opacity: Skip empty transition effect");
+        return shared_from_this();
+    }
     auto opacityEffect = std::make_shared<RSTransitionFade>(opacity);
     transitionInEffects_.push_back(opacityEffect);
     transitionOutEffects_.push_back(opacityEffect);
@@ -41,6 +46,10 @@ std::shared_ptr<RSTransitionEffect> RSTransitionEffect::Opacity(float opacity)
 
 std::shared_ptr<RSTransitionEffect> RSTransitionEffect::Scale(const Vector3f& scale)
 {
+    if (scale.x_ == 1.0f && scale.y_ == 1.0f && scale.z_ == 1.0f) {
+        ROSEN_LOGI("RSTransitionEffect::Scale: Skip empty transition effect");
+        return shared_from_this();
+    }
     auto scaleEffect = std::make_shared<RSTransitionScale>(scale.x_, scale.y_, scale.z_);
     transitionInEffects_.push_back(scaleEffect);
     transitionOutEffects_.push_back(scaleEffect);
@@ -49,6 +58,10 @@ std::shared_ptr<RSTransitionEffect> RSTransitionEffect::Scale(const Vector3f& sc
 
 std::shared_ptr<RSTransitionEffect> RSTransitionEffect::Translate(const Vector3f& translate)
 {
+    if (translate.x_ == 0.0f && translate.y_ == 0.0f && translate.z_ == 0.0f) {
+        ROSEN_LOGI("RSTransitionEffect::Translate: Skip empty transition effect");
+        return shared_from_this();
+    }
     auto translateEffect = std::make_shared<RSTransitionTranslate>(translate.x_, translate.y_, translate.z_);
     transitionInEffects_.push_back(translateEffect);
     transitionOutEffects_.push_back(translateEffect);
@@ -57,6 +70,10 @@ std::shared_ptr<RSTransitionEffect> RSTransitionEffect::Translate(const Vector3f
 
 std::shared_ptr<RSTransitionEffect> RSTransitionEffect::Rotate(const Vector4f& axisAngle)
 {
+    if (axisAngle.w_ == 0.0f) {
+        ROSEN_LOGI("RSTransitionEffect::Rotate: Skip empty transition effect");
+        return shared_from_this();
+    }
     auto rotateEffect = std::make_shared<RSTransitionRotate>(axisAngle.x_, axisAngle.y_, axisAngle.z_, axisAngle.w_);
     transitionInEffects_.push_back(rotateEffect);
     transitionOutEffects_.push_back(rotateEffect);

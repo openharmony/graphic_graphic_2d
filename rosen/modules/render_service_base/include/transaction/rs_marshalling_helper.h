@@ -64,7 +64,7 @@ class RSRenderAnimatableProperty;
 
 class RSMarshallingHelper {
 public:
-    static bool WriteToParcel(Parcel &parcel, const void* data, size_t size);
+    static bool WriteToParcel(Parcel& parcel, const void* data, size_t size);
     static const void* ReadFromParcel(Parcel& parcel, size_t size);
     static bool SkipFromParcel(Parcel& parcel, size_t size);
 
@@ -176,9 +176,30 @@ public:
 
     // reloaded marshalling & unmarshalling function for std::vector
     template<typename T>
-    static bool Marshalling(Parcel& parcel, const std::vector<T>& val);
+    static bool Marshalling(Parcel& parcel, const std::vector<T>& val)
+    {
+        bool success = parcel.WriteUint32(val.size());
+        for (const auto& item : val) {
+            success = success && Marshalling(parcel, item);
+        }
+        return success;
+    }
     template<typename T>
-    static bool Unmarshalling(Parcel& parcel, std::vector<T>& val);
+    static bool Unmarshalling(Parcel& parcel, std::vector<T>& val)
+    {
+        uint32_t size = 0;
+        if (!Unmarshalling(parcel, size)) {
+            return false;
+        }
+        val.resize(size);
+        for (uint32_t i = 0; i < size; ++i) {
+            // in-place unmarshalling
+            if (!Unmarshalling(parcel, val[i])) {
+                return false;
+            }
+        }
+        return true;
+    }
 
     template<typename T, typename... Args>
     static bool Marshalling(Parcel& parcel, const T& first, const Args&... args)
@@ -195,7 +216,7 @@ private:
     static sk_sp<SkData> SerializeTypeface(SkTypeface* tf, void* ctx);
     static sk_sp<SkTypeface> DeserializeTypeface(const void* data, size_t length, void* ctx);
     static constexpr size_t MAX_DATA_SIZE = 128 * 1024 * 1024; // 128M
-    static constexpr size_t MIN_DATA_SIZE = 8 * 1024;         // 8k
+    static constexpr size_t MIN_DATA_SIZE = 8 * 1024;          // 8k
 };
 
 } // namespace Rosen

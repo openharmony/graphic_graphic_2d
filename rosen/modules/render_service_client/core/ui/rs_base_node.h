@@ -43,6 +43,10 @@ public:
     virtual void RemoveChild(SharedPtr child);
     void RemoveFromTree();
     virtual void ClearChildren();
+    const std::vector<NodeId>& GetChildren() const
+    {
+        return children_;
+    }
 
     // Add/RemoveCrossParentChild only used as: the child is under multiple parents(e.g. a window cross multi-screens)
     void AddCrossParentChild(SharedPtr child, int index);
