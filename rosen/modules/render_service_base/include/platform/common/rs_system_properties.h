@@ -28,7 +28,8 @@ enum class DirtyRegionDebugType {
     CURRENT_WHOLE,
     MULTI_HISTORY,
     CURRENT_SUB_AND_WHOLE,
-    CURRENT_WHOLE_AND_MULTI_HISTORY
+    CURRENT_WHOLE_AND_MULTI_HISTORY,
+    EGL_DAMAGE
 };
 
 enum class PartialRenderType {

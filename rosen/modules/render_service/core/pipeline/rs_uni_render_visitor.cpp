@@ -16,6 +16,7 @@
 #include "pipeline/rs_uni_render_visitor.h"
 
 #include "include/core/SkRegion.h"
+#include "include/core/SkTextBlob.h"
 #include "rs_trace.h"
 
 #include "common/rs_common_def.h"
@@ -33,6 +34,7 @@
 #include "pipeline/rs_uni_render_mirror_processor.h"
 #include "pipeline/rs_uni_render_util.h"
 #include "platform/common/rs_log.h"
+#include "platform/common/rs_system_properties.h"
 #include "property/rs_properties_painter.h"
 #include "render/rs_skia_filter.h"
 
@@ -45,7 +47,9 @@ RSUniRenderVisitor::RSUniRenderVisitor()
     renderEngine_ = mainThread->GetRenderEngine();
     partialRenderType_ = RSSystemProperties::GetUniPartialRenderEnabled();
     isPartialRenderEnabled_ = (partialRenderType_ != PartialRenderType::DISABLED);
-    isOpDropped_ = isPartialRenderEnabled_ && (partialRenderType_ != PartialRenderType::SET_DAMAGE);
+    isDirtyRegionDfxEnabled_ = (RSSystemProperties::GetDirtyRegionDebugType() == DirtyRegionDebugType::EGL_DAMAGE);
+    isOpDropped_ = isPartialRenderEnabled_ && (partialRenderType_ != PartialRenderType::SET_DAMAGE)
+        && !isDirtyRegionDfxEnabled_;
 }
 RSUniRenderVisitor::~RSUniRenderVisitor() {}
 
@@ -275,9 +279,6 @@ void RSUniRenderVisitor::PrepareCanvasRenderNode(RSCanvasRenderNode &node)
     }
     dirtyFlag_ = node.Update(*curSurfaceDirtyManager_, rsParent ? &(rsParent->GetRenderProperties()) : nullptr,
         dirtyFlag_);
-    if (node.IsDirtyRegionUpdated() && curSurfaceDirtyManager_->IsDebugRegionTypeEnable(DebugRegionType::CURRENT_SUB)) {
-        curSurfaceDirtyManager_->UpdateDirtyCanvasNodes(node.GetId(), node.GetOldDirty());
-    }
     float alpha = curAlpha_;
     curAlpha_ *= node.GetRenderProperties().GetAlpha();
     PrepareBaseRenderNode(node);
@@ -285,18 +286,24 @@ void RSUniRenderVisitor::PrepareCanvasRenderNode(RSCanvasRenderNode &node)
     dirtyFlag_ = dirtyFlag;
 }
 
-void RSUniRenderVisitor::DrawRectOnCanvas(const RectI& dirtyRect, const SkColor color,
+void RSUniRenderVisitor::DrawDirtyRectForDFX(const RectI& dirtyRect, const SkColor color,
     const SkPaint::Style fillType, float alpha)
 {
-    ROSEN_LOGD("DrawRectOnCanvas current dirtyRect = [%d, %d, %d, %d]", dirtyRect.left_, dirtyRect.top_,
+    ROSEN_LOGD("DrawDirtyRectForDFX current dirtyRect = [%d, %d, %d, %d]", dirtyRect.left_, dirtyRect.top_,
         dirtyRect.width_, dirtyRect.height_);
     if (dirtyRect.width_ <= 0 || dirtyRect.height_ <= 0) {
-        ROSEN_LOGD("DrawRectOnCanvas dirty rect is invalid.");
+        ROSEN_LOGD("DrawDirtyRectForDFX dirty rect is invalid.");
         return;
     }
     auto skRect = SkRect::MakeXYWH(dirtyRect.left_, dirtyRect.top_, dirtyRect.width_, dirtyRect.height_);
+    std::string position = std::to_string(dirtyRect.left_) + ',' + std::to_string(dirtyRect.top_) + ',' +
+        std::to_string(dirtyRect.width_) + ',' + std::to_string(dirtyRect.height_);
     const int defaultEdgeWidth = 6;
+    const int defaultTextOffsetX = defaultEdgeWidth;
+    const int defaultTextOffsetY = 30; // text position has 30 pixelSize under the skRect
     SkPaint rectPaint;
+    // font size: 24
+    sk_sp<SkTextBlob> SkTextBlob = SkTextBlob::MakeFromString(position.c_str(), SkFont(nullptr, 24.0f, 1.0f, 0.0f));
     rectPaint.setColor(color);
     rectPaint.setAntiAlias(true);
     rectPaint.setAlphaf(alpha);
@@ -306,56 +313,15 @@ void RSUniRenderVisitor::DrawRectOnCanvas(const RectI& dirtyRect, const SkColor 
         rectPaint.setStrokeJoin(SkPaint::kRound_Join);
     }
     canvas_->drawRect(skRect, rectPaint);
+    canvas_->drawTextBlob(SkTextBlob, dirtyRect.left_ + defaultTextOffsetX,
+        dirtyRect.top_ + defaultTextOffsetY, SkPaint());
 }
 
-void RSUniRenderVisitor::DrawDirtyRegion()
+void RSUniRenderVisitor::DrawDirtyRegionForDFX(std::vector<RectI> dirtyRects)
 {
-    RectI dirtyRect;
     const float fillAlpha = 0.2;
-    const float edgeAlpha = 0.4;
-    const float subFactor = 2.0;
-
-    if (curSurfaceDirtyManager_->IsDebugRegionTypeEnable(DebugRegionType::MULTI_HISTORY)) {
-        dirtyRect = curSurfaceDirtyManager_->GetDirtyRegion();
-        if (dirtyRect.width_ <= 0 || dirtyRect.height_ <= 0) {
-            ROSEN_LOGD("DrawDirtyRegion his dirty rect is invalid. dirtyRect = [%d, %d, %d, %d]",
-                dirtyRect.left_, dirtyRect.top_, dirtyRect.width_, dirtyRect.height_); 
-        } else {
-            ROSEN_LOGD("DrawDirtyRegion his dirty rect");
-            // green
-            DrawRectOnCanvas(dirtyRect, 0xFF0AFF0A, SkPaint::kFill_Style, fillAlpha / subFactor);
-            DrawRectOnCanvas(dirtyRect, 0xFF0AFF0A, SkPaint::kStroke_Style, edgeAlpha);
-        }
-    }
-
-    if (curSurfaceDirtyManager_->IsDebugRegionTypeEnable(DebugRegionType::CURRENT_WHOLE)) {
-        dirtyRect = curSurfaceDirtyManager_->GetLatestDirtyRegion();
-        if (dirtyRect.width_ <= 0 || dirtyRect.height_ <= 0) {
-            ROSEN_LOGD("DrawDirtyRegion dirty rect is invalid. dirtyRect = [%d, %d, %d, %d]", dirtyRect.left_,
-                dirtyRect.top_, dirtyRect.width_, dirtyRect.height_);
-        } else {
-            ROSEN_LOGD("DrawDirtyRegion cur dirty rect");
-            // yellow
-            DrawRectOnCanvas(curSurfaceDirtyManager_->GetDirtyRegion(), 0xFFFFFF00, SkPaint::kFill_Style, fillAlpha);
-            DrawRectOnCanvas(curSurfaceDirtyManager_->GetDirtyRegion(), 0xFFFFFF00, SkPaint::kStroke_Style, edgeAlpha);
-        }
-    }
-
-    if (curSurfaceDirtyManager_->IsDebugRegionTypeEnable(DebugRegionType::CURRENT_SUB)) {
-        std::map<NodeId, RectI> dirtySubRects_;
-        curSurfaceDirtyManager_->GetDirtyCanvasNodes(dirtySubRects_);
-        for (const auto& [nid, subRect] : dirtySubRects_) {
-            ROSEN_LOGD("DrawDirtyRegion canvasNode id %d is dirty", nid);
-            // red
-            DrawRectOnCanvas(subRect, 0xFFFF0000, SkPaint::kStroke_Style, edgeAlpha / subFactor);
-        }
-
-        curSurfaceDirtyManager_->GetDirtySurfaceNodes(dirtySubRects_);
-        for (const auto& [nid, subRect] : dirtySubRects_) {
-            ROSEN_LOGD("DrawDirtyRegion surfaceNode id %d is dirty", nid);
-            // light purple
-            DrawRectOnCanvas(subRect, 0xFFD899D8, SkPaint::kStroke_Style, edgeAlpha);
-        }
+    for (const auto& subRect : dirtyRects) {
+        DrawDirtyRectForDFX(subRect, SK_ColorBLUE, SkPaint::kStroke_Style, fillAlpha);
     }
 }
 
@@ -457,6 +423,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
         }
         int saveLayerCnt = 0;
         SkRegion region;
+        Occlusion::Region dirtyRegionTest;
 #ifdef RS_ENABLE_EGLQUERYSURFACE
         // Get displayNode buffer age in order to merge visible dirty region for displayNode.
         // And then set egl damage region to improve uni_render efficiency.
@@ -464,6 +431,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
             int bufferAge = renderFrame->GetBufferAge();
             RSUniRenderUtil::MergeDirtyHistory(displayNodePtr, bufferAge);
             auto dirtyRegion = RSUniRenderUtil::MergeVisibleDirtyRegion(displayNodePtr);
+            dirtyRegionTest = dirtyRegion;
             SetSurfaceGlobalDirtyRegion(displayNodePtr);
             std::vector<RectI> rects = GetDirtyRects(dirtyRegion);
             RectI rect = node.GetDirtyManager()->GetDirtyRegionFlipWithinSurface();
@@ -475,7 +443,10 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
                 region.op(SkIRect::MakeXYWH(r.left_, disH - r.GetBottom(), r.width_, r.height_), SkRegion::kUnion_Op);
                 RS_LOGD("SetDamageRegion %s", r.ToString().c_str());
             }
-            renderFrame->SetDamageRegion(rects);
+            // SetDamageRegion and opDrop will be disabled for dirty region DFX visualization
+            if (!isDirtyRegionDfxEnabled_) {
+                renderFrame->SetDamageRegion(rects);
+            }
         }
         if (isOpDropped_ && !region.isEmpty()) {
             if (region.isRect()) {
@@ -496,15 +467,6 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
         ProcessBaseRenderNode(node);
         canvas_->restore();
 
-        // the following code makes DirtyRegion visible, enable this method by turning on the dirtyregiondebug property
-        for (auto [id, surfaceNode] : dirtySurfaceNodeMap_) {
-            if (surfaceNode->GetDirtyManager()) {
-                curSurfaceDirtyManager_ = surfaceNode->GetDirtyManager();
-                if (curSurfaceDirtyManager_->IsDirty() && curSurfaceDirtyManager_->IsDebugEnabled()) {
-                    DrawDirtyRegion();
-                }
-            }
-        }
         if (saveLayerCnt > 0) {
             RS_TRACE_NAME("RSUniRender:RestoreLayer");
             canvas_->restoreToCount(saveLayerCnt);
@@ -512,6 +474,18 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
 
         if (overdrawListener != nullptr) {
             overdrawListener->Draw();
+        }
+
+        // the following code makes DirtyRegion visible, enable this method by turning on the dirtyregiondebug property
+        if (isPartialRenderEnabled_ && isDirtyRegionDfxEnabled_) {
+            RectI dirtySurfaceRect = node.GetDirtyManager()->GetDirtyRegion();
+            std::vector<Occlusion::Rect> visibleDirtyRects = dirtyRegionTest.GetRegionRects();
+            std::vector<RectI> rects;
+            rects.emplace_back(dirtySurfaceRect);
+            for (auto rect : visibleDirtyRects) {
+                 rects.emplace_back(RectI(rect.left_, rect.top_, rect.right_ - rect.left_, rect.bottom_ - rect.top_));
+            }
+            DrawDirtyRegionForDFX(rects);
         }
 
         RS_TRACE_BEGIN("RSUniRender:FlushFrame");
