@@ -52,6 +52,7 @@ void RSRenderPropertyAnimation::AttachRenderProperty(const std::shared_ptr<RSRen
     property_ = property;
     if (property_ != nullptr && originValue_ != nullptr) {
         property_->SetPropertyType(originValue_->GetPropertyType());
+        InitValueEstimator();
     }
 }
 

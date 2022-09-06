@@ -124,28 +124,15 @@ void RSRenderKeyframeAnimation::OnAnimate(float fraction)
         return;
     }
 
-    float preKeyframeFraction = std::get<0>(keyframes_.front());
-    auto preKeyframeValue = std::get<1>(keyframes_.front());
-    for (const auto& keyframe : keyframes_) {
-        // the index of tuple
-        float keyframeFraction = std::get<0>(keyframe);
-        auto keyframeValue = std::get<1>(keyframe);
-        auto keyframeInterpolator = std::get<2>(keyframe);
-        if (fraction <= keyframeFraction) {
-            if (ROSEN_EQ(keyframeFraction, preKeyframeFraction)) {
-                continue;
-            }
+    valueEstimator_->UpdateAnimationValue(fraction, GetAdditive());
+}
 
-            float intervalFraction = (fraction - preKeyframeFraction) / (keyframeFraction - preKeyframeFraction);
-            auto interpolationValue = RSValueEstimator::Estimate(
-                keyframeInterpolator->Interpolate(intervalFraction), preKeyframeValue, keyframeValue);
-            SetAnimationValue(interpolationValue);
-            break;
-        }
-
-        preKeyframeFraction = keyframeFraction;
-        preKeyframeValue = keyframeValue;
+void RSRenderKeyframeAnimation::InitValueEstimator()
+{
+    if (valueEstimator_ == nullptr) {
+        valueEstimator_ = property_->CreateRSValueEstimator(RSValueEstimatorType::KEYFRAME_VALUE_ESTIMATOR);
     }
+    valueEstimator_->InitKeyframeAnimationValue(property_, keyframes_, lastValue_);
 }
 } // namespace Rosen
 } // namespace OHOS

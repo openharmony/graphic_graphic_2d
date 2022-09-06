@@ -67,10 +67,14 @@ protected:
 
     void UpdateNeedWriteLog(const NodeId id);
 
+    virtual void InitValueEstimator() {}
+
 protected:
     PropertyId propertyId_;
     std::shared_ptr<RSRenderPropertyBase> originValue_;
     std::shared_ptr<RSRenderPropertyBase> lastValue_;
+    std::shared_ptr<RSRenderPropertyBase> property_;
+    std::shared_ptr<RSValueEstimator> valueEstimator_;
 
 private:
     bool isAdditive_ { true };
@@ -78,7 +82,6 @@ private:
     bool needWriteToLog_ { false };
     bool hasWriteInfo_ { false };
     inline static std::shared_ptr<RSAnimationLog> animationLog_ = std::make_shared<RSAnimationLog>();
-    std::shared_ptr<RSRenderPropertyBase> property_;
 };
 } // namespace Rosen
 } // namespace OHOS

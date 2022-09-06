@@ -21,50 +21,14 @@
 
 namespace OHOS {
 namespace Rosen {
-std::shared_ptr<RSRenderPropertyBase> RSValueEstimator::Estimate(float fraction,
-    const std::shared_ptr<RSRenderPropertyBase>& startValue, const std::shared_ptr<RSRenderPropertyBase>& endValue)
-{
-    if (endValue == nullptr) {
-        return startValue->GetValue();
-    }
-
-    if (startValue == nullptr) {
-        return endValue->GetValue() * fraction;
-    }
-
-    if (startValue->GetPropertyType() == RSRenderPropertyType::PROPERTY_QUATERNION) {
-        auto quaternionStart = std::static_pointer_cast<RSRenderProperty<Quaternion>>(startValue);
-        auto quaternionEnd = std::static_pointer_cast<RSRenderProperty<Quaternion>>(startValue);
-        if (quaternionStart && quaternionEnd) {
-            auto quaternionValue = EstimateQuaternion(fraction, quaternionStart->Get(), quaternionEnd->Get());
-            return std::make_shared<RSRenderAnimatableProperty<Quaternion>>(quaternionValue);
-        }
-
-        return nullptr;
-    }
-
-    if (startValue->GetPropertyType() == RSRenderPropertyType::PROPERTY_FILTER) {
-        auto filterStart = std::static_pointer_cast<RSRenderProperty<std::shared_ptr<RSFilter>>>(startValue);
-        auto filterEnd = std::static_pointer_cast<RSRenderProperty<std::shared_ptr<RSFilter>>>(endValue);
-        if (filterStart && filterEnd) {
-            auto filterValue = EstimateFilter(fraction, filterStart->Get(), filterEnd->Get());
-            return std::make_shared<RSRenderAnimatableProperty<std::shared_ptr<RSFilter>>>(filterValue);
-        }
-
-        return nullptr;
-    }
-
-    return startValue->GetValue() * (1.0f - fraction) + endValue->GetValue() * fraction;
-}
-
-Quaternion RSValueEstimator::EstimateQuaternion(float fraction,
+Quaternion RSValueEstimator::Estimate(float fraction,
     const Quaternion& startValue, const Quaternion& endValue)
 {
     auto value = startValue;
     return value.Slerp(endValue, fraction);
 }
 
-std::shared_ptr<RSFilter> RSValueEstimator::EstimateFilter(
+std::shared_ptr<RSFilter> RSValueEstimator::Estimate(
     float fraction, const std::shared_ptr<RSFilter>& startValue, const std::shared_ptr<RSFilter>& endValue)
 {
     if ((startValue == nullptr || !startValue->IsValid()) && (endValue == nullptr || !endValue->IsValid())) {
@@ -86,38 +50,23 @@ std::shared_ptr<RSFilter> RSValueEstimator::EstimateFilter(
     }
 }
 
-float RSValueEstimator::EstimateFraction(
-    const std::shared_ptr<RSInterpolator>& interpolator, const std::shared_ptr<RSRenderPropertyBase>& value,
-    const std::shared_ptr<RSRenderPropertyBase>& startValue, const std::shared_ptr<RSRenderPropertyBase>& endValue)
-{
-    auto valueFloat = std::static_pointer_cast<RSRenderProperty<float>>(value);
-    auto startFloat = std::static_pointer_cast<RSRenderProperty<float>>(startValue);
-    auto endFloat = std::static_pointer_cast<RSRenderProperty<float>>(endValue);
-    if (valueFloat != nullptr && startValue != nullptr && endValue != nullptr) {
-        return EstimateFloatFraction(interpolator, valueFloat->Get(), startFloat->Get(), endFloat->Get());
-    }
-
-    return 0.0f;
-}
-
-float RSValueEstimator::EstimateFloatFraction(
-    const std::shared_ptr<RSInterpolator>& interpolator, const float value,
-    const float startValue, const float endValue)
+template<>
+float RSCurveValueEstimator<float>::EstimateFraction(const std::shared_ptr<RSInterpolator>& interpolator)
 {
     float start = FRACTION_MIN;
     float end = FRACTION_MAX;
-    auto byValue = endValue - startValue;
+    auto byValue = endValue_ - startValue_;
     while (end > start + EPSILON) {
         float mid = (start + end) / 2.0f;
         float fraction = interpolator->Interpolate(mid);
-        auto interpolationValue = startValue * (1.0f - fraction) + endValue * fraction;
-        if (value < interpolationValue) {
+        auto interpolationValue = startValue_ * (1.0f - fraction) + endValue_ * fraction;
+        if (lastValue_ < interpolationValue) {
             (byValue > 0) ? (end = mid) : (start = mid);
         } else {
             (byValue > 0) ? (start = mid) : (end = mid);
         }
 
-        if (std::abs(value - interpolationValue) <= EPSILON) {
+        if (std::abs(lastValue_ - interpolationValue) <= EPSILON) {
             return mid;
         }
     }

@@ -69,18 +69,26 @@ protected:
 
     void OnRemoveOnCompletion() override;
 
+    void InitValueEstimator() override;
+
 private:
 #ifdef ROSEN_OHOS
     bool ParseParam(Parcel& parcel) override;
 #endif
-    void SetPathValue(const std::shared_ptr<RSRenderPropertyBase>& value, float tangent);
+    void SetPathValue(const Vector2f& value, float tangent);
+    void SetPathValue(const Vector4f& value, float tangent);
+
+    void SetAnimationValue(const Vector2f& value);
+    void SetAnimationValue(const Vector4f& value);
+
+    void SetRotationValue(const float tangent);
 
     void SetRotation(const float tangent);
 
     void GetPosTanValue(float fraction, Vector2f& position, float& tangent);
 
-    std::shared_ptr<RSRenderPropertyBase> UpdateVector2fPathValue(const Vector2f& value, const Vector2f& position);
-    std::shared_ptr<RSRenderPropertyBase> UpdateVector4fPathValue(const Vector4f& value, const Vector2f& position);
+    void UpdateVector2fPathValue(Vector2f& value);
+    void UpdateVector4fPathValue(Vector4f& value, const Vector2f& position);
 
     float originRotation_ { UNDEFINED_FLOAT };
     float beginFraction_ { FRACTION_MIN };

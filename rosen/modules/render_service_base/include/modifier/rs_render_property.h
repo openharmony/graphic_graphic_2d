@@ -16,6 +16,7 @@
 #ifndef RENDER_SERVICE_CLIENT_CORE_ANIMATION_RS_RENDER_PROP_H
 #define RENDER_SERVICE_CLIENT_CORE_ANIMATION_RS_RENDER_PROP_H
 
+#include "animation/rs_value_estimator.h"
 #include "common/rs_common_def.h"
 #include "modifier/rs_animatable_arithmetic.h"
 #include "modifier/rs_modifier_type.h"
@@ -73,6 +74,11 @@ protected:
         return 1.f;
     }
 
+    virtual std::shared_ptr<RSValueEstimator> CreateRSValueEstimator(const RSValueEstimatorType type)
+    {
+        return nullptr;
+    }
+
     PropertyId id_;
     std::weak_ptr<RSBaseRenderNode> node_;
 
@@ -112,6 +118,8 @@ private:
     friend class RSValueEstimator;
     friend class RSRenderPathAnimation;
     friend class RSRenderSpringAnimation;
+    friend class RSRenderCurveAnimation;
+    friend class RSRenderKeyframeAnimation;
     template<typename T>
     friend class RSSpringModel;
 };
@@ -178,6 +186,21 @@ protected:
     float toFloat() const override
     {
         return 1.f;
+    }
+
+    std::shared_ptr<RSValueEstimator> CreateRSValueEstimator(const RSValueEstimatorType type) override
+    {
+        switch (type) {
+            case RSValueEstimatorType::CURVE_VALUE_ESTIMATOR: {
+                return std::make_shared<RSCurveValueEstimator<T>>();
+            }
+            case RSValueEstimatorType::KEYFRAME_VALUE_ESTIMATOR: {
+                return std::make_shared<RSKeyframeValueEstimator<T>>();
+            }
+            default: {
+                return nullptr;
+            }
+        }
     }
 
 private:

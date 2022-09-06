@@ -40,6 +40,8 @@ public:
 protected:
     void OnAnimate(float fraction) override;
 
+    void InitValueEstimator() override;
+
 private:
     RSRenderKeyframeAnimation() = default;
 #ifdef ROSEN_OHOS

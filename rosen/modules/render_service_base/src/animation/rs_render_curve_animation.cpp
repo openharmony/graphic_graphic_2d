@@ -85,7 +85,7 @@ bool RSRenderCurveAnimation::ParseParam(Parcel& parcel)
 void RSRenderCurveAnimation::OnSetFraction(float fraction)
 {
     OnAnimateInner(fraction, linearInterpolator_);
-    SetFractionInner(RSValueEstimator::EstimateFraction(interpolator_, GetLastValue(), startValue_, endValue_));
+    SetFractionInner(valueEstimator_->EstimateFraction(interpolator_));
 }
 
 void RSRenderCurveAnimation::OnAnimate(float fraction)
@@ -98,9 +98,16 @@ void RSRenderCurveAnimation::OnAnimateInner(float fraction, const std::shared_pt
     if (GetPropertyId() == 0) {
         return;
     }
-    auto interpolationValue =
-        RSValueEstimator::Estimate(interpolator_->Interpolate(fraction), startValue_, endValue_);
-    SetAnimationValue(interpolationValue);
+
+    valueEstimator_->UpdateAnimationValue(interpolator_->Interpolate(fraction), GetAdditive());
+}
+
+void RSRenderCurveAnimation::InitValueEstimator()
+{
+    if (valueEstimator_ == nullptr) {
+        valueEstimator_ = property_->CreateRSValueEstimator(RSValueEstimatorType::CURVE_VALUE_ESTIMATOR);
+    }
+    valueEstimator_->InitCurveAnimationValue(property_, startValue_, endValue_, lastValue_);
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -44,6 +44,8 @@ protected:
 
     void OnAnimate(float fraction) override;
 
+    void InitValueEstimator() override;
+
 private:
 #ifdef ROSEN_OHOS
     bool ParseParam(Parcel& parcel) override;
