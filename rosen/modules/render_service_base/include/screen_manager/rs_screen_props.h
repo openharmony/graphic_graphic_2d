@@ -21,7 +21,6 @@
 #include <refbase.h>
 #include <string>
 
-#include "display_type.h"
 #include "screen_manager/screen_types.h"
 
 namespace OHOS {

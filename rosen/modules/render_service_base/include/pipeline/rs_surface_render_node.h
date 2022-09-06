@@ -19,7 +19,6 @@
 #include <memory>
 #include <surface.h>
 
-#include "display_type.h"
 #include "common/rs_vector4.h"
 #include "ipc_callbacks/buffer_available_callback.h"
 #include "pipeline/rs_render_node.h"
