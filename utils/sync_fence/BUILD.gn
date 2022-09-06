@@ -31,6 +31,7 @@ config("sync_fence_public_config") {
     "export",
     "//commonlibrary/c_utils/base/include",
     "//base/hiviewdfx/hilog/interfaces/native/innerkits",
+    "//foundation/graphic/graphic_2d/utils/log",
   ]
 }
 
@@ -38,6 +39,7 @@ ohos_shared_library("sync_fence") {
   sources = [
     "src/sync_fence.cpp",
     "src/sync_fence_timeline.cpp",
+    "src/sync_fence_tracker.cpp",
   ]
 
   configs = [ ":sync_fence_config" ]
@@ -46,9 +48,12 @@ ohos_shared_library("sync_fence") {
 
   public_deps = [
     "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
+    "//base/notification/eventhandler/frameworks/eventhandler:libeventhandler",
     "//commonlibrary/c_utils/base:utils",
     "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
   ]
+
+  external_deps = [ "hitrace_native:hitrace_meter" ]
 
   part_name = "graphic_standard"
   subsystem_name = "graphic"
