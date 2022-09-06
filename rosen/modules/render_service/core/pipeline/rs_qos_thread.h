@@ -30,7 +30,7 @@ public:
     static RSQosThread* GetInstance();
     void ThreadStart();
     void ThreadStop();
-    void ResetQosPid(std::map<uint32_t, bool>& pidVisMap);
+    void ResetQosPid();
     void OnRSVisibilityChangeCB(std::map<uint32_t, bool>& pidVisMap);
 private:
     static const int MAX_RATE = 1;

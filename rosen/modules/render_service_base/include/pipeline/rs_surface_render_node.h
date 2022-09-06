@@ -208,7 +208,7 @@ public:
         }
 
         // collect visible changed pid
-        if (qosPidCal_) {
+        if (qosPidCal_ && GetType() == RSRenderNodeType::SURFACE_NODE) {
             uint32_t tmpPid = (GetId() >> 32) & 0xFFFFFFFF;
             if (pidVisMap.find(tmpPid) != pidVisMap.end()) {
                 pidVisMap[tmpPid] |= vis;
