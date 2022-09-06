@@ -16,7 +16,6 @@
 #ifndef RS_SURFACE_FRAME_OHOS_RASTER_H
 #define RS_SURFACE_FRAME_OHOS_RASTER_H
 
-#include <display_type.h>
 #include <surface.h>
 
 #include "platform/drawing/rs_surface_frame.h"

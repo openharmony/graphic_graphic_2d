@@ -22,7 +22,6 @@
 #include <string>
 #include <vector>
 
-#include "display_type.h"
 #include "screen_manager/rs_screen_capability.h"
 #include "screen_manager/rs_screen_mode_info.h"
 #include "screen_manager/rs_screen_props.h"

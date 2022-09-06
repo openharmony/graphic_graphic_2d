@@ -16,7 +16,6 @@
 #ifndef RENDER_SERVICE_CORE_PIPELINE_RS_UNI_RENDER_UTIL_H
 #define RENDER_SERVICE_CORE_PIPELINE_RS_UNI_RENDER_UTIL_H
 
-#include "display_type.h"
 #include "surface.h"
 #include "sync_fence.h"
 #include "pipeline/rs_display_render_node.h"

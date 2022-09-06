@@ -15,7 +15,6 @@
 
 #include "pipeline/rs_surface_render_node.h"
 
-#include "display_type.h"
 #include "include/core/SkMatrix.h"
 #include "include/core/SkRect.h"
 
