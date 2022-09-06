@@ -543,9 +543,12 @@ void RestoreAlphaOpItem::Draw(RSPaintFilterCanvas& canvas, const SkRect*) const
 // RectOpItem
 bool RectOpItem::Marshalling(Parcel& parcel) const
 {
-    bool success = true;
-    success &= RSMarshallingHelper::Marshalling(parcel, rect_);
-    success &= RSMarshallingHelper::Marshalling(parcel, paint_);
+    bool success = RSMarshallingHelper::Marshalling(parcel, rect_) &&
+                   RSMarshallingHelper::Marshalling(parcel, paint_);
+    if (!success) {
+        ROSEN_LOGE("RectOpItem::Marshalling failed!");
+        return false;
+    }
     return success;
 }
 
@@ -553,22 +556,24 @@ OpItem* RectOpItem::Unmarshalling(Parcel& parcel)
 {
     SkRect rect;
     SkPaint paint;
-    if (!RSMarshallingHelper::Unmarshalling(parcel, rect)) {
+    bool success = RSMarshallingHelper::Unmarshalling(parcel, rect) &&
+                   RSMarshallingHelper::Unmarshalling(parcel, paint);
+    if (!success) {
+        ROSEN_LOGE("RectOpItem::Unmarshalling failed!");
         return nullptr;
     }
-    if (!RSMarshallingHelper::Unmarshalling(parcel, paint)) {
-        return nullptr;
-    }
-
     return new RectOpItem(rect, paint);
 }
 
 // RoundRectOpItem
 bool RoundRectOpItem::Marshalling(Parcel& parcel) const
 {
-    bool success = true;
-    success &= RSMarshallingHelper::Marshalling(parcel, rrect_);
-    success &= RSMarshallingHelper::Marshalling(parcel, paint_);
+    bool success = RSMarshallingHelper::Marshalling(parcel, rrect_) &&
+                   RSMarshallingHelper::Marshalling(parcel, paint_);
+    if (!success) {
+        ROSEN_LOGE("RoundRectOpItem::Marshalling failed!");
+        return false;
+    }
     return success;
 }
 
@@ -576,22 +581,24 @@ OpItem* RoundRectOpItem::Unmarshalling(Parcel& parcel)
 {
     SkRRect rrect;
     SkPaint paint;
-    if (!RSMarshallingHelper::Unmarshalling(parcel, rrect)) {
+    bool success = RSMarshallingHelper::Unmarshalling(parcel, rrect) &&
+                   RSMarshallingHelper::Unmarshalling(parcel, paint);
+    if (!success) {
+        ROSEN_LOGE("RoundRectOpItem::Unmarshalling failed!");
         return nullptr;
     }
-    if (!RSMarshallingHelper::Unmarshalling(parcel, paint)) {
-        return nullptr;
-    }
-
     return new RoundRectOpItem(rrect, paint);
 }
 
 // ImageWithParmOpItem
 bool ImageWithParmOpItem::Marshalling(Parcel& parcel) const
 {
-    bool success = true;
-    success &= RSMarshallingHelper::Marshalling(parcel, rsImage_);
-    success &= RSMarshallingHelper::Marshalling(parcel, paint_);
+    bool success = RSMarshallingHelper::Marshalling(parcel, rsImage_) &&
+                   RSMarshallingHelper::Marshalling(parcel, paint_);
+    if (!success) {
+        ROSEN_LOGE("ImageWithParmOpItem::Marshalling failed!");
+        return false;
+    }
     return success;
 }
 
@@ -599,23 +606,25 @@ OpItem* ImageWithParmOpItem::Unmarshalling(Parcel& parcel)
 {
     std::shared_ptr<RSImage> rsImage;
     SkPaint paint;
-    if (!RSMarshallingHelper::Unmarshalling(parcel, rsImage)) {
+    bool success = RSMarshallingHelper::Unmarshalling(parcel, rsImage) &&
+                   RSMarshallingHelper::Unmarshalling(parcel, paint);
+    if (!success) {
+        ROSEN_LOGE("ImageWithParmOpItem::Unmarshalling failed!");
         return nullptr;
     }
-    if (!RSMarshallingHelper::Unmarshalling(parcel, paint)) {
-        return nullptr;
-    }
-
     return new ImageWithParmOpItem(rsImage, paint);
 }
 
 // DRRectOpItem
 bool DRRectOpItem::Marshalling(Parcel& parcel) const
 {
-    bool success = true;
-    success &= RSMarshallingHelper::Marshalling(parcel, outer_);
-    success &= RSMarshallingHelper::Marshalling(parcel, inner_);
-    success &= RSMarshallingHelper::Marshalling(parcel, paint_);
+    bool success = RSMarshallingHelper::Marshalling(parcel, outer_) &&
+                   RSMarshallingHelper::Marshalling(parcel, inner_) &&
+                   RSMarshallingHelper::Marshalling(parcel, paint_);
+    if (!success) {
+        ROSEN_LOGE("DRRectOpItem::Marshalling failed!");
+        return false;
+    }
     return success;
 }
 
@@ -624,25 +633,25 @@ OpItem* DRRectOpItem::Unmarshalling(Parcel& parcel)
     SkRRect outer;
     SkRRect inner;
     SkPaint paint;
-    if (!RSMarshallingHelper::Unmarshalling(parcel, outer)) {
+    bool success = RSMarshallingHelper::Unmarshalling(parcel, outer) &&
+                   RSMarshallingHelper::Unmarshalling(parcel, inner) &&
+                   RSMarshallingHelper::Unmarshalling(parcel, paint);
+    if (!success) {
+        ROSEN_LOGE("DRRectOpItem::Unmarshalling failed!");
         return nullptr;
     }
-    if (!RSMarshallingHelper::Unmarshalling(parcel, inner)) {
-        return nullptr;
-    }
-    if (!RSMarshallingHelper::Unmarshalling(parcel, paint)) {
-        return nullptr;
-    }
-
     return new DRRectOpItem(outer, inner, paint);
 }
 
 // OvalOpItem
 bool OvalOpItem::Marshalling(Parcel& parcel) const
 {
-    bool success = true;
-    success &= RSMarshallingHelper::Marshalling(parcel, rect_);
-    success &= RSMarshallingHelper::Marshalling(parcel, paint_);
+    bool success = RSMarshallingHelper::Marshalling(parcel, rect_) &&
+                   RSMarshallingHelper::Marshalling(parcel, paint_);
+    if (!success) {
+        ROSEN_LOGE("OvalOpItem::Marshalling failed!");
+        return false;
+    }
     return success;
 }
 
@@ -650,22 +659,24 @@ OpItem* OvalOpItem::Unmarshalling(Parcel& parcel)
 {
     SkRect rect;
     SkPaint paint;
-    if (!RSMarshallingHelper::Unmarshalling(parcel, rect)) {
+    bool success = RSMarshallingHelper::Unmarshalling(parcel, rect) &&
+                   RSMarshallingHelper::Unmarshalling(parcel, paint);
+    if (!success) {
+        ROSEN_LOGE("OvalOpItem::Unmarshalling failed!");
         return nullptr;
     }
-    if (!RSMarshallingHelper::Unmarshalling(parcel, paint)) {
-        return nullptr;
-    }
-
     return new OvalOpItem(rect, paint);
 }
 
 // RegionOpItem
 bool RegionOpItem::Marshalling(Parcel& parcel) const
 {
-    bool success = true;
-    success &= RSMarshallingHelper::Marshalling(parcel, region_);
-    success &= RSMarshallingHelper::Marshalling(parcel, paint_);
+    bool success = RSMarshallingHelper::Marshalling(parcel, region_) &&
+                   RSMarshallingHelper::Marshalling(parcel, paint_);
+    if (!success) {
+        ROSEN_LOGE("RegionOpItem::Marshalling failed!");
+        return false;
+    }
     return success;
 }
 
@@ -673,25 +684,27 @@ OpItem* RegionOpItem::Unmarshalling(Parcel& parcel)
 {
     SkRegion region;
     SkPaint paint;
-    if (!RSMarshallingHelper::Unmarshalling(parcel, region)) {
+    bool success = RSMarshallingHelper::Unmarshalling(parcel, region) &&
+                   RSMarshallingHelper::Unmarshalling(parcel, paint);
+    if (!success) {
+        ROSEN_LOGE("RegionOpItem::Unmarshalling failed!");
         return nullptr;
     }
-    if (!RSMarshallingHelper::Unmarshalling(parcel, paint)) {
-        return nullptr;
-    }
-
     return new RegionOpItem(region, paint);
 }
 
 // ArcOpItem
 bool ArcOpItem::Marshalling(Parcel& parcel) const
 {
-    bool success = true;
-    success &= RSMarshallingHelper::Marshalling(parcel, rect_);
-    success &= RSMarshallingHelper::Marshalling(parcel, startAngle_);
-    success &= RSMarshallingHelper::Marshalling(parcel, sweepAngle_);
-    success &= RSMarshallingHelper::Marshalling(parcel, useCenter_);
-    success &= RSMarshallingHelper::Marshalling(parcel, paint_);
+    bool success = RSMarshallingHelper::Marshalling(parcel, rect_) &&
+                   RSMarshallingHelper::Marshalling(parcel, startAngle_) &&
+                   RSMarshallingHelper::Marshalling(parcel, sweepAngle_) &&
+                   RSMarshallingHelper::Marshalling(parcel, useCenter_) &&
+                   RSMarshallingHelper::Marshalling(parcel, paint_);
+    if (!success) {
+        ROSEN_LOGE("ArcOpItem::Marshalling failed!");
+        return false;
+    }
     return success;
 }
 
@@ -702,19 +715,13 @@ OpItem* ArcOpItem::Unmarshalling(Parcel& parcel)
     float sweepAngle;
     bool useCenter;
     SkPaint paint;
-    if (!RSMarshallingHelper::Unmarshalling(parcel, rect)) {
-        return nullptr;
-    }
-    if (!RSMarshallingHelper::Unmarshalling(parcel, startAngle)) {
-        return nullptr;
-    }
-    if (!RSMarshallingHelper::Unmarshalling(parcel, sweepAngle)) {
-        return nullptr;
-    }
-    if (!RSMarshallingHelper::Unmarshalling(parcel, useCenter)) {
-        return nullptr;
-    }
-    if (!RSMarshallingHelper::Unmarshalling(parcel, paint)) {
+    bool success = RSMarshallingHelper::Unmarshalling(parcel, rect) &&
+                   RSMarshallingHelper::Unmarshalling(parcel, startAngle) &&
+                   RSMarshallingHelper::Unmarshalling(parcel, sweepAngle) &&
+                   RSMarshallingHelper::Unmarshalling(parcel, useCenter) &&
+                   RSMarshallingHelper::Unmarshalling(parcel, paint);
+    if (!success) {
+        ROSEN_LOGE("ArcOpItem::Unmarshalling failed!");
         return nullptr;
     }
     return new ArcOpItem(rect, startAngle, sweepAngle, useCenter, paint);
@@ -741,15 +748,20 @@ OpItem* FlushOpItem::Unmarshalling(Parcel& parcel)
 // MatrixOpItem
 bool MatrixOpItem::Marshalling(Parcel& parcel) const
 {
-    bool success = true;
-    success &= RSMarshallingHelper::Marshalling(parcel, matrix_);
+    bool success = RSMarshallingHelper::Marshalling(parcel, matrix_);
+    if (!success) {
+        ROSEN_LOGE("MatrixOpItem::Marshalling failed!");
+        return false;
+    }
     return success;
 }
 
 OpItem* MatrixOpItem::Unmarshalling(Parcel& parcel)
 {
     SkMatrix matrix;
-    if (!RSMarshallingHelper::Unmarshalling(parcel, matrix)) {
+    bool success = RSMarshallingHelper::Unmarshalling(parcel, matrix);
+    if (!success) {
+        ROSEN_LOGE("MatrixOpItem::Unmarshalling failed!");
         return nullptr;
     }
     return new MatrixOpItem(matrix);
@@ -758,10 +770,13 @@ OpItem* MatrixOpItem::Unmarshalling(Parcel& parcel)
 // ClipRectOpItem
 bool ClipRectOpItem::Marshalling(Parcel& parcel) const
 {
-    bool success = true;
-    success &= RSMarshallingHelper::Marshalling(parcel, rect_);
-    success &= RSMarshallingHelper::Marshalling(parcel, clipOp_);
-    success &= RSMarshallingHelper::Marshalling(parcel, doAA_);
+    bool success = RSMarshallingHelper::Marshalling(parcel, rect_) &&
+                   RSMarshallingHelper::Marshalling(parcel, clipOp_) &&
+                   RSMarshallingHelper::Marshalling(parcel, doAA_);
+    if (!success) {
+        ROSEN_LOGE("ClipRectOpItem::Marshalling failed!");
+        return false;
+    }
     return success;
 }
 
@@ -770,13 +785,11 @@ OpItem* ClipRectOpItem::Unmarshalling(Parcel& parcel)
     SkRect rect;
     SkClipOp clipOp;
     bool doAA;
-    if (!RSMarshallingHelper::Unmarshalling(parcel, rect)) {
-        return nullptr;
-    }
-    if (!RSMarshallingHelper::Unmarshalling(parcel, clipOp)) {
-        return nullptr;
-    }
-    if (!RSMarshallingHelper::Unmarshalling(parcel, doAA)) {
+    bool success = RSMarshallingHelper::Unmarshalling(parcel, rect) &&
+                   RSMarshallingHelper::Unmarshalling(parcel, clipOp) &&
+                   RSMarshallingHelper::Unmarshalling(parcel, doAA);
+    if (!success) {
+        ROSEN_LOGE("ClipRectOpItem::Unmarshalling failed!");
         return nullptr;
     }
     return new ClipRectOpItem(rect, clipOp, doAA);
@@ -785,10 +798,13 @@ OpItem* ClipRectOpItem::Unmarshalling(Parcel& parcel)
 // ClipRRectOpItem
 bool ClipRRectOpItem::Marshalling(Parcel& parcel) const
 {
-    bool success = true;
-    success &= RSMarshallingHelper::Marshalling(parcel, rrect_);
-    success &= RSMarshallingHelper::Marshalling(parcel, clipOp_);
-    success &= RSMarshallingHelper::Marshalling(parcel, doAA_);
+    bool success = RSMarshallingHelper::Marshalling(parcel, rrect_) &&
+                   RSMarshallingHelper::Marshalling(parcel, clipOp_) &&
+                   RSMarshallingHelper::Marshalling(parcel, doAA_);
+    if (!success) {
+        ROSEN_LOGE("ClipRRectOpItem::Marshalling failed!");
+        return false;
+    }
     return success;
 }
 
@@ -797,13 +813,11 @@ OpItem* ClipRRectOpItem::Unmarshalling(Parcel& parcel)
     SkRRect rrect;
     SkClipOp clipOp;
     bool doAA;
-    if (!RSMarshallingHelper::Unmarshalling(parcel, rrect)) {
-        return nullptr;
-    }
-    if (!RSMarshallingHelper::Unmarshalling(parcel, clipOp)) {
-        return nullptr;
-    }
-    if (!RSMarshallingHelper::Unmarshalling(parcel, doAA)) {
+    bool success = RSMarshallingHelper::Unmarshalling(parcel, rrect) &&
+                   RSMarshallingHelper::Unmarshalling(parcel, clipOp) &&
+                   RSMarshallingHelper::Unmarshalling(parcel, doAA);
+    if (!success) {
+        ROSEN_LOGE("ClipRRectOpItem::Unmarshalling failed!");
         return nullptr;
     }
     return new ClipRRectOpItem(rrect, clipOp, doAA);
@@ -812,9 +826,12 @@ OpItem* ClipRRectOpItem::Unmarshalling(Parcel& parcel)
 // ClipRegionOpItem
 bool ClipRegionOpItem::Marshalling(Parcel& parcel) const
 {
-    bool success = true;
-    success &= RSMarshallingHelper::Marshalling(parcel, region_);
-    success &= RSMarshallingHelper::Marshalling(parcel, clipOp_);
+    bool success = RSMarshallingHelper::Marshalling(parcel, region_) &&
+                   RSMarshallingHelper::Marshalling(parcel, clipOp_);
+    if (!success) {
+        ROSEN_LOGE("ClipRegionOpItem::Marshalling failed!");
+        return false;
+    }
     return success;
 }
 
@@ -822,10 +839,10 @@ OpItem* ClipRegionOpItem::Unmarshalling(Parcel& parcel)
 {
     SkRegion region;
     SkClipOp clipOp;
-    if (!RSMarshallingHelper::Unmarshalling(parcel, region)) {
-        return nullptr;
-    }
-    if (!RSMarshallingHelper::Unmarshalling(parcel, clipOp)) {
+    bool success = RSMarshallingHelper::Unmarshalling(parcel, region) &&
+                   RSMarshallingHelper::Unmarshalling(parcel, clipOp);
+    if (!success) {
+        ROSEN_LOGE("ClipRegionOpItem::Unmarshalling failed!");
         return nullptr;
     }
     return new ClipRegionOpItem(region, clipOp);
@@ -834,9 +851,12 @@ OpItem* ClipRegionOpItem::Unmarshalling(Parcel& parcel)
 // TranslateOpItem
 bool TranslateOpItem::Marshalling(Parcel& parcel) const
 {
-    bool success = true;
-    success &= RSMarshallingHelper::Marshalling(parcel, distanceX_);
-    success &= RSMarshallingHelper::Marshalling(parcel, distanceY_);
+    bool success = RSMarshallingHelper::Marshalling(parcel, distanceX_) &&
+                   RSMarshallingHelper::Marshalling(parcel, distanceY_);
+    if (!success) {
+        ROSEN_LOGE("TranslateOpItem::Marshalling failed!");
+        return false;
+    }
     return success;
 }
 
@@ -844,10 +864,10 @@ OpItem* TranslateOpItem::Unmarshalling(Parcel& parcel)
 {
     float distanceX;
     float distanceY;
-    if (!RSMarshallingHelper::Unmarshalling(parcel, distanceX)) {
-        return nullptr;
-    }
-    if (!RSMarshallingHelper::Unmarshalling(parcel, distanceY)) {
+    bool success = RSMarshallingHelper::Unmarshalling(parcel, distanceX) &&
+                   RSMarshallingHelper::Unmarshalling(parcel, distanceY);
+    if (!success) {
+        ROSEN_LOGE("TranslateOpItem::Unmarshalling failed!");
         return nullptr;
     }
     return new TranslateOpItem(distanceX, distanceY);
@@ -856,11 +876,14 @@ OpItem* TranslateOpItem::Unmarshalling(Parcel& parcel)
 // TextBlobOpItem
 bool TextBlobOpItem::Marshalling(Parcel& parcel) const
 {
-    bool success = true;
-    success &= RSMarshallingHelper::Marshalling(parcel, textBlob_);
-    success &= RSMarshallingHelper::Marshalling(parcel, x_);
-    success &= RSMarshallingHelper::Marshalling(parcel, y_);
-    success &= RSMarshallingHelper::Marshalling(parcel, paint_);
+    bool success = RSMarshallingHelper::Marshalling(parcel, textBlob_) &&
+                   RSMarshallingHelper::Marshalling(parcel, x_) &&
+                   RSMarshallingHelper::Marshalling(parcel, y_) &&
+                   RSMarshallingHelper::Marshalling(parcel, paint_);
+    if (!success) {
+        ROSEN_LOGE("TextBlobOpItem::Marshalling failed!");
+        return false;
+    }
     return success;
 }
 
@@ -870,30 +893,28 @@ OpItem* TextBlobOpItem::Unmarshalling(Parcel& parcel)
     float x;
     float y;
     SkPaint paint;
-    if (!RSMarshallingHelper::Unmarshalling(parcel, textBlob)) {
+    bool success = RSMarshallingHelper::Unmarshalling(parcel, textBlob) &&
+                   RSMarshallingHelper::Unmarshalling(parcel, x) &&
+                   RSMarshallingHelper::Unmarshalling(parcel, y) &&
+                   RSMarshallingHelper::Unmarshalling(parcel, paint);
+    if (!success) {
+        ROSEN_LOGE("TextBlobOpItem::Unmarshalling failed!");
         return nullptr;
     }
-    if (!RSMarshallingHelper::Unmarshalling(parcel, x)) {
-        return nullptr;
-    }
-    if (!RSMarshallingHelper::Unmarshalling(parcel, y)) {
-        return nullptr;
-    }
-    if (!RSMarshallingHelper::Unmarshalling(parcel, paint)) {
-        return nullptr;
-    }
-
     return new TextBlobOpItem(textBlob, x, y, paint);
 }
 
 // BitmapOpItem
 bool BitmapOpItem::Marshalling(Parcel& parcel) const
 {
-    bool success = true;
-    success &= RSMarshallingHelper::Marshalling(parcel, bitmapInfo_);
-    success &= RSMarshallingHelper::Marshalling(parcel, left_);
-    success &= RSMarshallingHelper::Marshalling(parcel, top_);
-    success &= RSMarshallingHelper::Marshalling(parcel, paint_);
+    bool success = RSMarshallingHelper::Marshalling(parcel, bitmapInfo_) &&
+                   RSMarshallingHelper::Marshalling(parcel, left_) &&
+                   RSMarshallingHelper::Marshalling(parcel, top_) &&
+                   RSMarshallingHelper::Marshalling(parcel, paint_);
+    if (!success) {
+        ROSEN_LOGE("BitmapOpItem::Marshalling failed!");
+        return false;
+    }
     return success;
 }
 
@@ -903,30 +924,28 @@ OpItem* BitmapOpItem::Unmarshalling(Parcel& parcel)
     float left;
     float top;
     SkPaint paint;
-    if (!RSMarshallingHelper::Unmarshalling(parcel, bitmapInfo)) {
+    bool success = RSMarshallingHelper::Unmarshalling(parcel, bitmapInfo) &&
+                   RSMarshallingHelper::Unmarshalling(parcel, left) &&
+                   RSMarshallingHelper::Unmarshalling(parcel, top) &&
+                   RSMarshallingHelper::Unmarshalling(parcel, paint);
+    if (!success) {
+        ROSEN_LOGE("BitmapOpItem::Unmarshalling failed!");
         return nullptr;
     }
-    if (!RSMarshallingHelper::Unmarshalling(parcel, left)) {
-        return nullptr;
-    }
-    if (!RSMarshallingHelper::Unmarshalling(parcel, top)) {
-        return nullptr;
-    }
-    if (!RSMarshallingHelper::Unmarshalling(parcel, paint)) {
-        return nullptr;
-    }
-
     return new BitmapOpItem(bitmapInfo, left, top, &paint);
 }
 
 // BitmapRectOpItem
 bool BitmapRectOpItem::Marshalling(Parcel& parcel) const
 {
-    bool success = true;
-    success &= RSMarshallingHelper::Marshalling(parcel, bitmapInfo_);
-    success &= RSMarshallingHelper::Marshalling(parcel, rectSrc_);
-    success &= RSMarshallingHelper::Marshalling(parcel, rectDst_);
-    success &= RSMarshallingHelper::Marshalling(parcel, paint_);
+    bool success = RSMarshallingHelper::Marshalling(parcel, bitmapInfo_) &&
+                   RSMarshallingHelper::Marshalling(parcel, rectSrc_) &&
+                   RSMarshallingHelper::Marshalling(parcel, rectDst_) &&
+                   RSMarshallingHelper::Marshalling(parcel, paint_);
+    if (!success) {
+        ROSEN_LOGE("BitmapRectOpItem::Marshalling failed!");
+        return false;
+    }
     return success;
 }
 
@@ -936,30 +955,28 @@ OpItem* BitmapRectOpItem::Unmarshalling(Parcel& parcel)
     SkRect rectSrc;
     SkRect rectDst;
     SkPaint paint;
-    if (!RSMarshallingHelper::Unmarshalling(parcel, bitmapInfo)) {
+    bool success = RSMarshallingHelper::Unmarshalling(parcel, bitmapInfo) &&
+                   RSMarshallingHelper::Unmarshalling(parcel, rectSrc) &&
+                   RSMarshallingHelper::Unmarshalling(parcel, rectDst) &&
+                   RSMarshallingHelper::Unmarshalling(parcel, paint);
+    if (!success) {
+        ROSEN_LOGE("BitmapRectOpItem::Unmarshalling failed!");
         return nullptr;
     }
-    if (!RSMarshallingHelper::Unmarshalling(parcel, rectSrc)) {
-        return nullptr;
-    }
-    if (!RSMarshallingHelper::Unmarshalling(parcel, rectDst)) {
-        return nullptr;
-    }
-    if (!RSMarshallingHelper::Unmarshalling(parcel, paint)) {
-        return nullptr;
-    }
-
     return new BitmapRectOpItem(bitmapInfo, &rectSrc, rectDst, &paint);
 }
 
 // PixelMapOpItem
 bool PixelMapOpItem::Marshalling(Parcel& parcel) const
 {
-    bool success = true;
-    success &= RSMarshallingHelper::Marshalling(parcel, pixelmap_);
-    success &= RSMarshallingHelper::Marshalling(parcel, left_);
-    success &= RSMarshallingHelper::Marshalling(parcel, top_);
-    success &= RSMarshallingHelper::Marshalling(parcel, paint_);
+    bool success = RSMarshallingHelper::Marshalling(parcel, pixelmap_) &&
+                   RSMarshallingHelper::Marshalling(parcel, left_) &&
+                   RSMarshallingHelper::Marshalling(parcel, top_) &&
+                   RSMarshallingHelper::Marshalling(parcel, paint_);
+    if (!success) {
+        ROSEN_LOGE("PixelMapOpItem::Marshalling failed!");
+        return false;
+    }
     return success;
 }
 
@@ -969,30 +986,28 @@ OpItem* PixelMapOpItem::Unmarshalling(Parcel& parcel)
     float left;
     float top;
     SkPaint paint;
-    if (!RSMarshallingHelper::Unmarshalling(parcel, pixelmap)) {
+    bool success = RSMarshallingHelper::Unmarshalling(parcel, pixelmap) &&
+                   RSMarshallingHelper::Unmarshalling(parcel, left) &&
+                   RSMarshallingHelper::Unmarshalling(parcel, top) &&
+                   RSMarshallingHelper::Unmarshalling(parcel, paint);
+    if (!success) {
+        ROSEN_LOGE("PixelMapOpItem::Unmarshalling failed!");
         return nullptr;
     }
-    if (!RSMarshallingHelper::Unmarshalling(parcel, left)) {
-        return nullptr;
-    }
-    if (!RSMarshallingHelper::Unmarshalling(parcel, top)) {
-        return nullptr;
-    }
-    if (!RSMarshallingHelper::Unmarshalling(parcel, paint)) {
-        return nullptr;
-    }
-
     return new PixelMapOpItem(pixelmap, left, top, &paint);
 }
 
 // PixelMapRectOpItem
 bool PixelMapRectOpItem::Marshalling(Parcel& parcel) const
 {
-    bool success = true;
-    success &= RSMarshallingHelper::Marshalling(parcel, pixelmap_);
-    success &= RSMarshallingHelper::Marshalling(parcel, src_);
-    success &= RSMarshallingHelper::Marshalling(parcel, dst_);
-    success &= RSMarshallingHelper::Marshalling(parcel, paint_);
+    bool success = RSMarshallingHelper::Marshalling(parcel, pixelmap_) &&
+                   RSMarshallingHelper::Marshalling(parcel, src_) &&
+                   RSMarshallingHelper::Marshalling(parcel, dst_) &&
+                   RSMarshallingHelper::Marshalling(parcel, paint_);
+    if (!success) {
+        ROSEN_LOGE("PixelMapRectOpItem::Marshalling failed!");
+        return false;
+    }
     return success;
 }
 
@@ -1002,30 +1017,28 @@ OpItem* PixelMapRectOpItem::Unmarshalling(Parcel& parcel)
     SkRect rectSrc;
     SkRect rectDst;
     SkPaint paint;
-    if (!RSMarshallingHelper::Unmarshalling(parcel, pixelmap)) {
+    bool success = RSMarshallingHelper::Unmarshalling(parcel, pixelmap) &&
+                   RSMarshallingHelper::Unmarshalling(parcel, rectSrc) &&
+                   RSMarshallingHelper::Unmarshalling(parcel, rectDst) &&
+                   RSMarshallingHelper::Unmarshalling(parcel, paint);
+    if (!success) {
+        ROSEN_LOGE("PixelMapRectOpItem::Unmarshalling failed!");
         return nullptr;
     }
-    if (!RSMarshallingHelper::Unmarshalling(parcel, rectSrc)) {
-        return nullptr;
-    }
-    if (!RSMarshallingHelper::Unmarshalling(parcel, rectDst)) {
-        return nullptr;
-    }
-    if (!RSMarshallingHelper::Unmarshalling(parcel, paint)) {
-        return nullptr;
-    }
-
     return new PixelMapRectOpItem(pixelmap, rectSrc, rectDst, &paint);
 }
 
 // BitmapNineOpItem
 bool BitmapNineOpItem::Marshalling(Parcel& parcel) const
 {
-    bool success = true;
-    success &= RSMarshallingHelper::Marshalling(parcel, bitmapInfo_);
-    success &= RSMarshallingHelper::Marshalling(parcel, center_);
-    success &= RSMarshallingHelper::Marshalling(parcel, rectDst_);
-    success &= RSMarshallingHelper::Marshalling(parcel, paint_);
+    bool success = RSMarshallingHelper::Marshalling(parcel, bitmapInfo_) &&
+                   RSMarshallingHelper::Marshalling(parcel, center_) &&
+                   RSMarshallingHelper::Marshalling(parcel, rectDst_) &&
+                   RSMarshallingHelper::Marshalling(parcel, paint_);
+    if (!success) {
+        ROSEN_LOGE("BitmapNineOpItem::Marshalling failed!");
+        return false;
+    }
     return success;
 }
 
@@ -1035,28 +1048,26 @@ OpItem* BitmapNineOpItem::Unmarshalling(Parcel& parcel)
     SkIRect center;
     SkRect rectDst;
     SkPaint paint;
-    if (!RSMarshallingHelper::Unmarshalling(parcel, bitmapInfo)) {
+    bool success = RSMarshallingHelper::Unmarshalling(parcel, bitmapInfo) &&
+                   RSMarshallingHelper::Unmarshalling(parcel, center) &&
+                   RSMarshallingHelper::Unmarshalling(parcel, rectDst) &&
+                   RSMarshallingHelper::Unmarshalling(parcel, paint);
+    if (!success) {
+        ROSEN_LOGE("BitmapNineOpItem::Unmarshalling failed!");
         return nullptr;
     }
-    if (!RSMarshallingHelper::Unmarshalling(parcel, center)) {
-        return nullptr;
-    }
-    if (!RSMarshallingHelper::Unmarshalling(parcel, rectDst)) {
-        return nullptr;
-    }
-    if (!RSMarshallingHelper::Unmarshalling(parcel, paint)) {
-        return nullptr;
-    }
-
     return new BitmapNineOpItem(bitmapInfo, center, rectDst, &paint);
 }
 
 // AdaptiveRRectOpItem
 bool AdaptiveRRectOpItem::Marshalling(Parcel& parcel) const
 {
-    bool success = true;
-    success &= RSMarshallingHelper::Marshalling(parcel, radius_);
-    success &= RSMarshallingHelper::Marshalling(parcel, paint_);
+    bool success = RSMarshallingHelper::Marshalling(parcel, radius_) &&
+                   RSMarshallingHelper::Marshalling(parcel, paint_);
+    if (!success) {
+        ROSEN_LOGE("AdaptiveRRectOpItem::Marshalling failed!");
+        return false;
+    }
     return success;
 }
 
@@ -1064,21 +1075,23 @@ OpItem* AdaptiveRRectOpItem::Unmarshalling(Parcel& parcel)
 {
     float radius;
     SkPaint paint;
-    if (!RSMarshallingHelper::Unmarshalling(parcel, radius)) {
+    bool success = RSMarshallingHelper::Unmarshalling(parcel, radius) &&
+                   RSMarshallingHelper::Unmarshalling(parcel, paint);
+    if (!success) {
+        ROSEN_LOGE("AdaptiveRRectOpItem::Unmarshalling failed!");
         return nullptr;
     }
-    if (!RSMarshallingHelper::Unmarshalling(parcel, paint)) {
-        return nullptr;
-    }
-
     return new AdaptiveRRectOpItem(radius, paint);
 }
 
 // ClipAdaptiveRRectOpItem
 bool ClipAdaptiveRRectOpItem::Marshalling(Parcel& parcel) const
 {
-    bool success = true;
-    success &= RSMarshallingHelper::Marshalling(parcel, radius_);
+    bool success = RSMarshallingHelper::Marshalling(parcel, radius_);
+    if (!success) {
+        ROSEN_LOGE("ClipAdaptiveRRectOpItem::Marshalling failed!");
+        return false;
+    }
     return success;
 }
 
@@ -1087,6 +1100,7 @@ OpItem* ClipAdaptiveRRectOpItem::Unmarshalling(Parcel& parcel)
     SkVector radius[CORNER_SIZE];
     for (auto i = 0; i < CORNER_SIZE; i++) {
         if (!RSMarshallingHelper::Unmarshalling(parcel, radius[i])) {
+            ROSEN_LOGE("ClipAdaptiveRRectOpItem::Unmarshalling failed!");
             return nullptr;
         }
     }
@@ -1096,9 +1110,12 @@ OpItem* ClipAdaptiveRRectOpItem::Unmarshalling(Parcel& parcel)
 // ClipOutsetRectOpItem
 bool ClipOutsetRectOpItem::Marshalling(Parcel& parcel) const
 {
-    bool success = true;
-    success &= RSMarshallingHelper::Marshalling(parcel, dx_);
-    success &= RSMarshallingHelper::Marshalling(parcel, dy_);
+    bool success = RSMarshallingHelper::Marshalling(parcel, dx_) &&
+                   RSMarshallingHelper::Marshalling(parcel, dy_);
+    if (!success) {
+        ROSEN_LOGE("ClipOutsetRectOpItem::Marshalling failed!");
+        return false;
+    }
     return success;
 }
 
@@ -1106,10 +1123,10 @@ OpItem* ClipOutsetRectOpItem::Unmarshalling(Parcel& parcel)
 {
     float dx;
     float dy;
-    if (!RSMarshallingHelper::Unmarshalling(parcel, dx)) {
-        return nullptr;
-    }
-    if (!RSMarshallingHelper::Unmarshalling(parcel, dy)) {
+    bool success = RSMarshallingHelper::Unmarshalling(parcel, dx) &&
+                   RSMarshallingHelper::Unmarshalling(parcel, dy);
+    if (!success) {
+        ROSEN_LOGE("ClipOutsetRectOpItem::Unmarshalling failed!");
         return nullptr;
     }
     return new ClipOutsetRectOpItem(dx, dy);
@@ -1118,9 +1135,12 @@ OpItem* ClipOutsetRectOpItem::Unmarshalling(Parcel& parcel)
 // PathOpItem
 bool PathOpItem::Marshalling(Parcel& parcel) const
 {
-    bool success = true;
-    success &= RSMarshallingHelper::Marshalling(parcel, path_);
-    success &= RSMarshallingHelper::Marshalling(parcel, paint_);
+    bool success = RSMarshallingHelper::Marshalling(parcel, path_) &&
+                   RSMarshallingHelper::Marshalling(parcel, paint_);
+    if (!success) {
+        ROSEN_LOGE("PathOpItem::Marshalling failed!");
+        return false;
+    }
     return success;
 }
 
@@ -1128,23 +1148,25 @@ OpItem* PathOpItem::Unmarshalling(Parcel& parcel)
 {
     SkPath path;
     SkPaint paint;
-    if (!RSMarshallingHelper::Unmarshalling(parcel, path)) {
+    bool success = RSMarshallingHelper::Unmarshalling(parcel, path) &&
+                   RSMarshallingHelper::Unmarshalling(parcel, paint);
+    if (!success) {
+        ROSEN_LOGE("PathOpItem::Unmarshalling failed!");
         return nullptr;
     }
-    if (!RSMarshallingHelper::Unmarshalling(parcel, paint)) {
-        return nullptr;
-    }
-
     return new PathOpItem(path, paint);
 }
 
 // ClipPathOpItem
 bool ClipPathOpItem::Marshalling(Parcel& parcel) const
 {
-    bool success = true;
-    success &= RSMarshallingHelper::Marshalling(parcel, path_);
-    success &= RSMarshallingHelper::Marshalling(parcel, clipOp_);
-    success &= RSMarshallingHelper::Marshalling(parcel, doAA_);
+    bool success = RSMarshallingHelper::Marshalling(parcel, path_) &&
+                   RSMarshallingHelper::Marshalling(parcel, clipOp_) &&
+                   RSMarshallingHelper::Marshalling(parcel, doAA_);
+    if (!success) {
+        ROSEN_LOGE("ClipPathOpItem::Marshalling failed!");
+        return false;
+    }
     return success;
 }
 
@@ -1153,68 +1175,76 @@ OpItem* ClipPathOpItem::Unmarshalling(Parcel& parcel)
     SkPath path;
     SkClipOp clipOp;
     bool doAA;
-    if (!RSMarshallingHelper::Unmarshalling(parcel, path)) {
+    bool success = RSMarshallingHelper::Unmarshalling(parcel, path) &&
+                   RSMarshallingHelper::Unmarshalling(parcel, clipOp) &&
+                   RSMarshallingHelper::Unmarshalling(parcel, doAA);
+    if (!success) {
+        ROSEN_LOGE("ClipPathOpItem::Unmarshalling failed!");
         return nullptr;
     }
-    if (!RSMarshallingHelper::Unmarshalling(parcel, clipOp)) {
-        return nullptr;
-    }
-    if (!RSMarshallingHelper::Unmarshalling(parcel, doAA)) {
-        return nullptr;
-    }
-
     return new ClipPathOpItem(path, clipOp, doAA);
 }
 
 // PaintOpItem
 bool PaintOpItem::Marshalling(Parcel& parcel) const
 {
-    bool success = true;
-    success &= RSMarshallingHelper::Marshalling(parcel, paint_);
+    bool success = RSMarshallingHelper::Marshalling(parcel, paint_);
+    if (!success) {
+        ROSEN_LOGE("PaintOpItem::Marshalling failed!");
+        return false;
+    }
     return success;
 }
 
 OpItem* PaintOpItem::Unmarshalling(Parcel& parcel)
 {
     SkPaint paint;
-    if (!RSMarshallingHelper::Unmarshalling(parcel, paint)) {
+    bool success = RSMarshallingHelper::Unmarshalling(parcel, paint);
+    if (!success) {
+        ROSEN_LOGE("PaintOpItem::Unmarshalling failed!");
         return nullptr;
     }
-
     return new PaintOpItem(paint);
 }
 
 // ConcatOpItem
 bool ConcatOpItem::Marshalling(Parcel& parcel) const
 {
-    bool success = true;
-    success &= RSMarshallingHelper::Marshalling(parcel, matrix_);
+    bool success = RSMarshallingHelper::Marshalling(parcel, matrix_);
+    if (!success) {
+        ROSEN_LOGE("ConcatOpItem::Marshalling failed!");
+        return false;
+    }
     return success;
 }
 
 OpItem* ConcatOpItem::Unmarshalling(Parcel& parcel)
 {
     SkMatrix matrix;
-    if (!RSMarshallingHelper::Unmarshalling(parcel, matrix)) {
+    bool success = RSMarshallingHelper::Unmarshalling(parcel, matrix);
+    if (!success) {
+        ROSEN_LOGE("ConcatOpItem::Unmarshalling failed!");
         return nullptr;
     }
-
     return new ConcatOpItem(matrix);
 }
 
 // SaveLayerOpItem
 bool SaveLayerOpItem::Marshalling(Parcel& parcel) const
 {
-    bool success = true;
-    success &= parcel.WriteBool(rectPtr_ != nullptr);
+    bool success = parcel.WriteBool(rectPtr_ != nullptr);
     if (rectPtr_) {
         success &= RSMarshallingHelper::Marshalling(parcel, rect_);
     }
-    success &= RSMarshallingHelper::Marshalling(parcel, backdrop_);
-    success &= RSMarshallingHelper::Marshalling(parcel, mask_);
-    success &= RSMarshallingHelper::Marshalling(parcel, matrix_);
-    success &= RSMarshallingHelper::Marshalling(parcel, flags_);
-    success &= RSMarshallingHelper::Marshalling(parcel, paint_);
+    success &= RSMarshallingHelper::Marshalling(parcel, backdrop_) &&
+               RSMarshallingHelper::Marshalling(parcel, mask_) &&
+               RSMarshallingHelper::Marshalling(parcel, matrix_) &&
+               RSMarshallingHelper::Marshalling(parcel, flags_) &&
+               RSMarshallingHelper::Marshalling(parcel, paint_);
+    if (!success) {
+        ROSEN_LOGE("SaveLayerOpItem::Marshalling failed!");
+        return false;
+    }
     return success;
 }
 
@@ -1228,41 +1258,33 @@ OpItem* SaveLayerOpItem::Unmarshalling(Parcel& parcel)
     SkMatrix matrix;
     SkCanvas::SaveLayerFlags flags;
     SkPaint paint;
-    if (!parcel.ReadBool(isRectExist)) {
-        return nullptr;
-    }
+    bool success = parcel.ReadBool(isRectExist);
     if (isRectExist) {
-        if (!RSMarshallingHelper::Unmarshalling(parcel, rect)) {
-            return nullptr;
-        }
+        success &= RSMarshallingHelper::Unmarshalling(parcel, rect);
         rectPtr = &rect;
     }
-    if (!RSMarshallingHelper::Unmarshalling(parcel, backdrop)) {
-        return nullptr;
-    }
-    if (!RSMarshallingHelper::Unmarshalling(parcel, mask)) {
-        return nullptr;
-    }
-    if (!RSMarshallingHelper::Unmarshalling(parcel, matrix)) {
-        return nullptr;
-    }
-    if (!RSMarshallingHelper::Unmarshalling(parcel, flags)) {
-        return nullptr;
-    }
-    if (!RSMarshallingHelper::Unmarshalling(parcel, paint)) {
+    success &= RSMarshallingHelper::Unmarshalling(parcel, backdrop) &&
+               RSMarshallingHelper::Unmarshalling(parcel, mask) &&
+               RSMarshallingHelper::Unmarshalling(parcel, matrix) &&
+               RSMarshallingHelper::Unmarshalling(parcel, flags) &&
+               RSMarshallingHelper::Unmarshalling(parcel, paint);
+    if (!success) {
+        ROSEN_LOGE("SaveLayerOpItem::Unmarshalling failed!");
         return nullptr;
     }
     SkCanvas::SaveLayerRec rec = { rectPtr, &paint, backdrop.get(), mask.get(), &matrix, flags };
-
     return new SaveLayerOpItem(rec);
 }
 
 // DrawableOpItem
 bool DrawableOpItem::Marshalling(Parcel& parcel) const
 {
-    bool success = true;
-    success &= RSMarshallingHelper::Marshalling(parcel, drawable_);
-    success &= RSMarshallingHelper::Marshalling(parcel, matrix_);
+    bool success = RSMarshallingHelper::Marshalling(parcel, drawable_) &&
+                   RSMarshallingHelper::Marshalling(parcel, matrix_);
+    if (!success) {
+        ROSEN_LOGE("DrawableOpItem::Marshalling failed!");
+        return false;
+    }
     return success;
 }
 
@@ -1270,23 +1292,25 @@ OpItem* DrawableOpItem::Unmarshalling(Parcel& parcel)
 {
     sk_sp<SkDrawable> drawable;
     SkMatrix matrix;
-    if (!RSMarshallingHelper::Unmarshalling(parcel, drawable)) {
+    bool success = RSMarshallingHelper::Unmarshalling(parcel, drawable) &&
+                   RSMarshallingHelper::Unmarshalling(parcel, matrix);
+    if (!success) {
+        ROSEN_LOGE("DrawableOpItem::Unmarshalling failed!");
         return nullptr;
     }
-    if (!RSMarshallingHelper::Unmarshalling(parcel, matrix)) {
-        return nullptr;
-    }
-
     return new DrawableOpItem(drawable.release(), &matrix);
 }
 
 // PictureOpItem
 bool PictureOpItem::Marshalling(Parcel& parcel) const
 {
-    bool success = true;
-    success &= RSMarshallingHelper::Marshalling(parcel, picture_);
-    success &= RSMarshallingHelper::Marshalling(parcel, matrix_);
-    success &= RSMarshallingHelper::Marshalling(parcel, paint_);
+    bool success = RSMarshallingHelper::Marshalling(parcel, picture_) &&
+                   RSMarshallingHelper::Marshalling(parcel, matrix_) &&
+                   RSMarshallingHelper::Marshalling(parcel, paint_);
+    if (!success) {
+        ROSEN_LOGE("PictureOpItem::Marshalling failed!");
+        return false;
+    }
     return success;
 }
 
@@ -1295,27 +1319,27 @@ OpItem* PictureOpItem::Unmarshalling(Parcel& parcel)
     sk_sp<SkPicture> picture;
     SkMatrix matrix;
     SkPaint paint;
-    if (!RSMarshallingHelper::Unmarshalling(parcel, picture)) {
+    bool success = RSMarshallingHelper::Unmarshalling(parcel, picture) &&
+                   RSMarshallingHelper::Unmarshalling(parcel, matrix) &&
+                   RSMarshallingHelper::Unmarshalling(parcel, paint);
+    if (!success) {
+        ROSEN_LOGE("PictureOpItem::Unmarshalling failed!");
         return nullptr;
     }
-    if (!RSMarshallingHelper::Unmarshalling(parcel, matrix)) {
-        return nullptr;
-    }
-    if (!RSMarshallingHelper::Unmarshalling(parcel, paint)) {
-        return nullptr;
-    }
-
     return new PictureOpItem(picture, &matrix, &paint);
 }
 
 // PointsOpItem
 bool PointsOpItem::Marshalling(Parcel& parcel) const
 {
-    bool success = true;
-    success &= RSMarshallingHelper::Marshalling(parcel, mode_);
-    success &= RSMarshallingHelper::Marshalling(parcel, count_);
-    success &= RSMarshallingHelper::MarshallingArray(parcel, processedPoints_, count_);
-    success &= RSMarshallingHelper::Marshalling(parcel, paint_);
+    bool success = RSMarshallingHelper::Marshalling(parcel, mode_) &&
+                   RSMarshallingHelper::Marshalling(parcel, count_) &&
+                   RSMarshallingHelper::MarshallingArray(parcel, processedPoints_, count_) &&
+                   RSMarshallingHelper::Marshalling(parcel, paint_);
+    if (!success) {
+        ROSEN_LOGE("PointsOpItem::Marshalling failed!");
+        return false;
+    }
     return success;
 }
 
@@ -1325,31 +1349,29 @@ OpItem* PointsOpItem::Unmarshalling(Parcel& parcel)
     int count;
     const SkPoint* processedPoints = nullptr;
     SkPaint paint;
-    if (!RSMarshallingHelper::Unmarshalling(parcel, mode)) {
+    bool success = RSMarshallingHelper::Unmarshalling(parcel, mode) &&
+                   RSMarshallingHelper::Unmarshalling(parcel, count) &&
+                   RSMarshallingHelper::UnmarshallingArray(parcel, processedPoints, count) &&
+                   RSMarshallingHelper::Unmarshalling(parcel, paint);
+    if (!success) {
+        ROSEN_LOGE("PointsOpItem::Unmarshalling failed!");
         return nullptr;
     }
-    if (!RSMarshallingHelper::Unmarshalling(parcel, count)) {
-        return nullptr;
-    }
-    if (!RSMarshallingHelper::UnmarshallingArray(parcel, processedPoints, count)) {
-        return nullptr;
-    }
-    if (!RSMarshallingHelper::Unmarshalling(parcel, paint)) {
-        return nullptr;
-    }
-
     return new PointsOpItem(mode, count, processedPoints, paint);
 }
 
 // VerticesOpItem
 bool VerticesOpItem::Marshalling(Parcel& parcel) const
 {
-    bool success = true;
-    success &= RSMarshallingHelper::Marshalling(parcel, vertices_);
-    success &= RSMarshallingHelper::Marshalling(parcel, boneCount_);
-    success &= RSMarshallingHelper::MarshallingArray(parcel, bones_, boneCount_);
-    success &= RSMarshallingHelper::Marshalling(parcel, mode_);
-    success &= RSMarshallingHelper::Marshalling(parcel, paint_);
+    bool success = RSMarshallingHelper::Marshalling(parcel, vertices_) &&
+                   RSMarshallingHelper::Marshalling(parcel, boneCount_) &&
+                   RSMarshallingHelper::MarshallingArray(parcel, bones_, boneCount_) &&
+                   RSMarshallingHelper::Marshalling(parcel, mode_) &&
+                   RSMarshallingHelper::Marshalling(parcel, paint_);
+    if (!success) {
+        ROSEN_LOGE("VerticesOpItem::Marshalling failed!");
+        return false;
+    }
     return success;
 }
 
@@ -1360,31 +1382,27 @@ OpItem* VerticesOpItem::Unmarshalling(Parcel& parcel)
     int boneCount;
     SkBlendMode mode;
     SkPaint paint;
-    if (!RSMarshallingHelper::Unmarshalling(parcel, vertices)) {
+    bool success = RSMarshallingHelper::Unmarshalling(parcel, vertices) &&
+                   RSMarshallingHelper::Unmarshalling(parcel, boneCount) &&
+                   RSMarshallingHelper::UnmarshallingArray(parcel, bones, boneCount) &&
+                   RSMarshallingHelper::Unmarshalling(parcel, mode) &&
+                   RSMarshallingHelper::Unmarshalling(parcel, paint);
+    if (!success) {
+        ROSEN_LOGE("VerticesOpItem::Unmarshalling failed!");
         return nullptr;
     }
-    if (!RSMarshallingHelper::Unmarshalling(parcel, boneCount)) {
-        return nullptr;
-    }
-    if (!RSMarshallingHelper::UnmarshallingArray(parcel, bones, boneCount)) {
-        return nullptr;
-    }
-    if (!RSMarshallingHelper::Unmarshalling(parcel, mode)) {
-        return nullptr;
-    }
-    if (!RSMarshallingHelper::Unmarshalling(parcel, paint)) {
-        return nullptr;
-    }
-
     return new VerticesOpItem(vertices.get(), bones, boneCount, mode, paint);
 }
 
 // ShadowRecOpItem
 bool ShadowRecOpItem::Marshalling(Parcel& parcel) const
 {
-    bool success = true;
-    success &= RSMarshallingHelper::Marshalling(parcel, path_);
-    success &= RSMarshallingHelper::Marshalling(parcel, rec_);
+    bool success = RSMarshallingHelper::Marshalling(parcel, path_) &&
+                   RSMarshallingHelper::Marshalling(parcel, rec_);
+    if (!success) {
+        ROSEN_LOGE("ShadowRecOpItem::Marshalling failed!");
+        return false;
+    }
     return success;
 }
 
@@ -1392,10 +1410,10 @@ OpItem* ShadowRecOpItem::Unmarshalling(Parcel& parcel)
 {
     SkPath path;
     SkDrawShadowRec rec;
-    if (!RSMarshallingHelper::Unmarshalling(parcel, path)) {
-        return nullptr;
-    }
-    if (!RSMarshallingHelper::Unmarshalling(parcel, rec)) {
+    bool success = RSMarshallingHelper::Unmarshalling(parcel, path) &&
+                   RSMarshallingHelper::Unmarshalling(parcel, rec);
+    if (!success) {
+        ROSEN_LOGE("ShadowRecOpItem::Unmarshalling failed!");
         return nullptr;
     }
     return new ShadowRecOpItem(path, rec);
@@ -1404,15 +1422,20 @@ OpItem* ShadowRecOpItem::Unmarshalling(Parcel& parcel)
 // MultiplyAlphaOpItem
 bool MultiplyAlphaOpItem::Marshalling(Parcel& parcel) const
 {
-    bool success = true;
-    success &= RSMarshallingHelper::Marshalling(parcel, alpha_);
+    bool success = RSMarshallingHelper::Marshalling(parcel, alpha_);
+    if (!success) {
+        ROSEN_LOGE("MultiplyAlphaOpItem::Marshalling failed!");
+        return false;
+    }
     return success;
 }
 
 OpItem* MultiplyAlphaOpItem::Unmarshalling(Parcel& parcel)
 {
     float alpha;
-    if (!RSMarshallingHelper::Unmarshalling(parcel, alpha)) {
+    bool success = RSMarshallingHelper::Unmarshalling(parcel, alpha);
+    if (!success) {
+        ROSEN_LOGE("MultiplyAlphaOpItem::Unmarshalling failed!");
         return nullptr;
     }
     return new MultiplyAlphaOpItem(alpha);
