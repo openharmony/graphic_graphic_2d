@@ -94,6 +94,7 @@ private:
     bool doAnimate_ = false;
     bool isPartialRenderEnabled_ = false;
     bool isOpDropped_ = false;
+    PartialRenderType partialRenderType_;
 };
 } // namespace Rosen
 } // namespace OHOS
