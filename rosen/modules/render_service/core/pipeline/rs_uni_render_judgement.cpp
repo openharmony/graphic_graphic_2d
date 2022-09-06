@@ -66,7 +66,11 @@ void RSUniRenderJudgement::InitUniRenderWithConfigFile()
     std::string line;
     // first line, init uniRenderEnabledType_
     if (!configFile.is_open() || !SafeGetLine(configFile, line) || line.empty()) { // default case
+#ifdef RS_ENABLE_UNI_RENDER
+        uniRenderEnabledType_ = UniRenderEnabledType::UNI_RENDER_DYNAMIC_SWITCH;
+#else
         uniRenderEnabledType_ = UniRenderEnabledType::UNI_RENDER_DISABLED;
+#endif
     } else if (line == UNI_RENDER_DISABLED_TAG) {
         uniRenderEnabledType_ = UniRenderEnabledType::UNI_RENDER_DISABLED;
     } else if (line == UNI_RENDER_ENABLED_FOR_ALL_TAG) {
