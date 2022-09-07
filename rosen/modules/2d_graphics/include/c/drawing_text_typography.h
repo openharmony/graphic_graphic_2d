@@ -37,6 +37,7 @@
  * @version 1.0
  */
 
+#include "cstddef"
 #include "drawing_canvas.h"
 #include "drawing_color.h"
 #include "drawing_text_declaration.h"
@@ -432,6 +433,83 @@ void OH_Drawing_TypographyLayout(OH_Drawing_Typography*, double /* maxWidth */);
  */
 void OH_Drawing_TypographyPaint(OH_Drawing_Typography*, OH_Drawing_Canvas*,
     double /* potisionX */, double /* potisionY */);
+
+/**
+ * @brief Gets the max width.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Typography Indicates the pointer to an <b>OH_Drawing_Typography</b> object.
+ * @return Returns the max width.
+ * @since 9
+ * @version 1.1
+ */
+double OH_Drawing_TypographyGetMaxWidth(OH_Drawing_Typography*);
+
+/**
+ * @brief Gets the height.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Typography Indicates the pointer to an <b>OH_Drawing_Typography</b> object.
+ * @return Returns the height.
+ * @since 9
+ * @version 1.1
+ */
+double OH_Drawing_TypographyGetHeight(OH_Drawing_Typography*);
+
+/**
+ * @brief Gets the longest line.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Typography Indicates the pointer to an <b>OH_Drawing_Typography</b> object.
+ * @return Returns the length of the longest line.
+ * @since 9
+ * @version 1.1
+ */
+double OH_Drawing_TypographyGetLongestLine(OH_Drawing_Typography*);
+
+/**
+ * @brief Gets the min intrinsic width.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Typography Indicates the pointer to an <b>OH_Drawing_Typography</b> object.
+ * @return Returns the min intrinsic width.
+ * @since 9
+ * @version 1.1
+ */
+double OH_Drawing_TypographyGetMinIntrinsicWidth(OH_Drawing_Typography*);
+
+/**
+ * @brief Gets the max intrinsic width.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Typography Indicates the pointer to an <b>OH_Drawing_Typography</b> object.
+ * @return Returns the max intrinsic width.
+ * @since 9
+ * @version 1.1
+ */
+double OH_Drawing_TypographyGetMaxIntrinsicWidth(OH_Drawing_Typography*);
+
+/**
+ * @brief Gets the alphabetic baseline.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Typography Indicates the pointer to an <b>OH_Drawing_Typography</b> object.
+ * @return Returns the alphabetic baseline.
+ * @since 9
+ * @version 1.1
+ */
+double OH_Drawing_TypographyGetAlphabeticBaseline(OH_Drawing_Typography*);
+
+/**
+ * @brief Gets the ideographic baseline.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Typography Indicates the pointer to an <b>OH_Drawing_Typography</b> object.
+ * @return Returns the ideographic baseline.
+ * @since 9
+ * @version 1.1
+ */
+double OH_Drawing_TypographyGetIdeographicBaseline(OH_Drawing_Typography*);
 
 #ifdef __cplusplus
 }
