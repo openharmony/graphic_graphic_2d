@@ -70,7 +70,7 @@ public:
     static bool UpdateQosVsyncEnabled()
     {
         return _s_qosVsyncFuncLoaded &&
-            (std::atoi((system::GetParameter("rosen.qos_vsync.enabled", "0")).c_str()) != 0)
+            (std::atoi((system::GetParameter("rosen.qos_vsync.enabled", "0")).c_str()) != 0);
     }
     static inline bool _s_qosVsyncFuncLoaded = false;
     static inline void* _s_createRSQosService = nullptr;

@@ -642,7 +642,7 @@ void RSMainThread::CallbackToQOS(std::map<uint32_t, bool>& pidVisMap)
     if (!RSInnovation::UpdateQosVsyncEnabled()) {
         if (qosPidCal_) {
             qosPidCal_ = false;
-            RSQosThread::GetInstance()->ResetQosPid(pidVisMap);
+            RSQosThread::GetInstance()->ResetQosPid();
         }
         return;
     }
