@@ -125,13 +125,13 @@ void RSSurfaceRenderNode::PrepareRenderAfterChildren(RSPaintFilterCanvas& canvas
 void RSSurfaceRenderNode::CollectSurface(
     const std::shared_ptr<RSBaseRenderNode>& node, std::vector<RSBaseRenderNode::SharedPtr>& vec, bool isUniRender)
 {
-    if (RSOcclusionConfig::GetInstance().IsStartingWindow(GetName())) {
+    if (nodeType_ == RSSurfaceNodeType::STARTING_WINDOW_NODE) {
         if (isUniRender) {
             vec.emplace_back(shared_from_this());
         }
         return;
     }
-    if (RSOcclusionConfig::GetInstance().IsLeashWindow(GetName())) {
+    if (nodeType_ == RSSurfaceNodeType::DEFAULT) {
         for (auto& child : node->GetSortedChildren()) {
             child->CollectSurface(child, vec, isUniRender);
         }
@@ -402,5 +402,37 @@ bool RSSurfaceRenderNode::NeedSetCallbackForRenderThreadRefresh()
 {
     return (callbackForRenderThreadRefresh_ == nullptr);
 }
+
+void RSSurfaceRenderNode::SetVisibleRegionRecursive(const Occlusion::Region& region,
+                                                    VisibleData& visibleVec,
+                                                    std::map<uint32_t, bool>& pidVisMap)
+{
+    visibleRegion_ = region;
+    bool vis = region.GetSize() > 0;
+    if (vis) {
+        visibleVec.emplace_back(GetId());
+    }
+
+    // collect visible changed pid
+    if (qosPidCal_ && GetType() == RSRenderNodeType::SURFACE_NODE) {
+        uint32_t tmpPid = (GetId() >> 32) & 0xFFFFFFFF;
+        if (pidVisMap.find(tmpPid) != pidVisMap.end()) {
+            pidVisMap[tmpPid] |= vis;
+        } else {
+            pidVisMap[tmpPid] = vis;
+        }
+    }
+
+    SetOcclusionVisible(vis);
+    for (auto& child : GetSortedChildren()) {
+        if (child->GetType() == RSRenderNodeType::SURFACE_NODE) {
+            auto surface = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(child);
+            if (surface == nullptr) {
+                continue;
+            }
+            surface->SetVisibleRegionRecursive(region, visibleVec, pidVisMap);
+        }
+    }
+    }
 } // namespace Rosen
 } // namespace OHOS

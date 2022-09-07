@@ -213,6 +213,7 @@ void RSMainThread::ProcessCommand()
         return;
     }
     CheckBufferAvailableIfNeed();
+    context_.currentTimestamp_ = timestamp_;
     // dynamic switch
     if (useUniVisitor_) {
         ProcessCommandForDividedRender();
@@ -264,6 +265,7 @@ void RSMainThread::ProcessCommandForUniRender()
     for (auto& rsTransactionElem: transactionDataEffective) {
         for (auto& rsTransaction: rsTransactionElem.second) {
             if (rsTransaction) {
+                context_.transactionTimestamp_ = rsTransaction->GetTimestamp();
                 rsTransaction->Process(context_);
             }
         }
@@ -277,15 +279,13 @@ void RSMainThread::ProcessCommandForDividedRender()
     {
         std::lock_guard<std::mutex> lock(transitionDataMutex_);
         if (!pendingEffectiveCommands_.empty()) {
-            effectiveCommands_.insert(effectiveCommands_.end(),
-                std::make_move_iterator(pendingEffectiveCommands_.begin()),
-                std::make_move_iterator(pendingEffectiveCommands_.end()));
-            pendingEffectiveCommands_.clear();
+            effectiveCommands_.swap(pendingEffectiveCommands_);
         }
         if (!waitingBufferAvailable_ && !followVisitorCommands_.empty()) {
-            effectiveCommands_.insert(effectiveCommands_.end(),
-                std::make_move_iterator(followVisitorCommands_.begin()),
-                std::make_move_iterator(followVisitorCommands_.end()));
+            for (auto& [timestamp, commands] : followVisitorCommands_) {
+                effectiveCommands_[timestamp].insert(effectiveCommands_[timestamp].end(),
+                    std::make_move_iterator(commands.begin()), std::make_move_iterator(commands.end()));
+            }
             followVisitorCommands_.clear();
         }
         for (auto& [surfaceNodeId, commandMap] : cachedCommands_) {
@@ -303,21 +303,18 @@ void RSMainThread::ProcessCommandForDividedRender()
             }
 
             for (auto it = commandMap.begin(); it != effectIter; it++) {
-                effectiveCommands_.insert(effectiveCommands_.end(), std::make_move_iterator(it->second.begin()),
-                    std::make_move_iterator(it->second.end()));
+                effectiveCommands_[it->first].insert(effectiveCommands_[it->first].end(),
+                    std::make_move_iterator(it->second.begin()), std::make_move_iterator(it->second.end()));
             }
             commandMap.erase(commandMap.begin(), effectIter);
-
-            for (auto it = commandMap.begin(); it != commandMap.end(); it++) {
-                RS_LOGD("RSMainThread::ProcessCommand CacheCommand NodeId = %" PRIu64 ", timestamp = %" PRIu64
-                        ", commandSize = %zu",
-                    surfaceNodeId, it->first, it->second.size());
-            }
         }
     }
-    for (auto& command : effectiveCommands_) {
-        if (command) {
-            command->Process(context_);
+    for (auto& [timestamp, commands] : effectiveCommands_) {
+        context_.transactionTimestamp_ = timestamp;
+        for (auto& command : commands) {
+            if (command) {
+                command->Process(context_);
+            }
         }
     }
     effectiveCommands_.clear();
@@ -562,11 +559,10 @@ void RSMainThread::CalcOcclusion()
             if (surface == nullptr) {
                 continue;
             }
-            if (surface->GetRenderProperties().GetZorderChanged() || surface->GetDstRectChanged() ||
+            if (surface->GetZorderChanged() || surface->GetDstRectChanged() ||
                 surface->GetAbilityBgAlphaChanged()) {
                 winDirty = true;
             }
-            surface->GetMutableRenderProperties().CleanZorderChanged();
             surface->CleanDstRectChanged();
             surface->CleanAbilityBgAlphaChanged();
         }
@@ -801,32 +797,30 @@ void RSMainThread::RecvRSTransactionData(std::unique_ptr<RSTransactionData>& rsT
 void RSMainThread::ClassifyRSTransactionData(std::unique_ptr<RSTransactionData>& rsTransactionData)
 {
     const auto& nodeMap = context_.GetNodeMap();
-    {
-        std::lock_guard<std::mutex> lock(transitionDataMutex_);
-        std::unique_ptr<RSTransactionData> transactionData(std::move(rsTransactionData));
-        auto timestamp = transactionData->GetTimestamp();
-        RS_LOGD("RSMainThread::RecvRSTransactionData timestamp = %" PRIu64, timestamp);
-        for (auto& [nodeId, followType, command] : transactionData->GetPayload()) {
-            if (nodeId == 0 || followType == FollowType::NONE) {
-                pendingEffectiveCommands_.emplace_back(std::move(command));
-                continue;
-            }
-            auto node = nodeMap.GetRenderNode(nodeId);
-            if (waitingBufferAvailable_ && node && followType == FollowType::FOLLOW_VISITOR) {
-                followVisitorCommands_.emplace_back(std::move(command));
-                continue;
-            }
-            if (node && followType == FollowType::FOLLOW_TO_PARENT) {
-                auto parentNode = node->GetParent().lock();
-                if (parentNode) {
-                    nodeId = parentNode->GetId();
-                } else {
-                    pendingEffectiveCommands_.emplace_back(std::move(command));
-                    continue;
-                }
-            }
-            cachedCommands_[nodeId][timestamp].emplace_back(std::move(command));
+    std::lock_guard<std::mutex> lock(transitionDataMutex_);
+    std::unique_ptr<RSTransactionData> transactionData(std::move(rsTransactionData));
+    auto timestamp = transactionData->GetTimestamp();
+    RS_LOGD("RSMainThread::RecvRSTransactionData timestamp = %" PRIu64, timestamp);
+    for (auto& [nodeId, followType, command] : transactionData->GetPayload()) {
+        if (nodeId == 0 || followType == FollowType::NONE) {
+            pendingEffectiveCommands_[timestamp].emplace_back(std::move(command));
+            continue;
         }
+        auto node = nodeMap.GetRenderNode(nodeId);
+        if (waitingBufferAvailable_ && node && followType == FollowType::FOLLOW_VISITOR) {
+            followVisitorCommands_[timestamp].emplace_back(std::move(command));
+            continue;
+        }
+        if (node && followType == FollowType::FOLLOW_TO_PARENT) {
+            auto parentNode = node->GetParent().lock();
+            if (parentNode) {
+                nodeId = parentNode->GetId();
+            } else {
+                pendingEffectiveCommands_[timestamp].emplace_back(std::move(command));
+                continue;
+            }
+        }
+        cachedCommands_[nodeId][timestamp].emplace_back(std::move(command));
     }
 }
 

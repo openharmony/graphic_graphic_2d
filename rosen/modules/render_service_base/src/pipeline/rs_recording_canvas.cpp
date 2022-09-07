@@ -132,10 +132,10 @@ void RSRecordingCanvas::onDrawPaint(const SkPaint& paint)
     AddOp(std::move(op));
 }
 
-void RSRecordingCanvas::DrawImageWithParm(const sk_sp<SkImage>img, const Rosen::RsImageInfo& rsimageInfo,
-    const SkPaint& paint)
+void RSRecordingCanvas::DrawImageWithParm(const sk_sp<SkImage>img, const sk_sp<SkData> data,
+    const Rosen::RsImageInfo& rsimageInfo, const SkPaint& paint)
 {
-    std::unique_ptr<OpItem> op = std::make_unique<ImageWithParmOpItem>(img, rsimageInfo, paint);
+    std::unique_ptr<OpItem> op = std::make_unique<ImageWithParmOpItem>(img, data, rsimageInfo, paint);
     AddOp(std::move(op));
 }
 

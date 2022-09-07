@@ -16,6 +16,7 @@
 #define RENDER_SERVICE_CLIENT_CORE_PIPELINE_RS_SURFACE_RENDER_NODE_H
 
 #include <functional>
+#include <limits>
 #include <memory>
 #include <surface.h>
 
@@ -199,35 +200,7 @@ public:
 
     void SetVisibleRegionRecursive(const Occlusion::Region& region,
                                    VisibleData& visibleVec,
-                                   std::map<uint32_t, bool>& pidVisMap)
-    {
-        visibleRegion_ = region;
-        bool vis = region.GetSize() > 0;
-        if (vis) {
-            visibleVec.emplace_back(GetId());
-        }
-
-        // collect visible changed pid
-        if (qosPidCal_ && GetType() == RSRenderNodeType::SURFACE_NODE) {
-            uint32_t tmpPid = (GetId() >> 32) & 0xFFFFFFFF;
-            if (pidVisMap.find(tmpPid) != pidVisMap.end()) {
-                pidVisMap[tmpPid] |= vis;
-            } else {
-                pidVisMap[tmpPid] = vis;
-            }
-        }
-
-        SetOcclusionVisible(vis);
-        for (auto& child : GetSortedChildren()) {
-            if (child->GetType() == RSRenderNodeType::SURFACE_NODE) {
-                auto surface = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(child);
-                if (surface == nullptr) {
-                    continue;
-                }
-                surface->SetVisibleRegionRecursive(region, visibleVec, pidVisMap);
-            }
-        }
-    }
+                                   std::map<uint32_t, bool>& pidVisMap);
 
     const Occlusion::Region& GetVisibleDirtyRegion() const
     {
@@ -275,9 +248,8 @@ public:
 
     void SetGloblDirtyRegion(const RectI& rect)
     {
-        auto globaldirtyInSurfaceRange = GetDstRect().IntersectRect(rect);
-        globalDirtyRegionIsEmpty_ = globaldirtyInSurfaceRange.IsEmpty();
-        globalDirtyRegion_ = globaldirtyInSurfaceRange;
+        globalDirtyRegion_ = GetDstRect().IntersectRect(rect);
+        globalDirtyRegionIsEmpty_ = globalDirtyRegion_.IsEmpty();
     }
 
     void SetConsumer(const sptr<Surface>& consumer);
@@ -358,6 +330,57 @@ public:
         return false;
     }
 
+    bool SubNodeVisible(const RectI& r) const
+    {
+        Occlusion::Rect nodeRect { r.left_, r.top_, r.GetRight(), r.GetBottom() };
+        // if current node is in occluded region of the surface, it could be skipped in process step
+        return visibleRegion_.IsIntersectWith(nodeRect);
+    }
+
+    bool SubNodeIntersectWithDirty(const RectI& r) const
+    {
+        Occlusion::Rect nodeRect { r.left_, r.top_, r.GetRight(), r.GetBottom() };
+        // if current node rect r is in global dirtyregion, it CANNOT be skipped
+        if (!globalDirtyRegionIsEmpty_) {
+            auto globalRect = r.IntersectRect(globalDirtyRegion_);
+            if (!globalRect.IsEmpty()) {
+                return true;
+            }
+        }
+        // if current node is in visible dirtyRegion, it CANNOT be skipped
+        bool localIntersect = visibleDirtyRegion_.IsIntersectWith(nodeRect);
+        if (localIntersect) {
+            return true;
+        }
+        // if current node is transparent
+        const uint8_t opacity = 255;
+        if (!(GetAbilityBgAlpha() == opacity &&
+                ROSEN_EQ(GetRenderProperties().GetAlpha(), 1.0f))) {
+            return dirtyRegionBelowCurrentLayer_.IsIntersectWith(nodeRect);
+        }
+        return false;
+    }
+
+    bool SubNodeNeedDraw(const RectI &r, PartialRenderType opDropType) const
+    {
+        if (dirtyManager_ == nullptr) {
+            return true;
+        }
+        switch (opDropType) {
+            case PartialRenderType::SET_DAMAGE_AND_DROP_OP:
+                return SubNodeIntersectWithDirty(r);
+            case PartialRenderType::SET_DAMAGE_AND_DROP_OP_OCCLUSION:
+                return SubNodeVisible(r);
+            case PartialRenderType::SET_DAMAGE_AND_DROP_OP_NOT_VISIBLEDIRTY:
+                return SubNodeVisible(r) && SubNodeIntersectWithDirty(r);
+            case PartialRenderType::DISABLED:
+            case PartialRenderType::SET_DAMAGE:
+            default:
+                return true;
+        }
+        return true;
+    }
+
     void SetCacheSurface(sk_sp<SkSurface> cacheSurface)
     {
         cacheSurface_ = std::move(cacheSurface);
@@ -383,6 +406,20 @@ public:
         return isAppFreeze_;
     }
 
+    bool GetZorderChanged() const
+    {
+        return (std::abs(GetRenderProperties().GetPositionZ() - positionZ_) > (std::numeric_limits<float>::epsilon()));
+    }
+
+    bool IsZOrderPromoted() const
+    {
+        return GetRenderProperties().GetPositionZ() > positionZ_;
+    }
+
+    void UpdatePositionZ()
+    {
+        positionZ_ = GetRenderProperties().GetPositionZ();
+    }
 private:
     void ClearChildrenCache(const std::shared_ptr<RSBaseRenderNode>& node);
 
@@ -402,6 +439,7 @@ private:
     int32_t offsetX_ = 0;
     int32_t offsetY_ = 0;
     float globalAlpha_ = 1.0f;
+    float positionZ_ = 0.0f;
     bool qosPidCal_ = false;
 
     std::string name_;

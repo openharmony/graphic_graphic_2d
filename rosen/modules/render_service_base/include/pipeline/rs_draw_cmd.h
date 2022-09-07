@@ -61,10 +61,10 @@ enum RSOpType : uint16_t {
     TEXTBLOB_OPITEM,
     BITMAP_OPITEM,
     BITMAP_RECT_OPITEM,
-    PIXELMAP_OPITEM,
-    PIXELMAP_RECT_OPITEM,
     BITMAP_LATTICE_OPITEM, // marshalling func planning to be implemented
     BITMAP_NINE_OPITEM,
+    PIXELMAP_OPITEM,
+    PIXELMAP_RECT_OPITEM,
     ADAPTIVE_RRECT_OPITEM,
     CLIP_ADAPTIVE_RRECT_OPITEM,
     CLIP_OUTSET_RECT_OPITEM,
@@ -160,7 +160,8 @@ private:
 
 class ImageWithParmOpItem : public OpItemWithPaint {
 public:
-    ImageWithParmOpItem(const sk_sp<SkImage> img, const RsImageInfo& rsimageInfo, const SkPaint& paint);
+    ImageWithParmOpItem(
+        const sk_sp<SkImage> img, const sk_sp<SkData> data, const RsImageInfo& rsimageInfo, const SkPaint& paint);
     ImageWithParmOpItem(
         const std::shared_ptr<Media::PixelMap>& pixelmap, const RsImageInfo& rsimageInfo, const SkPaint& paint);
     ImageWithParmOpItem(const std::shared_ptr<RSImage>& rsImage, const SkPaint& paint);

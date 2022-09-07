@@ -15,6 +15,7 @@
 
 #include "pipeline/rs_render_thread.h"
 
+#include <cstdint>
 #include <frame_collector.h>
 
 #include "accessibility_config.h"
@@ -56,6 +57,10 @@ static void SystemCallSetThreadName(const std::string& name)
 using namespace OHOS::AccessibilityConfig;
 namespace OHOS {
 namespace Rosen {
+namespace {
+    static constexpr uint64_t REFRESH_PERIOD = 16666667;
+    static constexpr uint64_t REFRESH_FREQ_IN_UNI_RENDER = 3600;
+}
 class HighContrastObserver : public AccessibilityConfigObserver {
 public:
     HighContrastObserver() = default;
@@ -247,7 +252,8 @@ void RSRenderThread::OnVsync(uint64_t timestamp)
     mValue = (mValue + 1) % 2; // 1 and 2 is Calculated parameters
     RS_TRACE_INT("Vsync-client", mValue);
     timestamp_ = timestamp;
-    if (activeWindowCnt_.load() > 0) {
+    if (activeWindowCnt_.load() > 0 &&
+        (needRender_ || (timestamp_ - prevTimestamp_) / REFRESH_PERIOD >= REFRESH_FREQ_IN_UNI_RENDER)) {
         mainFunc_(); // start render-loop now
     }
     ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
@@ -381,9 +387,11 @@ void RSRenderThread::ProcessCommands()
     std::swap(cmds, cmds_);
     cmdLock.unlock();
 
+    context_.currentTimestamp_ = prevTimestamp_;
     for (auto& cmdData : cmds) {
         std::string str = "ProcessCommands ptr:" + std::to_string(reinterpret_cast<uintptr_t>(cmdData.get()));
         ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, str.c_str());
+        context_.transactionTimestamp_ = cmdData->GetTimestamp();
         cmdData->Process(context_);
         ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
     }

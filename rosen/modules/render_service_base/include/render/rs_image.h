@@ -71,6 +71,7 @@ public:
     void SetImageRepeat(int repeatNum);
     void SetRadius(const SkVector radius[]);
     void SetScale(double scale);
+    void SetCompressData(const sk_sp<SkData> data, int width, int height);
 #ifdef ROSEN_OHOS
     bool Marshalling(Parcel& parcel) const;
     static RSImage* Unmarshalling(Parcel& parcel);
@@ -80,8 +81,10 @@ private:
     void ApplyImageFit();
     void ApplyCanvasClip(SkCanvas& canvas);
     void DrawImageRepeatRect(const SkPaint& paint, SkCanvas& canvas);
+    void UploadGpu(SkCanvas& canvas);
 
     sk_sp<SkImage> image_;
+    mutable sk_sp<SkData> compressData_;
     std::shared_ptr<Media::PixelMap> pixelmap_;
     ImageFit imageFit_ = ImageFit::COVER;
     ImageRepeat imageRepeat_ = ImageRepeat::NO_REPEAT;

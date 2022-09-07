@@ -42,8 +42,9 @@ RSUniRenderVisitor::RSUniRenderVisitor()
 {
     auto mainThread = RSMainThread::Instance();
     renderEngine_ = mainThread->GetRenderEngine();
-    isPartialRenderEnabled_ = (RSSystemProperties::GetUniPartialRenderEnabled() != PartialRenderType::DISABLED);
-    isOpDropped_ = (RSSystemProperties::GetUniPartialRenderEnabled() == PartialRenderType::SET_DAMAGE_AND_DROP_OP);
+    partialRenderType_ = RSSystemProperties::GetUniPartialRenderEnabled();
+    isPartialRenderEnabled_ = (partialRenderType_ != PartialRenderType::DISABLED);
+    isOpDropped_ = isPartialRenderEnabled_ && (partialRenderType_ != PartialRenderType::SET_DAMAGE);
 }
 RSUniRenderVisitor::~RSUniRenderVisitor() {}
 
@@ -116,6 +117,7 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
             }
         }
     }
+    dirtyFlag_ |= node.GetDstRectChanged();
     parentSurfaceNodeMatrix_ = geoPtr->GetAbsMatrix();
 
     PrepareBaseRenderNode(node);
@@ -422,13 +424,12 @@ void RSUniRenderVisitor::CalcDirtyDisplayRegion(std::shared_ptr<RSDisplayRenderN
             }
         }
 
-        if (surfaceNode->GetRenderProperties().IsZOrderPromoted()) {
+        if (surfaceNode->IsZOrderPromoted()) {
             // Zorder promoted case, merge surface dest Rect
             RS_LOGD("CalcDirtyDisplayRegion merge ZOrderPromoted %s rect %s", surfaceNode->GetName().c_str(),
                 surfaceNode->GetDstRect().ToString().c_str());
             displayDirtyManager->MergeDirtyRect(surfaceNode->GetDstRect());
         }
-        surfaceNode->GetMutableRenderProperties().CleanZOrderPromoted();
 
         RectI lastFrameSurfacePos = node->GetLastFrameSurfacePos(surfaceNode->GetId());
         RectI currentFrameSurfacePos = node->GetCurrentFrameSurfacePos(surfaceNode->GetId());
@@ -517,6 +518,7 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
 {
     RS_LOGD("RSUniRenderVisitor::ProcessSurfaceRenderNode node: %" PRIu64 ", child size:%u %s", node.GetId(),
         node.GetChildrenCount(), node.GetName().c_str());
+    node.UpdatePositionZ();
     if (isSecurityDisplay_ && node.GetSecurityLayer()) {
         return;
     }
@@ -531,7 +533,7 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
 #ifdef RS_ENABLE_EGLQUERYSURFACE
     // skip clean surface node
     if (isOpDropped_ && node.IsAppWindow()) {
-        if (!node.IsIntersectWithDirty(node.GetDstRect())) {
+        if (!node.SubNodeNeedDraw(node.GetDstRect(), partialRenderType_)) {
             RS_LOGD("RSUniRenderVisitor::ProcessSurfaceRenderNode skip: %s", node.GetName().c_str());
             return;
         }
@@ -713,7 +715,7 @@ void RSUniRenderVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
         return;
     }
 #ifdef RS_ENABLE_EGLQUERYSURFACE
-    if (isOpDropped_ && !curSurfaceNode_->IsIntersectWithDirty(node.GetOldDirty())) {
+    if (isOpDropped_ && !curSurfaceNode_->SubNodeNeedDraw(node.GetOldDirty(), partialRenderType_)) {
         return;
     }
 #endif

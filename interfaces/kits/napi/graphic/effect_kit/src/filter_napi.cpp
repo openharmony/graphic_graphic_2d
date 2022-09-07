@@ -163,12 +163,13 @@ napi_value FilterNapi::Constructor(napi_env env, napi_callback_info info)
     return _this;
 }
 
-void FilterNapi::Render()
+void FilterNapi::Render(bool forceCPU)
 {
     Rosen::SKImageChain skImage(srcPixelMap_);
     for (auto filter : skFilters_) {
         skImage.SetFilters(filter);
     }
+    skImage.ForceCPU(forceCPU);
     skImage.Draw();
     dstPixelMap_ =  skImage.GetPixelMap();
 }
@@ -185,16 +186,28 @@ std::shared_ptr<Media::PixelMap> FilterNapi::GetDstPixelMap()
 
 napi_value FilterNapi::GetPixelMap(napi_env env, napi_callback_info info)
 {
+    size_t argc = 1;
+    napi_value argv[1];
     napi_value _this;
     napi_status status;
-    IMG_JS_NO_ARGS(env, info, status, _this);
+    IMG_JS_ARGS(env, info, status, argc, argv, _this);
+    if (!IMG_IS_OK(status)) {
+        EFFECT_LOG_I("FilterNapi parse input falid");
+        return nullptr;
+    }
+    bool forceCPU = false;
+    if (Media::ImageNapiUtils::getType(env, argv[0]) == napi_boolean) {
+        if (!IMG_IS_OK(napi_get_value_bool(env, argv[0], &forceCPU))) {
+            EFFECT_LOG_I("FilterNapi parse foceCPU falid");
+        }
+    }
     FilterNapi* thisFilter = nullptr;
     NAPI_CALL(env, napi_unwrap(env, _this, reinterpret_cast<void**>(&thisFilter)));
     if (thisFilter == nullptr) {
         EFFECT_LOG_I("FilterNapi CreatPixelMap is Faild");
         return nullptr;
     }
-    thisFilter->Render();
+    thisFilter->Render(forceCPU);
     return Media::PixelMapNapi::CreatePixelMap(env, thisFilter->GetDstPixelMap());
 }
 

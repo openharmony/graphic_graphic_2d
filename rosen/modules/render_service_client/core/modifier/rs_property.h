@@ -216,8 +216,10 @@ protected:
 
 template<typename T>
 class RS_EXPORT RSAnimatableProperty : public RSProperty<T> {
-    // static_assert(std::is_integral_v<T> || std::is_floating_point_v<T> ||
-    //     std::is_base_of_v<RSAnimatableArithmetic<T>, T>);
+    static_assert(std::is_integral_v<T> || std::is_floating_point_v<T> ||
+        std::is_same_v<Color, T> || std::is_same_v<Matrix3f, T> || std::is_same_v<Vector2f, T> ||
+        std::is_same_v<Vector4f, T> || std::is_same_v<Quaternion, T> || std::is_same_v<std::shared_ptr<RSFilter>, T> ||
+        std::is_same_v<Vector4<Color>, T> || std::is_base_of_v<RSAnimatableArithmetic<T>, T>);
 public:
     RSAnimatableProperty() {}
     RSAnimatableProperty(const T& value) : RSProperty<T>(value)

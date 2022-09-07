@@ -40,6 +40,17 @@ public:
     {
         return left_ >= right_ || top_ >= bottom_;
     }
+
+    bool operator==(const Rect& r) const
+    {
+        return left_ == r.left_ && top_ == r.top_ && right_ == r.right_ && bottom_ == r.bottom_;
+    }
+
+    bool operator!=(const Rect& r) const
+    {
+        return !(*this == r);
+    }
+
     Rect Intersect(const Rect& rect) const
     {
         int left = std::max(left_, rect.left_);

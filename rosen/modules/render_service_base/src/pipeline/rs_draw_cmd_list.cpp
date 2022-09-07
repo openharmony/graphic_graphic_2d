@@ -46,9 +46,9 @@ static std::unordered_map<RSOpType, OpUnmarshallingFunc> opUnmarshallingFuncLUT 
     { TEXTBLOB_OPITEM,             TextBlobOpItem::Unmarshalling },
     { BITMAP_OPITEM,               BitmapOpItem::Unmarshalling },
     { BITMAP_RECT_OPITEM,          BitmapRectOpItem::Unmarshalling },
+    { BITMAP_NINE_OPITEM,          BitmapNineOpItem::Unmarshalling },
     { PIXELMAP_OPITEM,             PixelMapOpItem::Unmarshalling },
     { PIXELMAP_RECT_OPITEM,        PixelMapRectOpItem::Unmarshalling },
-    { BITMAP_NINE_OPITEM,          BitmapNineOpItem::Unmarshalling },
     { ADAPTIVE_RRECT_OPITEM,       AdaptiveRRectOpItem::Unmarshalling },
     { CLIP_ADAPTIVE_RRECT_OPITEM,  ClipAdaptiveRRectOpItem::Unmarshalling },
     { CLIP_OUTSET_RECT_OPITEM,     ClipOutsetRectOpItem::Unmarshalling },
@@ -140,11 +140,13 @@ int DrawCmdList::GetHeight() const
 #ifdef ROSEN_OHOS
 bool DrawCmdList::Marshalling(Parcel& parcel) const
 {
-    bool success = true;
-    success &= RSMarshallingHelper::Marshalling(parcel, width_);
-    success &= RSMarshallingHelper::Marshalling(parcel, height_);
-    success &= RSMarshallingHelper::Marshalling(parcel, GetSize());
-    ROSEN_LOGD("unirender: DrawCmdList::Marshalling start, size = %d", GetSize());
+    bool success = RSMarshallingHelper::Marshalling(parcel, width_) &&
+                   RSMarshallingHelper::Marshalling(parcel, height_) &&
+                   RSMarshallingHelper::Marshalling(parcel, GetSize());
+    if (!success) {
+        ROSEN_LOGE("DrawCmdList::Marshalling failed!");
+        return false;
+    }
     for (const auto& item : ops_) {
         auto type = item->GetType();
         success &= RSMarshallingHelper::Marshalling(parcel, type);
@@ -168,21 +170,17 @@ DrawCmdList* DrawCmdList::Unmarshalling(Parcel& parcel)
     int width;
     int height;
     int size;
-    if (!RSMarshallingHelper::Unmarshalling(parcel, width)) {
+    if (!(RSMarshallingHelper::Unmarshalling(parcel, width) &&
+            RSMarshallingHelper::Unmarshalling(parcel, height) &&
+            RSMarshallingHelper::Unmarshalling(parcel, size))) {
+        ROSEN_LOGE("DrawCmdList::Unmarshalling failed!");
         return nullptr;
     }
-    if (!RSMarshallingHelper::Unmarshalling(parcel, height)) {
-        return nullptr;
-    }
-    if (!RSMarshallingHelper::Unmarshalling(parcel, size)) {
-        return nullptr;
-    }
-
-    ROSEN_LOGD("unirender: DrawCmdList::Unmarshalling start, size = %d", size);
     std::unique_ptr<DrawCmdList> drawCmdList = std::make_unique<DrawCmdList>(width, height);
     for (int i = 0; i < size; ++i) {
         RSOpType type;
         if (!RSMarshallingHelper::Unmarshalling(parcel, type)) {
+            ROSEN_LOGE("DrawCmdList::Unmarshalling failed, current processing:%d", i);
             return nullptr;
         }
         auto func = GetOpUnmarshallingFunc(type);
@@ -199,8 +197,6 @@ DrawCmdList* DrawCmdList::Unmarshalling(Parcel& parcel)
 
         drawCmdList->AddOp(std::unique_ptr<OpItem>(item));
     }
-    ROSEN_LOGD("unirender: DrawCmdList::Unmarshalling success, size = %d", drawCmdList->GetSize());
-
     return drawCmdList.release();
 }
 #endif
