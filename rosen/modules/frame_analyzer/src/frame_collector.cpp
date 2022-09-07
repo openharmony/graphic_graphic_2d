@@ -43,6 +43,32 @@ FrameCollector &FrameCollector::GetInstance()
     return instance;
 }
 
+void FrameCollector::SetRepaintCallback(std::function<void()> repaint)
+{
+    repaint_ = repaint;
+}
+
+const FrameInfoQueue &FrameCollector::LockGetFrameQueue()
+{
+    frameQueueMutex_.lock();
+    return frameQueue_;
+}
+
+void FrameCollector::UnlockFrameQueue()
+{
+    frameQueueMutex_.unlock();
+}
+
+bool FrameCollector::IsEnabled() const
+{
+    return enabled_;
+}
+
+void FrameCollector::SetEnabled(bool enable)
+{
+    enabled_ = enable;
+}
+
 void FrameCollector::MarkFrameEvent(const FrameEventType &type, int64_t timeNs)
 {
     const auto &index = static_cast<int32_t>(type);
@@ -157,6 +183,7 @@ FrameCollector::FrameCollector()
 void FrameCollector::SwitchFunction(const char *key, const char *value, void *context)
 {
     auto &that = *reinterpret_cast<FrameCollector *>(context);
+    auto oldEnable = that.enabled_;
     std::string str = value;
     if (str == switchRenderingPaintText) {
         that.ClearEvents();
@@ -174,6 +201,10 @@ void FrameCollector::SwitchFunction(const char *key, const char *value, void *co
     if (str == switchRenderingDisableText) {
         that.usingSaver_ = false;
         that.enabled_ = false;
+    }
+
+    if (that.enabled_ != oldEnable && that.repaint_ != nullptr) {
+        that.repaint_();
     }
 }
 } // namespace Rosen

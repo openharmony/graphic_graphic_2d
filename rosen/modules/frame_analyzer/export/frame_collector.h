@@ -16,6 +16,7 @@
 #ifndef ROSEN_MODULE_FRAME_ANALYZER_EXPORT_FRAME_COLLECTOR_H
 #define ROSEN_MODULE_FRAME_ANALYZER_EXPORT_FRAME_COLLECTOR_H
 
+#include <functional>
 #include <memory>
 #include <mutex>
 
@@ -31,27 +32,11 @@ public:
 
     ~FrameCollector() = default;
 
-    const FrameInfoQueue &LockGetFrameQueue()
-    {
-        frameQueueMutex_.lock();
-        return frameQueue_;
-    }
-
-    void UnlockFrameQueue()
-    {
-        frameQueueMutex_.unlock();
-    }
-
-    bool IsEnabled() const
-    {
-        return enabled_;
-    }
-
-    void SetEnabled(bool enable)
-    {
-        enabled_ = enable;
-    }
-
+    void SetRepaintCallback(std::function<void()> repaint);
+    const FrameInfoQueue &LockGetFrameQueue();
+    void UnlockFrameQueue();
+    bool IsEnabled() const;
+    void SetEnabled(bool enable);
     void MarkFrameEvent(const FrameEventType &type, int64_t timeNs = 0);
     void ClearEvents();
 
@@ -83,6 +68,7 @@ private:
     bool enabled_ = false;
     bool usingSaver_ = false;
     std::shared_ptr<FrameSaver> saver_ = nullptr;
+    std::function<void()> repaint_ = nullptr;
 };
 } // namespace Rosen
 } // namespace OHOS
