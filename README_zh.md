@@ -61,9 +61,13 @@ foundation/graphic/graphic_2d/
 
 
 ## 相关仓
-- [**graphic_standard**](https://gitee.com/openharmony/graphic_standard)
-- [ace_ace_engine](https://gitee.com/openharmony/ace_ace_engine)
-- [aafwk_standard](https://gitee.com/openharmony/aafwk_standard)
+- [**graphic_graphic_2d**](https://gitee.com/abbuu_openharmony/graphic_graphic_2d)
+- [arkui_ace_engine](https://gitee.com/openharmony/arkui_ace_engine)
+- [ability_ability_runtime](https://gitee.com/openharmony/ability_ability_runtime)
 - [multimedia_player_framework](https://gitee.com/openharmony/multimedia_player_framework)
-- [multimedia_camera_framework](https://gitee.com/openharmony/multimedia_camera_framework)
+- [multimedia_image_standard](https://gitee.com/openharmony/multimedia_image_standard)
 - [Windowmanager](https://gitee.com/openharmony/windowmanager)
+- [third_party_egl](https://gitee.com/openharmony/third_party_egl)
+- [third_party_opengles](https://gitee.com/openharmony/third_party_opengles)
+- [third_party_skia](https://gitee.com/openharmony/third_party_skia)
+- [third_party_giflib](https://gitee.com/openharmony/third_party_giflib)

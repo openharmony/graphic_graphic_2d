@@ -44,13 +44,19 @@
 
 namespace OHOS {
 namespace Rosen {
+    
+#ifdef RS_ENABLE_GL
+constexpr uint32_t SURFACE_NODE_NUMBER = 6;
+#endif
+
 RSUniRenderVisitor::RSUniRenderVisitor()
     : curSurfaceDirtyManager_(std::make_shared<RSDirtyRegionManager>())
 {
     auto mainThread = RSMainThread::Instance();
     renderEngine_ = mainThread->GetRenderEngine();
-    isPartialRenderEnabled_ = (RSSystemProperties::GetUniPartialRenderEnabled() != PartialRenderType::DISABLED);
-    isOpDropped_ = (RSSystemProperties::GetUniPartialRenderEnabled() == PartialRenderType::SET_DAMAGE_AND_DROP_OP);
+    partialRenderType_ = RSSystemProperties::GetUniPartialRenderEnabled();
+    isPartialRenderEnabled_ = (partialRenderType_ != PartialRenderType::DISABLED);
+    isOpDropped_ = isPartialRenderEnabled_ && (partialRenderType_ != PartialRenderType::SET_DAMAGE);
 }
 
 RSUniRenderVisitor::RSUniRenderVisitor(RSPaintFilterCanvas* canvas)
@@ -390,7 +396,12 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
             canvas_->concat(geoPtr->GetMatrix());
         }
 #ifdef RS_ENABLE_GL
-        packTask_ = RSSubMainThread::Instance().EnableParallerRendering();
+        // if surface node number >= SURFACE_NODE_NUMBER, we will benifit.
+        if (node.GetChildrenCount() >= SURFACE_NODE_NUMBER) {
+            packTask_ = RSSubMainThread::Instance().EnableParallerRendering();
+        } else {
+            packTask_ = false;
+        }
 #endif
         ProcessBaseRenderNode(node);
 #ifdef RS_ENABLE_GL
@@ -608,7 +619,7 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
 #ifdef RS_ENABLE_EGLQUERYSURFACE
     // skip clean surface node
     if (isOpDropped_ && node.IsAppWindow()) {
-        if (!node.IsIntersectWithDirty(node.GetDstRect())) {
+        if (!node.SubNodeNeedDraw(node.GetDstRect(), partialRenderType_)) {
             RS_LOGD("RSUniRenderVisitor::ProcessSurfaceRenderNode skip: %s", node.GetName().c_str());
             return;
         }
@@ -797,7 +808,7 @@ void RSUniRenderVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
         return;
     }
 #ifdef RS_ENABLE_EGLQUERYSURFACE
-    if (isOpDropped_ && !curSurfaceNode_->IsIntersectWithDirty(node.GetOldDirty())) {
+    if (isOpDropped_ && !curSurfaceNode_->SubNodeNeedDraw(node.GetOldDirty(), partialRenderType_)) {
         return;
     }
 #endif

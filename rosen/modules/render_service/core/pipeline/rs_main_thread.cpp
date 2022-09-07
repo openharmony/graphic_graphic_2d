@@ -42,7 +42,7 @@ namespace Rosen {
 namespace {
 #ifdef RS_ENABLE_GL
 constexpr uint32_t SUB_THREAD_NUMBER = 3;
-constexpr int RENDER_CORE_LEVEL = 500;
+constexpr int RENDER_CORE_LEVEL = 400;
 #endif
 bool Compare(const std::unique_ptr<RSTransactionData>& data1, const std::unique_ptr<RSTransactionData>& data2)
 {
@@ -516,9 +516,9 @@ void RSMainThread::CheckUpdateSurfaceNodeIfNeed()
 void RSMainThread::Render()
 {
 #ifdef RS_ENABLE_GL
-    using SetCoreLevelFunc = void(*)(int);
-    auto SetCoreLevel = (SetCoreLevelFunc)RSInnovation::_s_setCoreLevel;
     if (RSInnovation::_s_setCoreLevel) {
+        using SetCoreLevelFunc = void(*)(int);
+        auto SetCoreLevel = (SetCoreLevelFunc)RSInnovation::_s_setCoreLevel;
         (*SetCoreLevel)(RENDER_CORE_LEVEL);
     }
 #endif

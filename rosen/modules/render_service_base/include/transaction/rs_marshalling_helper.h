@@ -212,6 +212,8 @@ public:
         return Unmarshalling(parcel, first) && Unmarshalling(parcel, args...);
     }
 
+    static bool UnmarshallingWithCopy(Parcel& parcel, sk_sp<SkData>& val);
+
 private:
     static sk_sp<SkData> SerializeTypeface(SkTypeface* tf, void* ctx);
     static sk_sp<SkTypeface> DeserializeTypeface(const void* data, size_t length, void* ctx);

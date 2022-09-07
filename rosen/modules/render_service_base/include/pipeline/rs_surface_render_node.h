@@ -330,6 +330,57 @@ public:
         return false;
     }
 
+    bool SubNodeVisible(const RectI& r) const
+    {
+        Occlusion::Rect nodeRect { r.left_, r.top_, r.GetRight(), r.GetBottom() };
+        // if current node is in occluded region of the surface, it could be skipped in process step
+        return visibleRegion_.IsIntersectWith(nodeRect);
+    }
+
+    bool SubNodeIntersectWithDirty(const RectI& r) const
+    {
+        Occlusion::Rect nodeRect { r.left_, r.top_, r.GetRight(), r.GetBottom() };
+        // if current node rect r is in global dirtyregion, it CANNOT be skipped
+        if (!globalDirtyRegionIsEmpty_) {
+            auto globalRect = r.IntersectRect(globalDirtyRegion_);
+            if (!globalRect.IsEmpty()) {
+                return true;
+            }
+        }
+        // if current node is in visible dirtyRegion, it CANNOT be skipped
+        bool localIntersect = visibleDirtyRegion_.IsIntersectWith(nodeRect);
+        if (localIntersect) {
+            return true;
+        }
+        // if current node is transparent
+        const uint8_t opacity = 255;
+        if (!(GetAbilityBgAlpha() == opacity &&
+                ROSEN_EQ(GetRenderProperties().GetAlpha(), 1.0f))) {
+            return dirtyRegionBelowCurrentLayer_.IsIntersectWith(nodeRect);
+        }
+        return false;
+    }
+
+    bool SubNodeNeedDraw(const RectI &r, PartialRenderType opDropType) const
+    {
+        if (dirtyManager_ == nullptr) {
+            return true;
+        }
+        switch (opDropType) {
+            case PartialRenderType::SET_DAMAGE_AND_DROP_OP:
+                return SubNodeIntersectWithDirty(r);
+            case PartialRenderType::SET_DAMAGE_AND_DROP_OP_OCCLUSION:
+                return SubNodeVisible(r);
+            case PartialRenderType::SET_DAMAGE_AND_DROP_OP_NOT_VISIBLEDIRTY:
+                return SubNodeVisible(r) && SubNodeIntersectWithDirty(r);
+            case PartialRenderType::DISABLED:
+            case PartialRenderType::SET_DAMAGE:
+            default:
+                return true;
+        }
+        return true;
+    }
+
     void SetCacheSurface(sk_sp<SkSurface> cacheSurface)
     {
         cacheSurface_ = std::move(cacheSurface);

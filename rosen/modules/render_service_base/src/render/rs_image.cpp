@@ -18,9 +18,10 @@
 #include "include/core/SkPaint.h"
 #include "include/core/SkRRect.h"
 #include "pixel_map_rosen_utils.h"
-
+#include "platform/common/rs_log.h"
 #include "property/rs_properties_painter.h"
 #include "render/rs_image_cache.h"
+#include "rs_trace.h"
 #include "sandbox_utils.h"
 
 namespace OHOS {
@@ -45,7 +46,7 @@ bool RSImage::IsEqual(const RSImage& other) const
     }
     return (image_ == other.image_) && (pixelmap_ == other.pixelmap_) &&
            (imageFit_ == other.imageFit_) && (imageRepeat_ == other.imageRepeat_) &&
-           (scale_ == other.scale_) && radiusEq;
+           (scale_ == other.scale_) && radiusEq && (compressData_ == other.compressData_);
 }
 
 void RSImage::CanvasDrawImage(SkCanvas& canvas, const SkRect& rect, const SkPaint& paint, bool isBackground)
@@ -112,6 +113,29 @@ void RSImage::ApplyCanvasClip(SkCanvas& canvas)
     canvas.clipRRect(rrect, true);
 }
 
+void RSImage::UploadGpu(SkCanvas& canvas)
+{
+#ifdef RS_ENABLE_GL
+    if (compressData_) {
+        auto cache = RSImageCache::Instance().GetSkiaImageCache(uniqueId_);
+        if (cache) {
+            image_ = cache;
+        } else {
+            RS_TRACE_NAME("make compress img");
+            auto image = SkImage::MakeFromCompressed(canvas.getGrContext(), compressData_,
+                static_cast<int>(srcRect_.width_), static_cast<int>(srcRect_.height_), SkImage::kASTC_CompressionType);
+            if (image) {
+                image_ = image;
+                RSImageCache::Instance().CacheSkiaImage(uniqueId_, image);
+            } else {
+                RS_LOGE("make astc image %d (%d, %d) failed", uniqueId_, (int)srcRect_.width_, (int)srcRect_.height_);
+            }
+            compressData_ = nullptr;
+        }
+    }
+#endif
+}
+
 void RSImage::DrawImageRepeatRect(const SkPaint& paint, SkCanvas& canvas)
 {
     int minX = 0;
@@ -144,6 +168,7 @@ void RSImage::DrawImageRepeatRect(const SkPaint& paint, SkCanvas& canvas)
     if (!image_ && pixelmap_) {
         image_ = Media::PixelMapRosenUtils::ExtractSkImage(pixelmap_);
     }
+    UploadGpu(canvas);
     auto src = RSPropertiesPainter::Rect2SkRect(srcRect_);
     for (int i = minX; i <= maxX; ++i) {
         for (int j = minY; j <= maxY; ++j) {
@@ -159,7 +184,22 @@ void RSImage::SetImage(const sk_sp<SkImage> image)
     image_ = image;
     if (image_) {
         srcRect_.SetAll(0.0, 0.0, image_->width(), image_->height());
+        static uint64_t pid = static_cast<uint64_t>(GetRealPid()) << 32; // 32 for 64-bit unsignd number shift
+        uniqueId_ = pid | image_->uniqueID();
     }
+}
+
+void RSImage::SetCompressData(const sk_sp<SkData> data, const int width, const int height)
+{
+#ifdef RS_ENABLE_GL
+    compressData_ = data;
+    if (compressData_) {
+        srcRect_.SetAll(0.0, 0.0, width, height);
+        static uint64_t pid = static_cast<uint64_t>(GetRealPid()) << 32; // 32 for 64-bit unsignd number shift
+        uniqueId_ = image_ ? (pid | image_->uniqueID()) : 0;
+        image_ = nullptr;
+    }
+#endif
 }
 
 void RSImage::SetPixelMap(const std::shared_ptr<Media::PixelMap>& pixelmap)
@@ -206,20 +246,25 @@ bool RSImage::Marshalling(Parcel& parcel) const
     bool success = true;
     int imageFit = static_cast<int>(imageFit_);
     int imageRepeat = static_cast<int>(imageRepeat_);
-    static uint64_t pid = static_cast<uint64_t>(GetRealPid()) << 32; // 32 for 64-bit unsignd number shift
-    uint64_t uniqueId = image_ ? (pid | image_->uniqueID()) : 0;
-    success &= RSMarshallingHelper::Marshalling(parcel, uniqueId);
+    success &= RSMarshallingHelper::Marshalling(parcel, uniqueId_);
     success &= RSMarshallingHelper::Marshalling(parcel, image_);
+    success &= RSMarshallingHelper::Marshalling(parcel, compressData_);
+    success &= RSMarshallingHelper::Marshalling(parcel, static_cast<int>(srcRect_.width_));
+    success &= RSMarshallingHelper::Marshalling(parcel, static_cast<int>(srcRect_.height_));
     success &= RSMarshallingHelper::Marshalling(parcel, pixelmap_);
     success &= RSMarshallingHelper::Marshalling(parcel, imageFit);
     success &= RSMarshallingHelper::Marshalling(parcel, imageRepeat);
     success &= RSMarshallingHelper::Marshalling(parcel, radius_);
     success &= RSMarshallingHelper::Marshalling(parcel, scale_);
+    compressData_ = nullptr;
     return success;
 }
 RSImage* RSImage::Unmarshalling(Parcel& parcel)
 {
     sk_sp<SkImage> img;
+    sk_sp<SkData> compressData;
+    int width = 0;
+    int height = 0;
     std::shared_ptr<Media::PixelMap> pixelmap;
     int fitNum;
     int repeatNum;
@@ -239,6 +284,21 @@ RSImage* RSImage::Unmarshalling(Parcel& parcel)
         // unmarshalling the skimage and cache it
         RSImageCache::Instance().CacheSkiaImage(uniqueId, img);
     } else {
+        return nullptr;
+    }
+    if (img != nullptr) {
+        if (!RSMarshallingHelper::SkipSkData(parcel)) {
+            return nullptr;
+        }
+    } else {
+        if (!RSMarshallingHelper::UnmarshallingWithCopy(parcel, compressData)) {
+            return nullptr;
+        }
+    }
+    if (!RSMarshallingHelper::Unmarshalling(parcel, width)) {
+        return nullptr;
+    }
+    if (!RSMarshallingHelper::Unmarshalling(parcel, height)) {
         return nullptr;
     }
     if (!RSMarshallingHelper::Unmarshalling(parcel, pixelmap)) {
@@ -261,6 +321,7 @@ RSImage* RSImage::Unmarshalling(Parcel& parcel)
 
     RSImage* rsImage = new RSImage();
     rsImage->SetImage(img);
+    rsImage->SetCompressData(compressData, width, height);
     rsImage->SetPixelMap(pixelmap);
     rsImage->SetImageFit(fitNum);
     rsImage->SetImageRepeat(repeatNum);

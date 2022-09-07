@@ -27,7 +27,7 @@ namespace OHOS {
 namespace Rosen {
 constexpr int32_t EGL_CONTEXT_CLIENT_VERSION_NUM = 2;
 const int STENCIL_BUFFER_SIZE = 8;
-
+constexpr int SUB_RENDER_CORE_LEVEL = 400;
 RSSubMainThread::RSSubMainThread()
     : eglDisplay_(EGL_NO_DISPLAY),
       eglContext_(EGL_NO_CONTEXT),
@@ -102,6 +102,7 @@ void RSSubMainThread::CreateEglShareContext()
 
 void RSSubMainThread::InitializeSubRenderThread(uint32_t subThreadNum)
 {
+    if (!RSInnovation::innovationHandle) return;
     eglShareCtxNum = subThreadNum;
     std::vector<std::thread*>(eglShareCtxNum, nullptr).swap(subRSThreads_);
     tastManager_.InitTaskManager();
@@ -110,6 +111,7 @@ void RSSubMainThread::InitializeSubRenderThread(uint32_t subThreadNum)
 
 void RSSubMainThread::InitializeSubContext(RenderContext* context)
 {
+    if (!RSInnovation::innovationHandle) return;
     renderContext_ = context;
     eglDisplay_ = renderContext_->GetEGLDisplay();
     config_ = renderContext_->GetEGLConfig();
@@ -120,6 +122,7 @@ void RSSubMainThread::InitializeSubContext(RenderContext* context)
 
 void RSSubMainThread::StartSubThread()
 {
+    if (!RSInnovation::innovationHandle) return;
     for (uint32_t i = 0; i < eglShareCtxNum; ++i) {
         if (subRSThreads_[i] == nullptr) {
             resources.emplace_back();
@@ -191,6 +194,11 @@ void RSSubMainThread::CanvasPrepareFuncRegister()
 void RSSubMainThread::SubDrawFuncRegister()
 {
     auto subDraw = [this](uint32_t i) -> int32_t {
+        if (RSInnovation::_s_setCoreLevel) {
+            using SetCoreLevelFunc = void(*)(int);
+            auto SetCoreLevel = (SetCoreLevelFunc)RSInnovation::_s_setCoreLevel;
+            (*SetCoreLevel)(SUB_RENDER_CORE_LEVEL);
+        }
         auto task = tastManager_.GetTask(i);
         auto threadTrace = "LoadBalance" + std::to_string(i);
         RS_TRACE_BEGIN(threadTrace);
@@ -250,7 +258,8 @@ EGLSurface RSSubMainThread::CreateShareContextPSurface(int32_t width, int32_t he
 {
     if (RSInnovation::_s_createShareContextPSurface) {
         using CreateShareContextPSurfaceFunc = EGLSurface(*)(int32_t, int32_t, EGLDisplay, EGLConfig);
-        auto CreateShareContextPSurfaceFuncSo = (CreateShareContextPSurfaceFunc)RSInnovation::_s_createShareContextPSurface;
+        auto CreateShareContextPSurfaceFuncSo =
+            (CreateShareContextPSurfaceFunc)RSInnovation::_s_createShareContextPSurface;
         return (*CreateShareContextPSurfaceFuncSo)(width, height, eglDisplay_, config_);
     } else {
         return nullptr;
@@ -269,19 +278,19 @@ GrContext* RSSubMainThread::CreateShareGrContext(uint32_t index)
     } else {
         return nullptr;
     }
-    
-    sk_sp<const GrGLInterface> glInterface(GrGLCreateNativeInterface());
+    const GrGLInterface *grGlInterface = GrGLCreateNativeInterface();
+    sk_sp<const GrGLInterface> glInterface(grGlInterface);
     if (glInterface.get() == nullptr) {
         RS_LOGE("CreateShareGrContext failed");
         return nullptr;
     }
     
-    GrContextOptions options;
-    options.fGpuPathRenderers &= ~GpuPathRenderers::kCoverageCounting;
+    GrContextOptions options = { };
+    options.fGpuPathRenderers = GpuPathRenderers::kAll & ~GpuPathRenderers::kCoverageCounting;
     options.fPreferExternalImagesOverES3 = true;
     options.fDisableDistanceFieldPaths = true;
     
-    sk_sp<GrContext> grContext(GrContext::MakeGL(std::move(glInterface), options));
+    sk_sp<GrContext> grContext = GrContext::MakeGL(std::move(glInterface), options);
     if (grContext == nullptr) {
         RS_LOGE("nullptr grContext is null");
         return nullptr;
@@ -318,23 +327,24 @@ GrContext* RSSubMainThread::CreateShareGrContext(uint32_t index, int32_t width, 
         return nullptr;
     }
     
-    sk_sp<const GrGLInterface> glInterface(GrGLCreateNativeInterface());
+    const GrGLInterface *grGlInterface = GrGLCreateNativeInterface();
+    sk_sp<const GrGLInterface> glInterface(grGlInterface);
     if (glInterface.get() == nullptr) {
-        RS_LOGE("CreateShareGrContext failed to make native interface");
+        RS_LOGE("CreateShareGrContext failed");
         return nullptr;
     }
     
-    GrContextOptions options;
-    options.fGpuPathRenderers &= ~GpuPathRenderers::kCoverageCounting;
+    GrContextOptions options = { };
+    options.fGpuPathRenderers = GpuPathRenderers::kAll & ~GpuPathRenderers::kCoverageCounting;
     options.fPreferExternalImagesOverES3 = true;
     options.fDisableDistanceFieldPaths = true;
     
-    sk_sp<GrContext> grContext(GrContext::MakeGL(std::move(glInterface), options));
+    sk_sp<GrContext> grContext = GrContext::MakeGL(std::move(glInterface), options);
     if (grContext == nullptr) {
         RS_LOGE("nullptr grContext is null");
         return nullptr;
     }
-    
+
     RS_LOGI("Create grContext successfully!!!, grContext:[%{public}p], index:[%{public}d]", grContext.get(), index);
     return grContext.release();
 }
@@ -373,26 +383,16 @@ SkSurface* RSSubMainThread::AcquireShareRsSurface(uint32_t index, int32_t width,
     SkColorType colorType = kRGBA_8888_SkColorType;
 
     GrBackendRenderTarget backendRenderTarget(width, height, 0, STENCIL_BUFFER_SIZE, framebufferInfo);
-    SkSurfaceProps surfaceProps = SkSurfaceProps::kLegacyFontHost_InitType;
-    
-    sk_sp<SkColorSpace> skColorSpace = nullptr;
-
-    switch (colorSpace_) {
-        // [planning] in order to stay consistant with the colorspace used before, we disabled
-        // COLOR_GAMUT_SRGB to let the branch to default, then skColorSpace is set to nullptr
-        case COLOR_GAMUT_DISPLAY_P3:
-            skColorSpace = SkColorSpace::MakeRGB(SkNamedTransferFn::kSRGB, SkNamedGamut::kDCIP3);
-            break;
-        case COLOR_GAMUT_ADOBE_RGB:
-            skColorSpace = SkColorSpace::MakeRGB(SkNamedTransferFn::kSRGB, SkNamedGamut::kAdobeRGB);
-            break;
-        case COLOR_GAMUT_BT2020:
-            skColorSpace = SkColorSpace::MakeRGB(SkNamedTransferFn::kSRGB, SkNamedGamut::kRec2020);
-            break;
-        default:
-            break;
+    sk_sp<SkColorSpace> skColorSpace{nullptr};
+    if (static_cast<int>(colorSpace_) == static_cast<int>(COLOR_GAMUT_DISPLAY_P3)) {
+        skColorSpace = SkColorSpace::MakeRGB(SkNamedTransferFn::kSRGB, SkNamedGamut::kDCIP3);
+    } else if (static_cast<int>(colorSpace_) == static_cast<int>(COLOR_GAMUT_ADOBE_RGB)) {
+        skColorSpace = SkColorSpace::MakeRGB(SkNamedTransferFn::kSRGB, SkNamedGamut::kAdobeRGB);
+    } else if (static_cast<int>(colorSpace_) == static_cast<int>(COLOR_GAMUT_BT2020)) {
+        skColorSpace = SkColorSpace::MakeRGB(SkNamedTransferFn::kSRGB, SkNamedGamut::kRec2020);
     }
 
+    SkSurfaceProps surfaceProps = SkSurfaceProps::kLegacyFontHost_InitType;
     auto skSurface = SkSurface::MakeFromBackendRenderTarget(
         grContext, backendRenderTarget, kBottomLeft_GrSurfaceOrigin, colorType, skColorSpace, &surfaceProps);
     if (skSurface == nullptr) {
