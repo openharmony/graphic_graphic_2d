@@ -33,6 +33,7 @@ config("effect_SKeffectChian_config") {
 config("effect_SKeffectChian_public_config") {
   include_dirs = [
     "../effectChain/include",
+    "../egl/include",
     "//foundation/multimedia/image_standard/interfaces/innerkits/include",
     "//foundation/graphic/graphic_2d/utils/log",
     "include",
@@ -45,12 +46,17 @@ ohos_shared_library("skeffectchain") {
     "//commonlibrary/c_utils/base:utils",
     "//foundation/arkui/napi:ace_napi",
     "//foundation/graphic/graphic_2d:libsurface",
+    "//foundation/graphic/graphic_2d/rosen/modules/effect/egl:libegl_effect",
     "//foundation/multimedia/image_standard/frameworks/innerkitsimpl/pixelconverter:pixelconvertadapter",
     "//foundation/multimedia/image_standard/interfaces/innerkits:image",
     "//foundation/multimedia/image_standard/interfaces/innerkits:image_native",
     "//third_party/flutter/build/skia:ace_skia_ohos",
   ]
 
+  if (ace_enable_gpu) {
+    defines = gpu_defines
+    public_deps += [ "//foundation/graphic/graphic_2d:libgl" ]
+  }
   external_deps = [
     "hitrace_native:hitrace_meter",
     "init:libbegetutil",
