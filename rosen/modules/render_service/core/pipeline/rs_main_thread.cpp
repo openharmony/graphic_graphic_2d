@@ -236,7 +236,7 @@ void RSMainThread::Start()
 
 void RSMainThread::ProcessCommand()
 {
-    context_->currentTimestamp_ = timestamp_;
+    context_->currentTimestamp_ = prevTimestamp_;
     if (!isUniRender_) { // divided render for all
         ProcessCommandForDividedRender();
         return;
@@ -742,6 +742,7 @@ void RSMainThread::RequestNextVSync()
 void RSMainThread::OnVsync(uint64_t timestamp, void* data)
 {
     ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSMainThread::OnVsync");
+    prevTimestamp_ = timestamp_;
     timestamp_ = timestamp;
     if (isUniRender_) {
         MergeToEffectiveTransactionDataMap(cachedTransactionDataMap_);

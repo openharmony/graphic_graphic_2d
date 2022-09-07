@@ -121,7 +121,7 @@ void RSRenderAnimation::Start()
     }
 
     state_ = AnimationState::RUNNING;
-    firstToRunning_ = true;
+    needUpdateStartTime_ = true;
     ProcessFillModeOnStart(animationFraction_.GetStartFraction());
 }
 
@@ -164,7 +164,7 @@ void RSRenderAnimation::Resume()
     }
 
     state_ = AnimationState::RUNNING;
-    firstToRunning_ = true;
+    needUpdateStartTime_ = true;
 }
 
 void RSRenderAnimation::SetFraction(float fraction)
@@ -228,9 +228,13 @@ bool RSRenderAnimation::Animate(int64_t time)
         return state_ == AnimationState::FINISHED;
     }
 
-    if (firstToRunning_) {
-        animationFraction_.SetLastFrameTime(time);
-        firstToRunning_ = false;
+    if (needUpdateStartTime_) {
+        SetStartTime(time);
+    }
+
+    if (needInitialize_) {
+        OnInitialize();
+        needInitialize_ = false;
     }
 
     bool isInStartDelay = false;
@@ -253,10 +257,8 @@ bool RSRenderAnimation::Animate(int64_t time)
 
 void RSRenderAnimation::SetStartTime(int64_t time)
 {
-    if (firstToRunning_) {
-        animationFraction_.SetLastFrameTime(time);
-        firstToRunning_ = false;
-    }
+    animationFraction_.SetLastFrameTime(time);
+    needUpdateStartTime_ = false;
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -94,14 +94,13 @@ RSRenderThread::RSRenderThread()
         }
 
         RS_TRACE_BEGIN("RSRenderThread DrawFrame: " + std::to_string(timestamp_));
-        prevTimestamp_ = timestamp_;
         ProcessCommands();
         if (needRender_) {
             jankDetector_.ProcessUiDrawFrameMsg();
         }
 
-        ROSEN_LOGD("RSRenderThread DrawFrame(%" PRIu64 ") in %s", prevTimestamp_, renderContext_ ? "GPU" : "CPU");
-        Animate(prevTimestamp_);
+        ROSEN_LOGD("RSRenderThread DrawFrame(%" PRIu64 ") in %s", timestamp_, renderContext_ ? "GPU" : "CPU");
+        Animate(timestamp_);
         Render();
         SendCommands();
         RS_TRACE_END();
@@ -109,6 +108,7 @@ RSRenderThread::RSRenderThread()
         if (needRender_) {
             jankDetector_.CalculateSkippedFrame(renderStartTimeStamp, jankDetector_.GetSysTimeNs());
         }
+        prevTimestamp_ = timestamp_;
     };
 
     highContrastObserver_ = std::make_shared<HighContrastObserver>();

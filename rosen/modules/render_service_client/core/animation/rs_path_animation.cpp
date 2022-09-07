@@ -190,7 +190,7 @@ void RSPathAnimation::InitInterpolationValue()
         }
     }
 
-    byValue_ = endValue_->GetValue() - startValue_;
+    byValue_ = endValue_ - startValue_;
 #endif
 }
 
@@ -378,7 +378,7 @@ bool RSPathAnimation::InitInterpolationVector2f(const std::shared_ptr<RSProperty
             UpdateVector2fValueAddOrigin(startVector2f->stagingValue_, endVector2f->stagingValue_,
                 originVector2f->stagingValue_);
         }
-        byValue_ = endValue->GetValue() - startValue;
+        byValue_ = endValue - startValue;
         return true;
     }
 
@@ -399,7 +399,7 @@ bool RSPathAnimation::InitInterpolationVector4f(const std::shared_ptr<RSProperty
             UpdateVector4fValueAddOrigin(startVector4f->stagingValue_, endVector4f->stagingValue_,
                 originVector4f->stagingValue_);
         }
-        byValue_ = endValue->GetValue() - startValue;
+        byValue_ = endValue - startValue;
         return true;
     }
 

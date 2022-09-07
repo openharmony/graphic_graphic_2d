@@ -60,6 +60,8 @@ void RSSpringAnimation::OnStart()
     RSPropertyAnimation::OnStart();
     auto animation = std::make_shared<RSRenderSpringAnimation>(GetId(), GetPropertyId(),
         originValue_->CreateRenderProperty(), startValue_->CreateRenderProperty(), endValue_->CreateRenderProperty());
+    // 300: placeholder for estimated duration, will be replaced by real duration on animation start.
+    SetDuration(300);
     UpdateParamToRenderAnimation(animation);
     animation->SetSpringParameters(timingCurve_.response_, timingCurve_.dampingRatio_);
     animation->SetAdditive(GetAdditive());
@@ -77,23 +79,22 @@ void RSSpringAnimation::StartRenderAnimation(const std::shared_ptr<RSRenderSprin
         ROSEN_LOGE("Failed to start spring animation, target is null!");
         return;
     }
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy == nullptr) {
+        return;
+    }
 
     std::unique_ptr<RSCommand> command = std::make_unique<RSAnimationCreateSpring>(target->GetId(), animation);
-    auto transactionProxy = RSTransactionProxy::GetInstance();
-    if (transactionProxy != nullptr) {
+    transactionProxy->AddCommand(command, target->IsRenderServiceNode(), target->GetFollowType(), target->GetId());
+    if (target->NeedForcedSendToRemote()) {
+        std::unique_ptr<RSCommand> commandForRemote =
+            std::make_unique<RSAnimationCreateSpring>(target->GetId(), animation);
+        transactionProxy->AddCommand(commandForRemote, true, target->GetFollowType(), target->GetId());
+    }
+    if (target->NeedSendExtraCommand()) {
+        std::unique_ptr<RSCommand> extraCommand = std::make_unique<RSAnimationCreateSpring>(target->GetId(), animation);
         transactionProxy->AddCommand(
-            command, target->IsRenderServiceNode(), target->GetFollowType(), target->GetId());
-        if (target->NeedForcedSendToRemote()) {
-            std::unique_ptr<RSCommand> commandForRemote =
-                std::make_unique<RSAnimationCreateSpring>(target->GetId(), animation);
-            transactionProxy->AddCommand(commandForRemote, true, target->GetFollowType(), target->GetId());
-        }
-        if (target->NeedSendExtraCommand()) {
-            std::unique_ptr<RSCommand> extraCommand =
-                std::make_unique<RSAnimationCreateSpring>(target->GetId(), animation);
-            transactionProxy->AddCommand(extraCommand, !target->IsRenderServiceNode(), target->GetFollowType(),
-                target->GetId());
-        }
+            extraCommand, !target->IsRenderServiceNode(), target->GetFollowType(), target->GetId());
     }
 }
 

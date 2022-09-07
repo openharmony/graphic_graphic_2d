@@ -34,39 +34,35 @@ public:
         const std::shared_ptr<RSRenderPropertyBase>& startValue,
         const std::shared_ptr<RSRenderPropertyBase>& endValue);
 
-    void SetSpringParameters(float response, float dampingRatio,
-        std::shared_ptr<RSRenderPropertyBase> initialVelocity = {});
+    void SetSpringParameters(float response, float dampingRatio);
 
-    virtual ~RSRenderSpringAnimation() = default;
+    ~RSRenderSpringAnimation() override = default;
 
 #ifdef ROSEN_OHOS
     bool Marshalling(Parcel& parcel) const override;
-
     static RSRenderSpringAnimation* Unmarshalling(Parcel& parcel);
 #endif
 protected:
     void OnSetFraction(float fraction) override;
-
     void OnAnimate(float fraction) override;
 
     void OnAttach() override;
-
     void OnDetach() override;
+    void OnInitialize() override;
 
 private:
 #ifdef ROSEN_OHOS
     bool ParseParam(Parcel& parcel) override;
 #endif
     RSRenderSpringAnimation() = default;
-    void UpdateSpringParameters();
 
     void OnAnimateInner(float fraction);
 
     std::tuple<std::shared_ptr<RSRenderPropertyBase>, std::shared_ptr<RSRenderPropertyBase>> GetSpringStatus();
 
     float prevFraction_ = 0.0f;
-    std::shared_ptr<RSRenderPropertyBase> startValue_ {};
-    std::shared_ptr<RSRenderPropertyBase> endValue_ {};
+    std::shared_ptr<RSRenderPropertyBase> startValue_;
+    std::shared_ptr<RSRenderPropertyBase> endValue_;
 };
 } // namespace Rosen
 } // namespace OHOS

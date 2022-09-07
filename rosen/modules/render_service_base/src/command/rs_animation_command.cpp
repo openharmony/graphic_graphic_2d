@@ -59,6 +59,6 @@ void AnimationCommandHelper::CreateAnimation(
     }
     // register node on animation add
     context.RegisterAnimatingRenderNode(node);
-    }
+}
 } // namespace Rosen
 } // namespace OHOS

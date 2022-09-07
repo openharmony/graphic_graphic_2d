@@ -38,7 +38,7 @@ public:
     void PrepareBaseRenderNode(RSBaseRenderNode& node) override;
     void PrepareCanvasRenderNode(RSCanvasRenderNode& node) override;
     void PrepareDisplayRenderNode(RSDisplayRenderNode& node) override {}
-    void PrepareProxyRenderNode(RSProxyRenderNode& node) override;
+    void PrepareProxyRenderNode(RSProxyRenderNode& node) override {}
     void PrepareRootRenderNode(RSRootRenderNode& node) override;
     void PrepareSurfaceRenderNode(RSSurfaceRenderNode& node) override;
 

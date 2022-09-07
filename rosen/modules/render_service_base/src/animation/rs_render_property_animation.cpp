@@ -24,7 +24,7 @@ namespace OHOS {
 namespace Rosen {
 RSRenderPropertyAnimation::RSRenderPropertyAnimation(AnimationId id, const PropertyId& propertyId,
     const std::shared_ptr<RSRenderPropertyBase>& originValue) : RSRenderAnimation(id), propertyId_(propertyId),
-    originValue_(originValue), lastValue_(originValue->GetValue())
+    originValue_(originValue), lastValue_(originValue->Clone())
 {}
 
 PropertyId RSRenderPropertyAnimation::GetPropertyId() const
@@ -92,7 +92,7 @@ bool RSRenderPropertyAnimation::ParseParam(Parcel& parcel)
     if (!RSRenderPropertyBase::Unmarshalling(parcel, originValue_)) {
         return false;
     }
-    lastValue_ = originValue_->GetValue();
+    lastValue_ = originValue_->Clone();
 
     return true;
 }
@@ -108,10 +108,10 @@ void RSRenderPropertyAnimation::SetPropertyValue(const std::shared_ptr<RSRenderP
 const std::shared_ptr<RSRenderPropertyBase> RSRenderPropertyAnimation::GetPropertyValue() const
 {
     if (property_ != nullptr) {
-        return property_->GetValue();
+        return property_->Clone();
     }
 
-    return lastValue_->GetValue();
+    return lastValue_->Clone();
 }
 
 const std::shared_ptr<RSRenderPropertyBase>& RSRenderPropertyAnimation::GetOriginValue() const

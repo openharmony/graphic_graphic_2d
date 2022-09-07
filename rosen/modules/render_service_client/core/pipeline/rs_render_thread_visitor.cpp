@@ -153,11 +153,6 @@ void RSRenderThreadVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
     dirtyFlag_ = dirtyFlag;
 }
 
-void RSRenderThreadVisitor::PrepareProxyRenderNode(RSProxyRenderNode& node)
-{
-    node.ApplyModifiers();
-}
-
 void RSRenderThreadVisitor::DrawRectOnCanvas(const RectI& dirtyRect, const SkColor color,
     const SkPaint::Style fillType, float alpha)
 {
