@@ -21,7 +21,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-#include <hilog/log.h>
+#include "hilog/log.h"
 
 #include "frame_info.h"
 #include "sandbox_utils.h"

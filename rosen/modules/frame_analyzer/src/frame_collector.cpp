@@ -20,9 +20,9 @@
 #include <map>
 #include <string>
 
-#include <hilog/log.h>
-#include <hitrace_meter.h>
-#include <parameter.h>
+#include "hilog/log.h"
+#include "hitrace_meter.h"
+#include "parameter.h"
 
 #include "frame_saver.h"
 
@@ -39,14 +39,8 @@ constexpr int32_t vsyncEnd = static_cast<int32_t>(FrameEventType::WaitVsyncEnd);
 
 FrameCollector &FrameCollector::GetInstance()
 {
-    if (instance == nullptr) {
-        static std::mutex mutex;
-        std::lock_guard lock(mutex);
-        if (instance == nullptr) {
-            instance = std::unique_ptr<FrameCollector>(new FrameCollector());
-        }
-    }
-    return *instance;
+    static FrameCollector instance;
+    return instance;
 }
 
 void FrameCollector::MarkFrameEvent(const FrameEventType &type, int64_t timeNs)
@@ -63,11 +57,11 @@ void FrameCollector::MarkFrameEvent(const FrameEventType &type, int64_t timeNs)
             std::chrono::steady_clock::now().time_since_epoch()).count();
     }
 
-    if (usingSaver_ == true) {
+    if (usingSaver_) {
         saver_->SaveFrameEvent(type, timeNs);
     }
 
-    if (enabled_ == false) {
+    if (!enabled_) {
         return;
     }
 
@@ -79,6 +73,7 @@ void FrameCollector::MarkFrameEvent(const FrameEventType &type, int64_t timeNs)
 void FrameCollector::ProcessFrameEvent(int32_t index, int64_t timeNs)
 {
     std::lock_guard lockPending(pendingMutex_);
+    // lockFrameQueue: lock for {pbefore_, pafter_}
     std::lock_guard lockFrameQueue(frameQueueMutex_);
     if (ProcessUIMarkLocked(index, timeNs)) {
         return;

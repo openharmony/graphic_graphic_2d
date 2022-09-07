@@ -29,6 +29,8 @@ class FrameCollector {
 public:
     static FrameCollector &GetInstance();
 
+    ~FrameCollector() = default;
+
     const FrameInfoQueue &LockGetFrameQueue()
     {
         frameQueueMutex_.lock();
@@ -54,9 +56,12 @@ public:
     void ClearEvents();
 
 private:
-    static inline std::unique_ptr<FrameCollector> instance = nullptr;
-
     FrameCollector();
+    FrameCollector(const FrameCollector &collector) = delete;
+    FrameCollector(FrameCollector &&collector) = delete;
+    FrameCollector &operator =(const FrameCollector &collector) = delete;
+    FrameCollector &operator =(FrameCollector &&collector) = delete;
+
     void ProcessFrameEvent(int32_t index, int64_t timeNs);
     bool ProcessUIMarkLocked(int32_t index, int64_t timeNs);
     static void SwitchFunction(const char *key, const char *value, void *context);
