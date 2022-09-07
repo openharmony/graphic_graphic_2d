@@ -169,9 +169,9 @@ private:
 
     std::mutex transitionDataMutex_;
     std::unordered_map<NodeId, std::map<uint64_t, std::vector<std::unique_ptr<RSCommand>>>> cachedCommands_;
-    std::vector<std::unique_ptr<RSCommand>> effectiveCommands_;
-    std::vector<std::unique_ptr<RSCommand>> pendingEffectiveCommands_;
-    std::vector<std::unique_ptr<RSCommand>> followVisitorCommands_;
+    std::map<uint64_t, std::vector<std::unique_ptr<RSCommand>>> effectiveCommands_;
+    std::map<uint64_t, std::vector<std::unique_ptr<RSCommand>>> pendingEffectiveCommands_;
+    std::map<uint64_t, std::vector<std::unique_ptr<RSCommand>>> followVisitorCommands_;
 
     TransactionDataMap cachedTransactionDataMap_;
     TransactionDataIndexMap effectiveTransactionDataIndexMap_;
