@@ -562,11 +562,10 @@ void RSMainThread::CalcOcclusion()
             if (surface == nullptr) {
                 continue;
             }
-            if (surface->GetRenderProperties().GetZorderChanged() || surface->GetDstRectChanged() ||
+            if (surface->GetZorderChanged() || surface->GetDstRectChanged() ||
                 surface->GetAbilityBgAlphaChanged()) {
                 winDirty = true;
             }
-            surface->GetMutableRenderProperties().CleanZorderChanged();
             surface->CleanDstRectChanged();
             surface->CleanAbilityBgAlphaChanged();
         }

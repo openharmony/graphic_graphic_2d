@@ -423,13 +423,12 @@ void RSUniRenderVisitor::CalcDirtyDisplayRegion(std::shared_ptr<RSDisplayRenderN
             }
         }
 
-        if (surfaceNode->GetRenderProperties().IsZOrderPromoted()) {
+        if (surfaceNode->IsZOrderPromoted()) {
             // Zorder promoted case, merge surface dest Rect
             RS_LOGD("CalcDirtyDisplayRegion merge ZOrderPromoted %s rect %s", surfaceNode->GetName().c_str(),
                 surfaceNode->GetDstRect().ToString().c_str());
             displayDirtyManager->MergeDirtyRect(surfaceNode->GetDstRect());
         }
-        surfaceNode->GetMutableRenderProperties().CleanZOrderPromoted();
 
         RectI lastFrameSurfacePos = node->GetLastFrameSurfacePos(surfaceNode->GetId());
         RectI currentFrameSurfacePos = node->GetCurrentFrameSurfacePos(surfaceNode->GetId());
@@ -518,6 +517,7 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
 {
     RS_LOGD("RSUniRenderVisitor::ProcessSurfaceRenderNode node: %" PRIu64 ", child size:%u %s", node.GetId(),
         node.GetChildrenCount(), node.GetName().c_str());
+    node.UpdatePositionZ();
     if (isSecurityDisplay_ && node.GetSecurityLayer()) {
         return;
     }

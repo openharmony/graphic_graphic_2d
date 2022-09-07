@@ -16,6 +16,7 @@
 #define RENDER_SERVICE_CLIENT_CORE_PIPELINE_RS_SURFACE_RENDER_NODE_H
 
 #include <functional>
+#include <limits>
 #include <memory>
 #include <surface.h>
 
@@ -354,6 +355,20 @@ public:
         return isAppFreeze_;
     }
 
+    bool GetZorderChanged() const
+    {
+        return (std::abs(GetRenderProperties().GetPositionZ() - positionZ_) > (std::numeric_limits<float>::epsilon()));
+    }
+
+    bool IsZOrderPromoted() const
+    {
+        return GetRenderProperties().GetPositionZ() > positionZ_;
+    }
+
+    void UpdatePositionZ()
+    {
+        positionZ_ = GetRenderProperties().GetPositionZ();
+    }
 private:
     void ClearChildrenCache(const std::shared_ptr<RSBaseRenderNode>& node);
 
@@ -373,6 +388,7 @@ private:
     int32_t offsetX_ = 0;
     int32_t offsetY_ = 0;
     float globalAlpha_ = 1.0f;
+    float positionZ_ = 0.0f;
     bool qosPidCal_ = false;
 
     std::string name_;

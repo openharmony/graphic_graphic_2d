@@ -192,10 +192,6 @@ public:
     const std::shared_ptr<RSObjGeometry>& GetFrameGeometry() const;
     bool UpdateGeometry(const RSProperties* parent, bool dirtyFlag, Vector2f& offset);
 
-    bool GetZorderChanged() const;
-    void CleanZorderChanged();
-    bool IsZOrderPromoted() const;
-    void CleanZOrderPromoted();
 private:
     void Reset();
     void SetDirty();
@@ -218,8 +214,6 @@ private:
     bool clipToFrame_ = false;
     bool isDirty_ = false;
     bool geoDirty_ = false;
-    bool zOrderChanged_ = false;
-    bool zOrderPromoted = false;
 
     bool hasBounds_ = false;
 
