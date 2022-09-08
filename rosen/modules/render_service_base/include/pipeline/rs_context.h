@@ -43,23 +43,10 @@ public:
 
     void RegisterAnimatingRenderNode(const std::shared_ptr<RSRenderNode>& nodePtr);
 
-    uint64_t GetTransactionTimestamp() const
-    {
-        return transactionTimestamp_;
-    }
-
-    uint64_t GetCurrentTimestamp() const
-    {
-        return currentTimestamp_;
-    }
-
 private:
     RSRenderNodeMap nodeMap;
     std::shared_ptr<RSBaseRenderNode> globalRootRenderNode_ = std::make_shared<RSBaseRenderNode>(0, true);
     std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>> animatingNodeList_;
-
-    uint64_t transactionTimestamp_ = 0;
-    uint64_t currentTimestamp_ = 0;
 
     RSContext(const RSContext&) = delete;
     RSContext(const RSContext&&) = delete;

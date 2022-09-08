@@ -137,8 +137,6 @@ public:
 
     virtual void AttachRenderProperty(const std::shared_ptr<RSRenderPropertyBase>& property) {};
 
-    void SetStartTime(int64_t);
-
 protected:
     explicit RSRenderAnimation(AnimationId id);
     RSRenderAnimation() = default;
