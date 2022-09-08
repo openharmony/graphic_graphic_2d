@@ -20,6 +20,7 @@ config("libvsync_client_config") {
   include_dirs = [
     "include",
     "//utils/system/safwk/native/include",
+    "//foundation/graphic/graphic_2d/interfaces/inner_api/common",
   ]
 
   cflags = [
@@ -53,7 +54,8 @@ ohos_shared_library("libvsync_client") {
 
   deps = [
     "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
-    "//foundation/graphic/graphic_2d/utils:libgraphic_utils",
+    "//foundation/graphic/graphic_2d/utils:sandbox_utils",
+    "//foundation/graphic/graphic_2d/utils:scoped_bytrace",
     "//foundation/systemabilitymgr/samgr/interfaces/innerkits/samgr_proxy:samgr_proxy",
   ]
 

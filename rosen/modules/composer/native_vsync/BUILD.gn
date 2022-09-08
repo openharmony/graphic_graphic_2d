@@ -33,7 +33,10 @@ config("native_vsync_public_config") {
 ohos_shared_library("libnative_vsync") {
   sources = [ "native_vsync.cpp" ]
 
-  include_dirs = [ "//foundation/graphic/graphic_2d/utils/log" ]
+  include_dirs = [
+    "//foundation/graphic/graphic_2d/utils/log",
+    "//foundation/graphic/graphic_2d/interfaces/inner_api/common",
+  ]
 
   configs = [ ":native_vsync_config" ]
 
@@ -47,10 +50,7 @@ ohos_shared_library("libnative_vsync") {
   deps = [
     "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:librender_service_client",
-    "//foundation/graphic/graphic_2d/utils:libgraphic_utils",
   ]
-
-  public_deps = [ "//commonlibrary/c_utils/base:utils" ]
 
   part_name = "graphic_standard"
   subsystem_name = "graphic"

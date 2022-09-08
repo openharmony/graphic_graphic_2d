@@ -47,7 +47,11 @@ ohos_shared_library("libvsync") {
     "src/vsync_sampler.cpp",
   ]
 
-  include_dirs = [ "//foundation/graphic/graphic_2d/utils/log" ]
+  include_dirs = [
+    "//foundation/graphic/graphic_2d/utils/log",
+    "//foundation/graphic/graphic_2d/interfaces/inner_api/common",
+    "//foundation/graphic/graphic_2d/rosen/modules/composer/vsync/include",
+  ]
 
   configs = [ ":vsync_config" ]
 
@@ -57,13 +61,13 @@ ohos_shared_library("libvsync") {
   ]
 
   deps = [
-    "//foundation/graphic/graphic_2d/utils:libgraphic_utils",
+    "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
+    "//foundation/graphic/graphic_2d/utils:sandbox_utils",
     "//foundation/graphic/graphic_2d/utils:socketpair",
   ]
 
   public_deps = [
     "//commonlibrary/c_utils/base:utils",
-    "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
     "//foundation/graphic/graphic_2d/utils:scoped_bytrace",
   ]
   external_deps = [
