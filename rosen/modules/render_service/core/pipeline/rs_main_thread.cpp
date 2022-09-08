@@ -721,7 +721,6 @@ void RSMainThread::Animate(uint64_t timestamp)
 
     bool lastDoWindowAnimate = doWindowAnimate_;
     doWindowAnimate_ = HasWindowAnimation();
-
     if (!lastDoWindowAnimate && doWindowAnimate_ && RSInnovation::UpdateQosVsyncEnabled()) {
         RSQosThread::GetInstance()->ResetQosPid();
     }
