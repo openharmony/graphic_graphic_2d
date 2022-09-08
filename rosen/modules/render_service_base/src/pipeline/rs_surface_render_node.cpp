@@ -407,6 +407,11 @@ void RSSurfaceRenderNode::SetVisibleRegionRecursive(const Occlusion::Region& reg
                                                     VisibleData& visibleVec,
                                                     std::map<uint32_t, bool>& pidVisMap)
 {
+    if (nodeType_ == RSSurfaceNodeType::SELF_DRAWING_NODE) {
+        SetOcclusionVisible(true);
+        return;
+    }
+
     visibleRegion_ = region;
     bool vis = region.GetSize() > 0;
     if (vis) {
@@ -425,14 +430,9 @@ void RSSurfaceRenderNode::SetVisibleRegionRecursive(const Occlusion::Region& reg
 
     SetOcclusionVisible(vis);
     for (auto& child : GetSortedChildren()) {
-        if (child->GetType() == RSRenderNodeType::SURFACE_NODE) {
-            auto surface = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(child);
-            if (surface == nullptr) {
-                continue;
-            }
+        if (auto surface = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(chid)) {
             surface->SetVisibleRegionRecursive(region, visibleVec, pidVisMap);
         }
-    }
     }
 } // namespace Rosen
 } // namespace OHOS
