@@ -67,7 +67,7 @@ void RSUniRenderVisitor::PrepareDisplayRenderNode(RSDisplayRenderNode& node)
     curDisplayDirtyManager_->Clear();
     curDisplayNode_ = node.shared_from_this()->ReinterpretCastTo<RSDisplayRenderNode>();
 
-    dirtyFlag_ = false;
+    dirtyFlag_ = isDirty_;
     node.ApplyModifiers();
 
     parentSurfaceNodeMatrix_ = SkMatrix::I();

@@ -449,6 +449,8 @@ void RSMainThread::CheckBufferAvailableIfNeed()
     waitingBufferAvailable_ = !allBufferAvailable;
     if (!waitingBufferAvailable_ && renderModeChangeCallback_) {
         renderModeChangeCallback_->OnRenderModeChanged(false);
+        // clear display surface buffer
+        ClearDisplayBuffer();
     }
 }
 
@@ -491,6 +493,8 @@ void RSMainThread::CheckUpdateSurfaceNodeIfNeed()
                 surfaceNode->GetConsumer()->GoBackground();
             }
         });
+        // trigger global refresh
+        SetDirtyFlag();
     }
 }
 
@@ -507,6 +511,8 @@ void RSMainThread::Render()
     if (IfUseUniVisitor()) {
         auto uniVisitor = std::make_shared<RSUniRenderVisitor>();
         uniVisitor->SetAnimateState(doWindowAnimate_);
+        uniVisitor->SetDirtyFlag(isDirty_);
+        isDirty_ = false;
         visitor = uniVisitor;
     } else {
         bool doParallelComposition = false;
@@ -991,6 +997,32 @@ void RSMainThread::AddTransactionDataPidInfo(pid_t remotePid)
         RS_LOGW("RSMainThread::AddTransactionDataPidInfo remotePid:%d already exists", remotePid);
     }
     effectiveTransactionDataIndexMap_[remotePid].first = 0;
+}
+
+void RSMainThread::ClearDisplayBuffer()
+{
+    const std::shared_ptr<RSBaseRenderNode> node = context_.GetGlobalRootRenderNode();
+    if (node == nullptr) {
+        RS_LOGE("ClearDisplayBuffer get global root render node fail");
+        return;
+    }
+    for (auto& child : node->GetSortedChildren()) {
+        auto displayNode = RSBaseRenderNode::ReinterpretCast<RSDisplayRenderNode>(child);
+        if (displayNode == nullptr) {
+            continue;
+        }
+        if (displayNode->GetRSSurface() != nullptr) {
+            displayNode->GetRSSurface()->ClearBuffer();
+        }
+        if (displayNode->GetConsumer() != nullptr) {
+            displayNode->GetConsumer()->GoBackground();
+        }
+    }
+}
+
+void RSMainThread::SetDirtyFlag()
+{
+    isDirty_ = true;
 }
 } // namespace Rosen
 } // namespace OHOS
