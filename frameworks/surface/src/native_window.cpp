@@ -45,8 +45,8 @@ OHNativeWindow* CreateNativeWindowFromSurface(void* pSurface)
     nativeWindow->config.format = PIXEL_FMT_RGBA_8888;
     nativeWindow->config.strideAlignment = 8;   // default stride is 8
     nativeWindow->config.timeout = 3000;        // default timeout is 3000 ms
-    nativeWindow->config.colorGamut = ColorGamut::COLOR_GAMUT_SRGB;
-    nativeWindow->config.transform = TransformType::ROTATE_NONE;
+    nativeWindow->config.colorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
+    nativeWindow->config.transform = GraphicTransformType::GRAPHIC_ROTATE_NONE;
 
     NativeObjectReference(nativeWindow);
     return nativeWindow;
@@ -176,12 +176,12 @@ static int32_t InternalHandleNativeWindowOpt(OHNativeWindow *window, int code, v
         }
         case SET_COLOR_GAMUT: {
             int32_t colorGamut = va_arg(args, int32_t);
-            window->config.colorGamut = static_cast<ColorGamut>(colorGamut);
+            window->config.colorGamut = static_cast<GraphicColorGamut>(colorGamut);
             break;
         }
         case SET_TRANSFORM : {
             int32_t transform = va_arg(args, int32_t);
-            window->config.transform = static_cast<TransformType>(transform);
+            window->config.transform = static_cast<GraphicTransformType>(transform);
             break;
         }
         case SET_UI_TIMESTAMP : {

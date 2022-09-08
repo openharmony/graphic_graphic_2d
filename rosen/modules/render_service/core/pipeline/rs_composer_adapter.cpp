@@ -222,7 +222,7 @@ void RSComposerAdapter::GetComposerInfoSrcRect(ComposeInfo &info, const RSSurfac
 bool RSComposerAdapter::GetComposerInfoNeedClient(const ComposeInfo &info, RSSurfaceRenderNode& node) const
 {
     bool needClient = RSDividedRenderUtil::IsNeedClient(node, info);
-    if (info.buffer->GetSurfaceBufferColorGamut() != static_cast<ColorGamut>(screenInfo_.colorGamut)) {
+    if (info.buffer->GetSurfaceBufferColorGamut() != static_cast<GraphicColorGamut>(screenInfo_.colorGamut)) {
         needClient = true;
     }
     return needClient;

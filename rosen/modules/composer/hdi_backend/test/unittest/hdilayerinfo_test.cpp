@@ -454,7 +454,7 @@ HWTEST_F(HdiLayerInfoTest, MetaData001, Function | MediumTest | Level1)
  */
 HWTEST_F(HdiLayerInfoTest, MetaDataSet001, Function | MediumTest | Level1)
 {
-    HDRMetaDataSet metaDataSet = {HDRMetadataKey::MATAKEY_RED_PRIMARY_X, {1, 2, 3}};
+    HDRMetaDataSet metaDataSet = {GraphicHDRMetadataKey::GRAPHIC_MATAKEY_RED_PRIMARY_X, {1, 2, 3}};
     HdiLayerInfoTest::hdiLayerInfo_->SetMetaDataSet(metaDataSet);
     HDRMetaDataSet metaDataSetGet = HdiLayerInfoTest::hdiLayerInfo_->GetMetaDataSet();
     ASSERT_EQ(metaDataSet.key, metaDataSetGet.key);

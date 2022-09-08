@@ -77,8 +77,8 @@ namespace OHOS {
 
         // get data
         uint32_t seqNum = GetData<uint32_t>();
-        ColorGamut colorGamut = GetData<ColorGamut>();
-        TransformType transform = GetData<TransformType>();
+        GraphicColorGamut colorGamut = GetData<GraphicColorGamut>();
+        GraphicTransformType transform = GetData<GraphicTransformType>();
         int32_t width = GetData<int32_t>();
         int32_t height = GetData<int32_t>();
         BufferRequestConfig config = GetData<BufferRequestConfig>();

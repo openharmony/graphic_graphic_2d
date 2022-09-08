@@ -218,20 +218,64 @@ using HDRMetaDataType = enum {
     HDR_META_DATA_SET,
 };
 
+typedef enum : uint32_t {
+    GRAPHIC_MATAKEY_RED_PRIMARY_X = 0,
+    GRAPHIC_MATAKEY_RED_PRIMARY_Y = 1,
+    GRAPHIC_MATAKEY_GREEN_PRIMARY_X = 2,
+    GRAPHIC_MATAKEY_GREEN_PRIMARY_Y = 3,
+    GRAPHIC_MATAKEY_BLUE_PRIMARY_X = 4,
+    GRAPHIC_MATAKEY_BLUE_PRIMARY_Y = 5,
+    GRAPHIC_MATAKEY_WHITE_PRIMARY_X = 6,
+    GRAPHIC_MATAKEY_WHITE_PRIMARY_Y = 7,
+    GRAPHIC_MATAKEY_MAX_LUMINANCE = 8,
+    GRAPHIC_MATAKEY_MIN_LUMINANCE = 9,
+    GRAPHIC_MATAKEY_MAX_CONTENT_LIGHT_LEVEL = 10,
+    GRAPHIC_MATAKEY_MAX_FRAME_AVERAGE_LIGHT_LEVEL = 11,
+    GRAPHIC_MATAKEY_HDR10_PLUS = 12,
+    GRAPHIC_MATAKEY_HDR_VIVID = 13,
+} GraphicHDRMetadataKey;
+
 using HDRMetaDataSet = struct HDRMetaDataSet {
-    HDRMetadataKey key = HDRMetadataKey::MATAKEY_RED_PRIMARY_X;
+    GraphicHDRMetadataKey key = GraphicHDRMetadataKey::GRAPHIC_MATAKEY_RED_PRIMARY_X;
     std::vector<uint8_t> metaData;
 };
+
+typedef enum {
+    GRAPHIC_COLOR_GAMUT_INVALID = -1,            /**< Invalid */
+    GRAPHIC_COLOR_GAMUT_NATIVE = 0,              /**< Native or default */
+    GRAPHIC_COLOR_GAMUT_STANDARD_BT601 = 1,      /**< Standard BT601 */
+    GRAPHIC_COLOR_GAMUT_STANDARD_BT709 = 2,      /**< Standard BT709 */
+    GRAPHIC_COLOR_GAMUT_DCI_P3 = 3,              /**< DCI P3 */
+    GRAPHIC_COLOR_GAMUT_SRGB = 4,                /**< SRGB */
+    GRAPHIC_COLOR_GAMUT_ADOBE_RGB = 5,           /**< Adobe RGB */
+    GRAPHIC_COLOR_GAMUT_DISPLAY_P3 = 6,          /**< display P3 */
+    GRAPHIC_COLOR_GAMUT_BT2020 = 7,              /**< BT2020 */
+    GRAPHIC_COLOR_GAMUT_BT2100_PQ = 8,           /**< BT2100 PQ */
+    GRAPHIC_COLOR_GAMUT_BT2100_HLG = 9,          /**< BT2100 HLG */
+    GRAPHIC_COLOR_GAMUT_DISPLAY_BT2020 = 10,     /**< Display BT2020 */
+} GraphicColorGamut;
+
+/**
+ * @brief Enumerates transform types of images.
+ *
+ */
+typedef enum {
+    GRAPHIC_ROTATE_NONE = 0,        /**< No rotation */
+    GRAPHIC_ROTATE_90,              /**< Rotation by 90 degrees */
+    GRAPHIC_ROTATE_180,             /**< Rotation by 180 degrees */
+    GRAPHIC_ROTATE_270,             /**< Rotation by 270 degrees */
+    GRAPHIC_ROTATE_BUTT             /**< Invalid operation */
+} GraphicTransformType;
 
 using BufferRequestConfig = struct BufferRequestConfig {
     int32_t width;
     int32_t height;
     int32_t strideAlignment;
-    int32_t format; // PixelFormat
+    int32_t format; // GraphicPixelFormat
     int32_t usage;
     int32_t timeout;
-    ColorGamut colorGamut = ColorGamut::COLOR_GAMUT_SRGB;
-    TransformType transform = TransformType::ROTATE_NONE;
+    GraphicColorGamut colorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
+    GraphicTransformType transform = GraphicTransformType::GRAPHIC_ROTATE_NONE;
     bool operator ==(const struct BufferRequestConfig &config) const
     {
         return width == config.width &&
