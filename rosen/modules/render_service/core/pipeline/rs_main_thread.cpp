@@ -486,13 +486,6 @@ void RSMainThread::CheckUpdateSurfaceNodeIfNeed()
         if (renderModeChangeCallback_) {
             renderModeChangeCallback_->OnRenderModeChanged(true);
         }
-        const auto& nodeMap = GetContext().GetNodeMap();
-        nodeMap.TraverseSurfaceNodes([](const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) mutable {
-            if (surfaceNode != nullptr && surfaceNode->IsOnTheTree() && surfaceNode->IsAppWindow() &&
-                surfaceNode->GetConsumer() != nullptr) {
-                surfaceNode->GetConsumer()->GoBackground();
-            }
-        });
         // trigger global refresh
         SetDirtyFlag();
     }

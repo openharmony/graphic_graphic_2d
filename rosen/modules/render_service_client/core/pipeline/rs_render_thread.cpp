@@ -340,7 +340,7 @@ void RSRenderThread::ClearBufferCache()
         auto surfaceNode = RSNodeMap::Instance().GetNode<RSSurfaceNode>(childNode->GetRSSurfaceNodeId());
         auto rsSurface = RSSurfaceExtractor::ExtractRSSurface(surfaceNode);
         if (rsSurface != nullptr) {
-            rsSurface->ClearBuffer();
+            rsSurface->ClearAllBuffer();
         }
     }
     rootNode->ResetSortedChildren();

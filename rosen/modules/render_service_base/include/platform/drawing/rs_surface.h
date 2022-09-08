@@ -41,7 +41,10 @@ public:
     virtual ColorGamut GetColorSpace() const = 0;
     virtual void SetColorSpace(ColorGamut colorSpace) = 0;
     virtual uint32_t GetQueueSize() const = 0;
-    virtual void ClearBuffer() = 0;
+    virtual void ClearBuffer() = 0; // clear cache only for producer
+
+    // clear buffer for both producer and consumer and will receive OnGoBackground callback
+    virtual void ClearAllBuffer() = 0;
 protected:
 private:
 };
