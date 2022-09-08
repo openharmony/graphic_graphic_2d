@@ -161,6 +161,9 @@ private:
     void CheckDelayedSwitchTask();
     void UpdateRenderMode(bool useUniVisitor);
 
+    void SetDirtyFlag();
+    void ClearDisplayBuffer();
+
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
     RSTaskMessage::RSTask mainLoop_;
@@ -202,6 +205,7 @@ private:
     std::map<uint32_t, bool> lastPidVisMap_;
     VisibleData lastVisVec_;
     bool qosPidCal_ = false;
+    bool isDirty_ = false;
     std::atomic_bool doWindowAnimate_ = false;
     uint32_t lastSurfaceCnt_ = 0;
 
