@@ -603,10 +603,12 @@ void RSMainThread::CalcOcclusion()
                 curRegion = curSurface.Or(curRegion);
             }
         } else {
-            bool diff = surface->GetDstRect().width_ > surface->GetBuffer()->GetWidth() ||
-                        surface->GetDstRect().height_ > surface->GetBuffer()->GetHeight();
+            bool diff = (surface->GetDstRect().width_ > surface->GetBuffer()->GetWidth() ||
+                        surface->GetDstRect().height_ > surface->GetBuffer()->GetHeight()) &&
+                        surface->GetRenderProperties().GetFrameGravity() != Gravity::RESIZE &&
+                        surface->GetRenderProperties().GetAlpha() != opacity;
             if (surface->GetAbilityBgAlpha() == opacity &&
-                ROSEN_EQ(surface->GetRenderProperties().GetAlpha(), 1.0f) && !diff) {
+                ROSEN_EQ(surface->GetGlobalAlpha(), 1.0f) && !diff) {
                 curRegion = curSurface.Or(curRegion);
             }
         }

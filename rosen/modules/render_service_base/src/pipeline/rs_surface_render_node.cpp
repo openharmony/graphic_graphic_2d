@@ -23,7 +23,6 @@
 #include "common/rs_rect.h"
 #include "common/rs_vector2.h"
 #include "common/rs_vector4.h"
-#include "pipeline/rs_occlusion_config.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_root_render_node.h"
 #include "platform/common/rs_log.h"
@@ -131,7 +130,7 @@ void RSSurfaceRenderNode::CollectSurface(
         }
         return;
     }
-    if (nodeType_ == RSSurfaceNodeType::DEFAULT) {
+    if (nodeType_ == RSSurfaceNodeType::LEASH_WINDOW_NODE) {
         for (auto& child : node->GetSortedChildren()) {
             child->CollectSurface(child, vec, isUniRender);
         }
@@ -173,7 +172,7 @@ void RSSurfaceRenderNode::ResetParent()
 {
     RSBaseRenderNode::ResetParent();
 
-    if (RSOcclusionConfig::GetInstance().IsLeashWindow(GetName())) {
+    if (nodeType_ == RSSurfaceNodeType::LEASH_WINDOW_NODE) {
         ClearChildrenCache(shared_from_this());
     } else {
         auto& consumer = GetConsumer();
