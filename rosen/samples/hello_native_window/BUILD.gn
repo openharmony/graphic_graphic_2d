@@ -28,6 +28,7 @@ config("hello_native_window_public_config") {
   include_dirs = [
     "//foundation/graphic/graphic_2d/interfaces/inner_api/surface",
     "//foundation/graphic/graphic_2d/frameworks/surface/include",
+    "//foundation/communication/ipc/interfaces/innerkits/ipc_core/include",
   ]
 }
 

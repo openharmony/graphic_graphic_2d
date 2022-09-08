@@ -35,6 +35,8 @@ ohos_unittest("hdibackend_unit_test") {
   sources = [ "hdibackend_test.cpp" ]
 
   deps = [ ":hdibackend_test_common" ]
+
+  external_deps = [ "ipc:ipc_core" ]
 }
 
 ## UnitTest hdibackend_unit_test }}}
@@ -46,6 +48,8 @@ ohos_unittest("hdiframebuffersurface_unit_test") {
   sources = [ "hdiframebuffersurface_test.cpp" ]
 
   deps = [ ":hdibackend_test_common" ]
+
+  external_deps = [ "ipc:ipc_core" ]
 }
 
 ## UnitTest hdiframebuffersurface_unit_test }}}
@@ -57,6 +61,8 @@ ohos_unittest("hdilayer_unit_test") {
   sources = [ "hdilayer_test.cpp" ]
 
   deps = [ ":hdibackend_test_common" ]
+
+  external_deps = [ "ipc:ipc_core" ]
 }
 
 ## UnitTest hdilayer_unit_test }}}
@@ -68,6 +74,8 @@ ohos_unittest("hdilayerinfo_unit_test") {
   sources = [ "hdilayerinfo_test.cpp" ]
 
   deps = [ ":hdibackend_test_common" ]
+
+  external_deps = [ "ipc:ipc_core" ]
 }
 
 ## UnitTest hdilayerinfo_unit_test }}}
@@ -79,6 +87,8 @@ ohos_unittest("hdioutput_unit_test") {
   sources = [ "hdioutput_test.cpp" ]
 
   deps = [ ":hdibackend_test_common" ]
+
+  external_deps = [ "ipc:ipc_core" ]
 }
 
 ## UnitTest hdioutput_unit_test }}}
@@ -93,6 +103,8 @@ ohos_unittest("hdiscreen_unit_test") {
   ]
 
   deps = [ ":hdibackend_test_common" ]
+
+  external_deps = [ "ipc:ipc_core" ]
 }
 
 ## UnitTest hdiscreen_unit_test }}}

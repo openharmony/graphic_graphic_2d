@@ -47,6 +47,7 @@ ohos_unittest("RSRenderServiceBaseTransactionTest") {
   external_deps = [
     "c_utils:utils",
     "init:libbegetutil",
+    "ipc:ipc_core",
   ]
 
   subsystem_name = "graphic"
