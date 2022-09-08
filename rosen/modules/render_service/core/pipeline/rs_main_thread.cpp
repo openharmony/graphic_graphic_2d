@@ -639,10 +639,12 @@ void RSMainThread::CallbackToQOS(std::map<uint32_t, bool>& pidVisMap)
         if (qosPidCal_) {
             qosPidCal_ = false;
             RSQosThread::GetInstance()->ResetQosPid();
+            RSQosThread::GetInstance()->SetQosCal(qosPidCal_);
         }
         return;
     }
     qosPidCal_ = true;
+    RSQosThread::GetInstance()->SetQosCal(qosPidCal_);
     if (!CheckQosVisChanged(pidVisMap)) {
         return;
     }
@@ -917,7 +919,7 @@ void RSMainThread::SendCommands()
 
 void RSMainThread::QosStateDump(std::string& dumpString)
 {
-    if (qosPidCal_) {
+    if (RSQosThread::GetInstance()->GetQosCal()) {
         dumpString.append("QOS is enabled\n");
     } else {
         dumpString.append("QOS is disabled\n");

@@ -110,6 +110,10 @@ void RSQosThread::ResetQosPid()
 
 void RSQosThread::OnRSVisibilityChangeCB(std::map<uint32_t, bool>& pidVisMap)
 {
+    if (!qosCal_) {
+        return;
+    }
+
     using QosOnRSVisibilityChangeCBFunc = void (*)(void*);
 
     auto QosOnRSVisibilityChangeCB = (QosOnRSVisibilityChangeCBFunc)RSInnovation::_s_qosOnRSVisibilityChangeCB;
