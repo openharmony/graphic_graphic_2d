@@ -33,11 +33,13 @@ public:
     void ResetQosPid();
     void OnRSVisibilityChangeCB(std::map<uint32_t, bool>& pidVisMap);
 
-    void SetQosCal(bool qosCal) {
+    void SetQosCal(bool qosCal)
+    {
         qosCal_ = qosCal;
     }
 
-    bool GetQosCal() const {
+    bool GetQosCal() const
+    {
         return qosCal_;
     }
 
