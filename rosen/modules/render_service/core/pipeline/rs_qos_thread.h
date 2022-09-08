@@ -37,7 +37,7 @@ public:
         qosCal_ = qosCal;
     }
 
-    void GetQosCal() const {
+    bool GetQosCal() const {
         return qosCal_;
     }
 
