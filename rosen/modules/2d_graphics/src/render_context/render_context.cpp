@@ -121,7 +121,7 @@ void RenderContext::InitializeEglContext()
         return;
     }
 
-    LOGI("Creating EGLContext!!!");
+    LOGD("Creating EGLContext!!!");
     eglDisplay_ = GetPlatformEglDisplay(EGL_PLATFORM_OHOS_KHR, EGL_DEFAULT_DISPLAY, NULL);
     if (eglDisplay_ == EGL_NO_DISPLAY) {
         LOGW("Failed to create EGLDisplay gl errno : %{public}x", eglGetError());

@@ -114,14 +114,6 @@ void RSRenderNode::UpdateDirtyRegion(RSDirtyRegionManager& dirtyManager, bool ge
             dirtyManager.MergeDirtyRect(dirtyRect);
             isDirtyRegionUpdated_ = true;
             oldDirty_ = dirtyRect;
-        } else {
-            auto curDirtyRect = dirtyManager.GetDirtyRegion();
-            // keep old dirty and print debug log in case
-            ROSEN_LOGD("RSRenderNode:: id %" PRIu64 " UpdateDirtyRegion invalid dirtyRect = [%d, %d, %d, %d]\
-                old dirtyRect = [%d, %d, %d, %d], current dirtyRect = [%d, %d, %d, %d]", GetId(),
-                dirtyRect.left_, dirtyRect.top_, dirtyRect.width_, dirtyRect.height_,
-                oldDirty_.left_, oldDirty_.top_, oldDirty_.width_, oldDirty_.height_,
-                curDirtyRect.left_, curDirtyRect.top_, curDirtyRect.width_, curDirtyRect.height_);
         }
     }
     SetClean();

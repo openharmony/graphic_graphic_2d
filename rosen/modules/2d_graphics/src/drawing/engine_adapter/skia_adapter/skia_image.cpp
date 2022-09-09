@@ -42,7 +42,7 @@ void* SkiaImage::BuildFromBitmap(const Bitmap& bitmap)
 void* SkiaImage::BuildFromPicture(const Picture& picture, const SizeI& dimensions, const Matrix& matrix,
     const Brush& brush, BitDepth bitDepth, std::shared_ptr<ColorSpace> colorSpace)
 {
-    LOGI("+++++++ TestBuildFromPicture");
+    LOGD("+++++++ TestBuildFromPicture");
     auto skPictureImpl = picture.GetImpl<SkiaPicture>();
     auto skMatrixImpl = matrix.GetImpl<SkiaMatrix>();
     auto skColorSpaceImpl = colorSpace->GetImpl<SkiaColorSpace>();
@@ -56,7 +56,7 @@ void* SkiaImage::BuildFromPicture(const Picture& picture, const SizeI& dimension
         skiaImage_ = SkImage::MakeFromPicture(skPictureImpl->GetPicture(), skISize, &skMatrixImpl->ExportSkiaMatrix(),
             &paint, b, skColorSpaceImpl->GetColorSpace());
     }
-    LOGI("------- TestBuildFromPicture");
+    LOGD("------- TestBuildFromPicture");
     return nullptr;
 }
 
