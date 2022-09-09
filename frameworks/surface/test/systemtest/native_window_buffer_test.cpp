@@ -31,7 +31,7 @@ namespace OHOS::Rosen {
 class NativeWindowBufferTest : public testing::Test,  public IBufferConsumerListenerClazz {
 public:
     static void SetUpTestCase();
-    virtual void OnBufferAvailable() override;
+    void OnBufferAvailable() override;
     int32_t SetData(NativeWindowBuffer *nativeWindowBuffer, NativeWindow *nativeWindow);
     bool GetData(sptr<SurfaceBuffer> &buffer);
     pid_t ChildProcessMain();

@@ -47,7 +47,7 @@ public:
     static constexpr uint32_t PIXEL_YCBCR420_UV_NUM = 2;
     static constexpr float PIXEL_YCBCR420_BYTE = 1.5;
 
-    virtual void OnBufferAvailable() override;
+    void OnBufferAvailable() override;
     SurfaceError DrawBufferColor();
     SurfaceError FillHDILayer();
     const std::shared_ptr<HdiLayerInfo> GetHdiLayer();

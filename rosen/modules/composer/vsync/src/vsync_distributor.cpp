@@ -326,11 +326,11 @@ VsyncError VSyncDistributor::QosGetPidByName(const std::string& name, uint32_t& 
     if (name.find("WM") == std::string::npos) {
         return VSYNC_ERROR_INVALID_ARGUMENTS;
     }
-    int32_t pos = name.find("_");
+    std::string::size_type pos = name.find("_");
     if (pos == std::string::npos) {
         return VSYNC_ERROR_INVALID_ARGUMENTS;
     }
-    pid = stoi(name.substr(pos + 1));
+    pid = (uint32_t)stoi(name.substr(pos + 1));
     return VSYNC_ERROR_OK;
 }
 

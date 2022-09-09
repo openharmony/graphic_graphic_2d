@@ -32,7 +32,7 @@ namespace OHOS::Rosen {
 class BufferSharedTest : public testing::Test, public IBufferConsumerListenerClazz {
 public:
     static void SetUpTestCase();
-    virtual void OnBufferAvailable() override;
+    void OnBufferAvailable() override;
     static void TearDownTestCase();
 
     static inline sptr<Surface> surf = nullptr;
