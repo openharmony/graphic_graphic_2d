@@ -50,6 +50,7 @@ public:
 
     // used by clients
     static bool GetUniRenderEnabled();
+    static bool GetRenderNodeTraceEnabled();
     static DirtyRegionDebugType GetDirtyRegionDebugType();
     static PartialRenderType GetPartialRenderEnabled();
     static PartialRenderType GetUniPartialRenderEnabled();
