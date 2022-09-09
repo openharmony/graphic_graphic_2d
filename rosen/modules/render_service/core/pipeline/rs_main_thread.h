@@ -163,6 +163,7 @@ private:
 
     void SetDirtyFlag();
     void ClearDisplayBuffer();
+    void PerfAfterAnim();
 
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
@@ -180,6 +181,7 @@ private:
     TransactionDataIndexMap effectiveTransactionDataIndexMap_;
 
     uint64_t timestamp_ = 0;
+    uint64_t prePerfTimestamp_ = 0;
     std::unordered_map<uint32_t, sptr<IApplicationAgent>> applicationAgentMap_;
 
     RSContext context_;

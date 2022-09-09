@@ -32,6 +32,7 @@
 #include "platform/common/rs_innovation.h"
 #include "platform/drawing/rs_vsync_client.h"
 #include "screen_manager/rs_screen_manager.h"
+#include "socperf_client.h"
 #include "transaction/rs_transaction_proxy.h"
 #include "accessibility_config.h"
 #include "rs_qos_thread.h"
@@ -40,6 +41,9 @@ using namespace OHOS::AccessibilityConfig;
 namespace OHOS {
 namespace Rosen {
 namespace {
+constexpr int32_t PERF_ANIMATION_REQUESTED_CODE = 10017;
+constexpr uint64_t PERF_PERIOD = 250000000;
+
 bool Compare(const std::unique_ptr<RSTransactionData>& data1, const std::unique_ptr<RSTransactionData>& data2)
 {
     if (!data1 || !data2) {
@@ -739,6 +743,7 @@ void RSMainThread::Animate(uint64_t timestamp)
     RS_LOGD("RSMainThread::Animate end, %d animating nodes remains", context_.animatingNodeList_.size());
 
     RequestNextVSync();
+    PerfAfterAnim();
 }
 
 bool RSMainThread::HasWindowAnimation() const
@@ -1025,6 +1030,22 @@ void RSMainThread::ClearDisplayBuffer()
 void RSMainThread::SetDirtyFlag()
 {
     isDirty_ = true;
+}
+
+void RSMainThread::PerfAfterAnim()
+{
+    if (!IfUseUniVisitor()) {
+        return;
+    }
+    if (!context_.animatingNodeList_.empty() && timestamp_ - prePerfTimestamp_ > PERF_PERIOD) {
+        RS_LOGD("RSMainThread:: soc perf to render_service_animation");
+        OHOS::SOCPERF::SocPerfClient::GetInstance().PerfRequest(PERF_ANIMATION_REQUESTED_CODE, "");
+        prePerfTimestamp_ = timestamp_;
+    } else if (context_.animatingNodeList_.empty()) {
+        RS_LOGD("RSMainThread:: soc perf off render_service_animation");
+        OHOS::SOCPERF::SocPerfClient::GetInstance().PerfRequestEx(PERF_ANIMATION_REQUESTED_CODE, false, "");
+        prePerfTimestamp_ = 0;
+    }
 }
 } // namespace Rosen
 } // namespace OHOS
