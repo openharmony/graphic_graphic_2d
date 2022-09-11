@@ -618,11 +618,11 @@ void RSMainThread::CalcOcclusion()
         }
     }
 
-    // 3. Callback to QOS
-    CallbackToQOS(pidVisMap);
-
-    // 4. Callback to WMS
+    // 3. Callback to WMS
     CallbackToWMS(curVisVec);
+
+    // 4. Callback to QOS
+    CallbackToQOS(pidVisMap);
 }
 
 bool RSMainThread::CheckQosVisChanged(std::map<uint32_t, bool>& pidVisMap)
@@ -648,15 +648,19 @@ bool RSMainThread::CheckQosVisChanged(std::map<uint32_t, bool>& pidVisMap)
 void RSMainThread::CallbackToQOS(std::map<uint32_t, bool>& pidVisMap)
 {
     if (!RSInnovation::UpdateQosVsyncEnabled()) {
-        qosPidCal_ = false;
-        RSQosThread::GetInstance()->ResetQosPid(pidVisMap);
+        if (qosPidCal_) {
+            qosPidCal_ = false;
+            RSQosThread::GetInstance()->ResetQosPid();
+            RSQosThread::GetInstance()->SetQosCal(qosPidCal_);
+        }
         return;
     }
     qosPidCal_ = true;
+    RSQosThread::GetInstance()->SetQosCal(qosPidCal_);
     if (!CheckQosVisChanged(pidVisMap)) {
         return;
     }
-
+    RS_TRACE_NAME("RSQosThread::OnRSVisibilityChangeCB");
     RSQosThread::GetInstance()->OnRSVisibilityChangeCB(pidVisMap);
 }
 
@@ -719,13 +723,22 @@ void RSMainThread::Animate(uint64_t timestamp)
     RS_TRACE_FUNC();
 
     if (context_.animatingNodeList_.empty()) {
+        if (doWindowAnimate_ && RSInnovation::UpdateQosVsyncEnabled()) {
+            // Preventing Occlusion Calculation from Being Completed in Advance
+            RSQosThread::GetInstance()->OnRSVisibilityChangeCB(lastPidVisMap_);
+        }
         doWindowAnimate_ = false;
         return;
     }
 
     RS_LOGD("RSMainThread::Animate start, processing %d animating nodes", context_.animatingNodeList_.size());
 
+    bool lastDoWindowAnimate = doWindowAnimate_;
     doWindowAnimate_ = HasWindowAnimation();
+    if (!lastDoWindowAnimate && doWindowAnimate_ && RSInnovation::UpdateQosVsyncEnabled()) {
+        RSQosThread::GetInstance()->ResetQosPid();
+    }
+
     // iterate and animate all animating nodes, remove if animation finished
     std::__libcpp_erase_if_container(context_.animatingNodeList_, [timestamp](const auto& iter) -> bool {
         auto node = iter.second.lock();
@@ -915,6 +928,15 @@ void RSMainThread::SendCommands()
             app->OnTransaction(transactionPtr);
         }
     });
+}
+
+void RSMainThread::QosStateDump(std::string& dumpString)
+{
+    if (RSQosThread::GetInstance()->GetQosCal()) {
+        dumpString.append("QOS is enabled\n");
+    } else {
+        dumpString.append("QOS is disabled\n");
+    }
 }
 
 void RSMainThread::RenderServiceTreeDump(std::string& dumpString)

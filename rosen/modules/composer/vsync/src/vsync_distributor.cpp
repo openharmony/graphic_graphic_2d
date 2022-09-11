@@ -336,6 +336,7 @@ VsyncError VSyncDistributor::QosGetPidByName(const std::string& name, uint32_t& 
 
 VsyncError VSyncDistributor::SetQosVSyncRate(uint32_t pid, int32_t rate)
 {
+    std::lock_guard<std::mutex> locker(mutex_);
     for (auto connection : connections_) {
         uint32_t tmpPid;
         if (QosGetPidByName(connection->info_.name_, tmpPid) != VSYNC_ERROR_OK) {
@@ -343,7 +344,13 @@ VsyncError VSyncDistributor::SetQosVSyncRate(uint32_t pid, int32_t rate)
         }
 
         if (tmpPid == pid) {
-            SetHighPriorityVSyncRate(rate, connection);
+            if (connection->highPriorityRate_ != rate) {
+                connection->highPriorityRate_ = rate;
+                connection->highPriorityState_ = true;
+                VLOGD("in, conn name:%{public}s, highPriorityRate:%{public}d", connection->info_.name_.c_str(),
+                    connection->highPriorityRate_);
+                con_.notify_all();
+            }
             break;
         }
     }
@@ -353,6 +360,8 @@ VsyncError VSyncDistributor::SetQosVSyncRate(uint32_t pid, int32_t rate)
 VsyncError VSyncDistributor::GetQosVSyncRateInfos(std::vector<std::pair<uint32_t, int32_t>>& vsyncRateInfos)
 {
     vsyncRateInfos.clear();
+
+    std::lock_guard<std::mutex> locker(mutex_);
     for (auto &connection : connections_) {
         uint32_t tmpPid;
         if (QosGetPidByName(connection->info_.name_, tmpPid) != VSYNC_ERROR_OK) {

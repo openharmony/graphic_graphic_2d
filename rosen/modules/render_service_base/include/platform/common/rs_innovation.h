@@ -67,24 +67,11 @@ public:
     static inline void* _s_regionOpFromSo = nullptr;
 
     // qos vsync
-    static bool UpdateQosNeedReset()
-    {
-        if (_s_qosVsyncFuncLoaded && !_s_qosIsReseted) {
-            _s_qosIsReseted = true;
-            return true;
-        }
-        return false;
-    }
-
     static bool UpdateQosVsyncEnabled()
     {
-        if (std::atoi((system::GetParameter("rosen.qos_vsync.enabled", "0")).c_str()) != 0) {
-            _s_qosIsReseted = false;
-            return _s_qosVsyncFuncLoaded;
-        }
-        return false;
+        return _s_qosVsyncFuncLoaded &&
+            (std::atoi((system::GetParameter("rosen.qos_vsync.enabled", "0")).c_str()) != 0);
     }
-    static inline bool _s_qosIsReseted = false;
     static inline bool _s_qosVsyncFuncLoaded = false;
     static inline void* _s_createRSQosService = nullptr;
     static inline void* _s_qosThreadStart = nullptr;
@@ -92,6 +79,7 @@ public:
     static inline void* _s_qosSetBoundaryRate = nullptr;
     static inline void* _s_qosOnRSVisibilityChangeCB = nullptr;
     static inline void* _s_qosRegisteFuncCB = nullptr;
+    static inline void* _s_qosOnRSResetPid = nullptr;
 
 private:
     RSInnovation() = default;
@@ -148,12 +136,14 @@ private:
             _s_qosSetBoundaryRate = dlsym(innovationHandle, "QosSetBoundaryRate");
             _s_qosOnRSVisibilityChangeCB = dlsym(innovationHandle, "QosOnRSVisibilityChangeCB");
             _s_qosRegisteFuncCB = dlsym(innovationHandle, "QosRegisteFuncCB");
+            _s_qosOnRSResetPid = dlsym(innovationHandle, "QosOnRSResetPid");
             _s_qosVsyncFuncLoaded = (_s_createRSQosService != nullptr) &&
                                     (_s_qosThreadStart != nullptr) &&
                                     (_s_qosThreadStop != nullptr) &&
                                     (_s_qosSetBoundaryRate != nullptr) &&
                                     (_s_qosOnRSVisibilityChangeCB != nullptr) &&
-                                    (_s_qosRegisteFuncCB != nullptr);
+                                    (_s_qosRegisteFuncCB != nullptr) &&
+                                    (_s_qosOnRSResetPid != nullptr);
         }
     }
 
@@ -167,6 +157,7 @@ private:
             _s_qosSetBoundaryRate = nullptr;
             _s_qosOnRSVisibilityChangeCB = nullptr;
             _s_qosRegisteFuncCB = nullptr;
+            _s_qosOnRSResetPid = nullptr;
         }
     }
 };

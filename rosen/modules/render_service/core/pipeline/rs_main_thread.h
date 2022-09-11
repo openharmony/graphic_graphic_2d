@@ -75,6 +75,7 @@ public:
     void RecvRSTransactionData(std::unique_ptr<RSTransactionData>& rsTransactionData);
     void RequestNextVSync();
     void PostTask(RSTaskMessage::RSTask task);
+    void QosStateDump(std::string& dumpString);
     void RenderServiceTreeDump(std::string& dumpString);
     void RsEventParamDump(std::string& dumpString);
 
