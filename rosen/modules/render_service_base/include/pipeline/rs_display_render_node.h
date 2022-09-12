@@ -174,6 +174,8 @@ public:
         return curAllSurfaces_;
     }
 
+    void UpdateRotation();
+    bool IsRotationChanged() const;
 private:
     CompositeType compositeType_ { HARDWARE_COMPOSITE };
     uint64_t screenId_;
@@ -183,7 +185,7 @@ private:
     bool isMirroredDisplay_ = false;
     bool isSecurityDisplay_ = false;
     WeakPtr mirrorSource_;
-
+    float lastRotation_ = 0.f;
     sk_sp<SkImage> snapshot_;
 
     std::shared_ptr<RSSurface> surface_;
