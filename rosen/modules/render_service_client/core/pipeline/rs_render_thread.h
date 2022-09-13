@@ -117,6 +117,7 @@ private:
     RSRenderThread& operator=(const RSRenderThread&&) = delete;
 
     void RenderLoop();
+    void CreateAndInitRenderContextIfNeed();
 
     void OnVsync(uint64_t timestamp);
     void ProcessCommands();

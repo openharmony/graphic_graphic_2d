@@ -83,10 +83,6 @@ RSRenderThread& RSRenderThread::Instance()
 
 RSRenderThread::RSRenderThread()
 {
-#ifdef ACE_ENABLE_GL
-    renderContext_ = new RenderContext();
-    ROSEN_LOGD("Create RenderContext, its pointer is %p", renderContext_);
-#endif
     mainFunc_ = [&]() {
         uint64_t renderStartTimeStamp;
         if (needRender_) {
@@ -200,6 +196,21 @@ int32_t RSRenderThread::GetTid()
     return tid_;
 }
 
+void RSRenderThread::CreateAndInitRenderContextIfNeed()
+{
+#ifdef ACE_ENABLE_GL
+    if (needRender_ && renderContext_ == nullptr) {
+        renderContext_ = new RenderContext();
+        ROSEN_LOGD("Create RenderContext, its pointer is %p", renderContext_);
+        RS_TRACE_NAME("InitializeEglContext");
+        renderContext_->InitializeEglContext(); // init egl context on RT
+        if (!cacheDir_.empty()) {
+            renderContext_->SetCacheDir(cacheDir_);
+        }
+    }
+#endif
+}
+
 void RSRenderThread::RenderLoop()
 {
     SystemCallSetThreadName("RSRenderThread");
@@ -214,17 +225,12 @@ void RSRenderThread::RenderLoop()
 #ifdef ROSEN_OHOS
     tid_ = gettid();
 #endif
-#ifdef ACE_ENABLE_GL
-    renderContext_->InitializeEglContext(); // init egl context on RT
-    if (!cacheDir_.empty()) {
-        renderContext_->SetCacheDir(cacheDir_);
-    }
-#endif
     if (RSSystemProperties::GetUniRenderEnabled()) {
         needRender_ = std::static_pointer_cast<RSRenderServiceClient>(RSIRenderClient::CreateRenderServiceClient())
             ->QueryIfRTNeedRender();
         RSSystemProperties::SetRenderMode(!needRender_);
     }
+    CreateAndInitRenderContextIfNeed();
     std::string name = "RSRenderThread_" + std::to_string(GetRealPid());
     runner_ = AppExecFwk::EventRunner::Create(false);
     handler_ = std::make_shared<AppExecFwk::EventHandler>(runner_);
@@ -285,6 +291,7 @@ void RSRenderThread::UpdateRenderMode(bool needRender)
             } else {
                 needRender_ = needRender;
                 forceUpdateSurfaceNode_ = true;
+                CreateAndInitRenderContextIfNeed();
             }
         }, AppExecFwk::EventQueue::Priority::IMMEDIATE);
     }
