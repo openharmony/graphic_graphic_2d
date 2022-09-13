@@ -80,11 +80,15 @@ void RSSurfaceRenderNode::PrepareRenderBeforeChildren(RSPaintFilterCanvas& canva
 
     // apply intermediate properties from RT to canvas
     canvas.MultiplyAlpha(GetContextAlpha());
-    canvas.concat(GetContextMatrix());
+    auto contextMatrix = GetContextMatrix();
+    contextMatrix.setTranslateX(std::floor(contextMatrix.getTranslateX()));
+    contextMatrix.setTranslateY(std::floor(contextMatrix.getTranslateY()));
+    canvas.concat(contextMatrix);
     auto clipRectFromRT = GetContextClipRegion();
     if (clipRectFromRT.width() > std::numeric_limits<float>::epsilon() &&
         clipRectFromRT.height() > std::numeric_limits<float>::epsilon()) {
-        canvas.clipRect(clipRectFromRT);
+        canvas.clipRect(SkRect::MakeXYWH(std::floor(clipRectFromRT.x()), std::floor(clipRectFromRT.y()),
+                        clipRectFromRT.width(), clipRectFromRT.height()));
     }
 
     // apply node properties to canvas
