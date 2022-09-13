@@ -36,7 +36,7 @@ FontCollectionTxt::FontCollectionTxt(bool createWithICU)
     // don't need initialize icu for arkui cross-platform
     // don't need initialize icu for AceAbility or UIContent.
     if (createWithICU) {
-        fml::icu::InitializeICU("/system/usr/ohos_icu/icudt67l.dat"); // position of icu
+        fml::icu::InitializeICU("/system/usr/ohos_icu/icudt69l.dat"); // position of icu
     }
 #endif
     txtCollection = std::make_shared<txt::FontCollection>();
