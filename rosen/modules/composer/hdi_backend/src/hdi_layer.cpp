@@ -195,7 +195,7 @@ void HdiLayer::SetHdiLayerInfo()
     ret = device->SetLayerColorTransform(screenId_, layerId_, layerInfo_->GetColorTransform());
     ret = device->SetLayerColorDataSpace(screenId_, layerId_, layerInfo_->GetColorDataSpace());
     ret = device->SetLayerMetaData(screenId_, layerId_, layerInfo_->GetMetaData());
-    ret = device->SetLayerMetaDataSet(screenId_, layerId_, layerInfo_->GetMetaDataSet().key,
+    ret = device->SetLayerMetaDataSet(screenId_, layerId_, (HDRMetadataKey)layerInfo_->GetMetaDataSet().key,
                                       layerInfo_->GetMetaDataSet().metaData);
 
     SetLayerTunnelHandle();

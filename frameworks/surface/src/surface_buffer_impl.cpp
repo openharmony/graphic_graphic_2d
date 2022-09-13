@@ -125,8 +125,8 @@ GSError SurfaceBufferImpl::Alloc(const BufferRequestConfig &config)
     auto dret = displayGralloc_->AllocMem(info, handle);
     if (dret == DISPLAY_SUCCESS) {
         std::lock_guard<std::mutex> lock(mutex_);
-        surfaceBufferColorGamut_ = config.colorGamut;
-        transform_ = config.transform;
+        surfaceBufferColorGamut_ = static_cast<GraphicColorGamut>(config.colorGamut);
+        transform_ = static_cast<GraphicTransformType>(config.transform);
         surfaceBufferWidth_ = config.width;
         surfaceBufferHeight_ = config.height;
         handle_ = handle;
@@ -258,25 +258,25 @@ BufferHandle *SurfaceBufferImpl::GetBufferHandle() const
     return handle_;
 }
 
-void SurfaceBufferImpl::SetSurfaceBufferColorGamut(const ColorGamut& colorGamut)
+void SurfaceBufferImpl::SetSurfaceBufferColorGamut(const GraphicColorGamut& colorGamut)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     surfaceBufferColorGamut_ = colorGamut;
 }
 
-const ColorGamut& SurfaceBufferImpl::GetSurfaceBufferColorGamut() const
+const GraphicColorGamut& SurfaceBufferImpl::GetSurfaceBufferColorGamut() const
 {
     std::lock_guard<std::mutex> lock(mutex_);
     return surfaceBufferColorGamut_;
 }
 
-void SurfaceBufferImpl::SetSurfaceBufferTransform(const TransformType& transform)
+void SurfaceBufferImpl::SetSurfaceBufferTransform(const GraphicTransformType& transform)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     transform_ = transform;
 }
 
-const TransformType& SurfaceBufferImpl::GetSurfaceBufferTransform() const
+const GraphicTransformType& SurfaceBufferImpl::GetSurfaceBufferTransform() const
 {
     std::lock_guard<std::mutex> lock(mutex_);
     return transform_;

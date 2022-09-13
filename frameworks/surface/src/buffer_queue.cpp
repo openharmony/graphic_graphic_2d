@@ -140,17 +140,18 @@ GSError BufferQueue::CheckRequestConfig(const BufferRequestConfig &config)
         return GSERROR_INVALID_ARGUMENTS;
     }
 
-    if (config.colorGamut <= ColorGamut::COLOR_GAMUT_INVALID ||
-        config.colorGamut > ColorGamut::COLOR_GAMUT_DISPLAY_BT2020 + 1) {
+    if (config.colorGamut <= GraphicColorGamut::GRAPHIC_COLOR_GAMUT_INVALID ||
+        config.colorGamut > GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_BT2020 + 1) {
         BLOGN_INVALID("config.colorGamut [0, %{public}d], now is %{public}d",
-            static_cast<uint32_t>(ColorGamut::COLOR_GAMUT_DISPLAY_BT2020),
+            static_cast<uint32_t>(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_BT2020),
             static_cast<uint32_t>(config.colorGamut));
         return GSERROR_INVALID_ARGUMENTS;
     }
 
-    if (config.transform < TransformType::ROTATE_NONE || config.transform >= TransformType::ROTATE_BUTT) {
+    if (config.transform < GraphicTransformType::GRAPHIC_ROTATE_NONE ||
+        config.transform >= GraphicTransformType::GRAPHIC_ROTATE_BUTT) {
         BLOGN_INVALID("config.transform [0, %{public}d), now is %{public}d",
-            TransformType::ROTATE_BUTT, config.transform);
+            GraphicTransformType::GRAPHIC_ROTATE_BUTT, config.transform);
         return GSERROR_INVALID_ARGUMENTS;
     }
     return GSERROR_OK;
