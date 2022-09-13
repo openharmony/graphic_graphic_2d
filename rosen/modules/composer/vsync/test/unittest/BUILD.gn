@@ -35,7 +35,10 @@ ohos_unittest("vsync_connection_test") {
 
   sources = [ "vsync_connection_test.cpp" ]
 
-  deps = [ ":vsync_test_common" ]
+  deps = [
+    ":vsync_test_common",
+    "//foundation/graphic/graphic_2d/utils:socketpair",
+  ]
 }
 
 ## UnitTest vsync_connection_test }}}
@@ -57,7 +60,10 @@ ohos_unittest("vsync_distributor_test") {
 
   sources = [ "vsync_distributor_test.cpp" ]
 
-  deps = [ ":vsync_test_common" ]
+  deps = [
+    ":vsync_test_common",
+    "//foundation/graphic/graphic_2d/utils:socketpair",
+  ]
 }
 
 ## UnitTest vsync_distributor_test }}}
@@ -79,7 +85,11 @@ ohos_unittest("vsync_receiver_test") {
 
   sources = [ "vsync_receiver_test.cpp" ]
 
-  deps = [ ":vsync_test_common" ]
+  deps = [
+    ":vsync_test_common",
+    "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
+    "//foundation/graphic/graphic_2d/utils:socketpair",
+  ]
 }
 
 ## UnitTest vsync_receiver_test }}}

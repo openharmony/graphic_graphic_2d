@@ -89,6 +89,7 @@ ohos_executable("drawing_engine_sample") {
 
   external_deps = [
     "c_utils:utils",
+    "eventhandler:libeventhandler",
     "hilog_native:libhilog",
   ]
 

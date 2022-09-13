@@ -26,7 +26,7 @@ static void OnVSync(long long timestamp, void* data)
     std::cout << "OnVSync: " << timestamp << std::endl;
 }
 
-void ThreadMain(OH_NativeVSync* nativeVSync)
+static void ThreadMain(OH_NativeVSync* nativeVSync)
 {
     OH_NativeVSync_FrameCallback callback = OnVSync;
     OH_NativeVSync_RequestFrame(nativeVSync, callback, nullptr);

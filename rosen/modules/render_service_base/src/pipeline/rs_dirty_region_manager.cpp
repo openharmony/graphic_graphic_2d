@@ -79,7 +79,7 @@ const RectI& RSDirtyRegionManager::GetLatestDirtyRegion() const
     return dirtyHistory_[historyHead_];
 }
 
-RectI RSDirtyRegionManager::GetPixelAlignedRect(const RectI& rect, uint32_t alignedBits)
+RectI RSDirtyRegionManager::GetPixelAlignedRect(const RectI& rect, int32_t alignedBits)
 {
     RectI newRect = rect;
     if (alignedBits > 1) {

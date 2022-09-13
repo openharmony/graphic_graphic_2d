@@ -24,7 +24,7 @@ DECLARE_ANIMATABLE_MODIFIER(PositionZ, float, POSITION_Z, RSRenderAnimatableProp
 
 DECLARE_ANIMATABLE_MODIFIER(Pivot, Vector2f, PIVOT, RSRenderAnimatableProperty, Replace)
 
-DECLARE_ANIMATABLE_MODIFIER(Quaternion, Quaternion, QUATERNION, RSRenderAnimatableProperty, Add)
+DECLARE_ANIMATABLE_MODIFIER(Quaternion, Quaternion, QUATERNION, RSRenderAnimatableProperty, Replace)
 
 DECLARE_ANIMATABLE_MODIFIER(Rotation, float, ROTATION, RSRenderAnimatableProperty, Add)
 

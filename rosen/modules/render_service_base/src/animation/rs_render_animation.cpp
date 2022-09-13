@@ -250,5 +250,13 @@ bool RSRenderAnimation::Animate(int64_t time)
     }
     return isFinished;
 }
+
+void RSRenderAnimation::SetStartTime(int64_t time)
+{
+    if (firstToRunning_) {
+        animationFraction_.SetLastFrameTime(time);
+        firstToRunning_ = false;
+    }
+}
 } // namespace Rosen
 } // namespace OHOS

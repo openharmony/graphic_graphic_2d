@@ -121,7 +121,7 @@ void RenderContext::InitializeEglContext()
         return;
     }
 
-    LOGI("Creating EGLContext!!!");
+    LOGD("Creating EGLContext!!!");
     eglDisplay_ = GetPlatformEglDisplay(EGL_PLATFORM_OHOS_KHR, EGL_DEFAULT_DISPLAY, NULL);
     if (eglDisplay_ == EGL_NO_DISPLAY) {
         LOGW("Failed to create EGLDisplay gl errno : %{public}x", eglGetError());
@@ -178,6 +178,7 @@ void RenderContext::MakeCurrent(EGLSurface surface) const
 
 void RenderContext::SwapBuffers(EGLSurface surface) const
 {
+    RS_TRACE_FUNC();
     if (!eglSwapBuffers(eglDisplay_, surface)) {
         LOGE("Failed to SwapBuffers on surface %{public}p, error is %{public}x", surface, eglGetError());
     } else {
@@ -300,6 +301,7 @@ sk_sp<SkSurface> RenderContext::AcquireSurface(int width, int height)
 
 void RenderContext::RenderFrame()
 {
+    RS_TRACE_FUNC();
     // flush commands
     if (skSurface_->getCanvas() != nullptr) {
         LOGD("RenderFrame: Canvas is %{public}p", skSurface_->getCanvas());

@@ -27,7 +27,10 @@ ohos_unittest("sync_fence_test") {
 
   sources = [ "sync_fence_test.cpp" ]
 
-  deps = [ ":sync_fence_common" ]
+  deps = [
+    ":sync_fence_common",
+    "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
+  ]
 }
 
 ## UnitTest sync_fence_test }}}

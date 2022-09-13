@@ -32,8 +32,11 @@ ohos_fuzztest("HdiScreenFuzzTest") {
     "-fno-omit-frame-pointer",
   ]
   sources = [ "hdiscreen_fuzzer.cpp" ]
-  deps =
-      [ "//foundation/graphic/graphic_2d/rosen/modules/composer:libcomposer" ]
+  deps = [
+    "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
+    "//foundation/graphic/graphic_2d/rosen/modules/composer:libcomposer",
+    "//foundation/graphic/graphic_2d/utils:socketpair",
+  ]
 }
 
 ###############################################################################

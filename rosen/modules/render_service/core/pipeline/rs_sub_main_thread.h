@@ -81,11 +81,10 @@ public:
     void CanvasPrepareFuncRegister();
     void SubDrawFuncRegister();
     void FlushAndSubmitRegister();
-    bool EnableParallerRendering()
-    {
-        return (eglShareCtxNum > 0) && tastManager_.EnableParallerRendering() && RSInnovation::innovationHandle;
-    }
+    bool EnableParallerRendering();
     RSRenderTaskManager tastManager_;
+    void ProcessFrameStartFlag();
+    void ProcessFrameEndFlag();
 
 private:
     struct ThreadResource {
@@ -119,6 +118,10 @@ private:
     int32_t surfaceWidth_ = 0;
     int32_t surfaceHeight_ = 0;
     using CreateEglShareContextFunc = EGLContext(*)(EGLDisplay, EGLConfig, EGLContext, const EGLint *);
+    std::queue<uint64_t> processFrameTimes_;
+    uint64_t processFrameStartTime_;
+    uint64_t processFrameTotalTime_;
+    uint64_t processFrameAvgTime_;
 };
 }
 }

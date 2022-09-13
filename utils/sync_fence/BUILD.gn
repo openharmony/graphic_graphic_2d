@@ -46,11 +46,13 @@ ohos_shared_library("sync_fence") {
 
   public_configs = [ ":sync_fence_public_config" ]
 
+  deps = [
+    "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
+  ]
   public_deps = [
     "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
     "//base/notification/eventhandler/frameworks/eventhandler:libeventhandler",
     "//commonlibrary/c_utils/base:utils",
-    "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
   ]
 
   external_deps = [ "hitrace_native:hitrace_meter" ]

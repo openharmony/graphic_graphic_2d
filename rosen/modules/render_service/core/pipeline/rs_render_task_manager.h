@@ -171,11 +171,7 @@ public:
     ~RSRenderTaskManager();
 
     void InitTaskManager();
-    void SetSubRenderThreadNum(uint32_t num)
-    {
-        renderLoad_.subRenderThreadNum = bMainThreadUsed_ ? num + 1 : num;
-    }
-
+    void SetSubRenderThreadNum(uint32_t num);
     void PushTask(std::unique_ptr<RSRenderTask> &&task);
     void LoadBalancePushTask(std::unique_ptr<RSRenderTask> &&task);
     void WrapAndPushSuperTask();

@@ -29,17 +29,17 @@ namespace Rosen {
 #ifndef LOGD
 #ifdef OHOS_PLATFORM
 #define LOGD(fmt, ...)               \
-    ::OHOS::HiviewDFX::HiLog::Debug( \
-        ::OHOS::HiviewDFX::HiLogLabel { LOG_CORE, 0, "Drawing" }, "%{public}s: " fmt, __func__, ##__VA_ARGS__)
+    ::OHOS::HiviewDFX::HiLog::Debug(::OHOS::HiviewDFX::HiLogLabel \
+        { LOG_CORE, 0xD001402, "2DGraphics" }, "%{public}s: " fmt, __func__, ##__VA_ARGS__)
 #define LOGI(fmt, ...)              \
-    ::OHOS::HiviewDFX::HiLog::Info( \
-        ::OHOS::HiviewDFX::HiLogLabel { LOG_CORE, 0, "Drawing" }, "%{public}s: " fmt, __func__, ##__VA_ARGS__)
+    ::OHOS::HiviewDFX::HiLog::Info(::OHOS::HiviewDFX::HiLogLabel \
+        { LOG_CORE, 0xD001402, "2DGraphics" }, "%{public}s: " fmt, __func__, ##__VA_ARGS__)
 #define LOGW(fmt, ...)              \
-    ::OHOS::HiviewDFX::HiLog::Warn( \
-        ::OHOS::HiviewDFX::HiLogLabel { LOG_CORE, 0, "Drawing" }, "%{public}s: " fmt, __func__, ##__VA_ARGS__)
+    ::OHOS::HiviewDFX::HiLog::Warn(::OHOS::HiviewDFX::HiLogLabel \
+        { LOG_CORE, 0xD001402, "2DGraphics" }, "%{public}s: " fmt, __func__, ##__VA_ARGS__)
 #define LOGE(fmt, ...)               \
-    ::OHOS::HiviewDFX::HiLog::Error( \
-        ::OHOS::HiviewDFX::HiLogLabel { LOG_CORE, 0, "Drawing" }, "%{public}s: " fmt, __func__, ##__VA_ARGS__)
+    ::OHOS::HiviewDFX::HiLog::Error(::OHOS::HiviewDFX::HiLogLabel \
+        { LOG_CORE, 0xD001402, "2DGraphics" }, "%{public}s: " fmt, __func__, ##__VA_ARGS__)
 #else
 #define LOGD(fmt, ...)
 #define LOGI(fmt, ...)

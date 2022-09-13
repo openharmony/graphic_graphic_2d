@@ -341,6 +341,11 @@ GSError ProducerSurface::Disconnect()
             return GSERROR_INVALID_OPERATING;
         }
     }
+    BLOGND("Queue Id:%{public}" PRIu64 "", queueId_);
+    if (IsRemote()) {
+        std::lock_guard<std::mutex> lockGuard(mutex_);
+        bufferProducerCache_.clear();
+    }
     GSError ret = producer_->Disconnect();
     {
         std::lock_guard<std::mutex> lockGuard(mutex_);

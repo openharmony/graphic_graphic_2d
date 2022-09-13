@@ -61,18 +61,15 @@ ohos_shared_library("libcomposer") {
 
   deps = [
     "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
+    "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
     "//foundation/graphic/graphic_2d:libsurface",
-    "//foundation/graphic/graphic_2d/utils:libgraphic_utils",
   ]
 
   public_deps = [
     "vsync:libvsync",
-    "//base/notification/eventhandler/frameworks/eventhandler:libeventhandler",
     "//commonlibrary/c_utils/base:utils",
-    "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
     "//foundation/graphic/graphic_2d/utils:buffer_handle",
     "//foundation/graphic/graphic_2d/utils:scoped_bytrace",
-    "//foundation/graphic/graphic_2d/utils:socketpair",
     "//foundation/graphic/graphic_2d/utils:sync_fence",
   ]
 

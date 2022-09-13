@@ -526,7 +526,7 @@ GSError BufferQueueProducer::Disconnect()
         }
         connectedPid_ = 0;
     }
-    return bufferQueue_->CleanCache();
+    return bufferQueue_->GoBackground();
 }
 
 GSError BufferQueueProducer::SetScalingMode(uint32_t sequence, ScalingMode scalingMode)

@@ -28,6 +28,8 @@ namespace Rosen {
 constexpr int32_t EGL_CONTEXT_CLIENT_VERSION_NUM = 2;
 const int STENCIL_BUFFER_SIZE = 8;
 constexpr int SUB_RENDER_CORE_LEVEL = 400;
+constexpr uint64_t FRAME_COUNT = 100;
+constexpr uint64_t FRAME_PROCESS_TIME = 16;
 RSSubMainThread::RSSubMainThread()
     : eglDisplay_(EGL_NO_DISPLAY),
       eglContext_(EGL_NO_CONTEXT),
@@ -37,9 +39,11 @@ RSSubMainThread::RSSubMainThread()
       frameWidth_(0),
       frameHeight_(0),
       surfaceWidth_(0),
-      surfaceHeight_(0)
+      surfaceHeight_(0),
+      processFrameStartTime_(0),
+      processFrameTotalTime_(0),
+      processFrameAvgTime_(0)
 {
-    ManagerCallBackRegister();
 }
 
 RSSubMainThread::~RSSubMainThread()
@@ -59,6 +63,31 @@ RSSubMainThread& RSSubMainThread::Instance()
 {
     static RSSubMainThread subRenderThread;
     return subRenderThread;
+}
+
+void RSSubMainThread::ProcessFrameStartFlag()
+{
+    auto now = std::chrono::steady_clock::now().time_since_epoch();
+    processFrameStartTime_ = std::chrono::duration_cast<std::chrono::milliseconds>(now).count();
+}
+
+void RSSubMainThread::ProcessFrameEndFlag()
+{
+    auto now = std::chrono::steady_clock::now().time_since_epoch();
+    auto costing = std::chrono::duration_cast<std::chrono::milliseconds>(now).count() - 
+        processFrameStartTime_;
+    if (processFrameTimes_.size() == FRAME_COUNT) {
+        processFrameTimes_.pop();
+    }
+    processFrameTimes_.push(costing);
+    processFrameTotalTime_ += costing;
+    processFrameAvgTime_ = processFrameTotalTime_ / static_cast<uint64_t>(processFrameTimes_.size());
+}
+
+bool RSSubMainThread::EnableParallerRendering()
+{
+    return RSInnovation::GetParallelRenderingEnabled() && (eglShareCtxNum > 0) && 
+        tastManager_.EnableParallerRendering() && (processFrameAvgTime_ > FRAME_PROCESS_TIME);
 }
 
 void RSSubMainThread::SetFrameWH(int32_t width, int32_t height)
@@ -102,7 +131,7 @@ void RSSubMainThread::CreateEglShareContext()
 
 void RSSubMainThread::InitializeSubRenderThread(uint32_t subThreadNum)
 {
-    if (!RSInnovation::innovationHandle) return;
+    if (!RSInnovation::GetParallelRenderingEnabled()) return;
     eglShareCtxNum = subThreadNum;
     std::vector<std::thread*>(eglShareCtxNum, nullptr).swap(subRSThreads_);
     tastManager_.InitTaskManager();
@@ -111,7 +140,7 @@ void RSSubMainThread::InitializeSubRenderThread(uint32_t subThreadNum)
 
 void RSSubMainThread::InitializeSubContext(RenderContext* context)
 {
-    if (!RSInnovation::innovationHandle) return;
+    if (!RSInnovation::GetParallelRenderingEnabled()) return;
     renderContext_ = context;
     eglDisplay_ = renderContext_->GetEGLDisplay();
     config_ = renderContext_->GetEGLConfig();
@@ -122,7 +151,8 @@ void RSSubMainThread::InitializeSubContext(RenderContext* context)
 
 void RSSubMainThread::StartSubThread()
 {
-    if (!RSInnovation::innovationHandle) return;
+    if (!RSInnovation::GetParallelRenderingEnabled()) return;
+    ManagerCallBackRegister();
     for (uint32_t i = 0; i < eglShareCtxNum; ++i) {
         if (subRSThreads_[i] == nullptr) {
             resources.emplace_back();

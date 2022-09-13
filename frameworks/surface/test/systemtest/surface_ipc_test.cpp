@@ -30,7 +30,7 @@ namespace OHOS::Rosen {
 class SurfaceIPCTest : public testing::Test, public IBufferConsumerListenerClazz {
 public:
     static void SetUpTestCase();
-    virtual void OnBufferAvailable() override;
+    void OnBufferAvailable() override;
     OHOS::GSError SetData(sptr<SurfaceBuffer> &buffer, sptr<Surface> &pSurface);
     bool GetData(sptr<SurfaceBuffer> &buffer);
     pid_t ChildProcessMain();

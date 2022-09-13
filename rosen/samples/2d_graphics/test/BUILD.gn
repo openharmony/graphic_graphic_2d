@@ -66,6 +66,7 @@ ohos_executable("drawing_sample") {
   ]
 
   external_deps = [
+    "eventhandler:libeventhandler",
     "hilog_native:libhilog",
     "ipc:ipc_core",
     "multimedia_image_standard:image_native",

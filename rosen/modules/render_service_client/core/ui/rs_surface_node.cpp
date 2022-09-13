@@ -33,6 +33,7 @@
 namespace OHOS {
 namespace Rosen {
 static const std::string STARTING_WINDOW_NAME = "startingWindow";
+static const std::string LEASH_WINDOW_NAME = "leashWindow";
 RSSurfaceNode::SharedPtr RSSurfaceNode::Create(const RSSurfaceNodeConfig& surfaceNodeConfig, bool isWindow)
 {
     auto transactionProxy = RSTransactionProxy::GetInstance();
@@ -51,6 +52,10 @@ RSSurfaceNode::SharedPtr RSSurfaceNode::Create(const RSSurfaceNodeConfig& surfac
 
     if (config.name.find(STARTING_WINDOW_NAME) != std::string::npos) {
         config.nodeType = RSSurfaceNodeType::STARTING_WINDOW_NODE;
+    }
+
+    if (config.name.find(LEASH_WINDOW_NAME) != std::string::npos) {
+        config.nodeType = RSSurfaceNodeType::LEASH_WINDOW_NODE;
     }
 
     if (!node->CreateNodeAndSurface(config)) {
@@ -72,7 +77,11 @@ RSSurfaceNode::SharedPtr RSSurfaceNode::Create(const RSSurfaceNodeConfig& surfac
         transactionProxy->AddCommand(command, isWindow);
         node->SetFrameGravity(Gravity::RESIZE);
     }
-    node->SetFrameGravity(Gravity::RESIZE);
+    if (std::strcmp(node->GetName().c_str(), "SystemUi_BatteryPanel") == 0) {
+        node->SetFrameGravity(Gravity::TOP_LEFT);
+    } else {
+        node->SetFrameGravity(Gravity::RESIZE);
+    }
     ROSEN_LOGD("RsDebug RSSurfaceNode::Create id:%" PRIu64, node->GetId());
     return node;
 }

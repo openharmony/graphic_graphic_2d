@@ -90,7 +90,7 @@ void RSUniRenderVisitor::PrepareDisplayRenderNode(RSDisplayRenderNode& node)
     curDisplayDirtyManager_->Clear();
     curDisplayNode_ = node.shared_from_this()->ReinterpretCastTo<RSDisplayRenderNode>();
 
-    dirtyFlag_ = false;
+    dirtyFlag_ = isDirty_;
     node.ApplyModifiers();
 
     parentSurfaceNodeMatrix_ = SkMatrix::I();
@@ -345,10 +345,6 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
             RS_LOGE("RSUniRenderVisitor::ProcessDisplayRenderNode No RSSurface found");
             return;
         }
-#ifdef RS_ENABLE_GL
-        RSSubMainThread::Instance().InitTaskManager();
-        RSSubMainThread::Instance().SetFrameWH(screenInfo_.width, screenInfo_.height);
-#endif
         // we should request a framebuffer whose size is equals to the physical screen size.
         auto renderFrame = renderEngine_->RequestFrame(std::static_pointer_cast<RSSurfaceOhos>(rsSurface),
             RSBaseRenderUtil::GetFrameBufferRequestConfig(screenInfo_, true));
@@ -396,9 +392,11 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
             canvas_->concat(geoPtr->GetMatrix());
         }
 #ifdef RS_ENABLE_GL
-        // if surface node number >= SURFACE_NODE_NUMBER, we will benifit.
-        if (node.GetChildrenCount() >= SURFACE_NODE_NUMBER) {
-            packTask_ = RSSubMainThread::Instance().EnableParallerRendering();
+        surfaceNodeNum_ = node.GetChildrenCount();
+        if (EnableParallerRendering()) {
+            RSSubMainThread::Instance().InitTaskManager();
+            RSSubMainThread::Instance().SetFrameWH(screenInfo_.width, screenInfo_.height);
+            packTask_ = true;
         } else {
             packTask_ = false;
         }
@@ -406,7 +404,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
         ProcessBaseRenderNode(node);
 #ifdef RS_ENABLE_GL
         packTask_ = false;
-        if (RSSubMainThread::Instance().EnableParallerRendering()) {
+        if (EnableParallerRendering()) {
             LBCalculate();
             RSSubMainThread::Instance().tastManager_.MergeTextures(renderFrame->GetFrame()->GetCanvas());
         }
@@ -439,12 +437,8 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
     auto& surfaceHandler = static_cast<RSSurfaceHandler&>(node);
     (void)RSBaseRenderUtil::ReleaseBuffer(surfaceHandler);
 #ifdef RS_ENABLE_GL
-    if (RSSubMainThread::Instance().EnableParallerRendering()) {
-        if (RSSubMainThread::Instance().tastManager_.GetEnableLoadBalance()) {
-            RSSubMainThread::Instance().tastManager_.UninitTaskManager();
-        } else {
-            RSSubMainThread::Instance().tastManager_.DeleteTextures();
-        }
+    if (EnableParallerRendering()) {
+        RSSubMainThread::Instance().tastManager_.DeleteTextures();
     }
 #endif
     RS_LOGD("RSUniRenderVisitor::ProcessDisplayRenderNode end");
@@ -457,7 +451,7 @@ void RSUniRenderVisitor::LBCalculate()
     if (manager->GetEnableLoadBalance()) {
         RS_TRACE_BEGIN("LoadBalance");
         manager->LoadBalance();
-        RS_TRACE_FUNC();
+        RS_TRACE_END();
         if (manager->GetMainThreadUsed()) {
             LBTimerCalculate();
         }
@@ -791,12 +785,14 @@ void RSUniRenderVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
     } else {
         canvas_->save();
     }
-    const float rootWidth = property.GetFrameWidth() * property.GetScaleX();
-    const float rootHeight = property.GetFrameHeight() * property.GetScaleY();
-    SkMatrix gravityMatrix;
-    (void)RSPropertiesPainter::GetGravityMatrix(frameGravity_,
-        RectF { 0.0f, 0.0f, boundsRect_.width(), boundsRect_.height() }, rootWidth, rootHeight, gravityMatrix);
-    canvas_->concat(gravityMatrix);
+    if (node.GetParent().lock() == curSurfaceNode_) {
+        const float rootWidth = property.GetFrameWidth() * property.GetScaleX();
+        const float rootHeight = property.GetFrameHeight() * property.GetScaleY();
+        SkMatrix gravityMatrix;
+        (void)RSPropertiesPainter::GetGravityMatrix(frameGravity_,
+            RectF { 0.0f, 0.0f, boundsRect_.width(), boundsRect_.height() }, rootWidth, rootHeight, gravityMatrix);
+        canvas_->concat(gravityMatrix);
+    }
     ProcessCanvasRenderNode(node);
     canvas_->restore();
 }
@@ -820,5 +816,18 @@ void RSUniRenderVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
     ProcessBaseRenderNode(node);
     node.ProcessRenderAfterChildren(*canvas_);
 }
+
+bool RSUniRenderVisitor::EnableParallerRendering()
+{
+#if defined(RS_ENABLE_GL)
+    // if surface node number >= SURFACE_NODE_NUMBER, we will benefit.
+    return (surfaceNodeNum_ >= SURFACE_NODE_NUMBER) && 
+        RSSubMainThread::Instance().EnableParallerRendering();
+#else 
+    return false;
+#endif
+}
+
+
 } // namespace Rosen
 } // namespace OHOS

@@ -187,6 +187,14 @@ void RSRenderTaskManager::WrapAndPushSuperTask()
     (*WrapAndPushSuperTaskFuncCall)();
 }
 
+void RSRenderTaskManager::SetSubRenderThreadNum(uint32_t num)
+{
+    renderLoad_.subRenderThreadNum = bMainThreadUsed_ ? num + 1 : num;
+    using SetSubRenderThreadNumFunc = void (*)(uint32_t);
+    auto SetSubRenderThreadNumFuncCall = (SetSubRenderThreadNumFunc)RSInnovation::_s_setSubRenderThreadNum;
+    (*SetSubRenderThreadNumFuncCall)(num); 
+}
+
 void RSRenderTaskManager::PushTask(std::unique_ptr<RSRenderTask> &&task)
 {
     if (cachedSuperTask_->GetTaskSize() != 0) {

@@ -84,69 +84,6 @@ static EGLDisplay GetPlatformEglDisplay(EGLenum platform, void* native_display, 
 
     return eglGetDisplay((EGLNativeDisplayType)native_display);
 }
-}
-
-static void InitEglContext()
-{
-    if (eglContext_ != EGL_NO_DISPLAY) {
-        return;
-    }
-
-    std::cout << "Creating EGLContext!!!" << std::endl;
-    eglDisplay_ = GetPlatformEglDisplay(EGL_PLATFORM_OHOS_KHR, EGL_DEFAULT_DISPLAY, NULL);
-    if (eglDisplay_ == EGL_NO_DISPLAY) {
-        std::cout << "Failed to create EGLDisplay gl errno : " << eglGetError() << std::endl;
-        return;
-    }
-
-    EGLint major, minor;
-    if (eglInitialize(eglDisplay_, &major, &minor) == EGL_FALSE) {
-        std::cout << "Failed to initialize EGLDisplay" << std::endl;
-        return;
-    }
-
-    if (eglBindAPI(EGL_OPENGL_ES_API) == EGL_FALSE) {
-        std::cout << "Failed to bind OpenGL ES API" << std::endl;
-        return;
-    }
-
-    unsigned int ret;
-    EGLint count;
-    EGLint config_attribs[] = { EGL_SURFACE_TYPE, EGL_WINDOW_BIT, EGL_RED_SIZE, 8, EGL_GREEN_SIZE, 8, EGL_BLUE_SIZE, 8,
-        EGL_ALPHA_SIZE, 8, EGL_RENDERABLE_TYPE, EGL_OPENGL_ES3_BIT, EGL_NONE };
-
-    ret = eglChooseConfig(eglDisplay_, config_attribs, &config_, 1, &count);
-    if (!(ret && static_cast<unsigned int>(count) >= 1)) {
-        std::cout << "Failed to eglChooseConfig" << std::endl;
-        return;
-    }
-
-    static const EGLint context_attribs[] = { EGL_CONTEXT_CLIENT_VERSION, EGL_CONTEXT_CLIENT_VERSION_NUM, EGL_NONE };
-
-    eglContext_ = eglCreateContext(eglDisplay_, config_, EGL_NO_CONTEXT, context_attribs);
-    if (eglContext_ == EGL_NO_CONTEXT) {
-        std::cout << "Failed to create egl context %{public}x, error:" << eglGetError() << std::endl;
-        return;
-    }
-
-    eglMakeCurrent(eglDisplay_, EGL_NO_SURFACE, EGL_NO_SURFACE, eglContext_);
-
-    std::cout << "Create EGL context successfully, version" << major << "." << minor << std::endl;
-}
-
-static void Deinit()
-{
-    if (eglDisplay_ == EGL_NO_DISPLAY) {
-        return;
-    }
-    eglDestroyContext(eglDisplay_, eglContext_);
-    eglMakeCurrent(eglDisplay_, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
-    eglTerminate(eglDisplay_);
-    eglReleaseThread();
-
-    eglDisplay_ = EGL_NO_DISPLAY;
-    eglContext_ = EGL_NO_CONTEXT;
-}
 
 void AddBuffer(OHNativeWindow* nativeWindow)
 {
@@ -219,6 +156,70 @@ int32_t GetData(OH_NativeImage* image, OHNativeWindow* nativeWindow)
         return -1;
     }
     return SURFACE_ERROR_OK;
+}
+
+void InitEglContext()
+{
+    if (eglContext_ != EGL_NO_DISPLAY) {
+        return;
+    }
+
+    std::cout << "Creating EGLContext!!!" << std::endl;
+    eglDisplay_ = GetPlatformEglDisplay(EGL_PLATFORM_OHOS_KHR, EGL_DEFAULT_DISPLAY, NULL);
+    if (eglDisplay_ == EGL_NO_DISPLAY) {
+        std::cout << "Failed to create EGLDisplay gl errno : " << eglGetError() << std::endl;
+        return;
+    }
+
+    EGLint major, minor;
+    if (eglInitialize(eglDisplay_, &major, &minor) == EGL_FALSE) {
+        std::cout << "Failed to initialize EGLDisplay" << std::endl;
+        return;
+    }
+
+    if (eglBindAPI(EGL_OPENGL_ES_API) == EGL_FALSE) {
+        std::cout << "Failed to bind OpenGL ES API" << std::endl;
+        return;
+    }
+
+    unsigned int ret;
+    EGLint count;
+    EGLint config_attribs[] = { EGL_SURFACE_TYPE, EGL_WINDOW_BIT, EGL_RED_SIZE, 8, EGL_GREEN_SIZE, 8, EGL_BLUE_SIZE, 8,
+        EGL_ALPHA_SIZE, 8, EGL_RENDERABLE_TYPE, EGL_OPENGL_ES3_BIT, EGL_NONE };
+
+    ret = eglChooseConfig(eglDisplay_, config_attribs, &config_, 1, &count);
+    if (!(ret && static_cast<unsigned int>(count) >= 1)) {
+        std::cout << "Failed to eglChooseConfig" << std::endl;
+        return;
+    }
+
+    static const EGLint context_attribs[] = { EGL_CONTEXT_CLIENT_VERSION, EGL_CONTEXT_CLIENT_VERSION_NUM, EGL_NONE };
+
+    eglContext_ = eglCreateContext(eglDisplay_, config_, EGL_NO_CONTEXT, context_attribs);
+    if (eglContext_ == EGL_NO_CONTEXT) {
+        std::cout << "Failed to create egl context %{public}x, error:" << eglGetError() << std::endl;
+        return;
+    }
+
+    eglMakeCurrent(eglDisplay_, EGL_NO_SURFACE, EGL_NO_SURFACE, eglContext_);
+
+    std::cout << "Create EGL context successfully, version" << major << "." << minor << std::endl;
+}
+
+void Deinit()
+{
+    if (eglDisplay_ == EGL_NO_DISPLAY) {
+        return;
+    }
+    eglDestroyContext(eglDisplay_, eglContext_);
+    eglMakeCurrent(eglDisplay_, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+    eglTerminate(eglDisplay_);
+    eglReleaseThread();
+
+    eglDisplay_ = EGL_NO_DISPLAY;
+    eglContext_ = EGL_NO_CONTEXT;
+}
+
 }
 
 int32_t main(int32_t argc, const char *argv[])

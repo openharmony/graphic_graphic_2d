@@ -247,7 +247,7 @@ static SkImageInfo MakeSkImageInfoFromPixelMap(Media::PixelMap& pixelMap)
     SkColorType ct = PixelFormatToSkColorType(pixelMap.GetPixelFormat());
     SkAlphaType at = AlphaTypeToSkAlphaType(pixelMap.GetAlphaType());
     sk_sp<SkColorSpace> cs = ColorSpaceToSkColorSpace(pixelMap);
-    LOGI("SkColorType %{pubilic}d, SkAlphaType %{public}d", ct, at);
+    LOGD("SkColorType %{pubilic}d, SkAlphaType %{public}d", ct, at);
     return SkImageInfo::Make(pixelMap.GetWidth(), pixelMap.GetHeight(), ct, at, cs);
 }
 #endif
@@ -406,7 +406,7 @@ void SkiaCanvas::DrawImageRect(const Image& image, const Rect& dst, const Sampli
 
 void SkiaCanvas::DrawPicture(const Picture& picture)
 {
-    LOGI("+++++++ DrawPicture");
+    LOGD("+++++++ DrawPicture");
     sk_sp<SkPicture> p;
 
     auto skPictureImpl = picture.GetImpl<SkiaPicture>();
@@ -414,7 +414,7 @@ void SkiaCanvas::DrawPicture(const Picture& picture)
         p = skPictureImpl->GetPicture();
         skiaCanvas_->drawPicture(p.get());
     }
-    LOGI("------- DrawPicture");
+    LOGD("------- DrawPicture");
 }
 
 void SkiaCanvas::ClipRect(const Rect& rect, ClipOp op)

@@ -27,6 +27,7 @@ config("vsync_config") {
 
 config("vsync_public_config") {
   include_dirs = [
+    "//base/notification/eventhandler/interfaces/inner_api",
     "//drivers/peripheral/display/interfaces/include",
     "//foundation/graphic/graphic_2d/interfaces/inner_api/composer",
     "//foundation/graphic/graphic_2d/rosen/include/common",
@@ -46,7 +47,11 @@ ohos_shared_library("libvsync") {
     "src/vsync_sampler.cpp",
   ]
 
-  include_dirs = [ "//foundation/graphic/graphic_2d/utils/log" ]
+  include_dirs = [
+    "//foundation/graphic/graphic_2d/utils/log",
+    "//foundation/graphic/graphic_2d/interfaces/inner_api/common",
+    "//foundation/graphic/graphic_2d/rosen/modules/composer/vsync/include",
+  ]
 
   configs = [ ":vsync_config" ]
 
@@ -56,16 +61,18 @@ ohos_shared_library("libvsync") {
   ]
 
   deps = [
-    "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
-    "//foundation/graphic/graphic_2d/utils:libgraphic_utils",
+    "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
+    "//foundation/graphic/graphic_2d/utils:sandbox_utils",
+    "//foundation/graphic/graphic_2d/utils:socketpair",
   ]
 
   public_deps = [
-    "//base/notification/eventhandler/frameworks/eventhandler:libeventhandler",
     "//commonlibrary/c_utils/base:utils",
-    "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
     "//foundation/graphic/graphic_2d/utils:scoped_bytrace",
-    "//foundation/graphic/graphic_2d/utils:socketpair",
+  ]
+  external_deps = [
+    "eventhandler:libeventhandler",
+    "hilog_native:libhilog",
   ]
 
   part_name = "graphic_standard"

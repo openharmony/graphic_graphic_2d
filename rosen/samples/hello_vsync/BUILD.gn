@@ -38,12 +38,7 @@ ohos_executable("hello_vsync") {
 
   public_configs = [ ":hello_vsync_public_config" ]
 
-  deps = [
-    "//foundation/graphic/graphic_2d/frameworks/surface:surface",
-    "//foundation/graphic/graphic_2d/rosen/modules/composer/native_vsync:libnative_vsync",
-  ]
-
-  external_deps = [ "ipc:ipc_core" ]
+  deps = [ "//foundation/graphic/graphic_2d/rosen/modules/composer/native_vsync:libnative_vsync" ]
 
   part_name = "graphic_standard"
   subsystem_name = "graphic"

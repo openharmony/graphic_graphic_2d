@@ -1,0 +1,73 @@
+# Copyright (c) 2022 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/test.gni")
+
+module_out_path = "graphic_standard/vulkan_wrapper"
+
+group("unittest") {
+  testonly = true
+
+  deps = [ ":vulkan_wrapper_unit_test" ]
+}
+
+ohos_unittest("vulkan_wrapper_unit_test") {
+  module_out_path = module_out_path
+  sources = [ "vulkan_wrapper_unit_test.cpp" ]
+  deps = [ ":vulkan_wrapper_test_common" ]
+}
+
+config("vulkan_wrapper_test_common_public_config") {
+  include_dirs = [
+    "//foundation/graphic/graphic_2d/frameworks/surface/include",
+    "//drivers/peripheral/display/interfaces/include",
+    "//foundation/graphic/graphic_2d/interfaces/inner_api/surface",
+    "//foundation/graphic/graphic_2d/interfaces/inner_api/common",
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service_client",
+    "//foundation/window/window_manager/interfaces/innerkits",
+    "//foundation/graphic/graphic_2d/frameworks/vulkan_wrapper/include",
+  ]
+
+  cflags = [
+    "-Wall",
+    "-Werror",
+    "-g3",
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
+}
+
+ohos_static_library("vulkan_wrapper_test_common") {
+  visibility = [ ":*" ]
+  testonly = true
+
+  public_configs = [ ":vulkan_wrapper_test_common_public_config" ]
+
+  public_deps = [
+    "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
+    "//foundation/graphic/graphic_2d:libsurface",
+    "//foundation/graphic/graphic_2d/frameworks/surface:surface",
+    "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics:2d_graphics",
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:librender_service_base",
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:librender_service_client",
+    "//foundation/graphic/graphic_2d/utils:libgraphic_utils",
+    "//foundation/systemabilitymgr/safwk/interfaces/innerkits/safwk:system_ability_fwk",
+    "//foundation/window/window_manager/wm:libwm",
+    "//foundation/window/window_manager/wmserver:libwms",
+    "//third_party/googletest:gtest_main",
+    "//third_party/vulkan-headers:vulkan_headers",
+    "//third_party/zlib:libz",
+  ]
+  subsystem_name = "graphic"
+  part_name = "graphic_standard"
+}

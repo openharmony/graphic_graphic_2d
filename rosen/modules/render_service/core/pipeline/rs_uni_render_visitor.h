@@ -56,6 +56,10 @@ public:
         doAnimate_ = doAnimate;
     }
 
+    void SetDirtyFlag(bool isDirty)
+    {
+        isDirty_ = isDirty;
+    }
 private:
     void DrawRectOnCanvas(const RectI& dirtyRect, const SkColor color,
         const SkPaint::Style fillType, float alpha);
@@ -72,6 +76,7 @@ private:
 
     void InitCacheSurface(RSSurfaceRenderNode& node, int width, int height);
     void DrawCacheSurface(RSSurfaceRenderNode& node);
+    bool EnableParallerRendering();
 
     ScreenInfo screenInfo_;
     std::shared_ptr<RSDirtyRegionManager> curSurfaceDirtyManager_;
@@ -104,8 +109,10 @@ private:
     timespec timeStart {0};
     timespec timeEnd {0};
     float costing {0.f};
+    uint32_t surfaceNodeNum_ {0};
 #endif
     PartialRenderType partialRenderType_;
+    bool isDirty_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS

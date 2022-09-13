@@ -78,6 +78,7 @@ public:
     void RecvRSTransactionData(std::unique_ptr<RSTransactionData>& rsTransactionData);
     void RequestNextVSync();
     void PostTask(RSTaskMessage::RSTask task);
+    void QosStateDump(std::string& dumpString);
     void RenderServiceTreeDump(std::string& dumpString);
     void RsEventParamDump(std::string& dumpString);
 
@@ -165,6 +166,10 @@ private:
     void CheckDelayedSwitchTask();
     void UpdateRenderMode(bool useUniVisitor);
 
+    void SetDirtyFlag();
+    void ClearDisplayBuffer();
+    void PerfAfterAnim();
+
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
     RSTaskMessage::RSTask mainLoop_;
@@ -173,14 +178,15 @@ private:
 
     std::mutex transitionDataMutex_;
     std::unordered_map<NodeId, std::map<uint64_t, std::vector<std::unique_ptr<RSCommand>>>> cachedCommands_;
-    std::vector<std::unique_ptr<RSCommand>> effectiveCommands_;
-    std::vector<std::unique_ptr<RSCommand>> pendingEffectiveCommands_;
-    std::vector<std::unique_ptr<RSCommand>> followVisitorCommands_;
+    std::map<uint64_t, std::vector<std::unique_ptr<RSCommand>>> effectiveCommands_;
+    std::map<uint64_t, std::vector<std::unique_ptr<RSCommand>>> pendingEffectiveCommands_;
+    std::map<uint64_t, std::vector<std::unique_ptr<RSCommand>>> followVisitorCommands_;
 
     TransactionDataMap cachedTransactionDataMap_;
     TransactionDataIndexMap effectiveTransactionDataIndexMap_;
 
     uint64_t timestamp_ = 0;
+    uint64_t prePerfTimestamp_ = 0;
     std::unordered_map<uint32_t, sptr<IApplicationAgent>> applicationAgentMap_;
 
     RSContext context_;
@@ -206,6 +212,7 @@ private:
     std::map<uint32_t, bool> lastPidVisMap_;
     VisibleData lastVisVec_;
     bool qosPidCal_ = false;
+    bool isDirty_ = false;
     std::atomic_bool doWindowAnimate_ = false;
     uint32_t lastSurfaceCnt_ = 0;
 

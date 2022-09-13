@@ -52,12 +52,10 @@ ohos_executable("hello_composer") {
     "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
     "//foundation/graphic/graphic_2d:libsurface",
     "//foundation/graphic/graphic_2d/rosen/modules/composer:libcomposer",
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:librender_service_base",
-    "//foundation/graphic/graphic_2d/utils:libgraphic_utils",
     "//foundation/graphic/graphic_2d/utils:sync_fence",
   ]
 
-  external_deps = [ "ipc:ipc_core" ]
+  external_deps = [ "eventhandler:libeventhandler" ]
 
   part_name = "graphic_standard"
   subsystem_name = "graphic"

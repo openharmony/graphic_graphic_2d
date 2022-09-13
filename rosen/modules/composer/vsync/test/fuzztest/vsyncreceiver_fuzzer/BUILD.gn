@@ -33,7 +33,9 @@ ohos_fuzztest("VsyncReceiverFuzzTest") {
   ]
   sources = [ "vsyncreceiver_fuzzer.cpp" ]
   deps = [
+    "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
     "//foundation/graphic/graphic_2d/rosen/modules/composer/vsync:libvsync",
+    "//foundation/graphic/graphic_2d/utils:socketpair",
   ]
 }
 
