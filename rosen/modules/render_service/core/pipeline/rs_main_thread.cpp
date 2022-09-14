@@ -212,12 +212,12 @@ void RSMainThread::Start()
 
 void RSMainThread::ProcessCommand()
 {
+    context_.currentTimestamp_ = timestamp_;
     if (!isUniRender_) { // divided render for all
         ProcessCommandForDividedRender();
         return;
     }
     CheckBufferAvailableIfNeed();
-    context_.currentTimestamp_ = timestamp_;
     // dynamic switch
     if (useUniVisitor_) {
         ProcessCommandForDividedRender();
