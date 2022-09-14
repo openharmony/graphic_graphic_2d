@@ -64,7 +64,7 @@ namespace {
 class HighContrastObserver : public AccessibilityConfigObserver {
 public:
     HighContrastObserver() = default;
-    virtual void OnConfigChanged(const CONFIG_ID id, const ConfigValue &value) override
+    void OnConfigChanged(const CONFIG_ID id, const ConfigValue &value) override
     {
         ROSEN_LOGD("HighContrastObserver OnConfigChanged");
         auto& renderThread = RSRenderThread::Instance();
@@ -398,7 +398,8 @@ void RSRenderThread::ProcessCommands()
     for (auto& cmdData : cmds) {
         std::string str = "ProcessCommands ptr:" + std::to_string(reinterpret_cast<uintptr_t>(cmdData.get()));
         ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, str.c_str());
-        context_.transactionTimestamp_ = cmdData->GetTimestamp();
+        // only set transactionTimestamp_ in UniRender mode
+        context_.transactionTimestamp_ = RSSystemProperties::GetUniRenderEnabled() ? cmdData->GetTimestamp() : 0;
         cmdData->Process(context_);
         ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
     }
