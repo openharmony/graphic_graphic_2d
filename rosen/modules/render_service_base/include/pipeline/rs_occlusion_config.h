@@ -27,6 +27,7 @@ public:
     bool IsLeashWindow(std::string win);
     bool IsStartingWindow(std::string win);
     bool IsAlphaWindow(std::string win);
+    bool IsDividerBar(std::string win);
 private:
     std::vector<std::string> alphaWins_ = {
         "StatusBar",
@@ -36,6 +37,7 @@ private:
         "freeze0"};
     std::string leashWin_ = "leashWindow";
     std::string startWin_ = "startingWindow";
+    std::string dividerBar_ = "divider_bar";
 };
 } // namespace Rosen
 } // namespace OHOS

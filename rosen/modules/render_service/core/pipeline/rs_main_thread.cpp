@@ -604,8 +604,9 @@ void RSMainThread::CalcOcclusion()
                         surface->GetDstRect().height_ > surface->GetBuffer()->GetHeight()) &&
                         surface->GetRenderProperties().GetFrameGravity() != Gravity::RESIZE &&
                         surface->GetRenderProperties().GetAlpha() != opacity;
-            if (surface->GetAbilityBgAlpha() == opacity &&
-                ROSEN_EQ(surface->GetGlobalAlpha(), 1.0f) && !diff) {
+            if ((surface->GetAbilityBgAlpha() == opacity &&
+                ROSEN_EQ(surface->GetGlobalAlpha(), 1.0f) && !diff) ||
+                RSOcclusionConfig::GetInstance().IsDividerBar(surface->GetName())) {
                 curRegion = curSurface.Or(curRegion);
             }
         }

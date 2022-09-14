@@ -41,5 +41,10 @@ bool RSOcclusionConfig::IsAlphaWindow(std::string win)
     }
     return false;
 }
+
+bool RSOcclusionConfig::IsDividerBar(std::string win)
+{
+    return win.find(dividerBar_) != std::string::npos;
+}
 } // namespace Rosen
 } // namespace OHOS
