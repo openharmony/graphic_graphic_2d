@@ -1034,10 +1034,7 @@ void RSMainThread::ClearDisplayBuffer()
             continue;
         }
         if (displayNode->GetRSSurface() != nullptr) {
-            displayNode->GetRSSurface()->ClearBuffer();
-        }
-        if (displayNode->GetConsumer() != nullptr) {
-            displayNode->GetConsumer()->GoBackground();
+            displayNode->GetRSSurface()->ResetBufferAge();
         }
     }
 }
