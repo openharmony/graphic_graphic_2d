@@ -33,5 +33,32 @@ void AnimationCommandHelper::SetFinishCallbackProcessor(FinishCallbackProcessor 
 {
     finishCallbackProcessor = processor;
 }
+
+void AnimationCommandHelper::CreateAnimation(
+    RSContext& context, NodeId targetId, const std::shared_ptr<RSRenderAnimation>& animation)
+{
+    auto node = context.GetNodeMap().GetRenderNode<RSRenderNode>(targetId);
+    if (node == nullptr) {
+        return;
+    }
+    node->GetAnimationManager().AddAnimation(animation);
+    auto modifier = node->GetModifier(animation->GetPropertyId());
+    if (modifier != nullptr) {
+        animation->AttachRenderProperty(modifier->GetProperty());
+    }
+    animation->Attach(node.get());
+    animation->Start();
+    auto beginTime = context.GetTransactionTimestamp();
+    auto currentTime = context.GetCurrentTimestamp();
+    // If the animation is already finished
+    if (beginTime != 0 && (currentTime - beginTime) > animation->GetDuration()) {
+        animation->SetStartTime(beginTime);
+        animation->Animate(currentTime);
+    } else {
+        animation->SetStartTime(currentTime);
+    }
+    // register node on animation add
+    context.RegisterAnimatingRenderNode(node);
+    }
 } // namespace Rosen
 } // namespace OHOS
