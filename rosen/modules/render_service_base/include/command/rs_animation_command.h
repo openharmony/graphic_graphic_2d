@@ -95,26 +95,7 @@ public:
         (*animation.*OP)(param);
     }
     static void CreateAnimation(
-        RSContext& context, NodeId targetId, const std::shared_ptr<RSRenderAnimation>& animation)
-    {
-        auto node = context.GetNodeMap().GetRenderNode<RSRenderNode>(targetId);
-        if (node == nullptr) {
-            return;
-        }
-        node->GetAnimationManager().AddAnimation(animation);
-        auto modifier = node->GetModifier(animation->GetPropertyId());
-        if (modifier != nullptr) {
-            animation->AttachRenderProperty(modifier->GetProperty());
-        }
-        animation->Attach(node.get());
-        animation->Start();
-        if (auto timestamp = context.GetTransactionTimestamp() && RSSystemProperties::GetUniRenderEnabled()) {
-            animation->SetStartTime(timestamp);
-        }
-        animation->Animate(context.GetCurrentTimestamp());
-        // register node on animation add
-        context.RegisterAnimatingRenderNode(node);
-    }
+        RSContext& context, NodeId targetId, const std::shared_ptr<RSRenderAnimation>& animation);
 
     using FinishCallbackProcessor = void (*)(NodeId, AnimationId);
     static void AnimationFinishCallback(RSContext& context, NodeId targetId, AnimationId animId);
