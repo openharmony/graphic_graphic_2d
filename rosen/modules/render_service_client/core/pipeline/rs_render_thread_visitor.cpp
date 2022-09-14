@@ -357,7 +357,9 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
     (void)curDirtyManager_->SetSurfaceSize(surfaceWidth, surfaceHeight);
     // keep non-nagative rect region within surface
     curDirtyManager_->ClipDirtyRectWithinSurface();
-    if (isRenderForced_) {
+    if (isRenderForced_ ||
+        curDirtyManager_->GetDirtyRegion().GetWidth() == 0 ||
+        curDirtyManager_->GetDirtyRegion().GetHeight() == 0) {
         curDirtyManager_->ResetDirtyAsSurfaceSize();
     }
     UpdateDirtyAndSetEGLDamageRegion(surfaceFrame);
@@ -436,6 +438,9 @@ void RSRenderThreadVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
         return;
     }
     node.UpdateRenderStatus(curDirtyRegion_, isOpDropped_);
+    if (node.IsRenderUpdateIgnored()) {
+        return;
+    }
     node.ProcessRenderBeforeChildren(*canvas_);
     ProcessBaseRenderNode(node);
     node.ProcessRenderAfterChildren(*canvas_);
