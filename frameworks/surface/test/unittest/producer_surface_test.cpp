@@ -14,7 +14,6 @@
  */
 #include <securec.h>
 #include <gtest/gtest.h>
-#include <display_type.h>
 #include <surface.h>
 #include <consumer_surface.h>
 #include "buffer_consumer_listener.h"
@@ -32,8 +31,8 @@ public:
         .width = 0x100,
         .height = 0x100,
         .strideAlignment = 0x8,
-        .format = PIXEL_FMT_RGBA_8888,
-        .usage = HBM_USE_CPU_READ | HBM_USE_CPU_WRITE | HBM_USE_MEM_DMA,
+        .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
+        .usage = GRAPHIC_USAGE_CPU_READ | GRAPHIC_USAGE_CPU_WRITE | GRAPHIC_USAGE_MEM_DMA,
         .timeout = 0,
     };
     static inline BufferFlushConfig flushConfig = {
@@ -377,8 +376,8 @@ HWTEST_F(ProducerSurfaceTest, UniqueId001, Function | MediumTest | Level2)
  */
 HWTEST_F(ProducerSurfaceTest, transform001, Function | MediumTest | Level2)
 {
-    ASSERT_EQ(pSurface->GetTransform(), TransformType::ROTATE_BUTT);
-    GSError ret = pSurface->SetTransform(TransformType::ROTATE_NONE);
+    ASSERT_EQ(pSurface->GetTransform(), GraphicTransformType::GRAPHIC_ROTATE_BUTT);
+    GSError ret = pSurface->SetTransform(GraphicTransformType::GRAPHIC_ROTATE_NONE);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 }
 
@@ -391,7 +390,7 @@ HWTEST_F(ProducerSurfaceTest, transform001, Function | MediumTest | Level2)
  */
 HWTEST_F(ProducerSurfaceTest, transform002, Function | MediumTest | Level1)
 {
-    GSError ret = pSurface->SetTransform(TransformType::ROTATE_90);
+    GSError ret = pSurface->SetTransform(GraphicTransformType::GRAPHIC_ROTATE_90);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 }
 
@@ -404,7 +403,7 @@ HWTEST_F(ProducerSurfaceTest, transform002, Function | MediumTest | Level1)
  */
 HWTEST_F(ProducerSurfaceTest, transform003, Function | MediumTest | Level1)
 {
-    GSError ret = pSurface->SetTransform(TransformType::ROTATE_180);
+    GSError ret = pSurface->SetTransform(GraphicTransformType::GRAPHIC_ROTATE_180);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 }
 
@@ -417,7 +416,7 @@ HWTEST_F(ProducerSurfaceTest, transform003, Function | MediumTest | Level1)
  */
 HWTEST_F(ProducerSurfaceTest, transform004, Function | MediumTest | Level1)
 {
-    GSError ret = pSurface->SetTransform(TransformType::ROTATE_270);
+    GSError ret = pSurface->SetTransform(GraphicTransformType::GRAPHIC_ROTATE_270);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 }
 
@@ -430,7 +429,7 @@ HWTEST_F(ProducerSurfaceTest, transform004, Function | MediumTest | Level1)
  */
 HWTEST_F(ProducerSurfaceTest, isSupportedAlloc001, Function | MediumTest | Level2)
 {
-    std::vector<VerifyAllocInfo> infos;
+    std::vector<BufferVerifyAllocInfo> infos;
     std::vector<bool> supporteds;
     GSError ret = pSurface->IsSupportedAlloc(infos, supporteds);
     ASSERT_EQ(ret, OHOS::GSERROR_INVALID_ARGUMENTS);
@@ -445,21 +444,21 @@ HWTEST_F(ProducerSurfaceTest, isSupportedAlloc001, Function | MediumTest | Level
  */
 HWTEST_F(ProducerSurfaceTest, isSupportedAlloc002, Function | MediumTest | Level2)
 {
-    std::vector<VerifyAllocInfo> infos;
+    std::vector<BufferVerifyAllocInfo> infos;
     std::vector<bool> supporteds;
     GSError ret = pSurface->IsSupportedAlloc(infos, supporteds);
     ASSERT_EQ(ret, OHOS::GSERROR_INVALID_ARGUMENTS);
 
-    VerifyAllocInfo info = {
+    BufferVerifyAllocInfo info = {
         .width = 0x100,
         .height = 0x100,
-        .usage = HBM_USE_CPU_READ | HBM_USE_CPU_WRITE | HBM_USE_MEM_DMA,
-        .format = PIXEL_FMT_RGBA_8888,
+        .usage = GRAPHIC_USAGE_CPU_READ | GRAPHIC_USAGE_CPU_WRITE | GRAPHIC_USAGE_MEM_DMA,
+        .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
     };
     infos.push_back(info);
-    info.format = PIXEL_FMT_YCRCB_420_SP;
+    info.format = GRAPHIC_PIXEL_FMT_YCRCB_420_SP;
     infos.push_back(info);
-    info.format = PIXEL_FMT_YUV_422_I;
+    info.format = GRAPHIC_PIXEL_FMT_YUV_422_I;
     infos.push_back(info);
 
     ret = pSurface->IsSupportedAlloc(infos, supporteds);
@@ -475,18 +474,18 @@ HWTEST_F(ProducerSurfaceTest, isSupportedAlloc002, Function | MediumTest | Level
  */
 HWTEST_F(ProducerSurfaceTest, isSupportedAlloc003, Function | MediumTest | Level1)
 {
-    std::vector<VerifyAllocInfo> infos;
+    std::vector<BufferVerifyAllocInfo> infos;
     std::vector<bool> supporteds;
-    VerifyAllocInfo info = {
+    BufferVerifyAllocInfo info = {
         .width = 0x100,
         .height = 0x100,
-        .usage = HBM_USE_CPU_READ | HBM_USE_CPU_WRITE | HBM_USE_MEM_DMA,
-        .format = PIXEL_FMT_RGBA_8888,
+        .usage = GRAPHIC_USAGE_CPU_READ | GRAPHIC_USAGE_CPU_WRITE | GRAPHIC_USAGE_MEM_DMA,
+        .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
     };
     infos.push_back(info);
-    info.format = PIXEL_FMT_YCRCB_420_SP;
+    info.format = GRAPHIC_PIXEL_FMT_YCRCB_420_SP;
     infos.push_back(info);
-    info.format = PIXEL_FMT_YUV_422_I;
+    info.format = GRAPHIC_PIXEL_FMT_YUV_422_I;
     infos.push_back(info);
 
     supporteds.push_back(false);
@@ -552,7 +551,7 @@ HWTEST_F(ProducerSurfaceTest, scalingMode002, Function | MediumTest | Level1)
 HWTEST_F(ProducerSurfaceTest, metaData001, Function | MediumTest | Level2)
 {
     uint32_t sequence = 0;
-    std::vector<HDRMetaData> metaData;
+    std::vector<GraphicHDRMetaData> metaData;
     GSError ret = pSurface->SetMetaData(sequence, metaData);
     ASSERT_EQ(ret, OHOS::GSERROR_INVALID_ARGUMENTS);
 }
@@ -566,9 +565,9 @@ HWTEST_F(ProducerSurfaceTest, metaData001, Function | MediumTest | Level2)
  */
 HWTEST_F(ProducerSurfaceTest, metaData002, Function | MediumTest | Level2)
 {
-    std::vector<HDRMetaData> metaData;
-    HDRMetaData data = {
-        .key = HDRMetadataKey::MATAKEY_RED_PRIMARY_X,
+    std::vector<GraphicHDRMetaData> metaData;
+    GraphicHDRMetaData data = {
+        .key = GraphicHDRMetadataKey::GRAPHIC_MATAKEY_RED_PRIMARY_X,
         .value = 100,  // for test
     };
     metaData.push_back(data);
@@ -587,9 +586,9 @@ HWTEST_F(ProducerSurfaceTest, metaData002, Function | MediumTest | Level2)
 HWTEST_F(ProducerSurfaceTest, metaData003, Function | MediumTest | Level1)
 {
     uint32_t sequence = 0;
-    std::vector<HDRMetaData> metaData;
-    HDRMetaData data = {
-        .key = HDRMetadataKey::MATAKEY_RED_PRIMARY_X,
+    std::vector<GraphicHDRMetaData> metaData;
+    GraphicHDRMetaData data = {
+        .key = GraphicHDRMetadataKey::GRAPHIC_MATAKEY_RED_PRIMARY_X,
         .value = 100,  // for test
     };
     metaData.push_back(data);
@@ -619,7 +618,7 @@ HWTEST_F(ProducerSurfaceTest, metaData003, Function | MediumTest | Level1)
  */
 HWTEST_F(ProducerSurfaceTest, metaDataSet001, Function | MediumTest | Level2)
 {
-    HDRMetadataKey key = HDRMetadataKey::MATAKEY_HDR10_PLUS;
+    GraphicHDRMetadataKey key = GraphicHDRMetadataKey::GRAPHIC_MATAKEY_HDR10_PLUS;
     std::vector<uint8_t> metaData;
 
     uint32_t sequence = 0;
@@ -636,7 +635,7 @@ HWTEST_F(ProducerSurfaceTest, metaDataSet001, Function | MediumTest | Level2)
  */
 HWTEST_F(ProducerSurfaceTest, metaDataSet002, Function | MediumTest | Level2)
 {
-    HDRMetadataKey key = HDRMetadataKey::MATAKEY_HDR10_PLUS;
+    GraphicHDRMetadataKey key = GraphicHDRMetadataKey::GRAPHIC_MATAKEY_HDR10_PLUS;
     std::vector<uint8_t> metaData;
 
     uint8_t data = 10;  // for test
@@ -655,7 +654,7 @@ HWTEST_F(ProducerSurfaceTest, metaDataSet002, Function | MediumTest | Level2)
  */
 HWTEST_F(ProducerSurfaceTest, metaDataSet003, Function | MediumTest | Level1)
 {
-    HDRMetadataKey key = HDRMetadataKey::MATAKEY_HDR10_PLUS;
+    GraphicHDRMetadataKey key = GraphicHDRMetadataKey::GRAPHIC_MATAKEY_HDR10_PLUS;
     std::vector<uint8_t> metaData;
     uint32_t sequence = 0;
     uint8_t data = 10;  // for test
@@ -750,7 +749,7 @@ HWTEST_F(ProducerSurfaceTest, disconnect001, Function | MediumTest | Level1)
 HWTEST_F(ProducerSurfaceTest, presentTimestamp001, Function | MediumTest | Level2)
 {
     uint32_t sequence = 0;
-    PresentTimestamp timestamp = {HARDWARE_DISPLAY_PTS_UNSUPPORTED, 0};
+    GraphicPresentTimestamp timestamp = {GRAPHIC_DISPLAY_PTS_UNSUPPORTED, 0};
 
     GSError ret = pSurface->SetPresentTimestamp(sequence, timestamp);
     ASSERT_EQ(ret, OHOS::GSERROR_NOT_SUPPORT);
@@ -766,7 +765,7 @@ HWTEST_F(ProducerSurfaceTest, presentTimestamp001, Function | MediumTest | Level
 HWTEST_F(ProducerSurfaceTest, presentTimestamp002, Function | MediumTest | Level2)
 {
     uint32_t sequence = 0;
-    PresentTimestampType type = PresentTimestampType::HARDWARE_DISPLAY_PTS_UNSUPPORTED;
+    GraphicPresentTimestampType type = GraphicPresentTimestampType::GRAPHIC_DISPLAY_PTS_UNSUPPORTED;
     int64_t time = 0;
 
     GSError ret = pSurface->GetPresentTimestamp(sequence, type, time);
@@ -782,7 +781,7 @@ HWTEST_F(ProducerSurfaceTest, presentTimestamp002, Function | MediumTest | Level
  */
 HWTEST_F(ProducerSurfaceTest, presentTimestamp003, Function | MediumTest | Level2)
 {
-    PresentTimestampType type = PresentTimestampType::HARDWARE_DISPLAY_PTS_DELAY;
+    GraphicPresentTimestampType type = GraphicPresentTimestampType::GRAPHIC_DISPLAY_PTS_DELAY;
     int64_t time = 0;
     GSError ret = pSurface->GetPresentTimestamp(-1, type, time);
     ASSERT_EQ(ret, OHOS::GSERROR_NO_ENTRY);
@@ -804,7 +803,7 @@ HWTEST_F(ProducerSurfaceTest, presentTimestamp004, Function | MediumTest | Level
     ASSERT_NE(buffer, nullptr);
 
     uint32_t sequence = buffer->GetSeqNum();
-    PresentTimestampType type = PresentTimestampType::HARDWARE_DISPLAY_PTS_DELAY;
+    GraphicPresentTimestampType type = GraphicPresentTimestampType::GRAPHIC_DISPLAY_PTS_DELAY;
     int64_t time = 0;
     ret = pSurface->GetPresentTimestamp(sequence, type, time);
     ASSERT_EQ(ret, OHOS::GSERROR_NO_ENTRY);

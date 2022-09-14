@@ -235,10 +235,18 @@ typedef enum : uint32_t {
     GRAPHIC_MATAKEY_HDR_VIVID = 13,
 } GraphicHDRMetadataKey;
 
-using HDRMetaDataSet = struct HDRMetaDataSet {
+using GraphicHDRMetaDataSet = struct GraphicHDRMetaDataSet {
     GraphicHDRMetadataKey key = GraphicHDRMetadataKey::GRAPHIC_MATAKEY_RED_PRIMARY_X;
     std::vector<uint8_t> metaData;
 };
+
+/*
+ * @brief Defines the HDR metadata.
+ */
+typedef struct {
+    GraphicHDRMetadataKey key;
+    float value;
+} GraphicHDRMetaData;
 
 typedef enum {
     GRAPHIC_COLOR_GAMUT_INVALID = -1,            /**< Invalid */

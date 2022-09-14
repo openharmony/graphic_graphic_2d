@@ -224,14 +224,15 @@ GSError BufferManager::Free(sptr<SurfaceBuffer> &buffer)
     return GSERROR_OK;
 }
 
-GSError BufferManager::IsSupportedAlloc(const std::vector<VerifyAllocInfo> &infos,
+GSError BufferManager::IsSupportedAlloc(const std::vector<BufferVerifyAllocInfo> &infos,
                                         std::vector<bool> &supporteds)
 {
     CHECK_INIT();
     // mock data
     supporteds.clear();
     for (uint32_t index = 0; index < infos.size(); index++) {
-        if (infos[index].format == PIXEL_FMT_RGBA_8888 || infos[index].format == PIXEL_FMT_YCRCB_420_SP) {
+        if (infos[index].format == GRAPHIC_PIXEL_FMT_RGBA_8888 ||
+            infos[index].format == GRAPHIC_PIXEL_FMT_YCRCB_420_SP) {
             supporteds.push_back(true);
         } else {
             supporteds.push_back(false);

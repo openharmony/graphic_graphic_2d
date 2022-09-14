@@ -256,7 +256,7 @@ GSError ProducerEglSurface::RequestBufferProc()
                 .width = width_,
                 .height = height_,
                 .strideAlignment = 0x8,
-                .format = PIXEL_FMT_RGBA_8888,
+                .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
                 .usage = producer_->GetDefaultUsage(),
                 .timeout = 0,
             };

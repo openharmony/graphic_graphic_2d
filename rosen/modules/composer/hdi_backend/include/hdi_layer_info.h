@@ -26,12 +26,12 @@
 
 namespace OHOS {
 namespace Rosen {
-static const std::map<TransformType, std::string> TransformTypeStrs = {
-    {ROTATE_NONE,                    "0 <no rotation>"},
-    {ROTATE_90,                      "1 <rotation by 90 degrees>"},
-    {ROTATE_180,                     "2 <rotation by 180 degrees>"},
-    {ROTATE_270,                     "3 <rotation by 270 degrees>"},
-    {ROTATE_BUTT,                    "4 <uninitialized>"},
+static const std::map<GraphicTransformType, std::string> TransformTypeStrs = {
+    {GRAPHIC_ROTATE_NONE,                    "0 <no rotation>"},
+    {GRAPHIC_ROTATE_90,                      "1 <rotation by 90 degrees>"},
+    {GRAPHIC_ROTATE_180,                     "2 <rotation by 180 degrees>"},
+    {GRAPHIC_ROTATE_270,                     "3 <rotation by 270 degrees>"},
+    {GRAPHIC_ROTATE_BUTT,                    "4 <uninitialized>"},
 };
 
 static const std::map<CompositionType, std::string> CompositionTypeStrs = {
@@ -97,7 +97,7 @@ public:
         layerAlpha_ = alpha;
     }
 
-    void SetTransform(TransformType type)
+    void SetTransform(GraphicTransformType type)
     {
         transformType_ = type;
     }
@@ -163,7 +163,7 @@ public:
         metaData_ = metaData;
     }
 
-    void SetMetaDataSet(const HDRMetaDataSet &metaDataSet)
+    void SetMetaDataSet(const GraphicHDRMetaDataSet &metaDataSet)
     {
         metaDataSet_ = metaDataSet;
     }
@@ -183,7 +183,7 @@ public:
         return IsSupportedPresentTimestamp_;
     }
 
-    const PresentTimestamp& GetPresentTimestamp()
+    const GraphicPresentTimestamp& GetPresentTimestamp()
     {
         return presentTimestamp_;
     }
@@ -216,7 +216,7 @@ public:
         return layerAlpha_;
     }
 
-    TransformType GetTransformType() const
+    GraphicTransformType GetTransformType() const
     {
         return transformType_;
     }
@@ -276,7 +276,7 @@ public:
         return metaData_;
     }
 
-    HDRMetaDataSet &GetMetaDataSet()
+    GraphicHDRMetaDataSet &GetMetaDataSet()
     {
         return metaDataSet_;
     }
@@ -296,7 +296,7 @@ public:
         IsSupportedPresentTimestamp_ = isSupported;
     }
 
-    void SetPresentTimestamp(const PresentTimestamp &timestamp)
+    void SetPresentTimestamp(const GraphicPresentTimestamp &timestamp)
     {
         presentTimestamp_ = timestamp;
     }
@@ -347,17 +347,17 @@ private:
     IRect dirtyRegion_;
     IRect cropRect_;
     LayerAlpha layerAlpha_;
-    TransformType transformType_ = TransformType::ROTATE_BUTT;
+    GraphicTransformType transformType_ = GraphicTransformType::GRAPHIC_ROTATE_BUTT;
     CompositionType compositionType_;
     BlendType blendType_;
     float *colorTransformMatrix_ = nullptr;
     ColorDataSpace colorSpace_ = ColorDataSpace::COLOR_DATA_SPACE_UNKNOWN;
     std::vector<HDRMetaData> metaData_;
-    HDRMetaDataSet metaDataSet_;
+    GraphicHDRMetaDataSet metaDataSet_;
     sptr<SurfaceTunnelHandle> tunnelHandle_ = nullptr;
     bool tunnelHandleChange_ = false;
     bool IsSupportedPresentTimestamp_ = false;
-    PresentTimestamp presentTimestamp_ = {HARDWARE_DISPLAY_PTS_UNSUPPORTED, 0};
+    GraphicPresentTimestamp presentTimestamp_ = {GRAPHIC_DISPLAY_PTS_UNSUPPORTED, 0};
 
     void *additionalInfo_ = nullptr;
     sptr<Surface> cSurface_ = nullptr;

@@ -83,7 +83,10 @@ private:
     sptr<SyncFence> Merge(const sptr<SyncFence> &fence1, const sptr<SyncFence> &fence2);
     void SetLayerTunnelHandle();
     void SetLayerPresentTimestamp();
-
+    void PresentTimestamp2GraphicPresentTimestamp(const PresentTimestamp &timestamp,
+                                                  GraphicPresentTimestamp *graphicTimestamp);
+    void TransformType2GraphicTransformType(const GraphicTransformType &graphicTransFormType,
+                                            TransformType *transFormType);
     inline void CheckRet(int32_t ret, const char* func);
 };
 } // namespace Rosen

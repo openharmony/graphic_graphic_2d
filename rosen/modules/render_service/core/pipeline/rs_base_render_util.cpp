@@ -823,17 +823,17 @@ SkMatrix RSBaseRenderUtil::GetSurfaceTransformMatrix(const RSSurfaceRenderNode& 
     }
 
     switch (surface->GetTransform()) {
-        case TransformType::ROTATE_90: {
+        case GraphicTransformType::GRAPHIC_ROTATE_90: {
             matrix.preTranslate(0, boundsHeight);
             matrix.preRotate(-90); // rotate 90 degrees anti-clockwise at last.
             break;
         }
-        case TransformType::ROTATE_180: {
+        case GraphicTransformType::GRAPHIC_ROTATE_180: {
             matrix.preTranslate(boundsWidth, boundsHeight);
             matrix.preRotate(-180); // rotate 180 degrees anti-clockwise at last.
             break;
         }
-        case TransformType::ROTATE_270: {
+        case GraphicTransformType::GRAPHIC_ROTATE_270: {
             matrix.preTranslate(boundsWidth, 0);
             matrix.preRotate(-270); // rotate 270 degrees anti-clockwise at last.
             break;
@@ -877,7 +877,8 @@ void RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(
     // the surface can rotate itself.
     params.matrix.preConcat(RSBaseRenderUtil::GetSurfaceTransformMatrix(node, localBounds));
     const sptr<Surface>& surface = node.GetConsumer(); // private func, guarantee surface is not nullptr.
-    if (surface->GetTransform() == TransformType::ROTATE_90 || surface->GetTransform() == TransformType::ROTATE_270) {
+    if (surface->GetTransform() == GraphicTransformType::GRAPHIC_ROTATE_90 ||
+        surface->GetTransform() == GraphicTransformType::GRAPHIC_ROTATE_270) {
         // after rotate, we should swap dstRect and bound's width and height.
         std::swap(localBounds.width_, localBounds.height_);
         params.dstRect = SkRect::MakeWH(localBounds.GetWidth(), localBounds.GetHeight());

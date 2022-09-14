@@ -485,8 +485,8 @@ GSError SurfaceBufferImpl::CheckBufferConfig(int32_t width, int32_t height,
         return GSERROR_INVALID_ARGUMENTS;
     }
 
-    if (format < 0 || format > PIXEL_FMT_BUTT) {
-        BLOGE("format [0, %{public}d], now is %{public}d", PIXEL_FMT_BUTT, format);
+    if (format < 0 || format > GRAPHIC_PIXEL_FMT_BUTT) {
+        BLOGE("format [0, %{public}d], now is %{public}d", GRAPHIC_PIXEL_FMT_BUTT, format);
         return GSERROR_INVALID_ARGUMENTS;
     }
 

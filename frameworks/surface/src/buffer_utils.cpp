@@ -111,21 +111,21 @@ void WriteSurfaceBufferImpl(MessageParcel &parcel,
     buffer->WriteToMessageParcel(parcel);
 }
 
-void ReadVerifyAllocInfo(MessageParcel &parcel, std::vector<VerifyAllocInfo> &infos)
+void ReadVerifyAllocInfo(MessageParcel &parcel, std::vector<BufferVerifyAllocInfo> &infos)
 {
     uint32_t size = parcel.ReadUint32();
     infos.clear();
-    VerifyAllocInfo info;
+    BufferVerifyAllocInfo info;
     for (uint32_t index = 0; index < size; index++) {
         info.width = parcel.ReadUint32();
         info.height = parcel.ReadUint32();
         info.usage = parcel.ReadUint64();
-        info.format = static_cast<PixelFormat>(parcel.ReadInt32());
+        info.format = static_cast<GraphicPixelFormat>(parcel.ReadInt32());
         infos.push_back(info);
     }
 }
 
-void WriteVerifyAllocInfo(MessageParcel &parcel, const std::vector<VerifyAllocInfo> &infos)
+void WriteVerifyAllocInfo(MessageParcel &parcel, const std::vector<BufferVerifyAllocInfo> &infos)
 {
     parcel.WriteUint32(infos.size());
     for (const auto &info : infos) {
@@ -136,19 +136,19 @@ void WriteVerifyAllocInfo(MessageParcel &parcel, const std::vector<VerifyAllocIn
     }
 }
 
-void ReadHDRMetaData(MessageParcel &parcel, std::vector<HDRMetaData> &metaData)
+void ReadHDRMetaData(MessageParcel &parcel, std::vector<GraphicHDRMetaData> &metaData)
 {
     uint32_t size = parcel.ReadUint32();
     metaData.clear();
-    HDRMetaData data;
+    GraphicHDRMetaData data;
     for (uint32_t index = 0; index < size; index++) {
-        data.key = static_cast<HDRMetadataKey>(parcel.ReadUint32());
+        data.key = static_cast<GraphicHDRMetadataKey>(parcel.ReadUint32());
         data.value = parcel.ReadFloat();
         metaData.push_back(data);
     }
 }
 
-void WriteHDRMetaData(MessageParcel &parcel, const std::vector<HDRMetaData> &metaData)
+void WriteHDRMetaData(MessageParcel &parcel, const std::vector<GraphicHDRMetaData> &metaData)
 {
     parcel.WriteUint32(metaData.size());
     for (const auto &data : metaData) {

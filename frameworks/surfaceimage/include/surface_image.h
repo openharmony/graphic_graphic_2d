@@ -110,7 +110,7 @@ private:
     int32_t currentSurfaceBufferFence_;
     int64_t currentTimeStamp_;
     Rect currentCrop_;
-    TransformType currentTransformType_;
+    GraphicTransformType currentTransformType_;
     std::array<float, TRANSFORM_MATRIX_ELE_COUNT> currentTransformMatrix_ {};
 };
 

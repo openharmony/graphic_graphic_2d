@@ -18,7 +18,6 @@
 #include <gtest/gtest.h>
 #include <iservice_registry.h>
 #include <securec.h>
-#include <display_type.h>
 #include <native_window.h>
 
 using namespace testing;
@@ -125,7 +124,7 @@ pid_t NativeWindowBufferTest::ChildProcessMain()
     struct NativeWindowBuffer *nativeWindowBuffer = nullptr;
 
     int code = SET_USAGE;
-    int32_t usage = HBM_USE_CPU_READ | HBM_USE_CPU_WRITE | HBM_USE_MEM_DMA;
+    int32_t usage = GRAPHIC_USAGE_CPU_READ | GRAPHIC_USAGE_CPU_WRITE | GRAPHIC_USAGE_MEM_DMA;
     NativeWindowHandleOpt(nativeWindow, code, usage);
 
     code = SET_BUFFER_GEOMETRY;
@@ -134,7 +133,7 @@ pid_t NativeWindowBufferTest::ChildProcessMain()
     NativeWindowHandleOpt(nativeWindow, code, height, width);
 
     code = SET_FORMAT;
-    int32_t format = PIXEL_FMT_RGBA_8888;
+    int32_t format = GRAPHIC_PIXEL_FMT_RGBA_8888;
     NativeWindowHandleOpt(nativeWindow, code, format);
 
     code = SET_STRIDE;

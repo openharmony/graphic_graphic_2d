@@ -18,8 +18,7 @@
 #include <mutex>
 #include <refbase.h>
 #include <graphic_common.h>
-#include <display_type.h>
-
+#include <surface_type.h>
 namespace OHOS {
 ExtDataHandle *AllocExtDataHandle(uint32_t reserveInts);
 void FreeExtDataHandle(ExtDataHandle *handle);

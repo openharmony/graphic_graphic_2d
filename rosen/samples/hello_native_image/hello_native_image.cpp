@@ -20,7 +20,6 @@
 #include <ostream>
 #include <thread>
 #include <unistd.h>
-#include <display_type.h>
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
 #include "graphic_common_c.h"

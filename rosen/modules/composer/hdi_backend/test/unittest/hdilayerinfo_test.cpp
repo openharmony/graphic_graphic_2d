@@ -127,17 +127,17 @@ HWTEST_F(HdiLayerInfoTest, GetAlpha001, Function | MediumTest| Level3)
  */
 HWTEST_F(HdiLayerInfoTest, GetTransformType001, Function | MediumTest| Level3)
 {
-    TransformType type = TransformType::ROTATE_90;
+    GraphicTransformType type = GraphicTransformType::GRAPHIC_ROTATE_90;
     HdiLayerInfoTest::hdiLayerInfo_->SetTransform(type);
-    ASSERT_EQ(HdiLayerInfoTest::hdiLayerInfo_->GetTransformType(), TransformType::ROTATE_90);
+    ASSERT_EQ(HdiLayerInfoTest::hdiLayerInfo_->GetTransformType(), GraphicTransformType::GRAPHIC_ROTATE_90);
 
-    type = TransformType::ROTATE_180;
+    type = GraphicTransformType::GRAPHIC_ROTATE_180;
     HdiLayerInfoTest::hdiLayerInfo_->SetTransform(type);
-    ASSERT_EQ(HdiLayerInfoTest::hdiLayerInfo_->GetTransformType(), TransformType::ROTATE_180);
+    ASSERT_EQ(HdiLayerInfoTest::hdiLayerInfo_->GetTransformType(), GraphicTransformType::GRAPHIC_ROTATE_180);
 
-    type = TransformType::ROTATE_270;
+    type = GraphicTransformType::GRAPHIC_ROTATE_270;
     HdiLayerInfoTest::hdiLayerInfo_->SetTransform(type);
-    ASSERT_EQ(HdiLayerInfoTest::hdiLayerInfo_->GetTransformType(), TransformType::ROTATE_270);
+    ASSERT_EQ(HdiLayerInfoTest::hdiLayerInfo_->GetTransformType(), GraphicTransformType::GRAPHIC_ROTATE_270);
 }
 
 /**
@@ -454,9 +454,9 @@ HWTEST_F(HdiLayerInfoTest, MetaData001, Function | MediumTest | Level1)
  */
 HWTEST_F(HdiLayerInfoTest, MetaDataSet001, Function | MediumTest | Level1)
 {
-    HDRMetaDataSet metaDataSet = {GraphicHDRMetadataKey::GRAPHIC_MATAKEY_RED_PRIMARY_X, {1, 2, 3}};
+    GraphicHDRMetaDataSet metaDataSet = {GraphicHDRMetadataKey::GRAPHIC_MATAKEY_RED_PRIMARY_X, {1, 2, 3}};
     HdiLayerInfoTest::hdiLayerInfo_->SetMetaDataSet(metaDataSet);
-    HDRMetaDataSet metaDataSetGet = HdiLayerInfoTest::hdiLayerInfo_->GetMetaDataSet();
+    GraphicHDRMetaDataSet metaDataSetGet = HdiLayerInfoTest::hdiLayerInfo_->GetMetaDataSet();
     ASSERT_EQ(metaDataSet.key, metaDataSetGet.key);
     ASSERT_EQ(metaDataSet.metaData[0], metaDataSetGet.metaData[0]);
     ASSERT_EQ(metaDataSet.metaData[1], metaDataSetGet.metaData[1]);
@@ -503,8 +503,8 @@ HWTEST_F(HdiLayerInfoTest, IsSupportedPresentTimestamp002, Function | MediumTest
  */
 HWTEST_F(HdiLayerInfoTest, PresentTimestamp001, Function | MediumTest | Level1)
 {
-    PresentTimestamp timestamp = HdiLayerInfoTest::hdiLayerInfo_->GetPresentTimestamp();
-    ASSERT_EQ(timestamp.type, HARDWARE_DISPLAY_PTS_UNSUPPORTED);
+    GraphicPresentTimestamp timestamp = HdiLayerInfoTest::hdiLayerInfo_->GetPresentTimestamp();
+    ASSERT_EQ(timestamp.type, GRAPHIC_DISPLAY_PTS_UNSUPPORTED);
     ASSERT_EQ(timestamp.time, 0);
 }
 
@@ -518,9 +518,9 @@ HWTEST_F(HdiLayerInfoTest, PresentTimestamp001, Function | MediumTest | Level1)
  */
 HWTEST_F(HdiLayerInfoTest, PresentTimestamp002, Function | MediumTest | Level1)
 {
-    PresentTimestamp timestampSet = {HARDWARE_DISPLAY_PTS_DELAY, 1};  // mock data for test
+    GraphicPresentTimestamp timestampSet = {GRAPHIC_DISPLAY_PTS_DELAY, 1};  // mock data for test
     HdiLayerInfoTest::hdiLayerInfo_->SetPresentTimestamp(timestampSet);
-    PresentTimestamp timestampGet = HdiLayerInfoTest::hdiLayerInfo_->GetPresentTimestamp();
+    GraphicPresentTimestamp timestampGet = HdiLayerInfoTest::hdiLayerInfo_->GetPresentTimestamp();
     ASSERT_EQ(timestampSet.type, timestampGet.type);
     ASSERT_EQ(timestampSet.time, timestampGet.time);
 }
@@ -535,9 +535,9 @@ HWTEST_F(HdiLayerInfoTest, PresentTimestamp002, Function | MediumTest | Level1)
  */
 HWTEST_F(HdiLayerInfoTest, PresentTimestamp003, Function | MediumTest | Level1)
 {
-    PresentTimestamp timestampSet = {HARDWARE_DISPLAY_PTS_TIMESTAMP, 10};  // mock data for test
+    GraphicPresentTimestamp timestampSet = {GRAPHIC_DISPLAY_PTS_TIMESTAMP, 10};  // mock data for test
     HdiLayerInfoTest::hdiLayerInfo_->SetPresentTimestamp(timestampSet);
-    PresentTimestamp timestampGet = HdiLayerInfoTest::hdiLayerInfo_->GetPresentTimestamp();
+    GraphicPresentTimestamp timestampGet = HdiLayerInfoTest::hdiLayerInfo_->GetPresentTimestamp();
     ASSERT_EQ(timestampSet.type, timestampGet.type);
     ASSERT_EQ(timestampSet.time, timestampGet.time);
 }

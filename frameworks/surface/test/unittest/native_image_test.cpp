@@ -15,7 +15,6 @@
 #include <gtest/gtest.h>
 #include <iservice_registry.h>
 #include <native_image.h>
-#include <display_type.h>
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
 #include "graphic_common_c.h"
@@ -334,7 +333,7 @@ HWTEST_F(NativeImageTest, OHNativeImageUpdateSurfaceImage002, Function | MediumT
 HWTEST_F(NativeImageTest, OHNativeImageUpdateSurfaceImage003, Function | MediumTest | Level1)
 {
     int code = SET_USAGE;
-    int32_t usage = HBM_USE_CPU_READ | HBM_USE_CPU_WRITE | HBM_USE_MEM_DMA;
+    int32_t usage = GRAPHIC_USAGE_CPU_READ | GRAPHIC_USAGE_CPU_WRITE | GRAPHIC_USAGE_MEM_DMA;
     int32_t ret = NativeWindowHandleOpt(nativeWindow, code, usage);
     if (ret != OHOS::GSERROR_OK) {
         std::cout << "NativeWindowHandleOpt SET_USAGE faile" << std::endl;
@@ -353,7 +352,7 @@ HWTEST_F(NativeImageTest, OHNativeImageUpdateSurfaceImage003, Function | MediumT
         std::cout << "NativeWindowHandleOpt SET_STRIDE failed" << std::endl;
     }
     code = SET_FORMAT;
-    int32_t format = PIXEL_FMT_RGBA_8888;
+    int32_t format = GRAPHIC_PIXEL_FMT_RGBA_8888;
     ret = NativeWindowHandleOpt(nativeWindow, code, format);
     if (ret != OHOS::GSERROR_OK) {
         std::cout << "NativeWindowHandleOpt SET_FORMAT failed" << std::endl;
