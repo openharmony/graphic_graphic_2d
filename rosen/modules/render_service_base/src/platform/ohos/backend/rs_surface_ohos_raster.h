@@ -39,6 +39,7 @@ public:
 
     void SetSurfaceBufferUsage(int32_t usage) override;
     void ClearBuffer() override;
+    void ResetBufferAge() override;
 };
 } // namespace Rosen
 } // namespace OHOS

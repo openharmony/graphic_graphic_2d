@@ -45,6 +45,7 @@ public:
 
     // clear buffer for both producer and consumer and will receive OnGoBackground callback
     virtual void ClearAllBuffer() = 0;
+    virtual void ResetBufferAge() = 0;
 protected:
 private:
 };
