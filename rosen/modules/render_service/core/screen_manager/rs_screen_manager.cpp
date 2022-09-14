@@ -689,6 +689,10 @@ sptr<Surface> RSScreenManager::GetProducerSurface(ScreenId id) const
     std::lock_guard<std::mutex> lock(mutex_);
 
     // assert screens_.count(id) == 1
+    if (screens_.count(id) == 0) {
+        RS_LOGW("RSScreenManager::GetProducerSurface: There is no screen for id %" PRIu64 ".", id);
+        return nullptr;
+    }
     return screens_.at(id)->GetProducerSurface();
 }
 
@@ -697,6 +701,10 @@ std::shared_ptr<HdiOutput> RSScreenManager::GetOutput(ScreenId id) const
     std::lock_guard<std::mutex> lock(mutex_);
 
     // assert screens_.count(id) == 1
+    if (screens_.count(id) == 0) {
+        RS_LOGW("RSScreenManager::GetOutput: There is no screen for id %" PRIu64 ".", id);
+        return nullptr;
+    }
     return screens_.at(id)->GetOutput();
 }
 
