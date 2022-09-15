@@ -93,6 +93,7 @@ public:
     virtual void Translate(scalar dx, scalar dy) = 0;
     virtual void Scale(scalar sx, scalar sy) = 0;
     virtual void Rotate(scalar deg) = 0;
+    virtual void Rotate(scalar deg, scalar sx, scalar sy) = 0;
     virtual void Shear(scalar sx, scalar sy) = 0;
 
     // state

@@ -70,6 +70,7 @@ public:
     void Translate(scalar dx, scalar dy);
     void Scale(scalar sx, scalar sy);
     void Rotate(scalar deg);
+    void Rotate(scalar deg, scalar sx, scalar sy);
     void Shear(scalar sx, scalar sy);
 
     // state

@@ -86,6 +86,7 @@ public:
     void Translate(scalar dx, scalar dy) override;
     void Scale(scalar sx, scalar sy) override;
     void Rotate(scalar deg) override;
+    void Rotate(scalar deg, scalar sx, scalar sy) override;
     void Shear(scalar sx, scalar sy) override;
 
     // state
