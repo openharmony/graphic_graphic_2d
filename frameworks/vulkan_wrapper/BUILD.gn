@@ -84,8 +84,6 @@ ohos_executable("vulkan_wrapper_native_test") {
 
   deps = [ "//third_party/vulkan-headers:vulkan_headers" ]
 
-  external_deps = [ "hilog_native:libhilog" ]
-
   part_name = "graphic_standard"
   subsystem_name = "graphic"
 }

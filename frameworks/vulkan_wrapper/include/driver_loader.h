@@ -35,6 +35,11 @@ static const VulkanFuncs& GetVulkanFuncs()
     return *Get().vulkanFuncs_;
 }
 
+static bool IsSupportedVulkan()
+{
+    return Get().supported_;
+}
+
 private:
 DriverLoader() : vulkanFuncs_(nullptr), vulkanUnInitializeFunc_(nullptr) {}
 DriverLoader(const DriverLoader&) = delete;
@@ -43,6 +48,7 @@ DriverLoader& operator=(const DriverLoader&) = delete;
 static DriverLoader loader_;
 void* handle_;
 
+bool supported_;
 VulkanFuncs* vulkanFuncs_;
 PFN_VulkanUnInitialize vulkanUnInitializeFunc_;
 };

@@ -54,6 +54,12 @@ bool EnsureInitialized()
     return initialized;
 }
 
+bool IsSupportedVulkan()
+{
+    EnsureInitialized();
+    return DriverLoader::IsSupportedVulkan();
+}
+
 VkResult CreateInstance(const VkInstanceCreateInfo* pCreateInfo,
                         const VkAllocationCallbacks* pAllocator,
                         VkInstance* pInstance)
@@ -135,6 +141,10 @@ PFN_vkVoidFunction GetInstanceProcAddr(VkInstance instance, const char* pName)
         return reinterpret_cast<PFN_vkVoidFunction>(vulkan::driver::CreateDevice);
     }
 
+    if (std::strcmp(pName, "vkDestroyInstance") == 0) {
+        return reinterpret_cast<PFN_vkVoidFunction>(vulkan::driver::DestroyInstance);
+    }
+
     PFN_vkVoidFunction func = DriverLoader::GetVulkanFuncs().PFN_vkGetInstanceProcAddr(instance, pName);
     if (!func) {
         WLOGE("GetInstanceProcAddr %{public}s failed, please check", pName);
@@ -146,7 +156,7 @@ PFN_vkVoidFunction GetInstanceProcAddr(VkInstance instance, const char* pName)
 void DestroyInstance(VkInstance instance, const VkAllocationCallbacks* pAllocator)
 {
     PFN_vkDestroyInstance pfn_vkDestroyInstance = reinterpret_cast<PFN_vkDestroyInstance>(
-        GetInstanceProcAddr(instance, "vkDestroyInstance"));
+        DriverLoader::GetVulkanFuncs().PFN_vkGetInstanceProcAddr(instance, "vkDestroyInstance"));
     if (pfn_vkDestroyInstance) {
         pfn_vkDestroyInstance(instance, pAllocator);
     }
@@ -306,11 +316,8 @@ void QueryPresentationProperties(
         {},
     };
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wold-style-cast"
     presentation_properties->sType =
         VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PRESENTATION_PROPERTIES_OPENHARMONY;
-#pragma clang diagnostic pop
     presentation_properties->pNext = nullptr;
     presentation_properties->sharedImage = VK_FALSE;
 

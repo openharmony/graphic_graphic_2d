@@ -23,7 +23,12 @@ group("unittest") {
 
 ohos_unittest("vulkan_wrapper_unit_test") {
   module_out_path = module_out_path
-  sources = [ "vulkan_wrapper_unit_test.cpp" ]
+  sources = [
+    "../../src/driver.cpp",
+    "../../src/driver_loader.cpp",
+    "../../src/swapchain.cpp",
+    "vulkan_wrapper_unit_test.cpp",
+  ]
   deps = [ ":vulkan_wrapper_test_common" ]
 }
 
@@ -57,6 +62,7 @@ ohos_static_library("vulkan_wrapper_test_common") {
     "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
     "//foundation/graphic/graphic_2d:libsurface",
     "//foundation/graphic/graphic_2d/frameworks/surface:surface",
+    "//foundation/graphic/graphic_2d/frameworks/vulkan_wrapper:vulkan",
     "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics:2d_graphics",
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:librender_service_base",
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:librender_service_client",
