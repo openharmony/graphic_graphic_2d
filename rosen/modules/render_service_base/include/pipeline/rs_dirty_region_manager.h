@@ -52,6 +52,7 @@ public:
     static RectI GetPixelAlignedRect(const RectI& rect, int32_t alignedBits = ALIGNED_BITS);
     bool IsDirty() const;
     void UpdateDirty();
+    void UpdateDirtyByAligned(int32_t alignedBits = ALIGNED_BITS);
     void UpdateDirtyCanvasNodes(NodeId id, const RectI& rect);
     void UpdateDirtySurfaceNodes(NodeId id, const RectI& rect);
     void GetDirtyCanvasNodes(std::map<NodeId, RectI>& target) const;

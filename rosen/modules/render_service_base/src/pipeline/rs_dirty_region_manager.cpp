@@ -111,6 +111,11 @@ void RSDirtyRegionManager::UpdateDirty()
     dirtyRegion_ = MergeHistory(bufferAge_, dirtyRegion_);
 }
 
+void RSDirtyRegionManager::UpdateDirtyByAligned(int32_t alignedBits)
+{
+    dirtyRegion_ = GetPixelAlignedRect(dirtyRegion_, alignedBits);
+}
+
 void RSDirtyRegionManager::UpdateDirtyCanvasNodes(NodeId id, const RectI& rect)
 {
     dirtyCanvasNodes_[id] = rect;

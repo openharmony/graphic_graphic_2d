@@ -245,22 +245,20 @@ void RSRenderThreadVisitor::UpdateDirtyAndSetEGLDamageRegion(std::unique_ptr<RSS
             ROSEN_LOGW("ProcessRootRenderNode SetBufferAge with invalid buffer age %d", bufferAge);
             curDirtyManager_->ResetDirtyAsSurfaceSize();
         }
+        curDirtyManager_->UpdateDirtyByAligned();
         curDirtyManager_->UpdateDirty();
         curDirtyRegion_ = curDirtyManager_->GetDirtyRegion();
         // only set damage region if dirty region and buffer age is valid(>0)
         if (bufferAge >= 0) {
             // get dirty rect coordinated from upper left to lower left corner in current surface
             RectI dirtyRectFlip = curDirtyManager_->GetRectFlipWithinSurface(curDirtyRegion_);
-            // get aligned rect following current egl rules
-            RectI dirtyRect = curDirtyManager_->GetPixelAlignedRect(dirtyRectFlip);
             // set dirty rect as eglSurfaceFrame's damage region
-            surfaceFrame->SetDamageRegion(dirtyRect.left_, dirtyRect.top_, dirtyRect.width_, dirtyRect.height_);
+            surfaceFrame->SetDamageRegion(dirtyRectFlip.left_, dirtyRectFlip.top_, dirtyRectFlip.width_, dirtyRectFlip.height_);
             // flip aligned rect for op drops
             curDirtyRegion_ = curDirtyManager_->GetRectFlipWithinSurface(dirtyRect);
             ROSEN_LOGD("GetPartialRenderEnabled buffer age %d, dirtyRectFlip = [%d, %d, %d, %d], "
-                "dirtyRectAlign = [%d, %d, %d, %d] -> [%d, %d, %d, %d]", bufferAge,
+                "dirtyRectAlign = [%d, %d, %d, %d]", bufferAge,
                 dirtyRectFlip.left_, dirtyRectFlip.top_, dirtyRectFlip.width_, dirtyRectFlip.height_,
-                dirtyRect.left_, dirtyRect.top_, dirtyRect.width_, dirtyRect.height_,
                 curDirtyRegion_.left_, curDirtyRegion_.top_, curDirtyRegion_.width_, curDirtyRegion_.height_);
         }
     } else {
