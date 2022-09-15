@@ -21,6 +21,7 @@
 #include "animation/rs_animation_common.h"
 #include "animation/rs_cubic_bezier_interpolator.h"
 #include "animation/rs_spring_interpolator.h"
+#include "animation/rs_steps_interpolator.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -44,6 +45,9 @@ RSInterpolator* RSInterpolator::Unmarshalling(Parcel& parcel)
             break;
         case InterpolatorType::SPRING:
             ret = RSSpringInterpolator::Unmarshalling(parcel);
+            break;
+        case InterpolatorType::STEPS:
+            ret = RSStepsInterpolator::Unmarshalling(parcel);
             break;
         default:
             break;
