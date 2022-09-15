@@ -261,15 +261,14 @@ void RSBaseRenderNode::DumpTree(int32_t depth, std::string& out) const
             out += ", null";
         }
     }
-    out += "]\n";
+    out += "], disappearing children[";
     int i = 0;
     for (auto& disappearingChild : disappearingChildren_) {
-        out +=
-            "disappearing children[" + std::to_string(i) + "]: " + std::to_string(disappearingChild.first->GetId()) +
-            ", hasDisappearingTransition:" + std::to_string(disappearingChild.first->HasDisappearingTransition(false)) +
-            "\n";
+        out += "(" + std::to_string(i) + ": id:" + std::to_string(disappearingChild.first->GetId()) +
+               ", Transition:" + std::to_string(disappearingChild.first->HasDisappearingTransition(false)) + "),";
         ++i;
     }
+    out += "]\n";
 
     for (auto child : children_) {
         if (auto c = child.lock()) {
