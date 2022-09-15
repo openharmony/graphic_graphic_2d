@@ -31,9 +31,9 @@ void RSBaseRenderNode::AddChild(SharedPtr child, int index)
     if (child == nullptr || child->GetId() == GetId()) {
         return;
     }
-    // if child already has a parent, remove it from its previous parent
+    // if child already has a parent, remove it from its previous parent (without transition)
     if (auto prevParent = child->GetParent().lock()) {
-        prevParent->RemoveChild(child);
+        prevParent->RemoveChild(child, true);
     }
 
     // Set parent-child relationship
@@ -72,7 +72,7 @@ void RSBaseRenderNode::MoveChild(SharedPtr child, int index)
     SetDirty();
 }
 
-void RSBaseRenderNode::RemoveChild(SharedPtr child)
+void RSBaseRenderNode::RemoveChild(SharedPtr child, bool skipTransition)
 {
     if (child == nullptr) {
         return;
@@ -86,7 +86,7 @@ void RSBaseRenderNode::RemoveChild(SharedPtr child)
     // avoid duplicate entry in disappearingChildren_ (this should not happen)
     disappearingChildren_.remove_if([&child](const auto& pair) -> bool { return pair.first == child; });
     // if child has disappearing transition, add it to disappearingChildren_
-    if (child->HasDisappearingTransition(true)) {
+    if (skipTransition == false && child->HasDisappearingTransition(true)) {
         ROSEN_LOGD("RSBaseRenderNode::RemoveChild %" PRIu64 " move child(id %" PRIu64 ") into disappearingChildren",
             GetId(), child->GetId());
         // keep shared_ptr alive for transition
@@ -168,12 +168,21 @@ void RSBaseRenderNode::RemoveCrossParentChild(const SharedPtr& child, const Weak
     SetDirty();
 }
 
-void RSBaseRenderNode::RemoveFromTree()
+void RSBaseRenderNode::RemoveFromTree(bool skipTransition)
 {
-    if (auto parentPtr = parent_.lock()) {
-        auto child = shared_from_this();
-        parentPtr->RemoveChild(child);
+    auto parentPtr = parent_.lock();
+    if (parentPtr == nullptr) {
+        return;
     }
+    auto child = shared_from_this();
+    parentPtr->RemoveChild(child, skipTransition);
+    if (skipTransition == false) {
+        return;
+    }
+    // force remove child from disappearingChildren_ and clean sortChildren_ cache
+    parentPtr->disappearingChildren_.remove_if([&child](const auto& pair) -> bool { return pair.first == child; });
+    parentPtr->sortedChildren_.clear();
+    child->ResetParent();
 }
 
 void RSBaseRenderNode::RemoveFromTreeWithoutTransition()
@@ -261,15 +270,14 @@ void RSBaseRenderNode::DumpTree(int32_t depth, std::string& out) const
             out += ", null";
         }
     }
-    out += "]\n";
+    out += "], disappearing children[";
     int i = 0;
     for (auto& disappearingChild : disappearingChildren_) {
-        out +=
-            "disappearing children[" + std::to_string(i) + "]: " + std::to_string(disappearingChild.first->GetId()) +
-            ", hasDisappearingTransition:" + std::to_string(disappearingChild.first->HasDisappearingTransition(false)) +
-            "\n";
+        out += "(" + std::to_string(i) + ": id:" + std::to_string(disappearingChild.first->GetId()) +
+               ", Transition:" + std::to_string(disappearingChild.first->HasDisappearingTransition(false)) + "),";
         ++i;
     }
+    out += "]\n";
 
     for (auto child : children_) {
         if (auto c = child.lock()) {

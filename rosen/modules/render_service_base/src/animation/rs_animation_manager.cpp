@@ -43,6 +43,9 @@ void RSAnimationManager::AddAnimation(const std::shared_ptr<RSRenderAnimation>& 
 
 void RSAnimationManager::ClearAnimation()
 {
+    for (auto& [id, animation] : animations_) {
+        animation->Detach();
+    }
     animations_.clear();
     animationNum_.clear();
     springAnimations_.clear();

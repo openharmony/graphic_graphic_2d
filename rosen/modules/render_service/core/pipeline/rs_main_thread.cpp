@@ -934,6 +934,11 @@ void RSMainThread::QosStateDump(std::string& dumpString)
 
 void RSMainThread::RenderServiceTreeDump(std::string& dumpString)
 {
+    dumpString.append("Animating Node: [");
+    for (auto& [nodeId, _]: context_.animatingNodeList_) {
+        dumpString.append(std::to_string(nodeId) + ", ");
+    }
+    dumpString.append("];\n");
     const std::shared_ptr<RSBaseRenderNode> rootNode = context_.GetGlobalRootRenderNode();
     if (rootNode == nullptr) {
         dumpString.append("rootNode is null\n");
