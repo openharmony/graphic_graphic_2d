@@ -108,6 +108,8 @@ void RSRenderTransition::OnAttach()
     // update number of disappearing transition animation
     if (!isTransitionIn_) {
         target->disappearingTransitionCount_++;
+        ROSEN_LOGD("RSRenderTransition::OnAttach, target have %u disappearing Transitions",
+            target->disappearingTransitionCount_);
     }
 }
 
@@ -125,6 +127,8 @@ void RSRenderTransition::OnDetach()
     // update number of disappearing transition animation
     if (!isTransitionIn_) {
         target->disappearingTransitionCount_--;
+        ROSEN_LOGD("RSRenderTransition::OnDetach, target have %u disappearing Transitions",
+            target->disappearingTransitionCount_);
     }
 }
 } // namespace Rosen
