@@ -43,9 +43,9 @@ public:
 
     void AddChild(SharedPtr child, int index = -1);
     void MoveChild(SharedPtr child, int index);
-    void RemoveChild(SharedPtr child);
+    void RemoveChild(SharedPtr child, bool skipTransition = false);
     void ClearChildren();
-    void RemoveFromTree();
+    void RemoveFromTree(bool skipTransition = false);
     void RemoveFromTreeWithoutTransition();
 
     // Add/RemoveCrossParentChild only used as: the child is under multiple parents(e.g. a window cross multi-screens)
