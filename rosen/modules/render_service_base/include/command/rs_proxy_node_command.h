@@ -38,7 +38,7 @@ ADD_COMMAND(RSProxyNodeCreate, ARG(PROXY_NODE, PROXY_NODE_CREATE, ProxyNodeComma
 ADD_COMMAND(RSProxyNodeResetContextVariableCache,
     ARG(PROXY_NODE, PROXY_NODE_RESET_CONTEXT_VARIABLE_CACHE, ProxyNodeCommandHelper::ResetContextVariableCache, NodeId))
 ADD_COMMAND(RSProxyNodeRemoveModifiers,
-    ARG(RS_NODE, REMOVE_MODIFIERS, ProxyNodeCommandHelper::RemoveModifiers, NodeId, std::vector<PropertyId>))
+    ARG(PROXY_NODE, REMOVE_MODIFIERS, ProxyNodeCommandHelper::RemoveModifiers, NodeId, std::vector<PropertyId>))
 
 } // namespace Rosen
 } // namespace OHOS
