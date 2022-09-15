@@ -167,7 +167,7 @@ void RSRenderNode::ProcessRenderAfterChildren(RSPaintFilterCanvas& canvas)
 #endif
 }
 
-void RSRenderNode::AddModifier(const std::shared_ptr<RSRenderModifier>& modifier)
+void RSRenderNode::AddModifier(const std::shared_ptr<RSRenderModifier> modifier)
 {
     if (!modifier) {
         return;
@@ -183,7 +183,7 @@ void RSRenderNode::AddModifier(const std::shared_ptr<RSRenderModifier>& modifier
     SetDirty();
 }
 
-void RSRenderNode::AddGeometryModifier(const std::shared_ptr<RSRenderModifier>& modifier)
+void RSRenderNode::AddGeometryModifier(const std::shared_ptr<RSRenderModifier> modifier)
 {
     // bounds and frame modifiers must be unique
     if (modifier->GetType() == RSModifierType::BOUNDS) {
