@@ -24,6 +24,7 @@ config("rosen_text_config") {
   include_dirs = [
     "$rosen_2d_engine_root",
     "$flutter_root/engine/flutter/third_party/txt/src",
+    "//third_party_icu/icu4c/source/common",
   ]
 }
 
