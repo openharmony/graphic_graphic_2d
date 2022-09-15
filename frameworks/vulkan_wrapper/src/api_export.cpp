@@ -17,23 +17,32 @@
 extern "C" {
 __attribute__((visibility("default")))
 VKAPI_ATTR VkResult vkCreateInstance(const VkInstanceCreateInfo* pCreateInfo,
-    const VkAllocationCallbacks* pAllocator, VkInstance* pInstance) {
+    const VkAllocationCallbacks* pAllocator, VkInstance* pInstance)
+{
     return vulkan::driver::CreateInstance(pCreateInfo, pAllocator, pInstance);
 }
 
 __attribute__((visibility("default")))
 VKAPI_ATTR VkResult vkEnumerateInstanceExtensionProperties(const char* pLayerName,
-    uint32_t* pPropertyCount, VkExtensionProperties* pProperties) {
+uint32_t* pPropertyCount, VkExtensionProperties* pProperties)
+{
     return vulkan::driver::EnumerateInstanceExtensionProperties(pLayerName, pPropertyCount, pProperties);
 }
 
 __attribute__((visibility("default")))
-VKAPI_ATTR PFN_vkVoidFunction vkGetInstanceProcAddr(VkInstance instance, const char* pName) {
+VKAPI_ATTR PFN_vkVoidFunction vkGetInstanceProcAddr(VkInstance instance, const char* pName)
+{
     return vulkan::driver::GetInstanceProcAddr(instance, pName);
 }
 
 __attribute__((visibility("default")))
-VKAPI_ATTR PFN_vkVoidFunction vkGetDeviceProcAddr(VkDevice device, const char* pName) {
+VKAPI_ATTR PFN_vkVoidFunction vkGetDeviceProcAddr(VkDevice device, const char* pName)
+{
     return vulkan::driver::GetDeviceProcAddr(device, pName);
+}
+
+__attribute__((visibility("default"))) bool IsSupportedVulkan()
+{
+    return vulkan::driver::IsSupportedVulkan();
 }
 }

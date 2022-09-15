@@ -52,6 +52,7 @@ VKAPI_ATTR VkResult GetNativeFenceFdOpenHarmony(VkQueue queue, uint32_t waitSema
 void QueryPresentationProperties(VkPhysicalDevice physicalDevice,
     VkPhysicalDevicePresentationPropertiesOpenHarmony* presentation_properties);
 VKAPI_ATTR VkResult EnumerateInstanceLayerProperties(uint32_t* pPropertyCount, VkLayerProperties* pProperties);
+bool IsSupportedVulkan();
 }  // namespace driver
 }  // namespace vulkan
 
