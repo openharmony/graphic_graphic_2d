@@ -18,10 +18,6 @@
 
 #include <hilog/log.h>
 
-#include "napi/native_api.h"
-#include "napi/native_common.h"
-#include "napi/native_node_api.h"
-
 namespace OHOS {
 namespace Rosen {
 constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "EffectNapi"};

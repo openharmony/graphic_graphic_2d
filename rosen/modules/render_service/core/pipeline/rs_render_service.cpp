@@ -219,6 +219,8 @@ void RSRenderService::DumpRSEvenParam(std::string& dumpString) const
     dumpString.append("\n");
     dumpString.append("-- EventParamListDump: \n");
     mainThread_->RsEventParamDump(dumpString);
+    dumpString.append("-- QosDump: \n");
+    mainThread_->QosStateDump(dumpString);
 }
 
 void RSRenderService::DumpRenderServiceTree(std::string& dumpString) const

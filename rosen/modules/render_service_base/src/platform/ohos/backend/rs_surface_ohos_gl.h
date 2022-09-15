@@ -42,6 +42,7 @@ public:
 
     void SetSurfaceBufferUsage(int32_t usage) override;
     void ClearBuffer() override;
+    void ResetBufferAge() override;
 private:
     EGLSurface mEglSurface = EGL_NO_SURFACE;
     struct NativeWindow* mWindow = nullptr;

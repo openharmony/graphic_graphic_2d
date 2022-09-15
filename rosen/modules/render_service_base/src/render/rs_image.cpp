@@ -256,7 +256,6 @@ bool RSImage::Marshalling(Parcel& parcel) const
     success &= RSMarshallingHelper::Marshalling(parcel, imageRepeat);
     success &= RSMarshallingHelper::Marshalling(parcel, radius_);
     success &= RSMarshallingHelper::Marshalling(parcel, scale_);
-    compressData_ = nullptr;
     return success;
 }
 RSImage* RSImage::Unmarshalling(Parcel& parcel)

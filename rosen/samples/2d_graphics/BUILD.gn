@@ -57,6 +57,7 @@ ohos_executable("drawing_engine_sample") {
     "//foundation/graphic/graphic_2d/rosen/modules/composer/hdi_backend/include",
     "//foundation/graphic/graphic_2d/utils/sync_fence/export",
     "//foundation/graphic/graphic_2d/rosen/include/common",
+    "//foundation/communication/ipc/interfaces/innerkits/ipc_core/include",
   ]
 
   sources += [

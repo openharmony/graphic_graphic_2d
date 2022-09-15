@@ -75,6 +75,7 @@ public:
     void RecvRSTransactionData(std::unique_ptr<RSTransactionData>& rsTransactionData);
     void RequestNextVSync();
     void PostTask(RSTaskMessage::RSTask task);
+    void QosStateDump(std::string& dumpString);
     void RenderServiceTreeDump(std::string& dumpString);
     void RsEventParamDump(std::string& dumpString);
 
@@ -163,6 +164,7 @@ private:
 
     void SetDirtyFlag();
     void ClearDisplayBuffer();
+    void PerfAfterAnim();
 
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
@@ -180,6 +182,7 @@ private:
     TransactionDataIndexMap effectiveTransactionDataIndexMap_;
 
     uint64_t timestamp_ = 0;
+    uint64_t prePerfTimestamp_ = 0;
     std::unordered_map<uint32_t, sptr<IApplicationAgent>> applicationAgentMap_;
 
     RSContext context_;

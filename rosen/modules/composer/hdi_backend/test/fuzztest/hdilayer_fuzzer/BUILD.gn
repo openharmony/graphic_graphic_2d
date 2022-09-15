@@ -24,6 +24,7 @@ ohos_fuzztest("HdiLayerFuzzTest") {
   include_dirs = [
     "//foundation/graphic/graphic_2d/rosen/modules/composer/hdi_backend/include",
     "//foundation/graphic/graphic_2d/interfaces/inner_api/surface",
+    "//foundation/communication/ipc/interfaces/innerkits/ipc_core/include",
   ]
   cflags = [
     "-g",

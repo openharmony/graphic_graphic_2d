@@ -77,7 +77,11 @@ RSSurfaceNode::SharedPtr RSSurfaceNode::Create(const RSSurfaceNodeConfig& surfac
         transactionProxy->AddCommand(command, isWindow);
         node->SetFrameGravity(Gravity::RESIZE);
     }
-    node->SetFrameGravity(Gravity::RESIZE);
+    if (std::strcmp(node->GetName().c_str(), "SystemUi_BatteryPanel") == 0) {
+        node->SetFrameGravity(Gravity::TOP_LEFT);
+    } else {
+        node->SetFrameGravity(Gravity::RESIZE);
+    }
     ROSEN_LOGD("RsDebug RSSurfaceNode::Create id:%" PRIu64, node->GetId());
     return node;
 }

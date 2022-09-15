@@ -89,5 +89,10 @@ void RSSurfaceOhosRaster::ClearBuffer()
         producer_->GoBackground();
     }
 }
+
+void RSSurfaceOhosRaster::ResetBufferAge()
+{
+    ROSEN_LOGD("RSSurfaceOhosRaster: Reset Buffer Age!");
+}
 } // namespace Rosen
 } // namespace OHOS

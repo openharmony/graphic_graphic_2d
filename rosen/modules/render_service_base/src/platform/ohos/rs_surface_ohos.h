@@ -41,6 +41,7 @@ public:
     virtual uint32_t GetQueueSize() const override;
 
     virtual void SetSurfaceBufferUsage(int32_t usage) = 0;
+    void ClearAllBuffer() override;
 protected:
     sptr<Surface> producer_;
     RenderContext* context_ = nullptr;

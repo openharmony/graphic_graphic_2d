@@ -56,6 +56,8 @@ ohos_systemtest("native_window_buffer_test") {
     "//foundation/systemabilitymgr/samgr/interfaces/innerkits/samgr_proxy:samgr_proxy",
     "//third_party/googletest:gtest_main",
   ]
+
+  external_deps = [ "ipc:ipc_core" ]
 }
 
 ## SystemTest native_window_buffer_test }}}
@@ -88,5 +90,7 @@ ohos_systemtest("surface_ipc_test") {
     "//foundation/systemabilitymgr/samgr/interfaces/innerkits/samgr_proxy:samgr_proxy",
     "//third_party/googletest:gtest_main",
   ]
+
+  external_deps = [ "ipc:ipc_core" ]
 }
 ## SystemTest surface_ipc_test }}}

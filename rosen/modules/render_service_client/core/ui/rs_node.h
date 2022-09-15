@@ -79,15 +79,15 @@ public:
 
     const RSModifierExtractor& GetStagingProperties() const;
 
-    void SetBounds(const Vector4f& bounds);
-    void SetBounds(float positionX, float positionY, float width, float height);
-    void SetBoundsWidth(float width);
-    void SetBoundsHeight(float height);
+    virtual void SetBounds(const Vector4f& bounds);
+    virtual void SetBounds(float positionX, float positionY, float width, float height);
+    virtual void SetBoundsWidth(float width);
+    virtual void SetBoundsHeight(float height);
 
-    void SetFrame(const Vector4f& frame);
-    void SetFrame(float positionX, float positionY, float width, float height);
-    void SetFramePositionX(float positionX);
-    void SetFramePositionY(float positionY);
+    virtual void SetFrame(const Vector4f& frame);
+    virtual void SetFrame(float positionX, float positionY, float width, float height);
+    virtual void SetFramePositionX(float positionX);
+    virtual void SetFramePositionY(float positionY);
 
     void SetPositionZ(float positionZ);
 

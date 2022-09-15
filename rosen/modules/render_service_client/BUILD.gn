@@ -137,6 +137,7 @@ ohos_source_set("render_service_client_src") {
     "hitrace_native:hitrace_meter",
     "init:libbeget_proxy",
     "init:libbegetutil",
+    "ipc:ipc_core",
   ]
   public_deps =
       [ "$rosen_root/modules/render_service_base:librender_service_base" ]

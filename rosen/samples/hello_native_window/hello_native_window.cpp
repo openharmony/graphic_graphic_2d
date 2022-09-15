@@ -17,7 +17,6 @@
 #include "external_window.h"
 #include "window.h"
 #include "surface.h"
-#include "buffer_log.h"
 
 using namespace OHOS;
 

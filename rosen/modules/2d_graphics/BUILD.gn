@@ -98,7 +98,6 @@ template("graphics2d_source_set") {
 
     if (platform == "ohos") {
       external_deps = [
-        "c_utils:utils",
         "hilog_native:libhilog",
         "multimedia_image_standard:image_native",
       ]
@@ -240,7 +239,6 @@ ohos_shared_library("2d_graphics_canvaskit0310") {
   }
 
   external_deps = [
-    "c_utils:utils",
     "hilog_native:libhilog",
     "multimedia_image_standard:image_native",
   ]

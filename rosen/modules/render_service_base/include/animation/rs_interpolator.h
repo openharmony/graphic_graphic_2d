@@ -34,6 +34,7 @@ enum InterpolatorType : uint16_t {
     CUSTOM,
     CUBIC_BEZIER,
     SPRING,
+    STEPS,
 };
 
 #ifdef ROSEN_OHOS

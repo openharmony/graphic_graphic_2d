@@ -43,7 +43,6 @@ OH_NativeBuffer_Config config {
     .format = PIXEL_FMT_RGBA_8888,
     .usage = HBM_USE_CPU_READ | HBM_USE_CPU_WRITE | HBM_USE_MEM_DMA
 };
-}
 
 void CompareOH_NativeBufferConfig(OH_NativeBuffer_Config &config, OH_NativeBuffer_Config &checkConfig)
 {
@@ -59,6 +58,8 @@ void CompareOH_NativeBufferConfig(OH_NativeBuffer_Config &config, OH_NativeBuffe
     if (config.usage != checkConfig.usage) {
         LOGE("OH_NativeBufferConfig usage different");
     }
+}
+
 }
 
 int32_t main(int32_t argc, const char *argv[])

@@ -31,8 +31,13 @@ config("export_config") {
   defines = rs_common_define
 }
 
+config("render_service_base_all_deps_config") {
+  include_dirs = [ "include" ]
+}
+
 ohos_shared_library("librender_service_base") {
   public_configs = [ ":export_config" ]
+  all_dependent_configs = [ ":render_service_base_all_deps_config" ]
   defines = []
   defines += gpu_defines
 
@@ -52,6 +57,7 @@ ohos_shared_library("librender_service_base") {
     "src/animation/rs_render_transition_effect.cpp",
     "src/animation/rs_spring_interpolator.cpp",
     "src/animation/rs_spring_model.cpp",
+    "src/animation/rs_steps_interpolator.cpp",
     "src/animation/rs_transition_effect.cpp",
     "src/animation/rs_value_estimator.cpp",
 
@@ -169,6 +175,7 @@ ohos_shared_library("librender_service_base") {
     "hitrace_native:hitrace_meter",
     "init:libbeget_proxy",
     "init:libbegetutil",
+    "ipc:ipc_core",
   ]
 
   public_deps = [

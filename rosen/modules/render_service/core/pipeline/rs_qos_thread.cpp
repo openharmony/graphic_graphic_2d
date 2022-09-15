@@ -100,20 +100,20 @@ void RSQosThread::SetQosVSyncRate(uint32_t pid, int32_t rate)
     appVSyncDistributor_->SetQosVSyncRate(pid, rate);
 }
 
-void RSQosThread::ResetQosPid(std::map<uint32_t, bool>& pidVisMap)
+void RSQosThread::ResetQosPid()
 {
-    if (!RSInnovation::UpdateQosNeedReset()) {
-        return;
-    }
-    for (auto it = pidVisMap.begin(); it != pidVisMap.end(); it++) {
-        it->second = true;
-    }
+    using QosOnRSResetPidFunc = void* (*)();
 
-    OnRSVisibilityChangeCB(pidVisMap);
+    auto QosOnRSResetPid = (QosOnRSResetPidFunc)RSInnovation::_s_qosOnRSResetPid;
+    QosOnRSResetPid();
 }
 
 void RSQosThread::OnRSVisibilityChangeCB(std::map<uint32_t, bool>& pidVisMap)
 {
+    if (!qosCal_) {
+        return;
+    }
+
     using QosOnRSVisibilityChangeCBFunc = void (*)(void*);
 
     auto QosOnRSVisibilityChangeCB = (QosOnRSVisibilityChangeCBFunc)RSInnovation::_s_qosOnRSVisibilityChangeCB;

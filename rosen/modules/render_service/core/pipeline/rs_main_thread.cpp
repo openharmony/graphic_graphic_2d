@@ -32,6 +32,7 @@
 #include "platform/common/rs_innovation.h"
 #include "platform/drawing/rs_vsync_client.h"
 #include "screen_manager/rs_screen_manager.h"
+#include "socperf_client.h"
 #include "transaction/rs_transaction_proxy.h"
 #include "accessibility_config.h"
 #include "rs_qos_thread.h"
@@ -40,6 +41,9 @@ using namespace OHOS::AccessibilityConfig;
 namespace OHOS {
 namespace Rosen {
 namespace {
+constexpr int32_t PERF_ANIMATION_REQUESTED_CODE = 10017;
+constexpr uint64_t PERF_PERIOD = 250000000;
+
 bool Compare(const std::unique_ptr<RSTransactionData>& data1, const std::unique_ptr<RSTransactionData>& data2)
 {
     if (!data1 || !data2) {
@@ -208,12 +212,12 @@ void RSMainThread::Start()
 
 void RSMainThread::ProcessCommand()
 {
+    context_.currentTimestamp_ = timestamp_;
     if (!isUniRender_) { // divided render for all
         ProcessCommandForDividedRender();
         return;
     }
     CheckBufferAvailableIfNeed();
-    context_.currentTimestamp_ = timestamp_;
     // dynamic switch
     if (useUniVisitor_) {
         ProcessCommandForDividedRender();
@@ -486,13 +490,6 @@ void RSMainThread::CheckUpdateSurfaceNodeIfNeed()
         if (renderModeChangeCallback_) {
             renderModeChangeCallback_->OnRenderModeChanged(true);
         }
-        const auto& nodeMap = GetContext().GetNodeMap();
-        nodeMap.TraverseSurfaceNodes([](const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) mutable {
-            if (surfaceNode != nullptr && surfaceNode->IsOnTheTree() && surfaceNode->IsAppWindow() &&
-                surfaceNode->GetConsumer() != nullptr) {
-                surfaceNode->GetConsumer()->GoBackground();
-            }
-        });
         // trigger global refresh
         SetDirtyFlag();
     }
@@ -607,18 +604,19 @@ void RSMainThread::CalcOcclusion()
                         surface->GetDstRect().height_ > surface->GetBuffer()->GetHeight()) &&
                         surface->GetRenderProperties().GetFrameGravity() != Gravity::RESIZE &&
                         surface->GetRenderProperties().GetAlpha() != opacity;
-            if (surface->GetAbilityBgAlpha() == opacity &&
-                ROSEN_EQ(surface->GetGlobalAlpha(), 1.0f) && !diff) {
+            if ((surface->GetAbilityBgAlpha() == opacity &&
+                ROSEN_EQ(surface->GetGlobalAlpha(), 1.0f) && !diff) ||
+                RSOcclusionConfig::GetInstance().IsDividerBar(surface->GetName())) {
                 curRegion = curSurface.Or(curRegion);
             }
         }
     }
 
-    // 3. Callback to QOS
-    CallbackToQOS(pidVisMap);
-
-    // 4. Callback to WMS
+    // 3. Callback to WMS
     CallbackToWMS(curVisVec);
+
+    // 4. Callback to QOS
+    CallbackToQOS(pidVisMap);
 }
 
 bool RSMainThread::CheckQosVisChanged(std::map<uint32_t, bool>& pidVisMap)
@@ -644,15 +642,19 @@ bool RSMainThread::CheckQosVisChanged(std::map<uint32_t, bool>& pidVisMap)
 void RSMainThread::CallbackToQOS(std::map<uint32_t, bool>& pidVisMap)
 {
     if (!RSInnovation::UpdateQosVsyncEnabled()) {
-        qosPidCal_ = false;
-        RSQosThread::GetInstance()->ResetQosPid(pidVisMap);
+        if (qosPidCal_) {
+            qosPidCal_ = false;
+            RSQosThread::GetInstance()->ResetQosPid();
+            RSQosThread::GetInstance()->SetQosCal(qosPidCal_);
+        }
         return;
     }
     qosPidCal_ = true;
+    RSQosThread::GetInstance()->SetQosCal(qosPidCal_);
     if (!CheckQosVisChanged(pidVisMap)) {
         return;
     }
-
+    RS_TRACE_NAME("RSQosThread::OnRSVisibilityChangeCB");
     RSQosThread::GetInstance()->OnRSVisibilityChangeCB(pidVisMap);
 }
 
@@ -715,13 +717,22 @@ void RSMainThread::Animate(uint64_t timestamp)
     RS_TRACE_FUNC();
 
     if (context_.animatingNodeList_.empty()) {
+        if (doWindowAnimate_ && RSInnovation::UpdateQosVsyncEnabled()) {
+            // Preventing Occlusion Calculation from Being Completed in Advance
+            RSQosThread::GetInstance()->OnRSVisibilityChangeCB(lastPidVisMap_);
+        }
         doWindowAnimate_ = false;
         return;
     }
 
     RS_LOGD("RSMainThread::Animate start, processing %d animating nodes", context_.animatingNodeList_.size());
 
+    bool lastDoWindowAnimate = doWindowAnimate_;
     doWindowAnimate_ = HasWindowAnimation();
+    if (!lastDoWindowAnimate && doWindowAnimate_ && RSInnovation::UpdateQosVsyncEnabled()) {
+        RSQosThread::GetInstance()->ResetQosPid();
+    }
+
     // iterate and animate all animating nodes, remove if animation finished
     std::__libcpp_erase_if_container(context_.animatingNodeList_, [timestamp](const auto& iter) -> bool {
         auto node = iter.second.lock();
@@ -739,6 +750,7 @@ void RSMainThread::Animate(uint64_t timestamp)
     RS_LOGD("RSMainThread::Animate end, %d animating nodes remains", context_.animatingNodeList_.size());
 
     RequestNextVSync();
+    PerfAfterAnim();
 }
 
 bool RSMainThread::HasWindowAnimation() const
@@ -912,8 +924,22 @@ void RSMainThread::SendCommands()
     });
 }
 
+void RSMainThread::QosStateDump(std::string& dumpString)
+{
+    if (RSQosThread::GetInstance()->GetQosCal()) {
+        dumpString.append("QOS is enabled\n");
+    } else {
+        dumpString.append("QOS is disabled\n");
+    }
+}
+
 void RSMainThread::RenderServiceTreeDump(std::string& dumpString)
 {
+    dumpString.append("Animating Node: [");
+    for (auto& [nodeId, _]: context_.animatingNodeList_) {
+        dumpString.append(std::to_string(nodeId) + ", ");
+    }
+    dumpString.append("];\n");
     const std::shared_ptr<RSBaseRenderNode> rootNode = context_.GetGlobalRootRenderNode();
     if (rootNode == nullptr) {
         dumpString.append("rootNode is null\n");
@@ -1014,10 +1040,7 @@ void RSMainThread::ClearDisplayBuffer()
             continue;
         }
         if (displayNode->GetRSSurface() != nullptr) {
-            displayNode->GetRSSurface()->ClearBuffer();
-        }
-        if (displayNode->GetConsumer() != nullptr) {
-            displayNode->GetConsumer()->GoBackground();
+            displayNode->GetRSSurface()->ResetBufferAge();
         }
     }
 }
@@ -1025,6 +1048,22 @@ void RSMainThread::ClearDisplayBuffer()
 void RSMainThread::SetDirtyFlag()
 {
     isDirty_ = true;
+}
+
+void RSMainThread::PerfAfterAnim()
+{
+    if (!IfUseUniVisitor()) {
+        return;
+    }
+    if (!context_.animatingNodeList_.empty() && timestamp_ - prePerfTimestamp_ > PERF_PERIOD) {
+        RS_LOGD("RSMainThread:: soc perf to render_service_animation");
+        OHOS::SOCPERF::SocPerfClient::GetInstance().PerfRequest(PERF_ANIMATION_REQUESTED_CODE, "");
+        prePerfTimestamp_ = timestamp_;
+    } else if (context_.animatingNodeList_.empty()) {
+        RS_LOGD("RSMainThread:: soc perf off render_service_animation");
+        OHOS::SOCPERF::SocPerfClient::GetInstance().PerfRequestEx(PERF_ANIMATION_REQUESTED_CODE, false, "");
+        prePerfTimestamp_ = 0;
+    }
 }
 } // namespace Rosen
 } // namespace OHOS

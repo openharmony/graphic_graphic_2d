@@ -160,6 +160,11 @@ void RSUniRenderVisitor::PrepareCanvasRenderNode(RSCanvasRenderNode &node)
     node.ApplyModifiers();
     bool dirtyFlag = dirtyFlag_;
     auto nodeParent = node.GetParent().lock();
+    while (nodeParent && nodeParent->ReinterpretCastTo<RSSurfaceRenderNode>() &&
+        nodeParent->ReinterpretCastTo<RSSurfaceRenderNode>()->GetSurfaceNodeType() ==
+        RSSurfaceNodeType::SELF_DRAWING_NODE) {
+        nodeParent = nodeParent->GetParent().lock();
+    }
     std::shared_ptr<RSRenderNode> rsParent = nullptr;
     if (nodeParent != nullptr) {
         rsParent = nodeParent->ReinterpretCastTo<RSRenderNode>();
@@ -359,7 +364,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
             return;
         }
 #ifdef RS_ENABLE_EGLQUERYSURFACE
-        if (isOpDropped_) {
+        if (isOpDropped_ && !region.isEmpty()) {
             canvas_->clipRegion(region);
         }
 #endif
@@ -564,9 +569,7 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
 
     canvas_->concat(geoPtr->GetMatrix());
 
-    const RectF absBounds = {
-        node.GetTotalMatrix().getTranslateX(), node.GetTotalMatrix().getTranslateY(),
-        property.GetBoundsWidth(), property.GetBoundsHeight()};
+    const RectF absBounds = {0, 0, property.GetBoundsWidth(), property.GetBoundsHeight()};
     RRect absClipRRect = RRect(absBounds, property.GetCornerRadius());
     RSPropertiesPainter::DrawShadow(property, *canvas_, &absClipRRect);
 

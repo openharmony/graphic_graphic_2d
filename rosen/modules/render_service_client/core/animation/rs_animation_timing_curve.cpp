@@ -18,6 +18,7 @@
 #include "animation/rs_cubic_bezier_interpolator.h"
 #include "animation/rs_interpolator.h"
 #include "animation/rs_spring_interpolator.h"
+#include "animation/rs_steps_interpolator.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -76,6 +77,11 @@ RSAnimationTimingCurve RSAnimationTimingCurve::CreateSpringCurve(
     float response = 1.0;
     float dampingRatio = (damping / (2 * sqrt(mass * stiffness)));
     return RSAnimationTimingCurve(std::make_shared<RSSpringInterpolator>(response, dampingRatio, velocity));
+}
+
+RSAnimationTimingCurve RSAnimationTimingCurve::CreateStepsCurve(int32_t steps, StepsCurvePosition position)
+{
+    return RSAnimationTimingCurve(std::make_shared<RSStepsInterpolator>(steps, position));
 }
 
 RSAnimationTimingCurve RSAnimationTimingCurve::CreateSpring(float response, float dampingRatio, float blendDuration)

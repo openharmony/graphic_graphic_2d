@@ -59,7 +59,8 @@ void RSRenderNodeMap::FilterNodeByPid(pid_t pid)
             // clear all animations before removing, to avoid animation fallback
             renderNode->GetAnimationManager().ClearAnimation();
         }
-        pair.second->RemoveFromTree();
+        // remove node from tree, ignore transition animation
+        pair.second->RemoveFromTreeWithoutTransition();
         return true;
     });
 
