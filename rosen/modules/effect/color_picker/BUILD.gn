@@ -52,23 +52,11 @@ ohos_shared_library("color_picker") {
 
   deps = [
     "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
-    "//foundation/arkui/napi:ace_napi",
-    "//foundation/graphic/graphic_2d:libsurface",
-    "//foundation/graphic/graphic_2d/rosen/modules/effect/effectChain:libeffectchain",
-    "//foundation/graphic/graphic_2d/rosen/modules/effect/egl:libegl_effect",
     "//foundation/graphic/graphic_2d/utils/color_manager:color_manager",
-    "//foundation/multimedia/image_standard/frameworks/innerkitsimpl/pixelconverter:pixelconvertadapter",
-    "//foundation/multimedia/image_standard/interfaces/innerkits:image",
     "//foundation/multimedia/image_standard/interfaces/innerkits:image_native",
-    "//third_party/flutter/build/skia:ace_skia_ohos",
   ]
 
-  deps += [ "//foundation/graphic/graphic_2d:libgl" ]
-
-  external_deps = [
-    "c_utils:utils",
-    "hitrace_native:hitrace_meter",
-  ]
+  external_deps = [ "c_utils:utils" ]
 
   cflags_cc = [ "-std=c++17" ]
 

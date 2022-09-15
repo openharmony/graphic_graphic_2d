@@ -48,7 +48,7 @@ ohos_shared_library("libeffectchain") {
 
   deps = [
     "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
-    "//foundation/multimedia/image_standard:image_framework",
+    "//foundation/multimedia/image_standard/interfaces/innerkits:image_native",
   ]
 
   external_deps = [
