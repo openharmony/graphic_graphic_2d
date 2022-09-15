@@ -115,7 +115,7 @@ void RSSurfaceOhosGl::ResetBufferAge()
     if (context_ != nullptr && mEglSurface != EGL_NO_SURFACE && producer_ != nullptr) {
         ROSEN_LOGD("RSSurfaceOhosGl: Reset Buffer Age!");
         DestoryNativeWindow(mWindow);
-        context_->MakeCurrent(EGL_NO_SURFACE);
+        context_->MakeCurrent(EGL_NO_SURFACE, context_->GetEGLContext());
         context_->DestroyEGLSurface(mEglSurface);
         mEglSurface = EGL_NO_SURFACE;
         mWindow = nullptr;
