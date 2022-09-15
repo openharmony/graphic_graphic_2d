@@ -28,6 +28,7 @@ config("hello_native_buffer_public_config") {
   include_dirs = [
     "//foundation/graphic/graphic_2d/interfaces/inner_api/surface",
     "//foundation/graphic/graphic_2d/frameworks/surface/include",
+    "//foundation/communication/ipc/interfaces/innerkits/ipc_core/include",
   ]
 }
 
@@ -41,6 +42,8 @@ ohos_executable("hello_native_buffer") {
   public_configs = [ ":hello_native_buffer_public_config" ]
 
   deps = [ "//foundation/graphic/graphic_2d/frameworks/surface:surface" ]
+
+  external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
 
   part_name = "graphic_standard"
   subsystem_name = "graphic"

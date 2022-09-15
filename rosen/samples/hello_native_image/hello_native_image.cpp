@@ -26,9 +26,6 @@
 #include "graphic_common_c.h"
 #include "external_window.h"
 #include "GLES/gl.h"
-#include "buffer_log.h"
-
-using namespace OHOS;
 
 namespace {
 using GetPlatformDisplayExt = PFNEGLGETPLATFORMDISPLAYEXTPROC;

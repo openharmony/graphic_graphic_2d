@@ -24,6 +24,7 @@ ohos_fuzztest("SurfaceFuzzTest") {
   include_dirs = [
     "//foundation/graphic/graphic_2d/frameworks/surface/include",
     "//drivers/peripheral/display/interfaces/include",
+    "//foundation/communication/ipc/interfaces/innerkits/ipc_core/include",
   ]
   cflags = [
     "-g",
@@ -32,7 +33,10 @@ ohos_fuzztest("SurfaceFuzzTest") {
     "-fno-omit-frame-pointer",
   ]
   sources = [ "surface_fuzzer.cpp" ]
-  deps = [ "//foundation/graphic/graphic_2d:libsurface" ]
+  deps = [
+    "//foundation/graphic/graphic_2d:libsurface",
+    "//foundation/graphic/graphic_2d/utils:sync_fence",
+  ]
 }
 
 ###############################################################################

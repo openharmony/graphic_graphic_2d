@@ -33,6 +33,7 @@ config("hello_native_image_public_config") {
     "//foundation/graphic/graphic_2d/utils",
     "//drivers/peripheral/display/interfaces/include",
     "//drivers/peripheral/base",
+    "//foundation/communication/ipc/interfaces/innerkits/ipc_core/include",
   ]
 }
 
@@ -51,6 +52,7 @@ ohos_executable("hello_native_image") {
   public_configs = [ ":hello_native_image_public_config" ]
 
   deps = [
+    "//foundation/graphic/graphic_2d:libgl",
     "//foundation/graphic/graphic_2d/frameworks/surface:surface",
     "//foundation/graphic/graphic_2d/frameworks/surfaceimage:libnative_image",
   ]

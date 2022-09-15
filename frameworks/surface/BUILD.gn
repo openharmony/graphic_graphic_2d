@@ -68,24 +68,25 @@ ohos_shared_library("surface") {
   ]
 
   deps = [
-    "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
-    "//foundation/systemabilitymgr/samgr/interfaces/innerkits/samgr_proxy:samgr_proxy",
+    "//foundation/graphic/graphic_2d/utils/gslogger:libgslogger",
+    "//foundation/graphic/graphic_2d/utils/sync_fence:sync_fence",
   ]
 
   public_deps = [
     "//commonlibrary/c_utils/base:utils",
     "//drivers/peripheral/display/hdi_service/gralloc/client:hdi_gralloc_client",
-    "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
     "//foundation/graphic/graphic_2d/utils/buffer_handle:buffer_handle",
-    "//foundation/graphic/graphic_2d/utils/gslogger:libgslogger",
     "//foundation/graphic/graphic_2d/utils/sandbox:sandbox_utils",
     "//foundation/graphic/graphic_2d/utils/scoped_bytrace:scoped_bytrace",
-    "//foundation/graphic/graphic_2d/utils/sync_fence:sync_fence",
     "//third_party/EGL:libEGL",
     "//third_party/openGLES:libGLES",
   ]
 
-  external_deps = [ "hitrace_native:hitrace_meter" ]
+  external_deps = [
+    "hitrace_native:hitrace_meter",
+    "hiviewdfx_hilog_native:libhilog",
+    "ipc:ipc_core",
+  ]
 
   symlink_target_name = [ "libnative_window.so" ]
 
