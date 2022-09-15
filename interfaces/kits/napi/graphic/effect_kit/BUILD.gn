@@ -34,6 +34,7 @@ config("graphic_napi_effect_kit_config") {
 ohos_shared_library("effectkit") {
   include_dirs = [
     "./include",
+    "//third_party/flutter/skia",
     "//foundation/graphic/graphic_2d/rosen/modules/effect/effectChain/include",
     "//foundation/graphic/graphic_2d/rosen/modules/effect/egl/include",
     "//foundation/graphic/graphic_2d/rosen/modules/effect/color_picker/include",
@@ -59,21 +60,13 @@ ohos_shared_library("effectkit") {
   deps = [
     "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
     "//foundation/arkui/napi:ace_napi",
-    "//foundation/graphic/graphic_2d:libgl",
-    "//foundation/graphic/graphic_2d:libsurface",
     "//foundation/graphic/graphic_2d/rosen/modules/effect/color_picker:color_picker",
-    "//foundation/graphic/graphic_2d/rosen/modules/effect/effectChain:libeffectchain",
-    "//foundation/graphic/graphic_2d/rosen/modules/effect/egl:libegl_effect",
     "//foundation/graphic/graphic_2d/rosen/modules/effect/skia_effectChain:skeffectchain",
-    "//foundation/graphic/graphic_2d/utils/color_manager:color_manager",
     "//foundation/multimedia/image_standard/interfaces/innerkits:image",
     "//foundation/multimedia/image_standard/interfaces/innerkits:image_native",
   ]
 
-  external_deps = [
-    "c_utils:utils",
-    "hitrace_native:hitrace_meter",
-  ]
+  external_deps = [ "c_utils:utils" ]
 
   cflags_cc = [ "-std=c++17" ]
 
