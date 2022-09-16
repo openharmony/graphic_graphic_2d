@@ -81,15 +81,11 @@ bool BootAnimation::CheckFrameRateValid(int32_t ratevalue)
     return true;
 }
 
-void BootAnimation::Init(int32_t width, int32_t height, const std::shared_ptr<AppExecFwk::EventHandler>& handler,
-    std::shared_ptr<AppExecFwk::EventRunner>& runner)
+void BootAnimation::Init(int32_t width, int32_t height)
 {
     windowWidth_ = width;
     windowHeight_ = height;
     LOGI("Init enter, width: %{public}d, height: %{public}d", width, height);
-
-    mainHandler_ = handler;
-    runner_ = runner;
 
     auto& rsClient = OHOS::Rosen::RSInterfaces::GetInstance();
     while (receiver_ == nullptr) {
@@ -136,6 +132,15 @@ void BootAnimation::Init(int32_t width, int32_t height, const std::shared_ptr<Ap
     } else {
         LOGI("SetVSyncRate success: %{public}d %{public}d", freq_, changefreq);
     }
+}
+
+void BootAnimation::Run(std::vector<sptr<OHOS::Rosen::Display>>& displays)
+{
+    runner_ = AppExecFwk::EventRunner::Create(false);
+    mainHandler_ = std::make_shared<AppExecFwk::EventHandler>(runner_);
+    Init(displays[0]->GetWidth(), displays[0]->GetHeight());
+    PostTask(std::bind(&BootAnimation::PlaySound, this));
+    runner_->Run();
 }
 
 void BootAnimation::InitBootWindow()

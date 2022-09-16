@@ -21,9 +21,7 @@
 #include <include/core/SkImageInfo.h>
 #include <include/core/SkImage.h>
 #include <include/codec/SkCodec.h>
-
-#include <display_type.h>
-#include <display_manager.h>
+#include <display.h>
 #include <foundation/window/window_manager/interfaces/innerkits/wm/window_manager.h>
 #include <ipc_skeleton.h>
 #include <iremote_broker.h>
@@ -44,12 +42,12 @@
 namespace OHOS {
 class BootAnimation {
 public:
-    void Init(int32_t width, int32_t height, const std::shared_ptr<AppExecFwk::EventHandler>& handler,
-        std::shared_ptr<AppExecFwk::EventRunner>& runner);
+    void Init(int32_t width, int32_t height);
     void Draw();
     void CheckExitAnimation();
     void PlaySound();
     bool CheckFrameRateValid(int32_t ratevalue);
+    void Run(std::vector<sptr<OHOS::Rosen::Display>>& displays);
     ~BootAnimation();
 private:
     void OnVsync();
