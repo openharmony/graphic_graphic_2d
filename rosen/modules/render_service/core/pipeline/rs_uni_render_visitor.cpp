@@ -363,9 +363,16 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
             RS_LOGE("RSUniRenderVisitor::ProcessDisplayRenderNode: failed to create canvas");
             return;
         }
+        canvas_->save();
 #ifdef RS_ENABLE_EGLQUERYSURFACE
         if (isOpDropped_ && !region.isEmpty()) {
-            canvas_->clipRegion(region);
+            if (region.isRect()) {
+                canvas_->clipRegion(region);
+            } else {
+                SkPath dirtyPath;
+                region.getBoundaryPath(&dirtyPath);
+                canvas_->clipPath(dirtyPath, true);
+            }
         }
 #endif
         auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(node.GetRenderProperties().GetBoundsGeometry());
@@ -375,6 +382,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
         }
 
         ProcessBaseRenderNode(node);
+        canvas_->restore();
 
         // the following code makes DirtyRegion visible, enable this method by turning on the dirtyregiondebug property
         for (auto [id, surfaceNode] : dirtySurfaceNodeMap_) {
