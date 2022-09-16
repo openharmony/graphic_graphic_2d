@@ -18,7 +18,11 @@
 #include <dlfcn.h>
 #include "vulkan/vulkan.h"
 
+#ifdef __aarch64__
 constexpr const char *LIB_CACULATE_PATH = "/system/lib64/libvulkan.so";
+#else
+constexpr const char *LIB_CACULATE_PATH = "/system/lib/libvulkan.so";
+#endif
 
 int32_t main(int32_t argc, const char* argv[])
 {
@@ -27,7 +31,7 @@ int32_t main(int32_t argc, const char* argv[])
     void* libVulkan = dlopen(LIB_CACULATE_PATH, RTLD_LOCAL | RTLD_NOW);
 
     if (libVulkan == nullptr) {
-        std::cout << "vulkan wrapper native test :: dlopen faild : " << dlerror() << std::endl;
+        std::cout << "vulkan wrapper native test :: dlopen faild " << std::endl;
         return -1;
     }
     std::cout << "vulkan wrapper native test :: dlopen "<< LIB_CACULATE_PATH <<" success" << std::endl;
