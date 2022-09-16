@@ -36,6 +36,7 @@ bool DriverLoader::Load()
     if (loader_.vulkanFuncs_ != nullptr) {
         return true;
     }
+    loader_.supported_ = false;
 
     std::string path = std::string(VENDOR_LIB_PATH) + std::string(LIB_NAME);
     loader_.handle_ = dlopen(path.c_str(), RTLD_LOCAL | RTLD_NOW);
@@ -76,6 +77,7 @@ bool DriverLoader::Load()
         dlclose(loader_.handle_);
         return false;
     }
+    loader_.supported_ = true;
     WLOGI("DriverLoader:: Found Vulkan Func success");
     return true;
 }
