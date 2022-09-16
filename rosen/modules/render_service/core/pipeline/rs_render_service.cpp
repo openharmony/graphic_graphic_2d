@@ -27,6 +27,7 @@
 #include <iservice_registry.h>
 #include <platform/common/rs_log.h>
 #include <system_ability_definition.h>
+#include "parameter.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -60,6 +61,12 @@ bool RSRenderService::Init()
  
     RSQosThread::GetInstance()->appVSyncDistributor_ = appVSyncDistributor_;
     RSQosThread::GetInstance()->ThreadStart();
+
+    // Wait samgr ready for up to 5 second to ensure adding service to samgr.
+    int status = WaitParameter("bootevent.samgr.ready", "true", 5);
+    if (status != 0) {
+        RS_LOGE("RSRenderService wait SAMGR error, return value [%d].", status);
+    }
 
     auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     if (samgr == nullptr) {
