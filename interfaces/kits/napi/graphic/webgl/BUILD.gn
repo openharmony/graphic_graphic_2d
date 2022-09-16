@@ -38,7 +38,6 @@ ohos_source_set("webgl_src") {
   deps = [
     "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
     "//foundation/arkui/napi:ace_napi",
-    "//foundation/graphic/graphic_2d:libsurface",
     "//third_party/bounds_checking_function:libsec_static",
     "//third_party/libuv:uv",
   ]
@@ -90,7 +89,6 @@ ohos_source_set("webgl_src") {
   cflags_cc = [ "-std=c++17" ]
 
   configs = [ ":render_config" ]
-  external_deps = [ "c_utils:utils" ]
 }
 
 ohos_shared_library("libwebglnapi") {
