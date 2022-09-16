@@ -607,7 +607,7 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
 
     node.SetTotalMatrix(canvas_->getTotalMatrix());
 
-    if (!node.IsAppWindow() && node.GetBuffer() != nullptr) {
+    if ((!node.IsAppWindow() || node.GetName() == "pointer window") && node.GetBuffer() != nullptr) {
         node.NotifyRTBufferAvailable();
         node.SetGlobalAlpha(1.0f);
         // use node's local coordinate.

@@ -34,6 +34,7 @@ namespace OHOS {
 namespace Rosen {
 static const std::string STARTING_WINDOW_NAME = "startingWindow";
 static const std::string LEASH_WINDOW_NAME = "leashWindow";
+static const std::string POINTER_WINDOW_NAME = "pointer window";
 RSSurfaceNode::SharedPtr RSSurfaceNode::Create(const RSSurfaceNodeConfig& surfaceNodeConfig, bool isWindow)
 {
     auto transactionProxy = RSTransactionProxy::GetInstance();
@@ -56,6 +57,10 @@ RSSurfaceNode::SharedPtr RSSurfaceNode::Create(const RSSurfaceNodeConfig& surfac
 
     if (config.name.find(LEASH_WINDOW_NAME) != std::string::npos) {
         config.nodeType = RSSurfaceNodeType::LEASH_WINDOW_NODE;
+    }
+
+    if (config.name.find(POINTER_WINDOW_NAME) != std::string::npos) {
+        config.nodeType = RSSurfaceNodeType::APP_WINDOW_NODE;
     }
 
     if (!node->CreateNodeAndSurface(config)) {
