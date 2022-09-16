@@ -16,8 +16,8 @@
 
 #include <dlfcn.h>
 #include <cstdlib>
-
 #include <parameter.h>
+#include <parameters.h>
 #include <sstream>
 
 #include "../wrapper_log.h"
@@ -34,6 +34,7 @@ constexpr const char *DEBUG_LAYERS_SUFFIX = ".so";
 constexpr const char *DEBUG_LAYERS_DELIMITER = ":";
 constexpr const char *DEBUG_LAYER_INIT_FUNC = "DebugLayerInitialize";
 constexpr const char *DEBUG_LAYER_GET_PROC_ADDR_FUNC = "DebugLayerGetProcAddr";
+constexpr const char *DEBUG_LAYER_NAME = "debug_layer";
 }
 
 static std::string strLayers;
@@ -42,6 +43,7 @@ static void GetWrapperDebugLayers(const char *key, const char *value, void *cont
 {
     WLOGD("");
     strLayers = std::string(value);
+    WLOGD("strLayers is %{public}s", strLayers.c_str());
 }
 
 static void UpdateApiEntries(LayerSetupFunc func,
@@ -112,9 +114,11 @@ static std::vector<std::string> GetDebugLayers(void)
     WLOGD("");
     std::vector<std::string> layers;
 
-    auto ret = WatchParameter("debug_layer", GetWrapperDebugLayers, nullptr);
+    strLayers = system::GetParameter(DEBUG_LAYER_NAME, "");
+    WLOGD("strLayers is %{public}s", strLayers.c_str());
+    auto ret = WatchParameter(DEBUG_LAYER_NAME, GetWrapperDebugLayers, nullptr);
     if (ret) {
-        WLOGE("WatchParameter faild.");
+        WLOGD("WatchParameter faild.");
     }
 
     if (!strLayers.empty()) {
