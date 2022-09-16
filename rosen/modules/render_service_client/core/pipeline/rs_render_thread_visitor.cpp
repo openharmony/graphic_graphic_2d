@@ -255,7 +255,7 @@ void RSRenderThreadVisitor::UpdateDirtyAndSetEGLDamageRegion(std::unique_ptr<RSS
             // set dirty rect as eglSurfaceFrame's damage region
             surfaceFrame->SetDamageRegion(dirtyRectFlip.left_, dirtyRectFlip.top_, dirtyRectFlip.width_, dirtyRectFlip.height_);
             // flip aligned rect for op drops
-            curDirtyRegion_ = curDirtyManager_->GetRectFlipWithinSurface(dirtyRect);
+            curDirtyRegion_ = curDirtyManager_->GetRectFlipWithinSurface(dirtyRectFlip);
             ROSEN_LOGD("GetPartialRenderEnabled buffer age %d, dirtyRectFlip = [%d, %d, %d, %d], "
                 "dirtyRectAlign = [%d, %d, %d, %d]", bufferAge,
                 dirtyRectFlip.left_, dirtyRectFlip.top_, dirtyRectFlip.width_, dirtyRectFlip.height_,
