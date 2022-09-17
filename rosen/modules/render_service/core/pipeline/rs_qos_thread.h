@@ -52,7 +52,6 @@ private:
     bool qosCal_ = false;
 
     static void Init();
-    static void Destroy();
 
     static void GetQosVSyncRateInfos(std::vector<std::pair<uint32_t, int>>& appsRateVec);
     static void SetQosVSyncRate(uint32_t pid, int32_t rate);
