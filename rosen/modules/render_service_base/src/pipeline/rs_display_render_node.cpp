@@ -186,7 +186,7 @@ void RSDisplayRenderNode::UpdateRotation()
     lastRotation_ = boundsGeoPtr->GetRotation();
 }
 
-void RSDisplayRenderNode::UpdateDisplayDirtyManager(uint32_t bufferage)
+void RSDisplayRenderNode::UpdateDisplayDirtyManager(int32_t bufferage)
 {
     dirtyManager_->SetBufferAge(bufferage);
     dirtyManager_->UpdateDirty();
