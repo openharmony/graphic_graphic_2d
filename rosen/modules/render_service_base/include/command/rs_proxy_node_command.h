@@ -24,21 +24,17 @@ namespace Rosen {
 enum RSProxyNodeCommandType : uint16_t {
     PROXY_NODE_CREATE,
     PROXY_NODE_RESET_CONTEXT_VARIABLE_CACHE,
-    REMOVE_MODIFIERS,
 };
 
 class ProxyNodeCommandHelper {
 public:
     static void Create(RSContext& context, NodeId id, NodeId target);
     static void ResetContextVariableCache(RSContext& context, NodeId id);
-    static void RemoveModifiers(RSContext& context, NodeId nodeId, std::vector<PropertyId> propertyId);
 };
 
 ADD_COMMAND(RSProxyNodeCreate, ARG(PROXY_NODE, PROXY_NODE_CREATE, ProxyNodeCommandHelper::Create, NodeId, NodeId))
 ADD_COMMAND(RSProxyNodeResetContextVariableCache,
     ARG(PROXY_NODE, PROXY_NODE_RESET_CONTEXT_VARIABLE_CACHE, ProxyNodeCommandHelper::ResetContextVariableCache, NodeId))
-ADD_COMMAND(RSProxyNodeRemoveModifiers,
-    ARG(PROXY_NODE, REMOVE_MODIFIERS, ProxyNodeCommandHelper::RemoveModifiers, NodeId, std::vector<PropertyId>))
 
 } // namespace Rosen
 } // namespace OHOS

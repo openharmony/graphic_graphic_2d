@@ -963,14 +963,5 @@ void RSNode::UpdateImplicitAnimator()
     implicitAnimatorTid_ = tid;
     implicitAnimator_ = RSImplicitAnimatorMap::Instance().GetAnimator(tid);
 }
-
-std::vector<PropertyId> RSNode::GetModifierIds() const
-{
-    std::vector<PropertyId> ids;
-    for (const auto& [id, _] : modifiers_) {
-        ids.push_back(id);
-    }
-    return ids;
-}
 } // namespace Rosen
 } // namespace OHOS
