@@ -362,7 +362,6 @@ void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::ProcessSurfaceRenderNodeWith
                 });
         } else {
             param.matrix = SkMatrix::I();
-            param.clipRect.offsetTo(0, 0);
             param.dstRect = SkRect::MakeXYWH(0, 0, node.GetRenderProperties().GetBoundsWidth(),
                 node.GetRenderProperties().GetBoundsHeight());
             param.clipRect = SkRect::MakeWH(
