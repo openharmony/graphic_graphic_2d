@@ -31,6 +31,7 @@ config("sync_fence_public_config") {
     "export",
     "//commonlibrary/c_utils/base/include",
     "//base/hiviewdfx/hilog/interfaces/native/innerkits",
+    "//base/notification/eventhandler/interfaces/inner_api",
     "//foundation/graphic/graphic_2d/utils/log",
   ]
 }
@@ -48,11 +49,11 @@ ohos_shared_library("sync_fence") {
 
   public_deps = [
     "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
-    "//base/notification/eventhandler/frameworks/eventhandler:libeventhandler",
     "//commonlibrary/c_utils/base:utils",
   ]
 
   external_deps = [
+    "eventhandler:libeventhandler",
     "hitrace_native:hitrace_meter",
     "ipc:ipc_core",
   ]
