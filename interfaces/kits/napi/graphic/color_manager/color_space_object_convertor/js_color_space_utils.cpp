@@ -15,11 +15,16 @@
 
 #include "js_color_space_utils.h"
 
-#include "js_runtime_utils.h"
-
 namespace OHOS {
 namespace ColorManager {
-using namespace AbilityRuntime;
+void BindNativeFunction(NativeEngine& engine, NativeObject& object, const char* name,
+    const char* moduleName, NativeCallback func)
+{
+    std::string fullName(moduleName);
+    fullName += ".";
+    fullName += name;
+    object.SetProperty(name, engine.CreateFunction(fullName.c_str(), fullName.length(), func, nullptr));
+}
 
 NativeValue* ColorSpaceTypeInit(NativeEngine* engine)
 {

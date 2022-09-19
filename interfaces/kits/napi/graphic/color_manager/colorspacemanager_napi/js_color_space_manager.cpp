@@ -20,12 +20,9 @@
 #include "color_space_object_convertor.h"
 #include "js_color_space.h"
 #include "js_color_space_utils.h"
-#include "js_runtime_utils.h"
 
 namespace OHOS {
 namespace ColorManager {
-using namespace AbilityRuntime;
-
 constexpr size_t ARGC_ONE = 1;
 constexpr size_t ARGC_TWO = 2;
 constexpr size_t PRIMARIES_PARAMS_NUM = 8;
