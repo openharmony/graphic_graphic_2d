@@ -69,7 +69,7 @@ public:
     void Sync(int64_t, void *data);
     void CreatePyhsicalScreen();
     void DoPrepareCompleted(sptr<Surface>& surface, const struct PrepareCompleteParam &param);
-    virtual void OnBufferAvailable() override;
+    void OnBufferAvailable() override;
     SurfaceError ProduceBuffer(sptr<Surface> &produceSurface, uint32_t width, uint32_t height, uint32_t index, bool baseLayer);
     bool FillBaseLayer(std::shared_ptr<HdiLayerInfo> &showLayer, uint32_t index,  uint32_t zorder, IRect &dstRect);
     bool DrawBaseLayer(std::vector<LayerInfoPtr> &layerVec);
