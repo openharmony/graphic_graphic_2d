@@ -41,16 +41,6 @@ void RSAnimationManager::AddAnimation(const std::shared_ptr<RSRenderAnimation>& 
     OnAnimationAdd(animation);
 }
 
-void RSAnimationManager::ClearAnimation()
-{
-    for (auto& [id, animation] : animations_) {
-        animation->Detach();
-    }
-    animations_.clear();
-    animationNum_.clear();
-    springAnimations_.clear();
-}
-
 void RSAnimationManager::RemoveAnimation(AnimationId keyId)
 {
     auto animationItr = animations_.find(keyId);
@@ -58,6 +48,7 @@ void RSAnimationManager::RemoveAnimation(AnimationId keyId)
         ROSEN_LOGE("RSAnimationManager::RemoveAnimation, The Animation does not exist when is deleted");
         return;
     }
+    animationItr->second->Finish();
     animationItr->second->Detach();
     OnAnimationRemove(animationItr->second);
     animations_.erase(animationItr);
@@ -71,6 +62,7 @@ void RSAnimationManager::FilterAnimationByPid(pid_t pid)
         if (static_cast<pid_t>(pair.first >> 32) != pid) {
             return false;
         }
+        pair.second->Finish();
         pair.second->Detach();
         OnAnimationRemove(pair.second);
         return true;

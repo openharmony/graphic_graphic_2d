@@ -105,8 +105,10 @@ protected:
 private:
     void FallbackAnimationsToRoot();
     void UpdateOverlayBounds();
+    void FilterModifiersByPid(pid_t pid);
     bool isDirtyRegionUpdated_ = false;
     bool isLastVisible_ = false;
+    bool fallbackAnimationOnDestroy_ = true;
     uint32_t disappearingTransitionCount_ = 0;
     RectI oldDirty_;
     RSProperties renderProperties_;
@@ -117,6 +119,8 @@ private:
     std::shared_ptr<RSRenderModifier> frameModifier_;
 
     friend class RSRenderTransition;
+    friend class RSRenderNodeMap;
+    friend class RSProxyRenderNode;
 };
 } // namespace Rosen
 } // namespace OHOS

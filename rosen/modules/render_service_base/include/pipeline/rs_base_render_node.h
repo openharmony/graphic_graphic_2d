@@ -46,7 +46,6 @@ public:
     void RemoveChild(SharedPtr child, bool skipTransition = false);
     void ClearChildren();
     void RemoveFromTree(bool skipTransition = false);
-    void RemoveFromTreeWithoutTransition();
 
     // Add/RemoveCrossParentChild only used as: the child is under multiple parents(e.g. a window cross multi-screens)
     void AddCrossParentChild(const SharedPtr& child, int32_t index = -1);

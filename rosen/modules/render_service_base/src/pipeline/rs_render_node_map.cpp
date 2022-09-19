@@ -56,11 +56,11 @@ void RSRenderNodeMap::FilterNodeByPid(pid_t pid)
             return false;
         }
         if (auto renderNode = RSBaseRenderNode::ReinterpretCast<RSRenderNode>(pair.second)) {
-            // clear all animations before removing, to avoid animation fallback
-            renderNode->GetAnimationManager().ClearAnimation();
+            // update node flag to avoid animation fallback
+            renderNode->fallbackAnimationOnDestroy_ = false;
         }
-        // remove node from tree, ignore transition animation
-        pair.second->RemoveFromTreeWithoutTransition();
+        // remove node from tree
+        pair.second->RemoveFromTree(false);
         return true;
     });
 

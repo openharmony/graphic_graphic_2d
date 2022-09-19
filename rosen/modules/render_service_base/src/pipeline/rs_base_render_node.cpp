@@ -31,9 +31,9 @@ void RSBaseRenderNode::AddChild(SharedPtr child, int index)
     if (child == nullptr || child->GetId() == GetId()) {
         return;
     }
-    // if child already has a parent, remove it from its previous parent (without transition)
+    // if child already has a parent, remove it from its previous parent
     if (auto prevParent = child->GetParent().lock()) {
-        prevParent->RemoveChild(child, true);
+        prevParent->RemoveChild(child);
     }
 
     // Set parent-child relationship
@@ -185,17 +185,6 @@ void RSBaseRenderNode::RemoveFromTree(bool skipTransition)
     child->ResetParent();
 }
 
-void RSBaseRenderNode::RemoveFromTreeWithoutTransition()
-{
-    if (auto parentPtr = parent_.lock()) {
-        auto child = shared_from_this();
-        parentPtr->RemoveChild(child);
-        parentPtr->disappearingChildren_.remove_if([&child](const auto& pair) -> bool { return pair.first == child; });
-        parentPtr->sortedChildren_.clear();
-        child->ResetParent();
-    }
-}
-
 void RSBaseRenderNode::ClearChildren()
 {
     if (children_.empty()) {
@@ -249,8 +238,7 @@ void RSBaseRenderNode::DumpTree(int32_t depth, std::string& out) const
     out += "| ";
     DumpNodeType(out);
     out += "[" + std::to_string(GetId()) + "]";
-    out += ", hasDisappearingTransition: " + std::to_string(HasDisappearingTransition(false)) +
-           ", isOnTheTree: " + std::to_string(isOnTheTree_);
+    out += ", isOnTheTree: " + std::to_string(isOnTheTree_);
     if (GetType() == RSRenderNodeType::SURFACE_NODE) {
         auto surfaceNode = (static_cast<const RSSurfaceRenderNode*>(this));
         const RSSurfaceHandler& surfaceHandler = static_cast<const RSSurfaceHandler&>(*surfaceNode);
@@ -270,12 +258,14 @@ void RSBaseRenderNode::DumpTree(int32_t depth, std::string& out) const
             out += ", null";
         }
     }
-    out += "], disappearing children[";
-    int i = 0;
-    for (auto& disappearingChild : disappearingChildren_) {
-        out += "(" + std::to_string(i) + ": id:" + std::to_string(disappearingChild.first->GetId()) +
-               ", Transition:" + std::to_string(disappearingChild.first->HasDisappearingTransition(false)) + "),";
-        ++i;
+    if (!disappearingChildren_.empty()) {
+        out += "], disappearing children[";
+        int i = 0;
+        for (auto& disappearingChild : disappearingChildren_) {
+            out += "(" + std::to_string(i) + ": id:" + std::to_string(disappearingChild.first->GetId()) +
+                   ", Transition:" + std::to_string(disappearingChild.first->HasDisappearingTransition(false)) + "),";
+            ++i;
+        }
     }
     out += "]\n";
 
