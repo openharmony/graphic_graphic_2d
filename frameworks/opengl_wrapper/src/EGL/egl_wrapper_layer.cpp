@@ -16,6 +16,9 @@
 
 #include <dlfcn.h>
 #include <cstdlib>
+#include <parameter.h>
+#include <parameters.h>
+#include <sstream>
 
 #include "../wrapper_log.h"
 
@@ -31,6 +34,16 @@ constexpr const char *DEBUG_LAYERS_SUFFIX = ".so";
 constexpr const char *DEBUG_LAYERS_DELIMITER = ":";
 constexpr const char *DEBUG_LAYER_INIT_FUNC = "DebugLayerInitialize";
 constexpr const char *DEBUG_LAYER_GET_PROC_ADDR_FUNC = "DebugLayerGetProcAddr";
+constexpr const char *DEBUG_LAYER_NAME = "debug_layer";
+}
+
+static std::string strLayers;
+
+static void GetWrapperDebugLayers(const char *key, const char *value, void *context)
+{
+    WLOGD("");
+    strLayers = std::string(value);
+    WLOGD("strLayers is %{public}s", strLayers.c_str());
 }
 
 static void UpdateApiEntries(LayerSetupFunc func,
@@ -81,18 +94,17 @@ static const void *GetNextLayerProcAddr(void *funcTable, const char *name)
     return reinterpret_cast<void *>(val);
 }
 
-static void SplitEnvString(const char *strLayers, std::vector<std::string> *layers)
+static void SplitEnvString(std::string str, std::vector<std::string> *layers)
 {
     WLOGD("");
-    std::string env(strLayers);
-    strLayers = env.c_str();
-    for (const char *p = env.c_str(); *p != 0; p++) {
+    const char *strLayers = str.c_str();
+    for (const char *p = str.c_str(); *p != 0; p++) {
         if (*p == *DEBUG_LAYERS_DELIMITER) {
             layers->emplace_back(strLayers, p - strLayers);
             strLayers = p + 1;
         }
     }
-    if (strLayers != env.c_str() || env.size() > 0) {
+    if (strLayers != str.c_str() || str.size() > 0) {
         layers->push_back(std::string(strLayers));
     }
 }
@@ -102,8 +114,14 @@ static std::vector<std::string> GetDebugLayers(void)
     WLOGD("");
     std::vector<std::string> layers;
 
-    const char *strLayers = getenv("OPENGL_WRAPPER_DEBUG_LAYERS");
-    if (strLayers) {
+    strLayers = system::GetParameter(DEBUG_LAYER_NAME, "");
+    WLOGD("strLayers is %{public}s", strLayers.c_str());
+    auto ret = WatchParameter(DEBUG_LAYER_NAME, GetWrapperDebugLayers, nullptr);
+    if (ret) {
+        WLOGD("WatchParameter faild.");
+    }
+
+    if (!strLayers.empty()) {
         SplitEnvString(strLayers, &layers);
     } else {
         WLOGD("OPENGL_WRAPPER_DEBUG_LAYERS is not set.");

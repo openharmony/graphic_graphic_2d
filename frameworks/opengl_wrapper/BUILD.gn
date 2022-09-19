@@ -54,6 +54,8 @@ ohos_shared_library("EGL") {
   external_deps = [
     "c_utils:utils",
     "hilog_native:libhilog",
+    "init:libbeget_proxy",
+    "init:libbegetutil",
   ]
 
   output_name = "EGL"
