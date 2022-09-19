@@ -84,7 +84,7 @@ EGLBoolean EglWrapperDisplay::Terminate()
     }
     
     refCnt_--;
-    if (refCnt_ > 1) {
+    if (refCnt_ > 0) {
         return EGL_TRUE;
     }
 
