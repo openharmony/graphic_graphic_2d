@@ -201,7 +201,8 @@ BufferHandle *ReadBufferHandle(MessageParcel &parcel)
     for (uint32_t j = 0; j < handle->reserveInts; j++) {
         if (!parcel.ReadInt32(handle->reserve[reserveFds + j])) {
             UTILS_LOGE("%{public}s ReadInt32 reserve failed", __func__);
-            FreeBufferHandle(handle);
+            UTILS_LOGE("test for push");
+	    FreeBufferHandle(handle);
             return nullptr;
         }
     }
