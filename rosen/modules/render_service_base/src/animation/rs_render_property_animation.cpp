@@ -50,9 +50,12 @@ bool RSRenderPropertyAnimation::GetAdditive()
 void RSRenderPropertyAnimation::AttachRenderProperty(const std::shared_ptr<RSRenderPropertyBase>& property)
 {
     property_ = property;
-    if (property_ != nullptr && originValue_ != nullptr) {
+    if (property_ == nullptr) {
+        return;
+    }
+    InitValueEstimator();
+    if (originValue_ != nullptr) {
         property_->SetPropertyType(originValue_->GetPropertyType());
-        InitValueEstimator();
     }
 }
 

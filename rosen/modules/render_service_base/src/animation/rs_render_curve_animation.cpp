@@ -99,6 +99,9 @@ void RSRenderCurveAnimation::OnAnimateInner(float fraction, const std::shared_pt
         return;
     }
 
+    if (valueEstimator_ == nullptr) {
+        return;
+    }
     valueEstimator_->UpdateAnimationValue(interpolator_->Interpolate(fraction), GetAdditive());
 }
 
