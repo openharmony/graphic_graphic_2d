@@ -137,7 +137,7 @@ public:
     {
         return dirtyManager_;
     }
-    void UpdateDisplayDirtyManager(uint32_t bufferage);
+    void UpdateDisplayDirtyManager(int32_t bufferage);
     void UpdateSurfaceNodePos(NodeId id, RectI rect)
     {
         currentFrameSurfacePos_[id] = rect;
