@@ -73,6 +73,7 @@ private:
 
     std::vector<NodeId> childSurfaceNodeIds_;
     SkMatrix parentSurfaceNodeMatrix_;
+    bool needUpdateSurfaceNode_ = false;
 
     static void SendCommandFromRT(std::unique_ptr<RSCommand>& command, NodeId nodeId, FollowType followType);
     static bool IsValidRootRenderNode(RSRootRenderNode& node);
