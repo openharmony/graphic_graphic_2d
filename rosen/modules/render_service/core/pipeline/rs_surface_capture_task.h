@@ -84,8 +84,7 @@ private:
         float scaleY_ = 1.0f;
         bool isUniRender_ = false;
 
-        float parentNodeTranslateX_ = 0.0f;
-        float parentNodeTranslateY_ = 0.0f;
+        SkMatrix captureMatrix_ = SkMatrix::I();
 
         SkRect boundsRect_;
         Gravity frameGravity_ = Gravity::DEFAULT;

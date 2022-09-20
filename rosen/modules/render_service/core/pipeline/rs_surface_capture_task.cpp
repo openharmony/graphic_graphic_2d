@@ -221,27 +221,34 @@ void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::ProcessDisplayRenderNode(RSD
 
 void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::CaptureSingleSurfaceNodeWithUni(RSSurfaceRenderNode& node)
 {
-    SkMatrix translateMatrix;
-    const float thisNodetranslateX = node.GetTotalMatrix().getTranslateX();
-    const float thisNodetranslateY = node.GetTotalMatrix().getTranslateY();
-    if (!node.IsAppWindow()) {
-        translateMatrix.preTranslate(
-            thisNodetranslateX - parentNodeTranslateX_, thisNodetranslateY - parentNodeTranslateY_);
-    } else {
-        parentNodeTranslateX_ = thisNodetranslateX;
-        parentNodeTranslateY_ = thisNodetranslateY;
-    }
-
-    canvas_->save();
-
-    if (!node.IsAppWindow()) {
-        canvas_->translate(-canvas_->getTotalMatrix().getTranslateX() / canvas_->getTotalMatrix().getScaleX(),
-            -canvas_->getTotalMatrix().getTranslateY() / canvas_->getTotalMatrix().getScaleY());
-        canvas_->concat(translateMatrix);
-    }
-
-    canvas_->save();
     const auto& property = node.GetRenderProperties();
+    auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(property.GetBoundsGeometry());
+    if (!geoPtr) {
+        RS_LOGE("RSSurfaceCaptureVisitor::CaptureSingleSurfaceNodeWithUni node:%" PRIu64 ", get geoPtr failed",
+            node.GetId());
+        return;
+    }
+
+    canvas_->save();
+
+    if (node.IsAppWindow()) {
+        // When CaptureSingleSurfaceNodeWithUni, we should consider scale factor of canvas_ and
+        // child nodes (self-drawing surfaceNode) of AppWindow should use relative coordinates
+        // which is the node relative to the upper-left corner of the window.
+        // So we have to get the invert matrix of AppWindow here and apply it to canvas_
+        // when we calculate the position of self-drawing surfaceNode.
+        captureMatrix_.setScaleX(scaleX_);
+        captureMatrix_.setScaleY(scaleY_);
+        SkMatrix invertMatrix;
+        if (geoPtr->GetAbsMatrix().invert(&invertMatrix)) {
+            captureMatrix_.preConcat(invertMatrix);
+        }
+    } else {
+        canvas_->setMatrix(captureMatrix_);
+        canvas_->concat(geoPtr->GetAbsMatrix());
+    }
+
+    canvas_->save();
     canvas_->clipRect(SkRect::MakeWH(property.GetBoundsWidth(), property.GetBoundsHeight()));
     auto backgroundColor = static_cast<SkColor>(property.GetBackgroundColor().AsArgbInt());
     if (SkColorGetA(backgroundColor) != SK_AlphaTRANSPARENT) {
