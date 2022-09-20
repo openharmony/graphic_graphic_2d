@@ -200,6 +200,9 @@ void RSRenderPathAnimation::OnAnimate(float fraction)
     }
 
     if (!isNeedPath_) {
+        if (valueEstimator_ == nullptr) {
+            return;
+        }
         valueEstimator_->UpdateAnimationValue(interpolator_->Interpolate(fraction), GetAdditive());
         return;
     }
