@@ -41,6 +41,18 @@ void SkiaPath::ArcTo(scalar pt1X, scalar pt1Y, scalar pt2X, scalar pt2Y, scalar 
     path_.arcTo(SkRect::MakeLTRB(pt1X, pt1Y, pt2X, pt2Y), startAngle, sweepAngle, false);
 }
 
+void SkiaPath::ArcTo(scalar rx, scalar ry, scalar angle, PathDirection direction, scalar endX, scalar endY)
+{
+#if defined(USE_CANVASKIT0310_SKIA)
+    SkPathDirection pathDir = static_cast<SkPathDirection>(direction);
+    SkPathBuilder::ArcSize arcLarge = SkPathBuilder::ArcSize::kSmall_ArcSize;
+#else
+    SkPath::Direction pathDir = static_cast<SkPath::Direction>(direction);
+    SkPath::ArcSize arcLarge = SkPath::ArcSize::kSmall_ArcSize;
+#endif
+    path_.arcTo(rx, ry, angle, arcLarge, pathDir, endX, endY);
+}
+
 void SkiaPath::CubicTo(scalar ctrlPt1X, scalar ctrlPt1Y, scalar ctrlPt2X, scalar ctrlPt2Y, scalar endPtX, scalar endPtY)
 {
     path_.cubicTo(ctrlPt1X, ctrlPt1Y, ctrlPt2X, ctrlPt2Y, endPtX, endPtY);

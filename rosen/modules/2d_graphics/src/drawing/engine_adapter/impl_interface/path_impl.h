@@ -32,6 +32,7 @@ class Path;
 enum class PathDirection;
 enum class PathFillType;
 enum class PathOp;
+enum class ArcSize;
 class PathImpl : public BaseImpl {
 public:
     static inline constexpr AdapterType TYPE = AdapterType::BASE_INTERFACE;
@@ -45,6 +46,7 @@ public:
     virtual void MoveTo(scalar x, scalar y) = 0;
     virtual void LineTo(scalar x, scalar y) = 0;
     virtual void ArcTo(scalar pt1X, scalar pt1Y, scalar pt2X, scalar pt2Y, scalar startAngle, scalar sweepAngle) = 0;
+    virtual void ArcTo(scalar rx, scalar ry, scalar angle, PathDirection direction, scalar endX, scalar endY) = 0;
     virtual void CubicTo(
         scalar ctrlPt1X, scalar ctrlPt1Y, scalar ctrlPt2X, scalar ctrlPt2Y, scalar endPtX, scalar endPtY) = 0;
     virtual void QuadTo(scalar ctrlPtX, scalar ctrlPtY, scalar endPtX, scalar endPtY) = 0;

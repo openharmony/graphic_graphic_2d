@@ -44,6 +44,11 @@ void Path::ArcTo(const Point& pt1, const Point& pt2, scalar startAngle, scalar s
     impl_->ArcTo(pt1.GetX(), pt1.GetY(), pt2.GetX(), pt2.GetY(), startAngle, sweepAngle);
 }
 
+void Path::ArcTo(scalar rx, scalar ry, scalar angle, PathDirection direction, scalar endX, scalar endY)
+{
+    impl_->ArcTo(rx, ry, angle, direction, endX, endY);
+}
+
 void Path::CubicTo(scalar ctrlPt1X, scalar ctrlPt1Y, scalar ctrlPt2X, scalar ctrlPt2Y, scalar endPtX, scalar endPtY)
 {
     impl_->CubicTo(ctrlPt1X, ctrlPt1Y, ctrlPt2X, ctrlPt2Y, endPtX, endPtY);
