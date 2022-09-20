@@ -77,6 +77,7 @@ void RSSubMainThread::ProcessFrameEndFlag()
     auto costing = std::chrono::duration_cast<std::chrono::milliseconds>(now).count() - 
         processFrameStartTime_;
     if (processFrameTimes_.size() == FRAME_COUNT) {
+        processFrameTotalTime_ -= processFrameTimes_.front();
         processFrameTimes_.pop();
     }
     processFrameTimes_.push(costing);
