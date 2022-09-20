@@ -168,6 +168,24 @@ ScreenRotation RSDisplayRenderNode::GetRotation() const
     return static_cast<ScreenRotation>(static_cast<int32_t>(std::roundf(boundsGeoPtr->GetRotation() / -90.0f)) % 4);
 }
 
+bool RSDisplayRenderNode::IsRotationChanged() const
+{
+    auto boundsGeoPtr = std::static_pointer_cast<RSObjAbsGeometry>(GetRenderProperties().GetBoundsGeometry());
+    if (boundsGeoPtr == nullptr) {
+        return false;
+    }
+    return !ROSEN_EQ(boundsGeoPtr->GetRotation(), lastRotation_);
+}
+
+void RSDisplayRenderNode::UpdateRotation()
+{
+    auto boundsGeoPtr = std::static_pointer_cast<RSObjAbsGeometry>(GetRenderProperties().GetBoundsGeometry());
+    if (boundsGeoPtr == nullptr) {
+        return;
+    }
+    lastRotation_ = boundsGeoPtr->GetRotation();
+}
+
 void RSDisplayRenderNode::UpdateDisplayDirtyManager(uint32_t bufferage)
 {
     dirtyManager_->SetBufferAge(bufferage);

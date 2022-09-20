@@ -20,6 +20,7 @@
 
 #include "common/rs_common_def.h"
 #include "common/rs_obj_abs_geometry.h"
+#include "pipeline/rs_base_render_node.h"
 #include "pipeline/rs_base_render_util.h"
 #include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_main_thread.h"
@@ -68,9 +69,17 @@ void RSUniRenderVisitor::PrepareDisplayRenderNode(RSDisplayRenderNode& node)
     curDisplayNode_ = node.shared_from_this()->ReinterpretCastTo<RSDisplayRenderNode>();
 
     dirtyFlag_ = isDirty_;
+
     node.ApplyModifiers();
 
     parentSurfaceNodeMatrix_ = SkMatrix::I();
+    auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(node.GetRenderProperties().GetBoundsGeometry());
+    if (geoPtr != nullptr) {
+        geoPtr->UpdateByMatrixFromSelf();
+        parentSurfaceNodeMatrix_ = geoPtr->GetAbsMatrix();
+    }
+    dirtyFlag_ |= node.IsRotationChanged();
+    node.UpdateRotation();
     PrepareBaseRenderNode(node);
     auto mirrorNode = node.GetMirrorSource().lock();
     if (mirrorNode) {
@@ -132,9 +141,11 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
 
 void RSUniRenderVisitor::PrepareProxyRenderNode(RSProxyRenderNode& node)
 {
-    node.ApplyModifiers();
-
-    auto& property = node.GetMutableRenderProperties();
+    auto rsParent = RSBaseRenderNode::ReinterpretCast<RSRenderNode>(node.GetParent().lock());
+    if (rsParent == nullptr) {
+        return;
+    }
+    auto& property = rsParent->GetMutableRenderProperties();
     auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(property.GetBoundsGeometry());
     SkMatrix invertMatrix;
     SkMatrix contextMatrix = geoPtr->GetAbsMatrix();
@@ -377,7 +388,6 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
 #endif
         auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(node.GetRenderProperties().GetBoundsGeometry());
         if (geoPtr != nullptr) {
-            geoPtr->UpdateByMatrixFromSelf();
             canvas_->concat(geoPtr->GetMatrix());
         }
 
