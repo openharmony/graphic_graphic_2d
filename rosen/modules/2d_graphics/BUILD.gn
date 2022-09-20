@@ -99,7 +99,7 @@ template("graphics2d_source_set") {
     if (platform == "ohos") {
       external_deps = [
         "hilog_native:libhilog",
-        "multimedia_image_standard:image_native",
+        "multimedia_image_framework:image_native",
       ]
       deps = [
         "$ace_flutter_engine_root:flutter_engine_fml_$platform",
@@ -240,7 +240,7 @@ ohos_shared_library("2d_graphics_canvaskit0310") {
 
   external_deps = [
     "hilog_native:libhilog",
-    "multimedia_image_standard:image_native",
+    "multimedia_image_framework:image_native",
   ]
 
   part_name = "graphic_standard"
