@@ -47,6 +47,7 @@ OH_NativeVSync* OH_NativeVSync_Create(const char* name, unsigned int length)
     std::shared_ptr<OHOS::Rosen::VSyncReceiver> receiver = rsClient.CreateVSyncReceiver(vsyncName);
     int ret = receiver->Init();
     if (ret != 0) {
+        delete nativeVSync;
         VLOGE("VSyncReceiver Init failed, ret:%{public}d", ret);
         return nullptr;
     }
