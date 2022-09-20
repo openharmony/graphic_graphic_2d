@@ -45,6 +45,11 @@ namespace OHOS {
 namespace Rosen {
 namespace {
 constexpr int PARAM_DOUBLE = 2;
+constexpr float MIN_TRANS_RATIO = 0.0f;
+constexpr float MAX_TRANS_RATIO = 0.95f;
+constexpr float MIN_SPOT_RATIO = 1.0f;
+constexpr float MAX_SPOT_RATIO = 1.95f;
+constexpr float MAX_AMBIENT_RADIUS = 150.0f;
 } // namespace
 
 SkRect RSPropertiesPainter::Rect2SkRect(const RectF& r)
@@ -136,6 +141,54 @@ bool RSPropertiesPainter::GetGravityMatrix(Gravity gravity, RectF rect, float w,
 void RSPropertiesPainter::Clip(SkCanvas& canvas, RectF rect)
 {
     canvas.clipRect(Rect2SkRect(rect), true);
+}
+
+void RSPropertiesPainter::GetShadowDirtyRect(RectI& dirtyShadow, const RSProperties& properties, const RRect* rrect)
+{
+    // [Planning]: After Skia being updated, we should directly call SkShadowUtils::GetLocalBounds here.
+    if (!properties.shadow_ || !properties.shadow_->IsValid()) {
+        return;
+    }
+    SkPath skPath;
+    if (properties.GetShadowPath() && !properties.GetShadowPath()->GetSkiaPath().isEmpty()) {
+        skPath = properties.GetShadowPath()->GetSkiaPath();
+    } else if (properties.GetClipBounds()) {
+        skPath = properties.GetClipBounds()->GetSkiaPath();
+    } else {
+        if (rrect != nullptr) {
+            skPath.addRRect(RRect2SkRRect(*rrect));
+        } else {
+            skPath.addRRect(RRect2SkRRect(properties.GetRRect()));
+        }
+    }
+    skPath.offset(properties.GetShadowOffsetX(), properties.GetShadowOffsetY());
+
+    float elevation = properties.GetShadowElevation();
+    float transRatio = std::max(MIN_TRANS_RATIO,
+        std::min(elevation / (DEFAULT_LIGHT_HEIGHT - elevation), MAX_TRANS_RATIO));
+    float spotRatio = std::max(MIN_SPOT_RATIO,
+        std::min(DEFAULT_LIGHT_HEIGHT / (DEFAULT_LIGHT_HEIGHT - elevation), MAX_SPOT_RATIO));
+
+    SkRect ambientRect = skPath.getBounds();
+    SkRect spotRect = SkRect::MakeLTRB(ambientRect.left() * spotRatio, ambientRect.top() * spotRatio,
+        ambientRect.right() * spotRatio, ambientRect.bottom() * spotRatio);
+    spotRect.offset(-transRatio * DEFAULT_LIGHT_POSITION_X, -transRatio * DEFAULT_LIGHT_POSITION_Y);
+    spotRect.outset(transRatio * DEFAULT_LIGHT_RADIUS, transRatio * DEFAULT_LIGHT_RADIUS);
+
+    SkRect shadowRect = ambientRect;
+    float ambientBlur = std::min(elevation * 0.5f, MAX_AMBIENT_RADIUS);
+    shadowRect.outset(ambientBlur, ambientBlur);
+    shadowRect.join(spotRect);
+    shadowRect.outset(1, 1);
+
+    auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(properties.GetBoundsGeometry());
+    SkMatrix matrix = geoPtr ? geoPtr->GetAbsMatrix() : SkMatrix::I();
+    matrix.mapRect(&shadowRect);
+
+    dirtyShadow.left_ = shadowRect.left();
+    dirtyShadow.top_ = shadowRect.top();
+    dirtyShadow.width_ = shadowRect.width();
+    dirtyShadow.height_ = shadowRect.height();
 }
 
 void RSPropertiesPainter::DrawShadow(const RSProperties& properties, RSPaintFilterCanvas& canvas, const RRect* rrect)
