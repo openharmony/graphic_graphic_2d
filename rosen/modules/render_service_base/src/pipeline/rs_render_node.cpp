@@ -109,6 +109,13 @@ void RSRenderNode::UpdateDirtyRegion(RSDirtyRegionManager& dirtyManager, bool ge
         ROSEN_LOGD("RSRenderNode:: id %" PRIu64 " UpdateDirtyRegion visible->invisible", GetId());
     } else {
         auto dirtyRect = renderProperties_.GetDirtyRect();
+        if (renderProperties_.shadow_ && renderProperties_.shadow_->IsValid()) {
+            RectI shadowDirty;
+            RSPropertiesPainter::GetShadowDirtyRect(shadowDirty, renderProperties_);
+            if (!shadowDirty.IsEmpty()) {
+                dirtyRect = dirtyRect.JoinRect(shadowDirty);
+            }
+        }
         // filter invalid dirtyrect
         if (!dirtyRect.IsEmpty()) {
             dirtyManager.MergeDirtyRect(dirtyRect);
