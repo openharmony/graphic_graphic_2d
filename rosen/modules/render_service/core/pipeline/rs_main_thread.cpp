@@ -595,8 +595,9 @@ void RSMainThread::CalcOcclusion()
         // Current region need to merge current surface for next calculation(ignore alpha surface)
         const uint8_t opacity = 255;
         if (isUniRender_) {
-            if (surface->GetAbilityBgAlpha() == opacity &&
-                ROSEN_EQ(surface->GetRenderProperties().GetAlpha(), 1.0f)) {
+            if ((surface->GetAbilityBgAlpha() == opacity &&
+                ROSEN_EQ(surface->GetGlobalAlpha(), 1.0f)) ||
+                RSOcclusionConfig::GetInstance().IsDividerBar(surface->GetName())) {
                 curRegion = curSurface.Or(curRegion);
             }
         } else {
