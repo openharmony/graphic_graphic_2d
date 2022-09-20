@@ -252,6 +252,11 @@ public:
         globalDirtyRegionIsEmpty_ = globalDirtyRegion_.IsEmpty();
     }
 
+    RectI GetGlobalDirtyRegion() const
+    {
+        return globalDirtyRegion_;
+    }
+
     void SetConsumer(const sptr<Surface>& consumer);
 
     void UpdateSurfaceDefaultSize(float width, float height);

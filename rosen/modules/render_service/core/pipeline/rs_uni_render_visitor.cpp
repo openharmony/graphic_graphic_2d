@@ -274,6 +274,8 @@ void RSUniRenderVisitor::ProcessBaseRenderNode(RSBaseRenderNode& node)
 
 void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
 {
+    RS_TRACE_NAME("ProcessDisplayRenderNode[" + std::to_string(node.GetScreenId()) + "]" + 
+        node.GetDirtyManager()->GetDirtyRegion().ToString().c_str());
     RS_LOGD("RSUniRenderVisitor::ProcessDisplayRenderNode node: %" PRIu64 ", child size:%u", node.GetId(),
         node.GetChildrenCount());
     isSecurityDisplay_ = node.GetSecurityDisplay();
@@ -352,7 +354,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
         if (isPartialRenderEnabled_) {
             curDisplayDirtyManager_->SetSurfaceSize(screenInfo_.width, screenInfo_.height);
             CalcDirtyDisplayRegion(displayNodePtr);
-            uint32_t bufferAge = renderFrame->GetBufferAge();
+            int bufferAge = renderFrame->GetBufferAge();
             RSUniRenderUtil::MergeDirtyHistory(displayNodePtr, bufferAge);
             auto dirtyRegion = RSUniRenderUtil::MergeVisibleDirtyRegion(displayNodePtr);
             SetSurfaceGlobalDirtyRegion(displayNodePtr);
@@ -447,9 +449,9 @@ void RSUniRenderVisitor::CalcDirtyDisplayRegion(std::shared_ptr<RSDisplayRenderN
             }
         }
 
-        if (surfaceNode->IsZOrderPromoted()) {
-            // Zorder promoted case, merge surface dest Rect
-            RS_LOGD("CalcDirtyDisplayRegion merge ZOrderPromoted %s rect %s", surfaceNode->GetName().c_str(),
+        if (surfaceNode->GetZorderChanged()) {
+            // Zorder changed case, merge surface dest Rect
+            RS_LOGD("CalcDirtyDisplayRegion merge GetZorderChanged %s rect %s", surfaceNode->GetName().c_str(),
                 surfaceNode->GetDstRect().ToString().c_str());
             displayDirtyManager->MergeDirtyRect(surfaceNode->GetDstRect());
         }
@@ -539,10 +541,12 @@ void RSUniRenderVisitor::DrawCacheSurface(RSSurfaceRenderNode& node)
 
 void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
 {
+    RS_TRACE_NAME("RSUniRender::Process:[" + node.GetName() + "]");
     RS_LOGD("RSUniRenderVisitor::ProcessSurfaceRenderNode node: %" PRIu64 ", child size:%u %s", node.GetId(),
         node.GetChildrenCount(), node.GetName().c_str());
     node.UpdatePositionZ();
     if (isSecurityDisplay_ && node.GetSecurityLayer()) {
+        RS_TRACE_NAME("SecurityLayer Skip");
         return;
     }
     const auto& property = node.GetRenderProperties();
@@ -551,12 +555,14 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
         return;
     }
     if (!node.GetOcclusionVisible() && !doAnimate_ && RSSystemProperties::GetOcclusionEnabled()) {
+        RS_TRACE_NAME("Occlusion Skip");
         return;
     }
 #ifdef RS_ENABLE_EGLQUERYSURFACE
     // skip clean surface node
     if (isOpDropped_ && node.IsAppWindow()) {
         if (!node.SubNodeNeedDraw(node.GetDstRect(), partialRenderType_)) {
+            RS_TRACE_NAME("QuickReject Skip");
             RS_LOGD("RSUniRenderVisitor::ProcessSurfaceRenderNode skip: %s", node.GetName().c_str());
             return;
         }
@@ -601,7 +607,7 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
         canvas_->getTotalMatrix().getTranslateX(), canvas_->getTotalMatrix().getTranslateY(),
         property.GetBoundsWidth() * canvas_->getTotalMatrix().getScaleX(),
         property.GetBoundsHeight() * canvas_->getTotalMatrix().getScaleY()};
-    RS_TRACE_NAME("RSUniRender::Process:[" + node.GetName() + "]_" + dstRect.ToString());
+    
 
     boundsRect_ = SkRect::MakeWH(property.GetBoundsWidth(), property.GetBoundsHeight());
     frameGravity_ = property.GetFrameGravity();
