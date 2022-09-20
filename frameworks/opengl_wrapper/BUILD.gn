@@ -54,6 +54,8 @@ ohos_shared_library("EGL") {
   external_deps = [
     "c_utils:utils",
     "hilog_native:libhilog",
+    "init:libbeget_proxy",
+    "init:libbegetutil",
   ]
 
   output_name = "EGL"
@@ -206,7 +208,6 @@ ohos_executable("opengl_wrapper_native_test") {
   external_deps = [
     "c_utils:utils",
     "hilog_native:libhilog",
-    "multimedia_image_standard:image_native",
   ]
 
   part_name = "graphic_standard"

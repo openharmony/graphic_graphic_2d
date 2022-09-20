@@ -18,6 +18,8 @@
 
 #include "frame_collector.h"
 
+#include <vector>
+
 class SkCanvas;
 
 namespace OHOS {
@@ -29,7 +31,18 @@ public:
     void Draw(SkCanvas &canvas);
 
 private:
-    double SumHeight(const struct FrameInfo &info);
+    struct TimeBar {
+        bool isHeavy = false;
+        uint32_t color = 0;
+        double posX = 0;
+        double posY = 0;
+        double width = 0;
+        double height = 0;
+    };
+
+    void DrawFPSLine(SkCanvas &canvas, uint32_t fps, double thickness, uint32_t color);
+    std::vector<struct TimeBar> GenerateTimeBars(uint32_t width, uint32_t height, uint32_t fps);
+    double SumTimesInMs(const struct FrameInfo &info);
 
     FrameCollector &collector_;
 };

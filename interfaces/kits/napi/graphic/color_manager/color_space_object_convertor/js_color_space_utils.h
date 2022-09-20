@@ -63,8 +63,92 @@ const std::map<ApiColorSpaceType, ColorSpaceName> JS_TO_NATIVE_COLOR_SPACE_NAME_
     { ApiColorSpaceType::CUSTOM, ColorSpaceName::CUSTOM },
 };
 
-    NativeValue* ColorSpaceTypeInit(NativeEngine* engine);
-    bool ParseJsDoubleValue(NativeObject* jsObject, NativeEngine& engine, const std::string& name, double& data);
+
+template<class T>
+inline T* ConvertNativeValueTo(NativeValue* value)
+{
+    return (value != nullptr) ? static_cast<T*>(value->GetInterface(T::INTERFACE_ID)) : nullptr;
+}
+
+template<class T>
+inline T* CheckParamsAndGetThis(NativeEngine* engine, NativeCallbackInfo* info, const char* name = nullptr)
+{
+    if (engine == nullptr || info == nullptr) {
+        return nullptr;
+    }
+    NativeObject* object = ConvertNativeValueTo<NativeObject>(info->thisVar);
+    if (object != nullptr && name != nullptr) {
+        object = ConvertNativeValueTo<NativeObject>(object->GetProperty(name));
+    }
+    return (object != nullptr) ? static_cast<T*>(object->GetNativePointer()) : nullptr;
+}
+
+template<class T>
+NativeValue* CreateJsValue(NativeEngine& engine, const T& value)
+{
+    using ValueType = std::remove_cv_t<std::remove_reference_t<T>>;
+    if constexpr (std::is_same_v<ValueType, bool>) {
+        return engine.CreateBoolean(value);
+    } else if constexpr (std::is_arithmetic_v<ValueType>) {
+        return engine.CreateNumber(value);
+    } else if constexpr (std::is_same_v<ValueType, std::string>) {
+        return engine.CreateString(value.c_str(), value.length());
+    } else if constexpr (std::is_enum_v<ValueType>) {
+        return engine.CreateNumber(static_cast<std::make_signed_t<ValueType>>(value));
+    } else if constexpr (std::is_same_v<ValueType, const char*>) {
+        return (value != nullptr) ? engine.CreateString(value, strlen(value)) : engine.CreateUndefined();
+    }
+    return engine.CreateUndefined();
+}
+
+template<class T>
+bool ConvertFromJsValue(NativeEngine& engine, NativeValue* jsValue, T& value)
+{
+    if (jsValue == nullptr) {
+        return false;
+    }
+
+    using ValueType = std::remove_cv_t<std::remove_reference_t<T>>;
+    if constexpr (std::is_same_v<ValueType, bool>) {
+        auto boolValue = ConvertNativeValueTo<NativeBoolean>(jsValue);
+        if (boolValue == nullptr) {
+            return false;
+        }
+        value = *boolValue;
+        return true;
+    } else if constexpr (std::is_arithmetic_v<ValueType>) {
+        auto numberValue = ConvertNativeValueTo<NativeNumber>(jsValue);
+        if (numberValue == nullptr) {
+            return false;
+        }
+        value = *numberValue;
+        return true;
+    } else if constexpr (std::is_same_v<ValueType, std::string>) {
+        auto stringValue = ConvertNativeValueTo<NativeString>(jsValue);
+        if (stringValue == nullptr) {
+            return false;
+        }
+        size_t len = stringValue->GetLength() + 1;
+        auto buffer = std::make_unique<char[]>(len);
+        size_t strLength = 0;
+        stringValue->GetCString(buffer.get(), len, &strLength);
+        value = buffer.get();
+        return true;
+    } else if constexpr (std::is_enum_v<ValueType>) {
+        auto numberValue = ConvertNativeValueTo<NativeNumber>(jsValue);
+        if (numberValue == nullptr) {
+            return false;
+        }
+        value = static_cast<ValueType>(static_cast<std::make_signed_t<ValueType>>(*numberValue));
+        return true;
+    }
+}
+
+void BindNativeFunction(NativeEngine& engine, NativeObject& object, const char* name,
+    const char* moduleName, NativeCallback func);
+
+NativeValue* ColorSpaceTypeInit(NativeEngine* engine);
+bool ParseJsDoubleValue(NativeObject* jsObject, NativeEngine& engine, const std::string& name, double& data);
 }  // namespace ColorManager
 }  // namespace OHOS
 #endif // OHOS_JS_COLOR_SPACE_UTILS_H

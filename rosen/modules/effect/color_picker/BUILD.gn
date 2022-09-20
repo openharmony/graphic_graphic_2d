@@ -38,7 +38,7 @@ ohos_shared_library("color_picker") {
     "include",
     "//foundation/graphic/graphic_2d/interfaces/inner_api/surface",
     "//foundation/graphic/graphic_2d/interfaces/kits/napi/graphic/effect/include",
-    "//foundation/multimedia/image_standard/interfaces/innerkits/include/",
+    "//foundation/multimedia/image_framework/interfaces/innerkits/include/",
     "//foundation/graphic/graphic_2d/utils/color_manager/export",
     "//foundation/graphic/graphic_2d/utils/log",
   ]
@@ -53,7 +53,7 @@ ohos_shared_library("color_picker") {
   deps = [
     "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
     "//foundation/graphic/graphic_2d/utils/color_manager:color_manager",
-    "//foundation/multimedia/image_standard/interfaces/innerkits:image_native",
+    "//foundation/multimedia/image_framework/interfaces/innerkits:image_native",
   ]
 
   external_deps = [ "c_utils:utils" ]

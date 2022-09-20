@@ -65,6 +65,7 @@ public:
     void DamageFrame(int32_t left, int32_t top, int32_t width, int32_t height);
     void DamageFrame(const std::vector<RectI> &rects);
     void ClearRedundantResources();
+    void CreatePbufferSurface();
 
     EGLSurface GetEGLSurface() const
     {
@@ -85,7 +86,17 @@ public:
     {
         return eglContext_ != EGL_NO_DISPLAY;
     }
+#ifdef RS_ENABLE_GL
+    EGLConfig GetEGLConfig() const
+    {
+        return config_;
+    }
 
+    ColorGamut GetColorSpace() const
+    {
+        return colorSpace_;
+    }
+#endif
     void SetCacheDir(const std::string& filePath)
     {
         cacheDir_ = filePath;
@@ -100,6 +111,7 @@ private:
     EGLDisplay eglDisplay_ = EGL_NO_DISPLAY;
     EGLContext eglContext_ = EGL_NO_CONTEXT;
     EGLSurface eglSurface_ = EGL_NO_SURFACE;
+    EGLSurface pbufferSurface_= EGL_NO_SURFACE;
     EGLConfig config_;
     ColorGamut colorSpace_ = ColorGamut::COLOR_GAMUT_SRGB;
 

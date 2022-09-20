@@ -33,6 +33,7 @@ constexpr int32_t EGL_CONTEXT_CLIENT_VERSION_NUM = 2;
 constexpr char CHARACTER_WHITESPACE = ' ';
 constexpr const char* CHARACTER_STRING_WHITESPACE = " ";
 constexpr const char* EGL_GET_PLATFORM_DISPLAY_EXT = "eglGetPlatformDisplayEXT";
+constexpr const char* EGL_KHR_SURFACELESS_CONTEXT = "EGL_KHR_surfaceless_context";
 
 // use functor to call gel*KHR API
 static PFNEGLSETDAMAGEREGIONKHRPROC GetEGLSetDamageRegionKHRFunc()
@@ -102,7 +103,11 @@ RenderContext::~RenderContext()
     if (eglDisplay_ == EGL_NO_DISPLAY) {
         return;
     }
+
     eglDestroyContext(eglDisplay_, eglContext_);
+    if (pbufferSurface_ != EGL_NO_SURFACE) {
+        eglDestroySurface(eglDisplay_, pbufferSurface_);
+    }
     eglMakeCurrent(eglDisplay_, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
     eglTerminate(eglDisplay_);
     eglReleaseThread();
@@ -110,9 +115,26 @@ RenderContext::~RenderContext()
     eglDisplay_ = EGL_NO_DISPLAY;
     eglContext_ = EGL_NO_CONTEXT;
     eglSurface_ = EGL_NO_SURFACE;
+    pbufferSurface_ = EGL_NO_SURFACE;
     grContext_ = nullptr;
     skSurface_ = nullptr;
     mHandler_ = nullptr;
+}
+
+void RenderContext::CreatePbufferSurface()
+{
+    const char* extensions = eglQueryString(EGL_NO_DISPLAY, EGL_EXTENSIONS);
+
+    if ((extensions != nullptr) &&
+       (!CheckEglExtension(extensions, EGL_KHR_SURFACELESS_CONTEXT)) &&
+       (pbufferSurface_ == EGL_NO_SURFACE)) {
+        EGLint attribs[] = {EGL_WIDTH, 1, EGL_HEIGHT, 1, EGL_NONE};
+        pbufferSurface_ = eglCreatePbufferSurface(eglDisplay_, config_, attribs);
+        if (pbufferSurface_ == EGL_NO_SURFACE) {
+            LOGE("Failed to create pbuffer surface");
+            return;
+        }
+    }
 }
 
 void RenderContext::InitializeEglContext()
@@ -157,8 +179,11 @@ void RenderContext::InitializeEglContext()
         LOGE("Failed to create egl context %{public}x", eglGetError());
         return;
     }
-
-    eglMakeCurrent(eglDisplay_, EGL_NO_SURFACE, EGL_NO_SURFACE, eglContext_);
+    CreatePbufferSurface();
+    if(!eglMakeCurrent(eglDisplay_, pbufferSurface_, pbufferSurface_, eglContext_)) {
+        LOGE("Failed to make current on surface %{public}p, error is %{public}x", pbufferSurface_, eglGetError());
+        return;
+    }
 
     LOGD("Create EGL context successfully, version %{public}d.%{public}d", major, minor);
 }

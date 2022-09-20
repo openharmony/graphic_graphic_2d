@@ -21,7 +21,8 @@ config("export_config") {
   include_dirs = [
     "include",
     "//foundation/graphic/graphic_2d/rosen/include",
-    "//foundation/multimedia/image_standard/interfaces/innerkits/include",
+    "//drivers/peripheral/display/interfaces/include",
+    "//foundation/multimedia/image_framework/interfaces/innerkits/include",
     "//foundation/graphic/graphic_2d/interfaces/inner_api/surface",
     "//foundation/graphic/graphic_2d/interfaces/inner_api/composer",
     "//foundation/graphic/graphic_2d/utils/sandbox",
@@ -180,7 +181,7 @@ ohos_shared_library("librender_service_base") {
   public_deps = [
     "src/platform:platform",
     "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
-    "//foundation/multimedia/image_standard/interfaces/innerkits:image_native",
+    "//foundation/multimedia/image_framework/interfaces/innerkits:image_native",
   ]
 
   part_name = "graphic_standard"

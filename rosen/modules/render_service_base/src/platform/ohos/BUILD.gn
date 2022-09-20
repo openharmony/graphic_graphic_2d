@@ -27,7 +27,7 @@ config("export_config") {
     "//foundation/graphic/graphic_2d/frameworks/surface/src",
     "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics/src",
     "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics/include",
-    "//foundation/multimedia/image_standard/interfaces/innerkits/include",
+    "//foundation/multimedia/image_framework/interfaces/innerkits/include",
   ]
 }
 
@@ -84,7 +84,7 @@ ohos_source_set("rosen_ohos_sources") {
     "//foundation/graphic/graphic_2d:libsurface",
     "//foundation/graphic/graphic_2d/rosen/modules/composer/vsync:libvsync",
     "//foundation/graphic/graphic_2d/utils:sync_fence",
-    "//foundation/multimedia/image_standard/interfaces/innerkits:image_native",
+    "//foundation/multimedia/image_framework/interfaces/innerkits:image_native",
     "//third_party/flutter/build/skia:ace_skia_ohos",
   ]
 

@@ -51,13 +51,6 @@ void RSQosThread::Init()
     QosSetBoundaryRate(MIN_RATE, MAX_RATE);
     QosRegisteFuncCB(SetQosVSyncRate, GetQosVSyncRateInfos);
     CreateQosService();
-
-    ::atexit(&RSQosThread::Destroy);
-}
-
-void RSQosThread::Destroy()
-{
-    instance_ = nullptr;
 }
 
 void RSQosThread::ThreadStart()
@@ -114,9 +107,9 @@ void RSQosThread::OnRSVisibilityChangeCB(std::map<uint32_t, bool>& pidVisMap)
         return;
     }
 
-    using QosOnRSVisibilityChangeCBFunc = void (*)(void*);
+    using QosOnRSVisibilityChangeCBFunc = void (*)(std::map<uint32_t, bool>&);
 
     auto QosOnRSVisibilityChangeCB = (QosOnRSVisibilityChangeCBFunc)RSInnovation::_s_qosOnRSVisibilityChangeCB;
-    QosOnRSVisibilityChangeCB((void*)(&pidVisMap));
+    QosOnRSVisibilityChangeCB(pidVisMap);
 }
 } // amespace OHOS::Rosen

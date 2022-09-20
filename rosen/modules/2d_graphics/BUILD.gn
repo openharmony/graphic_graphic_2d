@@ -117,9 +117,9 @@ template("graphics2d_source_set") {
 
       if (enable_ng_build) {
         deps = [
-          "$ace_flutter_engine_root_new/icu:ace_libicu_dev_$platform",
-          "$ace_flutter_engine_root_new/libtxt:thirdparty_lib_txt_dev_$platform",
-          "$ace_flutter_engine_root_new/skia:ace_skia_dev_$platform",
+          "$ace_flutter_engine_root_new/third_party/icu:ace_libicu_dev_$platform",
+          "$ace_flutter_engine_root_new/third_party/libtxt:thirdparty_lib_txt_dev_$platform",
+          "$ace_flutter_engine_root_new/third_party/skia:ace_skia_dev_$platform",
         ]
         include_dirs += [
           "$flutter_root_new/engine",

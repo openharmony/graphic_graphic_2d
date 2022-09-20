@@ -429,7 +429,7 @@ void SkiaCanvas::ClipRoundRect(const RoundRect& roundRect, ClipOp op)
     SkRRect rRect;
     RoundRectCastToSkRRect(roundRect, rRect);
     SkClipOp clipOp = static_cast<SkClipOp>(op);
-    skiaCanvas_->clipRRect(rRect, clipOp);
+    skiaCanvas_->clipRRect(rRect, clipOp, true);
 }
 
 void SkiaCanvas::ClipPath(const Path& path, ClipOp op)
@@ -475,6 +475,11 @@ void SkiaCanvas::Scale(scalar sx, scalar sy)
 void SkiaCanvas::Rotate(scalar deg)
 {
     skiaCanvas_->rotate(deg);
+}
+
+void SkiaCanvas::Rotate(scalar deg, scalar sx, scalar sy)
+{
+    skiaCanvas_->rotate(deg, sx, sy);
 }
 
 void SkiaCanvas::Shear(scalar sx, scalar sy)

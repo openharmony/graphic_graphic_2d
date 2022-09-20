@@ -16,7 +16,6 @@
 #include "pipeline/rs_render_thread.h"
 
 #include <cstdint>
-#include <frame_collector.h>
 
 #include "accessibility_config.h"
 #include "rs_trace.h"
@@ -24,6 +23,7 @@
 
 #include "animation/rs_animation_fraction.h"
 #include "command/rs_surface_node_command.h"
+#include "frame_collector.h"
 #include "pipeline/rs_frame_report.h"
 #include "pipeline/rs_node_map.h"
 #include "pipeline/rs_render_node_map.h"
@@ -245,6 +245,8 @@ void RSRenderThread::RenderLoop()
         hasSkipVsync_ = false;
         RSRenderThread::Instance().RequestNextVSync();
     }
+
+    FrameCollector::GetInstance().SetRepaintCallback([this]() { this->RequestNextVSync(); });
 
     if (runner_) {
         runner_->Run();

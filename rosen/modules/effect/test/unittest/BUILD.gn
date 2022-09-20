@@ -58,8 +58,8 @@ ohos_unittest("EffectTest") {
     "//foundation/graphic/graphic_2d/rosen/modules/effect/effectChain:libeffectchain",
     "//foundation/graphic/graphic_2d/rosen/modules/effect/egl:libegl_effect",
     "//foundation/graphic/graphic_2d/utils/color_manager:color_manager",
-    "//foundation/multimedia/image_standard/interfaces/innerkits:image",
-    "//foundation/multimedia/image_standard/interfaces/innerkits:image_native",
+    "//foundation/multimedia/image_framework/interfaces/innerkits:image",
+    "//foundation/multimedia/image_framework/interfaces/innerkits:image_native",
     "//third_party/flutter/build/skia:ace_skia_ohos",
   ]
 
@@ -81,7 +81,7 @@ config("effect_test_config") {
     "//foundation/graphic/graphic_2d/rosen/modules/effect/egl/include",
     "//foundation/graphic/graphic_2d/utils/color_manager/export",
     "//base/hiviewdfx/hilog/interfaces/native/innerkits/include",
-    "//foundation/multimedia/image_standard/interfaces/innerkits/include/",
+    "//foundation/multimedia/image_framework/interfaces/innerkits/include/",
   ]
 }
 
