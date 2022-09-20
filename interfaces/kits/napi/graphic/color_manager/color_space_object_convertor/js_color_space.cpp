@@ -21,8 +21,6 @@
 
 namespace OHOS {
 namespace ColorManager {
-using namespace AbilityRuntime;
-
 void JsColorSpace::Finalizer(NativeEngine* engine, void* data, void* hint)
 {
     auto jsColorSpace = std::unique_ptr<JsColorSpace>(static_cast<JsColorSpace*>(data));

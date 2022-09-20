@@ -14,12 +14,11 @@
  */
 #include "color_space_object_convertor.h"
 
+#include "js_color_space.h"
 #include "js_color_space_utils.h"
 
 namespace OHOS {
 namespace ColorManager {
-using namespace AbilityRuntime;
-
 NativeValue* CreateJsColorSpaceObject(NativeEngine& engine, std::shared_ptr<ColorSpace>& colorSpace)
 {
     NativeValue* objValue = engine.CreateObject();
