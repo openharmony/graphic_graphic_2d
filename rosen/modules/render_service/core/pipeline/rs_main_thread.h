@@ -136,6 +136,7 @@ private:
     void InitParallerRendering();
     void OnVsync(uint64_t timestamp, void* data);
     void ProcessCommand();
+    void CheckAndNotifyFirstFrameCallback();
     void Animate(uint64_t timestamp);
     void ConsumeAndUpdateAllNodes();
     void ReleaseAllNodesBuffer();
