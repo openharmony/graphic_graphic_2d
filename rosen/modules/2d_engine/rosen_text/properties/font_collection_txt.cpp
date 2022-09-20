@@ -23,6 +23,7 @@
 #include "third_party/skia/include/core/SkRefCnt.h"
 #include "txt/asset_font_manager.h"
 #include "txt/test_font_manager.h"
+#include "unicode/putil.h"
 
 #include "engine_adapter/skia_adapter/skia_canvas.h"
 #include "rosen_text/properties/rosen_converter_txt.h"
@@ -36,7 +37,8 @@ FontCollectionTxt::FontCollectionTxt(bool createWithICU)
     // don't need initialize icu for arkui cross-platform
     // don't need initialize icu for AceAbility or UIContent.
     if (createWithICU) {
-        fml::icu::InitializeICU("/system/usr/ohos_icu/icudt69l.dat"); // position of icu
+        const std::string icuPath = "/system/usr/ohos_icu"; // position of icu
+        u_setDataDirectory(icuPath.c_str());
     }
 #endif
     txtCollection = std::make_shared<txt::FontCollection>();
