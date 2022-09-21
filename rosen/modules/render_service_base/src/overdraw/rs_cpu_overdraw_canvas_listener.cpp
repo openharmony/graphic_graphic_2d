@@ -32,21 +32,7 @@ RSCPUOverdrawCanvasListener::RSCPUOverdrawCanvasListener(SkCanvas &canvas)
 
 void RSCPUOverdrawCanvasListener::Draw()
 {
-    std::map<int, SkColor> overdrawColorMap = {
-        {1, 0x00000000},
-        {2, 0x220000ff},
-        {3, 0x2200ff00},
-        {4, 0x22ff0000},
-    };
-
-    auto colors = RSOverdrawController::GetInstance().GetColors();
-    if (colors.size()) {
-        overdrawColorMap.clear();
-        for (size_t i = 0; i < colors.size(); i++) {
-            overdrawColorMap[i + 1] = colors[i];
-        }
-    }
-
+    auto overdrawColorMap = RSOverdrawController::GetInstance().GetColorMap();
     SkPaint paint;
     paint.setAntiAlias(true);
     paint.setStyle(paint.kFill_Style);
@@ -56,7 +42,7 @@ void RSCPUOverdrawCanvasListener::Draw()
         if (overdrawColorMap.find(i) != overdrawColorMap.end()) {
             paint.setColor(overdrawColorMap.at(i));
         } else {
-            paint.setColor(overdrawColorMap.at(overdrawColorMap.size()));
+            paint.setColor(overdrawColorMap.at(0));
         }
 
         auto todraw = regions[i];
