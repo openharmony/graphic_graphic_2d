@@ -74,9 +74,52 @@ RSUniRenderVisitor::~RSUniRenderVisitor() {}
 
 void RSUniRenderVisitor::PrepareBaseRenderNode(RSBaseRenderNode& node)
 {
+    node.ClearPaintOutOfParentRect();
+    node.UpdateChildrenOutOfRectFlag(false);
     node.ResetSortedChildren();
     for (auto& child : node.GetSortedChildren()) {
         child->Prepare(shared_from_this());
+    }
+    SetPaintOutOfParentFlag(node);
+}
+
+void RSUniRenderVisitor::SetPaintOutOfParentFlag(RSBaseRenderNode& node)
+{
+    if (!isPartialRenderEnabled_) {
+        return;
+    } 
+    if (node.GetType() != RSRenderNodeType::CANVAS_NODE && node.GetType() != RSRenderNodeType::SURFACE_NODE) {
+        RS_LOGD("Other types do not need to processed %d", node.GetType());
+        return;
+    }
+    auto nodeParent = node.GetParent().lock();
+    std::shared_ptr<RSRenderNode> rsParent = nullptr;
+    if (nodeParent == nullptr) {
+        return;
+    }
+    rsParent = nodeParent->ReinterpretCastTo<RSRenderNode>();
+    auto& property = node.shared_from_this()->ReinterpretCastTo<RSRenderNode>()->GetMutableRenderProperties();
+    auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(property.GetBoundsGeometry());
+    RectI rect;
+    if (geoPtr != nullptr) {
+        rect = geoPtr->GetAbsRect();
+    }
+    RectI parentRect;
+    auto& parentProperty = rsParent->GetMutableRenderProperties();
+    auto parentGeoPtr = std::static_pointer_cast<RSObjAbsGeometry>(parentProperty.GetBoundsGeometry());
+    if (parentGeoPtr != nullptr) {
+        parentRect = parentGeoPtr->GetAbsRect();
+    }
+    if (node.HasChildrenOutOfRect()) {
+        if (!node.GetPaintOutOfParentRect().IsInsideOf(parentRect) || parentRect.IsEmpty()) {
+            nodeParent->UpdateChildrenOutOfRectFlag(true);
+            nodeParent->UpdatePaintOutOfParentRect(node.GetPaintOutOfParentRect());
+        }
+    } else {
+        if (!rect.IsInsideOf(parentRect) || parentRect.IsEmpty()) {
+            nodeParent->UpdateChildrenOutOfRectFlag(true);
+            nodeParent->UpdatePaintOutOfParentRect(rect);
+        }
     }
 }
 

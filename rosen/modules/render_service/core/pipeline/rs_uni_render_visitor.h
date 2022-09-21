@@ -77,6 +77,7 @@ private:
     void InitCacheSurface(RSSurfaceRenderNode& node, int width, int height);
     void DrawCacheSurface(RSSurfaceRenderNode& node);
     bool EnableParallerRendering();
+    void SetPaintOutOfParentFlag(RSBaseRenderNode& node);
 
     ScreenInfo screenInfo_;
     std::shared_ptr<RSDirtyRegionManager> curSurfaceDirtyManager_;
