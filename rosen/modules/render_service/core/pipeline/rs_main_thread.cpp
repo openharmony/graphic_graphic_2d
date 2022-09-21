@@ -588,13 +588,16 @@ void RSMainThread::CalcOcclusion()
     RSInnovation::UpdateOcclusionCullingSoEnabled();
 
     std::vector<RSBaseRenderNode::SharedPtr> curAllSurfaces;
-    for (auto& child : node->GetSortedChildren()) {
-        auto displayNode = RSBaseRenderNode::ReinterpretCast<RSDisplayRenderNode>(child);
+    if (node->GetSortedChildren().size() == 1) {
+        auto displayNode = RSBaseRenderNode::ReinterpretCast<RSDisplayRenderNode>(
+            node->GetSortedChildren().front());
         if (displayNode) {
-            curAllSurfaces.insert(curAllSurfaces.end(),
-                displayNode->GetCurAllSurfaces().begin(), displayNode->GetCurAllSurfaces().end());
+            curAllSurfaces = displayNode->GetCurAllSurfaces();
         }
+    } else {
+        node->CollectSurface(node, curAllSurfaces, isUniRender_);
     }
+
     // 1. Judge whether it is dirty
     // Surface cnt changed or surface DstRectChanged or surface ZorderChanged
     bool winDirty = lastSurfaceCnt_ != curAllSurfaces.size();
