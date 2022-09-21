@@ -18,6 +18,7 @@
 #include <hilog/log.h>
 #include <parameter.h>
 
+#include "pipeline/rs_render_thread.h"
 #include "platform/common/rs_log.h"
 
 namespace OHOS {
@@ -51,12 +52,17 @@ RSOverdrawController::RSOverdrawController()
 void RSOverdrawController::SwitchFunction(const char *key, const char *value, void *context)
 {
     auto &that = *reinterpret_cast<RSOverdrawController *>(context);
+    auto oldEnable = that.enabled_;
     if (strncmp(value, switchEnableText, strlen(switchEnableText)) == 0) {
         that.enabled_ = true;
         ROSEN_LOGI("%{public}s enable", key);
     } else {
         that.enabled_ = false;
         ROSEN_LOGI("%{public}s disable", key);
+    }
+
+    if (oldEnable != that.enabled_) {
+        RSRenderThread::Instance().RequestNextVSync();
     }
 }
 } // namespace Rosen
