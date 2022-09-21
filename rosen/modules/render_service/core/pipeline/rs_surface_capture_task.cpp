@@ -344,6 +344,9 @@ void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::ProcessSurfaceRenderNodeWith
             // Changes the clip area from absolute to relative to the parent window and deal with clip area with scale
             // based on the origin of the parent window.
             param.clipRect.offsetTo(param.clipRect.left() - parentRect.left(), param.clipRect.top() - parentRect.top());
+            param.clipRect = SkRect::MakeXYWH(
+                param.clipRect.left(), param.clipRect.top(),
+                node.GetRenderProperties().GetBoundsWidth(), node.GetRenderProperties().GetBoundsHeight());
             SkMatrix scaleMatrix = SkMatrix::I();
             scaleMatrix.preScale(scaleX_, scaleY_, 0, 0);
             param.clipRect = scaleMatrix.mapRect(param.clipRect);
@@ -359,9 +362,10 @@ void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::ProcessSurfaceRenderNodeWith
                 });
         } else {
             param.matrix = SkMatrix::I();
-            param.clipRect.offsetTo(0, 0);
             param.dstRect = SkRect::MakeXYWH(0, 0, node.GetRenderProperties().GetBoundsWidth(),
                 node.GetRenderProperties().GetBoundsHeight());
+            param.clipRect = SkRect::MakeWH(
+                node.GetRenderProperties().GetBoundsWidth(), node.GetRenderProperties().GetBoundsHeight());
             AdjustSurfaceTransform(param, surfaceTransform);
             RSDividedRenderUtil::DrawBuffer(*canvas_, param, [this](SkCanvas& canvas, BufferDrawParam& params) -> void {
                     canvas.scale(scaleX_, scaleY_);
