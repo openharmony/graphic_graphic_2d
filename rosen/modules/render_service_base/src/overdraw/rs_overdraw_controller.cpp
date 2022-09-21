@@ -62,14 +62,16 @@ void RSOverdrawController::SetEnable(bool enable)
     enabled_ = enable;
 }
 
-const std::vector<uint32_t> &RSOverdrawController::GetColors() const
+OverdrawColorArray RSOverdrawController::GetColorArray() const
 {
-    return colors_;
+    std::lock_guard lock(colorMutex_);
+    return colorArray_;
 }
 
-void RSOverdrawController::SetColors(const std::vector<uint32_t> &colors)
+std::map<int, SkColor> RSOverdrawController::GetColorMap() const
 {
-    colors_ = colors;
+    std::lock_guard lock(colorMutex_);
+    return colorMap_;
 }
 
 RSOverdrawController::RSOverdrawController()
@@ -108,13 +110,33 @@ void RSOverdrawController::OnColorChange(const char *key, const char *value, voi
         colors.push_back(color);
     }
 
-    auto oldColors = that.GetColors();
-    if (ss.eof()) {
-        that.SetColors(colors);
-    }
+    if (ss.eof() && colors != that.colors_ && colors.size() > 0) {
+        // array
+        OverdrawColorArray colorArray = that.colorArray_;
+        auto colorNumber = colorArray.size();
+        for (size_t i = 0; i < colors.size() && i + 1 < colorNumber; i++) {
+            colorArray[i + 1] = colors[i];
+        }
+        for (size_t i = colors.size(); i + 1 < colorNumber; i++) {
+            colorArray[i + 1] = colors.back();
+        }
 
-    if (colors != oldColors && that.delegate_ != nullptr) {
-        that.delegate_->Repaint();
+        // map
+        std::map<int, SkColor> colorMap;
+        for (size_t i = 0; i < colors.size(); i++) {
+            colorMap[i + 1] = colors[i];
+        }
+        colorMap[0] = colors.back();
+
+        {
+            std::lock_guard lock(that.colorMutex_);
+            that.colorArray_ = colorArray;
+            that.colorMap_ = colorMap;
+        }
+
+        if (that.delegate_ != nullptr) {
+            that.delegate_->Repaint();
+        }
     }
 }
 } // namespace Rosen

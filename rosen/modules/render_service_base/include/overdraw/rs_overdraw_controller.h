@@ -16,6 +16,8 @@
 #ifndef RENDER_SERVICE_CLIENT_CORE_PIPELINE_OVERDRAW_RS_OVERDRAW_CONTROLLER_H
 #define RENDER_SERVICE_CLIENT_CORE_PIPELINE_OVERDRAW_RS_OVERDRAW_CONTROLLER_H
 
+#include <array>
+#include <map>
 #include <memory>
 #include <vector>
 
@@ -26,6 +28,8 @@
 
 namespace OHOS {
 namespace Rosen {
+constexpr auto OverdrawColorArrayLength = 6;
+using OverdrawColorArray = std::array<SkColor, OverdrawColorArrayLength>;
 class RS_EXPORT RSOverdrawController {
 public:
     static RS_EXPORT RSOverdrawController &GetInstance();
@@ -35,8 +39,8 @@ public:
     void SetDelegate(const std::shared_ptr<RSDelegate> &delegate);
     bool IsEnabled() const;
     void SetEnable(bool enable);
-    const std::vector<uint32_t> &GetColors() const;
-    void SetColors(const std::vector<uint32_t> &colors);
+    OverdrawColorArray GetColorArray() const;
+    std::map<int, SkColor> GetColorMap() const;
     static RS_EXPORT void SwitchFunction(const char *key, const char *value, void *context);
 
     template<class RSCanvasListenerImpl>
@@ -64,7 +68,25 @@ private:
 
     std::shared_ptr<RSDelegate> delegate_ = nullptr;
     bool enabled_ = false;
+
+    // colors
+    mutable std::mutex colorMutex_;
     std::vector<uint32_t> colors_;
+    OverdrawColorArray colorArray_ = {
+        0x00000000,
+        0x00000000,
+        0x220000ff,
+        0x2200ff00,
+        0x22ff0000,
+        0x44ff0000,
+    };
+    std::map<int, SkColor> colorMap_ = {
+        {0, 0x22ff0000},
+        {1, 0x00000000},
+        {2, 0x220000ff},
+        {3, 0x2200ff00},
+        {4, 0x22ff0000},
+    };
 };
 } // namespace Rosen
 } // namespace OHOS

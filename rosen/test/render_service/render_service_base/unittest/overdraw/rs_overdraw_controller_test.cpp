@@ -91,27 +91,6 @@ HWTEST_F(RSOverdrawControllerTest, Enable, Function | SmallTest | Level0)
 }
 
 /*
- * Function: GetColors/SetColors
- * Type: Function
- * EnvConditions: N/A
- * CaseDescription: 1. SetColors colors
- *                  2. check GetColors is colors
- */
-HWTEST_F(RSOverdrawControllerTest, Colors, Function | SmallTest | Level0)
-{
-    PART("CaseDescription") {
-        std::vector<uint32_t> colors = {0, 1, 0, 1};
-        STEP("1. SetColors colors") {
-            RSOverdrawController::GetInstance().SetColors(colors);
-        }
-
-        STEP("2. check GetColors is colors") {
-            STEP_ASSERT_EQ(RSOverdrawController::GetInstance().GetColors(), colors);
-        }
-    }
-}
-
-/*
  * Function: SwitchFunction (true/false)
  * Type: Function
  * EnvConditions: RSOverdrawController disabled
