@@ -741,14 +741,9 @@ void RSMainThread::Animate(uint64_t timestamp)
 
     RS_LOGD("RSMainThread::Animate start, processing %d animating nodes", context_.animatingNodeList_.size());
 
-    bool lastDoWindowAnimate = doWindowAnimate_;
-    doWindowAnimate_ = HasWindowAnimation();
-    if (!lastDoWindowAnimate && doWindowAnimate_ && RSInnovation::UpdateQosVsyncEnabled()) {
-        RSQosThread::GetInstance()->ResetQosPid();
-    }
-
+    bool curWinAnim = false;
     // iterate and animate all animating nodes, remove if animation finished
-    std::__libcpp_erase_if_container(context_.animatingNodeList_, [timestamp](const auto& iter) -> bool {
+    std::__libcpp_erase_if_container(context_.animatingNodeList_, [timestamp, &curWinAnim](const auto& iter) -> bool {
         auto node = iter.second.lock();
         if (node == nullptr) {
             RS_LOGD("RSMainThread::Animate removing expired animating node");
@@ -758,24 +753,21 @@ void RSMainThread::Animate(uint64_t timestamp)
         if (animationFinished) {
             RS_LOGD("RSMainThread::Animate removing finished animating node %" PRIu64, node->GetId());
         }
+        if (node->template IsInstanceOf<RSSurfaceRenderNode>()) {
+            curWinAnim = true;
+        }
         return animationFinished;
     });
 
-    RS_LOGD("RSMainThread::Animate end, %d animating nodes remains", context_.animatingNodeList_.size());
+    if (!doWindowAnimate_ && curWinAnim && RSInnovation::UpdateQosVsyncEnabled()) {
+        RSQosThread::GetInstance()->ResetQosPid();
+    }
+    doWindowAnimate_ = curWinAnim;
+    RS_LOGD("RSMainThread::Animate end, %d animating nodes remains, has window animation: %d",
+        context_.animatingNodeList_.size(), curWinAnim);
 
     RequestNextVSync();
     PerfAfterAnim();
-}
-
-bool RSMainThread::HasWindowAnimation() const
-{
-    for (auto [nodeId, nodePtr] : context_.animatingNodeList_) {
-        auto node = nodePtr.lock();
-        if (node != nullptr && node->IsInstanceOf<RSSurfaceRenderNode>()) {
-            return true;
-        }
-    }
-    return false;
 }
 
 void RSMainThread::CheckDelayedSwitchTask()

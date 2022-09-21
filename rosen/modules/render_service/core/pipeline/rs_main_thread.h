@@ -159,7 +159,6 @@ private:
     void CheckBufferAvailableIfNeed();
     void CheckUpdateSurfaceNodeIfNeed();
 
-    bool HasWindowAnimation() const;
     void CheckDelayedSwitchTask();
     void UpdateRenderMode(bool useUniVisitor);
 
