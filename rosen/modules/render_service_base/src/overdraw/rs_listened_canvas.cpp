@@ -163,7 +163,7 @@ void RSListenedCanvas::onDrawPicture(const SkPicture* picture, const SkMatrix* m
 }
 
 void RSListenedCanvas::onDrawImageRect(const SkImage* image, const SkRect* src, const SkRect& dst,
-            const SkPaint* paint, SrcRectConstraint constraint)
+                                       const SkPaint* paint, SrcRectConstraint constraint)
 {
     RSPaintFilterCanvas::onDrawImageRect(image, src, dst, paint, constraint);
     if (listener_ != nullptr) {

@@ -15,7 +15,6 @@
 
 #include "overdraw/rs_overdraw_controller.h"
 
-#include <cstring>
 #include <sstream>
 
 #include "hilog/log.h"
