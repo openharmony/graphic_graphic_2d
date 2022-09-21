@@ -23,7 +23,6 @@ ohos_fuzztest("SurfaceBufferFuzzTest") {
 
   include_dirs = [
     "//foundation/graphic/graphic_2d/frameworks/surface/include",
-    "//drivers/peripheral/display/interfaces/include",
     "//foundation/communication/ipc/interfaces/innerkits/ipc_core/include",
   ]
   cflags = [

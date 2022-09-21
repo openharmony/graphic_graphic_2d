@@ -18,7 +18,6 @@
 #include <gtest/gtest.h>
 #include <iservice_registry.h>
 #include <securec.h>
-#include <display_type.h>
 #include <native_window.h>
 #include "accesstoken_kit.h"
 #include "nativetoken_kit.h"
@@ -128,7 +127,7 @@ pid_t NativeWindowBufferTest::ChildProcessMain()
     struct NativeWindowBuffer *nativeWindowBuffer = nullptr;
 
     int code = SET_USAGE;
-    int32_t usage = HBM_USE_CPU_READ | HBM_USE_CPU_WRITE | HBM_USE_MEM_DMA;
+    int32_t usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA;
     NativeWindowHandleOpt(nativeWindow, code, usage);
 
     code = SET_BUFFER_GEOMETRY;

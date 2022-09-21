@@ -14,7 +14,6 @@
  */
 #include <securec.h>
 #include <gtest/gtest.h>
-#include <display_type.h>
 #include <surface.h>
 #include <consumer_surface.h>
 #include "buffer_consumer_listener.h"
@@ -33,7 +32,7 @@ public:
         .height = 0x100,
         .strideAlignment = 0x8,
         .format = PIXEL_FMT_RGBA_8888,
-        .usage = HBM_USE_CPU_READ | HBM_USE_CPU_WRITE | HBM_USE_MEM_DMA,
+        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
         .timeout = 0,
     };
     static inline BufferFlushConfig flushConfig = {
@@ -453,7 +452,7 @@ HWTEST_F(ProducerSurfaceTest, isSupportedAlloc002, Function | MediumTest | Level
     VerifyAllocInfo info = {
         .width = 0x100,
         .height = 0x100,
-        .usage = HBM_USE_CPU_READ | HBM_USE_CPU_WRITE | HBM_USE_MEM_DMA,
+        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
         .format = PIXEL_FMT_RGBA_8888,
     };
     infos.push_back(info);
@@ -480,7 +479,7 @@ HWTEST_F(ProducerSurfaceTest, isSupportedAlloc003, Function | MediumTest | Level
     VerifyAllocInfo info = {
         .width = 0x100,
         .height = 0x100,
-        .usage = HBM_USE_CPU_READ | HBM_USE_CPU_WRITE | HBM_USE_MEM_DMA,
+        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
         .format = PIXEL_FMT_RGBA_8888,
     };
     infos.push_back(info);

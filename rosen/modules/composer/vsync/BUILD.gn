@@ -28,7 +28,6 @@ config("vsync_config") {
 config("vsync_public_config") {
   include_dirs = [
     "//base/notification/eventhandler/interfaces/inner_api",
-    "//drivers/peripheral/display/interfaces/include",
     "//foundation/graphic/graphic_2d/interfaces/inner_api/composer",
     "//foundation/graphic/graphic_2d/rosen/include/common",
     "//foundation/graphic/graphic_2d/rosen/modules/composer/vsync/include",

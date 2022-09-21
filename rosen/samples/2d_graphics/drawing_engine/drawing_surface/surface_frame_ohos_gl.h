@@ -19,7 +19,6 @@
 #include "EGL/egl.h"
 #include "EGL/eglext.h"
 
-#include <display_type.h>
 #include <surface.h>
 #include "surface_type.h"
 #include "surface_frame.h"

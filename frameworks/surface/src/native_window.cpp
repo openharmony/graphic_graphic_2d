@@ -18,7 +18,6 @@
 #include <map>
 #include <cinttypes>
 #include "buffer_log.h"
-#include "display_type.h"
 #include "external_window.h"
 #include "surface_type.h"
 #include "sync_fence.h"
@@ -41,7 +40,7 @@ OHNativeWindow* CreateNativeWindowFromSurface(void* pSurface)
                 *reinterpret_cast<OHOS::sptr<OHOS::Surface> *>(pSurface);
     nativeWindow->config.width = nativeWindow->surface->GetDefaultWidth();
     nativeWindow->config.height = nativeWindow->surface->GetDefaultHeight();
-    nativeWindow->config.usage = HBM_USE_CPU_READ | HBM_USE_MEM_DMA;
+    nativeWindow->config.usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_MEM_DMA;
     nativeWindow->config.format = PIXEL_FMT_RGBA_8888;
     nativeWindow->config.strideAlignment = 8;   // default stride is 8
     nativeWindow->config.timeout = 3000;        // default timeout is 3000 ms

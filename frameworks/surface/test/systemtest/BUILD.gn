@@ -32,7 +32,6 @@ ohos_systemtest("native_window_buffer_test") {
 
   include_dirs = [
     "//foundation/graphic/graphic_2d/frameworks/surface/include",
-    "//drivers/peripheral/display/interfaces/include",
     "//base/security/access_token/interfaces/innerkits/nativetoken/include",
     "//base/security/access_token/interfaces/innerkits/accesstoken/include",
     "//base/security/access_token/interfaces/innerkits/token_setproc/include",
@@ -70,7 +69,6 @@ ohos_systemtest("surface_ipc_test") {
 
   include_dirs = [
     "//foundation/graphic/graphic_2d/frameworks/surface/include",
-    "//drivers/peripheral/display/interfaces/include",
     "//base/security/access_token/interfaces/innerkits/nativetoken/include",
     "//base/security/access_token/interfaces/innerkits/accesstoken/include",
     "//base/security/access_token/interfaces/innerkits/token_setproc/include",

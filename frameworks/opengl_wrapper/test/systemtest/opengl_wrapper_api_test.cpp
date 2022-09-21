@@ -227,9 +227,9 @@ HWTEST_F(OpenglWrapperApiTest, eglCreateWindowSurface, TestSize.Level0)
     int32_t height = 0x100;
     int32_t width = 0x100;
     cSurface_->SetDefaultWidthAndHeight(height, width);
-    cSurface_->SetDefaultUsage(HBM_USE_CPU_READ | HBM_USE_CPU_WRITE | HBM_USE_MEM_DMA);
+    cSurface_->SetDefaultUsage(BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA);
 
-    NativeWindowHandleOpt(gWindow_, SET_USAGE, HBM_USE_CPU_READ | HBM_USE_CPU_WRITE | HBM_USE_MEM_DMA);
+    NativeWindowHandleOpt(gWindow_, SET_USAGE, BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA);
     NativeWindowHandleOpt(gWindow_, SET_BUFFER_GEOMETRY, height, width);
     NativeWindowHandleOpt(gWindow_, SET_COLOR_GAMUT, ColorGamut::COLOR_GAMUT_SRGB);
 

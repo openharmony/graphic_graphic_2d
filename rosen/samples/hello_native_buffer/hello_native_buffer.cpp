@@ -41,7 +41,7 @@ OH_NativeBuffer_Config config {
     .width = 0x100,
     .height = 0x100,
     .format = PIXEL_FMT_RGBA_8888,
-    .usage = HBM_USE_CPU_READ | HBM_USE_CPU_WRITE | HBM_USE_MEM_DMA
+    .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA
 };
 
 void CompareOH_NativeBufferConfig(OH_NativeBuffer_Config &config, OH_NativeBuffer_Config &checkConfig)

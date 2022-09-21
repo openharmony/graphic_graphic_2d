@@ -27,7 +27,6 @@ config("hello_composer_config") {
 config("hello_composer_public_config") {
   include_dirs = [
     "//foundation/graphic/graphic_2d/rosen/modules/composer/hdi_backend/include",
-    "//drivers/peripheral/display/interfaces/include",
     "//foundation/graphic/graphic_2d/rosen/include/common",
     "//foundation/graphic/graphic_2d/rosen/modules/composer/vsync/include",
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/src",

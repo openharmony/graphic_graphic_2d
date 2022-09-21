@@ -20,10 +20,10 @@
 #include <ostream>
 #include <thread>
 #include <unistd.h>
-#include <display_type.h>
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
 #include "graphic_common_c.h"
+#include "surface_type.h"
 #include "external_window.h"
 #include "GLES/gl.h"
 
@@ -85,7 +85,7 @@ static EGLDisplay GetPlatformEglDisplay(EGLenum platform, void* native_display, 
 void AddBuffer(OHNativeWindow* nativeWindow)
 {
     int code = SET_USAGE;
-    int32_t usage = HBM_USE_CPU_READ | HBM_USE_CPU_WRITE | HBM_USE_MEM_DMA;
+    int32_t usage = OHOS::BUFFER_USAGE_CPU_READ | OHOS::BUFFER_USAGE_CPU_WRITE | OHOS::BUFFER_USAGE_MEM_DMA;
     int32_t ret = NativeWindowHandleOpt(nativeWindow, code, usage);
     if (ret != GSERROR_OK) {
         std::cout << "NativeWindowHandleOpt SET_USAGE faile" << std::endl;

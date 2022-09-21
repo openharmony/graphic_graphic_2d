@@ -16,7 +16,6 @@
 #include "surface_ohos_gl.h"
 
 #include <hilog/log.h>
-#include <display_type.h>
 #include "window.h"
 
 namespace OHOS {

@@ -29,7 +29,6 @@ ohos_systemtest("vulkan_wrapper_api_test") {
 
   include_dirs = [
     "//foundation/graphic/graphic_2d/frameworks/surface/include",
-    "//drivers/peripheral/display/interfaces/include",
     "//foundation/graphic/graphic_2d/interfaces/inner_api/surface",
     "//foundation/graphic/graphic_2d/interfaces/inner_api/common",
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_client",

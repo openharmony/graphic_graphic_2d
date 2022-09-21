@@ -19,7 +19,6 @@
 #include <iostream>
 #include <string>
 
-#include <display_type.h>
 #include <event_handler.h>
 #include <surface.h>
 

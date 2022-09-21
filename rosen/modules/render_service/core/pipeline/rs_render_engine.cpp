@@ -120,10 +120,10 @@ std::unique_ptr<RSRenderFrame> RSRenderEngine::RequestFrame(
     auto bufferUsage = config.usage;
 #if (defined RS_ENABLE_GL) && (defined RS_ENABLE_EGLIMAGE)
     if (forceCPU) {
-        bufferUsage |= HBM_USE_CPU_WRITE;
+        bufferUsage |= BUFFER_USAGE_CPU_WRITE;
     }
 #else // (defined RS_ENABLE_GL) && (defined RS_ENABLE_EGLIMAGE)
-    bufferUsage |= HBM_USE_CPU_WRITE;
+    bufferUsage |= BUFFER_USAGE_CPU_WRITE;
 #endif // (defined RS_ENABLE_GL) && (defined RS_ENABLE_EGLIMAGE)
     rsSurface->SetSurfaceBufferUsage(bufferUsage);
 

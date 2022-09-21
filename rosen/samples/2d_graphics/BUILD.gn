@@ -133,7 +133,6 @@ ohos_executable("drawing_sample_canvaskit0310") {
 
   include_dirs = [
     "//foundation/graphic/graphic_2d/rosen/modules/composer/hdi_backend/include",
-    "//drivers/peripheral/display/interfaces/include",
     "//foundation/graphic/graphic_2d/rosen/include/common",
     "//foundation/graphic/graphic_2d/interfaces/inner_api/common",
     "//foundation/graphic/graphic_2d/rosen/modules/composer/vsync/include",

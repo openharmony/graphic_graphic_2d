@@ -87,7 +87,6 @@ ohos_shared_library("wms_client") {
   } else {
     include_dirs = [
       "//foundation/multimedia/player_framework/frameworks/videodisplaymanager/include",
-      "//drivers/peripheral/display/interfaces/include",
       "//drivers/peripheral/display/interfaces/hdi_cpp/client",
     ]
   }
@@ -189,7 +188,6 @@ ohos_shared_library("libwmclient") {
   } else {
     include_dirs = [
       "//foundation/multimedia/player_framework/frameworks/videodisplaymanager/include",
-      "//drivers/peripheral/display/interfaces/include",
       "//drivers/peripheral/display/interfaces/hdi_cpp/client",
     ]
   }

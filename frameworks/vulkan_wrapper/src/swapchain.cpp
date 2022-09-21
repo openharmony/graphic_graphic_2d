@@ -24,7 +24,6 @@
 #include <native_buffer.h>
 #include <wrapper_log.h>
 #include <graphic_common.h>
-#include "display_type.h"
 #include "vulkan/vk_ohos_native_buffer.h"
 #include <securec.h>
 
@@ -546,7 +545,7 @@ VKAPI_ATTR VkResult SetWindowInfo(const VkSwapchainCreateInfoKHR* createInfo, in
         *numImages = 1;
     }
 
-    uint64_t native_usage = HBM_USE_CPU_READ | HBM_USE_CPU_WRITE | HBM_USE_MEM_DMA;
+    uint64_t native_usage = OHOS::BUFFER_USAGE_CPU_READ | OHOS::BUFFER_USAGE_CPU_WRITE | OHOS::BUFFER_USAGE_MEM_DMA;
     err = NativeWindowHandleOpt(window, SET_USAGE, native_usage);
     if (err != OHOS::GSERROR_OK) {
         WLOGE("native_window_set_buffer_count(%{public}d) failed: (%{public}d)", *numImages, err);

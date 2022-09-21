@@ -15,7 +15,6 @@
 #include <gtest/gtest.h>
 #include <iservice_registry.h>
 #include <native_window.h>
-#include <display_type.h>
 #include <surface_type.h>
 
 using namespace testing;
@@ -51,7 +50,7 @@ void NativeWindowTest::SetUpTestCase()
         .height = 0x100, // small
         .strideAlignment = 0x8,
         .format = PIXEL_FMT_RGBA_8888,
-        .usage = HBM_USE_CPU_READ | HBM_USE_CPU_WRITE | HBM_USE_MEM_DMA,
+        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
         .timeout = 0,
     };
 
@@ -117,7 +116,7 @@ HWTEST_F(NativeWindowTest, CreateNativeWindow002, Function | MediumTest | Level2
 HWTEST_F(NativeWindowTest, HandleOpt001, Function | MediumTest | Level2)
 {
     int code = SET_USAGE;
-    int32_t usage = HBM_USE_CPU_READ;
+    int32_t usage = BUFFER_USAGE_CPU_READ;
     ASSERT_EQ(NativeWindowHandleOpt(nullptr, code, usage), OHOS::GSERROR_INVALID_ARGUMENTS);
 }
 
@@ -132,11 +131,11 @@ HWTEST_F(NativeWindowTest, HandleOpt001, Function | MediumTest | Level2)
 HWTEST_F(NativeWindowTest, HandleOpt002, Function | MediumTest | Level2)
 {
     int code = SET_USAGE;
-    int32_t usageSet = HBM_USE_CPU_READ;
+    int32_t usageSet = BUFFER_USAGE_CPU_READ;
     ASSERT_EQ(NativeWindowHandleOpt(nativeWindow, code, usageSet), OHOS::GSERROR_OK);
 
     code = GET_USAGE;
-    int32_t usageGet = HBM_USE_CPU_WRITE;
+    int32_t usageGet = BUFFER_USAGE_CPU_WRITE;
     ASSERT_EQ(NativeWindowHandleOpt(nativeWindow, code, &usageGet), OHOS::GSERROR_OK);
     ASSERT_EQ(usageSet, usageGet);
 }

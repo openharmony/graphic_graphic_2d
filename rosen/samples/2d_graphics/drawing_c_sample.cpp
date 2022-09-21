@@ -22,7 +22,6 @@
 #include "command/rs_display_node_command.h"
 #include "command/rs_surface_node_command.h"
 #include "common/rs_common_def.h"
-#include "display_type.h"
 #include "pipeline/rs_render_result.h"
 #include "pipeline/rs_render_thread.h"
 #include "ui/rs_node.h"
@@ -163,7 +162,7 @@ static void DrawSurface(std::shared_ptr<RSSurfaceNode> surfaceNode, int32_t widt
         .height = height,
         .strideAlignment = 0x8,
         .format = PIXEL_FMT_RGBA_8888,
-        .usage = HBM_USE_CPU_READ | HBM_USE_CPU_WRITE | HBM_USE_MEM_DMA,
+        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
     };
 
     SurfaceError ret = surface->RequestBuffer(buffer, releaseFence, config);

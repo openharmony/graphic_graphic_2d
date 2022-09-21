@@ -20,8 +20,6 @@
 #include <sys/time.h>
 #include <cinttypes>
 #include <unistd.h>
-
-#include <display_type.h>
 #include <scoped_bytrace.h>
 
 #include "buffer_utils.h"
@@ -438,7 +436,7 @@ GSError BufferQueue::DoFlushBuffer(uint32_t sequence, const sptr<BufferExtraData
     bufferQueueCache_[sequence].damage = config.damage;
 
     uint32_t usage = static_cast<uint32_t>(bufferQueueCache_[sequence].config.usage);
-    if (usage & HBM_USE_CPU_WRITE) {
+    if (usage & BUFFER_USAGE_CPU_WRITE) {
         // api flush
         auto sret = bufferQueueCache_[sequence].buffer->FlushCache();
         if (sret != GSERROR_OK) {

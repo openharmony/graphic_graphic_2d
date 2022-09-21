@@ -24,7 +24,6 @@
 #include <sstream>
 #include <unistd.h>
 
-#include "display_type.h"
 #include "wm/window.h"
 #include "wm/window_scene.h"
 

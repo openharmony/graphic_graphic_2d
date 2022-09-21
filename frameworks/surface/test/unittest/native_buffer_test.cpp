@@ -15,7 +15,7 @@
 #include <gtest/gtest.h>
 #include <iservice_registry.h>
 #include <native_buffer.h>
-#include <display_type.h>
+#include "surface_type.h"
 #include "graphic_common_c.h"
 
 using namespace testing;
@@ -31,7 +31,7 @@ public:
         .width = 0x100,
         .height = 0x100,
         .format = PIXEL_FMT_RGBA_8888,
-        .usage = HBM_USE_CPU_READ | HBM_USE_CPU_WRITE | HBM_USE_MEM_DMA,
+        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
     };
     static inline OH_NativeBuffer_Config checkConfig = {};
     static inline OH_NativeBuffer* buffer = nullptr;

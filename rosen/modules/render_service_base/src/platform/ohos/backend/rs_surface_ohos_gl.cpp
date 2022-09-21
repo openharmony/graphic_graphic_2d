@@ -17,7 +17,6 @@
 #include "platform/common/rs_log.h"
 #include "window.h"
 #include <hilog/log.h>
-#include <display_type.h>
 #include "pipeline/rs_render_thread.h"
 
 namespace OHOS {
@@ -25,7 +24,7 @@ namespace Rosen {
 
 RSSurfaceOhosGl::RSSurfaceOhosGl(const sptr<Surface>& producer) : RSSurfaceOhos(producer)
 {
-    bufferUsage_ = HBM_USE_CPU_READ | HBM_USE_MEM_DMA;
+    bufferUsage_ = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_MEM_DMA;
 }
 
 void RSSurfaceOhosGl::SetSurfaceBufferUsage(int32_t usage)

@@ -16,7 +16,6 @@
 #include <iostream>
 #include <surface.h>
 
-#include "display_type.h"
 #include "wm/window.h"
 
 #include "include/core/SkCanvas.h"

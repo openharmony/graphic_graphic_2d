@@ -16,7 +16,6 @@
 #include <iostream>
 #include <surface.h>
 
-#include "display_type.h"
 #include "include/core/SkTextBlob.h"
 #include "include/core/SkTypeface.h"
 #include "wm/window.h"

@@ -199,7 +199,6 @@ config("surface_test_common_public_config") {
   include_dirs = [
     "//foundation/graphic/graphic_2d/frameworks/surface/include",
     "//foundation/communication/ipc/interfaces/innerkits/ipc_core/include",
-    "//drivers/peripheral/display/interfaces/include",
     "//base/security/access_token/interfaces/innerkits/nativetoken/include",
     "//base/security/access_token/interfaces/innerkits/accesstoken/include",
     "//base/security/access_token/interfaces/innerkits/token_setproc/include",

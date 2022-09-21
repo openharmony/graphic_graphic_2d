@@ -783,7 +783,7 @@ BufferRequestConfig RSBaseRenderUtil::GetFrameBufferRequestConfig(
     config.height = static_cast<int32_t>(height);
     config.strideAlignment = 0x8; // default stride is 8 Bytes.
     config.format = PIXEL_FMT_RGBA_8888;
-    config.usage = HBM_USE_CPU_READ | HBM_USE_MEM_DMA | HBM_USE_MEM_FB;
+    config.usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_MEM_DMA | BUFFER_USAGE_MEM_FB;
     config.timeout = 0;
     return config;
 }

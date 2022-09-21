@@ -14,7 +14,6 @@
  */
 #include <gtest/gtest.h>
 #include <securec.h>
-#include <display_type.h>
 #include <surface.h>
 #include <surface_buffer_impl.h>
 #include <buffer_manager.h>
@@ -33,7 +32,7 @@ public:
         .height = 0x100,
         .strideAlignment = 0x8,
         .format = PIXEL_FMT_RGBA_8888,
-        .usage = HBM_USE_CPU_READ | HBM_USE_CPU_WRITE | HBM_USE_MEM_DMA,
+        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
         .timeout = 0,
     };
     static inline sptr<SurfaceBuffer> buffer = nullptr;
@@ -232,7 +231,7 @@ HWTEST_F(BufferManagerTest, CMALeak001, Function | MediumTest | Level2)
         .height = height,
         .strideAlignment = strideAlignment,
         .format = PIXEL_FMT_RGBA_8888,
-        .usage = HBM_USE_CPU_READ | HBM_USE_CPU_WRITE | HBM_USE_MEM_DMA,
+        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
         .timeout = 0,
     };
 

@@ -132,7 +132,7 @@ void RenderContextSample::CreateBackGroundSurface()
 {
     backGroundCSurface = Surface::CreateSurfaceAsConsumer();
     backGroundCSurface->SetDefaultWidthAndHeight(backGroundWidth, backGroundHeight);
-    backGroundCSurface->SetDefaultUsage(HBM_USE_CPU_READ | HBM_USE_CPU_WRITE | HBM_USE_MEM_DMA);
+    backGroundCSurface->SetDefaultUsage(BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA);
 
     sptr<IBufferProducer> producer = backGroundCSurface->GetProducer();
     backGroundPSurface= Surface::CreateSurfaceAsProducer(producer);
@@ -146,7 +146,7 @@ void RenderContextSample::CreateDrawingSurface()
 {
     drawingCSurface = Surface::CreateSurfaceAsConsumer();
     drawingCSurface->SetDefaultWidthAndHeight(backGroundWidth, backGroundHeight);
-    drawingCSurface->SetDefaultUsage(HBM_USE_CPU_READ | HBM_USE_CPU_WRITE | HBM_USE_MEM_DMA);
+    drawingCSurface->SetDefaultUsage(BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA);
 
     sptr<IBufferProducer> producer = drawingCSurface->GetProducer();
     drawingPSurface= Surface::CreateSurfaceAsProducer(producer);
@@ -473,7 +473,7 @@ void RenderContextSample::DoPrepareCompleted(sptr<Surface> surface, const struct
         .height = display_h, // need display height
         .strideAlignment = 0x8,
         .format = PIXEL_FMT_BGRA_8888,
-        .usage = HBM_USE_CPU_READ | HBM_USE_CPU_WRITE | HBM_USE_MEM_DMA | HBM_USE_MEM_FB,
+        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA | BUFFER_USAGE_MEM_FB,
         .timeout = 0,
     };
 

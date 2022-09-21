@@ -40,7 +40,7 @@ bool RSVirtualScreenProcessor::Init(RSDisplayRenderNode& node, int32_t offsetX, 
         return false;
     }
 
-    renderFrameConfig_.usage = HBM_USE_CPU_READ | HBM_USE_MEM_DMA;
+    renderFrameConfig_.usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_MEM_DMA;
 
     auto screenManager = CreateOrGetScreenManager();
     producerSurface_ = screenManager->GetProducerSurface(node.GetScreenId());

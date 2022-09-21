@@ -25,7 +25,6 @@
 #include <sync_fence.h>
 
 #include <event_handler.h>
-#include <display_type.h>
 #include <surface.h>
 #include "hdi_backend.h"
 #include "hdi_layer.h"
@@ -450,7 +449,7 @@ void HelloDrawing::CreateBaseSurface(uint32_t index)
 {
     sptr<Surface> cSurface = Surface::CreateSurfaceAsConsumer();
     cSurface->SetDefaultWidthAndHeight(baseWidthVec_[index], baseHeightVec_[index]);
-    cSurface->SetDefaultUsage(HBM_USE_CPU_READ | HBM_USE_CPU_WRITE | HBM_USE_MEM_DMA);
+    cSurface->SetDefaultUsage(BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA);
 
     sptr<IBufferProducer> producer = cSurface->GetProducer();
     sptr<Surface> pSurface = Surface::CreateSurfaceAsProducer(producer);
@@ -535,7 +534,7 @@ void HelloDrawing::DoPrepareCompleted(sptr<Surface>& surface, const struct Prepa
         .height = display_h, // need display height
         .strideAlignment = 0x8,
         .format = PIXEL_FMT_BGRA_8888,
-        .usage = HBM_USE_CPU_READ | HBM_USE_CPU_WRITE | HBM_USE_MEM_DMA | HBM_USE_MEM_FB,
+        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA | BUFFER_USAGE_MEM_FB,
         .timeout = 0,
     };
 

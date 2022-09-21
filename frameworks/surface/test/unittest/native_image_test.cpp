@@ -15,11 +15,11 @@
 #include <gtest/gtest.h>
 #include <iservice_registry.h>
 #include <native_image.h>
-#include <display_type.h>
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
 #include "graphic_common_c.h"
 #include "external_window.h"
+#include "surface_type.h"
 #include "GLES/gl.h"
 #include "buffer_log.h"
 
@@ -343,7 +343,7 @@ HWTEST_F(NativeImageTest, OHNativeImageUpdateSurfaceImage002, Function | MediumT
 HWTEST_F(NativeImageTest, OHNativeImageUpdateSurfaceImage003, Function | MediumTest | Level1)
 {
     int code = SET_USAGE;
-    int32_t usage = HBM_USE_CPU_READ | HBM_USE_CPU_WRITE | HBM_USE_MEM_DMA;
+    int32_t usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA;
     int32_t ret = NativeWindowHandleOpt(nativeWindow, code, usage);
     if (ret != GSERROR_OK) {
         std::cout << "NativeWindowHandleOpt SET_USAGE faile" << std::endl;

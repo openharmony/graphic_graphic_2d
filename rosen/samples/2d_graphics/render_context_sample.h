@@ -16,7 +16,6 @@
 #ifndef RENDER_CONTEXT_SAMPLE_H
 #define RENDER_CONTEXT_SAMPLE_H
 
-#include <display_type.h>
 #include <surface.h>
 #include <sync_fence.h>
 

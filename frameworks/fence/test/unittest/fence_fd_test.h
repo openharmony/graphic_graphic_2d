@@ -18,7 +18,6 @@
 
 #include <iostream>
 
-#include <display_type.h>
 #include <gtest/gtest.h>
 
 #include <surface.h>
@@ -37,7 +36,7 @@ public:
         .height = 0x100,
         .strideAlignment = 0x8,
         .format = PIXEL_FMT_RGBA_8888,
-        .usage = HBM_USE_CPU_READ | HBM_USE_CPU_WRITE | HBM_USE_MEM_DMA,
+        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
         .timeout = 0,
     };
     static inline BufferFlushConfig flushConfig = {

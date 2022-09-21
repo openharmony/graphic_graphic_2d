@@ -16,7 +16,6 @@
 #include <iostream>
 #include "securec.h"
 #include "surface.h"
-#include "display_type.h"
 #include "wm/window.h"
 
 #include "transaction/rs_transaction.h"
@@ -61,7 +60,7 @@ int main()
         .height = 500, // height
         .strideAlignment = 0x8,
         .format = PIXEL_FMT_YCBCR_422_P,
-        .usage = HBM_USE_CPU_READ | HBM_USE_CPU_WRITE | HBM_USE_MEM_DMA,
+        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
     };
 
     OHOS::SurfaceError ret = surface->RequestBuffer(buffer, releaseFence, config);

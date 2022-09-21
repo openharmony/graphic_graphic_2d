@@ -19,7 +19,6 @@
 #include "include/core/SkCanvas.h"
 #include "include/core/SkPaint.h"
 
-#include <display_type.h>
 #include <surface.h>
 #include <event_handler.h>
 #include "hdi_backend.h"

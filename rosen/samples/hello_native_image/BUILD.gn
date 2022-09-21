@@ -31,7 +31,6 @@ config("hello_native_image_public_config") {
     "//foundation/graphic/graphic_2d/frameworks/surface/include",
     "//foundation/graphic/graphic_2d/interfaces/inner_api/common",
     "//foundation/graphic/graphic_2d/utils",
-    "//drivers/peripheral/display/interfaces/include",
     "//drivers/peripheral/base",
     "//foundation/communication/ipc/interfaces/innerkits/ipc_core/include",
   ]

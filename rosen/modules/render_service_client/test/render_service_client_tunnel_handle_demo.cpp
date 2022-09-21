@@ -16,7 +16,6 @@
 #include <iostream>
 #include "securec.h"
 #include "surface.h"
-#include "display_type.h"
 #include "wm/window.h"
 
 #include "transaction/rs_transaction.h"

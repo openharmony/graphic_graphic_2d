@@ -35,7 +35,7 @@ LayerContext::LayerContext(IRect dst, IRect src, uint32_t zorder, LayerType laye
 {
     cSurface_ = Surface::CreateSurfaceAsConsumer();
     cSurface_->SetDefaultWidthAndHeight(src.w, src.h);
-    cSurface_->SetDefaultUsage(HBM_USE_CPU_READ | HBM_USE_CPU_WRITE | HBM_USE_MEM_DMA);
+    cSurface_->SetDefaultUsage(BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA);
 
     OHOS::sptr<IBufferProducer> producer = cSurface_->GetProducer();
     pSurface_ = Surface::CreateSurfaceAsProducer(producer);
