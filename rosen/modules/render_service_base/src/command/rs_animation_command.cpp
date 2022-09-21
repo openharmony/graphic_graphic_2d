@@ -20,7 +20,7 @@ namespace Rosen {
 
 namespace {
 static AnimationCommandHelper::FinishCallbackProcessor finishCallbackProcessor = nullptr;
-static constexpr int DURATION_RATIO = 1000000;
+static constexpr int MS_TO_NS = 1000000;
 }
 
 void AnimationCommandHelper::AnimationFinishCallback(RSContext& context, NodeId targetId, AnimationId animId)
@@ -52,7 +52,7 @@ void AnimationCommandHelper::CreateAnimation(
     auto beginTime = context.GetTransactionTimestamp();
     auto currentTime = context.GetCurrentTimestamp();
     // If the animation is already finished
-    if (beginTime != 0 && (currentTime - beginTime) > animation->GetDuration() * DURATION_RATIO) {
+    if (beginTime != 0 && (currentTime - beginTime) > animation->GetDuration() * MS_TO_NS) {
         animation->SetStartTime(beginTime);
         animation->Animate(currentTime);
     } else {
