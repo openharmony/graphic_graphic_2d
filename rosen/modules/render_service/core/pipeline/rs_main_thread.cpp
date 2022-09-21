@@ -178,7 +178,7 @@ void RSMainThread::Init()
     }
 
     auto delegate = RSFunctionalDelegate::Create();
-    delegate->SetRepaintCallback([this]() { this->RequestNextVSync(); });
+    delegate->SetRepaintCallback([]() { RSMainThread::Instance()->RequestNextVSync(); });
     RSOverdrawController::GetInstance().SetDelegate(delegate);
 }
 
