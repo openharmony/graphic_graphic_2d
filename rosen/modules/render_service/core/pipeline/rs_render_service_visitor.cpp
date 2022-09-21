@@ -175,6 +175,10 @@ void RSRenderServiceVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
             node.GetId());
         return;
     }
+    if (!canvas_) {
+        RS_LOGD("RSRenderServiceVisitor::PrepareSurfaceRenderNode node : %" PRIu64 " canvas is nullptr", node.GetId());
+        return;
+    }
     node.ApplyModifiers();
     if (!node.GetRenderProperties().GetVisible()) {
         RS_LOGD("RSRenderServiceVisitor::PrepareSurfaceRenderNode node : %" PRIu64 " is invisible", node.GetId());
