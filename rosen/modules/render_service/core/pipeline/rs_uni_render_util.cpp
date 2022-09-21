@@ -44,7 +44,6 @@ void RSUniRenderUtil::UpdateRenderNodeDstRect(RSRenderNode& node, const SkMatrix
         if (!isSurfaceView) {
             geoPtr->ConcatMatrix(matrix);
         }
-        surfaceNode->SetDstRect(geoPtr->GetAbsRect());
         RS_LOGD("RSUniRenderUtil::UpdateDstRect: nodeName: %s, dstRect[%s].",
             surfaceNode->GetName().c_str(), surfaceNode->GetDstRect().ToString().c_str());
     }

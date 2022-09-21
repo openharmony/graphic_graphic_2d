@@ -71,6 +71,12 @@ void RSUniRenderVisitor::PrepareDisplayRenderNode(RSDisplayRenderNode& node)
     dirtyFlag_ = isDirty_;
 
     node.ApplyModifiers();
+    sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
+    if (!screenManager) {
+        RS_LOGE("RSUniRenderVisitor::ProcessDisplayRenderNode ScreenManager is nullptr");
+        return;
+    }
+    screenInfo_ = screenManager->QueryScreenInfo(node.GetScreenId());
 
     parentSurfaceNodeMatrix_ = SkMatrix::I();
     auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(node.GetRenderProperties().GetBoundsGeometry());
@@ -115,10 +121,11 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
             dirtyFlag_ = node.Update(*curSurfaceDirtyManager_, nullptr, dirtyFlag_);
         }
         geoPtr->ConcatMatrix(node.GetContextMatrix());
-        node.SetDstRect(geoPtr->GetAbsRect());
+        node.SetDstRect(geoPtr->GetAbsRect().IntersectRect(RectI(0, 0, screenInfo_.width, screenInfo_.height)));
         curDisplayNode_->UpdateSurfaceNodePos(node.GetId(), node.GetDstRect());
     } else {
         RSUniRenderUtil::UpdateRenderNodeDstRect(node, node.GetContextMatrix());
+        node.SetDstRect(geoPtr->GetAbsRect().IntersectRect(RectI(0, 0, screenInfo_.width, screenInfo_.height)));
         if (node.GetBuffer() != nullptr) {
             auto& surfaceHandler = static_cast<RSSurfaceHandler&>(node);
             if (surfaceHandler.IsCurrentFrameBufferConsumed()) {
@@ -279,12 +286,6 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
     RS_LOGD("RSUniRenderVisitor::ProcessDisplayRenderNode node: %" PRIu64 ", child size:%u", node.GetId(),
         node.GetChildrenCount());
     isSecurityDisplay_ = node.GetSecurityDisplay();
-    sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
-    if (!screenManager) {
-        RS_LOGE("RSUniRenderVisitor::ProcessDisplayRenderNode ScreenManager is nullptr");
-        return;
-    }
-    screenInfo_ = screenManager->QueryScreenInfo(node.GetScreenId());
     switch (screenInfo_.state) {
         case ScreenState::PRODUCER_SURFACE_ENABLE:
             node.SetCompositeType(RSDisplayRenderNode::CompositeType::UNI_RENDER_MIRROR_COMPOSITE);
