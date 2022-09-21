@@ -24,6 +24,8 @@
 
 #include "animation/rs_animation_fraction.h"
 #include "command/rs_surface_node_command.h"
+#include "delegate/rs_functional_delegate.h"
+#include "overdraw/rs_overdraw_controller.h"
 #include "pipeline/rs_draw_cmd_list.h"
 #include "pipeline/rs_frame_report.h"
 #include "pipeline/rs_node_map.h"
@@ -247,6 +249,10 @@ void RSRenderThread::RenderLoop()
         hasSkipVsync_ = false;
         RSRenderThread::Instance().RequestNextVSync();
     }
+
+    auto delegate = RSFunctionalDelegate::Create();
+    delegate->SetRepaintCallback([this]() { this->RequestNextVSync(); });
+    RSOverdrawController::GetInstance().SetDelegate(delegate);
 
     if (runner_) {
         runner_->Run();

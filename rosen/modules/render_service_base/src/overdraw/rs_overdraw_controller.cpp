@@ -21,7 +21,6 @@
 #include "hilog/log.h"
 #include "parameter.h"
 
-#include "pipeline/rs_render_thread.h"
 #include "platform/common/rs_log.h"
 
 namespace OHOS {
@@ -47,6 +46,11 @@ RSOverdrawController &RSOverdrawController::GetInstance()
 {
     static RSOverdrawController instance;
     return instance;
+}
+
+void RSOverdrawController::SetDelegate(const std::shared_ptr<RSDelegate> &delegate)
+{
+    delegate_ = delegate;
 }
 
 bool RSOverdrawController::IsEnabled() const
@@ -90,8 +94,8 @@ void RSOverdrawController::SwitchFunction(const char *key, const char *value, vo
         ROSEN_LOGI("%{public}s disable", key);
     }
 
-    if (oldEnable != that.enabled_) {
-        RSRenderThread::Instance().RequestNextVSync();
+    if (oldEnable != that.enabled_ && that.delegate_ != nullptr) {
+        that.delegate_->Repaint();
     }
 }
 
@@ -110,8 +114,8 @@ void RSOverdrawController::OnColorChange(const char *key, const char *value, voi
         that.SetColors(colors);
     }
 
-    if (colors != oldColors) {
-        RSRenderThread::Instance().RequestNextVSync();
+    if (colors != oldColors && that.delegate_ != nullptr) {
+        that.delegate_->Repaint();
     }
 }
 } // namespace Rosen

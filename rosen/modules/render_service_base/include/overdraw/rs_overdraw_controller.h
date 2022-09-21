@@ -20,6 +20,7 @@
 #include <vector>
 
 #include "common/rs_macros.h"
+#include "delegate/rs_delegate.h"
 #include "platform/common/rs_log.h"
 #include "rs_listened_canvas.h"
 
@@ -31,6 +32,7 @@ public:
 
     ~RSOverdrawController() = default;
 
+    void SetDelegate(const std::shared_ptr<RSDelegate> &delegate);
     bool IsEnabled() const;
     void SetEnable(bool enable);
     const std::vector<uint32_t> &GetColors() const;
@@ -60,6 +62,7 @@ private:
 
     static void OnColorChange(const char *key, const char *value, void *context);
 
+    std::shared_ptr<RSDelegate> delegate_ = nullptr;
     bool enabled_ = false;
     std::vector<uint32_t> colors_;
 };
