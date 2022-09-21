@@ -83,15 +83,6 @@ public:
     }
     void UpdateRenderMode(bool needRender);
     void NotifyClearBufferCache();
-    bool GetForceUpdateSurfaceNode() const
-    {
-        return forceUpdateSurfaceNode_;
-    }
-
-    void SetForceUpdateSurfaceNode(bool forceUpdate)
-    {
-        forceUpdateSurfaceNode_ = forceUpdate;
-    }
 
     void SetCacheDir(const std::string& filePath)
     {
@@ -127,10 +118,10 @@ private:
 
     void UpdateSurfaceNodeParentInRS();
     void ClearBufferCache();
+    void MarkNeedUpdateSurfaceNode();
     std::atomic_bool running_ = false;
     std::atomic_bool hasSkipVsync_ = false;
     bool needRender_ = true;
-    bool forceUpdateSurfaceNode_ = false;
     std::atomic_int activeWindowCnt_ = 0;
     std::unique_ptr<std::thread> thread_ = nullptr;
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
