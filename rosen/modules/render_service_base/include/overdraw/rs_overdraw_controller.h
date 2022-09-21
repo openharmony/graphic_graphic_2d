@@ -17,6 +17,7 @@
 #define RENDER_SERVICE_CLIENT_CORE_PIPELINE_OVERDRAW_RS_OVERDRAW_CONTROLLER_H
 
 #include <memory>
+#include <vector>
 
 #include "common/rs_macros.h"
 #include "platform/common/rs_log.h"
@@ -28,16 +29,12 @@ class RS_EXPORT RSOverdrawController {
 public:
     static RS_EXPORT RSOverdrawController &GetInstance();
 
-    bool IsEnabled() const
-    {
-        return enabled_;
-    }
+    ~RSOverdrawController() = default;
 
-    void SetEnable(bool enable)
-    {
-        enabled_ = enable;
-    }
-
+    bool IsEnabled() const;
+    void SetEnable(bool enable);
+    const std::vector<uint32_t> &GetColors() const;
+    void SetColors(const std::vector<uint32_t> &colors);
     static RS_EXPORT void SwitchFunction(const char *key, const char *value, void *context);
 
     template<class RSCanvasListenerImpl>
@@ -55,10 +52,16 @@ public:
     }
 
 private:
-    static inline std::unique_ptr<RSOverdrawController> instance = nullptr;
     RSOverdrawController();
+    RSOverdrawController(RSOverdrawController &&) = delete;
+    RSOverdrawController(const RSOverdrawController &) = delete;
+    RSOverdrawController &operator =(RSOverdrawController &&) = delete;
+    RSOverdrawController &operator =(const RSOverdrawController &) = delete;
+
+    static void OnColorChange(const char *key, const char *value, void *context);
 
     bool enabled_ = false;
+    std::vector<uint32_t> colors_;
 };
 } // namespace Rosen
 } // namespace OHOS

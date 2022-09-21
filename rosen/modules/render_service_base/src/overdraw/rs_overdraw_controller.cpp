@@ -15,8 +15,11 @@
 
 #include "overdraw/rs_overdraw_controller.h"
 
-#include <hilog/log.h>
-#include <parameter.h>
+#include <cstring>
+#include <sstream>
+
+#include "hilog/log.h"
+#include "parameter.h"
 
 #include "pipeline/rs_render_thread.h"
 #include "platform/common/rs_log.h"
@@ -24,21 +27,46 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
+// param set debug.graphic.overdraw true/false
 constexpr const char *switchText = "debug.graphic.overdraw";
+/* param set debug.graphic.colors_overdraw [color...]
+ * For Example:
+ *   param set debug.graphic.colors_overdraw "0 0x220000ff 0x2200ff00 0x22ff0000 0x44ff0000"
+ *   means:
+ *   - Drawn Once Region: 0x00000000 (transparent)
+ *   - Drawn Twice Region: 0x220000ff (alpha: 13% blue)
+ *   - Drawn 3 Times Region: 0x2200ff00 (alpha: 13% green)
+ *   - Drawn 4 Times Region: 0x22ff0000 (alpha: 13% red)
+ *   - Drawn >= 5 Times Region: 0x44ff0000 (alpha: 26% red)
+ */
+constexpr const char *colorText = "debug.graphic.colors_overdraw";
 constexpr const char *switchEnableText = "true";
 } // namespace
 
 RSOverdrawController &RSOverdrawController::GetInstance()
 {
-    if (instance == nullptr) {
-        static std::mutex mutex;
-        std::lock_guard lock(mutex);
-        if (instance == nullptr) {
-            instance = std::unique_ptr<RSOverdrawController>(new RSOverdrawController());
-        }
-    }
+    static RSOverdrawController instance;
+    return instance;
+}
 
-    return *instance;
+bool RSOverdrawController::IsEnabled() const
+{
+    return enabled_;
+}
+
+void RSOverdrawController::SetEnable(bool enable)
+{
+    enabled_ = enable;
+}
+
+const std::vector<uint32_t> &RSOverdrawController::GetColors() const
+{
+    return colors_;
+}
+
+void RSOverdrawController::SetColors(const std::vector<uint32_t> &colors)
+{
+    colors_ = colors;
 }
 
 RSOverdrawController::RSOverdrawController()
@@ -47,6 +75,7 @@ RSOverdrawController::RSOverdrawController()
     GetParameter(switchText, "false", value, sizeof(value));
     SwitchFunction(switchText, value, this);
     WatchParameter(switchText, SwitchFunction, this);
+    WatchParameter(colorText, OnColorChange, this);
 }
 
 void RSOverdrawController::SwitchFunction(const char *key, const char *value, void *context)
@@ -62,6 +91,26 @@ void RSOverdrawController::SwitchFunction(const char *key, const char *value, vo
     }
 
     if (oldEnable != that.enabled_) {
+        RSRenderThread::Instance().RequestNextVSync();
+    }
+}
+
+void RSOverdrawController::OnColorChange(const char *key, const char *value, void *context)
+{
+    auto &that = *reinterpret_cast<RSOverdrawController *>(context);
+    std::stringstream ss(value);
+    std::vector<uint32_t> colors;
+    uint32_t color;
+    while (ss >> std::hex >> color) {
+        colors.push_back(color);
+    }
+
+    auto oldColors = that.GetColors();
+    if (ss.eof()) {
+        that.SetColors(colors);
+    }
+
+    if (colors != oldColors) {
         RSRenderThread::Instance().RequestNextVSync();
     }
 }
