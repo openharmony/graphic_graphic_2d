@@ -66,7 +66,9 @@ public:
 
     void SetSurfaceNodeType(RSSurfaceNodeType nodeType)
     {
-        nodeType_ = nodeType;
+        if (nodeType_ != RSSurfaceNodeType::ABILITY_COMPONENT_NODE) {
+            nodeType_ = nodeType;
+        }
     }
 
     std::string GetName() const

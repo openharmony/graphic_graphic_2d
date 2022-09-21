@@ -113,6 +113,9 @@ void RSSurfaceNode::CreateNodeInRenderThread()
     command = std::make_unique<RSSurfaceNodeSetCallbackForRenderThreadRefresh>(
         GetId(), [] { RSRenderThread::Instance().RequestNextVSync(); });
     transactionProxy->AddCommand(command, false);
+
+    command = std::make_unique<RSSurfaceNodeSetSurfaceNodeType>(GetId(), RSSurfaceNodeType::ABILITY_COMPONENT_NODE);
+    transactionProxy->AddCommand(command, true);
     isRenderServiceNode_ = false;
 }
 
