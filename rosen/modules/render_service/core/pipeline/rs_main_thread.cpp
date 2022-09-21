@@ -170,7 +170,7 @@ void RSMainThread::Init()
     config.SubscribeConfigObserver(CONFIG_ID::CONFIG_INVERT_COLOR, correctionObserver_);
 
     auto delegate = RSFunctionalDelegate::Create();
-    delegate->SetRepaintCallback([this]() { this->RequestNextVSync(); });
+    delegate->SetRepaintCallback([]() { RSMainThread::Instance()->RequestNextVSync(); });
     RSOverdrawController::GetInstance().SetDelegate(delegate);
 }
 
