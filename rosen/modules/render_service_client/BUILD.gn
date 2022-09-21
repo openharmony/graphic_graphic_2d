@@ -117,10 +117,7 @@ ohos_source_set("render_service_client_src") {
   ]
 
   if (rss_enabled) {
-    deps += [
-      "//foundation/resourceschedule/resource_schedule_service/ressched/interfaces/innerkits/ressched_client:ressched_client",
-      "//third_party/jsoncpp:jsoncpp",
-    ]
+    deps += [ "//foundation/resourceschedule/resource_schedule_service/ressched/interfaces/innerkits/ressched_client:ressched_client" ]
   }
 
   if (enable_export_macro) {
@@ -135,8 +132,6 @@ ohos_source_set("render_service_client_src") {
     "eventhandler:libeventhandler",
     "hisysevent_native:libhisysevent",
     "hitrace_native:hitrace_meter",
-    "init:libbeget_proxy",
-    "init:libbegetutil",
     "ipc:ipc_core",
   ]
   public_deps =

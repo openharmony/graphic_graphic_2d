@@ -167,6 +167,7 @@ ohos_shared_library("librender_service_base") {
   ]
 
   deps = [
+    "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/src/platform:platform",
     "//foundation/graphic/graphic_2d/utils:sandbox_utils",
   ]
@@ -180,7 +181,6 @@ ohos_shared_library("librender_service_base") {
 
   public_deps = [
     "src/platform:platform",
-    "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
     "//foundation/multimedia/image_framework/interfaces/innerkits:image_native",
   ]
 
