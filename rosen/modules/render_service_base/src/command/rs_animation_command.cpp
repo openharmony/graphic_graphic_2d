@@ -20,7 +20,6 @@ namespace Rosen {
 
 namespace {
 static AnimationCommandHelper::FinishCallbackProcessor finishCallbackProcessor = nullptr;
-static constexpr int MS_TO_NS = 1000000;
 }
 
 void AnimationCommandHelper::AnimationFinishCallback(RSContext& context, NodeId targetId, AnimationId animId)
