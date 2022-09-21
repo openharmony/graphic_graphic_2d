@@ -41,22 +41,16 @@ public:
     static RS_EXPORT void SwitchFunction(const char *key, const char *value, void *context);
 
     template<class RSCanvasListenerImpl>
-    std::shared_ptr<RSCanvasListenerImpl> SetHook(RSPaintFilterCanvas *&canvas)
+    std::shared_ptr<RSCanvasListenerImpl> CreateListener(RSPaintFilterCanvas *canvas)
     {
         if (enabled_ == true && canvas != nullptr) {
             auto listener = std::make_shared<RSCanvasListenerImpl>(*canvas);
             if (listener->IsValid() == false) {
-                ROSEN_LOGD("SetHook %s failed", listener->Name());
+                ROSEN_LOGD("CreateListener %s failed", listener->Name());
                 return nullptr;
             }
-
-            auto listened = new RSListenedCanvas(canvas);
-            listened->SetListener(listener);
-            canvas = listened;
-            ROSEN_LOGD("SetHook %s success", listener->Name());
             return listener;
         }
-
         return nullptr;
     }
 

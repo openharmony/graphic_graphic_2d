@@ -341,16 +341,18 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
         ROSEN_LOGE("skSurface.getCanvas is null.");
         return;
     }
-    canvas_ = new RSPaintFilterCanvas(skSurface.get());
+    auto listenedCanvas = std::make_shared<RSListenedCanvas>(skSurface.get());
+    canvas_ = listenedCanvas;
 
     canvas_->SetHighContrast(RSRenderThread::Instance().isHighContrastEnabled());
 
     auto &overdrawController = RSOverdrawController::GetInstance();
     std::shared_ptr<RSCanvasListener> overdrawListener = nullptr;
-    overdrawListener = overdrawController.SetHook<RSGPUOverdrawCanvasListener>(canvas_);
+    overdrawListener = overdrawController.CreateListener<RSGPUOverdrawCanvasListener>(canvas_.get());
     if (overdrawListener == nullptr) {
-        overdrawListener = overdrawController.SetHook<RSCPUOverdrawCanvasListener>(canvas_);
+        overdrawListener = overdrawController.CreateListener<RSCPUOverdrawCanvasListener>(canvas_.get());
     }
+    listenedCanvas->SetListener(overdrawListener);
 
     // node's surface size already check, so here we do not need to check return
     // attention: currently surfaceW/H are float values transformed into int implicitly
@@ -423,7 +425,6 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
     FrameCollector::GetInstance().MarkFrameEvent(FrameEventType::FlushEnd);
     RS_TRACE_END();
 
-    delete canvas_;
     canvas_ = nullptr;
     isIdle_ = true;
 }
@@ -490,7 +491,7 @@ void RSRenderThreadVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
     // We plan to refactor code here.
     node.SetContextBounds(node.GetRenderProperties().GetBounds());
 
-    auto clipRect = getLocalClipBounds(canvas_);
+    auto clipRect = getLocalClipBounds(canvas_.get());
     if (clipRect.width() < std::numeric_limits<float>::epsilon() ||
         clipRect.height() < std::numeric_limits<float>::epsilon()) {
         // if clipRect is empty, this node will be removed from parent's children list.
