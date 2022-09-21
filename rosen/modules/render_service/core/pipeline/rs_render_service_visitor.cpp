@@ -28,6 +28,7 @@
 #include "pipeline/rs_processor_factory.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_log.h"
+#include "platform/common/rs_innovation.h"
 #include "platform/drawing/rs_surface.h"
 #include "screen_manager/rs_screen_manager.h"
 #include "screen_manager/screen_types.h"
@@ -169,6 +170,14 @@ void RSRenderServiceVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
 
 void RSRenderServiceVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
 {
+    if (RSInnovation::GetParallelCompositionEnabled()) {
+        typedef bool (*CheckForSerialForcedFunc)(std::string&);
+        CheckForSerialForcedFunc CheckForSerialForced =
+            (CheckForSerialForcedFunc)RSInnovation::_s_checkForSerialForced;
+        auto name = node.GetName();
+        mForceSerial |= CheckForSerialForced(name);
+    }
+
     if (isSecurityDisplay_ && node.GetSecurityLayer()) {
         RS_LOGI("RSRenderServiceVisitor::PrepareSurfaceRenderNode node[%" PRIu64 "] prepare paused because of \
             security DisplayNode.",

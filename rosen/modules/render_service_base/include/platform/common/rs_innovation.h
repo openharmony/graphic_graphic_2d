@@ -61,6 +61,7 @@ public:
     static inline void* _s_signalAwait = nullptr;
     static inline void* _s_assignTask = nullptr;
     static inline void* _s_removeStoppedThreads = nullptr;
+    static inline void* _s_checkForSerialForced = nullptr;
 
     // occlusion culling
     static void UpdateOcclusionCullingSoEnabled()
@@ -135,12 +136,14 @@ private:
             _s_signalAwait = dlsym(innovationHandle, "SignalAwait");
             _s_assignTask = dlsym(innovationHandle, "AssignTask");
             _s_removeStoppedThreads = dlsym(innovationHandle, "RemoveStoppedThreads");
+            _s_checkForSerialForced = dlsym(innovationHandle, "CheckForSerialForced");
             _s_parallelCompositionLoaded =
                 (_s_createParallelSyncSignal != nullptr) &&
                 (_s_signalCountDown != nullptr) &&
                 (_s_signalAwait != nullptr) &&
                 (_s_assignTask != nullptr) &&
-                (_s_removeStoppedThreads != nullptr);
+                (_s_removeStoppedThreads != nullptr) &&
+                (_s_checkForSerialForced != nullptr);
         }
     }
 
@@ -153,6 +156,7 @@ private:
             _s_signalAwait = nullptr;
             _s_assignTask = nullptr;
             _s_removeStoppedThreads = nullptr;
+            _s_checkForSerialForced = nullptr;
         }
     }
 

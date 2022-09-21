@@ -546,30 +546,31 @@ void RSMainThread::Render()
     }
 
     RS_LOGD("RSMainThread::Render isUni:%d", IfUseUniVisitor());
-    std::shared_ptr<RSNodeVisitor> visitor;
+    
     if (IfUseUniVisitor()) {
         auto uniVisitor = std::make_shared<RSUniRenderVisitor>();
         uniVisitor->SetAnimateState(doWindowAnimate_);
         uniVisitor->SetDirtyFlag(isDirty_);
         isDirty_ = false;
-        visitor = uniVisitor;
+        rootNode->Prepare(uniVisitor);
+        CalcOcclusion();
+        rootNode->Process(uniVisitor);
     } else {
+        auto rsVisitor = std::make_shared<RSRenderServiceVisitor>();
+        rsVisitor->SetAnimateState(doWindowAnimate_);
+        rootNode->Prepare(rsVisitor);
+        CalcOcclusion();
+
         bool doParallelComposition = false;
-        if (RSInnovation::GetParallelCompositionEnabled()) {
+        if (!rsVisitor->ShouldForceSerial() && RSInnovation::GetParallelCompositionEnabled()) {
             doParallelComposition = DoParallelComposition(rootNode);
         }
         if (doParallelComposition) {
             renderEngine_->ShrinkCachesIfNeeded();
             return;
         }
-        auto rsVisitor = std::make_shared<RSRenderServiceVisitor>();
-        rsVisitor->SetAnimateState(doWindowAnimate_);
-        visitor = rsVisitor;
+        rootNode->Process(rsVisitor);
     }
-
-    rootNode->Prepare(visitor);
-    CalcOcclusion();
-    rootNode->Process(visitor);
 
     renderEngine_->ShrinkCachesIfNeeded();
 }
@@ -1010,9 +1011,7 @@ bool RSMainThread::DoParallelComposition(std::shared_ptr<RSBaseRenderNode> rootN
     }
 
     (*RemoveStoppedThreads)();
-    std::shared_ptr<OHOS::Rosen::RSNodeVisitor> visitor = std::make_shared<RSRenderServiceVisitor>();
-    rootNode->Prepare(visitor);
-    CalcOcclusion();
+
     auto children = rootNode->GetSortedChildren();
     bool animate_ = doWindowAnimate_;
     for (auto it = children.rbegin(); it != children.rend(); it++) {
