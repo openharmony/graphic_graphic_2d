@@ -341,18 +341,34 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
         ROSEN_LOGE("skSurface.getCanvas is null.");
         return;
     }
-    auto listenedCanvas = std::make_shared<RSListenedCanvas>(skSurface.get());
-    canvas_ = listenedCanvas;
+
+    // if listenedCanvas is nullptr, that means disabled or listen failed
+    std::shared_ptr<RSListenedCanvas> listenedCanvas = nullptr;
+    std::shared_ptr<RSCanvasListener> overdrawListener = nullptr;
+
+    if (RSOverdrawController::GetInstance().IsEnabled()) {
+        auto &oc = RSOverdrawController::GetInstance();
+        listenedCanvas = std::make_shared<RSListenedCanvas>(skSurface.get());
+        overdrawListener = oc.CreateListener<RSGPUOverdrawCanvasListener>(listenedCanvas.get());
+        if (overdrawListener == nullptr) {
+            overdrawListener = oc.CreateListener<RSCPUOverdrawCanvasListener>(listenedCanvas.get());
+        }
+
+        if (overdrawListener != nullptr) {
+            listenedCanvas->SetListener(overdrawListener);
+        } else {
+            // create listener failed
+            listenedCanvas = nullptr;
+        }
+    }
+
+    if (listenedCanvas != nullptr) {
+        canvas_ = listenedCanvas;
+    } else {
+        canvas_ = std::make_shared<RSPaintFilterCanvas>(skSurface.get());
+    }
 
     canvas_->SetHighContrast(RSRenderThread::Instance().isHighContrastEnabled());
-
-    auto &overdrawController = RSOverdrawController::GetInstance();
-    std::shared_ptr<RSCanvasListener> overdrawListener = nullptr;
-    overdrawListener = overdrawController.CreateListener<RSGPUOverdrawCanvasListener>(canvas_.get());
-    if (overdrawListener == nullptr) {
-        overdrawListener = overdrawController.CreateListener<RSCPUOverdrawCanvasListener>(canvas_.get());
-    }
-    listenedCanvas->SetListener(overdrawListener);
 
     // node's surface size already check, so here we do not need to check return
     // attention: currently surfaceW/H are float values transformed into int implicitly
