@@ -56,11 +56,22 @@ public:
         return enableRender_;
     }
 
+    void SetNeedUpdateSurfaceNode(bool needUpdate)
+    {
+        needUpdateSurfaceNode_ = needUpdate;
+    }
+
+    bool GetNeedUpdateSurfaceNode() const
+    {
+        return needUpdateSurfaceNode_;
+    }
+
 private:
     std::shared_ptr<RSDirtyRegionManager> dirtyManager_ = nullptr;
     std::shared_ptr<RSSurface> rsSurface_ = nullptr;
     NodeId surfaceNodeId_ = 0;
     bool enableRender_ = true;
+    bool needUpdateSurfaceNode_ = false;
     int32_t surfaceWidth_ = 0;
     int32_t surfaceHeight_ = 0;
 

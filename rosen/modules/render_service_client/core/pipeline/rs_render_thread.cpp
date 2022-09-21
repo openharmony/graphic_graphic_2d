@@ -292,7 +292,7 @@ void RSRenderThread::UpdateRenderMode(bool needRender)
                 UpdateSurfaceNodeParentInRS();
             } else {
                 needRender_ = needRender;
-                forceUpdateSurfaceNode_ = true;
+                MarkNeedUpdateSurfaceNode();
                 CreateAndInitRenderContextIfNeed();
             }
         }, AppExecFwk::EventQueue::Priority::IMMEDIATE);
@@ -351,6 +351,24 @@ void RSRenderThread::ClearBufferCache()
         if (rsSurface != nullptr) {
             rsSurface->ClearAllBuffer();
         }
+    }
+    rootNode->ResetSortedChildren();
+}
+
+
+void RSRenderThread::MarkNeedUpdateSurfaceNode()
+{
+    const auto& rootNode = context_.GetGlobalRootRenderNode();
+    if (rootNode == nullptr) {
+        ROSEN_LOGE("RSRenderThread::MarkNeedUpdateSurfaceNode, rootNode is nullptr");
+        return;
+    }
+    for (auto& child : rootNode->GetSortedChildren()) {
+        if (!child || !child->IsInstanceOf<RSRootRenderNode>()) {
+            continue;
+        }
+        auto childNode = child->ReinterpretCastTo<RSRootRenderNode>();
+        childNode->SetNeedUpdateSurfaceNode(true);
     }
     rootNode->ResetSortedChildren();
 }
