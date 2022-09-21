@@ -32,8 +32,8 @@ class RSInterfacesSystemTest : public testing::Test {
 public:
     static void SetUpTestCase();
     static void TearDownTestCase();
-    virtual void SetUp() override;
-    virtual void TearDown() override;
+    void SetUp() override;
+    void TearDown() override;
     static sptr<Display> defaultDisplay_;
     static DisplayId defaultDisplayId_;
     static ScreenId defaultScreenId_;

@@ -299,42 +299,6 @@ public:
         parallelVisitMutex_.unlock();
     }
 
-    bool IsIntersectWithDirty(const RectI& r) const
-    {
-        if (dirtyManager_ == nullptr) {
-            return true;
-        }
-        Occlusion::Rect nodeRect { r.left_, r.top_, r.GetRight(), r.GetBottom() };
-
-        // if current node is in occluded region of the surface, it could be skipped in process step
-        bool isVisible = visibleRegion_.IsIntersectWith(nodeRect);
-        if (!isVisible) {
-            return false;
-        }
-
-        // if current node rect r is in global dirtyregion, it CANNOT be skipped
-        if (!globalDirtyRegionIsEmpty_) {
-            auto globalRect = r.IntersectRect(globalDirtyRegion_);
-            if (!globalRect.IsEmpty()) {
-                return true;
-            }
-        }
-        
-        // if current node is in visible dirtyRegion, it CANNOT be skipped
-        bool localIntersect = visibleDirtyRegion_.IsIntersectWith(nodeRect);
-        if (localIntersect) {
-            return true;
-        }
-
-        // if current node is transparent
-        const uint8_t opacity = 255;
-        if (!(GetAbilityBgAlpha() == opacity &&
-                ROSEN_EQ(GetRenderProperties().GetAlpha(), 1.0f))) {
-            return dirtyRegionBelowCurrentLayer_.IsIntersectWith(nodeRect);
-        }
-        return false;
-    }
-
     bool SubNodeVisible(const RectI& r) const
     {
         Occlusion::Rect nodeRect { r.left_, r.top_, r.GetRight(), r.GetBottom() };
