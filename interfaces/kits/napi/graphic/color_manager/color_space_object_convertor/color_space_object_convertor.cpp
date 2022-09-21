@@ -21,12 +21,22 @@ namespace OHOS {
 namespace ColorManager {
 NativeValue* CreateJsColorSpaceObject(NativeEngine& engine, std::shared_ptr<ColorSpace>& colorSpace)
 {
+    if (colorSpace == nullptr) {
+        CMLOGE("[NAPI]colorSpace is nullptr");
+        engine.Throw(CreateJsError(engine,
+            static_cast<int32_t>(JS_TO_ERROR_CODE_MAP.at(CMError::CM_ERROR_INVALID_PARAM))));
+        return nullptr;
+    }
     NativeValue* objValue = engine.CreateObject();
     NativeObject* object = ConvertNativeValueTo<NativeObject>(objValue);
+    if (object == nullptr) {
+        CMLOGE("[NAPI]Fail to convert to js object");
+        engine.Throw(CreateJsError(engine, static_cast<int32_t>(JS_TO_ERROR_CODE_MAP.at(CMError::CM_ERROR_NULLPTR))));
+        return engine.CreateUndefined();
+    }
 
     std::unique_ptr<JsColorSpace> jsColorSpace = std::make_unique<JsColorSpace>(colorSpace);
     object->SetNativePointer(jsColorSpace.release(), JsColorSpace::Finalizer, nullptr);
-
     BindFunctions(engine, object);
 
     std::shared_ptr<NativeReference> jsColorSpaceRef;

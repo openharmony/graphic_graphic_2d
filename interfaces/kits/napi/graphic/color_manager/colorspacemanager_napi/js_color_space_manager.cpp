@@ -24,7 +24,6 @@
 namespace OHOS {
 namespace ColorManager {
 constexpr size_t ARGC_ONE = 1;
-constexpr size_t ARGC_TWO = 2;
 constexpr size_t PRIMARIES_PARAMS_NUM = 8;
 
 void JsColorSpaceManager::Finalizer(NativeEngine* engine, void* data, void* hint)
@@ -38,43 +37,76 @@ NativeValue* JsColorSpaceManager::CreateColorSpace(NativeEngine* engine, NativeC
     return (me != nullptr) ? me->OnCreateColorSpace(*engine, *info) : nullptr;
 }
 
+bool CheckColorSpaceTypeRange(NativeEngine& engine, const ApiColorSpaceType csType)
+{
+    if (csType >= ApiColorSpaceType::TYPE_END) {
+        CMLOGE("[NAPI]ColorSpaceType is invalid: %{public}u", csType);
+        engine.Throw(CreateJsError(engine,
+            static_cast<int32_t>(JS_TO_ERROR_CODE_MAP.at(CMError::CM_ERROR_INVALID_ENUM_USAGE)),
+            "Parameter is invalid. The type of ApiColorSpaceType must be less than " +
+            std::to_string(static_cast<int32_t>(ApiColorSpaceType::TYPE_END))));
+        return false;
+    }
+    if (csType == ApiColorSpaceType::UNKNOWN || csType == ApiColorSpaceType::CUSTOM) {
+        CMLOGE("[NAPI]ColorSpaceType is invalid: %{public}u", csType);
+        engine.Throw(CreateJsError(engine,
+            static_cast<int32_t>(JS_TO_ERROR_CODE_MAP.at(CMError::CM_ERROR_INVALID_ENUM_USAGE)),
+            "Parameter is invalid. Cannot create color manager object using ApiColorSpaceType " +
+            std::to_string(static_cast<int32_t>(ApiColorSpaceType::CUSTOM))));
+        return false;
+    }
+    return true;
+}
+
 NativeValue* JsColorSpaceManager::OnCreateColorSpace(NativeEngine& engine, NativeCallbackInfo& info)
 {
-    if (info.argc != ARGC_ONE && info.argc != ARGC_TWO) {
-        CMLOGE("[NAPI]Argc is invalid: %{public}zu", info.argc);
+    if (!CheckParamMinimumValid(engine, info.argc, 0)) {
         return nullptr;
     }
-
     std::shared_ptr<ColorSpace> colorSpace;
-    if (info.argc == ARGC_ONE) {
-        ApiColorSpaceType csType = ApiColorSpaceType::UNKNOWN;
-        if (!ConvertFromJsValue(engine, info.argv[0], csType)) {
-            CMLOGE("[NAPI]Failed to convert parameter to ColorSpaceType.");
-            return nullptr;
+    ApiColorSpaceType csType = ApiColorSpaceType::UNKNOWN;
+    if (ConvertFromJsValue(engine, info.argv[0], csType)) {
+        if (!CheckColorSpaceTypeRange(engine, csType)) {
+            return engine.CreateUndefined();
         }
         colorSpace = std::make_shared<ColorSpace>(JS_TO_NATIVE_COLOR_SPACE_NAME_MAP.at(csType));
     } else {
-        // info.argc must be ARGC_ONE or ARGC_TWO
+        if (info.argc == ARGC_ONE) {
+            CMLOGE("[NAPI]Failed to convert parameter to ColorSpaceType.");
+            engine.Throw(CreateJsError(engine,
+                static_cast<int32_t>(JS_TO_ERROR_CODE_MAP.at(CMError::CM_ERROR_INVALID_PARAM)),
+                "Parameter check fails. When there is only one parameter, its type should be ApiColorSpaceType"));
+            return engine.CreateUndefined();
+        }
         ColorSpacePrimaries primaries;
         double gamma = 0.0;
         NativeObject* nativePrimaries = ConvertNativeValueTo<NativeObject>(info.argv[0]);
         if (!ParseColorSpacePrimaries(engine, nativePrimaries, primaries)) {
             CMLOGE("[NAPI]Failed to convert parameter to ColorSpacePrimaries.");
-            return nullptr;
+            engine.Throw(CreateJsError(engine,
+                static_cast<int32_t>(JS_TO_ERROR_CODE_MAP.at(CMError::CM_ERROR_INVALID_PARAM)),
+                "Parameter check fails. The first parameter cannot be convert to ColorSpacePrimaries"));
+            return engine.CreateUndefined();
         }
         if (!ConvertFromJsValue(engine, info.argv[1], gamma)) {
             CMLOGE("[NAPI]Failed to convert parameter to gamma.");
-            return nullptr;
+            engine.Throw(CreateJsError(engine,
+                static_cast<int32_t>(JS_TO_ERROR_CODE_MAP.at(CMError::CM_ERROR_INVALID_PARAM)),
+                "Parameter check fails. The second parameter cannot be convert to gamma(float)"));
+            return engine.CreateUndefined();
         }
         colorSpace = std::make_shared<ColorSpace>(primaries, static_cast<float>(gamma));
     }
-    
+
     if (colorSpace != nullptr) {
         CMLOGI("[NAPI]OnCreateColorSpace CreateJsColorSpaceObject is called");
         return CreateJsColorSpaceObject(engine, colorSpace);
     }
     CMLOGE("[NAPI]Create color space failed");
-    return nullptr;
+    engine.Throw(CreateJsError(engine,
+        static_cast<int32_t>(JS_TO_ERROR_CODE_MAP.at(CMError::CM_ERROR_INVALID_PARAM)),
+        "Parameter is invalid. Fail to create JsColorSpaceObject"));
+    return engine.CreateUndefined();
 }
 
 bool JsColorSpaceManager::ParseColorSpacePrimaries(
@@ -133,6 +165,8 @@ NativeValue* JsColorSpaceManagerInit(NativeEngine* engine, NativeValue* exportOb
     std::unique_ptr<JsColorSpaceManager> jsColorSpaceManager = std::make_unique<JsColorSpaceManager>();
     object->SetNativePointer(jsColorSpaceManager.release(), JsColorSpaceManager::Finalizer, nullptr);
     object->SetProperty("ColorSpace", ColorSpaceTypeInit(engine));
+    object->SetProperty("CMError", CMErrorInit(engine));
+    object->SetProperty("CMErrorCode", CMErrorCodeInit(engine));
     const char *moduleName = "JsColorSpaceManager";
     BindNativeFunction(*engine, *object, "create", moduleName, JsColorSpaceManager::CreateColorSpace);
     return engine->CreateUndefined();

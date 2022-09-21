@@ -25,7 +25,12 @@ void JsColorSpace::Finalizer(NativeEngine* engine, void* data, void* hint)
 {
     auto jsColorSpace = std::unique_ptr<JsColorSpace>(static_cast<JsColorSpace*>(data));
     if (jsColorSpace == nullptr) {
-        CMLOGE("[NAPI]jsColorSpace is nullptr");
+        CMLOGE("[NAPI]Finalizer jsColorSpace is nullptr");
+        return;
+    }
+    auto csToken = jsColorSpace->colorSpaceToken_;
+    if (csToken == nullptr) {
+        CMLOGE("[NAPI]Finalizer colorSpaceToken_ is nullptr");
         return;
     }
 }
@@ -33,48 +38,62 @@ void JsColorSpace::Finalizer(NativeEngine* engine, void* data, void* hint)
 NativeValue* JsColorSpace::GetColorSpaceName(NativeEngine* engine, NativeCallbackInfo* info)
 {
     JsColorSpace* me = CheckParamsAndGetThis<JsColorSpace>(engine, info);
-    return (me != nullptr) ? me->OnGetColorSpaceName(*engine, *info) : nullptr;
+    if (me == nullptr) {
+        engine->Throw(CreateJsError(*engine,
+            static_cast<int32_t>(JS_TO_ERROR_CODE_MAP.at(CMError::CM_ERROR_NULLPTR))));
+        return nullptr;
+    }
+    return me->OnGetColorSpaceName(*engine, *info);
 }
 
 NativeValue* JsColorSpace::GetWhitePoint(NativeEngine* engine, NativeCallbackInfo* info)
 {
     JsColorSpace* me = CheckParamsAndGetThis<JsColorSpace>(engine, info);
-    return (me != nullptr) ? me->OnGetWhitePoint(*engine, *info) : nullptr;
+    if (me == nullptr) {
+        engine->Throw(CreateJsError(*engine,
+            static_cast<int32_t>(JS_TO_ERROR_CODE_MAP.at(CMError::CM_ERROR_NULLPTR))));
+        return nullptr;
+    }
+    return me->OnGetWhitePoint(*engine, *info);
 }
 
 NativeValue* JsColorSpace::GetGamma(NativeEngine* engine, NativeCallbackInfo* info)
 {
     JsColorSpace* me = CheckParamsAndGetThis<JsColorSpace>(engine, info);
-    return (me != nullptr) ? me->OnGetGamma(*engine, *info) : nullptr;
+    if (me == nullptr) {
+        engine->Throw(CreateJsError(*engine,
+            static_cast<int32_t>(JS_TO_ERROR_CODE_MAP.at(CMError::CM_ERROR_NULLPTR))));
+        return nullptr;
+    }
+    return me->OnGetGamma(*engine, *info);
 }
 
 NativeValue* JsColorSpace::OnGetColorSpaceName(NativeEngine& engine, NativeCallbackInfo& info)
 {
-    if (info.argc > 0) {
-        CMLOGE("[NAPI]Argc is invalid: %{public}zu", info.argc);
-    }
     if (colorSpaceToken_ == nullptr) {
+        CMLOGE("[NAPI]colorSpaceToken_ is nullptr");
+        engine.Throw(CreateJsError(engine, static_cast<int32_t>(JS_TO_ERROR_CODE_MAP.at(CMError::CM_ERROR_NULLPTR))));
         return engine.CreateUndefined();
     }
     ColorSpaceName csName = colorSpaceToken_->GetColorSpaceName();
-    NativeValue* objValue = engine.CreateUndefined();
-    if (NATIVE_JS_TO_COLOR_SPACE_TYPE_MAP.count(csName) != 0) {
+    if (NATIVE_TO_JS_COLOR_SPACE_TYPE_MAP.count(csName) != 0) {
         CMLOGI("[NAPI]get color space name %{public}u, api type %{public}u",
-            csName, NATIVE_JS_TO_COLOR_SPACE_TYPE_MAP.at(csName));
-        objValue = CreateJsValue(engine, NATIVE_JS_TO_COLOR_SPACE_TYPE_MAP.at(csName));
-    } else {
-        CMLOGE("[NAPI]get color space name %{public}u, but not in api type", csName);
-        objValue = CreateJsValue(engine, csName);
+            csName, NATIVE_TO_JS_COLOR_SPACE_TYPE_MAP.at(csName));
+        return CreateJsValue(engine, NATIVE_TO_JS_COLOR_SPACE_TYPE_MAP.at(csName));
     }
-    return objValue;
+    CMLOGE("[NAPI]get color space name %{public}u, but not in api type", csName);
+    engine.Throw(CreateJsError(engine,
+        static_cast<int32_t>(JS_TO_ERROR_CODE_MAP.at(CMError::CM_ERROR_INVALID_ENUM_USAGE)),
+        "Parameter is invalid. Cannot get ApiColorSpaceType by native type " +
+        std::to_string(static_cast<int32_t>(ApiColorSpaceType::CUSTOM))));
+    return engine.CreateUndefined();
 }
 
 NativeValue* JsColorSpace::OnGetWhitePoint(NativeEngine& engine, NativeCallbackInfo& info)
 {
-    if (info.argc > 0) {
-        CMLOGE("[NAPI]Argc is invalid: %{public}zu", info.argc);
-    }
     if (colorSpaceToken_ == nullptr) {
+        CMLOGE("[NAPI]colorSpaceToken_ is nullptr");
+        engine.Throw(CreateJsError(engine, static_cast<int32_t>(JS_TO_ERROR_CODE_MAP.at(CMError::CM_ERROR_NULLPTR))));
         return engine.CreateUndefined();
     }
     std::array<float, DIMES_2> wp = colorSpaceToken_->GetWhitePoint();
@@ -88,15 +107,13 @@ NativeValue* JsColorSpace::OnGetWhitePoint(NativeEngine& engine, NativeCallbackI
 
 NativeValue* JsColorSpace::OnGetGamma(NativeEngine& engine, NativeCallbackInfo& info)
 {
-    if (info.argc > 0) {
-        CMLOGE("[NAPI]Argc is invalid: %{public}zu", info.argc);
-    }
     if (colorSpaceToken_ == nullptr) {
+        CMLOGE("[NAPI]colorSpaceToken_ is nullptr");
+        engine.Throw(CreateJsError(engine, static_cast<int32_t>(JS_TO_ERROR_CODE_MAP.at(CMError::CM_ERROR_NULLPTR))));
         return engine.CreateUndefined();
     }
     float gamma = colorSpaceToken_->GetGamma();
-    NativeValue* objValue = CreateJsValue(engine, gamma);
-    return objValue;
+    return CreateJsValue(engine, gamma);
 }
 
 void BindFunctions(NativeEngine& engine, NativeObject* object)

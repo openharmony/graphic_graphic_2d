@@ -20,6 +20,7 @@
 #include <hilog/log.h>
 
 #include "color_space.h"
+#include "color_manager_common.h"
 #include "native_engine/native_engine.h"
 #include "native_engine/native_value.h"
 
@@ -45,7 +46,7 @@ enum class ApiColorSpaceType : uint32_t {
     TYPE_END
 };
 
-const std::map<ColorSpaceName, ApiColorSpaceType> NATIVE_JS_TO_COLOR_SPACE_TYPE_MAP {
+const std::map<ColorSpaceName, ApiColorSpaceType> NATIVE_TO_JS_COLOR_SPACE_TYPE_MAP {
     { ColorSpaceName::NONE, ApiColorSpaceType::UNKNOWN },
     { ColorSpaceName::ADOBE_RGB, ApiColorSpaceType::ADOBE_RGB_1998 },
     { ColorSpaceName::DCI_P3, ApiColorSpaceType::DCI_P3 },
@@ -62,7 +63,6 @@ const std::map<ApiColorSpaceType, ColorSpaceName> JS_TO_NATIVE_COLOR_SPACE_NAME_
     { ApiColorSpaceType::SRGB, ColorSpaceName::SRGB },
     { ApiColorSpaceType::CUSTOM, ColorSpaceName::CUSTOM },
 };
-
 
 template<class T>
 inline T* ConvertNativeValueTo(NativeValue* value)
@@ -144,10 +144,14 @@ bool ConvertFromJsValue(NativeEngine& engine, NativeValue* jsValue, T& value)
     }
 }
 
+NativeValue* CreateJsError(NativeEngine& engine, int32_t errCode, const std::string& message = std::string());
 void BindNativeFunction(NativeEngine& engine, NativeObject& object, const char* name,
     const char* moduleName, NativeCallback func);
+bool CheckParamMinimumValid(NativeEngine& engine, const size_t paramNum, const size_t minNum);
 
 NativeValue* ColorSpaceTypeInit(NativeEngine* engine);
+NativeValue* CMErrorInit(NativeEngine* engine);
+NativeValue* CMErrorCodeInit(NativeEngine* engine);
 bool ParseJsDoubleValue(NativeObject* jsObject, NativeEngine& engine, const std::string& name, double& data);
 }  // namespace ColorManager
 }  // namespace OHOS

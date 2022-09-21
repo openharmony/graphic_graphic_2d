@@ -17,6 +17,7 @@ config("color_space_object_config") {
   visibility = [ ":*" ]
 
   include_dirs = [
+    "//foundation/graphic/graphic_2d/interfaces/inner_api/color_manager",
     "//foundation/graphic/graphic_2d/interfaces/kits/napi/graphic/color_manager/color_space_object_convertor",
     "//foundation/graphic/graphic_2d/utils/color_manager/export",
   ]
@@ -48,6 +49,7 @@ config("color_manager_napi_config") {
   visibility = [ ":*" ]
 
   include_dirs = [
+    "//foundation/graphic/graphic_2d/interfaces/inner_api/color_manager",
     "//foundation/graphic/graphic_2d/interfaces/kits/napi/graphic/color_manager/color_space_object_convertor",
     "//foundation/graphic/graphic_2d/interfaces/kits/napi/graphic/color_manager/colorspacemanager_napi",
     "//foundation/graphic/graphic_2d/utils/color_manager/export",
