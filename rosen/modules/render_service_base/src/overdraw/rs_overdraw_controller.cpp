@@ -26,7 +26,8 @@ namespace OHOS {
 namespace Rosen {
 namespace {
 // param set debug.graphic.overdraw true/false
-constexpr const char *switchText = "debug.graphic.overdraw";
+constexpr const char *SWITCH_TEXT = "debug.graphic.overdraw";
+constexpr const char *SWITCH_ENABLE_TEXT = "true";
 /* param set debug.graphic.colors_overdraw [color...]
  * For Example:
  *   param set debug.graphic.colors_overdraw "0 0x220000ff 0x2200ff00 0x22ff0000 0x44ff0000"
@@ -37,8 +38,7 @@ constexpr const char *switchText = "debug.graphic.overdraw";
  *   - Drawn 4 Times Region: 0x22ff0000 (alpha: 13% red)
  *   - Drawn >= 5 Times Region: 0x44ff0000 (alpha: 26% red)
  */
-constexpr const char *colorText = "debug.graphic.colors_overdraw";
-constexpr const char *switchEnableText = "true";
+constexpr const char *COLOR_TEXT = "debug.graphic.colors_overdraw";
 } // namespace
 
 RSOverdrawController &RSOverdrawController::GetInstance()
@@ -77,17 +77,17 @@ std::map<int, SkColor> RSOverdrawController::GetColorMap() const
 RSOverdrawController::RSOverdrawController()
 {
     char value[0x20];
-    GetParameter(switchText, "false", value, sizeof(value));
-    SwitchFunction(switchText, value, this);
-    WatchParameter(switchText, SwitchFunction, this);
-    WatchParameter(colorText, OnColorChange, this);
+    GetParameter(SWITCH_TEXT, "false", value, sizeof(value));
+    SwitchFunction(SWITCH_TEXT, value, this);
+    WatchParameter(SWITCH_TEXT, SwitchFunction, this);
+    WatchParameter(COLOR_TEXT, OnColorChange, this);
 }
 
 void RSOverdrawController::SwitchFunction(const char *key, const char *value, void *context)
 {
     auto &that = *reinterpret_cast<RSOverdrawController *>(context);
     auto oldEnable = that.enabled_;
-    if (strncmp(value, switchEnableText, strlen(switchEnableText)) == 0) {
+    if (strncmp(value, SWITCH_ENABLE_TEXT, strlen(SWITCH_ENABLE_TEXT)) == 0) {
         that.enabled_ = true;
         ROSEN_LOGI("%{public}s enable", key);
     } else {
