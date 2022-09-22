@@ -576,11 +576,11 @@ void RSMainThread::CalcOcclusion()
                 continue;
             }
             if (surface->GetZorderChanged() || surface->GetDstRectChanged() ||
-                surface->GetAbilityBgAlphaChanged()) {
+                surface->GetAlphaChanged()) {
                 winDirty = true;
             }
             surface->CleanDstRectChanged();
-            surface->CleanAbilityBgAlphaChanged();
+            surface->CleanAlphaChanged();
         }
     }
     if (!winDirty) {
