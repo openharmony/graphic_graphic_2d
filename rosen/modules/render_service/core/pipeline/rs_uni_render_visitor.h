@@ -30,7 +30,6 @@ class RSPaintFilterCanvas;
 class RSUniRenderVisitor : public RSNodeVisitor {
 public:
     RSUniRenderVisitor();
-    RSUniRenderVisitor(RSPaintFilterCanvas* canvas);
     ~RSUniRenderVisitor() override;
 
     void PrepareBaseRenderNode(RSBaseRenderNode& node) override;
@@ -45,10 +44,6 @@ public:
     void ProcessDisplayRenderNode(RSDisplayRenderNode& node) override;
     void ProcessProxyRenderNode(RSProxyRenderNode& node) override;
     void ProcessRootRenderNode(RSRootRenderNode& node) override;
-#ifdef RS_ENABLE_GL
-    void LBCalculate();
-    void LBTimerCalculate();
-#endif
     void ProcessSurfaceRenderNode(RSSurfaceRenderNode& node) override;
 
     void SetAnimateState(bool doAnimate)
@@ -76,7 +71,6 @@ private:
 
     void InitCacheSurface(RSSurfaceRenderNode& node, int width, int height);
     void DrawCacheSurface(RSSurfaceRenderNode& node);
-    bool EnableParallerRendering();
     void SetPaintOutOfParentFlag(RSBaseRenderNode& node);
 
     ScreenInfo screenInfo_;
@@ -105,13 +99,6 @@ private:
     bool doAnimate_ = false;
     bool isPartialRenderEnabled_ = false;
     bool isOpDropped_ = false;
-#ifdef RS_ENABLE_GL
-    bool packTask_ = false;
-    timespec timeStart {0};
-    timespec timeEnd {0};
-    float costing {0.f};
-    uint32_t surfaceNodeNum_ {0};
-#endif
     PartialRenderType partialRenderType_;
     bool isDirty_ = false;
 };

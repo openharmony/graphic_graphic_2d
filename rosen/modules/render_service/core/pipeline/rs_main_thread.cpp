@@ -41,10 +41,6 @@ using namespace OHOS::AccessibilityConfig;
 namespace OHOS {
 namespace Rosen {
 namespace {
-#ifdef RS_ENABLE_GL
-constexpr uint32_t SUB_THREAD_NUMBER = 3;
-constexpr int RENDER_CORE_LEVEL = 400;
-#endif
 constexpr int32_t PERF_ANIMATION_REQUESTED_CODE = 10017;
 constexpr uint64_t PERF_PERIOD = 250000000;
 
@@ -114,9 +110,6 @@ void RSMainThread::Init()
 {
     mainLoop_ = [&]() {
         RS_LOGD("RsDebug mainLoop start");
-#ifdef RS_ENABLE_GL
-        RSSubMainThread::Instance().ProcessFrameStartFlag();
-#endif
         SetRSEventDetectorLoopStartTag();
         ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSMainThread::DoComposition");
         ConsumeAndUpdateAllNodes();
@@ -131,9 +124,6 @@ void RSMainThread::Init()
         ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
         SetRSEventDetectorLoopFinishTag();
         rsEventManager_.UpdateParam();
-#ifdef RS_ENABLE_GL
-        RSSubMainThread::Instance().ProcessFrameEndFlag();
-#endif
         RS_LOGD("RsDebug mainLoop end");
     };
 
@@ -176,15 +166,6 @@ void RSMainThread::Init()
     config.InitializeContext();
     config.SubscribeConfigObserver(CONFIG_ID::CONFIG_DALTONIZATION_COLOR_FILTER, correctionObserver_);
     config.SubscribeConfigObserver(CONFIG_ID::CONFIG_INVERT_COLOR, correctionObserver_);
-    InitParallerRendering();
-}
-
-void RSMainThread::InitParallerRendering()
-{
-#ifdef RS_ENABLE_GL
-    RSSubMainThread::Instance().InitializeSubRenderThread(SUB_THREAD_NUMBER);
-    RSSubMainThread::Instance().InitializeSubContext(renderEngine_->GetRenderContext().get());
-#endif
 }
 
 void RSMainThread::RsEventParamDump(std::string& dumpString)
@@ -225,9 +206,6 @@ void RSMainThread::SetRSEventDetectorLoopFinishTag()
 
 void RSMainThread::Start()
 {
-#ifdef RS_ENABLE_GL
-    RSSubMainThread::Instance().StartSubThread();
-#endif
     if (runner_) {
         runner_->Run();
     }
@@ -532,13 +510,6 @@ void RSMainThread::CheckUpdateSurfaceNodeIfNeed()
 
 void RSMainThread::Render()
 {
-#ifdef RS_ENABLE_GL
-    if (RSInnovation::_s_setCoreLevel) {
-        using SetCoreLevelFunc = void(*)(int);
-        auto SetCoreLevel = (SetCoreLevelFunc)RSInnovation::_s_setCoreLevel;
-        (*SetCoreLevel)(RENDER_CORE_LEVEL);
-    }
-#endif
     const std::shared_ptr<RSBaseRenderNode> rootNode = context_.GetGlobalRootRenderNode();
     if (rootNode == nullptr) {
         RS_LOGE("RSMainThread::Render GetGlobalRootRenderNode fail");

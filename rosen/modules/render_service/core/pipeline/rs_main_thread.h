@@ -39,9 +39,6 @@
 #include "platform/drawing/rs_vsync_client.h"
 #include "platform/common/rs_event_manager.h"
 #include "transaction/rs_transaction_data.h"
-#ifdef RS_ENABLE_GL
-#include "rs_sub_main_thread.h"
-#endif
 
 namespace OHOS::Rosen {
 class ColorCorrectionObserver;
@@ -133,7 +130,6 @@ private:
     RSMainThread& operator=(const RSMainThread&) = delete;
     RSMainThread& operator=(const RSMainThread&&) = delete;
 
-    void InitParallerRendering();
     void OnVsync(uint64_t timestamp, void* data);
     void ProcessCommand();
     void CheckAndNotifyFirstFrameCallback();
