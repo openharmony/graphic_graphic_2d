@@ -138,8 +138,8 @@ void BootAnimation::Run(std::vector<sptr<OHOS::Rosen::Display>>& displays)
 {
     runner_ = AppExecFwk::EventRunner::Create(false);
     mainHandler_ = std::make_shared<AppExecFwk::EventHandler>(runner_);
-    Init(displays[0]->GetWidth(), displays[0]->GetHeight());
-    PostTask(std::bind(&BootAnimation::PlaySound, this));
+    mainHandler_->PostTask(std::bind(&BootAnimation::Init, this, displays[0]->GetWidth(), displays[0]->GetHeight()));
+    mainHandler_->PostTask(std::bind(&BootAnimation::PlaySound, this));
     runner_->Run();
 }
 
