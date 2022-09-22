@@ -471,7 +471,7 @@ LayerInfoPtr RSComposerAdapter::CreateLayer(RSDisplayRenderNode& node)
     }
 
     ComposeInfo info = BuildComposeInfo(node);
-    RS_LOGI("RSComposerAdapter::ProcessSurface displayNode id:%" PRIu64 " dst [%d %d %d %d]"
+    RS_LOGD("RSComposerAdapter::ProcessSurface displayNode id:%" PRIu64 " dst [%d %d %d %d]"
             "SrcRect [%d %d] rawbuffer [%d %d] surfaceBuffer [%d %d] buffaddr:%p, globalZOrder:%d, blendType = %d",
         node.GetId(), info.dstRect.x, info.dstRect.y, info.dstRect.w, info.dstRect.h, info.srcRect.w, info.srcRect.h,
         info.buffer->GetWidth(), info.buffer->GetHeight(), info.buffer->GetSurfaceBufferWidth(),
