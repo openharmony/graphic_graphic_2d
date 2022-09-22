@@ -138,8 +138,15 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
         curSurfaceDirtyManager_ = node.GetDirtyManager();
         curSurfaceDirtyManager_->Clear();
         if (auto parentNode = node.GetParent().lock()) {
+            auto rsParent = RSBaseRenderNode::ReinterpretCast<RSRenderNode>(parentNode);
             dirtyFlag_ = node.Update(*curSurfaceDirtyManager_,
-                &(parentNode->ReinterpretCastTo<RSRenderNode>()->GetRenderProperties()), dirtyFlag_);
+                &(rsParent->GetRenderProperties()), dirtyFlag_);
+            if (rsParent->ReinterpretCastTo<RSSurfaceRenderNode>() &&
+                rsParent->ReinterpretCastTo<RSSurfaceRenderNode>()->GetSurfaceNodeType() == RSSurfaceNodeType::LEASH_WINDOW_NODE) {
+                node.SetGlobalAlpha(property.GetAlpha() * rsParent->GetMutableRenderProperties().GetAlpha()); // calculate alpha on parent's alpha
+            } else {
+                node.SetGlobalAlpha(property.GetAlpha());
+            }
         } else {
             dirtyFlag_ = node.Update(*curSurfaceDirtyManager_, nullptr, dirtyFlag_);
         }
@@ -623,7 +630,7 @@ void RSUniRenderVisitor::DrawCacheSurface(RSSurfaceRenderNode& node)
 
 void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
 {
-    RS_TRACE_NAME("RSUniRender::Process:[" + node.GetName() + "]");
+    RS_TRACE_NAME("RSUniRender::Process:[" + node.GetName() + "]" + node.GetDstRect().ToString());
     RS_LOGD("RSUniRenderVisitor::ProcessSurfaceRenderNode node: %" PRIu64 ", child size:%u %s", node.GetId(),
         node.GetChildrenCount(), node.GetName().c_str());
     node.UpdatePositionZ();
@@ -689,10 +696,6 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
     if (isSelfDrawingSurface) {
         canvas_->save();
     }
-
-    const RectI dstRect = {canvas_->getTotalMatrix().getTranslateX(), canvas_->getTotalMatrix().getTranslateY(),
-        property.GetBoundsWidth() * canvas_->getTotalMatrix().getScaleX(),
-        property.GetBoundsHeight() * canvas_->getTotalMatrix().getScaleY()};
 
     boundsRect_ = SkRect::MakeWH(property.GetBoundsWidth(), property.GetBoundsHeight());
     frameGravity_ = property.GetFrameGravity();

@@ -159,6 +159,7 @@ public:
         if (globalAlpha_ == alpha) {
             return;
         }
+        alphaChanged_ = true;
         globalAlpha_ = alpha;
     }
 
@@ -185,7 +186,7 @@ public:
     void SetAbilityBGAlpha(uint8_t alpha)
     {
         abilityBgAlpha_ = alpha;
-        abilityBgAlphaChanged_ = true;
+        alphaChanged_ = true;
     }
 
     uint8_t GetAbilityBgAlpha() const
@@ -236,14 +237,14 @@ public:
         dstRectChanged_ = false;
     }
 
-    bool GetAbilityBgAlphaChanged() const
+    bool GetAlphaChanged() const
     {
-        return abilityBgAlphaChanged_;
+        return alphaChanged_;
     }
 
-    void CleanAbilityBgAlphaChanged()
+    void CleanAlphaChanged()
     {
-        abilityBgAlphaChanged_ = false;
+        alphaChanged_ = false;
     }
 
     void SetGloblDirtyRegion(const RectI& rect)
@@ -434,7 +435,7 @@ private:
     RectI dstRect_;
     bool dstRectChanged_ = false;
     uint8_t abilityBgAlpha_ = 0;
-    bool abilityBgAlphaChanged_ = false;
+    bool alphaChanged_ = false;
     RectI globalDirtyRegion_;
 
     std::atomic<bool> isAppFreeze_ = false;

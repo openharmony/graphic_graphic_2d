@@ -609,11 +609,11 @@ void RSMainThread::CalcOcclusion()
                 continue;
             }
             if (surface->GetZorderChanged() || surface->GetDstRectChanged() ||
-                surface->GetAbilityBgAlphaChanged()) {
+                surface->GetAlphaChanged()) {
                 winDirty = true;
             }
             surface->CleanDstRectChanged();
-            surface->CleanAbilityBgAlphaChanged();
+            surface->CleanAlphaChanged();
         }
     }
     if (!winDirty) {
@@ -642,7 +642,7 @@ void RSMainThread::CalcOcclusion()
         const uint8_t opacity = 255;
         if (isUniRender_) {
             if (surface->GetAbilityBgAlpha() == opacity &&
-                ROSEN_EQ(surface->GetRenderProperties().GetAlpha(), 1.0f)) {
+                ROSEN_EQ(surface->GetGlobalAlpha(), 1.0f)) {
                 curRegion = curSurface.Or(curRegion);
             }
         } else {
