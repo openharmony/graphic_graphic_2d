@@ -328,7 +328,6 @@ void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::CaptureSurfaceInDisplayWithU
         skRectPtr->setXYWH(0, 0, property.GetBoundsWidth(), property.GetBoundsHeight());
         RSPropertiesPainter::DrawFilter(property, *canvas_, filter, skRectPtr, canvas_->GetSurface());
     }
-
     if (isSelfDrawingSurface) {
         canvas_->restore();
     }
@@ -344,7 +343,6 @@ void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::CaptureSurfaceInDisplayWithU
     }
 
     ProcessBaseRenderNode(node);
-
     filter = std::static_pointer_cast<RSSkiaFilter>(property.GetFilter());
     if (filter != nullptr) {
         auto skRectPtr = std::make_unique<SkRect>();
