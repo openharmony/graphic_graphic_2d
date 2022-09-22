@@ -96,6 +96,34 @@ static void TestSkDataSerialization(size_t size)
     ASSERT_EQ(skDataUnmarshal->size(), size);
 }
 
+static void TestSkDataSerializationWithCopy(size_t size)
+{
+    /**
+     * @tc.steps: step1. create SkData with size
+     */
+    sk_sp<SkData> skData;
+    if (size == 0) {
+        skData = SkData::MakeEmpty();
+    } else {
+        unsigned char originalData[size];
+        skData = SkData::MakeWithoutCopy(originalData, size);
+    }
+
+    /**
+     * @tc.steps: step2. serialize SkData
+     */
+    MessageParcel parcel;
+    ASSERT_TRUE(RSMarshallingHelper::Marshalling(parcel, skData));
+
+    /**
+     * @tc.steps: step3. deserialize SkData
+     */
+    sk_sp<SkData> skDataUnmarshal;
+    ASSERT_TRUE(RSMarshallingHelper::UnmarshallingWithCopy(parcel, skDataUnmarshal));
+    ASSERT_TRUE(skDataUnmarshal != nullptr);
+    ASSERT_EQ(skDataUnmarshal->size(), size);
+}
+
 static sk_sp<SkImage> CreateSkImage()
 {
     const SkImageInfo info = SkImageInfo::MakeN32(200, 200, kOpaque_SkAlphaType);
@@ -233,6 +261,39 @@ HWTEST_F(RSMarshallingTest, SkDataSerialization003, Function | MediumTest | Leve
 }
 
 /**
+ * @tc.name: SkDataSerialization004
+ * @tc.desc: test results of serialization and deserialization of empty SkData
+ * @tc.type:FUNC
+ * @tc.require: issueI5Q60U
+ */
+HWTEST_F(RSMarshallingTest, SkDataSerialization004, Function | MediumTest | Level2)
+{
+    TestSkDataSerializationWithCopy(0);
+}
+
+/**
+ * @tc.name: SkDataSerialization005
+ * @tc.desc: test results of serialization and deserialization of SkData with small size
+ * @tc.type:FUNC
+ * @tc.require: issueI5Q60U
+ */
+HWTEST_F(RSMarshallingTest, SkDataSerialization005, Function | MediumTest | Level2)
+{
+    TestSkDataSerializationWithCopy(1024 * 2); // 2kb
+}
+
+/**
+ * @tc.name: SkDataSerialization006
+ * @tc.desc: test results of serialization and deserialization of SkData using Ashmem
+ * @tc.type:FUNC
+ * @tc.require: issueI5Q60U
+ */
+HWTEST_F(RSMarshallingTest, SkDataSerialization006, Function | MediumTest | Level2)
+{
+    TestSkDataSerializationWithCopy(1024 * 9); // 9kb
+}
+
+/**
  * @tc.name: SkTextBlobSerialization001
  * @tc.desc: test results of serialization and deserialization of SkTextBlob
  * @tc.type:FUNC
@@ -338,6 +399,37 @@ HWTEST_F(RSMarshallingTest, RSImageSerialization001, Function | MediumTest | Lev
 
     auto rsImage = std::make_shared<RSImage>();
     rsImage->SetImage(skImage);
+    /**
+     * @tc.steps: step2. serialize RSImage
+     */
+    MessageParcel parcel;
+    ASSERT_TRUE(RSMarshallingHelper::Marshalling(parcel, rsImage));
+
+    /**
+     * @tc.steps: step3. deserialize RSImage
+     */
+    std::shared_ptr<RSImage> rsImageUnmarshal;
+    ASSERT_TRUE(RSMarshallingHelper::Unmarshalling(parcel, rsImageUnmarshal));
+    ASSERT_TRUE(rsImageUnmarshal != nullptr);
+}
+
+/**
+ * @tc.name: RSImageSerialization002
+ * @tc.desc: test results of serialization and deserialization of RSImage
+ * @tc.type:FUNC
+ * @tc.require: issueI5Q60U
+ */
+HWTEST_F(RSMarshallingTest, RSImageSerialization002, Function | MediumTest | Level2)
+{
+    /**
+     * @tc.steps: step1. create RSImage
+     */
+    auto skImage = CreateSkImage();
+    auto skData = SkData::MakeWithCString("test");
+
+    auto rsImage = std::make_shared<RSImage>();
+    rsImage->SetImage(skImage);
+    rsImage->SetCompressData(skData, 10, 10);
     /**
      * @tc.steps: step2. serialize RSImage
      */
