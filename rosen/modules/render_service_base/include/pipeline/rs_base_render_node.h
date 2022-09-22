@@ -19,7 +19,7 @@
 #include <memory>
 
 #include "common/rs_common_def.h"
-
+#include "common/rs_rect.h"
 namespace OHOS {
 namespace Rosen {
 class RSContext;
@@ -130,6 +130,34 @@ public:
         return (IsInstanceOf<T>()) ? std::static_pointer_cast<T>(shared_from_this()) : nullptr;
     }
 
+    bool HasChildrenOutOfRect() const
+    {
+        return hasChildrenOutOfRect_;
+    }
+
+    void UpdateChildrenOutOfRectFlag(bool flag)
+    {
+        hasChildrenOutOfRect_ = flag;
+    }
+
+    void ClearPaintOutOfParentRect()
+    {
+        paintOutOfParentRect_.Clear();
+    }
+
+    const RectI& GetPaintOutOfParentRect() const
+    {
+        return paintOutOfParentRect_;
+    }
+
+    void UpdatePaintOutOfParentRect(const RectI& r)
+    {
+        if (paintOutOfParentRect_.IsEmpty()) {
+            paintOutOfParentRect_ = r;
+        } else {
+            paintOutOfParentRect_ = paintOutOfParentRect_.JoinRect(r);
+        }
+    }
 protected:
     enum class NodeDirty {
         CLEAN = 0,
@@ -164,6 +192,8 @@ private:
     NodeDirty dirtyStatus_ = NodeDirty::DIRTY;
     friend class RSRenderPropertyBase;
     std::atomic<bool> isTunnelHandleChange_ = false;
+    bool hasChildrenOutOfRect_ = false;
+    RectI paintOutOfParentRect_;
 };
 } // namespace Rosen
 } // namespace OHOS

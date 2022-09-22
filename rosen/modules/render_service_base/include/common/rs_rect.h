@@ -137,6 +137,11 @@ public:
     {
         return (x >= left_) && (x < GetRight()) && (y >= top_) && (y < GetBottom());
     }
+    bool IsInsideOf(const RectT<T>& rect) const
+    {
+        return (top_ >= rect.top_ && left_ >= rect.left_ &&
+            GetBottom() <= rect.GetBottom() && GetRight() <= rect.GetRight());
+    }
     RectT<T> IntersectRect(const RectT<T>& rect) const
     {
         T left = std::max(left_, rect.left_);
