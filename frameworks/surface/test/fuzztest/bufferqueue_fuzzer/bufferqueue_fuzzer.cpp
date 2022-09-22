@@ -112,13 +112,13 @@ namespace OHOS {
         int32_t width = GetData<int32_t>();
         int32_t height = GetData<int32_t>();
         uint32_t usage = GetData<uint32_t>();
-        TransformType transform = GetData<TransformType>();
-        std::vector<HDRMetaData> metaData;
+        GraphicTransformType transform = GetData<GraphicTransformType>();
+        std::vector<GraphicHDRMetaData> metaData;
         for (int i = 0; i < 10; i++) { // add 10 elements to the vector
-            HDRMetaData data = GetData<HDRMetaData>();
+            GraphicHDRMetaData data = GetData<GraphicHDRMetaData>();
             metaData.push_back(data);
         }
-        HDRMetadataKey key = GetData<HDRMetadataKey>();
+        GraphicHDRMetadataKey key = GetData<GraphicHDRMetadataKey>();
         std::vector<uint8_t> metaDataSet;
         for (int i = 0; i < 10; i++) { // add 10 elements to the vector
             uint8_t data = GetData<uint8_t>();

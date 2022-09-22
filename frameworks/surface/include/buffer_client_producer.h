@@ -51,13 +51,13 @@ public:
     int32_t GetDefaultWidth() override;
     int32_t GetDefaultHeight() override;
     uint32_t GetDefaultUsage() override;
-    GSError SetTransform(TransformType transform) override;
+    GSError SetTransform(GraphicTransformType transform) override;
 
     GSError AttachBuffer(sptr<SurfaceBuffer>& buffer) override;
     GSError DetachBuffer(sptr<SurfaceBuffer>& buffer) override;
     GSError RegisterReleaseListener(OnReleaseFunc func) override;
 
-    GSError IsSupportedAlloc(const std::vector<VerifyAllocInfo> &infos, std::vector<bool> &supporteds) override;
+    GSError IsSupportedAlloc(const std::vector<BufferVerifyAllocInfo> &infos, std::vector<bool> &supporteds) override;
 
     // Call carefully. This interface will empty all caches of the current process
     GSError CleanCache() override;
@@ -65,11 +65,11 @@ public:
     GSError GoBackground() override;
 
     GSError SetScalingMode(uint32_t sequence, ScalingMode scalingMode) override;
-    GSError SetMetaData(uint32_t sequence, const std::vector<HDRMetaData> &metaData) override;
-    GSError SetMetaDataSet(uint32_t sequence, HDRMetadataKey key,
+    GSError SetMetaData(uint32_t sequence, const std::vector<GraphicHDRMetaData> &metaData) override;
+    GSError SetMetaDataSet(uint32_t sequence, GraphicHDRMetadataKey key,
                            const std::vector<uint8_t> &metaData) override;
     GSError SetTunnelHandle(const ExtDataHandle *handle) override;
-    GSError GetPresentTimestamp(uint32_t sequence, PresentTimestampType type, int64_t &time) override;
+    GSError GetPresentTimestamp(uint32_t sequence, GraphicPresentTimestampType type, int64_t &time) override;
 
 private:
     static inline BrokerDelegator<BufferClientProducer> delegator_;

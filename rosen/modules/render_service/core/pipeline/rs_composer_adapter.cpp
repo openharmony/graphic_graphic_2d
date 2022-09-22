@@ -454,20 +454,20 @@ static void RotateLayerWhenScreenRotation90(const LayerInfoPtr& layer, const spt
 {
     // screenRotation is already 90 degrees anti-clockwise.
     switch (surface->GetTransform()) {
-        case TransformType::ROTATE_90: {
-            layer->SetTransform(TransformType::ROTATE_180);
+        case GraphicTransformType::GRAPHIC_ROTATE_90: {
+            layer->SetTransform(GraphicTransformType::GRAPHIC_ROTATE_180);
             break;
         }
-        case TransformType::ROTATE_180: {
-            layer->SetTransform(TransformType::ROTATE_90);
+        case GraphicTransformType::GRAPHIC_ROTATE_180: {
+            layer->SetTransform(GraphicTransformType::GRAPHIC_ROTATE_90);
             break;
         }
-        case TransformType::ROTATE_270: {
-            layer->SetTransform(TransformType::ROTATE_NONE);
+        case GraphicTransformType::GRAPHIC_ROTATE_270: {
+            layer->SetTransform(GraphicTransformType::GRAPHIC_ROTATE_NONE);
             break;
         }
         default: {
-            layer->SetTransform(TransformType::ROTATE_270);
+            layer->SetTransform(GraphicTransformType::GRAPHIC_ROTATE_270);
             break;
         }
     }
@@ -479,20 +479,20 @@ static void RotateLayerWhenScreenRotation180(const LayerInfoPtr& layer, const sp
 {
     // screenRotation is already 180 degrees anti-clockwise.
     switch (surface->GetTransform()) {
-        case TransformType::ROTATE_90: {
-            layer->SetTransform(TransformType::ROTATE_90);
+        case GraphicTransformType::GRAPHIC_ROTATE_90: {
+            layer->SetTransform(GraphicTransformType::GRAPHIC_ROTATE_90);
             break;
         }
-        case TransformType::ROTATE_180: {
-            layer->SetTransform(TransformType::ROTATE_NONE);
+        case GraphicTransformType::GRAPHIC_ROTATE_180: {
+            layer->SetTransform(GraphicTransformType::GRAPHIC_ROTATE_NONE);
             break;
         }
-        case TransformType::ROTATE_270: {
-            layer->SetTransform(TransformType::ROTATE_270);
+        case GraphicTransformType::GRAPHIC_ROTATE_270: {
+            layer->SetTransform(GraphicTransformType::GRAPHIC_ROTATE_270);
             break;
         }
         default: {
-            layer->SetTransform(TransformType::ROTATE_180);
+            layer->SetTransform(GraphicTransformType::GRAPHIC_ROTATE_180);
             break;
         }
     }
@@ -504,20 +504,20 @@ static void RotateLayerWhenScreenRotation270(const LayerInfoPtr& layer, const sp
 {
     // screenRotation is already 270 degrees anti-clockwise.
     switch (surface->GetTransform()) {
-        case TransformType::ROTATE_90: {
-            layer->SetTransform(TransformType::ROTATE_NONE);
+        case GraphicTransformType::GRAPHIC_ROTATE_90: {
+            layer->SetTransform(GraphicTransformType::GRAPHIC_ROTATE_NONE);
             break;
         }
-        case TransformType::ROTATE_180: {
-            layer->SetTransform(TransformType::ROTATE_270);
+        case GraphicTransformType::GRAPHIC_ROTATE_180: {
+            layer->SetTransform(GraphicTransformType::GRAPHIC_ROTATE_270);
             break;
         }
-        case TransformType::ROTATE_270: {
-            layer->SetTransform(TransformType::ROTATE_180);
+        case GraphicTransformType::GRAPHIC_ROTATE_270: {
+            layer->SetTransform(GraphicTransformType::GRAPHIC_ROTATE_180);
             break;
         }
         default: {
-            layer->SetTransform(TransformType::ROTATE_90);
+            layer->SetTransform(GraphicTransformType::GRAPHIC_ROTATE_90);
             break;
         }
     }
@@ -529,20 +529,20 @@ static void RotateLayerWhenScreenRotationNone(const LayerInfoPtr& layer, const s
 {
     // screenRotation is 0.
     switch (surface->GetTransform()) {
-        case TransformType::ROTATE_90: {
-            layer->SetTransform(TransformType::ROTATE_270);
+        case GraphicTransformType::GRAPHIC_ROTATE_90: {
+            layer->SetTransform(GraphicTransformType::GRAPHIC_ROTATE_270);
             break;
         }
-        case TransformType::ROTATE_180: {
-            layer->SetTransform(TransformType::ROTATE_180);
+        case GraphicTransformType::GRAPHIC_ROTATE_180: {
+            layer->SetTransform(GraphicTransformType::GRAPHIC_ROTATE_180);
             break;
         }
-        case TransformType::ROTATE_270: {
-            layer->SetTransform(TransformType::ROTATE_90);
+        case GraphicTransformType::GRAPHIC_ROTATE_270: {
+            layer->SetTransform(GraphicTransformType::GRAPHIC_ROTATE_90);
             break;
         }
         default: {
-            layer->SetTransform(TransformType::ROTATE_NONE);
+            layer->SetTransform(GraphicTransformType::GRAPHIC_ROTATE_NONE);
             break;
         }
     }

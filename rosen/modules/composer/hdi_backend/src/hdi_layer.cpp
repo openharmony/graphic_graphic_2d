@@ -122,6 +122,25 @@ void HdiLayer::SetLayerTunnelHandle()
     CheckRet(ret, "SetLayerTunnelHandle");
 }
 
+void HdiLayer::PresentTimestamp2GraphicPresentTimestamp(const PresentTimestamp &timestamp,
+                                                        GraphicPresentTimestamp *graphicTimestamp)
+{
+    graphicTimestamp->time = timestamp.time;
+    switch (timestamp.type) {
+        case HARDWARE_DISPLAY_PTS_TIMESTAMP: {
+            graphicTimestamp->type = GRAPHIC_DISPLAY_PTS_TIMESTAMP;
+            break;
+        }
+        case HARDWARE_DISPLAY_PTS_DELAY: {
+            graphicTimestamp->type = GRAPHIC_DISPLAY_PTS_DELAY;
+            break;
+        }
+        default: {
+            graphicTimestamp->type = GRAPHIC_DISPLAY_PTS_UNSUPPORTED;
+        }
+    }
+}
+
 void HdiLayer::SetLayerPresentTimestamp()
 {
     HdiDevice *device = HdiDevice::GetInstance();
@@ -134,11 +153,40 @@ void HdiLayer::SetLayerPresentTimestamp()
     layerInfo_->SetIsSupportedPresentTimestamp(true);
     PresentTimestamp timestamp = {HARDWARE_DISPLAY_PTS_UNSUPPORTED, 0};
     int32_t ret = device->GetPresentTimestamp(screenId_, layerId_, timestamp);
+    GraphicPresentTimestamp graphicTimestamp;
+    PresentTimestamp2GraphicPresentTimestamp(timestamp, &graphicTimestamp);
     CheckRet(ret, "GetPresentTimestamp");
     if (ret == DISPLAY_SUCCESS) {
-        layerInfo_->SetPresentTimestamp(timestamp);
+        layerInfo_->SetPresentTimestamp(graphicTimestamp);
     }
 }
+
+void HdiLayer::TransformType2GraphicTransformType(const GraphicTransformType &graphicTransFormType,
+                                                  TransformType *transFormType)
+{
+    switch (graphicTransFormType) {
+        case GRAPHIC_ROTATE_90: {
+            *transFormType = ROTATE_90;
+            break;
+        }
+        case GRAPHIC_ROTATE_180: {
+            *transFormType = ROTATE_180;
+            break;
+        }
+        case GRAPHIC_ROTATE_270: {
+            *transFormType = ROTATE_270;
+            break;
+        }
+        case GRAPHIC_ROTATE_BUTT: {
+            *transFormType = ROTATE_BUTT;
+            break;
+        }
+        default: {
+            *transFormType = ROTATE_NONE;
+        }
+    }
+}
+
 
 void HdiLayer::SetHdiLayerInfo()
 {
@@ -158,8 +206,11 @@ void HdiLayer::SetHdiLayerInfo()
     ret = device->SetLayerSize(screenId_, layerId_, layerInfo_->GetLayerSize());
     CheckRet(ret, "SetLayerSize");
 
-    if (layerInfo_->GetTransformType() != TransformType::ROTATE_BUTT) {
-        ret = device->SetTransformMode(screenId_, layerId_, layerInfo_->GetTransformType());
+    if (layerInfo_->GetTransformType() != GraphicTransformType::GRAPHIC_ROTATE_BUTT) {
+        TransformType transFormType = TransformType::ROTATE_NONE;
+        GraphicTransformType graphicTransFormType = layerInfo_->GetTransformType();
+        TransformType2GraphicTransformType(graphicTransFormType, &transFormType);
+        ret = device->SetTransformMode(screenId_, layerId_, transFormType);
         CheckRet(ret, "SetTransformMode");
     }
 

@@ -14,7 +14,6 @@
  */
 #include <securec.h>
 #include <gtest/gtest.h>
-#include <display_type.h>
 #include <surface.h>
 #include <consumer_surface.h>
 #include <surface_utils.h>

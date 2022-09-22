@@ -18,7 +18,6 @@
 #include <gtest/gtest.h>
 #include <iservice_registry.h>
 #include <surface.h>
-#include <display_type.h>
 
 using namespace testing;
 using namespace testing::ext;
@@ -46,8 +45,8 @@ void SurfaceIPCTest::SetUpTestCase()
         .width = 0x100,  // small
         .height = 0x100, // small
         .strideAlignment = 0x8,
-        .format = PIXEL_FMT_RGBA_8888,
-        .usage = HBM_USE_CPU_READ | HBM_USE_CPU_WRITE | HBM_USE_MEM_DMA,
+        .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
+        .usage = GRAPHIC_USAGE_CPU_READ | GRAPHIC_USAGE_CPU_WRITE | GRAPHIC_USAGE_MEM_DMA,
         .timeout = 0,
     };
     flushConfig = { .damage = {
@@ -94,7 +93,7 @@ bool SurfaceIPCTest::GetData(sptr<SurfaceBuffer> &buffer)
             return false;
     }
 
-    PresentTimestamp timestamp = {HARDWARE_DISPLAY_PTS_DELAY, 1};  // mock data for test
+    GraphicPresentTimestamp timestamp = {GRAPHIC_DISPLAY_PTS_DELAY, 1};  // mock data for test
     auto sRet = cSurface->SetPresentTimestamp(buffer->GetSeqNum(), timestamp);
     return (sRet == OHOS::GSERROR_OK);
 }
@@ -144,7 +143,7 @@ pid_t SurfaceIPCTest::ChildProcessMain()
     sleep(0);
     read(pipeFd[0], &data, sizeof(data));
     sleep(1);
-    PresentTimestampType type = PresentTimestampType::HARDWARE_DISPLAY_PTS_DELAY;
+    GraphicPresentTimestampType type = GraphicPresentTimestampType::GRAPHIC_DISPLAY_PTS_DELAY;
     int64_t time = 0;
     sRet = pSurface->GetPresentTimestamp(buffer->GetSeqNum(), type, time);
     if (sRet != OHOS::GSERROR_OK || time != 1) {

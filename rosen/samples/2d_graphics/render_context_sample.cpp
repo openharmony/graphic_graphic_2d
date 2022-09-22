@@ -350,7 +350,7 @@ bool RenderContextSample::FillDrawingLayer(std::shared_ptr<HdiLayerInfo> &showLa
     showLayer->SetBuffer(cbuffer, acquireSyncFence);
     showLayer->SetZorder(zorder);
     showLayer->SetAlpha(alpha);
-    showLayer->SetTransform(TransformType::ROTATE_NONE);
+    showLayer->SetTransform(GraphicTransformType::GRAPHIC_ROTATE_NONE);
     if (index == 0) {
         // COMPOSITION_CLIENT
         showLayer->SetCompositionType(CompositionType::COMPOSITION_DEVICE);

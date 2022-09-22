@@ -37,7 +37,7 @@
  */
 
 #include <stdint.h>
-
+#include <surface_type.h>
 #ifdef __cplusplus
 extern "C" {
 #endif

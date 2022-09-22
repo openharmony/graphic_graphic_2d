@@ -36,11 +36,11 @@ void WriteFlushConfig(MessageParcel &parcel, const BufferFlushConfig &config);
 void ReadSurfaceBufferImpl(MessageParcel &parcel, uint32_t &sequence, sptr<SurfaceBuffer> &buffer);
 void WriteSurfaceBufferImpl(MessageParcel &parcel, uint32_t sequence, const sptr<SurfaceBuffer> &buffer);
 
-void ReadVerifyAllocInfo(MessageParcel &parcel, std::vector<VerifyAllocInfo> &infos);
-void WriteVerifyAllocInfo(MessageParcel &parcel, const std::vector<VerifyAllocInfo> &infos);
+void ReadVerifyAllocInfo(MessageParcel &parcel, std::vector<BufferVerifyAllocInfo> &infos);
+void WriteVerifyAllocInfo(MessageParcel &parcel, const std::vector<BufferVerifyAllocInfo> &infos);
 
-void ReadHDRMetaData(MessageParcel &parcel, std::vector<HDRMetaData> &metaData);
-void WriteHDRMetaData(MessageParcel &parcel, const std::vector<HDRMetaData> &metaData);
+void ReadHDRMetaData(MessageParcel &parcel, std::vector<GraphicHDRMetaData> &metaData);
+void WriteHDRMetaData(MessageParcel &parcel, const std::vector<GraphicHDRMetaData> &metaData);
 
 void ReadHDRMetaDataSet(MessageParcel &parcel, std::vector<uint8_t> &metaData);
 void WriteHDRMetaDataSet(MessageParcel &parcel, const std::vector<uint8_t> &metaData);

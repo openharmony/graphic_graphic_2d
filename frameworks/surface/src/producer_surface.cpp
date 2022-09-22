@@ -99,7 +99,7 @@ GSError ProducerSurface::RequestBuffer(sptr<SurfaceBuffer>& buffer,
     buffer = retval.buffer;
     fence = retval.fence;
 
-    if (static_cast<uint32_t>(config.usage) & HBM_USE_CPU_WRITE) {
+    if (static_cast<uint32_t>(config.usage) & GRAPHIC_USAGE_CPU_WRITE) {
         ret = buffer->InvalidateCache();
         if (ret != GSERROR_OK) {
             BLOGNW("Warning [%{public}d], InvalidateCache failed", retval.sequence);
@@ -314,17 +314,17 @@ uint64_t ProducerSurface::GetUniqueId() const
     return queueId_;
 }
 
-GSError ProducerSurface::SetTransform(TransformType transform)
+GSError ProducerSurface::SetTransform(GraphicTransformType transform)
 {
     return producer_->SetTransform(transform);
 }
 
-TransformType ProducerSurface::GetTransform() const
+GraphicTransformType ProducerSurface::GetTransform() const
 {
-    return TransformType::ROTATE_BUTT;
+    return GraphicTransformType::GRAPHIC_ROTATE_BUTT;
 }
 
-GSError ProducerSurface::IsSupportedAlloc(const std::vector<VerifyAllocInfo> &infos,
+GSError ProducerSurface::IsSupportedAlloc(const std::vector<BufferVerifyAllocInfo> &infos,
                                           std::vector<bool> &supporteds)
 {
     if (infos.size() == 0 || infos.size() != supporteds.size()) {
@@ -365,7 +365,7 @@ GSError ProducerSurface::GetScalingMode(uint32_t sequence, ScalingMode &scalingM
     return GSERROR_NOT_SUPPORT;
 }
 
-GSError ProducerSurface::SetMetaData(uint32_t sequence, const std::vector<HDRMetaData> &metaData)
+GSError ProducerSurface::SetMetaData(uint32_t sequence, const std::vector<GraphicHDRMetaData> &metaData)
 {
     if (metaData.size() == 0) {
         return GSERROR_INVALID_ARGUMENTS;
@@ -373,11 +373,11 @@ GSError ProducerSurface::SetMetaData(uint32_t sequence, const std::vector<HDRMet
     return producer_->SetMetaData(sequence, metaData);
 }
 
-GSError ProducerSurface::SetMetaDataSet(uint32_t sequence, HDRMetadataKey key,
+GSError ProducerSurface::SetMetaDataSet(uint32_t sequence, GraphicHDRMetadataKey key,
                                         const std::vector<uint8_t> &metaData)
 {
-    if (key < HDRMetadataKey::MATAKEY_RED_PRIMARY_X ||
-        key > HDRMetadataKey::MATAKEY_HDR_VIVID || metaData.size() == 0) {
+    if (key < GraphicHDRMetadataKey::GRAPHIC_MATAKEY_RED_PRIMARY_X ||
+        key > GraphicHDRMetadataKey::GRAPHIC_MATAKEY_HDR_VIVID || metaData.size() == 0) {
         return GSERROR_INVALID_ARGUMENTS;
     }
     return producer_->SetMetaDataSet(sequence, key, metaData);
@@ -388,12 +388,12 @@ GSError ProducerSurface::QueryMetaDataType(uint32_t sequence, HDRMetaDataType &t
     return GSERROR_NOT_SUPPORT;
 }
 
-GSError ProducerSurface::GetMetaData(uint32_t sequence, std::vector<HDRMetaData> &metaData) const
+GSError ProducerSurface::GetMetaData(uint32_t sequence, std::vector<GraphicHDRMetaData> &metaData) const
 {
     return GSERROR_NOT_SUPPORT;
 }
 
-GSError ProducerSurface::GetMetaDataSet(uint32_t sequence, HDRMetadataKey &key,
+GSError ProducerSurface::GetMetaDataSet(uint32_t sequence, GraphicHDRMetadataKey &key,
                                         std::vector<uint8_t> &metaData) const
 {
     return GSERROR_NOT_SUPPORT;
@@ -410,16 +410,16 @@ sptr<SurfaceTunnelHandle> ProducerSurface::GetTunnelHandle() const
     return nullptr;
 }
 
-GSError ProducerSurface::SetPresentTimestamp(uint32_t sequence, const PresentTimestamp &timestamp)
+GSError ProducerSurface::SetPresentTimestamp(uint32_t sequence, const GraphicPresentTimestamp &timestamp)
 {
     return GSERROR_NOT_SUPPORT;
 }
 
-GSError ProducerSurface::GetPresentTimestamp(uint32_t sequence, PresentTimestampType type,
+GSError ProducerSurface::GetPresentTimestamp(uint32_t sequence, GraphicPresentTimestampType type,
                                              int64_t &time) const
 {
-    if (type <= PresentTimestampType::HARDWARE_DISPLAY_PTS_UNSUPPORTED ||
-        type > PresentTimestampType::HARDWARE_DISPLAY_PTS_TIMESTAMP) {
+    if (type <= GraphicPresentTimestampType::GRAPHIC_DISPLAY_PTS_UNSUPPORTED ||
+        type > GraphicPresentTimestampType::GRAPHIC_DISPLAY_PTS_TIMESTAMP) {
         return GSERROR_INVALID_ARGUMENTS;
     }
     return producer_->GetPresentTimestamp(sequence, type, time);

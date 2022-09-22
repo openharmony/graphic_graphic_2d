@@ -51,7 +51,7 @@ struct BufferDrawParam {
 
     bool useCPU = false;
     std::vector<HDRMetaData> metaDatas = {}; // static meta datas for HDR10
-    HDRMetaDataSet metaDataSet; // dynamic meta datas for HDR10+, HDR VIVID
+    GraphicHDRMetaDataSet metaDataSet; // dynamic meta datas for HDR10+, HDR VIVID
 };
 
 class RSBaseRenderUtil {

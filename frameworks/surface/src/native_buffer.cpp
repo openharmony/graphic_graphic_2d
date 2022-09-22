@@ -16,7 +16,6 @@
 #include "native_buffer.h"
 
 #include <cinttypes>
-#include <surface_type.h>
 #include "buffer_log.h"
 #include "external_window.h"
 #include "surface_buffer_impl.h"
