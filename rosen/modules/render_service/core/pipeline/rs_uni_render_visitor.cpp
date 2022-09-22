@@ -791,7 +791,8 @@ void RSUniRenderVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
         return;
     }
 #ifdef RS_ENABLE_EGLQUERYSURFACE
-    if (isOpDropped_ && !curSurfaceNode_->SubNodeNeedDraw(node.GetOldDirty(), partialRenderType_)) {
+    if (isOpDropped_ && !curSurfaceNode_->SubNodeNeedDraw(node.GetOldDirty(), partialRenderType_) &&
+        !node.HasChildrenOutOfRect()) {
         return;
     }
 #endif
