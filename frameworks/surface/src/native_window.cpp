@@ -19,7 +19,7 @@
 #include <cinttypes>
 #include "buffer_log.h"
 #include "display_type.h"
-#include "external_window.h"
+#include "window.h"
 #include "surface_type.h"
 #include "sync_fence.h"
 

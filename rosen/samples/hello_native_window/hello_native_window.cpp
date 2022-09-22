@@ -15,7 +15,6 @@
 
 #include <iostream>
 #include "external_window.h"
-#include "window.h"
 #include "surface.h"
 #include "buffer_log.h"
 
@@ -44,28 +43,28 @@ int32_t main(int32_t argc, const char *argv[])
 
     int code = SET_USAGE;
     int32_t usage = HBM_USE_CPU_READ | HBM_USE_CPU_WRITE | HBM_USE_MEM_DMA;
-    int32_t ret = NativeWindowHandleOpt(nativeWindow, code, usage);
+    int32_t ret = OH_NativeWindow_NativeWindowHandleOpt(nativeWindow, code, usage);
     if (ret != OHOS::GSERROR_OK) {
-        std::cout << "NativeWindowHandleOpt SET_USAGE faile" << std::endl;
+        std::cout << "OH_NativeWindow_NativeWindowHandleOpt SET_USAGE faile" << std::endl;
     }
     code = SET_BUFFER_GEOMETRY;
     int32_t width = 0x100;
     int32_t height = 0x100;
-    ret = NativeWindowHandleOpt(nativeWindow, code, width, height);
+    ret = OH_NativeWindow_NativeWindowHandleOpt(nativeWindow, code, width, height);
     if (ret != OHOS::GSERROR_OK) {
-        std::cout << "NativeWindowHandleOpt SET_BUFFER_GEOMETRY failed" << std::endl;
+        std::cout << "OH_NativeWindow_NativeWindowHandleOpt SET_BUFFER_GEOMETRY failed" << std::endl;
     }
     code = SET_STRIDE;
     int32_t stride = 0x8;
-    ret = NativeWindowHandleOpt(nativeWindow, code, stride);
+    ret = OH_NativeWindow_NativeWindowHandleOpt(nativeWindow, code, stride);
     if (ret != OHOS::GSERROR_OK) {
-        std::cout << "NativeWindowHandleOpt SET_STRIDE failed" << std::endl;
+        std::cout << "OH_NativeWindow_NativeWindowHandleOpt SET_STRIDE failed" << std::endl;
     }
     code = SET_FORMAT;
     int32_t format = PIXEL_FMT_RGBA_8888;
-    ret = NativeWindowHandleOpt(nativeWindow, code, format);
+    ret = OH_NativeWindow_NativeWindowHandleOpt(nativeWindow, code, format);
     if (ret != OHOS::GSERROR_OK) {
-        std::cout << "NativeWindowHandleOpt SET_FORMAT failed" << std::endl;
+        std::cout << "OH_NativeWindow_NativeWindowHandleOpt SET_FORMAT failed" << std::endl;
     }
 
     NativeWindowBuffer* nativeWindowBuffer = nullptr;

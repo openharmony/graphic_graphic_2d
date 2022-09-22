@@ -15,7 +15,7 @@
 
 #include "native_image.h"
 #include "surface_image.h"
-#include "external_window.h"
+#include "window.h"
 
 using namespace OHOS;
 

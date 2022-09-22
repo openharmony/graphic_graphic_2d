@@ -19,7 +19,6 @@ ohos_ndk_headers("native_window_header") {
   sources = [
     "//drivers/peripheral/base/buffer_handle.h",
     "//foundation/graphic/graphic_2d/interfaces/inner_api/surface/external_window.h",
-    "//foundation/graphic/graphic_2d/interfaces/inner_api/surface/window.h",
   ]
 }
 
@@ -31,6 +30,5 @@ ohos_ndk_library("libnative_window_ndk") {
   system_capability_headers = [
     "native_window/buffer_handle.h",
     "native_window/external_window.h",
-    "native_window/window.h",
   ]
 }

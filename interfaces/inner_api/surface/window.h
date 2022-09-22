@@ -17,17 +17,11 @@
 #define NDK_INCLUDE_NATIVE_WINDOW_H_
 
 #include <stdint.h>
-#include "buffer_handle.h"
+#include "external_window.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-struct NativeWindow;
-struct NativeWindowBuffer;
-
-typedef struct NativeWindow OHNativeWindow;
-typedef struct NativeWindowBuffer OHNativeWindowBuffer;
 
 #define MKMAGIC(a, b, c, d) (((a) << 24) + ((b) << 16) + ((c) << 8) + ((d) << 0))
 
@@ -35,76 +29,6 @@ enum NativeObjectMagic {
     NATIVE_OBJECT_MAGIC_WINDOW = MKMAGIC('W', 'I', 'N', 'D'),
     NATIVE_OBJECT_MAGIC_WINDOW_BUFFER = MKMAGIC('W', 'B', 'U', 'F'),
 };
-
-enum NativeObjectType {
-    NATIVE_OBJECT_WINDOW,
-    NATIVE_OBJECT_WINDOW_BUFFER,
-};
-
-typedef struct Region {
-    struct Rect {
-        int32_t x;
-        int32_t y;
-        uint32_t w;
-        uint32_t h;
-    } *rects;           // if nullptr,  fill the Buffer dirty size by default
-    int32_t rectNumber; // if rectNumber is 0, fill the Buffer dirty size by default
-}Region;
-
-enum NativeWindowOperation {
-    SET_BUFFER_GEOMETRY,    // ([in] int32_t height, [in] int32_t width)
-    GET_BUFFER_GEOMETRY,    // ([out] int32_t *height, [out] int32_t *width)
-    GET_FORMAT,             // ([out] int32_t *format)
-    SET_FORMAT,             // ([in] int32_t format)
-    GET_USAGE,              // ([out] int32_t *usage)
-    SET_USAGE,              // ([in] int32_t usage)
-    SET_STRIDE,             // ([in] int32_t stride)
-    GET_STRIDE,             // ([out] int32_t *stride)
-    SET_SWAP_INTERVAL,      // ([in] int32_t interval)
-    GET_SWAP_INTERVAL,      // ([out] int32_t *interval)
-    SET_TIMEOUT,            // ([in] int32_t timeout)
-    GET_TIMEOUT,            // ([out] int32_t *timeout)
-    SET_COLOR_GAMUT,        // ([in] int32_t colorGamut)
-    GET_COLOR_GAMUT,        // ([out int32_t *colorGamut])
-    SET_TRANSFORM,          // ([in] int32_t transform)
-    GET_TRANSFORM,          // ([out] int32_t *transform)
-    SET_UI_TIMESTAMP,       // ([in] uint64_t uiTimestamp)
-};
-
-typedef enum {
-    OH_SCALING_MODE_FREEZE = 0,
-    OH_SCALING_MODE_SCALE_TO_WINDOW,
-    OH_SCALING_MODE_SCALE_CROP,
-    OH_SCALING_MODE_NO_SCALE_CROP,
-} OHScalingMode;
-
-typedef enum {
-    OH_METAKEY_RED_PRIMARY_X = 0,
-    OH_METAKEY_RED_PRIMARY_Y = 1,
-    OH_METAKEY_GREEN_PRIMARY_X = 2,
-    OH_METAKEY_GREEN_PRIMARY_Y = 3,
-    OH_METAKEY_BLUE_PRIMARY_X = 4,
-    OH_METAKEY_BLUE_PRIMARY_Y = 5,
-    OH_METAKEY_WHITE_PRIMARY_X = 6,
-    OH_METAKEY_WHITE_PRIMARY_Y = 7,
-    OH_METAKEY_MAX_LUMINANCE = 8,
-    OH_METAKEY_MIN_LUMINANCE = 9,
-    OH_METAKEY_MAX_CONTENT_LIGHT_LEVEL = 10,
-    OH_METAKEY_MAX_FRAME_AVERAGE_LIGHT_LEVEL = 11,
-    OH_METAKEY_HDR10_PLUS = 12,
-    OH_METAKEY_HDR_VIVID = 13,
-} OHHDRMetadataKey;
-
-typedef struct {
-    OHHDRMetadataKey key;
-    float value;
-} OHHDRMetaData;
-
-typedef struct {
-    int32_t fd;
-    uint32_t reserveInts;
-    int32_t reserve[0];
-} OHExtDataHandle;
 
 // pSurface type is OHOS::sptr<OHOS::Surface>*
 OHNativeWindow* CreateNativeWindowFromSurface(void* pSurface);
