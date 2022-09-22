@@ -32,7 +32,7 @@ void RSUniRenderListener::OnBufferAvailable()
         RS_LOGE("RSUniRenderListener::OnBufferAvailable node is nullptr");
         return;
     }
-    RS_LOGI("RSUniRenderListener::OnBufferAvailable node id:%" PRIu64, node->GetId());
+    RS_LOGD("RSUniRenderListener::OnBufferAvailable node id:%" PRIu64, node->GetId());
     node->IncreaseAvailableBuffer();
 
     RSMainThread::Instance()->NotifyUniRenderFinish();
