@@ -289,7 +289,7 @@ bool ProducerSurface::IsRemote()
 GSError ProducerSurface::CleanCache()
 {
     BLOGND("Queue Id:%{public}" PRIu64, queueId_);
-    if (IsRemote()) {
+    {
         std::lock_guard<std::mutex> lockGuard(mutex_);
         bufferProducerCache_.clear();
     }
@@ -299,7 +299,7 @@ GSError ProducerSurface::CleanCache()
 GSError ProducerSurface::GoBackground()
 {
     BLOGND("Queue Id:%{public}" PRIu64 "", queueId_);
-    if (IsRemote()) {
+    {
         std::lock_guard<std::mutex> lockGuard(mutex_);
         bufferProducerCache_.clear();
     }
@@ -342,7 +342,7 @@ GSError ProducerSurface::Disconnect()
         }
     }
     BLOGND("Queue Id:%{public}" PRIu64 "", queueId_);
-    if (IsRemote()) {
+    {
         std::lock_guard<std::mutex> lockGuard(mutex_);
         bufferProducerCache_.clear();
     }
