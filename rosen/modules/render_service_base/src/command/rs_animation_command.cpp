@@ -51,7 +51,7 @@ void AnimationCommandHelper::CreateAnimation(
     auto beginTime = context.GetTransactionTimestamp();
     auto currentTime = context.GetCurrentTimestamp();
     // If the animation is already finished
-    if (beginTime != 0 && (currentTime - beginTime) > animation->GetDuration()) {
+    if (beginTime != 0 && (currentTime - beginTime) > animation->GetDuration() * MS_TO_NS) {
         animation->SetStartTime(beginTime);
         animation->Animate(currentTime);
     } else {
