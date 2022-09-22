@@ -250,6 +250,16 @@ void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::CaptureSingleSurfaceNodeWith
 
     canvas_->save();
     canvas_->clipRect(SkRect::MakeWH(property.GetBoundsWidth(), property.GetBoundsHeight()));
+    if (node.GetSecurityLayer()) {
+        RS_LOGD("RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::CaptureSingleSurfaceNodeWithUni: \
+            process RSSurfaceRenderNode(id:[%" PRIu64 "]) clear white since it is security layer.",
+            node.GetId());
+        canvas_->clear(SK_ColorWHITE);
+        canvas_->restore(); // restore clipRect
+        canvas_->restore(); // restore translate and concat
+        return;
+    }
+
     auto backgroundColor = static_cast<SkColor>(property.GetBackgroundColor().AsArgbInt());
     if (SkColorGetA(backgroundColor) != SK_AlphaTRANSPARENT) {
         canvas_->drawColor(backgroundColor);
@@ -269,6 +279,12 @@ void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::CaptureSingleSurfaceNodeWith
 
 void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::CaptureSurfaceInDisplayWithUni(RSSurfaceRenderNode& node)
 {
+    if (node.GetSecurityLayer()) {
+        RS_LOGD("RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::CaptureSurfaceInDisplayWithUni: \
+            process RSSurfaceRenderNode(id:[%" PRIu64 "]) paused since it is security layer.",
+            node.GetId());
+        return;
+    }
     canvas_->concat(node.GetContextMatrix());
     auto contextClipRect = node.GetContextClipRegion();
     if (!contextClipRect.isEmpty()) {
@@ -393,6 +409,17 @@ void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::CaptureSingleSurfaceNodeWith
         translateMatrix.preTranslate(
             thisNodetranslateX - parentNodeTranslateX, thisNodetranslateY - parentNodeTranslateY);
     }
+    if (node.GetSecurityLayer()) {
+        RS_LOGD("RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::CaptureSingleSurfaceNodeWithoutUni: \
+            process RSSurfaceRenderNode(id:[%" PRIu64 "]) clear white since it is security layer.",
+            node.GetId());
+        canvas_->save();
+        canvas_->concat(translateMatrix);
+        canvas_->clear(SK_ColorWHITE);
+        canvas_->restore();
+        return;
+    }
+
     if (node.GetChildrenCount() > 0) {
         canvas_->concat(translateMatrix);
         const auto saveCnt = canvas_->save();
@@ -417,6 +444,12 @@ void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::CaptureSingleSurfaceNodeWith
 
 void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::CaptureSurfaceInDisplayWithoutUni(RSSurfaceRenderNode& node)
 {
+    if (node.GetSecurityLayer()) {
+        RS_LOGD("RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::CaptureSurfaceInDisplayWithoutUni: \
+            process RSSurfaceRenderNode(id:[%" PRIu64 "]) paused since it is security layer.",
+            node.GetId());
+        return;
+    }
     ProcessBaseRenderNode(node);
     if (node.GetBuffer() != nullptr) {
         // in display's coordinate.
@@ -448,13 +481,7 @@ void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::ProcessSurfaceRenderNode(RSS
         return;
     }
 
-    if (node.GetSecurityLayer()) {
-        RS_LOGD("RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::ProcessSurfaceRenderNode: \
-            process RSSurfaceRenderNode(id:[%" PRIu64 "]) paused, because surfaceNode is the security layer.",
-            node.GetId());
-        return;
-    }
-
+    // execute security layer in each case, ignore display snapshot and set it white for surface snapshot
     if (IsUniRender()) {
         ProcessSurfaceRenderNodeWithUni(node);
     } else {
