@@ -366,6 +366,9 @@ void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::ProcessRootRenderNode(RSRoot
 
 void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
 {
+    if (!IsUniRender()) {
+        return;
+    }
     if (!node.GetRenderProperties().GetVisible()) {
         RS_LOGD("ProcessCanvasRenderNode, no need process");
         return;
