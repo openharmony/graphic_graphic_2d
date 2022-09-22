@@ -355,6 +355,12 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
             RS_LOGE("RSUniRenderVisitor Request Frame Failed");
             return;
         }
+        canvas_ = renderFrame->GetCanvas();
+        if (canvas_ == nullptr) {
+            RS_LOGE("RSUniRenderVisitor::ProcessDisplayRenderNode: failed to create canvas");
+            return;
+        }
+        int saveLayerCnt = 0;
         SkRegion region;
 #ifdef RS_ENABLE_EGLQUERYSURFACE
         // Get displayNode buffer age in order to merge visible dirty region for displayNode.
@@ -378,14 +384,6 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
             }
             renderFrame->SetDamageRegion(rects);
         }
-#endif
-        canvas_ = renderFrame->GetCanvas();
-        if (canvas_ == nullptr) {
-            RS_LOGE("RSUniRenderVisitor::ProcessDisplayRenderNode: failed to create canvas");
-            return;
-        }
-        canvas_->save();
-#ifdef RS_ENABLE_EGLQUERYSURFACE
         if (isOpDropped_ && !region.isEmpty()) {
             if (region.isRect()) {
                 canvas_->clipRegion(region);
@@ -393,9 +391,11 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
                 SkPath dirtyPath;
                 region.getBoundaryPath(&dirtyPath);
                 canvas_->clipPath(dirtyPath, true);
+                saveLayerCnt = canvas_->saveLayer(SkRect::MakeWH(screenInfo_.width, screenInfo_.height), nullptr);
             }
         }
 #endif
+        canvas_->save();
         auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(node.GetRenderProperties().GetBoundsGeometry());
         if (geoPtr != nullptr) {
             canvas_->concat(geoPtr->GetMatrix());
@@ -412,6 +412,10 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
                     DrawDirtyRegion();
                 }
             }
+        }
+        if (saveLayerCnt > 0) {
+            RS_TRACE_NAME("RSUniRender:RestoreLayer");
+            canvas_->restoreToCount(saveLayerCnt);
         }
 
         RS_TRACE_BEGIN("RSUniRender:FlushFrame");
