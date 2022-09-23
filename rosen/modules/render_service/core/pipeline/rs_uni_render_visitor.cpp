@@ -648,7 +648,7 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
             ProcessBaseRenderNode(node);
             node.ClearCacheSurface();
         } else if (node.GetCacheSurface()) {
-                DrawCacheSurface(node);
+            DrawCacheSurface(node);
         } else {
             InitCacheSurface(node, property.GetBoundsWidth(), property.GetBoundsHeight());
             if (node.GetCacheSurface()) {
