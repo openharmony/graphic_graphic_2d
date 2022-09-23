@@ -23,6 +23,8 @@
 #include <include/core/SkTextBlob.h>
 #include <include/effects/SkOverdrawColorFilter.h>
 
+#include "overdraw/rs_overdraw_controller.h"
+
 namespace OHOS {
 namespace Rosen {
 RSGPUOverdrawCanvasListener::RSGPUOverdrawCanvasListener(SkCanvas &canvas)
@@ -44,17 +46,9 @@ RSGPUOverdrawCanvasListener::~RSGPUOverdrawCanvasListener()
 void RSGPUOverdrawCanvasListener::Draw()
 {
     auto image = listenedSurface_->makeImageSnapshot();
-
     SkPaint paint;
-    const SkColor colors[] = {
-        0x00000000,
-        0x00000000,
-        0x220000ff,
-        0x2200ff00,
-        0x22ff0000,
-        0x44ff0000,
-    };
-    paint.setColorFilter(SkOverdrawColorFilter::Make(colors));
+    auto overdrawColors = RSOverdrawController::GetInstance().GetColorArray();
+    paint.setColorFilter(SkOverdrawColorFilter::Make(overdrawColors.data()));
     canvas_.drawImage(image, 0, 0, &paint);
 }
 

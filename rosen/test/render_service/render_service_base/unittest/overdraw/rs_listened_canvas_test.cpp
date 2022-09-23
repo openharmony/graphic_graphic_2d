@@ -60,19 +60,18 @@ public:
  * Function: request will pass through listened canvas
  * Type: Function
  * EnvConditions: N/A
- * CaseDescription: 1. new mock MockRSPaintFilterCanvas
+ * CaseDescription: 1. create mock MockRSPaintFilterCanvas
  *                  2. expect MockRSPaintFilterCanvas call drawRect once
- *                  3. new RSListenedCanvas from MockRSPaintFilterCanvas
+ *                  3. create RSListenedCanvas from MockRSPaintFilterCanvas
  *                  4. call RSListenedCanvas's drawRect
- *                  5. MockRSPaintFilterCanvas will delete automatically by delete RSListenedCanvas
  */
 HWTEST_F(RSListenedCanvasTest, RequestPassThrough, Function | SmallTest | Level2)
 {
     PART("CaseDescription") {
         auto mockSkCanvas = std::make_unique<MockSkCanvas>();
-        MockRSPaintFilterCanvas *mockRSPaintFilterCanvas = nullptr;
-        STEP("1. new mock MockRSPaintFilterCanvas") {
-            mockRSPaintFilterCanvas = new MockRSPaintFilterCanvas(mockSkCanvas.get());
+        std::shared_ptr<MockRSPaintFilterCanvas> mockRSPaintFilterCanvas = nullptr;
+        STEP("1. create mock MockRSPaintFilterCanvas") {
+            mockRSPaintFilterCanvas = std::make_shared<MockRSPaintFilterCanvas>(mockSkCanvas.get());
         }
 
         SkRect rect = SkRect::MakeXYWH(1, 2, 3, 4);
@@ -80,17 +79,13 @@ HWTEST_F(RSListenedCanvasTest, RequestPassThrough, Function | SmallTest | Level2
             EXPECT_CALL(*mockRSPaintFilterCanvas, onDrawRect(rect, _)).Times(1);
         }
 
-        RSListenedCanvas *listenedCanvas = nullptr;
-        STEP("3. new RSListenedCanvas from MockRSPaintFilterCanvas") {
-            listenedCanvas = new RSListenedCanvas(mockRSPaintFilterCanvas);
+        std::shared_ptr<RSListenedCanvas> listenedCanvas = nullptr;
+        STEP("3. create RSListenedCanvas from MockRSPaintFilterCanvas") {
+            listenedCanvas = std::make_shared<RSListenedCanvas>(mockRSPaintFilterCanvas.get());
         }
 
         STEP("4. call RSListenedCanvas's drawRect") {
             listenedCanvas->drawRect(rect, {});
-        }
-
-        STEP("5. MockRSPaintFilterCanvas will delete automatically") {
-            delete listenedCanvas;
         }
     }
 }
@@ -99,23 +94,23 @@ HWTEST_F(RSListenedCanvasTest, RequestPassThrough, Function | SmallTest | Level2
  * Function: request will split to listener
  * Type: Function
  * EnvConditions: N/A
- * CaseDescription: 1. new mock MockRSPaintFilterCanvas
- *                  2. new mock MockRSCanvasListener
+ * CaseDescription: 1. create mock MockRSPaintFilterCanvas
+ *                  2. create mock MockRSCanvasListener
  *                  3. expect MockRSCanvasListener call drawRect once
- *                  4. new RSListenedCanvas from MockRSPaintFilterCanvas
+ *                  4. create RSListenedCanvas from MockRSPaintFilterCanvas
  *                  5. call RSListenedCanvas's drawRect
  */
 HWTEST_F(RSListenedCanvasTest, RequestSplitToListener, Function | SmallTest | Level2)
 {
     PART("CaseDescription") {
         auto mockSkCanvas = std::make_unique<MockSkCanvas>();
-        MockRSPaintFilterCanvas *mockRSPaintFilterCanvas = nullptr;
-        STEP("1. new mock MockRSPaintFilterCanvas") {
-            mockRSPaintFilterCanvas = new MockRSPaintFilterCanvas(mockSkCanvas.get());
+        std::shared_ptr<MockRSPaintFilterCanvas> mockRSPaintFilterCanvas = nullptr;
+        STEP("1. create mock MockRSPaintFilterCanvas") {
+            mockRSPaintFilterCanvas = std::make_shared<MockRSPaintFilterCanvas>(mockSkCanvas.get());
         }
 
         std::shared_ptr<MockRSCanvasListener> mockRSCanvasListener = nullptr;
-        STEP("2. new mock MockRSCanvasListener") {
+        STEP("2. create mock MockRSCanvasListener") {
             mockRSCanvasListener = std::make_shared<MockRSCanvasListener>(*mockRSPaintFilterCanvas);
         }
 
@@ -125,17 +120,15 @@ HWTEST_F(RSListenedCanvasTest, RequestSplitToListener, Function | SmallTest | Le
             EXPECT_CALL(*mockRSCanvasListener, onDrawRect(rect, _)).Times(1);
         }
 
-        RSListenedCanvas *listenedCanvas = nullptr;
-        STEP("4. new RSListenedCanvas from MockRSPaintFilterCanvas") {
-            listenedCanvas = new RSListenedCanvas(mockRSPaintFilterCanvas);
+        std::shared_ptr<RSListenedCanvas> listenedCanvas = nullptr;
+        STEP("4. create RSListenedCanvas from MockRSPaintFilterCanvas") {
+            listenedCanvas = std::make_shared<RSListenedCanvas>(mockRSPaintFilterCanvas.get());
             listenedCanvas->SetListener(mockRSCanvasListener);
         }
 
         STEP("5. call RSListenedCanvas's drawRect") {
             listenedCanvas->drawRect(rect, {});
         }
-
-        delete listenedCanvas;
     }
 }
 } // namespace Rosen
