@@ -39,7 +39,7 @@ OH_NativeImage* OH_NativeImage_Create(uint32_t textureId, uint32_t textureTarget
 OHNativeWindow* OH_NativeImage_AcquireNativeWindow(OH_NativeImage* image)
 {
     if (image == nullptr) {
-        SLOGE("parameter error, please check input parameter");
+        BLOGE("parameter error, please check input parameter");
         return nullptr;
     }
     sptr<OHOS::IBufferProducer> producer = image->producer;
@@ -51,7 +51,7 @@ OHNativeWindow* OH_NativeImage_AcquireNativeWindow(OH_NativeImage* image)
 int32_t OH_NativeImage_AttachContext(OH_NativeImage* image, uint32_t textureId)
 {
     if (image == nullptr) {
-        SLOGE("parameter error, please check input parameter");
+        BLOGE("parameter error, please check input parameter");
         return SURFACE_ERROR_ERROR;
     }
     return image->consumer->AttachContext(textureId);
@@ -60,7 +60,7 @@ int32_t OH_NativeImage_AttachContext(OH_NativeImage* image, uint32_t textureId)
 int32_t OH_NativeImage_DetachContext(OH_NativeImage* image)
 {
     if (image == nullptr) {
-        SLOGE("parameter error, please check input parameter");
+        BLOGE("parameter error, please check input parameter");
         return SURFACE_ERROR_ERROR;
     }
     return image->consumer->DetachContext();
@@ -69,7 +69,7 @@ int32_t OH_NativeImage_DetachContext(OH_NativeImage* image)
 int32_t OH_NativeImage_UpdateSurfaceImage(OH_NativeImage* image)
 {
     if (image == nullptr) {
-        SLOGE("parameter error, please check input parameter");
+        BLOGE("parameter error, please check input parameter");
         return SURFACE_ERROR_ERROR;
     }
     return image->consumer->UpdateSurfaceImage();
@@ -78,7 +78,7 @@ int32_t OH_NativeImage_UpdateSurfaceImage(OH_NativeImage* image)
 int64_t OH_NativeImage_GetTimestamp(OH_NativeImage* image)
 {
     if (image == nullptr) {
-        SLOGE("parameter error, please check input parameter");
+        BLOGE("parameter error, please check input parameter");
         return SURFACE_ERROR_ERROR;
     }
     return image->consumer->GetTimeStamp();
@@ -87,7 +87,7 @@ int64_t OH_NativeImage_GetTimestamp(OH_NativeImage* image)
 int32_t OH_NativeImage_GetTransformMatrix(OH_NativeImage* image, float matrix[16])
 {
     if (image == nullptr) {
-        SLOGE("parameter error, please check input parameter");
+        BLOGE("parameter error, please check input parameter");
         return SURFACE_ERROR_ERROR;
     }
     return image->consumer->GetTransformMatrix(matrix);
@@ -96,7 +96,7 @@ int32_t OH_NativeImage_GetTransformMatrix(OH_NativeImage* image, float matrix[16
 void OH_NativeImage_Destroy(OH_NativeImage** image)
 {
     if (image == nullptr) {
-        SLOGE("parameter error, please check input parameter");
+        BLOGE("parameter error, please check input parameter");
         return;
     }
     delete *image;
