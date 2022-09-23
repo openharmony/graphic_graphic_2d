@@ -244,30 +244,6 @@ VkResult GetPhysicalDeviceSurfaceFormatsKHR(VkPhysicalDevice pdev, VkSurfaceKHR 
 }
 
 VKAPI_ATTR
-VkResult GetPhysicalDeviceSurfaceFormats2KHR(VkPhysicalDevice physicalDevice,
-                                             const VkPhysicalDeviceSurfaceInfo2KHR* pSurfaceInfo,
-                                             uint32_t* pSurfaceFormatCount, VkSurfaceFormat2KHR* pSurfaceFormats)
-{
-    if (!pSurfaceFormats) {
-        return GetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, pSurfaceInfo->surface, pSurfaceFormatCount, nullptr);
-    }
-    // temp vector for forwarding. We'll marshal it into the pSurfaceFormats after the call.
-    std::vector<VkSurfaceFormatKHR> surfaceFormats(*pSurfaceFormatCount);
-    VkResult result = GetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, pSurfaceInfo->surface, pSurfaceFormatCount,
-                                                         surfaceFormats.data());
-    if (result == VK_SUCCESS || result == VK_INCOMPLETE) {
-        // marshal results individually due to stride difference.
-        // completely ignore any chained extension structs.
-        uint32_t formatsToMarshal = *pSurfaceFormatCount;
-        for (uint32_t i = 0u; i < formatsToMarshal; i++) {
-            pSurfaceFormats[i].surfaceFormat = surfaceFormats[i];
-        }
-    }
-    return result;
-}
-
-
-VKAPI_ATTR
 VkResult GetPhysicalDeviceSurfacePresentModesKHR(VkPhysicalDevice pdev, VkSurfaceKHR surface,  uint32_t* count,
     VkPresentModeKHR* modes)
 {
@@ -296,27 +272,6 @@ VkResult GetPhysicalDeviceSurfacePresentModesKHR(VkPhysicalDevice pdev, VkSurfac
     return result;
 }
 
-VKAPI_ATTR VkResult GetDeviceGroupPresentCapabilitiesKHR(VkDevice device,
-    VkDeviceGroupPresentCapabilitiesKHR* pDeviceGroupPresentCapabilities)
-{
-    auto ret = memset_s(pDeviceGroupPresentCapabilities->presentMask, VK_MAX_DEVICE_GROUP_SIZE,
-        0, sizeof(pDeviceGroupPresentCapabilities->presentMask));
-    if (ret != EOK) {
-        return VK_ERROR_UNKNOWN;
-    }
-    // assume device group of size 1
-    pDeviceGroupPresentCapabilities->presentMask[0] = 1 << 0;
-    pDeviceGroupPresentCapabilities->modes = VK_DEVICE_GROUP_PRESENT_MODE_LOCAL_BIT_KHR;
-    return VK_SUCCESS;
-}
-
-VKAPI_ATTR VkResult GetDeviceGroupSurfacePresentModesKHR(VkDevice, VkSurfaceKHR,
-    VkDeviceGroupPresentModeFlagsKHR* pModes)
-{
-    *pModes = VK_DEVICE_GROUP_PRESENT_MODE_LOCAL_BIT_KHR;
-    return VK_SUCCESS;
-}
-
 VKAPI_ATTR
 VkResult GetSwapchainImagesKHR(VkDevice, VkSwapchainKHR swapchainHandle, uint32_t* count, VkImage* images)
 {
@@ -338,38 +293,6 @@ VkResult GetSwapchainImagesKHR(VkDevice, VkSwapchainKHR swapchainHandle, uint32_
     *count = numImages;
     return result;
 }
-
-VKAPI_ATTR VkResult GetPhysicalDevicePresentRectanglesKHR(VkPhysicalDevice, VkSurfaceKHR surface,
-    uint32_t* pRectCount, VkRect2D* pRects)
-{
-    if (!pRects) {
-        *pRectCount = 1;
-        return VK_SUCCESS;
-    }
-
-    uint32_t count = std::min(*pRectCount, 1u);
-    bool incomplete = *pRectCount < 1;
-    *pRectCount = count;
-
-    if (incomplete) {
-        return VK_INCOMPLETE;
-    }
-
-    NativeWindow* window = SurfaceFromHandle(surface)->window;
-
-    int width = 0;
-    int height = 0;
-    int err = NativeWindowHandleOpt(window, GET_BUFFER_GEOMETRY, &height, &width);
-    if (err != OHOS::GSERROR_OK) {
-        WLOGE("NATIVE_WINDOW_DEFAULT_WIDTH query failed: (%{public}d)", err);
-    }
-    pRects[0].offset.x = 0;
-    pRects[0].offset.y = 0;
-    pRects[0].extent = VkExtent2D {static_cast<uint32_t>(width), static_cast<uint32_t>(height)};
-
-    return VK_SUCCESS;
-}
-
 
 PixelFormat GetPixelFormat(VkFormat format)
 {
@@ -477,8 +400,9 @@ void ReleaseSwapchain(VkDevice device, Swapchain* swapchain)
     }
 
     for (uint32_t i = 0; i < swapchain->numImages; i++) {
-        if (!swapchain->images[i].requested)
+        if (!swapchain->images[i].requested) {
             ReleaseSwapchainImage(device, nullptr, -1, swapchain->images[i], true);
+        }
     }
     swapchain->surface.swapchainHandle = VK_NULL_HANDLE;
 }
@@ -519,9 +443,6 @@ VKAPI_ATTR VkResult SetWindowInfo(const VkSwapchainCreateInfoKHR* createInfo, in
 {
     PixelFormat pixelFormat = GetPixelFormat(createInfo->imageFormat);
     Surface& surface = *SurfaceFromHandle(createInfo->surface);
-    if (surface.swapchainHandle != createInfo->oldSwapchain) {
-        return VK_ERROR_NATIVE_WINDOW_IN_USE_KHR;
-    }
 
     NativeWindow* window = surface.window;
     int err = NativeWindowHandleOpt(window, SET_FORMAT, pixelFormat);
@@ -591,9 +512,6 @@ VKAPI_ATTR VkResult CreateImages(int32_t& numImages, Swapchain* swapchain, const
     VkImageCreateInfo& imageCreate, VkDevice device)
 {
     Surface& surface = *SurfaceFromHandle(createInfo->surface);
-    if (surface.swapchainHandle != createInfo->oldSwapchain) {
-        return VK_ERROR_NATIVE_WINDOW_IN_USE_KHR;
-    }
     NativeWindow* window = surface.window;
     if (createInfo->oldSwapchain != VK_NULL_HANDLE) {
         WLOGI("recreate swapchain ,clean buffer queue");
@@ -639,6 +557,11 @@ VKAPI_ATTR VkResult CreateImages(int32_t& numImages, Swapchain* swapchain, const
 VKAPI_ATTR VkResult CreateSwapchainKHR(VkDevice device, const VkSwapchainCreateInfoKHR* createInfo,
     const VkAllocationCallbacks* allocator, VkSwapchainKHR* swapchainHandle)
 {
+    Surface& surface = *SurfaceFromHandle(createInfo->surface);
+    if (surface.swapchainHandle != createInfo->oldSwapchain) {
+        return VK_ERROR_NATIVE_WINDOW_IN_USE_KHR;
+    }
+
     int32_t numImages = MIN_BUFFER_SIZE;
     VkResult result = SetSwapchainCreateInfo(device, createInfo, &numImages);
     if (result != VK_SUCCESS) {
@@ -652,11 +575,6 @@ VKAPI_ATTR VkResult CreateSwapchainKHR(VkDevice device, const VkSwapchainCreateI
         VK_SYSTEM_ALLOCATION_SCOPE_OBJECT);
     if (!mem) {
         return VK_ERROR_OUT_OF_HOST_MEMORY;
-    }
-
-    Surface& surface = *SurfaceFromHandle(createInfo->surface);
-    if (surface.swapchainHandle != createInfo->oldSwapchain) {
-        return VK_ERROR_NATIVE_WINDOW_IN_USE_KHR;
     }
 
     Swapchain* swapchain = new (mem) Swapchain(surface, numImages, createInfo->presentMode,
@@ -756,38 +674,6 @@ VkResult AcquireNextImage2KHR(VkDevice device, const VkAcquireNextImageInfoKHR* 
 {
     return AcquireNextImageKHR(device, pAcquireInfo->swapchain, pAcquireInfo->timeout,
                                pAcquireInfo->semaphore, pAcquireInfo->fence, pImageIndex);
-}
-
-
-VKAPI_ATTR
-VkResult GetSwapchainStatusKHR(VkDevice, VkSwapchainKHR swapchainHandle)
-{
-    Swapchain& swapchain = *SwapchainFromHandle(swapchainHandle);
-    VkResult result = VK_SUCCESS;
-    if (swapchain.surface.swapchainHandle != swapchainHandle) {
-        return VK_ERROR_OUT_OF_DATE_KHR;
-    }
-    return result;
-}
-
-VKAPI_ATTR
-VkResult GetPhysicalDeviceSurfaceCapabilities2KHR(VkPhysicalDevice physicalDevice,
-                                                  const VkPhysicalDeviceSurfaceInfo2KHR* pSurfaceInfo,
-                                                  VkSurfaceCapabilities2KHR* pSurfaceCapabilities)
-{
-    VkResult result = GetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice, pSurfaceInfo->surface,
-                                                              &pSurfaceCapabilities->surfaceCapabilities);
-    VkSurfaceCapabilities2KHR* surfaceCapabilities
-        = reinterpret_cast<VkSurfaceCapabilities2KHR*>(pSurfaceCapabilities->pNext);
-    if (surfaceCapabilities) {
-        if (surfaceCapabilities->sType == VK_STRUCTURE_TYPE_SHARED_PRESENT_SURFACE_CAPABILITIES_KHR) {
-            VkSharedPresentSurfaceCapabilitiesKHR* sharedCapabilities =
-                reinterpret_cast<VkSharedPresentSurfaceCapabilitiesKHR*>(surfaceCapabilities);
-            sharedCapabilities->sharedPresentSupportedUsageFlags =
-                pSurfaceCapabilities->surfaceCapabilities.supportedUsageFlags;
-        }
-    }
-    return result;
 }
 
 const VkPresentRegionKHR* GetPresentRegion(

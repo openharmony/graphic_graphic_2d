@@ -76,8 +76,7 @@
             "//foundation/graphic/graphic_2d/frameworks/opengl_wrapper:opengl_wrapper_native_test",
             "//foundation/graphic/graphic_2d/frameworks/surfaceimage:libnative_image",
             "//foundation/graphic/graphic_2d/rosen/modules/effect/egl:libegl_effect",
-            "//foundation/graphic/graphic_2d/frameworks/vulkan_wrapper:vulkan",
-            "//foundation/graphic/graphic_2d/frameworks/vulkan_wrapper:vulkan_wrapper_native_test"
+            "//foundation/graphic/graphic_2d/frameworks/vulkan_wrapper:vulkan"
           ],
           "fwk_group": [
             "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:librender_service_base",
