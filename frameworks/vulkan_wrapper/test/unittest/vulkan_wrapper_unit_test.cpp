@@ -19,11 +19,13 @@
 #include <dlfcn.h>
 #include <iostream>
 #include <string>
+#include <vector>
 
 #include "refbase.h"
 #include "surface.h"
 #include "vulkan/vulkan.h"
 #include "driver.h"
+#include "driver_loader.h"
 #include "swapchain.h"
 #include "render_context/render_context.h"
 #include "transaction/rs_transaction.h"
@@ -42,6 +44,7 @@ public:
     static void TearDownTestCase();
     void SetUp() {}
     void TearDown() {}
+    uint32_t getQueueFamilyIndex(VkQueueFlagBits queueFlags);
 
     static inline PFN_vkCreateInstance vkCreateInstance;
     static inline PFN_vkDestroyInstance vkDestroyInstance;
@@ -50,6 +53,7 @@ public:
     static inline PFN_vkDestroyDevice vkDestroyDevice;
     static inline PFN_vkGetDeviceProcAddr vkGetDeviceProcAddr;
     static inline PFN_vkGetInstanceProcAddr vkGetInstanceProcAddr;
+    static inline PFN_vkEnumerateInstanceExtensionProperties vkEnumerateInstanceExtensionProperties;
     static inline PFN_vkEnumeratePhysicalDevices vkEnumeratePhysicalDevices;
     static inline PFN_vkCreateOHOSSurfaceOpenHarmony vkCreateOHOSSurfaceOpenHarmony;
     static inline PFN_vkGetPhysicalDeviceSurfaceCapabilitiesKHR fpGetPhysicalDeviceSurfaceCapabilitiesKHR;
@@ -57,8 +61,15 @@ public:
     static inline PFN_vkGetPhysicalDeviceSurfaceFormatsKHR fpGetPhysicalDeviceSurfaceFormatsKHR;
     static inline PFN_vkCreateSwapchainKHR fpCreateSwapchainKHR;
     static inline PFN_vkDestroySwapchainKHR fpDestroySwapchainKHR;
+    static inline PFN_vkAcquireNextImage2KHR fpAcquireNextImage2KHR;
     static inline PFN_vkQueuePresentKHR fpQueuePresentKHR;
     static inline PFN_IsSupportedVulkan fpIsSupportedVulkan;
+    static inline PFN_vkGetPhysicalDeviceQueueFamilyProperties vkGetPhysicalDeviceQueueFamilyProperties;
+    static inline PFN_vkGetPhysicalDeviceProperties vkGetPhysicalDeviceProperties;
+    static inline PFN_vkGetPhysicalDeviceFeatures vkGetPhysicalDeviceFeatures;
+    static inline PFN_vkGetPhysicalDeviceMemoryProperties vkGetPhysicalDeviceMemoryProperties;
+    static inline PFN_vkGetPhysicalDeviceSurfaceSupportKHR vkGetPhysicalDeviceSurfaceSupportKHR;
+    static inline PFN_vkGetSwapchainImagesKHR fpGetSwapchainImagesKHR;
 
     static inline void *libVulkan = nullptr;
     static inline VkInstance instance = nullptr;
@@ -68,9 +79,40 @@ public:
     static inline VkSurfaceCapabilitiesKHR surfCaps = {};
     static inline VkSurfaceFormatKHR surfaceFormat = {};
     static inline VkSwapchainKHR swapChain = VK_NULL_HANDLE;
+    static inline VkSwapchainKHR swapChain2 = VK_NULL_HANDLE;
     static inline VkSemaphore semaphore = VK_NULL_HANDLE;
     static inline bool isSupportedVulkan = false;
+    static inline std::vector<VkQueueFamilyProperties> queueProps;
+    static inline uint32_t queueCount;
 };
+
+uint32_t VulkanWrapperUnitTest::getQueueFamilyIndex(VkQueueFlagBits queueFlags)
+{
+    if (queueFlags & VK_QUEUE_COMPUTE_BIT) {
+        for (uint32_t i = 0; i < static_cast<uint32_t>(queueProps.size()); i++) {
+            if ((queueProps[i].queueFlags & queueFlags) &&
+                ((queueProps[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) == 0)) {
+                return i;
+            }
+        }
+    }
+    if (queueFlags & VK_QUEUE_TRANSFER_BIT) {
+        for (uint32_t i = 0; i < static_cast<uint32_t>(queueProps.size()); i++) {
+            if ((queueProps[i].queueFlags & queueFlags) &&
+                ((queueProps[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) == 0) &&
+                ((queueProps[i].queueFlags & VK_QUEUE_COMPUTE_BIT) == 0)) {
+                return i;
+            }
+        }
+    }
+    for (uint32_t i = 0; i < static_cast<uint32_t>(queueProps.size()); i++) {
+        if (queueProps[i].queueFlags & queueFlags) {
+            return i;
+        }
+    }
+    std::cout << "Could not find a matching queue family index" << std::endl;
+    return -1;
+}
 
 void VulkanWrapperUnitTest::TearDownTestCase()
 {
@@ -113,6 +155,9 @@ HWTEST_F(VulkanWrapperUnitTest, dlopen_Test, TestSize.Level1)
  */
 HWTEST_F(VulkanWrapperUnitTest, LoadFuncPtr001, TestSize.Level1)
 {
+    vkEnumerateInstanceExtensionProperties = reinterpret_cast<PFN_vkEnumerateInstanceExtensionProperties>(
+        dlsym(libVulkan, "vkEnumerateInstanceExtensionProperties"));
+    EXPECT_NE(vkEnumerateInstanceExtensionProperties, nullptr);
     vkCreateInstance = reinterpret_cast<PFN_vkCreateInstance>(dlsym(libVulkan, "vkCreateInstance"));
     EXPECT_NE(vkCreateInstance, nullptr);
     vkGetInstanceProcAddr = reinterpret_cast<PFN_vkGetInstanceProcAddr>(dlsym(libVulkan, "vkGetInstanceProcAddr"));
@@ -141,12 +186,32 @@ HWTEST_F(VulkanWrapperUnitTest, vkCreateInstance_Test, TestSize.Level1)
         appInfo.pEngineName = "pEngineName";
         appInfo.apiVersion = VK_API_VERSION_1_0;
 
+        std::vector<const char*> instanceExtensions = { VK_KHR_SURFACE_EXTENSION_NAME };
+        instanceExtensions.push_back(VK_OPENHARMONY_OHOS_SURFACE_EXTENSION_NAME);
+        uint32_t extCount = 0;
+        VkResult err = vkEnumerateInstanceExtensionProperties(nullptr, &extCount, nullptr);
+        EXPECT_EQ(err, VK_SUCCESS);
+        if (extCount > 0) {
+            std::vector<VkExtensionProperties> extensions(extCount);
+            err = vkEnumerateInstanceExtensionProperties(nullptr, &extCount, &extensions.front());
+            EXPECT_EQ(err, VK_SUCCESS);
+            for (VkExtensionProperties extension : extensions)
+            {
+                instanceExtensions.push_back(extension.extensionName);
+            }
+        }
+
         VkInstanceCreateInfo instanceCreateInfo = {};
         instanceCreateInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
         instanceCreateInfo.pNext = NULL;
         instanceCreateInfo.pApplicationInfo = &appInfo;
 
-        VkResult err = vkCreateInstance(&instanceCreateInfo, nullptr, &instance);
+        if (instanceExtensions.size() > 0) {
+            instanceCreateInfo.enabledExtensionCount = (uint32_t)instanceExtensions.size();
+            instanceCreateInfo.ppEnabledExtensionNames = instanceExtensions.data();
+        }
+
+        err = vkCreateInstance(&instanceCreateInfo, nullptr, &instance);
         EXPECT_EQ(err, VK_SUCCESS);
         EXPECT_NE(instance, nullptr);
     }
@@ -190,26 +255,41 @@ HWTEST_F(VulkanWrapperUnitTest, LoadFuncPtr002, TestSize.Level1)
         fpGetPhysicalDeviceSurfaceFormatsKHR = reinterpret_cast<PFN_vkGetPhysicalDeviceSurfaceFormatsKHR>(
             vkGetInstanceProcAddr(instance, "vkGetPhysicalDeviceSurfaceFormatsKHR"));
         EXPECT_NE(fpGetPhysicalDeviceSurfaceFormatsKHR, nullptr);
+        vkGetPhysicalDeviceQueueFamilyProperties = reinterpret_cast<PFN_vkGetPhysicalDeviceQueueFamilyProperties>(
+            vkGetInstanceProcAddr(instance, "vkGetPhysicalDeviceQueueFamilyProperties"));
+        EXPECT_NE(vkGetPhysicalDeviceQueueFamilyProperties, nullptr);
+        vkGetPhysicalDeviceProperties = reinterpret_cast<PFN_vkGetPhysicalDeviceProperties>(
+            vkGetInstanceProcAddr(instance, "vkGetPhysicalDeviceProperties"));
+        EXPECT_NE(vkGetPhysicalDeviceProperties, nullptr);
+        vkGetPhysicalDeviceFeatures = reinterpret_cast<PFN_vkGetPhysicalDeviceFeatures>(
+            vkGetInstanceProcAddr(instance, "vkGetPhysicalDeviceFeatures"));
+        EXPECT_NE(vkGetPhysicalDeviceFeatures, nullptr);
+        vkGetPhysicalDeviceMemoryProperties = reinterpret_cast<PFN_vkGetPhysicalDeviceMemoryProperties>(
+            vkGetInstanceProcAddr(instance, "vkGetPhysicalDeviceMemoryProperties"));
+        EXPECT_NE(vkGetPhysicalDeviceMemoryProperties, nullptr);
+        vkGetPhysicalDeviceSurfaceSupportKHR = reinterpret_cast<PFN_vkGetPhysicalDeviceSurfaceSupportKHR>(
+            vkGetInstanceProcAddr(instance, "vkGetPhysicalDeviceSurfaceSupportKHR"));
+        EXPECT_NE(vkGetPhysicalDeviceSurfaceSupportKHR, nullptr);
     }
 }
 
 /**
- * @tc.name: test EnumeratePhysicalDevices
- * @tc.desc: test EnumeratePhysicalDevices
+ * @tc.name: test vkEnumeratePhysicalDevices
+ * @tc.desc: test vkEnumeratePhysicalDevices
  * @tc.type: FUNC
  * @tc.require: issueI5ODXM
  */
-HWTEST_F(VulkanWrapperUnitTest, EnumeratePhysicalDevices_Test, TestSize.Level1)
+HWTEST_F(VulkanWrapperUnitTest, vkEnumeratePhysicalDevices_Test, TestSize.Level1)
 {
     if (isSupportedVulkan) {
         EXPECT_NE(instance, nullptr);
 
         uint32_t gpuCount = 0;
-        VkResult err = EnumeratePhysicalDevices(instance, &gpuCount, nullptr);
+        VkResult err = vkEnumeratePhysicalDevices(instance, &gpuCount, nullptr);
         EXPECT_EQ(err, VK_SUCCESS);
         EXPECT_NE(gpuCount, 0);
         std::vector<VkPhysicalDevice> physicalDevices(gpuCount);
-        err = EnumeratePhysicalDevices(instance, &gpuCount, physicalDevices.data());
+        err = vkEnumeratePhysicalDevices(instance, &gpuCount, physicalDevices.data());
         EXPECT_EQ(err, VK_SUCCESS);
         physicalDevice = physicalDevices[0];
         EXPECT_NE(physicalDevice, nullptr);
@@ -217,27 +297,26 @@ HWTEST_F(VulkanWrapperUnitTest, EnumeratePhysicalDevices_Test, TestSize.Level1)
         VkPhysicalDeviceProperties deviceProperties;
         VkPhysicalDeviceFeatures deviceFeatures;
         VkPhysicalDeviceMemoryProperties deviceMemoryProperties;
-        GetPhysicalDeviceProperties(physicalDevice, &deviceProperties);
-        GetPhysicalDeviceFeatures(physicalDevice, &deviceFeatures);
-        GetPhysicalDeviceMemoryProperties(physicalDevice, &deviceMemoryProperties);
+        vkGetPhysicalDeviceProperties(physicalDevice, &deviceProperties);
+        vkGetPhysicalDeviceFeatures(physicalDevice, &deviceFeatures);
+        vkGetPhysicalDeviceMemoryProperties(physicalDevice, &deviceMemoryProperties);
     }
 }
 
 /**
- * @tc.name: test GetPhysicalDeviceQueueFamilyProperties
- * @tc.desc: test GetPhysicalDeviceQueueFamilyProperties
+ * @tc.name: test vkGetPhysicalDeviceQueueFamilyProperties
+ * @tc.desc: test vkGetPhysicalDeviceQueueFamilyProperties
  * @tc.type: FUNC
  * @tc.require: issueI5ODXM
  */
-HWTEST_F(VulkanWrapperUnitTest, GetPhysicalDeviceQueueFamilyProperties_Test, TestSize.Level1)
+HWTEST_F(VulkanWrapperUnitTest, vkGetPhysicalDeviceQueueFamilyProperties_Test, TestSize.Level1)
 {
     if (isSupportedVulkan) {
-        uint32_t queueCount;
-        GetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueCount, NULL);
+        vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueCount, NULL);
         EXPECT_GT(queueCount, 0);
 
-        std::vector<VkQueueFamilyProperties> queueProps(queueCount);
-        GetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueCount, queueProps.data());
+        queueProps.resize(queueCount);
+        vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueCount, queueProps.data());
     }
 }
 
@@ -254,6 +333,19 @@ HWTEST_F(VulkanWrapperUnitTest, vkCreateDevice_Test, TestSize.Level1)
         EXPECT_NE(physicalDevice, nullptr);
 
         VkDeviceCreateInfo deviceCreateInfo = {};
+        deviceCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+
+        std::vector<VkDeviceQueueCreateInfo> queueCreateInfos{};
+        const float defaultQueuePriority(0.0f);
+        VkDeviceQueueCreateInfo queueInfo{};
+        queueInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+        queueInfo.queueFamilyIndex = getQueueFamilyIndex(VK_QUEUE_GRAPHICS_BIT);
+        queueInfo.queueCount = 1;
+        queueInfo.pQueuePriorities = &defaultQueuePriority;
+        queueCreateInfos.push_back(queueInfo);
+        deviceCreateInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());;
+        deviceCreateInfo.pQueueCreateInfos = queueCreateInfos.data();
+
         std::vector<const char*> deviceExtensions;
         deviceExtensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
         deviceCreateInfo.enabledExtensionCount = (uint32_t)deviceExtensions.size();
@@ -309,6 +401,22 @@ HWTEST_F(VulkanWrapperUnitTest, vkCreateOHOSSurfaceOpenHarmony_Test, TestSize.Le
 }
 
 /**
+ * @tc.name: test vkGetPhysicalDeviceSurfaceSupportKHR
+ * @tc.desc: test vkGetPhysicalDeviceSurfaceSupportKHR
+ * @tc.type: FUNC
+ * @tc.require: issueI5ODXM
+ */
+HWTEST_F(VulkanWrapperUnitTest, vkGetPhysicalDeviceSurfaceSupportKHR_Test, TestSize.Level1)
+{
+    if (isSupportedVulkan) {
+        std::vector<VkBool32> supportsPresent(queueCount);
+        for (uint32_t i = 0; i < queueCount; i++) {
+            vkGetPhysicalDeviceSurfaceSupportKHR(physicalDevice, i, surface, &supportsPresent[i]);
+        }
+    }
+}
+
+/**
  * @tc.name: load device based function pointer 003
  * @tc.desc: load device based function pointer 003
  * @tc.type: FUNC
@@ -325,9 +433,15 @@ HWTEST_F(VulkanWrapperUnitTest, LoadFuncPtr003, TestSize.Level1)
         fpDestroySwapchainKHR = reinterpret_cast<PFN_vkDestroySwapchainKHR>(
             vkGetDeviceProcAddr(device, "vkDestroySwapchainKHR"));
         EXPECT_NE(fpDestroySwapchainKHR, nullptr);
+        fpAcquireNextImage2KHR = reinterpret_cast<PFN_vkAcquireNextImage2KHR>(
+            vkGetDeviceProcAddr(device, "vkAcquireNextImage2KHR"));
+        EXPECT_NE(fpAcquireNextImage2KHR, nullptr);
         fpQueuePresentKHR = reinterpret_cast<PFN_vkQueuePresentKHR>(
             vkGetDeviceProcAddr(device, "vkQueuePresentKHR"));
         EXPECT_NE(fpQueuePresentKHR, nullptr);
+        fpGetSwapchainImagesKHR = reinterpret_cast<PFN_vkGetSwapchainImagesKHR>(
+            vkGetDeviceProcAddr(device, "vkGetSwapchainImagesKHR"));
+        EXPECT_NE(fpGetSwapchainImagesKHR, nullptr);
     }
 }
 
@@ -427,7 +541,7 @@ HWTEST_F(VulkanWrapperUnitTest, fpCreateSwapchainKHR_Test, TestSize.Level1)
         swapchainCI.imageArrayLayers = 1;
         swapchainCI.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
         swapchainCI.queueFamilyIndexCount = 0;
-        swapchainCI.presentMode = VK_PRESENT_MODE_MAILBOX_KHR;
+        swapchainCI.presentMode = VK_PRESENT_MODE_IMMEDIATE_KHR;
         swapchainCI.oldSwapchain = oldSwapchain;
         swapchainCI.clipped = VK_TRUE;
         swapchainCI.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
@@ -435,6 +549,30 @@ HWTEST_F(VulkanWrapperUnitTest, fpCreateSwapchainKHR_Test, TestSize.Level1)
         VkResult err = fpCreateSwapchainKHR(device, &swapchainCI, nullptr, &swapChain);
         EXPECT_EQ(err, VK_SUCCESS);
         EXPECT_NE(swapChain, VK_NULL_HANDLE);
+
+        swapchainCI.oldSwapchain = swapChain;
+        err = fpCreateSwapchainKHR(device, &swapchainCI, nullptr, &swapChain2);
+        EXPECT_EQ(err, VK_SUCCESS);
+        EXPECT_NE(swapChain2, VK_NULL_HANDLE);
+    }
+}
+
+/**
+ * @tc.name: test fpGetSwapchainImagesKHR
+ * @tc.desc: test fpGetSwapchainImagesKHR
+ * @tc.type: FUNC
+ * @tc.require: issueI5ODXM
+ */
+HWTEST_F(VulkanWrapperUnitTest, fpGetSwapchainImagesKHR_Test, TestSize.Level1)
+{
+    if (isSupportedVulkan) {
+        uint32_t imageCount;
+        std::vector<VkImage> images;
+        VkResult err = fpGetSwapchainImagesKHR(device, swapChain, &imageCount, NULL);
+        EXPECT_EQ(err, VK_SUCCESS);
+        images.resize(imageCount);
+        err = fpGetSwapchainImagesKHR(device, swapChain, &imageCount, images.data());
+        EXPECT_EQ(err, VK_SUCCESS);
     }
 }
 
@@ -453,6 +591,70 @@ HWTEST_F(VulkanWrapperUnitTest, vkCreateSemaphore_Test, TestSize.Level1)
             vkGetInstanceProcAddr(instance, "vkCreateSemaphore"));
         EXPECT_NE(vkCreateSemaphore, nullptr);
         VkResult err = vkCreateSemaphore(device, &semaphoreCreateInfo, nullptr, &semaphore);
+        EXPECT_EQ(err, VK_SUCCESS);
+    }
+}
+
+/**
+ * @tc.name: test fpAcquireNextImage2KHR
+ * @tc.desc: test fpAcquireNextImage2KHR
+ * @tc.type: FUNC
+ * @tc.require: issueI5ODXM
+ */
+HWTEST_F(VulkanWrapperUnitTest, fpAcquireNextImage2KHR_Test, TestSize.Level1)
+{
+    if (isSupportedVulkan) {
+        VkAcquireNextImageInfoKHR pAcquireInfo;
+        pAcquireInfo.swapchain = swapChain2;
+        pAcquireInfo.timeout = UINT64_MAX;
+        pAcquireInfo.semaphore = semaphore;
+        pAcquireInfo.fence = (VkFence)nullptr;
+        uint32_t imageIndex = 0;
+        VkResult err = fpAcquireNextImage2KHR(device, &pAcquireInfo, &imageIndex);
+        EXPECT_EQ(err, VK_SUCCESS);
+    }
+}
+
+/**
+ * @tc.name: test fpQueuePresentKHR
+ * @tc.desc: test fpQueuePresentKHR
+ * @tc.type: FUNC
+ * @tc.require: issueI5ODXM
+ */
+HWTEST_F(VulkanWrapperUnitTest, fpQueuePresentKHR_Test, TestSize.Level1)
+{
+    if (isSupportedVulkan) {
+        VkRectLayerKHR pRectangles = {};
+
+        std::vector<VkPresentRegionKHR> pRegions;
+        VkPresentRegionKHR pRegion;
+        pRegion.rectangleCount = 1;
+        pRegion.pRectangles = &pRectangles;
+        pRegions.push_back(pRegion);
+
+        VkPresentRegionsKHR presentRegions;
+        presentRegions.sType = VK_STRUCTURE_TYPE_PRESENT_REGIONS_KHR;
+        presentRegions.pNext = NULL;
+        presentRegions.swapchainCount = 1;
+        presentRegions.pRegions = pRegions.data();
+
+        VkQueue queue = nullptr;
+        PFN_vkGetDeviceQueue vkGetDeviceQueue = reinterpret_cast<PFN_vkGetDeviceQueue>(
+            vkGetInstanceProcAddr(instance, "vkGetDeviceQueue"));
+        EXPECT_NE(vkGetDeviceQueue, nullptr);
+        vkGetDeviceQueue(device, 0, 0, &queue);
+        EXPECT_NE(queue, nullptr);
+        uint32_t imageIndex = 0;
+        VkPresentInfoKHR presentInfo = {};
+        presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+        presentInfo.pNext = &presentRegions;
+        presentInfo.swapchainCount = 1;
+        presentInfo.pSwapchains = &swapChain2;
+        presentInfo.pImageIndices = &imageIndex;
+        EXPECT_NE(semaphore, VK_NULL_HANDLE);
+        presentInfo.pWaitSemaphores = &semaphore;
+        presentInfo.waitSemaphoreCount = 1;
+        VkResult err = fpQueuePresentKHR(queue, &presentInfo);
         EXPECT_EQ(err, VK_SUCCESS);
     }
 }
