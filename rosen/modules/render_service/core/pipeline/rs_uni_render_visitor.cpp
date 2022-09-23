@@ -192,11 +192,12 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
         curSurfaceDirtyManager_->Clear();
         if (auto parentNode = node.GetParent().lock()) {
             auto rsParent = RSBaseRenderNode::ReinterpretCast<RSRenderNode>(parentNode);
-            dirtyFlag_ = node.Update(*curSurfaceDirtyManager_,
-                &(rsParent->GetRenderProperties()), dirtyFlag_);
+            dirtyFlag_ = node.Update(*curSurfaceDirtyManager_, &(rsParent->GetRenderProperties()), dirtyFlag_);
             if (rsParent->ReinterpretCastTo<RSSurfaceRenderNode>() &&
-                rsParent->ReinterpretCastTo<RSSurfaceRenderNode>()->GetSurfaceNodeType() == RSSurfaceNodeType::LEASH_WINDOW_NODE) {
-                node.SetGlobalAlpha(property.GetAlpha() * rsParent->GetMutableRenderProperties().GetAlpha()); // calculate alpha on parent's alpha
+                rsParent->ReinterpretCastTo<RSSurfaceRenderNode>()->GetSurfaceNodeType() ==
+                RSSurfaceNodeType::LEASH_WINDOW_NODE) {
+                node.SetGlobalAlpha(property.GetAlpha() *
+                rsParent->GetMutableRenderProperties().GetAlpha()); // calculate alpha on parent's alpha
             } else {
                 node.SetGlobalAlpha(property.GetAlpha());
             }
@@ -432,7 +433,9 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
             RS_LOGE("RSUniRenderVisitor Request Frame Failed");
             return;
         }
-        canvas_ = renderFrame->GetCanvas();
+        std::shared_ptr<RSCanvasListener> overdrawListener = nullptr;
+        AddOverDrawListener(renderFrame, overdrawListener);
+        
         if (canvas_ == nullptr) {
             RS_LOGE("RSUniRenderVisitor::ProcessDisplayRenderNode: failed to create canvas");
             return;
@@ -494,6 +497,10 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
             canvas_->restoreToCount(saveLayerCnt);
         }
 
+        if (overdrawListener != nullptr) {
+            overdrawListener->Draw();
+        }
+
         RS_TRACE_BEGIN("RSUniRender:FlushFrame");
         renderFrame->Flush();
         RS_TRACE_END();
@@ -512,6 +519,48 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
     auto& surfaceHandler = static_cast<RSSurfaceHandler&>(node);
     (void)RSBaseRenderUtil::ReleaseBuffer(surfaceHandler);
     RS_LOGD("RSUniRenderVisitor::ProcessDisplayRenderNode end");
+}
+
+void RSUniRenderVisitor::AddOverDrawListener(std::unique_ptr<RSRenderFrame>& renderFrame,
+    std::shared_ptr<RSCanvasListener>& overdrawListener)
+{
+    if (renderFrame->GetFrame() == nullptr) {
+        RS_LOGE("RSUniRenderVisitor::ProcessDisplayRenderNode: RSSurfaceFrame is null");
+        return;
+    }
+    auto skSurface = renderFrame->GetFrame()->GetSurface();
+    if (skSurface == nullptr) {
+        RS_LOGE("RSUniRenderVisitor::ProcessDisplayRenderNode: skSurface is null");
+        return;
+    }
+    if (skSurface->getCanvas() == nullptr) {
+        ROSEN_LOGE("skSurface.getCanvas is null.");
+        return;
+    }
+    // if listenedCanvas is nullptr, that means disabled or listen failed
+    std::shared_ptr<RSListenedCanvas> listenedCanvas = nullptr;
+
+    if (RSOverdrawController::GetInstance().IsEnabled()) {
+        auto &oc = RSOverdrawController::GetInstance();
+        listenedCanvas = std::make_shared<RSListenedCanvas>(skSurface.get());
+        overdrawListener = oc.CreateListener<RSGPUOverdrawCanvasListener>(listenedCanvas.get());
+        if (overdrawListener == nullptr) {
+            overdrawListener = oc.CreateListener<RSCPUOverdrawCanvasListener>(listenedCanvas.get());
+        }
+
+        if (overdrawListener != nullptr) {
+            listenedCanvas->SetListener(overdrawListener);
+        } else {
+            // create listener failed
+            listenedCanvas = nullptr;
+        }
+    }
+
+    if (listenedCanvas != nullptr) {
+        canvas_ = listenedCanvas;
+    } else {
+        canvas_ = std::make_shared<RSPaintFilterCanvas>(skSurface.get());
+    }
 }
 
 void RSUniRenderVisitor::CalcDirtyDisplayRegion(std::shared_ptr<RSDisplayRenderNode>& node) const
@@ -732,7 +781,7 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
         } else {
             InitCacheSurface(node, property.GetBoundsWidth(), property.GetBoundsHeight());
             if (node.GetCacheSurface()) {
-                auto cacheCanvas = std::make_unique<RSPaintFilterCanvas>(node.GetCacheSurface().get());
+                auto cacheCanvas = std::make_shared<RSPaintFilterCanvas>(node.GetCacheSurface().get());
 
                 swap(cacheCanvas, canvas_);
                 ProcessBaseRenderNode(node);

@@ -18,6 +18,9 @@
 #include <set>
 #include <parameters.h>
 
+#include "overdraw/rs_cpu_overdraw_canvas_listener.h"
+#include "overdraw/rs_gpu_overdraw_canvas_listener.h"
+#include "overdraw/rs_overdraw_controller.h"
 #include "pipeline/rs_dirty_region_manager.h"
 #include "pipeline/rs_processor.h"
 #include "screen_manager/rs_screen_manager.h"
@@ -73,12 +76,14 @@ private:
     void DrawCacheSurface(RSSurfaceRenderNode& node);
     void SetPaintOutOfParentFlag(RSBaseRenderNode& node);
     void CheckColorSpace(RSSurfaceRenderNode& node);
+    void AddOverDrawListener(std::unique_ptr<RSRenderFrame>& renderFrame,
+        std::shared_ptr<RSCanvasListener>& overdrawListener);
 
     ScreenInfo screenInfo_;
     std::shared_ptr<RSDirtyRegionManager> curSurfaceDirtyManager_;
     std::shared_ptr<RSSurfaceRenderNode> curSurfaceNode_;
     bool dirtyFlag_ { false };
-    std::unique_ptr<RSPaintFilterCanvas> canvas_;
+    std::shared_ptr<RSPaintFilterCanvas> canvas_;
     std::map<NodeId, std::shared_ptr<RSSurfaceRenderNode>> dirtySurfaceNodeMap_;
     SkRect boundsRect_;
     Gravity frameGravity_ = Gravity::DEFAULT;
