@@ -114,7 +114,8 @@ private:
 
 class RSTransitionRotate : public RSRenderTransitionEffect {
 public:
-    explicit RSTransitionRotate(float dx, float dy, float dz, float angle) : dx_(dx), dy_(dy), dz_(dz), angle_(angle) {}
+    explicit RSTransitionRotate(float dx, float dy, float dz, float radian) : dx_(dx), dy_(dy), dz_(dz), radian_(radian)
+    {}
     ~RSTransitionRotate() override = default;
     void UpdateFraction(float fraction) const override;
 
@@ -126,7 +127,7 @@ private:
     float dx_;
     float dy_;
     float dz_;
-    float angle_;
+    float radian_;
     std::shared_ptr<RSRenderAnimatableProperty<Quaternion>> property_;
     const std::shared_ptr<RSRenderModifier> CreateModifier() override;
 };

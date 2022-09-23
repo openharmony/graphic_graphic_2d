@@ -133,7 +133,7 @@ RSRenderTransitionEffect* RSTransitionTranslate::Unmarshalling(Parcel& parcel)
 bool RSTransitionRotate::Marshalling(Parcel& parcel) const
 {
     return parcel.WriteUint16(RSTransitionEffectType::ROTATE) && parcel.WriteFloat(dx_) && parcel.WriteFloat(dy_) &&
-           parcel.WriteFloat(dz_) && parcel.WriteFloat(angle_);
+           parcel.WriteFloat(dz_) && parcel.WriteFloat(radian_);
 }
 
 RSRenderTransitionEffect* RSTransitionRotate::Unmarshalling(Parcel& parcel)
@@ -142,12 +142,12 @@ RSRenderTransitionEffect* RSTransitionRotate::Unmarshalling(Parcel& parcel)
     float dx;
     float dy;
     float dz;
-    float angle;
-    if (!parcel.ReadFloat(dx) || !parcel.ReadFloat(dy) || !parcel.ReadFloat(dz) || !parcel.ReadFloat(angle)) {
+    float radian;
+    if (!parcel.ReadFloat(dx) || !parcel.ReadFloat(dy) || !parcel.ReadFloat(dz) || !parcel.ReadFloat(radian)) {
         ROSEN_LOGE("RSTransitionRotate::Unmarshalling, unmarshalling failed");
         return nullptr;
     }
-    return new RSTransitionRotate(dx, dy, dz, angle);
+    return new RSTransitionRotate(dx, dy, dz, radian);
 }
 #endif
 
@@ -215,8 +215,13 @@ void RSTransitionRotate::UpdateFraction(float fraction) const
     if (property_ == nullptr) {
         return;
     }
-    auto angle = angle_ * fraction;
-    Quaternion value(dx_, dy_, dz_, angle);
+    auto radian = radian_ * fraction;
+    float factor = std::sin(radian / 2);
+    float qx = dx_ * factor;
+    float qy = dy_ * factor;
+    float qz = dz_ * factor;
+    float qw = std::cos(radian / 2);
+    Quaternion value(qx, qy, qz, qw);
     property_->Set(value);
 }
 } // namespace Rosen
