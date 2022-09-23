@@ -705,35 +705,38 @@ bool ConvertYUV420SPToRGBA(std::vector<uint8_t>& rgbaBuf, const sptr<OHOS::Surfa
         RS_LOGE("RSBaseRenderUtil::ConvertYUV420SPToRGBA invalid params");
         return false;
     }
-    int32_t bufferHeight = srcBuf->GetHeight();
-    int32_t bufferStride = srcBuf->GetStride();
-    int32_t bufferWidth = srcBuf->GetWidth();
-    if (bufferStride < 1 || bufferWidth < 1 || bufferHeight < 1) {
-        RS_LOGE("RSBaseRenderUtil::ConvertYUV420SPToRGBA invalid buffer size");
-        return false;
-    }
     uint8_t* rgbaDst = &rgbaBuf[0];
-    auto bufferAddr = srcBuf->GetVirAddr();
-    uint8_t* src = static_cast<uint8_t*>(bufferAddr);
+    uint8_t* src = static_cast<uint8_t*>(srcBuf->GetVirAddr());
     if (src == nullptr || rgbaDst == nullptr) {
         RS_LOGE("RSBaseRenderUtil::ConvertYUV420SPToRGBA null buffer ptr");
         return false;
     }
-    uint8_t* ybase = src;
-    int32_t len = bufferStride * bufferHeight;
+    int32_t bufferWidth = srcBuf->GetWidth();
+    int32_t bufferHeight = srcBuf->GetHeight();
+    int32_t bufferStride = srcBuf->GetStride();
+    int32_t bufferSize = static_cast<int32_t>(srcBuf->GetSize());
+    if (bufferWidth < 1 || bufferHeight < 1 || bufferStride < 1 || bufferSize < 1) {
+        RS_LOGE("RSBaseRenderUtil::ConvertYUV420SPToRGBA invalid buffer size, w/h/stride/size = [%d, %d, %d, %d]",
+            bufferWidth, bufferHeight, bufferStride, bufferSize);
+        return false;
+    }
 #ifdef PADDING_HEIGHT_32
     // temporally only update buffer len for video stream
     if (srcBuf->GetFormat() == PIXEL_FMT_YCBCR_420_SP) {
         int32_t paddingBase = 32;
-        float yuvSizeFactor = 1.5f; // y:uv = 2:1
-        int32_t paddingHeight = ((bufferHeight - 1) / paddingBase + 1) * paddingBase;
-        int32_t totalSize = static_cast<int32_t>(srcBuf->GetSize());
-        int32_t paddingSize = static_cast<int32_t>(bufferStride * paddingHeight * yuvSizeFactor);
-        if (totalSize >= paddingSize) {
-            len = bufferStride * paddingHeight;
-        }
+        bufferHeight = ((bufferHeight - 1) / paddingBase + 1) * paddingBase;
     }
 #endif
+    float yuvSizeFactor = 1.5f; // y:uv = 2:1
+    int32_t len = bufferStride * bufferHeight;
+    int32_t totalLen = static_cast<int32_t>(len * yuvSizeFactor);
+    if (bufferSize < totalLen) {
+        RS_LOGE("RSBaseRenderUtil::ConvertYUV420SPToRGBA invalid buffer size, "
+            "w/h/stride/size/totalLen = [%d, %d, %d, %d, %d]",
+            bufferWidth, srcBuf->GetHeight(), bufferStride, bufferSize, totalLen);
+        return false;
+    }
+    uint8_t* ybase = src;
     uint8_t* ubase = &src[len];
 
     int rgb[3] = {0, 0, 0};
