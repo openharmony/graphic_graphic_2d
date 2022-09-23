@@ -27,20 +27,11 @@ public:
     static void TearDownTestCase();
     void SetUp() override;
     void TearDown() override;
-
-    static inline std::shared_ptr<RSRenderEngine> renderEngine_;
+    RSRenderEngine renderEngine_;
 };
 
-void RSRenderEngineTest::SetUpTestCase()
-{
-    renderEngine_ = std::make_shared<RSRenderEngine>();
-}
-
-void RSRenderEngineTest::TearDownTestCase()
-{
-    renderEngine_ = nullptr;
-}
-
+void RSRenderEngineTest::SetUpTestCase() {}
+void RSRenderEngineTest::TearDownTestCase() {}
 void RSRenderEngineTest::SetUp() {}
 void RSRenderEngineTest::TearDown() {}
 
@@ -53,10 +44,10 @@ void RSRenderEngineTest::TearDown() {}
 HWTEST_F(RSRenderEngineTest, SetColorFilterMode001, TestSize.Level1)
 {
     ColorFilterMode mode = ColorFilterMode::INVERT_COLOR_ENABLE_MODE;
-    renderEngine_->SetColorFilterMode(mode);
-    ASSERT_EQ(renderEngine_->GetColorFilterMode(), mode);
+    renderEngine_.SetColorFilterMode(mode);
+    ASSERT_EQ(renderEngine_.GetColorFilterMode(), mode);
 
-    renderEngine_->SetColorFilterMode(ColorFilterMode::COLOR_FILTER_END);
+    renderEngine_.SetColorFilterMode(ColorFilterMode::COLOR_FILTER_END);
 }
 
 /**
@@ -68,7 +59,9 @@ HWTEST_F(RSRenderEngineTest, SetColorFilterMode001, TestSize.Level1)
 HWTEST_F(RSRenderEngineTest, SetColorFilterMode002, TestSize.Level1)
 {
     ColorFilterMode mode = ColorFilterMode::DALTONIZATION_PROTANOMALY_MODE;
-    renderEngine_->SetColorFilterMode(mode);
-    ASSERT_EQ(renderEngine_->GetColorFilterMode(), mode);
+    renderEngine_.SetColorFilterMode(mode);
+    ASSERT_EQ(renderEngine_.GetColorFilterMode(), mode);
+
+    renderEngine_.SetColorFilterMode(ColorFilterMode::COLOR_FILTER_END);
 }
 } // namespace OHOS::Rosen
