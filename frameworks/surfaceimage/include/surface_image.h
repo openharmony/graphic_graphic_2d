@@ -19,26 +19,16 @@
 #include <atomic>
 #include <mutex>
 #include <array>
-#include <consumer_surface.h>
 
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
 #include <GLES/gl.h>
 #include <GLES/glext.h>
 #include <GLES3/gl32.h>
-#include <hilog/log.h>
+#include "buffer_log.h"
+#include "consumer_surface.h"
 
 namespace OHOS {
-namespace {
-#define SLOGI(fmt, ...) ::OHOS::HiviewDFX::HiLog::Info(   \
-    ::OHOS::HiviewDFX::HiLogLabel {LOG_CORE, 0, "SurfaceImage"}, \
-    "%{public}s: " fmt, __func__, ##__VA_ARGS__)
-
-#define SLOGE(fmt, ...) ::OHOS::HiviewDFX::HiLog::Error(   \
-    ::OHOS::HiviewDFX::HiLogLabel {LOG_CORE, 0, "SurfaceImage"}, \
-    "%{public}s: " fmt, __func__, ##__VA_ARGS__)
-}
-
 struct ImageCacheSeq {
     ImageCacheSeq() : eglImage_(EGL_NO_IMAGE_KHR), eglSync_(EGL_NO_SYNC_KHR) {}
     EGLImageKHR eglImage_;
@@ -118,7 +108,7 @@ class SurfaceImageListener : public IBufferConsumerListener {
 public:
     explicit SurfaceImageListener(const sptr<SurfaceImage> & surfaceImage) : surfaceImage_(surfaceImage)
     {
-        SLOGI("SurfaceImageListener");
+        BLOGI("SurfaceImageListener");
     };
     virtual ~SurfaceImageListener();
 
