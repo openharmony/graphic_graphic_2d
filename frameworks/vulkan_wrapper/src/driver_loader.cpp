@@ -39,13 +39,17 @@ bool DriverLoader::Load()
     loader_.supported_ = false;
 
     std::string path = std::string(VENDOR_LIB_PATH) + std::string(LIB_NAME);
-    loader_.handle_ = dlopen(path.c_str(), RTLD_LOCAL | RTLD_NOW);
+    std::string realVendorPath;
+    if (OHOS::PathToRealPath(path, realVendorPath)) {
+        WLOGD("file in vendor path, file path: %{private}s", path.c_str());
+        loader_.handle_ = dlopen(realVendorPath.c_str(), RTLD_LOCAL | RTLD_NOW);
+    }
 
     if (loader_.handle_ == nullptr) {
         path = std::string(SYSTEM_LIB_PATH) + std::string(LIB_NAME);
         std::string realPath;
         if (!OHOS::PathToRealPath(path, realPath)) {
-            WLOGE("file is not real path, file path: %{private}s", path.c_str());
+            WLOGE("file is not in system path, file path: %{private}s", path.c_str());
             return false;
         }
         loader_.handle_ = dlopen(realPath.c_str(), RTLD_NOW | RTLD_LOCAL);

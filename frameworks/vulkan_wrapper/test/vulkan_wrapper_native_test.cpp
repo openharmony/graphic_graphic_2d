@@ -16,6 +16,7 @@
 #include <iostream>
 #include <vector>
 #include <dlfcn.h>
+#include "directory_ex.h"
 #include "vulkan/vulkan.h"
 
 #ifdef __aarch64__
@@ -27,8 +28,12 @@ constexpr const char *LIB_CACULATE_PATH = "/system/lib/libvulkan.so";
 int32_t main(int32_t argc, const char* argv[])
 {
     std::cout << "vulkan wrapper native test is comming :: Loading libvulkan.so..." << std::endl;
-
-    void* libVulkan = dlopen(LIB_CACULATE_PATH, RTLD_LOCAL | RTLD_NOW);
+    std::string realPath;
+    if (!OHOS::PathToRealPath(LIB_CACULATE_PATH, realPath)) {
+        std::cout << "file is not real path, file path: " <<  LIB_CACULATE_PATH << std::endl;
+        return -1;
+    }
+    void* libVulkan = dlopen(realPath.c_str(), RTLD_LOCAL | RTLD_NOW);
 
     if (libVulkan == nullptr) {
         std::cout << "vulkan wrapper native test :: dlopen faild " << std::endl;

@@ -23,7 +23,6 @@ config("vulkan_config") {
 
   cflags = [
     "-fvisibility=hidden",
-    "-fstrict-aliasing",
     "-Wall",
     "-Werror",
     "-g3",
@@ -81,6 +80,8 @@ ohos_executable("vulkan_wrapper_native_test") {
     "VK_USE_PLATFORM_OHOS_OPENHARMONY",
     "VK_NO_PROTOTYPES",
   ]
+
+  external_deps = [ "c_utils:utils" ]
 
   deps = [ "//third_party/vulkan-headers:vulkan_headers" ]
 
