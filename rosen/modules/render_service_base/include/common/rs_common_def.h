@@ -74,7 +74,8 @@ enum class RSRenderNodeType : uint32_t {
 enum class RSSurfaceNodeType : uint8_t {
     DEFAULT,
     APP_WINDOW_NODE,   // surfacenode created as app main window
-    SELF_DRAWING_NODE, // surfacenode created by arkui component
+    ABILITY_COMPONENT_NODE, // surfacenode created as ability component
+    SELF_DRAWING_NODE, // surfacenode created by arkui component (except ability component)
     STARTING_WINDOW_NODE, //  starting window, surfacenode created by wms
     LEASH_WINDOW_NODE, // leashwindow
 };

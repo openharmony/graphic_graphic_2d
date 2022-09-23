@@ -117,5 +117,12 @@ void SurfaceNodeCommandHelper::SetAppFreeze(RSContext& context, NodeId nodeId, b
         node->SetAppFreeze(isAppFreeze);
     }
 }
+
+void SurfaceNodeCommandHelper::SetSurfaceNodeType(RSContext& context, NodeId nodeId, RSSurfaceNodeType type)
+{
+    if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId)) {
+        node->SetSurfaceNodeType(type);
+    }
+}
 } // namespace Rosen
 } // namespace OHOS

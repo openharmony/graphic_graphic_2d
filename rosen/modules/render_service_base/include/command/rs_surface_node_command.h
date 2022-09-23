@@ -39,6 +39,7 @@ enum RSSurfaceNodeCommandType : uint16_t {
     SURFACE_NODE_UPDATE_PARENT_WITHOUT_TRANSITION,
     SURFACE_NODE_SET_IS_NOTIFY_BUFFER_AVAILABLE,
     SURFACE_NODE_SET_APP_FREEZE,
+    SURFACE_NODE_SET_SURFACE_NODE_TYPE,
 };
 
 class SurfaceNodeCommandHelper {
@@ -56,6 +57,7 @@ public:
     static void UpdateParentWithoutTransition(RSContext& context, NodeId nodeId, NodeId parentId);
     static void SetIsNotifyUIBufferAvailable(RSContext& context, NodeId nodeId, bool available);
     static void SetAppFreeze(RSContext& context, NodeId nodeId, bool isAppFreeze);
+    static void SetSurfaceNodeType(RSContext& context, NodeId nodeId, RSSurfaceNodeType type);
 };
 
 ADD_COMMAND(RSSurfaceNodeCreate, ARG(SURFACE_NODE, SURFACE_NODE_CREATE, SurfaceNodeCommandHelper::Create, NodeId))
@@ -87,6 +89,9 @@ ADD_COMMAND(RSSurfaceNodeSetIsNotifyUIBufferAvailable,
     SurfaceNodeCommandHelper::SetIsNotifyUIBufferAvailable, NodeId, bool))
 ADD_COMMAND(RSSurfaceNodeSetAppFreeze,
     ARG(SURFACE_NODE, SURFACE_NODE_SET_APP_FREEZE, SurfaceNodeCommandHelper::SetAppFreeze, NodeId, bool))
+ADD_COMMAND(RSSurfaceNodeSetSurfaceNodeType,
+    ARG(SURFACE_NODE, SURFACE_NODE_SET_SURFACE_NODE_TYPE,
+    SurfaceNodeCommandHelper::SetSurfaceNodeType, NodeId, RSSurfaceNodeType))
 } // namespace Rosen
 } // namespace OHOS
 #endif // ROSEN_RENDER_SERVICE_BASE_COMMAND_RS_SURFACE_NODE_COMMAND_H
