@@ -64,9 +64,9 @@ void SurfaceImage::InitSurfaceImage()
 {
     std::string name = "SurfaceImage-" + std::to_string(GetRealPid()) + "-" + std::to_string(GetProcessUniqueId());
     auto ret = ConsumerSurface::Init();
-    SLOGI("surfaceimage init");
+    BLOGI("surfaceimage init");
     if (ret != SURFACE_ERROR_OK) {
-        SLOGE("init surfaceimage failed");
+        BLOGE("init surfaceimage failed");
     }
     surfaceImageName_ = name;
 }
@@ -101,10 +101,9 @@ std::array<float, 16> SurfaceImage::MatrixProduct(const std::array<float, 16>& l
 
 void SurfaceImage::ComputeTransformMatrix()
 {
-    static const std::array<float, 16> flipV = {-1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 1};
     static const std::array<float, 16> rotate90 = {0, 1, 0, 0, -1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 1};
 
-    std::array<float, TRANSFORM_MATRIX_ELE_COUNT> transformMatrix = {1};
+    std::array<float, TRANSFORM_MATRIX_ELE_COUNT> transformMatrix = {1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1};
     float tx = 0.f;
     float ty = 0.f;
     float sx = 1.f;
@@ -125,12 +124,10 @@ void SurfaceImage::ComputeTransformMatrix()
     static const std::array<float, 16> cropMatrix = {sx, 0, 0, 0, 0, sy, 0, 0, 0, 0, 1, 0, tx, ty, 0, 1};
     transformMatrix = MatrixProduct(cropMatrix, transformMatrix);
 
-    transformMatrix = MatrixProduct(flipV, transformMatrix);
-
     auto ret = memcpy_s(currentTransformMatrix_.data(), sizeof(transformMatrix),
                         transformMatrix.data(), sizeof(transformMatrix));
     if (ret != EOK) {
-        SLOGE("ComputeTransformMatrix: transformMatrix memcpy_s failed");
+        BLOGE("ComputeTransformMatrix: transformMatrix memcpy_s failed");
     }
 }
 
@@ -154,21 +151,21 @@ SurfaceError SurfaceImage::UpdateSurfaceImage()
     if (ret != SURFACE_ERROR_OK) {
         if (ret == SURFACE_ERROR_NO_BUFFER) {
             glBindTexture(textureTarget_, textureId_);
-            SLOGE("AcquireBuffer no buffer");
+            BLOGE("AcquireBuffer no buffer");
         } else {
-            SLOGE("AcquireBuffer failed");
+            BLOGE("AcquireBuffer failed");
         }
         return ret;
     }
 
     uint32_t seqNum = buffer->GetSeqNum();
-    SLOGI("seqNum %{public}d", seqNum);
+    BLOGI("seqNum %{public}d", seqNum);
     EGLImageKHR img = imageCacheSeqs_[seqNum].eglImage_;
     glBindTexture(textureTarget_, textureId_);
     glEGLImageTargetTexture2DOES(textureTarget_, static_cast<GLeglImageOES>(img));
 
     while (glGetError() != GL_NO_ERROR) {
-        SLOGE("glEGLImageTargetTexture2DOES error");
+        BLOGE("glEGLImageTargetTexture2DOES error");
         ret = SURFACE_ERROR_API_FAILED;
     }
 
@@ -184,7 +181,7 @@ SurfaceError SurfaceImage::UpdateSurfaceImage()
     if (seqNum != currentSurfaceImage_) {
         ret = ReleaseBuffer(currentSurfaceBuffer_, -1);
         if (ret != SURFACE_ERROR_OK) {
-            SLOGE("release currentSurfaceBuffer_ failed %{public}d", ret);
+            BLOGE("release currentSurfaceBuffer_ failed %{public}d", ret);
         }
     }
 
@@ -205,11 +202,11 @@ SurfaceError SurfaceImage::AttachContext(uint32_t textureId)
 {
     std::lock_guard<std::mutex> lockGuard(opMutex_);
     if (isAttached) {
-        SLOGI("SurfaceImage is already attached");
+        BLOGI("SurfaceImage is already attached");
         return SURFACE_ERROR_OK;
     }
     if (imageCacheSeqs_[currentSurfaceImage_].eglImage_ == EGL_NO_IMAGE_KHR) {
-        SLOGE("AttachContext failed, no eglImage");
+        BLOGE("AttachContext failed, no eglImage");
         return SURFACE_ERROR_ERROR;
     }
 
@@ -217,7 +214,7 @@ SurfaceError SurfaceImage::AttachContext(uint32_t textureId)
     EGLDisplay disp = eglGetCurrentDisplay();
     EGLContext context = eglGetCurrentContext();
     if (disp == EGL_NO_DISPLAY || context == EGL_NO_CONTEXT) {
-        SLOGE("AttachContext failed, EGLDisplay or EGLContext is invalid");
+        BLOGE("AttachContext failed, EGLDisplay or EGLContext is invalid");
         return SURFACE_ERROR_INIT;
     }
 
@@ -235,18 +232,18 @@ SurfaceError SurfaceImage::DetachContext()
 {
     std::lock_guard<std::mutex> lockGuard(opMutex_);
     if (!isAttached) {
-        SLOGI("SurfaceImage is already detached");
+        BLOGI("SurfaceImage is already detached");
         return SURFACE_ERROR_OK;
     }
     EGLDisplay disp = eglGetCurrentDisplay();
     EGLContext context = eglGetCurrentContext();
 
     if ((eglDisplay_ != disp && eglDisplay_ != EGL_NO_DISPLAY) || (disp == EGL_NO_DISPLAY)) {
-        SLOGE("EGLDisplay is invalid, errno : 0x%{public}x", eglGetError());
+        BLOGE("EGLDisplay is invalid, errno : 0x%{public}x", eglGetError());
         return SURFACE_ERROR_INIT;
     }
     if ((eglContext_ != context && eglContext_ != EGL_NO_CONTEXT) || (context == EGL_NO_CONTEXT)) {
-        SLOGE("EGLContext is invalid, errno : 0x%{public}x", eglGetError());
+        BLOGE("EGLContext is invalid, errno : 0x%{public}x", eglGetError());
         return SURFACE_ERROR_INIT;
     }
 
@@ -276,7 +273,7 @@ SurfaceError SurfaceImage::GetTransformMatrix(float matrix[16])
     auto ret = memcpy_s(matrix, sizeof(currentTransformMatrix_),
                         currentTransformMatrix_.data(), sizeof(currentTransformMatrix_));
     if (ret != EOK) {
-        SLOGE("GetTransformMatrix: currentTransformMatrix_ memcpy_s failed");
+        BLOGE("GetTransformMatrix: currentTransformMatrix_ memcpy_s failed");
         return SURFACE_ERROR_ERROR;
     }
     return SURFACE_ERROR_OK;
@@ -287,7 +284,7 @@ SurfaceError SurfaceImage::AcquireBuffer(sptr<SurfaceBuffer>& buffer, int32_t &f
 {
     SurfaceError ret = ConsumerSurface::AcquireBuffer(buffer, fence, timestamp, damage);
     if (ret != SURFACE_ERROR_OK) {
-        SLOGE("AcquireBuffer error");
+        BLOGE("AcquireBuffer error");
         return ret;
     }
     // get seq num
@@ -315,7 +312,7 @@ SurfaceError SurfaceImage::ReleaseBuffer(sptr<SurfaceBuffer>& buffer, int32_t fe
 {
     SurfaceError error = ConsumerSurface::ReleaseBuffer(buffer, fence);
     if (error != SURFACE_ERROR_OK) {
-        SLOGE("ReleaseBuffer error");
+        BLOGE("ReleaseBuffer error");
         return error;
     }
     uint32_t seqNum = buffer->GetSeqNum();
@@ -330,11 +327,11 @@ SurfaceError SurfaceImage::ValidateEglState()
     EGLContext context = eglGetCurrentContext();
 
     if ((eglDisplay_ != disp && eglDisplay_ != EGL_NO_DISPLAY) || (disp == EGL_NO_DISPLAY)) {
-        SLOGE("EGLDisplay is invalid, errno : 0x%{public}x", eglGetError());
+        BLOGE("EGLDisplay is invalid, errno : 0x%{public}x", eglGetError());
         return SURFACE_ERROR_INIT;
     }
     if ((eglContext_ != context && eglContext_ != EGL_NO_CONTEXT) || (context == EGL_NO_CONTEXT)) {
-        SLOGE("EGLContext is invalid, errno : 0x%{public}x", eglGetError());
+        BLOGE("EGLContext is invalid, errno : 0x%{public}x", eglGetError());
         return SURFACE_ERROR_INIT;
     }
 
@@ -356,7 +353,7 @@ EGLImageKHR SurfaceImage::CreateEGLImage(EGLDisplay disp, const sptr<SurfaceBuff
     EGLImageKHR img = eglCreateImageKHR(disp, EGL_NO_CONTEXT, EGL_NATIVE_BUFFER_OHOS, nBuffer, attrs);
     if (img == EGL_NO_IMAGE_KHR) {
         EGLint error = eglGetError();
-        SLOGE("failed, error %{public}d", error);
+        BLOGE("failed, error %{public}d", error);
         eglTerminate(disp);
     }
     return img;
@@ -369,17 +366,17 @@ SurfaceError SurfaceImage::WaitReleaseEGLSync(EGLDisplay disp)
     if (fence != EGL_NO_SYNC_KHR) {
         EGLint ret = eglClientWaitSyncKHR(disp, fence, 0, 1000000000);
         if (ret == EGL_FALSE) {
-            SLOGE("eglClientWaitSyncKHR error 0x%{public}x", eglGetError());
+            BLOGE("eglClientWaitSyncKHR error 0x%{public}x", eglGetError());
             return SURFACE_ERROR_ERROR;
         } else if (ret == EGL_TIMEOUT_EXPIRED_KHR) {
-            SLOGE("eglClientWaitSyncKHR timeout");
+            BLOGE("eglClientWaitSyncKHR timeout");
             return SURFACE_ERROR_ERROR;
         }
         eglDestroySyncKHR(disp, fence);
     }
     fence = eglCreateSyncKHR(disp, EGL_SYNC_FENCE_KHR, NULL);
     if (fence == EGL_NO_SYNC_KHR) {
-        SLOGE("eglCreateSyncKHR error 0x%{public}x", eglGetError());
+        BLOGE("eglCreateSyncKHR error 0x%{public}x", eglGetError());
         return SURFACE_ERROR_ERROR;
     }
     glFlush();
@@ -393,17 +390,17 @@ SurfaceError SurfaceImage::WaitOnFence()
     EGLDisplay disp = eglGetCurrentDisplay();
     EGLContext context = eglGetCurrentContext();
     if ((eglDisplay_ != disp && eglDisplay_ != EGL_NO_DISPLAY) || (disp == EGL_NO_DISPLAY)) {
-        SLOGE("EGLDisplay is invalid, errno : 0x%{public}x", eglGetError());
+        BLOGE("EGLDisplay is invalid, errno : 0x%{public}x", eglGetError());
         return SURFACE_ERROR_INIT;
     }
     if ((eglContext_ != context && eglContext_ != EGL_NO_CONTEXT) || (context == EGL_NO_CONTEXT)) {
-        SLOGE("EGLContext is invalid, errno : 0x%{public}x", eglGetError());
+        BLOGE("EGLContext is invalid, errno : 0x%{public}x", eglGetError());
         return SURFACE_ERROR_INIT;
     }
 
     // check EGL_FENCE_KHR
     if (currentSurfaceBufferFence_ != -1) {
-        SLOGE("currentSurfaceBufferFence_ fd - %{public}d", currentSurfaceBufferFence_);
+        BLOGE("currentSurfaceBufferFence_ fd - %{public}d", currentSurfaceBufferFence_);
         sptr<SyncFence> fence = new SyncFence(currentSurfaceBufferFence_);
         fence->Wait(-1);
     }
@@ -412,16 +409,16 @@ SurfaceError SurfaceImage::WaitOnFence()
 
 SurfaceImageListener::~SurfaceImageListener()
 {
-    SLOGE("~SurfaceImageListener");
+    BLOGE("~SurfaceImageListener");
     surfaceImage_ = nullptr;
 }
 
 void SurfaceImageListener::OnBufferAvailable()
 {
-    SLOGE("SurfaceImageListener::OnBufferAvailable");
+    BLOGE("SurfaceImageListener::OnBufferAvailable");
     auto surfaceImage = surfaceImage_.promote();
     if (surfaceImage == nullptr) {
-        SLOGE("surfaceImage promote failed");
+        BLOGE("surfaceImage promote failed");
         return;
     }
 
