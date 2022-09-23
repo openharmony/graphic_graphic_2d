@@ -17,23 +17,19 @@
 
 #include <hilog/log.h>
 namespace OHOS {
-#define GLW_DFUNC OHOS::HiviewDFX::HiLog::Debug
-#define GLW_IFUNC OHOS::HiviewDFX::HiLog::Info
-#define GLW_WFUNC OHOS::HiviewDFX::HiLog::Warn
-#define GLW_EFUNC OHOS::HiviewDFX::HiLog::Error
-
-#define GLW_CPRINTF(func, fmt, ...) \
-    func( {LOG_CORE, 0xD001400, "VulkanWrapper"}, "<%{public}d>%{public}s: " fmt, \
-        __LINE__, __func__, ##__VA_ARGS__)
 
 #ifdef EGL_WRAPPER_DEBUG_ENABLE
-#define WLOGD(fmt, ...) GLW_CPRINTF(GLW_DFUNC, fmt, ##__VA_ARGS__)
+#define WLOGD(fmt, ...) OHOS::HiviewDFX::HiLog::Debug({ LOG_CORE, 0xD001402, "VulkanWrapper" }, \
+    "<%{public}d>%{public}s: " fmt, __LINE__, __func__, ##__VA_ARGS__)
 #else
 #define WLOGD(fmt, ...)
 #endif
 
-#define WLOGI(fmt, ...) GLW_CPRINTF(GLW_IFUNC, fmt, ##__VA_ARGS__)
-#define WLOGW(fmt, ...) GLW_CPRINTF(GLW_WFUNC, fmt, ##__VA_ARGS__)
-#define WLOGE(fmt, ...) GLW_CPRINTF(GLW_EFUNC, fmt, ##__VA_ARGS__)
+#define WLOGI(fmt, ...) OHOS::HiviewDFX::HiLog::Info({ LOG_CORE, 0xD001402, "VulkanWrapper" }, \
+    "<%{public}d>%{public}s: " fmt, __LINE__, __func__, ##__VA_ARGS__)
+#define WLOGW(fmt, ...) OHOS::HiviewDFX::HiLog::Warn({ LOG_CORE, 0xD001402, "VulkanWrapper" }, \
+    "<%{public}d>%{public}s: " fmt, __LINE__, __func__, ##__VA_ARGS__)
+#define WLOGE(fmt, ...) OHOS::HiviewDFX::HiLog::Error({ LOG_CORE, 0xD001402, "VulkanWrapper" }, \
+    "<%{public}d>%{public}s: " fmt, __LINE__, __func__, ##__VA_ARGS__)
 } // namespace OHOS
 #endif // LIBVULKAN_WRAPPER_LOG_H

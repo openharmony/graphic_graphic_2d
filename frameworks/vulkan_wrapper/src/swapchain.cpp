@@ -30,7 +30,7 @@
 namespace vulkan {
 namespace driver {
 namespace {
-constexpr int32_t MIN_BUFFER_SIZE = 3;
+constexpr uint32_t MIN_BUFFER_SIZE = 3;
 }
 struct Surface {
     NativeWindow* window;
@@ -53,7 +53,7 @@ struct Swapchain {
     bool shared;
 
     struct Image {
-        Image() : image(VK_NULL_HANDLE), requestFence(-1), releaseFence(-1), requested(false) {}
+        Image() : image(VK_NULL_HANDLE), buffer(nullptr), requestFence(-1), releaseFence(-1), requested(false) {}
         VkImage image;
         NativeWindowBuffer* buffer;
         int requestFence;
@@ -195,7 +195,7 @@ VkResult GetPhysicalDeviceSurfaceCapabilitiesKHR(VkPhysicalDevice, VkSurfaceKHR 
     int err;
     int width = 0;
     int height = 0;
-    int maxBufferCount = 10;
+    uint32_t maxBufferCount = 10;
     if (surface != VK_NULL_HANDLE) {
         NativeWindow* window = SurfaceFromHandle(surface)->window;
         err = NativeWindowHandleOpt(window, GET_BUFFER_GEOMETRY, &height, &width);
@@ -207,7 +207,7 @@ VkResult GetPhysicalDeviceSurfaceCapabilitiesKHR(VkPhysicalDevice, VkSurfaceKHR 
     }
 
     capabilities->minImageCount = std::min(maxBufferCount, MIN_BUFFER_SIZE);
-    capabilities->maxImageCount = static_cast<uint32_t>(maxBufferCount);
+    capabilities->maxImageCount = maxBufferCount;
     capabilities->currentExtent = VkExtent2D {static_cast<uint32_t>(width), static_cast<uint32_t>(height)};
     capabilities->minImageExtent = VkExtent2D {1, 1};
     capabilities->maxImageExtent = VkExtent2D {4096, 4096};
@@ -561,7 +561,7 @@ VKAPI_ATTR VkResult CreateSwapchainKHR(VkDevice device, const VkSwapchainCreateI
         return VK_ERROR_NATIVE_WINDOW_IN_USE_KHR;
     }
 
-    int32_t numImages = MIN_BUFFER_SIZE;
+    int32_t numImages = static_cast<int32_t>(MIN_BUFFER_SIZE);
     VkResult result = SetSwapchainCreateInfo(device, createInfo, &numImages);
     if (result != VK_SUCCESS) {
         return result;
@@ -698,7 +698,7 @@ VkResult GetReleaseFence(VkQueue queue, const VkPresentInfoKHR* presentInfo,
 }
 
 struct Region::Rect* GetRegionRect(
-    const VkAllocationCallbacks* defaultAllocator, struct Region::Rect** rects, uint32_t rectangleCount)
+    const VkAllocationCallbacks* defaultAllocator, struct Region::Rect** rects, int32_t rectangleCount)
 {
     return static_cast<struct Region::Rect*>(
                 defaultAllocator->pfnReallocation(
@@ -709,14 +709,10 @@ struct Region::Rect* GetRegionRect(
 
 void InitRegionRect(const VkRectLayerKHR* layer, struct Region::Rect* rect)
 {
-    int32_t x = layer->offset.x;
-    int32_t y = layer->offset.y;
-    int32_t width = static_cast<int32_t>(layer->extent.width);
-    int32_t height = static_cast<int32_t>(layer->extent.height);
-    rect->x = x;
-    rect->y = y;
-    rect->w = width;
-    rect->h = height;
+    rect->x = layer->offset.x;
+    rect->y = layer->offset.y;
+    rect->w = layer->extent.width;
+    rect->h = layer->extent.height;
 }
 
 const VkPresentRegionKHR* GetPresentRegions(const VkPresentInfoKHR* presentInfo)
@@ -746,7 +742,7 @@ VkResult FlushBuffer(const VkPresentRegionKHR* region, struct Region::Rect* rect
         return VK_ERROR_SURFACE_LOST_KHR;
     }
     if (region != nullptr) {
-        uint32_t rectangleCount = region->rectangleCount;
+        int32_t rectangleCount = region->rectangleCount;
         if (rectangleCount > 0) {
             struct Region::Rect* tmpRects = GetRegionRect(defaultAllocator, &rects, rectangleCount);
             if (tmpRects != nullptr) {
@@ -755,7 +751,7 @@ VkResult FlushBuffer(const VkPresentRegionKHR* region, struct Region::Rect* rect
                 rectangleCount = 0;
             }
         }
-        for (uint32_t r = 0; r < rectangleCount; ++r) {
+        for (int32_t r = 0; r < rectangleCount; ++r) {
             InitRegionRect(&region->pRectangles[r], &rects[r]);
         }
 
