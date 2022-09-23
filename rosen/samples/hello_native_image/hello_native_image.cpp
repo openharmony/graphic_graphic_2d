@@ -24,7 +24,7 @@
 #include <EGL/eglext.h>
 #include "graphic_common_c.h"
 #include "surface_type.h"
-#include "external_window.h"
+#include "window.h"
 #include "GLES/gl.h"
 
 namespace {

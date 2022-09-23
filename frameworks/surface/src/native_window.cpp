@@ -18,7 +18,7 @@
 #include <map>
 #include <cinttypes>
 #include "buffer_log.h"
-#include "external_window.h"
+#include "window.h"
 #include "surface_type.h"
 #include "sync_fence.h"
 

@@ -18,8 +18,8 @@
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
 #include "graphic_common_c.h"
-#include "external_window.h"
 #include "surface_type.h"
+#include "window.h"
 #include "GLES/gl.h"
 #include "buffer_log.h"
 

@@ -22,6 +22,7 @@
 #include "accesstoken_kit.h"
 #include "nativetoken_kit.h"
 #include "token_setproc.h"
+#include "external_window.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -67,7 +68,7 @@ int32_t NativeWindowBufferTest::SetData(NativeWindowBuffer *nativeWindowBuffer, 
         handle->reserve[i] = 1;
     }
 
-    ret = NativeWindowSetTunnelHandle(nativeWindow, handle);
+    ret = OH_NativeWindow_NativeWindowSetTunnelHandle(nativeWindow, handle);
     // free OHExtDataHandle
     if (handle->fd >= 0) {
         close(handle->fd);
@@ -123,28 +124,28 @@ pid_t NativeWindowBufferTest::ChildProcessMain()
     auto producer = iface_cast<IBufferProducer>(robj);
     sptr<Surface> pSurface = Surface::CreateSurfaceAsProducer(producer);
 
-    struct NativeWindow *nativeWindow = CreateNativeWindowFromSurface(&pSurface);
+    struct NativeWindow *nativeWindow = OH_NativeWindow_CreateNativeWindow(&pSurface);
     struct NativeWindowBuffer *nativeWindowBuffer = nullptr;
 
     int code = SET_USAGE;
     int32_t usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA;
-    NativeWindowHandleOpt(nativeWindow, code, usage);
+    OH_NativeWindow_NativeWindowHandleOpt(nativeWindow, code, usage);
 
     code = SET_BUFFER_GEOMETRY;
     int32_t height = 0x100;
     int32_t width = 0x100;
-    NativeWindowHandleOpt(nativeWindow, code, height, width);
+    OH_NativeWindow_NativeWindowHandleOpt(nativeWindow, code, height, width);
 
     code = SET_FORMAT;
     int32_t format = PIXEL_FMT_RGBA_8888;
-    NativeWindowHandleOpt(nativeWindow, code, format);
+    OH_NativeWindow_NativeWindowHandleOpt(nativeWindow, code, format);
 
     code = SET_STRIDE;
     int32_t stride = 0x8;
-    NativeWindowHandleOpt(nativeWindow, code, stride);
+    OH_NativeWindow_NativeWindowHandleOpt(nativeWindow, code, stride);
 
     int32_t fenceFd = -1;
-    auto ret = NativeWindowRequestBuffer(nativeWindow, &nativeWindowBuffer, &fenceFd);
+    auto ret = OH_NativeWindow_NativeWindowRequestBuffer(nativeWindow, &nativeWindowBuffer, &fenceFd);
     if (ret != OHOS::GSERROR_OK) {
         data = ret;
         write(pipeFd[1], &data, sizeof(data));
@@ -164,7 +165,7 @@ pid_t NativeWindowBufferTest::ChildProcessMain()
     rect->w = 0x100;
     rect->h = 0x100;
     region->rects = rect;
-    ret = NativeWindowFlushBuffer(nativeWindow, nativeWindowBuffer, -1, *region);
+    ret = OH_NativeWindow_NativeWindowFlushBuffer(nativeWindow, nativeWindowBuffer, -1, *region);
     if (ret != OHOS::GSERROR_OK) {
         data = ret;
         write(pipeFd[1], &data, sizeof(data));
