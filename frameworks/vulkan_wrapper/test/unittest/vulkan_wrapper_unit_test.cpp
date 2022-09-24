@@ -45,6 +45,8 @@ public:
     void SetUp() {}
     void TearDown() {}
     uint32_t getQueueFamilyIndex(VkQueueFlagBits queueFlags);
+    OHNativeWindow* createNativeWindow(std::string name);
+    VkSwapchainCreateInfoKHR getSwapchainCreateInfo(VkFormat imageFormat, VkColorSpaceKHR imageColorSpace);
 
     static inline PFN_vkCreateInstance vkCreateInstance;
     static inline PFN_vkDestroyInstance vkDestroyInstance;
@@ -85,6 +87,57 @@ public:
     static inline std::vector<VkQueueFamilyProperties> queueProps;
     static inline uint32_t queueCount;
 };
+
+VkSwapchainCreateInfoKHR VulkanWrapperUnitTest::getSwapchainCreateInfo(
+    VkFormat imageFormat, VkColorSpaceKHR imageColorSpace)
+{
+        VkSwapchainCreateInfoKHR swapchainCI = {};
+        swapchainCI.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
+        swapchainCI.surface = surface;
+        uint32_t desiredNumberOfSwapchainImages = surfCaps.minImageCount + 1;
+        swapchainCI.minImageCount = desiredNumberOfSwapchainImages;
+        swapchainCI.imageFormat = imageFormat;
+        swapchainCI.imageColorSpace = imageColorSpace;
+        uint32_t width = 1280;
+        uint32_t height = 720;
+        swapchainCI.imageExtent = { width, height };
+        swapchainCI.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+        swapchainCI.preTransform = (VkSurfaceTransformFlagBitsKHR)VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR;
+        swapchainCI.imageArrayLayers = 1;
+        swapchainCI.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
+        swapchainCI.queueFamilyIndexCount = 0;
+        swapchainCI.presentMode = VK_PRESENT_MODE_IMMEDIATE_KHR;
+        swapchainCI.oldSwapchain = swapChain;
+        swapchainCI.clipped = VK_TRUE;
+        swapchainCI.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
+
+        return swapchainCI;
+}
+
+OHNativeWindow* VulkanWrapperUnitTest::createNativeWindow(std::string name)
+{
+    constexpr int windowLeft = 100;
+    constexpr int windowTop = 200;
+    constexpr int windowWidth = 360;
+    constexpr int windowHeight = 360;
+    OHOS::Rosen::Rect rect = {windowLeft, windowTop, windowWidth, windowHeight};
+    OHOS::sptr<OHOS::Rosen::WindowOption> option(new OHOS::Rosen::WindowOption());
+    option->SetDisplayId(0);
+    option->SetWindowRect(rect);
+    option->SetWindowType(OHOS::Rosen::WindowType::APP_MAIN_WINDOW_BASE);
+    option->SetWindowMode(OHOS::Rosen::WindowMode::WINDOW_MODE_FLOATING);
+    option->SetWindowName(name.c_str());
+    OHOS::sptr<OHOS::Rosen::Window> window = OHOS::Rosen::Window::Create(option->GetWindowName(), option);
+    EXPECT_NE(window, nullptr);
+
+    OHOS::Rosen::RSTransaction::FlushImplicitTransaction();
+    window->Show();
+
+    auto surfaceNode = window->GetSurfaceNode();
+    OHOS::sptr<OHOS::Surface> surf = surfaceNode->GetSurface();
+    OHNativeWindow* nativeWindow = CreateNativeWindowFromSurface(&surf);
+    return nativeWindow;
+}
 
 uint32_t VulkanWrapperUnitTest::getQueueFamilyIndex(VkQueueFlagBits queueFlags)
 {
@@ -370,26 +423,7 @@ HWTEST_F(VulkanWrapperUnitTest, vkCreateOHOSSurfaceOpenHarmony_Test, TestSize.Le
         EXPECT_NE(vkCreateOHOSSurfaceOpenHarmony, nullptr);
         EXPECT_NE(instance, nullptr);
 
-        constexpr int windowLeft = 100;
-        constexpr int windowTop = 200;
-        constexpr int windowWidth = 360;
-        constexpr int windowHeight = 360;
-        OHOS::Rosen::Rect rect = {windowLeft, windowTop, windowWidth, windowHeight};
-        OHOS::sptr<OHOS::Rosen::WindowOption> option(new OHOS::Rosen::WindowOption());
-        option->SetDisplayId(0);
-        option->SetWindowRect(rect);
-        option->SetWindowType(OHOS::Rosen::WindowType::APP_MAIN_WINDOW_BASE);
-        option->SetWindowMode(OHOS::Rosen::WindowMode::WINDOW_MODE_FLOATING);
-        option->SetWindowName("createSurface_unittest");
-        OHOS::sptr<OHOS::Rosen::Window> window = OHOS::Rosen::Window::Create(option->GetWindowName(), option);
-        EXPECT_NE(window, nullptr);
-
-        OHOS::Rosen::RSTransaction::FlushImplicitTransaction();
-        window->Show();
-
-        auto surfaceNode = window->GetSurfaceNode();
-        OHOS::sptr<OHOS::Surface> surf = surfaceNode->GetSurface();
-        OHNativeWindow* nativeWindow = CreateNativeWindowFromSurface(&surf);
+        OHNativeWindow* nativeWindow = createNativeWindow("createSurfaceUT");
         EXPECT_NE(nativeWindow, nullptr);
         VkOHOSSurfaceCreateInfoOpenHarmony surfaceCreateInfo = {};
         surfaceCreateInfo.sType = VK_STRUCTURE_TYPE_OHOS_SURFACE_CREATE_INFO_OPENHARMONY;
@@ -397,6 +431,32 @@ HWTEST_F(VulkanWrapperUnitTest, vkCreateOHOSSurfaceOpenHarmony_Test, TestSize.Le
         VkResult err = vkCreateOHOSSurfaceOpenHarmony(instance, &surfaceCreateInfo, NULL, &surface);
         EXPECT_EQ(err, VK_SUCCESS);
         EXPECT_NE(surface, VK_NULL_HANDLE);
+    }
+}
+
+/**
+ * @tc.name: test vkCreateOHOSSurfaceOpenHarmony 2
+ * @tc.desc: test vkCreateOHOSSurfaceOpenHarmony 2
+ * @tc.type: FUNC
+ * @tc.require: issueI5ODXM
+ */
+HWTEST_F(VulkanWrapperUnitTest, vkCreateOHOSSurfaceOpenHarmony_Test2, TestSize.Level1)
+{
+    if (isSupportedVulkan) {
+        EXPECT_NE(vkCreateOHOSSurfaceOpenHarmony, nullptr);
+        EXPECT_NE(instance, nullptr);
+
+        OHNativeWindow* nativeWindow = createNativeWindow("createSurfaceUT2");
+        EXPECT_NE(nativeWindow, nullptr);
+        int ret = NativeWindowHandleOpt(nativeWindow, SET_USAGE, 0);
+        EXPECT_EQ(ret, OHOS::GSERROR_OK);
+        VkOHOSSurfaceCreateInfoOpenHarmony surfaceCreateInfo = {};
+        surfaceCreateInfo.sType = VK_STRUCTURE_TYPE_OHOS_SURFACE_CREATE_INFO_OPENHARMONY;
+        surfaceCreateInfo.window = nativeWindow;
+        VkSurfaceKHR surface2 = VK_NULL_HANDLE;
+        VkResult err = vkCreateOHOSSurfaceOpenHarmony(instance, &surfaceCreateInfo, NULL, &surface2);
+        EXPECT_NE(err, VK_SUCCESS);
+        EXPECT_EQ(surface2, VK_NULL_HANDLE);
     }
 }
 
@@ -489,6 +549,27 @@ HWTEST_F(VulkanWrapperUnitTest, fpGetPhysicalDeviceSurfacePresentModesKHR_Test, 
 }
 
 /**
+ * @tc.name: test fpGetPhysicalDeviceSurfacePresentModesKHR FAIL
+ * @tc.desc: test fpGetPhysicalDeviceSurfacePresentModesKHR FAIL
+ * @tc.type: FUNC
+ * @tc.require: issueI5ODXM
+ */
+HWTEST_F(VulkanWrapperUnitTest, fpGetPhysicalDeviceSurfacePresentModesKHR_FAIL_Test, TestSize.Level1)
+{
+    if (isSupportedVulkan) {
+        EXPECT_NE(fpGetPhysicalDeviceSurfacePresentModesKHR, nullptr);
+        EXPECT_NE(physicalDevice, nullptr);
+        EXPECT_NE(surface, VK_NULL_HANDLE);
+
+        uint32_t presentModeCount = 1;
+        std::vector<VkPresentModeKHR> presentModes(presentModeCount);
+        VkResult err = fpGetPhysicalDeviceSurfacePresentModesKHR(
+            physicalDevice, surface, &presentModeCount, presentModes.data());
+        EXPECT_NE(err, VK_SUCCESS);
+    }
+}
+
+/**
  * @tc.name: test fpGetPhysicalDeviceSurfaceFormatsKHR
  * @tc.desc: test fpGetPhysicalDeviceSurfaceFormatsKHR
  * @tc.type: FUNC
@@ -513,6 +594,27 @@ HWTEST_F(VulkanWrapperUnitTest, fpGetPhysicalDeviceSurfaceFormatsKHR_Test, TestS
 }
 
 /**
+ * @tc.name: test fpGetPhysicalDeviceSurfaceFormatsKHR FAIL
+ * @tc.desc: test fpGetPhysicalDeviceSurfaceFormatsKHR FAIL
+ * @tc.type: FUNC
+ * @tc.require: issueI5ODXM
+ */
+HWTEST_F(VulkanWrapperUnitTest, fpGetPhysicalDeviceSurfaceFormatsKHR_FAIL_Test, TestSize.Level1)
+{
+    if (isSupportedVulkan) {
+        EXPECT_NE(fpGetPhysicalDeviceSurfaceFormatsKHR, nullptr);
+        EXPECT_NE(physicalDevice, nullptr);
+        EXPECT_NE(surface, VK_NULL_HANDLE);
+
+        uint32_t formatCount = 1;
+        std::vector<VkSurfaceFormatKHR> surfaceFormats(formatCount);
+        VkResult err = fpGetPhysicalDeviceSurfaceFormatsKHR(
+            physicalDevice, surface, &formatCount, surfaceFormats.data());
+        EXPECT_NE(err, VK_SUCCESS);
+    }
+}
+
+/**
  * @tc.name: test fpCreateSwapchainKHR
  * @tc.desc: test fpCreateSwapchainKHR
  * @tc.type: FUNC
@@ -525,26 +627,8 @@ HWTEST_F(VulkanWrapperUnitTest, fpCreateSwapchainKHR_Test, TestSize.Level1)
         EXPECT_NE(device, nullptr);
         EXPECT_NE(surface, VK_NULL_HANDLE);
 
-        VkSwapchainKHR oldSwapchain = swapChain;
-        VkSwapchainCreateInfoKHR swapchainCI = {};
-        swapchainCI.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
-        swapchainCI.surface = surface;
-        uint32_t desiredNumberOfSwapchainImages = surfCaps.minImageCount + 1;
-        swapchainCI.minImageCount = desiredNumberOfSwapchainImages;
-        swapchainCI.imageFormat = VK_FORMAT_B8G8R8A8_UNORM;
-        swapchainCI.imageColorSpace = surfaceFormat.colorSpace;
-        uint32_t width = 1280;
-        uint32_t height = 720;
-        swapchainCI.imageExtent = { width, height };
-        swapchainCI.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
-        swapchainCI.preTransform = (VkSurfaceTransformFlagBitsKHR)VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR;
-        swapchainCI.imageArrayLayers = 1;
-        swapchainCI.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
-        swapchainCI.queueFamilyIndexCount = 0;
-        swapchainCI.presentMode = VK_PRESENT_MODE_IMMEDIATE_KHR;
-        swapchainCI.oldSwapchain = oldSwapchain;
-        swapchainCI.clipped = VK_TRUE;
-        swapchainCI.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
+        VkSwapchainCreateInfoKHR swapchainCI = getSwapchainCreateInfo(
+            VK_FORMAT_B8G8R8A8_UNORM, surfaceFormat.colorSpace);
 
         VkResult err = fpCreateSwapchainKHR(device, &swapchainCI, nullptr, &swapChain);
         EXPECT_EQ(err, VK_SUCCESS);
@@ -573,6 +657,22 @@ HWTEST_F(VulkanWrapperUnitTest, fpGetSwapchainImagesKHR_Test, TestSize.Level1)
         images.resize(imageCount);
         err = fpGetSwapchainImagesKHR(device, swapChain, &imageCount, images.data());
         EXPECT_EQ(err, VK_SUCCESS);
+    }
+}
+
+/**
+ * @tc.name: test fpGetSwapchainImagesKHR FAIL
+ * @tc.desc: test fpGetSwapchainImagesKHR FAIL
+ * @tc.type: FUNC
+ * @tc.require: issueI5ODXM
+ */
+HWTEST_F(VulkanWrapperUnitTest, fpGetSwapchainImagesKHR_FAIL_Test, TestSize.Level1)
+{
+    if (isSupportedVulkan) {
+        uint32_t imageCount = 1;
+        std::vector<VkImage> images(imageCount);
+        VkResult err = fpGetSwapchainImagesKHR(device, swapChain2, &imageCount, images.data());
+        EXPECT_NE(err, VK_SUCCESS);
     }
 }
 
@@ -656,6 +756,20 @@ HWTEST_F(VulkanWrapperUnitTest, fpQueuePresentKHR_Test, TestSize.Level1)
         presentInfo.waitSemaphoreCount = 1;
         VkResult err = fpQueuePresentKHR(queue, &presentInfo);
         EXPECT_EQ(err, VK_SUCCESS);
+    }
+}
+
+/**
+ * @tc.name: test vkDestroySurfaceKHR nullptr
+ * @tc.desc: test vkDestroySurfaceKHR nullptr
+ * @tc.type: FUNC
+ * @tc.require: issueI5ODXM
+ */
+HWTEST_F(VulkanWrapperUnitTest, DestroySurface_NULL_Test, TestSize.Level1)
+{
+    if (isSupportedVulkan) {
+        EXPECT_NE(vkDestroySurfaceKHR, nullptr);
+        vkDestroySurfaceKHR(instance, VK_NULL_HANDLE, nullptr);
     }
 }
 } // vulkan::driver
