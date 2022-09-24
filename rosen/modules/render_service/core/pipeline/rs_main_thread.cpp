@@ -63,12 +63,12 @@ void InsertToEnd(std::vector<std::unique_ptr<RSTransactionData>>& source,
 }
 }
 
-class ColorCorrectionObserver : public AccessibilityConfigObserver {
+class AccessibilityObserver : public AccessibilityConfigObserver {
 public:
-    ColorCorrectionObserver() = default;
-    virtual void OnConfigChanged(const CONFIG_ID id, const ConfigValue &value) override
+    AccessibilityObserver() = default;
+    void OnConfigChanged(const CONFIG_ID id, const ConfigValue &value) override
     {
-        RS_LOGD("ColorCorrectionObserver OnConfigChanged");
+        RS_LOGD("AccessibilityObserver OnConfigChanged");
         ColorFilterMode mode = ColorFilterMode::COLOR_FILTER_END;
         if (id == CONFIG_ID::CONFIG_DALTONIZATION_COLOR_FILTER) {
             switch (value.daltonizationColorFilter) {
@@ -84,12 +84,17 @@ public:
                 case Normal:
                     mode = ColorFilterMode::DALTONIZATION_NORMAL_MODE;
                     break;
+                default:
+                    break;
             }
-        } else {
+            RSMainThread::Instance()->GetRenderEngine()->SetColorFilterMode(mode);
+        } else if (id == CONFIG_ID::CONFIG_INVERT_COLOR) {
             mode = value.invertColor ? ColorFilterMode::INVERT_COLOR_ENABLE_MODE :
                                         ColorFilterMode::INVERT_COLOR_DISABLE_MODE;
+            RSMainThread::Instance()->GetRenderEngine()->SetColorFilterMode(mode);
+        } else {
+            RSMainThread::Instance()->GetRenderEngine()->SetHighContrast(value.highContrastText);
         }
-        RSMainThread::Instance()->GetRenderEngine()->SetColorFilterMode(mode);
     }
 };
 
@@ -163,11 +168,14 @@ void RSMainThread::Init()
     RSInnovation::OpenInnovationSo();
     Occlusion::Region::InitDynamicLibraryFunction();
 
-    correctionObserver_ = std::make_shared<ColorCorrectionObserver>();
+    accessibilityObserver_ = std::make_shared<AccessibilityObserver>();
     auto &config = OHOS::Singleton<OHOS::AccessibilityConfig::AccessibilityConfig>::GetInstance();
     config.InitializeContext();
-    config.SubscribeConfigObserver(CONFIG_ID::CONFIG_DALTONIZATION_COLOR_FILTER, correctionObserver_);
-    config.SubscribeConfigObserver(CONFIG_ID::CONFIG_INVERT_COLOR, correctionObserver_);
+    config.SubscribeConfigObserver(CONFIG_ID::CONFIG_DALTONIZATION_COLOR_FILTER, accessibilityObserver_);
+    config.SubscribeConfigObserver(CONFIG_ID::CONFIG_INVERT_COLOR, accessibilityObserver_);
+    if (isUniRender_) {
+        config.SubscribeConfigObserver(CONFIG_ID::CONFIG_HIGH_CONTRAST_TEXT, accessibilityObserver_);
+    }
 
     auto delegate = RSFunctionalDelegate::Create();
     delegate->SetRepaintCallback([]() { RSMainThread::Instance()->RequestNextVSync(); });

@@ -758,6 +758,7 @@ void RSUniRenderVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
         return;
     }
 
+    canvas_->SetHighContrast(renderEngine_->isHighContrastEnabled());
     ColorFilterMode modeFromSysProperty = static_cast<ColorFilterMode>(RSSystemProperties::GetCorrectionMode());
     ColorFilterMode colorFilterMode = renderEngine_->GetColorFilterMode();
     if (RSBaseRenderUtil::IsColorFilterModeValid(modeFromSysProperty)) {
