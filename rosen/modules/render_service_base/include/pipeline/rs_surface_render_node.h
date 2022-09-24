@@ -131,6 +131,10 @@ public:
 
     void SetSecurityLayer(bool isSecurityLayer);
     bool GetSecurityLayer() const;
+
+    void SetColorSpace(ColorGamut colorSpace);
+    ColorGamut GetColorSpace() const;
+
     std::shared_ptr<RSDirtyRegionManager> GetDirtyManager() const;
 
     void SetSrcRect(const RectI& rect)
@@ -445,6 +449,7 @@ private:
     SkRect contextClipRect_ = SkRect::MakeEmpty();
 
     bool isSecurityLayer_ = false;
+    ColorGamut colorSpace_ = ColorGamut::COLOR_GAMUT_SRGB;
     RectI srcRect_;
     SkMatrix totalMatrix_;
     int32_t offsetX_ = 0;

@@ -56,6 +56,13 @@ void SurfaceNodeCommandHelper::SetSecurityLayer(RSContext& context, NodeId id, b
     }
 }
 
+void SurfaceNodeCommandHelper::SetColorSpace(RSContext& context, NodeId id, ColorGamut colorSpace)
+{
+    if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(id)) {
+        node->SetColorSpace(colorSpace);
+    }
+}
+
 void SurfaceNodeCommandHelper::UpdateSurfaceDefaultSize(RSContext& context, NodeId id, float width, float height)
 {
     if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(id)) {

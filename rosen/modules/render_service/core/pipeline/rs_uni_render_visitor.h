@@ -72,6 +72,7 @@ private:
     void InitCacheSurface(RSSurfaceRenderNode& node, int width, int height);
     void DrawCacheSurface(RSSurfaceRenderNode& node);
     void SetPaintOutOfParentFlag(RSBaseRenderNode& node);
+    void CheckColorSpace(RSSurfaceRenderNode& node);
 
     ScreenInfo screenInfo_;
     std::shared_ptr<RSDirtyRegionManager> curSurfaceDirtyManager_;
@@ -101,6 +102,8 @@ private:
     bool isOpDropped_ = false;
     PartialRenderType partialRenderType_;
     bool isDirty_ = false;
+    ColorGamut newColorSpace_ = ColorGamut::COLOR_GAMUT_SRGB;
+    std::vector<ScreenColorGamut> colorGamutmodes_;
 };
 } // namespace Rosen
 } // namespace OHOS

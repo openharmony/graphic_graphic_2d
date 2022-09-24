@@ -285,6 +285,16 @@ bool RSSurfaceRenderNode::GetSecurityLayer() const
     return isSecurityLayer_;
 }
 
+void RSSurfaceRenderNode::SetColorSpace(ColorGamut colorSpace)
+{
+    colorSpace_ = colorSpace;
+}
+
+ColorGamut RSSurfaceRenderNode::GetColorSpace() const
+{
+    return colorSpace_;
+}
+
 void RSSurfaceRenderNode::UpdateSurfaceDefaultSize(float width, float height)
 {
     if (consumer_ != nullptr) {
