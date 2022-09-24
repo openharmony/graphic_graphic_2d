@@ -147,6 +147,14 @@ public:
     {
         return colorFilterMode_;
     }
+    void SetHighContrast(bool enabled)
+    {
+        isHighContrastEnabled_  = enabled;
+    }
+    bool isHighContrastEnabled() const
+    {
+        return isHighContrastEnabled_;
+    }
 #ifdef RS_ENABLE_GL
     const std::shared_ptr<RenderContext>& GetRenderContext() const
     {
@@ -187,6 +195,7 @@ private:
     void SetColorFilterModeToPaint(SkPaint& paint);
 
     ColorFilterMode colorFilterMode_ = ColorFilterMode::COLOR_FILTER_END;
+    std::atomic_bool isHighContrastEnabled_ = false;
 
 #ifdef RS_ENABLE_GL
     std::shared_ptr<RenderContext> renderContext_;

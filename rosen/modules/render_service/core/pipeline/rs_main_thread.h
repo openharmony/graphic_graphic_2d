@@ -41,7 +41,7 @@
 #include "transaction/rs_transaction_data.h"
 
 namespace OHOS::Rosen {
-class ColorCorrectionObserver;
+class AccessibilityObserver;
 namespace Detail {
 template<typename Task>
 class ScheduledTask : public RefBase {
@@ -215,7 +215,7 @@ private:
     std::shared_ptr<RSRenderEngine> renderEngine_;
     std::shared_ptr<RSBaseEventDetector> rsCompositionTimeoutDetector_;
     RSEventManager rsEventManager_;
-    std::shared_ptr<ColorCorrectionObserver> correctionObserver_;
+    std::shared_ptr<AccessibilityObserver> accessibilityObserver_;
 };
 } // namespace OHOS::Rosen
 #endif // RS_MAIN_THREAD
