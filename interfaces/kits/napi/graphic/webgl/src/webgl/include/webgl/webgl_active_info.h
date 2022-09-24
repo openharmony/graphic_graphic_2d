@@ -16,7 +16,13 @@
 #ifndef ROSENRENDER_ROSEN_WEBGL_ACTIVEINFO
 #define ROSENRENDER_ROSEN_WEBGL_ACTIVEINFO
 
+#include <GLES2/gl2.h>
+#include <GLES3/gl31.h>
+#include <GLES2/gl2ext.h>
+
 #include "../../../common/napi/n_exporter.h"
+
+#define WEBGL_ACTIVE_INFO_NAME_MAX_LENGTH 128
 
 namespace OHOS {
 namespace Rosen {
@@ -30,7 +36,7 @@ public:
 
     static napi_value Constructor(napi_env env, napi_callback_info info);
 
-    void SetActiveName(char activename)
+    void SetActiveName(GLchar* activename)
     {
         m_name = activename;
     }
@@ -45,28 +51,13 @@ public:
         m_type = activetype;
     }
 
-    char GetActiveName() const
-    {
-        return m_name;
-    }
+    explicit WebGLActiveInfo() : m_size(0), m_type(0) {};
 
-    int GetActiveSize() const
-    {
-        return m_size;
-    }
-
-    int GetActiveType() const
-    {
-        return m_type;
-    }
-
-    explicit WebGLActiveInfo() : m_name(0), m_size(0), m_type(0) {};
-
-    WebGLActiveInfo(napi_env env, napi_value exports) : NExporter(env, exports), m_name(0), m_size(0), m_type(0) {};
+    WebGLActiveInfo(napi_env env, napi_value exports) : NExporter(env, exports), m_size(0), m_type(0) {};
 
     ~WebGLActiveInfo() {};
 private:
-    char m_name;
+    std::string m_name;
     int m_size;
     int m_type;
 };

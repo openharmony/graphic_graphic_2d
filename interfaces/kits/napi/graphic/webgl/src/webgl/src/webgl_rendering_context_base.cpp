@@ -2782,13 +2782,16 @@ napi_value WebGLRenderingContextBase::GetActiveAttrib(napi_env env, napi_callbac
     if (!webGLActiveInfo) {
         return nullptr;
     }
-    int64_t bufSize = 0;
+    int64_t bufSize = WEBGL_ACTIVE_INFO_NAME_MAX_LENGTH;
     GLsizei length;
     GLint size;
     GLenum type;
-    char name;
+    GLchar name[WEBGL_ACTIVE_INFO_NAME_MAX_LENGTH] = {0};
     glGetActiveAttrib(static_cast<GLuint>(programId), static_cast<GLuint>(index),
-        static_cast<GLsizei>(bufSize), &length, &size, &type, &name);
+        static_cast<GLsizei>(bufSize), &length, &size, &type, name);
+    if (bufSize > WEBGL_ACTIVE_INFO_NAME_MAX_LENGTH) {
+        LOGE("WebGL: GetActiveAttrib: [error] bufSize exceed!");
+    }
     webGLActiveInfo->SetActiveName(name);
     webGLActiveInfo->SetActiveType(type);
     webGLActiveInfo->SetActiveSize(size);
@@ -2826,13 +2829,16 @@ napi_value WebGLRenderingContextBase::GetActiveUniform(napi_env env, napi_callba
     if (!webGLActiveInfo) {
         return nullptr;
     }
-    int64_t bufSize = 0;
+    int64_t bufSize = WEBGL_ACTIVE_INFO_NAME_MAX_LENGTH;
     GLsizei length;
     GLint size;
     GLenum type;
-    char name;
+    GLchar name[WEBGL_ACTIVE_INFO_NAME_MAX_LENGTH] = {0};
     glGetActiveUniform(static_cast<GLuint>(programId), static_cast<GLuint>(index),
-        static_cast<GLsizei>(bufSize), &length, &size, &type, &name);
+        static_cast<GLsizei>(bufSize), &length, &size, &type, name);
+    if (bufSize > WEBGL_ACTIVE_INFO_NAME_MAX_LENGTH) {
+        LOGE("WebGL: GetActiveUniform: [error] bufSize exceed!");
+    }
     webGLActiveInfo->SetActiveName(name);
     webGLActiveInfo->SetActiveType(type);
     webGLActiveInfo->SetActiveSize(size);
