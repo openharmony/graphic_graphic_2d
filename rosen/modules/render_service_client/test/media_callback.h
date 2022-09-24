@@ -45,7 +45,7 @@ public:
         std::cout << "OnError callback, errorType: "<< errorType << "errorCode: " << errorCode << std::endl;
     }
 
-    virtual void OnInfo(OHOS::Media::PlayerOnInfoType type, int32_t extra, const OHOS::Media::Format &InfoBody = {}) override
+    void OnInfo(OHOS::Media::PlayerOnInfoType type, int32_t extra, const OHOS::Media::Format &InfoBody = {}) override
     {
         switch (type) {
             case OHOS::Media::INFO_TYPE_SEEKDONE:
