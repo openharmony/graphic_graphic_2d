@@ -190,6 +190,12 @@ bool RSSurfaceNode::GetSecurityLayer() const
 void RSSurfaceNode::SetColorSpace(ColorGamut colorSpace)
 {
     colorSpace_ = colorSpace;
+    std::unique_ptr<RSCommand> command =
+        std::make_unique<RSSurfaceNodeSetColorSpace>(GetId(), colorSpace);
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        transactionProxy->AddCommand(command, true);
+    }
 }
 
 void RSSurfaceNode::SetAbilityBGAlpha(uint8_t alpha)

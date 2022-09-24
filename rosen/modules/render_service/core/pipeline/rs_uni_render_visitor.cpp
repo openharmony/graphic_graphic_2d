@@ -100,6 +100,31 @@ void RSUniRenderVisitor::SetPaintOutOfParentFlag(RSBaseRenderNode& node)
     }
 }
 
+void RSUniRenderVisitor::CheckColorSpace(RSSurfaceRenderNode& node)
+{
+    if (node.IsAppWindow()) {
+        auto surfaceNodeColorSpace = node.GetColorSpace();
+        if (surfaceNodeColorSpace != ColorGamut::COLOR_GAMUT_SRGB) {
+            ROSEN_LOGD("RSUniRenderVisitor::CheckColorSpace: node (%s) set new colorspace %d",
+                node.GetName().c_str(), surfaceNodeColorSpace);
+            if (std::find(colorGamutmodes_.begin(), colorGamutmodes_.end(),
+                static_cast<ScreenColorGamut>(surfaceNodeColorSpace)) != colorGamutmodes_.end()) {
+                newColorSpace_ = surfaceNodeColorSpace;
+            } else {
+                RS_LOGD("RSUniRenderVisitor::CheckColorSpace: colorSpace is not supported on current screen");
+            }
+        }
+    } else {
+        if (node.GetSortedChildren().size() > 0) {
+            auto surfaceNodePtr = node.GetSortedChildren().front()->ReinterpretCastTo<RSSurfaceRenderNode>();
+            if (!surfaceNodePtr) {
+                return;
+            }
+            CheckColorSpace(*surfaceNodePtr);
+        }
+    }
+}
+
 void RSUniRenderVisitor::PrepareDisplayRenderNode(RSDisplayRenderNode& node)
 {
     currentVisitDisplay_ = node.GetScreenId();
@@ -120,7 +145,15 @@ void RSUniRenderVisitor::PrepareDisplayRenderNode(RSDisplayRenderNode& node)
         return;
     }
     screenInfo_ = screenManager->QueryScreenInfo(node.GetScreenId());
-
+    screenManager->GetScreenSupportedColorGamuts(node.GetScreenId(), colorGamutmodes_);
+    for (auto& child : node.GetSortedChildren()) {
+        auto surfaceNodePtr = child->ReinterpretCastTo<RSSurfaceRenderNode>();
+        if (!surfaceNodePtr) {
+            RS_LOGE("RSUniRenderVisitor::ProcessDisplayRenderNode ReinterpretCastTo fail");
+            return;
+        }
+        CheckColorSpace(*surfaceNodePtr);
+    }
     parentSurfaceNodeMatrix_ = SkMatrix::I();
     auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(node.GetRenderProperties().GetBoundsGeometry());
     if (geoPtr != nullptr) {
@@ -391,6 +424,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
             RS_LOGE("RSUniRenderVisitor::ProcessDisplayRenderNode No RSSurface found");
             return;
         }
+        rsSurface->SetColorSpace(newColorSpace_);
         // we should request a framebuffer whose size is equals to the physical screen size.
         auto renderFrame = renderEngine_->RequestFrame(std::static_pointer_cast<RSSurfaceOhos>(rsSurface),
             RSBaseRenderUtil::GetFrameBufferRequestConfig(screenInfo_, true));
