@@ -61,7 +61,7 @@ private:
     bool IfSkipClean(const size_t addedSize);
     bool IfCleanFinished();
     void RandClean(const size_t cleanThreshold);
-    size_t Clean(const int removeIndex);
+    size_t Clean(const size_t removeIndex);
 
     static inline size_t Align4(size_t size)
     {

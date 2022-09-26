@@ -357,7 +357,12 @@ void CacheData::RandClean(const size_t cleanThreshold)
             break;
         }
         size_t sizeRandIndex = static_cast<size_t>(randIndex);
-        int removeIndex = sizeRandIndex % (shaderPointers_.size());
+        size_t currentSize = shaderPointers_.size();
+        if (currentSize == 0) {
+            LOGW("abandon, shader is empty, nothing to clean");
+            break;
+        }
+        size_t removeIndex = sizeRandIndex % (currentSize);
         if (!Clean(removeIndex)) {
             LOGE("abandon, cleaned nothing");
             break;
@@ -365,9 +370,9 @@ void CacheData::RandClean(const size_t cleanThreshold)
     }
 }
 
-size_t CacheData::Clean(const int removeIndex)
+size_t CacheData::Clean(const size_t removeIndex)
 {
-    if (removeIndex >= shaderPointers_.size() || removeIndex < 0) {
+    if (removeIndex >= shaderPointers_.size()) {
         LOGE("illegal shader index, abandon cleaning");
         return 0;
     }
