@@ -263,13 +263,19 @@ std::string RSModifierExtractor::Dump() const
         dumpInfo.append(buffer);
     }
 
-    memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
+    auto ret = memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
+    if (ret != EOK) {
+        return "Failed to memset_s for BackgroundColor, ret=" + std::to_string(ret);
+    }
     if (!ROSEN_EQ(GetBackgroundColor(), RgbPalette::Transparent()) &&
         sprintf_s(buffer, UINT8_MAX, ", BackgroundColor[#%08X]", GetBackgroundColor().AsArgbInt()) != -1) {
         dumpInfo.append(buffer);
     }
 
-    memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
+    ret = memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
+    if (ret != EOK) {
+        return "Failed to memset_s for Alpha, ret=" + std::to_string(ret);
+    }
     if (!ROSEN_EQ(GetAlpha(), 1.f) &&
         sprintf_s(buffer, UINT8_MAX, ", Alpha[%.1f]", GetAlpha()) != -1) {
         dumpInfo.append(buffer);

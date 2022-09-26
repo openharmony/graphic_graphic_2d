@@ -255,7 +255,12 @@ int CacheData::Serialize(uint8_t *buffer, const size_t size)
             return -EINVAL;
         }
         if (alignedSize > pairSize) {
-            memset_s(shaderBuffer->data_ + keySize + valueSize, alignedSize - pairSize, 0, alignedSize - pairSize);
+            auto ret = memset_s(shaderBuffer->data_ + keySize + valueSize, alignedSize - pairSize, 0, 
+                                   alignedSize - pairSize);
+            if (ret != EOK) {
+                LOGE("abandon, failed to memset_s");
+                return -EINVAL;
+            }
         }
         byteOffset += alignedSize;
     }

@@ -997,7 +997,10 @@ std::string RSProperties::Dump() const
     }
 
     // PositionZ
-    memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
+    auto ret = memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
+    if (ret != EOK) {
+        return "Failed to memset_s for PositionZ, ret=" + std::to_string(ret);
+    }
     if (!ROSEN_EQ(GetPositionZ(), 0.f) &&
         sprintf_s(buffer, UINT8_MAX, ", PositionZ[%.1f]", GetPositionZ()) != -1) {
         dumpInfo.append(buffer);
@@ -1005,7 +1008,10 @@ std::string RSProperties::Dump() const
 
     // Pivot
     std::unique_ptr<Transform> defaultTrans = std::make_unique<Transform>();
-    memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
+    ret = memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
+    if (ret != EOK) {
+        return "Failed to memset_s for Pivot, ret=" + std::to_string(ret);
+    }
     Vector2f pivot = GetPivot();
     if ((!ROSEN_EQ(pivot[0], defaultTrans->pivotX_) || !ROSEN_EQ(pivot[1], defaultTrans->pivotY_)) &&
         sprintf_s(buffer, UINT8_MAX, ", Pivot[%.1f,%.1f]", pivot[0], pivot[1]) != -1) {
@@ -1013,7 +1019,10 @@ std::string RSProperties::Dump() const
     }
 
     // CornerRadius
-    memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
+    ret = memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
+    if (ret != EOK) {
+        return "Failed to memset_s for CornerRadius, ret=" + std::to_string(ret);
+    }
     if (!GetCornerRadius().IsZero() &&
         sprintf_s(buffer, UINT8_MAX, ", CornerRadius[%.1f %.1f %.1f %.1f]",
             GetCornerRadius().x_, GetCornerRadius().y_, GetCornerRadius().z_, GetCornerRadius().w_) != -1) {
@@ -1021,75 +1030,108 @@ std::string RSProperties::Dump() const
     }
 
     // Rotation
-    memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
+    ret = memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
+    if (ret != EOK) {
+        return "Failed to memset_s for Rotation, ret=" + std::to_string(ret);
+    }
     if (!ROSEN_EQ(GetRotation(), defaultTrans->rotation_) &&
         sprintf_s(buffer, UINT8_MAX, ", Rotation[%.1f]", GetRotation()) != -1) {
         dumpInfo.append(buffer);
     }
     // RotationX
-    memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
+    ret = memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
+    if (ret != EOK) {
+        return "Failed to memset_s for RotationX, ret=" + std::to_string(ret);
+    }
     if (!ROSEN_EQ(GetRotationX(), defaultTrans->rotationX_) &&
         sprintf_s(buffer, UINT8_MAX, ", RotationX[%.1f]", GetRotationX()) != -1) {
         dumpInfo.append(buffer);
     }
     // RotationY
-    memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
+    ret = memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
+    if (ret != EOK) {
+        return "Failed to memset_s for RotationY, ret=" + std::to_string(ret);
+    }
     if (!ROSEN_EQ(GetRotationY(), defaultTrans->rotationY_) &&
         sprintf_s(buffer, UINT8_MAX, ", RotationY[%.1f]", GetRotationY()) != -1) {
         dumpInfo.append(buffer);
     }
 
     // TranslateX
-    memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
+    ret = memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
+    if (ret != EOK) {
+        return "Failed to memset_s for TranslateX, ret=" + std::to_string(ret);
+    }
     if (!ROSEN_EQ(GetTranslateX(), defaultTrans->translateX_) &&
         sprintf_s(buffer, UINT8_MAX, ", TranslateX[%.1f]", GetTranslateX()) != -1) {
         dumpInfo.append(buffer);
     }
 
     // TranslateY
-    memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
+    ret = memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
+    if (ret != EOK) {
+        return "Failed to memset_s for TranslateY, ret=" + std::to_string(ret);
+    }
     if (!ROSEN_EQ(GetTranslateY(), defaultTrans->translateY_) &&
         sprintf_s(buffer, UINT8_MAX, ", TranslateY[%.1f]", GetTranslateY()) != -1) {
         dumpInfo.append(buffer);
     }
 
     // TranslateZ
-    memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
+    ret = memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
+    if (ret != EOK) {
+        return "Failed to memset_s for TranslateZ, ret=" + std::to_string(ret);
+    }
     if (!ROSEN_EQ(GetTranslateZ(), defaultTrans->translateZ_) &&
         sprintf_s(buffer, UINT8_MAX, ", TranslateZ[%.1f]", GetTranslateZ()) != -1) {
         dumpInfo.append(buffer);
     }
 
     // ScaleX
-    memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
+    ret = memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
+    if (ret != EOK) {
+        return "Failed to memset_s for ScaleX, ret=" + std::to_string(ret);
+    }
     if (!ROSEN_EQ(GetScaleX(), defaultTrans->scaleX_) &&
         sprintf_s(buffer, UINT8_MAX, ", ScaleX[%.1f]", GetScaleX()) != -1) {
         dumpInfo.append(buffer);
     }
 
     // ScaleY
-    memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
+    ret = memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
+    if (ret != EOK) {
+        return "Failed to memset_s for ScaleY, ret=" + std::to_string(ret);
+    }
     if (!ROSEN_EQ(GetScaleY(), defaultTrans->scaleY_) &&
         sprintf_s(buffer, UINT8_MAX, ", ScaleY[%.1f]", GetScaleY()) != -1) {
         dumpInfo.append(buffer);
     }
 
     // Alpha
-    memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
+    ret = memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
+    if (ret != EOK) {
+        return "Failed to memset_s for Alpha, ret=" + std::to_string(ret);
+    }
     if (!ROSEN_EQ(GetAlpha(), 1.f) &&
         sprintf_s(buffer, UINT8_MAX, ", Alpha[%.1f]", GetAlpha()) != -1) {
         dumpInfo.append(buffer);
     }
 
     // ForegroundColor
-    memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
+    ret = memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
+    if (ret != EOK) {
+        return "Failed to memset_s for ForegroundColor, ret=" + std::to_string(ret);
+    }
     if (!ROSEN_EQ(GetForegroundColor(), RgbPalette::Transparent()) &&
         sprintf_s(buffer, UINT8_MAX, ", ForegroundColor[#%08X]", GetForegroundColor().AsArgbInt()) != -1) {
         dumpInfo.append(buffer);
     }
 
     // BackgroundColor
-    memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
+    ret = memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
+    if (ret != EOK) {
+        return "Failed to memset_s for BackgroundColor, ret=" + std::to_string(ret);
+    }
     if (!ROSEN_EQ(GetBackgroundColor(), RgbPalette::Transparent()) &&
         sprintf_s(buffer, UINT8_MAX, ", BackgroundColor[#%08X]", GetBackgroundColor().AsArgbInt()) != -1) {
         dumpInfo.append(buffer);
@@ -1097,7 +1139,10 @@ std::string RSProperties::Dump() const
 
     // BgImage
     std::unique_ptr<Decoration> defaultDecoration = std::make_unique<Decoration>();
-    memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
+    ret = memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
+    if (ret != EOK) {
+        return "Failed to memset_s for BgImage, ret=" + std::to_string(ret);
+    }
     if ((!ROSEN_EQ(GetBgImagePositionX(), defaultDecoration->bgImageRect_.left_) ||
         !ROSEN_EQ(GetBgImagePositionY(), defaultDecoration->bgImageRect_.top_) ||
         !ROSEN_EQ(GetBgImageWidth(), defaultDecoration->bgImageRect_.width_) ||
@@ -1108,56 +1153,80 @@ std::string RSProperties::Dump() const
     }
 
     // Border
-    memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
+    ret = memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
+    if (ret != EOK) {
+        return "Failed to memset_s for Border, ret=" + std::to_string(ret);
+    }
     if (border_ && border_->HasBorder() &&
         sprintf_s(buffer, UINT8_MAX, ", Border[%s]", border_->ToString().c_str()) != -1) {
         dumpInfo.append(buffer);
     }
 
     // ShadowColor
-    memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
+    ret = memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
+    if (ret != EOK) {
+        return "Failed to memset_s for ShadowColor, ret=" + std::to_string(ret);
+    }
     if (!ROSEN_EQ(GetShadowColor(), Color(DEFAULT_SPOT_COLOR)) &&
         sprintf_s(buffer, UINT8_MAX, ", ShadowColor[#%08X]", GetShadowColor().AsArgbInt()) != -1) {
         dumpInfo.append(buffer);
     }
 
     // ShadowOffsetX
-    memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
+    ret = memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
+    if (ret != EOK) {
+        return "Failed to memset_s for ShadowOffsetX, ret=" + std::to_string(ret);
+    }
     if (!ROSEN_EQ(GetShadowOffsetX(), DEFAULT_SHADOW_OFFSET_X) &&
         sprintf_s(buffer, UINT8_MAX, ", ShadowOffsetX[%.1f]", GetShadowOffsetX()) != -1) {
         dumpInfo.append(buffer);
     }
 
     // ShadowOffsetY
-    memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
+    ret = memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
+    if (ret != EOK) {
+        return "Failed to memset_s for ShadowOffsetY, ret=" + std::to_string(ret);
+    }
     if (!ROSEN_EQ(GetShadowOffsetY(), DEFAULT_SHADOW_OFFSET_Y) &&
         sprintf_s(buffer, UINT8_MAX, ", ShadowOffsetY[%.1f]", GetShadowOffsetY()) != -1) {
         dumpInfo.append(buffer);
     }
 
     // ShadowAlpha
-    memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
+    ret = memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
+    if (ret != EOK) {
+        return "Failed to memset_s for ShadowAlpha, ret=" + std::to_string(ret);
+    }
     if (!ROSEN_EQ(GetShadowAlpha(), 0.f) &&
         sprintf_s(buffer, UINT8_MAX, ", ShadowAlpha[%.1f]", GetShadowAlpha()) != -1) {
         dumpInfo.append(buffer);
     }
 
     // ShadowElevation
-    memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
+    ret = memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
+    if (ret != EOK) {
+        return "Failed to memset_s for ShadowElevation, ret=" + std::to_string(ret);
+    }
     if (!ROSEN_EQ(GetShadowElevation(), 0.f) &&
         sprintf_s(buffer, UINT8_MAX, ", ShadowElevation[%.1f]", GetShadowElevation()) != -1) {
         dumpInfo.append(buffer);
     }
 
     // ShadowRadius
-    memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
+    ret = memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
+    if (ret != EOK) {
+        return "Failed to memset_s for ShadowRadius, ret=" + std::to_string(ret);
+    }
     if (!ROSEN_EQ(GetShadowRadius(), 0.f) &&
         sprintf_s(buffer, UINT8_MAX, ", ShadowRadius[%.1f]", GetShadowRadius()) != -1) {
         dumpInfo.append(buffer);
     }
 
     // FrameGravity
-    memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
+    ret = memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
+    if (ret != EOK) {
+        return "Failed to memset_s for FrameGravity, ret=" + std::to_string(ret);
+    }
     if (!ROSEN_EQ(GetFrameGravity(), Gravity::DEFAULT) &&
         sprintf_s(buffer, UINT8_MAX, ", FrameGravity[%d]", GetFrameGravity()) != -1) {
         dumpInfo.append(buffer);
