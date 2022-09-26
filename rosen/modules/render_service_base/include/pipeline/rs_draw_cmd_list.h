@@ -16,8 +16,10 @@
 #ifndef RENDER_SERVICE_CLIENT_CORE_PIPELINE_RS_DRAW_CMD_LIST_H
 #define RENDER_SERVICE_CLIENT_CORE_PIPELINE_RS_DRAW_CMD_LIST_H
 
+#include <atomic>
 #include <memory>
 #include <mutex>
+#include <unordered_map>
 #include <vector>
 
 #include "common/rs_common_def.h"
@@ -65,6 +67,28 @@ private:
 };
 
 using DrawCmdListPtr = std::shared_ptr<DrawCmdList>;
+
+class DrawCmdListManager {
+public:
+    static DrawCmdListManager& Instance();
+
+    void RegisterDrawCmdList(NodeId id, std::shared_ptr<DrawCmdList> drawCmdList);
+    void ClearDrawCmdList(NodeId id);
+
+    void MarkForceClear(bool flag);
+
+private:
+    DrawCmdListManager() = default;
+    ~DrawCmdListManager() = default;
+
+    DrawCmdListManager(const DrawCmdListManager&) = delete;
+    DrawCmdListManager(const DrawCmdListManager&&) = delete;
+    DrawCmdListManager& operator=(const DrawCmdListManager&) = delete;
+    DrawCmdListManager& operator=(const DrawCmdListManager&&) = delete;
+
+    std::atomic_bool forceClear_ = true;
+    std::unordered_map<NodeId, std::vector<std::weak_ptr<DrawCmdList>>> lists_;
+};
 } // namespace Rosen
 } // namespace OHOS
 

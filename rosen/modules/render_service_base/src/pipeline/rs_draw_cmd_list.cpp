@@ -20,6 +20,7 @@
 #include "pipeline/rs_draw_cmd.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "platform/common/rs_log.h"
+#include "platform/common/rs_system_properties.h"
 #include "transaction/rs_marshalling_helper.h"
 
 namespace OHOS {
@@ -200,5 +201,40 @@ DrawCmdList* DrawCmdList::Unmarshalling(Parcel& parcel)
     return drawCmdList.release();
 }
 #endif
+
+DrawCmdListManager& DrawCmdListManager::Instance()
+{
+    static DrawCmdListManager instance;
+    return instance;
+}
+
+void DrawCmdListManager::RegisterDrawCmdList(NodeId id, std::shared_ptr<DrawCmdList> drawCmdList)
+{
+    static bool uniEnabled = RSSystemProperties::GetUniRenderEnabled();
+    if (uniEnabled && drawCmdList) {
+        lists_[id].emplace_back(drawCmdList);
+    }
+}
+
+void DrawCmdListManager::ClearDrawCmdList(NodeId id)
+{
+    auto iterator = lists_.find(id);
+    if (iterator == lists_.end()) {
+        return;
+    }
+    if (forceClear_) {
+        for (auto& weakPtr : iterator->second) {
+            if (auto ptr = weakPtr.lock()) {
+                ptr->ClearOp();
+            }
+        }
+    }
+    lists_.erase(iterator);
+}
+
+void DrawCmdListManager::MarkForceClear(bool flag)
+{
+    forceClear_ = flag;
+}
 } // namespace Rosen
 } // namespace OHOS
