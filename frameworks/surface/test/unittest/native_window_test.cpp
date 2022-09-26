@@ -15,7 +15,9 @@
 #include <gtest/gtest.h>
 #include <iservice_registry.h>
 #include <native_window.h>
+#include <securec.h>
 #include <surface_type.h>
+#include "buffer_log.h"
 #include "external_window.h"
 
 using namespace testing;
@@ -28,6 +30,40 @@ public:
     {
     }
 };
+
+static OHExtDataHandle *AllocOHExtDataHandle(uint32_t reserveInts)
+{
+    size_t handleSize = sizeof(OHExtDataHandle) + (sizeof(int32_t) * reserveInts);
+    OHExtDataHandle *handle = static_cast<OHExtDataHandle *>(malloc(handleSize));
+    if (handle == nullptr) {
+        BLOGE("AllocOHExtDataHandle malloc %zu failed", handleSize);
+        return nullptr;
+    }
+    auto ret = memset_s(handle, handleSize, 0, handleSize);
+    if (ret != EOK) {
+        BLOGE("AllocOHExtDataHandle memset_s failed");
+        return nullptr;
+    }
+    handle->fd = -1;
+    handle->reserveInts = reserveInts;
+    for (uint32_t i = 0; i < reserveInts; i++) {
+        handle->reserve[i] = -1;
+    }
+    return handle;
+}
+
+static void FreeOHExtDataHandle(OHExtDataHandle *handle)
+{
+    if (handle == nullptr) {
+        BLOGW("FreeOHExtDataHandle with nullptr handle");
+        return ;
+    }
+    if (handle->fd >= 0) {
+        close(handle->fd);
+        handle->fd = -1;
+    }
+    free(handle);
+}
 
 class NativeWindowTest : public testing::Test {
 public:
@@ -787,11 +823,10 @@ HWTEST_F(NativeWindowTest, SetTunnelHandle002, Function | MediumTest | Level2)
  */
 HWTEST_F(NativeWindowTest, SetTunnelHandle003, Function | MediumTest | Level2)
 {
-    OHExtDataHandle *handle = new OHExtDataHandle();
-    handle->fd = -1;
-    handle->reserveInts = 0;
+    uint32_t reserveInts = 1;
+    OHExtDataHandle *handle = AllocOHExtDataHandle(reserveInts);
     ASSERT_EQ(OH_NativeWindow_NativeWindowSetTunnelHandle(nativeWindow, handle), OHOS::GSERROR_OK);
-    delete handle;
+    FreeOHExtDataHandle(handle);
 }
 
 /*
@@ -804,14 +839,12 @@ HWTEST_F(NativeWindowTest, SetTunnelHandle003, Function | MediumTest | Level2)
  */
 HWTEST_F(NativeWindowTest, SetTunnelHandle004, Function | MediumTest | Level1)
 {
-    OHExtDataHandle *handle = new OHExtDataHandle();
-    handle->fd = -1;
-    handle->reserveInts = 1;
-    handle->reserve[0] = 1;
+    uint32_t reserveInts = 2;
+    OHExtDataHandle *handle = AllocOHExtDataHandle(reserveInts);
     nativeWindow = OH_NativeWindow_CreateNativeWindow(&pSurface);
     ASSERT_NE(nativeWindow, nullptr);
     ASSERT_EQ(OH_NativeWindow_NativeWindowSetTunnelHandle(nativeWindow, handle), OHOS::GSERROR_OK);
     ASSERT_EQ(OH_NativeWindow_NativeWindowSetTunnelHandle(nativeWindow, handle), OHOS::GSERROR_NO_ENTRY);
-    delete handle;
+    FreeOHExtDataHandle(handle);
 }
 }
