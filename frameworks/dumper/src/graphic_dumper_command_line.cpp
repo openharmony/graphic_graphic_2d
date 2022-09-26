@@ -39,20 +39,20 @@ Promise<int> signalPromise;
 static void Helper()
 {
     std::cerr <<
-    "Usage: [options]\n"
-    "options include:\n"
-    "  -h --help          show this message.\n"
-    "  -w --wait          wait mode; listen for new prints.\n"
-    "  -g <key>, --get <key>\n"
-    "                     get config with key.\n"
-    "  -s <key>=<value>, --set <key>=<value>\n"
-    "                     set config of key is equal to value.\n"
-    "  -l <tag> --log <tag>\n"
-    "                     read log with tag.\n"
-    "  -d <tag> --dump <tag>\n"
-    "                     read dump info with tag.\n"
-    "                     read all dump info with --all.\n"
-    << std::endl;
+        "Usage: [options]\n"
+        "options include:\n"
+        "  -h --help          show this message.\n"
+        "  -w --wait          wait mode; listen for new prints.\n"
+        "  -g <key>, --get <key>\n"
+        "                     get config with key.\n"
+        "  -s <key>=<value>, --set <key>=<value>\n"
+        "                     set config of key is equal to value.\n"
+        "  -l <tag> --log <tag>\n"
+        "                     read log with tag.\n"
+        "  -d <tag> --dump <tag>\n"
+        "                     read dump info with tag.\n"
+        "                     read all dump info with --all.\n"
+        << std::endl;
 }
 } // namespace
 
