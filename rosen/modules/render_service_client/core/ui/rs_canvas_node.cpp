@@ -24,8 +24,9 @@
 #include "command/rs_canvas_node_command.h"
 #include "platform/common/rs_log.h"
 #include "common/rs_obj_geometry.h"
-#include "transaction/rs_transaction_proxy.h"
+#include "pipeline/rs_draw_cmd_list.h"
 #include "pipeline/rs_node_map.h"
+#include "transaction/rs_transaction_proxy.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -49,13 +50,17 @@ RSCanvasNode::SharedPtr RSCanvasNode::Create(bool isRenderServiceNode)
 
 RSCanvasNode::RSCanvasNode(bool isRenderServiceNode) : RSNode(isRenderServiceNode) {}
 
-RSCanvasNode::~RSCanvasNode() {}
+RSCanvasNode::~RSCanvasNode()
+{
+    DrawCmdListManager::Instance().ClearDrawCmdList(GetId());
+}
 
 SkCanvas* RSCanvasNode::BeginRecording(int width, int height)
 {
 #ifdef ROSEN_OHOS
     recordingCanvas_ = new RSRecordingCanvas(width, height);
 #endif
+    DrawCmdListManager::Instance().ClearDrawCmdList(GetId());
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy == nullptr) {
         return recordingCanvas_;
@@ -84,6 +89,7 @@ void RSCanvasNode::FinishRecording()
     auto recording = static_cast<RSRecordingCanvas*>(recordingCanvas_)->GetDrawCmdList();
     delete recordingCanvas_;
     recordingCanvas_ = nullptr;
+    DrawCmdListManager::Instance().RegisterDrawCmdList(GetId(), recording);
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy == nullptr) {
         return;
@@ -109,6 +115,7 @@ void RSCanvasNode::DrawOnNode(RSModifierType type, DrawFunc func)
         return;
     }
     auto recording = recordingCanvas->GetDrawCmdList();
+    DrawCmdListManager::Instance().RegisterDrawCmdList(GetId(), recording);
     std::unique_ptr<RSCommand> command =
         std::make_unique<RSCanvasNodeUpdateRecording>(GetId(), recording, type);
     transactionProxy->AddCommand(command, IsRenderServiceNode());
