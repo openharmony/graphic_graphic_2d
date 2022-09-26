@@ -196,5 +196,81 @@ HWTEST_F(RSDirtyManagerTest, UpdateDirtyValid, Function | SmallTest | Level2)
         EXPECT_EQ(curDirtyRect, joinedRect);
     }
 }
+
+/*
+ * @tc.name: SetSurfaceSizeInvalid
+ * @tc.desc: Set surface size invalid and get return false
+ * @tc.type: FUNC
+ * @tc.require: issueI5SXX0
+*/
+HWTEST_F(RSDirtyManagerTest, SetSurfaceSizeInvalid, Function | SmallTest | Level2)
+{
+    int32_t validWidth = 1920;
+    int32_t validHeight = 1080;
+    int32_t invalidVal = -1;
+    bool ret = rsDirtyManager->SetSurfaceSize(invalidVal, invalidVal);
+    EXPECT_EQ(ret, false);
+    ret = rsDirtyManager->SetSurfaceSize(invalidVal, validHeight);
+    EXPECT_EQ(ret, false);
+    ret = rsDirtyManager->SetSurfaceSize(validWidth, invalidVal);
+    EXPECT_EQ(ret, false);
+}
+
+/*
+ * @tc.name: SetSurfaceSizeValid
+ * @tc.desc: Set surface size valid and get return true
+ * @tc.type: FUNC
+ * @tc.require: issueI5SXX0
+*/
+HWTEST_F(RSDirtyManagerTest, SetSurfaceSizeValid, Function | SmallTest | Level2)
+{
+    int32_t validWidth = 1920;
+    int32_t validHeight = 1080;
+    bool ret = rsDirtyManager->SetSurfaceSize(validWidth, validHeight);
+    EXPECT_EQ(ret, true);
+    validWidth = 1;
+    validHeight = 1;
+    ret = rsDirtyManager->SetSurfaceSize(validWidth, validHeight);
+    EXPECT_EQ(ret, true);
+}
+
+/*
+ * @tc.name: GetRectFlipWithinSurface
+ * @tc.desc: Set surface size and get rect flipped within surface
+ * @tc.type: FUNC
+ * @tc.require: issueI5SXX0
+*/
+HWTEST_F(RSDirtyManagerTest, GetRectFlipWithinSurface, Function | SmallTest | Level2)
+{
+    int32_t surfaceWidth = 1920;
+    int32_t surfaceHeight = 1080;
+    bool ret = rsDirtyManager->SetSurfaceSize(surfaceWidth, surfaceHeight);
+    EXPECT_EQ(ret, true);
+    RectI oriRect = RectI(31, 31, 32, 65);
+    RectI flippedRect = rsDirtyManager->GetRectFlipWithinSurface(oriRect);
+    int32_t flippedTop = surfaceHeight - oriRect.top_ - oriRect.height_;
+    RectI expectedRect = RectI(oriRect.left_, flippedTop, oriRect.width_, oriRect.height_);
+    EXPECT_EQ(flippedRect, expectedRect);
+}
+
+/*
+ * @tc.name: GetPixelAlignedRect
+ * @tc.desc: Get pixel aligned rect by assigned aligned bits
+ * @tc.type: FUNC
+ * @tc.require: issueI5SXX0
+*/
+HWTEST_F(RSDirtyManagerTest, GetPixelAlignedRect, Function | SmallTest | Level2)
+{
+    // When aligned bits is no more than 1, aligned rect does not change
+    int32_t alignedBits = 1;
+    RectI oriRect = RectI(31, 31, 32, 65);
+    RectI alignedRect = RSDirtyRegionManager::GetPixelAlignedRect(oriRect, alignedBits);
+    EXPECT_EQ(alignedRect, oriRect);
+    // When aligned bits is more than 1, aligned rect zooms to fit aligned area
+    alignedBits = RSDirtyRegionManager::ALIGNED_BITS;
+    RectI expectedRect = RectI(0, 0, 64, 96);
+    alignedRect = RSDirtyRegionManager::GetPixelAlignedRect(oriRect, alignedBits);
+    EXPECT_EQ(alignedRect, expectedRect);
+}
 } // namespace Rosen
 } // namespace OHOS
