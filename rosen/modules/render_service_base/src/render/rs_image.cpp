@@ -243,12 +243,13 @@ void RSImage::SetScale(double scale)
 #ifdef ROSEN_OHOS
 bool RSImage::Marshalling(Parcel& parcel) const
 {
+    auto data = compressData_;
     bool success = true;
     int imageFit = static_cast<int>(imageFit_);
     int imageRepeat = static_cast<int>(imageRepeat_);
     success &= RSMarshallingHelper::Marshalling(parcel, uniqueId_);
     success &= RSMarshallingHelper::Marshalling(parcel, image_);
-    success &= RSMarshallingHelper::Marshalling(parcel, compressData_);
+    success &= RSMarshallingHelper::Marshalling(parcel, data);
     success &= RSMarshallingHelper::Marshalling(parcel, static_cast<int>(srcRect_.width_));
     success &= RSMarshallingHelper::Marshalling(parcel, static_cast<int>(srcRect_.height_));
     success &= RSMarshallingHelper::Marshalling(parcel, pixelmap_);
