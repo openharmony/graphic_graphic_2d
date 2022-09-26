@@ -36,7 +36,7 @@ constexpr uint32_t MIN_BUFFER_SIZE = 3;
 struct Surface {
     NativeWindow* window;
     VkSwapchainKHR swapchainHandle;
-    uint64_t consumerUsage;
+    int32_t consumerUsage;
 };
 
 struct Swapchain {
