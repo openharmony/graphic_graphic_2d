@@ -35,13 +35,12 @@ public:
     static std::shared_ptr<DrawCmdList> FinishDrawing(RSDrawingContext& ctx);
 };
 
-template<typename T>
-class RS_EXPORT RSExtendedModifier : public RSModifier<T> {
+class RS_EXPORT RSExtendedModifier : public RSModifier {
 public:
-    explicit RSExtendedModifier(const std::shared_ptr<T> property)
-        : RSModifier<T>(property, RSModifierType::EXTENDED)
+    explicit RSExtendedModifier(const std::shared_ptr<RSPropertyBase> property)
+        : RSModifier(property, RSModifierType::EXTENDED)
     {
-        RSModifier<T>::property_->SetIsCustom(true);
+        property_->SetIsCustom(true);
     }
     RSModifierType GetModifierType() const override
     {
@@ -51,40 +50,45 @@ public:
     virtual void Draw(RSDrawingContext& context) const = 0;
 
 protected:
-    RSExtendedModifier(const std::shared_ptr<T> property, const RSModifierType type)
-        : RSModifier<T>(property, type)
+    RSExtendedModifier(const std::shared_ptr<RSPropertyBase> property, const RSModifierType type)
+        : RSModifier(property, type)
     {
-        RSModifier<T>::property_->SetIsCustom(true);
+        property_->SetIsCustom(true);
     }
+
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override
     {
-        if (!this->property_->hasAddToNode_) {
+        auto node = property_->target_.lock();
+        if (node == nullptr) {
             return nullptr;
         }
-        RSDrawingContext ctx = RSExtendedModifierHelper::CreateDrawingContext(this->property_->nodeId_);
+        RSDrawingContext ctx = RSExtendedModifierHelper::CreateDrawingContext(node->GetId());
         Draw(ctx);
-        return RSExtendedModifierHelper::CreateRenderModifier(ctx, this->property_->GetId(), GetModifierType());
+        return RSExtendedModifierHelper::CreateRenderModifier(ctx, property_->GetId(), GetModifierType());
     }
 
     void UpdateToRender() override
     {
-        RSDrawingContext ctx = RSExtendedModifierHelper::CreateDrawingContext(this->property_->nodeId_);
+        auto node = property_->target_.lock();
+        if (node == nullptr) {
+            return;
+        }
+        RSDrawingContext ctx = RSExtendedModifierHelper::CreateDrawingContext(node->GetId());
         Draw(ctx);
         auto drawCmdList = RSExtendedModifierHelper::FinishDrawing(ctx);
         std::unique_ptr<RSCommand> command = std::make_unique<RSUpdatePropertyDrawCmdList>(
-                this->property_->nodeId_, drawCmdList, this->property_->id_, false);
+            node->GetId(), drawCmdList, property_->id_, false);
         auto transactionProxy = RSTransactionProxy::GetInstance();
-        auto node = RSNodeMap::Instance().GetNode<RSNode>(this->property_->nodeId_);
-        if (transactionProxy && node) {
+        if (transactionProxy != nullptr) {
             transactionProxy->AddCommand(command, node->IsRenderServiceNode());
             if (node->NeedForcedSendToRemote()) {
                 std::unique_ptr<RSCommand> commandForRemote = std::make_unique<RSUpdatePropertyDrawCmdList>(
-                    this->property_->nodeId_, drawCmdList, this->property_->id_, false);
+                    node->GetId(), drawCmdList, property_->id_, false);
                 transactionProxy->AddCommand(commandForRemote, true, node->GetFollowType(), node->GetId());
             }
             if (node->NeedSendExtraCommand()) {
                 std::unique_ptr<RSCommand> extraCommand = std::make_unique<RSUpdatePropertyDrawCmdList>(
-                        this->property_->nodeId_, drawCmdList, this->property_->id_, false);
+                    node->GetId(), drawCmdList, property_->id_, false);
                 transactionProxy->AddCommand(extraCommand, !node->IsRenderServiceNode(), node->GetFollowType(),
                     node->GetId());
             }
@@ -92,25 +96,25 @@ protected:
     }
 };
 
-template<typename T>
-class RS_EXPORT RSContentStyleModifier : public RSExtendedModifier<T> {
+class RS_EXPORT RSContentStyleModifier : public RSExtendedModifier {
 public:
-    explicit RSContentStyleModifier(const std::shared_ptr<T> property)
-        : RSExtendedModifier<T>(property, RSModifierType::CONTENT_STYLE)
+    explicit RSContentStyleModifier(const std::shared_ptr<RSPropertyBase> property)
+        : RSExtendedModifier(property, RSModifierType::CONTENT_STYLE)
     {}
-    RSModifierType GetModifierType()  const override
+
+    RSModifierType GetModifierType() const override
     {
         return RSModifierType::CONTENT_STYLE;
     }
 };
 
-template<typename T>
-class RS_EXPORT RSOverlayStyleModifier : public RSExtendedModifier<T> {
+class RS_EXPORT RSOverlayStyleModifier : public RSExtendedModifier {
 public:
-    explicit RSOverlayStyleModifier(const std::shared_ptr<T> property)
-        : RSExtendedModifier<T>(property, RSModifierType::OVERLAY_STYLE)
+    explicit RSOverlayStyleModifier(const std::shared_ptr<RSPropertyBase> property)
+        : RSExtendedModifier(property, RSModifierType::OVERLAY_STYLE)
     {}
-    RSModifierType GetModifierType()  const override
+
+    RSModifierType GetModifierType() const override
     {
         return RSModifierType::OVERLAY_STYLE;
     }
@@ -127,7 +131,7 @@ public:
 
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override
     {
-        auto renderModifier = RSExtendedModifier<T>::CreateRenderModifier();
+        auto renderModifier = RSExtendedModifier::CreateRenderModifier();
         auto drawCmdModifier = std::static_pointer_cast<RSDrawCmdListRenderModifier>(renderModifier);
         if (drawCmdModifier != nullptr && drawCmdModifier->GetType() == RSModifierType::OVERLAY_STYLE) {
             drawCmdModifier->SetOverlayBounds(overlayRect_);

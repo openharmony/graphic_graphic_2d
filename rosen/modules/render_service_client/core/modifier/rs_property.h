@@ -46,7 +46,8 @@
 
 namespace OHOS {
 namespace Rosen {
-class RSModifierBase;
+class RSModifier;
+class RSNode;
 
 class RS_EXPORT RSPropertyBase : public std::enable_shared_from_this<RSPropertyBase> {
 public:
@@ -58,23 +59,27 @@ public:
         return id_;
     }
 
-protected:
-    virtual std::shared_ptr<RSPropertyBase> GetValue()
+    virtual std::shared_ptr<RSRenderPropertyBase> CreateRenderProperty()
     {
-        return std::make_shared<RSPropertyBase>();
+        return std::make_shared<RSRenderPropertyBase>(id_);
     }
 
-    virtual void SetValue(const std::shared_ptr<RSPropertyBase>& value) {}
+protected:
+    virtual void SetIsCustom(bool isCustom) {}
 
     virtual bool GetIsCustom()
     {
         return false;
     }
 
-    virtual std::shared_ptr<RSRenderPropertyBase> CreateRenderProperty()
+    virtual void SetValue(const std::shared_ptr<RSPropertyBase>& value) {}
+
+    virtual std::shared_ptr<RSPropertyBase> GetValue()
     {
-        return nullptr;
+        return std::make_shared<RSPropertyBase>();
     }
+
+    virtual void SetMotionPathOption(const std::shared_ptr<RSMotionPathOption>& motionPathOption) {}
 
     virtual RSRenderPropertyType GetPropertyType() const
     {
@@ -89,12 +94,13 @@ protected:
 
     virtual void UpdateShowingValue(const std::shared_ptr<RSRenderPropertyBase>& property) {}
 
-    virtual void AttachModifier(const std::shared_ptr<RSModifierBase>& modifier) {}
+    virtual void AttachModifier(const std::shared_ptr<RSModifier>& modifier) {}
 
     virtual void MarkModifierDirty(const std::shared_ptr<RSModifierManager>& modifierManager) {}
 
     PropertyId id_;
     RSModifierType type_ { RSModifierType::INVALID };
+    std::weak_ptr<RSNode> target_;
 
 private:
     virtual std::shared_ptr<RSPropertyBase> Add(const std::shared_ptr<RSPropertyBase>& value)
@@ -126,10 +132,12 @@ private:
     friend bool operator==(const std::shared_ptr<RSPropertyBase>& a, const std::shared_ptr<RSPropertyBase>& b);
     friend bool operator!=(const std::shared_ptr<RSPropertyBase>& a, const std::shared_ptr<RSPropertyBase>& b);
     friend class RSCurveAnimation;
+    friend class RSExtendedModifier;
     friend class RSImplicitAnimator;
     friend class RSImplicitCurveAnimationParam;
     friend class RSImplicitKeyframeAnimationParam;
     friend class RSImplicitSpringAnimationParam;
+    friend class RSModifier;
     friend class RSPropertyAnimation;
     friend class RSPathAnimation;
     friend class RSKeyframeAnimation;
@@ -154,7 +162,7 @@ public:
         }
 
         stagingValue_ = value;
-        if (!hasAddToNode_) {
+        if (this->target_.lock() == nullptr) {
             return;
         }
 
@@ -166,6 +174,11 @@ public:
         return stagingValue_;
     }
 
+    std::shared_ptr<RSRenderPropertyBase> CreateRenderProperty() override
+    {
+        return std::make_shared<RSRenderProperty<T>>(stagingValue_, id_);
+    }
+
 protected:
     void UpdateToRender(const T& value, bool isDelta, bool forceUpdate = false) const
     {
@@ -174,19 +187,14 @@ protected:
 
     virtual void UpdateExtendedProperty(const T& value, bool isDelta) const
     {
-        auto node = RSNodeMap::Instance().GetNode<RSNode>(nodeId_);
+        auto node = this->target_.lock();
         if (node == nullptr) {
             return;
         }
         node->UpdateExtendedModifier(id_);
     }
 
-    virtual void SetIsCustom(bool isCustom) {}
-
-    std::shared_ptr<RSPropertyBase> GetValue() override
-    {
-        return std::make_shared<RSProperty<T>>(stagingValue_);
-    }
+    void SetIsCustom(bool isCustom) override {}
 
     void SetValue(const std::shared_ptr<RSPropertyBase>& value) override
     {
@@ -196,21 +204,21 @@ protected:
         }
     }
 
+    std::shared_ptr<RSPropertyBase> GetValue() override
+    {
+        return std::make_shared<RSProperty<T>>(stagingValue_);
+    }
+
     bool IsValid(const T& value)
     {
         return true;
     }
 
     T stagingValue_ {};
-    NodeId nodeId_ { 0 };
-    bool hasAddToNode_ { false };
-    std::shared_ptr<RSMotionPathOption> motionPathOption_ {};
 
     friend class RSPathAnimation;
     friend class RSImplicitAnimator;
-    template<typename T1>
     friend class RSExtendedModifier;
-    template<typename T2>
     friend class RSModifier;
 };
 
@@ -235,13 +243,9 @@ public:
             return;
         }
 
-        if (!RSProperty<T>::hasAddToNode_) {
-            RSProperty<T>::stagingValue_ = value;
-            return;
-        }
-
-        auto node = RSNodeMap::Instance().GetNode<RSNode>(RSProperty<T>::nodeId_);
+        auto node = this->target_.lock();
         if (node == nullptr) {
+            RSProperty<T>::stagingValue_ = value;
             return;
         }
 
@@ -249,8 +253,8 @@ public:
         if (implicitAnimator && implicitAnimator->NeedImplicitAnimation()) {
             auto startValue = std::make_shared<RSAnimatableProperty<T>>(RSProperty<T>::stagingValue_);
             auto endValue = std::make_shared<RSAnimatableProperty<T>>(value);
-            if (RSProperty<T>::motionPathOption_ != nullptr) {
-                implicitAnimator->BeginImplicitPathAnimation(RSProperty<T>::motionPathOption_);
+            if (motionPathOption_ != nullptr) {
+                implicitAnimator->BeginImplicitPathAnimation(motionPathOption_);
                 implicitAnimator->CreateImplicitAnimation(node,
                     RSProperty<T>::shared_from_this(), startValue, endValue);
                 implicitAnimator->EndImplicitPathAnimation();
@@ -282,6 +286,12 @@ public:
         return RSProperty<T>::stagingValue_;
     }
 
+    std::shared_ptr<RSRenderPropertyBase> CreateRenderProperty() override
+    {
+        return std::make_shared<RSRenderAnimatableProperty<T>>(RSProperty<T>::stagingValue_,
+            RSProperty<T>::id_, GetPropertyType());
+    }
+
 protected:
     void SetIsCustom(bool isCustom) override
     {
@@ -293,7 +303,7 @@ protected:
         return isCustom_;
     }
 
-    void AttachModifier(const std::shared_ptr<RSModifierBase>& modifier) override
+    void AttachModifier(const std::shared_ptr<RSModifier>& modifier) override
     {
         modifier_ = modifier;
     }
@@ -346,17 +356,6 @@ protected:
         }
     }
 
-    std::shared_ptr<RSRenderPropertyBase> CreateRenderProperty() override
-    {
-        return std::make_shared<RSRenderAnimatableProperty<T>>(RSProperty<T>::stagingValue_,
-            RSProperty<T>::id_, GetPropertyType());
-    }
-
-    std::shared_ptr<RSPropertyBase> GetValue() override
-    {
-        return std::make_shared<RSAnimatableProperty<T>>(RSProperty<T>::stagingValue_);
-    }
-
     void SetValue(const std::shared_ptr<RSPropertyBase>& value) override
     {
         auto property = std::static_pointer_cast<RSAnimatableProperty<T>>(value);
@@ -365,10 +364,21 @@ protected:
         }
     }
 
+    std::shared_ptr<RSPropertyBase> GetValue() override
+    {
+        return std::make_shared<RSAnimatableProperty<T>>(RSProperty<T>::stagingValue_);
+    }
+
+    void SetMotionPathOption(const std::shared_ptr<RSMotionPathOption>& motionPathOption) override
+    {
+        motionPathOption_ = motionPathOption;
+    }
+
     T showingValue_ {};
     int runningPathNum_ { 0 };
     bool isCustom_ { false };
-    std::weak_ptr<RSModifierBase> modifier_ {};
+    std::weak_ptr<RSModifier> modifier_ {};
+    std::shared_ptr<RSMotionPathOption> motionPathOption_ {};
 
 private:
     RSRenderPropertyType GetPropertyType() const override
@@ -412,9 +422,7 @@ private:
     friend class RSPropertyAnimation;
     friend class RSPathAnimation;
     friend class RSUIAnimationManager;
-    template<typename T1>
     friend class RSExtendedModifier;
-    template<typename T1>
     friend class RSModifier;
 };
 

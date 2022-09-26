@@ -244,10 +244,10 @@ bool RSNode::HasPropertyAnimation(const PropertyId& id)
             break;                                                                                        \
         }                                                                                                 \
         auto property = std::make_shared<RSAnimatableProperty<T>>(defaultValue);                          \
-        std::shared_ptr<RSModifierBase> modifier = std::make_shared<RS##propertyName##Modifier>(property);\
+        std::shared_ptr<RSModifier> modifier = std::make_shared<RS##propertyName##Modifier>(property);    \
         modifiers_.emplace(modifier->GetPropertyId(), modifier);                                          \
         propertyModifiers_.emplace(RSModifierType::propertyType, modifier);                               \
-        modifier->AttachToNode(GetId());                                                                  \
+        modifier->AttachToNode(std::static_pointer_cast<RSNode>(shared_from_this()));                     \
         if (motionPathOption_ != nullptr && IsPathAnimatableModifier(RSModifierType::propertyType)) {     \
             modifier->SetMotionPathOption(motionPathOption_);                                             \
         }                                                                                                 \
@@ -278,10 +278,10 @@ bool RSNode::HasPropertyAnimation(const PropertyId& id)
             break;                                                                                        \
         }                                                                                                 \
         auto property = std::make_shared<RSProperty<T>>(value);                                           \
-        std::shared_ptr<RSModifierBase> modifier = std::make_shared<RS##propertyName##Modifier>(property);\
+        std::shared_ptr<RSModifier> modifier = std::make_shared<RS##propertyName##Modifier>(property);    \
         modifiers_.emplace(modifier->GetPropertyId(), modifier);                                          \
         propertyModifiers_.emplace(RSModifierType::propertyType, modifier);                               \
-        modifier->AttachToNode(GetId());                                                                  \
+        modifier->AttachToNode(std::static_pointer_cast<RSNode>(shared_from_this()));                     \
         std::unique_ptr<RSCommand> cmd = std::make_unique<RSAddModifier>(                                 \
             GetId(), modifier->CreateRenderModifier());                                                   \
         auto transactionProxy = RSTransactionProxy::GetInstance();                                        \
@@ -851,7 +851,7 @@ void RSNode::ClearAllModifiers()
     }
 }
 
-void RSNode::AddModifier(const std::shared_ptr<RSModifierBase>& modifier)
+void RSNode::AddModifier(const std::shared_ptr<RSModifier>& modifier)
 {
     if (!modifier || modifiers_.count(modifier->GetPropertyId())) {
         return;
@@ -860,7 +860,7 @@ void RSNode::AddModifier(const std::shared_ptr<RSModifierBase>& modifier)
         modifier->SetMotionPathOption(motionPathOption_);
     }
     modifiers_.insert({ modifier->GetPropertyId(), modifier });
-    modifier->AttachToNode(GetId());
+    modifier->AttachToNode(std::static_pointer_cast<RSNode>(shared_from_this()));
     std::unique_ptr<RSCommand> command = std::make_unique<RSAddModifier>(GetId(), modifier->CreateRenderModifier());
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy != nullptr) {
@@ -878,7 +878,7 @@ void RSNode::AddModifier(const std::shared_ptr<RSModifierBase>& modifier)
     }
 }
 
-void RSNode::RemoveModifier(const std::shared_ptr<RSModifierBase>& modifier)
+void RSNode::RemoveModifier(const std::shared_ptr<RSModifier>& modifier)
 {
     if (!modifier) {
         return;
@@ -911,7 +911,7 @@ void RSNode::RemoveModifier(const std::shared_ptr<RSModifierBase>& modifier)
     }
 }
 
-const std::shared_ptr<RSModifierBase> RSNode::GetModifier(const PropertyId& propertyId)
+const std::shared_ptr<RSModifier> RSNode::GetModifier(const PropertyId& propertyId)
 {
     auto iter = modifiers_.find(propertyId);
     if (iter != modifiers_.end()) {

@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef RENDER_SERVICE_CLIENT_CORE_ANIMATION_RS_MODIFIER_BASE_H
-#define RENDER_SERVICE_CLIENT_CORE_ANIMATION_RS_MODIFIER_BASE_H
+#ifndef RENDER_SERVICE_CLIENT_CORE_MODIFIER_RS_MODIFIER_H
+#define RENDER_SERVICE_CLIENT_CORE_MODIFIER_RS_MODIFIER_H
 
 #include "common/rs_macros.h"
 #include "modifier/rs_property.h"
@@ -30,92 +30,63 @@ struct RSDrawingContext {
 };
 class RSRenderModifier;
 
-class RS_EXPORT RSModifierBase {
+class RS_EXPORT RSModifier {
 public:
-    RSModifierBase() = default;
-    virtual ~RSModifierBase() = default;
-
-    virtual PropertyId GetPropertyId() = 0;
-
-    virtual std::shared_ptr<RSPropertyBase> GetProperty()
-    {
-        return nullptr;
-    }
-
-protected:
-    virtual RSModifierType GetModifierType() const = 0;
-
-    virtual void AttachToNode(const NodeId& id) = 0;
-    virtual void DetachFromNode() = 0;
-
-    virtual void SetMotionPathOption(const std::shared_ptr<RSMotionPathOption>& motionPathOption) = 0;
-
-    virtual void UpdateToRender() = 0;
-    virtual std::shared_ptr<RSRenderModifier> CreateRenderModifier() const = 0;
-
-    friend class RSNode;
-    template<typename T>
-    friend class RSProperty;
-    friend class RSModifierManager;
-    friend class RSPathAnimation;
-    friend class RSModifierExtractor;
-};
-
-template<typename T>
-class RS_EXPORT RSModifier : public RSModifierBase {
-public:
-    explicit RSModifier(const std::shared_ptr<T>& property)
-        : property_(property ? property : std::make_shared<T>())
+    explicit RSModifier(const std::shared_ptr<RSPropertyBase>& property)
+        : property_(property ? property : std::make_shared<RSPropertyBase>())
     {}
 
     virtual ~RSModifier() = default;
 
-    PropertyId GetPropertyId() override
-    {
-        return property_->id_;
-    }
-
-    std::shared_ptr<RSPropertyBase> GetProperty() override
+    virtual std::shared_ptr<RSPropertyBase> GetProperty()
     {
         return property_;
     }
 
+    virtual PropertyId GetPropertyId()
+    {
+        return property_->id_;
+    }
+
 protected:
-    RSModifier(const std::shared_ptr<T>& property, const RSModifierType type)
-        : property_(property ? property : std::make_shared<T>())
+    RSModifier(const std::shared_ptr<RSPropertyBase>& property, const RSModifierType type)
+        : property_(property ? property : std::make_shared<RSPropertyBase>())
     {
         property_->type_ = type;
     }
 
-    RSModifierType GetModifierType() const override
+    virtual RSModifierType GetModifierType() const
     {
         return RSModifierType::INVALID;
     }
 
-    void AttachToNode(const NodeId& id) override
+    virtual void AttachToNode(const std::weak_ptr<RSNode>& target)
     {
-        property_->hasAddToNode_ = true;
-        property_->nodeId_ = id;
+        property_->target_ = target;
     }
 
-    void DetachFromNode() override
+    virtual void DetachFromNode()
     {
-        property_->hasAddToNode_ = false;
+        property_->target_.reset();
     }
 
-    void SetMotionPathOption(const std::shared_ptr<RSMotionPathOption>& motionPathOption) override
+    virtual void SetMotionPathOption(const std::shared_ptr<RSMotionPathOption>& motionPathOption)
     {
-        property_->motionPathOption_ = motionPathOption;
+        property_->SetMotionPathOption(motionPathOption);
     }
 
-    void UpdateToRender() override {}
+    virtual void UpdateToRender() {}
 
-    std::shared_ptr<T> property_;
+    virtual std::shared_ptr<RSRenderModifier> CreateRenderModifier() const = 0;
+
+    std::shared_ptr<RSPropertyBase> property_;
 
     friend class RSModifierExtractor;
+    friend class RSModifierManager;
     friend class RSNode;
+    friend class RSPathAnimation;
 };
 } // namespace Rosen
 } // namespace OHOS
 
-#endif // RENDER_SERVICE_CLIENT_CORE_ANIMATION_RS_MODIFIER_BASE_H
+#endif // RENDER_SERVICE_CLIENT_CORE_MODIFIER_RS_MODIFIER_H
