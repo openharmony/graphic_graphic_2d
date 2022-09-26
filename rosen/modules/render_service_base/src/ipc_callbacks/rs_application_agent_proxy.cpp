@@ -67,7 +67,7 @@ void RSApplicationAgentProxy::OnRenderModeChanged(bool renderThreadNeedRender)
     option.SetFlags(MessageOption::TF_ASYNC);
     int32_t err = Remote()->SendRequest(IApplicationAgent::NOTIFY_RENDER_MODE_CHANGED, data, reply, option);
     if (err != NO_ERROR) {
-        RS_LOGE("RSApplicationAgentProxy::OnRenderModeChanged SendRequest failed! err:%d", err);
+        // [PLANNING]: Error log, unexpected error code 32 is returned when the interface is called correctly
     }
 }
 
@@ -84,7 +84,7 @@ void RSApplicationAgentProxy::NotifyClearBufferCache()
     option.SetFlags(MessageOption::TF_ASYNC);
     int32_t err = Remote()->SendRequest(IApplicationAgent::NOTIFY_CLEAR_BUFFER_CACHE, data, reply, option);
     if (err != NO_ERROR) {
-        RS_LOGE("RSApplicationAgentProxy::NotifyClearBufferCache SendRequest failed! err:%d", err);
+        // [PLANNING]: Error log, unexpected error code 32 is returned when the interface is called correctly
     }
 }
 } // namespace Rosen

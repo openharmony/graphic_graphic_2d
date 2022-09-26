@@ -763,11 +763,11 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
 void RSUniRenderVisitor::ProcessProxyRenderNode(RSProxyRenderNode& node)
 {
     if (!canvas_) {
-        ROSEN_LOGE("RSRenderThreadVisitor::ProcessProxyRenderNode, canvas is nullptr");
+        ROSEN_LOGE("RSUniRenderVisitor::ProcessProxyRenderNode, canvas is nullptr");
         return;
     }
     if (!node.GetRenderProperties().GetVisible()) {
-        ROSEN_LOGI("RSRenderThreadVisitor::ProcessProxyRenderNode node : %" PRIu64 " is invisible", node.GetId());
+        ROSEN_LOGD("RSUniRenderVisitor::ProcessProxyRenderNode node : %" PRIu64 " is invisible", node.GetId());
         node.SetContextAlpha(0.0f);
         return;
     }
