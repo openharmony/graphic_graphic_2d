@@ -105,7 +105,10 @@ RSMainThread* RSMainThread::Instance()
     return &instance;
 }
 
-RSMainThread::RSMainThread() : mainThreadId_(std::this_thread::get_id()) {}
+RSMainThread::RSMainThread() : mainThreadId_(std::this_thread::get_id())
+{
+    context_ = std::make_shared<RSContext>();
+}
 
 RSMainThread::~RSMainThread() noexcept
 {
@@ -227,7 +230,7 @@ void RSMainThread::Start()
 
 void RSMainThread::ProcessCommand()
 {
-    context_.currentTimestamp_ = timestamp_;
+    context_->currentTimestamp_ = timestamp_;
     if (!isUniRender_) { // divided render for all
         ProcessCommandForDividedRender();
         return;
@@ -284,8 +287,8 @@ void RSMainThread::ProcessCommandForUniRender()
     for (auto& rsTransactionElem: transactionDataEffective) {
         for (auto& rsTransaction: rsTransactionElem.second) {
             if (rsTransaction) {
-                context_.transactionTimestamp_ = rsTransaction->GetTimestamp();
-                rsTransaction->Process(context_);
+                context_->transactionTimestamp_ = rsTransaction->GetTimestamp();
+                rsTransaction->Process(*context_);
             }
         }
     }
@@ -293,7 +296,7 @@ void RSMainThread::ProcessCommandForUniRender()
 
 void RSMainThread::ProcessCommandForDividedRender()
 {
-    const auto& nodeMap = context_.GetNodeMap();
+    const auto& nodeMap = context_->GetNodeMap();
     RS_TRACE_BEGIN("RSMainThread::ProcessCommand");
     {
         std::lock_guard<std::mutex> lock(transitionDataMutex_);
@@ -329,10 +332,10 @@ void RSMainThread::ProcessCommandForDividedRender()
         }
     }
     for (auto& [timestamp, commands] : effectiveCommands_) {
-        context_.transactionTimestamp_ = timestamp;
+        context_->transactionTimestamp_ = timestamp;
         for (auto& command : commands) {
             if (command) {
-                command->Process(context_);
+                command->Process(*context_);
             }
         }
     }
@@ -525,7 +528,7 @@ void RSMainThread::CheckUpdateSurfaceNodeIfNeed()
 
 void RSMainThread::Render()
 {
-    const std::shared_ptr<RSBaseRenderNode> rootNode = context_.GetGlobalRootRenderNode();
+    const std::shared_ptr<RSBaseRenderNode> rootNode = context_->GetGlobalRootRenderNode();
     if (rootNode == nullptr) {
         RS_LOGE("RSMainThread::Render GetGlobalRootRenderNode fail");
         return;
@@ -566,7 +569,7 @@ void RSMainThread::CalcOcclusion()
     if (doWindowAnimate_ && !useUniVisitor_) {
         return;
     }
-    const std::shared_ptr<RSBaseRenderNode> node = context_.GetGlobalRootRenderNode();
+    const std::shared_ptr<RSBaseRenderNode> node = context_->GetGlobalRootRenderNode();
     if (node == nullptr) {
         RS_LOGE("RSMainThread::CalcOcclusion GetGlobalRootRenderNode fail");
         return;
@@ -749,7 +752,7 @@ void RSMainThread::Animate(uint64_t timestamp)
 {
     RS_TRACE_FUNC();
 
-    if (context_.animatingNodeList_.empty()) {
+    if (context_->animatingNodeList_.empty()) {
         if (doWindowAnimate_ && RSInnovation::UpdateQosVsyncEnabled()) {
             // Preventing Occlusion Calculation from Being Completed in Advance
             RSQosThread::GetInstance()->OnRSVisibilityChangeCB(lastPidVisMap_);
@@ -758,11 +761,11 @@ void RSMainThread::Animate(uint64_t timestamp)
         return;
     }
 
-    RS_LOGD("RSMainThread::Animate start, processing %d animating nodes", context_.animatingNodeList_.size());
+    RS_LOGD("RSMainThread::Animate start, processing %d animating nodes", context_->animatingNodeList_.size());
 
     bool curWinAnim = false;
     // iterate and animate all animating nodes, remove if animation finished
-    std::__libcpp_erase_if_container(context_.animatingNodeList_, [timestamp, &curWinAnim](const auto& iter) -> bool {
+    std::__libcpp_erase_if_container(context_->animatingNodeList_, [timestamp, &curWinAnim](const auto& iter) -> bool {
         auto node = iter.second.lock();
         if (node == nullptr) {
             RS_LOGD("RSMainThread::Animate removing expired animating node");
@@ -783,7 +786,7 @@ void RSMainThread::Animate(uint64_t timestamp)
     }
     doWindowAnimate_ = curWinAnim;
     RS_LOGD("RSMainThread::Animate end, %d animating nodes remains, has window animation: %d",
-        context_.animatingNodeList_.size(), curWinAnim);
+        context_->animatingNodeList_.size(), curWinAnim);
 
     RequestNextVSync();
     PerfAfterAnim();
@@ -829,7 +832,7 @@ void RSMainThread::RecvRSTransactionData(std::unique_ptr<RSTransactionData>& rsT
 
 void RSMainThread::ClassifyRSTransactionData(std::unique_ptr<RSTransactionData>& rsTransactionData)
 {
-    const auto& nodeMap = context_.GetNodeMap();
+    const auto& nodeMap = context_->GetNodeMap();
     std::lock_guard<std::mutex> lock(transitionDataMutex_);
     std::unique_ptr<RSTransactionData> transactionData(std::move(rsTransactionData));
     auto timestamp = transactionData->GetTimestamp();
@@ -961,11 +964,11 @@ void RSMainThread::QosStateDump(std::string& dumpString)
 void RSMainThread::RenderServiceTreeDump(std::string& dumpString)
 {
     dumpString.append("Animating Node: [");
-    for (auto& [nodeId, _]: context_.animatingNodeList_) {
+    for (auto& [nodeId, _]: context_->animatingNodeList_) {
         dumpString.append(std::to_string(nodeId) + ", ");
     }
     dumpString.append("];\n");
-    const std::shared_ptr<RSBaseRenderNode> rootNode = context_.GetGlobalRootRenderNode();
+    const std::shared_ptr<RSBaseRenderNode> rootNode = context_->GetGlobalRootRenderNode();
     if (rootNode == nullptr) {
         dumpString.append("rootNode is null\n");
         return;
@@ -1052,7 +1055,7 @@ void RSMainThread::AddTransactionDataPidInfo(pid_t remotePid)
 
 void RSMainThread::ClearDisplayBuffer()
 {
-    const std::shared_ptr<RSBaseRenderNode> node = context_.GetGlobalRootRenderNode();
+    const std::shared_ptr<RSBaseRenderNode> node = context_->GetGlobalRootRenderNode();
     if (node == nullptr) {
         RS_LOGE("ClearDisplayBuffer get global root render node fail");
         return;
@@ -1078,11 +1081,11 @@ void RSMainThread::PerfAfterAnim()
     if (!IfUseUniVisitor()) {
         return;
     }
-    if (!context_.animatingNodeList_.empty() && timestamp_ - prePerfTimestamp_ > PERF_PERIOD) {
+    if (!context_->animatingNodeList_.empty() && timestamp_ - prePerfTimestamp_ > PERF_PERIOD) {
         RS_LOGD("RSMainThread:: soc perf to render_service_animation");
         OHOS::SOCPERF::SocPerfClient::GetInstance().PerfRequest(PERF_ANIMATION_REQUESTED_CODE, "");
         prePerfTimestamp_ = timestamp_;
-    } else if (context_.animatingNodeList_.empty()) {
+    } else if (context_->animatingNodeList_.empty()) {
         RS_LOGD("RSMainThread:: soc perf off render_service_animation");
         OHOS::SOCPERF::SocPerfClient::GetInstance().PerfRequestEx(PERF_ANIMATION_REQUESTED_CODE, false, "");
         prePerfTimestamp_ = 0;
