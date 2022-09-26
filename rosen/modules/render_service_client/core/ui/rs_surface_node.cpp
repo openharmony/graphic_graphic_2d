@@ -69,7 +69,8 @@ RSSurfaceNode::SharedPtr RSSurfaceNode::Create(const RSSurfaceNodeConfig& surfac
             node->GetId(), [] { RSRenderThread::Instance().RequestNextVSync(); });
         transactionProxy->AddCommand(command, isWindow);
     }
-    if (std::strcmp(node->GetName().c_str(), "SystemUi_BatteryPanel") == 0) {
+    if (std::strcmp(node->GetName().c_str(), "SystemUi_BatteryPanel") == 0 ||
+        std::strcmp(node->GetName().c_str(), "SystemUi_SoundPanel") == 0) {
         node->SetFrameGravity(Gravity::TOP_LEFT);
     } else {
         node->SetFrameGravity(Gravity::RESIZE);
