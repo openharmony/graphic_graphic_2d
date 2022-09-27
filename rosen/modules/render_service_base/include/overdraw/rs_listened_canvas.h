@@ -24,8 +24,8 @@ class RSCanvasListener;
 
 class RS_EXPORT RSListenedCanvas : public RSPaintFilterCanvas {
 public:
-    explicit RSListenedCanvas(RSPaintFilterCanvas *canvas);
-    ~RSListenedCanvas();
+    RSListenedCanvas(SkCanvas* canvas, float alpha = 1.0f);
+    RSListenedCanvas(SkSurface* skSurface, float alpha = 1.0f);
 
     void SetListener(const std::shared_ptr<RSCanvasListener> &listener);
 
@@ -51,17 +51,10 @@ public:
     void onDrawDrawable(SkDrawable* drawable, const SkMatrix* matrix) override;
     void onDrawPicture(const SkPicture* picture, const SkMatrix* matrix,
                        const SkPaint* paint) override;
-    void willSave() override;
-    void willRestore() override;
-    void onFlush() override;
-    void didTranslate(SkScalar dx, SkScalar dy) override;
-    void onClipRect(const SkRect& rect, SkClipOp clipOp, ClipEdgeStyle style) override;
-    void onClipRRect(const SkRRect& rect, SkClipOp clipOp, ClipEdgeStyle style) override;
-    void onClipPath(const SkPath& path, SkClipOp clipOp, ClipEdgeStyle style) override;
-    void onClipRegion(const SkRegion& region, SkClipOp clipop) override;
+    void onDrawImageRect(const SkImage* image, const SkRect* src, const SkRect& dst,
+            const SkPaint* paint, SrcRectConstraint constraint) override;
 
 private:
-    OHOS::Rosen::RSPaintFilterCanvas *canvas_ = nullptr;
     std::shared_ptr<RSCanvasListener> listener_ = nullptr;
 };
 } // namespace Rosen

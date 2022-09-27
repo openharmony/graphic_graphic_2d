@@ -40,8 +40,11 @@ RSCanvasRenderNode::~RSCanvasRenderNode() {}
 
 void RSCanvasRenderNode::UpdateRecording(std::shared_ptr<DrawCmdList> drawCmds, RSModifierType type)
 {
+    if (!drawCmds || drawCmds->GetSize() == 0) {
+        return;
+    }
     auto renderProperty = std::make_shared<RSRenderProperty<DrawCmdListPtr>>(drawCmds, ANONYMOUS_MODIFIER_ID);
-    auto renderModifier =  std::make_shared<RSDrawCmdListRenderModifier>(renderProperty);
+    auto renderModifier = std::make_shared<RSDrawCmdListRenderModifier>(renderProperty);
     renderModifier->SetType(type);
     AddModifier(renderModifier);
 }

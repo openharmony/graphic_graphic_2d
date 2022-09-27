@@ -16,55 +16,77 @@
 #ifndef RENDER_SERVICE_CLIENT_CORE_PIPELINE_OVERDRAW_RS_OVERDRAW_CONTROLLER_H
 #define RENDER_SERVICE_CLIENT_CORE_PIPELINE_OVERDRAW_RS_OVERDRAW_CONTROLLER_H
 
+#include <array>
+#include <map>
 #include <memory>
+#include <vector>
 
 #include "common/rs_macros.h"
+#include "delegate/rs_delegate.h"
 #include "platform/common/rs_log.h"
 #include "rs_listened_canvas.h"
 
 namespace OHOS {
 namespace Rosen {
+constexpr auto OverdrawColorArrayLength = 6;
+using OverdrawColorArray = std::array<SkColor, OverdrawColorArrayLength>;
 class RS_EXPORT RSOverdrawController {
 public:
     static RS_EXPORT RSOverdrawController &GetInstance();
 
-    bool IsEnabled() const
-    {
-        return enabled_;
-    }
+    ~RSOverdrawController() = default;
 
-    void SetEnable(bool enable)
-    {
-        enabled_ = enable;
-    }
-
+    void SetDelegate(const std::shared_ptr<RSDelegate> &delegate);
+    bool IsEnabled() const;
+    void SetEnable(bool enable);
+    OverdrawColorArray GetColorArray() const;
+    std::map<int, SkColor> GetColorMap() const;
     static RS_EXPORT void SwitchFunction(const char *key, const char *value, void *context);
 
     template<class RSCanvasListenerImpl>
-    std::shared_ptr<RSCanvasListenerImpl> SetHook(RSPaintFilterCanvas *&canvas)
+    std::shared_ptr<RSCanvasListenerImpl> CreateListener(RSPaintFilterCanvas *canvas)
     {
         if (enabled_ == true && canvas != nullptr) {
             auto listener = std::make_shared<RSCanvasListenerImpl>(*canvas);
             if (listener->IsValid() == false) {
-                ROSEN_LOGD("SetHook %s failed", listener->Name());
+                ROSEN_LOGD("CreateListener %s failed", listener->Name());
                 return nullptr;
             }
-
-            auto listened = new RSListenedCanvas(canvas);
-            listened->SetListener(listener);
-            canvas = listened;
-            ROSEN_LOGD("SetHook %s success", listener->Name());
             return listener;
         }
-
         return nullptr;
     }
 
 private:
-    static inline std::unique_ptr<RSOverdrawController> instance = nullptr;
     RSOverdrawController();
+    RSOverdrawController(RSOverdrawController &&) = delete;
+    RSOverdrawController(const RSOverdrawController &) = delete;
+    RSOverdrawController &operator =(RSOverdrawController &&) = delete;
+    RSOverdrawController &operator =(const RSOverdrawController &) = delete;
 
+    static void OnColorChange(const char *key, const char *value, void *context);
+
+    std::shared_ptr<RSDelegate> delegate_ = nullptr;
     bool enabled_ = false;
+
+    // colors
+    mutable std::mutex colorMutex_;
+    std::vector<uint32_t> colors_;
+    OverdrawColorArray colorArray_ = {
+        0x00000000,
+        0x00000000,
+        0x220000ff,
+        0x2200ff00,
+        0x22ff0000,
+        0x44ff0000,
+    };
+    std::map<int, SkColor> colorMap_ = {
+        {0, 0x22ff0000},
+        {1, 0x00000000},
+        {2, 0x220000ff},
+        {3, 0x2200ff00},
+        {4, 0x22ff0000},
+    };
 };
 } // namespace Rosen
 } // namespace OHOS

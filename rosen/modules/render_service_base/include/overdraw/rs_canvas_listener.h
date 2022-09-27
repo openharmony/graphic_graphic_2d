@@ -60,7 +60,6 @@ public:
     virtual void onDrawDrawable(SkDrawable* drawable, const SkMatrix* matrix) {}
     virtual void onDrawPicture(const SkPicture* picture, const SkMatrix* matrix,
                                const SkPaint* paint) {}
-    virtual void onFlush() {}
 
 protected:
     SkCanvas &canvas_;
