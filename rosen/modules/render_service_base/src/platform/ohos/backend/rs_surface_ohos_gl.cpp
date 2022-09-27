@@ -63,7 +63,15 @@ std::unique_ptr<RSSurfaceFrame> RSSurfaceOhosGl::RequestFrame(int32_t width, int
 
     std::unique_ptr<RSSurfaceFrameOhosGl> frame = std::make_unique<RSSurfaceFrameOhosGl>(width, height);
 
-    NativeWindowHandleOpt(mWindow, SET_USAGE, bufferUsage_);
+    int32_t format = 0;
+    NativeWindowHandleOpt(mWindow, GET_FORMAT, &format);
+    if (format == PIXEL_FMT_RGBA_8888) {
+        NativeWindowHandleOpt(mWindow, SET_USAGE,
+            BUFFER_USAGE_HW_RENDER | BUFFER_USAGE_HW_TEXTURE | BUFFER_USAGE_HW_COMPOSER | BUFFER_USAGE_MEM_DMA);
+    } else {
+        NativeWindowHandleOpt(mWindow, SET_USAGE, bufferUsage_);
+    }
+
     NativeWindowHandleOpt(mWindow, SET_BUFFER_GEOMETRY, width, height);
     NativeWindowHandleOpt(mWindow, GET_BUFFER_GEOMETRY, &mHeight, &mWidth);
     NativeWindowHandleOpt(mWindow, SET_COLOR_GAMUT, colorSpace_);
