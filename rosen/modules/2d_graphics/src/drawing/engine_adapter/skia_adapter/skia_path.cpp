@@ -45,11 +45,10 @@ void SkiaPath::ArcTo(scalar rx, scalar ry, scalar angle, PathDirection direction
 {
 #if defined(USE_CANVASKIT0310_SKIA)
     SkPathDirection pathDir = static_cast<SkPathDirection>(direction);
-    SkPathBuilder::ArcSize arcLarge = SkPathBuilder::ArcSize::kSmall_ArcSize;
 #else
     SkPath::Direction pathDir = static_cast<SkPath::Direction>(direction);
-    SkPath::ArcSize arcLarge = SkPath::ArcSize::kSmall_ArcSize;
 #endif
+    SkPath::ArcSize arcLarge = SkPath::ArcSize::kSmall_ArcSize;
     path_.arcTo(rx, ry, angle, arcLarge, pathDir, endX, endY);
 }
 
