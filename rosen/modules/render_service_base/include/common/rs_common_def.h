@@ -78,6 +78,7 @@ enum class RSSurfaceNodeType : uint8_t {
     SELF_DRAWING_NODE, // surfacenode created by arkui component (except ability component)
     STARTING_WINDOW_NODE, //  starting window, surfacenode created by wms
     LEASH_WINDOW_NODE, // leashwindow
+    SELF_DRAWING_WINDOW_NODE, // create by wms
 };
 
 struct RSSurfaceRenderNodeConfig {

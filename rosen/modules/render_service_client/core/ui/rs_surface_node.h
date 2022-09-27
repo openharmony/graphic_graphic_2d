@@ -49,6 +49,10 @@ public:
     ~RSSurfaceNode() override;
 
     static SharedPtr Create(const RSSurfaceNodeConfig& surfaceNodeConfig, bool isWindow = true);
+
+    // This interface is only available for WMS
+    static SharedPtr Create(const RSSurfaceNodeConfig& surfaceNodeConfig, RSSurfaceNodeType type, bool isWindow = true);
+
     // This API is only for abilityView create RSRenderSurfaceNode in RenderThread.
     // Do not call this API unless you are sure what you do.
     // After calling it, this surfaceNode is disallowed to add/remove child.

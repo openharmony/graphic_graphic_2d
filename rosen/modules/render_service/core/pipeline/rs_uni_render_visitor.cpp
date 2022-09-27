@@ -206,6 +206,11 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
     } else {
         RSUniRenderUtil::UpdateRenderNodeDstRect(node, node.GetContextMatrix());
         node.SetDstRect(geoPtr->GetAbsRect().IntersectRect(RectI(0, 0, screenInfo_.width, screenInfo_.height)));
+        if (node.GetSurfaceNodeType() == RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE) {
+            curSurfaceDirtyManager_ = node.GetDirtyManager();
+            curSurfaceDirtyManager_->Clear();
+            curDisplayNode_->UpdateSurfaceNodePos(node.GetId(), node.GetDstRect());
+        }
         if (node.GetBuffer() != nullptr) {
             auto& surfaceHandler = static_cast<RSSurfaceHandler&>(node);
             if (surfaceHandler.IsCurrentFrameBufferConsumed()) {
@@ -420,6 +425,16 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
             processor_->ProcessDisplaySurface(*mirrorNode);
         }
     } else {
+#ifdef RS_ENABLE_EGLQUERYSURFACE
+        if (isPartialRenderEnabled_) {
+            curDisplayDirtyManager_->SetSurfaceSize(screenInfo_.width, screenInfo_.height);
+            CalcDirtyDisplayRegion(displayNodePtr);
+        }
+        if (isOpDropped_ && dirtySurfaceNodeMap_.empty() && !curDisplayDirtyManager_->IsDirty()) {
+            RS_LOGD("display node is not dirty skip");
+            return;
+        }
+#endif
         auto rsSurface = node.GetRSSurface();
         if (rsSurface == nullptr) {
             RS_LOGE("RSUniRenderVisitor::ProcessDisplayRenderNode No RSSurface found");
@@ -446,8 +461,6 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
         // Get displayNode buffer age in order to merge visible dirty region for displayNode.
         // And then set egl damage region to improve uni_render efficiency.
         if (isPartialRenderEnabled_) {
-            curDisplayDirtyManager_->SetSurfaceSize(screenInfo_.width, screenInfo_.height);
-            CalcDirtyDisplayRegion(displayNodePtr);
             int bufferAge = renderFrame->GetBufferAge();
             RSUniRenderUtil::MergeDirtyHistory(displayNodePtr, bufferAge);
             auto dirtyRegion = RSUniRenderUtil::MergeVisibleDirtyRegion(displayNodePtr);
@@ -760,7 +773,7 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
 
     node.SetTotalMatrix(canvas_->getTotalMatrix());
 
-    if ((!node.IsAppWindow() || node.GetName() == "pointer window") && node.GetBuffer() != nullptr) {
+    if (!node.IsAppWindow() && node.GetBuffer() != nullptr) {
         node.NotifyRTBufferAvailable();
         node.SetGlobalAlpha(1.0f);
         // use node's local coordinate.
