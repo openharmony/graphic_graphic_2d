@@ -146,7 +146,7 @@ void RSPropertiesPainter::Clip(SkCanvas& canvas, RectF rect)
 void RSPropertiesPainter::GetShadowDirtyRect(RectI& dirtyShadow, const RSProperties& properties, const RRect* rrect)
 {
     // [Planning]: After Skia being updated, we should directly call SkShadowUtils::GetLocalBounds here.
-    if (!properties.shadow_ || !properties.shadow_->IsValid()) {
+    if (!properties.IsShadowValid()) {
         return;
     }
     SkPath skPath;
@@ -163,23 +163,40 @@ void RSPropertiesPainter::GetShadowDirtyRect(RectI& dirtyShadow, const RSPropert
     }
     skPath.offset(properties.GetShadowOffsetX(), properties.GetShadowOffsetY());
 
-    float elevation = properties.GetShadowElevation();
-    float transRatio = std::max(MIN_TRANS_RATIO,
-        std::min(elevation / (DEFAULT_LIGHT_HEIGHT - elevation), MAX_TRANS_RATIO));
-    float spotRatio = std::max(MIN_SPOT_RATIO,
-        std::min(DEFAULT_LIGHT_HEIGHT / (DEFAULT_LIGHT_HEIGHT - elevation), MAX_SPOT_RATIO));
+    SkRect shadowRect = skPath.getBounds();
+    if (properties.shadow_->GetHardwareAcceleration()) {
+        if (properties.GetShadowElevation() <= 0.f) {
+            return;
+        }
+        float elevation = properties.GetShadowElevation();
 
-    SkRect ambientRect = skPath.getBounds();
-    SkRect spotRect = SkRect::MakeLTRB(ambientRect.left() * spotRatio, ambientRect.top() * spotRatio,
-        ambientRect.right() * spotRatio, ambientRect.bottom() * spotRatio);
-    spotRect.offset(-transRatio * DEFAULT_LIGHT_POSITION_X, -transRatio * DEFAULT_LIGHT_POSITION_Y);
-    spotRect.outset(transRatio * DEFAULT_LIGHT_RADIUS, transRatio * DEFAULT_LIGHT_RADIUS);
+        float userTransRatio = (elevation != DEFAULT_LIGHT_HEIGHT) ?
+            elevation / (DEFAULT_LIGHT_HEIGHT - elevation) : MAX_TRANS_RATIO;
+        float transRatio = std::max(MIN_TRANS_RATIO, std::min(userTransRatio, MAX_TRANS_RATIO));
 
-    SkRect shadowRect = ambientRect;
-    float ambientBlur = std::min(elevation * 0.5f, MAX_AMBIENT_RADIUS);
-    shadowRect.outset(ambientBlur, ambientBlur);
-    shadowRect.join(spotRect);
-    shadowRect.outset(1, 1);
+        float userSpotRatio = (elevation != DEFAULT_LIGHT_HEIGHT) ?
+            DEFAULT_LIGHT_HEIGHT / (DEFAULT_LIGHT_HEIGHT - elevation) : MAX_SPOT_RATIO;
+        float spotRatio = std::max(MIN_SPOT_RATIO, std::min(userSpotRatio, MAX_SPOT_RATIO));
+
+        SkRect ambientRect = skPath.getBounds();
+        SkRect spotRect = SkRect::MakeLTRB(ambientRect.left() * spotRatio, ambientRect.top() * spotRatio,
+            ambientRect.right() * spotRatio, ambientRect.bottom() * spotRatio);
+        spotRect.offset(-transRatio * DEFAULT_LIGHT_POSITION_X, -transRatio * DEFAULT_LIGHT_POSITION_Y);
+        spotRect.outset(transRatio * DEFAULT_LIGHT_RADIUS, transRatio * DEFAULT_LIGHT_RADIUS);
+
+        shadowRect = ambientRect;
+        float ambientBlur = std::min(elevation * 0.5f, MAX_AMBIENT_RADIUS);
+        shadowRect.outset(ambientBlur, ambientBlur);
+        shadowRect.join(spotRect);
+        shadowRect.outset(1, 1);
+    } else {
+        SkPaint paint;
+        paint.setAntiAlias(true);
+        paint.setMaskFilter(SkMaskFilter::MakeBlur(kNormal_SkBlurStyle, properties.GetShadowRadius()));
+        if (paint.canComputeFastBounds()) {
+            paint.computeFastBounds(shadowRect, &shadowRect);
+        }
+    }
 
     auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(properties.GetBoundsGeometry());
     SkMatrix matrix = geoPtr ? geoPtr->GetAbsMatrix() : SkMatrix::I();
@@ -193,7 +210,7 @@ void RSPropertiesPainter::GetShadowDirtyRect(RectI& dirtyShadow, const RSPropert
 
 void RSPropertiesPainter::DrawShadow(const RSProperties& properties, RSPaintFilterCanvas& canvas, const RRect* rrect)
 {
-    if (!properties.shadow_ || !properties.shadow_->IsValid()) {
+    if (!properties.IsShadowValid()) {
         return;
     }
     SkAutoCanvasRestore acr(&canvas, true);

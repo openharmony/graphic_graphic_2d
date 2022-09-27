@@ -149,6 +149,7 @@ public:
     void SetFilter(std::shared_ptr<RSFilter> filter);
     std::shared_ptr<RSFilter> GetBackgroundFilter() const;
     std::shared_ptr<RSFilter> GetFilter() const;
+    bool NeedFilter() const;
 
     // shadow properties
     void SetShadowColor(Color color);
@@ -206,7 +207,6 @@ private:
     RRect GetInnerRRect() const;
     RectI GetDirtyRect() const;
 
-    bool NeedFilter() const;
     bool NeedClip() const;
 
     bool visible_ = true;
