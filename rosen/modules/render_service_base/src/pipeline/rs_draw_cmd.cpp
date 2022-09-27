@@ -313,6 +313,20 @@ void AdaptiveRRectOpItem::Draw(RSPaintFilterCanvas& canvas, const SkRect* rect) 
     canvas.drawRRect(rrect, paint_);
 }
 
+AdaptiveRRectScaleOpItem::AdaptiveRRectScaleOpItem(float radiusRatio, const SkPaint& paint)
+    : OpItemWithPaint(sizeof(AdaptiveRRectScaleOpItem)), radiusRatio_(radiusRatio), paint_(paint)
+{}
+
+void AdaptiveRRectScaleOpItem::Draw(RSPaintFilterCanvas& canvas, const SkRect* rect) const
+{
+    if (!rect) {
+        ROSEN_LOGE("AdaptiveRRectScaleOpItem::Draw, skrect is null");
+        return;
+    }
+    SkRRect rrect = SkRRect::MakeRectXY(*rect, radiusRatio_ * (*rect).height(), radiusRatio_ * (*rect).height());
+    canvas.drawRRect(rrect, paint_);
+}
+
 ClipAdaptiveRRectOpItem::ClipAdaptiveRRectOpItem(const SkVector radius[])
     : OpItem(sizeof(ClipAdaptiveRRectOpItem))
 {
@@ -1085,6 +1099,31 @@ OpItem* AdaptiveRRectOpItem::Unmarshalling(Parcel& parcel)
         return nullptr;
     }
     return new AdaptiveRRectOpItem(radius, paint);
+}
+
+// AdaptiveRRectScaleOpItem
+bool AdaptiveRRectScaleOpItem::Marshalling(Parcel& parcel) const
+{
+    bool success = RSMarshallingHelper::Marshalling(parcel, radiusRatio_) &&
+                   RSMarshallingHelper::Marshalling(parcel, paint_);
+    if (!success) {
+        ROSEN_LOGE("AdaptiveRRectScaleOpItem::Marshalling failed!");
+        return false;
+    }
+    return success;
+}
+
+OpItem* AdaptiveRRectScaleOpItem::Unmarshalling(Parcel& parcel)
+{
+    float radiusRatio;
+    SkPaint paint;
+    bool success = RSMarshallingHelper::Unmarshalling(parcel, radiusRatio) &&
+                   RSMarshallingHelper::Unmarshalling(parcel, paint);
+    if (!success) {
+        ROSEN_LOGE("AdaptiveRRectScaleOpItem::Unmarshalling failed!");
+        return nullptr;
+    }
+    return new AdaptiveRRectScaleOpItem(radiusRatio, paint);
 }
 
 // ClipAdaptiveRRectOpItem
