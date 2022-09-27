@@ -342,6 +342,16 @@ void RSSurfaceNode::SetAppFreeze(bool isAppFreeze)
     }
 }
 
+void RSSurfaceNode::SetContainerWindow(bool hasContainerWindow)
+{
+    std::unique_ptr<RSCommand> command =
+        std::make_unique<RSSurfaceNodeSetContainerWindow>(GetId(), hasContainerWindow);
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        transactionProxy->AddCommand(command, true);
+    }
+}
+
 RSSurfaceNode::RSSurfaceNode(const RSSurfaceNodeConfig& config, bool isRenderServiceNode)
     : RSNode(isRenderServiceNode), name_(config.SurfaceNodeName)
 {}

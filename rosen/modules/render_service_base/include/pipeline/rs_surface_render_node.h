@@ -160,6 +160,16 @@ public:
         return dstRect_;
     }
 
+    Occlusion::Region& GetTransparentRegion()
+    {
+        return transparentRegion_;
+    }
+
+    Occlusion::Region& GetOpaqueRegion()
+    {
+        return opaqueRegion_;
+    }
+
     void SetGlobalAlpha(float alpha)
     {
         if (globalAlpha_ == alpha) {
@@ -313,6 +323,17 @@ public:
         return visibleRegion_.IsIntersectWith(nodeRect);
     }
 
+    inline bool IsTransparent() const
+    {
+        const uint8_t opacity = 255;
+        return !(GetAbilityBgAlpha() == opacity && ROSEN_EQ(GetRenderProperties().GetAlpha(), 1.0f));
+    }
+
+    inline bool IsCurrentNodeInTransparentRegion(const Occlusion::Rect& nodeRect) const
+    {
+        return transparentRegion_.IsIntersectWith(nodeRect);
+    }
+
     bool SubNodeIntersectWithDirty(const RectI& r) const
     {
         Occlusion::Rect nodeRect { r.left_, r.top_, r.GetRight(), r.GetBottom() };
@@ -329,7 +350,7 @@ public:
             return true;
         }
         // if current node is transparent
-        if (IsTransparent()) {
+        if (IsTransparent() || IsCurrentNodeInTransparentRegion(nodeRect)) {
             return dirtyRegionBelowCurrentLayer_.IsIntersectWith(nodeRect);
         }
         return false;
@@ -398,10 +419,36 @@ public:
         positionZ_ = GetRenderProperties().GetPositionZ();
     }
 
-    bool IsTransparent() const
+    inline bool HasContainerWindow() const
     {
-        const uint8_t opacity = 255;
-        return GetAbilityBgAlpha() != opacity || !ROSEN_EQ(GetGlobalAlpha(), 1.0f);
+        return hasContainerWindow_;
+    }
+
+    void SetContainerWindow(bool hasContainerWindow)
+    {
+        hasContainerWindow_ = hasContainerWindow;
+    }
+
+    void ResetSurfaceOpaqueRegion()
+    {
+        Occlusion::Rect dstRect{dstRect_.left_, dstRect_.top_, dstRect_.GetRight(), dstRect_.GetBottom()};
+        if (IsTransparent()) {
+            opaqueRegion_ = Occlusion::Region();
+            transparentRegion_ = Occlusion::Region{dstRect};
+        } else {
+            if (IsAppWindow() && HasContainerWindow()) {
+                Occlusion::Rect opaqueRect{ dstRect_.left_ + containerContentPadding + containerBorderWidth,
+                    dstRect_.top_ + containerTitleHeight,
+                    dstRect_.GetRight() - containerContentPadding - containerBorderWidth,
+                    dstRect_.GetBottom() - containerContentPadding - containerBorderWidth};
+                opaqueRegion_ = Occlusion::Region{opaqueRect};
+                transparentRegion_ = Occlusion::Region{dstRect};
+                transparentRegion_.SubSelf(opaqueRegion_);
+            } else {
+                opaqueRegion_ = Occlusion::Region{dstRect};
+                transparentRegion_ = Occlusion::Region();
+            }
+        }
     }
 private:
     void ClearChildrenCache(const std::shared_ptr<RSBaseRenderNode>& node);
@@ -455,6 +502,16 @@ private:
     // if a there a dirty layer under transparent clean layer, transparent layer should refreshed
     Occlusion::Region dirtyRegionBelowCurrentLayer_;
     bool dirtyRegionBelowCurrentLayerIsEmpty_;
+
+    // opaque region of the surface
+    Occlusion::Region opaqueRegion_;
+    // transparent region of the surface, floating window's container window is always treated as transparent
+    Occlusion::Region transparentRegion_;
+    // temporary const value from ACE container_modal_constants.h, will be replaced by uniform interface
+    bool hasContainerWindow_ = false;           // set to false as default, set by arkui
+    int containerTitleHeight = 37 * 2;        // container title height = 74 px
+    int containerContentPadding = 4 * 2;      // container <--> content distance 8 px
+    int containerBorderWidth = 1 * 2;         // container border width 2px
 };
 } // namespace Rosen
 } // namespace OHOS

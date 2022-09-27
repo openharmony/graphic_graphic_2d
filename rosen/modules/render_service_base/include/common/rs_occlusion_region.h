@@ -20,6 +20,8 @@
 #include <vector>
 #include <string>
 
+#include "rs_rect.h"
+
 namespace OHOS {
 namespace Rosen {
 namespace Occlusion {
@@ -35,6 +37,7 @@ public:
 
     Rect() : left_(0), top_(0), right_(0), bottom_(0) {}
     Rect(int l, int t, int r, int b) : left_(l), top_(t), right_(r), bottom_(b) {}
+    Rect(const RectI& r) : left_(r.left_), top_(r.top_), right_(r.GetRight()), bottom_(r.GetBottom()) {}
 
     bool IsEmpty() const
     {
