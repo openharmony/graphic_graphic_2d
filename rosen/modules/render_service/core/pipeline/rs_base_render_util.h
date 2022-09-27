@@ -93,7 +93,7 @@ public:
         const RSSurfaceRenderNode& node, const sptr<SurfaceBuffer>& buffer, const RectF& bounds);
     static void SetPropertiesForCanvas(RSPaintFilterCanvas& canvas, const BufferDrawParam& params);
 
-    static void DropFrameProcess(RSSurfaceHandler& surfaceHandler);
+    static void DropFrameProcess(RSSurfaceHandler& node);
     static bool ConsumeAndUpdateBuffer(RSSurfaceHandler& surfaceHandler);
     static bool ReleaseBuffer(RSSurfaceHandler& surfaceHandler);
 
@@ -121,7 +121,7 @@ private:
         bool inLocalCoordinate,
         BufferDrawParam& params);
     static void DealWithSurfaceRotationAndGravity(
-        const RSSurfaceRenderNode& node, RectF& bounds, BufferDrawParam& params);
+        const RSSurfaceRenderNode& node, RectF& localBounds, BufferDrawParam& params);
     static bool CreateYuvToRGBABitMap(sptr<OHOS::SurfaceBuffer> buffer, std::vector<uint8_t>& newBuffer,
         SkBitmap& bitmap);
     static bool CreateNewColorGamutBitmap(sptr<OHOS::SurfaceBuffer> buffer, std::vector<uint8_t>& newBuffer,
