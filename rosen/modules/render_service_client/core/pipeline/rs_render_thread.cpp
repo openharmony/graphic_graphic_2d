@@ -111,6 +111,7 @@ RSRenderThread::RSRenderThread()
     };
 
     highContrastObserver_ = std::make_shared<HighContrastObserver>();
+    context_ = std::make_shared<RSContext>();
     auto &config = OHOS::Singleton<OHOS::AccessibilityConfig::AccessibilityConfig>::GetInstance();
     config.InitializeContext();
     config.SubscribeConfigObserver(CONFIG_ID::CONFIG_HIGH_CONTRAST_TEXT, highContrastObserver_);
@@ -321,7 +322,7 @@ void RSRenderThread::NotifyClearBufferCache()
 
 void RSRenderThread::UpdateSurfaceNodeParentInRS()
 {
-    auto& nodeMap = context_.GetMutableNodeMap();
+    auto& nodeMap = context_->GetMutableNodeMap();
     std::unordered_map<NodeId, NodeId> surfaceNodeMap; // [surfaceNodeId, parentId]
     nodeMap.TraverseSurfaceNodes([&surfaceNodeMap](const std::shared_ptr<RSSurfaceRenderNode>& node) mutable {
         if (!node) {
@@ -346,7 +347,7 @@ void RSRenderThread::UpdateSurfaceNodeParentInRS()
 
 void RSRenderThread::ClearBufferCache()
 {
-    const auto& rootNode = context_.GetGlobalRootRenderNode();
+    const auto& rootNode = context_->GetGlobalRootRenderNode();
     if (rootNode == nullptr) {
         ROSEN_LOGE("RSRenderThread::ClearBufferCache, rootNode is nullptr");
         return;
@@ -368,7 +369,7 @@ void RSRenderThread::ClearBufferCache()
 
 void RSRenderThread::MarkNeedUpdateSurfaceNode()
 {
-    const auto& rootNode = context_.GetGlobalRootRenderNode();
+    const auto& rootNode = context_->GetGlobalRootRenderNode();
     if (rootNode == nullptr) {
         ROSEN_LOGE("RSRenderThread::MarkNeedUpdateSurfaceNode, rootNode is nullptr");
         return;
@@ -424,13 +425,13 @@ void RSRenderThread::ProcessCommands()
     std::swap(cmds, cmds_);
     cmdLock.unlock();
 
-    context_.currentTimestamp_ = prevTimestamp_;
+    context_->currentTimestamp_ = prevTimestamp_;
     for (auto& cmdData : cmds) {
         std::string str = "ProcessCommands ptr:" + std::to_string(reinterpret_cast<uintptr_t>(cmdData.get()));
         ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, str.c_str());
         // only set transactionTimestamp_ in UniRender mode
-        context_.transactionTimestamp_ = RSSystemProperties::GetUniRenderEnabled() ? cmdData->GetTimestamp() : 0;
-        cmdData->Process(context_);
+        context_->transactionTimestamp_ = RSSystemProperties::GetUniRenderEnabled() ? cmdData->GetTimestamp() : 0;
+        cmdData->Process(*context_);
         ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
     }
 }
@@ -443,12 +444,12 @@ void RSRenderThread::Animate(uint64_t timestamp)
         RsFrameReport::GetInstance().AnimateStart();
     }
 
-    if (context_.animatingNodeList_.empty()) {
+    if (context_->animatingNodeList_.empty()) {
         return;
     }
 
     // iterate and animate all animating nodes, remove if animation finished
-    std::__libcpp_erase_if_container(context_.animatingNodeList_, [timestamp](const auto& iter) -> bool {
+    std::__libcpp_erase_if_container(context_->animatingNodeList_, [timestamp](const auto& iter) -> bool {
         auto node = iter.second.lock();
         if (node == nullptr) {
             ROSEN_LOGD("RSRenderThread::Animate removing expired animating node");
@@ -461,7 +462,7 @@ void RSRenderThread::Animate(uint64_t timestamp)
         return animationFinished;
     });
 
-    if (!context_.animatingNodeList_.empty()) {
+    if (!context_->animatingNodeList_.empty()) {
         RSRenderThread::Instance().RequestNextVSync();
     }
 }
@@ -476,7 +477,7 @@ void RSRenderThread::Render()
         RsFrameReport::GetInstance().RenderStart();
     }
     std::unique_lock<std::mutex> lock(mutex_);
-    const auto& rootNode = context_.GetGlobalRootRenderNode();
+    const auto& rootNode = context_->GetGlobalRootRenderNode();
 
     if (rootNode == nullptr) {
         ROSEN_LOGE("RSRenderThread::Render, rootNode is nullptr");
@@ -505,9 +506,9 @@ void RSRenderThread::SendCommands()
 
 void RSRenderThread::Detach(NodeId id)
 {
-    if (auto node = context_.GetNodeMap().GetRenderNode<RSRootRenderNode>(id)) {
+    if (auto node = context_->GetNodeMap().GetRenderNode<RSRootRenderNode>(id)) {
         std::unique_lock<std::mutex> lock(mutex_);
-        context_.GetGlobalRootRenderNode()->RemoveChild(node);
+        context_->GetGlobalRootRenderNode()->RemoveChild(node);
     }
 }
 

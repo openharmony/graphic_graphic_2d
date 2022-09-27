@@ -63,11 +63,11 @@ public:
 
     RSContext& GetContext()
     {
-        return context_;
+        return *context_;
     }
     const RSContext& GetContext() const
     {
-        return context_;
+        return *context_;
     }
     uint64_t GetUITimestamp() const
     {
@@ -149,7 +149,7 @@ private:
     std::string uiDrawAbilityName_;
     RSJankDetector jankDetector_;
 
-    RSContext context_;
+    std::shared_ptr<RSContext> context_;
 
     RenderContext* renderContext_ = nullptr;
     std::shared_ptr<HighContrastObserver> highContrastObserver_;
