@@ -32,10 +32,13 @@
 
 namespace OHOS {
 namespace Rosen {
-static const std::string STARTING_WINDOW_NAME = "startingWindow";
-static const std::string LEASH_WINDOW_NAME = "leashWindow";
-static const std::string POINTER_WINDOW_NAME = "pointer window";
 RSSurfaceNode::SharedPtr RSSurfaceNode::Create(const RSSurfaceNodeConfig& surfaceNodeConfig, bool isWindow)
+{
+    return Create(surfaceNodeConfig, RSSurfaceNodeType::DEFAULT, isWindow);
+}
+
+RSSurfaceNode::SharedPtr RSSurfaceNode::Create(const RSSurfaceNodeConfig& surfaceNodeConfig,
+    RSSurfaceNodeType type, bool isWindow)
 {
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy == nullptr) {
@@ -49,19 +52,11 @@ RSSurfaceNode::SharedPtr RSSurfaceNode::Create(const RSSurfaceNodeConfig& surfac
     RSSurfaceRenderNodeConfig config = { .id = node->GetId(), .name = node->name_ };
     if (!isWindow) {
         config.nodeType = RSSurfaceNodeType::SELF_DRAWING_NODE;
+    } else {
+        config.nodeType = type;
     }
 
-    if (config.name.find(STARTING_WINDOW_NAME) != std::string::npos) {
-        config.nodeType = RSSurfaceNodeType::STARTING_WINDOW_NODE;
-    }
-
-    if (config.name.find(LEASH_WINDOW_NAME) != std::string::npos) {
-        config.nodeType = RSSurfaceNodeType::LEASH_WINDOW_NODE;
-    }
-
-    if (config.name.find(POINTER_WINDOW_NAME) != std::string::npos) {
-        config.nodeType = RSSurfaceNodeType::APP_WINDOW_NODE;
-    }
+    RS_LOGD("RSSurfaceNode::Create %s type %d", config.name.c_str(), config.nodeType);
 
     if (!node->CreateNodeAndSurface(config)) {
         ROSEN_LOGE("RSSurfaceNode::Create, create node and surface failed");
