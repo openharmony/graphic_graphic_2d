@@ -300,6 +300,12 @@ void RSRecordingCanvas::DrawAdaptiveRRect(float radius, const SkPaint& paint)
     AddOp(std::move(op));
 }
 
+void RSRecordingCanvas::DrawAdaptiveRRectScale(float radiusRatio, const SkPaint& paint)
+{
+    std::unique_ptr<OpItem> op = std::make_unique<AdaptiveRRectScaleOpItem>(radiusRatio, paint);
+    AddOp(std::move(op));
+}
+
 void RSRecordingCanvas::ClipAdaptiveRRect(const SkVector radius[])
 {
     std::unique_ptr<OpItem> op = std::make_unique<ClipAdaptiveRRectOpItem>(radius);
