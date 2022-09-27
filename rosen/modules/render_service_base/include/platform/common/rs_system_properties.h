@@ -65,11 +65,15 @@ public:
     static DumpSurfaceType GetDumpSurfaceType();
     static uint64_t GetDumpSurfaceId();
 
+    static void SetDrawTextAsBitmap(bool flag);
+    static bool GetDrawTextAsBitmap();
+
 private:
     RSSystemProperties() = default;
 
     static inline bool isUniRenderEnabled_ = false;
     static inline std::atomic_bool isUniRenderMode_ = false;
+    inline static bool isDrawTextAsBitmap_ = false;
 };
 
 } // namespace Rosen
