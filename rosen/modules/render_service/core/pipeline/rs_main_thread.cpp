@@ -38,6 +38,7 @@
 #include "transaction/rs_transaction_proxy.h"
 #include "accessibility_config.h"
 #include "rs_qos_thread.h"
+#include "xcollie/watchdog.h"
 
 using namespace OHOS::AccessibilityConfig;
 namespace OHOS {
@@ -149,6 +150,10 @@ void RSMainThread::Init()
 
     runner_ = AppExecFwk::EventRunner::Create(false);
     handler_ = std::make_shared<AppExecFwk::EventHandler>(runner_);
+    int ret = HiviewDFX::Watchdog::GetInstance().AddThread("RenderService", handler_);
+    if (ret != 0) {
+        RS_LOGW("Add watchdog thread failed");
+    }
     InitRSEventDetector();
     sptr<VSyncConnection> conn = new VSyncConnection(rsVSyncDistributor_, "rs");
     rsVSyncDistributor_->AddConnection(conn);
