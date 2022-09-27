@@ -19,6 +19,8 @@
 
 #include "animation/rs_animation_fraction.h"
 #include "command/rs_message_processor.h"
+#include "delegate/rs_functional_delegate.h"
+#include "overdraw/rs_overdraw_controller.h"
 #include "pipeline/rs_base_render_node.h"
 #include "pipeline/rs_base_render_util.h"
 #include "pipeline/rs_divided_render_util.h"
@@ -174,6 +176,10 @@ void RSMainThread::Init()
     if (isUniRender_) {
         config.SubscribeConfigObserver(CONFIG_ID::CONFIG_HIGH_CONTRAST_TEXT, accessibilityObserver_);
     }
+
+    auto delegate = RSFunctionalDelegate::Create();
+    delegate->SetRepaintCallback([]() { RSMainThread::Instance()->RequestNextVSync(); });
+    RSOverdrawController::GetInstance().SetDelegate(delegate);
 }
 
 void RSMainThread::RsEventParamDump(std::string& dumpString)
