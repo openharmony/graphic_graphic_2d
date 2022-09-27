@@ -160,7 +160,7 @@
           }
         ],
         "test": [
-          "//foundation/graphic/graphic_2d:graphic_standard_test",
+          "//foundation/graphic/graphic_2d:graphic_2d_test",
           "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:test",
           "//foundation/graphic/graphic_2d/rosen/test/render_service:unittest",
           "//foundation/graphic/graphic_2d/rosen/test/2d_graphics:test"

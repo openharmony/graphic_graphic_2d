@@ -13,8 +13,18 @@
 
 import("//build/test.gni")
 import("//foundation/arkui/ace_engine/ace_config.gni")
+import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
 module_output_path = "graphic/rosen_engine/render_service/pipeline"
+
+group("unittest") {
+  testonly = true
+
+  deps = [
+    ":RSRenderServiceCommonPipelineTest",
+    ":RSSurfaceCaptureTaskTest",
+  ]
+}
 
 ##############################  RSRenderServiceCommonPipelineTest  ##################################
 ohos_unittest("RSRenderServiceCommonPipelineTest") {
@@ -65,8 +75,51 @@ config("pipeline_test") {
       [ "//foundation/graphic/graphic_2d/rosen/modules/render_service/core" ]
 }
 
-group("unittest") {
-  testonly = true
+## Build RSSurfaceCaptureTaskTest
+ohos_unittest("RSSurfaceCaptureTaskTest") {
+  module_out_path = module_output_path
+  sources = [ "rs_surface_capture_task_test.cpp" ]
+  deps = [ ":rs_test_common" ]
+  defines = []
+  defines += gpu_defines
+}
 
-  deps = [ ":RSRenderServiceCommonPipelineTest" ]
+## Build rs_test_common.a {{{
+config("rs_test_common_public_config") {
+  include_dirs = [
+    "//foundation/graphic/graphic_2d/rosen/include",
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service/core",
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service_client/core",
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/src",
+    "//foundation/graphic/graphic_2d/rosen/test/include",
+  ]
+
+  cflags = [
+    "-Wall",
+    "-Werror",
+    "-g3",
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
+}
+
+ohos_static_library("rs_test_common") {
+  visibility = [ ":*" ]
+  testonly = true
+  defines = []
+  defines += gpu_defines
+
+  public_configs = [ ":rs_test_common_public_config" ]
+
+  public_deps = [
+    "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
+    "//foundation/graphic/graphic_2d/rosen/modules/composer:libcomposer",
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service:librender_service",
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:librender_service_base",
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:librender_service_client",
+    "//third_party/googletest:gtest_main",
+  ]
+
+  subsystem_name = "graphic"
+  part_name = "graphic_standard"
 }
