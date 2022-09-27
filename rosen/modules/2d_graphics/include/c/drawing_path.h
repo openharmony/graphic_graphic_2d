@@ -100,7 +100,9 @@ void OH_Drawing_PathLineTo(OH_Drawing_Path*, float x, float y);
  * @param x1 Indicates the x coordinate of the upper left corner of the rectangle.
  * @param y1 Indicates the y coordinate of the upper left corner of the rectangle.
  * @param x2 Indicates the x coordinate of the lower right corner of the rectangle.
- * @param y3 Indicates the y coordinate of the lower right corner of the rectangle.
+ * @param y2 Indicates the y coordinate of the lower right corner of the rectangle.
+ * @param startDeg Indicates the start angle, in degrees.
+ * @param sweepDeg Indicates the angle to sweep, in degrees.
  * @since 8
  * @version 1.0
  */
