@@ -214,19 +214,19 @@ std::vector<SyncPointInfo> SyncFence::GetFenceInfo()
     (void)memset_s(&arg, sizeof(struct sync_file_info), 0, sizeof(struct sync_file_info));
     int32_t ret = ioctl(fenceFd_, SYNC_IOC_FILE_INFO, &arg);
     if (ret < 0) {
-        HiLog::Error(LABEL, "GetFenceInfo SYNC_IOC_FILE_INFO ioctl failed, ret: %{public}d", ret);
+        HiLog::Debug(LABEL, "GetFenceInfo SYNC_IOC_FILE_INFO ioctl failed, ret: %{public}d", ret);
         return {};
     }
 
     if (arg.num_fences <= 0) {
-        HiLog::Error(LABEL, "GetFenceInfo arg.num_fences failed, num_fences: %{public}d", arg.num_fences);
+        HiLog::Debug(LABEL, "GetFenceInfo arg.num_fences failed, num_fences: %{public}d", arg.num_fences);
         return {};
     }
     // to malloc sync_file_info and the number of 'sync_fence_info' memory
     size_t syncFileInfoMemSize = sizeof(struct sync_file_info) + sizeof(struct sync_fence_info) * arg.num_fences;
     infoPtr = (struct sync_file_info *)malloc(syncFileInfoMemSize);
     if (infoPtr == nullptr) {
-        HiLog::Error(LABEL, "GetFenceInfo malloc failed oom");
+        HiLog::Debug(LABEL, "GetFenceInfo malloc failed oom");
         return {};
     }
     (void)memset_s(infoPtr, syncFileInfoMemSize, 0, syncFileInfoMemSize);
