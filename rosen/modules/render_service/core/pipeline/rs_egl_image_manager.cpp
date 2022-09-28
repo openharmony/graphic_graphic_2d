@@ -97,11 +97,11 @@ public:
     NativeWindowBufferObject(const NativeWindowBufferObject&) = delete;
     void operator=(const NativeWindowBufferObject&) = delete;
 
-    bool operator==(std::nullptr_t)
+    bool operator==(std::nullptr_t) const
     {
         return handle_ == nullptr;
     }
-    bool operator!=(std::nullptr_t)
+    bool operator!=(std::nullptr_t) const
     {
         return handle_ != nullptr;
     }

@@ -116,12 +116,12 @@ public:
     // There would only one user(thread) to renderFrame(request frame) at one time.
     // for framebuffer surface
     std::unique_ptr<RSRenderFrame> RequestFrame(
-        const sptr<Surface>& targetSurface,
+        const sptr<Surface>& rsSurface,
         const BufferRequestConfig& config,
         bool forceCPU = false);
     // There would only one user(thread) to renderFrame(request frame) at one time.
     std::unique_ptr<RSRenderFrame> RequestFrame(
-        const std::shared_ptr<RSSurfaceOhos>& targetSurface,
+        const std::shared_ptr<RSSurfaceOhos>& rsSurface,
         const BufferRequestConfig& config,
         bool forceCPU = false);
 
@@ -162,17 +162,17 @@ public:
     }
 #endif // RS_ENABLE_GL
 private:
-    void DrawBuffer(RSPaintFilterCanvas& canvas, BufferDrawParam& drawParams);
-    void DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam& drawParams);
+    void DrawBuffer(RSPaintFilterCanvas& canvas, BufferDrawParam& params);
+    void DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam& params);
 
     static void RSSurfaceNodeCommonPreProcess(
         RSSurfaceRenderNode& node,
         RSPaintFilterCanvas& canvas,
-        BufferDrawParam& drawParams);
+        BufferDrawParam& params);
     static void RSSurfaceNodeCommonPostProcess(
         RSSurfaceRenderNode& node,
         RSPaintFilterCanvas& canvas,
-        BufferDrawParam& drawParams);
+        BufferDrawParam& params);
 
     // This func can only by called in DrawLayers().
     void ClipHoleForLayer(

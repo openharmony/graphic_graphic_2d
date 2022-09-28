@@ -146,7 +146,7 @@ private:
         explicit RSConnectionDeathRecipient(wptr<RSRenderServiceConnection> conn);
         virtual ~RSConnectionDeathRecipient() = default;
 
-        void OnRemoteDied(const wptr<IRemoteObject>& remote) override;
+        void OnRemoteDied(const wptr<IRemoteObject>& token) override;
 
     private:
         wptr<RSRenderServiceConnection> conn_;
@@ -159,7 +159,7 @@ private:
         explicit RSApplicationRenderThreadDeathRecipient(wptr<RSRenderServiceConnection> conn);
         virtual ~RSApplicationRenderThreadDeathRecipient() = default;
 
-        void OnRemoteDied(const wptr<IRemoteObject>& remote) override;
+        void OnRemoteDied(const wptr<IRemoteObject>& token) override;
 
     private:
         wptr<RSRenderServiceConnection> conn_;

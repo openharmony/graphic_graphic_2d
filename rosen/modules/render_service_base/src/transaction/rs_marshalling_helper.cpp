@@ -296,8 +296,8 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, sk_sp<SkImage>& val)
         val = nullptr;
         return true;
     }
-    sk_sp<SkData> data;
     if (type == 1) {
+        sk_sp<SkData> data;
         ROSEN_LOGD("RSMarshallingHelper::Unmarshalling lazy");
         if (!Unmarshalling(parcel, data)) {
             ROSEN_LOGE("failed RSMarshallingHelper::Unmarshalling SkImage");

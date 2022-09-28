@@ -47,9 +47,9 @@ RSScreen::RSScreen(const VirtualScreenConfigs &configs)
       width_(configs.width),
       height_(configs.height),
       isVirtual_(true),
-      producerSurface_(configs.surface)
+      producerSurface_(configs.surface),
+      screenType_(RSScreenType::VIRTUAL_TYPE_SCREEN)
 {
-    screenType_ = RSScreenType::VIRTUAL_TYPE_SCREEN;
 }
 
 RSScreen::~RSScreen() noexcept

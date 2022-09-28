@@ -948,7 +948,7 @@ bool RSProperties::IsDirty() const
 RectI RSProperties::GetDirtyRect() const
 {
 #ifdef ROSEN_OHOS
-    RectI dirtyRect = RectI();
+    RectI dirtyRect;
     auto boundsGeometry = std::static_pointer_cast<RSObjAbsGeometry>(boundsGeo_);
     if (clipToBounds_) {
         dirtyRect = boundsGeometry->GetAbsRect();

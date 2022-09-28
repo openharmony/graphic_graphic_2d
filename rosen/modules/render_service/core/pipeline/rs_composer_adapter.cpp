@@ -354,7 +354,7 @@ bool RSComposerAdapter::CheckStatusBeforeCreateLayer(RSSurfaceRenderNode& node, 
         return false;
     }
 
-    auto& buffer = node.GetBuffer();
+    const auto& buffer = node.GetBuffer();
     if (isTunnelCheck == false && buffer == nullptr) {
         RS_LOGD("RsDebug RSComposerAdapter::CheckStatusBeforeCreateLayer:node(%" PRIu64 ") has no available buffer.",
             node.GetId());
@@ -384,7 +384,7 @@ bool RSComposerAdapter::CheckStatusBeforeCreateLayer(RSSurfaceRenderNode& node, 
     return true;
 }
 
-LayerInfoPtr RSComposerAdapter::CreateBufferLayer(RSSurfaceRenderNode& node)
+LayerInfoPtr RSComposerAdapter::CreateBufferLayer(RSSurfaceRenderNode& node) const
 {
     if (!CheckStatusBeforeCreateLayer(node)) {
         return nullptr;
@@ -415,7 +415,7 @@ LayerInfoPtr RSComposerAdapter::CreateBufferLayer(RSSurfaceRenderNode& node)
     return layer;
 }
 
-LayerInfoPtr RSComposerAdapter::CreateTunnelLayer(RSSurfaceRenderNode& node)
+LayerInfoPtr RSComposerAdapter::CreateTunnelLayer(RSSurfaceRenderNode& node) const
 {
     if (!CheckStatusBeforeCreateLayer(node, true)) {
         return nullptr;

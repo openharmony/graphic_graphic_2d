@@ -304,7 +304,7 @@ void RSUniRenderVisitor::DrawRectOnCanvas(const RectI& dirtyRect, const SkColor 
 
 void RSUniRenderVisitor::DrawDirtyRegion()
 {
-    auto dirtyRect = RectI();
+    RectI dirtyRect;
     const float fillAlpha = 0.2;
     const float edgeAlpha = 0.4;
     const float subFactor = 2.0;

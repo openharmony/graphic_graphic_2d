@@ -871,7 +871,7 @@ void RSMainThread::RegisterApplicationAgent(uint32_t pid, sptr<IApplicationAgent
 
 void RSMainThread::UnRegisterApplicationAgent(sptr<IApplicationAgent> app)
 {
-    std::__libcpp_erase_if_container(applicationAgentMap_, [&app](auto& iter) { return iter.second == app; });
+    std::__libcpp_erase_if_container(applicationAgentMap_, [&app](const auto& iter) { return iter.second == app; });
 }
 
 void RSMainThread::NotifyRenderModeChanged(bool useUniVisitor)

@@ -99,7 +99,6 @@ std::unique_ptr<Media::PixelMap> RSSurfaceCaptureTask::Run()
     }
     pixelmap->SetPixelsAddr(data, nullptr, pixelmap->GetRowBytes() * pixelmap->GetHeight(),
         Media::AllocatorType::HEAP_ALLOC, nullptr);
-    return pixelmap;
 #endif
     return pixelmap;
 }
