@@ -25,6 +25,7 @@
 #include "buffer_manager.h"
 #include "buffer_extra_data_impl.h"
 #include "native_buffer.h"
+#include "display_type.h"
 
 namespace OHOS {
 namespace {
@@ -121,7 +122,8 @@ GSError SurfaceBufferImpl::Alloc(const BufferRequestConfig &config)
     }
 
     BufferHandle *handle = nullptr;
-    AllocInfo info = {config.width, config.height, config.usage, (PixelFormat)config.format};
+    uint64_t usage = BufferUsageToGrallocUsage(config.usage);
+    AllocInfo info = {config.width, config.height, usage, (PixelFormat)config.format};
     auto dret = displayGralloc_->AllocMem(info, handle);
     if (dret == DISPLAY_SUCCESS) {
         std::lock_guard<std::mutex> lock(mutex_);
@@ -491,5 +493,59 @@ GSError SurfaceBufferImpl::CheckBufferConfig(int32_t width, int32_t height,
     }
 
     return GSERROR_OK;
+}
+
+uint64_t SurfaceBufferImpl::BufferUsageToGrallocUsage(uint64_t bufferUsage)
+{
+    uint64_t grallocUsage = 0;
+    if (bufferUsage & BUFFER_USAGE_CPU_READ) {
+        grallocUsage |= HBM_USE_CPU_READ;
+    }
+    if (bufferUsage & BUFFER_USAGE_CPU_WRITE) {
+        grallocUsage |= HBM_USE_CPU_WRITE;
+    }
+    if (bufferUsage & BUFFER_USAGE_MEM_MMZ) {
+        grallocUsage |= HBM_USE_MEM_MMZ;
+    }
+    if (bufferUsage & BUFFER_USAGE_MEM_DMA) {
+        grallocUsage |= HBM_USE_MEM_DMA;
+    }
+    if (bufferUsage & BUFFER_USAGE_MEM_SHARE) {
+        grallocUsage |= HBM_USE_MEM_SHARE;
+    }
+    if (bufferUsage & BUFFER_USAGE_MEM_MMZ_CACHE) {
+        grallocUsage |= HBM_USE_MEM_MMZ_CACHE;
+    }
+    if (bufferUsage & BUFFER_USAGE_ASSIGN_SIZE) {
+        grallocUsage |= HBM_USE_ASSIGN_SIZE;
+    }
+    if (bufferUsage & BUFFER_USAGE_MEM_FB) {
+        grallocUsage |= HBM_USE_MEM_FB;
+    }
+    if (bufferUsage & BUFFER_USAGE_HW_RENDER) {
+        grallocUsage |= HBM_USE_HW_RENDER;
+    }
+    if (bufferUsage & BUFFER_USAGE_HW_TEXTURE) {
+        grallocUsage |= HBM_USE_HW_TEXTURE;
+    }
+    if (bufferUsage & BUFFER_USAGE_HW_COMPOSER) {
+        grallocUsage |= HBM_USE_HW_COMPOSER;
+    }
+    if (bufferUsage & BUFFER_USAGE_PROTECTED) {
+        grallocUsage |= HBM_USE_PROTECTED;
+    }
+    if (bufferUsage & BUFFER_USAGE_CAMERA_READ) {
+        grallocUsage |= HBM_USE_CAMERA_READ;
+    }
+    if (bufferUsage & BUFFER_USAGE_CAMERA_WRITE) {
+        grallocUsage |= HBM_USE_CAMERA_WRITE;
+    }
+    if (bufferUsage & BUFFER_USAGE_VIDEO_ENCODER) {
+        grallocUsage |= HBM_USE_VIDEO_ENCODER;
+    }
+    if (bufferUsage & BUFFER_USAGE_VIDEO_DECODER) {
+        grallocUsage |= HBM_USE_VIDEO_DECODER;
+    }
+    return grallocUsage;
 }
 } // namespace OHOS
