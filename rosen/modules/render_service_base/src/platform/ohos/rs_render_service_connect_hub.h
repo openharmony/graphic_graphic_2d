@@ -45,7 +45,7 @@ private:
 
     class RenderServiceDeathRecipient final : public IRemoteObject::DeathRecipient {
     public:
-        RenderServiceDeathRecipient(wptr<RSRenderServiceConnectHub> rsConnHub)
+        explicit RenderServiceDeathRecipient(wptr<RSRenderServiceConnectHub> rsConnHub)
             : rsConnHub_(std::move(rsConnHub)) {}
         ~RenderServiceDeathRecipient() noexcept final = default;
 

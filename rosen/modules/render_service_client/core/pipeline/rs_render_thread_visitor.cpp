@@ -59,7 +59,7 @@ bool RSRenderThreadVisitor::IsValidRootRenderNode(RSRootRenderNode& node)
         return false;
     }
     if (!node.enableRender_) {
-        ROSEN_LOGI("RootNode %s: Invisible", ptr->GetName().c_str());
+        ROSEN_LOGD("RootNode %s: Invisible", ptr->GetName().c_str());
         return false;
     }
     if (node.GetSurfaceWidth() <= 0 || node.GetSurfaceHeight() <= 0) {

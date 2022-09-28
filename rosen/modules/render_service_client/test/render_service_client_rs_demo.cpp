@@ -62,12 +62,9 @@ namespace pipelineTestUtils {
     class ToDrawSurface {
     public:
         using drawFun = std::function<void(SkCanvas&, SkPaint&)>;
-        ToDrawSurface()
-        {
-            // Do not hold it. Use it As ToDrawSurface::Sample().
-        };
+        ToDrawSurface() {};
 
-        inline ToDrawSurface& SetSurfaceNode(std::shared_ptr<RSSurfaceNode> &surfaceNode)
+        inline ToDrawSurface& SetSurfaceNode(const std::shared_ptr<RSSurfaceNode> surfaceNode)
         {
             surfaceNode_ = surfaceNode;
             return *this;
@@ -161,24 +158,8 @@ namespace pipelineTestUtils {
             framePtr->SetDamageRegion(0, 0, surfaceGeometry_.width(), surfaceGeometry_.height());
             rsSurface->FlushFrame(framePtr);
             return successExit;
-            printf("ToDrawSurface::Run() end\n");
         }
     private:
-        static void Sample()
-        {
-            auto surfaceNode = RSSurfaceNode::Create(RSSurfaceNodeConfig());
-            pipelineTestUtils::ToDrawSurface()
-                .SetSurfaceNode(surfaceNode)
-                .SetShapeColor(0xff00ffff)
-                .SetSurfaceNodeSize(SkRect::MakeXYWH(80, 500, 500, 300))
-                .SetBufferSizeAuto()
-                .SetDraw([&](SkCanvas &canvas, SkPaint &paint) -> void {
-                    canvas.drawRect(
-                        SkRect::MakeXYWH(0, 0, 500, 300),
-                        paint);
-                })
-                .Run();
-        }
         SkRect surfaceGeometry_ = {0.f, 0.f, 0.f, 0.f};
         SkRect bufferSize_ = {0.f, 0.f, 0.f, 0.f};
         drawFun drawShape_;
@@ -243,7 +224,7 @@ public:
 
     ~DmsMock() noexcept = default;
 
-    DisplayId GetDefaultDisplayId()
+    DisplayId GetDefaultDisplayId() const
     {
         std::lock_guard<std::recursive_mutex> lock(mutex_);
         return defaultDisplayId_;
@@ -373,7 +354,7 @@ public:
     }
 private:
     RSDemoTestCase() = default;
-    void RenderContextInit()
+    static void RenderContextInit()
     {
 #ifdef ACE_ENABLE_GPU
         std::cout << "ACE_ENABLE_GPU is true. \n";
