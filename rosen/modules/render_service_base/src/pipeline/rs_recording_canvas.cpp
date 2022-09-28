@@ -15,8 +15,9 @@
 
 #include "pipeline/rs_recording_canvas.h"
 
-#include "platform/common/rs_log.h"
 #include "pipeline/rs_draw_cmd.h"
+#include "platform/common/rs_log.h"
+#include "platform/common/rs_system_properties.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -235,8 +236,26 @@ void RSRecordingCanvas::onDrawAnnotation(const SkRect& rect, const char key[], S
 
 void RSRecordingCanvas::onDrawTextBlob(const SkTextBlob* blob, SkScalar x, SkScalar y, const SkPaint& paint)
 {
+    if (RSSystemProperties::GetDrawTextAsBitmap()) {
+        DrawTextAsBitmap(blob, x, y, paint);
+        return;
+    }
     std::unique_ptr<OpItem> op = std::make_unique<TextBlobOpItem>(sk_ref_sp(blob), x, y, paint);
     AddOp(std::move(op));
+}
+
+void RSRecordingCanvas::DrawTextAsBitmap(const SkTextBlob* blob, SkScalar x, SkScalar y, const SkPaint& paint)
+{
+    auto bounds = blob->bounds();
+    SkBitmap bitmap;
+    auto imageInfo = SkImageInfo::Make(bounds.width(), bounds.height(), kRGBA_8888_SkColorType, kPremul_SkAlphaType);
+    bitmap.allocPixels(imageInfo);
+    SkCanvas tempCanvas(bitmap);
+    // offset text bounds to [0, 0]
+    tempCanvas.drawTextBlob(blob, -bounds.x(), -bounds.y(), paint);
+    tempCanvas.flush();
+    // draw on canvas with correct offset
+    drawBitmap(bitmap, x + bounds.x(), y + bounds.y());
 }
 
 void RSRecordingCanvas::onDrawBitmap(const SkBitmap& bm, SkScalar x, SkScalar y, const SkPaint* paint)
