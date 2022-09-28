@@ -103,6 +103,7 @@ public:
 
     void ClipOutsetRect(float dx, float dy);
     void DrawAdaptiveRRect(float radius, const SkPaint& paint);
+    void DrawAdaptiveRRectScale(float radiusRatio, const SkPaint& paint);
     void ClipAdaptiveRRect(const SkVector radius[]);
     void DrawImageWithParm(const sk_sp<SkImage> image, const sk_sp<SkData> data,
         const Rosen::RsImageInfo& rsImageInfo, const SkPaint& paint);
