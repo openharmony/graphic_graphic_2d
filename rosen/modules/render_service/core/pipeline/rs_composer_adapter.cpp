@@ -344,6 +344,9 @@ void RSComposerAdapter::SetComposeInfoToLayer(
             RS_LOGD("RSComposerAdapter::SetComposeInfoToLayer: HDR is not used");
             break;
         }
+        default:  {
+            break;
+        }
     }
 }
 
