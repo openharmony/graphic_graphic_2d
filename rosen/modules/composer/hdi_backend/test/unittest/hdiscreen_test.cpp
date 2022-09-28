@@ -53,32 +53,37 @@ void HdiScreenTest::SetUpTestCase()
     EXPECT_CALL(*mockDevice_, GetScreenGamutMap(_, _)).WillRepeatedly(testing::Return(0));
     EXPECT_CALL(*mockDevice_, GetHDRCapabilityInfos(_, _)).WillRepeatedly(testing::Return(0));
     EXPECT_CALL(*mockDevice_, GetSupportedMetaDataKey(_, _)).WillRepeatedly(testing::Return(0));
-
+    EXPECT_CALL(*mockDevice_, SetScreenVsyncEnabled(_, _)).WillRepeatedly(testing::Return(0));
+    EXPECT_CALL(*mockDevice_, SetScreenColorTransform(_, _)).WillRepeatedly(testing::Return(0));
     hdiScreen_->SetHdiDevice(mockDevice_);
 }
 
 void HdiScreenTest::TearDownTestCase() {}
 
 namespace {
-/**
- * @tc.name: Init001
- * @tc.desc: Verify the Init of hdiscreen
- * @tc.type:FUNC
- * @tc.require:AR000GGP0P
- * @tc.author:
- */
+/*
+* Function: Init001
+* Type: Function
+* Rank: Important(3)
+* EnvConditions: N/A
+* CaseDescription: 1. call Init001
+*                  2. check ret
+*/
 HWTEST_F(HdiScreenTest, Init001, Function | MediumTest| Level3)
 {
+    hdiScreen_->OnVsync(0, 0, nullptr);
+    hdiScreen_->OnVsync(0, 1, nullptr);
     ASSERT_EQ(HdiScreenTest::hdiScreen_->Init(), true);
 }
 
-/**
- * @tc.name: GetScreenCapability001
- * @tc.desc: Verify the GetScreenCapability of hdiscreen
- * @tc.type:FUNC
- * @tc.require:AR000GGP0P
- * @tc.author:
- */
+/*
+* Function: GetScreenCapability001
+* Type: Function
+* Rank: Important(3)
+* EnvConditions: N/A
+* CaseDescription: 1. call GetScreenCapability
+*                  2. check ret
+*/
 HWTEST_F(HdiScreenTest, GetScreenCapability001, Function | MediumTest| Level3)
 {
     DisplayCapability displayCapability = {
@@ -95,13 +100,14 @@ HWTEST_F(HdiScreenTest, GetScreenCapability001, Function | MediumTest| Level3)
     ASSERT_EQ(HdiScreenTest::hdiScreen_->GetScreenCapability(displayCapability), 0);
 }
 
-/**
- * @tc.name: GetScreenSupportedModes001
- * @tc.desc: Verify the GetScreenSupportedModes of hdiscreen
- * @tc.type:FUNC
- * @tc.require:issueI5NU2U
- * @tc.author:
- */
+/*
+* Function: GetScreenSupportedModes001
+* Type: Function
+* Rank: Important(3)
+* EnvConditions: N/A
+* CaseDescription: 1. call GetScreenSupportedModes
+*                  2. check ret
+*/
 HWTEST_F(HdiScreenTest, GetScreenSupportedModes001, Function | MediumTest| Level3)
 {
     DisplayModeInfo displayModeInfo = {
@@ -114,82 +120,116 @@ HWTEST_F(HdiScreenTest, GetScreenSupportedModes001, Function | MediumTest| Level
     ASSERT_EQ(HdiScreenTest::hdiScreen_->GetScreenSupportedModes(modeInfo), 0);
 }
 
-/**
- * @tc.name: GetScreenMode001
- * @tc.desc: Verify the GetScreenMode of hdiscreen
- * @tc.type:FUNC
- * @tc.require:issueI5NU2U
- * @tc.author:
- */
+/*
+* Function: GetScreenMode001
+* Type: Function
+* Rank: Important(3)
+* EnvConditions: N/A
+* CaseDescription: 1. call GetScreenMode
+*                  2. check ret
+*/
 HWTEST_F(HdiScreenTest, GetScreenMode001, Function | MediumTest| Level3)
 {
     uint32_t modeId = 0;
     ASSERT_EQ(HdiScreenTest::hdiScreen_->GetScreenMode(modeId), 0);
 }
 
-/**
- * @tc.name: SetScreenMode001
- * @tc.desc: Verify the SetScreenMode of hdiscreen
- * @tc.type:FUNC
- * @tc.require:issueI5NU2U
- * @tc.author:
- */
+/*
+* Function: SetScreenMode001
+* Type: Function
+* Rank: Important(3)
+* EnvConditions: N/A
+* CaseDescription: 1. call SetScreenMode
+*                  2. check ret
+*/
 HWTEST_F(HdiScreenTest, SetScreenMode001, Function | MediumTest| Level3)
 {
     uint32_t modeId = 0;
     ASSERT_EQ(HdiScreenTest::hdiScreen_->SetScreenMode(modeId), 0);
 }
 
-/**
- * @tc.name: GetScreenPowerStatus001
- * @tc.desc: Verify the GetScreenPowerStatus of hdiscreen
- * @tc.type:FUNC
- * @tc.require:AR000GGP0P
- * @tc.author:
- */
+/*
+* Function: GetScreenPowerStatus001
+* Type: Function
+* Rank: Important(3)
+* EnvConditions: N/A
+* CaseDescription: 1. call GetScreenPowerStatus
+*                  2. check ret
+*/
 HWTEST_F(HdiScreenTest, GetScreenPowerStatus001, Function | MediumTest| Level3)
 {
     DispPowerStatus dispPowerStatus = DispPowerStatus::POWER_STATUS_ON;
     ASSERT_EQ(HdiScreenTest::hdiScreen_->GetScreenPowerStatus(dispPowerStatus), 0);
 }
 
-/**
- * @tc.name: SetScreenPowerStatus001
- * @tc.desc: Verify the SetScreenPowerStatus of hdiscreen
- * @tc.type:FUNC
- * @tc.require:AR000GGP0P
- * @tc.author:
- */
+/*
+* Function: SetScreenPowerStatus001
+* Type: Function
+* Rank: Important(3)
+* EnvConditions: N/A
+* CaseDescription: 1. call SetScreenPowerStatus
+*                  2. check ret
+*/
 HWTEST_F(HdiScreenTest, SetScreenPowerStatus001, Function | MediumTest| Level3)
 {
     DispPowerStatus dispPowerStatus = DispPowerStatus::POWER_STATUS_ON;
     ASSERT_EQ(HdiScreenTest::hdiScreen_->SetScreenPowerStatus(dispPowerStatus), 0);
 }
 
-/**
- * @tc.name: GetScreenBacklight001
- * @tc.desc: Verify the GetScreenBacklight of hdiscreen
- * @tc.type:FUNC
- * @tc.require:AR000GGP0P
- * @tc.author:
- */
+/*
+* Function: GetScreenBacklight001
+* Type: Function
+* Rank: Important(3)
+* EnvConditions: N/A
+* CaseDescription: 1. call GetScreenBacklight
+*                  2. check ret
+*/
 HWTEST_F(HdiScreenTest, GetScreenBacklight001, Function | MediumTest| Level3)
 {
     uint32_t level = 0;
     ASSERT_EQ(HdiScreenTest::hdiScreen_->GetScreenBacklight(level), 0);
 }
 
-/**
- * @tc.name: SetScreenBacklight001
- * @tc.desc: Verify the SetScreenBacklight of hdiscreen
- * @tc.type:FUNC
- * @tc.require:AR000GGP0P
- * @tc.author:
- */
+/*
+* Function: SetScreenBacklight001
+* Type: Function
+* Rank: Important(3)
+* EnvConditions: N/A
+* CaseDescription: 1. call SetScreenBacklight
+*                  2. check ret
+*/
 HWTEST_F(HdiScreenTest, SetScreenBacklight001, Function | MediumTest| Level3)
 {
     uint32_t level = 0;
     ASSERT_EQ(HdiScreenTest::hdiScreen_->SetScreenBacklight(level), 0);
+}
+
+/*
+* Function: SetScreenVsyncEnabled001
+* Type: Function
+* Rank: Important(3)
+* EnvConditions: N/A
+* CaseDescription: 1. call SetScreenVsyncEnabled
+*                  2. check ret
+*/
+HWTEST_F(HdiScreenTest, SetScreenVsyncEnabled001, Function | MediumTest| Level3)
+{
+    bool enabled = false;
+    ASSERT_EQ(HdiScreenTest::hdiScreen_->SetScreenVsyncEnabled(enabled), 0);
+}
+
+/*
+* Function: SetScreenColorTransform001
+* Type: Function
+* Rank: Important(3)
+* EnvConditions: N/A
+* CaseDescription: 1. call SetScreenColorTransform
+*                  2. check ret
+*/
+HWTEST_F(HdiScreenTest, SetScreenColorTransform001, Function | MediumTest| Level3)
+{
+    float *matrix = nullptr;
+    ASSERT_EQ(HdiScreenTest::hdiScreen_->SetScreenColorTransform(matrix), 0);
 }
 
 /*

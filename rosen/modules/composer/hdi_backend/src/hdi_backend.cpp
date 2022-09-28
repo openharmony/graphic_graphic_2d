@@ -73,7 +73,7 @@ int32_t HdiBackend::PreProcessLayersComp(const OutputPtr &output,
     if (!isDirectClientCompositionEnabled) {
         doClientCompositionDirectly = false;
     }
-
+    int32_t ret;
     for (auto iter = layersMap.begin(); iter != layersMap.end(); ++iter) {
         const LayerPtr &layer = iter->second;
         if (doClientCompositionDirectly) {
@@ -81,10 +81,13 @@ int32_t HdiBackend::PreProcessLayersComp(const OutputPtr &output,
             layer->UpdateCompositionType(CompositionType::COMPOSITION_CLIENT);
             continue;
         }
-        layer->SetHdiLayerInfo();
+        ret = layer->SetHdiLayerInfo();
+        if (ret != DISPLAY_SUCCESS) {
+            HLOGE("Set hdi layer[id:%{public}d] info failed, ret %{public}d.", layer->GetLayerId(), ret);
+        }
     }
 
-    int32_t ret = device_->PrepareScreenLayers(screenId, needFlush);
+    ret = device_->PrepareScreenLayers(screenId, needFlush);
     if (ret != DISPLAY_SUCCESS) {
         HLOGE("PrepareScreenLayers failed, ret is %{public}d", ret);
         return DISPLAY_FAILURE;
@@ -391,11 +394,18 @@ RosenError HdiBackend::InitDevice()
     return ROSEN_ERROR_OK;
 }
 
-void HdiBackend::CheckRet(int32_t ret, const char* func)
+void HdiBackend::SetHdiBackendDevice(Base::HdiDevice* device)
 {
-    if (ret != DISPLAY_SUCCESS) {
-        HLOGD("call hdi %{public}s failed, ret is %{public}d", func, ret);
+    if (device == nullptr) {
+        HLOGE("Input HdiDevice is null");
+        return;
     }
+
+    if (device_ != nullptr) {
+        HLOGW("HdiDevice has been changed");
+        return;
+    }
+    device_ = device;
 }
 
 } // namespace Rosen

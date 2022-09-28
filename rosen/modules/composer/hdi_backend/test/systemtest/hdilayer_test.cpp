@@ -41,14 +41,16 @@ void HdiLayerSysTest::SetUpTestCase()
 void HdiLayerSysTest::TearDownTestCase() {}
 
 namespace {
-/**
- * @tc.name: TestHdiLayer001
- * @tc.desc: Verify the hdiLayer
- * @tc.type:FUNC
- * @tc.require:AR000GGP0P
- * @tc.author:
- */
-HWTEST_F(HdiLayerSysTest, TestHdiLayer001, Function | MediumTest| Level0)
+/*
+* Function: TestHdiLayer001
+* Type: Function
+* Rank: Important(3)
+* EnvConditions: N/A
+* CaseDescription: 1. call SetLayerStatus()
+*                  2. call GetLayerStatus()
+*                  3. check ret
+*/
+HWTEST_F(HdiLayerSysTest, TestHdiLayer001, Function | MediumTest| Level3)
 {
     bool isUsing = true;
     HdiLayerSysTest::hdiLayer_->SetLayerStatus(isUsing);

@@ -29,8 +29,11 @@ group("systemtest") {
 ## SystemTest hdibackend_sys_test {{{
 ohos_systemtest("hdibackend_sys_test") {
   module_out_path = module_out_path
-
-  sources = [ "hdibackend_test.cpp" ]
+  sources = [
+    "hdibackend_test.cpp",
+    "hdilayer_context_systest.cpp",
+    "mock_hdi_device_systest.cpp",
+  ]
 
   include_dirs = [
     "//foundation/graphic/graphic_2d/rosen/modules/composer/hdi_backend/include",
@@ -46,8 +49,10 @@ ohos_systemtest("hdibackend_sys_test") {
 
   deps = [
     "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
+    "//foundation/graphic/graphic_2d:libsurface",
     "//foundation/graphic/graphic_2d/rosen/modules/composer:libcomposer",
     "//foundation/graphic/graphic_2d/utils:socketpair",
+    "//third_party/googletest:gmock_main",
     "//third_party/googletest:gtest_main",
   ]
 }
@@ -76,6 +81,7 @@ ohos_systemtest("hdilayer_sys_test") {
     "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
     "//foundation/graphic/graphic_2d/rosen/modules/composer:libcomposer",
     "//foundation/graphic/graphic_2d/utils:socketpair",
+    "//third_party/googletest:gmock_main",
     "//third_party/googletest:gtest_main",
   ]
 }
@@ -85,8 +91,10 @@ ohos_systemtest("hdilayer_sys_test") {
 ## SystemTest hdioutput_sys_test {{{
 ohos_systemtest("hdioutput_sys_test") {
   module_out_path = module_out_path
-
-  sources = [ "hdioutput_test.cpp" ]
+  sources = [
+    "hdilayer_context_systest.cpp",
+    "hdioutput_test.cpp",
+  ]
 
   include_dirs = [
     "//foundation/graphic/graphic_2d/rosen/modules/composer/hdi_backend/include",
@@ -102,6 +110,7 @@ ohos_systemtest("hdioutput_sys_test") {
 
   deps = [
     "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
+    "//foundation/graphic/graphic_2d:libsurface",
     "//foundation/graphic/graphic_2d/rosen/modules/composer:libcomposer",
     "//foundation/graphic/graphic_2d/utils:socketpair",
     "//third_party/googletest:gtest_main",

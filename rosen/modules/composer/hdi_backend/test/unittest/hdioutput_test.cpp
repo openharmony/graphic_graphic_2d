@@ -39,37 +39,41 @@ void HdiOutputTest::SetUpTestCase()
 void HdiOutputTest::TearDownTestCase() {}
 
 namespace {
-/**
- * @tc.name: GetScreenId001
- * @tc.desc: Verify the GetScreenId of hdioutput
- * @tc.type:FUNC
- * @tc.require:AR000GGP0P
- * @tc.author:
- */
-HWTEST_F(HdiOutputTest, GetScreenId001, Function | MediumTest| Level3)
+/*
+* Function: GetScreenId
+* Type: Function
+* Rank: Important(1)
+* EnvConditions: N/A
+* CaseDescription: 1. call GetScreenId()
+*                  2. check ret
+*/
+HWTEST_F(HdiOutputTest, GetScreenId001, Function | MediumTest| Level1)
 {
     ASSERT_EQ(HdiOutputTest::hdiOutput_->GetScreenId(), 0u);
 }
 
-/**
- * @tc.name: Init001
- * @tc.desc: Verify the Init of hdioutput
- * @tc.type:FUNC
- * @tc.require:AR000GGP0P
- * @tc.author:
- */
-HWTEST_F(HdiOutputTest, Init001, Function | MediumTest| Level3)
+/*
+* Function: Init
+* Type: Function
+* Rank: Important(1)
+* EnvConditions: N/A
+* CaseDescription: 1. call Init()
+*                  2. check ret
+*/
+HWTEST_F(HdiOutputTest, Init001, Function | MediumTest| Level1)
 {
     ASSERT_EQ(HdiOutputTest::hdiOutput_->Init(), ROSEN_ERROR_OK);
 }
 
-/**
- * @tc.name: GetOutputDamage001
- * @tc.desc: Verify the GetOutputDamage of hdioutput
- * @tc.type:FUNC
- * @tc.require:AR000GGP0P
- * @tc.author:
- */
+/*
+* Function: Init
+* Type: Function
+* Rank: Important(3)
+* EnvConditions: N/A
+* CaseDescription: 1. call SetOutputDamage()
+*                  2. call GetOutputDamage()
+*                  3. check ret
+*/
 HWTEST_F(HdiOutputTest, GetOutputDamage001, Function | MediumTest| Level3)
 {
     uint32_t num = 1;
@@ -86,13 +90,15 @@ HWTEST_F(HdiOutputTest, GetOutputDamage001, Function | MediumTest| Level3)
     ASSERT_EQ(HdiOutputTest::hdiOutput_->GetOutputDamage().h, iRect.h);
 }
 
-/**
- * @tc.name: GetOutputDamageNum001
- * @tc.desc: Verify the GetOutputDamageNum of hdioutput
- * @tc.type:FUNC
- * @tc.require:AR000GGP0P
- * @tc.author:
- */
+/*
+* Function: Init
+* Type: Function
+* Rank: Important(3)
+* EnvConditions: N/A
+* CaseDescription: 1. call SetOutputDamage()
+*                  2. call GetOutputDamageNum()
+*                  3. check ret
+*/
 HWTEST_F(HdiOutputTest, GetOutputDamageNum001, Function | MediumTest| Level3)
 {
     uint32_t num = 1;
@@ -114,7 +120,7 @@ HWTEST_F(HdiOutputTest, GetOutputDamageNum001, Function | MediumTest| Level3)
 * CaseDescription: 1. call SetLayerCompCapacity
 *                  2. call GetLayerCompCapacity
 *                  3. check ret
- */
+*/
 HWTEST_F(HdiOutputTest, GetLayerCompCapacity001, Function | MediumTest| Level3)
 {
     uint32_t layerCompositionCapacity = 8;
@@ -122,25 +128,27 @@ HWTEST_F(HdiOutputTest, GetLayerCompCapacity001, Function | MediumTest| Level3)
     ASSERT_EQ(HdiOutputTest::hdiOutput_->GetLayerCompCapacity(), 8u);
 }
 
-/**
- * @tc.name: GetProducerSurface001
- * @tc.desc: Verify the GetProducerSurface of hdioutput
- * @tc.type:FUNC
- * @tc.require:AR000GGP0P
- * @tc.author:
- */
-HWTEST_F(HdiOutputTest, GetProducerSurface001, Function | MediumTest| Level3)
+/*
+* Function: GetFrameBufferSurface
+* Type: Function
+* Rank: Important(3)
+* EnvConditions: N/A
+* CaseDescription: 1. call GetFrameBufferSurface
+*                  2. check ret
+*/
+HWTEST_F(HdiOutputTest, GetFrameBufferSurface001, Function | MediumTest| Level3)
 {
     ASSERT_NE(HdiOutputTest::hdiOutput_->GetFrameBufferSurface(), nullptr);
 }
 
-/**
- * @tc.name: GetFramebuffer001
- * @tc.desc: Verify the GetFramebuffer of hdioutput
- * @tc.type:FUNC
- * @tc.require:AR000GGP0P
- * @tc.author:
- */
+/*
+* Function: GetFramebuffer
+* Type: Function
+* Rank: Important(3)
+* EnvConditions: N/A
+* CaseDescription: 1. call GetFramebuffer
+*                  2. check ret
+*/
 HWTEST_F(HdiOutputTest, GetFramebuffer001, Function | MediumTest| Level3)
 {
     ASSERT_EQ(HdiOutputTest::hdiOutput_->GetFramebuffer(), nullptr);
