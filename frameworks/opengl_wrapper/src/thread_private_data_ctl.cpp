@@ -37,7 +37,7 @@ void ThreadPrivateDataCtl::ValidateKey()
 ThreadPrivateData* ThreadPrivateDataCtl::GetPrivateData()
 {
     ValidateKey();
-    ThreadPrivateData *data = (ThreadPrivateData *)pthread_getspecific(key_);
+    ThreadPrivateData *data = static_cast<ThreadPrivateData *>(pthread_getspecific(key_));
     if (data == nullptr) {
         data = new ThreadPrivateData;
         pthread_setspecific(key_, data);
@@ -48,7 +48,7 @@ ThreadPrivateData* ThreadPrivateDataCtl::GetPrivateData()
 void ThreadPrivateDataCtl::ClearPrivateData()
 {
     if (key_ != PTHREAD_KEY_T_NOT_INITIALIZED) {
-        ThreadPrivateData *data = (ThreadPrivateData *)pthread_getspecific(key_);
+        ThreadPrivateData *data = static_cast<ThreadPrivateData *>(pthread_getspecific(key_));
         if (data) {
             pthread_setspecific(key_, nullptr);
             delete data;
@@ -62,7 +62,7 @@ EGLint ThreadPrivateDataCtl::GetError()
         return EGL_SUCCESS;
     }
 
-    ThreadPrivateData *data = (ThreadPrivateData *)pthread_getspecific(key_);
+    ThreadPrivateData *data = static_cast<ThreadPrivateData *>(pthread_getspecific(key_));
     if (!data) {
         return EGL_SUCCESS;
     }
@@ -95,7 +95,7 @@ EGLContext ThreadPrivateDataCtl::GetContext()
         return EGL_NO_CONTEXT;
     }
 
-    ThreadPrivateData *data = (ThreadPrivateData *)pthread_getspecific(key_);
+    ThreadPrivateData *data = static_cast<ThreadPrivateData *>(pthread_getspecific(key_));
     if (!data) {
         return EGL_NO_CONTEXT;
     }
@@ -115,7 +115,7 @@ GlHookTable *ThreadPrivateDataCtl::GetGlHookTable()
         return nullptr;
     }
 
-    ThreadPrivateData *data = (ThreadPrivateData *)pthread_getspecific(key_);
+    ThreadPrivateData *data = static_cast<ThreadPrivateData *>(pthread_getspecific(key_));
     if (!data) {
         return nullptr;
     }

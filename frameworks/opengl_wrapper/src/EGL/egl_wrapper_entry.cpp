@@ -286,7 +286,7 @@ __eglMustCastToProperFunctionPointerType EglGetProcAddressImpl(const char *procn
     if (!func) {
         EglWrapperDispatchTablePtr table = &gWrapperHook;
         if (table->isLoad && table->egl.eglGetProcAddress) {
-            func = (void *)table->egl.eglGetProcAddress(procname);
+            func = reinterpret_cast<void *>(table->egl.eglGetProcAddress(procname));
         }
     }
 

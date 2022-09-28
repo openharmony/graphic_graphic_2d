@@ -37,7 +37,7 @@ public:
         WLOGE("Call To OpenGL ES API With No Current Context.");
         return;
     }
-    bool InitStat()
+    bool InitStat() const
     {
         return preInitFlag;
     }
