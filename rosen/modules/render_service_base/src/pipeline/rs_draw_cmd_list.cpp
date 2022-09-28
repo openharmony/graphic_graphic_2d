@@ -51,6 +51,7 @@ static std::unordered_map<RSOpType, OpUnmarshallingFunc> opUnmarshallingFuncLUT 
     { PIXELMAP_WITH_PARM_OPITEM,   PixelMapWithParmOpItem::Unmarshalling },
     { BITMAP_NINE_OPITEM,          BitmapNineOpItem::Unmarshalling },
     { ADAPTIVE_RRECT_OPITEM,       AdaptiveRRectOpItem::Unmarshalling },
+    { ADAPTIVE_RRECT_SCALE_OPITEM, AdaptiveRRectScaleOpItem::Unmarshalling },
     { CLIP_ADAPTIVE_RRECT_OPITEM,  ClipAdaptiveRRectOpItem::Unmarshalling },
     { CLIP_OUTSET_RECT_OPITEM,     ClipOutsetRectOpItem::Unmarshalling },
     { PATH_OPITEM,                 PathOpItem::Unmarshalling },

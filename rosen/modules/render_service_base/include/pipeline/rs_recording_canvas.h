@@ -103,6 +103,7 @@ public:
 
     void ClipOutsetRect(float dx, float dy);
     void DrawAdaptiveRRect(float radius, const SkPaint& paint);
+    void DrawAdaptiveRRectScale(float radiusRatio, const SkPaint& paint);
     void ClipAdaptiveRRect(const SkVector radius[]);
     void DrawImageWithParm(const sk_sp<SkImage>, const Rosen::RsImageInfo& rsImageInfo, const SkPaint& paint);
     void DrawPixelMap(const std::shared_ptr<Media::PixelMap>& pixelmap, SkScalar x, SkScalar y,
