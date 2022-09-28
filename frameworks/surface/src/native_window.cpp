@@ -147,7 +147,7 @@ static int32_t InternalHandleNativeWindowOpt(OHNativeWindow *window, int code, v
 {
     switch (code) {
         case SET_USAGE: {
-            int32_t usage = va_arg(args, int32_t);
+            uint64_t usage = va_arg(args, uint64_t);
             window->config.usage = usage;
             break;
         }
@@ -189,8 +189,8 @@ static int32_t InternalHandleNativeWindowOpt(OHNativeWindow *window, int code, v
             break;
         }
         case GET_USAGE: {
-            int32_t *value = va_arg(args, int32_t*);
-            int32_t usage = window->config.usage;
+            uint64_t *value = va_arg(args, uint64_t*);
+            uint64_t usage = window->config.usage;
             *value = usage;
             break;
         }
