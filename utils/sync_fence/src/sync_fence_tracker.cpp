@@ -62,7 +62,7 @@ void SyncFenceTracker::Loop(const sptr<SyncFence>& fence)
         RS_TRACE_NAME(fenceMsg.c_str());
         int32_t result = fence->Wait(SYNC_TIME_OUT);
         if (result < 0) {
-            HiLog::Error(LABEL, "Error waiting for SyncFence: %s", strerror(result));
+            HiLog::Debug(LABEL, "Error waiting for SyncFence: %s", strerror(result));
         }
     }
     fencesSignaled_++;
