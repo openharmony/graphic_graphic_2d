@@ -22,6 +22,7 @@
 #include "pipeline/rs_context.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_log.h"
+#include "property/rs_property_trace.h"
 #ifdef ROSEN_OHOS
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "property/rs_properties_painter.h"
@@ -142,6 +143,14 @@ void RSRenderNode::UpdateRenderStatus(RectI& dirtyRegion, bool isPartialRenderEn
     } else {
         RectI intersectRect = dirtyRegion.IntersectRect(dirtyRect);
         isRenderUpdateIgnored_ = intersectRect.IsEmpty();
+    }
+}
+
+void RSRenderNode::RenderTraceDebug() const
+{
+    if (RSSystemProperties::GetRenderNodeTraceEnabled()) {
+        RSPropertyTrace::GetInstance().PropertiesDisplayByTrace(GetId(),
+            std::static_pointer_cast<RSObjAbsGeometry>(GetRenderProperties().GetBoundsGeometry()));
     }
 }
 

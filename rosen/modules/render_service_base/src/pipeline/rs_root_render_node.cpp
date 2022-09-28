@@ -78,6 +78,7 @@ void RSRootRenderNode::Process(const std::shared_ptr<RSNodeVisitor>& visitor)
     if (!visitor) {
         return;
     }
+    RSRenderNode::RenderTraceDebug();
     visitor->ProcessRootRenderNode(*this);
 }
 } // namespace Rosen

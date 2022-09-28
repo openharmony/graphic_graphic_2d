@@ -34,6 +34,7 @@
 #include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
+#include "property/rs_property_trace.h"
 #include "transaction/rs_render_service_client.h"
 #include "ui/rs_surface_extractor.h"
 #include "ui/rs_surface_node.h"
@@ -471,6 +472,9 @@ void RSRenderThread::Render()
 {
     if (!needRender_) {
         return;
+    }
+    if (RSSystemProperties::GetRenderNodeTraceEnabled()) {
+        RSPropertyTrace::GetInstance().RefreshNodeTraceInfo();
     }
     ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSRenderThread::Render");
     if (RsFrameReport::GetInstance().GetEnable()) {

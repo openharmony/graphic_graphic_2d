@@ -54,6 +54,7 @@ void RSDisplayRenderNode::Process(const std::shared_ptr<RSNodeVisitor>& visitor)
     if (!visitor) {
         return;
     }
+    RSRenderNode::RenderTraceDebug();
     visitor->ProcessDisplayRenderNode(*this);
 }
 

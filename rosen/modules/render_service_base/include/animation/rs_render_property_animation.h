@@ -16,7 +16,6 @@
 #ifndef RENDER_SERVICE_CLIENT_CORE_ANIMATION_RS_RENDER_PROPERTY_ANIMATION_H
 #define RENDER_SERVICE_CLIENT_CORE_ANIMATION_RS_RENDER_PROPERTY_ANIMATION_H
 
-#include "animation/rs_animation_log.h"
 #include "animation/rs_render_animation.h"
 #include "common/rs_common_def.h"
 
@@ -60,13 +59,6 @@ protected:
 
     void OnRemoveOnCompletion() override;
 
-    void WriteAnimationValueToLog(const std::shared_ptr<RSRenderPropertyBase>& value);
-
-    void WriteAnimationInfoToLog(const std::shared_ptr<RSRenderPropertyBase>& startValue,
-        const std::shared_ptr<RSRenderPropertyBase>& endValue);
-
-    void UpdateNeedWriteLog(const NodeId id);
-
     virtual void InitValueEstimator() {}
 
 protected:
@@ -78,10 +70,6 @@ protected:
 
 private:
     bool isAdditive_ { true };
-    bool hasUpdateNeedWriteLog_ { false };
-    bool needWriteToLog_ { false };
-    bool hasWriteInfo_ { false };
-    inline static std::shared_ptr<RSAnimationLog> animationLog_ = std::make_shared<RSAnimationLog>();
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -37,6 +37,12 @@ bool RSSystemProperties::GetUniRenderEnabled()
     return isUniRenderEnabled_;
 }
 
+bool RSSystemProperties::GetRenderNodeTraceEnabled()
+{
+    static bool isNeedTrace = system::GetParameter("persist.rosen.rendernodetrace.enabled", "0") != "0";
+    return isNeedTrace;
+}
+
 bool RSSystemProperties::IsUniRenderMode()
 {
     return isUniRenderMode_;

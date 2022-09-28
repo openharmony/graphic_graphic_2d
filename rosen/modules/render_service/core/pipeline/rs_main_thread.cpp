@@ -33,6 +33,7 @@
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_innovation.h"
 #include "platform/drawing/rs_vsync_client.h"
+#include "property/rs_property_trace.h"
 #include "screen_manager/rs_screen_manager.h"
 #include "socperf_client.h"
 #include "transaction/rs_transaction_proxy.h"
@@ -539,6 +540,9 @@ void RSMainThread::Render()
         return;
     }
 
+    if (RSSystemProperties::GetRenderNodeTraceEnabled()) {
+        RSPropertyTrace::GetInstance().RefreshNodeTraceInfo();
+    }
     RS_LOGD("RSMainThread::Render isUni:%d", IfUseUniVisitor());
     
     if (IfUseUniVisitor()) {

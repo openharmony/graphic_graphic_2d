@@ -201,6 +201,7 @@ void RSSurfaceRenderNode::Process(const std::shared_ptr<RSNodeVisitor>& visitor)
     if (!visitor) {
         return;
     }
+    RSRenderNode::RenderTraceDebug();
     visitor->ProcessSurfaceRenderNode(*this);
 }
 

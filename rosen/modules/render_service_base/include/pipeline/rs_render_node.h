@@ -62,7 +62,7 @@ public:
     virtual void ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas);
     virtual void ProcessRenderContents(RSPaintFilterCanvas& canvas) {}
     virtual void ProcessRenderAfterChildren(RSPaintFilterCanvas& canvas);
-
+    void RenderTraceDebug() const;
     bool HasDisappearingTransition(bool recursive) const override
     {
         return (disappearingTransitionCount_ > 0) || RSBaseRenderNode::HasDisappearingTransition(recursive);

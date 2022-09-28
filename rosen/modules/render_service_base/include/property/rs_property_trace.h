@@ -13,55 +13,52 @@
  * limitations under the License.
  */
 
-#ifndef RENDER_SERVICE_BASE_ANIMATION_RS_ANIMATION_LOG_H
-#define RENDER_SERVICE_BASE_ANIMATION_RS_ANIMATION_LOG_H
+#ifndef RENDER_SERVICE_BASE_COMMON_RS_PROPERTY_TRACE_H
+#define RENDER_SERVICE_BASE_COMMON_RS_PROPERTY_TRACE_H
 
-#include <fstream>
 #include <set>
 #include <unordered_map>
+#include <sys/stat.h>
 
 #include "common/rs_common_def.h"
+#include "common/rs_obj_abs_geometry.h"
 #include "modifier/rs_modifier_type.h"
 #include "platform/common/rs_log.h"
 
 namespace OHOS {
 namespace Rosen {
-class RSAnimationLog {
+class RSPropertyTrace {
 public:
-    RSAnimationLog();
-    ~RSAnimationLog();
+    static RSPropertyTrace &GetInstance()
+    {
+        return instance_;
+    };
+
+    void PropertiesDisplayByTrace(const NodeId& id, const std::shared_ptr<RSObjAbsGeometry>& boundsGeometry);
+    void RefreshNodeTraceInfo();
+private:
+    RSPropertyTrace() = default;
+    ~RSPropertyTrace() = default;
 
     void InitNodeAndPropertyInfo();
 
     void ClearNodeAndPropertyInfo();
 
-    bool IsNeedWriteLog(const PropertyId& propertyId, const NodeId& id);
-
-    template<typename T>
-    void WriteAnimationValueToLog(const T& value, const PropertyId& propertyId, const NodeId& id);
-
-    template<typename T>
-    void WriteAnimationInfoToLog(const PropertyId& propertyId, const AnimationId& id,
-        const T& startValue, const T& endValue);
-
-private:
-    void PreProcessLogFile(const std::string& logFilePath);
+    bool IsNeedPropertyTrace(const NodeId& id);
 
     void DealConfigInputInfo(const std::string& info);
 
-    uint64_t GetNowTime();
+    bool IsNeedRefreshConfig();
 
-    void WriteString(const std::string& log);
-
-    int WriteLog(const char* format, ...);
+    void AddTraceFlag(const std::string& str);
 
     bool needWriteAllNode_ {false};
-    bool needWriteAllProperty_ {false};
-    std::ofstream logFile_;
+    static RSPropertyTrace instance_;
     std::set<NodeId> nodeIdSet_;
-    std::set<PropertyId> propertySet_;
+    std::string propertyFileLastModifyTime;
 };
+
 } // namespace Rosen
 } // namespace OHOS
 
-#endif // RENDER_SERVICE_BASE_ANIMATION_RS_ANIMATION_LOG_H
+#endif // RENDER_SERVICE_BASE_COMMON_RS_PROPERTY_TRACE_H

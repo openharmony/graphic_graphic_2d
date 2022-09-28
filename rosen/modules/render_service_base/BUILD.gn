@@ -44,7 +44,6 @@ ohos_shared_library("librender_service_base") {
   sources = [
     #animation
     "src/animation/rs_animation_fraction.cpp",
-    "src/animation/rs_animation_log.cpp",
     "src/animation/rs_animation_manager.cpp",
     "src/animation/rs_interpolator.cpp",
     "src/animation/rs_render_animation.cpp",
@@ -127,6 +126,7 @@ ohos_shared_library("librender_service_base") {
     #property
     "src/property/rs_properties.cpp",
     "src/property/rs_properties_painter.cpp",
+    "src/property/rs_property_trace.cpp",
 
     #render
     "src/render/rs_blur_filter.cpp",
