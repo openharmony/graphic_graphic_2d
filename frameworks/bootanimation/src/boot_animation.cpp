@@ -232,7 +232,7 @@ void BootAnimation::PlaySound()
         std::string uri = BOOT_SOUND_URI;
         soundPlayer_->SetSource(uri);
         soundPlayer_->SetLooping(false);
-        soundPlayer_->Prepare();
+        soundPlayer_->PrepareAsync();
         soundPlayer_->Play();
     }
     LOGI("PlaySound end");
