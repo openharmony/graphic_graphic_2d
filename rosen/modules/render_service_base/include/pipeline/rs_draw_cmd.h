@@ -66,6 +66,7 @@ enum RSOpType : uint16_t {
     PIXELMAP_OPITEM,
     PIXELMAP_RECT_OPITEM,
     ADAPTIVE_RRECT_OPITEM,
+    ADAPTIVE_RRECT_SCALE_OPITEM,
     CLIP_ADAPTIVE_RRECT_OPITEM,
     CLIP_OUTSET_RECT_OPITEM,
     PATH_OPITEM,
@@ -591,6 +592,27 @@ public:
 
 private:
     float radius_;
+    SkPaint paint_;
+};
+
+class AdaptiveRRectScaleOpItem : public OpItemWithPaint {
+public:
+    AdaptiveRRectScaleOpItem(float radiusRatio, const SkPaint& paint);
+    ~AdaptiveRRectScaleOpItem() override {}
+    void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
+
+    RSOpType GetType() const override
+    {
+        return RSOpType::ADAPTIVE_RRECT_SCALE_OPITEM;
+    }
+
+#ifdef ROSEN_OHOS
+    bool Marshalling(Parcel& parcel) const override;
+    static OpItem* Unmarshalling(Parcel& parcel);
+#endif
+
+private:
+    float radiusRatio_;
     SkPaint paint_;
 };
 
