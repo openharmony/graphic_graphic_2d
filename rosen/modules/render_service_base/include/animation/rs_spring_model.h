@@ -43,7 +43,7 @@ protected:
     RSAnimatableType initialVelocity_;
 
     // estimated duration until the spring is at rest
-    float minimumAmplitude_ { 0.001f };
+    float minimumAmplitudeRatio_ { 0.001f };
     float estimatedDuration_ { -1.0f };
 
 private:
