@@ -21,7 +21,7 @@
 
 namespace OHOS {
 namespace Rosen {
-void RSModifierManager::AddModifier(const std::shared_ptr<RSModifierBase>& modifier)
+void RSModifierManager::AddModifier(const std::shared_ptr<RSModifier>& modifier)
 {
     modifiers_.push_back(modifier);
 }

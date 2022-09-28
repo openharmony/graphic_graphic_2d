@@ -39,8 +39,7 @@ RSModifierExtractor::RSModifierExtractor(NodeId id) : id_(id) {}
         T value = defaultValue;                                                                                     \
         for (auto& [_, modifier] : node->modifiers_) {                                                              \
             if (modifier->GetModifierType() == RSModifierType::propertyType) {                                      \
-                auto modifierPtr = std::static_pointer_cast<RSModifier<RSProperty<T>>>(modifier);                   \
-                value operator std::static_pointer_cast<RSProperty<T>>(modifierPtr->GetProperty())->Get();          \
+                value operator std::static_pointer_cast<RSProperty<T>>(modifier->GetProperty())->Get();             \
             }                                                                                                       \
         }                                                                                                           \
         return value;                                                                                               \

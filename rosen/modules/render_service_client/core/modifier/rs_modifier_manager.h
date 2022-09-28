@@ -23,18 +23,18 @@
 
 namespace OHOS {
 namespace Rosen {
-class RSModifierBase;
+class RSModifier;
 
 class RS_EXPORT RSModifierManager {
 public:
     RSModifierManager() = default;
     virtual ~RSModifierManager() = default;
 
-    void AddModifier(const std::shared_ptr<RSModifierBase>& modifier);
+    void AddModifier(const std::shared_ptr<RSModifier>& modifier);
     void Draw();
 
 private:
-    std::vector<std::shared_ptr<RSModifierBase>> modifiers_;
+    std::vector<std::shared_ptr<RSModifier>> modifiers_;
 };
 } // namespace Rosen
 } // namespace OHOS

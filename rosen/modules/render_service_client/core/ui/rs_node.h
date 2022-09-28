@@ -42,7 +42,7 @@ class RSCommand;
 class RSImplicitAnimParam;
 class RSImplicitAnimator;
 class RSUIAnimationManager;
-class RSModifierBase;
+class RSModifier;
 
 class RS_EXPORT RSNode : public RSBaseNode {
 public:
@@ -171,8 +171,8 @@ public:
         transitionEffect_ = effect;
     }
 
-    void AddModifier(const std::shared_ptr<RSModifierBase>& modifier);
-    void RemoveModifier(const std::shared_ptr<RSModifierBase>& modifier);
+    void AddModifier(const std::shared_ptr<RSModifier>& modifier);
+    void RemoveModifier(const std::shared_ptr<RSModifier>& modifier);
 
 protected:
     explicit RSNode(bool isRenderServiceNode);
@@ -201,7 +201,7 @@ private:
     void AddAnimationInner(const std::shared_ptr<RSAnimation>& animation);
     void RemoveAnimationInner(const std::shared_ptr<RSAnimation>& animation);
     void FinishAnimationByProperty(const PropertyId& id);
-    const std::shared_ptr<RSModifierBase> GetModifier(const PropertyId& propertyId);
+    const std::shared_ptr<RSModifier> GetModifier(const PropertyId& propertyId);
     virtual void OnBoundsSizeChanged() const {};
     void UpdateModifierMotionPathOption();
     void UpdateExtendedModifier(const PropertyId& id);
@@ -211,8 +211,8 @@ private:
 
     std::unordered_map<AnimationId, std::shared_ptr<RSAnimation>> animations_;
     std::unordered_map<PropertyId, uint32_t> animatingPropertyNum_;
-    std::unordered_map<PropertyId, std::shared_ptr<RSModifierBase>> modifiers_;
-    std::unordered_map<RSModifierType, std::shared_ptr<RSModifierBase>> propertyModifiers_;
+    std::unordered_map<PropertyId, std::shared_ptr<RSModifier>> modifiers_;
+    std::unordered_map<RSModifierType, std::shared_ptr<RSModifier>> propertyModifiers_;
     std::shared_ptr<RSMotionPathOption> motionPathOption_;
 
     void UpdateImplicitAnimator();
@@ -233,7 +233,6 @@ private:
     template<typename T>
     friend class RSAnimatableProperty;
     friend class RSPathAnimation;
-    template<typename T>
     friend class RSExtendedModifier;
     friend class RSTransition;
     friend class RSUIDirector;

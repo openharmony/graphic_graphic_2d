@@ -13,85 +13,85 @@
  * limitations under the License.
  */
 
-// Declare animatable and not-animatable modifiers
-//     agrs: (NAME, TYPE, MODIFIER_TYPE, DELTA_OP)
+// Declare animatable and noanimatable modifiers
+// args: (MODIFIER_NAME, TYPE, MODIFIER_TYPE, DELTA_OP)
 
-DECLARE_ANIMATABLE_MODIFIER(Bounds, Vector4f, BOUNDS, RSRenderAnimatableProperty, Replace)
+DECLARE_ANIMATABLE_MODIFIER(Bounds, Vector4f, BOUNDS, Replace)
 
-DECLARE_ANIMATABLE_MODIFIER(Frame, Vector4f, FRAME, RSRenderAnimatableProperty, Replace)
+DECLARE_ANIMATABLE_MODIFIER(Frame, Vector4f, FRAME, Replace)
 
-DECLARE_ANIMATABLE_MODIFIER(PositionZ, float, POSITION_Z, RSRenderAnimatableProperty, Add)
+DECLARE_ANIMATABLE_MODIFIER(PositionZ, float, POSITION_Z, Add)
 
-DECLARE_ANIMATABLE_MODIFIER(Pivot, Vector2f, PIVOT, RSRenderAnimatableProperty, Replace)
+DECLARE_ANIMATABLE_MODIFIER(Pivot, Vector2f, PIVOT, Replace)
 
-DECLARE_ANIMATABLE_MODIFIER(Quaternion, Quaternion, QUATERNION, RSRenderAnimatableProperty, Replace)
+DECLARE_ANIMATABLE_MODIFIER(Quaternion, Quaternion, QUATERNION, Replace)
 
-DECLARE_ANIMATABLE_MODIFIER(Rotation, float, ROTATION, RSRenderAnimatableProperty, Add)
+DECLARE_ANIMATABLE_MODIFIER(Rotation, float, ROTATION, Add)
 
-DECLARE_ANIMATABLE_MODIFIER(RotationX, float, ROTATION_X, RSRenderAnimatableProperty, Add)
+DECLARE_ANIMATABLE_MODIFIER(RotationX, float, ROTATION_X, Add)
 
-DECLARE_ANIMATABLE_MODIFIER(RotationY, float, ROTATION_Y, RSRenderAnimatableProperty, Add)
+DECLARE_ANIMATABLE_MODIFIER(RotationY, float, ROTATION_Y, Add)
 
-DECLARE_ANIMATABLE_MODIFIER(Scale, Vector2f, SCALE, RSRenderAnimatableProperty, Multiply)
+DECLARE_ANIMATABLE_MODIFIER(Scale, Vector2f, SCALE, Multiply)
 
-DECLARE_ANIMATABLE_MODIFIER(Translate, Vector2f, TRANSLATE, RSRenderAnimatableProperty, Add)
+DECLARE_ANIMATABLE_MODIFIER(Translate, Vector2f, TRANSLATE, Add)
 
-DECLARE_ANIMATABLE_MODIFIER(TranslateZ, float, TRANSLATE_Z, RSRenderAnimatableProperty, Add)
+DECLARE_ANIMATABLE_MODIFIER(TranslateZ, float, TRANSLATE_Z, Add)
 
-DECLARE_ANIMATABLE_MODIFIER(CornerRadius, Vector4f, CORNER_RADIUS, RSRenderAnimatableProperty, Add)
+DECLARE_ANIMATABLE_MODIFIER(CornerRadius, Vector4f, CORNER_RADIUS, Add)
 
-DECLARE_ANIMATABLE_MODIFIER(Alpha, float, ALPHA, RSRenderAnimatableProperty, Multiply)
+DECLARE_ANIMATABLE_MODIFIER(Alpha, float, ALPHA, Multiply)
 
-DECLARE_NOANIMATABLE_MODIFIER(AlphaOffscreen, bool, ALPHA_OFFSCREEN, RSRenderProperty)
+DECLARE_NOANIMATABLE_MODIFIER(AlphaOffscreen, bool, ALPHA_OFFSCREEN)
 
-DECLARE_ANIMATABLE_MODIFIER(ForegroundColor, Color, FOREGROUND_COLOR, RSRenderAnimatableProperty, Add)
+DECLARE_ANIMATABLE_MODIFIER(ForegroundColor, Color, FOREGROUND_COLOR, Add)
 
-DECLARE_ANIMATABLE_MODIFIER(BackgroundColor, Color, BACKGROUND_COLOR, RSRenderAnimatableProperty, Add)
+DECLARE_ANIMATABLE_MODIFIER(BackgroundColor, Color, BACKGROUND_COLOR, Add)
 
-DECLARE_NOANIMATABLE_MODIFIER(BackgroundShader, std::shared_ptr<RSShader>, BACKGROUND_SHADER, RSRenderProperty)
+DECLARE_NOANIMATABLE_MODIFIER(BackgroundShader, std::shared_ptr<RSShader>, BACKGROUND_SHADER)
 
-DECLARE_NOANIMATABLE_MODIFIER(BgImage, std::shared_ptr<RSImage>, BG_IMAGE, RSRenderProperty)
+DECLARE_NOANIMATABLE_MODIFIER(BgImage, std::shared_ptr<RSImage>, BG_IMAGE)
 
-DECLARE_ANIMATABLE_MODIFIER(BgImageWidth, float, BG_IMAGE_WIDTH, RSRenderAnimatableProperty, Add)
+DECLARE_ANIMATABLE_MODIFIER(BgImageWidth, float, BG_IMAGE_WIDTH, Add)
 
-DECLARE_ANIMATABLE_MODIFIER(BgImageHeight, float, BG_IMAGE_HEIGHT, RSRenderAnimatableProperty, Add)
+DECLARE_ANIMATABLE_MODIFIER(BgImageHeight, float, BG_IMAGE_HEIGHT, Add)
 
-DECLARE_ANIMATABLE_MODIFIER(BgImagePositionX, float, BG_IMAGE_POSITION_X, RSRenderAnimatableProperty, Add)
+DECLARE_ANIMATABLE_MODIFIER(BgImagePositionX, float, BG_IMAGE_POSITION_X, Add)
 
-DECLARE_ANIMATABLE_MODIFIER(BgImagePositionY, float, BG_IMAGE_POSITION_Y, RSRenderAnimatableProperty, Add)
+DECLARE_ANIMATABLE_MODIFIER(BgImagePositionY, float, BG_IMAGE_POSITION_Y, Add)
 
-DECLARE_ANIMATABLE_MODIFIER(BorderColor, Vector4<Color>, BORDER_COLOR, RSRenderAnimatableProperty, Replace)
+DECLARE_ANIMATABLE_MODIFIER(BorderColor, Vector4<Color>, BORDER_COLOR, Replace)
 
-DECLARE_ANIMATABLE_MODIFIER(BorderWidth, Vector4f, BORDER_WIDTH, RSRenderAnimatableProperty, Replace)
+DECLARE_ANIMATABLE_MODIFIER(BorderWidth, Vector4f, BORDER_WIDTH, Replace)
 
-DECLARE_NOANIMATABLE_MODIFIER(BorderStyle, Vector4<uint32_t>, BORDER_STYLE, RSRenderProperty)
+DECLARE_NOANIMATABLE_MODIFIER(BorderStyle, Vector4<uint32_t>, BORDER_STYLE)
 
-DECLARE_ANIMATABLE_MODIFIER(Filter, std::shared_ptr<RSFilter>, FILTER, RSRenderAnimatableProperty, Add)
+DECLARE_ANIMATABLE_MODIFIER(Filter, std::shared_ptr<RSFilter>, FILTER, Add)
 
-DECLARE_ANIMATABLE_MODIFIER(BackgroundFilter, std::shared_ptr<RSFilter>, BACKGROUND_FILTER, RSRenderAnimatableProperty, Add)
+DECLARE_ANIMATABLE_MODIFIER(BackgroundFilter, std::shared_ptr<RSFilter>, BACKGROUND_FILTER, Add)
 
-DECLARE_NOANIMATABLE_MODIFIER(FrameGravity, Gravity, FRAME_GRAVITY, RSRenderProperty)
+DECLARE_NOANIMATABLE_MODIFIER(FrameGravity, Gravity, FRAME_GRAVITY)
 
-DECLARE_NOANIMATABLE_MODIFIER(ClipBounds, std::shared_ptr<RSPath>, CLIP_BOUNDS, RSRenderProperty)
+DECLARE_NOANIMATABLE_MODIFIER(ClipBounds, std::shared_ptr<RSPath>, CLIP_BOUNDS)
 
-DECLARE_NOANIMATABLE_MODIFIER(ClipToBounds, bool, CLIP_TO_BOUNDS, RSRenderProperty)
+DECLARE_NOANIMATABLE_MODIFIER(ClipToBounds, bool, CLIP_TO_BOUNDS)
 
-DECLARE_NOANIMATABLE_MODIFIER(ClipToFrame, bool, CLIP_TO_FRAME, RSRenderProperty)
+DECLARE_NOANIMATABLE_MODIFIER(ClipToFrame, bool, CLIP_TO_FRAME)
 
-DECLARE_NOANIMATABLE_MODIFIER(Visible, bool, VISIBLE, RSRenderProperty)
+DECLARE_NOANIMATABLE_MODIFIER(Visible, bool, VISIBLE)
 
-DECLARE_ANIMATABLE_MODIFIER(ShadowColor, Color, SHADOW_COLOR, RSRenderAnimatableProperty, Replace)
+DECLARE_ANIMATABLE_MODIFIER(ShadowColor, Color, SHADOW_COLOR, Replace)
 
-DECLARE_ANIMATABLE_MODIFIER(ShadowOffsetX, float, SHADOW_OFFSET_X, RSRenderAnimatableProperty, Replace)
+DECLARE_ANIMATABLE_MODIFIER(ShadowOffsetX, float, SHADOW_OFFSET_X, Replace)
 
-DECLARE_ANIMATABLE_MODIFIER(ShadowOffsetY, float, SHADOW_OFFSET_Y, RSRenderAnimatableProperty, Replace)
+DECLARE_ANIMATABLE_MODIFIER(ShadowOffsetY, float, SHADOW_OFFSET_Y, Replace)
 
-DECLARE_ANIMATABLE_MODIFIER(ShadowAlpha, float, SHADOW_ALPHA, RSRenderAnimatableProperty, Replace)
+DECLARE_ANIMATABLE_MODIFIER(ShadowAlpha, float, SHADOW_ALPHA, Replace)
 
-DECLARE_ANIMATABLE_MODIFIER(ShadowElevation, float, SHADOW_ELEVATION, RSRenderAnimatableProperty, Replace)
+DECLARE_ANIMATABLE_MODIFIER(ShadowElevation, float, SHADOW_ELEVATION, Replace)
 
-DECLARE_ANIMATABLE_MODIFIER(ShadowRadius, float, SHADOW_RADIUS, RSRenderAnimatableProperty, Replace)
+DECLARE_ANIMATABLE_MODIFIER(ShadowRadius, float, SHADOW_RADIUS, Replace)
 
-DECLARE_NOANIMATABLE_MODIFIER(ShadowPath, std::shared_ptr<RSPath>, SHADOW_PATH, RSRenderProperty)
+DECLARE_NOANIMATABLE_MODIFIER(ShadowPath, std::shared_ptr<RSPath>, SHADOW_PATH)
 
-DECLARE_NOANIMATABLE_MODIFIER(Mask, std::shared_ptr<RSMask>, MASK, RSRenderProperty)
+DECLARE_NOANIMATABLE_MODIFIER(Mask, std::shared_ptr<RSMask>, MASK)
