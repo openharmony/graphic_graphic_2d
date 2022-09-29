@@ -196,7 +196,6 @@ GSError GraphicDumperCommandLine::OptionParse(const char option)
         default: {
             std::cerr << "Command not found." << std::endl;
             return GSERROR_INVALID_OPERATING;
-            break;
         }
     } // switch
     return GSERROR_OK;
