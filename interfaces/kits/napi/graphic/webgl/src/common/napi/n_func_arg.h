@@ -70,7 +70,7 @@ public:
 
     napi_value GetThisVar() const;
 
-    napi_value operator[](size_t idx) const;
+    napi_value operator[](size_t argPos) const;
 
     napi_value GetArg(size_t argPos) const;
 

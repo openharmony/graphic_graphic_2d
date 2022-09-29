@@ -92,7 +92,7 @@ public:
 
     bool AddProp(std::vector<napi_property_descriptor> &&propVec) const;
 
-    bool AddProp(std::string propName, napi_value nVal) const;
+    bool AddProp(std::string propName, napi_value Val) const;
 
     /* Static helpers to create prop of js objects */
     static napi_property_descriptor DeclareNapiProperty(const char *name, napi_value val);
