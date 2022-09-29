@@ -149,6 +149,7 @@ void BootAnimation::InitBootWindow()
     option->SetWindowType(OHOS::Rosen::WindowType::WINDOW_TYPE_BOOT_ANIMATION);
     option->RemoveWindowFlag(OHOS::Rosen::WindowFlag::WINDOW_FLAG_NEED_AVOID);
     option->SetWindowRect({0, 0, windowWidth_, windowHeight_} );
+    option->SetTouchable(false);
     int displayId = 0;
     sptr<OHOS::Rosen::IWindowLifeCycle> listener = nullptr;
     scene_ = new OHOS::Rosen::WindowScene();
