@@ -80,7 +80,7 @@ void HelloComposer::Run(std::vector<std::string> &runArgs)
     runner->Run();
 }
 
-void HelloComposer::ParseArgs(std::vector<std::string> &runArgs)
+void HelloComposer::ParseArgs(const std::vector<std::string> &runArgs)
 {
     for (std::string &arg : runArgs) {
         if (arg == "--dump") {
@@ -216,7 +216,7 @@ void HelloComposer::Sync(int64_t, void *data)
     Draw();
 }
 
-void HelloComposer::SetRunArgs(const std::unique_ptr<LayerContext> &drawLayer)
+void HelloComposer::SetRunArgs(const std::unique_ptr<LayerContext> &drawLayer) const
 {
     LayerType type = drawLayer->GetLayerType();
     if (type < LayerType::LAYER_EXTRA) {
@@ -284,7 +284,6 @@ void HelloComposer::Draw()
 
 uint32_t HelloComposer::CreatePhysicalScreen()
 {
-    uint32_t currentModeIndex = 0;
     std::vector<DisplayModeInfo> displayModeInfos;
     uint32_t screenId = currScreenId_;
     std::unique_ptr<HdiScreen> screen = HdiScreen::CreateHdiScreen(screenId);
@@ -292,6 +291,7 @@ uint32_t HelloComposer::CreatePhysicalScreen()
     screen->GetScreenSupportedModes(displayModeInfos);
     size_t supportModeNum = displayModeInfos.size();
     if (supportModeNum > 0) {
+        uint32_t currentModeIndex = 0;
         screen->GetScreenMode(currentModeIndex);
         LOGI("currentModeIndex:%{public}d", currentModeIndex);
         for (size_t i = 0; i < supportModeNum; i++) {
@@ -423,6 +423,21 @@ void HelloComposer::RemoveOffScreenData(uint32_t offScreenId)
     }
 }
 
+namespace {
+void DrawFrameBufferData(void *image, uint32_t width, uint32_t height)
+{
+    static uint32_t value = 0x00;
+    value++;
+
+    uint32_t *pixel = static_cast<uint32_t *>(image);
+    for (uint32_t x = 0; x < width; x++) {
+        for (uint32_t y = 0;  y < height; y++) {
+            *pixel++ = value;
+        }
+    }
+}
+}
+
 void HelloComposer::DoPrepareCompleted(sptr<Surface> surface, const struct PrepareCompleteParam &param)
 {
     uint32_t screenId = curOutput_->GetScreenId();
@@ -464,8 +479,8 @@ void HelloComposer::DoPrepareCompleted(sptr<Surface> surface, const struct Prepa
         DrawFrameBufferData(addr, static_cast<uint32_t>(fbBuffer->GetWidth()),
             static_cast<uint32_t>(fbBuffer->GetHeight()));
     } else {
-        int32_t ret = memset_s(addr, fbBuffer->GetSize(), 0, fbBuffer->GetSize());
-        if (ret != 0) {
+        int32_t memsetRet = memset_s(addr, fbBuffer->GetSize(), 0, fbBuffer->GetSize());
+        if (memsetRet != 0) {
             LOGE("memset_s failed");
         }
     }
@@ -483,18 +498,5 @@ void HelloComposer::DoPrepareCompleted(sptr<Surface> surface, const struct Prepa
     ret = surface->FlushBuffer(fbBuffer, -1, flushConfig);
     if (ret != 0) {
         LOGE("FlushBuffer failed: %{public}s", SurfaceErrorStr(ret).c_str());
-    }
-}
-
-void HelloComposer::DrawFrameBufferData(void *image, uint32_t width, uint32_t height)
-{
-    static uint32_t value = 0x00;
-    value++;
-
-    uint32_t *pixel = static_cast<uint32_t *>(image);
-    for (uint32_t x = 0; x < width; x++) {
-        for (uint32_t y = 0;  y < height; y++) {
-            *pixel++ = value;
-        }
     }
 }

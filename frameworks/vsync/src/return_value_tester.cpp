@@ -18,7 +18,7 @@ namespace OHOS {
 namespace Vsync {
 sptr<ReturnValueTester> ReturnValueTester::GetInstance()
 {
-    if (instance == nullptr) {
+    {
         static std::mutex mutex;
         std::lock_guard<std::mutex> lock(mutex);
         if (instance == nullptr) {

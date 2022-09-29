@@ -165,16 +165,16 @@ void HdiBackend::Repaint(std::vector<OutputPtr> &outputs)
 
         output->UpdatePrevLayerInfo();
         int64_t timestamp = lastPresentFence_->SyncFileReadTimestamp();
-        bool ret = false;
+        bool startSample = false;
         if (timestamp != SyncFence::FENCE_PENDING_TIMESTAMP) {
-            ret = sampler_->AddPresentFenceTime(timestamp);
+            startSample = sampler_->AddPresentFenceTime(timestamp);
             output->RecordCompositionTime(timestamp);
             for (auto iter = layersMap.begin(); iter != layersMap.end(); ++iter) {
                 const LayerPtr &layer = iter->second;
                 layer->RecordPresentTime(timestamp);
             }
         }
-        if (ret) {
+        if (startSample) {
             HLOGD("Enable Screen Vsync");
             device_->SetScreenVsyncEnabled(screenId, true);
             sampler_->BeginSample();

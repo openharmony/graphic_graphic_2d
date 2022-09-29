@@ -47,7 +47,7 @@ int64_t GetNowTime()
 
 sptr<VsyncClient> VsyncClient::GetInstance()
 {
-    if (instance == nullptr) {
+    {
         static std::mutex mutex;
         std::lock_guard<std::mutex> lock(mutex);
         if (instance == nullptr) {
@@ -60,32 +60,30 @@ sptr<VsyncClient> VsyncClient::GetInstance()
 GSError VsyncClient::InitService()
 {
     std::lock_guard<std::mutex> lock(serviceMutex_);
-    if (service_ == nullptr) {
-        ScopedBytrace func(__func__);
-        auto sam = StaticCall::GetInstance()->GetSystemAbilityManager();
-        if (sam == nullptr) {
-            VLOG_FAILURE_RET(GSERROR_CONNOT_CONNECT_SAMGR);
-        }
-
-        auto remoteObject = StaticCall::GetInstance()->GetSystemAbility(sam, VSYNC_MANAGER_ID);
-        if (remoteObject == nullptr) {
-            VLOG_FAILURE_RET(GSERROR_SERVER_ERROR);
-        }
-
-        sptr<IRemoteObject::DeathRecipient> deathRecipient = new VsyncManagerDeathRecipient();
-        if (remoteObject->IsProxyObject() == true && remoteObject->AddDeathRecipient(deathRecipient) == false) {
-            VLOGW("Failed to add death recipient");
-        }
-
-        if (service_ == nullptr) {
-            service_ = StaticCall::GetInstance()->GetCast(remoteObject);
-        }
-
-        if (service_ == nullptr) {
-            VLOG_FAILURE_RET(GSERROR_PROXY_NOT_INCLUDE);
-        }
-        VLOG_SUCCESS("service_ = iface_cast");
+    ScopedBytrace func(__func__);
+    auto sam = StaticCall::GetInstance()->GetSystemAbilityManager();
+    if (sam == nullptr) {
+        VLOG_FAILURE_RET(GSERROR_CONNOT_CONNECT_SAMGR);
     }
+
+    auto remoteObject = StaticCall::GetInstance()->GetSystemAbility(sam, VSYNC_MANAGER_ID);
+    if (remoteObject == nullptr) {
+        VLOG_FAILURE_RET(GSERROR_SERVER_ERROR);
+    }
+
+    sptr<IRemoteObject::DeathRecipient> deathRecipient = new VsyncManagerDeathRecipient();
+    if (remoteObject->IsProxyObject() == true && remoteObject->AddDeathRecipient(deathRecipient) == false) {
+        VLOGW("Failed to add death recipient");
+    }
+
+    if (service_ == nullptr) {
+        service_ = StaticCall::GetInstance()->GetCast(remoteObject);
+    }
+
+    if (service_ == nullptr) {
+        VLOG_FAILURE_RET(GSERROR_PROXY_NOT_INCLUDE);
+    }
+    VLOG_SUCCESS("service_ = iface_cast");
     return GSERROR_OK;
 }
 
@@ -304,7 +302,7 @@ void VsyncClient::DispatchMain(int64_t timestamp)
             }
         } while (haveEmpty == true);
         if (callbacksMap_.size() == 0 && listener_ != nullptr && listenerID_ != -1) {
-            ScopedBytrace func("RemoveVsync");
+            ScopedBytrace funcRemoveVsync("RemoveVsync");
             std::lock_guard<std::mutex> lock(serviceMutex_);
             service_->RemoveVsync(listenerID_);
             listener_ = nullptr;
