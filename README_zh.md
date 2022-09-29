@@ -65,7 +65,7 @@ foundation/graphic/graphic_2d/
 - [arkui_ace_engine](https://gitee.com/openharmony/arkui_ace_engine)
 - [ability_ability_runtime](https://gitee.com/openharmony/ability_ability_runtime)
 - [multimedia_player_framework](https://gitee.com/openharmony/multimedia_player_framework)
-- [multimedia_image_standard](https://gitee.com/openharmony/multimedia_image_standard)
+- [multimedia_image_framework](https://gitee.com/openharmony/multimedia_image_framework)
 - [Windowmanager](https://gitee.com/openharmony/windowmanager)
 - [third_party_egl](https://gitee.com/openharmony/third_party_egl)
 - [third_party_opengles](https://gitee.com/openharmony/third_party_opengles)

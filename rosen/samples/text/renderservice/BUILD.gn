@@ -34,7 +34,7 @@ ohos_executable("drawing_text_sample") {
 
   external_deps = [
     "hilog_native:libhilog",
-    "multimedia_image_standard:image_native",
+    "multimedia_image_framework:image_native",
   ]
 
   subsystem_name = "graphic"
