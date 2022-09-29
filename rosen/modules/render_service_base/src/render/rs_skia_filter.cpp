@@ -21,6 +21,11 @@ RSSkiaFilter::RSSkiaFilter(sk_sp<SkImageFilter> imageFilter) : RSFilter(), image
 
 RSSkiaFilter::~RSSkiaFilter() {}
 
+void RSSkiaFilter::ApplyTo(SkPaint& paint)
+{
+    paint.setImageFilter(imageFilter_);
+}
+
 void RSSkiaFilter::PostProcess(SkCanvas& canvas)
 {
     SkPaint paint;
