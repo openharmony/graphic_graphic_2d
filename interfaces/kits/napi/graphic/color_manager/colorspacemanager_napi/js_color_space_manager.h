@@ -31,7 +31,7 @@ public:
     static NativeValue* CreateColorSpace(NativeEngine* engine, NativeCallbackInfo* info);
 private:
     NativeValue* OnCreateColorSpace(NativeEngine& engine, NativeCallbackInfo& info);
-    static bool ParseColorSpacePrimaries(NativeEngine& engine, NativeObject* jsObject, ColorSpacePrimaries& primaries);
+    bool ParseColorSpacePrimaries(NativeEngine& engine, NativeObject* jsObject, ColorSpacePrimaries& primaries);
 };
 } // namespace ColorManager
 } // namespace OHOS
