@@ -321,7 +321,7 @@ public:
 
     ~SimpleColorSpace() noexcept = default;
 
-    static Vector3f ToneMapping(const Vector3f& color, float targetLum = 0)
+    Vector3f ToneMapping(const Vector3f& color, float targetLum = 0) const
     {
         PixelTransformFunc toneMappingFunc = GenACESToneMapping(targetLum);
         return ApplyTransForm(color, toneMappingFunc);
@@ -587,8 +587,8 @@ Offset RGBUintToFloat(uint8_t* dst, uint8_t* src, int32_t pixelFormat, Vector3f 
     }
 }
 
-Offset ConvertColorGamut(uint8_t* dst, uint8_t* src, int32_t pixelFormat, const SimpleColorSpace& srcColorSpace,
-    const SimpleColorSpace& dstColorSpace)
+Offset ConvertColorGamut(uint8_t* dst, uint8_t* src, int32_t pixelFormat, SimpleColorSpace& srcColorSpace,
+    SimpleColorSpace& dstColorSpace)
 {
     Vector3f srcColor;
     Array3ptr colorDst; // color dst, 3 bytes (R G B).
@@ -822,6 +822,7 @@ void RSBaseRenderUtil::DropFrameProcess(RSSurfaceHandler& node)
                     "): ReleaseBuffer failed(ret: %d), Acquire done ",
                 node.GetNodeId(), ret);
         }
+        availableBufferCnt = node.ReduceAvailableBuffer();
         RS_LOGD("RsDebug RSBaseRenderUtil::DropFrameProcess (node: %" PRIu64 "), drop one frame", node.GetNodeId());
     }
 
@@ -856,6 +857,7 @@ bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfaceHandler)
     surfaceHandler.SetCurrentFrameBufferConsumed();
     RS_LOGD("RsDebug surfaceHandler(id: %" PRIu64 ") AcquireBuffer success, timestamp = %" PRId64 ".",
         surfaceHandler.GetNodeId(), timestamp);
+    availableBufferCnt = surfaceHandler.ReduceAvailableBuffer();
     return true;
 }
 
