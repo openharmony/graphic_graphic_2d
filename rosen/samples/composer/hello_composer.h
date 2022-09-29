@@ -64,14 +64,13 @@ private:
     void RequestSync();
     void CreateLayers();
     void CreateShowLayers();
-    void DrawFrameBufferData(void *image, uint32_t width, uint32_t height);
     void Draw();
     void Sync(int64_t, void *data);
     void DoPrepareCompleted(sptr<Surface> surface, const struct PrepareCompleteParam &param);
     void OnHotPlug(std::shared_ptr<HdiOutput> &output, bool connected);
     void OnHotPlugEvent(std::shared_ptr<HdiOutput> &output, bool connected);
-    void ParseArgs(std::vector<std::string> &runArgs);
-    void SetRunArgs(const std::unique_ptr<LayerContext> &drawLayer);
+    void ParseArgs(const std::vector<std::string> &runArgs);
+    void SetRunArgs(const std::unique_ptr<LayerContext> &drawLayer) const;
     void RemoveOffScreenData(uint32_t offScreenId);
     uint32_t CreatePhysicalScreen();
 

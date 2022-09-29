@@ -44,7 +44,7 @@ OH_NativeBuffer_Config config {
     .usage = HBM_USE_CPU_READ | HBM_USE_CPU_WRITE | HBM_USE_MEM_DMA
 };
 
-void CompareOH_NativeBufferConfig(OH_NativeBuffer_Config &config, OH_NativeBuffer_Config &checkConfig)
+void CompareOH_NativeBufferConfig(OH_NativeBuffer_Config &config, const OH_NativeBuffer_Config &checkConfig)
 {
     if (config.width != checkConfig.width) {
         LOGE("OH_NativeBufferConfig width different");
