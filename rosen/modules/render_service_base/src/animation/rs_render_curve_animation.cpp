@@ -45,7 +45,8 @@ bool RSRenderCurveAnimation::Marshalling(Parcel& parcel) const
         return false;
     }
     if (!(RSRenderPropertyBase::Marshalling(parcel, startValue_) &&
-            RSRenderPropertyBase::Marshalling(parcel, endValue_) && interpolator_->Marshalling(parcel))) {
+            RSRenderPropertyBase::Marshalling(parcel, endValue_) && interpolator_ != nullptr &&
+            interpolator_->Marshalling(parcel))) {
         ROSEN_LOGE("RSRenderCurveAnimation::Marshalling, MarshallingHelper failed");
         return false;
     }

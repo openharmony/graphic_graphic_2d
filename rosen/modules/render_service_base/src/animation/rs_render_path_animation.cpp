@@ -123,11 +123,11 @@ bool RSRenderPathAnimation::Marshalling(Parcel& parcel) const
         ROSEN_LOGE("RSRenderPathAnimation::Marshalling, RenderPropertyAnimation failed");
         return false;
     }
-    if (!(parcel.WriteFloat(originRotation_) && parcel.WriteFloat(beginFraction_) &&
-            parcel.WriteFloat(endFraction_) && RSMarshallingHelper::Marshalling(parcel, animationPath_) &&
+    if (!(parcel.WriteFloat(originRotation_) && parcel.WriteFloat(beginFraction_) && parcel.WriteFloat(endFraction_) &&
+            RSMarshallingHelper::Marshalling(parcel, animationPath_) &&
             parcel.WriteInt32(static_cast<std::underlying_type<RotationMode>::type>(rotationMode_)) &&
-            parcel.WriteBool(isNeedPath_) && parcel.WriteBool(needAddOrigin_) && interpolator_->Marshalling(parcel) &&
-            RSRenderPropertyBase::Marshalling(parcel, startValue_) &&
+            parcel.WriteBool(isNeedPath_) && parcel.WriteBool(needAddOrigin_) && interpolator_ != nullptr &&
+            interpolator_->Marshalling(parcel) && RSRenderPropertyBase::Marshalling(parcel, startValue_) &&
             RSRenderPropertyBase::Marshalling(parcel, endValue_) && parcel.WriteUint64(rotationId_))) {
         ROSEN_LOGE("RSRenderPathAnimation::Marshalling, write failed");
         return false;

@@ -67,8 +67,9 @@ bool RSRenderKeyframeAnimation::Marshalling(Parcel& parcel) const
         return false;
     }
     for (auto data : keyframes_) {
+        auto& interpolator = std::get<2>(data);
         if (!(parcel.WriteFloat(std::get<0>(data)) && RSRenderPropertyBase::Marshalling(parcel, std::get<1>(data)) &&
-                std::get<2>(data)->Marshalling(parcel))) {
+                interpolator != nullptr && interpolator->Marshalling(parcel))) {
             ROSEN_LOGE("RSRenderKeyframeAnimation::Marshalling, Write value failed");
             return false;
         }
