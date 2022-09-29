@@ -166,9 +166,9 @@ void CoreCanvas::Rotate(scalar deg)
     impl_->Rotate(deg);
 }
 
-void CoreCanvas::Rotate(scalar deg, scalar dx, scalar dy)
+void CoreCanvas::Rotate(scalar deg, scalar sx, scalar sy)
 {
-    impl_->Rotate(deg, dx, dy);
+    impl_->Rotate(deg, sx, sy);
 }
 
 void CoreCanvas::Shear(scalar sx, scalar sy)

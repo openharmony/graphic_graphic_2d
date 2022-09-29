@@ -42,9 +42,9 @@ std::unique_ptr<ImageImpl> ImplFactory::CreateImageImpl()
     return EngineImplFactory::CreateImage();
 }
 
-std::unique_ptr<ImageImpl> ImplFactory::CreateImageImpl(void* rawImg)
+std::unique_ptr<ImageImpl> ImplFactory::CreateImageImpl(void* rawImage)
 {
-    return EngineImplFactory::CreateImage(rawImg);
+    return EngineImplFactory::CreateImage(rawImage);
 }
 
 std::unique_ptr<PictureImpl> ImplFactory::CreatePictureImpl()
