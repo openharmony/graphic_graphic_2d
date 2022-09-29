@@ -21,9 +21,13 @@ RSSkiaFilter::RSSkiaFilter(sk_sp<SkImageFilter> imageFilter) : RSFilter(), image
 
 RSSkiaFilter::~RSSkiaFilter() {}
 
-void RSSkiaFilter::ApplyTo(SkPaint& paint)
+void RSSkiaFilter::PostProcess(SkCanvas& canvas)
 {
-    paint.setImageFilter(imageFilter_);
+    SkPaint paint;
+    if (IsMaterial()) {
+        paint.setColor(maskColor_);
+        canvas.drawPaint(paintColor);
+    }
 }
 } // namespace Rosen
 } // namespace OHOS

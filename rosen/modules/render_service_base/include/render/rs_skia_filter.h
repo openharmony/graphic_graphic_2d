@@ -26,9 +26,11 @@ class RSSkiaFilter : public RSFilter {
 public:
     ~RSSkiaFilter() override;
     void ApplyTo(SkPaint& paint);
+    void SetColor(SkPaint& paint);
 
 protected:
     RSSkiaFilter(sk_sp<SkImageFilter> imagefilter);
+    SkColor maskColor_;
 
 private:
     sk_sp<SkImageFilter> imageFilter_;
