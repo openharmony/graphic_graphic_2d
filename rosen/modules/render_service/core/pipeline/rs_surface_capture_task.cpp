@@ -450,7 +450,7 @@ void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::CaptureSingleSurfaceNodeWith
         canvas_->restoreToCount(saveCnt);
         if (node.GetBuffer() != nullptr) {
             // in node's local coordinate.
-            auto params = RSBaseRenderUtil::CreateBufferDrawParam(node, true, false, false, false);
+            auto params = RSBaseRenderUtil::CreateBufferDrawParam(node, true, false, false, false, true);
             renderEngine_->DrawSurfaceNodeWithParams(*canvas_, node, params);
         }
     } else {
@@ -458,7 +458,7 @@ void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::CaptureSingleSurfaceNodeWith
         canvas_->concat(translateMatrix);
         if (node.GetBuffer() != nullptr) {
             // in node's local coordinate.
-            auto params = RSBaseRenderUtil::CreateBufferDrawParam(node, true, false, false, false);
+            auto params = RSBaseRenderUtil::CreateBufferDrawParam(node, true, false, false, false, true);
             renderEngine_->DrawSurfaceNodeWithParams(*canvas_, node, params);
         }
         canvas_->restore();

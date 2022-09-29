@@ -86,7 +86,8 @@ public:
         bool inLocalCoordinate = false,
         bool isClipHole = false,
         bool forceCPU = false,
-        bool setColorFilter = true);
+        bool setColorFilter = true,
+        bool ignoreAlpha = false);
 
     static SkMatrix GetSurfaceTransformMatrix(const RSSurfaceRenderNode& node, const RectF& bounds);
     static SkMatrix GetNodeGravityMatrix(

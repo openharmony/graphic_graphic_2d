@@ -1057,7 +1057,12 @@ void RSBaseRenderUtil::CalculateSurfaceNodeClipRects(
 }
 
 BufferDrawParam RSBaseRenderUtil::CreateBufferDrawParam(
-    const RSSurfaceRenderNode& node, bool inLocalCoordinate, bool isClipHole, bool forceCPU, bool setColorFilter)
+    const RSSurfaceRenderNode& node,
+    bool inLocalCoordinate,
+    bool isClipHole,
+    bool forceCPU,
+    bool setColorFilter,
+    bool ignoreAlpha)
 {
     BufferDrawParam params;
 #ifdef RS_ENABLE_EGLIMAGE
@@ -1066,7 +1071,8 @@ BufferDrawParam RSBaseRenderUtil::CreateBufferDrawParam(
     (void)(forceCPU); // unused param.
     params.useCPU = true;
 #endif // RS_ENABLE_EGLIMAGE
-    params.paint.setAlphaf(node.GetGlobalAlpha());
+    float alpha = ignoreAlpha ? 1.0f : node.GetGlobalAlpha();
+    params.paint.setAlphaf(alpha);
     params.paint.setAntiAlias(true);
     params.setColorFilter = setColorFilter;
 
