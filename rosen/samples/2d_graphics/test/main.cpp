@@ -47,7 +47,6 @@ static void TestHello()
 int main()
 {
     TestHello();
-    std::vector<TestFunc> testFuncVec;
     std::map<string, std::vector<TestFunc>> testFuncMap;
 
     testFuncMap.insert(pair<string, std::vector<TestFunc>>("BitmapTest", BitmapTest::GetInstance().BitmapTestCase()));

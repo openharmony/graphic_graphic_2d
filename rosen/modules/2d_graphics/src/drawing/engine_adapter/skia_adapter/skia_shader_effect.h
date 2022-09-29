@@ -43,7 +43,7 @@ public:
         const std::vector<scalar>& pos, TileMode mode) override;
     void InitWithRadialGradient(const Point& centerPt, scalar radius, const std::vector<ColorQuad>& colors,
         const std::vector<scalar>& pos, TileMode mode) override;
-    void InitWithTwoPointConical(const Point& startPt, scalar startRadius, const Point& endPtr, scalar endRadius,
+    void InitWithTwoPointConical(const Point& startPt, scalar startRadius, const Point& endPt, scalar endRadius,
         const std::vector<ColorQuad>& colors, const std::vector<scalar>& pos, TileMode mode) override;
     void InitWithSweepGradient(const Point& centerPt, const std::vector<ColorQuad>& colors,
         const std::vector<scalar>& pos, TileMode mode, scalar startAngle, scalar endAngle) override;
