@@ -33,8 +33,8 @@ public:
     static EglWrapperDisplay *GetWrapperDisplay(EGLDisplay display);
     static EGLDisplay GetEglDisplay(EGLenum platform, EGLNativeDisplayType disp, const EGLAttrib *attribList);
     static EGLDisplay GetEglDisplayExt(EGLenum platform, void *disp, const EGLint *attribList);
-    bool ValidateEglContext(EGLContext ctx);
-    bool ValidateEglSurface(EGLSurface surf);
+    static bool ValidateEglContext(EGLContext ctx);
+    static bool ValidateEglSurface(EGLSurface surf);
     EGLContext CreateEglContext(EGLConfig config, EGLContext shareList, const EGLint *attribList);
     EGLSurface CreateEglSurface(EGLConfig config, NativeWindowType window, const EGLint *attribList);
     EGLBoolean DestroyEglContext(EGLContext context);
