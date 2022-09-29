@@ -41,7 +41,7 @@ bool RSRenderTransition::Marshalling(Parcel& parcel) const
         return false;
     }
     if (!RSMarshallingHelper::Marshalling(parcel, effects_) ||
-        !RSMarshallingHelper::Marshalling(parcel, isTransitionIn_) ||
+        !RSMarshallingHelper::Marshalling(parcel, isTransitionIn_) || interpolator_ == nullptr ||
         !interpolator_->Marshalling(parcel)) {
         ROSEN_LOGE("RSRenderTransition::Marshalling, step2 failed");
         return false;

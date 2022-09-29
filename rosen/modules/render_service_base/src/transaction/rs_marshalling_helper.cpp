@@ -756,7 +756,7 @@ MARSHALLING_AND_UNMARSHALLING(RSRenderPathAnimation)
 
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSRenderModifier>& val)
 {
-    return val->Marshalling(parcel);
+    return val != nullptr && val->Marshalling(parcel);
 }
 bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSRenderModifier>& val)
 {
