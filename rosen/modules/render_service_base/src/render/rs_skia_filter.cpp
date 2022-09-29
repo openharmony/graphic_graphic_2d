@@ -31,7 +31,7 @@ void RSSkiaFilter::PostProcess(SkCanvas& canvas)
     SkPaint paint;
     if (IsMaterial()) {
         paint.setColor(maskColor_);
-        canvas.drawPaint(paintColor);
+        canvas.drawPaint(paint);
     }
 }
 } // namespace Rosen
