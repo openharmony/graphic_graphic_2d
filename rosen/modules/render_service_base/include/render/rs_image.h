@@ -17,6 +17,7 @@
 #define RENDER_SERVICE_CLIENT_CORE_RENDER_RS_IMAGE_H
 
 #include <cstdint>
+#include <mutex>
 #include "common/rs_macros.h"
 #include "common/rs_rect.h"
 #include "include/core/SkCanvas.h"
@@ -83,9 +84,11 @@ private:
     void DrawImageRepeatRect(const SkPaint& paint, SkCanvas& canvas);
     void UploadGpu(SkCanvas& canvas);
 
+    mutable std::mutex mutex_;
     sk_sp<SkImage> image_;
-    mutable sk_sp<SkData> compressData_;
+    sk_sp<SkData> compressData_;
     std::shared_ptr<Media::PixelMap> pixelmap_;
+
     ImageFit imageFit_ = ImageFit::COVER;
     ImageRepeat imageRepeat_ = ImageRepeat::NO_REPEAT;
     SkVector radius_[4];

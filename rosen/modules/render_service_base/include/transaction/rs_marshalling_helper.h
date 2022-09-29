@@ -64,10 +64,6 @@ class RSRenderAnimatableProperty;
 
 class RSMarshallingHelper {
 public:
-    static bool WriteToParcel(Parcel& parcel, const void* data, size_t size);
-    static const void* ReadFromParcel(Parcel& parcel, size_t size);
-    static bool SkipFromParcel(Parcel& parcel, size_t size);
-
     // default marshalling and unmarshalling method for POD types
     // [PLANNING]: implement marshalling & unmarshalling methods for other types (e.g. RSImage, drawCMDList)
     template<typename T>
@@ -128,7 +124,6 @@ public:
     DECLARE_FUNCTION_OVERLOAD(SkPaint)
     DECLARE_FUNCTION_OVERLOAD(SkRect)
     DECLARE_FUNCTION_OVERLOAD(SkRegion)
-    DECLARE_FUNCTION_OVERLOAD(sk_sp<SkData>)
     DECLARE_FUNCTION_OVERLOAD(sk_sp<SkFlattenable>)
     DECLARE_FUNCTION_OVERLOAD(sk_sp<SkTextBlob>)
     DECLARE_FUNCTION_OVERLOAD(sk_sp<SkPicture>)
@@ -212,11 +207,17 @@ public:
         return Unmarshalling(parcel, first) && Unmarshalling(parcel, args...);
     }
 
+    static bool Marshalling(Parcel& parcel, sk_sp<SkData> val);
+    static bool Unmarshalling(Parcel& parcel, sk_sp<SkData>& val);
     static bool UnmarshallingWithCopy(Parcel& parcel, sk_sp<SkData>& val);
 
 private:
+    static bool WriteToParcel(Parcel& parcel, const void* data, size_t size);
+    static const void* ReadFromParcel(Parcel& parcel, size_t size);
+    static bool SkipFromParcel(Parcel& parcel, size_t size);
     static sk_sp<SkData> SerializeTypeface(SkTypeface* tf, void* ctx);
     static sk_sp<SkTypeface> DeserializeTypeface(const void* data, size_t length, void* ctx);
+
     static constexpr size_t MAX_DATA_SIZE = 128 * 1024 * 1024; // 128M
     static constexpr size_t MIN_DATA_SIZE = 8 * 1024;          // 8k
 };

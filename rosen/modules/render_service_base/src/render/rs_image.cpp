@@ -118,6 +118,7 @@ void RSImage::UploadGpu(SkCanvas& canvas)
 #ifdef RS_ENABLE_GL
     if (compressData_) {
         auto cache = RSImageCache::Instance().GetSkiaImageCache(uniqueId_);
+        std::lock_guard<std::mutex> lock(mutex_);
         if (cache) {
             image_ = cache;
         } else {
@@ -243,13 +244,14 @@ void RSImage::SetScale(double scale)
 #ifdef ROSEN_OHOS
 bool RSImage::Marshalling(Parcel& parcel) const
 {
-    auto data = compressData_;
     bool success = true;
     int imageFit = static_cast<int>(imageFit_);
     int imageRepeat = static_cast<int>(imageRepeat_);
+
+    std::lock_guard<std::mutex> lock(mutex_);
     success &= RSMarshallingHelper::Marshalling(parcel, uniqueId_);
     success &= RSMarshallingHelper::Marshalling(parcel, image_);
-    success &= RSMarshallingHelper::Marshalling(parcel, data);
+    success &= RSMarshallingHelper::Marshalling(parcel, compressData_);
     success &= RSMarshallingHelper::Marshalling(parcel, static_cast<int>(srcRect_.width_));
     success &= RSMarshallingHelper::Marshalling(parcel, static_cast<int>(srcRect_.height_));
     success &= RSMarshallingHelper::Marshalling(parcel, pixelmap_);
