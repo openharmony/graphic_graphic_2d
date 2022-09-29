@@ -193,13 +193,12 @@ VKAPI_ATTR
 VkResult GetPhysicalDeviceSurfaceCapabilitiesKHR(VkPhysicalDevice, VkSurfaceKHR surface,
                                                  VkSurfaceCapabilitiesKHR* capabilities)
 {
-    int err;
     int width = 0;
     int height = 0;
     uint32_t maxBufferCount = 10;
     if (surface != VK_NULL_HANDLE) {
         NativeWindow* window = SurfaceFromHandle(surface)->window;
-        err = NativeWindowHandleOpt(window, GET_BUFFER_GEOMETRY, &height, &width);
+        int err = NativeWindowHandleOpt(window, GET_BUFFER_GEOMETRY, &height, &width);
         if (err != OHOS::GSERROR_OK) {
             WLOGE("NATIVE_WINDOW_DEFAULT_WIDTH query failed: (%{public}d)", err);
             return VK_ERROR_SURFACE_LOST_KHR;
@@ -275,7 +274,7 @@ VkResult GetPhysicalDeviceSurfacePresentModesKHR(VkPhysicalDevice pdev, VkSurfac
 VKAPI_ATTR
 VkResult GetSwapchainImagesKHR(VkDevice, VkSwapchainKHR swapchainHandle, uint32_t* count, VkImage* images)
 {
-    Swapchain& swapchain = *SwapchainFromHandle(swapchainHandle);
+    const Swapchain& swapchain = *SwapchainFromHandle(swapchainHandle);
     if (images == nullptr) {
         *count = swapchain.numImages;
         return VK_SUCCESS;
@@ -460,10 +459,8 @@ VKAPI_ATTR VkResult SetWindowInfo(const VkSwapchainCreateInfoKHR* createInfo, in
         return VK_ERROR_SURFACE_LOST_KHR;
     }
 
-    VkSwapchainImageUsageFlagsOpenHarmony swapchain_image_usage = 0;
     if (createInfo->presentMode == VK_PRESENT_MODE_SHARED_DEMAND_REFRESH_KHR ||
         createInfo->presentMode == VK_PRESENT_MODE_SHARED_CONTINUOUS_REFRESH_KHR) {
-        swapchain_image_usage |= VK_SWAPCHAIN_IMAGE_USAGE_SHARED_BIT_OPENHARMONY;
         *numImages = 1;
     }
 

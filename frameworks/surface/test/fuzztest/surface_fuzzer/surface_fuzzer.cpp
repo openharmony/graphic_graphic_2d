@@ -66,7 +66,7 @@ namespace OHOS {
 
     bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     {
-        if (data == nullptr || size <= 0) {
+        if (data == nullptr) {
             return false;
         }
 
@@ -89,10 +89,10 @@ namespace OHOS {
         sptr<OHOS::Surface> pSurface = OHOS::Surface::CreateSurfaceAsProducer(producer);
         sptr<OHOS::SurfaceBuffer> buffer = nullptr;
         sptr<SyncFence> syncFence = SyncFence::INVALID_FENCE;
-        auto sRet = pSurface->RequestBuffer(buffer, syncFence, requestConfig);
-        sRet = pSurface->FlushBuffer(buffer, syncFence, flushConfig);
-        sRet = cSurface->AcquireBuffer(buffer, syncFence, timestamp, damage);
-        sRet = cSurface->ReleaseBuffer(buffer, syncFence);
+        pSurface->RequestBuffer(buffer, syncFence, requestConfig);
+        pSurface->FlushBuffer(buffer, syncFence, flushConfig);
+        cSurface->AcquireBuffer(buffer, syncFence, timestamp, damage);
+        cSurface->ReleaseBuffer(buffer, syncFence);
 
         return true;
     }

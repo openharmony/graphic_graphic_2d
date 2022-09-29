@@ -161,9 +161,8 @@ void ReadHDRMetaDataSet(MessageParcel &parcel, std::vector<uint8_t> &metaData)
 {
     uint32_t size = parcel.ReadUint32();
     metaData.clear();
-    uint8_t data;
     for (uint32_t index = 0; index < size; index++) {
-        data = parcel.ReadUint8();
+        uint8_t data = parcel.ReadUint8();
         metaData.push_back(data);
     }
 }

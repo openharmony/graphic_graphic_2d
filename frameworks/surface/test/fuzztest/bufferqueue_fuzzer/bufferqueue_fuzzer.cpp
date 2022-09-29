@@ -91,7 +91,7 @@ namespace OHOS {
 
     bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     {
-        if (data == nullptr || size < 0) {
+        if (data == nullptr) {
             return false;
         }
 
@@ -115,14 +115,14 @@ namespace OHOS {
         TransformType transform = GetData<TransformType>();
         std::vector<HDRMetaData> metaData;
         for (int i = 0; i < 10; i++) { // add 10 elements to the vector
-            HDRMetaData data = GetData<HDRMetaData>();
-            metaData.push_back(data);
+            HDRMetaData hDRMetaData = GetData<HDRMetaData>();
+            metaData.push_back(hDRMetaData);
         }
         HDRMetadataKey key = GetData<HDRMetadataKey>();
         std::vector<uint8_t> metaDataSet;
         for (int i = 0; i < 10; i++) { // add 10 elements to the vector
-            uint8_t data = GetData<uint8_t>();
-            metaDataSet.push_back(data);
+            uint8_t metaDataElement = GetData<uint8_t>();
+            metaDataSet.push_back(metaDataElement);
         }
         // test
         sptr<BufferQueue> bufferqueue = new BufferQueue(name, isShared);

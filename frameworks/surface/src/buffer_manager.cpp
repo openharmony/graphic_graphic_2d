@@ -65,12 +65,10 @@ inline GSError GenerateError(GSError err, int32_t code)
 
 sptr<BufferManager> BufferManager::GetInstance()
 {
+    static std::mutex mutex;
+    std::lock_guard<std::mutex> lock(mutex);
     if (instance == nullptr) {
-        static std::mutex mutex;
-        std::lock_guard<std::mutex> lock(mutex);
-        if (instance == nullptr) {
-            instance = new BufferManager();
-        }
+        instance = new BufferManager();
     }
     return instance;
 }
