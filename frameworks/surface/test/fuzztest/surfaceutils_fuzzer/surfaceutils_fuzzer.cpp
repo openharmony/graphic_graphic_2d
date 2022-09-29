@@ -49,7 +49,7 @@ namespace OHOS {
 
     bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     {
-        if (data == nullptr || size < 0) {
+        if (data == nullptr) {
             return false;
         }
 
@@ -69,6 +69,7 @@ namespace OHOS {
         sptr<OHOS::Surface> pSurface = Surface::CreateSurfaceAsProducer(producer);
         SurfaceUtils* utils = SurfaceUtils::GetInstance();
         sptr<OHOS::Surface> surface = utils->GetSurface(uniqueId1);
+        utils->Add(uniqueId1, surface);
         utils->Add(uniqueId2, pSurface);
         utils->Remove(uniqueId3);
 
