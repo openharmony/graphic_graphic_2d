@@ -113,7 +113,7 @@ RSScreenHDRCapability* RSScreenHDRCapability::Unmarshalling(Parcel &parcel)
 {
     float maxLum;
     float minLum;
-    float maxAverageLum = false;
+    float maxAverageLum;
     std::vector<ScreenHDRFormat> formats;
     if (!parcel.ReadFloat(maxLum)) {
         return nullptr;

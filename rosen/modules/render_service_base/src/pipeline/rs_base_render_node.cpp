@@ -398,7 +398,7 @@ void RSBaseRenderNode::GenerateSortedChildren()
     bool parentHasDisappearingTransition = disappearingChildren_.empty() ? false : HasDisappearingTransition(true);
     disappearingChildren_.remove_if([this, parentHasDisappearingTransition](const auto& pair) -> bool {
         auto& disappearingChild = pair.first;
-        auto& origPos = pair.second;
+        const auto& origPos = pair.second;
         // if neither parent node or child node has transition, we can safely remove it
         if (!parentHasDisappearingTransition && !disappearingChild->HasDisappearingTransition(false)) {
             ROSEN_LOGD("RSBaseRenderNode::GenerateSortedChildren removing finished transition child(id %" PRIu64 ")",

@@ -64,6 +64,10 @@ int main()
     };
 
     OHOS::SurfaceError ret = surface->RequestBuffer(buffer, releaseFence, config);
+    if (ret != SURFACE_ERROR_OK) {
+        std::cout << "request buffer failed" << std::endl;
+        return 0;
+    }
 
     if (buffer == nullptr) {
         std::cout << "request buffer failed: buffer is nullptr" << std::endl;
@@ -81,6 +85,10 @@ int main()
         },
     };
     ret = surface->FlushBuffer(buffer, -1, flushConfig);
+    if (ret != SURFACE_ERROR_OK) {
+        std::cout << "flush buffer failed" << std::endl;
+        return 0;
+    }
     std::cout << "FlushBuffer Success" << std::endl;
     sleep(1000); // wait 1000s
 }

@@ -171,7 +171,7 @@ public:
     ~MyDMS() noexcept = default;
     RSInterfaces& rsInterface_;
 
-    DisplayId GetDefaultDisplayId()
+    DisplayId GetDefaultDisplayId() const
     {
         std::lock_guard<std::recursive_mutex> lock(mutex_);
         return defaultDisplayId_;
@@ -269,7 +269,7 @@ int main()
 
     class TestSurfaceCapture : public SurfaceCaptureCallback {
     public:
-        TestSurfaceCapture(std::shared_ptr<RSSurfaceNode> surfaceNode) : showNode_(surfaceNode) {}
+        explicit TestSurfaceCapture(std::shared_ptr<RSSurfaceNode> surfaceNode) : showNode_(surfaceNode) {}
         ~TestSurfaceCapture() override {}
         void OnSurfaceCapture(std::shared_ptr<Media::PixelMap> pixelmap) override
         {

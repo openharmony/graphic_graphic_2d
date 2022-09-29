@@ -57,7 +57,7 @@ namespace pipelineTestUtils {
             // Do not hold it. Use it As ToDrawSurface::Sample().
         };
 
-        inline ToDrawSurface& SetSurfaceNode(std::shared_ptr<RSSurfaceNode> &surfaceNode)
+        inline ToDrawSurface& SetSurfaceNode(const std::shared_ptr<RSSurfaceNode> surfaceNode)
         {
             surfaceNode_ = surfaceNode;
             return *this;
