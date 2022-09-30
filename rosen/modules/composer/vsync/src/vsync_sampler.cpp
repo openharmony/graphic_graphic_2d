@@ -128,7 +128,7 @@ bool VSyncSampler::AddSample(int64_t timeStamp)
     }
 
     // 1/2 just a empirical value
-    bool shouldDisableScreenVsync = modeUpdated_ & (error_ < g_errorThreshold / 2);
+    bool shouldDisableScreenVsync = modeUpdated_ && (error_ < g_errorThreshold / 2);
 
     if (shouldDisableScreenVsync) {
         // disabled screen vsync in rsMainThread
