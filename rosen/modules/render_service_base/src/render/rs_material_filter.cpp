@@ -18,15 +18,6 @@
 
 namespace OHOS {
 namespace Rosen {
-constexpr int INDEX_R = 0;
-constexpr int INDEX_G = 6;
-constexpr int INDEX_B = 12;
-constexpr int INDEX_A = 18;
-constexpr int INDEX_R_offset = 4;
-constexpr int INDEX_G_offset = 9;
-constexpr int INDEX_B_offset = 14;
-constexpr float BLUR_SIGMA_SCALE = 0.57735f;
-
 RSMaterialFilter::RSMaterialFilter(int style, float dipScale)
     : RSSkiaFilter(RSMaterialFilter::CreateMaterialStyle(style, dipScale)), style_(style), dipScale_(dipScale)
 {
@@ -52,37 +43,16 @@ float RSMaterialFilter::RadiusVp2Sigma(float radiusVp, float dipScale) const
     return radiusPx > 0.0f ? BLUR_SIGMA_SCALE * radiusPx + SK_ScalarHalf : 0.0f;
 }
 
-/*
-* replace drawPaint/drawColor(kSrcOver)
-* formula: kSrcOver r = sa*s + (1-sa)*d
-* s: source d:destination sa: source alpha
-*/
-sk_sp<SkColorFilter> RSMaterialFilter::MaskColorFilter(SkColor maskColor)
-{
-    SkColor4f maskColor4f = SkColor4f::FromColor(maskColor);
-    SkScalar colorMatrix[20] = { 0 };
-    colorMatrix[INDEX_R] = 1 - maskColor4f.fA;
-    colorMatrix[INDEX_G] = 1 - maskColor4f.fA;
-    colorMatrix[INDEX_B] = 1 - maskColor4f.fA;
-    colorMatrix[INDEX_R_offset] = maskColor4f.fR * maskColor4f.fA;
-    colorMatrix[INDEX_G_offset] = maskColor4f.fG * maskColor4f.fA;
-    colorMatrix[INDEX_B_offset] = maskColor4f.fB * maskColor4f.fA;
-    colorMatrix[INDEX_A] = 1;
-
-    return SkColorFilters::Matrix(colorMatrix);
-}
-
 sk_sp<SkImageFilter> RSMaterialFilter::CreateMaterialFilter(float radius, float sat, SkColor maskColor)
 {
+    maskColor_ = maskColor;
     sk_sp<SkImageFilter> blurFilter = SkBlurImageFilter::Make(radius, radius, nullptr, nullptr,
         SkBlurImageFilter::kClamp_TileMode); // blur
     SkColorMatrix cm;
     cm.setSaturation(sat);
     sk_sp<SkColorFilter> satFilter = SkColorFilters::Matrix(cm); // saturation
-    sk_sp<SkColorFilter> maskFilter = RSMaterialFilter::MaskColorFilter(maskColor); // mask
-    sk_sp<SkColorFilter> filterCompose = SkColorFilters::Compose(maskFilter, satFilter);
 
-    return SkImageFilters::ColorFilter(filterCompose, blurFilter);
+    return SkImageFilters::ColorFilter(satFilter, blurFilter);
 }
 
 sk_sp<SkImageFilter> RSMaterialFilter::CreateMaterialStyle(int style, float dipScale)

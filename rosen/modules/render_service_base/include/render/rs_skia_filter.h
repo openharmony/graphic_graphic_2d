@@ -15,6 +15,7 @@
 #ifndef RENDER_SERVICE_CLIENT_CORE_RENDER_SKIA_RS_SKIA_FILTER_H
 #define RENDER_SERVICE_CLIENT_CORE_RENDER_SKIA_RS_SKIA_FILTER_H
 
+#include "include/core/SkCanvas.h"
 #include "include/core/SkImageFilter.h"
 #include "include/core/SkPaint.h"
 
@@ -26,9 +27,11 @@ class RSSkiaFilter : public RSFilter {
 public:
     ~RSSkiaFilter() override;
     void ApplyTo(SkPaint& paint);
+    void PostProcess(SkCanvas& canvas);
 
 protected:
     RSSkiaFilter(sk_sp<SkImageFilter> imagefilter);
+    SkColor maskColor_;
 
 private:
     sk_sp<SkImageFilter> imageFilter_;
