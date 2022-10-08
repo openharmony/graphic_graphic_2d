@@ -43,6 +43,7 @@ public:
         ON_CLOSE_WINDOW,
         ON_SCREEN_UNLOCK,
         ON_WINDOW_ANIMATION_TARGETS_UPDATE,
+        ON_WALLPAPER_UPDATE,
     };
 
     virtual void OnStartApp(StartingAppType type, const sptr<RSWindowAnimationTarget>& startingWindowTarget,
@@ -64,6 +65,8 @@ public:
 
     virtual void OnWindowAnimationTargetsUpdate(const sptr<RSWindowAnimationTarget>& fullScreenWindowTarget,
         const std::vector<sptr<RSWindowAnimationTarget>>& floatingWindowTargets) = 0;
+    
+    virtual void OnWallpaperUpdate(const sptr<RSWindowAnimationTarget>& wallpaperTarget) = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

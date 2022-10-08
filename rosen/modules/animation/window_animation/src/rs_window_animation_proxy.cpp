@@ -319,5 +319,33 @@ void RSWindowAnimationProxy::OnWindowAnimationTargetsUpdate(
         WALOGE("Failed to send window animation targets update request, error code:%d", ret);
     }
 }
+
+void RSWindowAnimationProxy::OnWallpaperUpdate(const sptr<RSWindowAnimationTarget>& wallpaperTarget)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option(MessageOption::TF_ASYNC);
+
+    WALOGD("Window animation proxy on wallpaper update!");
+    if (!WriteInterfaceToken(data)) {
+        return;
+    }
+
+    if (!data.WriteParcelable(wallpaperTarget.GetRefPtr())) {
+        WALOGE("Failed to write wallpaper update target!");
+        return;
+    }
+
+    auto remote = Remote();
+    if (remote == nullptr) {
+        WALOGE("remote is null!");
+        return;
+    }
+
+    auto ret = remote->SendRequest(RSIWindowAnimationController::ON_WALLPAPER_UPDATE, data, reply, option);
+    if (ret != NO_ERROR) {
+        WALOGE("Failed to send wallpaper update request, error code:%d", ret);
+    }
+}
 } // namespace Rosen
 } // namespace OHOS

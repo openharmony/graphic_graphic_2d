@@ -32,7 +32,8 @@ const std::map<uint32_t, WindowAnimationStubFunc> RSWindowAnimationStub::stubFun
     std::make_pair(RSIWindowAnimationController::ON_CLOSE_WINDOW, &RSWindowAnimationStub::CloseWindow),
     std::make_pair(RSIWindowAnimationController::ON_SCREEN_UNLOCK, &RSWindowAnimationStub::ScreenUnlock),
     std::make_pair(RSIWindowAnimationController::ON_WINDOW_ANIMATION_TARGETS_UPDATE,
-        &RSWindowAnimationStub::WindowAnimationTargetsUpdate)
+        &RSWindowAnimationStub::WindowAnimationTargetsUpdate),
+    std::make_pair(RSIWindowAnimationController::ON_WALLPAPER_UPDATE, &RSWindowAnimationStub::WallpaperUpdate)
 };
 
 int RSWindowAnimationStub::OnRemoteRequest(uint32_t code, MessageParcel& data,
@@ -209,6 +210,14 @@ int RSWindowAnimationStub::WindowAnimationTargetsUpdate(MessageParcel& data, Mes
     }
 
     OnWindowAnimationTargetsUpdate(fullScreenWindowTarget, floatingWindowTargets);
+    return ERR_NONE;
+}
+
+int RSWindowAnimationStub::WallpaperUpdate(MessageParcel& data, MessageParcel& reply)
+{
+    WALOGD("Window animation wallpaper update!");
+    sptr<RSWindowAnimationTarget> wallpaperTarget(data.ReadParcelable<RSWindowAnimationTarget>());
+    OnWallpaperUpdate(wallpaperTarget);
     return ERR_NONE;
 }
 } // namespace Rosen

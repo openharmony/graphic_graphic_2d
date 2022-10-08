@@ -56,6 +56,8 @@ public:
     void OnWindowAnimationTargetsUpdate(const sptr<RSWindowAnimationTarget>& fullScreenWindowTarget,
         const std::vector<sptr<RSWindowAnimationTarget>>& floatingWindowTargets) override;
 
+    void OnWallpaperUpdate(const sptr<RSWindowAnimationTarget>& wallpaperTarget) override;
+
 private:
     void HandleOnStartApp(StartingAppType type, const sptr<RSWindowAnimationTarget>& startingWindowTarget,
         const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback);
@@ -74,6 +76,8 @@ private:
 
     void HandleOnWindowAnimationTargetsUpdate(const sptr<RSWindowAnimationTarget>& fullScreenWindowTarget,
         const std::vector<sptr<RSWindowAnimationTarget>>& floatingWindowTargets);
+
+    void HandleOnWallpaperUpdate(const sptr<RSWindowAnimationTarget>& wallpaperTarget);
 
     void CallJsFunction(const std::string& methodName, NativeValue* const* argv, size_t argc);
 

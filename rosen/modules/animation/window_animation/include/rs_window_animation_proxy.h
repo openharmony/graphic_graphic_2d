@@ -50,6 +50,7 @@ public:
     void OnWindowAnimationTargetsUpdate(const sptr<RSWindowAnimationTarget>& fullScreenWindowTarget,
         const std::vector<sptr<RSWindowAnimationTarget>>& floatingWindowTargets) override;
 
+    void OnWallpaperUpdate(const sptr<RSWindowAnimationTarget>& wallpaperTarget) override;
 private:
     bool WriteInterfaceToken(MessageParcel& data);
     bool WriteTargetAndCallback(MessageParcel& data, const sptr<RSWindowAnimationTarget>& windowTarget,

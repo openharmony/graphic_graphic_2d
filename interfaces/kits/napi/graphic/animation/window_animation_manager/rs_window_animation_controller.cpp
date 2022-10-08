@@ -197,6 +197,28 @@ void RSWindowAnimationController::OnWindowAnimationTargetsUpdate(
         std::make_unique<AsyncTask>(callback, std::move(execute), std::move(complete)));
 }
 
+void RSWindowAnimationController::OnWallpaperUpdate(const sptr<RSWindowAnimationTarget>& wallpaperTarget)
+{
+    WALOGD("Window animation controller on wallpaper update.");
+    wptr<RSWindowAnimationController> controllerWptr = this;
+    auto complete = std::make_unique<AsyncTask::CompleteCallback> (
+        [controllerWptr, wallpaperTarget](NativeEngine&, AsyncTask&, int32_t) {
+            auto controllerSptr = controllerWptr.promote();
+            if (controllerSptr == nullptr) {
+                WALOGE("Controller is null!");
+                return;
+            }
+
+            controllerSptr->HandleOnWallpaperUpdate(wallpaperTarget);
+        }
+    );
+
+    NativeReference* callback = nullptr;
+    std::unique_ptr<AsyncTask::ExecuteCallback> execute = nullptr;
+    AsyncTask::Schedule("RSWindowAnimationController::OnWallpaperUpdate", engine_,
+        std::make_unique<AsyncTask>(callback, std::move(execute), std::move(complete)));
+}
+
 void RSWindowAnimationController::HandleOnStartApp(StartingAppType type,
     const sptr<RSWindowAnimationTarget>& startingWindowTarget,
     const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback)
@@ -278,6 +300,15 @@ void RSWindowAnimationController::HandleOnWindowAnimationTargetsUpdate(
         RSWindowAnimationUtils::CreateJsWindowAnimationTargetArray(engine_, floatingWindowTargets),
     };
     CallJsFunction("onWindowAnimationTargetsUpdate", argv, ARGC_TWO);
+}
+
+void RSWindowAnimationController::HandleOnWallpaperUpdate(const sptr<RSWindowAnimationTarget>& wallpaperTarget)
+{
+    WALOGD("Handle on wallpaper target update.");
+    NativeValue* argv[] = {
+        RSWindowAnimationUtils::CreateJsWindowAnimationTarget(engine_, wallpaperTarget),
+    };
+    CallJsFunction("onWallpaperUpdate", argv, ARGC_ONE);
 }
 
 void RSWindowAnimationController::CallJsFunction(const std::string& methodName, NativeValue* const* argv, size_t argc)
