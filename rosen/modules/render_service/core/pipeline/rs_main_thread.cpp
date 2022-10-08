@@ -178,7 +178,7 @@ void RSMainThread::Init()
     Occlusion::Region::InitDynamicLibraryFunction();
 
     accessibilityObserver_ = std::make_shared<AccessibilityObserver>();
-    auto &config = OHOS::Singleton<OHOS::AccessibilityConfig::AccessibilityConfig>::GetInstance();
+    auto &config = OHOS::AccessibilityConfig::AccessibilityConfig::GetInstance();
     config.InitializeContext();
     config.SubscribeConfigObserver(CONFIG_ID::CONFIG_DALTONIZATION_COLOR_FILTER, accessibilityObserver_);
     config.SubscribeConfigObserver(CONFIG_ID::CONFIG_INVERT_COLOR, accessibilityObserver_);

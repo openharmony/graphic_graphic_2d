@@ -113,7 +113,7 @@ RSRenderThread::RSRenderThread()
 
     highContrastObserver_ = std::make_shared<HighContrastObserver>();
     context_ = std::make_shared<RSContext>();
-    auto &config = OHOS::Singleton<OHOS::AccessibilityConfig::AccessibilityConfig>::GetInstance();
+    auto &config = OHOS::AccessibilityConfig::AccessibilityConfig::GetInstance();
     config.InitializeContext();
     config.SubscribeConfigObserver(CONFIG_ID::CONFIG_HIGH_CONTRAST_TEXT, highContrastObserver_);
 }
