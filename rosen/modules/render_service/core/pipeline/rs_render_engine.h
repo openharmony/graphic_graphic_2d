@@ -125,15 +125,14 @@ public:
         const BufferRequestConfig& config,
         bool forceCPU = false);
 
-    void DrawWithParams(RSPaintFilterCanvas& canvas, BufferDrawParam& params,
-        PreProcessFunc preProcess = nullptr, PostProcessFunc postProcess = nullptr);
-
     void DrawSurfaceNodeWithParams(
         RSPaintFilterCanvas& canvas,
         RSSurfaceRenderNode& node,
         BufferDrawParam& params,
         PreProcessFunc preProcess = nullptr,
         PostProcessFunc postProcess = nullptr);
+
+    void DrawUniSurfaceNodeWithParams(RSPaintFilterCanvas& canvas, RSSurfaceRenderNode& node, BufferDrawParam& params);
 
     void DrawLayers(
         RSPaintFilterCanvas& canvas,
@@ -164,6 +163,9 @@ public:
 private:
     void DrawBuffer(RSPaintFilterCanvas& canvas, BufferDrawParam& params);
     void DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam& params);
+    void DrawWithParams(RSPaintFilterCanvas& canvas, BufferDrawParam& params,
+        PreProcessFunc preProcess = nullptr, PostProcessFunc postProcess = nullptr);
+    void RegisterDeleteBufferListener(const sptr<Surface>& consumer);
 
     static void RSSurfaceNodeCommonPreProcess(
         RSSurfaceRenderNode& node,

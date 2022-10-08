@@ -113,6 +113,8 @@ public:
     static bool WriteSurfaceRenderNodeToPng(const RSSurfaceRenderNode& node);
 
     static bool WritePixelMapToPng(Media::PixelMap& pixelMap);
+    static void DealWithSurfaceRotationAndGravity(
+        const RSSurfaceRenderNode& node, RectF& bounds, BufferDrawParam& params);
 private:
     static void CalculateSurfaceNodeClipRects(
         const RSSurfaceRenderNode& node,
@@ -120,8 +122,7 @@ private:
         const RectF& localBounds,
         bool inLocalCoordinate,
         BufferDrawParam& params);
-    static void DealWithSurfaceRotationAndGravity(
-        const RSSurfaceRenderNode& node, RectF& bounds, BufferDrawParam& params);
+
     static bool CreateYuvToRGBABitMap(sptr<OHOS::SurfaceBuffer> buffer, std::vector<uint8_t>& newBuffer,
         SkBitmap& bitmap);
     static bool CreateNewColorGamutBitmap(sptr<OHOS::SurfaceBuffer> buffer, std::vector<uint8_t>& newBuffer,

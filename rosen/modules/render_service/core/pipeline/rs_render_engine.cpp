@@ -402,16 +402,7 @@ void RSRenderEngine::DrawSurfaceNodeWithParams(
     PostProcessFunc postProcess)
 {
     if (!params.useCPU) {
-#ifdef RS_ENABLE_EGLIMAGE
-        const auto& consumerSurface = node.GetConsumer();
-        auto regUnMapEglImageFunc = [this](int32_t bufferId) {
-            eglImageManager_->UnMapEglImageFromSurfaceBuffer(bufferId);
-        };
-        if (consumerSurface == nullptr ||
-            (consumerSurface->RegisterDeleteBufferListener(regUnMapEglImageFunc) != GSERROR_OK)) {
-            RS_LOGE("RSRenderEngine::DrawSurfaceNode: failed to register UnMapEglImage callback.");
-        }
-#endif // #ifdef RS_ENABLE_EGLIMAGE
+        RegisterDeleteBufferListener(node.GetConsumer());
     }
 
     auto nodePreProcessFunc = [&preProcess, &node](RSPaintFilterCanvas& canvas, BufferDrawParam& params) {
@@ -439,6 +430,33 @@ void RSRenderEngine::DrawSurfaceNodeWithParams(
     RSPropertiesPainter::DrawShadow(property, canvas, &params.clipRRect);
 
     DrawWithParams(canvas, params, nodePreProcessFunc, nodePostProcessFunc);
+}
+
+void RSRenderEngine::DrawUniSurfaceNodeWithParams(RSPaintFilterCanvas& canvas, RSSurfaceRenderNode& node,
+    BufferDrawParam& params)
+{
+    canvas.save();
+    canvas.concat(params.matrix);
+    if (!params.useCPU) {
+        RegisterDeleteBufferListener(node.GetConsumer());
+        RSRenderEngine::DrawImage(canvas, params);
+    } else {
+        RSRenderEngine::DrawBuffer(canvas, params);
+    }
+    canvas.restore();
+}
+
+void RSRenderEngine::RegisterDeleteBufferListener(const sptr<Surface>& consumer)
+{
+#ifdef RS_ENABLE_EGLIMAGE
+    auto regUnMapEglImageFunc = [this](int32_t bufferId) {
+        eglImageManager_->UnMapEglImageFromSurfaceBuffer(bufferId);
+    };
+    if (consumer == nullptr ||
+        (consumer->RegisterDeleteBufferListener(regUnMapEglImageFunc) != GSERROR_OK)) {
+        RS_LOGE("RSRenderEngine::DrawSurfaceNode: failed to register UnMapEglImage callback.");
+    }
+#endif // #ifdef RS_ENABLE_EGLIMAGE
 }
 
 void RSRenderEngine::DrawSurfaceNode(

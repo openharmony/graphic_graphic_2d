@@ -796,8 +796,8 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
         node.NotifyRTBufferAvailable();
         node.SetGlobalAlpha(1.0f);
         // use node's local coordinate.
-        auto params = RSBaseRenderUtil::CreateBufferDrawParam(node, true, false, false, false);
-        renderEngine_->DrawSurfaceNodeWithParams(*canvas_, node, params);
+        auto params = RSUniRenderUtil::CreateBufferDrawParam(node, false);
+        renderEngine_->DrawUniSurfaceNodeWithParams(*canvas_, node, params);
     }
 
     if (isSelfDrawingSurface) {

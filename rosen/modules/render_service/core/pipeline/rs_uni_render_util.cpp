@@ -96,5 +96,29 @@ Occlusion::Region RSUniRenderUtil::MergeVisibleDirtyRegion(std::shared_ptr<RSDis
     }
     return allSurfaceVisibleDirtyRegion;
 }
+
+BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(const RSSurfaceRenderNode& node, bool forceCPU)
+{
+    BufferDrawParam params;
+#ifdef RS_ENABLE_EGLIMAGE
+    params.useCPU = forceCPU;
+#else // RS_ENABLE_EGLIMAGE
+    params.useCPU = true;
+#endif // RS_ENABLE_EGLIMAGE
+    params.paint.setAntiAlias(true);
+
+    const RSProperties& property = node.GetRenderProperties();
+    params.dstRect = SkRect::MakeWH(property.GetBoundsWidth(), property.GetBoundsHeight());
+
+    const sptr<SurfaceBuffer>& buffer = node.GetBuffer();
+    params.buffer = buffer;
+    params.acquireFence = node.GetAcquireFence();
+    params.srcRect = SkRect::MakeWH(buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight());
+
+    RectF localBounds = {0.0f, 0.0f, property.GetBoundsWidth(), property.GetBoundsHeight()};
+    RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(node, localBounds, params);
+    return params;
+}
+
 } // namespace Rosen
 } // namespace OHOS
