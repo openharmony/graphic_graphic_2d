@@ -68,7 +68,7 @@ public:
     GSError SetMetaData(uint32_t sequence, const std::vector<GraphicHDRMetaData> &metaData) override;
     GSError SetMetaDataSet(uint32_t sequence, GraphicHDRMetadataKey key,
                            const std::vector<uint8_t> &metaData) override;
-    GSError SetTunnelHandle(const ExtDataHandle *handle) override;
+    GSError SetTunnelHandle(const OHExtDataHandle *handle) override;
     GSError GetPresentTimestamp(uint32_t sequence, GraphicPresentTimestampType type, int64_t &time) override;
 
 private:

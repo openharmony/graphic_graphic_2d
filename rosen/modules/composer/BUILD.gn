@@ -41,6 +41,7 @@ config("composer_public_config") {
 ohos_shared_library("libcomposer") {
   sources = [
     "hdi_backend/src/hdi_backend.cpp",
+    "hdi_backend/src/hdi_device_impl.cpp",
     "hdi_backend/src/hdi_device.cpp",
     "hdi_backend/src/hdi_framebuffer_surface.cpp",
     "hdi_backend/src/hdi_layer.cpp",

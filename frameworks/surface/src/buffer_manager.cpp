@@ -40,18 +40,18 @@
 
 namespace OHOS {
 namespace {
-GSError GenerateError(GSError err, DispErrCode code)
+GSError GenerateError(GSError err, GraphicDispErrCode code)
 {
     switch (code) {
-        case DISPLAY_SUCCESS: return static_cast<GSError>(err + 0);
-        case DISPLAY_FAILURE: return static_cast<GSError>(err + LOWERROR_FAILURE);
-        case DISPLAY_FD_ERR: return static_cast<GSError>(err + EBADF);
-        case DISPLAY_PARAM_ERR: return static_cast<GSError>(err + EINVAL);
-        case DISPLAY_NULL_PTR: return static_cast<GSError>(err + EINVAL);
-        case DISPLAY_NOT_SUPPORT: return static_cast<GSError>(err + EOPNOTSUPP);
-        case DISPLAY_NOMEM: return static_cast<GSError>(err + ENOMEM);
-        case DISPLAY_SYS_BUSY: return static_cast<GSError>(err + EBUSY);
-        case DISPLAY_NOT_PERM: return static_cast<GSError>(err + EPERM);
+        case GRAPHIC_DISPLAY_SUCCESS: return static_cast<GSError>(err + 0);
+        case GRAPHIC_DISPLAY_FAILURE: return static_cast<GSError>(err + LOWERROR_FAILURE);
+        case GRAPHIC_DISPLAY_FD_ERR: return static_cast<GSError>(err + EBADF);
+        case GRAPHIC_DISPLAY_PARAM_ERR: return static_cast<GSError>(err + EINVAL);
+        case GRAPHIC_DISPLAY_NULL_PTR: return static_cast<GSError>(err + EINVAL);
+        case GRAPHIC_DISPLAY_NOT_SUPPORT: return static_cast<GSError>(err + EOPNOTSUPP);
+        case GRAPHIC_DISPLAY_NOMEM: return static_cast<GSError>(err + ENOMEM);
+        case GRAPHIC_DISPLAY_SYS_BUSY: return static_cast<GSError>(err + EBUSY);
+        case GRAPHIC_DISPLAY_NOT_PERM: return static_cast<GSError>(err + EPERM);
         default: break;
     }
     return static_cast<GSError>(err + LOWERROR_INVALID);
@@ -59,7 +59,7 @@ GSError GenerateError(GSError err, DispErrCode code)
 
 inline GSError GenerateError(GSError err, int32_t code)
 {
-    return GenerateError(err, static_cast<DispErrCode>(code));
+    return GenerateError(err, static_cast<GraphicDispErrCode>(code));
 }
 } // namespace
 
@@ -100,7 +100,7 @@ GSError BufferManager::Alloc(const BufferRequestConfig &config, sptr<SurfaceBuff
     int32_t allocHeight = config.height;
     AllocInfo info = {allocWidth, allocHeight, config.usage, (PixelFormat)config.format};
     auto dret = displayGralloc_->AllocMem(info, handle);
-    if (dret == DISPLAY_SUCCESS) {
+    if (dret == GRAPHIC_DISPLAY_SUCCESS) {
         buffer->SetBufferHandle(handle);
         buffer->SetSurfaceBufferWidth(allocWidth);
         buffer->SetSurfaceBufferHeight(allocHeight);
@@ -147,7 +147,7 @@ GSError BufferManager::Unmap(sptr<SurfaceBuffer> &buffer)
     }
 
     auto dret = displayGralloc_->Unmap(*handle);
-    if (dret == DISPLAY_SUCCESS) {
+    if (dret == GRAPHIC_DISPLAY_SUCCESS) {
         handle->virAddr = nullptr;
         return GSERROR_OK;
     }
@@ -165,7 +165,7 @@ GSError BufferManager::Unmap(BufferHandle *bufferHandle)
         return GSERROR_OK;
     }
     auto dret = displayGralloc_->Unmap(*bufferHandle);
-    if (dret == DISPLAY_SUCCESS) {
+    if (dret == GRAPHIC_DISPLAY_SUCCESS) {
         bufferHandle->virAddr = nullptr;
         return GSERROR_OK;
     }
@@ -184,7 +184,7 @@ GSError BufferManager::FlushCache(sptr<SurfaceBuffer> &buffer)
     }
 
     auto dret = displayGralloc_->FlushCache(*handle);
-    if (dret == DISPLAY_SUCCESS) {
+    if (dret == GRAPHIC_DISPLAY_SUCCESS) {
         return GSERROR_OK;
     }
     BLOGW("Failed with %{public}d", dret);
@@ -202,7 +202,7 @@ GSError BufferManager::InvalidateCache(sptr<SurfaceBuffer> &buffer)
     }
 
     auto dret = displayGralloc_->InvalidateCache(*handle);
-    if (dret == DISPLAY_SUCCESS) {
+    if (dret == GRAPHIC_DISPLAY_SUCCESS) {
         return GSERROR_OK;
     }
     BLOGW("Failed with %{public}d", dret);

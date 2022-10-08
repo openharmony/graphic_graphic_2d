@@ -67,7 +67,7 @@ void HdiOutput::SetLayerInfo(const std::vector<LayerInfoPtr> &layerInfos)
         }
 
         int32_t ret = CreateLayer(surfaceId, layerInfo);
-        if (ret != DISPLAY_SUCCESS) {
+        if (ret != GRAPHIC_DISPLAY_SUCCESS) {
             return;
         }
     }
@@ -111,7 +111,7 @@ int32_t HdiOutput::CreateLayer(uint64_t surfaceId, const LayerInfoPtr &layerInfo
     LayerPtr layer = HdiLayer::CreateHdiLayer(screenId_);
     if (!layer->Init(layerInfo)) {
         HLOGE("Init hdiLayer failed");
-        return DISPLAY_FAILURE;
+        return GRAPHIC_DISPLAY_FAILURE;
     }
 
     layer->UpdateLayerInfo(layerInfo);
@@ -119,16 +119,16 @@ int32_t HdiOutput::CreateLayer(uint64_t surfaceId, const LayerInfoPtr &layerInfo
     layerIdMap_[layerId] = layer;
     surfaceIdMap_[surfaceId] = layer;
 
-    return DISPLAY_SUCCESS;
+    return GRAPHIC_DISPLAY_SUCCESS;
 }
 
-void HdiOutput::SetOutputDamage(uint32_t num, const IRect &outputDamage)
+void HdiOutput::SetOutputDamage(uint32_t num, const GraphicIRect &outputDamage)
 {
     outputDamageNum_ = num;
     outputDamage_ = outputDamage;
 }
 
-/* const */ IRect& HdiOutput::GetOutputDamage()
+/* const */ GraphicIRect& HdiOutput::GetOutputDamage()
 {
     return outputDamage_;
 }

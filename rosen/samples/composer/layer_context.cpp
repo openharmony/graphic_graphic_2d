@@ -30,7 +30,7 @@ namespace {
     "%{public}s: " fmt, __func__, ##__VA_ARGS__)
 }
 
-LayerContext::LayerContext(IRect dst, IRect src, uint32_t zorder, LayerType layerType)
+LayerContext::LayerContext(GraphicIRect dst, GraphicIRect src, uint32_t zorder, LayerType layerType)
     : dst_(dst), src_(src), zorder_(zorder), layerType_(layerType)
 {
     cSurface_ = Surface::CreateSurfaceAsConsumer();
@@ -145,7 +145,7 @@ SurfaceError LayerContext::FillHDILayer()
         return ret;
     }
 
-    LayerAlpha alpha = { .enPixelAlpha = true };
+    GraphicLayerAlpha alpha = { .enPixelAlpha = true };
 
     hdiLayer_->SetSurface(cSurface_);
     hdiLayer_->SetBuffer(buffer, acquireSyncFence);
@@ -160,7 +160,7 @@ SurfaceError LayerContext::FillHDILayer()
     hdiLayer_->SetVisibleRegion(1, src_);
     hdiLayer_->SetDirtyRegion(src_);
     hdiLayer_->SetLayerSize(dst_);
-    hdiLayer_->SetBlendType(BlendType::BLEND_SRCOVER);
+    hdiLayer_->SetBlendType(GraphicBlendType::GRAPHIC_BLEND_SRCOVER);
     hdiLayer_->SetCropRect(src_);
     hdiLayer_->SetPreMulti(false);
 
@@ -197,9 +197,9 @@ void LayerContext::SetLayerTransformType()
 void LayerContext::SetLayerCompositionType()
 {
     if (layerType_ >= LayerType::LAYER_EXTRA && testClient_) {
-        hdiLayer_->SetCompositionType(CompositionType::COMPOSITION_CLIENT);
+        hdiLayer_->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT);
     } else {
-        hdiLayer_->SetCompositionType(CompositionType::COMPOSITION_DEVICE);
+        hdiLayer_->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE);
     }
 }
 

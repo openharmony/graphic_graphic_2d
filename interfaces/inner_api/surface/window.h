@@ -16,7 +16,7 @@
 #ifndef NDK_INCLUDE_NATIVE_WINDOW_H_
 #define NDK_INCLUDE_NATIVE_WINDOW_H_
 
-#include <stdint.h>
+#include "common_types.h"
 #include <buffer_handle.h>
 
 #ifdef __cplusplus
@@ -99,12 +99,6 @@ typedef struct {
     OHHDRMetadataKey key;
     float value;
 } OHHDRMetaData;
-
-typedef struct {
-    int32_t fd;
-    uint32_t reserveInts;
-    int32_t reserve[0];
-} OHExtDataHandle;
 
 // pSurface type is OHOS::sptr<OHOS::Surface>*
 OHNativeWindow* CreateNativeWindowFromSurface(void* pSurface);

@@ -59,7 +59,7 @@ int32_t HdiBackend::PreProcessLayersComp(const OutputPtr &output,
 {
     if (device_ == nullptr) {
         HLOGE("device has not been initialized");
-        return DISPLAY_FAILURE;
+        return GRAPHIC_DISPLAY_FAILURE;
     }
 
     uint32_t layersNum = layersMap.size();
@@ -78,21 +78,21 @@ int32_t HdiBackend::PreProcessLayersComp(const OutputPtr &output,
         const LayerPtr &layer = iter->second;
         if (doClientCompositionDirectly) {
             HLOGD("Direct client composition is enabled.");
-            layer->UpdateCompositionType(CompositionType::COMPOSITION_CLIENT);
+            layer->UpdateCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT);
             continue;
         }
         layer->SetHdiLayerInfo();
     }
 
     int32_t ret = device_->PrepareScreenLayers(screenId, needFlush);
-    if (ret != DISPLAY_SUCCESS) {
+    if (ret != GRAPHIC_DISPLAY_SUCCESS) {
         HLOGE("PrepareScreenLayers failed, ret is %{public}d", ret);
-        return DISPLAY_FAILURE;
+        return GRAPHIC_DISPLAY_FAILURE;
     }
 
     if (doClientCompositionDirectly) {
         ScopedBytrace doClientCompositionDirectlyTag("DoClientCompositionDirectly");
-        return DISPLAY_SUCCESS;
+        return GRAPHIC_DISPLAY_SUCCESS;
     }
 
     return UpdateLayerCompType(screenId, layersMap);
@@ -112,7 +112,7 @@ void HdiBackend::Repaint(std::vector<OutputPtr> &outputs)
         sampler_ = CreateVSyncSampler();
     }
 
-    int32_t ret = DISPLAY_SUCCESS;
+    int32_t ret = GRAPHIC_DISPLAY_SUCCESS;
     for (auto &output : outputs) {
         if (output == nullptr) {
             continue;
@@ -124,7 +124,7 @@ void HdiBackend::Repaint(std::vector<OutputPtr> &outputs)
         }
         bool needFlush = false;
         ret = PreProcessLayersComp(output, layersMap, needFlush);
-        if (ret != DISPLAY_SUCCESS) {
+        if (ret != GRAPHIC_DISPLAY_SUCCESS) {
             HLOGE("Pre process layers composition failed, ret = %{public}d.", ret);
             return;
         }
@@ -135,7 +135,7 @@ void HdiBackend::Repaint(std::vector<OutputPtr> &outputs)
         for (auto iter = layersMap.begin(); iter != layersMap.end(); ++iter) {
             const LayerPtr &layer = iter->second;
             newLayerInfos.emplace_back(layer->GetLayerInfo());
-            if (layer->GetLayerInfo()->GetCompositionType() == CompositionType::COMPOSITION_CLIENT) {
+            if (layer->GetLayerInfo()->GetCompositionType() == GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT) {
                 compClientLayers.emplace_back(layer);
             }
         }
@@ -148,14 +148,14 @@ void HdiBackend::Repaint(std::vector<OutputPtr> &outputs)
         OnPrepareComplete(needFlush, output, newLayerInfos);
         sptr<SurfaceBuffer> frameBuffer = nullptr;
         if (needFlush) {
-            if (FlushScreen(output, compClientLayers, frameBuffer) != DISPLAY_SUCCESS) {
+            if (FlushScreen(output, compClientLayers, frameBuffer) != GRAPHIC_DISPLAY_SUCCESS) {
                 // return
             }
         }
 
         sptr<SyncFence> fbFence = SyncFence::INVALID_FENCE;
         ret = device_->Commit(screenId, fbFence);
-        if (ret != DISPLAY_SUCCESS) {
+        if (ret != GRAPHIC_DISPLAY_SUCCESS) {
             HLOGE("commit failed, ret is %{public}d", ret);
             // return
         }
@@ -185,7 +185,7 @@ int32_t HdiBackend::UpdateLayerCompType(uint32_t screenId, const std::unordered_
     std::vector<uint32_t> layersId;
     std::vector<int32_t> types;
     int32_t ret = device_->GetScreenCompChange(screenId, layersId, types);
-    if (ret != DISPLAY_SUCCESS || layersId.size() != types.size()) {
+    if (ret != GRAPHIC_DISPLAY_SUCCESS || layersId.size() != types.size()) {
         HLOGE("GetScreenCompChange failed, ret is %{public}d", ret);
         return ret;
     }
@@ -199,7 +199,7 @@ int32_t HdiBackend::UpdateLayerCompType(uint32_t screenId, const std::unordered_
         }
 
         const LayerPtr &layer = iter->second;
-        layer->UpdateCompositionType(static_cast<CompositionType>(types[i]));
+        layer->UpdateCompositionType(static_cast<GraphicCompositionType>(types[i]));
     }
 
     return ret;
@@ -272,19 +272,19 @@ int32_t HdiBackend::SetScreenClientInfo(const FrameBufferEntry &fbEntry, const O
 
     int ret = device_->SetScreenClientBuffer(output->GetScreenId(),
         fbEntry.buffer->GetBufferHandle(), fbEntry.acquireFence);
-    if (ret != DISPLAY_SUCCESS) {
+    if (ret != GRAPHIC_DISPLAY_SUCCESS) {
         HLOGE("SetScreenClientBuffer failed, ret is %{public}d", ret);
         return ret;
     }
 
     ret = device_->SetScreenClientDamage(output->GetScreenId(), output->GetOutputDamageNum(),
                                          output->GetOutputDamage());
-    if (ret != DISPLAY_SUCCESS) {
+    if (ret != GRAPHIC_DISPLAY_SUCCESS) {
         HLOGE("SetScreenClientDamage failed, ret is %{public}d", ret);
         return ret;
     }
 
-    return DISPLAY_SUCCESS;
+    return GRAPHIC_DISPLAY_SUCCESS;
 }
 
 std::map<LayerInfoPtr, sptr<SyncFence>> HdiBackend::GetLayersReleaseFence(const OutputPtr& output)
@@ -296,7 +296,7 @@ std::map<LayerInfoPtr, sptr<SyncFence>> HdiBackend::GetLayersReleaseFence(const 
     std::vector<uint32_t> layersId;
     std::vector<sptr<SyncFence>> fences;
     int32_t ret = device_->GetScreenReleaseFence(screenId, layersId, fences);
-    if (ret != DISPLAY_SUCCESS || layersId.size() != fences.size()) {
+    if (ret != GRAPHIC_DISPLAY_SUCCESS || layersId.size() != fences.size()) {
         HLOGE("GetScreenReleaseFence failed, ret is %{public}d, layerId size[%{public}d], fence size[%{public}d]",
                ret, (int)layersId.size(), (int)fences.size());
         return {};
@@ -378,7 +378,7 @@ RosenError HdiBackend::InitDevice()
     }
 
     int32_t ret = device_->RegHotPlugCallback(HdiBackend::OnHdiBackendHotPlugEvent, this);
-    if (ret != DISPLAY_SUCCESS) {
+    if (ret != GRAPHIC_DISPLAY_SUCCESS) {
         HLOGE("RegHotPlugCallback failed, ret is %{public}d", ret);
         return ROSEN_ERROR_API_FAILED;
     }
@@ -390,7 +390,7 @@ RosenError HdiBackend::InitDevice()
 
 void HdiBackend::CheckRet(int32_t ret, const char* func)
 {
-    if (ret != DISPLAY_SUCCESS) {
+    if (ret != GRAPHIC_DISPLAY_SUCCESS) {
         HLOGD("call hdi %{public}s failed, ret is %{public}d", func, ret);
     }
 }

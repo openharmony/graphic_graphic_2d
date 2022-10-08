@@ -52,9 +52,9 @@ public:
     virtual void SetActiveMode(uint32_t modeId) = 0;
     virtual void SetResolution(uint32_t width, uint32_t height) = 0;
     virtual void SetPowerStatus(uint32_t powerStatus) = 0;
-    virtual std::optional<DisplayModeInfo> GetActiveMode() const = 0;
-    virtual const std::vector<DisplayModeInfo>& GetSupportedModes() const = 0;
-    virtual const DisplayCapability& GetCapability() const = 0;
+    virtual std::optional<GraphicDisplayModeInfo> GetActiveMode() const = 0;
+    virtual const std::vector<GraphicDisplayModeInfo>& GetSupportedModes() const = 0;
+    virtual const GraphicDisplayCapability& GetCapability() const = 0;
     virtual uint32_t GetPowerStatus() const = 0;
     virtual std::shared_ptr<HdiOutput> GetOutput() const = 0;
     virtual sptr<Surface> GetProducerSurface() const = 0;
@@ -71,7 +71,7 @@ public:
     virtual int32_t SetScreenGamutMap(ScreenGamutMap mode) = 0;
     virtual int32_t GetScreenGamutMap(ScreenGamutMap &mode) const = 0;
     virtual int32_t GetActiveModePosByModeId(int32_t modeId) const = 0;
-    virtual const HDRCapability& GetHDRCapability() = 0;
+    virtual const GraphicHDRCapability& GetHDRCapability() = 0;
     virtual const RSScreenType& GetScreenType() const = 0;
     virtual void SetScreenSkipFrameInterval(uint32_t skipFrameInterval) = 0;
     virtual uint32_t GetScreenSkipFrameInterval() const = 0;
@@ -102,9 +102,9 @@ public:
     void SetActiveMode(uint32_t modeId) override;
     void SetResolution(uint32_t width, uint32_t height) override;
     void SetPowerStatus(uint32_t powerStatus) override;
-    std::optional<DisplayModeInfo> GetActiveMode() const override;
-    const std::vector<DisplayModeInfo>& GetSupportedModes() const override;
-    const DisplayCapability& GetCapability() const override;
+    std::optional<GraphicDisplayModeInfo> GetActiveMode() const override;
+    const std::vector<GraphicDisplayModeInfo>& GetSupportedModes() const override;
+    const GraphicDisplayCapability& GetCapability() const override;
     uint32_t GetPowerStatus() const override;
     std::shared_ptr<HdiOutput> GetOutput() const override;
     sptr<Surface> GetProducerSurface() const override;
@@ -121,7 +121,7 @@ public:
     int32_t SetScreenGamutMap(ScreenGamutMap mode) override;
     int32_t GetScreenGamutMap(ScreenGamutMap &mode) const override;
     int32_t GetActiveModePosByModeId(int32_t modeId) const override;
-    const HDRCapability& GetHDRCapability() override;
+    const GraphicHDRCapability& GetHDRCapability() override;
     const RSScreenType& GetScreenType() const override;
     void SetScreenSkipFrameInterval(uint32_t skipFrameInterval) override;
     uint32_t GetScreenSkipFrameInterval() const override;
@@ -134,7 +134,7 @@ private:
     void CapabilityDump(std::string& dumpString);
     void PropDump(std::string& dumpString);
     void PowerStatusDump(std::string& dumpString);
-    void CapabilityTypeDump(InterfaceType capabilityType, std::string& dumpString);
+    void CapabilityTypeDump(GraphicInterfaceType capabilityType, std::string& dumpString);
     void ScreenTypeDump(std::string& dumpString);
 
     // ScreenId for this screen.
@@ -150,11 +150,11 @@ private:
     bool isVirtual_ = true;
     std::shared_ptr<HdiOutput> hdiOutput_; // has value if the screen is physical
     std::unique_ptr<HdiScreen> hdiScreen_; // has value if the screen is physical
-    std::vector<DisplayModeInfo> supportedModes_;
-    DisplayCapability capability_ = {"", ::DISP_INTF_HDMI, 0, 0, 0, 0, true, 0, nullptr};
-    HDRCapability hdrCapability_;
+    std::vector<GraphicDisplayModeInfo> supportedModes_;
+    GraphicDisplayCapability capability_ = {"", GRAPHIC_DISP_INTF_HDMI, 0, 0, 0, 0, true, 0, nullptr};
+    GraphicHDRCapability hdrCapability_;
     sptr<Surface> producerSurface_;  // has value if the screen is virtual
-    DispPowerStatus powerStatus_ = ::POWER_STATUS_ON;
+    GraphicDispPowerStatus powerStatus_ = GraphicDispPowerStatus::GRAPHIC_POWER_STATUS_ON;
 
     std::vector<ScreenColorGamut> supportedVirtualColorGamuts_ = {
         COLOR_GAMUT_SRGB,

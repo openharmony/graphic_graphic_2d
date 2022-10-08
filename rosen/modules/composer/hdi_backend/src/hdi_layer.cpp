@@ -44,7 +44,7 @@ bool HdiLayer::Init(const LayerInfoPtr &layerInfo)
         return false;
     }
 
-    if (CreateLayer(layerInfo) != DISPLAY_SUCCESS) {
+    if (CreateLayer(layerInfo) != GRAPHIC_DISPLAY_SUCCESS) {
         return false;
     }
 
@@ -53,22 +53,22 @@ bool HdiLayer::Init(const LayerInfoPtr &layerInfo)
 
 int32_t HdiLayer::CreateLayer(const LayerInfoPtr &layerInfo)
 {
-    LayerInfo hdiLayerInfo = {
+    GraphicLayerInfo hdiLayerInfo = {
         .width = layerInfo->GetLayerSize().w,
         .height = layerInfo->GetLayerSize().h,
-        .type = LAYER_TYPE_GRAPHIC,
-        .pixFormat = PIXEL_FMT_RGBA_8888,
+        .type = GRAPHIC_LAYER_TYPE_GRAPHIC,
+        .pixFormat = GRAPHIC_PIXEL_FMT_RGBA_8888,
     };
 
     HdiDevice *device = HdiDevice::GetInstance();
     if (device == nullptr) {
         HLOGE("device is null");
-        return DISPLAY_NULL_PTR;
+        return GRAPHIC_DISPLAY_NULL_PTR;
     }
 
     uint32_t layerId = 0;
     int32_t ret = device->CreateLayer(screenId_, hdiLayerInfo, layerId);
-    if (ret != DISPLAY_SUCCESS) {
+    if (ret != GRAPHIC_DISPLAY_SUCCESS) {
         HLOGE("Create hwc layer failed, ret is %{public}d", ret);
         return ret;
     }
@@ -96,7 +96,7 @@ void HdiLayer::CloseLayer()
     }
 
     int32_t ret = device->CloseLayer(screenId_, layerId_);
-    if (ret != DISPLAY_SUCCESS) {
+    if (ret != GRAPHIC_DISPLAY_SUCCESS) {
         HLOGE("Close hwc layer[%{public}u] failed, ret is %{public}d", layerId_, ret);
     }
 
@@ -112,7 +112,7 @@ void HdiLayer::SetLayerTunnelHandle()
     if (!layerInfo_->GetTunnelHandleChange()) {
         return;
     }
-    int32_t ret = DISPLAY_SUCCESS;
+    int32_t ret = GRAPHIC_DISPLAY_SUCCESS;
     if (layerInfo_->GetTunnelHandle() == nullptr) {
         ret = device->SetLayerTunnelHandle(screenId_, layerId_, nullptr);
     } else {
@@ -122,71 +122,23 @@ void HdiLayer::SetLayerTunnelHandle()
     CheckRet(ret, "SetLayerTunnelHandle");
 }
 
-void HdiLayer::PresentTimestamp2GraphicPresentTimestamp(const PresentTimestamp &timestamp,
-                                                        GraphicPresentTimestamp *graphicTimestamp)
-{
-    graphicTimestamp->time = timestamp.time;
-    switch (timestamp.type) {
-        case HARDWARE_DISPLAY_PTS_TIMESTAMP: {
-            graphicTimestamp->type = GRAPHIC_DISPLAY_PTS_TIMESTAMP;
-            break;
-        }
-        case HARDWARE_DISPLAY_PTS_DELAY: {
-            graphicTimestamp->type = GRAPHIC_DISPLAY_PTS_DELAY;
-            break;
-        }
-        default: {
-            graphicTimestamp->type = GRAPHIC_DISPLAY_PTS_UNSUPPORTED;
-        }
-    }
-}
-
 void HdiLayer::SetLayerPresentTimestamp()
 {
     HdiDevice *device = HdiDevice::GetInstance();
     if (device == nullptr || layerInfo_ == nullptr) {
         return;
     }
-    if (supportedPresentTimestamptype_ == PresentTimestampType::HARDWARE_DISPLAY_PTS_UNSUPPORTED) {
+    if (supportedPresentTimestamptype_ == GraphicPresentTimestampType::GRAPHIC_DISPLAY_PTS_UNSUPPORTED) {
         return;
     }
     layerInfo_->SetIsSupportedPresentTimestamp(true);
-    PresentTimestamp timestamp = {HARDWARE_DISPLAY_PTS_UNSUPPORTED, 0};
+    GraphicPresentTimestamp timestamp = {GRAPHIC_DISPLAY_PTS_UNSUPPORTED, 0};
     int32_t ret = device->GetPresentTimestamp(screenId_, layerId_, timestamp);
-    GraphicPresentTimestamp graphicTimestamp;
-    PresentTimestamp2GraphicPresentTimestamp(timestamp, &graphicTimestamp);
     CheckRet(ret, "GetPresentTimestamp");
-    if (ret == DISPLAY_SUCCESS) {
-        layerInfo_->SetPresentTimestamp(graphicTimestamp);
+    if (ret == GRAPHIC_DISPLAY_SUCCESS) {
+        layerInfo_->SetPresentTimestamp(timestamp);
     }
 }
-
-void HdiLayer::TransformType2GraphicTransformType(const GraphicTransformType &graphicTransFormType,
-                                                  TransformType *transFormType)
-{
-    switch (graphicTransFormType) {
-        case GRAPHIC_ROTATE_90: {
-            *transFormType = ROTATE_90;
-            break;
-        }
-        case GRAPHIC_ROTATE_180: {
-            *transFormType = ROTATE_180;
-            break;
-        }
-        case GRAPHIC_ROTATE_270: {
-            *transFormType = ROTATE_270;
-            break;
-        }
-        case GRAPHIC_ROTATE_BUTT: {
-            *transFormType = ROTATE_BUTT;
-            break;
-        }
-        default: {
-            *transFormType = ROTATE_NONE;
-        }
-    }
-}
-
 
 void HdiLayer::SetHdiLayerInfo()
 {
@@ -207,10 +159,8 @@ void HdiLayer::SetHdiLayerInfo()
     CheckRet(ret, "SetLayerSize");
 
     if (layerInfo_->GetTransformType() != GraphicTransformType::GRAPHIC_ROTATE_BUTT) {
-        TransformType transFormType = TransformType::ROTATE_NONE;
         GraphicTransformType graphicTransFormType = layerInfo_->GetTransformType();
-        TransformType2GraphicTransformType(graphicTransFormType, &transFormType);
-        ret = device->SetTransformMode(screenId_, layerId_, transFormType);
+        ret = device->SetTransformMode(screenId_, layerId_, graphicTransFormType);
         CheckRet(ret, "SetTransformMode");
     }
 
@@ -246,7 +196,7 @@ void HdiLayer::SetHdiLayerInfo()
     ret = device->SetLayerColorTransform(screenId_, layerId_, layerInfo_->GetColorTransform());
     ret = device->SetLayerColorDataSpace(screenId_, layerId_, layerInfo_->GetColorDataSpace());
     ret = device->SetLayerMetaData(screenId_, layerId_, layerInfo_->GetMetaData());
-    ret = device->SetLayerMetaDataSet(screenId_, layerId_, (HDRMetadataKey)layerInfo_->GetMetaDataSet().key,
+    ret = device->SetLayerMetaDataSet(screenId_, layerId_, layerInfo_->GetMetaDataSet().key,
                                       layerInfo_->GetMetaDataSet().metaData);
 
     SetLayerTunnelHandle();
@@ -324,7 +274,7 @@ void HdiLayer::MergeWithLayerFence(const sptr<SyncFence> &layerReleaseFence)
     }
 }
 
-void HdiLayer::UpdateCompositionType(CompositionType type)
+void HdiLayer::UpdateCompositionType(GraphicCompositionType type)
 {
     if (layerInfo_ == nullptr) {
         return;
@@ -341,7 +291,7 @@ sptr<SyncFence> HdiLayer::Merge(const sptr<SyncFence> &fence1, const sptr<SyncFe
 
 void HdiLayer::CheckRet(int32_t ret, const char* func)
 {
-    if (ret != DISPLAY_SUCCESS) {
+    if (ret != GRAPHIC_DISPLAY_SUCCESS) {
         HLOGD("call hdi %{public}s failed, ret is %{public}d", func, ret);
     }
 }

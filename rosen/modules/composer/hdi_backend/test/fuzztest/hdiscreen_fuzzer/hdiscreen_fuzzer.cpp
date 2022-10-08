@@ -76,11 +76,11 @@ namespace OHOS {
         // get data
         uint32_t screenId = GetData<uint32_t>();
         uint32_t modeId = GetData<uint32_t>();
-        DispPowerStatus status = GetData<DispPowerStatus>();
+        GraphicDispPowerStatus status = GetData<GraphicDispPowerStatus>();
         uint32_t level = GetData<uint32_t>();
         bool enabled = GetData<bool>();
-        ColorGamut gamut = GetData<ColorGamut>();
-        GamutMap gamutMap = GetData<GamutMap>();
+        GraphicColorGamut gamut = GetData<GraphicColorGamut>();
+        GraphicGamutMap gamutMap = GetData<GraphicGamutMap>();
         float matrix = GetData<float>();
         uint32_t sequence = GetData<uint32_t>();
         uint64_t ns = GetData<uint64_t>();

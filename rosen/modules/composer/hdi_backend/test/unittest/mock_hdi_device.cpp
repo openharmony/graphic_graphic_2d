@@ -18,12 +18,12 @@
 namespace OHOS {
 namespace Rosen {
 namespace Mock {
-HdiDevice::HdiDevice() = default;
-HdiDevice::~HdiDevice() = default;
+HdiDeviceMock::HdiDeviceMock() = default;
+HdiDeviceMock::~HdiDeviceMock() = default;
 
-HdiDevice* HdiDevice::GetInstance()
+HdiDeviceMock* HdiDeviceMock::GetInstance()
 {
-    static HdiDevice instance;
+    static HdiDeviceMock instance;
     return &instance;
 }
 } // namespace Mock

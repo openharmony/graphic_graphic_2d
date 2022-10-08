@@ -206,7 +206,7 @@ SurfaceError DrawingEngineSample::DoDraw()
 bool DrawingEngineSample::DrawDrawingLayer(std::shared_ptr<HdiLayerInfo> &layer)
 {
     int32_t zorder = 1;
-    IRect dstRect;
+    GraphicIRect dstRect;
     dstRect.x = 0;  // Absolute coordinates, with offset
     dstRect.y = 0;
     dstRect.w = display_w;
@@ -230,12 +230,12 @@ bool DrawingEngineSample::DrawDrawingLayer(std::shared_ptr<HdiLayerInfo> &layer)
         return false;
     }
 
-    IRect srcRect;
+    GraphicIRect srcRect;
     srcRect.x = 0;
     srcRect.y = 0;
     srcRect.w = drawingWidth;
     srcRect.h = drawingHeight;
-    LayerAlpha alpha = { .enPixelAlpha = true };
+    GraphicLayerAlpha alpha = { .enPixelAlpha = true };
     layer->SetSurface(drawingCSurface);
     layer->SetBuffer(cbuffer, acquireSyncFence);
     layer->SetZorder(zorder);
@@ -243,14 +243,14 @@ bool DrawingEngineSample::DrawDrawingLayer(std::shared_ptr<HdiLayerInfo> &layer)
     layer->SetTransform(GraphicTransformType::GRAPHIC_ROTATE_NONE);
     if (index == 0) {
         // COMPOSITION_CLIENT
-        layer->SetCompositionType(CompositionType::COMPOSITION_DEVICE);
+        layer->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE);
     } else {
-        layer->SetCompositionType(CompositionType::COMPOSITION_DEVICE);
+        layer->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE);
     }
     layer->SetVisibleRegion(1, srcRect);
     layer->SetDirtyRegion(srcRect);
     layer->SetLayerSize(dstRect);
-    layer->SetBlendType(BlendType::BLEND_SRC);
+    layer->SetBlendType(GraphicBlendType::GRAPHIC_BLEND_SRC);
     layer->SetCropRect(srcRect);
     layer->SetPreMulti(false);
     prevBufferMap_[drawingCSurface->GetUniqueId()] = cbuffer;
@@ -273,7 +273,7 @@ void DrawingEngineSample::OutPutDisplay()
         layers.push_back(drawingLayer);
         output_->SetLayerInfo(layers);
 
-        IRect damageRect;
+        GraphicIRect damageRect;
         damageRect.x = 0;
         damageRect.y = 0;
         damageRect.w = display_w;
@@ -308,15 +308,15 @@ void DrawingEngineSample::CreatePhysicalScreen()
                 this->display_h = displayModeInfos_[i].height;
             }
         }
-        screen_->SetScreenPowerStatus(DispPowerStatus::POWER_STATUS_ON);
+        screen_->SetScreenPowerStatus(GraphicDispPowerStatus::GRAPHIC_POWER_STATUS_ON);
         screen_->SetScreenMode(currentModeIndex_);
 
-        DispPowerStatus powerState;
-        screen_->SetScreenPowerStatus(DispPowerStatus::POWER_STATUS_ON);
+        GraphicDispPowerStatus powerState;
+        screen_->SetScreenPowerStatus(GraphicDispPowerStatus::GRAPHIC_POWER_STATUS_ON);
         screen_->GetScreenPowerStatus(powerState);
     }
 
-    DisplayCapability info;
+    GraphicDisplayCapability info;
     screen_->GetScreenCapability(info);
 
     std::cout << "display width is " << this->display_w << " display height is " << this->display_h << std::endl;

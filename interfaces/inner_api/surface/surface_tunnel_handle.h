@@ -17,17 +17,16 @@
 #define FRAMEWORKS_SURFACE_INCLUDE_SURFACE_TUNNEL_HANDLE_H
 #include <mutex>
 #include <refbase.h>
-#include <graphic_common.h>
 #include <surface_type.h>
 namespace OHOS {
-ExtDataHandle *AllocExtDataHandle(uint32_t reserveInts);
-void FreeExtDataHandle(ExtDataHandle *handle);
+OHExtDataHandle *AllocExtDataHandle(uint32_t reserveInts);
+void FreeExtDataHandle(OHExtDataHandle *handle);
 class SurfaceTunnelHandle : public RefBase {
 public:
     SurfaceTunnelHandle();
     virtual ~SurfaceTunnelHandle();
-    GSError SetHandle(const ExtDataHandle *handle);
-    ExtDataHandle *GetHandle();
+    GSError SetHandle(const OHExtDataHandle *handle);
+    OHExtDataHandle *GetHandle();
     bool Different(const sptr<SurfaceTunnelHandle> &handle);
 
 protected:
@@ -35,7 +34,7 @@ protected:
     SurfaceTunnelHandle& operator=(const SurfaceTunnelHandle&) = delete;
 
 private:
-    ExtDataHandle *tunnelHandle_ = nullptr;
+    OHExtDataHandle *tunnelHandle_ = nullptr;
     mutable std::mutex mutex_;
 };
 } // namespace OHOS

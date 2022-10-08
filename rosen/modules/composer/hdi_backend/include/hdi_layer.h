@@ -19,10 +19,6 @@
 #include <array>
 #include <stdint.h>
 #include <surface.h>
-#include <surface_buffer.h>
-
-#include "surface_type.h"
-#include "display_type.h"
 
 #include "hdi_layer_info.h"
 
@@ -44,7 +40,7 @@ public:
     bool Init(const LayerInfoPtr &layerInfo);
     void MergeWithFramebufferFence(const sptr<SyncFence> &fbAcquireFence);
     void MergeWithLayerFence(const sptr<SyncFence> &layerReleaseFence);
-    void UpdateCompositionType(CompositionType type);
+    void UpdateCompositionType(GraphicCompositionType type);
 
     const LayerInfoPtr& GetLayerInfo();
     void SetLayerStatus(bool inUsing);
@@ -76,17 +72,13 @@ private:
     sptr<LayerBufferInfo> currSbuffer_ = nullptr;
     sptr<LayerBufferInfo> prevSbuffer_ = nullptr;
     LayerInfoPtr layerInfo_ = nullptr;
-    PresentTimestampType supportedPresentTimestamptype_ = PresentTimestampType::HARDWARE_DISPLAY_PTS_UNSUPPORTED;
+    GraphicPresentTimestampType supportedPresentTimestamptype_ = GRAPHIC_DISPLAY_PTS_UNSUPPORTED;
 
     void CloseLayer();
     int32_t CreateLayer(const LayerInfoPtr &layerInfo);
     sptr<SyncFence> Merge(const sptr<SyncFence> &fence1, const sptr<SyncFence> &fence2);
     void SetLayerTunnelHandle();
     void SetLayerPresentTimestamp();
-    void PresentTimestamp2GraphicPresentTimestamp(const PresentTimestamp &timestamp,
-                                                  GraphicPresentTimestamp *graphicTimestamp);
-    void TransformType2GraphicTransformType(const GraphicTransformType &graphicTransFormType,
-                                            TransformType *transFormType);
     inline void CheckRet(int32_t ret, const char* func);
 };
 } // namespace Rosen

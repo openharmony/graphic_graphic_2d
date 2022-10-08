@@ -38,7 +38,7 @@ using YUVPixel = struct YUVPixel {
 
 class LayerContext : public IBufferConsumerListenerClazz {
 public:
-    LayerContext(IRect dst, IRect src, uint32_t zorder, LayerType layerType);
+    LayerContext(GraphicIRect dst, GraphicIRect src, uint32_t zorder, LayerType layerType);
     virtual ~LayerContext();
     static constexpr uint32_t PIXEL_LINE_ALIGNMENT = 32;
     static constexpr uint32_t RBGA_R_MOVEBITS = 24;
@@ -66,8 +66,8 @@ public:
 
 private:
     const std::vector<uint32_t> colors_ = {0xff0000ff, 0xffff00ff, 0xaa00ff00, 0xff00ffaa, 0xff0f0f00};
-    IRect dst_;
-    IRect src_;
+    GraphicIRect dst_;
+    GraphicIRect src_;
     uint32_t colorIndex_ = 0;
     uint32_t frameCounter_ = 0;
     uint32_t color_ = 0xffff1111;
