@@ -247,8 +247,18 @@ void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::CaptureSingleSurfaceNodeWith
         canvas_->concat(geoPtr->GetAbsMatrix());
     }
 
+    bool isSelfDrawingSurface = node.GetSurfaceNodeType() == RSSurfaceNodeType::SELF_DRAWING_NODE;
+    const RectF absBounds = {0, 0, property.GetBoundsWidth(), property.GetBoundsHeight()};
+    RRect absClipRRect = RRect(absBounds, property.GetCornerRadius());
+    if (isSelfDrawingSurface) {
+        RSPropertiesPainter::DrawShadow(property, *canvas_, &absClipRRect);
+    }
     canvas_->save();
-    canvas_->clipRect(SkRect::MakeWH(property.GetBoundsWidth(), property.GetBoundsHeight()));
+    if (isSelfDrawingSurface && !property.GetCornerRadius().IsZero()) {
+        canvas_->clipRRect(RSPropertiesPainter::RRect2SkRRect(absClipRRect), true);
+    } else {
+        canvas_->clipRect(SkRect::MakeWH(property.GetBoundsWidth(), property.GetBoundsHeight()));
+    }
     if (node.GetSecurityLayer()) {
         RS_LOGD("RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::CaptureSingleSurfaceNodeWithUni: \
             process RSSurfaceRenderNode(id:[%" PRIu64 "]) clear white since it is security layer.",
@@ -258,19 +268,33 @@ void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::CaptureSingleSurfaceNodeWith
         canvas_->restore(); // restore translate and concat
         return;
     }
-
-    auto backgroundColor = static_cast<SkColor>(property.GetBackgroundColor().AsArgbInt());
-    if (SkColorGetA(backgroundColor) != SK_AlphaTRANSPARENT) {
-        canvas_->drawColor(backgroundColor);
+    if (isSelfDrawingSurface) {
+        RSPropertiesPainter::DrawBackground(property, *canvas_);
+        auto filter = std::static_pointer_cast<RSSkiaFilter>(property.GetBackgroundFilter());
+        if (filter != nullptr) {
+            auto skRectPtr = std::make_unique<SkRect>();
+            skRectPtr->setXYWH(0, 0, property.GetBoundsWidth(), property.GetBoundsHeight());
+            RSPropertiesPainter::DrawFilter(property, *canvas_, filter, skRectPtr, canvas_->GetSurface());
+        }
+    } else {
+        auto backgroundColor = static_cast<SkColor>(property.GetBackgroundColor().AsArgbInt());
+        if (SkColorGetA(backgroundColor) != SK_AlphaTRANSPARENT) {
+            canvas_->drawColor(backgroundColor);
+        }
     }
     canvas_->restore();
-
     if (!node.IsAppWindow() && node.GetBuffer() != nullptr) {
-        // in node's local coordinate.
-        auto params = RSBaseRenderUtil::CreateBufferDrawParam(node, true, false, false, false);
-        renderEngine_->DrawSurfaceNodeWithParams(*canvas_, node, params);
+        auto params = RSUniRenderUtil::CreateBufferDrawParam(node, false);
+        renderEngine_->DrawUniSurfaceNodeWithParams(*canvas_, node, params);
     }
-
+    if (isSelfDrawingSurface) {
+        auto filter = std::static_pointer_cast<RSSkiaFilter>(property.GetFilter());
+        if (filter != nullptr) {
+            auto skRectPtr = std::make_unique<SkRect>();
+            skRectPtr->setXYWH(0, 0, property.GetBoundsWidth(), property.GetBoundsHeight());
+            RSPropertiesPainter::DrawFilter(property, *canvas_, filter, skRectPtr, canvas_->GetSurface());
+        }
+    }
     canvas_->restore();
 
     ProcessBaseRenderNode(node);
@@ -333,9 +357,8 @@ void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::CaptureSurfaceInDisplayWithU
     }
 
     if (!node.IsAppWindow() && node.GetBuffer() != nullptr) {
-        // use node's local coordinate.
-        auto params = RSBaseRenderUtil::CreateBufferDrawParam(node, true, false, false, false);
-        renderEngine_->DrawSurfaceNodeWithParams(*canvas_, node, params);
+        auto params = RSUniRenderUtil::CreateBufferDrawParam(node, false);
+        renderEngine_->DrawUniSurfaceNodeWithParams(*canvas_, node, params);
     }
 
     if (isSelfDrawingSurface) {
