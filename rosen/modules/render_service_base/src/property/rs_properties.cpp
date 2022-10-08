@@ -950,7 +950,7 @@ RectI RSProperties::GetDirtyRect() const
 #ifdef ROSEN_OHOS
     RectI dirtyRect;
     auto boundsGeometry = std::static_pointer_cast<RSObjAbsGeometry>(boundsGeo_);
-    if (clipToBounds_) {
+    if (clipToBounds_ || std::isinf(GetFrameWidth()) || std::isinf(GetFrameHeight())) {
         dirtyRect = boundsGeometry->GetAbsRect();
     } else {
         auto frameRect =

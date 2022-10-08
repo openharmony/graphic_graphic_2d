@@ -255,7 +255,7 @@ public:
 
     void SetGloblDirtyRegion(const RectI& rect)
     {
-        globalDirtyRegion_ = GetDstRect().IntersectRect(rect);
+        globalDirtyRegion_ = GetOldDirty().IntersectRect(rect);
         globalDirtyRegionIsEmpty_ = globalDirtyRegion_.IsEmpty();
     }
 
@@ -329,9 +329,7 @@ public:
             return true;
         }
         // if current node is transparent
-        const uint8_t opacity = 255;
-        if (!(GetAbilityBgAlpha() == opacity &&
-                ROSEN_EQ(GetRenderProperties().GetAlpha(), 1.0f))) {
+        if (IsTransparent()) {
             return dirtyRegionBelowCurrentLayer_.IsIntersectWith(nodeRect);
         }
         return false;
@@ -398,6 +396,12 @@ public:
     void UpdatePositionZ()
     {
         positionZ_ = GetRenderProperties().GetPositionZ();
+    }
+
+    bool IsTransparent() const
+    {
+        const uint8_t opacity = 255;
+        return GetAbilityBgAlpha() != opacity || !ROSEN_EQ(GetGlobalAlpha(), 1.0f);
     }
 private:
     void ClearChildrenCache(const std::shared_ptr<RSBaseRenderNode>& node);

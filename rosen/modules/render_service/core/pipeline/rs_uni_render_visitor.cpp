@@ -587,15 +587,17 @@ void RSUniRenderVisitor::CalcDirtyDisplayRegion(std::shared_ptr<RSDisplayRenderN
         }
         auto surfaceDirtyManager = surfaceNode->GetDirtyManager();
         RectI surfaceDirtyRect = surfaceDirtyManager->GetDirtyRegion();
-        const uint8_t opacity = 255;
-        if (surfaceNode->GetAbilityBgAlpha() != opacity ||
-            !ROSEN_EQ(surfaceNode->GetRenderProperties().GetAlpha(), 1.0f)) {
+        if (surfaceNode->IsTransparent()) {
             // Handles the case of transparent surface, merge transparent dirty rect
             RectI transparentDirtyRect = surfaceNode->GetDstRect().IntersectRect(surfaceDirtyRect);
             if (!transparentDirtyRect.IsEmpty()) {
                 RS_LOGD("CalcDirtyDisplayRegion merge transparent dirty rect %s rect %s",
                     surfaceNode->GetName().c_str(), transparentDirtyRect.ToString().c_str());
-                displayDirtyManager->MergeDirtyRect(transparentDirtyRect);
+                if (!surfaceNode->GetRenderProperties().NeedFilter()) {
+                    displayDirtyManager->MergeDirtyRect(transparentDirtyRect);
+                } else {
+                    displayDirtyManager->MergeDirtyRect(surfaceNode->GetDstRect());
+                }
             }
         }
 
@@ -617,6 +619,23 @@ void RSUniRenderVisitor::CalcDirtyDisplayRegion(std::shared_ptr<RSDisplayRenderN
             }
             if (!currentFrameSurfacePos.IsEmpty()) {
                 displayDirtyManager->MergeDirtyRect(currentFrameSurfacePos);
+            }
+        }
+
+        bool isShadowDisappear = !surfaceNode->GetRenderProperties().IsShadowValid() && surfaceNode->IsShadowValidLastFrame();
+        if (surfaceNode->GetRenderProperties().IsShadowValid() || isShadowDisappear) {
+            RectI shadowDirtyRect = surfaceNode->GetOldDirty().IntersectRect(surfaceDirtyRect);
+            RS_LOGD("CalcDirtyDisplayRegion merge ShadowValid %s rect %s",
+                surfaceNode->GetName().c_str(), surfaceNode->GetOldDirty().ToString().c_str());
+            // There are two situation here:
+            // 1. SurfaceNode first has shadow or shadow radius is larger than the last frame, surfaceDirtyRect == surfaceNode->GetOldDirty()
+            // 2. SurfaceNode remove shadow or shadow radius is smaller than the last frame, surfaceDirtyRect > surfaceNode->GetOldDirty()
+            // So we should always merge surfaceDirtyRect here.
+            if (!shadowDirtyRect.IsEmpty()) {
+                displayDirtyManager->MergeDirtyRect(surfaceDirtyRect);
+            }
+            if (isShadowDisappear) {
+                surfaceNode->SetShadowValidLastFrame(false);
             }
         }
     }
@@ -711,7 +730,7 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
 #ifdef RS_ENABLE_EGLQUERYSURFACE
     // skip clean surface node
     if (isOpDropped_ && node.IsAppWindow()) {
-        if (!node.SubNodeNeedDraw(node.GetDstRect(), partialRenderType_)) {
+        if (!node.SubNodeNeedDraw(node.GetOldDirty(), partialRenderType_)) {
             RS_TRACE_NAME("QuickReject Skip");
             RS_LOGD("RSUniRenderVisitor::ProcessSurfaceRenderNode skip: %s", node.GetName().c_str());
             return;

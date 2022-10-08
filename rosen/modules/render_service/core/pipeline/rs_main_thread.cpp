@@ -628,29 +628,40 @@ void RSMainThread::CalcOcclusion()
         if (surface == nullptr || surface->GetDstRect().IsEmpty()) {
             continue;
         }
-        Occlusion::Rect rect { surface->GetDstRect().left_, surface->GetDstRect().top_,
-            surface->GetDstRect().GetRight(), surface->GetDstRect().GetBottom() };
-        Occlusion::Region curSurface { rect };
+        Occlusion::Rect curRect;
+        if (!surface->GetOldDirty().IsEmpty()) {
+            curRect.left_ = surface->GetOldDirty().left_;
+            curRect.top_ = surface->GetOldDirty().top_;
+            curRect.right_ = surface->GetOldDirty().GetRight();
+            curRect.bottom_ = surface->GetOldDirty().GetBottom();
+        } else {
+            curRect.left_ = surface->GetDstRect().left_;
+            curRect.top_ = surface->GetDstRect().top_;
+            curRect.right_ = surface->GetDstRect().GetRight();
+            curRect.bottom_ = surface->GetDstRect().GetBottom();
+        }
+        Occlusion::Region curSurface { curRect };
         // Current surface subtract current region, if result region is empty that means it's covered
         Occlusion::Region subResult = curSurface.Sub(curRegion);
         // Set result to SurfaceRenderNode and its children
         surface->setQosCal(qosPidCal_);
         surface->SetVisibleRegionRecursive(subResult, curVisVec, pidVisMap);
         // Current region need to merge current surface for next calculation(ignore alpha surface)
-        const uint8_t opacity = 255;
         if (isUniRender_) {
-            if ((surface->GetAbilityBgAlpha() == opacity &&
-                ROSEN_EQ(surface->GetGlobalAlpha(), 1.0f)) ||
+            if (!surface->IsTransparent() ||
                 RSOcclusionConfig::GetInstance().IsDividerBar(surface->GetName())) {
-                curRegion = curSurface.Or(curRegion);
+                Occlusion::Rect dstRect { surface->GetDstRect().left_, surface->GetDstRect().top_,
+                    surface->GetDstRect().GetRight(), surface->GetDstRect().GetBottom() };
+                Occlusion::Region opaqueSurface { dstRect };
+                curRegion = opaqueSurface.Or(curRegion);
             }
         } else {
+            const uint8_t opacity = 255;
             bool diff = (surface->GetDstRect().width_ > surface->GetBuffer()->GetWidth() ||
                         surface->GetDstRect().height_ > surface->GetBuffer()->GetHeight()) &&
                         surface->GetRenderProperties().GetFrameGravity() != Gravity::RESIZE &&
                         surface->GetRenderProperties().GetAlpha() != opacity;
-            if ((surface->GetAbilityBgAlpha() == opacity &&
-                ROSEN_EQ(surface->GetGlobalAlpha(), 1.0f) && !diff) ||
+            if ((!surface->IsTransparent() && !diff) ||
                 RSOcclusionConfig::GetInstance().IsDividerBar(surface->GetName())) {
                 curRegion = curSurface.Or(curRegion);
             }

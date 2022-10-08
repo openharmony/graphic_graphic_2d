@@ -66,6 +66,11 @@ void RSUniRenderUtil::MergeDirtyHistory(std::shared_ptr<RSDisplayRenderNode>& no
         if (surfaceNode->GetDstRect().IsInsideOf(surfaceDirtyManager->GetDirtyRegion())) {
             node->GetDirtyManager()->MergeDirtyRect(surfaceNode->GetDstRect());
         }
+        if (!node->GetDirtyManager()->GetDirtyRegion().IntersectRect(surfaceNode->GetDstRect()).IsEmpty() &&
+            ((surfaceNode->IsTransparent() && surfaceNode->GetRenderProperties().GetBackgroundFilter()) ||
+            surfaceNode->GetRenderProperties().GetFilter())) {
+            node->GetDirtyManager()->MergeDirtyRect(surfaceNode->GetDstRect());
+        }
     }
     // update display dirtymanager
     node->UpdateDisplayDirtyManager(bufferAge);

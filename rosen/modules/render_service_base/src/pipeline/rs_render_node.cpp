@@ -110,9 +110,16 @@ void RSRenderNode::UpdateDirtyRegion(RSDirtyRegionManager& dirtyManager, bool ge
         ROSEN_LOGD("RSRenderNode:: id %" PRIu64 " UpdateDirtyRegion visible->invisible", GetId());
     } else {
         auto dirtyRect = renderProperties_.GetDirtyRect();
-        if (renderProperties_.shadow_ && renderProperties_.shadow_->IsValid()) {
+        if (renderProperties_.IsShadowValid()) {
+            SetShadowValidLastFrame(true);
             RectI shadowDirty;
-            RSPropertiesPainter::GetShadowDirtyRect(shadowDirty, renderProperties_);
+            if (IsInstanceOf<RSSurfaceRenderNode>()) {
+                const RectF absBounds = {0, 0, renderProperties_.GetBoundsWidth(), renderProperties_.GetBoundsHeight()};
+                RRect absClipRRect = RRect(absBounds, renderProperties_.GetCornerRadius());
+                RSPropertiesPainter::GetShadowDirtyRect(shadowDirty, renderProperties_, &absClipRRect);
+            } else {
+                RSPropertiesPainter::GetShadowDirtyRect(shadowDirty, renderProperties_);
+            }
             if (!shadowDirty.IsEmpty()) {
                 dirtyRect = dirtyRect.JoinRect(shadowDirty);
             }
