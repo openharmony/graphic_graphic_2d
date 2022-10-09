@@ -33,7 +33,7 @@ namespace OHOS {
 namespace Rosen {
 class RSProperties final {
 public:
-    RSProperties(bool inRenderNode);
+    RSProperties();
     virtual ~RSProperties();
 
     // geometry properties
@@ -192,13 +192,14 @@ public:
     const std::shared_ptr<RSObjGeometry>& GetBoundsGeometry() const;
     const std::shared_ptr<RSObjGeometry>& GetFrameGeometry() const;
     bool UpdateGeometry(const RSProperties* parent, bool dirtyFlag, Vector2f& offset);
+    void CheckEmptyBounds();
+    void ResetBounds();
 
 private:
     void Reset();
     void SetDirty();
     void ResetDirty();
     bool IsDirty() const;
-    void ResetBounds();
 
     RectF GetBoundsRect() const;
     RectF GetFrameRect() const;
@@ -237,13 +238,9 @@ private:
     std::unique_ptr<RSShadow> shadow_ = nullptr;
     std::unique_ptr<Matrix3f> sublayerTransform_ = nullptr;
 
-    friend class RSCanvasNode;
     friend class RSCanvasRenderNode;
-    friend class RSHardwareProcessor;
     friend class RSPropertiesPainter;
-    friend class RSPropertiesUtils;
     friend class RSRenderNode;
-    friend class RSRenderTransitionEffect;
 };
 } // namespace Rosen
 } // namespace OHOS

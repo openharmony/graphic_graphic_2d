@@ -28,14 +28,10 @@
 
 namespace OHOS {
 namespace Rosen {
-RSProperties::RSProperties(bool inRenderNode)
+RSProperties::RSProperties()
 {
 #ifdef ROSEN_OHOS
-    if (inRenderNode) {
-        boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
-    } else {
-        boundsGeo_ = std::make_shared<RSObjGeometry>();
-    }
+    boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
 #else
     boundsGeo_ = std::make_shared<RSObjGeometry>();
 #endif
@@ -241,10 +237,7 @@ bool RSProperties::UpdateGeometry(const RSProperties* parent, bool dirtyFlag, Ve
     if (boundsGeo_ == nullptr) {
         return false;
     }
-    if (!hasBounds_) {
-        boundsGeo_->SetPosition(frameGeo_->GetX(), frameGeo_->GetY());
-        boundsGeo_->SetSize(frameGeo_->GetWidth(), frameGeo_->GetHeight());
-    }
+    CheckEmptyBounds();
 #ifdef ROSEN_OHOS
     auto boundsGeoPtr = std::static_pointer_cast<RSObjAbsGeometry>(boundsGeo_);
 
@@ -965,6 +958,14 @@ RectI RSProperties::GetDirtyRect() const
 #else
     return RectI();
 #endif
+}
+
+void RSProperties::CheckEmptyBounds()
+{
+    // [planning] remove this func and fallback to framerect after surfacenode using frame
+    if (!hasBounds_) {
+        boundsGeo_->SetRect(frameGeo_->GetX(), frameGeo_->GetY(), frameGeo_->GetWidth(), frameGeo_->GetHeight());
+    }
 }
 
 void RSProperties::ResetBounds()

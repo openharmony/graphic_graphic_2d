@@ -30,9 +30,7 @@
 
 namespace OHOS {
 namespace Rosen {
-RSRenderNode::RSRenderNode(NodeId id, std::weak_ptr<RSContext> context)
-    : RSBaseRenderNode(id, context), renderProperties_(true)
-{}
+RSRenderNode::RSRenderNode(NodeId id, std::weak_ptr<RSContext> context) : RSBaseRenderNode(id, context) {}
 
 RSRenderNode::~RSRenderNode()
 {

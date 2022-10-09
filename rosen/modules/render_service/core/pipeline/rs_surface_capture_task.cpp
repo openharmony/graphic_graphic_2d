@@ -412,6 +412,7 @@ void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::ProcessCanvasRenderNode(RSCa
         RS_LOGE("ProcessCanvasRenderNode, canvas is nullptr");
         return;
     }
+    node.GetMutableRenderProperties().CheckEmptyBounds();
     node.ProcessRenderBeforeChildren(*canvas_);
     ProcessBaseRenderNode(node);
     node.ProcessRenderAfterChildren(*canvas_);
