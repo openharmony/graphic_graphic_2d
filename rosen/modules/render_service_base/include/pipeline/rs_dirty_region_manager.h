@@ -27,6 +27,7 @@ enum DebugRegionType {
     CURRENT_SUB,
     CURRENT_WHOLE,
     MULTI_HISTORY,
+    EGL_DAMAGE,
     TYPE_MAX
 };
 

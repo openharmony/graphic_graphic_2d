@@ -59,9 +59,9 @@ public:
         isDirty_ = isDirty;
     }
 private:
-    void DrawRectOnCanvas(const RectI& dirtyRect, const SkColor color,
+    void DrawDirtyRectForDFX(const RectI& dirtyRect, const SkColor color,
         const SkPaint::Style fillType, float alpha);
-    void DrawDirtyRegion();
+    void DrawDirtyRegionForDFX(std::vector<RectI> dirtyRects);
     std::vector<RectI> GetDirtyRects(const Occlusion::Region &region);
     /* calculate display/global (between windows) level dirty region, current include:
      * 1. window move/add/remove 2. transparent dirty region
@@ -106,6 +106,7 @@ private:
     bool doAnimate_ = false;
     bool isPartialRenderEnabled_ = false;
     bool isOpDropped_ = false;
+    bool isDirtyRegionDfxEnabled_ = false; // dirtyRegion DFX visualization
     PartialRenderType partialRenderType_;
     bool isDirty_ = false;
     ColorGamut newColorSpace_ = ColorGamut::COLOR_GAMUT_SRGB;

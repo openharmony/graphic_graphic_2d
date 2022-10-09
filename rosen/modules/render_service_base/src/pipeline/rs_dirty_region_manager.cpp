@@ -182,6 +182,9 @@ void RSDirtyRegionManager::UpdateDebugRegionTypeEnable()
             debugRegionEnabled_[DebugRegionType::CURRENT_WHOLE] = true;
             debugRegionEnabled_[DebugRegionType::MULTI_HISTORY] = true;
             break;
+        case DirtyRegionDebugType::EGL_DAMAGE:
+            debugRegionEnabled_[DebugRegionType::EGL_DAMAGE] = true;
+            break;
         case DirtyRegionDebugType::DISABLED:
         default:
             break;
