@@ -17,7 +17,7 @@
 #define RENDER_SERVICE_CLIENT_CORE_ANIMATION_RS_MODIFIER_MANAGER_H
 
 #include <memory>
-#include <vector>
+#include <set>
 
 #include "common/rs_macros.h"
 
@@ -34,7 +34,7 @@ public:
     void Draw();
 
 private:
-    std::vector<std::shared_ptr<RSModifier>> modifiers_;
+    std::set<std::shared_ptr<RSModifier>> modifiers_;
 };
 } // namespace Rosen
 } // namespace OHOS
