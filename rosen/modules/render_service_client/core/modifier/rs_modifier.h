@@ -30,7 +30,7 @@ struct RSDrawingContext {
 };
 class RSRenderModifier;
 
-class RS_EXPORT RSModifier {
+class RS_EXPORT RSModifier : public std::enable_shared_from_this<RSModifier> {
 public:
     explicit RSModifier(const std::shared_ptr<RSPropertyBase>& property)
         : property_(property ? property : std::make_shared<RSPropertyBase>())
@@ -58,6 +58,15 @@ protected:
     virtual RSModifierType GetModifierType() const
     {
         return RSModifierType::INVALID;
+    }
+
+    void AttachProperty(const std::shared_ptr<RSPropertyBase>& property)
+    {
+        if (property != nullptr) {
+            property->target_ = property_->target_;
+            property->SetIsCustom(true);
+            property->AttachModifier(shared_from_this());
+        }
     }
 
     virtual void AttachToNode(const std::weak_ptr<RSNode>& target)

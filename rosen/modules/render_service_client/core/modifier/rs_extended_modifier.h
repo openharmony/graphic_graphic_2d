@@ -37,7 +37,7 @@ public:
 
 class RS_EXPORT RSExtendedModifier : public RSModifier {
 public:
-    explicit RSExtendedModifier(const std::shared_ptr<RSPropertyBase> property)
+    RSExtendedModifier(const std::shared_ptr<RSPropertyBase>& property = {})
         : RSModifier(property, RSModifierType::EXTENDED)
     {
         property_->SetIsCustom(true);
@@ -50,7 +50,7 @@ public:
     virtual void Draw(RSDrawingContext& context) const = 0;
 
 protected:
-    RSExtendedModifier(const std::shared_ptr<RSPropertyBase> property, const RSModifierType type)
+    explicit RSExtendedModifier(const RSModifierType type, const std::shared_ptr<RSPropertyBase>& property = {})
         : RSModifier(property, type)
     {
         property_->SetIsCustom(true);
@@ -98,8 +98,7 @@ protected:
 
 class RS_EXPORT RSContentStyleModifier : public RSExtendedModifier {
 public:
-    explicit RSContentStyleModifier(const std::shared_ptr<RSPropertyBase> property)
-        : RSExtendedModifier(property, RSModifierType::CONTENT_STYLE)
+    RSContentStyleModifier() : RSExtendedModifier(RSModifierType::CONTENT_STYLE)
     {}
 
     RSModifierType GetModifierType() const override
@@ -110,8 +109,7 @@ public:
 
 class RS_EXPORT RSOverlayStyleModifier : public RSExtendedModifier {
 public:
-    explicit RSOverlayStyleModifier(const std::shared_ptr<RSPropertyBase> property)
-        : RSExtendedModifier(property, RSModifierType::OVERLAY_STYLE)
+    RSOverlayStyleModifier() : RSExtendedModifier(RSModifierType::OVERLAY_STYLE)
     {}
 
     RSModifierType GetModifierType() const override
