@@ -14,28 +14,30 @@
 import("//build/test.gni")
 import("//foundation/arkui/ace_engine/ace_config.gni")
 
-module_output_path = "graphic/rosen_engine/render_service_base/Pipeline"
+module_output_path = "graphic/rosen_engine/render_service_base/Common"
 
-##############################  RSRenderServiceBasePipelineTest  ##################################
-ohos_unittest("RSRenderServiceBasePipelineTest") {
+##############################  RSRenderServiceBaseCommonTest  ##################################
+ohos_unittest("RSRenderServiceBaseCommonTest") {
   module_out_path = module_output_path
 
   sources = [
-    "rs_base_render_node_test.cpp",
-    "rs_dirty_region_manager_test.cpp",
-    "rs_paint_filter_canvas_test.cpp",
+    "rs_occlusion_region_test.cpp",
+    "rs_thread_looper_impl_test.cpp",
   ]
 
   configs = [
-    ":render_test",
+    ":common_test",
     "$ace_root:ace_test_config",
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:export_config",
   ]
 
   include_dirs = [
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/src",
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/include",
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/src/common/",
     "//foundation/graphic/graphic_2d/rosen/include",
     "//foundation/graphic/graphic_2d/rosen/test/include",
+    "//third_party/flutter/skia/src",
   ]
 
   deps = [
@@ -47,13 +49,14 @@ ohos_unittest("RSRenderServiceBasePipelineTest") {
   external_deps = [
     "c_utils:utils",
     "init:libbegetutil",
+    "ipc:ipc_core",
   ]
 
   subsystem_name = "graphic"
 }
 
 ###############################################################################
-config("render_test") {
+config("common_test") {
   visibility = [ ":*" ]
   include_dirs = [
     "$ace_root",
@@ -63,6 +66,5 @@ config("render_test") {
 
 group("unittest") {
   testonly = true
-
-  deps = [ ":RSRenderServiceBasePipelineTest" ]
+  deps = [ ":RSRenderServiceBaseCommonTest" ]
 }

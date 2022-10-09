@@ -19,6 +19,8 @@ group("unittest") {
     "render_service/unittest/pipeline:unittest",
     "render_service_base/fuzztest/rsbaserendernode_fuzzer:fuzztest",
     "render_service_base/unittest/animation:unittest",
+    "render_service_base/unittest/common:unittest",
+    "render_service_base/unittest/delegate:unittest",
     "render_service_base/unittest/overdraw:unittest",
     "render_service_base/unittest/pipeline:unittest",
     "render_service_base/unittest/render:unittest",
