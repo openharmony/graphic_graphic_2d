@@ -373,9 +373,16 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
     (void)curDirtyManager_->SetSurfaceSize(surfaceWidth, surfaceHeight);
     // keep non-nagative rect region within surface
     curDirtyManager_->ClipDirtyRectWithinSurface();
+    // reset matrix
+    const float rootWidth = property.GetFrameWidth() * property.GetScaleX();
+    const float rootHeight = property.GetFrameHeight() * property.GetScaleY();
+    SkMatrix gravityMatrix;
+    (void)RSPropertiesPainter::GetGravityMatrix(
+        Gravity::RESIZE, RectF { 0.0f, 0.0f, surfaceWidth, surfaceHeight }, rootWidth, rootHeight, gravityMatrix);
     if (isRenderForced_ ||
         curDirtyManager_->GetDirtyRegion().GetWidth() == 0 ||
-        curDirtyManager_->GetDirtyRegion().GetHeight() == 0) {
+        curDirtyManager_->GetDirtyRegion().GetHeight() == 0 ||
+        !gravityMatrix.isIdentity()) {
         curDirtyManager_->ResetDirtyAsSurfaceSize();
     }
     UpdateDirtyAndSetEGLDamageRegion(surfaceFrame);
@@ -387,12 +394,6 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
     // clear current children before traversal, we will re-add them again during traversal
     childSurfaceNodeIds_.clear();
 
-    // reset matrix
-    const float rootWidth = property.GetFrameWidth() * property.GetScaleX();
-    const float rootHeight = property.GetFrameHeight() * property.GetScaleY();
-    SkMatrix gravityMatrix;
-    (void)RSPropertiesPainter::GetGravityMatrix(
-        Gravity::RESIZE, RectF { 0.0f, 0.0f, surfaceWidth, surfaceHeight }, rootWidth, rootHeight, gravityMatrix);
     canvas_->concat(gravityMatrix);
     parentSurfaceNodeMatrix_ = gravityMatrix;
 
