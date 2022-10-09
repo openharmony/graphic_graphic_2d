@@ -20,6 +20,8 @@ group("test") {
     "render_service/unittest/screen_manager:unittest",
     "render_service_base/fuzztest/rsbasescreenmanager_fuzzer:fuzztest",
     "render_service_base/unittest/animation:unittest",
+    "render_service_base/unittest/common:unittest",
+    "render_service_base/unittest/delegate:unittest",
     "render_service_base/unittest/overdraw:unittest",
     "render_service_base/unittest/pipeline:unittest",
     "render_service_base/unittest/render:unittest",
