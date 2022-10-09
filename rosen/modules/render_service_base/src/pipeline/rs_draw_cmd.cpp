@@ -531,7 +531,14 @@ ShadowRecOpItem::ShadowRecOpItem(const SkPath& path, const SkDrawShadowRec& rec)
 
 void ShadowRecOpItem::Draw(RSPaintFilterCanvas& canvas, const SkRect*) const
 {
-    canvas.private_draw_shadow_rec(path_, rec_);
+    auto rec = rec_;
+    if (canvas.GetAlpha() < 1.f) {
+        rec.fAmbientColor = SkColorSetA(rec_.fAmbientColor,
+            static_cast<unsigned>(canvas.GetAlpha() * SkColorGetA(rec_.fAmbientColor)));
+        rec.fSpotColor = SkColorSetA(rec_.fSpotColor,
+            static_cast<unsigned>(canvas.GetAlpha() * SkColorGetA(rec_.fSpotColor)));
+    }
+    canvas.private_draw_shadow_rec(path_, rec);
 }
 
 MultiplyAlphaOpItem::MultiplyAlphaOpItem(float alpha) : OpItem(sizeof(MultiplyAlphaOpItem)), alpha_(alpha) {}
