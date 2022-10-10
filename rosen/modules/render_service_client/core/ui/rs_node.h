@@ -192,6 +192,8 @@ protected:
         return false;
     }
 
+    std::vector<PropertyId> GetModifierIds() const;
+
 private:
     bool AnimationFinish(AnimationId animationId);
     bool HasPropertyAnimation(const PropertyId& id);

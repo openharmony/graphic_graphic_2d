@@ -35,5 +35,17 @@ void ProxyNodeCommandHelper::ResetContextVariableCache(RSContext& context, NodeI
         node->ResetContextVariableCache();
     }
 }
+
+void ProxyNodeCommandHelper::RemoveModifiers(RSContext& context, NodeId nodeId, std::vector<PropertyId> propertyIds)
+{
+    auto& nodeMap = context.GetNodeMap();
+    auto node = nodeMap.GetRenderNode<RSRenderNode>(nodeId);
+    if (node == nullptr) {
+        return;
+    }
+    for (auto propertyId : propertyIds) {
+        node->RemoveModifier(propertyId);
+    }
+}
 } // namespace Rosen
 } // namespace OHOS
