@@ -270,6 +270,7 @@ void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::CaptureSingleSurfaceNodeWith
     }
     if (isSelfDrawingSurface) {
         RSPropertiesPainter::DrawBackground(property, *canvas_);
+        RSPropertiesPainter::DrawMask(property, *canvas_);
         auto filter = std::static_pointer_cast<RSSkiaFilter>(property.GetBackgroundFilter());
         if (filter != nullptr) {
             auto skRectPtr = std::make_unique<SkRect>();
@@ -345,6 +346,7 @@ void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::CaptureSurfaceInDisplayWithU
     if (SkColorGetA(backgroundColor) != SK_AlphaTRANSPARENT) {
         canvas_->drawColor(backgroundColor);
     }
+    RSPropertiesPainter::DrawMask(property, *canvas_);
 
     auto filter = std::static_pointer_cast<RSSkiaFilter>(property.GetBackgroundFilter());
     if (filter != nullptr) {
