@@ -104,6 +104,9 @@ void RSRenderAnimation::Attach(RSRenderNode* renderNode)
         Detach();
     }
     target_ = renderNode;
+    if (target_ != nullptr) {
+        targetId_ = target_->GetId();
+    }
     OnAttach();
 }
 
@@ -111,6 +114,11 @@ void RSRenderAnimation::Detach()
 {
     OnDetach();
     target_ = nullptr;
+}
+
+NodeId RSRenderAnimation::GetTargetId() const
+{
+    return targetId_;
 }
 
 void RSRenderAnimation::Start()
