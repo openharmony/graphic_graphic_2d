@@ -96,7 +96,7 @@ static inline sk_sp<T> sk_reinterpret_cast(sk_sp<P> ptr)
 } // namespace
 
 // SkData
-bool RSMarshallingHelper::Marshalling(Parcel& parcel, const sk_sp<SkData>& val)
+bool RSMarshallingHelper::Marshalling(Parcel& parcel, sk_sp<SkData> val)
 {
     if (!val) {
         return parcel.WriteInt32(-1);
