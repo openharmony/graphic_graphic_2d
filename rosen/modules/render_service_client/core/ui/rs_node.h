@@ -195,7 +195,7 @@ protected:
     std::vector<PropertyId> GetModifierIds() const;
 
 private:
-    void AnimationFinish(AnimationId animationId);
+    bool AnimationFinish(AnimationId animationId);
     bool HasPropertyAnimation(const PropertyId& id);
     void FallbackAnimationsToRoot();
     void AddAnimationInner(const std::shared_ptr<RSAnimation>& animation);

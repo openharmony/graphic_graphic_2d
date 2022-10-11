@@ -126,7 +126,7 @@ namespace {
 
 void RSAnimationManager::OnAnimationFinished(const std::shared_ptr<RSRenderAnimation>& animation)
 {
-    NodeId targetId = animation->GetTarget() ? animation->GetTarget()->GetId() : 0;
+    NodeId targetId = animation->GetTargetId();
     AnimationId animationId = animation->GetAnimationId();
 
     std::unique_ptr<RSCommand> command =

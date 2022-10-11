@@ -817,22 +817,23 @@ void RSNode::OnRemoveChildren()
     }
 }
 
-void RSNode::AnimationFinish(AnimationId animationId)
+bool RSNode::AnimationFinish(AnimationId animationId)
 {
     auto animationItr = animations_.find(animationId);
     if (animationItr == animations_.end()) {
         ROSEN_LOGE("Failed to find animation[%" PRIu64 "]!", animationId);
-        return;
+        return false;
     }
 
-    auto animation = animationItr->second;
+    auto& animation = animationItr->second;
     if (animation == nullptr) {
         ROSEN_LOGE("Failed to finish animation[%" PRIu64 "], animation is null!", animationId);
-        return;
+        return false;
     }
 
     animation->CallFinishCallback();
     RemoveAnimationInner(animation);
+    return true;
 }
 
 void RSNode::SetPaintOrder(bool drawContentLast)
