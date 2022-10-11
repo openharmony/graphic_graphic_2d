@@ -99,12 +99,14 @@ NativeValue* RSWindowAnimationManager::OnMinimizeWindowWithAnimation(NativeEngin
     }
 
     auto targetObj = ConvertNativeValueTo<NativeObject>(info.argv[0]);
+    RSWindowAnimationTarget* target = nullptr;
+    
     if (targetObj == nullptr) {
         WALOGE("Window animation target object is null!");
         errCode = ERR_NOT_OK;
+    } else {
+        target = static_cast<RSWindowAnimationTarget*>(targetObj->GetNativePointer());
     }
-
-    auto target = static_cast<RSWindowAnimationTarget*>(targetObj->GetNativePointer());
     if (target == nullptr) {
         WALOGE("Window animation target is null!");
         errCode = ERR_NOT_OK;
