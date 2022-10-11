@@ -211,6 +211,7 @@ DrawCmdListManager& DrawCmdListManager::Instance()
 
 void DrawCmdListManager::RegisterDrawCmdList(NodeId id, std::shared_ptr<DrawCmdList> drawCmdList)
 {
+    std::lock_guard<std::mutex> lock(listsMutex_);
     static bool uniEnabled = RSSystemProperties::GetUniRenderEnabled();
     if (uniEnabled && drawCmdList) {
         lists_[id].emplace_back(drawCmdList);
@@ -219,6 +220,7 @@ void DrawCmdListManager::RegisterDrawCmdList(NodeId id, std::shared_ptr<DrawCmdL
 
 void DrawCmdListManager::ClearDrawCmdList(NodeId id)
 {
+    std::lock_guard<std::mutex> lock(listsMutex_);
     auto iterator = lists_.find(id);
     if (iterator == lists_.end()) {
         return;
