@@ -94,7 +94,7 @@ public:
 
     RSContext& GetContext()
     {
-        return context_;
+        return *context_;
     }
     std::thread::id Id() const
     {
@@ -185,7 +185,7 @@ private:
     uint64_t prePerfTimestamp_ = 0;
     std::unordered_map<uint32_t, sptr<IApplicationAgent>> applicationAgentMap_;
 
-    RSContext context_;
+    std::shared_ptr<RSContext> context_;
     std::thread::id mainThreadId_;
     std::shared_ptr<VSyncReceiver> receiver_ = nullptr;
     std::vector<sptr<RSIOcclusionChangeCallback>> occlusionListeners_;
