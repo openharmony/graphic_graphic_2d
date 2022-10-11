@@ -211,7 +211,7 @@ EGLSurface RenderContext::CreateEGLSurface(EGLNativeWindowType eglNativeWindow)
     return surface;
 }
 
-void RenderContext::SetColorSpace(ColorGamut colorSpace)
+void RenderContext::SetColorSpace(GraphicColorGamut colorSpace)
 {
     colorSpace_ = colorSpace;
 }
@@ -265,13 +265,13 @@ sk_sp<SkSurface> RenderContext::AcquireSurface(int width, int height)
     switch (colorSpace_) {
         // [planning] in order to stay consistant with the colorspace used before, we disabled
         // COLOR_GAMUT_SRGB to let the branch to default, then skColorSpace is set to nullptr
-        case COLOR_GAMUT_DISPLAY_P3:
+        case GRAPHIC_COLOR_GAMUT_DISPLAY_P3:
             skColorSpace = SkColorSpace::MakeRGB(SkNamedTransferFn::kSRGB, SkNamedGamut::kDCIP3);
             break;
-        case COLOR_GAMUT_ADOBE_RGB:
+        case GRAPHIC_COLOR_GAMUT_ADOBE_RGB:
             skColorSpace = SkColorSpace::MakeRGB(SkNamedTransferFn::kSRGB, SkNamedGamut::kAdobeRGB);
             break;
-        case COLOR_GAMUT_BT2020:
+        case GRAPHIC_COLOR_GAMUT_BT2020:
             skColorSpace = SkColorSpace::MakeRGB(SkNamedTransferFn::kSRGB, SkNamedGamut::kRec2020);
             break;
         default:

@@ -15,7 +15,7 @@
 
 #include "pipeline/rs_render_service_visitor.h"
 
-#include "display_type.h"
+#include "surface_type.h"
 #include "include/core/SkCanvas.h"
 #include "include/core/SkPoint.h"
 #include "include/core/SkRect.h"

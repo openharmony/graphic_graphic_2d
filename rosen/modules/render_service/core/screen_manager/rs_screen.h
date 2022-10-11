@@ -19,7 +19,7 @@
 #include <memory>
 #include <optional>
 
-#include <display_type.h>
+#include <surface_type.h>
 #include <hdi_output.h>
 #include <hdi_screen.h>
 #include <screen_manager/screen_types.h>

@@ -16,7 +16,7 @@
 #ifndef RENDER_SERVICE_BASE_PLATFORM_RS_SURFACE_FRAME_OHOS_H
 #define RENDER_SERVICE_BASE_PLATFORM_RS_SURFACE_FRAME_OHOS_H
 
-#include <display_type.h>
+#include <surface_type.h>
 #include <surface.h>
 
 #include "platform/drawing/rs_surface_frame.h"

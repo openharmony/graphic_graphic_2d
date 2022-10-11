@@ -17,7 +17,7 @@
 #include "platform/common/rs_log.h"
 #include "window.h"
 #include <hilog/log.h>
-#include <display_type.h>
+#include <surface_type.h>
 #include "pipeline/rs_render_thread.h"
 
 namespace OHOS {

@@ -19,7 +19,7 @@
 #include <string>
 #include <surface.h>
 
-#include "display_type.h"
+#include "surface_type.h"
 #include "image_source.h"
 #include "include/core/SkCanvas.h"
 #include "include/core/SkImageInfo.h"

@@ -18,7 +18,7 @@
 
 #include "animation/rs_curve_animation.h"
 #include "animation/rs_transition.h"
-#include "display_type.h"
+#include "surface_type.h"
 #include "include/core/SkCanvas.h"
 #include "include/core/SkImageInfo.h"
 #include "render_context/render_context.h"

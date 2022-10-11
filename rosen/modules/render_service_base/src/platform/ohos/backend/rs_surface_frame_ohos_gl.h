@@ -16,7 +16,7 @@
 #ifndef RS_SURFACE_FRAME_OHOS_GL_H
 #define RS_SURFACE_FRAME_OHOS_GL_H
 
-#include <display_type.h>
+#include <surface_type.h>
 #include <surface.h>
 
 #include "include/gpu/GrContext.h"

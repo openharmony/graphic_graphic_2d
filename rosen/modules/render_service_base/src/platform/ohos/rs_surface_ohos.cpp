@@ -27,12 +27,12 @@ void RSSurfaceOhos::SetRenderContext(RenderContext* context)
     context_ = context;
 }
 
-void RSSurfaceOhos::SetColorSpace(ColorGamut colorSpace)
+void RSSurfaceOhos::SetColorSpace(GraphicColorGamut colorSpace)
 {
     colorSpace_ = colorSpace;
 }
 
-ColorGamut RSSurfaceOhos::GetColorSpace() const
+GraphicColorGamut RSSurfaceOhos::GetColorSpace() const
 {
     return colorSpace_;
 }

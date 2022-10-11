@@ -20,7 +20,7 @@
 #include "command/rs_display_node_command.h"
 #include "command/rs_surface_node_command.h"
 #include "common/rs_common_def.h"
-#include "display_type.h"
+#include "surface_type.h"
 #include "include/core/SkCanvas.h"
 #include "include/core/SkImageInfo.h"
 #include "pipeline/rs_render_result.h"
