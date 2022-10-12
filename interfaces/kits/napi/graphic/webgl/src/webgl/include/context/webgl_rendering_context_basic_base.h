@@ -40,23 +40,23 @@ public:
 
     void SetEglWindow(void *window);
 
-    virtual void Create(void *context) override;
+    void Create(void *context) override;
 
-    virtual void Init() override;
+    void Init() override;
 
-    virtual void Attach(uint64_t textureId) override;
+    void Attach(uint64_t textureId) override;
 
-    virtual void Update() override;
+    void Update() override;
 
-    virtual void Detach() override;
+    void Detach() override;
 
-    virtual void SetBitMapPtr(char *bitMapPtr, int bitMapWidth, int bitMapHeight) override;
+    void SetBitMapPtr(char *bitMapPtr, int bitMapWidth, int bitMapHeight) override;
 
-    virtual uint64_t CreateTexture() override;
+    uint64_t CreateTexture() override;
 
     void SetTexture(uint64_t id);
 
-    virtual void SetUpdateCallback(std::function<void()>) override;
+    void SetUpdateCallback(std::function<void()>) override;
 
 public:
     GLuint frameBufferId = 0;
