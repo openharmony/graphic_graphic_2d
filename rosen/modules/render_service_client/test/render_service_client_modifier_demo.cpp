@@ -16,7 +16,7 @@
 #include <iostream>
 #include <surface.h>
 
-#include "display_type.h"
+#include "surface_type.h"
 #include "include/core/SkBitmap.h"
 #include "include/core/SkColor.h"
 #include "include/core/SkImage.h"

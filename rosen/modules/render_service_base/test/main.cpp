@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include <display_type.h>
+#include <surface_type.h>
 
 #include "command/rs_base_node_command.h"
 #include "platform/common/rs_log.h"
