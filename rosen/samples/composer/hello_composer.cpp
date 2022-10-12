@@ -167,20 +167,20 @@ void HelloComposer::InitLayers(uint32_t screenId)
 
     // status bar
     drawLayers.emplace_back(std::make_unique<LayerContext>(
-        IRect { 0, 0, displayWidth, statusHeight },
-        IRect { 0, 0, displayWidth, statusHeight },
+        GraphicIRect { 0, 0, displayWidth, statusHeight },
+        GraphicIRect { 0, 0, displayWidth, statusHeight },
         1, LayerType::LAYER_STATUS));
 
     // launcher
     drawLayers.emplace_back(std::make_unique<LayerContext>(
-        IRect { 0, statusHeight, displayWidth, launcherHeight },
-        IRect { 0, 0, displayWidth, launcherHeight },
+        GraphicIRect { 0, statusHeight, displayWidth, launcherHeight },
+        GraphicIRect { 0, 0, displayWidth, launcherHeight },
         0, LayerType::LAYER_LAUNCHER));
 
     // navigation bar
     drawLayers.emplace_back(std::make_unique<LayerContext>(
-        IRect { 0, navigationY, displayWidth, statusHeight },
-        IRect { 0, 0, displayWidth, statusHeight },
+        GraphicIRect { 0, navigationY, displayWidth, statusHeight },
+        GraphicIRect { 0, 0, displayWidth, statusHeight },
         1, LayerType::LAYER_NAVIGATION));
 
     uint32_t layerWidth = displayWidth / 4; // layer width is 1/4 displayWidth
@@ -192,8 +192,8 @@ void HelloComposer::InitLayers(uint32_t screenId)
 
     // extra layer 1
     drawLayers.emplace_back(std::make_unique<LayerContext>(
-        IRect { layerPositionX, layerPositionY, layerWidth, layerHeight },
-        IRect { 0, 0, layerWidth, layerHeight },
+        GraphicIRect { layerPositionX, layerPositionY, layerWidth, layerHeight },
+        GraphicIRect { 0, 0, layerWidth, layerHeight },
         1, LayerType::LAYER_EXTRA)); // 2 is zorder
 }
 
@@ -257,7 +257,7 @@ void HelloComposer::Draw()
         outputs.emplace_back(curOutput_);
         curOutput_->SetLayerInfo(layerVec);
 
-        IRect damageRect;
+        GraphicIRect damageRect;
         damageRect.x = 0;
         damageRect.y = 0;
         damageRect.w = static_cast<int32_t>(displayWidthsMap_[screenId]);
@@ -285,7 +285,7 @@ void HelloComposer::Draw()
 uint32_t HelloComposer::CreatePhysicalScreen()
 {
     uint32_t currentModeIndex = 0;
-    std::vector<DisplayModeInfo> displayModeInfos;
+    std::vector<GraphicDisplayModeInfo> displayModeInfos;
     uint32_t screenId = currScreenId_;
     std::unique_ptr<HdiScreen> screen = HdiScreen::CreateHdiScreen(screenId);
     screen->Init();
@@ -305,16 +305,16 @@ uint32_t HelloComposer::CreatePhysicalScreen()
                 break;
             }
         }
-        screen->SetScreenPowerStatus(DispPowerStatus::POWER_STATUS_ON);
+        screen->SetScreenPowerStatus(GraphicDispPowerStatus::GRAPHIC_POWER_STATUS_ON);
         screen->SetScreenMode(currentModeIndex);
         LOGI("SetScreenMode: currentModeIndex(%{public}d)", currentModeIndex);
 
-        DispPowerStatus powerState;
+        GraphicDispPowerStatus powerState;
         screen->GetScreenPowerStatus(powerState);
         LOGI("get poweState:%{public}d", powerState);
     }
 
-    DisplayCapability info;
+    GraphicDisplayCapability info;
     screen->GetScreenCapability(info);
     LOGI("ScreenCapability: name(%{public}s), type(%{public}d), phyWidth(%{public}d), "
          "phyHeight(%{public}d)", info.name, info.type, info.phyWidth, info.phyHeight);
@@ -453,7 +453,7 @@ void HelloComposer::DoPrepareCompleted(sptr<Surface> surface, const struct Prepa
     bool hasClient = false;
     const std::vector<LayerInfoPtr> &layers = param.layers;
     for (const LayerInfoPtr &layer : layers) {
-        if (layer->GetCompositionType() == CompositionType::COMPOSITION_CLIENT) {
+        if (layer->GetCompositionType() == GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT) {
             hasClient = true;
             clientCount++;
         }

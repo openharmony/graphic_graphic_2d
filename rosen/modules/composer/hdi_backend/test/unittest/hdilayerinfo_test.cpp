@@ -103,7 +103,7 @@ HWTEST_F(HdiLayerInfoTest, GetAcquireFence001, Function | MediumTest| Level3)
  */
 HWTEST_F(HdiLayerInfoTest, GetAlpha001, Function | MediumTest| Level3)
 {
-    LayerAlpha layerAlpha = {
+    GraphicLayerAlpha layerAlpha = {
         .enGlobalAlpha = true,
         .enPixelAlpha = true,
         .alpha0 = 0,
@@ -149,17 +149,17 @@ HWTEST_F(HdiLayerInfoTest, GetTransformType001, Function | MediumTest| Level3)
  */
 HWTEST_F(HdiLayerInfoTest, GetCompositionType001, Function | MediumTest| Level3)
 {
-    CompositionType type = CompositionType::COMPOSITION_CLIENT;
+    GraphicCompositionType type = GRAPHIC_COMPOSITION_CLIENT;
     HdiLayerInfoTest::hdiLayerInfo_->SetCompositionType(type);
-    ASSERT_EQ(HdiLayerInfoTest::hdiLayerInfo_->GetCompositionType(), CompositionType::COMPOSITION_CLIENT);
+    ASSERT_EQ(HdiLayerInfoTest::hdiLayerInfo_->GetCompositionType(), GRAPHIC_COMPOSITION_CLIENT);
 
-    type = CompositionType::COMPOSITION_DEVICE;
+    type = GRAPHIC_COMPOSITION_DEVICE;
     HdiLayerInfoTest::hdiLayerInfo_->SetCompositionType(type);
-    ASSERT_EQ(HdiLayerInfoTest::hdiLayerInfo_->GetCompositionType(), CompositionType::COMPOSITION_DEVICE);
+    ASSERT_EQ(HdiLayerInfoTest::hdiLayerInfo_->GetCompositionType(), GRAPHIC_COMPOSITION_DEVICE);
 
-    type = CompositionType::COMPOSITION_CURSOR;
+    type = GRAPHIC_COMPOSITION_CURSOR;
     HdiLayerInfoTest::hdiLayerInfo_->SetCompositionType(type);
-    ASSERT_EQ(HdiLayerInfoTest::hdiLayerInfo_->GetCompositionType(), CompositionType::COMPOSITION_CURSOR);
+    ASSERT_EQ(HdiLayerInfoTest::hdiLayerInfo_->GetCompositionType(), GRAPHIC_COMPOSITION_CURSOR);
 }
 
 /**
@@ -171,7 +171,7 @@ HWTEST_F(HdiLayerInfoTest, GetCompositionType001, Function | MediumTest| Level3)
  */
 HWTEST_F(HdiLayerInfoTest, GetVisibleNum001, Function | MediumTest| Level3)
 {
-    IRect iRect = {
+    GraphicIRect iRect = {
         .x = 0,
         .y = 0,
         .w = 800,
@@ -190,7 +190,7 @@ HWTEST_F(HdiLayerInfoTest, GetVisibleNum001, Function | MediumTest| Level3)
  */
 HWTEST_F(HdiLayerInfoTest, GetVisibleRegion001, Function | MediumTest| Level3)
 {
-    IRect iRect = {
+    GraphicIRect iRect = {
         .x = 0,
         .y = 0,
         .w = 800,
@@ -212,7 +212,7 @@ HWTEST_F(HdiLayerInfoTest, GetVisibleRegion001, Function | MediumTest| Level3)
  */
 HWTEST_F(HdiLayerInfoTest, GetDirtyRegion001, Function | MediumTest| Level3)
 {
-    IRect iRect = {
+    GraphicIRect iRect = {
         .x = 0,
         .y = 0,
         .w = 800,
@@ -234,17 +234,17 @@ HWTEST_F(HdiLayerInfoTest, GetDirtyRegion001, Function | MediumTest| Level3)
  */
 HWTEST_F(HdiLayerInfoTest, GetBlendType001, Function | MediumTest| Level3)
 {
-    BlendType type = BlendType::BLEND_CLEAR;
+    GraphicBlendType type = GraphicBlendType::GRAPHIC_BLEND_CLEAR;
     HdiLayerInfoTest::hdiLayerInfo_->SetBlendType(type);
-    ASSERT_EQ(HdiLayerInfoTest::hdiLayerInfo_->GetBlendType(), BlendType::BLEND_CLEAR);
+    ASSERT_EQ(HdiLayerInfoTest::hdiLayerInfo_->GetBlendType(), GraphicBlendType::GRAPHIC_BLEND_CLEAR);
 
-    type = BlendType::BLEND_SRC;
+    type = GraphicBlendType::GRAPHIC_BLEND_SRC;
     HdiLayerInfoTest::hdiLayerInfo_->SetBlendType(type);
-    ASSERT_EQ(HdiLayerInfoTest::hdiLayerInfo_->GetBlendType(), BlendType::BLEND_SRC);
+    ASSERT_EQ(HdiLayerInfoTest::hdiLayerInfo_->GetBlendType(), GraphicBlendType::GRAPHIC_BLEND_SRC);
 
-    type = BlendType::BLEND_SRCOVER;
+    type = GraphicBlendType::GRAPHIC_BLEND_SRCOVER;
     HdiLayerInfoTest::hdiLayerInfo_->SetBlendType(type);
-    ASSERT_EQ(HdiLayerInfoTest::hdiLayerInfo_->GetBlendType(), BlendType::BLEND_SRCOVER);
+    ASSERT_EQ(HdiLayerInfoTest::hdiLayerInfo_->GetBlendType(), GraphicBlendType::GRAPHIC_BLEND_SRCOVER);
 }
 
 /**
@@ -256,7 +256,7 @@ HWTEST_F(HdiLayerInfoTest, GetBlendType001, Function | MediumTest| Level3)
  */
 HWTEST_F(HdiLayerInfoTest, GetCropRect001, Function | MediumTest| Level3)
 {
-    IRect iRect = {
+    GraphicIRect iRect = {
         .x = 0,
         .y = 0,
         .w = 800,
@@ -278,7 +278,7 @@ HWTEST_F(HdiLayerInfoTest, GetCropRect001, Function | MediumTest| Level3)
  */
 HWTEST_F(HdiLayerInfoTest, GetLayerSize001, Function | MediumTest| Level3)
 {
-    IRect iRect = {
+    GraphicIRect iRect = {
         .x = 0,
         .y = 0,
         .w = 800,
@@ -353,7 +353,7 @@ HWTEST_F(HdiLayerInfoTest, TunnelHandle002, Function | MediumTest | Level1)
 
     sptr<SurfaceTunnelHandle> tunnelHandle = new SurfaceTunnelHandle;
 
-    ExtDataHandle *handleSet = new ExtDataHandle();
+    OHExtDataHandle *handleSet = new OHExtDataHandle();
     handleSet->fd = -1;
     handleSet->reserveInts = 1;
     handleSet->reserve[0] = 0;
@@ -407,8 +407,8 @@ HWTEST_F(HdiLayerInfoTest, ColorTransform002, Function | MediumTest | Level1)
  */
 HWTEST_F(HdiLayerInfoTest, ColorDataSpace001, Function | MediumTest | Level1)
 {
-    ColorDataSpace colorSpace = HdiLayerInfoTest::hdiLayerInfo_->GetColorDataSpace();
-    ASSERT_EQ(colorSpace, ColorDataSpace::COLOR_DATA_SPACE_UNKNOWN);
+    GraphicColorDataSpace colorSpace = HdiLayerInfoTest::hdiLayerInfo_->GetColorDataSpace();
+    ASSERT_EQ(colorSpace, GraphicColorDataSpace::GRAPHIC_COLOR_DATA_SPACE_UNKNOWN);
 }
 
 /*
@@ -421,9 +421,9 @@ HWTEST_F(HdiLayerInfoTest, ColorDataSpace001, Function | MediumTest | Level1)
  */
 HWTEST_F(HdiLayerInfoTest, ColorDataSpace002, Function | MediumTest | Level1)
 {
-    ColorDataSpace colorSpaceSet = ColorDataSpace::GAMUT_DISPLAY_P3;
+    GraphicColorDataSpace colorSpaceSet = GraphicColorDataSpace::GRAPHIC_GAMUT_DISPLAY_P3;
     HdiLayerInfoTest::hdiLayerInfo_->SetColorDataSpace(colorSpaceSet);
-    ColorDataSpace colorSpaceGet = HdiLayerInfoTest::hdiLayerInfo_->GetColorDataSpace();
+    GraphicColorDataSpace colorSpaceGet = HdiLayerInfoTest::hdiLayerInfo_->GetColorDataSpace();
     ASSERT_EQ(colorSpaceSet, colorSpaceGet);
 }
 
@@ -437,9 +437,9 @@ HWTEST_F(HdiLayerInfoTest, ColorDataSpace002, Function | MediumTest | Level1)
  */
 HWTEST_F(HdiLayerInfoTest, MetaData001, Function | MediumTest | Level1)
 {
-    std::vector<HDRMetaData> metaData = {{MATAKEY_RED_PRIMARY_X, 1}};
+    std::vector<GraphicHDRMetaData> metaData = {{GRAPHIC_MATAKEY_RED_PRIMARY_X, 1}};
     HdiLayerInfoTest::hdiLayerInfo_->SetMetaData(metaData);
-    std::vector<HDRMetaData> metaDataGet = HdiLayerInfoTest::hdiLayerInfo_->GetMetaData();
+    std::vector<GraphicHDRMetaData> metaDataGet = HdiLayerInfoTest::hdiLayerInfo_->GetMetaData();
     ASSERT_EQ(metaData[0].key, metaDataGet[0].key);
     ASSERT_EQ(metaData[0].value, metaDataGet[0].value);
 }

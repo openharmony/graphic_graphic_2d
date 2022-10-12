@@ -53,7 +53,7 @@ private:
     std::unordered_map<uint32_t, uint32_t> displayWidthsMap_;
     std::unordered_map<uint32_t, uint32_t> displayHeightsMap_;
     uint32_t currentModeIndex_ = 0;
-    std::vector<DisplayModeInfo> displayModeInfos_;
+    std::vector<GraphicDisplayModeInfo> displayModeInfos_;
     // key is screenId
     std::unordered_map<uint32_t, std::shared_ptr<HdiOutput>> outputMap_;
     bool ready_ = false;

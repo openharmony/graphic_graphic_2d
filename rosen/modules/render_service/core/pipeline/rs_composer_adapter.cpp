@@ -56,7 +56,7 @@ bool RSComposerAdapter::Init(RSDisplayRenderNode& node, int32_t offsetX, int32_t
     screenInfo_ = screenManager->QueryScreenInfo(node.GetScreenId());
     screenInfo_.rotation = node.GetRotation();
 
-    IRect damageRect {0, 0, static_cast<int32_t>(screenInfo_.width), static_cast<int32_t>(screenInfo_.height)};
+    GraphicIRect damageRect {0, 0, static_cast<int32_t>(screenInfo_.width), static_cast<int32_t>(screenInfo_.height)};
     output_->SetOutputDamage(1, damageRect);
     bool directClientCompEnableStatus = RSSystemProperties::GetDirectClientCompEnableStatus();
     output_->SetDirectClientCompEnableStatus(directClientCompEnableStatus);
@@ -188,7 +188,7 @@ void RSComposerAdapter::DealWithNodeGravity(const RSSurfaceRenderNode& node, Com
     int top = std::clamp<int>(localRect.top(), 0, frameHeight);
     int width = std::clamp<int>(localRect.width(), 0, frameWidth - left);
     int height = std::clamp<int>(localRect.height(), 0, frameHeight - top);
-    IRect newSrcRect = {left, top, width, height};
+    GraphicIRect newSrcRect = {left, top, width, height};
 
     // log and apply new dstRect and srcRect
     RS_LOGD("RsDebug DealWithNodeGravity: name[%s], gravity[%d], oldDstRect[%d %d %d %d], newDstRect[%d %d %d %d],"\
@@ -234,8 +234,8 @@ ComposeInfo RSComposerAdapter::BuildComposeInfo(RSSurfaceRenderNode& node, bool 
     const auto& dstRect = node.GetDstRect();
     const auto& srcRect = node.GetSrcRect();
     ComposeInfo info {};
-    info.srcRect = IRect {srcRect.left_, srcRect.top_, srcRect.width_, srcRect.height_};
-    info.dstRect = IRect {
+    info.srcRect = GraphicIRect {srcRect.left_, srcRect.top_, srcRect.width_, srcRect.height_};
+    info.dstRect = GraphicIRect {
         static_cast<int32_t>(static_cast<float>(dstRect.left_) * mirrorAdaptiveCoefficient_),
         static_cast<int32_t>(static_cast<float>(dstRect.top_) * mirrorAdaptiveCoefficient_),
         static_cast<int32_t>(static_cast<float>(dstRect.width_) * mirrorAdaptiveCoefficient_),
@@ -267,19 +267,19 @@ ComposeInfo RSComposerAdapter::BuildComposeInfo(RSDisplayRenderNode& node) const
 {
     const auto& buffer = node.GetBuffer(); // we guarantee the buffer is valid.
     ComposeInfo info {};
-    info.srcRect = IRect {0, 0, buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight()};
-    info.dstRect = IRect {
+    info.srcRect = GraphicIRect {0, 0, buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight()};
+    info.dstRect = GraphicIRect {
         0,
         0,
         static_cast<int32_t>(static_cast<float>(screenInfo_.GetRotatedWidth()) * mirrorAdaptiveCoefficient_),
         static_cast<int32_t>(static_cast<float>(screenInfo_.GetRotatedHeight()) * mirrorAdaptiveCoefficient_)
     };
-    info.visibleRect = IRect {info.dstRect.x, info.dstRect.y, info.dstRect.w, info.dstRect.h};
+    info.visibleRect = GraphicIRect {info.dstRect.x, info.dstRect.y, info.dstRect.w, info.dstRect.h};
     info.zOrder = static_cast<int32_t>(node.GetGlobalZOrder());
     info.alpha.enGlobalAlpha = false;
     info.buffer = buffer;
     info.fence = node.GetAcquireFence();
-    info.blendType = BLEND_NONE;
+    info.blendType = GRAPHIC_BLEND_NONE;
     info.needClient = false;
     return info;
 }
@@ -300,7 +300,7 @@ void RSComposerAdapter::SetComposeInfoToLayer(
     layer->SetLayerSize(info.dstRect);
     layer->SetLayerAdditionalInfo(node);
     layer->SetCompositionType(info.needClient ?
-        CompositionType::COMPOSITION_CLIENT : CompositionType::COMPOSITION_DEVICE);
+        GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT : GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE);
     layer->SetVisibleRegion(1, info.visibleRect);
     layer->SetDirtyRegion(info.srcRect);
     layer->SetBlendType(info.blendType);
@@ -565,7 +565,7 @@ void RSComposerAdapter::LayerRotate(const LayerInfoPtr& layer) const
         case ScreenRotation::ROTATION_90: {
             RS_LOGD("RsDebug ScreenRotation 90, Before Rotate layer size [%d %d %d %d]",
                 rect.x, rect.y, rect.w, rect.h);
-            layer->SetLayerSize(IRect {rect.y, screenHeight - rect.x - rect.w, rect.h, rect.w});
+            layer->SetLayerSize(GraphicIRect {rect.y, screenHeight - rect.x - rect.w, rect.h, rect.w});
             RS_LOGD("RsDebug ScreenRotation 90, After Rotate layer size [%d %d %d %d]",
                 layer->GetLayerSize().x, layer->GetLayerSize().y, layer->GetLayerSize().w, layer->GetLayerSize().h);
             RotateLayerWhenScreenRotation90(layer, surface);
@@ -575,7 +575,7 @@ void RSComposerAdapter::LayerRotate(const LayerInfoPtr& layer) const
             RS_LOGD("RsDebug ScreenRotation 180, Before Rotate layer size [%d %d %d %d]",
                 rect.x, rect.y, rect.w, rect.h);
             layer->SetLayerSize(
-                IRect {screenWidth - rect.x - rect.w, screenHeight - rect.y - rect.h, rect.w, rect.h});
+                GraphicIRect {screenWidth - rect.x - rect.w, screenHeight - rect.y - rect.h, rect.w, rect.h});
             RS_LOGD("RsDebug ScreenRotation 180, After Rotate layer size [%d %d %d %d]",
                 layer->GetLayerSize().x, layer->GetLayerSize().y, layer->GetLayerSize().w, layer->GetLayerSize().h);
             RotateLayerWhenScreenRotation180(layer, surface);
@@ -584,7 +584,7 @@ void RSComposerAdapter::LayerRotate(const LayerInfoPtr& layer) const
         case ScreenRotation::ROTATION_270: {
             RS_LOGD("RsDebug ScreenRotation 270, Before Rotate layer size [%d %d %d %d]",
                 rect.x, rect.y, rect.w, rect.h);
-            layer->SetLayerSize(IRect {screenWidth - rect.y - rect.h, rect.x, rect.h, rect.w});
+            layer->SetLayerSize(GraphicIRect {screenWidth - rect.y - rect.h, rect.x, rect.h, rect.w});
             RS_LOGD("RsDebug ScreenRotation 270, After Rotate layer size [%d %d %d %d]",
                 layer->GetLayerSize().x, layer->GetLayerSize().y, layer->GetLayerSize().w, layer->GetLayerSize().h);
             RotateLayerWhenScreenRotation270(layer, surface);
@@ -600,9 +600,9 @@ void RSComposerAdapter::LayerRotate(const LayerInfoPtr& layer) const
 // private func, guarantee the layer is valid
 void RSComposerAdapter::LayerCrop(const LayerInfoPtr& layer) const
 {
-    IRect dstRect = layer->GetLayerSize();
-    IRect srcRect = layer->GetCropRect();
-    IRect originSrcRect = srcRect;
+    GraphicIRect dstRect = layer->GetLayerSize();
+    GraphicIRect srcRect = layer->GetCropRect();
+    GraphicIRect originSrcRect = srcRect;
 
     RectI dstRectI(dstRect.x, dstRect.y, dstRect.w, dstRect.h);
     int32_t screenWidth = static_cast<int32_t>(screenInfo_.width);
@@ -638,8 +638,8 @@ void RSComposerAdapter::LayerScaleDown(const LayerInfoPtr& layer) const
 
     if (surface->GetScalingMode(buffer->GetSeqNum(), scalingMode) == GSERROR_OK &&
         scalingMode == ScalingMode::SCALING_MODE_SCALE_CROP) {
-        IRect dstRect = layer->GetLayerSize();
-        IRect srcRect = layer->GetCropRect();
+        GraphicIRect dstRect = layer->GetLayerSize();
+        GraphicIRect srcRect = layer->GetCropRect();
 
         uint32_t newWidth = static_cast<uint32_t>(srcRect.w);
         uint32_t newHeight = static_cast<uint32_t>(srcRect.h);

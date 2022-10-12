@@ -45,7 +45,7 @@ sptr<OHOS::Surface> GetWindowSurface(uint32_t w, uint32_t h)
 }
 
 struct PriData {
-    ExtDataHandle handle;
+    OHExtDataHandle handle;
     int data;
 };
 }
@@ -64,7 +64,7 @@ int main()
     priHandle.handle.reserveInts = 1;
     priHandle.data = 1;
     std::cout << "SetTunnelHandle Begin " << std::endl;
-    surface->SetTunnelHandle(reinterpret_cast<ExtDataHandle*>(&priHandle));
+    surface->SetTunnelHandle(reinterpret_cast<OHExtDataHandle*>(&priHandle));
     std::cout << "SetTunnelHandle Finish " << std::endl;
     sleep(1000); // wait 1000s
 }

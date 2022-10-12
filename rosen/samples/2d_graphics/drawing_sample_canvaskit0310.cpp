@@ -70,8 +70,10 @@ public:
     void CreatePyhsicalScreen();
     void DoPrepareCompleted(sptr<Surface>& surface, const struct PrepareCompleteParam &param);
     virtual void OnBufferAvailable() override;
-    SurfaceError ProduceBuffer(sptr<Surface> &produceSurface, uint32_t width, uint32_t height, uint32_t index, bool baseLayer);
-    bool FillBaseLayer(std::shared_ptr<HdiLayerInfo> &showLayer, uint32_t index,  uint32_t zorder, IRect &dstRect);
+    SurfaceError ProduceBuffer(sptr<Surface> &produceSurface, uint32_t width, uint32_t height,
+                               uint32_t index, bool baseLayer);
+    bool FillBaseLayer(std::shared_ptr<HdiLayerInfo> &showLayer, uint32_t index,
+                       uint32_t zorder, GraphicIRect &dstRect);
     bool DrawBaseLayer(std::vector<LayerInfoPtr> &layerVec);
     void CreateBaseSurface(uint32_t index);
     void OnHotPlugEvent(std::shared_ptr<HdiOutput> &output, bool connected);
@@ -92,7 +94,7 @@ public:
 
 private:
     uint32_t currentModeIndex_ = 0;
-    std::vector<DisplayModeInfo> displayModeInfos_;
+    std::vector<GraphicDisplayModeInfo> displayModeInfos_;
     std::vector<std::shared_ptr<HdiOutput>> outputs_;
     std::vector<uint32_t> baseWidthVec_;
     std::vector<uint32_t> baseHeightVec_;
@@ -227,7 +229,8 @@ void HelloDrawing::DoDrawBaseData(void *image, uint32_t width, uint32_t height, 
     }
 }
 
-SurfaceError HelloDrawing::ProduceBuffer(sptr<Surface> &produceSurface, uint32_t width, uint32_t height, uint32_t index, bool baseLayer)
+SurfaceError HelloDrawing::ProduceBuffer(sptr<Surface> &produceSurface, uint32_t width,
+                                         uint32_t height, uint32_t index, bool baseLayer)
 {
     OHOS::sptr<SurfaceBuffer> buffer;
     int32_t releaseFence = -1;
@@ -297,7 +300,7 @@ void HelloDrawing::Draw()
 
         output->SetLayerInfo(layerVec);
 
-        IRect damageRect;
+        GraphicIRect damageRect;
         damageRect.x = 0; // Absolute coordinates, with offset
         damageRect.y = 0;
         damageRect.w = display_w;
@@ -325,7 +328,7 @@ bool HelloDrawing::DrawBaseLayer(std::vector<LayerInfoPtr> &layerVec)
 {
     // status bar
     int32_t zorder = 1;
-    IRect dstRect;
+    GraphicIRect dstRect;
     dstRect.x = 0;  // Absolute coordinates, with offset
     dstRect.y = 0;
     dstRect.w = baseWidthVec_[0];
@@ -357,7 +360,8 @@ bool HelloDrawing::DrawBaseLayer(std::vector<LayerInfoPtr> &layerVec)
     return true;
 }
 
-bool HelloDrawing::FillBaseLayer(std::shared_ptr<HdiLayerInfo> &showLayer, uint32_t index,  uint32_t zorder, IRect &dstRect)
+bool HelloDrawing::FillBaseLayer(std::shared_ptr<HdiLayerInfo> &showLayer, uint32_t index,
+                                 uint32_t zorder, GraphicIRect &dstRect)
 {
     sptr<Surface> pSurface = basePSurfaceVec_[index];
     sptr<Surface> cSurface = baseCSurfaceVec_[index];
@@ -377,24 +381,24 @@ bool HelloDrawing::FillBaseLayer(std::shared_ptr<HdiLayerInfo> &showLayer, uint3
         return false;
     }
 
-    IRect srcRect;
+    GraphicIRect srcRect;
     srcRect.x = 0;
     srcRect.y = 0;
     srcRect.w = dstRect.w;
     srcRect.h = dstRect.h;
 
-    LayerAlpha alpha = { .enPixelAlpha = true };
+    GraphicLayerAlpha alpha = { .enPixelAlpha = true };
 
     showLayer->SetSurface(cSurface);
     showLayer->SetBuffer(cbuffer, fence);
     showLayer->SetZorder(zorder);
     showLayer->SetAlpha(alpha);
     // if rotate is not null, SetTransform
-    showLayer->SetCompositionType(CompositionType::COMPOSITION_DEVICE);
+    showLayer->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE);
     showLayer->SetVisibleRegion(1, srcRect);
     showLayer->SetDirtyRegion(srcRect);
     showLayer->SetLayerSize(dstRect);
-    showLayer->SetBlendType(BlendType::BLEND_SRC);
+    showLayer->SetBlendType(GraphicBlendType::GRAPHIC_BLEND_SRC);
     showLayer->SetCropRect(srcRect);
     showLayer->SetPreMulti(false);
 
@@ -471,8 +475,9 @@ void HelloDrawing::CreatePyhsicalScreen()
         screen->GetScreenMode(currentModeIndex_);
         LOGI("currentModeIndex:%{public}d", currentModeIndex_);
         for (size_t i = 0; i < supportModeNum; i++) {
-            LOGI("modes(%{public}d) %{public}dx%{public}d freq:%{public}d", displayModeInfos_[i].id, displayModeInfos_[i].width,
-                displayModeInfos_[i].height, displayModeInfos_[i].freshRate);
+            LOGI("modes(%{public}d) %{public}dx%{public}d freq:%{public}d",
+                 displayModeInfos_[i].id, displayModeInfos_[i].width,
+                 displayModeInfos_[i].height, displayModeInfos_[i].freshRate);
             if (displayModeInfos_[i].id == static_cast<int32_t>(currentModeIndex_)) {
                 this->freq_ = displayModeInfos_[i].freshRate;
                 this->display_w = displayModeInfos_[i].width;
@@ -480,23 +485,24 @@ void HelloDrawing::CreatePyhsicalScreen()
                 break;
             }
         }
-        screen->SetScreenPowerStatus(DispPowerStatus::POWER_STATUS_ON);
+        screen->SetScreenPowerStatus(GraphicDispPowerStatus::GRAPHIC_POWER_STATUS_ON);
         screen->SetScreenMode(currentModeIndex_);
         LOGI("SetScreenMode: currentModeIndex(%{public}d)", currentModeIndex_);
 
-        DispPowerStatus powerState;
-        screen->SetScreenPowerStatus(DispPowerStatus::POWER_STATUS_ON);
+        GraphicDispPowerStatus powerState;
+        screen->SetScreenPowerStatus(GraphicDispPowerStatus::GRAPHIC_POWER_STATUS_ON);
         screen->GetScreenPowerStatus(powerState);
         LOGI("get poweState:%{public}d", powerState);
     }
 
-    DisplayCapability info;
+    GraphicDisplayCapability info;
     screen->GetScreenCapability(info);
     LOGI("GetScreenCapability: name(%{public}s), type(%{public}d), phyWidth(%{public}d), phyHeight(%{public}d)",
-        info.name, info.type, info.phyWidth, info.phyHeight);
-    LOGI("GetScreenCapability: supportLayers(%{public}d), virtualDispCount(%{public}d), supportWriteBack(%{public}d), propertyCount(%{public}d)",
-        info.supportLayers, info.virtualDispCount, info.supportWriteBack, info.propertyCount);
-
+         info.name, info.type, info.phyWidth, info.phyHeight);
+    LOGI("GetScreenCapability: supportLayers(%{public}d), virtualDispCount(%{public}d)",
+         info.supportLayers, info.virtualDispCount);
+    LOGI("GetScreenCapability: supportWriteBack(%{public}d), propertyCount(%{public}d)",
+         info.supportWriteBack, info.propertyCount);
     ready = true;
 }
 
@@ -559,7 +565,7 @@ void HelloDrawing::DoPrepareCompleted(sptr<Surface>& surface, const struct Prepa
     bool hasClient = false;
     const std::vector<LayerInfoPtr> &layers = param.layers;
     for (const LayerInfoPtr &layer : layers) {
-        if (layer->GetCompositionType() == CompositionType::COMPOSITION_CLIENT) {
+        if (layer->GetCompositionType() == GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT) {
             hasClient = true;
             clientCount++;
         }

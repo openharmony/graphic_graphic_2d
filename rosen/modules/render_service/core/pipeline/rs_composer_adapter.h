@@ -25,14 +25,14 @@
 namespace OHOS {
 namespace Rosen {
 struct ComposeInfo {
-    IRect srcRect;
-    IRect dstRect;
-    IRect visibleRect;
+    GraphicIRect srcRect;
+    GraphicIRect dstRect;
+    GraphicIRect visibleRect;
     int32_t zOrder { 0 };
-    LayerAlpha alpha;
+    GraphicLayerAlpha alpha;
     sptr<SurfaceBuffer> buffer;
     sptr<SyncFence> fence = SyncFence::INVALID_FENCE;
-    BlendType blendType;
+    GraphicBlendType blendType;
     bool needClient;
 };
 

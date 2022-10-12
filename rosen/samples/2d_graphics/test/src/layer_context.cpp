@@ -23,7 +23,7 @@ using namespace OHOS;
 using namespace Rosen;
 using namespace Drawing;
 
-LayerContext::LayerContext(IRect dst, IRect src, uint32_t zorder, LayerType layerType)
+LayerContext::LayerContext(GraphicIRect dst, GraphicIRect src, uint32_t zorder, LayerType layerType)
     : dst_(dst), src_(src), zorder_(zorder), layerType_(layerType)
 {
     cSurface_ = Surface::CreateSurfaceAsConsumer();
@@ -112,18 +112,18 @@ SurfaceError LayerContext::FillHDILayer()
         return ret;
     }
 
-    LayerAlpha alpha = { .enPixelAlpha = true };
+    GraphicLayerAlpha alpha = { .enPixelAlpha = true };
 
     hdiLayer_->SetSurface(cSurface_);
     auto acquireSyncFence = new SyncFence(acquireFenceFd.Release());
     hdiLayer_->SetBuffer(buffer, acquireSyncFence);
     hdiLayer_->SetZorder(static_cast<int32_t>(zorder_));
     hdiLayer_->SetAlpha(alpha);
-    hdiLayer_->SetCompositionType(CompositionType::COMPOSITION_DEVICE);
+    hdiLayer_->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE);
     hdiLayer_->SetVisibleRegion(1, src_);
     hdiLayer_->SetDirtyRegion(src_);
     hdiLayer_->SetLayerSize(dst_);
-    hdiLayer_->SetBlendType(BlendType::BLEND_SRCOVER);
+    hdiLayer_->SetBlendType(GraphicBlendType::GRAPHIC_BLEND_SRCOVER);
     hdiLayer_->SetCropRect(src_);
     hdiLayer_->SetPreMulti(false);
 

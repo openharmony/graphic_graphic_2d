@@ -69,14 +69,14 @@ bool HdiScreen::Init()
     }
 
     int32_t ret = device_->RegScreenVBlankCallback(screenId_, HdiScreen::OnVsync, this);
-    if (ret != DISPLAY_SUCCESS) {
+    if (ret != GRAPHIC_DISPLAY_SUCCESS) {
         Destroy();
         HLOGE("RegScreenVBlankCallback failed, ret is %{public}d", ret);
         return false;
     }
 
     ret = device_->SetScreenVsyncEnabled(screenId_, true);
-    if (ret != DISPLAY_SUCCESS) {
+    if (ret != GRAPHIC_DISPLAY_SUCCESS) {
         Destroy();
         HLOGE("SetScreenVsyncEnabled failed, ret is %{public}d", ret);
         return false;
@@ -87,7 +87,7 @@ bool HdiScreen::Init()
     return true;
 }
 
-void HdiScreen::SetHdiDevice(Base::HdiDevice* device)
+void HdiScreen::SetHdiDevice(HdiDevice* device)
 {
     if (device == nullptr) {
         HLOGE("Input HdiDevice is null");
@@ -101,19 +101,19 @@ void HdiScreen::SetHdiDevice(Base::HdiDevice* device)
     device_ = device;
 }
 
-int32_t HdiScreen::GetScreenCapability(DisplayCapability &dcap) const
+int32_t HdiScreen::GetScreenCapability(GraphicDisplayCapability &dcap) const
 {
     if (device_ == nullptr) {
-        return DISPLAY_NULL_PTR;
+        return GRAPHIC_DISPLAY_NULL_PTR;
     }
 
     return device_->GetScreenCapability(screenId_, dcap);
 }
 
-int32_t HdiScreen::GetScreenSupportedModes(std::vector<DisplayModeInfo> &modes) const
+int32_t HdiScreen::GetScreenSupportedModes(std::vector<GraphicDisplayModeInfo> &modes) const
 {
     if (device_ == nullptr) {
-        return DISPLAY_NULL_PTR;
+        return GRAPHIC_DISPLAY_NULL_PTR;
     }
 
     return device_->GetScreenSupportedModes(screenId_, modes);
@@ -122,7 +122,7 @@ int32_t HdiScreen::GetScreenSupportedModes(std::vector<DisplayModeInfo> &modes) 
 int32_t HdiScreen::GetScreenMode(uint32_t &modeId) const
 {
     if (device_ == nullptr) {
-        return DISPLAY_NULL_PTR;
+        return GRAPHIC_DISPLAY_NULL_PTR;
     }
 
     return device_->GetScreenMode(screenId_, modeId);
@@ -131,25 +131,25 @@ int32_t HdiScreen::GetScreenMode(uint32_t &modeId) const
 int32_t HdiScreen::SetScreenMode(uint32_t modeId) const
 {
     if (device_ == nullptr) {
-        return DISPLAY_NULL_PTR;
+        return GRAPHIC_DISPLAY_NULL_PTR;
     }
 
     return device_->SetScreenMode(screenId_, modeId);
 }
 
-int32_t HdiScreen::GetScreenPowerStatus(DispPowerStatus &status) const
+int32_t HdiScreen::GetScreenPowerStatus(GraphicDispPowerStatus &status) const
 {
     if (device_ == nullptr) {
-        return DISPLAY_NULL_PTR;
+        return GRAPHIC_DISPLAY_NULL_PTR;
     }
 
     return device_->GetScreenPowerStatus(screenId_, status);
 }
 
-int32_t HdiScreen::SetScreenPowerStatus(DispPowerStatus status) const
+int32_t HdiScreen::SetScreenPowerStatus(GraphicDispPowerStatus status) const
 {
     if (device_ == nullptr) {
-        return DISPLAY_NULL_PTR;
+        return GRAPHIC_DISPLAY_NULL_PTR;
     }
 
     return device_->SetScreenPowerStatus(screenId_, status);
@@ -158,7 +158,7 @@ int32_t HdiScreen::SetScreenPowerStatus(DispPowerStatus status) const
 int32_t HdiScreen::GetScreenBacklight(uint32_t &level) const
 {
     if (device_ == nullptr) {
-        return DISPLAY_NULL_PTR;
+        return GRAPHIC_DISPLAY_NULL_PTR;
     }
 
     return device_->GetScreenBacklight(screenId_, level);
@@ -167,7 +167,7 @@ int32_t HdiScreen::GetScreenBacklight(uint32_t &level) const
 int32_t HdiScreen::SetScreenBacklight(uint32_t level) const
 {
     if (device_ == nullptr) {
-        return DISPLAY_NULL_PTR;
+        return GRAPHIC_DISPLAY_NULL_PTR;
     }
 
     return device_->SetScreenBacklight(screenId_, level);
@@ -176,52 +176,52 @@ int32_t HdiScreen::SetScreenBacklight(uint32_t level) const
 int32_t HdiScreen::SetScreenVsyncEnabled(bool enabled) const
 {
     if (device_ == nullptr) {
-        return DISPLAY_NULL_PTR;
+        return GRAPHIC_DISPLAY_NULL_PTR;
     }
 
     return device_->SetScreenVsyncEnabled(screenId_, enabled);
 }
 
-int32_t HdiScreen::GetScreenSupportedColorGamuts(std::vector<ColorGamut> &gamuts) const
+int32_t HdiScreen::GetScreenSupportedColorGamuts(std::vector<GraphicColorGamut> &gamuts) const
 {
     if (device_ == nullptr) {
-        return DISPLAY_NULL_PTR;
+        return GRAPHIC_DISPLAY_NULL_PTR;
     }
 
     return device_->GetScreenSupportedColorGamuts(screenId_, gamuts);
 }
 
-int32_t HdiScreen::SetScreenColorGamut(ColorGamut gamut) const
+int32_t HdiScreen::SetScreenColorGamut(GraphicColorGamut gamut) const
 {
     if (device_ == nullptr) {
-        return DISPLAY_NULL_PTR;
+        return GRAPHIC_DISPLAY_NULL_PTR;
     }
 
     return device_->SetScreenColorGamut(screenId_, gamut);
 }
 
-int32_t HdiScreen::GetScreenColorGamut(ColorGamut &gamut) const
+int32_t HdiScreen::GetScreenColorGamut(GraphicColorGamut &gamut) const
 {
     if (device_ == nullptr) {
-        return DISPLAY_NULL_PTR;
+        return GRAPHIC_DISPLAY_NULL_PTR;
     }
 
     return device_->GetScreenColorGamut(screenId_, gamut);
 }
 
-int32_t HdiScreen::SetScreenGamutMap(GamutMap gamutMap) const
+int32_t HdiScreen::SetScreenGamutMap(GraphicGamutMap gamutMap) const
 {
     if (device_ == nullptr) {
-        return DISPLAY_NULL_PTR;
+        return GRAPHIC_DISPLAY_NULL_PTR;
     }
 
     return device_->SetScreenGamutMap(screenId_, gamutMap);
 }
 
-int32_t HdiScreen::GetScreenGamutMap(GamutMap &gamutMap) const
+int32_t HdiScreen::GetScreenGamutMap(GraphicGamutMap &gamutMap) const
 {
     if (device_ == nullptr) {
-        return DISPLAY_NULL_PTR;
+        return GRAPHIC_DISPLAY_NULL_PTR;
     }
 
     return device_->GetScreenGamutMap(screenId_, gamutMap);
@@ -230,25 +230,25 @@ int32_t HdiScreen::GetScreenGamutMap(GamutMap &gamutMap) const
 int32_t HdiScreen::SetScreenColorTransform(const float *matrix) const
 {
     if (device_ == nullptr) {
-        return DISPLAY_NULL_PTR;
+        return GRAPHIC_DISPLAY_NULL_PTR;
     }
 
     return device_->SetScreenColorTransform(screenId_, matrix);
 }
 
-int32_t HdiScreen::GetHDRCapabilityInfos(HDRCapability &info) const
+int32_t HdiScreen::GetHDRCapabilityInfos(GraphicHDRCapability &info) const
 {
     if (device_ == nullptr) {
-        return DISPLAY_NULL_PTR;
+        return GRAPHIC_DISPLAY_NULL_PTR;
     }
 
     return device_->GetHDRCapabilityInfos(screenId_, info);
 }
 
-int32_t HdiScreen::GetSupportedMetaDataKey(std::vector<HDRMetadataKey> &keys) const
+int32_t HdiScreen::GetSupportedMetaDataKey(std::vector<GraphicHDRMetadataKey> &keys) const
 {
     if (device_ == nullptr) {
-        return DISPLAY_NULL_PTR;
+        return GRAPHIC_DISPLAY_NULL_PTR;
     }
 
     return device_->GetSupportedMetaDataKey(screenId_, keys);

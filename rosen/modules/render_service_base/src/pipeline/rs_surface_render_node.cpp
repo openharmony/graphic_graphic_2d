@@ -266,12 +266,12 @@ void RSSurfaceRenderNode::SendCommandFromRT(std::unique_ptr<RSCommand>& command,
     }
 }
 
-BlendType RSSurfaceRenderNode::GetBlendType()
+GraphicBlendType RSSurfaceRenderNode::GetBlendType()
 {
     return blendType_;
 }
 
-void RSSurfaceRenderNode::SetBlendType(BlendType blendType)
+void RSSurfaceRenderNode::SetBlendType(GraphicBlendType blendType)
 {
     blendType_ = blendType;
 }

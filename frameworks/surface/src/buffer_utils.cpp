@@ -179,7 +179,7 @@ void WriteHDRMetaDataSet(MessageParcel &parcel, const std::vector<uint8_t> &meta
 void ReadExtDataHandle(MessageParcel &parcel, sptr<SurfaceTunnelHandle> &handle)
 {
     uint32_t reserveInts = parcel.ReadUint32();
-    ExtDataHandle *tunnelHandle = AllocExtDataHandle(reserveInts);
+    OHExtDataHandle *tunnelHandle = AllocExtDataHandle(reserveInts);
     if (tunnelHandle == nullptr) {
         BLOGE("AllocExtDataHandle failed");
         return;
@@ -195,7 +195,7 @@ void ReadExtDataHandle(MessageParcel &parcel, sptr<SurfaceTunnelHandle> &handle)
     FreeExtDataHandle(tunnelHandle);
 }
 
-void WriteExtDataHandle(MessageParcel &parcel, const ExtDataHandle *handle)
+void WriteExtDataHandle(MessageParcel &parcel, const OHExtDataHandle *handle)
 {
     parcel.WriteUint32(handle->reserveInts);
     WriteFileDescriptor(parcel, handle->fd);

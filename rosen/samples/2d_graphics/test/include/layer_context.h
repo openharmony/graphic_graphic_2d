@@ -32,7 +32,7 @@ enum LayerType : uint32_t { LAYER_STATUS, LAYER_LAUNCHER, LAYER_NAVIGATION };
 class LayerContext : public IBufferConsumerListenerClazz {
 public:
     using TestFunc = std::function<void(Canvas&, uint32_t, uint32_t)>;
-    LayerContext(IRect dst, IRect src, uint32_t zorder, LayerType layerType);
+    LayerContext(GraphicIRect dst, GraphicIRect src, uint32_t zorder, LayerType layerType);
     virtual ~LayerContext();
 
     virtual void OnBufferAvailable() override;
@@ -49,8 +49,8 @@ public:
     }
 
 private:
-    IRect dst_;
-    IRect src_;
+    GraphicIRect dst_;
+    GraphicIRect src_;
     uint32_t zorder_ = 0;
     sptr<SyncFence> prevFence_;
     OHOS::sptr<Surface> pSurface_;

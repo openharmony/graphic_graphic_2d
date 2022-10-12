@@ -46,7 +46,7 @@ void ReadHDRMetaDataSet(MessageParcel &parcel, std::vector<uint8_t> &metaData);
 void WriteHDRMetaDataSet(MessageParcel &parcel, const std::vector<uint8_t> &metaData);
 
 void ReadExtDataHandle(MessageParcel &parcel, sptr<SurfaceTunnelHandle> &handle);
-void WriteExtDataHandle(MessageParcel &parcel, const ExtDataHandle *handle);
+void WriteExtDataHandle(MessageParcel &parcel, const OHExtDataHandle *handle);
 } // namespace OHOS
 
 #endif // FRAMEWORKS_SURFACE_INCLUDE_BUFFER_UTILS_H

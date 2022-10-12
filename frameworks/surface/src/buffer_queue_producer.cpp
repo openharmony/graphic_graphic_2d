@@ -565,7 +565,7 @@ GSError BufferQueueProducer::SetTunnelHandle(const sptr<SurfaceTunnelHandle> &ha
     return bufferQueue_->SetTunnelHandle(handle);
 }
 
-GSError BufferQueueProducer::SetTunnelHandle(const ExtDataHandle *handle)
+GSError BufferQueueProducer::SetTunnelHandle(const OHExtDataHandle *handle)
 {
     sptr<SurfaceTunnelHandle> tunnelHandle = new SurfaceTunnelHandle();
     if (tunnelHandle->SetHandle(handle) != GSERROR_OK) {

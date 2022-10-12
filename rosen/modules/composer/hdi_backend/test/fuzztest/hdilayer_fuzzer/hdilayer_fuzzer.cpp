@@ -66,16 +66,16 @@ namespace OHOS {
     {
         // get data
         int32_t zOrder = GetData<int32_t>();
-        LayerAlpha alpha = GetData<LayerAlpha>();
+        GraphicLayerAlpha alpha = GetData<GraphicLayerAlpha>();
         GraphicTransformType transformType = GetData<GraphicTransformType>();
-        CompositionType compositionType = GetData<CompositionType>();
+        GraphicCompositionType compositionType = GetData<GraphicCompositionType>();
         uint32_t num = GetData<uint32_t>();
-        IRect visibleRegion = GetData<IRect>();
-        IRect dirtyRegion = GetData<IRect>();
-        BlendType blendType = GetData<BlendType>();
-        IRect crop = GetData<IRect>();
+        GraphicIRect visibleRegion = GetData<GraphicIRect>();
+        GraphicIRect dirtyRegion = GetData<GraphicIRect>();
+        GraphicBlendType blendType = GetData<GraphicBlendType>();
+        GraphicIRect crop = GetData<GraphicIRect>();
         bool preMulti = GetData<bool>();
-        IRect layerRect = GetData<IRect>();
+        GraphicIRect layerRect = GetData<GraphicIRect>();
         void* info = static_cast<void*>(GetStringFromData(STR_LEN).data());
         bool change = GetData<bool>();
 

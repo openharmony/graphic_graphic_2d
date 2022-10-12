@@ -146,7 +146,7 @@ void RSScreenManager::ProcessScreenConnectedLocked(std::shared_ptr<HdiOutput> &o
 
     screens_[id] = std::make_unique<RSScreen>(id, isVirtual, output, nullptr);
 
-    if (screens_[id]->GetCapability().type == InterfaceType::DISP_INTF_MIPI) {
+    if (screens_[id]->GetCapability().type == GraphicInterfaceType::GRAPHIC_DISP_INTF_MIPI) {
         if (!mipiCheckInFirstHotPlugEvent_) {
             defaultScreenId_ = id;
         }
@@ -275,7 +275,7 @@ void RSScreenManager::MirrorChangeDefaultScreenResolution(ScreenId id, uint32_t 
     ScreenId mainId = GetDefaultScreenId();
     if (mirroredId == mainId) {
         bool resolutionSetSuccess = false;
-        std::vector<DisplayModeInfo> mainMode = screens_.at(mainId)->GetSupportedModes();
+        std::vector<GraphicDisplayModeInfo> mainMode = screens_.at(mainId)->GetSupportedModes();
         for (uint32_t i = 0; i < mainMode.size(); i++) {
             if (static_cast<uint32_t>(mainMode[i].width) == width &&
                 static_cast<uint32_t>(mainMode[i].height) == height) {
@@ -795,7 +795,7 @@ int32_t RSScreenManager::GetScreenHDRCapabilityLocked(ScreenId id, RSScreenHDRCa
         RS_LOGW("RSScreenManager %s: There is no screen for id %" PRIu64 ".", __func__, id);
         return StatusCode::SCREEN_NOT_FOUND;
     }
-    HDRCapability hdrCapability = screens_.at(id)->GetHDRCapability();
+    GraphicHDRCapability hdrCapability = screens_.at(id)->GetHDRCapability();
     std::vector<ScreenHDRFormat> hdrFormats;
     uint32_t formatCount = hdrCapability.formatCount;
     hdrFormats.resize(formatCount);

@@ -709,7 +709,7 @@ HWTEST_F(ConsumerSurfaceTest, metaDataSet003, Function | MediumTest | Level1)
  */
 HWTEST_F(ConsumerSurfaceTest, TunnelHandle001, Function | MediumTest | Level2)
 {
-    ExtDataHandle *handle = nullptr;
+    OHExtDataHandle *handle = nullptr;
     GSError ret = cs->SetTunnelHandle(handle);
     ASSERT_EQ(ret, OHOS::GSERROR_INVALID_ARGUMENTS);
 }
@@ -723,8 +723,8 @@ HWTEST_F(ConsumerSurfaceTest, TunnelHandle001, Function | MediumTest | Level2)
  */
 HWTEST_F(ConsumerSurfaceTest, TunnelHandle002, Function | MediumTest | Level2)
 {
-    ExtDataHandle *handle = nullptr;
-    handle = new ExtDataHandle();
+    OHExtDataHandle *handle = nullptr;
+    handle = new OHExtDataHandle();
     handle->fd = -1;
     handle->reserveInts = 0;
     GSError ret = cs->SetTunnelHandle(handle);
@@ -741,7 +741,7 @@ HWTEST_F(ConsumerSurfaceTest, TunnelHandle002, Function | MediumTest | Level2)
  */
 HWTEST_F(ConsumerSurfaceTest, TunnelHandle003, Function | MediumTest | Level1)
 {
-    ExtDataHandle *handle = new ExtDataHandle();
+    OHExtDataHandle *handle = new OHExtDataHandle();
     handle->fd = -1;
     handle->reserveInts = 1;
     handle->reserve[0] = 0;
