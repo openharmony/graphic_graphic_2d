@@ -68,7 +68,7 @@ void RSUniRenderVisitor::SetPaintOutOfParentFlag(RSBaseRenderNode& node)
 {
     if (!isPartialRenderEnabled_) {
         return;
-    } 
+    }
     if (node.GetType() != RSRenderNodeType::CANVAS_NODE && node.GetType() != RSRenderNodeType::SURFACE_NODE) {
         RS_LOGD("Other types do not need to processed %d", node.GetType());
         return;
