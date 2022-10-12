@@ -15,6 +15,9 @@
 
 #include "ui/rs_ui_director.h"
 
+#include "rs_trace.h"
+#include "sandbox_utils.h"
+
 #include "animation/rs_animation_manager_map.h"
 #include "animation/rs_ui_animation_manager.h"
 #include "command/rs_animation_command.h"
@@ -24,14 +27,12 @@
 #include "pipeline/rs_node_map.h"
 #include "pipeline/rs_render_thread.h"
 #include "platform/common/rs_log.h"
-#include "rs_trace.h"
 #include "transaction/rs_application_agent_impl.h"
 #include "transaction/rs_interfaces.h"
 #include "transaction/rs_transaction_proxy.h"
 #include "ui/rs_root_node.h"
 #include "ui/rs_surface_extractor.h"
 #include "ui/rs_surface_node.h"
-#include "sandbox_utils.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -244,10 +245,22 @@ void RSUIDirector::ProcessMessages(std::shared_ptr<RSTransactionData> cmds)
 
 void RSUIDirector::AnimationCallbackProcessor(NodeId nodeId, AnimationId animId)
 {
+    // try find the node by nodeId
     if (auto nodePtr = RSNodeMap::Instance().GetNode<RSNode>(nodeId)) {
-        nodePtr->AnimationFinish(animId);
+        if (!nodePtr->AnimationFinish(animId)) {
+            ROSEN_LOGE("RSUIDirector::AnimationCallbackProcessor, could not find animation %" PRIu64 " on node %" PRIu64
+                       ".", animId, nodeId);
+        }
+        return;
+    }
+
+    // if node not found, try fallback node
+    auto& fallbackNode = RSNodeMap::Instance().GetAnimationFallbackNode();
+    if (fallbackNode && fallbackNode->AnimationFinish(animId)) {
+        ROSEN_LOGD("RSUIDirector::AnimationCallbackProcessor, found animation %" PRIu64 " on fallback node.", animId);
     } else {
-        ROSEN_LOGE("RSUIDirector::AnimationCallbackProcessor, node %" PRIu64 " not found", nodeId);
+        ROSEN_LOGE("RSUIDirector::AnimationCallbackProcessor, could not find animation %" PRIu64 " on fallback node.",
+            animId);
     }
 }
 } // namespace Rosen

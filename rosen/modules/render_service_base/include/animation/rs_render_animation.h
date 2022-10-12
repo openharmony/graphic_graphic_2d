@@ -133,6 +133,8 @@ public:
     void Detach();
     RSRenderNode* GetTarget() const;
 
+    NodeId GetTargetId() const;
+
     virtual PropertyId GetPropertyId() const;
 
     virtual void AttachRenderProperty(const std::shared_ptr<RSRenderPropertyBase>& property) {};
@@ -165,6 +167,7 @@ private:
     void ProcessFillModeOnFinish(float endFraction);
 
     AnimationId id_ = 0;
+    NodeId targetId_ = 0;
     RSAnimationFraction animationFraction_;
     AnimationState state_ { AnimationState::INITIALIZED };
     bool firstToRunning_ { false };
