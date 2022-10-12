@@ -11,16 +11,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-group("fuzztest") {
-  testonly = true
-
-  deps = [
-    "bufferqueue_fuzzer:fuzztest",
-    "bufferutils_fuzzer:fuzztest",
-    "nativebuffer_fuzzer:fuzztest",
-    "nativewindow_fuzzer:fuzztest",
-    "surface_fuzzer:fuzztest",
-    "surfacebuffer_fuzzer:fuzztest",
-    "surfaceutils_fuzzer:fuzztest",
-  ]
-}
+FUZZ

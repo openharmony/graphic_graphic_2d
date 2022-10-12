@@ -17,8 +17,8 @@ import("//build/test.gni")
 module_output_path = "graphic_standard/surface"
 
 ##############################fuzztest##########################################
-ohos_fuzztest("SurfaceBufferFuzzTest") {
-  fuzz_config_file = "//foundation/graphic/graphic_2d/frameworks/surface/test/fuzztest/surfacebuffer_fuzzer"
+ohos_fuzztest("BufferUtilsFuzzTest") {
+  fuzz_config_file = "//foundation/graphic/graphic_2d/frameworks/surface/test/fuzztest/bufferutils_fuzzer"
   module_out_path = module_output_path
 
   include_dirs = [
@@ -31,9 +31,8 @@ ohos_fuzztest("SurfaceBufferFuzzTest") {
     "-Wno-unused-variable",
     "-fno-omit-frame-pointer",
   ]
-  sources = [ "surfacebuffer_fuzzer.cpp" ]
+  sources = [ "bufferutils_fuzzer.cpp" ]
   deps = [ "//foundation/graphic/graphic_2d:libsurface" ]
-
   external_deps = [ "ipc:ipc_core" ]
 }
 
@@ -43,7 +42,7 @@ group("fuzztest") {
   deps = []
   deps += [
     # deps file
-    ":SurfaceBufferFuzzTest",
+    ":BufferUtilsFuzzTest",
   ]
 }
 ###############################################################################

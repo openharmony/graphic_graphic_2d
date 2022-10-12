@@ -13,23 +13,25 @@
  * limitations under the License.
  */
 
-#include "surfacebuffer_fuzzer.h"
+#include "nativewindow_fuzzer.h"
 
 #include <securec.h>
+#include <vector>
+#include <string>
 
+#include "surface.h"
 #include "surface_buffer.h"
 #include "surface_buffer_impl.h"
-#include "buffer_extra_data.h"
-#include "buffer_extra_data_impl.h"
-#include <message_parcel.h>
-#include <iostream>
+#include "ibuffer_producer.h"
+#include "native_window.h"
 
 namespace OHOS {
     namespace {
+        constexpr size_t STR_LEN = 10;
+        constexpr int DEFAULT_FENCE = 100;
         const uint8_t* g_data = nullptr;
         size_t g_size = 0;
         size_t g_pos;
-        constexpr size_t STR_LEN = 10;
     }
 
     /*
@@ -83,42 +85,50 @@ namespace OHOS {
 
         // get data
         uint32_t seqNum = GetData<uint32_t>();
-        ColorGamut colorGamut = GetData<ColorGamut>();
-        TransformType transform = GetData<TransformType>();
-        int32_t width = GetData<int32_t>();
-        int32_t height = GetData<int32_t>();
-        BufferRequestConfig config = GetData<BufferRequestConfig>();
-        std::string keyInt32 = GetStringFromData(STR_LEN);
-        int32_t valueInt32 = GetData<int32_t>();
-        std::string keyInt64 = GetStringFromData(STR_LEN);
-        int64_t valueInt64 = GetData<int64_t>();
-        std::string keyDouble = GetStringFromData(STR_LEN);
-        double valueDouble = GetData<double>();
-        std::string keyStr = GetStringFromData(STR_LEN);
-        std::string valueStr = GetStringFromData(STR_LEN);
-        void *messageParcelData = static_cast<void*>(GetStringFromData(STR_LEN).data());
+        int fenceFd = GetData<int>();
+        // fd 0,1,2 represent stdin, stdout and stderr respectively, they should not be closed.
+        if (fenceFd >= 0 && fenceFd <= 2) {
+            fenceFd = DEFAULT_FENCE;
+        }
+        Region::Rect rect = GetData<Region::Rect>();
+        int32_t rectNumber = GetData<int32_t>();
+        Region region = {
+            .rects = &rect,
+            .rectNumber = rectNumber,
+        };
+        uint32_t sequence = GetData<uint32_t>();
+        OHScalingMode scalingMode = GetData<OHScalingMode>();
+        OHHDRMetaData metaData = GetData<OHHDRMetaData>();
+        OHHDRMetadataKey key = GetData<OHHDRMetadataKey>();
+        uint8_t metaData2[STR_LEN];
+        for (int i = 0; i < STR_LEN; i++) {
+            metaData2[i] = GetData<uint8_t>();
+        }
 
         // test
-        sptr<SurfaceBuffer> surfaceBuffer = new SurfaceBufferImpl(seqNum);
-        surfaceBuffer->SetSurfaceBufferColorGamut(colorGamut);
-        surfaceBuffer->SetSurfaceBufferTransform(transform);
-        surfaceBuffer->SetSurfaceBufferWidth(width);
-        surfaceBuffer->SetSurfaceBufferHeight(height);
-        surfaceBuffer->Alloc(config);
-        sptr<BufferExtraData> bedata = new BufferExtraDataImpl();
-        bedata->ExtraSet(keyInt32, valueInt32);
-        bedata->ExtraSet(keyInt64, valueInt64);
-        bedata->ExtraSet(keyDouble, valueDouble);
-        bedata->ExtraSet(keyStr, valueStr);
-        surfaceBuffer->SetExtraData(bedata);
-        MessageParcel parcel;
-        parcel.WriteRawData(messageParcelData, STR_LEN);
-        surfaceBuffer->WriteToMessageParcel(parcel);
-        surfaceBuffer->ReadFromMessageParcel(parcel);
+        sptr<OHOS::Surface> cSurface = Surface::CreateSurfaceAsConsumer();
+        sptr<OHOS::IBufferProducer> producer = cSurface->GetProducer();
+        sptr<OHOS::Surface> pSurface = Surface::CreateSurfaceAsProducer(producer);
+
+        OHNativeWindow* nativeWindow = CreateNativeWindowFromSurface(&pSurface);
+        sptr<OHOS::SurfaceBuffer> sBuffer = new SurfaceBufferImpl(seqNum);
+        OHNativeWindowBuffer* nwBuffer = CreateNativeWindowBufferFromSurfaceBuffer(&sBuffer);
+        NativeWindowRequestBuffer(nativeWindow, &nwBuffer, &fenceFd);
+        NativeWindowFlushBuffer(nativeWindow, nwBuffer, fenceFd, region);
+        NativeWindowCancelBuffer(nativeWindow, nwBuffer);
+        GetBufferHandleFromNative(nwBuffer);
+        NativeObjectReference(reinterpret_cast<void *>(nwBuffer));
+        NativeObjectUnreference(reinterpret_cast<void *>(nwBuffer));
+        NativeWindowSetScalingMode(nativeWindow, sequence, scalingMode);
+        std::vector<OHHDRMetaData> metaDatas = {metaData};
+        NativeWindowSetMetaData(nativeWindow, sequence, metaDatas.size(), metaDatas.data());
+        NativeWindowSetMetaDataSet(nativeWindow, sequence, key, STR_LEN, metaData2);
+        DestoryNativeWindow(nativeWindow);
+        DestroyNativeWindowBuffer(nwBuffer);
 
         return true;
     }
-}
+} // namespace OHOS
 
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
