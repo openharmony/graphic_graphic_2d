@@ -287,10 +287,10 @@ void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::CaptureSurfaceInDisplayWithU
     bool isSelfDrawingSurface = node.GetSurfaceNodeType() == RSSurfaceNodeType::SELF_DRAWING_NODE;
     if (!isSelfDrawingSurface) {
         canvas_->concat(node.GetContextMatrix());
-    }
-    auto contextClipRect = node.GetContextClipRegion();
-    if (!contextClipRect.isEmpty()) {
-        canvas_->clipRect(contextClipRect);
+        auto contextClipRect = node.GetContextClipRegion();
+        if (!contextClipRect.isEmpty()) {
+            canvas_->clipRect(contextClipRect);
+        }
     }
 
     if (isSelfDrawingSurface) {
