@@ -18,7 +18,7 @@
 
 #include <vector>
 
-#include <display_type.h>
+#include <surface_type.h>
 #include <promise.h>
 #include <refbase.h>
 #include <window_manager_type.h>

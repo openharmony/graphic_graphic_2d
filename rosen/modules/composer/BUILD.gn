@@ -30,6 +30,7 @@ config("composer_public_config") {
   include_dirs = [
     "//foundation/graphic/graphic_2d/rosen/include/common",
     "//drivers/peripheral/display/interfaces/include",
+    "//drivers/hdf_core/adapter/uhdf2/model/display/composer",
     "//foundation/graphic/graphic_2d/interfaces/inner_api/vsync_module",
     "//foundation/graphic/graphic_2d/interfaces/inner_api/common",
     "//foundation/graphic/graphic_2d/rosen/modules/composer/hdi_backend/include",
@@ -79,7 +80,12 @@ ohos_shared_library("libcomposer") {
     "//foundation/graphic/graphic_2d/utils:sync_fence",
   ]
 
-  external_deps = [ "drivers_interface_display:display_device_client" ]
+  external_deps = [
+    "drivers_interface_display:display_device_client",
+    "hdf_core:libdisplay_composer_hdi_impl",
+    "drivers_interface_display:display_composer_idl_headers",
+    "drivers_interface_display:display_buffer_idl_headers",
+  ]
 
   part_name = "graphic_standard"
   subsystem_name = "graphic"

@@ -276,9 +276,16 @@ int32_t HdiBackend::SetScreenClientInfo(const FrameBufferEntry &fbEntry, const O
         HLOGE("SetScreenClientBuffer failed, ret is %{public}d", ret);
         return ret;
     }
-
-    ret = device_->SetScreenClientDamage(output->GetScreenId(), output->GetOutputDamageNum(),
-                                         output->GetOutputDamage());
+    GraphicIRect& rect = output->GetOutputDamage();
+    GraphicIRect damageRect = {
+        .x = rect.x,
+        .y = rect.y,
+        .w = rect.w,
+        .h = rect.h,
+    };
+    std::vector<GraphicIRect> damageRects;
+    damageRects.emplace_back(damageRect);
+    ret = device_->SetScreenClientDamage(output->GetScreenId(), damageRects);
     if (ret != GRAPHIC_DISPLAY_SUCCESS) {
         HLOGE("SetScreenClientDamage failed, ret is %{public}d", ret);
         return ret;

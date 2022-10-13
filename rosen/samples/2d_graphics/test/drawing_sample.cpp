@@ -212,7 +212,7 @@ uint32_t DrawingSample::CreatePhysicalScreen()
     screen->GetScreenCapability(info);
     LOGI("ScreenCapability: name(%{public}s), type(%{public}d), phyWidth(%{public}d), "
          "phyHeight(%{public}d)",
-        info.name, info.type, info.phyWidth, info.phyHeight);
+        info.name.c_str(), info.type, info.phyWidth, info.phyHeight);
     LOGI("ScreenCapability: supportLayers(%{public}d), virtualDispCount(%{public}d), "
          "supportWriteBack(%{public}d), propertyCount(%{public}d)",
         info.supportLayers, info.virtualDispCount, info.supportWriteBack, info.propertyCount);

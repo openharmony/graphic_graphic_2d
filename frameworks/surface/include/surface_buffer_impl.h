@@ -20,16 +20,12 @@
 #include <buffer_handle_parcel.h>
 #include <buffer_handle_utils.h>
 #include <surface_buffer.h>
-#include <idisplay_gralloc.h>
 #include "egl_data.h"
 #include "stdint.h"
 
 namespace OHOS {
 class SurfaceBufferImpl : public SurfaceBuffer {
 public:
-    using IDisplayGrallocSptr = std::shared_ptr<::OHOS::HDI::Display::V1_0::IDisplayGralloc>;
-    static IDisplayGrallocSptr GetDisplayGralloc();
-
     SurfaceBufferImpl();
     SurfaceBufferImpl(uint32_t seqNum);
     virtual ~SurfaceBufferImpl();
@@ -95,8 +91,6 @@ private:
     int32_t surfaceBufferWidth_ = 0;
     int32_t surfaceBufferHeight_ = 0;
     mutable std::mutex mutex_;
-
-    static IDisplayGrallocSptr displayGralloc_;
 };
 } // namespace OHOS
 

@@ -17,12 +17,12 @@
 #define HDI_BACKEND_HDI_DEVICE_IMPL_H
 
 #include "hdi_device.h"
-#include "hdi_display_type.h"
-#include "display_device.h"
-#include "display_layer.h"
+#include "v1_0/include/idisplay_composer_interface.h"
 
 namespace OHOS {
 namespace Rosen {
+using namespace OHOS::HDI::Display::Composer::V1_0;
+using namespace OHOS::HDI::Display;
 class HdiDeviceImpl : public HdiDevice {
 public:
     HdiDeviceImpl();
@@ -44,7 +44,7 @@ public:
                                 std::vector<int32_t> &types) override;
     int32_t SetScreenClientBuffer(uint32_t screenId, const BufferHandle *buffer,
                                   const sptr<SyncFence> &fence) override;
-    int32_t SetScreenClientDamage(uint32_t screenId, uint32_t num, GraphicIRect &damageRect) override;
+    int32_t SetScreenClientDamage(uint32_t screenId, std::vector<GraphicIRect> &damageRect) override;
     int32_t SetScreenVsyncEnabled(uint32_t screenId, bool enabled) override;
     int32_t GetScreenReleaseFence(uint32_t screenId, std::vector<uint32_t> &layersId,
                                   std::vector<sptr<SyncFence>> &fences) override;
@@ -63,7 +63,7 @@ public:
     int32_t SetLayerAlpha(uint32_t screenId, uint32_t layerId, GraphicLayerAlpha &alpha) override;
     int32_t SetLayerSize(uint32_t screenId, uint32_t layerId, GraphicIRect &layerRect) override;
     int32_t SetTransformMode(uint32_t screenId, uint32_t layerId, GraphicTransformType type) override;
-    int32_t SetLayerVisibleRegion(uint32_t screenId, uint32_t layerId, uint32_t num, GraphicIRect &visible) override;
+    int32_t SetLayerVisibleRegion(uint32_t screenId, uint32_t layerId, std::vector<GraphicIRect> &visible) override;
     int32_t SetLayerDirtyRegion(uint32_t screenId, uint32_t layerId, GraphicIRect &dirty) override;
     int32_t SetLayerBuffer(uint32_t screenId, uint32_t layerId, const BufferHandle *handle,
                            const sptr<SyncFence> &acquireFence) override;
@@ -94,30 +94,12 @@ private:
     HdiDeviceImpl(HdiDeviceImpl&& rhs) = delete;
     HdiDeviceImpl& operator=(HdiDeviceImpl&& rhs) = delete;
 
-    DeviceFuncs *deviceFuncs_ = nullptr;
-    LayerFuncs *layerFuncs_ = nullptr;
+    static constexpr uint32_t COLOR_TRANSFORM_MATRIX_SIZE = 4 * 4;
+    std::shared_ptr<IDisplayComposerInterface> composer_ = nullptr;
 
     void Destroy();
 };
 
-template <typename DevicePtr, typename DeviceFuncPtr>
-class CheckFunc {
-public:
-    CheckFunc(const DevicePtr device, const DeviceFuncPtr deviceFunc, const std::string& funcName)
-    {
-        if (device == nullptr || deviceFunc == nullptr) {
-            HLOGD("can not find hdi func: %{public}s", funcName.c_str());
-            hasFunc = false;
-        }
-    }
-    ~CheckFunc() noexcept = default;
-    bool operator()() const
-    {
-        return hasFunc;
-    }
-private:
-    bool hasFunc = true;
-};
 } // namespace Rosen
 } // namespace OHOS
 #endif // HDI_BACKEND_HDI_DEVICE_IMPL_H

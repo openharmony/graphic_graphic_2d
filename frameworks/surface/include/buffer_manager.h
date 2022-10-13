@@ -17,10 +17,7 @@
 #define FRAMEWORKS_SURFACE_INCLUDE_BUFFER_MANAGER_H
 
 #include <memory>
-
 #include <surface_type.h>
-#include <idisplay_gralloc.h>
-
 #include "surface_buffer.h"
 
 namespace OHOS {
@@ -43,8 +40,6 @@ private:
     BufferManager() = default;
     ~BufferManager() = default;
     static inline sptr<BufferManager> instance = nullptr;
-
-    std::unique_ptr<::OHOS::HDI::Display::V1_0::IDisplayGralloc> displayGralloc_ = nullptr;
 };
 } // namespace OHOS
 

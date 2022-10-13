@@ -45,7 +45,7 @@ public:
                                         std::vector<int32_t> &types) = 0;
     virtual int32_t SetScreenClientBuffer(uint32_t screenId, const BufferHandle *buffer,
                                           const sptr<SyncFence> &fence) = 0;
-    virtual int32_t SetScreenClientDamage(uint32_t screenId, uint32_t num, GraphicIRect &damageRect) = 0;
+    virtual int32_t SetScreenClientDamage(uint32_t screenId, std::vector<GraphicIRect> &damageRect) = 0;
     virtual int32_t SetScreenVsyncEnabled(uint32_t screenId, bool enabled) = 0;
     virtual int32_t GetScreenReleaseFence(uint32_t screenId, std::vector<uint32_t> &layersId,
                                           std::vector<sptr<SyncFence>> &fences) = 0;
@@ -64,7 +64,7 @@ public:
     virtual int32_t SetLayerAlpha(uint32_t screenId, uint32_t layerId, GraphicLayerAlpha &alpha) = 0;
     virtual int32_t SetLayerSize(uint32_t screenId, uint32_t layerId, GraphicIRect &layerRect) = 0;
     virtual int32_t SetTransformMode(uint32_t screenId, uint32_t layerId, GraphicTransformType type) = 0;
-    virtual int32_t SetLayerVisibleRegion(uint32_t screenId, uint32_t layerId, uint32_t num, GraphicIRect &visible) = 0;
+    virtual int32_t SetLayerVisibleRegion(uint32_t screenId, uint32_t layerId, std::vector<GraphicIRect> &visible) = 0;
     virtual int32_t SetLayerDirtyRegion(uint32_t screenId, uint32_t layerId, GraphicIRect &dirty) = 0;
     virtual int32_t SetLayerBuffer(uint32_t screenId, uint32_t layerId, const BufferHandle *handle,
                                    const sptr<SyncFence> &acquireFence) = 0;

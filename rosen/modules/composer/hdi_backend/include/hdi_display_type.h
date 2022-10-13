@@ -28,7 +28,7 @@ extern "C" {
  * @brief Defines property object which contains name, property id and value.
  */
 typedef struct {
-    char name[PROPERTY_NAME_LEN]; /**< Name of the property */
+    std::string name;             /**< Name of the property */
     uint32_t propId;              /**< Property id which was decided in the DRM internal */
     uint64_t value;               /**< the value of property  */
 } GraphicPropertyObject;
@@ -55,7 +55,7 @@ typedef enum {
  * @brief Defines the capability of the output.
  */
 typedef struct {
-    char name[PROPERTY_NAME_LEN];       /**< Name of the display device */
+    std::string name;                   /**< Name of the display device */
     GraphicInterfaceType type;          /**< Interface type of panel */
     uint32_t phyWidth;                  /**< Physical width */
     uint32_t phyHeight;                 /**< Physical height */
