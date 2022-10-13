@@ -18,6 +18,7 @@
 #include <algorithm>
 
 #include "pipeline/rs_context.h"
+#include "pipeline/rs_root_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_log.h"
 #include "transaction/rs_transaction_proxy.h"
@@ -244,10 +245,17 @@ void RSBaseRenderNode::DumpTree(int32_t depth, std::string& out) const
         const RSSurfaceHandler& surfaceHandler = static_cast<const RSSurfaceHandler&>(*surfaceNode);
         out += ", hasConsumer: " + std::to_string(surfaceHandler.HasConsumer());
         out += ", Name [" + surfaceNode->GetName() + "]";
+        out += ", Alpha: " + std::to_string(surfaceNode->GetContextAlpha() *
+            surfaceNode->GetRenderProperties().GetAlpha());
+        out += ", Visible: " + std::to_string(surfaceNode->GetRenderProperties().GetVisible());
         auto p = parent_.lock();
         out += ", parent [" + (p != nullptr ? std::to_string(p->GetId()) : "null") + "]";
         out = out + ", " + surfaceNode->GetVisibleRegion().GetRegionInfo();
         out += ", SurfaceBgAlpha[ " + std::to_string(surfaceNode->GetAbilityBgAlpha()) + " ]";
+    }
+    if (GetType() == RSRenderNodeType::ROOT_NODE) {
+        auto rootNode = static_cast<const RSRootRenderNode*>(this);
+        out += ", Visible: " + std::to_string(rootNode->GetRenderProperties().GetVisible());
     }
     out += ", children[";
     for (auto child : children_) {
