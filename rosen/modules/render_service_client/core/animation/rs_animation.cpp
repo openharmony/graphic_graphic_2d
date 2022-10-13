@@ -32,13 +32,13 @@ AnimationId RSAnimation::GenerateId()
     static pid_t pid_ = GetRealPid();
     static std::atomic<uint32_t> currentId_ = 0;
 
-    ++currentId_;
-    if (currentId_ == UINT32_MAX) {
+    auto currentId = currentId_.fetch_add(1, std::memory_order_relaxed);
+    if (currentId == UINT32_MAX) {
         ROSEN_LOGE("Animation Id overflow");
     }
 
     // concat two 32-bit numbers to one 64-bit number
-    return ((AnimationId)pid_ << 32) | (currentId_);
+    return ((AnimationId)pid_ << 32) | (currentId);
 }
 
 RSAnimation::RSAnimation() : id_(GenerateId()) {}
