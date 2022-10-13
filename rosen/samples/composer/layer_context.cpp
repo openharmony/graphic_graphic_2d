@@ -234,7 +234,7 @@ void LayerContext::DrawExtraColor(void *image, uint32_t width, uint32_t height)
     uint32_t *pixel = static_cast<uint32_t *>(image);
     for (uint32_t x = 0; x < width; x++) {
         for (uint32_t y = 0;  y < height; y++) {
-            if (testRotate_ && x >= 0 && x <= 50) { // 0-50 is different color
+            if (testRotate_ && x <= 50) { // 0-50 is different color
                 *pixel++ = 0xffff1111;
             } else {
                 *pixel++ = color_;

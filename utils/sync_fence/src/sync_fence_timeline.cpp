@@ -28,7 +28,7 @@ SyncFenceTime::SyncFenceTime(const sptr<SyncFence>& fence) : fence_(fence)
 
 SyncFenceTime::SyncFenceTime(sptr<SyncFence>&& fence) : fence_(std::move(fence))
 {
-    signaledTimestamps_ = fence->IsValid() ? SyncFence::FENCE_PENDING_TIMESTAMP :
+    signaledTimestamps_ = fence_->IsValid() ? SyncFence::FENCE_PENDING_TIMESTAMP :
         SyncFence::INVALID_TIMESTAMP;
 }
 
@@ -54,7 +54,7 @@ ns_sec_t SyncFenceTime::GetSignalTimestamp()
 
     timestamp = fence->SyncFileReadTimestamp();
     if (timestamp != SyncFence::FENCE_PENDING_TIMESTAMP) {
-        std::lock_guard<std::mutex> lock(mutex_);
+        std::lock_guard<std::mutex> lockTimestampStore(mutex_);
         fence_.clear();
         signaledTimestamps_.store(timestamp, std::memory_order_relaxed);
     }

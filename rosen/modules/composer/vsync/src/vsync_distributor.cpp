@@ -145,8 +145,8 @@ void VSyncDistributor::ThreadMain()
     int64_t vsyncCount;
     while (vsyncThreadRunning_ == true) {
         std::vector<sptr<VSyncConnection>> conns;
-        bool waitForVSync = false;
         {
+            bool waitForVSync = false;
             std::unique_lock<std::mutex> locker(mutex_);
             timestamp = event_.timestamp;
             event_.timestamp = 0;
