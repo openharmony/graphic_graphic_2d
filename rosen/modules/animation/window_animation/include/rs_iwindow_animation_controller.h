@@ -38,6 +38,7 @@ public:
     enum {
         ON_START_APP,
         ON_APP_TRANSITION,
+        ON_APP_BACK_TRANSITION,
         ON_MINIMIZE_WINDOW,
         ON_MINIMIZE_ALLWINDOW,
         ON_CLOSE_WINDOW,
@@ -50,6 +51,9 @@ public:
         const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback) = 0;
 
     virtual void OnAppTransition(const sptr<RSWindowAnimationTarget>& from, const sptr<RSWindowAnimationTarget>& to,
+        const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback) = 0;
+
+    virtual void OnAppBackTransition(const sptr<RSWindowAnimationTarget>& from, const sptr<RSWindowAnimationTarget>& to,
         const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback) = 0;
 
     virtual void OnMinimizeWindow(const sptr<RSWindowAnimationTarget>& minimizingWindow,

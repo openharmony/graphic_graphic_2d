@@ -40,6 +40,8 @@ private:
 
     int AppTransition(MessageParcel& data, MessageParcel& reply);
 
+    int AppBackTransition(MessageParcel& data, MessageParcel& reply);
+
     int MinimizeWindow(MessageParcel& data, MessageParcel& reply);
 
     int MinimizeAllWindow(MessageParcel& data, MessageParcel& reply);
