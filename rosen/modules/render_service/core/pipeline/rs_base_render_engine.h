@@ -135,7 +135,7 @@ public:
     {
         isHighContrastEnabled_  = enabled;
     }
-    static bool isHighContrastEnabled()
+    static bool IsHighContrastEnabled()
     {
         return isHighContrastEnabled_;
     }

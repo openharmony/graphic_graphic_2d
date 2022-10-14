@@ -85,7 +85,7 @@ BufferDrawParam RSDividedRenderUtil::CreateBufferDrawParam(
     params.useCPU = forceCPU;
 #else // RS_ENABLE_EGLIMAGE
     (void)(forceCPU); // unused param.
-params.useCPU = true;
+    params.useCPU = true;
 #endif // RS_ENABLE_EGLIMAGE
     params.paint.setAlphaf(node.GetGlobalAlpha());
     params.paint.setAntiAlias(true);
