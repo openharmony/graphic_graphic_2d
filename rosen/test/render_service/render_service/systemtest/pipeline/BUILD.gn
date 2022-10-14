@@ -1,0 +1,65 @@
+# Copyright (c) 2022 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/test.gni")
+import("//foundation/arkui/ace_engine/ace_config.gni")
+
+module_output_path = "graphic/rosen_engine/render_service/pipeline"
+
+##############################  RSRenderServiceCommonPipelineSystemTest  ##################################
+ohos_systemtest("RSRenderServiceCommonPipelineSystemTest") {
+  module_out_path = module_output_path
+
+  sources = [ "rs_drop_frame_processor_test.cpp" ]
+
+  configs = [
+    ":pipeline_test",
+    "$ace_root:ace_test_config",
+  ]
+
+  include_dirs = [
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service/core",
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/src",
+    "//foundation/graphic/graphic_2d/rosen/include",
+    "//foundation/graphic/graphic_2d/rosen/test/include",
+    "//foundation/barrierfree/accessibility/interfaces/innerkits/acfwk/include",
+  ]
+
+  deps = [
+    "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
+    "//foundation/graphic/graphic_2d/rosen/modules/composer:libcomposer",
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service:librender_service",
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:librender_service_base",
+    "//third_party/googletest:gtest_main",
+  ]
+
+  external_deps = [
+    "c_utils:utils",
+    "init:libbegetutil",
+  ]
+
+  subsystem_name = "graphic"
+}
+
+###############################################################################
+config("pipeline_test") {
+  #visibility = [ ":*" ]
+  include_dirs =
+      [ "//foundation/graphic/graphic_2d/rosen/modules/render_service/core" ]
+}
+
+group("systemtest") {
+  testonly = true
+
+  deps = [ ":RSRenderServiceCommonPipelineSystemTest" ]
+}

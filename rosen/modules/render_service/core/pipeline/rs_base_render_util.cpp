@@ -791,14 +791,14 @@ BufferRequestConfig RSBaseRenderUtil::GetFrameBufferRequestConfig(
     return config;
 }
 
-void RSBaseRenderUtil::DropFrameProcess(RSSurfaceHandler& node)
+GSError RSBaseRenderUtil::DropFrameProcess(RSSurfaceHandler& node)
 {
     auto availableBufferCnt = node.GetAvailableBufferCount();
     const auto& surfaceConsumer = node.GetConsumer();
     if (surfaceConsumer == nullptr) {
         RS_LOGE("RsDebug RSBaseRenderUtil::DropFrameProcess (node: %" PRIu64 "): surfaceConsumer is null!",
             node.GetNodeId());
-        return;
+        return OHOS::GSERROR_NO_CONSUMER;
     }
 
     int maxDirtyListSize = surfaceConsumer->GetQueueSize() - 1;
@@ -813,7 +813,7 @@ void RSBaseRenderUtil::DropFrameProcess(RSSurfaceHandler& node)
         if (ret != OHOS::SURFACE_ERROR_OK) {
             RS_LOGW("RSBaseRenderUtil::DropFrameProcess(node: %" PRIu64 "): AcquireBuffer failed(ret: %d), do nothing ",
                 node.GetNodeId(), ret);
-            return;
+            return OHOS::GSERROR_NO_BUFFER;
         }
 
         ret = surfaceConsumer->ReleaseBuffer(cbuffer, SyncFence::INVALID_FENCE);
@@ -826,7 +826,7 @@ void RSBaseRenderUtil::DropFrameProcess(RSSurfaceHandler& node)
         RS_LOGD("RsDebug RSBaseRenderUtil::DropFrameProcess (node: %" PRIu64 "), drop one frame", node.GetNodeId());
     }
 
-    return;
+    return OHOS::GSERROR_OK;
 }
 
 bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfaceHandler)
