@@ -21,17 +21,18 @@
 #include "surface_buffer.h"
 #include "surface_buffer_impl.h"
 #include "sync_fence.h"
+#include <iostream>
 
 namespace OHOS {
     namespace {
-        const uint8_t* data_ = nullptr;
-        size_t size_ = 0;
-        size_t pos;
+        const uint8_t* g_data = nullptr;
+        size_t g_size = 0;
+        size_t g_pos;
         constexpr size_t STR_LEN = 10;
     }
 
     /*
-    * describe: get data from outside untrusted data(data_) which size is according to sizeof(T)
+    * describe: get data from outside untrusted data(g_data) which size is according to sizeof(T)
     * tips: only support basic type
     */
     template<class T>
@@ -39,29 +40,88 @@ namespace OHOS {
     {
         T object {};
         size_t objectSize = sizeof(object);
-        if (data_ == nullptr || objectSize > size_ - pos) {
+        if (g_data == nullptr || objectSize > g_size - g_pos) {
             return object;
         }
-        errno_t ret = memcpy_s(&object, objectSize, data_ + pos, objectSize);
+        errno_t ret = memcpy_s(&object, objectSize, g_data + g_pos, objectSize);
         if (ret != EOK) {
             return {};
         }
-        pos += objectSize;
+        g_pos += objectSize;
         return object;
     }
 
     /*
-    * get a string from data_
+    * get a string from g_data
     */
     std::string GetStringFromData(int strlen)
     {
         char cstr[strlen];
         cstr[strlen - 1] = '\0';
         for (int i = 0; i < strlen - 1; i++) {
-            cstr[i] = GetData<char>();
+            char tmp = GetData<char>();
+            if (tmp == '\0') {
+                tmp = '1';
+            }
+            cstr[i] = tmp;
         }
         std::string str(cstr);
         return str;
+    }
+
+    void SurfaceFuzzTest2()
+    {
+        // get data
+        std::string name = GetStringFromData(STR_LEN);
+        bool isShared = GetData<bool>();
+        std::string key = GetStringFromData(STR_LEN);
+        std::string val = GetStringFromData(STR_LEN);
+        VerifyAllocInfo info = GetData<VerifyAllocInfo>();
+        bool supported = GetData<bool>();
+        uint32_t sequence = GetData<uint32_t>();
+        ScalingMode scalingMode = GetData<ScalingMode>();
+        HDRMetaData metaData = GetData<HDRMetaData>();
+        HDRMetadataKey metakey = GetData<HDRMetadataKey>();
+        uint8_t metaData2 = GetData<uint8_t>();
+        HDRMetaDataType metaType = GetData<HDRMetaDataType>();
+        PresentTimestamp ptimestamp = GetData<PresentTimestamp>();
+        PresentTimestampType type = GetData<PresentTimestampType>();
+        int64_t time = GetData<int64_t>();
+        std::string result = GetStringFromData(STR_LEN);
+
+        std::vector<VerifyAllocInfo> infos = {info};
+        std::vector<bool> supporteds = {supported};
+        std::vector<HDRMetaData> metaDatas = {metaData};
+        std::vector<uint8_t> metaDatas2 = {metaData2};
+
+        // test
+        sptr<OHOS::Surface> cSurface = OHOS::Surface::CreateSurfaceAsConsumer(name, isShared);
+        auto producer = cSurface->GetProducer();
+        sptr<OHOS::Surface> pSurface = OHOS::Surface::CreateSurfaceAsProducer(producer);
+
+        pSurface->SetUserData(key, val);
+        pSurface->IsSupportedAlloc(infos, supporteds);
+        pSurface->SetScalingMode(sequence, scalingMode);
+        pSurface->GetScalingMode(sequence, scalingMode);
+        pSurface->SetMetaData(sequence, metaDatas);
+        pSurface->SetMetaDataSet(sequence, metakey, metaDatas2);
+        pSurface->QueryMetaDataType(sequence, metaType);
+        pSurface->GetMetaData(sequence, metaDatas);
+        pSurface->GetMetaDataSet(sequence, metakey, metaDatas2);
+        pSurface->SetPresentTimestamp(sequence, ptimestamp);
+        pSurface->GetPresentTimestamp(sequence, type, time);
+        cSurface->SetUserData(key, val);
+        cSurface->IsSupportedAlloc(infos, supporteds);
+        cSurface->SetScalingMode(sequence, scalingMode);
+        cSurface->GetScalingMode(sequence, scalingMode);
+        cSurface->SetMetaData(sequence, metaDatas);
+        cSurface->SetMetaDataSet(sequence, metakey, metaDatas2);
+        cSurface->QueryMetaDataType(sequence, metaType);
+        cSurface->GetMetaData(sequence, metaDatas);
+        cSurface->GetMetaDataSet(sequence, metakey, metaDatas2);
+        cSurface->SetPresentTimestamp(sequence, ptimestamp);
+        cSurface->GetPresentTimestamp(sequence, type, time);
+        cSurface->Dump(result);
     }
 
     bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
@@ -71,28 +131,57 @@ namespace OHOS {
         }
 
         // initialize
-        data_ = data;
-        size_ = size;
-        pos = 0;
+        g_data = data;
+        g_size = size;
+        g_pos = 0;
 
         // get data
-        bool isShared = GetData<bool>();
         std::string name = GetStringFromData(STR_LEN);
+        bool isShared = GetData<bool>();
         BufferRequestConfig requestConfig = GetData<BufferRequestConfig>();
         BufferFlushConfig flushConfig = GetData<BufferFlushConfig>();
         int64_t timestamp = GetData<int64_t>();
         Rect damage = GetData<Rect>();
+        uint32_t seqNum = GetData<uint32_t>();
+        uint32_t queueSize = GetData<uint32_t>();
+        int32_t width = GetData<int32_t>();
+        int32_t height = GetData<int32_t>();
+        uint32_t usage = GetData<uint32_t>();
+        TransformType transform = GetData<TransformType>();
 
         // test
         sptr<OHOS::Surface> cSurface = OHOS::Surface::CreateSurfaceAsConsumer(name, isShared);
         auto producer = cSurface->GetProducer();
         sptr<OHOS::Surface> pSurface = OHOS::Surface::CreateSurfaceAsProducer(producer);
-        sptr<OHOS::SurfaceBuffer> buffer = nullptr;
+        sptr<OHOS::SurfaceBuffer> buffer = new SurfaceBufferImpl(seqNum);
         sptr<SyncFence> syncFence = SyncFence::INVALID_FENCE;
-        pSurface->RequestBuffer(buffer, syncFence, requestConfig);
-        pSurface->FlushBuffer(buffer, syncFence, flushConfig);
-        cSurface->AcquireBuffer(buffer, syncFence, timestamp, damage);
-        cSurface->ReleaseBuffer(buffer, syncFence);
+        int32_t fenceFd = syncFence->Get();
+
+        pSurface->RequestBuffer(buffer, fenceFd, requestConfig);
+        pSurface->CancelBuffer(buffer);
+        pSurface->FlushBuffer(buffer, fenceFd, flushConfig);
+        pSurface->AcquireBuffer(buffer, fenceFd, timestamp, damage);
+        pSurface->ReleaseBuffer(buffer, fenceFd);
+        pSurface->AttachBuffer(buffer);
+        pSurface->DetachBuffer(buffer);
+        pSurface->SetQueueSize(queueSize);
+        pSurface->SetDefaultWidthAndHeight(width, height);
+        pSurface->SetDefaultUsage(usage);
+        pSurface->SetTransform(transform);
+
+        cSurface->RequestBuffer(buffer, fenceFd, requestConfig);
+        cSurface->CancelBuffer(buffer);
+        cSurface->FlushBuffer(buffer, fenceFd, flushConfig);
+        cSurface->AcquireBuffer(buffer, fenceFd, timestamp, damage);
+        cSurface->ReleaseBuffer(buffer, fenceFd);
+        cSurface->AttachBuffer(buffer);
+        cSurface->DetachBuffer(buffer);
+        cSurface->SetQueueSize(queueSize);
+        cSurface->SetDefaultWidthAndHeight(width, height);
+        cSurface->SetDefaultUsage(usage);
+        cSurface->SetTransform(transform);
+
+        SurfaceFuzzTest2();
 
         return true;
     }

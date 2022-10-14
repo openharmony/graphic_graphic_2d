@@ -13,23 +13,19 @@
  * limitations under the License.
  */
 
-#include "surfacebuffer_fuzzer.h"
+#include "nativebuffer_fuzzer.h"
 
 #include <securec.h>
+#include <string>
 
-#include "surface_buffer.h"
-#include "surface_buffer_impl.h"
-#include "buffer_extra_data.h"
-#include "buffer_extra_data_impl.h"
-#include <message_parcel.h>
-#include <iostream>
+#include "native_buffer.h"
 
 namespace OHOS {
     namespace {
+        constexpr size_t STR_LEN = 10;
         const uint8_t* g_data = nullptr;
         size_t g_size = 0;
         size_t g_pos;
-        constexpr size_t STR_LEN = 10;
     }
 
     /*
@@ -60,11 +56,7 @@ namespace OHOS {
         char cstr[strlen];
         cstr[strlen - 1] = '\0';
         for (int i = 0; i < strlen - 1; i++) {
-            char tmp = GetData<char>();
-            if (tmp == '\0') {
-                tmp = '1';
-            }
-            cstr[i] = tmp;
+            cstr[i] = GetData<char>();
         }
         std::string str(cstr);
         return str;
@@ -82,43 +74,22 @@ namespace OHOS {
         g_pos = 0;
 
         // get data
-        uint32_t seqNum = GetData<uint32_t>();
-        ColorGamut colorGamut = GetData<ColorGamut>();
-        TransformType transform = GetData<TransformType>();
-        int32_t width = GetData<int32_t>();
-        int32_t height = GetData<int32_t>();
-        BufferRequestConfig config = GetData<BufferRequestConfig>();
-        std::string keyInt32 = GetStringFromData(STR_LEN);
-        int32_t valueInt32 = GetData<int32_t>();
-        std::string keyInt64 = GetStringFromData(STR_LEN);
-        int64_t valueInt64 = GetData<int64_t>();
-        std::string keyDouble = GetStringFromData(STR_LEN);
-        double valueDouble = GetData<double>();
-        std::string keyStr = GetStringFromData(STR_LEN);
-        std::string valueStr = GetStringFromData(STR_LEN);
-        void *messageParcelData = static_cast<void*>(GetStringFromData(STR_LEN).data());
+        OH_NativeBuffer_Config config = GetData<OH_NativeBuffer_Config>();
+        OH_NativeBuffer_Config checkConfig = GetData<OH_NativeBuffer_Config>();
+        void *virAddr = static_cast<void*>(GetStringFromData(STR_LEN).data());
 
         // test
-        sptr<SurfaceBuffer> surfaceBuffer = new SurfaceBufferImpl(seqNum);
-        surfaceBuffer->SetSurfaceBufferColorGamut(colorGamut);
-        surfaceBuffer->SetSurfaceBufferTransform(transform);
-        surfaceBuffer->SetSurfaceBufferWidth(width);
-        surfaceBuffer->SetSurfaceBufferHeight(height);
-        surfaceBuffer->Alloc(config);
-        sptr<BufferExtraData> bedata = new BufferExtraDataImpl();
-        bedata->ExtraSet(keyInt32, valueInt32);
-        bedata->ExtraSet(keyInt64, valueInt64);
-        bedata->ExtraSet(keyDouble, valueDouble);
-        bedata->ExtraSet(keyStr, valueStr);
-        surfaceBuffer->SetExtraData(bedata);
-        MessageParcel parcel;
-        parcel.WriteRawData(messageParcelData, STR_LEN);
-        surfaceBuffer->WriteToMessageParcel(parcel);
-        surfaceBuffer->ReadFromMessageParcel(parcel);
+        OH_NativeBuffer* buffer = OH_NativeBuffer_Alloc(&config);
+        OH_NativeBuffer_GetSeqNum(buffer);
+        OH_NativeBuffer_GetConfig(buffer, &checkConfig);
+        OH_NativeBuffer_Reference(buffer);
+        OH_NativeBuffer_Unreference(buffer);
+        OH_NativeBuffer_Map(buffer, &virAddr);
+        OH_NativeBuffer_Unmap(buffer);
 
         return true;
     }
-}
+} // namespace OHOS
 
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)

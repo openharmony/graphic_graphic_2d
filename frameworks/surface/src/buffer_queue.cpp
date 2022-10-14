@@ -252,7 +252,13 @@ GSError BufferQueue::ReuseBuffer(const BufferRequestConfig &config, sptr<BufferE
     struct IBufferProducer::RequestBufferReturnValue &retval)
 {
     ScopedBytrace func(__func__);
+    if (retval.buffer == nullptr) {
+        BLOGN_FAILURE_RET(GSERROR_INVALID_ARGUMENTS);
+    }
     retval.sequence = retval.buffer->GetSeqNum();
+    if (bufferQueueCache_.find(retval.sequence) == bufferQueueCache_.end()) {
+        BLOGN_FAILURE_RET(GSERROR_INVALID_ARGUMENTS);
+    }
     bool needRealloc = (config != bufferQueueCache_[retval.sequence].config);
     // config, realloc
     if (needRealloc) {
