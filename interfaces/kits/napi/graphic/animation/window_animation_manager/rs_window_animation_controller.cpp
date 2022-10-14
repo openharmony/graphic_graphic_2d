@@ -88,6 +88,30 @@ void RSWindowAnimationController::OnAppTransition(const sptr<RSWindowAnimationTa
         std::make_unique<AsyncTask>(callback, std::move(execute), std::move(complete)));
 }
 
+void RSWindowAnimationController::OnAppBackTransition(const sptr<RSWindowAnimationTarget>& fromWindowTarget,
+    const sptr<RSWindowAnimationTarget>& toWindowTarget,
+    const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback)
+{
+    WALOGD("Window animation controller on app back transition.");
+    wptr<RSWindowAnimationController> controllerWptr = this;
+    auto complete = std::make_unique<AsyncTask::CompleteCallback> (
+        [controllerWptr, fromWindowTarget, toWindowTarget, finishedCallback](NativeEngine&, AsyncTask&, int32_t) {
+            auto controllerSptr = controllerWptr.promote();
+            if (controllerSptr == nullptr) {
+                WALOGE("Controller is null!");
+                return;
+            }
+
+            controllerSptr->HandleOnAppBackTransition(fromWindowTarget, toWindowTarget, finishedCallback);
+        }
+    );
+
+    NativeReference* callback = nullptr;
+    std::unique_ptr<AsyncTask::ExecuteCallback> execute = nullptr;
+    AsyncTask::Schedule("RSWindowAnimationController::OnAppBackTransition", engine_,
+        std::make_unique<AsyncTask>(callback, std::move(execute), std::move(complete)));
+}
+
 void RSWindowAnimationController::OnMinimizeWindow(const sptr<RSWindowAnimationTarget>& minimizingWindowTarget,
     const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback)
 {
@@ -256,6 +280,19 @@ void RSWindowAnimationController::HandleOnAppTransition(const sptr<RSWindowAnima
         RSWindowAnimationUtils::CreateJsWindowAnimationFinishedCallback(engine_, finishedCallback),
     };
     CallJsFunction("onAppTransition", argv, ARGC_THREE);
+}
+
+void RSWindowAnimationController::HandleOnAppBackTransition(const sptr<RSWindowAnimationTarget>& fromWindowTarget,
+    const sptr<RSWindowAnimationTarget>& toWindowTarget,
+    const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback)
+{
+    WALOGD("Handle on app back transition.");
+    NativeValue* argv[] = {
+        RSWindowAnimationUtils::CreateJsWindowAnimationTarget(engine_, fromWindowTarget),
+        RSWindowAnimationUtils::CreateJsWindowAnimationTarget(engine_, toWindowTarget),
+        RSWindowAnimationUtils::CreateJsWindowAnimationFinishedCallback(engine_, finishedCallback),
+    };
+    CallJsFunction("onAppBackTransition", argv, ARGC_THREE);
 }
 
 void RSWindowAnimationController::HandleOnMinimizeWindow(const sptr<RSWindowAnimationTarget>& minimizingWindowTarget,

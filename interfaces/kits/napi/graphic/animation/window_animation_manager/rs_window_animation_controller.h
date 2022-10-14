@@ -42,6 +42,10 @@ public:
         const sptr<RSWindowAnimationTarget>& toWindowTarget,
         const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback) override;
 
+    void OnAppBackTransition(const sptr<RSWindowAnimationTarget>& fromWindowTarget,
+        const sptr<RSWindowAnimationTarget>& toWindowTarget,
+        const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback) override;
+
     void OnMinimizeWindow(const sptr<RSWindowAnimationTarget>& minimizingWindowTarget,
         const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback) override;
 
@@ -63,6 +67,10 @@ private:
         const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback);
 
     void HandleOnAppTransition(const sptr<RSWindowAnimationTarget>& fromWindowTarget,
+        const sptr<RSWindowAnimationTarget>& toWindowTarget,
+        const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback);
+
+    void HandleOnAppBackTransition(const sptr<RSWindowAnimationTarget>& fromWindowTarget,
         const sptr<RSWindowAnimationTarget>& toWindowTarget,
         const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback);
 
