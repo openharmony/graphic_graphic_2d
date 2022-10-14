@@ -43,15 +43,14 @@ bool CheckColorSpaceTypeRange(NativeEngine& engine, const ApiColorSpaceType csTy
         CMLOGE("[NAPI]ColorSpaceType is invalid: %{public}u", csType);
         engine.Throw(CreateJsError(engine,
             static_cast<int32_t>(JS_TO_ERROR_CODE_MAP.at(CMError::CM_ERROR_INVALID_ENUM_USAGE)),
-            "Parameter is invalid. The type of ApiColorSpaceType must be less than " +
-            std::to_string(static_cast<int32_t>(ApiColorSpaceType::TYPE_END))));
+            "Parameter value is abnormal. ApiColorSpaceType's value is out of range."));
         return false;
     }
     if (csType == ApiColorSpaceType::UNKNOWN || csType == ApiColorSpaceType::CUSTOM) {
         CMLOGE("[NAPI]ColorSpaceType is invalid: %{public}u", csType);
         engine.Throw(CreateJsError(engine,
             static_cast<int32_t>(JS_TO_ERROR_CODE_MAP.at(CMError::CM_ERROR_INVALID_ENUM_USAGE)),
-            "Parameter is invalid. Cannot create color manager object using ApiColorSpaceType " +
+            "Parameter value is abnormal. Cannot create color manager object using ApiColorSpaceType " +
             std::to_string(static_cast<int32_t>(ApiColorSpaceType::CUSTOM))));
         return false;
     }
@@ -104,8 +103,8 @@ NativeValue* JsColorSpaceManager::OnCreateColorSpace(NativeEngine& engine, Nativ
     }
     CMLOGE("[NAPI]Create color space failed");
     engine.Throw(CreateJsError(engine,
-        static_cast<int32_t>(JS_TO_ERROR_CODE_MAP.at(CMError::CM_ERROR_INVALID_PARAM)),
-        "Parameter is invalid. Fail to create JsColorSpaceObject"));
+        static_cast<int32_t>(JS_TO_ERROR_CODE_MAP.at(CMError::CM_ERROR_NULLPTR)),
+        "Parameter value is abnormal. Fail to create JsColorSpaceObject with input parameter(s)."));
     return engine.CreateUndefined();
 }
 

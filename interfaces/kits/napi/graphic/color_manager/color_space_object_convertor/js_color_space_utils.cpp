@@ -109,8 +109,8 @@ NativeValue* CMErrorCodeInit(NativeEngine* engine)
         CreateJsValue(*engine, static_cast<int32_t>(CMErrorCode::CM_ERROR_INVALID_PARAM)));
     object->SetProperty("CM_ERROR_DEVICE_NOT_SUPPORT",
         CreateJsValue(*engine, static_cast<int32_t>(CMErrorCode::CM_ERROR_DEVICE_NOT_SUPPORT)));
-    object->SetProperty("CM_ERROR_INVALID_ENUM_USAGE",
-        CreateJsValue(*engine, static_cast<int32_t>(CMErrorCode::CM_ERROR_INVALID_ENUM_USAGE)));
+    object->SetProperty("CM_ERROR_ABNORMAL_PARAM_VALUE",
+        CreateJsValue(*engine, static_cast<int32_t>(CMErrorCode::CM_ERROR_ABNORMAL_PARAM_VALUE)));
     return objValue;
 }
 

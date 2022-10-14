@@ -32,14 +32,14 @@ enum class CMErrorCode : int32_t {
     CM_ERROR_NO_PERMISSION = 201, // the value do not change. It is defined on all system
     CM_ERROR_INVALID_PARAM = 401, // the value do not change. It is defined on all system
     CM_ERROR_DEVICE_NOT_SUPPORT = 801, // the value do not change. It is defined on all system
-    CM_ERROR_INVALID_ENUM_USAGE = 18600001, // the value do not change. It is defined on color manager system
+    CM_ERROR_ABNORMAL_PARAM_VALUE = 18600001, // the value do not change. It is defined on color manager system
 };
 
 const std::map<CMError, CMErrorCode> JS_TO_ERROR_CODE_MAP {
     { CMError::CM_OK, CMErrorCode::CM_OK },
-    { CMError::CM_ERROR_NULLPTR, CMErrorCode::CM_ERROR_INVALID_PARAM },
+    { CMError::CM_ERROR_NULLPTR, CMErrorCode::CM_ERROR_ABNORMAL_PARAM_VALUE },
     { CMError::CM_ERROR_INVALID_PARAM, CMErrorCode::CM_ERROR_INVALID_PARAM },
-    { CMError::CM_ERROR_INVALID_ENUM_USAGE, CMErrorCode::CM_ERROR_INVALID_ENUM_USAGE },
+    { CMError::CM_ERROR_INVALID_ENUM_USAGE, CMErrorCode::CM_ERROR_ABNORMAL_PARAM_VALUE },
 };
 } // namespace ColorManager
 } // namespace OHOS
