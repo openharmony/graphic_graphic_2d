@@ -51,6 +51,45 @@ inline GSError GenerateError(GSError err, int32_t code)
 }
 }
 
+static const std::map<uint64_t, uint64_t> bufferUsageConvertMap = {
+    {BUFFER_USAGE_CPU_READ,                    HBM_USE_CPU_READ},
+    {BUFFER_USAGE_CPU_WRITE,                   HBM_USE_CPU_WRITE},
+    {BUFFER_USAGE_MEM_MMZ,                     HBM_USE_MEM_MMZ},
+    {BUFFER_USAGE_MEM_DMA,                     HBM_USE_MEM_DMA},
+    {BUFFER_USAGE_MEM_SHARE,                   HBM_USE_MEM_SHARE},
+    {BUFFER_USAGE_MEM_MMZ_CACHE,               HBM_USE_MEM_MMZ_CACHE},
+    {BUFFER_USAGE_MEM_FB,                      HBM_USE_MEM_FB},
+    {BUFFER_USAGE_ASSIGN_SIZE,                 HBM_USE_ASSIGN_SIZE},
+    {BUFFER_USAGE_HW_RENDER,                   HBM_USE_HW_RENDER},
+    {BUFFER_USAGE_HW_TEXTURE,                  HBM_USE_HW_TEXTURE},
+    {BUFFER_USAGE_HW_COMPOSER,                 HBM_USE_HW_COMPOSER},
+    {BUFFER_USAGE_PROTECTED,                   HBM_USE_PROTECTED},
+    {BUFFER_USAGE_CAMERA_READ,                 HBM_USE_CAMERA_READ},
+    {BUFFER_USAGE_CAMERA_WRITE,                HBM_USE_CAMERA_WRITE},
+    {BUFFER_USAGE_VIDEO_ENCODER,               HBM_USE_VIDEO_ENCODER},
+    {BUFFER_USAGE_VIDEO_DECODER,               HBM_USE_VIDEO_DECODER},
+    {BUFFER_USAGE_VENDOR_PRI0,                 HBM_USE_VENDOR_PRI0},
+    {BUFFER_USAGE_VENDOR_PRI1,                 HBM_USE_VENDOR_PRI1},
+    {BUFFER_USAGE_VENDOR_PRI2,                 HBM_USE_VENDOR_PRI2},
+    {BUFFER_USAGE_VENDOR_PRI3,                 HBM_USE_VENDOR_PRI3},
+    {BUFFER_USAGE_VENDOR_PRI4,                 HBM_USE_VENDOR_PRI4},
+    {BUFFER_USAGE_VENDOR_PRI5,                 HBM_USE_VENDOR_PRI5},
+    {BUFFER_USAGE_VENDOR_PRI6,                 HBM_USE_VENDOR_PRI6},
+    {BUFFER_USAGE_VENDOR_PRI7,                 HBM_USE_VENDOR_PRI7},
+    {BUFFER_USAGE_VENDOR_PRI8,                 HBM_USE_VENDOR_PRI8},
+    {BUFFER_USAGE_VENDOR_PRI9,                 HBM_USE_VENDOR_PRI9},
+    {BUFFER_USAGE_VENDOR_PRI10,                HBM_USE_VENDOR_PRI10},
+    {BUFFER_USAGE_VENDOR_PRI11,                HBM_USE_VENDOR_PRI11},
+    {BUFFER_USAGE_VENDOR_PRI12,                HBM_USE_VENDOR_PRI12},
+    {BUFFER_USAGE_VENDOR_PRI13,                HBM_USE_VENDOR_PRI13},
+    {BUFFER_USAGE_VENDOR_PRI14,                HBM_USE_VENDOR_PRI14},
+    {BUFFER_USAGE_VENDOR_PRI15,                HBM_USE_VENDOR_PRI15},
+    {BUFFER_USAGE_VENDOR_PRI16,                HBM_USE_VENDOR_PRI16},
+    {BUFFER_USAGE_VENDOR_PRI17,                HBM_USE_VENDOR_PRI17},
+    {BUFFER_USAGE_VENDOR_PRI18,                HBM_USE_VENDOR_PRI18},
+    {BUFFER_USAGE_VENDOR_PRI19,                HBM_USE_VENDOR_PRI19},
+};
+
 SurfaceBufferImpl::IDisplayGrallocSptr SurfaceBufferImpl::displayGralloc_ = nullptr;
 SurfaceBufferImpl::IDisplayGrallocSptr SurfaceBufferImpl::GetDisplayGralloc()
 {
@@ -497,53 +536,10 @@ GSError SurfaceBufferImpl::CheckBufferConfig(int32_t width, int32_t height,
 uint64_t SurfaceBufferImpl::BufferUsageToGrallocUsage(uint64_t bufferUsage)
 {
     uint64_t grallocUsage = 0;
-    if (bufferUsage & BUFFER_USAGE_CPU_READ) {
-        grallocUsage |= HBM_USE_CPU_READ;
-    }
-    if (bufferUsage & BUFFER_USAGE_CPU_WRITE) {
-        grallocUsage |= HBM_USE_CPU_WRITE;
-    }
-    if (bufferUsage & BUFFER_USAGE_MEM_MMZ) {
-        grallocUsage |= HBM_USE_MEM_MMZ;
-    }
-    if (bufferUsage & BUFFER_USAGE_MEM_DMA) {
-        grallocUsage |= HBM_USE_MEM_DMA;
-    }
-    if (bufferUsage & BUFFER_USAGE_MEM_SHARE) {
-        grallocUsage |= HBM_USE_MEM_SHARE;
-    }
-    if (bufferUsage & BUFFER_USAGE_MEM_MMZ_CACHE) {
-        grallocUsage |= HBM_USE_MEM_MMZ_CACHE;
-    }
-    if (bufferUsage & BUFFER_USAGE_ASSIGN_SIZE) {
-        grallocUsage |= HBM_USE_ASSIGN_SIZE;
-    }
-    if (bufferUsage & BUFFER_USAGE_MEM_FB) {
-        grallocUsage |= HBM_USE_MEM_FB;
-    }
-    if (bufferUsage & BUFFER_USAGE_HW_RENDER) {
-        grallocUsage |= HBM_USE_HW_RENDER;
-    }
-    if (bufferUsage & BUFFER_USAGE_HW_TEXTURE) {
-        grallocUsage |= HBM_USE_HW_TEXTURE;
-    }
-    if (bufferUsage & BUFFER_USAGE_HW_COMPOSER) {
-        grallocUsage |= HBM_USE_HW_COMPOSER;
-    }
-    if (bufferUsage & BUFFER_USAGE_PROTECTED) {
-        grallocUsage |= HBM_USE_PROTECTED;
-    }
-    if (bufferUsage & BUFFER_USAGE_CAMERA_READ) {
-        grallocUsage |= HBM_USE_CAMERA_READ;
-    }
-    if (bufferUsage & BUFFER_USAGE_CAMERA_WRITE) {
-        grallocUsage |= HBM_USE_CAMERA_WRITE;
-    }
-    if (bufferUsage & BUFFER_USAGE_VIDEO_ENCODER) {
-        grallocUsage |= HBM_USE_VIDEO_ENCODER;
-    }
-    if (bufferUsage & BUFFER_USAGE_VIDEO_DECODER) {
-        grallocUsage |= HBM_USE_VIDEO_DECODER;
+    for (auto iter = bufferUsageConvertMap.begin(); iter != bufferUsageConvertMap.end(); iter++) {
+        if (bufferUsage & iter->first) {
+            grallocUsage |= iter->second;
+        }
     }
     return grallocUsage;
 }
