@@ -48,7 +48,59 @@ T GetData()
     return object;
 }
 
-bool GetScreenSupportedMetaDataKeysFuzzTest(const uint8_t* data, size_t size)
+bool RSScreenFuzzTest(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    data_ = data;
+    size_ = size;
+    pos = 0;
+
+    // test
+    RSInterfaces* rsInterfaces = &(RSInterfaces::GetInstance());
+    uint64_t id = GetData<uint64_t>();
+    rsInterfaces->RemoveVirtualScreen(static_cast<ScreenId>(id));
+    uint32_t modeId = GetData<uint32_t>();
+    rsInterfaces->SetScreenActiveMode(static_cast<ScreenId>(id), modeId);
+    rsInterfaces->GetScreenActiveMode(static_cast<ScreenId>(id));
+    uint32_t width = GetData<uint32_t>();
+    uint32_t height = GetData<uint32_t>();
+    rsInterfaces->SetVirtualScreenResolution(static_cast<ScreenId>(id), width, height);
+    rsInterfaces->GetVirtualScreenResolution(static_cast<ScreenId>(id));
+    uint32_t status = GetData<uint32_t>();
+    rsInterfaces->SetScreenPowerStatus(static_cast<ScreenId>(id), static_cast<ScreenPowerStatus>(status));
+    rsInterfaces->GetScreenSupportedModes(static_cast<ScreenId>(id));
+    rsInterfaces->GetScreenCapability(static_cast<ScreenId>(id));
+    rsInterfaces->GetScreenPowerStatus(static_cast<ScreenId>(id));
+    rsInterfaces->GetScreenData(static_cast<ScreenId>(id));
+    rsInterfaces->GetScreenBacklight(static_cast<ScreenId>(id));
+    uint32_t level = GetData<uint32_t>();
+    rsInterfaces->SetScreenBacklight(static_cast<ScreenId>(id), level);
+    std::vector<ScreenColorGamut> modes;
+    rsInterfaces->GetScreenSupportedColorGamuts(static_cast<ScreenId>(id), modes);
+    std::vector<ScreenHDRMetadataKey> keys;
+    rsInterfaces->GetScreenSupportedMetaDataKeys(static_cast<ScreenId>(id), keys);
+    ScreenColorGamut mode;
+    rsInterfaces->GetScreenColorGamut(static_cast<ScreenId>(id), mode);
+    int32_t modeIdx = GetData<uint32_t>();
+    rsInterfaces->SetScreenColorGamut(static_cast<ScreenId>(id), modeIdx);
+    ScreenGamutMap mapMode;
+    rsInterfaces->GetScreenGamutMap(static_cast<ScreenId>(id), mapMode);
+    rsInterfaces->SetScreenGamutMap(static_cast<ScreenId>(id), mapMode);
+    RSScreenHDRCapability screenHdrCapability;
+    rsInterfaces->GetScreenHDRCapability(static_cast<ScreenId>(id), screenHdrCapability);
+    RSScreenType screenType;
+    rsInterfaces->GetScreenType(static_cast<ScreenId>(id), screenType);
+    uint32_t skipFrameInterval = GetData<uint32_t>();
+    rsInterfaces->SetScreenSkipFrameInterval(static_cast<ScreenId>(id), skipFrameInterval);
+    
+    return true;
+}
+
+bool UpdateRenderModeFuzzTest(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
         return false;
@@ -60,12 +112,11 @@ bool GetScreenSupportedMetaDataKeysFuzzTest(const uint8_t* data, size_t size)
     pos = 0;
 
     // get data
-    int32_t modeId = GetData<int32_t>();
+    bool isUniRender = GetData<bool>();
 
     // test
-    RSInterfaces* rsInterfaces = &(RSInterfaces::GetInstance());;
-    auto screenId = rsInterfaces->GetDefaultScreenId();
-    rsInterfaces->SetScreenActiveMode(screenId, modeId);
+    RSInterfaces* rsInterfaces = &(RSInterfaces::GetInstance());
+    rsInterfaces->UpdateRenderMode(isUniRender);
 
     return true;
 }
@@ -76,6 +127,7 @@ bool GetScreenSupportedMetaDataKeysFuzzTest(const uint8_t* data, size_t size)
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
     /* Run your code on data */
-    OHOS::Rosen::GetScreenSupportedMetaDataKeysFuzzTest(data, size);
+    OHOS::Rosen::RSScreenFuzzTest(data, size);
+    OHOS::Rosen::UpdateRenderModeFuzzTest(data, size);
     return 0;
 }
