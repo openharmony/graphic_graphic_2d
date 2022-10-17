@@ -66,9 +66,6 @@
             "//foundation/graphic/graphic_2d/rosen/modules/effect/skia_effectChain:skeffectchain",
             "//foundation/graphic/graphic_2d/frameworks/opengl_wrapper:EGL",
             "//foundation/graphic/graphic_2d/frameworks/opengl_wrapper:GLESv3",
-            "//foundation/graphic/graphic_2d/frameworks/opengl_wrapper:debug_layer_test1",
-            "//foundation/graphic/graphic_2d/frameworks/opengl_wrapper:debug_layer_test2",
-            "//foundation/graphic/graphic_2d/frameworks/opengl_wrapper:opengl_wrapper_native_test",
             "//foundation/graphic/graphic_2d/frameworks/surfaceimage:libnative_image",
             "//foundation/graphic/graphic_2d/rosen/modules/effect/egl:libegl_effect",
             "//foundation/graphic/graphic_2d/frameworks/vulkan_wrapper:vulkan"
