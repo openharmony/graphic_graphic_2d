@@ -63,13 +63,14 @@ HWTEST_F(RSPhysicalScreenProcessorTest, CreateAndDestroy002, TestSize.Level1)
     EXPECT_NE(p.get(), nullptr);
 }
 
-/**
- * @tc.name: ProcessSurface001
- * @tc.desc:
- * @tc.type:
- * @tc.require:
- * @tc.author:
- */
+/*
+* Function: ProcessSurface001
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: call ProcessSurface
+* @tc.require: IssueI5VYCA
+*/
 HWTEST_F(RSPhysicalScreenProcessorTest, ProcessSurface001, TestSize.Level1)
 {
     auto rsHardwareProcessor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::
@@ -77,22 +78,33 @@ HWTEST_F(RSPhysicalScreenProcessorTest, ProcessSurface001, TestSize.Level1)
     RSSurfaceRenderNodeConfig config;
     RSSurfaceRenderNode rsSurfaceRenderNode(config);
     rsHardwareProcessor->ProcessSurface(rsSurfaceRenderNode);
+    sptr<Surface> surface = Surface::CreateSurfaceAsConsumer(config.name);
+    rsSurfaceRenderNode.SetConsumer(surface);
+    rsHardwareProcessor->ProcessSurface(rsSurfaceRenderNode);
+    auto& consumer = rsSurfaceRenderNode.GetConsumer();
+    ExtDataHandle handle;
+    handle.fd = -1;
+    handle.reserveInts = 1;
+    consumer->SetTunnelHandle(&handle);
+    rsHardwareProcessor->ProcessSurface(rsSurfaceRenderNode);
 }
 
-/**
- * @tc.name: ProcessSurface002
- * @tc.desc:
- * @tc.type:
- * @tc.require:
- * @tc.author:
- */
+/*
+* Function: ProcessSurface002
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: call ProcessDisplaySurface
+* @tc.require: IssueI5VYCA
+*/
 HWTEST_F(RSPhysicalScreenProcessorTest, ProcessSurface002, TestSize.Level1)
 {
-    auto rsHardwareProcessor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::
-        HARDWARE_COMPOSITE);
-    RSSurfaceRenderNodeConfig config;
-    RSSurfaceRenderNode rsSurfaceRenderNode(config);
-    rsHardwareProcessor->ProcessSurface(rsSurfaceRenderNode);
+    auto rsUniRenderProcessor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::
+        UNI_RENDER_COMPOSITE);
+    NodeId id = 0;
+    RSDisplayNodeConfig config;
+    RSDisplayRenderNode rsDisplayRenderNode(id, config);
+    rsUniRenderProcessor->ProcessDisplaySurface(rsDisplayRenderNode);
 }
 
 /**
