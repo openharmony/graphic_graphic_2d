@@ -66,6 +66,7 @@ protected:
             property->target_ = property_->target_;
             property->SetIsCustom(true);
             property->AttachModifier(shared_from_this());
+            property->UpdateExtendedProperty();
         }
     }
 

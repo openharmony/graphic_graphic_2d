@@ -86,6 +86,8 @@ protected:
         return RSRenderPropertyType::INVALID;
     }
 
+    virtual void UpdateExtendedProperty() const {}
+
     virtual void UpdateOnAllAnimationFinish() {}
 
     virtual void AddPathAnimation() {}
@@ -169,11 +171,15 @@ public:
         }
 
         stagingValue_ = value;
-        if (this->target_.lock() == nullptr) {
+        if (target_.lock() == nullptr) {
             return;
         }
 
-        UpdateToRender(stagingValue_, false);
+        if (isCustom_) {
+            UpdateExtendedProperty();
+        } else {
+            UpdateToRender(stagingValue_, false);
+        }
     }
 
     virtual T Get() const
@@ -188,20 +194,16 @@ public:
 
 protected:
     void UpdateToRender(const T& value, bool isDelta, bool forceUpdate = false) const
-    {
-        UpdateExtendedProperty(value, isDelta);
-    }
+    {}
 
-    virtual void UpdateExtendedProperty(const T& value, bool isDelta) const
+    void UpdateExtendedProperty() const override
     {
-        auto node = this->target_.lock();
+        auto node = target_.lock();
         if (node == nullptr) {
             return;
         }
-        node->UpdateExtendedModifier(id_);
+        node->UpdateExtendedModifier(modifier_);
     }
-
-    void SetIsCustom(bool isCustom) override {}
 
     void SetValue(const std::shared_ptr<RSPropertyBase>& value) override
     {
@@ -221,7 +223,24 @@ protected:
         return true;
     }
 
+    void AttachModifier(const std::shared_ptr<RSModifier>& modifier) override
+    {
+        modifier_ = modifier;
+    }
+
+    void SetIsCustom(bool isCustom) override
+    {
+        isCustom_ = isCustom;
+    }
+
+    bool GetIsCustom() const override
+    {
+        return isCustom_;
+    }
+
     T stagingValue_ {};
+    bool isCustom_ { false };
+    std::weak_ptr<RSModifier> modifier_;
 
     friend class RSPathAnimation;
     friend class RSImplicitAnimator;
@@ -251,7 +270,7 @@ public:
             return;
         }
 
-        auto node = this->target_.lock();
+        auto node = RSProperty<T>::target_.lock();
         if (node == nullptr) {
             RSProperty<T>::stagingValue_ = value;
             return;
@@ -283,12 +302,16 @@ public:
             sendValue = value - RSProperty<T>::stagingValue_;
         }
         RSProperty<T>::stagingValue_ = value;
-        RSProperty<T>::UpdateToRender(sendValue, hasPropertyAnimation);
+        if (RSProperty<T>::isCustom_) {
+            UpdateExtendedAnimatableProperty(sendValue, hasPropertyAnimation);
+        } else {
+            RSProperty<T>::UpdateToRender(sendValue, hasPropertyAnimation);
+        }
     }
 
     T Get() const override
     {
-        if (isCustom_) {
+        if (RSProperty<T>::isCustom_) {
             return showingValue_;
         }
         return RSProperty<T>::stagingValue_;
@@ -301,24 +324,9 @@ public:
     }
 
 protected:
-    void SetIsCustom(bool isCustom) override
-    {
-        isCustom_ = isCustom;
-    }
-
-    bool GetIsCustom() const override
-    {
-        return isCustom_;
-    }
-
-    void AttachModifier(const std::shared_ptr<RSModifier>& modifier) override
-    {
-        modifier_ = modifier;
-    }
-
     void MarkModifierDirty(const std::shared_ptr<RSModifierManager>& modifierManager) override
     {
-        auto modifier = modifier_.lock();
+        auto modifier = RSProperty<T>::modifier_.lock();
         if (modifier != nullptr && modifierManager != nullptr) {
             modifierManager->AddModifier(modifier);
         }
@@ -329,21 +337,30 @@ protected:
         RSProperty<T>::UpdateToRender(RSProperty<T>::stagingValue_, false, true);
     }
 
-    void UpdateExtendedProperty(const T& value, bool isDelta) const override
+    void UpdateExtendedAnimatableProperty(const T& value, bool isDelta)
     {
-        auto animationManager = RSAnimationManagerMap::Instance()->GetAnimationManager(gettid());
-        if (animationManager == nullptr) {
-            return;
-        }
-        auto renderProperty = std::static_pointer_cast<RSRenderAnimatableProperty<T>>(
-            animationManager->GetRenderProperty(RSProperty<T>::GetId()));
-        if (renderProperty != nullptr) {
-            if (isDelta) {
+        auto renderProperty = std::static_pointer_cast<RSRenderAnimatableProperty<T>>(GetExtendedRenderProperty());
+        if (isDelta) {
+            if (renderProperty != nullptr) {
                 renderProperty->Set(renderProperty->Get() + value);
-            } else {
+            }
+        } else {
+            showingValue_ = value;
+            RSProperty<T>::UpdateExtendedProperty();
+            if (renderProperty != nullptr) {
                 renderProperty->Set(value);
             }
         }
+    }
+
+    std::shared_ptr<RSRenderPropertyBase> GetExtendedRenderProperty()
+    {
+        auto animationManager = RSAnimationManagerMap::Instance()->GetAnimationManager(gettid());
+        if (animationManager == nullptr) {
+            return nullptr;
+        }
+
+        return animationManager->GetRenderProperty(RSProperty<T>::GetId());
     }
 
     void AddPathAnimation() override
@@ -384,8 +401,6 @@ protected:
 
     T showingValue_ {};
     int runningPathNum_ { 0 };
-    bool isCustom_ { false };
-    std::weak_ptr<RSModifier> modifier_ {};
     std::shared_ptr<RSMotionPathOption> motionPathOption_ {};
 
 private:

@@ -936,11 +936,10 @@ void RSNode::UpdateModifierMotionPathOption()
     }
 }
 
-void RSNode::UpdateExtendedModifier(const PropertyId& id)
+void RSNode::UpdateExtendedModifier(const std::weak_ptr<RSModifier>& modifier)
 {
-    auto modifier = GetModifier(id);
-    if (modifier != nullptr) {
-        modifier->UpdateToRender();
+    if (auto sharedModifier = modifier.lock()) {
+        sharedModifier->UpdateToRender();
     }
 }
 

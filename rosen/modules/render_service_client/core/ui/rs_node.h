@@ -204,7 +204,7 @@ private:
     const std::shared_ptr<RSModifier> GetModifier(const PropertyId& propertyId);
     virtual void OnBoundsSizeChanged() const {};
     void UpdateModifierMotionPathOption();
-    void UpdateExtendedModifier(const PropertyId& id);
+    void UpdateExtendedModifier(const std::weak_ptr<RSModifier>& modifier);
 
     // Planning: refactor RSUIAnimationManager and remove this method
     void ClearAllModifiers();
