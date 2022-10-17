@@ -236,10 +236,9 @@ public:
 
     void SetDirtyRegionBelowCurrentLayer(Occlusion::Region& region)
     {
-        Occlusion::Rect dstrect { dstRect_.left_, dstRect_.top_,
-            dstRect_.GetRight(), dstRect_.GetBottom() };
-        Occlusion::Region dstregion {dstrect};
-        dirtyRegionBelowCurrentLayer_ = dstregion.And(region);
+        Occlusion::Rect dirtyRect{GetOldDirty()};
+        Occlusion::Region dirtyRegion {dirtyRect};
+        dirtyRegionBelowCurrentLayer_ = dirtyRegion.And(region);
         dirtyRegionBelowCurrentLayerIsEmpty_ = dirtyRegionBelowCurrentLayer_.IsEmpty();
     }
 
@@ -431,10 +430,11 @@ public:
 
     void ResetSurfaceOpaqueRegion()
     {
-        Occlusion::Rect dstRect{dstRect_.left_, dstRect_.top_, dstRect_.GetRight(), dstRect_.GetBottom()};
+        Occlusion::Rect dirtyRect{GetOldDirty()};
+        Occlusion::Rect dstRect{GetDstRect()};
         if (IsTransparent()) {
             opaqueRegion_ = Occlusion::Region();
-            transparentRegion_ = Occlusion::Region{dstRect};
+            transparentRegion_ = Occlusion::Region{dirtyRect};
         } else {
             if (IsAppWindow() && HasContainerWindow()) {
                 Occlusion::Rect opaqueRect{ dstRect_.left_ + containerContentPadding + containerBorderWidth,
@@ -442,12 +442,11 @@ public:
                     dstRect_.GetRight() - containerContentPadding - containerBorderWidth,
                     dstRect_.GetBottom() - containerContentPadding - containerBorderWidth};
                 opaqueRegion_ = Occlusion::Region{opaqueRect};
-                transparentRegion_ = Occlusion::Region{dstRect};
-                transparentRegion_.SubSelf(opaqueRegion_);
             } else {
                 opaqueRegion_ = Occlusion::Region{dstRect};
-                transparentRegion_ = Occlusion::Region();
             }
+            transparentRegion_ = Occlusion::Region{dirtyRect};
+            transparentRegion_.SubSelf(opaqueRegion_);
         }
     }
 private:
