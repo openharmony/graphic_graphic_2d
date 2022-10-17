@@ -145,7 +145,7 @@ void RSSurfaceRenderNode::CollectSurface(
     if (num != vec.end()) {
         return;
     }
-    if (isUniRender) {
+    if (isUniRender && GetRenderProperties().GetVisible()) {
         vec.emplace_back(shared_from_this());
     } else {
         if (GetBuffer() != nullptr && GetRenderProperties().GetVisible()) {
