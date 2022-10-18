@@ -551,10 +551,10 @@ void RSMainThread::Render()
         auto uniVisitor = std::make_shared<RSUniRenderVisitor>();
         uniVisitor->SetAnimateState(doWindowAnimate_);
         uniVisitor->SetDirtyFlag(isDirty_);
-        isDirty_ = false;
         rootNode->Prepare(uniVisitor);
         CalcOcclusion();
         rootNode->Process(uniVisitor);
+        isDirty_ = false;
     } else {
         auto rsVisitor = std::make_shared<RSRenderServiceVisitor>();
         rsVisitor->SetAnimateState(doWindowAnimate_);
@@ -600,7 +600,7 @@ void RSMainThread::CalcOcclusion()
 
     // 1. Judge whether it is dirty
     // Surface cnt changed or surface DstRectChanged or surface ZorderChanged
-    bool winDirty = lastSurfaceCnt_ != curAllSurfaces.size();
+    bool winDirty = (lastSurfaceCnt_ != curAllSurfaces.size() || isDirty_);
     lastSurfaceCnt_ = curAllSurfaces.size();
     if (!winDirty) {
         for (auto it = curAllSurfaces.rbegin(); it != curAllSurfaces.rend(); ++it) {
@@ -631,7 +631,7 @@ void RSMainThread::CalcOcclusion()
             continue;
         }
         Occlusion::Rect rect;
-        if (!surface->GetOldDirty().IsEmpty()) {
+        if (!surface->GetOldDirty().IsEmpty() && useUniVisitor_) {
             rect = Occlusion::Rect{surface->GetOldDirty()};
         } else {
             rect = Occlusion::Rect{surface->GetDstRect()};
