@@ -31,8 +31,7 @@ RSRenderSpringAnimation::RSRenderSpringAnimation(AnimationId id, const PropertyI
     // spring model is not initialized, so we can't calculate estimated duration
 }
 
-void RSRenderSpringAnimation::SetSpringParameters(
-    float response, float dampingRatio)
+void RSRenderSpringAnimation::SetSpringParameters(float response, float dampingRatio)
 {
     response_ = response;
     dampingRatio_ = dampingRatio;
@@ -94,12 +93,24 @@ bool RSRenderSpringAnimation::ParseParam(Parcel& parcel)
 void RSRenderSpringAnimation::OnSetFraction(float fraction)
 {
     // spring animation should not support set fraction
-    OnAnimateInner(fraction);
+    OnAnimate(fraction);
 }
 
 void RSRenderSpringAnimation::OnAnimate(float fraction)
 {
-    OnAnimateInner(fraction);
+    if (GetPropertyId() == 0) {
+        return;
+    } else if (ROSEN_EQ(fraction, 1.0f)) {
+        SetAnimationValue(endValue_);
+        prevMappedTime_ = GetDuration() * MILLISECOND_TO_SECOND;
+        return;
+    }
+    auto mappedTime = fraction * GetDuration() * MILLISECOND_TO_SECOND;
+    auto displacement = CalculateDisplacement(mappedTime);
+    SetAnimationValue(endValue_ + displacement);
+
+    // keep the mapped time, this will be used to calculate instantaneous velocity
+    prevMappedTime_ = mappedTime;
 }
 
 void RSRenderSpringAnimation::OnAttach()
@@ -109,25 +120,26 @@ void RSRenderSpringAnimation::OnAttach()
         ROSEN_LOGE("RSRenderSpringAnimation::OnAttach, target is nullptr");
         return;
     }
-    auto propertyId = GetPropertyId();
     // check if any other spring animation running on this property
+    auto propertyId = GetPropertyId();
     auto prevAnimation = target->GetAnimationManager().QuerySpringAnimation(propertyId);
-    if (prevAnimation == nullptr) {
-        target->GetAnimationManager().RegisterSpringAnimation(propertyId, GetAnimationId());
+    target->GetAnimationManager().RegisterSpringAnimation(propertyId, GetAnimationId());
+
+    // return if no other spring animation(s) running, or the other animation is finished
+    // meanwhile, align run time for both spring animations, prepare for status inheritance
+    if (prevAnimation == nullptr || prevAnimation->Animate(animationFraction_.GetLastFrameTime())) {
         return;
     }
 
     // extract spring status from previous spring animation
     auto prevSpringAnimation = std::static_pointer_cast<RSRenderSpringAnimation>(prevAnimation);
     auto status = prevSpringAnimation->GetSpringStatus();
-    // inherit spring position
+
+    // inherit spring status from previous spring animation
     startValue_ = std::get<0>(status);
     originValue_ = startValue_->Clone();
     lastValue_ = startValue_->Clone();
-    // inherit spring velocity
     initialVelocity_ = std::get<1>(status);
-
-    target->GetAnimationManager().RegisterSpringAnimation(propertyId, GetAnimationId());
 
     // set previous spring animation to FINISHED
     prevSpringAnimation->FinishOnCurrentPosition();
@@ -147,39 +159,32 @@ void RSRenderSpringAnimation::OnDetach()
 
 void RSRenderSpringAnimation::OnInitialize()
 {
+    // set the initial status of spring model
     initialOffset_ = startValue_ - endValue_;
-    if (initialVelocity_  == nullptr) {
+    if (initialVelocity_ == nullptr) {
         initialVelocity_ = initialOffset_ * 0.f;
     }
     CalculateSpringParameters();
+    // use duration calculated by spring model as animation duration
     SetDuration(std::lroundf(GetEstimatedDuration() * SECOND_TO_MILLISECOND));
-}
-
-void RSRenderSpringAnimation::OnAnimateInner(float fraction)
-{
-    if (GetPropertyId() == 0 || ROSEN_EQ(fraction, prevFraction_)) {
-        return;
-    } else if (ROSEN_EQ(fraction, 1.0f)) {
-        SetAnimationValue(endValue_);
-        prevFraction_ = fraction;
-        return;
-    }
-    auto displacement = CalculateDisplacement(fraction * GetDuration() * MILLISECOND_TO_SECOND);
-    SetAnimationValue(endValue_ + displacement);
-
-    // record fraction to calculate velocity when needed
-    prevFraction_ = fraction;
 }
 
 std::tuple<std::shared_ptr<RSRenderPropertyBase>, std::shared_ptr<RSRenderPropertyBase>>
 RSRenderSpringAnimation::GetSpringStatus()
 {
-    if (ROSEN_EQ(prevFraction_, 0.0f)) {
+    // if animation is never started, return start value and initial velocity
+    if (ROSEN_EQ(prevMappedTime_, 0.0f)) {
         return { startValue_, initialVelocity_ };
     }
-    auto displacement = CalculateDisplacement(prevFraction_ * GetDuration() * MILLISECOND_TO_SECOND);
-    auto velocity = GetInstantaneousVelocity(prevFraction_ * GetDuration() * MILLISECOND_TO_SECOND);
-    return { endValue_ + displacement, velocity };
+
+    auto displacement = lastValue_ - endValue_;
+
+    // use average velocity over a small time interval to estimate instantaneous velocity
+    constexpr double TIME_INTERVAL = 1e-6f; // 1e-6f : 1 microsecond to seconds
+    auto velocity = (CalculateDisplacement(prevMappedTime_ + TIME_INTERVAL) - displacement) * (1 / TIME_INTERVAL);
+
+    // return current position and velocity
+    return { lastValue_->Clone(), velocity };
 }
 } // namespace Rosen
 } // namespace OHOS

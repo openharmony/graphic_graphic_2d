@@ -41,6 +41,7 @@ public:
     float GetEndFraction() const;
     void SetDirectionAfterStart(const ForwardDirection& direction);
     void SetLastFrameTime(int64_t lastFrameTime);
+    int64_t GetLastFrameTime() const;
 
 private:
     bool IsFinished() const;

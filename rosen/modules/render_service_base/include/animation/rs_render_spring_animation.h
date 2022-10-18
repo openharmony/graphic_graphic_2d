@@ -56,11 +56,9 @@ private:
 #endif
     RSRenderSpringAnimation() = default;
 
-    void OnAnimateInner(float fraction);
-
     std::tuple<std::shared_ptr<RSRenderPropertyBase>, std::shared_ptr<RSRenderPropertyBase>> GetSpringStatus();
 
-    float prevFraction_ = 0.0f;
+    float prevMappedTime_ = 0.0f;
     std::shared_ptr<RSRenderPropertyBase> startValue_;
     std::shared_ptr<RSRenderPropertyBase> endValue_;
 };

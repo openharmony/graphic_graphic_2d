@@ -47,6 +47,7 @@ using namespace OHOS::AccessibilityConfig;
 namespace OHOS {
 namespace Rosen {
 namespace {
+constexpr uint64_t REFRESH_PERIOD = 16666667;
 constexpr int32_t PERF_ANIMATION_REQUESTED_CODE = 10017;
 constexpr uint64_t PERF_PERIOD = 250000000;
 
@@ -238,7 +239,14 @@ void RSMainThread::Start()
 
 void RSMainThread::ProcessCommand()
 {
-    context_->currentTimestamp_ = prevTimestamp_;
+    // To improve overall responsiveness, we make animations start on LAST frame instead of THIS frame.
+    // If last frame is too far away (earlier than 2 vsync from now), we use currentTimestamp_ - REFRESH_PERIOD as
+    // 'virtual' last frame timestamp.
+    if (timestamp_ - lastAnimateTimestamp_ > 2 * REFRESH_PERIOD) { // 2: if last frame is earlier than 2 vsync from now
+        context_->currentTimestamp_ = timestamp_ - REFRESH_PERIOD;
+    } else {
+        context_->currentTimestamp_ = lastAnimateTimestamp_;
+    }
     if (!isUniRender_) { // divided render for all
         ProcessCommandForDividedRender();
         return;
@@ -747,7 +755,6 @@ void RSMainThread::RequestNextVSync()
 void RSMainThread::OnVsync(uint64_t timestamp, void* data)
 {
     ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSMainThread::OnVsync");
-    prevTimestamp_ = timestamp_;
     timestamp_ = timestamp;
     if (isUniRender_) {
         MergeToEffectiveTransactionDataMap(cachedTransactionDataMap_);
@@ -766,6 +773,8 @@ void RSMainThread::OnVsync(uint64_t timestamp, void* data)
 void RSMainThread::Animate(uint64_t timestamp)
 {
     RS_TRACE_FUNC();
+
+    lastAnimateTimestamp_ = timestamp;
 
     if (context_->animatingNodeList_.empty()) {
         if (doWindowAnimate_ && RSInnovation::UpdateQosVsyncEnabled()) {

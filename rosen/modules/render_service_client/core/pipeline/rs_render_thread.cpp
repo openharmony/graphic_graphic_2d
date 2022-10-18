@@ -426,7 +426,14 @@ void RSRenderThread::ProcessCommands()
     std::swap(cmds, cmds_);
     cmdLock.unlock();
 
-    context_->currentTimestamp_ = prevTimestamp_;
+    // To improve overall responsiveness, we make animations start on LAST frame instead of THIS frame.
+    // If last frame is too far away (earlier than 2 vsync from now), we use currentTimestamp_ - REFRESH_PERIOD as
+    // 'virtual' last frame timestamp.
+    if (timestamp_ - lastAnimateTimestamp_ > 2 * REFRESH_PERIOD) { // 2: if last frame is earlier than 2 vsync from now
+        context_->currentTimestamp_ = timestamp_ - REFRESH_PERIOD;
+    } else {
+        context_->currentTimestamp_ = lastAnimateTimestamp_;
+    }
     for (auto& cmdData : cmds) {
         std::string str = "ProcessCommands ptr:" + std::to_string(reinterpret_cast<uintptr_t>(cmdData.get()));
         ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, str.c_str());
@@ -444,6 +451,8 @@ void RSRenderThread::Animate(uint64_t timestamp)
     if (RsFrameReport::GetInstance().GetEnable() && needRender_) {
         RsFrameReport::GetInstance().AnimateStart();
     }
+
+    lastAnimateTimestamp_ = timestamp;
 
     if (context_->animatingNodeList_.empty()) {
         return;

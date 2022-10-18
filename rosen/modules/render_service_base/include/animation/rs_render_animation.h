@@ -163,6 +163,7 @@ protected:
 
     void FinishOnCurrentPosition();
 
+    RSAnimationFraction animationFraction_;
 private:
     void ProcessFillModeOnStart(float startFraction);
 
@@ -170,7 +171,6 @@ private:
 
     AnimationId id_ = 0;
     NodeId targetId_ = 0;
-    RSAnimationFraction animationFraction_;
     AnimationState state_ { AnimationState::INITIALIZED };
     bool needUpdateStartTime_ { true };
     bool needInitialize_ { true};
