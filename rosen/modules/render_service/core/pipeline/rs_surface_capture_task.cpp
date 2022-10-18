@@ -396,7 +396,7 @@ void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::ProcessRootRenderNode(RSRoot
     if (!RSMainThread::Instance()->IfUseUniVisitor()) {
         return;
     }
-    if (!node.GetRenderProperties().GetVisible()) {
+    if (!node.ShouldPaint()) {
         RS_LOGD("ProcessRootRenderNode, no need process");
         return;
     }
@@ -424,7 +424,7 @@ void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::ProcessCanvasRenderNode(RSCa
     if (!IsUniRender()) {
         return;
     }
-    if (!node.GetRenderProperties().GetVisible()) {
+    if (!node.ShouldPaint()) {
         RS_LOGD("ProcessCanvasRenderNode, no need process");
         return;
     }
@@ -519,7 +519,7 @@ void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::ProcessSurfaceRenderNode(RSS
         return;
     }
 
-    if (!node.GetRenderProperties().GetVisible()) {
+    if (!node.ShouldPaint()) {
         RS_LOGD("ProcessSurfaceRenderNode node: %" PRIu64 " invisible", node.GetId());
         return;
     }

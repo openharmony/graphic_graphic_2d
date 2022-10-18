@@ -301,5 +301,13 @@ void RSRenderNode::FilterModifiersByPid(pid_t pid)
             [pid](const auto& it) -> bool { return static_cast<pid_t>(it->GetPropertyId() >> 32) == pid; });
     }
 }
+
+bool RSRenderNode::ShouldPaint() const
+{
+    // node should be painted if either it is visible or it has disappearing transition animation, but only when its
+    // alpha is not zero
+    return (renderProperties_.GetVisible() || HasDisappearingTransition(false)) &&
+           (renderProperties_.GetAlpha() > 0.0f);
+}
 } // namespace Rosen
 } // namespace OHOS

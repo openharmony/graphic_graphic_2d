@@ -777,6 +777,11 @@ void RSNode::SetClipToFrame(bool clipToFrame)
 
 void RSNode::SetVisible(bool visible)
 {
+    // kick off transition only if it's on tree(has valid parent) and visibility is changed.
+    if (transitionEffect_ != nullptr && GetParent() != nullptr && visible != GetStagingProperties().GetVisible()) {
+        NotifyTransition(transitionEffect_, visible);
+    }
+
     SET_NONANIMATABLE_MODIFIER(Visible, bool, visible, VISIBLE, true);
 }
 
@@ -805,14 +810,16 @@ void RSNode::NotifyTransition(const std::shared_ptr<const RSTransitionEffect>& e
 
 void RSNode::OnAddChildren()
 {
-    if (transitionEffect_ != nullptr) {
+    // kick off transition only if it's visible.
+    if (transitionEffect_ != nullptr && GetStagingProperties().GetVisible()) {
         NotifyTransition(transitionEffect_, true);
     }
 }
 
 void RSNode::OnRemoveChildren()
 {
-    if (transitionEffect_ != nullptr) {
+    // kick off transition only if it's visible.
+    if (transitionEffect_ != nullptr && GetStagingProperties().GetVisible()) {
         NotifyTransition(transitionEffect_, false);
     }
 }
