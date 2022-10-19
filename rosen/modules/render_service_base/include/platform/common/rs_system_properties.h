@@ -66,6 +66,7 @@ public:
     static void SetRenderMode(bool isUni);
     static DumpSurfaceType GetDumpSurfaceType();
     static uint64_t GetDumpSurfaceId();
+    static bool GetTargetDirtyRegionDfxEnabled(std::vector<std::string>& dfxTargetSurfaceNames_);
 
     static void SetDrawTextAsBitmap(bool flag);
     static bool GetDrawTextAsBitmap();
