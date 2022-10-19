@@ -88,17 +88,19 @@ DrawCmdList::~DrawCmdList()
 
 void DrawCmdList::AddOp(std::unique_ptr<OpItem>&& op)
 {
-    std::lock_guard<std::recursive_mutex> lock(mutex_);
+    std::lock_guard<std::mutex> lock(mutex_);
     ops_.push_back(std::move(op));
 }
 
 void DrawCmdList::ClearOp()
 {
+    std::lock_guard<std::mutex> lock(mutex_);
     ops_.clear();
 }
 
 DrawCmdList& DrawCmdList::operator=(DrawCmdList&& that)
 {
+    std::lock_guard<std::mutex> lock(mutex_);
     ops_.swap(that.ops_);
     return *this;
 }
@@ -115,6 +117,7 @@ void DrawCmdList::Playback(RSPaintFilterCanvas& canvas, const SkRect* rect) cons
     if (width_ <= 0 || height_ <= 0) {
         return;
     }
+    std::lock_guard<std::mutex> lock(mutex_);
     for (auto& it : ops_) {
         if (it == nullptr) {
             continue;
@@ -142,6 +145,7 @@ int DrawCmdList::GetHeight() const
 #ifdef ROSEN_OHOS
 bool DrawCmdList::Marshalling(Parcel& parcel) const
 {
+    std::lock_guard<std::mutex> lock(mutex_);
     bool success = RSMarshallingHelper::Marshalling(parcel, width_) &&
                    RSMarshallingHelper::Marshalling(parcel, height_) &&
                    RSMarshallingHelper::Marshalling(parcel, GetSize());
