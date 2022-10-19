@@ -92,7 +92,7 @@ void RSVirtualScreenProcessor::ProcessSurface(RSSurfaceRenderNode& node)
     // in display's coordinate.
     // clipHole: false.
     // forceCPU: true.
-    auto params = RSBaseRenderUtil::CreateBufferDrawParam(node, false, false, false);
+    auto params = RSDividedRenderUtil::CreateBufferDrawParam(node, false, false, false);
     const float adaptiveDstWidth = params.dstRect.width() * mirrorAdaptiveCoefficient_;
     const float adaptiveDstHeight = params.dstRect.height() * mirrorAdaptiveCoefficient_;
     params.dstRect.setWH(adaptiveDstWidth, adaptiveDstHeight);
