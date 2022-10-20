@@ -20,7 +20,7 @@
 
 #include "include/core/SkMatrix.h"
 
-#include "rs_render_engine.h"
+#include "rs_base_render_engine.h"
 #include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 
@@ -49,7 +49,7 @@ protected:
     int32_t offsetY_ = 0;
     ScreenId mirroredId_ = INVALID_SCREEN_ID;
     float mirrorAdaptiveCoefficient_ = 1.0f;
-    std::shared_ptr<RSRenderEngine> renderEngine_;
+    std::shared_ptr<RSBaseRenderEngine> renderEngine_;
     SkMatrix screenTransformMatrix_;
     BufferRequestConfig renderFrameConfig_ {};
 };

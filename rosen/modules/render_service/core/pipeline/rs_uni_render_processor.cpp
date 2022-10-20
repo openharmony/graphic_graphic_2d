@@ -90,7 +90,7 @@ void RSUniRenderProcessor::Redraw(const sptr<Surface>& surface, const std::vecto
     }
 
     RS_LOGD("RsDebug RSUniRenderProcessor::Redraw flush frame buffer start");
-    bool forceCPU = RSRenderEngine::NeedForceCPU(layers);
+    bool forceCPU = RSBaseRenderEngine::NeedForceCPU(layers);
     auto renderFrame = renderEngine_->RequestFrame(surface, renderFrameConfig_, forceCPU);
     if (renderFrame == nullptr) {
         RS_LOGE("RsDebug RSUniRenderProcessor::Redraw：failed to request frame.");

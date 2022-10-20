@@ -44,6 +44,7 @@ public:
      * @param isRenderForced if true, rt will reject partial render and be forced to render all frames
      */
     void SetRTRenderForced(bool isRenderForced);
+    void SetContainerWindow(bool hasContainerWindow);
 
     void SetRoot(NodeId root);
     void SetUITaskRunner(const TaskRunner& uiTaskRunner);

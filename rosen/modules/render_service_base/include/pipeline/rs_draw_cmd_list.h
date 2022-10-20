@@ -61,7 +61,7 @@ public:
 
 private:
     std::vector<std::unique_ptr<OpItem>> ops_;
-    std::recursive_mutex mutex_;
+    mutable std::mutex mutex_;
     int width_;
     int height_;
 };
@@ -87,6 +87,8 @@ private:
     DrawCmdListManager& operator=(const DrawCmdListManager&&) = delete;
 
     std::atomic_bool forceClear_ = true;
+
+    std::mutex listsMutex_;
     std::unordered_map<NodeId, std::vector<std::weak_ptr<DrawCmdList>>> lists_;
 };
 } // namespace Rosen

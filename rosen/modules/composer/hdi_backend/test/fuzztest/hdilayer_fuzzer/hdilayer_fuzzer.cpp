@@ -111,6 +111,8 @@ namespace OHOS {
         uint32_t screenId = GetData<uint32_t>();
         bool inUsing = GetData<bool>();
         int64_t timestamp = GetData<int64_t>();
+        CompositionType type = GetData<CompositionType>();
+        std::string result = GetStringFromData(STR_LEN);
 
         // test
         std::shared_ptr<HdiLayerInfo> layerInfo = GetLayerInfoFromData();
@@ -122,6 +124,8 @@ namespace OHOS {
         sptr<SyncFence> fence = SyncFence::INVALID_FENCE;
         hdiLayer->MergeWithFramebufferFence(fence);
         hdiLayer->MergeWithLayerFence(fence);
+        hdiLayer->UpdateCompositionType(type);
+        hdiLayer->Dump(result);
 
         return true;
     }

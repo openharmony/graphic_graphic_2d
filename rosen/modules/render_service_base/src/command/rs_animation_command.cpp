@@ -46,18 +46,20 @@ void AnimationCommandHelper::CreateAnimation(
     if (modifier != nullptr) {
         animation->AttachRenderProperty(modifier->GetProperty());
     }
-    animation->Attach(node.get());
-    animation->Start();
     auto beginTime = context.GetTransactionTimestamp();
     auto currentTime = context.GetCurrentTimestamp();
-    // If the animation is already finished
     if (beginTime != 0 && (currentTime - beginTime) > static_cast<unsigned long>(animation->GetDuration() * MS_TO_NS)) {
+        // If the animation is already finished before the transaction is executed, we should directly start then finish
+        // it.
         animation->SetStartTime(beginTime);
+        animation->Attach(node.get());
         animation->Animate(currentTime);
     } else {
+        // else, we should set the start time to the current time.
         animation->SetStartTime(currentTime);
+        animation->Attach(node.get());
     }
-    // register node on animation add
+    // register node as animating node
     context.RegisterAnimatingRenderNode(node);
 }
 } // namespace Rosen

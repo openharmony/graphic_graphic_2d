@@ -133,6 +133,8 @@ public:
     void Detach();
     RSRenderNode* GetTarget() const;
 
+    NodeId GetTargetId() const;
+
     virtual PropertyId GetPropertyId() const;
 
     virtual void AttachRenderProperty(const std::shared_ptr<RSRenderPropertyBase>& property) {};
@@ -161,13 +163,14 @@ protected:
 
     void FinishOnCurrentPosition();
 
+    RSAnimationFraction animationFraction_;
 private:
     void ProcessFillModeOnStart(float startFraction);
 
     void ProcessFillModeOnFinish(float endFraction);
 
     AnimationId id_ = 0;
-    RSAnimationFraction animationFraction_;
+    NodeId targetId_ = 0;
     AnimationState state_ { AnimationState::INITIALIZED };
     bool needUpdateStartTime_ { true };
     bool needInitialize_ { true};

@@ -23,7 +23,7 @@
 #include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pixel_map.h"
-#include "rs_render_engine.h"
+#include "rs_base_render_engine.h"
 #include "visitor/rs_node_visitor.h"
 
 namespace OHOS {
@@ -39,7 +39,7 @@ public:
 private:
     class RSSurfaceCaptureVisitor : public RSNodeVisitor {
     public:
-        RSSurfaceCaptureVisitor(float scaleX, float scaleY);
+        RSSurfaceCaptureVisitor(float scaleX, float scaleY, bool isUniRender);
         ~RSSurfaceCaptureVisitor() noexcept override = default;
         void PrepareBaseRenderNode(RSBaseRenderNode& node) override {}
         void PrepareCanvasRenderNode(RSCanvasRenderNode& node) override {}
@@ -59,11 +59,6 @@ private:
         void IsDisplayNode(bool isDisplayNode)
         {
             isDisplayNode_ = isDisplayNode;
-        }
-
-        void SetUniRender(bool flag)
-        {
-            isUniRender_ = flag;
         }
 
         bool IsUniRender() const
@@ -89,7 +84,7 @@ private:
         SkRect boundsRect_;
         Gravity frameGravity_ = Gravity::DEFAULT;
 
-        std::shared_ptr<RSRenderEngine> renderEngine_;
+        std::shared_ptr<RSBaseRenderEngine> renderEngine_;
     };
 
     sk_sp<SkSurface> CreateSurface(const std::unique_ptr<Media::PixelMap>& pixelmap);

@@ -777,6 +777,11 @@ void RSNode::SetClipToFrame(bool clipToFrame)
 
 void RSNode::SetVisible(bool visible)
 {
+    // kick off transition only if it's on tree(has valid parent) and visibility is changed.
+    if (transitionEffect_ != nullptr && GetParent() != nullptr && visible != GetStagingProperties().GetVisible()) {
+        NotifyTransition(transitionEffect_, visible);
+    }
+
     SET_NONANIMATABLE_MODIFIER(Visible, bool, visible, VISIBLE, true);
 }
 
@@ -805,14 +810,16 @@ void RSNode::NotifyTransition(const std::shared_ptr<const RSTransitionEffect>& e
 
 void RSNode::OnAddChildren()
 {
-    if (transitionEffect_ != nullptr) {
+    // kick off transition only if it's visible.
+    if (transitionEffect_ != nullptr && GetStagingProperties().GetVisible()) {
         NotifyTransition(transitionEffect_, true);
     }
 }
 
 void RSNode::OnRemoveChildren()
 {
-    if (transitionEffect_ != nullptr) {
+    // kick off transition only if it's visible.
+    if (transitionEffect_ != nullptr && GetStagingProperties().GetVisible()) {
         NotifyTransition(transitionEffect_, false);
     }
 }
@@ -936,11 +943,10 @@ void RSNode::UpdateModifierMotionPathOption()
     }
 }
 
-void RSNode::UpdateExtendedModifier(const PropertyId& id)
+void RSNode::UpdateExtendedModifier(const std::weak_ptr<RSModifier>& modifier)
 {
-    auto modifier = GetModifier(id);
-    if (modifier != nullptr) {
-        modifier->UpdateToRender();
+    if (auto sharedModifier = modifier.lock()) {
+        sharedModifier->UpdateToRender();
     }
 }
 
@@ -963,6 +969,15 @@ void RSNode::UpdateImplicitAnimator()
     }
     implicitAnimatorTid_ = tid;
     implicitAnimator_ = RSImplicitAnimatorMap::Instance().GetAnimator(tid);
+}
+
+std::vector<PropertyId> RSNode::GetModifierIds() const
+{
+    std::vector<PropertyId> ids;
+    for (const auto& [id, _] : modifiers_) {
+        ids.push_back(id);
+    }
+    return ids;
 }
 } // namespace Rosen
 } // namespace OHOS

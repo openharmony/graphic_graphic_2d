@@ -18,6 +18,7 @@
 
 #include "surface.h"
 #include "sync_fence.h"
+#include "pipeline/rs_base_render_util.h"
 #include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_paint_filter_canvas.h"
@@ -38,6 +39,7 @@ public:
      * make sure this function is called after merge dirty history
      */
     static Occlusion::Region MergeVisibleDirtyRegion(std::shared_ptr<RSDisplayRenderNode>& node);
+    static BufferDrawParam CreateBufferDrawParam(const RSSurfaceRenderNode& node, bool forceCPU);
 };
 }
 }

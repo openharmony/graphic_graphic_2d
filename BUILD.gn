@@ -30,7 +30,7 @@ group("default") {
   }
 }
 
-group("graphic_standard_test") {
+group("graphic_2d_test") {
   testonly = true
 
   public_deps = [

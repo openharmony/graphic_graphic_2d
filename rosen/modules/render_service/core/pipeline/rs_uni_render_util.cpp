@@ -33,15 +33,17 @@ void RSUniRenderUtil::UpdateRenderNodeDstRect(RSRenderNode& node, const SkMatrix
     auto parentProp = rsParent ? &(rsParent->GetRenderProperties()) : nullptr;
     auto& property = node.GetMutableRenderProperties();
     auto surfaceNode = node.ReinterpretCastTo<RSSurfaceRenderNode>();
-    auto isSurfaceView = surfaceNode && surfaceNode->GetSurfaceNodeType() == RSSurfaceNodeType::SELF_DRAWING_NODE;
+    auto isSelfDrawingNode = surfaceNode &&
+        (surfaceNode->GetSurfaceNodeType() == RSSurfaceNodeType::SELF_DRAWING_NODE ||
+        surfaceNode->GetSurfaceNodeType() == RSSurfaceNodeType::ABILITY_COMPONENT_NODE);
     Vector2f offset(0.f, 0.f);
-    if (isSurfaceView) {
+    if (isSelfDrawingNode) {
         offset = { parentProp->GetFrameOffsetX(), parentProp->GetFrameOffsetY() };
     }
     property.UpdateGeometry(parentProp, true, offset);
     auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(property.GetBoundsGeometry());
     if (geoPtr && node.IsInstanceOf<RSSurfaceRenderNode>()) {
-        if (!isSurfaceView) {
+        if (!isSelfDrawingNode) {
             geoPtr->ConcatMatrix(matrix);
         }
         RS_LOGD("RSUniRenderUtil::UpdateDstRect: nodeName: %s, dstRect[%s].",
@@ -96,5 +98,29 @@ Occlusion::Region RSUniRenderUtil::MergeVisibleDirtyRegion(std::shared_ptr<RSDis
     }
     return allSurfaceVisibleDirtyRegion;
 }
+
+BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(const RSSurfaceRenderNode& node, bool forceCPU)
+{
+    BufferDrawParam params;
+#ifdef RS_ENABLE_EGLIMAGE
+    params.useCPU = forceCPU;
+#else // RS_ENABLE_EGLIMAGE
+    params.useCPU = true;
+#endif // RS_ENABLE_EGLIMAGE
+    params.paint.setAntiAlias(true);
+
+    const RSProperties& property = node.GetRenderProperties();
+    params.dstRect = SkRect::MakeWH(property.GetBoundsWidth(), property.GetBoundsHeight());
+
+    const sptr<SurfaceBuffer>& buffer = node.GetBuffer();
+    params.buffer = buffer;
+    params.acquireFence = node.GetAcquireFence();
+    params.srcRect = SkRect::MakeWH(buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight());
+
+    RectF localBounds = {0.0f, 0.0f, property.GetBoundsWidth(), property.GetBoundsHeight()};
+    RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(node, localBounds, params);
+    return params;
+}
+
 } // namespace Rosen
 } // namespace OHOS

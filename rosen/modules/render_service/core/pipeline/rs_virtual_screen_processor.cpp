@@ -21,6 +21,7 @@
 #include "platform/common/rs_log.h"
 #include "platform/ohos/backend/rs_surface_frame_ohos_raster.h"
 #include "rs_base_render_util.h"
+#include "rs_divided_render_util.h"
 #include "rs_trace.h"
 #include "string_utils.h"
 
@@ -52,7 +53,7 @@ bool RSVirtualScreenProcessor::Init(RSDisplayRenderNode& node, int32_t offsetX, 
 
     // this is a work-around for the lack of color gamut conversion and yuv support in GPU.
     // currently we must forceCPU to do the composition for virtual screen.
-    bool forceCPU = true;
+    bool forceCPU = false;
     renderFrame_ = renderEngine_->RequestFrame(producerSurface_, renderFrameConfig_, forceCPU);
     if (renderFrame_ == nullptr) {
         return false;
@@ -91,7 +92,7 @@ void RSVirtualScreenProcessor::ProcessSurface(RSSurfaceRenderNode& node)
     // in display's coordinate.
     // clipHole: false.
     // forceCPU: true.
-    auto params = RSBaseRenderUtil::CreateBufferDrawParam(node, false, false, true);
+    auto params = RSDividedRenderUtil::CreateBufferDrawParam(node, false, false, false);
     const float adaptiveDstWidth = params.dstRect.width() * mirrorAdaptiveCoefficient_;
     const float adaptiveDstHeight = params.dstRect.height() * mirrorAdaptiveCoefficient_;
     params.dstRect.setWH(adaptiveDstWidth, adaptiveDstHeight);

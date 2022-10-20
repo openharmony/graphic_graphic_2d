@@ -63,58 +63,107 @@ void RSDropFrameProcessorTest::SetUp() {}
 void RSDropFrameProcessorTest::TearDown() {}
 
 /**
- * @tc.name: TestDropFrame001
- * @tc.desc:
- * @tc.type:
- * @tc.require:
- * @tc.author:
+ * @tc.name: DropFrameProcessorTest001
+ * @tc.desc: Test drop frame when pointer is null.
+ * @tc.type: FUNC
+ * @tc.require: issueI5VQWQ
  */
-HWTEST_F(RSDropFrameProcessorTest, TestDropFrame001, TestSize.Level1)
+HWTEST_F(RSDropFrameProcessorTest, DropFrameProcessorTest001, TestSize.Level1)
 {
     RSSurfaceRenderNodeConfig config;
     rsNode = std::make_shared<RSSurfaceRenderNode>(config);
-    ASSERT_NE(rsNode, nullptr);
+    rsNode->SetConsumer(nullptr);
+    GSError result = RSBaseRenderUtil::DropFrameProcess(*rsNode.get());
+    ASSERT_EQ(result, OHOS::GSERROR_NO_CONSUMER);
+}
+
+/**
+ * @tc.name: DropFrameProcessorTest002
+ * @tc.desc: Create node
+ * @tc.type: Test if AcquireBuffer is not OK.
+ * @tc.require: issueI5VQWQ
+ */
+HWTEST_F(RSDropFrameProcessorTest, DropFrameProcessorTest002, TestSize.Level1)
+{
+    RSSurfaceRenderNodeConfig config;
+    rsNode = std::make_shared<RSSurfaceRenderNode>(config);
 
     // add the node on tree, and visible default true
     // so that RSRenderServiceListener will increase AvailableBufferCount
     rsParentNode = std::make_shared<RSSurfaceRenderNode>(config);
-    ASSERT_NE(rsParentNode, nullptr);
     rsParentNode->AddChild(rsNode);
     rsNode->SetIsOnTheTree(true);
-    ASSERT_TRUE(rsNode->IsOnTheTree());
 
     csurf = Surface::CreateSurfaceAsConsumer(config.name);
-    ASSERT_NE(csurf, nullptr);
     rsNode->SetConsumer(csurf);
     std::weak_ptr<RSSurfaceRenderNode> surfaceRenderNode(rsNode);
     sptr<IBufferConsumerListener> listener = new RSRenderServiceListener(surfaceRenderNode);
-    ASSERT_NE(listener, nullptr);
-    SurfaceError ret = csurf->RegisterConsumerListener(listener);
-    ASSERT_EQ(ret, SURFACE_ERROR_OK);
+    csurf->RegisterConsumerListener(listener);
     producer = csurf->GetProducer();
-    ASSERT_NE(producer, nullptr);
     psurf = Surface::CreateSurfaceAsProducer(producer);
-    ASSERT_NE(psurf, nullptr);
     psurf->SetQueueSize(4); // only test 4 frames
-    ASSERT_EQ(4, static_cast<int>(psurf->GetQueueSize()));
 
     // request&&flush 3 buffer, make dirtyList size equal queuesize -1
     for (int i = 0; i < 3; i ++) {
         sptr<SurfaceBuffer> buffer;
         sptr<SyncFence> requestFence = SyncFence::INVALID_FENCE;
         GSError ret = psurf->RequestBuffer(buffer, requestFence, requestConfig);
-        ASSERT_EQ(ret, OHOS::GSERROR_OK);
-        ASSERT_NE(buffer, nullptr);
         sptr<SyncFence> flushFence = SyncFence::INVALID_FENCE;
         ret = psurf->FlushBuffer(buffer, flushFence, flushConfig);
-        ASSERT_EQ(ret, OHOS::GSERROR_OK);
-        printf("RSDropFrameProcessorTest::TestDropFrame001 frame %d finish \n", i);
-        printf("RSDropFrameProcessorTest::TestDropFrame001 AvailableCount: %d \n", rsNode->GetAvailableBufferCount());
         sleep(4); // every frame wait 4 seconds
     }
-    
+    const auto& surfaceConsumer = rsNode->GetConsumer();
+    OHOS::sptr<SurfaceBuffer> cbuffer;
+    Rect damage;
+    sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
+    int64_t timestamp = 0;
+    GSError ret = surfaceConsumer->AcquireBuffer(cbuffer, acquireFence, timestamp, damage);
+    while (ret != OHOS::GSERROR_NO_BUFFER) {
+        ret = surfaceConsumer->AcquireBuffer(cbuffer, acquireFence, timestamp, damage);
+    }
     // create RSHardwareProcessor
-    RSBaseRenderUtil::DropFrameProcess(*rsNode.get());
-    ASSERT_EQ(2, rsNode->GetAvailableBufferCount());
+    GSError result = RSBaseRenderUtil::DropFrameProcess(*rsNode.get());
+    ASSERT_EQ(result, OHOS::GSERROR_NO_BUFFER);
+}
+
+/**
+ * @tc.name: DropFrameProcessorTest003
+ * @tc.desc: Test DropFrameProcess is OK.
+ * @tc.type: FUNC
+ * @tc.require: issueI5VQWQ
+ */
+HWTEST_F(RSDropFrameProcessorTest, DropFrameProcessorTest003, TestSize.Level1)
+{
+    RSSurfaceRenderNodeConfig config;
+    rsNode = std::make_shared<RSSurfaceRenderNode>(config);
+
+    // add the node on tree, and visible default true
+    // so that RSRenderServiceListener will increase AvailableBufferCount
+    rsParentNode = std::make_shared<RSSurfaceRenderNode>(config);
+    rsParentNode->AddChild(rsNode);
+    rsNode->SetIsOnTheTree(true);
+
+    csurf = Surface::CreateSurfaceAsConsumer(config.name);
+    rsNode->SetConsumer(csurf);
+    std::weak_ptr<RSSurfaceRenderNode> surfaceRenderNode(rsNode);
+    sptr<IBufferConsumerListener> listener = new RSRenderServiceListener(surfaceRenderNode);
+    csurf->RegisterConsumerListener(listener);
+    producer = csurf->GetProducer();
+    psurf = Surface::CreateSurfaceAsProducer(producer);
+    psurf->SetQueueSize(4); // only test 4 frames
+
+    // request&&flush 3 buffer, make dirtyList size equal queuesize -1
+    for (int i = 0; i < 3; i ++) {
+        sptr<SurfaceBuffer> buffer;
+        sptr<SyncFence> requestFence = SyncFence::INVALID_FENCE;
+        GSError ret = psurf->RequestBuffer(buffer, requestFence, requestConfig);
+        sptr<SyncFence> flushFence = SyncFence::INVALID_FENCE;
+        ret = psurf->FlushBuffer(buffer, flushFence, flushConfig);
+        sleep(4); // every frame wait 4 seconds
+    }
+
+    // create RSHardwareProcessor
+    GSError result = RSBaseRenderUtil::DropFrameProcess(*rsNode.get());
+    ASSERT_EQ(result, OHOS::GSERROR_OK);
 }
 } // namespace OHOS::Rosen

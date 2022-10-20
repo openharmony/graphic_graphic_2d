@@ -23,7 +23,7 @@
 #include <thread>
 
 #include "refbase.h"
-#include "rs_render_engine.h"
+#include "rs_base_render_engine.h"
 #include "vsync_distributor.h"
 #include <event_handler.h>
 #include "vsync_receiver.h"
@@ -87,9 +87,9 @@ public:
         return std::move(taskFuture);
     }
 
-    const std::shared_ptr<RSRenderEngine>& GetRenderEngine() const
+    const std::shared_ptr<RSBaseRenderEngine>& GetRenderEngine() const
     {
-        return renderEngine_;
+        return IfUseUniVisitor() ? uniRenderEngine_ : renderEngine_;
     }
 
     RSContext& GetContext()
@@ -182,7 +182,7 @@ private:
     TransactionDataIndexMap effectiveTransactionDataIndexMap_;
 
     uint64_t timestamp_ = 0;
-    uint64_t prevTimestamp_ = 0;
+    uint64_t lastAnimateTimestamp_ = 0;
     uint64_t prePerfTimestamp_ = 0;
     std::unordered_map<uint32_t, sptr<IApplicationAgent>> applicationAgentMap_;
 
@@ -213,7 +213,8 @@ private:
     std::atomic_bool doWindowAnimate_ = false;
     uint32_t lastSurfaceCnt_ = 0;
 
-    std::shared_ptr<RSRenderEngine> renderEngine_;
+    std::shared_ptr<RSBaseRenderEngine> renderEngine_;
+    std::shared_ptr<RSBaseRenderEngine> uniRenderEngine_;
     std::shared_ptr<RSBaseEventDetector> rsCompositionTimeoutDetector_;
     RSEventManager rsEventManager_;
     std::shared_ptr<AccessibilityObserver> accessibilityObserver_;

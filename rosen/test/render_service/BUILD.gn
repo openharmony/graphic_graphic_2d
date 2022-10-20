@@ -24,6 +24,7 @@ group("unittest") {
     "render_service_base/unittest/render:unittest",
     "render_service_base/unittest/transaction:unittest",
     "render_service_client/fuzztest/rsinterfaces_fuzzer:fuzztest",
+    "render_service_client/fuzztest/rsnodemap_fuzzer:fuzztest",
     "render_service_client/systemtest/ui:systemtest",
     "render_service_client/unittest/transaction:unittest",
     "render_service_client/unittest/ui:unittest",

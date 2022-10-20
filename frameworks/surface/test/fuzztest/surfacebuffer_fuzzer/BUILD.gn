@@ -33,6 +33,8 @@ ohos_fuzztest("SurfaceBufferFuzzTest") {
   ]
   sources = [ "surfacebuffer_fuzzer.cpp" ]
   deps = [ "//foundation/graphic/graphic_2d:libsurface" ]
+
+  external_deps = [ "ipc:ipc_core" ]
 }
 
 ###############################################################################

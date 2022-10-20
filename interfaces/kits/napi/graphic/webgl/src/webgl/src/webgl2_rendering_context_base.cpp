@@ -2623,15 +2623,18 @@ napi_value WebGL2RenderingContextBase::GetTransformFeedbackVarying(napi_env env,
         return nullptr;
     }
 
-    GLsizei bufSize = 0;
+    GLsizei bufSize = WEBGL_ACTIVE_INFO_NAME_MAX_LENGTH;
     int length;
     int size;
     unsigned int type;
-    char name;
+    GLchar name[WEBGL_ACTIVE_INFO_NAME_MAX_LENGTH] = {0};
     LOGI("WebGL WebGL2RenderingContextBase::getTransformFeedbackVarying index = %{public}u", index);
     glGetTransformFeedbackVarying(static_cast<GLuint>(programId), static_cast<GLuint>(index),
         static_cast<GLsizei>(bufSize), static_cast<GLsizei*>(&length),
-        static_cast<GLsizei*>(&size), static_cast<GLenum*>(&type), static_cast<GLchar*>(&name));
+        static_cast<GLsizei*>(&size), static_cast<GLenum*>(&type), name);
+    if (bufSize > WEBGL_ACTIVE_INFO_NAME_MAX_LENGTH) {
+        LOGE("WebGL: GetTransformFeedbackVarying: [error] bufSize exceed!");
+    }
     webGLActiveInfo->SetActiveName(name);
     webGLActiveInfo->SetActiveSize(size);
     webGLActiveInfo->SetActiveType(type);

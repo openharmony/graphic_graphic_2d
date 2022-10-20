@@ -18,6 +18,7 @@
 #include <securec.h>
 
 #include "hdi_screen.h"
+#include "display_type.h"
 using namespace OHOS::Rosen;
 
 namespace OHOS {
@@ -62,6 +63,51 @@ namespace OHOS {
         return str;
     }
 
+    void HdiScreenFuzzTest2()
+    {
+        // get data
+        uint32_t screenId = GetData<uint32_t>();
+        uint32_t propId = GetData<uint32_t>();
+        uint64_t value = GetData<uint64_t>();
+        InterfaceType type = GetData<InterfaceType>();
+        uint32_t phyWidth = GetData<uint32_t>();
+        uint32_t phyHeight = GetData<uint32_t>();
+        uint32_t supportLayers = GetData<uint32_t>();
+        uint32_t virtualDispCount = GetData<uint32_t>();
+        bool supportWriteBack = GetData<bool>();
+        uint32_t propertyCount = GetData<uint32_t>();
+        uint32_t formatCount = GetData<uint32_t>();
+        HDRFormat formats = GetData<HDRFormat>();
+        float maxLum = GetData<float>();
+        float maxAverageLum = GetData<float>();
+        float minLum = GetData<float>();
+
+        // test
+        std::unique_ptr<HdiScreen> hdiScreen = HdiScreen::CreateHdiScreen(screenId);
+        PropertyObject props = {"propName", propId, value};
+        DisplayCapability dcap = {
+            .name = "dispName",
+            .type = type,
+            .phyWidth = phyWidth,
+            .phyHeight = phyHeight,
+            .supportLayers = supportLayers,
+            .virtualDispCount = virtualDispCount,
+            .supportWriteBack = supportWriteBack,
+            .propertyCount = propertyCount,
+            .props = &props,
+        };
+        hdiScreen->GetScreenCapability(dcap);
+
+        HDRCapability info = {
+            .formatCount = formatCount,
+            .formats = &formats,
+            .maxLum = maxLum,
+            .maxAverageLum = maxAverageLum,
+            .minLum = minLum,
+        };
+        hdiScreen->GetHDRCapabilityInfos(info);
+    }
+
     bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     {
         if (data == nullptr || size < 0) {
@@ -86,6 +132,11 @@ namespace OHOS {
         uint64_t ns = GetData<uint64_t>();
         void* dt = static_cast<void*>(GetStringFromData(STR_LEN).data());
 
+        int32_t width = GetData<int32_t>();
+        int32_t height = GetData<int32_t>();
+        uint32_t freshRate = GetData<uint32_t>();
+        int32_t id = GetData<int32_t>();
+
         // test
         std::unique_ptr<HdiScreen> hdiScreen = HdiScreen::CreateHdiScreen(screenId);
         hdiScreen->Init();
@@ -97,6 +148,17 @@ namespace OHOS {
         hdiScreen->SetScreenGamutMap(gamutMap);
         hdiScreen->SetScreenColorTransform(&matrix);
         hdiScreen->OnVsync(sequence, ns, dt);
+
+        DisplayModeInfo mode = {width, height, freshRate, id};
+        std::vector<DisplayModeInfo> modes = {mode};
+        hdiScreen->GetScreenSupportedModes(modes);
+        hdiScreen->GetScreenMode(modeId);
+        hdiScreen->GetScreenPowerStatus(status);
+        hdiScreen->GetScreenBacklight(level);
+        hdiScreen->GetScreenColorGamut(gamut);
+        hdiScreen->GetScreenGamutMap(gamutMap);
+
+        HdiScreenFuzzTest2();
         
         return true;
     }

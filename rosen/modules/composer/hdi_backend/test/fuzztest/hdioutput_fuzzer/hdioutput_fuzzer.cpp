@@ -18,10 +18,13 @@
 #include <securec.h>
 
 #include "hdi_output.h"
+#include "surface_buffer.h"
+#include "surface_buffer_impl.h"
 using namespace OHOS::Rosen;
 
 namespace OHOS {
     namespace {
+        constexpr size_t STR_LEN = 10;
         const uint8_t* data_ = nullptr;
         size_t size_ = 0;
         size_t pos;
@@ -47,6 +50,20 @@ namespace OHOS {
         return object;
     }
 
+    /*
+    * get a string from data_
+    */
+    std::string GetStringFromData(int strlen)
+    {
+        char cstr[strlen];
+        cstr[strlen - 1] = '\0';
+        for (int i = 0; i < strlen - 1; i++) {
+            cstr[i] = GetData<char>();
+        }
+        std::string str(cstr);
+        return str;
+    }
+
     bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     {
         if (data == nullptr || size < 0) {
@@ -63,6 +80,11 @@ namespace OHOS {
         uint32_t num = GetData<uint32_t>();
         IRect outputDamage = GetData<IRect>();
         int64_t timeStamp = GetData<int64_t>();
+        bool enableStatus = GetData<bool>();
+        uint32_t seqNum = GetData<uint32_t>();
+        uint32_t layerCompositionCapacity = GetData<uint32_t>();
+        std::string result = GetStringFromData(STR_LEN);
+        std::string arg = GetStringFromData(STR_LEN);
 
         // test
         std::shared_ptr<HdiOutput> hdiOutput = HdiOutput::CreateHdiOutput(screenId);
@@ -72,6 +94,13 @@ namespace OHOS {
         hdiOutput->SetLayerInfo(layerInfos);
         hdiOutput->SetOutputDamage(num, outputDamage);
         hdiOutput->RecordCompositionTime(timeStamp);
+        hdiOutput->SetDirectClientCompEnableStatus(enableStatus);
+        sptr<SurfaceBuffer> buffer = new SurfaceBufferImpl(seqNum);
+        sptr<SyncFence> syncFence = SyncFence::INVALID_FENCE;
+        hdiOutput->ReleaseFramebuffer(buffer, syncFence);
+        hdiOutput->SetLayerCompCapacity(layerCompositionCapacity);
+        hdiOutput->Dump(result);
+        hdiOutput->DumpFps(result, arg);
         
         return true;
     }

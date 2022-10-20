@@ -67,6 +67,7 @@ public:
     {
         return (disappearingTransitionCount_ > 0) || RSBaseRenderNode::HasDisappearingTransition(recursive);
     }
+    bool ShouldPaint() const;
 
     inline RectI GetOldDirty() const
     {

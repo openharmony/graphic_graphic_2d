@@ -77,9 +77,9 @@ void WebGLRenderingContextBasicBase::SetUpdateCallback(std::function<void()> cal
     mUpdateCallback = callback;
 }
 
-void WebGLRenderingContextBasicBase::SetTexture(uint64_t textureId) {}
+void WebGLRenderingContextBasicBase::SetTexture(uint64_t id) {}
 
-void WebGLRenderingContextBasicBase::Attach(uint64_t id) {}
+void WebGLRenderingContextBasicBase::Attach(uint64_t textureId) {}
 
 void WebGLRenderingContextBasicBase::Update()
 {

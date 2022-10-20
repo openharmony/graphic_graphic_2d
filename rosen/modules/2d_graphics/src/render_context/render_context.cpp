@@ -409,5 +409,11 @@ void RenderContext::ClearRedundantResources()
         grContext_->purgeResourcesNotUsedInMs(std::chrono::seconds(10));
     }
 }
+
+RenderContextFactory& RenderContextFactory::GetInstance()
+{
+    static RenderContextFactory rf;
+    return rf;
+}
 } // namespace Rosen
 } // namespace OHOS

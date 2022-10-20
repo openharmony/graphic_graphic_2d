@@ -93,6 +93,7 @@ namespace OHOS {
             .callback_ = OnVSync,
         };
         vsyncReceiver->SetVSyncRate(fcb, rate);
+        vsyncReceiver->RequestNextVSync(fcb);
 
         return true;
     }

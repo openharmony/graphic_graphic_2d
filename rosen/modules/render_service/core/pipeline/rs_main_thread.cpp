@@ -24,10 +24,12 @@
 #include "pipeline/rs_base_render_node.h"
 #include "pipeline/rs_base_render_util.h"
 #include "pipeline/rs_divided_render_util.h"
+#include "pipeline/rs_render_engine.h"
 #include "pipeline/rs_render_service_visitor.h"
 #include "pipeline/rs_root_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_unmarshal_thread.h"
+#include "pipeline/rs_uni_render_engine.h"
 #include "pipeline/rs_uni_render_visitor.h"
 #include "pipeline/rs_occlusion_config.h"
 #include "platform/common/rs_log.h"
@@ -45,6 +47,7 @@ using namespace OHOS::AccessibilityConfig;
 namespace OHOS {
 namespace Rosen {
 namespace {
+constexpr uint64_t REFRESH_PERIOD = 16666667;
 constexpr int32_t PERF_ANIMATION_REQUESTED_CODE = 10017;
 constexpr uint64_t PERF_PERIOD = 250000000;
 
@@ -89,13 +92,13 @@ public:
                 default:
                     break;
             }
-            RSMainThread::Instance()->GetRenderEngine()->SetColorFilterMode(mode);
+            RSBaseRenderEngine::SetColorFilterMode(mode);
         } else if (id == CONFIG_ID::CONFIG_INVERT_COLOR) {
             mode = value.invertColor ? ColorFilterMode::INVERT_COLOR_ENABLE_MODE :
                                         ColorFilterMode::INVERT_COLOR_DISABLE_MODE;
-            RSMainThread::Instance()->GetRenderEngine()->SetColorFilterMode(mode);
+            RSBaseRenderEngine::SetColorFilterMode(mode);
         } else {
-            RSMainThread::Instance()->GetRenderEngine()->SetHighContrast(value.highContrastText);
+            RSBaseRenderEngine::SetHighContrast(value.highContrastText);
         }
     }
 };
@@ -164,15 +167,15 @@ void RSMainThread::Init()
     receiver_ = std::make_shared<VSyncReceiver>(conn, handler_);
     receiver_->Init();
     renderEngine_ = std::make_shared<RSRenderEngine>();
+    uniRenderEngine_ = std::make_shared<RSUniRenderEngine>();
+    RSBaseRenderEngine::Init();
 #ifdef RS_ENABLE_GL
-    if (renderEngine_) {
-        int cacheLimitsTimes = 2; // double skia Resource Cache Limits
-        auto grContext = renderEngine_->GetRenderContext()->GetGrContext();
-        int maxResources = 0;
-        size_t maxResourcesSize = 0;
-        grContext->getResourceCacheLimits(&maxResources, &maxResourcesSize);
-        grContext->setResourceCacheLimits(cacheLimitsTimes * maxResources, cacheLimitsTimes * maxResourcesSize);
-    }
+    int cacheLimitsTimes = 2; // double skia Resource Cache Limits
+    auto grContext = RSBaseRenderEngine::GetRenderContext()->GetGrContext();
+    int maxResources = 0;
+    size_t maxResourcesSize = 0;
+    grContext->getResourceCacheLimits(&maxResources, &maxResourcesSize);
+    grContext->setResourceCacheLimits(cacheLimitsTimes * maxResources, cacheLimitsTimes * maxResourcesSize);
 #endif
     RSInnovation::OpenInnovationSo();
     Occlusion::Region::InitDynamicLibraryFunction();
@@ -236,7 +239,14 @@ void RSMainThread::Start()
 
 void RSMainThread::ProcessCommand()
 {
-    context_->currentTimestamp_ = prevTimestamp_;
+    // To improve overall responsiveness, we make animations start on LAST frame instead of THIS frame.
+    // If last frame is too far away (earlier than 2 vsync from now), we use currentTimestamp_ - REFRESH_PERIOD as
+    // 'virtual' last frame timestamp.
+    if (timestamp_ - lastAnimateTimestamp_ > 2 * REFRESH_PERIOD) { // 2: if last frame is earlier than 2 vsync from now
+        context_->currentTimestamp_ = timestamp_ - REFRESH_PERIOD;
+    } else {
+        context_->currentTimestamp_ = lastAnimateTimestamp_;
+    }
     if (!isUniRender_) { // divided render for all
         ProcessCommandForDividedRender();
         return;
@@ -479,7 +489,7 @@ void RSMainThread::CheckBufferAvailableIfNeed()
     bool allBufferAvailable = true;
     for (auto& [id, surfaceNode] : nodeMap.surfaceNodeMap_) {
         if (surfaceNode == nullptr || !surfaceNode->IsOnTheTree() || !surfaceNode->IsAppWindow() ||
-            !surfaceNode->GetRenderProperties().GetVisible()) {
+            !surfaceNode->ShouldPaint()) {
             continue;
         }
         if (surfaceNode->GetBuffer() == nullptr) {
@@ -549,10 +559,10 @@ void RSMainThread::Render()
         auto uniVisitor = std::make_shared<RSUniRenderVisitor>();
         uniVisitor->SetAnimateState(doWindowAnimate_);
         uniVisitor->SetDirtyFlag(isDirty_);
-        isDirty_ = false;
         rootNode->Prepare(uniVisitor);
         CalcOcclusion();
         rootNode->Process(uniVisitor);
+        isDirty_ = false;
     } else {
         auto rsVisitor = std::make_shared<RSRenderServiceVisitor>();
         rsVisitor->SetAnimateState(doWindowAnimate_);
@@ -598,7 +608,7 @@ void RSMainThread::CalcOcclusion()
 
     // 1. Judge whether it is dirty
     // Surface cnt changed or surface DstRectChanged or surface ZorderChanged
-    bool winDirty = lastSurfaceCnt_ != curAllSurfaces.size();
+    bool winDirty = (lastSurfaceCnt_ != curAllSurfaces.size() || isDirty_);
     lastSurfaceCnt_ = curAllSurfaces.size();
     if (!winDirty) {
         for (auto it = curAllSurfaces.rbegin(); it != curAllSurfaces.rend(); ++it) {
@@ -628,19 +638,13 @@ void RSMainThread::CalcOcclusion()
         if (surface == nullptr || surface->GetDstRect().IsEmpty()) {
             continue;
         }
-        Occlusion::Rect curRect;
-        if (!surface->GetOldDirty().IsEmpty()) {
-            curRect.left_ = surface->GetOldDirty().left_;
-            curRect.top_ = surface->GetOldDirty().top_;
-            curRect.right_ = surface->GetOldDirty().GetRight();
-            curRect.bottom_ = surface->GetOldDirty().GetBottom();
+        Occlusion::Rect rect;
+        if (!surface->GetOldDirty().IsEmpty() && useUniVisitor_) {
+            rect = Occlusion::Rect{surface->GetOldDirty()};
         } else {
-            curRect.left_ = surface->GetDstRect().left_;
-            curRect.top_ = surface->GetDstRect().top_;
-            curRect.right_ = surface->GetDstRect().GetRight();
-            curRect.bottom_ = surface->GetDstRect().GetBottom();
+            rect = Occlusion::Rect{surface->GetDstRect()};
         }
-        Occlusion::Region curSurface { curRect };
+        Occlusion::Region curSurface { rect };
         // Current surface subtract current region, if result region is empty that means it's covered
         Occlusion::Region subResult = curSurface.Sub(curRegion);
         // Set result to SurfaceRenderNode and its children
@@ -648,12 +652,10 @@ void RSMainThread::CalcOcclusion()
         surface->SetVisibleRegionRecursive(subResult, curVisVec, pidVisMap);
         // Current region need to merge current surface for next calculation(ignore alpha surface)
         if (isUniRender_) {
+            surface->ResetSurfaceOpaqueRegion();
             if (!surface->IsTransparent() ||
                 RSOcclusionConfig::GetInstance().IsDividerBar(surface->GetName())) {
-                Occlusion::Rect dstRect { surface->GetDstRect().left_, surface->GetDstRect().top_,
-                    surface->GetDstRect().GetRight(), surface->GetDstRect().GetBottom() };
-                Occlusion::Region opaqueSurface { dstRect };
-                curRegion = opaqueSurface.Or(curRegion);
+                curRegion.OrSelf(surface->GetOpaqueRegion());
             }
         } else {
             const uint8_t opacity = 255;
@@ -663,7 +665,7 @@ void RSMainThread::CalcOcclusion()
                         surface->GetRenderProperties().GetAlpha() != opacity;
             if ((!surface->IsTransparent() && !diff) ||
                 RSOcclusionConfig::GetInstance().IsDividerBar(surface->GetName())) {
-                curRegion = curSurface.Or(curRegion);
+                curRegion.OrSelf(curSurface);
             }
         }
     }
@@ -753,7 +755,6 @@ void RSMainThread::RequestNextVSync()
 void RSMainThread::OnVsync(uint64_t timestamp, void* data)
 {
     ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSMainThread::OnVsync");
-    prevTimestamp_ = timestamp_;
     timestamp_ = timestamp;
     if (isUniRender_) {
         MergeToEffectiveTransactionDataMap(cachedTransactionDataMap_);
@@ -772,6 +773,8 @@ void RSMainThread::OnVsync(uint64_t timestamp, void* data)
 void RSMainThread::Animate(uint64_t timestamp)
 {
     RS_TRACE_FUNC();
+
+    lastAnimateTimestamp_ = timestamp;
 
     if (context_->animatingNodeList_.empty()) {
         if (doWindowAnimate_ && RSInnovation::UpdateQosVsyncEnabled()) {

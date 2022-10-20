@@ -113,7 +113,7 @@ void RSRenderThreadVisitor::PrepareRootRenderNode(RSRootRenderNode& node)
 void RSRenderThreadVisitor::PrepareCanvasRenderNode(RSCanvasRenderNode& node)
 {
     node.ApplyModifiers();
-    if (!node.GetRenderProperties().GetVisible()) {
+    if (!node.ShouldPaint()) {
         return;
     }
     bool dirtyFlag = dirtyFlag_;
@@ -248,7 +248,8 @@ void RSRenderThreadVisitor::UpdateDirtyAndSetEGLDamageRegion(std::unique_ptr<RSS
             // get dirty rect coordinated from upper left to lower left corner in current surface
             RectI dirtyRectFlip = curDirtyManager_->GetRectFlipWithinSurface(curDirtyRegion_);
             // set dirty rect as eglSurfaceFrame's damage region
-            surfaceFrame->SetDamageRegion(dirtyRectFlip.left_, dirtyRectFlip.top_, dirtyRectFlip.width_, dirtyRectFlip.height_);
+            surfaceFrame->SetDamageRegion(dirtyRectFlip.left_, dirtyRectFlip.top_, dirtyRectFlip.width_,
+                dirtyRectFlip.height_);
             // flip aligned rect for op drops
             curDirtyRegion_ = curDirtyManager_->GetRectFlipWithinSurface(dirtyRectFlip);
             ROSEN_LOGD("GetPartialRenderEnabled buffer age %d, dirtyRectFlip = [%d, %d, %d, %d], "
@@ -444,7 +445,7 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
 
 void RSRenderThreadVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
 {
-    if (!node.GetRenderProperties().GetVisible()) {
+    if (!node.ShouldPaint()) {
         return;
     }
     if (!canvas_) {
@@ -484,7 +485,7 @@ void RSRenderThreadVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
         ROSEN_LOGE("RSRenderThreadVisitor::ProcessSurfaceRenderNode, canvas is nullptr");
         return;
     }
-    if (!node.GetRenderProperties().GetVisible()) {
+    if (!node.ShouldPaint()) {
         ROSEN_LOGI("RSRenderThreadVisitor::ProcessSurfaceRenderNode node : %" PRIu64 " is invisible", node.GetId());
         node.SetContextAlpha(0.0f);
         return;

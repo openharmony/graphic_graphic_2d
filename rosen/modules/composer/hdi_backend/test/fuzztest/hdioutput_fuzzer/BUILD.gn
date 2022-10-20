@@ -22,6 +22,7 @@ ohos_fuzztest("HdiOutputFuzzTest") {
   module_out_path = module_output_path
 
   include_dirs = [
+    "//foundation/graphic/graphic_2d/frameworks/surface/include",
     "//foundation/graphic/graphic_2d/rosen/modules/composer/hdi_backend/include",
     "//foundation/graphic/graphic_2d/interfaces/inner_api/surface",
   ]
@@ -34,6 +35,7 @@ ohos_fuzztest("HdiOutputFuzzTest") {
   sources = [ "hdioutput_fuzzer.cpp" ]
   deps = [
     "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
+    "//foundation/graphic/graphic_2d:libsurface",
     "//foundation/graphic/graphic_2d/rosen/modules/composer:libcomposer",
     "//foundation/graphic/graphic_2d/utils:socketpair",
   ]

@@ -29,22 +29,7 @@ RSProxyRenderNode::RSProxyRenderNode(
 
 RSProxyRenderNode::~RSProxyRenderNode()
 {
-    ROSEN_LOGD("RSProxyRenderNode::~RSProxyRenderNode, id:%" PRIu64 " target:%" PRIu64, GetId(), targetId_);
-
-    // if target do not exist (in RT) or already destroyed(in RS), skip remaining operations
-    auto target = target_.lock();
-    if (target == nullptr) {
-        return;
-    }
-
-    // reset target node context properties
-    target->SetContextAlpha(1, false);
-    target->SetContextMatrix(SkMatrix::I(), false);
-
-    // remove modifiers and animations added by proxy node (this process)
-    const auto pid_of_this_node = static_cast<pid_t>(GetId() >> 32); // 32: extract pid from node id
-    target->FilterModifiersByPid(pid_of_this_node);
-    target->GetAnimationManager().FilterAnimationByPid(pid_of_this_node);
+    // clear target node context properties
 }
 
 void RSProxyRenderNode::Prepare(const std::shared_ptr<RSNodeVisitor>& visitor)

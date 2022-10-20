@@ -26,7 +26,7 @@ namespace Rosen {
 RSSurfaceOhosRaster::RSSurfaceOhosRaster(const sptr<Surface>& producer) : RSSurfaceOhos(producer) {}
 
 
-void RSSurfaceOhosRaster::SetSurfaceBufferUsage(int32_t usage)
+void RSSurfaceOhosRaster::SetSurfaceBufferUsage(uint64_t usage)
 {
     bufferUsage_ = usage;
 }

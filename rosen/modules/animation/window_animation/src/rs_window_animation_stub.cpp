@@ -27,6 +27,7 @@ static constexpr int MAX_FLOATING_WINDOW_NUMBER = 100;
 const std::map<uint32_t, WindowAnimationStubFunc> RSWindowAnimationStub::stubFuncMap_{
     std::make_pair(RSIWindowAnimationController::ON_START_APP, &RSWindowAnimationStub::StartApp),
     std::make_pair(RSIWindowAnimationController::ON_APP_TRANSITION, &RSWindowAnimationStub::AppTransition),
+    std::make_pair(RSIWindowAnimationController::ON_APP_BACK_TRANSITION, &RSWindowAnimationStub::AppBackTransition),
     std::make_pair(RSIWindowAnimationController::ON_MINIMIZE_WINDOW, &RSWindowAnimationStub::MinimizeWindow),
     std::make_pair(RSIWindowAnimationController::ON_MINIMIZE_ALLWINDOW, &RSWindowAnimationStub::MinimizeAllWindow),
     std::make_pair(RSIWindowAnimationController::ON_CLOSE_WINDOW, &RSWindowAnimationStub::CloseWindow),
@@ -100,6 +101,33 @@ int RSWindowAnimationStub::AppTransition(MessageParcel& data, MessageParcel& rep
     }
 
     OnAppTransition(fromWindowTarget, toWindowTarget, finishedCallback);
+    return ERR_NONE;
+}
+
+int RSWindowAnimationStub::AppBackTransition(MessageParcel& data, MessageParcel& reply)
+{
+    WALOGD("Window animation back transition!");
+    sptr<RSWindowAnimationTarget> fromWindowTarget(data.ReadParcelable<RSWindowAnimationTarget>());
+    if (fromWindowTarget == nullptr) {
+        WALOGE("Failed to read animation target from!");
+        return ERR_INVALID_DATA;
+    }
+
+    sptr<RSWindowAnimationTarget> toWindowTarget(data.ReadParcelable<RSWindowAnimationTarget>());
+    if (toWindowTarget == nullptr) {
+        WALOGE("Failed to read animation target to!");
+        return ERR_INVALID_DATA;
+    }
+
+    sptr<IRemoteObject> finishcallbackObject = data.ReadRemoteObject();
+    sptr<RSIWindowAnimationFinishedCallback> finishedCallback =
+        iface_cast<RSIWindowAnimationFinishedCallback>(finishcallbackObject);
+    if (finishedCallback == nullptr) {
+        WALOGE("Failed to read animation finished callback!");
+        return ERR_INVALID_DATA;
+    }
+
+    OnAppBackTransition(fromWindowTarget, toWindowTarget, finishedCallback);
     return ERR_NONE;
 }
 

@@ -28,7 +28,6 @@ public:
     virtual ~RSSpringModel() = default;
 
     RSAnimatableType CalculateDisplacement(double time) const;
-    RSAnimatableType GetInstantaneousVelocity(double time) const;
     float GetEstimatedDuration();
 
 protected:

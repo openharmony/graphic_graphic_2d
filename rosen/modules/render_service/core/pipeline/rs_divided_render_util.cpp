@@ -76,5 +76,83 @@ bool RSDividedRenderUtil::IsForceClient()
 {
     return (std::atoi((system::GetParameter("rosen.client_composition.enabled", "0")).c_str()) != 0);
 }
+
+BufferDrawParam RSDividedRenderUtil::CreateBufferDrawParam(
+    const RSSurfaceRenderNode& node, bool inLocalCoordinate, bool isClipHole, bool forceCPU, bool setColorFilter)
+{
+    BufferDrawParam params;
+#ifdef RS_ENABLE_EGLIMAGE
+    params.useCPU = forceCPU;
+#else // RS_ENABLE_EGLIMAGE
+    (void)(forceCPU); // unused param.
+    params.useCPU = true;
+#endif // RS_ENABLE_EGLIMAGE
+    params.paint.setAlphaf(node.GetGlobalAlpha());
+    params.paint.setAntiAlias(true);
+    params.setColorFilter = setColorFilter;
+
+    const RSProperties& property = node.GetRenderProperties();
+    auto backgroundColor = property.GetBackgroundColor();
+    auto backgroundAlpha = backgroundColor.GetAlpha();
+    int16_t finalBackgroundAlpha = static_cast<int16_t>(backgroundAlpha * node.GetGlobalAlpha());
+    backgroundColor.SetAlpha(finalBackgroundAlpha);
+    params.backgroundColor = static_cast<SkColor>(backgroundColor.AsArgbInt());
+
+    const RectF absBounds = {
+        node.GetTotalMatrix().getTranslateX(), node.GetTotalMatrix().getTranslateY(),
+        property.GetBoundsWidth(), property.GetBoundsHeight()};
+    RectF localBounds = {0.0f, 0.0f, absBounds.GetWidth(), absBounds.GetHeight()};
+
+    // calculate clipRect and clipRRect(if has cornerRadius) for canvas.
+    CalculateSurfaceNodeClipRects(node, absBounds, localBounds, inLocalCoordinate, params);
+
+    // inLocalCoordinate: reset the translate to (0, 0).
+    // else: use node's total matrix.
+    if (inLocalCoordinate) {
+        params.matrix = SkMatrix::I();
+    } else {
+        params.matrix = node.GetTotalMatrix();
+    }
+
+    // we can use only the bound's size (ignore its offset) now,
+    // (the canvas was moved to the node's left-top point correctly).
+    params.dstRect = SkRect::MakeWH(localBounds.GetWidth(), localBounds.GetHeight());
+
+    const sptr<Surface>& surface = node.GetConsumer();
+    const sptr<SurfaceBuffer>& buffer = node.GetBuffer();
+    if (isClipHole || surface == nullptr || buffer == nullptr) {
+        return params;
+    }
+
+    params.buffer = buffer;
+    params.acquireFence = node.GetAcquireFence();
+    params.srcRect = SkRect::MakeWH(buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight());
+
+    RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(node, localBounds, params);
+    return params;
+}
+
+void RSDividedRenderUtil::CalculateSurfaceNodeClipRects(
+    const RSSurfaceRenderNode& node,
+    const RectF& absBounds,
+    const RectF& localBounds,
+    bool inLocalCoordinate,
+    BufferDrawParam& params)
+{
+    const RSProperties& property = node.GetRenderProperties();
+    params.cornerRadius = property.GetCornerRadius();
+    params.isNeedClip = property.GetClipToFrame();
+    if (inLocalCoordinate) {
+        // in canvas's local coordinate system.
+        params.clipRect = SkRect::MakeWH(localBounds.GetWidth(), localBounds.GetHeight());
+        params.clipRRect = RRect(localBounds, params.cornerRadius);
+    } else {
+        // in logical screen's coordinate system.
+        const auto& clipRect = node.GetDstRect();
+        params.clipRect = SkRect::MakeXYWH(
+            clipRect.GetLeft(), clipRect.GetTop(), clipRect.GetWidth(), clipRect.GetHeight());
+        params.clipRRect = RRect(absBounds, params.cornerRadius);
+    }
+}
 } // namespace Rosen
 } // namespace OHOS

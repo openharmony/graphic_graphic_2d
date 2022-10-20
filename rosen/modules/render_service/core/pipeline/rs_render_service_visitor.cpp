@@ -189,7 +189,7 @@ void RSRenderServiceVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
         return;
     }
     node.ApplyModifiers();
-    if (!node.GetRenderProperties().GetVisible()) {
+    if (!node.ShouldPaint()) {
         RS_LOGD("RSRenderServiceVisitor::PrepareSurfaceRenderNode node : %" PRIu64 " is invisible", node.GetId());
         return;
     }
@@ -211,7 +211,7 @@ void RSRenderServiceVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
             node.GetId());
         return;
     }
-    if (!node.GetRenderProperties().GetVisible()) {
+    if (!node.ShouldPaint()) {
         RS_LOGD("RSRenderServiceVisitor::ProcessSurfaceRenderNode node : %" PRIu64 " is invisible", node.GetId());
         return;
     }

@@ -20,28 +20,6 @@ import { AsyncCallback } from './basic';
  * @syscap SystemCapability.Graphic.Graphic2D.ColorManager.Core
  */
  declare namespace colorSpaceManager {
-  /**
-   * Enumerates color manager error type.
-   * @since 9
-   * @syscap SystemCapability.Graphic.Graphic2D.ColorManager.Core
-   */
-  enum CMError {
-      CM_ERROR_NULLPTR,
-      CM_ERROR_INVALID_PARAM,
-      CM_ERROR_INVALID_ENUM_USAGE,
-  }
-
-  /**
-   * Enumerates color manager error code.
-   * @since 9
-   * @syscap SystemCapability.Graphic.Graphic2D.ColorManager.Core
-   */
-  enum CMErrorCode {
-    CM_ERROR_NO_PERMISSION = 201,
-    CM_ERROR_INVALID_PARAM = 401,
-    CM_ERROR_DEVICE_NOT_SUPPORT = 801,
-    CM_ERROR_INVALID_ENUM_USAGE = 18600001,
-  }
 
   /**
    * Enumerates color space types.
@@ -93,63 +71,63 @@ import { AsyncCallback } from './basic';
   }
 
   /**
-   * Describes the primary colors red, green, blue and white point
-   * in each color space map(x, y), in terms of real world chromaticities.
+   * Describes the primary colors red, green, blue and white point coordinated as (x, y)
+   * in color space, in terms of real world chromaticities.
    * @since 9
    * @syscap SystemCapability.Graphic.Graphic2D.ColorManager.Core
    */
   interface ColorSpacePrimaries {
     /**
-     * x value of red color
+     * Coordinate value x of red color
      * @since 9
      * @syscap SystemCapability.Graphic.Graphic2D.ColorManager.Core
      */
     redX: number;
 
     /**
-     * y value of red color
+     * Coordinate value y of red color
      * @since 9
      * @syscap SystemCapability.Graphic.Graphic2D.ColorManager.Core
      */
     redY: number;
 
     /**
-     * x value of green color
+     * Coordinate value x of green color
      * @since 9
      * @syscap SystemCapability.Graphic.Graphic2D.ColorManager.Core
      */
     greenX: number;
 
     /**
-     * y value of green color
+     * Coordinate value y of green color
      * @since 9
      * @syscap SystemCapability.Graphic.Graphic2D.ColorManager.Core
      */
     greenY: number;
 
     /**
-     * x value of blue color
+     * Coordinate value x of blue color
      * @since 9
      * @syscap SystemCapability.Graphic.Graphic2D.ColorManager.Core
      */
     blueX: number;
 
     /**
-     * y value of blue color
+     * Coordinate value y of blue color
      * @since 9
      * @syscap SystemCapability.Graphic.Graphic2D.ColorManager.Core
      */
     blueY: number;
 
     /**
-     * x value of white point
+     * Coordinate value x of white point
      * @since 9
      * @syscap SystemCapability.Graphic.Graphic2D.ColorManager.Core
      */
     whitePointX: number;
 
     /**
-     * y value of white point
+     * Coordinate value y of white point
      * @since 9
      * @syscap SystemCapability.Graphic.Graphic2D.ColorManager.Core
      */
@@ -165,18 +143,21 @@ import { AsyncCallback } from './basic';
     /**
      * Get color space type.
      * @since 9
+     * @throws {BusinessError} 18600001 - If param value is abnormal
      */
     getColorSpaceName(): ColorSpace;
   
     /**
      * Get white point(x, y) of color space.
      * @since 9
+     * @throws {BusinessError} 18600001 - If param value is abnormal
      */
     getWhitePoint(): Array<number>;
   
     /**
      * Get gamma value of color space.
      * @since 9
+     * @throws {BusinessError} 18600001 - If param value is abnormal
      */
     getGamma(): number;
   }
@@ -185,6 +166,8 @@ import { AsyncCallback } from './basic';
    * Create a color space manager by proviced color space type.
    * @param colorSpaceName Indicates the type of color space
    * @since 9
+   * @throws {BusinessError} 401 - If param is invalid
+   * @throws {BusinessError} 18600001 - If param value is abnormal
    */
   function create(colorSpaceName: ColorSpace): ColorSpaceManager;
 
@@ -193,6 +176,8 @@ import { AsyncCallback } from './basic';
    * @param primaries Indicates the customized color primaries
    * @param gamma Indicates display gamma value
    * @since 9
+   * @throws {BusinessError} 401 - If param is invalid
+   * @throws {BusinessError} 18600001 - If param value is abnormal
    */
   function create(primaries: ColorSpacePrimaries, gamma: number): ColorSpaceManager;
  }

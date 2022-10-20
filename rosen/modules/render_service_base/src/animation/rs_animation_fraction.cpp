@@ -84,6 +84,11 @@ void RSAnimationFraction::SetLastFrameTime(int64_t lastFrameTime)
     lastFrameTime_ = lastFrameTime;
 }
 
+int64_t RSAnimationFraction::GetLastFrameTime() const
+{
+    return lastFrameTime_;
+}
+
 float RSAnimationFraction::GetAnimationFraction(int64_t time, bool& isInstartDelay, bool& isFinished)
 {
     int64_t durationNs = duration_ * MS_TO_NS;

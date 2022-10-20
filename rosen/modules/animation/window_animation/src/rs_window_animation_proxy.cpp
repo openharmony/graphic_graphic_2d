@@ -130,6 +130,47 @@ void RSWindowAnimationProxy::OnAppTransition(const sptr<RSWindowAnimationTarget>
     }
 }
 
+void RSWindowAnimationProxy::OnAppBackTransition(const sptr<RSWindowAnimationTarget>& fromWindowTarget,
+    const sptr<RSWindowAnimationTarget>& toWindowTarget,
+    const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option(MessageOption::TF_ASYNC);
+
+    WALOGD("Window animation proxy on app back transition!");
+    if (!WriteInterfaceToken(data)) {
+        return;
+    }
+
+    if (!data.WriteParcelable(fromWindowTarget.GetRefPtr())) {
+        WALOGE("Failed to write from animation target!");
+        return;
+    }
+
+    if (!data.WriteParcelable(toWindowTarget.GetRefPtr())) {
+        WALOGE("Failed to write to animation target!");
+        return;
+    }
+
+    if (!data.WriteRemoteObject(finishedCallback->AsObject())) {
+        WALOGE("Failed to write finished callback!");
+        return;
+    }
+
+    auto remote = Remote();
+    if (remote == nullptr) {
+        WALOGE("remote is null!");
+        return;
+    }
+
+    auto ret = remote->SendRequest(RSIWindowAnimationController::ON_APP_BACK_TRANSITION, data, reply, option);
+    if (ret != NO_ERROR) {
+        WALOGE("Failed to send app back transition request, error code:%d", ret);
+    }
+}
+
+
 void RSWindowAnimationProxy::OnMinimizeWindow(const sptr<RSWindowAnimationTarget>& minimizingWindowTarget,
     const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback)
 {

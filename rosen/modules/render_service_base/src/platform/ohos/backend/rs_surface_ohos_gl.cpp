@@ -27,7 +27,7 @@ RSSurfaceOhosGl::RSSurfaceOhosGl(const sptr<Surface>& producer) : RSSurfaceOhos(
     bufferUsage_ = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_MEM_DMA;
 }
 
-void RSSurfaceOhosGl::SetSurfaceBufferUsage(int32_t usage)
+void RSSurfaceOhosGl::SetSurfaceBufferUsage(uint64_t usage)
 {
     bufferUsage_ = usage;
 }
@@ -63,6 +63,14 @@ std::unique_ptr<RSSurfaceFrame> RSSurfaceOhosGl::RequestFrame(int32_t width, int
 
     std::unique_ptr<RSSurfaceFrameOhosGl> frame = std::make_unique<RSSurfaceFrameOhosGl>(width, height);
 
+#ifdef RS_ENABLE_AFBC
+    int32_t format = 0;
+    NativeWindowHandleOpt(mWindow, GET_FORMAT, &format);
+    if (format == PIXEL_FMT_RGBA_8888) {
+        bufferUsage_ =
+            (BUFFER_USAGE_HW_RENDER | BUFFER_USAGE_HW_TEXTURE | BUFFER_USAGE_HW_COMPOSER | BUFFER_USAGE_MEM_DMA);
+    }
+#endif
     NativeWindowHandleOpt(mWindow, SET_USAGE, bufferUsage_);
     NativeWindowHandleOpt(mWindow, SET_BUFFER_GEOMETRY, width, height);
     NativeWindowHandleOpt(mWindow, GET_BUFFER_GEOMETRY, &mHeight, &mWidth);

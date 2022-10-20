@@ -158,20 +158,6 @@ RSAnimatableType RSSpringModel<RSAnimatableType>::CalculateDisplacement(double t
 }
 
 template<typename RSAnimatableType>
-RSAnimatableType RSSpringModel<RSAnimatableType>::GetInstantaneousVelocity(double time) const
-{
-    if (dampingRatio_ == 0.0f) {
-        ROSEN_LOGE("RSSpringModel::%s, uninitialized spring model", __func__);
-        return {};
-    }
-    // 1e-6f : 1 millisecond to seconds
-    constexpr double DELTA_TIME = 1e-6f;
-    // we use average velocity over 2 milliseconds as instantaneous velocity
-    constexpr double DURATION = DELTA_TIME * 2;
-    return (CalculateDisplacement(time + DELTA_TIME) - CalculateDisplacement(time - DELTA_TIME)) * (1 / DURATION);
-}
-
-template<typename RSAnimatableType>
 float RSSpringModel<RSAnimatableType>::GetEstimatedDuration()
 {
     if (estimatedDuration_ < SPRING_MIN_DURATION) {

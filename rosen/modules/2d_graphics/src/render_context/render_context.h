@@ -111,18 +111,14 @@ private:
 
 class RenderContextFactory {
 public:
+    static RenderContextFactory& GetInstance();
+
     ~RenderContextFactory()
     {
         if (context_ != nullptr) {
             delete context_;
         }
         context_ = nullptr;
-    }
-
-    static RenderContextFactory& GetInstance()
-    {
-        static RenderContextFactory rf;
-        return rf;
     }
 
     RenderContext* CreateEngine()

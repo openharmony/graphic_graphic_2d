@@ -427,11 +427,13 @@ bool RSRenderServiceClient::RegisterBufferAvailableListener(
 
     auto iter = isFromRenderThread ? bufferAvailableCbRTMap_.find(id) : bufferAvailableCbUIMap_.find(id);
     if (isFromRenderThread && iter != bufferAvailableCbRTMap_.end()) {
-        return true;
+        ROSEN_LOGW("RSRenderServiceClient::RegisterBufferAvailableListener "
+                   "Node %" PRIu64 " already, bufferAvailableCbRTMap_", iter->first);
     }
 
     if (!isFromRenderThread && iter != bufferAvailableCbUIMap_.end()) {
-        return true;
+        ROSEN_LOGW("RSRenderServiceClient::RegisterBufferAvailableListener "
+                   "Node %" PRIu64 " already, bufferAvailableCbUIMap_", iter->first);
     }
 
     sptr<RSIBufferAvailableCallback> bufferAvailableCb = new CustomBufferAvailableCallback(callback);

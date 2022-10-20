@@ -131,5 +131,12 @@ void SurfaceNodeCommandHelper::SetSurfaceNodeType(RSContext& context, NodeId nod
         node->SetSurfaceNodeType(type);
     }
 }
+
+void SurfaceNodeCommandHelper::SetContainerWindow(RSContext& context, NodeId nodeId, bool hasContainerWindow)
+{
+    if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId)) {
+        node->SetContainerWindow(hasContainerWindow);
+    }
+}
 } // namespace Rosen
 } // namespace OHOS

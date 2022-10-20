@@ -18,6 +18,7 @@
 #include <securec.h>
 
 #include "hdi_backend.h"
+#include "surface.h"
 using namespace OHOS::Rosen;
 
 namespace OHOS {
@@ -74,20 +75,31 @@ namespace OHOS {
         pos = 0;
 
         // get data
-        std::vector<OutputPtr> outputs;
         uint32_t screenId = GetData<uint32_t>();
-        OutputPtr outputptr = HdiOutput::CreateHdiOutput(screenId);
-        outputs.push_back(outputptr);
         void* data1 = static_cast<void*>(GetStringFromData(STR_LEN).data());
         void* data2 = static_cast<void*>(GetStringFromData(STR_LEN).data());
 
         // test
+        std::vector<OutputPtr> outputs;
+        OutputPtr outputptr = HdiOutput::CreateHdiOutput(screenId);
+        outputptr->Init();
+        std::vector<LayerInfoPtr> layerInfos;
+        LayerInfoPtr layerInfoptr = HdiLayerInfo::CreateHdiLayerInfo();
+        sptr<Surface> cSurface = Surface::CreateSurfaceAsConsumer();
+        layerInfoptr->SetSurface(cSurface);
+        layerInfos.push_back(layerInfoptr);
+        outputptr->SetLayerInfo(layerInfos);
+        outputs.push_back(outputptr);
+
         HdiBackend* hdiBackend_ = HdiBackend::GetInstance();
         auto onScreenHotplugFunc = [](OutputPtr &, bool, void*) -> void {};
         auto onPrepareCompleteFunc = [](sptr<Surface> &, const struct PrepareCompleteParam &, void*) -> void {};
         hdiBackend_->RegScreenHotplug(onScreenHotplugFunc, data1);
         hdiBackend_->RegPrepareComplete(onPrepareCompleteFunc, data2);
         hdiBackend_->Repaint(outputs);
+        for (auto output : outputs) {
+            hdiBackend_->GetLayersReleaseFence(output);
+        }
 
         return true;
     }

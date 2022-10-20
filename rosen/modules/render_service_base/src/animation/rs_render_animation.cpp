@@ -104,13 +104,23 @@ void RSRenderAnimation::Attach(RSRenderNode* renderNode)
         Detach();
     }
     target_ = renderNode;
+    if (target_ != nullptr) {
+        targetId_ = target_->GetId();
+    }
     OnAttach();
+    Start();
+    needUpdateStartTime_ = false;
 }
 
 void RSRenderAnimation::Detach()
 {
     OnDetach();
     target_ = nullptr;
+}
+
+NodeId RSRenderAnimation::GetTargetId() const
+{
+    return targetId_;
 }
 
 void RSRenderAnimation::Start()
@@ -228,8 +238,15 @@ bool RSRenderAnimation::Animate(int64_t time)
         return state_ == AnimationState::FINISHED;
     }
 
+    // set start time and return
     if (needUpdateStartTime_) {
         SetStartTime(time);
+        return state_ == AnimationState::FINISHED;
+    }
+
+    // if time not changed since last frame, return
+    if (time == animationFraction_.GetLastFrameTime()) {
+        return state_ == AnimationState::FINISHED;
     }
 
     if (needInitialize_) {

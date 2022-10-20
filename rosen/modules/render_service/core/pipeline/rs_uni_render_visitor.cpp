@@ -48,8 +48,12 @@ RSUniRenderVisitor::RSUniRenderVisitor()
     partialRenderType_ = RSSystemProperties::GetUniPartialRenderEnabled();
     isPartialRenderEnabled_ = (partialRenderType_ != PartialRenderType::DISABLED);
     isDirtyRegionDfxEnabled_ = (RSSystemProperties::GetDirtyRegionDebugType() == DirtyRegionDebugType::EGL_DAMAGE);
+    isTargetDirtyRegionDfxEnabled_ = RSSystemProperties::GetTargetDirtyRegionDfxEnabled(dfxTargetSurfaceNames_);
+    if (isDirtyRegionDfxEnabled_ && isTargetDirtyRegionDfxEnabled_) {
+        isDirtyRegionDfxEnabled_ = false;
+    }
     isOpDropped_ = isPartialRenderEnabled_ && (partialRenderType_ != PartialRenderType::SET_DAMAGE)
-        && !isDirtyRegionDfxEnabled_;
+        && (!isDirtyRegionDfxEnabled_ && !isTargetDirtyRegionDfxEnabled_);
 }
 RSUniRenderVisitor::~RSUniRenderVisitor() {}
 
@@ -68,7 +72,7 @@ void RSUniRenderVisitor::SetPaintOutOfParentFlag(RSBaseRenderNode& node)
 {
     if (!isPartialRenderEnabled_) {
         return;
-    } 
+    }
     if (node.GetType() != RSRenderNodeType::CANVAS_NODE && node.GetType() != RSRenderNodeType::SURFACE_NODE) {
         RS_LOGD("Other types do not need to processed %d", node.GetType());
         return;
@@ -249,7 +253,7 @@ void RSUniRenderVisitor::PrepareProxyRenderNode(RSProxyRenderNode& node)
     if (parentSurfaceNodeMatrix_.invert(&invertMatrix)) {
         contextMatrix.preConcat(invertMatrix);
     } else {
-        ROSEN_LOGE("RSUniRenderVisitor::ProcessSurfaceRenderNode, invertMatrix failed");
+        ROSEN_LOGE("RSUniRenderVisitor::PrepareProxyRenderNode, invertMatrix failed");
     }
     node.SetContextMatrix(contextMatrix);
     node.SetContextAlpha(curAlpha_);
@@ -322,6 +326,44 @@ void RSUniRenderVisitor::DrawDirtyRegionForDFX(std::vector<RectI> dirtyRects)
     const float fillAlpha = 0.2;
     for (const auto& subRect : dirtyRects) {
         DrawDirtyRectForDFX(subRect, SK_ColorBLUE, SkPaint::kStroke_Style, fillAlpha);
+    }
+}
+
+void RSUniRenderVisitor::DrawAllSurfaceDirtyRegionForDFX(RSDisplayRenderNode& node, const Occlusion::Region& region)
+{
+    RectI dirtySurfaceRect = node.GetDirtyManager()->GetDirtyRegion();
+    std::vector<Occlusion::Rect> visibleDirtyRects = region.GetRegionRects();
+    std::vector<RectI> rects;
+    rects.emplace_back(dirtySurfaceRect);
+    for (auto rect : visibleDirtyRects) {
+        rects.emplace_back(RectI(rect.left_, rect.top_, rect.right_ - rect.left_, rect.bottom_ - rect.top_));
+    }
+    DrawDirtyRegionForDFX(rects);
+}
+
+void RSUniRenderVisitor::DrawTargetSurfaceDirtyRegionForDFX(RSDisplayRenderNode& node)
+{
+    for (auto it = node.GetCurAllSurfaces().rbegin(); it != node.GetCurAllSurfaces().rend(); ++it) {
+        auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(*it);
+        if (surfaceNode == nullptr || !surfaceNode->IsAppWindow()) {
+            continue;
+        }
+        if (std::find(dfxTargetSurfaceNames_.begin(), dfxTargetSurfaceNames_.end(),
+            surfaceNode->GetName()) != dfxTargetSurfaceNames_.end()) {
+            auto visibleDirtyRegions = surfaceNode->GetVisibleDirtyRegion().GetRegionRects();
+            std::vector<RectI> rects;
+            for (auto rect : visibleDirtyRegions) {
+                rects.emplace_back(RectI(rect.left_, rect.top_, rect.right_ - rect.left_, rect.bottom_ - rect.top_));
+            }
+            auto visibleRegions = surfaceNode->GetVisibleRegion().GetRegionRects();
+            auto displayDirtyRegion = node.GetDirtyManager()->GetDirtyRegion();
+            for (auto rect : visibleRegions) {
+                auto visibleRect = RectI(rect.left_, rect.top_, rect.right_ - rect.left_, rect.bottom_ - rect.top_);
+                auto intersectRegion = displayDirtyRegion.IntersectRect(visibleRect);
+                rects.emplace_back(intersectRegion);
+            }
+            DrawDirtyRegionForDFX(rects);
+        }
     }
 }
 
@@ -444,7 +486,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
                 RS_LOGD("SetDamageRegion %s", r.ToString().c_str());
             }
             // SetDamageRegion and opDrop will be disabled for dirty region DFX visualization
-            if (!isDirtyRegionDfxEnabled_) {
+            if (!isDirtyRegionDfxEnabled_ && !isTargetDirtyRegionDfxEnabled_) {
                 renderFrame->SetDamageRegion(rects);
             }
         }
@@ -475,19 +517,15 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
         if (overdrawListener != nullptr) {
             overdrawListener->Draw();
         }
-
         // the following code makes DirtyRegion visible, enable this method by turning on the dirtyregiondebug property
-        if (isPartialRenderEnabled_ && isDirtyRegionDfxEnabled_) {
-            RectI dirtySurfaceRect = node.GetDirtyManager()->GetDirtyRegion();
-            std::vector<Occlusion::Rect> visibleDirtyRects = dirtyRegionTest.GetRegionRects();
-            std::vector<RectI> rects;
-            rects.emplace_back(dirtySurfaceRect);
-            for (auto rect : visibleDirtyRects) {
-                 rects.emplace_back(RectI(rect.left_, rect.top_, rect.right_ - rect.left_, rect.bottom_ - rect.top_));
+        if (isPartialRenderEnabled_) {
+            if (isDirtyRegionDfxEnabled_) {
+                DrawAllSurfaceDirtyRegionForDFX(node, dirtyRegionTest);
             }
-            DrawDirtyRegionForDFX(rects);
+            if (isTargetDirtyRegionDfxEnabled_) {
+                DrawTargetSurfaceDirtyRegionForDFX(node);
+            }
         }
-
         RS_TRACE_BEGIN("RSUniRender:FlushFrame");
         renderFrame->Flush();
         RS_TRACE_END();
@@ -753,6 +791,7 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
     }
 
     RSPropertiesPainter::DrawBackground(property, *canvas_);
+    RSPropertiesPainter::DrawMask(property, *canvas_);
     auto filter = std::static_pointer_cast<RSSkiaFilter>(property.GetBackgroundFilter());
     if (filter != nullptr) {
         auto skRectPtr = std::make_unique<SkRect>();
@@ -769,8 +808,7 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
     if (!node.IsAppWindow() && node.GetBuffer() != nullptr) {
         node.NotifyRTBufferAvailable();
         node.SetGlobalAlpha(1.0f);
-        // use node's local coordinate.
-        auto params = RSBaseRenderUtil::CreateBufferDrawParam(node, true, false, false, false);
+        auto params = RSUniRenderUtil::CreateBufferDrawParam(node, false);
         renderEngine_->DrawSurfaceNodeWithParams(*canvas_, node, params);
     }
 
@@ -834,7 +872,7 @@ void RSUniRenderVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
         return;
     }
 
-    canvas_->SetHighContrast(renderEngine_->isHighContrastEnabled());
+    canvas_->SetHighContrast(renderEngine_->IsHighContrastEnabled());
     ColorFilterMode modeFromSysProperty = static_cast<ColorFilterMode>(RSSystemProperties::GetCorrectionMode());
     ColorFilterMode colorFilterMode = renderEngine_->GetColorFilterMode();
     if (RSBaseRenderUtil::IsColorFilterModeValid(modeFromSysProperty)) {
@@ -842,7 +880,7 @@ void RSUniRenderVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
     }
     if (colorFilterMode >= ColorFilterMode::INVERT_COLOR_ENABLE_MODE &&
         colorFilterMode <= ColorFilterMode::INVERT_DALTONIZATION_TRITANOMALY_MODE) {
-        RS_LOGD("RsDebug RSRenderEngine::SetColorFilterModeToPaint mode:%d", static_cast<int32_t>(colorFilterMode));
+        RS_LOGD("RsDebug RSBaseRenderEngine::SetColorFilterModeToPaint mode:%d", static_cast<int32_t>(colorFilterMode));
         SkPaint paint;
         RSBaseRenderUtil::SetColorFilterModeToPaint(colorFilterMode, paint);
         canvas_->saveLayer(nullptr, &paint);
@@ -863,7 +901,7 @@ void RSUniRenderVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
 
 void RSUniRenderVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
 {
-    if (!node.GetRenderProperties().GetVisible()) {
+    if (!node.ShouldPaint()) {
         RS_LOGD("RSUniRenderVisitor::ProcessCanvasRenderNode, no need process");
         return;
     }

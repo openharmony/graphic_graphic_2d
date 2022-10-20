@@ -54,7 +54,7 @@ void ReadRequestConfig(MessageParcel &parcel, BufferRequestConfig &config)
     config.height = parcel.ReadInt32();
     config.strideAlignment = parcel.ReadInt32();
     config.format = parcel.ReadInt32();
-    config.usage = parcel.ReadInt32();
+    config.usage = parcel.ReadUint64();
     config.timeout = parcel.ReadInt32();
     config.colorGamut = static_cast<ColorGamut>(parcel.ReadInt32());
     config.transform = static_cast<TransformType>(parcel.ReadInt32());
@@ -66,7 +66,7 @@ void WriteRequestConfig(MessageParcel &parcel, BufferRequestConfig const & confi
     parcel.WriteInt32(config.height);
     parcel.WriteInt32(config.strideAlignment);
     parcel.WriteInt32(config.format);
-    parcel.WriteInt32(config.usage);
+    parcel.WriteUint64(config.usage);
     parcel.WriteInt32(config.timeout);
     parcel.WriteInt32(static_cast<int32_t>(config.colorGamut));
     parcel.WriteInt32(static_cast<int32_t>(config.transform));

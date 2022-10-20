@@ -98,7 +98,7 @@ void RSPhysicalScreenProcessor::Redraw(const sptr<Surface>& surface, const std::
     }
 
     RS_LOGD("RsDebug RSPhysicalScreenProcessor::Redraw flush frame buffer start");
-    bool forceCPU = RSRenderEngine::NeedForceCPU(layers);
+    bool forceCPU = RSBaseRenderEngine::NeedForceCPU(layers);
     auto renderFrame = renderEngine_->RequestFrame(surface, renderFrameConfig_, forceCPU);
     if (renderFrame == nullptr) {
         RS_LOGE("RsDebug RSPhysicalScreenProcessor::Redraw：failed to request frame.");

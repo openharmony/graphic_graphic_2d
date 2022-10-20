@@ -153,7 +153,7 @@ HWTEST_F(NativeWindowTest, CreateNativeWindow002, Function | MediumTest | Level2
 HWTEST_F(NativeWindowTest, HandleOpt001, Function | MediumTest | Level2)
 {
     int code = SET_USAGE;
-    int32_t usage = BUFFER_USAGE_CPU_READ;
+    uint64_t usage = BUFFER_USAGE_CPU_READ;
     ASSERT_EQ(OH_NativeWindow_NativeWindowHandleOpt(nullptr, code, usage), OHOS::GSERROR_INVALID_ARGUMENTS);
 }
 
@@ -168,11 +168,11 @@ HWTEST_F(NativeWindowTest, HandleOpt001, Function | MediumTest | Level2)
 HWTEST_F(NativeWindowTest, HandleOpt002, Function | MediumTest | Level2)
 {
     int code = SET_USAGE;
-    int32_t usageSet = BUFFER_USAGE_CPU_READ;
+    uint64_t usageSet = BUFFER_USAGE_CPU_READ;
     ASSERT_EQ(OH_NativeWindow_NativeWindowHandleOpt(nativeWindow, code, usageSet), OHOS::GSERROR_OK);
 
     code = GET_USAGE;
-    int32_t usageGet = BUFFER_USAGE_CPU_WRITE;
+    uint64_t usageGet = BUFFER_USAGE_CPU_WRITE;
     ASSERT_EQ(OH_NativeWindow_NativeWindowHandleOpt(nativeWindow, code, &usageGet), OHOS::GSERROR_OK);
     ASSERT_EQ(usageSet, usageGet);
 }

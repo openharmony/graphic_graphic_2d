@@ -47,7 +47,7 @@ public:
     int32_t GetHeight() const override;
     int32_t GetStride() const override;
     int32_t GetFormat() const override;
-    int64_t GetUsage() const override;
+    uint64_t GetUsage() const override;
     uint64_t GetPhyAddr() const override;
     int32_t GetKey() const override;
     void *GetVirAddr() override;
@@ -79,7 +79,7 @@ public:
     OH_NativeBuffer* SurfaceBufferToNativeBuffer() override;
 
     static GSError CheckBufferConfig(int32_t width, int32_t height,
-                                     int32_t format, int32_t usage);
+                                     int32_t format, uint64_t usage);
 
     uint64_t BufferUsageToGrallocUsage(uint64_t bufferUsage);
 

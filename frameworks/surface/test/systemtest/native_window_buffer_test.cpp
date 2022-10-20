@@ -128,7 +128,7 @@ pid_t NativeWindowBufferTest::ChildProcessMain()
     struct NativeWindowBuffer *nativeWindowBuffer = nullptr;
 
     int code = SET_USAGE;
-    int32_t usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA;
+    uint64_t usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA;
     OH_NativeWindow_NativeWindowHandleOpt(nativeWindow, code, usage);
 
     code = SET_BUFFER_GEOMETRY;

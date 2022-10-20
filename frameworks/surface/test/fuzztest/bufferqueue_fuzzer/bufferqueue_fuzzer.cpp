@@ -28,13 +28,13 @@
 namespace OHOS {
     namespace {
         constexpr size_t STR_LEN = 10;
-        const uint8_t* data_ = nullptr;
-        size_t size_ = 0;
-        size_t pos;
+        const uint8_t* g_data = nullptr;
+        size_t g_size = 0;
+        size_t g_pos;
     }
 
     /*
-    * describe: get data from outside untrusted data(data_) which size is according to sizeof(T)
+    * describe: get data from outside untrusted data(g_data) which size is according to sizeof(T)
     * tips: only support basic type
     */
     template<class T>
@@ -42,26 +42,30 @@ namespace OHOS {
     {
         T object {};
         size_t objectSize = sizeof(object);
-        if (data_ == nullptr || objectSize > size_ - pos) {
+        if (g_data == nullptr || objectSize > g_size - g_pos) {
             return object;
         }
-        errno_t ret = memcpy_s(&object, objectSize, data_ + pos, objectSize);
+        errno_t ret = memcpy_s(&object, objectSize, g_data + g_pos, objectSize);
         if (ret != EOK) {
             return {};
         }
-        pos += objectSize;
+        g_pos += objectSize;
         return object;
     }
 
     /*
-    * get a string from data_
+    * get a string from g_data
     */
     std::string GetStringFromData(int strlen)
     {
         char cstr[strlen];
         cstr[strlen - 1] = '\0';
         for (int i = 0; i < strlen - 1; i++) {
-            cstr[i] = GetData<char>();
+            char tmp = GetData<char>();
+            if (tmp == '\0') {
+                tmp = '1';
+            }
+            cstr[i] = tmp;
         }
         std::string str(cstr);
         return str;
@@ -70,49 +74,36 @@ namespace OHOS {
     sptr<BufferExtraData> GetBufferExtraDataFromData()
     {
         // get data
-        std::string key_Int32 = GetStringFromData(STR_LEN);
-        int32_t value_Int32 = GetData<int32_t>();
-        std::string key_Int64 = GetStringFromData(STR_LEN);
-        int64_t value_Int64 = GetData<int64_t>();
-        std::string key_Double = GetStringFromData(STR_LEN);
-        double value_Double = GetData<double>();
-        std::string key_Str = GetStringFromData(STR_LEN);
-        std::string value_Str = GetStringFromData(STR_LEN);
+        std::string keyInt32 = GetStringFromData(STR_LEN);
+        int32_t valueInt32 = GetData<int32_t>();
+        std::string keyInt64 = GetStringFromData(STR_LEN);
+        int64_t valueInt64 = GetData<int64_t>();
+        std::string keyDouble = GetStringFromData(STR_LEN);
+        double valueDouble = GetData<double>();
+        std::string keyStr = GetStringFromData(STR_LEN);
+        std::string valueStr = GetStringFromData(STR_LEN);
 
         // test
         sptr<BufferExtraData> bedata = new BufferExtraDataImpl();
-        bedata->ExtraSet(key_Int32, value_Int32);
-        bedata->ExtraSet(key_Int64, value_Int64);
-        bedata->ExtraSet(key_Double, value_Double);
-        bedata->ExtraSet(key_Str, value_Str);
+        bedata->ExtraSet(keyInt32, valueInt32);
+        bedata->ExtraSet(keyInt64, valueInt64);
+        bedata->ExtraSet(keyDouble, valueDouble);
+        bedata->ExtraSet(keyStr, valueStr);
 
         return bedata;
     }
 
-    bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
+    void BufferQueueFuzzTest2()
     {
-        if (data == nullptr) {
-            return false;
-        }
-
-        // initialize
-        data_ = data;
-        size_ = size;
-        pos = 0;
-
         // get data
         std::string name = GetStringFromData(STR_LEN);
         bool isShared = GetData<bool>();
-        BufferRequestConfig requestConfig = GetData<BufferRequestConfig>();
-        BufferFlushConfig flushConfig = GetData<BufferFlushConfig>();
-        uint32_t sequence = GetData<uint32_t>();
-        int64_t timestamp = GetData<int64_t>();
-        Rect damage = GetData<Rect>();
         uint32_t queueSize = GetData<uint32_t>();
         int32_t width = GetData<int32_t>();
         int32_t height = GetData<int32_t>();
         uint32_t usage = GetData<uint32_t>();
         TransformType transform = GetData<TransformType>();
+        uint32_t sequence = GetData<uint32_t>();
         std::vector<HDRMetaData> metaData;
         for (int i = 0; i < 10; i++) { // add 10 elements to the vector
             HDRMetaData hDRMetaData = GetData<HDRMetaData>();
@@ -124,25 +115,63 @@ namespace OHOS {
             uint8_t metaDataElement = GetData<uint8_t>();
             metaDataSet.push_back(metaDataElement);
         }
+        bool flag = GetData<bool>();
+        std::string result = GetStringFromData(STR_LEN);
+        bool status = GetData<bool>();
+
         // test
         sptr<BufferQueue> bufferqueue = new BufferQueue(name, isShared);
-        sptr<BufferExtraData> bedata = GetBufferExtraDataFromData();
-        IBufferProducer::RequestBufferReturnValue retval;
-        bufferqueue->RequestBuffer(requestConfig, bedata, retval);
-        bufferqueue->CancelBuffer(sequence, bedata);
-        sptr<SyncFence> syncFence = SyncFence::INVALID_FENCE;
-        sptr<OHOS::SurfaceBuffer> buffer = nullptr;
-        bufferqueue->FlushBuffer(sequence, bedata, syncFence, flushConfig);
-        bufferqueue->AcquireBuffer(buffer, syncFence, timestamp, damage);
-        bufferqueue->ReleaseBuffer(buffer, syncFence);
-        bufferqueue->AttachBuffer(buffer);
-        bufferqueue->DetachBuffer(buffer);
         bufferqueue->SetQueueSize(queueSize);
         bufferqueue->SetDefaultWidthAndHeight(width, height);
         bufferqueue->SetDefaultUsage(usage);
         bufferqueue->SetTransform(transform);
         bufferqueue->SetMetaData(sequence, metaData);
         bufferqueue->SetMetaDataSet(sequence, key, metaDataSet);
+        bufferqueue->SetProducerCacheCleanFlag(flag);
+        bufferqueue->Dump(result);
+        bufferqueue->SetStatus(status);
+    }
+
+    bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
+    {
+        if (data == nullptr) {
+            return false;
+        }
+
+        // initialize
+        g_data = data;
+        g_size = size;
+        g_pos = 0;
+
+        // get data
+        std::string name = GetStringFromData(STR_LEN);
+        bool isShared = GetData<bool>();
+        uint32_t seqNum = GetData<uint32_t>();
+        BufferRequestConfig requestConfig = GetData<BufferRequestConfig>();
+        BufferFlushConfig flushConfig = GetData<BufferFlushConfig>();
+        uint32_t sequence = GetData<uint32_t>();
+        int64_t timestamp = GetData<int64_t>();
+        Rect damage = GetData<Rect>();
+
+        // test
+        sptr<BufferQueue> bufferqueue = new BufferQueue(name, isShared);
+        sptr<OHOS::SurfaceBuffer> buffer = new SurfaceBufferImpl(seqNum);
+        sptr<BufferExtraData> bedata = GetBufferExtraDataFromData();
+        IBufferProducer::RequestBufferReturnValue retval;
+        retval.buffer = buffer;
+        bufferqueue->RequestBuffer(requestConfig, bedata, retval);
+        bufferqueue->ReuseBuffer(requestConfig, bedata, retval);
+        bufferqueue->CancelBuffer(sequence, bedata);
+        sptr<SyncFence> syncFence = SyncFence::INVALID_FENCE;
+        bufferqueue->FlushBuffer(sequence, bedata, syncFence, flushConfig);
+        bufferqueue->DoFlushBuffer(sequence, bedata, syncFence, flushConfig);
+        bufferqueue->AcquireBuffer(buffer, syncFence, timestamp, damage);
+        bufferqueue->ReleaseBuffer(buffer, syncFence);
+        bufferqueue->AttachBuffer(buffer);
+        bufferqueue->DetachBuffer(buffer);
+
+        BufferQueueFuzzTest2();
+
         return true;
     }
 }

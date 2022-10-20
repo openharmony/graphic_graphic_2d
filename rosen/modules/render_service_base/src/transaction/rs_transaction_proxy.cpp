@@ -139,6 +139,7 @@ void RSTransactionProxy::FlushImplicitTransactionFromRT(uint64_t timestamp)
 
 void RSTransactionProxy::Begin()
 {
+    std::unique_lock<std::mutex> cmdLock(mutex_);
     implicitCommonTransactionDataStack_.emplace(std::make_unique<RSTransactionData>());
     implicitRemoteTransactionDataStack_.emplace(std::make_unique<RSTransactionData>());
 }
