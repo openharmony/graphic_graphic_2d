@@ -18,6 +18,7 @@ declare_args() {
   graphic_standard_feature_rs_enable_eglimage = false
   graphic_standard_feature_rs_enable_uni_render = false
   graphic_standard_feature_wuji_enable = false
+  graphic_standard_feature_enable_afbc = false
   graphic_standard_feature_freemem_enable = false
 }
 
@@ -57,4 +58,8 @@ if (graphic_standard_feature_rs_enable_eglimage) {
 
 if (graphic_standard_feature_rs_enable_uni_render) {
   gpu_defines += [ "RS_ENABLE_UNI_RENDER" ]
+}
+
+if (graphic_standard_feature_enable_afbc) {
+  gpu_defines += [ "RS_ENABLE_AFBC" ]
 }
