@@ -11,52 +11,43 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import("//build/ohos.gni")
+import("//build/test.gni")
 
-## Build color_manager.so {{{
-config("color_manager_config") {
-  visibility = [ ":*" ]
+module_out_path = "graphic_standard/utils/color_manager"
 
+group("unittest") {
+  testonly = true
+  deps = [ ":color_manager_test" ]
+}
+
+## Build color_manager_test
+ohos_unittest("color_manager_test") {
+  module_out_path = module_out_path
+  sources = [ "color_manager_test.cpp" ]
+  deps = [ ":color_manager_test_common" ]
+}
+
+config("color_manager_test_config") {
   cflags = [
     "-Wall",
     "-Werror",
     "-g3",
-    "-Wno-error=missing-braces",
-    "-Wno-error=#warnings",
-    "-Os",
+    "-Dprivate=public",
+    "-Dprotected=public",
   ]
-
-  ldflags = [ "-Wl,--no-as-needed" ]
 }
 
-config("color_manager_public_config") {
-  include_dirs = [ "export" ]
-}
-
-ohos_shared_library("color_manager") {
-  sources = [
-    "src/color.cpp",
-    "src/color_space.cpp",
-    "src/color_space_convertor.cpp",
-  ]
-
-  configs = [ ":color_manager_config" ]
-
-  public_configs = [ ":color_manager_public_config" ]
+ohos_static_library("color_manager_test_common") {
+  visibility = [ ":*" ]
+  testonly = true
+  public_configs = [ ":color_manager_test_config" ]
 
   public_deps = [
-    "//third_party/bounds_checking_function:libsec_shared",
+    "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
+    "//foundation/graphic/graphic_2d/utils/color_manager:color_manager",
     "//third_party/flutter/build/skia:ace_skia_ohos",
+    "//third_party/googletest:gtest_main",
   ]
-
   subsystem_name = "graphic"
   part_name = "graphic_standard"
 }
-
-group("test") {
-  testonly = true
-  deps = [ "test:test" ]
-}
-
-## Build color_manager.so }}}
-
