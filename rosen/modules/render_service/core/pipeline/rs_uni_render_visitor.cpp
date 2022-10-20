@@ -48,8 +48,12 @@ RSUniRenderVisitor::RSUniRenderVisitor()
     partialRenderType_ = RSSystemProperties::GetUniPartialRenderEnabled();
     isPartialRenderEnabled_ = (partialRenderType_ != PartialRenderType::DISABLED);
     isDirtyRegionDfxEnabled_ = (RSSystemProperties::GetDirtyRegionDebugType() == DirtyRegionDebugType::EGL_DAMAGE);
+    isTargetDirtyRegionDfxEnabled_ = RSSystemProperties::GetTargetDirtyRegionDfxEnabled(dfxTargetSurfaceNames_);
+    if (isDirtyRegionDfxEnabled_ && isTargetDirtyRegionDfxEnabled_) {
+        isDirtyRegionDfxEnabled_ = false;
+    }
     isOpDropped_ = isPartialRenderEnabled_ && (partialRenderType_ != PartialRenderType::SET_DAMAGE)
-        && !isDirtyRegionDfxEnabled_;
+        && (!isDirtyRegionDfxEnabled_ && !isTargetDirtyRegionDfxEnabled_);
 }
 RSUniRenderVisitor::~RSUniRenderVisitor() {}
 
@@ -325,6 +329,44 @@ void RSUniRenderVisitor::DrawDirtyRegionForDFX(std::vector<RectI> dirtyRects)
     }
 }
 
+void RSUniRenderVisitor::DrawAllSurfaceDirtyRegionForDFX(RSDisplayRenderNode& node, const Occlusion::Region& region)
+{
+    RectI dirtySurfaceRect = node.GetDirtyManager()->GetDirtyRegion();
+    std::vector<Occlusion::Rect> visibleDirtyRects = region.GetRegionRects();
+    std::vector<RectI> rects;
+    rects.emplace_back(dirtySurfaceRect);
+    for (auto rect : visibleDirtyRects) {
+        rects.emplace_back(RectI(rect.left_, rect.top_, rect.right_ - rect.left_, rect.bottom_ - rect.top_));
+    }
+    DrawDirtyRegionForDFX(rects);
+}
+
+void RSUniRenderVisitor::DrawTargetSurfaceDirtyRegionForDFX(RSDisplayRenderNode& node)
+{
+    for (auto it = node.GetCurAllSurfaces().rbegin(); it != node.GetCurAllSurfaces().rend(); ++it) {
+        auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(*it);
+        if (surfaceNode == nullptr || !surfaceNode->IsAppWindow()) {
+            continue;
+        }
+        if (std::find(dfxTargetSurfaceNames_.begin(), dfxTargetSurfaceNames_.end(),
+            surfaceNode->GetName()) != dfxTargetSurfaceNames_.end()) {
+            auto visibleDirtyRegions = surfaceNode->GetVisibleDirtyRegion().GetRegionRects();
+            std::vector<RectI> rects;
+            for (auto rect : visibleDirtyRegions) {
+                rects.emplace_back(RectI(rect.left_, rect.top_, rect.right_ - rect.left_, rect.bottom_ - rect.top_));
+            }
+            auto visibleRegions = surfaceNode->GetVisibleRegion().GetRegionRects();
+            auto displayDirtyRegion = node.GetDirtyManager()->GetDirtyRegion();
+            for (auto rect : visibleRegions) {
+                auto visibleRect = RectI(rect.left_, rect.top_, rect.right_ - rect.left_, rect.bottom_ - rect.top_);
+                auto intersectRegion = displayDirtyRegion.IntersectRect(visibleRect);
+                rects.emplace_back(intersectRegion);
+            }
+            DrawDirtyRegionForDFX(rects);
+        }
+    }
+}
+
 void RSUniRenderVisitor::ProcessBaseRenderNode(RSBaseRenderNode& node)
 {
     for (auto& child : node.GetSortedChildren()) {
@@ -444,7 +486,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
                 RS_LOGD("SetDamageRegion %s", r.ToString().c_str());
             }
             // SetDamageRegion and opDrop will be disabled for dirty region DFX visualization
-            if (!isDirtyRegionDfxEnabled_) {
+            if (!isDirtyRegionDfxEnabled_ && !isTargetDirtyRegionDfxEnabled_) {
                 renderFrame->SetDamageRegion(rects);
             }
         }
@@ -475,19 +517,15 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
         if (overdrawListener != nullptr) {
             overdrawListener->Draw();
         }
-
         // the following code makes DirtyRegion visible, enable this method by turning on the dirtyregiondebug property
-        if (isPartialRenderEnabled_ && isDirtyRegionDfxEnabled_) {
-            RectI dirtySurfaceRect = node.GetDirtyManager()->GetDirtyRegion();
-            std::vector<Occlusion::Rect> visibleDirtyRects = dirtyRegionTest.GetRegionRects();
-            std::vector<RectI> rects;
-            rects.emplace_back(dirtySurfaceRect);
-            for (auto rect : visibleDirtyRects) {
-                 rects.emplace_back(RectI(rect.left_, rect.top_, rect.right_ - rect.left_, rect.bottom_ - rect.top_));
+        if (isPartialRenderEnabled_) {
+            if (isDirtyRegionDfxEnabled_) {
+                DrawAllSurfaceDirtyRegionForDFX(node, dirtyRegionTest);
             }
-            DrawDirtyRegionForDFX(rects);
+            if (isTargetDirtyRegionDfxEnabled_) {
+                DrawTargetSurfaceDirtyRegionForDFX(node);
+            }
         }
-
         RS_TRACE_BEGIN("RSUniRender:FlushFrame");
         renderFrame->Flush();
         RS_TRACE_END();
