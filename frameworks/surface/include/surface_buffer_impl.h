@@ -29,6 +29,7 @@ class SurfaceBufferImpl : public SurfaceBuffer {
 public:
     using IDisplayGrallocSptr = std::shared_ptr<::OHOS::HDI::Display::V1_0::IDisplayGralloc>;
     static IDisplayGrallocSptr GetDisplayGralloc();
+    static void DisplayGrallocDeathCallback(void* data);
 
     SurfaceBufferImpl();
     SurfaceBufferImpl(uint32_t seqNum);
@@ -97,6 +98,7 @@ private:
     mutable std::mutex mutex_;
 
     static IDisplayGrallocSptr displayGralloc_;
+    static std::mutex displayGrallocMutex_;
 };
 } // namespace OHOS
 
