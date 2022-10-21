@@ -51,6 +51,34 @@ HWTEST_F(RSRenderServiceListenerTest, CreateAndDestroy001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: OnTunnelHandleChange001
+ * @tc.desc: OnTunnelHandleChange test.
+ * @tc.type: FUNC
+ * @tc.require: issueI5X0TR
+ */
+HWTEST_F(RSRenderServiceListenerTest, OnTunnelHandleChange001, TestSize.Level1)
+{
+    // nullptr test
+    std::weak_ptr<RSSurfaceRenderNode> wp;
+    RSRenderServiceListener rsRenderServiceListener(wp);
+    rsRenderServiceListener.OnTunnelHandleChange();
+}
+
+/**
+ * @tc.name: OnCleanCache001
+ * @tc.desc: OnCleanCache test.
+ * @tc.type: FUNC
+ * @tc.require: issueI5X0TR
+ */
+HWTEST_F(RSRenderServiceListenerTest, OnCleanCache001, TestSize.Level1)
+{
+    // nullptr test
+    std::weak_ptr<RSSurfaceRenderNode> wp;
+    RSRenderServiceListener rsRenderServiceListener(wp);
+    rsRenderServiceListener.OnCleanCache();
+}
+
+/**
  * @tc.name: OnBufferAvailable009
  * @tc.desc:
  * @tc.type:
