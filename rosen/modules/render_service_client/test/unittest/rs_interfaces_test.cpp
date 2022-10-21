@@ -347,9 +347,6 @@ HWTEST_F(RSInterfacesTest, GetScreenCapability001, Function | SmallTest | Level2
     EXPECT_NE(screenId, INVALID_SCREEN_ID);
 
     auto screenCapability = rsInterfaces->GetScreenCapability(screenId);
-    std::string emptyName;
-    EXPECT_GT(screenCapability.GetPhyWidth(), 0);
-    EXPECT_GT(screenCapability.GetPhyHeight(), 0);
     EXPECT_NE(screenCapability.GetType(), DISP_INVALID);
 }
 
@@ -385,13 +382,10 @@ HWTEST_F(RSInterfacesTest, GetScreenData001, Function | SmallTest | Level2)
     EXPECT_GT(screenData.GetSupportModeInfo().size(), 0);
 
     auto screenCapability = screenData.GetCapability();
-    std::string emptyName;
-    EXPECT_GT(screenCapability.GetPhyWidth(), 0);
-    EXPECT_GT(screenCapability.GetPhyHeight(), 0);
     EXPECT_NE(screenCapability.GetType(), DISP_INVALID);
 
     auto modeInfo = screenData.GetActivityModeInfo();
-    EXPECT_EQ(modeInfo.GetScreenModeId(), 0);
+    EXPECT_NE(modeInfo.GetScreenModeId(), -1);
     EXPECT_NE(modeInfo.GetScreenRefreshRate(), 0);
     EXPECT_NE(modeInfo.GetScreenHeight(), -1);
     EXPECT_NE(modeInfo.GetScreenWidth(), -1);
