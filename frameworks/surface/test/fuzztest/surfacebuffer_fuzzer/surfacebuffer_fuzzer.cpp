@@ -96,7 +96,6 @@ namespace OHOS {
         double valueDouble = GetData<double>();
         std::string keyStr = GetStringFromData(STR_LEN);
         std::string valueStr = GetStringFromData(STR_LEN);
-        void *messageParcelData = static_cast<void*>(GetStringFromData(STR_LEN).data());
 
         // test
         sptr<SurfaceBuffer> surfaceBuffer = new SurfaceBufferImpl(seqNum);
@@ -112,7 +111,6 @@ namespace OHOS {
         bedata->ExtraSet(keyStr, valueStr);
         surfaceBuffer->SetExtraData(bedata);
         MessageParcel parcel;
-        parcel.WriteRawData(messageParcelData, STR_LEN);
         surfaceBuffer->WriteToMessageParcel(parcel);
         surfaceBuffer->ReadFromMessageParcel(parcel);
 
