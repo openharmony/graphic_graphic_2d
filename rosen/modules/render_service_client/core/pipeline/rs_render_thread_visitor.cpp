@@ -452,10 +452,12 @@ void RSRenderThreadVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
         ROSEN_LOGE("RSRenderThreadVisitor::ProcessCanvasRenderNode, canvas is nullptr");
         return;
     }
+#ifdef RS_ENABLE_EGLQUERYSURFACE
     node.UpdateRenderStatus(curDirtyRegion_, isOpDropped_);
     if (node.IsRenderUpdateIgnored()) {
         return;
     }
+#endif
     node.ProcessRenderBeforeChildren(*canvas_);
     ProcessBaseRenderNode(node);
     node.ProcessRenderAfterChildren(*canvas_);
