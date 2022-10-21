@@ -499,6 +499,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
                 canvas_->clipPath(dirtyPath, true);
                 saveLayerCnt = canvas_->saveLayer(SkRect::MakeWH(screenInfo_.width, screenInfo_.height), nullptr);
             }
+            canvas_->clear(SK_ColorTRANSPARENT);
         }
 #endif
         canvas_->save();
@@ -649,6 +650,14 @@ void RSUniRenderVisitor::CalcDirtyDisplayRegion(std::shared_ptr<RSDisplayRenderN
             if (isShadowDisappear) {
                 surfaceNode->SetShadowValidLastFrame(false);
             }
+        }
+        auto transparentRegion = surfaceNode->GetTransparentRegion();
+        auto visibleDirtyRegion = surfaceNode->GetVisibleDirtyRegion();
+        Occlusion::Region transparentDirtyRegion = transparentRegion.And(visibleDirtyRegion);
+        std::vector<Occlusion::Rect> rects = transparentDirtyRegion.GetRegionRects();
+        for (const auto& rect : rects) {
+            displayDirtyManager->MergeDirtyRect(RectI
+                { rect.left_, rect.top_, rect.right_ - rect.left_, rect.bottom_ - rect.top_ });
         }
     }
     std::vector<RectI> surfaceChangedRects = node->GetSurfaceChangedRects();
