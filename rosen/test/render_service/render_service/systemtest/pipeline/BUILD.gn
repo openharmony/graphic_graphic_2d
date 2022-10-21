@@ -20,7 +20,10 @@ module_output_path = "graphic/rosen_engine/render_service/pipeline"
 ohos_systemtest("RSRenderServiceCommonPipelineSystemTest") {
   module_out_path = module_output_path
 
-  sources = [ "rs_drop_frame_processor_test.cpp" ]
+  sources = [
+    "rs_drop_frame_processor_test.cpp",
+    "rs_render_service_test.cpp",
+  ]
 
   configs = [
     ":pipeline_test",
