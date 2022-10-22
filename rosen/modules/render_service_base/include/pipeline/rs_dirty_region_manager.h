@@ -60,6 +60,10 @@ public:
     void GetDirtySurfaceNodes(std::map<NodeId, RectI>& target) const;
     bool SetBufferAge(const int age);
     bool SetSurfaceSize(const int32_t width, const int32_t height);
+    RectI GetSurfaceRect() const
+    {
+        return surfaceRect_;
+    }
     void ResetDirtyAsSurfaceSize();
 
     void UpdateDebugRegionTypeEnable();

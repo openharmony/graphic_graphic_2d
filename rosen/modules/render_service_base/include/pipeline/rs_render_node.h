@@ -73,6 +73,11 @@ public:
     {
         return oldDirty_;
     }
+    inline RectI GetOldDirtyInSurface() const
+    {
+        return oldDirtyInSurface_;
+    }
+
     inline bool IsDirtyRegionUpdated() const
     {
         return isDirtyRegionUpdated_;
@@ -112,6 +117,7 @@ private:
     bool fallbackAnimationOnDestroy_ = true;
     uint32_t disappearingTransitionCount_ = 0;
     RectI oldDirty_;
+    RectI oldDirtyInSurface_;
     RSProperties renderProperties_;
     RSAnimationManager animationManager_;
     std::map<PropertyId, std::shared_ptr<RSRenderModifier>> modifiers_;

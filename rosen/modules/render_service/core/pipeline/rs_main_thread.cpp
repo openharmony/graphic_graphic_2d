@@ -640,7 +640,7 @@ void RSMainThread::CalcOcclusion()
         }
         Occlusion::Rect rect;
         if (!surface->GetOldDirty().IsEmpty() && useUniVisitor_) {
-            rect = Occlusion::Rect{surface->GetOldDirty()};
+            rect = Occlusion::Rect{surface->GetOldDirtyInSurface()};
         } else {
             rect = Occlusion::Rect{surface->GetDstRect()};
         }
