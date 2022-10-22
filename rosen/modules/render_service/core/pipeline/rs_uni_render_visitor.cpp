@@ -202,6 +202,7 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
     if (node.IsAppWindow() || node.GetSurfaceNodeType() == RSSurfaceNodeType::STARTING_WINDOW_NODE) {
         curSurfaceDirtyManager_ = node.GetDirtyManager();
         curSurfaceDirtyManager_->Clear();
+        curSurfaceDirtyManager_->SetSurfaceSize(screenInfo_.width, screenInfo_.height);
         if (auto parentNode = node.GetParent().lock()) {
             auto rsParent = RSBaseRenderNode::ReinterpretCast<RSRenderNode>(parentNode);
             dirtyFlag_ = node.Update(*curSurfaceDirtyManager_, &(rsParent->GetRenderProperties()), dirtyFlag_);
