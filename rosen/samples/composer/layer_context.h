@@ -16,7 +16,6 @@
 #ifndef LAYER_CONTEXT_H
 #define LAYER_CONTEXT_H
 
-#include <display_type.h>
 #include <surface.h>
 #include "hdi_layer_info.h"
 #include "sync_fence.h"

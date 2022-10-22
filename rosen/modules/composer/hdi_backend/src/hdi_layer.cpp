@@ -164,8 +164,16 @@ void HdiLayer::SetHdiLayerInfo()
         CheckRet(ret, "SetTransformMode");
     }
 
-    ret = device->SetLayerVisibleRegion(screenId_, layerId_, layerInfo_->GetVisibleNum(),
-                                         layerInfo_->GetVisibleRegion());
+    std::vector<GraphicIRect> visibles;
+    GraphicIRect& rect = layerInfo_->GetVisibleRegion();
+    GraphicIRect visibleRect = {
+        .x = rect.x,
+        .y = rect.y,
+        .w = rect.w,
+        .h = rect.h,
+    };
+    visibles.emplace_back(visibleRect);
+    ret = device->SetLayerVisibleRegion(screenId_, layerId_, visibles);
     CheckRet(ret, "SetLayerVisibleRegion");
 
     ret = device->SetLayerDirtyRegion(screenId_, layerId_, layerInfo_->GetDirtyRegion());
@@ -193,14 +201,13 @@ void HdiLayer::SetHdiLayerInfo()
     CheckRet(ret, "SetLayerPreMulti");
 
     // because hdi interface func is not implemented, delete CheckRet to avoid excessive print of log
-    ret = device->SetLayerColorTransform(screenId_, layerId_, layerInfo_->GetColorTransform());
+    // ret = device->SetLayerColorTransform(screenId_, layerId_, layerInfo_->GetColorTransform());
     ret = device->SetLayerColorDataSpace(screenId_, layerId_, layerInfo_->GetColorDataSpace());
     ret = device->SetLayerMetaData(screenId_, layerId_, layerInfo_->GetMetaData());
     ret = device->SetLayerMetaDataSet(screenId_, layerId_, layerInfo_->GetMetaDataSet().key,
                                       layerInfo_->GetMetaDataSet().metaData);
 
     SetLayerTunnelHandle();
-
     SetLayerPresentTimestamp();
 }
 

@@ -325,7 +325,7 @@ void RSScreen::CapabilityDump(std::string& dumpString)
 {
     AppendFormat(dumpString, "  capability: name=%s, phywidth=%d, phyheight=%d,"
                  "supportlayers=%d, virtualDispCount=%d, propCount=%d, ",
-                 capability_.name, capability_.phyWidth, capability_.phyHeight,
+                 capability_.name.c_str(), capability_.phyWidth, capability_.phyHeight,
                  capability_.supportLayers, capability_.virtualDispCount, capability_.propertyCount);
     CapabilityTypeDump(capability_.type, dumpString);
     dumpString += "supportWriteBack=";
@@ -339,7 +339,7 @@ void RSScreen::PropDump(std::string& dumpString)
     decltype(capability_.propertyCount) propIndex = 0;
     for (; propIndex < capability_.propertyCount; ++propIndex) {
         AppendFormat(dumpString, "prop[%u]: name=%s, propid=%d, value=%d\n",
-                     propIndex, capability_.props[propIndex].name, capability_.props[propIndex].propId,
+                     propIndex, capability_.props[propIndex].name.c_str(), capability_.props[propIndex].propId,
                      capability_.props[propIndex].value);
     }
 }
