@@ -201,7 +201,7 @@ bool RSBorder::ApplyPathStyle(SkPaint& paint) const
 
 bool RSBorder::ApplyFourLine(SkPaint& paint) const
 {
-    if (styles_.size() != 1) {
+    if (colors_.size() != 1 || styles_.size() != 1) {
         return false;
     }
     paint.setStyle(SkPaint::Style::kStroke_Style);
