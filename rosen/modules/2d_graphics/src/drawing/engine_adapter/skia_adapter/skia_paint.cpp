@@ -84,6 +84,7 @@ void SkiaPaint::PenToSkPaint(const Pen& pen, SkPaint& paint) const
         paint.setColor(paint.getColor4f(), colorSpace.get());
     }
 
+    paint.setStrokeMiter(pen.GetMiterLimit());
     paint.setStrokeWidth(pen.GetWidth());
     paint.setAntiAlias(pen.IsAntiAlias());
     paint.setAlpha(pen.GetAlpha());
