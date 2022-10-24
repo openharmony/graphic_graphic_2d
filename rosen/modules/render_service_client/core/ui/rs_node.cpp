@@ -236,85 +236,58 @@ bool RSNode::HasPropertyAnimation(const PropertyId& id)
     return it != animatingPropertyNum_.end() && it->second > 0;
 }
 
-#define SET_ANIMATABLE_MODIFIER(propertyName, T, value, propertyType, defaultValue)                       \
+#define SET_ANIMATABLE_MODIFIER(propertyName, T, value, propertyType)                                     \
     do {                                                                                                  \
         auto iter = propertyModifiers_.find(RSModifierType::propertyType);                                \
         if (iter != propertyModifiers_.end()) {                                                           \
-            std::static_pointer_cast<RSAnimatableProperty<T>>(iter->second->GetProperty())->Set(value);   \
+            auto property =                                                                               \
+                std::static_pointer_cast<RSAnimatableProperty<T>>(iter->second->GetProperty());           \
+            if (property == nullptr) {                                                                    \
+                ROSEN_LOGE("SET_ANIMATABLE_MODIFIER: failed to set property, property is null!");         \
+                break;                                                                                    \
+            }                                                                                             \
+            property->Set(value);                                                                         \
             break;                                                                                        \
         }                                                                                                 \
-        auto property = std::make_shared<RSAnimatableProperty<T>>(defaultValue);                          \
-        std::shared_ptr<RSModifier> modifier = std::make_shared<RS##propertyName##Modifier>(property);    \
-        modifiers_.emplace(modifier->GetPropertyId(), modifier);                                          \
+        auto property = std::make_shared<RSAnimatableProperty<T>>(value);                                 \
+        auto modifier = std::make_shared<RS##propertyName##Modifier>(property);                           \
         propertyModifiers_.emplace(RSModifierType::propertyType, modifier);                               \
-        modifier->AttachToNode(std::static_pointer_cast<RSNode>(shared_from_this()));                     \
-        if (motionPathOption_ != nullptr && IsPathAnimatableModifier(RSModifierType::propertyType)) {     \
-            modifier->SetMotionPathOption(motionPathOption_);                                             \
-        }                                                                                                 \
-        std::unique_ptr<RSCommand> cmd = std::make_unique<RSAddModifier>(                                 \
-            GetId(), modifier->CreateRenderModifier());                                                   \
-        auto transactionProxy = RSTransactionProxy::GetInstance();                                        \
-        if (transactionProxy != nullptr) {                                                                \
-            transactionProxy->AddCommand(cmd, IsRenderServiceNode(), GetFollowType(), GetId());           \
-            if (NeedForcedSendToRemote()) {                                                               \
-                std::unique_ptr<RSCommand> cmdForRemote =                                                 \
-                    std::make_unique<RSAddModifier>(GetId(), modifier->CreateRenderModifier());           \
-                transactionProxy->AddCommand(cmdForRemote, true, GetFollowType(), GetId());               \
-            }                                                                                             \
-            if (NeedSendExtraCommand()) {                                                                 \
-                std::unique_ptr<RSCommand> extraCommand =                                                 \
-                    std::make_unique<RSAddModifier>(GetId(), modifier->CreateRenderModifier());           \
-                transactionProxy->AddCommand(extraCommand, !IsRenderServiceNode(), GetFollowType(), GetId()); \
-            }                                                                                             \
-        }                                                                                                 \
-        property->Set(value);                                                                             \
+        AddModifier(modifier);                                                                            \
     } while (0)
 
-#define SET_NONANIMATABLE_MODIFIER(propertyName, T, value, propertyType, defaultValue)                    \
+#define SET_NONANIMATABLE_MODIFIER(propertyName, T, value, propertyType)                                  \
     do {                                                                                                  \
         auto iter = propertyModifiers_.find(RSModifierType::propertyType);                                \
         if (iter != propertyModifiers_.end()) {                                                           \
-            std::static_pointer_cast<RSProperty<T>>(iter->second->GetProperty())->Set(value);             \
+            auto property = std::static_pointer_cast<RSProperty<T>>(iter->second->GetProperty());         \
+            if (property == nullptr) {                                                                    \
+                ROSEN_LOGE("SET_NONANIMATABLE_MODIFIER: failed to set property, property is null!");      \
+                break;                                                                                    \
+            }                                                                                             \
+            property->Set(value);                                                                         \
             break;                                                                                        \
         }                                                                                                 \
         auto property = std::make_shared<RSProperty<T>>(value);                                           \
-        std::shared_ptr<RSModifier> modifier = std::make_shared<RS##propertyName##Modifier>(property);    \
-        modifiers_.emplace(modifier->GetPropertyId(), modifier);                                          \
+        auto modifier = std::make_shared<RS##propertyName##Modifier>(property);                           \
         propertyModifiers_.emplace(RSModifierType::propertyType, modifier);                               \
-        modifier->AttachToNode(std::static_pointer_cast<RSNode>(shared_from_this()));                     \
-        std::unique_ptr<RSCommand> cmd = std::make_unique<RSAddModifier>(                                 \
-            GetId(), modifier->CreateRenderModifier());                                                   \
-        auto transactionProxy = RSTransactionProxy::GetInstance();                                        \
-        if (transactionProxy != nullptr) {                                                                \
-            transactionProxy->AddCommand(cmd, IsRenderServiceNode(), GetFollowType(), GetId());           \
-            if (NeedForcedSendToRemote()) {                                                               \
-                std::unique_ptr<RSCommand> cmdForRemote =                                                 \
-                    std::make_unique<RSAddModifier>(GetId(), modifier->CreateRenderModifier());           \
-                transactionProxy->AddCommand(cmdForRemote, true, GetFollowType(), GetId());               \
-            }                                                                                             \
-            if (NeedSendExtraCommand()) {                                                                 \
-                std::unique_ptr<RSCommand> extraCommand =                                                 \
-                    std::make_unique<RSAddModifier>(GetId(), modifier->CreateRenderModifier());           \
-                transactionProxy->AddCommand(extraCommand, !IsRenderServiceNode(), GetFollowType(), GetId()); \
-            }                                                                                              \
-        }                                                                                                 \
+        AddModifier(modifier);                                                                            \
     } while (0)
 
 // alpha
 void RSNode::SetAlpha(float alpha)
 {
-    SET_ANIMATABLE_MODIFIER(Alpha, float, alpha, ALPHA, 1.f);
+    SET_ANIMATABLE_MODIFIER(Alpha, float, alpha, ALPHA);
 }
 
 void RSNode::SetAlphaOffscreen(bool alphaOffscreen)
 {
-    SET_NONANIMATABLE_MODIFIER(AlphaOffscreen, bool, alphaOffscreen, ALPHA_OFFSCREEN, true);
+    SET_NONANIMATABLE_MODIFIER(AlphaOffscreen, bool, alphaOffscreen, ALPHA_OFFSCREEN);
 }
 
 // Bounds
 void RSNode::SetBounds(const Vector4f& bounds)
 {
-    SET_ANIMATABLE_MODIFIER(Bounds, Vector4f, bounds, BOUNDS, Vector4f(0.f));
+    SET_ANIMATABLE_MODIFIER(Bounds, Vector4f, bounds, BOUNDS);
     OnBoundsSizeChanged();
 }
 
@@ -362,7 +335,7 @@ void RSNode::SetBoundsHeight(float height)
 // Frame
 void RSNode::SetFrame(const Vector4f& bounds)
 {
-    SET_ANIMATABLE_MODIFIER(Frame, Vector4f, bounds, FRAME, Vector4f(0.f));
+    SET_ANIMATABLE_MODIFIER(Frame, Vector4f, bounds, FRAME);
 }
 
 void RSNode::SetFrame(float positionX, float positionY, float width, float height)
@@ -405,13 +378,13 @@ void RSNode::SetFramePositionY(float positionY)
 
 void RSNode::SetPositionZ(float positionZ)
 {
-    SET_ANIMATABLE_MODIFIER(PositionZ, float, positionZ, POSITION_Z, 0.f);
+    SET_ANIMATABLE_MODIFIER(PositionZ, float, positionZ, POSITION_Z);
 }
 
 // pivot
 void RSNode::SetPivot(const Vector2f& pivot)
 {
-    SET_ANIMATABLE_MODIFIER(Pivot, Vector2f, pivot, PIVOT, Vector2f(0.5f, 0.5f));
+    SET_ANIMATABLE_MODIFIER(Pivot, Vector2f, pivot, PIVOT);
 }
 
 void RSNode::SetPivot(float pivotX, float pivotY)
@@ -460,18 +433,18 @@ void RSNode::SetCornerRadius(float cornerRadius)
 
 void RSNode::SetCornerRadius(const Vector4f& cornerRadius)
 {
-    SET_ANIMATABLE_MODIFIER(CornerRadius, Vector4f, cornerRadius, CORNER_RADIUS, Vector4f(0.f));
+    SET_ANIMATABLE_MODIFIER(CornerRadius, Vector4f, cornerRadius, CORNER_RADIUS);
 }
 
 // transform
 void RSNode::SetRotation(const Quaternion& quaternion)
 {
-    SET_ANIMATABLE_MODIFIER(Quaternion, Quaternion, quaternion, QUATERNION, Quaternion());
+    SET_ANIMATABLE_MODIFIER(Quaternion, Quaternion, quaternion, QUATERNION);
 }
 
 void RSNode::SetRotation(float degree)
 {
-    SET_ANIMATABLE_MODIFIER(Rotation, float, degree, ROTATION, 0.f);
+    SET_ANIMATABLE_MODIFIER(Rotation, float, degree, ROTATION);
 }
 
 void RSNode::SetRotation(float degreeX, float degreeY, float degreeZ)
@@ -483,17 +456,17 @@ void RSNode::SetRotation(float degreeX, float degreeY, float degreeZ)
 
 void RSNode::SetRotationX(float degree)
 {
-    SET_ANIMATABLE_MODIFIER(RotationX, float, degree, ROTATION_X, 0.f);
+    SET_ANIMATABLE_MODIFIER(RotationX, float, degree, ROTATION_X);
 }
 
 void RSNode::SetRotationY(float degree)
 {
-    SET_ANIMATABLE_MODIFIER(RotationY, float, degree, ROTATION_Y, 0.f);
+    SET_ANIMATABLE_MODIFIER(RotationY, float, degree, ROTATION_Y);
 }
 
 void RSNode::SetTranslate(const Vector2f& translate)
 {
-    SET_ANIMATABLE_MODIFIER(Translate, Vector2f, translate, TRANSLATE, Vector2f(0.f, 0.f));
+    SET_ANIMATABLE_MODIFIER(Translate, Vector2f, translate, TRANSLATE);
 }
 
 void RSNode::SetTranslate(float translateX, float translateY, float translateZ)
@@ -537,7 +510,7 @@ void RSNode::SetTranslateY(float translate)
 
 void RSNode::SetTranslateZ(float translate)
 {
-    SET_ANIMATABLE_MODIFIER(TranslateZ, float, translate, TRANSLATE_Z, 0.f);
+    SET_ANIMATABLE_MODIFIER(TranslateZ, float, translate, TRANSLATE_Z);
 }
 
 void RSNode::SetScale(float scale)
@@ -552,7 +525,7 @@ void RSNode::SetScale(float scaleX, float scaleY)
 
 void RSNode::SetScale(const Vector2f& scale)
 {
-    SET_ANIMATABLE_MODIFIER(Scale, Vector2f, scale, SCALE, Vector2f(1.f, 1.f));
+    SET_ANIMATABLE_MODIFIER(Scale, Vector2f, scale, SCALE);
 }
 
 void RSNode::SetScaleX(float scaleX)
@@ -593,24 +566,24 @@ void RSNode::SetScaleY(float scaleY)
 void RSNode::SetForegroundColor(uint32_t colorValue)
 {
     auto color = Color::FromArgbInt(colorValue);
-    SET_ANIMATABLE_MODIFIER(ForegroundColor, Color, color, FOREGROUND_COLOR, RgbPalette::Transparent());
+    SET_ANIMATABLE_MODIFIER(ForegroundColor, Color, color, FOREGROUND_COLOR);
 }
 
 void RSNode::SetBackgroundColor(uint32_t colorValue)
 {
     auto color = Color::FromArgbInt(colorValue);
-    SET_ANIMATABLE_MODIFIER(BackgroundColor, Color, color, BACKGROUND_COLOR, RgbPalette::Transparent());
+    SET_ANIMATABLE_MODIFIER(BackgroundColor, Color, color, BACKGROUND_COLOR);
 }
 
 void RSNode::SetBackgroundShader(const std::shared_ptr<RSShader>& shader)
 {
-    SET_NONANIMATABLE_MODIFIER(BackgroundShader, std::shared_ptr<RSShader>, shader, BACKGROUND_SHADER, nullptr);
+    SET_NONANIMATABLE_MODIFIER(BackgroundShader, std::shared_ptr<RSShader>, shader, BACKGROUND_SHADER);
 }
 
 // background
 void RSNode::SetBgImage(const std::shared_ptr<RSImage>& image)
 {
-    SET_NONANIMATABLE_MODIFIER(BgImage, std::shared_ptr<RSImage>, image, BG_IMAGE, nullptr);
+    SET_NONANIMATABLE_MODIFIER(BgImage, std::shared_ptr<RSImage>, image, BG_IMAGE);
 }
 
 void RSNode::SetBgImageSize(float width, float height)
@@ -621,12 +594,12 @@ void RSNode::SetBgImageSize(float width, float height)
 
 void RSNode::SetBgImageWidth(float width)
 {
-    SET_ANIMATABLE_MODIFIER(BgImageWidth, float, width, BG_IMAGE_WIDTH, 0.f);
+    SET_ANIMATABLE_MODIFIER(BgImageWidth, float, width, BG_IMAGE_WIDTH);
 }
 
 void RSNode::SetBgImageHeight(float height)
 {
-    SET_ANIMATABLE_MODIFIER(BgImageHeight, float, height, BG_IMAGE_HEIGHT, 0.f);
+    SET_ANIMATABLE_MODIFIER(BgImageHeight, float, height, BG_IMAGE_HEIGHT);
 }
 
 void RSNode::SetBgImagePosition(float positionX, float positionY)
@@ -637,12 +610,12 @@ void RSNode::SetBgImagePosition(float positionX, float positionY)
 
 void RSNode::SetBgImagePositionX(float positionX)
 {
-    SET_ANIMATABLE_MODIFIER(BgImagePositionX, float, positionX, BG_IMAGE_POSITION_X, 0.f);
+    SET_ANIMATABLE_MODIFIER(BgImagePositionX, float, positionX, BG_IMAGE_POSITION_X);
 }
 
 void RSNode::SetBgImagePositionY(float positionY)
 {
-    SET_ANIMATABLE_MODIFIER(BgImagePositionY, float, positionY, BG_IMAGE_POSITION_Y, 0.f);
+    SET_ANIMATABLE_MODIFIER(BgImagePositionY, float, positionY, BG_IMAGE_POSITION_Y);
 }
 
 // border
@@ -655,14 +628,12 @@ void RSNode::SetBorderColor(uint32_t left, uint32_t top, uint32_t right, uint32_
 {
     Vector4<Color> color(Color::FromArgbInt(left), Color::FromArgbInt(top),
                          Color::FromArgbInt(right), Color::FromArgbInt(bottom));
-    SET_ANIMATABLE_MODIFIER(
-        BorderColor, Vector4<Color>, color, BORDER_COLOR, Vector4<Color>(RgbPalette::Transparent()));
+    SET_ANIMATABLE_MODIFIER(BorderColor, Vector4<Color>, color, BORDER_COLOR);
 }
 
 void RSNode::SetBorderColor(const Vector4<Color>& color)
 {
-    SET_ANIMATABLE_MODIFIER(
-        BorderColor, Vector4<Color>, color, BORDER_COLOR, Vector4<Color>(RgbPalette::Transparent()));
+    SET_ANIMATABLE_MODIFIER(BorderColor, Vector4<Color>, color, BORDER_COLOR);
 }
 
 void RSNode::SetBorderWidth(float width)
@@ -673,12 +644,12 @@ void RSNode::SetBorderWidth(float width)
 void RSNode::SetBorderWidth(float left, float top, float right, float bottom)
 {
     Vector4f width(left, top, right, bottom);
-    SET_ANIMATABLE_MODIFIER(BorderWidth, Vector4f, width, BORDER_WIDTH, Vector4f(0.f));
+    SET_ANIMATABLE_MODIFIER(BorderWidth, Vector4f, width, BORDER_WIDTH);
 }
 
 void RSNode::SetBorderWidth(const Vector4f& width)
 {
-    SET_ANIMATABLE_MODIFIER(BorderWidth, Vector4f, width, BORDER_WIDTH, Vector4f(0.f));
+    SET_ANIMATABLE_MODIFIER(BorderWidth, Vector4f, width, BORDER_WIDTH);
 }
 
 void RSNode::SetBorderStyle(uint32_t styleValue)
@@ -689,26 +660,24 @@ void RSNode::SetBorderStyle(uint32_t styleValue)
 void RSNode::SetBorderStyle(uint32_t left, uint32_t top, uint32_t right, uint32_t bottom)
 {
     Vector4<uint32_t> style(left, top, right, bottom);
-    SET_NONANIMATABLE_MODIFIER(
-        BorderStyle, Vector4<uint32_t>, style, BORDER_STYLE, Vector4<uint32_t>(BorderStyle::NONE));
+    SET_NONANIMATABLE_MODIFIER(BorderStyle, Vector4<uint32_t>, style, BORDER_STYLE);
 }
 
 void RSNode::SetBorderStyle(const Vector4<BorderStyle>& style)
 {
     Vector4<uint32_t> styles(static_cast<uint32_t>(style.x_), static_cast<uint32_t>(style.y_),
                              static_cast<uint32_t>(style.z_), static_cast<uint32_t>(style.w_));
-    SET_NONANIMATABLE_MODIFIER(
-        BorderStyle, Vector4<uint32_t>, styles, BORDER_STYLE, Vector4<uint32_t>(BorderStyle::NONE));
+    SET_NONANIMATABLE_MODIFIER(BorderStyle, Vector4<uint32_t>, styles, BORDER_STYLE);
 }
 
 void RSNode::SetBackgroundFilter(const std::shared_ptr<RSFilter>& backgroundFilter)
 {
-    SET_ANIMATABLE_MODIFIER(BackgroundFilter, std::shared_ptr<RSFilter>, backgroundFilter, BACKGROUND_FILTER, nullptr);
+    SET_ANIMATABLE_MODIFIER(BackgroundFilter, std::shared_ptr<RSFilter>, backgroundFilter, BACKGROUND_FILTER);
 }
 
 void RSNode::SetFilter(const std::shared_ptr<RSFilter>& filter)
 {
-    SET_ANIMATABLE_MODIFIER(Filter, std::shared_ptr<RSFilter>, filter, FILTER, nullptr);
+    SET_ANIMATABLE_MODIFIER(Filter, std::shared_ptr<RSFilter>, filter, FILTER);
 }
 
 void RSNode::SetCompositingFilter(const std::shared_ptr<RSFilter>& compositingFilter) {}
@@ -716,7 +685,7 @@ void RSNode::SetCompositingFilter(const std::shared_ptr<RSFilter>& compositingFi
 void RSNode::SetShadowColor(uint32_t colorValue)
 {
     auto color = Color::FromArgbInt(colorValue);
-    SET_ANIMATABLE_MODIFIER(ShadowColor, Color, color, SHADOW_COLOR, Color::FromArgbInt(DEFAULT_SPOT_COLOR));
+    SET_ANIMATABLE_MODIFIER(ShadowColor, Color, color, SHADOW_COLOR);
 }
 
 void RSNode::SetShadowOffset(float offsetX, float offsetY)
@@ -727,52 +696,52 @@ void RSNode::SetShadowOffset(float offsetX, float offsetY)
 
 void RSNode::SetShadowOffsetX(float offsetX)
 {
-    SET_ANIMATABLE_MODIFIER(ShadowOffsetX, float, offsetX, SHADOW_OFFSET_X, DEFAULT_SHADOW_OFFSET_X);
+    SET_ANIMATABLE_MODIFIER(ShadowOffsetX, float, offsetX, SHADOW_OFFSET_X);
 }
 
 void RSNode::SetShadowOffsetY(float offsetY)
 {
-    SET_ANIMATABLE_MODIFIER(ShadowOffsetY, float, offsetY, SHADOW_OFFSET_Y, DEFAULT_SHADOW_OFFSET_Y);
+    SET_ANIMATABLE_MODIFIER(ShadowOffsetY, float, offsetY, SHADOW_OFFSET_Y);
 }
 
 void RSNode::SetShadowAlpha(float alpha)
 {
-    SET_ANIMATABLE_MODIFIER(ShadowAlpha, float, alpha, SHADOW_ALPHA, 0.f);
+    SET_ANIMATABLE_MODIFIER(ShadowAlpha, float, alpha, SHADOW_ALPHA);
 }
 
 void RSNode::SetShadowElevation(float elevation)
 {
-    SET_ANIMATABLE_MODIFIER(ShadowElevation, float, elevation, SHADOW_ELEVATION, 0.f);
+    SET_ANIMATABLE_MODIFIER(ShadowElevation, float, elevation, SHADOW_ELEVATION);
 }
 
 void RSNode::SetShadowRadius(float radius)
 {
-    SET_ANIMATABLE_MODIFIER(ShadowRadius, float, radius, SHADOW_RADIUS, DEFAULT_SHADOW_RADIUS);
+    SET_ANIMATABLE_MODIFIER(ShadowRadius, float, radius, SHADOW_RADIUS);
 }
 
 void RSNode::SetShadowPath(const std::shared_ptr<RSPath>& shadowPath)
 {
-    SET_NONANIMATABLE_MODIFIER(ShadowPath, std::shared_ptr<RSPath>, shadowPath, SHADOW_PATH, nullptr);
+    SET_NONANIMATABLE_MODIFIER(ShadowPath, std::shared_ptr<RSPath>, shadowPath, SHADOW_PATH);
 }
 
 void RSNode::SetFrameGravity(Gravity gravity)
 {
-    SET_NONANIMATABLE_MODIFIER(FrameGravity, Gravity, gravity, FRAME_GRAVITY, Gravity::DEFAULT);
+    SET_NONANIMATABLE_MODIFIER(FrameGravity, Gravity, gravity, FRAME_GRAVITY);
 }
 
 void RSNode::SetClipBounds(const std::shared_ptr<RSPath>& path)
 {
-    SET_NONANIMATABLE_MODIFIER(ClipBounds, std::shared_ptr<RSPath>, path, CLIP_BOUNDS, nullptr);
+    SET_NONANIMATABLE_MODIFIER(ClipBounds, std::shared_ptr<RSPath>, path, CLIP_BOUNDS);
 }
 
 void RSNode::SetClipToBounds(bool clipToBounds)
 {
-    SET_NONANIMATABLE_MODIFIER(ClipToBounds, bool, clipToBounds, CLIP_TO_BOUNDS, false);
+    SET_NONANIMATABLE_MODIFIER(ClipToBounds, bool, clipToBounds, CLIP_TO_BOUNDS);
 }
 
 void RSNode::SetClipToFrame(bool clipToFrame)
 {
-    SET_NONANIMATABLE_MODIFIER(ClipToFrame, bool, clipToFrame, CLIP_TO_FRAME, false);
+    SET_NONANIMATABLE_MODIFIER(ClipToFrame, bool, clipToFrame, CLIP_TO_FRAME);
 }
 
 void RSNode::SetVisible(bool visible)
@@ -782,12 +751,12 @@ void RSNode::SetVisible(bool visible)
         NotifyTransition(transitionEffect_, visible);
     }
 
-    SET_NONANIMATABLE_MODIFIER(Visible, bool, visible, VISIBLE, true);
+    SET_NONANIMATABLE_MODIFIER(Visible, bool, visible, VISIBLE);
 }
 
 void RSNode::SetMask(const std::shared_ptr<RSMask>& mask)
 {
-    SET_NONANIMATABLE_MODIFIER(Mask, std::shared_ptr<RSMask>, mask, MASK, nullptr);
+    SET_NONANIMATABLE_MODIFIER(Mask, std::shared_ptr<RSMask>, mask, MASK);
 }
 
 void RSNode::NotifyTransition(const std::shared_ptr<const RSTransitionEffect>& effect, bool isTransitionIn)
@@ -867,8 +836,8 @@ void RSNode::AddModifier(const std::shared_ptr<RSModifier>& modifier)
     if (motionPathOption_ != nullptr && IsPathAnimatableModifier(modifier->GetModifierType())) {
         modifier->SetMotionPathOption(motionPathOption_);
     }
-    modifiers_.insert({ modifier->GetPropertyId(), modifier });
     modifier->AttachToNode(std::static_pointer_cast<RSNode>(shared_from_this()));
+    modifiers_.emplace(modifier->GetPropertyId(), modifier);
     std::unique_ptr<RSCommand> command = std::make_unique<RSAddModifier>(GetId(), modifier->CreateRenderModifier());
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy != nullptr) {
