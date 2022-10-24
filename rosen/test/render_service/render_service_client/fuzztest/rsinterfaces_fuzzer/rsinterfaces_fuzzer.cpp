@@ -14,15 +14,17 @@
  */
 
 #include "rsinterfaces_fuzzer.h"
-#include "transaction/rs_interfaces.h"
 
 #include <securec.h>
 #include <stddef.h>
 #include <stdint.h>
 
+#include "transaction/rs_interfaces.h"
+
 namespace OHOS {
 namespace Rosen {
 namespace {
+constexpr size_t STR_LEN = 10;
 const uint8_t* data_ = nullptr;
 size_t size_ = 0;
 size_t pos;
@@ -46,6 +48,20 @@ T GetData()
     }
     pos += objectSize;
     return object;
+}
+
+/*
+ * get a string from data_
+ */
+std::string GetStringFromData(int strlen)
+{
+    char cstr[strlen];
+    cstr[strlen - 1] = '\0';
+    for (int i = 0; i < strlen - 1; i++) {
+        cstr[i] = GetData<char>();
+    }
+    std::string str(cstr);
+    return str;
 }
 
 bool RSScreenFuzzTest(const uint8_t* data, size_t size)
@@ -96,7 +112,14 @@ bool RSScreenFuzzTest(const uint8_t* data, size_t size)
     rsInterfaces->GetScreenType(static_cast<ScreenId>(id), screenType);
     uint32_t skipFrameInterval = GetData<uint32_t>();
     rsInterfaces->SetScreenSkipFrameInterval(static_cast<ScreenId>(id), skipFrameInterval);
-    
+    auto csurface = Surface::CreateSurfaceAsConsumer();
+    auto producer = csurface->GetProducer();
+    auto psurface = Surface::CreateSurfaceAsProducer(producer);
+    std::string name = GetStringFromData(STR_LEN);
+    int flags = GetData<int>();
+    rsInterfaces->CreateVirtualScreen(name, width, height, psurface, static_cast<ScreenId>(id), flags);
+    rsInterfaces->SetVirtualScreenSurface(static_cast<ScreenId>(id), psurface);
+
     return true;
 }
 
