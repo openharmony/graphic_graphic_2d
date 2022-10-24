@@ -49,6 +49,28 @@ namespace Rosen {
 class RSModifier;
 class RSNode;
 
+template<class...>
+struct make_void { using type = void; };
+template<class... T>
+using void_t = typename make_void<T...>::type;
+
+template<class T, class = void>
+struct supports_arithmetic : std::false_type {};
+template<class T>
+struct supports_arithmetic<T,
+    void_t<decltype(std::declval<T>() == std::declval<T>())>>
+        : std::true_type {};
+
+template<class T, class = void>
+struct supports_animatable_arithmetic : std::false_type {};
+template<class T>
+struct supports_animatable_arithmetic<T,
+    void_t<decltype(std::declval<T>() + std::declval<T>()),
+        decltype(std::declval<T>() - std::declval<T>()),
+        decltype(std::declval<T>() * std::declval<float>()),
+        decltype(std::declval<T>() == std::declval<T>())>>
+        : std::true_type {};
+
 class RS_EXPORT RSPropertyBase : public std::enable_shared_from_this<RSPropertyBase> {
 public:
     RSPropertyBase();
@@ -156,6 +178,8 @@ private:
 
 template<typename T>
 class RS_EXPORT RSProperty : public RSPropertyBase {
+    static_assert(std::is_base_of_v<RSArithmetic<T>, T> || supports_arithmetic<T>::value);
+
 public:
     RSProperty() : RSPropertyBase() {}
     explicit RSProperty(const T& value) : RSPropertyBase()
@@ -253,7 +277,8 @@ class RS_EXPORT RSAnimatableProperty : public RSProperty<T> {
     static_assert(std::is_integral_v<T> || std::is_floating_point_v<T> || std::is_same_v<Color, T> ||
                   std::is_same_v<Matrix3f, T> || std::is_same_v<Vector2f, T> || std::is_same_v<Vector4f, T> ||
                   std::is_same_v<Quaternion, T> || std::is_same_v<std::shared_ptr<RSFilter>, T> ||
-                  std::is_same_v<Vector4<Color>, T> || std::is_base_of_v<RSAnimatableArithmetic<T>, T>);
+                  std::is_same_v<Vector4<Color>, T> || std::is_base_of_v<RSAnimatableArithmetic<T>, T> ||
+                  supports_animatable_arithmetic<T>::value);
 
 public:
     RSAnimatableProperty() {}
