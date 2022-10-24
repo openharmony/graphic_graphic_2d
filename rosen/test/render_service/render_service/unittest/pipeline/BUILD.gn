@@ -24,6 +24,7 @@ group("unittest") {
     ":RSDividedRenderUtilTest",
     ":RSRenderServiceCommonPipelineTest",
     ":RSSurfaceCaptureTaskTest",
+    ":RSUniRenderUtilTest",
   ]
 }
 
@@ -90,6 +91,15 @@ ohos_unittest("RSSurfaceCaptureTaskTest") {
 ohos_unittest("RSDividedRenderUtilTest") {
   module_out_path = module_output_path
   sources = [ "rs_divided_render_util_test.cpp" ]
+  deps = [ ":rs_test_common" ]
+  defines = []
+  defines += gpu_defines
+}
+
+## Build RSUniRenderUtilTest
+ohos_unittest("RSUniRenderUtilTest") {
+  module_out_path = module_output_path
+  sources = [ "rs_uni_render_util_test.cpp" ]
   deps = [ ":rs_test_common" ]
   defines = []
   defines += gpu_defines

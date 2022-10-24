@@ -17,6 +17,7 @@ group("unittest") {
   deps = [
     "render_service/fuzztest/rsrenderserviceconnection_fuzzer:fuzztest",
     "render_service/unittest/pipeline:unittest",
+    "render_service/unittest/screen_manager:unittest",
     "render_service_base/fuzztest/rsbaserendernode_fuzzer:fuzztest",
     "render_service_base/unittest/animation:unittest",
     "render_service_base/unittest/overdraw:unittest",
