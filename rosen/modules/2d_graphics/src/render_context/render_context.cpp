@@ -242,7 +242,10 @@ bool RenderContext::SetUpGrContext()
     if (mHandler_ != nullptr) {
         auto glesVersion = reinterpret_cast<const char*>(glGetString(GL_VERSION));
         auto size = glesVersion ? strlen(glesVersion) : -1;
-        mHandler_->configureContext(&options, glesVersion, size, cacheDir_);
+        if (isUniRenderMode_) {
+            cacheDir_ = UNIRENDER_CACHE_DIR;
+        }
+        mHandler_->ConfigureContext(&options, glesVersion, size, cacheDir_, isUniRenderMode_);
     }
 
     sk_sp<GrContext> grContext(GrContext::MakeGL(std::move(glInterface), options));

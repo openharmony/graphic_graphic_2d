@@ -19,13 +19,13 @@
 
 namespace OHOS {
 namespace Rosen {
-void MemoryHandler::configureContext(GrContextOptions* context, const char* identity,
-    const ssize_t size, const std::string& cacheFilePath)
+void MemoryHandler::ConfigureContext(GrContextOptions* context, const char* identity,
+    const ssize_t size, const std::string& cacheFilePath, bool isUni)
 {
     context->fAllowPathMaskCaching = true;
     auto &cache = ShaderCache::Instance();
     cache.SetFilePath(cacheFilePath);
-    cache.InitShaderCache(identity, size);
+    cache.InitShaderCache(identity, size, isUni);
     context->fPersistentCache = &cache;
 }
 }   // namespace Rosen
