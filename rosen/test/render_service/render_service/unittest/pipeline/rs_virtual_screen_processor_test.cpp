@@ -63,6 +63,26 @@ HWTEST_F(RSVirtualScreenProcessorTest, CreateAndDestroy002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: Init
+ * @tc.desc:
+ * @tc.type:
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(RSVirtualScreenProcessorTest, Init, TestSize.Level1)
+{
+    RSDisplayNodeConfig config;
+    NodeId id = 0;
+    int32_t offsetX = 0;
+    int32_t offsetY = 0;
+    RSDisplayRenderNode rsDisplayRenderNode(id, config);
+    auto rsSoftwareProcessor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::
+        SOFTWARE_COMPOSITE);
+    ASSERT_NE(nullptr, rsSoftwareProcessor);
+    ASSERT_EQ(false, rsSoftwareProcessor->Init(rsDisplayRenderNode, offsetX, offsetY, INVALID_SCREEN_ID));
+}
+
+/**
  * @tc.name: ProcessSurface001
  * @tc.desc:
  * @tc.type:
@@ -76,6 +96,24 @@ HWTEST_F(RSVirtualScreenProcessorTest, ProcessSurface001, TestSize.Level1)
     auto rsSoftwareProcessor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::
         SOFTWARE_COMPOSITE);
     rsSoftwareProcessor->ProcessSurface(rsSurfaceRenderNode);
+}
+
+/**
+ * @tc.name: ProcessDisplaySurface
+ * @tc.desc:
+ * @tc.type:
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(RSVirtualScreenProcessorTest, ProcessDisplaySurface, TestSize.Level1)
+{
+    RSDisplayNodeConfig config;
+    NodeId id = 0;
+    RSDisplayRenderNode rsDisplayRenderNode(id, config);
+    auto rsSoftwareProcessor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::
+        SOFTWARE_COMPOSITE);
+    ASSERT_NE(nullptr, rsSoftwareProcessor);
+    rsSoftwareProcessor->ProcessDisplaySurface(rsDisplayRenderNode);
 }
 
 /**

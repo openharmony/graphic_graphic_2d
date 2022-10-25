@@ -847,4 +847,30 @@ HWTEST_F(RSRenderServiceVisitorTest, ProcessRootRenderNode008, TestSize.Level1)
     RSRootRenderNode node(nodeId);
     rsRenderServiceVisitor.ProcessRootRenderNode(node);
 }
+
+/**
+ * @tc.name: SetAnimateState
+ * @tc.desc:
+ * @tc.type:
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(RSRenderServiceVisitorTest, SetAnimateState, TestSize.Level1)
+{
+    RSRenderServiceVisitor rsRenderServiceVisitor;
+    rsRenderServiceVisitor.SetAnimateState(true);
+}
+
+/**
+ * @tc.name: ShouldForceSerial
+ * @tc.desc:
+ * @tc.type:
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(RSRenderServiceVisitorTest, ShouldForceSerial, TestSize.Level1)
+{
+    RSRenderServiceVisitor rsRenderServiceVisitor;
+    ASSERT_EQ(false, rsRenderServiceVisitor.ShouldForceSerial());
+}
 } // namespace OHOS::Rosen

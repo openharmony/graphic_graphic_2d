@@ -36,6 +36,19 @@ void RSScreenManagerTest::SetUp() {}
 void RSScreenManagerTest::TearDown() {}
 
 /*
+ * @tc.name: CreateOrGetScreenManager
+ * @tc.desc:
+ * @tc.type:
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(RSScreenManagerTest, CreateOrGetScreenManager, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+}
+
+/*
  * @tc.name: Init
  * @tc.desc:
  * @tc.type:
@@ -236,6 +249,130 @@ HWTEST_F(RSScreenManagerTest, GetProducerSurface, TestSize.Level1)
     ASSERT_NE(INVALID_SCREEN_ID, id);
 
     ASSERT_NE(nullptr, screenManager->GetProducerSurface(id));
+    screenManager->RemoveVirtualScreen(id);
+    sleep(1);
+}
+
+/*
+ * @tc.name: ProcessScreenHotPlugEvents
+ * @tc.desc:
+ * @tc.type:
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(RSScreenManagerTest, ProcessScreenHotPlugEvents, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    screenManager->ProcessScreenHotPlugEvents();
+}
+
+/*
+ * @tc.name: GetScreenBacklight
+ * @tc.desc:
+ * @tc.type:
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(RSScreenManagerTest, GetScreenBacklight, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+
+    std::string name = "virtualScreen01";
+    uint32_t width = 480;
+    uint32_t height = 320;
+
+    auto csurface = Surface::CreateSurfaceAsConsumer();
+    ASSERT_NE(csurface, nullptr);
+    auto producer = csurface->GetProducer();
+    auto psurface = Surface::CreateSurfaceAsProducer(producer);
+    ASSERT_NE(csurface, nullptr);
+
+    auto id = screenManager->CreateVirtualScreen(name, width, height, psurface);
+    ASSERT_NE(INVALID_SCREEN_ID, id);
+
+    ASSERT_EQ(INVALID_BACKLIGHT_VALUE, screenManager->GetScreenBacklight(id));
+
+    screenManager->RemoveVirtualScreen(id);
+    sleep(1);
+}
+
+/*
+ * @tc.name: AddScreenChangeCallback
+ * @tc.desc:
+ * @tc.type:
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(RSScreenManagerTest, AddScreenChangeCallback01, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    ASSERT_EQ(INVALID_ARGUMENTS, screenManager->AddScreenChangeCallback(nullptr));
+}
+
+/*
+ * @tc.name: GetScreenSupportedColorGamuts
+ * @tc.desc:
+ * @tc.type:
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(RSScreenManagerTest, GetScreenSupportedColorGamuts, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    std::string name = "virtualScreen01";
+    uint32_t width = 480;
+    uint32_t height = 320;
+
+    auto csurface = Surface::CreateSurfaceAsConsumer();
+    ASSERT_NE(csurface, nullptr);
+    auto producer = csurface->GetProducer();
+    auto psurface = Surface::CreateSurfaceAsProducer(producer);
+    ASSERT_NE(csurface, nullptr);
+
+    auto id = screenManager->CreateVirtualScreen(name, width, height, psurface);
+    ASSERT_NE(INVALID_SCREEN_ID, id);
+
+    std::vector<ScreenColorGamut> mode;
+    ASSERT_EQ(SUCCESS, screenManager->GetScreenSupportedColorGamuts(id, mode));
+    ASSERT_LT(0, mode.size());
+
+    screenManager->RemoveVirtualScreen(id);
+    sleep(1);
+}
+
+/*
+ * @tc.name: GetScreenColorGamut
+ * @tc.desc:
+ * @tc.type:
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(RSScreenManagerTest, GetScreenColorGamut, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    std::string name = "virtualScreen01";
+    uint32_t width = 480;
+    uint32_t height = 320;
+
+    auto csurface = Surface::CreateSurfaceAsConsumer();
+    ASSERT_NE(csurface, nullptr);
+    auto producer = csurface->GetProducer();
+    auto psurface = Surface::CreateSurfaceAsProducer(producer);
+    ASSERT_NE(csurface, nullptr);
+
+    auto id = screenManager->CreateVirtualScreen(name, width, height, psurface);
+    ASSERT_NE(INVALID_SCREEN_ID, id);
+
+    ASSERT_EQ(SUCCESS, screenManager->SetScreenColorGamut(id, 1));
+    ScreenColorGamut mode;
+    ASSERT_EQ(SUCCESS, screenManager->GetScreenColorGamut(id, mode));
+    ASSERT_EQ(COLOR_GAMUT_DCI_P3, mode);
+
     screenManager->RemoveVirtualScreen(id);
     sleep(1);
 }

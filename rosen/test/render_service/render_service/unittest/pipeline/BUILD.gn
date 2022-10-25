@@ -31,6 +31,7 @@ ohos_unittest("RSRenderServiceCommonPipelineTest") {
   module_out_path = module_output_path
 
   sources = [
+    "rs_base_render_util_test.cpp",
     "rs_drop_frame_processor_test.cpp",
     "rs_physical_screen_processor_test.cpp",
     "rs_processor_factory_test.cpp",
