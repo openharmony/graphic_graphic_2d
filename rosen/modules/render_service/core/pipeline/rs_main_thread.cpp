@@ -603,7 +603,7 @@ void RSMainThread::CalcOcclusion()
             curAllSurfaces = displayNode->GetCurAllSurfaces();
         }
     } else {
-        node->CollectSurface(node, curAllSurfaces, isUniRender_);
+        node->CollectSurface(node, curAllSurfaces, IfUseUniVisitor());
     }
 
     // 1. Judge whether it is dirty
@@ -639,7 +639,7 @@ void RSMainThread::CalcOcclusion()
             continue;
         }
         Occlusion::Rect rect;
-        if (!surface->GetOldDirty().IsEmpty() && useUniVisitor_) {
+        if (!surface->GetOldDirty().IsEmpty() && IfUseUniVisitor()) {
             rect = Occlusion::Rect{surface->GetOldDirtyInSurface()};
         } else {
             rect = Occlusion::Rect{surface->GetDstRect()};
@@ -651,11 +651,11 @@ void RSMainThread::CalcOcclusion()
         surface->setQosCal(qosPidCal_);
         surface->SetVisibleRegionRecursive(subResult, curVisVec, pidVisMap);
         // Current region need to merge current surface for next calculation(ignore alpha surface)
-        if (isUniRender_) {
+        if (IfUseUniVisitor()) {
             surface->ResetSurfaceOpaqueRegion();
-            if (!surface->IsTransparent() ||
-                RSOcclusionConfig::GetInstance().IsDividerBar(surface->GetName())) {
-                curRegion.OrSelf(surface->GetOpaqueRegion());
+            curRegion.OrSelf(surface->GetOpaqueRegion());
+            if (RSOcclusionConfig::GetInstance().IsDividerBar(surface->GetName())) {
+                curRegion.OrSelf(curSurface);
             }
         } else {
             const uint8_t opacity = 255;
