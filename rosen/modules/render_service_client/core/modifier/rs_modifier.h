@@ -19,17 +19,8 @@
 #include "common/rs_macros.h"
 #include "modifier/rs_property.h"
 
-class SkCanvas;
-
 namespace OHOS {
 namespace Rosen {
-struct RSDrawingContext {
-    SkCanvas* canvas;
-    float width;
-    float height;
-};
-class RSRenderModifier;
-
 class RS_EXPORT RSModifier : public std::enable_shared_from_this<RSModifier> {
 public:
     explicit RSModifier(const std::shared_ptr<RSPropertyBase>& property)
@@ -38,12 +29,12 @@ public:
 
     virtual ~RSModifier() = default;
 
-    virtual std::shared_ptr<RSPropertyBase> GetProperty()
+    std::shared_ptr<RSPropertyBase> GetProperty()
     {
         return property_;
     }
 
-    virtual PropertyId GetPropertyId()
+    PropertyId GetPropertyId()
     {
         return property_->id_;
     }
@@ -70,24 +61,29 @@ protected:
         }
     }
 
-    virtual void AttachToNode(const std::weak_ptr<RSNode>& target)
+    void AttachToNode(const std::weak_ptr<RSNode>& target)
     {
         property_->target_ = target;
     }
 
-    virtual void DetachFromNode()
+    void DetachFromNode()
     {
         property_->target_.reset();
     }
 
-    virtual void SetMotionPathOption(const std::shared_ptr<RSMotionPathOption>& motionPathOption)
+    void SetMotionPathOption(const std::shared_ptr<RSMotionPathOption>& motionPathOption)
     {
         property_->SetMotionPathOption(motionPathOption);
     }
 
-    virtual void UpdateToRender() {}
+    std::shared_ptr<RSRenderPropertyBase> CreateRenderProperty() const
+    {
+        return property_->CreateRenderProperty();
+    }
 
     virtual std::shared_ptr<RSRenderModifier> CreateRenderModifier() const = 0;
+
+    virtual void UpdateToRender() {}
 
     std::shared_ptr<RSPropertyBase> property_;
 

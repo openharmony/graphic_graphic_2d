@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef RENDER_SERVICE_CLIENT_CORE_ANIMATION_RS_PROP_H
-#define RENDER_SERVICE_CLIENT_CORE_ANIMATION_RS_PROP_H
+#ifndef RENDER_SERVICE_CLIENT_CORE_MODIFIER_RS_PROPERTY_H
+#define RENDER_SERVICE_CLIENT_CORE_MODIFIER_RS_PROPERTY_H
 
 #include <type_traits>
 #include <unistd.h>
@@ -46,9 +46,6 @@
 
 namespace OHOS {
 namespace Rosen {
-class RSModifier;
-class RSNode;
-
 template<class...>
 struct make_void { using type = void; };
 template<class... T>
@@ -79,11 +76,6 @@ public:
     PropertyId GetId() const
     {
         return id_;
-    }
-
-    virtual std::shared_ptr<RSRenderPropertyBase> CreateRenderProperty()
-    {
-        return std::make_shared<RSRenderPropertyBase>(id_);
     }
 
 protected:
@@ -121,6 +113,11 @@ protected:
     virtual void AttachModifier(const std::shared_ptr<RSModifier>& modifier) {}
 
     virtual void MarkModifierDirty(const std::shared_ptr<RSModifierManager>& modifierManager) {}
+
+    virtual std::shared_ptr<RSRenderPropertyBase> CreateRenderProperty()
+    {
+        return std::make_shared<RSRenderPropertyBase>(id_);
+    }
 
     PropertyId id_;
     RSModifierType type_ { RSModifierType::INVALID };
@@ -211,11 +208,6 @@ public:
         return stagingValue_;
     }
 
-    std::shared_ptr<RSRenderPropertyBase> CreateRenderProperty() override
-    {
-        return std::make_shared<RSRenderProperty<T>>(stagingValue_, id_);
-    }
-
 protected:
     void UpdateToRender(const T& value, bool isDelta, bool forceUpdate = false) const
     {}
@@ -261,6 +253,11 @@ protected:
     {
         return isCustom_;
     }
+ 
+    std::shared_ptr<RSRenderPropertyBase> CreateRenderProperty() override
+    {
+        return std::make_shared<RSRenderProperty<T>>(stagingValue_, id_);
+    }
 
     T stagingValue_ {};
     bool isCustom_ { false };
@@ -281,8 +278,8 @@ class RS_EXPORT RSAnimatableProperty : public RSProperty<T> {
                   supports_animatable_arithmetic<T>::value);
 
 public:
-    RSAnimatableProperty() {}
-    RSAnimatableProperty(const T& value) : RSProperty<T>(value)
+    RSAnimatableProperty() : RSProperty<T>() {}
+    explicit RSAnimatableProperty(const T& value) : RSProperty<T>(value)
     {
         showingValue_ = value;
     }
@@ -340,12 +337,6 @@ public:
             return showingValue_;
         }
         return RSProperty<T>::stagingValue_;
-    }
-
-    std::shared_ptr<RSRenderPropertyBase> CreateRenderProperty() override
-    {
-        return std::make_shared<RSRenderAnimatableProperty<T>>(
-            RSProperty<T>::stagingValue_, RSProperty<T>::id_, GetPropertyType());
     }
 
 protected:
@@ -422,6 +413,12 @@ protected:
     void SetMotionPathOption(const std::shared_ptr<RSMotionPathOption>& motionPathOption) override
     {
         motionPathOption_ = motionPathOption;
+    }
+
+    std::shared_ptr<RSRenderPropertyBase> CreateRenderProperty() override
+    {
+        return std::make_shared<RSRenderAnimatableProperty<T>>(
+            RSProperty<T>::stagingValue_, RSProperty<T>::id_, GetPropertyType());
     }
 
     T showingValue_ {};
@@ -540,4 +537,4 @@ RS_EXPORT RSRenderPropertyType RSAnimatableProperty<Vector4<Color>>::GetProperty
 } // namespace Rosen
 } // namespace OHOS
 
-#endif // RENDER_SERVICE_CLIENT_CORE_ANIMATION_RS_PROP_H
+#endif // RENDER_SERVICE_CLIENT_CORE_MODIFIER_RS_PROPERTY_H
