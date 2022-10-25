@@ -55,8 +55,6 @@ int32_t LocalSocketPair::CreateChannel(size_t sendSize, size_t receiveSize)
     int32_t socketPair[SOCKET_PAIR_SIZE] = { 0 };
     if (socketpair(AF_UNIX, SOCK_SEQPACKET, 0, socketPair) != 0) {
         HiLog::Error(LABEL, "%{public}s create socketpair failed", __func__);
-        sendFd_ = INVALID_FD;
-        receiveFd_ = INVALID_FD;
         return -1;
     }
 

@@ -42,6 +42,7 @@ group("graphic_2d_test") {
     "rosen/test/frame_analyzer:test",
     "rosen/test/render_service:test",
     "utils/color_manager:test",
+    "utils/socketpair:test",
     "utils/sync_fence:test",
   ]
 }
