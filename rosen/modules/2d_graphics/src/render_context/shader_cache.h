@@ -30,10 +30,10 @@ class ShaderCache : public GrContextOptions::PersistentCache {
 public:
     static ShaderCache& Instance();
 
-    virtual void InitShaderCache(const char *identity, const ssize_t size);
+    virtual void InitShaderCache(const char *identity, const ssize_t size, bool isUni);
     virtual void InitShaderCache()
     {
-        InitShaderCache(nullptr, 0);
+        InitShaderCache(nullptr, 0, false);
     }
 
     virtual void SetFilePath(const std::string& filename);
@@ -67,9 +67,10 @@ private:
 
     static constexpr uint8_t ID_KEY = 0;
 
-    static const size_t glslKeySize = 1024;
-    static const size_t glslValueSize = glslKeySize * 512;
-    static const size_t glslTotalSize = glslValueSize * 4;
+    static constexpr size_t MAX_KEY_SIZE = 1024;
+    static constexpr size_t MAX_VALUE_SIZE = MAX_KEY_SIZE * 512;
+    static constexpr size_t MAX_TOTAL_SIZE = MAX_VALUE_SIZE * 4;
+    static constexpr size_t MAX_UNIRENDER_SIZE = MAX_VALUE_SIZE * 10;
 };
 }   // namespace Rosen
 }   // namespace OHOS
