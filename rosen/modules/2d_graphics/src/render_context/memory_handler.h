@@ -25,8 +25,8 @@ namespace OHOS {
 namespace Rosen {
 class MemoryHandler {
 public:
-    void configureContext(GrContextOptions* context, const char* identity, const ssize_t size,
-        const std::string& cacheFilePath);
+    void ConfigureContext(GrContextOptions* context, const char* identity, const ssize_t size,
+        const std::string& cacheFilePath, bool isUni);
     MemoryHandler() = default;
 };
 }   // namespace Rosen

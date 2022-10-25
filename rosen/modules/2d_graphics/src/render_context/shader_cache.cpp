@@ -31,7 +31,7 @@ ShaderCache& ShaderCache::Instance()
     return cache_;
 }
 
-void ShaderCache::InitShaderCache(const char* identity, const ssize_t size)
+void ShaderCache::InitShaderCache(const char* identity, const ssize_t size, bool isUni)
 {
     std::lock_guard<std::mutex> lock(mutex_);
 
@@ -39,7 +39,9 @@ void ShaderCache::InitShaderCache(const char* identity, const ssize_t size)
         LOGE("abandon, illegal cacheDir length");
         return;
     }
-    cacheData_.reset(new CacheData(glslKeySize, glslValueSize, glslTotalSize, filePath_));
+    cacheData_.reset();
+    size_t totalSize = isUni ? MAX_UNIRENDER_SIZE : MAX_TOTAL_SIZE;
+    cacheData_ = std::make_unique<CacheData>(MAX_KEY_SIZE, MAX_VALUE_SIZE, totalSize, filePath_);
     cacheData_->ReadFromFile();
     if (identity == nullptr || size <= 0) {
         LOGE("abandon, illegal cacheDir length");
@@ -91,9 +93,9 @@ sk_sp<SkData> ShaderCache::load(const SkData& key)
     if (!valueSize) {
         free(valueBuffer);
         valueBuffer = nullptr;
-        void* newValueBuffer = realloc(valueBuffer, glslValueSize);
+        void* newValueBuffer = realloc(valueBuffer, MAX_VALUE_SIZE);
         if (!newValueBuffer) {
-            LOGE("load: failed to reallocate glslValueSize");
+            LOGE("load: failed to reallocate maxValueSize");
             return nullptr;
         }
         valueBuffer = newValueBuffer;
@@ -137,7 +139,7 @@ void ShaderCache::store(const SkData& key, const SkData& data)
 
     size_t valueSize = data.size();
     size_t keySize = key.size();
-    if (keySize == 0 || valueSize == 0 || valueSize >= glslValueSize) {
+    if (keySize == 0 || valueSize == 0 || valueSize >= MAX_VALUE_SIZE) {
         LOGE("store: failed because of illegal cache sizes");
         return;
     }
