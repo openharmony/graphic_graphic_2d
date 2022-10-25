@@ -17,8 +17,6 @@
 #include "transaction/rs_interfaces.h"
 
 #include <securec.h>
-#include <stddef.h>
-#include <stdint.h>
 
 namespace OHOS {
 namespace Rosen {
