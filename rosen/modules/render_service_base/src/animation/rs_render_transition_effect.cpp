@@ -40,13 +40,13 @@ PropertyId GenerateTransitionPropertyId()
     static pid_t pid_ = INT_MAX;
     static std::atomic<uint32_t> currentId_ = 1;
 
-    ++currentId_;
-    if (currentId_ == UINT32_MAX) {
+    auto currentId = currentId_.fetch_add(1, std::memory_order_relaxed);
+    if (currentId == UINT32_MAX) {
         // [PLANNING]:process the overflow situations
         ROSEN_LOGE("Property Id overflow");
     }
 
-    return ((PropertyId)pid_ << PID_SHIFT) | currentId_;
+    return ((PropertyId)pid_ << PID_SHIFT) | currentId;
 }
 } // namespace
 
