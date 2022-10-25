@@ -14,11 +14,6 @@
 import("//build/ohos.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
-group("color_manager_unit_test") {
-  testonly = true
-  deps = [ "//foundation/graphic/graphic_2d/utils/color_manager:test" ]
-}
-
 group("color_manager") {
   public_deps = [
     "color_manager:color_manager",
