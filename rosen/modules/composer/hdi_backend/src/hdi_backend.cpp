@@ -174,7 +174,9 @@ void HdiBackend::Repaint(std::vector<OutputPtr> &outputs)
                 layer->RecordPresentTime(timestamp);
             }
         }
-        if (startSample) {
+
+        bool alreadyStartSample = sampler_->GetHardwareVSyncStatus();
+        if (startSample && !alreadyStartSample) {
             HLOGD("Enable Screen Vsync");
             device_->SetScreenVsyncEnabled(screenId, true);
             sampler_->BeginSample();
