@@ -97,6 +97,9 @@ public:
         isShadowValidLastFrame_ = isShadowValidLastFrame;
     }
 
+    // update node's out parent status
+    void SetPaintOutOfParentFlag(std::shared_ptr<RSRenderNode> rsParent);
+
 protected:
     explicit RSRenderNode(NodeId id, std::weak_ptr<RSContext> context = {});
     void UpdateDirtyRegion(RSDirtyRegionManager& dirtyManager, bool geoDirty);

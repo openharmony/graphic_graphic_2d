@@ -126,7 +126,14 @@ void RSRenderThreadVisitor::PrepareCanvasRenderNode(RSCanvasRenderNode& node)
     if (node.IsDirtyRegionUpdated() && curDirtyManager_->IsDebugRegionTypeEnable(DebugRegionType::CURRENT_SUB)) {
         curDirtyManager_->UpdateDirtyCanvasNodes(node.GetId(), node.GetOldDirty());
     }
+    node.ClearPaintOutOfParentRect();
+    node.UpdateChildrenOutOfRectFlag(false);
     PrepareBaseRenderNode(node);
+#ifdef RS_ENABLE_EGLQUERYSURFACE
+    if (isOpDropped_) {
+        node.SetPaintOutOfParentFlag(rsParent);
+    }
+#endif
     dirtyFlag_ = dirtyFlag;
 }
 
@@ -149,7 +156,14 @@ void RSRenderThreadVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
     if (node.IsDirtyRegionUpdated() && curDirtyManager_->IsDebugRegionTypeEnable(DebugRegionType::CURRENT_SUB)) {
         curDirtyManager_->UpdateDirtySurfaceNodes(node.GetId(), node.GetOldDirty());
     }
+    node.ClearPaintOutOfParentRect();
+    node.UpdateChildrenOutOfRectFlag(false);
     PrepareBaseRenderNode(node);
+#ifdef RS_ENABLE_EGLQUERYSURFACE
+    if (isOpDropped_) {
+        node.SetPaintOutOfParentFlag(rsParent);
+    }
+#endif
     dirtyFlag_ = dirtyFlag;
 }
 

@@ -144,13 +144,34 @@ void RSRenderNode::UpdateRenderStatus(RectI& dirtyRegion, bool isPartialRenderEn
 {
     auto dirtyRect = renderProperties_.GetDirtyRect();
     // should judge if there's any child out of parent
-    if (!isPartialRenderEnabled) {
+    if (!isPartialRenderEnabled || HasChildrenOutOfRect()) {
         isRenderUpdateIgnored_ = false;
     } else if (dirtyRegion.IsEmpty() || dirtyRect.IsEmpty()) {
         isRenderUpdateIgnored_ = true;
     } else {
         RectI intersectRect = dirtyRegion.IntersectRect(dirtyRect);
         isRenderUpdateIgnored_ = intersectRect.IsEmpty();
+    }
+}
+
+void RSRenderNode::SetPaintOutOfParentFlag(std::shared_ptr<RSRenderNode> rsParent)
+{
+    if (rsParent == nullptr) {
+        return;
+    }
+    auto dirtyRect = renderProperties_.GetDirtyRect();
+    auto parentRect = rsParent->GetRenderProperties().GetDirtyRect();
+    if (HasChildrenOutOfRect()) {
+        if (!GetPaintOutOfParentRect().IsInsideOf(parentRect) || parentRect.IsEmpty()) {
+            rsParent->UpdateChildrenOutOfRectFlag(true);
+            rsParent->UpdatePaintOutOfParentRect(GetPaintOutOfParentRect());
+        }
+    } else {
+        // update parent status and paintOutOfParentRect_ recursively from bottom children
+        if (!dirtyRect.IsInsideOf(parentRect) || parentRect.IsEmpty()) {
+            rsParent->UpdateChildrenOutOfRectFlag(true);
+            rsParent->UpdatePaintOutOfParentRect(dirtyRect);
+        }
     }
 }
 
