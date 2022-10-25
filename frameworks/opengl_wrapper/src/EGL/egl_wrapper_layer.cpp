@@ -97,8 +97,8 @@ static const void *GetNextLayerProcAddr(void *funcTable, const char *name)
 static void SplitEnvString(std::string str, std::vector<std::string> *layers)
 {
     WLOGD("");
-    int pos1 = 0;
-    int pos2 = str.find(DEBUG_LAYERS_DELIMITER);
+    size_t pos1 = 0;
+    size_t pos2 = str.find(DEBUG_LAYERS_DELIMITER);
     while (pos2 != std::string::npos) {
         layers->emplace_back(str.substr(pos1, pos2-pos1));
         pos1 = pos2 + 1;
