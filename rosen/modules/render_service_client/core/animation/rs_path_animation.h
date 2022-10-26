@@ -74,8 +74,6 @@ protected:
 
     void OnCallFinishCallback() override;
 
-    void SetPropertyOnAllAnimationFinish() override {}
-
 private:
     void ReplaceSubString(std::string& sourceStr, const std::string& subStr, const std::string& newStr) const;
 

@@ -78,6 +78,8 @@ protected:
         return nullptr;
     }
 
+    virtual void UpdateFinalOnAllAnimationFinish() {}
+
     PropertyId id_;
     std::weak_ptr<RSBaseRenderNode> node_;
 
@@ -157,12 +159,23 @@ template<typename T>
 class RSRenderAnimatableProperty : public RSRenderProperty<T> {
 public:
     RSRenderAnimatableProperty() : RSRenderProperty<T>() {}
-    RSRenderAnimatableProperty(const T& value) : RSRenderProperty<T>(value, 0) {}
-    RSRenderAnimatableProperty(const T& value, const PropertyId& id) : RSRenderProperty<T>(value, id) {}
+    RSRenderAnimatableProperty(const T& value) : RSRenderProperty<T>(value, 0), finalValue_(value) {}
+    RSRenderAnimatableProperty(const T& value, const PropertyId& id)
+        : RSRenderProperty<T>(value, id), finalValue_(value) {}
     RSRenderAnimatableProperty(const T& value, const PropertyId& id, const RSRenderPropertyType type)
-        : RSRenderProperty<T>(value, id), type_(type)
+        : RSRenderProperty<T>(value, id), type_(type), finalValue_(value)
     {}
     virtual ~RSRenderAnimatableProperty() = default;
+
+    void UpdateFinalValue(const T& value)
+    {
+        finalValue_ = value;
+    }
+
+    T GetFinalValue() const
+    {
+        return finalValue_;
+    }
 
 protected:
     const std::shared_ptr<RSRenderPropertyBase> Clone() const override
@@ -194,6 +207,11 @@ protected:
         return 1.f;
     }
 
+    void UpdateFinalOnAllAnimationFinish() override
+    {
+        RSRenderProperty<T>::Set(finalValue_);
+    }
+
     std::shared_ptr<RSValueEstimator> CreateRSValueEstimator(const RSValueEstimatorType type) override
     {
         switch (type) {
@@ -211,6 +229,7 @@ protected:
 
 private:
     RSRenderPropertyType type_ = RSRenderPropertyType::INVALID;
+    T finalValue_;
 
     std::shared_ptr<RSRenderPropertyBase> Add(const std::shared_ptr<const RSRenderPropertyBase>& value) override
     {

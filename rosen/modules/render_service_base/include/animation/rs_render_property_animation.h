@@ -61,6 +61,8 @@ protected:
 
     virtual void InitValueEstimator() {}
 
+    void SetPropertyOnAllAnimationFinish() override;
+
 protected:
     PropertyId propertyId_;
     std::shared_ptr<RSRenderPropertyBase> originValue_;

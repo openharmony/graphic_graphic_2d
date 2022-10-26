@@ -52,7 +52,8 @@ public:
     static void RemoveModifier(RSContext& context, NodeId nodeId, PropertyId propertyId);
 
     template<typename T>
-    static void UpdateModifier(RSContext& context, NodeId nodeId, T value, PropertyId id, bool isDelta)
+    static void UpdateModifier(RSContext& context, NodeId nodeId, T value, PropertyId id, bool isDelta,
+        bool updateFinal)
     {
         std::shared_ptr<RSRenderPropertyBase> prop = std::make_shared<RSRenderProperty<T>>(value, id);
         auto& nodeMap = context.GetNodeMap();
@@ -62,6 +63,10 @@ public:
         }
         auto modifier = node->GetModifier(id);
         if (modifier) {
+            if (updateFinal) {
+                modifier->UpdateFinal(prop, isDelta);
+                return;
+            }
             modifier->Update(prop, isDelta);
         }
     }
@@ -74,55 +79,55 @@ ADD_COMMAND(RSRemoveModifier,
 
 ADD_COMMAND(RSUpdatePropertyBool,
     ARG(RS_NODE, UPDATE_MODIFIER_BOOL, RSNodeCommandHelper::UpdateModifier<bool>,
-        NodeId, bool, PropertyId, bool))
+        NodeId, bool, PropertyId, bool, bool))
 ADD_COMMAND(RSUpdatePropertyFloat,
     ARG(RS_NODE, UPDATE_MODIFIER_FLOAT, RSNodeCommandHelper::UpdateModifier<float>,
-        NodeId, float, PropertyId, bool))
+        NodeId, float, PropertyId, bool, bool))
 ADD_COMMAND(RSUpdatePropertyInt,
     ARG(RS_NODE, UPDATE_MODIFIER_INT, RSNodeCommandHelper::UpdateModifier<int>,
-        NodeId, int, PropertyId, bool))
+        NodeId, int, PropertyId, bool, bool))
 ADD_COMMAND(RSUpdatePropertyColor,
     ARG(RS_NODE, UPDATE_MODIFIER_COLOR, RSNodeCommandHelper::UpdateModifier<Color>,
-        NodeId, Color, PropertyId, bool))
+        NodeId, Color, PropertyId, bool, bool))
 ADD_COMMAND(RSUpdatePropertyGravity,
     ARG(RS_NODE, UPDATE_MODIFIER_GRAVITY, RSNodeCommandHelper::UpdateModifier<Gravity>,
-        NodeId, Gravity, PropertyId, bool))
+        NodeId, Gravity, PropertyId, bool, bool))
 ADD_COMMAND(RSUpdatePropertyMatrix3f,
     ARG(RS_NODE, UPDATE_MODIFIER_MATRIX3F, RSNodeCommandHelper::UpdateModifier<Matrix3f>,
-        NodeId, Matrix3f, PropertyId, bool))
+        NodeId, Matrix3f, PropertyId, bool, bool))
 ADD_COMMAND(RSUpdatePropertyQuaternion,
     ARG(RS_NODE, UPDATE_MODIFIER_QUATERNION, RSNodeCommandHelper::UpdateModifier<Quaternion>,
-        NodeId, Quaternion, PropertyId, bool))
+        NodeId, Quaternion, PropertyId, bool, bool))
 ADD_COMMAND(RSUpdatePropertyFilter,
     ARG(RS_NODE, UPDATE_MODIFIER_FILTER_PTR, RSNodeCommandHelper::UpdateModifier<std::shared_ptr<RSFilter>>,
-        NodeId, std::shared_ptr<RSFilter>, PropertyId, bool))
+        NodeId, std::shared_ptr<RSFilter>, PropertyId, bool, bool))
 ADD_COMMAND(RSUpdatePropertyImage,
     ARG(RS_NODE, UPDATE_MODIFIER_IMAGE_PTR, RSNodeCommandHelper::UpdateModifier<std::shared_ptr<RSImage>>,
-        NodeId, std::shared_ptr<RSImage>, PropertyId, bool))
+        NodeId, std::shared_ptr<RSImage>, PropertyId, bool, bool))
 ADD_COMMAND(RSUpdatePropertyMask,
     ARG(RS_NODE, UPDATE_MODIFIER_MASK_PTR, RSNodeCommandHelper::UpdateModifier<std::shared_ptr<RSMask>>,
-        NodeId, std::shared_ptr<RSMask>, PropertyId, bool))
+        NodeId, std::shared_ptr<RSMask>, PropertyId, bool, bool))
 ADD_COMMAND(RSUpdatePropertyPath,
     ARG(RS_NODE, UPDATE_MODIFIER_PATH_PTR, RSNodeCommandHelper::UpdateModifier<std::shared_ptr<RSPath>>,
-        NodeId, std::shared_ptr<RSPath>, PropertyId, bool))
+        NodeId, std::shared_ptr<RSPath>, PropertyId, bool, bool))
 ADD_COMMAND(RSUpdatePropertyShader,
     ARG(RS_NODE, UPDATE_MODIFIER_SHADER_PTR, RSNodeCommandHelper::UpdateModifier<std::shared_ptr<RSShader>>,
-        NodeId, std::shared_ptr<RSShader>, PropertyId, bool))
+        NodeId, std::shared_ptr<RSShader>, PropertyId, bool, bool))
 ADD_COMMAND(RSUpdatePropertyVector2f,
     ARG(RS_NODE, UPDATE_MODIFIER_VECTOR2F, RSNodeCommandHelper::UpdateModifier<Vector2f>,
-        NodeId, Vector2f, PropertyId, bool))
+        NodeId, Vector2f, PropertyId, bool, bool))
 ADD_COMMAND(RSUpdatePropertyBorderStyle,
     ARG(RS_NODE, UPDATE_MODIFIER_VECTOR4_BORDER_STYLE, RSNodeCommandHelper::UpdateModifier<Vector4<uint32_t>>,
-        NodeId, Vector4<uint32_t>, PropertyId, bool))
+        NodeId, Vector4<uint32_t>, PropertyId, bool, bool))
 ADD_COMMAND(RSUpdatePropertyVector4Color,
     ARG(RS_NODE, UPDATE_MODIFIER_VECTOR4_COLOR, RSNodeCommandHelper::UpdateModifier<Vector4<Color>>,
-        NodeId, Vector4<Color>, PropertyId, bool))
+        NodeId, Vector4<Color>, PropertyId, bool, bool))
 ADD_COMMAND(RSUpdatePropertyVector4f,
     ARG(RS_NODE, UPDATE_MODIFIER_VECTOR4F, RSNodeCommandHelper::UpdateModifier<Vector4f>,
-        NodeId, Vector4f, PropertyId, bool))
+        NodeId, Vector4f, PropertyId, bool, bool))
 ADD_COMMAND(RSUpdatePropertyDrawCmdList,
     ARG(RS_NODE, UPDATE_MODIFIER_DRAW_CMD_LIST, RSNodeCommandHelper::UpdateModifier<DrawCmdListPtr>,
-        NodeId, DrawCmdListPtr, PropertyId, bool))
+        NodeId, DrawCmdListPtr, PropertyId, bool, bool))
 
 } // namespace Rosen
 } // namespace OHOS

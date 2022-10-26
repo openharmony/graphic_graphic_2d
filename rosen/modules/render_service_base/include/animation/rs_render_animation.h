@@ -141,6 +141,8 @@ public:
 
     void SetStartTime(int64_t);
 
+    virtual void SetPropertyOnAllAnimationFinish() {}
+
 protected:
     explicit RSRenderAnimation(AnimationId id);
     RSRenderAnimation() = default;
