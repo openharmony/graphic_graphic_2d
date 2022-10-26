@@ -245,14 +245,15 @@ void BootAnimation::PlayVideo()
     if (!animationConfig_.IsBootVideoEnabled()) {
         return;
     }
-    OHOS::FrameCallback fcb = {
+    fcb_ = {
         .userData_ = this,
         .callback_ = std::bind(&BootAnimation::CloseVidePlayer, this),
     };
-    videoPlayer_.SetVideoPath(animationConfig_.GetCustVideoPath());
-    videoPlayer_.SetPlayerWindow(window_);
-    videoPlayer_.SetCallback(&fcb);
-    videoPlayer_.PlayVideo();
+    videoPlayer_ = std::make_shared<BootVideoPlayer>();
+    videoPlayer_->SetVideoPath(animationConfig_.GetCustVideoPath());
+    videoPlayer_->SetPlayerWindow(window_);
+    videoPlayer_->SetCallback(&fcb_);
+    videoPlayer_->PlayVideo();
 }
 
 void BootAnimation::CloseVidePlayer()

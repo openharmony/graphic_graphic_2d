@@ -27,7 +27,6 @@ group("default") {
     public_deps += [ "frameworks/bootanimation:bootanimation" ]
     public_deps += [ "frameworks/bootanimation:bootanimation_pics" ]
     public_deps += [ "frameworks/bootanimation:bootanimation_sounds" ]
-    public_deps += [ "frameworks/bootanimation:bootanimation_custom_config" ]
   }
 }
 

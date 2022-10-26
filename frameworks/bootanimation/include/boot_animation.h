@@ -81,8 +81,9 @@ private:
     std::shared_ptr<OHOS::AppExecFwk::EventHandler> mainHandler_;
     std::shared_ptr<AppExecFwk::EventRunner> runner_;
     bool setBootEvent_ = false;
-    BootVideoPlayer videoPlayer_;
+    std::shared_ptr<BootVideoPlayer> videoPlayer_;
     BootAnimationConfig animationConfig_;
+    OHOS::FrameCallback fcb_;
 };
 } // namespace OHOS
 
