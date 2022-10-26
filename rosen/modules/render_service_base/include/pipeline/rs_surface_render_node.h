@@ -236,7 +236,7 @@ public:
 
     void SetDirtyRegionBelowCurrentLayer(Occlusion::Region& region)
     {
-        Occlusion::Rect dirtyRect{GetOldDirty()};
+        Occlusion::Rect dirtyRect{GetOldDirtyInSurface()};
         Occlusion::Region dirtyRegion {dirtyRect};
         dirtyRegionBelowCurrentLayer_ = dirtyRegion.And(region);
         dirtyRegionBelowCurrentLayerIsEmpty_ = dirtyRegionBelowCurrentLayer_.IsEmpty();
@@ -264,7 +264,7 @@ public:
 
     void SetGloblDirtyRegion(const RectI& rect)
     {
-        globalDirtyRegion_ = GetOldDirty().IntersectRect(rect);
+        globalDirtyRegion_ = GetOldDirtyInSurface().IntersectRect(rect);
         globalDirtyRegionIsEmpty_ = globalDirtyRegion_.IsEmpty();
     }
 
@@ -430,7 +430,7 @@ public:
 
     void ResetSurfaceOpaqueRegion(const RectI& screeninfo, const RectI& absRect)
     {
-        Occlusion::Rect dirtyRect{GetOldDirty()};
+        Occlusion::Rect dirtyRect{GetOldDirtyInSurface()};
         if (IsTransparent()) {
             opaqueRegion_ = Occlusion::Region();
             transparentRegion_ = Occlusion::Region{dirtyRect};
