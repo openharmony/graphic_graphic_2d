@@ -166,9 +166,22 @@ T Replace(T a, T b)
     }                                                                                                                 \
     void RS##MODIFIER_NAME##RenderModifier::Update(const std::shared_ptr<RSRenderPropertyBase>& prop, bool isDelta)   \
     {                                                                                                                 \
-        if (auto property = std::static_pointer_cast<RSRenderAnimatableProperty<TYPE>>(prop)) {                       \
-            auto renderProperty = std::static_pointer_cast<RSRenderAnimatableProperty<TYPE>>(property_);              \
+        auto property = std::static_pointer_cast<RSRenderAnimatableProperty<TYPE>>(prop);                             \
+        auto renderProperty = std::static_pointer_cast<RSRenderAnimatableProperty<TYPE>>(property_);                  \
+        if (property != nullptr && renderProperty != nullptr) {                                                       \
             renderProperty->Set(isDelta ? (renderProperty->Get() + property->Get()) : property->Get());               \
+            renderProperty->UpdateFinalValue(                                                                         \
+                isDelta ? (renderProperty->GetFinalValue() + property->Get()) : property->Get());                     \
+        }                                                                                                             \
+    }                                                                                                                 \
+    void RS##MODIFIER_NAME##RenderModifier::UpdateFinal(const std::shared_ptr<RSRenderPropertyBase>& prop,            \
+        bool isDelta)                                                                                                 \
+    {                                                                                                                 \
+        auto property = std::static_pointer_cast<RSRenderAnimatableProperty<TYPE>>(prop);                             \
+        auto renderProperty = std::static_pointer_cast<RSRenderAnimatableProperty<TYPE>>(property_);                  \
+        if (property != nullptr && renderProperty != nullptr) {                                                       \
+            renderProperty->UpdateFinalValue(                                                                         \
+                isDelta ? (renderProperty->GetFinalValue() + property->Get()) : property->Get());                     \
         }                                                                                                             \
     }
 
@@ -186,11 +199,15 @@ T Replace(T a, T b)
     }                                                                                                                 \
     void RS##MODIFIER_NAME##RenderModifier::Update(const std::shared_ptr<RSRenderPropertyBase>& prop, bool isDelta)   \
     {                                                                                                                 \
-        if (auto property = std::static_pointer_cast<RSRenderProperty<TYPE>>(prop)) {                                 \
-            auto renderProperty = std::static_pointer_cast<RSRenderProperty<TYPE>>(property_);                        \
+        auto property = std::static_pointer_cast<RSRenderProperty<TYPE>>(prop);                                       \
+        auto renderProperty = std::static_pointer_cast<RSRenderProperty<TYPE>>(property_);                            \
+        if (property != nullptr && renderProperty != nullptr) {                                                       \
             renderProperty->Set(property->Get());                                                                     \
         }                                                                                                             \
-    }
+    }                                                                                                                 \
+    void RS##MODIFIER_NAME##RenderModifier::UpdateFinal(const std::shared_ptr<RSRenderPropertyBase>& prop,            \
+        bool isDelta)                                                                                                 \
+    {}
 
 #include "modifier/rs_modifiers_def.in"
 
