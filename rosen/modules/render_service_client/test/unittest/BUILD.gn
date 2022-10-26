@@ -26,6 +26,7 @@ group("unittest") {
     ":RSInterfacesTest",
     ":RSRegionTest",
     ":RSTunnelHandleTest",
+    "animation:RSAnimationTest",
   ]
 }
 
