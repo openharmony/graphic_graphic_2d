@@ -292,6 +292,9 @@ void RSUniRenderVisitor::PrepareCanvasRenderNode(RSCanvasRenderNode &node)
         !curSurfaceDirtyManager_->GetDirtyRegion().IntersectRect(node.GetOldDirty()).IsEmpty()) {
         curSurfaceDirtyManager_->MergeDirtyRect(node.GetOldDirty());
     }
+    if (node.GetRenderProperties().GetBackgroundFilter()) {
+        needFilter_ = true;
+    }
     curAlpha_ = alpha;
     dirtyFlag_ = dirtyFlag;
 }
@@ -503,7 +506,9 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
                 SkPath dirtyPath;
                 region.getBoundaryPath(&dirtyPath);
                 canvas_->clipPath(dirtyPath, true);
-                saveLayerCnt = canvas_->saveLayer(SkRect::MakeWH(screenInfo_.width, screenInfo_.height), nullptr);
+                if (!needFilter_) {
+                    saveLayerCnt = canvas_->saveLayer(SkRect::MakeWH(screenInfo_.width, screenInfo_.height), nullptr);
+                }
             }
             canvas_->clear(SK_ColorTRANSPARENT);
         }
