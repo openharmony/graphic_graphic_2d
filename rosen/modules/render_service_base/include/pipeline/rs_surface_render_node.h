@@ -428,26 +428,30 @@ public:
         hasContainerWindow_ = hasContainerWindow;
     }
 
-    void ResetSurfaceOpaqueRegion()
+    void ResetSurfaceOpaqueRegion(const RectI& screeninfo, const RectI& absRect)
     {
         Occlusion::Rect dirtyRect{GetOldDirty()};
-        Occlusion::Rect dstRect{GetDstRect()};
         if (IsTransparent()) {
             opaqueRegion_ = Occlusion::Region();
             transparentRegion_ = Occlusion::Region{dirtyRect};
         } else {
             if (IsAppWindow() && HasContainerWindow()) {
-                Occlusion::Rect opaqueRect{ dstRect_.left_ + containerContentPadding + containerBorderWidth,
-                    dstRect_.top_ + containerTitleHeight,
-                    dstRect_.GetRight() - containerContentPadding - containerBorderWidth,
-                    dstRect_.GetBottom() - containerContentPadding - containerBorderWidth};
+                Occlusion::Rect opaqueRect{ absRect.left_ + containerContentPadding + containerBorderWidth,
+                    absRect.top_ + containerTitleHeight,
+                    absRect.GetRight() - containerContentPadding - containerBorderWidth,
+                    absRect.GetBottom() - containerContentPadding - containerBorderWidth};
                 opaqueRegion_ = Occlusion::Region{opaqueRect};
             } else {
-                opaqueRegion_ = Occlusion::Region{dstRect};
+                Occlusion::Rect opaqueRect{absRect};
+                opaqueRegion_ = Occlusion::Region{opaqueRect};
             }
             transparentRegion_ = Occlusion::Region{dirtyRect};
             transparentRegion_.SubSelf(opaqueRegion_);
         }
+        Occlusion::Rect screen{screeninfo};
+        Occlusion::Region screenRegion{screen};
+        transparentRegion_.AndSelf(screenRegion);
+        opaqueRegion_.AndSelf(screenRegion);
     }
 private:
     void ClearChildrenCache(const std::shared_ptr<RSBaseRenderNode>& node);

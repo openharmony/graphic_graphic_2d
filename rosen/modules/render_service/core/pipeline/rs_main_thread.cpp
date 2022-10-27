@@ -652,7 +652,6 @@ void RSMainThread::CalcOcclusion()
         surface->SetVisibleRegionRecursive(subResult, curVisVec, pidVisMap);
         // Current region need to merge current surface for next calculation(ignore alpha surface)
         if (IfUseUniVisitor()) {
-            surface->ResetSurfaceOpaqueRegion();
             curRegion.OrSelf(surface->GetOpaqueRegion());
             if (RSOcclusionConfig::GetInstance().IsDividerBar(surface->GetName())) {
                 curRegion.OrSelf(curSurface);
