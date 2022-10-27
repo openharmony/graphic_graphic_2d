@@ -325,7 +325,7 @@ public:
     inline bool IsTransparent() const
     {
         const uint8_t opacity = 255;
-        return !(GetAbilityBgAlpha() == opacity && ROSEN_EQ(GetRenderProperties().GetAlpha(), 1.0f));
+        return !(GetAbilityBgAlpha() == opacity && ROSEN_EQ(GetGlobalAlpha(), 1.0f));
     }
 
     inline bool IsCurrentNodeInTransparentRegion(const Occlusion::Rect& nodeRect) const
