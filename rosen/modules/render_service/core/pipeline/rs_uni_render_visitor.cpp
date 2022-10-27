@@ -748,7 +748,7 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
         return;
     }
     const auto& property = node.GetRenderProperties();
-    if (!property.GetVisible()) {
+    if (!node.ShouldPaint()) {
         RS_LOGD("RSUniRenderVisitor::ProcessSurfaceRenderNode node: %" PRIu64 " invisible", node.GetId());
         return;
     }
@@ -880,12 +880,10 @@ void RSUniRenderVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
 {
     RS_LOGD("RSUniRenderVisitor::ProcessRootRenderNode node: %" PRIu64 ", child size:%u", node.GetId(),
         node.GetChildrenCount());
-    const auto& property = node.GetRenderProperties();
-    if (!property.GetVisible()) {
+    if (!node.ShouldPaint()) {
         RS_LOGD("RSUniRenderVisitor::ProcessRootRenderNode, no need process");
         return;
     }
-
     if (!canvas_) {
         RS_LOGE("RSUniRenderVisitor::ProcessRootRenderNode, canvas is nullptr");
         return;
@@ -906,6 +904,7 @@ void RSUniRenderVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
     } else {
         canvas_->save();
     }
+    const auto& property = node.GetRenderProperties();
     if (node.GetParent().lock() == curSurfaceNode_) {
         const float rootWidth = property.GetFrameWidth() * property.GetScaleX();
         const float rootHeight = property.GetFrameHeight() * property.GetScaleY();

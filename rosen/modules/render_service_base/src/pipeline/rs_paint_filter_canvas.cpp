@@ -19,13 +19,12 @@ namespace OHOS {
 namespace Rosen {
 
 RSPaintFilterCanvas::RSPaintFilterCanvas(SkCanvas* canvas, float alpha)
-    : SkPaintFilterCanvas(canvas), alpha_(std::clamp(alpha, 0.f, 1.f))
+    : SkPaintFilterCanvas(canvas), alphaStack_({ std::clamp(alpha, 0.f, 1.f) }) // construct stack with given alpha
 {}
 
 RSPaintFilterCanvas::RSPaintFilterCanvas(SkSurface* skSurface, float alpha)
-    : SkPaintFilterCanvas(skSurface ? skSurface->getCanvas() : nullptr),
-      alpha_(std::clamp(alpha, 0.f, 1.f)),
-      skSurface_(skSurface)
+    : SkPaintFilterCanvas(skSurface ? skSurface->getCanvas() : nullptr), skSurface_(skSurface),
+      alphaStack_({ std::clamp(alpha, 0.f, 1.f) }) // construct stack with given alpha
 {}
 
 SkSurface* RSPaintFilterCanvas::GetSurface() const
@@ -35,13 +34,13 @@ SkSurface* RSPaintFilterCanvas::GetSurface() const
 
 bool RSPaintFilterCanvas::onFilter(SkPaint& paint) const
 {
-    if (alpha_ >= 1.f) {
+    if (alphaStack_.top() >= 1.f) {
         return true;
-    } else if (alpha_ <= 0.f) {
+    } else if (alphaStack_.top() <= 0.f) {
         return false;
     }
-
-    paint.setAlphaf(paint.getAlphaf() * alpha_);
+    // use alphaStack_.top() to multiply alpha
+    paint.setAlphaf(paint.getAlphaf() * alphaStack_.top());
     return true;
 }
 
@@ -55,39 +54,55 @@ void RSPaintFilterCanvas::onDrawPicture(const SkPicture* picture, const SkMatrix
 
 void RSPaintFilterCanvas::MultiplyAlpha(float alpha)
 {
-    alpha_ = alpha_ * std::clamp(alpha, 0.f, 1.f);
+    // multiply alpha to top of stack
+    alphaStack_.top() *= std::clamp(alpha, 0.f, 1.f);
 }
 
 int RSPaintFilterCanvas::SaveAlpha()
 {
-    alphaStack_.push(alpha_);
+    // make a copy of top of stack
+    alphaStack_.push(alphaStack_.top());
+    // return prev stack height
     return alphaStack_.size() - 1;
+}
+
+float RSPaintFilterCanvas::GetAlpha() const
+{
+    // return top of stack
+    return alphaStack_.top();
 }
 
 void RSPaintFilterCanvas::RestoreAlpha()
 {
-    if (alphaStack_.empty()) {
+    // sanity check, stack should not be empty
+    if (alphaStack_.size() <= 1u) {
         return;
     }
-    alpha_ = alphaStack_.top();
     alphaStack_.pop();
 }
 
 void RSPaintFilterCanvas::RestoreAlphaToCount(int count)
 {
-    while (alphaStack_.size() > count) {
-        alpha_ = alphaStack_.top();
+    // sanity check, stack should not be empty
+    if (count < 1) {
+        count = 1;
+    }
+    // poo stack until stack height equals count
+    int n = static_cast<int>(alphaStack_.size()) - count;
+    for (int i = 0; i < n; ++i) {
         alphaStack_.pop();
     }
 }
 
 std::pair<int, int> RSPaintFilterCanvas::SaveCanvasAndAlpha()
 {
+    // simultaneously save canvas and alpha
     return { save(), SaveAlpha() };
 }
 
 void RSPaintFilterCanvas::RestoreCanvasAndAlpha(std::pair<int, int>& count)
 {
+    // simultaneously restore canvas and alpha
     restoreToCount(count.first);
     RestoreAlphaToCount(count.second);
 }
