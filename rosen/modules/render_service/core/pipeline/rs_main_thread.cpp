@@ -14,6 +14,7 @@
  */
 #include "pipeline/rs_main_thread.h"
 
+#include <SkGraphics.h>
 #include <securec.h>
 #include "rs_trace.h"
 
@@ -50,6 +51,7 @@ namespace {
 constexpr uint64_t REFRESH_PERIOD = 16666667;
 constexpr int32_t PERF_ANIMATION_REQUESTED_CODE = 10017;
 constexpr uint64_t PERF_PERIOD = 250000000;
+constexpr uint64_t CLEAN_CACHE_FREQ = 60;
 
 bool Compare(const std::unique_ptr<RSTransactionData>& data1, const std::unique_ptr<RSTransactionData>& data2)
 {
@@ -554,7 +556,7 @@ void RSMainThread::Render()
         RSPropertyTrace::GetInstance().RefreshNodeTraceInfo();
     }
     RS_LOGD("RSMainThread::Render isUni:%d", IfUseUniVisitor());
-    
+
     if (IfUseUniVisitor()) {
         auto uniVisitor = std::make_shared<RSUniRenderVisitor>();
         uniVisitor->SetAnimateState(doWindowAnimate_);
@@ -1062,6 +1064,19 @@ void RSMainThread::ClearTransactionDataPidInfo(pid_t remotePid)
         RS_LOGD("RSMainThread::ClearTransactionDataPidInfo process:%d destroyed, skip commands", remotePid);
     }
     effectiveTransactionDataIndexMap_.erase(remotePid);
+
+    // clear cpu cache when process exit
+    // CLEAN_CACHE_FREQ to prevent multiple cleanups in a short period of time
+    if ((timestamp_ - lastCleanCacheTimestamp_) / REFRESH_PERIOD > CLEAN_CACHE_FREQ) {
+#ifdef RS_ENABLE_GL
+        RS_LOGD("RSMainThread: clear cpu cache");
+        auto grContext = RSBaseRenderEngine::GetRenderContext()->GetGrContext();
+        grContext->flush();
+        SkGraphics::PurgeAllCaches();
+        grContext->flush(kSyncCpu_GrFlushFlag, 0, nullptr);
+        lastCleanCacheTimestamp_ = timestamp_;
+#endif
+    }
 }
 
 void RSMainThread::AddTransactionDataPidInfo(pid_t remotePid)
