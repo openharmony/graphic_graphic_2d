@@ -288,6 +288,10 @@ void RSUniRenderVisitor::PrepareCanvasRenderNode(RSCanvasRenderNode &node)
     float alpha = curAlpha_;
     curAlpha_ *= node.GetRenderProperties().GetAlpha();
     PrepareBaseRenderNode(node);
+    if (node.GetRenderProperties().GetBackgroundFilter() &&
+        !curSurfaceDirtyManager_->GetDirtyRegion().IntersectRect(node.GetOldDirty()).IsEmpty()) {
+        curSurfaceDirtyManager_->MergeDirtyRect(node.GetOldDirty());
+    }
     curAlpha_ = alpha;
     dirtyFlag_ = dirtyFlag;
 }
