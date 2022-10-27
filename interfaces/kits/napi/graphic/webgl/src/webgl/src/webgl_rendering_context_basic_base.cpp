@@ -44,7 +44,7 @@ WebGLRenderingContextBasicBase *WebGLRenderingContextBasicBase::GetContext(strin
 
 void WebGLRenderingContextBasicBase::SetEglWindow(void *window)
 {
-    mEglWindow = (NativeWindow *) window;
+    mEglWindow = reinterpret_cast<NativeWindow *>(window);
 }
 
 void WebGLRenderingContextBasicBase::Create(void *context)
