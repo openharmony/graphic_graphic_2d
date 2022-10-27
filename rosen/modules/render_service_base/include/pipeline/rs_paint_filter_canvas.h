@@ -34,7 +34,7 @@ public:
     ~RSPaintFilterCanvas() override {};
 
     void MultiplyAlpha(float alpha);
-    float GetAlpha() { return alpha_; }
+    float GetAlpha() const;
 
     int SaveAlpha();
     void RestoreAlpha();
@@ -59,9 +59,8 @@ protected:
     void onDrawPicture(const SkPicture* picture, const SkMatrix* matrix, const SkPaint* paint) override;
 
 private:
-    std::stack<float> alphaStack_;
-    float alpha_ = 1.0f;
     SkSurface* skSurface_ = nullptr;
+    std::stack<float> alphaStack_;
     std::atomic_bool isHighContrastEnabled_ { false };
 };
 
