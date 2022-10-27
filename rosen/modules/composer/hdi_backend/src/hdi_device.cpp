@@ -478,5 +478,14 @@ int32_t HdiDevice::CloseLayer(uint32_t screenId, uint32_t layerId)
     return layerFuncs_->CloseLayer(screenId, layerId);
 }
 
+// this is only used in hdidevice_test in unittest
+void HdiDevice::ResetHdiFuncs()
+{
+    HLOGD("%{public}s: start", __func__);
+    deviceFuncs_ = nullptr;
+    layerFuncs_ = nullptr;
+    HLOGD("%{public}s: end", __func__);
+}
+
 } // namespace Rosen
 } // namespace OHOS

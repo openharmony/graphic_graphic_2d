@@ -33,8 +33,12 @@ public:
 void HdiFramebufferSurfaceTest::SetUpTestCase()
 {
     hdiFramebufferSurface_ = HdiFramebufferSurface::CreateFramebufferSurface();
+    hdiFramebufferSurface_->OnBufferAvailable();
 }
 
-void HdiFramebufferSurfaceTest::TearDownTestCase() {}
+void HdiFramebufferSurfaceTest::TearDownTestCase()
+{
+    hdiFramebufferSurface_ = nullptr;
+}
 } // namespace Rosen
 } // namespace OHOS

@@ -164,6 +164,8 @@ public:
 
     int32_t CreateLayer(uint32_t screenId, const LayerInfo &layerInfo, uint32_t &layerId) override;
     int32_t CloseLayer(uint32_t screenId, uint32_t layerId) override;
+    // this is only used in hdidevice_test in unittest
+    void ResetHdiFuncs();
 
 private:
     HdiDevice(const HdiDevice& rhs) = delete;
