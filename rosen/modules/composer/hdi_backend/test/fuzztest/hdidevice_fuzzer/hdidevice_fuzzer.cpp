@@ -24,6 +24,7 @@ using namespace OHOS::Rosen;
 
 namespace OHOS {
     namespace {
+        constexpr int DEFAULT_FENCE = 100;
         const uint8_t* data_ = nullptr;
         size_t size_ = 0;
         size_t pos;
@@ -52,9 +53,14 @@ namespace OHOS {
     void HdiDeviceFuzzTest2()
     {
         // get data
+        ColorGamut gamut = GetData<ColorGamut>();
         uint32_t screenId = GetData<uint32_t>();
         uint32_t layerId = GetData<uint32_t>();
-        int32_t fenceFd = GetData<int32_t>();
+        int32_t fenceFd = GetData<int32_t>() % 32768; // maximum fd of linux is 32768
+        // fd 0,1,2 represent stdin, stdout and stderr respectively, they should not be closed.
+        if (fenceFd >= 0 && fenceFd <= 2) {
+            fenceFd = DEFAULT_FENCE;
+        }
         sptr<SyncFence> fence = new SyncFence(fenceFd);
         LayerAlpha alpha = GetData<LayerAlpha>();
         IRect layerRect = GetData<IRect>();
@@ -62,7 +68,6 @@ namespace OHOS {
         uint32_t num = GetData<uint32_t>();
         IRect visible = GetData<IRect>();
         IRect dirty = GetData<IRect>();
-        BufferHandle handle = GetData<BufferHandle>();
         CompositionType ctype = GetData<CompositionType>();
         BlendType btype = GetData<BlendType>();
         IRect crop = GetData<IRect>();
@@ -73,17 +78,17 @@ namespace OHOS {
         HDRMetaData metaData = GetData<HDRMetaData>();
         HDRMetadataKey key = GetData<HDRMetadataKey>();
         uint8_t metaData2 = GetData<uint8_t>();
-        ExtDataHandle extHandle = GetData<ExtDataHandle>();
         PresentTimestamp timestamp = GetData<PresentTimestamp>();
 
         // test
         Base::HdiDevice *device = HdiDevice::GetInstance();
+        device->GetScreenColorGamut(screenId, gamut);
         device->SetLayerAlpha(screenId, layerId, alpha);
         device->SetLayerSize(screenId, layerId, layerRect);
         device->SetTransformMode(screenId, layerId, ttype);
         device->SetLayerVisibleRegion(screenId, layerId, num, visible);
         device->SetLayerDirtyRegion(screenId, layerId, dirty);
-        device->SetLayerBuffer(screenId, layerId, &handle, fence);
+        device->SetLayerBuffer(screenId, layerId, nullptr, fence);
         device->SetLayerCompositionType(screenId, layerId, ctype);
         device->SetLayerBlendType(screenId, layerId, btype);
         device->SetLayerCrop(screenId, layerId, crop);
@@ -96,7 +101,7 @@ namespace OHOS {
         device->SetLayerMetaData(screenId, layerId, metaDatas);
         std::vector<uint8_t> metaDatas2 = {metaData2};
         device->SetLayerMetaDataSet(screenId, layerId, key, metaDatas2);
-        device->SetLayerTunnelHandle(screenId, layerId, &extHandle);
+        device->SetLayerTunnelHandle(screenId, layerId, nullptr);
         device->GetPresentTimestamp(screenId, layerId, timestamp);
     }
 
@@ -114,12 +119,14 @@ namespace OHOS {
         // get data
         uint32_t screenId = GetData<uint32_t>();
         bool needFlush = GetData<bool>();
-        BufferHandle buffer = GetData<BufferHandle>();
-        int32_t fenceFd = GetData<int32_t>();
+        int32_t fenceFd = GetData<int32_t>() % 32768; // maximum fd of linux is 32768
+        // fd 0,1,2 represent stdin, stdout and stderr respectively, they should not be closed.
+        if (fenceFd >= 0 && fenceFd <= 2) {
+            fenceFd = DEFAULT_FENCE;
+        }
         sptr<SyncFence> fence = new SyncFence(fenceFd);
         uint32_t num = GetData<uint32_t>();
         IRect damageRect = GetData<IRect>();
-        ColorGamut gamut = GetData<ColorGamut>();
         GamutMap gamutMap = GetData<GamutMap>();
 
         uint32_t formatCount = GetData<uint32_t>();
@@ -134,14 +141,13 @@ namespace OHOS {
         std::vector<uint32_t> layersId;
         std::vector<int32_t> types;
         device->GetScreenCompChange(screenId, layersId, types);
-        device->SetScreenClientBuffer(screenId, &buffer, fence);
+        device->SetScreenClientBuffer(screenId, nullptr, fence);
         device->SetScreenClientDamage(screenId, num, damageRect);
         std::vector<uint32_t> layers;
         std::vector<sptr<SyncFence>> fences;
         device->GetScreenReleaseFence(screenId, layers, fences);
         std::vector<ColorGamut> gamuts;
         device->GetScreenSupportedColorGamuts(screenId, gamuts);
-        device->GetScreenColorGamut(screenId, gamut);
         device->SetScreenGamutMap(screenId, gamutMap);
         HDRCapability info = {
             .formatCount = formatCount,
