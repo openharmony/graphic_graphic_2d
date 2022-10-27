@@ -115,13 +115,14 @@ void RSTransactionProxy::ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask
 void RSTransactionProxy::FlushImplicitTransaction(uint64_t timestamp)
 {
     std::unique_lock<std::mutex> cmdLock(mutex_);
+    timestamp_ = std::max(timestamp, timestamp_);
     if (renderThreadClient_ != nullptr && !implicitCommonTransactionData_->IsEmpty()) {
-        implicitCommonTransactionData_->timestamp_ = timestamp;
+        implicitCommonTransactionData_->timestamp_ = timestamp_;
         renderThreadClient_->CommitTransaction(implicitCommonTransactionData_);
         implicitCommonTransactionData_ = std::make_unique<RSTransactionData>();
     }
     if (renderServiceClient_ != nullptr && !implicitRemoteTransactionData_->IsEmpty()) {
-        implicitRemoteTransactionData_->timestamp_ = timestamp;
+        implicitRemoteTransactionData_->timestamp_ = timestamp_;
         renderServiceClient_->CommitTransaction(implicitRemoteTransactionData_);
         implicitRemoteTransactionData_ = std::make_unique<RSTransactionData>();
     }
