@@ -33,15 +33,17 @@ void RSUniRenderUtil::UpdateRenderNodeDstRect(RSRenderNode& node, const SkMatrix
     auto parentProp = rsParent ? &(rsParent->GetRenderProperties()) : nullptr;
     auto& property = node.GetMutableRenderProperties();
     auto surfaceNode = node.ReinterpretCastTo<RSSurfaceRenderNode>();
-    auto isSurfaceView = surfaceNode && surfaceNode->GetSurfaceNodeType() == RSSurfaceNodeType::SELF_DRAWING_NODE;
+    auto isSelfDrawingNode = surfaceNode &&
+        (surfaceNode->GetSurfaceNodeType() == RSSurfaceNodeType::SELF_DRAWING_NODE ||
+        surfaceNode->GetSurfaceNodeType() == RSSurfaceNodeType::ABILITY_COMPONENT_NODE);
     Vector2f offset(0.f, 0.f);
-    if (isSurfaceView) {
+    if (isSelfDrawingNode) {
         offset = { parentProp->GetFrameOffsetX(), parentProp->GetFrameOffsetY() };
     }
     property.UpdateGeometry(parentProp, true, offset);
     auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(property.GetBoundsGeometry());
     if (geoPtr && node.IsInstanceOf<RSSurfaceRenderNode>()) {
-        if (!isSurfaceView) {
+        if (!isSelfDrawingNode) {
             geoPtr->ConcatMatrix(matrix);
         }
         RS_LOGD("RSUniRenderUtil::UpdateDstRect: nodeName: %s, dstRect[%s].",

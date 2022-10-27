@@ -177,7 +177,8 @@ void RSSurfaceRenderNode::ResetParent()
     } else {
         auto& consumer = GetConsumer();
         if (consumer != nullptr &&
-            GetSurfaceNodeType() != RSSurfaceNodeType::SELF_DRAWING_NODE) {
+            (GetSurfaceNodeType() != RSSurfaceNodeType::SELF_DRAWING_NODE &&
+            GetSurfaceNodeType() != RSSurfaceNodeType::ABILITY_COMPONENT_NODE)) {
             consumer->GoBackground();
         }
     }
@@ -416,7 +417,8 @@ void RSSurfaceRenderNode::SetVisibleRegionRecursive(const Occlusion::Region& reg
                                                     VisibleData& visibleVec,
                                                     std::map<uint32_t, bool>& pidVisMap)
 {
-    if (nodeType_ == RSSurfaceNodeType::SELF_DRAWING_NODE) {
+    if (nodeType_ == RSSurfaceNodeType::SELF_DRAWING_NODE ||
+        nodeType_ == RSSurfaceNodeType::ABILITY_COMPONENT_NODE) {
         SetOcclusionVisible(true);
         return;
     }
