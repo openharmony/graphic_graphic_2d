@@ -80,7 +80,6 @@ public:
     virtual std::string DumpNode(int depth) const;
 
 protected:
-    static inline bool isUniRenderEnabled_ = false;
     bool isRenderServiceNode_;
     bool skipDestroyCommandInDestructor_ = false;
 
@@ -106,15 +105,9 @@ protected:
         id_ = id;
     }
 
-    bool IsRenderServiceNode() const
-    {
-        return isUniRenderEnabled_ || isRenderServiceNode_;
-    }
-
-    bool NeedSendExtraCommand() const
-    {
-        return isUniRenderEnabled_ && !isRenderServiceNode_;
-    }
+    bool IsUniRenderEnabled() const;
+    bool IsRenderServiceNode() const;
+    bool NeedSendExtraCommand() const;
 
 private:
     static NodeId GenerateId();
