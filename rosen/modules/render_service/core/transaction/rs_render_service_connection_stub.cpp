@@ -127,7 +127,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 RSUnmarshalThread::Instance().RecvParcel(parsedParcel);
             } else {
                 // execute Unmarshalling immediately
-                auto transactionData = RSBaseRenderUtil::ParseTransactionData(data);
+                auto transactionData = RSBaseRenderUtil::ParseTransactionData(*parsedParcel);
                 CommitTransaction(transactionData);
             }
             break;
