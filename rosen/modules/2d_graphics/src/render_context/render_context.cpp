@@ -180,7 +180,7 @@ void RenderContext::InitializeEglContext()
         return;
     }
     CreatePbufferSurface();
-    if(!eglMakeCurrent(eglDisplay_, pbufferSurface_, pbufferSurface_, eglContext_)) {
+    if (!eglMakeCurrent(eglDisplay_, pbufferSurface_, pbufferSurface_, eglContext_)) {
         LOGE("Failed to make current on surface %{public}p, error is %{public}x", pbufferSurface_, eglGetError());
         return;
     }
