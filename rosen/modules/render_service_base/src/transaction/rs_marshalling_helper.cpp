@@ -108,7 +108,7 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, sk_sp<SkData> val)
         return ret;
     }
 
-    ret &= RSMarshallingHelper::WriteToParcel(parcel, val->data(), val->size());
+    ret = ret && RSMarshallingHelper::WriteToParcel(parcel, val->data(), val->size());
     if (!ret) {
         ROSEN_LOGE("unirender: failed RSMarshallingHelper::Marshalling SkData");
     }
@@ -259,7 +259,7 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const sk_sp<SkImage>& val)
         int width = pixmap.width();
         int height = pixmap.height();
         const void* addr = pixmap.addr();
-        size_t size = rb * height;
+        size_t size = rb * static_cast<size_t>(height);
 
         parcel.WriteUint32(size);
         if (!WriteToParcel(parcel, addr, size)) {
