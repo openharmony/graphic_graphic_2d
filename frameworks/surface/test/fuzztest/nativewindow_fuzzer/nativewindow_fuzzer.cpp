@@ -101,7 +101,7 @@ namespace OHOS {
         OHHDRMetaData metaData = GetData<OHHDRMetaData>();
         OHHDRMetadataKey key = GetData<OHHDRMetadataKey>();
         uint8_t metaData2[STR_LEN];
-        for (int i = 0; i < STR_LEN; i++) {
+        for (uint64_t i = 0; i < STR_LEN; i++) {
             metaData2[i] = GetData<uint8_t>();
         }
 

@@ -153,7 +153,7 @@ using GraphicPresentTimestamp = struct {
     int64_t time;                         /**< Present timestamp value */
 };
 
-using Rect = struct Rect {
+using Rect = struct {
     int32_t x;
     int32_t y;
     int32_t w;
@@ -283,7 +283,7 @@ using BufferRequestConfig = struct BufferRequestConfig {
     }
 };
 
-using BufferFlushConfig = struct BufferFlushConfig {
+using BufferFlushConfig = struct {
     Rect damage;
     int64_t timestamp;
 };
