@@ -56,8 +56,13 @@ void HdiBackendSysTest::SetUpTestCase()
     layerInfos.emplace_back(hdiLayerTemp_->GetHdiLayer());
     output_->SetLayerInfo(layerInfos);
 
-    mockDevice_ = MockSys::HdiDevice::GetInstance();
     hdiBackend_ = HdiBackend::GetInstance();
+    // mockDevice_ is nullptr
+    hdiBackend_->SetHdiBackendDevice(mockDevice_);
+    // init mockDevice_
+    mockDevice_ = MockSys::HdiDevice::GetInstance();
+    hdiBackend_->SetHdiBackendDevice(mockDevice_);
+    // the device_ in hdiBackend_ is not nullptr alredy
     hdiBackend_->SetHdiBackendDevice(mockDevice_);
 }
 
