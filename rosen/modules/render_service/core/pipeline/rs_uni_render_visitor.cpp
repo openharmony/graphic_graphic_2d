@@ -295,6 +295,9 @@ void RSUniRenderVisitor::PrepareCanvasRenderNode(RSCanvasRenderNode &node)
     if (node.GetRenderProperties().GetBackgroundFilter()) {
         needFilter_ = true;
     }
+    if (node.GetRenderProperties().NeedFilter()) {
+        filterRects_.push_back(node.GetOldDirty());
+    }
     curAlpha_ = alpha;
     dirtyFlag_ = dirtyFlag;
 }
@@ -671,6 +674,12 @@ void RSUniRenderVisitor::CalcDirtyDisplayRegion(std::shared_ptr<RSDisplayRenderN
         for (const auto& rect : rects) {
             displayDirtyManager->MergeDirtyRect(RectI
                 { rect.left_, rect.top_, rect.right_ - rect.left_, rect.bottom_ - rect.top_ });
+        }
+
+        for (const auto& rect : filterRects_) {
+            if (!surfaceDirtyRect.IntersectRect(rect).IsEmpty()) {
+                displayDirtyManager->MergeDirtyRect(rect);
+            }
         }
     }
     std::vector<RectI> surfaceChangedRects = node->GetSurfaceChangedRects();
