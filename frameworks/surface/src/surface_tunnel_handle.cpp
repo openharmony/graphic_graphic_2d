@@ -28,6 +28,7 @@ ExtDataHandle *AllocExtDataHandle(uint32_t reserveInts)
     }
     auto ret = memset_s(handle, handleSize, 0, handleSize);
     if (ret != EOK) {
+        free(handle);
         BLOGE("AllocExtDataHandle memset_s failed");
         return nullptr;
     }

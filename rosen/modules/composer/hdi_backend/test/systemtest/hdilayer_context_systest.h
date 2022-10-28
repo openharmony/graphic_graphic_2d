@@ -35,7 +35,7 @@ private:
     IRect srcRect_;
     IRect dstRect_;
     uint32_t zOrder_ = 0;
-    void DrawColor(void *image, uint32_t width, uint32_t height);
+    static void DrawColor(void *image, uint32_t width, uint32_t height);
 };
 } // namespace MockSys
 } // namespace Rosen
