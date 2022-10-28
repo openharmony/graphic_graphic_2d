@@ -16,8 +16,6 @@
 #include "rsinterfaces_fuzzer.h"
 
 #include <securec.h>
-#include <stddef.h>
-#include <stdint.h>
 
 #include "transaction/rs_interfaces.h"
 
