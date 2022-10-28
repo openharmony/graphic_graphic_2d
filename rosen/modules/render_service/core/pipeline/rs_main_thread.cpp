@@ -210,8 +210,8 @@ void RSMainThread::RemoveRSEventDetector()
 
 void RSMainThread::InitRSEventDetector()
 {
-    // default Threshold value of Timeout Event: 2000ms
-    rsCompositionTimeoutDetector_ = RSBaseEventDetector::CreateRSTimeOutDetector(2000, "RS_COMPOSITION_TIMEOUT");
+    // default Threshold value of Timeout Event: 100ms
+    rsCompositionTimeoutDetector_ = RSBaseEventDetector::CreateRSTimeOutDetector(100, "RS_COMPOSITION_TIMEOUT");
     if (rsCompositionTimeoutDetector_ != nullptr) {
         rsEventManager_.AddEvent(rsCompositionTimeoutDetector_, 60000); // report Internal 1min:60s：60000ms
         RS_LOGD("InitRSEventDetector  finish");
