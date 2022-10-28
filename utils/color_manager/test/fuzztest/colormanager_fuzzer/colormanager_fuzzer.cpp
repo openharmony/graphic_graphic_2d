@@ -66,8 +66,8 @@ bool ColorFuzzTest(const uint8_t* data, size_t size)
                                         GetData<GamutMappingMode>());
     // color test
     Color convertColor = Color();
-    convertColor = randomColor.Convert(GetData<ColorSpaceName>());
-    convertColor = randomColor.Convert(csObject);
+    (void)randomColor.Convert(GetData<ColorSpaceName>());
+    (void)randomColor.Convert(csObject);
     convertColor = randomColor.Convert(convertor);
     (void)randomColor.ColorEqual(convertColor);
 
@@ -93,10 +93,10 @@ bool ColorSpaceFuzzTest(const uint8_t* data, size_t size)
     Matrix3x3 toXYZ = GetData<Matrix3x3>();
     std::array<float, DIMES_2> whitePoint = GetData<std::array<float, DIMES_2>>();
 
-    csObject = ColorSpace(primaries, func);
-    csObject = ColorSpace(primaries, gamma);
-    csObject = ColorSpace(toXYZ, whitePoint, func);
-    csObject = ColorSpace(toXYZ, whitePoint, gamma);
+    (void)ColorSpace(primaries, func);
+    (void)ColorSpace(primaries, gamma);
+    (void)ColorSpace(toXYZ, whitePoint, func);
+    (void)ColorSpace(toXYZ, whitePoint, gamma);
     csObject.GetColorSpaceName();
     csObject.GetGamma();
     csObject.GetRGBToXYZ();
