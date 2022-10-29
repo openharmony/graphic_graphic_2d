@@ -1150,7 +1150,7 @@ bool RSBaseRenderUtil::WriteSurfaceRenderNodeToPng(const RSSurfaceRenderNode& no
     WriteToPngParam param;
     param.width = static_cast<uint32_t>(bufferHandle->width);
     param.height = static_cast<uint32_t>(bufferHandle->height);
-    param.data = (uint8_t*)(buffer->GetVirAddr());
+    param.data = static_cast<uint8_t *>(buffer->GetVirAddr());
     param.stride = static_cast<uint32_t>(bufferHandle->stride);
     param.bitDepth = Detail::BITMAP_DEPTH;
 
@@ -1181,6 +1181,10 @@ bool RSBaseRenderUtil::WritePixelMapToPng(Media::PixelMap& pixelMap)
 
 bool RSBaseRenderUtil::WriteToPng(const std::string &filename, const WriteToPngParam &param)
 {
+    if (filename.empty()) {
+        RS_LOGI("RSBaseRenderUtil::WriteToPng filename is empty");
+        return false;
+    }
     RS_LOGI("RSBaseRenderUtil::WriteToPng filename = %s", filename.c_str());
     png_structp pngStruct = png_create_write_struct(PNG_LIBPNG_VER_STRING, nullptr, nullptr, nullptr);
     if (pngStruct == nullptr) {
