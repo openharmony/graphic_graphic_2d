@@ -32,7 +32,7 @@ namespace OHOS {
 #define SURFACE_DEFAULT_STRIDE_ALIGNMENT 4
 #define SURFACE_MAX_SIZE 58982400 // 8K * 8K
 
-using Rect = struct Rect {
+using Rect = struct {
     int32_t x;
     int32_t y;
     int32_t w;
@@ -122,7 +122,7 @@ using BufferRequestConfig = struct BufferRequestConfig {
     }
 };
 
-using BufferFlushConfig = struct BufferFlushConfig {
+using BufferFlushConfig = struct {
     Rect damage;
     int64_t timestamp;
 };

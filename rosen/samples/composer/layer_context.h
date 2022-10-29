@@ -30,7 +30,7 @@ enum LayerType : uint32_t {
     LAYER_EXTRA
 };
 
-using YUVPixel = struct YUVPixel {
+using YUVPixel = struct {
     uint8_t y;
     uint8_t u;
     uint8_t v;

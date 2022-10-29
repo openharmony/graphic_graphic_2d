@@ -510,7 +510,7 @@ GSError BufferQueue::ReleaseBuffer(sptr<SurfaceBuffer> &buffer, const sptr<SyncF
         }
 
         if (isShared_ == false) {
-            auto &state = bufferQueueCache_[sequence].state;
+            const auto &state = bufferQueueCache_[sequence].state;
             if (state != BUFFER_STATE_ACQUIRED && state != BUFFER_STATE_ATTACHED) {
                 BLOGN_FAILURE_ID(sequence, "invalid state");
                 return GSERROR_NO_ENTRY;

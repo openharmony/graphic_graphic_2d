@@ -115,8 +115,8 @@ void HdiLayer::CloseLayer()
 int32_t HdiLayer::SetLayerAlpha()
 {
     if (doLayerInfoCompare_) {
-        LayerAlpha& layerAlpha1 = layerInfo_->GetAlpha();
-        LayerAlpha& layerAlpha2 = prevLayerInfo_->GetAlpha();
+        const LayerAlpha& layerAlpha1 = layerInfo_->GetAlpha();
+        const LayerAlpha& layerAlpha2 = prevLayerInfo_->GetAlpha();
         bool isSame = layerAlpha1.enGlobalAlpha == layerAlpha2.enGlobalAlpha &&
                       layerAlpha1.enPixelAlpha == layerAlpha2.enPixelAlpha &&
                       layerAlpha1.alpha0 == layerAlpha2.alpha0 && layerAlpha1.alpha1 == layerAlpha2.alpha1 &&
