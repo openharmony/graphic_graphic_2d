@@ -168,7 +168,7 @@ void RSUniRenderVisitor::PrepareDisplayRenderNode(RSDisplayRenderNode& node)
         geoPtr->UpdateByMatrixFromSelf();
         parentSurfaceNodeMatrix_ = geoPtr->GetAbsMatrix();
     }
-    dirtyFlag_ |= node.IsRotationChanged();
+    dirtyFlag_ = dirtyFlag_ || node.IsRotationChanged();
     node.UpdateRotation();
     curAlpha_ = node.GetRenderProperties().GetAlpha();
     PrepareBaseRenderNode(node);
@@ -227,7 +227,7 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
             }
         }
     }
-    dirtyFlag_ |= node.GetDstRectChanged();
+    dirtyFlag_ = dirtyFlag_ || node.GetDstRectChanged();
     parentSurfaceNodeMatrix_ = geoPtr->GetAbsMatrix();
     node.ResetSurfaceOpaqueRegion(RectI(0, 0, screenInfo_.width, screenInfo_.height), geoPtr->GetAbsRect());
 
@@ -292,6 +292,7 @@ void RSUniRenderVisitor::PrepareCanvasRenderNode(RSCanvasRenderNode &node)
         !curSurfaceDirtyManager_->GetDirtyRegion().IntersectRect(node.GetOldDirty()).IsEmpty()) {
         curSurfaceDirtyManager_->MergeDirtyRect(node.GetOldDirty());
     }
+    // [planning] Remove this after skia is upgraded, the clipRegion is supported
     if (node.GetRenderProperties().GetBackgroundFilter()) {
         needFilter_ = true;
     }
@@ -509,6 +510,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
                 SkPath dirtyPath;
                 region.getBoundaryPath(&dirtyPath);
                 canvas_->clipPath(dirtyPath, true);
+                // [planning] Remove this after skia is upgraded, the clipRegion is supported
                 if (!needFilter_) {
                     saveLayerCnt = canvas_->saveLayer(SkRect::MakeWH(screenInfo_.width, screenInfo_.height), nullptr);
                 }
