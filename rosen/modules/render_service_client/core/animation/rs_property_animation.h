@@ -58,8 +58,6 @@ protected:
 
     void StartCustomPropertyAnimation(const std::shared_ptr<RSRenderAnimation>& animation);
 
-    void SetPropertyOnAllAnimationFinish() override;
-
     std::shared_ptr<RSPropertyBase> property_;
     std::shared_ptr<RSPropertyBase> byValue_ {};
     std::shared_ptr<RSPropertyBase> startValue_ {};

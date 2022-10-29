@@ -49,12 +49,9 @@ public:
     std::shared_ptr<RSRenderAnimation> QuerySpringAnimation(PropertyId propertyId);
 
 private:
-    void OnAnimationRemove(const std::shared_ptr<RSRenderAnimation>& animation);
-    void OnAnimationAdd(const std::shared_ptr<RSRenderAnimation>& animation);
     void OnAnimationFinished(const std::shared_ptr<RSRenderAnimation>& animation);
 
     std::unordered_map<AnimationId, std::shared_ptr<RSRenderAnimation>> animations_;
-    std::unordered_map<PropertyId, int> animationNum_;
     std::unordered_map<PropertyId, AnimationId> springAnimations_;
 
     friend class RSRenderNode;
