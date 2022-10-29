@@ -38,7 +38,7 @@ void RSCPUOverdrawCanvasListener::Draw()
     paint.setStyle(paint.kFill_Style);
 
     SkRegion drawed;
-    for (int32_t i = regions.size(); i > 0; i--) {
+    for (size_t i = regions.size(); i > 0; i--) {
         if (overdrawColorMap.find(i) != overdrawColorMap.end()) {
             paint.setColor(overdrawColorMap.at(i));
         } else {
@@ -202,7 +202,7 @@ void RSCPUOverdrawCanvasListener::AppendRegion(SkPath &path)
     path.transform(canvas_.getTotalMatrix());
     target.setPath(path, SkRegion(SkIRect::MakeLTRB(-1e9, -1e9, 1e9, 1e9)));
 
-    for (int32_t i = regions.size(); i > 0; i--) {
+    for (size_t i = regions.size(); i > 0; i--) {
         if (regions[i].intersects(target)) {
             auto regi = regions[i];
             regi.op(target, SkRegion::kIntersect_Op);
