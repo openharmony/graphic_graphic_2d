@@ -1283,9 +1283,9 @@ bool SaveLayerOpItem::Marshalling(Parcel& parcel) const
 {
     bool success = parcel.WriteBool(rectPtr_ != nullptr);
     if (rectPtr_) {
-        success &= RSMarshallingHelper::Marshalling(parcel, rect_);
+        success = success && RSMarshallingHelper::Marshalling(parcel, rect_);
     }
-    success &= RSMarshallingHelper::Marshalling(parcel, backdrop_) &&
+    success = success && RSMarshallingHelper::Marshalling(parcel, backdrop_) &&
                RSMarshallingHelper::Marshalling(parcel, mask_) &&
                RSMarshallingHelper::Marshalling(parcel, matrix_) &&
                RSMarshallingHelper::Marshalling(parcel, flags_) &&
@@ -1309,10 +1309,10 @@ OpItem* SaveLayerOpItem::Unmarshalling(Parcel& parcel)
     SkPaint paint;
     bool success = parcel.ReadBool(isRectExist);
     if (isRectExist) {
-        success &= RSMarshallingHelper::Unmarshalling(parcel, rect);
+        success = success && RSMarshallingHelper::Unmarshalling(parcel, rect);
         rectPtr = &rect;
     }
-    success &= RSMarshallingHelper::Unmarshalling(parcel, backdrop) &&
+    success = success && RSMarshallingHelper::Unmarshalling(parcel, backdrop) &&
                RSMarshallingHelper::Unmarshalling(parcel, mask) &&
                RSMarshallingHelper::Unmarshalling(parcel, matrix) &&
                RSMarshallingHelper::Unmarshalling(parcel, flags) &&

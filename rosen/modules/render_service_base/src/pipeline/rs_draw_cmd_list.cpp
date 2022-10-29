@@ -155,14 +155,14 @@ bool DrawCmdList::Marshalling(Parcel& parcel) const
     }
     for (const auto& item : ops_) {
         auto type = item->GetType();
-        success &= RSMarshallingHelper::Marshalling(parcel, type);
+        success = success && RSMarshallingHelper::Marshalling(parcel, type);
         auto func = GetOpUnmarshallingFunc(type);
         if (!func) {
             ROSEN_LOGW("unirender: opItem Unmarshalling func not define, skip Marshalling, optype = %d", type);
             continue;
         }
 
-        success &= item->Marshalling(parcel);
+        success = success && item->Marshalling(parcel);
         if (!success) {
             ROSEN_LOGE("unirender: failed opItem Marshalling, optype = %d", type);
             return success;
