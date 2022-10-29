@@ -26,7 +26,7 @@ namespace OHOS {
 namespace Rosen {
 namespace {
 constexpr int32_t CORNER_SIZE = 4;
-void SimplifyPaint(int32_t color, SkPaint* paint)
+void SimplifyPaint(uint32_t color, SkPaint* paint)
 {
     paint->setColor(color);
     paint->setShader(nullptr);
@@ -177,8 +177,8 @@ void TextBlobOpItem::Draw(RSPaintFilterCanvas& canvas, const SkRect*) const
     bool isHighContrastEnabled = canvas.isHighContrastEnabled() || RSSystemProperties::GetHighContrastStatus();
     if (isHighContrastEnabled) {
         ROSEN_LOGD("TextBlobOpItem::Draw highContrastEnabled");
-        int32_t color = paint_.getColor();
-        int32_t channelSum = SkColorGetR(color) + SkColorGetG(color) + SkColorGetB(color);
+        uint32_t color = paint_.getColor();
+        uint32_t channelSum = SkColorGetR(color) + SkColorGetG(color) + SkColorGetB(color);
         bool flag = channelSum < 384; // 384 is empirical value
 
         SkPaint outlinePaint(paint_);
