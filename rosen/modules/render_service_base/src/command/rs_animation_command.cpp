@@ -41,11 +41,11 @@ void AnimationCommandHelper::CreateAnimation(
     if (node == nullptr) {
         return;
     }
-    node->GetAnimationManager().AddAnimation(animation);
     auto modifier = node->GetModifier(animation->GetPropertyId());
     if (modifier != nullptr) {
         animation->AttachRenderProperty(modifier->GetProperty());
     }
+    node->GetAnimationManager().AddAnimation(animation);
     auto beginTime = context.GetTransactionTimestamp();
     auto currentTime = context.GetCurrentTimestamp();
     if (beginTime != 0 && (currentTime - beginTime) > static_cast<unsigned long>(animation->GetDuration() * MS_TO_NS)) {

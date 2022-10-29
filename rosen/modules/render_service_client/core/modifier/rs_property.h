@@ -110,7 +110,7 @@ protected:
 
     virtual void UpdateExtendedProperty() const {}
 
-    virtual void UpdateOnAllAnimationFinish() {}
+    virtual void UpdateFinalValueToRender() {}
 
     virtual void AddPathAnimation() {}
 
@@ -217,7 +217,7 @@ public:
     }
 
 protected:
-    void UpdateToRender(const T& value, bool isDelta, bool forceUpdate = false) const
+    void UpdateToRender(const T& value, bool isDelta, bool updateFinal = false) const
     {}
 
     void UpdateExtendedProperty() const override
@@ -357,7 +357,7 @@ protected:
         }
     }
 
-    void UpdateOnAllAnimationFinish() override
+    void UpdateFinalValueToRender() override
     {
         RSProperty<T>::UpdateToRender(RSProperty<T>::stagingValue_, false, true);
     }
@@ -475,44 +475,44 @@ private:
 };
 
 template<>
-RS_EXPORT void RSProperty<bool>::UpdateToRender(const bool& value, bool isDelta, bool forceUpdate) const;
+RS_EXPORT void RSProperty<bool>::UpdateToRender(const bool& value, bool isDelta, bool updateFinal) const;
 template<>
-RS_EXPORT void RSProperty<float>::UpdateToRender(const float& value, bool isDelta, bool forceUpdate) const;
+RS_EXPORT void RSProperty<float>::UpdateToRender(const float& value, bool isDelta, bool updateFinal) const;
 template<>
-RS_EXPORT void RSProperty<int>::UpdateToRender(const int& value, bool isDelta, bool forceUpdate) const;
+RS_EXPORT void RSProperty<int>::UpdateToRender(const int& value, bool isDelta, bool updateFinal) const;
 template<>
-RS_EXPORT void RSProperty<Color>::UpdateToRender(const Color& value, bool isDelta, bool forceUpdate) const;
+RS_EXPORT void RSProperty<Color>::UpdateToRender(const Color& value, bool isDelta, bool updateFinal) const;
 template<>
-RS_EXPORT void RSProperty<Gravity>::UpdateToRender(const Gravity& value, bool isDelta, bool forceUpdate) const;
+RS_EXPORT void RSProperty<Gravity>::UpdateToRender(const Gravity& value, bool isDelta, bool updateFinal) const;
 template<>
-RS_EXPORT void RSProperty<Matrix3f>::UpdateToRender(const Matrix3f& value, bool isDelta, bool forceUpdate) const;
+RS_EXPORT void RSProperty<Matrix3f>::UpdateToRender(const Matrix3f& value, bool isDelta, bool updateFinal) const;
 template<>
-RS_EXPORT void RSProperty<Quaternion>::UpdateToRender(const Quaternion& value, bool isDelta, bool forceUpdate) const;
+RS_EXPORT void RSProperty<Quaternion>::UpdateToRender(const Quaternion& value, bool isDelta, bool updateFinal) const;
 template<>
 RS_EXPORT void RSProperty<std::shared_ptr<RSFilter>>::UpdateToRender(
-    const std::shared_ptr<RSFilter>& value, bool isDelta, bool forceUpdate) const;
+    const std::shared_ptr<RSFilter>& value, bool isDelta, bool updateFinal) const;
 template<>
 RS_EXPORT void RSProperty<std::shared_ptr<RSImage>>::UpdateToRender(
-    const std::shared_ptr<RSImage>& value, bool isDelta, bool forceUpdate) const;
+    const std::shared_ptr<RSImage>& value, bool isDelta, bool updateFinal) const;
 template<>
 RS_EXPORT void RSProperty<std::shared_ptr<RSMask>>::UpdateToRender(
-    const std::shared_ptr<RSMask>& value, bool isDelta, bool forceUpdate) const;
+    const std::shared_ptr<RSMask>& value, bool isDelta, bool updateFinal) const;
 template<>
 RS_EXPORT void RSProperty<std::shared_ptr<RSPath>>::UpdateToRender(
-    const std::shared_ptr<RSPath>& value, bool isDelta, bool forceUpdate) const;
+    const std::shared_ptr<RSPath>& value, bool isDelta, bool updateFinal) const;
 template<>
 RS_EXPORT void RSProperty<std::shared_ptr<RSShader>>::UpdateToRender(
-    const std::shared_ptr<RSShader>& value, bool isDelta, bool forceUpdate) const;
+    const std::shared_ptr<RSShader>& value, bool isDelta, bool updateFinal) const;
 template<>
-RS_EXPORT void RSProperty<Vector2f>::UpdateToRender(const Vector2f& value, bool isDelta, bool forceUpdate) const;
+RS_EXPORT void RSProperty<Vector2f>::UpdateToRender(const Vector2f& value, bool isDelta, bool updateFinal) const;
 template<>
 RS_EXPORT void RSProperty<Vector4<uint32_t>>::UpdateToRender(
-    const Vector4<uint32_t>& value, bool isDelta, bool forceUpdate) const;
+    const Vector4<uint32_t>& value, bool isDelta, bool updateFinal) const;
 template<>
 RS_EXPORT void RSProperty<Vector4<Color>>::UpdateToRender(
-    const Vector4<Color>& value, bool isDelta, bool forceUpdate) const;
+    const Vector4<Color>& value, bool isDelta, bool updateFinal) const;
 template<>
-RS_EXPORT void RSProperty<Vector4f>::UpdateToRender(const Vector4f& value, bool isDelta, bool forceUpdate) const;
+RS_EXPORT void RSProperty<Vector4f>::UpdateToRender(const Vector4f& value, bool isDelta, bool updateFinal) const;
 
 template<>
 RS_EXPORT bool RSProperty<float>::IsValid(const float& value);
