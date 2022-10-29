@@ -801,7 +801,7 @@ GSError RSBaseRenderUtil::DropFrameProcess(RSSurfaceHandler& node)
         return OHOS::GSERROR_NO_CONSUMER;
     }
 
-    int maxDirtyListSize = surfaceConsumer->GetQueueSize() - 1;
+    int32_t maxDirtyListSize = static_cast<int32_t>(surfaceConsumer->GetQueueSize()) - 1;
     // maxDirtyListSize > 2 means QueueSize >3 too
     if (maxDirtyListSize > 2 && availableBufferCnt >= maxDirtyListSize) {
         RS_TRACE_NAME("DropFrame");
