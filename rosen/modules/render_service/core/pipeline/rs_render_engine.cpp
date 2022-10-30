@@ -161,11 +161,10 @@ void RSRenderEngine::DrawSurfaceNode(RSPaintFilterCanvas& canvas, RSSurfaceRende
     float mirrorAdaptiveCoefficient, bool forceCPU)
 {
     // prepare BufferDrawParam
-    auto params = RSDividedRenderUtil::CreateBufferDrawParam(node, false); // in display's coordinate.
+    auto params = RSDividedRenderUtil::CreateBufferDrawParam(node, false, false, forceCPU); // in display's coordinate.
     const float adaptiveDstWidth = params.dstRect.width() * mirrorAdaptiveCoefficient;
     const float adaptiveDstHeight = params.dstRect.height() * mirrorAdaptiveCoefficient;
     params.dstRect.setWH(adaptiveDstWidth, adaptiveDstHeight);
-    params.useCPU = forceCPU;
 
     DrawSurfaceNodeWithParams(canvas, node, params, nullptr, nullptr);
 }
