@@ -22,6 +22,7 @@
 #include "property/rs_properties.h"
 #include "property/rs_properties_painter.h"
 #include "property/rs_property_trace.h"
+
 namespace OHOS {
 namespace Rosen {
 namespace {
@@ -268,6 +269,52 @@ bool RSPropertiesFuzzTest(const uint8_t* data, size_t size)
     return true;
 }
 
+bool RSPropertiesPainterFuzzTest(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    // getdata
+    SkCanvas skCanvas;
+    float fLeft = GetData<float>();
+    float fTop = GetData<float>();
+    float fWidth = GetData<float>();
+    float fHeight = GetData<float>();
+    RectF rect(fLeft, fTop, fWidth, fHeight);
+    RSProperties properties;
+    int iLeft = GetData<int>();
+    int iTop = GetData<int>();
+    int iWidth = GetData<int>();
+    int iHeight = GetData<int>();
+    RectI dirtyShadow(iLeft, iTop, iWidth, iHeight);
+    float skLeft = GetData<float>();
+    float skTop = GetData<float>();
+    float skRight = GetData<float>();
+    float skBottom = GetData<float>();
+    SkRect maskBounds { skLeft, skTop, skRight, skBottom };
+    Gravity gravity = GetData<Gravity>();
+    float fW = GetData<float>();
+    float fH = GetData<float>();
+    SkMatrix mat;
+
+    RSPropertiesPainter::Clip(skCanvas, rect);
+    RSPropertiesPainter::DrawBorder(properties, skCanvas);
+    RSPropertiesPainter::GetShadowDirtyRect(dirtyShadow, properties);
+    RSPropertiesPainter::DrawForegroundColor(properties, skCanvas);
+    RSPropertiesPainter::DrawMask(properties, skCanvas);
+    RSPropertiesPainter::DrawMask(properties, skCanvas, maskBounds);
+    RSPropertiesPainter::GetGravityMatrix(gravity, rect, fW, fH, mat);
+    RSPropertiesPainter::Rect2SkRect(rect);
+
+    return true;
+}
+
 } // namespace Rosen
 } // namespace OHOS
 
@@ -276,5 +323,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
     /* Run your code on data */
     OHOS::Rosen::RSPropertiesFuzzTest(data, size);
+    OHOS::Rosen::RSPropertiesPainterFuzzTest(data, size);
     return 0;
 }
