@@ -380,7 +380,7 @@ void RenderContext::DamageFrame(const std::vector<RectI> &rects)
         return;
     }
 
-    int size = rects.size();
+    size_t size = rects.size();
     if (size == 0) {
         LOGE("invalid rects size");
         return;
