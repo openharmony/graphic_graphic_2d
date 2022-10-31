@@ -22,6 +22,7 @@
 #include "property/rs_properties.h"
 #include "property/rs_properties_painter.h"
 #include "property/rs_property_trace.h"
+
 namespace OHOS {
 namespace Rosen {
 namespace {
@@ -55,6 +56,9 @@ T GetData()
  */
 std::string GetStringFromData(int strlen)
 {
+    if (strlen <= 0) {
+        return "fuzz";
+    }
     char cstr[strlen];
     cstr[strlen - 1] = '\0';
     for (int i = 0; i < strlen - 1; i++) {
@@ -68,19 +72,8 @@ std::string GetStringFromData(int strlen)
     return str;
 }
 
-bool RSPropertiesFuzzTest(const uint8_t* data, size_t size)
+void RSPropertiesFuzzTestInner01(RSProperties& properties)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    // getdata
-    RSProperties properties;
     float x1 = GetData<float>();
     float y1 = GetData<float>();
     float z1 = GetData<float>();
@@ -112,6 +105,29 @@ bool RSPropertiesFuzzTest(const uint8_t* data, size_t size)
     float z6 = GetData<float>();
     float w6 = GetData<float>();
     Vector4f cornerRadius(x6, y6, z6, w6);
+    properties.SetBounds(bounds);
+    properties.SetBoundsSize(size_vec);
+    properties.SetBoundsWidth(width);
+    properties.SetBoundsHeight(height);
+    properties.SetBoundsPosition(position);
+    properties.SetBoundsPositionX(positionX);
+    properties.SetBoundsPositionY(positionY);
+    properties.SetFrame(frame);
+    properties.SetFrameSize(size_vec);
+    properties.SetFrameWidth(width);
+    properties.SetFrameHeight(height);
+    properties.SetFramePosition(position);
+    properties.SetFramePositionX(positionX);
+    properties.SetFramePositionY(positionY);
+    properties.SetPositionZ(positionZ);
+    properties.SetPivot(pivot);
+    properties.SetPivotX(pivotX);
+    properties.SetPivotY(pivotY);
+    properties.SetCornerRadius(cornerRadius);
+}
+
+void RSPropertiesFuzzTestInner02(RSProperties& properties)
+{
     float x7 = GetData<float>();
     float y7 = GetData<float>();
     float z7 = GetData<float>();
@@ -148,56 +164,11 @@ bool RSPropertiesFuzzTest(const uint8_t* data, size_t size)
     int16_t blue4 = GetData<int16_t>();
     Color color4(red4, green4, blue4);
     Vector4<Color> colorVector(color1, color2, color3, color4);
-    float x10 = GetData<float>();
-    float y10 = GetData<float>();
-    float z10 = GetData<float>();
-    float w10 = GetData<float>();
-    Vector4f widthVector(x10, y10, z10, w10);
-    uint32_t x11 = GetData<float>();
-    uint32_t y11 = GetData<float>();
-    uint32_t z11 = GetData<float>();
-    uint32_t w11 = GetData<float>();
-    Vector4<uint32_t> style(x11, y11, z11, w11);
-    float blurRadiusX = GetData<float>();
-    float blurRadiusY = GetData<float>();
-    std::shared_ptr<RSFilter> backgroundFilter = RSFilter::CreateBlurFilter(blurRadiusX, blurRadiusY);
-    int style_int = GetData<int>();
-    float dipScale = GetData<float>();
-    std::shared_ptr<RSFilter> filter = RSFilter::CreateMaterialFilter(style_int, dipScale);
-    float offsetX = GetData<float>();
-    float offsetY = GetData<float>();
-    float radius = GetData<float>();
-    std::shared_ptr<RSPath> shadowpath = std::make_shared<RSPath>();
-    Gravity gravity = GetData<Gravity>();
-    int intLeft = GetData<int>();
-    int intTop = GetData<int>();
-    int intWidth = GetData<int>();
-    int intHeight = GetData<int>();
-    std::shared_ptr<RectI> rect = std::make_shared<RectI>(intLeft, intTop, intWidth, intHeight);
-    bool clipToBounds = GetData<bool>();
-    bool clipToFrame = GetData<bool>();
-    bool visible = GetData<bool>();
+    float width = GetData<float>();
+    float height = GetData<float>();
+    float positionX = GetData<float>();
+    float positionY = GetData<float>();
 
-    // Test
-    properties.SetBounds(bounds);
-    properties.SetBoundsSize(size_vec);
-    properties.SetBoundsWidth(width);
-    properties.SetBoundsHeight(height);
-    properties.SetBoundsPosition(position);
-    properties.SetBoundsPositionX(positionX);
-    properties.SetBoundsPositionY(positionY);
-    properties.SetFrame(frame);
-    properties.SetFrameSize(size_vec);
-    properties.SetFrameWidth(width);
-    properties.SetFrameHeight(height);
-    properties.SetFramePosition(position);
-    properties.SetFramePositionX(positionX);
-    properties.SetFramePositionY(positionY);
-    properties.SetPositionZ(positionZ);
-    properties.SetPivot(pivot);
-    properties.SetPivotX(pivotX);
-    properties.SetPivotY(pivotY);
-    properties.SetCornerRadius(cornerRadius);
     properties.SetQuaternion(quaternion);
     properties.SetRotation(degree);
     properties.SetRotationX(degree);
@@ -220,6 +191,45 @@ bool RSPropertiesFuzzTest(const uint8_t* data, size_t size)
     properties.SetBgImagePositionX(positionX);
     properties.SetBgImagePositionY(positionY);
     properties.SetBorderColor(colorVector);
+}
+
+void RSPropertiesFuzzTestInner03(RSProperties& properties)
+{
+    float x10 = GetData<float>();
+    float y10 = GetData<float>();
+    float z10 = GetData<float>();
+    float w10 = GetData<float>();
+    Vector4f widthVector(x10, y10, z10, w10);
+    uint32_t x11 = GetData<float>();
+    uint32_t y11 = GetData<float>();
+    uint32_t z11 = GetData<float>();
+    uint32_t w11 = GetData<float>();
+    Vector4<uint32_t> style(x11, y11, z11, w11);
+    float blurRadiusX = GetData<float>();
+    float blurRadiusY = GetData<float>();
+    std::shared_ptr<RSFilter> backgroundFilter = RSFilter::CreateBlurFilter(blurRadiusX, blurRadiusY);
+    int styleInt = GetData<int>();
+    float dipScale = GetData<float>();
+    std::shared_ptr<RSFilter> filter = RSFilter::CreateMaterialFilter(styleInt, dipScale);
+    float offsetX = GetData<float>();
+    float offsetY = GetData<float>();
+    float radius = GetData<float>();
+    std::shared_ptr<RSPath> shadowpath = std::make_shared<RSPath>();
+    Gravity gravity = GetData<Gravity>();
+    int intLeft = GetData<int>();
+    int intTop = GetData<int>();
+    int intWidth = GetData<int>();
+    int intHeight = GetData<int>();
+    std::shared_ptr<RectI> rect = std::make_shared<RectI>(intLeft, intTop, intWidth, intHeight);
+    bool clipToBounds = GetData<bool>();
+    bool clipToFrame = GetData<bool>();
+    bool visible = GetData<bool>();
+    int16_t red1 = GetData<int16_t>();
+    int16_t green1 = GetData<int16_t>();
+    int16_t blue1 = GetData<int16_t>();
+    Color color1(red1, green1, blue1);
+    float alpha = GetData<float>();
+
     properties.SetBorderWidth(widthVector);
     properties.SetBorderStyle(style);
     properties.SetBackgroundFilter(backgroundFilter);
@@ -236,6 +246,71 @@ bool RSPropertiesFuzzTest(const uint8_t* data, size_t size)
     properties.SetClipToBounds(clipToBounds);
     properties.SetClipToFrame(clipToFrame);
     properties.SetVisible(visible);
+}
+
+bool RSPropertiesFuzzTest(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    RSProperties properties;
+
+    // test
+    RSPropertiesFuzzTestInner01(properties);
+    RSPropertiesFuzzTestInner02(properties);
+    RSPropertiesFuzzTestInner03(properties);
+
+    return true;
+}
+
+bool RSPropertiesPainterFuzzTest(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    // getdata
+    SkCanvas skCanvas;
+    float fLeft = GetData<float>();
+    float fTop = GetData<float>();
+    float fWidth = GetData<float>();
+    float fHeight = GetData<float>();
+    RectF rect(fLeft, fTop, fWidth, fHeight);
+    RSProperties properties;
+    int iLeft = GetData<int>();
+    int iTop = GetData<int>();
+    int iWidth = GetData<int>();
+    int iHeight = GetData<int>();
+    RectI dirtyShadow(iLeft, iTop, iWidth, iHeight);
+    float skLeft = GetData<float>();
+    float skTop = GetData<float>();
+    float skRight = GetData<float>();
+    float skBottom = GetData<float>();
+    SkRect maskBounds { skLeft, skTop, skRight, skBottom };
+    Gravity gravity = GetData<Gravity>();
+    float fW = GetData<float>();
+    float fH = GetData<float>();
+    SkMatrix mat;
+
+    RSPropertiesPainter::Clip(skCanvas, rect);
+    RSPropertiesPainter::DrawBorder(properties, skCanvas);
+    RSPropertiesPainter::GetShadowDirtyRect(dirtyShadow, properties);
+    RSPropertiesPainter::DrawForegroundColor(properties, skCanvas);
+    RSPropertiesPainter::DrawMask(properties, skCanvas);
+    RSPropertiesPainter::DrawMask(properties, skCanvas, maskBounds);
+    RSPropertiesPainter::GetGravityMatrix(gravity, rect, fW, fH, mat);
+    RSPropertiesPainter::Rect2SkRect(rect);
 
     return true;
 }
@@ -248,5 +323,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
     /* Run your code on data */
     OHOS::Rosen::RSPropertiesFuzzTest(data, size);
+    OHOS::Rosen::RSPropertiesPainterFuzzTest(data, size);
     return 0;
 }

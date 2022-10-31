@@ -28,14 +28,6 @@
 #include "pipeline/rs_frame_report.h"
 #include "pipeline/rs_occlusion_config.h"
 #include "pipeline/rs_paint_filter_canvas.h"
-#include "pipeline/rs_proxy_render_node.h"
-#include "pipeline/rs_recording_canvas.h"
-#include "pipeline/rs_render_node.h"
-#include "pipeline/rs_render_node_map.h"
-#include "pipeline/rs_render_result.h"
-#include "pipeline/rs_root_render_node.h"
-#include "pipeline/rs_surface_handler.h"
-#include "pipeline/rs_surface_render_node.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -72,6 +64,9 @@ T GetData()
  */
 std::string GetStringFromData(int strlen)
 {
+    if (strlen <= 0) {
+        return "fuzz";
+    }
     char cstr[strlen];
     cstr[strlen - 1] = '\0';
     for (int i = 0; i < strlen - 1; i++) {
