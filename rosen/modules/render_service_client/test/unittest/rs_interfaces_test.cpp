@@ -276,9 +276,6 @@ HWTEST_F(RSInterfacesTest, SetScreenPowerStatus001, Function | SmallTest | Level
     EXPECT_NE(screenId, INVALID_SCREEN_ID);
 
     rsInterfaces->SetScreenPowerStatus(INVALID_SCREEN_ID, ScreenPowerStatus::POWER_STATUS_STANDBY);
-    usleep(50000); // wait 50000us to ensure SetScreenPowerStatus done.
-    auto powerStatus = rsInterfaces->GetScreenPowerStatus(screenId);
-    EXPECT_EQ(powerStatus, ScreenPowerStatus::POWER_STATUS_ON);
 }
 
 /*
