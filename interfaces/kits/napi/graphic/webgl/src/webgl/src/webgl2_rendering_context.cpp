@@ -1359,7 +1359,9 @@ bool WebGL2RenderingContext::Export(napi_env env, napi_value exports)
 
     napi_value instanceValue = nullptr;
     napi_new_instance(env, contextClass, 0, nullptr, &instanceValue);
-    status = napi_wrap(env, instanceValue, (void*)this, [](napi_env env, void* data, void* hint) {}, nullptr, nullptr);
+    status = napi_wrap(
+        env, instanceValue, static_cast<void*>(this),
+        [](napi_env env, void* data, void* hint) {}, nullptr, nullptr);
     if (status != napi_ok) {
         return false;
     }
