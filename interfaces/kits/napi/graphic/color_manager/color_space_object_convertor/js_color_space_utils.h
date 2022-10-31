@@ -71,7 +71,7 @@ inline T* ConvertNativeValueTo(NativeValue* value)
 }
 
 template<class T>
-inline T* CheckParamsAndGetThis(NativeEngine* engine, NativeCallbackInfo* info, const char* name = nullptr)
+inline T* CheckParamsAndGetThis(const NativeEngine* engine, NativeCallbackInfo* info, const char* name = nullptr)
 {
     if (engine == nullptr || info == nullptr) {
         return nullptr;
@@ -142,6 +142,8 @@ bool ConvertFromJsValue(NativeEngine& engine, NativeValue* jsValue, T& value)
         value = static_cast<ValueType>(static_cast<std::make_signed_t<ValueType>>(*numberValue));
         return true;
     }
+    CMLOGE("[NAPI]Failed to ConvertFromJsValue");
+    return false;
 }
 
 NativeValue* CreateJsError(NativeEngine& engine, int32_t errCode, const std::string& message = std::string());
