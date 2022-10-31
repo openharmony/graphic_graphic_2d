@@ -19,7 +19,9 @@
 #include <vector>
 #include "platform/ohos/backend/rs_surface_frame_ohos_raster.h"
 #include "platform/ohos/backend/rs_surface_ohos_raster.h"
+#if ACE_ENABLE_GL
 #include "render_context/render_context.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -56,8 +58,10 @@ bool RSSurfaceOhosFuzzTest(const uint8_t* data, size_t size)
     g_pos = 0;
 
     auto rsSurfaceFrameOhosRaster = RSSurfaceFrameOhosRaster(GetData<int32_t>(), GetData<int32_t>());
+#if ACE_ENABLE_GL
     RenderContext renderContext_;
     rsSurfaceFrameOhosRaster.SetRenderContext(&renderContext_);
+#endif
     (void)rsSurfaceFrameOhosRaster.GetBufferAge();
     rsSurfaceFrameOhosRaster.SetReleaseFence(GetData<int32_t>());
     (void)rsSurfaceFrameOhosRaster.GetReleaseFence();
