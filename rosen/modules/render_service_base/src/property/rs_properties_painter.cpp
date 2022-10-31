@@ -168,7 +168,7 @@ void RSPropertiesPainter::GetShadowDirtyRect(RectI& dirtyShadow, const RSPropert
         if (properties.GetShadowElevation() <= 0.f) {
             return;
         }
-        float elevation = properties.GetShadowElevation();
+        float elevation = properties.GetShadowElevation() + DEFAULT_TRANSLATION_Z;
 
         float userTransRatio = (elevation != DEFAULT_LIGHT_HEIGHT) ?
             elevation / (DEFAULT_LIGHT_HEIGHT - elevation) : MAX_TRANS_RATIO;

@@ -211,7 +211,7 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
         }
         geoPtr->ConcatMatrix(node.GetContextMatrix());
         node.SetDstRect(geoPtr->GetAbsRect().IntersectRect(RectI(0, 0, screenInfo_.width, screenInfo_.height)));
-        curDisplayNode_->UpdateSurfaceNodePos(node.GetId(), node.GetDstRect());
+        curDisplayNode_->UpdateSurfaceNodePos(node.GetId(), node.GetOldDirtyInSurface());
     } else {
         RSUniRenderUtil::UpdateRenderNodeDstRect(node, node.GetContextMatrix());
         node.SetDstRect(geoPtr->GetAbsRect().IntersectRect(RectI(0, 0, screenInfo_.width, screenInfo_.height)));
@@ -651,12 +651,14 @@ void RSUniRenderVisitor::CalcDirtyDisplayRegion(std::shared_ptr<RSDisplayRenderN
 
         bool isShadowDisappear = !surfaceNode->GetRenderProperties().IsShadowValid() && surfaceNode->IsShadowValidLastFrame();
         if (surfaceNode->GetRenderProperties().IsShadowValid() || isShadowDisappear) {
-            RectI shadowDirtyRect = surfaceNode->GetOldDirty().IntersectRect(surfaceDirtyRect);
+            RectI shadowDirtyRect = surfaceNode->GetOldDirtyInSurface().IntersectRect(surfaceDirtyRect);
             RS_LOGD("CalcDirtyDisplayRegion merge ShadowValid %s rect %s",
-                surfaceNode->GetName().c_str(), surfaceNode->GetOldDirty().ToString().c_str());
+                surfaceNode->GetName().c_str(), surfaceNode->GetOldDirtyInSurface().ToString().c_str());
             // There are two situation here:
-            // 1. SurfaceNode first has shadow or shadow radius is larger than the last frame, surfaceDirtyRect == surfaceNode->GetOldDirty()
-            // 2. SurfaceNode remove shadow or shadow radius is smaller than the last frame, surfaceDirtyRect > surfaceNode->GetOldDirty()
+            // 1. SurfaceNode first has shadow or shadow radius is larger than the last frame,
+            // surfaceDirtyRect == surfaceNode->GetOldDirtyInSurface()
+            // 2. SurfaceNode remove shadow or shadow radius is smaller than the last frame,
+            // surfaceDirtyRect > surfaceNode->GetOldDirtyInSurface()
             // So we should always merge surfaceDirtyRect here.
             if (!shadowDirtyRect.IsEmpty()) {
                 displayDirtyManager->MergeDirtyRect(surfaceDirtyRect);
@@ -771,7 +773,7 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
 #ifdef RS_ENABLE_EGLQUERYSURFACE
     // skip clean surface node
     if (isOpDropped_ && node.IsAppWindow()) {
-        if (!node.SubNodeNeedDraw(node.GetOldDirty(), partialRenderType_)) {
+        if (!node.SubNodeNeedDraw(node.GetOldDirtyInSurface(), partialRenderType_)) {
             RS_TRACE_NAME("QuickReject Skip");
             RS_LOGD("RSUniRenderVisitor::ProcessSurfaceRenderNode skip: %s", node.GetName().c_str());
             return;
@@ -813,10 +815,12 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
 
     boundsRect_ = SkRect::MakeWH(property.GetBoundsWidth(), property.GetBoundsHeight());
     frameGravity_ = property.GetFrameGravity();
-    if (!property.GetCornerRadius().IsZero()) {
-        canvas_->clipRRect(RSPropertiesPainter::RRect2SkRRect(absClipRRect), true);
-    } else {
-        canvas_->clipRect(boundsRect_);
+    if (node.GetSurfaceNodeType() != RSSurfaceNodeType::LEASH_WINDOW_NODE) {
+        if (!property.GetCornerRadius().IsZero()) {
+            canvas_->clipRRect(RSPropertiesPainter::RRect2SkRRect(absClipRRect), true);
+        } else {
+            canvas_->clipRect(boundsRect_);
+        }
     }
 
     RSPropertiesPainter::DrawBackground(property, *canvas_);
@@ -935,7 +939,8 @@ void RSUniRenderVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
         return;
     }
 #ifdef RS_ENABLE_EGLQUERYSURFACE
-    if (isOpDropped_ && !curSurfaceNode_->SubNodeNeedDraw(node.GetOldDirty(), partialRenderType_) &&
+    if (isOpDropped_ &&
+        !curSurfaceNode_->SubNodeNeedDraw(node.GetOldDirtyInSurface(), partialRenderType_) &&
         !node.HasChildrenOutOfRect()) {
         return;
     }
