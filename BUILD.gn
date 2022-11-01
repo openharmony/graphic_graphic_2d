@@ -61,10 +61,6 @@ group("libsurface") {
   public_deps = [ "frameworks/surface:surface" ]
 }
 
-group("libvsync_client") {
-  public_deps = [ "frameworks/vsync:libvsync_client" ]
-}
-
 group("libfence") {
   public_deps = [ "frameworks/fence:libfence" ]
 }
