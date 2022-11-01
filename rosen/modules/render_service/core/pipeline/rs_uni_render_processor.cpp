@@ -50,6 +50,7 @@ bool RSUniRenderProcessor::Init(RSDisplayRenderNode& node, int32_t offsetX, int3
 void RSUniRenderProcessor::PostProcess()
 {
     composerAdapter_->CommitLayers(layers_);
+    MultiLayersPerf(layerNum);
 }
 
 void RSUniRenderProcessor::ProcessSurface(RSSurfaceRenderNode &node)
@@ -68,6 +69,7 @@ void RSUniRenderProcessor::ProcessSurface(RSSurfaceRenderNode &node)
     }
 
     layers_.emplace_back(layer);
+    layerNum++;
 }
 
 void RSUniRenderProcessor::ProcessDisplaySurface(RSDisplayRenderNode& node)
@@ -80,6 +82,7 @@ void RSUniRenderProcessor::ProcessDisplaySurface(RSDisplayRenderNode& node)
     }
 
     layers_.emplace_back(layer);
+    layerNum += node.GetCurAllSurfaces().size();
 }
 
 void RSUniRenderProcessor::Redraw(const sptr<Surface>& surface, const std::vector<LayerInfoPtr>& layers)
