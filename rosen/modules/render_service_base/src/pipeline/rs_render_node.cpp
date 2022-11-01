@@ -73,7 +73,7 @@ bool RSRenderNode::Animate(int64_t timestamp)
 bool RSRenderNode::Update(RSDirtyRegionManager& dirtyManager, const RSProperties* parent, bool parentDirty)
 {
     // no need to update invisible nodes
-    if (!renderProperties_.GetVisible() && !isLastVisible_) {
+    if (!ShouldPaint() && !isLastVisible_) {
         return false;
     }
     // [planning] surfaceNode use frame instead
@@ -82,7 +82,7 @@ bool RSRenderNode::Update(RSDirtyRegionManager& dirtyManager, const RSProperties
     bool dirty = renderProperties_.UpdateGeometry(parent, parentDirty, offset);
     isDirtyRegionUpdated_ = false;
     UpdateDirtyRegion(dirtyManager, dirty);
-    isLastVisible_ = renderProperties_.GetVisible();
+    isLastVisible_ = ShouldPaint();
     renderProperties_.ResetDirty();
     return dirty;
 }
@@ -106,7 +106,7 @@ void RSRenderNode::UpdateDirtyRegion(RSDirtyRegionManager& dirtyManager, bool ge
         dirtyManager.MergeDirtyRect(oldDirty_);
     }
     // merge old dirty if switch to invisible
-    if (!renderProperties_.GetVisible() && isLastVisible_) {
+    if (!ShouldPaint() && isLastVisible_) {
         ROSEN_LOGD("RSRenderNode:: id %" PRIu64 " UpdateDirtyRegion visible->invisible", GetId());
     } else {
         auto dirtyRect = renderProperties_.GetDirtyRect();
