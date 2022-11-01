@@ -138,6 +138,33 @@ void RSTransactionProxy::FlushImplicitTransactionFromRT(uint64_t timestamp)
     }
 }
 
+void RSTransactionProxy::Begin()
+{
+    std::unique_lock<std::mutex> cmdLock(mutex_);
+    implicitCommonTransactionDataStack_.emplace(std::make_unique<RSTransactionData>());
+    implicitRemoteTransactionDataStack_.emplace(std::make_unique<RSTransactionData>());
+}
+
+void RSTransactionProxy::Commit(uint64_t timestamp)
+{
+    std::unique_lock<std::mutex> cmdLock(mutex_);
+    if (!implicitCommonTransactionDataStack_.empty()) {
+        if (renderThreadClient_ != nullptr && !implicitCommonTransactionDataStack_.top()->IsEmpty()) {
+            implicitCommonTransactionDataStack_.top()->timestamp_ = timestamp;
+            renderThreadClient_->CommitTransaction(implicitCommonTransactionDataStack_.top());
+        }
+        implicitCommonTransactionDataStack_.pop();
+    }
+
+    if (!implicitRemoteTransactionDataStack_.empty()) {
+        if (renderServiceClient_ != nullptr && !implicitRemoteTransactionDataStack_.top()->IsEmpty()) {
+            implicitRemoteTransactionDataStack_.top()->timestamp_ = timestamp;
+            renderServiceClient_->CommitTransaction(implicitRemoteTransactionDataStack_.top());
+        }
+        implicitRemoteTransactionDataStack_.pop();
+    }
+}
+
 void RSTransactionProxy::AddCommonCommand(std::unique_ptr<RSCommand> &command)
 {
     if (!implicitCommonTransactionDataStack_.empty()) {

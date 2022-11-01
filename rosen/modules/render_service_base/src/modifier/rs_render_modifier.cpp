@@ -98,8 +98,7 @@ void RSDrawCmdListRenderModifier::Apply(RSModifierContext& context)
     }
 }
 
-void RSDrawCmdListRenderModifier::Update(const std::shared_ptr<RSRenderPropertyBase>& prop,
-    bool isDelta, bool updateFinalOnly)
+void RSDrawCmdListRenderModifier::Update(const std::shared_ptr<RSRenderPropertyBase>& prop, bool isDelta)
 {
     if (auto property = std::static_pointer_cast<RSRenderProperty<DrawCmdListPtr>>(prop)) {
         property_->Set(property->Get());
@@ -165,17 +164,10 @@ T Replace(T a, T b)
         context.property_.Set##MODIFIER_NAME(                                                                         \
             DELTA_OP(context.property_.Get##MODIFIER_NAME(), renderProperty->Get()));                                 \
     }                                                                                                                 \
-    void RS##MODIFIER_NAME##RenderModifier::Update(const std::shared_ptr<RSRenderPropertyBase>& prop, bool isDelta,   \
-        bool updateFinalOnly)                                                                                         \
+    void RS##MODIFIER_NAME##RenderModifier::Update(const std::shared_ptr<RSRenderPropertyBase>& prop, bool isDelta)   \
     {                                                                                                                 \
-        auto property = std::static_pointer_cast<RSRenderAnimatableProperty<TYPE>>(prop);                             \
-        auto renderProperty = std::static_pointer_cast<RSRenderAnimatableProperty<TYPE>>(property_);                  \
-        if (property != nullptr && renderProperty != nullptr) {                                                       \
-            renderProperty->UpdateFinalValue(                                                                         \
-                isDelta ? (renderProperty->GetFinalValue() + property->Get()) : property->Get());                     \
-            if (updateFinalOnly) {                                                                                    \
-                return;                                                                                               \
-            }                                                                                                         \
+        if (auto property = std::static_pointer_cast<RSRenderAnimatableProperty<TYPE>>(prop)) {                       \
+            auto renderProperty = std::static_pointer_cast<RSRenderAnimatableProperty<TYPE>>(property_);              \
             renderProperty->Set(isDelta ? (renderProperty->Get() + property->Get()) : property->Get());               \
         }                                                                                                             \
     }
@@ -192,12 +184,10 @@ T Replace(T a, T b)
         auto renderProperty = std::static_pointer_cast<RSRenderProperty<TYPE>>(property_);                            \
         context.property_.Set##MODIFIER_NAME(renderProperty->Get());                                                  \
     }                                                                                                                 \
-    void RS##MODIFIER_NAME##RenderModifier::Update(const std::shared_ptr<RSRenderPropertyBase>& prop, bool isDelta,   \
-        bool updateFinalOnly)                                                                                         \
+    void RS##MODIFIER_NAME##RenderModifier::Update(const std::shared_ptr<RSRenderPropertyBase>& prop, bool isDelta)   \
     {                                                                                                                 \
-        auto property = std::static_pointer_cast<RSRenderProperty<TYPE>>(prop);                                       \
-        auto renderProperty = std::static_pointer_cast<RSRenderProperty<TYPE>>(property_);                            \
-        if (property != nullptr && renderProperty != nullptr) {                                                       \
+        if (auto property = std::static_pointer_cast<RSRenderProperty<TYPE>>(prop)) {                                 \
+            auto renderProperty = std::static_pointer_cast<RSRenderProperty<TYPE>>(property_);                        \
             renderProperty->Set(property->Get());                                                                     \
         }                                                                                                             \
     }

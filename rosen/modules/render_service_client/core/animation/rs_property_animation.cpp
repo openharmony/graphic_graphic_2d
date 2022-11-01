@@ -127,9 +127,6 @@ void RSPropertyAnimation::OnUpdateStagingValue(bool isFirstStart)
     }
 
     SetPropertyValue(targetValue);
-    if (property_ != nullptr) {
-        property_->UpdateFinalValueToRender();
-    }
 }
 
 void RSPropertyAnimation::StartCustomPropertyAnimation(const std::shared_ptr<RSRenderAnimation>& animation)
@@ -158,6 +155,13 @@ void RSPropertyAnimation::StartCustomPropertyAnimation(const std::shared_ptr<RSR
     animation->AttachRenderProperty(renderProperty);
     animation->Start();
     animationManager->AddAnimation(animation, shared_from_this());
+}
+
+void RSPropertyAnimation::SetPropertyOnAllAnimationFinish()
+{
+    if (property_ != nullptr) {
+        property_->UpdateOnAllAnimationFinish();
+    }
 }
 
 void RSPropertyAnimation::InitAdditiveMode()
