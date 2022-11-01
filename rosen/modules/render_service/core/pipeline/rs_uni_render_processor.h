@@ -36,6 +36,7 @@ private:
 
     std::unique_ptr<RSComposerAdapter> composerAdapter_;
     std::vector<LayerInfoPtr> layers_;
+    size_t layerNum = 0;
 };
 } // namespace Rosen
 } // namespace OHOS
