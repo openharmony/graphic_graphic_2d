@@ -19,9 +19,47 @@
 #include "platform/common/rs_log.h"
 #include "rs_base_render_util.h"
 #include "rs_main_thread.h"
+#include "socperf_client.h"
 
 namespace OHOS {
 namespace Rosen {
+namespace {
+constexpr uint32_t PERF_LEVEL_0 = 0;
+constexpr uint32_t PERF_LEVEL_1 = 1;
+constexpr uint32_t PERF_LEVEL_2 = 2;
+constexpr int32_t PERF_LEVEL_1_REQUESTED_CODE = 10013;
+constexpr int32_t PERF_LEVEL_2_REQUESTED_CODE = 10014;
+constexpr int32_t PERF_LEVEL_3_REQUESTED_CODE = 10015;
+constexpr int64_t PERF_TIME_OUT = 1000;
+constexpr uint32_t PERF_LEVEL_INTERVAL = 10;
+
+void RequestPerf(uint32_t layerLevel, bool onOffTag)
+{
+    switch (layerLevel) {
+        case PERF_LEVEL_0: {
+            // do nothing
+            RS_LOGI("RsDebug RSProcessor::Perf: do nothing");
+            break;
+        }
+        case PERF_LEVEL_1: {
+            OHOS::SOCPERF::SocPerfClient::GetInstance().PerfRequestEx(PERF_LEVEL_1_REQUESTED_CODE, onOffTag, "");
+            RS_LOGI("RsDebug RSProcessor::Perf: level1 %d", onOffTag);
+            break;
+        }
+        case PERF_LEVEL_2: {
+            OHOS::SOCPERF::SocPerfClient::GetInstance().PerfRequestEx(PERF_LEVEL_2_REQUESTED_CODE, onOffTag, "");
+            RS_LOGI("RsDebug RSProcessor::Perf: level2 %d", onOffTag);
+            break;
+        }
+        default: {
+            OHOS::SOCPERF::SocPerfClient::GetInstance().PerfRequestEx(PERF_LEVEL_3_REQUESTED_CODE, onOffTag, "");
+            RS_LOGI("RsDebug RSProcessor::Perf: level3 %d", onOffTag);
+            break;
+        }
+    }
+}
+}
+
 bool RSProcessor::Init(RSDisplayRenderNode& node, int32_t offsetX, int32_t offsetY, ScreenId mirroredId)
 {
     offsetX_ = offsetX;
@@ -83,6 +121,24 @@ void RSProcessor::CalculateMirrorAdaptiveCoefficient(float curWidth, float curHe
         return;
     }
     mirrorAdaptiveCoefficient_ = std::min(curWidth / mirroredWidth, curHeight / mirroredHeight);
+}
+
+void RSProcessor::MultiLayersPerf(size_t layerNum)
+{
+    static uint32_t lastLayerLevel = 0;
+    static std::chrono::steady_clock::time_point lastRequestPerfTime = std::chrono::steady_clock::now();
+    auto curLayerLevel = layerNum / PERF_LEVEL_INTERVAL;
+    auto currentTime = std::chrono::steady_clock::now();
+    bool isTimeOut = std::chrono::duration_cast<std::chrono::milliseconds>(currentTime - lastRequestPerfTime).
+        count() > PERF_TIME_OUT;
+    if (curLayerLevel != lastLayerLevel || isTimeOut) {
+        if (!isTimeOut) {
+            RequestPerf(lastLayerLevel, false);
+        }
+        RequestPerf(curLayerLevel, true);
+        lastLayerLevel = curLayerLevel;
+        lastRequestPerfTime = currentTime;
+    }
 }
 } // namespace Rosen
 } // namespace OHOS
