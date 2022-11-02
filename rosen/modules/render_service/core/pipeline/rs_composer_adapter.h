@@ -67,6 +67,7 @@ private:
         const sptr<Surface>& surface,
         RSBaseRenderNode* node) const;
     void DealWithNodeGravity(const RSSurfaceRenderNode& node, ComposeInfo& info) const;
+    void DumpLayersToFile(const std::vector<LayerInfoPtr>& layers);
 
     void LayerRotate(const LayerInfoPtr& layer, RSBaseRenderNode& node) const;
     void LayerCrop(const LayerInfoPtr& layer) const;

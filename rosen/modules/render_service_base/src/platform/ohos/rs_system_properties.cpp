@@ -143,6 +143,11 @@ uint64_t RSSystemProperties::GetDumpSurfaceId()
     return std::atoi((system::GetParameter("rosen.dumpsurfaceid", "0")).c_str());
 }
 
+bool RSSystemProperties::GetDumpLayersEnabled()
+{
+    return std::atoi((system::GetParameter("rosen.dumplayer.enabled", "0")).c_str()) != 0;
+}
+
 void RSSystemProperties::SetDrawTextAsBitmap(bool flag)
 {
     isDrawTextAsBitmap_ = flag;

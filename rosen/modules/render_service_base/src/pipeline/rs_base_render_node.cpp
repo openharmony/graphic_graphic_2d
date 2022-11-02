@@ -239,43 +239,28 @@ void RSBaseRenderNode::DumpTree(int32_t depth, std::string& out) const
     out += "| ";
     DumpNodeType(out);
     out += "[" + std::to_string(GetId()) + "]";
-    out += ", isOnTheTree: " + std::to_string(isOnTheTree_);
     if (GetType() == RSRenderNodeType::SURFACE_NODE) {
         auto surfaceNode = (static_cast<const RSSurfaceRenderNode*>(this));
+        auto p = parent_.lock();
+        out += ", Parent [" + (p != nullptr ? std::to_string(p->GetId()) : "null") + "]";
+        out += ", Name [" + surfaceNode->GetName() + "]";
         const RSSurfaceHandler& surfaceHandler = static_cast<const RSSurfaceHandler&>(*surfaceNode);
         out += ", hasConsumer: " + std::to_string(surfaceHandler.HasConsumer());
-        out += ", Name [" + surfaceNode->GetName() + "]";
-        out += ", Alpha: " + std::to_string(surfaceNode->GetContextAlpha() *
-            surfaceNode->GetRenderProperties().GetAlpha());
+        static int decimal = 3;
+        std::string contentAlpha = std::to_string(surfaceNode->GetContextAlpha());
+        contentAlpha = contentAlpha.substr(0, contentAlpha.find(".") + decimal);
+        std::string propertyAlpha = std::to_string(surfaceNode->GetRenderProperties().GetAlpha());
+        propertyAlpha = propertyAlpha.substr(0, propertyAlpha.find(".") + decimal);
+        out += ", Alpha: " + contentAlpha + "*" + propertyAlpha;
         out += ", Visible: " + std::to_string(surfaceNode->GetRenderProperties().GetVisible());
-        auto p = parent_.lock();
-        out += ", parent [" + (p != nullptr ? std::to_string(p->GetId()) : "null") + "]";
-        out = out + ", " + surfaceNode->GetVisibleRegion().GetRegionInfo();
-        out += ", SurfaceBgAlpha[ " + std::to_string(surfaceNode->GetAbilityBgAlpha()) + " ]";
+        out += ", " + surfaceNode->GetVisibleRegion().GetRegionInfo();
+        out += ", OcclusionBg: " + std::to_string(surfaceNode->GetAbilityBgAlpha());
     }
     if (GetType() == RSRenderNodeType::ROOT_NODE) {
         auto rootNode = static_cast<const RSRootRenderNode*>(this);
         out += ", Visible: " + std::to_string(rootNode->GetRenderProperties().GetVisible());
     }
-    out += ", children[";
-    for (auto child : children_) {
-        auto c = child.lock();
-        if (c != nullptr) {
-            out += std::to_string(c->GetId()) + " ";
-        } else {
-            out += ", null";
-        }
-    }
-    if (!disappearingChildren_.empty()) {
-        out += "], disappearing children[";
-        int i = 0;
-        for (auto& disappearingChild : disappearingChildren_) {
-            out += "(" + std::to_string(i) + ": id:" + std::to_string(disappearingChild.first->GetId()) +
-                   ", Transition:" + std::to_string(disappearingChild.first->HasDisappearingTransition(false)) + "),";
-            ++i;
-        }
-    }
-    out += "]\n";
+    out += "\n";
 
     for (auto child : children_) {
         if (auto c = child.lock()) {

@@ -15,6 +15,10 @@
 
 #include "rs_composer_adapter.h"
 
+#include <fstream>
+#include <sstream>
+#include <sys/time.h>
+
 #include "common/rs_common_def.h"
 #include "common/rs_obj_abs_geometry.h"
 #include "platform/common/rs_log.h"
@@ -82,6 +86,8 @@ void RSComposerAdapter::CommitLayers(const std::vector<LayerInfoPtr>& layers)
         return;
     }
 
+    DumpLayersToFile(layers);
+
     // do composition.
     output_->SetLayerInfo(layers);
     std::vector<std::shared_ptr<HdiOutput>> outputs {output_};
@@ -121,6 +127,39 @@ void RSComposerAdapter::CommitLayers(const std::vector<LayerInfoPtr>& layers)
             continue;
         }
         surfaceHandler->SetReleaseFence(fence);
+    }
+}
+
+void RSComposerAdapter::DumpLayersToFile(const std::vector<LayerInfoPtr>& layers)
+{
+    if (!RSSystemProperties::GetDumpLayersEnabled()) {
+        return;
+    }
+
+    for (auto &layerInfo : layers) {
+        if (layerInfo == nullptr || layerInfo->GetSurface() == nullptr) {
+            continue;
+        }
+        struct timeval now;
+        gettimeofday(&now, nullptr);
+        constexpr int secToUsec = 1000 * 1000;
+        int64_t nowVal = static_cast<int64_t>(now.tv_sec) * secToUsec + static_cast<int64_t>(now.tv_usec);
+
+        std::stringstream ss;
+        ss << "/data/layer_" << layerInfo->GetSurface()->GetName()  << "_" << nowVal << ".raw";
+
+        std::ofstream rawDataFile(ss.str(), std::ofstream::binary);
+        if (!rawDataFile.good()) {
+            RS_LOGW("RSComposerAdapter::DumpLayersToFile: Open failed!");
+            return;
+        }
+        auto buffer = layerInfo->GetBuffer();
+        if (buffer == nullptr) {
+            RS_LOGW("RSComposerAdapter::DumpLayersToFile: Buffer is null");
+            return;
+        }
+        rawDataFile.write(static_cast<const char *>(buffer->GetVirAddr()), buffer->GetSize());
+        rawDataFile.close();
     }
 }
 
