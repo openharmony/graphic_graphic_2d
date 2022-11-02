@@ -72,6 +72,11 @@ public:
     {
         return oldDirty_;
     }
+    inline RectI GetOldDirtyInSurface() const
+    {
+        return oldDirtyInSurface_;
+    }
+
     inline bool IsDirtyRegionUpdated() const
     {
         return isDirtyRegionUpdated_;
@@ -82,6 +87,15 @@ public:
     void ApplyModifiers();
     std::shared_ptr<RSRenderModifier> GetModifier(const PropertyId& id);
 
+    bool IsShadowValidLastFrame() const
+    {
+        return isShadowValidLastFrame_;
+    }
+    void SetShadowValidLastFrame(bool isShadowValidLastFrame)
+    {
+        isShadowValidLastFrame_ = isShadowValidLastFrame;
+    }
+
 protected:
     explicit RSRenderNode(NodeId id, std::weak_ptr<RSContext> context = {});
     void UpdateDirtyRegion(RSDirtyRegionManager& dirtyManager, bool geoDirty);
@@ -91,6 +105,7 @@ protected:
     std::map<RSModifierType, std::list<std::shared_ptr<RSRenderModifier>>> drawCmdModifiers_;
     // if true, it means currently it's in partial render mode and this node is intersect with dirtyRegion
     bool isRenderUpdateIgnored_ = false;
+    bool isShadowValidLastFrame_ = false;
 
 private:
     void FallbackAnimationsToRoot();
@@ -99,6 +114,7 @@ private:
     bool isLastVisible_ = false;
     uint32_t disappearingTransitionCount_ = 0;
     RectI oldDirty_;
+    RectI oldDirtyInSurface_;
     RSProperties renderProperties_;
     RSAnimationManager animationManager_;
     std::map<PropertyId, std::shared_ptr<RSRenderModifier>> modifiers_;
