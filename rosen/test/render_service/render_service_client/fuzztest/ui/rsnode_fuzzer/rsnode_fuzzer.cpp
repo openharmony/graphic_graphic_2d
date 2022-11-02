@@ -90,17 +90,8 @@ bool RSSurfaceNodeFuzzTest(const uint8_t* data, size_t size)
     return true;
 }
 
-bool RSNodeFuzzTest(const uint8_t* data, size_t size)
+void RSNodeFuzzTestInner01(std::shared_ptr<RSSurfaceNode> surfaceNode)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     Vector4f bounds(GetData<float>(), GetData<float>(), GetData<float>(), GetData<float>());
     Vector4f frame(GetData<float>(), GetData<float>(), GetData<float>(), GetData<float>());
     Vector2f pivot(GetData<float>(), GetData<float>());
@@ -108,13 +99,7 @@ bool RSNodeFuzzTest(const uint8_t* data, size_t size)
     Quaternion quaternion(GetData<float>(), GetData<float>(), GetData<float>(), GetData<float>());
     Vector2f translate(GetData<float>(), GetData<float>());
     Vector2f scale(GetData<float>(), GetData<float>());
-    std::shared_ptr<RSShader> shader = RSShader::CreateRSShader();
-    Vector4f width(GetData<float>(), GetData<float>(), GetData<float>(), GetData<float>());
-    Vector4<BorderStyle> style(
-        GetData<BorderStyle>(), GetData<BorderStyle>(), GetData<BorderStyle>(), GetData<BorderStyle>());
 
-    RSSurfaceNodeConfig surfaceNodeConfig;
-    std::shared_ptr<RSSurfaceNode> surfaceNode = RSSurfaceNode::Create(surfaceNodeConfig);
     surfaceNode->SetBounds(bounds);
     surfaceNode->SetBounds(GetData<float>(), GetData<float>(), GetData<float>(), GetData<float>());
     surfaceNode->SetBoundsWidth(GetData<float>());
@@ -155,6 +140,14 @@ bool RSNodeFuzzTest(const uint8_t* data, size_t size)
 
     surfaceNode->SetAlpha(GetData<float>());
     surfaceNode->SetAlphaOffscreen(GetData<float>());
+}
+
+void RSNodeFuzzTestInner02(std::shared_ptr<RSSurfaceNode> surfaceNode)
+{
+    std::shared_ptr<RSShader> shader = RSShader::CreateRSShader();
+    Vector4f width(GetData<float>(), GetData<float>(), GetData<float>(), GetData<float>());
+    Vector4<BorderStyle> style(
+        GetData<BorderStyle>(), GetData<BorderStyle>(), GetData<BorderStyle>(), GetData<BorderStyle>());
 
     surfaceNode->SetForegroundColor(GetData<uint32_t>());
     surfaceNode->SetBackgroundColor(GetData<uint32_t>());
@@ -190,6 +183,24 @@ bool RSNodeFuzzTest(const uint8_t* data, size_t size)
 
     surfaceNode->SetVisible(GetData<bool>());
     surfaceNode->SetPaintOrder(GetData<bool>());
+}
+
+bool RSNodeFuzzTest(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    RSSurfaceNodeConfig surfaceNodeConfig;
+    std::shared_ptr<RSSurfaceNode> surfaceNode = RSSurfaceNode::Create(surfaceNodeConfig);
+
+    RSNodeFuzzTestInner01(surfaceNode);
+    RSNodeFuzzTestInner02(surfaceNode);
 
     return true;
 }

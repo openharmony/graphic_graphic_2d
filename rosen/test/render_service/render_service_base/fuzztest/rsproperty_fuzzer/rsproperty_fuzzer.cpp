@@ -141,8 +141,6 @@ void RSPropertiesFuzzTestInner02(RSProperties& properties)
     float x9 = GetData<float>();
     float y9 = GetData<float>();
     Vector2f scale(x9, y9);
-    float sx = GetData<float>();
-    float sy = GetData<float>();
     float alpha = GetData<float>();
     bool alphaOffscreen = GetData<bool>();
     int16_t red1 = GetData<int16_t>();
@@ -150,7 +148,6 @@ void RSPropertiesFuzzTestInner02(RSProperties& properties)
     int16_t blue1 = GetData<int16_t>();
     Color color1(red1, green1, blue1);
     std::shared_ptr<RSShader> shader = RSShader::CreateRSShader();
-    std::shared_ptr<RSImage> image = std::make_shared<RSImage>();
     int16_t red2 = GetData<int16_t>();
     int16_t green2 = GetData<int16_t>();
     int16_t blue2 = GetData<int16_t>();
@@ -164,10 +161,6 @@ void RSPropertiesFuzzTestInner02(RSProperties& properties)
     int16_t blue4 = GetData<int16_t>();
     Color color4(red4, green4, blue4);
     Vector4<Color> colorVector(color1, color2, color3, color4);
-    float width = GetData<float>();
-    float height = GetData<float>();
-    float positionX = GetData<float>();
-    float positionY = GetData<float>();
 
     properties.SetQuaternion(quaternion);
     properties.SetRotation(degree);
@@ -178,18 +171,11 @@ void RSPropertiesFuzzTestInner02(RSProperties& properties)
     properties.SetTranslateY(translate);
     properties.SetTranslateZ(translate);
     properties.SetScale(scale);
-    properties.SetScaleX(sx);
-    properties.SetScaleY(sy);
     properties.SetAlpha(alpha);
     properties.SetAlphaOffscreen(alphaOffscreen);
     properties.SetForegroundColor(color1);
     properties.SetBackgroundColor(color2);
     properties.SetBackgroundShader(shader);
-    properties.SetBgImage(image);
-    properties.SetBgImageWidth(width);
-    properties.SetBgImageHeight(height);
-    properties.SetBgImagePositionX(positionX);
-    properties.SetBgImagePositionY(positionY);
     properties.SetBorderColor(colorVector);
 }
 
@@ -221,9 +207,6 @@ void RSPropertiesFuzzTestInner03(RSProperties& properties)
     int intWidth = GetData<int>();
     int intHeight = GetData<int>();
     std::shared_ptr<RectI> rect = std::make_shared<RectI>(intLeft, intTop, intWidth, intHeight);
-    bool clipToBounds = GetData<bool>();
-    bool clipToFrame = GetData<bool>();
-    bool visible = GetData<bool>();
     int16_t red1 = GetData<int16_t>();
     int16_t green1 = GetData<int16_t>();
     int16_t blue1 = GetData<int16_t>();
@@ -243,6 +226,28 @@ void RSPropertiesFuzzTestInner03(RSProperties& properties)
     properties.SetShadowPath(shadowpath);
     properties.SetFrameGravity(gravity);
     properties.SetOverlayBounds(rect);
+}
+
+void RSPropertiesFuzzTestInner04(RSProperties& properties)
+{
+    float sx = GetData<float>();
+    float sy = GetData<float>();
+    std::shared_ptr<RSImage> image = std::make_shared<RSImage>();
+    float width = GetData<float>();
+    float height = GetData<float>();
+    float positionX = GetData<float>();
+    float positionY = GetData<float>();
+    bool clipToBounds = GetData<bool>();
+    bool clipToFrame = GetData<bool>();
+    bool visible = GetData<bool>();
+
+    properties.SetScaleX(sx);
+    properties.SetScaleY(sy);
+    properties.SetBgImage(image);
+    properties.SetBgImageWidth(width);
+    properties.SetBgImageHeight(height);
+    properties.SetBgImagePositionX(positionX);
+    properties.SetBgImagePositionY(positionY);
     properties.SetClipToBounds(clipToBounds);
     properties.SetClipToFrame(clipToFrame);
     properties.SetVisible(visible);
@@ -265,6 +270,7 @@ bool RSPropertiesFuzzTest(const uint8_t* data, size_t size)
     RSPropertiesFuzzTestInner01(properties);
     RSPropertiesFuzzTestInner02(properties);
     RSPropertiesFuzzTestInner03(properties);
+    RSPropertiesFuzzTestInner04(properties);
 
     return true;
 }
