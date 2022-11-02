@@ -207,6 +207,10 @@ DrawCmdList* DrawCmdList::Unmarshalling(Parcel& parcel)
 }
 #endif
 
+// modify the mutex to global to extend life cycle, fix destructor crash
+// only for DrawCmdListManager
+static std::mutex listsMutex_;
+
 DrawCmdListManager& DrawCmdListManager::Instance()
 {
     static DrawCmdListManager instance;
