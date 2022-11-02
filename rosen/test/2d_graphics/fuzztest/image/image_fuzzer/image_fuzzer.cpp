@@ -13,20 +13,24 @@
  * limitations under the License.
  */
 
-#include "bitmapbuild_fuzzer.h"
+#include "image_fuzzer.h"
 
 #include <cstddef>
 #include <cstdint>
 #include <securec.h>
 
 #include "image/bitmap.h"
-
-constexpr size_t DATA_MIN_SIZE = 2;
+#include "image/image.h"
+#include "utils/rect.h"
 
 namespace OHOS {
 namespace Rosen {
+namespace {
+constexpr size_t DATA_MIN_SIZE = 2;
+} // namespace
+
 namespace Drawing {
-bool BitmapBuildFuzzTest(const uint8_t* data, size_t size)
+bool BuildImageFuzzTest(const uint8_t* data, size_t size)
 {
     if (data == nullptr || size < DATA_MIN_SIZE) {
         return false;
@@ -39,6 +43,8 @@ bool BitmapBuildFuzzTest(const uint8_t* data, size_t size)
     if (bitmap.GetWidth() != width || bitmap.GetHeight() != height) {
         return false;
     }
+    Image image;
+    image.BuildFromBitmap(bitmap);
     return true;
 }
 } // namespace Drawing
@@ -49,6 +55,6 @@ bool BitmapBuildFuzzTest(const uint8_t* data, size_t size)
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
     /* Run your code on data */
-    OHOS::Rosen::Drawing::BitmapBuildFuzzTest(data, size);
+    OHOS::Rosen::Drawing::BuildImageFuzzTest(data, size);
     return 0;
 }

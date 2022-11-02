@@ -13,34 +13,38 @@
  * limitations under the License.
  */
 
-#include "pathop_fuzzer.h"
+#include "patheffect_fuzzer.h"
 
 #include <cstddef>
 #include <cstdint>
 #include <securec.h>
 
-#include "draw/path.h"
-
-const int FUZZ_DATA_LEN = 0;
-const int CONSTANTS_NUMBER_FIVE = 5;
+#include "get_object.h"
+#include "effect/path_effect.h"
+#include "utils/scalar.h"
 
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-bool PathOpFuzzTest(const uint8_t* data, size_t size)
+bool PathEffectFuzzTest(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
         return false;
     }
-    if (size > FUZZ_DATA_LEN) {
-        Path path;
-        PathOp pathOp = static_cast<PathOp>(size % CONSTANTS_NUMBER_FIVE);
-        Path path1;
-        Path path2;
-        path.Op(path1, path2, pathOp);
-        return true;
-    }
-    return false;
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    scalar radius = GetObject<scalar>();
+    PathEffect::CreateCornerPathEffect(radius);
+    Path path;
+    scalar advance = GetObject<scalar>();
+    scalar phase = GetObject<scalar>();
+    uint32_t style = GetObject<uint32_t>();
+    PathEffect::CreatePathDashEffect(path, advance, phase, static_cast<PathDashStyle>(style));
+    return true;
 }
 } // namespace Drawing
 } // namespace Rosen
@@ -50,6 +54,6 @@ bool PathOpFuzzTest(const uint8_t* data, size_t size)
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
     /* Run your code on data */
-    OHOS::Rosen::Drawing::PathOpFuzzTest(data, size);
+    OHOS::Rosen::Drawing::PathEffectFuzzTest(data, size);
     return 0;
 }

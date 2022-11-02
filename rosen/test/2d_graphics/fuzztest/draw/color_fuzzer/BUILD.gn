@@ -17,11 +17,14 @@ import("//build/test.gni")
 module_output_path = "graphic/2d_graphics"
 
 ##############################fuzztest##########################################
-ohos_fuzztest("SetCameraPosFuzzTest") {
+ohos_fuzztest("ColorFuzzTest") {
   module_out_path = module_output_path
-  fuzz_config_file = "//foundation/graphic/graphic_2d/rosen/test/2d_graphics/fuzztest/setcamerapos_fuzzer"
+  fuzz_config_file = "//foundation/graphic/graphic_2d/rosen/test/2d_graphics/fuzztest/draw/color_fuzzer"
 
-  sources = [ "setcamerapos_fuzzer.cpp" ]
+  sources = [
+    "color_fuzzer.cpp",
+    "get_object.h",
+  ]
 
   cflags = [
     "-g",
@@ -33,17 +36,25 @@ ohos_fuzztest("SetCameraPosFuzzTest") {
   include_dirs = [
     "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics/include",
     "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics/src",
+    "//foundation/graphic/graphic_2d/rosen/test/2d_graphics/fuzztest",
   ]
 
   deps = [
     "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics:2d_graphics",
   ]
 
-  external_deps = [
-    "c_utils:utils",
-    "hilog_native:libhilog",
-  ]
-
   part_name = "graphic_standard"
   subsystem_name = "graphic"
 }
+
+###############################################################################
+group("fuzztest") {
+  testonly = true
+  deps = []
+
+  deps += [
+    # deps file
+    ":ColorFuzzTest",
+  ]
+}
+###############################################################################

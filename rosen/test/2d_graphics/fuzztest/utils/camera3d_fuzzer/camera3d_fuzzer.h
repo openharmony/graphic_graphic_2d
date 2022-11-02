@@ -13,9 +13,9 @@
  * limitations under the License.
  */
 
-#ifndef TEST_FUZZTEST_PATHOP_FUZZER_H
-#define TEST_FUZZTEST_PATHOP_FUZZER_H
+#ifndef TEST_FUZZTEST_CAMERA3D_FUZZER_H
+#define TEST_FUZZTEST_CAMERA3D_FUZZER_H
 
-#define FUZZ_PROJECT_NAME "pathop_fuzzer"
+#define FUZZ_PROJECT_NAME "camera3d_fuzzer"
 
-#endif // TEST_FUZZTEST_PATHOP_FUZZER_H
+#endif // TEST_FUZZTEST_CAMERA3D_FUZZER_H
