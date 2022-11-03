@@ -54,6 +54,15 @@ public:
         return isHighContrastEnabled_;
     }
 
+    void SetShadowEnabled(bool enabled)
+    {
+        isShadowEnabled_ = enabled;
+    }
+    bool isShadowEnabled() const
+    {
+        return isShadowEnabled_;
+    }
+
 protected:
     bool onFilter(SkPaint& paint) const override;
     void onDrawPicture(const SkPicture* picture, const SkMatrix* matrix, const SkPaint* paint) override;
@@ -62,6 +71,7 @@ private:
     SkSurface* skSurface_ = nullptr;
     std::stack<float> alphaStack_;
     std::atomic_bool isHighContrastEnabled_ { false };
+    bool isShadowEnabled_ { true };
 };
 
 } // namespace Rosen
