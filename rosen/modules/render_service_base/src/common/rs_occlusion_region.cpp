@@ -202,7 +202,7 @@ void Region::MakeBound()
 {
     if (rects_.size()) {
         bound_ = rects_[0];
-        for (auto& r : rects_) {
+        for (const auto& r : rects_) {
             bound_.left_ = std::min(r.left_, bound_.left_);
             bound_.top_ = std::min(r.top_, bound_.top_);
             bound_.right_ = std::max(r.right_, bound_.right_);

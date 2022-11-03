@@ -84,4 +84,71 @@ HWTEST_F(RSRenderServiceTest, TestRenderService004, TestSize.Level1)
     const std::string rsCmd = defaultCmd_ + " -a RSTree";
     (void)system(rsCmd.c_str());
 }
+
+
+/**
+ * @tc.name: TestRenderService005
+ * @tc.desc: DumpHelpInfo test.
+ * @tc.type: FUNC
+ * @tc.require: issueI5ZCVU
+ */
+HWTEST_F(RSRenderServiceTest, TestRenderService005, TestSize.Level1)
+{
+    const std::string rsCmd1 = defaultCmd_;
+    (void)system(rsCmd1.c_str());
+    const std::string rsCmd2 = defaultCmd_ + " -a h";
+    (void)system(rsCmd2.c_str());
+    const std::string rsCmd3 = defaultCmd_ + " ";
+    (void)system(rsCmd3.c_str());
+    const std::string rsCmd4 = defaultCmd_ + " -h";
+    (void)system(rsCmd4.c_str());
+}
+
+/**
+ * @tc.name: TestRenderService006
+ * @tc.desc: Surface test.
+ * @tc.type: FUNC
+ * @tc.require: issueI5ZCVU
+ */
+HWTEST_F(RSRenderServiceTest, TestRenderService006, TestSize.Level1)
+{
+    const std::string rsCmd = defaultCmd_ + " -a surface";
+    (void)system(rsCmd.c_str());
+}
+
+/**
+ * @tc.name: TestRenderService007
+ * @tc.desc: Screen test.
+ * @tc.type: FUNC
+ * @tc.require: issueI5ZCVU
+ */
+HWTEST_F(RSRenderServiceTest, TestRenderService007, TestSize.Level1)
+{
+    const std::string rsCmd = defaultCmd_ + " -a screen";
+    (void)system(rsCmd.c_str());
+}
+
+/**
+ * @tc.name: TestRenderService008
+ * @tc.desc: allInfo test.
+ * @tc.type: FUNC
+ * @tc.require: issueI5ZCVU
+ */
+HWTEST_F(RSRenderServiceTest, TestRenderService008, TestSize.Level1)
+{
+    const std::string rsCmd = defaultCmd_ + " -a allInfo";
+    (void)system(rsCmd.c_str());
+}
+
+/**
+ * @tc.name: TestRenderService009
+ * @tc.desc: FPS test.
+ * @tc.type: FUNC
+ * @tc.require: issueI5ZCVU
+ */
+HWTEST_F(RSRenderServiceTest, TestRenderService009, TestSize.Level1)
+{
+    const std::string rsCmd = defaultCmd_ + " -a 'composer fps'";
+    (void)system(rsCmd.c_str());
+}
 }// namespace OHOS::Rosen
