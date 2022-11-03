@@ -26,10 +26,10 @@
 #include "screen_manager/rs_screen_manager.h"
 #include "visitor/rs_node_visitor.h"
 
+class SkPicture;
 namespace OHOS {
 namespace Rosen {
 class RSPaintFilterCanvas;
-
 class RSUniRenderVisitor : public RSNodeVisitor {
 public:
     RSUniRenderVisitor();
@@ -86,6 +86,8 @@ private:
     void AddOverDrawListener(std::unique_ptr<RSRenderFrame>& renderFrame,
         std::shared_ptr<RSCanvasListener>& overdrawListener);
 
+    void RecordAppWindowNodeAndPostTask(RSSurfaceRenderNode& node, float width, float height);
+
     ScreenInfo screenInfo_;
     std::shared_ptr<RSDirtyRegionManager> curSurfaceDirtyManager_;
     std::shared_ptr<RSSurfaceRenderNode> curSurfaceNode_;
@@ -124,6 +126,9 @@ private:
     std::vector<ScreenColorGamut> colorGamutmodes_;
     ContainerWindowConfigType containerWindowConfig_;
     pid_t currentFocusedPid_ = -1;
+
+    bool needColdStartThread_ = false;
+    bool needDrawStartingWindow_ = true;
 };
 } // namespace Rosen
 } // namespace OHOS
