@@ -43,7 +43,7 @@ EglWrapperContext *EglWrapperContext::GetWrapperContext(EGLContext ctx)
     return reinterpret_cast<EglWrapperContext *>(ctx);
 }
 
-EGLSurface EglWrapperContext::GetCurrentSurface(EGLint type)
+EGLSurface EglWrapperContext::GetCurrentSurface(EGLint type) const
 {
     WLOGD("");
     switch (type) {
