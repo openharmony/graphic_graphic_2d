@@ -55,7 +55,7 @@ struct ColorPickerAsyncContext {
 static void BuildMsgOnError(napi_env env,
                             const std::unique_ptr<ColorPickerAsyncContext>& context,
                             bool assertion,
-                            const std::string msg);
+                            const std::string& msg);
 
 static napi_value BuildJsColor(napi_env env, ColorManager::Color color);
 
@@ -509,7 +509,7 @@ ImageType ColorPickerNapi::ParserArgumentType(napi_env env, napi_value argv)
 void BuildMsgOnError(napi_env env,
                      const std::unique_ptr<ColorPickerAsyncContext>& context,
                      bool assertion,
-                     const std::string msg)
+                     const std::string& msg)
 {
     if (!assertion) {
         EFFECT_LOG_E("%{public}s", msg.c_str());
