@@ -13,50 +13,51 @@
  * limitations under the License.
  */
 
-#include "setcamerapos_fuzzer.h"
+#include "camera3d_fuzzer.h"
 
 #include <cstddef>
 #include <cstdint>
 #include <securec.h>
 
+#include "get_object.h"
 #include "utils/camera3d.h"
 #include "utils/matrix.h"
 #include "utils/scalar.h"
 
-const int CONSTANTS_NUMBER = 5;
-
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-template<class T>
-size_t GetObject(T &object, const uint8_t *data, size_t size)
+bool Camera3dFuzzTest(const uint8_t* data, size_t size)
 {
-    size_t objectSize = sizeof(object);
-    if (data == nullptr || objectSize > size) {
-        return 0;
-    }
-    auto ret = memcpy_s(&object, objectSize, data, objectSize);
-    if (ret != EOK) {
-        return 0;
-    }
-    return objectSize;
-}
-
-bool SetCameraPosFuzzTest(const uint8_t* data, size_t size)
-{
-    scalar positionX;
-    scalar positionY;
-    if (data == nullptr || size < sizeof(scalar) + sizeof(scalar)) {
+    if (data == nullptr) {
         return false;
     }
 
-    size_t startPos = 0;
-    startPos += GetObject<scalar>(positionX, data + startPos, size - startPos);
-    startPos += GetObject<scalar>(positionY, data + startPos, size - startPos);
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    scalar positionX = GetObject<scalar>();
+    scalar positionY = GetObject<scalar>();
+    scalar positionZ = GetObject<scalar>();
     Camera3D camera3d;
     Matrix matrix;
     camera3d.ApplyToMatrix(matrix);
-    camera3d.SetCameraPos(positionX, positionY, CONSTANTS_NUMBER);
+    camera3d.SetCameraPos(positionX, positionY, positionZ);
+    camera3d.GetCameraPosX();
+    camera3d.GetCameraPosY();
+    camera3d.GetCameraPosZ();
+    camera3d.Translate(positionX, positionY, positionZ);
+
+    scalar rotationX = GetObject<scalar>();
+    scalar rotationY = GetObject<scalar>();
+    scalar rotationZ = GetObject<scalar>();
+    camera3d.RotateXDegrees(rotationX);
+    camera3d.RotateYDegrees(rotationY);
+    camera3d.RotateZDegrees(rotationZ);
+    camera3d.Save();
+    camera3d.Restore();
     return true;
 }
 } // namespace Drawing
@@ -67,6 +68,6 @@ bool SetCameraPosFuzzTest(const uint8_t* data, size_t size)
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
     /* Run your code on data */
-    OHOS::Rosen::Drawing::SetCameraPosFuzzTest(data, size);
+    OHOS::Rosen::Drawing::Camera3dFuzzTest(data, size);
     return 0;
 }

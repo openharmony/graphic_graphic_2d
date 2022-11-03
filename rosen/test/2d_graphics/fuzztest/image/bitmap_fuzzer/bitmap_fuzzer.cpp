@@ -13,44 +13,37 @@
  * limitations under the License.
  */
 
-#include "setargb_fuzzer.h"
+#include "bitmap_fuzzer.h"
 
 #include <cstddef>
 #include <cstdint>
 #include <securec.h>
 
-#include "c/drawing_color.h"
-
-const uint32_t CONSTANTS_GREEN = 10;
-const int CONSTANTS_NUMBER_FIVE = 5;
+#include "image/bitmap.h"
+#include "draw/color.h"
 
 namespace OHOS {
 namespace Rosen {
-namespace Drawing {
-template<class T>
-size_t GetObject(T &object, const uint8_t *data, size_t size)
-{
-    size_t objectSize = sizeof(object);
-    if (data == nullptr || objectSize > size) {
-        return 0;
-    }
-    auto ret = memcpy_s(&object, objectSize, data, objectSize);
-    if (ret != EOK) {
-        return 0;
-    }
-    return objectSize;
-}
+namespace {
+constexpr size_t DATA_MIN_SIZE = 2;
+} // namespace
 
-bool DrawingColorSetArgbFuzzTest(const uint8_t* data, size_t size)
+namespace Drawing {
+bool BitmapFuzzTest(const uint8_t* data, size_t size)
 {
-    uint32_t alpha;
-    if (data == nullptr || size < sizeof(uint32_t)) {
+    if (data == nullptr || size < DATA_MIN_SIZE) {
         return false;
     }
-    uint32_t blue = static_cast<uint32_t>(size % CONSTANTS_NUMBER_FIVE);
-    size_t startPos = 0;
-    GetObject<uint32_t>(alpha, data + startPos, size - startPos);
-    OH_Drawing_ColorSetArgb(alpha, 0, CONSTANTS_GREEN, blue);
+    Bitmap bitmap;
+    int width = static_cast<int>(data[0]);
+    int height = static_cast<int>(data[1]);
+    BitmapFormat bitmapFormat = { COLORTYPE_ARGB_4444, ALPHATYPE_OPAQUE };
+    bitmap.Build(width, height, bitmapFormat);
+    if (bitmap.GetWidth() != width || bitmap.GetHeight() != height || bitmap.GetPixels() == nullptr) {
+        return false;
+    }
+    bitmap.ClearWithColor(COLORTYPE_UNKNOWN);
+    bitmap.Free();
     return true;
 }
 } // namespace Drawing
@@ -61,6 +54,6 @@ bool DrawingColorSetArgbFuzzTest(const uint8_t* data, size_t size)
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
     /* Run your code on data */
-    OHOS::Rosen::Drawing::DrawingColorSetArgbFuzzTest(data, size);
+    OHOS::Rosen::Drawing::BitmapFuzzTest(data, size);
     return 0;
 }

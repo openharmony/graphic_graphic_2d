@@ -11,16 +11,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import("//build/test.gni")
 group("fuzztest") {
   testonly = true
-  deps = []
 
-  deps += [
-    # deps file
-    "draw:fuzztest",
-    "effect:fuzztest",
-    "image:fuzztest",
-    "utils:fuzztest",
+  deps = [
+    "color_fuzzer:fuzztest",
+    "path_fuzzer:fuzztest",
   ]
 }

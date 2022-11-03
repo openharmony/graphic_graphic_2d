@@ -13,9 +13,9 @@
  * limitations under the License.
  */
 
-#ifndef TEST_FUZZTEST_SETARGB_FUZZER_H
-#define TEST_FUZZTEST_SETARGB_FUZZER_H
+#ifndef TEST_FUZZTEST_IMAGE_FUZZER_H
+#define TEST_FUZZTEST_IMAGE_FUZZER_H
 
-#define FUZZ_PROJECT_NAME "setargb_fuzzer"
+#define FUZZ_PROJECT_NAME "image_fuzzer.h"
 
-#endif // TEST_FUZZTEST_DRAWINGCOLORSETARGB_FUZZER_H
+#endif // TEST_FUZZTEST_IMAGE_FUZZER_H

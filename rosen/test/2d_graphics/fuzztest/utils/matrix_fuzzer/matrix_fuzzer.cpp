@@ -13,28 +13,41 @@
  * limitations under the License.
  */
 
-#include "matrixget_fuzzer.h"
+#include "matrix_fuzzer.h"
 
 #include <cstddef>
 #include <cstdint>
 #include <securec.h>
 
+#include "get_object.h"
 #include "utils/matrix.h"
-
-constexpr int CONSTANTS_NUMBER_FIVE = 5;
+#include "utils/scalar.h"
 
 namespace OHOS {
 namespace Rosen {
+namespace {
+constexpr size_t ELEMENT_SIZE = 9;
+} // namespace
+
 namespace Drawing {
-bool MatrixGetFuzzTest(const uint8_t* data, size_t size)
+bool MatrixFuzzTest(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
         return false;
     }
-    int index = static_cast<int>(size % CONSTANTS_NUMBER_FIVE);
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    uint32_t index = GetObject<uint32_t>();
     Matrix matrix;
-    matrix.Get(index);
-    return true;
+    if (index < ELEMENT_SIZE) { // default matrix is 3x3 identity matrix
+        matrix.Get(index);
+        return true;
+    }
+    return false;
 }
 } // namespace Drawing
 } // namespace Rosen
@@ -44,6 +57,6 @@ bool MatrixGetFuzzTest(const uint8_t* data, size_t size)
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
     /* Run your code on data */
-    OHOS::Rosen::Drawing::MatrixGetFuzzTest(data, size);
+    OHOS::Rosen::Drawing::MatrixFuzzTest(data, size);
     return 0;
 }

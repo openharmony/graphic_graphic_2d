@@ -13,43 +13,46 @@
  * limitations under the License.
  */
 
-#include "pathinterpolate_fuzzer.h"
+#include "color_fuzzer.h"
 
 #include <cstddef>
 #include <cstdint>
-#include <securec.h>
 
-#include "draw/path.h"
+#include "get_object.h"
+#include "draw/brush.h"
 
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-template<class T>
-size_t GetObject(T &object, const uint8_t *data, size_t size)
+bool ColorFuzzTest(const uint8_t* data, size_t size)
 {
-    size_t objectSize = sizeof(object);
-    if (data == nullptr || objectSize > size) {
-        return 0;
-    }
-    auto ret = memcpy_s(&object, objectSize, data, objectSize);
-    if (ret != EOK) {
-        return 0;
-    }
-    return objectSize;
-}
-
-bool PathInterpolateFuzzTest(const uint8_t* data, size_t size)
-{
-    scalar weight;
-    if (data == nullptr || size < sizeof(scalar)) {
+    if (data == nullptr) {
         return false;
     }
-    Path path;
-    Path ending;
-    Path out;
-    size_t startPos = 0;
-    GetObject<scalar>(weight, data + startPos, size - startPos);
-    path.Interpolate(ending, weight, out);
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    uint32_t alpha = GetObject<uint32_t>();
+    uint32_t red = GetObject<uint32_t>();
+    uint32_t blue = GetObject<uint32_t>();
+    uint32_t green = GetObject<uint32_t>();
+    bool isAntiAlias = GetObject<bool>();
+    Brush brush;
+    brush.SetAntiAlias(isAntiAlias);
+    Color color;
+    color.SetRgb(red, green, blue, alpha);
+    color.GetAlpha();
+    color.GetRed();
+    color.GetGreen();
+    color.GetBlue();
+    brush.SetColor(color);
+
+    uint32_t colorValue = GetObject<uint32_t>();
+    color.SetColorQuad(colorValue);
+    brush.SetColor(color);
     return true;
 }
 } // namespace Drawing
@@ -60,6 +63,6 @@ bool PathInterpolateFuzzTest(const uint8_t* data, size_t size)
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
     /* Run your code on data */
-    OHOS::Rosen::Drawing::PathInterpolateFuzzTest(data, size);
+    OHOS::Rosen::Drawing::ColorFuzzTest(data, size);
     return 0;
 }

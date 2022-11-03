@@ -13,9 +13,9 @@
  * limitations under the License.
  */
 
-#ifndef TEST_FUZZTEST_BITMAPBUILD_FUZZER_H
-#define TEST_FUZZTEST_BITMAPBUILD_FUZZER_H
+#ifndef TEST_FUZZTEST_PATHEFFECT_FUZZER_H
+#define TEST_FUZZTEST_PATHEFFECT_FUZZER_H
 
-#define FUZZ_PROJECT_NAME "bitmapbuild_fuzzer"
+#define FUZZ_PROJECT_NAME "patheffct_fuzzer"
 
-#endif // TEST_FUZZTEST_BITMAP_BUILD_FUZZER_H
+#endif // TEST_FUZZTEST_COLOR_FUZZER_H
