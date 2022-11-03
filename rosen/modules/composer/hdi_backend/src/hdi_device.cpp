@@ -214,6 +214,9 @@ int32_t HdiDevice::SetScreenClientBuffer(uint32_t screenId, const BufferHandle *
 
 int32_t HdiDevice::SetScreenClientDamage(uint32_t screenId, uint32_t num, IRect &damageRect)
 {
+    if (num != 1) {
+        return DISPLAY_NOT_SUPPORT;
+    }
     CHECK_FUNC(deviceFuncs_, deviceFuncs_->SetDisplayClientDamage);
     return deviceFuncs_->SetDisplayClientDamage(screenId, num, &damageRect);
 }
@@ -356,6 +359,9 @@ int32_t HdiDevice::SetTransformMode(uint32_t screenId, uint32_t layerId, Transfo
 int32_t HdiDevice::SetLayerVisibleRegion(uint32_t screenId, uint32_t layerId,
                                          uint32_t num, IRect &visible)
 {
+    if (num != 1) {
+        return DISPLAY_NOT_SUPPORT;
+    }
     CHECK_FUNC(layerFuncs_, layerFuncs_->SetLayerVisibleRegion);
     return layerFuncs_->SetLayerVisibleRegion(screenId, layerId, num, &visible);
 }
@@ -470,6 +476,15 @@ int32_t HdiDevice::CloseLayer(uint32_t screenId, uint32_t layerId)
 {
     CHECK_FUNC(layerFuncs_, layerFuncs_->CloseLayer);
     return layerFuncs_->CloseLayer(screenId, layerId);
+}
+
+// this is only used in hdidevice_test in unittest
+void HdiDevice::ResetHdiFuncs()
+{
+    HLOGD("%{public}s: start", __func__);
+    deviceFuncs_ = nullptr;
+    layerFuncs_ = nullptr;
+    HLOGD("%{public}s: end", __func__);
 }
 
 } // namespace Rosen

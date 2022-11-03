@@ -32,7 +32,128 @@ namespace OHOS {
 #define SURFACE_DEFAULT_STRIDE_ALIGNMENT 4
 #define SURFACE_MAX_SIZE 58982400 // 8K * 8K
 
-using Rect = struct Rect {
+using GraphicCompositionType = enum {
+    GRAPHIC_COMPOSITION_CLIENT,       /**< Client composition type. The composer should be the CPU or GPU. */
+    GRAPHIC_COMPOSITION_DEVICE,       /**< Device composition type. The composer should be the hardware. */
+    GRAPHIC_COMPOSITION_CURSOR,       /**< Cursor composition type, used for cursor. */
+    GRAPHIC_COMPOSITION_VIDEO,        /**< Video composition type, used for video. */
+    GRAPHIC_COMPOSITION_DEVICE_CLEAR, /**< Device clear composition type, the device will clear the target region. */
+    GRAPHIC_COMPOSITION_CLIENT_CLEAR, /**< Client clear composition type, the service will clear the target region. */
+    GRAPHIC_COMPOSITION_TUNNEL,       /**< Tunnel composition type, used for tunnel. */
+    GRAPHIC_COMPOSITION_BUTT
+};
+
+using GraphicLayerAlpha = struct {
+    bool enGlobalAlpha;   /**< Global alpha enable bit */
+    bool enPixelAlpha;    /**< Pixel alpha enable bit */
+    uint8_t alpha0;       /**< Alpha0 value, ranging from 0 to 255 */
+    uint8_t alpha1;       /**< Alpha1 value, ranging from 0 to 255 */
+    uint8_t gAlpha;       /**< Global alpha value, ranging from 0 to 255 */
+};
+
+using GraphicBlendType = enum {
+    GRAPHIC_BLEND_NONE = 0,         /**< No blending */
+    GRAPHIC_BLEND_CLEAR,            /**< CLEAR blending */
+    GRAPHIC_BLEND_SRC,              /**< SRC blending */
+    GRAPHIC_BLEND_SRCOVER,          /**< SRC_OVER blending */
+    GRAPHIC_BLEND_DSTOVER,          /**< DST_OVER blending */
+    GRAPHIC_BLEND_SRCIN,            /**< SRC_IN blending */
+    GRAPHIC_BLEND_DSTIN,            /**< DST_IN blending */
+    GRAPHIC_BLEND_SRCOUT,           /**< SRC_OUT blending */
+    GRAPHIC_BLEND_DSTOUT,           /**< DST_OUT blending */
+    GRAPHIC_BLEND_SRCATOP,          /**< SRC_ATOP blending */
+    GRAPHIC_BLEND_DSTATOP,          /**< DST_ATOP blending */
+    GRAPHIC_BLEND_ADD,              /**< ADD blending */
+    GRAPHIC_BLEND_XOR,              /**< XOR blending */
+    GRAPHIC_BLEND_DST,              /**< DST blending */
+    GRAPHIC_BLEND_AKS,              /**< AKS blending */
+    GRAPHIC_BLEND_AKD,              /**< AKD blending */
+    GRAPHIC_BLEND_BUTT              /**< Null operation */
+};
+
+using GraphicPixelFormat = enum {
+    GRAPHIC_PIXEL_FMT_CLUT8 = 0,                 /**< CLUT8 format */
+    GRAPHIC_PIXEL_FMT_CLUT1,                     /**< CLUT1 format */
+    GRAPHIC_PIXEL_FMT_CLUT4,                     /**< CLUT4 format */
+    GRAPHIC_PIXEL_FMT_RGB_565,                   /**< RGB565 format */
+    GRAPHIC_PIXEL_FMT_RGBA_5658,                 /**< RGBA5658 format */
+    GRAPHIC_PIXEL_FMT_RGBX_4444,                 /**< RGBX4444 format */
+    GRAPHIC_PIXEL_FMT_RGBA_4444,                 /**< RGBA4444 format */
+    GRAPHIC_PIXEL_FMT_RGB_444,                   /**< RGB444 format */
+    GRAPHIC_PIXEL_FMT_RGBX_5551,                 /**< RGBX5551 format */
+    GRAPHIC_PIXEL_FMT_RGBA_5551,                 /**< RGBA5551 format */
+    GRAPHIC_PIXEL_FMT_RGB_555,                   /**< RGB555 format */
+    GRAPHIC_PIXEL_FMT_RGBX_8888,                 /**< RGBX8888 format */
+    GRAPHIC_PIXEL_FMT_RGBA_8888,                 /**< RGBA8888 format */
+    GRAPHIC_PIXEL_FMT_RGB_888,                   /**< RGB888 format */
+    GRAPHIC_PIXEL_FMT_BGR_565,                   /**< BGR565 format */
+    GRAPHIC_PIXEL_FMT_BGRX_4444,                 /**< BGRX4444 format */
+    GRAPHIC_PIXEL_FMT_BGRA_4444,                 /**< BGRA4444 format */
+    GRAPHIC_PIXEL_FMT_BGRX_5551,                 /**< BGRX5551 format */
+    GRAPHIC_PIXEL_FMT_BGRA_5551,                 /**< BGRA5551 format */
+    GRAPHIC_PIXEL_FMT_BGRX_8888,                 /**< BGRX8888 format */
+    GRAPHIC_PIXEL_FMT_BGRA_8888,                 /**< BGRA8888 format */
+    GRAPHIC_PIXEL_FMT_YUV_422_I,                 /**< YUV422 interleaved format */
+    GRAPHIC_PIXEL_FMT_YCBCR_422_SP,              /**< YCBCR422 semi-planar format */
+    GRAPHIC_PIXEL_FMT_YCRCB_422_SP,              /**< YCRCB422 semi-planar format */
+    GRAPHIC_PIXEL_FMT_YCBCR_420_SP,              /**< YCBCR420 semi-planar format */
+    GRAPHIC_PIXEL_FMT_YCRCB_420_SP,              /**< YCRCB420 semi-planar format */
+    GRAPHIC_PIXEL_FMT_YCBCR_422_P,               /**< YCBCR422 planar format */
+    GRAPHIC_PIXEL_FMT_YCRCB_422_P,               /**< YCRCB422 planar format */
+    GRAPHIC_PIXEL_FMT_YCBCR_420_P,               /**< YCBCR420 planar format */
+    GRAPHIC_PIXEL_FMT_YCRCB_420_P,               /**< YCRCB420 planar format */
+    GRAPHIC_PIXEL_FMT_YUYV_422_PKG,              /**< YUYV422 packed format */
+    GRAPHIC_PIXEL_FMT_UYVY_422_PKG,              /**< UYVY422 packed format */
+    GRAPHIC_PIXEL_FMT_YVYU_422_PKG,              /**< YVYU422 packed format */
+    GRAPHIC_PIXEL_FMT_VYUY_422_PKG,              /**< VYUY422 packed format */
+    GRAPHIC_PIXEL_FMT_VENDER_MASK = 0X7FFF0000,  /**< vendor mask format */
+    GRAPHIC_PIXEL_FMT_BUTT = 0X7FFFFFFF          /**< Invalid pixel format */
+};
+
+using GraphicLayerType = enum {
+    GRAPHIC_LAYER_TYPE_GRAPHIC,         /**< Graphic layer */
+    GRAPHIC_LAYER_TYPE_OVERLAY,         /**< Overlay layer */
+    GRAPHIC_LAYER_TYPE_SDIEBAND,        /**< Sideband layer */
+    GRAPHIC_LAYER_TYPE_CURSOR,          /**< Cursor Layer */
+    GRAPHIC_LAYER_TYPE_BUTT             /**< Empty layer */
+};
+
+using GraphicLayerInfo = struct {
+    int32_t width;                /**< Layer width */
+    int32_t height;               /**< Layer height */
+    GraphicLayerType type;        /**< Layer type, which can be a graphic layer, overlay layer, or sideband layer */
+    int32_t bpp;                  /**< Number of bits occupied by each pixel */
+    GraphicPixelFormat pixFormat; /**< Pixel format of the layer */
+};
+
+using BufferAllocInfo = struct {
+    uint32_t width;                 /**< Width of the requested memory */
+    uint32_t height;                /**< Height of the requested memory */
+    uint64_t usage;                 /**< Usage of the requested memory */
+    GraphicPixelFormat format;      /**< Format of the requested memory */
+    uint32_t expectedSize;          /**< Size assigned by memory requester */
+};
+
+
+using BufferVerifyAllocInfo = struct {
+    uint32_t width;               /**< Width of the memory to allocate */
+    uint32_t height;              /**< Height of the memory to allocate */
+    uint64_t usage;               /**< Usage of the memory */
+    GraphicPixelFormat format;    /**< Format of the memory to allocate */
+};
+
+using GraphicPresentTimestampType = enum {
+    GRAPHIC_DISPLAY_PTS_UNSUPPORTED = 0,        /**< Unsupported */
+    GRAPHIC_DISPLAY_PTS_DELAY = 1 << 0,         /**< Delay */
+    GRAPHIC_DISPLAY_PTS_TIMESTAMP = 1 << 1,     /**< Timestamp */
+};
+
+using GraphicPresentTimestamp = struct {
+    GraphicPresentTimestampType type;     /**< Present timestamp type */
+    int64_t time;                         /**< Present timestamp value */
+};
+
+using Rect = struct {
     int32_t x;
     int32_t y;
     int32_t w;
@@ -50,6 +171,23 @@ using HDRMetaDataType = enum {
     HDR_NOT_USED = 0,
     HDR_META_DATA,
     HDR_META_DATA_SET,
+};
+
+using GraphicHDRMetadataKey = enum {
+    GRAPHIC_MATAKEY_RED_PRIMARY_X = 0,
+    GRAPHIC_MATAKEY_RED_PRIMARY_Y = 1,
+    GRAPHIC_MATAKEY_GREEN_PRIMARY_X = 2,
+    GRAPHIC_MATAKEY_GREEN_PRIMARY_Y = 3,
+    GRAPHIC_MATAKEY_BLUE_PRIMARY_X = 4,
+    GRAPHIC_MATAKEY_BLUE_PRIMARY_Y = 5,
+    GRAPHIC_MATAKEY_WHITE_PRIMARY_X = 6,
+    GRAPHIC_MATAKEY_WHITE_PRIMARY_Y = 7,
+    GRAPHIC_MATAKEY_MAX_LUMINANCE = 8,
+    GRAPHIC_MATAKEY_MIN_LUMINANCE = 9,
+    GRAPHIC_MATAKEY_MAX_CONTENT_LIGHT_LEVEL = 10,
+    GRAPHIC_MATAKEY_MAX_FRAME_AVERAGE_LIGHT_LEVEL = 11,
+    GRAPHIC_MATAKEY_HDR10_PLUS = 12,
+    GRAPHIC_MATAKEY_HDR_VIVID = 13,
 };
 
 using HDRMetaDataSet = struct HDRMetaDataSet {
@@ -96,15 +234,38 @@ using SurfaceBufferUsage = enum {
     BUFFER_USAGE_VENDOR_PRI19 = (1ULL << 63),   /**< Reserverd for vendor */
 };
 
+using GraphicColorGamut = enum {
+    GRAPHIC_COLOR_GAMUT_INVALID = -1,            /**< Invalid */
+    GRAPHIC_COLOR_GAMUT_NATIVE = 0,              /**< Native or default */
+    GRAPHIC_COLOR_GAMUT_STANDARD_BT601 = 1,      /**< Standard BT601 */
+    GRAPHIC_COLOR_GAMUT_STANDARD_BT709 = 2,      /**< Standard BT709 */
+    GRAPHIC_COLOR_GAMUT_DCI_P3 = 3,              /**< DCI P3 */
+    GRAPHIC_COLOR_GAMUT_SRGB = 4,                /**< SRGB */
+    GRAPHIC_COLOR_GAMUT_ADOBE_RGB = 5,           /**< Adobe RGB */
+    GRAPHIC_COLOR_GAMUT_DISPLAY_P3 = 6,          /**< display P3 */
+    GRAPHIC_COLOR_GAMUT_BT2020 = 7,              /**< BT2020 */
+    GRAPHIC_COLOR_GAMUT_BT2100_PQ = 8,           /**< BT2100 PQ */
+    GRAPHIC_COLOR_GAMUT_BT2100_HLG = 9,          /**< BT2100 HLG */
+    GRAPHIC_COLOR_GAMUT_DISPLAY_BT2020 = 10,     /**< Display BT2020 */
+};
+
+using GraphicTransformType = enum {
+    GRAPHIC_ROTATE_NONE = 0,        /**< No rotation */
+    GRAPHIC_ROTATE_90,              /**< Rotation by 90 degrees */
+    GRAPHIC_ROTATE_180,             /**< Rotation by 180 degrees */
+    GRAPHIC_ROTATE_270,             /**< Rotation by 270 degrees */
+    GRAPHIC_ROTATE_BUTT             /**< Invalid operation */
+};
+
 using BufferRequestConfig = struct BufferRequestConfig {
     int32_t width;
     int32_t height;
     int32_t strideAlignment;
-    int32_t format; // PixelFormat
+    int32_t format; // GraphicPixelFormat
     uint64_t usage;
     int32_t timeout;
-    ColorGamut colorGamut = ColorGamut::COLOR_GAMUT_SRGB;
-    TransformType transform = TransformType::ROTATE_NONE;
+    GraphicColorGamut colorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
+    GraphicTransformType transform = GraphicTransformType::GRAPHIC_ROTATE_NONE;
     bool operator ==(const struct BufferRequestConfig &config) const
     {
         return width == config.width &&
@@ -122,7 +283,7 @@ using BufferRequestConfig = struct BufferRequestConfig {
     }
 };
 
-using BufferFlushConfig = struct BufferFlushConfig {
+using BufferFlushConfig = struct {
     Rect damage;
     int64_t timestamp;
 };

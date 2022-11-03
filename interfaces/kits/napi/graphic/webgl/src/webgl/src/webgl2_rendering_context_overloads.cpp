@@ -898,7 +898,7 @@ napi_value WebGL2RenderingContextOverloads::Uniform1fv(napi_env env, napi_callba
     napi_typedarray_type type;
     tie(succ, type, data, length) = NVal(env, array).ToTypedArray();
     if (type == napi_float32_array) {
-        float* inputFloat = (float*)((uint8_t*)(data) + srcOffset);
+        float* inputFloat = reinterpret_cast<float*>(reinterpret_cast<uint8_t*>(data) + srcOffset);
         glUniform1fv(static_cast<GLint>(locationId), static_cast<GLsizei>(length),
                      reinterpret_cast<GLfloat*>(inputFloat));
         LOGI("WebGL2 uniform1fv end");
@@ -980,7 +980,7 @@ napi_value WebGL2RenderingContextOverloads::Uniform2fv(napi_env env, napi_callba
     napi_typedarray_type type;
     tie(succ, type, data, length) = NVal(env, array).ToTypedArray();
     if (type == napi_float32_array) {
-        float* inputFloat = (float*)((uint8_t*)(data) + srcOffset);
+        float* inputFloat = reinterpret_cast<float*>(reinterpret_cast<uint8_t*>(data) + srcOffset);
         glUniform2fv(static_cast<GLint>(locationId), static_cast<GLsizei>(length),
                      reinterpret_cast<GLfloat*>(inputFloat));
         LOGI("WebGL2 uniform2fv end");
@@ -1062,7 +1062,7 @@ napi_value WebGL2RenderingContextOverloads::Uniform3fv(napi_env env, napi_callba
     napi_typedarray_type type;
     tie(succ, type, data, length) = NVal(env, array).ToTypedArray();
     if (type == napi_float32_array) {
-        float* inputFloat = (float*)((uint8_t*)(data) + srcOffset);
+        float* inputFloat = reinterpret_cast<float*>(reinterpret_cast<uint8_t*>(data) + srcOffset);
         glUniform3fv(static_cast<GLint>(locationId), static_cast<GLsizei>(length),
                      reinterpret_cast<GLfloat*>(inputFloat));
         LOGI("WebGL2 uniform3fv end");
@@ -1144,7 +1144,7 @@ napi_value WebGL2RenderingContextOverloads::Uniform4fv(napi_env env, napi_callba
     napi_typedarray_type type;
     tie(succ, type, data, length) = NVal(env, array).ToTypedArray();
     if (type == napi_float32_array) {
-        float* inputFloat = (float*)((uint8_t*)(data) + srcOffset);
+        float* inputFloat = reinterpret_cast<float*>(reinterpret_cast<uint8_t*>(data) + srcOffset);
         glUniform4fv(static_cast<GLint>(locationId), static_cast<GLsizei>(length),
                      reinterpret_cast<GLfloat*>(inputFloat));
         LOGI("WebGL2 uniform4fv end");
@@ -1226,7 +1226,7 @@ napi_value WebGL2RenderingContextOverloads::Uniform1iv(napi_env env, napi_callba
     napi_typedarray_type type;
     tie(succ, type, data, length) = NVal(env, array).ToTypedArray();
     if (type == napi_int8_array) {
-        int8_t* inputInt8 = (int8_t*)((uint8_t*)(data) + srcOffset);
+        int8_t* inputInt8 = reinterpret_cast<int8_t*>(reinterpret_cast<uint8_t*>(data) + srcOffset);
         glUniform1iv(static_cast<GLint>(locationId), static_cast<GLsizei>(length),
                      reinterpret_cast<GLint*>(inputInt8));
         LOGI("WebGL2 uniform1iv end");
@@ -1308,7 +1308,7 @@ napi_value WebGL2RenderingContextOverloads::Uniform2iv(napi_env env, napi_callba
     napi_typedarray_type type;
     tie(succ, type, data, length) = NVal(env, array).ToTypedArray();
     if (type == napi_int8_array) {
-        int8_t* inputInt8 = (int8_t*)((uint8_t*)(data) + srcOffset);
+        int8_t* inputInt8 = reinterpret_cast<int8_t*>(reinterpret_cast<uint8_t*>(data) + srcOffset);
         glUniform2iv(static_cast<GLint>(locationId), static_cast<GLsizei>(length),
                      reinterpret_cast<GLint*>(inputInt8));
         LOGI("WebGL2 uniform2iv end");
@@ -1390,7 +1390,7 @@ napi_value WebGL2RenderingContextOverloads::Uniform3iv(napi_env env, napi_callba
     napi_typedarray_type type;
     tie(succ, type, data, length) = NVal(env, array).ToTypedArray();
     if (type == napi_int8_array) {
-        int8_t* inputInt8 = (int8_t*)((uint8_t*)(data) + srcOffset);
+        int8_t* inputInt8 = reinterpret_cast<int8_t*>(reinterpret_cast<uint8_t*>(data) + srcOffset);
         glUniform3iv(static_cast<GLint>(locationId), static_cast<GLsizei>(length),
                      reinterpret_cast<GLint*>(inputInt8));
         LOGI("WebGL2 uniform3iv end");
@@ -1472,7 +1472,7 @@ napi_value WebGL2RenderingContextOverloads::Uniform4iv(napi_env env, napi_callba
     napi_typedarray_type type;
     tie(succ, type, data, length) = NVal(env, array).ToTypedArray();
     if (type == napi_int8_array) {
-        int8_t* inputInt8 = (int8_t*)((uint8_t*)(data) + srcOffset);
+        int8_t* inputInt8 = reinterpret_cast<int8_t*>(reinterpret_cast<uint8_t*>(data) + srcOffset);
         glUniform4iv(static_cast<GLint>(locationId), static_cast<GLsizei>(length),
                      reinterpret_cast<GLint*>(inputInt8));
         LOGI("WebGL2 uniform4iv end");
@@ -1564,7 +1564,7 @@ napi_value WebGL2RenderingContextOverloads::UniformMatrix2fv(napi_env env, napi_
     napi_typedarray_type type;
     tie(succ, type, data, length) = NVal(env, array).ToTypedArray();
     if (type == napi_float32_array) {
-        float* inputFloat = (float*)((uint8_t*)(data) + srcOffset);
+        float* inputFloat = reinterpret_cast<float*>(reinterpret_cast<uint8_t*>(data) + srcOffset);
         glUniformMatrix2fv(static_cast<GLint>(locationId), static_cast<GLsizei>(length),
                            static_cast<GLboolean>(transpose), reinterpret_cast<GLfloat *>(inputFloat));
         LOGI("WebGL2 uniformMatrix2fv end");
@@ -1656,7 +1656,7 @@ napi_value WebGL2RenderingContextOverloads::UniformMatrix3fv(napi_env env, napi_
     napi_typedarray_type type;
     tie(succ, type, data, length) = NVal(env, array).ToTypedArray();
     if (type == napi_float32_array) {
-        float* inputFloat = (float*)((uint8_t*)(data) + srcOffset);
+        float* inputFloat = reinterpret_cast<float*>(reinterpret_cast<uint8_t*>(data) + srcOffset);
         glUniformMatrix3fv(static_cast<GLint>(locationId), static_cast<GLsizei>(length),
                            static_cast<GLboolean>(transpose), reinterpret_cast<GLfloat *>(inputFloat));
         LOGI("WebGL2 uniformMatrix3fv end");
@@ -1748,7 +1748,7 @@ napi_value WebGL2RenderingContextOverloads::UniformMatrix4fv(napi_env env, napi_
     napi_typedarray_type type;
     tie(succ, type, data, length) = NVal(env, array).ToTypedArray();
     if (type == napi_float32_array) {
-        float* inputFloat = (float*)((uint8_t*)(data) + srcOffset);
+        float* inputFloat = reinterpret_cast<float*>(reinterpret_cast<uint8_t*>(data) + srcOffset);
         glUniformMatrix4fv(static_cast<GLint>(locationId), static_cast<GLsizei>(length),
                            static_cast<GLboolean>(transpose), reinterpret_cast<GLfloat *>(inputFloat));
         LOGI("WebGL2 uniformMatrix4fv end");

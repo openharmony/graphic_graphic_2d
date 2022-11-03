@@ -21,8 +21,10 @@ group("unittest") {
   testonly = true
 
   deps = [
+    ":RSDividedRenderUtilTest",
     ":RSRenderServiceCommonPipelineTest",
     ":RSSurfaceCaptureTaskTest",
+    ":RSUniRenderUtilTest",
   ]
 }
 
@@ -31,11 +33,13 @@ ohos_unittest("RSRenderServiceCommonPipelineTest") {
   module_out_path = module_output_path
 
   sources = [
+    "rs_base_render_util_test.cpp",
     "rs_drop_frame_processor_test.cpp",
     "rs_physical_screen_processor_test.cpp",
     "rs_processor_factory_test.cpp",
     "rs_render_service_listener_test.cpp",
     "rs_render_service_visitor_test.cpp",
+    "rs_uni_render_judgement_test.cpp",
     "rs_virtual_screen_processor_test.cpp",
     "rs_qos_thread_test.cpp",
   ]
@@ -85,6 +89,24 @@ ohos_unittest("RSSurfaceCaptureTaskTest") {
   defines += gpu_defines
 }
 
+## Build RSDividedRenderUtilTest
+ohos_unittest("RSDividedRenderUtilTest") {
+  module_out_path = module_output_path
+  sources = [ "rs_divided_render_util_test.cpp" ]
+  deps = [ ":rs_test_common" ]
+  defines = []
+  defines += gpu_defines
+}
+
+## Build RSUniRenderUtilTest
+ohos_unittest("RSUniRenderUtilTest") {
+  module_out_path = module_output_path
+  sources = [ "rs_uni_render_util_test.cpp" ]
+  deps = [ ":rs_test_common" ]
+  defines = []
+  defines += gpu_defines
+}
+
 ## Build rs_test_common.a {{{
 config("rs_test_common_public_config") {
   include_dirs = [
@@ -120,7 +142,6 @@ ohos_static_library("rs_test_common") {
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:librender_service_client",
     "//third_party/googletest:gtest_main",
   ]
-
   subsystem_name = "graphic"
   part_name = "graphic_standard"
 }

@@ -14,6 +14,7 @@
  */
 #include "pipeline/rs_main_thread.h"
 
+#include <SkGraphics.h>
 #include <securec.h>
 #include "rs_trace.h"
 
@@ -50,6 +51,7 @@ namespace {
 constexpr uint64_t REFRESH_PERIOD = 16666667;
 constexpr int32_t PERF_ANIMATION_REQUESTED_CODE = 10017;
 constexpr uint64_t PERF_PERIOD = 250000000;
+constexpr uint64_t CLEAN_CACHE_FREQ = 60;
 
 bool Compare(const std::unique_ptr<RSTransactionData>& data1, const std::unique_ptr<RSTransactionData>& data2)
 {
@@ -208,8 +210,8 @@ void RSMainThread::RemoveRSEventDetector()
 
 void RSMainThread::InitRSEventDetector()
 {
-    // default Threshold value of Timeout Event: 2000ms
-    rsCompositionTimeoutDetector_ = RSBaseEventDetector::CreateRSTimeOutDetector(2000, "RS_COMPOSITION_TIMEOUT");
+    // default Threshold value of Timeout Event: 100ms
+    rsCompositionTimeoutDetector_ = RSBaseEventDetector::CreateRSTimeOutDetector(100, "RS_COMPOSITION_TIMEOUT");
     if (rsCompositionTimeoutDetector_ != nullptr) {
         rsEventManager_.AddEvent(rsCompositionTimeoutDetector_, 60000); // report Internal 1min:60s：60000ms
         RS_LOGD("InitRSEventDetector  finish");
@@ -554,7 +556,7 @@ void RSMainThread::Render()
         RSPropertyTrace::GetInstance().RefreshNodeTraceInfo();
     }
     RS_LOGD("RSMainThread::Render isUni:%d", IfUseUniVisitor());
-    
+
     if (IfUseUniVisitor()) {
         auto uniVisitor = std::make_shared<RSUniRenderVisitor>();
         uniVisitor->SetAnimateState(doWindowAnimate_);
@@ -603,7 +605,7 @@ void RSMainThread::CalcOcclusion()
             curAllSurfaces = displayNode->GetCurAllSurfaces();
         }
     } else {
-        node->CollectSurface(node, curAllSurfaces, isUniRender_);
+        node->CollectSurface(node, curAllSurfaces, IfUseUniVisitor());
     }
 
     // 1. Judge whether it is dirty
@@ -617,7 +619,7 @@ void RSMainThread::CalcOcclusion()
                 continue;
             }
             if (surface->GetZorderChanged() || surface->GetDstRectChanged() ||
-                surface->GetAlphaChanged()) {
+                surface->GetAlphaChanged() || (IfUseUniVisitor() && surface->IsDirtyRegionUpdated())) {
                 winDirty = true;
             }
             surface->CleanDstRectChanged();
@@ -639,8 +641,8 @@ void RSMainThread::CalcOcclusion()
             continue;
         }
         Occlusion::Rect rect;
-        if (!surface->GetOldDirty().IsEmpty() && useUniVisitor_) {
-            rect = Occlusion::Rect{surface->GetOldDirty()};
+        if (!surface->GetOldDirtyInSurface().IsEmpty() && IfUseUniVisitor()) {
+            rect = Occlusion::Rect{surface->GetOldDirtyInSurface()};
         } else {
             rect = Occlusion::Rect{surface->GetDstRect()};
         }
@@ -651,11 +653,10 @@ void RSMainThread::CalcOcclusion()
         surface->setQosCal(qosPidCal_);
         surface->SetVisibleRegionRecursive(subResult, curVisVec, pidVisMap);
         // Current region need to merge current surface for next calculation(ignore alpha surface)
-        if (isUniRender_) {
-            surface->ResetSurfaceOpaqueRegion();
-            if (!surface->IsTransparent() ||
-                RSOcclusionConfig::GetInstance().IsDividerBar(surface->GetName())) {
-                curRegion.OrSelf(surface->GetOpaqueRegion());
+        if (IfUseUniVisitor()) {
+            curRegion.OrSelf(surface->GetOpaqueRegion());
+            if (RSOcclusionConfig::GetInstance().IsDividerBar(surface->GetName())) {
+                curRegion.OrSelf(curSurface);
             }
         } else {
             const uint8_t opacity = 255;
@@ -702,7 +703,7 @@ void RSMainThread::CallbackToQOS(std::map<uint32_t, bool>& pidVisMap)
     if (!RSInnovation::UpdateQosVsyncEnabled()) {
         if (qosPidCal_) {
             qosPidCal_ = false;
-            RSQosThread::GetInstance()->ResetQosPid();
+            RSQosThread::ResetQosPid();
             RSQosThread::GetInstance()->SetQosCal(qosPidCal_);
         }
         return;
@@ -806,7 +807,7 @@ void RSMainThread::Animate(uint64_t timestamp)
     });
 
     if (!doWindowAnimate_ && curWinAnim && RSInnovation::UpdateQosVsyncEnabled()) {
-        RSQosThread::GetInstance()->ResetQosPid();
+        RSQosThread::ResetQosPid();
     }
     doWindowAnimate_ = curWinAnim;
     RS_LOGD("RSMainThread::Animate end, %d animating nodes remains, has window animation: %d",
@@ -1063,6 +1064,19 @@ void RSMainThread::ClearTransactionDataPidInfo(pid_t remotePid)
         RS_LOGD("RSMainThread::ClearTransactionDataPidInfo process:%d destroyed, skip commands", remotePid);
     }
     effectiveTransactionDataIndexMap_.erase(remotePid);
+
+    // clear cpu cache when process exit
+    // CLEAN_CACHE_FREQ to prevent multiple cleanups in a short period of time
+    if ((timestamp_ - lastCleanCacheTimestamp_) / REFRESH_PERIOD > CLEAN_CACHE_FREQ) {
+#ifdef RS_ENABLE_GL
+        RS_LOGD("RSMainThread: clear cpu cache");
+        auto grContext = RSBaseRenderEngine::GetRenderContext()->GetGrContext();
+        grContext->flush();
+        SkGraphics::PurgeAllCaches();
+        grContext->flush(kSyncCpu_GrFlushFlag, 0, nullptr);
+        lastCleanCacheTimestamp_ = timestamp_;
+#endif
+    }
 }
 
 void RSMainThread::AddTransactionDataPidInfo(pid_t remotePid)

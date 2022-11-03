@@ -88,7 +88,6 @@ private:
 
     std::atomic_bool forceClear_ = true;
 
-    std::mutex listsMutex_;
     std::unordered_map<NodeId, std::vector<std::weak_ptr<DrawCmdList>>> lists_;
 };
 } // namespace Rosen

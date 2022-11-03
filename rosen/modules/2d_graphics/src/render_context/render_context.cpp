@@ -180,7 +180,7 @@ void RenderContext::InitializeEglContext()
         return;
     }
     CreatePbufferSurface();
-    if(!eglMakeCurrent(eglDisplay_, pbufferSurface_, pbufferSurface_, eglContext_)) {
+    if (!eglMakeCurrent(eglDisplay_, pbufferSurface_, pbufferSurface_, eglContext_)) {
         LOGE("Failed to make current on surface %{public}p, error is %{public}x", pbufferSurface_, eglGetError());
         return;
     }
@@ -264,11 +264,12 @@ bool RenderContext::SetUpGrContext()
     options.fDisableDistanceFieldPaths = true;
 
     mHandler_ = std::make_shared<MemoryHandler>();
-    if (mHandler_ != nullptr) {
-        auto glesVersion = reinterpret_cast<const char*>(glGetString(GL_VERSION));
-        auto size = glesVersion ? strlen(glesVersion) : -1;
-        mHandler_->configureContext(&options, glesVersion, size, cacheDir_);
+    auto glesVersion = reinterpret_cast<const char*>(glGetString(GL_VERSION));
+    auto size = glesVersion ? strlen(glesVersion) : 0;
+    if (isUniRenderMode_) {
+        cacheDir_ = UNIRENDER_CACHE_DIR;
     }
+    mHandler_->ConfigureContext(&options, glesVersion, size, cacheDir_, isUniRenderMode_);
 
     sk_sp<GrContext> grContext(GrContext::MakeGL(std::move(glInterface), options));
     if (grContext == nullptr) {
@@ -377,7 +378,7 @@ void RenderContext::DamageFrame(const std::vector<RectI> &rects)
         return;
     }
 
-    int size = rects.size();
+    size_t size = rects.size();
     if (size == 0) {
         LOGE("invalid rects size");
         return;

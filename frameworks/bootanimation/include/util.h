@@ -87,6 +87,12 @@ using BootAniConfig = struct BootAniConfig {
 public:
     int32_t frameRate = 30;
 };
+using BootCustomConfig = struct BootCustomConfig {
+public:
+    std::string custPicZipPath = {};
+    std::string custSoundsPath = {};
+    std::string custVideoPath = {};
+};
 using ImageStructVec = std::vector<std::shared_ptr<ImageStruct>>;
 int64_t GetNowTime();
 void PostTask(std::function<void()> func, uint32_t delayTime = 0);
@@ -98,6 +104,8 @@ bool GenImageData(const std::string& filename, std::shared_ptr<ImageStruct> imag
     ImageStructVec& outBgImgVec);
 bool ReadJsonConfig(const char* filebuffer, int totalsize, BootAniConfig& aniconfig);
 void SortZipFile(ImageStructVec& outBgImgVec);
+bool IsFileExisted(const std::string& filePath);
+bool ReadCustomBootConfig(const std::string& path, BootCustomConfig& aniconfig);
 } // namespace OHOS
 
 #endif // FRAMEWORKS_BOOTANIMATION_INCLUDE_UTIL_H

@@ -38,7 +38,7 @@ void RSAnimationManager::AddAnimation(const std::shared_ptr<RSRenderAnimation>& 
         return;
     }
     animations_.emplace(key, animation);
-    OnAnimationAdd(animation);
+    animation->MarkAddAnimationToProperty();
 }
 
 void RSAnimationManager::RemoveAnimation(AnimationId keyId)
@@ -50,7 +50,7 @@ void RSAnimationManager::RemoveAnimation(AnimationId keyId)
     }
     animationItr->second->Finish();
     animationItr->second->Detach();
-    OnAnimationRemove(animationItr->second);
+    animationItr->second->MarkRemoveAnimationToProperty();
     animations_.erase(animationItr);
 }
 
@@ -64,7 +64,7 @@ void RSAnimationManager::FilterAnimationByPid(pid_t pid)
         }
         pair.second->Finish();
         pair.second->Detach();
-        OnAnimationRemove(pair.second);
+        pair.second->MarkRemoveAnimationToProperty();
         return true;
     });
 }
@@ -99,16 +99,6 @@ const std::shared_ptr<RSRenderAnimation> RSAnimationManager::GetAnimation(Animat
     return animationItr->second;
 }
 
-void RSAnimationManager::OnAnimationRemove(const std::shared_ptr<RSRenderAnimation>& animation)
-{
-    animationNum_[animation->GetPropertyId()]--;
-}
-
-void RSAnimationManager::OnAnimationAdd(const std::shared_ptr<RSRenderAnimation>& animation)
-{
-    animationNum_[animation->GetPropertyId()]++;
-}
-
 namespace {
     inline constexpr uint32_t ExtractPid(AnimationId animId)
     {
@@ -124,7 +114,7 @@ void RSAnimationManager::OnAnimationFinished(const std::shared_ptr<RSRenderAnima
     std::unique_ptr<RSCommand> command =
         std::make_unique<RSAnimationFinishCallback>(targetId, animationId);
     RSMessageProcessor::Instance().AddUIMessage(ExtractPid(animationId), command);
-    OnAnimationRemove(animation);
+    animation->MarkRemoveAnimationToProperty();
     animation->Detach();
 }
 

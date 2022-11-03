@@ -48,8 +48,12 @@ RSUniRenderVisitor::RSUniRenderVisitor()
     partialRenderType_ = RSSystemProperties::GetUniPartialRenderEnabled();
     isPartialRenderEnabled_ = (partialRenderType_ != PartialRenderType::DISABLED);
     isDirtyRegionDfxEnabled_ = (RSSystemProperties::GetDirtyRegionDebugType() == DirtyRegionDebugType::EGL_DAMAGE);
+    isTargetDirtyRegionDfxEnabled_ = RSSystemProperties::GetTargetDirtyRegionDfxEnabled(dfxTargetSurfaceNames_);
+    if (isDirtyRegionDfxEnabled_ && isTargetDirtyRegionDfxEnabled_) {
+        isDirtyRegionDfxEnabled_ = false;
+    }
     isOpDropped_ = isPartialRenderEnabled_ && (partialRenderType_ != PartialRenderType::SET_DAMAGE)
-        && !isDirtyRegionDfxEnabled_;
+        && (!isDirtyRegionDfxEnabled_ && !isTargetDirtyRegionDfxEnabled_);
 }
 RSUniRenderVisitor::~RSUniRenderVisitor() {}
 
@@ -164,7 +168,7 @@ void RSUniRenderVisitor::PrepareDisplayRenderNode(RSDisplayRenderNode& node)
         geoPtr->UpdateByMatrixFromSelf();
         parentSurfaceNodeMatrix_ = geoPtr->GetAbsMatrix();
     }
-    dirtyFlag_ |= node.IsRotationChanged();
+    dirtyFlag_ = dirtyFlag_ || node.IsRotationChanged();
     node.UpdateRotation();
     curAlpha_ = node.GetRenderProperties().GetAlpha();
     PrepareBaseRenderNode(node);
@@ -198,6 +202,7 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
     if (node.IsAppWindow() || node.GetSurfaceNodeType() == RSSurfaceNodeType::STARTING_WINDOW_NODE) {
         curSurfaceDirtyManager_ = node.GetDirtyManager();
         curSurfaceDirtyManager_->Clear();
+        curSurfaceDirtyManager_->SetSurfaceSize(screenInfo_.width, screenInfo_.height);
         if (auto parentNode = node.GetParent().lock()) {
             auto rsParent = RSBaseRenderNode::ReinterpretCast<RSRenderNode>(parentNode);
             dirtyFlag_ = node.Update(*curSurfaceDirtyManager_, &(rsParent->GetRenderProperties()), dirtyFlag_);
@@ -206,7 +211,7 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
         }
         geoPtr->ConcatMatrix(node.GetContextMatrix());
         node.SetDstRect(geoPtr->GetAbsRect().IntersectRect(RectI(0, 0, screenInfo_.width, screenInfo_.height)));
-        curDisplayNode_->UpdateSurfaceNodePos(node.GetId(), node.GetDstRect());
+        curDisplayNode_->UpdateSurfaceNodePos(node.GetId(), node.GetOldDirtyInSurface());
     } else {
         RSUniRenderUtil::UpdateRenderNodeDstRect(node, node.GetContextMatrix());
         node.SetDstRect(geoPtr->GetAbsRect().IntersectRect(RectI(0, 0, screenInfo_.width, screenInfo_.height)));
@@ -222,8 +227,9 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
             }
         }
     }
-    dirtyFlag_ |= node.GetDstRectChanged();
+    dirtyFlag_ = dirtyFlag_ || node.GetDstRectChanged();
     parentSurfaceNodeMatrix_ = geoPtr->GetAbsMatrix();
+    node.ResetSurfaceOpaqueRegion(RectI(0, 0, screenInfo_.width, screenInfo_.height), geoPtr->GetAbsRect());
 
     PrepareBaseRenderNode(node);
     // restore flags
@@ -282,6 +288,17 @@ void RSUniRenderVisitor::PrepareCanvasRenderNode(RSCanvasRenderNode &node)
     float alpha = curAlpha_;
     curAlpha_ *= node.GetRenderProperties().GetAlpha();
     PrepareBaseRenderNode(node);
+    if (node.GetRenderProperties().GetBackgroundFilter() &&
+        !curSurfaceDirtyManager_->GetDirtyRegion().IntersectRect(node.GetOldDirty()).IsEmpty()) {
+        curSurfaceDirtyManager_->MergeDirtyRect(node.GetOldDirty());
+    }
+    // [planning] Remove this after skia is upgraded, the clipRegion is supported
+    if (node.GetRenderProperties().GetBackgroundFilter()) {
+        needFilter_ = true;
+    }
+    if (node.GetRenderProperties().NeedFilter()) {
+        filterRects_.push_back(node.GetOldDirty());
+    }
     curAlpha_ = alpha;
     dirtyFlag_ = dirtyFlag;
 }
@@ -322,6 +339,44 @@ void RSUniRenderVisitor::DrawDirtyRegionForDFX(std::vector<RectI> dirtyRects)
     const float fillAlpha = 0.2;
     for (const auto& subRect : dirtyRects) {
         DrawDirtyRectForDFX(subRect, SK_ColorBLUE, SkPaint::kStroke_Style, fillAlpha);
+    }
+}
+
+void RSUniRenderVisitor::DrawAllSurfaceDirtyRegionForDFX(RSDisplayRenderNode& node, const Occlusion::Region& region)
+{
+    RectI dirtySurfaceRect = node.GetDirtyManager()->GetDirtyRegion();
+    std::vector<Occlusion::Rect> visibleDirtyRects = region.GetRegionRects();
+    std::vector<RectI> rects;
+    rects.emplace_back(dirtySurfaceRect);
+    for (auto rect : visibleDirtyRects) {
+        rects.emplace_back(RectI(rect.left_, rect.top_, rect.right_ - rect.left_, rect.bottom_ - rect.top_));
+    }
+    DrawDirtyRegionForDFX(rects);
+}
+
+void RSUniRenderVisitor::DrawTargetSurfaceDirtyRegionForDFX(RSDisplayRenderNode& node)
+{
+    for (auto it = node.GetCurAllSurfaces().rbegin(); it != node.GetCurAllSurfaces().rend(); ++it) {
+        auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(*it);
+        if (surfaceNode == nullptr || !surfaceNode->IsAppWindow()) {
+            continue;
+        }
+        if (std::find(dfxTargetSurfaceNames_.begin(), dfxTargetSurfaceNames_.end(),
+            surfaceNode->GetName()) != dfxTargetSurfaceNames_.end()) {
+            auto visibleDirtyRegions = surfaceNode->GetVisibleDirtyRegion().GetRegionRects();
+            std::vector<RectI> rects;
+            for (auto rect : visibleDirtyRegions) {
+                rects.emplace_back(RectI(rect.left_, rect.top_, rect.right_ - rect.left_, rect.bottom_ - rect.top_));
+            }
+            auto visibleRegions = surfaceNode->GetVisibleRegion().GetRegionRects();
+            auto displayDirtyRegion = node.GetDirtyManager()->GetDirtyRegion();
+            for (auto rect : visibleRegions) {
+                auto visibleRect = RectI(rect.left_, rect.top_, rect.right_ - rect.left_, rect.bottom_ - rect.top_);
+                auto intersectRegion = displayDirtyRegion.IntersectRect(visibleRect);
+                rects.emplace_back(intersectRegion);
+            }
+            DrawDirtyRegionForDFX(rects);
+        }
     }
 }
 
@@ -397,8 +452,8 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
             CalcDirtyDisplayRegion(displayNodePtr);
         }
         if (isOpDropped_ && dirtySurfaceNodeMap_.empty() && !curDisplayDirtyManager_->IsDirty()) {
-            RS_LOGD("display node is not dirty skip");
-            return;
+            RS_LOGD("Force vsync");
+            curDisplayDirtyManager_->MergeDirtyRect(RectI { 0, 0, screenInfo_.width, screenInfo_.height });
         }
 #endif
         auto rsSurface = node.GetRSSurface();
@@ -444,7 +499,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
                 RS_LOGD("SetDamageRegion %s", r.ToString().c_str());
             }
             // SetDamageRegion and opDrop will be disabled for dirty region DFX visualization
-            if (!isDirtyRegionDfxEnabled_) {
+            if (!isDirtyRegionDfxEnabled_ && !isTargetDirtyRegionDfxEnabled_) {
                 renderFrame->SetDamageRegion(rects);
             }
         }
@@ -455,8 +510,12 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
                 SkPath dirtyPath;
                 region.getBoundaryPath(&dirtyPath);
                 canvas_->clipPath(dirtyPath, true);
-                saveLayerCnt = canvas_->saveLayer(SkRect::MakeWH(screenInfo_.width, screenInfo_.height), nullptr);
+                // [planning] Remove this after skia is upgraded, the clipRegion is supported
+                if (!needFilter_) {
+                    saveLayerCnt = canvas_->saveLayer(SkRect::MakeWH(screenInfo_.width, screenInfo_.height), nullptr);
+                }
             }
+            canvas_->clear(SK_ColorTRANSPARENT);
         }
 #endif
         canvas_->save();
@@ -475,19 +534,15 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
         if (overdrawListener != nullptr) {
             overdrawListener->Draw();
         }
-
         // the following code makes DirtyRegion visible, enable this method by turning on the dirtyregiondebug property
-        if (isPartialRenderEnabled_ && isDirtyRegionDfxEnabled_) {
-            RectI dirtySurfaceRect = node.GetDirtyManager()->GetDirtyRegion();
-            std::vector<Occlusion::Rect> visibleDirtyRects = dirtyRegionTest.GetRegionRects();
-            std::vector<RectI> rects;
-            rects.emplace_back(dirtySurfaceRect);
-            for (auto rect : visibleDirtyRects) {
-                 rects.emplace_back(RectI(rect.left_, rect.top_, rect.right_ - rect.left_, rect.bottom_ - rect.top_));
+        if (isPartialRenderEnabled_) {
+            if (isDirtyRegionDfxEnabled_) {
+                DrawAllSurfaceDirtyRegionForDFX(node, dirtyRegionTest);
             }
-            DrawDirtyRegionForDFX(rects);
+            if (isTargetDirtyRegionDfxEnabled_) {
+                DrawTargetSurfaceDirtyRegionForDFX(node);
+            }
         }
-
         RS_TRACE_BEGIN("RSUniRender:FlushFrame");
         renderFrame->Flush();
         RS_TRACE_END();
@@ -598,18 +653,34 @@ void RSUniRenderVisitor::CalcDirtyDisplayRegion(std::shared_ptr<RSDisplayRenderN
 
         bool isShadowDisappear = !surfaceNode->GetRenderProperties().IsShadowValid() && surfaceNode->IsShadowValidLastFrame();
         if (surfaceNode->GetRenderProperties().IsShadowValid() || isShadowDisappear) {
-            RectI shadowDirtyRect = surfaceNode->GetOldDirty().IntersectRect(surfaceDirtyRect);
+            RectI shadowDirtyRect = surfaceNode->GetOldDirtyInSurface().IntersectRect(surfaceDirtyRect);
             RS_LOGD("CalcDirtyDisplayRegion merge ShadowValid %s rect %s",
-                surfaceNode->GetName().c_str(), surfaceNode->GetOldDirty().ToString().c_str());
+                surfaceNode->GetName().c_str(), surfaceNode->GetOldDirtyInSurface().ToString().c_str());
             // There are two situation here:
-            // 1. SurfaceNode first has shadow or shadow radius is larger than the last frame, surfaceDirtyRect == surfaceNode->GetOldDirty()
-            // 2. SurfaceNode remove shadow or shadow radius is smaller than the last frame, surfaceDirtyRect > surfaceNode->GetOldDirty()
+            // 1. SurfaceNode first has shadow or shadow radius is larger than the last frame,
+            // surfaceDirtyRect == surfaceNode->GetOldDirtyInSurface()
+            // 2. SurfaceNode remove shadow or shadow radius is smaller than the last frame,
+            // surfaceDirtyRect > surfaceNode->GetOldDirtyInSurface()
             // So we should always merge surfaceDirtyRect here.
             if (!shadowDirtyRect.IsEmpty()) {
                 displayDirtyManager->MergeDirtyRect(surfaceDirtyRect);
             }
             if (isShadowDisappear) {
                 surfaceNode->SetShadowValidLastFrame(false);
+            }
+        }
+        auto transparentRegion = surfaceNode->GetTransparentRegion();
+        auto visibleDirtyRegion = surfaceNode->GetVisibleDirtyRegion();
+        Occlusion::Region transparentDirtyRegion = transparentRegion.And(visibleDirtyRegion);
+        std::vector<Occlusion::Rect> rects = transparentDirtyRegion.GetRegionRects();
+        for (const auto& rect : rects) {
+            displayDirtyManager->MergeDirtyRect(RectI
+                { rect.left_, rect.top_, rect.right_ - rect.left_, rect.bottom_ - rect.top_ });
+        }
+
+        for (const auto& rect : filterRects_) {
+            if (!surfaceDirtyRect.IntersectRect(rect).IsEmpty()) {
+                displayDirtyManager->MergeDirtyRect(rect);
             }
         }
     }
@@ -693,7 +764,7 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
         return;
     }
     const auto& property = node.GetRenderProperties();
-    if (!property.GetVisible()) {
+    if (!node.ShouldPaint()) {
         RS_LOGD("RSUniRenderVisitor::ProcessSurfaceRenderNode node: %" PRIu64 " invisible", node.GetId());
         return;
     }
@@ -704,7 +775,7 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
 #ifdef RS_ENABLE_EGLQUERYSURFACE
     // skip clean surface node
     if (isOpDropped_ && node.IsAppWindow()) {
-        if (!node.SubNodeNeedDraw(node.GetOldDirty(), partialRenderType_)) {
+        if (!node.SubNodeNeedDraw(node.GetOldDirtyInSurface(), partialRenderType_)) {
             RS_TRACE_NAME("QuickReject Skip");
             RS_LOGD("RSUniRenderVisitor::ProcessSurfaceRenderNode skip: %s", node.GetName().c_str());
             return;
@@ -746,10 +817,12 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
 
     boundsRect_ = SkRect::MakeWH(property.GetBoundsWidth(), property.GetBoundsHeight());
     frameGravity_ = property.GetFrameGravity();
-    if (!property.GetCornerRadius().IsZero()) {
-        canvas_->clipRRect(RSPropertiesPainter::RRect2SkRRect(absClipRRect), true);
-    } else {
-        canvas_->clipRect(boundsRect_);
+    if (node.GetSurfaceNodeType() != RSSurfaceNodeType::LEASH_WINDOW_NODE) {
+        if (!property.GetCornerRadius().IsZero()) {
+            canvas_->clipRRect(RSPropertiesPainter::RRect2SkRRect(absClipRRect), true);
+        } else {
+            canvas_->clipRect(boundsRect_);
+        }
     }
 
     RSPropertiesPainter::DrawBackground(property, *canvas_);
@@ -823,12 +896,10 @@ void RSUniRenderVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
 {
     RS_LOGD("RSUniRenderVisitor::ProcessRootRenderNode node: %" PRIu64 ", child size:%u", node.GetId(),
         node.GetChildrenCount());
-    const auto& property = node.GetRenderProperties();
-    if (!property.GetVisible()) {
+    if (!node.ShouldPaint()) {
         RS_LOGD("RSUniRenderVisitor::ProcessRootRenderNode, no need process");
         return;
     }
-
     if (!canvas_) {
         RS_LOGE("RSUniRenderVisitor::ProcessRootRenderNode, canvas is nullptr");
         return;
@@ -849,6 +920,7 @@ void RSUniRenderVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
     } else {
         canvas_->save();
     }
+    const auto& property = node.GetRenderProperties();
     if (node.GetParent().lock() == curSurfaceNode_) {
         const float rootWidth = property.GetFrameWidth() * property.GetScaleX();
         const float rootHeight = property.GetFrameHeight() * property.GetScaleY();
@@ -868,7 +940,8 @@ void RSUniRenderVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
         return;
     }
 #ifdef RS_ENABLE_EGLQUERYSURFACE
-    if (isOpDropped_ && !curSurfaceNode_->SubNodeNeedDraw(node.GetOldDirty(), partialRenderType_) &&
+    if (isOpDropped_ &&
+        !curSurfaceNode_->SubNodeNeedDraw(node.GetOldDirtyInSurface(), partialRenderType_) &&
         !node.HasChildrenOutOfRect()) {
         return;
     }

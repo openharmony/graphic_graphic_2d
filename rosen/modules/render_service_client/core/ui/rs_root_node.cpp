@@ -54,7 +54,7 @@ void RSRootNode::AttachRSSurfaceNode(std::shared_ptr<RSSurfaceNode> surfaceNode)
         surfaceNode->GetId());
     transactionProxy->AddCommand(command, false);
 
-    if (isUniRenderEnabled_) {
+    if (IsUniRenderEnabled()) {
         std::unique_ptr<RSCommand> extraCommand = std::make_unique<RSRootNodeAttachToUniSurfaceNode>(GetId(),
             surfaceNode->GetId());
         transactionProxy->AddCommand(extraCommand, true);

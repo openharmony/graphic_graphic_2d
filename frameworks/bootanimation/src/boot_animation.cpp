@@ -19,9 +19,6 @@
 #include "transaction/rs_interfaces.h"
 
 using namespace OHOS;
-static const std::string BOOT_PIC_ZIP = "/system/etc/init/bootpic.zip";
-static const std::string BOOT_SOUND_URI = "file://system/etc/init/bootsound.wav";
-
 
 void BootAnimation::OnDraw(SkCanvas* canvas, int32_t curNo)
 {
@@ -71,21 +68,18 @@ void BootAnimation::Draw()
     ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
 }
 
-bool BootAnimation::CheckFrameRateValid(int32_t ratevalue)
-{
-    std::vector<int> freqs = {60, 30};
-    int nCount = std::count(freqs.begin(), freqs.end(), ratevalue);
-    if (nCount <= 0) {
-        return false;
-    }
-    return true;
-}
-
 void BootAnimation::Init(int32_t width, int32_t height)
 {
     windowWidth_ = width;
     windowHeight_ = height;
     LOGI("Init enter, width: %{public}d, height: %{public}d", width, height);
+
+    InitPicCoordinates();
+    InitBootWindow();
+    if (animationConfig_.IsBootVideoEnabled()) {
+        LOGI("Init end");
+        return;
+    }
 
     auto& rsClient = OHOS::Rosen::RSInterfaces::GetInstance();
     while (receiver_ == nullptr) {
@@ -98,25 +92,15 @@ void BootAnimation::Init(int32_t width, int32_t height)
         return;
     }
 
-    InitBootWindow();
     InitRsSurface();
-    InitPicCoordinates();
+
     ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "BootAnimation::preload");
-    BootAniConfig jsonConfig;
-    ReadZipFile(BOOT_PIC_ZIP, imageVector_, jsonConfig);
-    imgVecSize_ = static_cast<int32_t>(imageVector_.size());
-    if (imgVecSize_ <= 0) {
+    if (animationConfig_.ReadPicZipFile(imageVector_, freq_)) {
+        imgVecSize_ = imageVector_.size();
+    } else {
         PostTask(std::bind(&AppExecFwk::EventRunner::Stop, runner_));
-        LOGE("zip pic num is 0.");
         return;
     }
-    SortZipFile(imageVector_);
-    if (CheckFrameRateValid(jsonConfig.frameRate)) {
-        freq_ = jsonConfig.frameRate;
-    } else {
-        LOGI("Only Support 30, 60 frame rate: %{public}d", jsonConfig.frameRate);
-    }
-    LOGI("end to Readzip pics freq: %{public}d totalPicNum: %{public}d", freq_, imgVecSize_);
     ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
 
     OHOS::Rosen::VSyncReceiver::FrameCallback fcb = {
@@ -136,10 +120,17 @@ void BootAnimation::Init(int32_t width, int32_t height)
 
 void BootAnimation::Run(std::vector<sptr<OHOS::Rosen::Display>>& displays)
 {
+    LOGI("Run enter");
+    animationConfig_.ParserCustomCfgFile();
+
     runner_ = AppExecFwk::EventRunner::Create(false);
     mainHandler_ = std::make_shared<AppExecFwk::EventHandler>(runner_);
     mainHandler_->PostTask(std::bind(&BootAnimation::Init, this, displays[0]->GetWidth(), displays[0]->GetHeight()));
-    mainHandler_->PostTask(std::bind(&BootAnimation::PlaySound, this));
+    if (animationConfig_.IsBootVideoEnabled()) {
+        mainHandler_->PostTask(std::bind(&BootAnimation::PlayVideo, this));
+    } else {
+        mainHandler_->PostTask(std::bind(&BootAnimation::PlaySound, this));
+    }
     runner_->Run();
 }
 
@@ -148,8 +139,13 @@ void BootAnimation::InitBootWindow()
     sptr<OHOS::Rosen::WindowOption> option = new OHOS::Rosen::WindowOption();
     option->SetWindowType(OHOS::Rosen::WindowType::WINDOW_TYPE_BOOT_ANIMATION);
     option->RemoveWindowFlag(OHOS::Rosen::WindowFlag::WINDOW_FLAG_NEED_AVOID);
-    option->SetWindowRect({0, 0, windowWidth_, windowHeight_} );
     option->SetTouchable(false);
+    if (animationConfig_.IsBootVideoEnabled()) {
+        option->SetWindowMode(Rosen::WindowMode::WINDOW_MODE_FLOATING);
+        option->SetWindowRect({pointX_, pointY_, realWidth_, realHeight_});
+    } else {
+        option->SetWindowRect({0, 0, windowWidth_, windowHeight_} );
+    }
     int displayId = 0;
     sptr<OHOS::Rosen::IWindowLifeCycle> listener = nullptr;
     scene_ = new OHOS::Rosen::WindowScene();
@@ -212,7 +208,6 @@ void BootAnimation::OnVsync()
 
 void BootAnimation::CheckExitAnimation()
 {
-    LOGI("CheckExitAnimation enter");
     if (!setBootEvent_) {
         LOGI("CheckExitAnimation set bootevent parameter");
         system::SetParameter("bootevent.bootanimation.started", "true");
@@ -235,11 +230,34 @@ void BootAnimation::PlaySound()
         if (soundPlayer_ == nullptr) {
             soundPlayer_ = Media::PlayerFactory::CreatePlayer();
         }
-        std::string uri = BOOT_SOUND_URI;
+        std::string uri = animationConfig_.GetSoundUrl();
         soundPlayer_->SetSource(uri);
         soundPlayer_->SetLooping(false);
         soundPlayer_->PrepareAsync();
         soundPlayer_->Play();
     }
     LOGI("PlaySound end");
+}
+
+void BootAnimation::PlayVideo()
+{
+    LOGI("PlayVideo start w:%{public}d h:%{public}d", windowWidth_, windowHeight_);
+    if (!animationConfig_.IsBootVideoEnabled()) {
+        return;
+    }
+    fcb_ = {
+        .userData_ = this,
+        .callback_ = std::bind(&BootAnimation::CloseVidePlayer, this),
+    };
+    videoPlayer_ = std::make_shared<BootVideoPlayer>();
+    videoPlayer_->SetVideoPath(animationConfig_.GetCustVideoPath());
+    videoPlayer_->SetPlayerWindow(window_);
+    videoPlayer_->SetCallback(&fcb_);
+    videoPlayer_->PlayVideo();
+}
+
+void BootAnimation::CloseVidePlayer()
+{
+    window_->Destroy();
+    mainHandler_->PostTask(std::bind(&AppExecFwk::EventRunner::Stop, runner_));
 }

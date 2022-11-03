@@ -217,11 +217,15 @@ public:
     }
     std::string GetRegionInfo() const
     {
-        std::string info = "{ Region Size " + std::to_string(rects_.size()) + ": ";
-        for (auto& r : rects_) {
-            info.append(r.GetRectInfo());
+        std::string info;
+        if (rects_.size() > 0) {
+            info = "Region " + std::to_string(rects_.size()) + ": ";
+            for (auto& r : rects_) {
+                info.append(r.GetRectInfo());
+            }
+        } else {
+            info = "Region [Empty]";
         }
-        info.append(" }");
         return info;
     }
 

@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef RENDER_SERVICE_CLIENT_CORE_ANIMATION_RS_PROP_H
-#define RENDER_SERVICE_CLIENT_CORE_ANIMATION_RS_PROP_H
+#ifndef RENDER_SERVICE_CLIENT_CORE_MODIFIER_RS_PROPERTY_H
+#define RENDER_SERVICE_CLIENT_CORE_MODIFIER_RS_PROPERTY_H
 
 #include <type_traits>
 #include <unistd.h>
@@ -46,8 +46,27 @@
 
 namespace OHOS {
 namespace Rosen {
-class RSModifier;
-class RSNode;
+template<class...>
+struct make_void { using type = void; };
+template<class... T>
+using void_t = typename make_void<T...>::type;
+
+template<class T, class = void>
+struct supports_arithmetic : std::false_type {};
+template<class T>
+struct supports_arithmetic<T,
+    void_t<decltype(std::declval<T>() == std::declval<T>())>>
+        : std::true_type {};
+
+template<class T, class = void>
+struct supports_animatable_arithmetic : std::false_type {};
+template<class T>
+struct supports_animatable_arithmetic<T,
+    void_t<decltype(std::declval<T>() + std::declval<T>()),
+        decltype(std::declval<T>() - std::declval<T>()),
+        decltype(std::declval<T>() * std::declval<float>()),
+        decltype(std::declval<T>() == std::declval<T>())>>
+        : std::true_type {};
 
 class RS_EXPORT RSPropertyBase : public std::enable_shared_from_this<RSPropertyBase> {
 public:
@@ -57,11 +76,6 @@ public:
     PropertyId GetId() const
     {
         return id_;
-    }
-
-    virtual std::shared_ptr<RSRenderPropertyBase> CreateRenderProperty()
-    {
-        return std::make_shared<RSRenderPropertyBase>(id_);
     }
 
 protected:
@@ -88,7 +102,7 @@ protected:
 
     virtual void UpdateExtendedProperty() const {}
 
-    virtual void UpdateOnAllAnimationFinish() {}
+    virtual void UpdateFinalValueToRender() {}
 
     virtual void AddPathAnimation() {}
 
@@ -99,6 +113,11 @@ protected:
     virtual void AttachModifier(const std::shared_ptr<RSModifier>& modifier) {}
 
     virtual void MarkModifierDirty(const std::shared_ptr<RSModifierManager>& modifierManager) {}
+
+    virtual std::shared_ptr<RSRenderPropertyBase> CreateRenderProperty()
+    {
+        return std::make_shared<RSRenderPropertyBase>(id_);
+    }
 
     PropertyId id_;
     RSModifierType type_ { RSModifierType::INVALID };
@@ -156,6 +175,8 @@ private:
 
 template<typename T>
 class RS_EXPORT RSProperty : public RSPropertyBase {
+    static_assert(std::is_base_of_v<RSArithmetic<T>, T> || supports_arithmetic<T>::value);
+
 public:
     RSProperty() : RSPropertyBase() {}
     explicit RSProperty(const T& value) : RSPropertyBase()
@@ -187,13 +208,8 @@ public:
         return stagingValue_;
     }
 
-    std::shared_ptr<RSRenderPropertyBase> CreateRenderProperty() override
-    {
-        return std::make_shared<RSRenderProperty<T>>(stagingValue_, id_);
-    }
-
 protected:
-    void UpdateToRender(const T& value, bool isDelta, bool forceUpdate = false) const
+    void UpdateToRender(const T& value, bool isDelta, bool updateFinal = false) const
     {}
 
     void UpdateExtendedProperty() const override
@@ -237,6 +253,11 @@ protected:
     {
         return isCustom_;
     }
+ 
+    std::shared_ptr<RSRenderPropertyBase> CreateRenderProperty() override
+    {
+        return std::make_shared<RSRenderProperty<T>>(stagingValue_, id_);
+    }
 
     T stagingValue_ {};
     bool isCustom_ { false };
@@ -253,11 +274,12 @@ class RS_EXPORT RSAnimatableProperty : public RSProperty<T> {
     static_assert(std::is_integral_v<T> || std::is_floating_point_v<T> || std::is_same_v<Color, T> ||
                   std::is_same_v<Matrix3f, T> || std::is_same_v<Vector2f, T> || std::is_same_v<Vector4f, T> ||
                   std::is_same_v<Quaternion, T> || std::is_same_v<std::shared_ptr<RSFilter>, T> ||
-                  std::is_same_v<Vector4<Color>, T> || std::is_base_of_v<RSAnimatableArithmetic<T>, T>);
+                  std::is_same_v<Vector4<Color>, T> || std::is_base_of_v<RSAnimatableArithmetic<T>, T> ||
+                  supports_animatable_arithmetic<T>::value);
 
 public:
-    RSAnimatableProperty() {}
-    RSAnimatableProperty(const T& value) : RSProperty<T>(value)
+    RSAnimatableProperty() : RSProperty<T>() {}
+    explicit RSAnimatableProperty(const T& value) : RSProperty<T>(value)
     {
         showingValue_ = value;
     }
@@ -317,12 +339,6 @@ public:
         return RSProperty<T>::stagingValue_;
     }
 
-    std::shared_ptr<RSRenderPropertyBase> CreateRenderProperty() override
-    {
-        return std::make_shared<RSRenderAnimatableProperty<T>>(
-            RSProperty<T>::stagingValue_, RSProperty<T>::id_, GetPropertyType());
-    }
-
 protected:
     void MarkModifierDirty(const std::shared_ptr<RSModifierManager>& modifierManager) override
     {
@@ -332,7 +348,7 @@ protected:
         }
     }
 
-    void UpdateOnAllAnimationFinish() override
+    void UpdateFinalValueToRender() override
     {
         RSProperty<T>::UpdateToRender(RSProperty<T>::stagingValue_, false, true);
     }
@@ -399,6 +415,12 @@ protected:
         motionPathOption_ = motionPathOption;
     }
 
+    std::shared_ptr<RSRenderPropertyBase> CreateRenderProperty() override
+    {
+        return std::make_shared<RSRenderAnimatableProperty<T>>(
+            RSProperty<T>::stagingValue_, RSProperty<T>::id_, GetPropertyType());
+    }
+
     T showingValue_ {};
     int runningPathNum_ { 0 };
     std::shared_ptr<RSMotionPathOption> motionPathOption_ {};
@@ -450,44 +472,44 @@ private:
 };
 
 template<>
-RS_EXPORT void RSProperty<bool>::UpdateToRender(const bool& value, bool isDelta, bool forceUpdate) const;
+RS_EXPORT void RSProperty<bool>::UpdateToRender(const bool& value, bool isDelta, bool updateFinal) const;
 template<>
-RS_EXPORT void RSProperty<float>::UpdateToRender(const float& value, bool isDelta, bool forceUpdate) const;
+RS_EXPORT void RSProperty<float>::UpdateToRender(const float& value, bool isDelta, bool updateFinal) const;
 template<>
-RS_EXPORT void RSProperty<int>::UpdateToRender(const int& value, bool isDelta, bool forceUpdate) const;
+RS_EXPORT void RSProperty<int>::UpdateToRender(const int& value, bool isDelta, bool updateFinal) const;
 template<>
-RS_EXPORT void RSProperty<Color>::UpdateToRender(const Color& value, bool isDelta, bool forceUpdate) const;
+RS_EXPORT void RSProperty<Color>::UpdateToRender(const Color& value, bool isDelta, bool updateFinal) const;
 template<>
-RS_EXPORT void RSProperty<Gravity>::UpdateToRender(const Gravity& value, bool isDelta, bool forceUpdate) const;
+RS_EXPORT void RSProperty<Gravity>::UpdateToRender(const Gravity& value, bool isDelta, bool updateFinal) const;
 template<>
-RS_EXPORT void RSProperty<Matrix3f>::UpdateToRender(const Matrix3f& value, bool isDelta, bool forceUpdate) const;
+RS_EXPORT void RSProperty<Matrix3f>::UpdateToRender(const Matrix3f& value, bool isDelta, bool updateFinal) const;
 template<>
-RS_EXPORT void RSProperty<Quaternion>::UpdateToRender(const Quaternion& value, bool isDelta, bool forceUpdate) const;
+RS_EXPORT void RSProperty<Quaternion>::UpdateToRender(const Quaternion& value, bool isDelta, bool updateFinal) const;
 template<>
 RS_EXPORT void RSProperty<std::shared_ptr<RSFilter>>::UpdateToRender(
-    const std::shared_ptr<RSFilter>& value, bool isDelta, bool forceUpdate) const;
+    const std::shared_ptr<RSFilter>& value, bool isDelta, bool updateFinal) const;
 template<>
 RS_EXPORT void RSProperty<std::shared_ptr<RSImage>>::UpdateToRender(
-    const std::shared_ptr<RSImage>& value, bool isDelta, bool forceUpdate) const;
+    const std::shared_ptr<RSImage>& value, bool isDelta, bool updateFinal) const;
 template<>
 RS_EXPORT void RSProperty<std::shared_ptr<RSMask>>::UpdateToRender(
-    const std::shared_ptr<RSMask>& value, bool isDelta, bool forceUpdate) const;
+    const std::shared_ptr<RSMask>& value, bool isDelta, bool updateFinal) const;
 template<>
 RS_EXPORT void RSProperty<std::shared_ptr<RSPath>>::UpdateToRender(
-    const std::shared_ptr<RSPath>& value, bool isDelta, bool forceUpdate) const;
+    const std::shared_ptr<RSPath>& value, bool isDelta, bool updateFinal) const;
 template<>
 RS_EXPORT void RSProperty<std::shared_ptr<RSShader>>::UpdateToRender(
-    const std::shared_ptr<RSShader>& value, bool isDelta, bool forceUpdate) const;
+    const std::shared_ptr<RSShader>& value, bool isDelta, bool updateFinal) const;
 template<>
-RS_EXPORT void RSProperty<Vector2f>::UpdateToRender(const Vector2f& value, bool isDelta, bool forceUpdate) const;
+RS_EXPORT void RSProperty<Vector2f>::UpdateToRender(const Vector2f& value, bool isDelta, bool updateFinal) const;
 template<>
 RS_EXPORT void RSProperty<Vector4<uint32_t>>::UpdateToRender(
-    const Vector4<uint32_t>& value, bool isDelta, bool forceUpdate) const;
+    const Vector4<uint32_t>& value, bool isDelta, bool updateFinal) const;
 template<>
 RS_EXPORT void RSProperty<Vector4<Color>>::UpdateToRender(
-    const Vector4<Color>& value, bool isDelta, bool forceUpdate) const;
+    const Vector4<Color>& value, bool isDelta, bool updateFinal) const;
 template<>
-RS_EXPORT void RSProperty<Vector4f>::UpdateToRender(const Vector4f& value, bool isDelta, bool forceUpdate) const;
+RS_EXPORT void RSProperty<Vector4f>::UpdateToRender(const Vector4f& value, bool isDelta, bool updateFinal) const;
 
 template<>
 RS_EXPORT bool RSProperty<float>::IsValid(const float& value);
@@ -515,4 +537,4 @@ RS_EXPORT RSRenderPropertyType RSAnimatableProperty<Vector4<Color>>::GetProperty
 } // namespace Rosen
 } // namespace OHOS
 
-#endif // RENDER_SERVICE_CLIENT_CORE_ANIMATION_RS_PROP_H
+#endif // RENDER_SERVICE_CLIENT_CORE_MODIFIER_RS_PROPERTY_H

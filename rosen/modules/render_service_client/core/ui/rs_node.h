@@ -79,6 +79,9 @@ public:
 
     const RSModifierExtractor& GetStagingProperties() const;
 
+    template<typename ModifierName, typename PropertyName, typename T>
+    void SetProperty(RSModifierType modifierType, T value);
+
     virtual void SetBounds(const Vector4f& bounds);
     virtual void SetBounds(float positionX, float positionY, float width, float height);
     virtual void SetBoundsWidth(float width);

@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef RENDER_SERVICE_CLIENT_CORE_ANIMATION_RS_EXTENDED_MODIFIER_H
-#define RENDER_SERVICE_CLIENT_CORE_ANIMATION_RS_EXTENDED_MODIFIER_H
+#ifndef RENDER_SERVICE_CLIENT_CORE_MODIFIER_RS_EXTENDED_MODIFIER_H
+#define RENDER_SERVICE_CLIENT_CORE_MODIFIER_RS_EXTENDED_MODIFIER_H
 
 #include "command/rs_node_command.h"
 #include "common/rs_common_def.h"
@@ -27,6 +27,12 @@ class SkCanvas;
 
 namespace OHOS {
 namespace Rosen {
+struct RSDrawingContext {
+    SkCanvas* canvas;
+    float width;
+    float height;
+};
+
 class RS_EXPORT RSExtendedModifierHelper {
 public:
     static RSDrawingContext CreateDrawingContext(NodeId nodeId);
@@ -42,11 +48,12 @@ public:
     {
         property_->SetIsCustom(true);
     }
+    virtual ~RSExtendedModifier() = default;
+
     RSModifierType GetModifierType() const override
     {
         return RSModifierType::EXTENDED;
     }
-    virtual ~RSExtendedModifier() = default;
     virtual void Draw(RSDrawingContext& context) const = 0;
 
 protected:
@@ -77,18 +84,18 @@ protected:
         Draw(ctx);
         auto drawCmdList = RSExtendedModifierHelper::FinishDrawing(ctx);
         std::unique_ptr<RSCommand> command = std::make_unique<RSUpdatePropertyDrawCmdList>(
-            node->GetId(), drawCmdList, property_->id_, false);
+            node->GetId(), drawCmdList, property_->id_, false, false);
         auto transactionProxy = RSTransactionProxy::GetInstance();
         if (transactionProxy != nullptr) {
             transactionProxy->AddCommand(command, node->IsRenderServiceNode());
             if (node->NeedForcedSendToRemote()) {
                 std::unique_ptr<RSCommand> commandForRemote = std::make_unique<RSUpdatePropertyDrawCmdList>(
-                    node->GetId(), drawCmdList, property_->id_, false);
+                    node->GetId(), drawCmdList, property_->id_, false, false);
                 transactionProxy->AddCommand(commandForRemote, true, node->GetFollowType(), node->GetId());
             }
             if (node->NeedSendExtraCommand()) {
                 std::unique_ptr<RSCommand> extraCommand = std::make_unique<RSUpdatePropertyDrawCmdList>(
-                    node->GetId(), drawCmdList, property_->id_, false);
+                    node->GetId(), drawCmdList, property_->id_, false, false);
                 transactionProxy->AddCommand(extraCommand, !node->IsRenderServiceNode(), node->GetFollowType(),
                     node->GetId());
             }
@@ -143,4 +150,4 @@ private:
 } // namespace Rosen
 } // namespace OHOS
 
-#endif // RENDER_SERVICE_CLIENT_CORE_ANIMATION_RS_EXTENDED_MODIFIER_H
+#endif // RENDER_SERVICE_CLIENT_CORE_MODIFIER_RS_EXTENDED_MODIFIER_H

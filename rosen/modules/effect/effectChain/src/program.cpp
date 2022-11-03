@@ -41,7 +41,7 @@ void Program::UseProgram() const
 
 GLuint Program::CreateShader(GLuint type, const std::string& shaderCode)
 {
-    const GLchar* charShaderCode = (const GLchar*)shaderCode.c_str();
+    const GLchar* charShaderCode = static_cast<const GLchar*>(shaderCode.c_str());
     GLuint shader = glCreateShader(type);
     glShaderSource(shader, 1, &charShaderCode, nullptr);
     glCompileShader(shader);

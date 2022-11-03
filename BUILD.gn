@@ -40,8 +40,9 @@ group("graphic_2d_test") {
     "rosen/modules/composer:test",
     "rosen/modules/effect/test/unittest:test",
     "rosen/test/frame_analyzer:test",
-    "rosen/test/render_service:unittest",
+    "rosen/test/render_service:test",
     "utils/color_manager:test",
+    "utils/socketpair:test",
     "utils/sync_fence:test",
   ]
 }
@@ -58,10 +59,6 @@ ohos_prebuilt_etc("graphic.rc") {
 
 group("libsurface") {
   public_deps = [ "frameworks/surface:surface" ]
-}
-
-group("libvsync_client") {
-  public_deps = [ "frameworks/vsync:libvsync_client" ]
 }
 
 group("libfence") {

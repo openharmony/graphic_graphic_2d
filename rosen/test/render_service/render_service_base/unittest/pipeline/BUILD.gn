@@ -14,13 +14,17 @@
 import("//build/test.gni")
 import("//foundation/arkui/ace_engine/ace_config.gni")
 
-module_output_path = "graphic/rosen_engine/render_service_base/pipeline"
+module_output_path = "graphic/rosen_engine/render_service_base/Pipeline"
 
-##############################  RSRenderServiceBaseCanvasTest  ##################################
-ohos_unittest("RSRenderServiceBaseCanvasTest") {
+##############################  RSRenderServiceBasePipelineTest  ##################################
+ohos_unittest("RSRenderServiceBasePipelineTest") {
   module_out_path = module_output_path
 
-  sources = [ "rs_paint_filter_canvas_test.cpp" ]
+  sources = [
+    "rs_base_render_node_test.cpp",
+    "rs_dirty_region_manager_test.cpp",
+    "rs_paint_filter_canvas_test.cpp",
+  ]
 
   configs = [
     ":render_test",
@@ -60,5 +64,5 @@ config("render_test") {
 group("unittest") {
   testonly = true
 
-  deps = [ ":RSRenderServiceBaseCanvasTest" ]
+  deps = [ ":RSRenderServiceBasePipelineTest" ]
 }

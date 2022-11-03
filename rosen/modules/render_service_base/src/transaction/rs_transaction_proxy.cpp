@@ -115,13 +115,14 @@ void RSTransactionProxy::ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask
 void RSTransactionProxy::FlushImplicitTransaction(uint64_t timestamp)
 {
     std::unique_lock<std::mutex> cmdLock(mutex_);
+    timestamp_ = std::max(timestamp, timestamp_);
     if (renderThreadClient_ != nullptr && !implicitCommonTransactionData_->IsEmpty()) {
-        implicitCommonTransactionData_->timestamp_ = timestamp;
+        implicitCommonTransactionData_->timestamp_ = timestamp_;
         renderThreadClient_->CommitTransaction(implicitCommonTransactionData_);
         implicitCommonTransactionData_ = std::make_unique<RSTransactionData>();
     }
     if (renderServiceClient_ != nullptr && !implicitRemoteTransactionData_->IsEmpty()) {
-        implicitRemoteTransactionData_->timestamp_ = timestamp;
+        implicitRemoteTransactionData_->timestamp_ = timestamp_;
         renderServiceClient_->CommitTransaction(implicitRemoteTransactionData_);
         implicitRemoteTransactionData_ = std::make_unique<RSTransactionData>();
     }
@@ -134,33 +135,6 @@ void RSTransactionProxy::FlushImplicitTransactionFromRT(uint64_t timestamp)
         implicitTransactionDataFromRT_->timestamp_ = timestamp;
         renderServiceClient_->CommitTransaction(implicitTransactionDataFromRT_);
         implicitTransactionDataFromRT_ = std::make_unique<RSTransactionData>();
-    }
-}
-
-void RSTransactionProxy::Begin()
-{
-    std::unique_lock<std::mutex> cmdLock(mutex_);
-    implicitCommonTransactionDataStack_.emplace(std::make_unique<RSTransactionData>());
-    implicitRemoteTransactionDataStack_.emplace(std::make_unique<RSTransactionData>());
-}
-
-void RSTransactionProxy::Commit(uint64_t timestamp)
-{
-    std::unique_lock<std::mutex> cmdLock(mutex_);
-    if (!implicitCommonTransactionDataStack_.empty()) {
-        if (renderThreadClient_ != nullptr && !implicitCommonTransactionDataStack_.top()->IsEmpty()) {
-            implicitCommonTransactionDataStack_.top()->timestamp_ = timestamp;
-            renderThreadClient_->CommitTransaction(implicitCommonTransactionDataStack_.top());
-        }
-        implicitCommonTransactionDataStack_.pop();
-    }
-
-    if (!implicitRemoteTransactionDataStack_.empty()) {
-        if (renderServiceClient_ != nullptr && !implicitRemoteTransactionDataStack_.top()->IsEmpty()) {
-            implicitRemoteTransactionDataStack_.top()->timestamp_ = timestamp;
-            renderServiceClient_->CommitTransaction(implicitRemoteTransactionDataStack_.top());
-        }
-        implicitRemoteTransactionDataStack_.pop();
     }
 }
 

@@ -155,14 +155,14 @@ bool DrawCmdList::Marshalling(Parcel& parcel) const
     }
     for (const auto& item : ops_) {
         auto type = item->GetType();
-        success &= RSMarshallingHelper::Marshalling(parcel, type);
+        success = success && RSMarshallingHelper::Marshalling(parcel, type);
         auto func = GetOpUnmarshallingFunc(type);
         if (!func) {
             ROSEN_LOGW("unirender: opItem Unmarshalling func not define, skip Marshalling, optype = %d", type);
             continue;
         }
 
-        success &= item->Marshalling(parcel);
+        success = success && item->Marshalling(parcel);
         if (!success) {
             ROSEN_LOGE("unirender: failed opItem Marshalling, optype = %d", type);
             return success;
@@ -206,6 +206,10 @@ DrawCmdList* DrawCmdList::Unmarshalling(Parcel& parcel)
     return drawCmdList.release();
 }
 #endif
+
+// modify the mutex to global to extend life cycle, fix destructor crash
+// only for DrawCmdListManager
+static std::mutex listsMutex_;
 
 DrawCmdListManager& DrawCmdListManager::Instance()
 {

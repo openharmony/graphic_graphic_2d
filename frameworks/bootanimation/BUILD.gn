@@ -40,6 +40,8 @@ ohos_executable("bootanimation") {
 
   sources = [
     "src/boot_animation.cpp",
+    "src/boot_animationconfig.cpp",
+    "src/boot_videoplayer.cpp",
     "src/main.cpp",
     "src/util.cpp",
   ]
@@ -50,6 +52,7 @@ ohos_executable("bootanimation") {
   ]
 
   deps = [
+    "//base/customization/config_policy/frameworks/config_policy:configpolicy_util",
     "//base/global/resource_management/frameworks/resmgr:global_resmgr",
     "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
     "//foundation/graphic/graphic_2d:libsurface",

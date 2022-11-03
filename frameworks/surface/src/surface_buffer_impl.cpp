@@ -91,10 +91,18 @@ static const std::map<uint64_t, uint64_t> bufferUsageConvertMap = {
 };
 
 SurfaceBufferImpl::IDisplayGrallocSptr SurfaceBufferImpl::displayGralloc_ = nullptr;
+std::mutex SurfaceBufferImpl::displayGrallocMutex_;
+
+void SurfaceBufferImpl::DisplayGrallocDeathCallback(void* data)
+{
+    std::lock_guard<std::mutex> lock(displayGrallocMutex_);
+    displayGralloc_ = nullptr;
+    BLOGD("gralloc_host died and displayGralloc_ is nullptr.");
+}
+
 SurfaceBufferImpl::IDisplayGrallocSptr SurfaceBufferImpl::GetDisplayGralloc()
 {
-    static std::mutex mutex;
-    std::lock_guard<std::mutex> lock(mutex);
+    std::lock_guard<std::mutex> lock(displayGrallocMutex_);
     if (displayGralloc_ != nullptr) {
         return displayGralloc_;
     }
@@ -104,6 +112,7 @@ SurfaceBufferImpl::IDisplayGrallocSptr SurfaceBufferImpl::GetDisplayGralloc()
         BLOGE("IDisplayGralloc::Get return nullptr.");
         return nullptr;
     }
+    displayGralloc_->RegAllocatorDeathCallback(&SurfaceBufferImpl::DisplayGrallocDeathCallback, nullptr);
     return displayGralloc_;
 }
 
@@ -165,8 +174,8 @@ GSError SurfaceBufferImpl::Alloc(const BufferRequestConfig &config)
     auto dret = displayGralloc_->AllocMem(info, handle);
     if (dret == DISPLAY_SUCCESS) {
         std::lock_guard<std::mutex> lock(mutex_);
-        surfaceBufferColorGamut_ = config.colorGamut;
-        transform_ = config.transform;
+        surfaceBufferColorGamut_ = static_cast<GraphicColorGamut>(config.colorGamut);
+        transform_ = static_cast<GraphicTransformType>(config.transform);
         surfaceBufferWidth_ = config.width;
         surfaceBufferHeight_ = config.height;
         handle_ = handle;
@@ -196,6 +205,9 @@ GSError SurfaceBufferImpl::Map()
         }
         handle = handle_;
     }
+#ifdef RS_ENABLE_AFBC
+    handle->usage |= (BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA);
+#endif
     void *virAddr = displayGralloc_->Mmap(*handle);
     if (virAddr == nullptr || virAddr == MAP_FAILED) {
         return GSERROR_API_FAILED;
@@ -308,25 +320,25 @@ BufferHandle *SurfaceBufferImpl::GetBufferHandle() const
     return handle_;
 }
 
-void SurfaceBufferImpl::SetSurfaceBufferColorGamut(const ColorGamut& colorGamut)
+void SurfaceBufferImpl::SetSurfaceBufferColorGamut(const GraphicColorGamut& colorGamut)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     surfaceBufferColorGamut_ = colorGamut;
 }
 
-const ColorGamut& SurfaceBufferImpl::GetSurfaceBufferColorGamut() const
+const GraphicColorGamut& SurfaceBufferImpl::GetSurfaceBufferColorGamut() const
 {
     std::lock_guard<std::mutex> lock(mutex_);
     return surfaceBufferColorGamut_;
 }
 
-void SurfaceBufferImpl::SetSurfaceBufferTransform(const TransformType& transform)
+void SurfaceBufferImpl::SetSurfaceBufferTransform(const GraphicTransformType& transform)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     transform_ = transform;
 }
 
-const TransformType& SurfaceBufferImpl::GetSurfaceBufferTransform() const
+const GraphicTransformType& SurfaceBufferImpl::GetSurfaceBufferTransform() const
 {
     std::lock_guard<std::mutex> lock(mutex_);
     return transform_;

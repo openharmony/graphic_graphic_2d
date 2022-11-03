@@ -73,6 +73,11 @@ public:
     {
         return oldDirty_;
     }
+    inline RectI GetOldDirtyInSurface() const
+    {
+        return oldDirtyInSurface_;
+    }
+
     inline bool IsDirtyRegionUpdated() const
     {
         return isDirtyRegionUpdated_;
@@ -91,6 +96,9 @@ public:
     {
         isShadowValidLastFrame_ = isShadowValidLastFrame;
     }
+
+    // update node's out parent status
+    void SetPaintOutOfParentFlag(std::shared_ptr<RSRenderNode> rsParent);
 
 protected:
     explicit RSRenderNode(NodeId id, std::weak_ptr<RSContext> context = {});
@@ -112,6 +120,7 @@ private:
     bool fallbackAnimationOnDestroy_ = true;
     uint32_t disappearingTransitionCount_ = 0;
     RectI oldDirty_;
+    RectI oldDirtyInSurface_;
     RSProperties renderProperties_;
     RSAnimationManager animationManager_;
     std::map<PropertyId, std::shared_ptr<RSRenderModifier>> modifiers_;

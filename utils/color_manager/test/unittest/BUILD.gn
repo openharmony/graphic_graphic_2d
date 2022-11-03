@@ -1,0 +1,53 @@
+# Copyright (c) 2022 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/test.gni")
+
+module_out_path = "graphic_standard/utils/color_manager"
+
+group("unittest") {
+  testonly = true
+  deps = [ ":color_manager_test" ]
+}
+
+## Build color_manager_test
+ohos_unittest("color_manager_test") {
+  module_out_path = module_out_path
+  sources = [ "color_manager_test.cpp" ]
+  deps = [ ":color_manager_test_common" ]
+}
+
+config("color_manager_test_config") {
+  cflags = [
+    "-Wall",
+    "-Werror",
+    "-g3",
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
+}
+
+ohos_static_library("color_manager_test_common") {
+  visibility = [ ":*" ]
+  testonly = true
+  public_configs = [ ":color_manager_test_config" ]
+
+  public_deps = [
+    "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
+    "//foundation/graphic/graphic_2d/utils/color_manager:color_manager",
+    "//third_party/flutter/build/skia:ace_skia_ohos",
+    "//third_party/googletest:gtest_main",
+  ]
+  subsystem_name = "graphic"
+  part_name = "graphic_standard"
+}

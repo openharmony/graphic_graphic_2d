@@ -294,8 +294,8 @@ void RSImplicitAnimator::CreateEmptyAnimation()
     }
     std::shared_ptr<RSAnimatableProperty<float>> property = std::make_shared<RSAnimatableProperty<float>>(0.f);
     property->id_ = 0;
-    auto startValue = std::make_shared<RSProperty<float>>(0.f);
-    auto endValue = std::make_shared<RSProperty<float>>(0.f);
+    auto startValue = std::make_shared<RSAnimatableProperty<float>>(0.f);
+    auto endValue = std::make_shared<RSAnimatableProperty<float>>(0.f);
     CreateImplicitAnimation(target, property, startValue, endValue);
     return;
 }

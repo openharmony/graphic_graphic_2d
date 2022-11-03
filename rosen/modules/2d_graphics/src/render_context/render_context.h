@@ -82,7 +82,7 @@ public:
         return eglDisplay_;
     }
 
-    bool IsEglContextReady()
+    bool IsEglContextReady() const
     {
         return eglContext_ != EGL_NO_DISPLAY;
     }
@@ -90,6 +90,11 @@ public:
     void SetCacheDir(const std::string& filePath)
     {
         cacheDir_ = filePath;
+    }
+
+    void SetUniRenderMode(bool isUni)
+    {
+        isUniRenderMode_ = isUni;
     }
 
 private:
@@ -105,6 +110,8 @@ private:
     EGLConfig config_;
     ColorGamut colorSpace_ = ColorGamut::COLOR_GAMUT_SRGB;
 
+    bool isUniRenderMode_ = false;
+    const std::string UNIRENDER_CACHE_DIR = "/data/service/el0/render_service";
     std::string cacheDir_;
     std::shared_ptr<MemoryHandler> mHandler_;
 };

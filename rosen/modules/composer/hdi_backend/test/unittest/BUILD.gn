@@ -20,6 +20,7 @@ group("unittest") {
 
   deps = [
     ":hdibackend_unit_test",
+    ":hdidevice_unit_test",
     ":hdiframebuffersurface_unit_test",
     ":hdilayer_unit_test",
     ":hdilayerinfo_unit_test",
@@ -108,6 +109,19 @@ ohos_unittest("hdiscreen_unit_test") {
 }
 
 ## UnitTest hdiscreen_unit_test }}}
+
+## UnitTest hdidevice_unit_test {{{
+ohos_unittest("hdidevice_unit_test") {
+  module_out_path = module_out_path
+
+  sources = [ "hdidevice_test.cpp" ]
+
+  deps = [ ":hdibackend_test_common" ]
+
+  external_deps = [ "ipc:ipc_core" ]
+}
+
+## UnitTest hdidevice_unit_test }}}
 
 ## Build hdibackend_test_common.a {{{
 config("hdibackend_test_common_public_config") {

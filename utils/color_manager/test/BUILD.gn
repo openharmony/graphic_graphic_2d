@@ -11,43 +11,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import("//build/test.gni")
-
-module_out_path = "graphic_standard/utils/color_manager"
-
-group("unittest") {
+group("test") {
   testonly = true
-  deps = [ ":color_manager_test" ]
-}
-
-## Build color_manager_test
-ohos_unittest("color_manager_test") {
-  module_out_path = module_out_path
-  sources = [ "color_manager_test.cpp" ]
-  deps = [ ":color_manager_test_common" ]
-}
-
-config("color_manager_test_config") {
-  cflags = [
-    "-Wall",
-    "-Werror",
-    "-g3",
-    "-Dprivate=public",
-    "-Dprotected=public",
+  deps = [
+    "fuzztest:fuzztest",
+    "unittest:unittest",
   ]
-}
-
-ohos_static_library("color_manager_test_common") {
-  visibility = [ ":*" ]
-  testonly = true
-  public_configs = [ ":color_manager_test_config" ]
-
-  public_deps = [
-    "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
-    "//foundation/graphic/graphic_2d/utils/color_manager:color_manager",
-    "//third_party/flutter/build/skia:ace_skia_ohos",
-    "//third_party/googletest:gtest_main",
-  ]
-  subsystem_name = "graphic"
-  part_name = "graphic_standard"
 }

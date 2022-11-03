@@ -11,19 +11,31 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-group("unittest") {
+group("test") {
   testonly = true
 
   deps = [
-    "render_service/systemtest/pipeline:systemtest",
     "render_service/unittest/pipeline:unittest",
     "render_service/unittest/screen_manager:unittest",
+    "render_service_base/fuzztest/pipeline/rspipelinerender_fuzzer:fuzztest",
+    "render_service_base/fuzztest/pipeline/rsrendernode_fuzzer:fuzztest",
+    "render_service_base/fuzztest/rsbasecommon_fuzzer:fuzztest",
+    "render_service_base/fuzztest/rsbasescreenmanager_fuzzer:fuzztest",
+    "render_service_base/fuzztest/rscommand_fuzzer:fuzztest",
+    "render_service_base/fuzztest/rsproperty_fuzzer:fuzztest",
+    "render_service_base/fuzztest/rsrenderimage_fuzzer:fuzztest",
+    "render_service_base/fuzztest/rssurfaceohos_fuzzer:fuzztest",
     "render_service_base/unittest/animation:unittest",
+    "render_service_base/unittest/common:unittest",
+    "render_service_base/unittest/delegate:unittest",
     "render_service_base/unittest/overdraw:unittest",
     "render_service_base/unittest/pipeline:unittest",
     "render_service_base/unittest/render:unittest",
     "render_service_base/unittest/transaction:unittest",
     "render_service_client/fuzztest/rsinterfaces_fuzzer:fuzztest",
+    "render_service_client/fuzztest/rsnodemap_fuzzer:fuzztest",
+    "render_service_client/fuzztest/ui/rsnode_fuzzer:fuzztest",
+    "render_service_client/fuzztest/ui/rsuisurface_fuzzer:fuzztest",
     "render_service_client/systemtest/ui:systemtest",
     "render_service_client/unittest/transaction:unittest",
     "render_service_client/unittest/ui:unittest",

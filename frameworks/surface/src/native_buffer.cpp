@@ -46,8 +46,8 @@ OH_NativeBuffer* OH_NativeBuffer_Alloc(const OH_NativeBuffer_Config* config)
     bfConfig.format = config->format; // PixelFormat
     bfConfig.usage = config->usage;
     bfConfig.timeout = 0;
-    bfConfig.colorGamut = ColorGamut::COLOR_GAMUT_SRGB;
-    bfConfig.transform = TransformType::ROTATE_NONE;
+    bfConfig.colorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
+    bfConfig.transform = GraphicTransformType::GRAPHIC_ROTATE_NONE;
     sptr<SurfaceBuffer> bufferImpl = new SurfaceBufferImpl();
     GSError ret = bufferImpl->Alloc(bfConfig);
     if (ret != GSERROR_OK) {

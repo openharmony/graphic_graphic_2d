@@ -53,4 +53,9 @@ ohos_shared_library("socketpair") {
   part_name = "graphic_standard"
   subsystem_name = "graphic"
 }
+
+group("test") {
+  testonly = true
+  deps = [ "test:test" ]
+}
 ## Build socketpair.so }}}

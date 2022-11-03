@@ -145,7 +145,7 @@ void RSSurfaceRenderNode::CollectSurface(
     if (num != vec.end()) {
         return;
     }
-    if (isUniRender && GetRenderProperties().GetVisible()) {
+    if (isUniRender && ShouldPaint()) {
         vec.emplace_back(shared_from_this());
     } else {
         if (GetBuffer() != nullptr && ShouldPaint()) {
@@ -177,7 +177,8 @@ void RSSurfaceRenderNode::ResetParent()
     } else {
         auto& consumer = GetConsumer();
         if (consumer != nullptr &&
-            GetSurfaceNodeType() != RSSurfaceNodeType::SELF_DRAWING_NODE) {
+            (GetSurfaceNodeType() != RSSurfaceNodeType::SELF_DRAWING_NODE &&
+            GetSurfaceNodeType() != RSSurfaceNodeType::ABILITY_COMPONENT_NODE)) {
             consumer->GoBackground();
         }
     }
@@ -416,7 +417,8 @@ void RSSurfaceRenderNode::SetVisibleRegionRecursive(const Occlusion::Region& reg
                                                     VisibleData& visibleVec,
                                                     std::map<uint32_t, bool>& pidVisMap)
 {
-    if (nodeType_ == RSSurfaceNodeType::SELF_DRAWING_NODE) {
+    if (nodeType_ == RSSurfaceNodeType::SELF_DRAWING_NODE ||
+        nodeType_ == RSSurfaceNodeType::ABILITY_COMPONENT_NODE) {
         SetOcclusionVisible(true);
         return;
     }

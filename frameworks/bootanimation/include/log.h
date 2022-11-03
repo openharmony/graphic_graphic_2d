@@ -19,11 +19,12 @@
 #include <hilog/log.h>
 
 namespace OHOS {
+static OHOS::HiviewDFX::HiLogLabel label_boot = { LOG_CORE, 0xD001800, "BootAnimation" };
 #define LOGD(fmt, ...) LOGPRINT(::OHOS::HiviewDFX::HiLog::Debug, fmt, ##__VA_ARGS__)
 #define LOGI(fmt, ...) LOGPRINT(::OHOS::HiviewDFX::HiLog::Info, fmt, ##__VA_ARGS__)
 #define LOGW(fmt, ...) LOGPRINT(::OHOS::HiviewDFX::HiLog::Warn, fmt, ##__VA_ARGS__)
 #define LOGE(fmt, ...) LOGPRINT(::OHOS::HiviewDFX::HiLog::Error, fmt, ##__VA_ARGS__)
-#define LOGPRINT(func, fmt, ...) func(::OHOS::HiviewDFX::HiLogLabel {LOG_CORE, 0, "BootAnimation"}, \
+#define LOGPRINT(func, fmt, ...) func(label_boot, \
     "%{public}s: " fmt, __func__, ##__VA_ARGS__)
 } // namespace OHOS
 

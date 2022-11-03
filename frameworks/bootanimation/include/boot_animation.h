@@ -22,6 +22,9 @@
 #include <include/core/SkImage.h>
 #include <include/codec/SkCodec.h>
 #include <display.h>
+#include <display_type.h>
+#include <display_manager.h>
+#include <media_errors.h>
 #include <foundation/window/window_manager/interfaces/innerkits/wm/window_manager.h>
 #include <ipc_skeleton.h>
 #include <iremote_broker.h>
@@ -34,6 +37,8 @@
 #include <window.h>
 #include <window_option.h>
 #include <window_scene.h>
+#include "boot_animationconfig.h"
+#include "boot_videoplayer.h"
 #include "event_handler.h"
 #include "player.h"
 #include "vsync_receiver.h"
@@ -46,9 +51,10 @@ public:
     void Draw();
     void CheckExitAnimation();
     void PlaySound();
-    bool CheckFrameRateValid(int32_t ratevalue);
+    void PlayVideo();
     void Run(std::vector<sptr<OHOS::Rosen::Display>>& displays);
     ~BootAnimation();
+    void CloseVidePlayer();
 private:
     void OnVsync();
     void OnDraw(SkCanvas* canvas, int32_t curNo);
@@ -69,12 +75,15 @@ private:
     int32_t pointY_ = 0;
     int32_t picCurNo_ = -1;
     int32_t imgVecSize_ = 0;
-    std::shared_ptr<OHOS::Rosen::VSyncReceiver> receiver_ = nullptr;
-    std::shared_ptr<Media::Player> soundPlayer_ = nullptr;
+    std::shared_ptr<OHOS::Rosen::VSyncReceiver> receiver_;
+    std::shared_ptr<Media::Player> soundPlayer_;
     ImageStructVec imageVector_;
-    std::shared_ptr<OHOS::AppExecFwk::EventHandler> mainHandler_ = nullptr;
-    std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
+    std::shared_ptr<OHOS::AppExecFwk::EventHandler> mainHandler_;
+    std::shared_ptr<AppExecFwk::EventRunner> runner_;
     bool setBootEvent_ = false;
+    std::shared_ptr<BootVideoPlayer> videoPlayer_;
+    BootAnimationConfig animationConfig_;
+    OHOS::FrameCallback fcb_;
 };
 } // namespace OHOS
 

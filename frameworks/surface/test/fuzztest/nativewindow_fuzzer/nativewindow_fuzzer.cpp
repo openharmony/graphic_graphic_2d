@@ -85,7 +85,7 @@ namespace OHOS {
 
         // get data
         uint32_t seqNum = GetData<uint32_t>();
-        int fenceFd = GetData<int>();
+        int fenceFd = GetData<int>() % 32768; // maximum fd of linux is 32768
         // fd 0,1,2 represent stdin, stdout and stderr respectively, they should not be closed.
         if (fenceFd >= 0 && fenceFd <= 2) {
             fenceFd = DEFAULT_FENCE;
@@ -101,7 +101,7 @@ namespace OHOS {
         OHHDRMetaData metaData = GetData<OHHDRMetaData>();
         OHHDRMetadataKey key = GetData<OHHDRMetadataKey>();
         uint8_t metaData2[STR_LEN];
-        for (int i = 0; i < STR_LEN; i++) {
+        for (uint64_t i = 0; i < STR_LEN; i++) {
             metaData2[i] = GetData<uint8_t>();
         }
 
@@ -109,7 +109,6 @@ namespace OHOS {
         sptr<OHOS::Surface> cSurface = Surface::CreateSurfaceAsConsumer();
         sptr<OHOS::IBufferProducer> producer = cSurface->GetProducer();
         sptr<OHOS::Surface> pSurface = Surface::CreateSurfaceAsProducer(producer);
-
         OHNativeWindow* nativeWindow = CreateNativeWindowFromSurface(&pSurface);
         sptr<OHOS::SurfaceBuffer> sBuffer = new SurfaceBufferImpl(seqNum);
         OHNativeWindowBuffer* nwBuffer = CreateNativeWindowBufferFromSurfaceBuffer(&sBuffer);
@@ -117,8 +116,6 @@ namespace OHOS {
         NativeWindowFlushBuffer(nativeWindow, nwBuffer, fenceFd, region);
         NativeWindowCancelBuffer(nativeWindow, nwBuffer);
         GetBufferHandleFromNative(nwBuffer);
-        NativeObjectReference(reinterpret_cast<void *>(nwBuffer));
-        NativeObjectUnreference(reinterpret_cast<void *>(nwBuffer));
         NativeWindowSetScalingMode(nativeWindow, sequence, scalingMode);
         std::vector<OHHDRMetaData> metaDatas = {metaData};
         NativeWindowSetMetaData(nativeWindow, sequence, metaDatas.size(), metaDatas.data());

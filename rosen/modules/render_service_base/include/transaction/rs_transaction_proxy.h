@@ -43,9 +43,6 @@ public:
 
     void ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task, bool isRenderServiceTask = false);
 
-    void Begin();
-    void Commit(uint64_t timestamp = 0);
-
 private:
     RSTransactionProxy();
     virtual ~RSTransactionProxy();
@@ -74,7 +71,7 @@ private:
 
     std::shared_ptr<RSIRenderClient> renderServiceClient_ = RSIRenderClient::CreateRenderServiceClient();
     std::unique_ptr<RSIRenderClient> renderThreadClient_ = nullptr;
-
+    uint64_t timestamp_ = 0;
     static std::once_flag flag_;
     static RSTransactionProxy* instance_;
 };

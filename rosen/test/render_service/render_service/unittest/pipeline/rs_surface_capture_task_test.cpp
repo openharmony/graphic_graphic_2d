@@ -32,7 +32,7 @@ namespace {
     constexpr HiLogLabel LOG_LABEL = { LOG_CORE, 0xD001400, "RSSurfaceCaptureTaskTest" };
     constexpr uint32_t MAX_TIME_WAITING_FOR_CALLBACK = 20;
     constexpr uint32_t SLEEP_TIME_IN_US = 10000; // 10ms
-    constexpr uint32_t SLEEP_TIME_FOR_PROXY = 50000; // 50ms
+    constexpr uint32_t SLEEP_TIME_FOR_PROXY = 100000; // 100ms
     constexpr float DEFAULT_BOUNDS_WIDTH = 100.f;
     constexpr float DEFAULT_BOUNDS_HEIGHT = 200.f;
 }
@@ -120,6 +120,8 @@ void RSSurfaceCaptureTaskTest::SetUpTestCase()
     mirrorConfig_.mirrorNodeId = screenId;
 
     surfaceNode_ = CreateSurface("SurfaceCaptureTestNode");
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
     if (surfaceNode_ == nullptr) {
         HiLog::Error(LOG_LABEL, "%s: surfaceNode_ == nullptr", __func__);
         return;
@@ -137,6 +139,11 @@ void RSSurfaceCaptureTaskTest::TearDownTestCase()
     rsInterfaces_->RemoveVirtualScreen(mirrorConfig_.screenId);
     rsInterfaces_ = nullptr;
     renderContext_ = nullptr;
+    surfaceNode_ = nullptr;
+    surfaceCaptureCb_->Reset();
+    surfaceCaptureCb_ = nullptr;
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
 }
 
 std::shared_ptr<RSSurfaceNode> RSSurfaceCaptureTaskTest::CreateSurface(std::string surfaceNodeName)
@@ -173,8 +180,9 @@ void RSSurfaceCaptureTaskTest::FillSurface(std::shared_ptr<RSSurfaceNode> surfac
 #endif // ACE_ENABLE_GL
     auto frame = rsSurface->RequestFrame(DEFAULT_BOUNDS_WIDTH, DEFAULT_BOUNDS_HEIGHT);
     std::unique_ptr<RSSurfaceFrame> framePtr = std::move(frame);
-    auto skRect = SkRect::MakeXYWH(0.0f, 0.0f, DEFAULT_BOUNDS_WIDTH, DEFAULT_BOUNDS_HEIGHT);
     auto canvas = framePtr->GetCanvas();
+
+    auto skRect = SkRect::MakeXYWH(0.0f, 0.0f, DEFAULT_BOUNDS_WIDTH, DEFAULT_BOUNDS_HEIGHT);
     SkPaint paint;
     paint.setStyle(SkPaint::kFill_Style);
     paint.setColor(color);
@@ -182,6 +190,7 @@ void RSSurfaceCaptureTaskTest::FillSurface(std::shared_ptr<RSSurfaceNode> surfac
     framePtr->SetDamageRegion(0.0f, 0.0f, DEFAULT_BOUNDS_WIDTH, DEFAULT_BOUNDS_HEIGHT);
     auto framePtr1 = std::move(framePtr);
     rsSurface->FlushFrame(framePtr1);
+    usleep(SLEEP_TIME_FOR_PROXY); // wait for finishing flush
 }
 
 bool RSSurfaceCaptureTaskTest::CheckSurfaceCaptureCallback()
@@ -213,41 +222,13 @@ HWTEST_F(RSSurfaceCaptureTaskTest, TakeSurfaceCaptureOfInvalidSurfaceNode, Funct
 {
     auto surfaceNode = CreateSurface("SurfaceCaptureTestEmptyNode");
     ASSERT_NE(surfaceNode, nullptr);
-    RSDisplayNode::SharedPtr displayNode = RSDisplayNode::Create(defaultConfig_);
-    ASSERT_NE(displayNode, nullptr);
-    displayNode->AddChild(surfaceNode, -1);
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
-    usleep(SLEEP_TIME_FOR_PROXY);
 
     bool ret = rsInterfaces_->TakeSurfaceCapture(surfaceNode, surfaceCaptureCb_);
     ASSERT_EQ(ret, true);
     ASSERT_EQ(CheckSurfaceCaptureCallback(), true);
     ASSERT_EQ(surfaceCaptureCb_->IsTestSuccess(), false);
-    displayNode->ClearChildren();
-    displayNode->RemoveFromTree();
-    usleep(SLEEP_TIME_FOR_PROXY);
-}
-
-/*
- * @tc.name: TakeSurfaceCaptureOfValidSurfaceNode
- * @tc.desc: Generate valid surface node and take valid capture
- * @tc.type: FUNC
- * @tc.require: issueI5T8FR
-*/
-HWTEST_F(RSSurfaceCaptureTaskTest, TakeSurfaceCaptureOfValidSurfaceNode, Function | SmallTest | Level2)
-{
-    RSDisplayNode::SharedPtr displayNode = RSDisplayNode::Create(defaultConfig_);
-    ASSERT_NE(displayNode, nullptr);
-    displayNode->AddChild(surfaceNode_, -1);
+    surfaceNode = nullptr;
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
-    usleep(SLEEP_TIME_FOR_PROXY);
-
-    bool ret = rsInterfaces_->TakeSurfaceCapture(surfaceNode_, surfaceCaptureCb_);
-    ASSERT_EQ(ret, true);
-    ASSERT_EQ(CheckSurfaceCaptureCallback(), true);
-    ASSERT_EQ(surfaceCaptureCb_->IsTestSuccess(), true);
-    displayNode->ClearChildren();
-    displayNode->RemoveFromTree();
     usleep(SLEEP_TIME_FOR_PROXY);
 }
 
@@ -268,6 +249,9 @@ HWTEST_F(RSSurfaceCaptureTaskTest, TakeSurfaceCaptureOfInvalidDisplayNode, Funct
     ASSERT_EQ(ret, true);
     ASSERT_EQ(CheckSurfaceCaptureCallback(), true);
     ASSERT_EQ(surfaceCaptureCb_->IsTestSuccess(), false);
+    displayNode = nullptr;
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
 }
 
 /*
@@ -288,8 +272,8 @@ HWTEST_F(RSSurfaceCaptureTaskTest, TakeSurfaceCaptureOfValidDisplayNode, Functio
     ASSERT_EQ(ret, true);
     ASSERT_EQ(CheckSurfaceCaptureCallback(), true);
     ASSERT_EQ(surfaceCaptureCb_->IsTestSuccess(), true);
-    displayNode->ClearChildren();
-    displayNode->RemoveFromTree();
+    displayNode = nullptr;
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
 }
 
@@ -311,8 +295,8 @@ HWTEST_F(RSSurfaceCaptureTaskTest, TakeSurfaceCaptureOfMirrorDisplayNode, Functi
     ASSERT_EQ(ret, true);
     ASSERT_EQ(CheckSurfaceCaptureCallback(), true);
     ASSERT_EQ(surfaceCaptureCb_->IsTestSuccess(), true);
-    displayNode->ClearChildren();
-    displayNode->RemoveFromTree();
+    displayNode = nullptr;
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
 }
 } // namespace Rosen

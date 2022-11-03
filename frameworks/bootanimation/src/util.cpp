@@ -17,6 +17,8 @@
 #include "util.h"
 
 #include <event_handler.h>
+#include <fstream>
+#include <sstream>
 #include <securec.h>
 #include <sys/time.h>
 #include <include/codec/SkCodec.h>
@@ -36,6 +38,45 @@ void PostTask(std::function<void()> func, uint32_t delayTime)
     if (handler) {
         handler->PostTask(func, delayTime);
     }
+}
+
+bool ReadCustomBootConfig(const std::string& path, BootCustomConfig& aniconfig)
+{
+    char newpath[PATH_MAX + 1] = { 0x00 };
+    if (strlen(path.c_str()) > PATH_MAX || realpath(path.c_str(), newpath) == nullptr) {
+        LOGE("check config path fail! %{public}s %{public}d %{public}s", path.c_str(), errno, ::strerror(errno));
+        return false;
+    }
+
+    std::ifstream configFile;
+    configFile.open(newpath);
+    std::stringstream JFilterParamsStream;
+    JFilterParamsStream << configFile.rdbuf();
+    configFile.close();
+    std::string JParamsString = JFilterParamsStream.str();
+
+    cJSON* overallData = cJSON_Parse(JParamsString.c_str());
+    if (overallData == nullptr) {
+        LOGE("The config json file fails to compile.");
+        return false;
+    }
+    cJSON* custPicPath = cJSON_GetObjectItem(overallData, "cust.bootanimation.pics");
+    if (custPicPath != nullptr) {
+        aniconfig.custPicZipPath = custPicPath->valuestring;
+        LOGI("cust piczip path: %{public}s", aniconfig.custPicZipPath.c_str());
+    }
+    cJSON* custSoundPath = cJSON_GetObjectItem(overallData, "cust.bootanimation.sounds");
+    if (custSoundPath != nullptr) {
+        aniconfig.custSoundsPath = custSoundPath->valuestring;
+        LOGI("cust sound path: %{public}s", aniconfig.custSoundsPath.c_str());
+    }
+    cJSON* custVideoPath = cJSON_GetObjectItem(overallData, "cust.bootanimation.video");
+    if (custVideoPath != nullptr) {
+        aniconfig.custVideoPath = custVideoPath->valuestring;
+        LOGI("cust video path: %{public}s", aniconfig.custVideoPath.c_str());
+    }
+    cJSON_Delete(overallData);
+    return true;
 }
 
 bool ReadJsonConfig(const char* filebuffer, int totalsize, BootAniConfig& aniconfig)
@@ -131,11 +172,13 @@ bool ReadZipFile(const std::string& srcFilePath, ImageStructVec& outBgImgVec, Bo
 {
     unzFile zipfile = unzOpen2(srcFilePath.c_str(), nullptr);
     if (zipfile == nullptr) {
+        LOGE("Open Zipfile fail: %{public}s", srcFilePath.c_str());
         return false;
     }
     unz_global_info globalInfo;
     if (unzGetGlobalInfo(zipfile, &globalInfo) != UNZ_OK) {
         unzClose(zipfile);
+        LOGE("Get ZipGlobalInfo fail");
         return false;
     }
     LOGD("Readzip zip file num: %{public}ld", globalInfo.number_entry);
@@ -192,5 +235,24 @@ void WaitRenderServiceInit()
             sleep(1);
         }
     }
+}
+
+bool IsFileExisted(const std::string& filePath)
+{
+    if (filePath.empty()) {
+        LOGE("check filepath is empty");
+        return false;
+    }
+    char newpath[PATH_MAX + 1] = { 0x00 };
+    if (strlen(filePath.c_str()) > PATH_MAX || realpath(filePath.c_str(), newpath) == nullptr) {
+        LOGE("check filepath fail! %{public}s %{public}d %{public}s", filePath.c_str(), errno, ::strerror(errno));
+        return false;
+    }
+    struct stat info = {0};
+    if (stat(newpath, &info) != 0) {
+        LOGE("stat filepath fail! %{public}s %{public}d %{public}s", filePath.c_str(), errno, ::strerror(errno));
+        return false;
+    }
+    return true;
 }
 } // namespace OHOS

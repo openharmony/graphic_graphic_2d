@@ -55,7 +55,7 @@ ohos_shared_library("color_manager") {
 
 group("test") {
   testonly = true
-  deps = [ "test:unittest" ]
+  deps = [ "test:test" ]
 }
 
 ## Build color_manager.so }}}

@@ -73,7 +73,7 @@ bool RSRenderNode::Animate(int64_t timestamp)
 bool RSRenderNode::Update(RSDirtyRegionManager& dirtyManager, const RSProperties* parent, bool parentDirty)
 {
     // no need to update invisible nodes
-    if (!renderProperties_.GetVisible() && !isLastVisible_) {
+    if (!ShouldPaint() && !isLastVisible_) {
         return false;
     }
     // [planning] surfaceNode use frame instead
@@ -82,7 +82,7 @@ bool RSRenderNode::Update(RSDirtyRegionManager& dirtyManager, const RSProperties
     bool dirty = renderProperties_.UpdateGeometry(parent, parentDirty, offset);
     isDirtyRegionUpdated_ = false;
     UpdateDirtyRegion(dirtyManager, dirty);
-    isLastVisible_ = renderProperties_.GetVisible();
+    isLastVisible_ = ShouldPaint();
     renderProperties_.ResetDirty();
     return dirty;
 }
@@ -106,7 +106,7 @@ void RSRenderNode::UpdateDirtyRegion(RSDirtyRegionManager& dirtyManager, bool ge
         dirtyManager.MergeDirtyRect(oldDirty_);
     }
     // merge old dirty if switch to invisible
-    if (!renderProperties_.GetVisible() && isLastVisible_) {
+    if (!ShouldPaint() && isLastVisible_) {
         ROSEN_LOGD("RSRenderNode:: id %" PRIu64 " UpdateDirtyRegion visible->invisible", GetId());
     } else {
         auto dirtyRect = renderProperties_.GetDirtyRect();
@@ -129,6 +129,7 @@ void RSRenderNode::UpdateDirtyRegion(RSDirtyRegionManager& dirtyManager, bool ge
             dirtyManager.MergeDirtyRect(dirtyRect);
             isDirtyRegionUpdated_ = true;
             oldDirty_ = dirtyRect;
+            oldDirtyInSurface_ = oldDirty_.IntersectRect(dirtyManager.GetSurfaceRect());
         }
     }
     SetClean();
@@ -143,13 +144,34 @@ void RSRenderNode::UpdateRenderStatus(RectI& dirtyRegion, bool isPartialRenderEn
 {
     auto dirtyRect = renderProperties_.GetDirtyRect();
     // should judge if there's any child out of parent
-    if (!isPartialRenderEnabled) {
+    if (!isPartialRenderEnabled || HasChildrenOutOfRect()) {
         isRenderUpdateIgnored_ = false;
     } else if (dirtyRegion.IsEmpty() || dirtyRect.IsEmpty()) {
         isRenderUpdateIgnored_ = true;
     } else {
         RectI intersectRect = dirtyRegion.IntersectRect(dirtyRect);
         isRenderUpdateIgnored_ = intersectRect.IsEmpty();
+    }
+}
+
+void RSRenderNode::SetPaintOutOfParentFlag(std::shared_ptr<RSRenderNode> rsParent)
+{
+    if (rsParent == nullptr) {
+        return;
+    }
+    auto dirtyRect = renderProperties_.GetDirtyRect();
+    auto parentRect = rsParent->GetRenderProperties().GetDirtyRect();
+    if (HasChildrenOutOfRect()) {
+        if (!GetPaintOutOfParentRect().IsInsideOf(parentRect) || parentRect.IsEmpty()) {
+            rsParent->UpdateChildrenOutOfRectFlag(true);
+            rsParent->UpdatePaintOutOfParentRect(GetPaintOutOfParentRect());
+        }
+    } else {
+        // update parent status and paintOutOfParentRect_ recursively from bottom children
+        if (!dirtyRect.IsInsideOf(parentRect) || parentRect.IsEmpty()) {
+            rsParent->UpdateChildrenOutOfRectFlag(true);
+            rsParent->UpdatePaintOutOfParentRect(dirtyRect);
+        }
     }
 }
 

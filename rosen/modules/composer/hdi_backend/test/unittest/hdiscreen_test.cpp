@@ -27,15 +27,50 @@ class HdiScreenTest : public testing::Test {
 public:
     static void SetUpTestCase();
     static void TearDownTestCase();
+    static void CheckNullFunc();
 
     static inline std::unique_ptr<HdiScreen> hdiScreen_;
     static inline Mock::HdiDevice* mockDevice_;
 };
 
+void HdiScreenTest::CheckNullFunc()
+{
+    DisplayCapability dcap;
+    ASSERT_EQ(hdiScreen_->GetScreenCapability(dcap), DISPLAY_NULL_PTR);
+    std::vector<DisplayModeInfo> modes;
+    ASSERT_EQ(hdiScreen_->GetScreenSupportedModes(modes), DISPLAY_NULL_PTR);
+    uint32_t modeId = 0;
+    ASSERT_EQ(hdiScreen_->GetScreenMode(modeId), DISPLAY_NULL_PTR);
+    ASSERT_EQ(hdiScreen_->SetScreenMode(modeId), DISPLAY_NULL_PTR);
+    DispPowerStatus status = POWER_STATUS_ON;
+    ASSERT_EQ(hdiScreen_->GetScreenPowerStatus(status), DISPLAY_NULL_PTR);
+    ASSERT_EQ(hdiScreen_->SetScreenPowerStatus(status), DISPLAY_NULL_PTR);
+    uint32_t level = 0;
+    ASSERT_EQ(hdiScreen_->GetScreenBacklight(level), DISPLAY_NULL_PTR);
+    ASSERT_EQ(hdiScreen_->SetScreenBacklight(level), DISPLAY_NULL_PTR);
+    bool enabled = false;
+    ASSERT_EQ(hdiScreen_->SetScreenVsyncEnabled(enabled), DISPLAY_NULL_PTR);
+    std::vector<ColorGamut> gamuts;
+    ASSERT_EQ(hdiScreen_->GetScreenSupportedColorGamuts(gamuts), DISPLAY_NULL_PTR);
+    ColorGamut gamut = COLOR_GAMUT_INVALID;
+    ASSERT_EQ(hdiScreen_->SetScreenColorGamut(gamut), DISPLAY_NULL_PTR);
+    ASSERT_EQ(hdiScreen_->GetScreenColorGamut(gamut), DISPLAY_NULL_PTR);
+    GamutMap gamutMap = GAMUT_MAP_CONSTANT;
+    ASSERT_EQ(hdiScreen_->SetScreenGamutMap(gamutMap), DISPLAY_NULL_PTR);
+    ASSERT_EQ(hdiScreen_->GetScreenGamutMap(gamutMap), DISPLAY_NULL_PTR);
+    float *matrix;
+    ASSERT_EQ(hdiScreen_->SetScreenColorTransform(matrix), DISPLAY_NULL_PTR);
+    HDRCapability infos;
+    ASSERT_EQ(hdiScreen_->GetHDRCapabilityInfos(infos), DISPLAY_NULL_PTR);
+    std::vector<HDRMetadataKey> keys;
+    ASSERT_EQ(hdiScreen_->GetSupportedMetaDataKey(keys), DISPLAY_NULL_PTR);
+}
+
 void HdiScreenTest::SetUpTestCase()
 {
     uint32_t screenId = 0;
     hdiScreen_ = HdiScreen::CreateHdiScreen(screenId);
+    HdiScreenTest::CheckNullFunc();
     mockDevice_ = Mock::HdiDevice::GetInstance();
 
     EXPECT_CALL(*mockDevice_, GetScreenCapability(_, _)).WillRepeatedly(testing::Return(0));
@@ -55,6 +90,11 @@ void HdiScreenTest::SetUpTestCase()
     EXPECT_CALL(*mockDevice_, GetSupportedMetaDataKey(_, _)).WillRepeatedly(testing::Return(0));
     EXPECT_CALL(*mockDevice_, SetScreenVsyncEnabled(_, _)).WillRepeatedly(testing::Return(0));
     EXPECT_CALL(*mockDevice_, SetScreenColorTransform(_, _)).WillRepeatedly(testing::Return(0));
+    // set hdiScreen_->hdidevice_ to null
+    hdiScreen_->SetHdiDevice(nullptr);
+    // set hdiScreen_->hdidevice_ to mockDevice_
+    hdiScreen_->SetHdiDevice(mockDevice_);
+    // reset hdiScreen_->hdidevice_ to mockDevice_
     hdiScreen_->SetHdiDevice(mockDevice_);
 }
 

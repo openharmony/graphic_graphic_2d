@@ -39,6 +39,7 @@ ohos_executable("drawing_sample") {
     "src/matrix_test.cpp",
     "src/path_effect_test.cpp",
     "src/path_test.cpp",
+    "src/pen_test.cpp",
     "src/shader_test.cpp",
   ]
 

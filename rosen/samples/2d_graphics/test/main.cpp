@@ -28,6 +28,7 @@
 #include "path_test.h"
 #include "shader_test.h"
 #include "shadow_test.h"
+#include "pen_test.h"
 
 using namespace OHOS;
 using namespace Rosen;
@@ -57,6 +58,7 @@ int main()
     testFuncMap.insert(pair<string, std::vector<TestFunc>>("PathTest", PathTest::GetInstance().PathTestCase()));
     testFuncMap.insert(pair<string, std::vector<TestFunc>>("ShaderTest", ShaderTest::GetInstance().ShaderTestCase()));
     testFuncMap.insert(pair<string, std::vector<TestFunc>>("ShadowTest", ShadowTest::GetInstance().ShadowTestCase()));
+    testFuncMap.insert(pair<string, std::vector<TestFunc>>("PenTest", PenTest::GetInstance().PenTestCase()));
 
     DrawingSample m;
     m.SetDraw(testFuncMap).Run();
