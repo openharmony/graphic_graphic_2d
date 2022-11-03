@@ -25,7 +25,7 @@ class EglWrapperContext : public EglWrapperObject {
 public:
     EglWrapperContext(EglWrapperDisplay *disp, EGLContext context);
     void SetCurrentSurface(EGLSurface draw, EGLSurface read);
-    EGLSurface GetCurrentSurface(EGLint type);
+    EGLSurface GetCurrentSurface(EGLint type) const;
     static EglWrapperContext *GetWrapperContext(EGLContext ctx);
     inline EGLContext GetEglContext() const
     {
