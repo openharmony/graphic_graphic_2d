@@ -55,6 +55,7 @@ public:
         QUERY_RT_NEED_RENDER,
         CREATE_NODE,
         CREATE_NODE_AND_SURFACE,
+        SET_FOCUS_APP_INFO,
         GET_DEFAULT_SCREEN_ID,
         GET_ALL_SCREEN_IDS,
         CREATE_VIRTUAL_SCREEN,
@@ -102,6 +103,9 @@ public:
     virtual sptr<Surface> CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config) = 0;
 
     virtual sptr<IVSyncConnection> CreateVSyncConnection(const std::string& name) = 0;
+
+    virtual int32_t SetFocusAppInfo(
+        int32_t pid, int32_t uid, const std::string &bundleName, const std::string &abilityName) = 0;
 
     virtual ScreenId GetDefaultScreenId() = 0;
 

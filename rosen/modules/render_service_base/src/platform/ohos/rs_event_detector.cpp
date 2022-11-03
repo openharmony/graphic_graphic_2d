@@ -61,13 +61,20 @@ void RSTimeOutDetector::SetLoopStartTag()
     startTimeStampMs_ = RSEventTimer::GetSysTimeMs();
 }
 
-void RSTimeOutDetector::SetLoopFinishTag()
+void RSTimeOutDetector::SetLoopFinishTag(
+    int32_t focusAppPid, int32_t focusAppUid, std::string& focusAppBundleName, std::string& focusAppAbilityName)
 {
     uint64_t finishTimeStampMs = RSEventTimer::GetSysTimeMs();
     RS_LOGD("RSTimeOutDetector :: One loop cost Time: %" PRIu64 " ", finishTimeStampMs - startTimeStampMs_);
-    if (finishTimeStampMs > startTimeStampMs_ &&
-        finishTimeStampMs - startTimeStampMs_ > static_cast<uint64_t>(timeOutThresholdMs_)) {
-        EventReport(finishTimeStampMs - startTimeStampMs_);
+    if (finishTimeStampMs > startTimeStampMs_) {
+        auto durationStampMs = finishTimeStampMs - startTimeStampMs_;
+        if (durationStampMs > static_cast<uint64_t>(timeOutThresholdMs_)) {
+            focusAppPid_ = focusAppPid;
+            focusAppUid_ = focusAppUid;
+            focusAppBundleName_ = focusAppBundleName;
+            focusAppAbilityName_ = focusAppAbilityName;
+            EventReport(durationStampMs);
+        }
     }
 }
 
@@ -79,6 +86,14 @@ void RSTimeOutDetector::EventReport(uint64_t costTimeMs)
         msg,
         OHOS::HiviewDFX::HiSysEvent::EventType::STATISTIC
     };
+    if (focusAppPid_ != -1) {
+        eventMsg.pid = focusAppPid_;
+        eventMsg.uid = focusAppUid_;
+        eventMsg.bundleName = focusAppBundleName_;
+        eventMsg.abilityName = focusAppAbilityName_;
+        RS_LOGD("RSTimeOutDetector::EventReport focusApp: %d, %d, %s, %s",
+            eventMsg.pid, eventMsg.uid, eventMsg.bundleName.c_str(), eventMsg.abilityName.c_str());
+    }
     if (eventCallback_ != nullptr) {
         eventCallback_(eventMsg);
     }
