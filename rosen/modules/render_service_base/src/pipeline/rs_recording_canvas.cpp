@@ -175,8 +175,32 @@ void RSRecordingCanvas::onDrawBehind(const SkPaint& paint)
 
 void RSRecordingCanvas::onDrawPath(const SkPath& path, const SkPaint& paint)
 {
+    if (RSSystemProperties::GetDrawTextAsBitmap()) {
+        DrawPathAsBitmap(path, paint);
+        return;
+    }
     std::unique_ptr<OpItem> op = std::make_unique<PathOpItem>(path, paint);
     AddOp(std::move(op));
+}
+
+void RSRecordingCanvas::DrawPathAsBitmap(const SkPath& path, const SkPaint& paint)
+{
+    auto bounds = path.getBounds();
+    // allocate a bitmap to draw the path into
+    SkBitmap bitmap;
+    auto imageInfo = SkImageInfo::Make(bounds.width(), bounds.height(), kRGBA_8888_SkColorType, kPremul_SkAlphaType);
+    bitmap.allocPixels(imageInfo);
+    SkCanvas tempCanvas(bitmap);
+    // align path bounds to [0, 0]
+    if (bounds.left() != 0 || bounds.top() != 0) {
+        SkMatrix matrix;
+        matrix.setTranslate(-bounds.left(), -bounds.top());
+        tempCanvas.concat(matrix);
+    }
+    tempCanvas.drawPath(path, paint);
+    tempCanvas.flush();
+    // draw bitmap with correct offset
+    drawBitmap(bitmap, bounds.x(), bounds.y());
 }
 
 void RSRecordingCanvas::onDrawRect(const SkRect& rect, const SkPaint& paint)
