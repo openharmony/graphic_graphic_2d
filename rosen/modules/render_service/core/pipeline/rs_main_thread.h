@@ -117,6 +117,9 @@ public:
     void ClearTransactionDataPidInfo(pid_t remotePid);
     void AddTransactionDataPidInfo(pid_t remotePid);
 
+    void SetFocusAppInfo(
+        int32_t pid, int32_t uid, const std::string &bundleName, const std::string &abilityName);
+
     sptr<VSyncDistributor> rsVSyncDistributor_;
 
 private:
@@ -212,6 +215,10 @@ private:
     bool isDirty_ = false;
     std::atomic_bool doWindowAnimate_ = false;
     uint32_t lastSurfaceCnt_ = 0;
+    int32_t focusAppPid_ = -1;
+    int32_t focusAppUid_ = -1;
+    std::string focusAppBundleName_ = "";
+    std::string focusAppAbilityName_ = "";
 
     std::shared_ptr<RSRenderEngine> renderEngine_;
     std::shared_ptr<RSBaseEventDetector> rsCompositionTimeoutDetector_;

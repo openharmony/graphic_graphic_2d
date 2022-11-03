@@ -265,6 +265,13 @@ sptr<IVSyncConnection> RSRenderServiceConnection::CreateVSyncConnection(const st
     return conn;
 }
 
+int32_t RSRenderServiceConnection::SetFocusAppInfo(
+    int32_t pid, int32_t uid, const std::string &bundleName, const std::string &abilityName)
+{
+    mainThread_->SetFocusAppInfo(pid, uid, bundleName, abilityName);
+    return SUCCESS;
+}
+
 ScreenId RSRenderServiceConnection::GetDefaultScreenId()
 {
     std::lock_guard<std::mutex> lock(mutex_);
