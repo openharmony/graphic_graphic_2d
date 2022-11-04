@@ -21,7 +21,7 @@
 
 namespace OHOS {
 namespace Rosen {
-static void ParseDfxSurfaceNamesString(const std::string& paramsStr, std::vector<std::string>& splitStrs, const std::string seperator)
+static void ParseDfxSurfaceNamesString(const std::string& paramsStr, std::vector<std::string>& splitStrs, const std::string& seperator)
 {
     std::string::size_type pos1 = 0;
     std::string::size_type pos2 = paramsStr.find(seperator);

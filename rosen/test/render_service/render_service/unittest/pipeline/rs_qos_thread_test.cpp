@@ -14,12 +14,10 @@
  */
 
 #include <gtest/gtest.h>
-#include <hilog/log.h>
 #include <memory>
 #include <unistd.h>
 
 #include "pipeline/rs_qos_thread.h"
-#include "platform/common/rs_innovation.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -34,45 +32,24 @@ public:
 };
 
 void RSQosThreadTest::SetUpTestCase() {}
-void RSQosThreadTest::TearDownTestCase() {
+void RSQosThreadTest::TearDownTestCase()
+{
     RSQosThread::GetInstance()->SetQosCal(false);
 }
 void RSQosThreadTest::SetUp() {}
 void RSQosThreadTest::TearDown() {}
 
-/*
- * @tc.name: QosThreadStartAndStop
- * @tc.desc: 
- * @tc.type:
- * @tc.require:
- * @tc.author:
- */
 HWTEST_F(RSQosThreadTest, QosThreadStartAndStop, TestSize.Level1)
 {
-    // so not loaded 
     RSQosThread::ThreadStart();
     RSQosThread::ThreadStop();
-    RSQosThread::ResetQosPid();
 }
 
-/*
- * @tc.name: QosOnRSVisibilityChangeCB
- * @tc.desc:
- * @tc.type:
- * @tc.require:
- * @tc.author:
- */
 HWTEST_F(RSQosThreadTest,  QosOnRSVisibilityChangeCB, TestSize.Level1)
 {
     std::map<uint32_t, bool> pidVisMap;
 
     // qosCal not setted
-    RSQosThread::GetInstance()->OnRSVisibilityChangeCB(pidVisMap);
-
-    // qosCal not is setted
-    RSQosThread::GetInstance()->SetQosCal(true);
-    bool qosCal = RSQosThread::GetInstance()->GetQosCal();
-    ASSERT_EQ(qosCal, true);
     RSQosThread::GetInstance()->OnRSVisibilityChangeCB(pidVisMap);
 }
 

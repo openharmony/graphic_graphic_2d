@@ -13,36 +13,77 @@
 
 import("//build/test.gni")
 import("//foundation/arkui/ace_engine/ace_config.gni")
+import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
 module_output_path = "graphic/rosen_engine/render_service/pipeline"
 
-##############################  RSRenderServiceCommonPipelineSystemTest  ##################################
-ohos_systemtest("RSRenderServiceCommonPipelineSystemTest") {
+group("systemtest") {
+  testonly = true
+
+  deps = [
+    ":RSDropFrameProcessorSystemTest",
+    ":RSRenderServiceTest",
+  ]
+}
+
+###############################################################################
+config("pipeline_test") {
+  include_dirs =
+      [ "//foundation/graphic/graphic_2d/rosen/modules/render_service/core" ]
+}
+
+## Build RSDropFrameProcessorSystemTest
+ohos_systemtest("RSDropFrameProcessorSystemTest") {
   module_out_path = module_output_path
+  sources = [ "rs_drop_frame_processor_test.cpp" ]
+  deps = [ ":rs_test_common" ]
+  defines = []
+  defines += gpu_defines
+}
 
-  sources = [
-    "rs_drop_frame_processor_test.cpp",
-    "rs_render_service_test.cpp",
-  ]
+## Build RSRenderServiceTest
+ohos_systemtest("RSRenderServiceTest") {
+  module_out_path = module_output_path
+  sources = [ "rs_render_service_test.cpp" ]
+  deps = [ ":rs_test_common" ]
+  defines = []
+  defines += gpu_defines
+}
 
-  configs = [
-    ":pipeline_test",
-    "$ace_root:ace_test_config",
-  ]
-
+## Build rs_test_common.a {{{
+config("rs_test_common_public_config") {
   include_dirs = [
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service/core",
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/src",
     "//foundation/graphic/graphic_2d/rosen/include",
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service/core",
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service_client/core",
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/src",
     "//foundation/graphic/graphic_2d/rosen/test/include",
     "//foundation/barrierfree/accessibility/interfaces/innerkits/acfwk/include",
   ]
 
-  deps = [
+  cflags = [
+    "-Wall",
+    "-Werror",
+    "-g3",
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
+}
+
+ohos_static_library("rs_test_common") {
+  visibility = [ ":*" ]
+  testonly = true
+  defines = []
+  defines += gpu_defines
+
+  public_configs = [ ":rs_test_common_public_config" ]
+
+  public_deps = [
     "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
     "//foundation/graphic/graphic_2d/rosen/modules/composer:libcomposer",
     "//foundation/graphic/graphic_2d/rosen/modules/render_service:librender_service",
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:librender_service_base",
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:librender_service_client",
     "//third_party/googletest:gtest_main",
   ]
 
@@ -52,17 +93,5 @@ ohos_systemtest("RSRenderServiceCommonPipelineSystemTest") {
   ]
 
   subsystem_name = "graphic"
-}
-
-###############################################################################
-config("pipeline_test") {
-  #visibility = [ ":*" ]
-  include_dirs =
-      [ "//foundation/graphic/graphic_2d/rosen/modules/render_service/core" ]
-}
-
-group("systemtest") {
-  testonly = true
-
-  deps = [ ":RSRenderServiceCommonPipelineSystemTest" ]
+  part_name = "graphic_standard"
 }

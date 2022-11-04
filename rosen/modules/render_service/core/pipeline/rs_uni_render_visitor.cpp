@@ -522,6 +522,8 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
         auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(node.GetRenderProperties().GetBoundsGeometry());
         if (geoPtr != nullptr) {
             canvas_->concat(geoPtr->GetMatrix());
+            // disable shadow during rotating animation
+            canvas_->SetShadowEnabled(!geoPtr->IsNeedClientCompose());
         }
         ProcessBaseRenderNode(node);
         canvas_->restore();

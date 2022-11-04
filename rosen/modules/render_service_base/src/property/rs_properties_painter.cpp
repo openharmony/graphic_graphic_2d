@@ -210,7 +210,7 @@ void RSPropertiesPainter::GetShadowDirtyRect(RectI& dirtyShadow, const RSPropert
 
 void RSPropertiesPainter::DrawShadow(const RSProperties& properties, RSPaintFilterCanvas& canvas, const RRect* rrect)
 {
-    if (!properties.IsShadowValid()) {
+    if (!properties.IsShadowValid() || !canvas.isShadowEnabled()) {
         return;
     }
     SkAutoCanvasRestore acr(&canvas, true);
