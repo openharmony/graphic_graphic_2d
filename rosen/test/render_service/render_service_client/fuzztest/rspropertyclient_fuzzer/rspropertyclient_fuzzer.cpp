@@ -67,7 +67,7 @@ bool TestProperty(const uint8_t* data, size_t size)
     float value = GetData<float>();
     RSProperty<float> rsProperty(1.0f);
     rsProperty.Set(value);
-    return ROSEN_EQ(rsProperty.Get(), value); 
+    return ROSEN_EQ(rsProperty.Get(), value);
 }
 } // namespace Rosen
 } // namespace OHOS
