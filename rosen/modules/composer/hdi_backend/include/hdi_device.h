@@ -18,6 +18,7 @@
 
 #include <vector>
 #include <refbase.h>
+#include <unordered_map>
 
 #include <sync_fence.h>
 
@@ -168,6 +169,24 @@ public:
     void ResetHdiFuncs();
 
 private:
+    class CheckPtr {
+    public:
+        template <typename Ptr>
+        bool operator()(const Ptr ptr, const std::string& ptrName)
+        {
+            if (ptrNameCache_.find(ptrName) == ptrNameCache_.end()) {
+                bool ptrNotNull = (ptr != nullptr);
+                if (!ptrNotNull) {
+                    HLOGD("can not find hdi func: %{public}s", ptrName.c_str());
+                }
+                ptrNameCache_[ptrName] = ptrNotNull;
+            }
+            return ptrNameCache_[ptrName];
+        }
+    private:
+        std::unordered_map<std::string, bool> ptrNameCache_;
+    };
+
     HdiDevice(const HdiDevice& rhs) = delete;
     HdiDevice& operator=(const HdiDevice& rhs) = delete;
     HdiDevice(HdiDevice&& rhs) = delete;
@@ -178,25 +197,7 @@ private:
 
     RosenError Init();
     void Destroy();
-};
-
-template <typename DevicePtr, typename DeviceFuncPtr>
-class CheckFunc {
-public:
-    CheckFunc(const DevicePtr device, const DeviceFuncPtr deviceFunc, const std::string& funcName)
-    {
-        if (device == nullptr || deviceFunc == nullptr) {
-            HLOGD("can not find hdi func: %{public}s", funcName.c_str());
-            hasFunc = false;
-        }
-    }
-    ~CheckFunc() noexcept = default;
-    bool operator()() const
-    {
-        return hasFunc;
-    }
-private:
-    bool hasFunc = true;
+    CheckPtr checkPtr;
 };
 
 } // namespace Rosen

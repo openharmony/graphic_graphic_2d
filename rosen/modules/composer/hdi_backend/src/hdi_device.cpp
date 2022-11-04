@@ -19,12 +19,14 @@
 
 #include <scoped_bytrace.h>
 
-#define CHECK_FUNC(device, deviceFunc)                                 \
-    do {                                                               \
-        static CheckFunc checkFunc(device, deviceFunc, __FUNCTION__);  \
-        if (!checkFunc()) {                                            \
-            return DISPLAY_NULL_PTR;                                   \
-        }                                                              \
+#define CHECK_FUNC(device, deviceFunc)              \
+    do {                                            \
+        if (!checkPtr(device, #device)) {           \
+            return DISPLAY_NULL_PTR;                \
+        }                                           \
+        if (!checkPtr(deviceFunc, __FUNCTION__)) {  \
+            return DISPLAY_NULL_PTR;                \
+        }                                           \
     } while(0)
 
 namespace OHOS {
