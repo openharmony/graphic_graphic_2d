@@ -48,6 +48,14 @@ void RSColdStartThread::Start()
 
 void RSColdStartThread::Stop()
 {
+    if (handler_ != nullptr) {
+        handler_->PostTask([surfaceNode = surfaceNode_]() {
+            auto node = surfaceNode.lock();
+            if (node != nullptr) {
+                node->ClearCacheSurface();
+            }
+        }, AppExecFwk::EventQueue::Priority::IMMEDIATE);
+    }
     if (runner_ != nullptr) {
         runner_->Stop();
     }
@@ -83,7 +91,7 @@ void RSColdStartThread::PostPlayBackTask(GrContext* context, sk_sp<SkPicture> pi
         sk_sp<SkSurface> surface = nullptr;
 #if (defined RS_ENABLE_GL) && (defined RS_ENABLE_EGLIMAGE)
         SkImageInfo info = SkImageInfo::MakeN32Premul(width, height);
-        surface = SkSurface::MakeRenderTarget(context, SkBudgeted::kYes, info));
+        surface = SkSurface::MakeRenderTarget(context, SkBudgeted::kYes, info);
 #else
         surface = SkSurface::MakeRasterN32Premul(width, height);
 #endif
@@ -93,6 +101,9 @@ void RSColdStartThread::PostPlayBackTask(GrContext* context, sk_sp<SkPicture> pi
         }
         surface->getCanvas()->drawPicture(picture);
         node->SetCacheSurface(surface);
+        if (node->GetCacheSurface() == nullptr) {
+            node->NotifyUIBufferAvailable();
+        }
     };
     handler_->PostTask(task, AppExecFwk::EventQueue::Priority::IMMEDIATE);
 }
