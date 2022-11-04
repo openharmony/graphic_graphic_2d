@@ -196,6 +196,9 @@ GSError SurfaceBufferImpl::Map()
         }
         handle = handle_;
     }
+#ifdef RS_ENABLE_AFBC
+    handle->usage |= (BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA);
+#endif
     void *virAddr = displayGralloc_->Mmap(*handle);
     if (virAddr == nullptr || virAddr == MAP_FAILED) {
         return GSERROR_API_FAILED;
