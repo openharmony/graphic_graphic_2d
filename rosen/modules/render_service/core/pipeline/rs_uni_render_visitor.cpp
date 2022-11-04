@@ -849,6 +849,16 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
     }
 
     if (needColdStartThread_ && node.IsAppWindow()) {
+        if (!doAnimate_) {
+            if (node.HasColdStartAnimation()) {
+                if (node.GetCacheSurface() == nullptr) {
+                    RS_LOGE("RSUniRenderVisitor::ProcessSurfaceRenderNode draw first frame too slowly.");
+                }
+                node.DestroyColdStartThread();
+            }
+            needColdStartThread_ = false;
+            node.SetColdStartAnimationState(false);
+        }
         if (!IsFirstFrameReadyToDraw(node)) {
             return;
         }
