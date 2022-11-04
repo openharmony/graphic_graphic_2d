@@ -20,6 +20,8 @@
 
 namespace OHOS {
 namespace Rosen {
+constexpr float DEGREE_TO_RADIAN = M_PI / 180;
+
 const std::shared_ptr<const RSTransitionEffect> RSTransitionEffect::OPACITY = RSTransitionEffect::Create()->Opacity(0);
 
 const std::shared_ptr<const RSTransitionEffect> RSTransitionEffect::SCALE =
@@ -74,7 +76,8 @@ std::shared_ptr<RSTransitionEffect> RSTransitionEffect::Rotate(const Vector4f& a
         ROSEN_LOGI("RSTransitionEffect::Rotate: Skip empty transition effect");
         return shared_from_this();
     }
-    auto rotateEffect = std::make_shared<RSTransitionRotate>(axisAngle.x_, axisAngle.y_, axisAngle.z_, axisAngle.w_);
+    auto angleRadian = axisAngle.w_ * DEGREE_TO_RADIAN;
+    auto rotateEffect = std::make_shared<RSTransitionRotate>(axisAngle.x_, axisAngle.y_, axisAngle.z_, angleRadian);
     transitionInEffects_.push_back(rotateEffect);
     transitionOutEffects_.push_back(rotateEffect);
     return shared_from_this();
