@@ -32,6 +32,10 @@
 
 namespace OHOS {
 namespace Rosen {
+namespace {
+static bool gIsUniRenderEnabled = false;
+}
+
 NodeId RSBaseNode::GenerateId()
 {
     static pid_t pid_ = GetRealPid();
@@ -52,8 +56,8 @@ void RSBaseNode::InitUniRenderEnabled()
     static bool inited = false;
     if (!inited) {
         inited = true;
-        isUniRenderEnabled_ = RSSystemProperties::GetUniRenderEnabled();
-        ROSEN_LOGD("RSBaseNode::InitUniRenderEnabled:%d", isUniRenderEnabled_);
+        gIsUniRenderEnabled = RSSystemProperties::GetUniRenderEnabled();
+        ROSEN_LOGD("RSBaseNode::InitUniRenderEnabled:%d", gIsUniRenderEnabled);
     }
 }
 
@@ -87,6 +91,21 @@ RSBaseNode::~RSBaseNode()
     }
 }
 
+bool RSBaseNode::IsUniRenderEnabled() const
+{
+    return gIsUniRenderEnabled;
+}
+
+bool RSBaseNode::IsRenderServiceNode() const
+{
+    return gIsUniRenderEnabled || isRenderServiceNode_;
+}
+
+bool RSBaseNode::NeedSendExtraCommand() const
+{
+    return gIsUniRenderEnabled && !isRenderServiceNode_;
+}
+
 void RSBaseNode::AddChild(SharedPtr child, int index)
 {
     if (child == nullptr) {
@@ -112,7 +131,7 @@ void RSBaseNode::AddChild(SharedPtr child, int index)
     // construct command using child's GetHierarchyCommandNodeId(), not GetId()
     childId = child->GetHierarchyCommandNodeId();
     std::unique_ptr<RSCommand> command = std::make_unique<RSBaseNodeAddChild>(id_, childId, index);
-    bool disallowSendToRemote = isUniRenderEnabled_ && !RSSystemProperties::IsUniRenderMode() && // dynamic-Non Uni
+    bool disallowSendToRemote = gIsUniRenderEnabled && !RSSystemProperties::IsUniRenderMode() && // dynamic-Non Uni
         !isRenderServiceNode_ && !IsInstanceOf(RSUINodeType::SURFACE_NODE) && // canvas/root node
         child->IsInstanceOf(RSUINodeType::SURFACE_NODE);
     if (disallowSendToRemote) {
@@ -152,7 +171,7 @@ void RSBaseNode::MoveChild(SharedPtr child, int index)
     // construct command using child's GetHierarchyCommandNodeId(), not GetId()
     childId = child->GetHierarchyCommandNodeId();
     std::unique_ptr<RSCommand> command = std::make_unique<RSBaseNodeMoveChild>(id_, childId, index);
-    bool disallowSendToRemote = isUniRenderEnabled_ && !RSSystemProperties::IsUniRenderMode() && // dynamic-Non Uni
+    bool disallowSendToRemote = gIsUniRenderEnabled && !RSSystemProperties::IsUniRenderMode() && // dynamic-Non Uni
                                 !isRenderServiceNode_ &&
                                 !IsInstanceOf(RSUINodeType::SURFACE_NODE) && // canvas/root node
                                 child->IsInstanceOf(RSUINodeType::SURFACE_NODE);
@@ -220,7 +239,7 @@ void RSBaseNode::AddCrossParentChild(SharedPtr child, int index)
     // construct command using child's GetHierarchyCommandNodeId(), not GetId()
     childId = child->GetHierarchyCommandNodeId();
     std::unique_ptr<RSCommand> command = std::make_unique<RSBaseNodeAddCrossParentChild>(id_, childId, index);
-    bool disallowSendToRemote = isUniRenderEnabled_ && !RSSystemProperties::IsUniRenderMode() && // dynamic-Non Uni
+    bool disallowSendToRemote = gIsUniRenderEnabled && !RSSystemProperties::IsUniRenderMode() && // dynamic-Non Uni
                                 !isRenderServiceNode_ &&
                                 !IsInstanceOf(RSUINodeType::SURFACE_NODE) && // canvas/root node
                                 child->IsInstanceOf(RSUINodeType::SURFACE_NODE);
