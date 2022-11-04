@@ -118,9 +118,3 @@ ohos_executable("render_service") {
   part_name = "graphic_standard"
   subsystem_name = "graphic"
 }
-
-group("test") {
-  testonly = true
-
-  deps = [ "core/screen_manager/test:test" ]
-}
