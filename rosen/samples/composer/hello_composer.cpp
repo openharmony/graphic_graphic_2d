@@ -37,7 +37,7 @@ namespace {
 sptr<VSyncReceiver> g_receiver = nullptr;
 }
 
-void HelloComposer::Run(std::vector<std::string> &runArgs)
+void HelloComposer::Run(const std::vector<std::string> &runArgs)
 {
     auto generator = CreateVSyncGenerator();
     sptr<VSyncController> vsyncController = new VSyncController(generator, 0);
@@ -82,7 +82,7 @@ void HelloComposer::Run(std::vector<std::string> &runArgs)
 
 void HelloComposer::ParseArgs(const std::vector<std::string> &runArgs)
 {
-    for (std::string &arg : runArgs) {
+    for (const std::string &arg : runArgs) {
         if (arg == "--dump") {
             dump_ = true;
         } else if (arg == "--testClient") {

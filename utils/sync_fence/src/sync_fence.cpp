@@ -186,7 +186,7 @@ ns_sec_t SyncFence::SyncFileReadTimestamp()
         return FENCE_PENDING_TIMESTAMP;
     }
     size_t signalFenceCount = 0;
-    for (auto &info : ptInfos) {
+    for (const auto &info : ptInfos) {
         if (info.status == SIGNALED) {
             signalFenceCount++;
         }
@@ -194,7 +194,7 @@ ns_sec_t SyncFence::SyncFileReadTimestamp()
     if (signalFenceCount == ptInfos.size()) {
         // fence signaled
         uint64_t timestamp = 0;
-        for (auto &ptInfo : ptInfos) {
+        for (const auto &ptInfo : ptInfos) {
             if (ptInfo.timestampNs > timestamp) {
                 timestamp = ptInfo.timestampNs;
             }
@@ -265,7 +265,7 @@ FenceStatus SyncFence::GetStatus()
         return ERROR;
     }
     size_t signalFenceCount = 0;
-    for (auto &info : ptInfos) {
+    for (const auto &info : ptInfos) {
         if (info.status == SIGNALED) {
             signalFenceCount++;
         }
