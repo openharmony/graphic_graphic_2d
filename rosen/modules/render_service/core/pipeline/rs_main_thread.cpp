@@ -586,12 +586,12 @@ void RSMainThread::CalcOcclusion()
             curAllSurfaces = displayNode->GetCurAllSurfaces();
         }
     } else {
-        node->CollectSurface(node, curAllSurfaces, isUniRender_);
+        node->CollectSurface(node, curAllSurfaces, IfUseUniVisitor());
     }
 
     // 1. Judge whether it is dirty
     // Surface cnt changed or surface DstRectChanged or surface ZorderChanged
-    bool winDirty = lastSurfaceCnt_ != curAllSurfaces.size();
+    bool winDirty = (lastSurfaceCnt_ != curAllSurfaces.size() || isDirty_);
     lastSurfaceCnt_ = curAllSurfaces.size();
     if (!winDirty) {
         for (auto it = curAllSurfaces.rbegin(); it != curAllSurfaces.rend(); ++it) {
@@ -600,7 +600,7 @@ void RSMainThread::CalcOcclusion()
                 continue;
             }
             if (surface->GetZorderChanged() || surface->GetDstRectChanged() ||
-                surface->GetAlphaChanged()) {
+                surface->GetAlphaChanged() || (IfUseUniVisitor() && surface->IsDirtyRegionUpdated())) {
                 winDirty = true;
             }
             surface->CleanDstRectChanged();
@@ -621,8 +621,12 @@ void RSMainThread::CalcOcclusion()
         if (surface == nullptr || surface->GetDstRect().IsEmpty()) {
             continue;
         }
-        Occlusion::Rect rect { surface->GetDstRect().left_, surface->GetDstRect().top_,
-            surface->GetDstRect().GetRight(), surface->GetDstRect().GetBottom() };
+        Occlusion::Rect rect;
+        if (!surface->GetOldDirtyInSurface().IsEmpty() && IfUseUniVisitor()) {
+            rect = Occlusion::Rect{surface->GetOldDirtyInSurface()};
+        } else {
+            rect = Occlusion::Rect{surface->GetDstRect()};
+        }
         Occlusion::Region curSurface { rect };
         // Current surface subtract current region, if result region is empty that means it's covered
         Occlusion::Region subResult = curSurface.Sub(curRegion);
@@ -630,22 +634,20 @@ void RSMainThread::CalcOcclusion()
         surface->setQosCal(qosPidCal_);
         surface->SetVisibleRegionRecursive(subResult, curVisVec, pidVisMap);
         // Current region need to merge current surface for next calculation(ignore alpha surface)
-        const uint8_t opacity = 255;
-        if (isUniRender_) {
-            if ((surface->GetAbilityBgAlpha() == opacity &&
-                ROSEN_EQ(surface->GetGlobalAlpha(), 1.0f)) ||
-                RSOcclusionConfig::GetInstance().IsDividerBar(surface->GetName())) {
-                curRegion = curSurface.Or(curRegion);
+        if (IfUseUniVisitor()) {
+            curRegion.OrSelf(surface->GetOpaqueRegion());
+            if (RSOcclusionConfig::GetInstance().IsDividerBar(surface->GetName())) {
+                curRegion.OrSelf(curSurface);
             }
         } else {
+            const uint8_t opacity = 255;
             bool diff = (surface->GetDstRect().width_ > surface->GetBuffer()->GetWidth() ||
                         surface->GetDstRect().height_ > surface->GetBuffer()->GetHeight()) &&
                         surface->GetRenderProperties().GetFrameGravity() != Gravity::RESIZE &&
                         surface->GetRenderProperties().GetAlpha() != opacity;
-            if ((surface->GetAbilityBgAlpha() == opacity &&
-                ROSEN_EQ(surface->GetGlobalAlpha(), 1.0f) && !diff) ||
+            if ((!surface->IsTransparent() && !diff) ||
                 RSOcclusionConfig::GetInstance().IsDividerBar(surface->GetName())) {
-                curRegion = curSurface.Or(curRegion);
+                curRegion.OrSelf(curSurface);
             }
         }
     }
