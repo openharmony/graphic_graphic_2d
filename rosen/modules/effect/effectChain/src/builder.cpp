@@ -122,7 +122,6 @@ void Builder::ConnectPipeline(cJSON* connections)
         std::shared_ptr<Filter> fFilter = nullptr;
         std::shared_ptr<Filter> tFilter = nullptr;
         if (from != nullptr && to != nullptr) {
-            std::string fTypeName = nameType_[from->valuestring];
             auto itFrom = nameFilter_.find(from->valuestring);
             if (itFrom != nameFilter_.end()) {
                 fFilter = itFrom->second;
