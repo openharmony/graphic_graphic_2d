@@ -21,62 +21,96 @@ group("unittest") {
   testonly = true
 
   deps = [
+    ":RSBaseRenderUtilTest",
     ":RSDividedRenderUtilTest",
-    ":RSRenderServiceCommonPipelineTest",
+    ":RSDropFrameProcessorTest",
+    ":RSPhysicalScreenProcessorTest",
+    ":RSProcessorFactoryTest",
+    ":RSRenderServiceListenerTest",
+    ":RSRenderServiceVisitorTest",
     ":RSSurfaceCaptureTaskTest",
+    ":RSUniRenderJudgementTest",
     ":RSUniRenderUtilTest",
+    ":RSVirtualScreenProcessorTest",
   ]
-}
-
-##############################  RSRenderServiceCommonPipelineTest  ##################################
-ohos_unittest("RSRenderServiceCommonPipelineTest") {
-  module_out_path = module_output_path
-
-  sources = [
-    "rs_base_render_util_test.cpp",
-    "rs_drop_frame_processor_test.cpp",
-    "rs_physical_screen_processor_test.cpp",
-    "rs_processor_factory_test.cpp",
-    "rs_render_service_listener_test.cpp",
-    "rs_render_service_visitor_test.cpp",
-    "rs_uni_render_judgement_test.cpp",
-    "rs_virtual_screen_processor_test.cpp",
-  ]
-
-  configs = [
-    ":pipeline_test",
-    "$ace_root:ace_test_config",
-  ]
-
-  include_dirs = [
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service/core",
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/src",
-    "//foundation/graphic/graphic_2d/rosen/include",
-    "//foundation/graphic/graphic_2d/rosen/test/include",
-    "//foundation/barrierfree/accessibility/interfaces/innerkits/acfwk/include",
-  ]
-
-  deps = [
-    "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
-    "//foundation/graphic/graphic_2d/rosen/modules/composer:libcomposer",
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service:librender_service",
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:librender_service_base",
-    "//third_party/googletest:gtest_main",
-  ]
-
-  external_deps = [
-    "c_utils:utils",
-    "init:libbegetutil",
-  ]
-
-  subsystem_name = "graphic"
 }
 
 ###############################################################################
 config("pipeline_test") {
-  #visibility = [ ":*" ]
   include_dirs =
       [ "//foundation/graphic/graphic_2d/rosen/modules/render_service/core" ]
+}
+
+## Build RSVirtualScreenProcessorTest
+ohos_unittest("RSVirtualScreenProcessorTest") {
+  module_out_path = module_output_path
+  sources = [ "rs_virtual_screen_processor_test.cpp" ]
+  deps = [ ":rs_test_common" ]
+  defines = []
+  defines += gpu_defines
+}
+
+## Build RSUniRenderJudgementTest
+ohos_unittest("RSUniRenderJudgementTest") {
+  module_out_path = module_output_path
+  sources = [ "rs_uni_render_judgement_test.cpp" ]
+  deps = [ ":rs_test_common" ]
+  defines = []
+  defines += gpu_defines
+}
+
+## Build RSRenderServiceVisitorTest
+ohos_unittest("RSRenderServiceVisitorTest") {
+  module_out_path = module_output_path
+  sources = [ "rs_render_service_visitor_test.cpp" ]
+  deps = [ ":rs_test_common" ]
+  defines = []
+  defines += gpu_defines
+}
+
+## Build RSRenderServiceListenerTest
+ohos_unittest("RSRenderServiceListenerTest") {
+  module_out_path = module_output_path
+  sources = [ "rs_render_service_listener_test.cpp" ]
+  deps = [ ":rs_test_common" ]
+  defines = []
+  defines += gpu_defines
+}
+
+## Build RSProcessorFactoryTest
+ohos_unittest("RSProcessorFactoryTest") {
+  module_out_path = module_output_path
+  sources = [ "rs_processor_factory_test.cpp" ]
+  deps = [ ":rs_test_common" ]
+  defines = []
+  defines += gpu_defines
+}
+
+## Build RSPhysicalScreenProcessorTest
+ohos_unittest("RSPhysicalScreenProcessorTest") {
+  module_out_path = module_output_path
+  sources = [ "rs_physical_screen_processor_test.cpp" ]
+  deps = [ ":rs_test_common" ]
+  defines = []
+  defines += gpu_defines
+}
+
+## Build RSDropFrameProcessorTest
+ohos_unittest("RSDropFrameProcessorTest") {
+  module_out_path = module_output_path
+  sources = [ "rs_drop_frame_processor_test.cpp" ]
+  deps = [ ":rs_test_common" ]
+  defines = []
+  defines += gpu_defines
+}
+
+## Build RSBaseRenderUtilTest
+ohos_unittest("RSBaseRenderUtilTest") {
+  module_out_path = module_output_path
+  sources = [ "rs_base_render_util_test.cpp" ]
+  deps = [ ":rs_test_common" ]
+  defines = []
+  defines += gpu_defines
 }
 
 ## Build RSSurfaceCaptureTaskTest
@@ -114,6 +148,7 @@ config("rs_test_common_public_config") {
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_client/core",
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/src",
     "//foundation/graphic/graphic_2d/rosen/test/include",
+    "//foundation/barrierfree/accessibility/interfaces/innerkits/acfwk/include",
   ]
 
   cflags = [
@@ -141,6 +176,12 @@ ohos_static_library("rs_test_common") {
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:librender_service_client",
     "//third_party/googletest:gtest_main",
   ]
+
+  external_deps = [
+    "c_utils:utils",
+    "init:libbegetutil",
+  ]
+
   subsystem_name = "graphic"
   part_name = "graphic_standard"
 }

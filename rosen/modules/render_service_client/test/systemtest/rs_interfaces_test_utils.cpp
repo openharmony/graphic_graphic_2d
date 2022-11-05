@@ -21,6 +21,11 @@ namespace OHOS {
 namespace Rosen {
 RSInterfacesTestUtils::~RSInterfacesTestUtils()
 {
+    if (cSurface_ != nullptr) {
+        ROSEN_LOGE("cSurface_ is null");
+        return;
+    }
+
     if (prevBuffer_ != nullptr) {
         SurfaceError ret = cSurface_->ReleaseBuffer(prevBuffer_, -1);
         if (ret != SURFACE_ERROR_OK) {
@@ -29,9 +34,8 @@ RSInterfacesTestUtils::~RSInterfacesTestUtils()
         }
         ROSEN_LOGI("prevBuffer_ release success");
     }
-    if (cSurface_ != nullptr) {
-        cSurface_->UnregisterConsumerListener();
-    }
+
+    cSurface_->UnregisterConsumerListener();
     cSurface_ = nullptr;
     pSurface_ = nullptr;
     listener_ = nullptr;
