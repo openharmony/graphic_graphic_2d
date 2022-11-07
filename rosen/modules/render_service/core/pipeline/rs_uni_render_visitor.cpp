@@ -212,6 +212,9 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
         geoPtr->ConcatMatrix(node.GetContextMatrix());
         node.SetDstRect(geoPtr->GetAbsRect().IntersectRect(RectI(0, 0, screenInfo_.width, screenInfo_.height)));
         curDisplayNode_->UpdateSurfaceNodePos(node.GetId(), node.GetOldDirtyInSurface());
+        if (node.IsAppWindow()) {
+            curSurfaceNode_ = node.ReinterpretCastTo<RSSurfaceRenderNode>();
+        }
     } else {
         RSUniRenderUtil::UpdateRenderNodeDstRect(node, node.GetContextMatrix());
         node.SetDstRect(geoPtr->GetAbsRect().IntersectRect(RectI(0, 0, screenInfo_.width, screenInfo_.height)));
@@ -288,16 +291,13 @@ void RSUniRenderVisitor::PrepareCanvasRenderNode(RSCanvasRenderNode &node)
     float alpha = curAlpha_;
     curAlpha_ *= node.GetRenderProperties().GetAlpha();
     PrepareBaseRenderNode(node);
-    if (node.GetRenderProperties().GetBackgroundFilter() &&
-        !curSurfaceDirtyManager_->GetDirtyRegion().IntersectRect(node.GetOldDirty()).IsEmpty()) {
-        curSurfaceDirtyManager_->MergeDirtyRect(node.GetOldDirty());
-    }
+
     // [planning] Remove this after skia is upgraded, the clipRegion is supported
     if (node.GetRenderProperties().GetBackgroundFilter()) {
         needFilter_ = true;
     }
     if (node.GetRenderProperties().NeedFilter()) {
-        filterRects_.push_back(node.GetOldDirty());
+        filterRects_[curSurfaceNode_->GetId()].push_back(node.GetOldDirtyInSurface());
     }
     curAlpha_ = alpha;
     dirtyFlag_ = dirtyFlag;
@@ -618,6 +618,7 @@ void RSUniRenderVisitor::CalcDirtyDisplayRegion(std::shared_ptr<RSDisplayRenderN
         }
         auto surfaceDirtyManager = surfaceNode->GetDirtyManager();
         RectI surfaceDirtyRect = surfaceDirtyManager->GetDirtyRegion();
+        NodeId surfaceNodeId =  surfaceNode->GetId();
         if (surfaceNode->IsTransparent()) {
             // Handles the case of transparent surface, merge transparent dirty rect
             RectI transparentDirtyRect = surfaceNode->GetDstRect().IntersectRect(surfaceDirtyRect);
@@ -680,9 +681,18 @@ void RSUniRenderVisitor::CalcDirtyDisplayRegion(std::shared_ptr<RSDisplayRenderN
                 { rect.left_, rect.top_, rect.right_ - rect.left_, rect.bottom_ - rect.top_ });
         }
 
-        for (const auto& rect : filterRects_) {
-            if (!surfaceDirtyRect.IntersectRect(rect).IsEmpty()) {
-                displayDirtyManager->MergeDirtyRect(rect);
+        // Component
+        if (filterRects_.find(surfaceNodeId) != filterRects_.end()) {
+            auto rectVec = filterRects_.find(surfaceNodeId)->second;
+            for (auto it = rectVec.begin(); it != rectVec.end(); ++it) {
+                if (!displayDirtyManager->GetDirtyRegion().IntersectRect(*it).IsEmpty()) {
+                    if (surfaceNode->IsTransparent()) {
+                        displayDirtyManager->MergeDirtyRect(*it);
+                    }
+                    surfaceDirtyManager->MergeDirtyRect(*it);
+                } else if (!surfaceDirtyManager->GetDirtyRegion().IntersectRect(*it).IsEmpty()) {
+                    surfaceDirtyManager->MergeDirtyRect(*it);
+                }
             }
         }
     }

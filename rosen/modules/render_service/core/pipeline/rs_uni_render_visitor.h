@@ -114,7 +114,7 @@ private:
     PartialRenderType partialRenderType_;
     bool isDirty_ = false;
     bool needFilter_ = false;
-    std::vector<RectI> filterRects_;
+    std::unordered_map<NodeId, std::vector<RectI>> filterRects_;
     ColorGamut newColorSpace_ = ColorGamut::COLOR_GAMUT_SRGB;
     std::vector<ScreenColorGamut> colorGamutmodes_;
 };
