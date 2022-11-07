@@ -430,6 +430,7 @@ void RSScreen::ScreenTypeDump(std::string& dumpString)
 void RSScreen::SurfaceDump(int32_t screenIndex, std::string& dumpString)
 {
     if (hdiOutput_ == nullptr) {
+        RS_LOGW("RSScreen %s: hdiOutput_ is nullptr.", __func__);
         return;
     }
     hdiOutput_->Dump(dumpString);
@@ -438,6 +439,7 @@ void RSScreen::SurfaceDump(int32_t screenIndex, std::string& dumpString)
 void RSScreen::FpsDump(int32_t screenIndex, std::string& dumpString, std::string& arg)
 {
     if (hdiOutput_ == nullptr) {
+        RS_LOGW("RSScreen %s: hdiOutput_ is nullptr.", __func__);
         return;
     }
     hdiOutput_->DumpFps(dumpString, arg);
