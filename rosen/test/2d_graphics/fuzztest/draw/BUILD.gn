@@ -15,8 +15,8 @@ group("fuzztest") {
   testonly = true
 
   deps = [
+    "brush_fuzzer:fuzztest",
     "color_fuzzer:fuzztest",
     "path_fuzzer:fuzztest",
-    "brush_fuzzer:fuzztest",
   ]
 }

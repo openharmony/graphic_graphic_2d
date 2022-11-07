@@ -36,23 +36,18 @@ bool BrushFuzzTest(const uint8_t* data, size_t size)
     g_size = size;
     g_pos = 0;
 
-    // test
     Brush brush;
-
     Color color;
     int c = GetObject<int>();
     int r = GetObject<int>();
     int g = GetObject<int>();
     int b = GetObject<int>();
     int a = GetObject<int>();
-
     uint32_t cc = GetObject<uint32_t>();
-
     float color1 = GetObject<float>();
     float color2 = GetObject<float>();
     float color3 = GetObject<float>();
     float color4 = GetObject<float>();
-
     brush.GetColor();
     brush.SetColor(color);
     brush.SetColor(c);
@@ -67,7 +62,6 @@ bool BrushFuzzTest(const uint8_t* data, size_t size)
     brush.GetColorSpace();
     std::shared_ptr<ColorSpace> s = ColorSpace::CreateSRGB();
     brush.SetColor(color4f, s);
-
     brush.GetAlpha();
     brush.SetAlpha(cc);
     scalar sca = GetObject<scalar>();
@@ -75,17 +69,12 @@ bool BrushFuzzTest(const uint8_t* data, size_t size)
     brush.GetBlendMode();
     BlendMode mode = GetObject<BlendMode>();
     brush.SetBlendMode(mode);
-
     Filter filter;
     brush.SetFilter(filter);
     brush.GetFilter();
-
-    // std::shared_ptr<ShaderEffect> e=std::make_shared<ShaderEffect>();
-    // brush.SetShaderEffect(e);
     brush.IsAntiAlias();
     bool aa = GetObject<bool>();
     brush.SetAntiAlias(aa);
-
     brush.Reset();
 
     return true;
