@@ -485,9 +485,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             if (result != StatusCode::SUCCESS) {
                 break;
             }
-            for (auto i : mode) {
-                modeSend.push_back(i);
-            }
+            std::copy(mode.begin(), mode.end(), std::back_inserter(modeSend));
             reply.WriteUInt32Vector(modeSend);
             break;
         }
