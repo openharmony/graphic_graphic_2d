@@ -247,9 +247,8 @@ void SurfaceBufferImpl::FreeBufferHandleLocked()
     if (handle_) {
         if (handle_->virAddr != nullptr) {
             displayGralloc_->Unmap(*handle_);
-            handle_->virAddr = nullptr;
         }
-        displayGralloc_->FreeMem(*handle_);
+        FreeBufferHandle(handle_);
     }
     handle_ = nullptr;
 }
