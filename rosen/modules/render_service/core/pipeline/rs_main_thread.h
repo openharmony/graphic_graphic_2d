@@ -97,10 +97,24 @@ public:
     {
         return *context_;
     }
+
     std::thread::id Id() const
     {
         return mainThreadId_;
     }
+
+    /* Judge if node has to be prepared based on it corresponding process is active
+     * If its pid is in activeProcessPids_ set, return true
+     */
+    inline bool CheckNodeHasToBePreparedByPid(NodeId nodeId) const
+    {
+        if (activeProcessPids_.empty()) {
+            return false;
+        }
+        pid_t pid = ExtractPid(nodeId);
+        return (activeProcessPids_.find(pid) != activeProcessPids_.end());
+    }
+
     void RegisterApplicationAgent(uint32_t pid, sptr<IApplicationAgent> app);
     void UnRegisterApplicationAgent(sptr<IApplicationAgent> app);
     void NotifyRenderModeChanged(bool useUniVisitor);
@@ -185,6 +199,8 @@ private:
     std::map<uint64_t, std::vector<std::unique_ptr<RSCommand>>> effectiveCommands_;
     std::map<uint64_t, std::vector<std::unique_ptr<RSCommand>>> pendingEffectiveCommands_;
     std::map<uint64_t, std::vector<std::unique_ptr<RSCommand>>> followVisitorCommands_;
+    // Collect pids of surfaceview's update(ConsumeAndUpdateAllNodes), effective commands(processCommand) and Animate
+    std::unordered_set<pid_t> activeProcessPids_;
 
     TransactionDataMap cachedTransactionDataMap_;
     TransactionDataIndexMap effectiveTransactionDataIndexMap_;

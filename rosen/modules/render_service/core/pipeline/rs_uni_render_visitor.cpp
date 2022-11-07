@@ -82,6 +82,7 @@ RSUniRenderVisitor::RSUniRenderVisitor()
         && (!isDirtyRegionDfxEnabled_ && !isTargetDirtyRegionDfxEnabled_);
     // this config may downgrade the calcOcclusion performance when windows number become huge (i.e. > 30), keep it now
     containerWindowConfig_ = RSSystemProperties::GetContainerWindowConfig();
+    isQuickSkipPreparationEnabled_ = RSSystemProperties::GetQuickSkipPrepareEnabled();
     surfaceNodePrepareMutex_ = std::make_shared<std::mutex>();
 }
 
@@ -291,8 +292,32 @@ void RSUniRenderVisitor::ParallelPrepareDisplayRenderNodeChildrens(RSDisplayRend
 #endif
 }
 
+bool RSUniRenderVisitor::CheckIfSurfaceRenderNodeStatic(RSSurfaceRenderNode& node)
+{
+    // dirtyFlag_ includes leashwindow dirty
+    // window layout change(e.g. move or zooming) | proxyRenderNode's cmd
+    if (dirtyFlag_ || node.IsDirty() || node.GetSurfaceNodeType() == RSSurfaceNodeType::LEASH_WINDOW_NODE) {
+        return false;
+    }
+    // if node has to be prepared, it's not static
+    if (RSMainThread::Instance()->CheckNodeHasToBePreparedByPid(node.GetId())) {
+        return false;
+    }
+    RS_TRACE_NAME("Skip static surface nodeid - pid: " +
+        std::to_string(node.GetId()) + " - " + std::to_string(ExtractPid(node.GetId())));
+    // static node's dirty region is empty
+    curSurfaceDirtyManager_ = node.GetDirtyManager();
+    if (curSurfaceDirtyManager_) {
+        curSurfaceDirtyManager_->Clear();
+    }
+    // static surface keeps same position
+    curDisplayNode_->UpdateSurfaceNodePos(node.GetId(), curDisplayNode_->GetLastFrameSurfacePos(node.GetId()));
+    return true;
+}
+
 void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
 {
+    RS_TRACE_NAME("RSUniRender::Prepare:[" + node.GetName() + "]");
     if (node.GetSecurityLayer()) {
         displayHasSecSurface_[currentVisitDisplay_] = true;
     }
@@ -300,6 +325,10 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
     if (node.GetName() == "pointer window") {
         isOpDropped_ = false;
         isPartialRenderEnabled_ = false;
+    }
+    // stop traversal if node keeps static
+    if (isQuickSkipPreparationEnabled_ && CheckIfSurfaceRenderNodeStatic(node)) {
+        return;
     }
     node.CleanDstRectChanged();
     node.ApplyModifiers();
@@ -1329,6 +1358,8 @@ void RSUniRenderVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
         RS_LOGE("RSUniRenderVisitor::ProcessCanvasRenderNode, canvas is nullptr");
         return;
     }
+    // in case preparation'update is skipped
+    node.GetMutableRenderProperties().CheckEmptyBounds();
     node.ProcessRenderBeforeChildren(*canvas_);
     ProcessBaseRenderNode(node);
     node.ProcessRenderAfterChildren(*canvas_);

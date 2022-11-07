@@ -97,6 +97,14 @@ private:
     void CheckColorSpace(RSSurfaceRenderNode& node);
     void AddOverDrawListener(std::unique_ptr<RSRenderFrame>& renderFrame,
         std::shared_ptr<RSCanvasListener>& overdrawListener);
+    /* Judge if surface render node could skip preparation:
+     * 1. not leash window
+     * 2. parent not dirty
+     * 3. no processWithCommands_ of node's corresponding pid
+     * If so, reset status flag and stop traversal
+     */
+    bool CheckIfSurfaceRenderNodeStatic(RSSurfaceRenderNode& node);
+
     void RecordAppWindowNodeAndPostTask(RSSurfaceRenderNode& node, float width, float height);
     // offscreen render related
     void PrepareOffscreenRender(RSRenderNode& node);
@@ -135,6 +143,7 @@ private:
     bool isOpDropped_ = false;
     bool isDirtyRegionDfxEnabled_ = false; // dirtyRegion DFX visualization
     bool isTargetDirtyRegionDfxEnabled_ = false;
+    bool isQuickSkipPreparationEnabled_ = false;
     std::vector<std::string> dfxTargetSurfaceNames_;
     PartialRenderType partialRenderType_;
     bool isDirty_ = false;
