@@ -86,7 +86,6 @@ namespace OHOS {
     void RsAnimationGroupFuzzTest()
     {
         float fraction = GetData<float>();
-        auto canvasNode = RSCanvasNode::Create();
         auto firstTransition = std::make_shared<RSTransition>(RSTransitionEffect::EMPTY, true);
         auto secondTransition = std::make_shared<RSTransition>(RSTransitionEffect::SCALE, true);
 
@@ -95,7 +94,7 @@ namespace OHOS {
         animationGroup->AddAnimation(secondTransition);
         animationGroup->RemoveAnimation(secondTransition);
         animationGroup->SetFinishCallback([]() {});
-        animationGroup->Start(canvasNode);
+        animationGroup->Start(nullptr);
         animationGroup->GetId();
         animationGroup->GetTarget();
         animationGroup->Pause();
@@ -140,7 +139,6 @@ namespace OHOS {
         float third = GetData<float>();
         float fraction = GetData<float>();
         bool isCustom = GetData<bool>();
-        auto canvasNode = RSCanvasNode::Create();
         auto firstProperty = std::make_shared<RSAnimatableProperty<float>>(first);
         auto secondProperty = std::make_shared<RSAnimatableProperty<float>>(second);
         auto thirdProperty = std::make_shared<RSAnimatableProperty<float>>(third);
@@ -154,7 +152,7 @@ namespace OHOS {
         secondCurve->GetTimingCurve();
         secondCurve->SetFinishCallback([]() {});
         secondCurve->SetFraction(fraction);
-        secondCurve->Start(canvasNode);
+        secondCurve->Start(nullptr);
         secondCurve->IsStarted();
         secondCurve->IsRunning();
         secondCurve->Pause();
@@ -172,7 +170,6 @@ namespace OHOS {
         float third = GetData<float>();
         float fraction = GetData<float>();
         bool isCustom = GetData<bool>();
-        auto canvasNode = RSCanvasNode::Create();
         auto firstProperty = std::make_shared<RSAnimatableProperty<float>>(first);
         auto secondProperty = std::make_shared<RSAnimatableProperty<float>>(second);
         auto thirdProperty = std::make_shared<RSAnimatableProperty<float>>(third);
@@ -185,7 +182,7 @@ namespace OHOS {
         keyframe->SetIsCustom(isCustom);
         keyframe->SetFinishCallback([]() {});
         keyframe->SetFraction(fraction);
-        keyframe->Start(canvasNode);
+        keyframe->Start(nullptr);
         keyframe->IsStarted();
         keyframe->IsRunning();
         keyframe->Pause();
@@ -208,7 +205,6 @@ namespace OHOS {
         bool pathNeedOrigin = GetData<bool>();
         auto path = GetStringFromData(STR_LEN);
         auto rotationMode = RotationMode::ROTATE_NONE;
-        auto canvasNode = RSCanvasNode::Create();
         auto firstProperty = std::make_shared<RSAnimatableProperty<float>>(first);
         auto secondProperty = std::make_shared<RSAnimatableProperty<float>>(second);
         auto thirdProperty = std::make_shared<RSAnimatableProperty<float>>(third);
@@ -231,7 +227,7 @@ namespace OHOS {
         secondPathAnimation->GetTimingCurve();
         secondPathAnimation->SetFinishCallback([]() {});
         secondPathAnimation->SetFraction(fraction);
-        secondPathAnimation->Start(canvasNode);
+        secondPathAnimation->Start(nullptr);
         secondPathAnimation->IsStarted();
         secondPathAnimation->IsRunning();
         secondPathAnimation->Pause();
@@ -269,7 +265,6 @@ namespace OHOS {
         float third = GetData<float>();
         float fraction = GetData<float>();
         bool isCustom = GetData<bool>();
-        auto canvasNode = RSCanvasNode::Create();
         auto firstProperty = std::make_shared<RSAnimatableProperty<float>>(first);
         auto secondProperty = std::make_shared<RSAnimatableProperty<float>>(second);
         auto thirdProperty = std::make_shared<RSAnimatableProperty<float>>(third);
@@ -284,7 +279,7 @@ namespace OHOS {
         secondSpringAnimation->GetTimingCurve();
         secondSpringAnimation->SetFinishCallback([]() {});
         secondSpringAnimation->SetFraction(fraction);
-        secondSpringAnimation->Start(canvasNode);
+        secondSpringAnimation->Start(nullptr);
         secondSpringAnimation->IsStarted();
         secondSpringAnimation->IsRunning();
         secondSpringAnimation->Pause();
@@ -301,7 +296,6 @@ namespace OHOS {
         float second = GetData<float>();
         float third = GetData<float>();
         float fraction = GetData<float>();
-        auto canvasNode = RSCanvasNode::Create();
         auto firstProperty = std::make_shared<RSAnimatableProperty<float>>(first);
         auto secondProperty = std::make_shared<RSAnimatableProperty<float>>(second);
         auto thirdProperty = std::make_shared<RSAnimatableProperty<float>>(third);
@@ -313,7 +307,7 @@ namespace OHOS {
         secondTransition->GetTarget();
         secondTransition->SetFinishCallback([]() {});
         secondTransition->SetFraction(fraction);
-        secondTransition->Start(canvasNode);
+        secondTransition->Start(nullptr);
         secondTransition->IsStarted();
         secondTransition->IsRunning();
         secondTransition->Pause();
@@ -361,7 +355,6 @@ namespace OHOS {
         int32_t animatorId = GetData<int32_t>();
         auto path = GetStringFromData(STR_LEN);
         auto isTransitionIn = GetData<bool>();
-        auto canvasNode = RSCanvasNode::Create();
         auto firstProperty = std::make_shared<RSAnimatableProperty<float>>(first);
         auto secondProperty = std::make_shared<RSAnimatableProperty<float>>(second);
         auto thirdProperty = std::make_shared<RSAnimatableProperty<float>>(third);
