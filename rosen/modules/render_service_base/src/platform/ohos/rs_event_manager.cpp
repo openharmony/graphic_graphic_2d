@@ -70,7 +70,7 @@ void RSEventManager::DumpAllEventParam(std::string& dumpString)
     for (auto& item : eventDetectorList_) {
         auto detectorPtr = item.second.lock();
         if (detectorPtr == nullptr) {
-            RS_LOGD("RSEventManager::DumpAllEventParam %s failed: nullptr", detectorPtr->GetStringId().c_str());
+            RS_LOGD("RSEventManager::DumpAllEventParam failed: nullptr");
             continue;
         }
         DumpDetectorParam(detectorPtr, dumpString);
@@ -129,7 +129,7 @@ void RSEventManager::UpdateParam()
     for (auto& item : eventDetectorList_) {
         auto detectorPtr = item.second.lock();
         if (detectorPtr == nullptr) {
-            RS_LOGD("RSEventManager::UpdateParam %s failed: nullptr", detectorPtr->GetStringId().c_str());
+            RS_LOGD("RSEventManager::UpdateParam failed: nullptr");
             continue;
         }
         UpdateDetectorParam(detectorPtr);
@@ -187,9 +187,25 @@ void RSEventManager::EventReport(const RSSysEventMsg& eventMsg)
     if (currentTimeMs > state.prevEventTimeStampMs&&
     	currentTimeMs - state.prevEventTimeStampMs > static_cast<uint64_t>(state.eventIntervalMs)) {
             std::string domain = "GRAPHIC";
-            OHOS::HiviewDFX::HiSysEvent::Write(domain, eventMsg.stringId,
-                eventMsg.eventType,
-                "MSG", eventMsg.msg);
+            if (eventMsg.pid != -1) {
+                OHOS::HiviewDFX::HiSysEvent::Write(
+                    domain,
+                    eventMsg.stringId,
+                    eventMsg.eventType,
+                    "PID", eventMsg.pid,
+                    "UID", eventMsg.uid,
+                    "BUNDLE_NAME", eventMsg.bundleName,
+                    "ABILITY_NAME", eventMsg.abilityName,
+                    "MSG", eventMsg.msg
+                );
+            } else {
+                OHOS::HiviewDFX::HiSysEvent::Write(
+                    domain,
+                    eventMsg.stringId,
+                    eventMsg.eventType,
+                    "MSG", eventMsg.msg
+                );
+            }
             state.prevEventTimeStampMs = currentTimeMs;
             RS_LOGD("RSEventManager::EventReport %s success ", eventMsg.stringId.c_str());
     }
