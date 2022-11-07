@@ -84,18 +84,18 @@ protected:
         Draw(ctx);
         auto drawCmdList = RSExtendedModifierHelper::FinishDrawing(ctx);
         std::unique_ptr<RSCommand> command = std::make_unique<RSUpdatePropertyDrawCmdList>(
-            node->GetId(), drawCmdList, property_->id_, false, false);
+            node->GetId(), drawCmdList, property_->id_, false);
         auto transactionProxy = RSTransactionProxy::GetInstance();
         if (transactionProxy != nullptr) {
             transactionProxy->AddCommand(command, node->IsRenderServiceNode());
             if (node->NeedForcedSendToRemote()) {
                 std::unique_ptr<RSCommand> commandForRemote = std::make_unique<RSUpdatePropertyDrawCmdList>(
-                    node->GetId(), drawCmdList, property_->id_, false, false);
+                    node->GetId(), drawCmdList, property_->id_, false);
                 transactionProxy->AddCommand(commandForRemote, true, node->GetFollowType(), node->GetId());
             }
             if (node->NeedSendExtraCommand()) {
                 std::unique_ptr<RSCommand> extraCommand = std::make_unique<RSUpdatePropertyDrawCmdList>(
-                    node->GetId(), drawCmdList, property_->id_, false, false);
+                    node->GetId(), drawCmdList, property_->id_, false);
                 transactionProxy->AddCommand(extraCommand, !node->IsRenderServiceNode(), node->GetFollowType(),
                     node->GetId());
             }
