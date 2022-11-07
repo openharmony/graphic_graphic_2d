@@ -42,21 +42,25 @@ RSRenderServiceConnectHub* RSRenderServiceConnectHub::GetInstance()
 
 void RSRenderServiceConnectHub::Init()
 {
+    RS_LOGI("RSRenderServiceConnectHub::Init");
     instance_ = new RSRenderServiceConnectHub();
     ::atexit(&RSRenderServiceConnectHub::Destroy);
 }
 
 void RSRenderServiceConnectHub::Destroy()
 {
+    RS_LOGI("RSRenderServiceConnectHub::Destroy");
     instance_ = nullptr;
 }
 
 RSRenderServiceConnectHub::RSRenderServiceConnectHub()
 {
+    RS_LOGI("RSRenderServiceConnectHub: ctor");
 }
 
 RSRenderServiceConnectHub::~RSRenderServiceConnectHub()
 {
+    RS_LOGI("~RSRenderServiceConnectHub: dtor");
 }
 
 sptr<RSIRenderServiceConnection> RSRenderServiceConnectHub::GetRenderService()
@@ -67,17 +71,19 @@ sptr<RSIRenderServiceConnection> RSRenderServiceConnectHub::GetRenderService()
 
 sptr<RSIRenderServiceConnection> RSRenderServiceConnectHub::GetRenderServiceConnection()
 {
-    std::lock_guard<std::mutex> lock(mutex_);
-
+    mutex_.lock();
     if (conn_ != nullptr && renderService_ != nullptr) {
+        mutex_.unlock();
         return conn_;
     }
 
     if (!Connect()) {
+        mutex_.unlock();
         ROSEN_LOGE("RenderService connect fail");
         return nullptr;
     }
 
+    mutex_.unlock();
     return conn_;
 }
 
@@ -90,7 +96,7 @@ bool RSRenderServiceConnectHub::Connect()
         ++tryCnt;
         // try most 5 times to get render service.
         if (tryCnt == 5) {
-            ROSEN_LOGE("RSRenderServiceConnect::Connect failed, tried %d times.", tryCnt);
+            ROSEN_LOGE("RSRenderServiceConnectHub::Connect failed, tried %d times.", tryCnt);
             break;
         }
 
@@ -109,13 +115,13 @@ bool RSRenderServiceConnectHub::Connect()
     } while (true);
 
     if (renderService_ == nullptr) {
-        ROSEN_LOGE("RSRenderServiceConnect::Connect, failed to get render service proxy.");
+        ROSEN_LOGE("RSRenderServiceConnectHub::Connect, failed to get render service proxy.");
         return false;
     }
 
     deathRecipient_ = new RenderServiceDeathRecipient(this);
     if (!renderService_->AsObject()->AddDeathRecipient(deathRecipient_)) {
-        ROSEN_LOGW("RSRenderServiceConnect::Connect, failed to AddDeathRecipient of render service.");
+        ROSEN_LOGW("RSRenderServiceConnectHub::Connect, failed to AddDeathRecipient of render service.");
     }
 
     if (token_ == nullptr) {
@@ -124,7 +130,7 @@ bool RSRenderServiceConnectHub::Connect()
 
     conn_ = renderService_->CreateConnection(token_);
     if (conn_ == nullptr) {
-        ROSEN_LOGE("RSRenderServiceConnect::Connect, failed to CreateConnection to render service.");
+        ROSEN_LOGE("RSRenderServiceConnectHub::Connect, failed to CreateConnection to render service.");
         return false;
     }
 
@@ -137,11 +143,14 @@ bool RSRenderServiceConnectHub::Connect()
 
 void RSRenderServiceConnectHub::ConnectDied()
 {
-    std::lock_guard<std::mutex> lock(mutex_);
+    mutex_.lock();
+    RS_LOGI("RSRenderServiceConnectHub::ConnectDied lock pid: %d", getpid());
     renderService_ = nullptr;
     conn_ = nullptr;
     deathRecipient_ = nullptr;
     token_ = nullptr;
+    mutex_.unlock();
+    RS_LOGI("RSRenderServiceConnectHub::ConnectDied unlock pid: %d", getpid());
 }
 
 void RSRenderServiceConnectHub::RenderServiceDeathRecipient::OnRemoteDied(const wptr<IRemoteObject>& remote)
