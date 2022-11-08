@@ -20,8 +20,9 @@
 #include <include/utils/SkPaintFilterCanvas.h>
 #include <stack>
 
-#include "common/rs_macros.h"
 #include "include/core/SkSurface.h"
+
+#include "common/rs_macros.h"
 
 class SkDrawable;
 namespace OHOS {
@@ -54,13 +55,13 @@ public:
         return isHighContrastEnabled_;
     }
 
-    void SetShadowEnabled(bool enabled)
+    void SetCacheEnabled(bool enabled)
     {
-        isShadowEnabled_ = enabled;
+        isCacheEnabled_ = enabled;
     }
-    bool isShadowEnabled() const
+    bool isCacheEnabled() const
     {
-        return isShadowEnabled_;
+        return isCacheEnabled_;
     }
 
 protected:
@@ -71,7 +72,7 @@ private:
     SkSurface* skSurface_ = nullptr;
     std::stack<float> alphaStack_;
     std::atomic_bool isHighContrastEnabled_ { false };
-    bool isShadowEnabled_ { true };
+    bool isCacheEnabled_ { false };
 };
 
 } // namespace Rosen

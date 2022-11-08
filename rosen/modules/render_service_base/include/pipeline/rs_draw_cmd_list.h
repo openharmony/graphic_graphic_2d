@@ -54,6 +54,9 @@ public:
     int GetWidth() const;
     int GetHeight() const;
 
+    void GenerateCache();
+    void ClearCache();
+
 #ifdef ROSEN_OHOS
     bool Marshalling(Parcel& parcel) const override;
     static DrawCmdList* Unmarshalling(Parcel& parcel);
@@ -64,6 +67,9 @@ private:
     mutable std::mutex mutex_;
     int width_;
     int height_;
+
+    std::unordered_map<int, std::unique_ptr<OpItem>> opReplacedByCache_;
+    bool isCached_ = false;
 };
 
 using DrawCmdListPtr = std::shared_ptr<DrawCmdList>;
