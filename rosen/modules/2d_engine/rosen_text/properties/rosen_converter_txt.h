@@ -41,13 +41,13 @@ minikin::WordBreakType RosenConverMinkinWordBreakType(WordBreakType& wordBreakTy
 txt::TextDirection RosenConvertTxtTextDirection(TextDirection& textDirection);
 txt::TextDecoration RosenConvertTxtTextDecoration(TextDecoration& textDecoration);
 txt::TextDecorationStyle RosenConvertTxtTextDecorationStyle(TextDecorationStyle& textDecorationStyle);
-txt::PlaceholderAlignment RosenConvertAlignment(PlaceholderAlignment& alignment);
+txt::PlaceholderAlignment RosenConvertAlignment(const PlaceholderAlignment& alignment);
 txt::PlaceholderRun RosenConvertPlaceholderRun(PlaceholderRun& placeholderRun);
 void RosenConvertTxtStyle(const TextStyle& textStyle, txt::TextStyle& txtStyle);
 void RosenConvertTypographyStyle(const TypographyStyle& typographyStyle, txt::ParagraphStyle& txtParagraphStyle);
 txt::Paragraph::RectHeightStyle RosenConvertTxtRectHeightStyle(TypographyProperties::RectHeightStyle heightStyle);
 txt::Paragraph::RectWidthStyle RosenConvertTxtRectWidthStyle(TypographyProperties::RectWidthStyle widthStyle);
-TextDirection TxtConvertRosenTextDirection(txt::TextDirection& txtTextBox);
+TextDirection TxtConvertRosenTextDirection(const txt::TextDirection& txtTextBox);
 TypographyProperties::TextBox TxtConvertRosenTextBox(txt::Paragraph::TextBox& txtTextBox);
 TypographyProperties::Affinity TxtConvertRosenAffinity(const txt::Paragraph::Affinity& txtAffinity);
 TypographyProperties::PositionAndAffinity TxtConvertPosAndAffinity(

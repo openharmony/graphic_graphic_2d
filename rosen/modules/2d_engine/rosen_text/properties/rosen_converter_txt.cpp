@@ -226,7 +226,7 @@ txt::TextAlign RosenConvertTxtTextAlign(TextAlign textAlign)
     return txtTextAlign;
 }
 
-txt::PlaceholderAlignment RosenConvertAlignment(PlaceholderAlignment& alignment)
+txt::PlaceholderAlignment RosenConvertAlignment(const PlaceholderAlignment& alignment)
 {
     txt::PlaceholderAlignment txtAalignment;
     switch (alignment) {
@@ -341,7 +341,7 @@ void RosenConvertTypographyStyle(const TypographyStyle& typographyStyle, txt::Pa
 #endif
 }
 
-TextDirection TxtConvertRosenTextDirection(txt::TextDirection& txtTextBox)
+TextDirection TxtConvertRosenTextDirection(const txt::TextDirection& txtTextBox)
 {
     TextDirection textDirection;
     switch (txtTextBox) {
@@ -395,7 +395,6 @@ txt::Paragraph::RectHeightStyle RosenConvertTxtRectHeightStyle(TypographyPropert
     }
     return txtRectHeightStyle;
 }
-
 
 txt::Paragraph::RectWidthStyle RosenConvertTxtRectWidthStyle(TypographyProperties::RectWidthStyle widthStyle)
 {

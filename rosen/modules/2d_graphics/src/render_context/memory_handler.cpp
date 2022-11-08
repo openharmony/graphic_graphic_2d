@@ -20,7 +20,7 @@
 namespace OHOS {
 namespace Rosen {
 void MemoryHandler::ConfigureContext(GrContextOptions* context, const char* identity,
-    const ssize_t size, const std::string& cacheFilePath, bool isUni)
+    const size_t size, const std::string& cacheFilePath, bool isUni)
 {
     context->fAllowPathMaskCaching = true;
     auto &cache = ShaderCache::Instance();

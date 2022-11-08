@@ -83,7 +83,7 @@ private:
     bool DrawDrawingLayer(std::shared_ptr<HdiLayerInfo> &layer);
     void CreateBackGroundSurface();
     void CreateDrawingSurface();
-    void OnHotPlugEvent(std::shared_ptr<HdiOutput> &output, bool connected);
+    void OnHotPlugEvent(const std::shared_ptr<HdiOutput> &output, bool connected);
 
     static void OnScreenPlug(std::shared_ptr<HdiOutput> &output, bool connected, void* data);
     static void OnPrepareCompleted(
