@@ -14,12 +14,13 @@
  */
 
 #include "rsnodemap_fuzzer.h"
-#include "pipeline/rs_node_map.h"
-#include "ui/rs_canvas_node.h"
 
 #include <cstddef>
 #include <cstdint>
 #include <securec.h>
+
+#include "pipeline/rs_node_map.h"
+#include "ui/rs_canvas_node.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -49,7 +50,6 @@ T GetData()
     return object;
 }
 
-
 bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -62,13 +62,8 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     g_pos = 0;
 
     // test
-    RSNodeMap* rsNodeMap = &(RSNodeMap::MutableInstance());
-    bool isRenderServiceNode = GetData<bool>();
-    RSCanvasNode::SharedPtr node = RSCanvasNode::Create(isRenderServiceNode);
-    rsNodeMap->RegisterNode(node);
-    uint64_t id = GetData<uint64_t>();
-    rsNodeMap->GetNode(static_cast<NodeId>(id));
-    rsNodeMap->UnregisterNode(static_cast<NodeId>(id));
+    RSNodeMap::MutableInstance().GetNode(GetData<NodeId>());
+    RSNodeMap::MutableInstance().UnregisterNode(GetData<NodeId>());
 
     return true;
 }
@@ -82,4 +77,3 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoSomethingInterestingWithMyAPI(data, size);
     return 0;
 }
-
