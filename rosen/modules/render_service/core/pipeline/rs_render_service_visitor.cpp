@@ -173,7 +173,7 @@ void RSRenderServiceVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
     if (RSInnovation::GetParallelCompositionEnabled()) {
         typedef bool (*CheckForSerialForcedFunc)(std::string&);
         CheckForSerialForcedFunc CheckForSerialForced =
-            (CheckForSerialForcedFunc)RSInnovation::_s_checkForSerialForced;
+            reinterpret_cast<CheckForSerialForcedFunc>(RSInnovation::_s_checkForSerialForced);
         auto name = node.GetName();
         mForceSerial |= CheckForSerialForced(name);
     }
