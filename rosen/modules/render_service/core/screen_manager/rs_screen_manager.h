@@ -297,6 +297,7 @@ private:
     std::vector<sptr<RSIScreenChangeCallback>> screenChangeCallbacks_;
     bool mipiCheckInFirstHotPlugEvent_ = false;
     std::vector<ScreenId> connectedIds_;
+    std::unordered_map<ScreenId, uint32_t> screenPowerStatus_;
 
     static std::once_flag createFlag_;
     static sptr<OHOS::Rosen::RSScreenManager> instance_;

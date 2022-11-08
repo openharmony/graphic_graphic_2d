@@ -1129,5 +1129,23 @@ void RSMainThread::PerfAfterAnim()
         prePerfTimestamp_ = 0;
     }
 }
+void RSMainThread::ForceRefreshForUni()
+{
+    if (isUniRender_) {
+        PostTask([=]() {
+            MergeToEffectiveTransactionDataMap(cachedTransactionDataMap_);
+            RSUnmarshalThread::Instance().PostTask(unmarshalBarrierTask_);
+            mainLoop_();
+        });
+        if (handler_) {
+            auto screenManager_ = CreateOrGetScreenManager();
+            if (screenManager_ != nullptr) {
+                PostTask([=]() { screenManager_->ProcessScreenHotPlugEvents(); });
+            }
+        }
+    } else {
+        RequestNextVSync();
+    }
+}
 } // namespace Rosen
 } // namespace OHOS

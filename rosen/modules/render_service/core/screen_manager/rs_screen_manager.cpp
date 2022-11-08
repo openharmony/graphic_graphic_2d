@@ -193,7 +193,9 @@ void RSScreenManager::ProcessScreenDisConnectedLocked(std::shared_ptr<HdiOutput>
         screens_.erase(id);
         RS_LOGI("RSScreenManager %s: Screen(id %" PRIu64 ") disconnected.", __func__, id);
     }
-
+    if (screenPowerStatus_.count(id) != 0) {
+        screenPowerStatus_.erase(id);
+    }
     if (id == defaultScreenId_) {
         HandleDefaultScreenDisConnectedLocked();
     }
@@ -569,9 +571,16 @@ void RSScreenManager::SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status
         if (mainThread == nullptr) {
             return;
         }
-        mainThread->RequestNextVSync();
+        mainThread->SetDirtyFlag();
+        if (screenPowerStatus_.count(id) == 0 || screenPowerStatus_[id] == ScreenPowerStatus::POWER_STATUS_OFF) {
+            mainThread->ForceRefreshForUni();
+        } else {
+            mainThread->RequestNextVSync();
+        }
+
         RS_LOGI("RSScreenManager %s: Set system power on, request a frame", __func__);
     }
+    screenPowerStatus_[id] = status;
 }
 
 void RSScreenManager::GetVirtualScreenResolution(ScreenId id, RSVirtualScreenResolution& virtualScreenResolution) const
