@@ -33,12 +33,14 @@ std::shared_ptr<RSUIDirector> RSAnimationBaseTest::rsUiDirector = nullptr;
 
 void RSAnimationBaseTest::SetUpTestCase()
 {
+    system("setenforce 0");
     InitAnimationWindow();
 }
 
 void RSAnimationBaseTest::TearDownTestCase()
 {
     DestoryAnimationWindow();
+    system("setenforce 1");
 }
 
 void RSAnimationBaseTest::SetUp()
