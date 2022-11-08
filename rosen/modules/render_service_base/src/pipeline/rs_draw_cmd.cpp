@@ -16,11 +16,13 @@
 #include "pipeline/rs_draw_cmd.h"
 
 #include "pixel_map_rosen_utils.h"
-#include "platform/common/rs_log.h"
-#include "platform/common/rs_system_properties.h"
+#include "rs_trace.h"
+#include "securec.h"
+
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_root_render_node.h"
-#include "securec.h"
+#include "platform/common/rs_log.h"
+#include "platform/common/rs_system_properties.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -34,7 +36,39 @@ void SimplifyPaint(uint32_t color, SkPaint* paint)
     paint->setStrokeWidth(1.04); // 1.04 is empirical value
     paint->setStrokeJoin(SkPaint::kRound_Join);
 }
+} // namespace
+
+std::unique_ptr<OpItem> OpItem::GenerateCachedOpItem() const
+{
+    // check if need to cache
+    auto optionalBounds = GetCacheBounds();
+    if (!optionalBounds.has_value() || optionalBounds.value().isEmpty()) {
+        return nullptr;
+    }
+    auto& bounds = optionalBounds.value();
+
+    // allocate a bitmap to draw self onto
+    auto imageInfo = SkImageInfo::Make(bounds.width(), bounds.height(), kRGBA_8888_SkColorType, kPremul_SkAlphaType);
+    SkBitmap bitmap;
+    bitmap.allocPixels(imageInfo);
+    SkCanvas cacheCanvas(bitmap);
+    auto cachePaintFilterCanvas = RSPaintFilterCanvas(&cacheCanvas);
+
+    // align bounds to [0, 0]
+    if (bounds.left() != 0 || bounds.top() != 0) {
+        SkMatrix matrix;
+        matrix.setTranslate(-bounds.left(), -bounds.top());
+        cacheCanvas.concat(matrix);
+    }
+
+    // draw on the bitmap
+    Draw(cachePaintFilterCanvas, nullptr);
+    cacheCanvas.flush();
+
+    // generate bitmap draw op with offset
+    return std::make_unique<BitmapOpItem>(SkImage::MakeFromBitmap(bitmap), bounds.x(), bounds.y(), nullptr);
 }
+
 RectOpItem::RectOpItem(SkRect rect, const SkPaint& paint) : OpItemWithPaint(sizeof(RectOpItem)), rect_(rect)
 {
     paint_ = paint;
