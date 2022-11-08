@@ -84,7 +84,11 @@ void RSTimeOutDetector::EventReport(uint64_t costTimeMs)
     RSSysEventMsg eventMsg = {
         stringId_,
         msg,
-        OHOS::HiviewDFX::HiSysEvent::EventType::STATISTIC
+        OHOS::HiviewDFX::HiSysEvent::EventType::STATISTIC,
+        focusAppPid_,
+        focusAppUid_,
+        focusAppBundleName_,
+        focusAppAbilityName_
     };
     if (focusAppPid_ != -1) {
         eventMsg.pid = focusAppPid_;
