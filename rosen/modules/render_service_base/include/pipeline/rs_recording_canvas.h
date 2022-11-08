@@ -125,9 +125,6 @@ public:
                               const SkMatrix[], const SkPaint*, SrcRectConstraint) override {}
 
 private:
-    void DrawTextAsBitmap(const SkTextBlob* blob, SkScalar x, SkScalar y, const SkPaint& paint);
-    void DrawPathAsBitmap(const SkPath& path, const SkPaint& paint);
-
     std::shared_ptr<DrawCmdList> drawCmdList_ { nullptr };
     int saveCount_ = 0;
 };
