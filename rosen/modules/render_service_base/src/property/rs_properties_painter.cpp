@@ -210,7 +210,8 @@ void RSPropertiesPainter::GetShadowDirtyRect(RectI& dirtyShadow, const RSPropert
 
 void RSPropertiesPainter::DrawShadow(const RSProperties& properties, RSPaintFilterCanvas& canvas, const RRect* rrect)
 {
-    if (!properties.IsShadowValid() || !canvas.isShadowEnabled()) {
+    // skip shadow if not valid or cache is enabled
+    if (!properties.IsShadowValid() || canvas.isCacheEnabled()) {
         return;
     }
     SkAutoCanvasRestore acr(&canvas, true);
@@ -328,6 +329,12 @@ void RSPropertiesPainter::DrawFrame(const RSProperties& properties, RSPaintFilte
         canvas.concat(mat);
     }
     auto frameRect = Rect2SkRect(properties.GetFrameRect());
+    // Generate or clear cache on demand
+    if (canvas.isCacheEnabled()) {
+        cmds->GenerateCache();
+    } else {
+        cmds->ClearCache();
+    }
     cmds->Playback(canvas, &frameRect);
 }
 
