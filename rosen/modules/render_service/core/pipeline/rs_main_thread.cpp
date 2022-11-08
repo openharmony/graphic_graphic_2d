@@ -137,7 +137,7 @@ void RSMainThread::Init()
         ConsumeAndUpdateAllNodes();
         WaitUntilUnmarshallingTaskFinished();
         ProcessCommand();
-        CheckAndNotifyFirstFrameCallback();
+//        CheckAndNotifyFirstFrameCallback();
         Animate(timestamp_);
         CheckDelayedSwitchTask();
         Render();

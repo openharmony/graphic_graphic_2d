@@ -29,7 +29,10 @@ namespace Rosen {
 RSColdStartThread::RSColdStartThread(std::weak_ptr<RSSurfaceRenderNode> surfaceRenderNode) :
     surfaceNode_(surfaceRenderNode)
 {
-    Start();
+    context_ = RSSharedContext::MakeSharedGLContext();
+    if (thread_ == nullptr) {
+        thread_ = std::make_unique<std::thread>(&RSColdStartThread::Run, this);
+    }
 }
 
 RSColdStartThread::~RSColdStartThread()
@@ -39,20 +42,12 @@ RSColdStartThread::~RSColdStartThread()
     }
 }
 
-void RSColdStartThread::Start()
-{
-    if (thread_ == nullptr) {
-        thread_ = std::make_unique<std::thread>(&RSColdStartThread::Run, this);
-    }
-}
-
 void RSColdStartThread::Stop()
 {
     if (handler_ != nullptr) {
-        handler_->PostTask([surfaceNode = surfaceNode_]() {
-            auto node = surfaceNode.lock();
-            if (node != nullptr) {
-                node->ClearCacheSurface();
+        handler_->PostSyncTask([this]() {
+            if (context_ != nullptr && context_->GetGrContext() != nullptr) {
+                context_->GetGrContext()->abandonContext();
             }
         }, AppExecFwk::EventQueue::Priority::IMMEDIATE);
     }
@@ -60,14 +55,17 @@ void RSColdStartThread::Stop()
         runner_->Stop();
     }
     if (thread_ != nullptr && thread_->joinable()) {
-        thread_->detach();
-        thread_ = nullptr;
+        thread_->join();
     }
     isRunning_ = false;
 }
 
 void RSColdStartThread::Run()
 {
+    if (context_ != nullptr) {
+        context_->MakeCurrent();
+        context_->MakeGrContext();
+    }
     isRunning_ = true;
     runner_ = AppExecFwk::EventRunner::Create(false);
     handler_ = std::make_shared<AppExecFwk::EventHandler>(runner_);
@@ -76,34 +74,41 @@ void RSColdStartThread::Run()
     }
 }
 
-void RSColdStartThread::PostPlayBackTask(GrContext* context, sk_sp<SkPicture> picture, float width, float height)
+void RSColdStartThread::PostPlayBackTask(sk_sp<SkPicture> picture, float width, float height)
 {
     if (handler_ == nullptr) {
         RS_LOGE("RSColdStartThread::PostPlayBackTask failed, handler_ is nullptr");
+        return;
     }
-    auto task = [picture = picture, context = context,
-        width = width, height = height, surfaceNode = surfaceNode_]() {
-        auto node = surfaceNode.lock();
+    auto task = [picture = picture, width = width, height = height, this]() {
+        if (context_ == nullptr) {
+            RS_LOGE("RSColdStartThread::PostPlayBackTask context_ is nullptr");
+            return;
+        }
+        auto node = surfaceNode_.lock();
         if (!node) {
             RS_LOGE("RSColdStartThread::PostPlayBackTask surfaceNode is nullptr");
             return;
         }
-        sk_sp<SkSurface> surface = nullptr;
+        if (surface_ == nullptr) {
 #if (defined RS_ENABLE_GL) && (defined RS_ENABLE_EGLIMAGE)
-        SkImageInfo info = SkImageInfo::MakeN32Premul(width, height);
-        surface = SkSurface::MakeRenderTarget(context, SkBudgeted::kYes, info);
+            SkImageInfo info = SkImageInfo::MakeN32Premul(width, height);
+            surface_ = SkSurface::MakeRenderTarget(context_->GetGrContext().get(), SkBudgeted::kYes, info);
 #else
-        surface = SkSurface::MakeRasterN32Premul(width, height);
+            surface_ = SkSurface::MakeRasterN32Premul(width, height);
 #endif
-        if (surface == nullptr || surface->getCanvas() == nullptr) {
+        }
+        if (surface_ == nullptr || surface_->getCanvas() == nullptr) {
             RS_LOGE("RSColdStartThread::PostPlayBackTask make SkSurface failed");
             return;
         }
-        surface->getCanvas()->drawPicture(picture);
-        node->SetCacheSurface(surface);
+        auto canvas = surface_->getCanvas();
+        canvas->clear(SK_ColorTRANSPARENT);
+        canvas->drawPicture(picture);
         if (node->GetCacheSurface() == nullptr) {
             node->NotifyUIBufferAvailable();
         }
+        node->SwapCachedSurface(surface_);
     };
     handler_->PostTask(task, AppExecFwk::EventQueue::Priority::IMMEDIATE);
 }

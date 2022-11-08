@@ -69,6 +69,7 @@ public:
     void SetIsNotifyUIBufferAvailable(bool available);
 
     bool SetBufferAvailableCallback(BufferAvailableCallback callback);
+    void SetAnimationFinished();
 
     bool Marshalling(Parcel& parcel) const;
     static SharedPtr Unmarshalling(Parcel& parcel);
