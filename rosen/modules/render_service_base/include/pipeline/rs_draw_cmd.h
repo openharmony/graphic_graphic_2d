@@ -96,8 +96,12 @@ public:
     virtual void Draw(RSPaintFilterCanvas& canvas, const SkRect* rect) const {};
     virtual RSOpType GetType() const = 0;
 
-    std::unique_ptr<OpItem> GenerateCachedOpItem() const;
-    virtual std::optional<SkRect> GetCacheBounds() const { return std::nullopt; }
+    std::unique_ptr<OpItem> GenerateCachedOpItem(SkSurface* surface) const;
+    virtual std::optional<SkRect> GetCacheBounds() const
+    {
+        // not cacheable by default
+        return std::nullopt;
+    }
 
 #ifdef ROSEN_OHOS
     bool Marshalling(Parcel& parcel) const override
@@ -430,6 +434,7 @@ public:
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
     std::optional<SkRect> GetCacheBounds() const override
     {
+        // bounds of textBlob_, with additional offset [x_, y_]. textBlob_ should never be null but we should check.
         return textBlob_ ? std::make_optional<SkRect>(textBlob_->bounds().makeOffset(x_, y_)) : std::nullopt;
     }
 

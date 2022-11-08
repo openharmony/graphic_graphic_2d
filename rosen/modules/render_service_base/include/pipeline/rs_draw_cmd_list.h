@@ -28,6 +28,7 @@
 #endif
 
 class SkCanvas;
+class SkSurface;
 struct SkRect;
 namespace OHOS {
 namespace Rosen {
@@ -54,7 +55,7 @@ public:
     int GetWidth() const;
     int GetHeight() const;
 
-    void GenerateCache();
+    void GenerateCache(SkSurface* surface);
     void ClearCache();
 
 #ifdef ROSEN_OHOS
