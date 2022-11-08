@@ -65,7 +65,8 @@ void RSUniRenderUtil::MergeDirtyHistory(std::shared_ptr<RSDisplayRenderNode>& no
         }
         surfaceDirtyManager->IntersectDirtyRect(surfaceNode->GetDstRect());
         surfaceDirtyManager->UpdateDirty();
-        if (surfaceNode->GetDstRect().IsInsideOf(surfaceDirtyManager->GetDirtyRegion())) {
+        if (surfaceNode->GetDstRect().IsInsideOf(surfaceDirtyManager->GetDirtyRegion())
+            && surfaceNode->HasContainerWindow()) {
             node->GetDirtyManager()->MergeDirtyRect(surfaceNode->GetDstRect());
         }
         if (!node->GetDirtyManager()->GetDirtyRegion().IntersectRect(surfaceNode->GetDstRect()).IsEmpty() &&
