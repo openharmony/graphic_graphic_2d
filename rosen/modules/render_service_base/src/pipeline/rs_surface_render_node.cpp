@@ -414,11 +414,16 @@ bool RSSurfaceRenderNode::NeedSetCallbackForRenderThreadRefresh()
     return (callbackForRenderThreadRefresh_ == nullptr);
 }
 
-void RSSurfaceRenderNode::BeginPlayBack(GrContext* context, sk_sp<SkPicture> picture, float width, float height)
+void RSSurfaceRenderNode::BeginPlayBack(sk_sp<SkPicture> picture, float width, float height)
 {
     if (coldStartThread_ != nullptr) {
-        coldStartThread_->PostPlayBackTask(context, picture, width, height);
+        coldStartThread_->PostPlayBackTask(picture, width, height);
     }
+}
+
+bool RSSurfaceRenderNode::IsColdStartThreadRunning() const
+{
+    return coldStartThread_ != nullptr;
 }
 
 void RSSurfaceRenderNode::StartColdStartThreadIfNeed()
@@ -434,14 +439,14 @@ void RSSurfaceRenderNode::DestroyColdStartThread()
     coldStartThread_.reset(nullptr);
 }
 
-bool RSSurfaceRenderNode::HasColdStartAnimation() const
+bool RSSurfaceRenderNode::IsStartAnimationFinished() const
 {
-    return hasColdStartAnimation_;
+    return startAnimationFinished_;
 }
 
-void RSSurfaceRenderNode::SetColdStartAnimationState(bool hasAnimation)
+void RSSurfaceRenderNode::SetStartAnimationFinished()
 {
-    hasColdStartAnimation_ = hasAnimation;
+    startAnimationFinished_ = true;
 }
 
 void RSSurfaceRenderNode::SetVisibleRegionRecursive(const Occlusion::Region& region,

@@ -378,6 +378,12 @@ public:
         return true;
     }
 
+    void SwapCachedSurface(sk_sp<SkSurface>& newSurface)
+    {
+        std::lock_guard<std::mutex> lock(cachedSurfaceMutex_);
+        std::swap(cacheSurface_, newSurface);
+    }
+
     void SetCacheSurface(sk_sp<SkSurface> cacheSurface)
     {
         std::lock_guard<std::mutex> lock(cachedSurfaceMutex_);
@@ -506,11 +512,12 @@ public:
         opaqueRegion_.AndSelf(screenRegion);
     }
 
-    void BeginPlayBack(GrContext* context, sk_sp<SkPicture> picture, float width, float height);
+    void BeginPlayBack(sk_sp<SkPicture> picture, float width, float height);
+    bool IsColdStartThreadRunning() const;
     void StartColdStartThreadIfNeed();
     void DestroyColdStartThread();
-    bool HasColdStartAnimation() const;
-    void SetColdStartAnimationState(bool hasAnimation);
+    bool IsStartAnimationFinished() const;
+    void SetStartAnimationFinished();
 
 private:
     void ClearChildrenCache(const std::shared_ptr<RSBaseRenderNode>& node);
@@ -576,7 +583,7 @@ private:
     int containerBorderWidth_ = 1 * 2;         // container border width 2px
     int containerOutRadius_ = 16 * 2;         // container outter radius
     std::unique_ptr<RSColdStartThread> coldStartThread_ = nullptr;
-    bool hasColdStartAnimation_ = false;
+    bool startAnimationFinished_ = false;
     mutable std::mutex cachedSurfaceMutex_;
 };
 } // namespace Rosen

@@ -835,11 +835,7 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
     }
 
     if (node.GetSurfaceNodeType() == RSSurfaceNodeType::LEASH_WINDOW_NODE) {
-        uint32_t childCount = node.GetChildrenCount(); // childCount > 1 means startingWindow and appWindow
-        needColdStartThread_ = childCount > 1 || node.HasColdStartAnimation();
-        if (childCount > 1) {
-            node.SetColdStartAnimationState(true);
-        }
+        needColdStartThread_ = node.GetChildrenCount() > 1; // childCount > 1 means startingWindow and appWindow
     }
 
     if (node.GetSurfaceNodeType() == RSSurfaceNodeType::STARTING_WINDOW_NODE && !needDrawStartingWindow_) {
@@ -848,24 +844,22 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
         return;
     }
 
-    if (needColdStartThread_ && node.IsAppWindow()) {
-        if (!doAnimate_) {
-            if (node.HasColdStartAnimation()) {
-                if (node.GetCacheSurface() == nullptr) {
-                    RS_LOGE("RSUniRenderVisitor::ProcessSurfaceRenderNode draw first frame too slowly.");
-                }
-                node.DestroyColdStartThread();
+    if ((needColdStartThread_ || node.IsColdStartThreadRunning()) && node.IsAppWindow()) {
+        if (node.IsStartAnimationFinished()) {
+            if (node.GetCacheSurface() == nullptr) {
+                RS_LOGE("RSUniRenderVisitor::ProcessSurfaceRenderNode draw first frame too slowly.");
             }
+            node.DestroyColdStartThread();
             needColdStartThread_ = false;
-            node.SetColdStartAnimationState(false);
-        }
-        if (!IsFirstFrameReadyToDraw(node)) {
-            return;
-        }
-        if (node.GetCacheSurface() == nullptr) { // first frame, start thread here, and record
-            node.StartColdStartThreadIfNeed();
-            RecordAppWindowNodeAndPostTask(node, property.GetBoundsWidth(), property.GetBoundsHeight());
-            return;
+        } else {
+            if (!IsFirstFrameReadyToDraw(node)) {
+                return;
+            }
+            if (node.GetCacheSurface() == nullptr) { // first frame, start thread here, and record
+                node.StartColdStartThreadIfNeed();
+                RecordAppWindowNodeAndPostTask(node, property.GetBoundsWidth(), property.GetBoundsHeight());
+                return;
+            }
         }
     }
 
@@ -925,7 +919,7 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
         canvas_->restore();
     }
 
-    if (node.IsAppWindow() && !needColdStartThread_) {
+    if (node.IsAppWindow() && !needColdStartThread_ && !node.IsColdStartThreadRunning()) {
         if (!node.IsAppFreeze()) {
             ProcessBaseRenderNode(node);
             node.ClearCacheSurface();
@@ -946,7 +940,7 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
                     node.GetName().c_str());
             }
         }
-    } else if (node.IsAppWindow() && needColdStartThread_) {
+    } else if (node.IsAppWindow()) {
         needDrawStartingWindow_ = false;
         DrawCacheSurface(node);
         RecordAppWindowNodeAndPostTask(node, property.GetBoundsWidth(), property.GetBoundsHeight());
@@ -1049,7 +1043,7 @@ void RSUniRenderVisitor::RecordAppWindowNodeAndPostTask(RSSurfaceRenderNode& nod
     ProcessBaseRenderNode(node);
     auto picture = recorder.finishRecordingAsPicture();
     swap(canvas_, recordingCanvas);
-    node.BeginPlayBack(canvas_->getGrContext(), picture, width, height);
+    node.BeginPlayBack(picture, width, height);
 }
 } // namespace Rosen
 } // namespace OHOS

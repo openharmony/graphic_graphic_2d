@@ -22,6 +22,9 @@
 #include <event_handler.h>
 
 #include "include/core/SkRefCnt.h"
+#include "include/core/SkSurface.h"
+
+#include "common/rs_shared_context.h"
 
 class GrContext;
 class SkPicture;
@@ -32,11 +35,10 @@ class RSColdStartThread final {
 public:
     RSColdStartThread(std::weak_ptr<RSSurfaceRenderNode> surfaceRenderNode);
     ~RSColdStartThread();
-    void PostPlayBackTask(GrContext* context, sk_sp<SkPicture> picture, float width, float height);
+    void PostPlayBackTask(sk_sp<SkPicture> picture, float width, float height);
 
 private:
     void Run();
-    void Start();
     void Stop();
 
     std::weak_ptr<RSSurfaceRenderNode> surfaceNode_;
@@ -44,6 +46,8 @@ private:
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
     bool isRunning_ = false;
+    sk_sp<SkSurface> surface_ = nullptr;
+    std::shared_ptr<RSSharedContext> context_ = nullptr;
 };
 } // namespace Rosen
 } // namespace OHOS
