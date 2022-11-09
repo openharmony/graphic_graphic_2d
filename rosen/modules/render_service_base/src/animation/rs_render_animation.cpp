@@ -98,6 +98,11 @@ PropertyId RSRenderAnimation::GetPropertyId() const
     return 0;
 }
 
+std::vector<PropertyId> RSRenderAnimation::GetPropertyIds() const
+{
+    return { GetPropertyId() };
+}
+
 void RSRenderAnimation::Attach(RSRenderNode* renderNode)
 {
     if (target_ != nullptr) {

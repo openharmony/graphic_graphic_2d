@@ -75,12 +75,15 @@ void RSCanvasRenderNode::ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas
 {
 #ifdef ROSEN_OHOS
     RSRenderNode::ProcessRenderBeforeChildren(canvas);
+
+    RSModifierContext context = { GetMutableRenderProperties(), &canvas };
+    ApplyDrawCmdModifier(context, RSModifierType::TRANSITION);
+
     RSPropertiesPainter::DrawBackground(GetRenderProperties(), canvas);
     auto filter = std::static_pointer_cast<RSSkiaFilter>(GetRenderProperties().GetBackgroundFilter());
     if (filter != nullptr) {
         RSPropertiesPainter::DrawFilter(GetRenderProperties(), canvas, filter, nullptr, canvas.GetSurface());
     }
-    RSModifierContext context = { GetMutableRenderProperties(), &canvas };
     ApplyDrawCmdModifier(context, RSModifierType::BACKGROUND_STYLE);
 
     canvasNodeSaveCount_ = canvas.SaveCanvasAndAlpha();

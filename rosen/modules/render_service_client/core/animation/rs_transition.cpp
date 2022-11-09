@@ -22,23 +22,78 @@
 
 namespace OHOS {
 namespace Rosen {
-RSTransition::RSTransition(const std::shared_ptr<const RSTransitionEffect>& effect, bool isTransitionIn)
+RSTransition::RSTransition(const std::shared_ptr<RSTransitionEffect>& effect, bool isTransitionIn)
     : isTransitionIn_(isTransitionIn), effect_(effect)
 {}
 
 void RSTransition::OnStart()
 {
+    if (isCustom_) {
+        StartCustomTransition();
+    }
+    StartRenderTransition();
+}
+
+void RSTransition::OnUpdateStagingValue(bool isFirstStart)
+{
+    if (isCustom_) {
+        for (auto& [transitionPropertyId, tuple] : effect_->properties_) {
+            [[maybe_unused]] auto& [property, renderProperty, endValue] = tuple;
+            property->SetValue(endValue);
+        }
+        effect_->properties_.clear();
+        effect_->customTransitionInEffects_.clear();
+        effect_->customTransitionOutEffects_.clear();
+    }
+}
+
+void RSTransition::StartCustomTransition()
+{
     auto target = GetTarget().lock();
     if (target == nullptr) {
         return;
     }
-    auto transition = std::make_shared<RSRenderTransition>(GetId(), effect_, isTransitionIn_);
-    if (transition == nullptr) {
-        return;
+    std::vector<std::shared_ptr<RSRenderTransitionEffect>> transitionEffects;
+    if (isTransitionIn_) {
+        transitionEffects = effect_->customTransitionInEffects_;
+    } else {
+        transitionEffects = effect_->customTransitionOutEffects_;
     }
+    auto transition = std::make_shared<RSRenderTransition>(GetId(), transitionEffects, isTransitionIn_);
     auto interpolator = timingCurve_.GetInterpolator(GetDuration());
     transition->SetInterpolator(interpolator);
     UpdateParamToRenderAnimation(transition);
+
+    auto uiAnimationManager = RSAnimationManagerMap::Instance()->GetAnimationManager(gettid());
+    if (uiAnimationManager == nullptr) {
+        ROSEN_LOGE("Failed to start custom transition, UI animation manager is null!");
+        return;
+    }
+    for (auto& [transitionPropertyId, tuple] : effect_->properties_) {
+        [[maybe_unused]] auto& [property, renderProperty, endValue] = tuple;
+        uiAnimationManager->AddAnimatableProp(transitionPropertyId, property, renderProperty);
+    }
+    transition->Start();
+    uiAnimationManager->AddAnimation(transition, shared_from_this());
+}
+
+void RSTransition::StartRenderTransition()
+{
+    auto target = GetTarget().lock();
+    if (target == nullptr) {
+        return;
+    }
+    std::vector<std::shared_ptr<RSRenderTransitionEffect>> transitionEffects;
+    if (isTransitionIn_) {
+        transitionEffects = effect_->transitionInEffects_;
+    } else {
+        transitionEffects = effect_->transitionOutEffects_;
+    }
+    auto transition = std::make_shared<RSRenderTransition>(GetId(), transitionEffects, isTransitionIn_);
+    auto interpolator = timingCurve_.GetInterpolator(GetDuration());
+    transition->SetInterpolator(interpolator);
+    UpdateParamToRenderAnimation(transition);
+
     std::unique_ptr<RSCommand> command =
         std::make_unique<RSAnimationCreateTransition>(target->GetId(), transition);
     auto transactionProxy = RSTransactionProxy::GetInstance();

@@ -145,7 +145,7 @@ void RSImplicitAnimator::EndImplicitKeyFrameAnimation()
 
 bool RSImplicitAnimator::NeedImplicitAnimation()
 {
-    return !implicitAnimationParams_.empty();
+    return !implicitAnimationParams_.empty() && !isImplicitAnimationShielded_;
 }
 
 void RSImplicitAnimator::BeginImplicitCurveAnimation()
@@ -219,7 +219,8 @@ void RSImplicitAnimator::BeginImplicitSpringAnimation()
     PushImplicitParam(springParam);
 }
 
-void RSImplicitAnimator::BeginImplicitTransition(const std::shared_ptr<const RSTransitionEffect>& effect)
+void RSImplicitAnimator::BeginImplicitTransition(const std::shared_ptr<RSTransitionEffect>& effect,
+    bool isTransitionIn)
 {
     if (globalImplicitParams_.empty()) {
         ROSEN_LOGE("Failed to begin implicit transition, need to open implicit transition firstly!");
@@ -231,7 +232,7 @@ void RSImplicitAnimator::BeginImplicitTransition(const std::shared_ptr<const RST
         ROSEN_LOGE("Wrong type of timing curve!");
         return;
     }
-    auto transitionParam = std::make_shared<RSImplicitTransitionParam>(protocol, curve, effect);
+    auto transitionParam = std::make_shared<RSImplicitTransitionParam>(protocol, curve, effect, isTransitionIn);
     PushImplicitParam(transitionParam);
 }
 
@@ -261,7 +262,7 @@ void RSImplicitAnimator::PopImplicitParam()
     implicitAnimationParams_.pop();
 }
 
-std::shared_ptr<RSAnimation> RSImplicitAnimator::CreateImplicitTransition(RSNode& target, bool isTransitionIn)
+std::shared_ptr<RSAnimation> RSImplicitAnimator::CreateImplicitTransition(RSNode& target)
 {
     if (globalImplicitParams_.empty() || implicitAnimations_.empty() || keyframeAnimations_.empty()) {
         ROSEN_LOGE("Failed to create implicit transition, need to open implicit transition firstly!");
@@ -272,7 +273,7 @@ std::shared_ptr<RSAnimation> RSImplicitAnimator::CreateImplicitTransition(RSNode
     switch (params->GetType()) {
         case ImplicitAnimationParamType::TRANSITION: {
             auto transitionImplicitParam = std::static_pointer_cast<RSImplicitTransitionParam>(params);
-            transition = transitionImplicitParam->CreateAnimation(isTransitionIn);
+            transition = transitionImplicitParam->CreateAnimation();
             break;
         }
         default:
@@ -352,6 +353,11 @@ std::shared_ptr<RSAnimation> RSImplicitAnimator::CreateImplicitAnimation(const s
             auto pathImplicitParam = static_cast<RSImplicitPathAnimationParam*>(params.get());
             animation = pathImplicitParam->CreateAnimation(property, startValue, endValue);
             break;
+        }
+        case ImplicitAnimationParamType::TRANSITION: {
+            auto implicitTransitionParam = static_cast<RSImplicitTransitionParam*>(params.get());
+            animation = implicitTransitionParam->CreateAnimation(property, startValue, endValue);
+            return animation;
         }
         default:
             ROSEN_LOGE("Failed to create animation, unknow type!");

@@ -138,18 +138,34 @@ std::shared_ptr<RSAnimation> RSImplicitSpringAnimationParam::CreateAnimation(std
 }
 
 RSImplicitTransitionParam::RSImplicitTransitionParam(const RSAnimationTimingProtocol& timingProtocol,
-    const RSAnimationTimingCurve& timingCurve, const std::shared_ptr<const RSTransitionEffect>& effect)
-    : RSImplicitAnimationParam(timingProtocol), timingCurve_(timingCurve), effect_(effect)
+    const RSAnimationTimingCurve& timingCurve, const std::shared_ptr<RSTransitionEffect>& effect, bool isTransitionIn)
+    : RSImplicitAnimationParam(timingProtocol), timingCurve_(timingCurve),
+      isTransitionIn_(isTransitionIn), effect_(effect)
 {
     animationType_ = ImplicitAnimationParamType::TRANSITION;
 }
 
-std::shared_ptr<RSAnimation> RSImplicitTransitionParam::CreateAnimation(bool appearing)
+std::shared_ptr<RSAnimation> RSImplicitTransitionParam::CreateAnimation()
 {
-    auto transition = std::make_shared<RSTransition>(effect_, appearing);
-    transition->SetTimingCurve(timingCurve_);
-    ApplyTimingProtocol(transition);
-    return transition;
+    if (transition_ == nullptr) {
+        transition_ = std::make_shared<RSTransition>(effect_, isTransitionIn_);
+        transition_->SetTimingCurve(timingCurve_);
+        ApplyTimingProtocol(transition_);
+    }
+    return transition_;
+}
+
+std::shared_ptr<RSAnimation> RSImplicitTransitionParam::CreateAnimation(const std::shared_ptr<RSPropertyBase>& property,
+    const std::shared_ptr<RSPropertyBase>& startValue, const std::shared_ptr<RSPropertyBase>& endValue)
+{
+    effect_->Custom(property, startValue, endValue);
+    if (transition_ == nullptr) {
+        transition_ = std::make_shared<RSTransition>(effect_, isTransitionIn_);
+        transition_->SetTimingCurve(timingCurve_);
+        transition_->SetIsCustom(true);
+        ApplyTimingProtocol(transition_);
+    }
+    return transition_;
 }
 } // namespace Rosen
 } // namespace OHOS

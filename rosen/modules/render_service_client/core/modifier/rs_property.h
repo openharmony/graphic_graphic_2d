@@ -170,6 +170,8 @@ private:
     friend class RSPathAnimation;
     friend class RSKeyframeAnimation;
     friend class RSSpringAnimation;
+    friend class RSTransition;
+    friend class RSTransitionEffect;
     friend class RSUIAnimationManager;
 };
 
@@ -253,7 +255,7 @@ protected:
     {
         return isCustom_;
     }
- 
+
     std::shared_ptr<RSRenderPropertyBase> CreateRenderProperty() override
     {
         return std::make_shared<RSRenderProperty<T>>(stagingValue_, id_);

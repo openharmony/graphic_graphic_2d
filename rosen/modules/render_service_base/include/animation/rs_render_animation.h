@@ -137,6 +137,8 @@ public:
 
     virtual PropertyId GetPropertyId() const;
 
+    virtual std::vector<PropertyId> GetPropertyIds() const;
+
     virtual void AttachRenderProperty(const std::shared_ptr<RSRenderPropertyBase>& property) {};
 
     void SetStartTime(int64_t);

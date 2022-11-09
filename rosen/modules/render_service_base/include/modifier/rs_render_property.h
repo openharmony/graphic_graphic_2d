@@ -127,6 +127,7 @@ private:
     friend class RSRenderKeyframeAnimation;
     template<typename T>
     friend class RSSpringModel;
+    friend class RSTransitionCustom;
 };
 
 template<typename T>

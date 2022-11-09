@@ -68,7 +68,7 @@ void RSUIAnimationManager::AddAnimatableProp(const PropertyId id,
     const std::shared_ptr<RSPropertyBase>& uiProperty,
     const std::shared_ptr<RSRenderPropertyBase>& renderProperty)
 {
-    properties_.emplace(id, std::make_pair(uiProperty, renderProperty));
+    properties_[id] = std::make_pair(uiProperty, renderProperty);
 }
 
 const std::shared_ptr<RSRenderPropertyBase> RSUIAnimationManager::GetRenderProperty(
@@ -110,11 +110,13 @@ bool RSUIAnimationManager::Animate(int64_t time)
 bool RSUIAnimationManager::UpdateAnimateValue(const std::shared_ptr<RSRenderAnimation>& animation, int64_t time)
 {
     bool isFinished = animation->Animate(time);
-    auto uiProperty = properties_[animation->GetPropertyId()].first;
-    auto renderProperty = properties_[animation->GetPropertyId()].second;
-    if (uiProperty != nullptr && renderProperty != nullptr) {
-        uiProperty->UpdateShowingValue(renderProperty);
-        uiProperty->MarkModifierDirty(modifierManager_);
+    for (auto propertyId : animation->GetPropertyIds()) {
+        auto uiProperty = properties_[propertyId].first;
+        auto renderProperty = properties_[propertyId].second;
+        if (uiProperty != nullptr && renderProperty != nullptr) {
+            uiProperty->UpdateShowingValue(renderProperty);
+            uiProperty->MarkModifierDirty(modifierManager_);
+        }
     }
     return isFinished;
 }

@@ -746,7 +746,7 @@ void RSNode::SetMask(const std::shared_ptr<RSMask>& mask)
     SetProperty<RSMaskModifier, RSProperty<std::shared_ptr<RSMask>>>(RSModifierType::MASK, mask);
 }
 
-void RSNode::NotifyTransition(const std::shared_ptr<const RSTransitionEffect>& effect, bool isTransitionIn)
+void RSNode::NotifyTransition(const std::shared_ptr<RSTransitionEffect>& effect, bool isTransitionIn)
 {
     // temporary fix for multithread issue in implicit animator
     UpdateImplicitAnimator();
@@ -759,8 +759,14 @@ void RSNode::NotifyTransition(const std::shared_ptr<const RSTransitionEffect>& e
         return;
     }
 
-    implicitAnimator_->BeginImplicitTransition(effect);
-    implicitAnimator_->CreateImplicitTransition(*this, isTransitionIn);
+    // temporary close the implicit animation
+    implicitAnimator_->ShieldImplicitAnimation();
+    effect->Active(isTransitionIn);
+    implicitAnimator_->UnShieldImplicitAnimation();
+
+    implicitAnimator_->BeginImplicitTransition(effect, isTransitionIn);
+    effect->Identity(isTransitionIn);
+    implicitAnimator_->CreateImplicitTransition(*this);
     implicitAnimator_->EndImplicitTransition();
 }
 
