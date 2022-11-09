@@ -960,7 +960,7 @@ RectI RSProperties::GetDirtyRect() const
     if (overlayRect_ == nullptr || overlayRect_->IsEmpty()) {
         return dirtyRect;
     } else {
-        return dirtyRect.JoinRect(*overlayRect_);
+        return dirtyRect.JoinRect(boundsGeometry->MapAbsRect(overlayRect_->ConvertTo<float>()));
     }
 #else
     return RectI();
