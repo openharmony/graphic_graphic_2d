@@ -30,7 +30,7 @@ namespace Rosen {
 RSGPUOverdrawCanvasListener::RSGPUOverdrawCanvasListener(SkCanvas &canvas)
     : RSCanvasListener(canvas)
 {
-    auto listenedSurface_ = canvas.makeSurface(canvas.imageInfo());
+    listenedSurface_ = canvas.makeSurface(canvas.imageInfo());
     if (listenedSurface_ != nullptr) {
         overdrawCanvas_ = new SkOverdrawCanvas(listenedSurface_->getCanvas());
     }
@@ -59,22 +59,38 @@ bool RSGPUOverdrawCanvasListener::IsValid() const
 
 void RSGPUOverdrawCanvasListener::onDrawRect(const SkRect& rect, const SkPaint& paint)
 {
+    if (overdrawCanvas_ == nullptr) {
+        ROSEN_LOGE("overdrawCanvas_ is nullptr");
+        return;
+    }
     overdrawCanvas_->drawRect(rect, paint);
 }
 
 void RSGPUOverdrawCanvasListener::onDrawRRect(const SkRRect& rect, const SkPaint& paint)
 {
+    if (overdrawCanvas_ == nullptr) {
+        ROSEN_LOGE("overdrawCanvas_ is nullptr");
+        return;
+    }
     overdrawCanvas_->drawRRect(rect, paint);
 }
 
 void RSGPUOverdrawCanvasListener::onDrawDRRect(const SkRRect& outer, const SkRRect& inner,
                                                const SkPaint& paint)
 {
+    if (overdrawCanvas_ == nullptr) {
+        ROSEN_LOGE("overdrawCanvas_ is nullptr");
+        return;
+    }
     overdrawCanvas_->drawDRRect(outer, inner, paint);
 }
 
 void RSGPUOverdrawCanvasListener::onDrawOval(const SkRect& rect, const SkPaint& paint)
 {
+    if (overdrawCanvas_ == nullptr) {
+        ROSEN_LOGE("overdrawCanvas_ is nullptr");
+        return;
+    }
     overdrawCanvas_->drawOval(rect, paint);
 }
 
@@ -82,22 +98,38 @@ void RSGPUOverdrawCanvasListener::onDrawArc(const SkRect& rect, SkScalar startAn
                                             SkScalar sweepAngle, bool useCenter,
                                             const SkPaint& paint)
 {
+    if (overdrawCanvas_ == nullptr) {
+        ROSEN_LOGE("overdrawCanvas_ is nullptr");
+        return;
+    }
     overdrawCanvas_->drawArc(rect, startAngle, sweepAngle, useCenter, paint);
 }
 
 void RSGPUOverdrawCanvasListener::onDrawPath(const SkPath& path, const SkPaint& paint)
 {
+    if (overdrawCanvas_ == nullptr) {
+        ROSEN_LOGE("overdrawCanvas_ is nullptr");
+        return;
+    }
     overdrawCanvas_->drawPath(path, paint);
 }
 
 void RSGPUOverdrawCanvasListener::onDrawRegion(const SkRegion& region, const SkPaint& paint)
 {
+    if (overdrawCanvas_ == nullptr) {
+        ROSEN_LOGE("overdrawCanvas_ is nullptr");
+        return;
+    }
     overdrawCanvas_->drawRegion(region, paint);
 }
 
 void RSGPUOverdrawCanvasListener::onDrawTextBlob(const SkTextBlob* blob, SkScalar x, SkScalar y,
                                                  const SkPaint& paint)
 {
+    if (overdrawCanvas_ == nullptr) {
+        ROSEN_LOGE("overdrawCanvas_ is nullptr");
+        return;
+    }
     overdrawCanvas_->drawTextBlob(blob, x, y, paint);
 }
 
@@ -105,12 +137,20 @@ void RSGPUOverdrawCanvasListener::onDrawPatch(const SkPoint cubics[12], const Sk
                                               const SkPoint texCoords[4], SkBlendMode mode,
                                               const SkPaint& paint)
 {
+    if (overdrawCanvas_ == nullptr) {
+        ROSEN_LOGE("overdrawCanvas_ is nullptr");
+        return;
+    }
     overdrawCanvas_->drawPatch(cubics, colors, texCoords, mode, paint);
 }
 
 void RSGPUOverdrawCanvasListener::onDrawPoints(SkCanvas::PointMode mode, size_t count, const SkPoint pts[],
                                                const SkPaint& paint)
 {
+    if (overdrawCanvas_ == nullptr) {
+        ROSEN_LOGE("overdrawCanvas_ is nullptr");
+        return;
+    }
     overdrawCanvas_->drawPoints(mode, count, pts, paint);
 }
 
@@ -118,27 +158,47 @@ void RSGPUOverdrawCanvasListener::onDrawEdgeAAQuad(const SkRect& rect, const SkP
                                                    SkCanvas::QuadAAFlags aaFlags,
                                                    const SkColor4f& color, SkBlendMode mode)
 {
+    if (overdrawCanvas_ == nullptr) {
+        ROSEN_LOGE("overdrawCanvas_ is nullptr");
+        return;
+    }
     overdrawCanvas_->experimental_DrawEdgeAAQuad(rect, clip, aaFlags, color.toSkColor(), mode);
 }
 
 void RSGPUOverdrawCanvasListener::onDrawAnnotation(const SkRect& rect, const char key[], SkData* value)
 {
+    if (overdrawCanvas_ == nullptr) {
+        ROSEN_LOGE("overdrawCanvas_ is nullptr");
+        return;
+    }
     overdrawCanvas_->drawAnnotation(rect, key, value);
 }
 
 void RSGPUOverdrawCanvasListener::onDrawShadowRec(const SkPath& path, const SkDrawShadowRec& rect)
 {
+    if (overdrawCanvas_ == nullptr) {
+        ROSEN_LOGE("overdrawCanvas_ is nullptr");
+        return;
+    }
     overdrawCanvas_->private_draw_shadow_rec(path, rect);
 }
 
 void RSGPUOverdrawCanvasListener::onDrawDrawable(SkDrawable* drawable, const SkMatrix* matrix)
 {
+    if (overdrawCanvas_ == nullptr) {
+        ROSEN_LOGE("overdrawCanvas_ is nullptr");
+        return;
+    }
     overdrawCanvas_->drawDrawable(drawable, matrix);
 }
 
 void RSGPUOverdrawCanvasListener::onDrawPicture(const SkPicture* picture, const SkMatrix* matrix,
                                                 const SkPaint* paint)
 {
+    if (overdrawCanvas_ == nullptr) {
+        ROSEN_LOGE("overdrawCanvas_ is nullptr");
+        return;
+    }
     overdrawCanvas_->drawPicture(picture, matrix, paint);
 }
 } // namespace Rosen

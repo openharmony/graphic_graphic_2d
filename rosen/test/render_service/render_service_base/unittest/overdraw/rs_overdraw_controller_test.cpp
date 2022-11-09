@@ -90,40 +90,6 @@ HWTEST_F(RSOverdrawControllerTest, Enable, Function | SmallTest | Level0)
     }
 }
 
-/*
- * Function: SwitchFunction (true/false)
- * Type: Function
- * EnvConditions: RSOverdrawController disabled
- * CaseDescription: 1. SwitchFunction value=true
- *                  2. IsEnabled is true
- *                  3. SwitchFunction value=false
- *                  4. IsEnabled is false
- */
-HWTEST_F(RSOverdrawControllerTest, SwitchFunction, Function | SmallTest | Level2)
-{
-    PART("EnvConditions") {
-        RSOverdrawController::GetInstance().SetEnable(false);
-    }
-
-    PART("CaseDescription") {
-        STEP("1. SwitchFunction value=true") {
-            RSOverdrawController::SwitchFunction("", "true", &RSOverdrawController::GetInstance());
-        }
-
-        STEP("2. IsEnabled is true") {
-            STEP_ASSERT_EQ(RSOverdrawController::GetInstance().IsEnabled(), true);
-        }
-
-        STEP("3. SwitchFunction value=false") {
-            RSOverdrawController::SwitchFunction("", "false", &RSOverdrawController::GetInstance());
-        }
-
-        STEP("4. IsEnabled is false") {
-            STEP_ASSERT_EQ(RSOverdrawController::GetInstance().IsEnabled(), false);
-        }
-    }
-}
-
 class RSValidCanvasListener : public RSCanvasListener {
 public:
     explicit RSValidCanvasListener(SkCanvas &canvas) : RSCanvasListener(canvas) {}

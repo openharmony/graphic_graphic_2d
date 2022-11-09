@@ -59,7 +59,14 @@ bool RSOverdrawController::IsEnabled() const
 
 void RSOverdrawController::SetEnable(bool enable)
 {
-    enabled_ = enable;
+    if (enabled_ == enable) {
+        return ;
+    }
+    if (enable) {
+        SwitchFunction(SWITCH_TEXT, SWITCH_ENABLE_TEXT, this);
+    } else {
+        SwitchFunction(SWITCH_TEXT, "", this);
+    }
 }
 
 OverdrawColorArray RSOverdrawController::GetColorArray() const
