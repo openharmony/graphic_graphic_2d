@@ -34,6 +34,13 @@ namespace OHOS {
         size_t g_pos;
     }
 
+    class BufferConsumerListener : public IBufferConsumerListener {
+    public:
+        void OnBufferAvailable() override
+        {
+        }
+    };
+
     /*
     * describe: get data from outside untrusted data(g_data) which size is according to sizeof(T)
     * tips: only support basic type
@@ -107,12 +114,18 @@ namespace OHOS {
 
         // test
         sptr<OHOS::Surface> cSurface = Surface::CreateSurfaceAsConsumer();
+        sptr<IBufferConsumerListener> listener = new BufferConsumerListener();
+        cSurface->RegisterConsumerListener(listener);
         sptr<OHOS::IBufferProducer> producer = cSurface->GetProducer();
         sptr<OHOS::Surface> pSurface = Surface::CreateSurfaceAsProducer(producer);
+        constexpr int defaultWidth = 0x100;
+        constexpr int defaultHeight = 0x100;
+        cSurface->SetDefaultWidthAndHeight(defaultWidth, defaultHeight);
         OHNativeWindow* nativeWindow = CreateNativeWindowFromSurface(&pSurface);
         sptr<OHOS::SurfaceBuffer> sBuffer = new SurfaceBufferImpl(seqNum);
         OHNativeWindowBuffer* nwBuffer = CreateNativeWindowBufferFromSurfaceBuffer(&sBuffer);
         NativeWindowRequestBuffer(nativeWindow, &nwBuffer, &fenceFd);
+        NativeObjectReference(nwBuffer);
         NativeWindowFlushBuffer(nativeWindow, nwBuffer, fenceFd, region);
         NativeWindowCancelBuffer(nativeWindow, nwBuffer);
         GetBufferHandleFromNative(nwBuffer);
