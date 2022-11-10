@@ -397,7 +397,7 @@ void RSPropertiesPainter::DrawMask(const RSProperties& properties, SkCanvas& can
     if (mask == nullptr) {
         return;
     }
-    if (mask->IsSvgMask() && !mask->GetSvgDom()) {
+    if (mask->IsSvgMask() && !mask->GetSvgDom() && !mask->GetSvgPicture()) {
         ROSEN_LOGD("RSPropertiesPainter::DrawMask not has Svg Mask property");
         return;
     }
@@ -414,7 +414,11 @@ void RSPropertiesPainter::DrawMask(const RSProperties& properties, SkCanvas& can
         SkAutoCanvasRestore maskSave(&canvas, true);
         canvas.translate(maskBounds.fLeft + mask->GetSvgX(), maskBounds.fTop + mask->GetSvgY());
         canvas.scale(mask->GetScaleX(), mask->GetScaleY());
-        mask->GetSvgDom()->render(&canvas);
+        if (mask->GetSvgDom()) {
+            mask->GetSvgDom()->render(&canvas);
+        } else if (mask->GetSvgPicture()) {
+            canvas.drawPicture(mask->GetSvgPicture());
+        }
     } else if (mask->IsGradientMask()) {
         SkAutoCanvasRestore maskSave(&canvas, true);
         canvas.translate(maskBounds.fLeft, maskBounds.fTop);
