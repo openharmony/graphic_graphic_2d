@@ -249,14 +249,12 @@ void DrawCmdList::ClearCache()
 #endif
 }
 
-// modify the mutex to global to extend life cycle, fix destructor crash
-// only for DrawCmdListManager
-static std::mutex listsMutex_;
+// modify the DrawCmdListManager instance to global to extend life cycle, fix destructor crash
+static DrawCmdListManager gDrawCmdListManagerInstance;
 
 DrawCmdListManager& DrawCmdListManager::Instance()
 {
-    static DrawCmdListManager instance;
-    return instance;
+    return gDrawCmdListManagerInstance;
 }
 
 void DrawCmdListManager::RegisterDrawCmdList(NodeId id, std::shared_ptr<DrawCmdList> drawCmdList)
