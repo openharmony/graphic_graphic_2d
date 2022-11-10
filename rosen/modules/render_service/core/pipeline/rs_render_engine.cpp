@@ -189,11 +189,6 @@ void RSRenderEngine::ClipHoleForLayer(RSPaintFilterCanvas& canvas, RSSurfaceRend
 
 void RSRenderEngine::SetColorFilterModeToPaint(SkPaint& paint)
 {
-    ColorFilterMode mode = static_cast<ColorFilterMode>(RSSystemProperties::GetCorrectionMode());
-    if (RSBaseRenderUtil::IsColorFilterModeValid(mode)) {
-        colorFilterMode_ = mode;
-    }
-
     // for test automation
     if (colorFilterMode_ != ColorFilterMode::COLOR_FILTER_END) {
         RS_LOGD("RSRenderEngine::SetColorFilterModeToPaint mode:%d", static_cast<int32_t>(colorFilterMode_));
