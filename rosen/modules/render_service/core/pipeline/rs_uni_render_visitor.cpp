@@ -452,8 +452,8 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
             CalcDirtyDisplayRegion(displayNodePtr);
         }
         if (isOpDropped_ && dirtySurfaceNodeMap_.empty() && !curDisplayDirtyManager_->IsDirty()) {
-            RS_LOGD("Force vsync");
-            curDisplayDirtyManager_->MergeDirtyRect(RectI { 0, 0, screenInfo_.width, screenInfo_.height });
+            RS_LOGD("DisplayNode skip");
+            return;
         }
 #endif
         auto rsSurface = node.GetRSSurface();
@@ -679,8 +679,10 @@ void RSUniRenderVisitor::CalcDirtyDisplayRegion(std::shared_ptr<RSDisplayRenderN
             }
         }
         auto transparentRegion = surfaceNode->GetTransparentRegion();
-        auto visibleDirtyRegion = surfaceNode->GetVisibleDirtyRegion();
-        Occlusion::Region transparentDirtyRegion = transparentRegion.And(visibleDirtyRegion);
+        Occlusion::Rect tmpRect = Occlusion::Rect { surfaceDirtyRect.left_, surfaceDirtyRect.top_,
+            surfaceDirtyRect.GetRight(), surfaceDirtyRect.GetBottom() };
+        Occlusion::Region surfaceDirtyRegion { tmpRect };
+        Occlusion::Region transparentDirtyRegion = transparentRegion.And(surfaceDirtyRegion);
         std::vector<Occlusion::Rect> rects = transparentDirtyRegion.GetRegionRects();
         for (const auto& rect : rects) {
             displayDirtyManager->MergeDirtyRect(RectI

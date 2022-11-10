@@ -122,6 +122,8 @@ public:
 
     sptr<VSyncDistributor> rsVSyncDistributor_;
 
+    void SetDirtyFlag();
+    void ForceRefreshForUni();
 private:
     using TransactionDataIndexMap = std::unordered_map<pid_t,
         std::pair<uint64_t, std::vector<std::unique_ptr<RSTransactionData>>>>;
@@ -165,7 +167,6 @@ private:
     void CheckDelayedSwitchTask();
     void UpdateRenderMode(bool useUniVisitor);
 
-    void SetDirtyFlag();
     void ClearDisplayBuffer();
     void PerfAfterAnim();
 
