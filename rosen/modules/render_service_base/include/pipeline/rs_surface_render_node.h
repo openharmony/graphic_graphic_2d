@@ -264,13 +264,10 @@ public:
 
     void SetGloblDirtyRegion(const RectI& rect)
     {
-        globalDirtyRegion_ = GetOldDirtyInSurface().IntersectRect(rect);
+        Occlusion::Rect tmpRect { rect.left_, rect.top_, rect.GetRight(), rect.GetBottom() };
+        Occlusion::Region region { tmpRect };
+        globalDirtyRegion_ = visibleRegion_.And(region);
         globalDirtyRegionIsEmpty_ = globalDirtyRegion_.IsEmpty();
-    }
-
-    RectI GetGlobalDirtyRegion() const
-    {
-        return globalDirtyRegion_;
     }
 
     void SetConsumer(const sptr<Surface>& consumer);
@@ -338,8 +335,8 @@ public:
         Occlusion::Rect nodeRect { r.left_, r.top_, r.GetRight(), r.GetBottom() };
         // if current node rect r is in global dirtyregion, it CANNOT be skipped
         if (!globalDirtyRegionIsEmpty_) {
-            auto globalRect = r.IntersectRect(globalDirtyRegion_);
-            if (!globalRect.IsEmpty()) {
+            auto globalRect = globalDirtyRegion_.IsIntersectWith(nodeRect);
+            if (globalRect) {
                 return true;
             }
         }
@@ -497,7 +494,7 @@ private:
     bool dstRectChanged_ = false;
     uint8_t abilityBgAlpha_ = 0;
     bool alphaChanged_ = false;
-    RectI globalDirtyRegion_;
+    Occlusion::Region globalDirtyRegion_;
 
     std::atomic<bool> isAppFreeze_ = false;
     sk_sp<SkSurface> cacheSurface_ = nullptr;
