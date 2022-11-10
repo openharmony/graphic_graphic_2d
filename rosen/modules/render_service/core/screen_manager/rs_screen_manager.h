@@ -154,6 +154,9 @@ public:
     virtual int32_t GetScreenType(ScreenId id, RSScreenType& type) const = 0;
 
     virtual int32_t SetScreenSkipFrameInterval(ScreenId id, uint32_t skipFrameInterval) = 0;
+
+    /* only used for mock tests */
+    virtual void MockHdiScreenConnected(std::unique_ptr<impl::RSScreen>& rsScreen) = 0;
 };
 
 sptr<RSScreenManager> CreateOrGetScreenManager();
@@ -254,6 +257,15 @@ public:
     int32_t GetScreenType(ScreenId id, RSScreenType& type) const override;
 
     int32_t SetScreenSkipFrameInterval(ScreenId id, uint32_t skipFrameInterval) override;
+    
+    /* only used for mock tests */
+    void MockHdiScreenConnected(std::unique_ptr<impl::RSScreen>& rsScreen) override
+    {
+        if (rsScreen == nullptr) {
+            return;
+        }
+        screens_[rsScreen->Id()] = std::move(rsScreen);
+    }
 private:
     RSScreenManager();
     ~RSScreenManager() noexcept override;
