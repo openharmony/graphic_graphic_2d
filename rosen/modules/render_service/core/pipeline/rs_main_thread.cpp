@@ -577,6 +577,7 @@ void RSMainThread::Render()
         auto uniVisitor = std::make_shared<RSUniRenderVisitor>();
         uniVisitor->SetAnimateState(doWindowAnimate_);
         uniVisitor->SetDirtyFlag(isDirty_);
+        uniVisitor->SetFocusedWindowPid(focusAppPid_);
         rootNode->Prepare(uniVisitor);
         CalcOcclusion();
         rootNode->Process(uniVisitor);

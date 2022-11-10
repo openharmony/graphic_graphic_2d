@@ -425,19 +425,74 @@ public:
         hasContainerWindow_ = hasContainerWindow;
     }
 
-    void ResetSurfaceOpaqueRegion(const RectI& screeninfo, const RectI& absRect)
+    bool IsFocusedWindow(pid_t focusedWindowPid)
     {
-        Occlusion::Rect dirtyRect{GetOldDirtyInSurface()};
+        return static_cast<pid_t>(GetNodeId() >> 32) == focusedWindowPid;
+    }
+
+    void ResetSurfaceOpaqueRegion(const RectI& screeninfo, const RectI& absRect, 
+        int containerWindowConfigType = 2, bool isFocusWindow = false)
+    {
+        Occlusion::Rect dirtyRect{GetOldDirty()}; // we should use absrect rather than dstrect here
         if (IsTransparent()) {
             opaqueRegion_ = Occlusion::Region();
             transparentRegion_ = Occlusion::Region{dirtyRect};
         } else {
             if (IsAppWindow() && HasContainerWindow()) {
-                Occlusion::Rect opaqueRect{ absRect.left_ + containerContentPadding + containerBorderWidth,
-                    absRect.top_ + containerTitleHeight,
-                    absRect.GetRight() - containerContentPadding - containerBorderWidth,
-                    absRect.GetBottom() - containerContentPadding - containerBorderWidth};
-                opaqueRegion_ = Occlusion::Region{opaqueRect};
+                switch (containerWindowConfigType) {
+                    case 0: {
+                        Occlusion::Rect opaqueRect{ absRect.left_ + containerContentPadding + containerBorderWidth,
+                            absRect.top_ + containerTitleHeight,
+                            absRect.GetRight() - containerContentPadding - containerBorderWidth,
+                            absRect.GetBottom() - containerContentPadding - containerBorderWidth};
+                        opaqueRegion_ = Occlusion::Region{opaqueRect};
+                        break;
+                    }
+                    case 1: {
+                        if (isFocusWindow) {
+                            Occlusion::Rect opaqueRect{ absRect.left_ + containerContentPadding + containerBorderWidth,
+                                absRect.top_ + containerTitleHeight,
+                                absRect.GetRight() - containerContentPadding - containerBorderWidth,
+                                absRect.GetBottom() - containerContentPadding - containerBorderWidth};
+                            opaqueRegion_ = Occlusion::Region{opaqueRect};
+                        } else {
+                            Occlusion::Rect opaqueRect{ absRect.left_,
+                                absRect.top_ + containerOutRadius_,
+                                absRect.GetRight(),
+                                absRect.GetBottom() - containerOutRadius_};
+                            opaqueRegion_ = Occlusion::Region{opaqueRect};
+                        }
+                        break;
+                    }
+                    case 2: {
+                        if (isFocusWindow) {
+                            Occlusion::Rect opaqueRect{ absRect.left_ + containerContentPadding + containerBorderWidth,
+                                absRect.top_ + containerTitleHeight,
+                                absRect.GetRight() - containerContentPadding - containerBorderWidth,
+                                absRect.GetBottom() - containerContentPadding - containerBorderWidth};
+                            opaqueRegion_ = Occlusion::Region{opaqueRect};
+                        } else {
+                            Occlusion::Rect opaqueRect1{ absRect.left_ + containerOutRadius_,
+                                absRect.top_,
+                                absRect.GetRight() - containerOutRadius_,
+                                absRect.GetBottom()};
+                            Occlusion::Rect opaqueRect2{ absRect.left_,
+                                absRect.top_ + containerOutRadius_,
+                                absRect.GetRight(),
+                                absRect.GetBottom() - containerOutRadius_};
+                            Occlusion::Region r1{opaqueRect1};
+                            Occlusion::Region r2{opaqueRect2};
+                            opaqueRegion_ = r1.Or(r2);
+                        }
+                        break;
+                    }
+                    default: {
+                        Occlusion::Rect opaqueRect{absRect};
+                        opaqueRegion_ = Occlusion::Region{opaqueRect};
+                        break;
+                    }
+                    
+                }
             } else {
                 Occlusion::Rect opaqueRect{absRect};
                 opaqueRegion_ = Occlusion::Region{opaqueRect};
@@ -512,6 +567,7 @@ private:
     int containerTitleHeight = 37 * 2;        // container title height = 74 px
     int containerContentPadding = 4 * 2;      // container <--> content distance 8 px
     int containerBorderWidth = 1 * 2;         // container border width 2px
+    int containerOutRadius_ = 16 * 2;         // container outter radius
 };
 } // namespace Rosen
 } // namespace OHOS
