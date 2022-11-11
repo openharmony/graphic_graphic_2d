@@ -30,7 +30,7 @@ constexpr uint32_t PERF_LEVEL_2 = 2;
 constexpr int32_t PERF_LEVEL_1_REQUESTED_CODE = 10013;
 constexpr int32_t PERF_LEVEL_2_REQUESTED_CODE = 10014;
 constexpr int32_t PERF_LEVEL_3_REQUESTED_CODE = 10015;
-constexpr int64_t PERF_TIME_OUT = 1000;
+constexpr int64_t PERF_TIME_OUT = 950;
 constexpr uint32_t PERF_LEVEL_INTERVAL = 10;
 
 void RequestPerf(uint32_t layerLevel, bool onOffTag)

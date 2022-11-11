@@ -58,6 +58,11 @@ public:
     {
         isDirty_ = isDirty;
     }
+
+    void SetFocusedWindowPid(pid_t pid)
+    {
+        currentFocusedPid_ = pid;
+    }
 private:
     void DrawDirtyRectForDFX(const RectI& dirtyRect, const SkColor color,
         const SkPaint::Style fillType, float alpha);
@@ -117,6 +122,8 @@ private:
     std::unordered_map<NodeId, std::vector<RectI>> filterRects_;
     ColorGamut newColorSpace_ = ColorGamut::COLOR_GAMUT_SRGB;
     std::vector<ScreenColorGamut> colorGamutmodes_;
+    ContainerWindowConfigType containerWindowConfig_;
+    pid_t currentFocusedPid_ = -1;
 };
 } // namespace Rosen
 } // namespace OHOS

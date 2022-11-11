@@ -54,6 +54,8 @@ RSUniRenderVisitor::RSUniRenderVisitor()
     }
     isOpDropped_ = isPartialRenderEnabled_ && (partialRenderType_ != PartialRenderType::SET_DAMAGE)
         && (!isDirtyRegionDfxEnabled_ && !isTargetDirtyRegionDfxEnabled_);
+    // this config may downgrade the calcOcclusion performance when windows number become huge (i.e. > 30), keep it now
+    containerWindowConfig_ = RSSystemProperties::GetContainerWindowConfig();
 }
 RSUniRenderVisitor::~RSUniRenderVisitor() {}
 
@@ -232,7 +234,8 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
     }
     dirtyFlag_ = dirtyFlag_ || node.GetDstRectChanged();
     parentSurfaceNodeMatrix_ = geoPtr->GetAbsMatrix();
-    node.ResetSurfaceOpaqueRegion(RectI(0, 0, screenInfo_.width, screenInfo_.height), geoPtr->GetAbsRect());
+    node.ResetSurfaceOpaqueRegion(RectI(0, 0, screenInfo_.width, screenInfo_.height), geoPtr->GetAbsRect(),
+        containerWindowConfig_, node.IsFocusedWindow(currentFocusedPid_));
 
     PrepareBaseRenderNode(node);
     // restore flags
