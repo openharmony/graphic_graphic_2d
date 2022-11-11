@@ -24,6 +24,7 @@ group("unittest") {
     ":RSBaseRenderUtilTest",
     ":RSDividedRenderUtilTest",
     ":RSDropFrameProcessorTest",
+    ":RSMainThreadTest",
     ":RSPhysicalScreenProcessorTest",
     ":RSProcessorFactoryTest",
     ":RSRenderServiceListenerTest",
@@ -147,6 +148,15 @@ ohos_unittest("RSUniRenderVisitorTest") {
   sources = [ "rs_uni_render_visitor_test.cpp" ]
   deps = [ ":rs_test_common" ]
   external_deps = [ "init:libbegetutil" ]
+  defines = []
+  defines += gpu_defines
+}
+
+## Build RSMainThreadTest
+ohos_unittest("RSMainThreadTest") {
+  module_out_path = module_output_path
+  sources = [ "rs_main_thread_test.cpp" ]
+  deps = [ ":rs_test_common" ]
   defines = []
   defines += gpu_defines
 }
