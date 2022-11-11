@@ -122,7 +122,7 @@ private:
     std::unordered_map<NodeId, std::vector<RectI>> filterRects_;
     ColorGamut newColorSpace_ = ColorGamut::COLOR_GAMUT_SRGB;
     std::vector<ScreenColorGamut> colorGamutmodes_;
-    int containerWindowConfig_;
+    ContainerWindowConfigType containerWindowConfig_;
     pid_t currentFocusedPid_ = -1;
 };
 } // namespace Rosen
