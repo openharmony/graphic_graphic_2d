@@ -831,5 +831,21 @@ HWTEST_F(RSInterfacesTest, SetScreenSkipFrameInterval005, Function | SmallTest |
     int32_t ret = rsInterfaces->SetScreenSkipFrameInterval(screenId, skipFrameInterval);
     ASSERT_EQ(ret, StatusCode::SUCCESS);
 }
+
+/*
+ * @tc.name: ScreenGamutMap_001
+ * @tc.desc: Test SetScreenGamutMap And GetScreenGamutMap
+ * @tc.type: FUNC
+ * @tc.require: issueI60RFZ
+ */
+HWTEST_F(RSInterfacesTest, ScreenGamutMap_001, Function | SmallTest | Level2)
+{
+    ScreenId defaultScreenId = rsInterfaces->GetDefaultScreenId();
+    ScreenGamutMap mode = ScreenGamutMap::GAMUT_MAP_CONSTANT;
+    uint32_t statusMode = rsInterfaces->SetScreenGamutMap(defaultScreenId, mode);
+    ASSERT_EQ(statusMode, StatusCode::HDI_ERROR);
+    statusMode = rsInterfaces->GetScreenGamutMap(defaultScreenId, mode);
+    ASSERT_EQ(statusMode, StatusCode::HDI_ERROR);
+}
 } // namespace Rosen
 } // namespace OHOS
