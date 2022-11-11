@@ -39,15 +39,13 @@ public:
     ~RSSharedContext();
 
     void MakeCurrent();
-    void MakeGrContext();
-    sk_sp<GrContext> GetGrContext() const;
+    sk_sp<GrContext> MakeGrContext();
 
 private:
     EGLDisplay display_ = nullptr;
     EGLContext context_ = nullptr;
     EGLSurface surface_ = nullptr;
     static inline thread_local std::weak_ptr<RSSharedContext> sharedContext_;
-    sk_sp<GrContext> grContext_;
 };
 } // namespace OHOS::Rosen
 #endif // RENDER_SERVICE_BASE_CORE_COMMON_RS_SHARED_CONTEXT_H

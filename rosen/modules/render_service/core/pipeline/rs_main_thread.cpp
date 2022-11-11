@@ -137,7 +137,6 @@ void RSMainThread::Init()
         ConsumeAndUpdateAllNodes();
         WaitUntilUnmarshallingTaskFinished();
         ProcessCommand();
-//        CheckAndNotifyFirstFrameCallback();
         Animate(timestamp_);
         CheckDelayedSwitchTask();
         Render();
@@ -410,35 +409,6 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
     if (needRequestNextVsync) {
         RequestNextVSync();
     }
-}
-
-void RSMainThread::CheckAndNotifyFirstFrameCallback()
-{
-    // check first frame callback after ProcessCommand
-    const auto& nodeMap = GetContext().GetNodeMap();
-    nodeMap.TraverseSurfaceNodes(
-        [this](const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) mutable {
-        if (surfaceNode == nullptr) {
-            return;
-        }
-
-        // check first frame callback in uniRender case
-        if (!IfUseUniVisitor() || !surfaceNode->IsAppWindow()) {
-            return;
-        }
-        for (auto& child : surfaceNode->GetSortedChildren()) {
-            if (child != nullptr && child->IsInstanceOf<RSRootRenderNode>()) {
-                auto rootNode = child->ReinterpretCastTo<RSRootRenderNode>();
-                rootNode->ApplyModifiers();
-                const auto& property = rootNode->GetRenderProperties();
-                if (property.GetFrameWidth() > 0 && property.GetFrameHeight() > 0 &&
-                    rootNode->GetEnableRender()) {
-                    surfaceNode->NotifyUIBufferAvailable();
-                }
-            }
-        }
-        surfaceNode->ResetSortedChildren();
-    });
 }
 
 void RSMainThread::ReleaseAllNodesBuffer()

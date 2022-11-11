@@ -19,6 +19,7 @@
 #include <functional>
 #include <memory>
 #include <thread>
+#include <vector>
 #include <event_handler.h>
 
 #include "include/core/SkRefCnt.h"
@@ -48,6 +49,7 @@ private:
     bool isRunning_ = false;
     sk_sp<SkSurface> surface_ = nullptr;
     std::shared_ptr<RSSharedContext> context_ = nullptr;
+    std::vector<sk_sp<GrContext>> grContexts_;
 };
 } // namespace Rosen
 } // namespace OHOS
