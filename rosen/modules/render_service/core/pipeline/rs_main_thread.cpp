@@ -44,6 +44,10 @@
 #include "rs_qos_thread.h"
 #include "xcollie/watchdog.h"
 
+#include "frame_trace.h"
+using namespace FRAME_TRACE;
+const std::string RS_INTERVAL_NAME = "renderservice";
+
 using namespace OHOS::AccessibilityConfig;
 namespace OHOS {
 namespace Rosen {
@@ -127,6 +131,7 @@ void RSMainThread::Init()
 {
     mainLoop_ = [&]() {
         RS_LOGD("RsDebug mainLoop start");
+        QuickStartFrameTrace(RS_INTERVAL_NAME);
         SetRSEventDetectorLoopStartTag();
         ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSMainThread::DoComposition");
         ConsumeAndUpdateAllNodes();
@@ -141,6 +146,7 @@ void RSMainThread::Init()
         ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
         SetRSEventDetectorLoopFinishTag();
         rsEventManager_.UpdateParam();
+        QuickEndFrameTrace(RS_INTERVAL_NAME);
         RS_LOGD("RsDebug mainLoop end");
     };
 

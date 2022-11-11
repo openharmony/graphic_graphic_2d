@@ -49,6 +49,10 @@
 #include "res_type.h"
 #endif
 
+#include "frame_trace.h"
+using namespace FRAME_TRACE;
+const std::string RT_INTERVAL_NAME = "renderthread";
+
 static void SystemCallSetThreadName(const std::string& name)
 {
 #ifdef ROSEN_OHOS
@@ -94,6 +98,7 @@ RSRenderThread::RSRenderThread()
         }
 
         RS_TRACE_BEGIN("RSRenderThread DrawFrame: " + std::to_string(timestamp_));
+        QuickStartFrameTrace(RT_INTERVAL_NAME);
         prevTimestamp_ = timestamp_;
         ProcessCommands();
         if (needRender_) {
@@ -104,6 +109,7 @@ RSRenderThread::RSRenderThread()
         Animate(prevTimestamp_);
         Render();
         SendCommands();
+        QuickEndFrameTrace(RT_INTERVAL_NAME);
         RS_TRACE_END();
 
         if (needRender_) {
