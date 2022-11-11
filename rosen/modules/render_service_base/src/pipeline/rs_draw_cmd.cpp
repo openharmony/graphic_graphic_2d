@@ -422,14 +422,12 @@ void PaintOpItem::Draw(RSPaintFilterCanvas& canvas, const SkRect*) const
 }
 
 ImageWithParmOpItem::ImageWithParmOpItem(const sk_sp<SkImage> img, const sk_sp<SkData> data,
-    const RsImageInfo& rsimageInfo, const SkPaint& paint)
+    int w, int h, const RsImageInfo& rsimageInfo, const SkPaint& paint)
     : OpItemWithPaint(sizeof(ImageWithParmOpItem))
 {
     rsImage_ = std::make_shared<RSImage>();
     rsImage_->SetImage(img);
-    if (img) {
-        rsImage_->SetCompressData(data, img->width(), img->height());
-    }
+    rsImage_->SetCompressData(data, w, h);
     rsImage_->SetImageFit(rsimageInfo.fitNum_);
     rsImage_->SetImageRepeat(rsimageInfo.repeatNum_);
     rsImage_->SetRadius(rsimageInfo.radius_);

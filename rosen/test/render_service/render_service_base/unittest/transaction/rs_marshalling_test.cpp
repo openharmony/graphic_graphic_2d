@@ -674,7 +674,7 @@ HWTEST_F(RSMarshallingTest, DrawCmdListSerialization001, Function | MediumTest |
     auto image = CreateSkImage();
     SkVector radii[4] = { { 0.0, 0.0 }, { 0.0, 0.0 }, { 0.0, 0.0 }, { 0.0, 0.0 } };
     Rosen::RsImageInfo rsImageInfo(0, 0, radii, 0);
-    auto op3 = std::make_unique<ImageWithParmOpItem>(image, nullptr, rsImageInfo, paint);
+    auto op3 = std::make_unique<ImageWithParmOpItem>(image, nullptr, 0, 0, rsImageInfo, paint);
     drawCmdList->AddOp(std::move(op3));
 
     /**

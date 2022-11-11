@@ -129,7 +129,8 @@ void RSImage::UploadGpu(SkCanvas& canvas)
                 image_ = image;
                 RSImageCache::Instance().CacheSkiaImage(uniqueId_, image);
             } else {
-                RS_LOGE("make astc image %d (%d, %d) failed", uniqueId_, (int)srcRect_.width_, (int)srcRect_.height_);
+                RS_LOGE("make astc image %d (%d, %d) failed, size:%d", uniqueId_,
+                    (int)srcRect_.width_, (int)srcRect_.height_, compressData_->size());
             }
             compressData_ = nullptr;
         }
