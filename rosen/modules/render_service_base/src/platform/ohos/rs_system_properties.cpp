@@ -89,9 +89,10 @@ PartialRenderType RSSystemProperties::GetUniPartialRenderEnabled()
         std::atoi((system::GetParameter("rosen.uni.partialrender.enabled", "4")).c_str()));
 }
 
-int RSSystemProperties::GetContainerWindowConfig()
+ContainerWindowConfigType RSSystemProperties::GetContainerWindowConfig()
 {
-    return std::atoi((system::GetParameter("rosen.uni.containerwindowconfig", "2")).c_str());
+    return static_cast<ContainerWindowConfigType>(
+        std::atoi((system::GetParameter("rosen.uni.containerwindowconfig", "2")).c_str()));
 }
 
 bool RSSystemProperties::GetOcclusionEnabled()
