@@ -40,6 +40,7 @@ ohos_source_set("render_service_client_src") {
     "//foundation/graphic/graphic_2d/utils/sandbox",
     "//foundation/graphic/graphic_2d/interfaces/inner_api/surface",
     "//foundation/barrierfree/accessibility/interfaces/innerkits/acfwk/include",
+    "//foundation/resourceschedule/frame_aware_sched/interfaces/innerkits/frameintf",
   ]
 
   sources = [
@@ -114,6 +115,7 @@ ohos_source_set("render_service_client_src") {
   deps += [
     "//foundation/barrierfree/accessibility/interfaces/innerkits/acfwk:accessibilityconfig",
     "//foundation/graphic/graphic_2d/rosen/modules/frame_analyzer:libframe_analyzer",
+    "//foundation/resourceschedule/frame_aware_sched/interfaces/innerkits/frameintf:frame_trace_intf",
   ]
 
   if (rss_enabled) {
