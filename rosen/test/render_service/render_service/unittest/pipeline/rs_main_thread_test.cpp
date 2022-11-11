@@ -35,24 +35,61 @@ void RSMainThreadTest::SetUp() {}
 void RSMainThreadTest::TearDown() {}
 
 /**
- * @tc.name: Start
+ * @tc.name: Start001
  * @tc.desc: Test RSMainThreadTest.Start
- * @tc.type:
- * @tc.require:
- * @tc.author:
+ * @tc.type: FUNC
+ * @tc.require: issueI60QXK
  */
-HWTEST_F(RSMainThreadTest, Start, TestSize.Level1)
+HWTEST_F(RSMainThreadTest, Start001, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
     mainThread->Start();
 }
 
 /**
+ * @tc.name: Start002
+ * @tc.desc: Test RSMainThreadTest.Start
+ * @tc.type: FUNC
+ * @tc.require: issueI60QXK
+ */
+HWTEST_F(RSMainThreadTest, Start002, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    mainThread->runner_ = nullptr;
+    mainThread->Start();
+}
+
+/**
+ * @tc.name: ProcessCommand
+ * @tc.desc: Test RSMainThreadTest.ProcessCommand
+ * @tc.type: FUNC
+ * @tc.require: issueI60QXK
+ */
+HWTEST_F(RSMainThreadTest, ProcessCommand, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    mainThread->isUniRender_ = false;
+    mainThread->ProcessCommand();
+}
+
+/**
+ * @tc.name: RsEventParamDump
+ * @tc.desc: Test RSMainThreadTest.RsEventParamDump
+ * @tc.type: FUNC
+ * @tc.require: issueI60QXK
+ */
+HWTEST_F(RSMainThreadTest, RsEventParamDump, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    std::string str = "";
+    mainThread->RsEventParamDump(str);
+}
+
+/**
  * @tc.name: RemoveRSEventDetector001
  * @tc.desc: Test RSMainThreadTest.RemoveRSEventDetector, with init
- * @tc.type:
- * @tc.require:
- * @tc.author:
+ * @tc.type: FUNC
+ * @tc.require: issueI60QXK
  */
 HWTEST_F(RSMainThreadTest, RemoveRSEventDetector001, TestSize.Level1)
 {
@@ -64,9 +101,8 @@ HWTEST_F(RSMainThreadTest, RemoveRSEventDetector001, TestSize.Level1)
 /**
  * @tc.name: RemoveRSEventDetector002
  * @tc.desc: Test RSMainThreadTest.RemoveRSEventDetector, without init
- * @tc.type:
- * @tc.require:
- * @tc.author:
+ * @tc.type: FUNC
+ * @tc.require: issueI60QXK
  */
 HWTEST_F(RSMainThreadTest, RemoveRSEventDetector002, TestSize.Level1)
 {
@@ -75,11 +111,23 @@ HWTEST_F(RSMainThreadTest, RemoveRSEventDetector002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: InitRSEventDetector
+ * @tc.desc: Test RSMainThreadTest.InitRSEventDetector, without init
+ * @tc.type: FUNC
+ * @tc.require: issueI60QXK
+ */
+HWTEST_F(RSMainThreadTest, InitRSEventDetector, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    mainThread->rsCompositionTimeoutDetector_ = nullptr;
+    mainThread->InitRSEventDetector();
+}
+
+/**
  * @tc.name: SetRSEventDetectorLoopStartTag001
  * @tc.desc: Test RSMainThreadTest.SetRSEventDetectorLoopStartTag, with init
- * @tc.type:
- * @tc.require:
- * @tc.author:
+ * @tc.type: FUNC
+ * @tc.require: issueI60QXK
  */
 HWTEST_F(RSMainThreadTest, SetRSEventDetectorLoopStartTag001, TestSize.Level1)
 {
@@ -91,9 +139,8 @@ HWTEST_F(RSMainThreadTest, SetRSEventDetectorLoopStartTag001, TestSize.Level1)
 /**
  * @tc.name: SetRSEventDetectorLoopStartTag002
  * @tc.desc: Test RSMainThreadTest.SetRSEventDetectorLoopStartTag, without init
- * @tc.type:
- * @tc.require:
- * @tc.author:
+ * @tc.type: FUNC
+ * @tc.require: issueI60QXK
  */
 HWTEST_F(RSMainThreadTest, SetRSEventDetectorLoopStartTag002, TestSize.Level1)
 {
@@ -104,9 +151,8 @@ HWTEST_F(RSMainThreadTest, SetRSEventDetectorLoopStartTag002, TestSize.Level1)
 /**
  * @tc.name: SetRSEventDetectorLoopFinishTag001
  * @tc.desc: Test RSMainThreadTest.SetRSEventDetectorLoopFinishTag, with init
- * @tc.type:
- * @tc.require:
- * @tc.author:
+ * @tc.type: FUNC
+ * @tc.require: issueI60QXK
  */
 HWTEST_F(RSMainThreadTest, SetRSEventDetectorLoopFinishTag001, TestSize.Level1)
 {
@@ -118,9 +164,8 @@ HWTEST_F(RSMainThreadTest, SetRSEventDetectorLoopFinishTag001, TestSize.Level1)
 /**
  * @tc.name: SetRSEventDetectorLoopFinishTag002
  * @tc.desc: Test RSMainThreadTest.SetRSEventDetectorLoopFinishTag, without init
- * @tc.type:
- * @tc.require:
- * @tc.author:
+ * @tc.type: FUNC
+ * @tc.require: issueI60QXK
  */
 HWTEST_F(RSMainThreadTest, SetRSEventDetectorLoopFinishTag002, TestSize.Level1)
 {
@@ -131,9 +176,8 @@ HWTEST_F(RSMainThreadTest, SetRSEventDetectorLoopFinishTag002, TestSize.Level1)
 /**
  * @tc.name: WaitUtilUniRenderFinished
  * @tc.desc: Test RSMainThreadTest.WaitUtilUniRenderFinished
- * @tc.type:
- * @tc.require:
- * @tc.author:
+ * @tc.type: FUNC
+ * @tc.require: issueI60QXK
  */
 HWTEST_F(RSMainThreadTest, WaitUtilUniRenderFinished, TestSize.Level1)
 {
@@ -145,9 +189,8 @@ HWTEST_F(RSMainThreadTest, WaitUtilUniRenderFinished, TestSize.Level1)
 /**
  * @tc.name: ProcessCommandForDividedRender001
  * @tc.desc: Test RSMainThreadTest.ProcessCommandForDividedRender, waitingBufferAvailable_ is false
- * @tc.type:
- * @tc.require:
- * @tc.author:
+ * @tc.type: FUNC
+ * @tc.require: issueI60QXK
  */
 HWTEST_F(RSMainThreadTest, ProcessCommandForDividedRender001, TestSize.Level1)
 {
@@ -159,9 +202,8 @@ HWTEST_F(RSMainThreadTest, ProcessCommandForDividedRender001, TestSize.Level1)
 /**
  * @tc.name: ProcessCommandForDividedRender002
  * @tc.desc: Test RSMainThreadTest.ProcessCommandForDividedRender, followVisitorCommands_ is not empty
- * @tc.type:
- * @tc.require:
- * @tc.author:
+ * @tc.type: FUNC
+ * @tc.require: issueI60QXK
  */
 HWTEST_F(RSMainThreadTest, ProcessCommandForDividedRender002, TestSize.Level1)
 {
@@ -173,9 +215,8 @@ HWTEST_F(RSMainThreadTest, ProcessCommandForDividedRender002, TestSize.Level1)
 /**
  * @tc.name: CalcOcclusion
  * @tc.desc: Test RSMainThreadTest.CalcOcclusion, doWindowAnimate_ is false, useUniVisitor_ is true
- * @tc.type:
- * @tc.require:
- * @tc.author:
+ * @tc.type: FUNC
+ * @tc.require: issueI60QXK
  */
 HWTEST_F(RSMainThreadTest, CalcOcclusion, TestSize.Level1)
 {
@@ -188,9 +229,8 @@ HWTEST_F(RSMainThreadTest, CalcOcclusion, TestSize.Level1)
 /**
  * @tc.name: CheckQosVisChanged001
  * @tc.desc: Test RSMainThreadTest.CheckQosVisChanged, pidVisMap is empty
- * @tc.type:
- * @tc.require:
- * @tc.author:
+ * @tc.type: FUNC
+ * @tc.require: issueI60QXK
  */
 HWTEST_F(RSMainThreadTest, CheckQosVisChanged001, TestSize.Level1)
 {
@@ -203,9 +243,8 @@ HWTEST_F(RSMainThreadTest, CheckQosVisChanged001, TestSize.Level1)
 /**
  * @tc.name: CheckQosVisChanged002
  * @tc.desc: Test RSMainThreadTest.CheckQosVisChanged, pidVisMap is not empty
- * @tc.type:
- * @tc.require:
- * @tc.author:
+ * @tc.type: FUNC
+ * @tc.require: issueI60QXK
  */
 HWTEST_F(RSMainThreadTest, CheckQosVisChanged002, TestSize.Level1)
 {
@@ -220,9 +259,8 @@ HWTEST_F(RSMainThreadTest, CheckQosVisChanged002, TestSize.Level1)
 /**
  * @tc.name: CheckQosVisChanged003
  * @tc.desc: Test RSMainThreadTest.CheckQosVisChanged, pidVisMap is not empty, lastPidVisMap_ equals to pidVisMap
- * @tc.type:
- * @tc.require:
- * @tc.author:
+ * @tc.type: FUNC
+ * @tc.require: issueI60QXK
  */
 HWTEST_F(RSMainThreadTest, CheckQosVisChanged003, TestSize.Level1)
 {
@@ -237,9 +275,8 @@ HWTEST_F(RSMainThreadTest, CheckQosVisChanged003, TestSize.Level1)
 /**
  * @tc.name: Animate001
  * @tc.desc: Test RSMainThreadTest.Animate, doWindowAnimate_ is false
- * @tc.type:
- * @tc.require:
- * @tc.author:
+ * @tc.type: FUNC
+ * @tc.require: issueI60QXK
  */
 HWTEST_F(RSMainThreadTest, Animate001, TestSize.Level1)
 {
@@ -251,9 +288,8 @@ HWTEST_F(RSMainThreadTest, Animate001, TestSize.Level1)
 /**
  * @tc.name: Animate002
  * @tc.desc: Test RSMainThreadTest.Animate, doWindowAnimate_ is true
- * @tc.type:
- * @tc.require:
- * @tc.author:
+ * @tc.type: FUNC
+ * @tc.require: issueI60QXK
  */
 HWTEST_F(RSMainThreadTest, Animate002, TestSize.Level1)
 {
@@ -263,11 +299,46 @@ HWTEST_F(RSMainThreadTest, Animate002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: CheckDelayedSwitchTask001
+ * @tc.desc: Test RSMainThreadTest.CheckDelayedSwitchTask
+ * @tc.type: FUNC
+ * @tc.require: issueI60QXK
+ */
+HWTEST_F(RSMainThreadTest, CheckDelayedSwitchTask001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    mainThread->switchDelayed_ = true;
+    mainThread->doWindowAnimate_ = false;
+    mainThread->useUniVisitor_ = true;
+    mainThread->delayedTargetUniVisitor_ = false;
+    mainThread->waitingBufferAvailable_ = false;
+    mainThread->waitingUpdateSurfaceNode_ = false;
+    mainThread->CheckDelayedSwitchTask();
+}
+
+/**
+ * @tc.name: CheckDelayedSwitchTask002
+ * @tc.desc: Test RSMainThreadTest.CheckDelayedSwitchTask
+ * @tc.type: FUNC
+ * @tc.require: issueI60QXK
+ */
+HWTEST_F(RSMainThreadTest, CheckDelayedSwitchTask002, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    mainThread->switchDelayed_ = false;
+    mainThread->doWindowAnimate_ = true;
+    mainThread->useUniVisitor_ = true;
+    mainThread->delayedTargetUniVisitor_ = true;
+    mainThread->waitingBufferAvailable_ = true;
+    mainThread->waitingUpdateSurfaceNode_ = true;
+    mainThread->CheckDelayedSwitchTask();
+}
+
+/**
  * @tc.name: UpdateRenderMode001
  * @tc.desc: Test RSMainThreadTest.UpdateRenderMode, waitingBufferAvailable_, waitingUpdateSurfaceNode_ is true
- * @tc.type:
- * @tc.require:
- * @tc.author:
+ * @tc.type: FUNC
+ * @tc.require: issueI60QXK
  */
 HWTEST_F(RSMainThreadTest, UpdateRenderMode001, TestSize.Level1)
 {
@@ -281,9 +352,8 @@ HWTEST_F(RSMainThreadTest, UpdateRenderMode001, TestSize.Level1)
  * @tc.name: UpdateRenderMode002
  * @tc.desc: Test RSMainThreadTest.UpdateRenderMode, waitingBufferAvailable_ is true,
  * waitingUpdateSurfaceNode_ is false
- * @tc.type:
- * @tc.require:
- * @tc.author:
+ * @tc.type: FUNC
+ * @tc.require: issueI60QXK
  */
 HWTEST_F(RSMainThreadTest, UpdateRenderMode002, TestSize.Level1)
 {
@@ -294,11 +364,37 @@ HWTEST_F(RSMainThreadTest, UpdateRenderMode002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: NotifyRenderModeChanged001
+ * @tc.desc: Test RSMainThreadTest.NotifyRenderModeChanged
+ * @tc.type: FUNC
+ * @tc.require: issueI60QXK
+ */
+HWTEST_F(RSMainThreadTest, NotifyRenderModeChanged001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    mainThread->useUniVisitor_ = true;
+    mainThread->NotifyRenderModeChanged(true);
+}
+
+/**
+ * @tc.name: NotifyRenderModeChanged002
+ * @tc.desc: Test RSMainThreadTest.NotifyRenderModeChanged
+ * @tc.type: FUNC
+ * @tc.require: issueI60QXK
+ */
+HWTEST_F(RSMainThreadTest, NotifyRenderModeChanged002, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    mainThread->useUniVisitor_ = true;
+    mainThread->doWindowAnimate_ = false;
+    mainThread->NotifyRenderModeChanged(false);
+}
+
+/**
  * @tc.name: UnRegisterOcclusionChangeCallback
  * @tc.desc: Test RSMainThreadTest.Animate, waitingBufferAvailable_, waitingUpdateSurfaceNode_ is true
- * @tc.type:
- * @tc.require:
- * @tc.author:
+ * @tc.type: FUNC
+ * @tc.require: issueI60QXK
  */
 HWTEST_F(RSMainThreadTest, UnRegisterOcclusionChangeCallback, TestSize.Level1)
 {
@@ -309,9 +405,8 @@ HWTEST_F(RSMainThreadTest, UnRegisterOcclusionChangeCallback, TestSize.Level1)
 /**
  * @tc.name: CleanOcclusionListener
  * @tc.desc: Test RSMainThreadTest.CleanOcclusionListener
- * @tc.type:
- * @tc.require:
- * @tc.author:
+ * @tc.type: FUNC
+ * @tc.require: issueI60QXK
  */
 HWTEST_F(RSMainThreadTest, CleanOcclusionListener, TestSize.Level1)
 {
@@ -322,9 +417,8 @@ HWTEST_F(RSMainThreadTest, CleanOcclusionListener, TestSize.Level1)
 /**
  * @tc.name: QosStateDump
  * @tc.desc: Test RSMainThreadTest.QosStateDump, str is an empty string
- * @tc.type:
- * @tc.require:
- * @tc.author:
+ * @tc.type: FUNC
+ * @tc.require: issueI60QXK
  */
 HWTEST_F(RSMainThreadTest, QosStateDump, TestSize.Level1)
 {
@@ -336,9 +430,8 @@ HWTEST_F(RSMainThreadTest, QosStateDump, TestSize.Level1)
 /**
  * @tc.name: RenderServiceTreeDump
  * @tc.desc: Test RSMainThreadTest.RenderServiceTreeDump, str is an empty string
- * @tc.type:
- * @tc.require:
- * @tc.author:
+ * @tc.type: FUNC
+ * @tc.require: issueI60QXK
  */
 HWTEST_F(RSMainThreadTest, RenderServiceTreeDump, TestSize.Level1)
 {
@@ -350,9 +443,8 @@ HWTEST_F(RSMainThreadTest, RenderServiceTreeDump, TestSize.Level1)
 /**
  * @tc.name: SetFocusAppInfo
  * @tc.desc: Test RSMainThreadTest.SetFocusAppInfo, input pid, uid is -1, str is an empty string
- * @tc.type:
- * @tc.require:
- * @tc.author:
+ * @tc.type: FUNC
+ * @tc.require: issueI60QXK
  */
 HWTEST_F(RSMainThreadTest, SetFocusAppInfo, TestSize.Level1)
 {
