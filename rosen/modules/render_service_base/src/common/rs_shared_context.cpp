@@ -95,15 +95,8 @@ void RSSharedContext::MakeCurrent()
     sharedContext_ = shared_from_this();
 }
 
-void RSSharedContext::MakeGrContext()
+sk_sp<GrContext> RSSharedContext::MakeGrContext()
 {
-    if (!grContext_) {
-        grContext_ = GrContext::MakeGL(GrGLMakeNativeInterface());
-    }
-}
-
-sk_sp<GrContext> RSSharedContext::GetGrContext() const
-{
-    return grContext_;
+    return GrContext::MakeGL(GrGLMakeNativeInterface());
 }
 } // namespace OHOS::Rosen

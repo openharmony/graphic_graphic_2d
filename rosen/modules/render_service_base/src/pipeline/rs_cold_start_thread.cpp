@@ -23,6 +23,7 @@
 
 #include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_log.h"
+#include "rs_trace.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -44,10 +45,13 @@ RSColdStartThread::~RSColdStartThread()
 
 void RSColdStartThread::Stop()
 {
+    RS_TRACE_NAME_FMT("RSColdStartThread::Stop");
     if (handler_ != nullptr) {
         handler_->PostSyncTask([this]() {
-            if (context_ != nullptr && context_->GetGrContext() != nullptr) {
-                context_->GetGrContext()->abandonContext();
+            for (auto grContext : grContexts_) {
+                if (grContext != nullptr) {
+                    grContext->abandonContext();
+                }
             }
         }, AppExecFwk::EventQueue::Priority::IMMEDIATE);
     }
@@ -62,9 +66,9 @@ void RSColdStartThread::Stop()
 
 void RSColdStartThread::Run()
 {
+    RS_TRACE_NAME_FMT("RSColdStartThread::Run");
     if (context_ != nullptr) {
         context_->MakeCurrent();
-        context_->MakeGrContext();
     }
     isRunning_ = true;
     runner_ = AppExecFwk::EventRunner::Create(false);
@@ -93,7 +97,9 @@ void RSColdStartThread::PostPlayBackTask(sk_sp<SkPicture> picture, float width, 
         if (surface_ == nullptr) {
 #if (defined RS_ENABLE_GL) && (defined RS_ENABLE_EGLIMAGE)
             SkImageInfo info = SkImageInfo::MakeN32Premul(width, height);
-            surface_ = SkSurface::MakeRenderTarget(context_->GetGrContext().get(), SkBudgeted::kYes, info);
+            auto grContext = context_->MakeGrContext();
+            grContexts_.emplace_back(grContext);
+            surface_ = SkSurface::MakeRenderTarget(grContext.get(), SkBudgeted::kYes, info);
 #else
             surface_ = SkSurface::MakeRasterN32Premul(width, height);
 #endif
