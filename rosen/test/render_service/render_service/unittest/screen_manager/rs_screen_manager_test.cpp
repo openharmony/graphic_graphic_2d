@@ -408,11 +408,6 @@ HWTEST_F(RSScreenManagerTest, SetScreenActiveMode_001, testing::ext::TestSize.Le
     std::vector<RSScreenModeInfo> screenSupportedModes;
     screenSupportedModes = screenManager->GetScreenSupportedModes(screenId);
     screenManager->SetScreenActiveMode(screenId, screenSupportedModes.size() + 3);
-    screenManager->GetScreenActiveMode(screenId, screenModeInfo0);
-    ASSERT_EQ(screenModeInfo0.GetScreenWidth(), -1);
-    ASSERT_EQ(screenModeInfo0.GetScreenHeight(), -1);
-    ASSERT_EQ(screenModeInfo0.GetScreenRefreshRate(), 0);
-    ASSERT_EQ(screenModeInfo0.GetScreenModeId(), -1);
     // [PLANNING]: ASSERT_EQ
 }
 
@@ -505,5 +500,42 @@ HWTEST_F(RSScreenManagerTest, RSDump_001, testing::ext::TestSize.Level2)
     screenManager->SurfaceDump(dumpString);
     dumpString = "";
     screenManager->FpsDump(dumpString, arg);
+}
+
+/*
+ * @tc.name: ScreenGamutMap_001
+ * @tc.desc: Test SetScreenGamutMap And GetScreenGamutMap Failed
+ * @tc.type: FUNC
+ * @tc.require: issueI60RFZ
+ */
+HWTEST_F(RSScreenManagerTest, ScreenGamutMap_001, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    ScreenGamutMap mode = ScreenGamutMap::GAMUT_MAP_CONSTANT;
+    ScreenId id = 0;
+    int32_t setStatusCode = screenManager->SetScreenGamutMap(id, mode);
+    ASSERT_EQ(setStatusCode, StatusCode::SCREEN_NOT_FOUND);
+    int32_t getStatusCode = screenManager->GetScreenGamutMap(id, mode);
+    ASSERT_EQ(getStatusCode, StatusCode::SCREEN_NOT_FOUND);
+}
+
+/*
+ * @tc.name: ScreenGamutMap_002
+ * @tc.desc: Test SetScreenGamutMap And GetScreenGamutMap Successed
+ * @tc.type: FUNC
+ * @tc.require: issueI60RFZ
+ */
+HWTEST_F(RSScreenManagerTest, ScreenGamutMap_002, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    auto virtualScreenId = screenManager->CreateVirtualScreen("virtualScreen01", 480, 320, nullptr);
+    ScreenGamutMap mode = ScreenGamutMap::GAMUT_MAP_CONSTANT;
+    ASSERT_NE(INVALID_SCREEN_ID, virtualScreenId);
+    int32_t setStatusCode = screenManager->SetScreenGamutMap(virtualScreenId, mode);
+    ASSERT_EQ(setStatusCode, StatusCode::SUCCESS);
+    int32_t getStatusCode = screenManager->GetScreenGamutMap(virtualScreenId, mode);
+    ASSERT_EQ(getStatusCode, StatusCode::SUCCESS);
 }
 } // namespace OHOS::Rosen
