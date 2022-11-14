@@ -16,6 +16,7 @@
 #include "gtest/gtest.h"
 #include "limit_number.h"
 #include "pipeline/rs_base_render_util.h"
+#include "rs_test_util.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -27,6 +28,20 @@ public:
     static void TearDownTestCase();
     void SetUp() override;
     void TearDown() override;
+
+private:
+    static inline sptr<Surface> psurf = nullptr;
+    static inline BufferRequestConfig requestConfig = {
+        .width = 0x100,
+        .height = 0x100,
+        .strideAlignment = 0x8,
+        .format = PIXEL_FMT_YCRCB_420_SP,
+        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
+        .timeout = 0,
+    };
+    static inline BufferFlushConfig flushConfig = {
+        .damage = { .w = 0x100, .h = 0x100, },
+    };
 };
 
 void RSBaseRenderUtilTest::SetUpTestCase() {}
@@ -40,7 +55,7 @@ void RSBaseRenderUtilTest::TearDown() {}
  * @tc.type: FUNC
  * @tc.require: issueI605F4
  */
-HWTEST_F(RSBaseRenderUtilTest, IsBufferValid_001, TestSize.Level1)
+HWTEST_F(RSBaseRenderUtilTest, IsBufferValid_001, TestSize.Level2)
 {
     ASSERT_EQ(false, RSBaseRenderUtil::IsBufferValid(nullptr));
 }
@@ -51,7 +66,7 @@ HWTEST_F(RSBaseRenderUtilTest, IsBufferValid_001, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: issueI605F4
  */
-HWTEST_F(RSBaseRenderUtilTest, GetFrameBufferRequestConfig_001, TestSize.Level1)
+HWTEST_F(RSBaseRenderUtilTest, GetFrameBufferRequestConfig_001, TestSize.Level2)
 {
     ScreenInfo screenInfo;
     screenInfo.width = 480;
@@ -65,7 +80,7 @@ HWTEST_F(RSBaseRenderUtilTest, GetFrameBufferRequestConfig_001, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: issueI605F4
  */
-HWTEST_F(RSBaseRenderUtilTest, DropFrameProcess_001, TestSize.Level1)
+HWTEST_F(RSBaseRenderUtilTest, DropFrameProcess_001, TestSize.Level2)
 {
     NodeId id = 0;
     RSSurfaceHandler surfaceHandler(id);
@@ -78,7 +93,7 @@ HWTEST_F(RSBaseRenderUtilTest, DropFrameProcess_001, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: issueI605F4
  */
-HWTEST_F(RSBaseRenderUtilTest, ConsumeAndUpdateBuffer_001, TestSize.Level1)
+HWTEST_F(RSBaseRenderUtilTest, ConsumeAndUpdateBuffer_001, TestSize.Level2)
 {
     NodeId id = 0;
     RSSurfaceHandler surfaceHandler(id);
@@ -91,26 +106,11 @@ HWTEST_F(RSBaseRenderUtilTest, ConsumeAndUpdateBuffer_001, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: issueI605F4
  */
-HWTEST_F(RSBaseRenderUtilTest, ReleaseBuffer_001, TestSize.Level1)
+HWTEST_F(RSBaseRenderUtilTest, ReleaseBuffer_001, TestSize.Level2)
 {
     NodeId id = 0;
     RSSurfaceHandler surfaceHandler(id);
     ASSERT_EQ(false, RSBaseRenderUtil::ReleaseBuffer(surfaceHandler));
-}
-
-/*
- * @tc.name: ConvertBufferToBitmap_001
- * @tc.desc: Test ConvertBufferToBitmap
- * @tc.type: FUNC
- * @tc.require: issueI605F4
- */
-HWTEST_F(RSBaseRenderUtilTest, ConvertBufferToBitmap_001, TestSize.Level1)
-{
-    sptr<SurfaceBuffer> buffer;
-    std::vector<uint8_t> newBuffer;
-    ColorGamut dstGamut = ColorGamut::COLOR_GAMUT_SRGB;
-    SkBitmap bitmap;
-    ASSERT_EQ(false, RSBaseRenderUtil::ConvertBufferToBitmap(buffer, newBuffer, dstGamut, bitmap));
 }
 
 /*
@@ -119,7 +119,7 @@ HWTEST_F(RSBaseRenderUtilTest, ConvertBufferToBitmap_001, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: issueI605F4
  */
-HWTEST_F(RSBaseRenderUtilTest, SetColorFilterModeToPaint_001, TestSize.Level1)
+HWTEST_F(RSBaseRenderUtilTest, SetColorFilterModeToPaint_001, TestSize.Level2)
 {
     SkPaint paint;
     ColorFilterMode colorFilterMode = ColorFilterMode::INVERT_COLOR_ENABLE_MODE;
@@ -146,7 +146,7 @@ HWTEST_F(RSBaseRenderUtilTest, SetColorFilterModeToPaint_001, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: issueI605F4
  */
-HWTEST_F(RSBaseRenderUtilTest, IsColorFilterModeValid_001, TestSize.Level1)
+HWTEST_F(RSBaseRenderUtilTest, IsColorFilterModeValid_001, TestSize.Level2)
 {
     ColorFilterMode colorFilterMode = ColorFilterMode::INVERT_COLOR_ENABLE_MODE;
     ASSERT_EQ(true, RSBaseRenderUtil::IsColorFilterModeValid(colorFilterMode));
@@ -158,7 +158,7 @@ HWTEST_F(RSBaseRenderUtilTest, IsColorFilterModeValid_001, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: issueI605F4
  */
-HWTEST_F(RSBaseRenderUtilTest, WriteSurfaceRenderNodeToPng_001, TestSize.Level1)
+HWTEST_F(RSBaseRenderUtilTest, WriteSurfaceRenderNodeToPng_001, TestSize.Level2)
 {
     RSSurfaceRenderNodeConfig config;
     std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(config);
@@ -167,12 +167,88 @@ HWTEST_F(RSBaseRenderUtilTest, WriteSurfaceRenderNodeToPng_001, TestSize.Level1)
 }
 
 /*
+ * @tc.name: ConvertBufferToBitmap_001
+ * @tc.desc: Test ConvertBufferToBitmap IsBufferValid
+ * @tc.type: FUNC
+ * @tc.require: issueI614RU
+ */
+HWTEST_F(RSBaseRenderUtilTest, ConvertBufferToBitmap_001, TestSize.Level2)
+{
+    sptr<SurfaceBuffer> cbuffer;
+    std::vector<uint8_t> newBuffer;
+    ColorGamut dstGamut = ColorGamut::COLOR_GAMUT_SRGB;
+    SkBitmap bitmap;
+    ASSERT_EQ(false, RSBaseRenderUtil::ConvertBufferToBitmap(cbuffer, newBuffer, dstGamut, bitmap));
+}
+
+/*
+ * @tc.name: ConvertBufferToBitmap_002
+ * @tc.desc: Test ConvertBufferToBitmap by CreateYuvToRGBABitMap
+ * @tc.type: FUNC
+ * @tc.require: issueI614RU
+ */
+HWTEST_F(RSBaseRenderUtilTest, ConvertBufferToBitmap_002, TestSize.Level2)
+{
+    auto rsSurfaceRenderNode = RSTestUtil::CreateSurfaceNode();
+    const auto& surfaceConsumer = rsSurfaceRenderNode->GetConsumer();
+    auto producer = surfaceConsumer->GetProducer();
+    psurf = Surface::CreateSurfaceAsProducer(producer);
+    psurf->SetQueueSize(1);
+    sptr<SurfaceBuffer> buffer;
+    sptr<SyncFence> requestFence = SyncFence::INVALID_FENCE;
+    GSError ret = psurf->RequestBuffer(buffer, requestFence, requestConfig);
+    sptr<SyncFence> flushFence = SyncFence::INVALID_FENCE;
+    ret = psurf->FlushBuffer(buffer, flushFence, flushConfig);
+    OHOS::sptr<SurfaceBuffer> cbuffer;
+    Rect damage;
+    sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
+    int64_t timestamp = 0;
+    ret = surfaceConsumer->AcquireBuffer(cbuffer, acquireFence, timestamp, damage);
+
+    std::vector<uint8_t> newBuffer;
+    ColorGamut dstGamut = ColorGamut::COLOR_GAMUT_SRGB;
+    SkBitmap bitmap;
+    (void)RSBaseRenderUtil::ConvertBufferToBitmap(cbuffer, newBuffer, dstGamut, bitmap);
+}
+
+/*
+ * @tc.name: ConvertBufferToBitmap_003
+ * @tc.desc: Test ConvertBufferToBitmap by CreateNewColorGamutBitmap
+ * @tc.type: FUNC
+ * @tc.require: issueI614RU
+ */
+HWTEST_F(RSBaseRenderUtilTest, ConvertBufferToBitmap_003, TestSize.Level2)
+{
+    auto rsSurfaceRenderNode = RSTestUtil::CreateSurfaceNode();
+    const auto& surfaceConsumer = rsSurfaceRenderNode->GetConsumer();
+    auto producer = surfaceConsumer->GetProducer();
+    psurf = Surface::CreateSurfaceAsProducer(producer);
+    psurf->SetQueueSize(1);
+    sptr<SurfaceBuffer> buffer;
+    sptr<SyncFence> requestFence = SyncFence::INVALID_FENCE;
+    requestConfig.format = PIXEL_FMT_RGBA_8888;
+    GSError ret = psurf->RequestBuffer(buffer, requestFence, requestConfig);
+    sptr<SyncFence> flushFence = SyncFence::INVALID_FENCE;
+    ret = psurf->FlushBuffer(buffer, flushFence, flushConfig);
+    OHOS::sptr<SurfaceBuffer> cbuffer;
+    Rect damage;
+    sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
+    int64_t timestamp = 0;
+    ret = surfaceConsumer->AcquireBuffer(cbuffer, acquireFence, timestamp, damage);
+
+    std::vector<uint8_t> newBuffer;
+    ColorGamut dstGamut = ColorGamut::COLOR_GAMUT_INVALID;
+    SkBitmap bitmap;
+    ASSERT_EQ(true, RSBaseRenderUtil::ConvertBufferToBitmap(cbuffer, newBuffer, dstGamut, bitmap));
+}
+
+/*
  * @tc.name: WritePixelMapToPng_001
  * @tc.desc: Test WritePixelMapToPng
  * @tc.type: FUNC
  * @tc.require: issueI605F4
  */
-HWTEST_F(RSBaseRenderUtilTest, WritePixelMapToPng_001, TestSize.Level1)
+HWTEST_F(RSBaseRenderUtilTest, WritePixelMapToPng_001, TestSize.Level2)
 {
     Media::PixelMap pixelMap;
     bool result = RSBaseRenderUtil::WritePixelMapToPng(pixelMap);
@@ -185,7 +261,7 @@ HWTEST_F(RSBaseRenderUtilTest, WritePixelMapToPng_001, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: issueI605F4
  */
-HWTEST_F(RSBaseRenderUtilTest, DealWithSurfaceRotationAndGravity_001, TestSize.Level1)
+HWTEST_F(RSBaseRenderUtilTest, DealWithSurfaceRotationAndGravity_001, TestSize.Level2)
 {
     RectF localBounds;
     BufferDrawParam params;
@@ -207,7 +283,7 @@ HWTEST_F(RSBaseRenderUtilTest, DealWithSurfaceRotationAndGravity_001, TestSize.L
  * @tc.type: FUNC
  * @tc.require: issueI605F4
  */
-HWTEST_F(RSBaseRenderUtilTest, SetPropertiesForCanvas_001, TestSize.Level1)
+HWTEST_F(RSBaseRenderUtilTest, SetPropertiesForCanvas_001, TestSize.Level2)
 {
     std::unique_ptr<SkCanvas> skCanvas = std::make_unique<SkCanvas>(10, 10); // width height
     std::shared_ptr<RSPaintFilterCanvas> canvas = std::make_shared<RSPaintFilterCanvas>(skCanvas.get());;
