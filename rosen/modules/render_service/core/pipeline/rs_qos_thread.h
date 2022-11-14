@@ -28,9 +28,9 @@ public:
     static sptr<VSyncDistributor> appVSyncDistributor_;
 
     static RSQosThread* GetInstance();
-    void ThreadStart();
-    void ThreadStop();
-    void ResetQosPid();
+    static void ThreadStart();
+    static void ThreadStop();
+    static void ResetQosPid();
     void OnRSVisibilityChangeCB(std::map<uint32_t, bool>& pidVisMap);
 
     void SetQosCal(bool qosCal)

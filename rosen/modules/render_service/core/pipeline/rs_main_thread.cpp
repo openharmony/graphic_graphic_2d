@@ -703,7 +703,7 @@ void RSMainThread::CallbackToQOS(std::map<uint32_t, bool>& pidVisMap)
     if (!RSInnovation::UpdateQosVsyncEnabled()) {
         if (qosPidCal_) {
             qosPidCal_ = false;
-            RSQosThread::GetInstance()->ResetQosPid();
+            RSQosThread::ResetQosPid();
             RSQosThread::GetInstance()->SetQosCal(qosPidCal_);
         }
         return;
@@ -807,7 +807,7 @@ void RSMainThread::Animate(uint64_t timestamp)
     });
 
     if (!doWindowAnimate_ && curWinAnim && RSInnovation::UpdateQosVsyncEnabled()) {
-        RSQosThread::GetInstance()->ResetQosPid();
+        RSQosThread::ResetQosPid();
     }
     doWindowAnimate_ = curWinAnim;
     RS_LOGD("RSMainThread::Animate end, %d animating nodes remains, has window animation: %d",
