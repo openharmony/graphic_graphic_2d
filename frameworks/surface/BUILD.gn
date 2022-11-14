@@ -36,11 +36,12 @@ config("surface_public_config") {
 
   defines = []
   if (ace_enable_gpu) {
-    defines += [ "ACE_ENABLE_GPU" ]
+    defines = [ "ACE_ENABLE_GPU" ]
   }
   if (graphic_standard_feature_freemem_enable) {
     defines += [ "SURFACE_ENABLE_FREEMEM" ]
   }
+  defines += gpu_defines
 
   cflags = [ "-Wno-error=deprecated-declarations" ]
 }
