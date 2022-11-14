@@ -80,6 +80,8 @@ void RSCanvasRenderNode::ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas
     if (filter != nullptr) {
         RSPropertiesPainter::DrawFilter(GetRenderProperties(), canvas, filter, nullptr, canvas.GetSurface());
     }
+    RSModifierContext context = { GetMutableRenderProperties(), &canvas };
+    ApplyDrawCmdModifier(context, RSModifierType::BACKGROUND_STYLE);
 
     canvasNodeSaveCount_ = canvas.SaveCanvasAndAlpha();
     canvas.translate(GetRenderProperties().GetFrameOffsetX(), GetRenderProperties().GetFrameOffsetY());
@@ -87,7 +89,6 @@ void RSCanvasRenderNode::ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas
     if (GetRenderProperties().GetClipToFrame()) {
         RSPropertiesPainter::Clip(canvas, GetRenderProperties().GetFrameRect());
     }
-    RSModifierContext context = { GetMutableRenderProperties(), &canvas };
     ApplyDrawCmdModifier(context, RSModifierType::CONTENT_STYLE);
 #endif
 }
