@@ -208,7 +208,7 @@ TextBlobOpItem::TextBlobOpItem(const sk_sp<SkTextBlob> textBlob, float x, float 
 
 void TextBlobOpItem::Draw(RSPaintFilterCanvas& canvas, const SkRect*) const
 {
-    bool isHighContrastEnabled = canvas.isHighContrastEnabled() || RSSystemProperties::GetHighContrastStatus();
+    bool isHighContrastEnabled = canvas.isHighContrastEnabled();
     if (isHighContrastEnabled) {
         ROSEN_LOGD("TextBlobOpItem::Draw highContrastEnabled");
         uint32_t color = paint_.getColor();

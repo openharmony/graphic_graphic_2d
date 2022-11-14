@@ -918,11 +918,7 @@ void RSUniRenderVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
         return;
     }
 
-    ColorFilterMode modeFromSysProperty = static_cast<ColorFilterMode>(RSSystemProperties::GetCorrectionMode());
     ColorFilterMode colorFilterMode = renderEngine_->GetColorFilterMode();
-    if (RSBaseRenderUtil::IsColorFilterModeValid(modeFromSysProperty)) {
-        colorFilterMode = modeFromSysProperty;
-    }
     // save cache status
     bool isCacheEnabledBefore = canvas_->isCacheEnabled();
     int saveCount;
