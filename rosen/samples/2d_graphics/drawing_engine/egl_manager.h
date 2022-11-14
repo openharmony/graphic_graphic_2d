@@ -32,7 +32,7 @@ public:
     void DestroySurface();
     void MakeCurrent();
     void SwapBuffers();
-    void SetDamageRegion(int32_t left, int32_t top, int32_t width, int32_t height);
+    static void SetDamageRegion(int32_t left, int32_t top, int32_t width, int32_t height);
     EGLSurface CreateSurface(EGLNativeWindowType eglNativeWindow);
 private:
     struct NativeWindow* nativeWindow_;

@@ -97,10 +97,10 @@ void CacheData::WriteToFile()
             return;
         }
     }
-
     size_t cacheSize = SerializedSize();
     if (cacheSize <= 0) {
         LOGE("abandon, illegal serialized size");
+        close(fd);
         return;
     }
     uint8_t *buffer = new uint8_t[cacheSize];
@@ -124,7 +124,6 @@ void CacheData::WriteToFile()
         unlink(cacheDir_.c_str());
         return;
     }
-
     delete[] buffer;
     fchmod(fd, S_IRUSR);
     close(fd);
@@ -220,7 +219,7 @@ size_t CacheData::SerializedSize() const
     return size;
 }
 
-int CacheData::Serialize(uint8_t *buffer, const size_t size)
+int CacheData::Serialize(uint8_t *buffer, const size_t size) const
 {
     if (size < sizeof(Header)) {
         LOGE("abandon because of insufficient buffer space.");
@@ -303,7 +302,7 @@ int CacheData::DeSerialize(uint8_t const *buffer, const size_t size)
     return 0;
 }
 
-bool CacheData::IfSizeValidate(const size_t newSize, const size_t addedSize)
+bool CacheData::IfSizeValidate(const size_t newSize, const size_t addedSize) const
 {
     // check if size is ok and we don't neet to clean the shaders
     if (newSize <= maxTotalSize_ || addedSize == 0) {
@@ -312,7 +311,7 @@ bool CacheData::IfSizeValidate(const size_t newSize, const size_t addedSize)
     return false;
 }
 
-bool CacheData::IfSkipClean(const size_t addedSize)
+bool CacheData::IfSkipClean(const size_t addedSize) const
 {
     // check if the new shader is still too large after cleaning
     size_t maxPermittedSize = maxTotalSize_ - maxTotalSize_ / CLEAN_LEVEL;

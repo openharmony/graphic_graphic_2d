@@ -82,7 +82,7 @@ public:
         return eglDisplay_;
     }
 
-    bool IsEglContextReady()
+    bool IsEglContextReady() const
     {
         return eglContext_ != EGL_NO_DISPLAY;
     }

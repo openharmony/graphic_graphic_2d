@@ -211,7 +211,6 @@ bool DrawingEngineSample::DrawDrawingLayer(std::shared_ptr<HdiLayerInfo> &layer)
     dstRect.y = 0;
     dstRect.w = display_w;
     dstRect.h = display_h;
-    int index = -1;
 
     SurfaceError err = DoDraw();
     if (err != SURFACE_ERROR_OK) {
@@ -241,12 +240,7 @@ bool DrawingEngineSample::DrawDrawingLayer(std::shared_ptr<HdiLayerInfo> &layer)
     layer->SetZorder(zorder);
     layer->SetAlpha(alpha);
     layer->SetTransform(TransformType::ROTATE_NONE);
-    if (index == 0) {
-        // COMPOSITION_CLIENT
-        layer->SetCompositionType(CompositionType::COMPOSITION_DEVICE);
-    } else {
-        layer->SetCompositionType(CompositionType::COMPOSITION_DEVICE);
-    }
+    layer->SetCompositionType(CompositionType::COMPOSITION_DEVICE);
     layer->SetVisibleRegion(1, srcRect);
     layer->SetDirtyRegion(srcRect);
     layer->SetLayerSize(dstRect);
@@ -327,7 +321,7 @@ void DrawingEngineSample::CreatePhysicalScreen()
     ready_ = true;
 }
 
-void DrawingEngineSample::OnHotPlugEvent(std::shared_ptr<HdiOutput> &output, bool connected)
+void DrawingEngineSample::OnHotPlugEvent(const std::shared_ptr<HdiOutput> &output, bool connected)
 {
     /*
      * Currently, IPC communication cannot be nested. Therefore, Vblank registration can be

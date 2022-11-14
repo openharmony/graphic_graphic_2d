@@ -37,7 +37,7 @@ public:
 
     size_t SerializedSize() const;
 
-    int Serialize(uint8_t *buffer, const size_t size);
+    int Serialize(uint8_t *buffer, const size_t size) const;
 
     void WriteToFile();
 
@@ -57,8 +57,8 @@ private:
     unsigned short cleanInit_[3] = {0};
     size_t cleanThreshold_ = 0;
 
-    bool IfSizeValidate(const size_t newSize, const size_t addedSize);
-    bool IfSkipClean(const size_t addedSize);
+    bool IfSizeValidate(const size_t newSize, const size_t addedSize) const;
+    bool IfSkipClean(const size_t addedSize) const;
     bool IfCleanFinished();
     void RandClean(const size_t cleanThreshold);
     size_t Clean(const size_t removeIndex);

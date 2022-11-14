@@ -264,14 +264,12 @@ bool RenderContext::SetUpGrContext()
     options.fDisableDistanceFieldPaths = true;
 
     mHandler_ = std::make_shared<MemoryHandler>();
-    if (mHandler_ != nullptr) {
-        auto glesVersion = reinterpret_cast<const char*>(glGetString(GL_VERSION));
-        auto size = glesVersion ? strlen(glesVersion) : -1;
-        if (isUniRenderMode_) {
-            cacheDir_ = UNIRENDER_CACHE_DIR;
-        }
-        mHandler_->ConfigureContext(&options, glesVersion, size, cacheDir_, isUniRenderMode_);
+    auto glesVersion = reinterpret_cast<const char*>(glGetString(GL_VERSION));
+    auto size = glesVersion ? strlen(glesVersion) : 0;
+    if (isUniRenderMode_) {
+        cacheDir_ = UNIRENDER_CACHE_DIR;
     }
+    mHandler_->ConfigureContext(&options, glesVersion, size, cacheDir_, isUniRenderMode_);
 
     sk_sp<GrContext> grContext(GrContext::MakeGL(std::move(glInterface), options));
     if (grContext == nullptr) {

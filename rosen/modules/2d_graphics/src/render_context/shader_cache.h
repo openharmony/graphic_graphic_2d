@@ -30,7 +30,7 @@ class ShaderCache : public GrContextOptions::PersistentCache {
 public:
     static ShaderCache& Instance();
 
-    virtual void InitShaderCache(const char *identity, const ssize_t size, bool isUni);
+    virtual void InitShaderCache(const char *identity, const size_t size, bool isUni);
     virtual void InitShaderCache()
     {
         InitShaderCache(nullptr, 0, false);
