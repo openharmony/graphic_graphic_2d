@@ -91,10 +91,18 @@ static const std::map<uint64_t, uint64_t> bufferUsageConvertMap = {
 };
 
 SurfaceBufferImpl::IDisplayGrallocSptr SurfaceBufferImpl::displayGralloc_ = nullptr;
+std::mutex SurfaceBufferImpl::displayGrallocMutex_;
+
+void SurfaceBufferImpl::DisplayGrallocDeathCallback(void* data)
+{
+    std::lock_guard<std::mutex> lock(displayGrallocMutex_);
+    displayGralloc_ = nullptr;
+    BLOGD("gralloc_host died and displayGralloc_ is nullptr.");
+}
+
 SurfaceBufferImpl::IDisplayGrallocSptr SurfaceBufferImpl::GetDisplayGralloc()
 {
-    static std::mutex mutex;
-    std::lock_guard<std::mutex> lock(mutex);
+    std::lock_guard<std::mutex> lock(displayGrallocMutex_);
     if (displayGralloc_ != nullptr) {
         return displayGralloc_;
     }
@@ -104,6 +112,7 @@ SurfaceBufferImpl::IDisplayGrallocSptr SurfaceBufferImpl::GetDisplayGralloc()
         BLOGE("IDisplayGralloc::Get return nullptr.");
         return nullptr;
     }
+    displayGralloc_->RegAllocatorDeathCallback(&SurfaceBufferImpl::DisplayGrallocDeathCallback, nullptr);
     return displayGralloc_;
 }
 
