@@ -413,6 +413,9 @@ void RSMainThread::ReleaseAllNodesBuffer()
         if (surfaceNode == nullptr) {
             return;
         }
+        if (!surfaceNode->IsOnTheTree() && surfaceNode->IsColdStartThreadRunning()) {
+            surfaceNode->DestroyColdStartThread();
+        }
         RSBaseRenderUtil::ReleaseBuffer(static_cast<RSSurfaceHandler&>(*surfaceNode));
     });
 }

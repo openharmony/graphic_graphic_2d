@@ -437,6 +437,8 @@ void RSSurfaceRenderNode::StartColdStartThreadIfNeed()
 void RSSurfaceRenderNode::DestroyColdStartThread()
 {
     coldStartThread_.reset(nullptr);
+    SetStartAnimationFinished();
+    ClearCacheSurface();
 }
 
 bool RSSurfaceRenderNode::IsStartAnimationFinished() const
