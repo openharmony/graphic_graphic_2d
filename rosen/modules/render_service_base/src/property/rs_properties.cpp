@@ -938,6 +938,11 @@ bool RSProperties::IsDirty() const
     return isDirty_;
 }
 
+bool RSProperties::IsGeoDirty() const
+{
+    return geoDirty_;
+}
+
 RectI RSProperties::GetDirtyRect() const
 {
 #ifdef ROSEN_OHOS

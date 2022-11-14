@@ -216,6 +216,8 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
         curDisplayNode_->UpdateSurfaceNodePos(node.GetId(), node.GetOldDirtyInSurface());
         if (node.IsAppWindow()) {
             curSurfaceNode_ = node.ReinterpretCastTo<RSSurfaceRenderNode>();
+            boundsRect_ = SkRect::MakeWH(property.GetBoundsWidth(), property.GetBoundsHeight());
+            frameGravity_ = property.GetFrameGravity();
         }
     } else {
         RSUniRenderUtil::UpdateRenderNodeDstRect(node, node.GetContextMatrix());
@@ -271,8 +273,36 @@ void RSUniRenderVisitor::PrepareProxyRenderNode(RSProxyRenderNode& node)
 
 void RSUniRenderVisitor::PrepareRootRenderNode(RSRootRenderNode& node)
 {
-    RSUniRenderUtil::UpdateRenderNodeDstRect(node, SkMatrix::I());
-    PrepareCanvasRenderNode(node);
+    node.ApplyModifiers();
+    bool dirtyFlag = dirtyFlag_;
+    const auto& property = node.GetRenderProperties();
+    float alpha = curAlpha_;
+
+    auto rsParent = RSBaseRenderNode::ReinterpretCast<RSRenderNode>(node.GetParent().lock());
+    bool geoDirty = property.IsGeoDirty();
+    dirtyFlag_ = node.Update(*curSurfaceDirtyManager_, rsParent ? &(rsParent->GetRenderProperties()) : nullptr,
+        dirtyFlag_);
+    curAlpha_ *= property.GetAlpha();
+    if (rsParent == curSurfaceNode_) {
+        const float rootWidth = property.GetFrameWidth() * property.GetScaleX();
+        const float rootHeight = property.GetFrameHeight() * property.GetScaleY();
+        SkMatrix gravityMatrix;
+        (void)RSPropertiesPainter::GetGravityMatrix(frameGravity_,
+            RectF { 0.0f, 0.0f, boundsRect_.width(), boundsRect_.height() }, rootWidth, rootHeight, gravityMatrix);
+        auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(property.GetBoundsGeometry());
+        // Only Apply gravityMatrix when rootNode is dirty
+        if (geoPtr != nullptr && (dirtyFlag || geoDirty)) {
+            geoPtr->ConcatMatrix(gravityMatrix);
+        }
+        // enable cache if gravityMatrix contains scale
+        if (gravityMatrix.getScaleX() != 1.0f || gravityMatrix.getScaleY() != 1.0f) {
+            node.SetCanvasCacheEnabled(true);
+        }
+    }
+    PrepareBaseRenderNode(node);
+
+    curAlpha_ = alpha;
+    dirtyFlag_ = dirtyFlag;
 }
 
 void RSUniRenderVisitor::PrepareCanvasRenderNode(RSCanvasRenderNode &node)
@@ -803,8 +833,9 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
             RS_LOGD("RSUniRenderVisitor::ProcessSurfaceRenderNode skip: %s", node.GetName().c_str());
             return;
         }
+    }
+    if (node.IsAppWindow()) {
         curSurfaceNode_ = node.ReinterpretCastTo<RSSurfaceRenderNode>();
-        curSurfaceDirtyManager_ = node.GetDirtyManager();
     }
 #endif
 
@@ -837,13 +868,11 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
         canvas_->save();
     }
 
-    boundsRect_ = SkRect::MakeWH(property.GetBoundsWidth(), property.GetBoundsHeight());
-    frameGravity_ = property.GetFrameGravity();
     if (node.GetSurfaceNodeType() != RSSurfaceNodeType::LEASH_WINDOW_NODE) {
         if (!property.GetCornerRadius().IsZero()) {
             canvas_->clipRRect(RSPropertiesPainter::RRect2SkRRect(absClipRRect), true);
         } else {
-            canvas_->clipRect(boundsRect_);
+            canvas_->clipRect(SkRect::MakeWH(property.GetBoundsWidth(), property.GetBoundsHeight()));
         }
     }
 
@@ -943,18 +972,9 @@ void RSUniRenderVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
     } else {
         saveCount = canvas_->save();
     }
-    const auto& property = node.GetRenderProperties();
-    if (node.GetParent().lock() == curSurfaceNode_) {
-        const float rootWidth = property.GetFrameWidth() * property.GetScaleX();
-        const float rootHeight = property.GetFrameHeight() * property.GetScaleY();
-        SkMatrix gravityMatrix;
-        (void)RSPropertiesPainter::GetGravityMatrix(frameGravity_,
-            RectF { 0.0f, 0.0f, boundsRect_.width(), boundsRect_.height() }, rootWidth, rootHeight, gravityMatrix);
-        // enable cache if gravityMatrix contains scale
-        if (gravityMatrix.getScaleX() != 1.0f || gravityMatrix.getScaleY() != 1.0f) {
-            canvas_->SetCacheEnabled(true);
-        }
-        canvas_->concat(gravityMatrix);
+    if (node.IsCanvasCacheEnabled()) {
+        canvas_->SetCacheEnabled(true);
+        node.SetCanvasCacheEnabled(false);
     }
     ProcessCanvasRenderNode(node);
     canvas_->restoreToCount(saveCount);
