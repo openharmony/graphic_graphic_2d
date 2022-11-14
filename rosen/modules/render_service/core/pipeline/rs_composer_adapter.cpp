@@ -204,7 +204,7 @@ void RSComposerAdapter::DealWithNodeGravity(const RSSurfaceRenderNode& node, Com
     info.srcRect = newSrcRect;
 }
 
-void RSComposerAdapter::GetComposerInfoSrcRect(ComposeInfo &info, const RSSurfaceRenderNode& node) const
+void RSComposerAdapter::GetComposerInfoSrcRect(ComposeInfo &info, const RSSurfaceRenderNode& node)
 {
     const auto& property = node.GetRenderProperties();
     const auto bufferWidth = info.buffer->GetSurfaceBufferWidth();
@@ -290,7 +290,7 @@ void RSComposerAdapter::SetComposeInfoToLayer(
     const LayerInfoPtr& layer,
     const ComposeInfo& info,
     const sptr<Surface>& surface,
-    RSBaseRenderNode* node) const
+    RSBaseRenderNode* node)
 {
     if (layer == nullptr) {
         return;
@@ -627,7 +627,7 @@ void RSComposerAdapter::LayerCrop(const LayerInfoPtr& layer) const
 }
 
 // private func, guarantee the layer is valid
-void RSComposerAdapter::LayerScaleDown(const LayerInfoPtr& layer) const
+void RSComposerAdapter::LayerScaleDown(const LayerInfoPtr& layer)
 {
     ScalingMode scalingMode = ScalingMode::SCALING_MODE_SCALE_TO_WINDOW;
     const auto& buffer = layer->GetBuffer();
@@ -679,7 +679,7 @@ void RSComposerAdapter::LayerScaleDown(const LayerInfoPtr& layer) const
 }
 
 // private func, guarantee the layer and surface are valid
-void RSComposerAdapter::LayerPresentTimestamp(const LayerInfoPtr& layer, const sptr<Surface>& surface) const
+void RSComposerAdapter::LayerPresentTimestamp(const LayerInfoPtr& layer, const sptr<Surface>& surface)
 {
     if (!layer->IsSupportedPresentTimestamp()) {
         return;

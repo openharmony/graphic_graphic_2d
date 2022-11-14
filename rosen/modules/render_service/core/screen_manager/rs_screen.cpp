@@ -480,9 +480,8 @@ int32_t RSScreen::GetScreenSupportedColorGamuts(std::vector<ScreenColorGamut> &m
     int32_t result = hdiScreen_->GetScreenSupportedColorGamuts(hdiMode);
     if (result == DispErrCode::DISPLAY_SUCCESS) {
         mode.clear();
-        for (auto m : hdiMode) {
-            mode.push_back(static_cast<ScreenColorGamut>(m));
-        }
+        std::transform(hdiMode.begin(), hdiMode.end(), std::back_inserter(mode),
+            [](ColorGamut m) { return static_cast<ScreenColorGamut>(m); });
         return StatusCode::SUCCESS;
     }
     return StatusCode::HDI_ERROR;

@@ -61,20 +61,20 @@ private:
     LayerInfoPtr CreateTunnelLayer(RSSurfaceRenderNode& node) const;
     ComposeInfo BuildComposeInfo(RSSurfaceRenderNode& node, bool isTunnelCheck = false) const;
     ComposeInfo BuildComposeInfo(RSDisplayRenderNode& node) const;
-    void SetComposeInfoToLayer(
+    static void SetComposeInfoToLayer(
         const LayerInfoPtr& layer,
         const ComposeInfo& info,
         const sptr<Surface>& surface,
-        RSBaseRenderNode* node) const;
+        RSBaseRenderNode* node);
     void DealWithNodeGravity(const RSSurfaceRenderNode& node, ComposeInfo& info) const;
 
     void LayerRotate(const LayerInfoPtr& layer, RSBaseRenderNode& node) const;
     void LayerCrop(const LayerInfoPtr& layer) const;
-    void LayerScaleDown(const LayerInfoPtr& layer) const;
-    void LayerPresentTimestamp(const LayerInfoPtr& layer, const sptr<Surface>& surface) const;
+    static void LayerScaleDown(const LayerInfoPtr& layer);
+    static void LayerPresentTimestamp(const LayerInfoPtr& layer, const sptr<Surface>& surface);
 
     void OnPrepareComplete(sptr<Surface>& surface, const PrepareCompleteParam& param, void* data);
-    void GetComposerInfoSrcRect(ComposeInfo &info, const RSSurfaceRenderNode& node) const;
+    static void GetComposerInfoSrcRect(ComposeInfo &info, const RSSurfaceRenderNode& node);
     bool GetComposerInfoNeedClient(const ComposeInfo &info, RSSurfaceRenderNode& node) const;
     bool CheckStatusBeforeCreateLayer(RSSurfaceRenderNode& node, bool isTunnelCheck = false) const;
     HdiBackend *hdiBackend_ = nullptr;
