@@ -22,6 +22,7 @@ group("unittest") {
 
   deps = [
     ":RSBaseRenderUtilTest",
+    ":RSComposerAdapterTest",
     ":RSDividedRenderUtilTest",
     ":RSDropFrameProcessorTest",
     ":RSMainThreadTest",
@@ -65,6 +66,15 @@ ohos_unittest("RSUniRenderJudgementTest") {
 ohos_unittest("RSRenderServiceVisitorTest") {
   module_out_path = module_output_path
   sources = [ "rs_render_service_visitor_test.cpp" ]
+  deps = [ ":rs_test_common" ]
+  defines = []
+  defines += gpu_defines
+}
+
+## Build RSComposerAdapterTest
+ohos_unittest("RSComposerAdapterTest") {
+  module_out_path = module_output_path
+  sources = [ "rs_composer_adapter_test.cpp" ]
   deps = [ ":rs_test_common" ]
   defines = []
   defines += gpu_defines
@@ -186,7 +196,7 @@ ohos_static_library("rs_test_common") {
   testonly = true
   defines = []
   defines += gpu_defines
-
+  sources = [ "rs_test_util.cpp" ]
   public_configs = [ ":rs_test_common_public_config" ]
 
   public_deps = [
