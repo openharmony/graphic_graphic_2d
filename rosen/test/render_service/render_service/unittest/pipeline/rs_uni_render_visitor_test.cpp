@@ -41,7 +41,12 @@ public:
 void RSUniRenderVisitorTest::SetUpTestCase() {}
 void RSUniRenderVisitorTest::TearDownTestCase() {}
 void RSUniRenderVisitorTest::SetUp() {}
-void RSUniRenderVisitorTest::TearDown() {}
+void RSUniRenderVisitorTest::TearDown()
+{
+    system::SetParameter("rosen.dirtyregiondebug.enabled", "0");
+    system::SetParameter("rosen.uni.partialrender.enabled", "4");
+    system::GetParameter("rosen.dirtyregiondebug.surfacenames", "0");
+}
 
 HWTEST_F(RSUniRenderVisitorTest, PrepareProxyRenderNode001, TestSize.Level1)
 {
@@ -94,6 +99,19 @@ HWTEST_F(RSUniRenderVisitorTest, ProcessSurfaceRenderNode001, TestSize.Level1)
     rsUniRenderVisitor->ProcessDisplayRenderNode(*rsDisplayRenderNode);
     rsUniRenderVisitor->ProcessSurfaceRenderNode(*rsSurfaceRenderNode);
 
+    rsUniRenderVisitor->SetAnimateState(true);
+    rsUniRenderVisitor->PrepareDisplayRenderNode(*rsDisplayRenderNode);
+    rsUniRenderVisitor->ProcessDisplayRenderNode(*rsDisplayRenderNode);
+    rsUniRenderVisitor->ProcessSurfaceRenderNode(*rsSurfaceRenderNode);
+
+    auto& propertyD = rsDisplayRenderNode->GetMutableRenderProperties();
+    propertyD.SetVisible(false);
+    auto& propertyS = rsSurfaceRenderNode->GetMutableRenderProperties();
+    propertyS.SetVisible(false);
+    rsUniRenderVisitor->PrepareDisplayRenderNode(*rsDisplayRenderNode);
+    rsUniRenderVisitor->ProcessDisplayRenderNode(*rsDisplayRenderNode);
+    rsUniRenderVisitor->ProcessSurfaceRenderNode(*rsSurfaceRenderNode);
+
     // SetSecurityDisplay for rsDisplayRenderNode
     rsDisplayRenderNode->SetSecurityDisplay(true);
     rsUniRenderVisitor->PrepareDisplayRenderNode(*rsDisplayRenderNode);
@@ -118,15 +136,55 @@ HWTEST_F(RSUniRenderVisitorTest, ProcessRootRenderNode001, TestSize.Level1)
 
 HWTEST_F(RSUniRenderVisitorTest, PrepareCavasRenderNode001, TestSize.Level1)
 {
+    system::SetParameter("rosen.dirtyregiondebug.enabled", "6");
+    int param = (int)RSSystemProperties::GetDirtyRegionDebugType();
+    ASSERT_EQ(param, 6);
     constexpr NodeId nodeId = 1;
     auto rsContext = std::make_shared<RSContext>();
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     auto node = std::make_shared<RSCanvasRenderNode>(nodeId, rsContext->weak_from_this());
+    RSSurfaceRenderNodeConfig config;
+    auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config, rsContext->weak_from_this());
+    rsSurfaceRenderNode->SetSurfaceNodeType(RSSurfaceNodeType::SELF_DRAWING_NODE);
+    rsSurfaceRenderNode->AddChild(node, -1);
+    rsUniRenderVisitor->ProcessSurfaceRenderNode(*rsSurfaceRenderNode);
     node->Prepare(rsUniRenderVisitor);
     node->Process(rsUniRenderVisitor);
 
     auto& property = node->GetMutableRenderProperties();
     property.SetVisible(false);
+    node->Prepare(rsUniRenderVisitor);
+    node->Process(rsUniRenderVisitor);
+
+    std::shared_ptr<RSFilter> bgFilter = RSFilter::CreateBlurFilter(5.0f, 5.0f);
+    property.SetBackgroundFilter(bgFilter);
+    node->Prepare(rsUniRenderVisitor);
+
+    property.SetFilter(bgFilter);
+    node->Prepare(rsUniRenderVisitor);
+}
+
+HWTEST_F(RSUniRenderVisitorTest, PrepareCavasRenderNode002, TestSize.Level1)
+{
+    system::SetParameter("rosen.uni.partialrender.enabled", "0");
+    int param = (int)RSSystemProperties::GetDirtyRegionDebugType();
+    ASSERT_EQ(param, 0);
+
+    system::SetParameter("rosen.dirtyregiondebug.surfacenames", "1");
+    std::vector<std::string> dfxTargetSurfaceNames;
+    bool isDirtyRegionDfxEnabled = (int)RSSystemProperties::GetTargetDirtyRegionDfxEnabled(dfxTargetSurfaceNames);
+    ASSERT_EQ(isDirtyRegionDfxEnabled, true);
+
+    constexpr NodeId nodeId = 2;
+    auto rsContext = std::make_shared<RSContext>();
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    auto node = std::make_shared<RSCanvasRenderNode>(nodeId, rsContext->weak_from_this());
+    RSSurfaceRenderNodeConfig config;
+    auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config, rsContext->weak_from_this());
+    rsSurfaceRenderNode->SetSurfaceNodeType(RSSurfaceNodeType::SELF_DRAWING_NODE);
+    rsSurfaceRenderNode->AddChild(node, -1);
+    rsUniRenderVisitor->ProcessSurfaceRenderNode(*rsSurfaceRenderNode);
+
     node->Prepare(rsUniRenderVisitor);
     node->Process(rsUniRenderVisitor);
 }
