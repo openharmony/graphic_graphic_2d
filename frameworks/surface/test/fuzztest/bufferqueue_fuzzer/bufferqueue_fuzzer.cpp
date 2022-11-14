@@ -118,6 +118,8 @@ namespace OHOS {
         bool flag = GetData<bool>();
         std::string result = GetStringFromData(STR_LEN);
         bool status = GetData<bool>();
+        uint32_t reserveInts = GetData<uint32_t>() % 0x100000; // no more than 0x100000
+        PresentTimestamp timestamp = GetData<PresentTimestamp>();
 
         // test
         sptr<BufferQueue> bufferqueue = new BufferQueue(name, isShared);
@@ -130,6 +132,12 @@ namespace OHOS {
         bufferqueue->SetProducerCacheCleanFlag(flag);
         bufferqueue->Dump(result);
         bufferqueue->SetStatus(status);
+        ExtDataHandle *handle = AllocExtDataHandle(reserveInts);
+        sptr<SurfaceTunnelHandle> tunnelHandle = new SurfaceTunnelHandle();
+        tunnelHandle->SetHandle(handle);
+        bufferqueue->SetTunnelHandle(tunnelHandle);
+        FreeExtDataHandle(handle);
+        bufferqueue->SetPresentTimestamp(sequence, timestamp);
     }
 
     bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)

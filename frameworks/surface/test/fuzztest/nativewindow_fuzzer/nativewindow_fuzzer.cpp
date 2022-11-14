@@ -99,10 +99,7 @@ namespace OHOS {
         }
         Region::Rect rect = GetData<Region::Rect>();
         int32_t rectNumber = GetData<int32_t>();
-        Region region = {
-            .rects = &rect,
-            .rectNumber = rectNumber,
-        };
+        Region region = {.rects = &rect, .rectNumber = rectNumber};
         uint32_t sequence = GetData<uint32_t>();
         OHScalingMode scalingMode = GetData<OHScalingMode>();
         OHHDRMetaData metaData = GetData<OHHDRMetaData>();
@@ -111,6 +108,7 @@ namespace OHOS {
         for (uint64_t i = 0; i < STR_LEN; i++) {
             metaData2[i] = GetData<uint8_t>();
         }
+        uint32_t reserveInts = GetData<uint32_t>() % 0x100000; // no more than 0x100000
 
         // test
         sptr<OHOS::Surface> cSurface = Surface::CreateSurfaceAsConsumer();
@@ -118,9 +116,7 @@ namespace OHOS {
         cSurface->RegisterConsumerListener(listener);
         sptr<OHOS::IBufferProducer> producer = cSurface->GetProducer();
         sptr<OHOS::Surface> pSurface = Surface::CreateSurfaceAsProducer(producer);
-        constexpr int defaultWidth = 0x100;
-        constexpr int defaultHeight = 0x100;
-        cSurface->SetDefaultWidthAndHeight(defaultWidth, defaultHeight);
+        cSurface->SetDefaultWidthAndHeight(0x100, 0x100); // width and height is 0x100
         OHNativeWindow* nativeWindow = CreateNativeWindowFromSurface(&pSurface);
         sptr<OHOS::SurfaceBuffer> sBuffer = new SurfaceBufferImpl(seqNum);
         OHNativeWindowBuffer* nwBuffer = CreateNativeWindowBufferFromSurfaceBuffer(&sBuffer);
@@ -133,6 +129,9 @@ namespace OHOS {
         std::vector<OHHDRMetaData> metaDatas = {metaData};
         NativeWindowSetMetaData(nativeWindow, sequence, metaDatas.size(), metaDatas.data());
         NativeWindowSetMetaDataSet(nativeWindow, sequence, key, STR_LEN, metaData2);
+        ExtDataHandle *handle = AllocExtDataHandle(reserveInts);
+        NativeWindowSetTunnelHandle(nativeWindow, reinterpret_cast<OHExtDataHandle *>(handle));
+        FreeExtDataHandle(handle);
         DestoryNativeWindow(nativeWindow);
         DestroyNativeWindowBuffer(nwBuffer);
 
