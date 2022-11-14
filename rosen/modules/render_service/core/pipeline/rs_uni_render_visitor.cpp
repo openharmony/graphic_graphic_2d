@@ -782,17 +782,6 @@ void RSUniRenderVisitor::InitCacheSurface(RSSurfaceRenderNode& node, int width, 
 #endif
 }
 
-void RSUniRenderVisitor::DrawCacheSurface(RSSurfaceRenderNode& node)
-{
-    canvas_->save();
-    canvas_->scale(
-        node.GetRenderProperties().GetBoundsWidth() / node.GetCacheSurface()->width(),
-        node.GetRenderProperties().GetBoundsHeight() / node.GetCacheSurface()->height());
-    SkPaint paint;
-    node.GetCacheSurface()->draw(canvas_.get(), 0.0, 0.0, &paint);
-    canvas_->restore();
-}
-
 void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
 {
     RS_TRACE_NAME("RSUniRender::Process:[" + node.GetName() + "]" + node.GetDstRect().ToString());
@@ -924,7 +913,7 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
             ProcessBaseRenderNode(node);
             node.ClearCacheSurface();
         } else if (node.GetCacheSurface()) {
-            DrawCacheSurface(node);
+            RSUniRenderUtil::DrawCachedSurface(node, *canvas_);
         } else {
             InitCacheSurface(node, property.GetBoundsWidth(), property.GetBoundsHeight());
             if (node.GetCacheSurface()) {
@@ -934,7 +923,7 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
                 ProcessBaseRenderNode(node);
                 swap(cacheCanvas, canvas_);
 
-                DrawCacheSurface(node);
+                RSUniRenderUtil::DrawCachedSurface(node, *canvas_);
             } else {
                 RS_LOGE("RSUniRenderVisitor::ProcessSurfaceRenderNode %s Create CacheSurface failed",
                     node.GetName().c_str());
@@ -942,7 +931,7 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
         }
     } else if (node.IsAppWindow()) {
         needDrawStartingWindow_ = false;
-        DrawCacheSurface(node);
+        RSUniRenderUtil::DrawCachedSurface(node, *canvas_);
         RecordAppWindowNodeAndPostTask(node, property.GetBoundsWidth(), property.GetBoundsHeight());
     } else {
         ProcessBaseRenderNode(node);

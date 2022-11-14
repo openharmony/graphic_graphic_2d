@@ -108,6 +108,7 @@ void RSColdStartThread::PostPlayBackTask(sk_sp<SkPicture> picture, float width, 
             RS_LOGE("RSColdStartThread::PostPlayBackTask make SkSurface failed");
             return;
         }
+        RS_LOGD("RSColdStartThread::PostPlayBackTask drawPicture");
         auto canvas = surface_->getCanvas();
         canvas->clear(SK_ColorTRANSPARENT);
         canvas->drawPicture(picture);
