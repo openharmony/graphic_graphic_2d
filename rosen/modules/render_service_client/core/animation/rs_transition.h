@@ -56,7 +56,7 @@ protected:
     void StartRenderTransition();
 
 private:
-    bool isCustom_ {false};
+    bool isCustom_ { false };
     bool isTransitionIn_;
     std::shared_ptr<RSTransitionEffect> effect_;
     RSAnimationTimingCurve timingCurve_ { RSAnimationTimingCurve::DEFAULT };

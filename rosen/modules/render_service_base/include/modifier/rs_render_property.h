@@ -141,6 +141,9 @@ public:
     {
         if (stagingValue_ != value) {
             stagingValue_ = value;
+            if (updateUIPropertyFunc_) {
+                updateUIPropertyFunc_(shared_from_this());
+            }
             OnChange();
         }
     }
@@ -150,8 +153,15 @@ public:
         return stagingValue_;
     }
 
+    void SetUpdateUIPropertyFunc(
+        std::function<void(const std::shared_ptr<RSRenderPropertyBase>&)>&& updateUIPropertyFunc)
+    {
+        updateUIPropertyFunc_ = updateUIPropertyFunc;
+    }
+
 protected:
     T stagingValue_;
+    std::function<void(const std::shared_ptr<RSRenderPropertyBase>&)> updateUIPropertyFunc_;
 };
 
 template<typename T>

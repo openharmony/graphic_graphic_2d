@@ -112,10 +112,9 @@ std::shared_ptr<RSTransitionEffect> RSTransitionEffect::Custom(const std::shared
 std::shared_ptr<RSTransitionEffect> RSTransitionEffect::Custom(const std::shared_ptr<RSPropertyBase>& property,
     const std::shared_ptr<RSPropertyBase>& startValue, const std::shared_ptr<RSPropertyBase>& endValue)
 {
-    auto renderProperty = property->CreateRenderProperty();
-    properties_.emplace(property->GetId(), std::make_tuple(property, renderProperty, endValue));
-    auto customEffect = std::make_shared<RSTransitionCustom>(renderProperty,
-        startValue->CreateRenderProperty(), endValue->CreateRenderProperty());
+    properties_.emplace_back(property, endValue);
+    auto customEffect = std::make_shared<RSTransitionCustom>(property->GetRenderProperty(),
+        startValue->GetRenderProperty(), endValue->GetRenderProperty());
     customTransitionInEffects_.push_back(customEffect);
     customTransitionOutEffects_.push_back(customEffect);
     return shared_from_this();

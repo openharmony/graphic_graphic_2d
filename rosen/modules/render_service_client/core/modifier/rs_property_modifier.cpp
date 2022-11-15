@@ -30,7 +30,7 @@ namespace Rosen {
     }                                                                                                                 \
     std::shared_ptr<RSRenderModifier> RS##MODIFIER_NAME##Modifier::CreateRenderModifier() const                       \
     {                                                                                                                 \
-        auto renderProperty = CreateRenderProperty();                                                                 \
+        auto renderProperty = GetRenderProperty();                                                                    \
         auto renderModifier = std::make_shared<RS##MODIFIER_NAME##RenderModifier>(renderProperty);                    \
         return renderModifier;                                                                                        \
     }
@@ -45,7 +45,7 @@ namespace Rosen {
     }                                                                                                                 \
     std::shared_ptr<RSRenderModifier> RS##MODIFIER_NAME##Modifier::CreateRenderModifier() const                       \
     {                                                                                                                 \
-        auto renderProperty = CreateRenderProperty();                                                                 \
+        auto renderProperty = GetRenderProperty();                                                                    \
         auto renderModifier = std::make_shared<RS##MODIFIER_NAME##RenderModifier>(renderProperty);                    \
         return renderModifier;                                                                                        \
     }

@@ -268,17 +268,13 @@ std::shared_ptr<RSAnimation> RSImplicitAnimator::CreateImplicitTransition(RSNode
         ROSEN_LOGE("Failed to create implicit transition, need to open implicit transition firstly!");
         return {};
     }
-    std::shared_ptr<RSAnimation> transition = nullptr;
     auto params = implicitAnimationParams_.top();
-    switch (params->GetType()) {
-        case ImplicitAnimationParamType::TRANSITION: {
-            auto transitionImplicitParam = std::static_pointer_cast<RSImplicitTransitionParam>(params);
-            transition = transitionImplicitParam->CreateAnimation();
-            break;
-        }
-        default:
-            break;
+    if (params->GetType() != ImplicitAnimationParamType::TRANSITION) {
+        ROSEN_LOGE("Failed to create transition, unknow type!");
+        return {};
     }
+    auto transitionImplicitParam = std::static_pointer_cast<RSImplicitTransitionParam>(params);
+    auto transition = transitionImplicitParam->CreateAnimation();
     if (transition != nullptr) {
         target.AddAnimation(transition);
         implicitAnimations_.top().push_back({ transition, target.GetId() });

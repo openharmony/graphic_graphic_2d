@@ -137,11 +137,14 @@ public:
 
     virtual PropertyId GetPropertyId() const;
 
-    virtual std::vector<PropertyId> GetPropertyIds() const;
-
     virtual void AttachRenderProperty(const std::shared_ptr<RSRenderPropertyBase>& property) {};
 
     void SetStartTime(int64_t);
+
+    void SetFinishCallback(std::function<void()>&& finishCallback)
+    {
+        finishCallback_ = finishCallback;
+    }
 
 protected:
     explicit RSRenderAnimation(AnimationId id);
@@ -166,6 +169,8 @@ protected:
     void FinishOnCurrentPosition();
 
     RSAnimationFraction animationFraction_;
+    std::function<void()> finishCallback_;
+
 private:
     void ProcessFillModeOnStart(float startFraction);
 

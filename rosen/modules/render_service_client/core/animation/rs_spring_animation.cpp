@@ -59,13 +59,14 @@ void RSSpringAnimation::OnStart()
 {
     RSPropertyAnimation::OnStart();
     auto animation = std::make_shared<RSRenderSpringAnimation>(GetId(), GetPropertyId(),
-        originValue_->CreateRenderProperty(), startValue_->CreateRenderProperty(), endValue_->CreateRenderProperty());
+        originValue_->GetRenderProperty(), startValue_->GetRenderProperty(), endValue_->GetRenderProperty());
     // 300: placeholder for estimated duration, will be replaced by real duration on animation start.
     SetDuration(300);
     UpdateParamToRenderAnimation(animation);
     animation->SetSpringParameters(timingCurve_.response_, timingCurve_.dampingRatio_);
     animation->SetAdditive(GetAdditive());
     if (isCustom_) {
+        animation->AttachRenderProperty(property_->GetRenderProperty());
         StartUIAnimation(animation);
     } else {
         StartRenderAnimation(animation);

@@ -76,16 +76,6 @@ bool RSRenderTransition::ParseParam(Parcel& parcel)
     return true;
 }
 #endif
-
-std::vector<PropertyId> RSRenderTransition::GetPropertyIds() const
-{
-    std::vector<PropertyId> propertyIds;
-    for (auto& effect : effects_) {
-        propertyIds.emplace_back(effect->GetPropertyId());
-    }
-    return propertyIds;
-}
-
 void RSRenderTransition::OnAnimate(float fraction)
 {
     float valueFraction = interpolator_->Interpolate(fraction);

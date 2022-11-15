@@ -86,11 +86,12 @@ void RSCurveAnimation::OnStart()
     RSPropertyAnimation::OnStart();
     auto interpolator = timingCurve_.GetInterpolator(GetDuration());
     auto animation = std::make_shared<RSRenderCurveAnimation>(GetId(), GetPropertyId(),
-        originValue_->CreateRenderProperty(), startValue_->CreateRenderProperty(), endValue_->CreateRenderProperty());
+        originValue_->GetRenderProperty(), startValue_->GetRenderProperty(), endValue_->GetRenderProperty());
     animation->SetInterpolator(interpolator);
     animation->SetAdditive(GetAdditive());
     UpdateParamToRenderAnimation(animation);
     if (isCustom_) {
+        animation->AttachRenderProperty(property_->GetRenderProperty());
         StartUIAnimation(animation);
     } else {
         StartRenderAnimation(animation);

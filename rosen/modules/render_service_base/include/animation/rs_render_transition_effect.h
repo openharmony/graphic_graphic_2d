@@ -40,11 +40,6 @@ public:
     const std::shared_ptr<RSRenderModifier>& GetModifier();
     virtual void UpdateFraction(float fraction) const = 0;
 
-    virtual PropertyId GetPropertyId() const
-    {
-        return 0;
-    }
-
 #ifdef ROSEN_OHOS
     bool Marshalling(Parcel& parcel) const override { return false; }
     static RSRenderTransitionEffect* Unmarshalling(Parcel& parcel);
@@ -147,11 +142,6 @@ public:
             return;
         }
         valueEstimator_->UpdateAnimationValue(fraction, true);
-    }
-
-    PropertyId GetPropertyId() const override
-    {
-        return property_->GetId();
     }
 
 private:

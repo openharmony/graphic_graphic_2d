@@ -98,11 +98,6 @@ PropertyId RSRenderAnimation::GetPropertyId() const
     return 0;
 }
 
-std::vector<PropertyId> RSRenderAnimation::GetPropertyIds() const
-{
-    return { GetPropertyId() };
-}
-
 void RSRenderAnimation::Attach(RSRenderNode* renderNode)
 {
     if (target_ != nullptr) {
@@ -271,6 +266,9 @@ bool RSRenderAnimation::Animate(int64_t time)
     OnAnimate(fraction);
     if (isFinished) {
         ProcessFillModeOnFinish(fraction);
+        if (finishCallback_) {
+            finishCallback_();
+        }
         ROSEN_LOGD("RSRenderAnimation::Animate, isFinished is true");
         return true;
     }

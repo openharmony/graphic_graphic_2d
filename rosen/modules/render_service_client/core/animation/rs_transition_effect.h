@@ -67,8 +67,7 @@ private:
     std::shared_ptr<RSTransitionModifier> transitionInModifier_;
     std::shared_ptr<RSTransitionModifier> transitionOutModifier_;
 
-    std::unordered_map<PropertyId, std::tuple<std::shared_ptr<RSPropertyBase>,
-        std::shared_ptr<RSRenderPropertyBase>, std::shared_ptr<RSPropertyBase>>> properties_;
+    std::vector<std::pair<std::shared_ptr<RSPropertyBase>, std::shared_ptr<RSPropertyBase>>> properties_;
 
     friend class RSNode;
     friend class RSTransition;

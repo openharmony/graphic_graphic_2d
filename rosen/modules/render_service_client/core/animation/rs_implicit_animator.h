@@ -70,12 +70,12 @@ private:
 
     void SetPropertyValue(std::shared_ptr<RSPropertyBase> property, const std::shared_ptr<RSPropertyBase>& value);
 
-    void ShieldImplicitAnimation()
+    void BeginShieldImplicitAnimation()
     {
         isImplicitAnimationShielded_ = true;
     }
 
-    void UnShieldImplicitAnimation()
+    void EndShieldImplicitAnimation()
     {
         isImplicitAnimationShielded_ = false;
     }

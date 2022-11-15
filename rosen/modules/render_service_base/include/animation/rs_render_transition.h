@@ -27,8 +27,6 @@ public:
     RSRenderTransition(
         AnimationId id, const std::vector<std::shared_ptr<RSRenderTransitionEffect>>& effects, bool isTransitionIn);
 
-    std::vector<PropertyId> GetPropertyIds() const override;
-
     void SetInterpolator(const std::shared_ptr<RSInterpolator>& interpolator)
     {
         interpolator_ = interpolator;

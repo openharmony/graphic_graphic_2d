@@ -37,8 +37,7 @@ void RSTransition::OnStart()
 void RSTransition::OnUpdateStagingValue(bool isFirstStart)
 {
     if (isCustom_) {
-        for (auto& [transitionPropertyId, tuple] : effect_->properties_) {
-            [[maybe_unused]] auto& [property, renderProperty, endValue] = tuple;
+        for (auto& [property, endValue] : effect_->properties_) {
             property->SetValue(endValue);
         }
         effect_->properties_.clear();
@@ -69,12 +68,9 @@ void RSTransition::StartCustomTransition()
         ROSEN_LOGE("Failed to start custom transition, UI animation manager is null!");
         return;
     }
-    for (auto& [transitionPropertyId, tuple] : effect_->properties_) {
-        [[maybe_unused]] auto& [property, renderProperty, endValue] = tuple;
-        uiAnimationManager->AddAnimatableProp(transitionPropertyId, property, renderProperty);
-    }
+    transition->SetFinishCallback([this]() { CallFinishCallback(); });
     transition->Start();
-    uiAnimationManager->AddAnimation(transition, shared_from_this());
+    uiAnimationManager->AddAnimation(transition);
 }
 
 void RSTransition::StartRenderTransition()
