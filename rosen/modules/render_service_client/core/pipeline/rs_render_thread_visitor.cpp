@@ -594,10 +594,13 @@ void RSRenderThreadVisitor::ProcessProxyRenderNode(RSProxyRenderNode& node)
 void RSRenderThreadVisitor::ClipHoleForSurfaceNode(RSSurfaceRenderNode& node)
 {
 #ifdef ROSEN_OHOS
-    auto x = std::ceil(node.GetRenderProperties().GetBoundsPositionX());
-    auto y = std::ceil(node.GetRenderProperties().GetBoundsPositionY());
-    auto width = std::floor(node.GetRenderProperties().GetBoundsWidth());
-    auto height = std::floor(node.GetRenderProperties().GetBoundsHeight());
+    // Calculation position in RenderService may appear floating point number, and it will be removed.
+    // It caused missed line problem on surfaceview hap, so we subtract one pixel when cliphole to avoid this problem
+    static int pixel = 1;
+    auto x = std::ceil(node.GetRenderProperties().GetBoundsPositionX() + pixel);
+    auto y = std::ceil(node.GetRenderProperties().GetBoundsPositionY() + pixel);
+    auto width = std::floor(node.GetRenderProperties().GetBoundsWidth() - pixel);
+    auto height = std::floor(node.GetRenderProperties().GetBoundsHeight() - pixel);
     canvas_->save();
     SkRect originRect = SkRect::MakeXYWH(x, y, width, height);
     canvas_->clipRect(originRect);
