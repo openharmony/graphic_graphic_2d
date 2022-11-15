@@ -314,4 +314,194 @@ HWTEST_F(BufferClientProducerRemoteTest, ReqFlu002, Function | MediumTest | Leve
     ret = bp->FlushBuffer(retval.sequence, bedata, acquireFence, flushConfig);
     ASSERT_NE(ret, OHOS::GSERROR_OK);
 }
+
+/*
+* Function: AttachBuffer and DetachBuffer
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call AttachBuffer
+*                  2. call DetachBuffer
+*/
+HWTEST_F(BufferClientProducerRemoteTest, AttachDetach001, Function | MediumTest | Level2)
+{
+    sptr<OHOS::SurfaceBuffer> buffer = new SurfaceBufferImpl(0);
+    GSError ret = bp->AttachBuffer(buffer);
+    ASSERT_EQ(ret, OHOS::GSERROR_NOT_SUPPORT);
+
+    ret = bp->DetachBuffer(buffer);
+    ASSERT_EQ(ret, OHOS::GSERROR_NOT_SUPPORT);
+}
+
+/*
+* Function: RegisterReleaseListener
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call RegisterReleaseListener
+*/
+HWTEST_F(BufferClientProducerRemoteTest, RegisterReleaseListener001, Function | MediumTest | Level2)
+{
+    OnReleaseFunc onBufferRelease = nullptr;
+    GSError ret = bp->RegisterReleaseListener(onBufferRelease);
+    ASSERT_EQ(ret, OHOS::GSERROR_NOT_SUPPORT);
+}
+
+/*
+* Function: GetName
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call GetName
+*/
+HWTEST_F(BufferClientProducerRemoteTest, GetName001, Function | MediumTest | Level2)
+{
+    std::string name;
+    GSError ret = bp->GetName(name);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
+}
+
+/*
+* Function: GetUniqueId
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call GetUniqueId
+*/
+HWTEST_F(BufferClientProducerRemoteTest, GetUniqueId001, Function | MediumTest | Level2)
+{
+    uint64_t bpid = bp->GetUniqueId();
+    ASSERT_NE(bpid, 0);
+}
+
+/*
+* Function: GetDefaultUsage
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call GetDefaultUsage
+*/
+HWTEST_F(BufferClientProducerRemoteTest, GetDefaultUsage001, Function | MediumTest | Level2)
+{
+    uint32_t usage = bp->GetDefaultUsage();
+    ASSERT_EQ(usage, 0);
+}
+
+/*
+* Function: SetTransform
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call SetTransform
+*/
+HWTEST_F(BufferClientProducerRemoteTest, SetTransform001, Function | MediumTest | Level2)
+{
+    TransformType transform = TransformType::ROTATE_90;
+    GSError ret = bp->SetTransform(transform);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
+}
+
+/*
+* Function: IsSupportedAlloc
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call IsSupportedAlloc with abnormal parameters and check ret
+*/
+HWTEST_F(BufferClientProducerRemoteTest, isSupportedAlloc001, Function | MediumTest | Level2)
+{
+    std::vector<VerifyAllocInfo> infos;
+    std::vector<bool> supporteds;
+    GSError ret = bp->IsSupportedAlloc(infos, supporteds);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
+}
+
+/*
+* Function: IsSupportedAlloc
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call IsSupportedAlloc with abnormal parameters and check ret
+*/
+HWTEST_F(BufferClientProducerRemoteTest, isSupportedAlloc002, Function | MediumTest | Level2)
+{
+    std::vector<VerifyAllocInfo> infos;
+    std::vector<bool> supporteds;
+    GSError ret = bp->IsSupportedAlloc(infos, supporteds);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
+
+    VerifyAllocInfo info = {
+        .width = 0x100,
+        .height = 0x100,
+        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
+        .format = PIXEL_FMT_RGBA_8888,
+    };
+    infos.push_back(info);
+    info.format = PIXEL_FMT_YCRCB_420_SP;
+    infos.push_back(info);
+    info.format = PIXEL_FMT_YUV_422_I;
+    infos.push_back(info);
+
+    ret = bp->IsSupportedAlloc(infos, supporteds);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
+}
+
+/*
+* Function: SetScalingMode
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call SetScalingMode with abnormal parameters and check ret
+*/
+HWTEST_F(BufferClientProducerRemoteTest, SetScalingMode001, Function | MediumTest | Level2)
+{
+    ScalingMode scalingMode = ScalingMode::SCALING_MODE_SCALE_TO_WINDOW;
+    GSError ret = bp->SetScalingMode(-1, scalingMode);
+    ASSERT_EQ(ret, OHOS::GSERROR_NO_ENTRY);
+}
+
+/*
+* Function: SetMetaData
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call SetMetaData with abnormal parameters and check ret
+*/
+HWTEST_F(BufferClientProducerRemoteTest, SetMetaData001, Function | MediumTest | Level2)
+{
+    uint32_t sequence = 0;
+    std::vector<HDRMetaData> metaData;
+    GSError ret = bp->SetMetaData(sequence, metaData);
+    ASSERT_EQ(ret, OHOS::GSERROR_INVALID_ARGUMENTS);
+}
+
+/*
+* Function: SetMetaDataSet
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call SetMetaDataSet with abnormal parameters and check ret
+*/
+HWTEST_F(BufferClientProducerRemoteTest, SetMetaDataSet001, Function | MediumTest | Level2)
+{
+    HDRMetadataKey key = HDRMetadataKey::MATAKEY_HDR10_PLUS;
+    std::vector<uint8_t> metaData;
+
+    uint32_t sequence = 0;
+    GSError ret = bp->SetMetaDataSet(sequence, key, metaData);
+    ASSERT_EQ(ret, OHOS::GSERROR_INVALID_ARGUMENTS);
+}
+
+/*
+* Function: GoBackground
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call GoBackground
+*/
+HWTEST_F(BufferClientProducerRemoteTest, GoBackground001, Function | MediumTest | Level2)
+{
+    GSError ret = bp->GoBackground();
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
+}
 }
