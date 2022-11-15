@@ -19,12 +19,14 @@
 
 #include <scoped_bytrace.h>
 
-#define CHECK_FUNC(device, deviceFunc)                                 \
-    do {                                                               \
-        static CheckFunc checkFunc(device, deviceFunc, __FUNCTION__);  \
-        if (!checkFunc()) {                                            \
-            return DISPLAY_NULL_PTR;                                   \
-        }                                                              \
+#define CHECK_FUNC(device, deviceFunc)              \
+    do {                                            \
+        if (!checkPtr(device, #device)) {           \
+            return DISPLAY_NULL_PTR;                \
+        }                                           \
+        if (!checkPtr(deviceFunc, __FUNCTION__)) {  \
+            return DISPLAY_NULL_PTR;                \
+        }                                           \
     } while(0)
 
 namespace OHOS {
@@ -476,6 +478,15 @@ int32_t HdiDevice::CloseLayer(uint32_t screenId, uint32_t layerId)
 {
     CHECK_FUNC(layerFuncs_, layerFuncs_->CloseLayer);
     return layerFuncs_->CloseLayer(screenId, layerId);
+}
+
+// this is only used in hdidevice_test in unittest
+void HdiDevice::ResetHdiFuncs()
+{
+    HLOGD("%{public}s: start", __func__);
+    deviceFuncs_ = nullptr;
+    layerFuncs_ = nullptr;
+    HLOGD("%{public}s: end", __func__);
 }
 
 } // namespace Rosen

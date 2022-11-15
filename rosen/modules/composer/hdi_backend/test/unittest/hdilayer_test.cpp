@@ -52,6 +52,11 @@ void HdiLayerTest::SetUpTestCase()
     layerInfo_->SetCompositionType(CompositionType::COMPOSITION_DEVICE);
     layerInfo_->SetBlendType(BlendType::BLEND_NONE);
     hdiLayer_->UpdateLayerInfo(layerInfo_);
+    sptr<SyncFence> fbAcquireFence = new SyncFence(1);
+    hdiLayer_->MergeWithFramebufferFence(fbAcquireFence);
+    hdiLayer_->UpdateCompositionType(CompositionType::COMPOSITION_CLIENT);
+    std::string dumpStr = "";
+    hdiLayer_->Dump(dumpStr);
 }
 
 void HdiLayerTest::TearDownTestCase() {}

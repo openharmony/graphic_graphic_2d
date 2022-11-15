@@ -39,6 +39,48 @@ void HdiOutputTest::SetUpTestCase()
 void HdiOutputTest::TearDownTestCase() {}
 
 namespace {
+
+/*
+* Function: GetFrameBufferSurface
+* Type: Function
+* Rank: Important(1)
+* EnvConditions: N/A
+* CaseDescription: 1. call GetFrameBufferSurface()
+*                  2. check ret
+*/
+HWTEST_F(HdiOutputTest, GetFrameBufferSurface001, Function | MediumTest| Level1)
+{
+    ASSERT_EQ(HdiOutputTest::hdiOutput_->GetFrameBufferSurface(), nullptr);
+}
+
+/*
+* Function: GetFramebuffer
+* Type: Function
+* Rank: Important(1)
+* EnvConditions: N/A
+* CaseDescription: 1. call GetFramebuffer()
+*                  2. check ret
+*/
+HWTEST_F(HdiOutputTest, GetFramebuffer001, Function | MediumTest| Level1)
+{
+    ASSERT_EQ(HdiOutputTest::hdiOutput_->GetFramebuffer(), nullptr);
+}
+
+/*
+* Function: ReleaseFramebuffer
+* Type: Function
+* Rank: Important(1)
+* EnvConditions: N/A
+* CaseDescription: 1. call ReleaseFramebuffer()
+*                  2. check ret
+*/
+HWTEST_F(HdiOutputTest, ReleaseFramebuffer001, Function | MediumTest| Level1)
+{
+    sptr<SurfaceBuffer> buffer;
+    sptr<SyncFence> releaseFence;
+    ASSERT_EQ(HdiOutputTest::hdiOutput_->ReleaseFramebuffer(buffer, releaseFence), -1);
+}
+
 /*
 * Function: GetScreenId
 * Type: Function
@@ -63,7 +105,25 @@ HWTEST_F(HdiOutputTest, GetScreenId001, Function | MediumTest| Level1)
 HWTEST_F(HdiOutputTest, Init001, Function | MediumTest| Level1)
 {
     ASSERT_EQ(HdiOutputTest::hdiOutput_->Init(), ROSEN_ERROR_OK);
+    // fbSurface_ already initialized
+    ASSERT_EQ(HdiOutputTest::hdiOutput_->Init(), ROSEN_ERROR_OK);
 }
+
+/*
+* Function: ReleaseFramebuffer
+* Type: Function
+* Rank: Important(1)
+* EnvConditions: N/A
+* CaseDescription: 1. call ReleaseFramebuffer()
+*                  2. check ret
+*/
+HWTEST_F(HdiOutputTest, ReleaseFramebuffer002, Function | MediumTest| Level1)
+{
+    sptr<SurfaceBuffer> buffer;
+    sptr<SyncFence> releaseFence;
+    ASSERT_EQ(HdiOutputTest::hdiOutput_->ReleaseFramebuffer(buffer, releaseFence), 0);
+}
+
 
 /*
 * Function: Init
@@ -136,7 +196,7 @@ HWTEST_F(HdiOutputTest, GetLayerCompCapacity001, Function | MediumTest| Level3)
 * CaseDescription: 1. call GetFrameBufferSurface
 *                  2. check ret
 */
-HWTEST_F(HdiOutputTest, GetFrameBufferSurface001, Function | MediumTest| Level3)
+HWTEST_F(HdiOutputTest, GetFrameBufferSurface002, Function | MediumTest| Level3)
 {
     ASSERT_NE(HdiOutputTest::hdiOutput_->GetFrameBufferSurface(), nullptr);
 }
@@ -149,7 +209,7 @@ HWTEST_F(HdiOutputTest, GetFrameBufferSurface001, Function | MediumTest| Level3)
 * CaseDescription: 1. call GetFramebuffer
 *                  2. check ret
 */
-HWTEST_F(HdiOutputTest, GetFramebuffer001, Function | MediumTest| Level3)
+HWTEST_F(HdiOutputTest, GetFramebuffer002, Function | MediumTest| Level3)
 {
     ASSERT_EQ(HdiOutputTest::hdiOutput_->GetFramebuffer(), nullptr);
 }
