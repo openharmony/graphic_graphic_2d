@@ -413,6 +413,7 @@ void RSMainThread::ReleaseAllNodesBuffer()
         if (surfaceNode == nullptr) {
             return;
         }
+        // To avoid traverse surfaceNodeMap again, destroy cold start thread here
         if (!surfaceNode->IsOnTheTree() && surfaceNode->IsColdStartThreadRunning()) {
             surfaceNode->DestroyColdStartThread();
         }

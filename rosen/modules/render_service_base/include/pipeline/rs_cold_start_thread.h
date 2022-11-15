@@ -39,7 +39,7 @@ public:
     void PostPlayBackTask(sk_sp<SkPicture> picture, float width, float height);
 
 private:
-    void Run();
+    void Run(EGLContext context);
     void Stop();
 
     std::weak_ptr<RSSurfaceRenderNode> surfaceNode_;

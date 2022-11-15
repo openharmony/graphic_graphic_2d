@@ -30,14 +30,11 @@ namespace OHOS::Rosen {
 
 class RSSharedContext final : public std::enable_shared_from_this<RSSharedContext> {
 public:
-    static std::shared_ptr<RSSharedContext> MakeSharedGLContext();
-    static std::shared_ptr<RSSharedContext> GetCurrent();
+    static std::shared_ptr<RSSharedContext> MakeSharedGLContext(EGLContext context);
 
     RSSharedContext(EGLDisplay display, EGLContext context, EGLSurface surface)
         : display_(display), context_(context), surface_(surface) {}
-
     ~RSSharedContext();
-
     void MakeCurrent();
     sk_sp<GrContext> MakeGrContext();
 
@@ -45,7 +42,6 @@ private:
     EGLDisplay display_ = nullptr;
     EGLContext context_ = nullptr;
     EGLSurface surface_ = nullptr;
-    static inline thread_local std::weak_ptr<RSSharedContext> sharedContext_;
 };
 } // namespace OHOS::Rosen
 #endif // RENDER_SERVICE_BASE_CORE_COMMON_RS_SHARED_CONTEXT_H

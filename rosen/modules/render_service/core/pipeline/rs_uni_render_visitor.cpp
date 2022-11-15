@@ -841,7 +841,7 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
             node.DestroyColdStartThread();
             needColdStartThread_ = false;
         } else {
-            if (!IsFirstFrameReadyToDraw(node)) {
+            if (!IsFirstFrameReadyToDraw(node) && !node.IsColdStartThreadRunning()) {
                 return;
             }
             if (node.GetCacheSurface() == nullptr) { // first frame, start thread here, and record

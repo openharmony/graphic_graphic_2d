@@ -22,15 +22,9 @@
 #include "rs_trace.h"
 
 namespace OHOS::Rosen {
-std::shared_ptr<RSSharedContext> RSSharedContext::GetCurrent()
-{
-    return sharedContext_.lock();
-}
-
-std::shared_ptr<RSSharedContext> RSSharedContext::MakeSharedGLContext()
+std::shared_ptr<RSSharedContext> RSSharedContext::MakeSharedGLContext(EGLContext context)
 {
     RS_TRACE_NAME_FMT("MakeSharedGLContext create egl ");
-    EGLContext context = eglGetCurrentContext();
     if (context == EGL_NO_CONTEXT) {
         RS_LOGE("eglGetCurrentContext failed err:%d", eglGetError());
         return nullptr;
@@ -92,11 +86,14 @@ void RSSharedContext::MakeCurrent()
     if (eglMakeCurrent(display_, surface_, surface_, context_) != EGL_TRUE) {
         RS_LOGE("eglMakeCurrent failed");
     }
-    sharedContext_ = shared_from_this();
 }
 
 sk_sp<GrContext> RSSharedContext::MakeGrContext()
 {
-    return GrContext::MakeGL(GrGLMakeNativeInterface());
+    GrContextOptions options;
+    options.fGpuPathRenderers &= ~GpuPathRenderers::kCoverageCounting;
+    options.fPreferExternalImagesOverES3 = true;
+    options.fDisableDistanceFieldPaths = true;
+    return GrContext::MakeGL(GrGLMakeNativeInterface(), options);
 }
 } // namespace OHOS::Rosen

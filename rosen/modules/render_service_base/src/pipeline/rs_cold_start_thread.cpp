@@ -14,7 +14,7 @@
  */
 
 #include "pipeline/rs_cold_start_thread.h"
-
+#include <EGL/egl.h>
 #include "include/core/SkCanvas.h"
 #include "include/core/SkPicture.h"
 #include "include/core/SkSurface.h"
@@ -27,13 +27,10 @@
 
 namespace OHOS {
 namespace Rosen {
-RSColdStartThread::RSColdStartThread(std::weak_ptr<RSSurfaceRenderNode> surfaceRenderNode) :
-    surfaceNode_(surfaceRenderNode)
+RSColdStartThread::RSColdStartThread(std::weak_ptr<RSSurfaceRenderNode> surfaceRenderNode)
+    : surfaceNode_(surfaceRenderNode)
 {
-    context_ = RSSharedContext::MakeSharedGLContext();
-    if (thread_ == nullptr) {
-        thread_ = std::make_unique<std::thread>(&RSColdStartThread::Run, this);
-    }
+    thread_ = std::make_unique<std::thread>(&RSColdStartThread::Run, this, eglGetCurrentContext());
 }
 
 RSColdStartThread::~RSColdStartThread()
@@ -48,6 +45,7 @@ void RSColdStartThread::Stop()
     RS_TRACE_NAME_FMT("RSColdStartThread::Stop");
     if (handler_ != nullptr) {
         handler_->PostSyncTask([this]() {
+            RS_TRACE_NAME_FMT("RSColdStartThread abandonContext");
             for (auto grContext : grContexts_) {
                 if (grContext != nullptr) {
                     grContext->abandonContext();
@@ -59,14 +57,15 @@ void RSColdStartThread::Stop()
         runner_->Stop();
     }
     if (thread_ != nullptr && thread_->joinable()) {
-        thread_->join();
+        thread_->detach();
     }
     isRunning_ = false;
 }
 
-void RSColdStartThread::Run()
+void RSColdStartThread::Run(EGLContext context)
 {
     RS_TRACE_NAME_FMT("RSColdStartThread::Run");
+    context_ = RSSharedContext::MakeSharedGLContext(context);
     if (context_ != nullptr) {
         context_->MakeCurrent();
     }
@@ -109,6 +108,7 @@ void RSColdStartThread::PostPlayBackTask(sk_sp<SkPicture> picture, float width, 
             return;
         }
         RS_LOGD("RSColdStartThread::PostPlayBackTask drawPicture");
+        RS_TRACE_NAME_FMT("RSColdStartThread drawPicture");
         auto canvas = surface_->getCanvas();
         canvas->clear(SK_ColorTRANSPARENT);
         canvas->drawPicture(picture);
@@ -117,6 +117,7 @@ void RSColdStartThread::PostPlayBackTask(sk_sp<SkPicture> picture, float width, 
         }
         node->SwapCachedSurface(surface_);
     };
+    handler_->RemoveAllEvents();
     handler_->PostTask(task, AppExecFwk::EventQueue::Priority::IMMEDIATE);
 }
 } // namespace Rosen
