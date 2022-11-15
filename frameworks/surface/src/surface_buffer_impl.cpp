@@ -565,4 +565,12 @@ uint64_t SurfaceBufferImpl::BufferUsageToGrallocUsage(uint64_t bufferUsage)
     }
     return grallocUsage;
 }
+
+BufferWrapper SurfaceBufferImpl::GetBufferWrapper()
+{
+    BufferWrapper wrapper;
+    return wrapper;
+}
+
+void SurfaceBufferImpl::SetBufferWrapper(BufferWrapper wrapper) {}
 } // namespace OHOS

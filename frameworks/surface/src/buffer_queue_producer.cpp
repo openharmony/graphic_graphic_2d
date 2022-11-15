@@ -590,4 +590,9 @@ void BufferQueueProducer::SetStatus(bool status)
 {
     bufferQueue_->SetStatus(status);
 }
+
+sptr<NativeSurface> BufferQueueProducer::GetNativeSurface()
+{
+    return nullptr;
+}
 }; // namespace OHOS

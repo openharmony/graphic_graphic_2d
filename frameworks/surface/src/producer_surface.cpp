@@ -429,4 +429,29 @@ GSError ProducerSurface::GetPresentTimestamp(uint32_t sequence, PresentTimestamp
     }
     return producer_->GetPresentTimestamp(sequence, type, time);
 }
+
+int32_t ProducerSurface::GetDefaultFormat()
+{
+    return 0;
+}
+
+GSError ProducerSurface::SetDefaultFormat(int32_t format)
+{
+    return GSERROR_NOT_SUPPORT;
+}
+
+int32_t ProducerSurface::GetDefaultColorGamut()
+{
+    return 0;
+}
+
+GSError ProducerSurface::SetDefaultColorGamut(int32_t colorGamut)
+{
+    return GSERROR_NOT_SUPPORT;
+}
+
+sptr<NativeSurface> ProducerSurface::GetNativeSurface()
+{
+    return nullptr;
+}
 } // namespace OHOS

@@ -74,6 +74,21 @@ ohos_shared_library("libvsync") {
     "hilog_native:libhilog",
   ]
 
+  if (exec_script(
+          "//foundation/graphic/graphic_2d/utils/build/graphic_2d_ext_exists.py",
+          [],
+          "string") == "True") {
+    graphic_2d_ext_configs = {
+      import("//foundation/graphic/graphic_2d_ext/ohcore/build/config.gni")
+    }
+
+    include_dirs += graphic_2d_ext_configs.libvsync_ext_include_dirs
+
+    sources += graphic_2d_ext_configs.libvsync_ext_sources
+
+    public_deps += [ "//foundation/graphic/graphic_2d_ext/ohcore/graphic_compat_layer:libgraphic_compat_layer" ]
+  }
+
   part_name = "graphic_standard"
   subsystem_name = "graphic"
 }

@@ -34,6 +34,17 @@ config("surface_public_config") {
     "//foundation/graphic/graphic_2d/utils/sandbox",
   ]
 
+  if (exec_script(
+          "//foundation/graphic/graphic_2d/utils/build/graphic_2d_ext_exists.py",
+          [],
+          "string") == "True") {
+    graphic_2d_ext_configs = {
+      import("//foundation/graphic/graphic_2d_ext/ohcore/build/config.gni")
+    }
+
+    include_dirs += graphic_2d_ext_configs.libsurface_ext_include_dirs
+  }
+
   defines = []
   if (ace_enable_gpu) {
     defines = [ "ACE_ENABLE_GPU" ]
@@ -94,6 +105,20 @@ ohos_shared_library("surface") {
   ]
 
   symlink_target_name = [ "libnative_window.so" ]
+
+  if (exec_script(
+          "//foundation/graphic/graphic_2d/utils/build/graphic_2d_ext_exists.py",
+          [],
+          "string") == "True") {
+    graphic_2d_ext_configs = {
+      import("//foundation/graphic/graphic_2d_ext/ohcore/build/config.gni")
+    }
+
+    sources += graphic_2d_ext_configs.libsurface_ext_sources
+    sources -= graphic_2d_ext_configs.libsurface_ext_sources_del
+
+    public_deps += [ "//foundation/graphic/graphic_2d_ext/ohcore/graphic_compat_layer:libgraphic_compat_layer" ]
+  }
 
   part_name = "graphic_standard"
   subsystem_name = "graphic"

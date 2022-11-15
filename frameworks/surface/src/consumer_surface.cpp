@@ -336,4 +336,29 @@ GSError ConsumerSurface::GetPresentTimestamp(uint32_t sequence, PresentTimestamp
 {
     return GSERROR_NOT_SUPPORT;
 }
+
+int32_t ConsumerSurface::GetDefaultFormat()
+{
+    return 0;
+}
+
+GSError ConsumerSurface::SetDefaultFormat(int32_t format)
+{
+    return GSERROR_NOT_SUPPORT;
+}
+
+int32_t ConsumerSurface::GetDefaultColorGamut()
+{
+    return 0;
+}
+
+GSError ConsumerSurface::SetDefaultColorGamut(int32_t colorGamut)
+{
+    return GSERROR_NOT_SUPPORT;
+}
+
+sptr<NativeSurface> ConsumerSurface::GetNativeSurface()
+{
+    return nullptr;
+}
 } // namespace OHOS

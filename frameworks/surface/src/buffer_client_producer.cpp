@@ -421,4 +421,9 @@ GSError BufferClientProducer::GetPresentTimestamp(uint32_t sequence, PresentTime
     time = reply.ReadInt64();
     return static_cast<GSError>(ret);
 }
+
+sptr<NativeSurface> BufferClientProducer::GetNativeSurface()
+{
+    return nullptr;
+}
 }; // namespace OHOS
