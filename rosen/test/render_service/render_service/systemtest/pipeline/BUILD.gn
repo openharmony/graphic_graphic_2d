@@ -21,6 +21,7 @@ group("systemtest") {
   testonly = true
 
   deps = [
+    ":RSBaseRenderEngineTest",
     ":RSDropFrameProcessorSystemTest",
     ":RSRenderServiceTest",
   ]
@@ -30,6 +31,15 @@ group("systemtest") {
 config("pipeline_test") {
   include_dirs =
       [ "//foundation/graphic/graphic_2d/rosen/modules/render_service/core" ]
+}
+
+## Build RSBaseRenderEngineTest
+ohos_systemtest("RSBaseRenderEngineTest") {
+  module_out_path = module_output_path
+  sources = [ "rs_base_render_engine_test.cpp" ]
+  deps = [ ":rs_test_common" ]
+  defines = []
+  defines += gpu_defines
 }
 
 ## Build RSDropFrameProcessorSystemTest
