@@ -125,6 +125,9 @@ public:
                               const SkMatrix[], const SkPaint*, SrcRectConstraint) override {}
 
 private:
+    void DrawImageLatticeAsBitmap(
+        const SkImage* image, const SkCanvas::Lattice& lattice, const SkRect& dst, const SkPaint* paint);
+
     std::shared_ptr<DrawCmdList> drawCmdList_ { nullptr };
     int saveCount_ = 0;
 };
