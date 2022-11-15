@@ -24,6 +24,9 @@ group("systemtest") {
     ":RSDropFrameProcessorSystemTest",
     ":RSRenderServiceTest",
   ]
+  if (graphic_standard_feature_rs_enable_uni_render) {
+    deps += [ ":RSUniRenderTest" ]
+  }
 }
 
 ###############################################################################
@@ -50,6 +53,18 @@ ohos_systemtest("RSRenderServiceTest") {
   defines += gpu_defines
 }
 
+if (graphic_standard_feature_rs_enable_uni_render) {
+  ## Build RSUniRenderTest
+  ohos_systemtest("RSUniRenderTest") {
+    module_out_path = module_output_path
+    sources = [ "rs_uni_render_test.cpp" ]
+    deps = [ ":rs_test_common" ]
+    external_deps = [ "init:libbegetutil" ]
+    defines = []
+    defines += gpu_defines
+  }
+}
+
 ## Build rs_test_common.a {{{
 config("rs_test_common_public_config") {
   include_dirs = [
@@ -59,6 +74,7 @@ config("rs_test_common_public_config") {
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/src",
     "//foundation/graphic/graphic_2d/rosen/test/include",
     "//foundation/barrierfree/accessibility/interfaces/innerkits/acfwk/include",
+    "//foundation/window/window_manager/interfaces/innerkits",
   ]
 
   cflags = [
@@ -84,6 +100,8 @@ ohos_static_library("rs_test_common") {
     "//foundation/graphic/graphic_2d/rosen/modules/render_service:librender_service",
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:librender_service_base",
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:librender_service_client",
+    "//foundation/window/window_manager/wm:libwm",
+    "//foundation/window/window_manager/wmserver:libwms",
     "//third_party/googletest:gtest_main",
   ]
 
