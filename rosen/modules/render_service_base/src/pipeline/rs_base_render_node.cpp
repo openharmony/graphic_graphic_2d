@@ -50,6 +50,7 @@ void RSBaseRenderNode::AddChild(SharedPtr child, int index)
     if (isOnTheTree_) {
         child->SetIsOnTheTree(true);
     }
+    SetDirty();
 }
 
 void RSBaseRenderNode::MoveChild(SharedPtr child, int index)
@@ -138,6 +139,7 @@ void RSBaseRenderNode::AddCrossParentChild(const SharedPtr& child, int32_t index
     if (isOnTheTree_) {
         child->SetIsOnTheTree(true);
     }
+    SetDirty();
 }
 
 void RSBaseRenderNode::RemoveCrossParentChild(const SharedPtr& child, const WeakPtr& newParent)
