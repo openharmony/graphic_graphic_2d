@@ -137,7 +137,7 @@ pid_t NativeWindowBufferTest::ChildProcessMain()
     OH_NativeWindow_NativeWindowHandleOpt(nativeWindow, code, height, width);
 
     code = SET_FORMAT;
-    int32_t format = PIXEL_FMT_RGBA_8888;
+    int32_t format = GRAPHIC_PIXEL_FMT_RGBA_8888;
     OH_NativeWindow_NativeWindowHandleOpt(nativeWindow, code, format);
 
     code = SET_STRIDE;

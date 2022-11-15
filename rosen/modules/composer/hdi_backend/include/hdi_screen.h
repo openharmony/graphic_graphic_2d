@@ -53,7 +53,7 @@ public:
     int32_t GetScreenGamutMap(GamutMap &gamutMap) const;
     int32_t SetScreenColorTransform(const float *matrix) const;
     int32_t GetHDRCapabilityInfos(HDRCapability &info) const;
-    int32_t GetSupportedMetaDataKey(std::vector<HDRMetadataKey> &keys) const;
+    int32_t GetSupportedMetaDataKey(std::vector<GraphicHDRMetadataKey> &keys) const;
 
     static void OnVsync(uint32_t sequence, uint64_t ns, void *data);
 

@@ -76,22 +76,22 @@ namespace OHOS {
         bool isShared = GetData<bool>();
         std::string key = GetStringFromData(STR_LEN);
         std::string val = GetStringFromData(STR_LEN);
-        VerifyAllocInfo info = GetData<VerifyAllocInfo>();
+        BufferVerifyAllocInfo info = GetData<BufferVerifyAllocInfo>();
         bool supported = GetData<bool>();
         uint32_t sequence = GetData<uint32_t>();
         ScalingMode scalingMode = GetData<ScalingMode>();
-        HDRMetaData metaData = GetData<HDRMetaData>();
-        HDRMetadataKey metakey = GetData<HDRMetadataKey>();
+        GraphicHDRMetaData metaData = GetData<GraphicHDRMetaData>();
+        GraphicHDRMetadataKey metakey = GetData<GraphicHDRMetadataKey>();
         uint8_t metaData2 = GetData<uint8_t>();
         HDRMetaDataType metaType = GetData<HDRMetaDataType>();
-        PresentTimestamp ptimestamp = GetData<PresentTimestamp>();
-        PresentTimestampType type = GetData<PresentTimestampType>();
+        GraphicPresentTimestamp ptimestamp = GetData<GraphicPresentTimestamp>();
+        GraphicPresentTimestampType type = GetData<GraphicPresentTimestampType>();
         int64_t time = GetData<int64_t>();
         std::string result = GetStringFromData(STR_LEN);
 
-        std::vector<VerifyAllocInfo> infos = {info};
+        std::vector<BufferVerifyAllocInfo> infos = {info};
         std::vector<bool> supporteds = {supported};
-        std::vector<HDRMetaData> metaDatas = {metaData};
+        std::vector<GraphicHDRMetaData> metaDatas = {metaData};
         std::vector<uint8_t> metaDatas2 = {metaData2};
 
         // test
@@ -147,7 +147,7 @@ namespace OHOS {
         int32_t width = GetData<int32_t>();
         int32_t height = GetData<int32_t>();
         uint32_t usage = GetData<uint32_t>();
-        TransformType transform = GetData<TransformType>();
+        GraphicTransformType transform = GetData<GraphicTransformType>();
 
         // test
         sptr<OHOS::Surface> cSurface = OHOS::Surface::CreateSurfaceAsConsumer(name, isShared);

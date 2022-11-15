@@ -62,19 +62,19 @@ public:
 
     virtual GSError RegisterReleaseListener(OnReleaseFunc func) = 0;
 
-    virtual GSError SetTransform(TransformType transform) = 0;
+    virtual GSError SetTransform(GraphicTransformType transform) = 0;
 
-    virtual GSError IsSupportedAlloc(const std::vector<VerifyAllocInfo> &infos,
+    virtual GSError IsSupportedAlloc(const std::vector<BufferVerifyAllocInfo> &infos,
                                      std::vector<bool> &supporteds) = 0;
 
     virtual GSError Disconnect() = 0;
 
     virtual GSError SetScalingMode(uint32_t sequence, ScalingMode scalingMode) = 0;
-    virtual GSError SetMetaData(uint32_t sequence, const std::vector<HDRMetaData> &metaData) = 0;
-    virtual GSError SetMetaDataSet(uint32_t sequence, HDRMetadataKey key,
+    virtual GSError SetMetaData(uint32_t sequence, const std::vector<GraphicHDRMetaData> &metaData) = 0;
+    virtual GSError SetMetaDataSet(uint32_t sequence, GraphicHDRMetadataKey key,
                                    const std::vector<uint8_t> &metaData) = 0;
     virtual GSError SetTunnelHandle(const ExtDataHandle *handle) = 0;
-    virtual GSError GetPresentTimestamp(uint32_t sequence, PresentTimestampType type, int64_t &time) = 0;
+    virtual GSError GetPresentTimestamp(uint32_t sequence, GraphicPresentTimestampType type, int64_t &time) = 0;
 
     DECLARE_INTERFACE_DESCRIPTOR(u"surf.IBufferProducer");
 

@@ -85,25 +85,25 @@ public:
     virtual GSError CleanCache() = 0;
     virtual GSError GoBackground() = 0;
 
-    virtual GSError SetTransform(TransformType transform) = 0;
-    virtual TransformType GetTransform() const = 0;
+    virtual GSError SetTransform(GraphicTransformType transform) = 0;
+    virtual GraphicTransformType GetTransform() const = 0;
 
-    virtual GSError IsSupportedAlloc(const std::vector<VerifyAllocInfo> &infos,
+    virtual GSError IsSupportedAlloc(const std::vector<BufferVerifyAllocInfo> &infos,
                                      std::vector<bool> &supporteds) = 0;
     virtual GSError Disconnect() = 0;
     virtual GSError SetScalingMode(uint32_t sequence, ScalingMode scalingMode) = 0;
     virtual GSError GetScalingMode(uint32_t sequence, ScalingMode &scalingMode) = 0;
-    virtual GSError SetMetaData(uint32_t sequence, const std::vector<HDRMetaData> &metaData) = 0;
-    virtual GSError SetMetaDataSet(uint32_t sequence, HDRMetadataKey key,
+    virtual GSError SetMetaData(uint32_t sequence, const std::vector<GraphicHDRMetaData> &metaData) = 0;
+    virtual GSError SetMetaDataSet(uint32_t sequence, GraphicHDRMetadataKey key,
                                    const std::vector<uint8_t> &metaData) = 0;
     virtual GSError QueryMetaDataType(uint32_t sequence, HDRMetaDataType &type) const = 0;
-    virtual GSError GetMetaData(uint32_t sequence, std::vector<HDRMetaData> &metaData) const = 0;
-    virtual GSError GetMetaDataSet(uint32_t sequence, HDRMetadataKey &key,
+    virtual GSError GetMetaData(uint32_t sequence, std::vector<GraphicHDRMetaData> &metaData) const = 0;
+    virtual GSError GetMetaDataSet(uint32_t sequence, GraphicHDRMetadataKey &key,
                                    std::vector<uint8_t> &metaData) const = 0;
     virtual GSError SetTunnelHandle(const ExtDataHandle *handle) = 0;
     virtual sptr<SurfaceTunnelHandle> GetTunnelHandle() const = 0;
-    virtual GSError SetPresentTimestamp(uint32_t sequence, const PresentTimestamp &timestamp) = 0;
-    virtual GSError GetPresentTimestamp(uint32_t sequence, PresentTimestampType type,
+    virtual GSError SetPresentTimestamp(uint32_t sequence, const GraphicPresentTimestamp &timestamp) = 0;
+    virtual GSError GetPresentTimestamp(uint32_t sequence, GraphicPresentTimestampType type,
                                         int64_t &time) const = 0;
 
     virtual void Dump(std::string &result) const = 0;

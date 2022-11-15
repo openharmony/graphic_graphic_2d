@@ -54,7 +54,7 @@ public:
     MOCK_METHOD2(GetScreenGamutMap, int32_t(uint32_t, GamutMap&));
     MOCK_METHOD2(SetScreenColorTransform, int32_t(uint32_t, const float*));
     MOCK_METHOD2(GetHDRCapabilityInfos, int32_t(uint32_t, HDRCapability&));
-    MOCK_METHOD2(GetSupportedMetaDataKey, int32_t(uint32_t, std::vector<HDRMetadataKey>&));
+    MOCK_METHOD2(GetSupportedMetaDataKey, int32_t(uint32_t, std::vector<GraphicHDRMetadataKey>&));
     MOCK_METHOD2(Commit, int32_t(uint32_t, sptr<SyncFence>&));
     /* set & get device screen info end */
 
@@ -73,8 +73,8 @@ public:
     MOCK_METHOD3(SetLayerColorTransform, int32_t(uint32_t, uint32_t, const float*));
     MOCK_METHOD3(SetLayerColorDataSpace, int32_t(uint32_t, uint32_t, ColorDataSpace));
     MOCK_METHOD3(GetLayerColorDataSpace, int32_t(uint32_t, uint32_t, ColorDataSpace&));
-    MOCK_METHOD3(SetLayerMetaData, int32_t(uint32_t, uint32_t, const std::vector<HDRMetaData>&));
-    MOCK_METHOD4(SetLayerMetaDataSet, int32_t(uint32_t, uint32_t, HDRMetadataKey, const std::vector<uint8_t>&));
+    MOCK_METHOD3(SetLayerMetaData, int32_t(uint32_t, uint32_t, const std::vector<GraphicHDRMetaData>&));
+    MOCK_METHOD4(SetLayerMetaDataSet, int32_t(uint32_t, uint32_t, GraphicHDRMetadataKey, const std::vector<uint8_t>&));
     MOCK_METHOD3(SetLayerTunnelHandle, int32_t(uint32_t, uint32_t, const ExtDataHandle *));
     MOCK_METHOD3(GetSupportedPresentTimestampType, int32_t(uint32_t, uint32_t, PresentTimestampType&));
     MOCK_METHOD3(GetPresentTimestamp, int32_t(uint32_t, uint32_t, PresentTimestamp&));

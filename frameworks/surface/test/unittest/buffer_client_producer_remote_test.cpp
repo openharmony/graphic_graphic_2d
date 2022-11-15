@@ -43,7 +43,7 @@ public:
         .width = 0x100,
         .height = 0x100,
         .strideAlignment = 0x8,
-        .format = PIXEL_FMT_RGBA_8888,
+        .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
         .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
         .timeout = 0,
     };
@@ -396,7 +396,7 @@ HWTEST_F(BufferClientProducerRemoteTest, GetDefaultUsage001, Function | MediumTe
 */
 HWTEST_F(BufferClientProducerRemoteTest, SetTransform001, Function | MediumTest | Level2)
 {
-    TransformType transform = TransformType::ROTATE_90;
+    GraphicTransformType transform = GraphicTransformType::GRAPHIC_ROTATE_90;
     GSError ret = bp->SetTransform(transform);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 }
@@ -410,7 +410,7 @@ HWTEST_F(BufferClientProducerRemoteTest, SetTransform001, Function | MediumTest 
 */
 HWTEST_F(BufferClientProducerRemoteTest, isSupportedAlloc001, Function | MediumTest | Level2)
 {
-    std::vector<VerifyAllocInfo> infos;
+    std::vector<BufferVerifyAllocInfo> infos;
     std::vector<bool> supporteds;
     GSError ret = bp->IsSupportedAlloc(infos, supporteds);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
@@ -425,21 +425,21 @@ HWTEST_F(BufferClientProducerRemoteTest, isSupportedAlloc001, Function | MediumT
 */
 HWTEST_F(BufferClientProducerRemoteTest, isSupportedAlloc002, Function | MediumTest | Level2)
 {
-    std::vector<VerifyAllocInfo> infos;
+    std::vector<BufferVerifyAllocInfo> infos;
     std::vector<bool> supporteds;
     GSError ret = bp->IsSupportedAlloc(infos, supporteds);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 
-    VerifyAllocInfo info = {
+    BufferVerifyAllocInfo info = {
         .width = 0x100,
         .height = 0x100,
         .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
-        .format = PIXEL_FMT_RGBA_8888,
+        .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
     };
     infos.push_back(info);
-    info.format = PIXEL_FMT_YCRCB_420_SP;
+    info.format = GRAPHIC_PIXEL_FMT_YCRCB_420_SP;
     infos.push_back(info);
-    info.format = PIXEL_FMT_YUV_422_I;
+    info.format = GRAPHIC_PIXEL_FMT_YUV_422_I;
     infos.push_back(info);
 
     ret = bp->IsSupportedAlloc(infos, supporteds);
@@ -470,7 +470,7 @@ HWTEST_F(BufferClientProducerRemoteTest, SetScalingMode001, Function | MediumTes
 HWTEST_F(BufferClientProducerRemoteTest, SetMetaData001, Function | MediumTest | Level2)
 {
     uint32_t sequence = 0;
-    std::vector<HDRMetaData> metaData;
+    std::vector<GraphicHDRMetaData> metaData;
     GSError ret = bp->SetMetaData(sequence, metaData);
     ASSERT_EQ(ret, OHOS::GSERROR_INVALID_ARGUMENTS);
 }
@@ -484,7 +484,7 @@ HWTEST_F(BufferClientProducerRemoteTest, SetMetaData001, Function | MediumTest |
 */
 HWTEST_F(BufferClientProducerRemoteTest, SetMetaDataSet001, Function | MediumTest | Level2)
 {
-    HDRMetadataKey key = HDRMetadataKey::MATAKEY_HDR10_PLUS;
+    GraphicHDRMetadataKey key = GraphicHDRMetadataKey::GRAPHIC_MATAKEY_HDR10_PLUS;
     std::vector<uint8_t> metaData;
 
     uint32_t sequence = 0;

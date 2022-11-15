@@ -239,12 +239,12 @@ bool DrawingEngineSample::DrawDrawingLayer(std::shared_ptr<HdiLayerInfo> &layer)
     layer->SetBuffer(cbuffer, acquireSyncFence);
     layer->SetZorder(zorder);
     layer->SetAlpha(alpha);
-    layer->SetTransform(TransformType::ROTATE_NONE);
-    layer->SetCompositionType(CompositionType::COMPOSITION_DEVICE);
+    layer->SetTransform(GraphicTransformType::GRAPHIC_ROTATE_NONE);
+    layer->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE);
     layer->SetVisibleRegion(1, srcRect);
     layer->SetDirtyRegion(srcRect);
     layer->SetLayerSize(dstRect);
-    layer->SetBlendType(BlendType::BLEND_SRC);
+    layer->SetBlendType(GraphicBlendType::GRAPHIC_BLEND_SRC);
     layer->SetCropRect(srcRect);
     layer->SetPreMulti(false);
     prevBufferMap_[drawingCSurface->GetUniqueId()] = cbuffer;

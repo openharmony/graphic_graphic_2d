@@ -93,7 +93,7 @@ HWTEST_F(HdiDeviceTest, DeviceFuncs001, Function | MediumTest| Level3)
     ASSERT_EQ(HdiDeviceTest::hdiDevice_->SetScreenColorTransform(screenId, matrix), DISPLAY_NULL_PTR);
     HDRCapability info;
     ASSERT_EQ(HdiDeviceTest::hdiDevice_->GetHDRCapabilityInfos(screenId, info), DISPLAY_NULL_PTR);
-    std::vector<HDRMetadataKey> keys;
+    std::vector<GraphicHDRMetadataKey> keys;
     ASSERT_EQ(HdiDeviceTest::hdiDevice_->GetSupportedMetaDataKey(screenId, keys), DISPLAY_NULL_PTR);
     ASSERT_EQ(HdiDeviceTest::hdiDevice_->Commit(screenId, fence), DISPLAY_NULL_PTR);
 }
@@ -138,9 +138,9 @@ HWTEST_F(HdiDeviceTest, LayerFuncs001, Function | MediumTest| Level3)
     ColorDataSpace colorSpace = COLOR_DATA_SPACE_UNKNOWN;
     ASSERT_EQ(HdiDeviceTest::hdiDevice_->SetLayerColorDataSpace(screenId, layerId, colorSpace), DISPLAY_NULL_PTR);
     ASSERT_EQ(HdiDeviceTest::hdiDevice_->GetLayerColorDataSpace(screenId, layerId, colorSpace), DISPLAY_NULL_PTR);
-    std::vector<HDRMetaData> metaData;
+    std::vector<GraphicHDRMetaData> metaData;
     ASSERT_EQ(HdiDeviceTest::hdiDevice_->SetLayerMetaData(screenId, layerId, metaData), DISPLAY_NULL_PTR);
-    HDRMetadataKey key = MATAKEY_RED_PRIMARY_X;
+    GraphicHDRMetadataKey key = GRAPHIC_MATAKEY_RED_PRIMARY_X;
     std::vector<uint8_t> metaDatas;
     ASSERT_EQ(HdiDeviceTest::hdiDevice_->SetLayerMetaDataSet(screenId, layerId, key, metaDatas), DISPLAY_NULL_PTR);
     ExtDataHandle *extDataHandle = nullptr;

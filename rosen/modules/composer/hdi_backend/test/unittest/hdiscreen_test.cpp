@@ -62,7 +62,7 @@ void HdiScreenTest::CheckNullFunc()
     ASSERT_EQ(hdiScreen_->SetScreenColorTransform(matrix), DISPLAY_NULL_PTR);
     HDRCapability infos;
     ASSERT_EQ(hdiScreen_->GetHDRCapabilityInfos(infos), DISPLAY_NULL_PTR);
-    std::vector<HDRMetadataKey> keys;
+    std::vector<GraphicHDRMetadataKey> keys;
     ASSERT_EQ(hdiScreen_->GetSupportedMetaDataKey(keys), DISPLAY_NULL_PTR);
 }
 
@@ -373,8 +373,8 @@ HWTEST_F(HdiScreenTest, GetHDRCapabilityInfos001, Function | MediumTest | Level2
  */
 HWTEST_F(HdiScreenTest, GetSupportedMetaDataKey001, Function | MediumTest | Level2)
 {
-    HDRMetadataKey key = HDRMetadataKey::MATAKEY_RED_PRIMARY_X;
-    std::vector<HDRMetadataKey> keys = { key };
+    GraphicHDRMetadataKey key = GraphicHDRMetadataKey::GRAPHIC_MATAKEY_RED_PRIMARY_X;
+    std::vector<GraphicHDRMetadataKey> keys = { key };
     ASSERT_EQ(HdiScreenTest::hdiScreen_->GetSupportedMetaDataKey(keys), 0);
 }
 } // namespace
