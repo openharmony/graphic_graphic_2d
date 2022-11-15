@@ -369,7 +369,9 @@ int32_t HdiLayer::SetHdiLayerInfo()
     if (ret != DISPLAY_SUCCESS || layerInfo_ == nullptr) {
         return DISPLAY_FAILURE;
     }
-
+#ifdef COMPOSER_DISABLE_PREPARE_LAYERINFOS
+    prevLayerInfo_ = nullptr;
+#endif
     // All layer properities need to set to hwc when the layer is created firstly or the previous layer's composition
     // type is COMPOSITION_DEVICE for COMPOSITION_DEVICE can not reuse COMPOSITION_CLIENT layers info.
     doLayerInfoCompare_ = prevLayerInfo_ != nullptr &&
