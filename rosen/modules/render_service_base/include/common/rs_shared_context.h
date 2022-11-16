@@ -32,13 +32,14 @@ class RSSharedContext final : public std::enable_shared_from_this<RSSharedContex
 public:
     static std::shared_ptr<RSSharedContext> MakeSharedGLContext(EGLContext context);
 
-    RSSharedContext(EGLDisplay display, EGLContext context, EGLSurface surface)
-        : display_(display), context_(context), surface_(surface) {}
     ~RSSharedContext();
     void MakeCurrent();
     sk_sp<GrContext> MakeGrContext();
 
 private:
+    RSSharedContext(EGLDisplay display, EGLContext context, EGLSurface surface)
+        : display_(display), context_(context), surface_(surface) {}
+
     EGLDisplay display_ = nullptr;
     EGLContext context_ = nullptr;
     EGLSurface surface_ = nullptr;

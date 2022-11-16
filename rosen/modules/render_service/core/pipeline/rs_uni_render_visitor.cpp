@@ -828,7 +828,7 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
     }
 
     if (node.GetSurfaceNodeType() == RSSurfaceNodeType::STARTING_WINDOW_NODE && !needDrawStartingWindow_) {
-        needDrawStartingWindow_ = true;
+        needDrawStartingWindow_ = true; // reset to default value
         RS_LOGD("RSUniRenderVisitor::ProcessSurfaceRenderNode skip startingWindow");
         return;
     }
@@ -929,7 +929,7 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
                     node.GetName().c_str());
             }
         }
-    } else if (node.IsAppWindow()) {
+    } else if (node.IsAppWindow()) { // use skSurface drawn by cold start thread
         needDrawStartingWindow_ = false;
         RSUniRenderUtil::DrawCachedSurface(node, *canvas_);
         RecordAppWindowNodeAndPostTask(node, property.GetBoundsWidth(), property.GetBoundsHeight());
@@ -938,7 +938,7 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
     }
 
     if (node.GetSurfaceNodeType() == RSSurfaceNodeType::LEASH_WINDOW_NODE) {
-        needColdStartThread_ = false;
+        needColdStartThread_ = false; // reset to default value
     }
 
     filter = std::static_pointer_cast<RSSkiaFilter>(property.GetFilter());

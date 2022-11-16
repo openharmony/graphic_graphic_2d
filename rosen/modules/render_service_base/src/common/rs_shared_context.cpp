@@ -67,7 +67,7 @@ std::shared_ptr<RSSharedContext> RSSharedContext::MakeSharedGLContext(EGLContext
         return nullptr;
     }
     RS_LOGI("create egl success");
-    return std::make_shared<RSSharedContext>(display, shareContext, surface);
+    return std::shared_ptr<RSSharedContext>(new RSSharedContext(display, shareContext, surface));
 }
 
 RSSharedContext::~RSSharedContext()

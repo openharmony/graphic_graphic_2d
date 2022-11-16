@@ -133,7 +133,9 @@ void RSColdStartThread::PostPlayBackTask(sk_sp<SkPicture> picture, float width, 
         if (node->GetCacheSurface() == nullptr) {
             node->NotifyUIBufferAvailable();
         }
-        node->SwapCachedSurface(surface_);
+        auto cachedSurface = node->GetCacheSurface();
+        std::swap(cachedSurface, surface_);
+        node->SetCacheSurface(cachedSurface);
     };
     handler_->RemoveAllEvents();
     handler_->PostTask(task, AppExecFwk::EventQueue::Priority::IMMEDIATE);

@@ -378,12 +378,6 @@ public:
         return true;
     }
 
-    void SwapCachedSurface(sk_sp<SkSurface>& newSurface)
-    {
-        std::lock_guard<std::mutex> lock(cachedSurfaceMutex_);
-        std::swap(cacheSurface_, newSurface);
-    }
-
     void SetCacheSurface(sk_sp<SkSurface> cacheSurface)
     {
         std::lock_guard<std::mutex> lock(cachedSurfaceMutex_);

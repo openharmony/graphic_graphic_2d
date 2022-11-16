@@ -126,8 +126,8 @@ private:
     ContainerWindowConfigType containerWindowConfig_;
     pid_t currentFocusedPid_ = -1;
 
-    bool needColdStartThread_ = false;
-    bool needDrawStartingWindow_ = true;
+    bool needColdStartThread_ = false; // flag used for cold start app window
+    bool needDrawStartingWindow_ = true; // flag used for avoiding drawing both app and starting window
 };
 } // namespace Rosen
 } // namespace OHOS
