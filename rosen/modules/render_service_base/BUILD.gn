@@ -83,7 +83,6 @@ ohos_shared_library("librender_service_base") {
     "src/common/rs_common_def.cpp",
     "src/common/rs_obj_abs_geometry.cpp",
     "src/common/rs_occlusion_region.cpp",
-    "src/common/rs_shared_context.cpp",
     "src/common/rs_thread_handler_generic.cpp",
     "src/common/rs_thread_looper_generic.cpp",
     "src/common/rs_thread_looper_impl.cpp",
@@ -164,6 +163,10 @@ ohos_shared_library("librender_service_base") {
     "src/overdraw/rs_listened_canvas.cpp",
     "src/overdraw/rs_overdraw_controller.cpp",
   ]
+
+  if (rs_enable_gpu) {
+    sources += [ "src/common/rs_shared_context.cpp" ]
+  }
 
   include_dirs = [
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/src",

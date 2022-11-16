@@ -14,12 +14,16 @@
  */
 
 #include "pipeline/rs_cold_start_thread.h"
+
+#ifdef RS_ENABLE_GL
 #include <EGL/egl.h>
+#include "include/gpu/GrContext.h"
+#endif
+
 #include "include/core/SkCanvas.h"
 #include "include/core/SkPicture.h"
 #include "include/core/SkSurface.h"
 #include "include/core/SkImageInfo.h"
-#include "include/gpu/GrContext.h"
 
 #include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_log.h"
@@ -30,7 +34,11 @@ namespace Rosen {
 RSColdStartThread::RSColdStartThread(std::weak_ptr<RSSurfaceRenderNode> surfaceRenderNode)
     : surfaceNode_(surfaceRenderNode)
 {
+#ifdef RS_ENABLE_GL
     thread_ = std::make_unique<std::thread>(&RSColdStartThread::Run, this, eglGetCurrentContext());
+#else
+    thread_ = std::make_unique<std::thread>(&RSColdStartThread::Run, this);
+#endif
 }
 
 RSColdStartThread::~RSColdStartThread()
@@ -43,6 +51,7 @@ RSColdStartThread::~RSColdStartThread()
 void RSColdStartThread::Stop()
 {
     RS_TRACE_NAME_FMT("RSColdStartThread::Stop");
+#ifdef RS_ENABLE_GL
     if (handler_ != nullptr) {
         handler_->PostSyncTask([this]() {
             RS_TRACE_NAME_FMT("RSColdStartThread abandonContext");
@@ -53,6 +62,7 @@ void RSColdStartThread::Stop()
             }
         }, AppExecFwk::EventQueue::Priority::IMMEDIATE);
     }
+#endif
     if (runner_ != nullptr) {
         runner_->Stop();
     }
@@ -62,13 +72,19 @@ void RSColdStartThread::Stop()
     isRunning_ = false;
 }
 
+#ifdef RS_ENABLE_GL
 void RSColdStartThread::Run(EGLContext context)
+#else
+void RSColdStartThread::Run()
+#endif
 {
     RS_TRACE_NAME_FMT("RSColdStartThread::Run");
+#ifdef RS_ENABLE_GL
     context_ = RSSharedContext::MakeSharedGLContext(context);
     if (context_ != nullptr) {
         context_->MakeCurrent();
     }
+#endif
     isRunning_ = true;
     runner_ = AppExecFwk::EventRunner::Create(false);
     handler_ = std::make_shared<AppExecFwk::EventHandler>(runner_);
@@ -84,17 +100,19 @@ void RSColdStartThread::PostPlayBackTask(sk_sp<SkPicture> picture, float width, 
         return;
     }
     auto task = [picture = picture, width = width, height = height, this]() {
+#ifdef RS_ENABLE_GL
         if (context_ == nullptr) {
             RS_LOGE("RSColdStartThread::PostPlayBackTask context_ is nullptr");
             return;
         }
+#endif
         auto node = surfaceNode_.lock();
         if (!node) {
             RS_LOGE("RSColdStartThread::PostPlayBackTask surfaceNode is nullptr");
             return;
         }
         if (surface_ == nullptr) {
-#if (defined RS_ENABLE_GL) && (defined RS_ENABLE_EGLIMAGE)
+#ifdef RS_ENABLE_GL
             SkImageInfo info = SkImageInfo::MakeN32Premul(width, height);
             auto grContext = context_->MakeGrContext();
             grContexts_.emplace_back(grContext);
