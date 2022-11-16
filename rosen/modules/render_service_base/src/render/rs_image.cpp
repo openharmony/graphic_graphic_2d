@@ -191,14 +191,14 @@ void RSImage::SetImage(const sk_sp<SkImage> image)
     }
 }
 
-void RSImage::SetCompressData(const sk_sp<SkData> data, const int width, const int height)
+void RSImage::SetCompressData(const sk_sp<SkData> data, const uint32_t id, const int width, const int height)
 {
 #ifdef RS_ENABLE_GL
     compressData_ = data;
     if (compressData_) {
         srcRect_.SetAll(0.0, 0.0, width, height);
         static uint64_t pid = static_cast<uint64_t>(GetRealPid()) << 32; // 32 for 64-bit unsignd number shift
-        uniqueId_ = image_ ? (pid | image_->uniqueID()) : 0;
+        uniqueId_ = image_ ? (pid | image_->uniqueID()) : (pid | id) ;
         image_ = nullptr;
     }
 #endif
@@ -323,7 +323,7 @@ RSImage* RSImage::Unmarshalling(Parcel& parcel)
 
     RSImage* rsImage = new RSImage();
     rsImage->SetImage(img);
-    rsImage->SetCompressData(compressData, width, height);
+    rsImage->SetCompressData(compressData, uniqueId, width, height);
     rsImage->SetPixelMap(pixelmap);
     rsImage->SetImageFit(fitNum);
     rsImage->SetImageRepeat(repeatNum);
