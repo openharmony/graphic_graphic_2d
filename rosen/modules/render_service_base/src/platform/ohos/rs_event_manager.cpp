@@ -196,15 +196,13 @@ void RSEventManager::EventReport(const RSSysEventMsg& eventMsg)
                     "UID", eventMsg.uid,
                     "BUNDLE_NAME", eventMsg.bundleName,
                     "ABILITY_NAME", eventMsg.abilityName,
-                    "MSG", eventMsg.msg
-                );
+                    "MSG", eventMsg.msg);
             } else {
                 OHOS::HiviewDFX::HiSysEvent::Write(
                     domain,
                     eventMsg.stringId,
                     eventMsg.eventType,
-                    "MSG", eventMsg.msg
-                );
+                    "MSG", eventMsg.msg);
             }
             state.prevEventTimeStampMs = currentTimeMs;
             RS_LOGD("RSEventManager::EventReport %s success ", eventMsg.stringId.c_str());
