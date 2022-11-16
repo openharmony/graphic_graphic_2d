@@ -20,6 +20,7 @@
 #include "gtest/gtest.h"
 #include "limit_number.h"
 #include "rs_irender_service.h"
+#include "pipeline/rs_main_thread.h"
 #include "pipeline/rs_render_service_connection.h"
 #include "transaction/rs_render_service_connection_stub.h"
 
@@ -39,7 +40,7 @@ public:
 };
 sptr<RSIConnectionToken> RSRenderServiceConnectionStubTest::token_ = new IRemoteStub<RSIConnectionToken>();
 sptr<RSRenderServiceConnectionStub> RSRenderServiceConnectionStubTest::connectionStub_ =
-    new RSRenderServiceConnection(0, nullptr, nullptr, nullptr, token_->AsObject(), nullptr);
+    new RSRenderServiceConnection(0, nullptr, RSMainThread::Instance(), nullptr, token_->AsObject(), nullptr);
 
 void RSRenderServiceConnectionStubTest::SetUpTestCase() {}
 
