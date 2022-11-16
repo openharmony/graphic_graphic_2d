@@ -84,10 +84,10 @@ private:
     int64_t phase_;
     int64_t referenceTime_;
     int64_t error_;
-    int64_t samples_[MAX_SAMPLES];
+    int64_t samples_[MAX_SAMPLES] = {0};
     int64_t presentFenceTime_[NUM_PRESENT] = {-1};
     uint32_t firstSampleIndex_;
-    uint32_t numSamples_;
+    int32_t numSamples_;
     bool modeUpdated_;
     uint32_t numResyncSamplesSincePresent_ = 0;
     uint32_t presentFenceTimeOffset_ = 0;
