@@ -516,7 +516,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
         // Get displayNode buffer age in order to merge visible dirty region for displayNode.
         // And then set egl damage region to improve uni_render efficiency.
         if (isPartialRenderEnabled_) {
-            // Early history buffer Merging will have impact on Overdraw display, so we need to 
+            // Early history buffer Merging will have impact on Overdraw display, so we need to
             // set the full screen dirty to avoid this impact.
             if (RSOverdrawController::GetInstance().IsEnabled()) {
                 node.GetDirtyManager()->ResetDirtyAsSurfaceSize();
