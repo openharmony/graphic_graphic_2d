@@ -138,12 +138,5 @@ void SurfaceNodeCommandHelper::SetContainerWindow(RSContext& context, NodeId nod
         node->SetContainerWindow(hasContainerWindow);
     }
 }
-
-void SurfaceNodeCommandHelper::SetAnimationFinished(RSContext& context, NodeId nodeId)
-{
-    if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId)) {
-        node->SetStartAnimationFinished();
-    }
-}
 } // namespace Rosen
 } // namespace OHOS

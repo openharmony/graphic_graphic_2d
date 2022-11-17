@@ -23,7 +23,6 @@
 #include "common/rs_rect.h"
 #include "common/rs_vector2.h"
 #include "common/rs_vector4.h"
-#include "include/core/SkPicture.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_root_render_node.h"
 #include "platform/common/rs_log.h"
@@ -412,43 +411,6 @@ void RSSurfaceRenderNode::SetCallbackForRenderThreadRefresh(std::function<void(v
 bool RSSurfaceRenderNode::NeedSetCallbackForRenderThreadRefresh()
 {
     return (callbackForRenderThreadRefresh_ == nullptr);
-}
-
-void RSSurfaceRenderNode::BeginPlayBack(sk_sp<SkPicture> picture, float width, float height)
-{
-    if (coldStartThread_ != nullptr) {
-        coldStartThread_->PostPlayBackTask(picture, width, height);
-    }
-}
-
-bool RSSurfaceRenderNode::IsColdStartThreadRunning() const
-{
-    return coldStartThread_ != nullptr;
-}
-
-void RSSurfaceRenderNode::StartColdStartThreadIfNeed()
-{
-    if (coldStartThread_ == nullptr) {
-        auto nodePtr = shared_from_this();
-        coldStartThread_ = std::make_unique<RSColdStartThread>(nodePtr->ReinterpretCastTo<RSSurfaceRenderNode>());
-    }
-}
-
-void RSSurfaceRenderNode::DestroyColdStartThread()
-{
-    coldStartThread_.reset(nullptr);
-    SetStartAnimationFinished();
-    ClearCacheSurface();
-}
-
-bool RSSurfaceRenderNode::IsStartAnimationFinished() const
-{
-    return startAnimationFinished_;
-}
-
-void RSSurfaceRenderNode::SetStartAnimationFinished()
-{
-    startAnimationFinished_ = true;
 }
 
 void RSSurfaceRenderNode::SetVisibleRegionRecursive(const Occlusion::Region& region,

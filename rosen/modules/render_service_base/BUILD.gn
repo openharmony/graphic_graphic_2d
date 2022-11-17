@@ -107,7 +107,6 @@ ohos_shared_library("librender_service_base") {
     #pipeline
     "src/pipeline/rs_base_render_node.cpp",
     "src/pipeline/rs_canvas_render_node.cpp",
-    "src/pipeline/rs_cold_start_thread.cpp",
     "src/pipeline/rs_context.cpp",
     "src/pipeline/rs_dirty_region_manager.cpp",
     "src/pipeline/rs_display_render_node.cpp",
@@ -163,10 +162,6 @@ ohos_shared_library("librender_service_base") {
     "src/overdraw/rs_listened_canvas.cpp",
     "src/overdraw/rs_overdraw_controller.cpp",
   ]
-
-  if (rs_enable_gpu) {
-    sources += [ "src/common/rs_shared_context.cpp" ]
-  }
 
   include_dirs = [
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/src",
