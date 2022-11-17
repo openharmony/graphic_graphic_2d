@@ -19,7 +19,7 @@
 #include <string>
 #include <vector>
 
-#include "foundation/communication/ipc/interfaces/innerkits/ipc_core/include/iremote_broker.h"
+#include "iremote_broker.h"
 
 #include "buffer_extra_data.h"
 #include "surface_buffer.h"
