@@ -332,15 +332,13 @@ void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::CaptureSurfaceInDisplayWithU
         canvas_->save();
     }
 
-    boundsRect_ = SkRect::MakeWH(property.GetBoundsWidth(), property.GetBoundsHeight());
-    frameGravity_ = property.GetFrameGravity();
     const RectF absBounds = {0, 0, property.GetBoundsWidth(), property.GetBoundsHeight()};
     RRect absClipRRect = RRect(absBounds, property.GetCornerRadius());
     RSPropertiesPainter::DrawShadow(property, *canvas_, &absClipRRect);
     if (!property.GetCornerRadius().IsZero()) {
         canvas_->clipRRect(RSPropertiesPainter::RRect2SkRRect(absClipRRect), true);
     } else {
-        canvas_->clipRect(boundsRect_);
+        canvas_->clipRect(SkRect::MakeWH(property.GetBoundsWidth(), property.GetBoundsHeight()));
     }
     auto backgroundColor = static_cast<SkColor>(property.GetBackgroundColor().AsArgbInt());
     if (SkColorGetA(backgroundColor) != SK_AlphaTRANSPARENT) {
@@ -412,17 +410,6 @@ void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::ProcessRootRenderNode(RSRoot
     }
 
     canvas_->save();
-    auto parent = node.GetParent().lock();
-    if (parent && parent->IsInstanceOf<RSSurfaceRenderNode>()) {
-        const auto &property = node.GetRenderProperties();
-        const float frameWidth = property.GetFrameWidth() * property.GetScaleX();
-        const float frameHeight = property.GetFrameHeight() * property.GetScaleY();
-        SkMatrix gravityMatrix;
-        (void) RSPropertiesPainter::GetGravityMatrix(frameGravity_,
-            RectF{0.0f, 0.0f, boundsRect_.width(), boundsRect_.height()},
-            frameWidth, frameHeight, gravityMatrix);
-        canvas_->concat(gravityMatrix);
-    }
     ProcessCanvasRenderNode(node);
     canvas_->restore();
 }
