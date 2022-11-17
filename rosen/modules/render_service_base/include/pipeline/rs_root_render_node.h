@@ -66,23 +66,12 @@ public:
         return needUpdateSurfaceNode_;
     }
 
-    void SetCanvasCacheEnabled(bool isCanvasCacheEnabled)
-    {
-        isCanvasCacheEnabled_ = isCanvasCacheEnabled;
-    }
-
-    bool IsCanvasCacheEnabled() const
-    {
-        return isCanvasCacheEnabled_;
-    }
-
 private:
     std::shared_ptr<RSDirtyRegionManager> dirtyManager_ = nullptr;
     std::shared_ptr<RSSurface> rsSurface_ = nullptr;
     NodeId surfaceNodeId_ = 0;
     bool enableRender_ = true;
     bool needUpdateSurfaceNode_ = false;
-    bool isCanvasCacheEnabled_ = false;
     int32_t suggestedBufferWidth_ = 0;
     int32_t suggestedBufferHeight_ = 0;
 
