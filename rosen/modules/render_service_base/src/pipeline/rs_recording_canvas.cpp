@@ -271,9 +271,9 @@ void RSRecordingCanvas::onDrawBitmapRect(
 void RSRecordingCanvas::onDrawBitmapLattice(
     const SkBitmap& bm, const SkCanvas::Lattice& lattice, const SkRect& dst, const SkPaint* paint)
 {
-    std::unique_ptr<OpItem> op =
-        std::make_unique<BitmapLatticeOpItem>(SkImage::MakeFromBitmap(bm), lattice, dst, paint);
-    AddOp(std::move(op));
+    // use DrawImageLatticeAsBitmap instead of BitmapLatticeOpItem
+    sk_sp<SkImage> image =  SkImage::MakeFromBitmap(bm);
+    DrawImageLatticeAsBitmap(image.get(), lattice, dst, paint);
 }
 
 void RSRecordingCanvas::onDrawImage(const SkImage* img, SkScalar x, SkScalar y, const SkPaint* paint)
@@ -299,8 +299,23 @@ void RSRecordingCanvas::onDrawImageRect(
 void RSRecordingCanvas::onDrawImageLattice(
     const SkImage* img, const SkCanvas::Lattice& lattice, const SkRect& dst, const SkPaint* paint)
 {
-    std::unique_ptr<OpItem> op = std::make_unique<BitmapLatticeOpItem>(sk_ref_sp(img), lattice, dst, paint);
-    AddOp(std::move(op));
+    // use DrawImageLatticeAsBitmap instead of BitmapLatticeOpItem
+    DrawImageLatticeAsBitmap(img, lattice, dst, paint);
+}
+
+void RSRecordingCanvas::DrawImageLatticeAsBitmap(
+    const SkImage* image, const SkCanvas::Lattice& lattice, const SkRect& dst, const SkPaint* paint)
+{
+    SkBitmap bitmap;
+    auto imageInfo = SkImageInfo::Make(dst.width(), dst.height(), kRGBA_8888_SkColorType, kPremul_SkAlphaType);
+    bitmap.allocPixels(imageInfo);
+    SkCanvas tempCanvas(bitmap);
+    // align to [0, 0]
+    tempCanvas.translate(-dst.left(), -dst.top());
+    tempCanvas.drawImageLattice(image, lattice, dst, paint);
+    tempCanvas.flush();
+    // draw on canvas with correct offset
+    drawBitmap(bitmap, dst.left(), dst.top());
 }
 
 void RSRecordingCanvas::DrawAdaptiveRRect(float radius, const SkPaint& paint)

@@ -61,7 +61,7 @@ enum RSOpType : uint16_t {
     TEXTBLOB_OPITEM,
     BITMAP_OPITEM,
     BITMAP_RECT_OPITEM,
-    BITMAP_LATTICE_OPITEM, // marshalling func planning to be implemented
+    BITMAP_LATTICE_OPITEM,
     BITMAP_NINE_OPITEM,
     PIXELMAP_OPITEM,
     PIXELMAP_RECT_OPITEM,

@@ -20,6 +20,7 @@
 #include "experimental/svg/model/SkSVGDOM.h"
 #include "third_party/skia/include/core/SkPaint.h"
 #include "third_party/skia/include/core/SkPath.h"
+#include "third_party/skia/include/core/SkPicture.h"
 
 #include "common/rs_macros.h"
 #include "transaction/rs_marshalling_helper.h"
@@ -56,6 +57,7 @@ public:
     SkPaint GetMaskPaint() const;
     void SetSvgDom(const sk_sp<SkSVGDOM>& svgDom);
     sk_sp<SkSVGDOM> GetSvgDom() const;
+    sk_sp<SkPicture> GetSvgPicture() const;
     void SetMaskType(MaskType type);
     bool IsSvgMask() const;
     bool IsGradientMask() const;
@@ -79,6 +81,7 @@ private:
     double scaleX_ = 1.0f;
     double scaleY_ = 1.0f;
     sk_sp<SkSVGDOM> svgDom_;
+    sk_sp<SkPicture> svgPicture_;
     SkPaint maskPaint_;
     SkPath maskPath_;
 
