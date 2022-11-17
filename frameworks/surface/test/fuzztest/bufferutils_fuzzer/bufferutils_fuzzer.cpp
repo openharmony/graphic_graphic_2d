@@ -70,6 +70,7 @@ namespace OHOS {
         BufferVerifyAllocInfo vaInfo = GetData<BufferVerifyAllocInfo>();
         GraphicHDRMetaData metaData = GetData<GraphicHDRMetaData>();
         uint8_t metaData2 = GetData<uint8_t>();
+        uint32_t reserveInts = GetData<uint32_t>() % 0x100000; // no more than 0x100000
 
         // test
         MessageParcel parcel;
@@ -91,6 +92,15 @@ namespace OHOS {
         std::vector<uint8_t> metaDatas2 = {metaData2};
         WriteHDRMetaDataSet(parcel, metaDatas2);
         ReadHDRMetaDataSet(parcel, metaDatas2);
+
+        ExtDataHandle *handle = AllocExtDataHandle(reserveInts);
+        WriteExtDataHandle(parcel, handle);
+        sptr<SurfaceTunnelHandle> tunnelHandle = nullptr;
+        ReadExtDataHandle(parcel, tunnelHandle);
+        sptr<SurfaceTunnelHandle> tunnelHandle2 = new SurfaceTunnelHandle();
+        tunnelHandle2->SetHandle(handle);
+        tunnelHandle2->Different(tunnelHandle);
+        FreeExtDataHandle(handle);
 
         return true;
     }
