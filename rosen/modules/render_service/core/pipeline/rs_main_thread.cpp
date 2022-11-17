@@ -146,7 +146,6 @@ void RSMainThread::Init()
         ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
         SetRSEventDetectorLoopFinishTag();
         rsEventManager_.UpdateParam();
-        QuickEndFrameTrace(RS_INTERVAL_NAME);
         RS_LOGD("RsDebug mainLoop end");
     };
 
