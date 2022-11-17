@@ -21,50 +21,53 @@
 
 #include <hilog/log.h>
 
-namespace {
-    const int MAX_LOG_LENGTH = 2048;
-}
 namespace OHOS {
 namespace Rosen {
-inline OHOS::HiviewDFX::HiLogLabel GenerateLabel(const std::string& tag)
+namespace {
+constexpr int MAX_LOG_LENGTH = 2048;
+
+// The "0xD001400" is the domain ID for graphic module that alloted by the OS.
+constexpr OHOS::HiviewDFX::HiLogLabel LABEL_RS = { LOG_CORE, 0xD001400, "OHOS::RS" };
+constexpr OHOS::HiviewDFX::HiLogLabel LABEL_ROSEN = { LOG_CORE, 0xD001400, "OHOS::ROSEN" };
+
+inline const OHOS::HiviewDFX::HiLogLabel& GenerateLabel(RSLog::Tag tag)
 {
-    // The "0xD001400" is the domain ID for graphic module that alloted by the OS.
-    OHOS::HiviewDFX::HiLogLabel label = { LOG_CORE, 0xD001400, tag.c_str() };
-    return label;
+    return (tag == RSLog::Tag::RS) ? LABEL_RS : LABEL_ROSEN;
+}
 }
 
-int RSLog::Output(RSLog::Level level, const char* format, ...)
+
+void RSLogOutput(RSLog::Tag tag, RSLog::Level level, const char* format, ...)
 {
     char logStr[MAX_LOG_LENGTH] = {0};
     va_list args;
     va_start(args, format);
     int ret = vsprintf_s(logStr, MAX_LOG_LENGTH, format, args);
     if (ret == -1) { // vsprintf_s failed
-        OHOS::HiviewDFX::HiLog::Error(GenerateLabel(tag_), "print log error in vsprintf_s");
+        OHOS::HiviewDFX::HiLog::Error(GenerateLabel(tag), "print log error in vsprintf_s");
         va_end(args);
-        return -1;
+        return;
     }
     va_end(args);
     switch (level) {
-        case LEVEL_INFO:
-            OHOS::HiviewDFX::HiLog::Info(GenerateLabel(tag_), "%{public}s", logStr);
+        case RSLog::LEVEL_INFO:
+            OHOS::HiviewDFX::HiLog::Info(GenerateLabel(tag), "%{public}s", logStr);
             break;
-        case LEVEL_DEBUG:
-            OHOS::HiviewDFX::HiLog::Debug(GenerateLabel(tag_), "%{public}s", logStr);
+        case RSLog::LEVEL_DEBUG:
+            OHOS::HiviewDFX::HiLog::Debug(GenerateLabel(tag), "%{public}s", logStr);
             break;
-        case LEVEL_WARN:
-            OHOS::HiviewDFX::HiLog::Warn(GenerateLabel(tag_), "%{public}s", logStr);
+        case RSLog::LEVEL_WARN:
+            OHOS::HiviewDFX::HiLog::Warn(GenerateLabel(tag), "%{public}s", logStr);
             break;
-        case LEVEL_ERROR:
-            OHOS::HiviewDFX::HiLog::Error(GenerateLabel(tag_), "%{public}s", logStr);
+        case RSLog::LEVEL_ERROR:
+            OHOS::HiviewDFX::HiLog::Error(GenerateLabel(tag), "%{public}s", logStr);
             break;
-        case LEVEL_FATAL:
-            OHOS::HiviewDFX::HiLog::Fatal(GenerateLabel(tag_), "%{public}s", logStr);
+        case RSLog::LEVEL_FATAL:
+            OHOS::HiviewDFX::HiLog::Fatal(GenerateLabel(tag), "%{public}s", logStr);
             break;
         default:
             break;
     }
-    return 0;
 }
 } // namespace Rosen
 } // namespace OHOS

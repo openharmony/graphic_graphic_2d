@@ -219,7 +219,7 @@ void RSMainThread::InitRSEventDetector()
     rsCompositionTimeoutDetector_ = RSBaseEventDetector::CreateRSTimeOutDetector(100, "RS_COMPOSITION_TIMEOUT");
     if (rsCompositionTimeoutDetector_ != nullptr) {
         rsEventManager_.AddEvent(rsCompositionTimeoutDetector_, 60000); // report Internal 1min:60s：60000ms
-        RS_LOGD("InitRSEventDetector  finish");
+        RS_LOGD("InitRSEventDetector finish");
     }
 }
 
@@ -677,7 +677,7 @@ void RSMainThread::CalcOcclusion()
 
 bool RSMainThread::CheckQosVisChanged(std::map<uint32_t, bool>& pidVisMap)
 {
-    bool isVisibleChanged  = pidVisMap.size() != lastPidVisMap_.size();
+    bool isVisibleChanged = pidVisMap.size() != lastPidVisMap_.size();
     if (!isVisibleChanged) {
         auto iterCur = pidVisMap.begin();
         auto iterLast = lastPidVisMap_.begin();
