@@ -77,6 +77,7 @@ enum class RSModifierType : int16_t {
 
     CUSTOM,
     EXTENDED,
+    TRANSITION,
     BACKGROUND_STYLE,
     CONTENT_STYLE,
     FOREGROUND_STYLE,

@@ -23,19 +23,12 @@
 #include <memory>
 
 #include "animation/rs_animation_common.h"
+#include "animation/rs_value_estimator.h"
+#include "modifier/rs_render_property.h"
+#include "platform/common/rs_log.h"
 
 namespace OHOS {
 namespace Rosen {
-class RSCanvasRenderNode;
-class RSPaintFilterCanvas;
-class RSProperties;
-class RSRenderModifier;
-template<typename T>
-class RSRenderAnimatableProperty;
-class Quaternion;
-template<typename T>
-class Vector2;
-
 #ifdef ROSEN_OHOS
 class RSRenderTransitionEffect : public Parcelable {
 #else
@@ -48,7 +41,10 @@ public:
     virtual void UpdateFraction(float fraction) const = 0;
 
 #ifdef ROSEN_OHOS
-    bool Marshalling(Parcel& parcel) const override = 0;
+    bool Marshalling(Parcel& parcel) const override
+    {
+        return false;
+    }
     static RSRenderTransitionEffect* Unmarshalling(Parcel& parcel);
 #endif
 private:
@@ -130,6 +126,45 @@ private:
     float radian_;
     std::shared_ptr<RSRenderAnimatableProperty<Quaternion>> property_;
     const std::shared_ptr<RSRenderModifier> CreateModifier() override;
+};
+
+class RSTransitionCustom : public RSRenderTransitionEffect {
+public:
+    RSTransitionCustom(std::shared_ptr<RSRenderPropertyBase> property, std::shared_ptr<RSRenderPropertyBase> startValue,
+        std::shared_ptr<RSRenderPropertyBase> endValue)
+        : property_(property), startValue_(startValue), endValue_(endValue)
+    {
+        InitValueEstimator();
+    }
+    ~RSTransitionCustom() override = default;
+
+    void UpdateFraction(float fraction) const override
+    {
+        if (!valueEstimator_) {
+            ROSEN_LOGE("RSTransitionCustom::UpdateFraction: valueEstimator_ is nullptr!");
+            return;
+        }
+        valueEstimator_->UpdateAnimationValue(fraction, true);
+    }
+
+private:
+    const std::shared_ptr<RSRenderModifier> CreateModifier() override
+    {
+        return nullptr;
+    }
+
+    void InitValueEstimator()
+    {
+        if (valueEstimator_ == nullptr) {
+            valueEstimator_ = property_->CreateRSValueEstimator(RSValueEstimatorType::CURVE_VALUE_ESTIMATOR);
+        }
+        valueEstimator_->InitCurveAnimationValue(property_, endValue_, startValue_, startValue_);
+    }
+
+    std::shared_ptr<RSRenderPropertyBase> property_;
+    std::shared_ptr<RSRenderPropertyBase> startValue_;
+    std::shared_ptr<RSRenderPropertyBase> endValue_;
+    std::shared_ptr<RSValueEstimator> valueEstimator_;
 };
 } // namespace Rosen
 } // namespace OHOS

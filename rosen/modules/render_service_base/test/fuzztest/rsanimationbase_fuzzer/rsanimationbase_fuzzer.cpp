@@ -28,7 +28,6 @@
 #include "animation/rs_render_spring_animation.h"
 #include "animation/rs_spring_interpolator.h"
 #include "animation/rs_steps_interpolator.h"
-#include "animation/rs_transition_effect.h"
 
 namespace OHOS {
     using namespace Rosen;
@@ -196,25 +195,6 @@ namespace OHOS {
         animation->Interpolate(fraction);
     }
 
-    void RSTransitionEffectFuzzerTest()
-    {
-        // get data
-        float x1 = GetData<float>();
-        float x2 = GetData<float>();
-        float y1 = GetData<float>();
-        float y2 = GetData<float>();
-        float opacity = GetData<float>();
-        Vector3f scale = Vector3f(x1, x2, y1);
-        Vector3f translate = Vector3f(x2, y1, y2);
-        Vector4f axisAngle = Vector4f(x1, x2, y1, y2);
-        // test
-        auto animation = RSTransitionEffect::Create();
-        animation->Opacity(opacity);
-        animation->Scale(scale);
-        animation->Translate(translate);
-        animation->Rotate(axisAngle);
-    }
-
     bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     {
         if (data == nullptr) {
@@ -231,7 +211,6 @@ namespace OHOS {
         RSCubicBezierInterpolatorFuzzerTest();
         RSSpringInterpolatorFuzzerTest();
         RSStepsInterpolatorFuzzerTest();
-        RSTransitionEffectFuzzerTest();
         return true;
     }
 }

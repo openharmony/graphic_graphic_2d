@@ -15,7 +15,6 @@
 
 #include "animation/rs_render_transition.h"
 
-#include "animation/rs_transition_effect.h"
 #include "pipeline/rs_render_node.h"
 #include "platform/common/rs_log.h"
 #include "transaction/rs_marshalling_helper.h"
@@ -23,15 +22,9 @@
 namespace OHOS {
 namespace Rosen {
 RSRenderTransition::RSRenderTransition(
-    AnimationId id, const std::shared_ptr<const RSTransitionEffect>& effect, bool isTransitionIn)
-    : RSRenderAnimation(id), isTransitionIn_(isTransitionIn)
-{
-    if (isTransitionIn) {
-        effects_ = effect->GetTransitionInEffects();
-    } else {
-        effects_ = effect->GetTransitionOutEffects();
-    }
-}
+    AnimationId id, const std::vector<std::shared_ptr<RSRenderTransitionEffect>>& effects, bool isTransitionIn)
+    : RSRenderAnimation(id), effects_(effects), isTransitionIn_(isTransitionIn)
+{}
 
 #ifdef ROSEN_OHOS
 bool RSRenderTransition::Marshalling(Parcel& parcel) const

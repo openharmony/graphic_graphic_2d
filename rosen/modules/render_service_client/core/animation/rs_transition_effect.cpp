@@ -16,23 +16,38 @@
 #include "animation/rs_transition_effect.h"
 
 #include "animation/rs_render_transition_effect.h"
+#include "modifier/rs_extended_modifier.h"
 #include "platform/common/rs_log.h"
 
 namespace OHOS {
 namespace Rosen {
 constexpr float DEGREE_TO_RADIAN = M_PI / 180;
 
+const std::shared_ptr<const RSTransitionEffect> RSTransitionEffect::EMPTY = RSTransitionEffect::Create();
+
 const std::shared_ptr<const RSTransitionEffect> RSTransitionEffect::OPACITY = RSTransitionEffect::Create()->Opacity(0);
 
 const std::shared_ptr<const RSTransitionEffect> RSTransitionEffect::SCALE =
     RSTransitionEffect::Create()->Scale({ 0.f, 0.f, 0.f });
 
-const std::shared_ptr<const RSTransitionEffect> RSTransitionEffect::EMPTY = RSTransitionEffect::Create();
-
 std::shared_ptr<RSTransitionEffect> RSTransitionEffect::Create()
 {
     return std::shared_ptr<RSTransitionEffect>(new RSTransitionEffect());
 }
+
+std::shared_ptr<RSTransitionEffect> RSTransitionEffect::Asymmetric(
+    const std::shared_ptr<RSTransitionEffect>& transitionIn, const std::shared_ptr<RSTransitionEffect>& transitionOut)
+{
+    return std::shared_ptr<RSTransitionEffect>(new RSTransitionEffect(transitionIn, transitionOut));
+}
+
+RSTransitionEffect::RSTransitionEffect(
+    const std::shared_ptr<RSTransitionEffect>& transitionIn, const std::shared_ptr<RSTransitionEffect>& transitionOut)
+    : transitionInEffects_(transitionIn->transitionInEffects_),
+      transitionOutEffects_(transitionOut->transitionOutEffects_),
+      customTransitionInEffects_(transitionIn->customTransitionInEffects_),
+      customTransitionOutEffects_(transitionOut->customTransitionOutEffects_)
+{}
 
 std::shared_ptr<RSTransitionEffect> RSTransitionEffect::Opacity(float opacity)
 {
@@ -83,26 +98,39 @@ std::shared_ptr<RSTransitionEffect> RSTransitionEffect::Rotate(const Vector4f& a
     return shared_from_this();
 }
 
-std::shared_ptr<RSTransitionEffect> RSTransitionEffect::Asymmetric(
-    const std::shared_ptr<RSTransitionEffect>& transitionIn, const std::shared_ptr<RSTransitionEffect>& transitionOut)
+std::shared_ptr<RSTransitionEffect> RSTransitionEffect::Custom(const std::shared_ptr<RSTransitionModifier>& modifier)
 {
-    return std::shared_ptr<RSTransitionEffect>(new RSTransitionEffect(transitionIn, transitionOut));
+    if (modifier == nullptr) {
+        ROSEN_LOGI("RSTransitionEffect::Custom: Skip empty transition effect case modifier is nullptr");
+        return shared_from_this();
+    }
+    auto customEffect = std::make_shared<RSCustomTransitionEffect>(modifier);
+    customTransitionInEffects_.push_back(customEffect);
+    customTransitionOutEffects_.push_back(customEffect);
+    return shared_from_this();
 }
 
-RSTransitionEffect::RSTransitionEffect(
-    const std::shared_ptr<RSTransitionEffect>& transitionIn, const std::shared_ptr<RSTransitionEffect>& transitionOut)
-    : transitionInEffects_(transitionIn->GetTransitionInEffects()),
-      transitionOutEffects_(transitionOut->GetTransitionOutEffects())
-{}
-
-const std::vector<std::shared_ptr<RSRenderTransitionEffect>>& RSTransitionEffect::GetTransitionInEffects() const
+void RSCustomTransitionEffect::Custom(const std::shared_ptr<RSPropertyBase>& property,
+    const std::shared_ptr<RSPropertyBase>& startValue, const std::shared_ptr<RSPropertyBase>& endValue)
 {
-    return transitionInEffects_;
+    properties_.emplace_back(property, endValue);
+    auto customEffect = std::make_shared<RSTransitionCustom>(property->GetRenderProperty(),
+        startValue->GetRenderProperty(), endValue->GetRenderProperty());
+    customTransitionEffects_.push_back(customEffect);
 }
 
-const std::vector<std::shared_ptr<RSRenderTransitionEffect>>& RSTransitionEffect::GetTransitionOutEffects() const
+void RSCustomTransitionEffect::Active()
 {
-    return transitionOutEffects_;
+    if (modifier_) {
+        modifier_->Active();
+    }
+}
+
+void RSCustomTransitionEffect::Identity()
+{
+    if (modifier_) {
+        modifier_->Identity();
+    }
 }
 } // namespace Rosen
 } // namespace OHOS

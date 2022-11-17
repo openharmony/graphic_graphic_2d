@@ -45,7 +45,7 @@ public:
     void BeginImplicitKeyFrameAnimation(float fraction);
     void EndImplicitKeyFrameAnimation();
 
-    void BeginImplicitTransition(const std::shared_ptr<const RSTransitionEffect>& effect);
+    void BeginImplicitTransition(const std::shared_ptr<const RSTransitionEffect>& effect, bool isTransitionIn);
     void EndImplicitTransition();
 
     void BeginImplicitPathAnimation(const std::shared_ptr<RSMotionPathOption>& motionPathOption);
@@ -57,7 +57,7 @@ public:
         std::shared_ptr<RSPropertyBase> property, const std::shared_ptr<RSPropertyBase>& startValue,
         const std::shared_ptr<RSPropertyBase>& endValue);
 
-    std::shared_ptr<RSAnimation> CreateImplicitTransition(RSNode& target, bool isTransitionIn);
+    std::shared_ptr<RSAnimation> CreateImplicitTransition(RSNode& target);
 
 private:
     void EndImplicitAnimation();
@@ -70,11 +70,24 @@ private:
 
     void SetPropertyValue(std::shared_ptr<RSPropertyBase> property, const std::shared_ptr<RSPropertyBase>& value);
 
+    void BeginShieldImplicitAnimation()
+    {
+        isImplicitAnimationShielded_ = true;
+    }
+
+    void EndShieldImplicitAnimation()
+    {
+        isImplicitAnimationShielded_ = false;
+    }
+
     std::stack<std::tuple<RSAnimationTimingProtocol, RSAnimationTimingCurve, std::function<void()>>>
         globalImplicitParams_;
     std::stack<std::shared_ptr<RSImplicitAnimationParam>> implicitAnimationParams_;
     std::stack<std::vector<std::pair<std::shared_ptr<RSAnimation>, NodeId>>> implicitAnimations_;
     std::stack<std::map<std::pair<NodeId, PropertyId>, std::shared_ptr<RSAnimation>>> keyframeAnimations_;
+
+    bool isImplicitAnimationShielded_ { false };
+    friend class RSNode;
 };
 } // namespace Rosen
 } // namespace OHOS

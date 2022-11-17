@@ -103,6 +103,21 @@ protected:
     }
 };
 
+class RS_EXPORT RSTransitionModifier : public RSExtendedModifier {
+public:
+    RSTransitionModifier() : RSExtendedModifier(RSModifierType::TRANSITION)
+    {}
+
+    RSModifierType GetModifierType() const override
+    {
+        return RSModifierType::TRANSITION;
+    }
+
+    virtual void Active() = 0;
+
+    virtual void Identity() = 0;
+};
+
 class RS_EXPORT RSBackgroundStyleModifier : public RSExtendedModifier {
 public:
     RSBackgroundStyleModifier() : RSExtendedModifier(RSModifierType::BACKGROUND_STYLE)

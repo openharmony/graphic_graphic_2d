@@ -58,15 +58,14 @@ void RSAnimationBaseTest::InitNode(int width, int height)
     rootNode = RSRootNode::Create();
     rootNode->SetBounds(0, 0, width, height);
     rootNode->SetFrame(0, 0, width, height);
-    rootNode->SetBackgroundColor(SK_ColorRED);
+    rootNode->SetBackgroundColor(SK_ColorYELLOW);
+
     canvasNode = RSCanvasNode::Create();
     canvasNode->SetBounds(ANIMATION_START_BOUNDS);
     canvasNode->SetFrame(ANIMATION_START_BOUNDS);
     canvasNode->SetBackgroundColor(SK_ColorBLUE);
     rootNode->AddChild(canvasNode, -1);
     rsUiDirector->SetRoot(rootNode->GetId());
-    // change property in nodes [setter using modifier]
-    rootNode->SetBackgroundColor(SK_ColorYELLOW);
 }
 
 void RSAnimationBaseTest::InitAnimationWindow()

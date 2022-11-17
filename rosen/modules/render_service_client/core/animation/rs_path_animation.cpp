@@ -138,7 +138,7 @@ void RSPathAnimation::OnStart()
     InitRotationId(target);
     auto interpolator = timingCurve_.GetInterpolator(GetDuration());
     auto animation = std::make_shared<RSRenderPathAnimation>(GetId(), GetPropertyId(),
-        originValue_->CreateRenderProperty(), startValue_->CreateRenderProperty(), endValue_->CreateRenderProperty(),
+        originValue_->GetRenderProperty(), startValue_->GetRenderProperty(), endValue_->GetRenderProperty(),
         target->GetStagingProperties().GetRotation(), animationPath_);
     UpdateParamToRenderAnimation(animation);
     animation->SetInterpolator(interpolator);

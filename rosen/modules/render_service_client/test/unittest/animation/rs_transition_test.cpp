@@ -18,6 +18,7 @@
 
 #include "animation/rs_transition.h"
 #include "animation/rs_transition_effect.h"
+#include "modifier/rs_extended_modifier.h"
 #include "common/rs_color.h"
 
 using namespace testing;
@@ -28,6 +29,433 @@ namespace Rosen {
 using namespace ANIMATIONTEST;
 class RSTransitionTest : public RSAnimationBaseTest {
 };
+
+class TransitionModifier : public RSTransitionModifier {
+public:
+    void Draw(RSDrawingContext& context) const override
+    {
+        if (!alpha_ || !rect_ || !backgroundColor_) {
+            SkRect rect = SkRect::MakeXYWH(0, 0, 0, 0);
+            SkPaint p;
+            context.canvas->drawRect(rect, p);
+            return;
+        }
+        SkRect rect = SkRect::MakeXYWH(rect_->Get().x_, rect_->Get().y_, rect_->Get().z_, rect_->Get().w_);
+        SkPaint p;
+        p.setColor(backgroundColor_->Get().AsArgbInt());
+        p.setAlphaf(alpha_->Get());
+        context.canvas->drawRect(rect, p);
+    }
+    void SetRect(Vector4f rect)
+    {
+        if (rect_ == nullptr) {
+            rect_ = std::make_shared<RSAnimatableProperty<Vector4f>>(rect);
+            AttachProperty(rect_);
+        } else {
+            rect_->Set(rect);
+        }
+    }
+    void SetBackgroundColor(Color backgroundColor)
+    {
+        if (backgroundColor_ == nullptr) {
+            backgroundColor_ = std::make_shared<RSAnimatableProperty<Color>>(backgroundColor);
+            AttachProperty(backgroundColor_);
+        } else {
+            backgroundColor_->Set(backgroundColor);
+        }
+    }
+    void SetAlpha(float alpha)
+    {
+        if (alpha_ == nullptr) {
+            alpha_ = std::make_shared<RSAnimatableProperty<float>>(alpha);
+            AttachProperty(alpha_);
+        } else {
+            alpha_->Set(alpha);
+        }
+    }
+    void Active() override
+    {
+        SetRect({ 0, 200, 0, 0 });
+        SetBackgroundColor(Color(255, 0, 0));
+        SetAlpha(0);
+    }
+    void Identity() override
+    {
+        SetRect({ 0, 200, 400, 200 });
+        SetBackgroundColor(Color(0, 0, 255));
+        SetAlpha(1);
+    }
+private:
+    std::shared_ptr<RSAnimatableProperty<Vector4f>> rect_;
+    std::shared_ptr<RSAnimatableProperty<Color>> backgroundColor_;
+    std::shared_ptr<RSAnimatableProperty<float>> alpha_;
+};
+
+/*
+ * @tc.name: CustomTransitionEffectTest001
+ * @tc.desc: Verify the custom transition effect of TransitionTest
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSTransitionTest, CustomTransitionEffectTest001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSTransitionTest CustomTransitionEffectTest001 start";
+
+    /**
+     * @tc.steps: step1. init custom transition effect
+     */
+    auto newCanvasNode = RSCanvasNode::Create();
+    newCanvasNode->SetBounds(250, 500, 200, 200);
+    newCanvasNode->SetBackgroundColor(SK_ColorRED);
+    auto transitionModifier = std::make_shared<TransitionModifier>();
+    newCanvasNode->AddModifier(transitionModifier);
+    auto transitionInEffect = RSTransitionEffect::Create()->Custom(transitionModifier);
+    auto transitionOutEffect = RSTransitionEffect::Create()->Custom(transitionModifier);
+    newCanvasNode->SetTransitionEffect(RSTransitionEffect::Asymmetric(transitionInEffect, transitionOutEffect));
+
+    /**
+     * @tc.steps: step2. start transition-in test
+     */
+    RSAnimationTimingProtocol protocol;
+    protocol.SetDuration(2000);
+    bool isFinished = false;
+    auto animations = RSNode::Animate(protocol, RSAnimationTimingCurve::EASE, [&]() {
+        rootNode->AddChild(newCanvasNode, -1);
+    }, [&isFinished]() {
+        isFinished = true;
+    });
+    EXPECT_TRUE(animations.size() == CORRECT_SIZE);
+    EXPECT_FALSE(animations[FIRST_ANIMATION] == nullptr);
+    EXPECT_TRUE(animations[FIRST_ANIMATION]->IsRunning());
+    NotifyStartAnimation();
+    EXPECT_TRUE(isFinished == true);
+
+    /**
+     * @tc.steps: step3. start transition-out test
+     */
+    isFinished = false;
+    animations = RSNode::Animate(protocol, RSAnimationTimingCurve::EASE, [&]() {
+        rootNode->RemoveChild(newCanvasNode);
+    }, [&isFinished]() {
+        isFinished = true;
+    });
+    EXPECT_TRUE(animations.size() == CORRECT_SIZE);
+    EXPECT_FALSE(animations[FIRST_ANIMATION] == nullptr);
+    EXPECT_TRUE(animations[FIRST_ANIMATION]->IsRunning());
+    NotifyStartAnimation();
+    EXPECT_TRUE(isFinished == true);
+
+    GTEST_LOG_(INFO) << "RSTransitionTest CustomTransitionEffectTest001 end";
+}
+
+/*
+ * @tc.name: CustomTransitionEffectTest002
+ * @tc.desc: Verify the custom transition effect of TransitionTest
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSTransitionTest, CustomTransitionEffectTest002, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSTransitionTest CustomTransitionEffectTest002 start";
+
+    /**
+     * @tc.steps: step1. init custom transition effect
+     */
+    auto newCanvasNode = RSCanvasNode::Create();
+    rootNode->AddChild(newCanvasNode, -1);
+    newCanvasNode->SetBounds(250, 500, 200, 200);
+    newCanvasNode->SetBackgroundColor(SK_ColorRED);
+    auto transitionModifier = std::make_shared<TransitionModifier>();
+    newCanvasNode->AddModifier(transitionModifier);
+    auto transitionInEffect = RSTransitionEffect::Create()->Custom(transitionModifier);
+    auto transitionOutEffect = RSTransitionEffect::Create()->Custom(transitionModifier);
+    newCanvasNode->SetTransitionEffect(RSTransitionEffect::Asymmetric(transitionInEffect, transitionOutEffect));
+
+    /**
+     * @tc.steps: step2. start transition-in test
+     */
+    RSAnimationTimingProtocol protocol;
+    protocol.SetDuration(2000);
+    newCanvasNode->SetVisible(false);
+    bool isFinished = false;
+    auto animations = RSNode::Animate(protocol, RSAnimationTimingCurve::EASE, [&]() {
+        newCanvasNode->SetVisible(true);
+    }, [&isFinished]() {
+        isFinished = true;
+    });
+    EXPECT_TRUE(animations.size() == CORRECT_SIZE);
+    EXPECT_FALSE(animations[FIRST_ANIMATION] == nullptr);
+    EXPECT_TRUE(animations[FIRST_ANIMATION]->IsRunning());
+    NotifyStartAnimation();
+    EXPECT_TRUE(isFinished == true);
+
+    /**
+     * @tc.steps: step3. start transition-out test
+     */
+    isFinished = false;
+    animations = RSNode::Animate(protocol, RSAnimationTimingCurve::EASE, [&]() {
+        newCanvasNode->SetVisible(false);
+    }, [&isFinished]() {
+        isFinished = true;
+    });
+    EXPECT_TRUE(animations.size() == CORRECT_SIZE);
+    EXPECT_FALSE(animations[FIRST_ANIMATION] == nullptr);
+    EXPECT_TRUE(animations[FIRST_ANIMATION]->IsRunning());
+    NotifyStartAnimation();
+    EXPECT_TRUE(isFinished == true);
+
+    GTEST_LOG_(INFO) << "RSTransitionTest CustomTransitionEffectTest002 end";
+}
+
+/*
+ * @tc.name: CustomTransitionEffectTest003
+ * @tc.desc: Verify the custom transition effect of TransitionTest
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSTransitionTest, CustomTransitionEffectTest003, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSTransitionTest CustomTransitionEffectTest003 start";
+
+    /**
+     * @tc.steps: step1. init custom transition effect
+     */
+    auto newCanvasNode = RSCanvasNode::Create();
+    rootNode->AddChild(newCanvasNode, -1);
+    newCanvasNode->SetBounds(250, 500, 200, 200);
+    newCanvasNode->SetBackgroundColor(SK_ColorRED);
+    auto transitionModifier = std::make_shared<TransitionModifier>();
+    newCanvasNode->AddModifier(transitionModifier);
+    auto transitionInEffect = RSTransitionEffect::Create()->Custom(transitionModifier);
+    auto transitionOutEffect = RSTransitionEffect::Create()->Custom(transitionModifier);
+    newCanvasNode->SetTransitionEffect(RSTransitionEffect::Asymmetric(transitionInEffect, transitionOutEffect));
+
+    /**
+     * @tc.steps: step2. start transition-in test
+     */
+    RSAnimationTimingProtocol protocol;
+    protocol.SetDuration(2000);
+    bool isFinished = false;
+    auto animations = RSNode::Animate(protocol, RSAnimationTimingCurve::EASE, [&]() {
+        newCanvasNode->NotifyTransition(transitionInEffect, true);
+    }, [&isFinished]() {
+        isFinished = true;
+    });
+    EXPECT_TRUE(animations.size() == CORRECT_SIZE);
+    EXPECT_FALSE(animations[FIRST_ANIMATION] == nullptr);
+    EXPECT_TRUE(animations[FIRST_ANIMATION]->IsRunning());
+    NotifyStartAnimation();
+    EXPECT_TRUE(isFinished == true);
+
+    /**
+     * @tc.steps: step3. start transition-out test
+     */
+    isFinished = false;
+    animations = RSNode::Animate(protocol, RSAnimationTimingCurve::EASE, [&]() {
+        newCanvasNode->NotifyTransition(transitionOutEffect, false);
+    }, [&isFinished]() {
+        isFinished = true;
+    });
+    EXPECT_TRUE(animations.size() == CORRECT_SIZE);
+    EXPECT_FALSE(animations[FIRST_ANIMATION] == nullptr);
+    EXPECT_TRUE(animations[FIRST_ANIMATION]->IsRunning());
+    NotifyStartAnimation();
+    EXPECT_TRUE(isFinished == true);
+
+    GTEST_LOG_(INFO) << "RSTransitionTest CustomTransitionEffectTest003 end";
+}
+
+/*
+ * @tc.name: CombinedTransitionEffectTest001
+ * @tc.desc: Verify the custom transition effect with built-in transition effect of TransitionTest
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSTransitionTest, CombinedTransitionEffectTest001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSTransitionTest CombinedTransitionEffectTest001 start";
+
+    /**
+     * @tc.steps: step1. init custom transition effect with built-in transition effect
+     */
+    auto newCanvasNode = RSCanvasNode::Create();
+    newCanvasNode->SetBounds(250, 500, 200, 200);
+    newCanvasNode->SetBackgroundColor(SK_ColorRED);
+    auto transitionModifier = std::make_shared<TransitionModifier>();
+    newCanvasNode->AddModifier(transitionModifier);
+    auto transitionInEffect =
+            RSTransitionEffect::Create()
+            ->Custom(transitionModifier)
+            ->Opacity(0)
+            ->Translate({ -250, 0, 0 });
+    auto transitionOutEffect =
+            RSTransitionEffect::Create()
+            ->Custom(transitionModifier)
+            ->Opacity(0)
+            ->Translate({ 250, 0, 0 });
+    newCanvasNode->SetTransitionEffect(RSTransitionEffect::Asymmetric(transitionInEffect, transitionOutEffect));
+
+    /**
+     * @tc.steps: step2. start transition-in test
+     */
+    RSAnimationTimingProtocol protocol;
+    protocol.SetDuration(2000);
+    bool isFinished = false;
+    auto animations = RSNode::Animate(protocol, RSAnimationTimingCurve::EASE, [&]() {
+        rootNode->AddChild(newCanvasNode, -1);
+    }, [&isFinished]() {
+        isFinished = true;
+    });
+    EXPECT_TRUE(animations.size() == CORRECT_SIZE);
+    EXPECT_FALSE(animations[FIRST_ANIMATION] == nullptr);
+    EXPECT_TRUE(animations[FIRST_ANIMATION]->IsRunning());
+    NotifyStartAnimation();
+    EXPECT_TRUE(isFinished == true);
+
+    /**
+     * @tc.steps: step3. start transition-out test
+     */
+    isFinished = false;
+    animations = RSNode::Animate(protocol, RSAnimationTimingCurve::EASE, [&]() {
+        rootNode->RemoveChild(newCanvasNode);
+    }, [&isFinished]() {
+        isFinished = true;
+    });
+    EXPECT_TRUE(animations.size() == CORRECT_SIZE);
+    EXPECT_FALSE(animations[FIRST_ANIMATION] == nullptr);
+    EXPECT_TRUE(animations[FIRST_ANIMATION]->IsRunning());
+    NotifyStartAnimation();
+    EXPECT_TRUE(isFinished == true);
+
+    GTEST_LOG_(INFO) << "RSTransitionTest CombinedTransitionEffectTest001 end";
+}
+
+/*
+ * @tc.name: CombinedTransitionEffectTest002
+ * @tc.desc: Verify the custom transition effect with built-in transition effect of TransitionTest
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSTransitionTest, CombinedTransitionEffectTest002, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSTransitionTest CombinedTransitionEffectTest002 start";
+
+    /**
+     * @tc.steps: step1. init custom transition effect with built-in transition effect
+     */
+    auto newCanvasNode = RSCanvasNode::Create();
+    rootNode->AddChild(newCanvasNode, -1);
+    newCanvasNode->SetBounds(250, 500, 200, 200);
+    newCanvasNode->SetBackgroundColor(SK_ColorRED);
+    auto transitionModifier = std::make_shared<TransitionModifier>();
+    newCanvasNode->AddModifier(transitionModifier);
+    auto transitionInEffect =
+            RSTransitionEffect::Create()
+            ->Custom(transitionModifier)
+            ->Opacity(0)
+            ->Translate({ -250, 0, 0 });
+    auto transitionOutEffect =
+            RSTransitionEffect::Create()
+            ->Custom(transitionModifier)
+            ->Opacity(0)
+            ->Translate({ 250, 0, 0 });
+    newCanvasNode->SetTransitionEffect(RSTransitionEffect::Asymmetric(transitionInEffect, transitionOutEffect));
+
+    /**
+     * @tc.steps: step2. start transition-in test
+     */
+    RSAnimationTimingProtocol protocol;
+    protocol.SetDuration(2000);
+    newCanvasNode->SetVisible(false);
+    bool isFinished = false;
+    auto animations = RSNode::Animate(protocol, RSAnimationTimingCurve::EASE, [&]() {
+        newCanvasNode->SetVisible(true);
+    }, [&isFinished]() {
+        isFinished = true;
+    });
+    EXPECT_TRUE(animations.size() == CORRECT_SIZE);
+    EXPECT_FALSE(animations[FIRST_ANIMATION] == nullptr);
+    EXPECT_TRUE(animations[FIRST_ANIMATION]->IsRunning());
+    NotifyStartAnimation();
+    EXPECT_TRUE(isFinished == true);
+
+    /**
+     * @tc.steps: step3. start transition-out test
+     */
+    isFinished = false;
+    animations = RSNode::Animate(protocol, RSAnimationTimingCurve::EASE, [&]() {
+        newCanvasNode->SetVisible(false);
+    }, [&isFinished]() {
+        isFinished = true;
+    });
+    EXPECT_TRUE(animations.size() == CORRECT_SIZE);
+    EXPECT_FALSE(animations[FIRST_ANIMATION] == nullptr);
+    EXPECT_TRUE(animations[FIRST_ANIMATION]->IsRunning());
+    NotifyStartAnimation();
+    EXPECT_TRUE(isFinished == true);
+
+    GTEST_LOG_(INFO) << "RSTransitionTest CombinedTransitionEffectTest002 end";
+}
+
+/*
+ * @tc.name: CombinedTransitionEffectTest003
+ * @tc.desc: Verify the custom transition effect with built-in transition effect of TransitionTest
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSTransitionTest, CombinedTransitionEffectTest003, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSTransitionTest CombinedTransitionEffectTest003 start";
+
+    /**
+     * @tc.steps: step1. init custom transition effect with built-in transition effect
+     */
+    auto newCanvasNode = RSCanvasNode::Create();
+    rootNode->AddChild(newCanvasNode, -1);
+    newCanvasNode->SetBounds(250, 500, 200, 200);
+    newCanvasNode->SetBackgroundColor(SK_ColorRED);
+    auto transitionModifier = std::make_shared<TransitionModifier>();
+    newCanvasNode->AddModifier(transitionModifier);
+    auto transitionInEffect =
+            RSTransitionEffect::Create()
+            ->Custom(transitionModifier)
+            ->Opacity(0)
+            ->Translate({ -250, 0, 0 });
+    auto transitionOutEffect =
+            RSTransitionEffect::Create()
+            ->Custom(transitionModifier)
+            ->Opacity(0)
+            ->Translate({ 250, 0, 0 });
+    newCanvasNode->SetTransitionEffect(RSTransitionEffect::Asymmetric(transitionInEffect, transitionOutEffect));
+
+    /**
+     * @tc.steps: step2. start transition-in test
+     */
+    RSAnimationTimingProtocol protocol;
+    protocol.SetDuration(2000);
+    bool isFinished = false;
+    auto animations = RSNode::Animate(protocol, RSAnimationTimingCurve::EASE, [&]() {
+        newCanvasNode->NotifyTransition(transitionInEffect, true);
+    }, [&isFinished]() {
+        isFinished = true;
+    });
+    EXPECT_TRUE(animations.size() == CORRECT_SIZE);
+    EXPECT_FALSE(animations[FIRST_ANIMATION] == nullptr);
+    EXPECT_TRUE(animations[FIRST_ANIMATION]->IsRunning());
+    NotifyStartAnimation();
+    EXPECT_TRUE(isFinished == true);
+
+    /**
+     * @tc.steps: step3. start transition-out test
+     */
+    isFinished = false;
+    animations = RSNode::Animate(protocol, RSAnimationTimingCurve::EASE, [&]() {
+        newCanvasNode->NotifyTransition(transitionOutEffect, false);
+    }, [&isFinished]() {
+        isFinished = true;
+    });
+    EXPECT_TRUE(animations.size() == CORRECT_SIZE);
+    EXPECT_FALSE(animations[FIRST_ANIMATION] == nullptr);
+    EXPECT_TRUE(animations[FIRST_ANIMATION]->IsRunning());
+    NotifyStartAnimation();
+    EXPECT_TRUE(isFinished == true);
+
+    GTEST_LOG_(INFO) << "RSTransitionTest CombinedTransitionEffectTest003 end";
+}
 
 /**
  * @tc.name: SetTransitionEffectTest001

@@ -147,14 +147,9 @@ void RSPropertyAnimation::StartCustomPropertyAnimation(const std::shared_ptr<RSR
         return;
     }
 
-    auto renderProperty = animationManager->GetRenderProperty(property_->GetId());
-    if (renderProperty == nullptr) {
-        renderProperty = property_->CreateRenderProperty();
-    }
-    animationManager->AddAnimatableProp(property_->GetId(), property_, renderProperty);
-    animation->AttachRenderProperty(renderProperty);
+    animation->SetFinishCallback([this]() { CallFinishCallback(); });
     animation->Start();
-    animationManager->AddAnimation(animation, shared_from_this());
+    animationManager->AddAnimation(animation);
 }
 
 void RSPropertyAnimation::SetPropertyOnAllAnimationFinish()

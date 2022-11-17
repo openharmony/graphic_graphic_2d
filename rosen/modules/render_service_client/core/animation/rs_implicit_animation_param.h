@@ -30,6 +30,7 @@ enum class ImplicitAnimationParamType { NONE, CURVE, KEYFRAME, PATH, SPRING, TRA
 class RSAnimation;
 class RSPropertyBase;
 class RSMotionPathOption;
+class RSTransition;
 class RSTransitionEffect;
 
 class RSImplicitAnimationParam {
@@ -115,13 +116,20 @@ private:
 class RSImplicitTransitionParam : public RSImplicitAnimationParam {
 public:
     RSImplicitTransitionParam(const RSAnimationTimingProtocol& timingProtocol,
-        const RSAnimationTimingCurve& timingCurve, const std::shared_ptr<const RSTransitionEffect>& effect);
+        const RSAnimationTimingCurve& timingCurve, const std::shared_ptr<const RSTransitionEffect>& effect,
+        bool isTransitionIn);
     virtual ~RSImplicitTransitionParam() = default;
 
-    std::shared_ptr<RSAnimation> CreateAnimation(bool isTransitionIn);
+    std::shared_ptr<RSAnimation> CreateAnimation();
+
+    std::shared_ptr<RSAnimation> CreateAnimation(const std::shared_ptr<RSPropertyBase>& property,
+        const std::shared_ptr<RSPropertyBase>& startValue, const std::shared_ptr<RSPropertyBase>& endValue);
 
 private:
     RSAnimationTimingCurve timingCurve_;
+
+    bool isTransitionIn_;
+    std::shared_ptr<RSTransition> transition_;
     const std::shared_ptr<const RSTransitionEffect> effect_;
 };
 } // namespace Rosen

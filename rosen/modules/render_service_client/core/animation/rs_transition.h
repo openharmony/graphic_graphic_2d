@@ -24,7 +24,7 @@
 
 namespace OHOS {
 namespace Rosen {
-
+class RSRenderTransition;
 class RS_EXPORT RSTransition : public RSAnimation {
 public:
     RSTransition(const std::shared_ptr<const RSTransitionEffect>& effect, bool isTransitionIn);
@@ -44,10 +44,19 @@ public:
         timingCurve_ = timingCurve;
     }
 
+    void SetIsCustom(bool isCustom)
+    {
+        isCustom_ = isCustom;
+    }
+
 protected:
     void OnStart() override;
+    void OnUpdateStagingValue(bool isFirstStart) override;
+    void StartCustomTransition();
+    void StartRenderTransition();
 
 private:
+    bool isCustom_ { false };
     bool isTransitionIn_;
     std::shared_ptr<const RSTransitionEffect> effect_;
     RSAnimationTimingCurve timingCurve_ { RSAnimationTimingCurve::DEFAULT };
