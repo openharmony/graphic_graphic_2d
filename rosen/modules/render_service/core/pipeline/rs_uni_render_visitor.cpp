@@ -15,8 +15,6 @@
 
 #include "pipeline/rs_uni_render_visitor.h"
 
-#include "include/core/SkPicture.h"
-#include "include/core/SkPictureRecorder.h"
 #include "include/core/SkRegion.h"
 #include "include/core/SkTextBlob.h"
 #include "rs_trace.h"
@@ -42,21 +40,6 @@
 
 namespace OHOS {
 namespace Rosen {
-namespace {
-bool IsFirstFrameReadyToDraw(RSSurfaceRenderNode& node)
-{
-    for (auto& child : node.GetSortedChildren()) {
-        if (child != nullptr && child->IsInstanceOf<RSRootRenderNode>()) {
-            auto rootNode = child->ReinterpretCastTo<RSRootRenderNode>();
-            const auto& property = rootNode->GetRenderProperties();
-            if (property.GetFrameWidth() > 0 && property.GetFrameHeight() > 0 && rootNode->GetEnableRender()) {
-                return true;
-            }
-        }
-    }
-    return false;
-}
-}
 RSUniRenderVisitor::RSUniRenderVisitor()
     : curSurfaceDirtyManager_(std::make_shared<RSDirtyRegionManager>())
 {
@@ -812,6 +795,17 @@ void RSUniRenderVisitor::InitCacheSurface(RSSurfaceRenderNode& node, int width, 
 #endif
 }
 
+void RSUniRenderVisitor::DrawCacheSurface(RSSurfaceRenderNode& node)
+{
+    canvas_->save();
+    canvas_->scale(
+        node.GetRenderProperties().GetBoundsWidth() / node.GetCacheSurface()->width(),
+        node.GetRenderProperties().GetBoundsHeight() / node.GetCacheSurface()->height());
+    SkPaint paint;
+    node.GetCacheSurface()->draw(canvas_.get(), 0.0, 0.0, &paint);
+    canvas_->restore();
+}
+
 void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
 {
     RS_TRACE_NAME("RSUniRender::Process:[" + node.GetName() + "]" + node.GetDstRect().ToString());
@@ -844,6 +838,7 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
         curSurfaceNode_ = node.ReinterpretCastTo<RSSurfaceRenderNode>();
     }
 #endif
+
     if (!canvas_) {
         RS_LOGE("RSUniRenderVisitor::ProcessSurfaceRenderNode, canvas is nullptr");
         return;
@@ -853,36 +848,6 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
         RS_LOGE("RSUniRenderVisitor::ProcessSurfaceRenderNode node:%" PRIu64 ", get geoPtr failed", node.GetId());
         return;
     }
-
-    if (node.GetSurfaceNodeType() == RSSurfaceNodeType::LEASH_WINDOW_NODE) {
-        needColdStartThread_ = node.GetChildrenCount() > 1; // childCount > 1 means startingWindow and appWindow
-    }
-
-    if (node.GetSurfaceNodeType() == RSSurfaceNodeType::STARTING_WINDOW_NODE && !needDrawStartingWindow_) {
-        needDrawStartingWindow_ = true; // reset to default value
-        RS_LOGD("RSUniRenderVisitor::ProcessSurfaceRenderNode skip startingWindow");
-        return;
-    }
-
-    if ((needColdStartThread_ || node.IsColdStartThreadRunning()) && node.IsAppWindow()) {
-        if (node.IsStartAnimationFinished()) {
-            if (node.GetCacheSurface() == nullptr) {
-                RS_LOGE("RSUniRenderVisitor::ProcessSurfaceRenderNode draw first frame too slowly.");
-            }
-            node.DestroyColdStartThread();
-            needColdStartThread_ = false;
-        } else {
-            if (!IsFirstFrameReadyToDraw(node) && !node.IsColdStartThreadRunning()) {
-                return;
-            }
-            if (node.GetCacheSurface() == nullptr) { // first frame, start thread here, and record
-                node.StartColdStartThreadIfNeed();
-                RecordAppWindowNodeAndPostTask(node, property.GetBoundsWidth(), property.GetBoundsHeight());
-                return;
-            }
-        }
-    }
-
     auto savedState = canvas_->SaveCanvasAndAlpha();
 
     canvas_->MultiplyAlpha(property.GetAlpha());
@@ -937,12 +902,12 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
         canvas_->restore();
     }
 
-    if (node.IsAppWindow() && !needColdStartThread_ && !node.IsColdStartThreadRunning()) {
+    if (node.IsAppWindow()) {
         if (!node.IsAppFreeze()) {
             ProcessBaseRenderNode(node);
             node.ClearCacheSurface();
         } else if (node.GetCacheSurface()) {
-            RSUniRenderUtil::DrawCachedSurface(node, *canvas_);
+            DrawCacheSurface(node);
         } else {
             InitCacheSurface(node, property.GetBoundsWidth(), property.GetBoundsHeight());
             if (node.GetCacheSurface()) {
@@ -952,22 +917,14 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
                 ProcessBaseRenderNode(node);
                 swap(cacheCanvas, canvas_);
 
-                RSUniRenderUtil::DrawCachedSurface(node, *canvas_);
+                DrawCacheSurface(node);
             } else {
                 RS_LOGE("RSUniRenderVisitor::ProcessSurfaceRenderNode %s Create CacheSurface failed",
                     node.GetName().c_str());
             }
         }
-    } else if (node.IsAppWindow()) { // use skSurface drawn by cold start thread
-        needDrawStartingWindow_ = false;
-        RSUniRenderUtil::DrawCachedSurface(node, *canvas_);
-        RecordAppWindowNodeAndPostTask(node, property.GetBoundsWidth(), property.GetBoundsHeight());
     } else {
         ProcessBaseRenderNode(node);
-    }
-
-    if (node.GetSurfaceNodeType() == RSSurfaceNodeType::LEASH_WINDOW_NODE) {
-        needColdStartThread_ = false; // reset to default value
     }
 
     filter = std::static_pointer_cast<RSSkiaFilter>(property.GetFilter());
@@ -1041,18 +998,6 @@ void RSUniRenderVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
     node.ProcessRenderBeforeChildren(*canvas_);
     ProcessBaseRenderNode(node);
     node.ProcessRenderAfterChildren(*canvas_);
-}
-
-void RSUniRenderVisitor::RecordAppWindowNodeAndPostTask(RSSurfaceRenderNode& node, float width, float height)
-{
-    SkPictureRecorder recorder;
-    auto canvas = recorder.beginRecording(width, height);
-    auto recordingCanvas = std::make_shared<RSPaintFilterCanvas>(canvas);
-    swap(canvas_, recordingCanvas);
-    ProcessBaseRenderNode(node);
-    auto picture = recorder.finishRecordingAsPicture();
-    swap(canvas_, recordingCanvas);
-    node.BeginPlayBack(picture, width, height);
 }
 } // namespace Rosen
 } // namespace OHOS

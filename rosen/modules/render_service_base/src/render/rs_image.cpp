@@ -122,9 +122,6 @@ void RSImage::UploadGpu(SkCanvas& canvas)
         if (cache) {
             image_ = cache;
         } else {
-            if (canvas.getGrContext() == nullptr) {
-                return;
-            }
             RS_TRACE_NAME("make compress img");
             auto image = SkImage::MakeFromCompressed(canvas.getGrContext(), compressData_,
                 static_cast<int>(srcRect_.width_), static_cast<int>(srcRect_.height_), SkImage::kASTC_CompressionType);

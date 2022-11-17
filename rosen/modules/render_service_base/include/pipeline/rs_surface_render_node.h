@@ -22,19 +22,16 @@
 
 #include "common/rs_vector4.h"
 #include "ipc_callbacks/buffer_available_callback.h"
-#include "pipeline/rs_cold_start_thread.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "property/rs_properties_painter.h"
 #include "include/core/SkRect.h"
-#include "include/core/SkRefCnt.h"
 #include "pipeline/rs_surface_handler.h"
 #include "refbase.h"
 #include "sync_fence.h"
 #include "common/rs_occlusion_region.h"
 #include "transaction/rs_occlusion_data.h"
 
-class SkPicture;
 namespace OHOS {
 namespace Rosen {
 class RSCommand;
@@ -380,19 +377,16 @@ public:
 
     void SetCacheSurface(sk_sp<SkSurface> cacheSurface)
     {
-        std::lock_guard<std::mutex> lock(cachedSurfaceMutex_);
         cacheSurface_ = std::move(cacheSurface);
     }
 
     sk_sp<SkSurface> GetCacheSurface() const
     {
-        std::lock_guard<std::mutex> lock(cachedSurfaceMutex_);
         return cacheSurface_;
     }
 
     void ClearCacheSurface()
     {
-        std::lock_guard<std::mutex> lock(cachedSurfaceMutex_);
         cacheSurface_ = nullptr;
     }
 
@@ -505,14 +499,6 @@ public:
         transparentRegion_.AndSelf(screenRegion);
         opaqueRegion_.AndSelf(screenRegion);
     }
-
-    void BeginPlayBack(sk_sp<SkPicture> picture, float width, float height);
-    bool IsColdStartThreadRunning() const;
-    void StartColdStartThreadIfNeed();
-    void DestroyColdStartThread();
-    bool IsStartAnimationFinished() const;
-    void SetStartAnimationFinished();
-
 private:
     void ClearChildrenCache(const std::shared_ptr<RSBaseRenderNode>& node);
 
@@ -576,9 +562,6 @@ private:
     int containerContentPadding_ = 4 * 2;      // container <--> content distance 8 px
     int containerBorderWidth_ = 1 * 2;         // container border width 2px
     int containerOutRadius_ = 16 * 2;         // container outter radius
-    std::unique_ptr<RSColdStartThread> coldStartThread_ = nullptr;
-    bool startAnimationFinished_ = false;
-    mutable std::mutex cachedSurfaceMutex_;
 };
 } // namespace Rosen
 } // namespace OHOS
