@@ -20,35 +20,34 @@
 
 namespace OHOS {
 namespace Rosen {
-int RSLog::Output(RSLog::Level level, const char* format, ...)
+void RSLogOutput(RSLog::Tag tag, RSLog::Level level, const char* format, ...)
 {
     std::string levelStr;
     switch (level) {
-        case LEVEL_INFO:
+        case RSLog::LEVEL_INFO:
             levelStr = "INFO";
             break;
-        case LEVEL_DEBUG:
+        case RSLog::LEVEL_DEBUG:
             levelStr = "DEBUG";
             break;
-        case LEVEL_WARN:
+        case RSLog::LEVEL_WARN:
             levelStr = "WARN";
             break;
-        case LEVEL_ERROR:
+        case RSLog::LEVEL_ERROR:
             levelStr = "ERROR";
             break;
-        case LEVEL_FATAL:
+        case RSLog::LEVEL_FATAL:
             levelStr = "FATAL";
             break;
         default:
             break;
     }
-    printf("[%s][%s](%s)(%d)", levelStr.c_str(), tag_.c_str(), __FUNCTION__, __LINE__);
+    printf("[%s][%s]", levelStr.c_str(), (tag == RSLog::Tag::RS) ? "OHOS::RS" : "OHOS::ROSEN");
     va_list args;
     va_start(args, format);
     vprintf(format, args);
     va_end(args);
     printf("\n");
-    return 0;
 }
 } // namespace Rosen
 } // namespace OHOS
