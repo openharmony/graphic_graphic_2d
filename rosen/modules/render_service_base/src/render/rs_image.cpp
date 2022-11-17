@@ -244,21 +244,20 @@ void RSImage::SetScale(double scale)
 #ifdef ROSEN_OHOS
 bool RSImage::Marshalling(Parcel& parcel) const
 {
-    bool success = true;
     int imageFit = static_cast<int>(imageFit_);
     int imageRepeat = static_cast<int>(imageRepeat_);
 
     std::lock_guard<std::mutex> lock(mutex_);
-    success &= RSMarshallingHelper::Marshalling(parcel, uniqueId_);
-    success &= RSMarshallingHelper::Marshalling(parcel, image_);
-    success &= RSMarshallingHelper::Marshalling(parcel, compressData_);
-    success &= RSMarshallingHelper::Marshalling(parcel, static_cast<int>(srcRect_.width_));
-    success &= RSMarshallingHelper::Marshalling(parcel, static_cast<int>(srcRect_.height_));
-    success &= RSMarshallingHelper::Marshalling(parcel, pixelmap_);
-    success &= RSMarshallingHelper::Marshalling(parcel, imageFit);
-    success &= RSMarshallingHelper::Marshalling(parcel, imageRepeat);
-    success &= RSMarshallingHelper::Marshalling(parcel, radius_);
-    success &= RSMarshallingHelper::Marshalling(parcel, scale_);
+    bool success = RSMarshallingHelper::Marshalling(parcel, uniqueId_) &&
+                   RSMarshallingHelper::Marshalling(parcel, image_) &&
+                   RSMarshallingHelper::Marshalling(parcel, compressData_) &&
+                   RSMarshallingHelper::Marshalling(parcel, static_cast<int>(srcRect_.width_)) &&
+                   RSMarshallingHelper::Marshalling(parcel, static_cast<int>(srcRect_.height_)) &&
+                   RSMarshallingHelper::Marshalling(parcel, pixelmap_) &&
+                   RSMarshallingHelper::Marshalling(parcel, imageFit) &&
+                   RSMarshallingHelper::Marshalling(parcel, imageRepeat) &&
+                   RSMarshallingHelper::Marshalling(parcel, radius_) &&
+                   RSMarshallingHelper::Marshalling(parcel, scale_);
     return success;
 }
 RSImage* RSImage::Unmarshalling(Parcel& parcel)
