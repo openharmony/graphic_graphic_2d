@@ -61,7 +61,7 @@ public:
 
 private:
     std::vector<std::unique_ptr<OpItem>> ops_;
-    std::recursive_mutex mutex_;
+    mutable std::mutex mutex_;
     int width_;
     int height_;
 };
