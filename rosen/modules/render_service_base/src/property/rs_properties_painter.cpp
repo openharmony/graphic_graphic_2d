@@ -331,7 +331,7 @@ void RSPropertiesPainter::DrawFrame(const RSProperties& properties, RSPaintFilte
     auto frameRect = Rect2SkRect(properties.GetFrameRect());
     // Generate or clear cache on demand
     if (canvas.isCacheEnabled()) {
-        cmds->GenerateCache();
+        cmds->GenerateCache(canvas.GetSurface());
     } else {
         cmds->ClearCache();
     }
