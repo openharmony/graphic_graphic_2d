@@ -564,7 +564,7 @@ private:
     bool globalDirtyRegionIsEmpty_ = false;
     // if a there a dirty layer under transparent clean layer, transparent layer should refreshed
     Occlusion::Region dirtyRegionBelowCurrentLayer_;
-    bool dirtyRegionBelowCurrentLayerIsEmpty_;
+    bool dirtyRegionBelowCurrentLayerIsEmpty_ = false;
 
     // opaque region of the surface
     Occlusion::Region opaqueRegion_;
