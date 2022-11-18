@@ -23,6 +23,7 @@
 #include "command/rs_animation_command.h"
 #include "command/rs_message_processor.h"
 #include "modifier/rs_modifier_manager.h"
+#include "modifier/rs_modifier_manager_map.h"
 #include "pipeline/rs_frame_report.h"
 #include "pipeline/rs_node_map.h"
 #include "pipeline/rs_render_thread.h"

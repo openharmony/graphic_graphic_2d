@@ -18,6 +18,7 @@
 #include "animation/rs_animation_manager_map.h"
 #include "animation/rs_render_transition.h"
 #include "command/rs_animation_command.h"
+#include "modifier/rs_property.h"
 #include "transaction/rs_transaction_proxy.h"
 #include "ui/rs_node.h"
 

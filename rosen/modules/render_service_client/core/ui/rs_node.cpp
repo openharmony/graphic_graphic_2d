@@ -931,5 +931,21 @@ std::vector<PropertyId> RSNode::GetModifierIds() const
     }
     return ids;
 }
+
+void RSNode::MarkAllExtendModifierDirty()
+{
+    auto modifierManager = RSModifierManagerMap::Instance()->GetModifierManager(gettid());
+    if (modifierManager == nullptr) {
+        ROSEN_LOGE("Modifier manager is null while RSNode MarkAllExtendModifierDirty nodeId: %llu!", GetId());
+        return;
+    }
+
+    for (auto& [id, modifier] : modifiers_) {
+        if (modifier->GetModifierType() < RSModifierType::CUSTOM) {
+            continue;
+        }
+        modifierManager->AddModifier(modifier);
+    }
+}
 } // namespace Rosen
 } // namespace OHOS

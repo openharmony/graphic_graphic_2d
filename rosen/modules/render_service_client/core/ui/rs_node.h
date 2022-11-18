@@ -206,6 +206,7 @@ private:
     const std::shared_ptr<RSModifier> GetModifier(const PropertyId& propertyId);
     virtual void OnBoundsSizeChanged() const {};
     void UpdateModifierMotionPathOption();
+    void MarkAllExtendModifierDirty();
 
     // Planning: refactor RSUIAnimationManager and remove this method
     void ClearAllModifiers();
@@ -228,6 +229,7 @@ private:
     friend class RSKeyframeAnimation;
     friend class RSPropertyAnimation;
     friend class RSSpringAnimation;
+    friend class RSPropertyBase;
     template<typename T>
     friend class RSProperty;
     template<typename T>
