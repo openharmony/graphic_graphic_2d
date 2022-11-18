@@ -18,7 +18,7 @@ import sys
 
 
 def main():
-    filename = os.path.join(os.path.dirname(os.path.realpath(__file__)), "../../../graphic_2d_ext")
+    filename = os.path.join(os.path.dirname(os.path.realpath(__file__)), "../../../graphic_2d_ext/ohcore")
     is_exist = os.path.exists(filename) and os.path.isdir(filename)
     sys.stdout.write(str(is_exist))
     return 0

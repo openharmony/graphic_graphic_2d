@@ -77,7 +77,7 @@ ohos_shared_library("libvsync") {
   if (exec_script(
           "//foundation/graphic/graphic_2d/utils/build/graphic_2d_ext_exists.py",
           [],
-          "string") == "True") {
+          "string") == "True" && "${product_name}" == "ohcore") {
     graphic_2d_ext_configs = {
       import("//foundation/graphic/graphic_2d_ext/ohcore/build/config.gni")
     }

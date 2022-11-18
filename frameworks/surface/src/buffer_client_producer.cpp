@@ -424,6 +424,7 @@ GSError BufferClientProducer::GetPresentTimestamp(uint32_t sequence, GraphicPres
 
 sptr<NativeSurface> BufferClientProducer::GetNativeSurface()
 {
+    BLOGND("BufferClientProducer::GetNativeSurface not support.");
     return nullptr;
 }
 }; // namespace OHOS
