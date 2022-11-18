@@ -479,6 +479,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
         if (isPartialRenderEnabled_) {
             curDisplayDirtyManager_->SetSurfaceSize(screenInfo_.width, screenInfo_.height);
             CalcDirtyDisplayRegion(displayNodePtr);
+            displayNodePtr->ClearCurrentSurfacePos();
         }
         if (isOpDropped_ && dirtySurfaceNodeMap_.empty() && !curDisplayDirtyManager_->IsDirty()) {
             RS_LOGD("DisplayNode skip");
