@@ -29,7 +29,7 @@ class RSKeyframeAnimationTest : public RSAnimationBaseTest {
 
 /**
  * @tc.name: AddKeyFrameTest001
- * @tc.desc: Verify the GetTimingCurve of KeyframeAnimationTest
+ * @tc.desc: Verify the AddKeyFrame of KeyframeAnimationTest
  * @tc.type: FUNC
  */
 HWTEST_F(RSKeyframeAnimationTest, AddKeyFrameTest001, TestSize.Level1)
@@ -64,7 +64,7 @@ HWTEST_F(RSKeyframeAnimationTest, AddKeyFrameTest001, TestSize.Level1)
 
 /**
  * @tc.name: AddKeyFrameTest002
- * @tc.desc: Verify the GetTimingCurve of keyframeAnimationTest
+ * @tc.desc: Verify the AddKeyFrame of keyframeAnimationTest
  * @tc.type: FUNC
  */
 HWTEST_F(RSKeyframeAnimationTest, AddKeyFrameTest002, TestSize.Level1)
@@ -96,12 +96,52 @@ HWTEST_F(RSKeyframeAnimationTest, AddKeyFrameTest002, TestSize.Level1)
     keyframeAnimation->Start(canvasNode);
     EXPECT_TRUE(keyframeAnimation->IsRunning());
     NotifyStartAnimation();
-    GTEST_LOG_(INFO) << "RSKeyframeAnimationTest AddKeyFrameTest001 end";
+    GTEST_LOG_(INFO) << "RSKeyframeAnimationTest AddKeyFrameTest002 end";
+}
+
+/**
+ * @tc.name: AddKeyFrameTest003
+ * @tc.desc: Verify the AddKeyFrame of keyframeAnimationTest
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSKeyframeAnimationTest, AddKeyFrameTest003, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSKeyframeAnimationTest AddKeyFrameTest003 start";
+    /**
+     * @tc.steps: step1. init AddKeyFrame
+     */
+    auto black = RgbPalette::Black();
+    auto blue = RgbPalette::Blue();
+    auto red = RgbPalette::Red();
+    auto white = RgbPalette::White();
+    auto startProperty = std::make_shared<RSAnimatableProperty<Color>>(black);
+    auto endProperty = std::make_shared<RSAnimatableProperty<Color>>(red);
+    auto secondProperty = std::make_shared<RSAnimatableProperty<Color>>(white);
+    auto testProperty = std::make_shared<RSAnimatableProperty<Color>>(blue);
+    auto modifier = std::make_shared<RSBackgroundColorModifier>(startProperty);
+    canvasNode->AddModifier(modifier);
+    rsUiDirector->SendMessages();
+    sleep(DELAY_TIME_ONE);
+
+    auto keyframeAnimation = std::make_shared<RSKeyframeAnimation>(startProperty);
+    keyframeAnimation->SetDuration(ANIMATION_DURATION_2);
+    keyframeAnimation->AddKeyFrame(FRACTION_MIN - 0.1f, startProperty, RSAnimationTimingCurve::EASE_OUT);
+    keyframeAnimation->AddKeyFrame(FRACTION_MAX / 2, secondProperty, RSAnimationTimingCurve::EASE_IN);
+    keyframeAnimation->AddKeyFrame(FRACTION_MAX + 0.1f, endProperty, RSAnimationTimingCurve::EASE_IN_OUT);
+    keyframeAnimation->Start(canvasNode);
+    keyframeAnimation->AddKeyFrame(FRACTION_MAX * 2, testProperty, RSAnimationTimingCurve::EASE_IN);
+    /**
+     * @tc.steps: step2. start AddKeyFrame test
+     */
+    EXPECT_TRUE(keyframeAnimation != nullptr);
+    EXPECT_TRUE(keyframeAnimation->IsRunning());
+    NotifyStartAnimation();
+    GTEST_LOG_(INFO) << "RSKeyframeAnimationTest AddKeyFrameTest003 end";
 }
 
 /**
  * @tc.name: AddKeyFramesTest001
- * @tc.desc: Verify the GetTimingCurve of keyframeAnimationTest
+ * @tc.desc: Verify the AddKeyFrames of keyframeAnimationTest
  * @tc.type: FUNC
  */
 HWTEST_F(RSKeyframeAnimationTest, AddKeyFramesTest001, TestSize.Level1)
@@ -176,8 +216,50 @@ HWTEST_F(RSKeyframeAnimationTest, AddKeyFramesTest002, TestSize.Level1)
     keyframeAnimation->Start(canvasNode);
     EXPECT_TRUE(keyframeAnimation->IsRunning());
     NotifyStartAnimation();
-    GTEST_LOG_(INFO) << "RSKeyframeAnimationTest AddKeyFramesTest001 end";
+    GTEST_LOG_(INFO) << "RSKeyframeAnimationTest AddKeyFramesTest002 end";
 }
+
+/**
+ * @tc.name: AddKeyFramesTest003
+ * @tc.desc: Verify the AddKeyFrames of KeyframeAnimation
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSKeyframeAnimationTest, AddKeyFramesTest003, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSKeyframeAnimationTest AddKeyFramesTest003 start";
+    /**
+     * @tc.steps: step1. init AddKeyFrames
+     */
+    auto startProperty =
+        std::make_shared<RSAnimatableProperty<std::shared_ptr<RSFilter>>>(RSFilter::CreateBlurFilter(10.f, 10.f));
+    auto endProperty =
+        std::make_shared<RSAnimatableProperty<std::shared_ptr<RSFilter>>>(RSFilter::CreateBlurFilter(25.f, 25.f));
+    auto secondProperty =
+        std::make_shared<RSAnimatableProperty<std::shared_ptr<RSFilter>>>(RSFilter::CreateBlurFilter(50.f, 50.f));
+    auto modifier = std::make_shared<RSBackgroundFilterModifier>(startProperty);
+    canvasNode->AddModifier(modifier);
+    rsUiDirector->SendMessages();
+    sleep(DELAY_TIME_ONE);
+
+    auto keyframeAnimation = std::make_shared<RSKeyframeAnimation>(startProperty);
+    keyframeAnimation->SetDuration(ANIMATION_DURATION_2);
+
+    std::vector<std::tuple<float, std::shared_ptr<RSPropertyBase>, RSAnimationTimingCurve>> keyframes;
+    keyframes.push_back(std::make_tuple(FRACTION_MIN - 0.1f, startProperty, RSAnimationTimingCurve::EASE_IN));
+    keyframes.push_back(std::make_tuple(FRACTION_MAX / 2, secondProperty, RSAnimationTimingCurve::EASE_IN));
+    keyframes.push_back(std::make_tuple(FRACTION_MAX + 0.1f, endProperty, RSAnimationTimingCurve::EASE_IN));
+    keyframeAnimation->AddKeyFrames(keyframes);
+    keyframeAnimation->Start(canvasNode);
+    keyframeAnimation->AddKeyFrames({});
+    /**
+     * @tc.steps: step2. start AddKeyFrames test
+     */
+    EXPECT_TRUE(keyframeAnimation != nullptr);
+    EXPECT_TRUE(keyframeAnimation->IsRunning());
+    NotifyStartAnimation();
+    GTEST_LOG_(INFO) << "RSKeyframeAnimationTest AddKeyFramesTest003 end";
+}
+
 
 /**
  * @tc.name: RSNodeAnimateTest001
@@ -222,5 +304,87 @@ HWTEST_F(RSKeyframeAnimationTest, RSNodeAnimateTest001, TestSize.Level1)
     GTEST_LOG_(INFO) << "RSSpringAnimationTest RSNodeAnimateTest001 end";
 }
 
+/**
+ * @tc.name: SetIsCustomTest001
+ * @tc.desc: Verify the SetIsCustom of keyframeAnimationTest
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSKeyframeAnimationTest, SetIsCustomTest001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSKeyframeAnimationTest SetIsCustomTest001 start";
+    /**
+     * @tc.steps: step1. init SetIsCustom
+     */
+    auto black = Vector4<Color>(RgbPalette::Black());
+    auto red = Vector4<Color>(RgbPalette::Red());
+    auto startProperty = std::make_shared<RSAnimatableProperty<Vector4<Color>>>(black);
+    auto endProperty = std::make_shared<RSAnimatableProperty<Vector4<Color>>>(red);
+
+    auto property = std::make_shared<RSAnimatableProperty<Vector4<Color>>>(black);
+    auto modifier = std::make_shared<RSBorderColorModifier>(property);
+    canvasNode->SetBorderColor(RgbPalette::White());
+    canvasNode->SetBorderWidth(10.0f);
+    canvasNode->SetBorderStyle(1);
+    canvasNode->AddModifier(modifier);
+    rsUiDirector->SendMessages();
+    sleep(DELAY_TIME_ONE);
+
+    auto keyframeAnimation = std::make_shared<RSKeyframeAnimation>(property);
+    keyframeAnimation->SetDuration(ANIMATION_DURATION_2);
+
+    std::vector<std::tuple<float, std::shared_ptr<RSPropertyBase>, RSAnimationTimingCurve>> keyframes;
+    keyframes.push_back(std::make_tuple(FRACTION_MIN, startProperty, RSAnimationTimingCurve::EASE_IN));
+    keyframes.push_back(std::make_tuple(FRACTION_MAX, endProperty, RSAnimationTimingCurve::EASE_IN));
+    keyframeAnimation->AddKeyFrames(keyframes);
+    keyframeAnimation->SetIsCustom(false);
+    /**
+     * @tc.steps: step2. start SetIsCustom test
+     */
+    EXPECT_TRUE(keyframeAnimation != nullptr);
+    keyframeAnimation->Start(canvasNode);
+    EXPECT_TRUE(keyframeAnimation->IsRunning());
+    NotifyStartAnimation();
+    GTEST_LOG_(INFO) << "RSKeyframeAnimationTest SetIsCustomTest001 end";
+}
+
+/**
+ * @tc.name: SetIsCustomTest002
+ * @tc.desc: Verify the SetIsCustom of keyframeAnimationTest
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSKeyframeAnimationTest, SetIsCustomTest002, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSKeyframeAnimationTest SetIsCustomTest002 start";
+    /**
+     * @tc.steps: step1. init SetIsCustom
+     */
+    auto startProperty = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_START_BOUNDS);
+    auto endProperty = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_END_BOUNDS);
+    auto secondProperty = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_SECOND_BOUNDS);
+
+    auto property = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_START_BOUNDS);
+    auto modifier = std::make_shared<RSBoundsModifier>(property);
+    canvasNode->AddModifier(modifier);
+    rsUiDirector->SendMessages();
+    sleep(DELAY_TIME_ONE);
+
+    auto keyframeAnimation = std::make_shared<RSKeyframeAnimation>(property);
+    keyframeAnimation->SetDuration(ANIMATION_DURATION_2);
+
+    std::vector<std::tuple<float, std::shared_ptr<RSPropertyBase>, RSAnimationTimingCurve>> keyframes;
+    keyframes.push_back(std::make_tuple(FRACTION_MIN, startProperty, RSAnimationTimingCurve::EASE_IN));
+    keyframes.push_back(std::make_tuple(FRACTION_MAX / 2, secondProperty, RSAnimationTimingCurve::EASE_IN));
+    keyframes.push_back(std::make_tuple(FRACTION_MAX, endProperty, RSAnimationTimingCurve::EASE_IN));
+    keyframeAnimation->AddKeyFrames(keyframes);
+    keyframeAnimation->SetIsCustom(true);
+    /**
+     * @tc.steps: step2. start SetIsCustom test
+     */
+    EXPECT_TRUE(keyframeAnimation != nullptr);
+    keyframeAnimation->Start(canvasNode);
+    EXPECT_TRUE(keyframeAnimation->IsRunning());
+    NotifyStartAnimation();
+    GTEST_LOG_(INFO) << "RSKeyframeAnimationTest SetIsCustomTest002 end";
+}
 } // namespace Rosen
 } // namespace OHOS
