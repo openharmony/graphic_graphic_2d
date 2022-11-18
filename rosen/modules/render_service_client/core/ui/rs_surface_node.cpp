@@ -342,10 +342,10 @@ void RSSurfaceNode::SetAppFreeze(bool isAppFreeze)
     }
 }
 
-void RSSurfaceNode::SetContainerWindow(bool hasContainerWindow)
+void RSSurfaceNode::SetContainerWindow(bool hasContainerWindow, float density)
 {
     std::unique_ptr<RSCommand> command =
-        std::make_unique<RSSurfaceNodeSetContainerWindow>(GetId(), hasContainerWindow);
+        std::make_unique<RSSurfaceNodeSetContainerWindow>(GetId(), hasContainerWindow, density);
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy != nullptr) {
         transactionProxy->AddCommand(command, true);

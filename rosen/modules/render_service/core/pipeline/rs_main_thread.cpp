@@ -641,6 +641,7 @@ void RSMainThread::CalcOcclusion()
                 continue;
             }
             if (surface->GetZorderChanged() || surface->GetDstRectChanged() ||
+                surface->IsOpaqueRegionChanged() ||
                 surface->GetAlphaChanged() || (IfUseUniVisitor() && surface->IsDirtyRegionUpdated())) {
                 winDirty = true;
             }

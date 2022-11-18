@@ -132,10 +132,11 @@ void SurfaceNodeCommandHelper::SetSurfaceNodeType(RSContext& context, NodeId nod
     }
 }
 
-void SurfaceNodeCommandHelper::SetContainerWindow(RSContext& context, NodeId nodeId, bool hasContainerWindow)
+void SurfaceNodeCommandHelper::SetContainerWindow(RSContext& context, NodeId nodeId,
+    bool hasContainerWindow, float density)
 {
     if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId)) {
-        node->SetContainerWindow(hasContainerWindow);
+        node->SetContainerWindow(hasContainerWindow, density);
     }
 }
 } // namespace Rosen
