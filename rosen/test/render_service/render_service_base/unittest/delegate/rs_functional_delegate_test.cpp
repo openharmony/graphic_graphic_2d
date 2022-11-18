@@ -50,4 +50,16 @@ HWTEST_F(RSFunctionalDelegateTest, Repaint001, TestSize.Level1)
     rsfunctionaldelegate_->Repaint();
     ASSERT_EQ(callback, 2);
 }
+
+/**
+ * @tc.name: Repaint02
+ * @tc.desc: test results of Repaint
+ * @tc.type:FUNC
+ * @tc.require: issueI5HRIF
+ */
+HWTEST_F(RSFunctionalDelegateTest, Repaint002, TestSize.Level1)
+{
+    rsfunctionaldelegate_->SetRepaintCallback(nullptr);
+    rsfunctionaldelegate_->Repaint();
+}
 }// namespace OHOS::Rosen
