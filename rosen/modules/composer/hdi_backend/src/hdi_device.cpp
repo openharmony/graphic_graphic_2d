@@ -13,11 +13,14 @@
  * limitations under the License.
  */
 
+#include "frame_trace.h"
 #include "hdi_device.h"
 
 #include <mutex>
 
 #include <scoped_bytrace.h>
+using namespace FRAME_TRACE;
+const std::string RS_INTERVAL_NAME = "renderservice";
 
 #define CHECK_FUNC(device, deviceFunc)              \
     do {                                            \
@@ -323,6 +326,7 @@ int32_t HdiDevice::GetSupportedMetaDataKey(uint32_t screenId, std::vector<HDRMet
 
 int32_t HdiDevice::Commit(uint32_t screenId, sptr<SyncFence> &fence)
 {
+    QuickEndFrameTrace(RS_INTERVAL_NAME);
     ScopedBytrace bytrace(__func__);
     CHECK_FUNC(deviceFuncs_, deviceFuncs_->Commit);
 

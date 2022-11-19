@@ -47,7 +47,10 @@ ohos_shared_library("libcomposer") {
     "hdi_backend/src/hdi_screen.cpp",
   ]
 
-  include_dirs = [ "//foundation/graphic/graphic_2d/utils/log" ]
+  include_dirs = [
+    "//foundation/graphic/graphic_2d/utils/log",
+    "//foundation/resourceschedule/frame_aware_sched/interfaces/innerkits/frameintf",
+  ]
 
   configs = [ ":composer_config" ]
 
@@ -66,6 +69,7 @@ ohos_shared_library("libcomposer") {
     "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
     "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
     "//foundation/graphic/graphic_2d:libsurface",
+    "//foundation/resourceschedule/frame_aware_sched/interfaces/innerkits/frameintf:frame_trace_intf",
   ]
 
   public_deps = [
