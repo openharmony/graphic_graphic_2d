@@ -29,6 +29,7 @@ config("surface_config") {
 
 config("surface_public_config") {
   include_dirs = [
+    "//foundation/communication/ipc/interfaces/innerkits/ipc_core/include",
     "//foundation/graphic/graphic_2d/interfaces/inner_api/surface",
     "//foundation/graphic/graphic_2d/interfaces/inner_api/common",
     "//foundation/graphic/graphic_2d/utils/sandbox",
