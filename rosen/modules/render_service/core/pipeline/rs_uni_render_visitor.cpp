@@ -294,10 +294,6 @@ void RSUniRenderVisitor::PrepareRootRenderNode(RSRootRenderNode& node)
         if (geoPtr != nullptr && (dirtyFlag || geoDirty)) {
             geoPtr->ConcatMatrix(gravityMatrix);
         }
-        // enable cache if gravityMatrix contains scale
-        if (gravityMatrix.getScaleX() != 1.0f || gravityMatrix.getScaleY() != 1.0f) {
-            node.SetCanvasCacheEnabled(true);
-        }
     }
     PrepareBaseRenderNode(node);
 
@@ -957,8 +953,6 @@ void RSUniRenderVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
     }
 
     ColorFilterMode colorFilterMode = renderEngine_->GetColorFilterMode();
-    // save cache status
-    bool isCacheEnabledBefore = canvas_->isCacheEnabled();
     int saveCount;
     if (colorFilterMode >= ColorFilterMode::INVERT_COLOR_ENABLE_MODE &&
         colorFilterMode <= ColorFilterMode::INVERT_DALTONIZATION_TRITANOMALY_MODE) {
@@ -969,14 +963,8 @@ void RSUniRenderVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
     } else {
         saveCount = canvas_->save();
     }
-    if (node.IsCanvasCacheEnabled()) {
-        canvas_->SetCacheEnabled(true);
-        node.SetCanvasCacheEnabled(false);
-    }
     ProcessCanvasRenderNode(node);
     canvas_->restoreToCount(saveCount);
-    // restore cache status
-    canvas_->SetCacheEnabled(isCacheEnabledBefore);
 }
 
 void RSUniRenderVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
