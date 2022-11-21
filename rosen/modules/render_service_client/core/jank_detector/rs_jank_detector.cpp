@@ -60,6 +60,11 @@ void RSJankDetector::SetRefreshPeriod(uint64_t refreshPeriod)
     refreshPeriod_ = refreshPeriod;
 }
 
+uint64_t RSJankDetector::GetRefreshPeriod() const
+{
+    return refreshPeriod_;
+}
+
 void RSJankDetector::UpdateUiDrawFrameMsg(uint64_t startTimeStamp, uint64_t endTimeStamp,
     const std::string& abilityName)
 {
