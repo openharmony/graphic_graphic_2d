@@ -63,7 +63,7 @@ bool RSRenderThreadVisitor::IsValidRootRenderNode(RSRootRenderNode& node)
         return false;
     }
     if (node.GetSuggestedBufferWidth() <= 0 || node.GetSuggestedBufferHeight() <= 0) {
-        ROSEN_LOGE("Root %s: Negative width or height [%d %d]", ptr->GetName().c_str(),
+        ROSEN_LOGD("Root %s: Negative width or height [%d %d]", ptr->GetName().c_str(),
             node.GetSuggestedBufferWidth(), node.GetSuggestedBufferHeight());
         return false;
     }
