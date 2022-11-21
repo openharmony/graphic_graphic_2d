@@ -41,5 +41,6 @@ group("test") {
     "render_service_client/systemtest/ui:systemtest",
     "render_service_client/unittest/transaction:unittest",
     "render_service_client/unittest/ui:unittest",
+    "render_service_client/unittest/pipeline:unittest",
   ]
 }
