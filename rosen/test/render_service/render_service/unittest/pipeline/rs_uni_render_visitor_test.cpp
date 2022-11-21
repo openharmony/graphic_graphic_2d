@@ -158,10 +158,6 @@ HWTEST_F(RSUniRenderVisitorTest, PrepareCavasRenderNode001, TestSize.Level1)
 
     std::shared_ptr<RSFilter> bgFilter = RSFilter::CreateBlurFilter(5.0f, 5.0f);
     property.SetBackgroundFilter(bgFilter);
-    node->Prepare(rsUniRenderVisitor);
-
-    property.SetFilter(bgFilter);
-    node->Prepare(rsUniRenderVisitor);
 }
 
 HWTEST_F(RSUniRenderVisitorTest, PrepareCavasRenderNode002, TestSize.Level1)
