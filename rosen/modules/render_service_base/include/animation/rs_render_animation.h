@@ -141,7 +141,7 @@ public:
 
     void SetStartTime(int64_t);
 
-    void SetFinishCallback(std::function<void()>&& finishCallback)
+    void SetFinishCallback(const std::function<void()>& finishCallback)
     {
         finishCallback_ = finishCallback;
     }

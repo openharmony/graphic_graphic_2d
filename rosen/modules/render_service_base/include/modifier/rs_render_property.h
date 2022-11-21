@@ -154,7 +154,7 @@ public:
     }
 
     void SetUpdateUIPropertyFunc(
-        std::function<void(const std::shared_ptr<RSRenderPropertyBase>&)>&& updateUIPropertyFunc)
+        const std::function<void(const std::shared_ptr<RSRenderPropertyBase>&)>& updateUIPropertyFunc)
     {
         updateUIPropertyFunc_ = updateUIPropertyFunc;
     }

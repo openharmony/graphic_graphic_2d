@@ -36,16 +36,16 @@ void RSTransition::OnStart()
 
 void RSTransition::OnUpdateStagingValue(bool isFirstStart)
 {
-    if (isCustom_) {
-        auto& customEffects =
-            isTransitionIn_ ? effect_->customTransitionInEffects_ : effect_->customTransitionOutEffects_;
-        for (auto& customEffect : customEffects) {
-            for (auto& [property, endValue] : customEffect->properties_) {
-                property->SetValue(endValue);
-            }
-            customEffect->properties_.clear();
-            customEffect->customTransitionEffects_.clear();
+    if (!isCustom_) {
+        return;
+    }
+    auto& customEffects = isTransitionIn_ ? effect_->customTransitionInEffects_ : effect_->customTransitionOutEffects_;
+    for (auto& customEffect : customEffects) {
+        for (auto& [property, endValue] : customEffect->properties_) {
+            property->SetValue(endValue);
         }
+        customEffect->properties_.clear();
+        customEffect->customTransitionEffects_.clear();
     }
 }
 
@@ -71,7 +71,14 @@ void RSTransition::StartCustomTransition()
         ROSEN_LOGE("Failed to start custom transition, UI animation manager is null!");
         return;
     }
-    transition->SetFinishCallback([this]() { CallFinishCallback(); });
+    transition->SetFinishCallback([weakTransition = weak_from_this()]() {
+        auto transition = std::static_pointer_cast<RSTransition>(weakTransition.lock());
+        if (transition == nullptr) {
+            ROSEN_LOGE("Failed to call finish callback, UI transition is null!");
+            return;
+        }
+        transition->CallFinishCallback();
+    });
     transition->Start();
     uiAnimationManager->AddAnimation(transition);
 }
