@@ -15,7 +15,7 @@ import("//build/test.gni")
 import("//foundation/arkui/ace_engine/ace_config.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
-module_output_path = "graphic/rosen_engine/render_service/pipeline"
+module_output_path = "graphic/rosen_engine/render_service/transaction"
 
 group("unittest") {
   testonly = true
