@@ -196,6 +196,7 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
     node.CleanDstRectChanged();
     node.ApplyModifiers();
     bool dirtyFlag = dirtyFlag_;
+    bool isCustomizedDirtyRect = false;
 
     // update geoptr with ContextMatrix
     auto parentSurfaceNodeMatrix = parentSurfaceNodeMatrix_;
@@ -238,13 +239,23 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
                 curSurfaceDirtyManager_->MergeDirtyRect(node.GetDstRect());
             }
         }
+        isCustomizedDirtyRect = true;
     }
     dirtyFlag_ = dirtyFlag_ || node.GetDstRectChanged();
     parentSurfaceNodeMatrix_ = geoPtr->GetAbsMatrix();
     node.ResetSurfaceOpaqueRegion(RectI(0, 0, screenInfo_.width, screenInfo_.height), geoPtr->GetAbsRect(),
         containerWindowConfig_, node.IsFocusedWindow(currentFocusedPid_));
 
+    // merge last childRect as dirty if any child has been removed
+    if (node.HasRemovedChild()) {
+        curSurfaceDirtyManager_->MergeDirtyRect(node.GetChildrenRect());
+        node.ResetHasRemovedChild();
+    }
+    // reset childRect before prepare children
+    node.ResetChildrenRect();
     PrepareBaseRenderNode(node);
+    // [planning] apply dirty rect instead of customized rect
+    node.UpdateParentChildrenRect(node.GetParent().lock(), isCustomizedDirtyRect, node.GetDstRect());
     // restore flags
     parentSurfaceNodeMatrix_ = parentSurfaceNodeMatrix;
     curAlpha_ = alpha;
@@ -324,7 +335,16 @@ void RSUniRenderVisitor::PrepareCanvasRenderNode(RSCanvasRenderNode &node)
         dirtyFlag_);
     float alpha = curAlpha_;
     curAlpha_ *= node.GetRenderProperties().GetAlpha();
+    // merge last childRect as dirty if any child has been removed
+    if (node.HasRemovedChild()) {
+        curSurfaceDirtyManager_->MergeDirtyRect(node.GetChildrenRect());
+        node.ResetHasRemovedChild();
+    }
+    // reset childRect before prepare children
+    node.ResetChildrenRect();
     PrepareBaseRenderNode(node);
+    // attention: accumulate direct parent's childrenRect
+    node.UpdateParentChildrenRect(node.GetParent().lock());
 
     // [planning] Remove this after skia is upgraded, the clipRegion is supported
     if (node.GetRenderProperties().GetBackgroundFilter()) {
