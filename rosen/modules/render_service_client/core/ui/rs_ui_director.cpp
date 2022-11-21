@@ -18,7 +18,6 @@
 #include "rs_trace.h"
 #include "sandbox_utils.h"
 
-#include "animation/rs_ui_animation_manager.h"
 #include "command/rs_animation_command.h"
 #include "command/rs_message_processor.h"
 #include "modifier/rs_modifier_manager.h"
@@ -201,10 +200,7 @@ bool RSUIDirector::RunningCustomAnimation(uint64_t timeStamp)
         return hasRunningAnimation;
     }
 
-    auto animationManager = modifierManager->GetAnimationManager();
-    if (animationManager != nullptr) {
-        hasRunningAnimation = animationManager->Animate(timeStamp);
-    }
+    hasRunningAnimation = modifierManager->Animate(timeStamp);
     modifierManager->Draw();
     return hasRunningAnimation;
 }

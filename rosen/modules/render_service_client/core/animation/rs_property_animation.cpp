@@ -16,7 +16,6 @@
 #include "animation/rs_property_animation.h"
 
 #include "animation/rs_render_animation.h"
-#include "animation/rs_ui_animation_manager.h"
 #include "modifier/rs_modifier.h"
 #include "modifier/rs_modifier_manager_map.h"
 #include "modifier/rs_property.h"
@@ -156,7 +155,7 @@ void RSPropertyAnimation::StartCustomPropertyAnimation(const std::shared_ptr<RSR
         animation->CallFinishCallback();
     });
     animation->Start();
-    modifierManager->GetAnimationManager()->AddAnimation(animation);
+    modifierManager->AddAnimation(animation);
 }
 
 void RSPropertyAnimation::SetPropertyOnAllAnimationFinish()

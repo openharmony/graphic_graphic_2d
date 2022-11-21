@@ -85,12 +85,24 @@ protected:
 
     virtual void UpdateToRender() {}
 
+    void MarkDirty(const bool isDirty)
+    {
+        isDirty_ = isDirty;
+    }
+
+    bool IsDirty()
+    {
+        return isDirty_;
+    }
+
+    bool isDirty_ { false };
     std::shared_ptr<RSPropertyBase> property_;
 
     friend class RSModifierExtractor;
     friend class RSModifierManager;
     friend class RSNode;
     friend class RSPathAnimation;
+    friend class RSPropertyBase;
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -16,16 +16,12 @@
 
 #include "modifier/rs_modifier_manager.h"
 
+#include "animation/rs_render_animation.h"
 #include "modifier/rs_property_modifier.h"
 #include "platform/common/rs_log.h"
 
 namespace OHOS {
 namespace Rosen {
-RSModifierManager::RSModifierManager()
-{
-    animationManager_ = std::make_shared<RSUIAnimationManager>();
-}
-
 void RSModifierManager::AddModifier(const std::shared_ptr<RSModifier>& modifier)
 {
     modifiers_.insert(modifier);
@@ -39,16 +35,54 @@ void RSModifierManager::Draw()
 
     for (auto modifier : modifiers_) {
         modifier->UpdateToRender();
+        modifier->MarkDirty(false);
     }
     modifiers_.clear();
 }
 
-std::shared_ptr<RSUIAnimationManager>& RSModifierManager::GetAnimationManager()
+void RSModifierManager::AddAnimation(const std::shared_ptr<RSRenderAnimation>& animation)
 {
-    if (animationManager_ == nullptr) {
-        animationManager_ = std::make_shared<RSUIAnimationManager>();
+    AnimationId key = animation->GetAnimationId();
+    if (animations_.find(key) != animations_.end()) {
+        ROSEN_LOGE("RSModifierManager::AddAnimation, The animation already exists when is added");
+        return;
     }
-    return animationManager_;
+    animations_.emplace(key, animation);
+}
+
+void RSModifierManager::RemoveAnimation(AnimationId keyId)
+{
+    auto animationItr = animations_.find(keyId);
+    if (animationItr == animations_.end()) {
+        ROSEN_LOGE("RSModifierManager::RemoveAnimation, The Animation does not exist when is deleted");
+        return;
+    }
+    animations_.erase(animationItr);
+}
+
+bool RSModifierManager::Animate(int64_t time)
+{
+    // process animation
+    bool hasRunningAnimation = false;
+
+    // iterate and execute all animations, remove finished animations
+    std::__libcpp_erase_if_container(animations_, [this, &hasRunningAnimation, time](auto& iter) -> bool {
+        auto& animation = iter.second;
+        bool isFinished = animation->Animate(time);
+        if (isFinished) {
+            OnAnimationFinished(animation);
+        } else {
+            hasRunningAnimation = animation->IsRunning() || hasRunningAnimation ;
+        }
+        return isFinished;
+    });
+
+    return hasRunningAnimation;
+}
+
+void RSModifierManager::OnAnimationFinished(const std::shared_ptr<RSRenderAnimation>& animation)
+{
+    animation->Detach();
 }
 } // namespace Rosen
 } // namespace OHOS

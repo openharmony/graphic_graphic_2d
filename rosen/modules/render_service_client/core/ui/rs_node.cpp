@@ -31,7 +31,6 @@
 #include "platform/common/rs_log.h"
 #include "render/rs_path.h"
 #include "transaction/rs_transaction_proxy.h"
-#include "animation/rs_ui_animation_manager.h"
 #include "modifier/rs_property_modifier.h"
 
 namespace OHOS {
@@ -940,9 +939,10 @@ void RSNode::MarkAllExtendModifierDirty()
     }
 
     for (auto& [id, modifier] : modifiers_) {
-        if (modifier->GetModifierType() < RSModifierType::CUSTOM) {
+        if (modifier->GetModifierType() < RSModifierType::CUSTOM || modifier->IsDirty()) {
             continue;
         }
+        modifier->MarkDirty(true);
         modifierManager->AddModifier(modifier);
     }
 }

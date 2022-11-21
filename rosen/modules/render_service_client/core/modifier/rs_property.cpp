@@ -16,6 +16,7 @@
 #include "modifier/rs_property.h"
 
 #include "command/rs_node_command.h"
+#include "modifier/rs_modifier.h"
 #include "sandbox_utils.h"
 
 namespace OHOS {
@@ -40,6 +41,28 @@ PropertyId GeneratePropertyId()
 
 RSPropertyBase::RSPropertyBase() : id_(GeneratePropertyId())
 {}
+
+void RSPropertyBase::MarkModifierDirty()
+{
+    auto modifierManager = RSModifierManagerMap::Instance()->GetModifierManager(gettid());
+    if (modifierManager == nullptr) {
+        ROSEN_LOGE("Modifier manager is null while mark dirty propertyId: %llu!", GetId());
+        return;
+    }
+
+    auto modifier = modifier_.lock();
+    if (modifier != nullptr && !modifier->IsDirty()) {
+        modifier->MarkDirty(true);
+        modifierManager->AddModifier(modifier);
+    }
+}
+
+void RSPropertyBase::UpdateExtendModifierForGeometry(const std::shared_ptr<RSNode>& node)
+{
+    if (type_ == RSModifierType::BOUNDS || type_ == RSModifierType::FRAME) {
+        node->MarkAllExtendModifierDirty();
+    }
+}
 
 std::shared_ptr<RSPropertyBase> operator+=(const std::shared_ptr<RSPropertyBase>& a,
     const std::shared_ptr<const RSPropertyBase>& b)

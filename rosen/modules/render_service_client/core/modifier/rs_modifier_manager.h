@@ -18,26 +18,37 @@
 
 #include <memory>
 #include <set>
+#include <unordered_map>
 
+#include "common/rs_common_def.h"
 #include "common/rs_macros.h"
 
 namespace OHOS {
 namespace Rosen {
 class RSModifier;
 class RSUIAnimationManager;
+class RSRenderAnimation;
 
 class RS_EXPORT RSModifierManager {
 public:
-    RSModifierManager();
+    RSModifierManager() = default;
     virtual ~RSModifierManager() = default;
 
     void AddModifier(const std::shared_ptr<RSModifier>& modifier);
+    void AddAnimation(const std::shared_ptr<RSRenderAnimation>& animation);
+    void RemoveAnimation(const AnimationId keyId);
+
+    bool Animate(int64_t time);
     void Draw();
-    std::shared_ptr<RSUIAnimationManager>& GetAnimationManager();
 
 private:
+    void OnAnimationFinished(const std::shared_ptr<RSRenderAnimation>& animation);
+
     std::set<std::shared_ptr<RSModifier>> modifiers_;
-    std::shared_ptr<RSUIAnimationManager> animationManager_;
+    std::unordered_map<AnimationId, std::shared_ptr<RSRenderAnimation>> animations_;
+
+    template <typename T>
+    friend class RSAnimatableProperty;
 };
 } // namespace Rosen
 } // namespace OHOS
