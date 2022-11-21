@@ -429,7 +429,7 @@ HWTEST_F(RSMarshallingTest, RSImageSerialization002, Function | MediumTest | Lev
 
     auto rsImage = std::make_shared<RSImage>();
     rsImage->SetImage(skImage);
-    rsImage->SetCompressData(skData, 10, 10);
+    rsImage->SetCompressData(skData, 0, 10, 10);
     /**
      * @tc.steps: step2. serialize RSImage
      */
@@ -673,7 +673,7 @@ HWTEST_F(RSMarshallingTest, DrawCmdListSerialization001, Function | MediumTest |
 
     auto image = CreateSkImage();
     SkVector radii[4] = { { 0.0, 0.0 }, { 0.0, 0.0 }, { 0.0, 0.0 }, { 0.0, 0.0 } };
-    Rosen::RsImageInfo rsImageInfo(0, 0, radii, 0);
+    Rosen::RsImageInfo rsImageInfo(0, 0, radii, 0, 0, 0, 0);
     auto op3 = std::make_unique<ImageWithParmOpItem>(image, nullptr, rsImageInfo, paint);
     drawCmdList->AddOp(std::move(op3));
 

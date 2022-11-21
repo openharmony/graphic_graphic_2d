@@ -32,13 +32,17 @@ class PixelMap;
 namespace Rosen {
 class RsImageInfo final {
 public:
-    RsImageInfo(int fitNum, int repeatNum, const SkVector* radius, double scale) : fitNum_(fitNum),
-        repeatNum_(repeatNum), radius_(radius), scale_(scale) {};
+    RsImageInfo(int fitNum, int repeatNum, const SkVector* radius, double scale, uint32_t id, int w, int h)
+        : fitNum_(fitNum), repeatNum_(repeatNum), radius_(radius), scale_(scale),
+          uniqueId_(id), width_(w), height_(h) {};
     ~RsImageInfo() {}
     int fitNum_ = 0;
     int repeatNum_ = 0;
     const SkVector* radius_;
     double scale_ = 0.0;
+    uint32_t uniqueId_ = 0;
+    int width_ = 0;
+    int height_ = 0;
 };
 
 enum class ImageRepeat {
@@ -72,7 +76,7 @@ public:
     void SetImageRepeat(int repeatNum);
     void SetRadius(const SkVector radius[]);
     void SetScale(double scale);
-    void SetCompressData(const sk_sp<SkData> data, int width, int height);
+    void SetCompressData(const sk_sp<SkData> data, uint32_t id, int width, int height);
 #ifdef ROSEN_OHOS
     bool Marshalling(Parcel& parcel) const;
     static RSImage* Unmarshalling(Parcel& parcel);
