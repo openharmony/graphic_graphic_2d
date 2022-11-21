@@ -35,14 +35,14 @@ public:
     ~NativeSurface();
 
     /*
-     * Gat compat native window.
+     * Get compat native window.
      *
      * @return native window.
      */
-    void* GatNativeWindow();
+    void* GetNativeWindow();
 
     /*
-     * Gat compat native window(for compatbility).
+     * Get compat native window(for compatbility).
      *
      * @return native window.
      */
@@ -52,7 +52,7 @@ private:
     /*
      * Callback when the compat native window is created.
      *
-     * @return nativeWindow the native window.
+     * @param nativeWindow the native window.
      */
     void OnNativeWindowCreated(void* nativeWindow);
 

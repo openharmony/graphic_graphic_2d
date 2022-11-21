@@ -42,14 +42,7 @@ ohos_shared_library("libnative_image") {
       "src/surface_image.cpp",
     ]
 
-    if (exec_script(
-            "//foundation/graphic/graphic_2d/utils/build/graphic_2d_ext_exists.py",
-            [],
-            "string") == "True" && "${product_name}" == "ohcore") {
-      graphic_2d_ext_configs = {
-        import("//foundation/graphic/graphic_2d_ext/ohcore/build/config.gni")
-      }
-
+    if (defined(graphic_2d_ext_configs.vendor_root)) {
       sources += graphic_2d_ext_configs.libnative_image_ext_sources
       sources -= graphic_2d_ext_configs.libnative_image_ext_sources_del
     }

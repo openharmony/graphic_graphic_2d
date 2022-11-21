@@ -63,3 +63,18 @@ if (graphic_standard_feature_rs_enable_uni_render) {
 if (graphic_standard_feature_enable_afbc) {
   gpu_defines += [ "RS_ENABLE_AFBC" ]
 }
+
+graphic_2d_ext_configs = {
+}
+check_graphic_ext_file_script = "//build/ohos/file_exists.py"
+check_graphic_ext_file_args = [
+  "--filename",
+  rebase_path("//foundation/graphic/graphic_2d_ext/ohcore/build/config.gni"),
+]
+if (exec_script(check_graphic_ext_file_script,
+                check_graphic_ext_file_args,
+                "string") == "True" && "${product_name}" == "ohcore") {
+  graphic_2d_ext_configs = {
+    import("//foundation/graphic/graphic_2d_ext/ohcore/build/config.gni")
+  }
+}

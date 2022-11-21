@@ -66,7 +66,7 @@ public:
             virtual void OnSurfaceChanged(const sptr<Surface>& surface, int32_t width, int32_t height) = 0;
 
             /*
-             * Define callback for the surface lifecycle.
+             * Callback when the surface was destroyed.
              */
             virtual void OnSurfaceDestroyed() = 0;
     };
@@ -79,7 +79,7 @@ public:
     void AddSurfaceCallback(const sptr<ISurfaceCallback>& callback);
 
     /*
-     * Add the surface callback.
+     * Remove the surface callback.
      *
      * @param callback the ISurfaceCallback.
      */
@@ -117,7 +117,7 @@ public:
     SurfaceDelegateError SetBounds(int32_t left, int32_t right, int32_t width, int32_t height);
 
     /*
-     * Release the Surface.
+     * Release the surface.
      *
      * @return the SurfaceDelegateError code.
      */
@@ -153,10 +153,10 @@ private:
 
     void OnSurfaceCreated(uint32_t windowId, uint64_t surfaceId);
     void OnSurfaceChanged(uint32_t windowId, uint64_t surfaceId, int32_t width, int32_t height);
-    void OnSurfaceDestoryed(uint32_t windowId, uint64_t surfaceId);
+    void OnSurfaceDestroyed(uint32_t windowId, uint64_t surfaceId);
 
     void OnNativeSurfaceCreated(void* nativeWindow);
-    void OnNativeSurfaceDestoryed();
+    void OnNativeSurfaceDestroyed();
 
     sptr<Surface> surface_ = nullptr;
 

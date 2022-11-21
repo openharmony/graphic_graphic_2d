@@ -35,14 +35,7 @@ config("surface_public_config") {
     "//foundation/graphic/graphic_2d/utils/sandbox",
   ]
 
-  if (exec_script(
-          "//foundation/graphic/graphic_2d/utils/build/graphic_2d_ext_exists.py",
-          [],
-          "string") == "True" && "${product_name}" == "ohcore") {
-    graphic_2d_ext_configs = {
-      import("//foundation/graphic/graphic_2d_ext/ohcore/build/config.gni")
-    }
-
+  if (defined(graphic_2d_ext_configs.vendor_root)) {
     include_dirs += graphic_2d_ext_configs.libsurface_ext_include_dirs
   }
 
@@ -107,14 +100,7 @@ ohos_shared_library("surface") {
 
   symlink_target_name = [ "libnative_window.so" ]
 
-  if (exec_script(
-          "//foundation/graphic/graphic_2d/utils/build/graphic_2d_ext_exists.py",
-          [],
-          "string") == "True" && "${product_name}" == "ohcore") {
-    graphic_2d_ext_configs = {
-      import("//foundation/graphic/graphic_2d_ext/ohcore/build/config.gni")
-    }
-
+  if (defined(graphic_2d_ext_configs.vendor_root)) {
     sources += graphic_2d_ext_configs.libsurface_ext_sources
     sources -= graphic_2d_ext_configs.libsurface_ext_sources_del
 
