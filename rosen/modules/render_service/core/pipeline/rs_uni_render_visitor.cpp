@@ -151,7 +151,7 @@ void RSUniRenderVisitor::PrepareDisplayRenderNode(RSDisplayRenderNode& node)
     node.ApplyModifiers();
     sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
     if (!screenManager) {
-        RS_LOGE("RSUniRenderVisitor::ProcessDisplayRenderNode ScreenManager is nullptr");
+        RS_LOGE("RSUniRenderVisitor::PrepareDisplayRenderNode ScreenManager is nullptr");
         return;
     }
     screenInfo_ = screenManager->QueryScreenInfo(node.GetScreenId());
@@ -159,7 +159,7 @@ void RSUniRenderVisitor::PrepareDisplayRenderNode(RSDisplayRenderNode& node)
     for (auto& child : node.GetSortedChildren()) {
         auto surfaceNodePtr = child->ReinterpretCastTo<RSSurfaceRenderNode>();
         if (!surfaceNodePtr) {
-            RS_LOGE("RSUniRenderVisitor::ProcessDisplayRenderNode ReinterpretCastTo fail");
+            RS_LOGE("RSUniRenderVisitor::PrepareDisplayRenderNode ReinterpretCastTo fail");
             return;
         }
         CheckColorSpace(*surfaceNodePtr);
@@ -610,12 +610,12 @@ void RSUniRenderVisitor::AddOverDrawListener(std::unique_ptr<RSRenderFrame>& ren
     std::shared_ptr<RSCanvasListener>& overdrawListener)
 {
     if (renderFrame->GetFrame() == nullptr) {
-        RS_LOGE("RSUniRenderVisitor::ProcessDisplayRenderNode: RSSurfaceFrame is null");
+        RS_LOGE("RSUniRenderVisitor::AddOverDrawListener: RSSurfaceFrame is null");
         return;
     }
     auto skSurface = renderFrame->GetFrame()->GetSurface();
     if (skSurface == nullptr) {
-        RS_LOGE("RSUniRenderVisitor::ProcessDisplayRenderNode: skSurface is null");
+        RS_LOGE("RSUniRenderVisitor::AddOverDrawListener: skSurface is null");
         return;
     }
     if (skSurface->getCanvas() == nullptr) {
@@ -659,7 +659,7 @@ void RSUniRenderVisitor::CalcDirtyDisplayRegion(std::shared_ptr<RSDisplayRenderN
         }
         auto surfaceDirtyManager = surfaceNode->GetDirtyManager();
         RectI surfaceDirtyRect = surfaceDirtyManager->GetDirtyRegion();
-        NodeId surfaceNodeId =  surfaceNode->GetId();
+        NodeId surfaceNodeId = surfaceNode->GetId();
         if (surfaceNode->IsTransparent()) {
             // Handles the case of transparent surface, merge transparent dirty rect
             RectI transparentDirtyRect = surfaceNode->GetDstRect().IntersectRect(surfaceDirtyRect);
