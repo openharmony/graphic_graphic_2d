@@ -141,8 +141,9 @@ OHNativeWindow* VulkanWrapperUnitTest::createNativeWindow(std::string name)
 
 uint32_t VulkanWrapperUnitTest::getQueueFamilyIndex(VkQueueFlagBits queueFlags)
 {
+    decltype(queueProps.size()) i = 0;
     if (queueFlags & VK_QUEUE_COMPUTE_BIT) {
-        for (uint32_t i = 0; i < static_cast<uint32_t>(queueProps.size()); i++) {
+        for (i = 0; i < queueProps.size(); i++) {
             if ((queueProps[i].queueFlags & queueFlags) &&
                 ((queueProps[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) == 0)) {
                 return i;
@@ -150,7 +151,7 @@ uint32_t VulkanWrapperUnitTest::getQueueFamilyIndex(VkQueueFlagBits queueFlags)
         }
     }
     if (queueFlags & VK_QUEUE_TRANSFER_BIT) {
-        for (uint32_t i = 0; i < static_cast<uint32_t>(queueProps.size()); i++) {
+        for (i = 0; i < queueProps.size(); i++) {
             if ((queueProps[i].queueFlags & queueFlags) &&
                 ((queueProps[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) == 0) &&
                 ((queueProps[i].queueFlags & VK_QUEUE_COMPUTE_BIT) == 0)) {
@@ -158,7 +159,7 @@ uint32_t VulkanWrapperUnitTest::getQueueFamilyIndex(VkQueueFlagBits queueFlags)
             }
         }
     }
-    for (uint32_t i = 0; i < static_cast<uint32_t>(queueProps.size()); i++) {
+    for (i = 0; i < queueProps.size(); i++) {
         if (queueProps[i].queueFlags & queueFlags) {
             return i;
         }
@@ -651,8 +652,8 @@ HWTEST_F(VulkanWrapperUnitTest, fpCreateSwapchainKHR_Success_Test, TestSize.Leve
             VK_COLOR_SPACE_DCI_P3_LINEAR_EXT
         };
 
-        for (int i = 0; i < pixelFormatArray.size(); i++) {
-            for (int j = 0; j < colorDataspaceArray.size(); j++) {
+        for (decltype(pixelFormatArray.size()) i = 0; i < pixelFormatArray.size(); i++) {
+            for (decltype(colorDataspaceArray.size()) j = 0; j < colorDataspaceArray.size(); j++) {
                 VkSwapchainCreateInfoKHR swapchainCI = getSwapchainCreateInfo(
                     pixelFormatArray[i], colorDataspaceArray[j]);
 
@@ -693,7 +694,7 @@ HWTEST_F(VulkanWrapperUnitTest, fpCreateSwapchainKHR_Fail_Test, TestSize.Level1)
             VK_COLOR_SPACE_MAX_ENUM_KHR
         };
 
-        for (int i = 0; i < colorDataspaceArray.size(); i++) {
+        for (decltype(colorDataspaceArray.size()) i = 0; i < colorDataspaceArray.size(); i++) {
             VkSwapchainCreateInfoKHR swapchainCI = getSwapchainCreateInfo(
                 VK_FORMAT_R8G8B8A8_UNORM, colorDataspaceArray[i]);
 
