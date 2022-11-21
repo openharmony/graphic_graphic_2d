@@ -309,25 +309,6 @@ void PixelMapRectOpItem::Draw(RSPaintFilterCanvas& canvas, const SkRect*) const
     canvas.drawImageRect(skImage, src_, dst_, &paint_);
 }
 
-BitmapLatticeOpItem::BitmapLatticeOpItem(
-    const sk_sp<SkImage> bitmapInfo, const SkCanvas::Lattice& lattice, const SkRect& rect, const SkPaint* paint)
-    : OpItemWithPaint(sizeof(BitmapLatticeOpItem))
-{
-    rect_ = rect;
-    lattice_ = lattice;
-    if (bitmapInfo != nullptr) {
-        bitmapInfo_ = bitmapInfo;
-    }
-    if (paint) {
-        paint_ = *paint;
-    }
-}
-
-void BitmapLatticeOpItem::Draw(RSPaintFilterCanvas& canvas, const SkRect*) const
-{
-    canvas.drawImageLattice(bitmapInfo_.get(), lattice_, rect_, &paint_);
-}
-
 BitmapNineOpItem::BitmapNineOpItem(
     const sk_sp<SkImage> bitmapInfo, const SkIRect& center, const SkRect& rectDst, const SkPaint* paint)
     : OpItemWithPaint(sizeof(BitmapNineOpItem)), center_(center), rectDst_(rectDst)
