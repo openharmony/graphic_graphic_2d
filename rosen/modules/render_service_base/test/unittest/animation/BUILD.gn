@@ -1,0 +1,57 @@
+# Copyright (c) 2022 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/test.gni")
+import(
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service_client/render_service_client.gni")
+
+module_output_path = "graphic_standard/rosen/modules/render_service_base"
+
+ohos_unittest("RSRenderAnimationTest") {
+  module_out_path = module_output_path
+
+  sources = [
+    "rs_animation_manager_test.cpp",
+    "rs_render_curve_animation_test.cpp",
+    "rs_render_keyframe_animation_test.cpp",
+    "rs_render_path_animation_test.cpp",
+    "rs_render_spring_animation_test.cpp",
+  ]
+
+  configs = [ ":rs_render_animation_test_config" ]
+
+  deps = [
+    "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:librender_service_base",
+    "//foundation/window/window_manager/wm:libwm",
+    "//third_party/googletest:gtest_main",
+  ]
+
+  external_deps = [ "eventhandler:libeventhandler" ]
+
+  subsystem_name = "graphic"
+}
+
+config("rs_render_animation_test_config") {
+  visibility = [ ":*" ]
+  include_dirs = [
+    "//foundation/window/window_manager/interfaces/innerkits",
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base",
+    "$rosen_root/modules/render_service_client/core/animation/",
+  ]
+}
+
+group("unittest") {
+  testonly = true
+  deps = [ ":RSRenderAnimationTest" ]
+}
