@@ -50,6 +50,7 @@ constexpr float MAX_TRANS_RATIO = 0.95f;
 constexpr float MIN_SPOT_RATIO = 1.0f;
 constexpr float MAX_SPOT_RATIO = 1.95f;
 constexpr float MAX_AMBIENT_RADIUS = 150.0f;
+int g_blurCnt = 0;
 } // namespace
 
 SkRect RSPropertiesPainter::Rect2SkRect(const RectF& r)
@@ -257,6 +258,7 @@ void RSPropertiesPainter::DrawShadow(const RSProperties& properties, RSPaintFilt
 void RSPropertiesPainter::DrawFilter(const RSProperties& properties, SkCanvas& canvas,
     std::shared_ptr<RSSkiaFilter>& filter, const std::unique_ptr<SkRect>& rect, SkSurface* skSurface)
 {
+    g_blurCnt++;
     if (rect != nullptr) {
         canvas.clipRect((*rect), true);
     } else if (properties.GetClipBounds() != nullptr) {
@@ -286,6 +288,16 @@ void RSPropertiesPainter::DrawFilter(const RSProperties& properties, SkCanvas& c
     canvas.drawImageRect(imageSnapshot.get(), clipBounds, clipBounds, &paint);
     filter->PostProcess(canvas);
     canvas.restore();
+}
+
+int RSPropertiesPainter::GetBlurCnt()
+{
+    return g_blurCnt;
+}
+
+void RSPropertiesPainter::ResetBlurCnt()
+{
+    g_blurCnt = 0;
 }
 
 void RSPropertiesPainter::DrawBackground(const RSProperties& properties, RSPaintFilterCanvas& canvas)

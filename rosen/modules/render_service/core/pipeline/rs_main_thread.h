@@ -169,6 +169,7 @@ private:
 
     void ClearDisplayBuffer();
     void PerfAfterAnim();
+    void PerfForBlurIfNeeded();
 
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
