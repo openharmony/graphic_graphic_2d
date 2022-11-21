@@ -32,6 +32,7 @@ constexpr int32_t PERF_LEVEL_2_REQUESTED_CODE = 10014;
 constexpr int32_t PERF_LEVEL_3_REQUESTED_CODE = 10015;
 constexpr int64_t PERF_TIME_OUT = 950;
 constexpr uint32_t PERF_LEVEL_INTERVAL = 10;
+constexpr uint32_t PERF_LAYER_START_NUM = 7;
 
 void RequestPerf(uint32_t layerLevel, bool onOffTag)
 {
@@ -128,6 +129,9 @@ void RSProcessor::MultiLayersPerf(size_t layerNum)
     static uint32_t lastLayerLevel = 0;
     static std::chrono::steady_clock::time_point lastRequestPerfTime = std::chrono::steady_clock::now();
     auto curLayerLevel = layerNum / PERF_LEVEL_INTERVAL;
+    if (curLayerLevel == 0 && layerNum >= PERF_LAYER_START_NUM) {
+        curLayerLevel = 1;
+    }
     auto currentTime = std::chrono::steady_clock::now();
     bool isTimeOut = std::chrono::duration_cast<std::chrono::milliseconds>(currentTime - lastRequestPerfTime).
         count() > PERF_TIME_OUT;
