@@ -154,6 +154,16 @@ void RSRenderNode::UpdateRenderStatus(RectI& dirtyRegion, bool isPartialRenderEn
     }
 }
 
+void RSRenderNode::UpdateParentChildrenRect(std::shared_ptr<RSBaseRenderNode> parentNode,
+    const bool isCustomized, const RectI subRect) const
+{
+    if (parentNode) {
+        RectI accumulatedRect = GetChildrenRect();
+        accumulatedRect = accumulatedRect.JoinRect((isCustomized ? subRect : renderProperties_.GetDirtyRect()));
+        parentNode->UpdateChildrenRect(accumulatedRect);
+    }
+}
+
 void RSRenderNode::RenderTraceDebug() const
 {
     if (RSSystemProperties::GetRenderNodeTraceEnabled()) {
