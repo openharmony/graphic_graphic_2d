@@ -16,13 +16,16 @@
 #include "gtest/gtest.h"
 #include "limit_number.h"
 
+#include "overdraw/rs_overdraw_controller.h"
 #include "pipeline/rs_base_render_node.h"
 #include "pipeline/rs_canvas_render_node.h"
+#include "pipeline/rs_context.h"
 #include "pipeline/rs_proxy_render_node.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_render_thread_visitor.h"
 #include "pipeline/rs_root_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
+#include "ui/rs_surface_node.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -55,6 +58,10 @@ HWTEST_F(RSRenderThreadVisitorTest, PrepareBaseRenderNode001, TestSize.Level1)
     RSSurfaceRenderNodeConfig config;
     RSSurfaceRenderNode rsSurfaceRenderNode(config);
     RSRenderThreadVisitor rsRenderThreadVisitor;
+    rsRenderThreadVisitor.PrepareBaseRenderNode(rsSurfaceRenderNode);
+    config.id = 1;
+    auto surfaceRenderNode2 = std::make_shared<RSSurfaceRenderNode>(config);
+    rsSurfaceRenderNode.AddChild(surfaceRenderNode2, -1);
     rsRenderThreadVisitor.PrepareBaseRenderNode(rsSurfaceRenderNode);
 }
 
@@ -97,6 +104,9 @@ HWTEST_F(RSRenderThreadVisitorTest, PrepareCanvasRenderNode003, TestSize.Level1)
 {
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[2];
     RSCanvasRenderNode node(nodeId);
+    RSSurfaceRenderNodeConfig config;
+    auto surfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config);
+    node.AddChild(surfaceRenderNode, -1);
     RSRenderThreadVisitor rsRenderThreadVisitor;
     rsRenderThreadVisitor.PrepareCanvasRenderNode(node);
 }
@@ -112,6 +122,7 @@ HWTEST_F(RSRenderThreadVisitorTest, PrepareCanvasRenderNode004, TestSize.Level1)
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[3];
     RSCanvasRenderNode node(nodeId);
     RSRenderThreadVisitor rsRenderThreadVisitor;
+    rsRenderThreadVisitor.SetPartialRenderStatus(PartialRenderType::SET_DAMAGE_AND_DROP_OP, false);
     rsRenderThreadVisitor.PrepareCanvasRenderNode(node);
 }
 
@@ -153,8 +164,22 @@ HWTEST_F(RSRenderThreadVisitorTest, PrepareRootRenderNode002, TestSize.Level1)
 {
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[1];
     RSRootRenderNode node(nodeId);
-    node.UpdateSuggestedBufferSize(0, 0);
     RSRenderThreadVisitor rsRenderThreadVisitor;
+    rsRenderThreadVisitor.PrepareRootRenderNode(node);
+
+    RSSurfaceNodeConfig config;
+    auto surfaceNode = RSSurfaceNode::Create(config);
+    node.AttachRSSurfaceNode(surfaceNode->GetId());
+    node.SetEnableRender(false);
+    rsRenderThreadVisitor.PrepareRootRenderNode(node);
+    node.SetEnableRender(true);
+    node.UpdateSuggestedBufferSize(0, 0);
+    rsRenderThreadVisitor.PrepareRootRenderNode(node);
+    node.UpdateSuggestedBufferSize(0, 1);
+    rsRenderThreadVisitor.PrepareRootRenderNode(node);
+    node.UpdateSuggestedBufferSize(1, 0);
+    rsRenderThreadVisitor.PrepareRootRenderNode(node);
+    node.UpdateSuggestedBufferSize(1, 1);
     rsRenderThreadVisitor.PrepareRootRenderNode(node);
 }
 
@@ -219,6 +244,25 @@ HWTEST_F(RSRenderThreadVisitorTest, PrepareSurfaceRenderNode002, TestSize.Level1
 }
 
 /**
+ * @tc.name: PrepareSurfaceRenderNode003
+ * @tc.desc: test results of PrepareSurfaceRenderNode
+ * @tc.type: FUNC
+ * @tc.require: issueI5HRIF
+ */
+HWTEST_F(RSRenderThreadVisitorTest, PrepareSurfaceRenderNode003, TestSize.Level1)
+{
+    RSSurfaceRenderNodeConfig config;
+    RSSurfaceRenderNode rsSurfaceRenderNode(config);
+    rsSurfaceRenderNode.NotifyRTBufferAvailable();
+    RSRenderThreadVisitor rsRenderThreadVisitor;
+    rsRenderThreadVisitor.PrepareSurfaceRenderNode(rsSurfaceRenderNode);
+    rsSurfaceRenderNode.GetMutableRenderProperties().SetClipToBounds(true);
+    rsSurfaceRenderNode.GetMutableRenderProperties().SetBoundsWidth(10);
+    rsSurfaceRenderNode.GetMutableRenderProperties().SetBoundsHeight(10);
+    rsRenderThreadVisitor.PrepareSurfaceRenderNode(rsSurfaceRenderNode);
+}
+
+/**
  * @tc.name: ProcessBaseRenderNode001
  * @tc.desc: test results of ProcessBaseRenderNode
  * @tc.type: FUNC
@@ -229,6 +273,10 @@ HWTEST_F(RSRenderThreadVisitorTest, ProcessBaseRenderNode001, TestSize.Level1)
     RSSurfaceRenderNodeConfig config;
     RSSurfaceRenderNode rsSurfaceRenderNode(config);
     RSRenderThreadVisitor rsRenderThreadVisitor;
+    rsRenderThreadVisitor.ProcessBaseRenderNode(rsSurfaceRenderNode);
+    config.id = 1;
+    auto surfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config);
+    rsSurfaceRenderNode.AddChild(surfaceRenderNode, -1);
     rsRenderThreadVisitor.ProcessBaseRenderNode(rsSurfaceRenderNode);
 }
 
@@ -270,9 +318,15 @@ HWTEST_F(RSRenderThreadVisitorTest, ProcessCanvasRenderNode002, TestSize.Level1)
 HWTEST_F(RSRenderThreadVisitorTest, ProcessCanvasRenderNode003, TestSize.Level1)
 {
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[2];
-    RSCanvasRenderNode node(nodeId);
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSCanvasRenderNode>(nodeId, rsContext->weak_from_this());
+    constexpr NodeId nodeId2 = 10;
+    RSRootRenderNode node2(nodeId2);
+    node2.AddChild(node, -1);
+    node2.SetEnableRender(false);
     RSRenderThreadVisitor rsRenderThreadVisitor;
-    rsRenderThreadVisitor.ProcessCanvasRenderNode(node);
+    rsRenderThreadVisitor.ProcessRootRenderNode(node2);
+    rsRenderThreadVisitor.ProcessCanvasRenderNode(node2);
 }
 
 /**
@@ -366,7 +420,15 @@ HWTEST_F(RSRenderThreadVisitorTest, ProcessRootRenderNode004, TestSize.Level1)
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[2];
     RSRootRenderNode node(nodeId);
     node.SetEnableRender(false);
+    RSSurfaceNodeConfig config;
+    auto surfaceNode = RSSurfaceNode::Create(config);
+    node.AttachRSSurfaceNode(surfaceNode->GetId());
+    node.UpdateSuggestedBufferSize(10, 10);
     RSRenderThreadVisitor rsRenderThreadVisitor;
+    rsRenderThreadVisitor.ProcessRootRenderNode(node);
+    RSOverdrawController::GetInstance().SetEnable(false);
+    rsRenderThreadVisitor.ProcessRootRenderNode(node);
+    rsRenderThreadVisitor.SetPartialRenderStatus(PartialRenderType::DISABLED, true);
     rsRenderThreadVisitor.ProcessRootRenderNode(node);
 }
 
@@ -423,10 +485,16 @@ HWTEST_F(RSRenderThreadVisitorTest, ProcessSurfaceRenderNode001, TestSize.Level1
 HWTEST_F(RSRenderThreadVisitorTest, ProcessSurfaceRenderNode002, TestSize.Level1)
 {
     RSSurfaceRenderNodeConfig config;
-    RSSurfaceRenderNode rsSurfaceRenderNode(config);
-    rsSurfaceRenderNode.GetMutableRenderProperties().SetVisible(false);
+    auto rsContext = std::make_shared<RSContext>();
+    auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config, rsContext->weak_from_this());
+    constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[4];
+    RSRootRenderNode node(nodeId);
+    node.AddChild(rsSurfaceRenderNode, -1);
+    node.UpdateSuggestedBufferSize(10, 10);
+    rsSurfaceRenderNode->GetMutableRenderProperties().SetVisible(false);
     RSRenderThreadVisitor rsRenderThreadVisitor;
-    rsRenderThreadVisitor.ProcessSurfaceRenderNode(rsSurfaceRenderNode);
+    rsRenderThreadVisitor.ProcessRootRenderNode(node);
+    rsRenderThreadVisitor.ProcessSurfaceRenderNode(*rsSurfaceRenderNode);
 }
 
 /**
@@ -505,5 +573,18 @@ HWTEST_F(RSRenderThreadVisitorTest, SetPartialRenderStatus005, TestSize.Level1)
 {
     RSRenderThreadVisitor rsRenderThreadVisitor;
     rsRenderThreadVisitor.SetPartialRenderStatus(RSSystemProperties::GetUniPartialRenderEnabled(), true);
+}
+
+/**
+ * @tc.name: SetPartialRenderStatus006
+ * @tc.desc: test results of GetPartialRenderEnabled
+ * @tc.type: FUNC
+ * @tc.require: issueI5HRIF
+ */
+HWTEST_F(RSRenderThreadVisitorTest, SetPartialRenderStatus006, TestSize.Level1)
+{
+    RSRenderThreadVisitor rsRenderThreadVisitor;
+    rsRenderThreadVisitor.SetPartialRenderStatus(PartialRenderType::DISABLED, true);
+    rsRenderThreadVisitor.SetPartialRenderStatus(PartialRenderType::SET_DAMAGE_AND_DROP_OP, true);
 }
 } // namespace OHOS::Rosen
