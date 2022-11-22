@@ -90,7 +90,7 @@ public:
     void ResetContextAlpha() const;
 
     void SetAppFreeze(bool isAppFreeze);
-    void SetContainerWindow(bool hasContainerWindow);
+    void SetContainerWindow(bool hasContainerWindow, float density);
 
 protected:
     bool NeedForcedSendToRemote() const override;
