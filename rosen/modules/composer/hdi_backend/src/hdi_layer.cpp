@@ -14,7 +14,7 @@
  */
 
 #include "hdi_layer.h"
-
+#include "hdi_log.h"
 namespace OHOS {
 namespace Rosen {
 
@@ -41,7 +41,7 @@ bool HdiLayer::Init(const LayerInfoPtr &layerInfo)
         return false;
     }
 
-    if (CreateLayer(layerInfo) != DISPLAY_SUCCESS) {
+    if (CreateLayer(layerInfo) != GRAPHIC_DISPLAY_SUCCESS) {
         return false;
     }
 
@@ -51,34 +51,34 @@ bool HdiLayer::Init(const LayerInfoPtr &layerInfo)
 int32_t HdiLayer::InitDevice()
 {
     if (device_ != nullptr) {
-        return DISPLAY_SUCCESS;
+        return GRAPHIC_DISPLAY_SUCCESS;
     }
 
     device_ = HdiDevice::GetInstance();
     if (device_ == nullptr) {
         HLOGE("device_ init failed.");
-        return DISPLAY_NULL_PTR;
+        return GRAPHIC_DISPLAY_NULL_PTR;
     }
-    return DISPLAY_SUCCESS;
+    return GRAPHIC_DISPLAY_SUCCESS;
 }
 
 int32_t HdiLayer::CreateLayer(const LayerInfoPtr &layerInfo)
 {
-    LayerInfo hdiLayerInfo = {
+    GraphicLayerInfo hdiLayerInfo = {
         .width = layerInfo->GetLayerSize().w,
         .height = layerInfo->GetLayerSize().h,
-        .type = LAYER_TYPE_GRAPHIC,
-        .pixFormat = PIXEL_FMT_RGBA_8888,
+        .type = GRAPHIC_LAYER_TYPE_GRAPHIC,
+        .pixFormat = GRAPHIC_PIXEL_FMT_RGBA_8888,
     };
 
     int32_t retCode = InitDevice();
-    if (retCode != DISPLAY_SUCCESS) {
-        return DISPLAY_NULL_PTR;
+    if (retCode != GRAPHIC_DISPLAY_SUCCESS) {
+        return GRAPHIC_DISPLAY_NULL_PTR;
     }
 
     uint32_t layerId = 0;
     int32_t ret = device_->CreateLayer(screenId_, hdiLayerInfo, layerId);
-    if (ret != DISPLAY_SUCCESS) {
+    if (ret != GRAPHIC_DISPLAY_SUCCESS) {
         HLOGE("Create hwc layer failed, ret is %{public}d", ret);
         return ret;
     }
@@ -100,12 +100,12 @@ void HdiLayer::CloseLayer()
     }
 
     int32_t retCode = InitDevice();
-    if (retCode != DISPLAY_SUCCESS) {
+    if (retCode != GRAPHIC_DISPLAY_SUCCESS) {
         return;
     }
 
     retCode = device_->CloseLayer(screenId_, layerId_);
-    if (retCode != DISPLAY_SUCCESS) {
+    if (retCode != GRAPHIC_DISPLAY_SUCCESS) {
         HLOGE("Close hwc layer[%{public}u] failed, ret is %{public}d", layerId_, retCode);
     }
 
@@ -115,14 +115,14 @@ void HdiLayer::CloseLayer()
 int32_t HdiLayer::SetLayerAlpha()
 {
     if (doLayerInfoCompare_) {
-        const LayerAlpha& layerAlpha1 = layerInfo_->GetAlpha();
-        const LayerAlpha& layerAlpha2 = prevLayerInfo_->GetAlpha();
+        const GraphicLayerAlpha& layerAlpha1 = layerInfo_->GetAlpha();
+        const GraphicLayerAlpha& layerAlpha2 = prevLayerInfo_->GetAlpha();
         bool isSame = layerAlpha1.enGlobalAlpha == layerAlpha2.enGlobalAlpha &&
                       layerAlpha1.enPixelAlpha == layerAlpha2.enPixelAlpha &&
                       layerAlpha1.alpha0 == layerAlpha2.alpha0 && layerAlpha1.alpha1 == layerAlpha2.alpha1 &&
                       layerAlpha1.gAlpha == layerAlpha2.gAlpha;
         if (isSame) {
-            return DISPLAY_SUCCESS;
+            return GRAPHIC_DISPLAY_SUCCESS;
         }
     }
 
@@ -130,7 +130,7 @@ int32_t HdiLayer::SetLayerAlpha()
     return ret;
 }
 
-bool HdiLayer::IsSameRect(const IRect& rect1, const IRect& rect2)
+bool HdiLayer::IsSameRect(const GraphicIRect& rect1, const GraphicIRect& rect2)
 {
     return rect1.x == rect2.x && rect1.y == rect2.y && rect1.w == rect2.w && rect1.h == rect2.h;
 }
@@ -138,7 +138,7 @@ bool HdiLayer::IsSameRect(const IRect& rect1, const IRect& rect2)
 int32_t HdiLayer::SetLayerSize()
 {
     if (doLayerInfoCompare_ && IsSameRect(layerInfo_->GetLayerSize(), prevLayerInfo_->GetLayerSize())) {
-        return DISPLAY_SUCCESS;
+        return GRAPHIC_DISPLAY_SUCCESS;
     }
 
     int32_t ret = device_->SetLayerSize(screenId_, layerId_, layerInfo_->GetLayerSize());
@@ -149,10 +149,10 @@ int32_t HdiLayer::SetTransformMode()
 {
     if (layerInfo_->GetTransformType() == GraphicTransformType::GRAPHIC_ROTATE_BUTT || (doLayerInfoCompare_ &&
         layerInfo_->GetTransformType() == prevLayerInfo_->GetTransformType())) {
-        return DISPLAY_SUCCESS;
+        return GRAPHIC_DISPLAY_SUCCESS;
     }
 
-    TransformType transFormType = static_cast<TransformType>(layerInfo_->GetTransformType());
+    GraphicTransformType transFormType = layerInfo_->GetTransformType();
     int32_t ret = device_->SetTransformMode(screenId_, layerId_, transFormType);
     return ret;
 }
@@ -161,7 +161,7 @@ int32_t HdiLayer::SetLayerVisibleRegion()
 {
     if (doLayerInfoCompare_ && IsSameRect(layerInfo_->GetVisibleRegion(), prevLayerInfo_->GetVisibleRegion()) &&
         layerInfo_->GetVisibleNum() == prevLayerInfo_->GetVisibleNum()) {
-        return DISPLAY_SUCCESS;
+        return GRAPHIC_DISPLAY_SUCCESS;
     }
 
     int32_t ret = device_->SetLayerVisibleRegion(screenId_, layerId_, layerInfo_->GetVisibleNum(),
@@ -172,7 +172,7 @@ int32_t HdiLayer::SetLayerVisibleRegion()
 int32_t HdiLayer::SetLayerDirtyRegion()
 {
     if (doLayerInfoCompare_ && IsSameRect(layerInfo_->GetDirtyRegion(), prevLayerInfo_->GetDirtyRegion())) {
-        return DISPLAY_SUCCESS;
+        return GRAPHIC_DISPLAY_SUCCESS;
     }
 
     int32_t ret = device_->SetLayerDirtyRegion(screenId_, layerId_, layerInfo_->GetDirtyRegion());
@@ -184,7 +184,7 @@ int32_t HdiLayer::SetLayerBuffer()
     if (layerInfo_->GetBuffer() == nullptr || (doLayerInfoCompare_ &&
         layerInfo_->GetBuffer() == prevLayerInfo_->GetBuffer() &&
         layerInfo_->GetAcquireFence() == prevLayerInfo_->GetAcquireFence())) {
-        return DISPLAY_SUCCESS;
+        return GRAPHIC_DISPLAY_SUCCESS;
     }
 
     int32_t ret = device_->SetLayerBuffer(screenId_, layerId_, layerInfo_->GetBuffer()->GetBufferHandle(),
@@ -195,7 +195,7 @@ int32_t HdiLayer::SetLayerBuffer()
 int32_t HdiLayer::SetLayerCompositionType()
 {
     if (doLayerInfoCompare_ && layerInfo_->GetCompositionType() == prevLayerInfo_->GetCompositionType()) {
-        return DISPLAY_SUCCESS;
+        return GRAPHIC_DISPLAY_SUCCESS;
     }
 
     int32_t ret = device_->SetLayerCompositionType(screenId_, layerId_, layerInfo_->GetCompositionType());
@@ -205,7 +205,7 @@ int32_t HdiLayer::SetLayerCompositionType()
 int32_t HdiLayer::SetLayerBlendType()
 {
     if (doLayerInfoCompare_ && layerInfo_->GetBlendType() == prevLayerInfo_->GetBlendType()) {
-        return DISPLAY_SUCCESS;
+        return GRAPHIC_DISPLAY_SUCCESS;
     }
 
     int32_t ret = device_->SetLayerBlendType(screenId_, layerId_, layerInfo_->GetBlendType());
@@ -215,7 +215,7 @@ int32_t HdiLayer::SetLayerBlendType()
 int32_t HdiLayer::SetLayerCrop()
 {
     if (doLayerInfoCompare_ && IsSameRect(layerInfo_->GetCropRect(), prevLayerInfo_->GetCropRect())) {
-        return DISPLAY_SUCCESS;
+        return GRAPHIC_DISPLAY_SUCCESS;
     }
 
     int32_t ret = device_->SetLayerCrop(screenId_, layerId_, layerInfo_->GetCropRect());
@@ -225,7 +225,7 @@ int32_t HdiLayer::SetLayerCrop()
 int32_t HdiLayer::SetLayerZorder()
 {
     if (doLayerInfoCompare_ && layerInfo_->GetZorder() == prevLayerInfo_->GetZorder()) {
-        return DISPLAY_SUCCESS;
+        return GRAPHIC_DISPLAY_SUCCESS;
     }
 
     int32_t ret = device_->SetLayerZorder(screenId_, layerId_, layerInfo_->GetZorder());
@@ -235,7 +235,7 @@ int32_t HdiLayer::SetLayerZorder()
 int32_t HdiLayer::SetLayerPreMulti()
 {
     if (doLayerInfoCompare_ && layerInfo_->IsPreMulti() == prevLayerInfo_->IsPreMulti()) {
-        return DISPLAY_SUCCESS;
+        return GRAPHIC_DISPLAY_SUCCESS;
     }
 
     int32_t ret = device_->SetLayerPreMulti(screenId_, layerId_, layerInfo_->IsPreMulti());
@@ -245,23 +245,23 @@ int32_t HdiLayer::SetLayerPreMulti()
 int32_t HdiLayer::SetLayerColorTransform()
 {
     if (doLayerInfoCompare_ && layerInfo_->GetColorTransform() == prevLayerInfo_->GetColorTransform()) {
-        return DISPLAY_SUCCESS;
+        return GRAPHIC_DISPLAY_SUCCESS;
     }
 
     // because hdi interface func is not implemented, delete CheckRet to avoid excessive print of log
     device_->SetLayerColorTransform(screenId_, layerId_, layerInfo_->GetColorTransform());
-    return DISPLAY_SUCCESS;
+    return GRAPHIC_DISPLAY_SUCCESS;
 }
 
 int32_t HdiLayer::SetLayerColorDataSpace()
 {
     if (doLayerInfoCompare_ && layerInfo_->GetColorDataSpace() == prevLayerInfo_->GetColorDataSpace()) {
-        return DISPLAY_SUCCESS;
+        return GRAPHIC_DISPLAY_SUCCESS;
     }
 
     // because hdi interface func is not implemented, delete CheckRet to avoid excessive print of log
     device_->SetLayerColorDataSpace(screenId_, layerId_, layerInfo_->GetColorDataSpace());
-    return DISPLAY_SUCCESS;
+    return GRAPHIC_DISPLAY_SUCCESS;
 }
 
 bool HdiLayer::IsSameLayerMetaData()
@@ -287,13 +287,13 @@ int32_t HdiLayer::SetLayerMetaData()
     if (doLayerInfoCompare_) {
         bool isSame = IsSameLayerMetaData();
         if (isSame) {
-            return DISPLAY_SUCCESS;
+            return GRAPHIC_DISPLAY_SUCCESS;
         }
     }
 
     // because hdi interface func is not implemented, delete CheckRet to avoid excessive print of log
     device_->SetLayerMetaData(screenId_, layerId_, layerInfo_->GetMetaData());
-    return DISPLAY_SUCCESS;
+    return GRAPHIC_DISPLAY_SUCCESS;
 }
 
 
@@ -321,22 +321,22 @@ int32_t HdiLayer::SetLayerMetaDataSet()
     if (doLayerInfoCompare_) {
         bool isSame = IsSameLayerMetaDataSet();
         if (isSame) {
-            return DISPLAY_SUCCESS;
+            return GRAPHIC_DISPLAY_SUCCESS;
         }
     }
 
     // because hdi interface func is not implemented, delete CheckRet to avoid excessive print of log
     device_->SetLayerMetaDataSet(screenId_, layerId_, layerInfo_->GetMetaDataSet().key,
                                  layerInfo_->GetMetaDataSet().metaData);
-    return DISPLAY_SUCCESS;
+    return GRAPHIC_DISPLAY_SUCCESS;
 }
 
 int32_t HdiLayer::SetLayerTunnelHandle()
 {
     if (!layerInfo_->GetTunnelHandleChange()) {
-        return DISPLAY_SUCCESS;
+        return GRAPHIC_DISPLAY_SUCCESS;
     }
-    int32_t ret = DISPLAY_SUCCESS;
+    int32_t ret = GRAPHIC_DISPLAY_SUCCESS;
     if (layerInfo_->GetTunnelHandle() == nullptr) {
         ret = device_->SetLayerTunnelHandle(screenId_, layerId_, nullptr);
     } else {
@@ -347,11 +347,11 @@ int32_t HdiLayer::SetLayerTunnelHandle()
 
 int32_t HdiLayer::SetLayerPresentTimestamp()
 {
-    if (supportedPresentTimestamptype_ == PresentTimestampType::HARDWARE_DISPLAY_PTS_UNSUPPORTED) {
-        return DISPLAY_SUCCESS;
+    if (supportedPresentTimestamptype_ == GraphicPresentTimestampType::GRAPHIC_DISPLAY_PTS_UNSUPPORTED) {
+        return GRAPHIC_DISPLAY_SUCCESS;
     }
     layerInfo_->SetIsSupportedPresentTimestamp(true);
-    PresentTimestamp timestamp = {HARDWARE_DISPLAY_PTS_UNSUPPORTED, 0};
+    GraphicPresentTimestamp timestamp = {GRAPHIC_DISPLAY_PTS_UNSUPPORTED, 0};
     int32_t ret = device_->GetPresentTimestamp(screenId_, layerId_, timestamp);
     GraphicPresentTimestamp graphicTimestamp = {
         .type = static_cast<GraphicPresentTimestampType>(timestamp.type),
@@ -359,7 +359,7 @@ int32_t HdiLayer::SetLayerPresentTimestamp()
     };
 
     CheckRet(ret, "GetPresentTimestamp");
-    if (ret == DISPLAY_SUCCESS) {
+    if (ret == GRAPHIC_DISPLAY_SUCCESS) {
         layerInfo_->SetPresentTimestamp(graphicTimestamp);
     }
     return ret;
@@ -372,14 +372,14 @@ int32_t HdiLayer::SetHdiLayerInfo()
         If the current function is not supported, continue other layer settings.
      */
     int32_t ret = InitDevice();
-    if (ret != DISPLAY_SUCCESS || layerInfo_ == nullptr) {
-        return DISPLAY_FAILURE;
+    if (ret != GRAPHIC_DISPLAY_SUCCESS || layerInfo_ == nullptr) {
+        return GRAPHIC_DISPLAY_FAILURE;
     }
 
     // All layer properities need to set to hwc when the layer is created firstly or the previous layer's composition
     // type is COMPOSITION_DEVICE for COMPOSITION_DEVICE can not reuse COMPOSITION_CLIENT layers info.
     doLayerInfoCompare_ = prevLayerInfo_ != nullptr &&
-                          prevLayerInfo_->GetCompositionType() == CompositionType::COMPOSITION_DEVICE;
+                          prevLayerInfo_->GetCompositionType() == GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE;
 
     ret = SetLayerAlpha();
     CheckRet(ret, "SetLayerAlpha");
@@ -415,7 +415,7 @@ int32_t HdiLayer::SetHdiLayerInfo()
     CheckRet(ret, "SetLayerTunnelHandle");
     ret = SetLayerPresentTimestamp();
     CheckRet(ret, "SetLayerPresentTimestamp");
-    return DISPLAY_SUCCESS;
+    return GRAPHIC_DISPLAY_SUCCESS;
 }
 
 uint32_t HdiLayer::GetLayerId() const
@@ -488,7 +488,7 @@ void HdiLayer::MergeWithLayerFence(const sptr<SyncFence> &layerReleaseFence)
     }
 }
 
-void HdiLayer::UpdateCompositionType(CompositionType type)
+void HdiLayer::UpdateCompositionType(GraphicCompositionType type)
 {
     if (layerInfo_ == nullptr) {
         return;
@@ -505,7 +505,7 @@ sptr<SyncFence> HdiLayer::Merge(const sptr<SyncFence> &fence1, const sptr<SyncFe
 
 void HdiLayer::CheckRet(int32_t ret, const char* func)
 {
-    if (ret != DISPLAY_SUCCESS) {
+    if (ret != GRAPHIC_DISPLAY_SUCCESS) {
         HLOGD("call hdi %{public}s failed, ret is %{public}d", func, ret);
     }
 }

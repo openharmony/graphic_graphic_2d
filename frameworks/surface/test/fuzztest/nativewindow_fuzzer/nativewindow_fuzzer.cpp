@@ -129,7 +129,7 @@ namespace OHOS {
         std::vector<OHHDRMetaData> metaDatas = {metaData};
         NativeWindowSetMetaData(nativeWindow, sequence, metaDatas.size(), metaDatas.data());
         NativeWindowSetMetaDataSet(nativeWindow, sequence, key, STR_LEN, metaData2);
-        ExtDataHandle *handle = AllocExtDataHandle(reserveInts);
+        OHExtDataHandle *handle = AllocExtDataHandle(reserveInts);
         NativeWindowSetTunnelHandle(nativeWindow, reinterpret_cast<OHExtDataHandle *>(handle));
         FreeExtDataHandle(handle);
         DestoryNativeWindow(nativeWindow);

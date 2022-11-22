@@ -104,7 +104,7 @@ void AddBuffer(OHNativeWindow* nativeWindow)
         std::cout << "NativeWindowHandleOpt SET_STRIDE failed" << std::endl;
     }
     code = SET_FORMAT;
-    int32_t format = PIXEL_FMT_RGBA_8888;
+    int32_t format = GRAPHIC_PIXEL_FMT_RGBA_8888;
     ret = NativeWindowHandleOpt(nativeWindow, code, format);
     if (ret != GSERROR_OK) {
         std::cout << "NativeWindowHandleOpt SET_FORMAT failed" << std::endl;

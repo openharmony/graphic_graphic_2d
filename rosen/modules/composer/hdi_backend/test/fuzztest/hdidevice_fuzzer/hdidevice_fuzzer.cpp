@@ -53,7 +53,7 @@ namespace OHOS {
     void HdiDeviceFuzzTest2()
     {
         // get data
-        ColorGamut gamut = GetData<ColorGamut>();
+        GraphicColorGamut gamut = GetData<GraphicColorGamut>();
         uint32_t screenId = GetData<uint32_t>();
         uint32_t layerId = GetData<uint32_t>();
         int32_t fenceFd = GetData<int32_t>() % 32768; // maximum fd of linux is 32768
@@ -62,26 +62,26 @@ namespace OHOS {
             fenceFd = DEFAULT_FENCE;
         }
         sptr<SyncFence> fence = new SyncFence(fenceFd);
-        LayerAlpha alpha = GetData<LayerAlpha>();
-        IRect layerRect = GetData<IRect>();
-        TransformType ttype = GetData<TransformType>();
+        GraphicLayerAlpha alpha = GetData<GraphicLayerAlpha>();
+        GraphicIRect layerRect = GetData<GraphicIRect>();
+        GraphicTransformType ttype = GetData<GraphicTransformType>();
         uint32_t num = GetData<uint32_t>();
-        IRect visible = GetData<IRect>();
-        IRect dirty = GetData<IRect>();
-        CompositionType ctype = GetData<CompositionType>();
-        BlendType btype = GetData<BlendType>();
-        IRect crop = GetData<IRect>();
+        GraphicIRect visible = GetData<GraphicIRect>();
+        GraphicIRect dirty = GetData<GraphicIRect>();
+        GraphicCompositionType ctype = GetData<GraphicCompositionType>();
+        GraphicBlendType btype = GetData<GraphicBlendType>();
+        GraphicIRect crop = GetData<GraphicIRect>();
         uint32_t zorder = GetData<uint32_t>();
         bool isPreMulti = GetData<bool>();
         float matrix = GetData<float>();
-        ColorDataSpace colorSpace = GetData<ColorDataSpace>();
+        GraphicColorDataSpace colorSpace = GetData<GraphicColorDataSpace>();
         GraphicHDRMetaData metaData = GetData<GraphicHDRMetaData>();
         GraphicHDRMetadataKey key = GetData<GraphicHDRMetadataKey>();
         uint8_t metaData2 = GetData<uint8_t>();
-        PresentTimestamp timestamp = GetData<PresentTimestamp>();
+        GraphicPresentTimestamp timestamp = GetData<GraphicPresentTimestamp>();
 
         // test
-        Base::HdiDevice *device = HdiDevice::GetInstance();
+        HdiDevice *device = HdiDevice::GetInstance();
         device->GetScreenColorGamut(screenId, gamut);
         device->SetLayerAlpha(screenId, layerId, alpha);
         device->SetLayerSize(screenId, layerId, layerRect);
@@ -126,17 +126,17 @@ namespace OHOS {
         }
         sptr<SyncFence> fence = new SyncFence(fenceFd);
         uint32_t num = GetData<uint32_t>();
-        IRect damageRect = GetData<IRect>();
-        GamutMap gamutMap = GetData<GamutMap>();
+        GraphicIRect damageRect = GetData<GraphicIRect>();
+        GraphicGamutMap gamutMap = GetData<GraphicGamutMap>();
 
         uint32_t formatCount = GetData<uint32_t>();
-        HDRFormat formats = GetData<HDRFormat>();
+        GraphicHDRFormat formats = GetData<GraphicHDRFormat>();
         float maxLum = GetData<float>();
         float maxAverageLum = GetData<float>();
         float minLum = GetData<float>();
 
         // test
-        Base::HdiDevice *device = HdiDevice::GetInstance();
+        HdiDevice *device = HdiDevice::GetInstance();
         device->PrepareScreenLayers(screenId, needFlush);
         std::vector<uint32_t> layersId;
         std::vector<int32_t> types;
@@ -146,10 +146,10 @@ namespace OHOS {
         std::vector<uint32_t> layers;
         std::vector<sptr<SyncFence>> fences;
         device->GetScreenReleaseFence(screenId, layers, fences);
-        std::vector<ColorGamut> gamuts;
+        std::vector<GraphicColorGamut> gamuts;
         device->GetScreenSupportedColorGamuts(screenId, gamuts);
         device->SetScreenGamutMap(screenId, gamutMap);
-        HDRCapability info = {
+        GraphicHDRCapability info = {
             .formatCount = formatCount,
             .formats = &formats,
             .maxLum = maxLum,

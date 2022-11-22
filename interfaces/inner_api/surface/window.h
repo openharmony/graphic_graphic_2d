@@ -16,7 +16,7 @@
 #ifndef NDK_INCLUDE_NATIVE_WINDOW_H_
 #define NDK_INCLUDE_NATIVE_WINDOW_H_
 
-#include <stdint.h>
+#include "common_types.h"
 #include "external_window.h"
 
 #ifdef __cplusplus

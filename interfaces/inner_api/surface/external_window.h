@@ -241,18 +241,6 @@ typedef struct {
 } OHHDRMetaData;
 
 /**
- * @brief Defines the ExtData Handle
- */
-typedef struct {
-    /**< Handle fd, -1 if not supported */
-    int32_t fd;
-    /**< the number of reserved integer value */
-    uint32_t reserveInts;
-    /**< the reserved data */
-    int32_t reserve[0];
-} OHExtDataHandle;
-
-/**
  * @brief Creates a <b>NativeWindow</b> instance. A new <b>NativeWindow</b> instance is created each time this function is called.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeWindow

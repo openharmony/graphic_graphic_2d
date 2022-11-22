@@ -41,20 +41,20 @@ void HdiLayerTest::SetUpTestCase()
     layerInfo_->SetSurface(cSurface);
     sptr<IBufferProducer> producer = cSurface->GetProducer();
     sptr<Surface> pSurface = Surface::CreateSurfaceAsProducer(producer);
-    IRect srcRect = {0, 0, WIDTH_VAL, HEIGHT_VAL};
-    IRect dstRect = {0, 0, WIDTH_VAL, HEIGHT_VAL};
+    GraphicIRect srcRect = {0, 0, WIDTH_VAL, HEIGHT_VAL};
+    GraphicIRect dstRect = {0, 0, WIDTH_VAL, HEIGHT_VAL};
     layerInfo_->SetLayerSize(dstRect);
     layerInfo_->SetDirtyRegion(srcRect);
     layerInfo_->SetCropRect(srcRect);
     layerInfo_->SetVisibleRegion(1, srcRect);
-    LayerAlpha layerAlpha = {false, false, 0, 0, 0};
+    GraphicLayerAlpha layerAlpha = {false, false, 0, 0, 0};
     layerInfo_->SetAlpha(layerAlpha);
-    layerInfo_->SetCompositionType(CompositionType::COMPOSITION_DEVICE);
-    layerInfo_->SetBlendType(BlendType::BLEND_NONE);
+    layerInfo_->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE);
+    layerInfo_->SetBlendType(GraphicBlendType::GRAPHIC_BLEND_NONE);
     hdiLayer_->UpdateLayerInfo(layerInfo_);
     sptr<SyncFence> fbAcquireFence = new SyncFence(1);
     hdiLayer_->MergeWithFramebufferFence(fbAcquireFence);
-    hdiLayer_->UpdateCompositionType(CompositionType::COMPOSITION_CLIENT);
+    hdiLayer_->UpdateCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT);
     std::string dumpStr = "";
     hdiLayer_->Dump(dumpStr);
 }
@@ -88,10 +88,10 @@ HWTEST_F(HdiLayerTest, Init001, Function | MediumTest| Level1)
 */
 HWTEST_F(HdiLayerTest, SetHdiLayerInfo001, Function | MediumTest| Level1)
 {
-    ASSERT_EQ(HdiLayerTest::hdiLayer_->SetHdiLayerInfo(), DISPLAY_SUCCESS);
+    ASSERT_EQ(HdiLayerTest::hdiLayer_->SetHdiLayerInfo(), GRAPHIC_DISPLAY_SUCCESS);
 
     hdiLayer_->SavePrevLayerInfo();
-    ASSERT_EQ(HdiLayerTest::hdiLayer_->SetHdiLayerInfo(), DISPLAY_SUCCESS);
+    ASSERT_EQ(HdiLayerTest::hdiLayer_->SetHdiLayerInfo(), GRAPHIC_DISPLAY_SUCCESS);
 }
 
 /*

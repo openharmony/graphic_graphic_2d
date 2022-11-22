@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,24 +13,28 @@
  * limitations under the License.
  */
 
-#include <mutex>
-#include <scoped_bytrace.h>
-#include "hdi_device.h"
-#include "hdi_device_impl.h"
+#ifndef SURFACE_NDK_COMMON_DEFINE_TYPES_
+#define SURFACE_NDK_COMMON_DEFINE_TYPES_
+#include <stdint.h>
 
-namespace OHOS {
-namespace Rosen {
-HdiDevice* HdiDevice::GetInstance()
-{
-    static HdiDeviceImpl instance;
-    static std::mutex mutex;
-    std::lock_guard<std::mutex> lock(mutex);
-    {
-        if (instance.Init() != ROSEN_ERROR_OK) {
-            return nullptr;
-        }
-    }
-    return &instance;
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/**
+ * @brief Defines the ExtData Handle
+ */
+typedef struct {
+    /**< Handle fd, -1 if not supported */
+    int32_t fd;
+    /**< the number of reserved integer value */
+    uint32_t reserveInts;
+    /**< the reserved data */
+    int32_t reserve[0];
+} OHExtDataHandle;
+
+#ifdef __cplusplus
 }
-} // namespace Rosen
-} // namespace OHOS
+#endif
+
+#endif // SURFACE_NDK_COMMON_DEFINE_TYPES_

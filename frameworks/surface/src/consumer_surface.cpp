@@ -310,7 +310,7 @@ GSError ConsumerSurface::GetMetaDataSet(uint32_t sequence, GraphicHDRMetadataKey
     return consumer_->GetMetaDataSet(sequence, key, metaData);
 }
 
-GSError ConsumerSurface::SetTunnelHandle(const ExtDataHandle *handle)
+GSError ConsumerSurface::SetTunnelHandle(const OHExtDataHandle *handle)
 {
     if (handle == nullptr || handle->reserveInts == 0) {
         return GSERROR_INVALID_ARGUMENTS;

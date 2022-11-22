@@ -78,7 +78,7 @@ namespace OHOS {
         // get data
         uint32_t screenId = GetData<uint32_t>();
         uint32_t num = GetData<uint32_t>();
-        IRect outputDamage = GetData<IRect>();
+        GraphicIRect outputDamage = GetData<GraphicIRect>();
         int64_t timeStamp = GetData<int64_t>();
         bool enableStatus = GetData<bool>();
         uint32_t seqNum = GetData<uint32_t>();

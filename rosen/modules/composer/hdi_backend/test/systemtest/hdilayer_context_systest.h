@@ -23,7 +23,7 @@ namespace Rosen {
 namespace MockSys {
 class HdiLayerContext {
 public:
-    HdiLayerContext(IRect dstRect, IRect srcRect, uint32_t zOrder);
+    HdiLayerContext(GraphicIRect dstRect, GraphicIRect srcRect, uint32_t zOrder);
     virtual ~HdiLayerContext();
     std::shared_ptr<HdiLayerInfo> GetHdiLayer();
     GSError DrawBufferColor();
@@ -32,8 +32,8 @@ private:
     std::shared_ptr<HdiLayerInfo> hdiLayer_;
     sptr<Surface> pSurface_;
     sptr<Surface> cSurface_;
-    IRect srcRect_;
-    IRect dstRect_;
+    GraphicIRect srcRect_;
+    GraphicIRect dstRect_;
     uint32_t zOrder_ = 0;
     static void DrawColor(void *image, uint32_t width, uint32_t height);
 };

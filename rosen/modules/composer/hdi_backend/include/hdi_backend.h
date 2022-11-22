@@ -52,7 +52,7 @@ public:
     /* for RS end */
 
     /* only used for mock tests */
-    void SetHdiBackendDevice(Base::HdiDevice* device);
+    void SetHdiBackendDevice(HdiDevice* device);
 private:
     HdiBackend() = default;
     virtual ~HdiBackend() = default;
@@ -62,7 +62,7 @@ private:
     HdiBackend(HdiBackend&& rhs) = delete;
     HdiBackend& operator=(HdiBackend&& rhs) = delete;
 
-    Base::HdiDevice *device_ = nullptr;
+    HdiDevice *device_ = nullptr;
     void* onHotPlugCbData_ = nullptr;
     void* onPrepareCompleteCbData_ = nullptr;
     OnScreenHotplugFunc onScreenHotplugCb_ = nullptr;

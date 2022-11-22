@@ -30,48 +30,47 @@ public:
     static void CheckNullFunc();
 
     static inline std::unique_ptr<HdiScreen> hdiScreen_;
-    static inline Mock::HdiDevice* mockDevice_;
+    static inline Mock::HdiDeviceMock* mockDevice_;
 };
 
 void HdiScreenTest::CheckNullFunc()
 {
-    DisplayCapability dcap;
-    ASSERT_EQ(hdiScreen_->GetScreenCapability(dcap), DISPLAY_NULL_PTR);
-    std::vector<DisplayModeInfo> modes;
-    ASSERT_EQ(hdiScreen_->GetScreenSupportedModes(modes), DISPLAY_NULL_PTR);
+    GraphicDisplayCapability dcap;
+    ASSERT_EQ(hdiScreen_->GetScreenCapability(dcap), GRAPHIC_DISPLAY_NULL_PTR);
+    std::vector<GraphicDisplayModeInfo> modes;
+    ASSERT_EQ(hdiScreen_->GetScreenSupportedModes(modes), GRAPHIC_DISPLAY_NULL_PTR);
     uint32_t modeId = 0;
-    ASSERT_EQ(hdiScreen_->GetScreenMode(modeId), DISPLAY_NULL_PTR);
-    ASSERT_EQ(hdiScreen_->SetScreenMode(modeId), DISPLAY_NULL_PTR);
-    DispPowerStatus status = POWER_STATUS_ON;
-    ASSERT_EQ(hdiScreen_->GetScreenPowerStatus(status), DISPLAY_NULL_PTR);
-    ASSERT_EQ(hdiScreen_->SetScreenPowerStatus(status), DISPLAY_NULL_PTR);
+    ASSERT_EQ(hdiScreen_->GetScreenMode(modeId), GRAPHIC_DISPLAY_NULL_PTR);
+    ASSERT_EQ(hdiScreen_->SetScreenMode(modeId), GRAPHIC_DISPLAY_NULL_PTR);
+    GraphicDispPowerStatus status = GRAPHIC_POWER_STATUS_ON;
+    ASSERT_EQ(hdiScreen_->GetScreenPowerStatus(status), GRAPHIC_DISPLAY_NULL_PTR);
+    ASSERT_EQ(hdiScreen_->SetScreenPowerStatus(status), GRAPHIC_DISPLAY_NULL_PTR);
     uint32_t level = 0;
-    ASSERT_EQ(hdiScreen_->GetScreenBacklight(level), DISPLAY_NULL_PTR);
-    ASSERT_EQ(hdiScreen_->SetScreenBacklight(level), DISPLAY_NULL_PTR);
+    ASSERT_EQ(hdiScreen_->GetScreenBacklight(level), GRAPHIC_DISPLAY_NULL_PTR);
+    ASSERT_EQ(hdiScreen_->SetScreenBacklight(level), GRAPHIC_DISPLAY_NULL_PTR);
     bool enabled = false;
-    ASSERT_EQ(hdiScreen_->SetScreenVsyncEnabled(enabled), DISPLAY_NULL_PTR);
-    std::vector<ColorGamut> gamuts;
-    ASSERT_EQ(hdiScreen_->GetScreenSupportedColorGamuts(gamuts), DISPLAY_NULL_PTR);
-    ColorGamut gamut = COLOR_GAMUT_INVALID;
-    ASSERT_EQ(hdiScreen_->SetScreenColorGamut(gamut), DISPLAY_NULL_PTR);
-    ASSERT_EQ(hdiScreen_->GetScreenColorGamut(gamut), DISPLAY_NULL_PTR);
-    GamutMap gamutMap = GAMUT_MAP_CONSTANT;
-    ASSERT_EQ(hdiScreen_->SetScreenGamutMap(gamutMap), DISPLAY_NULL_PTR);
-    ASSERT_EQ(hdiScreen_->GetScreenGamutMap(gamutMap), DISPLAY_NULL_PTR);
+    ASSERT_EQ(hdiScreen_->SetScreenVsyncEnabled(enabled), GRAPHIC_DISPLAY_NULL_PTR);
+    std::vector<GraphicColorGamut> gamuts;
+    ASSERT_EQ(hdiScreen_->GetScreenSupportedColorGamuts(gamuts), GRAPHIC_DISPLAY_NULL_PTR);
+    GraphicColorGamut gamut = GRAPHIC_COLOR_GAMUT_INVALID;
+    ASSERT_EQ(hdiScreen_->SetScreenColorGamut(gamut), GRAPHIC_DISPLAY_NULL_PTR);
+    ASSERT_EQ(hdiScreen_->GetScreenColorGamut(gamut), GRAPHIC_DISPLAY_NULL_PTR);
+    GraphicGamutMap gamutMap = GRAPHIC_GAMUT_MAP_CONSTANT;
+    ASSERT_EQ(hdiScreen_->SetScreenGamutMap(gamutMap), GRAPHIC_DISPLAY_NULL_PTR);
+    ASSERT_EQ(hdiScreen_->GetScreenGamutMap(gamutMap), GRAPHIC_DISPLAY_NULL_PTR);
     float *matrix;
-    ASSERT_EQ(hdiScreen_->SetScreenColorTransform(matrix), DISPLAY_NULL_PTR);
-    HDRCapability infos;
-    ASSERT_EQ(hdiScreen_->GetHDRCapabilityInfos(infos), DISPLAY_NULL_PTR);
+    ASSERT_EQ(hdiScreen_->SetScreenColorTransform(matrix), GRAPHIC_DISPLAY_NULL_PTR);
+    GraphicHDRCapability infos;
+    ASSERT_EQ(hdiScreen_->GetHDRCapabilityInfos(infos), GRAPHIC_DISPLAY_NULL_PTR);
     std::vector<GraphicHDRMetadataKey> keys;
-    ASSERT_EQ(hdiScreen_->GetSupportedMetaDataKey(keys), DISPLAY_NULL_PTR);
+    ASSERT_EQ(hdiScreen_->GetSupportedMetaDataKey(keys), GRAPHIC_DISPLAY_NULL_PTR);
 }
 
 void HdiScreenTest::SetUpTestCase()
 {
     uint32_t screenId = 0;
     hdiScreen_ = HdiScreen::CreateHdiScreen(screenId);
-    HdiScreenTest::CheckNullFunc();
-    mockDevice_ = Mock::HdiDevice::GetInstance();
+    mockDevice_ = Mock::HdiDeviceMock::GetInstance();
 
     EXPECT_CALL(*mockDevice_, GetScreenCapability(_, _)).WillRepeatedly(testing::Return(0));
     EXPECT_CALL(*mockDevice_, GetScreenSupportedModes(_, _)).WillRepeatedly(testing::Return(0));
@@ -126,9 +125,9 @@ HWTEST_F(HdiScreenTest, Init001, Function | MediumTest| Level3)
 */
 HWTEST_F(HdiScreenTest, GetScreenCapability001, Function | MediumTest| Level3)
 {
-    DisplayCapability displayCapability = {
+    GraphicDisplayCapability displayCapability = {
         .name = "test",
-        .type = InterfaceType::DISP_INTF_BT1120,
+        .type = GraphicInterfaceType::GRAPHIC_DISP_INTF_BT1120,
         .phyWidth = 800,
         .phyHeight = 600,
         .supportLayers = 1,
@@ -150,13 +149,13 @@ HWTEST_F(HdiScreenTest, GetScreenCapability001, Function | MediumTest| Level3)
 */
 HWTEST_F(HdiScreenTest, GetScreenSupportedModes001, Function | MediumTest| Level3)
 {
-    DisplayModeInfo displayModeInfo = {
+    GraphicDisplayModeInfo displayModeInfo = {
         .width = 800,
         .height = 600,
         .freshRate = 60,
         .id = 0,
     };
-    std::vector<DisplayModeInfo> modeInfo = { displayModeInfo };
+    std::vector<GraphicDisplayModeInfo> modeInfo = { displayModeInfo };
     ASSERT_EQ(HdiScreenTest::hdiScreen_->GetScreenSupportedModes(modeInfo), 0);
 }
 
@@ -198,7 +197,7 @@ HWTEST_F(HdiScreenTest, SetScreenMode001, Function | MediumTest| Level3)
 */
 HWTEST_F(HdiScreenTest, GetScreenPowerStatus001, Function | MediumTest| Level3)
 {
-    DispPowerStatus dispPowerStatus = DispPowerStatus::POWER_STATUS_ON;
+    GraphicDispPowerStatus dispPowerStatus = GraphicDispPowerStatus::GRAPHIC_POWER_STATUS_ON;
     ASSERT_EQ(HdiScreenTest::hdiScreen_->GetScreenPowerStatus(dispPowerStatus), 0);
 }
 
@@ -212,7 +211,7 @@ HWTEST_F(HdiScreenTest, GetScreenPowerStatus001, Function | MediumTest| Level3)
 */
 HWTEST_F(HdiScreenTest, SetScreenPowerStatus001, Function | MediumTest| Level3)
 {
-    DispPowerStatus dispPowerStatus = DispPowerStatus::POWER_STATUS_ON;
+    GraphicDispPowerStatus dispPowerStatus = GraphicDispPowerStatus::GRAPHIC_POWER_STATUS_ON;
     ASSERT_EQ(HdiScreenTest::hdiScreen_->SetScreenPowerStatus(dispPowerStatus), 0);
 }
 
@@ -282,8 +281,8 @@ HWTEST_F(HdiScreenTest, SetScreenColorTransform001, Function | MediumTest| Level
  */
 HWTEST_F(HdiScreenTest, GetScreenSupportedColorGamuts001, Function | MediumTest | Level2)
 {
-    ColorGamut colorGamut = ColorGamut::COLOR_GAMUT_DCI_P3;
-    std::vector<ColorGamut> gamuts = { colorGamut };
+    GraphicColorGamut colorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DCI_P3;
+    std::vector<GraphicColorGamut> gamuts = { colorGamut };
     ASSERT_EQ(HdiScreenTest::hdiScreen_->GetScreenSupportedColorGamuts(gamuts), 0);
 }
 
@@ -297,7 +296,7 @@ HWTEST_F(HdiScreenTest, GetScreenSupportedColorGamuts001, Function | MediumTest 
  */
 HWTEST_F(HdiScreenTest, SetScreenColorGamut001, Function | MediumTest | Level2)
 {
-    ColorGamut colorGamut = ColorGamut::COLOR_GAMUT_DCI_P3;
+    GraphicColorGamut colorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DCI_P3;
     ASSERT_EQ(HdiScreenTest::hdiScreen_->SetScreenColorGamut(colorGamut), 0);
 }
 
@@ -311,7 +310,7 @@ HWTEST_F(HdiScreenTest, SetScreenColorGamut001, Function | MediumTest | Level2)
  */
 HWTEST_F(HdiScreenTest, GetScreenColorGamut001, Function | MediumTest | Level2)
 {
-    ColorGamut colorGamut = ColorGamut::COLOR_GAMUT_DCI_P3;
+    GraphicColorGamut colorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DCI_P3;
     ASSERT_EQ(HdiScreenTest::hdiScreen_->GetScreenColorGamut(colorGamut), 0);
 }
 
@@ -325,7 +324,7 @@ HWTEST_F(HdiScreenTest, GetScreenColorGamut001, Function | MediumTest | Level2)
  */
 HWTEST_F(HdiScreenTest, SetScreenGamutMap001, Function | MediumTest | Level2)
 {
-    GamutMap gamutMap = GamutMap::GAMUT_MAP_CONSTANT;
+    GraphicGamutMap gamutMap = GraphicGamutMap::GRAPHIC_GAMUT_MAP_CONSTANT;
     ASSERT_EQ(HdiScreenTest::hdiScreen_->SetScreenGamutMap(gamutMap), 0);
 }
 
@@ -339,7 +338,7 @@ HWTEST_F(HdiScreenTest, SetScreenGamutMap001, Function | MediumTest | Level2)
  */
 HWTEST_F(HdiScreenTest, GetScreenGamutMap001, Function | MediumTest | Level2)
 {
-    GamutMap gamutMap = GamutMap::GAMUT_MAP_CONSTANT;
+    GraphicGamutMap gamutMap = GraphicGamutMap::GRAPHIC_GAMUT_MAP_CONSTANT;
     ASSERT_EQ(HdiScreenTest::hdiScreen_->GetScreenGamutMap(gamutMap), 0);
 }
 
@@ -353,7 +352,7 @@ HWTEST_F(HdiScreenTest, GetScreenGamutMap001, Function | MediumTest | Level2)
  */
 HWTEST_F(HdiScreenTest, GetHDRCapabilityInfos001, Function | MediumTest | Level2)
 {
-    HDRCapability capaility = {
+    GraphicHDRCapability capaility = {
         .formatCount = 0,
         .formats = nullptr,
         .maxLum = 0,

@@ -182,7 +182,7 @@ void ReadExtDataHandle(MessageParcel &parcel, sptr<SurfaceTunnelHandle> &handle)
         return;
     }
     uint32_t reserveInts = parcel.ReadUint32();
-    ExtDataHandle *tunnelHandle = AllocExtDataHandle(reserveInts);
+    OHExtDataHandle *tunnelHandle = AllocExtDataHandle(reserveInts);
     if (tunnelHandle == nullptr) {
         BLOGE("AllocExtDataHandle failed");
         return;
@@ -198,7 +198,7 @@ void ReadExtDataHandle(MessageParcel &parcel, sptr<SurfaceTunnelHandle> &handle)
     FreeExtDataHandle(tunnelHandle);
 }
 
-void WriteExtDataHandle(MessageParcel &parcel, const ExtDataHandle *handle)
+void WriteExtDataHandle(MessageParcel &parcel, const OHExtDataHandle *handle)
 {
     if (handle == nullptr) {
         BLOGE("WriteExtDataHandle failed, handle is null");

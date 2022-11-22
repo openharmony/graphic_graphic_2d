@@ -93,7 +93,7 @@ namespace OHOS {
         WriteHDRMetaDataSet(parcel, metaDatas2);
         ReadHDRMetaDataSet(parcel, metaDatas2);
 
-        ExtDataHandle *handle = AllocExtDataHandle(reserveInts);
+        OHExtDataHandle *handle = AllocExtDataHandle(reserveInts);
         WriteExtDataHandle(parcel, handle);
         sptr<SurfaceTunnelHandle> tunnelHandle = nullptr;
         ReadExtDataHandle(parcel, tunnelHandle);

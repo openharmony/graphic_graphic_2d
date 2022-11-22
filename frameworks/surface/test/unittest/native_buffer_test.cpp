@@ -30,7 +30,7 @@ public:
     static inline OH_NativeBuffer_Config config = {
         .width = 0x100,
         .height = 0x100,
-        .format = PIXEL_FMT_RGBA_8888,
+        .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
         .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
     };
     static inline OH_NativeBuffer_Config checkConfig = {};
