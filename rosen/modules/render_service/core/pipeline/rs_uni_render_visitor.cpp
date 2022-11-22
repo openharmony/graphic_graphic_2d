@@ -520,15 +520,17 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
         }
         rsSurface->SetColorSpace(newColorSpace_);
         // we should request a framebuffer whose size is equals to the physical screen size.
+        RS_TRACE_BEGIN("RSUniRender:RequestFrame");
         auto renderFrame = renderEngine_->RequestFrame(std::static_pointer_cast<RSSurfaceOhos>(rsSurface),
             RSBaseRenderUtil::GetFrameBufferRequestConfig(screenInfo_, true));
+        RS_TRACE_END();
         if (renderFrame == nullptr) {
             RS_LOGE("RSUniRenderVisitor Request Frame Failed");
             return;
         }
         std::shared_ptr<RSCanvasListener> overdrawListener = nullptr;
         AddOverDrawListener(renderFrame, overdrawListener);
-        
+
         if (canvas_ == nullptr) {
             RS_LOGE("RSUniRenderVisitor::ProcessDisplayRenderNode: failed to create canvas");
             return;
