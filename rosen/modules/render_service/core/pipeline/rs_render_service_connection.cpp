@@ -379,9 +379,9 @@ void RSRenderServiceConnection::RegisterApplicationAgent(uint32_t pid, sptr<IApp
 void RSRenderServiceConnection::UnRegisterApplicationAgent(sptr<IApplicationAgent> app)
 {
     auto captureTask = [=]() -> void {
-        mainThread_->UnRegisterApplicationAgent(app);
+        RSMainThread::Instance()->UnRegisterApplicationAgent(app);
     };
-    mainThread_->PostTask(captureTask);
+    RSMainThread::Instance()->ScheduleTask(captureTask).wait();
 }
 
 RSVirtualScreenResolution RSRenderServiceConnection::GetVirtualScreenResolution(ScreenId id)
