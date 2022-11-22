@@ -20,7 +20,7 @@
 
 #include <scoped_bytrace.h>
 using namespace FRAME_TRACE;
-const std::string RS_INTERVAL_NAME = "renderservice";
+static const std::string RS_INTERVAL_NAME = "renderservice";
 
 #define CHECK_FUNC(device, deviceFunc)              \
     do {                                            \
