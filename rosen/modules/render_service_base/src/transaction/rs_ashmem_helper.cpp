@@ -102,8 +102,9 @@ bool AshmemAllocator::WriteToAshmem(const void *data, size_t size)
     if (data == nullptr || size_ < size) {
         return false;
     }
-    if (memcpy_s(data_, size, data, size) != EOK) {
-        ROSEN_LOGE("AshmemAllocator::WriteToAshmem memcpy_s failed");
+    errno_t err = memcpy_s(data_, size, data, size);
+    if (err != EOK) {
+        ROSEN_LOGE("AshmemAllocator::WriteToAshmem memcpy_s failed, err:%d", err);
         return false;
     }
     return true;
@@ -116,13 +117,15 @@ void* AshmemAllocator::CopyFromAshmem(size_t size)
     }
     void* base = malloc(size);
     if (base == nullptr) {
-        ROSEN_LOGE("AshmemAllocator::CopyFromAshmem malloc(size) failed");
+        ROSEN_LOGE("AshmemAllocator::CopyFromAshmem malloc failed, size:%zu", size);
         return nullptr;
     }
-    if (memcpy_s(base, size, data_, size) != EOK) {
+
+    errno_t err = memcpy_s(base, size, data_, size);
+    if (err != EOK) {
         free(base);
         base = nullptr;
-        ROSEN_LOGE("AshmemAllocator::CopyFromAshmem memcpy_s failed");
+        ROSEN_LOGE("AshmemAllocator::CopyFromAshmem memcpy_s failed, err:%d", err);
         return nullptr;
     }
     return base;
