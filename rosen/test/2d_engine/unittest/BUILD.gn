@@ -16,5 +16,6 @@ group("unittest") {
 
   deps = [
     "rosen_text/properties:unittest",
+    "rosen_text/ui:unittest",
   ]
 }
