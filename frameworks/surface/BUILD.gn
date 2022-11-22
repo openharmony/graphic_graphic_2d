@@ -73,10 +73,7 @@ ohos_shared_library("surface") {
     "//commonlibrary/c_utils/base:utils_config",
   ]
 
-  deps = [
-    "//foundation/graphic/graphic_2d/utils/gslogger:libgslogger",
-    "//foundation/graphic/graphic_2d/utils/sync_fence:sync_fence",
-  ]
+  deps = [ "//foundation/graphic/graphic_2d/utils/sync_fence:sync_fence" ]
 
   public_deps = [
     "//commonlibrary/c_utils/base:utils",

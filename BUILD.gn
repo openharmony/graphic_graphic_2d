@@ -16,12 +16,7 @@ import("//foundation/graphic/graphic_2d/utils/wmlayout/wmlayout.gni")
 import("graphic_config.gni")
 
 group("default") {
-  public_deps = [
-    ":graphic.rc",
-    "frameworks/dumper:gdumper",
-    "frameworks/dumper:gdumper.ini",
-    "frameworks/dumper:graphic_dumper_server",
-  ]
+  public_deps = [ ":graphic.rc" ]
 
   if (graphic_standard_feature_bootanimation_enable) {
     public_deps += [ "frameworks/bootanimation:bootanimation" ]
@@ -71,10 +66,6 @@ group("libfence") {
 
 group("libgl") {
   public_deps = libgl
-}
-
-group("libgraphic_dumper_client") {
-  public_deps = [ "frameworks/dumper:libgraphic_dumper_client" ]
 }
 
 group("libnative_image") {
