@@ -90,12 +90,14 @@ void RSUniRenderVisitor::SetPaintOutOfParentFlag(RSBaseRenderNode& node)
     RectI rect;
     if (geoPtr != nullptr) {
         rect = geoPtr->GetAbsRect();
+        rect = rect.JoinRect(node.ReinterpretCastTo<RSRenderNode>()->GetOldDirty());
     }
     RectI parentRect;
     auto& parentProperty = rsParent->GetMutableRenderProperties();
     auto parentGeoPtr = std::static_pointer_cast<RSObjAbsGeometry>(parentProperty.GetBoundsGeometry());
     if (parentGeoPtr != nullptr) {
         parentRect = parentGeoPtr->GetAbsRect();
+        parentRect = parentRect.JoinRect(rsParent->GetOldDirty());
     }
     if (node.HasChildrenOutOfRect()) {
         if (!node.GetPaintOutOfParentRect().IsInsideOf(parentRect) || parentRect.IsEmpty()) {
