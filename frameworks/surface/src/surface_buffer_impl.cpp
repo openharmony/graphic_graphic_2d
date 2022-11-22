@@ -295,15 +295,14 @@ GSError SurfaceBufferImpl::InvalidateCache()
 
 void SurfaceBufferImpl::FreeBufferHandleLocked()
 {
-#ifdef SURFACE_ENABLE_FREEMEM
-    if (GetDisplayGralloc() == nullptr) {
-        BLOGE("GetDisplayGralloc failed!");
+    if (displayGralloc_ == nullptr) {
+        BLOGE("displayGralloc_ is nullptr!");
         return;
     }
-#endif
     if (handle_) {
         if (handle_->virAddr != nullptr) {
             displayGralloc_->Unmap(*handle_);
+            handle_->virAddr = nullptr;
         }
 #ifdef SURFACE_ENABLE_FREEMEM
         displayGralloc_->FreeMem(*handle_);
