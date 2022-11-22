@@ -727,14 +727,14 @@ void RSUniRenderVisitor::CalcDirtyDisplayRegion(std::shared_ptr<RSDisplayRenderN
         // Component
         if (filterRects_.find(surfaceNodeId) != filterRects_.end()) {
             auto rectVec = filterRects_.find(surfaceNodeId)->second;
-            for (auto it = rectVec.begin(); it != rectVec.end(); ++it) {
-                if (!displayDirtyManager->GetDirtyRegion().IntersectRect(*it).IsEmpty()) {
+            for (auto rectIt = rectVec.begin(); rectIt != rectVec.end(); ++rectIt) {
+                if (!displayDirtyManager->GetDirtyRegion().IntersectRect(*rectIt).IsEmpty()) {
                     if (surfaceNode->IsTransparent()) {
-                        displayDirtyManager->MergeDirtyRect(*it);
+                        displayDirtyManager->MergeDirtyRect(*rectIt);
                     }
-                    surfaceDirtyManager->MergeDirtyRect(*it);
-                } else if (!surfaceDirtyManager->GetDirtyRegion().IntersectRect(*it).IsEmpty()) {
-                    surfaceDirtyManager->MergeDirtyRect(*it);
+                    surfaceDirtyManager->MergeDirtyRect(*rectIt);
+                } else if (!surfaceDirtyManager->GetDirtyRegion().IntersectRect(*rectIt).IsEmpty()) {
+                    surfaceDirtyManager->MergeDirtyRect(*rectIt);
                 }
             }
         }
