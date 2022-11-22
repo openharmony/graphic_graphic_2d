@@ -54,28 +54,6 @@ void RSRenderServiceConnectionStubTest::SetUp() {}
 void RSRenderServiceConnectionStubTest::TearDown() {}
 
 /**
- * @tc.name: TestRSRenderServiceConnectionStub001
- * @tc.desc: Case COMMIT_TRANSACTION test.
- * @tc.type: FUNC
- * @tc.require: issueI60KUK
- */
-HWTEST_F(RSRenderServiceConnectionStubTest, TestRSRenderServiceConnectionStub001, TestSize.Level1)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-
-    connectionStub_->OnRemoteRequest(RSRenderServiceConnectionStub::COMMIT_TRANSACTION, data, reply, option);
-    data.WriteInt32(1);
-    int res = connectionStub_->OnRemoteRequest(RSRenderServiceConnectionStub::COMMIT_TRANSACTION, data, reply, option);
-    ASSERT_EQ(res, ERR_INVALID_DATA);
-
-    MessageParcel data2;
-    data2.WriteInt32(0);
-    connectionStub_->OnRemoteRequest(RSRenderServiceConnectionStub::COMMIT_TRANSACTION, data2, reply, option);
-}
-
-/**
  * @tc.name: TestRSRenderServiceConnectionStub002
  * @tc.desc: Test if data has no content.
  * @tc.type: FUNC
