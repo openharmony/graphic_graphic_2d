@@ -237,7 +237,7 @@ void RSRenderThreadVisitor::UpdateDirtyAndSetEGLDamageRegion(std::unique_ptr<RSS
         // get and update valid buffer age(>0) to merge history
         int32_t bufferAge = surfaceFrame->GetBufferAge();
         if (!curDirtyManager_->SetBufferAge(bufferAge)) {
-            ROSEN_LOGW("ProcessRootRenderNode SetBufferAge with invalid buffer age %d", bufferAge);
+            ROSEN_LOGD("ProcessRootRenderNode SetBufferAge with invalid buffer age %d", bufferAge);
             curDirtyManager_->ResetDirtyAsSurfaceSize();
         }
         curDirtyManager_->UpdateDirtyByAligned();
