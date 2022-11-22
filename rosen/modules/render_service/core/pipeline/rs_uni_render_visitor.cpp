@@ -852,6 +852,14 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
         RS_LOGE("RSUniRenderVisitor::ProcessSurfaceRenderNode node:%" PRIu64 ", get geoPtr failed", node.GetId());
         return;
     }
+
+    if (node.IsAppWindow()) {
+        auto visibleDirtyRegions = node.GetVisibleDirtyRegion().GetRegionRects();
+        for (auto rect : visibleDirtyRegions) {
+            canvas_->GetVisibleRects().emplace_back(
+                SkRect::MakeLTRB(rect.left_, rect.top_, rect.right_, rect.bottom_));
+        }
+    }
     auto savedState = canvas_->SaveCanvasAndAlpha();
 
     canvas_->MultiplyAlpha(property.GetAlpha());
@@ -939,6 +947,9 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
     }
 
     canvas_->RestoreCanvasAndAlpha(savedState);
+    if (node.IsAppWindow()) {
+        canvas_->GetVisibleRects().clear();
+    }
 }
 
 void RSUniRenderVisitor::ProcessProxyRenderNode(RSProxyRenderNode& node)
