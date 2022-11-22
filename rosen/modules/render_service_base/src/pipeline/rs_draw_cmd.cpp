@@ -439,9 +439,7 @@ ImageWithParmOpItem::ImageWithParmOpItem(const sk_sp<SkImage> img, const sk_sp<S
 {
     rsImage_ = std::make_shared<RSImage>();
     rsImage_->SetImage(img);
-    if (img) {
-        rsImage_->SetCompressData(data, img->width(), img->height());
-    }
+    rsImage_->SetCompressData(data, rsimageInfo.uniqueId_, rsimageInfo.width_, rsimageInfo.height_);
     rsImage_->SetImageFit(rsimageInfo.fitNum_);
     rsImage_->SetImageRepeat(rsimageInfo.repeatNum_);
     rsImage_->SetRadius(rsimageInfo.radius_);

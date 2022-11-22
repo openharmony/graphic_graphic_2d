@@ -224,6 +224,7 @@ bool RSImageFuzzTest(const uint8_t* data, size_t size)
     sk_sp<SkData> skData;
     int width = GetData<int>();
     int height = GetData<int>();
+    int id = GetData<int>();
 
     RSImage rsImage;
     rsImage.IsEqual(other);
@@ -234,7 +235,7 @@ bool RSImageFuzzTest(const uint8_t* data, size_t size)
     rsImage.SetImageRepeat(repeatNum);
     rsImage.SetRadius(radius);
     rsImage.SetScale(scale);
-    rsImage.SetCompressData(skData, width, height);
+    rsImage.SetCompressData(skData, id, width, height);
 
     return true;
 }
