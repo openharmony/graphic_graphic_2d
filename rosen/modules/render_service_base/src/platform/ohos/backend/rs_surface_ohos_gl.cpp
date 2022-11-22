@@ -89,6 +89,11 @@ std::unique_ptr<RSSurfaceFrame> RSSurfaceOhosGl::RequestFrame(int32_t width, int
     return ret;
 }
 
+void RSSurfaceOhosGl::SetUiTimeStamp(const std::unique_ptr<RSSurfaceFrame>& frame, uint64_t uiTimestamp)
+{
+    NativeWindowHandleOpt(mWindow, SET_UI_TIMESTAMP, uiTimestamp);
+}
+
 bool RSSurfaceOhosGl::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uint64_t uiTimestamp)
 {
     RenderContext* context = GetRenderContext();
