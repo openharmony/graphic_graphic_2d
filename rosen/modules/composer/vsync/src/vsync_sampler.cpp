@@ -28,7 +28,7 @@ namespace {
 constexpr double PI = 3.1415926;
 constexpr int64_t g_errorThreshold = 40000000000; // 200 usec squared
 constexpr int32_t INVAILD_TIMESTAMP = -1;
-constexpr int32_t MINES_SAMPLE_NUMS = 3;
+constexpr uint32_t MINES_SAMPLE_NUMS = 3;
 }
 sptr<OHOS::Rosen::VSyncSampler> VSyncSampler::GetInstance() noexcept
 {
@@ -157,7 +157,7 @@ void VSyncSampler::UpdateModeLocked()
         sum -= min;
         sum -= max;
 
-        period_ = sum / (numSamples_ - MINES_SAMPLE_NUMS);
+        period_ = sum / (int64_t)(numSamples_ - MINES_SAMPLE_NUMS);
 
         double scale = 2.0 * PI / period_;
         double deltaAvgX = 0;

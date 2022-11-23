@@ -293,11 +293,7 @@ void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::CaptureSingleSurfaceNodeWith
     }
     canvas_->restore();
 
-    if (node.IsAppWindow() && node.IsColdStartThreadRunning() && node.GetCacheSurface() != nullptr) {
-        RSUniRenderUtil::DrawCachedSurface(node, *canvas_);
-    } else {
-        ProcessBaseRenderNode(node);
-    }
+    ProcessBaseRenderNode(node);
 }
 
 void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::CaptureSurfaceInDisplayWithUni(RSSurfaceRenderNode& node)

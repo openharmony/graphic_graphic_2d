@@ -42,8 +42,7 @@ enum RSSurfaceNodeCommandType : uint16_t {
     SURFACE_NODE_SET_IS_NOTIFY_BUFFER_AVAILABLE,
     SURFACE_NODE_SET_APP_FREEZE,
     SURFACE_NODE_SET_SURFACE_NODE_TYPE,
-    SURFACE_NODE_SET_CONTAINER_WINDOW,
-    SURFACE_NODE_SET_ANIMATION_FINISHED
+    SURFACE_NODE_SET_CONTAINER_WINDOW
 };
 
 class SurfaceNodeCommandHelper {
@@ -63,8 +62,7 @@ public:
     static void SetIsNotifyUIBufferAvailable(RSContext& context, NodeId nodeId, bool available);
     static void SetAppFreeze(RSContext& context, NodeId nodeId, bool isAppFreeze);
     static void SetSurfaceNodeType(RSContext& context, NodeId nodeId, RSSurfaceNodeType type);
-    static void SetContainerWindow(RSContext& context, NodeId nodeId, bool hasContainerWindow);
-    static void SetAnimationFinished(RSContext& context, NodeId nodeId);
+    static void SetContainerWindow(RSContext& context, NodeId nodeId, bool hasContainerWindow, float density);
 };
 
 ADD_COMMAND(RSSurfaceNodeCreate, ARG(SURFACE_NODE, SURFACE_NODE_CREATE, SurfaceNodeCommandHelper::Create, NodeId))
@@ -102,9 +100,8 @@ ADD_COMMAND(RSSurfaceNodeSetSurfaceNodeType,
     ARG(SURFACE_NODE, SURFACE_NODE_SET_SURFACE_NODE_TYPE,
     SurfaceNodeCommandHelper::SetSurfaceNodeType, NodeId, RSSurfaceNodeType))
 ADD_COMMAND(RSSurfaceNodeSetContainerWindow,
-    ARG(SURFACE_NODE, SURFACE_NODE_SET_CONTAINER_WINDOW, SurfaceNodeCommandHelper::SetContainerWindow, NodeId, bool))
-ADD_COMMAND(RSSurfaceNodeSetAnimationFinished,
-    ARG(SURFACE_NODE, SURFACE_NODE_SET_ANIMATION_FINISHED, SurfaceNodeCommandHelper::SetAnimationFinished, NodeId))
+    ARG(SURFACE_NODE, SURFACE_NODE_SET_CONTAINER_WINDOW, SurfaceNodeCommandHelper::SetContainerWindow,
+    NodeId, bool, float))
 } // namespace Rosen
 } // namespace OHOS
 #endif // ROSEN_RENDER_SERVICE_BASE_COMMAND_RS_SURFACE_NODE_COMMAND_H

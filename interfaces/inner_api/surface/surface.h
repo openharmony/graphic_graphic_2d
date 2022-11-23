@@ -107,6 +107,14 @@ public:
                                         int64_t &time) const = 0;
 
     virtual void Dump(std::string &result) const = 0;
+
+    virtual int32_t GetDefaultFormat() = 0;
+    virtual GSError SetDefaultFormat(int32_t format) = 0;
+    virtual int32_t GetDefaultColorGamut() = 0;
+    virtual GSError SetDefaultColorGamut(int32_t colorGamut) = 0;
+
+    virtual sptr<NativeSurface> GetNativeSurface() = 0;
+
 protected:
     Surface() = default;
 };

@@ -15,6 +15,7 @@ group("test") {
   testonly = true
 
   deps = [
+    "fuzztest:fuzztest",
     "systemtest:systemtest",
     "unittest:unittest",
   ]

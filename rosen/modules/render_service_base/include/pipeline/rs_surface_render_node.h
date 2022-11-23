@@ -22,19 +22,16 @@
 
 #include "common/rs_vector4.h"
 #include "ipc_callbacks/buffer_available_callback.h"
-#include "pipeline/rs_cold_start_thread.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "property/rs_properties_painter.h"
 #include "include/core/SkRect.h"
-#include "include/core/SkRefCnt.h"
 #include "pipeline/rs_surface_handler.h"
 #include "refbase.h"
 #include "sync_fence.h"
 #include "common/rs_occlusion_region.h"
 #include "transaction/rs_occlusion_data.h"
 
-class SkPicture;
 namespace OHOS {
 namespace Rosen {
 class RSCommand;
@@ -380,19 +377,16 @@ public:
 
     void SetCacheSurface(sk_sp<SkSurface> cacheSurface)
     {
-        std::lock_guard<std::mutex> lock(cachedSurfaceMutex_);
         cacheSurface_ = std::move(cacheSurface);
     }
 
     sk_sp<SkSurface> GetCacheSurface() const
     {
-        std::lock_guard<std::mutex> lock(cachedSurfaceMutex_);
         return cacheSurface_;
     }
 
     void ClearCacheSurface()
     {
-        std::lock_guard<std::mutex> lock(cachedSurfaceMutex_);
         cacheSurface_ = nullptr;
     }
 
@@ -426,9 +420,20 @@ public:
         return hasContainerWindow_;
     }
 
-    void SetContainerWindow(bool hasContainerWindow)
+    void SetContainerWindow(bool hasContainerWindow, float density)
     {
         hasContainerWindow_ = hasContainerWindow;
+        // px = vp * density
+        containerTitleHeight_ = ceil(CONTAINER_TITLE_HEIGHT * density);
+        containerContentPadding_ = ceil(CONTENT_PADDING * density);
+        containerBorderWidth_ = ceil(CONTAINER_BORDER_WIDTH * density);
+        containerOutRadius_ = ceil(CONTAINER_OUTER_RADIUS * density);
+        containerInnerRadius_ = ceil(CONTAINER_INNER_RADIUS * density);
+    }
+
+    bool IsOpaqueRegionChanged() const
+    {
+        return opaqueRegionChanged_;
     }
 
     bool IsFocusedWindow(pid_t focusedWindowPid)
@@ -447,7 +452,7 @@ public:
         }
         if (isFocusWindow) {
             Occlusion::Rect opaqueRect{ absRect.left_ + containerContentPadding_ + containerBorderWidth_,
-                absRect.top_ + containerTitleHeight_,
+                absRect.top_ + containerTitleHeight_ + containerInnerRadius_ + containerBorderWidth_,
                 absRect.GetRight() - containerContentPadding_ - containerBorderWidth_,
                 absRect.GetBottom() - containerContentPadding_ - containerBorderWidth_};
             Occlusion::Region opaqueRegion{opaqueRect};
@@ -455,7 +460,7 @@ public:
         } else {
             if (containerWindowConfigType == ContainerWindowConfigType::ENABLED_LEVEL_0) {
                 Occlusion::Rect opaqueRect{ absRect.left_ + containerContentPadding_ + containerBorderWidth_,
-                    absRect.top_ + containerTitleHeight_,
+                    absRect.top_ + containerTitleHeight_ + containerBorderWidth_,
                     absRect.GetRight() - containerContentPadding_ - containerBorderWidth_,
                     absRect.GetBottom() - containerContentPadding_ - containerBorderWidth_};
                 Occlusion::Region opaqueRegion{opaqueRect};
@@ -488,6 +493,7 @@ public:
         ContainerWindowConfigType containerWindowConfigType, bool isFocusWindow = true)
     {
         Occlusion::Rect absRectR {absRect};
+        Occlusion::Region oldOpaqueRegion { opaqueRegion_ };
         if (IsTransparent()) {
             opaqueRegion_ = Occlusion::Region();
             transparentRegion_ = Occlusion::Region{absRectR};
@@ -504,15 +510,8 @@ public:
         Occlusion::Region screenRegion{screen};
         transparentRegion_.AndSelf(screenRegion);
         opaqueRegion_.AndSelf(screenRegion);
+        opaqueRegionChanged_ = !oldOpaqueRegion.Xor(opaqueRegion_).IsEmpty();
     }
-
-    void BeginPlayBack(sk_sp<SkPicture> picture, float width, float height);
-    bool IsColdStartThreadRunning() const;
-    void StartColdStartThreadIfNeed();
-    void DestroyColdStartThread();
-    bool IsStartAnimationFinished() const;
-    void SetStartAnimationFinished();
-
 private:
     void ClearChildrenCache(const std::shared_ptr<RSBaseRenderNode>& node);
 
@@ -568,17 +567,21 @@ private:
 
     // opaque region of the surface
     Occlusion::Region opaqueRegion_;
+    bool opaqueRegionChanged_ = false;
     // transparent region of the surface, floating window's container window is always treated as transparent
     Occlusion::Region transparentRegion_;
     // temporary const value from ACE container_modal_constants.h, will be replaced by uniform interface
     bool hasContainerWindow_ = false;           // set to false as default, set by arkui
-    int containerTitleHeight_ = 37 * 2;        // container title height = 74 px
-    int containerContentPadding_ = 4 * 2;      // container <--> content distance 8 px
-    int containerBorderWidth_ = 1 * 2;         // container border width 2px
-    int containerOutRadius_ = 16 * 2;         // container outter radius
-    std::unique_ptr<RSColdStartThread> coldStartThread_ = nullptr;
-    bool startAnimationFinished_ = false;
-    mutable std::mutex cachedSurfaceMutex_;
+    const int CONTAINER_TITLE_HEIGHT = 37;        // container title height = 37 vp
+    const int CONTENT_PADDING = 4;      // container <--> content distance 4 vp
+    const int CONTAINER_BORDER_WIDTH = 1;          // container border width 2 vp
+    const int CONTAINER_OUTER_RADIUS = 16;         // container outter radius 16 vp
+    const int CONTAINER_INNER_RADIUS = 14;         // container inner radius 14 vp
+    int containerTitleHeight_ = 37 * 2;      // The density default value is 2
+    int containerContentPadding_ = 4 * 2;    // The density default value is 2
+    int containerBorderWidth_ = 1 * 2;       // The density default value is 2
+    int containerOutRadius_ = 16 * 2;        // The density default value is 2
+    int containerInnerRadius_ = 14 * 2;      // The density default value is 2
 };
 } // namespace Rosen
 } // namespace OHOS

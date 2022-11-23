@@ -108,14 +108,10 @@ protected:
 
     virtual void RemovePathAnimation() {}
 
-    virtual void UpdateShowingValue(const std::shared_ptr<const RSRenderPropertyBase>& property) {}
-
     void AttachModifier(const std::shared_ptr<RSModifier>& modifier)
     {
         modifier_ = modifier;
     }
-
-    virtual void MarkModifierDirty(const std::shared_ptr<RSModifierManager>& modifierManager) {}
 
     virtual std::shared_ptr<RSRenderPropertyBase> GetRenderProperty()
     {
@@ -341,7 +337,7 @@ public:
     }
 
 protected:
-    void MarkModifierDirty(const std::shared_ptr<RSModifierManager>& modifierManager) override
+    void MarkModifierDirty(const std::shared_ptr<RSModifierManager>& modifierManager)
     {
         auto modifier = RSProperty<T>::modifier_.lock();
         if (modifier != nullptr && modifierManager != nullptr) {
@@ -379,12 +375,18 @@ protected:
         runningPathNum_ -= 1;
     }
 
-    void UpdateShowingValue(const std::shared_ptr<const RSRenderPropertyBase>& property) override
+    void UpdateShowingValue(const std::shared_ptr<const RSRenderPropertyBase>& property)
     {
         auto renderProperty = std::static_pointer_cast<const RSRenderProperty<T>>(property);
         if (renderProperty != nullptr) {
             showingValue_ = renderProperty->Get();
         }
+        auto uiAnimationManager = RSAnimationManagerMap::Instance()->GetAnimationManager(gettid());
+        if (uiAnimationManager == nullptr) {
+            ROSEN_LOGE("Failed to update showing value, UI animation manager is null!");
+            return;
+        }
+        MarkModifierDirty(uiAnimationManager->modifierManager_);
     }
 
     void SetValue(const std::shared_ptr<RSPropertyBase>& value) override
@@ -416,15 +418,14 @@ protected:
         }
         renderProperty_ = std::make_shared<RSRenderAnimatableProperty<T>>(
             RSProperty<T>::stagingValue_, RSProperty<T>::id_, GetPropertyType());
-        auto uiAnimationManager = RSAnimationManagerMap::Instance()->GetAnimationManager(gettid());
-        if (uiAnimationManager == nullptr) {
-            ROSEN_LOGE("UI animation manager is null!");
-            return renderProperty_;
-        }
-        renderProperty_->SetUpdateUIPropertyFunc(
-            [this, uiAnimationManager](const std::shared_ptr<RSRenderPropertyBase>& renderProperty) {
-                UpdateShowingValue(renderProperty);
-                MarkModifierDirty(uiAnimationManager->modifierManager_);
+        renderProperty_->SetUpdateUIPropertyFunc([weakProperty = RSProperty<T>::weak_from_this()]
+            (const std::shared_ptr<RSRenderPropertyBase>& renderProperty) {
+                auto property = std::static_pointer_cast<RSAnimatableProperty<T>>(weakProperty.lock());
+                if (property == nullptr) {
+                    ROSEN_LOGE("Failed to update UI property, UI property is null!");
+                    return;
+                }
+                property->UpdateShowingValue(renderProperty);
             });
         return renderProperty_;
     }

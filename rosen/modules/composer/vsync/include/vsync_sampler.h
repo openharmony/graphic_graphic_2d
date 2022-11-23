@@ -68,10 +68,10 @@ public:
 
 private:
     friend class OHOS::Rosen::VSyncSampler;
-    enum { MAX_SAMPLES = 32 };
-    enum { MIN_SAMPLES_FOR_UPDATE = 6 };
-    enum { MAX_SAMPLES_WITHOUT_PRESENT = 4 };
-    enum { NUM_PRESENT = 8 };
+    enum : uint32_t { MAX_SAMPLES = 32 };
+    enum : uint32_t { MIN_SAMPLES_FOR_UPDATE = 6 };
+    enum : uint32_t { MAX_SAMPLES_WITHOUT_PRESENT = 4 };
+    enum : uint32_t { NUM_PRESENT = 8 };
 
     VSyncSampler();
     ~VSyncSampler() noexcept override;
@@ -87,7 +87,7 @@ private:
     int64_t samples_[MAX_SAMPLES] = {0};
     int64_t presentFenceTime_[NUM_PRESENT] = {-1};
     uint32_t firstSampleIndex_;
-    int32_t numSamples_;
+    uint32_t numSamples_;
     bool modeUpdated_;
     uint32_t numResyncSamplesSincePresent_ = 0;
     uint32_t presentFenceTimeOffset_ = 0;

@@ -239,16 +239,6 @@ bool RSSurfaceNode::SetBufferAvailableCallback(BufferAvailableCallback callback)
     });
 }
 
-void RSSurfaceNode::SetAnimationFinished()
-{
-    std::unique_ptr<RSCommand> command = std::make_unique<RSSurfaceNodeSetAnimationFinished>(GetId());
-    auto transactionProxy = RSTransactionProxy::GetInstance();
-    if (transactionProxy != nullptr) {
-        transactionProxy->AddCommand(command, true);
-        transactionProxy->FlushImplicitTransaction();
-    }
-}
-
 bool RSSurfaceNode::Marshalling(Parcel& parcel) const
 {
     return parcel.WriteUint64(GetId()) && parcel.WriteString(name_) && parcel.WriteBool(IsRenderServiceNode());
@@ -352,10 +342,10 @@ void RSSurfaceNode::SetAppFreeze(bool isAppFreeze)
     }
 }
 
-void RSSurfaceNode::SetContainerWindow(bool hasContainerWindow)
+void RSSurfaceNode::SetContainerWindow(bool hasContainerWindow, float density)
 {
     std::unique_ptr<RSCommand> command =
-        std::make_unique<RSSurfaceNodeSetContainerWindow>(GetId(), hasContainerWindow);
+        std::make_unique<RSSurfaceNodeSetContainerWindow>(GetId(), hasContainerWindow, density);
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy != nullptr) {
         transactionProxy->AddCommand(command, true);

@@ -29,7 +29,7 @@ namespace Rosen {
 class RSRenderTransitionEffect;
 class RSTransitionModifier;
 
-class RS_EXPORT RSCustomTransitionEffect final {
+class RSCustomTransitionEffect final {
 public:
     RSCustomTransitionEffect(const std::shared_ptr<RSTransitionModifier>& modifier) : modifier_(modifier)
     {}

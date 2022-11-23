@@ -118,6 +118,18 @@ void RSBaseRenderNode::SetIsOnTheTree(bool flag)
     }
 }
 
+void RSBaseRenderNode::UpdateChildrenRect(const RectI& subRect)
+{
+    if (!subRect.IsEmpty()) {
+        if (childrenRect_.IsEmpty()) {
+            // init as not empty subRect in case join RectI enlarging area
+            childrenRect_ = subRect;
+        } else {
+            childrenRect_ = childrenRect_.JoinRect(subRect);
+        }
+    }
+}
+
 void RSBaseRenderNode::AddCrossParentChild(const SharedPtr& child, int32_t index)
 {
     // AddCrossParentChild only used as: the child is under multiple parents(e.g. a window cross multi-screens),
@@ -166,6 +178,8 @@ void RSBaseRenderNode::RemoveCrossParentChild(const SharedPtr& child, const Weak
         disappearingChildren_.emplace_back(child, origPos);
     } else {
         child->SetParent(newParent);
+        // attention: set new parent means 'old' parent has removed this child
+        hasRemovedChild_ = true;
     }
     children_.erase(it);
     SetDirty();
@@ -223,6 +237,10 @@ void RSBaseRenderNode::SetParent(WeakPtr parent)
 
 void RSBaseRenderNode::ResetParent()
 {
+    auto parentNode = parent_.lock();
+    if (parentNode) {
+        parentNode->hasRemovedChild_ = true;
+    }
     parent_.reset();
     SetIsOnTheTree(false);
 }

@@ -137,6 +137,7 @@ private:
 
     void OnVsync(uint64_t timestamp, void* data);
     void ProcessCommand();
+    void CheckAndNotifyFirstFrameCallback();
     void Animate(uint64_t timestamp);
     void ConsumeAndUpdateAllNodes();
     void ReleaseAllNodesBuffer();
@@ -168,6 +169,7 @@ private:
 
     void ClearDisplayBuffer();
     void PerfAfterAnim();
+    void PerfForBlurIfNeeded();
 
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;

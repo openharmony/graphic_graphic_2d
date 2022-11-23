@@ -102,6 +102,13 @@ public:
     GSError SetPresentTimestamp(uint32_t sequence, const GraphicPresentTimestamp &timestamp) override;
     GSError GetPresentTimestamp(uint32_t sequence, GraphicPresentTimestampType type, int64_t &time) const override;
 
+    int32_t GetDefaultFormat() override;
+    GSError SetDefaultFormat(int32_t format) override;
+    int32_t GetDefaultColorGamut() override;
+    GSError SetDefaultColorGamut(int32_t colorGamut) override;
+
+    sptr<NativeSurface> GetNativeSurface() override;
+
 private:
     std::map<std::string, std::string> userData_;
     sptr<BufferQueueProducer> producer_ = nullptr;

@@ -31,8 +31,6 @@ public:
     void PostProcess() override;
 
 private:
-    void SetBufferTimeStamp();
-
     sptr<Surface> producerSurface_;
     std::unique_ptr<RSRenderFrame> renderFrame_;
     std::unique_ptr<RSPaintFilterCanvas> canvas_;

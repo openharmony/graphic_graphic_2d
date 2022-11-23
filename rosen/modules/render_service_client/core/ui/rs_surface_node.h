@@ -69,7 +69,6 @@ public:
     void SetIsNotifyUIBufferAvailable(bool available);
 
     bool SetBufferAvailableCallback(BufferAvailableCallback callback);
-    void SetAnimationFinished();
 
     bool Marshalling(Parcel& parcel) const;
     static SharedPtr Unmarshalling(Parcel& parcel);
@@ -91,7 +90,7 @@ public:
     void ResetContextAlpha() const;
 
     void SetAppFreeze(bool isAppFreeze);
-    void SetContainerWindow(bool hasContainerWindow);
+    void SetContainerWindow(bool hasContainerWindow, float density);
 
 protected:
     bool NeedForcedSendToRemote() const override;

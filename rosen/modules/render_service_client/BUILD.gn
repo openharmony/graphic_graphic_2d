@@ -97,6 +97,11 @@ ohos_source_set("render_service_client_src") {
     "core/ui/rs_ui_share_context.cpp",
   ]
 
+  if (defined(graphic_2d_ext_configs.vendor_root)) {
+    sources += graphic_2d_ext_configs.librender_service_client_ext_sources
+    sources -= graphic_2d_ext_configs.librender_service_client_ext_sources_del
+  }
+
   cflags = [
     "-Wall",
     "-Wno-pointer-arith",
