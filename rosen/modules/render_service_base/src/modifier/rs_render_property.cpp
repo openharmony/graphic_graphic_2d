@@ -174,25 +174,25 @@ bool RSRenderPropertyBase::Unmarshalling(Parcel& parcel, std::shared_ptr<RSRende
 #endif
 
 template<>
-float RSRenderAnimatableProperty<float>::toFloat() const
+float RSRenderAnimatableProperty<float>::ToFloat() const
 {
     return std::fabs(RSRenderProperty<float>::stagingValue_);
 }
 
 template<>
-float RSRenderAnimatableProperty<Vector4f>::toFloat() const
+float RSRenderAnimatableProperty<Vector4f>::ToFloat() const
 {
     return RSRenderProperty<Vector4f>::stagingValue_.GetLength();
 }
 
 template<>
-float RSRenderAnimatableProperty<Quaternion>::toFloat() const
+float RSRenderAnimatableProperty<Quaternion>::ToFloat() const
 {
     return RSRenderProperty<Quaternion>::stagingValue_.GetLength();
 }
 
 template<>
-float RSRenderAnimatableProperty<Vector2f>::toFloat() const
+float RSRenderAnimatableProperty<Vector2f>::ToFloat() const
 {
     return RSRenderProperty<Vector2f>::stagingValue_.GetLength();
 }

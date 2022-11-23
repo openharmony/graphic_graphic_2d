@@ -43,33 +43,6 @@ void RSModifierTest::SetUp() {}
 void RSModifierTest::TearDown() {}
 
 /**
- * @tc.name: Property001
- * @tc.desc:
- * @tc.type:FUNC
- */
-HWTEST_F(RSModifierTest, Property001, TestSize.Level1)
-{
-    auto prop = std::make_shared<RSProperty<float>>();
-    ASSERT_TRUE(prop != nullptr);
-    ASSERT_TRUE(prop->GetId() != 0);
-}
-
-/**
- * @tc.name: Property002
- * @tc.desc:
- * @tc.type:FUNC
- */
-HWTEST_F(RSModifierTest, Property002, TestSize.Level1)
-{
-    auto prop = std::make_shared<RSProperty<float>>(floatData[0]);
-    ASSERT_TRUE(prop != nullptr);
-    ASSERT_EQ(prop->Get(), floatData[0]);
-
-    prop->Set(floatData[1]);
-    ASSERT_EQ(prop->Get(), floatData[1]);
-}
-
-/**
  * @tc.name: Modifier001
  * @tc.desc:
  * @tc.type:FUNC
@@ -173,10 +146,12 @@ HWTEST_F(RSModifierTest, BoundsModifier002, TestSize.Level1)
     node->AddModifier(modifier);
     ASSERT_TRUE(node != nullptr);
     ASSERT_EQ(node->GetStagingProperties().GetBounds(), value);
+    auto str = node->GetStagingProperties().Dump();
 
     value = Vector4f(0.f, 0.f, 500.f, 600.f);
     prop->Set(value);
     ASSERT_EQ(node->GetStagingProperties().GetBounds(), value);
+    str = node->GetStagingProperties().Dump();
 }
 
 /**
@@ -215,10 +190,12 @@ HWTEST_F(RSModifierTest, FrameModifier002, TestSize.Level1)
     node->AddModifier(modifier);
     ASSERT_TRUE(node != nullptr);
     ASSERT_EQ(node->GetStagingProperties().GetFrame(), value);
+    auto str = node->GetStagingProperties().Dump();
 
     value = Vector4f(0.f, 0.f, 500.f, 600.f);
     prop->Set(value);
     ASSERT_EQ(node->GetStagingProperties().GetFrame(), value);
+    str = node->GetStagingProperties().Dump();
 }
 
 /**
@@ -677,10 +654,54 @@ HWTEST_F(RSModifierTest, AlphaModifier002, TestSize.Level1)
     node->AddModifier(modifier);
     ASSERT_TRUE(node != nullptr);
     ASSERT_EQ(node->GetStagingProperties().GetAlpha(), value);
+    auto str = node->GetStagingProperties().Dump();
 
     value = -1.f;
     prop->Set(value);
     ASSERT_EQ(node->GetStagingProperties().GetAlpha(), value);
+    str = node->GetStagingProperties().Dump();
+}
+
+/**
+ * @tc.name: AlphaOffscreenModifier001
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSModifierTest, AlphaOffscreenModifier001, TestSize.Level1)
+{
+    bool value = false;
+    auto prop = std::make_shared<RSProperty<bool>>(value);
+    auto modifier = std::make_shared<RSAlphaOffscreenModifier>(prop);
+
+    auto node = RSCanvasNode::Create();
+    node->AddModifier(modifier);
+    ASSERT_TRUE(node != nullptr);
+    ASSERT_EQ(node->GetStagingProperties().GetAlphaOffscreen(), value);
+
+    node->RemoveModifier(modifier);
+    auto node1 = RSCanvasNode::Create();
+    ASSERT_EQ(node->GetStagingProperties().GetAlphaOffscreen(), node1->GetStagingProperties().GetAlphaOffscreen());
+}
+
+/**
+ * @tc.name: AlphaOffscreenModifier002
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSModifierTest, AlphaOffscreenModifier002, TestSize.Level1)
+{
+    bool value = false;
+    auto prop = std::make_shared<RSProperty<bool>>(value);
+    auto modifier = std::make_shared<RSAlphaOffscreenModifier>(prop);
+
+    auto node = RSCanvasNode::Create();
+    node->AddModifier(modifier);
+    ASSERT_TRUE(node != nullptr);
+    ASSERT_EQ(node->GetStagingProperties().GetAlphaOffscreen(), value);
+
+    value = true;
+    prop->Set(value);
+    ASSERT_EQ(node->GetStagingProperties().GetAlphaOffscreen(), value);
 }
 
 /**
@@ -761,10 +782,12 @@ HWTEST_F(RSModifierTest, BackgroundColorModifier002, TestSize.Level1)
     node->AddModifier(modifier);
     ASSERT_TRUE(node != nullptr);
     ASSERT_EQ(node->GetStagingProperties().GetBackgroundColor(), value);
+    auto str = node->GetStagingProperties().Dump();
 
     value = RgbPalette::Green();
     prop->Set(value);
     ASSERT_EQ(node->GetStagingProperties().GetBackgroundColor(), value);
+    str = node->GetStagingProperties().Dump();
 }
 
 /**
@@ -1433,10 +1456,12 @@ HWTEST_F(RSModifierTest, VisibleModifier002, TestSize.Level1)
     node->AddModifier(modifier);
     ASSERT_TRUE(node != nullptr);
     ASSERT_EQ(node->GetStagingProperties().GetVisible(), value);
+    auto str = node->GetStagingProperties().Dump();
 
     value = false;
     prop->Set(value);
     ASSERT_EQ(node->GetStagingProperties().GetVisible(), value);
+    str = node->GetStagingProperties().Dump();
 }
 
 /**
@@ -1774,5 +1799,21 @@ HWTEST_F(RSModifierTest, MaskModifier002, TestSize.Level1)
     value = RSMask::CreateGradientMask(SkPaint());
     prop->Set(value);
     ASSERT_EQ(node->GetStagingProperties().GetMask(), value);
+}
+
+/**
+ * @tc.name: ModifierManager001
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSModifierTest, ModifierManager001, TestSize.Level1)
+{
+    RSModifierManager manager;
+    manager.Draw();
+
+    auto prop = std::make_shared<RSAnimatableProperty<float>>(floatData[0]);
+    auto modifier = std::make_shared<RSAlphaModifier>(prop);
+    manager.AddModifier(modifier);
+    manager.Draw();
 }
 } // namespace OHOS::Rosen

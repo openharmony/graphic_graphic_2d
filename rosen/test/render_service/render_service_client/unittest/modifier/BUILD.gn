@@ -12,34 +12,27 @@
 # limitations under the License.
 
 import("//build/test.gni")
-import("//foundation/arkui/ace_engine/ace_config.gni")
 
-module_output_path = "graphic/rosen_engine/render_service_client/ui"
+module_output_path = "graphic/rosen_engine/render_service_client/modifier"
 
 ##############################  RSRenderServiceClientTest  ##################################
-ohos_unittest("RSRenderServiceClientUITest") {
+ohos_unittest("RSRenderServiceClientModifierTest") {
   module_out_path = module_output_path
 
   sources = [
-    "rs_canvas_node_test.cpp",
-    "rs_display_node_test.cpp",
-    "rs_root_node_test.cpp",
-    "rs_surface_extractor_test.cpp",
-    "rs_surface_node_test.cpp",
-    "rs_ui_director_test.cpp",
-    "rs_ui_share_context_test.cpp",
+    "rs_modifier_test.cpp",
+    "rs_property_test.cpp",
   ]
 
   include_dirs = [ "//foundation/graphic/graphic_2d/rosen/test/include" ]
 
   configs = [
-    ":ui_test",
-    "$ace_root:ace_test_config",
+    ":modifier_test",
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:render_service_client_config",
   ]
 
   deps = [
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:librender_service_client",
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:render_service_client_src",
     "//third_party/googletest:gtest_main",
   ]
 
@@ -48,16 +41,13 @@ ohos_unittest("RSRenderServiceClientUITest") {
 }
 
 ###############################################################################
-config("ui_test") {
+config("modifier_test") {
   visibility = [ ":*" ]
-  include_dirs = [
-    "$ace_root",
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service_client",
-  ]
+  include_dirs =
+      [ "//foundation/graphic/graphic_2d/rosen/modules/render_service_client" ]
 }
 
 group("unittest") {
   testonly = true
-
-  deps = [ ":RSRenderServiceClientUITest" ]
+  deps = [ ":RSRenderServiceClientModifierTest" ]
 }

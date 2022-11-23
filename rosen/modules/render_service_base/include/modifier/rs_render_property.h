@@ -68,7 +68,7 @@ protected:
         return RSRenderPropertyType::INVALID;
     }
 
-    virtual float toFloat() const
+    virtual float ToFloat() const
     {
         return 1.f;
     }
@@ -189,7 +189,7 @@ protected:
         return type_;
     }
 
-    float toFloat() const override
+    float ToFloat() const override
     {
         return 1.f;
     }
@@ -251,13 +251,13 @@ private:
 };
 
 template<>
-float RSRenderAnimatableProperty<float>::toFloat() const;
+float RSRenderAnimatableProperty<float>::ToFloat() const;
 template<>
-float RSRenderAnimatableProperty<Vector4f>::toFloat() const;
+float RSRenderAnimatableProperty<Vector4f>::ToFloat() const;
 template<>
-float RSRenderAnimatableProperty<Quaternion>::toFloat() const;
+float RSRenderAnimatableProperty<Quaternion>::ToFloat() const;
 template<>
-float RSRenderAnimatableProperty<Vector2f>::toFloat() const;
+float RSRenderAnimatableProperty<Vector2f>::ToFloat() const;
 } // namespace Rosen
 } // namespace OHOS
 
