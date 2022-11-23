@@ -51,7 +51,7 @@
 
 #include "frame_trace.h"
 using namespace FRAME_TRACE;
-const std::string RT_INTERVAL_NAME = "renderthread";
+static const std::string RT_INTERVAL_NAME = "renderthread";
 
 static void SystemCallSetThreadName(const std::string& name)
 {
