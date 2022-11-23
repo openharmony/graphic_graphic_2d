@@ -1,0 +1,403 @@
+diff --git a/bundle.json b/bundle.json
+index 9f70af42c90516c8f1b1cfa61db569eeaaae317f..86519f7cc02bc4716553cafe64e83918ae8183ae 100755
+--- a/bundle.json
++++ b/bundle.json
+@@ -144,7 +144,8 @@
+           "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:test",
+           "//foundation/graphic/graphic_2d/rosen/test/2d_graphics:test",
+           "//foundation/graphic/graphic_2d/rosen/modules/animation/window_animation/test:test",
+-          "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/test:test"
++          "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/test:test",
++          "//foundation/graphic/graphic_2d/rosen/test/2d_engine:test"
+         ]
+       }
+     }
+diff --git a/rosen/modules/2d_engine/rosen_text/properties/rosen_converter_txt.cpp b/rosen/modules/2d_engine/rosen_text/properties/rosen_converter_txt.cpp
+index 5a1f2659c60a5a6f422e35ec5970c7195d16cb1e..fbabbe594fb6f1908b7bd2e31353c8a32fc658db 100755
+--- a/rosen/modules/2d_engine/rosen_text/properties/rosen_converter_txt.cpp
++++ b/rosen/modules/2d_engine/rosen_text/properties/rosen_converter_txt.cpp
+@@ -138,7 +138,7 @@ txt::TextDecorationStyle RosenConvertTxtTextDecorationStyle(TextDecorationStyle
+     return txtTextDecorationStyle;
+ }
+ 
+-minikin::BreakStrategy RosenConverMinkinBreakStrateg(BreakStrategy breakStrategy)
++minikin::BreakStrategy RosenConverMinkinBreakStrategy(BreakStrategy breakStrategy)
+ {
+     minikin::BreakStrategy minkinBreakStrategy;
+     switch (breakStrategy) {
+@@ -335,7 +335,7 @@ void RosenConvertTypographyStyle(const TypographyStyle& typographyStyle, txt::Pa
+     txtParagraphStyle.max_lines = typographyStyle.maxLines_;
+     txtParagraphStyle.ellipsis = typographyStyle.ellipsis_;
+     txtParagraphStyle.locale = typographyStyle.locale_;
+-    txtParagraphStyle.break_strategy = RosenConverMinkinBreakStrateg(typographyStyle.breakStrategy_);
++    txtParagraphStyle.break_strategy = RosenConverMinkinBreakStrategy(typographyStyle.breakStrategy_);
+ #ifndef USE_CANVASKIT0310_SKIA
+     txtParagraphStyle.word_break_type = RosenConverMinkinWordBreakType(typographyStyle.wordBreakType_);
+ #endif
+diff --git a/rosen/modules/2d_engine/rosen_text/properties/rosen_converter_txt.h b/rosen/modules/2d_engine/rosen_text/properties/rosen_converter_txt.h
+index 5647eb21556e10043d02a8d4c1d63660f7353d42..d56a8ea57e71ea2115ab9c916633fa9300a84372 100755
+--- a/rosen/modules/2d_engine/rosen_text/properties/rosen_converter_txt.h
++++ b/rosen/modules/2d_engine/rosen_text/properties/rosen_converter_txt.h
+@@ -33,7 +33,7 @@ txt::FontWeight RosenConvertTxtFontWeight(FontWeight& fontWeight);
+ txt::FontStyle RosenConvertTxtFontStyle(FontStyle& fontStyle);
+ txt::TextBaseline RosenConvertTxtTextBaseline(TextBaseline& textBaseline);
+ txt::TextAlign RosenConvertTxtTextAlign(TextAlign& textAlign);
+-minikin::BreakStrategy RosenConverMinkinBreakStrateg(BreakStrategy& breakStrategy);
++minikin::BreakStrategy RosenConverMinkinBreakStrategy(BreakStrategy& breakStrategy);
+ #ifndef USE_CANVASKIT0310_SKIA
+ // new flutter libtxt not have WordBreakType
+ minikin::WordBreakType RosenConverMinkinWordBreakType(WordBreakType& wordBreakType);
+diff --git a/rosen/test/2d_engine/BUILD.gn b/rosen/test/2d_engine/BUILD.gn
+new file mode 100644
+index 0000000000000000000000000000000000000000..cca74222a8f6b4b03d892c2c0fd78b853d976ce2
+--- /dev/null
++++ b/rosen/test/2d_engine/BUILD.gn
+@@ -0,0 +1,18 @@
++# Copyright (c) 2022 Huawei Device Co., Ltd.
++# Licensed under the Apache License, Version 2.0 (the "License");
++# you may not use this file except in compliance with the License.
++# You may obtain a copy of the License at
++#
++#     http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing, software
++# distributed under the License is distributed on an "AS IS" BASIS,
++# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++# See the License for the specific language governing permissions and
++# limitations under the License.
++
++group("test") {
++  testonly = true
++
++  deps = [ "unittest:unittest" ]
++}
+diff --git a/rosen/test/2d_engine/unittest/BUILD.gn b/rosen/test/2d_engine/unittest/BUILD.gn
+new file mode 100644
+index 0000000000000000000000000000000000000000..79fd332393cb9475a5659368e63bc5365b6895fe
+--- /dev/null
++++ b/rosen/test/2d_engine/unittest/BUILD.gn
+@@ -0,0 +1,21 @@
++# Copyright (c) 2022 Huawei Device Co., Ltd.
++# Licensed under the Apache License, Version 2.0 (the "License");
++# you may not use this file except in compliance with the License.
++# You may obtain a copy of the License at
++#
++#     http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing, software
++# distributed under the License is distributed on an "AS IS" BASIS,
++# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++# See the License for the specific language governing permissions and
++# limitations under the License.
++
++group("unittest") {
++  testonly = true
++
++  deps = [
++    "rosen_text/properties:unittest",
++    "rosen_text/ui:unittest",
++  ]
++}
+diff --git a/rosen/test/2d_engine/unittest/rosen_text/properties/BUILD.gn b/rosen/test/2d_engine/unittest/rosen_text/properties/BUILD.gn
+new file mode 100644
+index 0000000000000000000000000000000000000000..fcab81af881dca71a8f59d9e5e9e90fba8b0036b
+--- /dev/null
++++ b/rosen/test/2d_engine/unittest/rosen_text/properties/BUILD.gn
+@@ -0,0 +1,49 @@
++# Copyright (c) 2022 Huawei Device Co., Ltd.
++# Licensed under the Apache License, Version 2.0 (the "License");
++# you may not use this file except in compliance with the License.
++# You may obtain a copy of the License at
++#
++#     http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing, software
++# distributed under the License is distributed on an "AS IS" BASIS,
++# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++# See the License for the specific language governing permissions and
++# limitations under the License.
++
++import("//build/test.gni")
++import(
++    "//foundation/graphic/graphic_2d/rosen/modules/2d_engine/rosen_text/config.gni")
++
++module_output_path =
++    "graphic_standard/rosen/modules/2d_engine/rosen_text/properties"
++
++ohos_unittest("2d_engine_rosen_text_prop_test") {
++  module_out_path = module_output_path
++  sources = [
++    "place_holder_test.cpp",
++    "typography_style_test.cpp",
++  ]
++
++  include_dirs = [
++    "//third_party/googletest/googletest/include",
++    "$rosen_2d_engine_root",
++    "$rosen_2d_engine_root/rosen_text/properties",
++    "$rosen_root/modules/2d_graphics/include",
++    "$rosen_root/modules/2d_graphics/src",
++  ]
++
++  deps = [
++    "$rosen_root/modules/2d_graphics:2d_graphics",
++    "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
++  ]
++
++  part_name = "graphic_standard"
++  subsystem_name = "graphic"
++}
++
++group("unittest") {
++  testonly = true
++
++  deps = [ ":2d_engine_rosen_text_prop_test" ]
++}
+diff --git a/rosen/test/2d_engine/unittest/rosen_text/properties/place_holder_test.cpp b/rosen/test/2d_engine/unittest/rosen_text/properties/place_holder_test.cpp
+new file mode 100644
+index 0000000000000000000000000000000000000000..dd4b7f6424a6ac07bc4b9c18e0fcae7389bb1778
+--- /dev/null
++++ b/rosen/test/2d_engine/unittest/rosen_text/properties/place_holder_test.cpp
+@@ -0,0 +1,47 @@
++/*
++ * Copyright (c) 2022 Huawei Device Co., Ltd.
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++#include "gtest/gtest.h"
++#include "placeholder_run.h"
++#include "text_style.h"
++
++using namespace rosen;
++using namespace testing;
++using namespace testing::ext;
++
++namespace OHOS {
++class OH_Drawing_PlaceHolderTest : public testing::Test {
++};
++
++/*
++ * @tc.name: OH_Drawing_PlaceHolderTest001
++ * @tc.desc: test for creating PlaceHolder
++ * @tc.type: FUNC
++ */
++HWTEST_F(OH_Drawing_PlaceHolderTest, OH_Drawing_PlaceHolderTest001, TestSize.Level1)
++{
++    double width = 10.0;
++    double height = 5.0;
++    PlaceholderAlignment holderAlignment(PlaceholderAlignment::BASELINE);
++    TextBaseline textBaseLine(TextBaseline::ALPHABETIC);
++    double baseLineOffset = 0.0;
++    PlaceholderRun holder(width, height, holderAlignment, textBaseLine, baseLineOffset);
++    EXPECT_EQ(holder.width_, width);
++    EXPECT_EQ(holder.height_, height);
++    EXPECT_EQ(holder.placeholderalignment_, holderAlignment);
++    EXPECT_EQ(holder.textbaseline_, textBaseLine);
++    EXPECT_EQ(holder.baselineOffset_, baseLineOffset);
++}
++}
+\ No newline at end of file
+diff --git a/rosen/test/2d_engine/unittest/rosen_text/properties/typography_style_test.cpp b/rosen/test/2d_engine/unittest/rosen_text/properties/typography_style_test.cpp
+new file mode 100644
+index 0000000000000000000000000000000000000000..07d8efa8c72bf64d69a1aab9d7adce022cc9b234
+--- /dev/null
++++ b/rosen/test/2d_engine/unittest/rosen_text/properties/typography_style_test.cpp
+@@ -0,0 +1,69 @@
++/*
++ * Copyright (c) 2022 Huawei Device Co., Ltd.
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++#include "text_style.h"
++#include "typography_style.h"
++
++#include "gtest/gtest.h"
++#include <climits>
++#include <vector>
++#include <string>
++
++using namespace rosen;
++using namespace testing;
++using namespace testing::ext;
++
++namespace OHOS {
++class OH_Drawing_TypographyStyleTest : public testing::Test {
++};
++
++/*
++ * @tc.name: OH_Drawing_TypographyStyleTest001
++ * @tc.desc: test for creating TypographyStyle
++ * @tc.type: FUNC
++ */
++HWTEST_F(OH_Drawing_TypographyStyleTest, OH_Drawing_TypographyStyleTest001, TestSize.Level1)
++{
++    TypographyStyle typoStyle;
++    TextStyle textstyle = typoStyle.GetTextStyle();
++    EXPECT_EQ(typoStyle.fontWeight_, textstyle.fontWeight_);
++    EXPECT_EQ(typoStyle.fontStyle_, textstyle.fontStyle_);
++    EXPECT_EQ(typoStyle.fontSize_, textstyle.fontSize_);
++    EXPECT_EQ(typoStyle.locale_, textstyle.locale_);
++    EXPECT_EQ(typoStyle.height_, textstyle.height_);
++    EXPECT_EQ(typoStyle.hasHeightOverride_, textstyle.hasHeightOverride_);
++}
++
++/*
++ * @tc.name: OH_Drawing_TypographyStyleTest002
++ * @tc.desc: test for TypographyStyle EffectiveAlign
++ * @tc.type: FUNC
++ */
++HWTEST_F(OH_Drawing_TypographyStyleTest, OH_Drawing_TypographyStyleTest002, TestSize.Level1)
++{
++    TypographyStyle typoStyle;
++    typoStyle.textAlign_ = TextAlign::START;
++    TextAlign textAlign = typoStyle.EffectiveAlign();
++    EXPECT_EQ(textAlign, TextAlign::LEFT);
++
++    typoStyle.textAlign_ = TextAlign::END;
++    textAlign = typoStyle.EffectiveAlign();
++    EXPECT_EQ(textAlign, TextAlign::RIGHT);
++
++    typoStyle.textAlign_ = TextAlign::CENTER;
++    textAlign = typoStyle.EffectiveAlign();
++    EXPECT_EQ(textAlign, TextAlign::CENTER);
++}
++}
+\ No newline at end of file
+diff --git a/rosen/test/2d_engine/unittest/rosen_text/ui/BUILD.gn b/rosen/test/2d_engine/unittest/rosen_text/ui/BUILD.gn
+new file mode 100644
+index 0000000000000000000000000000000000000000..bdab3706507ad05986dc88a1bffc23334482cf25
+--- /dev/null
++++ b/rosen/test/2d_engine/unittest/rosen_text/ui/BUILD.gn
+@@ -0,0 +1,43 @@
++# Copyright (c) 2022 Huawei Device Co., Ltd.
++# Licensed under the Apache License, Version 2.0 (the "License");
++# you may not use this file except in compliance with the License.
++# You may obtain a copy of the License at
++#
++#     http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing, software
++# distributed under the License is distributed on an "AS IS" BASIS,
++# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++# See the License for the specific language governing permissions and
++# limitations under the License.
++
++import("//build/test.gni")
++import(
++    "//foundation/graphic/graphic_2d/rosen/modules/2d_engine/rosen_text/config.gni")
++
++module_output_path = "graphic_standard/rosen/modules/2d_engine/rosen_text/ui"
++
++ohos_unittest("2d_engine_rosen_text_ui_test") {
++  module_out_path = module_output_path
++  sources = [ "font_collection_test.cpp" ]
++
++  include_dirs = [
++    "//third_party/googletest/googletest/include",
++    "$rosen_2d_engine_root",
++    "$rosen_2d_engine_root/rosen_text/ui",
++  ]
++
++  deps = [
++    "$rosen_root/modules/2d_graphics:2d_graphics",
++    "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
++  ]
++
++  part_name = "graphic_standard"
++  subsystem_name = "graphic"
++}
++
++group("unittest") {
++  testonly = true
++
++  deps = [ ":2d_engine_rosen_text_ui_test" ]
++}
+diff --git a/rosen/test/2d_engine/unittest/rosen_text/ui/font_collection_test.cpp b/rosen/test/2d_engine/unittest/rosen_text/ui/font_collection_test.cpp
+new file mode 100644
+index 0000000000000000000000000000000000000000..c9c9a0e5802a64bbe7540542339bb01988d8744d
+--- /dev/null
++++ b/rosen/test/2d_engine/unittest/rosen_text/ui/font_collection_test.cpp
+@@ -0,0 +1,35 @@
++/*
++ * Copyright (c) 2022 Huawei Device Co., Ltd.
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++#include "font_collection.h"
++#include "gtest/gtest.h"
++
++using namespace testing;
++using namespace testing::ext;
++
++namespace OHOS {
++class OH_Drawing_UI_FontCollectionTest : public testing::Test {
++};
++
++/*
++ * @tc.name: OH_Drawing_UI_FontCollectionTest001
++ * @tc.desc: test for creating fontCollection
++ * @tc.type: FUNC
++ */
++HWTEST_F(OH_Drawing_UI_FontCollectionTest, OH_Drawing_UI_FontCollectionTest001, TestSize.Level1)
++{
++    EXPECT_EQ(rosen::FontCollection::GetInstance() == nullptr, false);
++}
++}
+\ No newline at end of file
+diff --git a/rosen/test/2d_graphics/unittest/ndk/drawing_text_typography_test.cpp b/rosen/test/2d_graphics/unittest/ndk/drawing_text_typography_test.cpp
+index 281811ed49adc1dfd491481891719605397570bb..aa0e6787a3051a4e3ed7cca2ac24c902127ef892 100644
+--- a/rosen/test/2d_graphics/unittest/ndk/drawing_text_typography_test.cpp
++++ b/rosen/test/2d_graphics/unittest/ndk/drawing_text_typography_test.cpp
+@@ -289,6 +289,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest016, TestSize.Level
+     OH_Drawing_Typography* typography = OH_Drawing_CreateTypography(handler);
+     double maxWidth = 800.0;
+     OH_Drawing_TypographyLayout(typography, maxWidth);
++    EXPECT_EQ(maxWidth, OH_Drawing_TypographyGetMaxWidth(typography));
+     double position[2] = {10.0, 15.0};
+     OH_Drawing_Bitmap* cBitmap = OH_Drawing_BitmapCreate();
+     OH_Drawing_BitmapFormat cFormat {COLOR_FORMAT_RGBA_8888, ALPHA_FORMAT_OPAQUE};
+@@ -301,6 +302,13 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest016, TestSize.Level
+     OH_Drawing_Canvas* cCanvas = OH_Drawing_CanvasCreate();
+     OH_Drawing_CanvasBind(cCanvas, cBitmap);
+     OH_Drawing_CanvasClear(cCanvas, OH_Drawing_ColorSetArgb(0xFF, 0xFF, 0xFF, 0xFF));
++
++    EXPECT_EQ(OH_Drawing_TypographyGetHeight(typography) != 0.0, true);
++    EXPECT_EQ(OH_Drawing_TypographyGetLongestLine(typography) != 0.0, true);
++    EXPECT_EQ(OH_Drawing_TypographyGetMinIntrinsicWidth(typography) <=
++        OH_Drawing_TypographyGetMaxIntrinsicWidth(typography), true);
++    EXPECT_EQ(OH_Drawing_TypographyGetAlphabeticBaseline(typography) != 0.0, true);
++    EXPECT_EQ(OH_Drawing_TypographyGetIdeographicBaseline(typography) != 0.0, true);
+     OH_Drawing_TypographyPaint(typography, cCanvas, position[0], position[1]);
+ }
+ }
+\ No newline at end of file

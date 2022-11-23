@@ -33,7 +33,7 @@ txt::FontWeight RosenConvertTxtFontWeight(FontWeight& fontWeight);
 txt::FontStyle RosenConvertTxtFontStyle(FontStyle& fontStyle);
 txt::TextBaseline RosenConvertTxtTextBaseline(TextBaseline& textBaseline);
 txt::TextAlign RosenConvertTxtTextAlign(TextAlign& textAlign);
-minikin::BreakStrategy RosenConverMinkinBreakStrateg(BreakStrategy& breakStrategy);
+minikin::BreakStrategy RosenConverMinkinBreakStrategy(BreakStrategy& breakStrategy);
 #ifndef USE_CANVASKIT0310_SKIA
 // new flutter libtxt not have WordBreakType
 minikin::WordBreakType RosenConverMinkinWordBreakType(WordBreakType& wordBreakType);

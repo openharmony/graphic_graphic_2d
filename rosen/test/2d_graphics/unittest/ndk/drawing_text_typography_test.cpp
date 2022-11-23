@@ -289,6 +289,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest016, TestSize.Level
     OH_Drawing_Typography* typography = OH_Drawing_CreateTypography(handler);
     double maxWidth = 800.0;
     OH_Drawing_TypographyLayout(typography, maxWidth);
+    EXPECT_EQ(maxWidth, OH_Drawing_TypographyGetMaxWidth(typography));
     double position[2] = {10.0, 15.0};
     OH_Drawing_Bitmap* cBitmap = OH_Drawing_BitmapCreate();
     OH_Drawing_BitmapFormat cFormat {COLOR_FORMAT_RGBA_8888, ALPHA_FORMAT_OPAQUE};
@@ -301,6 +302,13 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest016, TestSize.Level
     OH_Drawing_Canvas* cCanvas = OH_Drawing_CanvasCreate();
     OH_Drawing_CanvasBind(cCanvas, cBitmap);
     OH_Drawing_CanvasClear(cCanvas, OH_Drawing_ColorSetArgb(0xFF, 0xFF, 0xFF, 0xFF));
+
+    EXPECT_EQ(OH_Drawing_TypographyGetHeight(typography) != 0.0, true);
+    EXPECT_EQ(OH_Drawing_TypographyGetLongestLine(typography) != 0.0, true);
+    EXPECT_EQ(OH_Drawing_TypographyGetMinIntrinsicWidth(typography) <=
+        OH_Drawing_TypographyGetMaxIntrinsicWidth(typography), true);
+    EXPECT_EQ(OH_Drawing_TypographyGetAlphabeticBaseline(typography) != 0.0, true);
+    EXPECT_EQ(OH_Drawing_TypographyGetIdeographicBaseline(typography) != 0.0, true);
     OH_Drawing_TypographyPaint(typography, cCanvas, position[0], position[1]);
 }
 }
