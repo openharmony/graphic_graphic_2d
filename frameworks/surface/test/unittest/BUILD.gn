@@ -226,6 +226,8 @@ ohos_static_library("surface_test_common") {
     "//base/security/access_token/interfaces/innerkits/token_setproc:libtoken_setproc",
     "//foundation/graphic/graphic_2d:libnative_image",
     "//foundation/graphic/graphic_2d:libsurface",
+    "//foundation/graphic/graphic_2d/frameworks/opengl_wrapper:EGL",
+    "//foundation/graphic/graphic_2d/frameworks/opengl_wrapper:GLESv3",
     "//foundation/graphic/graphic_2d/utils:buffer_handle",
     "//foundation/graphic/graphic_2d/utils:libgraphic_utils",
     "//foundation/graphic/graphic_2d/utils:sync_fence",
