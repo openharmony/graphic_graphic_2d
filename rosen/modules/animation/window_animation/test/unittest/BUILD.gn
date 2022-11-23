@@ -1,0 +1,62 @@
+# Copyright (c) 2022 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/test.gni")
+module_output_path = "graphic_standard/rosen/modules/animation/window_animation"
+
+ohos_unittest("RSWindowAnimationTest") {
+  module_out_path = module_output_path
+
+  sources = [
+    "rs_window_animation_proxy_test.cpp",
+    "rs_window_animation_stub_test.cpp",
+  ]
+
+  configs = [ ":rs_window_animation_test_config" ]
+
+  deps = [
+    "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
+    "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
+    "//foundation/graphic/graphic_2d/rosen/modules/animation/window_animation:window_animation",
+    "//foundation/window/window_manager/wm:libwm",
+    "//third_party/googletest:gtest_main",
+  ]
+
+  external_deps = [
+    "access_token:libaccesstoken_sdk",
+    "access_token:libnativetoken",
+    "access_token:libtoken_setproc",
+    "c_utils:utils",
+    "eventhandler:libeventhandler",
+    "hisysevent_native:libhisysevent",
+    "init:libbeget_proxy",
+    "init:libbegetutil",
+    "ipc:ipc_core",
+    "ipc:libdbinder",
+  ]
+
+  subsystem_name = "graphic"
+}
+
+config("rs_window_animation_test_config") {
+  visibility = [ ":*" ]
+  include_dirs = [
+    "//foundation/window/window_manager/interfaces/innerkits",
+    "//foundation/graphic/graphic_2d/rosen/modules/animation/window_animation/include",
+  ]
+}
+
+group("unittest") {
+  testonly = true
+  deps = [ ":RSWindowAnimationTest" ]
+}
