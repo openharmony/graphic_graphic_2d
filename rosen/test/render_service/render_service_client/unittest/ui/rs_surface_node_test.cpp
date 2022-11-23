@@ -977,4 +977,61 @@ HWTEST_F(RSSurfaceNodeTest, SetShadowColor003, TestSize.Level1)
     surfaceNode->SetShadowColor(THIRD_COLOR_VALUE);
     EXPECT_TRUE(surfaceNode->GetStagingProperties().GetShadowColor() == Color::FromArgbInt(THIRD_COLOR_VALUE));
 }
+
+/**
+ * @tc.name: SetAppFreeze001
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require: issueI5J8R1
+ */
+HWTEST_F(RSSurfaceNodeTest, SetAppFreeze001, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    surfaceNode->SetAppFreeze(true);
+}
+
+/**
+ * @tc.name: SetContainerWindow001
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require: issueI5J8R1
+ */
+HWTEST_F(RSSurfaceNodeTest, SetContainerWindow001, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    surfaceNode->SetContainerWindow(true, 1.f);
+}
+
+/**
+ * @tc.name: SetIsNotifyUIBufferAvailable001
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require: issueI5J8R1
+ */
+HWTEST_F(RSSurfaceNodeTest, SetIsNotifyUIBufferAvailable001, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    surfaceNode->SetIsNotifyUIBufferAvailable(true);
+}
+
+/**
+ * @tc.name: ClearChildren001
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require: issueI5J8R1
+ */
+HWTEST_F(RSSurfaceNodeTest, ClearChildren001, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    surfaceNode->CreateNodeInRenderThread();
+    RSSurfaceNodeConfig c2;
+    RSSurfaceNode::SharedPtr surfaceNode2 = RSSurfaceNode::Create(c2);
+    surfaceNode->AddChild(surfaceNode2, -1);
+    surfaceNode->RemoveChild(surfaceNode2);
+    surfaceNode->ClearChildren();
+}
 } // namespace OHOS::Rosen

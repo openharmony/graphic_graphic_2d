@@ -20,7 +20,10 @@ module_output_path = "graphic/rosen_engine/render_service_base/render"
 ohos_unittest("RSRenderServiceBaseRenderTest") {
   module_out_path = module_output_path
 
-  sources = [ "rs_mask_test.cpp" ]
+  sources = [
+    "rs_border_test.cpp",
+    "rs_mask_test.cpp",
+  ]
 
   configs = [
     ":render_test",
