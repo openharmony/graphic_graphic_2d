@@ -31,6 +31,8 @@ group("test") {
     "render_service_base/unittest/modifier:unittest",
     "render_service_base/unittest/overdraw:unittest",
     "render_service_base/unittest/pipeline:unittest",
+    "render_service_base/unittest/platform/ohos/backend:unittest",
+    "render_service_base/unittest/property:unittest",
     "render_service_base/unittest/render:unittest",
     "render_service_base/unittest/transaction:unittest",
     "render_service_client/fuzztest/rsinterfaces_fuzzer:fuzztest",
