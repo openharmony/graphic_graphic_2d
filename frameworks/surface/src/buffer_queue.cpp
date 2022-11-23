@@ -233,9 +233,10 @@ GSError BufferQueue::RequestBuffer(const BufferRequestConfig &config, sptr<Buffe
     return ret;
 }
 
-GSError BufferQueue::SetProducerCacheCleanFlag(bool flag)
+GSError BufferQueue::SetProducerCacheCleanFlagLocked(bool flag)
 {
     producerCacheClean_ = flag;
+    producerCacheList_.clear();
     return GSERROR_OK;
 }
 
@@ -294,8 +295,7 @@ GSError BufferQueue::ReuseBuffer(const BufferRequestConfig &config, sptr<BufferE
         if (producerCacheClean_) {
             producerCacheList_.push_back(retval.sequence);
             if (CheckProducerCacheList()) {
-                producerCacheList_.clear();
-                SetProducerCacheCleanFlag(false);
+                SetProducerCacheCleanFlagLocked(false);
             }
         }
     } else {
@@ -856,7 +856,7 @@ GSError BufferQueue::GoBackground()
     std::lock_guard<std::mutex> lockGuard(mutex_);
     ClearLocked();
     waitReqCon_.notify_all();
-    SetProducerCacheCleanFlag(false);
+    SetProducerCacheCleanFlagLocked(false);
     return GSERROR_OK;
 }
 

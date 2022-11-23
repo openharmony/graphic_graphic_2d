@@ -474,7 +474,7 @@ GSError BufferQueueProducer::GoBackground()
             return ret;
         }
     }
-    return bufferQueue_->SetProducerCacheCleanFlag(true);
+    return bufferQueue_->SetProducerCacheCleanFlagLocked(true);
 }
 
 GSError BufferQueueProducer::RegisterReleaseListener(OnReleaseFunc func)

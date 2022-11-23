@@ -131,7 +131,7 @@ public:
     bool GetStatus() const;
     void SetStatus(bool status);
 
-    GSError SetProducerCacheCleanFlag(bool flag);
+    GSError SetProducerCacheCleanFlagLocked(bool flag);
 
 private:
     GSError AllocBuffer(sptr<SurfaceBuffer>& buffer, const BufferRequestConfig &config);
