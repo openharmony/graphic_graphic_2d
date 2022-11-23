@@ -631,7 +631,6 @@ HWTEST_F(VulkanWrapperUnitTest, fpCreateSwapchainKHR_Success_Test, TestSize.Leve
         std::vector<VkFormat> pixelFormatArray = {
             VK_FORMAT_R8G8B8A8_UNORM,
             VK_FORMAT_R8G8B8A8_SRGB,
-            VK_FORMAT_R5G6B5_UNORM_PACK16
         };
         std::vector<VkColorSpaceKHR> colorDataspaceArray = {
             VK_COLOR_SPACE_SRGB_NONLINEAR_KHR,
