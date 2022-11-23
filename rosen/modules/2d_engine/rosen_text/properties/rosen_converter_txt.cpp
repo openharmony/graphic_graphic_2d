@@ -138,7 +138,7 @@ txt::TextDecorationStyle RosenConvertTxtTextDecorationStyle(TextDecorationStyle 
     return txtTextDecorationStyle;
 }
 
-minikin::BreakStrategy RosenConverMinkinBreakStrateg(BreakStrategy breakStrategy)
+minikin::BreakStrategy RosenConverMinkinBreakStrategy(BreakStrategy breakStrategy)
 {
     minikin::BreakStrategy minkinBreakStrategy;
     switch (breakStrategy) {
@@ -335,7 +335,7 @@ void RosenConvertTypographyStyle(const TypographyStyle& typographyStyle, txt::Pa
     txtParagraphStyle.max_lines = typographyStyle.maxLines_;
     txtParagraphStyle.ellipsis = typographyStyle.ellipsis_;
     txtParagraphStyle.locale = typographyStyle.locale_;
-    txtParagraphStyle.break_strategy = RosenConverMinkinBreakStrateg(typographyStyle.breakStrategy_);
+    txtParagraphStyle.break_strategy = RosenConverMinkinBreakStrategy(typographyStyle.breakStrategy_);
 #ifndef USE_CANVASKIT0310_SKIA
     txtParagraphStyle.word_break_type = RosenConverMinkinWordBreakType(typographyStyle.wordBreakType_);
 #endif
