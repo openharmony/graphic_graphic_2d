@@ -53,7 +53,7 @@ std::unique_ptr<RSSurfaceFrame> RSSurfaceOhosGl::RequestFrame(int32_t width, int
     if (mWindow == nullptr) {
         mWindow = CreateNativeWindowFromSurface(&producer_);
         mEglSurface = context->CreateEGLSurface((EGLNativeWindowType)mWindow);
-        ROSEN_LOGD("RSSurfaceOhosGl: create and Init EglSurface %p", mEglSurface);
+        ROSEN_LOGD("RSSurfaceOhosGl: create and Init EglSurface");
     }
 
     if (mEglSurface == EGL_NO_SURFACE) {
