@@ -129,7 +129,7 @@ namespace OHOS {
         bufferqueue->SetTransform(transform);
         bufferqueue->SetMetaData(sequence, metaData);
         bufferqueue->SetMetaDataSet(sequence, key, metaDataSet);
-        bufferqueue->SetProducerCacheCleanFlag(flag);
+        bufferqueue->SetProducerCacheCleanFlagLocked(flag);
         bufferqueue->Dump(result);
         bufferqueue->SetStatus(status);
         ExtDataHandle *handle = AllocExtDataHandle(reserveInts);
