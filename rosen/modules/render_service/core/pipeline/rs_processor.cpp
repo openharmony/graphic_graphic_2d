@@ -33,8 +33,8 @@ constexpr int32_t PERF_LEVEL_3_REQUESTED_CODE = 10015;
 constexpr int64_t PERF_TIME_OUT = 950;
 constexpr uint32_t PERF_LEVEL_INTERVAL = 10;
 constexpr uint32_t PERF_LAYER_START_NUM = 7;
-
-void RequestPerf(uint32_t layerLevel, bool onOffTag)
+}
+void RSProcessor::RequestPerf(uint32_t layerLevel, bool onOffTag)
 {
     switch (layerLevel) {
         case PERF_LEVEL_0: {
@@ -58,7 +58,6 @@ void RequestPerf(uint32_t layerLevel, bool onOffTag)
             break;
         }
     }
-}
 }
 
 bool RSProcessor::Init(RSDisplayRenderNode& node, int32_t offsetX, int32_t offsetY, ScreenId mirroredId)
