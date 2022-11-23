@@ -597,10 +597,10 @@ void RSRenderThreadVisitor::ClipHoleForSurfaceNode(RSSurfaceRenderNode& node)
     // Calculation position in RenderService may appear floating point number, and it will be removed.
     // It caused missed line problem on surfaceview hap, so we subtract one pixel when cliphole to avoid this problem
     static int pixel = 1;
-    auto x = std::ceil(node.GetRenderProperties().GetBoundsPositionX() + pixel);
-    auto y = std::ceil(node.GetRenderProperties().GetBoundsPositionY() + pixel);
-    auto width = std::floor(node.GetRenderProperties().GetBoundsWidth() - pixel);
-    auto height = std::floor(node.GetRenderProperties().GetBoundsHeight() - pixel);
+    auto x = std::ceil(node.GetRenderProperties().GetBoundsPositionX() + pixel); // x increase 1 pixel
+    auto y = std::ceil(node.GetRenderProperties().GetBoundsPositionY() + pixel); // y increase 1 pixel
+    auto width = std::floor(node.GetRenderProperties().GetBoundsWidth() - (2 * pixel)); // width decrease 2 pixels
+    auto height = std::floor(node.GetRenderProperties().GetBoundsHeight() - (2 * pixel)); // height decrease 2 pixels
     canvas_->save();
     SkRect originRect = SkRect::MakeXYWH(x, y, width, height);
     canvas_->clipRect(originRect);
