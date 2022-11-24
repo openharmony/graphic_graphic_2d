@@ -22,6 +22,7 @@ ohos_unittest("RSRenderServiceBasePropertyTest") {
 
   sources = [
     "rs_properties_painter_test.cpp",
+    "rs_properties_test.cpp",
     "rs_property_trace_test.cpp",
   ]
 
