@@ -578,8 +578,11 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
                 renderFrame->SetDamageRegion(rects);
             }
         }
-        if (isOpDropped_ && !region.isEmpty()) {
-            if (region.isRect()) {
+        if (isOpDropped_) {
+            if (region.isEmpty()) {
+                // [planning] Remove this after frame buffer can release
+                canvas_->clipRect(SkRect::MakeEmpty());
+            } else if (region.isRect()) {
                 canvas_->clipRegion(region);
             } else {
                 SkPath dirtyPath;
