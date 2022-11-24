@@ -16,11 +16,16 @@ import("//build/test.gni")
 ohos_unittest("frame_analyzer_test") {
   module_out_path = "graphic_standard/rosen/modules/frame_analyzer"
 
-  sources = [ "frame_collector_test.cpp" ]
+  sources = [
+    "frame_collector_test.cpp",
+    "frame_painter_test.cpp",
+  ]
 
   deps = [
     "//foundation/graphic/graphic_2d/rosen/modules/frame_analyzer:libframe_analyzer",
+    "//third_party/flutter/build/skia:ace_skia_ohos",
     "//foundation/graphic/graphic_2d/utils/test_header:test_header",
+    "//third_party/googletest:gmock",
   ]
 
   part_name = "graphic_standard"
