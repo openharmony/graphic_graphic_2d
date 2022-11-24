@@ -46,7 +46,9 @@ RSUniRenderVisitor::RSUniRenderVisitor()
     auto mainThread = RSMainThread::Instance();
     renderEngine_ = mainThread->GetRenderEngine();
     partialRenderType_ = RSSystemProperties::GetUniPartialRenderEnabled();
-    isPartialRenderEnabled_ = (partialRenderType_ != PartialRenderType::DISABLED);
+    sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
+    auto screenNum = screenManager->GetAllScreenIds().size();
+    isPartialRenderEnabled_ = (screenNum <= 1) && (partialRenderType_ != PartialRenderType::DISABLED);
     isDirtyRegionDfxEnabled_ = (RSSystemProperties::GetDirtyRegionDebugType() == DirtyRegionDebugType::EGL_DAMAGE);
     isTargetDirtyRegionDfxEnabled_ = RSSystemProperties::GetTargetDirtyRegionDfxEnabled(dfxTargetSurfaceNames_);
     if (isDirtyRegionDfxEnabled_ && isTargetDirtyRegionDfxEnabled_) {
@@ -449,6 +451,12 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
         node.GetDirtyManager()->GetDirtyRegion().ToString().c_str());
     RS_LOGD("RSUniRenderVisitor::ProcessDisplayRenderNode node: %" PRIu64 ", child size:%u", node.GetId(),
         node.GetChildrenCount());
+    sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
+    if (!screenManager) {
+        RS_LOGE("RSUniRenderVisitor::ProcessDisplayRenderNode ScreenManager is nullptr");
+        return;
+    }
+    screenInfo_ = screenManager->QueryScreenInfo(node.GetScreenId());
     isSecurityDisplay_ = node.GetSecurityDisplay();
     switch (screenInfo_.state) {
         case ScreenState::PRODUCER_SURFACE_ENABLE:
