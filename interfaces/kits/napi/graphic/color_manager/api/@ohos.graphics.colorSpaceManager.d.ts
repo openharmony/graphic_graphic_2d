@@ -135,7 +135,7 @@ import { AsyncCallback } from './basic';
   }
 
   /**
-   * color space manager, created by color space information
+   * Defines a color space object and manages its key information
    * @since 9
    * @syscap SystemCapability.Graphic.Graphic2D.ColorManager.Core
    */
