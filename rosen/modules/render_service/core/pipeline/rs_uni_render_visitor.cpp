@@ -175,6 +175,11 @@ void RSUniRenderVisitor::PrepareDisplayRenderNode(RSDisplayRenderNode& node)
         parentSurfaceNodeMatrix_ = geoPtr->GetAbsMatrix();
     }
     dirtyFlag_ = dirtyFlag_ || node.IsRotationChanged();
+    // when display is in rotation state, occlusion relationship will be ruined,
+    // hence partialrender quickreject should be disabled.
+    if(node.IsRotationChanged()) {
+        isOpDropped_ = false;
+    }
     node.UpdateRotation();
     curAlpha_ = node.GetRenderProperties().GetAlpha();
     PrepareBaseRenderNode(node);
