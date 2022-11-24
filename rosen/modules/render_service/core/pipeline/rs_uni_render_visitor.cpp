@@ -23,11 +23,13 @@
 #include "common/rs_obj_abs_geometry.h"
 #include "pipeline/rs_base_render_node.h"
 #include "pipeline/rs_base_render_util.h"
+#include "pipeline/rs_cold_start_thread.h"
 #include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_main_thread.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_processor_factory.h"
 #include "pipeline/rs_proxy_render_node.h"
+#include "pipeline/rs_recording_canvas.h"
 #include "pipeline/rs_root_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_uni_render_listener.h"
@@ -40,6 +42,21 @@
 
 namespace OHOS {
 namespace Rosen {
+namespace {
+bool IsFirstFrameReadyToDraw(RSSurfaceRenderNode& node)
+{
+    for (auto& child : node.GetSortedChildren()) {
+        if (child != nullptr && child->IsInstanceOf<RSRootRenderNode>()) {
+            auto rootNode = child->ReinterpretCastTo<RSRootRenderNode>();
+            const auto& property = rootNode->GetRenderProperties();
+            if (property.GetFrameWidth() > 0 && property.GetFrameHeight() > 0 && rootNode->GetEnableRender()) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+}
 RSUniRenderVisitor::RSUniRenderVisitor()
     : curSurfaceDirtyManager_(std::make_shared<RSDirtyRegionManager>())
 {
@@ -840,17 +857,6 @@ void RSUniRenderVisitor::InitCacheSurface(RSSurfaceRenderNode& node, int width, 
 #endif
 }
 
-void RSUniRenderVisitor::DrawCacheSurface(RSSurfaceRenderNode& node)
-{
-    canvas_->save();
-    canvas_->scale(
-        node.GetRenderProperties().GetBoundsWidth() / node.GetCacheSurface()->width(),
-        node.GetRenderProperties().GetBoundsHeight() / node.GetCacheSurface()->height());
-    SkPaint paint;
-    node.GetCacheSurface()->draw(canvas_.get(), 0.0, 0.0, &paint);
-    canvas_->restore();
-}
-
 void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
 {
     RS_TRACE_NAME("RSUniRender::Process:[" + node.GetName() + "]" + node.GetDstRect().ToString());
@@ -859,6 +865,10 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
     node.UpdatePositionZ();
     if (isSecurityDisplay_ && node.GetSecurityLayer()) {
         RS_TRACE_NAME("SecurityLayer Skip");
+        return;
+    }
+    if (node.GetSurfaceNodeType() == RSSurfaceNodeType::STARTING_WINDOW_NODE && !needDrawStartingWindow_) {
+        RS_LOGD("RSUniRenderVisitor::ProcessSurfaceRenderNode skip startingWindow");
         return;
     }
     const auto& property = node.GetRenderProperties();
@@ -901,6 +911,24 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
                 SkRect::MakeLTRB(rect.left_, rect.top_, rect.right_, rect.bottom_));
         }
     }
+
+    if (node.GetSurfaceNodeType() == RSSurfaceNodeType::LEASH_WINDOW_NODE) {
+        needDrawStartingWindow_ = true; // reset to default value
+        needColdStartThread_ = !node.IsStartAnimationFinished() && doAnimate_;
+        needCheckFirstFrame_ = node.GetChildrenCount() > 1; // childCount > 1 means startingWindow and appWindow
+    }
+
+    if (node.IsAppWindow() && needColdStartThread_ && needCheckFirstFrame_ &&
+        !RSColdStartManager::Instance().IsColdStartThreadRunning(node.GetId())) {
+        if (!IsFirstFrameReadyToDraw(node)) {
+            return;
+        }
+        auto nodePtr = node.shared_from_this();
+        RSColdStartManager::Instance().StartColdStartThreadIfNeed(nodePtr->ReinterpretCastTo<RSSurfaceRenderNode>());
+        RecordAppWindowNodeAndPostTask(node, property.GetBoundsWidth(), property.GetBoundsHeight());
+        return;
+    }
+
     auto savedState = canvas_->SaveCanvasAndAlpha();
 
     canvas_->MultiplyAlpha(property.GetAlpha());
@@ -955,12 +983,21 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
         canvas_->restore();
     }
 
-    if (node.IsAppWindow()) {
+    if (node.IsAppWindow() &&
+        (!needColdStartThread_ || !RSColdStartManager::Instance().IsColdStartThreadRunning(node.GetId()))) {
+        if (RSColdStartManager::Instance().IsColdStartThreadRunning(node.GetId())) {
+            node.ClearCachedResource();
+            RSColdStartManager::Instance().StopColdStartThread(node.GetId());
+        }
+        if (needCheckFirstFrame_ && IsFirstFrameReadyToDraw(node)) {
+            node.NotifyUIBufferAvailable();
+            needDrawStartingWindow_ = false;
+        }
         if (!node.IsAppFreeze()) {
             ProcessBaseRenderNode(node);
             node.ClearCacheSurface();
         } else if (node.GetCacheSurface()) {
-            DrawCacheSurface(node);
+            RSUniRenderUtil::DrawCachedSurface(node, *canvas_, node.GetCacheSurface());
         } else {
             InitCacheSurface(node, property.GetBoundsWidth(), property.GetBoundsHeight());
             if (node.GetCacheSurface()) {
@@ -970,14 +1007,24 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
                 ProcessBaseRenderNode(node);
                 swap(cacheCanvas, canvas_);
 
-                DrawCacheSurface(node);
+                RSUniRenderUtil::DrawCachedSurface(node, *canvas_, node.GetCacheSurface());
             } else {
                 RS_LOGE("RSUniRenderVisitor::ProcessSurfaceRenderNode %s Create CacheSurface failed",
                     node.GetName().c_str());
             }
         }
+    } else if (node.IsAppWindow()) { // use skSurface drawn by cold start thread
+        needDrawStartingWindow_ = false;
+        RSUniRenderUtil::DrawCachedSurface(node, *canvas_, node.GetCachedResource().skSurface);
+        RecordAppWindowNodeAndPostTask(node, property.GetBoundsWidth(), property.GetBoundsHeight());
     } else {
         ProcessBaseRenderNode(node);
+    }
+
+    if (node.GetSurfaceNodeType() == RSSurfaceNodeType::LEASH_WINDOW_NODE) {
+        // reset to default value
+        needColdStartThread_ = false;
+        needCheckFirstFrame_ = false;
     }
 
     filter = std::static_pointer_cast<RSSkiaFilter>(property.GetFilter());
@@ -1046,6 +1093,19 @@ void RSUniRenderVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
     node.ProcessRenderBeforeChildren(*canvas_);
     ProcessBaseRenderNode(node);
     node.ProcessRenderAfterChildren(*canvas_);
+}
+
+void RSUniRenderVisitor::RecordAppWindowNodeAndPostTask(RSSurfaceRenderNode& node, float width, float height)
+{
+    RSRecordingCanvas canvas(width, height);
+#ifdef RS_ENABLE_GL
+    canvas.SetGrContext(canvas_->getGrContext()); // SkImage::MakeFromCompressed need GrContext
+#endif
+    auto recordingCanvas = std::make_shared<RSPaintFilterCanvas>(&canvas);
+    swap(canvas_, recordingCanvas);
+    ProcessBaseRenderNode(node);
+    swap(canvas_, recordingCanvas);
+    RSColdStartManager::Instance().PostPlayBackTask(node.GetId(), canvas.GetDrawCmdList(), width, height);
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -162,6 +162,10 @@ ohos_shared_library("librender_service_base") {
     "src/overdraw/rs_overdraw_controller.cpp",
   ]
 
+  if (rs_enable_gpu) {
+    sources += [ "src/common/rs_shared_context.cpp" ]
+  }
+
   include_dirs = [
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/src",
     "//foundation/graphic/graphic_2d/utils/log",
