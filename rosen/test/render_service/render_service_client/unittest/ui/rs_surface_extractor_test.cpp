@@ -50,5 +50,7 @@ HWTEST_F(RSSurfaceExtractorTest, ExtractRSSurface001, TestSize.Level1)
     ASSERT_TRUE(surfaceNode != nullptr);
 
     RSSurfaceExtractor::ExtractRSSurface(surfaceNode);
+    auto node = RSSurfaceExtractor::ExtractRSSurface(nullptr);
+    ASSERT_TRUE(node == nullptr);
 }
 } // namespace OHOS::Rosen

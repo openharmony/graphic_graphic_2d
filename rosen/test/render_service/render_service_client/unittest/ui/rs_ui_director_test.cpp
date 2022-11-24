@@ -21,6 +21,7 @@
 #include "ui/rs_surface_node.h"
 #include "ui/rs_root_node.h"
 #include "ui/rs_ui_director.h"
+
 using namespace testing;
 using namespace testing::ext;
 
@@ -150,6 +151,7 @@ HWTEST_F(RSUIDirectorTest, UIDirectorSetRoot001, TestSize.Level1)
     std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
     RSNode::SharedPtr testNode = RSCanvasNode::Create();
     director->SetRoot(testNode->GetId());
+    director->SetRoot(testNode->GetId());
 }
 
 /**
@@ -182,5 +184,28 @@ HWTEST_F(RSUIDirectorTest, UIDirectorTotal001, TestSize.Level1)
 
     director->SetUITaskRunner([&](const auto& uiTaskRunner) {});
     director->SendMessages();
+}
+
+/**
+ * @tc.name: SetProperty001
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSUIDirectorTest, SetProperty001, TestSize.Level1)
+{
+    /**
+     * @tc.steps: step1. set parentSize, childSize and alignment
+     */
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    director->SetAbilityBGAlpha(0);
+    director->SetContainerWindow(true, 1.f);
+    director->SetAppFreeze(true);
+    RSSurfaceNodeConfig c;
+    auto surfaceNode = RSSurfaceNode::Create(c);
+    director->SetRSSurfaceNode(surfaceNode);
+    director->SetAbilityBGAlpha(0);
+    director->SetContainerWindow(true, 1.f);
+    director->SetAppFreeze(true);
+    director->RunningCustomAnimation(10);
 }
 } // namespace OHOS::Rosen

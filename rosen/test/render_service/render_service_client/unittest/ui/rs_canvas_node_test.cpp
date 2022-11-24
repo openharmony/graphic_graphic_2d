@@ -168,7 +168,14 @@ HWTEST_F(RSCanvasNodeTest, LifeCycle004, TestSize.Level1)
     RSCanvasNode::SharedPtr child3 = RSCanvasNode::Create();
     rootNode->AddChild(child1, -1);
     rootNode->AddChild(child2, 0);
+    rootNode->DumpNode(1);
     child1->AddChild(child3, 1);
+    child1->MoveChild(child2, 0);
+    child1->MoveChild(child3, 1);
+    child1->AddChild(child3, 1);
+    child1->MoveChild(child3, -1);
+    child1->AddChild(child2, -1);
+    child1->MoveChild(child2, 3);
     /**
      * @tc.steps: step2. remove child
      */
@@ -193,6 +200,28 @@ HWTEST_F(RSCanvasNodeTest, Recording001, TestSize.Level1)
     EXPECT_FALSE(canvasNode->IsRecording());
     canvasNode->BeginRecording(500, 400);
     EXPECT_TRUE(canvasNode->IsRecording());
+}
+
+/**
+ * @tc.name: Recording002
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasNodeTest, Recording002, TestSize.Level1)
+{
+    /**
+     * @tc.steps: step1. create canvasNode and RSUIDirector
+     */
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+
+    /**
+     * @tc.steps: step2. begin recording
+     */
+    EXPECT_FALSE(canvasNode->IsRecording());
+    canvasNode->FinishRecording();
+    canvasNode->BeginRecording(500, 400);
+    EXPECT_TRUE(canvasNode->IsRecording());
+    canvasNode->FinishRecording();
 }
 
 /**
