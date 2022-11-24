@@ -103,6 +103,8 @@ ohos_shared_library("surface") {
     sources -= graphic_2d_ext_configs.libsurface_ext_sources_del
 
     public_deps += [ "//foundation/graphic/graphic_2d_ext/ohcore/graphic_compat_layer:libgraphic_compat_layer" ]
+
+    public_deps -= [ "//drivers/peripheral/display/hdi_service/gralloc/client:hdi_gralloc_client" ]
   }
 
   part_name = "graphic_standard"
