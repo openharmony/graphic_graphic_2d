@@ -135,7 +135,7 @@ import { AsyncCallback } from './basic';
   }
 
   /**
-   * color space manager, created by color space infomation
+   * color space manager, created by color space information
    * @since 9
    * @syscap SystemCapability.Graphic.Graphic2D.ColorManager.Core
    */
@@ -163,7 +163,7 @@ import { AsyncCallback } from './basic';
   }
 
   /**
-   * Create a color space manager by proviced color space type.
+   * Create a color space manager by provided color space type.
    * @param colorSpaceName Indicates the type of color space
    * @since 9
    * @throws {BusinessError} 401 - If param is invalid
