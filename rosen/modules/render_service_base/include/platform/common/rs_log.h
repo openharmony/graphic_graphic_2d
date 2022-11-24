@@ -38,9 +38,9 @@ void RSLogOutput(RSLog::Tag tag, RSLog::Level level, const char* format, ...);
 #define ROSEN_LOGD(format, ...) \
     RSLogOutput(RSLog::Tag::RS_CLIENT, RSLog::Level::LEVEL_DEBUG, format, ##__VA_ARGS__)
 #define ROSEN_LOGE(format, ...) \
-    RSLogOutput(RSLog::Tag::RS_CLIENT, RSLog::Level::LEVEL_WARN, format, ##__VA_ARGS__)
-#define ROSEN_LOGW(format, ...) \
     RSLogOutput(RSLog::Tag::RS_CLIENT, RSLog::Level::LEVEL_ERROR, format, ##__VA_ARGS__)
+#define ROSEN_LOGW(format, ...) \
+    RSLogOutput(RSLog::Tag::RS_CLIENT, RSLog::Level::LEVEL_WARN, format, ##__VA_ARGS__)
 #define ROSEN_LOGF(format, ...) \
     RSLogOutput(RSLog::Tag::RS_CLIENT, RSLog::Level::LEVEL_FATAL, format, ##__VA_ARGS__)
 
@@ -49,9 +49,9 @@ void RSLogOutput(RSLog::Tag tag, RSLog::Level level, const char* format, ...);
 #define RS_LOGD(format, ...) \
     RSLogOutput(RSLog::Tag::RS, RSLog::Level::LEVEL_DEBUG, format, ##__VA_ARGS__)
 #define RS_LOGE(format, ...) \
-    RSLogOutput(RSLog::Tag::RS, RSLog::Level::LEVEL_WARN, format, ##__VA_ARGS__)
-#define RS_LOGW(format, ...) \
     RSLogOutput(RSLog::Tag::RS, RSLog::Level::LEVEL_ERROR, format, ##__VA_ARGS__)
+#define RS_LOGW(format, ...) \
+    RSLogOutput(RSLog::Tag::RS, RSLog::Level::LEVEL_WARN, format, ##__VA_ARGS__)
 #define RS_LOGF(format, ...) \
     RSLogOutput(RSLog::Tag::RS, RSLog::Level::LEVEL_FATAL, format, ##__VA_ARGS__)
 
