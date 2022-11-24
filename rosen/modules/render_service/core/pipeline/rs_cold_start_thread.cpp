@@ -53,7 +53,7 @@ RSColdStartThread::RSColdStartThread(std::weak_ptr<RSSurfaceRenderNode> surfaceR
     thread_ = std::make_unique<std::thread>(&RSColdStartThread::Run, this);
 #endif
     std::unique_lock<std::mutex> lock(mutex_);
-    cv_.wait_for(lock, std::chrono::milliseconds(10), [this]() {
+    cv_.wait_for(lock, std::chrono::milliseconds(10), [this]() { // wait for 10ms max
         return isRunning_.load();
     });
 }
@@ -207,7 +207,6 @@ void RSColdStartManager::PostPlayBackTask(NodeId id, std::shared_ptr<DrawCmdList
 
 bool RSColdStartManager::IsColdStartThreadRunning(NodeId id)
 {
-
     return coldStartThreadMap_.count(id) != 0 && coldStartThreadMap_[id] != nullptr;
 }
 
@@ -237,7 +236,7 @@ void RSColdStartManager::DestroyColdStartThread(NodeId id)
 
 void RSColdStartManager::CheckColdStartMap(const RSRenderNodeMap& nodeMap)
 {
-    for(auto& elem : coldStartThreadMap_) {
+    for (auto& elem : coldStartThreadMap_) {
         auto node = nodeMap.GetRenderNode<RSSurfaceRenderNode>(elem.first);
         if (!node && elem.second) {
             RS_LOGD("RSColdStartManager::CheckColdStartMap need stop");

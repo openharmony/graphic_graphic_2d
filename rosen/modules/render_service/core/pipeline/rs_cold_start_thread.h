@@ -51,7 +51,6 @@ private:
     void Run();
 #endif
 
-
     std::weak_ptr<RSSurfaceRenderNode> surfaceNode_;
     NodeId surfaceNodeId_;
     std::unique_ptr<std::thread> thread_ = nullptr;
@@ -80,10 +79,10 @@ public:
 private:
     RSColdStartManager() = default;
     ~RSColdStartManager() = default;
-    RSColdStartManager(const RSColdStartManager&);
-    RSColdStartManager(const RSColdStartManager&&);
-    RSColdStartManager& operator=(const RSColdStartManager&);
-    RSColdStartManager& operator=(const RSColdStartManager&&);
+    RSColdStartManager(const RSColdStartManager& manager);
+    RSColdStartManager(const RSColdStartManager&& manager);
+    RSColdStartManager& operator=(const RSColdStartManager& manager);
+    RSColdStartManager& operator=(const RSColdStartManager&& manager);
 
     std::map<NodeId, std::unique_ptr<RSColdStartThread>> coldStartThreadMap_;
 };
