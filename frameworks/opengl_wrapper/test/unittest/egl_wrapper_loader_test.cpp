@@ -187,7 +187,7 @@ HWTEST_F(EglWrapperLoaderTest, LoadEgl003, Level2)
 HWTEST_F(EglWrapperLoaderTest, LoadGl001, Level1)
 {
     EglWrapperDispatchTable dispatchTable;
-    std::string eglPath = std::string("libc.so");
+    std::string eglPath = std::string("hilog.so");
     auto result = EglWrapperLoader::GetInstance().LoadGl(eglPath.c_str(),
         gGlApiNames1, (FunctionPointerType *)&dispatchTable.gl.table1);
 
