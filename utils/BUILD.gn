@@ -33,6 +33,10 @@ group("promise") {
   public_deps = [ "promise:promise" ]
 }
 
+group("semaphore") {
+  public_deps = [ "semaphore:semaphore" ]
+}
+
 group("socketpair") {
   public_deps = [ "socketpair:socketpair" ]
 }
@@ -41,8 +45,32 @@ group("test_header") {
   public_deps = [ "test_header:test_header" ]
 }
 
+group("option_parser") {
+  public_deps = [ "option_parser:option_parser" ]
+}
+
+group("libgslogger") {
+  public_deps = [ "gslogger:libgslogger" ]
+}
+
 group("matrix") {
   public_deps = [ "matrix:matrix" ]
+}
+
+group("raw_parser") {
+  public_deps = [ "raw_parser:raw_parser" ]
+}
+
+group("cpudraw") {
+  public_deps = [ "cpudraw:cpudraw" ]
+}
+
+group("gl_utils") {
+  public_deps = [ "gl_utils:gl_utils" ]
+}
+
+group("raw_maker") {
+  public_deps = [ "raw_maker:raw_maker" ]
 }
 
 group("sync_fence") {
@@ -65,9 +93,17 @@ ohos_shared_library("libgraphic_utils") {
   public_deps = [
     "buffer_handle:buffer_handle",
     "color_manager:color_manager",
+    "cpudraw:cpudraw",
+    "gl_utils:gl_utils",
+    "gslogger:libgslogger",
     "matrix:matrix",
+    "option_parser:option_parser",
     "promise:promise",
+    "raw_maker:raw_maker",
+    "raw_parser:raw_parser",
     "sandbox:sandbox_utils",
+    "scoped_bytrace:scoped_bytrace",
+    "semaphore:semaphore",
     "test_header:test_header",
   ]
 
