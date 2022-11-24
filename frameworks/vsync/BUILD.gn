@@ -64,7 +64,6 @@ ohos_shared_library("libvsync_client") {
   public_deps = [
     "//base/notification/eventhandler/frameworks/eventhandler:libeventhandler",
     "//commonlibrary/c_utils/base:utils",
-    "//foundation/graphic/graphic_2d:libgraphic_dumper_client",
   ]
 
   part_name = "graphic_standard"
