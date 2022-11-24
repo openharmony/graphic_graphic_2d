@@ -103,6 +103,10 @@ bool RSPath::GetPosTan(float distance, Vector4f& pos, float& degrees) const
 {
     Vector2f position;
     bool res = GetPosTan(distance, position, degrees);
+    if (!res) {
+        ROSEN_LOGD("SkPathMeasure get failed");
+        return false;
+    }
     pos[0] = position[0];
     pos[1] = position[1];
     return res;
