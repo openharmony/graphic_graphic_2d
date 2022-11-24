@@ -14,9 +14,9 @@
  */
 
 #include <gtest/gtest.h>
-
-#include <frame_collector.h>
 #include <test_header.h>
+
+#include "frame_collector.h"
 
 using namespace testing;
 using namespace testing::ext;
