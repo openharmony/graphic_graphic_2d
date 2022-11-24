@@ -123,11 +123,11 @@ int32_t SyncFence::Wait(uint32_t timeout)
         retCode = -1;
         errno = ETIME;
     } else if (retCode > 0) {
+        retCode = 0;
         if (pollfds.revents & (POLLERR | POLLNVAL)) {
             retCode = -1;
             errno = EINVAL;
         }
-        retCode = 0;
     }
 
     return retCode < 0 ? -errno : 0;
