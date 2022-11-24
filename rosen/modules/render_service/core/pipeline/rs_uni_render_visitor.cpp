@@ -354,10 +354,8 @@ void RSUniRenderVisitor::PrepareCanvasRenderNode(RSCanvasRenderNode &node)
     node.UpdateParentChildrenRect(node.GetParent().lock());
 
     // [planning] Remove this after skia is upgraded, the clipRegion is supported
-    if (node.GetRenderProperties().GetBackgroundFilter()) {
-        needFilter_ = true;
-    }
     if (node.GetRenderProperties().NeedFilter()) {
+        needFilter_ = true;
         filterRects_[curSurfaceNode_->GetId()].push_back(node.GetOldDirtyInSurface());
     }
     curAlpha_ = alpha;
