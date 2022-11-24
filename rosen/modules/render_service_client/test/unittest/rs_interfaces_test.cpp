@@ -847,5 +847,71 @@ HWTEST_F(RSInterfacesTest, ScreenGamutMap_001, Function | SmallTest | Level2)
     statusMode = rsInterfaces->GetScreenGamutMap(defaultScreenId, mode);
     ASSERT_EQ(statusMode, StatusCode::HDI_ERROR);
 }
+
+/*
+ * @tc.name: RegisterOcclusionChangeCallback Test
+ * @tc.desc: RegisterOcclusionChangeCallback Test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSInterfacesTest, RegisterOcclusionChangeCallback_Test, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    OcclusionChangeCallback cb = [](std::shared_ptr<RSOcclusionData> data){};
+    int32_t ret = rsInterfaces->RegisterOcclusionChangeCallback(cb);
+    ASSERT_EQ(ret, 0);
+}
+
+/*
+ * @tc.name: UnRegisterOcclusionChangeCallback Test
+ * @tc.desc: UnRegisterOcclusionChangeCallback Test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSInterfacesTest, UnRegisterOcclusionChangeCallback_Test, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    OcclusionChangeCallback cb = [](std::shared_ptr<RSOcclusionData> data){};
+    int32_t ret = rsInterfaces->UnRegisterOcclusionChangeCallback(cb);
+    ASSERT_EQ(ret, 0);
+}
+
+/*
+ * @tc.name: SetRenderModeChangeCallback Test
+ * @tc.desc: SetRenderModeChangeCallback Test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSInterfacesTest, SetRenderModeChangeCallback_Test, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    RenderModeChangeCallback cb = [](bool flag){};
+    int32_t ret = rsInterfaces->SetRenderModeChangeCallback(cb);
+    ASSERT_EQ(ret, 0);
+}
+
+/*
+ * @tc.name: UpdateRenderMode True Test
+ * @tc.desc: UpdateRenderMode True Test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSInterfacesTest, UpdateRenderMode_True, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    rsInterfaces->UpdateRenderMode(true);
+}
+
+/*
+ * @tc.name: UpdateRenderMode False Test
+ * @tc.desc: UpdateRenderMode False Test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSInterfacesTest, UpdateRenderMode_False, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    rsInterfaces->UpdateRenderMode(false);
+}
 } // namespace Rosen
 } // namespace OHOS
