@@ -255,7 +255,7 @@ txt::PlaceholderAlignment RosenConvertAlignment(const PlaceholderAlignment& alig
     return txtAalignment;
 }
 
-txt::PlaceholderRun RosenConvertPlaceholderRun(PlaceholderRun& placeholderRun)
+txt::PlaceholderRun RosenConvertPlaceholderRun(const PlaceholderRun& placeholderRun)
 {
     txt::PlaceholderRun txtPlaceholderRun;
     txtPlaceholderRun.width = placeholderRun.width_;
