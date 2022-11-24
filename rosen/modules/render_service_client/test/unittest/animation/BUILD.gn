@@ -31,6 +31,7 @@ ohos_unittest("RSAnimationTest") {
     "rs_path_animation_test.cpp",
     "rs_spring_animation_test.cpp",
     "rs_transition_test.cpp",
+    "rs_animation_supplement_test.cpp",
   ]
 
   configs = [ ":rs_animation_test_config" ]
@@ -40,6 +41,10 @@ ohos_unittest("RSAnimationTest") {
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:librender_service_client",
     "//foundation/window/window_manager/wm:libwm",
     "//third_party/googletest:gtest_main",
+  ]
+
+  public_deps = [
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:render_service_client_src",
   ]
 
   external_deps = [ "eventhandler:libeventhandler" ]
