@@ -111,6 +111,7 @@ BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(const RSSurfaceRenderNode
     params.useCPU = true;
 #endif // RS_ENABLE_EGLIMAGE
     params.paint.setAntiAlias(true);
+    params.paint.setFilterQuality(SkFilterQuality::kLow_SkFilterQuality);
 
     const RSProperties& property = node.GetRenderProperties();
     params.dstRect = SkRect::MakeWH(property.GetBoundsWidth(), property.GetBoundsHeight());
