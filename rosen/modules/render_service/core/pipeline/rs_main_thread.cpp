@@ -24,6 +24,7 @@
 #include "overdraw/rs_overdraw_controller.h"
 #include "pipeline/rs_base_render_node.h"
 #include "pipeline/rs_base_render_util.h"
+#include "pipeline/rs_cold_start_thread.h"
 #include "pipeline/rs_divided_render_util.h"
 #include "pipeline/rs_render_engine.h"
 #include "pipeline/rs_render_service_visitor.h"
@@ -144,8 +145,8 @@ void RSMainThread::Init()
         ConsumeAndUpdateAllNodes();
         WaitUntilUnmarshallingTaskFinished();
         ProcessCommand();
-        CheckAndNotifyFirstFrameCallback();
         Animate(timestamp_);
+        CheckColdStartMap();
         CheckDelayedSwitchTask();
         Render();
         ReleaseAllNodesBuffer();
@@ -418,35 +419,6 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
     }
 }
 
-void RSMainThread::CheckAndNotifyFirstFrameCallback()
-{
-    // check first frame callback after ProcessCommand
-    const auto& nodeMap = GetContext().GetNodeMap();
-    nodeMap.TraverseSurfaceNodes(
-        [this](const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) mutable {
-        if (surfaceNode == nullptr) {
-            return;
-        }
-
-        // check first frame callback in uniRender case
-        if (!IfUseUniVisitor() || !surfaceNode->IsAppWindow()) {
-            return;
-        }
-        for (auto& child : surfaceNode->GetSortedChildren()) {
-            if (child != nullptr && child->IsInstanceOf<RSRootRenderNode>()) {
-                auto rootNode = child->ReinterpretCastTo<RSRootRenderNode>();
-                rootNode->ApplyModifiers();
-                const auto& property = rootNode->GetRenderProperties();
-                if (property.GetFrameWidth() > 0 && property.GetFrameHeight() > 0 &&
-                    rootNode->GetEnableRender()) {
-                    surfaceNode->NotifyUIBufferAvailable();
-                }
-            }
-        }
-        surfaceNode->ResetSortedChildren();
-    });
-}
-
 void RSMainThread::ReleaseAllNodesBuffer()
 {
     RS_TRACE_NAME("RSMainThread::ReleaseAllNodesBuffer");
@@ -454,6 +426,12 @@ void RSMainThread::ReleaseAllNodesBuffer()
     nodeMap.TraverseSurfaceNodes([](const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) mutable {
         if (surfaceNode == nullptr) {
             return;
+        }
+        // To avoid traverse surfaceNodeMap again, destroy cold start thread here
+        if ((!surfaceNode->IsOnTheTree() || !surfaceNode->ShouldPaint()) &&
+            RSColdStartManager::Instance().IsColdStartThreadRunning(surfaceNode->GetId())) {
+            surfaceNode->ClearCachedResource();
+            RSColdStartManager::Instance().StopColdStartThread(surfaceNode->GetId());
         }
         RSBaseRenderUtil::ReleaseBuffer(static_cast<RSSurfaceHandler&>(*surfaceNode));
     });
@@ -872,6 +850,12 @@ void RSMainThread::UpdateRenderMode(bool useUniVisitor)
     }
 }
 
+void RSMainThread::CheckColdStartMap()
+{
+    const auto& nodeMap = GetContext().GetNodeMap();
+    RSColdStartManager::Instance().CheckColdStartMap(nodeMap);
+}
+
 void RSMainThread::RecvRSTransactionData(std::unique_ptr<RSTransactionData>& rsTransactionData)
 {
     if (!rsTransactionData) {
@@ -920,6 +904,13 @@ void RSMainThread::PostTask(RSTaskMessage::RSTask task)
 {
     if (handler_) {
         handler_->PostTask(task, AppExecFwk::EventQueue::Priority::IMMEDIATE);
+    }
+}
+
+void RSMainThread::PostSyncTask(RSTaskMessage::RSTask task)
+{
+    if (handler_) {
+        handler_->PostSyncTask(task, AppExecFwk::EventQueue::Priority::IMMEDIATE);
     }
 }
 

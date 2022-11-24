@@ -50,6 +50,16 @@ void RSRecordingCanvas::AddOp(std::unique_ptr<OpItem>&& opItem)
     drawCmdList_->AddOp(std::move(opItem));
 }
 
+GrContext* RSRecordingCanvas::getGrContext()
+{
+    return grContext_;
+}
+
+void RSRecordingCanvas::SetGrContext(GrContext* grContext)
+{
+    grContext_ = grContext;
+}
+
 sk_sp<SkSurface> RSRecordingCanvas::onNewSurface(const SkImageInfo& info, const SkSurfaceProps& props)
 {
     return nullptr;

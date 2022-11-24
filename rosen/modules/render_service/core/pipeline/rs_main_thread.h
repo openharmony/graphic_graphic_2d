@@ -75,6 +75,7 @@ public:
     void RecvRSTransactionData(std::unique_ptr<RSTransactionData>& rsTransactionData);
     void RequestNextVSync();
     void PostTask(RSTaskMessage::RSTask task);
+    void PostSyncTask(RSTaskMessage::RSTask task);
     void QosStateDump(std::string& dumpString);
     void RenderServiceTreeDump(std::string& dumpString);
     void RsEventParamDump(std::string& dumpString);
@@ -137,7 +138,6 @@ private:
 
     void OnVsync(uint64_t timestamp, void* data);
     void ProcessCommand();
-    void CheckAndNotifyFirstFrameCallback();
     void Animate(uint64_t timestamp);
     void ConsumeAndUpdateAllNodes();
     void ReleaseAllNodesBuffer();
@@ -167,6 +167,7 @@ private:
     void CheckDelayedSwitchTask();
     void UpdateRenderMode(bool useUniVisitor);
 
+    void CheckColdStartMap();
     void ClearDisplayBuffer();
     void PerfAfterAnim();
     void PerfForBlurIfNeeded();

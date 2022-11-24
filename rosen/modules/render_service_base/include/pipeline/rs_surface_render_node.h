@@ -18,7 +18,10 @@
 #include <functional>
 #include <limits>
 #include <memory>
+#include <tuple>
+
 #include <surface.h>
+#include "include/gpu/GrContext.h"
 
 #include "common/rs_vector4.h"
 #include "ipc_callbacks/buffer_available_callback.h"
@@ -26,6 +29,7 @@
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "property/rs_properties_painter.h"
 #include "include/core/SkRect.h"
+#include "include/core/SkRefCnt.h"
 #include "pipeline/rs_surface_handler.h"
 #include "refbase.h"
 #include "sync_fence.h"
@@ -36,6 +40,10 @@ namespace OHOS {
 namespace Rosen {
 class RSCommand;
 class RSDirtyRegionManager;
+struct SurfaceNodeResource {
+    sk_sp<GrContext> grContext;
+    sk_sp<SkSurface> skSurface;
+};
 class RSSurfaceRenderNode : public RSRenderNode, public RSSurfaceHandler {
 public:
     using WeakPtr = std::weak_ptr<RSSurfaceRenderNode>;
@@ -512,6 +520,29 @@ public:
         opaqueRegion_.AndSelf(screenRegion);
         opaqueRegionChanged_ = !oldOpaqueRegion.Xor(opaqueRegion_).IsEmpty();
     }
+
+    bool IsStartAnimationFinished() const;
+    void SetStartAnimationFinished();
+
+    void SetCachedResource(SurfaceNodeResource resourceTuple)
+    {
+        std::lock_guard<std::mutex> lock(cachedResourceMutex_);
+        cachedResource_ = resourceTuple;
+    }
+
+    SurfaceNodeResource GetCachedResource() const
+    {
+        std::lock_guard<std::mutex> lock(cachedResourceMutex_);
+        return cachedResource_;
+    }
+
+    void ClearCachedResource()
+    {
+        std::lock_guard<std::mutex> lock(cachedResourceMutex_);
+        cachedResource_.grContext = nullptr;
+        cachedResource_.skSurface = nullptr;
+    }
+
 private:
     void ClearChildrenCache(const std::shared_ptr<RSBaseRenderNode>& node);
 
@@ -582,6 +613,9 @@ private:
     int containerBorderWidth_ = 1 * 2;       // The density default value is 2
     int containerOutRadius_ = 16 * 2;        // The density default value is 2
     int containerInnerRadius_ = 14 * 2;      // The density default value is 2
+    bool startAnimationFinished_ = false;
+    mutable std::mutex cachedResourceMutex_;
+    SurfaceNodeResource cachedResource_;
 };
 } // namespace Rosen
 } // namespace OHOS
