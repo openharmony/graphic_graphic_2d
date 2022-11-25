@@ -107,16 +107,6 @@
           },
           {
             "type": "so",
-            "name": "//foundation/graphic/graphic_2d/frameworks/vsync:libvsync_client",
-            "header": {
-              "header_files": [
-                "vsync_helper.h"
-              ],
-              "header_base": "//foundation/graphic/graphic_2d/interfaces/inner_api/vsync"
-            }
-          },
-          {
-            "type": "so",
             "name": "//foundation/graphic/graphic_2d/rosen/modules/composer:libcomposer",
             "header": {
               "header_files": [
