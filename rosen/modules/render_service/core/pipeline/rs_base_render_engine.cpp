@@ -173,7 +173,7 @@ std::unique_ptr<RSRenderFrame> RSBaseRenderEngine::RequestFrame(const sptr<Surfa
     return RequestFrame(rsSurfaces_.at(surfaceId), config, forceCPU);
 }
 
-void RSBaseRenderEngine::SetUiTimeStamp(std::unique_ptr<RSRenderFrame>& renderFrame, const uint64_t surfaceId)
+void RSBaseRenderEngine::SetUiTimeStamp(const std::unique_ptr<RSRenderFrame>& renderFrame, const uint64_t surfaceId)
 {
     std::shared_ptr<RSSurfaceOhos> surfaceOhos = nullptr;
     for (auto it = rsSurfaces_.begin(); it != rsSurfaces_.end(); ++it) {
