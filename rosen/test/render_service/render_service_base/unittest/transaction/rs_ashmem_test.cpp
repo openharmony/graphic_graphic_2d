@@ -228,4 +228,28 @@ HWTEST_F(RSAshmemTest, PixelMapAshmem001, Function | MediumTest | Level2)
     ASSERT_TRUE(parcel.GetDataSize() > 0);
     ASSERT_TRUE((int)parcel.GetDataSize() < width * height * pixelBytes);
 }
+
+/**
+ * @tc.name: CreateAshmemParcel001
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSAshmemTest, CreateAshmemParcel001, Function | MediumTest | Level2)
+{
+    auto dataParcel = std::make_shared<MessageParcel>();
+    RSAshmemHelper::CreateAshmemParcel(dataParcel);
+}
+
+/**
+ * @tc.name: ParseFromAshmemParcel001
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSAshmemTest, ParseFromAshmemParcel001, Function | MediumTest | Level2)
+{
+    MessageParcel ashmemParcel;
+    RSAshmemHelper::ParseFromAshmemParcel(&ashmemParcel);
+}
 } // namespace OHOS::Rosen
