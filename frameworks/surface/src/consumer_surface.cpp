@@ -228,6 +228,7 @@ GSError ConsumerSurface::CleanCache()
 
 GSError ConsumerSurface::GoBackground()
 {
+    BLOGND("Queue Id:%{public}" PRIu64 "", producer_->GetUniqueId());
     return consumer_->GoBackground();
 }
 
