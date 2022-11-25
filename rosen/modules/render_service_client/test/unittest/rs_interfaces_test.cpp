@@ -913,5 +913,24 @@ HWTEST_F(RSInterfacesTest, UpdateRenderMode_False, Function | SmallTest | Level2
     ASSERT_NE(rsInterfaces, nullptr);
     rsInterfaces->UpdateRenderMode(false);
 }
+
+/*
+ * @tc.name: SetVirtualScreenSurface Test a notfound id
+ * @tc.desc: SetVirtualScreenSurface Test a notfound id
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSInterfacesTest, SetVirtualScreenSurface_Test, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    auto csurface = Surface::CreateSurfaceAsConsumer();
+    ASSERT_NE(csurface, nullptr);
+    auto producer = csurface->GetProducer();
+    auto psurface = Surface::CreateSurfaceAsProducer(producer);
+    ASSERT_NE(psurface, nullptr);
+
+    int32_t ret = rsInterfaces->SetVirtualScreenSurface(123, psurface);
+    ASSERT_EQ(ret, 0);
+}
 } // namespace Rosen
 } // namespace OHOS
