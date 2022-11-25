@@ -300,11 +300,14 @@ void RSUniRenderVisitor::PrepareRootRenderNode(RSRootRenderNode& node)
 {
     node.ApplyModifiers();
     bool dirtyFlag = dirtyFlag_;
-    const auto& property = node.GetRenderProperties();
     float alpha = curAlpha_;
+    auto parentSurfaceNodeMatrix = parentSurfaceNodeMatrix_;
 
     auto rsParent = RSBaseRenderNode::ReinterpretCast<RSRenderNode>(node.GetParent().lock());
+    const auto& property = node.GetRenderProperties();
     bool geoDirty = property.IsGeoDirty();
+    auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(property.GetBoundsGeometry());
+
     dirtyFlag_ = node.Update(*curSurfaceDirtyManager_, rsParent ? &(rsParent->GetRenderProperties()) : nullptr,
         dirtyFlag_);
     curAlpha_ *= property.GetAlpha();
@@ -314,14 +317,18 @@ void RSUniRenderVisitor::PrepareRootRenderNode(RSRootRenderNode& node)
         SkMatrix gravityMatrix;
         (void)RSPropertiesPainter::GetGravityMatrix(frameGravity_,
             RectF { 0.0f, 0.0f, boundsRect_.width(), boundsRect_.height() }, rootWidth, rootHeight, gravityMatrix);
-        auto geoPtr = std::static_pointer_cast<RSObjAbsGeometry>(property.GetBoundsGeometry());
         // Only Apply gravityMatrix when rootNode is dirty
         if (geoPtr != nullptr && (dirtyFlag || geoDirty)) {
             geoPtr->ConcatMatrix(gravityMatrix);
         }
     }
+
+    if (geoPtr != nullptr) {
+        parentSurfaceNodeMatrix_ = geoPtr->GetAbsMatrix();
+    }
     PrepareBaseRenderNode(node);
 
+    parentSurfaceNodeMatrix_ = parentSurfaceNodeMatrix;
     curAlpha_ = alpha;
     dirtyFlag_ = dirtyFlag;
 }
