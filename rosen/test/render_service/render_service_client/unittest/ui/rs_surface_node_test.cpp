@@ -1034,4 +1034,60 @@ HWTEST_F(RSSurfaceNodeTest, ClearChildren001, TestSize.Level1)
     surfaceNode->RemoveChild(surfaceNode2);
     surfaceNode->ClearChildren();
 }
+
+/**
+ * @tc.name: SetAppFreeze Test True
+ * @tc.desc: SetAppFreeze Test True
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceNodeTest, SetAppFreeze_True, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->SetAppFreeze(true);
+}
+
+/**
+ * @tc.name: SetAppFreeze Test False
+ * @tc.desc: SetAppFreeze Test False
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceNodeTest, SetAppFreeze_False, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->SetAppFreeze(false);
+}
+
+/**
+ * @tc.name: SetContainerWindow Test True
+ * @tc.desc: SetContainerWindow Test True
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceNodeTest, SetContainerWindow_True, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->SetContainerWindow(true, 1.0f);
+}
+
+/**
+ * @tc.name: SetContainerWindow Test False
+ * @tc.desc: SetContainerWindow Test False
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceNodeTest, SetContainerWindow_False, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->SetContainerWindow(false, 1.0f);
+}
 } // namespace OHOS::Rosen
