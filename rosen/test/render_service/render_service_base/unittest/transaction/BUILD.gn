@@ -23,6 +23,7 @@ ohos_unittest("RSRenderServiceBaseTransactionTest") {
   sources = [
     "rs_ashmem_test.cpp",
     "rs_marshalling_test.cpp",
+    "rs_transaction_proxy_test.cpp",
   ]
 
   configs = [
