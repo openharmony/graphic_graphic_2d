@@ -22,7 +22,9 @@ ohos_unittest("RSRenderServiceBaseRenderTest") {
 
   sources = [
     "rs_border_test.cpp",
+    "rs_image_test.cpp",
     "rs_mask_test.cpp",
+    "rs_shadow_test.cpp",
   ]
 
   configs = [
