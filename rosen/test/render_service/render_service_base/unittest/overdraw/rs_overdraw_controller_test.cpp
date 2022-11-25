@@ -75,35 +75,35 @@ HWTEST_F(RSOverdrawControllerTest, Singleton, Function | SmallTest | Level0)
 HWTEST_F(RSOverdrawControllerTest, Enable, Function | SmallTest | Level0)
 {
     PART("CaseDescription") {
-        bool ret_e = false;
+        bool e = false;
         STEP("1. set enable as fasle") {
             RSOverdrawController::GetInstance().SetEnable(false);
-            ret_e = RSOverdrawController::GetInstance().IsEnabled();
-            STEP_ASSERT_EQ(ret_e, false);
+            e = RSOverdrawController::GetInstance().IsEnabled();
+            STEP_ASSERT_EQ(e, false);
         }
 
         STEP("2. set enable as false when enable is false") {
             RSOverdrawController::GetInstance().SetEnable(false);
-            ret_e = RSOverdrawController::GetInstance().IsEnabled();
-            STEP_ASSERT_EQ(ret_e, false);
+            e = RSOverdrawController::GetInstance().IsEnabled();
+            STEP_ASSERT_EQ(e, false);
         }
 
         STEP("3. set enable as true when enable is false") {
             RSOverdrawController::GetInstance().SetEnable(true);
-            ret_e = RSOverdrawController::GetInstance().IsEnabled();
-            STEP_ASSERT_EQ(ret_e, true);
+            e = RSOverdrawController::GetInstance().IsEnabled();
+            STEP_ASSERT_EQ(e, true);
         }
 
         STEP("4. set enable as true when enable is true") {
             RSOverdrawController::GetInstance().SetEnable(true);
-            ret_e = RSOverdrawController::GetInstance().IsEnabled();
-            STEP_ASSERT_EQ(ret_e, true);
+            e = RSOverdrawController::GetInstance().IsEnabled();
+            STEP_ASSERT_EQ(e, true);
         }
      
         STEP("5. set enable as false when enable is true") {
             RSOverdrawController::GetInstance().SetEnable(false);
-            ret_e = RSOverdrawController::GetInstance().IsEnabled();
-            STEP_ASSERT_EQ(ret_e, false);
+            e = RSOverdrawController::GetInstance().IsEnabled();
+            STEP_ASSERT_EQ(e, false);
         }
     }
 }
