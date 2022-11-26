@@ -22,6 +22,8 @@ ohos_unittest("2d_engine_rosen_text_prop_test") {
   module_out_path = module_output_path
   sources = [
     "place_holder_test.cpp",
+    "rosen_coverter_txt_test.cpp",
+    "text_style_test.cpp",
     "typography_style_test.cpp",
   ]
 
@@ -31,12 +33,18 @@ ohos_unittest("2d_engine_rosen_text_prop_test") {
     "$rosen_2d_engine_root/rosen_text/properties",
     "$rosen_root/modules/2d_graphics/include",
     "$rosen_root/modules/2d_graphics/src",
+    "//third_party/flutter/engine/flutter/third_party/txt/src",
+    "//third_party/flutter/skia/third_party/externals/harfbuzz/src",
+    "//third_party/flutter/skia",
   ]
 
   deps = [
     "$rosen_root/modules/2d_graphics:2d_graphics",
     "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
   ]
+
+  public_deps =
+      [ "//third_party/flutter/build/libtxt:thirdparty_lib_txt_$current_os" ]
 
   part_name = "graphic_standard"
   subsystem_name = "graphic"

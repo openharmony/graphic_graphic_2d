@@ -31,5 +31,8 @@ class OH_Drawing_UI_FontCollectionTest : public testing::Test {
 HWTEST_F(OH_Drawing_UI_FontCollectionTest, OH_Drawing_UI_FontCollectionTest001, TestSize.Level1)
 {
     EXPECT_EQ(rosen::FontCollection::GetInstance() == nullptr, false);
+    std::shared_ptr<rosen::FontCollection> fontCollection =
+        rosen::FontCollection::GetInstance();
+    EXPECT_EQ(fontCollection == nullptr, false);
 }
 }
