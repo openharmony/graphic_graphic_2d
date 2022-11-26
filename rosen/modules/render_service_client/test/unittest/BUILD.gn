@@ -24,10 +24,22 @@ group("unittest") {
     ":RSDropframeTest",
     ":RSEventTest",
     ":RSInterfacesTest",
+    ":RSJankDetectorTest",
     ":RSRegionTest",
     ":RSTunnelHandleTest",
     "animation:RSAnimationTest",
   ]
+}
+
+## Build RSJankDetectorTest
+ohos_unittest("RSJankDetectorTest") {
+  module_out_path = module_out_path
+  sources = [
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service_client/core/jank_detector/rs_jank_detector.cpp",
+    "rs_jank_detector_test.cpp",
+  ]
+  deps = [ ":rs_client_test_common" ]
+  external_deps = [ "hisysevent_native:libhisysevent" ]
 }
 
 ## Build RSInterfacesTest

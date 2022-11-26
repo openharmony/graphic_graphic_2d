@@ -25,11 +25,21 @@
 
 namespace OHOS {
 namespace Rosen {
+
+struct FocusAppInfo {
+    int32_t pid = -1;
+    int32_t uid = -1;
+    std::string bundleName;
+    std::string abilityName;
+};
+
 class RS_EXPORT RSInterfaces {
 public:
     static RSInterfaces &GetInstance();
     RSInterfaces(const RSInterfaces &) = delete;
     void operator=(const RSInterfaces &) = delete;
+
+    int32_t SetFocusAppInfo(FocusAppInfo& info);
 
     ScreenId GetDefaultScreenId();
 

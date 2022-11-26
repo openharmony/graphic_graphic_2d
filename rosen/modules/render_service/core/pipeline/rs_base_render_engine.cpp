@@ -173,6 +173,30 @@ std::unique_ptr<RSRenderFrame> RSBaseRenderEngine::RequestFrame(const sptr<Surfa
     return RequestFrame(rsSurfaces_.at(surfaceId), config, forceCPU);
 }
 
+void RSBaseRenderEngine::SetUiTimeStamp(const std::unique_ptr<RSRenderFrame>& renderFrame, const uint64_t surfaceId)
+{
+    std::shared_ptr<RSSurfaceOhos> surfaceOhos = nullptr;
+    for (auto it = rsSurfaces_.begin(); it != rsSurfaces_.end(); ++it) {
+        if (it->first == surfaceId) {
+            surfaceOhos = it->second;
+            break;
+        }
+    }
+
+    if (surfaceOhos == nullptr) {
+        RS_LOGE("RSBaseRenderEngine::SetUiTimeStamp: surfaceOhos is null!");
+        return;
+    }
+
+    if (renderFrame == nullptr) {
+        RS_LOGE("RSBaseRenderEngine::SetUiTimeStamp: renderFrame is null!.");
+        return;
+    }
+
+    auto& frame = renderFrame->GetFrame();
+    surfaceOhos->SetUiTimeStamp(frame);
+}
+
 void RSBaseRenderEngine::SetColorFilterMode(ColorFilterMode mode)
 {
     uint32_t uMode = static_cast<uint32_t>(mode);

@@ -228,6 +228,7 @@ GSError ConsumerSurface::CleanCache()
 
 GSError ConsumerSurface::GoBackground()
 {
+    BLOGND("Queue Id:%{public}" PRIu64 "", producer_->GetUniqueId());
     return consumer_->GoBackground();
 }
 
@@ -241,17 +242,17 @@ void ConsumerSurface::Dump(std::string &result) const
     return consumer_->Dump(result);
 }
 
-GSError ConsumerSurface::SetTransform(TransformType transform)
+GSError ConsumerSurface::SetTransform(GraphicTransformType transform)
 {
     return producer_->SetTransform(transform);
 }
 
-TransformType ConsumerSurface::GetTransform() const
+GraphicTransformType ConsumerSurface::GetTransform() const
 {
     return consumer_->GetTransform();
 }
 
-GSError ConsumerSurface::IsSupportedAlloc(const std::vector<VerifyAllocInfo> &infos,
+GSError ConsumerSurface::IsSupportedAlloc(const std::vector<BufferVerifyAllocInfo> &infos,
                                           std::vector<bool> &supporteds)
 {
     return GSERROR_NOT_SUPPORT;
@@ -276,7 +277,7 @@ GSError ConsumerSurface::GetScalingMode(uint32_t sequence, ScalingMode &scalingM
     return consumer_->GetScalingMode(sequence, scalingMode);
 }
 
-GSError ConsumerSurface::SetMetaData(uint32_t sequence, const std::vector<HDRMetaData> &metaData)
+GSError ConsumerSurface::SetMetaData(uint32_t sequence, const std::vector<GraphicHDRMetaData> &metaData)
 {
     if (metaData.size() == 0) {
         return GSERROR_INVALID_ARGUMENTS;
@@ -284,11 +285,11 @@ GSError ConsumerSurface::SetMetaData(uint32_t sequence, const std::vector<HDRMet
     return producer_->SetMetaData(sequence, metaData);
 }
 
-GSError ConsumerSurface::SetMetaDataSet(uint32_t sequence, HDRMetadataKey key,
+GSError ConsumerSurface::SetMetaDataSet(uint32_t sequence, GraphicHDRMetadataKey key,
                                         const std::vector<uint8_t> &metaData)
 {
-    if (key < HDRMetadataKey::MATAKEY_RED_PRIMARY_X ||
-        key > HDRMetadataKey::MATAKEY_HDR_VIVID || metaData.size() == 0) {
+    if (key < GraphicHDRMetadataKey::GRAPHIC_MATAKEY_RED_PRIMARY_X ||
+        key > GraphicHDRMetadataKey::GRAPHIC_MATAKEY_HDR_VIVID || metaData.size() == 0) {
         return GSERROR_INVALID_ARGUMENTS;
     }
     return producer_->SetMetaDataSet(sequence, key, metaData);
@@ -299,12 +300,12 @@ GSError ConsumerSurface::QueryMetaDataType(uint32_t sequence, HDRMetaDataType &t
     return consumer_->QueryMetaDataType(sequence, type);
 }
 
-GSError ConsumerSurface::GetMetaData(uint32_t sequence, std::vector<HDRMetaData> &metaData) const
+GSError ConsumerSurface::GetMetaData(uint32_t sequence, std::vector<GraphicHDRMetaData> &metaData) const
 {
     return consumer_->GetMetaData(sequence, metaData);
 }
 
-GSError ConsumerSurface::GetMetaDataSet(uint32_t sequence, HDRMetadataKey &key,
+GSError ConsumerSurface::GetMetaDataSet(uint32_t sequence, GraphicHDRMetadataKey &key,
                                         std::vector<uint8_t> &metaData) const
 {
     return consumer_->GetMetaDataSet(sequence, key, metaData);
@@ -323,17 +324,47 @@ sptr<SurfaceTunnelHandle> ConsumerSurface::GetTunnelHandle() const
     return consumer_->GetTunnelHandle();
 }
 
-GSError ConsumerSurface::SetPresentTimestamp(uint32_t sequence, const PresentTimestamp &timestamp)
+GSError ConsumerSurface::SetPresentTimestamp(uint32_t sequence, const GraphicPresentTimestamp &timestamp)
 {
-    if (timestamp.type == PresentTimestampType::HARDWARE_DISPLAY_PTS_UNSUPPORTED) {
+    if (timestamp.type == GraphicPresentTimestampType::GRAPHIC_DISPLAY_PTS_UNSUPPORTED) {
         return GSERROR_INVALID_ARGUMENTS;
     }
     return consumer_->SetPresentTimestamp(sequence, timestamp);
 }
 
-GSError ConsumerSurface::GetPresentTimestamp(uint32_t sequence, PresentTimestampType type,
+GSError ConsumerSurface::GetPresentTimestamp(uint32_t sequence, GraphicPresentTimestampType type,
                                              int64_t &time) const
 {
     return GSERROR_NOT_SUPPORT;
+}
+
+int32_t ConsumerSurface::GetDefaultFormat()
+{
+    BLOGND("ConsumerSurface::GetDefaultFormat not support.");
+    return 0;
+}
+
+GSError ConsumerSurface::SetDefaultFormat(int32_t format)
+{
+    BLOGND("ConsumerSurface::SetDefaultFormat not support.");
+    return GSERROR_NOT_SUPPORT;
+}
+
+int32_t ConsumerSurface::GetDefaultColorGamut()
+{
+    BLOGND("ConsumerSurface::GetDefaultColorGamut not support.");
+    return 0;
+}
+
+GSError ConsumerSurface::SetDefaultColorGamut(int32_t colorGamut)
+{
+    BLOGND("ConsumerSurface::SetDefaultColorGamut not support.");
+    return GSERROR_NOT_SUPPORT;
+}
+
+sptr<NativeSurface> ConsumerSurface::GetNativeSurface()
+{
+    BLOGND("ConsumerSurface::GetNativeSurface not support.");
+    return nullptr;
 }
 } // namespace OHOS

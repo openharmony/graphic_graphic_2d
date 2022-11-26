@@ -142,14 +142,14 @@ void RSUIDirector::SetRTRenderForced(bool isRenderForced)
     RSRenderThread::Instance().SetRTRenderForced(isRenderForced);
 }
 
-void RSUIDirector::SetContainerWindow(bool hasContainerWindow)
+void RSUIDirector::SetContainerWindow(bool hasContainerWindow, float density)
 {
     auto node = surfaceNode_.lock();
     if (!node) {
         ROSEN_LOGI("RSUIDirector::SetContainerWindow, surfaceNode_ is nullptr");
         return;
     }
-    node->SetContainerWindow(hasContainerWindow);
+    node->SetContainerWindow(hasContainerWindow, density);
 }
 
 void RSUIDirector::SetRoot(NodeId root)

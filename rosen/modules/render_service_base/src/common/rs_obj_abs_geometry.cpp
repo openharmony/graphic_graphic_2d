@@ -50,6 +50,10 @@ void RSObjAbsGeometry::UpdateMatrix(const std::shared_ptr<RSObjAbsGeometry>& par
         absMatrix_.preTranslate(offsetX, offsetY);
     }
     matrix_.reset();
+    // filter invalid width and height
+    if (IsEmpty()) {
+        return;
+    }
     if (!trans_ || (ROSEN_EQ(trans_->translateZ_, 0.f) && ROSEN_EQ(trans_->rotationX_, 0.f) &&
         ROSEN_EQ(trans_->rotationY_, 0.f) && trans_->quaternion_.IsIdentity())) {
         UpdateAbsMatrix2D();

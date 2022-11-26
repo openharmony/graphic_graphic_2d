@@ -212,8 +212,8 @@ void RSSpringModel<std::shared_ptr<RSRenderPropertyBase>>::EstimateDuration()
     }
 
     // convert templated type to float, simplify estimation of spring duration
-    float coeffScale = coeffScale_->toFloat();
-    float initialOffset = initialOffset_->toFloat();
+    float coeffScale = coeffScale_->ToFloat();
+    float initialOffset = initialOffset_->ToFloat();
     float estimatedDuration = 0.0f;
     float minimumAmplitude = initialOffset * minimumAmplitudeRatio_;
 
@@ -223,7 +223,7 @@ void RSSpringModel<std::shared_ptr<RSRenderPropertyBase>>::EstimateDuration()
         // critical damping spring will rest at 2 * natural period
         estimatedDuration_ = response_ * 2;
     } else { // Over-damped
-        float coeffScaleAlt = coeffScaleAlt_->toFloat();
+        float coeffScaleAlt = coeffScaleAlt_->ToFloat();
         double durationMain =
             (coeffScale <= minimumAmplitude) ? 0 : (log(coeffScale / minimumAmplitude) / -coeffDecay_);
         double durationAlt =

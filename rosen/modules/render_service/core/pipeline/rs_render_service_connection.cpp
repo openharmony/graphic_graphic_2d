@@ -265,6 +265,13 @@ sptr<IVSyncConnection> RSRenderServiceConnection::CreateVSyncConnection(const st
     return conn;
 }
 
+int32_t RSRenderServiceConnection::SetFocusAppInfo(
+    int32_t pid, int32_t uid, const std::string &bundleName, const std::string &abilityName)
+{
+    mainThread_->SetFocusAppInfo(pid, uid, bundleName, abilityName);
+    return SUCCESS;
+}
+
 ScreenId RSRenderServiceConnection::GetDefaultScreenId()
 {
     std::lock_guard<std::mutex> lock(mutex_);
@@ -372,9 +379,9 @@ void RSRenderServiceConnection::RegisterApplicationAgent(uint32_t pid, sptr<IApp
 void RSRenderServiceConnection::UnRegisterApplicationAgent(sptr<IApplicationAgent> app)
 {
     auto captureTask = [=]() -> void {
-        mainThread_->UnRegisterApplicationAgent(app);
+        RSMainThread::Instance()->UnRegisterApplicationAgent(app);
     };
-    mainThread_->PostTask(captureTask);
+    RSMainThread::Instance()->ScheduleTask(captureTask).wait();
 }
 
 RSVirtualScreenResolution RSRenderServiceConnection::GetVirtualScreenResolution(ScreenId id)

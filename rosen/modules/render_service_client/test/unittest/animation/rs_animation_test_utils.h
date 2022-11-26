@@ -17,14 +17,15 @@
 #include "common/rs_vector2.h"
 #include "common/rs_vector3.h"
 #include "common/rs_vector4.h"
+#include "common/rs_matrix3.h"
 #include "modifier/rs_property.h"
 #include "modifier/rs_property_modifier.h"
 
 namespace OHOS {
 namespace Rosen {
 namespace ANIMATIONTEST {
-constexpr int64_t START_NUMBER = 80825861106;
-constexpr int64_t INCREASE_NUMBER = 100000000;
+constexpr int64_t START_NUMBER = 181154000809;
+constexpr int64_t INCREASE_NUMBER = 16666667;
 constexpr  unsigned int FIRST_ANIMATION = 0;
 constexpr  unsigned int SECOND_ANIMATION = 1;
 constexpr  unsigned int CORRECT_SIZE = 1;

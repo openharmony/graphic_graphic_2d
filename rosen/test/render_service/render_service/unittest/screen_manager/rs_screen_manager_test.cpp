@@ -36,26 +36,24 @@ void RSScreenManagerTest::SetUp() {}
 void RSScreenManagerTest::TearDown() {}
 
 /*
- * @tc.name: CreateOrGetScreenManager
- * @tc.desc:
- * @tc.type:
- * @tc.require:
- * @tc.author:
+ * @tc.name: CreateOrGetScreenManager_001
+ * @tc.desc: Test CreateOrGetScreenManager
+ * @tc.type: FUNC
+ * @tc.require: issueI5ZK2I
  */
-HWTEST_F(RSScreenManagerTest, CreateOrGetScreenManager, TestSize.Level1)
+HWTEST_F(RSScreenManagerTest, CreateOrGetScreenManager_001, TestSize.Level1)
 {
     auto screenManager = CreateOrGetScreenManager();
     ASSERT_NE(nullptr, screenManager);
 }
 
 /*
- * @tc.name: Init
- * @tc.desc:
- * @tc.type:
- * @tc.require:
- * @tc.author:
+ * @tc.name: Init_001
+ * @tc.desc: Test Init
+ * @tc.type: FUNC
+ * @tc.require: issueI5ZK2I
  */
-HWTEST_F(RSScreenManagerTest, Init, TestSize.Level1)
+HWTEST_F(RSScreenManagerTest, Init_001, TestSize.Level1)
 {
     auto screenManager = CreateOrGetScreenManager();
     ASSERT_NE(nullptr, screenManager);
@@ -63,13 +61,12 @@ HWTEST_F(RSScreenManagerTest, Init, TestSize.Level1)
 }
 
 /*
- * @tc.name: GetDefaultScreenId
- * @tc.desc:
- * @tc.type:
- * @tc.require:
- * @tc.author:
+ * @tc.name: GetDefaultScreenId_001
+ * @tc.desc: Test GetDefaultScreenId
+ * @tc.type: FUNC
+ * @tc.require: issueI5ZK2I
  */
-HWTEST_F(RSScreenManagerTest, GetDefaultScreenId, TestSize.Level1)
+HWTEST_F(RSScreenManagerTest, GetDefaultScreenId_001, TestSize.Level1)
 {
     auto screenManager = CreateOrGetScreenManager();
     ASSERT_NE(nullptr, screenManager);
@@ -78,13 +75,12 @@ HWTEST_F(RSScreenManagerTest, GetDefaultScreenId, TestSize.Level1)
 }
 
 /*
- * @tc.name: CreateVirtualScreen
- * @tc.desc:
- * @tc.type:
- * @tc.require:
- * @tc.author:
+ * @tc.name: CreateVirtualScreen_001
+ * @tc.desc: Test CreateVirtualScreen
+ * @tc.type: FUNC
+ * @tc.require: issueI5ZK2I
  */
-HWTEST_F(RSScreenManagerTest, CreateVirtualScreen, TestSize.Level1)
+HWTEST_F(RSScreenManagerTest, CreateVirtualScreen_001, TestSize.Level1)
 {
     auto screenManager = CreateOrGetScreenManager();
     ASSERT_NE(nullptr, screenManager);
@@ -96,7 +92,7 @@ HWTEST_F(RSScreenManagerTest, CreateVirtualScreen, TestSize.Level1)
     ASSERT_NE(csurface, nullptr);
     auto producer = csurface->GetProducer();
     auto psurface = Surface::CreateSurfaceAsProducer(producer);
-    ASSERT_NE(csurface, nullptr);
+    ASSERT_NE(psurface, nullptr);
 
     auto id = screenManager->CreateVirtualScreen(name, width, height, psurface);
     ASSERT_NE(INVALID_SCREEN_ID, id);
@@ -105,13 +101,12 @@ HWTEST_F(RSScreenManagerTest, CreateVirtualScreen, TestSize.Level1)
 }
 
 /*
- * @tc.name: GetAllScreenIds
- * @tc.desc:
- * @tc.type:
- * @tc.require:
- * @tc.author:
+ * @tc.name: GetAllScreenIds_001
+ * @tc.desc: Test GetAllScreenIds
+ * @tc.type: FUNC
+ * @tc.require: issueI5ZK2I
  */
-HWTEST_F(RSScreenManagerTest, GetAllScreenIds, TestSize.Level1)
+HWTEST_F(RSScreenManagerTest, GetAllScreenIds_001, TestSize.Level1)
 {
     auto screenManager = CreateOrGetScreenManager();
     ASSERT_NE(nullptr, screenManager);
@@ -123,7 +118,7 @@ HWTEST_F(RSScreenManagerTest, GetAllScreenIds, TestSize.Level1)
     ASSERT_NE(csurface, nullptr);
     auto producer = csurface->GetProducer();
     auto psurface = Surface::CreateSurfaceAsProducer(producer);
-    ASSERT_NE(csurface, nullptr);
+    ASSERT_NE(psurface, nullptr);
 
     auto id = screenManager->CreateVirtualScreen(name, width, height, psurface);
     ASSERT_NE(INVALID_SCREEN_ID, id);
@@ -133,13 +128,12 @@ HWTEST_F(RSScreenManagerTest, GetAllScreenIds, TestSize.Level1)
 }
 
 /*
- * @tc.name: SetVirtualScreenSurface
- * @tc.desc:
- * @tc.type:
- * @tc.require:
- * @tc.author:
+ * @tc.name: SetVirtualScreenSurface_001
+ * @tc.desc: Test SetVirtualScreenSurface
+ * @tc.type: FUNC
+ * @tc.require: issueI5ZK2I
  */
-HWTEST_F(RSScreenManagerTest, SetVirtualScreenSurface, TestSize.Level1)
+HWTEST_F(RSScreenManagerTest, SetVirtualScreenSurface_001, TestSize.Level1)
 {
     auto screenManager = CreateOrGetScreenManager();
     ASSERT_NE(nullptr, screenManager);
@@ -154,7 +148,7 @@ HWTEST_F(RSScreenManagerTest, SetVirtualScreenSurface, TestSize.Level1)
     ASSERT_NE(csurface, nullptr);
     auto producer = csurface->GetProducer();
     auto psurface = Surface::CreateSurfaceAsProducer(producer);
-    ASSERT_NE(csurface, nullptr);
+    ASSERT_NE(psurface, nullptr);
 
     ASSERT_EQ(SUCCESS, static_cast<StatusCode>(screenManager->SetVirtualScreenSurface(id, psurface)));
     screenManager->RemoveVirtualScreen(id);
@@ -162,13 +156,12 @@ HWTEST_F(RSScreenManagerTest, SetVirtualScreenSurface, TestSize.Level1)
 }
 
 /*
- * @tc.name: SetVirtualScreenResolution
- * @tc.desc:
- * @tc.type:
- * @tc.require:
- * @tc.author:
+ * @tc.name: SetVirtualScreenResolution_001
+ * @tc.desc: Test SetVirtualScreenResolution
+ * @tc.type: FUNC
+ * @tc.require: issueI5ZK2I
  */
-HWTEST_F(RSScreenManagerTest, SetVirtualScreenResolution, TestSize.Level1)
+HWTEST_F(RSScreenManagerTest, SetVirtualScreenResolution_001, TestSize.Level1)
 {
     auto screenManager = CreateOrGetScreenManager();
     ASSERT_NE(nullptr, screenManager);
@@ -180,7 +173,7 @@ HWTEST_F(RSScreenManagerTest, SetVirtualScreenResolution, TestSize.Level1)
     ASSERT_NE(csurface, nullptr);
     auto producer = csurface->GetProducer();
     auto psurface = Surface::CreateSurfaceAsProducer(producer);
-    ASSERT_NE(csurface, nullptr);
+    ASSERT_NE(psurface, nullptr);
 
     auto id = screenManager->CreateVirtualScreen(name, width, height, psurface);
     ASSERT_NE(INVALID_SCREEN_ID, id);
@@ -194,13 +187,12 @@ HWTEST_F(RSScreenManagerTest, SetVirtualScreenResolution, TestSize.Level1)
 }
 
 /*
- * @tc.name: QueryScreenInfo
- * @tc.desc:
- * @tc.type:
- * @tc.require:
- * @tc.author:
+ * @tc.name: QueryScreenInfo_001
+ * @tc.desc: Test QueryScreenInfo
+ * @tc.type: FUNC
+ * @tc.require: issueI5ZK2I
  */
-HWTEST_F(RSScreenManagerTest, QueryScreenInfo, TestSize.Level1)
+HWTEST_F(RSScreenManagerTest, QueryScreenInfo_001, TestSize.Level1)
 {
     auto screenManager =  CreateOrGetScreenManager();
     ASSERT_NE(nullptr, screenManager);
@@ -212,7 +204,7 @@ HWTEST_F(RSScreenManagerTest, QueryScreenInfo, TestSize.Level1)
     ASSERT_NE(csurface, nullptr);
     auto producer = csurface->GetProducer();
     auto psurface = Surface::CreateSurfaceAsProducer(producer);
-    ASSERT_NE(csurface, nullptr);
+    ASSERT_NE(psurface, nullptr);
 
     auto id = screenManager->CreateVirtualScreen(name, width, height, psurface);
     ASSERT_NE(INVALID_SCREEN_ID, id);
@@ -225,13 +217,12 @@ HWTEST_F(RSScreenManagerTest, QueryScreenInfo, TestSize.Level1)
 }
 
 /*
- * @tc.name: GetProducerSurface
- * @tc.desc:
- * @tc.type:
- * @tc.require:
- * @tc.author:
+ * @tc.name: GetProducerSurface_001
+ * @tc.desc: Test GetProducerSurface
+ * @tc.type: FUNC
+ * @tc.require: issueI5ZK2I
  */
-HWTEST_F(RSScreenManagerTest, GetProducerSurface, TestSize.Level1)
+HWTEST_F(RSScreenManagerTest, GetProducerSurface_001, TestSize.Level1)
 {
     auto screenManager = CreateOrGetScreenManager();
     ASSERT_NE(nullptr, screenManager);
@@ -243,7 +234,7 @@ HWTEST_F(RSScreenManagerTest, GetProducerSurface, TestSize.Level1)
     ASSERT_NE(csurface, nullptr);
     auto producer = csurface->GetProducer();
     auto psurface = Surface::CreateSurfaceAsProducer(producer);
-    ASSERT_NE(csurface, nullptr);
+    ASSERT_NE(psurface, nullptr);
 
     auto id = screenManager->CreateVirtualScreen(name, width, height, psurface);
     ASSERT_NE(INVALID_SCREEN_ID, id);
@@ -254,13 +245,12 @@ HWTEST_F(RSScreenManagerTest, GetProducerSurface, TestSize.Level1)
 }
 
 /*
- * @tc.name: ProcessScreenHotPlugEvents
- * @tc.desc:
- * @tc.type:
- * @tc.require:
- * @tc.author:
+ * @tc.name: ProcessScreenHotPlugEvents_001
+ * @tc.desc: Test ProcessScreenHotPlugEvents
+ * @tc.type: FUNC
+ * @tc.require: issueI5ZK2I
  */
-HWTEST_F(RSScreenManagerTest, ProcessScreenHotPlugEvents, TestSize.Level1)
+HWTEST_F(RSScreenManagerTest, ProcessScreenHotPlugEvents_001, TestSize.Level1)
 {
     auto screenManager = CreateOrGetScreenManager();
     ASSERT_NE(nullptr, screenManager);
@@ -268,13 +258,12 @@ HWTEST_F(RSScreenManagerTest, ProcessScreenHotPlugEvents, TestSize.Level1)
 }
 
 /*
- * @tc.name: GetScreenBacklight
- * @tc.desc:
- * @tc.type:
- * @tc.require:
- * @tc.author:
+ * @tc.name: GetScreenBacklight_001
+ * @tc.desc: Test GetScreenBacklight
+ * @tc.type: FUNC
+ * @tc.require: issueI5ZK2I
  */
-HWTEST_F(RSScreenManagerTest, GetScreenBacklight, TestSize.Level1)
+HWTEST_F(RSScreenManagerTest, GetScreenBacklight_001, TestSize.Level1)
 {
     auto screenManager = CreateOrGetScreenManager();
     ASSERT_NE(nullptr, screenManager);
@@ -287,7 +276,7 @@ HWTEST_F(RSScreenManagerTest, GetScreenBacklight, TestSize.Level1)
     ASSERT_NE(csurface, nullptr);
     auto producer = csurface->GetProducer();
     auto psurface = Surface::CreateSurfaceAsProducer(producer);
-    ASSERT_NE(csurface, nullptr);
+    ASSERT_NE(psurface, nullptr);
 
     auto id = screenManager->CreateVirtualScreen(name, width, height, psurface);
     ASSERT_NE(INVALID_SCREEN_ID, id);
@@ -299,13 +288,12 @@ HWTEST_F(RSScreenManagerTest, GetScreenBacklight, TestSize.Level1)
 }
 
 /*
- * @tc.name: AddScreenChangeCallback
- * @tc.desc:
- * @tc.type:
- * @tc.require:
- * @tc.author:
+ * @tc.name: AddScreenChangeCallback_001
+ * @tc.desc: Test AddScreenChangeCallback
+ * @tc.type: FUNC
+ * @tc.require: issueI5ZK2I
  */
-HWTEST_F(RSScreenManagerTest, AddScreenChangeCallback01, TestSize.Level1)
+HWTEST_F(RSScreenManagerTest, AddScreenChangeCallback_001, TestSize.Level1)
 {
     auto screenManager = CreateOrGetScreenManager();
     ASSERT_NE(nullptr, screenManager);
@@ -313,13 +301,12 @@ HWTEST_F(RSScreenManagerTest, AddScreenChangeCallback01, TestSize.Level1)
 }
 
 /*
- * @tc.name: GetScreenSupportedColorGamuts
- * @tc.desc:
- * @tc.type:
- * @tc.require:
- * @tc.author:
+ * @tc.name: GetScreenSupportedColorGamuts_001
+ * @tc.desc: Test GetScreenSupportedColorGamuts
+ * @tc.type: FUNC
+ * @tc.require: issueI5ZK2I
  */
-HWTEST_F(RSScreenManagerTest, GetScreenSupportedColorGamuts, TestSize.Level1)
+HWTEST_F(RSScreenManagerTest, GetScreenSupportedColorGamuts_001, TestSize.Level1)
 {
     auto screenManager = CreateOrGetScreenManager();
     ASSERT_NE(nullptr, screenManager);
@@ -331,7 +318,7 @@ HWTEST_F(RSScreenManagerTest, GetScreenSupportedColorGamuts, TestSize.Level1)
     ASSERT_NE(csurface, nullptr);
     auto producer = csurface->GetProducer();
     auto psurface = Surface::CreateSurfaceAsProducer(producer);
-    ASSERT_NE(csurface, nullptr);
+    ASSERT_NE(psurface, nullptr);
 
     auto id = screenManager->CreateVirtualScreen(name, width, height, psurface);
     ASSERT_NE(INVALID_SCREEN_ID, id);
@@ -345,13 +332,12 @@ HWTEST_F(RSScreenManagerTest, GetScreenSupportedColorGamuts, TestSize.Level1)
 }
 
 /*
- * @tc.name: GetScreenColorGamut
- * @tc.desc:
- * @tc.type:
- * @tc.require:
- * @tc.author:
+ * @tc.name: GetScreenColorGamut_001
+ * @tc.desc: Test GetScreenColorGamut
+ * @tc.type: FUNC
+ * @tc.require: issueI5ZK2I
  */
-HWTEST_F(RSScreenManagerTest, GetScreenColorGamut, TestSize.Level1)
+HWTEST_F(RSScreenManagerTest, GetScreenColorGamut_001, TestSize.Level1)
 {
     auto screenManager = CreateOrGetScreenManager();
     ASSERT_NE(nullptr, screenManager);
@@ -363,7 +349,7 @@ HWTEST_F(RSScreenManagerTest, GetScreenColorGamut, TestSize.Level1)
     ASSERT_NE(csurface, nullptr);
     auto producer = csurface->GetProducer();
     auto psurface = Surface::CreateSurfaceAsProducer(producer);
-    ASSERT_NE(csurface, nullptr);
+    ASSERT_NE(psurface, nullptr);
 
     auto id = screenManager->CreateVirtualScreen(name, width, height, psurface);
     ASSERT_NE(INVALID_SCREEN_ID, id);
@@ -375,5 +361,163 @@ HWTEST_F(RSScreenManagerTest, GetScreenColorGamut, TestSize.Level1)
 
     screenManager->RemoveVirtualScreen(id);
     sleep(1);
+}
+
+/*
+ * @tc.name: SetScreenMirror_001
+ * @tc.desc: Test SetScreenMirror
+ * @tc.type: FUNC
+ * @tc.require: issueI5ZK2I
+ */
+HWTEST_F(RSScreenManagerTest, SetScreenMirror_001, testing::ext::TestSize.Level2)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    ScreenId id = screenManager->GetDefaultScreenId();
+
+    std::string name = "virtualScreen01";
+    uint32_t width = 480;
+    uint32_t height = 320;
+
+    auto csurface = Surface::CreateSurfaceAsConsumer();
+    ASSERT_NE(csurface, nullptr);
+    auto producer = csurface->GetProducer();
+    auto psurface = Surface::CreateSurfaceAsProducer(producer);
+    ASSERT_NE(psurface, nullptr);
+
+    auto mirrorId = screenManager->CreateVirtualScreen(name, width, height, psurface);
+    ASSERT_NE(INVALID_SCREEN_ID, mirrorId);
+    screenManager->SetScreenMirror(id, mirrorId);
+}
+
+/*
+ * @tc.name: SetScreenActiveMode_001
+ * @tc.desc: Test SetScreenActiveMode
+ * @tc.type: FUNC
+ * @tc.require: issueI5ZK2I
+ */
+HWTEST_F(RSScreenManagerTest, SetScreenActiveMode_001, testing::ext::TestSize.Level2)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    screenManager->SetDefaultScreenId(0);
+    ScreenId screenId = screenManager->GetDefaultScreenId();
+    ASSERT_NE(INVALID_SCREEN_ID, screenId);
+    // [PLANNING]: ASSERT_NE
+    RSScreenModeInfo screenModeInfo0;
+    std::vector<RSScreenModeInfo> screenSupportedModes;
+    screenSupportedModes = screenManager->GetScreenSupportedModes(screenId);
+    screenManager->SetScreenActiveMode(screenId, screenSupportedModes.size() + 3);
+    // [PLANNING]: ASSERT_EQ
+}
+
+/*
+ * @tc.name: GetScreenActiveMode_001
+ * @tc.desc: Test GetScreenActiveMode
+ * @tc.type: FUNC
+ * @tc.require: issueI5ZK2I
+ */
+HWTEST_F(RSScreenManagerTest, GetScreenActiveMode_001, testing::ext::TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    RSScreenModeInfo screenModeInfo1;
+    screenManager->GetScreenActiveMode(OHOS::Rosen::INVALID_SCREEN_ID, screenModeInfo1);
+    ASSERT_EQ(screenModeInfo1.GetScreenWidth(), -1);
+    ASSERT_EQ(screenModeInfo1.GetScreenHeight(), -1);
+    ASSERT_EQ(screenModeInfo1.GetScreenRefreshRate(), 0);
+    ASSERT_EQ(screenModeInfo1.GetScreenModeId(), -1);
+}
+
+/*
+ * @tc.name: GetScreenSupportedModes_001
+ * @tc.desc: Test GetScreenSupportedModes
+ * @tc.type: FUNC
+ * @tc.require: issueI5ZK2I
+ */
+HWTEST_F(RSScreenManagerTest, GetScreenSupportedModes_001, testing::ext::TestSize.Level2)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    std::vector<RSScreenModeInfo> screenSupportedModes1;
+    screenSupportedModes1 = screenManager->GetScreenSupportedModes(OHOS::Rosen::INVALID_SCREEN_ID);
+    ASSERT_EQ(screenSupportedModes1.size(), 0);
+}
+
+/*
+ * @tc.name: GetScreenCapability_001
+ * @tc.desc: Test GetScreenCapability
+ * @tc.type: FUNC
+ * @tc.require: issueI5ZK2I
+ */
+HWTEST_F(RSScreenManagerTest, GetScreenCapability_001, testing::ext::TestSize.Level2)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    RSScreenCapability screenCapability1;
+    screenCapability1 = screenManager->GetScreenCapability(OHOS::Rosen::INVALID_SCREEN_ID);
+    ASSERT_EQ(screenCapability1.GetType(),  OHOS::Rosen::DISP_INVALID);
+}
+
+/*
+ * @tc.name: GetScreenData_001
+ * @tc.desc: Test GetScreenData
+ * @tc.type: FUNC
+ * @tc.require: issueI5ZK2I
+ */
+HWTEST_F(RSScreenManagerTest, GetScreenData_001, testing::ext::TestSize.Level2)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    RSScreenData screenData1;
+    screenData1 = screenManager->GetScreenData(OHOS::Rosen::INVALID_SCREEN_ID);
+    ASSERT_EQ(screenData1.GetSupportModeInfo().size(), 0);
+}
+
+/*
+ * @tc.name: RSDump_001
+ * @tc.desc: Test RS Dump
+ * @tc.type: FUNC
+ * @tc.require: issueI5ZK2I
+ */
+HWTEST_F(RSScreenManagerTest, RSDump_001, testing::ext::TestSize.Level2)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    std::string dumpString = "";
+    std::string arg = "";
+    std::string empty = "";
+    auto csurface = Surface::CreateSurfaceAsConsumer();
+    ASSERT_NE(csurface, nullptr);
+    auto producer = csurface->GetProducer();
+    auto psurface = Surface::CreateSurfaceAsProducer(producer);
+    ASSERT_NE(csurface, nullptr);
+    auto id = screenManager->CreateVirtualScreen("VirtualScreen", 200, 200, psurface, 0, 0);
+    ASSERT_NE(INVALID_SCREEN_ID, id);
+    screenManager->DisplayDump(dumpString);
+    ASSERT_STRNE(dumpString.c_str(), empty.c_str());
+    dumpString = "";
+    screenManager->SurfaceDump(dumpString);
+    dumpString = "";
+    screenManager->FpsDump(dumpString, arg);
+}
+
+/*
+ * @tc.name: ScreenGamutMap_001
+ * @tc.desc: Test SetScreenGamutMap And GetScreenGamutMap Successed
+ * @tc.type: FUNC
+ * @tc.require: issueI60RFZ
+ */
+HWTEST_F(RSScreenManagerTest, ScreenGamutMap_001, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    auto virtualScreenId = screenManager->CreateVirtualScreen("virtualScreen01", 480, 320, nullptr);
+    ScreenGamutMap mode = ScreenGamutMap::GAMUT_MAP_CONSTANT;
+    ASSERT_NE(INVALID_SCREEN_ID, virtualScreenId);
+    int32_t setStatusCode = screenManager->SetScreenGamutMap(virtualScreenId, mode);
+    ASSERT_EQ(setStatusCode, StatusCode::SUCCESS);
+    int32_t getStatusCode = screenManager->GetScreenGamutMap(virtualScreenId, mode);
+    ASSERT_EQ(getStatusCode, StatusCode::SUCCESS);
 }
 } // namespace OHOS::Rosen

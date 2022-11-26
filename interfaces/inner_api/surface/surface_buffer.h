@@ -27,6 +27,8 @@
 #include "buffer_extra_data.h"
 #include "native_buffer.h"
 
+struct BufferWrapper;
+
 namespace OHOS {
 class MessageParcel;
 class SurfaceBuffer : public RefBase {
@@ -64,6 +66,9 @@ public:
     virtual GSError WriteToMessageParcel(MessageParcel &parcel) = 0;
     virtual GSError ReadFromMessageParcel(MessageParcel &parcel) = 0;
     virtual void SetBufferHandle(BufferHandle *handle) = 0;
+
+    virtual BufferWrapper GetBufferWrapper() = 0;
+    virtual void SetBufferWrapper(BufferWrapper wrapper) = 0;
 
     // gralloc
     virtual GSError Alloc(const BufferRequestConfig &config) = 0;

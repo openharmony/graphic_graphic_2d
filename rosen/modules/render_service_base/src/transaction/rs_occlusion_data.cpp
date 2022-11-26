@@ -29,7 +29,8 @@ RSOcclusionData* RSOcclusionData::Unmarshalling(Parcel& parcel)
     auto size = parcel.ReadUint32();
     for (uint32_t i = 0; i < size; i++) {
         uint64_t id = parcel.ReadUint64();
-        data->visibleData_.emplace_back(id);
+        uint8_t abilityBgAlpha = parcel.ReadUint8();
+        data->visibleData_.emplace_back(std::make_pair(id, abilityBgAlpha));
     }
     return data;
 }
@@ -38,7 +39,8 @@ bool RSOcclusionData::Marshalling(Parcel& parcel) const
 {
     parcel.WriteUint32(visibleData_.size());
     for (auto& data : visibleData_) {
-        parcel.WriteUint64(data);
+        parcel.WriteUint64(data.first);
+        parcel.WriteUint8(data.second);
     }
 
     return true;

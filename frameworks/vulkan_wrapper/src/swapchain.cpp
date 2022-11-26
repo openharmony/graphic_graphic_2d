@@ -372,7 +372,6 @@ void ReleaseSwapchainImage(VkDevice device, NativeWindow* window, int releaseFen
                 close(releaseFence);
             }
         }
-        releaseFence = -1;
         image.requested = false;
     }
 

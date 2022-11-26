@@ -34,6 +34,13 @@ namespace OHOS {
         size_t g_pos;
     }
 
+    class BufferConsumerListener : public IBufferConsumerListener {
+    public:
+        void OnBufferAvailable() override
+        {
+        }
+    };
+
     /*
     * describe: get data from outside untrusted data(g_data) which size is according to sizeof(T)
     * tips: only support basic type
@@ -92,10 +99,7 @@ namespace OHOS {
         }
         Region::Rect rect = GetData<Region::Rect>();
         int32_t rectNumber = GetData<int32_t>();
-        Region region = {
-            .rects = &rect,
-            .rectNumber = rectNumber,
-        };
+        Region region = {.rects = &rect, .rectNumber = rectNumber};
         uint32_t sequence = GetData<uint32_t>();
         OHScalingMode scalingMode = GetData<OHScalingMode>();
         OHHDRMetaData metaData = GetData<OHHDRMetaData>();
@@ -104,15 +108,20 @@ namespace OHOS {
         for (uint64_t i = 0; i < STR_LEN; i++) {
             metaData2[i] = GetData<uint8_t>();
         }
+        uint32_t reserveInts = GetData<uint32_t>() % 0x100000; // no more than 0x100000
 
         // test
         sptr<OHOS::Surface> cSurface = Surface::CreateSurfaceAsConsumer();
+        sptr<IBufferConsumerListener> listener = new BufferConsumerListener();
+        cSurface->RegisterConsumerListener(listener);
         sptr<OHOS::IBufferProducer> producer = cSurface->GetProducer();
         sptr<OHOS::Surface> pSurface = Surface::CreateSurfaceAsProducer(producer);
+        cSurface->SetDefaultWidthAndHeight(0x100, 0x100); // width and height is 0x100
         OHNativeWindow* nativeWindow = CreateNativeWindowFromSurface(&pSurface);
         sptr<OHOS::SurfaceBuffer> sBuffer = new SurfaceBufferImpl(seqNum);
         OHNativeWindowBuffer* nwBuffer = CreateNativeWindowBufferFromSurfaceBuffer(&sBuffer);
         NativeWindowRequestBuffer(nativeWindow, &nwBuffer, &fenceFd);
+        NativeObjectReference(nwBuffer);
         NativeWindowFlushBuffer(nativeWindow, nwBuffer, fenceFd, region);
         NativeWindowCancelBuffer(nativeWindow, nwBuffer);
         GetBufferHandleFromNative(nwBuffer);
@@ -120,6 +129,9 @@ namespace OHOS {
         std::vector<OHHDRMetaData> metaDatas = {metaData};
         NativeWindowSetMetaData(nativeWindow, sequence, metaDatas.size(), metaDatas.data());
         NativeWindowSetMetaDataSet(nativeWindow, sequence, key, STR_LEN, metaData2);
+        ExtDataHandle *handle = AllocExtDataHandle(reserveInts);
+        NativeWindowSetTunnelHandle(nativeWindow, reinterpret_cast<OHExtDataHandle *>(handle));
+        FreeExtDataHandle(handle);
         DestoryNativeWindow(nativeWindow);
         DestroyNativeWindowBuffer(nwBuffer);
 

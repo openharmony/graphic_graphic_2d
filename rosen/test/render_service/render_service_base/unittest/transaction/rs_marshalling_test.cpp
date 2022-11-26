@@ -14,7 +14,6 @@
  */
 
 #include "gtest/gtest.h"
-#include "message_parcel.h"
 #include "include/core/SkCanvas.h"
 #include "include/core/SkData.h"
 #include "include/core/SkDrawable.h"
@@ -31,6 +30,7 @@
 #include "include/core/SkTypeface.h"
 #include "include/core/SkVertices.h"
 #include "include/effects/SkImageFilters.h"
+#include "message_parcel.h"
 
 #include "pipeline/rs_draw_cmd.h"
 #include "pipeline/rs_draw_cmd_list.h"
@@ -429,7 +429,7 @@ HWTEST_F(RSMarshallingTest, RSImageSerialization002, Function | MediumTest | Lev
 
     auto rsImage = std::make_shared<RSImage>();
     rsImage->SetImage(skImage);
-    rsImage->SetCompressData(skData, 10, 10);
+    rsImage->SetCompressData(skData, 0, 10, 10);
     /**
      * @tc.steps: step2. serialize RSImage
      */
@@ -673,7 +673,7 @@ HWTEST_F(RSMarshallingTest, DrawCmdListSerialization001, Function | MediumTest |
 
     auto image = CreateSkImage();
     SkVector radii[4] = { { 0.0, 0.0 }, { 0.0, 0.0 }, { 0.0, 0.0 }, { 0.0, 0.0 } };
-    Rosen::RsImageInfo rsImageInfo(0, 0, radii, 0);
+    Rosen::RsImageInfo rsImageInfo(0, 0, radii, 0, 0, 0, 0);
     auto op3 = std::make_unique<ImageWithParmOpItem>(image, nullptr, rsImageInfo, paint);
     drawCmdList->AddOp(std::move(op3));
 
@@ -692,5 +692,17 @@ HWTEST_F(RSMarshallingTest, DrawCmdListSerialization001, Function | MediumTest |
     ASSERT_EQ(drawCmdListUnmarshal->GetWidth(), drawCmdList->GetWidth());
     ASSERT_EQ(drawCmdListUnmarshal->GetHeight(), drawCmdList->GetHeight());
     ASSERT_EQ(drawCmdListUnmarshal->GetSize(), drawCmdList->GetSize());
+}
+
+/**
+ * @tc.name: SkipSkImage001
+ * @tc.desc: test results of serialization and deserialization of SkPath
+ * @tc.type:FUNC
+ * @tc.require: issueI54AGD
+ */
+HWTEST_F(RSMarshallingTest, SkipSkImage001, Function | MediumTest | Level2)
+{
+    Parcel parcel;
+    RSMarshallingHelper::SkipSkImage(parcel);
 }
 } // namespace OHOS::Rosen

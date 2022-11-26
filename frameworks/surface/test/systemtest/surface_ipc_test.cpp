@@ -48,7 +48,7 @@ void SurfaceIPCTest::SetUpTestCase()
         .width = 0x100,  // small
         .height = 0x100, // small
         .strideAlignment = 0x8,
-        .format = PIXEL_FMT_RGBA_8888,
+        .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
         .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
         .timeout = 0,
     };
@@ -96,7 +96,7 @@ bool SurfaceIPCTest::GetData(sptr<SurfaceBuffer> &buffer)
             return false;
     }
 
-    PresentTimestamp timestamp = {HARDWARE_DISPLAY_PTS_DELAY, 1};  // mock data for test
+    GraphicPresentTimestamp timestamp = {GRAPHIC_DISPLAY_PTS_DELAY, 1};  // mock data for test
     auto sRet = cSurface->SetPresentTimestamp(buffer->GetSeqNum(), timestamp);
     return (sRet == OHOS::GSERROR_OK);
 }
@@ -146,7 +146,7 @@ pid_t SurfaceIPCTest::ChildProcessMain()
     usleep(1000); // sleep 1000 microseconds (equals 1 milliseconds)
     read(pipeFd[0], &data, sizeof(data));
     usleep(1000); // sleep 1000 microseconds (equals 1 milliseconds)
-    PresentTimestampType type = PresentTimestampType::HARDWARE_DISPLAY_PTS_DELAY;
+    GraphicPresentTimestampType type = GraphicPresentTimestampType::GRAPHIC_DISPLAY_PTS_DELAY;
     int64_t time = 0;
     sRet = pSurface->GetPresentTimestamp(buffer->GetSeqNum(), type, time);
     if (sRet != OHOS::GSERROR_OK || time != 1) {

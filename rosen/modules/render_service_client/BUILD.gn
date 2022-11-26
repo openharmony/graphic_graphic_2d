@@ -40,6 +40,7 @@ ohos_source_set("render_service_client_src") {
     "//foundation/graphic/graphic_2d/utils/sandbox",
     "//foundation/graphic/graphic_2d/interfaces/inner_api/surface",
     "//foundation/barrierfree/accessibility/interfaces/innerkits/acfwk/include",
+    "//foundation/resourceschedule/frame_aware_sched/interfaces/innerkits/frameintf",
   ]
 
   sources = [
@@ -58,6 +59,7 @@ ohos_source_set("render_service_client_src") {
     "core/animation/rs_property_animation.cpp",
     "core/animation/rs_spring_animation.cpp",
     "core/animation/rs_transition.cpp",
+    "core/animation/rs_transition_effect.cpp",
     "core/animation/rs_ui_animation_manager.cpp",
 
     #modifier
@@ -95,6 +97,11 @@ ohos_source_set("render_service_client_src") {
     "core/ui/rs_ui_share_context.cpp",
   ]
 
+  if (defined(graphic_2d_ext_configs.vendor_root)) {
+    sources += graphic_2d_ext_configs.librender_service_client_ext_sources
+    sources -= graphic_2d_ext_configs.librender_service_client_ext_sources_del
+  }
+
   cflags = [
     "-Wall",
     "-Wno-pointer-arith",
@@ -114,6 +121,7 @@ ohos_source_set("render_service_client_src") {
   deps += [
     "//foundation/barrierfree/accessibility/interfaces/innerkits/acfwk:accessibilityconfig",
     "//foundation/graphic/graphic_2d/rosen/modules/frame_analyzer:libframe_analyzer",
+    "//foundation/resourceschedule/frame_aware_sched/interfaces/innerkits/frameintf:frame_trace_intf",
   ]
 
   if (rss_enabled) {

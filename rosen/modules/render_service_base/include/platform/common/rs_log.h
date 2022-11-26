@@ -24,84 +24,35 @@ namespace OHOS {
 namespace Rosen {
 class RSLog {
 public:
+    enum Tag { RS = 0, RS_CLIENT };
     enum Level { LEVEL_INFO = 0, LEVEL_DEBUG, LEVEL_WARN, LEVEL_ERROR, LEVEL_FATAL };
-    RSLog() : tag_("OHOS::ROSEN") {}
-    RSLog(std::string tag) : tag_(tag) {}
-    virtual ~RSLog() {}
-    virtual int Output(RSLog::Level level, const char* format, ...);
-    void SetTag(const std::string& tag)
-    {
-        tag_ = tag;
-    }
-    const std::string& GetTag() const
-    {
-        return tag_;
-    }
-
-private:
-    std::string tag_;
+    virtual ~RSLog() = default;
 };
+
+void RSLogOutput(RSLog::Tag tag, RSLog::Level level, const char* format, ...);
 } // namespace Rosen
 } // namespace OHOS
 
-// Macro functions for printing ROSEN's log to the log system on the OS platform.
-// Normally, you can use the maros ROSEN_LOGX, it will set a default log tag as "ROSEN".
-// And if you want specific a log tag by yourself, you may should use ROSEN_LOGX_WITH_TAG.
-#define ROSEN_LOGI_WITH_TAG(tag, format, ...)                           \
-    do {                                                                \
-        RSLog logger;                                                   \
-        logger.SetTag(tag);                                             \
-        logger.Output(RSLog::Level::LEVEL_INFO, format, ##__VA_ARGS__); \
-    } while (0)
-
-#define ROSEN_LOGD_WITH_TAG(tag, format, ...)                            \
-    do {                                                                 \
-        RSLog logger;                                                    \
-        logger.SetTag(tag);                                              \
-        logger.Output(RSLog::Level::LEVEL_DEBUG, format, ##__VA_ARGS__); \
-    } while (0)
-
-#define ROSEN_LOGE_WITH_TAG(tag, format, ...)                            \
-    do {                                                                 \
-        RSLog logger;                                                    \
-        logger.SetTag(tag);                                              \
-        logger.Output(RSLog::Level::LEVEL_ERROR, format, ##__VA_ARGS__); \
-    } while (0)
-
-#define ROSEN_LOGW_WITH_TAG(tag, format, ...)                           \
-    do {                                                                \
-        RSLog logger;                                                   \
-        logger.SetTag(tag);                                             \
-        logger.Output(RSLog::Level::LEVEL_WARN, format, ##__VA_ARGS__); \
-    } while (0)
-
-#define ROSEN_LOGF_WITH_TAG(tag, format, ...)                            \
-    do {                                                                 \
-        RSLog logger;                                                    \
-        logger.SetTag(tag);                                              \
-        logger.Output(RSLog::Level::LEVEL_FATAL, format, ##__VA_ARGS__); \
-    } while (0)
-
 #define ROSEN_LOGI(format, ...) \
-    ROSEN_LOGI_WITH_TAG(RSLog(std::string("OHOS::ROSEN")).GetTag().c_str(), format, ##__VA_ARGS__)
+    RSLogOutput(RSLog::Tag::RS_CLIENT, RSLog::Level::LEVEL_INFO, format, ##__VA_ARGS__)
 #define ROSEN_LOGD(format, ...) \
-    ROSEN_LOGD_WITH_TAG(RSLog(std::string("OHOS::ROSEN")).GetTag().c_str(), format, ##__VA_ARGS__)
+    RSLogOutput(RSLog::Tag::RS_CLIENT, RSLog::Level::LEVEL_DEBUG, format, ##__VA_ARGS__)
 #define ROSEN_LOGE(format, ...) \
-    ROSEN_LOGE_WITH_TAG(RSLog(std::string("OHOS::ROSEN")).GetTag().c_str(), format, ##__VA_ARGS__)
+    RSLogOutput(RSLog::Tag::RS_CLIENT, RSLog::Level::LEVEL_ERROR, format, ##__VA_ARGS__)
 #define ROSEN_LOGW(format, ...) \
-    ROSEN_LOGW_WITH_TAG(RSLog(std::string("OHOS::ROSEN")).GetTag().c_str(), format, ##__VA_ARGS__)
+    RSLogOutput(RSLog::Tag::RS_CLIENT, RSLog::Level::LEVEL_WARN, format, ##__VA_ARGS__)
 #define ROSEN_LOGF(format, ...) \
-    ROSEN_LOGF_WITH_TAG(RSLog(std::string("OHOS::ROSEN")).GetTag().c_str(), format, ##__VA_ARGS__)
+    RSLogOutput(RSLog::Tag::RS_CLIENT, RSLog::Level::LEVEL_FATAL, format, ##__VA_ARGS__)
 
 #define RS_LOGI(format, ...) \
-    ROSEN_LOGI_WITH_TAG(RSLog(std::string("OHOS::RS")).GetTag().c_str(), format, ##__VA_ARGS__)
+    RSLogOutput(RSLog::Tag::RS, RSLog::Level::LEVEL_INFO, format, ##__VA_ARGS__)
 #define RS_LOGD(format, ...) \
-    ROSEN_LOGD_WITH_TAG(RSLog(std::string("OHOS::RS")).GetTag().c_str(), format, ##__VA_ARGS__)
+    RSLogOutput(RSLog::Tag::RS, RSLog::Level::LEVEL_DEBUG, format, ##__VA_ARGS__)
 #define RS_LOGE(format, ...) \
-    ROSEN_LOGE_WITH_TAG(RSLog(std::string("OHOS::RS")).GetTag().c_str(), format, ##__VA_ARGS__)
+    RSLogOutput(RSLog::Tag::RS, RSLog::Level::LEVEL_ERROR, format, ##__VA_ARGS__)
 #define RS_LOGW(format, ...) \
-    ROSEN_LOGW_WITH_TAG(RSLog(std::string("OHOS::RS")).GetTag().c_str(), format, ##__VA_ARGS__)
+    RSLogOutput(RSLog::Tag::RS, RSLog::Level::LEVEL_WARN, format, ##__VA_ARGS__)
 #define RS_LOGF(format, ...) \
-    ROSEN_LOGF_WITH_TAG(RSLog(std::string("OHOS::RS")).GetTag().c_str(), format, ##__VA_ARGS__)
+    RSLogOutput(RSLog::Tag::RS, RSLog::Level::LEVEL_FATAL, format, ##__VA_ARGS__)
 
 #endif // RENDER_SERVICE_BASE_CORE_COMMON_RS_LOG_H

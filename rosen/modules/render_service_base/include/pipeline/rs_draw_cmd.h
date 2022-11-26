@@ -16,7 +16,7 @@
 #ifndef RENDER_SERVICE_CLIENT_CORE_PIPELINE_RS_DRAW_CMD_H
 #define RENDER_SERVICE_CLIENT_CORE_PIPELINE_RS_DRAW_CMD_H
 
-#include "common/rs_common_def.h"
+#include "core/SkDrawShadowInfo.h"
 #include "include/core/SkCanvas.h"
 #include "include/core/SkDrawable.h"
 #include "include/core/SkImage.h"
@@ -28,12 +28,12 @@
 #include "include/core/SkRect.h"
 #include "include/core/SkRegion.h"
 #include "include/core/SkTextBlob.h"
-#include "core/SkDrawShadowInfo.h"
 #include "pixel_map.h"
 
+#include "common/rs_common_def.h"
 #include "pipeline/rs_draw_cmd_list.h"
-#include "render/rs_image.h"
 #include "property/rs_properties_def.h"
+#include "render/rs_image.h"
 #include "transaction/rs_marshalling_helper.h"
 
 namespace OHOS {
@@ -61,7 +61,6 @@ enum RSOpType : uint16_t {
     TEXTBLOB_OPITEM,
     BITMAP_OPITEM,
     BITMAP_RECT_OPITEM,
-    BITMAP_LATTICE_OPITEM, // marshalling func planning to be implemented
     BITMAP_NINE_OPITEM,
     PIXELMAP_OPITEM,
     PIXELMAP_RECT_OPITEM,
@@ -94,8 +93,15 @@ public:
     virtual ~OpItem() {}
 
     virtual void Draw(RSPaintFilterCanvas& canvas, const SkRect* rect) const {};
-
     virtual RSOpType GetType() const = 0;
+
+    std::unique_ptr<OpItem> GenerateCachedOpItem(SkSurface* surface) const;
+    virtual std::optional<SkRect> GetCacheBounds() const
+    {
+        // not cacheable by default
+        return std::nullopt;
+    }
+
 #ifdef ROSEN_OHOS
     bool Marshalling(Parcel& parcel) const override
     {
@@ -107,13 +113,7 @@ public:
 class OpItemWithPaint : public OpItem {
 public:
     explicit OpItemWithPaint(size_t size) : OpItem(size) {}
-
     ~OpItemWithPaint() override {}
-
-    RSOpType GetType() const override
-    {
-        return RSOpType::OPITEM_WITH_PAINT;
-    }
 
 protected:
     SkPaint paint_;
@@ -210,6 +210,10 @@ public:
     OvalOpItem(SkRect rect, const SkPaint& paint);
     ~OvalOpItem() override {}
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
+    std::optional<SkRect> GetCacheBounds() const override
+    {
+        return rect_;
+    }
 
     RSOpType GetType() const override
     {
@@ -427,6 +431,11 @@ public:
     TextBlobOpItem(const sk_sp<SkTextBlob> textBlob, float x, float y, const SkPaint& paint);
     ~TextBlobOpItem() override {}
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
+    std::optional<SkRect> GetCacheBounds() const override
+    {
+        // bounds of textBlob_, with additional offset [x_, y_]. textBlob_ should never be null but we should check.
+        return textBlob_ ? std::make_optional<SkRect>(textBlob_->bounds().makeOffset(x_, y_)) : std::nullopt;
+    }
 
     RSOpType GetType() const override
     {
@@ -531,24 +540,6 @@ private:
     std::shared_ptr<Media::PixelMap> pixelmap_;
     SkRect src_;
     SkRect dst_;
-};
-
-class BitmapLatticeOpItem : public OpItemWithPaint {
-public:
-    BitmapLatticeOpItem(
-        const sk_sp<SkImage> bitmapInfo, const SkCanvas::Lattice& lattice, const SkRect& rect, const SkPaint* paint);
-    ~BitmapLatticeOpItem() override {}
-    void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
-
-    RSOpType GetType() const override
-    {
-        return RSOpType::BITMAP_LATTICE_OPITEM;
-    }
-
-private:
-    SkRect rect_;
-    SkCanvas::Lattice lattice_;
-    sk_sp<SkImage> bitmapInfo_;
 };
 
 class BitmapNineOpItem : public OpItemWithPaint {
@@ -662,6 +653,10 @@ public:
     PathOpItem(const SkPath& path, const SkPaint& paint);
     ~PathOpItem() override {}
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
+    std::optional<SkRect> GetCacheBounds() const override
+    {
+        return path_.getBounds();
+    }
 
     RSOpType GetType() const override
     {

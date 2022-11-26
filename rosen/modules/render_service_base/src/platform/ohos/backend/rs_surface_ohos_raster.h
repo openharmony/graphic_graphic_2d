@@ -23,7 +23,6 @@
 
 namespace OHOS {
 namespace Rosen {
-
 class RSSurfaceOhosRaster : public RSSurfaceOhos {
 public:
     explicit RSSurfaceOhosRaster(const sptr<Surface>& producer);
@@ -40,6 +39,7 @@ public:
     void SetSurfaceBufferUsage(uint64_t usage) override;
     void ClearBuffer() override;
     void ResetBufferAge() override;
+    void SetUiTimeStamp(const std::unique_ptr<RSSurfaceFrame>& frame, uint64_t uiTimestamp) override;
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -156,7 +156,12 @@ napi_value WebGL2RenderingContextBase::ClearBufferfv(napi_env env, napi_callback
         return nullptr;
     }
     if (type == napi_float32_array) {
-        float* inputFloat = reinterpret_cast<float*>(reinterpret_cast<uint8_t*>(data) + srcOffset);
+        float inputFloat[INPUTFLOAT_LENGTH] = {0};
+        errno_t ret = memcpy_s(inputFloat, sizeof(inputFloat), reinterpret_cast<uint8_t*>(data) + srcOffset, length);
+        if (ret != EOK) {
+            LOGE("WebGL2 clearBufferfv memcpy_s failed");
+            return nullptr;
+        }
         glClearBufferfv(static_cast<GLenum>(buffer), static_cast<GLint>(drawbuffer),
             reinterpret_cast<GLfloat *>(inputFloat));
     }
@@ -3028,7 +3033,12 @@ napi_value WebGL2RenderingContextBase::Uniform1uiv(napi_env env, napi_callback_i
         return nullptr;
     }
     if (type == napi_float32_array) {
-        float *inputFloat = reinterpret_cast<float*>(reinterpret_cast<uint8_t*>(data) + srcOffset);
+        float inputFloat[INPUTFLOAT_LENGTH] = {0};
+        errno_t ret = memcpy_s(inputFloat, sizeof(inputFloat), reinterpret_cast<uint8_t*>(data) + srcOffset, length);
+        if (ret != EOK) {
+            LOGE("WebGL2 uniform1uiv memcpy_s failed");
+            return nullptr;
+        }
         glUniform1uiv(static_cast<GLint>(location), static_cast<GLsizei>(srcLength),
             reinterpret_cast<GLuint *>(inputFloat));
     }
@@ -3115,7 +3125,12 @@ napi_value WebGL2RenderingContextBase::Uniform2uiv(napi_env env, napi_callback_i
         return nullptr;
     }
     if (type == napi_float32_array) {
-        float *inputFloat = reinterpret_cast<float*>(reinterpret_cast<uint8_t*>(data) + srcOffset);
+        float inputFloat[INPUTFLOAT_LENGTH] = {0};
+        errno_t ret = memcpy_s(inputFloat, sizeof(inputFloat), reinterpret_cast<uint8_t*>(data) + srcOffset, length);
+        if (ret != EOK) {
+            LOGE("WebGL2 uniform2uiv memcpy_s failed");
+            return nullptr;
+        }
         glUniform2uiv(static_cast<GLint>(location), static_cast<GLsizei>(srcLength),
             reinterpret_cast<GLuint *>(inputFloat));
     }
@@ -3202,7 +3217,12 @@ napi_value WebGL2RenderingContextBase::Uniform3uiv(napi_env env, napi_callback_i
         return nullptr;
     }
     if (type == napi_float32_array) {
-        float *inputFloat = reinterpret_cast<float*>(reinterpret_cast<uint8_t*>(data) + srcOffset);
+        float inputFloat[INPUTFLOAT_LENGTH] = {0};
+        errno_t ret = memcpy_s(inputFloat, sizeof(inputFloat), reinterpret_cast<uint8_t*>(data) + srcOffset, length);
+        if (ret != EOK) {
+            LOGE("WebGL2 uniform3uiv memcpy_s failed");
+            return nullptr;
+        }
         glUniform3uiv(static_cast<GLint>(location), static_cast<GLsizei>(srcLength),
             reinterpret_cast<GLuint *>(inputFloat));
     }
@@ -3289,7 +3309,12 @@ napi_value WebGL2RenderingContextBase::Uniform4uiv(napi_env env, napi_callback_i
         return nullptr;
     }
     if (type == napi_float32_array) {
-        float *inputFloat = reinterpret_cast<float*>(reinterpret_cast<uint8_t*>(data) + srcOffset);
+        float inputFloat[INPUTFLOAT_LENGTH] = {0};
+        errno_t ret = memcpy_s(inputFloat, sizeof(inputFloat), reinterpret_cast<uint8_t*>(data) + srcOffset, length);
+        if (ret != EOK) {
+            LOGE("WebGL2 uniform4uiv memcpy_s failed");
+            return nullptr;
+        }
         glUniform4uiv(static_cast<GLint>(location), static_cast<GLsizei>(srcLength),
             reinterpret_cast<GLuint *>(inputFloat));
     }
@@ -3383,7 +3408,12 @@ napi_value WebGL2RenderingContextBase::UniformMatrix3x2fv(napi_env env, napi_cal
         return nullptr;
     }
     if (type == napi_float32_array) {
-        float *inputFloat = reinterpret_cast<float*>(reinterpret_cast<uint8_t*>(data) + srcOffset);
+        float inputFloat[INPUTFLOAT_LENGTH] = {0};
+        errno_t ret = memcpy_s(inputFloat, sizeof(inputFloat), reinterpret_cast<uint8_t*>(data) + srcOffset, length);
+        if (ret != EOK) {
+            LOGE("WebGL2 uniformMatrix3x2fv memcpy_s failed");
+            return nullptr;
+        }
         glUniformMatrix3x2fv(static_cast<GLuint>(location), static_cast<GLsizei>(srcLength),
             static_cast<GLboolean>(transpose), reinterpret_cast<GLfloat*>(inputFloat));
     }
@@ -3477,7 +3507,12 @@ napi_value WebGL2RenderingContextBase::UniformMatrix4x2fv(napi_env env, napi_cal
         return nullptr;
     }
     if (type == napi_float32_array) {
-        float *inputFloat = reinterpret_cast<float*>(reinterpret_cast<uint8_t*>(data) + srcOffset);
+        float inputFloat[INPUTFLOAT_LENGTH] = {0};
+        errno_t ret = memcpy_s(inputFloat, sizeof(inputFloat), reinterpret_cast<uint8_t*>(data) + srcOffset, length);
+        if (ret != EOK) {
+            LOGE("WebGL2 uniformMatrix4x2fv memcpy_s failed");
+            return nullptr;
+        }
         glUniformMatrix4x2fv(static_cast<GLuint>(location), static_cast<GLsizei>(srcLength),
             static_cast<GLboolean>(transpose), reinterpret_cast<GLfloat*>(inputFloat));
     }
@@ -3571,7 +3606,12 @@ napi_value WebGL2RenderingContextBase::UniformMatrix2x3fv(napi_env env, napi_cal
         return nullptr;
     }
     if (type == napi_float32_array) {
-        float *inputFloat = reinterpret_cast<float*>(reinterpret_cast<uint8_t*>(data) + srcOffset);
+        float inputFloat[INPUTFLOAT_LENGTH] = {0};
+        errno_t ret = memcpy_s(inputFloat, sizeof(inputFloat), reinterpret_cast<uint8_t*>(data) + srcOffset, length);
+        if (ret != EOK) {
+            LOGE("WebGL2 uniformMatrix2x3fv memcpy_s failed");
+            return nullptr;
+        }
         glUniformMatrix2x3fv(static_cast<GLuint>(location), static_cast<GLsizei>(srcLength),
             static_cast<GLboolean>(transpose), reinterpret_cast<GLfloat*>(inputFloat));
     }
@@ -3664,7 +3704,12 @@ napi_value WebGL2RenderingContextBase::UniformMatrix4x3fv(napi_env env, napi_cal
         return nullptr;
     }
     if (type == napi_float32_array) {
-        float *inputFloat = reinterpret_cast<float*>(reinterpret_cast<uint8_t*>(data) + srcOffset);
+        float inputFloat[INPUTFLOAT_LENGTH] = {0};
+        errno_t ret = memcpy_s(inputFloat, sizeof(inputFloat), reinterpret_cast<uint8_t*>(data) + srcOffset, length);
+        if (ret != EOK) {
+            LOGE("WebGL2 uniformMatrix4x3fv memcpy_s failed");
+            return nullptr;
+        }
         glUniformMatrix4x3fv(static_cast<GLuint>(location), static_cast<GLsizei>(srcLength),
             static_cast<GLboolean>(transpose), reinterpret_cast<GLfloat*>(inputFloat));
     }
@@ -3758,7 +3803,12 @@ napi_value WebGL2RenderingContextBase::UniformMatrix2x4fv(napi_env env, napi_cal
         return nullptr;
     }
     if (type == napi_float32_array) {
-        float *inputFloat = reinterpret_cast<float*>(reinterpret_cast<uint8_t*>(data) + srcOffset);
+        float inputFloat[INPUTFLOAT_LENGTH] = {0};
+        errno_t ret = memcpy_s(inputFloat, sizeof(inputFloat), reinterpret_cast<uint8_t*>(data) + srcOffset, length);
+        if (ret != EOK) {
+            LOGE("WebGL2 uniformMatrix2x4fv memcpy_s failed");
+            return nullptr;
+        }
         glUniformMatrix2x4fv(static_cast<GLuint>(location), static_cast<GLsizei>(srcLength),
             static_cast<GLboolean>(transpose), reinterpret_cast<GLfloat*>(inputFloat));
     }
@@ -3851,7 +3901,12 @@ napi_value WebGL2RenderingContextBase::UniformMatrix3x4fv(napi_env env, napi_cal
         return nullptr;
     }
     if (type == napi_float32_array) {
-        float *inputFloat = reinterpret_cast<float*>(reinterpret_cast<uint8_t*>(data) + srcOffset);
+        float inputFloat[INPUTFLOAT_LENGTH] = {0};
+        errno_t ret = memcpy_s(inputFloat, sizeof(inputFloat), reinterpret_cast<uint8_t*>(data) + srcOffset, length);
+        if (ret != EOK) {
+            LOGE("WebGL2 uniformMatrix3x4fv memcpy_s failed");
+            return nullptr;
+        }
         glUniformMatrix3x4fv(static_cast<GLuint>(location), static_cast<GLsizei>(srcLength),
             static_cast<GLboolean>(transpose), reinterpret_cast<GLfloat*>(inputFloat));
     }
@@ -3916,7 +3971,12 @@ napi_value WebGL2RenderingContextBase::VertexAttribI4iv(napi_env env, napi_callb
         return nullptr;
     }
     if (type == napi_float32_array) {
-        float *inputFloat = reinterpret_cast<float*>(reinterpret_cast<uint8_t*>(data));
+        float inputFloat[INPUTFLOAT_LENGTH] = {0};
+        errno_t ret = memcpy_s(inputFloat, sizeof(inputFloat), data, length);
+        if (ret != EOK) {
+            LOGE("WebGL2 vertexAttribI4iv memcpy_s failed");
+            return nullptr;
+        }
         glVertexAttribI4iv(static_cast<GLuint>(index), reinterpret_cast<GLint *>(inputFloat));
     }
     LOGI("WebGL2 vertexAttribI4iv typeArray end");

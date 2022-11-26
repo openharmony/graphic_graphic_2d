@@ -102,14 +102,14 @@ namespace OHOS {
         int32_t width = GetData<int32_t>();
         int32_t height = GetData<int32_t>();
         uint32_t usage = GetData<uint32_t>();
-        TransformType transform = GetData<TransformType>();
+        GraphicTransformType transform = GetData<GraphicTransformType >();
         uint32_t sequence = GetData<uint32_t>();
-        std::vector<HDRMetaData> metaData;
+        std::vector<GraphicHDRMetaData> metaData;
         for (int i = 0; i < 10; i++) { // add 10 elements to the vector
-            HDRMetaData hDRMetaData = GetData<HDRMetaData>();
+            GraphicHDRMetaData hDRMetaData = GetData<GraphicHDRMetaData>();
             metaData.push_back(hDRMetaData);
         }
-        HDRMetadataKey key = GetData<HDRMetadataKey>();
+        GraphicHDRMetadataKey key = GetData<GraphicHDRMetadataKey>();
         std::vector<uint8_t> metaDataSet;
         for (int i = 0; i < 10; i++) { // add 10 elements to the vector
             uint8_t metaDataElement = GetData<uint8_t>();
@@ -118,6 +118,8 @@ namespace OHOS {
         bool flag = GetData<bool>();
         std::string result = GetStringFromData(STR_LEN);
         bool status = GetData<bool>();
+        uint32_t reserveInts = GetData<uint32_t>() % 0x100000; // no more than 0x100000
+        GraphicPresentTimestamp timestamp = GetData<GraphicPresentTimestamp>();
 
         // test
         sptr<BufferQueue> bufferqueue = new BufferQueue(name, isShared);
@@ -127,9 +129,15 @@ namespace OHOS {
         bufferqueue->SetTransform(transform);
         bufferqueue->SetMetaData(sequence, metaData);
         bufferqueue->SetMetaDataSet(sequence, key, metaDataSet);
-        bufferqueue->SetProducerCacheCleanFlag(flag);
+        bufferqueue->SetProducerCacheCleanFlagLocked(flag);
         bufferqueue->Dump(result);
         bufferqueue->SetStatus(status);
+        ExtDataHandle *handle = AllocExtDataHandle(reserveInts);
+        sptr<SurfaceTunnelHandle> tunnelHandle = new SurfaceTunnelHandle();
+        tunnelHandle->SetHandle(handle);
+        bufferqueue->SetTunnelHandle(tunnelHandle);
+        FreeExtDataHandle(handle);
+        bufferqueue->SetPresentTimestamp(sequence, timestamp);
     }
 
     bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)

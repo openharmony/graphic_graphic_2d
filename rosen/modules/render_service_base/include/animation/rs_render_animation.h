@@ -141,9 +141,10 @@ public:
 
     void SetStartTime(int64_t);
 
-    virtual void MarkAddAnimationToProperty() {}
-
-    virtual void MarkRemoveAnimationToProperty() {}
+    void SetFinishCallback(const std::function<void()>& finishCallback)
+    {
+        finishCallback_ = finishCallback;
+    }
 
 protected:
     explicit RSRenderAnimation(AnimationId id);
@@ -168,6 +169,8 @@ protected:
     void FinishOnCurrentPosition();
 
     RSAnimationFraction animationFraction_;
+    std::function<void()> finishCallback_;
+
 private:
     void ProcessFillModeOnStart(float startFraction);
 

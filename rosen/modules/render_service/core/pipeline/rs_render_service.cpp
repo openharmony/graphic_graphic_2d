@@ -31,6 +31,9 @@
 
 namespace OHOS {
 namespace Rosen {
+namespace {
+    constexpr uint32_t UNI_RENDER_VSYNC_OFFSET = 10000000;
+}
 RSRenderService::RSRenderService() {}
 
 RSRenderService::~RSRenderService() noexcept {}
@@ -47,8 +50,14 @@ bool RSRenderService::Init()
     auto generator = CreateVSyncGenerator();
 
     // The offset needs to be set
-    rsVSyncController_ = new VSyncController(generator, 0);
-    appVSyncController_ = new VSyncController(generator, 0);
+    int64_t offset = 0;
+    auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
+    if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL ||
+        renderType == UniRenderEnabledType::UNI_RENDER_DYNAMIC_SWITCH) {
+        offset = UNI_RENDER_VSYNC_OFFSET;
+    }
+    rsVSyncController_ = new VSyncController(generator, offset);
+    appVSyncController_ = new VSyncController(generator, offset);
     rsVSyncDistributor_ = new VSyncDistributor(rsVSyncController_, "rs");
     appVSyncDistributor_ = new VSyncDistributor(appVSyncController_, "app");
 
@@ -60,7 +69,7 @@ bool RSRenderService::Init()
     mainThread_->Init();
  
     RSQosThread::GetInstance()->appVSyncDistributor_ = appVSyncDistributor_;
-    RSQosThread::GetInstance()->ThreadStart();
+    RSQosThread::ThreadStart();
 
     // Wait samgr ready for up to 5 second to ensure adding service to samgr.
     int status = WaitParameter("bootevent.samgr.ready", "true", 5);

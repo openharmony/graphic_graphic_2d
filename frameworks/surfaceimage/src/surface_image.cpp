@@ -108,7 +108,7 @@ void SurfaceImage::ComputeTransformMatrix()
     float ty = 0.f;
     float sx = 1.f;
     float sy = 1.f;
-    if (currentTransformType_ == TransformType::ROTATE_90) {
+    if (currentTransformType_ == GraphicTransformType::GRAPHIC_ROTATE_90) {
         transformMatrix = MatrixProduct(transformMatrix, rotate90);
     }
     float bufferWidth = currentSurfaceBuffer_->GetWidth();

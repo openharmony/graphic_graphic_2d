@@ -241,21 +241,12 @@ int main()
     protocol.SetDuration(3000);
 
     // create property animation
-    RSNode::OpenImplicitAnimation(protocol, RSAnimationTimingCurve::LINEAR, []() {});
-    customModifier->SetAlpha(0.8);
-    RSNode::CloseImplicitAnimation();
-
-    RSNode::OpenImplicitAnimation(protocol, RSAnimationTimingCurve::LINEAR, []() {});
-    customModifier->SetWidth(720);
-    RSNode::CloseImplicitAnimation();
-
-    RSNode::OpenImplicitAnimation(protocol, RSAnimationTimingCurve::LINEAR, []() {});
-    customModifier->SetHeight(1280);
-    RSNode::CloseImplicitAnimation();
-
-    RSNode::OpenImplicitAnimation(protocol, RSAnimationTimingCurve::LINEAR, []() {});
-    customModifier->SetBackgroundColor(Color(255, 0, 0));
-    RSNode::CloseImplicitAnimation();
+    RSNode::Animate(protocol, RSAnimationTimingCurve::EASE_IN_OUT, [&]() {
+        customModifier->SetAlpha(0.8);
+        customModifier->SetWidth(720);
+        customModifier->SetHeight(1280);
+        customModifier->SetBackgroundColor(Color(255, 0, 0));
+    });
 
     int64_t startNum = 80825861106;
     bool hasRunningAnimation = true;

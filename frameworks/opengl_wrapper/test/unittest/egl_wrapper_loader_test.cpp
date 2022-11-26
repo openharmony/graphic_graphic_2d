@@ -32,6 +32,35 @@ public:
 };
 
 /**
+ * @tc.name: GetProcAddrFromDriver001
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+HWTEST_F(EglWrapperLoaderTest, GetProcAddrFromDriver001, Level1)
+{
+    std::string name = std::string("");
+    auto result = EglWrapperLoader::GetInstance().GetProcAddrFromDriver(name.c_str());
+
+    ASSERT_EQ(nullptr, result);
+}
+
+/**
+ * @tc.name: GetProcAddrFromDriver002
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+HWTEST_F(EglWrapperLoaderTest, GetProcAddrFromDriver002, Level2)
+{
+    EglWrapperDispatchTable dispatchTable;
+    EglWrapperLoader::GetInstance().Load(&dispatchTable);
+
+    std::string name = std::string("eglGetProcAddress");
+    auto result = EglWrapperLoader::GetInstance().GetProcAddrFromDriver(name.c_str());
+
+    ASSERT_NE(nullptr, result);
+}
+
+/**
  * @tc.name: Load001
  * @tc.desc:
  * @tc.type: FUNC
@@ -63,9 +92,10 @@ HWTEST_F(EglWrapperLoaderTest, Load002, Level2)
 HWTEST_F(EglWrapperLoaderTest, Load003, Level2)
 {
     EglWrapperDispatchTable dispatchTable;
-    dispatchTable.isLoad = true;
 
     auto result = EglWrapperLoader::GetInstance().Load(&dispatchTable);
+    ASSERT_TRUE(result);
+    result = EglWrapperLoader::GetInstance().Load(&dispatchTable);
     ASSERT_TRUE(result);
 }
 
@@ -143,7 +173,7 @@ HWTEST_F(EglWrapperLoaderTest, LoadEgl002, Level2)
 HWTEST_F(EglWrapperLoaderTest, LoadEgl003, Level2)
 {
     EglWrapperDispatchTable dispatchTable;
-    std::string eglPath = std::string("/system/lib/") + std::string("libc.so");
+    std::string eglPath = std::string("libc.so");
     auto result = EglWrapperLoader::GetInstance().LoadEgl(eglPath.c_str(), &dispatchTable.egl);
 
     ASSERT_EQ(false, result);
@@ -157,11 +187,11 @@ HWTEST_F(EglWrapperLoaderTest, LoadEgl003, Level2)
 HWTEST_F(EglWrapperLoaderTest, LoadGl001, Level1)
 {
     EglWrapperDispatchTable dispatchTable;
-    std::string glPath = std::string("libGLESv3_impl.so");
-    auto result = EglWrapperLoader::GetInstance().LoadGl(glPath.c_str(),
+    std::string eglPath = std::string("hilog.so");
+    auto result = EglWrapperLoader::GetInstance().LoadGl(eglPath.c_str(),
         gGlApiNames1, (FunctionPointerType *)&dispatchTable.gl.table1);
 
-    ASSERT_NE(nullptr, result);
+    ASSERT_EQ(nullptr, result);
 }
 
 /**
@@ -175,5 +205,24 @@ HWTEST_F(EglWrapperLoaderTest, LoadGl002, Level2)
     auto result = EglWrapperLoader::GetInstance().LoadGl(eglPath.c_str(), gGlApiNames1, nullptr);
 
     ASSERT_EQ(nullptr, result);
+}
+
+/**
+ * @tc.name: LoadGl003
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+HWTEST_F(EglWrapperLoaderTest, LoadGl003, Level2)
+{
+    EglWrapperDispatchTable dispatchTable;
+    std::string eglPath = std::string("libEGL_impl.so");
+    auto result = EglWrapperLoader::GetInstance().LoadEgl(eglPath.c_str(), &dispatchTable.egl);
+    ASSERT_TRUE(result);
+
+    std::string glPath = std::string("libGLESv1_impl.so");
+    auto ret = EglWrapperLoader::GetInstance().LoadGl(glPath.c_str(),
+        gGlApiNames1, (FunctionPointerType *)&dispatchTable.gl.table1);
+
+    ASSERT_NE(nullptr, ret);
 }
 } // OHOS::Rosen

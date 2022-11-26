@@ -13,11 +13,14 @@
  * limitations under the License.
  */
 
+#include "frame_trace.h"
 #include "hdi_device.h"
 
 #include <mutex>
 
 #include <scoped_bytrace.h>
+using namespace FRAME_TRACE;
+static const std::string RS_INTERVAL_NAME = "renderservice";
 
 #define CHECK_FUNC(device, deviceFunc)              \
     do {                                            \
@@ -306,7 +309,7 @@ int32_t HdiDevice::GetHDRCapabilityInfos(uint32_t screenId, HDRCapability &info)
     return deviceFuncs_->GetHDRCapabilityInfos(screenId, &info);
 }
 
-int32_t HdiDevice::GetSupportedMetaDataKey(uint32_t screenId, std::vector<HDRMetadataKey> &keys)
+int32_t HdiDevice::GetSupportedMetaDataKey(uint32_t screenId, std::vector<GraphicHDRMetadataKey> &keys)
 {
     CHECK_FUNC(deviceFuncs_, deviceFuncs_->GetSupportedMetadataKey);
     uint32_t num = 0;
@@ -315,14 +318,20 @@ int32_t HdiDevice::GetSupportedMetaDataKey(uint32_t screenId, std::vector<HDRMet
         return ret;
     }
     if (num > 0) {
+        std::vector<HDRMetadataKey> hdiKeys;
+        hdiKeys.resize(num);
+        return deviceFuncs_->GetSupportedMetadataKey(screenId, &num, hdiKeys.data());
         keys.resize(num);
-        return deviceFuncs_->GetSupportedMetadataKey(screenId, &num, keys.data());
+        for (uint32_t i = 0; i < num; i++) {
+            keys[i] = static_cast<GraphicHDRMetadataKey>(hdiKeys[i]);
+        }
     }
     return ret;
 }
 
 int32_t HdiDevice::Commit(uint32_t screenId, sptr<SyncFence> &fence)
 {
+    QuickEndFrameTrace(RS_INTERVAL_NAME);
     ScopedBytrace bytrace(__func__);
     CHECK_FUNC(deviceFuncs_, deviceFuncs_->Commit);
 
@@ -435,16 +444,26 @@ int32_t HdiDevice::GetLayerColorDataSpace(uint32_t screenId, uint32_t layerId, C
     return layerFuncs_->GetLayerColorDataSpace(screenId, layerId, &colorSpace);
 }
 
-int32_t HdiDevice::SetLayerMetaData(uint32_t screenId, uint32_t layerId, const std::vector<HDRMetaData> &metaData)
+int32_t HdiDevice::SetLayerMetaData(uint32_t screenId, uint32_t layerId,
+                                    const std::vector<GraphicHDRMetaData> &graphicMetaData)
 {
     CHECK_FUNC(layerFuncs_, layerFuncs_->SetLayerMetaData);
-    return layerFuncs_->SetLayerMetaData(screenId, layerId, metaData.size(), metaData.data());
+    std::vector<HDRMetaData> metaDatas;
+    for (size_t i = 0; i < graphicMetaData.size(); i++) {
+        HDRMetaData metaData = {
+            .key = static_cast<HDRMetadataKey>(graphicMetaData[i].key),
+            .value = graphicMetaData[i].value,
+        };
+        metaDatas.emplace_back(metaData);
+    }
+    return layerFuncs_->SetLayerMetaData(screenId, layerId, metaDatas.size(), metaDatas.data());
 }
 
-int32_t HdiDevice::SetLayerMetaDataSet(uint32_t screenId, uint32_t layerId, HDRMetadataKey key,
+int32_t HdiDevice::SetLayerMetaDataSet(uint32_t screenId, uint32_t layerId, GraphicHDRMetadataKey gkey,
                                        const std::vector<uint8_t> &metaData)
 {
     CHECK_FUNC(layerFuncs_, layerFuncs_->SetLayerMetaDataSet);
+    HDRMetadataKey key = static_cast<HDRMetadataKey>(gkey);
     return layerFuncs_->SetLayerMetaDataSet(screenId, layerId, key, metaData.size(), metaData.data());
 }
 

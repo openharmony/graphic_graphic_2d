@@ -17,6 +17,7 @@
 #define ROSENRENDER_ROSEN_WEBGL2_RENDERING_CONTEXT_BASE
 
 #include "webgl_rendering_context_basic_base.h"
+#include "securec.h"
 #include <GLES3/gl3.h>
 #include <map>
 #include "../../../common/napi/n_exporter.h"
@@ -292,6 +293,7 @@ public:
     static const GLenum TEXTURE_IMMUTABLE_LEVELS = 0x82DF;
     static const GLint64 TIMEOUT_IGNORED = -1;
     static const GLenum MAX_CLIENT_WAIT_TIMEOUT_WEBGL = 0x9247;
+    static const uint32_t INPUTFLOAT_LENGTH = 128;
 
     static napi_value DrawBuffers(napi_env env, napi_callback_info info);
 

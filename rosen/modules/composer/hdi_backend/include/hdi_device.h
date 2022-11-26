@@ -21,7 +21,7 @@
 #include <unordered_map>
 
 #include <sync_fence.h>
-
+#include "surface_type.h"
 #include "hdi_log.h"
 #include "display_device.h"
 #include "display_layer.h"
@@ -61,7 +61,7 @@ public:
     virtual int32_t GetScreenGamutMap(uint32_t screenId, GamutMap &gamutMap) = 0;
     virtual int32_t SetScreenColorTransform(uint32_t screenId, const float *matrix) = 0;
     virtual int32_t GetHDRCapabilityInfos(uint32_t screenId, HDRCapability &info) = 0;
-    virtual int32_t GetSupportedMetaDataKey(uint32_t screenId, std::vector<HDRMetadataKey> &keys) = 0;
+    virtual int32_t GetSupportedMetaDataKey(uint32_t screenId, std::vector<GraphicHDRMetadataKey> &keys) = 0;
     virtual int32_t Commit(uint32_t screenId, sptr<SyncFence> &fence) = 0;
     /* set & get device screen info end */
 
@@ -81,8 +81,9 @@ public:
     virtual int32_t SetLayerColorTransform(uint32_t screenId, uint32_t layerId, const float *matrix) = 0;
     virtual int32_t SetLayerColorDataSpace(uint32_t screenId, uint32_t layerId, ColorDataSpace colorSpace) = 0;
     virtual int32_t GetLayerColorDataSpace(uint32_t screenId, uint32_t layerId, ColorDataSpace &colorSpace) = 0;
-    virtual int32_t SetLayerMetaData(uint32_t screenId, uint32_t layerId, const std::vector<HDRMetaData> &metaData) = 0;
-    virtual int32_t SetLayerMetaDataSet(uint32_t screenId, uint32_t layerId, HDRMetadataKey key,
+    virtual int32_t SetLayerMetaData(uint32_t screenId, uint32_t layerId,
+                                     const std::vector<GraphicHDRMetaData> &graphicMetaData) = 0;
+    virtual int32_t SetLayerMetaDataSet(uint32_t screenId, uint32_t layerId, GraphicHDRMetadataKey gkey,
                                         const std::vector<uint8_t> &metaData) = 0;
     virtual int32_t SetLayerTunnelHandle(uint32_t screenId, uint32_t layerId, const ExtDataHandle *handle) = 0;
     virtual int32_t GetSupportedPresentTimestampType(uint32_t screenId, uint32_t layerId,
@@ -135,7 +136,7 @@ public:
     int32_t GetScreenGamutMap(uint32_t screenId, GamutMap &gamutMap) override;
     int32_t SetScreenColorTransform(uint32_t screenId, const float *matrix) override;
     int32_t GetHDRCapabilityInfos(uint32_t screenId, HDRCapability &info) override;
-    int32_t GetSupportedMetaDataKey(uint32_t screenId, std::vector<HDRMetadataKey> &keys) override;
+    int32_t GetSupportedMetaDataKey(uint32_t screenId, std::vector<GraphicHDRMetadataKey> &keys) override;
     int32_t Commit(uint32_t screenId, sptr<SyncFence> &fence) override;
     /* set & get device screen info end */
 
@@ -155,8 +156,9 @@ public:
     int32_t SetLayerColorTransform(uint32_t screenId, uint32_t layerId, const float *matrix) override;
     int32_t SetLayerColorDataSpace(uint32_t screenId, uint32_t layerId, ColorDataSpace colorSpace) override;
     int32_t GetLayerColorDataSpace(uint32_t screenId, uint32_t layerId, ColorDataSpace &colorSpace) override;
-    int32_t SetLayerMetaData(uint32_t screenId, uint32_t layerId, const std::vector<HDRMetaData> &metaData) override;
-    int32_t SetLayerMetaDataSet(uint32_t screenId, uint32_t layerId, HDRMetadataKey key,
+    int32_t SetLayerMetaData(uint32_t screenId, uint32_t layerId,
+                             const std::vector<GraphicHDRMetaData> &graphicMetaData) override;
+    int32_t SetLayerMetaDataSet(uint32_t screenId, uint32_t layerId, GraphicHDRMetadataKey gkey,
                                 const std::vector<uint8_t> &metaData) override;
     int32_t SetLayerTunnelHandle(uint32_t screenId, uint32_t layerId, const ExtDataHandle *handle) override;
     int32_t GetSupportedPresentTimestampType(uint32_t screenId, uint32_t layerId, PresentTimestampType &type) override;

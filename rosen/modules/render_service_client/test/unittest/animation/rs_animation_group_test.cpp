@@ -43,6 +43,48 @@ HWTEST_F(RSAnimationGroupTest, AddAnimationTest001, TestSize.Level1)
      * @tc.steps: step1. init AddAnimationTest
      */
     auto boundsProperty = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_START_BOUNDS);
+    auto alphaProperty = std::make_shared<RSAnimatableProperty<float>>(1.f);
+    auto boundsStartProperty = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_START_BOUNDS);
+    auto boundsEndProperty = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_END_BOUNDS);
+    auto boundsAnimation = std::make_shared<RSSpringAnimation>(boundsProperty,
+        boundsStartProperty, boundsEndProperty);
+
+    auto alphaStartProperty = std::make_shared<RSAnimatableProperty<float>>(0.f);
+    auto alphaEndProperty = std::make_shared<RSAnimatableProperty<float>>(1.f);
+    auto alphaAnimation = std::make_shared<RSSpringAnimation>(alphaProperty,
+        alphaStartProperty, alphaEndProperty);
+    auto animationGroup = std::make_shared<RSAnimationGroup>();
+    animationGroup->AddAnimation(boundsAnimation);
+    /**
+     * @tc.steps: step2. start AddAnimationTest test
+     */
+    animationGroup->AddAnimation(nullptr);
+    animationGroup->AddAnimation(boundsAnimation);
+    animationGroup->Start(canvasNode);
+    EXPECT_TRUE(animationGroup->IsStarted());
+    animationGroup->AddAnimation(alphaAnimation);
+    animationGroup->Finish();
+    EXPECT_FALSE(animationGroup->IsRunning());
+    alphaAnimation->Start(canvasNode);
+    EXPECT_TRUE(alphaAnimation->IsStarted());
+    animationGroup->AddAnimation(alphaAnimation);
+    alphaAnimation->Finish();
+    animationGroup->AddAnimation(boundsAnimation);
+    GTEST_LOG_(INFO) << "RSAnimationGroupTest AddAnimationTest001 end";
+}
+
+/**
+ * @tc.name: AnimationGroupTest002
+ * @tc.desc: Verify the AddAnimation of AnimationGroup
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSAnimationGroupTest, AddAnimationTest002, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationGroupTest AddAnimationTest002 start";
+    /**
+     * @tc.steps: step1. init AddAnimationTest
+     */
+    auto boundsProperty = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_START_BOUNDS);
     auto boundsModifier = std::make_shared<RSBoundsModifier>(boundsProperty);
     auto alphaProperty = std::make_shared<RSAnimatableProperty<float>>(1.f);
     auto alphaModifier = std::make_shared<RSAlphaModifier>(alphaProperty);
@@ -73,17 +115,17 @@ HWTEST_F(RSAnimationGroupTest, AddAnimationTest001, TestSize.Level1)
     EXPECT_TRUE(boundsAnimation->IsRunning());
     EXPECT_TRUE(alphaAnimation->IsRunning());
     NotifyStartAnimation();
-    GTEST_LOG_(INFO) << "RSAnimationGroupTest AddAnimationTest001 end";
+    GTEST_LOG_(INFO) << "RSAnimationGroupTest AddAnimationTest002 end";
 }
 
 /**
- * @tc.name: AnimationGroupTest002
+ * @tc.name: AnimationGroupTest003
  * @tc.desc: Verify the AddAnimation of AnimationGroup
  * @tc.type: FUNC
  */
-HWTEST_F(RSAnimationGroupTest, AddAnimationTest002, TestSize.Level1)
+HWTEST_F(RSAnimationGroupTest, AddAnimationTest003, TestSize.Level1)
 {
-    GTEST_LOG_(INFO) << "RSAnimationGroupTest AddAnimationTest002 start";
+    GTEST_LOG_(INFO) << "RSAnimationGroupTest AddAnimationTest003 start";
     /**
      * @tc.steps: step1. init AddAnimationTest
      */
@@ -118,17 +160,17 @@ HWTEST_F(RSAnimationGroupTest, AddAnimationTest002, TestSize.Level1)
     EXPECT_TRUE(boundsAnimation->IsRunning());
     EXPECT_TRUE(alphaAnimation->IsRunning());
     NotifyStartAnimation();
-    GTEST_LOG_(INFO) << "RSAnimationGroupTest AddAnimationTest002 end";
+    GTEST_LOG_(INFO) << "RSAnimationGroupTest AddAnimationTest003 end";
 }
 
 /**
- * @tc.name: AnimationGroupTest003
+ * @tc.name: AnimationGroupTest004
  * @tc.desc: Verify the AddAnimation of animationGroup
  * @tc.type: FUNC
  */
-HWTEST_F(RSAnimationGroupTest, AnimationGroupTest003, TestSize.Level1)
+HWTEST_F(RSAnimationGroupTest, AnimationGroupTest004, TestSize.Level1)
 {
-    GTEST_LOG_(INFO) << "RSAnimationGroupTest AnimationGroupTest003 start";
+    GTEST_LOG_(INFO) << "RSAnimationGroupTest AnimationGroupTest004 start";
     /**
      * @tc.steps: step1. init AddAnimation group
      */
@@ -167,7 +209,7 @@ HWTEST_F(RSAnimationGroupTest, AnimationGroupTest003, TestSize.Level1)
     EXPECT_TRUE(boundsAnimation->IsRunning());
     EXPECT_TRUE(alphaAnimation->IsRunning());
     NotifyStartAnimation();
-    GTEST_LOG_(INFO) << "RSAnimationGroupTest AnimationGroupTest003 end";
+    GTEST_LOG_(INFO) << "RSAnimationGroupTest AnimationGroupTest004 end";
 }
 
 /**
@@ -178,6 +220,47 @@ HWTEST_F(RSAnimationGroupTest, AnimationGroupTest003, TestSize.Level1)
 HWTEST_F(RSAnimationGroupTest, RemoveAnimationTest001, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSAnimationGroupTest RemoveAnimationTest001 start";
+    /**
+     * @tc.steps: step1. init RemoveAnimationTest
+     */
+    auto boundsProperty = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_START_BOUNDS);
+    auto alphaProperty = std::make_shared<RSAnimatableProperty<float>>(1.f);
+    auto boundsStartProperty = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_START_BOUNDS);
+    auto boundsEndProperty = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_END_BOUNDS);
+    auto boundsAnimation = std::make_shared<RSSpringAnimation>(boundsProperty,
+        boundsStartProperty, boundsEndProperty);
+
+    auto alphaStartProperty = std::make_shared<RSAnimatableProperty<float>>(0.f);
+    auto alphaEndProperty = std::make_shared<RSAnimatableProperty<float>>(1.f);
+    auto alphaAnimation = std::make_shared<RSSpringAnimation>(alphaProperty,
+        alphaStartProperty, alphaEndProperty);
+    auto animationGroup = std::make_shared<RSAnimationGroup>();
+    animationGroup->AddAnimation(boundsAnimation);
+    /**
+     * @tc.steps: step2. start RemoveAnimationTest test
+     */
+    animationGroup->RemoveAnimation(nullptr);
+    animationGroup->Start(canvasNode);
+    EXPECT_TRUE(animationGroup->IsStarted());
+    animationGroup->RemoveAnimation(boundsAnimation);
+    animationGroup->Finish();
+    EXPECT_FALSE(animationGroup->IsRunning());
+    boundsAnimation->Start(canvasNode);
+    EXPECT_TRUE(boundsAnimation->IsStarted());
+    animationGroup->RemoveAnimation(boundsAnimation);
+    boundsAnimation->Finish();
+    animationGroup->RemoveAnimation(alphaAnimation);
+    GTEST_LOG_(INFO) << "RSAnimationGroupTest RemoveAnimationTest001 end";
+}
+
+/**
+ * @tc.name: RemoveAnimationTest002
+ * @tc.desc: Verify the RemoveAnimation of AnimationGroup
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSAnimationGroupTest, RemoveAnimationTest002, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationGroupTest RemoveAnimationTest002 start";
     /**
      * @tc.steps: step1. init RemoveAnimationTest
      */
@@ -213,17 +296,17 @@ HWTEST_F(RSAnimationGroupTest, RemoveAnimationTest001, TestSize.Level1)
     EXPECT_FALSE(boundsAnimation->IsRunning());
     EXPECT_TRUE(alphaAnimation->IsRunning());
     NotifyStartAnimation();
-    GTEST_LOG_(INFO) << "RSAnimationGroupTest RemoveAnimationTest001 end";
+    GTEST_LOG_(INFO) << "RSAnimationGroupTest RemoveAnimationTest002 end";
 }
 
 /**
- * @tc.name: RemoveAnimationTest002
+ * @tc.name: RemoveAnimationTest003
  * @tc.desc: Verify the RemoveAnimation of AnimationGroup
  * @tc.type: FUNC
  */
-HWTEST_F(RSAnimationGroupTest, RemoveAnimationTest002, TestSize.Level1)
+HWTEST_F(RSAnimationGroupTest, RemoveAnimationTest003, TestSize.Level1)
 {
-    GTEST_LOG_(INFO) << "RSAnimationGroupTest RemoveAnimationTest002 start";
+    GTEST_LOG_(INFO) << "RSAnimationGroupTest RemoveAnimationTest003 start";
     /**
      * @tc.steps: step1. init RemoveAnimationTest
      */
@@ -260,15 +343,15 @@ HWTEST_F(RSAnimationGroupTest, RemoveAnimationTest002, TestSize.Level1)
     EXPECT_TRUE(boundsAnimation->IsRunning());
     EXPECT_FALSE(alphaAnimation->IsRunning());
     NotifyStartAnimation();
-    GTEST_LOG_(INFO) << "RSAnimationGroupTest RemoveAnimationTest002 end";
+    GTEST_LOG_(INFO) << "RSAnimationGroupTest RemoveAnimationTest003 end";
 }
 
 /**
- * @tc.name: RemoveAnimationTest003
+ * @tc.name: RemoveAnimationTest004
  * @tc.desc: Verify the RemoveAnimation of AnimationGroup
  * @tc.type: FUNC
  */
-HWTEST_F(RSAnimationGroupTest, RemoveAnimationTest003, TestSize.Level1)
+HWTEST_F(RSAnimationGroupTest, RemoveAnimationTest004, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSAnimationGroupTest RemoveAnimationTest003 start";
     /**
@@ -311,7 +394,7 @@ HWTEST_F(RSAnimationGroupTest, RemoveAnimationTest003, TestSize.Level1)
     EXPECT_FALSE(boundsAnimation->IsRunning());
     EXPECT_FALSE(alphaAnimation->IsRunning());
     NotifyStartAnimation();
-    GTEST_LOG_(INFO) << "RSAnimationGroupTest RemoveAnimationTest003 end";
+    GTEST_LOG_(INFO) << "RSAnimationGroupTest RemoveAnimationTest004 end";
 }
 
 /**
@@ -352,6 +435,87 @@ HWTEST_F(RSAnimationGroupTest, RSNodeAnimateTest001, TestSize.Level1)
     EXPECT_TRUE(animations[SECOND_ANIMATION]->IsRunning());
     NotifyStartAnimation();
     GTEST_LOG_(INFO) << "RSAnimationGroupTest RSNodeAnimateTest001 end";
+}
+
+/**
+ * @tc.name: RSAnimationGroupStatusTest001
+ * @tc.desc: Verify the RSAnimationGroupStatus of AnimationGroup
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSAnimationGroupTest, RSAnimationGroupStatusTest001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationGroupTest RSAnimationGroupStatusTest001 start";
+    /**
+     * @tc.steps: step1. init RSAnimationGroupStatus
+     */
+    auto animationGroup = std::make_shared<RSAnimationGroup>();
+    /**
+     * @tc.steps: step2. start RSAnimationGroupStatus test
+     */
+    animationGroup->Start(canvasNode);
+    EXPECT_TRUE(animationGroup->IsRunning());
+    animationGroup->Pause();
+    EXPECT_TRUE(animationGroup->IsPaused());
+    animationGroup->Reverse();
+    animationGroup->Resume();
+    EXPECT_TRUE(animationGroup->IsRunning());
+    NotifyStartAnimation();
+    sleep(DELAY_TIME_ONE);
+    animationGroup->Finish();
+    EXPECT_TRUE(animationGroup->IsFinished());
+    GTEST_LOG_(INFO) << "RSAnimationGroupTest RSAnimationGroupStatusTest001 end";
+}
+
+/**
+ * @tc.name: RSAnimationGroupStatusTest002
+ * @tc.desc: Verify the RSAnimationGroupStatus of AnimationGroup
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSAnimationGroupTest, RSAnimationGroupStatusTest002, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationGroupTest RSAnimationGroupStatusTest002 start";
+    /**
+     * @tc.steps: step1. init RSAnimationGroupStatus
+     */
+    auto boundsProperty = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_START_BOUNDS);
+    auto boundsModifier = std::make_shared<RSBoundsModifier>(boundsProperty);
+    auto alphaProperty = std::make_shared<RSAnimatableProperty<float>>(1.f);
+    auto alphaModifier = std::make_shared<RSAlphaModifier>(alphaProperty);
+    canvasNode->AddModifier(boundsModifier);
+    canvasNode->AddModifier(alphaModifier);
+    rsUiDirector->SendMessages();
+    sleep(DELAY_TIME_ONE);
+    auto boundsStartProperty = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_START_BOUNDS);
+    auto boundsEndProperty = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_END_BOUNDS);
+    auto boundsAnimation = std::make_shared<RSSpringAnimation>(boundsProperty,
+        boundsStartProperty, boundsEndProperty);
+    boundsAnimation->SetTimingCurve(RSAnimationTimingCurve::SPRING);
+    boundsAnimation->SetDuration(ANIMATION_DURATION);
+
+    auto alphaStartProperty = std::make_shared<RSAnimatableProperty<float>>(0.f);
+    auto alphaEndProperty = std::make_shared<RSAnimatableProperty<float>>(1.f);
+    auto alphaAnimation = std::make_shared<RSSpringAnimation>(alphaProperty,
+        alphaStartProperty, alphaEndProperty);
+    alphaAnimation->SetTimingCurve(RSAnimationTimingCurve::SPRING);
+    alphaAnimation->SetDuration(ANIMATION_DURATION);
+    auto animationGroup = std::make_shared<RSAnimationGroup>();
+    animationGroup->AddAnimation(boundsAnimation);
+    animationGroup->AddAnimation(alphaAnimation);
+    /**
+     * @tc.steps: step2. start RSAnimationGroupStatus test
+     */
+    animationGroup->Start(canvasNode);
+    EXPECT_TRUE(animationGroup->IsRunning());
+    animationGroup->Pause();
+    EXPECT_TRUE(animationGroup->IsPaused());
+    animationGroup->Reverse();
+    animationGroup->Resume();
+    EXPECT_TRUE(animationGroup->IsRunning());
+    NotifyStartAnimation();
+    sleep(DELAY_TIME_ONE);
+    animationGroup->Finish();
+    EXPECT_TRUE(animationGroup->IsFinished());
+    GTEST_LOG_(INFO) << "RSAnimationGroupTest RSAnimationGroupStatusTest002 end";
 }
 } // namespace Rosen
 } // namespace OHOS

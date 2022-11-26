@@ -195,6 +195,8 @@ public:
     void CheckEmptyBounds();
     void ResetBounds();
 
+    bool IsGeoDirty() const;
+
 private:
     void Reset();
     void SetDirty();

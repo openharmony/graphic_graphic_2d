@@ -125,10 +125,10 @@ void BufferQueueConsumer::Dump(std::string &result) const
     return bufferQueue_->Dump(result);
 }
 
-TransformType BufferQueueConsumer::GetTransform() const
+GraphicTransformType BufferQueueConsumer::GetTransform() const
 {
     if (bufferQueue_ == nullptr) {
-        return TransformType::ROTATE_BUTT;
+        return GraphicTransformType::GRAPHIC_ROTATE_BUTT;
     }
     return bufferQueue_->GetTransform();
 }
@@ -149,7 +149,7 @@ GSError BufferQueueConsumer::QueryMetaDataType(uint32_t sequence, HDRMetaDataTyp
     return bufferQueue_->QueryMetaDataType(sequence, type);
 }
 
-GSError BufferQueueConsumer::GetMetaData(uint32_t sequence, std::vector<HDRMetaData> &metaData) const
+GSError BufferQueueConsumer::GetMetaData(uint32_t sequence, std::vector<GraphicHDRMetaData> &metaData) const
 {
     if (bufferQueue_ == nullptr) {
         return GSERROR_INVALID_ARGUMENTS;
@@ -157,7 +157,7 @@ GSError BufferQueueConsumer::GetMetaData(uint32_t sequence, std::vector<HDRMetaD
     return bufferQueue_->GetMetaData(sequence, metaData);
 }
 
-GSError BufferQueueConsumer::GetMetaDataSet(uint32_t sequence, HDRMetadataKey &key,
+GSError BufferQueueConsumer::GetMetaDataSet(uint32_t sequence, GraphicHDRMetadataKey &key,
                                             std::vector<uint8_t> &metaData) const
 {
     if (bufferQueue_ == nullptr) {
@@ -174,7 +174,7 @@ sptr<SurfaceTunnelHandle> BufferQueueConsumer::GetTunnelHandle() const
     return bufferQueue_->GetTunnelHandle();
 }
 
-GSError BufferQueueConsumer::SetPresentTimestamp(uint32_t sequence, const PresentTimestamp &timestamp)
+GSError BufferQueueConsumer::SetPresentTimestamp(uint32_t sequence, const GraphicPresentTimestamp &timestamp)
 {
     if (bufferQueue_ == nullptr) {
         return GSERROR_INVALID_ARGUMENTS;

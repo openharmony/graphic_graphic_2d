@@ -18,7 +18,10 @@
 #include <functional>
 #include <limits>
 #include <memory>
+#include <tuple>
+
 #include <surface.h>
+#include "include/gpu/GrContext.h"
 
 #include "common/rs_vector4.h"
 #include "ipc_callbacks/buffer_available_callback.h"
@@ -26,6 +29,7 @@
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "property/rs_properties_painter.h"
 #include "include/core/SkRect.h"
+#include "include/core/SkRefCnt.h"
 #include "pipeline/rs_surface_handler.h"
 #include "refbase.h"
 #include "sync_fence.h"
@@ -36,6 +40,10 @@ namespace OHOS {
 namespace Rosen {
 class RSCommand;
 class RSDirtyRegionManager;
+struct SurfaceNodeResource {
+    sk_sp<GrContext> grContext;
+    sk_sp<SkSurface> skSurface;
+};
 class RSSurfaceRenderNode : public RSRenderNode, public RSSurfaceHandler {
 public:
     using WeakPtr = std::weak_ptr<RSSurfaceRenderNode>;
@@ -264,13 +272,10 @@ public:
 
     void SetGloblDirtyRegion(const RectI& rect)
     {
-        globalDirtyRegion_ = GetOldDirtyInSurface().IntersectRect(rect);
+        Occlusion::Rect tmpRect { rect.left_, rect.top_, rect.GetRight(), rect.GetBottom() };
+        Occlusion::Region region { tmpRect };
+        globalDirtyRegion_ = visibleRegion_.And(region);
         globalDirtyRegionIsEmpty_ = globalDirtyRegion_.IsEmpty();
-    }
-
-    RectI GetGlobalDirtyRegion() const
-    {
-        return globalDirtyRegion_;
     }
 
     void SetConsumer(const sptr<Surface>& consumer);
@@ -338,8 +343,8 @@ public:
         Occlusion::Rect nodeRect { r.left_, r.top_, r.GetRight(), r.GetBottom() };
         // if current node rect r is in global dirtyregion, it CANNOT be skipped
         if (!globalDirtyRegionIsEmpty_) {
-            auto globalRect = r.IntersectRect(globalDirtyRegion_);
-            if (!globalRect.IsEmpty()) {
+            auto globalRect = globalDirtyRegion_.IsIntersectWith(nodeRect);
+            if (globalRect) {
                 return true;
             }
         }
@@ -423,36 +428,121 @@ public:
         return hasContainerWindow_;
     }
 
-    void SetContainerWindow(bool hasContainerWindow)
+    void SetContainerWindow(bool hasContainerWindow, float density)
     {
         hasContainerWindow_ = hasContainerWindow;
+        // px = vp * density
+        containerTitleHeight_ = ceil(CONTAINER_TITLE_HEIGHT * density);
+        containerContentPadding_ = ceil(CONTENT_PADDING * density);
+        containerBorderWidth_ = ceil(CONTAINER_BORDER_WIDTH * density);
+        containerOutRadius_ = ceil(CONTAINER_OUTER_RADIUS * density);
+        containerInnerRadius_ = ceil(CONTAINER_INNER_RADIUS * density);
     }
 
-    void ResetSurfaceOpaqueRegion(const RectI& screeninfo, const RectI& absRect)
+    bool IsOpaqueRegionChanged() const
     {
-        Occlusion::Rect dirtyRect{GetOldDirtyInSurface()};
+        return opaqueRegionChanged_;
+    }
+
+    bool IsFocusedWindow(pid_t focusedWindowPid)
+    {
+        return static_cast<pid_t>(GetNodeId() >> 32) == focusedWindowPid; // higher 32 bits of nodeid is pid
+    }
+
+    Occlusion::Region ResetOpaqueRegion(const RectI& absRect,
+        const ContainerWindowConfigType containerWindowConfigType,
+        const bool isFocusWindow)
+    {
+        if (containerWindowConfigType == ContainerWindowConfigType::DISABLED) {
+            Occlusion::Rect opaqueRect{absRect};
+            Occlusion::Region opaqueRegion = Occlusion::Region{opaqueRect};
+            return opaqueRegion;
+        }
+        if (isFocusWindow) {
+            Occlusion::Rect opaqueRect{ absRect.left_ + containerContentPadding_ + containerBorderWidth_,
+                absRect.top_ + containerTitleHeight_ + containerInnerRadius_ + containerBorderWidth_,
+                absRect.GetRight() - containerContentPadding_ - containerBorderWidth_,
+                absRect.GetBottom() - containerContentPadding_ - containerBorderWidth_};
+            Occlusion::Region opaqueRegion{opaqueRect};
+            return opaqueRegion;
+        } else {
+            if (containerWindowConfigType == ContainerWindowConfigType::ENABLED_LEVEL_0) {
+                Occlusion::Rect opaqueRect{ absRect.left_ + containerContentPadding_ + containerBorderWidth_,
+                    absRect.top_ + containerTitleHeight_ + containerBorderWidth_,
+                    absRect.GetRight() - containerContentPadding_ - containerBorderWidth_,
+                    absRect.GetBottom() - containerContentPadding_ - containerBorderWidth_};
+                Occlusion::Region opaqueRegion{opaqueRect};
+                return opaqueRegion;
+            } else if (containerWindowConfigType == ContainerWindowConfigType::ENABLED_UNFOCUSED_WINDOW_LEVEL_1) {
+                Occlusion::Rect opaqueRect{ absRect.left_,
+                    absRect.top_ + containerOutRadius_,
+                    absRect.GetRight(),
+                    absRect.GetBottom() - containerOutRadius_};
+                Occlusion::Region opaqueRegion{opaqueRect};
+                return opaqueRegion;
+            } else {
+                Occlusion::Rect opaqueRect1{ absRect.left_ + containerOutRadius_,
+                    absRect.top_,
+                    absRect.GetRight() - containerOutRadius_,
+                    absRect.GetBottom()};
+                Occlusion::Rect opaqueRect2{ absRect.left_,
+                    absRect.top_ + containerOutRadius_,
+                    absRect.GetRight(),
+                    absRect.GetBottom() - containerOutRadius_};
+                Occlusion::Region r1{opaqueRect1};
+                Occlusion::Region r2{opaqueRect2};
+                Occlusion::Region opaqueRegion = r1.Or(r2);
+                return opaqueRegion;
+            }
+        }
+    }
+
+    void ResetSurfaceOpaqueRegion(const RectI& screeninfo, const RectI& absRect,
+        ContainerWindowConfigType containerWindowConfigType, bool isFocusWindow = true)
+    {
+        Occlusion::Rect absRectR {absRect};
+        Occlusion::Region oldOpaqueRegion { opaqueRegion_ };
         if (IsTransparent()) {
             opaqueRegion_ = Occlusion::Region();
-            transparentRegion_ = Occlusion::Region{dirtyRect};
+            transparentRegion_ = Occlusion::Region{absRectR};
         } else {
             if (IsAppWindow() && HasContainerWindow()) {
-                Occlusion::Rect opaqueRect{ absRect.left_ + containerContentPadding + containerBorderWidth,
-                    absRect.top_ + containerTitleHeight,
-                    absRect.GetRight() - containerContentPadding - containerBorderWidth,
-                    absRect.GetBottom() - containerContentPadding - containerBorderWidth};
-                opaqueRegion_ = Occlusion::Region{opaqueRect};
+                opaqueRegion_ = ResetOpaqueRegion(absRect, containerWindowConfigType, isFocusWindow);
             } else {
-                Occlusion::Rect opaqueRect{absRect};
-                opaqueRegion_ = Occlusion::Region{opaqueRect};
+                opaqueRegion_ = Occlusion::Region{absRectR};
             }
-            transparentRegion_ = Occlusion::Region{dirtyRect};
+            transparentRegion_ = Occlusion::Region{absRectR};
             transparentRegion_.SubSelf(opaqueRegion_);
         }
         Occlusion::Rect screen{screeninfo};
         Occlusion::Region screenRegion{screen};
         transparentRegion_.AndSelf(screenRegion);
         opaqueRegion_.AndSelf(screenRegion);
+        opaqueRegionChanged_ = !oldOpaqueRegion.Xor(opaqueRegion_).IsEmpty();
     }
+
+    bool IsStartAnimationFinished() const;
+    void SetStartAnimationFinished();
+
+    void SetCachedResource(SurfaceNodeResource resourceTuple)
+    {
+        std::lock_guard<std::mutex> lock(cachedResourceMutex_);
+        cachedResource_ = resourceTuple;
+    }
+
+    SurfaceNodeResource GetCachedResource() const
+    {
+        std::lock_guard<std::mutex> lock(cachedResourceMutex_);
+        return cachedResource_;
+    }
+
+    void ClearCachedResource()
+    {
+        std::lock_guard<std::mutex> lock(cachedResourceMutex_);
+        cachedResource_.grContext = nullptr;
+        cachedResource_.skSurface = nullptr;
+    }
+
 private:
     void ClearChildrenCache(const std::shared_ptr<RSBaseRenderNode>& node);
 
@@ -497,24 +587,35 @@ private:
     bool dstRectChanged_ = false;
     uint8_t abilityBgAlpha_ = 0;
     bool alphaChanged_ = false;
-    RectI globalDirtyRegion_;
+    Occlusion::Region globalDirtyRegion_;
 
     std::atomic<bool> isAppFreeze_ = false;
     sk_sp<SkSurface> cacheSurface_ = nullptr;
     bool globalDirtyRegionIsEmpty_ = false;
     // if a there a dirty layer under transparent clean layer, transparent layer should refreshed
     Occlusion::Region dirtyRegionBelowCurrentLayer_;
-    bool dirtyRegionBelowCurrentLayerIsEmpty_;
+    bool dirtyRegionBelowCurrentLayerIsEmpty_ = false;
 
     // opaque region of the surface
     Occlusion::Region opaqueRegion_;
+    bool opaqueRegionChanged_ = false;
     // transparent region of the surface, floating window's container window is always treated as transparent
     Occlusion::Region transparentRegion_;
     // temporary const value from ACE container_modal_constants.h, will be replaced by uniform interface
     bool hasContainerWindow_ = false;           // set to false as default, set by arkui
-    int containerTitleHeight = 37 * 2;        // container title height = 74 px
-    int containerContentPadding = 4 * 2;      // container <--> content distance 8 px
-    int containerBorderWidth = 1 * 2;         // container border width 2px
+    const int CONTAINER_TITLE_HEIGHT = 37;        // container title height = 37 vp
+    const int CONTENT_PADDING = 4;      // container <--> content distance 4 vp
+    const int CONTAINER_BORDER_WIDTH = 1;          // container border width 2 vp
+    const int CONTAINER_OUTER_RADIUS = 16;         // container outter radius 16 vp
+    const int CONTAINER_INNER_RADIUS = 14;         // container inner radius 14 vp
+    int containerTitleHeight_ = 37 * 2;      // The density default value is 2
+    int containerContentPadding_ = 4 * 2;    // The density default value is 2
+    int containerBorderWidth_ = 1 * 2;       // The density default value is 2
+    int containerOutRadius_ = 16 * 2;        // The density default value is 2
+    int containerInnerRadius_ = 14 * 2;      // The density default value is 2
+    bool startAnimationFinished_ = false;
+    mutable std::mutex cachedResourceMutex_;
+    SurfaceNodeResource cachedResource_;
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -42,17 +42,21 @@ domain: GRAPHIC
 NO_DRAW:
   __BASE: {type: FAULT, level: MINOR, desc: graphic no draw}
   PID: {type: INT32, desc: pid}
-  UID: {type: INT32, desc: pid}
+  UID: {type: INT32, desc: uid}
   ABILITY_NAME: {type: STRING, desc: ability name}
   MSG: {type: STRING, desc: message}
 
 JANK_FRAME_SKIP:
   __BASE: {type: FAULT, level: MINOR, desc: graphic jank frame skip}
   PID: {type: INT32, desc: pid}
-  UID: {type: INT32, desc: pid}
+  UID: {type: INT32, desc: uid}
   ABILITY_NAME: {type: STRING, desc: ability name}
   MSG: {type: STRING, desc: message}
 
 RS_COMPOSITION_TIMEOUT:
   __BASE: {type: STATISTIC, level: MINOR, desc: rs composition timeout}
+  PID: {type: INT32, desc: pid}
+  UID: {type: INT32, desc: uid}
+  BUNDLE_NAME: {type: STRING, desc: bundle name}
+  ABILITY_NAME: {type: STRING, desc: ability name}
   MSG: {type: STRING, desc: message}

@@ -179,6 +179,21 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             reply.WriteRemoteObject(producer->AsObject());
             break;
         }
+        case SET_FOCUS_APP_INFO: {
+            auto token = data.ReadInterfaceToken();
+            if (token != RSIRenderServiceConnection::GetDescriptor()) {
+                ret = ERR_INVALID_STATE;
+                break;
+            }
+
+            int32_t pid = data.ReadInt32();
+            int32_t uid = data.ReadInt32();
+            std::string bundleName = data.ReadString();
+            std::string abilityName = data.ReadString();
+            int32_t status = SetFocusAppInfo(pid, uid, bundleName, abilityName);
+            reply.WriteInt32(status);
+            break;
+        }
         case GET_DEFAULT_SCREEN_ID: {
             auto token = data.ReadInterfaceToken();
             if (token != RSIRenderServiceConnection::GetDescriptor()) {
@@ -485,9 +500,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             if (result != StatusCode::SUCCESS) {
                 break;
             }
-            for (auto i : mode) {
-                modeSend.push_back(i);
-            }
+            std::copy(mode.begin(), mode.end(), std::back_inserter(modeSend));
             reply.WriteUInt32Vector(modeSend);
             break;
         }

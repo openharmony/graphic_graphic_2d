@@ -27,6 +27,7 @@ ohos_shared_library("librender_service") {
   sources = [
     "core/pipeline/rs_base_render_engine.cpp",
     "core/pipeline/rs_base_render_util.cpp",
+    "core/pipeline/rs_cold_start_thread.cpp",
     "core/pipeline/rs_composer_adapter.cpp",
     "core/pipeline/rs_divided_render_util.cpp",
     "core/pipeline/rs_main_thread.cpp",
@@ -70,6 +71,7 @@ ohos_shared_library("librender_service") {
     "//utils/system/safwk/native/include",
     "//foundation/graphic/graphic_2d/utils/log",
     "//foundation/barrierfree/accessibility/interfaces/innerkits/acfwk/include",
+    "//foundation/resourceschedule/frame_aware_sched/interfaces/innerkits/frameintf",
   ]
 
   deps = [
@@ -77,6 +79,7 @@ ohos_shared_library("librender_service") {
     "//foundation/graphic/graphic_2d:libsurface",
     "//foundation/graphic/graphic_2d/rosen/modules/composer:libcomposer",
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:librender_service_base",
+    "//foundation/resourceschedule/frame_aware_sched/interfaces/innerkits/frameintf:frame_trace_intf",
     "//foundation/resourceschedule/resource_schedule_service/soc_perf:socperf_client",
     "//foundation/systemabilitymgr/safwk/interfaces/innerkits/safwk:system_ability_fwk",
   ]
@@ -117,10 +120,4 @@ ohos_executable("render_service") {
 
   part_name = "graphic_standard"
   subsystem_name = "graphic"
-}
-
-group("test") {
-  testonly = true
-
-  deps = [ "core/screen_manager/test:test" ]
 }

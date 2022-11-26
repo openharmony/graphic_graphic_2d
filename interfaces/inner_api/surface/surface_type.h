@@ -190,10 +190,15 @@ using GraphicHDRMetadataKey = enum {
     GRAPHIC_MATAKEY_HDR_VIVID = 13,
 };
 
-using HDRMetaDataSet = struct HDRMetaDataSet {
-    HDRMetadataKey key = HDRMetadataKey::MATAKEY_RED_PRIMARY_X;
+using GraphicHDRMetaDataSet = struct GraphicHDRMetaDataSet {
+    GraphicHDRMetadataKey key = GraphicHDRMetadataKey::GRAPHIC_MATAKEY_RED_PRIMARY_X;
     std::vector<uint8_t> metaData;
 };
+
+typedef struct {
+    GraphicHDRMetadataKey key;
+    float value;
+} GraphicHDRMetaData;
 
 using SurfaceBufferUsage = enum {
     BUFFER_USAGE_CPU_READ = (1ULL << 0),        /**< CPU read buffer */

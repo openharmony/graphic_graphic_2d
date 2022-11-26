@@ -28,6 +28,7 @@
 #endif
 
 class SkCanvas;
+class SkSurface;
 struct SkRect;
 namespace OHOS {
 namespace Rosen {
@@ -54,6 +55,9 @@ public:
     int GetWidth() const;
     int GetHeight() const;
 
+    void GenerateCache(SkSurface* surface);
+    void ClearCache();
+
 #ifdef ROSEN_OHOS
     bool Marshalling(Parcel& parcel) const override;
     static DrawCmdList* Unmarshalling(Parcel& parcel);
@@ -64,6 +68,9 @@ private:
     mutable std::mutex mutex_;
     int width_;
     int height_;
+
+    std::unordered_map<int, std::unique_ptr<OpItem>> opReplacedByCache_;
+    bool isCached_ = false;
 };
 
 using DrawCmdListPtr = std::shared_ptr<DrawCmdList>;
@@ -77,10 +84,10 @@ public:
 
     void MarkForceClear(bool flag);
 
-private:
     DrawCmdListManager() = default;
     ~DrawCmdListManager() = default;
 
+private:
     DrawCmdListManager(const DrawCmdListManager&) = delete;
     DrawCmdListManager(const DrawCmdListManager&&) = delete;
     DrawCmdListManager& operator=(const DrawCmdListManager&) = delete;
@@ -88,6 +95,7 @@ private:
 
     std::atomic_bool forceClear_ = true;
 
+    std::mutex listsMutex_;
     std::unordered_map<NodeId, std::vector<std::weak_ptr<DrawCmdList>>> lists_;
 };
 } // namespace Rosen

@@ -63,14 +63,17 @@ void RSUniRenderUtil::MergeDirtyHistory(std::shared_ptr<RSDisplayRenderNode>& no
         if (!surfaceDirtyManager->SetBufferAge(bufferAge)) {
             ROSEN_LOGE("RSUniRenderUtil::MergeVisibleDirtyRegion with invalid buffer age %d", bufferAge);
         }
-        surfaceDirtyManager->IntersectDirtyRect(surfaceNode->GetDstRect());
-        surfaceDirtyManager->UpdateDirty();
-        if (surfaceNode->GetDstRect().IsInsideOf(surfaceDirtyManager->GetDirtyRegion())) {
-            node->GetDirtyManager()->MergeDirtyRect(surfaceNode->GetDstRect());
+        surfaceDirtyManager->IntersectDirtyRect(surfaceNode->GetOldDirtyInSurface());
+        if (!node->GetDirtyManager()->GetDirtyRegion().IntersectRect(surfaceNode->GetOldDirtyInSurface()).IsEmpty() &&
+            surfaceNode->GetRenderProperties().NeedFilter()) {
+            if (surfaceNode->IsTransparent()) {
+                node->GetDirtyManager()->MergeDirtyRect(surfaceNode->GetOldDirtyInSurface());
+            }
+            surfaceDirtyManager->MergeDirtyRect(surfaceNode->GetOldDirtyInSurface());
         }
-        if (!node->GetDirtyManager()->GetDirtyRegion().IntersectRect(surfaceNode->GetDstRect()).IsEmpty() &&
-            ((surfaceNode->IsTransparent() && surfaceNode->GetRenderProperties().GetBackgroundFilter()) ||
-            surfaceNode->GetRenderProperties().GetFilter())) {
+        surfaceDirtyManager->UpdateDirty();
+        if (surfaceNode->GetDstRect().IsInsideOf(surfaceDirtyManager->GetDirtyRegion())
+            && surfaceNode->HasContainerWindow()) {
             node->GetDirtyManager()->MergeDirtyRect(surfaceNode->GetDstRect());
         }
     }
@@ -108,6 +111,7 @@ BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(const RSSurfaceRenderNode
     params.useCPU = true;
 #endif // RS_ENABLE_EGLIMAGE
     params.paint.setAntiAlias(true);
+    params.paint.setFilterQuality(SkFilterQuality::kLow_SkFilterQuality);
 
     const RSProperties& property = node.GetRenderProperties();
     params.dstRect = SkRect::MakeWH(property.GetBoundsWidth(), property.GetBoundsHeight());
@@ -122,5 +126,18 @@ BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(const RSSurfaceRenderNode
     return params;
 }
 
+void RSUniRenderUtil::DrawCachedSurface(RSSurfaceRenderNode& node, RSPaintFilterCanvas& canvas,
+    sk_sp<SkSurface> surface)
+{
+    if (surface == nullptr) {
+        return;
+    }
+    canvas.save();
+    canvas.scale(node.GetRenderProperties().GetBoundsWidth() / surface->width(),
+        node.GetRenderProperties().GetBoundsHeight() / surface->height());
+    SkPaint paint;
+    surface->draw(&canvas, 0.0, 0.0, &paint);
+    canvas.restore();
+}
 } // namespace Rosen
 } // namespace OHOS

@@ -531,14 +531,6 @@ EGLBoolean EglReleaseThreadImpl(void)
         WLOGE("eglReleaseThread is not found.");
     }
 
-    EGLContext ctx = ThreadPrivateDataCtl::GetContext();
-    if (ctx) {
-        EglWrapperContext *ctxPtr = EglWrapperContext::GetWrapperContext(ctx);
-        if (ctxPtr != nullptr) {
-            ctxPtr->SetCurrentSurface(nullptr, nullptr);
-        }
-    }
-
     ThreadPrivateDataCtl::ClearPrivateData();
     return EGL_TRUE;
 }

@@ -24,6 +24,7 @@
 #include "overdraw/rs_overdraw_controller.h"
 #include "pipeline/rs_base_render_node.h"
 #include "pipeline/rs_base_render_util.h"
+#include "pipeline/rs_cold_start_thread.h"
 #include "pipeline/rs_divided_render_util.h"
 #include "pipeline/rs_render_engine.h"
 #include "pipeline/rs_render_service_visitor.h"
@@ -37,12 +38,17 @@
 #include "platform/common/rs_innovation.h"
 #include "platform/drawing/rs_vsync_client.h"
 #include "property/rs_property_trace.h"
+#include "property/rs_properties_painter.h"
 #include "screen_manager/rs_screen_manager.h"
 #include "socperf_client.h"
 #include "transaction/rs_transaction_proxy.h"
 #include "accessibility_config.h"
 #include "rs_qos_thread.h"
 #include "xcollie/watchdog.h"
+
+#include "frame_trace.h"
+using namespace FRAME_TRACE;
+static const std::string RS_INTERVAL_NAME = "renderservice";
 
 using namespace OHOS::AccessibilityConfig;
 namespace OHOS {
@@ -52,6 +58,12 @@ constexpr uint64_t REFRESH_PERIOD = 16666667;
 constexpr int32_t PERF_ANIMATION_REQUESTED_CODE = 10017;
 constexpr uint64_t PERF_PERIOD = 250000000;
 constexpr uint64_t CLEAN_CACHE_FREQ = 60;
+constexpr uint64_t PERF_PERIOD_BLUR = 80000000;
+const std::map<int, int32_t> BLUR_CNT_TO_BLUR_CODE {
+    { 1, 10021 },
+    { 2, 10022 },
+    { 3, 10023 },
+};
 
 bool Compare(const std::unique_ptr<RSTransactionData>& data1, const std::unique_ptr<RSTransactionData>& data2)
 {
@@ -127,13 +139,14 @@ void RSMainThread::Init()
 {
     mainLoop_ = [&]() {
         RS_LOGD("RsDebug mainLoop start");
+        QuickStartFrameTrace(RS_INTERVAL_NAME);
         SetRSEventDetectorLoopStartTag();
         ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSMainThread::DoComposition");
         ConsumeAndUpdateAllNodes();
         WaitUntilUnmarshallingTaskFinished();
         ProcessCommand();
-        CheckAndNotifyFirstFrameCallback();
         Animate(timestamp_);
+        CheckColdStartMap();
         CheckDelayedSwitchTask();
         Render();
         ReleaseAllNodesBuffer();
@@ -214,7 +227,7 @@ void RSMainThread::InitRSEventDetector()
     rsCompositionTimeoutDetector_ = RSBaseEventDetector::CreateRSTimeOutDetector(100, "RS_COMPOSITION_TIMEOUT");
     if (rsCompositionTimeoutDetector_ != nullptr) {
         rsEventManager_.AddEvent(rsCompositionTimeoutDetector_, 60000); // report Internal 1min:60s：60000ms
-        RS_LOGD("InitRSEventDetector  finish");
+        RS_LOGD("InitRSEventDetector finish");
     }
 }
 
@@ -228,8 +241,24 @@ void RSMainThread::SetRSEventDetectorLoopStartTag()
 void RSMainThread::SetRSEventDetectorLoopFinishTag()
 {
     if (rsCompositionTimeoutDetector_ != nullptr) {
-        rsCompositionTimeoutDetector_->SetLoopFinishTag();
+        if (IfUseUniVisitor()) {
+            rsCompositionTimeoutDetector_->SetLoopFinishTag(
+                focusAppPid_, focusAppUid_, focusAppBundleName_, focusAppAbilityName_);
+        } else {
+            std::string defaultFocusAppInfo = "";
+            rsCompositionTimeoutDetector_->SetLoopFinishTag(
+                -1, -1, defaultFocusAppInfo, defaultFocusAppInfo);
+        }
     }
+}
+
+void RSMainThread::SetFocusAppInfo(
+    int32_t pid, int32_t uid, const std::string &bundleName, const std::string &abilityName)
+{
+    focusAppPid_ = pid;
+    focusAppUid_ = uid;
+    focusAppBundleName_ = bundleName;
+    focusAppAbilityName_ = abilityName;
 }
 
 void RSMainThread::Start()
@@ -390,35 +419,6 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
     }
 }
 
-void RSMainThread::CheckAndNotifyFirstFrameCallback()
-{
-    // check first frame callback after ProcessCommand
-    const auto& nodeMap = GetContext().GetNodeMap();
-    nodeMap.TraverseSurfaceNodes(
-        [this](const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) mutable {
-        if (surfaceNode == nullptr) {
-            return;
-        }
-
-        // check first frame callback in uniRender case
-        if (!IfUseUniVisitor() || !surfaceNode->IsAppWindow()) {
-            return;
-        }
-        for (auto& child : surfaceNode->GetSortedChildren()) {
-            if (child != nullptr && child->IsInstanceOf<RSRootRenderNode>()) {
-                auto rootNode = child->ReinterpretCastTo<RSRootRenderNode>();
-                rootNode->ApplyModifiers();
-                const auto& property = rootNode->GetRenderProperties();
-                if (property.GetFrameWidth() > 0 && property.GetFrameHeight() > 0 &&
-                    rootNode->GetEnableRender()) {
-                    surfaceNode->NotifyUIBufferAvailable();
-                }
-            }
-        }
-        surfaceNode->ResetSortedChildren();
-    });
-}
-
 void RSMainThread::ReleaseAllNodesBuffer()
 {
     RS_TRACE_NAME("RSMainThread::ReleaseAllNodesBuffer");
@@ -426,6 +426,12 @@ void RSMainThread::ReleaseAllNodesBuffer()
     nodeMap.TraverseSurfaceNodes([](const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) mutable {
         if (surfaceNode == nullptr) {
             return;
+        }
+        // To avoid traverse surfaceNodeMap again, destroy cold start thread here
+        if ((!surfaceNode->IsOnTheTree() || !surfaceNode->ShouldPaint()) &&
+            RSColdStartManager::Instance().IsColdStartThreadRunning(surfaceNode->GetId())) {
+            surfaceNode->ClearCachedResource();
+            RSColdStartManager::Instance().StopColdStartThread(surfaceNode->GetId());
         }
         RSBaseRenderUtil::ReleaseBuffer(static_cast<RSSurfaceHandler&>(*surfaceNode));
     });
@@ -551,7 +557,7 @@ void RSMainThread::Render()
         RS_LOGE("RSMainThread::Render GetGlobalRootRenderNode fail");
         return;
     }
-
+    RSPropertiesPainter::ResetBlurCnt();
     if (RSSystemProperties::GetRenderNodeTraceEnabled()) {
         RSPropertyTrace::GetInstance().RefreshNodeTraceInfo();
     }
@@ -561,6 +567,7 @@ void RSMainThread::Render()
         auto uniVisitor = std::make_shared<RSUniRenderVisitor>();
         uniVisitor->SetAnimateState(doWindowAnimate_);
         uniVisitor->SetDirtyFlag(isDirty_);
+        uniVisitor->SetFocusedWindowPid(focusAppPid_);
         rootNode->Prepare(uniVisitor);
         CalcOcclusion();
         rootNode->Process(uniVisitor);
@@ -583,6 +590,7 @@ void RSMainThread::Render()
     }
 
     renderEngine_->ShrinkCachesIfNeeded();
+    PerfForBlurIfNeeded();
 }
 
 void RSMainThread::CalcOcclusion()
@@ -619,6 +627,7 @@ void RSMainThread::CalcOcclusion()
                 continue;
             }
             if (surface->GetZorderChanged() || surface->GetDstRectChanged() ||
+                surface->IsOpaqueRegionChanged() ||
                 surface->GetAlphaChanged() || (IfUseUniVisitor() && surface->IsDirtyRegionUpdated())) {
                 winDirty = true;
             }
@@ -680,7 +689,7 @@ void RSMainThread::CalcOcclusion()
 
 bool RSMainThread::CheckQosVisChanged(std::map<uint32_t, bool>& pidVisMap)
 {
-    bool isVisibleChanged  = pidVisMap.size() != lastPidVisMap_.size();
+    bool isVisibleChanged = pidVisMap.size() != lastPidVisMap_.size();
     if (!isVisibleChanged) {
         auto iterCur = pidVisMap.begin();
         auto iterLast = lastPidVisMap_.begin();
@@ -703,7 +712,7 @@ void RSMainThread::CallbackToQOS(std::map<uint32_t, bool>& pidVisMap)
     if (!RSInnovation::UpdateQosVsyncEnabled()) {
         if (qosPidCal_) {
             qosPidCal_ = false;
-            RSQosThread::GetInstance()->ResetQosPid();
+            RSQosThread::ResetQosPid();
             RSQosThread::GetInstance()->SetQosCal(qosPidCal_);
         }
         return;
@@ -807,7 +816,7 @@ void RSMainThread::Animate(uint64_t timestamp)
     });
 
     if (!doWindowAnimate_ && curWinAnim && RSInnovation::UpdateQosVsyncEnabled()) {
-        RSQosThread::GetInstance()->ResetQosPid();
+        RSQosThread::ResetQosPid();
     }
     doWindowAnimate_ = curWinAnim;
     RS_LOGD("RSMainThread::Animate end, %d animating nodes remains, has window animation: %d",
@@ -839,6 +848,12 @@ void RSMainThread::UpdateRenderMode(bool useUniVisitor)
             elem.second->OnRenderModeChanged(!useUniVisitor_);
         }
     }
+}
+
+void RSMainThread::CheckColdStartMap()
+{
+    const auto& nodeMap = GetContext().GetNodeMap();
+    RSColdStartManager::Instance().CheckColdStartMap(nodeMap);
 }
 
 void RSMainThread::RecvRSTransactionData(std::unique_ptr<RSTransactionData>& rsTransactionData)
@@ -889,6 +904,13 @@ void RSMainThread::PostTask(RSTaskMessage::RSTask task)
 {
     if (handler_) {
         handler_->PostTask(task, AppExecFwk::EventQueue::Priority::IMMEDIATE);
+    }
+}
+
+void RSMainThread::PostSyncTask(RSTaskMessage::RSTask task)
+{
+    if (handler_) {
+        handler_->PostSyncTask(task, AppExecFwk::EventQueue::Priority::IMMEDIATE);
     }
 }
 
@@ -1127,6 +1149,45 @@ void RSMainThread::PerfAfterAnim()
         RS_LOGD("RSMainThread:: soc perf off render_service_animation");
         OHOS::SOCPERF::SocPerfClient::GetInstance().PerfRequestEx(PERF_ANIMATION_REQUESTED_CODE, false, "");
         prePerfTimestamp_ = 0;
+    }
+}
+void RSMainThread::ForceRefreshForUni()
+{
+    if (isUniRender_) {
+        PostTask([=]() {
+            MergeToEffectiveTransactionDataMap(cachedTransactionDataMap_);
+            RSUnmarshalThread::Instance().PostTask(unmarshalBarrierTask_);
+            mainLoop_();
+        });
+        if (handler_) {
+            auto screenManager_ = CreateOrGetScreenManager();
+            if (screenManager_ != nullptr) {
+                PostTask([=]() { screenManager_->ProcessScreenHotPlugEvents(); });
+            }
+        }
+    } else {
+        RequestNextVSync();
+    }
+}
+
+void RSMainThread::PerfForBlurIfNeeded()
+{
+    static int preBlurCnt = 0;
+    int blurCnt = RSPropertiesPainter::GetBlurCnt();
+    // clamp blurCnt to 0~3.
+    blurCnt = std::clamp<int>(blurCnt, 0, 3);
+    if (blurCnt != preBlurCnt && preBlurCnt != 0) {
+        OHOS::SOCPERF::SocPerfClient::GetInstance().PerfRequestEx(BLUR_CNT_TO_BLUR_CODE.at(preBlurCnt), false, "");
+        preBlurCnt = 0;
+    }
+    if (blurCnt == 0) {
+        return;
+    }
+    static uint64_t prePerfTimestamp = 0;
+    if (timestamp_ - prePerfTimestamp > PERF_PERIOD_BLUR || blurCnt != preBlurCnt) {
+        OHOS::SOCPERF::SocPerfClient::GetInstance().PerfRequest(BLUR_CNT_TO_BLUR_CODE.at(blurCnt), "");
+        prePerfTimestamp = timestamp_;
+        preBlurCnt = blurCnt;
     }
 }
 } // namespace Rosen

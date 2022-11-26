@@ -22,15 +22,19 @@ group("unittest") {
 
   deps = [
     ":RSBaseRenderUtilTest",
+    ":RSComposerAdapterTest",
     ":RSDividedRenderUtilTest",
     ":RSDropFrameProcessorTest",
+    ":RSMainThreadTest",
     ":RSPhysicalScreenProcessorTest",
     ":RSProcessorFactoryTest",
+    ":RSQosThreadTest",
     ":RSRenderServiceListenerTest",
     ":RSRenderServiceVisitorTest",
     ":RSSurfaceCaptureTaskTest",
     ":RSUniRenderJudgementTest",
     ":RSUniRenderUtilTest",
+    ":RSUniRenderVisitorTest",
     ":RSVirtualScreenProcessorTest",
   ]
 }
@@ -63,6 +67,15 @@ ohos_unittest("RSUniRenderJudgementTest") {
 ohos_unittest("RSRenderServiceVisitorTest") {
   module_out_path = module_output_path
   sources = [ "rs_render_service_visitor_test.cpp" ]
+  deps = [ ":rs_test_common" ]
+  defines = []
+  defines += gpu_defines
+}
+
+## Build RSComposerAdapterTest
+ohos_unittest("RSComposerAdapterTest") {
+  module_out_path = module_output_path
+  sources = [ "rs_composer_adapter_test.cpp" ]
   deps = [ ":rs_test_common" ]
   defines = []
   defines += gpu_defines
@@ -140,6 +153,35 @@ ohos_unittest("RSUniRenderUtilTest") {
   defines += gpu_defines
 }
 
+## Build RSUniRenderVisitorTest
+ohos_unittest("RSUniRenderVisitorTest") {
+  module_out_path = module_output_path
+  sources = [ "rs_uni_render_visitor_test.cpp" ]
+  deps = [ ":rs_test_common" ]
+  external_deps = [ "init:libbegetutil" ]
+  defines = []
+  defines += gpu_defines
+}
+
+## Build RSQosThreadTest
+ohos_unittest("RSQosThreadTest") {
+  module_out_path = module_output_path
+  sources = [ "rs_qos_thread_test.cpp" ]
+  deps = [ ":rs_test_common" ]
+  external_deps = [ "init:libbegetutil" ]
+  defines = []
+  defines += gpu_defines
+}
+
+## Build RSMainThreadTest
+ohos_unittest("RSMainThreadTest") {
+  module_out_path = module_output_path
+  sources = [ "rs_main_thread_test.cpp" ]
+  deps = [ ":rs_test_common" ]
+  defines = []
+  defines += gpu_defines
+}
+
 ## Build rs_test_common.a {{{
 config("rs_test_common_public_config") {
   include_dirs = [
@@ -165,7 +207,7 @@ ohos_static_library("rs_test_common") {
   testonly = true
   defines = []
   defines += gpu_defines
-
+  sources = [ "rs_test_util.cpp" ]
   public_configs = [ ":rs_test_common_public_config" ]
 
   public_deps = [

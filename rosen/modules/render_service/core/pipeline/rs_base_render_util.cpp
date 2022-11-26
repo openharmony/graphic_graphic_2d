@@ -401,7 +401,7 @@ SimpleColorSpace &GetBT2020ColorSpace()
     return bt2020;
 }
 
-bool IsValidMetaData(const std::vector<HDRMetaData> &metaDatas)
+bool IsValidMetaData(const std::vector<GraphicHDRMetaData> &metaDatas)
 {
     uint16_t validFlag = 0;
     for (auto metaData : metaDatas) {
@@ -413,27 +413,28 @@ bool IsValidMetaData(const std::vector<HDRMetaData> &metaDatas)
     return (validFlag & bitsToCheck) == bitsToCheck;
 }
 
-SimpleColorSpace &GetColorSpaceFromMetaData(const std::vector<HDRMetaData> &metaDatas, float targetLum = 0)
+SimpleColorSpace &GetColorSpaceFromMetaData(const std::vector<GraphicHDRMetaData> &metaDatas, float targetLum = 0)
 {
-    std::vector<HDRMetaData> metaDataSorted = metaDatas;
-    std::sort(metaDataSorted.begin(), metaDataSorted.end(), [&](const HDRMetaData &a, const HDRMetaData &b)->bool {
+    std::vector<GraphicHDRMetaData> metaDataSorted = metaDatas;
+    std::sort(metaDataSorted.begin(), metaDataSorted.end(),
+              [&](const GraphicHDRMetaData &a, const GraphicHDRMetaData &b)->bool {
             return a.key < b.key;
     });
     static SimpleColorSpace hdrPq {
          // rgb base points.
-        {{Vector2f{metaDataSorted[HDRMetadataKey::MATAKEY_RED_PRIMARY_X].value,
-                   metaDataSorted[HDRMetadataKey::MATAKEY_RED_PRIMARY_Y].value},
-                  {metaDataSorted[HDRMetadataKey::MATAKEY_GREEN_PRIMARY_X].value,
-                   metaDataSorted[HDRMetadataKey::MATAKEY_GREEN_PRIMARY_Y].value},
-                  {metaDataSorted[HDRMetadataKey::MATAKEY_BLUE_PRIMARY_X].value,
-                   metaDataSorted[HDRMetadataKey::MATAKEY_BLUE_PRIMARY_Y].value}}},
-        {metaDataSorted[HDRMetadataKey::MATAKEY_WHITE_PRIMARY_X].value,
-         metaDataSorted[HDRMetadataKey::MATAKEY_WHITE_PRIMARY_Y].value}, // white points.
+        {{Vector2f{metaDataSorted[GraphicHDRMetadataKey::GRAPHIC_MATAKEY_RED_PRIMARY_X].value,
+                   metaDataSorted[GraphicHDRMetadataKey::GRAPHIC_MATAKEY_RED_PRIMARY_Y].value},
+                  {metaDataSorted[GraphicHDRMetadataKey::GRAPHIC_MATAKEY_GREEN_PRIMARY_X].value,
+                   metaDataSorted[GraphicHDRMetadataKey::GRAPHIC_MATAKEY_GREEN_PRIMARY_Y].value},
+                  {metaDataSorted[GraphicHDRMetadataKey::GRAPHIC_MATAKEY_BLUE_PRIMARY_X].value,
+                   metaDataSorted[GraphicHDRMetadataKey::GRAPHIC_MATAKEY_BLUE_PRIMARY_Y].value}}},
+        {metaDataSorted[GraphicHDRMetadataKey::GRAPHIC_MATAKEY_WHITE_PRIMARY_X].value,
+         metaDataSorted[GraphicHDRMetadataKey::GRAPHIC_MATAKEY_WHITE_PRIMARY_Y].value}, // white points.
         {-2.0f, 0.1593017578125, 78.84375, 0.8359375, 18.8515625, 18.6875, 0.f}}; // PQ TransferParameters
     return hdrPq;
 }
 
-SimpleColorSpace &GetHdrPqColorSpace(const std::vector<HDRMetaData> &metaData, float targetLum = 0.f)
+SimpleColorSpace &GetHdrPqColorSpace(const std::vector<GraphicHDRMetaData> &metaData, float targetLum = 0.f)
 {
     if (metaData.size() > 0 && IsValidMetaData(metaData)) {
         return GetColorSpaceFromMetaData(metaData, targetLum);
@@ -472,7 +473,8 @@ bool IsSupportedColorGamut(ColorGamut colorGamut)
     return supportedColorGamuts.count(colorGamut) > 0;
 }
 
-SimpleColorSpace& GetColorSpaceOfCertainGamut(ColorGamut colorGamut, const std::vector<HDRMetaData> &metaData = {})
+SimpleColorSpace& GetColorSpaceOfCertainGamut(ColorGamut colorGamut,
+                                              const std::vector<GraphicHDRMetaData> &metaData = {})
 {
     switch (colorGamut) {
         case ColorGamut::COLOR_GAMUT_SRGB: {
@@ -603,7 +605,7 @@ Offset ConvertColorGamut(uint8_t* dst, uint8_t* src, int32_t pixelFormat, Simple
 }
 
 bool ConvertBufferColorGamut(std::vector<uint8_t>& dstBuf, const sptr<OHOS::SurfaceBuffer>& srcBuf,
-    ColorGamut srcGamut, ColorGamut dstGamut, const std::vector<HDRMetaData>& metaDatas)
+    ColorGamut srcGamut, ColorGamut dstGamut, const std::vector<GraphicHDRMetaData>& metaDatas)
 {
     RS_TRACE_NAME("ConvertBufferColorGamut");
     
@@ -969,17 +971,17 @@ SkMatrix RSBaseRenderUtil::GetSurfaceTransformMatrix(const RSSurfaceRenderNode& 
     }
 
     switch (surface->GetTransform()) {
-        case TransformType::ROTATE_90: {
+        case GraphicTransformType::GRAPHIC_ROTATE_90: {
             matrix.preTranslate(0, boundsHeight);
             matrix.preRotate(-90); // rotate 90 degrees anti-clockwise at last.
             break;
         }
-        case TransformType::ROTATE_180: {
+        case GraphicTransformType::GRAPHIC_ROTATE_180: {
             matrix.preTranslate(boundsWidth, boundsHeight);
             matrix.preRotate(-180); // rotate 180 degrees anti-clockwise at last.
             break;
         }
-        case TransformType::ROTATE_270: {
+        case GraphicTransformType::GRAPHIC_ROTATE_270: {
             matrix.preTranslate(boundsWidth, 0);
             matrix.preRotate(-270); // rotate 270 degrees anti-clockwise at last.
             break;
@@ -1023,7 +1025,8 @@ void RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(
     // the surface can rotate itself.
     params.matrix.preConcat(RSBaseRenderUtil::GetSurfaceTransformMatrix(node, localBounds));
     const sptr<Surface>& surface = node.GetConsumer(); // private func, guarantee surface is not nullptr.
-    if (surface->GetTransform() == TransformType::ROTATE_90 || surface->GetTransform() == TransformType::ROTATE_270) {
+    if (surface->GetTransform() == GraphicTransformType::GRAPHIC_ROTATE_90 ||
+        surface->GetTransform() == GraphicTransformType::GRAPHIC_ROTATE_270) {
         // after rotate, we should swap dstRect and bound's width and height.
         std::swap(localBounds.width_, localBounds.height_);
         params.dstRect = SkRect::MakeWH(localBounds.GetWidth(), localBounds.GetHeight());
@@ -1052,7 +1055,7 @@ void RSBaseRenderUtil::SetPropertiesForCanvas(RSPaintFilterCanvas& canvas, const
 }
 
 bool RSBaseRenderUtil::ConvertBufferToBitmap(sptr<SurfaceBuffer> buffer, std::vector<uint8_t>& newBuffer,
-    ColorGamut dstGamut, SkBitmap& bitmap, const std::vector<HDRMetaData>& metaDatas)
+    ColorGamut dstGamut, SkBitmap& bitmap, const std::vector<GraphicHDRMetaData>& metaDatas)
 {
     if (!IsBufferValid(buffer)) {
         return false;
@@ -1097,7 +1100,7 @@ bool RSBaseRenderUtil::CreateBitmap(sptr<OHOS::SurfaceBuffer> buffer, SkBitmap& 
 }
 
 bool RSBaseRenderUtil::CreateNewColorGamutBitmap(sptr<OHOS::SurfaceBuffer> buffer, std::vector<uint8_t>& newBuffer,
-    SkBitmap& bitmap, ColorGamut srcGamut, ColorGamut dstGamut, const std::vector<HDRMetaData>& metaDatas)
+    SkBitmap& bitmap, ColorGamut srcGamut, ColorGamut dstGamut, const std::vector<GraphicHDRMetaData>& metaDatas)
 {
     bool convertRes = Detail::ConvertBufferColorGamut(newBuffer, buffer, srcGamut, dstGamut, metaDatas);
     if (convertRes) {
@@ -1115,6 +1118,7 @@ std::unique_ptr<RSTransactionData> RSBaseRenderUtil::ParseTransactionData(Messag
 {
     RS_TRACE_NAME("UnMarsh RSTransactionData: data size:" + std::to_string(parcel.GetDataSize()));
     auto transactionData = parcel.ReadParcelable<RSTransactionData>();
+    RS_TRACE_NAME("UnMarsh RSTransactionData: recv data from " + std::to_string(transactionData->GetSendingPid()));
     std::unique_ptr<RSTransactionData> transData(transactionData);
     return transData;
 }

@@ -62,6 +62,24 @@ std::unique_ptr<RSSurfaceFrame> RSSurfaceOhosRaster::RequestFrame(int32_t width,
     return ret;
 }
 
+void RSSurfaceOhosRaster::SetUiTimeStamp(const std::unique_ptr<RSSurfaceFrame>& frame, uint64_t uiTimestamp)
+{
+    auto frameOhosRaster =  static_cast<RSSurfaceFrameOhosRaster *>(frame.get());
+    if (frameOhosRaster == nullptr || frameOhosRaster->GetBuffer() == nullptr) {
+        RS_LOGE("RSSurfaceOhosRaster::SetUiTimeStamp: buffer is nullptr");
+        return;
+    }
+
+    struct timespec curTime = {0, 0};
+    clock_gettime(CLOCK_MONOTONIC, &curTime);
+    // 1000000000 is used for transfer second to nsec
+    uint64_t duration = static_cast<uint64_t>(curTime.tv_sec) * 1000000000 + static_cast<uint64_t>(curTime.tv_nsec);
+    GSError ret = frameOhosRaster->GetBuffer()->GetExtraData()->ExtraSet("timeStamp", static_cast<int64_t>(duration));
+    if (ret != GSERROR_OK) {
+        RS_LOGE("RSSurfaceOhosRaster::SetUiTimeStamp buffer ExtraSet failed");
+    }
+}
+
 bool RSSurfaceOhosRaster::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uint64_t uiTimestamp)
 {
     // RSSurfaceOhosRaster is the class for platform OHOS, the input pointer should be the pointer to the class

@@ -16,6 +16,7 @@
 #include "gtest/gtest.h"
 #include "limit_number.h"
 #include "pipeline/rs_base_render_util.h"
+#include "rs_test_util.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -27,6 +28,20 @@ public:
     static void TearDownTestCase();
     void SetUp() override;
     void TearDown() override;
+
+private:
+    static inline sptr<Surface> psurf = nullptr;
+    static inline BufferRequestConfig requestConfig = {
+        .width = 0x100,
+        .height = 0x100,
+        .strideAlignment = 0x8,
+        .format = PIXEL_FMT_YCRCB_420_SP,
+        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
+        .timeout = 0,
+    };
+    static inline BufferFlushConfig flushConfig = {
+        .damage = { .w = 0x100, .h = 0x100, },
+    };
 };
 
 void RSBaseRenderUtilTest::SetUpTestCase() {}
@@ -35,25 +50,23 @@ void RSBaseRenderUtilTest::SetUp() {}
 void RSBaseRenderUtilTest::TearDown() {}
 
 /*
- * @tc.name: IsBufferValid
- * @tc.desc:
- * @tc.type:
- * @tc.require:
- * @tc.author:
+ * @tc.name: IsBufferValid_001
+ * @tc.desc: Test IsBufferValid
+ * @tc.type: FUNC
+ * @tc.require: issueI605F4
  */
-HWTEST_F(RSBaseRenderUtilTest, IsBufferValid, TestSize.Level1)
+HWTEST_F(RSBaseRenderUtilTest, IsBufferValid_001, TestSize.Level2)
 {
     ASSERT_EQ(false, RSBaseRenderUtil::IsBufferValid(nullptr));
 }
 
 /*
- * @tc.name: GetFrameBufferRequestConfig
- * @tc.desc:
- * @tc.type:
- * @tc.require:
- * @tc.author:
+ * @tc.name: GetFrameBufferRequestConfig_001
+ * @tc.desc: Test GetFrameBufferRequestConfig
+ * @tc.type: FUNC
+ * @tc.require: issueI605F4
  */
-HWTEST_F(RSBaseRenderUtilTest, GetFrameBufferRequestConfig, TestSize.Level1)
+HWTEST_F(RSBaseRenderUtilTest, GetFrameBufferRequestConfig_001, TestSize.Level2)
 {
     ScreenInfo screenInfo;
     screenInfo.width = 480;
@@ -62,44 +75,12 @@ HWTEST_F(RSBaseRenderUtilTest, GetFrameBufferRequestConfig, TestSize.Level1)
 }
 
 /*
- * @tc.name: GetSurfaceTransformMatrix
- * @tc.desc:
- * @tc.type:
- * @tc.require:
- * @tc.author:
+ * @tc.name: DropFrameProcess_001
+ * @tc.desc: Test DropFrameProcess
+ * @tc.type: FUNC
+ * @tc.require: issueI605F4
  */
-HWTEST_F(RSBaseRenderUtilTest, GetSurfaceTransformMatrix, TestSize.Level1)
-{
-    RSSurfaceRenderNodeConfig config;
-    RSSurfaceRenderNode rsSurfaceRenderNode(config);
-    RectF bounds;
-    (void)RSBaseRenderUtil::GetSurfaceTransformMatrix(rsSurfaceRenderNode, bounds);
-}
-
-/*
- * @tc.name: GetNodeGravityMatrix
- * @tc.desc:
- * @tc.type:
- * @tc.require:
- * @tc.author:
- */
-HWTEST_F(RSBaseRenderUtilTest, GetNodeGravityMatrix, TestSize.Level1)
-{
-    RSSurfaceRenderNodeConfig config;
-    RSSurfaceRenderNode rsSurfaceRenderNode(config);
-    sptr<SurfaceBuffer> buffer;
-    RectF bounds;
-    (void)RSBaseRenderUtil::GetNodeGravityMatrix(rsSurfaceRenderNode, buffer, bounds);
-}
-
-/*
- * @tc.name: DropFrameProcess
- * @tc.desc:
- * @tc.type:
- * @tc.require:
- * @tc.author:
- */
-HWTEST_F(RSBaseRenderUtilTest, DropFrameProcess, TestSize.Level1)
+HWTEST_F(RSBaseRenderUtilTest, DropFrameProcess_001, TestSize.Level2)
 {
     NodeId id = 0;
     RSSurfaceHandler surfaceHandler(id);
@@ -107,13 +88,12 @@ HWTEST_F(RSBaseRenderUtilTest, DropFrameProcess, TestSize.Level1)
 }
 
 /*
- * @tc.name: ConsumeAndUpdateBuffer
- * @tc.desc:
- * @tc.type:
- * @tc.require:
- * @tc.author:
+ * @tc.name: ConsumeAndUpdateBuffer_001
+ * @tc.desc: Test ConsumeAndUpdateBuffer
+ * @tc.type: FUNC
+ * @tc.require: issueI605F4
  */
-HWTEST_F(RSBaseRenderUtilTest, ConsumeAndUpdateBuffer, TestSize.Level1)
+HWTEST_F(RSBaseRenderUtilTest, ConsumeAndUpdateBuffer_001, TestSize.Level2)
 {
     NodeId id = 0;
     RSSurfaceHandler surfaceHandler(id);
@@ -121,13 +101,12 @@ HWTEST_F(RSBaseRenderUtilTest, ConsumeAndUpdateBuffer, TestSize.Level1)
 }
 
 /*
- * @tc.name: ReleaseBuffer
- * @tc.desc:
- * @tc.type:
- * @tc.require:
- * @tc.author:
+ * @tc.name: ReleaseBuffer_001
+ * @tc.desc: Test ReleaseBuffer
+ * @tc.type: FUNC
+ * @tc.require: issueI605F4
  */
-HWTEST_F(RSBaseRenderUtilTest, ReleaseBuffer, TestSize.Level1)
+HWTEST_F(RSBaseRenderUtilTest, ReleaseBuffer_001, TestSize.Level2)
 {
     NodeId id = 0;
     RSSurfaceHandler surfaceHandler(id);
@@ -135,45 +114,180 @@ HWTEST_F(RSBaseRenderUtilTest, ReleaseBuffer, TestSize.Level1)
 }
 
 /*
- * @tc.name: ConvertBufferToBitmap
- * @tc.desc:
- * @tc.type:
- * @tc.require:
- * @tc.author:
+ * @tc.name: SetColorFilterModeToPaint_001
+ * @tc.desc: Test SetColorFilterModeToPaint
+ * @tc.type: FUNC
+ * @tc.require: issueI605F4
  */
-HWTEST_F(RSBaseRenderUtilTest, ConvertBufferToBitmap, TestSize.Level1)
+HWTEST_F(RSBaseRenderUtilTest, SetColorFilterModeToPaint_001, TestSize.Level2)
 {
-    sptr<SurfaceBuffer> buffer;
-    std::vector<uint8_t> newBuffer;
-    ColorGamut dstGamut = ColorGamut::COLOR_GAMUT_SRGB;
-    SkBitmap bitmap;
-    ASSERT_EQ(false, RSBaseRenderUtil::ConvertBufferToBitmap(buffer, newBuffer, dstGamut, bitmap));
-}
-
-/*
- * @tc.name: SetColorFilterModeToPaint
- * @tc.desc:
- * @tc.type:
- * @tc.require:
- * @tc.author:
- */
-HWTEST_F(RSBaseRenderUtilTest, SetColorFilterModeToPaint, TestSize.Level1)
-{
-    ColorFilterMode colorFilterMode = ColorFilterMode::INVERT_COLOR_ENABLE_MODE;
     SkPaint paint;
+    ColorFilterMode colorFilterMode = ColorFilterMode::INVERT_COLOR_ENABLE_MODE;
+    RSBaseRenderUtil::SetColorFilterModeToPaint(colorFilterMode, paint);
+    colorFilterMode = ColorFilterMode::DALTONIZATION_PROTANOMALY_MODE;
+    RSBaseRenderUtil::SetColorFilterModeToPaint(colorFilterMode, paint);
+    colorFilterMode = ColorFilterMode::DALTONIZATION_DEUTERANOMALY_MODE;
+    RSBaseRenderUtil::SetColorFilterModeToPaint(colorFilterMode, paint);
+    colorFilterMode = ColorFilterMode::DALTONIZATION_TRITANOMALY_MODE;
+    RSBaseRenderUtil::SetColorFilterModeToPaint(colorFilterMode, paint);
+    colorFilterMode = ColorFilterMode::INVERT_DALTONIZATION_PROTANOMALY_MODE;
+    RSBaseRenderUtil::SetColorFilterModeToPaint(colorFilterMode, paint);
+    colorFilterMode = ColorFilterMode::INVERT_DALTONIZATION_DEUTERANOMALY_MODE;
+    RSBaseRenderUtil::SetColorFilterModeToPaint(colorFilterMode, paint);
+    colorFilterMode = ColorFilterMode::INVERT_DALTONIZATION_TRITANOMALY_MODE;
+    RSBaseRenderUtil::SetColorFilterModeToPaint(colorFilterMode, paint);
+    colorFilterMode = static_cast<ColorFilterMode>(40); // use invalid number to test default mode
     RSBaseRenderUtil::SetColorFilterModeToPaint(colorFilterMode, paint);
 }
 
 /*
- * @tc.name: IsColorFilterModeValid
- * @tc.desc:
- * @tc.type:
- * @tc.require:
- * @tc.author:
+ * @tc.name: IsColorFilterModeValid_001
+ * @tc.desc: Test IsColorFilterModeValid
+ * @tc.type: FUNC
+ * @tc.require: issueI605F4
  */
-HWTEST_F(RSBaseRenderUtilTest, IsColorFilterModeValid, TestSize.Level1)
+HWTEST_F(RSBaseRenderUtilTest, IsColorFilterModeValid_001, TestSize.Level2)
 {
     ColorFilterMode colorFilterMode = ColorFilterMode::INVERT_COLOR_ENABLE_MODE;
     ASSERT_EQ(true, RSBaseRenderUtil::IsColorFilterModeValid(colorFilterMode));
+}
+
+/*
+ * @tc.name: WriteSurfaceRenderNodeToPng_001
+ * @tc.desc: Test WriteSurfaceRenderNodeToPng
+ * @tc.type: FUNC
+ * @tc.require: issueI605F4
+ */
+HWTEST_F(RSBaseRenderUtilTest, WriteSurfaceRenderNodeToPng_001, TestSize.Level2)
+{
+    RSSurfaceRenderNodeConfig config;
+    std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(config);
+    bool result = RSBaseRenderUtil::WriteSurfaceRenderNodeToPng(*node);
+    ASSERT_EQ(false, result);
+}
+
+/*
+ * @tc.name: ConvertBufferToBitmap_001
+ * @tc.desc: Test ConvertBufferToBitmap IsBufferValid
+ * @tc.type: FUNC
+ * @tc.require: issueI614RU
+ */
+HWTEST_F(RSBaseRenderUtilTest, ConvertBufferToBitmap_001, TestSize.Level2)
+{
+    sptr<SurfaceBuffer> cbuffer;
+    std::vector<uint8_t> newBuffer;
+    ColorGamut dstGamut = ColorGamut::COLOR_GAMUT_SRGB;
+    SkBitmap bitmap;
+    ASSERT_EQ(false, RSBaseRenderUtil::ConvertBufferToBitmap(cbuffer, newBuffer, dstGamut, bitmap));
+}
+
+/*
+ * @tc.name: ConvertBufferToBitmap_002
+ * @tc.desc: Test ConvertBufferToBitmap by CreateYuvToRGBABitMap
+ * @tc.type: FUNC
+ * @tc.require: issueI614RU
+ */
+HWTEST_F(RSBaseRenderUtilTest, ConvertBufferToBitmap_002, TestSize.Level2)
+{
+    auto rsSurfaceRenderNode = RSTestUtil::CreateSurfaceNode();
+    const auto& surfaceConsumer = rsSurfaceRenderNode->GetConsumer();
+    auto producer = surfaceConsumer->GetProducer();
+    psurf = Surface::CreateSurfaceAsProducer(producer);
+    psurf->SetQueueSize(1);
+    sptr<SurfaceBuffer> buffer;
+    sptr<SyncFence> requestFence = SyncFence::INVALID_FENCE;
+    GSError ret = psurf->RequestBuffer(buffer, requestFence, requestConfig);
+    sptr<SyncFence> flushFence = SyncFence::INVALID_FENCE;
+    ret = psurf->FlushBuffer(buffer, flushFence, flushConfig);
+    OHOS::sptr<SurfaceBuffer> cbuffer;
+    Rect damage;
+    sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
+    int64_t timestamp = 0;
+    ret = surfaceConsumer->AcquireBuffer(cbuffer, acquireFence, timestamp, damage);
+
+    std::vector<uint8_t> newBuffer;
+    ColorGamut dstGamut = ColorGamut::COLOR_GAMUT_SRGB;
+    SkBitmap bitmap;
+    (void)RSBaseRenderUtil::ConvertBufferToBitmap(cbuffer, newBuffer, dstGamut, bitmap);
+}
+
+/*
+ * @tc.name: ConvertBufferToBitmap_003
+ * @tc.desc: Test ConvertBufferToBitmap by CreateNewColorGamutBitmap
+ * @tc.type: FUNC
+ * @tc.require: issueI614RU
+ */
+HWTEST_F(RSBaseRenderUtilTest, ConvertBufferToBitmap_003, TestSize.Level2)
+{
+    auto rsSurfaceRenderNode = RSTestUtil::CreateSurfaceNode();
+    const auto& surfaceConsumer = rsSurfaceRenderNode->GetConsumer();
+    auto producer = surfaceConsumer->GetProducer();
+    psurf = Surface::CreateSurfaceAsProducer(producer);
+    psurf->SetQueueSize(1);
+    sptr<SurfaceBuffer> buffer;
+    sptr<SyncFence> requestFence = SyncFence::INVALID_FENCE;
+    requestConfig.format = PIXEL_FMT_RGBA_8888;
+    GSError ret = psurf->RequestBuffer(buffer, requestFence, requestConfig);
+    sptr<SyncFence> flushFence = SyncFence::INVALID_FENCE;
+    ret = psurf->FlushBuffer(buffer, flushFence, flushConfig);
+    OHOS::sptr<SurfaceBuffer> cbuffer;
+    Rect damage;
+    sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
+    int64_t timestamp = 0;
+    ret = surfaceConsumer->AcquireBuffer(cbuffer, acquireFence, timestamp, damage);
+
+    std::vector<uint8_t> newBuffer;
+    ColorGamut dstGamut = ColorGamut::COLOR_GAMUT_INVALID;
+    SkBitmap bitmap;
+    ASSERT_EQ(true, RSBaseRenderUtil::ConvertBufferToBitmap(cbuffer, newBuffer, dstGamut, bitmap));
+}
+
+/*
+ * @tc.name: WritePixelMapToPng_001
+ * @tc.desc: Test WritePixelMapToPng
+ * @tc.type: FUNC
+ * @tc.require: issueI605F4
+ */
+HWTEST_F(RSBaseRenderUtilTest, WritePixelMapToPng_001, TestSize.Level2)
+{
+    Media::PixelMap pixelMap;
+    bool result = RSBaseRenderUtil::WritePixelMapToPng(pixelMap);
+    ASSERT_EQ(false, result);
+}
+
+/*
+ * @tc.name: DealWithSurfaceRotationAndGravity_001
+ * @tc.desc: Test DealWithSurfaceRotationAndGravity
+ * @tc.type: FUNC
+ * @tc.require: issueI605F4
+ */
+HWTEST_F(RSBaseRenderUtilTest, DealWithSurfaceRotationAndGravity_001, TestSize.Level2)
+{
+    RectF localBounds;
+    BufferDrawParam params;
+    RSSurfaceRenderNodeConfig config;
+    std::shared_ptr<RSSurfaceRenderNode> rsNode = std::make_shared<RSSurfaceRenderNode>(config);
+
+    std::shared_ptr<RSSurfaceRenderNode> rsParentNode = std::make_shared<RSSurfaceRenderNode>(config);
+    rsParentNode->AddChild(rsNode);
+    rsNode->SetIsOnTheTree(true);
+
+    sptr<Surface> csurf = Surface::CreateSurfaceAsConsumer(config.name);
+    rsNode->SetConsumer(csurf);
+    RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(*rsNode, localBounds, params);
+}
+
+/*
+ * @tc.name: SetPropertiesForCanvas_001
+ * @tc.desc: Test SetPropertiesForCanvas
+ * @tc.type: FUNC
+ * @tc.require: issueI605F4
+ */
+HWTEST_F(RSBaseRenderUtilTest, SetPropertiesForCanvas_001, TestSize.Level2)
+{
+    std::unique_ptr<SkCanvas> skCanvas = std::make_unique<SkCanvas>(10, 10); // width height
+    std::shared_ptr<RSPaintFilterCanvas> canvas = std::make_shared<RSPaintFilterCanvas>(skCanvas.get());;
+    BufferDrawParam params;
+    RSBaseRenderUtil::SetPropertiesForCanvas(*canvas, params);
 }
 } // namespace OHOS::Rosen

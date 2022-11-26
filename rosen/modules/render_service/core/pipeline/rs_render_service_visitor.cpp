@@ -89,8 +89,8 @@ void RSRenderServiceVisitor::PrepareDisplayRenderNode(RSDisplayRenderNode& node)
     int32_t logicalScreenHeight = static_cast<int32_t>(node.GetRenderProperties().GetFrameHeight());
 
     if (logicalScreenWidth <= 0 || logicalScreenHeight <= 0) {
-        logicalScreenWidth = currScreenInfo.width;
-        logicalScreenHeight = currScreenInfo.height;
+        logicalScreenWidth = static_cast<int32_t>(currScreenInfo.width);
+        logicalScreenHeight = static_cast<int32_t>(currScreenInfo.height);
 
         if (rotation == ScreenRotation::ROTATION_90 || rotation == ScreenRotation::ROTATION_270) {
             std::swap(logicalScreenWidth, logicalScreenHeight);
@@ -173,7 +173,7 @@ void RSRenderServiceVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
     if (RSInnovation::GetParallelCompositionEnabled()) {
         typedef bool (*CheckForSerialForcedFunc)(std::string&);
         CheckForSerialForcedFunc CheckForSerialForced =
-            (CheckForSerialForcedFunc)RSInnovation::_s_checkForSerialForced;
+            reinterpret_cast<CheckForSerialForcedFunc>(RSInnovation::_s_checkForSerialForced);
         auto name = node.GetName();
         mForceSerial |= CheckForSerialForced(name);
     }

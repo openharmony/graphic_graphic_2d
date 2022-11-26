@@ -84,22 +84,48 @@ protected:
         Draw(ctx);
         auto drawCmdList = RSExtendedModifierHelper::FinishDrawing(ctx);
         std::unique_ptr<RSCommand> command = std::make_unique<RSUpdatePropertyDrawCmdList>(
-            node->GetId(), drawCmdList, property_->id_, false, false);
+            node->GetId(), drawCmdList, property_->id_, false);
         auto transactionProxy = RSTransactionProxy::GetInstance();
         if (transactionProxy != nullptr) {
             transactionProxy->AddCommand(command, node->IsRenderServiceNode());
             if (node->NeedForcedSendToRemote()) {
                 std::unique_ptr<RSCommand> commandForRemote = std::make_unique<RSUpdatePropertyDrawCmdList>(
-                    node->GetId(), drawCmdList, property_->id_, false, false);
+                    node->GetId(), drawCmdList, property_->id_, false);
                 transactionProxy->AddCommand(commandForRemote, true, node->GetFollowType(), node->GetId());
             }
             if (node->NeedSendExtraCommand()) {
                 std::unique_ptr<RSCommand> extraCommand = std::make_unique<RSUpdatePropertyDrawCmdList>(
-                    node->GetId(), drawCmdList, property_->id_, false, false);
+                    node->GetId(), drawCmdList, property_->id_, false);
                 transactionProxy->AddCommand(extraCommand, !node->IsRenderServiceNode(), node->GetFollowType(),
                     node->GetId());
             }
         }
+    }
+};
+
+class RS_EXPORT RSTransitionModifier : public RSExtendedModifier {
+public:
+    RSTransitionModifier() : RSExtendedModifier(RSModifierType::TRANSITION)
+    {}
+
+    RSModifierType GetModifierType() const override
+    {
+        return RSModifierType::TRANSITION;
+    }
+
+    virtual void Active() = 0;
+
+    virtual void Identity() = 0;
+};
+
+class RS_EXPORT RSBackgroundStyleModifier : public RSExtendedModifier {
+public:
+    RSBackgroundStyleModifier() : RSExtendedModifier(RSModifierType::BACKGROUND_STYLE)
+    {}
+
+    RSModifierType GetModifierType() const override
+    {
+        return RSModifierType::BACKGROUND_STYLE;
     }
 };
 
@@ -111,6 +137,17 @@ public:
     RSModifierType GetModifierType() const override
     {
         return RSModifierType::CONTENT_STYLE;
+    }
+};
+
+class RS_EXPORT RSForegroundStyleModifier : public RSExtendedModifier {
+public:
+    RSForegroundStyleModifier() : RSExtendedModifier(RSModifierType::FOREGROUND_STYLE)
+    {}
+
+    RSModifierType GetModifierType() const override
+    {
+        return RSModifierType::FOREGROUND_STYLE;
     }
 };
 

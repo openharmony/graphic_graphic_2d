@@ -63,7 +63,7 @@ bool RSRenderThreadVisitor::IsValidRootRenderNode(RSRootRenderNode& node)
         return false;
     }
     if (node.GetSuggestedBufferWidth() <= 0 || node.GetSuggestedBufferHeight() <= 0) {
-        ROSEN_LOGE("Root %s: Negative width or height [%d %d]", ptr->GetName().c_str(),
+        ROSEN_LOGD("Root %s: Negative width or height [%d %d]", ptr->GetName().c_str(),
             node.GetSuggestedBufferWidth(), node.GetSuggestedBufferHeight());
         return false;
     }
@@ -251,7 +251,7 @@ void RSRenderThreadVisitor::UpdateDirtyAndSetEGLDamageRegion(std::unique_ptr<RSS
         // get and update valid buffer age(>0) to merge history
         int32_t bufferAge = surfaceFrame->GetBufferAge();
         if (!curDirtyManager_->SetBufferAge(bufferAge)) {
-            ROSEN_LOGW("ProcessRootRenderNode SetBufferAge with invalid buffer age %d", bufferAge);
+            ROSEN_LOGD("ProcessRootRenderNode SetBufferAge with invalid buffer age %d", bufferAge);
             curDirtyManager_->ResetDirtyAsSurfaceSize();
         }
         curDirtyManager_->UpdateDirtyByAligned();
@@ -594,19 +594,22 @@ void RSRenderThreadVisitor::ProcessProxyRenderNode(RSProxyRenderNode& node)
 void RSRenderThreadVisitor::ClipHoleForSurfaceNode(RSSurfaceRenderNode& node)
 {
 #ifdef ROSEN_OHOS
-    auto x = std::ceil(node.GetRenderProperties().GetBoundsPositionX());
-    auto y = std::ceil(node.GetRenderProperties().GetBoundsPositionY());
-    auto width = std::floor(node.GetRenderProperties().GetBoundsWidth());
-    auto height = std::floor(node.GetRenderProperties().GetBoundsHeight());
+    // Calculation position in RenderService may appear floating point number, and it will be removed.
+    // It caused missed line problem on surfaceview hap, so we subtract one pixel when cliphole to avoid this problem
+    static int pixel = 1;
+    auto x = std::ceil(node.GetRenderProperties().GetBoundsPositionX() + pixel); // x increase 1 pixel
+    auto y = std::ceil(node.GetRenderProperties().GetBoundsPositionY() + pixel); // y increase 1 pixel
+    auto width = std::floor(node.GetRenderProperties().GetBoundsWidth() - (2 * pixel)); // width decrease 2 pixels
+    auto height = std::floor(node.GetRenderProperties().GetBoundsHeight() - (2 * pixel)); // height decrease 2 pixels
     canvas_->save();
     SkRect originRect = SkRect::MakeXYWH(x, y, width, height);
     canvas_->clipRect(originRect);
     if (node.IsNotifyRTBufferAvailable()) {
-        ROSEN_LOGI("RSRenderThreadVisitor::ClipHoleForSurfaceNode node : %" PRIu64 ", clip [%f, %f, %f, %f]",
+        ROSEN_LOGD("RSRenderThreadVisitor::ClipHoleForSurfaceNode node : %" PRIu64 ", clip [%f, %f, %f, %f]",
             node.GetId(), x, y, width, height);
         canvas_->clear(SK_ColorTRANSPARENT);
     } else {
-        ROSEN_LOGI("RSRenderThreadVisitor::ClipHoleForSurfaceNode node : %" PRIu64 ", not clip [%f, %f, %f, %f]",
+        ROSEN_LOGD("RSRenderThreadVisitor::ClipHoleForSurfaceNode node : %" PRIu64 ", not clip [%f, %f, %f, %f]",
             node.GetId(), x, y, width, height);
         auto backgroundColor = node.GetRenderProperties().GetBackgroundColor();
         if (backgroundColor != RgbPalette::Transparent()) {

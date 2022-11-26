@@ -14,6 +14,7 @@
  */
 
 #include "gtest/gtest.h"
+
 #include "pipeline/rs_paint_filter_canvas.h"
 
 using namespace testing;
@@ -56,5 +57,16 @@ HWTEST_F(RSPaintFilterCanvasTest, SetHighContrast001, TestSize.Level1)
     mode = false;
     canvas_->SetHighContrast(mode);
     ASSERT_EQ(canvas_->isHighContrastEnabled(), mode);
+}
+
+/**
+ * @tc.name: RestoreAlpha001
+ * @tc.desc:
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPaintFilterCanvasTest, RestoreAlpha001, TestSize.Level1)
+{
+    canvas_->RestoreAlpha();
 }
 } // namespace OHOS::Rosen

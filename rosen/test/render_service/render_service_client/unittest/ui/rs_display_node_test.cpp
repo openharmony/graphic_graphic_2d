@@ -159,4 +159,20 @@ HWTEST_F(RSDisplayNodeTest, GetSecurityDisplay001, TestSize.Level1)
     ASSERT_TRUE(displayNode != nullptr);
     EXPECT_FALSE(displayNode->GetSecurityDisplay());
 }
+
+/**
+ * @tc.name: SetScreenId001
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSDisplayNodeTest, SetScreenId001, TestSize.Level1)
+{
+    /**
+    * @tc.steps: step1. create RSDisplayNode
+    */
+    RSDisplayNodeConfig c;
+    RSDisplayNode::SharedPtr displayNode = RSDisplayNode::Create(c);
+    ASSERT_TRUE(displayNode != nullptr);
+    displayNode->SetScreenId(1);
+}
 } // namespace OHOS::Rosen

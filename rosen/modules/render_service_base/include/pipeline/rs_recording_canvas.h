@@ -45,6 +45,9 @@ public:
     void Clear() const;
     void AddOp(std::unique_ptr<OpItem>&& opItem);
 
+    GrContext* getGrContext() override;
+    void SetGrContext(GrContext* grContext);
+
     sk_sp<SkSurface> onNewSurface(const SkImageInfo& info, const SkSurfaceProps& props) override;
 
     void willSave() override;
@@ -125,11 +128,12 @@ public:
                               const SkMatrix[], const SkPaint*, SrcRectConstraint) override {}
 
 private:
-    void DrawTextAsBitmap(const SkTextBlob* blob, SkScalar x, SkScalar y, const SkPaint& paint);
-    void DrawPathAsBitmap(const SkPath& path, const SkPaint& paint);
+    void DrawImageLatticeAsBitmap(
+        const SkImage* image, const SkCanvas::Lattice& lattice, const SkRect& dst, const SkPaint* paint);
 
     std::shared_ptr<DrawCmdList> drawCmdList_ { nullptr };
     int saveCount_ = 0;
+    GrContext* grContext_ = nullptr;
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -81,9 +81,6 @@ private:
 
         SkMatrix captureMatrix_ = SkMatrix::I();
 
-        SkRect boundsRect_;
-        Gravity frameGravity_ = Gravity::DEFAULT;
-
         std::shared_ptr<RSBaseRenderEngine> renderEngine_;
     };
 

@@ -32,13 +32,12 @@ void DrawEventReport(FrameMsg& frameMsg, std::string stringId)
 {
     int32_t pid = OHOS::GetRealPid();
     uint32_t uid = getuid();
-    std::string domain = "GRAPHIC";
     std::string msg = "It took " + std::to_string(frameMsg.totalTime) + "ns to draw, "
         + "UI took " + std::to_string(frameMsg.uiDrawTime) + "ns to draw, "
         + "RSRenderThread took " + std::to_string(frameMsg.renderDrawTime) + "ns to draw, "
         + "RSRenderThread dropped " + std::to_string(frameMsg.dropUiFrameNum) + " UI Frames";
 
-    OHOS::HiviewDFX::HiSysEvent::Write(domain, stringId,
+    HiSysEventWrite(OHOS::HiviewDFX::HiSysEvent::Domain::GRAPHIC, stringId,
         OHOS::HiviewDFX::HiSysEvent::EventType::FAULT,
         "PID", pid,
         "UID", uid,
@@ -58,6 +57,11 @@ uint64_t RSJankDetector::GetSysTimeNs()
 void RSJankDetector::SetRefreshPeriod(uint64_t refreshPeriod)
 {
     refreshPeriod_ = refreshPeriod;
+}
+
+uint64_t RSJankDetector::GetRefreshPeriod() const
+{
+    return refreshPeriod_;
 }
 
 void RSJankDetector::UpdateUiDrawFrameMsg(uint64_t startTimeStamp, uint64_t endTimeStamp,

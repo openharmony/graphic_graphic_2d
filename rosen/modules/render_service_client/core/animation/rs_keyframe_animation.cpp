@@ -105,13 +105,14 @@ void RSKeyframeAnimation::OnStart()
         return;
     }
     auto animation = std::make_shared<RSRenderKeyframeAnimation>(GetId(), GetPropertyId(),
-        originValue_->CreateRenderProperty());
+        originValue_->GetRenderProperty());
     for (const auto& [fraction, value, curve] : keyframes_) {
-        animation->AddKeyframe(fraction, value->CreateRenderProperty(), curve.GetInterpolator(GetDuration()));
+        animation->AddKeyframe(fraction, value->GetRenderProperty(), curve.GetInterpolator(GetDuration()));
     }
     animation->SetAdditive(GetAdditive());
     UpdateParamToRenderAnimation(animation);
     if (isCustom_) {
+        animation->AttachRenderProperty(property_->GetRenderProperty());
         StartUIAnimation(animation);
     } else {
         StartRenderAnimation(animation);

@@ -30,10 +30,10 @@ public:
     sk_sp<SkImage> GetSkiaImageCache(uint64_t uniqueId) const;
     void ReleaseSkiaImageCache(uint64_t uniqueId);
 
-private:
     RSImageCache() = default;
     ~RSImageCache() = default;
 
+private:
     RSImageCache(const RSImageCache&) = delete;
     RSImageCache(const RSImageCache&&) = delete;
     RSImageCache& operator=(const RSImageCache&) = delete;

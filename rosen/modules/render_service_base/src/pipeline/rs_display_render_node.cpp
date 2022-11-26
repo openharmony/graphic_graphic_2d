@@ -191,8 +191,13 @@ void RSDisplayRenderNode::UpdateDisplayDirtyManager(int32_t bufferage)
 {
     dirtyManager_->SetBufferAge(bufferage);
     dirtyManager_->UpdateDirty();
+}
+
+void RSDisplayRenderNode::ClearCurrentSurfacePos()
+{
     lastFrameSurfacePos_.clear();
     lastFrameSurfacePos_.swap(currentFrameSurfacePos_);
 }
+
 } // namespace Rosen
 } // namespace OHOS

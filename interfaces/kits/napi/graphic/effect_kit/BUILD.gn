@@ -62,8 +62,8 @@ ohos_shared_library("effectkit") {
     "//foundation/arkui/napi:ace_napi",
     "//foundation/graphic/graphic_2d/rosen/modules/effect/color_picker:color_picker",
     "//foundation/graphic/graphic_2d/rosen/modules/effect/skia_effectChain:skeffectchain",
-    "//foundation/multimedia/image_framework/interfaces/innerkits:image",
     "//foundation/multimedia/image_framework/interfaces/innerkits:image_native",
+    "//foundation/multimedia/image_framework/interfaces/kits/js/common:image",
   ]
 
   external_deps = [ "c_utils:utils" ]

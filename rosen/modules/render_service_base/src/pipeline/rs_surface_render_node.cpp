@@ -17,6 +17,7 @@
 
 #include "include/core/SkMatrix.h"
 #include "include/core/SkRect.h"
+#include "include/gpu/GrContext.h"
 
 #include "command/rs_surface_node_command.h"
 #include "common/rs_obj_abs_geometry.h"
@@ -413,6 +414,17 @@ bool RSSurfaceRenderNode::NeedSetCallbackForRenderThreadRefresh()
     return (callbackForRenderThreadRefresh_ == nullptr);
 }
 
+bool RSSurfaceRenderNode::IsStartAnimationFinished() const
+{
+    return startAnimationFinished_;
+}
+
+void RSSurfaceRenderNode::SetStartAnimationFinished()
+{
+    RS_LOGD("RSSurfaceRenderNode::SetStartAnimationFinished");
+    startAnimationFinished_ = true;
+}
+
 void RSSurfaceRenderNode::SetVisibleRegionRecursive(const Occlusion::Region& region,
                                                     VisibleData& visibleVec,
                                                     std::map<uint32_t, bool>& pidVisMap)
@@ -425,7 +437,7 @@ void RSSurfaceRenderNode::SetVisibleRegionRecursive(const Occlusion::Region& reg
     visibleRegion_ = region;
     bool vis = region.GetSize() > 0;
     if (vis) {
-        visibleVec.emplace_back(GetId());
+        visibleVec.emplace_back(std::make_pair(GetId(), GetAbilityBgAlpha()));
     }
 
     // collect visible changed pid

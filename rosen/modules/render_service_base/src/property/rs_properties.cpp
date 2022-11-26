@@ -938,6 +938,11 @@ bool RSProperties::IsDirty() const
     return isDirty_;
 }
 
+bool RSProperties::IsGeoDirty() const
+{
+    return geoDirty_;
+}
+
 RectI RSProperties::GetDirtyRect() const
 {
 #ifdef ROSEN_OHOS
@@ -953,7 +958,7 @@ RectI RSProperties::GetDirtyRect() const
     if (overlayRect_ == nullptr || overlayRect_->IsEmpty()) {
         return dirtyRect;
     } else {
-        return dirtyRect.JoinRect(*overlayRect_);
+        return dirtyRect.JoinRect(boundsGeometry->MapAbsRect(overlayRect_->ConvertTo<float>()));
     }
 #else
     return RectI();

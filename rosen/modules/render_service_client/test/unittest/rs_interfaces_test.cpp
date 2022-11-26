@@ -831,5 +831,106 @@ HWTEST_F(RSInterfacesTest, SetScreenSkipFrameInterval005, Function | SmallTest |
     int32_t ret = rsInterfaces->SetScreenSkipFrameInterval(screenId, skipFrameInterval);
     ASSERT_EQ(ret, StatusCode::SUCCESS);
 }
+
+/*
+ * @tc.name: ScreenGamutMap_001
+ * @tc.desc: Test SetScreenGamutMap And GetScreenGamutMap
+ * @tc.type: FUNC
+ * @tc.require: issueI60RFZ
+ */
+HWTEST_F(RSInterfacesTest, ScreenGamutMap_001, Function | SmallTest | Level2)
+{
+    ScreenId defaultScreenId = rsInterfaces->GetDefaultScreenId();
+    ScreenGamutMap mode = ScreenGamutMap::GAMUT_MAP_CONSTANT;
+    uint32_t statusMode = rsInterfaces->SetScreenGamutMap(defaultScreenId, mode);
+    ASSERT_EQ(statusMode, StatusCode::HDI_ERROR);
+    statusMode = rsInterfaces->GetScreenGamutMap(defaultScreenId, mode);
+    ASSERT_EQ(statusMode, StatusCode::HDI_ERROR);
+}
+
+/*
+ * @tc.name: RegisterOcclusionChangeCallback Test
+ * @tc.desc: RegisterOcclusionChangeCallback Test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSInterfacesTest, RegisterOcclusionChangeCallback_Test, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    OcclusionChangeCallback cb = [](std::shared_ptr<RSOcclusionData> data){};
+    int32_t ret = rsInterfaces->RegisterOcclusionChangeCallback(cb);
+    ASSERT_EQ(ret, 0);
+}
+
+/*
+ * @tc.name: UnRegisterOcclusionChangeCallback Test
+ * @tc.desc: UnRegisterOcclusionChangeCallback Test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSInterfacesTest, UnRegisterOcclusionChangeCallback_Test, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    OcclusionChangeCallback cb = [](std::shared_ptr<RSOcclusionData> data){};
+    int32_t ret = rsInterfaces->UnRegisterOcclusionChangeCallback(cb);
+    ASSERT_EQ(ret, 0);
+}
+
+/*
+ * @tc.name: SetRenderModeChangeCallback Test
+ * @tc.desc: SetRenderModeChangeCallback Test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSInterfacesTest, SetRenderModeChangeCallback_Test, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    RenderModeChangeCallback cb = [](bool flag){};
+    int32_t ret = rsInterfaces->SetRenderModeChangeCallback(cb);
+    ASSERT_EQ(ret, 0);
+}
+
+/*
+ * @tc.name: UpdateRenderMode True Test
+ * @tc.desc: UpdateRenderMode True Test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSInterfacesTest, UpdateRenderMode_True, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    rsInterfaces->UpdateRenderMode(true);
+}
+
+/*
+ * @tc.name: UpdateRenderMode False Test
+ * @tc.desc: UpdateRenderMode False Test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSInterfacesTest, UpdateRenderMode_False, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    rsInterfaces->UpdateRenderMode(false);
+}
+
+/*
+ * @tc.name: SetVirtualScreenSurface Test a notfound id
+ * @tc.desc: SetVirtualScreenSurface Test a notfound id
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSInterfacesTest, SetVirtualScreenSurface_Test, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    auto csurface = Surface::CreateSurfaceAsConsumer();
+    ASSERT_NE(csurface, nullptr);
+    auto producer = csurface->GetProducer();
+    auto psurface = Surface::CreateSurfaceAsProducer(producer);
+    ASSERT_NE(psurface, nullptr);
+
+    int32_t ret = rsInterfaces->SetVirtualScreenSurface(123, psurface);
+    ASSERT_EQ(ret, 0);
+}
 } // namespace Rosen
 } // namespace OHOS

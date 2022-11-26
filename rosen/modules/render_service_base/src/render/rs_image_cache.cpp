@@ -17,10 +17,12 @@
 
 namespace OHOS {
 namespace Rosen {
+// modify the RSImageCache instance as global to extend life cycle, fix destructor crash
+static RSImageCache gRSImageCacheInstance;
+
 RSImageCache& RSImageCache::Instance()
 {
-    static RSImageCache instance;
-    return instance;
+    return gRSImageCacheInstance;
 }
 
 void RSImageCache::CacheSkiaImage(uint64_t uniqueId, sk_sp<SkImage> img)

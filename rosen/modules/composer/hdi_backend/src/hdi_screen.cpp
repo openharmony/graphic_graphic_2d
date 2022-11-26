@@ -244,7 +244,7 @@ int32_t HdiScreen::GetHDRCapabilityInfos(HDRCapability &info) const
     return device_->GetHDRCapabilityInfos(screenId_, info);
 }
 
-int32_t HdiScreen::GetSupportedMetaDataKey(std::vector<HDRMetadataKey> &keys) const
+int32_t HdiScreen::GetSupportedMetaDataKey(std::vector<GraphicHDRMetadataKey> &keys) const
 {
     if (device_ == nullptr) {
         return DISPLAY_NULL_PTR;

@@ -295,12 +295,8 @@ GSError SurfaceBufferImpl::InvalidateCache()
 
 void SurfaceBufferImpl::FreeBufferHandleLocked()
 {
-    if (displayGralloc_ == nullptr) {
-        BLOGE("displayGralloc_ is nullptr!");
-        return;
-    }
     if (handle_) {
-        if (handle_->virAddr != nullptr) {
+        if (handle_->virAddr != nullptr && displayGralloc_ != nullptr) {
             displayGralloc_->Unmap(*handle_);
             handle_->virAddr = nullptr;
         }
@@ -542,8 +538,8 @@ GSError SurfaceBufferImpl::CheckBufferConfig(int32_t width, int32_t height,
         return GSERROR_INVALID_ARGUMENTS;
     }
 
-    if (format < 0 || format > PIXEL_FMT_BUTT) {
-        BLOGE("format [0, %{public}d], now is %{public}d", PIXEL_FMT_BUTT, format);
+    if (format < 0 || format > GRAPHIC_PIXEL_FMT_BUTT) {
+        BLOGE("format [0, %{public}d], now is %{public}d", GRAPHIC_PIXEL_FMT_BUTT, format);
         return GSERROR_INVALID_ARGUMENTS;
     }
 
@@ -560,4 +556,12 @@ uint64_t SurfaceBufferImpl::BufferUsageToGrallocUsage(uint64_t bufferUsage)
     }
     return grallocUsage;
 }
+
+BufferWrapper SurfaceBufferImpl::GetBufferWrapper()
+{
+    BufferWrapper wrapper;
+    return wrapper;
+}
+
+void SurfaceBufferImpl::SetBufferWrapper(BufferWrapper wrapper) {}
 } // namespace OHOS

@@ -106,4 +106,13 @@ ohos_source_set("rosen_ohos_sources") {
     "ipc:ipc_core",
     "samgr:samgr_proxy",
   ]
+
+  if (defined(graphic_2d_ext_configs.vendor_root)) {
+    sources -= [ "rs_render_service_client.cpp" ]
+
+    include_dirs +=
+        graphic_2d_ext_configs.librender_service_base_ext_include_dirs
+
+    sources += graphic_2d_ext_configs.librender_service_base_ext_sources
+  }
 }

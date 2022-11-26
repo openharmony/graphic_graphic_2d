@@ -41,7 +41,6 @@ public:
     void SetEnable(bool enable);
     OverdrawColorArray GetColorArray() const;
     std::map<int, SkColor> GetColorMap() const;
-    static RS_EXPORT void SwitchFunction(const char *key, const char *value, void *context);
 
     template<class RSCanvasListenerImpl>
     std::shared_ptr<RSCanvasListenerImpl> CreateListener(RSPaintFilterCanvas *canvas)
@@ -63,7 +62,8 @@ private:
     RSOverdrawController(const RSOverdrawController &) = delete;
     RSOverdrawController &operator =(RSOverdrawController &&) = delete;
     RSOverdrawController &operator =(const RSOverdrawController &) = delete;
-
+    
+    static void SwitchFunction(const char *key, const char *value, void *context);
     static void OnColorChange(const char *key, const char *value, void *context);
 
     std::shared_ptr<RSDelegate> delegate_ = nullptr;

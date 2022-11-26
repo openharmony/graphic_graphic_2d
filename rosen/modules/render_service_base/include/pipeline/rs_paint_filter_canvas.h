@@ -19,9 +19,11 @@
 #ifdef ROSEN_OHOS
 #include <include/utils/SkPaintFilterCanvas.h>
 #include <stack>
+#include <vector>
+
+#include "include/core/SkSurface.h"
 
 #include "common/rs_macros.h"
-#include "include/core/SkSurface.h"
 
 class SkDrawable;
 namespace OHOS {
@@ -54,13 +56,18 @@ public:
         return isHighContrastEnabled_;
     }
 
-    void SetShadowEnabled(bool enabled)
+    void SetCacheEnabled(bool enabled)
     {
-        isShadowEnabled_ = enabled;
+        isCacheEnabled_ = enabled;
     }
-    bool isShadowEnabled() const
+    bool isCacheEnabled() const
     {
-        return isShadowEnabled_;
+        return isCacheEnabled_;
+    }
+
+    std::vector<SkRect>& GetVisibleRects()
+    {
+        return visibleRects_;
     }
 
 protected:
@@ -71,7 +78,8 @@ private:
     SkSurface* skSurface_ = nullptr;
     std::stack<float> alphaStack_;
     std::atomic_bool isHighContrastEnabled_ { false };
-    bool isShadowEnabled_ { true };
+    bool isCacheEnabled_ { false };
+    std::vector<SkRect> visibleRects_;
 };
 
 } // namespace Rosen

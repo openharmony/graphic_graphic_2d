@@ -205,6 +205,17 @@ bool RSRenderServiceClient::TakeSurfaceCapture(NodeId id, std::shared_ptr<Surfac
     return true;
 }
 
+int32_t RSRenderServiceClient::SetFocusAppInfo(
+    int32_t pid, int32_t uid, const std::string &bundleName, const std::string &abilityName)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        return RENDER_SERVICE_NULL;
+    }
+
+    return renderService->SetFocusAppInfo(pid, uid, bundleName, abilityName);
+}
+
 ScreenId RSRenderServiceClient::GetDefaultScreenId()
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();

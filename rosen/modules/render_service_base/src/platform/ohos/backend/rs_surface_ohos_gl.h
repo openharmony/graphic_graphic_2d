@@ -26,7 +26,6 @@
 
 namespace OHOS {
 namespace Rosen {
-
 class RSSurfaceOhosGl : public RSSurfaceOhos {
 public:
     explicit RSSurfaceOhosGl(const sptr<Surface>& producer);
@@ -43,6 +42,7 @@ public:
     void SetSurfaceBufferUsage(uint64_t usage) override;
     void ClearBuffer() override;
     void ResetBufferAge() override;
+    void SetUiTimeStamp(const std::unique_ptr<RSSurfaceFrame>& frame, uint64_t uiTimestamp) override;
 private:
     EGLSurface mEglSurface = EGL_NO_SURFACE;
     struct NativeWindow* mWindow = nullptr;

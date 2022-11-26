@@ -213,11 +213,18 @@ bool RSImageFuzzTest(const uint8_t* data, size_t size)
     float fX2 = GetData<float>();
     float fY2 = GetData<float>();
     SkVector vector2 { fX2, fY2 };
-    SkVector radius[] = { vector1, vector2 };
+    float fX3 = GetData<float>();
+    float fY3 = GetData<float>();
+    SkVector vector3 { fX3, fY3 };
+    float fX4 = GetData<float>();
+    float fY4 = GetData<float>();
+    SkVector vector4 { fX4, fY4 };
+    SkVector radius[] = { vector1, vector2, vector3, vector4 };
     double scale = GetData<double>();
     sk_sp<SkData> skData;
     int width = GetData<int>();
     int height = GetData<int>();
+    int id = GetData<int>();
 
     RSImage rsImage;
     rsImage.IsEqual(other);
@@ -228,7 +235,7 @@ bool RSImageFuzzTest(const uint8_t* data, size_t size)
     rsImage.SetImageRepeat(repeatNum);
     rsImage.SetRadius(radius);
     rsImage.SetScale(scale);
-    rsImage.SetCompressData(skData, width, height);
+    rsImage.SetCompressData(skData, id, width, height);
 
     return true;
 }

@@ -53,7 +53,7 @@ std::unique_ptr<RSSurfaceFrame> RSSurfaceOhosGl::RequestFrame(int32_t width, int
     if (mWindow == nullptr) {
         mWindow = CreateNativeWindowFromSurface(&producer_);
         mEglSurface = context->CreateEGLSurface((EGLNativeWindowType)mWindow);
-        ROSEN_LOGD("RSSurfaceOhosGl: create and Init EglSurface %p", mEglSurface);
+        ROSEN_LOGD("RSSurfaceOhosGl: create and Init EglSurface");
     }
 
     if (mEglSurface == EGL_NO_SURFACE) {
@@ -87,6 +87,11 @@ std::unique_ptr<RSSurfaceFrame> RSSurfaceOhosGl::RequestFrame(int32_t width, int
     std::unique_ptr<RSSurfaceFrame> ret(std::move(frame));
 
     return ret;
+}
+
+void RSSurfaceOhosGl::SetUiTimeStamp(const std::unique_ptr<RSSurfaceFrame>& frame, uint64_t uiTimestamp)
+{
+    NativeWindowHandleOpt(mWindow, SET_UI_TIMESTAMP, uiTimestamp);
 }
 
 bool RSSurfaceOhosGl::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uint64_t uiTimestamp)

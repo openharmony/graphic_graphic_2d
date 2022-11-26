@@ -3231,7 +3231,12 @@ napi_value WebGLRenderingContextBase::VertexAttrib1fv(napi_env env, napi_callbac
         return nullptr;
     }
     if (type == napi_float32_array) {
-        float *inputFloat = reinterpret_cast<float*>(reinterpret_cast<uint8_t*>(data));
+        float inputFloat[INPUTFLOAT_LENGTH] = {0};
+        errno_t ret = memcpy_s(inputFloat, sizeof(inputFloat), data, length);
+        if (ret != EOK) {
+            LOGE("WebGL2 vertexAttrib1fv memcpy_s failed");
+            return nullptr;
+        }
         glVertexAttrib1fv(static_cast<GLuint>(index), static_cast<GLfloat *>(inputFloat));
     }
     LOGI("WebGL2 vertexAttrib1fv typeArray end");
@@ -3295,7 +3300,12 @@ napi_value WebGLRenderingContextBase::VertexAttrib2fv(napi_env env, napi_callbac
         return nullptr;
     }
     if (type == napi_float32_array) {
-        float *inputFloat = reinterpret_cast<float*>(reinterpret_cast<uint8_t*>(data));
+        float inputFloat[INPUTFLOAT_LENGTH] = {0};
+        errno_t ret = memcpy_s(inputFloat, sizeof(inputFloat), data, length);
+        if (ret != EOK) {
+            LOGE("WebGL2 vertexAttrib2fv memcpy_s failed");
+            return nullptr;
+        }
         glVertexAttrib2fv(static_cast<GLuint>(index), static_cast<GLfloat *>(inputFloat));
     }
     LOGI("WebGL2 vertexAttrib2fv typeArray end");
@@ -3359,7 +3369,12 @@ napi_value WebGLRenderingContextBase::VertexAttrib3fv(napi_env env, napi_callbac
         return nullptr;
     }
     if (type == napi_float32_array) {
-        float *inputFloat = reinterpret_cast<float*>(reinterpret_cast<uint8_t*>(data));
+        float inputFloat[INPUTFLOAT_LENGTH] = {0};
+        errno_t ret = memcpy_s(inputFloat, sizeof(inputFloat), data, length);
+        if (ret != EOK) {
+            LOGE("WebGL2 vertexAttrib3fv memcpy_s failed");
+            return nullptr;
+        }
         glVertexAttrib3fv(static_cast<GLuint>(index), static_cast<GLfloat *>(inputFloat));
     }
     LOGI("WebGL2 vertexAttrib3fv typeArray end");
@@ -3423,7 +3438,12 @@ napi_value WebGLRenderingContextBase::VertexAttrib4fv(napi_env env, napi_callbac
         return nullptr;
     }
     if (type == napi_float32_array) {
-        float *inputFloat = reinterpret_cast<float*>(reinterpret_cast<uint8_t*>(data));
+        float inputFloat[INPUTFLOAT_LENGTH] = {0};
+        errno_t ret = memcpy_s(inputFloat, sizeof(inputFloat), data, length);
+        if (ret != EOK) {
+            LOGE("WebGL2 vertexAttrib4fv memcpy_s failed");
+            return nullptr;
+        }
         glVertexAttrib4fv(static_cast<GLuint>(index), static_cast<GLfloat *>(inputFloat));
     }
     LOGI("WebGL2 vertexAttrib4fv typeArray end");

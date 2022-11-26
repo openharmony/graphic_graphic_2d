@@ -151,12 +151,13 @@ bool RSMarshallingHelper::SkipSkData(Parcel& parcel)
 
 bool RSMarshallingHelper::UnmarshallingWithCopy(Parcel& parcel, sk_sp<SkData>& val)
 {
-    if (Unmarshalling(parcel, val)) {
+    bool success = Unmarshalling(parcel, val);
+    if (success) {
         if (val && val->size() < MIN_DATA_SIZE) {
             val = SkData::MakeWithCopy(val->data(), val->size());
         }
     }
-    return val != nullptr;
+    return success;
 }
 
 // SkTypeface serial proc

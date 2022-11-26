@@ -70,9 +70,9 @@ public:
     VSyncReceiver(const VSyncReceiver &) = delete;
     VSyncReceiver &operator=(const VSyncReceiver &) = delete;
 
-    VsyncError Init();
-    VsyncError RequestNextVSync(FrameCallback callback);
-    VsyncError SetVSyncRate(FrameCallback callback, int32_t rate);
+    virtual VsyncError Init();
+    virtual VsyncError RequestNextVSync(FrameCallback callback);
+    virtual VsyncError SetVSyncRate(FrameCallback callback, int32_t rate);
 
 private:
     sptr<IVSyncConnection> connection_;

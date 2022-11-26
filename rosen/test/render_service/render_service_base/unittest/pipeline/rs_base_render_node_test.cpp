@@ -14,6 +14,7 @@
  */
 
 #include "gtest/gtest.h"
+
 #include "pipeline/rs_base_render_node.h"
 #include "platform/common/rs_log.h"
 using namespace testing;
@@ -47,13 +48,13 @@ HWTEST_F(RSBaseRenderNodeTest, AddChild001, TestSize.Level1)
      * @tc.steps: step1. AddChild
      */
     auto node = std::make_shared<RSBaseRenderNode>(id, context);
-    auto childone = std::make_shared<RSBaseRenderNode>(id+1, context);
-    auto childtwo = std::make_shared<RSBaseRenderNode>(id+2, context);
+    auto childone = std::make_shared<RSBaseRenderNode>(id + 1, context);
+    auto childtwo = std::make_shared<RSBaseRenderNode>(id + 2, context);
     int index = -1;
     node->SetIsOnTheTree(true);
     node->AddChild(node, index);
     ASSERT_EQ(node->GetChildrenCount(), 0);
-    
+
     node->AddChild(childone, index);
     ASSERT_EQ(node->GetChildrenCount(), 1);
     ASSERT_TRUE(childone->IsOnTheTree());
@@ -79,11 +80,11 @@ HWTEST_F(RSBaseRenderNodeTest, RemoveChild001, TestSize.Level1)
      * @tc.steps: step1. AddChild
      */
     auto node = std::make_shared<RSBaseRenderNode>(id, context);
-    auto childone = std::make_shared<RSBaseRenderNode>(id+1, context);
+    auto childone = std::make_shared<RSBaseRenderNode>(id + 1, context);
     int index = -1;
     node->AddChild(childone, index);
     ASSERT_EQ(node->GetChildrenCount(), 1);
-    
+
     /**
      * @tc.steps: step2. RemoveChild
      */
@@ -104,7 +105,7 @@ HWTEST_F(RSBaseRenderNodeTest, ClearChildren001, TestSize.Level1)
      * @tc.steps: step1. AddChild
      */
     auto node = std::make_shared<RSBaseRenderNode>(id, context);
-    auto childone = std::make_shared<RSBaseRenderNode>(id+1, context);
+    auto childone = std::make_shared<RSBaseRenderNode>(id + 1, context);
     int index = -1;
     node->AddChild(childone, index);
     ASSERT_EQ(node->GetChildrenCount(), 1);
@@ -115,4 +116,101 @@ HWTEST_F(RSBaseRenderNodeTest, ClearChildren001, TestSize.Level1)
     node->ClearChildren();
     ASSERT_EQ(node->GetChildrenCount(), 0);
 }
-}// namespace OHOS::Rosen
+
+/**
+ * @tc.name: MoveChild001
+ * @tc.desc: test results of MoveChild
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSBaseRenderNodeTest, MoveChild001, TestSize.Level1)
+{
+    /**
+     * @tc.steps: step1. AddChild
+     */
+    auto node = std::make_shared<RSBaseRenderNode>(id, context);
+    auto childone = std::make_shared<RSBaseRenderNode>(id + 1, context);
+    int index = -1;
+    node->AddChild(childone, index);
+    ASSERT_EQ(node->GetChildrenCount(), 1);
+
+    /**
+     * @tc.steps: step2. ClearChildren
+     */
+    node->MoveChild(childone, index);
+    ASSERT_EQ(node->GetChildrenCount(), 1);
+}
+
+/**
+ * @tc.name: SetIsOnTheTree001
+ * @tc.desc: test results of SetIsOnTheTree
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSBaseRenderNodeTest, SetIsOnTheTree001, TestSize.Level1)
+{
+    /**
+     * @tc.steps: step1. AddChild
+     */
+    auto node = std::make_shared<RSBaseRenderNode>(id, context);
+    auto childone = nullptr;
+    int index = -1;
+    node->SetIsOnTheTree(true);
+    node->AddChild(childone, index);
+    ASSERT_EQ(node->GetChildrenCount(), 0);
+
+    /**
+     * @tc.steps: step2. ClearChildren
+     */
+    node->ClearChildren();
+    ASSERT_EQ(node->GetChildrenCount(), 0);
+}
+
+/**
+ * @tc.name: AddCrossParentChild001
+ * @tc.desc: test results of AddCrossParentChild
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSBaseRenderNodeTest, AddCrossParentChild001, TestSize.Level1)
+{
+    /**
+     * @tc.steps: step1. AddChild
+     */
+    auto node = std::make_shared<RSBaseRenderNode>(id, context);
+    auto childone = std::make_shared<RSBaseRenderNode>(id + 1, context);
+    int index = -1;
+    node->AddCrossParentChild(childone, index);
+    ASSERT_EQ(node->GetChildrenCount(), 1);
+
+    /**
+     * @tc.steps: step2. ClearChildren
+     */
+    node->ClearChildren();
+    ASSERT_EQ(node->GetChildrenCount(), 0);
+}
+
+/**
+ * @tc.name: RemoveCrossParentChild001
+ * @tc.desc: test results of RemoveCrossParentChild
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSBaseRenderNodeTest, RemoveCrossParentChild001, TestSize.Level1)
+{
+    /**
+     * @tc.steps: step1. AddChild
+     */
+    auto node = std::make_shared<RSBaseRenderNode>(id, context);
+    auto childone = std::make_shared<RSBaseRenderNode>(id + 1, context);
+    auto newParent = std::make_shared<RSBaseRenderNode>(id + 2, context);
+    int index = -1;
+    node->AddCrossParentChild(childone, index);
+    ASSERT_EQ(node->GetChildrenCount(), 1);
+
+    /**
+     * @tc.steps: step2. ClearChildren
+     */
+    node->RemoveCrossParentChild(childone, newParent);
+}
+} // namespace OHOS::Rosen

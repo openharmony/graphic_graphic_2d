@@ -27,6 +27,7 @@ public:
 
     uint64_t GetSysTimeNs();
     void SetRefreshPeriod(uint64_t refreshPeriod);
+    uint64_t GetRefreshPeriod() const;
     void UpdateUiDrawFrameMsg(uint64_t startTimeStamp, uint64_t endTimeStamp, const std::string& abilityName);
     void ProcessUiDrawFrameMsg();
     void CalculateSkippedFrame(uint64_t renderStartTimeStamp, uint64_t renderEndTimeStamp);

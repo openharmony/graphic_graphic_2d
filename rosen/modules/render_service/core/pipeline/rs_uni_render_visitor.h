@@ -26,10 +26,10 @@
 #include "screen_manager/rs_screen_manager.h"
 #include "visitor/rs_node_visitor.h"
 
+class SkPicture;
 namespace OHOS {
 namespace Rosen {
 class RSPaintFilterCanvas;
-
 class RSUniRenderVisitor : public RSNodeVisitor {
 public:
     RSUniRenderVisitor();
@@ -58,6 +58,11 @@ public:
     {
         isDirty_ = isDirty;
     }
+
+    void SetFocusedWindowPid(pid_t pid)
+    {
+        currentFocusedPid_ = pid;
+    }
 private:
     void DrawDirtyRectForDFX(const RectI& dirtyRect, const SkColor color,
         const SkPaint::Style fillType, float alpha);
@@ -75,11 +80,12 @@ private:
     void SetSurfaceGlobalDirtyRegion(std::shared_ptr<RSDisplayRenderNode>& node);
 
     void InitCacheSurface(RSSurfaceRenderNode& node, int width, int height);
-    void DrawCacheSurface(RSSurfaceRenderNode& node);
     void SetPaintOutOfParentFlag(RSBaseRenderNode& node);
     void CheckColorSpace(RSSurfaceRenderNode& node);
     void AddOverDrawListener(std::unique_ptr<RSRenderFrame>& renderFrame,
         std::shared_ptr<RSCanvasListener>& overdrawListener);
+
+    void RecordAppWindowNodeAndPostTask(RSSurfaceRenderNode& node, float width, float height);
 
     ScreenInfo screenInfo_;
     std::shared_ptr<RSDirtyRegionManager> curSurfaceDirtyManager_;
@@ -114,9 +120,15 @@ private:
     PartialRenderType partialRenderType_;
     bool isDirty_ = false;
     bool needFilter_ = false;
-    std::vector<RectI> filterRects_;
+    std::unordered_map<NodeId, std::vector<RectI>> filterRects_;
     ColorGamut newColorSpace_ = ColorGamut::COLOR_GAMUT_SRGB;
     std::vector<ScreenColorGamut> colorGamutmodes_;
+    ContainerWindowConfigType containerWindowConfig_;
+    pid_t currentFocusedPid_ = -1;
+
+    bool needColdStartThread_ = false; // flag used for cold start app window
+    bool needDrawStartingWindow_ = true; // flag used for avoiding drawing both app and starting window
+    bool needCheckFirstFrame_ = false; // flag used for avoiding notifying first frame repeatedly
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -18,6 +18,7 @@
 
 
 #include "GLES3/gl3.h"
+#include "securec.h"
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
 #include "../../../common/napi/n_exporter.h"
@@ -30,6 +31,8 @@ namespace OHOS {
 namespace Rosen {
 class WebGL2RenderingContextOverloads {
 public:
+    static const uint32_t INPUTFLOAT_LENGTH = 128;
+
     static napi_value BufferData(napi_env env, napi_callback_info info);
 
     static napi_value BufferSubData(napi_env env, napi_callback_info info);

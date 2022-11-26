@@ -78,6 +78,8 @@ public:
 
     bool TakeSurfaceCapture(NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX, float scaleY);
 
+    int32_t SetFocusAppInfo(int32_t pid, int32_t uid, const std::string &bundleName, const std::string &abilityName);
+
     ScreenId GetDefaultScreenId();
 
     std::vector<ScreenId> GetAllScreenIds();

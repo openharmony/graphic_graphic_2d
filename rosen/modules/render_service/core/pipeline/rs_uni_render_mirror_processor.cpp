@@ -63,6 +63,7 @@ void RSUniRenderMirrorProcessor::PostProcess()
         RS_LOGE("RSUniRenderMirrorProcessor::PostProcess renderFrame_ is null.");
         return;
     }
+    RSProcessor::RequestPerf(3, true); // set perf level 3 in mirrorScreen state
     renderFrame_->Flush();
 }
 
@@ -73,6 +74,7 @@ void RSUniRenderMirrorProcessor::ProcessSurface(RSSurfaceRenderNode& node)
 
 void RSUniRenderMirrorProcessor::ProcessDisplaySurface(RSDisplayRenderNode& node)
 {
+    RS_TRACE_NAME("RSUniRenderMirrorProcessor::ProcessDisplaySurface");
     if (canvas_ == nullptr) {
         RS_LOGE("RSVirtualScreenProcessor::ProcessDisplaySurface: Canvas is null!");
         return;

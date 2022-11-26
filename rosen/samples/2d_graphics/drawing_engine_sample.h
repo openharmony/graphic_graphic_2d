@@ -77,7 +77,7 @@ private:
     void ExcuteBenchMark(SkCanvas* canvas);
     bool DrawDrawingLayer(std::shared_ptr<HdiLayerInfo> &layer);
     void CreateDrawingSurface();
-    void OnHotPlugEvent(std::shared_ptr<HdiOutput> &output, bool connected);
+    void OnHotPlugEvent(const std::shared_ptr<HdiOutput> &output, bool connected);
     static void OnScreenPlug(std::shared_ptr<HdiOutput> &output, bool connected, void* data);
     static void OnPrepareCompleted(
         sptr<Surface> &surface, const struct PrepareCompleteParam &param, void* data);

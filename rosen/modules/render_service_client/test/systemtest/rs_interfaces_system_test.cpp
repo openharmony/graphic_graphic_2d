@@ -203,6 +203,19 @@ HWTEST_F(RSInterfacesSystemTest, ScreenManager03, Function | MediumTest | Level2
     auto res = ScreenManager::GetInstance().DestroyVirtualScreen(virtualScreenId);
     ASSERT_EQ(DMError::DM_OK, res);
 }
+
+/**
+ * @tc.name: SetFocusAppInfo
+ * @tc.desc: Set focus AppInfo
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSInterfacesSystemTest, SetFocusAppInfo, Function | MediumTest | Level2)
+{
+    FocusAppInfo info;
+
+    int32_t ret = RSInterfaces::GetInstance().SetFocusAppInfo(info);
+    ASSERT_EQ(ret, StatusCode::SUCCESS);
+}
 }
 } // namespace Rosen
 } // namespace OHOS

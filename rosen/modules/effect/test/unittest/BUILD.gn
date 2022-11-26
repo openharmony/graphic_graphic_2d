@@ -58,8 +58,8 @@ ohos_unittest("EffectTest") {
     "//foundation/graphic/graphic_2d/rosen/modules/effect/effectChain:libeffectchain",
     "//foundation/graphic/graphic_2d/rosen/modules/effect/egl:libegl_effect",
     "//foundation/graphic/graphic_2d/utils/color_manager:color_manager",
-    "//foundation/multimedia/image_framework/interfaces/innerkits:image",
     "//foundation/multimedia/image_framework/interfaces/innerkits:image_native",
+    "//foundation/multimedia/image_framework/interfaces/kits/js/common:image",
     "//third_party/flutter/build/skia:ace_skia_ohos",
   ]
 

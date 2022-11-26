@@ -75,8 +75,8 @@ namespace OHOS {
         bool isPreMulti = GetData<bool>();
         float matrix = GetData<float>();
         ColorDataSpace colorSpace = GetData<ColorDataSpace>();
-        HDRMetaData metaData = GetData<HDRMetaData>();
-        HDRMetadataKey key = GetData<HDRMetadataKey>();
+        GraphicHDRMetaData metaData = GetData<GraphicHDRMetaData>();
+        GraphicHDRMetadataKey key = GetData<GraphicHDRMetadataKey>();
         uint8_t metaData2 = GetData<uint8_t>();
         PresentTimestamp timestamp = GetData<PresentTimestamp>();
 
@@ -97,7 +97,7 @@ namespace OHOS {
         device->SetLayerColorTransform(screenId, layerId, &matrix);
         device->SetLayerColorDataSpace(screenId, layerId, colorSpace);
         device->GetLayerColorDataSpace(screenId, layerId, colorSpace);
-        std::vector<HDRMetaData> metaDatas = {metaData};
+        std::vector<GraphicHDRMetaData> metaDatas = {metaData};
         device->SetLayerMetaData(screenId, layerId, metaDatas);
         std::vector<uint8_t> metaDatas2 = {metaData2};
         device->SetLayerMetaDataSet(screenId, layerId, key, metaDatas2);
@@ -157,7 +157,7 @@ namespace OHOS {
             .minLum = minLum,
         };
         device->GetHDRCapabilityInfos(screenId, info);
-        std::vector<HDRMetadataKey> keys;
+        std::vector<GraphicHDRMetadataKey> keys;
         device->GetSupportedMetaDataKey(screenId, keys);
         device->Commit(screenId, fence);
 

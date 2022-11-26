@@ -33,7 +33,7 @@ txt::FontWeight RosenConvertTxtFontWeight(FontWeight& fontWeight);
 txt::FontStyle RosenConvertTxtFontStyle(FontStyle& fontStyle);
 txt::TextBaseline RosenConvertTxtTextBaseline(TextBaseline& textBaseline);
 txt::TextAlign RosenConvertTxtTextAlign(TextAlign& textAlign);
-minikin::BreakStrategy RosenConverMinkinBreakStrateg(BreakStrategy& breakStrategy);
+minikin::BreakStrategy RosenConverMinkinBreakStrategy(BreakStrategy& breakStrategy);
 #ifndef USE_CANVASKIT0310_SKIA
 // new flutter libtxt not have WordBreakType
 minikin::WordBreakType RosenConverMinkinWordBreakType(WordBreakType& wordBreakType);
@@ -42,7 +42,7 @@ txt::TextDirection RosenConvertTxtTextDirection(TextDirection& textDirection);
 txt::TextDecoration RosenConvertTxtTextDecoration(TextDecoration& textDecoration);
 txt::TextDecorationStyle RosenConvertTxtTextDecorationStyle(TextDecorationStyle& textDecorationStyle);
 txt::PlaceholderAlignment RosenConvertAlignment(const PlaceholderAlignment& alignment);
-txt::PlaceholderRun RosenConvertPlaceholderRun(PlaceholderRun& placeholderRun);
+txt::PlaceholderRun RosenConvertPlaceholderRun(const PlaceholderRun& placeholderRun);
 void RosenConvertTxtStyle(const TextStyle& textStyle, txt::TextStyle& txtStyle);
 void RosenConvertTypographyStyle(const TypographyStyle& typographyStyle, txt::ParagraphStyle& txtParagraphStyle);
 txt::Paragraph::RectHeightStyle RosenConvertTxtRectHeightStyle(TypographyProperties::RectHeightStyle heightStyle);

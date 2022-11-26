@@ -138,6 +138,7 @@ public:
         return dirtyManager_;
     }
     void UpdateDisplayDirtyManager(int32_t bufferage);
+    void ClearCurrentSurfacePos();
     void UpdateSurfaceNodePos(NodeId id, RectI rect)
     {
         currentFrameSurfacePos_[id] = rect;

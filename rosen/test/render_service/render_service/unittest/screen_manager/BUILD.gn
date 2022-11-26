@@ -53,8 +53,52 @@ ohos_unittest("RSScreenManagerTest") {
   subsystem_name = "graphic"
 }
 
+##############################  RSScreenTest  ##################################
+ohos_unittest("RSScreenTest") {
+  module_out_path = module_output_path
+
+  sources = [ "rs_screen_test.cpp" ]
+
+  configs = [
+    ":screen_test",
+    "$ace_root:ace_test_config",
+  ]
+
+  include_dirs = [
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service/core",
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/src",
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service_client/core",
+    "//foundation/graphic/graphic_2d/rosen/include",
+    "//foundation/graphic/graphic_2d/rosen/test/include",
+    "//foundation/barrierfree/accessibility/interfaces/innerkits/acfwk/include",
+  ]
+
+  deps = [
+    "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
+    "//foundation/graphic/graphic_2d/rosen/modules/composer:libcomposer",
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service:librender_service",
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:librender_service_base",
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:librender_service_client",
+    "//third_party/googletest:gtest_main",
+  ]
+
+  external_deps = [
+    "c_utils:utils",
+    "init:libbegetutil",
+  ]
+
+  subsystem_name = "graphic"
+}
+
 ###############################################################################
 config("screen_manager_test") {
+  #visibility = [ ":*" ]
+  include_dirs =
+      [ "//foundation/graphic/graphic_2d/rosen/modules/render_service/core" ]
+}
+
+###############################################################################
+config("screen_test") {
   #visibility = [ ":*" ]
   include_dirs =
       [ "//foundation/graphic/graphic_2d/rosen/modules/render_service/core" ]
@@ -63,5 +107,8 @@ config("screen_manager_test") {
 group("unittest") {
   testonly = true
 
-  deps = [ ":RSScreenManagerTest" ]
+  deps = [
+    ":RSScreenManagerTest",
+    ":RSScreenTest",
+  ]
 }

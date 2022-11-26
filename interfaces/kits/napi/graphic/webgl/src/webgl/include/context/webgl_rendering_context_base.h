@@ -19,6 +19,7 @@
 #include <GLES2/gl2.h>
 #include <GLES3/gl31.h>
 #include <GLES2/gl2ext.h>
+#include "securec.h"
 #include "common/napi/n_exporter.h"
 #include "webgl_rendering_context_basic_base.h"
 
@@ -326,6 +327,7 @@ public:
     static const GLenum CONTEXT_LOST_WEBGL = 0x9242;
     static const GLenum UNPACK_COLORSPACE_CONVERSION_WEBGL = 0x9243;
     static const GLenum BROWSER_DEFAULT_WEBGL = 0x9244;
+    static const uint32_t INPUTFLOAT_LENGTH = 128;
     // readonly canvas: HTMLCanvasElement | OffscreenCanvas;
     int drawingBufferWidth() const;
     int drawingBufferHeight() const;

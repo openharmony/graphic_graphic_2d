@@ -71,12 +71,6 @@ protected:
 
     void InitValueEstimator() override;
 
-    // path animation is different from other animations, no need to set final value again
-    // while all animations finished
-    void MarkAddAnimationToProperty() override {}
-
-    void MarkRemoveAnimationToProperty() override {}
-
 private:
 #ifdef ROSEN_OHOS
     bool ParseParam(Parcel& parcel) override;

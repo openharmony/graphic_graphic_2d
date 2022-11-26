@@ -182,13 +182,13 @@ void LayerContext::SetLayerTransformType()
     }
 
     if (count >= 100 && count <= 200) { // 100-200 ROTATE_90
-        hdiLayer_->SetTransform(TransformType::ROTATE_90);
+        hdiLayer_->SetTransform(GraphicTransformType::GRAPHIC_ROTATE_90);
     } else if (count >= 500 && count <= 600) { // 500-600 ROTATE_180
-        hdiLayer_->SetTransform(TransformType::ROTATE_180);
+        hdiLayer_->SetTransform(GraphicTransformType::GRAPHIC_ROTATE_180);
     } else if (count >= 900 && count <= 1000) { // 900-1000 ROTATE_270
-        hdiLayer_->SetTransform(TransformType::ROTATE_270);
+        hdiLayer_->SetTransform(GraphicTransformType::GRAPHIC_ROTATE_270);
     } else if (count >= 1300 && count <= 1400) { // 1300-1400 ROTATE_NONE
-        hdiLayer_->SetTransform(TransformType::ROTATE_NONE);
+        hdiLayer_->SetTransform(GraphicTransformType::GRAPHIC_ROTATE_NONE);
     }
 
     count++;

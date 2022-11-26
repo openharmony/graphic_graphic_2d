@@ -28,6 +28,10 @@ struct RSSysEventMsg final {
     std::string stringId;
     std::string msg;
     OHOS::HiviewDFX::HiSysEvent::EventType eventType;
+    int32_t pid;
+    int32_t uid;
+    std::string bundleName;
+    std::string abilityName;
 };
 
 class RSEventTimer final {
@@ -66,7 +70,9 @@ public:
 
     virtual void SetParam(const std::string& key, const std::string& value) = 0;
     virtual void SetLoopStartTag() = 0;
-    virtual void SetLoopFinishTag() = 0;
+    virtual void SetLoopFinishTag(
+        int32_t focusAppPid, int32_t focusAppUid,
+        std::string& focusAppBundleName, std::string& focusAppAbilityName) = 0;
 
 protected:
     RSBaseEventDetector() = default;
@@ -86,6 +92,10 @@ protected:
     std::map<std::string, std::string> paramList_; // key: paramName
     std::string stringId_;
     EventReportCallback eventCallback_;
+    int32_t focusAppPid_ = -1;
+    int32_t focusAppUid_ = -1;
+    std::string focusAppBundleName_ = "";
+    std::string focusAppAbilityName_ = "";
 };
 
 
@@ -95,7 +105,9 @@ public:
     ~RSTimeOutDetector() = default;
     void SetParam(const std::string& key, const std::string& value) override;
     void SetLoopStartTag() override;
-    void SetLoopFinishTag() override;
+    void SetLoopFinishTag(
+        int32_t focusAppPid, int32_t focusAppUid,
+        std::string& focusAppBundleName, std::string& focusAppAbilityName) override;
 private:
     void EventReport(uint64_t costTimeMs);
     int timeOutThresholdMs_ = INT_MAX; // default: No Detector

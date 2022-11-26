@@ -33,7 +33,7 @@ public:
     virtual ~HelloComposer() = default;
 
     void Init();
-    void Run(std::vector<std::string> &runArgs);
+    void Run(const std::vector<std::string> &runArgs);
 
 private:
     uint32_t freq_ = 30;

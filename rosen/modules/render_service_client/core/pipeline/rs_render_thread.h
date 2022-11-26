@@ -142,7 +142,7 @@ private:
     int32_t tid_ = -1;
     uint64_t mValue = 0;
 
-    uint64_t uiTimestamp_;
+    uint64_t uiTimestamp_ = 0;
     uint64_t commandTimestamp_ = 0;
 
     // for jank frame detector

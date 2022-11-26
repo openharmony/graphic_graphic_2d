@@ -16,6 +16,7 @@
 #include "render/rs_mask.h"
 
 #include "platform/common/rs_log.h"
+#include "third_party/skia/include/core/SkPictureRecorder.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -133,6 +134,11 @@ sk_sp<SkSVGDOM> RSMask::GetSvgDom() const
     return svgDom_;
 }
 
+sk_sp<SkPicture> RSMask::GetSvgPicture() const
+{
+    return svgPicture_;
+}
+
 void RSMask::SetMaskType(MaskType type)
 {
     type_ = type;
@@ -156,9 +162,6 @@ bool RSMask::IsPathMask() const
 #ifdef ROSEN_OHOS
 bool RSMask::Marshalling(Parcel& parcel) const
 {
-    if (IsSvgMask()) {
-        ROSEN_LOGW("SVG RSMask::Marshalling not implement");
-    }
     if (!(RSMarshallingHelper::Marshalling(parcel, type_) &&
             RSMarshallingHelper::Marshalling(parcel, svgX_) &&
             RSMarshallingHelper::Marshalling(parcel, svgY_) &&
@@ -168,6 +171,17 @@ bool RSMask::Marshalling(Parcel& parcel) const
             RSMarshallingHelper::Marshalling(parcel, maskPath_))) {
         ROSEN_LOGE("RSMask::Marshalling failed!");
         return false;
+    }
+    if (IsSvgMask()) {
+        ROSEN_LOGD("SVG RSMask::Marshalling");
+        SkPictureRecorder recorder;
+        SkCanvas* recordingCanvas = recorder.beginRecording(SkRect::MakeSize(svgDom_->containerSize()));
+        svgDom_->render(recordingCanvas);
+        sk_sp<SkPicture> picture = recorder.finishRecordingAsPicture();
+        if (!RSMarshallingHelper::Marshalling(parcel, picture)) {
+            ROSEN_LOGE("RSMask::Marshalling SkPicture failed!");
+            return false;
+        }
     }
     return true;
 }
@@ -186,7 +200,11 @@ RSMask* RSMask::Unmarshalling(Parcel& parcel)
         return nullptr;
     }
     if (rsMask->IsSvgMask()) {
-        ROSEN_LOGW("SVG RSMask::Unmarshalling not implement");
+        ROSEN_LOGD("SVG RSMask::Unmarshalling");
+        if (!RSMarshallingHelper::Unmarshalling(parcel, rsMask->svgPicture_)) {
+            ROSEN_LOGE("RSMask::Unmarshalling SkPicture failed!");
+            return nullptr;
+        }
     }
     return rsMask.release();
 }

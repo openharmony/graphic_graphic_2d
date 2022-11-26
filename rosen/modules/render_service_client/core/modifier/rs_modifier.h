@@ -76,9 +76,9 @@ protected:
         property_->SetMotionPathOption(motionPathOption);
     }
 
-    std::shared_ptr<RSRenderPropertyBase> CreateRenderProperty() const
+    std::shared_ptr<RSRenderPropertyBase> GetRenderProperty() const
     {
-        return property_->CreateRenderProperty();
+        return property_->GetRenderProperty();
     }
 
     virtual std::shared_ptr<RSRenderModifier> CreateRenderModifier() const = 0;

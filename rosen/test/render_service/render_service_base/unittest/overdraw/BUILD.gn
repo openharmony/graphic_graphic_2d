@@ -20,6 +20,7 @@ ohos_unittest("overdraw_test") {
 
   sources = [
     "rs_cpu_overdraw_canvas_listener_test.cpp",
+    "rs_gpu_overdraw_canvas_listener_test.cpp",
     "rs_listened_canvas_test.cpp",
     "rs_overdraw_controller_test.cpp",
   ]

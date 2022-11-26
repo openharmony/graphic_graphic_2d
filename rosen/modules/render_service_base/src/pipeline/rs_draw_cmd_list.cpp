@@ -17,6 +17,8 @@
 
 #include <unordered_map>
 
+#include "rs_trace.h"
+
 #include "pipeline/rs_draw_cmd.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "platform/common/rs_log.h"
@@ -207,14 +209,52 @@ DrawCmdList* DrawCmdList::Unmarshalling(Parcel& parcel)
 }
 #endif
 
-// modify the mutex to global to extend life cycle, fix destructor crash
-// only for DrawCmdListManager
-static std::mutex listsMutex_;
+void DrawCmdList::GenerateCache(SkSurface* surface)
+{
+#ifdef ROSEN_OHOS
+    if (isCached_) {
+        return;
+    }
+    isCached_ = true;
+    RS_TRACE_FUNC();
+    std::lock_guard<std::mutex> lock(mutex_);
+
+    for (auto index = 0u; index < ops_.size(); index++) {
+        auto& op = ops_[index];
+        if (auto cached_op = op->GenerateCachedOpItem(surface)) {
+            // backup the original op and position
+            opReplacedByCache_.emplace(index, op.release());
+            // replace the original op with the cached op
+            op.reset(cached_op.release());
+        }
+    }
+#endif
+}
+
+void DrawCmdList::ClearCache()
+{
+#ifdef ROSEN_OHOS
+    if (!isCached_) {
+        return;
+    }
+    isCached_ = false;
+    RS_TRACE_FUNC();
+    std::lock_guard<std::mutex> lock(mutex_);
+
+    // restore the original op
+    for (auto& it : opReplacedByCache_) {
+        ops_[it.first] = std::move(it.second);
+    }
+    opReplacedByCache_.clear();
+#endif
+}
+
+// modify the DrawCmdListManager instance to global to extend life cycle, fix destructor crash
+static DrawCmdListManager gDrawCmdListManagerInstance;
 
 DrawCmdListManager& DrawCmdListManager::Instance()
 {
-    static DrawCmdListManager instance;
-    return instance;
+    return gDrawCmdListManagerInstance;
 }
 
 void DrawCmdListManager::RegisterDrawCmdList(NodeId id, std::shared_ptr<DrawCmdList> drawCmdList)

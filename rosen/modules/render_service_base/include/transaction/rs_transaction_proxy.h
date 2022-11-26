@@ -43,6 +43,9 @@ public:
 
     void ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task, bool isRenderServiceTask = false);
 
+    void Begin();
+    void Commit(uint64_t timestamp = 0);
+
 private:
     RSTransactionProxy();
     virtual ~RSTransactionProxy();

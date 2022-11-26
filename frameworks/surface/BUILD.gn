@@ -29,10 +29,15 @@ config("surface_config") {
 
 config("surface_public_config") {
   include_dirs = [
+    "//foundation/communication/ipc/interfaces/innerkits/ipc_core/include",
     "//foundation/graphic/graphic_2d/interfaces/inner_api/surface",
     "//foundation/graphic/graphic_2d/interfaces/inner_api/common",
     "//foundation/graphic/graphic_2d/utils/sandbox",
   ]
+
+  if (defined(graphic_2d_ext_configs.vendor_root)) {
+    include_dirs += graphic_2d_ext_configs.libsurface_ext_include_dirs
+  }
 
   defines = []
   if (ace_enable_gpu) {
@@ -61,6 +66,7 @@ ohos_shared_library("surface") {
     "src/producer_surface.cpp",
     "src/surface.cpp",
     "src/surface_buffer_impl.cpp",
+    "src/surface_delegate.cpp",
     "src/surface_tunnel_handle.cpp",
     "src/surface_utils.cpp",
   ]
@@ -94,6 +100,15 @@ ohos_shared_library("surface") {
   ]
 
   symlink_target_name = [ "libnative_window.so" ]
+
+  if (defined(graphic_2d_ext_configs.vendor_root)) {
+    sources += graphic_2d_ext_configs.libsurface_ext_sources
+    sources -= graphic_2d_ext_configs.libsurface_ext_sources_del
+
+    public_deps += [ "//foundation/graphic/graphic_2d_ext/ohcore/graphic_compat_layer:libgraphic_compat_layer" ]
+
+    public_deps -= [ "//drivers/peripheral/display/hdi_service/gralloc/client:hdi_gralloc_client" ]
+  }
 
   part_name = "graphic_standard"
   subsystem_name = "graphic"
