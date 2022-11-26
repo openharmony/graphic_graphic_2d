@@ -27,13 +27,6 @@ ohos_unittest("RSRenderServiceBaseBackendTest") {
     "rs_surface_ohos_raster_test.cpp",
   ]
 
-  if (ace_enable_gpu) {
-    sources += [
-      "rs_surface_frame_ohos_gl_test.cpp",
-      "rs_surface_ohos_gl_test.cpp",
-    ]
-  }
-
   configs = [
     ":render_test",
     "$ace_root:ace_test_config",

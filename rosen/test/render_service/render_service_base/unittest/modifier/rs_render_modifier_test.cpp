@@ -125,6 +125,7 @@ HWTEST_F(RSRenderModifierTest, DrawCmdListModifier001, TestSize.Level1)
         ret = (modifier->Marshalling(parcel) & (RSDrawCmdListRenderModifier::Unmarshalling(parcel) != nullptr));
         parcel1.SetMaxCapacity(parcel1.GetMaxCapacity() + 1);
     }
+    free(buffer);
     ASSERT_TRUE(ret);
 }
 }

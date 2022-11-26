@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include <securec.h>
 #include <gtest/gtest.h>
 
 #include "screen_manager/rs_screen_props.h"
@@ -61,5 +62,33 @@ HWTEST_F(RSScreenPropsTest, Unmarshalling001, TestSize.Level1)
     screenProps.Unmarshalling(parcel);
 }
 
+/**
+ * @tc.name: marshallingAndUnmarshallling001
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenPropsTest, marshallingAndUnmarshallling001, TestSize.Level1)
+{
+    RSScreenProps screenProps("11", 1, 1);
+    Parcel parcel;
+    char* buffer = static_cast<char *>(malloc(parcel.GetMaxCapacity()));
+    auto bufferSize = parcel.GetMaxCapacity();
+    memset_s(buffer, parcel.GetMaxCapacity(), 0, parcel.GetMaxCapacity());
+    ASSERT_TRUE(parcel.WriteUnpadBuffer(buffer, parcel.GetMaxCapacity()));
+    bool ret = false;
+    parcel.SkipBytes(bufferSize);
+    while (!ret) {
+        size_t position = parcel.GetWritePosition();
+        ret = screenProps.Marshalling(parcel) & (RSScreenProps::Unmarshalling(parcel) != nullptr);
+        parcel.SetMaxCapacity(parcel.GetMaxCapacity() + 1);
+        if (!ret) {
+            parcel.RewindWrite(position);
+            parcel.RewindRead(bufferSize);
+        }
+    }
+    free(buffer);
+    ASSERT_TRUE(ret);
+}
 } // namespace Rosen
 } // namespace OHOS
