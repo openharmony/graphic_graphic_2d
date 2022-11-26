@@ -133,4 +133,61 @@ HWTEST_F(RSImageTest, LifeCycle002, TestSize.Level1)
     parcel.WriteInt32(1);
     ASSERT_TRUE(RSImage::Unmarshalling(parcel) == nullptr);
 }
+
+/**
+ * @tc.name: TestRSImage001
+ * @tc.desc: IsEqual test.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSImageTest, TestRSImage001, TestSize.Level1)
+{
+    RSImage image;
+    RSImage other;
+    image.IsEqual(other);
 }
+
+/**
+ * @tc.name: TestRSImage002
+ * @tc.desc: CanvasDrawImage test.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSImageTest, TestRSImage002, TestSize.Level1)
+{
+    RSImage image;
+    SkCanvas canvas;
+    SkRect rect;
+    SkPaint paint;
+    bool isBackground = false;
+    image.CanvasDrawImage(canvas, rect, paint, isBackground);
+    isBackground = true;
+    image.CanvasDrawImage(canvas, rect, paint, isBackground);
+}
+
+/**
+ * @tc.name: TestRSImage003
+ * @tc.desc: ApplyImageFit test.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSImageTest, TestRSImage003, TestSize.Level1)
+{
+    RSImage image;
+    SkCanvas canvas;
+    SkRect rect;
+    SkPaint paint;
+    bool isBackground = false;
+    image.SetImageFit(0);
+    image.CanvasDrawImage(canvas, rect, paint, isBackground);
+    image.SetImageFit(5);
+    image.CanvasDrawImage(canvas, rect, paint, isBackground);
+    image.SetImageFit(2);
+    image.CanvasDrawImage(canvas, rect, paint, isBackground);
+    image.SetImageFit(3);
+    image.CanvasDrawImage(canvas, rect, paint, isBackground);
+    image.SetImageFit(4);
+    image.CanvasDrawImage(canvas, rect, paint, isBackground);
+    image.SetImageFit(6);
+    image.CanvasDrawImage(canvas, rect, paint, isBackground);
+    image.SetImageFit(1);
+    image.CanvasDrawImage(canvas, rect, paint, isBackground);
+}
+} // namespace OHOS::Rosen
