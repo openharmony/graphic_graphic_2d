@@ -843,6 +843,7 @@ void BufferQueue::ClearLocked()
 
 GSError BufferQueue::GoBackground()
 {
+    BLOGND("GoBackground, Queue id: %{public}" PRIu64, uniqueId_);
     {
         std::lock_guard<std::mutex> lockGuard(listenerMutex_);
         if (listener_ != nullptr) {
