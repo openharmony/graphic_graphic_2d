@@ -21,7 +21,13 @@ module_output_path = "graphic/rosen_engine/render_service_base/platform/ohos"
 ohos_unittest("RSRenderServiceBasePlatformTest") {
   module_out_path = module_output_path
 
-  sources = [ "rs_render_service_client_test.cpp" ]
+  sources = [
+    "rs_event_manager_test.cpp",
+    "rs_render_service_client_test.cpp",
+    "rs_render_service_proxy_test.cpp",
+    "rs_surface_ohos_test.cpp",
+    "rs_vsync_client_ohos_test.cpp",
+  ]
 
   configs = [
     ":render_test",
@@ -35,6 +41,12 @@ ohos_unittest("RSRenderServiceBasePlatformTest") {
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_client/core",
     "//foundation/graphic/graphic_2d/rosen/include",
     "//foundation/graphic/graphic_2d/rosen/test/include",
+    "//commonlibrary/c_utils/base/include",
+    "//utils/system/safwk/native/include",
+    "//foundation/graphic/graphic_2d/prebuilts/librarys/gpu/include",
+    "//drivers/peripheral/display/interfaces/include/",
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service_client/core",
+    "//foundation/graphic/graphic_2d/utils/log",
   ]
 
   deps = [
@@ -44,9 +56,33 @@ ohos_unittest("RSRenderServiceBasePlatformTest") {
     "//third_party/googletest:gtest_main",
   ]
 
+  public_deps = [
+    "//commonlibrary/c_utils/base:utils",
+    "//foundation/graphic/graphic_2d:libsurface",
+    "//foundation/graphic/graphic_2d/rosen/modules/composer/vsync:libvsync",
+    "//foundation/graphic/graphic_2d/utils:sync_fence",
+    "//foundation/multimedia/image_framework/interfaces/innerkits:image_native",
+    "//third_party/flutter/build/skia:ace_skia_ohos",
+  ]
+
+  if (ace_enable_gpu) {
+    include_dirs += [ "//third_party/openssl/include" ]
+
+    public_deps += [
+      "//foundation/graphic/graphic_2d:libgl",
+      "//third_party/openssl:crypto_source",
+    ]
+  }
+
   external_deps = [
     "c_utils:utils",
+    "eventhandler:libeventhandler",
+    "hisysevent_native:libhisysevent",
+    "hitrace_native:hitrace_meter",
+    "hiviewdfx_hilog_native:libhilog",
     "init:libbegetutil",
+    "ipc:ipc_core",
+    "samgr:samgr_proxy",
   ]
 
   subsystem_name = "graphic"
