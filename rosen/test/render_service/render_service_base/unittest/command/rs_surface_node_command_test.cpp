@@ -35,7 +35,6 @@ void RSSurfaceNodeCommandTest::SetUp() {}
 void RSSurfaceNodeCommandTest::TearDown() {}
 
 
-
 /**
  * @tc.name: TestRSSurfaceNodeCommand002
  * @tc.desc: ConnectToNodeInRenderService test.
