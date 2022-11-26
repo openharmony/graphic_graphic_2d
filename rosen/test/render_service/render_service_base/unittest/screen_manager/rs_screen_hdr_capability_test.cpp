@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include <securec.h>
 #include <gtest/gtest.h>
 
 #include "screen_manager/rs_screen_hdr_capability.h"
@@ -61,5 +62,34 @@ HWTEST_F(RSScreenHDRCapabilityTest, Unmarshalling001, TestSize.Level1)
     capability.Unmarshalling(parcel);
 }
 
+/**
+ * @tc.name: marshallingAndUnmarshallling001
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenHDRCapabilityTest, marshallingAndUnmarshallling001, TestSize.Level1)
+{
+    std::vector<ScreenHDRFormat> formats = {ScreenHDRFormat::HDR10, ScreenHDRFormat::HDR_VIVID};
+    RSScreenHDRCapability rs(1.f, 1.f, 1.f, formats);
+    Parcel parcel;
+    auto bufferSize = parcel.GetMaxCapacity();
+    char* buffer = static_cast<char *>(malloc(parcel.GetMaxCapacity()));
+    memset_s(buffer, parcel.GetMaxCapacity(), 0, parcel.GetMaxCapacity());
+    ASSERT_TRUE(parcel.WriteUnpadBuffer(buffer, parcel.GetMaxCapacity()));
+    bool ret = false;
+    parcel.SkipBytes(bufferSize);
+    while (!ret) {
+        size_t position = parcel.GetWritePosition();
+        ret = rs.Marshalling(parcel) & (RSScreenHDRCapability::Unmarshalling(parcel) != nullptr);
+        parcel.SetMaxCapacity(parcel.GetMaxCapacity() + 1);
+        if (!ret) {
+            parcel.RewindWrite(position);
+            parcel.RewindRead(bufferSize);
+        }
+    }
+    free(buffer);
+    ASSERT_TRUE(ret);
+}
 } // namespace Rosen
 } // namespace OHOS

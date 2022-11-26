@@ -17,6 +17,7 @@
 
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "property/rs_properties_painter.h"
+#include "render/rs_skia_filter.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -57,6 +58,7 @@ HWTEST_F(RSPropertiesPainterTest, GetGravityMatrix001, TestSize.Level1)
     RSPropertiesPainter::GetGravityMatrix(Gravity::BOTTOM_RIGHT, rect, w, h, mat);
     RSPropertiesPainter::GetGravityMatrix(Gravity::RESIZE_ASPECT, rect, w, h, mat);
     RSPropertiesPainter::GetGravityMatrix(Gravity::RESIZE_ASPECT_FILL, rect, w, h, mat);
+    RSPropertiesPainter::GetGravityMatrix(Gravity::DEFAULT, rect, w, h, mat);
 }
 
 /**
@@ -74,6 +76,90 @@ HWTEST_F(RSPropertiesPainterTest, GetShadowDirtyRect001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetShadowDirtyRect002
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertiesPainterTest, GetShadowDirtyRect002, TestSize.Level1)
+{
+    RectI dirtyShadow;
+    RSProperties properties;
+    std::shared_ptr<RSPath> rsPath = std::make_shared<RSPath>();
+    SkPath skPath;
+    rsPath->SetSkiaPath(skPath);
+    properties.SetShadowPath(rsPath);
+    RRect rrect;
+    RSPropertiesPainter::GetShadowDirtyRect(dirtyShadow, properties, &rrect);
+}
+
+/**
+ * @tc.name: GetShadowDirtyRect003
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertiesPainterTest, GetShadowDirtyRect003, TestSize.Level1)
+{
+    RectI dirtyShadow;
+    RSProperties properties;
+    std::shared_ptr<RSPath> rsPath = std::make_shared<RSPath>();
+    properties.SetClipBounds(rsPath);
+    RRect rrect;
+    RSPropertiesPainter::GetShadowDirtyRect(dirtyShadow, properties, &rrect);
+}
+
+/**
+ * @tc.name: GetShadowDirtyRect004
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertiesPainterTest, GetShadowDirtyRect004, TestSize.Level1)
+{
+    RectI dirtyShadow;
+    RSProperties properties;
+    RectF rect;
+    rect.SetAll(1.f, 1.f, 1.f, 1.f);
+    RRect rrect(rect, 1.f, 1.f);
+    RSPropertiesPainter::GetShadowDirtyRect(dirtyShadow, properties, &rrect);
+}
+
+/**
+ * @tc.name: GetShadowDirtyRect005
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertiesPainterTest, GetShadowDirtyRect005, TestSize.Level1)
+{
+    RectI dirtyShadow;
+    RSProperties properties;
+    properties.SetShadowElevation(0.f);
+    RectF rect;
+    rect.SetAll(1.f, 1.f, 1.f, 1.f);
+    RRect rrect(rect, 1.f, 1.f);
+    RSPropertiesPainter::GetShadowDirtyRect(dirtyShadow, properties, &rrect);
+}
+
+/**
+ * @tc.name: GetShadowDirtyRect006
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertiesPainterTest, GetShadowDirtyRect006, TestSize.Level1)
+{
+    RectI dirtyShadow;
+    RSProperties properties;
+    properties.SetShadowElevation(1.f);
+    RectF rect;
+    rect.SetAll(1.f, 1.f, 1.f, 1.f);
+    RRect rrect(rect, 1.f, 1.f);
+    RSPropertiesPainter::GetShadowDirtyRect(dirtyShadow, properties, &rrect);
+}
+
+/**
  * @tc.name: DrawShadow001
  * @tc.desc: test
  * @tc.type:FUNC
@@ -86,6 +172,149 @@ HWTEST_F(RSPropertiesPainterTest, DrawShadow001, TestSize.Level1)
     RSProperties properties;
     RRect rrect;
     RSPropertiesPainter::DrawShadow(properties, canvas, &rrect);
+}
+
+/**
+ * @tc.name: DrawShadow002
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertiesPainterTest, DrawShadow002, TestSize.Level1)
+{
+    SkCanvas skCanvas;
+    RSPaintFilterCanvas canvas(&skCanvas);
+    canvas.SetCacheEnabled(true);
+    RSProperties properties;
+    RRect rrect;
+    RSPropertiesPainter::DrawShadow(properties, canvas, &rrect);
+}
+
+/**
+ * @tc.name: DrawShadow003
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertiesPainterTest, DrawShadow003, TestSize.Level1)
+{
+    SkCanvas skCanvas;
+    RSPaintFilterCanvas canvas(&skCanvas);
+    RSProperties properties;
+    std::shared_ptr<RSPath> rsPath = std::make_shared<RSPath>();
+    SkPath skPath;
+    rsPath->SetSkiaPath(skPath);
+    properties.SetShadowPath(rsPath);
+    RRect rrect;
+    RSPropertiesPainter::DrawShadow(properties, canvas, &rrect);
+}
+
+/**
+ * @tc.name: DrawShadow004
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertiesPainterTest, DrawShadow004, TestSize.Level1)
+{
+    SkCanvas skCanvas;
+    RSPaintFilterCanvas canvas(&skCanvas);
+    RSProperties properties;
+    std::shared_ptr<RSPath> rsPath = std::make_shared<RSPath>();
+    properties.SetClipBounds(rsPath);
+    RRect rrect;
+    RSPropertiesPainter::DrawShadow(properties, canvas, &rrect);
+}
+
+/**
+ * @tc.name: DrawShadow005
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertiesPainterTest, DrawShadow005, TestSize.Level1)
+{
+    SkCanvas skCanvas;
+    RSPaintFilterCanvas canvas(&skCanvas);
+    RSProperties properties;
+    RectF rect;
+    rect.SetAll(1.f, 1.f, 1.f, 1.f);
+    RRect rrect(rect, 1.f, 1.f);
+    RSPropertiesPainter::DrawShadow(properties, canvas, &rrect);
+}
+
+/**
+ * @tc.name: DrawShadow006
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertiesPainterTest, DrawShadow006, TestSize.Level1)
+{
+    SkCanvas skCanvas;
+    RSPaintFilterCanvas canvas(&skCanvas);
+    RSProperties properties;
+    properties.SetShadowElevation(0.f);
+    RectF rect;
+    rect.SetAll(1.f, 1.f, 1.f, 1.f);
+    RRect rrect(rect, 1.f, 1.f);
+    RSPropertiesPainter::DrawShadow(properties, canvas, &rrect);
+}
+
+/**
+ * @tc.name: DrawShadow007
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertiesPainterTest, DrawShadow007, TestSize.Level1)
+{
+    SkCanvas skCanvas;
+    RSPaintFilterCanvas canvas(&skCanvas);
+    RSProperties properties;
+    properties.SetShadowElevation(1.f);
+    RectF rect;
+    rect.SetAll(1.f, 1.f, 1.f, 1.f);
+    RRect rrect(rect, 1.f, 1.f);
+    RSPropertiesPainter::DrawShadow(properties, canvas, &rrect);
+}
+
+/**
+ * @tc.name: DrawFilter001
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertiesPainterTest, DrawFilter001, TestSize.Level1)
+{
+    SkCanvas skCanvas;
+    RSPaintFilterCanvas canvas(&skCanvas);
+    std::shared_ptr<RSFilter> rsFilter = RSFilter::CreateBlurFilter(1.f, 1.f);
+    RSProperties properties;
+    properties.SetBackgroundFilter(rsFilter);
+    auto filter = std::static_pointer_cast<RSSkiaFilter>(properties.GetBackgroundFilter());
+    auto skRectPtr = std::make_unique<SkRect>();
+    skRectPtr->setXYWH(0, 0, 1.f, 1.f);
+    RSPropertiesPainter::DrawFilter(properties, canvas, filter, skRectPtr, canvas.GetSurface());
+}
+
+/**
+ * @tc.name: DrawFilter002
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertiesPainterTest, DrawFilter002, TestSize.Level1)
+{
+    SkCanvas skCanvas;
+    RSPaintFilterCanvas canvas(&skCanvas);
+    std::shared_ptr<RSFilter> rsFilter = RSFilter::CreateBlurFilter(1.f, 1.f);
+    RSProperties properties;
+    properties.SetBackgroundFilter(rsFilter);
+    auto filter = std::static_pointer_cast<RSSkiaFilter>(properties.GetBackgroundFilter());
+    std::shared_ptr<RSPath> rsPath = std::make_shared<RSPath>();
+    properties.SetClipBounds(rsPath);
+    RSPropertiesPainter::DrawFilter(properties, canvas, filter, nullptr, canvas.GetSurface());
 }
 
 /**
@@ -154,6 +383,66 @@ HWTEST_F(RSPropertiesPainterTest, DrawForegroundColor001, TestSize.Level1)
 HWTEST_F(RSPropertiesPainterTest, DrawMask001, TestSize.Level1)
 {
     RSProperties properties;
+    int32_t w = 1;
+    int32_t h = 1;
+    SkCanvas skCanvas;
+    SkISize size = SkISize::Make(w, h);
+    SkRect maskBounds = SkRect::Make(size);
+    RSPropertiesPainter::DrawMask(properties, skCanvas, maskBounds);
+}
+
+/**
+ * @tc.name: DrawMask002
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertiesPainterTest, DrawMask002, TestSize.Level1)
+{
+    RSProperties properties;
+    auto mask = std::make_shared<RSMask>();
+    mask->SetMaskType(MaskType::SVG);
+    properties.SetMask(mask);
+    int32_t w = 1;
+    int32_t h = 1;
+    SkCanvas skCanvas;
+    SkISize size = SkISize::Make(w, h);
+    SkRect maskBounds = SkRect::Make(size);
+    RSPropertiesPainter::DrawMask(properties, skCanvas, maskBounds);
+}
+
+/**
+ * @tc.name: DrawMask003
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertiesPainterTest, DrawMask003, TestSize.Level1)
+{
+    RSProperties properties;
+    auto mask = std::make_shared<RSMask>();
+    mask->SetMaskType(MaskType::GRADIENT);
+    properties.SetMask(mask);
+    int32_t w = 1;
+    int32_t h = 1;
+    SkCanvas skCanvas;
+    SkISize size = SkISize::Make(w, h);
+    SkRect maskBounds = SkRect::Make(size);
+    RSPropertiesPainter::DrawMask(properties, skCanvas, maskBounds);
+}
+
+/**
+ * @tc.name: DrawMask004
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertiesPainterTest, DrawMask004, TestSize.Level1)
+{
+    RSProperties properties;
+    auto mask = std::make_shared<RSMask>();
+    mask->SetMaskType(MaskType::PATH);
+    properties.SetMask(mask);
     int32_t w = 1;
     int32_t h = 1;
     SkCanvas skCanvas;
