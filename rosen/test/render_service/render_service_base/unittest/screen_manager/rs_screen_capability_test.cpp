@@ -14,6 +14,7 @@
  */
 
 #include <gtest/gtest.h>
+#include <securec.h>
 
 #include "screen_manager/rs_screen_capability.h"
 
@@ -61,5 +62,36 @@ HWTEST_F(RSScreenCapabilityTest, Unmarshalling001, TestSize.Level1)
     capability.Unmarshalling(parcel);
 }
 
+/**
+ * @tc.name: marshallingAndUnmarshallling001
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenCapabilityTest, marshallingAndUnmarshallling001, TestSize.Level1)
+{
+    RSScreenProps rp1;
+    RSScreenProps rp2;
+    std::vector<RSScreenProps> props = { rp1, rp2 };
+    RSScreenCapability capability("1", ScreenInterfaceType::DISP_INTF_LCD, 2, 4, 3, 3, true, props);
+    Parcel parcel;
+    auto bufferSize = parcel.GetMaxCapacity();
+    char* buffer = static_cast<char*>(malloc(parcel.GetMaxCapacity()));
+    memset_s(buffer, parcel.GetMaxCapacity(), 0, parcel.GetMaxCapacity());
+    ASSERT_TRUE(parcel.WriteUnpadBuffer(buffer, parcel.GetMaxCapacity()));
+    bool ret = false;
+    parcel.SkipBytes(bufferSize);
+    while (!ret) {
+        size_t position = parcel.GetWritePosition();
+        ret = capability.Marshalling(parcel) & (RSScreenCapability::Unmarshalling(parcel) != nullptr);
+        parcel.SetMaxCapacity(parcel.GetMaxCapacity() + 1);
+        if (!ret) {
+            parcel.RewindWrite(position);
+            parcel.RewindRead(bufferSize);
+        }
+    }
+    free(buffer);
+    ASSERT_TRUE(ret);
+}
 } // namespace Rosen
 } // namespace OHOS
