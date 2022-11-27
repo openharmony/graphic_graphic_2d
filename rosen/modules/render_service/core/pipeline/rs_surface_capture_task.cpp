@@ -295,6 +295,7 @@ void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::CaptureSingleSurfaceNodeWith
     canvas_->restore();
     if (node.IsAppWindow() && RSColdStartManager::Instance().IsColdStartThreadRunning(node.GetId()) &&
         node.GetCachedResource().skSurface != nullptr) {
+        RS_LOGD("RSSurfaceCaptureVisitor DrawCachedSurface");
         RSUniRenderUtil::DrawCachedSurface(node, *canvas_, node.GetCachedResource().skSurface);
     } else {
         ProcessBaseRenderNode(node);

@@ -21,6 +21,7 @@
 #include <map>
 #include <memory>
 #include <mutex>
+#include <queue>
 #include <thread>
 #include <vector>
 #include <event_handler.h>
@@ -43,6 +44,7 @@ public:
     ~RSColdStartThread();
     void PostPlayBackTask(std::shared_ptr<DrawCmdList> drawCmdList, float width, float height);
     void Stop();
+    void PostTask(std::function<void()> task);
 
 private:
 #ifdef RS_ENABLE_GL
@@ -60,7 +62,7 @@ private:
 #ifdef RS_ENABLE_GL
     std::shared_ptr<RSSharedContext> context_ = nullptr;
 #endif
-    SurfaceNodeResource currentResource_;
+    std::queue<SurfaceNodeResource> availableResourceQueue_;
     std::vector<SurfaceNodeResource> resourceVector_;
     std::mutex mutex_;
     std::condition_variable cv_;

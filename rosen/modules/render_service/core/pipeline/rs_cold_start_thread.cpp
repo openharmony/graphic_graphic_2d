@@ -47,6 +47,7 @@ static void SystemCallSetThreadName(const std::string& name)
 RSColdStartThread::RSColdStartThread(std::weak_ptr<RSSurfaceRenderNode> surfaceRenderNode, NodeId surfaceNodeId)
     : surfaceNode_(surfaceRenderNode), surfaceNodeId_(surfaceNodeId)
 {
+    RS_LOGD("RSColdStartThread surfaceNodeId:%" PRIu64 "", surfaceNodeId);
 #ifdef RS_ENABLE_GL
     thread_ = std::make_unique<std::thread>(&RSColdStartThread::Run, this, eglGetCurrentContext());
 #else
@@ -60,6 +61,7 @@ RSColdStartThread::RSColdStartThread(std::weak_ptr<RSSurfaceRenderNode> surfaceR
 
 RSColdStartThread::~RSColdStartThread()
 {
+    RS_LOGD("~RSColdStartThread");
     if (isRunning_.load()) {
         Stop();
     }
@@ -70,11 +72,13 @@ void RSColdStartThread::Stop()
     if (!isRunning_.load()) {
         return;
     }
-    isRunning_.store(false);
+    RS_LOGD("RSColdStartThread::Stop");
     RS_TRACE_NAME_FMT("RSColdStartThread::Stop");
+    isRunning_.store(false);
     if (handler_ != nullptr) {
-        handler_->PostTask([this]() {
+        handler_->PostSyncTask([this]() {
             RS_TRACE_NAME_FMT("RSColdStartThread abandonContext"); // abandonContext here to avoid crash
+            RS_LOGD("RSColdStartThread abandonContext");
             for (auto& resource : resourceVector_) {
                 auto grContext = resource.grContext;
                 if (grContext != nullptr) {
@@ -82,22 +86,31 @@ void RSColdStartThread::Stop()
                 }
             }
             resourceVector_.clear();
-            currentResource_.grContext = nullptr;
-            currentResource_.skSurface = nullptr;
+            std::queue<SurfaceNodeResource> emptyQueue;
+            availableResourceQueue_.swap(emptyQueue);
 #ifdef RS_ENABLE_GL
             context_ = nullptr;
 #endif
-            RSMainThread::Instance()->PostTask([this]() {
-                RS_TRACE_NAME_FMT("RSColdStartThread runner stop");
-                if (runner_ != nullptr) {
-                    runner_->Stop();
-                }
-                if (thread_ != nullptr && thread_->joinable()) {
-                    thread_->detach();
-                }
-                RSColdStartManager::Instance().DestroyColdStartThread(surfaceNodeId_);
-            });
         }, AppExecFwk::EventQueue::Priority::IMMEDIATE);
+    }
+    RS_TRACE_NAME_FMT("RSColdStartThread runner stop");
+    RS_LOGD("RSColdStartThread runner stop");
+    if (runner_ != nullptr) {
+        runner_->Stop();
+    }
+    if (thread_ != nullptr && thread_->joinable()) {
+        thread_->detach();
+    }
+    RSMainThread::Instance()->PostTask([id = surfaceNodeId_]() {
+        RS_LOGD("RSMainThread DestroyColdStartThread id:%" PRIu64 "", id);
+        RSColdStartManager::Instance().DestroyColdStartThread(id);
+    });
+}
+
+void RSColdStartThread::PostTask(std::function<void()> task)
+{
+    if (handler_) {
+        handler_->PostTask(task, AppExecFwk::EventQueue::Priority::IMMEDIATE);
     }
 }
 
@@ -150,7 +163,8 @@ void RSColdStartThread::PostPlayBackTask(std::shared_ptr<DrawCmdList> drawCmdLis
             RS_LOGE("RSColdStartThread::PostPlayBackTask surfaceNode is nullptr");
             return;
         }
-        if (currentResource_.grContext == nullptr || currentResource_.skSurface == nullptr) {
+        SurfaceNodeResource resource;
+        if (availableResourceQueue_.empty()) {
             sk_sp<SkSurface> surface;
             sk_sp<GrContext> grContext;
 #ifdef RS_ENABLE_GL
@@ -164,30 +178,38 @@ void RSColdStartThread::PostPlayBackTask(std::shared_ptr<DrawCmdList> drawCmdLis
                 RS_LOGE("RSColdStartThread::PostPlayBackTask make SkSurface failed");
                 return;
             }
-            currentResource_ = { grContext, surface };
-            resourceVector_.emplace_back(currentResource_);
+            resource = { grContext, surface };
+            resourceVector_.emplace_back(resource);
+        } else {
+            resource = availableResourceQueue_.front();
+            availableResourceQueue_.pop();
         }
 
         RS_LOGD("RSColdStartThread::PostPlayBackTask drawCmdList Playback");
         RS_TRACE_NAME_FMT("RSColdStartThread Playback");
-        auto canvas = currentResource_.skSurface->getCanvas();
+        auto canvas = resource.skSurface->getCanvas();
         canvas->clear(SK_ColorTRANSPARENT);
         drawCmdList->Playback(*canvas);
         if (node->GetCachedResource().skSurface == nullptr) {
             node->NotifyUIBufferAvailable();
         }
-        RSMainThread::Instance()->PostSyncTask([this]() {
+        RSMainThread::Instance()->PostTask([this, resource = resource]() {
             auto node = surfaceNode_.lock();
             if (!node) {
                 RS_LOGE("RSColdStartThread PostSyncTask surfaceNode is nullptr");
                 return;
             }
+            RS_LOGD("RSMainThread SetCachedResource");
             auto cachedResource = node->GetCachedResource();
-            node->SetCachedResource(currentResource_);
-            currentResource_ = cachedResource;
+            node->SetCachedResource(resource);
+            if (cachedResource.skSurface != nullptr) {
+                PostTask([this, cachedResource]() {
+                    RS_LOGD("RSColdStartThread push cachedResource to queue");
+                    availableResourceQueue_.push(cachedResource);
+                });
+            }
         });
     };
-    handler_->RemoveAllEvents();
     handler_->PostTask(task, AppExecFwk::EventQueue::Priority::IMMEDIATE);
 }
 
@@ -218,6 +240,7 @@ void RSColdStartManager::StartColdStartThreadIfNeed(std::shared_ptr<RSSurfaceRen
     }
     auto id = surfaceNode->GetId();
     if (coldStartThreadMap_.count(id) == 0) {
+        RS_LOGD("RSColdStartManager::StartColdStartThread id:%" PRIu64 "", id);
         coldStartThreadMap_[id] = std::make_unique<RSColdStartThread>(surfaceNode, id);
     }
 }
@@ -225,12 +248,14 @@ void RSColdStartManager::StartColdStartThreadIfNeed(std::shared_ptr<RSSurfaceRen
 void RSColdStartManager::StopColdStartThread(NodeId id)
 {
     if (coldStartThreadMap_.count(id) != 0 && coldStartThreadMap_[id] != nullptr) {
+        RS_LOGD("RSColdStartManager::StopColdStartThread id:%" PRIu64 "", id);
         coldStartThreadMap_[id]->Stop();
     }
 }
 
 void RSColdStartManager::DestroyColdStartThread(NodeId id)
 {
+    RS_LOGD("RSColdStartManager::DestroyColdStartThread id:%" PRIu64 "", id);
     coldStartThreadMap_.erase(id);
 }
 
