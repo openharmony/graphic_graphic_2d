@@ -23,7 +23,7 @@
 
 namespace OHOS {
 namespace Rosen {
-using VisibleData = std::vector<std::pair<uint64_t, uint8_t>>;
+using VisibleData = std::vector<uint64_t>;
 #ifdef ROSEN_OHOS
 class RSOcclusionData : public Parcelable {
 #else
