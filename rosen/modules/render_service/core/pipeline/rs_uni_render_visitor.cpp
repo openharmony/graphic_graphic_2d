@@ -539,6 +539,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
         if (isPartialRenderEnabled_) {
             curDisplayDirtyManager_->SetSurfaceSize(screenInfo_.width, screenInfo_.height);
             CalcDirtyDisplayRegion(displayNodePtr);
+            CalcDirtyRegionForFilterNode(displayNodePtr);
             displayNodePtr->ClearCurrentSurfacePos();
         }
         if (isOpDropped_ && dirtySurfaceNodeMap_.empty() && !curDisplayDirtyManager_->IsDirty()) {
@@ -719,18 +720,13 @@ void RSUniRenderVisitor::CalcDirtyDisplayRegion(std::shared_ptr<RSDisplayRenderN
         }
         auto surfaceDirtyManager = surfaceNode->GetDirtyManager();
         RectI surfaceDirtyRect = surfaceDirtyManager->GetDirtyRegion();
-        NodeId surfaceNodeId = surfaceNode->GetId();
         if (surfaceNode->IsTransparent()) {
             // Handles the case of transparent surface, merge transparent dirty rect
             RectI transparentDirtyRect = surfaceNode->GetDstRect().IntersectRect(surfaceDirtyRect);
             if (!transparentDirtyRect.IsEmpty()) {
                 RS_LOGD("CalcDirtyDisplayRegion merge transparent dirty rect %s rect %s",
                     surfaceNode->GetName().c_str(), transparentDirtyRect.ToString().c_str());
-                if (!surfaceNode->GetRenderProperties().NeedFilter()) {
-                    displayDirtyManager->MergeDirtyRect(transparentDirtyRect);
-                } else {
-                    displayDirtyManager->MergeDirtyRect(surfaceNode->GetDstRect());
-                }
+                displayDirtyManager->MergeDirtyRect(transparentDirtyRect);
             }
         }
 
@@ -783,27 +779,65 @@ void RSUniRenderVisitor::CalcDirtyDisplayRegion(std::shared_ptr<RSDisplayRenderN
             displayDirtyManager->MergeDirtyRect(RectI
                 { rect.left_, rect.top_, rect.right_ - rect.left_, rect.bottom_ - rect.top_ });
         }
-
-        // Component
-        if (filterRects_.find(surfaceNodeId) != filterRects_.end()) {
-            auto rectVec = filterRects_.find(surfaceNodeId)->second;
-            for (auto rectIt = rectVec.begin(); rectIt != rectVec.end(); ++rectIt) {
-                if (!displayDirtyManager->GetDirtyRegion().IntersectRect(*rectIt).IsEmpty()) {
-                    if (surfaceNode->IsTransparent()) {
-                        displayDirtyManager->MergeDirtyRect(*rectIt);
-                    }
-                    surfaceDirtyManager->MergeDirtyRect(*rectIt);
-                } else if (!surfaceDirtyManager->GetDirtyRegion().IntersectRect(*rectIt).IsEmpty()) {
-                    surfaceDirtyManager->MergeDirtyRect(*rectIt);
-                }
-            }
-        }
     }
     std::vector<RectI> surfaceChangedRects = node->GetSurfaceChangedRects();
     for (auto& surfaceChangedRect : surfaceChangedRects) {
         RS_LOGD("CalcDirtyDisplayRegion merge Surface closed %s", surfaceChangedRect.ToString().c_str());
         if (!surfaceChangedRect.IsEmpty()) {
             displayDirtyManager->MergeDirtyRect(surfaceChangedRect);
+        }
+    }
+}
+
+void RSUniRenderVisitor::CalcDirtyRegionForFilterNode(std::shared_ptr<RSDisplayRenderNode>& node) const
+{
+    auto displayDirtyManager = node->GetDirtyManager();
+    RectI displayDirtyRect = displayDirtyManager ? displayDirtyManager->GetDirtyRegion() : RectI{0, 0, 0, 0};
+    for (auto it = node->GetCurAllSurfaces().begin(); it != node->GetCurAllSurfaces().end(); ++it) {
+        auto currentSurfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(*it);
+        if (currentSurfaceNode == nullptr) {
+            continue;
+        }
+        auto currentSurfaceDirtyManager = currentSurfaceNode->GetDirtyManager();
+        RectI currentSurfaceDirtyRect = currentSurfaceDirtyManager->GetDirtyRegion();
+        NodeId currentSurfaceNodeId = currentSurfaceNode->GetId();
+
+        // child node (component) has filter
+        if (filterRects_.find(currentSurfaceNodeId) != filterRects_.end()) {
+            auto rectVec = filterRects_.find(currentSurfaceNodeId)->second;
+            for (auto rectIt = rectVec.begin(); rectIt != rectVec.end(); ++rectIt) {
+                if (!displayDirtyRect.IntersectRect(*rectIt).IsEmpty()) {
+                    if (currentSurfaceNode->IsTransparent()) {
+                        displayDirtyManager->MergeDirtyRect(*rectIt);
+                    }
+                    currentSurfaceDirtyManager->MergeDirtyRect(*rectIt);
+                } else if (!currentSurfaceDirtyRect.IntersectRect(*rectIt).IsEmpty()) {
+                    currentSurfaceDirtyManager->MergeDirtyRect(*rectIt);
+                }
+            }
+        }
+
+        // surfaceNode self has filter
+        if (currentSurfaceNode->GetRenderProperties().NeedFilter()) {
+            if (!displayDirtyRect.IntersectRect(currentSurfaceNode->GetOldDirtyInSurface()).IsEmpty() ||
+                !currentSurfaceDirtyRect.IntersectRect(currentSurfaceNode->GetOldDirtyInSurface()).IsEmpty()) {
+                currentSurfaceDirtyManager->MergeDirtyRect(currentSurfaceNode->GetOldDirtyInSurface());
+            }
+
+            if (currentSurfaceNode->IsTransparent()) {
+                for (auto iter = node->GetCurAllSurfaces().begin(); iter != node->GetCurAllSurfaces().end(); ++iter) {
+                    auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(*iter);
+                    if (surfaceNode == nullptr) {
+                        continue;
+                    }
+                    if (!surfaceNode->GetDirtyManager()->GetDirtyRegion().IntersectRect(
+                        currentSurfaceNode->GetOldDirtyInSurface()).IsEmpty()) {
+                        currentSurfaceDirtyManager->MergeDirtyRect(currentSurfaceNode->GetOldDirtyInSurface());
+                        displayDirtyManager->MergeDirtyRect(currentSurfaceNode->GetOldDirtyInSurface());
+                        break;
+                    }
+                }
+            }
         }
     }
 }
