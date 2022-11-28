@@ -438,7 +438,7 @@ void RSSurfaceRenderNode::SetVisibleRegionRecursive(const Occlusion::Region& reg
     visibleRegion_ = region;
     bool vis = region.GetSize() > 0;
     if (vis) {
-        visibleVec.emplace_back(std::make_pair(GetId(), GetAbilityBgAlpha()));
+        visibleVec.emplace_back(GetId());
     }
 
     // collect visible changed pid
