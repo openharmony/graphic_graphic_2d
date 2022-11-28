@@ -16,16 +16,10 @@
 #include "animation/rs_ui_animation_manager.h"
 
 #include "animation/rs_render_animation.h"
-#include "modifier/rs_modifier_manager.h"
 #include "platform/common/rs_log.h"
 
 namespace OHOS {
 namespace Rosen {
-RSUIAnimationManager::RSUIAnimationManager()
-{
-    modifierManager_ = std::make_shared<RSModifierManager>();
-}
-
 void RSUIAnimationManager::AddAnimation(const std::shared_ptr<RSRenderAnimation>& animation)
 {
     AnimationId key = animation->GetAnimationId();
@@ -64,11 +58,6 @@ bool RSUIAnimationManager::Animate(int64_t time)
     });
 
     return hasRunningAnimation;
-}
-
-void RSUIAnimationManager::Draw()
-{
-    modifierManager_->Draw();
 }
 
 void RSUIAnimationManager::OnAnimationFinished(const std::shared_ptr<RSRenderAnimation>& animation)

@@ -199,7 +199,10 @@ bool RSUIDirector::RunningCustomAnimation(uint64_t timeStamp)
     auto animationManager = RSAnimationManagerMap::Instance()->GetAnimationManager(gettid());
     if (animationManager != nullptr) {
         hasRunningAnimation = animationManager->Animate(timeStamp);
-        animationManager->Draw();
+    }
+    auto modifierManager = RSModifierManagerMap::Instance()->GetModifierManager(gettid());
+    if (modifierManager != nullptr) {
+        modifierManager->Draw();
     }
     return hasRunningAnimation;
 }

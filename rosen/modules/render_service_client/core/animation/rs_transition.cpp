@@ -15,6 +15,7 @@
 
 #include "animation/rs_transition.h"
 
+#include "animation/rs_animation_manager_map.h"
 #include "animation/rs_render_transition.h"
 #include "command/rs_animation_command.h"
 #include "transaction/rs_transaction_proxy.h"

@@ -19,7 +19,6 @@
 #include <type_traits>
 #include <unistd.h>
 
-#include "animation/rs_animation_manager_map.h"
 #include "animation/rs_implicit_animator.h"
 #include "animation/rs_implicit_animator_map.h"
 #include "animation/rs_motion_path_option.h"
@@ -31,6 +30,7 @@
 #include "common/rs_vector4.h"
 #include "modifier/rs_animatable_arithmetic.h"
 #include "modifier/rs_modifier_manager.h"
+#include "modifier/rs_modifier_manager_map.h"
 #include "modifier/rs_modifier_type.h"
 #include "modifier/rs_render_property.h"
 #include "pipeline/rs_node_map.h"
@@ -100,8 +100,6 @@ protected:
         return RSRenderPropertyType::INVALID;
     }
 
-    virtual void UpdateExtendedProperty() const {}
-
     virtual void UpdateOnAllAnimationFinish() {}
 
     virtual void AddPathAnimation() {}
@@ -111,6 +109,20 @@ protected:
     void AttachModifier(const std::shared_ptr<RSModifier>& modifier)
     {
         modifier_ = modifier;
+    }
+
+    void MarkModifierDirty()
+    {
+        auto modifierManager = RSModifierManagerMap::Instance()->GetModifierManager(gettid());
+        if (modifierManager == nullptr) {
+            ROSEN_LOGE("Modifier manager is null while mark dirty propertyId: %llu!", GetId());
+            return;
+        }
+
+        auto modifier = modifier_.lock();
+        if (modifier != nullptr) {
+            modifierManager->AddModifier(modifier);
+        }
     }
 
     virtual std::shared_ptr<RSRenderPropertyBase> GetRenderProperty()
@@ -200,7 +212,7 @@ public:
         }
 
         if (isCustom_) {
-            UpdateExtendedProperty();
+            MarkModifierDirty();
         } else {
             UpdateToRender(stagingValue_, false);
         }
@@ -214,15 +226,6 @@ public:
 protected:
     void UpdateToRender(const T& value, bool isDelta, bool forceUpdate = false) const
     {}
-
-    void UpdateExtendedProperty() const override
-    {
-        auto node = target_.lock();
-        if (node == nullptr) {
-            return;
-        }
-        node->UpdateExtendedModifier(modifier_);
-    }
 
     void SetValue(const std::shared_ptr<RSPropertyBase>& value) override
     {
@@ -337,14 +340,6 @@ public:
     }
 
 protected:
-    void MarkModifierDirty(const std::shared_ptr<RSModifierManager>& modifierManager)
-    {
-        auto modifier = RSProperty<T>::modifier_.lock();
-        if (modifier != nullptr && modifierManager != nullptr) {
-            modifierManager->AddModifier(modifier);
-        }
-    }
-
     void UpdateOnAllAnimationFinish() override
     {
         RSProperty<T>::UpdateToRender(RSProperty<T>::stagingValue_, false, true);
@@ -358,7 +353,7 @@ protected:
             }
         } else {
             showingValue_ = value;
-            RSProperty<T>::UpdateExtendedProperty();
+            RSProperty<T>::MarkModifierDirty();
             if (renderProperty_ != nullptr) {
                 renderProperty_->Set(value);
             }
@@ -380,13 +375,8 @@ protected:
         auto renderProperty = std::static_pointer_cast<const RSRenderProperty<T>>(property);
         if (renderProperty != nullptr) {
             showingValue_ = renderProperty->Get();
+            RSProperty<T>::MarkModifierDirty();
         }
-        auto uiAnimationManager = RSAnimationManagerMap::Instance()->GetAnimationManager(gettid());
-        if (uiAnimationManager == nullptr) {
-            ROSEN_LOGE("Failed to update showing value, UI animation manager is null!");
-            return;
-        }
-        MarkModifierDirty(uiAnimationManager->modifierManager_);
     }
 
     void SetValue(const std::shared_ptr<RSPropertyBase>& value) override
@@ -413,20 +403,15 @@ protected:
             return std::make_shared<RSRenderAnimatableProperty<T>>(
                 RSProperty<T>::stagingValue_, RSProperty<T>::id_, GetPropertyType());
         }
-        if (renderProperty_) {
-            return renderProperty_;
+
+        if (renderProperty_ == nullptr) {
+            renderProperty_ = std::make_shared<RSRenderAnimatableProperty<T>>(
+                RSProperty<T>::stagingValue_, RSProperty<T>::id_, GetPropertyType());
+            renderProperty_->SetUpdateUIPropertyFunc(
+                [this](const std::shared_ptr<RSRenderPropertyBase>& renderProperty) {
+                    UpdateShowingValue(renderProperty);
+                });
         }
-        renderProperty_ = std::make_shared<RSRenderAnimatableProperty<T>>(
-            RSProperty<T>::stagingValue_, RSProperty<T>::id_, GetPropertyType());
-        renderProperty_->SetUpdateUIPropertyFunc([weakProperty = RSProperty<T>::weak_from_this()]
-            (const std::shared_ptr<RSRenderPropertyBase>& renderProperty) {
-                auto property = std::static_pointer_cast<RSAnimatableProperty<T>>(weakProperty.lock());
-                if (property == nullptr) {
-                    ROSEN_LOGE("Failed to update UI property, UI property is null!");
-                    return;
-                }
-                property->UpdateShowingValue(renderProperty);
-            });
         return renderProperty_;
     }
 

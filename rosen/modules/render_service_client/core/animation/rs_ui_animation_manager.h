@@ -23,24 +23,21 @@
 
 namespace OHOS {
 namespace Rosen {
-class RSModifierManager;
 class RSRenderAnimation;
 
 class RS_EXPORT RSUIAnimationManager {
 public:
-    RSUIAnimationManager();
+    RSUIAnimationManager() = default;
     virtual ~RSUIAnimationManager() = default;
 
     void AddAnimation(const std::shared_ptr<RSRenderAnimation>& animation);
     void RemoveAnimation(const AnimationId keyId);
 
     bool Animate(int64_t time);
-    void Draw();
 
 private:
     void OnAnimationFinished(const std::shared_ptr<RSRenderAnimation>& animation);
 
-    std::shared_ptr<RSModifierManager> modifierManager_;
     std::unordered_map<AnimationId, std::shared_ptr<RSRenderAnimation>> animations_;
 
     template <typename T>

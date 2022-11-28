@@ -902,13 +902,6 @@ void RSNode::UpdateModifierMotionPathOption()
     }
 }
 
-void RSNode::UpdateExtendedModifier(const std::weak_ptr<RSModifier>& modifier)
-{
-    if (auto sharedModifier = modifier.lock()) {
-        sharedModifier->UpdateToRender();
-    }
-}
-
 std::string RSNode::DumpNode(int depth) const
 {
     std::stringstream ss;
