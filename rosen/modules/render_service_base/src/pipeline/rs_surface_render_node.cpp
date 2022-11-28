@@ -179,6 +179,7 @@ void RSSurfaceRenderNode::ResetParent()
         auto& consumer = GetConsumer();
         if (consumer != nullptr &&
             (GetSurfaceNodeType() != RSSurfaceNodeType::SELF_DRAWING_NODE &&
+            GetSurfaceNodeType() != RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE &&
             GetSurfaceNodeType() != RSSurfaceNodeType::ABILITY_COMPONENT_NODE)) {
             consumer->GoBackground();
         }
