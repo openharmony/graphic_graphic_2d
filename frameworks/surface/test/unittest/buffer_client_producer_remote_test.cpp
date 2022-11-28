@@ -58,66 +58,72 @@ public:
     static inline std::vector<int32_t> deletingBuffers;
     static inline pid_t pid = 0;
     static inline int pipeFd[2] = {};
+    static inline int pipe1Fd[2] = {};
     static inline int32_t systemAbilityID = 345135;
     static inline sptr<BufferExtraData> bedata = new BufferExtraDataImpl;
 };
 
+static void InitNativeTokenInfo()
+{
+    uint64_t tokenId;
+    const char *perms[2];
+    perms[0] = "ohos.permission.DISTRIBUTED_DATASYNC";
+    perms[1] = "ohos.permission.CAMERA";
+    NativeTokenInfoParams infoInstance = {
+        .dcapsNum = 0,
+        .permsNum = 2,
+        .aclsNum = 0,
+        .dcaps = NULL,
+        .perms = perms,
+        .acls = NULL,
+        .processName = "dcamera_client_demo",
+        .aplStr = "system_basic",
+    };
+    tokenId = GetAccessTokenId(&infoInstance);
+    SetSelfTokenID(tokenId);
+    int32_t ret = Security::AccessToken::AccessTokenKit::ReloadNativeTokenInfo();
+    ASSERT_EQ(ret, Security::AccessToken::RET_SUCCESS);
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));  // wait 50ms
+}
+
 void BufferClientProducerRemoteTest::SetUpTestCase()
 {
-    pipe(pipeFd);
-
+    if (pipe(pipeFd) < 0) {
+        exit(1);
+    }
+    if (pipe(pipe1Fd) < 0) {
+        exit(0);
+    }
     pid = fork();
     if (pid < 0) {
         exit(1);
     }
-
     if (pid == 0) {
-        uint64_t tokenId;
-        const char *perms[2];
-        perms[0] = "ohos.permission.DISTRIBUTED_DATASYNC";
-        perms[1] = "ohos.permission.CAMERA";
-        NativeTokenInfoParams infoInstance = {
-            .dcapsNum = 0,
-            .permsNum = 2,
-            .aclsNum = 0,
-            .dcaps = NULL,
-            .perms = perms,
-            .acls = NULL,
-            .processName = "dcamera_client_demo",
-            .aplStr = "system_basic",
-        };
-        tokenId = GetAccessTokenId(&infoInstance);
-        SetSelfTokenID(tokenId);
-        int32_t ret = Security::AccessToken::AccessTokenKit::ReloadNativeTokenInfo();
-        ASSERT_EQ(ret, Security::AccessToken::RET_SUCCESS);
-
-        std::this_thread::sleep_for(std::chrono::milliseconds(50));  // wait 50ms
+        InitNativeTokenInfo();
         sptr<BufferQueue> bq = new BufferQueue("test");
         ASSERT_NE(bq, nullptr);
-
         sptr<BufferQueueProducer> bqp = new BufferQueueProducer(bq);
         ASSERT_NE(bqp, nullptr);
-
         bq->Init();
         sptr<IBufferConsumerListener> listener = new BufferConsumerListener();
         bq->RegisterConsumerListener(listener);
-
         auto sam = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
         sam->AddSystemAbility(systemAbilityID, bqp);
-
+        close(pipeFd[1]);
+        close(pipe1Fd[0]);
         char buf[10] = "start";
-        write(pipeFd[1], buf, sizeof(buf));
+        write(pipe1Fd[1], buf, sizeof(buf));
         sleep(0);
-
         read(pipeFd[0], buf, sizeof(buf));
-
         sam->RemoveSystemAbility(systemAbilityID);
-
+        close(pipeFd[0]);
+        close(pipe1Fd[1]);
         exit(0);
     } else {
+        close(pipeFd[0]);
+        close(pipe1Fd[1]);
         char buf[10];
-        read(pipeFd[0], buf, sizeof(buf));
-
+        read(pipe1Fd[0], buf, sizeof(buf));
         auto sam = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
         robj = sam->GetSystemAbility(systemAbilityID);
         bp = iface_cast<IBufferProducer>(robj);
@@ -131,6 +137,8 @@ void BufferClientProducerRemoteTest::TearDownTestCase()
 
     char buf[10] = "over";
     write(pipeFd[1], buf, sizeof(buf));
+    close(pipeFd[1]);
+    close(pipe1Fd[0]);
 
     int32_t ret = 0;
     do {
