@@ -86,7 +86,7 @@ HWTEST_F(CacheDataTest, CacheDataTest002, TestSize.Level1)
 }
 
 /**
- * @tc.name: ShadeCacheTest003
+ * @tc.name: CacheDataTest003
  * @tc.desc: Verify the function that gets a k-v pair of data
  * @tc.type: FUNC
  * @tc.require:
@@ -110,7 +110,7 @@ HWTEST_F(CacheDataTest, CacheDataTest003, TestSize.Level1)
 }
 
 /**
- * @tc.name: ShadeCacheTest004
+ * @tc.name: CacheDataTest004
  * @tc.desc: Verify the serialization function
  * @tc.type: FUNC
  * @tc.require:
@@ -131,32 +131,6 @@ HWTEST_F(CacheDataTest, CacheDataTest004, TestSize.Level1)
     uint8_t *tempBuffer = new uint8_t[sizeof(size_t)];
     int retSerialized = cacheData->Serialize(tempBuffer, sizeof(size_t));
     EXPECT_NE(retSerialized, -EINVAL);
-    delete[] tempBuffer;
-#endif
-}
-
-/**
- * @tc.name: ShadeCacheTest005
- * @tc.desc: Verify the deserialization function
- * @tc.type: FUNC
- * @tc.require:
- * @tc.author:
- */
-HWTEST_F(CacheDataTest, CacheDataTest005, TestSize.Level1)
-{
-#ifdef ACE_ENABLE_GL
-    GTEST_LOG_(INFO) << "CacheDataTest CacheDataTest005 start";
-    /**
-     * @tc.steps: step1. init a cachedata
-     */
-    std::string testFileDir = "test file dir for cachedata";
-    std::shared_ptr<CacheData> cacheData = std::make_shared<CacheData>(0, 0, 0, testFileDir);
-    /**
-     * @tc.steps: step2. test the deserialization function
-     */
-    uint8_t *tempBuffer = new uint8_t[sizeof(size_t)];
-    int retDeserialized = cacheData->DeSerialize(tempBuffer, sizeof(size_t));
-    EXPECT_NE(retDeserialized, 0);
     delete[] tempBuffer;
 #endif
 }
