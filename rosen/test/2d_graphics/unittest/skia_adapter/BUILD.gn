@@ -21,6 +21,7 @@ ohos_unittest("2d_graphics_skia_canvas_test") {
 
   sources = [
     "skia_canvas_test.cpp",
+    "skia_color_filter_test.cpp",
     "skia_image_test.cpp",
     "skia_matrix_test.cpp",
     "skia_path_effect_test.cpp",
