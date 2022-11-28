@@ -19,12 +19,17 @@ module_output_path = "graphic_standard/rosen/modules/2d_engine/rosen_text/ui"
 
 ohos_unittest("2d_engine_rosen_text_ui_test") {
   module_out_path = module_output_path
-  sources = [ "font_collection_test.cpp" ]
+  sources = [
+    "font_collection_test.cpp",
+    "typography_test.cpp",
+  ]
 
   include_dirs = [
     "//third_party/googletest/googletest/include",
     "$rosen_2d_engine_root",
     "$rosen_2d_engine_root/rosen_text/ui",
+    "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics/include",
+    "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics/src",
   ]
 
   deps = [
