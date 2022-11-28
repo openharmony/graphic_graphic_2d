@@ -78,7 +78,7 @@ void RSCurveAnimation::StartRenderAnimation(const std::shared_ptr<RSRenderCurveA
 
 void RSCurveAnimation::StartUIAnimation(const std::shared_ptr<RSRenderCurveAnimation>& animation)
 {
-    StartCustomPropertyAnimation(animation);
+    StartCustomAnimation(animation);
 }
 
 void RSCurveAnimation::OnStart()

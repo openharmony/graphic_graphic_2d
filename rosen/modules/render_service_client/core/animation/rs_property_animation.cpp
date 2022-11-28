@@ -17,7 +17,6 @@
 
 #include "animation/rs_render_animation.h"
 #include "modifier/rs_modifier.h"
-#include "modifier/rs_modifier_manager_map.h"
 #include "modifier/rs_property.h"
 #include "ui/rs_node.h"
 
@@ -126,36 +125,6 @@ void RSPropertyAnimation::OnUpdateStagingValue(bool isFirstStart)
     }
 
     SetPropertyValue(targetValue);
-}
-
-void RSPropertyAnimation::StartCustomPropertyAnimation(const std::shared_ptr<RSRenderAnimation>& animation)
-{
-    auto target = GetTarget().lock();
-    if (target == nullptr) {
-        ROSEN_LOGE("Failed to start custom animation, target is null!");
-        return;
-    }
-
-    auto modifierManager = RSModifierManagerMap::Instance()->GetModifierManager(gettid());
-    if (modifierManager == nullptr) {
-        ROSEN_LOGE("Failed to start custom animation, modifier manager is null  animationId: %llu!", GetId());
-        return;
-    }
-
-    if (property_ == nullptr) {
-        return;
-    }
-
-    animation->SetFinishCallback([weakAnimation = weak_from_this()]() {
-        auto animation = std::static_pointer_cast<RSPropertyAnimation>(weakAnimation.lock());
-        if (animation == nullptr) {
-            ROSEN_LOGE("Failed to call finish callback, UI animation is null!");
-            return;
-        }
-        animation->CallFinishCallback();
-    });
-    animation->Start();
-    modifierManager->AddAnimation(animation);
 }
 
 void RSPropertyAnimation::SetPropertyOnAllAnimationFinish()

@@ -207,6 +207,7 @@ private:
     virtual void OnBoundsSizeChanged() const {};
     void UpdateModifierMotionPathOption();
     void MarkAllExtendModifierDirty();
+    void ResetExtendModifierDirty();
 
     // Planning: refactor RSUIAnimationManager and remove this method
     void ClearAllModifiers();
@@ -221,6 +222,7 @@ private:
     pid_t implicitAnimatorTid_ = 0;
     std::shared_ptr<RSImplicitAnimator> implicitAnimator_;
     std::shared_ptr<const RSTransitionEffect> transitionEffect_;
+    bool extendModifierisDirty_ { false };
 
     RSModifierExtractor stagingPropertiesExtractor_;
 
@@ -240,6 +242,7 @@ private:
     friend class RSUIDirector;
     friend class RSImplicitAnimator;
     friend class RSModifierExtractor;
+    friend class RSModifier;
 };
 } // namespace Rosen
 } // namespace OHOS

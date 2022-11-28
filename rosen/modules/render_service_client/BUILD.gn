@@ -62,6 +62,7 @@ ohos_source_set("render_service_client_src") {
 
     #modifier
     "core/modifier/rs_extended_modifier.cpp",
+    "core/modifier/rs_modifier.cpp",
     "core/modifier/rs_modifier_extractor.cpp",
     "core/modifier/rs_modifier_manager.cpp",
     "core/modifier/rs_modifier_manager_map.cpp",

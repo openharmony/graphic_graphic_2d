@@ -51,15 +51,7 @@ protected:
         return RSModifierType::INVALID;
     }
 
-    void AttachProperty(const std::shared_ptr<RSPropertyBase>& property)
-    {
-        if (property != nullptr) {
-            property->target_ = property_->target_;
-            property->SetIsCustom(true);
-            property->AttachModifier(shared_from_this());
-            property->MarkModifierDirty();
-        }
-    }
+    void AttachProperty(const std::shared_ptr<RSPropertyBase>& property);
 
     void AttachToNode(const std::weak_ptr<RSNode>& target)
     {
@@ -85,15 +77,9 @@ protected:
 
     virtual void UpdateToRender() {}
 
-    void MarkDirty(const bool isDirty)
-    {
-        isDirty_ = isDirty;
-    }
+    void SetDirty(const bool isDirty);
 
-    bool IsDirty()
-    {
-        return isDirty_;
-    }
+    void ResetRSNodeExtendModifierDirty();
 
     bool isDirty_ { false };
     std::shared_ptr<RSPropertyBase> property_;

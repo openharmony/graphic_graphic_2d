@@ -26,7 +26,6 @@
 namespace OHOS {
 namespace Rosen {
 class RSModifier;
-class RSUIAnimationManager;
 class RSRenderAnimation;
 
 class RS_EXPORT RSModifierManager {

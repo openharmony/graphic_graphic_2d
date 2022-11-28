@@ -33,6 +33,7 @@
 #include "rs_steps_interpolator.h"
 #include "rs_transition.h"
 #include "rs_transition_effect.h"
+#include "modifier/rs_modifier_manager_map.h"
 #include "ui/rs_canvas_node.h"
 
 namespace OHOS {

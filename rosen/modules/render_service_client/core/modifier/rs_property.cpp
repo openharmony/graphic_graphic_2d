@@ -44,16 +44,9 @@ RSPropertyBase::RSPropertyBase() : id_(GeneratePropertyId())
 
 void RSPropertyBase::MarkModifierDirty()
 {
-    auto modifierManager = RSModifierManagerMap::Instance()->GetModifierManager(gettid());
-    if (modifierManager == nullptr) {
-        ROSEN_LOGE("Modifier manager is null while mark dirty propertyId: %llu!", GetId());
-        return;
-    }
-
     auto modifier = modifier_.lock();
-    if (modifier != nullptr && !modifier->IsDirty()) {
-        modifier->MarkDirty(true);
-        modifierManager->AddModifier(modifier);
+    if (modifier != nullptr) {
+        modifier->SetDirty(true);
     }
 }
 

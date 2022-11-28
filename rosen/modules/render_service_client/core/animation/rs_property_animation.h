@@ -24,7 +24,6 @@
 namespace OHOS {
 namespace Rosen {
 class RSPropertyBase;
-class RSRenderAnimation;
 
 class RS_EXPORT RSPropertyAnimation : public RSAnimation {
 public:
@@ -55,8 +54,6 @@ protected:
     virtual void InitInterpolationValue();
 
     void OnUpdateStagingValue(bool isFirstStart) override;
-
-    void StartCustomPropertyAnimation(const std::shared_ptr<RSRenderAnimation>& animation);
 
     void SetPropertyOnAllAnimationFinish() override;
 

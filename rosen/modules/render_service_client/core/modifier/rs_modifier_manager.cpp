@@ -35,7 +35,8 @@ void RSModifierManager::Draw()
 
     for (auto modifier : modifiers_) {
         modifier->UpdateToRender();
-        modifier->MarkDirty(false);
+        modifier->SetDirty(false);
+        modifier->ResetRSNodeExtendModifierDirty();
     }
     modifiers_.clear();
 }

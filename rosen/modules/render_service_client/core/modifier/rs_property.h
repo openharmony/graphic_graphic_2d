@@ -28,8 +28,6 @@
 #include "common/rs_vector2.h"
 #include "common/rs_vector4.h"
 #include "modifier/rs_animatable_arithmetic.h"
-#include "modifier/rs_modifier_manager.h"
-#include "modifier/rs_modifier_manager_map.h"
 #include "modifier/rs_modifier_type.h"
 #include "modifier/rs_render_property.h"
 #include "pipeline/rs_node_map.h"
@@ -176,7 +174,6 @@ private:
     friend class RSKeyframeAnimation;
     friend class RSSpringAnimation;
     friend class RSTransition;
-    friend class RSUIAnimationManager;
     template<typename T1>
     friend class RSAnimatableProperty;
 };
@@ -462,7 +459,6 @@ private:
 
     friend class RSPropertyAnimation;
     friend class RSPathAnimation;
-    friend class RSUIAnimationManager;
     friend class RSExtendedModifier;
     friend class RSModifier;
 };

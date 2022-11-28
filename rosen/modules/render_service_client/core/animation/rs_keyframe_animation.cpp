@@ -94,7 +94,7 @@ void RSKeyframeAnimation::StartRenderAnimation(const std::shared_ptr<RSRenderKey
 
 void RSKeyframeAnimation::StartUIAnimation(const std::shared_ptr<RSRenderKeyframeAnimation>& animation)
 {
-    StartCustomPropertyAnimation(animation);
+    StartCustomAnimation(animation);
 }
 
 void RSKeyframeAnimation::OnStart()

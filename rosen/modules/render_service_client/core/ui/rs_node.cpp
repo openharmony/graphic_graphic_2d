@@ -932,19 +932,22 @@ std::vector<PropertyId> RSNode::GetModifierIds() const
 
 void RSNode::MarkAllExtendModifierDirty()
 {
-    auto modifierManager = RSModifierManagerMap::Instance()->GetModifierManager(gettid());
-    if (modifierManager == nullptr) {
-        ROSEN_LOGE("Modifier manager is null while RSNode MarkAllExtendModifierDirty nodeId: %llu!", GetId());
+    if (extendModifierisDirty_) {
         return;
     }
 
+    extendModifierisDirty_ = true;
     for (auto& [id, modifier] : modifiers_) {
-        if (modifier->GetModifierType() < RSModifierType::CUSTOM || modifier->IsDirty()) {
+        if (modifier->GetModifierType() < RSModifierType::CUSTOM) {
             continue;
         }
-        modifier->MarkDirty(true);
-        modifierManager->AddModifier(modifier);
+        modifier->SetDirty(true);
     }
+}
+
+void RSNode::ResetExtendModifierDirty()
+{
+    extendModifierisDirty_ = false;
 }
 } // namespace Rosen
 } // namespace OHOS
