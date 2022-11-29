@@ -661,6 +661,18 @@ void RSMainThread::CalcOcclusion()
         // Set result to SurfaceRenderNode and its children
         surface->setQosCal(qosPidCal_);
         surface->SetVisibleRegionRecursive(subResult, curVisVec, pidVisMap);
+
+        // when surface is in starting window stage, do not occlude other window surfaces
+        // fix grey block when directly open app (i.e. setting) from notification center
+        auto parentPtr = surface->GetParent().lock();
+        if (parentPtr != nullptr && parentPtr->IsInstanceOf<RSSurfaceRenderNode>()) {
+            auto surfaceParentPtr = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(parentPtr);
+            if (surfaceParentPtr->GetSurfaceNodeType() == RSSurfaceNodeType::LEASH_WINDOW_NODE &&
+                !surface->IsNotifyUIBufferAvailable()) {
+                continue;
+            }
+        }
+
         // Current region need to merge current surface for next calculation(ignore alpha surface)
         if (IfUseUniVisitor()) {
             curRegion.OrSelf(surface->GetOpaqueRegion());
