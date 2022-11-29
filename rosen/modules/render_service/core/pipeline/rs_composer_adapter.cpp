@@ -473,6 +473,11 @@ LayerInfoPtr RSComposerAdapter::CreateLayer(RSDisplayRenderNode& node)
         return nullptr;
     }
 
+    if (node.GetBuffer() == nullptr) {
+        RS_LOGE("RSComposerAdapter::CreateLayer buffer is nullptr.");
+        return nullptr;
+    }
+
     ComposeInfo info = BuildComposeInfo(node);
     RS_LOGD("RSComposerAdapter::ProcessSurface displayNode id:%" PRIu64 " dst [%d %d %d %d]"
             "SrcRect [%d %d] rawbuffer [%d %d] surfaceBuffer [%d %d] buffaddr:%p, globalZOrder:%d, blendType = %d",
