@@ -504,29 +504,11 @@ HWTEST_F(RSScreenManagerTest, RSDump_001, testing::ext::TestSize.Level2)
 
 /*
  * @tc.name: ScreenGamutMap_001
- * @tc.desc: Test SetScreenGamutMap And GetScreenGamutMap Failed
- * @tc.type: FUNC
- * @tc.require: issueI60RFZ
- */
-HWTEST_F(RSScreenManagerTest, ScreenGamutMap_001, TestSize.Level1)
-{
-    auto screenManager = CreateOrGetScreenManager();
-    ASSERT_NE(nullptr, screenManager);
-    ScreenGamutMap mode = ScreenGamutMap::GAMUT_MAP_CONSTANT;
-    ScreenId id = 0;
-    int32_t setStatusCode = screenManager->SetScreenGamutMap(id, mode);
-    ASSERT_EQ(setStatusCode, StatusCode::SCREEN_NOT_FOUND);
-    int32_t getStatusCode = screenManager->GetScreenGamutMap(id, mode);
-    ASSERT_EQ(getStatusCode, StatusCode::SCREEN_NOT_FOUND);
-}
-
-/*
- * @tc.name: ScreenGamutMap_002
  * @tc.desc: Test SetScreenGamutMap And GetScreenGamutMap Successed
  * @tc.type: FUNC
  * @tc.require: issueI60RFZ
  */
-HWTEST_F(RSScreenManagerTest, ScreenGamutMap_002, TestSize.Level1)
+HWTEST_F(RSScreenManagerTest, ScreenGamutMap_001, TestSize.Level1)
 {
     auto screenManager = CreateOrGetScreenManager();
     ASSERT_NE(nullptr, screenManager);
