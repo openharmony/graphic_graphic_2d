@@ -156,8 +156,22 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest007, TestSize.Level
 HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest008, TestSize.Level1)
 {
     OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
+    OH_Drawing_SetTextStyleFontWeight(txtStyle, FONT_WEIGHT_100);
+    EXPECT_EQ(ConvertToOriginalText(txtStyle)->fontWeight_, FontWeight::W100);
+    OH_Drawing_SetTextStyleFontWeight(txtStyle, FONT_WEIGHT_200);
+    EXPECT_EQ(ConvertToOriginalText(txtStyle)->fontWeight_, FontWeight::W200);
+    OH_Drawing_SetTextStyleFontWeight(txtStyle, FONT_WEIGHT_300);
+    EXPECT_EQ(ConvertToOriginalText(txtStyle)->fontWeight_, FontWeight::W300);
     OH_Drawing_SetTextStyleFontWeight(txtStyle, FONT_WEIGHT_400);
     EXPECT_EQ(ConvertToOriginalText(txtStyle)->fontWeight_, FontWeight::W400);
+    OH_Drawing_SetTextStyleFontWeight(txtStyle, FONT_WEIGHT_500);
+    EXPECT_EQ(ConvertToOriginalText(txtStyle)->fontWeight_, FontWeight::W500);
+    OH_Drawing_SetTextStyleFontWeight(txtStyle, FONT_WEIGHT_600);
+    EXPECT_EQ(ConvertToOriginalText(txtStyle)->fontWeight_, FontWeight::W600);
+    OH_Drawing_SetTextStyleFontWeight(txtStyle, FONT_WEIGHT_700);
+    EXPECT_EQ(ConvertToOriginalText(txtStyle)->fontWeight_, FontWeight::W700);
+    OH_Drawing_SetTextStyleFontWeight(txtStyle, FONT_WEIGHT_800);
+    EXPECT_EQ(ConvertToOriginalText(txtStyle)->fontWeight_, FontWeight::W800);
     OH_Drawing_SetTextStyleFontWeight(txtStyle, FONT_WEIGHT_900);
     EXPECT_EQ(ConvertToOriginalText(txtStyle)->fontWeight_, FontWeight::W900);
 }
@@ -310,5 +324,6 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest016, TestSize.Level
     EXPECT_EQ(OH_Drawing_TypographyGetAlphabeticBaseline(typography) != 0.0, true);
     EXPECT_EQ(OH_Drawing_TypographyGetIdeographicBaseline(typography) != 0.0, true);
     OH_Drawing_TypographyPaint(typography, cCanvas, position[0], position[1]);
+    OH_Drawing_DestroyTypography(typography);
 }
 }
