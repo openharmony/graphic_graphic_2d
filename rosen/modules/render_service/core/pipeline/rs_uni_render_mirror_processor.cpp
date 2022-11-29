@@ -33,7 +33,7 @@ bool RSUniRenderMirrorProcessor::Init(RSDisplayRenderNode& node, int32_t offsetX
     renderFrameConfig_.usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_MEM_DMA;
 
     auto screenManager = CreateOrGetScreenManager();
-    sptr<Surface> producerSurface = screenManager->GetProducerSurface(node.GetScreenId());
+    producerSurface = screenManager->GetProducerSurface(node.GetScreenId());
     if (producerSurface == nullptr) {
         RS_LOGE("RSUniRenderMirrorProcessor::Init for Screen(id %" PRIu64 "): ProducerSurface is null!",
             node.GetScreenId());
@@ -58,7 +58,12 @@ bool RSUniRenderMirrorProcessor::Init(RSDisplayRenderNode& node, int32_t offsetX
 
 void RSUniRenderMirrorProcessor::PostProcess()
 {
-    SetBufferTimeStamp();
+    if (producerSurface == nullptr) {
+        RS_LOGE("RSUniRenderMirrorProcessor::PostProcess surface is null!");
+        return;
+    }
+    auto surfaceId = producerSurface->GetUniqueId();
+    renderEngine_->SetUiTimeStamp(renderFrame_, surfaceId);
     if (renderFrame_ == nullptr) {
         RS_LOGE("RSUniRenderMirrorProcessor::PostProcess renderFrame_ is null.");
         return;
@@ -80,29 +85,6 @@ void RSUniRenderMirrorProcessor::ProcessDisplaySurface(RSDisplayRenderNode& node
         return;
     }
     canvas_->drawImage(node.Snapshot(), 0, 0);
-}
-
-void RSUniRenderMirrorProcessor::SetBufferTimeStamp()
-{
-    if (renderFrame_ == nullptr) {
-        RS_LOGE("RSUniRenderMirrorProcessor::SetBufferTimeStamp: renderFrame_ is nullptr");
-        return;
-    }
-
-    auto frameOhosRaster =  static_cast<RSSurfaceFrameOhosRaster *>(renderFrame_->GetFrame().get());
-    if (frameOhosRaster == nullptr || frameOhosRaster->GetBuffer() == nullptr) {
-        RS_LOGE("RSUniRenderMirrorProcessor::SetBufferTimeStamp: buffer is nullptr");
-        return;
-    }
-
-    struct timespec curTime = {0, 0};
-    clock_gettime(CLOCK_MONOTONIC, &curTime);
-    // 1000000000 is used for transfer second to nsec
-    uint64_t duration = static_cast<uint64_t>(curTime.tv_sec) * 1000000000 + static_cast<uint64_t>(curTime.tv_nsec);
-    GSError ret = frameOhosRaster->GetBuffer()->GetExtraData()->ExtraSet("timeStamp", static_cast<int64_t>(duration));
-    if (ret != GSERROR_OK) {
-        RS_LOGE("RSProcessor::SetBufferTimeStamp buffer ExtraSet failed");
-    }
 }
 } // namespace Rosen
 } // namespace OHOS

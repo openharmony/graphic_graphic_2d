@@ -35,8 +35,7 @@ public:
         return std::move(canvas_);
     }
 private:
-    void SetBufferTimeStamp();
-
+    sptr<Surface> producerSurface;
     std::unique_ptr<RSRenderFrame> renderFrame_;
     std::unique_ptr<RSPaintFilterCanvas> canvas_;
 };
