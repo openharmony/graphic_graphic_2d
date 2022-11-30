@@ -51,6 +51,36 @@ HWTEST_F(SkiaMatrixTest, Multiply001, TestSize.Level1)
     skiaMatrix.Multiply(matrix1, matrix2);
 }
 
+/**
+ * @tc.name: MapPoints001
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.author:
+ */
+HWTEST_F(SkiaMatrixTest, MapPoints001, TestSize.Level1)
+{
+    PointF point1;
+    PointF point2;
+    std::vector<Point> dst { point1 };
+    std::vector<Point> src { point2 };
+    SkiaMatrix skiaMatrix;
+    skiaMatrix.MapPoints(dst, src, 20);
+}
+
+/**
+ * @tc.name: Equals001
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.author:
+ */
+HWTEST_F(SkiaMatrixTest, Equals001, TestSize.Level1)
+{
+    Matrix matrix1;
+    Matrix matrix2;
+    SkiaMatrix skiaMatrix;
+    EXPECT_EQ(skiaMatrix.Equals(matrix1, matrix2), true);
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
