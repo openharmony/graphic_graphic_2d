@@ -160,11 +160,11 @@ std::vector<std::shared_ptr<PaintData>> SkiaPaint::GetSortedPaints() const
         return paints;
     }
 
-    if (stroke_->isEnabled) {
-        paints.push_back(stroke_);
-    }
     if (fill_->isEnabled) {
         paints.push_back(fill_);
+    }
+    if (stroke_->isEnabled) {
+        paints.push_back(stroke_);
     }
     return paints;
 }
