@@ -45,6 +45,9 @@ public:
     void Clear() const;
     void AddOp(std::unique_ptr<OpItem>&& opItem);
 
+    GrContext* getGrContext() override;
+    void SetGrContext(GrContext* grContext);
+
     sk_sp<SkSurface> onNewSurface(const SkImageInfo& info, const SkSurfaceProps& props) override;
 
     void willSave() override;
@@ -130,6 +133,7 @@ private:
 
     std::shared_ptr<DrawCmdList> drawCmdList_ { nullptr };
     int saveCount_ = 0;
+    GrContext* grContext_ = nullptr;
 };
 } // namespace Rosen
 } // namespace OHOS

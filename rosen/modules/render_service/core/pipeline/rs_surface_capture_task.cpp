@@ -24,6 +24,7 @@
 
 #include "common/rs_obj_abs_geometry.h"
 #include "pipeline/rs_base_render_node.h"
+#include "pipeline/rs_cold_start_thread.h"
 #include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_divided_render_util.h"
 #include "pipeline/rs_main_thread.h"
@@ -292,8 +293,13 @@ void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::CaptureSingleSurfaceNodeWith
         }
     }
     canvas_->restore();
-
-    ProcessBaseRenderNode(node);
+    if (node.IsAppWindow() && RSColdStartManager::Instance().IsColdStartThreadRunning(node.GetId()) &&
+        node.GetCachedResource().skSurface != nullptr) {
+        RS_LOGD("RSSurfaceCaptureVisitor DrawCachedSurface");
+        RSUniRenderUtil::DrawCachedSurface(node, *canvas_, node.GetCachedResource().skSurface);
+    } else {
+        ProcessBaseRenderNode(node);
+    }
 }
 
 void RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::CaptureSurfaceInDisplayWithUni(RSSurfaceRenderNode& node)

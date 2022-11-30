@@ -119,5 +119,18 @@ BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(const RSSurfaceRenderNode
     return params;
 }
 
+void RSUniRenderUtil::DrawCachedSurface(RSSurfaceRenderNode& node, RSPaintFilterCanvas& canvas,
+    sk_sp<SkSurface> surface)
+{
+    if (surface == nullptr) {
+        return;
+    }
+    canvas.save();
+    canvas.scale(node.GetRenderProperties().GetBoundsWidth() / surface->width(),
+        node.GetRenderProperties().GetBoundsHeight() / surface->height());
+    SkPaint paint;
+    surface->draw(&canvas, 0.0, 0.0, &paint);
+    canvas.restore();
+}
 } // namespace Rosen
 } // namespace OHOS

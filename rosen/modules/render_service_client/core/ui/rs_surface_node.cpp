@@ -239,6 +239,16 @@ bool RSSurfaceNode::SetBufferAvailableCallback(BufferAvailableCallback callback)
     });
 }
 
+void RSSurfaceNode::SetAnimationFinished()
+{
+    std::unique_ptr<RSCommand> command = std::make_unique<RSSurfaceNodeSetAnimationFinished>(GetId());
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        transactionProxy->AddCommand(command, true);
+        transactionProxy->FlushImplicitTransaction();
+    }
+}
+
 bool RSSurfaceNode::Marshalling(Parcel& parcel) const
 {
     return parcel.WriteUint64(GetId()) && parcel.WriteString(name_) && parcel.WriteBool(IsRenderServiceNode());

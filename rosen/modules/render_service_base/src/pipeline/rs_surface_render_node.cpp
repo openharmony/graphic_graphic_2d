@@ -17,6 +17,7 @@
 
 #include "include/core/SkMatrix.h"
 #include "include/core/SkRect.h"
+#include "include/gpu/GrContext.h"
 
 #include "command/rs_surface_node_command.h"
 #include "common/rs_obj_abs_geometry.h"
@@ -412,6 +413,17 @@ void RSSurfaceRenderNode::SetCallbackForRenderThreadRefresh(std::function<void(v
 bool RSSurfaceRenderNode::NeedSetCallbackForRenderThreadRefresh()
 {
     return (callbackForRenderThreadRefresh_ == nullptr);
+}
+
+bool RSSurfaceRenderNode::IsStartAnimationFinished() const
+{
+    return startAnimationFinished_;
+}
+
+void RSSurfaceRenderNode::SetStartAnimationFinished()
+{
+    RS_LOGD("RSSurfaceRenderNode::SetStartAnimationFinished");
+    startAnimationFinished_ = true;
 }
 
 void RSSurfaceRenderNode::SetVisibleRegionRecursive(const Occlusion::Region& region,
