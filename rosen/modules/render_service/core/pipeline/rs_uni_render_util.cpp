@@ -64,13 +64,6 @@ void RSUniRenderUtil::MergeDirtyHistory(std::shared_ptr<RSDisplayRenderNode>& no
             ROSEN_LOGE("RSUniRenderUtil::MergeVisibleDirtyRegion with invalid buffer age %d", bufferAge);
         }
         surfaceDirtyManager->IntersectDirtyRect(surfaceNode->GetOldDirtyInSurface());
-        if (!node->GetDirtyManager()->GetDirtyRegion().IntersectRect(surfaceNode->GetOldDirtyInSurface()).IsEmpty() &&
-            surfaceNode->GetRenderProperties().NeedFilter()) {
-            if (surfaceNode->IsTransparent()) {
-                node->GetDirtyManager()->MergeDirtyRect(surfaceNode->GetOldDirtyInSurface());
-            }
-            surfaceDirtyManager->MergeDirtyRect(surfaceNode->GetOldDirtyInSurface());
-        }
         surfaceDirtyManager->UpdateDirty();
         if (surfaceNode->GetDstRect().IsInsideOf(surfaceDirtyManager->GetDirtyRegion())
             && surfaceNode->HasContainerWindow()) {
