@@ -35,6 +35,7 @@ ohos_unittest("2d_graphics_skia_canvas_test") {
     "//third_party/skia",
     "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics/src/drawing/engine_adapter",
     "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics/src/drawing",
+    "//third_party/skia/include/",
   ]
 
   deps = [

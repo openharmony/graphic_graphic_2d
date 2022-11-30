@@ -47,7 +47,8 @@ HWTEST_F(SkiaImageTest, BuildFromBitmap001, TestSize.Level1)
 {
     Bitmap bitmap;
     SkiaImage skiaImage;
-    skiaImage.BuildFromBitmap(bitmap);
+    auto image = skiaImage.BuildFromBitmap(bitmap);
+    EXPECT_EQ(image, nullptr);
 }
 
 /**
@@ -65,7 +66,8 @@ HWTEST_F(SkiaImageTest, BuildFromPicture001, TestSize.Level1)
     BitDepth bitDepth = BitDepth::KF16;
     std::shared_ptr<ColorSpace> colorSpace = ColorSpace::CreateSRGB();
     SkiaImage skiaImage;
-    skiaImage.BuildFromPicture(picture, dimensions, matrix, brush, bitDepth, colorSpace);
+    auto image = skiaImage.BuildFromPicture(picture, dimensions, matrix, brush, bitDepth, colorSpace);
+    EXPECT_EQ(image, nullptr);
 }
 
 } // namespace Drawing
