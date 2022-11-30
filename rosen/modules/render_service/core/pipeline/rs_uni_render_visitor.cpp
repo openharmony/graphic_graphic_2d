@@ -381,7 +381,9 @@ void RSUniRenderVisitor::PrepareCanvasRenderNode(RSCanvasRenderNode &node)
 
     // [planning] Remove this after skia is upgraded, the clipRegion is supported
     if (node.GetRenderProperties().NeedFilter()) {
-        needFilter_ = true;
+        if (!(curSurfaceNode_ && curSurfaceNode_->IsAppFreeze())) {
+            needFilter_ = true;
+        }
         filterRects_[curSurfaceNode_->GetId()].push_back(node.GetOldDirtyInSurface());
     }
     curAlpha_ = alpha;
