@@ -12,18 +12,22 @@
 # limitations under the License.
 
 import("//build/test.gni")
+import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
-module_out_path = "graphic_standard/rosen/modules/2d_graphics/render_context"
+module_output_path = "graphic_standard/rosen/modules/2d_graphics/render_context"
 
 group("unittest") {
   testonly = true
 
-  deps = [ ":RenderContextTest" ]
+  deps = [
+    ":2d_graphics_shader_cache_test",
+    ":RenderContextTest",
+  ]
 }
 
 ## Build RenderContextTest
 ohos_unittest("RenderContextTest") {
-  module_out_path = module_out_path
+  module_out_path = module_output_path
   sources = [ "render_context_test.cpp" ]
   deps = [ ":render_context" ]
 }
@@ -54,4 +58,34 @@ ohos_static_library("render_context") {
   subsystem_name = "graphic"
   part_name = "graphic_standard"
 }
+
 ## Build render_context.a }}}
+
+ohos_unittest("2d_graphics_shader_cache_test") {
+  module_out_path = module_output_path
+
+  sources = [
+    "cache_data_test.cpp",
+    "shader_cache_test.cpp",
+  ]
+
+  include_dirs = [
+    "//foundation/graphic/graphic_2d/rosen/modules/2d_engine",
+    "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics/src/render_context",
+    "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics/include",
+    "//third_party/flutter/skia/",
+  ]
+
+  deps = [
+    "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
+    "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics:2d_graphics",
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:librender_service_base",
+    "//third_party/googletest:gtest_main",
+  ]
+
+  defines = []
+  defines += gpu_defines
+
+  part_name = "graphic_standard"
+  subsystem_name = "graphic"
+}
