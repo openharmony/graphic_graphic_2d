@@ -260,29 +260,6 @@ HWTEST_F(RSSurfaceCaptureTaskTest, TakeSurfaceCaptureOfInvalidDisplayNode, Funct
 }
 
 /*
- * @tc.name: TakeSurfaceCaptureOfValidDisplayNode
- * @tc.desc: Generate valid display node and take valid capture
- * @tc.type: FUNC
- * @tc.require: issueI5T8FR
-*/
-HWTEST_F(RSSurfaceCaptureTaskTest, TakeSurfaceCaptureOfValidDisplayNode, Function | SmallTest | Level2)
-{
-    RSDisplayNode::SharedPtr displayNode = RSDisplayNode::Create(defaultConfig_);
-    ASSERT_NE(displayNode, nullptr);
-    displayNode->AddChild(surfaceNode_, -1);
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
-    usleep(SLEEP_TIME_FOR_PROXY);
-
-    bool ret = rsInterfaces_->TakeSurfaceCapture(displayNode, surfaceCaptureCb_);
-    ASSERT_EQ(ret, true);
-    ASSERT_EQ(CheckSurfaceCaptureCallback(), true);
-    ASSERT_EQ(surfaceCaptureCb_->IsTestSuccess(), true);
-    displayNode = nullptr;
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
-    usleep(SLEEP_TIME_FOR_PROXY);
-}
-
-/*
  * @tc.name: TakeSurfaceCaptureOfMirrorDisplayNode
  * @tc.desc: Generate valid mirror display node and take valid capture
  * @tc.type: FUNC
