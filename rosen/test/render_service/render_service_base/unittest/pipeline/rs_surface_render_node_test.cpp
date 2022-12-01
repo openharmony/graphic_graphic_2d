@@ -77,5 +77,17 @@ HWTEST_F(RSSurfaceRenderNodeTest, ConnectToNodeInRenderService001, TestSize.Leve
     surfaceRenderNode.ConnectToNodeInRenderService();
 }
 
+/**
+ * @tc.name: ClearChildrenCache001
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, ClearChildrenCache001, TestSize.Level1)
+{
+    RSSurfaceRenderNode surfaceRenderNode(id, context);
+    surfaceRenderNode.ResetParent();
+}
+
 } // namespace Rosen
 } // namespace OHOS

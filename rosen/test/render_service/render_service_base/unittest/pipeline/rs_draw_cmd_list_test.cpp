@@ -44,7 +44,7 @@ void DrawCmdListTest::TearDown() {}
 HWTEST_F(DrawCmdListTest, ClearDrawCmdList001, TestSize.Level1)
 {
     NodeId id = 1;
-    DrawCmdListManager::Instance().RegisterDrawCmdList(id);
+    DrawCmdListManager::Instance().ClearDrawCmdList(id);
 }
 
 } // namespace Rosen
