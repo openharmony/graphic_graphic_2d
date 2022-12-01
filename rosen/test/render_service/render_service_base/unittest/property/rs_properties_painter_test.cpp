@@ -58,6 +58,7 @@ HWTEST_F(RSPropertiesPainterTest, GetGravityMatrix001, TestSize.Level1)
     RSPropertiesPainter::GetGravityMatrix(Gravity::BOTTOM_RIGHT, rect, w, h, mat);
     RSPropertiesPainter::GetGravityMatrix(Gravity::RESIZE_ASPECT, rect, w, h, mat);
     RSPropertiesPainter::GetGravityMatrix(Gravity::RESIZE_ASPECT_FILL, rect, w, h, mat);
+    RSPropertiesPainter::GetGravityMatrix(Gravity::RESIZE, rect, w, h, mat);
     RSPropertiesPainter::GetGravityMatrix(Gravity::DEFAULT, rect, w, h, mat);
 }
 
@@ -85,10 +86,7 @@ HWTEST_F(RSPropertiesPainterTest, GetShadowDirtyRect002, TestSize.Level1)
 {
     RectI dirtyShadow;
     RSProperties properties;
-    std::shared_ptr<RSPath> rsPath = std::make_shared<RSPath>();
-    SkPath skPath;
-    rsPath->SetSkiaPath(skPath);
-    properties.SetShadowPath(rsPath);
+    properties.SetShadowRadius(10.f);
     RRect rrect;
     RSPropertiesPainter::GetShadowDirtyRect(dirtyShadow, properties, &rrect);
 }
@@ -104,7 +102,10 @@ HWTEST_F(RSPropertiesPainterTest, GetShadowDirtyRect003, TestSize.Level1)
     RectI dirtyShadow;
     RSProperties properties;
     std::shared_ptr<RSPath> rsPath = std::make_shared<RSPath>();
-    properties.SetClipBounds(rsPath);
+    SkPath skPath;
+    rsPath->SetSkiaPath(skPath);
+    properties.SetShadowPath(rsPath);
+    properties.SetShadowRadius(10.f);
     RRect rrect;
     RSPropertiesPainter::GetShadowDirtyRect(dirtyShadow, properties, &rrect);
 }
@@ -119,6 +120,9 @@ HWTEST_F(RSPropertiesPainterTest, GetShadowDirtyRect004, TestSize.Level1)
 {
     RectI dirtyShadow;
     RSProperties properties;
+    properties.SetShadowRadius(10.f);
+    std::shared_ptr<RSPath> rsPath = std::make_shared<RSPath>();
+    properties.SetClipBounds(rsPath);
     RectF rect;
     rect.SetAll(1.f, 1.f, 1.f, 1.f);
     RRect rrect(rect, 1.f, 1.f);
@@ -137,6 +141,8 @@ HWTEST_F(RSPropertiesPainterTest, GetShadowDirtyRect005, TestSize.Level1)
     RSProperties properties;
     properties.SetShadowElevation(0.f);
     RectF rect;
+    Color color(10, 10, 10, 10);
+    properties.SetShadowColor(color);
     rect.SetAll(1.f, 1.f, 1.f, 1.f);
     RRect rrect(rect, 1.f, 1.f);
     RSPropertiesPainter::GetShadowDirtyRect(dirtyShadow, properties, &rrect);
@@ -153,6 +159,8 @@ HWTEST_F(RSPropertiesPainterTest, GetShadowDirtyRect006, TestSize.Level1)
     RectI dirtyShadow;
     RSProperties properties;
     properties.SetShadowElevation(1.f);
+    Color color(10, 10, 10, 10);
+    properties.SetShadowColor(color);
     RectF rect;
     rect.SetAll(1.f, 1.f, 1.f, 1.f);
     RRect rrect(rect, 1.f, 1.f);
@@ -186,6 +194,7 @@ HWTEST_F(RSPropertiesPainterTest, DrawShadow002, TestSize.Level1)
     RSPaintFilterCanvas canvas(&skCanvas);
     canvas.SetCacheEnabled(true);
     RSProperties properties;
+    properties.SetShadowRadius(10.f);
     RRect rrect;
     RSPropertiesPainter::DrawShadow(properties, canvas, &rrect);
 }
@@ -201,6 +210,7 @@ HWTEST_F(RSPropertiesPainterTest, DrawShadow003, TestSize.Level1)
     SkCanvas skCanvas;
     RSPaintFilterCanvas canvas(&skCanvas);
     RSProperties properties;
+    properties.SetShadowRadius(10.f);
     std::shared_ptr<RSPath> rsPath = std::make_shared<RSPath>();
     SkPath skPath;
     rsPath->SetSkiaPath(skPath);
@@ -220,6 +230,7 @@ HWTEST_F(RSPropertiesPainterTest, DrawShadow004, TestSize.Level1)
     SkCanvas skCanvas;
     RSPaintFilterCanvas canvas(&skCanvas);
     RSProperties properties;
+    properties.SetShadowRadius(10.f);
     std::shared_ptr<RSPath> rsPath = std::make_shared<RSPath>();
     properties.SetClipBounds(rsPath);
     RRect rrect;
@@ -237,6 +248,7 @@ HWTEST_F(RSPropertiesPainterTest, DrawShadow005, TestSize.Level1)
     SkCanvas skCanvas;
     RSPaintFilterCanvas canvas(&skCanvas);
     RSProperties properties;
+    RSPropertiesPainter::DrawShadow(properties, canvas, nullptr);
     RectF rect;
     rect.SetAll(1.f, 1.f, 1.f, 1.f);
     RRect rrect(rect, 1.f, 1.f);
@@ -255,6 +267,8 @@ HWTEST_F(RSPropertiesPainterTest, DrawShadow006, TestSize.Level1)
     RSPaintFilterCanvas canvas(&skCanvas);
     RSProperties properties;
     properties.SetShadowElevation(0.f);
+    Color color(10, 10, 10, 10);
+    properties.SetShadowColor(color);
     RectF rect;
     rect.SetAll(1.f, 1.f, 1.f, 1.f);
     RRect rrect(rect, 1.f, 1.f);
@@ -273,6 +287,8 @@ HWTEST_F(RSPropertiesPainterTest, DrawShadow007, TestSize.Level1)
     RSPaintFilterCanvas canvas(&skCanvas);
     RSProperties properties;
     properties.SetShadowElevation(1.f);
+    Color color(10, 10, 10, 10);
+    properties.SetShadowColor(color);
     RectF rect;
     rect.SetAll(1.f, 1.f, 1.f, 1.f);
     RRect rrect(rect, 1.f, 1.f);
@@ -349,6 +365,26 @@ HWTEST_F(RSPropertiesPainterTest, DrawFrame001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: DrawFrame002
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertiesPainterTest, DrawFrame002, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.SetFrameGravity(Gravity::LEFT);
+    Vector4f frame(10.f, 10.f, 10.f, 10.f);
+    properties.SetFrame(frame);
+    SkCanvas skCanvas;
+    RSPaintFilterCanvas canvas(&skCanvas);
+    auto cmds = std::make_shared<DrawCmdList>(5, 5);
+    RSPropertiesPainter::DrawFrame(properties, canvas, cmds);
+    canvas.SetCacheEnabled(true);
+    RSPropertiesPainter::DrawFrame(properties, canvas, cmds);
+}
+
+/**
  * @tc.name: DrawBorder001
  * @tc.desc: test
  * @tc.type:FUNC
@@ -370,6 +406,39 @@ HWTEST_F(RSPropertiesPainterTest, DrawBorder001, TestSize.Level1)
 HWTEST_F(RSPropertiesPainterTest, DrawForegroundColor001, TestSize.Level1)
 {
     RSProperties properties;
+    SkCanvas skCanvas;
+    RSPropertiesPainter::DrawForegroundColor(properties, skCanvas);
+}
+
+/**
+ * @tc.name: DrawForegroundColor002
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertiesPainterTest, DrawForegroundColor002, TestSize.Level1)
+{
+    RSProperties properties;
+    Color color(10, 10, 10, 10);
+    properties.SetForegroundColor(color);
+    std::shared_ptr<RSPath> rsPath = std::make_shared<RSPath>();
+    properties.SetClipBounds(rsPath);
+    SkCanvas skCanvas;
+    RSPropertiesPainter::DrawForegroundColor(properties, skCanvas);
+}
+
+/**
+ * @tc.name: DrawForegroundColor003
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertiesPainterTest, DrawForegroundColor003, TestSize.Level1)
+{
+    RSProperties properties;
+    Color color(10, 10, 10, 10);
+    properties.SetForegroundColor(color);
+    properties.SetClipToBounds(true);
     SkCanvas skCanvas;
     RSPropertiesPainter::DrawForegroundColor(properties, skCanvas);
 }
@@ -402,6 +471,8 @@ HWTEST_F(RSPropertiesPainterTest, DrawMask002, TestSize.Level1)
     RSProperties properties;
     auto mask = std::make_shared<RSMask>();
     mask->SetMaskType(MaskType::SVG);
+    sk_sp<SkSVGDOM> svgDom;
+    mask->SetSvgDom(svgDom);
     properties.SetMask(mask);
     int32_t w = 1;
     int32_t h = 1;

@@ -22,6 +22,7 @@
 #include "pipeline/rs_base_render_node.h"
 #include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_context.h"
+#include "pipeline/rs_node_map.h"
 #include "pipeline/rs_proxy_render_node.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_render_thread.h"
@@ -500,6 +501,7 @@ HWTEST_F(RSRenderThreadVisitorTest, ProcessRootRenderNode007, TestSize.Level1)
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[4];
     auto rootnode = std::make_shared<RSRootRenderNode>(nodeId);
     rootnode->AttachRSSurfaceNode(surfacenode->GetId());
+    RSNodeMap::MutableInstance().RegisterNode(surfacenode);
     auto rsRenderThreadVisitor = std::make_shared<RSRenderThreadVisitor>();
     rootnode->Prepare(rsRenderThreadVisitor);
     rootnode->Process(rsRenderThreadVisitor);
