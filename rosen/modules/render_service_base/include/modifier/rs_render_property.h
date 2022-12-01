@@ -139,12 +139,13 @@ public:
 
     void Set(const T& value)
     {
-        if (stagingValue_ != value) {
-            stagingValue_ = value;
-            if (updateUIPropertyFunc_) {
-                updateUIPropertyFunc_(shared_from_this());
-            }
-            OnChange();
+        if (value == stagingValue_) {
+            return;
+        }
+        stagingValue_ = value;
+        OnChange();
+        if (updateUIPropertyFunc_) {
+            updateUIPropertyFunc_(shared_from_this());
         }
     }
 

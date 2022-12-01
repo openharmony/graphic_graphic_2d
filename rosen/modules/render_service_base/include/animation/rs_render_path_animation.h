@@ -78,9 +78,6 @@ private:
     void SetPathValue(const Vector2f& value, float tangent);
     void SetPathValue(const Vector4f& value, float tangent);
 
-    void SetAnimationValue(const Vector2f& value);
-    void SetAnimationValue(const Vector4f& value);
-
     void SetRotationValue(const float tangent);
 
     void SetRotation(const float tangent);
