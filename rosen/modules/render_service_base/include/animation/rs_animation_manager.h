@@ -41,7 +41,7 @@ public:
     const std::shared_ptr<RSRenderAnimation> GetAnimation(AnimationId id) const;
     void FilterAnimationByPid(pid_t pid);
 
-    bool Animate(int64_t time);
+    std::pair<bool, bool> Animate(int64_t time, bool nodeIsOnTheTree);
 
     // spring animation related
     void RegisterSpringAnimation(PropertyId propertyId, AnimationId animId);
