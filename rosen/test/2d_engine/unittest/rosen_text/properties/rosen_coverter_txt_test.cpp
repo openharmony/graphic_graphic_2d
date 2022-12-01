@@ -228,10 +228,12 @@ HWTEST_F(OH_Drawing_RosenConverterTest, OH_Drawing_RosenConverterTest008, TestSi
     txt::ParagraphStyle txtStyle;
     RosenConvertTypographyStyle(style, txtStyle);
     EXPECT_EQ(txtStyle.text_direction, txt::TextDirection::rtl);
+    EXPECT_EQ(TxtConvertRosenTextDirection(txtStyle.text_direction), style.textDirection_);
 
     style.textDirection_ = TextDirection::LTR;
     RosenConvertTypographyStyle(style, txtStyle);
     EXPECT_EQ(txtStyle.text_direction, txt::TextDirection::ltr);
+    EXPECT_EQ(TxtConvertRosenTextDirection(txtStyle.text_direction), style.textDirection_);
 }
 
 /*

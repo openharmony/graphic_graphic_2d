@@ -24,7 +24,7 @@
 #include "draw/pen.h"
 
 namespace rosen {
-enum TextDecoration {
+enum class TextDecoration {
     NONE = 0x0,
     UNDERLINE = 0x1,
     OVERLINE = 0x2,
@@ -90,7 +90,7 @@ public:
 class TextStyle {
 public:
     OHOS::Rosen::Drawing::Color color_ = OHOS::Rosen::Drawing::Color::COLOR_WHITE;
-    int decoration_ = TextDecoration::NONE;
+    TextDecoration decoration_ = TextDecoration::NONE;
     OHOS::Rosen::Drawing::Color decorationColor_ = OHOS::Rosen::Drawing::Color::COLOR_TRANSPARENT;
     TextDecorationStyle decorationStyle_ = TextDecorationStyle::SOLID;
     double decorationThicknessMultiplier_ = 1.0;

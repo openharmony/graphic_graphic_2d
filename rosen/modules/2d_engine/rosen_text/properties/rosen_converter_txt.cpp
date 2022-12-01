@@ -268,7 +268,7 @@ txt::PlaceholderRun RosenConvertPlaceholderRun(const PlaceholderRun& placeholder
 void RosenConvertTxtStyle(const TextStyle& textStyle, txt::TextStyle& txtStyle)
 {
     txtStyle.color = textStyle.color_.CastToColorQuad();
-    txtStyle.decoration = textStyle.decoration_;
+    txtStyle.decoration = RosenConvertTxtTextDecoration(textStyle.decoration_);
     txtStyle.decoration_color = textStyle.decorationColor_.CastToColorQuad();
     txtStyle.decoration_style = RosenConvertTxtTextDecorationStyle(textStyle.decorationStyle_);
     txtStyle.decoration_thickness_multiplier = textStyle.decorationThicknessMultiplier_;
