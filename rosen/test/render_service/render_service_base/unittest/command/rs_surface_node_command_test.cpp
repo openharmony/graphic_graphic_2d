@@ -14,8 +14,8 @@
  */
 
 #include "gtest/gtest.h"
-#include "include/pipeline/rs_surface_render_node.h"
 #include "include/command/rs_surface_node_command.h"
+#include "include/pipeline/rs_surface_render_node.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -33,7 +33,6 @@ void RSSurfaceNodeCommandTest::SetUpTestCase() {}
 void RSSurfaceNodeCommandTest::TearDownTestCase() {}
 void RSSurfaceNodeCommandTest::SetUp() {}
 void RSSurfaceNodeCommandTest::TearDown() {}
-
 
 /**
  * @tc.name: TestRSSurfaceNodeCommand002
@@ -201,5 +200,45 @@ HWTEST_F(RSSurfaceNodeCommandTest, TestRSSurfaceNodeCommand015, TestSize.Level1)
     NodeId id = -10;
     float alpha = 0;
     SurfaceNodeCommandHelper::SetContextAlpha(context, id, alpha);
+}
+
+/**
+ * @tc.name: SetContextMatrix001
+ * @tc.desc: test.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeCommandTest, SetContextMatrix001, TestSize.Level1)
+{
+    RSContext context;
+    NodeId id = -10;
+    SkMatrix matrix;
+    SurfaceNodeCommandHelper::SetContextMatrix(context, id, matrix);
+}
+
+/**
+ * @tc.name: SetAppFreeze001
+ * @tc.desc: test.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeCommandTest, SetAppFreeze001, TestSize.Level1)
+{
+    RSContext context;
+    NodeId id = -10;
+    bool isAppFreeze = false;
+    SurfaceNodeCommandHelper::SetAppFreeze(context, id, isAppFreeze);
+}
+
+/**
+ * @tc.name: SetContainerWindow001
+ * @tc.desc: test.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeCommandTest, SetContainerWindow001, TestSize.Level1)
+{
+    RSContext context;
+    NodeId id = -10;
+    bool hasContainerWindow = false;
+    float density = 0.1;
+    SurfaceNodeCommandHelper::SetContainerWindow(context, id, hasContainerWindow, density);
 }
 } // namespace OHOS::Rosen

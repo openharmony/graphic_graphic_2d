@@ -15,6 +15,7 @@
 
 #include <gtest/gtest.h>
 
+#include "pipeline/rs_proxy_render_node.h"
 #include "pipeline/rs_recording_canvas.h"
 
 using namespace testing;
@@ -77,6 +78,23 @@ HWTEST_F(RSRecordingCanvasTest, onDrawPath001, TestSize.Level1)
     SkPath path;
     SkPaint paint;
     canvas.onDrawPath(path, paint);
+}
+
+/**
+ * @tc.name: RSRecordingCanvas001
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRecordingCanvasTest, RSRecordingCanvas001, TestSize.Level1)
+{
+    int width = 1;
+    int height = 1;
+    RSRecordingCanvas canvas(width, height);
+    canvas.willRestore();
+    SkPaint skPaint;
+    canvas.onDrawBehind(skPaint);
+    canvas.Clear();
 }
 
 } // namespace Rosen
