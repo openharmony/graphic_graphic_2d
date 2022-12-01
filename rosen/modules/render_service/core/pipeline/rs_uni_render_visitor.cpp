@@ -943,8 +943,8 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
     }
 
     if (node.IsAppWindow()) {
-        auto visibleDirtyRegions = node.GetVisibleDirtyRegion().GetRegionRects();
-        for (auto rect : visibleDirtyRegions) {
+        auto visibleRegions = node.GetVisibleRegion().GetRegionRects();
+        for (auto rect : visibleRegions) {
             canvas_->GetVisibleRects().emplace_back(
                 SkRect::MakeLTRB(rect.left_, rect.top_, rect.right_, rect.bottom_));
         }
