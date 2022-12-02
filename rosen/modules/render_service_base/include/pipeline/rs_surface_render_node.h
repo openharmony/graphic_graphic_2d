@@ -523,11 +523,11 @@ public:
 
     bool IsStartAnimationFinished() const;
     void SetStartAnimationFinished();
-
-    void SetCachedResource(SurfaceNodeResource resourceTuple)
+    void SetCachedResource(SurfaceNodeResource resource)
     {
+        SetDirty();
         std::lock_guard<std::mutex> lock(cachedResourceMutex_);
-        cachedResource_ = resourceTuple;
+        cachedResource_ = resource;
     }
 
     SurfaceNodeResource GetCachedResource() const
