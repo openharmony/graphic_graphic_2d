@@ -202,6 +202,7 @@ void RSColdStartThread::PostPlayBackTask(std::shared_ptr<DrawCmdList> drawCmdLis
             RS_LOGD("RSMainThread SetCachedResource");
             auto cachedResource = node->GetCachedResource();
             node->SetCachedResource(resource);
+            RSMainThread::Instance()->RequestNextVSync();
             if (cachedResource.skSurface != nullptr) {
                 PostTask([this, cachedResource]() {
                     RS_LOGD("RSColdStartThread push cachedResource to queue");
