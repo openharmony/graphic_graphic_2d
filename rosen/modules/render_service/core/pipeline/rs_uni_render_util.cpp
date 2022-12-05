@@ -132,5 +132,48 @@ void RSUniRenderUtil::DrawCachedSurface(RSSurfaceRenderNode& node, RSPaintFilter
     surface->draw(&canvas, 0.0, 0.0, &paint);
     canvas.restore();
 }
+
+bool RSUniRenderUtil::ReleaseBuffer(RSSurfaceHandler& surfaceHandler)
+{
+    auto& consumer = surfaceHandler.GetConsumer();
+    if (consumer == nullptr) {
+        return false;
+    }
+
+    static bool firstEntry = true;
+    static std::function<void()> firstBufferRelease = nullptr;
+
+    auto& preBuffer = surfaceHandler.GetPreBuffer();
+    if (preBuffer.buffer != nullptr) {
+        if (firstEntry) {
+            // In order to avoid waiting for buffers' fence, we delay the first ReleaseBuffer to alloc 3 buffers.
+            // [planning] delete this function after Repaint parallelization.
+            firstEntry = false;
+            firstBufferRelease = [consumer, buffer = preBuffer.buffer, fence = preBuffer.releaseFence]() mutable {
+                auto ret = consumer->ReleaseBuffer(buffer, fence);
+                if (ret != OHOS::SURFACE_ERROR_OK) {
+                    RS_LOGE("RsDebug firstBufferRelease failed(ret: %d)!", ret);
+                }
+            };
+            preBuffer.Reset();
+            return true;
+        }
+        if (firstBufferRelease) {
+            firstBufferRelease();
+            firstBufferRelease = nullptr;
+        }
+        auto ret = consumer->ReleaseBuffer(preBuffer.buffer, preBuffer.releaseFence);
+        if (ret != OHOS::SURFACE_ERROR_OK) {
+            RS_LOGE("RsDebug surfaceHandler(id: %" PRIu64 ") ReleaseBuffer failed(ret: %d)!",
+                surfaceHandler.GetNodeId(), ret);
+            return false;
+        }
+        // reset prevBuffer if we release it successfully,
+        // to avoid releasing the same buffer next frame in some situations.
+        preBuffer.Reset();
+    }
+
+    return true;
+}
 } // namespace Rosen
 } // namespace OHOS
